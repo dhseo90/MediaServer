@@ -1,0 +1,9 @@
+{
+  "schema": "media-server.ui-raw-visual-capture.v1",
+  "caseId": "RULE-040",
+  "correlationId": "RULE-040:assert-product-boundary:completion",
+  "targetSelector": "body",
+  "screenshotSha256": "1d9738e9cc9ea935ab099675c0423e7e1b98e1b4d82dc76b2bc070a855c27e01",
+  "measurementSha256": "3b5a87aac8182ff856caf327ef6d2d814d927e58e2abbeda3f181639ba521f08",
+  "qualificationStatus": "unqualified-raw-capture"
+}

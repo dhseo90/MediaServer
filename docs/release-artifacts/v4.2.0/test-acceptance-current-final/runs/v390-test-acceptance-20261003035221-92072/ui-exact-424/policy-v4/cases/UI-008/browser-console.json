@@ -1,0 +1,210 @@
+{
+  "schema": "media-server.ui-browser-console.v1",
+  "caseId": "UI-008",
+  "correlationId": "UI-008:submit-form:completion",
+  "messages": [
+    {
+      "kind": "console",
+      "level": "error",
+      "text": "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+      "location": {
+        "url": "http://127.0.0.1:64566/auth/whoami",
+        "line": 0,
+        "column": 0,
+        "lineNumber": 0,
+        "columnNumber": 0
+      },
+      "callsite": "http://127.0.0.1:64566/auth/whoami:0:0",
+      "caseId": "UI-008",
+      "actionId": "",
+      "phase": "unowned",
+      "secretBearing": false,
+      "observedAtMs": 1791002381329,
+      "responseBindingCandidateCount": 1,
+      "responseBinding": {
+        "schema": "media-server.v390-ui-console-response-binding.v1",
+        "requestId": "native-request-2",
+        "caseRequestIdentity": "UI-008:request-2",
+        "caseRequestSequence": 2,
+        "responseRequestObjectObserved": true,
+        "requestIdentitySource": "playwright-response-request",
+        "requestKind": "application-fetch",
+        "requestOwnershipKind": "bootstrap",
+        "initiatorActionId": "",
+        "sameOrigin": true,
+        "method": "GET",
+        "status": 401,
+        "url": "http://127.0.0.1:64566/auth/whoami",
+        "path": "/auth/whoami"
+      },
+      "approval": {
+        "schema": "media-server.v390-ui-console-approval.v1",
+        "status": "APPROVED",
+        "contractKind": "anonymous-whoami-unauthorized",
+        "responseIdentity": "native-request-2|UI-008:request-2|2"
+      }
+    },
+    {
+      "kind": "console",
+      "level": "error",
+      "text": "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+      "location": {
+        "url": "http://127.0.0.1:64566/auth/whoami",
+        "line": 0,
+        "column": 0,
+        "lineNumber": 0,
+        "columnNumber": 0
+      },
+      "callsite": "http://127.0.0.1:64566/auth/whoami:0:0",
+      "caseId": "UI-008",
+      "actionId": "",
+      "phase": "unowned",
+      "secretBearing": false,
+      "observedAtMs": 1791002381347,
+      "responseBindingCandidateCount": 1,
+      "responseBinding": {
+        "schema": "media-server.v390-ui-console-response-binding.v1",
+        "requestId": "native-request-3",
+        "caseRequestIdentity": "UI-008:request-3",
+        "caseRequestSequence": 3,
+        "responseRequestObjectObserved": true,
+        "requestIdentitySource": "playwright-response-request",
+        "requestKind": "application-fetch",
+        "requestOwnershipKind": "background-refresh",
+        "initiatorActionId": "",
+        "sameOrigin": true,
+        "method": "GET",
+        "status": 401,
+        "url": "http://127.0.0.1:64566/auth/whoami",
+        "path": "/auth/whoami"
+      },
+      "approval": {
+        "schema": "media-server.v390-ui-console-approval.v1",
+        "status": "APPROVED",
+        "contractKind": "anonymous-whoami-unauthorized",
+        "responseIdentity": "native-request-3|UI-008:request-3|3"
+      }
+    },
+    {
+      "kind": "console",
+      "level": "verbose",
+      "text": "[DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) %o",
+      "location": {
+        "url": "http://127.0.0.1:64566/ops/users",
+        "line": 0,
+        "column": 0,
+        "lineNumber": 0,
+        "columnNumber": 0
+      },
+      "callsite": "http://127.0.0.1:64566/ops/users:0:0",
+      "caseId": "UI-008",
+      "actionId": "UI-008:submit-form",
+      "phase": "independent-readback",
+      "secretBearing": false,
+      "observedAtMs": 1791002382370
+    },
+    {
+      "kind": "console",
+      "level": "verbose",
+      "text": "[DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) %o",
+      "location": {
+        "url": "http://127.0.0.1:64566/ops/users",
+        "line": 0,
+        "column": 0,
+        "lineNumber": 0,
+        "columnNumber": 0
+      },
+      "callsite": "http://127.0.0.1:64566/ops/users:0:0",
+      "caseId": "UI-008",
+      "actionId": "UI-008:submit-form",
+      "phase": "independent-readback",
+      "secretBearing": false,
+      "observedAtMs": 1791002382370
+    },
+    {
+      "kind": "console",
+      "level": "verbose",
+      "text": "[DOM] Input elements should have autocomplete attributes (suggested: \"username\"): (More info: https://goo.gl/9p2vKq) %o",
+      "location": {
+        "url": "http://127.0.0.1:64566/ops/users",
+        "line": 0,
+        "column": 0,
+        "lineNumber": 0,
+        "columnNumber": 0
+      },
+      "callsite": "http://127.0.0.1:64566/ops/users:0:0",
+      "caseId": "UI-008",
+      "actionId": "UI-008:submit-form",
+      "phase": "independent-readback",
+      "secretBearing": false,
+      "observedAtMs": 1791002382370
+    },
+    {
+      "kind": "console",
+      "level": "error",
+      "text": "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+      "location": {
+        "url": "http://127.0.0.1:64566/auth/whoami",
+        "line": 0,
+        "column": 0,
+        "lineNumber": 0,
+        "columnNumber": 0
+      },
+      "callsite": "http://127.0.0.1:64566/auth/whoami:0:0",
+      "caseId": "UI-008",
+      "actionId": "",
+      "phase": "unowned",
+      "secretBearing": false,
+      "observedAtMs": 1791002382463,
+      "responseBindingCandidateCount": 1,
+      "responseBinding": {
+        "schema": "media-server.v390-ui-console-response-binding.v1",
+        "requestId": "native-request-17",
+        "caseRequestIdentity": "UI-008:request-17",
+        "caseRequestSequence": 17,
+        "responseRequestObjectObserved": true,
+        "requestIdentitySource": "playwright-response-request",
+        "requestKind": "application-fetch",
+        "requestOwnershipKind": "background-refresh",
+        "initiatorActionId": "",
+        "sameOrigin": true,
+        "method": "GET",
+        "status": 401,
+        "url": "http://127.0.0.1:64566/auth/whoami",
+        "path": "/auth/whoami"
+      },
+      "approval": {
+        "schema": "media-server.v390-ui-console-approval.v1",
+        "status": "APPROVED",
+        "contractKind": "anonymous-whoami-unauthorized",
+        "responseIdentity": "native-request-17|UI-008:request-17|17"
+      }
+    }
+  ],
+  "census": {
+    "schema": "media-server.v390-ui-console-census.v1",
+    "messageCount": 6,
+    "severeMessageCount": 3,
+    "unapprovedMessageCount": 0,
+    "entries": [
+      {
+        "messageClass": "console:verbose",
+        "callsite": "http://127.0.0.1:64566/ops/users:0:0",
+        "phase": "independent-readback",
+        "caseId": "UI-008",
+        "actionId": "UI-008:submit-form",
+        "approvalStatus": "NOT-APPLICABLE",
+        "count": 3
+      },
+      {
+        "messageClass": "resource-http-401",
+        "callsite": "http://127.0.0.1:64566/auth/whoami:0:0",
+        "phase": "unowned",
+        "caseId": "UI-008",
+        "actionId": "",
+        "approvalStatus": "APPROVED",
+        "count": 3
+      }
+    ]
+  }
+}

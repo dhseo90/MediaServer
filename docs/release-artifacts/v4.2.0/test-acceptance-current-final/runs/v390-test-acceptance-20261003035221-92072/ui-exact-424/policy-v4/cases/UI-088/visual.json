@@ -1,0 +1,9 @@
+{
+  "schema": "media-server.ui-raw-visual-capture.v1",
+  "caseId": "UI-088",
+  "correlationId": "UI-088:assert-visible-read-model:completion",
+  "targetSelector": "[data-v360-simulation-workspace-entry=\"simulation-route-family\"]",
+  "screenshotSha256": "e1966f5907a180a524ee5eff890d8e8f4b0cee057d9e3d8fc42b7189f2476069",
+  "measurementSha256": "bd7ab5cbc58f4542f154e51177ad78e22dc88c71d8fcc7b85dee3a3b674d6e86",
+  "qualificationStatus": "unqualified-raw-capture"
+}

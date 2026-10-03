@@ -1,0 +1,9 @@
+{
+  "schema": "media-server.ui-raw-visual-capture.v1",
+  "caseId": "SAFE-053",
+  "correlationId": "SAFE-053:assert-visible-read-model:completion",
+  "targetSelector": "[data-incident-rule-draft-route]",
+  "screenshotSha256": "e1898ae12cb9f7af6581483a5160a65201705494b41620c38b102068ead31c89",
+  "measurementSha256": "ecbbdd1a3def2036d25d92698d9a8253c619859c1c927a0a41f2c34cea657b24",
+  "qualificationStatus": "unqualified-raw-capture"
+}

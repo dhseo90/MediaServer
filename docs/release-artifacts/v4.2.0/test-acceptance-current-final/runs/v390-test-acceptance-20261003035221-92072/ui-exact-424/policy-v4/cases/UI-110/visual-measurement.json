@@ -1,0 +1,1013 @@
+{
+  "schema": "media-server.ui-browser-visual-measurement.v2",
+  "caseBinding": {
+    "canonicalCaseId": "UI-110",
+    "featureId": "UI-110",
+    "screenId": "UI-110",
+    "screenRoute": "/ops/rules",
+    "accountRole": "operator",
+    "targetSelector": "#opsVlmRuleDraftBridgeStatus"
+  },
+  "route": "/ops/rules",
+  "accountRole": "operator",
+  "requestedTheme": "light",
+  "appliedTheme": "light",
+  "mediaTheme": "light",
+  "viewport": {
+    "width": 390,
+    "height": 844,
+    "devicePixelRatio": 1
+  },
+  "document": {
+    "scrollWidth": 390,
+    "scrollHeight": 15241,
+    "clientWidth": 390,
+    "clientHeight": 844
+  },
+  "target": {
+    "selector": "#opsVlmRuleDraftBridgeStatus",
+    "visible": true,
+    "documentTarget": false,
+    "rect": {
+      "x": 33,
+      "y": 384.78125,
+      "left": 33,
+      "top": 384.78125,
+      "right": 357,
+      "bottom": 460.15625,
+      "width": 324,
+      "height": 75.375
+    }
+  },
+  "textSamples": [
+    {
+      "foreground": "rgb(92, 105, 114)",
+      "background": "rgb(243, 246, 248)",
+      "fontSizePx": 13,
+      "fontWeight": "850",
+      "rect": {
+        "x": 33,
+        "y": 11.8125,
+        "left": 33,
+        "top": 11.8125,
+        "right": 357,
+        "bottom": 73.8125,
+        "width": 324,
+        "height": 62
+      }
+    },
+    {
+      "foreground": "rgb(23, 28, 31)",
+      "background": "rgb(238, 243, 245)",
+      "fontSizePx": 14,
+      "fontWeight": "700",
+      "rect": {
+        "x": 50,
+        "y": 108.8125,
+        "left": 50,
+        "top": 108.8125,
+        "right": 101.953125,
+        "bottom": 127.8125,
+        "width": 51.953125,
+        "height": 19
+      }
+    },
+    {
+      "foreground": "rgb(92, 105, 114)",
+      "background": "rgb(238, 243, 245)",
+      "fontSizePx": 13,
+      "fontWeight": "400",
+      "rect": {
+        "x": 50,
+        "y": 128.8125,
+        "left": 50,
+        "top": 128.8125,
+        "right": 340,
+        "bottom": 204.1875,
+        "width": 290,
+        "height": 75.375
+      }
+    },
+    {
+      "foreground": "rgb(23, 28, 31)",
+      "background": "rgb(255, 255, 255)",
+      "fontSizePx": 16,
+      "fontWeight": "850",
+      "rect": {
+        "x": 50,
+        "y": 216.1875,
+        "left": 50,
+        "top": 216.1875,
+        "right": 206.796875,
+        "bottom": 252.1875,
+        "width": 156.796875,
+        "height": 36
+      }
+    },
+    {
+      "foreground": "rgb(23, 28, 31)",
+      "background": "rgb(255, 255, 255)",
+      "fontSizePx": 12,
+      "fontWeight": "400",
+      "rect": {
+        "x": 50,
+        "y": 260.1875,
+        "left": 50,
+        "top": 260.1875,
+        "right": 340,
+        "bottom": 520.1875,
+        "width": 290,
+        "height": 260
+      }
+    },
+    {
+      "foreground": "rgb(23, 28, 31)",
+      "background": "rgb(243, 246, 248)",
+      "fontSizePx": 15,
+      "fontWeight": "700",
+      "rect": {
+        "x": 33,
+        "y": 315.1875,
+        "left": 33,
+        "top": 315.1875,
+        "right": 357,
+        "bottom": 335.1875,
+        "width": 324,
+        "height": 20
+      }
+    },
+    {
+      "foreground": "rgb(92, 105, 114)",
+      "background": "rgb(243, 246, 248)",
+      "fontSizePx": 16,
+      "fontWeight": "400",
+      "rect": {
+        "x": 33,
+        "y": 335.1875,
+        "left": 33,
+        "top": 335.1875,
+        "right": 357,
+        "bottom": 384.78125,
+        "width": 324,
+        "height": 49.59375
+      }
+    },
+    {
+      "foreground": "rgb(92, 105, 114)",
+      "background": "rgb(243, 246, 248)",
+      "fontSizePx": 13,
+      "fontWeight": "400",
+      "rect": {
+        "x": 33,
+        "y": 384.78125,
+        "left": 33,
+        "top": 384.78125,
+        "right": 357,
+        "bottom": 460.15625,
+        "width": 324,
+        "height": 75.375
+      }
+    },
+    {
+      "foreground": "rgb(92, 105, 114)",
+      "background": "rgb(243, 246, 248)",
+      "fontSizePx": 13,
+      "fontWeight": "850",
+      "rect": {
+        "x": 33,
+        "y": 468.15625,
+        "left": 33,
+        "top": 468.15625,
+        "right": 357,
+        "bottom": 530.15625,
+        "width": 324,
+        "height": 62
+      }
+    },
+    {
+      "foreground": "rgb(23, 28, 31)",
+      "background": "rgb(255, 255, 255)",
+      "fontSizePx": 16,
+      "fontWeight": "850",
+      "rect": {
+        "x": 33,
+        "y": 538.15625,
+        "left": 33,
+        "top": 538.15625,
+        "right": 357,
+        "bottom": 578.15625,
+        "width": 324,
+        "height": 40
+      }
+    },
+    {
+      "foreground": "rgb(92, 105, 114)",
+      "background": "rgb(243, 246, 248)",
+      "fontSizePx": 16,
+      "fontWeight": "400",
+      "rect": {
+        "x": 33,
+        "y": 594.15625,
+        "left": 33,
+        "top": 594.15625,
+        "right": 357,
+        "bottom": 680.15625,
+        "width": 324,
+        "height": 86
+      }
+    },
+    {
+      "foreground": "rgb(23, 28, 31)",
+      "background": "rgb(243, 246, 248)",
+      "fontSizePx": 15,
+      "fontWeight": "700",
+      "rect": {
+        "x": 33,
+        "y": 726.15625,
+        "left": 33,
+        "top": 726.15625,
+        "right": 357,
+        "bottom": 746.15625,
+        "width": 324,
+        "height": 20
+      }
+    },
+    {
+      "foreground": "rgb(92, 105, 114)",
+      "background": "rgb(243, 246, 248)",
+      "fontSizePx": 16,
+      "fontWeight": "400",
+      "rect": {
+        "x": 33,
+        "y": 746.15625,
+        "left": 33,
+        "top": 746.15625,
+        "right": 357,
+        "bottom": 820.546875,
+        "width": 324,
+        "height": 74.390625
+      }
+    },
+    {
+      "foreground": "color(srgb 0.10949 0.270588 0.716471)",
+      "background": "color(srgb 0.875922 0.902824 0.978588)",
+      "fontSizePx": 11,
+      "fontWeight": "900",
+      "rect": {
+        "x": 33,
+        "y": 828.546875,
+        "left": 33,
+        "top": 828.546875,
+        "right": 105.90625,
+        "bottom": 852.546875,
+        "width": 72.90625,
+        "height": 24
+      }
+    },
+    {
+      "foreground": "color(srgb 0.10949 0.270588 0.716471)",
+      "background": "color(srgb 0.875922 0.902824 0.978588)",
+      "fontSizePx": 11,
+      "fontWeight": "900",
+      "rect": {
+        "x": 113.90625,
+        "y": 828.546875,
+        "left": 113.90625,
+        "top": 828.546875,
+        "right": 208.328125,
+        "bottom": 852.546875,
+        "width": 94.421875,
+        "height": 24
+      }
+    }
+  ],
+  "focus": {
+    "focusableCount": 99,
+    "applicable": true
+  },
+  "liveVideo": null,
+  "postActionVisualOwner": {
+    "schema": "media-server.v390-ui-post-action-visual-target.v1",
+    "caseId": "UI-110",
+    "actionId": "UI-110:assert-visible-read-model",
+    "completionMode": "request",
+    "sourceSelectorSha256": "4041a6c177894b13dadb717a44a81b1a9f5582d719e35c7840c6b653ca853b6d",
+    "sourceOwnerSelectorSha256": "4041a6c177894b13dadb717a44a81b1a9f5582d719e35c7840c6b653ca853b6d",
+    "requestedState": "visible",
+    "observedRoute": "/ops/rules",
+    "navigationEpoch": 1,
+    "ownerCandidateCount": 1,
+    "sourceSelectorRewaited": false,
+    "selector": "#opsVlmRuleDraftBridgeStatus",
+    "bindingKind": "post-action-visible-source-owner",
+    "sourceDetached": false,
+    "sourceHidden": false,
+    "epochRelation": "same-document"
+  },
+  "focusSamples": [
+    {
+      "index": 0,
+      "focusIdentity": "body > main > section > div:nth-of-type(4) > section:nth-of-type(2) > div:nth-of-type(2) > article:nth-of-type(1) > div:nth-of-type(2) > a",
+      "tag": "a",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 1,
+      "focusIdentity": "#opsRulesPrereqProfilesAction",
+      "tag": "button",
+      "id": "opsRulesPrereqProfilesAction",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 2,
+      "focusIdentity": "#opsRulesPrereqTemplatesAction",
+      "tag": "button",
+      "id": "opsRulesPrereqTemplatesAction",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 3,
+      "focusIdentity": "#opsRulesPrereqVaRulesAction",
+      "tag": "button",
+      "id": "opsRulesPrereqVaRulesAction",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 4,
+      "focusIdentity": "#opsScenarioBuilderApply",
+      "tag": "button",
+      "id": "opsScenarioBuilderApply",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 5,
+      "focusIdentity": "#opsScenarioBuilderType",
+      "tag": "select",
+      "id": "opsScenarioBuilderType",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "solid",
+      "outlineWidth": "3px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 6,
+      "focusIdentity": "#opsScenarioBuilderPreset",
+      "tag": "select",
+      "id": "opsScenarioBuilderPreset",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "solid",
+      "outlineWidth": "3px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 7,
+      "focusIdentity": "#opsScenarioBuilderClasses",
+      "tag": "input",
+      "id": "opsScenarioBuilderClasses",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "solid",
+      "outlineWidth": "3px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 8,
+      "focusIdentity": "body > main > section > div:nth-of-type(5) > section:nth-of-type(1) > div:nth-of-type(3) > details > summary",
+      "tag": "summary",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 9,
+      "focusIdentity": "#opsVlmRuleDraftKindSelect",
+      "tag": "select",
+      "id": "opsVlmRuleDraftKindSelect",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "solid",
+      "outlineWidth": "3px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 10,
+      "focusIdentity": "#opsVlmRuleDraftRefresh",
+      "tag": "button",
+      "id": "opsVlmRuleDraftRefresh",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 11,
+      "focusIdentity": "#opsRulesFilterInput",
+      "tag": "input",
+      "id": "opsRulesFilterInput",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "solid",
+      "outlineWidth": "3px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 12,
+      "focusIdentity": "#opsAddVaRuleBtn",
+      "tag": "button",
+      "id": "opsAddVaRuleBtn",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 13,
+      "focusIdentity": "#opsAddEventRuleBtn",
+      "tag": "button",
+      "id": "opsAddEventRuleBtn",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 14,
+      "focusIdentity": "#opsAddProfileBtn",
+      "tag": "button",
+      "id": "opsAddProfileBtn",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 15,
+      "focusIdentity": "#opsCreateVaRuleBtn",
+      "tag": "button",
+      "id": "opsCreateVaRuleBtn",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 16,
+      "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(2) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(1) > td:nth-of-type(7) > div > button:nth-of-type(1)",
+      "tag": "button",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 17,
+      "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(2) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(1) > td:nth-of-type(7) > div > button:nth-of-type(2)",
+      "tag": "button",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 18,
+      "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(2) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(1) > td:nth-of-type(7) > div > button:nth-of-type(3)",
+      "tag": "button",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 19,
+      "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(2) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(1) > td:nth-of-type(9) > div > button",
+      "tag": "button",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 20,
+      "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(2) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(1) > td:nth-of-type(9) > div > details > summary",
+      "tag": "summary",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 21,
+      "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(2) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(2) > td:nth-of-type(7) > div > button:nth-of-type(1)",
+      "tag": "button",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 22,
+      "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(2) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(2) > td:nth-of-type(7) > div > button:nth-of-type(2)",
+      "tag": "button",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 23,
+      "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(2) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(2) > td:nth-of-type(7) > div > button:nth-of-type(3)",
+      "tag": "button",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 24,
+      "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(2) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(2) > td:nth-of-type(9) > div > button",
+      "tag": "button",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 25,
+      "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(2) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(2) > td:nth-of-type(9) > div > details > summary",
+      "tag": "summary",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 26,
+      "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(2) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(3) > td:nth-of-type(7) > div > button:nth-of-type(1)",
+      "tag": "button",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 27,
+      "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(2) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(3) > td:nth-of-type(7) > div > button:nth-of-type(2)",
+      "tag": "button",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 28,
+      "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(2) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(3) > td:nth-of-type(7) > div > button:nth-of-type(3)",
+      "tag": "button",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 29,
+      "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(2) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(3) > td:nth-of-type(9) > div > button",
+      "tag": "button",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 30,
+      "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(2) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(3) > td:nth-of-type(9) > div > details > summary",
+      "tag": "summary",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 31,
+      "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(2) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(4) > td:nth-of-type(7) > div > button:nth-of-type(1)",
+      "tag": "button",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 32,
+      "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(2) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(4) > td:nth-of-type(7) > div > button:nth-of-type(2)",
+      "tag": "button",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 33,
+      "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(2) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(4) > td:nth-of-type(7) > div > button:nth-of-type(3)",
+      "tag": "button",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 34,
+      "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(2) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(4) > td:nth-of-type(9) > div > button",
+      "tag": "button",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 35,
+      "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(2) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(4) > td:nth-of-type(9) > div > details > summary",
+      "tag": "summary",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 36,
+      "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(2) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(5) > td:nth-of-type(7) > div > button:nth-of-type(1)",
+      "tag": "button",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 37,
+      "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(2) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(5) > td:nth-of-type(7) > div > button:nth-of-type(2)",
+      "tag": "button",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 38,
+      "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(2) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(5) > td:nth-of-type(7) > div > button:nth-of-type(3)",
+      "tag": "button",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 39,
+      "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(2) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(5) > td:nth-of-type(9) > div > button",
+      "tag": "button",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 40,
+      "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(2) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(5) > td:nth-of-type(9) > div > details > summary",
+      "tag": "summary",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 41,
+      "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(2) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(6) > td:nth-of-type(7) > div > button:nth-of-type(1)",
+      "tag": "button",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 42,
+      "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(2) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(6) > td:nth-of-type(7) > div > button:nth-of-type(2)",
+      "tag": "button",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 43,
+      "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(2) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(6) > td:nth-of-type(7) > div > button:nth-of-type(3)",
+      "tag": "button",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 44,
+      "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(2) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(6) > td:nth-of-type(9) > div > button",
+      "tag": "button",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 45,
+      "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(2) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(6) > td:nth-of-type(9) > div > details > summary",
+      "tag": "summary",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 46,
+      "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(2) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(7) > td:nth-of-type(7) > div > button:nth-of-type(1)",
+      "tag": "button",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 47,
+      "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(2) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(7) > td:nth-of-type(7) > div > button:nth-of-type(2)",
+      "tag": "button",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 48,
+      "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(2) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(7) > td:nth-of-type(7) > div > button:nth-of-type(3)",
+      "tag": "button",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 49,
+      "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(2) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(7) > td:nth-of-type(9) > div > button",
+      "tag": "button",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 50,
+      "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(2) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(7) > td:nth-of-type(9) > div > details > summary",
+      "tag": "summary",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 51,
+      "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(2) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(8) > td:nth-of-type(7) > div > button:nth-of-type(1)",
+      "tag": "button",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 52,
+      "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(2) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(8) > td:nth-of-type(7) > div > button:nth-of-type(2)",
+      "tag": "button",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 53,
+      "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(2) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(8) > td:nth-of-type(7) > div > button:nth-of-type(3)",
+      "tag": "button",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 54,
+      "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(2) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(8) > td:nth-of-type(9) > div > button",
+      "tag": "button",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 55,
+      "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(2) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(8) > td:nth-of-type(9) > div > details > summary",
+      "tag": "summary",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 56,
+      "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(2) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(9) > td:nth-of-type(7) > div > button:nth-of-type(1)",
+      "tag": "button",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 57,
+      "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(2) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(9) > td:nth-of-type(7) > div > button:nth-of-type(2)",
+      "tag": "button",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 58,
+      "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(2) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(9) > td:nth-of-type(7) > div > button:nth-of-type(3)",
+      "tag": "button",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 59,
+      "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(2) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(9) > td:nth-of-type(9) > div > button",
+      "tag": "button",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 60,
+      "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(2) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(9) > td:nth-of-type(9) > div > details > summary",
+      "tag": "summary",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 61,
+      "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(2) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(10) > td:nth-of-type(7) > div > button:nth-of-type(1)",
+      "tag": "button",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 62,
+      "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(2) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(10) > td:nth-of-type(7) > div > button:nth-of-type(2)",
+      "tag": "button",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 63,
+      "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(2) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(10) > td:nth-of-type(7) > div > button:nth-of-type(3)",
+      "tag": "button",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    }
+  ]
+}

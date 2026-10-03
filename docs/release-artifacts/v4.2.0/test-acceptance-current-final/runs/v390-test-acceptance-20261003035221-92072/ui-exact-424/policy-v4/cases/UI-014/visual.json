@@ -1,0 +1,9 @@
+{
+  "schema": "media-server.ui-raw-visual-capture.v1",
+  "caseId": "UI-014",
+  "correlationId": "UI-014:fill-control:completion",
+  "targetSelector": "#opsIncidentSearchInput",
+  "screenshotSha256": "03d256b18cc0c45f145a3453148d105016ac3a691505a75c725631cca1589bdc",
+  "measurementSha256": "b35445afa3182dba61a59240d0fc897bcad26cff4a27d56bc1cbc1227faccd35",
+  "qualificationStatus": "unqualified-raw-capture"
+}

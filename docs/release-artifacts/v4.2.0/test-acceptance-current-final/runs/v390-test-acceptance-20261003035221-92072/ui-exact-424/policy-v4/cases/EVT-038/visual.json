@@ -1,0 +1,9 @@
+{
+  "schema": "media-server.ui-raw-visual-capture.v1",
+  "caseId": "EVT-038",
+  "correlationId": "EVT-038:execute-persisted-action:completion",
+  "targetSelector": "#alertDeliveryDryRun",
+  "screenshotSha256": "a8047a1865cb7a6c1a81a686cfd56949511860ca60c22804caedba4708c88e77",
+  "measurementSha256": "b567b08a7c4d87f4fe39476a5629cc949a251f9ddf7803299eb15c6496c8fe6a",
+  "qualificationStatus": "unqualified-raw-capture"
+}

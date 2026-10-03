@@ -1,0 +1,2738 @@
+{
+  "schema": "media-server.v390-ui-native-interaction-trace.v2",
+  "caseId": "UI-007",
+  "featureId": "UI-007",
+  "dispatch": "playwright-native",
+  "requested": {
+    "schema": "media-server.v390-ui-canonical-requested.v1",
+    "route": "/invite/setup",
+    "accountRole": "anonymous",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "theme": "light",
+    "controlAction": {
+      "selector": "[data-testid=\"auth-invite-setup-form\"]",
+      "actionAnchor": "InviteSetupPageHtml"
+    }
+  },
+  "observed": {
+    "schema": "media-server.v390-ui-runtime-observed.v1",
+    "screenRoute": "/invite/setup",
+    "accountRole": "anonymous",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "theme": "light",
+    "controlAction": {
+      "selector": "[data-testid=\"auth-invite-setup-form\"] button[type=\"submit\"]",
+      "applicability": "required",
+      "exists": true,
+      "visible": true,
+      "enabled": true
+    },
+    "provenance": {
+      "screenRoute": "browser-location",
+      "accountRole": "session-whoami",
+      "viewport": "browser-inner-size",
+      "theme": "browser-media-query",
+      "controlAction": "dom-selector-state"
+    }
+  },
+  "navigation": {
+    "status": 200,
+    "url": "http://127.0.0.1:64566/invite/setup",
+    "invocationId": "UI-007:initial-document-navigation",
+    "requestKind": "document-navigation",
+    "resourceType": "document",
+    "method": "GET",
+    "requestedPath": "/invite/setup",
+    "observedPath": "/invite/setup",
+    "sameOrigin": true,
+    "requestAttemptCount": 1,
+    "requestCandidateCount": 1,
+    "responseCandidateCount": 1,
+    "requestResponseBound": true,
+    "correlationObserved": false,
+    "redirectCount": 0,
+    "retryCount": 0,
+    "reloadCount": 0,
+    "unownedNavigationCount": 0,
+    "additionalFetchCount": 0,
+    "requestReissued": false,
+    "totalDocumentNavigationCount": 1,
+    "orderedDocumentNavigations": [
+      {
+        "sequence": 2,
+        "responseSequence": 3,
+        "invocationId": "UI-007:initial-document-navigation",
+        "navigationKind": "initial-document-navigation",
+        "method": "GET",
+        "path": "/invite/setup",
+        "resourceType": "document",
+        "sameOrigin": true,
+        "correlationPresent": false,
+        "correlationDigest": "",
+        "redirected": false,
+        "redirectedFromRequestId": "",
+        "requestId": "native-request-1",
+        "caseRequestIdentity": "UI-007:request-1",
+        "caseRequestSequence": 1,
+        "responseStatus": 200,
+        "responseBound": true,
+        "responseRequestId": "native-request-1",
+        "responseRequestObjectObserved": true,
+        "responseLocationPath": "",
+        "navigationEpoch": 1,
+        "ledgerOwner": "page",
+        "sourceOwner": "page",
+        "ownerPhase": "bootstrap",
+        "initiatorActionId": "",
+        "requestOwnershipKind": "initial-page-load",
+        "actionInvocationId": "",
+        "navigationInvocationId": "UI-007:initial-document-navigation"
+      }
+    ],
+    "listenerStartSequence": 1,
+    "listenerEndSequence": null,
+    "listenerActive": true,
+    "listenerInstalledBeforeFirstNavigation": true,
+    "navigationAfterListenerEndCount": 0
+  },
+  "setup": [
+    {
+      "kind": "bind-role-session",
+      "setupId": "UI-007:role-session",
+      "accountRole": "anonymous",
+      "required": false,
+      "status": "PASS"
+    },
+    {
+      "kind": "seed-reviewed-state",
+      "setupId": "UI-007:reviewed-state",
+      "strategy": "form-submit",
+      "route": "/invite/setup",
+      "semanticCallChainSha256": "edf5ae4d1b033bab5dd63ad1498c6cdcc25f31fe314751d998be99d3830b1f5a",
+      "persistedMutation": true,
+      "fixtureId": "ui-007-review4-fixture",
+      "beforeSnapshotRef": "UI-007:before-product-state",
+      "status": "PASS"
+    },
+    {
+      "kind": "prepare-form-submit-ui-lifecycle",
+      "schema": "media-server.v390-ui-form-lifecycle.v1",
+      "adapter": "auth-standard-submit",
+      "formSelector": "[data-testid=\"auth-invite-setup-form\"]",
+      "submitSelector": "[data-testid=\"auth-invite-setup-form\"] button[type=\"submit\"]",
+      "entrySelector": null,
+      "fieldControls": [
+        {
+          "name": "token",
+          "control": "fill"
+        },
+        {
+          "name": "password",
+          "control": "fill"
+        },
+        {
+          "name": "confirm",
+          "control": "fill"
+        }
+      ],
+      "phases": [
+        "enter-form-mode",
+        "populate-typed-controls",
+        "activate-submit-control",
+        "capture-correlated-response-identity",
+        "authoritative-readback"
+      ],
+      "deferredFixture": {
+        "prepared": false
+      },
+      "status": "PASS"
+    }
+  ],
+  "inputs": [
+    {
+      "inputId": "UI-007:semantic-expectation",
+      "kind": "reviewed-semantic-expectation",
+      "valueSha256": "da98e84cf0f0acdff3d28f1fb9556a5688d7b731e3a2f1fd157454b34b2b1a5c",
+      "sensitive": false
+    },
+    {
+      "inputId": "UI-007:form-values",
+      "kind": "form-values",
+      "actualValue": {
+        "token": {
+          "secretRef": "UI-007:fixture-invite-token",
+          "redacted": true
+        },
+        "password": {
+          "secretRef": "UI-007:fixture-password",
+          "redacted": true
+        },
+        "confirm": {
+          "secretRef": "UI-007:fixture-password",
+          "redacted": true
+        }
+      },
+      "fields": [
+        "token",
+        "password",
+        "confirm"
+      ],
+      "submit": true,
+      "seedReference": {
+        "fixtureId": "ui-007-review4-fixture",
+        "accountRole": "anonymous",
+        "route": "/invite/setup"
+      },
+      "sensitive": true,
+      "redacted": true
+    }
+  ],
+  "actions": [
+    {
+      "kind": "wait-visible",
+      "dispatch": "playwright-native",
+      "actionId": "UI-007:wait-visible",
+      "selector": "[data-testid=\"auth-invite-setup-form\"] button[type=\"submit\"]",
+      "selectorSource": "review4-canonical-form-submit-control",
+      "status": "PASS"
+    },
+    {
+      "kind": "submit-form",
+      "dispatch": "playwright-native",
+      "actionId": "UI-007:submit-form",
+      "selector": "[data-testid=\"auth-invite-setup-form\"]",
+      "submitSelector": "[data-testid=\"auth-invite-setup-form\"] button[type=\"submit\"]",
+      "method": "POST",
+      "action": "/invite/setup",
+      "fields": [
+        "token",
+        "password",
+        "confirm"
+      ],
+      "inputId": "UI-007:form-values",
+      "uiLifecycle": {
+        "schema": "media-server.v390-ui-form-lifecycle.v1",
+        "adapter": "auth-standard-submit",
+        "formSelector": "[data-testid=\"auth-invite-setup-form\"]",
+        "submitSelector": "[data-testid=\"auth-invite-setup-form\"] button[type=\"submit\"]",
+        "entrySelector": null,
+        "fieldControls": [
+          {
+            "name": "token",
+            "control": "fill"
+          },
+          {
+            "name": "password",
+            "control": "fill"
+          },
+          {
+            "name": "confirm",
+            "control": "fill"
+          }
+        ],
+        "requiredPhases": [
+          "enter-form-mode",
+          "populate-typed-controls",
+          "activate-submit-control",
+          "capture-correlated-response-identity",
+          "authoritative-readback"
+        ]
+      },
+      "semanticCompletion": {
+        "schema": "media-server.v390-ui-action-completion.v2",
+        "required": true,
+        "phase": "primary-action",
+        "actionId": "UI-007:submit-form",
+        "actionKind": "submit-form",
+        "controlSelector": "[data-testid=\"auth-invite-setup-form\"] button[type=\"submit\"]",
+        "linkedPrimaryActionId": null,
+        "completionMode": "request",
+        "requiredSource": "endpoint-dom",
+        "correlationId": "UI-007:submit-form:completion",
+        "request": {
+          "initiatorActionId": "UI-007:submit-form",
+          "requestOwnershipKind": "primary-action",
+          "correlationHeader": "x-media-server-correlation-id",
+          "correlationId": "UI-007:submit-form:completion",
+          "correlationSource": "request-header",
+          "method": "POST",
+          "urlPathTemplate": "/invite/setup",
+          "urlPath": "/invite/setup",
+          "pathParameters": {},
+          "allowedStatuses": [
+            302
+          ]
+        },
+        "localTransition": null,
+        "expectedBehaviorSha256": "da98e84cf0f0acdff3d28f1fb9556a5688d7b731e3a2f1fd157454b34b2b1a5c",
+        "readback": {
+          "identity": "independent-readback:scripts/internal/verify_auth_workflow.sh#run_users:invite-setup-runtime#8851f8bc912fb17f296ed1d4cbef4dafc68967f6ecd7eb002abd566fceb77794",
+          "expectedStateIdentity": "product-state:src/ingress/product_ui_auth_pages.cpp#InviteSetupPageHtml#159cfa63a437971381746915fc4a59add1253a3f786d9e62052df793cc09ab5b",
+          "expectedBehaviorSha256": "da98e84cf0f0acdff3d28f1fb9556a5688d7b731e3a2f1fd157454b34b2b1a5c",
+          "allowedObservationSources": [
+            "browser-dom",
+            "readback-request",
+            "event-record",
+            "server-log"
+          ],
+          "staticLocatorIsNotRuntimePass": true
+        },
+        "readbackIdentity": "independent-readback:scripts/internal/verify_auth_workflow.sh#run_users:invite-setup-runtime#8851f8bc912fb17f296ed1d4cbef4dafc68967f6ecd7eb002abd566fceb77794",
+        "readbackExpectation": {
+          "submitted": true,
+          "method": "POST",
+          "action": "/invite/setup",
+          "fields": [
+            "token",
+            "password",
+            "confirm"
+          ]
+        },
+        "attestedAlternatives": [
+          "persisted-readback",
+          "event-record",
+          "server-log"
+        ]
+      },
+      "executed": true,
+      "correlationId": "UI-007:submit-form:completion",
+      "completionPhase": "primary-action",
+      "actionKind": "submit-form",
+      "controlSelector": "[data-testid=\"auth-invite-setup-form\"] button[type=\"submit\"]",
+      "semanticCompletionRequired": true,
+      "completionMode": "request",
+      "expectedReadbackIdentity": "independent-readback:scripts/internal/verify_auth_workflow.sh#run_users:invite-setup-runtime#8851f8bc912fb17f296ed1d4cbef4dafc68967f6ecd7eb002abd566fceb77794",
+      "expectedBehaviorSha256": "da98e84cf0f0acdff3d28f1fb9556a5688d7b731e3a2f1fd157454b34b2b1a5c",
+      "expectedReadbackExpectation": {
+        "submitted": true,
+        "method": "POST",
+        "action": "/invite/setup",
+        "fields": [
+          "token",
+          "password",
+          "confirm"
+        ]
+      },
+      "expectedEndpoint": {
+        "correlationId": "UI-007:submit-form:completion",
+        "method": "POST",
+        "urlPath": "/invite/setup",
+        "urlPathTemplate": "/invite/setup",
+        "allowedStatuses": [
+          302
+        ],
+        "initiatorActionId": "UI-007:submit-form",
+        "requestOwnershipKind": "primary-action",
+        "runtimeBindingSource": "native-completion-contract"
+      },
+      "expectedLocalTransition": null,
+      "expectedNavigationBinding": null,
+      "allowedCompletionSources": [
+        "endpoint-dom",
+        "persisted-readback",
+        "event-record",
+        "server-log"
+      ],
+      "executedControlSelector": "[data-testid=\"auth-invite-setup-form\"] button[type=\"submit\"]",
+      "executedKind": "submit",
+      "formUiLifecycle": {
+        "schema": "media-server.v390-ui-form-lifecycle.v1",
+        "adapter": "auth-standard-submit",
+        "formSelector": "[data-testid=\"auth-invite-setup-form\"]",
+        "submitSelector": "[data-testid=\"auth-invite-setup-form\"] button[type=\"submit\"]",
+        "entrySelector": null,
+        "fieldControls": [
+          {
+            "name": "token",
+            "control": "fill"
+          },
+          {
+            "name": "password",
+            "control": "fill"
+          },
+          {
+            "name": "confirm",
+            "control": "fill"
+          }
+        ],
+        "phases": [
+          "enter-form-mode",
+          "populate-typed-controls",
+          "activate-submit-control",
+          "capture-correlated-response-identity",
+          "authoritative-readback"
+        ],
+        "deferredFixture": {
+          "prepared": false
+        }
+      },
+      "typedFormInputs": [
+        {
+          "name": "token",
+          "control": "fill",
+          "valueSource": "runtime-secret-ref",
+          "status": "PASS"
+        },
+        {
+          "name": "password",
+          "control": "fill",
+          "valueSource": "runtime-secret-ref",
+          "status": "PASS"
+        },
+        {
+          "name": "confirm",
+          "control": "fill",
+          "valueSource": "runtime-secret-ref",
+          "status": "PASS"
+        }
+      ],
+      "runtimeSecretRedaction": {
+        "schema": "media-server.v390-ui-runtime-secret-redaction.v1",
+        "status": "PASS",
+        "registeredSecrets": 2,
+        "redactedTextNodes": 0,
+        "redactedValues": 0,
+        "redactedAttributes": 0,
+        "residualSecrets": 0
+      },
+      "before": {
+        "selector": "[data-testid=\"auth-invite-setup-form\"] button[type=\"submit\"]",
+        "candidateCount": 1,
+        "navigationEpoch": 1,
+        "exists": true,
+        "visible": true,
+        "tag": "button",
+        "hidden": false,
+        "disabled": false,
+        "readOnly": false,
+        "open": false,
+        "href": "",
+        "title": "",
+        "ariaLabel": "",
+        "ariaPressed": "",
+        "text": "비밀번호 설정",
+        "value": "",
+        "checked": false,
+        "selectedValues": [],
+        "optionValues": [],
+        "url": "http://127.0.0.1:64566/invite/setup"
+      },
+      "after": {
+        "selector": "[data-testid=\"auth-invite-setup-form\"] button[type=\"submit\"]",
+        "candidateCount": 0,
+        "navigationEpoch": 3,
+        "exists": false,
+        "visible": false,
+        "tag": "",
+        "hidden": false,
+        "disabled": false,
+        "readOnly": false,
+        "open": false,
+        "href": "",
+        "title": "",
+        "ariaLabel": "",
+        "ariaPressed": "",
+        "text": "",
+        "value": "",
+        "checked": false,
+        "selectedValues": [],
+        "optionValues": [],
+        "url": "http://127.0.0.1:64566/login"
+      },
+      "status": "PASS",
+      "formResponseIdentity": {
+        "schema": "media-server.v390-ui-document-form-submit-binding.v1",
+        "requestId": "native-request-4",
+        "caseRequestIdentity": "UI-007:request-4",
+        "caseRequestSequence": 4,
+        "initiatorActionId": "UI-007:submit-form",
+        "requestOwnershipKind": "primary-action",
+        "method": "POST",
+        "path": "/invite/setup",
+        "status": 302,
+        "requestKind": "document-navigation",
+        "resourceType": "document",
+        "sameOrigin": true,
+        "correlationObserved": false,
+        "responseRequestObjectObserved": true,
+        "redirectCount": 1,
+        "redirectPath": "/login",
+        "redirectRequestId": "native-request-5",
+        "requestAttemptCount": 1,
+        "responseCandidateCount": 1,
+        "reissueCount": 0,
+        "adapter": "auth-standard-submit",
+        "productIdentity": null
+      },
+      "completionStatus": "awaiting-independent-readback"
+    },
+    {
+      "kind": "verify-independent-readback",
+      "dispatch": "playwright-native",
+      "actionId": "UI-007:verify-independent-readback",
+      "expectedStateIdentity": "product-state:src/ingress/product_ui_auth_pages.cpp#InviteSetupPageHtml#159cfa63a437971381746915fc4a59add1253a3f786d9e62052df793cc09ab5b",
+      "expectedBehaviorSha256": "da98e84cf0f0acdff3d28f1fb9556a5688d7b731e3a2f1fd157454b34b2b1a5c",
+      "readbackIdentity": "independent-readback:scripts/internal/verify_auth_workflow.sh#run_users:invite-setup-runtime#8851f8bc912fb17f296ed1d4cbef4dafc68967f6ecd7eb002abd566fceb77794",
+      "readbackLocator": {
+        "file": "scripts/internal/verify_auth_workflow.sh",
+        "symbol": "run_users:invite-setup-runtime",
+        "contextSha256": "8851f8bc912fb17f296ed1d4cbef4dafc68967f6ecd7eb002abd566fceb77794"
+      },
+      "verifierCommand": "verify-auth-users",
+      "runtimeEvidenceRequired": true,
+      "staticLocatorIsNotRuntimePass": true,
+      "semanticCompletion": {
+        "schema": "media-server.v390-ui-action-completion.v2",
+        "required": true,
+        "phase": "independent-readback",
+        "actionId": "UI-007:verify-independent-readback",
+        "actionKind": "verify-independent-readback",
+        "controlSelector": null,
+        "linkedPrimaryActionId": "UI-007:submit-form",
+        "completionMode": "readback",
+        "requiredSource": "browser-dom-readback",
+        "correlationId": "UI-007:verify-independent-readback:completion",
+        "request": null,
+        "localTransition": null,
+        "expectedBehaviorSha256": "da98e84cf0f0acdff3d28f1fb9556a5688d7b731e3a2f1fd157454b34b2b1a5c",
+        "readback": {
+          "identity": "independent-readback:scripts/internal/verify_auth_workflow.sh#run_users:invite-setup-runtime#8851f8bc912fb17f296ed1d4cbef4dafc68967f6ecd7eb002abd566fceb77794",
+          "expectedStateIdentity": "product-state:src/ingress/product_ui_auth_pages.cpp#InviteSetupPageHtml#159cfa63a437971381746915fc4a59add1253a3f786d9e62052df793cc09ab5b",
+          "expectedBehaviorSha256": "da98e84cf0f0acdff3d28f1fb9556a5688d7b731e3a2f1fd157454b34b2b1a5c",
+          "allowedObservationSources": [
+            "browser-dom",
+            "readback-request",
+            "event-record",
+            "server-log"
+          ],
+          "staticLocatorIsNotRuntimePass": true
+        },
+        "readbackIdentity": "independent-readback:scripts/internal/verify_auth_workflow.sh#run_users:invite-setup-runtime#8851f8bc912fb17f296ed1d4cbef4dafc68967f6ecd7eb002abd566fceb77794",
+        "readbackExpectation": {
+          "readbackIdentity": "independent-readback:scripts/internal/verify_auth_workflow.sh#run_users:invite-setup-runtime#8851f8bc912fb17f296ed1d4cbef4dafc68967f6ecd7eb002abd566fceb77794",
+          "expectedStateIdentity": "product-state:src/ingress/product_ui_auth_pages.cpp#InviteSetupPageHtml#159cfa63a437971381746915fc4a59add1253a3f786d9e62052df793cc09ab5b",
+          "expectedBehaviorSha256": "da98e84cf0f0acdff3d28f1fb9556a5688d7b731e3a2f1fd157454b34b2b1a5c",
+          "runtimeEvidenceRequired": true
+        },
+        "attestedAlternatives": [
+          "persisted-readback",
+          "event-record",
+          "server-log"
+        ]
+      },
+      "completionPhase": "independent-readback",
+      "linkedPrimaryActionId": "UI-007:submit-form",
+      "semanticReadback": {
+        "schema": "media-server.v390-ui-semantic-readback.v2",
+        "identity": "independent-readback:scripts/internal/verify_auth_workflow.sh#run_users:invite-setup-runtime#8851f8bc912fb17f296ed1d4cbef4dafc68967f6ecd7eb002abd566fceb77794",
+        "correlationId": "UI-007:submit-form:completion",
+        "actionId": "UI-007:submit-form",
+        "expectedBehaviorSha256": "da98e84cf0f0acdff3d28f1fb9556a5688d7b731e3a2f1fd157454b34b2b1a5c",
+        "observationSource": "readback-request",
+        "selector": "[data-testid=\"auth-invite-setup-form\"] button[type=\"submit\"]",
+        "observation": {
+          "actual": {
+            "schema": "media-server.v390-ui-runtime-form-submit-readback.v1",
+            "submitted": true,
+            "method": "POST",
+            "action": "/invite/setup",
+            "fields": [
+              "token",
+              "password",
+              "confirm"
+            ],
+            "responseStatus": 302,
+            "responseRequestId": "native-request-4",
+            "authoritative": true,
+            "readbackKind": "invite-consumed-viewer-scope-client-boundary",
+            "principal": {
+              "authenticated": true,
+              "username": "ui-007-invite",
+              "role": "viewer",
+              "scopes": [
+                "view:read:9001",
+                "dashboard:read:9001",
+                "event:read:9001",
+                "metadata:read:9001"
+              ]
+            },
+            "usersStoreSha256": "67978c00787da9b117155c5e005e2a0cdf5e5a280156e02c8756078129c9ae73",
+            "checks": {
+              "beforeLoginDenied": true,
+              "beforeClientDenied": true,
+              "inviteConsumed": true,
+              "viewerWhoami": true,
+              "viewerScope": true,
+              "clientAllowed": true,
+              "opsDenied": true
+            },
+            "profileId": "form-readback:UI-007",
+            "expectedBehaviorSha256": "da98e84cf0f0acdff3d28f1fb9556a5688d7b731e3a2f1fd157454b34b2b1a5c"
+          }
+        },
+        "observationSha256": "a33426fab3854f3c2a2e5d4b2136629d1259a35768e77405f81b2f3fe196f654"
+      },
+      "runtimeMutationReadback": null,
+      "runtimeFormSubmitReadback": {
+        "schema": "media-server.v390-ui-runtime-form-submit-readback.v1",
+        "submitted": true,
+        "method": "POST",
+        "action": "/invite/setup",
+        "fields": [
+          "token",
+          "password",
+          "confirm"
+        ],
+        "responseStatus": 302,
+        "responseRequestId": "native-request-4",
+        "authoritative": true,
+        "readbackKind": "invite-consumed-viewer-scope-client-boundary",
+        "principal": {
+          "authenticated": true,
+          "username": "ui-007-invite",
+          "role": "viewer",
+          "scopes": [
+            "view:read:9001",
+            "dashboard:read:9001",
+            "event:read:9001",
+            "metadata:read:9001"
+          ]
+        },
+        "usersStoreSha256": "67978c00787da9b117155c5e005e2a0cdf5e5a280156e02c8756078129c9ae73",
+        "checks": {
+          "beforeLoginDenied": true,
+          "beforeClientDenied": true,
+          "inviteConsumed": true,
+          "viewerWhoami": true,
+          "viewerScope": true,
+          "clientAllowed": true,
+          "opsDenied": true
+        },
+        "profileId": "form-readback:UI-007",
+        "expectedBehaviorSha256": "da98e84cf0f0acdff3d28f1fb9556a5688d7b731e3a2f1fd157454b34b2b1a5c"
+      },
+      "runtimeEndpointActionReadback": null,
+      "rejectedActionReadback": null,
+      "evidenceStages": null,
+      "status": "PASS"
+    }
+  ],
+  "completionEvents": [
+    {
+      "pass": true,
+      "source": "navigation-network-dom",
+      "reason": "",
+      "correlationId": "UI-007:navigation",
+      "beforeDigest": "",
+      "afterDigest": "6653d7361d6c22914a3d4e6a4babcd95b9cbd3deb81b51c6c1df8ca96ee33905",
+      "networkResponses": [
+        {
+          "phase": "request-start",
+          "requestId": "native-request-1",
+          "caseRequestIdentity": "UI-007:request-1",
+          "caseRequestSequence": 1,
+          "requestKind": "document-navigation",
+          "resourceType": "document",
+          "sameOrigin": true,
+          "redirectedFromRequestId": "",
+          "correlationId": "",
+          "correlationSource": "none",
+          "correlationInjectionSource": "",
+          "correlationRouteState": "correlation-absent",
+          "correlationRouteActionId": "",
+          "correlationRouteDigest": "",
+          "requestHeaderDigest": "",
+          "ledgerOwner": "page",
+          "sourceOwner": "page",
+          "ownerPhase": "bootstrap",
+          "actionRegistrationKind": "",
+          "exactActionRequestOwned": false,
+          "initiatorActionId": "",
+          "renderCycleId": "",
+          "requestOwnershipKind": "initial-page-load",
+          "lifecycleClass": "bootstrap-document",
+          "actionInvocationId": "",
+          "navigationInvocationId": "UI-007:initial-document-navigation",
+          "requestStartedAtMs": 1791002378133,
+          "method": "GET",
+          "status": 0,
+          "url": "http://127.0.0.1:64566/invite/setup",
+          "requestBody": null
+        },
+        {
+          "phase": "response",
+          "requestId": "native-request-1",
+          "caseRequestIdentity": "UI-007:request-1",
+          "caseRequestSequence": 1,
+          "responseRequestObjectObserved": true,
+          "requestIdentitySource": "playwright-response-request",
+          "requestKind": "document-navigation",
+          "resourceType": "document",
+          "sameOrigin": true,
+          "correlationId": "",
+          "correlationSource": "none",
+          "responseCorrelationSource": "none",
+          "requestHeaderDigest": "",
+          "correlationRouteState": "correlation-absent",
+          "correlationRouteActionId": "",
+          "correlationRouteDigest": "",
+          "responseEchoHeaderContract": "not-required",
+          "responseEchoHeaderObserved": false,
+          "ledgerOwner": "page",
+          "sourceOwner": "page",
+          "ownerPhase": "bootstrap",
+          "exactActionRequestOwned": false,
+          "initiatorActionId": "",
+          "renderCycleId": "",
+          "requestOwnershipKind": "initial-page-load",
+          "lifecycleClass": "bootstrap-document",
+          "actionInvocationId": "",
+          "navigationInvocationId": "UI-007:initial-document-navigation",
+          "requestStartedAtMs": 1791002378133,
+          "responseObservedAtMs": 1791002378137,
+          "method": "GET",
+          "status": 200,
+          "httpOk": true,
+          "url": "http://127.0.0.1:64566/invite/setup",
+          "responseHeaders": {
+            "content-type": "text/html; charset=utf-8",
+            "location": ""
+          },
+          "responseLocationPath": ""
+        },
+        {
+          "phase": "request-start",
+          "requestId": "native-request-2",
+          "caseRequestIdentity": "UI-007:request-2",
+          "caseRequestSequence": 2,
+          "requestKind": "application-fetch",
+          "resourceType": "fetch",
+          "sameOrigin": true,
+          "redirectedFromRequestId": "",
+          "correlationId": "",
+          "correlationSource": "none",
+          "correlationInjectionSource": "",
+          "correlationRouteState": "correlation-absent",
+          "correlationRouteActionId": "",
+          "correlationRouteDigest": "",
+          "requestHeaderDigest": "",
+          "ledgerOwner": "page",
+          "sourceOwner": "page",
+          "ownerPhase": "bootstrap",
+          "actionRegistrationKind": "",
+          "exactActionRequestOwned": false,
+          "initiatorActionId": "",
+          "renderCycleId": "",
+          "requestOwnershipKind": "bootstrap",
+          "lifecycleClass": "bootstrap-fetch",
+          "actionInvocationId": "",
+          "navigationInvocationId": "",
+          "requestStartedAtMs": 1791002378199,
+          "method": "GET",
+          "status": 0,
+          "url": "http://127.0.0.1:64566/auth/whoami",
+          "requestBody": null
+        },
+        {
+          "phase": "response",
+          "requestId": "native-request-2",
+          "caseRequestIdentity": "UI-007:request-2",
+          "caseRequestSequence": 2,
+          "responseRequestObjectObserved": true,
+          "requestIdentitySource": "playwright-response-request",
+          "requestKind": "application-fetch",
+          "resourceType": "fetch",
+          "sameOrigin": true,
+          "correlationId": "",
+          "correlationSource": "none",
+          "responseCorrelationSource": "none",
+          "requestHeaderDigest": "",
+          "correlationRouteState": "correlation-absent",
+          "correlationRouteActionId": "",
+          "correlationRouteDigest": "",
+          "responseEchoHeaderContract": "not-required",
+          "responseEchoHeaderObserved": false,
+          "ledgerOwner": "page",
+          "sourceOwner": "page",
+          "ownerPhase": "bootstrap",
+          "exactActionRequestOwned": false,
+          "initiatorActionId": "",
+          "renderCycleId": "",
+          "requestOwnershipKind": "bootstrap",
+          "lifecycleClass": "bootstrap-fetch",
+          "actionInvocationId": "",
+          "navigationInvocationId": "",
+          "requestStartedAtMs": 1791002378199,
+          "responseObservedAtMs": 1791002378201,
+          "method": "GET",
+          "status": 401,
+          "httpOk": false,
+          "url": "http://127.0.0.1:64566/auth/whoami",
+          "responseHeaders": {
+            "content-type": "application/json; charset=utf-8",
+            "location": ""
+          },
+          "responseLocationPath": ""
+        }
+      ],
+      "completionRequest": null,
+      "semanticReadback": {
+        "schema": "media-server.v390-ui-semantic-readback.v1",
+        "identity": "UI-007:navigation",
+        "correlationId": "UI-007:navigation",
+        "actionId": "UI-007:navigate",
+        "observationSource": "browser-dom",
+        "selector": null,
+        "expected": {
+          "exists": true,
+          "visible": true
+        },
+        "observed": {
+          "exists": true,
+          "visible": true
+        }
+      },
+      "expectedEndpoint": null,
+      "expectedNavigationBinding": {
+        "schema": "media-server.v390-ui-navigation-trust-binding.v1",
+        "requestKind": "document-navigation",
+        "invocationId": "UI-007:initial-document-navigation",
+        "method": "GET",
+        "requestedPath": "/invite/setup",
+        "expectedCanonicalRoute": "/invite/setup",
+        "expectedObservedPath": "/invite/setup",
+        "exactRequestSequence": 1,
+        "exactRedirectCount": 0,
+        "correlationRequired": false,
+        "allowedStatuses": [
+          200
+        ],
+        "authoritativeReadback": null
+      },
+      "completionMode": "navigationBinding",
+      "completionPhase": "initial-navigation",
+      "actionId": "UI-007:navigate",
+      "actionKind": "navigate",
+      "controlSelector": null,
+      "navigationTrustEvidence": {
+        "schema": "media-server.v390-ui-navigation-trust-evidence.v1",
+        "pass": true,
+        "requestKind": "document-navigation",
+        "invocationId": "UI-007:initial-document-navigation",
+        "method": "GET",
+        "resourceType": "document",
+        "sameOrigin": true,
+        "requestedPath": "/invite/setup",
+        "expectedObservedPath": "/invite/setup",
+        "observedPath": "/invite/setup",
+        "correlationRequired": false,
+        "correlationObserved": false,
+        "requestAttemptCount": 1,
+        "requestCandidateCount": 1,
+        "responseCandidateCount": 1,
+        "requestResponseBound": true,
+        "redirectCount": 0,
+        "retryCount": 0,
+        "reloadCount": 0,
+        "unownedNavigationCount": 0,
+        "additionalFetchCount": 0,
+        "requestReissued": false,
+        "totalDocumentNavigationCount": 1,
+        "orderedDocumentNavigations": [
+          {
+            "sequence": 2,
+            "responseSequence": 3,
+            "invocationId": "UI-007:initial-document-navigation",
+            "navigationKind": "initial-document-navigation",
+            "method": "GET",
+            "path": "/invite/setup",
+            "resourceType": "document",
+            "sameOrigin": true,
+            "correlationPresent": false,
+            "correlationDigest": "",
+            "redirected": false,
+            "redirectedFromRequestId": "",
+            "requestId": "native-request-1",
+            "caseRequestIdentity": "UI-007:request-1",
+            "caseRequestSequence": 1,
+            "responseStatus": 200,
+            "responseBound": true,
+            "responseRequestId": "native-request-1",
+            "responseRequestObjectObserved": true,
+            "responseLocationPath": "",
+            "navigationEpoch": 1,
+            "ledgerOwner": "page",
+            "sourceOwner": "page",
+            "ownerPhase": "bootstrap",
+            "initiatorActionId": "",
+            "requestOwnershipKind": "initial-page-load",
+            "actionInvocationId": "",
+            "navigationInvocationId": "UI-007:initial-document-navigation"
+          }
+        ],
+        "listenerStartSequence": 1,
+        "listenerEndSequence": null,
+        "listenerActive": true,
+        "listenerInstalledBeforeFirstNavigation": true,
+        "navigationAfterListenerEndCount": 0,
+        "expectedLifecycleNavigationCount": 1,
+        "failurePhase": "",
+        "failureCode": ""
+      }
+    },
+    {
+      "pass": true,
+      "source": "endpoint-dom",
+      "reason": "",
+      "correlationId": "UI-007:submit-form:completion",
+      "beforeDigest": "77d511b5f0e38b0ea9de1ae9c484d5ad3c1927bfb0b92dcca4503da92f67a072",
+      "afterDigest": "a8c36be4c800fedda0dfe2f27b00ae4c3bdf4476684a731d0481a30ef44e2e3e",
+      "networkResponses": [
+        {
+          "phase": "response",
+          "requestId": "native-request-4",
+          "caseRequestIdentity": "UI-007:request-4",
+          "caseRequestSequence": 4,
+          "responseRequestObjectObserved": true,
+          "requestIdentitySource": "playwright-response-request",
+          "requestKind": "document-navigation",
+          "resourceType": "document",
+          "sameOrigin": true,
+          "correlationId": "UI-007:submit-form:completion",
+          "correlationSource": "document-form-request-response-identity",
+          "responseCorrelationSource": "none",
+          "requestHeaderDigest": "",
+          "correlationRouteState": "correlation-absent",
+          "correlationRouteActionId": "",
+          "correlationRouteDigest": "",
+          "responseEchoHeaderContract": "not-required",
+          "responseEchoHeaderObserved": false,
+          "ledgerOwner": "action",
+          "sourceOwner": "explicit-action-registration",
+          "ownerPhase": "primary-action",
+          "exactActionRequestOwned": true,
+          "initiatorActionId": "UI-007:submit-form",
+          "renderCycleId": "",
+          "requestOwnershipKind": "primary-action",
+          "lifecycleClass": "primary-action",
+          "actionInvocationId": "UI-007:submit-form",
+          "navigationInvocationId": "UI-007:form-submit-document-navigation",
+          "requestStartedAtMs": 1791002378306,
+          "responseObservedAtMs": 1791002378416,
+          "method": "POST",
+          "status": 302,
+          "httpOk": false,
+          "url": "http://127.0.0.1:64566/invite/setup",
+          "responseHeaders": {
+            "content-type": "text/plain; charset=utf-8",
+            "location": "/login"
+          },
+          "responseLocationPath": "/login",
+          "documentFormResponseIdentity": {
+            "schema": "media-server.v390-ui-document-form-submit-binding.v1",
+            "requestId": "native-request-4",
+            "caseRequestIdentity": "UI-007:request-4",
+            "caseRequestSequence": 4,
+            "initiatorActionId": "UI-007:submit-form",
+            "requestOwnershipKind": "primary-action",
+            "method": "POST",
+            "path": "/invite/setup",
+            "status": 302,
+            "requestKind": "document-navigation",
+            "resourceType": "document",
+            "sameOrigin": true,
+            "correlationObserved": false,
+            "responseRequestObjectObserved": true,
+            "redirectCount": 1,
+            "redirectPath": "/login",
+            "redirectRequestId": "native-request-5",
+            "requestAttemptCount": 1,
+            "responseCandidateCount": 1,
+            "reissueCount": 0,
+            "adapter": "auth-standard-submit",
+            "productIdentity": null
+          }
+        }
+      ],
+      "completionRequest": {
+        "phase": "response",
+        "requestId": "native-request-4",
+        "caseRequestIdentity": "UI-007:request-4",
+        "caseRequestSequence": 4,
+        "responseRequestObjectObserved": true,
+        "requestIdentitySource": "playwright-response-request",
+        "requestKind": "document-navigation",
+        "resourceType": "document",
+        "sameOrigin": true,
+        "correlationId": "UI-007:submit-form:completion",
+        "correlationSource": "document-form-request-response-identity",
+        "responseCorrelationSource": "none",
+        "requestHeaderDigest": "",
+        "correlationRouteState": "correlation-absent",
+        "correlationRouteActionId": "",
+        "correlationRouteDigest": "",
+        "responseEchoHeaderContract": "not-required",
+        "responseEchoHeaderObserved": false,
+        "ledgerOwner": "action",
+        "sourceOwner": "explicit-action-registration",
+        "ownerPhase": "primary-action",
+        "exactActionRequestOwned": true,
+        "initiatorActionId": "UI-007:submit-form",
+        "renderCycleId": "",
+        "requestOwnershipKind": "primary-action",
+        "lifecycleClass": "primary-action",
+        "actionInvocationId": "UI-007:submit-form",
+        "navigationInvocationId": "UI-007:form-submit-document-navigation",
+        "requestStartedAtMs": 1791002378306,
+        "responseObservedAtMs": 1791002378416,
+        "method": "POST",
+        "status": 302,
+        "httpOk": false,
+        "url": "http://127.0.0.1:64566/invite/setup",
+        "responseHeaders": {
+          "content-type": "text/plain; charset=utf-8",
+          "location": "/login"
+        },
+        "responseLocationPath": "/login",
+        "documentFormResponseIdentity": {
+          "schema": "media-server.v390-ui-document-form-submit-binding.v1",
+          "requestId": "native-request-4",
+          "caseRequestIdentity": "UI-007:request-4",
+          "caseRequestSequence": 4,
+          "initiatorActionId": "UI-007:submit-form",
+          "requestOwnershipKind": "primary-action",
+          "method": "POST",
+          "path": "/invite/setup",
+          "status": 302,
+          "requestKind": "document-navigation",
+          "resourceType": "document",
+          "sameOrigin": true,
+          "correlationObserved": false,
+          "responseRequestObjectObserved": true,
+          "redirectCount": 1,
+          "redirectPath": "/login",
+          "redirectRequestId": "native-request-5",
+          "requestAttemptCount": 1,
+          "responseCandidateCount": 1,
+          "reissueCount": 0,
+          "adapter": "auth-standard-submit",
+          "productIdentity": null
+        }
+      },
+      "semanticReadback": {
+        "schema": "media-server.v390-ui-semantic-readback.v2",
+        "identity": "independent-readback:scripts/internal/verify_auth_workflow.sh#run_users:invite-setup-runtime#8851f8bc912fb17f296ed1d4cbef4dafc68967f6ecd7eb002abd566fceb77794",
+        "correlationId": "UI-007:submit-form:completion",
+        "actionId": "UI-007:submit-form",
+        "expectedBehaviorSha256": "da98e84cf0f0acdff3d28f1fb9556a5688d7b731e3a2f1fd157454b34b2b1a5c",
+        "observationSource": "readback-request",
+        "selector": "[data-testid=\"auth-invite-setup-form\"] button[type=\"submit\"]",
+        "observation": {
+          "actual": {
+            "schema": "media-server.v390-ui-runtime-form-submit-readback.v1",
+            "submitted": true,
+            "method": "POST",
+            "action": "/invite/setup",
+            "fields": [
+              "token",
+              "password",
+              "confirm"
+            ],
+            "responseStatus": 302,
+            "responseRequestId": "native-request-4",
+            "authoritative": true,
+            "readbackKind": "invite-consumed-viewer-scope-client-boundary",
+            "principal": {
+              "authenticated": true,
+              "username": "ui-007-invite",
+              "role": "viewer",
+              "scopes": [
+                "view:read:9001",
+                "dashboard:read:9001",
+                "event:read:9001",
+                "metadata:read:9001"
+              ]
+            },
+            "usersStoreSha256": "67978c00787da9b117155c5e005e2a0cdf5e5a280156e02c8756078129c9ae73",
+            "checks": {
+              "beforeLoginDenied": true,
+              "beforeClientDenied": true,
+              "inviteConsumed": true,
+              "viewerWhoami": true,
+              "viewerScope": true,
+              "clientAllowed": true,
+              "opsDenied": true
+            },
+            "profileId": "form-readback:UI-007",
+            "expectedBehaviorSha256": "da98e84cf0f0acdff3d28f1fb9556a5688d7b731e3a2f1fd157454b34b2b1a5c"
+          }
+        },
+        "observationSha256": "a33426fab3854f3c2a2e5d4b2136629d1259a35768e77405f81b2f3fe196f654"
+      },
+      "expectedEndpoint": {
+        "correlationId": "UI-007:submit-form:completion",
+        "method": "POST",
+        "urlPath": "/invite/setup",
+        "urlPathTemplate": "/invite/setup",
+        "allowedStatuses": [
+          302
+        ],
+        "initiatorActionId": "UI-007:submit-form",
+        "requestOwnershipKind": "primary-action",
+        "runtimeBindingSource": "native-completion-contract"
+      },
+      "expectedNavigationBinding": null,
+      "completionMode": "requestBinding",
+      "completionPhase": "primary-action",
+      "actionId": "UI-007:submit-form",
+      "actionKind": "submit-form",
+      "controlSelector": "[data-testid=\"auth-invite-setup-form\"] button[type=\"submit\"]"
+    }
+  ],
+  "rawPrimaryObservations": [
+    {
+      "schema": "media-server.v390-ui-raw-primary-observation.v1",
+      "action": {
+        "actionId": "UI-007:submit-form",
+        "actionKind": "submit-form",
+        "executedKind": "submit",
+        "controlSelector": "[data-testid=\"auth-invite-setup-form\"] button[type=\"submit\"]",
+        "executionOwnerSelector": "[data-testid=\"auth-invite-setup-form\"] button[type=\"submit\"]",
+        "correlationId": "UI-007:submit-form:completion",
+        "dispatch": "playwright-native",
+        "completionMode": "request",
+        "declaredRequest": {
+          "correlationId": "UI-007:submit-form:completion",
+          "method": "POST",
+          "urlPath": "/invite/setup",
+          "urlPathTemplate": "/invite/setup",
+          "allowedStatuses": [
+            302
+          ],
+          "initiatorActionId": "UI-007:submit-form",
+          "requestOwnershipKind": "primary-action",
+          "runtimeBindingSource": "native-completion-contract"
+        }
+      },
+      "before": {
+        "selector": "[data-testid=\"auth-invite-setup-form\"] button[type=\"submit\"]",
+        "candidateCount": 1,
+        "navigationEpoch": 1,
+        "exists": true,
+        "visible": true,
+        "tag": "button",
+        "hidden": false,
+        "disabled": false,
+        "readOnly": false,
+        "open": false,
+        "href": "",
+        "title": "",
+        "ariaLabel": "",
+        "ariaPressed": "",
+        "text": "비밀번호 설정",
+        "value": "",
+        "checked": false,
+        "selectedValues": [],
+        "optionValues": [],
+        "url": "http://127.0.0.1:64566/invite/setup"
+      },
+      "after": {
+        "selector": "[data-testid=\"auth-invite-setup-form\"] button[type=\"submit\"]",
+        "candidateCount": 0,
+        "navigationEpoch": 3,
+        "exists": false,
+        "visible": false,
+        "tag": "",
+        "hidden": false,
+        "disabled": false,
+        "readOnly": false,
+        "open": false,
+        "href": "",
+        "title": "",
+        "ariaLabel": "",
+        "ariaPressed": "",
+        "text": "",
+        "value": "",
+        "checked": false,
+        "selectedValues": [],
+        "optionValues": [],
+        "url": "http://127.0.0.1:64566/login"
+      },
+      "navigation": null,
+      "networkEntries": [
+        {
+          "phase": "request-start",
+          "requestId": "native-request-4",
+          "caseRequestIdentity": "UI-007:request-4",
+          "caseRequestSequence": 4,
+          "requestKind": "document-navigation",
+          "resourceType": "document",
+          "sameOrigin": true,
+          "redirectedFromRequestId": "",
+          "correlationId": "",
+          "correlationSource": "none",
+          "correlationInjectionSource": "",
+          "correlationRouteState": "correlation-absent",
+          "correlationRouteActionId": "",
+          "correlationRouteDigest": "",
+          "requestHeaderDigest": "",
+          "ledgerOwner": "action",
+          "sourceOwner": "explicit-action-registration",
+          "ownerPhase": "primary-action",
+          "actionRegistrationKind": "manifest-envelope-sequence",
+          "exactActionRequestOwned": true,
+          "initiatorActionId": "UI-007:submit-form",
+          "renderCycleId": "",
+          "requestOwnershipKind": "primary-action",
+          "lifecycleClass": "primary-action",
+          "actionInvocationId": "UI-007:submit-form",
+          "navigationInvocationId": "UI-007:form-submit-document-navigation",
+          "requestStartedAtMs": 1791002378306,
+          "method": "POST",
+          "status": 0,
+          "url": "http://127.0.0.1:64566/invite/setup",
+          "requestBody": {
+            "identity": {
+              "id": "",
+              "sourceId": "",
+              "viewId": "",
+              "channelId": "",
+              "ruleId": "",
+              "profileId": "",
+              "eventId": "",
+              "username": ""
+            },
+            "fieldNames": []
+          }
+        },
+        {
+          "phase": "response",
+          "requestId": "native-request-4",
+          "caseRequestIdentity": "UI-007:request-4",
+          "caseRequestSequence": 4,
+          "responseRequestObjectObserved": true,
+          "requestIdentitySource": "playwright-response-request",
+          "requestKind": "document-navigation",
+          "resourceType": "document",
+          "sameOrigin": true,
+          "correlationId": "",
+          "correlationSource": "none",
+          "responseCorrelationSource": "none",
+          "requestHeaderDigest": "",
+          "correlationRouteState": "correlation-absent",
+          "correlationRouteActionId": "",
+          "correlationRouteDigest": "",
+          "responseEchoHeaderContract": "not-required",
+          "responseEchoHeaderObserved": false,
+          "ledgerOwner": "action",
+          "sourceOwner": "explicit-action-registration",
+          "ownerPhase": "primary-action",
+          "exactActionRequestOwned": true,
+          "initiatorActionId": "UI-007:submit-form",
+          "renderCycleId": "",
+          "requestOwnershipKind": "primary-action",
+          "lifecycleClass": "primary-action",
+          "actionInvocationId": "UI-007:submit-form",
+          "navigationInvocationId": "UI-007:form-submit-document-navigation",
+          "requestStartedAtMs": 1791002378306,
+          "responseObservedAtMs": 1791002378416,
+          "method": "POST",
+          "status": 302,
+          "httpOk": false,
+          "url": "http://127.0.0.1:64566/invite/setup",
+          "responseHeaders": {
+            "content-type": "text/plain; charset=utf-8",
+            "location": "/login"
+          },
+          "responseLocationPath": "/login"
+        },
+        {
+          "phase": "request-start",
+          "requestId": "native-request-5",
+          "caseRequestIdentity": "UI-007:request-5",
+          "caseRequestSequence": 5,
+          "requestKind": "document-navigation",
+          "resourceType": "document",
+          "sameOrigin": true,
+          "redirectedFromRequestId": "native-request-4",
+          "correlationId": "",
+          "correlationSource": "none",
+          "correlationInjectionSource": "",
+          "correlationRouteState": "correlation-absent",
+          "correlationRouteActionId": "",
+          "correlationRouteDigest": "",
+          "requestHeaderDigest": "",
+          "ledgerOwner": "page",
+          "sourceOwner": "document-navigation-ledger",
+          "ownerPhase": "document-navigation-chain",
+          "actionRegistrationKind": "",
+          "exactActionRequestOwned": false,
+          "initiatorActionId": "",
+          "renderCycleId": "",
+          "requestOwnershipKind": "document-navigation-chain",
+          "lifecycleClass": "document-redirect-chain",
+          "actionInvocationId": "UI-007:submit-form",
+          "navigationInvocationId": "UI-007:form-submit-document-navigation",
+          "requestStartedAtMs": 1791002378416,
+          "method": "GET",
+          "status": 0,
+          "url": "http://127.0.0.1:64566/login",
+          "requestBody": null
+        },
+        {
+          "phase": "response",
+          "requestId": "native-request-5",
+          "caseRequestIdentity": "UI-007:request-5",
+          "caseRequestSequence": 5,
+          "responseRequestObjectObserved": true,
+          "requestIdentitySource": "playwright-response-request",
+          "requestKind": "document-navigation",
+          "resourceType": "document",
+          "sameOrigin": true,
+          "correlationId": "",
+          "correlationSource": "none",
+          "responseCorrelationSource": "none",
+          "requestHeaderDigest": "",
+          "correlationRouteState": "correlation-absent",
+          "correlationRouteActionId": "",
+          "correlationRouteDigest": "",
+          "responseEchoHeaderContract": "not-required",
+          "responseEchoHeaderObserved": false,
+          "ledgerOwner": "page",
+          "sourceOwner": "document-navigation-ledger",
+          "ownerPhase": "document-navigation-chain",
+          "exactActionRequestOwned": false,
+          "initiatorActionId": "",
+          "renderCycleId": "",
+          "requestOwnershipKind": "document-navigation-chain",
+          "lifecycleClass": "document-redirect-chain",
+          "actionInvocationId": "UI-007:submit-form",
+          "navigationInvocationId": "UI-007:form-submit-document-navigation",
+          "requestStartedAtMs": 1791002378416,
+          "responseObservedAtMs": 1791002378417,
+          "method": "GET",
+          "status": 200,
+          "httpOk": true,
+          "url": "http://127.0.0.1:64566/login",
+          "responseHeaders": {
+            "content-type": "text/html; charset=utf-8",
+            "location": ""
+          },
+          "responseLocationPath": ""
+        }
+      ],
+      "requestBinding": {
+        "schema": "media-server.v390-ui-document-form-submit-binding.v1",
+        "requestId": "native-request-4",
+        "caseRequestIdentity": "UI-007:request-4",
+        "caseRequestSequence": 4,
+        "initiatorActionId": "UI-007:submit-form",
+        "requestOwnershipKind": "primary-action",
+        "method": "POST",
+        "path": "/invite/setup",
+        "status": 302,
+        "requestKind": "document-navigation",
+        "resourceType": "document",
+        "sameOrigin": true,
+        "correlationObserved": false,
+        "responseRequestObjectObserved": true,
+        "redirectCount": 1,
+        "redirectPath": "/login",
+        "redirectRequestId": "native-request-5",
+        "requestAttemptCount": 1,
+        "responseCandidateCount": 1,
+        "reissueCount": 0,
+        "adapter": "auth-standard-submit",
+        "productIdentity": null
+      },
+      "semanticReadback": {
+        "schema": "media-server.v390-ui-semantic-readback.v2",
+        "identity": "independent-readback:scripts/internal/verify_auth_workflow.sh#run_users:invite-setup-runtime#8851f8bc912fb17f296ed1d4cbef4dafc68967f6ecd7eb002abd566fceb77794",
+        "correlationId": "UI-007:submit-form:completion",
+        "actionId": "UI-007:submit-form",
+        "expectedBehaviorSha256": "da98e84cf0f0acdff3d28f1fb9556a5688d7b731e3a2f1fd157454b34b2b1a5c",
+        "observationSource": "readback-request",
+        "selector": "[data-testid=\"auth-invite-setup-form\"] button[type=\"submit\"]",
+        "observation": {
+          "actual": {
+            "schema": "media-server.v390-ui-runtime-form-submit-readback.v1",
+            "submitted": true,
+            "method": "POST",
+            "action": "/invite/setup",
+            "fields": [
+              "token",
+              "password",
+              "confirm"
+            ],
+            "responseStatus": 302,
+            "responseRequestId": "native-request-4",
+            "authoritative": true,
+            "readbackKind": "invite-consumed-viewer-scope-client-boundary",
+            "principal": {
+              "authenticated": true,
+              "username": "ui-007-invite",
+              "role": "viewer",
+              "scopes": [
+                "view:read:9001",
+                "dashboard:read:9001",
+                "event:read:9001",
+                "metadata:read:9001"
+              ]
+            },
+            "usersStoreSha256": "67978c00787da9b117155c5e005e2a0cdf5e5a280156e02c8756078129c9ae73",
+            "checks": {
+              "beforeLoginDenied": true,
+              "beforeClientDenied": true,
+              "inviteConsumed": true,
+              "viewerWhoami": true,
+              "viewerScope": true,
+              "clientAllowed": true,
+              "opsDenied": true
+            },
+            "profileId": "form-readback:UI-007",
+            "expectedBehaviorSha256": "da98e84cf0f0acdff3d28f1fb9556a5688d7b731e3a2f1fd157454b34b2b1a5c"
+          }
+        },
+        "observationSha256": "a33426fab3854f3c2a2e5d4b2136629d1259a35768e77405f81b2f3fe196f654"
+      }
+    }
+  ],
+  "expectedResults": [
+    {
+      "resultId": "UI-007:semantic-result",
+      "kind": "reviewed-semantic-result",
+      "expectedBehavior": "S08 `auth-invite-setup-form`, invite setup 전후 login/client 접근 경계 확인",
+      "expectedBehaviorSha256": "da98e84cf0f0acdff3d28f1fb9556a5688d7b731e3a2f1fd157454b34b2b1a5c",
+      "endpointHints": [],
+      "stateLocator": {
+        "file": "src/ingress/product_ui_auth_pages.cpp",
+        "symbol": "InviteSetupPageHtml",
+        "contextSha256": "159cfa63a437971381746915fc4a59add1253a3f786d9e62052df793cc09ab5b"
+      },
+      "readbackLocator": {
+        "file": "scripts/internal/verify_auth_workflow.sh",
+        "symbol": "run_users:invite-setup-runtime",
+        "contextSha256": "8851f8bc912fb17f296ed1d4cbef4dafc68967f6ecd7eb002abd566fceb77794"
+      },
+      "completion": {
+        "schema": "media-server.v390-ui-action-completion.v2",
+        "required": true,
+        "phase": "primary-action",
+        "actionId": "UI-007:submit-form",
+        "actionKind": "submit-form",
+        "controlSelector": "[data-testid=\"auth-invite-setup-form\"] button[type=\"submit\"]",
+        "linkedPrimaryActionId": null,
+        "completionMode": "request",
+        "requiredSource": "endpoint-dom",
+        "correlationId": "UI-007:submit-form:completion",
+        "request": {
+          "initiatorActionId": "UI-007:submit-form",
+          "requestOwnershipKind": "primary-action",
+          "correlationHeader": "x-media-server-correlation-id",
+          "correlationId": "UI-007:submit-form:completion",
+          "correlationSource": "request-header",
+          "method": "POST",
+          "urlPathTemplate": "/invite/setup",
+          "urlPath": "/invite/setup",
+          "pathParameters": {},
+          "allowedStatuses": [
+            302
+          ]
+        },
+        "localTransition": null,
+        "expectedBehaviorSha256": "da98e84cf0f0acdff3d28f1fb9556a5688d7b731e3a2f1fd157454b34b2b1a5c",
+        "readback": {
+          "identity": "independent-readback:scripts/internal/verify_auth_workflow.sh#run_users:invite-setup-runtime#8851f8bc912fb17f296ed1d4cbef4dafc68967f6ecd7eb002abd566fceb77794",
+          "expectedStateIdentity": "product-state:src/ingress/product_ui_auth_pages.cpp#InviteSetupPageHtml#159cfa63a437971381746915fc4a59add1253a3f786d9e62052df793cc09ab5b",
+          "expectedBehaviorSha256": "da98e84cf0f0acdff3d28f1fb9556a5688d7b731e3a2f1fd157454b34b2b1a5c",
+          "allowedObservationSources": [
+            "browser-dom",
+            "readback-request",
+            "event-record",
+            "server-log"
+          ],
+          "staticLocatorIsNotRuntimePass": true
+        },
+        "readbackIdentity": "independent-readback:scripts/internal/verify_auth_workflow.sh#run_users:invite-setup-runtime#8851f8bc912fb17f296ed1d4cbef4dafc68967f6ecd7eb002abd566fceb77794",
+        "readbackExpectation": {
+          "submitted": true,
+          "method": "POST",
+          "action": "/invite/setup",
+          "fields": [
+            "token",
+            "password",
+            "confirm"
+          ]
+        },
+        "attestedAlternatives": [
+          "persisted-readback",
+          "event-record",
+          "server-log"
+        ]
+      }
+    }
+  ],
+  "cleanup": [
+    {
+      "cleanupId": "UI-007:restore-fixture",
+      "status": "PASS",
+      "source": "exact-file-snapshot-restore",
+      "readback": {
+        "status": "PASS",
+        "identity": "independent-readback:scripts/internal/verify_auth_workflow.sh#run_users:invite-setup-runtime#8851f8bc912fb17f296ed1d4cbef4dafc68967f6ecd7eb002abd566fceb77794:cleanup",
+        "expectation": "equal-before",
+        "cleanupSource": "exact-file-snapshot-restore"
+      }
+    },
+    {
+      "cleanupId": "UI-007:authoritative-state-boundary",
+      "status": "PASS",
+      "source": "acceptance-owned-state-file-byte-readback",
+      "unexpectedStateChange": false,
+      "finalStateRestored": true
+    }
+  ],
+  "navigationOwnerLifecycleEvidence": {
+    "schema": "media-server.v390-ui-navigation-pre-action-owner-binding.v1",
+    "caseId": "UI-007",
+    "invocationId": "UI-007:form-submit-document-navigation",
+    "sourceOwner": {
+      "schema": "media-server.v390-ui-browser-callback-result.v1",
+      "callbackId": "adapter.navigation-owner",
+      "selector": "[data-testid=\"auth-invite-setup-form\"] button[type=\"submit\"]",
+      "candidateCount": 1,
+      "navigationEpoch": 1,
+      "exists": true,
+      "visible": true
+    },
+    "destinationOwner": {
+      "schema": "media-server.v390-ui-browser-callback-result.v1",
+      "callbackId": "adapter.navigation-owner",
+      "selector": "body",
+      "candidateCount": 1,
+      "navigationEpoch": 3,
+      "exists": true,
+      "visible": true
+    },
+    "sourceRoute": "http://127.0.0.1:64566/invite/setup",
+    "destinationRoute": "/login",
+    "epochRelation": "advanced"
+  },
+  "actionOwnedRequestLedgerEvidence": {
+    "schema": "media-server.v390-ui-action-owned-request-ledger-binding.v1",
+    "caseId": "UI-007",
+    "actionId": "UI-007:submit-form",
+    "correlationId": "UI-007:submit-form:completion",
+    "primaryRequestPath": "/invite/setup",
+    "runtimeMaterialized": true,
+    "primaryRequestId": "native-request-4",
+    "primaryRequestSequence": 4,
+    "primaryResponseStatus": 302,
+    "requestCount": 1,
+    "responseCount": 1,
+    "additionalFetchCount": 0,
+    "pageOwnedRequestCount": 1,
+    "pageOwnedResponseCount": 1,
+    "actionCorrelationLeakCount": 0,
+    "pageOwnedRequestLedger": [
+      {
+        "phase": "request-start",
+        "requestId": "native-request-5",
+        "caseRequestSequence": 5,
+        "method": "GET",
+        "path": "/login",
+        "sourceOwner": "document-navigation-ledger",
+        "ownerPhase": "document-navigation-chain",
+        "requestOwnershipKind": "document-navigation-chain",
+        "lifecycleClass": "document-redirect-chain"
+      },
+      {
+        "phase": "response",
+        "requestId": "native-request-5",
+        "caseRequestSequence": 5,
+        "method": "GET",
+        "path": "/login",
+        "sourceOwner": "document-navigation-ledger",
+        "ownerPhase": "document-navigation-chain",
+        "requestOwnershipKind": "document-navigation-chain",
+        "lifecycleClass": "document-redirect-chain"
+      }
+    ],
+    "orderedCallFlow": [
+      {
+        "requestId": "native-request-4",
+        "caseRequestSequence": 4,
+        "method": "POST",
+        "path": "/invite/setup"
+      }
+    ],
+    "pass": true
+  },
+  "requestNavigationLifecycleEvidence": {
+    "plan": {
+      "schema": "media-server.v390-ui-request-navigation-lifecycle-plan.v1",
+      "caseId": "UI-007",
+      "classification": "document-form-redirect",
+      "sourceRoute": "/invite/setup",
+      "sourceSelector": "[data-testid=\"auth-invite-setup-form\"] button[type=\"submit\"]",
+      "finalRoute": "/login",
+      "declaredHopCount": 2,
+      "primaryHopCount": 2,
+      "readbackHopCount": 0,
+      "steps": [
+        {
+          "invocationId": "UI-007:form-submit-document-navigation",
+          "kind": "form-submit-document-navigation",
+          "action": "[data-testid=\"auth-invite-setup-form\"] button[type=\"submit\"]",
+          "sourceRoute": "/invite/setup",
+          "destinationRoute": "/login",
+          "sourceSelector": "[data-testid=\"auth-invite-setup-form\"] button[type=\"submit\"]",
+          "owner": "primary-document-form",
+          "ownershipPhase": "primary-action",
+          "declaredHopCount": 2,
+          "expectedHops": [
+            {
+              "method": "POST",
+              "path": "/invite/setup",
+              "allowedStatuses": [
+                302
+              ],
+              "redirected": false,
+              "redirectTarget": "/login",
+              "networkOwnership": "action-envelope"
+            },
+            {
+              "method": "GET",
+              "path": "/login",
+              "allowedStatuses": [
+                200
+              ],
+              "redirected": true,
+              "redirectTarget": "",
+              "networkOwnership": "document-navigation-chain"
+            }
+          ]
+        }
+      ]
+    },
+    "scope": {
+      "schema": "media-server.v390-ui-request-navigation-scope.v1",
+      "startEpoch": 1,
+      "endEpoch": 3,
+      "ownerLifecycles": [
+        {
+          "schema": "media-server.v390-ui-navigation-owner-lifecycle.v1",
+          "caseId": "UI-007",
+          "invocationId": "UI-007:form-submit-document-navigation",
+          "kind": "form-submit-document-navigation",
+          "action": "[data-testid=\"auth-invite-setup-form\"] button[type=\"submit\"]",
+          "sourceRoute": "http://127.0.0.1:64566/invite/setup",
+          "destinationRoute": "http://127.0.0.1:64566/login",
+          "sourceOwner": {
+            "schema": "media-server.v390-ui-browser-callback-result.v1",
+            "callbackId": "adapter.navigation-owner",
+            "selector": "[data-testid=\"auth-invite-setup-form\"] button[type=\"submit\"]",
+            "candidateCount": 1,
+            "navigationEpoch": 1,
+            "exists": true,
+            "visible": true
+          },
+          "destinationOwner": {
+            "schema": "media-server.v390-ui-browser-callback-result.v1",
+            "callbackId": "adapter.navigation-owner",
+            "selector": "body",
+            "candidateCount": 1,
+            "navigationEpoch": 3,
+            "exists": true,
+            "visible": true
+          },
+          "documentChain": {
+            "schema": "media-server.v390-ui-owned-document-chain.v1",
+            "invocationId": "UI-007:form-submit-document-navigation",
+            "kind": "form-submit-document-navigation",
+            "hopCount": 2,
+            "hops": [
+              {
+                "sequence": 4,
+                "responseSequence": 5,
+                "invocationId": "UI-007:form-submit-document-navigation",
+                "navigationKind": "form-submit-document-navigation",
+                "method": "POST",
+                "path": "/invite/setup",
+                "resourceType": "document",
+                "sameOrigin": true,
+                "correlationPresent": false,
+                "correlationDigest": "",
+                "redirected": false,
+                "redirectedFromRequestId": "",
+                "requestId": "native-request-4",
+                "caseRequestIdentity": "UI-007:request-4",
+                "caseRequestSequence": 4,
+                "responseStatus": 302,
+                "responseBound": true,
+                "responseRequestId": "native-request-4",
+                "responseRequestObjectObserved": true,
+                "responseLocationPath": "/login",
+                "navigationEpoch": 2,
+                "ledgerOwner": "action",
+                "sourceOwner": "explicit-action-registration",
+                "ownerPhase": "primary-action",
+                "initiatorActionId": "UI-007:submit-form",
+                "requestOwnershipKind": "primary-action",
+                "actionInvocationId": "UI-007:submit-form",
+                "navigationInvocationId": "UI-007:form-submit-document-navigation"
+              },
+              {
+                "sequence": 6,
+                "responseSequence": 7,
+                "invocationId": "UI-007:form-submit-document-navigation",
+                "navigationKind": "form-submit-document-navigation",
+                "method": "GET",
+                "path": "/login",
+                "resourceType": "document",
+                "sameOrigin": true,
+                "correlationPresent": false,
+                "correlationDigest": "",
+                "redirected": true,
+                "redirectedFromRequestId": "native-request-4",
+                "requestId": "native-request-5",
+                "caseRequestIdentity": "UI-007:request-5",
+                "caseRequestSequence": 5,
+                "responseStatus": 200,
+                "responseBound": true,
+                "responseRequestId": "native-request-5",
+                "responseRequestObjectObserved": true,
+                "responseLocationPath": "",
+                "navigationEpoch": 3,
+                "ledgerOwner": "page",
+                "sourceOwner": "document-navigation-ledger",
+                "ownerPhase": "document-navigation-chain",
+                "initiatorActionId": "",
+                "requestOwnershipKind": "document-navigation-chain",
+                "actionInvocationId": "UI-007:submit-form",
+                "navigationInvocationId": "UI-007:form-submit-document-navigation"
+              }
+            ]
+          }
+        }
+      ],
+      "documentNavigations": [
+        {
+          "sequence": 4,
+          "responseSequence": 5,
+          "invocationId": "UI-007:form-submit-document-navigation",
+          "navigationKind": "form-submit-document-navigation",
+          "method": "POST",
+          "path": "/invite/setup",
+          "resourceType": "document",
+          "sameOrigin": true,
+          "correlationPresent": false,
+          "correlationDigest": "",
+          "redirected": false,
+          "redirectedFromRequestId": "",
+          "requestId": "native-request-4",
+          "caseRequestIdentity": "UI-007:request-4",
+          "caseRequestSequence": 4,
+          "responseStatus": 302,
+          "responseBound": true,
+          "responseRequestId": "native-request-4",
+          "responseRequestObjectObserved": true,
+          "responseLocationPath": "/login",
+          "navigationEpoch": 2,
+          "ledgerOwner": "action",
+          "sourceOwner": "explicit-action-registration",
+          "ownerPhase": "primary-action",
+          "initiatorActionId": "UI-007:submit-form",
+          "requestOwnershipKind": "primary-action",
+          "actionInvocationId": "UI-007:submit-form",
+          "navigationInvocationId": "UI-007:form-submit-document-navigation"
+        },
+        {
+          "sequence": 6,
+          "responseSequence": 7,
+          "invocationId": "UI-007:form-submit-document-navigation",
+          "navigationKind": "form-submit-document-navigation",
+          "method": "GET",
+          "path": "/login",
+          "resourceType": "document",
+          "sameOrigin": true,
+          "correlationPresent": false,
+          "correlationDigest": "",
+          "redirected": true,
+          "redirectedFromRequestId": "native-request-4",
+          "requestId": "native-request-5",
+          "caseRequestIdentity": "UI-007:request-5",
+          "caseRequestSequence": 5,
+          "responseStatus": 200,
+          "responseBound": true,
+          "responseRequestId": "native-request-5",
+          "responseRequestObjectObserved": true,
+          "responseLocationPath": "",
+          "navigationEpoch": 3,
+          "ledgerOwner": "page",
+          "sourceOwner": "document-navigation-ledger",
+          "ownerPhase": "document-navigation-chain",
+          "initiatorActionId": "",
+          "requestOwnershipKind": "document-navigation-chain",
+          "actionInvocationId": "UI-007:submit-form",
+          "navigationInvocationId": "UI-007:form-submit-document-navigation"
+        }
+      ]
+    },
+    "binding": {
+      "schema": "media-server.v390-ui-request-navigation-lifecycle-binding.v1",
+      "caseId": "UI-007",
+      "classification": "document-form-redirect",
+      "navigationCount": 1,
+      "declaredHopCount": 2,
+      "ownedDocumentCommitCount": 2,
+      "primaryHopCount": 2,
+      "readbackHopCount": 0,
+      "sourceOwnerSelector": "[data-testid=\"auth-invite-setup-form\"] button[type=\"submit\"]",
+      "sourceEpoch": 1,
+      "finalEpoch": 3,
+      "epochDelta": 2,
+      "hopMode": "multi-hop",
+      "finalRoute": "/login",
+      "epochRelation": "advanced-action",
+      "pass": true
+    }
+  },
+  "postActionVisualTargetEvidence": {
+    "schema": "media-server.v390-ui-post-action-visual-target.v1",
+    "caseId": "UI-007",
+    "actionId": "UI-007:submit-form",
+    "completionMode": "request",
+    "sourceSelectorSha256": "64a3cfe9f1f2eaf8a7a03d5127ba6c74b7b95e7452f872b1a7a0591dcefca639",
+    "sourceOwnerSelectorSha256": "64a3cfe9f1f2eaf8a7a03d5127ba6c74b7b95e7452f872b1a7a0591dcefca639",
+    "requestedState": "visible",
+    "observedRoute": "/login",
+    "navigationEpoch": 3,
+    "ownerCandidateCount": 1,
+    "sourceSelectorRewaited": false,
+    "selector": "[data-testid=\"auth-login-form\"]",
+    "bindingKind": "post-action-visible-destination-owner",
+    "sourceDetached": true,
+    "sourceHidden": false,
+    "epochRelation": "advanced"
+  },
+  "requestActionOwnershipEvidence": {
+    "schema": "media-server.v390-ui-request-action-ownership-lifecycle.v1",
+    "caseId": "UI-007",
+    "expectedPhases": [
+      "bootstrap-settling",
+      "source-before-frozen",
+      "primary-action",
+      "independent-readback",
+      "post-action-observation"
+    ],
+    "completedPhases": [
+      {
+        "sequence": 1,
+        "phase": "bootstrap-settling",
+        "caseId": "UI-007",
+        "actionId": "UI-007:initial-document-navigation",
+        "ownershipMode": "initial-page-load-ended-and-attested",
+        "status": "attested",
+        "endedScopeCount": 0
+      },
+      {
+        "sequence": 2,
+        "phase": "source-before-frozen",
+        "caseId": "UI-007",
+        "actionId": "UI-007:submit-form",
+        "ownershipMode": "exact-one-visible-source-owner-frozen",
+        "status": "attested",
+        "endedScopeCount": 0
+      },
+      {
+        "sequence": 3,
+        "phase": "primary-action",
+        "caseId": "UI-007",
+        "actionId": "UI-007:submit-form",
+        "ownershipMode": "primary-scope-ended-and-attested",
+        "status": "attested",
+        "endedScopeCount": 1
+      },
+      {
+        "sequence": 4,
+        "phase": "independent-readback",
+        "caseId": "UI-007",
+        "actionId": "UI-007:submit-form",
+        "ownershipMode": "independent-readback-scopes-ended-and-attested",
+        "status": "attested",
+        "endedScopeCount": 1
+      },
+      {
+        "sequence": 5,
+        "phase": "post-action-observation",
+        "caseId": "UI-007",
+        "actionId": "UI-007:submit-form",
+        "ownershipMode": "post-action-visual-observation-complete",
+        "status": "attested",
+        "endedScopeCount": 0
+      }
+    ],
+    "nextPhase": "complete",
+    "activeOwner": null,
+    "lifecycle": [
+      {
+        "event": "attest",
+        "phase": "bootstrap-settling",
+        "caseId": "UI-007",
+        "actionId": "UI-007:initial-document-navigation",
+        "ownershipMode": "initial-page-load-ended-and-attested",
+        "status": "attested",
+        "endedScopeCount": 0
+      },
+      {
+        "event": "attest",
+        "phase": "source-before-frozen",
+        "caseId": "UI-007",
+        "actionId": "UI-007:submit-form",
+        "ownershipMode": "exact-one-visible-source-owner-frozen",
+        "status": "attested",
+        "endedScopeCount": 0
+      },
+      {
+        "event": "begin",
+        "scopeSequence": 1,
+        "caseId": "UI-007",
+        "phase": "primary-action",
+        "actionId": "UI-007:submit-form",
+        "ownershipKind": "primary-action"
+      },
+      {
+        "event": "register",
+        "scopeSequence": 1,
+        "requestId": "native-request-4"
+      },
+      {
+        "event": "request-complete",
+        "scopeSequence": 1,
+        "requestId": "native-request-4"
+      },
+      {
+        "event": "end",
+        "phase": "primary-action",
+        "caseId": "UI-007",
+        "actionId": "UI-007:submit-form",
+        "correlationId": "UI-007:submit-form:completion",
+        "ownershipKind": "primary-action",
+        "ownershipMode": "explicit-begin-register-end",
+        "scopeSequence": 1,
+        "activeRequestCount": 0,
+        "status": "attested"
+      },
+      {
+        "event": "attest",
+        "phase": "primary-action",
+        "caseId": "UI-007",
+        "actionId": "UI-007:submit-form",
+        "ownershipMode": "primary-scope-ended-and-attested",
+        "status": "attested",
+        "endedScopeCount": 1
+      },
+      {
+        "event": "begin",
+        "scopeSequence": 2,
+        "caseId": "UI-007",
+        "phase": "independent-readback",
+        "actionId": "UI-007:submit-form",
+        "ownershipKind": "independent-readback"
+      },
+      {
+        "event": "end",
+        "phase": "independent-readback",
+        "caseId": "UI-007",
+        "actionId": "UI-007:submit-form",
+        "correlationId": "UI-007:submit-form:completion",
+        "ownershipKind": "independent-readback",
+        "ownershipMode": "explicit-begin-register-end",
+        "scopeSequence": 2,
+        "activeRequestCount": 0,
+        "status": "attested"
+      },
+      {
+        "event": "attest",
+        "phase": "independent-readback",
+        "caseId": "UI-007",
+        "actionId": "UI-007:submit-form",
+        "ownershipMode": "independent-readback-scopes-ended-and-attested",
+        "status": "attested",
+        "endedScopeCount": 1
+      },
+      {
+        "event": "attest",
+        "phase": "post-action-observation",
+        "caseId": "UI-007",
+        "actionId": "UI-007:submit-form",
+        "ownershipMode": "post-action-visual-observation-complete",
+        "status": "attested",
+        "endedScopeCount": 0
+      }
+    ],
+    "complete": true
+  },
+  "actionRequestScopeLedgerEvidence": [
+    {
+      "schema": "media-server.v390-ui-action-request-scope-ledgers.v1",
+      "scopeSequence": 1,
+      "caseId": "UI-007",
+      "phase": "primary-action",
+      "actionId": "UI-007:submit-form",
+      "actionOwnedRequestLedgers": [
+        {
+          "schema": "media-server.v390-ui-action-request-envelope-ledger.v1",
+          "caseId": "UI-007",
+          "phase": "primary-action",
+          "actionId": "UI-007:submit-form",
+          "correlationId": "UI-007:submit-form:completion",
+          "method": "POST",
+          "target": "/invite/setup",
+          "targetMatchMode": "exact",
+          "observedTargets": [
+            "/invite/setup"
+          ],
+          "requestKind": "document-navigation",
+          "expectedRequestCount": 1,
+          "requestCount": 1,
+          "responseCount": 1,
+          "requestSequences": [
+            4
+          ],
+          "statuses": [
+            302
+          ],
+          "pass": true,
+          "responseBarrier": {
+            "schema": "media-server.v390-ui-object-bound-response-barrier.v1",
+            "label": "UI-007:UI-007:submit-form:POST /invite/setup",
+            "expectedResponseCount": 1,
+            "responseCount": 1,
+            "settlement": "resolved",
+            "settled": true,
+            "activeWaiterCount": 0,
+            "activeTimerCount": 0,
+            "pass": true
+          }
+        }
+      ],
+      "pageOwnedRequestLedger": [
+        {
+          "phase": "request-start",
+          "requestId": "native-request-5",
+          "caseRequestIdentity": "UI-007:request-5",
+          "caseRequestSequence": 5,
+          "requestKind": "document-navigation",
+          "resourceType": "document",
+          "sameOrigin": true,
+          "redirectedFromRequestId": "native-request-4",
+          "correlationId": "",
+          "correlationSource": "none",
+          "correlationInjectionSource": "",
+          "correlationRouteState": "correlation-absent",
+          "correlationRouteActionId": "",
+          "correlationRouteDigest": "",
+          "requestHeaderDigest": "",
+          "ledgerOwner": "page",
+          "sourceOwner": "document-navigation-ledger",
+          "ownerPhase": "document-navigation-chain",
+          "actionRegistrationKind": "",
+          "exactActionRequestOwned": false,
+          "initiatorActionId": "",
+          "renderCycleId": "",
+          "requestOwnershipKind": "document-navigation-chain",
+          "lifecycleClass": "document-redirect-chain",
+          "actionInvocationId": "UI-007:submit-form",
+          "navigationInvocationId": "UI-007:form-submit-document-navigation",
+          "requestStartedAtMs": 1791002378416,
+          "method": "GET",
+          "status": 0,
+          "url": "http://127.0.0.1:64566/login",
+          "requestBody": null
+        },
+        {
+          "phase": "response",
+          "requestId": "native-request-5",
+          "caseRequestIdentity": "UI-007:request-5",
+          "caseRequestSequence": 5,
+          "responseRequestObjectObserved": true,
+          "requestIdentitySource": "playwright-response-request",
+          "requestKind": "document-navigation",
+          "resourceType": "document",
+          "sameOrigin": true,
+          "correlationId": "",
+          "correlationSource": "none",
+          "responseCorrelationSource": "none",
+          "requestHeaderDigest": "",
+          "correlationRouteState": "correlation-absent",
+          "correlationRouteActionId": "",
+          "correlationRouteDigest": "",
+          "responseEchoHeaderContract": "not-required",
+          "responseEchoHeaderObserved": false,
+          "ledgerOwner": "page",
+          "sourceOwner": "document-navigation-ledger",
+          "ownerPhase": "document-navigation-chain",
+          "exactActionRequestOwned": false,
+          "initiatorActionId": "",
+          "renderCycleId": "",
+          "requestOwnershipKind": "document-navigation-chain",
+          "lifecycleClass": "document-redirect-chain",
+          "actionInvocationId": "UI-007:submit-form",
+          "navigationInvocationId": "UI-007:form-submit-document-navigation",
+          "requestStartedAtMs": 1791002378416,
+          "responseObservedAtMs": 1791002378417,
+          "method": "GET",
+          "status": 200,
+          "httpOk": true,
+          "url": "http://127.0.0.1:64566/login",
+          "responseHeaders": {
+            "content-type": "text/html; charset=utf-8",
+            "location": ""
+          },
+          "responseLocationPath": ""
+        }
+      ],
+      "actionCorrelationLeakCount": 0
+    },
+    {
+      "schema": "media-server.v390-ui-action-request-scope-ledgers.v1",
+      "scopeSequence": 2,
+      "caseId": "UI-007",
+      "phase": "independent-readback",
+      "actionId": "UI-007:submit-form",
+      "actionOwnedRequestLedgers": [],
+      "pageOwnedRequestLedger": [],
+      "actionCorrelationLeakCount": 0
+    }
+  ],
+  "pageOwnedRequestLedger": [
+    {
+      "phase": "request-start",
+      "requestId": "native-request-1",
+      "caseRequestIdentity": "UI-007:request-1",
+      "caseRequestSequence": 1,
+      "requestKind": "document-navigation",
+      "resourceType": "document",
+      "sameOrigin": true,
+      "redirectedFromRequestId": "",
+      "correlationId": "",
+      "correlationSource": "none",
+      "correlationInjectionSource": "",
+      "correlationRouteState": "correlation-absent",
+      "correlationRouteActionId": "",
+      "correlationRouteDigest": "",
+      "requestHeaderDigest": "",
+      "ledgerOwner": "page",
+      "sourceOwner": "page",
+      "ownerPhase": "bootstrap",
+      "actionRegistrationKind": "",
+      "exactActionRequestOwned": false,
+      "initiatorActionId": "",
+      "renderCycleId": "",
+      "requestOwnershipKind": "initial-page-load",
+      "lifecycleClass": "bootstrap-document",
+      "actionInvocationId": "",
+      "navigationInvocationId": "UI-007:initial-document-navigation",
+      "requestStartedAtMs": 1791002378133,
+      "method": "GET",
+      "status": 0,
+      "url": "http://127.0.0.1:64566/invite/setup",
+      "requestBody": null
+    },
+    {
+      "phase": "response",
+      "requestId": "native-request-1",
+      "caseRequestIdentity": "UI-007:request-1",
+      "caseRequestSequence": 1,
+      "responseRequestObjectObserved": true,
+      "requestIdentitySource": "playwright-response-request",
+      "requestKind": "document-navigation",
+      "resourceType": "document",
+      "sameOrigin": true,
+      "correlationId": "",
+      "correlationSource": "none",
+      "responseCorrelationSource": "none",
+      "requestHeaderDigest": "",
+      "correlationRouteState": "correlation-absent",
+      "correlationRouteActionId": "",
+      "correlationRouteDigest": "",
+      "responseEchoHeaderContract": "not-required",
+      "responseEchoHeaderObserved": false,
+      "ledgerOwner": "page",
+      "sourceOwner": "page",
+      "ownerPhase": "bootstrap",
+      "exactActionRequestOwned": false,
+      "initiatorActionId": "",
+      "renderCycleId": "",
+      "requestOwnershipKind": "initial-page-load",
+      "lifecycleClass": "bootstrap-document",
+      "actionInvocationId": "",
+      "navigationInvocationId": "UI-007:initial-document-navigation",
+      "requestStartedAtMs": 1791002378133,
+      "responseObservedAtMs": 1791002378137,
+      "method": "GET",
+      "status": 200,
+      "httpOk": true,
+      "url": "http://127.0.0.1:64566/invite/setup",
+      "responseHeaders": {
+        "content-type": "text/html; charset=utf-8",
+        "location": ""
+      },
+      "responseLocationPath": ""
+    },
+    {
+      "phase": "request-start",
+      "requestId": "native-request-2",
+      "caseRequestIdentity": "UI-007:request-2",
+      "caseRequestSequence": 2,
+      "requestKind": "application-fetch",
+      "resourceType": "fetch",
+      "sameOrigin": true,
+      "redirectedFromRequestId": "",
+      "correlationId": "",
+      "correlationSource": "none",
+      "correlationInjectionSource": "",
+      "correlationRouteState": "correlation-absent",
+      "correlationRouteActionId": "",
+      "correlationRouteDigest": "",
+      "requestHeaderDigest": "",
+      "ledgerOwner": "page",
+      "sourceOwner": "page",
+      "ownerPhase": "bootstrap",
+      "actionRegistrationKind": "",
+      "exactActionRequestOwned": false,
+      "initiatorActionId": "",
+      "renderCycleId": "",
+      "requestOwnershipKind": "bootstrap",
+      "lifecycleClass": "bootstrap-fetch",
+      "actionInvocationId": "",
+      "navigationInvocationId": "",
+      "requestStartedAtMs": 1791002378199,
+      "method": "GET",
+      "status": 0,
+      "url": "http://127.0.0.1:64566/auth/whoami",
+      "requestBody": null
+    },
+    {
+      "phase": "response",
+      "requestId": "native-request-2",
+      "caseRequestIdentity": "UI-007:request-2",
+      "caseRequestSequence": 2,
+      "responseRequestObjectObserved": true,
+      "requestIdentitySource": "playwright-response-request",
+      "requestKind": "application-fetch",
+      "resourceType": "fetch",
+      "sameOrigin": true,
+      "correlationId": "",
+      "correlationSource": "none",
+      "responseCorrelationSource": "none",
+      "requestHeaderDigest": "",
+      "correlationRouteState": "correlation-absent",
+      "correlationRouteActionId": "",
+      "correlationRouteDigest": "",
+      "responseEchoHeaderContract": "not-required",
+      "responseEchoHeaderObserved": false,
+      "ledgerOwner": "page",
+      "sourceOwner": "page",
+      "ownerPhase": "bootstrap",
+      "exactActionRequestOwned": false,
+      "initiatorActionId": "",
+      "renderCycleId": "",
+      "requestOwnershipKind": "bootstrap",
+      "lifecycleClass": "bootstrap-fetch",
+      "actionInvocationId": "",
+      "navigationInvocationId": "",
+      "requestStartedAtMs": 1791002378199,
+      "responseObservedAtMs": 1791002378201,
+      "method": "GET",
+      "status": 401,
+      "httpOk": false,
+      "url": "http://127.0.0.1:64566/auth/whoami",
+      "responseHeaders": {
+        "content-type": "application/json; charset=utf-8",
+        "location": ""
+      },
+      "responseLocationPath": ""
+    },
+    {
+      "phase": "request-start",
+      "requestId": "native-request-3",
+      "caseRequestIdentity": "UI-007:request-3",
+      "caseRequestSequence": 3,
+      "requestKind": "application-fetch",
+      "resourceType": "fetch",
+      "sameOrigin": true,
+      "redirectedFromRequestId": "",
+      "correlationId": "",
+      "correlationSource": "none",
+      "correlationInjectionSource": "",
+      "correlationRouteState": "correlation-absent",
+      "correlationRouteActionId": "",
+      "correlationRouteDigest": "",
+      "requestHeaderDigest": "",
+      "ledgerOwner": "page",
+      "sourceOwner": "page",
+      "ownerPhase": "background-refresh",
+      "actionRegistrationKind": "",
+      "exactActionRequestOwned": false,
+      "initiatorActionId": "",
+      "renderCycleId": "",
+      "requestOwnershipKind": "background-refresh",
+      "lifecycleClass": "background-fetch",
+      "actionInvocationId": "",
+      "navigationInvocationId": "",
+      "requestStartedAtMs": 1791002378218,
+      "method": "GET",
+      "status": 0,
+      "url": "http://127.0.0.1:64566/auth/whoami",
+      "requestBody": null
+    },
+    {
+      "phase": "response",
+      "requestId": "native-request-3",
+      "caseRequestIdentity": "UI-007:request-3",
+      "caseRequestSequence": 3,
+      "responseRequestObjectObserved": true,
+      "requestIdentitySource": "playwright-response-request",
+      "requestKind": "application-fetch",
+      "resourceType": "fetch",
+      "sameOrigin": true,
+      "correlationId": "",
+      "correlationSource": "none",
+      "responseCorrelationSource": "none",
+      "requestHeaderDigest": "",
+      "correlationRouteState": "correlation-absent",
+      "correlationRouteActionId": "",
+      "correlationRouteDigest": "",
+      "responseEchoHeaderContract": "not-required",
+      "responseEchoHeaderObserved": false,
+      "ledgerOwner": "page",
+      "sourceOwner": "page",
+      "ownerPhase": "background-refresh",
+      "exactActionRequestOwned": false,
+      "initiatorActionId": "",
+      "renderCycleId": "",
+      "requestOwnershipKind": "background-refresh",
+      "lifecycleClass": "background-fetch",
+      "actionInvocationId": "",
+      "navigationInvocationId": "",
+      "requestStartedAtMs": 1791002378218,
+      "responseObservedAtMs": 1791002378219,
+      "method": "GET",
+      "status": 401,
+      "httpOk": false,
+      "url": "http://127.0.0.1:64566/auth/whoami",
+      "responseHeaders": {
+        "content-type": "application/json; charset=utf-8",
+        "location": ""
+      },
+      "responseLocationPath": ""
+    },
+    {
+      "phase": "request-start",
+      "requestId": "native-request-5",
+      "caseRequestIdentity": "UI-007:request-5",
+      "caseRequestSequence": 5,
+      "requestKind": "document-navigation",
+      "resourceType": "document",
+      "sameOrigin": true,
+      "redirectedFromRequestId": "native-request-4",
+      "correlationId": "",
+      "correlationSource": "none",
+      "correlationInjectionSource": "",
+      "correlationRouteState": "correlation-absent",
+      "correlationRouteActionId": "",
+      "correlationRouteDigest": "",
+      "requestHeaderDigest": "",
+      "ledgerOwner": "page",
+      "sourceOwner": "document-navigation-ledger",
+      "ownerPhase": "document-navigation-chain",
+      "actionRegistrationKind": "",
+      "exactActionRequestOwned": false,
+      "initiatorActionId": "",
+      "renderCycleId": "",
+      "requestOwnershipKind": "document-navigation-chain",
+      "lifecycleClass": "document-redirect-chain",
+      "actionInvocationId": "UI-007:submit-form",
+      "navigationInvocationId": "UI-007:form-submit-document-navigation",
+      "requestStartedAtMs": 1791002378416,
+      "method": "GET",
+      "status": 0,
+      "url": "http://127.0.0.1:64566/login",
+      "requestBody": null
+    },
+    {
+      "phase": "response",
+      "requestId": "native-request-5",
+      "caseRequestIdentity": "UI-007:request-5",
+      "caseRequestSequence": 5,
+      "responseRequestObjectObserved": true,
+      "requestIdentitySource": "playwright-response-request",
+      "requestKind": "document-navigation",
+      "resourceType": "document",
+      "sameOrigin": true,
+      "correlationId": "",
+      "correlationSource": "none",
+      "responseCorrelationSource": "none",
+      "requestHeaderDigest": "",
+      "correlationRouteState": "correlation-absent",
+      "correlationRouteActionId": "",
+      "correlationRouteDigest": "",
+      "responseEchoHeaderContract": "not-required",
+      "responseEchoHeaderObserved": false,
+      "ledgerOwner": "page",
+      "sourceOwner": "document-navigation-ledger",
+      "ownerPhase": "document-navigation-chain",
+      "exactActionRequestOwned": false,
+      "initiatorActionId": "",
+      "renderCycleId": "",
+      "requestOwnershipKind": "document-navigation-chain",
+      "lifecycleClass": "document-redirect-chain",
+      "actionInvocationId": "UI-007:submit-form",
+      "navigationInvocationId": "UI-007:form-submit-document-navigation",
+      "requestStartedAtMs": 1791002378416,
+      "responseObservedAtMs": 1791002378417,
+      "method": "GET",
+      "status": 200,
+      "httpOk": true,
+      "url": "http://127.0.0.1:64566/login",
+      "responseHeaders": {
+        "content-type": "text/html; charset=utf-8",
+        "location": ""
+      },
+      "responseLocationPath": ""
+    },
+    {
+      "phase": "request-start",
+      "requestId": "native-request-6",
+      "caseRequestIdentity": "UI-007:request-6",
+      "caseRequestSequence": 6,
+      "requestKind": "application-fetch",
+      "resourceType": "fetch",
+      "sameOrigin": true,
+      "redirectedFromRequestId": "",
+      "correlationId": "",
+      "correlationSource": "none",
+      "correlationInjectionSource": "",
+      "correlationRouteState": "correlation-absent",
+      "correlationRouteActionId": "",
+      "correlationRouteDigest": "",
+      "requestHeaderDigest": "",
+      "ledgerOwner": "page",
+      "sourceOwner": "page",
+      "ownerPhase": "background-refresh",
+      "actionRegistrationKind": "",
+      "exactActionRequestOwned": false,
+      "initiatorActionId": "",
+      "renderCycleId": "",
+      "requestOwnershipKind": "background-refresh",
+      "lifecycleClass": "background-fetch",
+      "actionInvocationId": "",
+      "navigationInvocationId": "",
+      "requestStartedAtMs": 1791002379588,
+      "method": "GET",
+      "status": 0,
+      "url": "http://127.0.0.1:64566/auth/whoami",
+      "requestBody": null
+    },
+    {
+      "phase": "response",
+      "requestId": "native-request-6",
+      "caseRequestIdentity": "UI-007:request-6",
+      "caseRequestSequence": 6,
+      "responseRequestObjectObserved": true,
+      "requestIdentitySource": "playwright-response-request",
+      "requestKind": "application-fetch",
+      "resourceType": "fetch",
+      "sameOrigin": true,
+      "correlationId": "",
+      "correlationSource": "none",
+      "responseCorrelationSource": "none",
+      "requestHeaderDigest": "",
+      "correlationRouteState": "correlation-absent",
+      "correlationRouteActionId": "",
+      "correlationRouteDigest": "",
+      "responseEchoHeaderContract": "not-required",
+      "responseEchoHeaderObserved": false,
+      "ledgerOwner": "page",
+      "sourceOwner": "page",
+      "ownerPhase": "background-refresh",
+      "exactActionRequestOwned": false,
+      "initiatorActionId": "",
+      "renderCycleId": "",
+      "requestOwnershipKind": "background-refresh",
+      "lifecycleClass": "background-fetch",
+      "actionInvocationId": "",
+      "navigationInvocationId": "",
+      "requestStartedAtMs": 1791002379588,
+      "responseObservedAtMs": 1791002379590,
+      "method": "GET",
+      "status": 401,
+      "httpOk": false,
+      "url": "http://127.0.0.1:64566/auth/whoami",
+      "responseHeaders": {
+        "content-type": "application/json; charset=utf-8",
+        "location": ""
+      },
+      "responseLocationPath": ""
+    }
+  ],
+  "postActionVisualRoleEvidence": {
+    "schema": "media-server.v390-ui-post-action-visual-role.v1",
+    "caseId": "UI-007",
+    "actionId": "UI-007:submit-form",
+    "route": "/login",
+    "accountRole": "anonymous",
+    "source": "browser-auth-whoami"
+  },
+  "requestLifecycleEvaluation": {
+    "status": "PASS",
+    "census": {
+      "requestCount": 6,
+      "responseCount": 6,
+      "classified": 6,
+      "unclassified": 0,
+      "multiplyClassified": 0,
+      "captureErrors": 0,
+      "duplicateResponses": 0,
+      "failureCount": 0
+    },
+    "diagnostics": {
+      "sequenceDomain": "diagnostic-seal-and-after-seal-only",
+      "diagnosticErrors": 0,
+      "seal": {
+        "sequence": 1,
+        "timestamp": 1791002379929
+      },
+      "afterSeal": [],
+      "requests": [
+        {
+          "requestIdentity": "UI-007:object-1",
+          "legacyRequestId": "native-request-1",
+          "method": "GET",
+          "path": "/invite/setup",
+          "pathOmitted": false,
+          "start": {
+            "sequence": 1,
+            "timestamp": 1791002378133
+          },
+          "responses": [
+            {
+              "sequence": 2,
+              "timestamp": 1791002378136,
+              "status": 200
+            }
+          ],
+          "finished": [
+            {
+              "sequence": 3,
+              "timestamp": 1791002378145
+            }
+          ],
+          "failed": []
+        },
+        {
+          "requestIdentity": "UI-007:object-3",
+          "legacyRequestId": "native-request-2",
+          "method": "GET",
+          "path": "/auth/whoami",
+          "pathOmitted": false,
+          "start": {
+            "sequence": 4,
+            "timestamp": 1791002378199
+          },
+          "responses": [
+            {
+              "sequence": 5,
+              "timestamp": 1791002378201,
+              "status": 401
+            }
+          ],
+          "finished": [],
+          "failed": []
+        },
+        {
+          "requestIdentity": "UI-007:object-5",
+          "legacyRequestId": "native-request-3",
+          "method": "GET",
+          "path": "/auth/whoami",
+          "pathOmitted": false,
+          "start": {
+            "sequence": 6,
+            "timestamp": 1791002378218
+          },
+          "responses": [
+            {
+              "sequence": 7,
+              "timestamp": 1791002378219,
+              "status": 401
+            }
+          ],
+          "finished": [],
+          "failed": []
+        },
+        {
+          "requestIdentity": "UI-007:object-7",
+          "legacyRequestId": "native-request-4",
+          "method": "POST",
+          "path": "/invite/setup",
+          "pathOmitted": false,
+          "start": {
+            "sequence": 8,
+            "timestamp": 1791002378306
+          },
+          "responses": [
+            {
+              "sequence": 9,
+              "timestamp": 1791002378416,
+              "status": 302
+            }
+          ],
+          "finished": [
+            {
+              "sequence": 10,
+              "timestamp": 1791002378416
+            }
+          ],
+          "failed": []
+        },
+        {
+          "requestIdentity": "UI-007:object-9",
+          "legacyRequestId": "native-request-5",
+          "method": "GET",
+          "path": "/login",
+          "pathOmitted": false,
+          "start": {
+            "sequence": 11,
+            "timestamp": 1791002378416
+          },
+          "responses": [
+            {
+              "sequence": 12,
+              "timestamp": 1791002378417,
+              "status": 200
+            }
+          ],
+          "finished": [
+            {
+              "sequence": 13,
+              "timestamp": 1791002378424
+            }
+          ],
+          "failed": []
+        },
+        {
+          "requestIdentity": "UI-007:object-11",
+          "legacyRequestId": "native-request-6",
+          "method": "GET",
+          "path": "/auth/whoami",
+          "pathOmitted": false,
+          "start": {
+            "sequence": 14,
+            "timestamp": 1791002379588
+          },
+          "responses": [
+            {
+              "sequence": 15,
+              "timestamp": 1791002379590,
+              "status": 401
+            }
+          ],
+          "finished": [],
+          "failed": []
+        }
+      ]
+    },
+    "requests": [
+      {
+        "requestIdentity": "UI-007:object-1",
+        "redirectedFromIdentity": null,
+        "correlationDigest": ""
+      },
+      {
+        "requestIdentity": "UI-007:object-3",
+        "redirectedFromIdentity": null,
+        "correlationDigest": ""
+      },
+      {
+        "requestIdentity": "UI-007:object-5",
+        "redirectedFromIdentity": null,
+        "correlationDigest": ""
+      },
+      {
+        "requestIdentity": "UI-007:object-7",
+        "redirectedFromIdentity": null,
+        "correlationDigest": "f54c080f7486f80b66a8b1bbce4f153bb77fa04d0506182f1de710b73bef70f4"
+      },
+      {
+        "requestIdentity": "UI-007:object-9",
+        "redirectedFromIdentity": "UI-007:object-7",
+        "correlationDigest": "f54c080f7486f80b66a8b1bbce4f153bb77fa04d0506182f1de710b73bef70f4"
+      },
+      {
+        "requestIdentity": "UI-007:object-11",
+        "redirectedFromIdentity": null,
+        "correlationDigest": ""
+      }
+    ],
+    "classifications": [
+      {
+        "requestIdentity": "UI-007:object-1",
+        "responseIdentity": "UI-007:object-2",
+        "requestKind": "document-navigation",
+        "classification": "bootstrap",
+        "owner": "page",
+        "phase": "bootstrap-document"
+      },
+      {
+        "requestIdentity": "UI-007:object-3",
+        "responseIdentity": "UI-007:object-4",
+        "requestKind": "application-fetch",
+        "classification": "background",
+        "owner": "page",
+        "phase": "background-refresh"
+      },
+      {
+        "requestIdentity": "UI-007:object-5",
+        "responseIdentity": "UI-007:object-6",
+        "requestKind": "application-fetch",
+        "classification": "background",
+        "owner": "page",
+        "phase": "background-refresh"
+      },
+      {
+        "requestIdentity": "UI-007:object-7",
+        "responseIdentity": "UI-007:object-8",
+        "requestKind": "document-navigation",
+        "classification": "action",
+        "owner": "action",
+        "phase": "primary-action"
+      },
+      {
+        "requestIdentity": "UI-007:object-9",
+        "responseIdentity": "UI-007:object-10",
+        "requestKind": "document-navigation",
+        "classification": "redirect",
+        "owner": "page",
+        "phase": "document-redirect-chain"
+      },
+      {
+        "requestIdentity": "UI-007:object-11",
+        "responseIdentity": "UI-007:object-12",
+        "requestKind": "application-fetch",
+        "classification": "background",
+        "owner": "page",
+        "phase": "background-refresh"
+      }
+    ],
+    "failures": []
+  }
+}

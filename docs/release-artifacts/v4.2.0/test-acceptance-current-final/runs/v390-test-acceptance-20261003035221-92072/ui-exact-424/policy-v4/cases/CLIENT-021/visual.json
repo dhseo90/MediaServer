@@ -1,0 +1,9 @@
+{
+  "schema": "media-server.ui-raw-visual-capture.v1",
+  "caseId": "CLIENT-021",
+  "correlationId": "CLIENT-021:activate-control:completion",
+  "targetSelector": "[data-tile=\"0\"] [data-mode-action=\"va-overlay\"]",
+  "screenshotSha256": "3cefcdeb3bb646bf674a887d505b4bed5ba6e2c45912e3938722de7341d8cb14",
+  "measurementSha256": "a9e60e4338e14c9cd7b6effa8db6c6c053033e393075e6b6db3255a1bdaf94ca",
+  "qualificationStatus": "unqualified-raw-capture"
+}

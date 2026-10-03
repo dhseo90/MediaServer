@@ -1,0 +1,111 @@
+{
+  "schema": "media-server.v390-ui-native-browser-console.v1",
+  "caseId": "UI-003",
+  "entries": [
+    {
+      "kind": "console",
+      "level": "error",
+      "text": "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+      "location": {
+        "url": "http://127.0.0.1:64566/auth/whoami",
+        "line": 0,
+        "column": 0,
+        "lineNumber": 0,
+        "columnNumber": 0
+      },
+      "callsite": "http://127.0.0.1:64566/auth/whoami:0:0",
+      "caseId": "UI-003",
+      "actionId": "",
+      "phase": "unowned",
+      "secretBearing": false,
+      "observedAtMs": 1791002368257,
+      "responseBindingCandidateCount": 1,
+      "responseBinding": {
+        "schema": "media-server.v390-ui-console-response-binding.v1",
+        "requestId": "native-request-2",
+        "caseRequestIdentity": "UI-003:request-2",
+        "caseRequestSequence": 2,
+        "responseRequestObjectObserved": true,
+        "requestIdentitySource": "playwright-response-request",
+        "requestKind": "application-fetch",
+        "requestOwnershipKind": "bootstrap",
+        "initiatorActionId": "",
+        "sameOrigin": true,
+        "method": "GET",
+        "status": 401,
+        "url": "http://127.0.0.1:64566/auth/whoami",
+        "path": "/auth/whoami"
+      }
+    },
+    {
+      "kind": "console",
+      "level": "error",
+      "text": "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+      "location": {
+        "url": "http://127.0.0.1:64566/auth/whoami",
+        "line": 0,
+        "column": 0,
+        "lineNumber": 0,
+        "columnNumber": 0
+      },
+      "callsite": "http://127.0.0.1:64566/auth/whoami:0:0",
+      "caseId": "UI-003",
+      "actionId": "",
+      "phase": "unowned",
+      "secretBearing": false,
+      "observedAtMs": 1791002368276,
+      "responseBindingCandidateCount": 1,
+      "responseBinding": {
+        "schema": "media-server.v390-ui-console-response-binding.v1",
+        "requestId": "native-request-3",
+        "caseRequestIdentity": "UI-003:request-3",
+        "caseRequestSequence": 3,
+        "responseRequestObjectObserved": true,
+        "requestIdentitySource": "playwright-response-request",
+        "requestKind": "application-fetch",
+        "requestOwnershipKind": "background-refresh",
+        "initiatorActionId": "",
+        "sameOrigin": true,
+        "method": "GET",
+        "status": 401,
+        "url": "http://127.0.0.1:64566/auth/whoami",
+        "path": "/auth/whoami"
+      }
+    },
+    {
+      "kind": "console",
+      "level": "error",
+      "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+      "location": {
+        "url": "http://127.0.0.1:64566/ops/api/users",
+        "line": 0,
+        "column": 0,
+        "lineNumber": 0,
+        "columnNumber": 0
+      },
+      "callsite": "http://127.0.0.1:64566/ops/api/users:0:0",
+      "caseId": "UI-003",
+      "actionId": "UI-003:submit-form",
+      "phase": "independent-readback",
+      "secretBearing": false,
+      "observedAtMs": 1791002369488,
+      "responseBindingCandidateCount": 1,
+      "responseBinding": {
+        "schema": "media-server.v390-ui-console-response-binding.v1",
+        "requestId": "native-request-12",
+        "caseRequestIdentity": "UI-003:request-12",
+        "caseRequestSequence": 12,
+        "responseRequestObjectObserved": true,
+        "requestIdentitySource": "playwright-response-request",
+        "requestKind": "application-fetch",
+        "requestOwnershipKind": "background-refresh",
+        "initiatorActionId": "",
+        "sameOrigin": true,
+        "method": "GET",
+        "status": 403,
+        "url": "http://127.0.0.1:64566/ops/api/users",
+        "path": "/ops/api/users"
+      }
+    }
+  ]
+}

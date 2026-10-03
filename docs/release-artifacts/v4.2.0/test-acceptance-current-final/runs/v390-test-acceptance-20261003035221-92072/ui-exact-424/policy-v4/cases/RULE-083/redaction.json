@@ -1,0 +1,34 @@
+{
+  "schema": "media-server.ui-evidence-redaction-scan.v1",
+  "scope": "case",
+  "status": "PASS",
+  "caseId": "RULE-083",
+  "correlationId": "RULE-083:execute-persisted-action:completion",
+  "scannedArtifacts": [
+    {
+      "path": "cases/267-RULE-083/screenshots/RULE-083.png",
+      "sha256": "d6827755fee6aa5a33e06b78589031b80df225fd0308e0019b892cc2af93c59a"
+    },
+    {
+      "path": "policy-v4/cases/RULE-083/trace.json",
+      "sha256": "6506be6ebc65569676e4b99d53be8f108ba33c1730f3e73559725464bd7e07a6"
+    },
+    {
+      "path": "policy-v4/cases/RULE-083/browser-console.json",
+      "sha256": "14ff619d0da9dee22d8faa37712ba0e4278a4fdb5a1b0e960f16530ddb81813b"
+    },
+    {
+      "path": "policy-v4/cases/RULE-083/server.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "policy-v4/cases/RULE-083/visual-measurement.json",
+      "sha256": "1e83ceb611722ce5ea9f46dc39f04d8ef29c46be6e9d2748e4e12433ab0568d1"
+    },
+    {
+      "path": "policy-v4/cases/RULE-083/visual.json",
+      "sha256": "5c23676aa05b678748f792826b580cfe1fbd2ef6c5ffd399c25e44c4a314b4eb"
+    }
+  ],
+  "findings": []
+}

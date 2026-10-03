@@ -1,0 +1,9 @@
+{
+  "schema": "media-server.ui-raw-visual-capture.v1",
+  "caseId": "SRC-038",
+  "correlationId": "SRC-038:assert-visible-read-model:completion",
+  "targetSelector": "[data-testid=\"client-safe-source-status-digest\"]",
+  "screenshotSha256": "14481cd09a3ff9bc54d86770269da913012c6e564b375e2a43be79b5781e8195",
+  "measurementSha256": "eab942078eb16a64661da60bf5061f25476e803ca90a4ae9739ac26abbf4a445",
+  "qualificationStatus": "unqualified-raw-capture"
+}

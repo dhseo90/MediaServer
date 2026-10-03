@@ -1,0 +1,1070 @@
+{
+  "schema": "media-server.v390-ui-case-policy-input.v1",
+  "caseId": "CLIENT-007",
+  "runId": "fa3f64f2-58d9-49df-b223-7285df0cce64",
+  "result": {
+    "caseId": "CLIENT-007",
+    "featureId": "CLIENT-007",
+    "status": "PASS",
+    "dispatch": "playwright-native",
+    "manualIntervention": false,
+    "actualBrowserExecution": true,
+    "requested": {
+      "schema": "media-server.v390-ui-canonical-requested.v1",
+      "route": "/client/events",
+      "accountRole": "viewer",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "[data-testid=\"${escapeHtml(testId)}\"]",
+        "actionAnchor": "ClientViewEventsJson"
+      }
+    },
+    "observed": {
+      "schema": "media-server.v390-ui-runtime-observed.v1",
+      "screenRoute": "/client/events",
+      "accountRole": "viewer",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": ".client-viewer-events",
+        "applicability": "required",
+        "exists": true,
+        "visible": true,
+        "enabled": true
+      },
+      "provenance": {
+        "screenRoute": "browser-location",
+        "accountRole": "session-whoami",
+        "viewport": "browser-inner-size",
+        "theme": "browser-media-query",
+        "controlAction": "dom-selector-state"
+      }
+    },
+    "visibleAssertion": {
+      "pass": true,
+      "visible": true,
+      "selector": "body"
+    },
+    "visualMeasurement": {
+      "schema": "media-server.ui-browser-visual-measurement.v2",
+      "caseBinding": {
+        "canonicalCaseId": "CLIENT-007",
+        "featureId": "CLIENT-007",
+        "screenId": "CLIENT-007",
+        "screenRoute": "/client/events",
+        "accountRole": "viewer",
+        "targetSelector": ".client-viewer-events"
+      },
+      "route": "/client/events",
+      "accountRole": "viewer",
+      "requestedTheme": "light",
+      "appliedTheme": "light",
+      "mediaTheme": "light",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "devicePixelRatio": 1
+      },
+      "document": {
+        "scrollWidth": 390,
+        "scrollHeight": 3166,
+        "clientWidth": 390,
+        "clientHeight": 844
+      },
+      "target": {
+        "selector": ".client-viewer-events",
+        "visible": true,
+        "documentTarget": false,
+        "rect": {
+          "x": 16,
+          "y": -921,
+          "left": 16,
+          "top": -921,
+          "right": 374,
+          "bottom": 1764.25,
+          "width": 358,
+          "height": 2685.25
+        }
+      },
+      "textSamples": [
+        {
+          "foreground": "rgb(23, 28, 31)",
+          "background": "rgb(243, 246, 248)",
+          "fontSizePx": 15,
+          "fontWeight": "950",
+          "rect": {
+            "x": 66,
+            "y": 19,
+            "left": 66,
+            "top": 19,
+            "right": 368,
+            "bottom": 34,
+            "width": 302,
+            "height": 15
+          }
+        },
+        {
+          "foreground": "rgb(92, 105, 114)",
+          "background": "rgb(243, 246, 248)",
+          "fontSizePx": 12,
+          "fontWeight": "750",
+          "rect": {
+            "x": 66,
+            "y": 37,
+            "left": 66,
+            "top": 37,
+            "right": 368,
+            "bottom": 49,
+            "width": 302,
+            "height": 12
+          }
+        },
+        {
+          "foreground": "rgb(92, 105, 114)",
+          "background": "rgb(243, 246, 248)",
+          "fontSizePx": 12,
+          "fontWeight": "900",
+          "rect": {
+            "x": 102.421875,
+            "y": 81.28125,
+            "left": 102.421875,
+            "top": 81.28125,
+            "right": 133.5625,
+            "bottom": 94.71875,
+            "width": 31.140625,
+            "height": 13.4375
+          }
+        },
+        {
+          "foreground": "rgb(92, 105, 114)",
+          "background": "rgb(243, 246, 248)",
+          "fontSizePx": 12,
+          "fontWeight": "900",
+          "rect": {
+            "x": 273.234375,
+            "y": 81.28125,
+            "left": 273.234375,
+            "top": 81.28125,
+            "right": 314.765625,
+            "bottom": 94.71875,
+            "width": 41.53125,
+            "height": 13.4375
+          }
+        },
+        {
+          "foreground": "rgb(23, 28, 31)",
+          "background": "rgb(255, 255, 255)",
+          "fontSizePx": 12,
+          "fontWeight": "850",
+          "rect": {
+            "x": 296,
+            "y": 126,
+            "left": 296,
+            "top": 126,
+            "right": 368,
+            "bottom": 162,
+            "width": 72,
+            "height": 36
+          }
+        },
+        {
+          "foreground": "rgb(92, 105, 114)",
+          "background": "rgb(248, 250, 251)",
+          "fontSizePx": 16,
+          "fontWeight": "400",
+          "rect": {
+            "x": 29,
+            "y": -10.25,
+            "left": 29,
+            "top": -10.25,
+            "right": 193.40625,
+            "bottom": 12.9375,
+            "width": 164.40625,
+            "height": 23.1875
+          }
+        },
+        {
+          "foreground": "rgb(29, 78, 216)",
+          "background": "rgb(219, 234, 254)",
+          "fontSizePx": 12,
+          "fontWeight": "900",
+          "rect": {
+            "x": 29,
+            "y": 20.9375,
+            "left": 29,
+            "top": 20.9375,
+            "right": 118.71875,
+            "bottom": 46.9375,
+            "width": 89.71875,
+            "height": 26
+          }
+        },
+        {
+          "foreground": "rgb(29, 78, 216)",
+          "background": "rgb(219, 234, 254)",
+          "fontSizePx": 12,
+          "fontWeight": "900",
+          "rect": {
+            "x": 124.71875,
+            "y": 20.9375,
+            "left": 124.71875,
+            "top": 20.9375,
+            "right": 192.703125,
+            "bottom": 46.9375,
+            "width": 67.984375,
+            "height": 26
+          }
+        },
+        {
+          "foreground": "rgb(29, 78, 216)",
+          "background": "rgb(219, 234, 254)",
+          "fontSizePx": 12,
+          "fontWeight": "900",
+          "rect": {
+            "x": 198.703125,
+            "y": 20.9375,
+            "left": 198.703125,
+            "top": 20.9375,
+            "right": 309.625,
+            "bottom": 46.9375,
+            "width": 110.921875,
+            "height": 26
+          }
+        },
+        {
+          "foreground": "rgb(23, 28, 31)",
+          "background": "rgb(255, 255, 255)",
+          "fontSizePx": 16,
+          "fontWeight": "700",
+          "rect": {
+            "x": 38,
+            "y": 67.9375,
+            "left": 38,
+            "top": 67.9375,
+            "right": 212.046875,
+            "bottom": 89.9375,
+            "width": 174.046875,
+            "height": 22
+          }
+        },
+        {
+          "foreground": "rgb(92, 105, 114)",
+          "background": "rgb(255, 255, 255)",
+          "fontSizePx": 16,
+          "fontWeight": "400",
+          "rect": {
+            "x": 38,
+            "y": 91.9375,
+            "left": 38,
+            "top": 91.9375,
+            "right": 212.046875,
+            "bottom": 179.9375,
+            "width": 174.046875,
+            "height": 88
+          }
+        },
+        {
+          "foreground": "rgb(92, 105, 114)",
+          "background": "rgb(255, 255, 255)",
+          "fontSizePx": 13.3333,
+          "fontWeight": "400",
+          "rect": {
+            "x": 220.046875,
+            "y": 114.9375,
+            "left": 220.046875,
+            "top": 114.9375,
+            "right": 352,
+            "bottom": 132.9375,
+            "width": 131.953125,
+            "height": 18
+          }
+        },
+        {
+          "foreground": "rgb(23, 28, 31)",
+          "background": "rgb(248, 250, 251)",
+          "fontSizePx": 16,
+          "fontWeight": "700",
+          "rect": {
+            "x": 29,
+            "y": 224.9375,
+            "left": 29,
+            "top": 224.9375,
+            "right": 361,
+            "bottom": 246.9375,
+            "width": 332,
+            "height": 22
+          }
+        },
+        {
+          "foreground": "rgb(92, 105, 114)",
+          "background": "rgb(248, 250, 251)",
+          "fontSizePx": 16,
+          "fontWeight": "400",
+          "rect": {
+            "x": 29,
+            "y": 246.9375,
+            "left": 29,
+            "top": 246.9375,
+            "right": 361,
+            "bottom": 293.3125,
+            "width": 332,
+            "height": 46.375
+          }
+        },
+        {
+          "foreground": "rgb(29, 78, 216)",
+          "background": "rgb(219, 234, 254)",
+          "fontSizePx": 12,
+          "fontWeight": "900",
+          "rect": {
+            "x": 29,
+            "y": 301.3125,
+            "left": 29,
+            "top": 301.3125,
+            "right": 118.71875,
+            "bottom": 327.3125,
+            "width": 89.71875,
+            "height": 26
+          }
+        },
+        {
+          "foreground": "rgb(29, 78, 216)",
+          "background": "rgb(219, 234, 254)",
+          "fontSizePx": 12,
+          "fontWeight": "900",
+          "rect": {
+            "x": 124.71875,
+            "y": 301.3125,
+            "left": 124.71875,
+            "top": 301.3125,
+            "right": 211.015625,
+            "bottom": 327.3125,
+            "width": 86.296875,
+            "height": 26
+          }
+        },
+        {
+          "foreground": "rgb(29, 78, 216)",
+          "background": "rgb(219, 234, 254)",
+          "fontSizePx": 12,
+          "fontWeight": "900",
+          "rect": {
+            "x": 217.015625,
+            "y": 301.3125,
+            "left": 217.015625,
+            "top": 301.3125,
+            "right": 357.109375,
+            "bottom": 327.3125,
+            "width": 140.09375,
+            "height": 26
+          }
+        },
+        {
+          "foreground": "rgb(23, 28, 31)",
+          "background": "rgb(255, 255, 255)",
+          "fontSizePx": 16,
+          "fontWeight": "700",
+          "rect": {
+            "x": 38,
+            "y": 348.3125,
+            "left": 38,
+            "top": 348.3125,
+            "right": 352,
+            "bottom": 392.3125,
+            "width": 314,
+            "height": 44
+          }
+        },
+        {
+          "foreground": "rgb(92, 105, 114)",
+          "background": "rgb(255, 255, 255)",
+          "fontSizePx": 16,
+          "fontWeight": "400",
+          "rect": {
+            "x": 38,
+            "y": 394.3125,
+            "left": 38,
+            "top": 394.3125,
+            "right": 352,
+            "bottom": 482.3125,
+            "width": 314,
+            "height": 88
+          }
+        },
+        {
+          "foreground": "rgb(92, 105, 114)",
+          "background": "rgb(255, 255, 255)",
+          "fontSizePx": 16,
+          "fontWeight": "400",
+          "rect": {
+            "x": 38,
+            "y": 484.3125,
+            "left": 38,
+            "top": 484.3125,
+            "right": 352,
+            "bottom": 572.3125,
+            "width": 314,
+            "height": 88
+          }
+        },
+        {
+          "foreground": "rgb(180, 83, 9)",
+          "background": "rgb(255, 244, 214)",
+          "fontSizePx": 12,
+          "fontWeight": "900",
+          "rect": {
+            "x": 38,
+            "y": 580.3125,
+            "left": 38,
+            "top": 580.3125,
+            "right": 352,
+            "bottom": 606.3125,
+            "width": 314,
+            "height": 26
+          }
+        },
+        {
+          "foreground": "rgb(23, 28, 31)",
+          "background": "rgb(248, 250, 251)",
+          "fontSizePx": 16,
+          "fontWeight": "700",
+          "rect": {
+            "x": 29,
+            "y": 651.3125,
+            "left": 29,
+            "top": 651.3125,
+            "right": 238.921875,
+            "bottom": 673.3125,
+            "width": 209.921875,
+            "height": 22
+          }
+        },
+        {
+          "foreground": "rgb(92, 105, 114)",
+          "background": "rgb(248, 250, 251)",
+          "fontSizePx": 16,
+          "fontWeight": "400",
+          "rect": {
+            "x": 29,
+            "y": 673.3125,
+            "left": 29,
+            "top": 673.3125,
+            "right": 238.921875,
+            "bottom": 696.5,
+            "width": 209.921875,
+            "height": 23.1875
+          }
+        },
+        {
+          "foreground": "rgb(29, 78, 216)",
+          "background": "rgb(219, 234, 254)",
+          "fontSizePx": 12,
+          "fontWeight": "900",
+          "rect": {
+            "x": 29,
+            "y": 704.5,
+            "left": 29,
+            "top": 704.5,
+            "right": 118.71875,
+            "bottom": 730.5,
+            "width": 89.71875,
+            "height": 26
+          }
+        },
+        {
+          "foreground": "rgb(29, 78, 216)",
+          "background": "rgb(219, 234, 254)",
+          "fontSizePx": 12,
+          "fontWeight": "900",
+          "rect": {
+            "x": 124.71875,
+            "y": 704.5,
+            "left": 124.71875,
+            "top": 704.5,
+            "right": 211.015625,
+            "bottom": 730.5,
+            "width": 86.296875,
+            "height": 26
+          }
+        },
+        {
+          "foreground": "rgb(29, 78, 216)",
+          "background": "rgb(219, 234, 254)",
+          "fontSizePx": 12,
+          "fontWeight": "900",
+          "rect": {
+            "x": 217.015625,
+            "y": 704.5,
+            "left": 217.015625,
+            "top": 704.5,
+            "right": 310.9375,
+            "bottom": 730.5,
+            "width": 93.921875,
+            "height": 26
+          }
+        },
+        {
+          "foreground": "rgb(23, 28, 31)",
+          "background": "rgb(255, 255, 255)",
+          "fontSizePx": 16,
+          "fontWeight": "700",
+          "rect": {
+            "x": 38,
+            "y": 751.5,
+            "left": 38,
+            "top": 751.5,
+            "right": 352,
+            "bottom": 795.5,
+            "width": 314,
+            "height": 44
+          }
+        },
+        {
+          "foreground": "rgb(92, 105, 114)",
+          "background": "rgb(255, 255, 255)",
+          "fontSizePx": 16,
+          "fontWeight": "400",
+          "rect": {
+            "x": 38,
+            "y": 797.5,
+            "left": 38,
+            "top": 797.5,
+            "right": 352,
+            "bottom": 841.5,
+            "width": 314,
+            "height": 44
+          }
+        }
+      ],
+      "focus": {
+        "focusableCount": 8,
+        "applicable": true
+      },
+      "liveVideo": null,
+      "postActionVisualOwner": {
+        "schema": "media-server.v390-ui-post-action-visual-target.v1",
+        "caseId": "CLIENT-007",
+        "actionId": "CLIENT-007:assert-visible-read-model",
+        "completionMode": "request",
+        "sourceSelectorSha256": "604e60f48ddac95445b624e3fed28446862c89a7e54cd3b83415810d578dc3ee",
+        "sourceOwnerSelectorSha256": "604e60f48ddac95445b624e3fed28446862c89a7e54cd3b83415810d578dc3ee",
+        "requestedState": "visible",
+        "observedRoute": "/client/events",
+        "navigationEpoch": 1,
+        "ownerCandidateCount": 1,
+        "sourceSelectorRewaited": false,
+        "selector": ".client-viewer-events",
+        "bindingKind": "post-action-visible-source-owner",
+        "sourceDetached": false,
+        "sourceHidden": false,
+        "epochRelation": "same-document"
+      },
+      "focusSamples": [
+        {
+          "index": 0,
+          "focusIdentity": "body > main > section > div:nth-of-type(2) > div:nth-of-type(2) > button",
+          "tag": "button",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "rgba(15, 118, 110, 0.16) 0px 0px 0px 2px"
+        },
+        {
+          "index": 1,
+          "focusIdentity": "body > main > section > div:nth-of-type(3) > div > div:nth-of-type(1) > div:nth-of-type(3) > button",
+          "tag": "button",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 2,
+          "focusIdentity": "body",
+          "tag": "body",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "none",
+          "outlineWidth": "3px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 3,
+          "focusIdentity": "body > main > header > div > div:nth-of-type(1) > nav > a:nth-of-type(1)",
+          "tag": "a",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 4,
+          "focusIdentity": "body > main > header > div > div:nth-of-type(1) > nav > a:nth-of-type(2)",
+          "tag": "a",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 5,
+          "focusIdentity": "#themeToggleBtn",
+          "tag": "button",
+          "id": "themeToggleBtn",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 6,
+          "focusIdentity": "body > main > header > div > div:nth-of-type(2) > div > div:nth-of-type(2) > label > select",
+          "tag": "select",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "solid",
+          "outlineWidth": "3px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 7,
+          "focusIdentity": "body > main > header > div > div:nth-of-type(2) > form > button",
+          "tag": "button",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 8,
+          "focusIdentity": "#refresh",
+          "tag": "button",
+          "id": "refresh",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        }
+      ]
+    },
+    "visualExpectedCase": {
+      "canonicalCaseId": "CLIENT-007",
+      "featureId": "CLIENT-007",
+      "screenId": "CLIENT-007",
+      "screenRoute": "/client/events",
+      "accountRole": "viewer",
+      "targetSelector": ".client-viewer-events",
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "liveVideoRequired": false
+    },
+    "screenshotPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/runs/v390-test-acceptance-20261003035221-92072/ui-exact-424/cases/342-CLIENT-007/screenshots/CLIENT-007.png",
+    "tracePath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/runs/v390-test-acceptance-20261003035221-92072/ui-exact-424/cases/342-CLIENT-007/traces/CLIENT-007.trace.json",
+    "browserConsolePath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/runs/v390-test-acceptance-20261003035221-92072/ui-exact-424/cases/342-CLIENT-007/logs/CLIENT-007.browser-console.json",
+    "cleanupAttestation": {
+      "schema": "media-server.v390-ui-case-cleanup-attestation.v1",
+      "pass": true,
+      "primaryFailurePresent": false,
+      "primaryFailurePreserved": false,
+      "caseRuntimeRestoreAttempted": true,
+      "caseRuntimeRestored": true,
+      "browserCloseAttempted": true,
+      "browserContextClosed": true,
+      "cleanupEntryCount": 3,
+      "failureCode": ""
+    },
+    "requestLifecycleEvaluation": {
+      "status": "PASS",
+      "census": {
+        "requestCount": 9,
+        "responseCount": 9,
+        "classified": 9,
+        "unclassified": 0,
+        "multiplyClassified": 0,
+        "captureErrors": 0,
+        "duplicateResponses": 0,
+        "failureCount": 0
+      },
+      "diagnostics": {
+        "sequenceDomain": "diagnostic-seal-and-after-seal-only",
+        "diagnosticErrors": 0,
+        "seal": {
+          "sequence": 1,
+          "timestamp": 1791003635624
+        },
+        "afterSeal": [],
+        "requests": [
+          {
+            "requestIdentity": "CLIENT-007:object-1",
+            "legacyRequestId": "native-request-1",
+            "method": "GET",
+            "path": "/client/events",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 1,
+              "timestamp": 1791003634362
+            },
+            "responses": [
+              {
+                "sequence": 2,
+                "timestamp": 1791003634376,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 5,
+                "timestamp": 1791003634390
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "CLIENT-007:object-3",
+            "legacyRequestId": "native-request-2",
+            "method": "GET",
+            "path": "/auth/whoami",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 3,
+              "timestamp": 1791003634389
+            },
+            "responses": [
+              {
+                "sequence": 6,
+                "timestamp": 1791003634431,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 8,
+                "timestamp": 1791003634431
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "CLIENT-007:object-4",
+            "legacyRequestId": "native-request-3",
+            "method": "GET",
+            "path": "/client/api/views/9001/events",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 4,
+              "timestamp": 1791003634389
+            },
+            "responses": [
+              {
+                "sequence": 7,
+                "timestamp": 1791003634431,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 9,
+                "timestamp": 1791003634431
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "CLIENT-007:object-7",
+            "legacyRequestId": "native-request-4",
+            "method": "GET",
+            "path": "/auth/whoami",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 10,
+              "timestamp": 1791003634455
+            },
+            "responses": [
+              {
+                "sequence": 11,
+                "timestamp": 1791003634457,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 12,
+                "timestamp": 1791003634457
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "CLIENT-007:object-9",
+            "legacyRequestId": "native-request-5",
+            "method": "GET",
+            "path": "/auth/whoami",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 13,
+              "timestamp": 1791003634470
+            },
+            "responses": [
+              {
+                "sequence": 14,
+                "timestamp": 1791003634473,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 15,
+                "timestamp": 1791003634473
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "CLIENT-007:object-11",
+            "legacyRequestId": "native-request-6",
+            "method": "GET",
+            "path": "/client/events",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 16,
+              "timestamp": 1791003634482
+            },
+            "responses": [
+              {
+                "sequence": 17,
+                "timestamp": 1791003634485,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 18,
+                "timestamp": 1791003634485
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "CLIENT-007:object-13",
+            "legacyRequestId": "native-request-7",
+            "method": "GET",
+            "path": "/client/api/views/9001/events",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 19,
+              "timestamp": 1791003634565
+            },
+            "responses": [
+              {
+                "sequence": 20,
+                "timestamp": 1791003634596,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 21,
+                "timestamp": 1791003634596
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "CLIENT-007:object-15",
+            "legacyRequestId": "native-request-8",
+            "method": "GET",
+            "path": "/client/api/views/9001/events",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 22,
+              "timestamp": 1791003635081
+            },
+            "responses": [
+              {
+                "sequence": 23,
+                "timestamp": 1791003635088,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 24,
+                "timestamp": 1791003635089
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "CLIENT-007:object-17",
+            "legacyRequestId": "native-request-9",
+            "method": "GET",
+            "path": "/auth/whoami",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 25,
+              "timestamp": 1791003635263
+            },
+            "responses": [
+              {
+                "sequence": 26,
+                "timestamp": 1791003635267,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 27,
+                "timestamp": 1791003635267
+              }
+            ],
+            "failed": []
+          }
+        ]
+      },
+      "requests": [
+        {
+          "requestIdentity": "CLIENT-007:object-1",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "CLIENT-007:object-3",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "CLIENT-007:object-4",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "CLIENT-007:object-7",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "CLIENT-007:object-9",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "CLIENT-007:object-11",
+          "redirectedFromIdentity": null,
+          "correlationDigest": "2bd63b58c70e686d6e83bf1262d74ca580c3bf3aceb79defa102216358a76eff"
+        },
+        {
+          "requestIdentity": "CLIENT-007:object-13",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "CLIENT-007:object-15",
+          "redirectedFromIdentity": null,
+          "correlationDigest": "2bd63b58c70e686d6e83bf1262d74ca580c3bf3aceb79defa102216358a76eff"
+        },
+        {
+          "requestIdentity": "CLIENT-007:object-17",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        }
+      ],
+      "classifications": [
+        {
+          "requestIdentity": "CLIENT-007:object-1",
+          "responseIdentity": "CLIENT-007:object-2",
+          "requestKind": "document-navigation",
+          "classification": "bootstrap",
+          "owner": "page",
+          "phase": "bootstrap-document"
+        },
+        {
+          "requestIdentity": "CLIENT-007:object-3",
+          "responseIdentity": "CLIENT-007:object-5",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "CLIENT-007:object-4",
+          "responseIdentity": "CLIENT-007:object-6",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "CLIENT-007:object-7",
+          "responseIdentity": "CLIENT-007:object-8",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "CLIENT-007:object-9",
+          "responseIdentity": "CLIENT-007:object-10",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "CLIENT-007:object-11",
+          "responseIdentity": "CLIENT-007:object-12",
+          "requestKind": "application-fetch",
+          "classification": "action",
+          "owner": "action",
+          "phase": "primary-action"
+        },
+        {
+          "requestIdentity": "CLIENT-007:object-13",
+          "responseIdentity": "CLIENT-007:object-14",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "CLIENT-007:object-15",
+          "responseIdentity": "CLIENT-007:object-16",
+          "requestKind": "application-fetch",
+          "classification": "action",
+          "owner": "action",
+          "phase": "primary-action"
+        },
+        {
+          "requestIdentity": "CLIENT-007:object-17",
+          "responseIdentity": "CLIENT-007:object-18",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        }
+      ],
+      "failures": []
+    }
+  }
+}

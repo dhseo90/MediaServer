@@ -1,0 +1,9 @@
+{
+  "schema": "media-server.ui-raw-visual-capture.v1",
+  "caseId": "AUTH-023",
+  "correlationId": "AUTH-023:assert-product-state:completion",
+  "targetSelector": "body",
+  "screenshotSha256": "5a8a7ec7cd50053e08788eb3ad86e523d6a3d8eb3cd29a7ce6c0191cfd014749",
+  "measurementSha256": "3dd752f4db294c0d97b5ac2dc585cfd10bb7e28d4bc3bceeb58bb9dcd60e18e2",
+  "qualificationStatus": "unqualified-raw-capture"
+}

@@ -1,0 +1,4758 @@
+{
+  "schema": "media-server.v390-ui-case-child.v1",
+  "result": "PASS",
+  "executionStatus": "case-child-browser-evidence",
+  "releaseEvidenceEligible": false,
+  "policyV4Qualification": "not-eligible-single-case-child",
+  "uiFulltestPass": false,
+  "actualBrowserExecution": true,
+  "sourceBinding": {
+    "baselineSourceCommitSha": "327afe0d4b3282400f1925252c59a53b87827224",
+    "verificationCommitSha": "ce163652d3c4b976cb263a4569331529595f55c5",
+    "verificationBranch": "v4.2.0",
+    "runnerSchema": "media-server.v390-ui-canonical-parent.v1",
+    "manifestSha256": "9b76b6f0e04cd3b55f2ca514a74bbc5c7d08a3ade7b12ae32af5a5c886190716",
+    "implementationFiles": {
+      "runner": {
+        "path": "scripts/internal/run_v390_ui_native_exact_cases.mjs",
+        "sha256": "71565dbfbac9a75a721e7d1bb4c4945e7376ac0b1ce9f7fce824eeca8591d2ae"
+      },
+      "library": {
+        "path": "scripts/internal/v390_ui_native_exact_cases_lib.mjs",
+        "sha256": "c238f47dd9656674c68ce9e545980c76e3e2351bb5fd62375eafc9d97214af61"
+      },
+      "adapter": {
+        "path": "scripts/internal/v390_ui_native_adapter.mjs",
+        "sha256": "1700b24486a5027b7bb3fe6306c3774dae220a3a7db051c2778a34e7cc44c7ed"
+      },
+      "recorder": {
+        "path": "scripts/internal/v390_ui_request_event_recorder.mjs",
+        "sha256": "c8fba8290f1c9b3e856c8ac05d2911254500d243966ea96ce61cccc68f90a2e9"
+      },
+      "evaluator": {
+        "path": "scripts/internal/v390_ui_request_lifecycle_evaluator.mjs",
+        "sha256": "f3ad6af79b7c24f7064d06d3342df5ee195caba2b61aba5a3f06e254d622613b"
+      }
+    },
+    "implementationSha256": "55446fdade942c8a168c708503611a1cd7e11b67682db81d60d84de2a89c67b1",
+    "buildSha256": "253810c36869096349c05ad68caacfc21b569e6d6aba13b5223d13c01d84969b"
+  },
+  "policyInputRef": {
+    "schema": "media-server.v390-ui-case-policy-input-ref.v1",
+    "caseId": "EVT-004",
+    "runId": "fa3f64f2-58d9-49df-b223-7285df0cce64",
+    "path": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/runs/v390-test-acceptance-20261003035221-92072/ui-exact-424/cases/291-EVT-004/policy-input.json",
+    "bytes": 163879,
+    "sha256": "e74aeeeb8b3de74b1a1159a93407351df61236c308a8af2712f7abe9a0d96926"
+  },
+  "selection": {
+    "caseId": "EVT-004",
+    "selectedIds": [
+      "EVT-004"
+    ],
+    "selected": 1
+  },
+  "counts": {
+    "selected": 1,
+    "attempted": 1,
+    "pass": 1,
+    "fail": 0,
+    "notRun": 0,
+    "unsupported": 0,
+    "runnerAbort": 0
+  },
+  "case": {
+    "caseId": "EVT-004",
+    "featureId": "EVT-004",
+    "status": "PASS",
+    "failureClass": "",
+    "failurePhase": "",
+    "failureCode": "",
+    "failureMessage": "",
+    "failureCensus": [],
+    "requestLifecycleEvaluation": {
+      "status": "PASS",
+      "census": {
+        "requestCount": 122,
+        "responseCount": 122,
+        "classified": 122,
+        "unclassified": 0,
+        "multiplyClassified": 0,
+        "captureErrors": 0,
+        "duplicateResponses": 0,
+        "failureCount": 0
+      },
+      "diagnostics": {
+        "sequenceDomain": "diagnostic-seal-and-after-seal-only",
+        "diagnosticErrors": 0,
+        "seal": {
+          "sequence": 1,
+          "timestamp": 1791003462295
+        },
+        "afterSeal": [],
+        "requests": [
+          {
+            "requestIdentity": "EVT-004:object-1",
+            "legacyRequestId": "native-request-1",
+            "method": "GET",
+            "path": "/ops/events",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 1,
+              "timestamp": 1791003459382
+            },
+            "responses": [
+              {
+                "sequence": 2,
+                "timestamp": 1791003459394,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 12,
+                "timestamp": 1791003459417
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-3",
+            "legacyRequestId": "native-request-2",
+            "method": "GET",
+            "path": "/auth/whoami",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 3,
+              "timestamp": 1791003459413
+            },
+            "responses": [
+              {
+                "sequence": 13,
+                "timestamp": 1791003459483,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 22,
+                "timestamp": 1791003459486
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-4",
+            "legacyRequestId": "native-request-3",
+            "method": "GET",
+            "path": "/ops/api/recordings/status",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 4,
+              "timestamp": 1791003459414
+            },
+            "responses": [
+              {
+                "sequence": 17,
+                "timestamp": 1791003459484,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 26,
+                "timestamp": 1791003459486
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-5",
+            "legacyRequestId": "native-request-4",
+            "method": "GET",
+            "path": "/ops/api/recordings/status",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 5,
+              "timestamp": 1791003459414
+            },
+            "responses": [
+              {
+                "sequence": 21,
+                "timestamp": 1791003459485,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 30,
+                "timestamp": 1791003459486
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-6",
+            "legacyRequestId": "native-request-5",
+            "method": "GET",
+            "path": "/ops/api/vlm/profiles",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 6,
+              "timestamp": 1791003459416
+            },
+            "responses": [
+              {
+                "sequence": 15,
+                "timestamp": 1791003459484,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 24,
+                "timestamp": 1791003459486
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-7",
+            "legacyRequestId": "native-request-6",
+            "method": "GET",
+            "path": "/ops/api/vlm/evaluation-results",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 7,
+              "timestamp": 1791003459416
+            },
+            "responses": [
+              {
+                "sequence": 14,
+                "timestamp": 1791003459484,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 23,
+                "timestamp": 1791003459486
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-8",
+            "legacyRequestId": "native-request-7",
+            "method": "GET",
+            "path": "/ops/api/vlm/evaluation-promotion-guard",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 8,
+              "timestamp": 1791003459416
+            },
+            "responses": [
+              {
+                "sequence": 16,
+                "timestamp": 1791003459484,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 25,
+                "timestamp": 1791003459486
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-9",
+            "legacyRequestId": "native-request-8",
+            "method": "GET",
+            "path": "/ops/api/audit",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 9,
+              "timestamp": 1791003459416
+            },
+            "responses": [
+              {
+                "sequence": 18,
+                "timestamp": 1791003459484,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 27,
+                "timestamp": 1791003459486
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-10",
+            "legacyRequestId": "native-request-9",
+            "method": "GET",
+            "path": "/ops/api/events/status",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 10,
+              "timestamp": 1791003459417
+            },
+            "responses": [
+              {
+                "sequence": 19,
+                "timestamp": 1791003459484,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 28,
+                "timestamp": 1791003459486
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-11",
+            "legacyRequestId": "native-request-10",
+            "method": "GET",
+            "path": "/ops/api/alerts/deliveries",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 11,
+              "timestamp": 1791003459417
+            },
+            "responses": [
+              {
+                "sequence": 20,
+                "timestamp": 1791003459484,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 29,
+                "timestamp": 1791003459486
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-21",
+            "legacyRequestId": "native-request-11",
+            "method": "GET",
+            "path": "/ops/api/events/reviews",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 31,
+              "timestamp": 1791003459489
+            },
+            "responses": [
+              {
+                "sequence": 32,
+                "timestamp": 1791003459495,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 33,
+                "timestamp": 1791003459495
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-23",
+            "legacyRequestId": "native-request-12",
+            "method": "GET",
+            "path": "/auth/whoami",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 34,
+              "timestamp": 1791003459515
+            },
+            "responses": [
+              {
+                "sequence": 35,
+                "timestamp": 1791003459518,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 36,
+                "timestamp": 1791003459518
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-25",
+            "legacyRequestId": "native-request-13",
+            "method": "GET",
+            "path": "/auth/whoami",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 37,
+              "timestamp": 1791003459526
+            },
+            "responses": [
+              {
+                "sequence": 38,
+                "timestamp": 1791003459528,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 39,
+                "timestamp": 1791003459528
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-27",
+            "legacyRequestId": "native-request-14",
+            "method": "GET",
+            "path": "/ops/dashboard",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 40,
+              "timestamp": 1791003460265
+            },
+            "responses": [
+              {
+                "sequence": 41,
+                "timestamp": 1791003460269,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 53,
+                "timestamp": 1791003460302
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-29",
+            "legacyRequestId": "native-request-15",
+            "method": "GET",
+            "path": "/auth/whoami",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 42,
+              "timestamp": 1791003460299
+            },
+            "responses": [
+              {
+                "sequence": 54,
+                "timestamp": 1791003460322,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 65,
+                "timestamp": 1791003460325
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-30",
+            "legacyRequestId": "native-request-16",
+            "method": "GET",
+            "path": "/ops/api/vlm/profiles",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 43,
+              "timestamp": 1791003460300
+            },
+            "responses": [
+              {
+                "sequence": 55,
+                "timestamp": 1791003460323,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 66,
+                "timestamp": 1791003460325
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-31",
+            "legacyRequestId": "native-request-17",
+            "method": "GET",
+            "path": "/ops/api/vlm/evaluation-results",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 44,
+              "timestamp": 1791003460300
+            },
+            "responses": [
+              {
+                "sequence": 57,
+                "timestamp": 1791003460323,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 68,
+                "timestamp": 1791003460325
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-32",
+            "legacyRequestId": "native-request-18",
+            "method": "GET",
+            "path": "/ops/api/vlm/evaluation-promotion-guard",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 45,
+              "timestamp": 1791003460300
+            },
+            "responses": [
+              {
+                "sequence": 56,
+                "timestamp": 1791003460323,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 67,
+                "timestamp": 1791003460325
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-33",
+            "legacyRequestId": "native-request-19",
+            "method": "GET",
+            "path": "/ops/api/runtime/status",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 46,
+              "timestamp": 1791003460301
+            },
+            "responses": [
+              {
+                "sequence": 59,
+                "timestamp": 1791003460323,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 70,
+                "timestamp": 1791003460325
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-34",
+            "legacyRequestId": "native-request-20",
+            "method": "GET",
+            "path": "/auth/whoami",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 47,
+              "timestamp": 1791003460301
+            },
+            "responses": [
+              {
+                "sequence": 58,
+                "timestamp": 1791003460323,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 69,
+                "timestamp": 1791003460325
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-35",
+            "legacyRequestId": "native-request-21",
+            "method": "GET",
+            "path": "/ops/api/events/status",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 48,
+              "timestamp": 1791003460301
+            },
+            "responses": [
+              {
+                "sequence": 60,
+                "timestamp": 1791003460325,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 71,
+                "timestamp": 1791003460325
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-36",
+            "legacyRequestId": "native-request-22",
+            "method": "GET",
+            "path": "/webrtc/config",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 49,
+              "timestamp": 1791003460301
+            },
+            "responses": [
+              {
+                "sequence": 61,
+                "timestamp": 1791003460325,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 72,
+                "timestamp": 1791003460325
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-37",
+            "legacyRequestId": "native-request-23",
+            "method": "GET",
+            "path": "/ops/api/diagnostics/log-tail",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 50,
+              "timestamp": 1791003460301
+            },
+            "responses": [
+              {
+                "sequence": 63,
+                "timestamp": 1791003460325,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 74,
+                "timestamp": 1791003460325
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-38",
+            "legacyRequestId": "native-request-24",
+            "method": "GET",
+            "path": "/ops/api/source-health",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 51,
+              "timestamp": 1791003460302
+            },
+            "responses": [
+              {
+                "sequence": 64,
+                "timestamp": 1791003460325,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 75,
+                "timestamp": 1791003460325
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-39",
+            "legacyRequestId": "native-request-25",
+            "method": "GET",
+            "path": "/ops/api/rules/catalog",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 52,
+              "timestamp": 1791003460302
+            },
+            "responses": [
+              {
+                "sequence": 62,
+                "timestamp": 1791003460325,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 73,
+                "timestamp": 1791003460325
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-51",
+            "legacyRequestId": "native-request-26",
+            "method": "GET",
+            "path": "/ops/api/live-operations/graph",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 76,
+              "timestamp": 1791003460331
+            },
+            "responses": [
+              {
+                "sequence": 89,
+                "timestamp": 1791003460366,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 97,
+                "timestamp": 1791003460366
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-52",
+            "legacyRequestId": "native-request-27",
+            "method": "GET",
+            "path": "/ops/api/live-operations/command-plan",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 77,
+              "timestamp": 1791003460331
+            },
+            "responses": [
+              {
+                "sequence": 85,
+                "timestamp": 1791003460366,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 93,
+                "timestamp": 1791003460366
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-53",
+            "legacyRequestId": "native-request-28",
+            "method": "GET",
+            "path": "/ops/api/live-operations/staged-change-plan-impact-preview",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 78,
+              "timestamp": 1791003460332
+            },
+            "responses": [
+              {
+                "sequence": 86,
+                "timestamp": 1791003460366,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 94,
+                "timestamp": 1791003460366
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-54",
+            "legacyRequestId": "native-request-29",
+            "method": "GET",
+            "path": "/ops/api/live-operations/drill-run-ledger",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 79,
+              "timestamp": 1791003460332
+            },
+            "responses": [
+              {
+                "sequence": 87,
+                "timestamp": 1791003460366,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 95,
+                "timestamp": 1791003460366
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-55",
+            "legacyRequestId": "native-request-30",
+            "method": "GET",
+            "path": "/ops/api/live-operations/export-bundle-handoff-map",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 80,
+              "timestamp": 1791003460332
+            },
+            "responses": [
+              {
+                "sequence": 88,
+                "timestamp": 1791003460366,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 96,
+                "timestamp": 1791003460366
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-56",
+            "legacyRequestId": "native-request-31",
+            "method": "GET",
+            "path": "/ops/api/live-operations/field-evidence-intake",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 81,
+              "timestamp": 1791003460332
+            },
+            "responses": [
+              {
+                "sequence": 84,
+                "timestamp": 1791003460366,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 92,
+                "timestamp": 1791003460366
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-57",
+            "legacyRequestId": "native-request-32",
+            "method": "GET",
+            "path": "/ops/api/live-operations/vlm-assisted-explanation",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 82,
+              "timestamp": 1791003460333
+            },
+            "responses": [
+              {
+                "sequence": 90,
+                "timestamp": 1791003460366,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 98,
+                "timestamp": 1791003460366
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-58",
+            "legacyRequestId": "native-request-33",
+            "method": "GET",
+            "path": "/ops/api/events/reviews",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 83,
+              "timestamp": 1791003460333
+            },
+            "responses": [
+              {
+                "sequence": 91,
+                "timestamp": 1791003460366,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 99,
+                "timestamp": 1791003460366
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-67",
+            "legacyRequestId": "native-request-34",
+            "method": "GET",
+            "path": "/ops/api/live-operations/simulation/input-pack",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 100,
+              "timestamp": 1791003460367
+            },
+            "responses": [
+              {
+                "sequence": 113,
+                "timestamp": 1791003460377,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 114,
+                "timestamp": 1791003460377
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-68",
+            "legacyRequestId": "native-request-35",
+            "method": "GET",
+            "path": "/ops/api/live-operations/simulation/run-contract",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 101,
+              "timestamp": 1791003460367
+            },
+            "responses": [
+              {
+                "sequence": 115,
+                "timestamp": 1791003460377,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 116,
+                "timestamp": 1791003460377
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-69",
+            "legacyRequestId": "native-request-36",
+            "method": "GET",
+            "path": "/ops/api/live-operations/simulation/run-ledger",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 102,
+              "timestamp": 1791003460368
+            },
+            "responses": [
+              {
+                "sequence": 111,
+                "timestamp": 1791003460377,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 112,
+                "timestamp": 1791003460377
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-70",
+            "legacyRequestId": "native-request-37",
+            "method": "GET",
+            "path": "/ops/api/live-operations/simulation/client-notice-preview",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 103,
+              "timestamp": 1791003460368
+            },
+            "responses": [
+              {
+                "sequence": 117,
+                "timestamp": 1791003460377,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 119,
+                "timestamp": 1791003460377
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-71",
+            "legacyRequestId": "native-request-38",
+            "method": "GET",
+            "path": "/ops/api/live-operations/simulation/rule-va-what-if-replay-pack",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 104,
+              "timestamp": 1791003460368
+            },
+            "responses": [
+              {
+                "sequence": 118,
+                "timestamp": 1791003460377,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 120,
+                "timestamp": 1791003460377
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-72",
+            "legacyRequestId": "native-request-39",
+            "method": "GET",
+            "path": "/ops/api/live-operations/simulation/export-bundle",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 105,
+              "timestamp": 1791003460368
+            },
+            "responses": [
+              {
+                "sequence": 121,
+                "timestamp": 1791003460377,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 122,
+                "timestamp": 1791003460377
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-73",
+            "legacyRequestId": "native-request-40",
+            "method": "GET",
+            "path": "/ops/api/live-operations/simulation/field-evidence-adapter",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 106,
+              "timestamp": 1791003460368
+            },
+            "responses": [
+              {
+                "sequence": 123,
+                "timestamp": 1791003460385,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 128,
+                "timestamp": 1791003460385
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-74",
+            "legacyRequestId": "native-request-41",
+            "method": "GET",
+            "path": "/ops/api/live-operations/simulation/vlm-assisted-explanation",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 107,
+              "timestamp": 1791003460368
+            },
+            "responses": [
+              {
+                "sequence": 127,
+                "timestamp": 1791003460385,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 132,
+                "timestamp": 1791003460385
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-75",
+            "legacyRequestId": "native-request-42",
+            "method": "GET",
+            "path": "/ops/api/live-operations/simulation/command-plan-dry-run",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 108,
+              "timestamp": 1791003460368
+            },
+            "responses": [
+              {
+                "sequence": 124,
+                "timestamp": 1791003460385,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 129,
+                "timestamp": 1791003460385
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-76",
+            "legacyRequestId": "native-request-43",
+            "method": "GET",
+            "path": "/ops/api/live-operations/simulation/impact-diff",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 109,
+              "timestamp": 1791003460368
+            },
+            "responses": [
+              {
+                "sequence": 126,
+                "timestamp": 1791003460385,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 131,
+                "timestamp": 1791003460385
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-77",
+            "legacyRequestId": "native-request-44",
+            "method": "GET",
+            "path": "/ops/api/live-operations/simulation/safe-apply-readiness",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 110,
+              "timestamp": 1791003460369
+            },
+            "responses": [
+              {
+                "sequence": 125,
+                "timestamp": 1791003460385,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 130,
+                "timestamp": 1791003460385
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-89",
+            "legacyRequestId": "native-request-45",
+            "method": "GET",
+            "path": "/ops/api/actions/capability-contract",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 133,
+              "timestamp": 1791003460387
+            },
+            "responses": [
+              {
+                "sequence": 140,
+                "timestamp": 1791003460391,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 141,
+                "timestamp": 1791003460391
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-90",
+            "legacyRequestId": "native-request-46",
+            "method": "GET",
+            "path": "/ops/api/actions/request-ledger",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 134,
+              "timestamp": 1791003460388
+            },
+            "responses": [
+              {
+                "sequence": 143,
+                "timestamp": 1791003460392,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 148,
+                "timestamp": 1791003460392
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-91",
+            "legacyRequestId": "native-request-47",
+            "method": "GET",
+            "path": "/ops/api/actions/approval-decision-gate",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 135,
+              "timestamp": 1791003460388
+            },
+            "responses": [
+              {
+                "sequence": 144,
+                "timestamp": 1791003460392,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 149,
+                "timestamp": 1791003460392
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-92",
+            "legacyRequestId": "native-request-48",
+            "method": "GET",
+            "path": "/ops/api/actions/readiness-preflight",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 136,
+              "timestamp": 1791003460388
+            },
+            "responses": [
+              {
+                "sequence": 146,
+                "timestamp": 1791003460392,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 150,
+                "timestamp": 1791003460392
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-93",
+            "legacyRequestId": "native-request-49",
+            "method": "GET",
+            "path": "/ops/api/actions/source-recheck-pilot",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 137,
+              "timestamp": 1791003460388
+            },
+            "responses": [
+              {
+                "sequence": 147,
+                "timestamp": 1791003460392,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 151,
+                "timestamp": 1791003460392
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-94",
+            "legacyRequestId": "native-request-50",
+            "method": "GET",
+            "path": "/ops/api/actions/client-notice-draft-queue",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 138,
+              "timestamp": 1791003460388
+            },
+            "responses": [
+              {
+                "sequence": 142,
+                "timestamp": 1791003460392,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 145,
+                "timestamp": 1791003460392
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-95",
+            "legacyRequestId": "native-request-51",
+            "method": "GET",
+            "path": "/ops/api/actions/rule-draft-package",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 139,
+              "timestamp": 1791003460388
+            },
+            "responses": [
+              {
+                "sequence": 152,
+                "timestamp": 1791003460392,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 153,
+                "timestamp": 1791003460392
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-103",
+            "legacyRequestId": "native-request-52",
+            "method": "GET",
+            "path": "/ops/api/actions/outcome-reconciliation",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 154,
+              "timestamp": 1791003460393
+            },
+            "responses": [
+              {
+                "sequence": 155,
+                "timestamp": 1791003460395,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 156,
+                "timestamp": 1791003460395
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-105",
+            "legacyRequestId": "native-request-53",
+            "method": "GET",
+            "path": "/ops/api/actions/receipt-bundle",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 157,
+              "timestamp": 1791003460396
+            },
+            "responses": [
+              {
+                "sequence": 158,
+                "timestamp": 1791003460405,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 159,
+                "timestamp": 1791003460405
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-107",
+            "legacyRequestId": "native-request-54",
+            "method": "GET",
+            "path": "/ops/api/actions/field-connector-evidence-package",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 160,
+              "timestamp": 1791003460405
+            },
+            "responses": [
+              {
+                "sequence": 161,
+                "timestamp": 1791003460411,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 162,
+                "timestamp": 1791003460411
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-109",
+            "legacyRequestId": "native-request-55",
+            "method": "GET",
+            "path": "/ops/api/actions/default-off-explanation",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 163,
+              "timestamp": 1791003460412
+            },
+            "responses": [
+              {
+                "sequence": 164,
+                "timestamp": 1791003460419,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 165,
+                "timestamp": 1791003460419
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-111",
+            "legacyRequestId": "native-request-56",
+            "method": "GET",
+            "path": "/ops/api/actions/execution-deferral-decision",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 166,
+              "timestamp": 1791003460420
+            },
+            "responses": [
+              {
+                "sequence": 167,
+                "timestamp": 1791003460422,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 168,
+                "timestamp": 1791003460422
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-113",
+            "legacyRequestId": "native-request-57",
+            "method": "GET",
+            "path": "/ops/api/field-evidence/bridge-decision",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 169,
+              "timestamp": 1791003460422
+            },
+            "responses": [
+              {
+                "sequence": 170,
+                "timestamp": 1791003460424,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 171,
+                "timestamp": 1791003460424
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-115",
+            "legacyRequestId": "native-request-58",
+            "method": "GET",
+            "path": "/ops/api/analysis/reid-assist-decision",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 172,
+              "timestamp": 1791003460425
+            },
+            "responses": [
+              {
+                "sequence": 173,
+                "timestamp": 1791003460426,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 174,
+                "timestamp": 1791003460426
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-117",
+            "legacyRequestId": "native-request-59",
+            "method": "GET",
+            "path": "/ops/api/site-operations/rule-va-what-if-by-site",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 175,
+              "timestamp": 1791003460427
+            },
+            "responses": [
+              {
+                "sequence": 176,
+                "timestamp": 1791003460433,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 177,
+                "timestamp": 1791003460433
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-119",
+            "legacyRequestId": "native-request-60",
+            "method": "GET",
+            "path": "/ops/api/site-operations/field-evidence-attachment",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 178,
+              "timestamp": 1791003460433
+            },
+            "responses": [
+              {
+                "sequence": 179,
+                "timestamp": 1791003460438,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 180,
+                "timestamp": 1791003460438
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-121",
+            "legacyRequestId": "native-request-61",
+            "method": "GET",
+            "path": "/ops/api/site-operations/limited-safe-execution-pilot",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 181,
+              "timestamp": 1791003460439
+            },
+            "responses": [
+              {
+                "sequence": 182,
+                "timestamp": 1791003460444,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 183,
+                "timestamp": 1791003460444
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-123",
+            "legacyRequestId": "native-request-62",
+            "method": "GET",
+            "path": "/ops/api/site-operations/outcome-reconciliation",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 184,
+              "timestamp": 1791003460445
+            },
+            "responses": [
+              {
+                "sequence": 185,
+                "timestamp": 1791003460452,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 186,
+                "timestamp": 1791003460452
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-125",
+            "legacyRequestId": "native-request-63",
+            "method": "GET",
+            "path": "/ops/api/site-operations/export-handoff-bundle",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 187,
+              "timestamp": 1791003460452
+            },
+            "responses": [
+              {
+                "sequence": 188,
+                "timestamp": 1791003460458,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 189,
+                "timestamp": 1791003460458
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-127",
+            "legacyRequestId": "native-request-64",
+            "method": "GET",
+            "path": "/ops/api/site-operations/client-notice-by-site-view-group",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 190,
+              "timestamp": 1791003460459
+            },
+            "responses": [
+              {
+                "sequence": 191,
+                "timestamp": 1791003460467,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 192,
+                "timestamp": 1791003460468
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-129",
+            "legacyRequestId": "native-request-65",
+            "method": "GET",
+            "path": "/ops/api/site-operations/source-registry-projection",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 193,
+              "timestamp": 1791003460468
+            },
+            "responses": [
+              {
+                "sequence": 198,
+                "timestamp": 1791003460471,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 199,
+                "timestamp": 1791003460472
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-130",
+            "legacyRequestId": "native-request-66",
+            "method": "GET",
+            "path": "/ops/api/site-operations/health-rollup",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 194,
+              "timestamp": 1791003460469
+            },
+            "responses": [
+              {
+                "sequence": 200,
+                "timestamp": 1791003460473,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 201,
+                "timestamp": 1791003460473
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-131",
+            "legacyRequestId": "native-request-67",
+            "method": "GET",
+            "path": "/ops/api/site-operations/impact-graph",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 195,
+              "timestamp": 1791003460469
+            },
+            "responses": [
+              {
+                "sequence": 206,
+                "timestamp": 1791003460476,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 207,
+                "timestamp": 1791003460477
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-132",
+            "legacyRequestId": "native-request-68",
+            "method": "GET",
+            "path": "/ops/api/site-operations/runbook-instance-ledger",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 196,
+              "timestamp": 1791003460469
+            },
+            "responses": [
+              {
+                "sequence": 204,
+                "timestamp": 1791003460476,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 205,
+                "timestamp": 1791003460476
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-133",
+            "legacyRequestId": "native-request-69",
+            "method": "GET",
+            "path": "/ops/api/site-operations/approval-ticket-workflow",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 197,
+              "timestamp": 1791003460469
+            },
+            "responses": [
+              {
+                "sequence": 202,
+                "timestamp": 1791003460476,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 203,
+                "timestamp": 1791003460476
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-139",
+            "legacyRequestId": "native-request-70",
+            "method": "GET",
+            "path": "/ops/api/runtime/status",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 208,
+              "timestamp": 1791003461233
+            },
+            "responses": [
+              {
+                "sequence": 219,
+                "timestamp": 1791003461247,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 226,
+                "timestamp": 1791003461248
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-140",
+            "legacyRequestId": "native-request-71",
+            "method": "GET",
+            "path": "/auth/whoami",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 209,
+              "timestamp": 1791003461234
+            },
+            "responses": [
+              {
+                "sequence": 215,
+                "timestamp": 1791003461247,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 222,
+                "timestamp": 1791003461248
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-141",
+            "legacyRequestId": "native-request-72",
+            "method": "GET",
+            "path": "/ops/api/events/status",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 210,
+              "timestamp": 1791003461234
+            },
+            "responses": [
+              {
+                "sequence": 216,
+                "timestamp": 1791003461247,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 223,
+                "timestamp": 1791003461248
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-142",
+            "legacyRequestId": "native-request-73",
+            "method": "GET",
+            "path": "/webrtc/config",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 211,
+              "timestamp": 1791003461234
+            },
+            "responses": [
+              {
+                "sequence": 217,
+                "timestamp": 1791003461247,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 224,
+                "timestamp": 1791003461248
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-143",
+            "legacyRequestId": "native-request-74",
+            "method": "GET",
+            "path": "/ops/api/diagnostics/log-tail",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 212,
+              "timestamp": 1791003461234
+            },
+            "responses": [
+              {
+                "sequence": 218,
+                "timestamp": 1791003461247,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 225,
+                "timestamp": 1791003461248
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-144",
+            "legacyRequestId": "native-request-75",
+            "method": "GET",
+            "path": "/ops/api/source-health",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 213,
+              "timestamp": 1791003461234
+            },
+            "responses": [
+              {
+                "sequence": 221,
+                "timestamp": 1791003461247,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 228,
+                "timestamp": 1791003461248
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-145",
+            "legacyRequestId": "native-request-76",
+            "method": "GET",
+            "path": "/ops/api/rules/catalog",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 214,
+              "timestamp": 1791003461234
+            },
+            "responses": [
+              {
+                "sequence": 220,
+                "timestamp": 1791003461247,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 227,
+                "timestamp": 1791003461248
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-153",
+            "legacyRequestId": "native-request-77",
+            "method": "GET",
+            "path": "/ops/api/live-operations/graph",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 229,
+              "timestamp": 1791003461263
+            },
+            "responses": [
+              {
+                "sequence": 244,
+                "timestamp": 1791003461278,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 247,
+                "timestamp": 1791003461278
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-154",
+            "legacyRequestId": "native-request-78",
+            "method": "GET",
+            "path": "/ops/api/live-operations/command-plan",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 230,
+              "timestamp": 1791003461265
+            },
+            "responses": [
+              {
+                "sequence": 245,
+                "timestamp": 1791003461278,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 248,
+                "timestamp": 1791003461278
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-155",
+            "legacyRequestId": "native-request-79",
+            "method": "GET",
+            "path": "/ops/api/live-operations/staged-change-plan-impact-preview",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 231,
+              "timestamp": 1791003461265
+            },
+            "responses": [
+              {
+                "sequence": 241,
+                "timestamp": 1791003461277,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 243,
+                "timestamp": 1791003461278
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-156",
+            "legacyRequestId": "native-request-80",
+            "method": "GET",
+            "path": "/ops/api/live-operations/drill-run-ledger",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 232,
+              "timestamp": 1791003461266
+            },
+            "responses": [
+              {
+                "sequence": 238,
+                "timestamp": 1791003461277,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 240,
+                "timestamp": 1791003461277
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-157",
+            "legacyRequestId": "native-request-81",
+            "method": "GET",
+            "path": "/ops/api/live-operations/export-bundle-handoff-map",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 233,
+              "timestamp": 1791003461267
+            },
+            "responses": [
+              {
+                "sequence": 242,
+                "timestamp": 1791003461277,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 246,
+                "timestamp": 1791003461278
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-158",
+            "legacyRequestId": "native-request-82",
+            "method": "GET",
+            "path": "/ops/api/live-operations/field-evidence-intake",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 234,
+              "timestamp": 1791003461267
+            },
+            "responses": [
+              {
+                "sequence": 237,
+                "timestamp": 1791003461276,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 239,
+                "timestamp": 1791003461277
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-159",
+            "legacyRequestId": "native-request-83",
+            "method": "GET",
+            "path": "/ops/api/live-operations/vlm-assisted-explanation",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 235,
+              "timestamp": 1791003461267
+            },
+            "responses": [
+              {
+                "sequence": 249,
+                "timestamp": 1791003461279,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 250,
+                "timestamp": 1791003461279
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-160",
+            "legacyRequestId": "native-request-84",
+            "method": "GET",
+            "path": "/ops/api/events/reviews",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 236,
+              "timestamp": 1791003461267
+            },
+            "responses": [
+              {
+                "sequence": 251,
+                "timestamp": 1791003461279,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 252,
+                "timestamp": 1791003461279
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-169",
+            "legacyRequestId": "native-request-85",
+            "method": "GET",
+            "path": "/ops/api/live-operations/simulation/input-pack",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 253,
+              "timestamp": 1791003461281
+            },
+            "responses": [
+              {
+                "sequence": 264,
+                "timestamp": 1791003461312,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 275,
+                "timestamp": 1791003461313
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-170",
+            "legacyRequestId": "native-request-86",
+            "method": "GET",
+            "path": "/ops/api/live-operations/simulation/run-contract",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 254,
+              "timestamp": 1791003461282
+            },
+            "responses": [
+              {
+                "sequence": 265,
+                "timestamp": 1791003461312,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 276,
+                "timestamp": 1791003461313
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-171",
+            "legacyRequestId": "native-request-87",
+            "method": "GET",
+            "path": "/ops/api/live-operations/simulation/run-ledger",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 255,
+              "timestamp": 1791003461282
+            },
+            "responses": [
+              {
+                "sequence": 267,
+                "timestamp": 1791003461312,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 278,
+                "timestamp": 1791003461313
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-172",
+            "legacyRequestId": "native-request-88",
+            "method": "GET",
+            "path": "/ops/api/live-operations/simulation/client-notice-preview",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 256,
+              "timestamp": 1791003461282
+            },
+            "responses": [
+              {
+                "sequence": 266,
+                "timestamp": 1791003461312,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 277,
+                "timestamp": 1791003461313
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-173",
+            "legacyRequestId": "native-request-89",
+            "method": "GET",
+            "path": "/ops/api/live-operations/simulation/rule-va-what-if-replay-pack",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 257,
+              "timestamp": 1791003461282
+            },
+            "responses": [
+              {
+                "sequence": 268,
+                "timestamp": 1791003461312,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 279,
+                "timestamp": 1791003461313
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-174",
+            "legacyRequestId": "native-request-90",
+            "method": "GET",
+            "path": "/ops/api/live-operations/simulation/export-bundle",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 258,
+              "timestamp": 1791003461283
+            },
+            "responses": [
+              {
+                "sequence": 274,
+                "timestamp": 1791003461313,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 285,
+                "timestamp": 1791003461313
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-175",
+            "legacyRequestId": "native-request-91",
+            "method": "GET",
+            "path": "/ops/api/live-operations/simulation/field-evidence-adapter",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 259,
+              "timestamp": 1791003461283
+            },
+            "responses": [
+              {
+                "sequence": 271,
+                "timestamp": 1791003461313,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 282,
+                "timestamp": 1791003461313
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-176",
+            "legacyRequestId": "native-request-92",
+            "method": "GET",
+            "path": "/ops/api/live-operations/simulation/vlm-assisted-explanation",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 260,
+              "timestamp": 1791003461283
+            },
+            "responses": [
+              {
+                "sequence": 272,
+                "timestamp": 1791003461313,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 283,
+                "timestamp": 1791003461313
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-177",
+            "legacyRequestId": "native-request-93",
+            "method": "GET",
+            "path": "/ops/api/live-operations/simulation/command-plan-dry-run",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 261,
+              "timestamp": 1791003461283
+            },
+            "responses": [
+              {
+                "sequence": 273,
+                "timestamp": 1791003461313,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 284,
+                "timestamp": 1791003461313
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-178",
+            "legacyRequestId": "native-request-94",
+            "method": "GET",
+            "path": "/ops/api/live-operations/simulation/impact-diff",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 262,
+              "timestamp": 1791003461283
+            },
+            "responses": [
+              {
+                "sequence": 270,
+                "timestamp": 1791003461313,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 281,
+                "timestamp": 1791003461313
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-179",
+            "legacyRequestId": "native-request-95",
+            "method": "GET",
+            "path": "/ops/api/live-operations/simulation/safe-apply-readiness",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 263,
+              "timestamp": 1791003461283
+            },
+            "responses": [
+              {
+                "sequence": 269,
+                "timestamp": 1791003461312,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 280,
+                "timestamp": 1791003461313
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-191",
+            "legacyRequestId": "native-request-96",
+            "method": "GET",
+            "path": "/ops/api/actions/capability-contract",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 286,
+              "timestamp": 1791003461313
+            },
+            "responses": [
+              {
+                "sequence": 299,
+                "timestamp": 1791003461319,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 304,
+                "timestamp": 1791003461320
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-192",
+            "legacyRequestId": "native-request-97",
+            "method": "GET",
+            "path": "/ops/api/actions/request-ledger",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 287,
+              "timestamp": 1791003461313
+            },
+            "responses": [
+              {
+                "sequence": 294,
+                "timestamp": 1791003461319,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 298,
+                "timestamp": 1791003461319
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-193",
+            "legacyRequestId": "native-request-98",
+            "method": "GET",
+            "path": "/ops/api/actions/approval-decision-gate",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 288,
+              "timestamp": 1791003461314
+            },
+            "responses": [
+              {
+                "sequence": 296,
+                "timestamp": 1791003461319,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 301,
+                "timestamp": 1791003461319
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-194",
+            "legacyRequestId": "native-request-99",
+            "method": "GET",
+            "path": "/ops/api/actions/readiness-preflight",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 289,
+              "timestamp": 1791003461315
+            },
+            "responses": [
+              {
+                "sequence": 300,
+                "timestamp": 1791003461319,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 305,
+                "timestamp": 1791003461320
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-195",
+            "legacyRequestId": "native-request-100",
+            "method": "GET",
+            "path": "/ops/api/actions/source-recheck-pilot",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 290,
+              "timestamp": 1791003461315
+            },
+            "responses": [
+              {
+                "sequence": 293,
+                "timestamp": 1791003461319,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 295,
+                "timestamp": 1791003461319
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-196",
+            "legacyRequestId": "native-request-101",
+            "method": "GET",
+            "path": "/ops/api/actions/client-notice-draft-queue",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 291,
+              "timestamp": 1791003461315
+            },
+            "responses": [
+              {
+                "sequence": 297,
+                "timestamp": 1791003461319,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 303,
+                "timestamp": 1791003461320
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-197",
+            "legacyRequestId": "native-request-102",
+            "method": "GET",
+            "path": "/ops/api/actions/rule-draft-package",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 292,
+              "timestamp": 1791003461315
+            },
+            "responses": [
+              {
+                "sequence": 302,
+                "timestamp": 1791003461319,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 306,
+                "timestamp": 1791003461320
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-205",
+            "legacyRequestId": "native-request-103",
+            "method": "GET",
+            "path": "/ops/api/actions/outcome-reconciliation",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 307,
+              "timestamp": 1791003461320
+            },
+            "responses": [
+              {
+                "sequence": 308,
+                "timestamp": 1791003461322,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 309,
+                "timestamp": 1791003461322
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-207",
+            "legacyRequestId": "native-request-104",
+            "method": "GET",
+            "path": "/ops/api/actions/receipt-bundle",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 310,
+              "timestamp": 1791003461323
+            },
+            "responses": [
+              {
+                "sequence": 311,
+                "timestamp": 1791003461326,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 312,
+                "timestamp": 1791003461326
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-209",
+            "legacyRequestId": "native-request-105",
+            "method": "GET",
+            "path": "/ops/api/actions/field-connector-evidence-package",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 313,
+              "timestamp": 1791003461327
+            },
+            "responses": [
+              {
+                "sequence": 314,
+                "timestamp": 1791003461340,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 315,
+                "timestamp": 1791003461340
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-211",
+            "legacyRequestId": "native-request-106",
+            "method": "GET",
+            "path": "/ops/api/actions/default-off-explanation",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 316,
+              "timestamp": 1791003461340
+            },
+            "responses": [
+              {
+                "sequence": 317,
+                "timestamp": 1791003461350,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 318,
+                "timestamp": 1791003461350
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-213",
+            "legacyRequestId": "native-request-107",
+            "method": "GET",
+            "path": "/ops/api/actions/execution-deferral-decision",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 319,
+              "timestamp": 1791003461350
+            },
+            "responses": [
+              {
+                "sequence": 320,
+                "timestamp": 1791003461352,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 321,
+                "timestamp": 1791003461352
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-215",
+            "legacyRequestId": "native-request-108",
+            "method": "GET",
+            "path": "/ops/api/field-evidence/bridge-decision",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 322,
+              "timestamp": 1791003461352
+            },
+            "responses": [
+              {
+                "sequence": 323,
+                "timestamp": 1791003461354,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 324,
+                "timestamp": 1791003461354
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-217",
+            "legacyRequestId": "native-request-109",
+            "method": "GET",
+            "path": "/ops/api/analysis/reid-assist-decision",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 325,
+              "timestamp": 1791003461354
+            },
+            "responses": [
+              {
+                "sequence": 326,
+                "timestamp": 1791003461356,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 327,
+                "timestamp": 1791003461356
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-219",
+            "legacyRequestId": "native-request-110",
+            "method": "GET",
+            "path": "/ops/api/site-operations/rule-va-what-if-by-site",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 328,
+              "timestamp": 1791003461356
+            },
+            "responses": [
+              {
+                "sequence": 329,
+                "timestamp": 1791003461361,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 330,
+                "timestamp": 1791003461361
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-221",
+            "legacyRequestId": "native-request-111",
+            "method": "GET",
+            "path": "/ops/api/site-operations/field-evidence-attachment",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 331,
+              "timestamp": 1791003461362
+            },
+            "responses": [
+              {
+                "sequence": 332,
+                "timestamp": 1791003461368,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 333,
+                "timestamp": 1791003461368
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-223",
+            "legacyRequestId": "native-request-112",
+            "method": "GET",
+            "path": "/ops/api/site-operations/limited-safe-execution-pilot",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 334,
+              "timestamp": 1791003461368
+            },
+            "responses": [
+              {
+                "sequence": 335,
+                "timestamp": 1791003461373,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 336,
+                "timestamp": 1791003461373
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-225",
+            "legacyRequestId": "native-request-113",
+            "method": "GET",
+            "path": "/ops/api/site-operations/outcome-reconciliation",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 337,
+              "timestamp": 1791003461374
+            },
+            "responses": [
+              {
+                "sequence": 338,
+                "timestamp": 1791003461384,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 339,
+                "timestamp": 1791003461384
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-227",
+            "legacyRequestId": "native-request-114",
+            "method": "GET",
+            "path": "/ops/api/site-operations/export-handoff-bundle",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 340,
+              "timestamp": 1791003461384
+            },
+            "responses": [
+              {
+                "sequence": 341,
+                "timestamp": 1791003461390,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 342,
+                "timestamp": 1791003461390
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-229",
+            "legacyRequestId": "native-request-115",
+            "method": "GET",
+            "path": "/ops/api/site-operations/client-notice-by-site-view-group",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 343,
+              "timestamp": 1791003461391
+            },
+            "responses": [
+              {
+                "sequence": 344,
+                "timestamp": 1791003461401,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 345,
+                "timestamp": 1791003461401
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-231",
+            "legacyRequestId": "native-request-116",
+            "method": "GET",
+            "path": "/ops/api/site-operations/source-registry-projection",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 346,
+              "timestamp": 1791003461401
+            },
+            "responses": [
+              {
+                "sequence": 351,
+                "timestamp": 1791003461404,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 352,
+                "timestamp": 1791003461404
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-232",
+            "legacyRequestId": "native-request-117",
+            "method": "GET",
+            "path": "/ops/api/site-operations/health-rollup",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 347,
+              "timestamp": 1791003461402
+            },
+            "responses": [
+              {
+                "sequence": 353,
+                "timestamp": 1791003461406,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 354,
+                "timestamp": 1791003461406
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-233",
+            "legacyRequestId": "native-request-118",
+            "method": "GET",
+            "path": "/ops/api/site-operations/impact-graph",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 348,
+              "timestamp": 1791003461402
+            },
+            "responses": [
+              {
+                "sequence": 359,
+                "timestamp": 1791003461409,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 360,
+                "timestamp": 1791003461409
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-234",
+            "legacyRequestId": "native-request-119",
+            "method": "GET",
+            "path": "/ops/api/site-operations/runbook-instance-ledger",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 349,
+              "timestamp": 1791003461402
+            },
+            "responses": [
+              {
+                "sequence": 357,
+                "timestamp": 1791003461409,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 358,
+                "timestamp": 1791003461409
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-235",
+            "legacyRequestId": "native-request-120",
+            "method": "GET",
+            "path": "/ops/api/site-operations/approval-ticket-workflow",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 350,
+              "timestamp": 1791003461402
+            },
+            "responses": [
+              {
+                "sequence": 355,
+                "timestamp": 1791003461409,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 356,
+                "timestamp": 1791003461409
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-241",
+            "legacyRequestId": "native-request-121",
+            "method": "GET",
+            "path": "/ops/api/diagnostics/log-tail",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 361,
+              "timestamp": 1791003461753
+            },
+            "responses": [
+              {
+                "sequence": 362,
+                "timestamp": 1791003461757,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 363,
+                "timestamp": 1791003461757
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-004:object-243",
+            "legacyRequestId": "native-request-122",
+            "method": "GET",
+            "path": "/auth/whoami",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 364,
+              "timestamp": 1791003461849
+            },
+            "responses": [
+              {
+                "sequence": 365,
+                "timestamp": 1791003461851,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 366,
+                "timestamp": 1791003461851
+              }
+            ],
+            "failed": []
+          }
+        ]
+      },
+      "requests": [
+        {
+          "requestIdentity": "EVT-004:object-1",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-3",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-4",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-5",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-6",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-7",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-8",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-9",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-10",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-11",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-21",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-23",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-25",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-27",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-29",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-30",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-31",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-32",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-33",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-34",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-35",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-36",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-37",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-38",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-39",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-51",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-52",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-53",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-54",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-55",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-56",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-57",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-58",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-67",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-68",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-69",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-70",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-71",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-72",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-73",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-74",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-75",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-76",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-77",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-89",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-90",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-91",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-92",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-93",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-94",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-95",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-103",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-105",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-107",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-109",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-111",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-113",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-115",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-117",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-119",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-121",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-123",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-125",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-127",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-129",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-130",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-131",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-132",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-133",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-139",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-140",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-141",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-142",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-143",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-144",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-145",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-153",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-154",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-155",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-156",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-157",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-158",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-159",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-160",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-169",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-170",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-171",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-172",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-173",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-174",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-175",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-176",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-177",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-178",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-179",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-191",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-192",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-193",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-194",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-195",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-196",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-197",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-205",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-207",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-209",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-211",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-213",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-215",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-217",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-219",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-221",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-223",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-225",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-227",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-229",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-231",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-232",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-233",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-234",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-235",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-004:object-241",
+          "redirectedFromIdentity": null,
+          "correlationDigest": "57e96c640890a5536098c69304773df3fc439f874654850e5cad2cc2234808d4"
+        },
+        {
+          "requestIdentity": "EVT-004:object-243",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        }
+      ],
+      "classifications": [
+        {
+          "requestIdentity": "EVT-004:object-1",
+          "responseIdentity": "EVT-004:object-2",
+          "requestKind": "document-navigation",
+          "classification": "bootstrap",
+          "owner": "page",
+          "phase": "bootstrap-document"
+        },
+        {
+          "requestIdentity": "EVT-004:object-3",
+          "responseIdentity": "EVT-004:object-12",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-4",
+          "responseIdentity": "EVT-004:object-16",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-5",
+          "responseIdentity": "EVT-004:object-20",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-6",
+          "responseIdentity": "EVT-004:object-14",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-7",
+          "responseIdentity": "EVT-004:object-13",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-8",
+          "responseIdentity": "EVT-004:object-15",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-9",
+          "responseIdentity": "EVT-004:object-17",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-10",
+          "responseIdentity": "EVT-004:object-18",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-11",
+          "responseIdentity": "EVT-004:object-19",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-21",
+          "responseIdentity": "EVT-004:object-22",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-23",
+          "responseIdentity": "EVT-004:object-24",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-25",
+          "responseIdentity": "EVT-004:object-26",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-27",
+          "responseIdentity": "EVT-004:object-28",
+          "requestKind": "document-navigation",
+          "classification": "bootstrap",
+          "owner": "page",
+          "phase": "bootstrap-document"
+        },
+        {
+          "requestIdentity": "EVT-004:object-29",
+          "responseIdentity": "EVT-004:object-40",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-30",
+          "responseIdentity": "EVT-004:object-41",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-31",
+          "responseIdentity": "EVT-004:object-43",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-32",
+          "responseIdentity": "EVT-004:object-42",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-33",
+          "responseIdentity": "EVT-004:object-45",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-34",
+          "responseIdentity": "EVT-004:object-44",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-35",
+          "responseIdentity": "EVT-004:object-46",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-36",
+          "responseIdentity": "EVT-004:object-47",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-37",
+          "responseIdentity": "EVT-004:object-49",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-38",
+          "responseIdentity": "EVT-004:object-50",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-39",
+          "responseIdentity": "EVT-004:object-48",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-51",
+          "responseIdentity": "EVT-004:object-64",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-52",
+          "responseIdentity": "EVT-004:object-60",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-53",
+          "responseIdentity": "EVT-004:object-61",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-54",
+          "responseIdentity": "EVT-004:object-62",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-55",
+          "responseIdentity": "EVT-004:object-63",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-56",
+          "responseIdentity": "EVT-004:object-59",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-57",
+          "responseIdentity": "EVT-004:object-65",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-58",
+          "responseIdentity": "EVT-004:object-66",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-67",
+          "responseIdentity": "EVT-004:object-79",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-68",
+          "responseIdentity": "EVT-004:object-80",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-69",
+          "responseIdentity": "EVT-004:object-78",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-70",
+          "responseIdentity": "EVT-004:object-81",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-71",
+          "responseIdentity": "EVT-004:object-82",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-72",
+          "responseIdentity": "EVT-004:object-83",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-73",
+          "responseIdentity": "EVT-004:object-84",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-74",
+          "responseIdentity": "EVT-004:object-88",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-75",
+          "responseIdentity": "EVT-004:object-85",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-76",
+          "responseIdentity": "EVT-004:object-87",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-77",
+          "responseIdentity": "EVT-004:object-86",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-89",
+          "responseIdentity": "EVT-004:object-96",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-90",
+          "responseIdentity": "EVT-004:object-98",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-91",
+          "responseIdentity": "EVT-004:object-99",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-92",
+          "responseIdentity": "EVT-004:object-100",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-93",
+          "responseIdentity": "EVT-004:object-101",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-94",
+          "responseIdentity": "EVT-004:object-97",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-95",
+          "responseIdentity": "EVT-004:object-102",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-103",
+          "responseIdentity": "EVT-004:object-104",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-105",
+          "responseIdentity": "EVT-004:object-106",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-107",
+          "responseIdentity": "EVT-004:object-108",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-109",
+          "responseIdentity": "EVT-004:object-110",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-111",
+          "responseIdentity": "EVT-004:object-112",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-113",
+          "responseIdentity": "EVT-004:object-114",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-115",
+          "responseIdentity": "EVT-004:object-116",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-117",
+          "responseIdentity": "EVT-004:object-118",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-119",
+          "responseIdentity": "EVT-004:object-120",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-121",
+          "responseIdentity": "EVT-004:object-122",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-123",
+          "responseIdentity": "EVT-004:object-124",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-125",
+          "responseIdentity": "EVT-004:object-126",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-127",
+          "responseIdentity": "EVT-004:object-128",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-129",
+          "responseIdentity": "EVT-004:object-134",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-130",
+          "responseIdentity": "EVT-004:object-135",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-131",
+          "responseIdentity": "EVT-004:object-138",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-132",
+          "responseIdentity": "EVT-004:object-137",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-133",
+          "responseIdentity": "EVT-004:object-136",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-139",
+          "responseIdentity": "EVT-004:object-150",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-140",
+          "responseIdentity": "EVT-004:object-146",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-141",
+          "responseIdentity": "EVT-004:object-147",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-142",
+          "responseIdentity": "EVT-004:object-148",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-143",
+          "responseIdentity": "EVT-004:object-149",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-144",
+          "responseIdentity": "EVT-004:object-152",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-145",
+          "responseIdentity": "EVT-004:object-151",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-153",
+          "responseIdentity": "EVT-004:object-165",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-154",
+          "responseIdentity": "EVT-004:object-166",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-155",
+          "responseIdentity": "EVT-004:object-163",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-156",
+          "responseIdentity": "EVT-004:object-162",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-157",
+          "responseIdentity": "EVT-004:object-164",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-158",
+          "responseIdentity": "EVT-004:object-161",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-159",
+          "responseIdentity": "EVT-004:object-167",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-160",
+          "responseIdentity": "EVT-004:object-168",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-169",
+          "responseIdentity": "EVT-004:object-180",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-170",
+          "responseIdentity": "EVT-004:object-181",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-171",
+          "responseIdentity": "EVT-004:object-183",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-172",
+          "responseIdentity": "EVT-004:object-182",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-173",
+          "responseIdentity": "EVT-004:object-184",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-174",
+          "responseIdentity": "EVT-004:object-190",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-175",
+          "responseIdentity": "EVT-004:object-187",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-176",
+          "responseIdentity": "EVT-004:object-188",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-177",
+          "responseIdentity": "EVT-004:object-189",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-178",
+          "responseIdentity": "EVT-004:object-186",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-179",
+          "responseIdentity": "EVT-004:object-185",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-191",
+          "responseIdentity": "EVT-004:object-202",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-192",
+          "responseIdentity": "EVT-004:object-199",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-193",
+          "responseIdentity": "EVT-004:object-200",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-194",
+          "responseIdentity": "EVT-004:object-203",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-195",
+          "responseIdentity": "EVT-004:object-198",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-196",
+          "responseIdentity": "EVT-004:object-201",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-197",
+          "responseIdentity": "EVT-004:object-204",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-205",
+          "responseIdentity": "EVT-004:object-206",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-207",
+          "responseIdentity": "EVT-004:object-208",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-209",
+          "responseIdentity": "EVT-004:object-210",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-211",
+          "responseIdentity": "EVT-004:object-212",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-213",
+          "responseIdentity": "EVT-004:object-214",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-215",
+          "responseIdentity": "EVT-004:object-216",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-217",
+          "responseIdentity": "EVT-004:object-218",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-219",
+          "responseIdentity": "EVT-004:object-220",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-221",
+          "responseIdentity": "EVT-004:object-222",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-223",
+          "responseIdentity": "EVT-004:object-224",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-225",
+          "responseIdentity": "EVT-004:object-226",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-227",
+          "responseIdentity": "EVT-004:object-228",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-229",
+          "responseIdentity": "EVT-004:object-230",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-231",
+          "responseIdentity": "EVT-004:object-236",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-232",
+          "responseIdentity": "EVT-004:object-237",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-233",
+          "responseIdentity": "EVT-004:object-240",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-234",
+          "responseIdentity": "EVT-004:object-239",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-235",
+          "responseIdentity": "EVT-004:object-238",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-004:object-241",
+          "responseIdentity": "EVT-004:object-242",
+          "requestKind": "application-fetch",
+          "classification": "action",
+          "owner": "action",
+          "phase": "primary-action"
+        },
+        {
+          "requestIdentity": "EVT-004:object-243",
+          "responseIdentity": "EVT-004:object-244",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        }
+      ],
+      "failures": []
+    },
+    "cleanupAttestation": {
+      "schema": "media-server.v390-ui-case-cleanup-attestation.v1",
+      "pass": true,
+      "primaryFailurePresent": false,
+      "primaryFailurePreserved": false,
+      "caseRuntimeRestoreAttempted": true,
+      "caseRuntimeRestored": true,
+      "browserCloseAttempted": true,
+      "browserContextClosed": true,
+      "cleanupEntryCount": 4,
+      "failureCode": ""
+    }
+  },
+  "timing": {
+    "startedAtMs": 1791003458831,
+    "finishedAtMs": 1791003462508,
+    "durationMs": 3677,
+    "startedAt": "2026-10-03T04:57:38.831Z",
+    "finishedAt": "2026-10-03T04:57:42.508Z"
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "schema": "media-server.ui-raw-visual-capture.v1",
+  "caseId": "EVT-068",
+  "correlationId": "EVT-068:execute-persisted-action:completion",
+  "targetSelector": "[data-event-review-row][data-event-id=\"evt-068-review4-fixture\"] [data-event-review-save]",
+  "screenshotSha256": "ac1d82743e439758078e21442e10cc2db0068ba5f8b449a98a78fc43b719073b",
+  "measurementSha256": "27d9f2c1fed5745374d184c68b2901d7fac6ec9d3c68f60dc73e346d5255640f",
+  "qualificationStatus": "unqualified-raw-capture"
+}

@@ -1,0 +1,274 @@
+{
+  "schema": "media-server.v390-ui-case-child.v1",
+  "result": "PASS",
+  "executionStatus": "case-child-browser-evidence",
+  "releaseEvidenceEligible": false,
+  "policyV4Qualification": "not-eligible-single-case-child",
+  "uiFulltestPass": false,
+  "actualBrowserExecution": true,
+  "sourceBinding": {
+    "baselineSourceCommitSha": "327afe0d4b3282400f1925252c59a53b87827224",
+    "verificationCommitSha": "ce163652d3c4b976cb263a4569331529595f55c5",
+    "verificationBranch": "v4.2.0",
+    "runnerSchema": "media-server.v390-ui-canonical-parent.v1",
+    "manifestSha256": "9b76b6f0e04cd3b55f2ca514a74bbc5c7d08a3ade7b12ae32af5a5c886190716",
+    "implementationFiles": {
+      "runner": {
+        "path": "scripts/internal/run_v390_ui_native_exact_cases.mjs",
+        "sha256": "71565dbfbac9a75a721e7d1bb4c4945e7376ac0b1ce9f7fce824eeca8591d2ae"
+      },
+      "library": {
+        "path": "scripts/internal/v390_ui_native_exact_cases_lib.mjs",
+        "sha256": "c238f47dd9656674c68ce9e545980c76e3e2351bb5fd62375eafc9d97214af61"
+      },
+      "adapter": {
+        "path": "scripts/internal/v390_ui_native_adapter.mjs",
+        "sha256": "1700b24486a5027b7bb3fe6306c3774dae220a3a7db051c2778a34e7cc44c7ed"
+      },
+      "recorder": {
+        "path": "scripts/internal/v390_ui_request_event_recorder.mjs",
+        "sha256": "c8fba8290f1c9b3e856c8ac05d2911254500d243966ea96ce61cccc68f90a2e9"
+      },
+      "evaluator": {
+        "path": "scripts/internal/v390_ui_request_lifecycle_evaluator.mjs",
+        "sha256": "f3ad6af79b7c24f7064d06d3342df5ee195caba2b61aba5a3f06e254d622613b"
+      }
+    },
+    "implementationSha256": "55446fdade942c8a168c708503611a1cd7e11b67682db81d60d84de2a89c67b1",
+    "buildSha256": "253810c36869096349c05ad68caacfc21b569e6d6aba13b5223d13c01d84969b"
+  },
+  "policyInputRef": {
+    "schema": "media-server.v390-ui-case-policy-input-ref.v1",
+    "caseId": "UI-018",
+    "runId": "fa3f64f2-58d9-49df-b223-7285df0cce64",
+    "path": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/runs/v390-test-acceptance-20261003035221-92072/ui-exact-424/cases/017-UI-018/policy-input.json",
+    "bytes": 10582,
+    "sha256": "426e5d8cc77a12cb72a8672cb2ef8385a3f82f316261a7c4daa62cfd51479b53"
+  },
+  "selection": {
+    "caseId": "UI-018",
+    "selectedIds": [
+      "UI-018"
+    ],
+    "selected": 1
+  },
+  "counts": {
+    "selected": 1,
+    "attempted": 1,
+    "pass": 1,
+    "fail": 0,
+    "notRun": 0,
+    "unsupported": 0,
+    "runnerAbort": 0
+  },
+  "case": {
+    "caseId": "UI-018",
+    "featureId": "UI-018",
+    "status": "PASS",
+    "failureClass": "",
+    "failurePhase": "",
+    "failureCode": "",
+    "failureMessage": "",
+    "failureCensus": [],
+    "requestLifecycleEvaluation": {
+      "status": "PASS",
+      "census": {
+        "requestCount": 4,
+        "responseCount": 4,
+        "classified": 4,
+        "unclassified": 0,
+        "multiplyClassified": 0,
+        "captureErrors": 0,
+        "duplicateResponses": 0,
+        "failureCount": 0
+      },
+      "diagnostics": {
+        "sequenceDomain": "diagnostic-seal-and-after-seal-only",
+        "diagnosticErrors": 0,
+        "seal": {
+          "sequence": 1,
+          "timestamp": 1791002409127
+        },
+        "afterSeal": [],
+        "requests": [
+          {
+            "requestIdentity": "UI-018:object-1",
+            "legacyRequestId": "native-request-1",
+            "method": "GET",
+            "path": "/lab",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 1,
+              "timestamp": 1791002408716
+            },
+            "responses": [
+              {
+                "sequence": 2,
+                "timestamp": 1791002408720,
+                "status": 404
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 3,
+                "timestamp": 1791002408724
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "UI-018:object-3",
+            "legacyRequestId": "native-request-2",
+            "method": "GET",
+            "path": "/auth/whoami",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 4,
+              "timestamp": 1791002408739
+            },
+            "responses": [
+              {
+                "sequence": 5,
+                "timestamp": 1791002408741,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 6,
+                "timestamp": 1791002408741
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "UI-018:object-5",
+            "legacyRequestId": "native-request-3",
+            "method": "GET",
+            "path": "/auth/whoami",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 7,
+              "timestamp": 1791002408749
+            },
+            "responses": [
+              {
+                "sequence": 8,
+                "timestamp": 1791002408751,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 9,
+                "timestamp": 1791002408751
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "UI-018:object-7",
+            "legacyRequestId": "native-request-4",
+            "method": "GET",
+            "path": "/auth/whoami",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 10,
+              "timestamp": 1791002408793
+            },
+            "responses": [
+              {
+                "sequence": 11,
+                "timestamp": 1791002408795,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 12,
+                "timestamp": 1791002408795
+              }
+            ],
+            "failed": []
+          }
+        ]
+      },
+      "requests": [
+        {
+          "requestIdentity": "UI-018:object-1",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "UI-018:object-3",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "UI-018:object-5",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "UI-018:object-7",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        }
+      ],
+      "classifications": [
+        {
+          "requestIdentity": "UI-018:object-1",
+          "responseIdentity": "UI-018:object-2",
+          "requestKind": "document-navigation",
+          "classification": "bootstrap",
+          "owner": "page",
+          "phase": "bootstrap-document"
+        },
+        {
+          "requestIdentity": "UI-018:object-3",
+          "responseIdentity": "UI-018:object-4",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "UI-018:object-5",
+          "responseIdentity": "UI-018:object-6",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "UI-018:object-7",
+          "responseIdentity": "UI-018:object-8",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        }
+      ],
+      "failures": []
+    },
+    "cleanupAttestation": {
+      "schema": "media-server.v390-ui-case-cleanup-attestation.v1",
+      "pass": true,
+      "primaryFailurePresent": false,
+      "primaryFailurePreserved": false,
+      "caseRuntimeRestoreAttempted": true,
+      "caseRuntimeRestored": true,
+      "browserCloseAttempted": true,
+      "browserContextClosed": true,
+      "cleanupEntryCount": 2,
+      "failureCode": ""
+    }
+  },
+  "timing": {
+    "startedAtMs": 1791002408301,
+    "finishedAtMs": 1791002409301,
+    "durationMs": 1000,
+    "startedAt": "2026-10-03T04:40:08.301Z",
+    "finishedAt": "2026-10-03T04:40:09.301Z"
+  }
+}

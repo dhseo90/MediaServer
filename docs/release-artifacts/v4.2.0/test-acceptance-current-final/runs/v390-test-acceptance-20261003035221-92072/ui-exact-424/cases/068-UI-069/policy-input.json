@@ -1,0 +1,1475 @@
+{
+  "schema": "media-server.v390-ui-case-policy-input.v1",
+  "caseId": "UI-069",
+  "runId": "fa3f64f2-58d9-49df-b223-7285df0cce64",
+  "result": {
+    "caseId": "UI-069",
+    "featureId": "UI-069",
+    "status": "PASS",
+    "dispatch": "playwright-native",
+    "manualIntervention": false,
+    "actualBrowserExecution": true,
+    "requested": {
+      "schema": "media-server.v390-ui-canonical-requested.v1",
+      "route": "/ops/events",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#v320ResolutionSearchMetricsGrid",
+        "actionAnchor": "renderV320ResolutionSearchMetrics"
+      }
+    },
+    "observed": {
+      "schema": "media-server.v390-ui-runtime-observed.v1",
+      "screenRoute": "/ops/events",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#v320ResolutionSearchMetricsGrid",
+        "applicability": "required",
+        "exists": true,
+        "visible": true,
+        "enabled": true
+      },
+      "provenance": {
+        "screenRoute": "browser-location",
+        "accountRole": "session-whoami",
+        "viewport": "browser-inner-size",
+        "theme": "browser-media-query",
+        "controlAction": "dom-selector-state"
+      }
+    },
+    "visibleAssertion": {
+      "pass": true,
+      "visible": true,
+      "selector": "body"
+    },
+    "visualMeasurement": {
+      "schema": "media-server.ui-browser-visual-measurement.v2",
+      "caseBinding": {
+        "canonicalCaseId": "UI-069",
+        "featureId": "UI-069",
+        "screenId": "UI-069",
+        "screenRoute": "/ops/events",
+        "accountRole": "operator",
+        "targetSelector": "#v320ResolutionSearchMetricsGrid"
+      },
+      "route": "/ops/events",
+      "accountRole": "operator",
+      "requestedTheme": "light",
+      "appliedTheme": "light",
+      "mediaTheme": "light",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "devicePixelRatio": 1
+      },
+      "document": {
+        "scrollWidth": 390,
+        "scrollHeight": 32066,
+        "clientWidth": 390,
+        "clientHeight": 844
+      },
+      "target": {
+        "selector": "#v320ResolutionSearchMetricsGrid",
+        "visible": true,
+        "documentTarget": false,
+        "rect": {
+          "x": 59,
+          "y": -29.40625,
+          "left": 59,
+          "top": -29.40625,
+          "right": 331,
+          "bottom": 873.28125,
+          "width": 272,
+          "height": 902.6875
+        }
+      },
+      "textSamples": [
+        {
+          "foreground": "rgb(23, 28, 31)",
+          "background": "rgb(255, 255, 255)",
+          "fontSizePx": 16,
+          "fontWeight": "400",
+          "rect": {
+            "x": 68,
+            "y": 3.59375,
+            "left": 68,
+            "top": 3.59375,
+            "right": 322,
+            "bottom": 25.59375,
+            "width": 254,
+            "height": 22
+          }
+        },
+        {
+          "foreground": "rgb(92, 105, 114)",
+          "background": "rgb(255, 255, 255)",
+          "fontSizePx": 12,
+          "fontWeight": "400",
+          "rect": {
+            "x": 68,
+            "y": 33.59375,
+            "left": 68,
+            "top": 33.59375,
+            "right": 322,
+            "bottom": 50.984375,
+            "width": 254,
+            "height": 17.390625
+          }
+        },
+        {
+          "foreground": "color(srgb 0.10949 0.270588 0.716471)",
+          "background": "color(srgb 0.875922 0.902824 0.978588)",
+          "fontSizePx": 11,
+          "fontWeight": "900",
+          "rect": {
+            "x": 68,
+            "y": 58.984375,
+            "left": 68,
+            "top": 58.984375,
+            "right": 203.625,
+            "bottom": 82.984375,
+            "width": 135.625,
+            "height": 24
+          }
+        },
+        {
+          "foreground": "color(srgb 0.10949 0.270588 0.716471)",
+          "background": "color(srgb 0.875922 0.902824 0.978588)",
+          "fontSizePx": 11,
+          "fontWeight": "900",
+          "rect": {
+            "x": 168.125,
+            "y": 63.484375,
+            "left": 168.125,
+            "top": 63.484375,
+            "right": 195.625,
+            "bottom": 78.484375,
+            "width": 27.5,
+            "height": 15
+          }
+        },
+        {
+          "foreground": "color(srgb 0.10949 0.270588 0.716471)",
+          "background": "color(srgb 0.875922 0.902824 0.978588)",
+          "fontSizePx": 11,
+          "fontWeight": "900",
+          "rect": {
+            "x": 211.625,
+            "y": 58.984375,
+            "left": 211.625,
+            "top": 58.984375,
+            "right": 269.625,
+            "bottom": 82.984375,
+            "width": 58,
+            "height": 24
+          }
+        },
+        {
+          "foreground": "color(srgb 0.10949 0.270588 0.716471)",
+          "background": "color(srgb 0.875922 0.902824 0.978588)",
+          "fontSizePx": 11,
+          "fontWeight": "900",
+          "rect": {
+            "x": 246.21875,
+            "y": 63.484375,
+            "left": 246.21875,
+            "top": 63.484375,
+            "right": 261.625,
+            "bottom": 78.484375,
+            "width": 15.40625,
+            "height": 15
+          }
+        },
+        {
+          "foreground": "rgb(92, 105, 114)",
+          "background": "rgb(255, 255, 255)",
+          "fontSizePx": 12,
+          "fontWeight": "700",
+          "rect": {
+            "x": 68,
+            "y": 108.984375,
+            "left": 68,
+            "top": 108.984375,
+            "right": 322,
+            "bottom": 124.984375,
+            "width": 254,
+            "height": 16
+          }
+        },
+        {
+          "foreground": "rgb(23, 28, 31)",
+          "background": "rgb(255, 255, 255)",
+          "fontSizePx": 16,
+          "fontWeight": "400",
+          "rect": {
+            "x": 68,
+            "y": 132.984375,
+            "left": 68,
+            "top": 132.984375,
+            "right": 322,
+            "bottom": 154.984375,
+            "width": 254,
+            "height": 22
+          }
+        },
+        {
+          "foreground": "rgb(92, 105, 114)",
+          "background": "rgb(255, 255, 255)",
+          "fontSizePx": 12,
+          "fontWeight": "400",
+          "rect": {
+            "x": 68,
+            "y": 162.984375,
+            "left": 68,
+            "top": 162.984375,
+            "right": 322,
+            "bottom": 197.765625,
+            "width": 254,
+            "height": 34.78125
+          }
+        },
+        {
+          "foreground": "color(srgb 0.10949 0.270588 0.716471)",
+          "background": "color(srgb 0.875922 0.902824 0.978588)",
+          "fontSizePx": 11,
+          "fontWeight": "900",
+          "rect": {
+            "x": 68,
+            "y": 205.765625,
+            "left": 68,
+            "top": 205.765625,
+            "right": 182.3125,
+            "bottom": 229.765625,
+            "width": 114.3125,
+            "height": 24
+          }
+        },
+        {
+          "foreground": "color(srgb 0.10949 0.270588 0.716471)",
+          "background": "color(srgb 0.875922 0.902824 0.978588)",
+          "fontSizePx": 11,
+          "fontWeight": "900",
+          "rect": {
+            "x": 190.3125,
+            "y": 205.765625,
+            "left": 190.3125,
+            "top": 205.765625,
+            "right": 315.46875,
+            "bottom": 229.765625,
+            "width": 125.15625,
+            "height": 24
+          }
+        },
+        {
+          "foreground": "color(srgb 0.10949 0.270588 0.716471)",
+          "background": "color(srgb 0.875922 0.902824 0.978588)",
+          "fontSizePx": 11,
+          "fontWeight": "900",
+          "rect": {
+            "x": 68,
+            "y": 237.765625,
+            "left": 68,
+            "top": 237.765625,
+            "right": 170.375,
+            "bottom": 261.765625,
+            "width": 102.375,
+            "height": 24
+          }
+        },
+        {
+          "foreground": "color(srgb 0.10949 0.270588 0.716471)",
+          "background": "color(srgb 0.875922 0.902824 0.978588)",
+          "fontSizePx": 11,
+          "fontWeight": "900",
+          "rect": {
+            "x": 178.375,
+            "y": 237.765625,
+            "left": 178.375,
+            "top": 237.765625,
+            "right": 289.703125,
+            "bottom": 261.765625,
+            "width": 111.328125,
+            "height": 24
+          }
+        },
+        {
+          "foreground": "rgb(92, 105, 114)",
+          "background": "rgb(255, 255, 255)",
+          "fontSizePx": 12,
+          "fontWeight": "700",
+          "rect": {
+            "x": 68,
+            "y": 287.765625,
+            "left": 68,
+            "top": 287.765625,
+            "right": 322,
+            "bottom": 303.765625,
+            "width": 254,
+            "height": 16
+          }
+        },
+        {
+          "foreground": "rgb(23, 28, 31)",
+          "background": "rgb(255, 255, 255)",
+          "fontSizePx": 16,
+          "fontWeight": "400",
+          "rect": {
+            "x": 68,
+            "y": 311.765625,
+            "left": 68,
+            "top": 311.765625,
+            "right": 322,
+            "bottom": 355.765625,
+            "width": 254,
+            "height": 44
+          }
+        },
+        {
+          "foreground": "rgb(92, 105, 114)",
+          "background": "rgb(255, 255, 255)",
+          "fontSizePx": 12,
+          "fontWeight": "400",
+          "rect": {
+            "x": 68,
+            "y": 363.765625,
+            "left": 68,
+            "top": 363.765625,
+            "right": 322,
+            "bottom": 398.546875,
+            "width": 254,
+            "height": 34.78125
+          }
+        },
+        {
+          "foreground": "rgb(92, 105, 114)",
+          "background": "rgb(238, 243, 245)",
+          "fontSizePx": 12,
+          "fontWeight": "700",
+          "rect": {
+            "x": 77,
+            "y": 413.546875,
+            "left": 77,
+            "top": 413.546875,
+            "right": 196.5625,
+            "bottom": 429.546875,
+            "width": 119.5625,
+            "height": 16
+          }
+        },
+        {
+          "foreground": "rgb(92, 105, 114)",
+          "background": "rgb(238, 243, 245)",
+          "fontSizePx": 12,
+          "fontWeight": "400",
+          "rect": {
+            "x": 77,
+            "y": 431.546875,
+            "left": 77,
+            "top": 431.546875,
+            "right": 196.5625,
+            "bottom": 448.9375,
+            "width": 119.5625,
+            "height": 17.390625
+          }
+        },
+        {
+          "foreground": "rgb(92, 105, 114)",
+          "background": "rgb(238, 243, 245)",
+          "fontSizePx": 12,
+          "fontWeight": "700",
+          "rect": {
+            "x": 77,
+            "y": 470.9375,
+            "left": 77,
+            "top": 470.9375,
+            "right": 209.578125,
+            "bottom": 486.9375,
+            "width": 132.578125,
+            "height": 16
+          }
+        },
+        {
+          "foreground": "rgb(92, 105, 114)",
+          "background": "rgb(238, 243, 245)",
+          "fontSizePx": 12,
+          "fontWeight": "400",
+          "rect": {
+            "x": 77,
+            "y": 488.9375,
+            "left": 77,
+            "top": 488.9375,
+            "right": 209.578125,
+            "bottom": 506.328125,
+            "width": 132.578125,
+            "height": 17.390625
+          }
+        },
+        {
+          "foreground": "rgb(92, 105, 114)",
+          "background": "rgb(238, 243, 245)",
+          "fontSizePx": 12,
+          "fontWeight": "700",
+          "rect": {
+            "x": 77,
+            "y": 528.328125,
+            "left": 77,
+            "top": 528.328125,
+            "right": 190.5,
+            "bottom": 544.328125,
+            "width": 113.5,
+            "height": 16
+          }
+        },
+        {
+          "foreground": "rgb(92, 105, 114)",
+          "background": "rgb(238, 243, 245)",
+          "fontSizePx": 12,
+          "fontWeight": "400",
+          "rect": {
+            "x": 77,
+            "y": 546.328125,
+            "left": 77,
+            "top": 546.328125,
+            "right": 190.5,
+            "bottom": 563.71875,
+            "width": 113.5,
+            "height": 17.390625
+          }
+        },
+        {
+          "foreground": "rgb(92, 105, 114)",
+          "background": "rgb(238, 243, 245)",
+          "fontSizePx": 12,
+          "fontWeight": "700",
+          "rect": {
+            "x": 77,
+            "y": 585.71875,
+            "left": 77,
+            "top": 585.71875,
+            "right": 193.078125,
+            "bottom": 601.71875,
+            "width": 116.078125,
+            "height": 16
+          }
+        },
+        {
+          "foreground": "rgb(92, 105, 114)",
+          "background": "rgb(238, 243, 245)",
+          "fontSizePx": 12,
+          "fontWeight": "400",
+          "rect": {
+            "x": 77,
+            "y": 603.71875,
+            "left": 77,
+            "top": 603.71875,
+            "right": 193.078125,
+            "bottom": 621.109375,
+            "width": 116.078125,
+            "height": 17.390625
+          }
+        },
+        {
+          "foreground": "rgb(92, 105, 114)",
+          "background": "rgb(238, 243, 245)",
+          "fontSizePx": 12,
+          "fontWeight": "700",
+          "rect": {
+            "x": 77,
+            "y": 643.109375,
+            "left": 77,
+            "top": 643.109375,
+            "right": 196.328125,
+            "bottom": 659.109375,
+            "width": 119.328125,
+            "height": 16
+          }
+        },
+        {
+          "foreground": "rgb(92, 105, 114)",
+          "background": "rgb(238, 243, 245)",
+          "fontSizePx": 12,
+          "fontWeight": "400",
+          "rect": {
+            "x": 77,
+            "y": 661.109375,
+            "left": 77,
+            "top": 661.109375,
+            "right": 196.328125,
+            "bottom": 678.5,
+            "width": 119.328125,
+            "height": 17.390625
+          }
+        },
+        {
+          "foreground": "rgb(92, 105, 114)",
+          "background": "rgb(255, 255, 255)",
+          "fontSizePx": 12,
+          "fontWeight": "700",
+          "rect": {
+            "x": 68,
+            "y": 711.5,
+            "left": 68,
+            "top": 711.5,
+            "right": 322,
+            "bottom": 727.5,
+            "width": 254,
+            "height": 16
+          }
+        },
+        {
+          "foreground": "rgb(23, 28, 31)",
+          "background": "rgb(255, 255, 255)",
+          "fontSizePx": 16,
+          "fontWeight": "400",
+          "rect": {
+            "x": 68,
+            "y": 735.5,
+            "left": 68,
+            "top": 735.5,
+            "right": 322,
+            "bottom": 757.5,
+            "width": 254,
+            "height": 22
+          }
+        },
+        {
+          "foreground": "rgb(92, 105, 114)",
+          "background": "rgb(255, 255, 255)",
+          "fontSizePx": 12,
+          "fontWeight": "400",
+          "rect": {
+            "x": 68,
+            "y": 765.5,
+            "left": 68,
+            "top": 765.5,
+            "right": 322,
+            "bottom": 800.28125,
+            "width": 254,
+            "height": 34.78125
+          }
+        },
+        {
+          "foreground": "rgb(29, 78, 216)",
+          "background": "rgb(219, 234, 254)",
+          "fontSizePx": 11,
+          "fontWeight": "900",
+          "rect": {
+            "x": 68,
+            "y": 808.28125,
+            "left": 68,
+            "top": 808.28125,
+            "right": 175.515625,
+            "bottom": 832.28125,
+            "width": 107.515625,
+            "height": 24
+          }
+        },
+        {
+          "foreground": "rgb(29, 78, 216)",
+          "background": "rgb(219, 234, 254)",
+          "fontSizePx": 11,
+          "fontWeight": "900",
+          "rect": {
+            "x": 183.515625,
+            "y": 808.28125,
+            "left": 183.515625,
+            "top": 808.28125,
+            "right": 285.703125,
+            "bottom": 832.28125,
+            "width": 102.1875,
+            "height": 24
+          }
+        },
+        {
+          "foreground": "rgb(29, 78, 216)",
+          "background": "rgb(219, 234, 254)",
+          "fontSizePx": 11,
+          "fontWeight": "900",
+          "rect": {
+            "x": 68,
+            "y": 840.28125,
+            "left": 68,
+            "top": 840.28125,
+            "right": 177.25,
+            "bottom": 864.28125,
+            "width": 109.25,
+            "height": 24
+          }
+        }
+      ],
+      "focus": {
+        "focusableCount": 93,
+        "applicable": true
+      },
+      "liveVideo": null,
+      "postActionVisualOwner": {
+        "schema": "media-server.v390-ui-post-action-visual-target.v1",
+        "caseId": "UI-069",
+        "actionId": "UI-069:assert-visible-read-model",
+        "completionMode": "request",
+        "sourceSelectorSha256": "0cb39d67ae7a7c6936e5a57c107bfea646396f0db83a7c9125cd43420666dac1",
+        "sourceOwnerSelectorSha256": "0cb39d67ae7a7c6936e5a57c107bfea646396f0db83a7c9125cd43420666dac1",
+        "requestedState": "visible",
+        "observedRoute": "/ops/events",
+        "navigationEpoch": 1,
+        "ownerCandidateCount": 1,
+        "sourceSelectorRewaited": false,
+        "selector": "#v320ResolutionSearchMetricsGrid",
+        "bindingKind": "post-action-visible-source-owner",
+        "sourceDetached": false,
+        "sourceHidden": false,
+        "epochRelation": "same-document"
+      },
+      "focusSamples": [
+        {
+          "index": 0,
+          "focusIdentity": "#opsRecordingChannelFilter",
+          "tag": "select",
+          "id": "opsRecordingChannelFilter",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "solid",
+          "outlineWidth": "3px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 1,
+          "focusIdentity": "#opsRecordingStartTime",
+          "tag": "input",
+          "id": "opsRecordingStartTime",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "solid",
+          "outlineWidth": "3px",
+          "boxShadow": "none"
+        }
+      ]
+    },
+    "visualExpectedCase": {
+      "canonicalCaseId": "UI-069",
+      "featureId": "UI-069",
+      "screenId": "UI-069",
+      "screenRoute": "/ops/events",
+      "accountRole": "operator",
+      "targetSelector": "#v320ResolutionSearchMetricsGrid",
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "liveVideoRequired": false
+    },
+    "screenshotPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/runs/v390-test-acceptance-20261003035221-92072/ui-exact-424/cases/057-UI-058/screenshots/UI-058.png",
+    "tracePath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/runs/v390-test-acceptance-20261003035221-92072/ui-exact-424/cases/068-UI-069/traces/UI-069.trace.json",
+    "browserConsolePath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/runs/v390-test-acceptance-20261003035221-92072/ui-exact-424/cases/068-UI-069/logs/UI-069.browser-console.json",
+    "cleanupAttestation": {
+      "schema": "media-server.v390-ui-case-cleanup-attestation.v1",
+      "pass": true,
+      "primaryFailurePresent": false,
+      "primaryFailurePreserved": false,
+      "caseRuntimeRestoreAttempted": true,
+      "caseRuntimeRestored": true,
+      "browserCloseAttempted": true,
+      "browserContextClosed": true,
+      "cleanupEntryCount": 3,
+      "failureCode": ""
+    },
+    "requestLifecycleEvaluation": {
+      "status": "PASS",
+      "census": {
+        "requestCount": 20,
+        "responseCount": 20,
+        "classified": 20,
+        "unclassified": 0,
+        "multiplyClassified": 0,
+        "captureErrors": 0,
+        "duplicateResponses": 0,
+        "failureCount": 0
+      },
+      "diagnostics": {
+        "sequenceDomain": "diagnostic-seal-and-after-seal-only",
+        "diagnosticErrors": 0,
+        "seal": {
+          "sequence": 1,
+          "timestamp": 1791002553279
+        },
+        "afterSeal": [],
+        "requests": [
+          {
+            "requestIdentity": "UI-069:object-1",
+            "legacyRequestId": "native-request-1",
+            "method": "GET",
+            "path": "/ops/events",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 1,
+              "timestamp": 1791002551972
+            },
+            "responses": [
+              {
+                "sequence": 2,
+                "timestamp": 1791002551977,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 12,
+                "timestamp": 1791002552001
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "UI-069:object-3",
+            "legacyRequestId": "native-request-2",
+            "method": "GET",
+            "path": "/auth/whoami",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 3,
+              "timestamp": 1791002551996
+            },
+            "responses": [
+              {
+                "sequence": 13,
+                "timestamp": 1791002552066,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 22,
+                "timestamp": 1791002552070
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "UI-069:object-4",
+            "legacyRequestId": "native-request-3",
+            "method": "GET",
+            "path": "/ops/api/recordings/status",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 4,
+              "timestamp": 1791002551997
+            },
+            "responses": [
+              {
+                "sequence": 14,
+                "timestamp": 1791002552067,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 23,
+                "timestamp": 1791002552070
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "UI-069:object-5",
+            "legacyRequestId": "native-request-4",
+            "method": "GET",
+            "path": "/ops/api/recordings/status",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 5,
+              "timestamp": 1791002551999
+            },
+            "responses": [
+              {
+                "sequence": 18,
+                "timestamp": 1791002552067,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 27,
+                "timestamp": 1791002552070
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "UI-069:object-6",
+            "legacyRequestId": "native-request-5",
+            "method": "GET",
+            "path": "/ops/api/vlm/profiles",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 6,
+              "timestamp": 1791002551999
+            },
+            "responses": [
+              {
+                "sequence": 15,
+                "timestamp": 1791002552067,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 24,
+                "timestamp": 1791002552070
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "UI-069:object-7",
+            "legacyRequestId": "native-request-6",
+            "method": "GET",
+            "path": "/ops/api/vlm/evaluation-results",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 7,
+              "timestamp": 1791002551999
+            },
+            "responses": [
+              {
+                "sequence": 16,
+                "timestamp": 1791002552067,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 25,
+                "timestamp": 1791002552070
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "UI-069:object-8",
+            "legacyRequestId": "native-request-7",
+            "method": "GET",
+            "path": "/ops/api/vlm/evaluation-promotion-guard",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 8,
+              "timestamp": 1791002551999
+            },
+            "responses": [
+              {
+                "sequence": 19,
+                "timestamp": 1791002552068,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 28,
+                "timestamp": 1791002552070
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "UI-069:object-9",
+            "legacyRequestId": "native-request-8",
+            "method": "GET",
+            "path": "/ops/api/audit",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 9,
+              "timestamp": 1791002552000
+            },
+            "responses": [
+              {
+                "sequence": 17,
+                "timestamp": 1791002552067,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 26,
+                "timestamp": 1791002552070
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "UI-069:object-10",
+            "legacyRequestId": "native-request-9",
+            "method": "GET",
+            "path": "/ops/api/events/status",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 10,
+              "timestamp": 1791002552000
+            },
+            "responses": [
+              {
+                "sequence": 20,
+                "timestamp": 1791002552068,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 29,
+                "timestamp": 1791002552070
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "UI-069:object-11",
+            "legacyRequestId": "native-request-10",
+            "method": "GET",
+            "path": "/ops/api/alerts/deliveries",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 11,
+              "timestamp": 1791002552000
+            },
+            "responses": [
+              {
+                "sequence": 21,
+                "timestamp": 1791002552068,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 30,
+                "timestamp": 1791002552070
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "UI-069:object-21",
+            "legacyRequestId": "native-request-11",
+            "method": "GET",
+            "path": "/ops/api/events/reviews",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 31,
+              "timestamp": 1791002552074
+            },
+            "responses": [
+              {
+                "sequence": 32,
+                "timestamp": 1791002552081,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 33,
+                "timestamp": 1791002552081
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "UI-069:object-23",
+            "legacyRequestId": "native-request-12",
+            "method": "GET",
+            "path": "/auth/whoami",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 34,
+              "timestamp": 1791002552119
+            },
+            "responses": [
+              {
+                "sequence": 35,
+                "timestamp": 1791002552121,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 36,
+                "timestamp": 1791002552121
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "UI-069:object-25",
+            "legacyRequestId": "native-request-13",
+            "method": "GET",
+            "path": "/auth/whoami",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 37,
+              "timestamp": 1791002552135
+            },
+            "responses": [
+              {
+                "sequence": 38,
+                "timestamp": 1791002552137,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 39,
+                "timestamp": 1791002552137
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "UI-069:object-27",
+            "legacyRequestId": "native-request-14",
+            "method": "GET",
+            "path": "/ops/events",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 40,
+              "timestamp": 1791002552147
+            },
+            "responses": [
+              {
+                "sequence": 41,
+                "timestamp": 1791002552149,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 42,
+                "timestamp": 1791002552151
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "UI-069:object-29",
+            "legacyRequestId": "native-request-15",
+            "method": "GET",
+            "path": "/ops/api/events/status",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 43,
+              "timestamp": 1791002552239
+            },
+            "responses": [
+              {
+                "sequence": 47,
+                "timestamp": 1791002552253,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 50,
+                "timestamp": 1791002552253
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "UI-069:object-30",
+            "legacyRequestId": "native-request-16",
+            "method": "GET",
+            "path": "/ops/api/alerts/deliveries",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 44,
+              "timestamp": 1791002552239
+            },
+            "responses": [
+              {
+                "sequence": 46,
+                "timestamp": 1791002552253,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 49,
+                "timestamp": 1791002552253
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "UI-069:object-31",
+            "legacyRequestId": "native-request-17",
+            "method": "GET",
+            "path": "/ops/api/recordings/status",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 45,
+              "timestamp": 1791002552239
+            },
+            "responses": [
+              {
+                "sequence": 48,
+                "timestamp": 1791002552253,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 51,
+                "timestamp": 1791002552253
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "UI-069:object-35",
+            "legacyRequestId": "native-request-18",
+            "method": "GET",
+            "path": "/ops/api/events/reviews",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 52,
+              "timestamp": 1791002552254
+            },
+            "responses": [
+              {
+                "sequence": 53,
+                "timestamp": 1791002552257,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 54,
+                "timestamp": 1791002552257
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "UI-069:object-37",
+            "legacyRequestId": "native-request-19",
+            "method": "GET",
+            "path": "/ops/events",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 55,
+              "timestamp": 1791002552770
+            },
+            "responses": [
+              {
+                "sequence": 56,
+                "timestamp": 1791002552773,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 57,
+                "timestamp": 1791002552775
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "UI-069:object-39",
+            "legacyRequestId": "native-request-20",
+            "method": "GET",
+            "path": "/auth/whoami",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 58,
+              "timestamp": 1791002552955
+            },
+            "responses": [
+              {
+                "sequence": 59,
+                "timestamp": 1791002552957,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 60,
+                "timestamp": 1791002552957
+              }
+            ],
+            "failed": []
+          }
+        ]
+      },
+      "requests": [
+        {
+          "requestIdentity": "UI-069:object-1",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "UI-069:object-3",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "UI-069:object-4",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "UI-069:object-5",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "UI-069:object-6",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "UI-069:object-7",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "UI-069:object-8",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "UI-069:object-9",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "UI-069:object-10",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "UI-069:object-11",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "UI-069:object-21",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "UI-069:object-23",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "UI-069:object-25",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "UI-069:object-27",
+          "redirectedFromIdentity": null,
+          "correlationDigest": "b4e563ee46e93ea5cabd0ffb9ec903bf18c4a1c54fcb441722c63f78fd188486"
+        },
+        {
+          "requestIdentity": "UI-069:object-29",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "UI-069:object-30",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "UI-069:object-31",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "UI-069:object-35",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "UI-069:object-37",
+          "redirectedFromIdentity": null,
+          "correlationDigest": "b4e563ee46e93ea5cabd0ffb9ec903bf18c4a1c54fcb441722c63f78fd188486"
+        },
+        {
+          "requestIdentity": "UI-069:object-39",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        }
+      ],
+      "classifications": [
+        {
+          "requestIdentity": "UI-069:object-1",
+          "responseIdentity": "UI-069:object-2",
+          "requestKind": "document-navigation",
+          "classification": "bootstrap",
+          "owner": "page",
+          "phase": "bootstrap-document"
+        },
+        {
+          "requestIdentity": "UI-069:object-3",
+          "responseIdentity": "UI-069:object-12",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "UI-069:object-4",
+          "responseIdentity": "UI-069:object-13",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "UI-069:object-5",
+          "responseIdentity": "UI-069:object-17",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "UI-069:object-6",
+          "responseIdentity": "UI-069:object-14",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "UI-069:object-7",
+          "responseIdentity": "UI-069:object-15",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "UI-069:object-8",
+          "responseIdentity": "UI-069:object-18",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "UI-069:object-9",
+          "responseIdentity": "UI-069:object-16",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "UI-069:object-10",
+          "responseIdentity": "UI-069:object-19",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "UI-069:object-11",
+          "responseIdentity": "UI-069:object-20",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "UI-069:object-21",
+          "responseIdentity": "UI-069:object-22",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "UI-069:object-23",
+          "responseIdentity": "UI-069:object-24",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "UI-069:object-25",
+          "responseIdentity": "UI-069:object-26",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "UI-069:object-27",
+          "responseIdentity": "UI-069:object-28",
+          "requestKind": "application-fetch",
+          "classification": "action",
+          "owner": "action",
+          "phase": "primary-action"
+        },
+        {
+          "requestIdentity": "UI-069:object-29",
+          "responseIdentity": "UI-069:object-33",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "UI-069:object-30",
+          "responseIdentity": "UI-069:object-32",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "UI-069:object-31",
+          "responseIdentity": "UI-069:object-34",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "UI-069:object-35",
+          "responseIdentity": "UI-069:object-36",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "UI-069:object-37",
+          "responseIdentity": "UI-069:object-38",
+          "requestKind": "application-fetch",
+          "classification": "action",
+          "owner": "action",
+          "phase": "primary-action"
+        },
+        {
+          "requestIdentity": "UI-069:object-39",
+          "responseIdentity": "UI-069:object-40",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        }
+      ],
+      "failures": []
+    }
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "schema": "media-server.ui-raw-visual-capture.v1",
+  "caseId": "AUTH-035",
+  "correlationId": "AUTH-035:submit-form:completion",
+  "targetSelector": "body",
+  "screenshotSha256": "d323c27c21f08dfbf00c10335ab6de7ce97553348d2aead8dc2b2c62769a5e8f",
+  "measurementSha256": "d8d335d20010e32bee7d6eb5e780f69c31cf3ea4cdbb6411783a00cf8211cb04",
+  "qualificationStatus": "unqualified-raw-capture"
+}

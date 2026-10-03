@@ -1,0 +1,1270 @@
+{
+  "schema": "media-server.v390-ui-case-policy-input.v1",
+  "caseId": "UI-029",
+  "runId": "fa3f64f2-58d9-49df-b223-7285df0cce64",
+  "result": {
+    "caseId": "UI-029",
+    "featureId": "UI-029",
+    "status": "PASS",
+    "dispatch": "playwright-native",
+    "manualIntervention": false,
+    "actualBrowserExecution": true,
+    "requested": {
+      "schema": "media-server.v390-ui-canonical-requested.v1",
+      "route": "/ops/vlm",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#v320ActionReadinessChecklistGrid",
+        "actionAnchor": "await requestJson(`/ops/api/vlm/profiles/${encodeURIComponent(id)}`, { method: 'DELETE' });"
+      }
+    },
+    "observed": {
+      "schema": "media-server.v390-ui-runtime-observed.v1",
+      "screenRoute": "/ops/vlm",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "[data-delete-vlm-profile=\"ui-029-review4-fixture\"]",
+        "applicability": "required",
+        "exists": true,
+        "visible": true,
+        "enabled": true
+      },
+      "provenance": {
+        "screenRoute": "browser-location",
+        "accountRole": "session-whoami",
+        "viewport": "browser-inner-size",
+        "theme": "browser-media-query",
+        "controlAction": "dom-selector-state"
+      }
+    },
+    "visibleAssertion": {
+      "pass": true,
+      "visible": true,
+      "selector": "body"
+    },
+    "visualMeasurement": {
+      "schema": "media-server.ui-browser-visual-measurement.v2",
+      "caseBinding": {
+        "canonicalCaseId": "UI-029",
+        "featureId": "UI-029",
+        "screenId": "UI-029",
+        "screenRoute": "/ops/vlm",
+        "accountRole": "operator",
+        "targetSelector": "body"
+      },
+      "route": "/ops/vlm",
+      "accountRole": "operator",
+      "requestedTheme": "light",
+      "appliedTheme": "light",
+      "mediaTheme": "light",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "devicePixelRatio": 1
+      },
+      "document": {
+        "scrollWidth": 390,
+        "scrollHeight": 7922,
+        "clientWidth": 390,
+        "clientHeight": 844
+      },
+      "target": {
+        "selector": "body",
+        "visible": true,
+        "documentTarget": true,
+        "rect": {
+          "x": 0,
+          "y": -7078,
+          "left": 0,
+          "top": -7078,
+          "right": 390,
+          "bottom": 843.921875,
+          "width": 390,
+          "height": 7921.921875
+        }
+      },
+      "textSamples": [
+        {
+          "foreground": "rgb(92, 105, 114)",
+          "background": "rgb(243, 246, 248)",
+          "fontSizePx": 13,
+          "fontWeight": "850",
+          "rect": {
+            "x": 33,
+            "y": -57.421875,
+            "left": 33,
+            "top": -57.421875,
+            "right": 357,
+            "bottom": 4.578125,
+            "width": 324,
+            "height": 62
+          }
+        },
+        {
+          "foreground": "rgb(92, 105, 114)",
+          "background": "rgb(243, 246, 248)",
+          "fontSizePx": 13,
+          "fontWeight": "850",
+          "rect": {
+            "x": 33,
+            "y": 16.578125,
+            "left": 33,
+            "top": 16.578125,
+            "right": 357,
+            "bottom": 54.578125,
+            "width": 324,
+            "height": 38
+          }
+        },
+        {
+          "foreground": "rgb(92, 105, 114)",
+          "background": "rgb(243, 246, 248)",
+          "fontSizePx": 13,
+          "fontWeight": "850",
+          "rect": {
+            "x": 33,
+            "y": 66.578125,
+            "left": 33,
+            "top": 66.578125,
+            "right": 357,
+            "bottom": 128.578125,
+            "width": 324,
+            "height": 62
+          }
+        },
+        {
+          "foreground": "rgb(92, 105, 114)",
+          "background": "rgb(243, 246, 248)",
+          "fontSizePx": 13,
+          "fontWeight": "850",
+          "rect": {
+            "x": 33,
+            "y": 140.578125,
+            "left": 33,
+            "top": 140.578125,
+            "right": 357,
+            "bottom": 202.578125,
+            "width": 324,
+            "height": 62
+          }
+        },
+        {
+          "foreground": "rgb(23, 28, 31)",
+          "background": "rgb(255, 255, 255)",
+          "fontSizePx": 12,
+          "fontWeight": "400",
+          "rect": {
+            "x": 33,
+            "y": 226.578125,
+            "left": 33,
+            "top": 226.578125,
+            "right": 357,
+            "bottom": 268.578125,
+            "width": 324,
+            "height": 42
+          }
+        },
+        {
+          "foreground": "rgb(23, 28, 31)",
+          "background": "rgb(243, 246, 248)",
+          "fontSizePx": 15,
+          "fontWeight": "700",
+          "rect": {
+            "x": 33,
+            "y": 322.578125,
+            "left": 33,
+            "top": 322.578125,
+            "right": 357,
+            "bottom": 342.578125,
+            "width": 324,
+            "height": 20
+          }
+        },
+        {
+          "foreground": "rgb(92, 105, 114)",
+          "background": "rgb(243, 246, 248)",
+          "fontSizePx": 16,
+          "fontWeight": "400",
+          "rect": {
+            "x": 33,
+            "y": 342.578125,
+            "left": 33,
+            "top": 342.578125,
+            "right": 357,
+            "bottom": 392.171875,
+            "width": 324,
+            "height": 49.59375
+          }
+        },
+        {
+          "foreground": "color(srgb 0.10949 0.270588 0.716471)",
+          "background": "color(srgb 0.875922 0.902824 0.978588)",
+          "fontSizePx": 11,
+          "fontWeight": "900",
+          "rect": {
+            "x": 33,
+            "y": 408.171875,
+            "left": 33,
+            "top": 408.171875,
+            "right": 89.8125,
+            "bottom": 432.171875,
+            "width": 56.8125,
+            "height": 24
+          }
+        },
+        {
+          "foreground": "color(srgb 0.10949 0.270588 0.716471)",
+          "background": "color(srgb 0.875922 0.902824 0.978588)",
+          "fontSizePx": 11,
+          "fontWeight": "900",
+          "rect": {
+            "x": 97.8125,
+            "y": 408.171875,
+            "left": 97.8125,
+            "top": 408.171875,
+            "right": 207.21875,
+            "bottom": 432.171875,
+            "width": 109.40625,
+            "height": 24
+          }
+        },
+        {
+          "foreground": "color(srgb 0.10949 0.270588 0.716471)",
+          "background": "color(srgb 0.875922 0.902824 0.978588)",
+          "fontSizePx": 11,
+          "fontWeight": "900",
+          "rect": {
+            "x": 215.21875,
+            "y": 408.171875,
+            "left": 215.21875,
+            "top": 408.171875,
+            "right": 313.421875,
+            "bottom": 432.171875,
+            "width": 98.203125,
+            "height": 24
+          }
+        },
+        {
+          "foreground": "color(srgb 0.10949 0.270588 0.716471)",
+          "background": "color(srgb 0.875922 0.902824 0.978588)",
+          "fontSizePx": 11,
+          "fontWeight": "900",
+          "rect": {
+            "x": 33,
+            "y": 440.171875,
+            "left": 33,
+            "top": 440.171875,
+            "right": 117.828125,
+            "bottom": 464.171875,
+            "width": 84.828125,
+            "height": 24
+          }
+        },
+        {
+          "foreground": "color(srgb 0.10949 0.270588 0.716471)",
+          "background": "color(srgb 0.875922 0.902824 0.978588)",
+          "fontSizePx": 11,
+          "fontWeight": "900",
+          "rect": {
+            "x": 125.828125,
+            "y": 440.171875,
+            "left": 125.828125,
+            "top": 440.171875,
+            "right": 213.328125,
+            "bottom": 464.171875,
+            "width": 87.5,
+            "height": 24
+          }
+        },
+        {
+          "foreground": "rgb(23, 28, 31)",
+          "background": "rgb(255, 255, 255)",
+          "fontSizePx": 16,
+          "fontWeight": "700",
+          "rect": {
+            "x": 46,
+            "y": 505.171875,
+            "left": 46,
+            "top": 505.171875,
+            "right": 344,
+            "bottom": 527.171875,
+            "width": 298,
+            "height": 22
+          }
+        },
+        {
+          "foreground": "rgb(92, 105, 114)",
+          "background": "rgb(255, 255, 255)",
+          "fontSizePx": 13,
+          "fontWeight": "400",
+          "rect": {
+            "x": 46,
+            "y": 529.171875,
+            "left": 46,
+            "top": 529.171875,
+            "right": 344,
+            "bottom": 565.546875,
+            "width": 298,
+            "height": 36.375
+          }
+        },
+        {
+          "foreground": "rgb(29, 78, 216)",
+          "background": "rgb(219, 234, 254)",
+          "fontSizePx": 11,
+          "fontWeight": "900",
+          "rect": {
+            "x": 46,
+            "y": 573.546875,
+            "left": 46,
+            "top": 573.546875,
+            "right": 344,
+            "bottom": 597.546875,
+            "width": 298,
+            "height": 24
+          }
+        },
+        {
+          "foreground": "rgb(23, 28, 31)",
+          "background": "rgb(255, 255, 255)",
+          "fontSizePx": 16,
+          "fontWeight": "700",
+          "rect": {
+            "x": 46,
+            "y": 635.546875,
+            "left": 46,
+            "top": 635.546875,
+            "right": 344,
+            "bottom": 657.546875,
+            "width": 298,
+            "height": 22
+          }
+        },
+        {
+          "foreground": "rgb(92, 105, 114)",
+          "background": "rgb(255, 255, 255)",
+          "fontSizePx": 13,
+          "fontWeight": "400",
+          "rect": {
+            "x": 46,
+            "y": 659.546875,
+            "left": 46,
+            "top": 659.546875,
+            "right": 344,
+            "bottom": 695.921875,
+            "width": 298,
+            "height": 36.375
+          }
+        },
+        {
+          "foreground": "rgb(180, 83, 9)",
+          "background": "rgb(255, 244, 214)",
+          "fontSizePx": 11,
+          "fontWeight": "900",
+          "rect": {
+            "x": 46,
+            "y": 703.921875,
+            "left": 46,
+            "top": 703.921875,
+            "right": 344,
+            "bottom": 727.921875,
+            "width": 298,
+            "height": 24
+          }
+        },
+        {
+          "foreground": "rgb(23, 28, 31)",
+          "background": "rgb(243, 246, 248)",
+          "fontSizePx": 16,
+          "fontWeight": "400",
+          "rect": {
+            "x": 16,
+            "y": 773.921875,
+            "left": 16,
+            "top": 773.921875,
+            "right": 374,
+            "bottom": 795.921875,
+            "width": 358,
+            "height": 22
+          }
+        },
+        {
+          "foreground": "rgb(92, 105, 114)",
+          "background": "rgb(243, 246, 248)",
+          "fontSizePx": 13,
+          "fontWeight": "850",
+          "rect": {
+            "x": 16,
+            "y": 795.921875,
+            "left": 16,
+            "top": 795.921875,
+            "right": 83.625,
+            "bottom": 833.921875,
+            "width": 67.625,
+            "height": 38
+          }
+        },
+        {
+          "foreground": "rgb(229, 237, 245)",
+          "background": "rgb(17, 24, 39)",
+          "fontSizePx": 12,
+          "fontWeight": "400",
+          "rect": {
+            "x": 16,
+            "y": 833.921875,
+            "left": 16,
+            "top": 833.921875,
+            "right": 374,
+            "bottom": 1253.921875,
+            "width": 358,
+            "height": 420
+          }
+        }
+      ],
+      "focus": {
+        "focusableCount": 26,
+        "applicable": true
+      },
+      "liveVideo": null,
+      "postActionVisualOwner": {
+        "schema": "media-server.v390-ui-post-action-visual-target.v1",
+        "caseId": "UI-029",
+        "actionId": "UI-029:execute-persisted-action",
+        "completionMode": "request",
+        "sourceSelectorSha256": "ce573f8e2303ce669f9c79d7414d4772d835a3c80350bcfeacd513f7ba466119",
+        "sourceOwnerSelectorSha256": "ce573f8e2303ce669f9c79d7414d4772d835a3c80350bcfeacd513f7ba466119",
+        "requestedState": "visible",
+        "observedRoute": "/ops/vlm",
+        "navigationEpoch": 1,
+        "ownerCandidateCount": 1,
+        "sourceSelectorRewaited": false,
+        "selector": "body",
+        "bindingKind": "post-action-visible-document-owner",
+        "sourceDetached": true,
+        "sourceHidden": false,
+        "epochRelation": "same-document"
+      },
+      "focusSamples": [
+        {
+          "index": 0,
+          "focusIdentity": "body > main > section > details > summary",
+          "tag": "summary",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 1,
+          "focusIdentity": "body",
+          "tag": "body",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "none",
+          "outlineWidth": "3px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 2,
+          "focusIdentity": "body > main > header > div > div:nth-of-type(1) > nav > a:nth-of-type(1)",
+          "tag": "a",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 3,
+          "focusIdentity": "body > main > header > div > div:nth-of-type(1) > nav > a:nth-of-type(2)",
+          "tag": "a",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 4,
+          "focusIdentity": "body > main > header > div > div:nth-of-type(1) > nav > a:nth-of-type(3)",
+          "tag": "a",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 5,
+          "focusIdentity": "body > main > header > div > div:nth-of-type(1) > nav > a:nth-of-type(4)",
+          "tag": "a",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 6,
+          "focusIdentity": "body > main > header > div > div:nth-of-type(1) > nav > a:nth-of-type(5)",
+          "tag": "a",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 7,
+          "focusIdentity": "#themeToggleBtn",
+          "tag": "button",
+          "id": "themeToggleBtn",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 8,
+          "focusIdentity": "body > main > header > div > div:nth-of-type(2) > div > div:nth-of-type(2) > label > select",
+          "tag": "select",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "solid",
+          "outlineWidth": "3px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 9,
+          "focusIdentity": "body > main > header > div > div:nth-of-type(2) > form > button",
+          "tag": "button",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 10,
+          "focusIdentity": "#opsVlmRefresh",
+          "tag": "button",
+          "id": "opsVlmRefresh",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 11,
+          "focusIdentity": "#opsVlmHardwareClass",
+          "tag": "select",
+          "id": "opsVlmHardwareClass",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "solid",
+          "outlineWidth": "3px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 12,
+          "focusIdentity": "#opsVlmRuntimeReadiness",
+          "tag": "select",
+          "id": "opsVlmRuntimeReadiness",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "solid",
+          "outlineWidth": "3px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 13,
+          "focusIdentity": "#opsVlmPrivacyMode",
+          "tag": "select",
+          "id": "opsVlmPrivacyMode",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "solid",
+          "outlineWidth": "3px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 14,
+          "focusIdentity": "#opsVlmCloudOptIn",
+          "tag": "select",
+          "id": "opsVlmCloudOptIn",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "solid",
+          "outlineWidth": "3px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 15,
+          "focusIdentity": "body > main > section > div:nth-of-type(4) > section:nth-of-type(2) > div:nth-of-type(4) > table > tbody > tr:nth-of-type(1) > td:nth-of-type(1) > button",
+          "tag": "button",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 16,
+          "focusIdentity": "body > main > section > div:nth-of-type(4) > section:nth-of-type(2) > div:nth-of-type(4) > table > tbody > tr:nth-of-type(2) > td:nth-of-type(1) > button",
+          "tag": "button",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 17,
+          "focusIdentity": "body > main > section > div:nth-of-type(4) > section:nth-of-type(3) > div:nth-of-type(3) > table > tbody > tr:nth-of-type(1) > td:nth-of-type(1) > button",
+          "tag": "button",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 18,
+          "focusIdentity": "body > main > section > div:nth-of-type(4) > section:nth-of-type(3) > div:nth-of-type(3) > table > tbody > tr:nth-of-type(2) > td:nth-of-type(1) > button",
+          "tag": "button",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 19,
+          "focusIdentity": "#opsVlmSaveProfile",
+          "tag": "button",
+          "id": "opsVlmSaveProfile",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 20,
+          "focusIdentity": "#opsVlmProfileId",
+          "tag": "input",
+          "id": "opsVlmProfileId",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "solid",
+          "outlineWidth": "3px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 21,
+          "focusIdentity": "#opsVlmPromptProfile",
+          "tag": "select",
+          "id": "opsVlmPromptProfile",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "solid",
+          "outlineWidth": "3px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 22,
+          "focusIdentity": "#opsVlmEvaluationStatus",
+          "tag": "input",
+          "id": "opsVlmEvaluationStatus",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "solid",
+          "outlineWidth": "3px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 23,
+          "focusIdentity": "#opsVlmActivationStatus",
+          "tag": "select",
+          "id": "opsVlmActivationStatus",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "solid",
+          "outlineWidth": "3px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 24,
+          "focusIdentity": "#opsVlmProfileEnabled",
+          "tag": "input",
+          "id": "opsVlmProfileEnabled",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "solid",
+          "outlineWidth": "3px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 25,
+          "focusIdentity": "#opsVlmFallbackProfileId",
+          "tag": "input",
+          "id": "opsVlmFallbackProfileId",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "solid",
+          "outlineWidth": "3px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 26,
+          "focusIdentity": "#opsVlmDisabledReason",
+          "tag": "input",
+          "id": "opsVlmDisabledReason",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "solid",
+          "outlineWidth": "3px",
+          "boxShadow": "none"
+        }
+      ]
+    },
+    "visualExpectedCase": {
+      "canonicalCaseId": "UI-029",
+      "featureId": "UI-029",
+      "screenId": "UI-029",
+      "screenRoute": "/ops/vlm",
+      "accountRole": "operator",
+      "targetSelector": "body",
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "liveVideoRequired": false
+    },
+    "screenshotPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/runs/v390-test-acceptance-20261003035221-92072/ui-exact-424/cases/028-UI-029/screenshots/UI-029.png",
+    "tracePath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/runs/v390-test-acceptance-20261003035221-92072/ui-exact-424/cases/028-UI-029/traces/UI-029.trace.json",
+    "browserConsolePath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/runs/v390-test-acceptance-20261003035221-92072/ui-exact-424/cases/028-UI-029/logs/UI-029.browser-console.json",
+    "cleanupAttestation": {
+      "schema": "media-server.v390-ui-case-cleanup-attestation.v1",
+      "pass": true,
+      "primaryFailurePresent": false,
+      "primaryFailurePreserved": false,
+      "caseRuntimeRestoreAttempted": true,
+      "caseRuntimeRestored": true,
+      "browserCloseAttempted": true,
+      "browserContextClosed": true,
+      "cleanupEntryCount": 2,
+      "failureCode": ""
+    },
+    "requestLifecycleEvaluation": {
+      "status": "PASS",
+      "census": {
+        "requestCount": 12,
+        "responseCount": 12,
+        "classified": 12,
+        "unclassified": 0,
+        "multiplyClassified": 0,
+        "captureErrors": 0,
+        "duplicateResponses": 0,
+        "failureCount": 0
+      },
+      "diagnostics": {
+        "sequenceDomain": "diagnostic-seal-and-after-seal-only",
+        "diagnosticErrors": 0,
+        "seal": {
+          "sequence": 1,
+          "timestamp": 1791002442439
+        },
+        "afterSeal": [],
+        "requests": [
+          {
+            "requestIdentity": "UI-029:object-1",
+            "legacyRequestId": "native-request-1",
+            "method": "GET",
+            "path": "/ops/vlm",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 1,
+              "timestamp": 1791002439844
+            },
+            "responses": [
+              {
+                "sequence": 2,
+                "timestamp": 1791002439848,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 8,
+                "timestamp": 1791002439868
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "UI-029:object-3",
+            "legacyRequestId": "native-request-2",
+            "method": "GET",
+            "path": "/auth/whoami",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 3,
+              "timestamp": 1791002439865
+            },
+            "responses": [
+              {
+                "sequence": 9,
+                "timestamp": 1791002439923,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 14,
+                "timestamp": 1791002439925
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "UI-029:object-4",
+            "legacyRequestId": "native-request-3",
+            "method": "GET",
+            "path": "/ops/api/vlm/profiles",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 4,
+              "timestamp": 1791002439866
+            },
+            "responses": [
+              {
+                "sequence": 11,
+                "timestamp": 1791002439925,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 16,
+                "timestamp": 1791002439925
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "UI-029:object-5",
+            "legacyRequestId": "native-request-4",
+            "method": "GET",
+            "path": "/ops/api/vlm/evaluation-results",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 5,
+              "timestamp": 1791002439866
+            },
+            "responses": [
+              {
+                "sequence": 12,
+                "timestamp": 1791002439925,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 17,
+                "timestamp": 1791002439925
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "UI-029:object-6",
+            "legacyRequestId": "native-request-5",
+            "method": "GET",
+            "path": "/ops/api/vlm/evaluation-promotion-guard",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 6,
+              "timestamp": 1791002439866
+            },
+            "responses": [
+              {
+                "sequence": 10,
+                "timestamp": 1791002439925,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 15,
+                "timestamp": 1791002439925
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "UI-029:object-7",
+            "legacyRequestId": "native-request-6",
+            "method": "GET",
+            "path": "/ops/api/vlm/install-connection/dry-run",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 7,
+              "timestamp": 1791002439866
+            },
+            "responses": [
+              {
+                "sequence": 13,
+                "timestamp": 1791002439925,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 18,
+                "timestamp": 1791002439925
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "UI-029:object-13",
+            "legacyRequestId": "native-request-7",
+            "method": "GET",
+            "path": "/ops/api/runtime/status",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 19,
+              "timestamp": 1791002439926
+            },
+            "responses": [
+              {
+                "sequence": 20,
+                "timestamp": 1791002439931,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 21,
+                "timestamp": 1791002439931
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "UI-029:object-15",
+            "legacyRequestId": "native-request-8",
+            "method": "GET",
+            "path": "/auth/whoami",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 22,
+              "timestamp": 1791002439952
+            },
+            "responses": [
+              {
+                "sequence": 23,
+                "timestamp": 1791002439954,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 24,
+                "timestamp": 1791002439954
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "UI-029:object-17",
+            "legacyRequestId": "native-request-9",
+            "method": "GET",
+            "path": "/auth/whoami",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 25,
+              "timestamp": 1791002439968
+            },
+            "responses": [
+              {
+                "sequence": 26,
+                "timestamp": 1791002439970,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 27,
+                "timestamp": 1791002439970
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "UI-029:object-19",
+            "legacyRequestId": "native-request-10",
+            "method": "DELETE",
+            "path": "/ops/api/vlm/profiles/ui-029-review4-fixture",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 28,
+              "timestamp": 1791002440546
+            },
+            "responses": [
+              {
+                "sequence": 29,
+                "timestamp": 1791002440561,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 30,
+                "timestamp": 1791002440561
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "UI-029:object-21",
+            "legacyRequestId": "native-request-11",
+            "method": "GET",
+            "path": "/ops/api/vlm/profiles",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 31,
+              "timestamp": 1791002440562
+            },
+            "responses": [
+              {
+                "sequence": 32,
+                "timestamp": 1791002440565,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 33,
+                "timestamp": 1791002440566
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "UI-029:object-23",
+            "legacyRequestId": "native-request-12",
+            "method": "GET",
+            "path": "/auth/whoami",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 34,
+              "timestamp": 1791002441931
+            },
+            "responses": [
+              {
+                "sequence": 35,
+                "timestamp": 1791002441933,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 36,
+                "timestamp": 1791002441933
+              }
+            ],
+            "failed": []
+          }
+        ]
+      },
+      "requests": [
+        {
+          "requestIdentity": "UI-029:object-1",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "UI-029:object-3",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "UI-029:object-4",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "UI-029:object-5",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "UI-029:object-6",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "UI-029:object-7",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "UI-029:object-13",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "UI-029:object-15",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "UI-029:object-17",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "UI-029:object-19",
+          "redirectedFromIdentity": null,
+          "correlationDigest": "9f1b7d85ace9382c105b6c8fc1dacffa6a75c7bf53e66591b8413569d673cfb0"
+        },
+        {
+          "requestIdentity": "UI-029:object-21",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "UI-029:object-23",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        }
+      ],
+      "classifications": [
+        {
+          "requestIdentity": "UI-029:object-1",
+          "responseIdentity": "UI-029:object-2",
+          "requestKind": "document-navigation",
+          "classification": "bootstrap",
+          "owner": "page",
+          "phase": "bootstrap-document"
+        },
+        {
+          "requestIdentity": "UI-029:object-3",
+          "responseIdentity": "UI-029:object-8",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "UI-029:object-4",
+          "responseIdentity": "UI-029:object-10",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "UI-029:object-5",
+          "responseIdentity": "UI-029:object-11",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "UI-029:object-6",
+          "responseIdentity": "UI-029:object-9",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "UI-029:object-7",
+          "responseIdentity": "UI-029:object-12",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "UI-029:object-13",
+          "responseIdentity": "UI-029:object-14",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "UI-029:object-15",
+          "responseIdentity": "UI-029:object-16",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "UI-029:object-17",
+          "responseIdentity": "UI-029:object-18",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "UI-029:object-19",
+          "responseIdentity": "UI-029:object-20",
+          "requestKind": "application-fetch",
+          "classification": "action",
+          "owner": "action",
+          "phase": "primary-action"
+        },
+        {
+          "requestIdentity": "UI-029:object-21",
+          "responseIdentity": "UI-029:object-22",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "UI-029:object-23",
+          "responseIdentity": "UI-029:object-24",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        }
+      ],
+      "failures": []
+    }
+  }
+}

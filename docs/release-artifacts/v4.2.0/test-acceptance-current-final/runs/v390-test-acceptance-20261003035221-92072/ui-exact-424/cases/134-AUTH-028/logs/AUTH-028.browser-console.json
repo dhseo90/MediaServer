@@ -1,0 +1,60 @@
+{
+  "schema": "media-server.v390-ui-native-browser-console.v1",
+  "caseId": "AUTH-028",
+  "entries": [
+    {
+      "kind": "console",
+      "level": "verbose",
+      "text": "[DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) %o",
+      "location": {
+        "url": "http://127.0.0.1:64566/ops/users",
+        "line": 0,
+        "column": 0,
+        "lineNumber": 0,
+        "columnNumber": 0
+      },
+      "callsite": "http://127.0.0.1:64566/ops/users:0:0",
+      "caseId": "AUTH-028",
+      "actionId": "",
+      "phase": "initial-page-load",
+      "secretBearing": false,
+      "observedAtMs": 1791002743403
+    },
+    {
+      "kind": "console",
+      "level": "verbose",
+      "text": "[DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) %o",
+      "location": {
+        "url": "http://127.0.0.1:64566/ops/users",
+        "line": 0,
+        "column": 0,
+        "lineNumber": 0,
+        "columnNumber": 0
+      },
+      "callsite": "http://127.0.0.1:64566/ops/users:0:0",
+      "caseId": "AUTH-028",
+      "actionId": "",
+      "phase": "initial-page-load",
+      "secretBearing": false,
+      "observedAtMs": 1791002743403
+    },
+    {
+      "kind": "console",
+      "level": "verbose",
+      "text": "[DOM] Input elements should have autocomplete attributes (suggested: \"username\"): (More info: https://goo.gl/9p2vKq) %o",
+      "location": {
+        "url": "http://127.0.0.1:64566/ops/users",
+        "line": 0,
+        "column": 0,
+        "lineNumber": 0,
+        "columnNumber": 0
+      },
+      "callsite": "http://127.0.0.1:64566/ops/users:0:0",
+      "caseId": "AUTH-028",
+      "actionId": "",
+      "phase": "initial-page-load",
+      "secretBearing": false,
+      "observedAtMs": 1791002743403
+    }
+  ]
+}

@@ -1,0 +1,1377 @@
+{
+  "schema": "media-server.v390-ui-case-policy-input.v1",
+  "caseId": "UI-083",
+  "runId": "fa3f64f2-58d9-49df-b223-7285df0cce64",
+  "result": {
+    "caseId": "UI-083",
+    "featureId": "UI-083",
+    "status": "PASS",
+    "dispatch": "playwright-native",
+    "manualIntervention": false,
+    "actualBrowserExecution": true,
+    "requested": {
+      "schema": "media-server.v390-ui-canonical-requested.v1",
+      "route": "/client/live",
+      "accountRole": "viewer",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "[data-testid=\"client-impact-forecast\"]",
+        "actionAnchor": "renderClientImpactForecast"
+      }
+    },
+    "observed": {
+      "schema": "media-server.v390-ui-runtime-observed.v1",
+      "screenRoute": "/client/live",
+      "accountRole": "viewer",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "[data-testid=\"client-impact-forecast\"]",
+        "applicability": "required",
+        "exists": true,
+        "visible": true,
+        "enabled": true
+      },
+      "provenance": {
+        "screenRoute": "browser-location",
+        "accountRole": "session-whoami",
+        "viewport": "browser-inner-size",
+        "theme": "browser-media-query",
+        "controlAction": "dom-selector-state"
+      }
+    },
+    "visibleAssertion": {
+      "pass": true,
+      "visible": true,
+      "selector": "body"
+    },
+    "visualMeasurement": {
+      "schema": "media-server.ui-browser-visual-measurement.v2",
+      "caseBinding": {
+        "canonicalCaseId": "UI-083",
+        "featureId": "UI-083",
+        "screenId": "UI-083",
+        "screenRoute": "/client/live",
+        "accountRole": "viewer",
+        "targetSelector": "[data-testid=\"client-impact-forecast\"]"
+      },
+      "route": "/client/live",
+      "accountRole": "viewer",
+      "requestedTheme": "light",
+      "appliedTheme": "light",
+      "mediaTheme": "light",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "devicePixelRatio": 1
+      },
+      "document": {
+        "scrollWidth": 390,
+        "scrollHeight": 4146,
+        "clientWidth": 390,
+        "clientHeight": 844
+      },
+      "target": {
+        "selector": "[data-testid=\"client-impact-forecast\"]",
+        "visible": true,
+        "documentTarget": false,
+        "rect": {
+          "x": 12,
+          "y": 198.25,
+          "left": 12,
+          "top": 198.25,
+          "right": 346,
+          "bottom": 646.625,
+          "width": 334,
+          "height": 448.375
+        }
+      },
+      "textSamples": [
+        {
+          "foreground": "rgb(23, 28, 31)",
+          "background": "rgb(243, 246, 248)",
+          "fontSizePx": 15,
+          "fontWeight": "950",
+          "rect": {
+            "x": 66,
+            "y": 19,
+            "left": 66,
+            "top": 19,
+            "right": 368,
+            "bottom": 34,
+            "width": 302,
+            "height": 15
+          }
+        },
+        {
+          "foreground": "rgb(92, 105, 114)",
+          "background": "rgb(243, 246, 248)",
+          "fontSizePx": 12,
+          "fontWeight": "750",
+          "rect": {
+            "x": 66,
+            "y": 37,
+            "left": 66,
+            "top": 37,
+            "right": 368,
+            "bottom": 49,
+            "width": 302,
+            "height": 12
+          }
+        },
+        {
+          "foreground": "rgb(29, 78, 216)",
+          "background": "rgb(243, 246, 248)",
+          "fontSizePx": 12,
+          "fontWeight": "900",
+          "rect": {
+            "x": 102.421875,
+            "y": 81.28125,
+            "left": 102.421875,
+            "top": 81.28125,
+            "right": 133.5625,
+            "bottom": 94.71875,
+            "width": 31.140625,
+            "height": 13.4375
+          }
+        },
+        {
+          "foreground": "rgb(92, 105, 114)",
+          "background": "rgb(243, 246, 248)",
+          "fontSizePx": 12,
+          "fontWeight": "900",
+          "rect": {
+            "x": 273.234375,
+            "y": 81.28125,
+            "left": 273.234375,
+            "top": 81.28125,
+            "right": 314.765625,
+            "bottom": 94.71875,
+            "width": 41.53125,
+            "height": 13.4375
+          }
+        },
+        {
+          "foreground": "rgb(23, 28, 31)",
+          "background": "rgb(255, 255, 255)",
+          "fontSizePx": 12,
+          "fontWeight": "850",
+          "rect": {
+            "x": 296,
+            "y": 126,
+            "left": 296,
+            "top": 126,
+            "right": 368,
+            "bottom": 162,
+            "width": 72,
+            "height": 36
+          }
+        },
+        {
+          "foreground": "rgb(92, 105, 114)",
+          "background": "rgb(248, 250, 251)",
+          "fontSizePx": 16,
+          "fontWeight": "400",
+          "rect": {
+            "x": 25,
+            "y": -13.9375,
+            "left": 25,
+            "top": -13.9375,
+            "right": 189.40625,
+            "bottom": 9.25,
+            "width": 164.40625,
+            "height": 23.1875
+          }
+        },
+        {
+          "foreground": "rgb(29, 78, 216)",
+          "background": "rgb(219, 234, 254)",
+          "fontSizePx": 12,
+          "fontWeight": "900",
+          "rect": {
+            "x": 25,
+            "y": 17.25,
+            "left": 25,
+            "top": 17.25,
+            "right": 114.71875,
+            "bottom": 43.25,
+            "width": 89.71875,
+            "height": 26
+          }
+        },
+        {
+          "foreground": "rgb(29, 78, 216)",
+          "background": "rgb(219, 234, 254)",
+          "fontSizePx": 12,
+          "fontWeight": "900",
+          "rect": {
+            "x": 120.71875,
+            "y": 17.25,
+            "left": 120.71875,
+            "top": 17.25,
+            "right": 188.703125,
+            "bottom": 43.25,
+            "width": 67.984375,
+            "height": 26
+          }
+        },
+        {
+          "foreground": "rgb(29, 78, 216)",
+          "background": "rgb(219, 234, 254)",
+          "fontSizePx": 12,
+          "fontWeight": "900",
+          "rect": {
+            "x": 194.703125,
+            "y": 17.25,
+            "left": 194.703125,
+            "top": 17.25,
+            "right": 305.625,
+            "bottom": 43.25,
+            "width": 110.921875,
+            "height": 26
+          }
+        },
+        {
+          "foreground": "rgb(23, 28, 31)",
+          "background": "rgb(255, 255, 255)",
+          "fontSizePx": 16,
+          "fontWeight": "700",
+          "rect": {
+            "x": 34,
+            "y": 64.25,
+            "left": 34,
+            "top": 64.25,
+            "right": 184.046875,
+            "bottom": 86.25,
+            "width": 150.046875,
+            "height": 22
+          }
+        },
+        {
+          "foreground": "rgb(92, 105, 114)",
+          "background": "rgb(255, 255, 255)",
+          "fontSizePx": 16,
+          "fontWeight": "400",
+          "rect": {
+            "x": 34,
+            "y": 88.25,
+            "left": 34,
+            "top": 88.25,
+            "right": 184.046875,
+            "bottom": 176.25,
+            "width": 150.046875,
+            "height": 88
+          }
+        },
+        {
+          "foreground": "rgb(92, 105, 114)",
+          "background": "rgb(255, 255, 255)",
+          "fontSizePx": 13.3333,
+          "fontWeight": "400",
+          "rect": {
+            "x": 192.046875,
+            "y": 111.25,
+            "left": 192.046875,
+            "top": 111.25,
+            "right": 324,
+            "bottom": 129.25,
+            "width": 131.953125,
+            "height": 18
+          }
+        },
+        {
+          "foreground": "rgb(23, 28, 31)",
+          "background": "rgb(248, 250, 251)",
+          "fontSizePx": 16,
+          "fontWeight": "700",
+          "rect": {
+            "x": 25,
+            "y": 211.25,
+            "left": 25,
+            "top": 211.25,
+            "right": 333,
+            "bottom": 233.25,
+            "width": 308,
+            "height": 22
+          }
+        },
+        {
+          "foreground": "rgb(92, 105, 114)",
+          "background": "rgb(248, 250, 251)",
+          "fontSizePx": 16,
+          "fontWeight": "400",
+          "rect": {
+            "x": 25,
+            "y": 233.25,
+            "left": 25,
+            "top": 233.25,
+            "right": 333,
+            "bottom": 279.625,
+            "width": 308,
+            "height": 46.375
+          }
+        },
+        {
+          "foreground": "rgb(29, 78, 216)",
+          "background": "rgb(219, 234, 254)",
+          "fontSizePx": 12,
+          "fontWeight": "900",
+          "rect": {
+            "x": 25,
+            "y": 287.625,
+            "left": 25,
+            "top": 287.625,
+            "right": 114.71875,
+            "bottom": 313.625,
+            "width": 89.71875,
+            "height": 26
+          }
+        },
+        {
+          "foreground": "rgb(29, 78, 216)",
+          "background": "rgb(219, 234, 254)",
+          "fontSizePx": 12,
+          "fontWeight": "900",
+          "rect": {
+            "x": 120.71875,
+            "y": 287.625,
+            "left": 120.71875,
+            "top": 287.625,
+            "right": 207.015625,
+            "bottom": 313.625,
+            "width": 86.296875,
+            "height": 26
+          }
+        },
+        {
+          "foreground": "rgb(29, 78, 216)",
+          "background": "rgb(219, 234, 254)",
+          "fontSizePx": 12,
+          "fontWeight": "900",
+          "rect": {
+            "x": 25,
+            "y": 319.625,
+            "left": 25,
+            "top": 319.625,
+            "right": 165.09375,
+            "bottom": 345.625,
+            "width": 140.09375,
+            "height": 26
+          }
+        },
+        {
+          "foreground": "rgb(23, 28, 31)",
+          "background": "rgb(255, 255, 255)",
+          "fontSizePx": 16,
+          "fontWeight": "700",
+          "rect": {
+            "x": 34,
+            "y": 366.625,
+            "left": 34,
+            "top": 366.625,
+            "right": 324,
+            "bottom": 410.625,
+            "width": 290,
+            "height": 44
+          }
+        },
+        {
+          "foreground": "rgb(92, 105, 114)",
+          "background": "rgb(255, 255, 255)",
+          "fontSizePx": 16,
+          "fontWeight": "400",
+          "rect": {
+            "x": 34,
+            "y": 412.625,
+            "left": 34,
+            "top": 412.625,
+            "right": 324,
+            "bottom": 500.625,
+            "width": 290,
+            "height": 88
+          }
+        },
+        {
+          "foreground": "rgb(92, 105, 114)",
+          "background": "rgb(255, 255, 255)",
+          "fontSizePx": 16,
+          "fontWeight": "400",
+          "rect": {
+            "x": 34,
+            "y": 502.625,
+            "left": 34,
+            "top": 502.625,
+            "right": 324,
+            "bottom": 590.625,
+            "width": 290,
+            "height": 88
+          }
+        },
+        {
+          "foreground": "rgb(180, 83, 9)",
+          "background": "rgb(255, 244, 214)",
+          "fontSizePx": 12,
+          "fontWeight": "900",
+          "rect": {
+            "x": 34,
+            "y": 598.625,
+            "left": 34,
+            "top": 598.625,
+            "right": 324,
+            "bottom": 624.625,
+            "width": 290,
+            "height": 26
+          }
+        },
+        {
+          "foreground": "rgb(23, 28, 31)",
+          "background": "rgb(248, 250, 251)",
+          "fontSizePx": 16,
+          "fontWeight": "700",
+          "rect": {
+            "x": 25,
+            "y": 659.625,
+            "left": 25,
+            "top": 659.625,
+            "right": 234.921875,
+            "bottom": 681.625,
+            "width": 209.921875,
+            "height": 22
+          }
+        },
+        {
+          "foreground": "rgb(92, 105, 114)",
+          "background": "rgb(248, 250, 251)",
+          "fontSizePx": 16,
+          "fontWeight": "400",
+          "rect": {
+            "x": 25,
+            "y": 681.625,
+            "left": 25,
+            "top": 681.625,
+            "right": 234.921875,
+            "bottom": 704.8125,
+            "width": 209.921875,
+            "height": 23.1875
+          }
+        },
+        {
+          "foreground": "rgb(29, 78, 216)",
+          "background": "rgb(219, 234, 254)",
+          "fontSizePx": 12,
+          "fontWeight": "900",
+          "rect": {
+            "x": 25,
+            "y": 712.8125,
+            "left": 25,
+            "top": 712.8125,
+            "right": 114.71875,
+            "bottom": 738.8125,
+            "width": 89.71875,
+            "height": 26
+          }
+        },
+        {
+          "foreground": "rgb(29, 78, 216)",
+          "background": "rgb(219, 234, 254)",
+          "fontSizePx": 12,
+          "fontWeight": "900",
+          "rect": {
+            "x": 120.71875,
+            "y": 712.8125,
+            "left": 120.71875,
+            "top": 712.8125,
+            "right": 207.015625,
+            "bottom": 738.8125,
+            "width": 86.296875,
+            "height": 26
+          }
+        },
+        {
+          "foreground": "rgb(29, 78, 216)",
+          "background": "rgb(219, 234, 254)",
+          "fontSizePx": 12,
+          "fontWeight": "900",
+          "rect": {
+            "x": 213.015625,
+            "y": 712.8125,
+            "left": 213.015625,
+            "top": 712.8125,
+            "right": 306.9375,
+            "bottom": 738.8125,
+            "width": 93.921875,
+            "height": 26
+          }
+        },
+        {
+          "foreground": "rgb(92, 105, 114)",
+          "background": "rgb(248, 250, 251)",
+          "fontSizePx": 16,
+          "fontWeight": "700",
+          "rect": {
+            "x": 25,
+            "y": 764.21875,
+            "left": 25,
+            "top": 764.21875,
+            "right": 333,
+            "bottom": 786.21875,
+            "width": 308,
+            "height": 22
+          }
+        },
+        {
+          "foreground": "rgb(92, 105, 114)",
+          "background": "rgb(248, 250, 251)",
+          "fontSizePx": 16,
+          "fontWeight": "400",
+          "rect": {
+            "x": 25,
+            "y": 794.21875,
+            "left": 25,
+            "top": 794.21875,
+            "right": 333,
+            "bottom": 817.40625,
+            "width": 308,
+            "height": 23.1875
+          }
+        }
+      ],
+      "focus": {
+        "focusableCount": 28,
+        "applicable": true
+      },
+      "liveVideo": null,
+      "postActionVisualOwner": {
+        "schema": "media-server.v390-ui-post-action-visual-target.v1",
+        "caseId": "UI-083",
+        "actionId": "UI-083:assert-visible-read-model",
+        "completionMode": "request",
+        "sourceSelectorSha256": "d123536a1afbddbfa2151d3b730bba53da68f02172cdf9f4f5be7a111a285abb",
+        "sourceOwnerSelectorSha256": "d123536a1afbddbfa2151d3b730bba53da68f02172cdf9f4f5be7a111a285abb",
+        "requestedState": "visible",
+        "observedRoute": "/client/live",
+        "navigationEpoch": 1,
+        "ownerCandidateCount": 1,
+        "sourceSelectorRewaited": false,
+        "selector": "[data-testid=\"client-impact-forecast\"]",
+        "bindingKind": "post-action-visible-source-owner",
+        "sourceDetached": false,
+        "sourceHidden": false,
+        "epochRelation": "same-document"
+      },
+      "focusSamples": [
+        {
+          "index": 0,
+          "focusIdentity": "#liveSourceSearch",
+          "tag": "input",
+          "id": "liveSourceSearch",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "solid",
+          "outlineWidth": "3px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 1,
+          "focusIdentity": "body > main > section > div:nth-of-type(3) > div > div > aside > div:nth-of-type(3) > details > summary",
+          "tag": "summary",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 2,
+          "focusIdentity": "body > main > section > div:nth-of-type(3) > div > div > aside > div:nth-of-type(3) > details > details > summary",
+          "tag": "summary",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 3,
+          "focusIdentity": "body > main > section > div:nth-of-type(3) > div > div > aside > div:nth-of-type(3) > details > details > div > button",
+          "tag": "button",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 4,
+          "focusIdentity": "#liveGridSize",
+          "tag": "select",
+          "id": "liveGridSize",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "solid",
+          "outlineWidth": "3px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 5,
+          "focusIdentity": "#liveDensity",
+          "tag": "select",
+          "id": "liveDensity",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "solid",
+          "outlineWidth": "3px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 6,
+          "focusIdentity": "#liveDockSide",
+          "tag": "select",
+          "id": "liveDockSide",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "solid",
+          "outlineWidth": "3px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 7,
+          "focusIdentity": "#liveInfoOverlayToggle",
+          "tag": "input",
+          "id": "liveInfoOverlayToggle",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "solid",
+          "outlineWidth": "3px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 8,
+          "focusIdentity": "body > main > section > div:nth-of-type(3) > div > div > section > div:nth-of-type(1) > div:nth-of-type(2) > button:nth-of-type(1)",
+          "tag": "button",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 9,
+          "focusIdentity": "body > main > section > div:nth-of-type(3) > div > div > section > div:nth-of-type(1) > div:nth-of-type(2) > button:nth-of-type(2)",
+          "tag": "button",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 10,
+          "focusIdentity": "body > main > section > div:nth-of-type(3) > div > div > section > div:nth-of-type(1) > details > summary",
+          "tag": "summary",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 11,
+          "focusIdentity": "body > main > section > div:nth-of-type(3) > div > div > section > div:nth-of-type(3) > article:nth-of-type(1)",
+          "tag": "article",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "solid",
+          "outlineWidth": "3px",
+          "boxShadow": "color(srgb 0.113725 0.305882 0.847059 / 0.35) 0px 0px 0px 2px"
+        },
+        {
+          "index": 12,
+          "focusIdentity": "body > main > section > div:nth-of-type(3) > div > div > section > div:nth-of-type(3) > article:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > div > button:nth-of-type(1)",
+          "tag": "button",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "solid",
+          "outlineWidth": "2px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 13,
+          "focusIdentity": "body > main > section > div:nth-of-type(3) > div > div > section > div:nth-of-type(3) > article:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > div > button:nth-of-type(2)",
+          "tag": "button",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "solid",
+          "outlineWidth": "2px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 14,
+          "focusIdentity": "body > main > section > div:nth-of-type(3) > div > div > section > div:nth-of-type(3) > article:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > button:nth-of-type(1)",
+          "tag": "button",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 15,
+          "focusIdentity": "body > main > section > div:nth-of-type(3) > div > div > section > div:nth-of-type(3) > article:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > button:nth-of-type(2)",
+          "tag": "button",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 16,
+          "focusIdentity": "body > main > section > div:nth-of-type(3) > div > div > section > div:nth-of-type(3) > article:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > button:nth-of-type(3)",
+          "tag": "button",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 17,
+          "focusIdentity": "body > main > section > div:nth-of-type(3) > div > div > section > div:nth-of-type(3) > article:nth-of-type(2)",
+          "tag": "article",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "solid",
+          "outlineWidth": "3px",
+          "boxShadow": "color(srgb 0.0666667 0.0941176 0.152941 / 0.08) 0px 1px 2px 0px"
+        },
+        {
+          "index": 18,
+          "focusIdentity": "body > main > section > div:nth-of-type(3) > div > div > section > div:nth-of-type(3) > article:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > button:nth-of-type(3)",
+          "tag": "button",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 19,
+          "focusIdentity": "body > main > section > div:nth-of-type(3) > div > div > section > div:nth-of-type(3) > article:nth-of-type(3)",
+          "tag": "article",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "solid",
+          "outlineWidth": "3px",
+          "boxShadow": "color(srgb 0.0666667 0.0941176 0.152941 / 0.08) 0px 1px 2px 0px"
+        },
+        {
+          "index": 20,
+          "focusIdentity": "body > main > section > div:nth-of-type(3) > div > div > section > div:nth-of-type(3) > article:nth-of-type(3) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > button:nth-of-type(3)",
+          "tag": "button",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 21,
+          "focusIdentity": "body > main > section > div:nth-of-type(3) > div > div > section > div:nth-of-type(3) > article:nth-of-type(4)",
+          "tag": "article",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "solid",
+          "outlineWidth": "3px",
+          "boxShadow": "color(srgb 0.0666667 0.0941176 0.152941 / 0.08) 0px 1px 2px 0px"
+        },
+        {
+          "index": 22,
+          "focusIdentity": "body > main > section > div:nth-of-type(3) > div > div > section > div:nth-of-type(3) > article:nth-of-type(4) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > button:nth-of-type(3)",
+          "tag": "button",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 23,
+          "focusIdentity": "body",
+          "tag": "body",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "none",
+          "outlineWidth": "3px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 24,
+          "focusIdentity": "body > main > header > div > div:nth-of-type(1) > nav > a:nth-of-type(1)",
+          "tag": "a",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 25,
+          "focusIdentity": "body > main > header > div > div:nth-of-type(1) > nav > a:nth-of-type(2)",
+          "tag": "a",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 26,
+          "focusIdentity": "#themeToggleBtn",
+          "tag": "button",
+          "id": "themeToggleBtn",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 27,
+          "focusIdentity": "body > main > header > div > div:nth-of-type(2) > div > div:nth-of-type(2) > label > select",
+          "tag": "select",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "solid",
+          "outlineWidth": "3px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 28,
+          "focusIdentity": "body > main > header > div > div:nth-of-type(2) > form > button",
+          "tag": "button",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 29,
+          "focusIdentity": "#refresh",
+          "tag": "button",
+          "id": "refresh",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        }
+      ]
+    },
+    "visualExpectedCase": {
+      "canonicalCaseId": "UI-083",
+      "featureId": "UI-083",
+      "screenId": "UI-083",
+      "screenRoute": "/client/live",
+      "accountRole": "viewer",
+      "targetSelector": "[data-testid=\"client-impact-forecast\"]",
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "liveVideoRequired": false
+    },
+    "screenshotPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/runs/v390-test-acceptance-20261003035221-92072/ui-exact-424/cases/003-UI-003/screenshots/UI-003.png",
+    "tracePath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/runs/v390-test-acceptance-20261003035221-92072/ui-exact-424/cases/082-UI-083/traces/UI-083.trace.json",
+    "browserConsolePath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/runs/v390-test-acceptance-20261003035221-92072/ui-exact-424/cases/082-UI-083/logs/UI-083.browser-console.json",
+    "cleanupAttestation": {
+      "schema": "media-server.v390-ui-case-cleanup-attestation.v1",
+      "pass": true,
+      "primaryFailurePresent": false,
+      "primaryFailurePreserved": false,
+      "caseRuntimeRestoreAttempted": true,
+      "caseRuntimeRestored": true,
+      "browserCloseAttempted": true,
+      "browserContextClosed": true,
+      "cleanupEntryCount": 2,
+      "failureCode": ""
+    },
+    "requestLifecycleEvaluation": {
+      "status": "PASS",
+      "census": {
+        "requestCount": 11,
+        "responseCount": 11,
+        "classified": 11,
+        "unclassified": 0,
+        "multiplyClassified": 0,
+        "captureErrors": 0,
+        "duplicateResponses": 0,
+        "failureCount": 0
+      },
+      "diagnostics": {
+        "sequenceDomain": "diagnostic-seal-and-after-seal-only",
+        "diagnosticErrors": 0,
+        "seal": {
+          "sequence": 1,
+          "timestamp": 1791002591895
+        },
+        "afterSeal": [],
+        "requests": [
+          {
+            "requestIdentity": "UI-083:object-1",
+            "legacyRequestId": "native-request-1",
+            "method": "GET",
+            "path": "/client/live",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 1,
+              "timestamp": 1791002590674
+            },
+            "responses": [
+              {
+                "sequence": 2,
+                "timestamp": 1791002590682,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 5,
+                "timestamp": 1791002590695
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "UI-083:object-3",
+            "legacyRequestId": "native-request-2",
+            "method": "GET",
+            "path": "/auth/whoami",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 3,
+              "timestamp": 1791002590694
+            },
+            "responses": [
+              {
+                "sequence": 6,
+                "timestamp": 1791002590736,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 8,
+                "timestamp": 1791002590736
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "UI-083:object-4",
+            "legacyRequestId": "native-request-3",
+            "method": "GET",
+            "path": "/client/api/preferences/live-layout",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 4,
+              "timestamp": 1791002590694
+            },
+            "responses": [
+              {
+                "sequence": 7,
+                "timestamp": 1791002590736,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 9,
+                "timestamp": 1791002590736
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "UI-083:object-7",
+            "legacyRequestId": "native-request-4",
+            "method": "GET",
+            "path": "/client/api/views/9001/dashboard",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 10,
+              "timestamp": 1791002590738
+            },
+            "responses": [
+              {
+                "sequence": 13,
+                "timestamp": 1791002590754,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 15,
+                "timestamp": 1791002590754
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "UI-083:object-8",
+            "legacyRequestId": "native-request-5",
+            "method": "GET",
+            "path": "/client/api/views/9001/events",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 11,
+              "timestamp": 1791002590738
+            },
+            "responses": [
+              {
+                "sequence": 12,
+                "timestamp": 1791002590754,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 14,
+                "timestamp": 1791002590754
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "UI-083:object-11",
+            "legacyRequestId": "native-request-6",
+            "method": "GET",
+            "path": "/auth/whoami",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 16,
+              "timestamp": 1791002590776
+            },
+            "responses": [
+              {
+                "sequence": 17,
+                "timestamp": 1791002590778,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 18,
+                "timestamp": 1791002590778
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "UI-083:object-13",
+            "legacyRequestId": "native-request-7",
+            "method": "GET",
+            "path": "/auth/whoami",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 19,
+              "timestamp": 1791002590793
+            },
+            "responses": [
+              {
+                "sequence": 20,
+                "timestamp": 1791002590795,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 21,
+                "timestamp": 1791002590795
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "UI-083:object-15",
+            "legacyRequestId": "native-request-8",
+            "method": "GET",
+            "path": "/client/live",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 22,
+              "timestamp": 1791002590806
+            },
+            "responses": [
+              {
+                "sequence": 23,
+                "timestamp": 1791002590809,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 24,
+                "timestamp": 1791002590809
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "UI-083:object-17",
+            "legacyRequestId": "native-request-9",
+            "method": "GET",
+            "path": "/client/api/views/9001/dashboard",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 25,
+              "timestamp": 1791002590885
+            },
+            "responses": [
+              {
+                "sequence": 26,
+                "timestamp": 1791002590899,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 27,
+                "timestamp": 1791002590899
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "UI-083:object-19",
+            "legacyRequestId": "native-request-10",
+            "method": "GET",
+            "path": "/client/live",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 28,
+              "timestamp": 1791002591417
+            },
+            "responses": [
+              {
+                "sequence": 29,
+                "timestamp": 1791002591421,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 30,
+                "timestamp": 1791002591421
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "UI-083:object-21",
+            "legacyRequestId": "native-request-11",
+            "method": "GET",
+            "path": "/auth/whoami",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 31,
+              "timestamp": 1791002591537
+            },
+            "responses": [
+              {
+                "sequence": 32,
+                "timestamp": 1791002591540,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 33,
+                "timestamp": 1791002591540
+              }
+            ],
+            "failed": []
+          }
+        ]
+      },
+      "requests": [
+        {
+          "requestIdentity": "UI-083:object-1",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "UI-083:object-3",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "UI-083:object-4",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "UI-083:object-7",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "UI-083:object-8",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "UI-083:object-11",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "UI-083:object-13",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "UI-083:object-15",
+          "redirectedFromIdentity": null,
+          "correlationDigest": "99bb28db34f6bba523c3b63f75ed7b92383742c1e275c940bc9be199dbb67244"
+        },
+        {
+          "requestIdentity": "UI-083:object-17",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "UI-083:object-19",
+          "redirectedFromIdentity": null,
+          "correlationDigest": "99bb28db34f6bba523c3b63f75ed7b92383742c1e275c940bc9be199dbb67244"
+        },
+        {
+          "requestIdentity": "UI-083:object-21",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        }
+      ],
+      "classifications": [
+        {
+          "requestIdentity": "UI-083:object-1",
+          "responseIdentity": "UI-083:object-2",
+          "requestKind": "document-navigation",
+          "classification": "bootstrap",
+          "owner": "page",
+          "phase": "bootstrap-document"
+        },
+        {
+          "requestIdentity": "UI-083:object-3",
+          "responseIdentity": "UI-083:object-5",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "UI-083:object-4",
+          "responseIdentity": "UI-083:object-6",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "UI-083:object-7",
+          "responseIdentity": "UI-083:object-10",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "UI-083:object-8",
+          "responseIdentity": "UI-083:object-9",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "UI-083:object-11",
+          "responseIdentity": "UI-083:object-12",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "UI-083:object-13",
+          "responseIdentity": "UI-083:object-14",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "UI-083:object-15",
+          "responseIdentity": "UI-083:object-16",
+          "requestKind": "application-fetch",
+          "classification": "action",
+          "owner": "action",
+          "phase": "primary-action"
+        },
+        {
+          "requestIdentity": "UI-083:object-17",
+          "responseIdentity": "UI-083:object-18",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "UI-083:object-19",
+          "responseIdentity": "UI-083:object-20",
+          "requestKind": "application-fetch",
+          "classification": "action",
+          "owner": "action",
+          "phase": "primary-action"
+        },
+        {
+          "requestIdentity": "UI-083:object-21",
+          "responseIdentity": "UI-083:object-22",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        }
+      ],
+      "failures": []
+    }
+  }
+}

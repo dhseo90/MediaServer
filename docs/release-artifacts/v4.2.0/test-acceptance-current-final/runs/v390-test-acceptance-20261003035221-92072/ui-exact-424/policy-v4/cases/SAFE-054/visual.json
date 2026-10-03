@@ -1,0 +1,9 @@
+{
+  "schema": "media-server.ui-raw-visual-capture.v1",
+  "caseId": "SAFE-054",
+  "correlationId": "SAFE-054:assert-product-boundary:completion",
+  "targetSelector": "body",
+  "screenshotSha256": "7b99f65e1680e370ea3bc3973206cc05d84f6d6f49f0ef8701c0cefec4a245ce",
+  "measurementSha256": "c0dd394aa70326a389124a84b22ea58c2257b5135a94a231557e95f5b9eb1f4b",
+  "qualificationStatus": "unqualified-raw-capture"
+}

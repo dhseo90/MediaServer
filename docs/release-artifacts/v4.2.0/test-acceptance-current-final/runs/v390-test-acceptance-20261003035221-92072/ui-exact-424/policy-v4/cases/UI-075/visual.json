@@ -1,0 +1,9 @@
+{
+  "schema": "media-server.ui-raw-visual-capture.v1",
+  "caseId": "UI-075",
+  "correlationId": "UI-075:assert-visible-read-model:completion",
+  "targetSelector": "[data-testid=\"ops-continuity-drill-workspace\"]",
+  "screenshotSha256": "fd3d91297518c36d3827f85bae8e8226b1cf12597d265c50c09aa667411785ee",
+  "measurementSha256": "bfb3f22b27c41c308f6d82d47b4a075fde486a96b0348f5f332f63c477f477a2",
+  "qualificationStatus": "unqualified-raw-capture"
+}

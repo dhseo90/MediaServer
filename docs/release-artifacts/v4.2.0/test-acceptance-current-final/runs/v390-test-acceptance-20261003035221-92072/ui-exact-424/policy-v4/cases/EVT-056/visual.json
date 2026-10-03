@@ -1,0 +1,9 @@
+{
+  "schema": "media-server.ui-raw-visual-capture.v1",
+  "caseId": "EVT-056",
+  "correlationId": "EVT-056:assert-visible-read-model:completion",
+  "targetSelector": "#opsApprovalGatedRuleDraftReadinessRows",
+  "screenshotSha256": "0641c40e983acc2546acabaeb1905307305549f20e6d3a6fe38930a3a111c0af",
+  "measurementSha256": "3f88fb3c48f7915a219b79a4e27e785d228fcf42b932e8d2b8c0231389735c9e",
+  "qualificationStatus": "unqualified-raw-capture"
+}

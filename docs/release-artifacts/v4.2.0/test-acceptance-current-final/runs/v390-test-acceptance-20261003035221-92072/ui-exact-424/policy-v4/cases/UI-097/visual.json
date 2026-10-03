@@ -1,0 +1,9 @@
+{
+  "schema": "media-server.ui-raw-visual-capture.v1",
+  "caseId": "UI-097",
+  "correlationId": "UI-097:assert-visible-read-model:completion",
+  "targetSelector": "#dashSiteRuleVaWhatIfCandidateList > [data-v370-rule-va-what-if-by-site-entry]:first-child",
+  "screenshotSha256": "e1966f5907a180a524ee5eff890d8e8f4b0cee057d9e3d8fc42b7189f2476069",
+  "measurementSha256": "a5024fc4b5c9caca541f366cfa4e26a7dc2e822f3acb4097d3dc7db1d45a48f5",
+  "qualificationStatus": "unqualified-raw-capture"
+}

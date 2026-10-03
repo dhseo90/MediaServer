@@ -1,0 +1,34 @@
+[lifecycle] {"phase":"start","pid":92339,"ports":{"http":53323,"rtsp":53324}}
+[lifecycle] {"phase":"health","pid":92339,"status":200}
+[lifecycle] {"phase":"exit","pid":92339,"code":0,"signal":null}
+[lifecycle] {"phase":"cleanup","schema":"recording-process-cleanup-v1","attemptCount":1,"pid":92339,"exitCode":0,"signalCode":null,"exitedObserved":true,"stopCode":"complete","forcedTermination":"not-used","normalExitPass":true,"normalShutdownPass":true,"archiveSafe":true,"ports":[{"kind":"http","port":53323,"status":"pass","code":"closed","closed":true},{"kind":"rtsp","port":53324,"status":"pass","code":"closed","closed":true}]}
+[lifecycle] {"phase":"start","pid":92383,"ports":{"http":53334,"rtsp":53335}}
+[lifecycle] {"phase":"health","pid":92383,"status":200}
+[lifecycle] {"phase":"exit","pid":92383,"code":0,"signal":null}
+[lifecycle] {"phase":"cleanup","schema":"recording-process-cleanup-v1","attemptCount":1,"pid":92383,"exitCode":0,"signalCode":null,"exitedObserved":true,"stopCode":"complete","forcedTermination":"not-used","normalExitPass":true,"normalShutdownPass":true,"archiveSafe":true,"ports":[{"kind":"http","port":53334,"status":"pass","code":"closed","closed":true},{"kind":"rtsp","port":53335,"status":"pass","code":"closed","closed":true}]}
+[lifecycle] {"phase":"start","pid":92419,"ports":{"http":53342,"rtsp":53343}}
+[lifecycle] {"phase":"health","pid":92419,"status":200}
+[lifecycle] {"phase":"exit","pid":92419,"code":0,"signal":null}
+[lifecycle] {"phase":"cleanup","schema":"recording-process-cleanup-v1","attemptCount":1,"pid":92419,"exitCode":0,"signalCode":null,"exitedObserved":true,"stopCode":"complete","forcedTermination":"not-used","normalExitPass":true,"normalShutdownPass":true,"archiveSafe":true,"ports":[{"kind":"http","port":53342,"status":"pass","code":"closed","closed":true},{"kind":"rtsp","port":53343,"status":"pass","code":"closed","closed":true}]}
+[lifecycle] {"phase":"start","pid":92455,"ports":{"http":53400,"rtsp":53401}}
+[lifecycle] {"phase":"health","pid":92455,"status":200}
+[lifecycle] {"phase":"exit","pid":92455,"code":0,"signal":null}
+[lifecycle] {"phase":"cleanup","schema":"recording-process-cleanup-v1","attemptCount":1,"pid":92455,"exitCode":0,"signalCode":null,"exitedObserved":true,"stopCode":"complete","forcedTermination":"not-used","normalExitPass":true,"normalShutdownPass":true,"archiveSafe":true,"ports":[{"kind":"http","port":53400,"status":"pass","code":"closed","closed":true},{"kind":"rtsp","port":53401,"status":"pass","code":"closed","closed":true}]}
+[lifecycle] {"phase":"start","pid":92491,"ports":{"http":53409,"rtsp":53410}}
+[lifecycle] {"phase":"health","pid":92491,"status":200}
+[lifecycle] {"phase":"exit","pid":92491,"code":0,"signal":null}
+[lifecycle] {"phase":"cleanup","schema":"recording-process-cleanup-v1","attemptCount":1,"pid":92491,"exitCode":0,"signalCode":null,"exitedObserved":true,"stopCode":"complete","forcedTermination":"not-used","normalExitPass":true,"normalShutdownPass":true,"archiveSafe":true,"ports":[{"kind":"http","port":53409,"status":"pass","code":"closed","closed":true},{"kind":"rtsp","port":53410,"status":"pass","code":"closed","closed":true}]}
+== v3.9.0 VLM incident-to-rule provenance ==
+- schema: media-server.vlm-incident-to-rule-provenance.v1
+- event/candidate/evaluation source mapped: true
+- generated rule/save API binding validator: true
+- HTTP positive save/readback/restart cases: 3
+- forged field no-write cases: 15
+- duplicate field no-write cases: 3
+- nested-only provenance no-write cases: 1
+- reload valid/forged/duplicate/nested cases: 5
+- reload deleted observation/EventRecord quarantine cases: 2
+- deleted observation/EventRecord no-write cases: 2
+- generated rule binding no-write cases: 2
+[lifecycle] {"phase":"artifacts","status":"removed","shutdownConfirmed":true}
+- failures: 0

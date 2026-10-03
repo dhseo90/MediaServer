@@ -1,0 +1,2232 @@
+{
+  "schema": "media-server.v390-ui-case-policy-input.v1",
+  "caseId": "CLIENT-021",
+  "runId": "fa3f64f2-58d9-49df-b223-7285df0cce64",
+  "result": {
+    "caseId": "CLIENT-021",
+    "featureId": "CLIENT-021",
+    "status": "PASS",
+    "dispatch": "playwright-native",
+    "manualIntervention": false,
+    "actualBrowserExecution": true,
+    "requested": {
+      "schema": "media-server.v390-ui-canonical-requested.v1",
+      "route": "/client/live",
+      "accountRole": "viewer",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "[data-testid=\"client-safe-followup-digest\"]",
+        "actionAnchor": "ClientShellPageHtml"
+      }
+    },
+    "observed": {
+      "schema": "media-server.v390-ui-runtime-observed.v1",
+      "screenRoute": "/client/live",
+      "accountRole": "viewer",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "[data-tile=\"0\"] [data-mode-action=\"va-overlay\"]",
+        "applicability": "required",
+        "exists": true,
+        "visible": true,
+        "enabled": true
+      },
+      "provenance": {
+        "screenRoute": "browser-location",
+        "accountRole": "session-whoami",
+        "viewport": "browser-inner-size",
+        "theme": "browser-media-query",
+        "controlAction": "dom-selector-state"
+      }
+    },
+    "visibleAssertion": {
+      "pass": true,
+      "visible": true,
+      "selector": "body"
+    },
+    "visualMeasurement": {
+      "schema": "media-server.ui-browser-visual-measurement.v2",
+      "caseBinding": {
+        "canonicalCaseId": "CLIENT-021",
+        "featureId": "CLIENT-021",
+        "screenId": "CLIENT-021",
+        "screenRoute": "/client/live",
+        "accountRole": "viewer",
+        "targetSelector": "[data-tile=\"0\"] [data-mode-action=\"va-overlay\"]"
+      },
+      "route": "/client/live",
+      "accountRole": "viewer",
+      "requestedTheme": "light",
+      "appliedTheme": "light",
+      "mediaTheme": "light",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "devicePixelRatio": 1
+      },
+      "document": {
+        "scrollWidth": 390,
+        "scrollHeight": 4300,
+        "clientWidth": 390,
+        "clientHeight": 844
+      },
+      "target": {
+        "selector": "[data-tile=\"0\"] [data-mode-action=\"va-overlay\"]",
+        "visible": true,
+        "documentTarget": false,
+        "rect": {
+          "x": 151,
+          "y": 400,
+          "left": 151,
+          "top": 400,
+          "right": 199,
+          "bottom": 444,
+          "width": 48,
+          "height": 44
+        }
+      },
+      "textSamples": [
+        {
+          "foreground": "rgb(23, 28, 31)",
+          "background": "rgb(243, 246, 248)",
+          "fontSizePx": 15,
+          "fontWeight": "950",
+          "rect": {
+            "x": 66,
+            "y": 19,
+            "left": 66,
+            "top": 19,
+            "right": 368,
+            "bottom": 34,
+            "width": 302,
+            "height": 15
+          }
+        },
+        {
+          "foreground": "rgb(92, 105, 114)",
+          "background": "rgb(243, 246, 248)",
+          "fontSizePx": 12,
+          "fontWeight": "750",
+          "rect": {
+            "x": 66,
+            "y": 37,
+            "left": 66,
+            "top": 37,
+            "right": 368,
+            "bottom": 49,
+            "width": 302,
+            "height": 12
+          }
+        },
+        {
+          "foreground": "rgb(29, 78, 216)",
+          "background": "rgb(243, 246, 248)",
+          "fontSizePx": 12,
+          "fontWeight": "900",
+          "rect": {
+            "x": 102.421875,
+            "y": 81.28125,
+            "left": 102.421875,
+            "top": 81.28125,
+            "right": 133.5625,
+            "bottom": 94.71875,
+            "width": 31.140625,
+            "height": 13.4375
+          }
+        },
+        {
+          "foreground": "rgb(92, 105, 114)",
+          "background": "rgb(243, 246, 248)",
+          "fontSizePx": 12,
+          "fontWeight": "900",
+          "rect": {
+            "x": 273.234375,
+            "y": 81.28125,
+            "left": 273.234375,
+            "top": 81.28125,
+            "right": 314.765625,
+            "bottom": 94.71875,
+            "width": 41.53125,
+            "height": 13.4375
+          }
+        },
+        {
+          "foreground": "rgb(23, 28, 31)",
+          "background": "rgb(255, 255, 255)",
+          "fontSizePx": 12,
+          "fontWeight": "850",
+          "rect": {
+            "x": 296,
+            "y": 126,
+            "left": 296,
+            "top": 126,
+            "right": 368,
+            "bottom": 162,
+            "width": 72,
+            "height": 36
+          }
+        },
+        {
+          "foreground": "rgb(92, 105, 114)",
+          "background": "rgb(243, 246, 248)",
+          "fontSizePx": 11,
+          "fontWeight": "850",
+          "rect": {
+            "x": 10,
+            "y": 17,
+            "left": 10,
+            "top": 17,
+            "right": 348,
+            "bottom": 67,
+            "width": 338,
+            "height": 50
+          }
+        },
+        {
+          "foreground": "rgb(92, 105, 114)",
+          "background": "rgb(243, 246, 248)",
+          "fontSizePx": 11,
+          "fontWeight": "850",
+          "rect": {
+            "x": 10,
+            "y": 75,
+            "left": 10,
+            "top": 75,
+            "right": 348,
+            "bottom": 125,
+            "width": 338,
+            "height": 50
+          }
+        },
+        {
+          "foreground": "rgb(92, 105, 114)",
+          "background": "rgb(243, 246, 248)",
+          "fontSizePx": 11,
+          "fontWeight": "850",
+          "rect": {
+            "x": 10,
+            "y": 133,
+            "left": 10,
+            "top": 133,
+            "right": 348,
+            "bottom": 183,
+            "width": 338,
+            "height": 50
+          }
+        },
+        {
+          "foreground": "rgb(23, 28, 31)",
+          "background": "rgb(255, 255, 255)",
+          "fontSizePx": 13,
+          "fontWeight": "950",
+          "rect": {
+            "x": 169,
+            "y": 199,
+            "left": 169,
+            "top": 199,
+            "right": 189,
+            "bottom": 219,
+            "width": 20,
+            "height": 20
+          }
+        },
+        {
+          "foreground": "rgb(23, 28, 31)",
+          "background": "rgb(255, 255, 255)",
+          "fontSizePx": 12,
+          "fontWeight": "850",
+          "rect": {
+            "x": 10,
+            "y": 235,
+            "left": 10,
+            "top": 235,
+            "right": 348,
+            "bottom": 271,
+            "width": 338,
+            "height": 36
+          }
+        },
+        {
+          "foreground": "rgb(23, 28, 31)",
+          "background": "rgb(255, 255, 255)",
+          "fontSizePx": 12,
+          "fontWeight": "850",
+          "rect": {
+            "x": 10,
+            "y": 279,
+            "left": 10,
+            "top": 279,
+            "right": 348,
+            "bottom": 315,
+            "width": 338,
+            "height": 36
+          }
+        },
+        {
+          "foreground": "rgb(229, 237, 245)",
+          "background": "rgb(17, 24, 39)",
+          "fontSizePx": 0,
+          "fontWeight": "850",
+          "rect": {
+            "x": 10,
+            "y": 323,
+            "left": 10,
+            "top": 323,
+            "right": 348,
+            "bottom": 359,
+            "width": 338,
+            "height": 36
+          }
+        },
+        {
+          "foreground": "color(srgb 0.10949 0.270588 0.716471)",
+          "background": "color(srgb 0.875922 0.902824 0.978588)",
+          "fontSizePx": 12,
+          "fontWeight": "900",
+          "rect": {
+            "x": 21,
+            "y": 384,
+            "left": 21,
+            "top": 384,
+            "right": 84.53125,
+            "bottom": 410,
+            "width": 63.53125,
+            "height": 26
+          }
+        },
+        {
+          "foreground": "rgb(23, 28, 31)",
+          "background": "rgb(255, 255, 255)",
+          "fontSizePx": 16,
+          "fontWeight": "850",
+          "rect": {
+            "x": 21,
+            "y": 416,
+            "left": 21,
+            "top": 416,
+            "right": 189,
+            "bottom": 454,
+            "width": 168,
+            "height": 38
+          }
+        },
+        {
+          "foreground": "rgb(92, 105, 114)",
+          "background": "rgb(238, 242, 246)",
+          "fontSizePx": 16,
+          "fontWeight": "850",
+          "rect": {
+            "x": 21,
+            "y": 460,
+            "left": 21,
+            "top": 460,
+            "right": 189,
+            "bottom": 498,
+            "width": 168,
+            "height": 38
+          }
+        },
+        {
+          "foreground": "rgb(23, 28, 31)",
+          "background": "rgb(255, 255, 255)",
+          "fontSizePx": 16,
+          "fontWeight": "850",
+          "rect": {
+            "x": 21,
+            "y": 504,
+            "left": 21,
+            "top": 504,
+            "right": 189,
+            "bottom": 542,
+            "width": 168,
+            "height": 38
+          }
+        },
+        {
+          "foreground": "rgb(185, 28, 28)",
+          "background": "rgb(255, 241, 241)",
+          "fontSizePx": 16,
+          "fontWeight": "850",
+          "rect": {
+            "x": 10,
+            "y": 543,
+            "left": 10,
+            "top": 543,
+            "right": 348,
+            "bottom": 581,
+            "width": 338,
+            "height": 38
+          }
+        },
+        {
+          "foreground": "rgb(255, 255, 255)",
+          "background": "rgb(11, 17, 32)",
+          "fontSizePx": 15,
+          "fontWeight": "850",
+          "rect": {
+            "x": 23,
+            "y": 522,
+            "left": 23,
+            "top": 522,
+            "right": 176.8125,
+            "bottom": 542,
+            "width": 153.8125,
+            "height": 20
+          }
+        },
+        {
+          "foreground": "rgb(180, 83, 9)",
+          "background": "rgb(255, 244, 214)",
+          "fontSizePx": 12,
+          "fontWeight": "800",
+          "rect": {
+            "x": 23,
+            "y": 400,
+            "left": 23,
+            "top": 400,
+            "right": 89,
+            "bottom": 444,
+            "width": 66,
+            "height": 44
+          }
+        },
+        {
+          "foreground": "color(srgb 1 1 1 / 0.86)",
+          "background": "rgb(11, 17, 32)",
+          "fontSizePx": 11,
+          "fontWeight": "900",
+          "rect": {
+            "x": 100,
+            "y": 400,
+            "left": 100,
+            "top": 400,
+            "right": 148,
+            "bottom": 444,
+            "width": 48,
+            "height": 44
+          }
+        },
+        {
+          "foreground": "rgb(255, 255, 255)",
+          "background": "rgb(11, 17, 32)",
+          "fontSizePx": 11,
+          "fontWeight": "900",
+          "rect": {
+            "x": 151,
+            "y": 400,
+            "left": 151,
+            "top": 400,
+            "right": 199,
+            "bottom": 444,
+            "width": 48,
+            "height": 44
+          }
+        },
+        {
+          "foreground": "color(srgb 1 1 1 / 0.86)",
+          "background": "rgb(11, 17, 32)",
+          "fontSizePx": 11,
+          "fontWeight": "900",
+          "rect": {
+            "x": 202,
+            "y": 400,
+            "left": 202,
+            "top": 400,
+            "right": 250,
+            "bottom": 444,
+            "width": 48,
+            "height": 44
+          }
+        },
+        {
+          "foreground": "rgb(229, 237, 245)",
+          "background": "rgb(11, 17, 32)",
+          "fontSizePx": 12,
+          "fontWeight": "800",
+          "rect": {
+            "x": 278.078125,
+            "y": 416,
+            "left": 278.078125,
+            "top": 416,
+            "right": 287.921875,
+            "bottom": 428,
+            "width": 9.84375,
+            "height": 12
+          }
+        },
+        {
+          "foreground": "rgb(229, 237, 245)",
+          "background": "rgb(11, 17, 32)",
+          "fontSizePx": 12,
+          "fontWeight": "800",
+          "rect": {
+            "x": 39.9375,
+            "y": 471,
+            "left": 39.9375,
+            "top": 471,
+            "right": 50.0625,
+            "bottom": 483,
+            "width": 10.125,
+            "height": 12
+          }
+        },
+        {
+          "foreground": "rgb(229, 237, 245)",
+          "background": "rgb(11, 17, 32)",
+          "fontSizePx": 12,
+          "fontWeight": "800",
+          "rect": {
+            "x": 92.21875,
+            "y": 471,
+            "left": 92.21875,
+            "top": 471,
+            "right": 99.78125,
+            "bottom": 483,
+            "width": 7.5625,
+            "height": 12
+          }
+        },
+        {
+          "foreground": "rgb(92, 105, 114)",
+          "background": "rgb(11, 17, 32)",
+          "fontSizePx": 16,
+          "fontWeight": "400",
+          "rect": {
+            "x": 10,
+            "y": 383,
+            "left": 10,
+            "top": 383,
+            "right": 11,
+            "bottom": 384,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "foreground": "rgb(255, 255, 255)",
+          "background": "rgb(11, 17, 32)",
+          "fontSizePx": 15,
+          "fontWeight": "850",
+          "rect": {
+            "x": 24,
+            "y": 662.125,
+            "left": 24,
+            "top": 662.125,
+            "right": 79.65625,
+            "bottom": 682.125,
+            "width": 55.65625,
+            "height": 20
+          }
+        },
+        {
+          "foreground": "rgb(180, 83, 9)",
+          "background": "rgb(255, 244, 214)",
+          "fontSizePx": 12,
+          "fontWeight": "800",
+          "rect": {
+            "x": 24,
+            "y": 595.125,
+            "left": 24,
+            "top": 595.125,
+            "right": 90,
+            "bottom": 639.125,
+            "width": 66,
+            "height": 44
+          }
+        },
+        {
+          "foreground": "rgb(229, 237, 245)",
+          "background": "rgb(11, 17, 32)",
+          "fontSizePx": 12,
+          "fontWeight": "800",
+          "rect": {
+            "x": 114.078125,
+            "y": 611.125,
+            "left": 114.078125,
+            "top": 611.125,
+            "right": 123.921875,
+            "bottom": 623.125,
+            "width": 9.84375,
+            "height": 12
+          }
+        },
+        {
+          "foreground": "rgb(229, 237, 245)",
+          "background": "rgb(11, 17, 32)",
+          "fontSizePx": 12,
+          "fontWeight": "800",
+          "rect": {
+            "x": 164.9375,
+            "y": 611.125,
+            "left": 164.9375,
+            "top": 611.125,
+            "right": 175.0625,
+            "bottom": 623.125,
+            "width": 10.125,
+            "height": 12
+          }
+        },
+        {
+          "foreground": "rgb(229, 237, 245)",
+          "background": "rgb(11, 17, 32)",
+          "fontSizePx": 12,
+          "fontWeight": "800",
+          "rect": {
+            "x": 217.21875,
+            "y": 611.125,
+            "left": 217.21875,
+            "top": 611.125,
+            "right": 224.78125,
+            "bottom": 623.125,
+            "width": 7.5625,
+            "height": 12
+          }
+        },
+        {
+          "foreground": "color(srgb 1 1 1 / 0.82)",
+          "background": "rgb(11, 17, 32)",
+          "fontSizePx": 18,
+          "fontWeight": "700",
+          "rect": {
+            "x": 34,
+            "y": 663.6875,
+            "left": 34,
+            "top": 663.6875,
+            "right": 324,
+            "bottom": 688.6875,
+            "width": 290,
+            "height": 25
+          }
+        },
+        {
+          "foreground": "rgb(92, 105, 114)",
+          "background": "rgb(11, 17, 32)",
+          "fontSizePx": 16,
+          "fontWeight": "400",
+          "rect": {
+            "x": 10,
+            "y": 581.125,
+            "left": 10,
+            "top": 581.125,
+            "right": 11,
+            "bottom": 582.125,
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "foreground": "rgb(180, 83, 9)",
+          "background": "rgb(255, 244, 214)",
+          "fontSizePx": 12,
+          "fontWeight": "800",
+          "rect": {
+            "x": 24,
+            "y": 793.25,
+            "left": 24,
+            "top": 793.25,
+            "right": 90,
+            "bottom": 837.25,
+            "width": 66,
+            "height": 44
+          }
+        },
+        {
+          "foreground": "rgb(229, 237, 245)",
+          "background": "rgb(11, 17, 32)",
+          "fontSizePx": 12,
+          "fontWeight": "800",
+          "rect": {
+            "x": 114.078125,
+            "y": 809.25,
+            "left": 114.078125,
+            "top": 809.25,
+            "right": 123.921875,
+            "bottom": 821.25,
+            "width": 9.84375,
+            "height": 12
+          }
+        },
+        {
+          "foreground": "rgb(229, 237, 245)",
+          "background": "rgb(11, 17, 32)",
+          "fontSizePx": 12,
+          "fontWeight": "800",
+          "rect": {
+            "x": 164.9375,
+            "y": 809.25,
+            "left": 164.9375,
+            "top": 809.25,
+            "right": 175.0625,
+            "bottom": 821.25,
+            "width": 10.125,
+            "height": 12
+          }
+        },
+        {
+          "foreground": "rgb(229, 237, 245)",
+          "background": "rgb(11, 17, 32)",
+          "fontSizePx": 12,
+          "fontWeight": "800",
+          "rect": {
+            "x": 217.21875,
+            "y": 809.25,
+            "left": 217.21875,
+            "top": 809.25,
+            "right": 224.78125,
+            "bottom": 821.25,
+            "width": 7.5625,
+            "height": 12
+          }
+        },
+        {
+          "foreground": "rgb(92, 105, 114)",
+          "background": "rgb(11, 17, 32)",
+          "fontSizePx": 16,
+          "fontWeight": "400",
+          "rect": {
+            "x": 10,
+            "y": 779.25,
+            "left": 10,
+            "top": 779.25,
+            "right": 11,
+            "bottom": 780.25,
+            "width": 1,
+            "height": 1
+          }
+        }
+      ],
+      "focus": {
+        "focusableCount": 29,
+        "applicable": true
+      },
+      "liveVideo": null,
+      "postActionVisualOwner": {
+        "schema": "media-server.v390-ui-post-action-visual-target.v1",
+        "caseId": "CLIENT-021",
+        "actionId": "CLIENT-021:activate-control",
+        "completionMode": "local",
+        "sourceSelectorSha256": "986c869bbd503897d3db95045eb3bb881fcd76b2857eb486ce18406a24ff6b26",
+        "sourceOwnerSelectorSha256": "986c869bbd503897d3db95045eb3bb881fcd76b2857eb486ce18406a24ff6b26",
+        "requestedState": "visible",
+        "observedRoute": "/client/live",
+        "navigationEpoch": 1,
+        "ownerCandidateCount": 1,
+        "sourceSelectorRewaited": false,
+        "selector": "[data-tile=\"0\"] [data-mode-action=\"va-overlay\"]",
+        "bindingKind": "post-action-visible-source-owner",
+        "sourceDetached": false,
+        "sourceHidden": false,
+        "epochRelation": "same-document"
+      },
+      "focusSamples": [
+        {
+          "index": 0,
+          "focusIdentity": "body > main > section > div:nth-of-type(3) > div > div > section > div:nth-of-type(1) > div:nth-of-type(2) > button:nth-of-type(1)",
+          "tag": "button",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 1,
+          "focusIdentity": "body > main > section > div:nth-of-type(3) > div > div > section > div:nth-of-type(1) > div:nth-of-type(2) > button:nth-of-type(2)",
+          "tag": "button",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 2,
+          "focusIdentity": "body > main > section > div:nth-of-type(3) > div > div > section > div:nth-of-type(1) > details > summary",
+          "tag": "summary",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 3,
+          "focusIdentity": "body > main > section > div:nth-of-type(3) > div > div > section > div:nth-of-type(3) > article:nth-of-type(1)",
+          "tag": "article",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "solid",
+          "outlineWidth": "3px",
+          "boxShadow": "color(srgb 0.113725 0.305882 0.847059 / 0.35) 0px 0px 0px 2px"
+        },
+        {
+          "index": 4,
+          "focusIdentity": "body > main > section > div:nth-of-type(3) > div > div > section > div:nth-of-type(3) > article:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > div > button:nth-of-type(1)",
+          "tag": "button",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "solid",
+          "outlineWidth": "2px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 5,
+          "focusIdentity": "body > main > section > div:nth-of-type(3) > div > div > section > div:nth-of-type(3) > article:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > div > button:nth-of-type(2)",
+          "tag": "button",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "solid",
+          "outlineWidth": "2px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 6,
+          "focusIdentity": "body > main > section > div:nth-of-type(3) > div > div > section > div:nth-of-type(3) > article:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > div > button:nth-of-type(3)",
+          "tag": "button",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "solid",
+          "outlineWidth": "2px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 7,
+          "focusIdentity": "body > main > section > div:nth-of-type(3) > div > div > section > div:nth-of-type(3) > article:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > button:nth-of-type(1)",
+          "tag": "button",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 8,
+          "focusIdentity": "body > main > section > div:nth-of-type(3) > div > div > section > div:nth-of-type(3) > article:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > button:nth-of-type(2)",
+          "tag": "button",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 9,
+          "focusIdentity": "body > main > section > div:nth-of-type(3) > div > div > section > div:nth-of-type(3) > article:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > button:nth-of-type(3)",
+          "tag": "button",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 10,
+          "focusIdentity": "body > main > section > div:nth-of-type(3) > div > div > section > div:nth-of-type(3) > article:nth-of-type(2)",
+          "tag": "article",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "solid",
+          "outlineWidth": "3px",
+          "boxShadow": "color(srgb 0.0666667 0.0941176 0.152941 / 0.08) 0px 1px 2px 0px"
+        },
+        {
+          "index": 11,
+          "focusIdentity": "body > main > section > div:nth-of-type(3) > div > div > section > div:nth-of-type(3) > article:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > button:nth-of-type(3)",
+          "tag": "button",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 12,
+          "focusIdentity": "body > main > section > div:nth-of-type(3) > div > div > section > div:nth-of-type(3) > article:nth-of-type(3)",
+          "tag": "article",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "solid",
+          "outlineWidth": "3px",
+          "boxShadow": "color(srgb 0.0666667 0.0941176 0.152941 / 0.08) 0px 1px 2px 0px"
+        },
+        {
+          "index": 13,
+          "focusIdentity": "body > main > section > div:nth-of-type(3) > div > div > section > div:nth-of-type(3) > article:nth-of-type(3) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > button:nth-of-type(3)",
+          "tag": "button",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 14,
+          "focusIdentity": "body > main > section > div:nth-of-type(3) > div > div > section > div:nth-of-type(3) > article:nth-of-type(4)",
+          "tag": "article",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "solid",
+          "outlineWidth": "3px",
+          "boxShadow": "color(srgb 0.0666667 0.0941176 0.152941 / 0.08) 0px 1px 2px 0px"
+        },
+        {
+          "index": 15,
+          "focusIdentity": "body > main > section > div:nth-of-type(3) > div > div > section > div:nth-of-type(3) > article:nth-of-type(4) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > button:nth-of-type(3)",
+          "tag": "button",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 16,
+          "focusIdentity": "body",
+          "tag": "body",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "none",
+          "outlineWidth": "3px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 17,
+          "focusIdentity": "body > main > header > div > div:nth-of-type(1) > nav > a:nth-of-type(1)",
+          "tag": "a",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 18,
+          "focusIdentity": "body > main > header > div > div:nth-of-type(1) > nav > a:nth-of-type(2)",
+          "tag": "a",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 19,
+          "focusIdentity": "#themeToggleBtn",
+          "tag": "button",
+          "id": "themeToggleBtn",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 20,
+          "focusIdentity": "body > main > header > div > div:nth-of-type(2) > div > div:nth-of-type(2) > label > select",
+          "tag": "select",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "solid",
+          "outlineWidth": "3px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 21,
+          "focusIdentity": "body > main > header > div > div:nth-of-type(2) > form > button",
+          "tag": "button",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 22,
+          "focusIdentity": "#refresh",
+          "tag": "button",
+          "id": "refresh",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 23,
+          "focusIdentity": "#liveSourceSearch",
+          "tag": "input",
+          "id": "liveSourceSearch",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "solid",
+          "outlineWidth": "3px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 24,
+          "focusIdentity": "body > main > section > div:nth-of-type(3) > div > div > aside > div:nth-of-type(3) > details > summary",
+          "tag": "summary",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 25,
+          "focusIdentity": "body > main > section > div:nth-of-type(3) > div > div > aside > div:nth-of-type(3) > details > details > summary",
+          "tag": "summary",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 26,
+          "focusIdentity": "body > main > section > div:nth-of-type(3) > div > div > aside > div:nth-of-type(3) > details > details > div > button",
+          "tag": "button",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 27,
+          "focusIdentity": "#liveGridSize",
+          "tag": "select",
+          "id": "liveGridSize",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "solid",
+          "outlineWidth": "3px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 28,
+          "focusIdentity": "#liveDensity",
+          "tag": "select",
+          "id": "liveDensity",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "solid",
+          "outlineWidth": "3px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 29,
+          "focusIdentity": "#liveDockSide",
+          "tag": "select",
+          "id": "liveDockSide",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "solid",
+          "outlineWidth": "3px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 30,
+          "focusIdentity": "#liveInfoOverlayToggle",
+          "tag": "input",
+          "id": "liveInfoOverlayToggle",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "solid",
+          "outlineWidth": "3px",
+          "boxShadow": "none"
+        }
+      ]
+    },
+    "visualExpectedCase": {
+      "canonicalCaseId": "CLIENT-021",
+      "featureId": "CLIENT-021",
+      "screenId": "CLIENT-021",
+      "screenRoute": "/client/live",
+      "accountRole": "viewer",
+      "targetSelector": "[data-tile=\"0\"] [data-mode-action=\"va-overlay\"]",
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "liveVideoRequired": false
+    },
+    "screenshotPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/runs/v390-test-acceptance-20261003035221-92072/ui-exact-424/cases/355-CLIENT-021/screenshots/CLIENT-021.png",
+    "tracePath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/runs/v390-test-acceptance-20261003035221-92072/ui-exact-424/cases/355-CLIENT-021/traces/CLIENT-021.trace.json",
+    "browserConsolePath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/runs/v390-test-acceptance-20261003035221-92072/ui-exact-424/cases/355-CLIENT-021/logs/CLIENT-021.browser-console.json",
+    "cleanupAttestation": {
+      "schema": "media-server.v390-ui-case-cleanup-attestation.v1",
+      "pass": true,
+      "primaryFailurePresent": false,
+      "primaryFailurePreserved": false,
+      "caseRuntimeRestoreAttempted": true,
+      "caseRuntimeRestored": true,
+      "browserCloseAttempted": true,
+      "browserContextClosed": true,
+      "cleanupEntryCount": 4,
+      "failureCode": ""
+    },
+    "requestLifecycleEvaluation": {
+      "status": "PASS",
+      "census": {
+        "requestCount": 29,
+        "responseCount": 29,
+        "classified": 29,
+        "unclassified": 0,
+        "multiplyClassified": 0,
+        "captureErrors": 0,
+        "duplicateResponses": 0,
+        "failureCount": 0
+      },
+      "diagnostics": {
+        "sequenceDomain": "diagnostic-seal-and-after-seal-only",
+        "diagnosticErrors": 0,
+        "seal": {
+          "sequence": 1,
+          "timestamp": 1791003672145
+        },
+        "afterSeal": [],
+        "requests": [
+          {
+            "requestIdentity": "CLIENT-021:object-1",
+            "legacyRequestId": "native-request-1",
+            "method": "GET",
+            "path": "/client/live",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 1,
+              "timestamp": 1791003669157
+            },
+            "responses": [
+              {
+                "sequence": 2,
+                "timestamp": 1791003669164,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 5,
+                "timestamp": 1791003669217
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "CLIENT-021:object-3",
+            "legacyRequestId": "native-request-2",
+            "method": "GET",
+            "path": "/auth/whoami",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 3,
+              "timestamp": 1791003669177
+            },
+            "responses": [
+              {
+                "sequence": 6,
+                "timestamp": 1791003669220,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 8,
+                "timestamp": 1791003669220
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "CLIENT-021:object-4",
+            "legacyRequestId": "native-request-3",
+            "method": "GET",
+            "path": "/client/api/preferences/live-layout",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 4,
+              "timestamp": 1791003669178
+            },
+            "responses": [
+              {
+                "sequence": 7,
+                "timestamp": 1791003669220,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 9,
+                "timestamp": 1791003669220
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "CLIENT-021:object-7",
+            "legacyRequestId": "native-request-4",
+            "method": "GET",
+            "path": "/client/api/views/9001/dashboard",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 10,
+              "timestamp": 1791003669224
+            },
+            "responses": [
+              {
+                "sequence": 12,
+                "timestamp": 1791003669237,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 14,
+                "timestamp": 1791003669238
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "CLIENT-021:object-8",
+            "legacyRequestId": "native-request-5",
+            "method": "GET",
+            "path": "/client/api/views/9001/events",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 11,
+              "timestamp": 1791003669224
+            },
+            "responses": [
+              {
+                "sequence": 13,
+                "timestamp": 1791003669238,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 15,
+                "timestamp": 1791003669238
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "CLIENT-021:object-11",
+            "legacyRequestId": "native-request-6",
+            "method": "GET",
+            "path": "/auth/whoami",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 16,
+              "timestamp": 1791003669264
+            },
+            "responses": [
+              {
+                "sequence": 17,
+                "timestamp": 1791003669266,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 18,
+                "timestamp": 1791003669266
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "CLIENT-021:object-13",
+            "legacyRequestId": "native-request-7",
+            "method": "GET",
+            "path": "/auth/whoami",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 19,
+              "timestamp": 1791003669281
+            },
+            "responses": [
+              {
+                "sequence": 20,
+                "timestamp": 1791003669283,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 21,
+                "timestamp": 1791003669283
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "CLIENT-021:object-15",
+            "legacyRequestId": "native-request-8",
+            "method": "GET",
+            "path": "/client/api/views/9001/dashboard",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 22,
+              "timestamp": 1791003669371
+            },
+            "responses": [
+              {
+                "sequence": 26,
+                "timestamp": 1791003669383,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 29,
+                "timestamp": 1791003669383
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "CLIENT-021:object-16",
+            "legacyRequestId": "native-request-9",
+            "method": "GET",
+            "path": "/client/api/views/9001/events",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 23,
+              "timestamp": 1791003669371
+            },
+            "responses": [
+              {
+                "sequence": 27,
+                "timestamp": 1791003669383,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 30,
+                "timestamp": 1791003669383
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "CLIENT-021:object-17",
+            "legacyRequestId": "native-request-10",
+            "method": "GET",
+            "path": "/webrtc/config",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 24,
+              "timestamp": 1791003669371
+            },
+            "responses": [
+              {
+                "sequence": 25,
+                "timestamp": 1791003669382,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 28,
+                "timestamp": 1791003669383
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "CLIENT-021:object-21",
+            "legacyRequestId": "native-request-11",
+            "method": "POST",
+            "path": "/client/api/views/9001/webrtc/session",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 31,
+              "timestamp": 1791003669438
+            },
+            "responses": [
+              {
+                "sequence": 32,
+                "timestamp": 1791003669488,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 33,
+                "timestamp": 1791003669489
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "CLIENT-021:object-23",
+            "legacyRequestId": "native-request-12",
+            "method": "POST",
+            "path": "/client/api/views/9001/webrtc/session/client-live-3ed26d2a4d865d8a603a554b7e717c2e13b002f9fd5e9f44fcbc7caa850b9990/answer",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 34,
+              "timestamp": 1791003669600
+            },
+            "responses": [
+              {
+                "sequence": 37,
+                "timestamp": 1791003669614,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 43,
+                "timestamp": 1791003669666
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "CLIENT-021:object-24",
+            "legacyRequestId": "native-request-13",
+            "method": "POST",
+            "path": "/client/api/views/9001/webrtc/session/client-live-3ed26d2a4d865d8a603a554b7e717c2e13b002f9fd5e9f44fcbc7caa850b9990/ice",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 35,
+              "timestamp": 1791003669602
+            },
+            "responses": [
+              {
+                "sequence": 42,
+                "timestamp": 1791003669623,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 45,
+                "timestamp": 1791003669674
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "CLIENT-021:object-25",
+            "legacyRequestId": "native-request-14",
+            "method": "POST",
+            "path": "/client/api/views/9001/webrtc/session/client-live-3ed26d2a4d865d8a603a554b7e717c2e13b002f9fd5e9f44fcbc7caa850b9990/ice",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 36,
+              "timestamp": 1791003669602
+            },
+            "responses": [
+              {
+                "sequence": 41,
+                "timestamp": 1791003669619,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 44,
+                "timestamp": 1791003669671
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "CLIENT-021:object-27",
+            "legacyRequestId": "native-request-15",
+            "method": "GET",
+            "path": "/client/api/views/9001/dashboard",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 38,
+              "timestamp": 1791003669615
+            },
+            "responses": [
+              {
+                "sequence": 39,
+                "timestamp": 1791003669618,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 40,
+                "timestamp": 1791003669619
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "CLIENT-021:object-31",
+            "legacyRequestId": "native-request-16",
+            "method": "GET",
+            "path": "/client/api/views/9001/dashboard",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 46,
+              "timestamp": 1791003669894
+            },
+            "responses": [
+              {
+                "sequence": 47,
+                "timestamp": 1791003669898,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 48,
+                "timestamp": 1791003669898
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "CLIENT-021:object-33",
+            "legacyRequestId": "native-request-17",
+            "method": "GET",
+            "path": "/client/api/views/9001/events",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 49,
+              "timestamp": 1791003670369
+            },
+            "responses": [
+              {
+                "sequence": 50,
+                "timestamp": 1791003670371,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 51,
+                "timestamp": 1791003670371
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "CLIENT-021:object-35",
+            "legacyRequestId": "native-request-18",
+            "method": "GET",
+            "path": "/client/api/views/9001/dashboard",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 52,
+              "timestamp": 1791003670470
+            },
+            "responses": [
+              {
+                "sequence": 53,
+                "timestamp": 1791003670474,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 54,
+                "timestamp": 1791003670474
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "CLIENT-021:object-37",
+            "legacyRequestId": "native-request-19",
+            "method": "GET",
+            "path": "/client/api/views/9001/webrtc/session/client-live-3ed26d2a4d865d8a603a554b7e717c2e13b002f9fd5e9f44fcbc7caa850b9990/ice",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 55,
+              "timestamp": 1791003670625
+            },
+            "responses": [
+              {
+                "sequence": 56,
+                "timestamp": 1791003670627,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 57,
+                "timestamp": 1791003670627
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "CLIENT-021:object-39",
+            "legacyRequestId": "native-request-20",
+            "method": "GET",
+            "path": "/client/api/views/9001/dashboard",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 58,
+              "timestamp": 1791003671051
+            },
+            "responses": [
+              {
+                "sequence": 59,
+                "timestamp": 1791003671055,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 60,
+                "timestamp": 1791003671055
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "CLIENT-021:object-41",
+            "legacyRequestId": "native-request-21",
+            "method": "GET",
+            "path": "/client/api/views/9001/events",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 61,
+              "timestamp": 1791003671167
+            },
+            "responses": [
+              {
+                "sequence": 62,
+                "timestamp": 1791003671169,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 63,
+                "timestamp": 1791003671169
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "CLIENT-021:object-43",
+            "legacyRequestId": "native-request-22",
+            "method": "DELETE",
+            "path": "/client/api/views/9001/webrtc/session/client-live-3ed26d2a4d865d8a603a554b7e717c2e13b002f9fd5e9f44fcbc7caa850b9990",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 64,
+              "timestamp": 1791003671281
+            },
+            "responses": [
+              {
+                "sequence": 65,
+                "timestamp": 1791003671311,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 69,
+                "timestamp": 1791003671364
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "CLIENT-021:object-45",
+            "legacyRequestId": "native-request-23",
+            "method": "GET",
+            "path": "/client/api/views/9001/dashboard",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 66,
+              "timestamp": 1791003671312
+            },
+            "responses": [
+              {
+                "sequence": 67,
+                "timestamp": 1791003671319,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 68,
+                "timestamp": 1791003671319
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "CLIENT-021:object-47",
+            "legacyRequestId": "native-request-24",
+            "method": "GET",
+            "path": "/auth/whoami",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 70,
+              "timestamp": 1791003671717
+            },
+            "responses": [
+              {
+                "sequence": 71,
+                "timestamp": 1791003671719,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 72,
+                "timestamp": 1791003671720
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "CLIENT-021:object-49",
+            "legacyRequestId": "native-request-25",
+            "method": "GET",
+            "path": "/client/live",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 73,
+              "timestamp": 1791003671811
+            },
+            "responses": [
+              {
+                "sequence": 74,
+                "timestamp": 1791003671814,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 77,
+                "timestamp": 1791003671826
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "CLIENT-021:object-51",
+            "legacyRequestId": "native-request-26",
+            "method": "GET",
+            "path": "/auth/whoami",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 75,
+              "timestamp": 1791003671826
+            },
+            "responses": [
+              {
+                "sequence": 78,
+                "timestamp": 1791003671831,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 80,
+                "timestamp": 1791003671831
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "CLIENT-021:object-52",
+            "legacyRequestId": "native-request-27",
+            "method": "GET",
+            "path": "/client/api/preferences/live-layout",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 76,
+              "timestamp": 1791003671826
+            },
+            "responses": [
+              {
+                "sequence": 79,
+                "timestamp": 1791003671831,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 81,
+                "timestamp": 1791003671831
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "CLIENT-021:object-55",
+            "legacyRequestId": "native-request-28",
+            "method": "GET",
+            "path": "/client/api/views/9001/dashboard",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 82,
+              "timestamp": 1791003671833
+            },
+            "responses": [
+              {
+                "sequence": 85,
+                "timestamp": 1791003671836,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 87,
+                "timestamp": 1791003671836
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "CLIENT-021:object-56",
+            "legacyRequestId": "native-request-29",
+            "method": "GET",
+            "path": "/client/api/views/9001/events",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 83,
+              "timestamp": 1791003671833
+            },
+            "responses": [
+              {
+                "sequence": 84,
+                "timestamp": 1791003671836,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 86,
+                "timestamp": 1791003671836
+              }
+            ],
+            "failed": []
+          }
+        ]
+      },
+      "requests": [
+        {
+          "requestIdentity": "CLIENT-021:object-1",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "CLIENT-021:object-3",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "CLIENT-021:object-4",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "CLIENT-021:object-7",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "CLIENT-021:object-8",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "CLIENT-021:object-11",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "CLIENT-021:object-13",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "CLIENT-021:object-15",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "CLIENT-021:object-16",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "CLIENT-021:object-17",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "CLIENT-021:object-21",
+          "redirectedFromIdentity": null,
+          "correlationDigest": "7d7359531ed279a2f65f99bb5921f36b4c29c6865bfcd06fbf5ff1eb0ded67e3"
+        },
+        {
+          "requestIdentity": "CLIENT-021:object-23",
+          "redirectedFromIdentity": null,
+          "correlationDigest": "7d7359531ed279a2f65f99bb5921f36b4c29c6865bfcd06fbf5ff1eb0ded67e3"
+        },
+        {
+          "requestIdentity": "CLIENT-021:object-24",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "CLIENT-021:object-25",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "CLIENT-021:object-27",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "CLIENT-021:object-31",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "CLIENT-021:object-33",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "CLIENT-021:object-35",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "CLIENT-021:object-37",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "CLIENT-021:object-39",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "CLIENT-021:object-41",
+          "redirectedFromIdentity": null,
+          "correlationDigest": "7d7359531ed279a2f65f99bb5921f36b4c29c6865bfcd06fbf5ff1eb0ded67e3"
+        },
+        {
+          "requestIdentity": "CLIENT-021:object-43",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "CLIENT-021:object-45",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "CLIENT-021:object-47",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "CLIENT-021:object-49",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "CLIENT-021:object-51",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "CLIENT-021:object-52",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "CLIENT-021:object-55",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "CLIENT-021:object-56",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        }
+      ],
+      "classifications": [
+        {
+          "requestIdentity": "CLIENT-021:object-1",
+          "responseIdentity": "CLIENT-021:object-2",
+          "requestKind": "document-navigation",
+          "classification": "bootstrap",
+          "owner": "page",
+          "phase": "bootstrap-document"
+        },
+        {
+          "requestIdentity": "CLIENT-021:object-3",
+          "responseIdentity": "CLIENT-021:object-5",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "CLIENT-021:object-4",
+          "responseIdentity": "CLIENT-021:object-6",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "CLIENT-021:object-7",
+          "responseIdentity": "CLIENT-021:object-9",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "CLIENT-021:object-8",
+          "responseIdentity": "CLIENT-021:object-10",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "CLIENT-021:object-11",
+          "responseIdentity": "CLIENT-021:object-12",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "CLIENT-021:object-13",
+          "responseIdentity": "CLIENT-021:object-14",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "CLIENT-021:object-15",
+          "responseIdentity": "CLIENT-021:object-19",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "CLIENT-021:object-16",
+          "responseIdentity": "CLIENT-021:object-20",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "CLIENT-021:object-17",
+          "responseIdentity": "CLIENT-021:object-18",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "CLIENT-021:object-21",
+          "responseIdentity": "CLIENT-021:object-22",
+          "requestKind": "application-fetch",
+          "classification": "action",
+          "owner": "action",
+          "phase": "primary-action"
+        },
+        {
+          "requestIdentity": "CLIENT-021:object-23",
+          "responseIdentity": "CLIENT-021:object-26",
+          "requestKind": "application-fetch",
+          "classification": "action",
+          "owner": "action",
+          "phase": "primary-action"
+        },
+        {
+          "requestIdentity": "CLIENT-021:object-24",
+          "responseIdentity": "CLIENT-021:object-30",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "CLIENT-021:object-25",
+          "responseIdentity": "CLIENT-021:object-29",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "CLIENT-021:object-27",
+          "responseIdentity": "CLIENT-021:object-28",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "CLIENT-021:object-31",
+          "responseIdentity": "CLIENT-021:object-32",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "CLIENT-021:object-33",
+          "responseIdentity": "CLIENT-021:object-34",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "CLIENT-021:object-35",
+          "responseIdentity": "CLIENT-021:object-36",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "CLIENT-021:object-37",
+          "responseIdentity": "CLIENT-021:object-38",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "CLIENT-021:object-39",
+          "responseIdentity": "CLIENT-021:object-40",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "CLIENT-021:object-41",
+          "responseIdentity": "CLIENT-021:object-42",
+          "requestKind": "application-fetch",
+          "classification": "action",
+          "owner": "action",
+          "phase": "primary-action"
+        },
+        {
+          "requestIdentity": "CLIENT-021:object-43",
+          "responseIdentity": "CLIENT-021:object-44",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "CLIENT-021:object-45",
+          "responseIdentity": "CLIENT-021:object-46",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "CLIENT-021:object-47",
+          "responseIdentity": "CLIENT-021:object-48",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "CLIENT-021:object-49",
+          "responseIdentity": "CLIENT-021:object-50",
+          "requestKind": "document-navigation",
+          "classification": "bootstrap",
+          "owner": "page",
+          "phase": "bootstrap-document"
+        },
+        {
+          "requestIdentity": "CLIENT-021:object-51",
+          "responseIdentity": "CLIENT-021:object-53",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "CLIENT-021:object-52",
+          "responseIdentity": "CLIENT-021:object-54",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "CLIENT-021:object-55",
+          "responseIdentity": "CLIENT-021:object-58",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "CLIENT-021:object-56",
+          "responseIdentity": "CLIENT-021:object-57",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        }
+      ],
+      "failures": []
+    }
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "schema": "media-server.ui-raw-visual-capture.v1",
+  "caseId": "UI-071",
+  "correlationId": "UI-071:assert-visible-read-model:completion",
+  "targetSelector": "#v330OperatorRecheckRecoveryQueueGrid",
+  "screenshotSha256": "d8b73678b2e3481a068bac38a793543e09741841ef694a8c38da616deaaccd7f",
+  "measurementSha256": "9051caef1d30688d00240543e0194c5f6f5b48cdc5fe5946e82532578aa978d7",
+  "qualificationStatus": "unqualified-raw-capture"
+}

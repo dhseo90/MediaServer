@@ -1,0 +1,76 @@
+{
+  "schema": "media-server.v390-ui-native-browser-console.v1",
+  "caseId": "AUTH-007",
+  "entries": [
+    {
+      "kind": "console",
+      "level": "error",
+      "text": "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+      "location": {
+        "url": "http://127.0.0.1:64566/auth/whoami",
+        "line": 0,
+        "column": 0,
+        "lineNumber": 0,
+        "columnNumber": 0
+      },
+      "callsite": "http://127.0.0.1:64566/auth/whoami:0:0",
+      "caseId": "AUTH-007",
+      "actionId": "",
+      "phase": "unowned",
+      "secretBearing": false,
+      "observedAtMs": 1791002696288,
+      "responseBindingCandidateCount": 1,
+      "responseBinding": {
+        "schema": "media-server.v390-ui-console-response-binding.v1",
+        "requestId": "native-request-2",
+        "caseRequestIdentity": "AUTH-007:request-2",
+        "caseRequestSequence": 2,
+        "responseRequestObjectObserved": true,
+        "requestIdentitySource": "playwright-response-request",
+        "requestKind": "application-fetch",
+        "requestOwnershipKind": "bootstrap",
+        "initiatorActionId": "",
+        "sameOrigin": true,
+        "method": "GET",
+        "status": 401,
+        "url": "http://127.0.0.1:64566/auth/whoami",
+        "path": "/auth/whoami"
+      }
+    },
+    {
+      "kind": "console",
+      "level": "error",
+      "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+      "location": {
+        "url": "http://127.0.0.1:64566/login",
+        "line": 0,
+        "column": 0,
+        "lineNumber": 0,
+        "columnNumber": 0
+      },
+      "callsite": "http://127.0.0.1:64566/login:0:0",
+      "caseId": "AUTH-007",
+      "actionId": "AUTH-007:submit-form",
+      "phase": "primary-action",
+      "secretBearing": false,
+      "observedAtMs": 1791002696390,
+      "responseBindingCandidateCount": 1,
+      "responseBinding": {
+        "schema": "media-server.v390-ui-console-response-binding.v1",
+        "requestId": "native-request-4",
+        "caseRequestIdentity": "AUTH-007:request-4",
+        "caseRequestSequence": 4,
+        "responseRequestObjectObserved": true,
+        "requestIdentitySource": "playwright-response-request",
+        "requestKind": "document-navigation",
+        "requestOwnershipKind": "primary-action",
+        "initiatorActionId": "AUTH-007:submit-form",
+        "sameOrigin": true,
+        "method": "POST",
+        "status": 403,
+        "url": "http://127.0.0.1:64566/login",
+        "path": "/login"
+      }
+    }
+  ]
+}

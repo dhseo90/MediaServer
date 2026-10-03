@@ -1,0 +1,693 @@
+{
+  "schema": "media-server.ui-browser-visual-measurement.v2",
+  "caseBinding": {
+    "canonicalCaseId": "UI-088",
+    "featureId": "UI-088",
+    "screenId": "UI-088",
+    "screenRoute": "/ops/dashboard",
+    "accountRole": "operator",
+    "targetSelector": "[data-v360-simulation-workspace-entry=\"simulation-route-family\"]"
+  },
+  "route": "/ops/dashboard",
+  "accountRole": "operator",
+  "requestedTheme": "light",
+  "appliedTheme": "light",
+  "mediaTheme": "light",
+  "viewport": {
+    "width": 390,
+    "height": 844,
+    "devicePixelRatio": 1
+  },
+  "document": {
+    "scrollWidth": 390,
+    "scrollHeight": 71172,
+    "clientWidth": 390,
+    "clientHeight": 844
+  },
+  "target": {
+    "selector": "[data-v360-simulation-workspace-entry=\"simulation-route-family\"]",
+    "visible": true,
+    "documentTarget": false,
+    "rect": {
+      "x": 33,
+      "y": 323.9375,
+      "left": 33,
+      "top": 323.9375,
+      "right": 357,
+      "bottom": 519.21875,
+      "width": 324,
+      "height": 195.28125
+    }
+  },
+  "textSamples": [
+    {
+      "foreground": "rgb(92, 105, 114)",
+      "background": "rgb(243, 246, 248)",
+      "fontSizePx": 13,
+      "fontWeight": "700",
+      "rect": {
+        "x": 46,
+        "y": 22.71875,
+        "left": 46,
+        "top": 22.71875,
+        "right": 344,
+        "bottom": 38.3125,
+        "width": 298,
+        "height": 15.59375
+      }
+    },
+    {
+      "foreground": "rgb(92, 105, 114)",
+      "background": "rgb(243, 246, 248)",
+      "fontSizePx": 12,
+      "fontWeight": "400",
+      "rect": {
+        "x": 46,
+        "y": 43.3125,
+        "left": 46,
+        "top": 43.3125,
+        "right": 344,
+        "bottom": 75.6875,
+        "width": 298,
+        "height": 32.375
+      }
+    },
+    {
+      "foreground": "rgb(92, 105, 114)",
+      "background": "rgb(243, 246, 248)",
+      "fontSizePx": 12,
+      "fontWeight": "400",
+      "rect": {
+        "x": 46,
+        "y": 80.6875,
+        "left": 46,
+        "top": 80.6875,
+        "right": 344,
+        "bottom": 113.0625,
+        "width": 298,
+        "height": 32.375
+      }
+    },
+    {
+      "foreground": "rgb(23, 28, 31)",
+      "background": "rgb(243, 246, 248)",
+      "fontSizePx": 16,
+      "fontWeight": "700",
+      "rect": {
+        "x": 33,
+        "y": 158.328125,
+        "left": 33,
+        "top": 158.328125,
+        "right": 357,
+        "bottom": 180.328125,
+        "width": 324,
+        "height": 22
+      }
+    },
+    {
+      "foreground": "rgb(92, 105, 114)",
+      "background": "rgb(243, 246, 248)",
+      "fontSizePx": 13,
+      "fontWeight": "700",
+      "rect": {
+        "x": 46,
+        "y": 213.59375,
+        "left": 46,
+        "top": 213.59375,
+        "right": 344,
+        "bottom": 229.1875,
+        "width": 298,
+        "height": 15.59375
+      }
+    },
+    {
+      "foreground": "rgb(92, 105, 114)",
+      "background": "rgb(243, 246, 248)",
+      "fontSizePx": 12,
+      "fontWeight": "400",
+      "rect": {
+        "x": 46,
+        "y": 234.1875,
+        "left": 46,
+        "top": 234.1875,
+        "right": 344,
+        "bottom": 250.375,
+        "width": 298,
+        "height": 16.1875
+      }
+    },
+    {
+      "foreground": "rgb(92, 105, 114)",
+      "background": "rgb(243, 246, 248)",
+      "fontSizePx": 12,
+      "fontWeight": "400",
+      "rect": {
+        "x": 46,
+        "y": 255.375,
+        "left": 46,
+        "top": 255.375,
+        "right": 344,
+        "bottom": 303.9375,
+        "width": 298,
+        "height": 48.5625
+      }
+    },
+    {
+      "foreground": "rgb(92, 105, 114)",
+      "background": "rgb(243, 246, 248)",
+      "fontSizePx": 13,
+      "fontWeight": "700",
+      "rect": {
+        "x": 46,
+        "y": 335.9375,
+        "left": 46,
+        "top": 335.9375,
+        "right": 344,
+        "bottom": 351.53125,
+        "width": 298,
+        "height": 15.59375
+      }
+    },
+    {
+      "foreground": "rgb(92, 105, 114)",
+      "background": "rgb(243, 246, 248)",
+      "fontSizePx": 12,
+      "fontWeight": "400",
+      "rect": {
+        "x": 46,
+        "y": 356.53125,
+        "left": 46,
+        "top": 356.53125,
+        "right": 344,
+        "bottom": 469.84375,
+        "width": 298,
+        "height": 113.3125
+      }
+    },
+    {
+      "foreground": "rgb(92, 105, 114)",
+      "background": "rgb(243, 246, 248)",
+      "fontSizePx": 12,
+      "fontWeight": "400",
+      "rect": {
+        "x": 46,
+        "y": 474.84375,
+        "left": 46,
+        "top": 474.84375,
+        "right": 344,
+        "bottom": 507.21875,
+        "width": 298,
+        "height": 32.375
+      }
+    },
+    {
+      "foreground": "rgb(23, 28, 31)",
+      "background": "rgb(243, 246, 248)",
+      "fontSizePx": 16,
+      "fontWeight": "700",
+      "rect": {
+        "x": 33,
+        "y": 552.484375,
+        "left": 33,
+        "top": 552.484375,
+        "right": 357,
+        "bottom": 574.484375,
+        "width": 324,
+        "height": 22
+      }
+    },
+    {
+      "foreground": "rgb(92, 105, 114)",
+      "background": "rgb(243, 246, 248)",
+      "fontSizePx": 13,
+      "fontWeight": "700",
+      "rect": {
+        "x": 46,
+        "y": 607.75,
+        "left": 46,
+        "top": 607.75,
+        "right": 344,
+        "bottom": 623.34375,
+        "width": 298,
+        "height": 15.59375
+      }
+    },
+    {
+      "foreground": "rgb(92, 105, 114)",
+      "background": "rgb(243, 246, 248)",
+      "fontSizePx": 12,
+      "fontWeight": "400",
+      "rect": {
+        "x": 46,
+        "y": 628.34375,
+        "left": 46,
+        "top": 628.34375,
+        "right": 344,
+        "bottom": 660.71875,
+        "width": 298,
+        "height": 32.375
+      }
+    },
+    {
+      "foreground": "rgb(92, 105, 114)",
+      "background": "rgb(243, 246, 248)",
+      "fontSizePx": 12,
+      "fontWeight": "400",
+      "rect": {
+        "x": 46,
+        "y": 665.71875,
+        "left": 46,
+        "top": 665.71875,
+        "right": 344,
+        "bottom": 746.65625,
+        "width": 298,
+        "height": 80.9375
+      }
+    },
+    {
+      "foreground": "rgb(92, 105, 114)",
+      "background": "rgb(243, 246, 248)",
+      "fontSizePx": 13,
+      "fontWeight": "700",
+      "rect": {
+        "x": 46,
+        "y": 778.65625,
+        "left": 46,
+        "top": 778.65625,
+        "right": 344,
+        "bottom": 794.25,
+        "width": 298,
+        "height": 15.59375
+      }
+    },
+    {
+      "foreground": "rgb(92, 105, 114)",
+      "background": "rgb(243, 246, 248)",
+      "fontSizePx": 12,
+      "fontWeight": "400",
+      "rect": {
+        "x": 46,
+        "y": 799.25,
+        "left": 46,
+        "top": 799.25,
+        "right": 344,
+        "bottom": 831.625,
+        "width": 298,
+        "height": 32.375
+      }
+    },
+    {
+      "foreground": "rgb(92, 105, 114)",
+      "background": "rgb(243, 246, 248)",
+      "fontSizePx": 12,
+      "fontWeight": "400",
+      "rect": {
+        "x": 46,
+        "y": 836.625,
+        "left": 46,
+        "top": 836.625,
+        "right": 344,
+        "bottom": 1030.875,
+        "width": 298,
+        "height": 194.25
+      }
+    }
+  ],
+  "focus": {
+    "focusableCount": 31,
+    "applicable": true
+  },
+  "liveVideo": null,
+  "postActionVisualOwner": {
+    "schema": "media-server.v390-ui-post-action-visual-target.v1",
+    "caseId": "UI-088",
+    "actionId": "UI-088:assert-visible-read-model",
+    "completionMode": "request",
+    "sourceSelectorSha256": "297735e53fca67fd5cdc57887a6d4c7550dc9e814d2547686aac235e4e0f31fd",
+    "sourceOwnerSelectorSha256": "297735e53fca67fd5cdc57887a6d4c7550dc9e814d2547686aac235e4e0f31fd",
+    "requestedState": "visible",
+    "observedRoute": "/ops/dashboard",
+    "navigationEpoch": 1,
+    "ownerCandidateCount": 1,
+    "sourceSelectorRewaited": false,
+    "selector": "[data-v360-simulation-workspace-entry=\"simulation-route-family\"]",
+    "bindingKind": "post-action-visible-source-owner",
+    "sourceDetached": false,
+    "sourceHidden": false,
+    "epochRelation": "same-document"
+  },
+  "focusSamples": [
+    {
+      "index": 0,
+      "focusIdentity": "body > main > section > div:nth-of-type(4) > section:nth-of-type(1) > div:nth-of-type(3) > article:nth-of-type(1) > button",
+      "tag": "button",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 1,
+      "focusIdentity": "body > main > section > div:nth-of-type(4) > section:nth-of-type(1) > div:nth-of-type(3) > article:nth-of-type(1) > a",
+      "tag": "a",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 2,
+      "focusIdentity": "body > main > section > div:nth-of-type(4) > section:nth-of-type(1) > div:nth-of-type(3) > article:nth-of-type(2) > button",
+      "tag": "button",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 3,
+      "focusIdentity": "body > main > section > div:nth-of-type(4) > section:nth-of-type(1) > div:nth-of-type(3) > article:nth-of-type(2) > a",
+      "tag": "a",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 4,
+      "focusIdentity": "body > main > section > div:nth-of-type(4) > section:nth-of-type(1) > div:nth-of-type(3) > article:nth-of-type(3) > button",
+      "tag": "button",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 5,
+      "focusIdentity": "body > main > section > div:nth-of-type(4) > section:nth-of-type(1) > div:nth-of-type(3) > article:nth-of-type(3) > a",
+      "tag": "a",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 6,
+      "focusIdentity": "body > main > section > div:nth-of-type(4) > section:nth-of-type(1) > div:nth-of-type(3) > article:nth-of-type(4) > button",
+      "tag": "button",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 7,
+      "focusIdentity": "body > main > section > div:nth-of-type(4) > section:nth-of-type(1) > div:nth-of-type(3) > article:nth-of-type(4) > a",
+      "tag": "a",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 8,
+      "focusIdentity": "body > main > section > div:nth-of-type(4) > section:nth-of-type(1) > div:nth-of-type(3) > article:nth-of-type(5) > button",
+      "tag": "button",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 9,
+      "focusIdentity": "body > main > section > div:nth-of-type(4) > section:nth-of-type(1) > div:nth-of-type(3) > article:nth-of-type(5) > a",
+      "tag": "a",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 10,
+      "focusIdentity": "#dashIncidentTimelineSearch",
+      "tag": "input",
+      "id": "dashIncidentTimelineSearch",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "solid",
+      "outlineWidth": "3px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 11,
+      "focusIdentity": "#dashIncidentTimelineSource",
+      "tag": "select",
+      "id": "dashIncidentTimelineSource",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "solid",
+      "outlineWidth": "3px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 12,
+      "focusIdentity": "#dashIncidentTimelineShare",
+      "tag": "button",
+      "id": "dashIncidentTimelineShare",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 13,
+      "focusIdentity": "body > main > section > div:nth-of-type(4) > section:nth-of-type(2) > div:nth-of-type(3) > article:nth-of-type(1) > a",
+      "tag": "a",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 14,
+      "focusIdentity": "body > main > section > div:nth-of-type(4) > section:nth-of-type(2) > div:nth-of-type(3) > article:nth-of-type(2) > a",
+      "tag": "a",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 15,
+      "focusIdentity": "body > main > section > div:nth-of-type(4) > section:nth-of-type(2) > div:nth-of-type(3) > article:nth-of-type(3) > a",
+      "tag": "a",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 16,
+      "focusIdentity": "body > main > section > div:nth-of-type(4) > section:nth-of-type(2) > div:nth-of-type(3) > article:nth-of-type(4) > a",
+      "tag": "a",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 17,
+      "focusIdentity": "body > main > section > div:nth-of-type(4) > section:nth-of-type(2) > div:nth-of-type(3) > article:nth-of-type(5) > a",
+      "tag": "a",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 18,
+      "focusIdentity": "body > main > section > div:nth-of-type(4) > section:nth-of-type(2) > div:nth-of-type(3) > article:nth-of-type(6) > a",
+      "tag": "a",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 19,
+      "focusIdentity": "body > main > section > div:nth-of-type(4) > section:nth-of-type(2) > div:nth-of-type(3) > article:nth-of-type(7) > a",
+      "tag": "a",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 20,
+      "focusIdentity": "body > main > section > div:nth-of-type(4) > section:nth-of-type(2) > div:nth-of-type(3) > article:nth-of-type(8) > a",
+      "tag": "a",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 21,
+      "focusIdentity": "#dashVaQualityFilterInput",
+      "tag": "input",
+      "id": "dashVaQualityFilterInput",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "solid",
+      "outlineWidth": "3px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 22,
+      "focusIdentity": "body",
+      "tag": "body",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "none",
+      "outlineWidth": "3px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 23,
+      "focusIdentity": "body > main > header > div > div:nth-of-type(1) > nav > a:nth-of-type(1)",
+      "tag": "a",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 24,
+      "focusIdentity": "body > main > header > div > div:nth-of-type(1) > nav > a:nth-of-type(2)",
+      "tag": "a",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 25,
+      "focusIdentity": "body > main > header > div > div:nth-of-type(1) > nav > a:nth-of-type(3)",
+      "tag": "a",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 26,
+      "focusIdentity": "body > main > header > div > div:nth-of-type(1) > nav > a:nth-of-type(4)",
+      "tag": "a",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 27,
+      "focusIdentity": "body > main > header > div > div:nth-of-type(1) > nav > a:nth-of-type(5)",
+      "tag": "a",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 28,
+      "focusIdentity": "#themeToggleBtn",
+      "tag": "button",
+      "id": "themeToggleBtn",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 29,
+      "focusIdentity": "body > main > header > div > div:nth-of-type(2) > div > div:nth-of-type(2) > label > select",
+      "tag": "select",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "solid",
+      "outlineWidth": "3px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 30,
+      "focusIdentity": "body > main > header > div > div:nth-of-type(2) > form > button",
+      "tag": "button",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 31,
+      "focusIdentity": "#opsDashboardRefresh",
+      "tag": "button",
+      "id": "opsDashboardRefresh",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    }
+  ]
+}

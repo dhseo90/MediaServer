@@ -4929,3 +4929,23 @@ inventory의 현행 목표 v4.1.1을 v4.2.0으로 맞추고 개발 당시 장시
 이후 JSON 공백 복원은 값이 동일하며 다음 canonical 실행의 최종 바이트에서 다시 검증된다.
 문서 링크와 diff 공백도 통과했다. 과거 세 실패는 그대로 유지하며 재개 후 직접 검사는
 1실패→1통과다. 제품 코드는 변경하지 않았다.
+
+## 2026-10-03 재개 후 canonical 릴리즈 검증
+
+`./test_release.sh` 4차(중단 해제 후 첫 canonical 실행)는
+`ce163652d3c4b976cb263a4569331529595f55c5`에서 exit0/PASS였다.
+제품/source diff는 없고 실행기가 소유한 출력만 변경됐다. build, feature-gates 36개,
+실제 일반30분, 기본 UI exact424와 Policy v4 qualification, 일반120분, cleanup과
+final-integrity가 통과했다. 일반120분은 누적 미디어·source 수명·공유 스트림·metadata·
+포트 정리의 기존 gate 결정에 따라 실제 실행했다. 임의 축약 실행이 아니다.
+원출력과 개별 완료 조건은 [canonical 결과](test-acceptance-current-final/report.md)에 있다.
+기본 UI 424/424의 qualified 결과는 녹화 UI addendum이나 V420 추가30개 기능의 완료가 아니다.
+외부 TURN은 기본 명령의 비대상이며 장기 RSS/전체 동시 부하 보증으로 확대하지 않는다.
+과거 1~3차 실패는 각각 기존 보존 커밋에 그대로 남아 있다.
+
+사용자가 canonical 원출력 약340MB(JSON trace 중심, PNG 약12MB)의 해당 경로 Git 보존·
+일반 푸시 및 릴리즈 전 별도 정리 커밋을 명시 승인했다. 보존 커밋은 제품 변경이 없으며
+위 실행 대상 SHA에서 새로 실행한 범위를 바꾸지 않는다.
+`git diff --check`는 runner 원출력 `report.md:13`의 빈 reproductionCommand 뒤 공백으로
+exit2였다. 원출력 hash와 실행 provenance를 보존하기 위해 이를 사후 편집하지 않았다.
+수기 추가한 이 개발 기록에는 해당 공백 오류가 없다. 제품 동작 실패가 아닌 원출력 형식 한계다.

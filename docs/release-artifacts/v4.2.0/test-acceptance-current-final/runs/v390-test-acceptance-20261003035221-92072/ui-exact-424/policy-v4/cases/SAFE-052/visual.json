@@ -1,0 +1,9 @@
+{
+  "schema": "media-server.ui-raw-visual-capture.v1",
+  "caseId": "SAFE-052",
+  "correlationId": "SAFE-052:fill-control:completion",
+  "targetSelector": "#opsIncidentSearchInput",
+  "screenshotSha256": "f09af1eb1ef676161e15aa8f66522cf4a700fbfc18ea270159f90b9bee1a8389",
+  "measurementSha256": "d0196860aeceea21a65758aadd09abb34ca694837244d7339c0975a54c49b8ef",
+  "qualificationStatus": "unqualified-raw-capture"
+}

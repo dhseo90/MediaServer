@@ -1,0 +1,2171 @@
+{
+  "schema": "media-server.v390-ui-case-policy-input.v1",
+  "caseId": "SRC-039",
+  "runId": "fa3f64f2-58d9-49df-b223-7285df0cce64",
+  "result": {
+    "caseId": "SRC-039",
+    "featureId": "SRC-039",
+    "status": "PASS",
+    "dispatch": "playwright-native",
+    "manualIntervention": false,
+    "actualBrowserExecution": true,
+    "requested": {
+      "schema": "media-server.v390-ui-canonical-requested.v1",
+      "route": "/ops/api/source-registry/reliability-search-metrics",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "OpsV330SourceReliabilitySearchMetricsJson"
+      }
+    },
+    "observed": {
+      "schema": "media-server.v390-ui-runtime-observed.v1",
+      "screenRoute": "/ops/sources",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "applicability": "not-applicable",
+        "exists": false,
+        "visible": false,
+        "enabled": false
+      },
+      "provenance": {
+        "screenRoute": "browser-location",
+        "accountRole": "session-whoami",
+        "viewport": "browser-inner-size",
+        "theme": "browser-media-query",
+        "controlAction": "dom-selector-state"
+      }
+    },
+    "visibleAssertion": {
+      "pass": true,
+      "visible": true,
+      "selector": "body"
+    },
+    "visualMeasurement": {
+      "schema": "media-server.ui-browser-visual-measurement.v2",
+      "caseBinding": {
+        "canonicalCaseId": "SRC-039",
+        "featureId": "SRC-039",
+        "screenId": "SRC-039",
+        "screenRoute": "/ops/sources",
+        "accountRole": "operator",
+        "targetSelector": "body"
+      },
+      "route": "/ops/sources",
+      "accountRole": "operator",
+      "requestedTheme": "light",
+      "appliedTheme": "light",
+      "mediaTheme": "light",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "devicePixelRatio": 1
+      },
+      "document": {
+        "scrollWidth": 390,
+        "scrollHeight": 33901,
+        "clientWidth": 390,
+        "clientHeight": 844
+      },
+      "target": {
+        "selector": "body",
+        "visible": true,
+        "documentTarget": true,
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "left": 0,
+          "top": 0,
+          "right": 390,
+          "bottom": 33900.984375,
+          "width": 390,
+          "height": 33900.984375
+        }
+      },
+      "textSamples": [
+        {
+          "foreground": "rgb(23, 28, 31)",
+          "background": "rgb(243, 246, 248)",
+          "fontSizePx": 15,
+          "fontWeight": "950",
+          "rect": {
+            "x": 66,
+            "y": 19,
+            "left": 66,
+            "top": 19,
+            "right": 368,
+            "bottom": 34,
+            "width": 302,
+            "height": 15
+          }
+        },
+        {
+          "foreground": "rgb(92, 105, 114)",
+          "background": "rgb(243, 246, 248)",
+          "fontSizePx": 12,
+          "fontWeight": "750",
+          "rect": {
+            "x": 66,
+            "y": 37,
+            "left": 66,
+            "top": 37,
+            "right": 368,
+            "bottom": 49,
+            "width": 302,
+            "height": 12
+          }
+        },
+        {
+          "foreground": "rgb(92, 105, 114)",
+          "background": "rgb(243, 246, 248)",
+          "fontSizePx": 12,
+          "fontWeight": "900",
+          "rect": {
+            "x": 84.796875,
+            "y": 81.28125,
+            "left": 84.796875,
+            "top": 81.28125,
+            "right": 95.1875,
+            "bottom": 94.71875,
+            "width": 10.390625,
+            "height": 13.4375
+          }
+        },
+        {
+          "foreground": "rgb(92, 105, 114)",
+          "background": "rgb(243, 246, 248)",
+          "fontSizePx": 12,
+          "fontWeight": "900",
+          "rect": {
+            "x": 185.234375,
+            "y": 81.28125,
+            "left": 185.234375,
+            "top": 81.28125,
+            "right": 226.765625,
+            "bottom": 94.71875,
+            "width": 41.53125,
+            "height": 13.4375
+          }
+        },
+        {
+          "foreground": "rgb(29, 78, 216)",
+          "background": "rgb(243, 246, 248)",
+          "fontSizePx": 12,
+          "fontWeight": "900",
+          "rect": {
+            "x": 311.609375,
+            "y": 81.28125,
+            "left": 311.609375,
+            "top": 81.28125,
+            "right": 332.375,
+            "bottom": 94.71875,
+            "width": 20.765625,
+            "height": 13.4375
+          }
+        },
+        {
+          "foreground": "rgb(92, 105, 114)",
+          "background": "rgb(243, 246, 248)",
+          "fontSizePx": 12,
+          "fontWeight": "900",
+          "rect": {
+            "x": 84.796875,
+            "y": 127.28125,
+            "left": 84.796875,
+            "top": 127.28125,
+            "right": 95.1875,
+            "bottom": 140.71875,
+            "width": 10.390625,
+            "height": 13.4375
+          }
+        },
+        {
+          "foreground": "rgb(92, 105, 114)",
+          "background": "rgb(243, 246, 248)",
+          "fontSizePx": 12,
+          "fontWeight": "900",
+          "rect": {
+            "x": 180.046875,
+            "y": 127.28125,
+            "left": 180.046875,
+            "top": 127.28125,
+            "right": 231.953125,
+            "bottom": 140.71875,
+            "width": 51.90625,
+            "height": 13.4375
+          }
+        },
+        {
+          "foreground": "rgb(23, 28, 31)",
+          "background": "rgb(255, 255, 255)",
+          "fontSizePx": 12,
+          "fontWeight": "850",
+          "rect": {
+            "x": 296,
+            "y": 164,
+            "left": 296,
+            "top": 164,
+            "right": 368,
+            "bottom": 200,
+            "width": 72,
+            "height": 36
+          }
+        },
+        {
+          "foreground": "rgb(23, 28, 31)",
+          "background": "rgb(243, 246, 248)",
+          "fontSizePx": 19,
+          "fontWeight": "700",
+          "rect": {
+            "x": 35,
+            "y": 300,
+            "left": 35,
+            "top": 300,
+            "right": 347,
+            "bottom": 320.890625,
+            "width": 312,
+            "height": 20.890625
+          }
+        },
+        {
+          "foreground": "rgb(92, 105, 114)",
+          "background": "rgb(243, 246, 248)",
+          "fontSizePx": 13,
+          "fontWeight": "400",
+          "rect": {
+            "x": 35,
+            "y": 325.890625,
+            "left": 35,
+            "top": 325.890625,
+            "right": 347,
+            "bottom": 366.171875,
+            "width": 312,
+            "height": 40.28125
+          }
+        },
+        {
+          "foreground": "rgb(23, 28, 31)",
+          "background": "rgb(243, 246, 248)",
+          "fontSizePx": 15,
+          "fontWeight": "700",
+          "rect": {
+            "x": 33,
+            "y": 416.171875,
+            "left": 33,
+            "top": 416.171875,
+            "right": 357,
+            "bottom": 436.171875,
+            "width": 324,
+            "height": 20
+          }
+        },
+        {
+          "foreground": "rgb(92, 105, 114)",
+          "background": "rgb(243, 246, 248)",
+          "fontSizePx": 16,
+          "fontWeight": "400",
+          "rect": {
+            "x": 33,
+            "y": 436.171875,
+            "left": 33,
+            "top": 436.171875,
+            "right": 357,
+            "bottom": 485.765625,
+            "width": 324,
+            "height": 49.59375
+          }
+        },
+        {
+          "foreground": "rgb(92, 105, 114)",
+          "background": "rgb(243, 246, 248)",
+          "fontSizePx": 12,
+          "fontWeight": "850",
+          "rect": {
+            "x": 48,
+            "y": 515.765625,
+            "left": 48,
+            "top": 515.765625,
+            "right": 342,
+            "bottom": 531.765625,
+            "width": 294,
+            "height": 16
+          }
+        },
+        {
+          "foreground": "rgb(23, 28, 31)",
+          "background": "rgb(243, 246, 248)",
+          "fontSizePx": 25,
+          "fontWeight": "700",
+          "rect": {
+            "x": 48,
+            "y": 535.765625,
+            "left": 48,
+            "top": 535.765625,
+            "right": 342,
+            "bottom": 569.765625,
+            "width": 294,
+            "height": 34
+          }
+        },
+        {
+          "foreground": "rgb(92, 105, 114)",
+          "background": "rgb(243, 246, 248)",
+          "fontSizePx": 12,
+          "fontWeight": "850",
+          "rect": {
+            "x": 48,
+            "y": 597.765625,
+            "left": 48,
+            "top": 597.765625,
+            "right": 342,
+            "bottom": 613.765625,
+            "width": 294,
+            "height": 16
+          }
+        },
+        {
+          "foreground": "rgb(23, 28, 31)",
+          "background": "rgb(243, 246, 248)",
+          "fontSizePx": 25,
+          "fontWeight": "700",
+          "rect": {
+            "x": 48,
+            "y": 617.765625,
+            "left": 48,
+            "top": 617.765625,
+            "right": 342,
+            "bottom": 651.765625,
+            "width": 294,
+            "height": 34
+          }
+        },
+        {
+          "foreground": "rgb(92, 105, 114)",
+          "background": "rgb(243, 246, 248)",
+          "fontSizePx": 12,
+          "fontWeight": "850",
+          "rect": {
+            "x": 48,
+            "y": 679.765625,
+            "left": 48,
+            "top": 679.765625,
+            "right": 342,
+            "bottom": 695.765625,
+            "width": 294,
+            "height": 16
+          }
+        },
+        {
+          "foreground": "rgb(23, 28, 31)",
+          "background": "rgb(243, 246, 248)",
+          "fontSizePx": 25,
+          "fontWeight": "700",
+          "rect": {
+            "x": 48,
+            "y": 699.765625,
+            "left": 48,
+            "top": 699.765625,
+            "right": 342,
+            "bottom": 733.765625,
+            "width": 294,
+            "height": 34
+          }
+        },
+        {
+          "foreground": "rgb(92, 105, 114)",
+          "background": "rgb(243, 246, 248)",
+          "fontSizePx": 12,
+          "fontWeight": "850",
+          "rect": {
+            "x": 48,
+            "y": 761.765625,
+            "left": 48,
+            "top": 761.765625,
+            "right": 342,
+            "bottom": 777.765625,
+            "width": 294,
+            "height": 16
+          }
+        },
+        {
+          "foreground": "rgb(23, 28, 31)",
+          "background": "rgb(243, 246, 248)",
+          "fontSizePx": 25,
+          "fontWeight": "700",
+          "rect": {
+            "x": 48,
+            "y": 781.765625,
+            "left": 48,
+            "top": 781.765625,
+            "right": 342,
+            "bottom": 815.765625,
+            "width": 294,
+            "height": 34
+          }
+        },
+        {
+          "foreground": "rgb(92, 105, 114)",
+          "background": "rgb(243, 246, 248)",
+          "fontSizePx": 12,
+          "fontWeight": "850",
+          "rect": {
+            "x": 48,
+            "y": 843.765625,
+            "left": 48,
+            "top": 843.765625,
+            "right": 342,
+            "bottom": 859.765625,
+            "width": 294,
+            "height": 16
+          }
+        }
+      ],
+      "focus": {
+        "focusableCount": 200,
+        "applicable": true
+      },
+      "liveVideo": null,
+      "postActionVisualOwner": {
+        "schema": "media-server.v390-ui-post-action-visual-target.v1",
+        "caseId": "SRC-039",
+        "actionId": "SRC-039:assert-product-state",
+        "completionMode": "request",
+        "sourceSelectorSha256": "230d8358dc8e8890b4c58deeb62912ee2f20357ae92a5cc861b98e68fe31acb5",
+        "sourceOwnerSelectorSha256": "230d8358dc8e8890b4c58deeb62912ee2f20357ae92a5cc861b98e68fe31acb5",
+        "requestedState": "visible",
+        "observedRoute": "/ops/sources",
+        "navigationEpoch": 1,
+        "ownerCandidateCount": 1,
+        "sourceSelectorRewaited": false,
+        "selector": "body",
+        "bindingKind": "post-action-visible-document-owner",
+        "sourceDetached": false,
+        "sourceHidden": false,
+        "epochRelation": "same-document"
+      },
+      "focusSamples": [
+        {
+          "index": 0,
+          "focusIdentity": "body > main > header > div > div:nth-of-type(1) > nav > a:nth-of-type(1)",
+          "tag": "a",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 1,
+          "focusIdentity": "body > main > header > div > div:nth-of-type(1) > nav > a:nth-of-type(2)",
+          "tag": "a",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 2,
+          "focusIdentity": "body > main > header > div > div:nth-of-type(1) > nav > a:nth-of-type(3)",
+          "tag": "a",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 3,
+          "focusIdentity": "body > main > header > div > div:nth-of-type(1) > nav > a:nth-of-type(4)",
+          "tag": "a",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 4,
+          "focusIdentity": "body > main > header > div > div:nth-of-type(1) > nav > a:nth-of-type(5)",
+          "tag": "a",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 5,
+          "focusIdentity": "#themeToggleBtn",
+          "tag": "button",
+          "id": "themeToggleBtn",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 6,
+          "focusIdentity": "body > main > header > div > div:nth-of-type(2) > div > div:nth-of-type(2) > label > select",
+          "tag": "select",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "solid",
+          "outlineWidth": "3px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 7,
+          "focusIdentity": "body > main > header > div > div:nth-of-type(2) > form > button",
+          "tag": "button",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 8,
+          "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(2) > div:nth-of-type(3) > article:nth-of-type(1) > div > a",
+          "tag": "a",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 9,
+          "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(2) > div:nth-of-type(3) > article:nth-of-type(2) > div > a",
+          "tag": "a",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 10,
+          "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(2) > div:nth-of-type(3) > article:nth-of-type(3) > div > a",
+          "tag": "a",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 11,
+          "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(2) > div:nth-of-type(3) > article:nth-of-type(4) > div > a",
+          "tag": "a",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 12,
+          "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(2) > div:nth-of-type(3) > article:nth-of-type(5) > div > a",
+          "tag": "a",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 13,
+          "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(2) > div:nth-of-type(3) > article:nth-of-type(6) > div > a",
+          "tag": "a",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 14,
+          "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(2) > div:nth-of-type(3) > article:nth-of-type(7) > div > a",
+          "tag": "a",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 15,
+          "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(2) > div:nth-of-type(3) > article:nth-of-type(8) > div > a",
+          "tag": "a",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 16,
+          "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(3) > div:nth-of-type(3) > div:nth-of-type(2) > div > a:nth-of-type(1)",
+          "tag": "a",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 17,
+          "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(3) > div:nth-of-type(3) > div:nth-of-type(2) > div > a:nth-of-type(2)",
+          "tag": "a",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 18,
+          "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(3) > div:nth-of-type(3) > div:nth-of-type(2) > div > a:nth-of-type(3)",
+          "tag": "a",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 19,
+          "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(3) > div:nth-of-type(3) > div:nth-of-type(2) > div > a:nth-of-type(4)",
+          "tag": "a",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 20,
+          "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(3) > div:nth-of-type(3) > div:nth-of-type(2) > div > a:nth-of-type(5)",
+          "tag": "a",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 21,
+          "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(3) > div:nth-of-type(3) > div:nth-of-type(3) > div > article:nth-of-type(1) > div > a",
+          "tag": "a",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 22,
+          "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(3) > div:nth-of-type(3) > div:nth-of-type(3) > div > article:nth-of-type(2) > div > a",
+          "tag": "a",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 23,
+          "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(3) > div:nth-of-type(3) > div:nth-of-type(3) > div > article:nth-of-type(3) > div > a",
+          "tag": "a",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 24,
+          "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(3) > div:nth-of-type(3) > div:nth-of-type(3) > div > article:nth-of-type(4) > div > a",
+          "tag": "a",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 25,
+          "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(3) > div:nth-of-type(3) > div:nth-of-type(3) > div > article:nth-of-type(5) > div > a",
+          "tag": "a",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 26,
+          "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(3) > div:nth-of-type(3) > div:nth-of-type(3) > div > article:nth-of-type(6) > div > a",
+          "tag": "a",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 27,
+          "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(3) > div:nth-of-type(3) > div:nth-of-type(3) > div > article:nth-of-type(7) > div > a",
+          "tag": "a",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 28,
+          "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(3) > div:nth-of-type(3) > div:nth-of-type(3) > div > article:nth-of-type(8) > div > a",
+          "tag": "a",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 29,
+          "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(4) > div:nth-of-type(3) > div:nth-of-type(1) > div > a:nth-of-type(1)",
+          "tag": "a",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 30,
+          "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(4) > div:nth-of-type(3) > div:nth-of-type(1) > div > a:nth-of-type(2)",
+          "tag": "a",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 31,
+          "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(4) > div:nth-of-type(3) > div:nth-of-type(1) > div > a:nth-of-type(3)",
+          "tag": "a",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 32,
+          "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(4) > div:nth-of-type(3) > div:nth-of-type(1) > div > a:nth-of-type(4)",
+          "tag": "a",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 33,
+          "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(4) > div:nth-of-type(3) > div:nth-of-type(2) > div > a:nth-of-type(1)",
+          "tag": "a",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 34,
+          "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(4) > div:nth-of-type(3) > div:nth-of-type(2) > div > a:nth-of-type(2)",
+          "tag": "a",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 35,
+          "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(4) > div:nth-of-type(3) > div:nth-of-type(2) > div > a:nth-of-type(3)",
+          "tag": "a",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 36,
+          "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(4) > div:nth-of-type(3) > div:nth-of-type(2) > div > a:nth-of-type(4)",
+          "tag": "a",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 37,
+          "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(5) > div:nth-of-type(3) > div:nth-of-type(2) > div > a:nth-of-type(1)",
+          "tag": "a",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 38,
+          "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(5) > div:nth-of-type(3) > div:nth-of-type(2) > div > a:nth-of-type(2)",
+          "tag": "a",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 39,
+          "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(5) > div:nth-of-type(3) > div:nth-of-type(2) > div > a:nth-of-type(3)",
+          "tag": "a",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 40,
+          "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(5) > div:nth-of-type(3) > div:nth-of-type(2) > div > a:nth-of-type(4)",
+          "tag": "a",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 41,
+          "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(5) > div:nth-of-type(3) > div:nth-of-type(2) > div > a:nth-of-type(5)",
+          "tag": "a",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 42,
+          "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(6) > div:nth-of-type(3) > div > div > article:nth-of-type(1) > a",
+          "tag": "a",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 43,
+          "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(6) > div:nth-of-type(3) > div > div > article:nth-of-type(2) > a",
+          "tag": "a",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 44,
+          "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(6) > div:nth-of-type(3) > div > div > article:nth-of-type(3) > a",
+          "tag": "a",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 45,
+          "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(6) > div:nth-of-type(3) > div > div > article:nth-of-type(4) > a",
+          "tag": "a",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 46,
+          "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(6) > div:nth-of-type(3) > div > div > article:nth-of-type(5) > a",
+          "tag": "a",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 47,
+          "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(6) > div:nth-of-type(3) > div > div > article:nth-of-type(6) > a",
+          "tag": "a",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 48,
+          "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(6) > div:nth-of-type(3) > div > div > article:nth-of-type(7) > a",
+          "tag": "a",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 49,
+          "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(6) > div:nth-of-type(3) > div > div > article:nth-of-type(8) > a",
+          "tag": "a",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 50,
+          "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(6) > div:nth-of-type(3) > div > div > article:nth-of-type(9) > a",
+          "tag": "a",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 51,
+          "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(6) > div:nth-of-type(3) > div > div > article:nth-of-type(10) > a",
+          "tag": "a",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 52,
+          "focusIdentity": "#add-channel",
+          "tag": "button",
+          "id": "add-channel",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 53,
+          "focusIdentity": "#refresh",
+          "tag": "button",
+          "id": "refresh",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 54,
+          "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(9) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(1) > td:nth-of-type(4) > div > button",
+          "tag": "button",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 55,
+          "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(9) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(1) > td:nth-of-type(6) > div > button:nth-of-type(1)",
+          "tag": "button",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 56,
+          "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(9) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(1) > td:nth-of-type(6) > div > button:nth-of-type(2)",
+          "tag": "button",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 57,
+          "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(9) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(1) > td:nth-of-type(7) > div > button:nth-of-type(1)",
+          "tag": "button",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 58,
+          "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(9) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(1) > td:nth-of-type(7) > div > button:nth-of-type(2)",
+          "tag": "button",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 59,
+          "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(9) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(1) > td:nth-of-type(8) > div > button",
+          "tag": "button",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 60,
+          "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(9) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(1) > td:nth-of-type(8) > div > details > summary",
+          "tag": "summary",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 61,
+          "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(9) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(2) > td:nth-of-type(4) > div > button",
+          "tag": "button",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 62,
+          "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(9) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(2) > td:nth-of-type(6) > div > button:nth-of-type(1)",
+          "tag": "button",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 63,
+          "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(9) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(2) > td:nth-of-type(6) > div > button:nth-of-type(2)",
+          "tag": "button",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        }
+      ]
+    },
+    "visualExpectedCase": {
+      "canonicalCaseId": "SRC-039",
+      "featureId": "SRC-039",
+      "screenId": "SRC-039",
+      "screenRoute": "/ops/sources",
+      "accountRole": "operator",
+      "targetSelector": "body",
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "liveVideoRequired": false
+    },
+    "screenshotPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/runs/v390-test-acceptance-20261003035221-92072/ui-exact-424/cases/172-SRC-031/screenshots/SRC-031.png",
+    "tracePath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/runs/v390-test-acceptance-20261003035221-92072/ui-exact-424/cases/179-SRC-039/traces/SRC-039.trace.json",
+    "browserConsolePath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/runs/v390-test-acceptance-20261003035221-92072/ui-exact-424/cases/179-SRC-039/logs/SRC-039.browser-console.json",
+    "cleanupAttestation": {
+      "schema": "media-server.v390-ui-case-cleanup-attestation.v1",
+      "pass": true,
+      "primaryFailurePresent": false,
+      "primaryFailurePreserved": false,
+      "caseRuntimeRestoreAttempted": true,
+      "caseRuntimeRestored": true,
+      "browserCloseAttempted": true,
+      "browserContextClosed": true,
+      "cleanupEntryCount": 2,
+      "failureCode": ""
+    },
+    "requestLifecycleEvaluation": {
+      "status": "PASS",
+      "census": {
+        "requestCount": 25,
+        "responseCount": 25,
+        "classified": 25,
+        "unclassified": 0,
+        "multiplyClassified": 0,
+        "captureErrors": 0,
+        "duplicateResponses": 0,
+        "failureCount": 0
+      },
+      "diagnostics": {
+        "sequenceDomain": "diagnostic-seal-and-after-seal-only",
+        "diagnosticErrors": 0,
+        "seal": {
+          "sequence": 1,
+          "timestamp": 1791002883283
+        },
+        "afterSeal": [],
+        "requests": [
+          {
+            "requestIdentity": "SRC-039:object-1",
+            "legacyRequestId": "native-request-1",
+            "method": "GET",
+            "path": "/ops/sources",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 1,
+              "timestamp": 1791002882570
+            },
+            "responses": [
+              {
+                "sequence": 2,
+                "timestamp": 1791002882576,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 21,
+                "timestamp": 1791002882594
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "SRC-039:object-3",
+            "legacyRequestId": "native-request-2",
+            "method": "GET",
+            "path": "/ops/api/audit",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 3,
+              "timestamp": 1791002882591
+            },
+            "responses": [
+              {
+                "sequence": 22,
+                "timestamp": 1791002882639,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 40,
+                "timestamp": 1791002882641
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "SRC-039:object-4",
+            "legacyRequestId": "native-request-3",
+            "method": "GET",
+            "path": "/ops/api/onvif/credential-provider-status",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 4,
+              "timestamp": 1791002882592
+            },
+            "responses": [
+              {
+                "sequence": 24,
+                "timestamp": 1791002882639,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 42,
+                "timestamp": 1791002882641
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "SRC-039:object-5",
+            "legacyRequestId": "native-request-4",
+            "method": "GET",
+            "path": "/ops/api/onvif/live-import-persist-decision",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 5,
+              "timestamp": 1791002882593
+            },
+            "responses": [
+              {
+                "sequence": 23,
+                "timestamp": 1791002882639,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 41,
+                "timestamp": 1791002882641
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "SRC-039:object-6",
+            "legacyRequestId": "native-request-5",
+            "method": "GET",
+            "path": "/ops/api/sources",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 6,
+              "timestamp": 1791002882593
+            },
+            "responses": [
+              {
+                "sequence": 25,
+                "timestamp": 1791002882639,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 43,
+                "timestamp": 1791002882641
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "SRC-039:object-7",
+            "legacyRequestId": "native-request-6",
+            "method": "GET",
+            "path": "/ops/api/views",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 7,
+              "timestamp": 1791002882593
+            },
+            "responses": [
+              {
+                "sequence": 26,
+                "timestamp": 1791002882639,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 44,
+                "timestamp": 1791002882641
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "SRC-039:object-8",
+            "legacyRequestId": "native-request-7",
+            "method": "GET",
+            "path": "/client/api/views",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 8,
+              "timestamp": 1791002882593
+            },
+            "responses": [
+              {
+                "sequence": 27,
+                "timestamp": 1791002882640,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 45,
+                "timestamp": 1791002882641
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "SRC-039:object-9",
+            "legacyRequestId": "native-request-8",
+            "method": "GET",
+            "path": "/ops/api/source-registry/onboarding-quality",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 9,
+              "timestamp": 1791002882593
+            },
+            "responses": [
+              {
+                "sequence": 28,
+                "timestamp": 1791002882640,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 46,
+                "timestamp": 1791002882641
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "SRC-039:object-10",
+            "legacyRequestId": "native-request-9",
+            "method": "GET",
+            "path": "/ops/api/source-registry/reliability-timeline",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 10,
+              "timestamp": 1791002882593
+            },
+            "responses": [
+              {
+                "sequence": 31,
+                "timestamp": 1791002882640,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 49,
+                "timestamp": 1791002882641
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "SRC-039:object-11",
+            "legacyRequestId": "native-request-10",
+            "method": "GET",
+            "path": "/ops/api/source-registry/reliability-search-metrics",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 11,
+              "timestamp": 1791002882593
+            },
+            "responses": [
+              {
+                "sequence": 33,
+                "timestamp": 1791002882641,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 51,
+                "timestamp": 1791002882641
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "SRC-039:object-12",
+            "legacyRequestId": "native-request-11",
+            "method": "GET",
+            "path": "/ops/api/source-registry/backup-recovery-handoff",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 12,
+              "timestamp": 1791002882593
+            },
+            "responses": [
+              {
+                "sequence": 32,
+                "timestamp": 1791002882640,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 50,
+                "timestamp": 1791002882641
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "SRC-039:object-13",
+            "legacyRequestId": "native-request-12",
+            "method": "GET",
+            "path": "/ops/api/source-registry/staging-restore-validation-handoff",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 13,
+              "timestamp": 1791002882593
+            },
+            "responses": [
+              {
+                "sequence": 30,
+                "timestamp": 1791002882640,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 48,
+                "timestamp": 1791002882641
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "SRC-039:object-14",
+            "legacyRequestId": "native-request-13",
+            "method": "GET",
+            "path": "/ops/api/source-registry/continuity-drill/contract",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 14,
+              "timestamp": 1791002882593
+            },
+            "responses": [
+              {
+                "sequence": 29,
+                "timestamp": 1791002882640,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 47,
+                "timestamp": 1791002882641
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "SRC-039:object-15",
+            "legacyRequestId": "native-request-14",
+            "method": "GET",
+            "path": "/ops/api/source-registry/recovery-candidate-package",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 15,
+              "timestamp": 1791002882593
+            },
+            "responses": [
+              {
+                "sequence": 34,
+                "timestamp": 1791002882641,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 52,
+                "timestamp": 1791002882641
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "SRC-039:object-16",
+            "legacyRequestId": "native-request-15",
+            "method": "GET",
+            "path": "/ops/api/source-registry/source-health-replay-drift-diff",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 16,
+              "timestamp": 1791002882593
+            },
+            "responses": [
+              {
+                "sequence": 35,
+                "timestamp": 1791002882641,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 53,
+                "timestamp": 1791002882641
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "SRC-039:object-17",
+            "legacyRequestId": "native-request-16",
+            "method": "GET",
+            "path": "/ops/api/source-registry/approval-gated-recovery-checklist",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 17,
+              "timestamp": 1791002882594
+            },
+            "responses": [
+              {
+                "sequence": 37,
+                "timestamp": 1791002882641,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 55,
+                "timestamp": 1791002882641
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "SRC-039:object-18",
+            "legacyRequestId": "native-request-17",
+            "method": "GET",
+            "path": "/ops/api/source-registry/drill-evidence-export-cleanup-manifest",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 18,
+              "timestamp": 1791002882594
+            },
+            "responses": [
+              {
+                "sequence": 38,
+                "timestamp": 1791002882641,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 56,
+                "timestamp": 1791002882641
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "SRC-039:object-19",
+            "legacyRequestId": "native-request-18",
+            "method": "GET",
+            "path": "/ops/api/source-registry/field-bridge-condition-gates",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 19,
+              "timestamp": 1791002882594
+            },
+            "responses": [
+              {
+                "sequence": 39,
+                "timestamp": 1791002882641,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 57,
+                "timestamp": 1791002882641
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "SRC-039:object-20",
+            "legacyRequestId": "native-request-19",
+            "method": "GET",
+            "path": "/auth/whoami",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 20,
+              "timestamp": 1791002882594
+            },
+            "responses": [
+              {
+                "sequence": 36,
+                "timestamp": 1791002882641,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 54,
+                "timestamp": 1791002882641
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "SRC-039:object-39",
+            "legacyRequestId": "native-request-20",
+            "method": "GET",
+            "path": "/ops/api/audit",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 58,
+              "timestamp": 1791002882642
+            },
+            "responses": [
+              {
+                "sequence": 59,
+                "timestamp": 1791002882669,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 60,
+                "timestamp": 1791002882669
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "SRC-039:object-41",
+            "legacyRequestId": "native-request-21",
+            "method": "GET",
+            "path": "/auth/whoami",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 61,
+              "timestamp": 1791002882687
+            },
+            "responses": [
+              {
+                "sequence": 62,
+                "timestamp": 1791002882689,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 63,
+                "timestamp": 1791002882689
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "SRC-039:object-43",
+            "legacyRequestId": "native-request-22",
+            "method": "GET",
+            "path": "/auth/whoami",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 64,
+              "timestamp": 1791002882698
+            },
+            "responses": [
+              {
+                "sequence": 65,
+                "timestamp": 1791002882700,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 66,
+                "timestamp": 1791002882700
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "SRC-039:object-45",
+            "legacyRequestId": "native-request-23",
+            "method": "GET",
+            "path": "/ops/api/source-registry/reliability-search-metrics",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 67,
+              "timestamp": 1791002882714
+            },
+            "responses": [
+              {
+                "sequence": 68,
+                "timestamp": 1791002882718,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 69,
+                "timestamp": 1791002882718
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "SRC-039:object-47",
+            "legacyRequestId": "native-request-24",
+            "method": "GET",
+            "path": "/ops/api/source-registry/reliability-search-metrics",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 70,
+              "timestamp": 1791002882756
+            },
+            "responses": [
+              {
+                "sequence": 71,
+                "timestamp": 1791002882758,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 72,
+                "timestamp": 1791002882759
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "SRC-039:object-49",
+            "legacyRequestId": "native-request-25",
+            "method": "GET",
+            "path": "/auth/whoami",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 73,
+              "timestamp": 1791002882806
+            },
+            "responses": [
+              {
+                "sequence": 74,
+                "timestamp": 1791002882808,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 75,
+                "timestamp": 1791002882808
+              }
+            ],
+            "failed": []
+          }
+        ]
+      },
+      "requests": [
+        {
+          "requestIdentity": "SRC-039:object-1",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "SRC-039:object-3",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "SRC-039:object-4",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "SRC-039:object-5",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "SRC-039:object-6",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "SRC-039:object-7",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "SRC-039:object-8",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "SRC-039:object-9",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "SRC-039:object-10",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "SRC-039:object-11",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "SRC-039:object-12",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "SRC-039:object-13",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "SRC-039:object-14",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "SRC-039:object-15",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "SRC-039:object-16",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "SRC-039:object-17",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "SRC-039:object-18",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "SRC-039:object-19",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "SRC-039:object-20",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "SRC-039:object-39",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "SRC-039:object-41",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "SRC-039:object-43",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "SRC-039:object-45",
+          "redirectedFromIdentity": null,
+          "correlationDigest": "6ecc2d4bbdb7249cedea3d36fbae1d31c16d8970fbf9ea88e5face7b346f0b5a"
+        },
+        {
+          "requestIdentity": "SRC-039:object-47",
+          "redirectedFromIdentity": null,
+          "correlationDigest": "6ecc2d4bbdb7249cedea3d36fbae1d31c16d8970fbf9ea88e5face7b346f0b5a"
+        },
+        {
+          "requestIdentity": "SRC-039:object-49",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        }
+      ],
+      "classifications": [
+        {
+          "requestIdentity": "SRC-039:object-1",
+          "responseIdentity": "SRC-039:object-2",
+          "requestKind": "document-navigation",
+          "classification": "bootstrap",
+          "owner": "page",
+          "phase": "bootstrap-document"
+        },
+        {
+          "requestIdentity": "SRC-039:object-3",
+          "responseIdentity": "SRC-039:object-21",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "SRC-039:object-4",
+          "responseIdentity": "SRC-039:object-23",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "SRC-039:object-5",
+          "responseIdentity": "SRC-039:object-22",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "SRC-039:object-6",
+          "responseIdentity": "SRC-039:object-24",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "SRC-039:object-7",
+          "responseIdentity": "SRC-039:object-25",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "SRC-039:object-8",
+          "responseIdentity": "SRC-039:object-26",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "SRC-039:object-9",
+          "responseIdentity": "SRC-039:object-27",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "SRC-039:object-10",
+          "responseIdentity": "SRC-039:object-30",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "SRC-039:object-11",
+          "responseIdentity": "SRC-039:object-32",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "SRC-039:object-12",
+          "responseIdentity": "SRC-039:object-31",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "SRC-039:object-13",
+          "responseIdentity": "SRC-039:object-29",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "SRC-039:object-14",
+          "responseIdentity": "SRC-039:object-28",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "SRC-039:object-15",
+          "responseIdentity": "SRC-039:object-33",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "SRC-039:object-16",
+          "responseIdentity": "SRC-039:object-34",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "SRC-039:object-17",
+          "responseIdentity": "SRC-039:object-36",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "SRC-039:object-18",
+          "responseIdentity": "SRC-039:object-37",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "SRC-039:object-19",
+          "responseIdentity": "SRC-039:object-38",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "SRC-039:object-20",
+          "responseIdentity": "SRC-039:object-35",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "SRC-039:object-39",
+          "responseIdentity": "SRC-039:object-40",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "SRC-039:object-41",
+          "responseIdentity": "SRC-039:object-42",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "SRC-039:object-43",
+          "responseIdentity": "SRC-039:object-44",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "SRC-039:object-45",
+          "responseIdentity": "SRC-039:object-46",
+          "requestKind": "application-fetch",
+          "classification": "action",
+          "owner": "action",
+          "phase": "primary-action"
+        },
+        {
+          "requestIdentity": "SRC-039:object-47",
+          "responseIdentity": "SRC-039:object-48",
+          "requestKind": "application-fetch",
+          "classification": "action",
+          "owner": "action",
+          "phase": "primary-action"
+        },
+        {
+          "requestIdentity": "SRC-039:object-49",
+          "responseIdentity": "SRC-039:object-50",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        }
+      ],
+      "failures": []
+    }
+  }
+}

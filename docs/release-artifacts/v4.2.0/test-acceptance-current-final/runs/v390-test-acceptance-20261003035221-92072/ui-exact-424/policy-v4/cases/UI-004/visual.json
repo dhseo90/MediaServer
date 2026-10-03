@@ -1,0 +1,9 @@
+{
+  "schema": "media-server.ui-raw-visual-capture.v1",
+  "caseId": "UI-004",
+  "correlationId": "UI-004:submit-form:completion",
+  "targetSelector": "[data-testid=\"auth-login-form\"]",
+  "screenshotSha256": "192d548d9c16869690e64db7c4dd1c974f42da22d67d4f898f317991287b1883",
+  "measurementSha256": "16d7a844d571bf8eff10fcf4fc8eae99c6fa34b47018d7bf8626a8c4245d8353",
+  "qualificationStatus": "unqualified-raw-capture"
+}

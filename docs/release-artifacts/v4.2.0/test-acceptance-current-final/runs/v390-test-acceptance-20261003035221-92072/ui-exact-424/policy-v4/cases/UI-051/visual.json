@@ -1,0 +1,9 @@
+{
+  "schema": "media-server.ui-raw-visual-capture.v1",
+  "caseId": "UI-051",
+  "correlationId": "UI-051:assert-visible-read-model:completion",
+  "targetSelector": "#opsIncidentTriageBoardRows",
+  "screenshotSha256": "a4ae9aaacd158ebc712a3024fc139246e1f9b21a44da6967cac6519656b8b05c",
+  "measurementSha256": "c284018ad4918a4419873a0c6baa0a23f9a82f41688b4a037d9737e1a1d72f0e",
+  "qualificationStatus": "unqualified-raw-capture"
+}

@@ -1,0 +1,9 @@
+{
+  "schema": "media-server.ui-raw-visual-capture.v1",
+  "caseId": "UI-015",
+  "correlationId": "UI-015:assert-visible-read-model:completion",
+  "targetSelector": "[data-testid=\"client-live-action-reduction\"]",
+  "screenshotSha256": "c735a44297710740fa9ccb57205cbe5e3b42780ef782122e9de4d23e36bd0cc3",
+  "measurementSha256": "c2e309bca0048b7a5da96fd7baae0318f32c86cd7114e933f3e2907f3c902a19",
+  "qualificationStatus": "unqualified-raw-capture"
+}

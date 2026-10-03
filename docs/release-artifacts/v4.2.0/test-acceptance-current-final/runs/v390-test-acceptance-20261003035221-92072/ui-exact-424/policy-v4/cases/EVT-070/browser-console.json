@@ -1,0 +1,13 @@
+{
+  "schema": "media-server.ui-browser-console.v1",
+  "caseId": "EVT-070",
+  "correlationId": "EVT-070:assert-product-state:completion",
+  "messages": [],
+  "census": {
+    "schema": "media-server.v390-ui-console-census.v1",
+    "messageCount": 0,
+    "severeMessageCount": 0,
+    "unapprovedMessageCount": 0,
+    "entries": []
+  }
+}

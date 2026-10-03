@@ -1,0 +1,9 @@
+{
+  "schema": "media-server.ui-raw-visual-capture.v1",
+  "caseId": "UI-053",
+  "correlationId": "UI-053:assert-visible-read-model:completion",
+  "targetSelector": "[data-testid=\"ops-rule-what-if-preview\"]",
+  "screenshotSha256": "a4ae9aaacd158ebc712a3024fc139246e1f9b21a44da6967cac6519656b8b05c",
+  "measurementSha256": "2b835c7cdd1933cb1259601af8d77ba1e6c6f02f324c1defb783ce9c2452776f",
+  "qualificationStatus": "unqualified-raw-capture"
+}

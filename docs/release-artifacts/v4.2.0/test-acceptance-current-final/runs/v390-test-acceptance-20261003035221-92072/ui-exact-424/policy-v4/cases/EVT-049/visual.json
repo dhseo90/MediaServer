@@ -1,0 +1,9 @@
+{
+  "schema": "media-server.ui-raw-visual-capture.v1",
+  "caseId": "EVT-049",
+  "correlationId": "EVT-049:select-control:completion",
+  "targetSelector": "#eventRecordsEvidenceSelect",
+  "screenshotSha256": "0641c40e983acc2546acabaeb1905307305549f20e6d3a6fe38930a3a111c0af",
+  "measurementSha256": "8f956bfd8309a7c6bf04a88ebfeda7486ff49f9b550e2f92ab6033c1eb01a152",
+  "qualificationStatus": "unqualified-raw-capture"
+}

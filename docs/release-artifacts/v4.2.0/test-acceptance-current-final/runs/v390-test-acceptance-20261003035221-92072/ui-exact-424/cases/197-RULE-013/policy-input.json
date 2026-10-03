@@ -1,0 +1,2283 @@
+{
+  "schema": "media-server.v390-ui-case-policy-input.v1",
+  "caseId": "RULE-013",
+  "runId": "fa3f64f2-58d9-49df-b223-7285df0cce64",
+  "result": {
+    "caseId": "RULE-013",
+    "featureId": "RULE-013",
+    "status": "PASS",
+    "dispatch": "playwright-native",
+    "manualIntervention": false,
+    "actualBrowserExecution": true,
+    "requested": {
+      "schema": "media-server.v390-ui-canonical-requested.v1",
+      "route": "/ops/rules",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#opsVaRuleGeometryMinimumText",
+        "actionAnchor": "opsRulesUpdateGeometryStatus"
+      }
+    },
+    "observed": {
+      "schema": "media-server.v390-ui-runtime-observed.v1",
+      "screenRoute": "/ops/rules",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#opsVaRuleGeometrySummary",
+        "applicability": "required",
+        "exists": true,
+        "visible": true,
+        "enabled": true
+      },
+      "provenance": {
+        "screenRoute": "browser-location",
+        "accountRole": "session-whoami",
+        "viewport": "browser-inner-size",
+        "theme": "browser-media-query",
+        "controlAction": "dom-selector-state"
+      }
+    },
+    "visibleAssertion": {
+      "pass": true,
+      "visible": true,
+      "selector": "body"
+    },
+    "visualMeasurement": {
+      "schema": "media-server.ui-browser-visual-measurement.v2",
+      "caseBinding": {
+        "canonicalCaseId": "RULE-013",
+        "featureId": "RULE-013",
+        "screenId": "RULE-013",
+        "screenRoute": "/ops/rules",
+        "accountRole": "operator",
+        "targetSelector": "#opsVaRuleGeometrySummary"
+      },
+      "route": "/ops/rules",
+      "accountRole": "operator",
+      "requestedTheme": "light",
+      "appliedTheme": "light",
+      "mediaTheme": "light",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "devicePixelRatio": 1
+      },
+      "document": {
+        "scrollWidth": 390,
+        "scrollHeight": 18952,
+        "clientWidth": 390,
+        "clientHeight": 844
+      },
+      "target": {
+        "selector": "#opsVaRuleGeometrySummary",
+        "visible": true,
+        "documentTarget": false,
+        "rect": {
+          "x": 50,
+          "y": 412.578125,
+          "left": 50,
+          "top": 412.578125,
+          "right": 211.859375,
+          "bottom": 431.421875,
+          "width": 161.859375,
+          "height": 18.84375
+        }
+      },
+      "textSamples": [
+        {
+          "foreground": "rgb(23, 28, 31)",
+          "background": "rgb(255, 255, 255)",
+          "fontSizePx": 16,
+          "fontWeight": "850",
+          "rect": {
+            "x": 50,
+            "y": -29.921875,
+            "left": 50,
+            "top": -29.921875,
+            "right": 340,
+            "bottom": 10.078125,
+            "width": 290,
+            "height": 40
+          }
+        },
+        {
+          "foreground": "rgb(92, 105, 114)",
+          "background": "rgb(238, 242, 246)",
+          "fontSizePx": 16,
+          "fontWeight": "850",
+          "rect": {
+            "x": 50,
+            "y": 18.078125,
+            "left": 50,
+            "top": 18.078125,
+            "right": 340,
+            "bottom": 58.078125,
+            "width": 290,
+            "height": 40
+          }
+        },
+        {
+          "foreground": "rgb(92, 105, 114)",
+          "background": "rgb(255, 255, 255)",
+          "fontSizePx": 11,
+          "fontWeight": "850",
+          "rect": {
+            "x": 60,
+            "y": 79.078125,
+            "left": 60,
+            "top": 79.078125,
+            "right": 181,
+            "bottom": 94.078125,
+            "width": 121,
+            "height": 15
+          }
+        },
+        {
+          "foreground": "rgb(23, 28, 31)",
+          "background": "rgb(255, 255, 255)",
+          "fontSizePx": 13,
+          "fontWeight": "700",
+          "rect": {
+            "x": 60,
+            "y": 97.078125,
+            "left": 60,
+            "top": 97.078125,
+            "right": 181,
+            "bottom": 113.328125,
+            "width": 121,
+            "height": 16.25
+          }
+        },
+        {
+          "foreground": "rgb(92, 105, 114)",
+          "background": "rgb(255, 255, 255)",
+          "fontSizePx": 11,
+          "fontWeight": "850",
+          "rect": {
+            "x": 209,
+            "y": 79.078125,
+            "left": 209,
+            "top": 79.078125,
+            "right": 330,
+            "bottom": 94.078125,
+            "width": 121,
+            "height": 15
+          }
+        },
+        {
+          "foreground": "rgb(23, 28, 31)",
+          "background": "rgb(255, 255, 255)",
+          "fontSizePx": 13,
+          "fontWeight": "700",
+          "rect": {
+            "x": 209,
+            "y": 97.078125,
+            "left": 209,
+            "top": 97.078125,
+            "right": 330,
+            "bottom": 113.328125,
+            "width": 121,
+            "height": 16.25
+          }
+        },
+        {
+          "foreground": "rgb(92, 105, 114)",
+          "background": "rgb(255, 255, 255)",
+          "fontSizePx": 11,
+          "fontWeight": "850",
+          "rect": {
+            "x": 60,
+            "y": 139.328125,
+            "left": 60,
+            "top": 139.328125,
+            "right": 181,
+            "bottom": 154.328125,
+            "width": 121,
+            "height": 15
+          }
+        },
+        {
+          "foreground": "rgb(21, 128, 61)",
+          "background": "rgb(255, 255, 255)",
+          "fontSizePx": 13,
+          "fontWeight": "700",
+          "rect": {
+            "x": 60,
+            "y": 157.328125,
+            "left": 60,
+            "top": 157.328125,
+            "right": 181,
+            "bottom": 173.578125,
+            "width": 121,
+            "height": 16.25
+          }
+        },
+        {
+          "foreground": "rgb(92, 105, 114)",
+          "background": "rgb(255, 255, 255)",
+          "fontSizePx": 11,
+          "fontWeight": "850",
+          "rect": {
+            "x": 209,
+            "y": 139.328125,
+            "left": 209,
+            "top": 139.328125,
+            "right": 330,
+            "bottom": 154.328125,
+            "width": 121,
+            "height": 15
+          }
+        },
+        {
+          "foreground": "rgb(23, 28, 31)",
+          "background": "rgb(255, 255, 255)",
+          "fontSizePx": 13,
+          "fontWeight": "700",
+          "rect": {
+            "x": 209,
+            "y": 157.328125,
+            "left": 209,
+            "top": 157.328125,
+            "right": 330,
+            "bottom": 173.578125,
+            "width": 121,
+            "height": 16.25
+          }
+        },
+        {
+          "foreground": "rgb(29, 78, 216)",
+          "background": "color(srgb 0.84 0.84 0.84)",
+          "fontSizePx": 1.45,
+          "fontWeight": "850",
+          "rect": {
+            "x": 216.7124786376953,
+            "y": 287.979736328125,
+            "left": 216.7124786376953,
+            "top": 287.979736328125,
+            "right": 228.6031036376953,
+            "bottom": 294.979736328125,
+            "width": 11.890625,
+            "height": 7
+          }
+        },
+        {
+          "foreground": "rgb(29, 78, 216)",
+          "background": "color(srgb 0.84 0.84 0.84)",
+          "fontSizePx": 1.45,
+          "fontWeight": "900",
+          "rect": {
+            "x": 129.27951049804688,
+            "y": 281.09393310546875,
+            "left": 129.27951049804688,
+            "top": 281.09393310546875,
+            "right": 132.49826049804688,
+            "bottom": 288.09393310546875,
+            "width": 3.21875,
+            "height": 7
+          }
+        },
+        {
+          "foreground": "rgb(29, 78, 216)",
+          "background": "color(srgb 0.84 0.84 0.84)",
+          "fontSizePx": 1.45,
+          "fontWeight": "900",
+          "rect": {
+            "x": 287.50177001953125,
+            "y": 281.09393310546875,
+            "left": 287.50177001953125,
+            "top": 281.09393310546875,
+            "right": 290.7204895019531,
+            "bottom": 288.09393310546875,
+            "width": 3.218719482421875,
+            "height": 7
+          }
+        },
+        {
+          "foreground": "rgb(29, 78, 216)",
+          "background": "color(srgb 0.84 0.84 0.84)",
+          "fontSizePx": 1.45,
+          "fontWeight": "850",
+          "rect": {
+            "x": 67.19671630859375,
+            "y": 207.50790405273438,
+            "left": 67.19671630859375,
+            "top": 207.50790405273438,
+            "right": 84.77484130859375,
+            "bottom": 214.50790405273438,
+            "width": 17.578125,
+            "height": 7
+          }
+        },
+        {
+          "foreground": "rgb(29, 78, 216)",
+          "background": "color(srgb 0.84 0.84 0.84)",
+          "fontSizePx": 1.45,
+          "fontWeight": "850",
+          "rect": {
+            "x": 65.50140380859375,
+            "y": 235.98789978027344,
+            "left": 65.50140380859375,
+            "top": 235.98789978027344,
+            "right": 86.47015380859375,
+            "bottom": 242.98789978027344,
+            "width": 20.96875,
+            "height": 7
+          }
+        },
+        {
+          "foreground": "rgb(23, 28, 31)",
+          "background": "color(srgb 0.84 0.84 0.84)",
+          "fontSizePx": 13,
+          "fontWeight": "400",
+          "rect": {
+            "x": 51,
+            "y": 195.578125,
+            "left": 51,
+            "top": 195.578125,
+            "right": 369,
+            "bottom": 373.578125,
+            "width": 318,
+            "height": 178
+          }
+        },
+        {
+          "foreground": "rgb(23, 28, 31)",
+          "background": "rgb(248, 250, 251)",
+          "fontSizePx": 16,
+          "fontWeight": "700",
+          "rect": {
+            "x": 50,
+            "y": 390.578125,
+            "left": 50,
+            "top": 390.578125,
+            "right": 112,
+            "bottom": 412.578125,
+            "width": 62,
+            "height": 22
+          }
+        },
+        {
+          "foreground": "rgb(92, 105, 114)",
+          "background": "rgb(248, 250, 251)",
+          "fontSizePx": 13,
+          "fontWeight": "400",
+          "rect": {
+            "x": 50,
+            "y": 412.578125,
+            "left": 50,
+            "top": 412.578125,
+            "right": 211.859375,
+            "bottom": 431.421875,
+            "width": 161.859375,
+            "height": 18.84375
+          }
+        },
+        {
+          "foreground": "rgb(23, 28, 31)",
+          "background": "rgb(255, 255, 255)",
+          "fontSizePx": 16,
+          "fontWeight": "850",
+          "rect": {
+            "x": 50,
+            "y": 443.421875,
+            "left": 50,
+            "top": 443.421875,
+            "right": 340,
+            "bottom": 483.421875,
+            "width": 290,
+            "height": 40
+          }
+        },
+        {
+          "foreground": "rgb(92, 105, 114)",
+          "background": "rgb(238, 242, 246)",
+          "fontSizePx": 16,
+          "fontWeight": "850",
+          "rect": {
+            "x": 50,
+            "y": 491.421875,
+            "left": 50,
+            "top": 491.421875,
+            "right": 340,
+            "bottom": 531.421875,
+            "width": 290,
+            "height": 40
+          }
+        },
+        {
+          "foreground": "rgb(23, 28, 31)",
+          "background": "rgb(255, 255, 255)",
+          "fontSizePx": 16,
+          "fontWeight": "850",
+          "rect": {
+            "x": 50,
+            "y": 539.421875,
+            "left": 50,
+            "top": 539.421875,
+            "right": 340,
+            "bottom": 579.421875,
+            "width": 290,
+            "height": 40
+          }
+        },
+        {
+          "foreground": "rgb(23, 28, 31)",
+          "background": "rgb(255, 255, 255)",
+          "fontSizePx": 16,
+          "fontWeight": "850",
+          "rect": {
+            "x": 50,
+            "y": 587.421875,
+            "left": 50,
+            "top": 587.421875,
+            "right": 340,
+            "bottom": 627.421875,
+            "width": 290,
+            "height": 40
+          }
+        },
+        {
+          "foreground": "rgb(23, 28, 31)",
+          "background": "rgb(248, 250, 251)",
+          "fontSizePx": 16,
+          "fontWeight": "400",
+          "rect": {
+            "x": 50,
+            "y": 639.421875,
+            "left": 50,
+            "top": 639.421875,
+            "right": 340,
+            "bottom": 661.421875,
+            "width": 290,
+            "height": 22
+          }
+        },
+        {
+          "foreground": "rgb(92, 105, 114)",
+          "background": "rgb(248, 250, 251)",
+          "fontSizePx": 13,
+          "fontWeight": "850",
+          "rect": {
+            "x": 50,
+            "y": 661.421875,
+            "left": 50,
+            "top": 661.421875,
+            "right": 340,
+            "bottom": 723.421875,
+            "width": 290,
+            "height": 62
+          }
+        },
+        {
+          "foreground": "rgb(92, 105, 114)",
+          "background": "rgb(248, 250, 251)",
+          "fontSizePx": 13,
+          "fontWeight": "850",
+          "rect": {
+            "x": 50,
+            "y": 735.421875,
+            "left": 50,
+            "top": 735.421875,
+            "right": 340,
+            "bottom": 867.421875,
+            "width": 290,
+            "height": 132
+          }
+        },
+        {
+          "foreground": "rgb(23, 28, 31)",
+          "background": "rgb(243, 246, 248)",
+          "fontSizePx": 15,
+          "fontWeight": "700",
+          "rect": {
+            "x": 33,
+            "y": 728.421875,
+            "left": 33,
+            "top": 728.421875,
+            "right": 357,
+            "bottom": 748.421875,
+            "width": 324,
+            "height": 20
+          }
+        },
+        {
+          "foreground": "rgb(92, 105, 114)",
+          "background": "rgb(243, 246, 248)",
+          "fontSizePx": 16,
+          "fontWeight": "400",
+          "rect": {
+            "x": 33,
+            "y": 748.421875,
+            "left": 33,
+            "top": 748.421875,
+            "right": 357,
+            "bottom": 822.8125,
+            "width": 324,
+            "height": 74.390625
+          }
+        },
+        {
+          "foreground": "rgb(23, 28, 31)",
+          "background": "rgb(255, 255, 255)",
+          "fontSizePx": 16,
+          "fontWeight": "850",
+          "rect": {
+            "x": 33,
+            "y": 830.8125,
+            "left": 33,
+            "top": 830.8125,
+            "right": 114.375,
+            "bottom": 870.8125,
+            "width": 81.375,
+            "height": 40
+          }
+        }
+      ],
+      "focus": {
+        "focusableCount": 116,
+        "applicable": true
+      },
+      "liveVideo": null,
+      "postActionVisualOwner": {
+        "schema": "media-server.v390-ui-post-action-visual-target.v1",
+        "caseId": "RULE-013",
+        "actionId": "RULE-013:assert-visible-read-model",
+        "completionMode": "request",
+        "sourceSelectorSha256": "81adb8e1610a88d78fed270b269fa79b11efc11f7fb1156d740969de34bc125a",
+        "sourceOwnerSelectorSha256": "81adb8e1610a88d78fed270b269fa79b11efc11f7fb1156d740969de34bc125a",
+        "requestedState": "visible",
+        "observedRoute": "/ops/rules",
+        "navigationEpoch": 1,
+        "ownerCandidateCount": 1,
+        "sourceSelectorRewaited": false,
+        "selector": "#opsVaRuleGeometrySummary",
+        "bindingKind": "post-action-visible-source-owner",
+        "sourceDetached": false,
+        "sourceHidden": false,
+        "epochRelation": "same-document"
+      },
+      "focusSamples": [
+        {
+          "index": 0,
+          "focusIdentity": "body > main > section > div:nth-of-type(4) > section:nth-of-type(2) > div:nth-of-type(2) > article:nth-of-type(1) > div:nth-of-type(2) > a",
+          "tag": "a",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 1,
+          "focusIdentity": "#opsRulesPrereqProfilesAction",
+          "tag": "button",
+          "id": "opsRulesPrereqProfilesAction",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 2,
+          "focusIdentity": "#opsRulesPrereqTemplatesAction",
+          "tag": "button",
+          "id": "opsRulesPrereqTemplatesAction",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 3,
+          "focusIdentity": "#opsRulesPrereqVaRulesAction",
+          "tag": "button",
+          "id": "opsRulesPrereqVaRulesAction",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 4,
+          "focusIdentity": "#opsScenarioBuilderApply",
+          "tag": "button",
+          "id": "opsScenarioBuilderApply",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 5,
+          "focusIdentity": "#opsScenarioBuilderType",
+          "tag": "select",
+          "id": "opsScenarioBuilderType",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "solid",
+          "outlineWidth": "3px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 6,
+          "focusIdentity": "#opsScenarioBuilderPreset",
+          "tag": "select",
+          "id": "opsScenarioBuilderPreset",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "solid",
+          "outlineWidth": "3px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 7,
+          "focusIdentity": "#opsScenarioBuilderClasses",
+          "tag": "input",
+          "id": "opsScenarioBuilderClasses",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "solid",
+          "outlineWidth": "3px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 8,
+          "focusIdentity": "body > main > section > div:nth-of-type(5) > section:nth-of-type(1) > div:nth-of-type(3) > details > summary",
+          "tag": "summary",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 9,
+          "focusIdentity": "#opsVlmRuleDraftKindSelect",
+          "tag": "select",
+          "id": "opsVlmRuleDraftKindSelect",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "solid",
+          "outlineWidth": "3px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 10,
+          "focusIdentity": "#opsVlmRuleDraftRefresh",
+          "tag": "button",
+          "id": "opsVlmRuleDraftRefresh",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 11,
+          "focusIdentity": "#opsRulesFilterInput",
+          "tag": "input",
+          "id": "opsRulesFilterInput",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "solid",
+          "outlineWidth": "3px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 12,
+          "focusIdentity": "#opsAddVaRuleBtn",
+          "tag": "button",
+          "id": "opsAddVaRuleBtn",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 13,
+          "focusIdentity": "#opsAddEventRuleBtn",
+          "tag": "button",
+          "id": "opsAddEventRuleBtn",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 14,
+          "focusIdentity": "#opsAddProfileBtn",
+          "tag": "button",
+          "id": "opsAddProfileBtn",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 15,
+          "focusIdentity": "#opsCreateVaRuleBtn",
+          "tag": "button",
+          "id": "opsCreateVaRuleBtn",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 16,
+          "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(2) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(1) > td:nth-of-type(7) > div > button:nth-of-type(1)",
+          "tag": "button",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 17,
+          "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(2) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(1) > td:nth-of-type(7) > div > button:nth-of-type(2)",
+          "tag": "button",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 18,
+          "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(2) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(1) > td:nth-of-type(7) > div > button:nth-of-type(3)",
+          "tag": "button",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 19,
+          "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(2) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(1) > td:nth-of-type(9) > div > button",
+          "tag": "button",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 20,
+          "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(2) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(1) > td:nth-of-type(9) > div > details > summary",
+          "tag": "summary",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 21,
+          "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(2) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(2) > td:nth-of-type(7) > div > button:nth-of-type(1)",
+          "tag": "button",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 22,
+          "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(2) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(2) > td:nth-of-type(7) > div > button:nth-of-type(2)",
+          "tag": "button",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 23,
+          "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(2) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(2) > td:nth-of-type(7) > div > button:nth-of-type(3)",
+          "tag": "button",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 24,
+          "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(2) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(2) > td:nth-of-type(9) > div > button",
+          "tag": "button",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 25,
+          "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(2) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(2) > td:nth-of-type(9) > div > details > summary",
+          "tag": "summary",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 26,
+          "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(2) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(3) > td:nth-of-type(7) > div > button:nth-of-type(1)",
+          "tag": "button",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 27,
+          "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(2) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(3) > td:nth-of-type(7) > div > button:nth-of-type(2)",
+          "tag": "button",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 28,
+          "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(2) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(3) > td:nth-of-type(7) > div > button:nth-of-type(3)",
+          "tag": "button",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 29,
+          "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(2) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(3) > td:nth-of-type(9) > div > button",
+          "tag": "button",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 30,
+          "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(2) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(3) > td:nth-of-type(9) > div > details > summary",
+          "tag": "summary",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 31,
+          "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(2) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(4) > td:nth-of-type(7) > div > button:nth-of-type(1)",
+          "tag": "button",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 32,
+          "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(2) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(4) > td:nth-of-type(7) > div > button:nth-of-type(2)",
+          "tag": "button",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 33,
+          "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(2) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(4) > td:nth-of-type(7) > div > button:nth-of-type(3)",
+          "tag": "button",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 34,
+          "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(2) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(4) > td:nth-of-type(9) > div > button",
+          "tag": "button",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 35,
+          "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(2) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(4) > td:nth-of-type(9) > div > details > summary",
+          "tag": "summary",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 36,
+          "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(2) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(5) > td:nth-of-type(7) > div > button:nth-of-type(1)",
+          "tag": "button",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 37,
+          "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(2) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(5) > td:nth-of-type(7) > div > button:nth-of-type(2)",
+          "tag": "button",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 38,
+          "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(2) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(5) > td:nth-of-type(7) > div > button:nth-of-type(3)",
+          "tag": "button",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 39,
+          "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(2) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(5) > td:nth-of-type(9) > div > button",
+          "tag": "button",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 40,
+          "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(2) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(5) > td:nth-of-type(9) > div > details > summary",
+          "tag": "summary",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 41,
+          "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(2) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(6) > td:nth-of-type(7) > div > button:nth-of-type(1)",
+          "tag": "button",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 42,
+          "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(2) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(6) > td:nth-of-type(7) > div > button:nth-of-type(2)",
+          "tag": "button",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 43,
+          "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(2) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(6) > td:nth-of-type(7) > div > button:nth-of-type(3)",
+          "tag": "button",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 44,
+          "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(2) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(6) > td:nth-of-type(9) > div > button",
+          "tag": "button",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 45,
+          "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(2) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(6) > td:nth-of-type(9) > div > details > summary",
+          "tag": "summary",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 46,
+          "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(2) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(7) > td:nth-of-type(7) > div > button:nth-of-type(1)",
+          "tag": "button",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 47,
+          "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(2) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(7) > td:nth-of-type(7) > div > button:nth-of-type(2)",
+          "tag": "button",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 48,
+          "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(2) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(7) > td:nth-of-type(7) > div > button:nth-of-type(3)",
+          "tag": "button",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 49,
+          "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(2) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(7) > td:nth-of-type(9) > div > button",
+          "tag": "button",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 50,
+          "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(2) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(7) > td:nth-of-type(9) > div > details > summary",
+          "tag": "summary",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 51,
+          "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(2) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(8) > td:nth-of-type(7) > div > button:nth-of-type(1)",
+          "tag": "button",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 52,
+          "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(2) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(8) > td:nth-of-type(7) > div > button:nth-of-type(2)",
+          "tag": "button",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 53,
+          "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(2) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(8) > td:nth-of-type(7) > div > button:nth-of-type(3)",
+          "tag": "button",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 54,
+          "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(2) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(8) > td:nth-of-type(9) > div > button",
+          "tag": "button",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 55,
+          "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(2) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(8) > td:nth-of-type(9) > div > details > summary",
+          "tag": "summary",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 56,
+          "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(2) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(9) > td:nth-of-type(7) > div > button:nth-of-type(1)",
+          "tag": "button",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 57,
+          "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(2) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(9) > td:nth-of-type(7) > div > button:nth-of-type(2)",
+          "tag": "button",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 58,
+          "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(2) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(9) > td:nth-of-type(7) > div > button:nth-of-type(3)",
+          "tag": "button",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 59,
+          "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(2) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(9) > td:nth-of-type(9) > div > button",
+          "tag": "button",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 60,
+          "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(2) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(9) > td:nth-of-type(9) > div > details > summary",
+          "tag": "summary",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 61,
+          "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(2) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(10) > td:nth-of-type(7) > div > button:nth-of-type(1)",
+          "tag": "button",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 62,
+          "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(2) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(10) > td:nth-of-type(7) > div > button:nth-of-type(2)",
+          "tag": "button",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 63,
+          "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(2) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(10) > td:nth-of-type(7) > div > button:nth-of-type(3)",
+          "tag": "button",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        }
+      ]
+    },
+    "visualExpectedCase": {
+      "canonicalCaseId": "RULE-013",
+      "featureId": "RULE-013",
+      "screenId": "RULE-013",
+      "screenRoute": "/ops/rules",
+      "accountRole": "operator",
+      "targetSelector": "#opsVaRuleGeometrySummary",
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "liveVideoRequired": false
+    },
+    "screenshotPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/runs/v390-test-acceptance-20261003035221-92072/ui-exact-424/cases/197-RULE-013/screenshots/RULE-013.png",
+    "tracePath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/runs/v390-test-acceptance-20261003035221-92072/ui-exact-424/cases/197-RULE-013/traces/RULE-013.trace.json",
+    "browserConsolePath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.2.0/test-acceptance-current-final/runs/v390-test-acceptance-20261003035221-92072/ui-exact-424/cases/197-RULE-013/logs/RULE-013.browser-console.json",
+    "cleanupAttestation": {
+      "schema": "media-server.v390-ui-case-cleanup-attestation.v1",
+      "pass": true,
+      "primaryFailurePresent": false,
+      "primaryFailurePreserved": false,
+      "caseRuntimeRestoreAttempted": true,
+      "caseRuntimeRestored": true,
+      "browserCloseAttempted": true,
+      "browserContextClosed": true,
+      "cleanupEntryCount": 2,
+      "failureCode": ""
+    },
+    "requestLifecycleEvaluation": {
+      "status": "PASS",
+      "census": {
+        "requestCount": 25,
+        "responseCount": 25,
+        "classified": 25,
+        "unclassified": 0,
+        "multiplyClassified": 0,
+        "captureErrors": 0,
+        "duplicateResponses": 0,
+        "failureCount": 0
+      },
+      "diagnostics": {
+        "sequenceDomain": "diagnostic-seal-and-after-seal-only",
+        "diagnosticErrors": 0,
+        "seal": {
+          "sequence": 1,
+          "timestamp": 1791002951911
+        },
+        "afterSeal": [],
+        "requests": [
+          {
+            "requestIdentity": "RULE-013:object-1",
+            "legacyRequestId": "native-request-1",
+            "method": "GET",
+            "path": "/ops/rules",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 1,
+              "timestamp": 1791002948807
+            },
+            "responses": [
+              {
+                "sequence": 2,
+                "timestamp": 1791002948819,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 13,
+                "timestamp": 1791002948888
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "RULE-013:object-3",
+            "legacyRequestId": "native-request-2",
+            "method": "GET",
+            "path": "/auth/whoami",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 3,
+              "timestamp": 1791002948836
+            },
+            "responses": [
+              {
+                "sequence": 14,
+                "timestamp": 1791002948900,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 24,
+                "timestamp": 1791002948903
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "RULE-013:object-4",
+            "legacyRequestId": "native-request-3",
+            "method": "GET",
+            "path": "/ops/api/vlm/profiles",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 4,
+              "timestamp": 1791002948837
+            },
+            "responses": [
+              {
+                "sequence": 18,
+                "timestamp": 1791002948901,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 28,
+                "timestamp": 1791002948903
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "RULE-013:object-5",
+            "legacyRequestId": "native-request-4",
+            "method": "GET",
+            "path": "/ops/api/vlm/evaluation-results",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 5,
+              "timestamp": 1791002948837
+            },
+            "responses": [
+              {
+                "sequence": 15,
+                "timestamp": 1791002948900,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 25,
+                "timestamp": 1791002948903
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "RULE-013:object-6",
+            "legacyRequestId": "native-request-5",
+            "method": "GET",
+            "path": "/ops/api/vlm/evaluation-promotion-guard",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 6,
+              "timestamp": 1791002948837
+            },
+            "responses": [
+              {
+                "sequence": 16,
+                "timestamp": 1791002948901,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 26,
+                "timestamp": 1791002948903
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "RULE-013:object-7",
+            "legacyRequestId": "native-request-6",
+            "method": "GET",
+            "path": "/ops/api/audit",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 7,
+              "timestamp": 1791002948837
+            },
+            "responses": [
+              {
+                "sequence": 19,
+                "timestamp": 1791002948902,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 29,
+                "timestamp": 1791002948903
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "RULE-013:object-8",
+            "legacyRequestId": "native-request-7",
+            "method": "GET",
+            "path": "/ops/api/rules/catalog",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 8,
+              "timestamp": 1791002948837
+            },
+            "responses": [
+              {
+                "sequence": 17,
+                "timestamp": 1791002948901,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 27,
+                "timestamp": 1791002948903
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "RULE-013:object-9",
+            "legacyRequestId": "native-request-8",
+            "method": "GET",
+            "path": "/lab/analysis/profiles",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 9,
+              "timestamp": 1791002948838
+            },
+            "responses": [
+              {
+                "sequence": 20,
+                "timestamp": 1791002948902,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 30,
+                "timestamp": 1791002948903
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "RULE-013:object-10",
+            "legacyRequestId": "native-request-9",
+            "method": "GET",
+            "path": "/ops/api/sources",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 10,
+              "timestamp": 1791002948838
+            },
+            "responses": [
+              {
+                "sequence": 21,
+                "timestamp": 1791002948902,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 31,
+                "timestamp": 1791002948903
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "RULE-013:object-11",
+            "legacyRequestId": "native-request-10",
+            "method": "GET",
+            "path": "/ops/api/views",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 11,
+              "timestamp": 1791002948838
+            },
+            "responses": [
+              {
+                "sequence": 23,
+                "timestamp": 1791002948903,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 33,
+                "timestamp": 1791002948903
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "RULE-013:object-12",
+            "legacyRequestId": "native-request-11",
+            "method": "GET",
+            "path": "/lab/analysis/capabilities",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 12,
+              "timestamp": 1791002948838
+            },
+            "responses": [
+              {
+                "sequence": 22,
+                "timestamp": 1791002948902,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 32,
+                "timestamp": 1791002948903
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "RULE-013:object-23",
+            "legacyRequestId": "native-request-12",
+            "method": "GET",
+            "path": "/ops/api/vlm/rule-suggestion-draft-bridge",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 34,
+              "timestamp": 1791002948906
+            },
+            "responses": [
+              {
+                "sequence": 37,
+                "timestamp": 1791002948919,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 39,
+                "timestamp": 1791002948919
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "RULE-013:object-24",
+            "legacyRequestId": "native-request-13",
+            "method": "GET",
+            "path": "/ops/api/vlm/rule-suggestion-drafts",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 35,
+              "timestamp": 1791002948906
+            },
+            "responses": [
+              {
+                "sequence": 36,
+                "timestamp": 1791002948919,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 38,
+                "timestamp": 1791002948919
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "RULE-013:object-27",
+            "legacyRequestId": "native-request-14",
+            "method": "GET",
+            "path": "/auth/whoami",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 40,
+              "timestamp": 1791002948939
+            },
+            "responses": [
+              {
+                "sequence": 41,
+                "timestamp": 1791002948941,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 42,
+                "timestamp": 1791002948942
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "RULE-013:object-29",
+            "legacyRequestId": "native-request-15",
+            "method": "GET",
+            "path": "/auth/whoami",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 43,
+              "timestamp": 1791002950526
+            },
+            "responses": [
+              {
+                "sequence": 44,
+                "timestamp": 1791002950529,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 45,
+                "timestamp": 1791002950529
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "RULE-013:object-31",
+            "legacyRequestId": "native-request-16",
+            "method": "GET",
+            "path": "/ops/rules",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 46,
+              "timestamp": 1791002950549
+            },
+            "responses": [
+              {
+                "sequence": 47,
+                "timestamp": 1791002950554,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 48,
+                "timestamp": 1791002950556
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "RULE-013:object-33",
+            "legacyRequestId": "native-request-17",
+            "method": "GET",
+            "path": "/ops/api/rules/catalog",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 49,
+              "timestamp": 1791002950764
+            },
+            "responses": [
+              {
+                "sequence": 54,
+                "timestamp": 1791002950778,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 59,
+                "timestamp": 1791002950779
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "RULE-013:object-34",
+            "legacyRequestId": "native-request-18",
+            "method": "GET",
+            "path": "/lab/analysis/profiles",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 50,
+              "timestamp": 1791002950765
+            },
+            "responses": [
+              {
+                "sequence": 55,
+                "timestamp": 1791002950778,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 60,
+                "timestamp": 1791002950779
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "RULE-013:object-35",
+            "legacyRequestId": "native-request-19",
+            "method": "GET",
+            "path": "/ops/api/sources",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 51,
+              "timestamp": 1791002950765
+            },
+            "responses": [
+              {
+                "sequence": 58,
+                "timestamp": 1791002950779,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 63,
+                "timestamp": 1791002950779
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "RULE-013:object-36",
+            "legacyRequestId": "native-request-20",
+            "method": "GET",
+            "path": "/ops/api/views",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 52,
+              "timestamp": 1791002950766
+            },
+            "responses": [
+              {
+                "sequence": 56,
+                "timestamp": 1791002950779,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 61,
+                "timestamp": 1791002950779
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "RULE-013:object-37",
+            "legacyRequestId": "native-request-21",
+            "method": "GET",
+            "path": "/lab/analysis/capabilities",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 53,
+              "timestamp": 1791002950766
+            },
+            "responses": [
+              {
+                "sequence": 57,
+                "timestamp": 1791002950779,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 62,
+                "timestamp": 1791002950779
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "RULE-013:object-43",
+            "legacyRequestId": "native-request-22",
+            "method": "GET",
+            "path": "/ops/api/vlm/rule-suggestion-draft-bridge",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 64,
+              "timestamp": 1791002950780
+            },
+            "responses": [
+              {
+                "sequence": 67,
+                "timestamp": 1791002950787,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 69,
+                "timestamp": 1791002950787
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "RULE-013:object-44",
+            "legacyRequestId": "native-request-23",
+            "method": "GET",
+            "path": "/ops/api/vlm/rule-suggestion-drafts",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 65,
+              "timestamp": 1791002950781
+            },
+            "responses": [
+              {
+                "sequence": 66,
+                "timestamp": 1791002950787,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 68,
+                "timestamp": 1791002950787
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "RULE-013:object-47",
+            "legacyRequestId": "native-request-24",
+            "method": "GET",
+            "path": "/ops/rules",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 70,
+              "timestamp": 1791002951292
+            },
+            "responses": [
+              {
+                "sequence": 71,
+                "timestamp": 1791002951295,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 72,
+                "timestamp": 1791002951296
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "RULE-013:object-49",
+            "legacyRequestId": "native-request-25",
+            "method": "GET",
+            "path": "/auth/whoami",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 73,
+              "timestamp": 1791002951435
+            },
+            "responses": [
+              {
+                "sequence": 74,
+                "timestamp": 1791002951437,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 75,
+                "timestamp": 1791002951437
+              }
+            ],
+            "failed": []
+          }
+        ]
+      },
+      "requests": [
+        {
+          "requestIdentity": "RULE-013:object-1",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "RULE-013:object-3",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "RULE-013:object-4",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "RULE-013:object-5",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "RULE-013:object-6",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "RULE-013:object-7",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "RULE-013:object-8",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "RULE-013:object-9",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "RULE-013:object-10",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "RULE-013:object-11",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "RULE-013:object-12",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "RULE-013:object-23",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "RULE-013:object-24",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "RULE-013:object-27",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "RULE-013:object-29",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "RULE-013:object-31",
+          "redirectedFromIdentity": null,
+          "correlationDigest": "1f4f76d629a873420ce4530320eba34344b7da1801574f61a8d3abd228513217"
+        },
+        {
+          "requestIdentity": "RULE-013:object-33",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "RULE-013:object-34",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "RULE-013:object-35",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "RULE-013:object-36",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "RULE-013:object-37",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "RULE-013:object-43",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "RULE-013:object-44",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "RULE-013:object-47",
+          "redirectedFromIdentity": null,
+          "correlationDigest": "1f4f76d629a873420ce4530320eba34344b7da1801574f61a8d3abd228513217"
+        },
+        {
+          "requestIdentity": "RULE-013:object-49",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        }
+      ],
+      "classifications": [
+        {
+          "requestIdentity": "RULE-013:object-1",
+          "responseIdentity": "RULE-013:object-2",
+          "requestKind": "document-navigation",
+          "classification": "bootstrap",
+          "owner": "page",
+          "phase": "bootstrap-document"
+        },
+        {
+          "requestIdentity": "RULE-013:object-3",
+          "responseIdentity": "RULE-013:object-13",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "RULE-013:object-4",
+          "responseIdentity": "RULE-013:object-17",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "RULE-013:object-5",
+          "responseIdentity": "RULE-013:object-14",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "RULE-013:object-6",
+          "responseIdentity": "RULE-013:object-15",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "RULE-013:object-7",
+          "responseIdentity": "RULE-013:object-18",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "RULE-013:object-8",
+          "responseIdentity": "RULE-013:object-16",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "RULE-013:object-9",
+          "responseIdentity": "RULE-013:object-19",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "RULE-013:object-10",
+          "responseIdentity": "RULE-013:object-20",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "RULE-013:object-11",
+          "responseIdentity": "RULE-013:object-22",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "RULE-013:object-12",
+          "responseIdentity": "RULE-013:object-21",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "RULE-013:object-23",
+          "responseIdentity": "RULE-013:object-26",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "RULE-013:object-24",
+          "responseIdentity": "RULE-013:object-25",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "RULE-013:object-27",
+          "responseIdentity": "RULE-013:object-28",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "RULE-013:object-29",
+          "responseIdentity": "RULE-013:object-30",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "RULE-013:object-31",
+          "responseIdentity": "RULE-013:object-32",
+          "requestKind": "application-fetch",
+          "classification": "action",
+          "owner": "action",
+          "phase": "primary-action"
+        },
+        {
+          "requestIdentity": "RULE-013:object-33",
+          "responseIdentity": "RULE-013:object-38",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "RULE-013:object-34",
+          "responseIdentity": "RULE-013:object-39",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "RULE-013:object-35",
+          "responseIdentity": "RULE-013:object-42",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "RULE-013:object-36",
+          "responseIdentity": "RULE-013:object-40",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "RULE-013:object-37",
+          "responseIdentity": "RULE-013:object-41",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "RULE-013:object-43",
+          "responseIdentity": "RULE-013:object-46",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "RULE-013:object-44",
+          "responseIdentity": "RULE-013:object-45",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "RULE-013:object-47",
+          "responseIdentity": "RULE-013:object-48",
+          "requestKind": "application-fetch",
+          "classification": "action",
+          "owner": "action",
+          "phase": "primary-action"
+        },
+        {
+          "requestIdentity": "RULE-013:object-49",
+          "responseIdentity": "RULE-013:object-50",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        }
+      ],
+      "failures": []
+    }
+  }
+}

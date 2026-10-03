@@ -1,0 +1,9 @@
+== Policy v4 UI fulltest evidence qualification ==
+- policySchema: media-server.ui-fulltest-evidence-policy.v4
+- policyValidationResult: PASS
+- currentEvidenceStatus: actual-current-source-evidence
+- currentCoverage: {"exactUiTestIds":424,"nativeExecutablePositive":423,"negativeRouteExecutable":1,"unsupported":0,"executedPass":424,"notRun":0}
+- evidenceEligibility: eligible
+- qualifiedCaseCount: 424
+- uiFulltestPass: true
+- reasonCount: 0

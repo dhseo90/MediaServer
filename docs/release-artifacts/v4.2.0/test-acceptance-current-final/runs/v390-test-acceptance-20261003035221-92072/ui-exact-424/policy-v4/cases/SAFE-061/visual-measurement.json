@@ -1,0 +1,507 @@
+{
+  "schema": "media-server.ui-browser-visual-measurement.v2",
+  "caseBinding": {
+    "canonicalCaseId": "SAFE-061",
+    "featureId": "SAFE-061",
+    "screenId": "SAFE-061",
+    "screenRoute": "/ops/events",
+    "accountRole": "operator",
+    "targetSelector": "[data-testid=\"ops-rule-what-if-preview\"]"
+  },
+  "route": "/ops/events",
+  "accountRole": "operator",
+  "requestedTheme": "light",
+  "appliedTheme": "light",
+  "mediaTheme": "light",
+  "viewport": {
+    "width": 390,
+    "height": 844,
+    "devicePixelRatio": 1
+  },
+  "document": {
+    "scrollWidth": 390,
+    "scrollHeight": 33185,
+    "clientWidth": 390,
+    "clientHeight": 844
+  },
+  "target": {
+    "selector": "[data-testid=\"ops-rule-what-if-preview\"]",
+    "visible": true,
+    "documentTarget": false,
+    "rect": {
+      "x": 16,
+      "y": 114.828125,
+      "left": 16,
+      "top": 114.828125,
+      "right": 374,
+      "bottom": 729.203125,
+      "width": 358,
+      "height": 614.375
+    }
+  },
+  "textSamples": [
+    {
+      "foreground": "rgb(92, 105, 114)",
+      "background": "rgb(248, 250, 251)",
+      "fontSizePx": 12,
+      "fontWeight": "400",
+      "rect": {
+        "x": 46,
+        "y": 4.828125,
+        "left": 46,
+        "top": 4.828125,
+        "right": 140.609375,
+        "bottom": 20.828125,
+        "width": 94.609375,
+        "height": 16
+      }
+    },
+    {
+      "foreground": "rgb(92, 105, 114)",
+      "background": "rgb(248, 250, 251)",
+      "fontSizePx": 12,
+      "fontWeight": "400",
+      "rect": {
+        "x": 148.609375,
+        "y": 4.828125,
+        "left": 148.609375,
+        "top": 4.828125,
+        "right": 213.0625,
+        "bottom": 20.828125,
+        "width": 64.453125,
+        "height": 16
+      }
+    },
+    {
+      "foreground": "rgb(92, 105, 114)",
+      "background": "rgb(248, 250, 251)",
+      "fontSizePx": 12,
+      "fontWeight": "400",
+      "rect": {
+        "x": 46,
+        "y": 28.828125,
+        "left": 46,
+        "top": 28.828125,
+        "right": 209.53125,
+        "bottom": 44.828125,
+        "width": 163.53125,
+        "height": 16
+      }
+    },
+    {
+      "foreground": "rgb(92, 105, 114)",
+      "background": "rgb(248, 250, 251)",
+      "fontSizePx": 12,
+      "fontWeight": "400",
+      "rect": {
+        "x": 46,
+        "y": 52.828125,
+        "left": 46,
+        "top": 52.828125,
+        "right": 290.015625,
+        "bottom": 68.828125,
+        "width": 244.015625,
+        "height": 16
+      }
+    },
+    {
+      "foreground": "rgb(23, 28, 31)",
+      "background": "rgb(243, 246, 248)",
+      "fontSizePx": 15,
+      "fontWeight": "700",
+      "rect": {
+        "x": 33,
+        "y": 131.828125,
+        "left": 33,
+        "top": 131.828125,
+        "right": 357,
+        "bottom": 151.828125,
+        "width": 324,
+        "height": 20
+      }
+    },
+    {
+      "foreground": "rgb(92, 105, 114)",
+      "background": "rgb(243, 246, 248)",
+      "fontSizePx": 16,
+      "fontWeight": "400",
+      "rect": {
+        "x": 33,
+        "y": 151.828125,
+        "left": 33,
+        "top": 151.828125,
+        "right": 357,
+        "bottom": 201.421875,
+        "width": 324,
+        "height": 49.59375
+      }
+    },
+    {
+      "foreground": "color(srgb 0.10949 0.270588 0.716471)",
+      "background": "color(srgb 0.875922 0.902824 0.978588)",
+      "fontSizePx": 11,
+      "fontWeight": "900",
+      "rect": {
+        "x": 33,
+        "y": 209.421875,
+        "left": 33,
+        "top": 209.421875,
+        "right": 289.859375,
+        "bottom": 233.421875,
+        "width": 256.859375,
+        "height": 24
+      }
+    },
+    {
+      "foreground": "color(srgb 0.10949 0.270588 0.716471)",
+      "background": "color(srgb 0.875922 0.902824 0.978588)",
+      "fontSizePx": 11,
+      "fontWeight": "900",
+      "rect": {
+        "x": 33,
+        "y": 241.421875,
+        "left": 33,
+        "top": 241.421875,
+        "right": 112.734375,
+        "bottom": 265.421875,
+        "width": 79.734375,
+        "height": 24
+      }
+    },
+    {
+      "foreground": "rgb(29, 78, 216)",
+      "background": "rgb(219, 234, 254)",
+      "fontSizePx": 11,
+      "fontWeight": "900",
+      "rect": {
+        "x": 120.734375,
+        "y": 241.421875,
+        "left": 120.734375,
+        "top": 241.421875,
+        "right": 212.890625,
+        "bottom": 265.421875,
+        "width": 92.15625,
+        "height": 24
+      }
+    },
+    {
+      "foreground": "rgb(29, 78, 216)",
+      "background": "rgb(219, 234, 254)",
+      "fontSizePx": 11,
+      "fontWeight": "900",
+      "rect": {
+        "x": 220.890625,
+        "y": 241.421875,
+        "left": 220.890625,
+        "top": 241.421875,
+        "right": 315.203125,
+        "bottom": 265.421875,
+        "width": 94.3125,
+        "height": 24
+      }
+    },
+    {
+      "foreground": "rgb(29, 78, 216)",
+      "background": "rgb(219, 234, 254)",
+      "fontSizePx": 11,
+      "fontWeight": "900",
+      "rect": {
+        "x": 33,
+        "y": 273.421875,
+        "left": 33,
+        "top": 273.421875,
+        "right": 127.421875,
+        "bottom": 297.421875,
+        "width": 94.421875,
+        "height": 24
+      }
+    },
+    {
+      "foreground": "rgb(23, 28, 31)",
+      "background": "rgb(248, 250, 251)",
+      "fontSizePx": 16,
+      "fontWeight": "700",
+      "rect": {
+        "x": 46,
+        "y": 322.421875,
+        "left": 46,
+        "top": 322.421875,
+        "right": 239.328125,
+        "bottom": 344.421875,
+        "width": 193.328125,
+        "height": 22
+      }
+    },
+    {
+      "foreground": "rgb(23, 28, 31)",
+      "background": "rgb(248, 250, 251)",
+      "fontSizePx": 16,
+      "fontWeight": "400",
+      "rect": {
+        "x": 46,
+        "y": 322.421875,
+        "left": 46,
+        "top": 322.421875,
+        "right": 288.609375,
+        "bottom": 366.421875,
+        "width": 242.609375,
+        "height": 44
+      }
+    },
+    {
+      "foreground": "rgb(29, 78, 216)",
+      "background": "rgb(219, 234, 254)",
+      "fontSizePx": 11,
+      "fontWeight": "900",
+      "rect": {
+        "x": 46,
+        "y": 378.421875,
+        "left": 46,
+        "top": 378.421875,
+        "right": 249.859375,
+        "bottom": 402.421875,
+        "width": 203.859375,
+        "height": 24
+      }
+    },
+    {
+      "foreground": "color(srgb 0.10949 0.270588 0.716471)",
+      "background": "color(srgb 0.875922 0.902824 0.978588)",
+      "fontSizePx": 11,
+      "fontWeight": "900",
+      "rect": {
+        "x": 257.859375,
+        "y": 378.421875,
+        "left": 257.859375,
+        "top": 378.421875,
+        "right": 330.765625,
+        "bottom": 402.421875,
+        "width": 72.90625,
+        "height": 24
+      }
+    },
+    {
+      "foreground": "color(srgb 0.10949 0.270588 0.716471)",
+      "background": "color(srgb 0.875922 0.902824 0.978588)",
+      "fontSizePx": 11,
+      "fontWeight": "900",
+      "rect": {
+        "x": 46,
+        "y": 410.421875,
+        "left": 46,
+        "top": 410.421875,
+        "right": 132.96875,
+        "bottom": 434.421875,
+        "width": 86.96875,
+        "height": 24
+      }
+    },
+    {
+      "foreground": "color(srgb 0.10949 0.270588 0.716471)",
+      "background": "color(srgb 0.875922 0.902824 0.978588)",
+      "fontSizePx": 11,
+      "fontWeight": "900",
+      "rect": {
+        "x": 140.96875,
+        "y": 410.421875,
+        "left": 140.96875,
+        "top": 410.421875,
+        "right": 233.125,
+        "bottom": 434.421875,
+        "width": 92.15625,
+        "height": 24
+      }
+    },
+    {
+      "foreground": "color(srgb 0.10949 0.270588 0.716471)",
+      "background": "color(srgb 0.875922 0.902824 0.978588)",
+      "fontSizePx": 11,
+      "fontWeight": "900",
+      "rect": {
+        "x": 241.125,
+        "y": 410.421875,
+        "left": 241.125,
+        "top": 410.421875,
+        "right": 335.4375,
+        "bottom": 434.421875,
+        "width": 94.3125,
+        "height": 24
+      }
+    },
+    {
+      "foreground": "rgb(92, 105, 114)",
+      "background": "rgb(255, 255, 255)",
+      "fontSizePx": 16,
+      "fontWeight": "700",
+      "rect": {
+        "x": 55,
+        "y": 455.421875,
+        "left": 55,
+        "top": 455.421875,
+        "right": 335,
+        "bottom": 480.21875,
+        "width": 280,
+        "height": 24.796875
+      }
+    },
+    {
+      "foreground": "rgb(92, 105, 114)",
+      "background": "rgb(255, 255, 255)",
+      "fontSizePx": 16,
+      "fontWeight": "400",
+      "rect": {
+        "x": 55,
+        "y": 484.21875,
+        "left": 55,
+        "top": 484.21875,
+        "right": 335,
+        "bottom": 533.8125,
+        "width": 280,
+        "height": 49.59375
+      }
+    },
+    {
+      "foreground": "rgb(92, 105, 114)",
+      "background": "rgb(255, 255, 255)",
+      "fontSizePx": 16,
+      "fontWeight": "700",
+      "rect": {
+        "x": 55,
+        "y": 559.8125,
+        "left": 55,
+        "top": 559.8125,
+        "right": 335,
+        "bottom": 584.609375,
+        "width": 280,
+        "height": 24.796875
+      }
+    },
+    {
+      "foreground": "rgb(92, 105, 114)",
+      "background": "rgb(255, 255, 255)",
+      "fontSizePx": 16,
+      "fontWeight": "400",
+      "rect": {
+        "x": 55,
+        "y": 588.609375,
+        "left": 55,
+        "top": 588.609375,
+        "right": 335,
+        "bottom": 638.203125,
+        "width": 280,
+        "height": 49.59375
+      }
+    },
+    {
+      "foreground": "rgb(23, 28, 31)",
+      "background": "rgb(255, 255, 255)",
+      "fontSizePx": 16,
+      "fontWeight": "850",
+      "rect": {
+        "x": 46,
+        "y": 659.203125,
+        "left": 46,
+        "top": 659.203125,
+        "right": 276.4375,
+        "bottom": 699.203125,
+        "width": 230.4375,
+        "height": 40
+      }
+    },
+    {
+      "foreground": "rgb(23, 28, 31)",
+      "background": "rgb(243, 246, 248)",
+      "fontSizePx": 15,
+      "fontWeight": "700",
+      "rect": {
+        "x": 33,
+        "y": 762.203125,
+        "left": 33,
+        "top": 762.203125,
+        "right": 357,
+        "bottom": 782.203125,
+        "width": 324,
+        "height": 20
+      }
+    },
+    {
+      "foreground": "rgb(92, 105, 114)",
+      "background": "rgb(243, 246, 248)",
+      "fontSizePx": 16,
+      "fontWeight": "400",
+      "rect": {
+        "x": 33,
+        "y": 782.203125,
+        "left": 33,
+        "top": 782.203125,
+        "right": 357,
+        "bottom": 831.796875,
+        "width": 324,
+        "height": 49.59375
+      }
+    },
+    {
+      "foreground": "color(srgb 0.10949 0.270588 0.716471)",
+      "background": "color(srgb 0.875922 0.902824 0.978588)",
+      "fontSizePx": 11,
+      "fontWeight": "900",
+      "rect": {
+        "x": 33,
+        "y": 839.796875,
+        "left": 33,
+        "top": 839.796875,
+        "right": 357,
+        "bottom": 875.796875,
+        "width": 324,
+        "height": 36
+      }
+    }
+  ],
+  "focus": {
+    "focusableCount": 98,
+    "applicable": true
+  },
+  "liveVideo": null,
+  "postActionVisualOwner": {
+    "schema": "media-server.v390-ui-post-action-visual-target.v1",
+    "caseId": "SAFE-061",
+    "actionId": "SAFE-061:assert-visible-read-model",
+    "completionMode": "request",
+    "sourceSelectorSha256": "861c96ca8d6c78726aba1e50ba13644de24ec0df8dd3df01b659193058b03de2",
+    "sourceOwnerSelectorSha256": "861c96ca8d6c78726aba1e50ba13644de24ec0df8dd3df01b659193058b03de2",
+    "requestedState": "visible",
+    "observedRoute": "/ops/events",
+    "navigationEpoch": 1,
+    "ownerCandidateCount": 1,
+    "sourceSelectorRewaited": false,
+    "selector": "[data-testid=\"ops-rule-what-if-preview\"]",
+    "bindingKind": "post-action-visible-source-owner",
+    "sourceDetached": false,
+    "sourceHidden": false,
+    "epochRelation": "same-document"
+  },
+  "focusSamples": [
+    {
+      "index": 0,
+      "focusIdentity": "#opsRecordingChannelFilter",
+      "tag": "select",
+      "id": "opsRecordingChannelFilter",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "solid",
+      "outlineWidth": "3px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 1,
+      "focusIdentity": "#opsRecordingStartTime",
+      "tag": "input",
+      "id": "opsRecordingStartTime",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "solid",
+      "outlineWidth": "3px",
+      "boxShadow": "none"
+    }
+  ]
+}
