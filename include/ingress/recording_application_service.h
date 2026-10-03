@@ -2,6 +2,7 @@
 #pragma once
 
 #include "ingress/application_service_result.h"
+#include "ingress/visual_search_application_service.h"
 #include "recording/recording_read_service.h"
 #include "recording/analysis_observation_projector.h"
 #include <functional>
@@ -39,9 +40,19 @@ public:
     RecordingApplicationService(recording::RecordingReadService& reader,
                                 recording::RecordingCatalog& catalog,
                                 bool enabled, StatusProvider status_provider,
-                                ObservationStatusProvider observation_status_provider = {})
+                                ObservationStatusProvider observation_status_provider = {},
+                                VisualSearchApplicationService* visual = nullptr)
         : reader_(reader), catalog_(catalog), enabled_(enabled), status_provider_(std::move(status_provider)),
-          observation_status_provider_(std::move(observation_status_provider)) {}
+          observation_status_provider_(std::move(observation_status_provider)), visual_(visual) {}
+    ApplicationServiceResult VisualStatus(const ChannelAuthorizer& authorize) const {
+        return visual_ ? visual_->Status(authorize) : ApplicationServiceResult{200,"OK","{\"enabled\":false,\"state\":\"disabled\",\"channels\":[]}"};
+    }
+    ApplicationServiceResult VisualSearch(const VisualSearchApplicationService::Query& query,const ChannelAuthorizer& authorize) const {
+        return visual_ ? visual_->Search(query,authorize) : ApplicationServiceResult{503,"Service Unavailable","{\"error\":\"visual-search-unavailable\"}"};
+    }
+    ApplicationServiceResult VisualSeek(const VisualSearchApplicationService::Query& query,const ChannelAuthorizer& authorize) const {
+        return visual_ ? visual_->Seek(query,authorize) : ApplicationServiceResult{503,"Service Unavailable","{\"error\":\"visual-search-unavailable\"}"};
+    }
     ApplicationServiceResult Status(const ChannelAuthorizer& authorize, bool include_global_observations = false) const;
     ApplicationServiceResult Timeline(const std::unordered_map<std::string, std::string>& query,
                                       const ChannelAuthorizer& authorize) const;
@@ -60,5 +71,6 @@ private:
     bool enabled_;
     StatusProvider status_provider_;
     ObservationStatusProvider observation_status_provider_;
+    VisualSearchApplicationService* visual_{nullptr};
 };
 }  // namespace ingress

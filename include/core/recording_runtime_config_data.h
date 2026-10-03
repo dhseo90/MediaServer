@@ -11,6 +11,10 @@
 namespace core {
 
 struct RecordingRuntimeConfigData {
+    bool visual_search_enabled{false};
+    std::string visual_search_model_directory;
+    int visual_search_scan_seconds{60};
+    int visual_search_sample_seconds{10};
     bool recording_enabled{recording_runtime_defaults::kEnabled};
     std::string recording_storage_root{recording_runtime_defaults::kStorageRoot};
     std::size_t recording_default_channel_quota_bytes{

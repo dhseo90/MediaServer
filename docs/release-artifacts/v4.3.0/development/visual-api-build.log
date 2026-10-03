@@ -1,0 +1,37 @@
+-- Configuring done (0.0s)
+-- Generating done (0.0s)
+-- Build files have been written to: /Users/dhseo/Workspace/mediaServer/build-gst-onnx
+[  0%] Building CXX object CMakeFiles/media_server_runtime.dir/src/core/analysis_runtime_port.cpp.o
+[  1%] Building CXX object CMakeFiles/media_server_runtime.dir/src/app_config.cpp.o
+/Users/dhseo/Workspace/mediaServer/src/app_config.cpp:1781:38: error: cannot assign to variable 'config' with const-qualified type 'const AppConfig'
+ 1781 |         config.visual_search_enabled = false;
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ^
+/Users/dhseo/Workspace/mediaServer/src/app_config.cpp:1776:28: note: variable 'config' declared const here
+ 1776 |     static const AppConfig config = LoadAppConfig();
+      |     ~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~
+/Users/dhseo/Workspace/mediaServer/src/app_config.cpp:1784:46: error: no viable overloaded '='
+ 1784 |         config.visual_search_model_directory = ResolveRuntimePath(config.visual_search_model_directory);
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ^ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/string:1228:3: note: candidate function not viable: 'this' argument has type 'const std::string' (aka 'const basic_string<char>'), but method is not marked const
+ 1228 |   operator=(const basic_string& __str);
+      |   ^
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/string:1241:3: note: candidate function not viable: 'this' argument has type 'const std::string' (aka 'const basic_string<char>'), but method is not marked const
+ 1241 |   operator=(basic_string&& __str) noexcept(__noexcept_move_assign_container<_Allocator, __alloc_traits>::value) {
+      |   ^
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/string:1246:69: note: candidate function not viable: 'this' argument has type 'const std::string' (aka 'const basic_string<char>'), but method is not marked const
+ 1246 |   _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX20 basic_string& operator=(initializer_list<value_type> __il) {
+      |                                                                     ^
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/string:1251:3: note: candidate function not viable: 'this' argument has type 'const std::string' (aka 'const basic_string<char>'), but method is not marked const
+ 1251 |   operator=(const value_type* _LIBCPP_DIAGNOSE_NULLPTR __s) {
+      |   ^
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/string:1257:47: note: candidate function not viable: 'this' argument has type 'const std::string' (aka 'const basic_string<char>'), but method is not marked const
+ 1257 |   _LIBCPP_CONSTEXPR_SINCE_CXX20 basic_string& operator=(value_type __c);
+      |                                               ^
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/string:1234:47: note: candidate template ignored: requirement '!is_same<std::string, std::string>::value' was not satisfied [with _Tp = std::string]
+ 1234 |   _LIBCPP_CONSTEXPR_SINCE_CXX20 basic_string& operator=(const _Tp& __t) {
+      |                                               ^
+2 errors generated.
+make[2]: *** [CMakeFiles/media_server_runtime.dir/src/app_config.cpp.o] Error 1
+make[2]: *** Waiting for unfinished jobs....
+make[1]: *** [CMakeFiles/media_server_runtime.dir/all] Error 2
+make: *** [all] Error 2

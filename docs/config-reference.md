@@ -749,6 +749,51 @@ POST URL 자체는 rule output 설정에서 관리합니다. 외부 이벤트 JS
 
 ## Recording env
 
+### 영상 유사도 검색 API (v4.3.0 개발)
+
+기본 비활성인 로컬 SigLIP2 기능이다. 빌드에 `MEDIA_SERVER_USE_SIGLIP2=ON`과 준비된
+`SentencePiece_ROOT`가 필요하다. [모델 준비와 고정 출처](research/v430-siglip2-provenance.md)를
+따라 로컬 파일을 먼저 준비한다. 제품은 모델을 자동 다운로드하지 않는다.
+
+| 환경 변수 | 기본값 | 의미 |
+| --- | --- | --- |
+| `MEDIA_SERVER_VISUAL_SEARCH_ENABLED` | `0` | 녹화가 활성화된 서버에서 영상 검색 opt-in |
+| `MEDIA_SERVER_VISUAL_SEARCH_MODEL_DIRECTORY` | 빈 값 | `onnx/`와 `upstream/tokenizer.model`을 가진 준비 경로. 활성화 시 필수 |
+| `MEDIA_SERVER_VISUAL_SEARCH_SCAN_SECONDS` | `60` | 현재 원본 재확인·색인 주기, 1~3600초 |
+| `MEDIA_SERVER_VISUAL_SEARCH_SAMPLE_SECONDS` | `10` | 같은 채널/epoch에서 파일 경계를 넘는 대표 frame 간격, 1~3600초 |
+
+파생 cache는 녹화 root의 `visual-cache`에 저장한다. 확정된 V2 H.264/MP4의 검증 가능한
+file evidence만 사용하며 최대 파일512MiB/RGB4096×2160을 지원한다. 현재 개발 규모는
+8채널, 20,000벡터/96MiB, 게시본2개·색인worker1개·추론1개·요청4개다. 초과는 부분 성공으로
+숨기지 않는다. 이 수치는 [개발 계약](superpowers/specs/2026-10-04-v430-visual-vector-search-design.md)의
+단기 profile이며 일반 운영 규모·장시간 지원 보장이 아니다.
+
+`GET /ops/api/recordings/visual-search`는 기존 Ops의 operator 역할/`ops:read`와 요청한
+모든 `source:read:<channel>`을 먼저 검사한다. Client/viewer/integrator에는 제공하지 않는다.
+
+| 입력 | 의미 |
+| --- | --- |
+| `text` | UTF-8 장면 설명, raw 최대16KiB. 빈 문자열·Unicode 공백만 있는 질의는 거부 |
+| `channelIds` | 명시 채널1~32개, 쉼표 구분·중복 거부. 현재 서버 색인 지원 채널은 최대8개 |
+| `limit` | 결과1~200개, 기본20 |
+| `threshold` | inclusive cosine 하한[-1,1], 기본-1. 사건 판정 기준이 아님 |
+| `startTimeMs`, `endTimeMs` | 선택 UTC ms 정수 쌍, `[start,end)`. 지정하면 UTC 미확인 frame 제외 |
+
+응답은 `kind=representative-frame`, `scoreMeaning=similarity-not-evidence`, `items`이며
+각 항목은 `id/channelId/score/timeNs`와 현재 재생 URL·위치다. `timeNs`는 정수 문자열 또는
+null이다. score 내림차순/동점ID 오름차순 exact top-k이며 원본 경로·벡터·모델 파일은 노출하지 않는다.
+`GET .../visual-search/seek?channelId=...&hitId=...`는 서버의 현재 게시본에서 찾아 권한과
+원본 hash/sample/삭제·손상·파일 재생 위치를 다시 확인한다. 해당 hit가 없어지면410이다.
+`GET .../visual-search/status`는 활성화/worker 상태와 허용 채널별 색인 frame 수, 최근 스캔의
+examined/unsupported 파일 수를 반환한다. 최근 스캔과 게시된 frame 수는 갱신 시점이 다를 수 있다.
+
+기존 이벤트 snapshot은 정확한 original sample 증명이 없어 현재 구현에서 제외된다.
+legacy·무증명/미지원 파일의 제외 수는 상태로 표시한다. 시각 또는 가까운 이미지로 증명을
+대체하지 않는다. 재구축 중에는 이전 완성 게시본을 현재 원본 재검증과 함께 사용할 수 있지만,
+최초 준비 전이나 색인 실패는503이며 정상 빈 결과와 다르다. 잘못된 입력400/권한403/미인증401,
+동시 요청 또는 추론 대기 초과503이다. 응답은 no-store다. 개발 검증·실제 UI·릴리즈 완료 상태는
+[개발 기록](release-artifacts/v4.3.0/development/README.md)을 구분해 확인한다.
+
 ### 구조화 녹화 검색 API (v4.2.0)
 
 `GET /ops/api/recordings/search`는 admin/operator 역할, `ops:read`와 요청한 모든 채널의

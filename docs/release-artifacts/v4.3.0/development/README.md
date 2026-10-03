@@ -271,3 +271,40 @@ bytes를 덮어쓰지 않았다. tracked JSON·영상·이미지38개 불변 및
 `.visual-pending.v1`만 검증 후 회수한다. 이전 cache 포맷·공간ID·원본 녹화는 그대로다.
 임의 경로를 순회·삭제하는 cleanup은 추가하지 않았다. 실제 OS 디스크 고갈/전원 장애나
 임의 파일시스템의 fsync 내구성을 이번 단기 검사로 입증한 것은 아니다.
+
+
+## Ops API·모델/녹화 혼합 개발 검증
+
+`VisualSearchApplicationService`와 설정·HTTP 연결을 추가했다. 모델 준비 실패/최초 색인 전은503,
+권한 검사는 추론 전이고 결과 선택은 현재 채널·원본 hash/sample·재생 보호를 다시 확인한다.
+최대4요청/추론1개이며 재구축 중에는 이전 완성본만 조회한다. 현재 파일 검증에 실패한 결과를
+그대로 반환하지 않는다. 기본off이고 Client/viewer UI나 기존 구조화 검색 계약은 바꾸지 않는다.
+
+- [최초 build](visual-api-build.log): exit2. 설정 로더에 넣을 블록을 const 접근자에도 중복 삽입해
+  컴파일 실패했다. const 접근자의 중복 블록을 제거한 [재빌드](visual-api-build-retry.log)는 exit0.
+  예상 RED로 분류하지 않았다.
+- [실제 모델 API](visual-api.log): 제품 archive·실제 두 채널/6파일로53검사 exit0.
+  한국어/영어 입력, 모든 금지 채널 사전403, invalid/Unicode 공백400, scope 철회와 현재
+  채널 비활성·원본 손상·결과 선택 재검증, 공개 정제·Stop 후503을 확인했다.
+- [4개 동시 검색](visual-api-concurrent.log): 재색인 중 이전 완성본 조회를 연결하고 같은 검사를
+  유지한54검사 exit0. 4thread×6회 모두200, warm p95 397.766ms/max446.909ms,
+  peak RSS3,195,027,456바이트. 소유 임시 directory 부재를 확인했다.
+- [실제 HTTP](visual-http.json): 모델OFF 실제 loopback의28요청/146assertion PASS.
+  admin/scoped operator의 disabled 기능503·status200, viewer/integrator/no-ops403,
+  금지 source·혼합403, 미인증401, 입력400, 전 응답no-store/최소 공개JSON을 확인했다.
+  최초 sandbox EPERM(exit1/HTTP0건)과 후속 실행을 previousRuns에 보존했다.
+  최종 환경은 HOME을 보존하고 앱/TMPDIR/GST/XDG cache를 소유 경로로 격리했다.
+  서버 정상exit0, TCP2개폐쇄·UDP종료·root부재를 확인했다. 모델ON HTTP/실제UI의 대체가 아니다.
+
+[모델 혼합 부하](visual-mixed-load.log)는 같은100,000 예약 이력 B root에10,000관측,
+8채널/4검색과 실제 SigLIP2를 실행했다. seed240packet/8파일을 먼저 색인하고, 녹화
+720packet/24파일을 추가하여 최종채널별4파일/32파일·32대표frame을 확인했다.
+부하 중 검색7회 모두200, client별1회이상 성공했고 각 검색 중 packet 진행이 관측됐다.
+p95/max793.665ms, peak RSS3,698,327,552바이트다. 모델 포함 native heap used1,841,287,248 /
+reserved2,133,393,408바이트는 Catalog의512MiB 논리량으로 부르지 않는다.
+제품 부하 process65.963초/사전90초 이내 exit0, 원래 이력 SHA 불변·미디어 건강도·
+소유 fixture183,864,560바이트 정리를 확인했다. GStreamer scanner의 기존 GTK class 경고는
+로그에 유지했다. 작은7표본의 단기 지연이며 30분/120분이나 일반해상도·장시간 지원 보장이 아니다.
+
+[통합 build](visual-integration-build.log)는 cache 중단 복구 변경까지 제품 archive/binary에
+연결한 exit0이다. 이후 UI의 탐색완료 표시 수정은 다음 UI build로 검증한다.

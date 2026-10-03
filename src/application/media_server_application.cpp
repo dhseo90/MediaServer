@@ -452,6 +452,20 @@ int RunMediaServerApplication(int argc, char** argv) {
     ingress::GStreamerRtspServer gst_rtsp_server(session_manager, analysis_sessions);
     const auto webrtc_http_runtime_config = BuildWebRtcHttpRuntimeConfig(config);
     recording::RecordingReadService recording_reads(recording_catalog, config.analysis_event_clip_dir);
+    ingress::VisualSearchApplicationService::Options visual_options;
+    visual_options.enabled = config.visual_search_enabled;
+    visual_options.model_directory = config.visual_search_model_directory;
+    visual_options.cache_directory = (recording_root / "visual-cache").string();
+    visual_options.scan_seconds = config.visual_search_scan_seconds;
+    visual_options.sample_seconds = config.visual_search_sample_seconds;
+    ingress::VisualSearchApplicationService visual_search(recording_catalog, recording_reads, visual_options,
+        [](auto* channels) {
+            std::vector<ingress::SourceViewApplicationService::SourceRecord> sources;
+            std::vector<ingress::SourceViewApplicationService::PublishedViewRecord> views;
+            if (!ingress::SourceViewApplicationService::Instance().Snapshot(&sources,&views,nullptr)) return false;
+            for (const auto& source : sources) if (source.enabled) channels->push_back(source.source_id);
+            return true;
+        });
     ingress::RecordingApplicationService recording_api(
         recording_reads, recording_catalog, config.recording_enabled,
         [&recording_sessions, &recording_retention](const auto& catalog_status, auto* output) {
@@ -477,7 +491,7 @@ int RunMediaServerApplication(int argc, char** argv) {
             return true;
         }, [observation_projector] {
             return observation_projector ? observation_projector->GetStatus() : recording::AnalysisObservationProjector::Status{};
-        });
+        }, &visual_search);
     ingress::WebRtcHttpServer webrtc_http_server(
         *webrtc_media_sessions,
         *analysis_session_lifecycle,
@@ -580,6 +594,7 @@ int RunMediaServerApplication(int argc, char** argv) {
     }
 
     webrtc_http_server.Stop();
+    visual_search.Stop();
     gst_rtsp_server.Stop();
     if(event_recording_bridge)event_recording_bridge->StopAndDrain();
     recording_supervisor.Stop();
