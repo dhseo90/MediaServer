@@ -1448,6 +1448,9 @@ bool RecordingCatalog::ValidateMutationLocked(const RecordingMutationV1& mutatio
     return ApplyMutationLocked(parsed,false,error,nullptr,{},nullptr,nullptr,nullptr,{},nullptr,false);
 }
 void RecordingCatalog::NoteSearchMutationLocked(const RecordingMutationV1& mutation) noexcept {
+    // 순서 예약은 ID/sequence만 확정한다. 파일·locator·재생 후보는 생기지 않으며
+    // 이어지는 실제 finalized/state mutation이 검색의 resolution을 무효화한다.
+    if(mutation.mutation_type==RecordingMutationType::RecordingOrderReserved)return;
     const bool observation = mutation.mutation_type == RecordingMutationType::ObservationPut ||
         mutation.mutation_type == RecordingMutationType::ObservationV2Put ||
         mutation.mutation_type == RecordingMutationType::ReferencedObservationPut;

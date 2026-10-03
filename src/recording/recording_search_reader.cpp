@@ -71,7 +71,7 @@ bool RecordingSearchReader::Refresh(const std::vector<std::string>& channels,
         Locate(batch.delta.upserts.at(pending.document_index), resolution);
     }
     if (!catalog_.ValidateSearchSource(batch, error)) return false;
-    if (!batch.rebuild && previous && previous->revision() == batch.delta.revision) {
+    if (!batch.rebuild && previous && batch.delta.upserts.empty() && batch.delta.removed_ids.empty()) {
         *output = previous;if(error)error->clear();return true;
     }
     std::shared_ptr<const RecordingSearchModel> next;

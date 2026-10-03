@@ -3,7 +3,7 @@
 # B 명시 opt-in 세대 회전 focused. 실서버/운영 자료에 접근하지 않는다.
 set -euo pipefail
 task_case="${1:-all}"
-[[ "$task_case" == all || "$task_case" == residency || "$task_case" == scale || "$task_case" == scale-baseline ]] || exit 2
+[[ "$task_case" == all || "$task_case" == residency || "$task_case" == scale || "$task_case" == scale-baseline || "$task_case" == scale-load ]] || exit 2
 task_script="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 task_repo="$(cd "$task_script/../.." && pwd)"
 task_parent="$(cd "${TMPDIR:-/tmp}" && pwd -P)"
@@ -46,7 +46,7 @@ shasum -a 256 "${task_sources[@]}" include/recording/recording_catalog.h include
  scripts/internal/recording_generation_checkpoint_sql_cases.inc include/recording/recording_generation_manifest.h include/recording/recording_generation_files.h \
  scripts/internal/recording_catalog_generation_scratch_smoke.cpp scripts/internal/recording_catalog_generation_projection_smoke.cpp scripts/internal/recording_journal_generation_readonly_smoke.cpp "$task_script/verify_recording_generation_checkpoint.sh"
 task_configs=('1 1 1' '1 0 1' '0 1 1' '1 1 0')
-if [[ "$task_case" == scale || "$task_case" == scale-baseline ]]; then task_configs=('1 1 1'); fi
+if [[ "$task_case" == scale* ]]; then task_configs=('1 1 1'); fi
 if [[ "$task_case" == scale-baseline ]]; then
  # R01 이전 불변 commit의 Journal에 현재 읽기 전용 probe만 삽입한다. 제품 트리는 덮어쓰지 않는다.
  git show f6d5cf83:src/recording/recording_journal.cpp > "$task_root/baseline-journal.cpp"
@@ -69,6 +69,35 @@ for task_config in "${task_configs[@]}"; do
  "${CXX:-c++}" -std=c++17 -Wall -Wextra -Werror -pthread -Iinclude -Isrc/recording \
   -DMEDIA_SERVER_USE_OPENSSL="$task_crypto" -DMEDIA_SERVER_USE_SQLITE3="$task_sqlite" -DMEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND="$task_backend" -DMEDIA_SERVER_RECORDING_GENERATION_TESTING=1 \
   "${task_cflags[@]}" "${task_sources[@]}" "${task_libs[@]}" -lz -o "$task_root/checkpoint-$task_crypto-$task_sqlite-$task_backend"
+ if [[ "$task_case" == scale-load ]]; then
+  "$task_root/checkpoint-$task_crypto-$task_sqlite-$task_backend" "$task_root/load" scale-100000
+  task_build="$task_repo/build-gst-onnx"
+  read -r -a task_product_link < "$task_build/CMakeFiles/media_server.dir/link.txt"
+  task_product_libs=();task_found=0
+  for task_token in "${task_product_link[@]}"; do
+   if [[ "$task_token" == libmedia_server_runtime.a ]]; then task_found=1;task_product_libs+=("$task_build/$task_token");continue;fi
+   if ((task_found));then task_product_libs+=("$task_token");fi
+  done
+  test "$task_found" = 1
+  read -r -a task_gst_flags <<< "$(pkg-config --cflags gstreamer-app-1.0 openssl sqlite3)"
+  shasum -a 256 "$task_script/recording_search_runtime_load_smoke.cpp" "$task_build/libmedia_server_runtime.a"
+  "${CXX:-c++}" -std=c++17 -Wall -Wextra -Werror -pthread -Iinclude "${task_gst_flags[@]}" \
+   -DMEDIA_SERVER_USE_GSTREAMER=1 -DMEDIA_SERVER_USE_OPENSSL=1 -DMEDIA_SERVER_USE_SQLITE3=1 -DMEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND=1 \
+   "$task_script/recording_search_runtime_load_smoke.cpp" "${task_product_libs[@]}" -o "$task_root/runtime-load"
+  export GST_REGISTRY="$task_root/gst-registry.bin" GST_REGISTRY_1_0="$task_root/gst-registry.bin" MEDIA_SERVER_SKIP_LOCAL_ENV=1
+  python3 - "$task_root/runtime-load" "$task_root/load/scale" <<'PYLOAD'
+import subprocess,sys,time,pathlib,hashlib
+evidence=pathlib.Path(sys.argv[2])/'evidence-1-0.jsonl'
+before=hashlib.file_digest(evidence.open('rb'),'sha256').hexdigest()
+start=time.monotonic();print('[mixed-command]',sys.argv[1:], 'existing',flush=True)
+r=subprocess.run([*sys.argv[1:],'existing'],timeout=90)
+print('[mixed-exit]',r.returncode,'elapsedSeconds',time.monotonic()-start,flush=True)
+assert hashlib.file_digest(evidence.open('rb'),'sha256').hexdigest()==before
+print('[mixed-evidence] originalSha256='+before+' unchanged=true',flush=True)
+sys.exit(r.returncode)
+PYLOAD
+  continue
+ fi
  if [[ "$task_case" == scale || "$task_case" == scale-baseline ]]; then
   for task_count in 1000 100000; do
    "$task_root/checkpoint-$task_crypto-$task_sqlite-$task_backend" "$task_root/scale-$task_count" "$task_case-$task_count"
@@ -76,7 +105,7 @@ for task_config in "${task_configs[@]}"; do
   continue
  fi
  task_args=("$task_root/fixtures-$task_crypto-$task_sqlite-$task_backend")
- if [[ "$task_case" == residency || "$task_case" == scale || "$task_case" == scale-baseline ]]; then task_args+=(residency); fi
+ if [[ "$task_case" == residency ]]; then task_args+=(residency); fi
  "$task_root/checkpoint-$task_crypto-$task_sqlite-$task_backend" "${task_args[@]}"
 done
 date -u '+[end] %Y-%m-%dT%H:%M:%SZ'

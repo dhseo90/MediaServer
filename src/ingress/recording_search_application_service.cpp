@@ -77,11 +77,24 @@ ApplicationServiceResult RecordingApplicationService::Search(const Query& raw,co
         if(!cursor.empty()) {if(!state->snapshots.Resume(cursor,query,principal,scope,&page,&error))return Failure(error);}
         else {
             std::lock_guard<std::mutex> lock(search_mutex_);recording::RecordingSearchReader search(catalog_,reader_);
-            if(!search.Refresh(query.channels,state->source,&state->source,&error))return Failure(error);
-            auto model=state->source;
-            if(!query.behaviours.empty()&&!recording::RecordingSearchReader::WithEventFacts(*model,&model,&error,{},&query))return Failure(error);
-            if(!search.WithPlayback(*model,query,&model,&error))return Failure(error);
-            if(!state->snapshots.Begin(model,query,principal,scope,&page,&error))return Failure(error);
+            // 여러 채널의 확정이 준비 구간과 겹칠 수 있다. 원본 변경만 유한하게 재시도하며
+            // 각 시도의 동일한 revision/재생 검증을 통과한 모델만 한 번 게시한다.
+            bool prepared=false;
+            for(unsigned attempt=0;attempt<3;++attempt){
+                if(!search.Refresh(query.channels,state->source,&state->source,&error)){
+                    if(error=="search-source-changed")continue;
+                    return Failure(error);
+                }
+                auto model=state->source;
+                if(!query.behaviours.empty()&&!recording::RecordingSearchReader::WithEventFacts(*model,&model,&error,{},&query))return Failure(error);
+                if(!search.WithPlayback(*model,query,&model,&error)){
+                    if(error=="search-source-changed")continue;
+                    return Failure(error);
+                }
+                if(!state->snapshots.Begin(model,query,principal,scope,&page,&error))return Failure(error);
+                prepared=true;break;
+            }
+            if(!prepared)return Failure(error);
         }
         std::map<std::string,bool> availability;
         const auto available=[&](const std::string& channel,const std::string& id){

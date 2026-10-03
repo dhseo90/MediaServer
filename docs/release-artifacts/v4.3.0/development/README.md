@@ -97,3 +97,40 @@ Open은 14,453.7→14,440.5ms로 속도 개선을 주장할 차이가 아니다.
 129,979,457바이트로 필수 이력을 삭제해 공간을 줄인 결과가 아니다.
 모든 프로세스 종료와 정확한 소유 fixture 제거를 로그에서 확인했다. 실제 영상의 8채널/4검색과
 이력 규모를 한 번에 합친 교차 부하·장시간·운영 지원 전체의 PASS는 아직 아니다.
+
+
+## R04 제품 B 8채널과 누적 이력의 교차 부하
+
+기준 `44c9814c`와 R04 diff. 기존 1채널 fixture 외에 실제 `RecordingRuntimeStorage`의 B root,
+8개의 독립 writer/4개 검색 client를 추가했다. 최초 검사는 90packet×8(160×90, H.264 30fps
+파일, packet 공급 간격4ms)·10,000개 관측으로 실행했다. 실제 운영 전체 채널 해상도/FPS
+지원 보증이 아니며 유한한 개발 자원 profile이다.
+
+| 명령·대상 | 원출력 | exit·판정 |
+| --- | --- | --- |
+| 현행 runtime archive + `recording_search_runtime_load_smoke.cpp` | [최초](r04-runtime-load.log) | 1, 일부 client가 writer 진행 중 성공을 받지 못함. 예상 RED가 아님 |
+| 같은 fixture에 client별 응답·writer off 진단 추가 | [직접 관측](r04-runtime-diagnostic.log) | 1, 한 client 성공0/503 2회; off 뒤 knownCount24. 용량 거부가 아닌 원본 변경 계열 |
+| 원본 변경만 최대3회 재시도, 제품 build | [build](r04-retry-build.log), [재시도만 적용](r04-runtime-retry.log) | build0, fixture1. 같은 client 성공 누락이 남아 재시도만으로 해결되지 않음 |
+| 예약의 불필요한 무효화 제거·empty delta 공유 모델 재사용 후 build/진단 application 사본 링크 | [build](r04-order-build.log), [원인 추적](r04-runtime-order.log) | 둘 다0. 임시 사본은 Failure의 내부 오류 문자열만 출력하며 source hash를 기록, `search-source-changed` 확인. 83회 중82성공, p95 474.943ms |
+| source/generation/application/events/cost fixture를 현행 제품 archive에 링크, cost는 `V420_COST_BEHAVIOUR=1` | [영향 회귀](r04-order-regression.log) | 0. 35/20/13/33 PASS, cost의 1/1,000/10,000개 위치·결과 oracle 일치 |
+| `bash scripts/internal/verify_recording_generation_checkpoint.sh scale-load` | [교차 부하](r04-mixed-load.log) | 0. 100,000개 예약 원문이 남은 **동일 root**를 실제 제품 runtime archive로 열어 위 8채널/4검색/10,000관측을 추가 |
+
+순서 예약은 ID/sequence를 기록하지만 검색 문서·재생 후보를 바꾸지 않는다. 그 경우 검색
+resolution을 무효화하지 않고, 빈 delta는 기존 immutable 모델을 재사용한다. 파일 확정·삭제·손상은
+기존 무효화와 현재 파일 재검증을 그대로 수행한다. 검색 준비는 `search-source-changed`만 최대3회
+시도하며 각 회의 전체 기존 guard를 통과한 뒤 snapshot을 한 번 게시한다. 오류 종류·용량 판정·
+검증 한도는 완화하지 않았다. generation의 추가 oracle은 예약 직전 batch가 유효하고 요청 모델의
+shared identity가 같음을 SQLite on/off/reopen 조건에서 확인했다.
+
+최종 교차 실행은 진단 사본 없이 제품 archive 그대로 사용했다. 76회 응답 중75성공/503 1회,
+p95 778.955ms/max1,341.08ms, 720packet/24파일(각 채널3개) 건강도와 writer off 뒤 knownCount24를
+확인했다. source evidence SHA는 전후 동일했다. 전체 native heap used225,215,376바이트는
+512MiB 이내이고 peak RSS768,606,208바이트는 4GiB 이내였다. malloc zones의 reserved489,684,992
+바이트는 used와 분리한다. 전체 heap을 Catalog의 정밀 논리량으로 바꾸어 부르지 않는다.
+해당 제품 부하 process는51.756초로 사전90초 한도 안에 종료했고 소유 fixture181,988,372바이트를
+정리했다. 모든 앞선 실패와 재검증 로그를 유지했다. scanner의 기존 GTK/GI 경고는 로그에 남았으며
+실제 H.264 파일 검사 PASS를 대신하거나 무효화하지 않는다.
+
+이 결과로 정한 단기 자원 profile의 선행 개발 기준을 충족했다. 100,000행 전체를 어떤 metadata
+폭에서도 허용한다는 보장이 아니며 검색64MiB admission이 먼저 적용된다. 더 높은 해상도/codec,
+장시간·실제 UI·Linux 및 **임베딩을 추가한** 혼합 부하는 아직 별도 검증 대상이다.
