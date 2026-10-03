@@ -173,6 +173,17 @@ int main(int argc,char** argv){
                 Require(store.catalog.FinalizeSegmentV2(s,file.string(),&error),"page-finalize");
             }
             if(seek!="none"){auto media=ReadSeek(seek);Clock(media,anchor,"ui-seek-generation");const auto written=Write(store,media,30000);
+                for(const int index:{30,60}) {
+                    const auto& packet=media.packets.at(index);recording::RecordingConsumerReferenceV1 ref;
+                    ref.reference_id="ui-search-ref-"+std::to_string(index);ref.kind="observation";ref.owner_id="ui-search-"+std::to_string(index);
+                    ref.source_id="1";ref.channel_id="1";ref.analysis_namespace="ui-search";ref.analysis_track_id="track-ui";ref.analysis_pts=packet.pts;
+                    ref.association_quality="timestamp-match";ref.original=recording::RecordingConsumerOriginalV1{packet.observation->source_generation,
+                        packet.observation->generation_order,packet.observation->ordinal,packet.track_id,*packet.observation->pts_ns};
+                    recording::AnalysisObservationV2 o;o.observation_id=ref.owner_id;o.source_id="1";o.channel_id="1";o.analysis_namespace=ref.analysis_namespace;
+                    o.track_id=ref.analysis_track_id;o.pts=ref.analysis_pts;o.first_seen_pts=o.pts;o.last_seen_pts=o.pts;o.class_label="person";
+                    o.confidence=.8;o.bbox={0,0,.5,.5};o.selection_reasons={"event"};o.event_ids={"ui-missing-event"};std::string error;
+                    Require(store.catalog.PutReferencedObservation(o,ref,&error),"search-observation");
+                }
                 Require(written.size()==1&&written.front().container=="mp4","seek-single-mp4");std::ostringstream out;FileJson(out,store,written.front());seek_json=out.str();}
             std::ostringstream file_out;FileJson(file_out,store,originals.front());files=file_out.str();
             std::ostringstream job_out;job_out<<'[';

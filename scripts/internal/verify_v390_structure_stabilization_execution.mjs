@@ -22,6 +22,10 @@ if (hasHelpFlag(rawArgs)) {
 Usage:
   ./server.sh verify-v390-review4-structure-stabilization-execution
   ./server.sh verify-v390-review4-structure-stabilization-execution --graph-only
+  ./server.sh verify-v390-review4-structure-stabilization-execution --write-current-graph [--bind-current-graph]
+
+Generation:
+  - --bind-current-graph updates only measured current hash/metrics after policy validation; historical approvals remain unchanged
 
 Checks:
   - historical REVIEW4-51 approval and current REVIEW4-64 execution are separate
@@ -34,7 +38,7 @@ Checks:
   - mutations for order, path escape, behavior change, false completion, and debt regression fail closed
 `);
 }
-assertKnownOptions(rawArgs, ["h", "help", "write-current-graph", "graph-only"]);
+assertKnownOptions(rawArgs, ["h", "help", "write-current-graph", "bind-current-graph", "graph-only"]);
 const graphOnly = rawArgs.includes("--graph-only");
 
 const ledgerPath = "test/fixtures/v390_structure_stabilization_execution.json";
@@ -94,6 +98,9 @@ check("versioned current architecture policy and continuation are explicit", () 
   }
 });
 
+if (rawArgs.includes("--bind-current-graph") && !rawArgs.includes("--write-current-graph")) {
+  throw new Error("--bind-current-graph requires --write-current-graph");
+}
 if (rawArgs.includes("--write-current-graph")) {
   const ledgerSha256Before = sha256File(ledgerPath);
   const completionSha256Before = sha256File(ledger.completionGraph.path);
@@ -141,11 +148,34 @@ if (rawArgs.includes("--write-current-graph")) {
   generatedGraph.observedModuleEdges = current.observedModuleEdges;
   generatedGraph.stronglyConnectedComponents = current.stronglyConnectedComponents;
   for (const debt of generatedGraph.mixedOwnershipDebt) debt.lineCount = lineCount(debt.file);
+  let boundLedger;
+  if (rawArgs.includes("--bind-current-graph")) {
+    assert(checks.every(item => item.status === "PASS"), "current architecture policy binding invalid");
+    // 실제 소스에서 생성한 current 연결만 갱신한다. 과거 단계·승인·완료 근거는 복사해 보존한다.
+    boundLedger = structuredClone(ledger);
+    boundLedger.currentGraph.sha256 = sha256Text(`${JSON.stringify(generatedGraph, null, 2)}\n`);
+    boundLedger.currentGraph.metrics = graphMetrics(generatedGraph, current);
+    assert(finalTargetsSatisfied(ledger.finalTargets, boundLedger.currentGraph.metrics) &&
+      current.forbiddenFileDependencies.length === 0, "generated current graph violates architecture policy");
+    const errors = validateCurrentGraphBinding(boundLedger, generatedGraph, policy);
+    assert(errors.length === 0, `generated current graph invalid: ${errors.join(", ")}`);
+    const preserved = structuredClone(boundLedger); preserved.currentGraph = ledger.currentGraph;
+    assert(JSON.stringify(preserved) === JSON.stringify(ledger), "historical ledger changed");
+  }
   fs.writeFileSync(currentGraphAbsolutePath, `${JSON.stringify(generatedGraph, null, 2)}\n`);
   assert(sha256File(ledgerPath) === ledgerSha256Before,
     "current graph generator modified the historical execution ledger");
   assert(sha256File(ledger.completionGraph.path) === completionSha256Before,
     "current graph generator modified the immutable Slice 32 completion graph");
+  if (boundLedger) {
+    const before = readText(ledgerPath);
+    const pattern = /("currentGraph": )\{[\s\S]*?\n  \}/;
+    assert(pattern.test(before), "current graph ledger section missing");
+    const section = JSON.stringify(boundLedger.currentGraph, null, 2).replace(/\n/g, "\n  ");
+    const after = before.replace(pattern, (_, prefix) => prefix + section);
+    assert(JSON.stringify(JSON.parse(after)) === JSON.stringify(boundLedger), "current graph ledger serialization mismatch");
+    fs.writeFileSync(path.join(rootDir, ledgerPath), after);
+  }
   console.log(`wrote ${ledger.currentGraph.path}: files=${current.productionFiles.length} cpp=${current.cppFiles.length} edges=${current.observedModuleEdges.length}`);
   process.exit(0);
 }
@@ -339,11 +369,14 @@ check("Slice 32 completion and current graph separation is fail-closed", () => {
     .some(error => error.includes("historical")), "current graph was accepted as historical evidence");
 
   const generatorSource = readText("scripts/internal/verify_v390_structure_stabilization_execution.mjs");
-  assert([...generatorSource.matchAll(/^\s*fs\.writeFileSync\(/gm)].length === 1 &&
+  assert([...generatorSource.matchAll(/^\s*fs\.writeFileSync\(/gm)].length === 2 &&
     generatorSource.includes("fs.writeFileSync(currentGraphAbsolutePath") &&
+    generatorSource.includes("if (boundLedger) {") &&
+    generatorSource.includes("preserved.currentGraph = ledger.currentGraph") &&
+    generatorSource.includes("current graph ledger serialization mismatch") &&
     generatorSource.includes("current graph generator modified the historical execution ledger") &&
     generatorSource.includes("current graph generator modified the immutable Slice 32 completion graph"),
-  "current graph generator write boundary is not limited to the current graph artifact");
+  "current graph generator write boundary must preserve history and only bind measured current graph");
 });
 
 check("composition root extraction preserves lifecycle ownership", () => {

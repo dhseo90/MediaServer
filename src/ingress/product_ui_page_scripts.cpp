@@ -10368,7 +10368,7 @@ void AppendOpsShellScript(std::ostringstream& out,
         }
         if (window.location.pathname === '/ops/events' && document.getElementById('opsSearchForm')) {
           const el = name => document.getElementById('opsSearch' + name);
-          const player = el('Player');
+          let player = el('Player');
           let requestVersion = 0, selectionVersion = 0, query = null, snapshot = '', cursor = '', rows = [], selected = '';
           let pendingTarget = null;
           const local = ms => new Date(ms - new Date(ms).getTimezoneOffset() * 60000).toISOString().slice(0, 16);
@@ -10377,12 +10377,17 @@ void AppendOpsShellScript(std::ostringstream& out,
           const clearSelection = () => {
             ++selectionVersion; selected = ''; pendingTarget = null;
             player.pause(); player.removeAttribute('src'); player.load();
+            // 같은 URL을 다시 선택해도 이전 미디어의 queued event가 새 선택에 도달하지 않는다.
+            const previous = player; player = previous.cloneNode(false); previous.replaceWith(player);
+            wirePlayer(player, selectionVersion);
             say('Playback', '결과를 선택하면 검색 시점으로 이동합니다.');
           };
           const read = async url => {
             const response = await fetch(url, { credentials: 'same-origin', cache: 'no-store' });
             if (!response.ok) {
-              const error = new Error(response.status === 410 ? '검색이 만료됐습니다. 다시 검색하세요.' :
+              const body = await response.json().catch(() => ({}));
+              const error = new Error(response.status === 503 && body.error === 'search-event-evidence-incomplete' ?
+                '행동 근거가 부족해 검색 결과를 판정하지 못했습니다. 잠시 후 다시 검색하세요.' : response.status === 410 ? '검색이 만료됐습니다. 다시 검색하세요.' :
                 response.status === 403 || response.status === 401 ? '검색 권한이 없습니다. 카메라와 로그인 상태를 확인하세요.' :
                 response.status === 400 ? '검색 조건이 올바르지 않습니다.' : '검색을 준비하지 못했습니다. 잠시 후 다시 검색하세요.');
               throw error;
@@ -10394,17 +10399,47 @@ void AppendOpsShellScript(std::ostringstream& out,
             const ms = Number(BigInt(ns) / 1000000n);
             return Number.isSafeInteger(ms) && ms <= 8640000000000000 ? new Date(ms).toLocaleString() : '시간 미확인';
           };
-          const applyTarget = () => {
+          const currentTarget = () => {
             const target = pendingTarget;
-            if (!target || target.version !== selectionVersion || target.url !== player.getAttribute('src') || player.readyState < 1) return;
-            pendingTarget = null;
-            if (target.seconds !== null) {
-              if (!Number.isFinite(player.duration) || target.seconds > player.duration) {
-                say('Playback', '검색 위치가 현재 파일 범위를 벗어났습니다. 다시 검색하세요.'); return;
-              }
-              player.currentTime = target.seconds;
-              say('Playback', '검색 시점으로 이동했습니다. 재생 버튼을 누르세요.');
-            } else say('Playback', '정확한 검색 위치를 확인할 수 없습니다. 파일 시작부터 재생할 수 있습니다.');
+            return target && target.version === selectionVersion && target.url === player.getAttribute('src') &&
+              (!player.currentSrc || player.currentSrc === player.src) ? target : null;
+          };
+          const finishTarget = () => {
+            const target = currentTarget();
+            if (!target || !['seeking', 'current'].includes(target.phase) || (target.phase === 'seeking' && !target.seeked) || player.seeking || player.readyState < 2 || player.error) return;
+            if (Math.abs(player.currentTime - target.seconds) > target.tolerance) {
+              pendingTarget = null; say('Playback', '검색 위치 탐색을 완료하지 못했습니다. 다시 선택하세요.'); return;
+            }
+            target.phase = 'complete';
+            say('Playback', '검색 시점으로 이동했습니다. 재생 버튼을 누르세요.');
+          };
+          const applyTarget = () => {
+            const target = currentTarget();
+            if (!target || target.phase !== 'metadata' || player.readyState < 1 || player.error) return;
+            if (target.seconds === null) {
+              target.phase = 'unavailable';
+              say('Playback', '정확한 검색 위치를 확인할 수 없습니다. 파일 시작부터 재생할 수 있습니다.'); return;
+            }
+            if (!Number.isFinite(player.duration) || target.seconds >= player.duration) {
+              pendingTarget = null; say('Playback', '검색 위치가 현재 파일 범위를 벗어났습니다. 다시 검색하세요.'); return;
+            }
+            say('Playback', '검색 시점으로 탐색 중…');
+            // 현재 위치가 목표와 같으면 브라우저가 seeked를 생략할 수 있다. 읽을 수 있는 현재 데이터로 확인한다.
+            if (player.currentTime === target.seconds && !player.seeking) {
+              target.phase = 'current'; finishTarget(); return;
+            }
+            target.phase = 'seeking';
+            try { player.currentTime = target.seconds; }
+            catch { pendingTarget = null; say('Playback', '검색 위치 탐색을 시작하지 못했습니다. 다시 선택하세요.'); }
+          };
+          const wirePlayer = (media, version) => {
+            const current = () => media === player && version === selectionVersion && currentTarget();
+            media.addEventListener('loadedmetadata', () => { if (current()) applyTarget(); });
+            media.addEventListener('seeked', () => { const target = current(); if (target) { target.seeked = true; finishTarget(); } });
+            media.addEventListener('loadeddata', () => { if (current()) finishTarget(); });
+            media.addEventListener('error', () => {
+              if (current() && media.error) { pendingTarget = null; say('Playback', '영상을 읽지 못했습니다. 브라우저 지원과 현재 파일 상태를 확인하세요.'); }
+            });
           };
           const select = async item => {
             clearSelection(); selected = item.id; const version = selectionVersion;
@@ -10417,8 +10452,8 @@ void AppendOpsShellScript(std::ostringstream& out,
               if (!data.playable || !/^\/ops\/api\/recordings\/media\/[A-Za-z0-9._:-]+$/.test(data.playbackUrl || '')) {
                 say('Playback', '현재 파일을 재생할 수 없습니다. 삭제·누락 상태일 수 있으니 다시 검색하세요.'); return;
               }
-              if (data.seekAvailable && (!Number.isFinite(data.targetSeconds) || data.targetSeconds < 0)) throw new Error('재생 위치 응답이 올바르지 않습니다.');
-              pendingTarget = { version, url: data.playbackUrl, seconds: data.seekAvailable ? data.targetSeconds : null };
+              if (data.seekAvailable && (!Number.isFinite(data.targetSeconds) || data.targetSeconds < 0 || !Number.isFinite(data.frameDurationSeconds) || data.frameDurationSeconds <= 0)) throw new Error('재생 위치 응답이 올바르지 않습니다.');
+              pendingTarget = { version, url: data.playbackUrl, seconds: data.seekAvailable ? data.targetSeconds : null, tolerance: data.frameDurationSeconds, phase: 'metadata' };
               player.src = data.playbackUrl; player.load(); applyTarget();
             } catch (error) { if (version === selectionVersion) say('Playback', error.message); }
           };
@@ -10466,8 +10501,6 @@ void AppendOpsShellScript(std::ostringstream& out,
           el('Form').addEventListener('input', invalidateSearch);
           el('Form').addEventListener('change', invalidateSearch);
           el('Next').addEventListener('click', () => { if (cursor) load(true); });
-          player.addEventListener('loadedmetadata', applyTarget);
-          player.addEventListener('error', () => { if (selected) { pendingTarget = null; say('Playback', '영상을 읽지 못했습니다. 브라우저 지원과 현재 파일 상태를 확인하세요.'); } });
           read('/ops/api/recordings/status').then(data => {
             el('Channels').replaceChildren(...data.channels.map(channel => {
               const option = document.createElement('option'); option.value = channel.channelId; option.textContent = channel.displayName || channel.channelId; return option;
