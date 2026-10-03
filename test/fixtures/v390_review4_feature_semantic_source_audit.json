@@ -199115,35 +199115,35 @@
           "file": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs",
           "symbol": "owner:SAFE-214",
           "anchor": "function validateDecisions(fixture) {",
-          "line": 315,
+          "line": 317,
           "contextSha256": "bab54a26c4ee295a6b6830d782adc073fcc4ea94763f8323ecec52729946706e"
         },
         "dispatch": {
           "file": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs",
           "symbol": "dispatch:SAFE-214",
           "anchor": "for (const decision of fixture.decisions) {",
-          "line": 319,
+          "line": 321,
           "contextSha256": "3f43d36f31b838e8ad808da86f6c4c27a975f17c2695a5663fe8f99c21875784"
         },
         "action": {
           "file": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs",
           "symbol": "action:SAFE-214",
           "anchor": "const falsePassClaimed = decision.fieldPassClaimed === true || decision.releasePassClaimed === true ||",
-          "line": 334,
+          "line": 336,
           "contextSha256": "26a5328f91d6c1de58f35fc6a798fd38a9d54f4dac2bde95e191b8d623fda26d"
         },
         "state": {
           "file": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs",
           "symbol": "state:executionTruthful",
           "anchor": "const executionTruthful = decision.executionStatus === \"not-executed\" && falsePassClaimed === false;",
-          "line": 336,
+          "line": 338,
           "contextSha256": "70157e1d35d2c26b28c78b42d4ba5fce2f81dec504e7674a6ef1b9ef0da39cb4"
         },
         "readback": {
           "file": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs",
           "symbol": "readback:SAFE-214",
           "anchor": "assert(executionTruthful && falsePassClaimed === false,",
-          "line": 337,
+          "line": 339,
           "contextSha256": "d732139f533fda11eb54b8c046358d23080b83e9ffdb9a68a3bd30b05ff15600"
         },
         "verifier": {
@@ -199160,39 +199160,39 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "SAFE-214 owner-dispatch",
-          "source": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs:315",
-          "target": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs:319"
+          "source": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs:317",
+          "target": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs:321"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "function-containment",
           "witness": "SAFE-214 dispatch-action",
-          "source": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs:319",
-          "target": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs:334"
+          "source": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs:321",
+          "target": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs:336"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "assignment-def-use",
           "witness": "SAFE-214 action-state",
-          "source": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs:334",
-          "target": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs:336"
+          "source": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs:336",
+          "target": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs:338"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "structural-producer-assertion",
           "witness": "SAFE-214 state-readback",
-          "source": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs:336",
-          "target": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs:337"
+          "source": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs:338",
+          "target": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs:339"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v390-deferred-product-owner-signoff",
-          "source": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs:337",
+          "source": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs:339",
           "target": "server.sh:2654"
         }
       ],
@@ -199250,53 +199250,53 @@
           "sha256": "dabbfdf751250c7a4beaf2ccce404750c057451868ef07743966a95fe2e3d7a3"
         }
       },
-      "sourceFlowDigest": "7dfb01d10e65a40f2d6b5ccad9d27d9f92df7cd0736088bef246fba0d67e5b30",
+      "sourceFlowDigest": "29487e1a6f59dc2f460ef6ab26b39a3b65f8b4640984559f4681e0e0d03b9aff",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
           "owner": {
             "file": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs",
             "symbol": "owner:SAFE-214",
-            "trackedBlobSha256": "1e1feffbce17cecc215204bc7eef80b556ab751b7e2df3cc210f5e7d1d5eabc2",
+            "trackedBlobSha256": "850bb197b3c0a5257e74465f4e7574c2632cb5f123de2e03c57099baf30d71c6",
             "enclosingBodySha256": "0af123b2249be8aee95ce74534ad8bad2c48abf3640a0c01b89802580a2a6909",
-            "enclosingBodyStartLine": 315,
-            "enclosingBodyEndLine": 356,
+            "enclosingBodyStartLine": 317,
+            "enclosingBodyEndLine": 358,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "dispatch": {
             "file": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs",
             "symbol": "dispatch:SAFE-214",
-            "trackedBlobSha256": "1e1feffbce17cecc215204bc7eef80b556ab751b7e2df3cc210f5e7d1d5eabc2",
+            "trackedBlobSha256": "850bb197b3c0a5257e74465f4e7574c2632cb5f123de2e03c57099baf30d71c6",
             "enclosingBodySha256": "0af123b2249be8aee95ce74534ad8bad2c48abf3640a0c01b89802580a2a6909",
-            "enclosingBodyStartLine": 315,
-            "enclosingBodyEndLine": 356,
+            "enclosingBodyStartLine": 317,
+            "enclosingBodyEndLine": 358,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "action": {
             "file": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs",
             "symbol": "action:SAFE-214",
-            "trackedBlobSha256": "1e1feffbce17cecc215204bc7eef80b556ab751b7e2df3cc210f5e7d1d5eabc2",
+            "trackedBlobSha256": "850bb197b3c0a5257e74465f4e7574c2632cb5f123de2e03c57099baf30d71c6",
             "enclosingBodySha256": "0af123b2249be8aee95ce74534ad8bad2c48abf3640a0c01b89802580a2a6909",
-            "enclosingBodyStartLine": 315,
-            "enclosingBodyEndLine": 356,
+            "enclosingBodyStartLine": 317,
+            "enclosingBodyEndLine": 358,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "state": {
             "file": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs",
             "symbol": "state:executionTruthful",
-            "trackedBlobSha256": "1e1feffbce17cecc215204bc7eef80b556ab751b7e2df3cc210f5e7d1d5eabc2",
+            "trackedBlobSha256": "850bb197b3c0a5257e74465f4e7574c2632cb5f123de2e03c57099baf30d71c6",
             "enclosingBodySha256": "0af123b2249be8aee95ce74534ad8bad2c48abf3640a0c01b89802580a2a6909",
-            "enclosingBodyStartLine": 315,
-            "enclosingBodyEndLine": 356,
+            "enclosingBodyStartLine": 317,
+            "enclosingBodyEndLine": 358,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "readback": {
             "file": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs",
             "symbol": "readback:SAFE-214",
-            "trackedBlobSha256": "1e1feffbce17cecc215204bc7eef80b556ab751b7e2df3cc210f5e7d1d5eabc2",
+            "trackedBlobSha256": "850bb197b3c0a5257e74465f4e7574c2632cb5f123de2e03c57099baf30d71c6",
             "enclosingBodySha256": "0af123b2249be8aee95ce74534ad8bad2c48abf3640a0c01b89802580a2a6909",
-            "enclosingBodyStartLine": 315,
-            "enclosingBodyEndLine": 356,
+            "enclosingBodyStartLine": 317,
+            "enclosingBodyEndLine": 358,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -199308,7 +199308,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "1e1feffbce17cecc215204bc7eef80b556ab751b7e2df3cc210f5e7d1d5eabc2",
+        "verifierFileSha256": "850bb197b3c0a5257e74465f4e7574c2632cb5f123de2e03c57099baf30d71c6",
         "dispatch": {
           "command": "verify-v390-deferred-product-owner-signoff",
           "file": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs",
@@ -234363,35 +234363,35 @@
           "file": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs",
           "symbol": "validateDecisions",
           "anchor": "function validateDecisions(fixture) {",
-          "line": 315,
+          "line": 317,
           "contextSha256": "bab54a26c4ee295a6b6830d782adc073fcc4ea94763f8323ecec52729946706e"
         },
         "dispatch": {
           "file": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs",
           "symbol": "validateDecisions",
           "anchor": "const decisionOwnerSubjectRef = decision.accountableSubjectRef;",
-          "line": 325,
+          "line": 327,
           "contextSha256": "3bd8c47253b21385327120df5059510308b09db39567a974df7c053dbe7f54d1"
         },
         "action": {
           "file": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs",
           "symbol": "validateDecisions",
           "anchor": "const accountableOwnerBound = decisionOwnerSubjectRef === \"repo-owner-v1\";",
-          "line": 326,
+          "line": 328,
           "contextSha256": "1150e9bdb31e97c2ca79c952bd9a1788b2c27c2542fc46c1509e1a0e1b881ad3"
         },
         "state": {
           "file": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs",
           "symbol": "validateDecisions",
           "anchor": "const accountableOwnerDecisionBound = accountableOwnerBound && decisionOwnerSubjectRef === \"repo-owner-v1\";",
-          "line": 327,
+          "line": 329,
           "contextSha256": "86edf2b8554388e66a36d70178882d486d2f3b49d1ec3f03319bcb8af4dffdea"
         },
         "readback": {
           "file": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs",
           "symbol": "validateDecisions",
           "anchor": "assert(accountableOwnerDecisionBound,",
-          "line": 328,
+          "line": 330,
           "contextSha256": "6ac005fa947cbe375cbdf9849f19c79d4f0d0f522113e4f9da573f5d0ed0ebd1"
         },
         "verifier": {
@@ -234408,39 +234408,39 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "OPS-181 owner-dispatch",
-          "source": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs:315",
-          "target": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs:325"
+          "source": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs:317",
+          "target": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs:327"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "assignment-def-use",
           "witness": "OPS-181 dispatch-action",
-          "source": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs:325",
-          "target": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs:326"
+          "source": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs:327",
+          "target": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs:328"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "assignment-def-use",
           "witness": "OPS-181 action-state",
-          "source": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs:326",
-          "target": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs:327"
+          "source": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs:328",
+          "target": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs:329"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "structural-producer-assertion",
           "witness": "OPS-181 state-readback",
-          "source": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs:327",
-          "target": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs:328"
+          "source": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs:329",
+          "target": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs:330"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v390-deferred-product-owner-signoff",
-          "source": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs:328",
+          "source": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs:330",
           "target": "server.sh:2654"
         }
       ],
@@ -234498,53 +234498,53 @@
           "sha256": "b9707501a9a28e50b26ad5772160be4a93cc562e934736e689f8c5ab8c687afd"
         }
       },
-      "sourceFlowDigest": "318d57cd07977d9194d4d9c0578c3077465a9d7b7fc07a38fd4d44cb0415f59d",
+      "sourceFlowDigest": "a15c8e02d10d4add48bf78d299f130ea5f6fdeba856baa30ef15506d2b1a5d46",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
           "owner": {
             "file": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs",
             "symbol": "validateDecisions",
-            "trackedBlobSha256": "1e1feffbce17cecc215204bc7eef80b556ab751b7e2df3cc210f5e7d1d5eabc2",
+            "trackedBlobSha256": "850bb197b3c0a5257e74465f4e7574c2632cb5f123de2e03c57099baf30d71c6",
             "enclosingBodySha256": "0af123b2249be8aee95ce74534ad8bad2c48abf3640a0c01b89802580a2a6909",
-            "enclosingBodyStartLine": 315,
-            "enclosingBodyEndLine": 356,
+            "enclosingBodyStartLine": 317,
+            "enclosingBodyEndLine": 358,
             "enclosingBodyScope": "declared-symbol"
           },
           "dispatch": {
             "file": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs",
             "symbol": "validateDecisions",
-            "trackedBlobSha256": "1e1feffbce17cecc215204bc7eef80b556ab751b7e2df3cc210f5e7d1d5eabc2",
+            "trackedBlobSha256": "850bb197b3c0a5257e74465f4e7574c2632cb5f123de2e03c57099baf30d71c6",
             "enclosingBodySha256": "0af123b2249be8aee95ce74534ad8bad2c48abf3640a0c01b89802580a2a6909",
-            "enclosingBodyStartLine": 315,
-            "enclosingBodyEndLine": 356,
+            "enclosingBodyStartLine": 317,
+            "enclosingBodyEndLine": 358,
             "enclosingBodyScope": "declared-symbol"
           },
           "action": {
             "file": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs",
             "symbol": "validateDecisions",
-            "trackedBlobSha256": "1e1feffbce17cecc215204bc7eef80b556ab751b7e2df3cc210f5e7d1d5eabc2",
+            "trackedBlobSha256": "850bb197b3c0a5257e74465f4e7574c2632cb5f123de2e03c57099baf30d71c6",
             "enclosingBodySha256": "0af123b2249be8aee95ce74534ad8bad2c48abf3640a0c01b89802580a2a6909",
-            "enclosingBodyStartLine": 315,
-            "enclosingBodyEndLine": 356,
+            "enclosingBodyStartLine": 317,
+            "enclosingBodyEndLine": 358,
             "enclosingBodyScope": "declared-symbol"
           },
           "state": {
             "file": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs",
             "symbol": "validateDecisions",
-            "trackedBlobSha256": "1e1feffbce17cecc215204bc7eef80b556ab751b7e2df3cc210f5e7d1d5eabc2",
+            "trackedBlobSha256": "850bb197b3c0a5257e74465f4e7574c2632cb5f123de2e03c57099baf30d71c6",
             "enclosingBodySha256": "0af123b2249be8aee95ce74534ad8bad2c48abf3640a0c01b89802580a2a6909",
-            "enclosingBodyStartLine": 315,
-            "enclosingBodyEndLine": 356,
+            "enclosingBodyStartLine": 317,
+            "enclosingBodyEndLine": 358,
             "enclosingBodyScope": "declared-symbol"
           },
           "readback": {
             "file": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs",
             "symbol": "validateDecisions",
-            "trackedBlobSha256": "1e1feffbce17cecc215204bc7eef80b556ab751b7e2df3cc210f5e7d1d5eabc2",
+            "trackedBlobSha256": "850bb197b3c0a5257e74465f4e7574c2632cb5f123de2e03c57099baf30d71c6",
             "enclosingBodySha256": "0af123b2249be8aee95ce74534ad8bad2c48abf3640a0c01b89802580a2a6909",
-            "enclosingBodyStartLine": 315,
-            "enclosingBodyEndLine": 356,
+            "enclosingBodyStartLine": 317,
+            "enclosingBodyEndLine": 358,
             "enclosingBodyScope": "declared-symbol"
           },
           "verifier": {
@@ -234556,7 +234556,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "1e1feffbce17cecc215204bc7eef80b556ab751b7e2df3cc210f5e7d1d5eabc2",
+        "verifierFileSha256": "850bb197b3c0a5257e74465f4e7574c2632cb5f123de2e03c57099baf30d71c6",
         "dispatch": {
           "command": "verify-v390-deferred-product-owner-signoff",
           "file": "scripts/internal/verify_v390_deferred_product_owner_signoff.mjs",
@@ -235258,5 +235258,5 @@
       }
     }
   ],
-  "candidateDigest": "36516b45bf5be60a1e678cd27a843a8c5e389fbae3a99ed2413bad857233c4a9"
+  "candidateDigest": "45533d2f16d201ee67fd4779cd3268ed506e90dd4deb226e11a0655a89ed7996"
 }
