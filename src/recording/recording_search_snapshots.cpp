@@ -36,12 +36,30 @@ bool QueryHash(const RecordingSearchQuery& q,std::string* result){
 #endif
 }
 }
-RecordingSearchSnapshots::RecordingSearchSnapshots(SearchSnapshotLimits limits):limits_(limits){
+RecordingSearchSnapshots::RecordingSearchSnapshots(SearchSnapshotLimits limits,bool automatic_expiry):limits_(limits){
 #if MEDIA_SERVER_USE_OPENSSL
     ready_=RAND_bytes(secret_.data(),secret_.size())==1;
 #else
     (void)secret_;
 #endif
+    if(automatic_expiry&&ready_)expiry_worker_=std::thread([this]{RunExpiry();});
+}
+RecordingSearchSnapshots::~RecordingSearchSnapshots(){
+    {std::lock_guard<std::mutex> lock(mutex_);stopping_=true;}
+    expiry_changed_.notify_all();
+    if(expiry_worker_.joinable())expiry_worker_.join();
+}
+void RecordingSearchSnapshots::RunExpiry(){
+    std::unique_lock<std::mutex> lock(mutex_);
+    while(!stopping_){
+        Expire(Clock::now());
+        if(entries_.empty())expiry_changed_.wait(lock,[this]{return stopping_||!entries_.empty();});
+        else {
+            const auto next=std::min_element(entries_.begin(),entries_.end(),
+                [](const auto& a,const auto& b){return a.expires<b.expires;})->expires;
+            expiry_changed_.wait_until(lock,next);
+        }
+    }
 }
 bool RecordingSearchSnapshots::Mac(const std::string& value,std::string* result) const {
 #if MEDIA_SERVER_USE_OPENSSL
@@ -102,6 +120,7 @@ bool RecordingSearchSnapshots::Begin(std::shared_ptr<const RecordingSearchModel>
             bytes_-=entries_.front().bytes;entries_.pop_front();
         }
         bytes_+=entries_.back().bytes;
+        expiry_changed_.notify_one();
         *output=std::move(page);if(error)error->clear();return true;
     }catch(const std::bad_alloc&){return Fail(error,"search-snapshot-capacity");}
      catch(const std::length_error&){return Fail(error,"search-snapshot-capacity");}

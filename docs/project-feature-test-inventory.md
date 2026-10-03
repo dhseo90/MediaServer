@@ -14,7 +14,7 @@
 | --- | --- | --- | --- | --- | --- |
 | V430-R01 | historical identity 상주 중복; 기존 entity/time/digest 문자열과 조회 결과 동일, checkpoint/reopen 뒤 중복 digest 문자열 0바이트, active identity 유지 | `verify_recording_generation_checkpoint.sh residency` 및 기존 append/checkpoint/cold-link 회귀 | 향후 녹화 병행 | 이력 수명 영향으로 필요성 판정 | 비대상: 내부 |
 | V430-R02 | 활성 자료 고정·누적 identity 증가; 필수 ID/receipt 보존, 반복 삭제·off·재시작/재구축의 논리/RSS 분리 | 규모·소유 측정 | 향후 순환 | 필요성 판정 | 비대상: 내부 |
-| V430-R03 | 검색 snapshot 299초 유효/300초 만료, idle 후 상주 해제, caller가 가진 불변 결과 수명 보존 | 수명 oracle | 향후 idle/재활성화 | 필요성 판정 | 기존 만료 안내 |
+| V430-R03 | 검색 snapshot 299초 유효/300초 만료; 실제 시계 fixture의 20ms idle 만료 뒤 2초 안에 후속 요청 없이 weak owner 해제, caller page 보존, 미래 만료를 기다리지 않는 종료(1초 이내) | `bash scripts/internal/verify_recording_search_lifetime.sh`; crypto on/off | 향후 idle/재활성화 | 필요성 판정 | 기존 만료 안내 |
 | V430-R04 | 검색 4요청·녹화 동시 진행; 기존 ID/건수/순서/권한·최종 파일 불변, 대기/준비/지연·peak 예산 | 실제 writer 단기 통합 | 향후 혼합 부하 | 필요성 판정 | 비대상: 내부 |
 | V430-E01 | image/text/cross-modal contract; 동일 차원 다른 모델·전처리 혼합 거부, 구계약 새 공간으로 재색인 | 값/실제 모델; 세부 준비 중 | 향후 색인 | 영향 판정 | 미정 |
 | V430-EMBED-PREP | 고정 revision의 weight/tokenizer SHA-256 일치, local CPU image FP32[1,3,224,224]/text INT64[1,64]→각 768값, 공급자·export/dependency hash 보존 | 격리 준비/shape | 비대상: 준비 | 비대상: 준비 | 비대상: 내부 |

@@ -25,5 +25,26 @@ R01 fixture의 historical 문자열은 처음 76바이트, 두 번의 회전 뒤
 각 실행은 자체 mktemp fixture만 사용했으며 서버/포트를 열지 않았다. 로그의 소유 경로
 cleanup `removed=true`와 실행 종료를 확인했다. 모든 최초 실패 로그를 보존했다.
 
-남은 작업: R02 규모·전체 소유량, R03 snapshot idle 수명, R04 동시 부하와 5~10번 개발.
+## R03 idle snapshot 만료
+
+기준 `0384adc1`와 R03 diff, 같은 macOS arm64에서 실행했다. 기존 pool은 Begin/Resume/ResolveHit가
+호출될 때만 만료 항목을 지웠다. 제품 SearchState가 자동 만료 모드를 사용하도록 연결하고,
+pool 소유 worker가 다음 만료까지 기다린 후 pool의 shared 소유만 해제한다. shutdown은 worker를
+깨워 join한다. 미디어 worker·보존 lease는 만들지 않으며 이미 반환한 page의 불변 모델은 유지한다.
+수동 시계를 사용하는 기존 oracle은 자동 worker와 분리했다.
+
+| 명령·대상 | 원출력 | exit·판정 |
+| --- | --- | --- |
+| `bash scripts/internal/verify_recording_search_lifetime.sh`, 자동 만료 구현 전 | [RED](r03-red.log) | 1, 41 PASS/2 FAIL. 후속 요청 없는 만료/마지막 외부 참조 해제 두 assertion만 실패 |
+| 위 명령, 자동 만료 구현 후 | [GREEN](r03-green.log) | 0, crypto on 43 PASS/0 FAIL, crypto off 2 PASS/0 FAIL |
+| `cmake --build build-gst-onnx -j 4` | [제품 빌드](r03-build.log) | 0, 기존 GStreamer/ONNX/OpenSSL/SQLite 제품 링크 완료 |
+| 기존 `recording_search_application_smoke.cpp`, `recording_search_concurrent_smoke.cpp`를 현행 CMake defines/includes/link와 제품 archive로 컴파일·각 격리 fixture 실행 | [application 영향 회귀](r03-application-regression.log) | 0, 각각 13/6 PASS, 실패 0. 정확한 compile/run/제품 archive SHA와 cleanup은 로그에 있음 |
+
+application 검사는 실제 원본·파생 파일/페이지·권한·검색 seek·원본 fallback을 확인했다.
+동시 검사에서는 10,000관측과 90 packet의 writer를 사용했고 세 GOP 파일을 확인했다.
+이 실행의 competing request 339.955ms/최대 검색 191.981ms는 4요청 목표의 p95가 아니다.
+모든 실행은 종료했고 소유 임시 경로 제거를 확인했다. 전체 서버 RSS, 4요청, 8채널,
+100,000 identity, 30분/120분·실제 UI 검증으로 확대하지 않는다.
+
+남은 작업: R02 규모·전체 소유량, R04 동시 부하와 5~10번 개발.
 모델·격리 의존성 준비는 사용자 승인 후 별도 담당자가 진행 중이다.

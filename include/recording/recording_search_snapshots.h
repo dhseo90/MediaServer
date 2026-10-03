@@ -5,6 +5,8 @@
 #include <chrono>
 #include <deque>
 #include <mutex>
+#include <condition_variable>
+#include <thread>
 
 namespace recording {
 struct SearchSnapshotLimits {
@@ -20,7 +22,9 @@ struct RecordingSearchPage {
 class RecordingSearchSnapshots {
 public:
     using Clock=std::chrono::steady_clock;
-    explicit RecordingSearchSnapshots(SearchSnapshotLimits limits = {});
+    // 수동 모드는 독립 시계 fixture용이다. 제품은 자동 idle 만료를 명시한다.
+    explicit RecordingSearchSnapshots(SearchSnapshotLimits limits = {}, bool automatic_expiry = false);
+    ~RecordingSearchSnapshots();
     // caller는 매 호출마다 현재 사용자와 요청 채널 전체 권한을 먼저 검사한다.
     bool Begin(std::shared_ptr<const RecordingSearchModel>, const RecordingSearchQuery&,
         const std::string& principal, const std::string& scope,
@@ -43,11 +47,15 @@ private:
     bool Page(const Entry&, std::size_t offset, RecordingSearchPage*, std::string*) const;
     bool Mac(const std::string&, std::string*) const;
     void Expire(Clock::time_point);
+    void RunExpiry();
     SearchSnapshotLimits limits_;
     std::array<unsigned char,32> secret_{};
     bool ready_{false};
     std::mutex mutex_;
     std::deque<Entry> entries_;
     std::size_t bytes_{0};
+    std::condition_variable expiry_changed_;
+    bool stopping_{false};
+    std::thread expiry_worker_;
 };
 } // namespace recording

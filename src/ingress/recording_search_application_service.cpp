@@ -12,7 +12,7 @@
 namespace ingress {
 struct RecordingApplicationService::SearchState {
     std::shared_ptr<const recording::RecordingSearchModel> source;
-    recording::RecordingSearchSnapshots snapshots;
+    recording::RecordingSearchSnapshots snapshots{{},true};
 };
 namespace {
 using Query=std::unordered_map<std::string,std::string>;
