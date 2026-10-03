@@ -71,3 +71,29 @@ writer 90 packet/3 GOP 파일 확정과 현재 media 건강도를 확인했다. 
 
 남은 작업: R02 목표 규모·전체 소유량과 5~10번 개발. 모델·격리 의존성은 준비됐으나
 제품 C++ 전처리·검색 통합은 미완료다.
+
+
+## R02 100,000 identity 전후 비교
+
+`806e4a9c`와 규모 fixture diff에서 `verify_recording_generation_checkpoint.sh scale`을 실행했다.
+활성 미디어 0개를 고정하고 8채널 ID에 1,000/100,000개의 고유 미사용 예약을 생성했다.
+전체 ID 수, 첫/중간/마지막 예약의 독립 tuple·sequence, 충돌 거부, 원본 hash와 no-op checkpoint,
+SQLite off/on 재기동이 통과했다. 삭제 이력·실제 미디어는 앞 절의 별도 fixture이며 이 예약 fixture와 혼동하지 않는다.
+
+| 실행 | 원출력 | 결과 |
+| --- | --- | --- |
+| `scale`, 첫 규모 실행 | [규모](r02-identity-scale.log) | exit 0, 40 PASS, 100,000개 유지. native heap 관측 추가 전 결과 |
+| `scale-baseline`, R01 이전 `f6d5cf83` Journal과 읽기 전용 probe | [최초 실패](r02-identity-baseline.log) | exit 1, 임시 source의 private include 검색 경로 누락. 제품 assertion RED가 아닌 빌드 오류 |
+| `scale-baseline`, `-Isrc/recording` 추가 | [기준 재실행](r02-identity-baseline-retry.log) | exit 0, 40 PASS. 기준의 중복 문자열은 존재해야 한다는 별도 기대값 |
+| `scale`, native heap 관측 포함 | [현행 비교](r02-identity-heap.log) | exit 0, 40 PASS. 같은 fixture·컴파일 옵션·재기동 순서, 중복 문자열 0 기대값 |
+
+100,000개 / SQLite on 조건에서 historical 중복 문자열 8,888,890→0바이트,
+macOS 전체 malloc zones `size_in_use` 174,955,328→165,355,328바이트(9,600,000바이트 감소),
+reserved 378,290,176→369,901,568바이트였다. 제품 owner의 논리량과 native heap은 같은 지표가 아니다.
+전체 native heap에는 allocator·SQLite·fixture의 남은 할당도 포함된다. current 데이터 전용 비용으로
+정확히 귀속하지 않으며 RSS 전부를 누수로 해석하지 않는다. 이 fixture의 측정 native heap은
+512MiB보다 작고, parser 준비를 포함한 peak RSS 691,683,328→681,263,104바이트도 4GiB 이하다.
+Open은 14,453.7→14,440.5ms로 속도 개선을 주장할 차이가 아니다. 디스크 논리 크기는 양쪽 모두
+129,979,457바이트로 필수 이력을 삭제해 공간을 줄인 결과가 아니다.
+모든 프로세스 종료와 정확한 소유 fixture 제거를 로그에서 확인했다. 실제 영상의 8채널/4검색과
+이력 규모를 한 번에 합친 교차 부하·장시간·운영 지원 전체의 PASS는 아직 아니다.
