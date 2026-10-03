@@ -184,8 +184,8 @@ v4.1.0 golden 바이트/digest는 변경하지 않는다. 새 사례는 별도 f
 
 ### 후속 구현의 비용·탐색 경계
 
-Refresh는 한 요청의 연속한 동일 channel/source/generation/order/track/ordinal/PTS 원본 표본만
-단일 entry로 재사용한다. 요청 간 파일 상태 캐시는 없고 source revision 및 페이지의 현재 media
+Refresh는 한 요청의 준비 순서를 channel/source/generation/order/track/ordinal/PTS 원본 표본별로
+묶어 단일 entry로 재사용한다. 출력 위치와 검색 정렬은 바꾸지 않는다. 요청 간 파일 상태 캐시는 없고 source revision 및 페이지의 현재 media
 재검증은 유지한다. 메타데이터 질의는 모든 일치 관측에 이벤트 우선 선택을 적용한 뒤 페이지를
 나누며 녹화 질의는 기존 전체 구간 분할·출력 대체 순서를 유지한다. 기존 모델/snapshot 한도는 같다.
 

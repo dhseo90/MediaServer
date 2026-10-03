@@ -50,17 +50,20 @@ bool RecordingSearchReader::Refresh(const std::vector<std::string>& channels,
     if (!output) {if(error)*error="search-invalid-output";return false;}
     SearchSourceBatch batch;
     if (!catalog_.CaptureSearchSource(channels, previous.get(), &batch, error, limits)) return false;
-    // 한 batch 안에서 연속한 동일 원본 표본의 위치/파일 검사를 공유한다.
+    // 준비 순서만 동일 원본 표본별로 묶는다. 출력 위치와 검색 정렬은 바꾸지 않는다.
     // 단일 entry만 유지하며 요청 간 재사용하지 않는다. 아래 revision 재검증은 그대로 수행한다.
     using OriginalKey=std::tuple<std::string,std::string,std::string,std::uint64_t,std::string,std::uint64_t,std::uint64_t>;
+    const auto originalKey=[](const auto& pending)->std::optional<OriginalKey> {
+        const auto& ref=pending.reference;
+        if(ref.association_quality!="timestamp-match"||!ref.original)return std::nullopt;
+        const auto& original=*ref.original;
+        return OriginalKey{ref.channel_id,ref.source_id,original.source_generation,original.generation_order,
+            original.track_id,original.ordinal,original.pts_ns};
+    };
+    std::sort(batch.pending.begin(),batch.pending.end(),[&](const auto& a,const auto& b){return originalKey(a)<originalKey(b);});
     std::optional<OriginalKey> last_original;ConsumerReferenceResolution resolution;
     for (const auto& pending : batch.pending) {
-        const auto& ref=pending.reference;std::optional<OriginalKey> key;
-        if(ref.association_quality=="timestamp-match"&&ref.original) {
-            const auto& original=*ref.original;
-            key=OriginalKey{ref.channel_id,ref.source_id,original.source_generation,original.generation_order,
-                original.track_id,original.ordinal,original.pts_ns};
-        }
+        const auto& ref=pending.reference;const auto key=originalKey(pending);
         if(!key||key!=last_original) {
             if (!reader_.ResolveConsumerReference(ref, &resolution, error)) return false;
             last_original=key;
