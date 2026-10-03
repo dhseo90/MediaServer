@@ -1,0 +1,10 @@
+{
+  "fixture": "120-frame synthetic H264 MP4, actual encoded bytes",
+  "setup": 200,
+  "rtspDecode": "PASS: product RTSP/TCP -> H264 depay/parse -> OpenH264 raw decode -> 16-buffer EOS",
+  "serverExit": {
+    "code": 0,
+    "signal": null
+  },
+  "portsClosed": true
+}

@@ -4820,3 +4820,41 @@ CMake 구성은 통과했으나 제품 빌드는 exit2: `src/analysis/raw_video_
 보존 후 `verify_docs_links.mjs` exit0: 297문서/9235링크/15이미지/365anchor/0fail.
 `git diff --check` exit0. 보존된 decision/package/migration 바이트의 hash가 producer 원장의
 세 결박 값과 일치한다. 이 기록 추가는 제품 검사 재실행이나 Linux 실패 해소가 아니다.
+
+
+### Linux 차단 해소·단기 실행과 일반 push 준비
+
+사용자의 후속 승인(발생 이슈 수정·분할 커밋·최종 일반 push)에 따라 Linux 차단을 마감했다.
+제품 수정은 `<atomic>`, `<functional>` 직접 include와 `recording::RetentionSnapshot` 반환
+타입 한정뿐이다. API·저장·검색·권한·미디어 수명 의미는 변경하지 않았다.
+테스트 대상은 `6a30de5c278a05862469323f25743e8cc22fb025` + 보존된
+`linux-portability.patch`(SHA-256 `340033baf26365c876d171a0da9cc15268a1ca320aec5eec849ecf576701bcb2`)이며,
+제품 커밋 `263b162c36631aa74cde261f0017eec7e31b8eb1`의 실제 diff와 같은 바이트임을 확인했다.
+
+같은 격리 이미지에서 `cmake --build /work/build -j 4`를 진행하면서 이름 충돌(exit2),
+functional 누락(exit2)을 각각 관측·수정했고 최종 Linux 제품 compile/link는 exit0이다.
+macOS의 `cmake --build build-gst-onnx -j 4`도 exit0이다. 단기 검사 최초 실패(exit1)는
+생성 파일 트랙 탐색 실패였고 독립 demux/decode도 exit1이었다. I420를 명시한 파일은
+독립 decode exit0이 됐으나 RTSP는 계속 실패(exit1)했다. 제품 AAC 출력의 `avenc_aac`가
+이미지에 없음을 `gst-inspect-1.0 avenc_aac` exit255로 확인했다. 격리 이미지에만
+`gstreamer1.0-libav`를 추가한 뒤 같은 제한·완료 조건의 단기 검사가 exit0으로 통과했다.
+최초 실패 로그를 덮어쓰지 않고 같은 증거 디렉터리에 함께 보존했다.
+
+단기 실행은 소유 `/work` 마운트와 컨테이너 tmpfs에서 보존된 `linux-smoke-source.txt`의
+Node 코드를 실행했다. 외부 네트워크·호스트 포트 publish 없이 auth=auto 최초 setup HTTP200,
+120-frame I420 H264 실제 MP4 생성, 제품 RTSP/TCP→H264 depay/parse→OpenH264 raw decode의
+16-buffer EOS, SIGTERM exit0, HTTP/RTSP 포트 종료를 확인했다. 이는 synthetic 미디어 기반
+한 경로의 단기 확인이며 실제 UI·WebRTC·ONNX·녹화/검색 장기 부하·표시 frame 정확성의 증거가 아니다.
+최종 `mediaserver-v420-verify:sid-arm64` 이미지는
+`sha256:22723481607c73523ec4c4e583981a765eee0f39551cf32e5f0d94d122b711f7`이다.
+기존 recipe 뒤 `Dockerfile.libav`를 적용했다. Docker 검증 컨테이너 부재와 모든 실행 handle
+종료를 확인했다. 컨테이너 tmpfs의 미디어·임시 저장소는 제거됐고 후속용 이미지/빌드/원자료는 유지한다.
+
+직접 영향 정적 검사: `verify_feature_inventory_coverage.mjs` exit0(986/986,8pass/0fail),
+`verify_code_comments.mjs` exit0(1329파일,누락0), `git diff --check` exit0.
+기존 UI manifest/seed/asset는 변경하지 않아 직전 통과를 유지하며 독립 승인을 새로 만들지 않았다.
+167개/HTTP77/동시성6/브라우저 전체는 이번 재실행하지 않았다. 이전 Linux 차단 기록은 당시
+관측이며 이번 빌드·단기 결과로 해소됐다. 최종 evidence-only 변경은 제품 재시험으로 표시하지 않는다.
+
+Linux 보완 증거 보존 후 docs links exit0(297문서/9235링크/15이미지/365anchor/0fail),
+공백 검사 exit0. 이 절까지의 기록은 제품 코드 커밋 이후의 증거 보존이다.
