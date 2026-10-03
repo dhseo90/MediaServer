@@ -22,6 +22,15 @@ int main(){
 #else
     Check(pool.Begin(model,q,"alice","scope-1",&first,&error,now)&&Ids(first)==std::vector<std::string>{"d","a"}&&
         first.known_count==4&&first.unplaced_count==1&&!first.next_cursor.empty(),"first page stable ties and full counts");
+    auto missing=Doc("missing","one",1000);missing.kind=SearchDocumentKind::Observation;missing.observation_id="obs";missing.event_ids={"absent"};
+    std::shared_ptr<const RecordingSearchModel> incomplete;
+    Check(RecordingSearchModel::Build({missing},"catalog",2,&incomplete,&error),"incomplete fixture");
+    auto behaviour=q;behaviour.behaviours={"event:Intrusion"};auto unchanged=first;
+    Check(!pool.Begin(incomplete,behaviour,"alice","scope-1",&unchanged,&error,now)&&
+        error=="search-event-evidence-incomplete"&&unchanged.snapshot_id==first.snapshot_id,
+        "incomplete first search publishes no snapshot");
+    Check(pool.Resume(first.next_cursor,q,"alice","scope-1",&page,&error,now)&&page.snapshot_id==first.snapshot_id,
+        "incomplete attempt does not replace existing cursor snapshot");
     std::shared_ptr<const RecordingSearchModel> resolved;std::size_t position=999;
     Check(pool.ResolveHit(first.snapshot_id,"b",q,"alice","scope-1",&resolved,&position,&error,now)&&resolved->documents()[position].id=="b","member on later page resolves");
     const auto saved=resolved;const auto saved_position=position;
@@ -32,7 +41,7 @@ int main(){
         !pool.ResolveHit(restricted_page.snapshot_id,"c",restricted,"alice","scope-1",&resolved,&position,&error,now)&&error=="search-hit-unavailable","model member outside query cannot seek");
     Check(pool.ResolveHit(first.snapshot_id,"b",q,"alice","scope-1",&resolved,&position,&error,now+std::chrono::seconds(299))&&
         !pool.ResolveHit(first.snapshot_id,"b",q,"alice","scope-1",&resolved,&position,&error,now+std::chrono::seconds(300)),"hit exact expiry boundary");
-    // Independent pool keeps subsequent cursor tests at their original clock.
+    // 별도 pool로 후속 cursor 검사의 기준 시각을 유지한다.
     Check(pool.Begin(model,q,"alice","scope-1",&first,&error,now),"cursor fixture renewed after hit expiry");
     const auto cursor=first.next_cursor;
     auto normalized=q;normalized.channels={"one","two","one"};

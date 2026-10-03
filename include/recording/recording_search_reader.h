@@ -32,7 +32,7 @@ public:
     // 새 검색마다 호출한다. 카탈로그 revision과 별개인 이벤트 사실을 재사용하지 않는다.
     static bool WithEventFacts(const RecordingSearchModel& source,
         std::shared_ptr<const RecordingSearchModel>* output, std::string* error,
-        SearchModelLimits limits = {});
+        SearchModelLimits limits = {}, const RecordingSearchQuery* query = nullptr);
 private:
     RecordingCatalog& catalog_;
     RecordingReadService& reader_;

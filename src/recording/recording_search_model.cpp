@@ -113,6 +113,16 @@ bool NormalizeSearchQuery(const RecordingSearchQuery& input, RecordingSearchQuer
 
 bool RecordingSearchModel::Query(const RecordingSearchQuery& input, RecordingSearchMatches* output,
     std::string* error) const {
+    return QueryImpl(input,output,error,false);
+}
+
+bool RecordingSearchModel::BehaviourCandidates(const RecordingSearchQuery& input, RecordingSearchMatches* output,
+    std::string* error) const {
+    return QueryImpl(input,output,error,true);
+}
+
+bool RecordingSearchModel::QueryImpl(const RecordingSearchQuery& input, RecordingSearchMatches* output,
+    std::string* error, bool skip_behaviour) const {
     if (!output) return Fail(error, "search-invalid-output");
     RecordingSearchQuery q;if(!NormalizeSearchQuery(input,&q,error))return false;
     const bool metadata = !q.objects.empty() || !q.tracks.empty() || !q.events.empty() ||
@@ -132,14 +142,22 @@ bool RecordingSearchModel::Query(const RecordingSearchQuery& input, RecordingSea
             if (d.start_ns ? (*d.start_ns>=end || *d.end_ns<=start) : !q.include_unplaced)continue;
             if (!scalar(q.objects,d.object)||!scalar(q.tracks,d.track_id)||!overlap(q.zones,d.zone_ids)||
                 !overlap(q.rules,d.rule_ids)||!overlap(q.events,d.event_ids))continue;
-            if (!q.behaviours.empty()) {
+            if (!skip_behaviour && !q.behaviours.empty()) {
                 const bool matched=std::any_of(d.event_facts.begin(),d.event_facts.end(),[&](const auto& fact){
                     // event+behaviour는 동일한 연결 이벤트에서 동시에 성립해야 한다.
                     return scalar(q.events,fact.event_id) &&
                         ((!fact.event_type.empty()&&scalar(q.behaviours,"event:"+fact.event_type)) ||
                          (!fact.scenario_name.empty()&&scalar(q.behaviours,"scenario:"+fact.scenario_name)));
                 });
-                if(!matched)continue;
+                if(!matched) {
+                    // 알려진 일치가 없을 때만, 결과를 바꿀 수 있는 동일 이벤트의 누락을 검사한다.
+                    const bool incomplete=std::any_of(d.event_ids.begin(),d.event_ids.end(),[&](const auto& id){
+                        return scalar(q.events,id) && std::none_of(d.event_facts.begin(),d.event_facts.end(),
+                            [&](const auto& fact){return fact.event_id==id;});
+                    });
+                    if(incomplete)return Fail(error,"search-event-evidence-incomplete");
+                    continue;
+                }
             }
             result.positions.push_back(position);
             if(d.start_ns)++result.known_count;else ++result.unplaced_count;

@@ -42,6 +42,44 @@ int main(int argc,char**argv){
     RecordingSearchQuery query;query.channels={"one"};query.start_time_ms=1000;query.end_time_ms=2000;
     query.behaviours={"scenario:Arrival"};RecordingSearchMatches matches;
     Check(model->Query(query,&matches,&error)&&matches.positions.size()==1,"stored scenario reaches behaviour filter");
+    auto projected=d;projected.track_id="track-7";std::shared_ptr<const RecordingSearchModel> projected_model;
+    Check(RecordingSearchModel::Build({projected},"catalog",1,&projected_model,&error)&&
+        RecordingSearchReader::WithEventFacts(*projected_model,&projected_model,&error)&&projected_model->Query(query,&matches,&error)&&matches.positions.size()==1,
+        "producer track-prefix preserves confirmed event identity");
+    query.behaviours={"scenario:Absent"};
+    const auto previous=matches.positions;
+    Check(!model->Query(query,&matches,&error)&&error=="search-event-evidence-incomplete"&&matches.positions==previous,
+        "missing relevant evidence is incomplete, not definitive empty; output unchanged");
+    query.events={"match"};
+    Check(model->Query(query,&matches,&error)&&matches.positions.empty(),"known same-event nonmatch ignores unrelated missing references");
+    query.events={"missing"};query.behaviours={"scenario:Arrival"};
+    Check(!model->Query(query,&matches,&error)&&error=="search-event-evidence-incomplete","another event match cannot fill selected event evidence");
+    query.events.clear();query.objects={"excluded"};
+    Check(model->Query(query,&matches,&error)&&matches.positions.empty(),"unrelated object missing evidence is irrelevant");
+    query.objects.clear();query.behaviours.clear();query.events={"missing"};
+    Check(model->Query(query,&matches,&error)&&matches.positions.size()==1,"no behaviour needs no event evidence");
+    query.events.clear();query.behaviours={"scenario:Arrival"};
+    for(const auto& id:{"wrong-channel","wrong-track","wrong-epoch","missing"}) {
+        query.events={id};
+        Check(!model->Query(query,&matches,&error)&&error=="search-event-evidence-incomplete","unproven linked identity is incomplete");
+    }
+    query.events.clear();
+    for(int mode=0;mode<5;++mode) {
+        auto unrelated=query;
+        if(mode==0)unrelated.channels={"two"};if(mode==1)unrelated.start_time_ms=1500;
+        if(mode==2)unrelated.tracks={"other"};if(mode==3)unrelated.zones={"other"};if(mode==4)unrelated.rules={"other"};
+        Check(model->Query(unrelated,&matches,&error)&&matches.positions.empty(),"excluded candidate missing evidence does not fail query");
+    }
+    auto epoch_doc=d;epoch_doc.event_ids={"missing-epoch"};
+    std::shared_ptr<const RecordingSearchModel> epoch_model;
+    Write(path,Row("missing-epoch","one",7,""));
+    Check(RecordingSearchModel::Build({epoch_doc},"catalog",1,&epoch_model,&error)&&
+        RecordingSearchReader::WithEventFacts(*epoch_model,&epoch_model,&error)&&
+        !epoch_model->Query(query,&matches,&error)&&error=="search-event-evidence-incomplete","missing event epoch cannot prove observation epoch");
+    // 후보가 없으면 해당 채널의 이벤트 파일을 읽을 필요도 없다.
+    Write(path,"{broken\n");auto irrelevant=query;irrelevant.objects={"excluded"};
+    Check(RecordingSearchReader::WithEventFacts(*source,&epoch_model,&error,{},&irrelevant)&&
+        epoch_model->Query(irrelevant,&matches,&error),"query-aware evidence read excludes unrelated observations");
     auto held=model;Write(path,Row("missing"));
     Check(RecordingSearchReader::WithEventFacts(*source,&model,&error)&&model->documents()[0].event_facts.size()==1&&
         model->documents()[0].event_facts[0].event_id=="missing"&&held->documents()[0].event_facts[0].event_id=="match",

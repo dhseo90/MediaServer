@@ -35,7 +35,7 @@ int main(int argc,char** argv){
         Query seek=base;seek["snapshotId"]=snapshot;seek["hitId"]="not-a-member";
         check(app.SearchSeek(seek,"operator-a","scope-a",auth).status==410,"nonmember hit rejected");
         bool event=false,original=false,seek_ok=false,fallback=false,redacted=true;
-        // Use a single full-page snapshot for each selected hit.
+        // 각 hit 선택은 동일한 전체 페이지 snapshot을 사용한다.
         auto whole=base;whole["limit"]="200";auto full=request(whole);auto full_json=Json(full.body);
         for(const auto& item:Objects(full_json,"items")){
             const bool preferred=Field(item,"selectionReason")=="event-priority";event|=preferred;original|=!preferred;

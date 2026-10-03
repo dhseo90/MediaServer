@@ -4208,3 +4208,28 @@ V420-U01 비동기 경계는 실제 UI script 블록의 단기 VM 검사로 응�
 V420-K01은 수정하지 않은 v1 segments/observations golden을 현행 catalog/search reader에 입력해
 녹화2구간, person/track/event/zone/rule 복합관측1건, 정확한 UTC2500ms/PTS315000/90000 timebase,
 exclusive query end를 대조한다. metadata-only golden에 미디어가 있다고 주장하지 않는다.
+
+### V420 후속 F08/U01/K03 직접 영향 검사
+
+F08: 확인된 일치는 다른 참조 누락에도 유지한다. 일치가 없고 질의의 event 조건에 필요한
+연결 사실이 빠졌으면 `search-event-evidence-incomplete`로 원자 실패한다. 충분한 불일치,
+다른 채널/시간/객체/track/zone/rule로 제외된 관측, behaviour 없는 검색은 정상 처리한다.
+동일 이벤트 AND, 잘못된 channel/track/epoch·epoch 부재, 권한 거부와 공개 503 안내를 검사한다.
+불완전 최초 검색은 snapshot을 게시하지 않고 기존 cursor는 membership을 유지한다.
+
+U01: currentTime 설정 직후 탐색 중, 지연 seeked와 현재 위치/readyState/seeking/error 확인 뒤
+완료, 다른 선택·같은 URL의 다른 시점·취소/재검색 뒤 stale metadata/seeked/error 무시,
+범위/잘못된 target/seek-unavailable/현재 위치와 같은 target을 VM에서 독립 검사한다.
+실제 브라우저에서는 기존 원본/파생 fixture의 변경 검색 화면만 짧게 확인한다.
+seeked 확인을 표시 frame hash 정확성 검증으로 간주하지 않는다.
+
+K03: 실제 application Search를 1/1000/10000 관측과 실제 녹화 파일로 호출한다.
+최초/불변 새 검색/관측 추가/녹화 확정 또는 삭제 후/기존 cursor를 같은 필터·page size로
+비교하며 전체 건수와 독립 ID 기대값을 확인한다. 준비와 요청 시간, 모델 논리 bytes,
+후보·실제 파일 수, 재구축 경계를 구분한다. 기존 수단으로 직접 관측 못한 파일 검사 횟수는
+추정하지 않는다. 단기 writer 동시 진행은 packet 전진과 최종 파일 건강도로 확인한다.
+릴리즈 장시간/전체 UI/acceptance는 이 후속 검사의 대상이 아니다.
+
+후속 구조 연결 도구 자체검사: `--write-current-graph --bind-current-graph`는 현행 소스의
+관측값을 기존 graph·current hash/metrics에 연결한다. 역사 승인/완료 필드는 바꾸지 않으며
+금지 include·구조 정책 위반 시 쓰기 전에 거부한다. 격리 사본에서 실제 생성·보존·거부를 검사한다.

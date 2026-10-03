@@ -91,6 +91,9 @@ public:
 
     bool Query(const RecordingSearchQuery&, RecordingSearchMatches*, std::string* error) const;
 
+    // 행동 근거 읽기의 대상만 좁힌다. 최종 Query/페이지 판정을 대체하지 않는다.
+    bool BehaviourCandidates(const RecordingSearchQuery&, RecordingSearchMatches*, std::string* error) const;
+
     const std::vector<SearchDocument>& documents() const { return documents_; }
     const std::vector<std::size_t>& Channel(const std::string& channel_id) const;
     const SearchDocument* Find(const std::string& id) const;
@@ -99,6 +102,7 @@ public:
     std::size_t accounted_bytes() const { return accounted_bytes_; }
 
 private:
+    bool QueryImpl(const RecordingSearchQuery&, RecordingSearchMatches*, std::string*, bool skip_behaviour) const;
     std::string source_instance_;
     std::uint64_t revision_{0};
     std::size_t accounted_bytes_{0};

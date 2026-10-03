@@ -50,9 +50,21 @@ bool RecordingSearchReader::Refresh(const std::vector<std::string>& channels,
     if (!output) {if(error)*error="search-invalid-output";return false;}
     SearchSourceBatch batch;
     if (!catalog_.CaptureSearchSource(channels, previous.get(), &batch, error, limits)) return false;
+    // 한 batch 안에서 연속한 동일 원본 표본의 위치/파일 검사를 공유한다.
+    // 단일 entry만 유지하며 요청 간 재사용하지 않는다. 아래 revision 재검증은 그대로 수행한다.
+    using OriginalKey=std::tuple<std::string,std::string,std::string,std::uint64_t,std::string,std::uint64_t,std::uint64_t>;
+    std::optional<OriginalKey> last_original;ConsumerReferenceResolution resolution;
     for (const auto& pending : batch.pending) {
-        ConsumerReferenceResolution resolution;
-        if (!reader_.ResolveConsumerReference(pending.reference, &resolution, error)) return false;
+        const auto& ref=pending.reference;std::optional<OriginalKey> key;
+        if(ref.association_quality=="timestamp-match"&&ref.original) {
+            const auto& original=*ref.original;
+            key=OriginalKey{ref.channel_id,ref.source_id,original.source_generation,original.generation_order,
+                original.track_id,original.ordinal,original.pts_ns};
+        }
+        if(!key||key!=last_original) {
+            if (!reader_.ResolveConsumerReference(ref, &resolution, error)) return false;
+            last_original=key;
+        }
         Locate(batch.delta.upserts.at(pending.document_index), resolution);
     }
     if (!catalog_.ValidateSearchSource(batch, error)) return false;
@@ -68,15 +80,19 @@ bool RecordingSearchReader::Refresh(const std::vector<std::string>& channels,
     *output = std::move(next);if(error)error->clear();return true;
 }
 bool RecordingSearchReader::WithEventFacts(const RecordingSearchModel& source,
-    std::shared_ptr<const RecordingSearchModel>* output, std::string* error, SearchModelLimits limits) {
+    std::shared_ptr<const RecordingSearchModel>* output, std::string* error, SearchModelLimits limits,
+    const RecordingSearchQuery* query) {
     if (!output) {if(error)*error="search-invalid-output";return false;}
     try {
         auto documents=source.documents();
         std::map<std::string,std::vector<std::size_t>> channels;
-        for(std::size_t i=0;i<documents.size();++i) {
-            documents[i].event_facts.clear();
+        for(auto& document:documents)document.event_facts.clear();
+        RecordingSearchMatches candidates;
+        if(query) {
+            if(!source.BehaviourCandidates(*query,&candidates,error))return false;
+        } else for(std::size_t i=0;i<documents.size();++i)candidates.positions.push_back(i);
+        for(const auto i:candidates.positions)
             if(!documents[i].event_ids.empty())channels[documents[i].channel_id].push_back(i);
-        }
         for(const auto& channel:channels) {
             std::vector<ingress::EventSearchApplicationFact> facts;
             if(!ingress::ReadEventSearchFactsForApplication(channel.first,&facts,error))return false;
@@ -96,8 +112,8 @@ bool RecordingSearchReader::WithEventFacts(const RecordingSearchModel& source,
                 for(const auto& id:d.event_ids) {
                     const auto found=by_id.find(id);if(found==by_id.end())continue;
                     const auto& fact=*found->second;
-                    if(fact.channel_id!=d.channel_id || (!d.track_id.empty()&&d.track_id!=std::to_string(fact.track_id)) ||
-                        (!d.stream_epoch_id.empty()&&!fact.stream_epoch_id.empty()&&d.stream_epoch_id!=fact.stream_epoch_id))continue;
+                    if(fact.channel_id!=d.channel_id || (!d.track_id.empty()&&d.track_id!=std::to_string(fact.track_id)&&d.track_id!="track-"+std::to_string(fact.track_id)) ||
+                        (!d.stream_epoch_id.empty()&&d.stream_epoch_id!=fact.stream_epoch_id))continue;
                     d.event_facts.push_back({fact.event_id,fact.event_type,fact.scenario_name});
                 }
             }
@@ -224,7 +240,18 @@ bool RecordingSearchReader::WithPlayback(const RecordingSearchModel& model,const
             if(value%den||value/den<0||value/den>std::numeric_limits<std::int64_t>::max())return {};
             return static_cast<std::int64_t>(value/den);
         };
-        for(const auto& input:model.documents()) {
+        std::vector<std::size_t> positions;
+        const bool metadata=!query.objects.empty()||!query.tracks.empty()||!query.events.empty()||
+            !query.zones.empty()||!query.rules.empty()||!query.behaviours.empty();
+        if(metadata) {
+            RecordingSearchMatches matches;if(!model.Query(query,&matches,error))return false;
+            positions=std::move(matches.positions);
+        } else for(std::size_t i=0;i<model.documents().size();++i)
+            if(model.documents()[i].kind==SearchDocumentKind::Recording)positions.push_back(i);
+        // 관측은 점 위치이고 우선 선택이 필터 값을 바꾸지 않는다. 페이지를 자르기 전에 모든 일치를 선택한다.
+        // 녹화 구간은 partial 분할/출력 대체가 끝난 뒤 필터링하는 기존 순서를 유지한다.
+        for(const auto position:positions) {
+            const auto& input=model.documents()[position];
             auto document=input;document.playback_segment_id=document.segment_id;
             document.playback_event_id.clear();document.playback_job_id.clear();
             const auto start=document.media_pts?ns(*document.media_pts,document.time_base_num,document.time_base_den):std::nullopt;

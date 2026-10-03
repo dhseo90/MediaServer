@@ -12,7 +12,7 @@ int main(int argc,char** argv){
         std::ifstream segments(std::filesystem::path(argv[2])/"segments.jsonl");std::string line;
         while(std::getline(segments,line)){
             recording::RecordingSegmentV1 segment;if(!recording::ParseRecordingSegmentV1(line,&segment,&error))throw std::runtime_error(error);
-            // Metadata-only golden: an empty owned placeholder satisfies path admission, never media validity.
+            // 메타데이터 golden의 빈 소유 파일은 경로 등록만 충족하며 실제 미디어 증명이 아니다.
             {std::ofstream placeholder(root/(segment.segment_id+".mp4"),std::ios::binary);}
             if(!catalog.FinalizeSegment(segment,(root/(segment.segment_id+".mp4")).string(),&error))throw std::runtime_error(error);
         }

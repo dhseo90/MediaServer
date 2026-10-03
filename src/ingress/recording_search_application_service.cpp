@@ -29,6 +29,7 @@ ApplicationServiceResult Failure(const std::string& error){
     if(error=="search-cursor-binding-mismatch")return Error(403,error);
     if(error=="search-invalid-cursor"||error=="search-invalid-query"||error=="search-invalid-behaviour")return Error(400,error);
     if(error=="search-capacity-exceeded"||error=="search-snapshot-capacity")return Error(503,"search-capacity-exceeded");
+    if(error=="search-event-evidence-incomplete")return Error(503,error);
     return Error(503,"recording-search-unavailable");
 }
 bool Parse(const Query& raw,bool seek,recording::RecordingSearchQuery* out){
@@ -78,7 +79,7 @@ ApplicationServiceResult RecordingApplicationService::Search(const Query& raw,co
             std::lock_guard<std::mutex> lock(search_mutex_);recording::RecordingSearchReader search(catalog_,reader_);
             if(!search.Refresh(query.channels,state->source,&state->source,&error))return Failure(error);
             auto model=state->source;
-            if(!query.behaviours.empty()&&!recording::RecordingSearchReader::WithEventFacts(*model,&model,&error))return Failure(error);
+            if(!query.behaviours.empty()&&!recording::RecordingSearchReader::WithEventFacts(*model,&model,&error,{},&query))return Failure(error);
             if(!search.WithPlayback(*model,query,&model,&error))return Failure(error);
             if(!state->snapshots.Begin(model,query,principal,scope,&page,&error))return Failure(error);
         }

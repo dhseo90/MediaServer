@@ -47,7 +47,7 @@ int main(){
     x=q;x.behaviours={"scenario:rule-a"};Expect(x,{},"F09 rule ID is not scenario name");
     x=q;x.events={"e1"};x.behaviours={"event:LineCrossing"};Expect(x,{},"F10 event behaviour require same event");
     x=q;x.events={"e1","e2"};x.behaviours={"event:LineCrossing"};Expect(x,{"a"},"F10 shared matching event");
-    x=q;x.objects={"car"};x.behaviours={"event:Intrusion"};Expect(x,{},"F08 missing event facts never inferred");
+    x=q;x.objects={"car"};x.behaviours={"event:Intrusion"};RecordingSearchMatches missing;Check(!model->Query(x,&missing,&error)&&error=="search-event-evidence-incomplete","F08 missing event facts are incomplete");
     x=q;x.include_unplaced=true;Expect(x,{"a","unknown"},"F02 unknown separate after known");
     RecordingSearchMatches counts;Check(model->Query(x,&counts,&error)&&counts.known_count==1&&counts.unplaced_count==1,"F02 separate counts");
     for(int mode=0;mode<9;++mode){
