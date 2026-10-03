@@ -2189,3 +2189,1627 @@ PR/병합/태그/GitHub Release는 수행하지 않는다. 개발 산출물의 �
 
 최종 영문 색인 연결 후 docs296파일/9230링크 failures0, metadata3/3, diff check0.
 origin/v4.2.0 fetch 성공. 공개 상태를 조회하거나 published metadata를 변경하지 않았다.
+
+
+## 2026-10-03 세 후속 항목 개발 보완
+
+행동 근거 누락, 비동기 seek 완료, 실제 application 비용을 하나의 승인 범위로 보완했다.
+기존 1~10단계 전체 재실행이나 릴리즈 검증은 수행하지 않았다. 시작 시 실제 AGENTS를 읽고
+작업 트리/index가 깨끗함을 확인했다. 로컬과 실제 origin/v4.2.0은 모두 리뷰 기준
+`92cf5845c6c2f84fa05f6271348e810bfa5152ed`였다. 최초 sandbox DNS 실패 뒤 승인된
+네트워크 경계에서 `git ls-remote origin refs/heads/v4.2.0`으로 확인했다.
+
+### 변경과 자체 검토
+
+- Query는 다른 조건에 맞는 관측에 한해, 알려진 행동 일치가 없고 필요한 연결 이벤트가 빠지면
+  `search-event-evidence-incomplete`로 원자 실패한다. 알려진 일치·충분한 불일치·event와
+  behaviour의 동일 이벤트 조건을 구분한다. reader는 질의 후보의 사실만 읽고 잘못된
+  channel/track/epoch 또는 알려진 epoch에 대한 이벤트 epoch 부재를 연결하지 않는다.
+  실제 생산자(`analysis_observation_projector.cpp:59`, `event_recording_bridge.cpp:334`)의
+  `track-<정수>` 규칙도 대조해 연결했다. 기존 숫자 문자열 모델도 호환한다.
+- application은 필요한 근거 부족을 정제된 503 error 한 필드로 반환한다. 권한 검사는 먼저
+  수행하고 불완전 최초 검색은 snapshot/건수를 게시하지 않는다. cursor는 보관 멤버십을 유지한다.
+- UI는 현재 선택의 미디어 요소와 요청 세대를 결속한다. 같은 URL을 재선택해도 이전 요소의
+  metadata/seeked/error는 적용되지 않는다. currentTime 대입은 탐색 중이며, seeked가 관측되고
+  현재 데이터·위치·seeking/error 조건이 맞아야 완료다. seeked 뒤 데이터가 준비되는 순서도
+  검사했다. 현재 위치와 같은 target은 현재 데이터로 판정한다. 오차는 응답 frame duration이다.
+- Refresh의 연속한 동일 원본 표본(channel/source/generation/order/track/ordinal/PTS) 확인을
+  한 요청의 단일 entry로 공유한다. 요청 간 캐시는 없으며 source revision 재검증과 현재
+  media 검사는 유지한다. WithPlayback은 질의에 맞는 모든 관측에 우선 선택한 다음 페이지를
+  나눈다. 녹화 검색의 partial 분할·다른 원본·원본 잔여와 출력 대체 순서는 유지한다.
+- 메인 자체 검토다. 독립 승인으로 표시하지 않는다. 저장/복구/ID/시간/retention/FD hold 구현,
+  Auth/Role/Scope, snapshot TTL/개수/논리 byte 한도는 변경하지 않았다. 검색 snapshot은 lease가 아니다.
+
+### 직접 검증과 실패 연결
+
+수정 전 이벤트 fixture의 예상 RED는 필요한 누락이 정상 빈 결과로 합쳐지는 2개 assertion이었다.
+실제 결과는 pass16/fail2/exit1이었다. UI 예상 RED는 currentTime 직후 탐색 중이어야 한다는
+assertion이며 실제 완료 문구로 pass3/fail1이었다. 수정 후 이벤트30·필터27·모델31·cursor34·
+source35·generation14·우선 선택17·실제 후보7·원본 seek9·파생 seek10·application13·
+동시 진행6, 기존 media46·timeline66이 각각 pass/fail0이다. UI VM 최종10개 통과.
+원본/파생 seek는 기존 독립 decode frame hash 검사를 그대로 실행했다.
+
+실제 인증 HTTP는 최종77개 통과했다. 최초 추가 확인된 행동 match assertion은 fixture가
+EventStorage를 비활성화한 상태라 실패했다. 격리 --http-auth에서만 활성화하여 재검증했다.
+누락503/no snapshot, 확인된 일치·불일치, 무관한 관측 제외, behaviour 없음, 권한 선행/비노출,
+기존 역할·cursor·media Range를 확인했다. fixture의 일반 self-test 경로에도 events 디렉터리를
+준비하고 쓰기 성공을 확인하는 마지막 준비 보완 뒤 seed 자체검사가 통과했다.
+
+규모 fixture 최초 준비는 숫자 track ID의 저장 계약 위반으로 실패했다. first/last PTS 확인으로는
+해소되지 않았고 개별 contract 진단에서 opaque ID의 숫자 금지 원인을 관측했다. 실제 생산자의
+track-prefix를 사용한 뒤 준비됐다. 초기 출력의 actualMp4Files=3은 원본 catalog 목록만 센
+잘못된 라벨이었다. 최종 비교는 원본3+Complete job 출력2=실제 파일5개로 정정했다.
+최초 실행의 마지막 cursor는 큰 snapshot 4개 생성 뒤 byte admission 축출로 410이었다.
+한도를 바꾸지 않고 cursor를 불변 새 검색 다음으로 이동해 비용과 축출을 구분했다.
+
+구조 검사는 UI 줄 수 변경 때문에 처음 2/4였다. 기존 생성기에 `--bind-current-graph`를 추가해
+현행 측정 hash/metrics만 연결했다. 역사 승인/완료 값 및 나머지 원장 바이트는 보존했다.
+격리 도구검사 준비 중 completion 파일 누락, 존재하지 않는 include의 무효 반례를 수정했다.
+실제 금지 include 반례에서 binding 검증만으로는 final policy를 확인하지 못하는 점을 발견하여
+쓰기 전에 final thresholds/금지 파일 의존성/정책 binding을 확인하도록 보완했다.
+쓰기 위치 수가 1개라는 기존 정적 기대도 실제 두 쓰기 범위와 역사 보존 조건으로 갱신했다.
+최종 실제 생성/역사 보존/금지 include 거부1, graph4, CMake분리5 모두 통과했다.
+기존 검색 fixture의 영문 주석3개를 번역했고 comment 검사 failures0이다. 제품 코드는 바뀌지 않았다.
+
+### 실제 브라우저 범위
+
+`node scripts/internal/verify_v410_recording_ui_contract.mjs --ui-direct --ui-anchor-utc-ms 1789084800000 --ui-seek-fixture`
+두 차례 준비 후 CUA/IAB에서 변경된 검색 화면만 직접 조작했다. 준비 도구의 actualUiPass=false는
+자동 UI 판정 없음이라는 의미이며 아래 직접 관측을 대신하지 않는다. 인증은 별도 HTTP77에서 확인했다.
+브라우저 검색 조건은 channel1, 현지 2026-09-11 08:59~09:01, object=person이다.
+원본 관측2개를 검색해 같은 파일의 2초→1초를 순차 선택했다. 첫 실행에서는 탐색 중을 직접
+관측한 뒤 완료, 두 시점 모두 readyState4/currentTime2 또는1이었다. 파생 이벤트 우선 파일은
+readyState4/currentTime0/duration1에서 완료했다. 행동 scenario:Arrival은 근거 부족 문구,
+car는 정상 빈 결과 문구였다. 임의 sleep/timeout으로 성공시키지 않았다.
+
+마지막 seeked→loadeddata 순서 보완 후 제품을 다시 빌드하고 같은 원본2초/1초·파생0초·
+행동 근거 부족을 최종 소스로 재확인했다. screenshot은 최종 빌드의 원본2초 완료다.
+정확한 표시 frame의 동일성을 브라우저 seeked로 증명했다고 주장하지 않는다.
+전체 UI·반응형·테마 재실행이 아니며 기존 레이아웃/권한 계약의 무관한 과거 증거는 재사용했다.
+
+![최종 검색 선택과 재생 완료](followup-search.jpg)
+
+### 실제 application 비용
+
+환경: macOS arm64, Apple clang21, 기존 GStreamer1.28.1 runtime. 실제 application Search,
+Refresh, 필요한 EventFacts, WithPlayback/QuerySearchTimeline/우선 선택, Query/snapshot/페이지,
+현재 media 확인·JSON 응답까지 포함한다. HTTP/브라우저 왕복은 이 표에 포함하지 않는다.
+측정은 단기 단일 표본이며 임의 합격선·장기 RSS 안정성을 주장하지 않는다.
+
+필터: probe-channel, UTC ms [1789200000000,1789200003000), object=person, limit1.
+100개마다 person이므로 관측1/1000/10000개에서 기대 총수1/10/100, 추가 후2/11/101이다.
+실제 파일은 원본3+파생2=5개, 새 원본 확정 뒤6개다. 우선 후보는2개, 행동 원장은1개다.
+기본 표는 행동 필터가 없어 EventFacts를 읽지 않는다. 아래 별도 행동 표는 같은 fixture에서
+scenario:Arrival까지 지정해 실제 EventFacts 경로를 포함한다.
+
+모델 행 수는6/1005/10005, logical bytes는24070/3390910/37446910이다. 이는 논리 비용이며 RSS가 아니다.
+불변 source는 rebuild=false/upserts0, 관측 추가는 false/1, 새 원본 확정은 true/8·1007·10007이다.
+관측 수를 실제 파일 수로 표시하지 않는다. 실제 파일 확인 횟수 전용 counter는 기존 경로에 없어
+횟수를 추정 보고하지 않는다. 코드 대조로 반복 ResolveConsumerReference 호출 제거를 확인했고,
+아래 직접 시간과 독립 결과로 효과를 확인했다. 한 요청의 확인 재사용은 현재 상태의 영구 캐시가 아니다.
+
+| 관측 수 | 최초 전→후 ms | 불변 새 검색 전→후 | 관측 추가 전→후 | 원본 확정 전→후 | cursor 전→후 |
+| --- | --- | --- | --- | --- | --- |
+| 1 | 40.23→40.34 | 30.83→31.42 | 39.09→40.89 | 41.79→40.83 | 단일 hit, 해당 없음 |
+| 1000 | 2208.88→60.20 | 43.67→31.94 | 55.22→44.01 | 2212.22→60.07 | 20.12→19.36 |
+| 10000 | 21576.70→266.58 | 138.69→33.73 | 187.10→81.48 | 22233.00→264.59 | 20.10→19.30 |
+
+최종 행동 경로 ms: 1행 43.18/32.45/43.55/41.44/cursor해당없음,
+1000행 63.75/35.16/47.27/63.65/19.39,
+10000행 298.90/65.86/114.57/303.31/19.59 (최초/불변/추가/확정/cursor 순).
+매 조건에서 반환 ID·총수·event-priority를 독립 기대값으로 검사했다.
+준비 비용은 최종 object 실행에서 대략 0.16/1.4/13.6초이며 원장 삽입·실제 파일 생성 비용을
+요청 시간과 분리했다. 구체 값과 모든 반환 ID는 아래 출력에 보존했다.
+
+비교 전 소스는 리뷰 HEAD의 model/reader/application과 해당 두 header를 격리 경로에 읽어
+컴파일했다. 최초 보조 비교는 이 3개 소스에도 -O2가 붙어 있었으므로 최종 전후 표에는 쓰지 않았다.
+최종 비교는 현재 CMake CXX_FLAGS=-std=c++17(최적화 옵션 없음)과 동일하게 이 3개 object를
+별도 컴파일하고, 공통 fixture만 -O2로 컴파일했다. 저장소 작업 파일을 되돌리지 않았다.
+비교 중 일부 다른 단기 검증의 host 부하가 있었으므로 소수 ms 차이나 일반 성능 보장은 주장하지 않는다.
+
+동시 진행은 별도 실제 writer fixture에 미배치 관측10000개를 두고 검색2요청과90packet을
+병행했다. main 검색16/ready16/미준비0, 경쟁 검색149.403ms, main 최대156.632ms,
+검색 호출 구간 안 packet 증가8회, 종료 후3파일 건강도 통과. 공유 application mutex의
+직렬화는 남아 있고 경쟁 요청의 대기와 순수 처리 시간을 분리 계측하지 않았다. 이 결과는
+writer 전진의 직접 근거이며 대규모 파일 수·장기 동시 운용 보증이나 잠금 지연 없음의 증거가 아니다.
+다양한 원본이 교차하면 단일 entry 재사용 효과는 줄어든다. 2개 이벤트 후보로 N×E 최악 비용을
+확정하지 않았고 새 DB/대규모 잠금 재설계는 하지 않았다.
+
+### 테스트 대상과 재사용
+
+개발 시작 기준 `92cf5845c6c2f84fa05f6271348e810bfa5152ed` 위 미커밋 변경 상태에서 검사했다.
+백엔드 코드 커밋 `812c784da92235738ae35ae397259d6d64aff82d`, UI/연결 코드 커밋 `7578d43b29e3523aaaa0f2a88e95c03f77b073ed`이다.
+최종 제품 diff SHA256 `8258b206a6059dcbf9421bd5c37e7f37ffe74af117e35ef9e135fc0988a35b4a` (git diff --binary 92cf5845 -- src include).
+제품 source는 아래 hash와 코드 커밋 바이트를 대조한다. native/HTTP 실행 뒤 제품 backend 변경은 없으며 UI 마지막 변경은 VM·빌드·실제 브라우저로 다시 확인했다.
+HTTP seed의 마지막 디렉터리 준비 보완은 별도 seed 자체검사, 주석 번역은 comment 검사로 확인했다. 최종 HEAD에서 모든 검사를 새로 실행했다고 주장하지 않는다.
+기존 저장/복구·전체 acceptance·장시간·전체 UI는 재실행하지 않았다. 30분/120분/predev/릴리즈 UI 풀테스트, Linux 실행, PR/병합/tag/Release는 이번 범위에서 미실행이다.
+
+```text
+46fb23d23535bef08f316df8d2883f20bf772f701b1794901e30c1c5906a5efb  include/recording/recording_search_model.h
+6a4d8ceda1a7e440d509c8bab6c7747736bc208257d756a8be077141ac8b44d7  include/recording/recording_search_reader.h
+8be5cd5bbbc7db0c4ef92a36fa79cd0a23d1e50a80e978f7f322207d28679407  src/ingress/product_ui_page_scripts.cpp
+e09ec254769ac5f93ce23f8a77e1f3c211cfc75581d60ca9d6e7a598da0eb2b8  src/ingress/recording_search_application_service.cpp
+38dedb7729bb2feedb299e087b3ebf1560307bcc53d50c33b361261f5cc5374b  src/recording/recording_search_model.cpp
+43792bf93424ab38f5eda5a2bc0bfbfcde9606d042372720b8e3f00edfeca65b  src/recording/recording_search_reader.cpp
+```
+
+### 원출력과 정리
+
+아래 native 로그는 실제 command/compile·실행 exit/source hash/최초 실패/cleanup을 보존한다.
+동일한 환경·준비 메시지의 반복은 서로 다른 실행이며 마지막 PASS로 앞 실패를 덮지 않는다.
+
+<details>
+<summary>native 전체 실행</summary>
+
+```text
+source /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_search_events_smoke.cpp sha256 8625da2902bfd35599f05bc7e2eace3ebdf7c55c6fe2128739448312fd50baeb
+command: c++ -std=c++17 -Wall -Wextra -Werror -O2 -DGST_USE_UNSTABLE_API=1 -DMEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND=1 -DMEDIA_SERVER_ENABLE_YOUTUBE_SOURCE=0 -DMEDIA_SERVER_USE_GSTREAMER=1 -DMEDIA_SERVER_USE_LIBSODIUM=1 -DMEDIA_SERVER_USE_ONNXRUNTIME=1 -DMEDIA_SERVER_USE_OPENSSL=1 -DMEDIA_SERVER_USE_PANGOCAIRO=1 -DMEDIA_SERVER_USE_SQLITE3=1 -I/Users/dhseo/Workspace/mediaServer/include -I/opt/homebrew/include/onnxruntime -isystem /opt/homebrew/Cellar/gstreamer/1.28.1/include/gstreamer-1.0 -isystem /opt/homebrew/Cellar/glib/2.86.4/include/gio-unix-2.0 -isystem /opt/homebrew/Cellar/orc/0.4.42/include/orc-0.4 -isystem /opt/homebrew/Cellar/glib/2.86.4/include -isystem /Library/Developer/CommandLineTools/SDKs/MacOSX26.sdk/usr/include/ffi -isystem /opt/homebrew/Cellar/glib/2.86.4/include/glib-2.0 -isystem /opt/homebrew/Cellar/glib/2.86.4/lib/glib-2.0/include -isystem /opt/homebrew/opt/gettext/include -isystem /opt/homebrew/Cellar/pcre2/10.47_1/include -isystem /opt/homebrew/Cellar/pango/1.57.0_2/include/pango-1.0 -isystem /opt/homebrew/Cellar/cairo/1.18.4/include/cairo -isystem /opt/homebrew/Cellar/libxext/1.3.7/include -isystem /opt/homebrew/Cellar/xorgproto/2025.1/include -isystem /opt/homebrew/Cellar/libxrender/0.9.12/include -isystem /opt/homebrew/Cellar/libx11/1.8.13/include -isystem /opt/homebrew/Cellar/libxcb/1.17.0/include -isystem /opt/homebrew/Cellar/libxau/1.0.12/include -isystem /opt/homebrew/Cellar/libxdmcp/1.1.5/include -isystem /opt/homebrew/Cellar/pixman/0.46.4/include/pixman-1 -isystem /opt/homebrew/Cellar/fribidi/1.0.16/include/fribidi -isystem /opt/homebrew/Cellar/libthai/0.1.30/include -isystem /opt/homebrew/Cellar/libdatrie/0.2.14/include -isystem /opt/homebrew/Cellar/fontconfig/2.17.1/include -isystem /opt/homebrew/Cellar/harfbuzz/13.1.1/include/harfbuzz -isystem /opt/homebrew/opt/freetype/include/freetype2 -isystem /opt/homebrew/opt/libpng/include/libpng16 -isystem /opt/homebrew/opt/graphite2/include -isystem /opt/homebrew/Cellar/libsodium/1.0.21/include -isystem /opt/homebrew/Cellar/openssl@3/3.6.2/include /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_search_events_smoke.cpp /Users/dhseo/Workspace/mediaServer/build-gst-onnx/libmedia_server_runtime.a /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libz.tbd /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstrtspserver-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstapp-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstwebrtc-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstsdp-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstpbutils-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstaudio-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstvideo-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstbase-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstreamer-1.0.dylib /opt/homebrew/Cellar/pango/1.57.0_2/lib/libpangocairo-1.0.dylib /opt/homebrew/Cellar/pango/1.57.0_2/lib/libpango-1.0.dylib /opt/homebrew/Cellar/cairo/1.18.4/lib/libcairo.dylib /opt/homebrew/Cellar/harfbuzz/13.1.1/lib/libharfbuzz.dylib /opt/homebrew/Cellar/glib/2.86.4/lib/libgobject-2.0.dylib /opt/homebrew/Cellar/glib/2.86.4/lib/libglib-2.0.dylib /opt/homebrew/opt/gettext/lib/libintl.dylib /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libsqlite3.tbd /opt/homebrew/Cellar/libsodium/1.0.21/lib/libsodium.dylib /opt/homebrew/Cellar/openssl@3/3.6.2/lib/libssl.dylib /opt/homebrew/Cellar/openssl@3/3.6.2/lib/libcrypto.dylib /opt/homebrew/lib/libonnxruntime.dylib -o /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v420-followup-e0vjvhhj/recording_search_events_smoke
+
+exit: 0
+command: /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v420-followup-e0vjvhhj/recording_search_events_smoke /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v420-followup-e0vjvhhj/recording_search_events_smoke-data
+[pass] typed real event storage facts
+[pass] legacy JSON query unchanged
+[pass] event source model
+[pass] join requires linked id channel track epoch
+[pass] stored scenario reaches behaviour filter
+[fail] missing relevant evidence is incomplete, not definitive empty; output unchanged
+[pass] known same-event nonmatch ignores unrelated missing references
+[fail] another event match cannot fill selected event evidence
+[pass] unrelated object missing evidence is irrelevant
+[pass] no behaviour needs no event evidence
+[pass] new search refreshes events without catalog revision change
+[pass] identical event rows deduplicated
+[pass] conflicting event identity rejected atomically
+[pass] corrupt scan is not successful empty
+[pass] partial scan rejected atomically
+[pass] empty event store clears facts no inference
+[pass] event row cap rejects partial facts
+[pass] event byte cap rejects before row cap
+[search-events] pass=16 fail=2 error=search-event-evidence-incomplete
+
+exit: 1
+cleanup owned temporary root removed=True
+source /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_search_cost_smoke.cpp sha256 53a750df3575fafdb00aa73c3c51e7ad75f2e94bc14951c098c550c3ff09ee91
+command: c++ -std=c++17 -Wall -Wextra -Werror -O2 -DGST_USE_UNSTABLE_API=1 -DMEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND=1 -DMEDIA_SERVER_ENABLE_YOUTUBE_SOURCE=0 -DMEDIA_SERVER_USE_GSTREAMER=1 -DMEDIA_SERVER_USE_LIBSODIUM=1 -DMEDIA_SERVER_USE_ONNXRUNTIME=1 -DMEDIA_SERVER_USE_OPENSSL=1 -DMEDIA_SERVER_USE_PANGOCAIRO=1 -DMEDIA_SERVER_USE_SQLITE3=1 -I/Users/dhseo/Workspace/mediaServer/include -I/opt/homebrew/include/onnxruntime -isystem /opt/homebrew/Cellar/gstreamer/1.28.1/include/gstreamer-1.0 -isystem /opt/homebrew/Cellar/glib/2.86.4/include/gio-unix-2.0 -isystem /opt/homebrew/Cellar/orc/0.4.42/include/orc-0.4 -isystem /opt/homebrew/Cellar/glib/2.86.4/include -isystem /Library/Developer/CommandLineTools/SDKs/MacOSX26.sdk/usr/include/ffi -isystem /opt/homebrew/Cellar/glib/2.86.4/include/glib-2.0 -isystem /opt/homebrew/Cellar/glib/2.86.4/lib/glib-2.0/include -isystem /opt/homebrew/opt/gettext/include -isystem /opt/homebrew/Cellar/pcre2/10.47_1/include -isystem /opt/homebrew/Cellar/pango/1.57.0_2/include/pango-1.0 -isystem /opt/homebrew/Cellar/cairo/1.18.4/include/cairo -isystem /opt/homebrew/Cellar/libxext/1.3.7/include -isystem /opt/homebrew/Cellar/xorgproto/2025.1/include -isystem /opt/homebrew/Cellar/libxrender/0.9.12/include -isystem /opt/homebrew/Cellar/libx11/1.8.13/include -isystem /opt/homebrew/Cellar/libxcb/1.17.0/include -isystem /opt/homebrew/Cellar/libxau/1.0.12/include -isystem /opt/homebrew/Cellar/libxdmcp/1.1.5/include -isystem /opt/homebrew/Cellar/pixman/0.46.4/include/pixman-1 -isystem /opt/homebrew/Cellar/fribidi/1.0.16/include/fribidi -isystem /opt/homebrew/Cellar/libthai/0.1.30/include -isystem /opt/homebrew/Cellar/libdatrie/0.2.14/include -isystem /opt/homebrew/Cellar/fontconfig/2.17.1/include -isystem /opt/homebrew/Cellar/harfbuzz/13.1.1/include/harfbuzz -isystem /opt/homebrew/opt/freetype/include/freetype2 -isystem /opt/homebrew/opt/libpng/include/libpng16 -isystem /opt/homebrew/opt/graphite2/include -isystem /opt/homebrew/Cellar/libsodium/1.0.21/include -isystem /opt/homebrew/Cellar/openssl@3/3.6.2/include /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_search_cost_smoke.cpp /Users/dhseo/Workspace/mediaServer/build-gst-onnx/libmedia_server_runtime.a /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libz.tbd /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstrtspserver-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstapp-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstwebrtc-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstsdp-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstpbutils-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstaudio-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstvideo-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstbase-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstreamer-1.0.dylib /opt/homebrew/Cellar/pango/1.57.0_2/lib/libpangocairo-1.0.dylib /opt/homebrew/Cellar/pango/1.57.0_2/lib/libpango-1.0.dylib /opt/homebrew/Cellar/cairo/1.18.4/lib/libcairo.dylib /opt/homebrew/Cellar/harfbuzz/13.1.1/lib/libharfbuzz.dylib /opt/homebrew/Cellar/glib/2.86.4/lib/libgobject-2.0.dylib /opt/homebrew/Cellar/glib/2.86.4/lib/libglib-2.0.dylib /opt/homebrew/opt/gettext/lib/libintl.dylib /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libsqlite3.tbd /opt/homebrew/Cellar/libsodium/1.0.21/lib/libsodium.dylib /opt/homebrew/Cellar/openssl@3/3.6.2/lib/libssl.dylib /opt/homebrew/Cellar/openssl@3/3.6.2/lib/libcrypto.dylib /opt/homebrew/lib/libonnxruntime.dylib -o /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v420-followup-x_yzzu61/recording_search_cost_smoke
+
+exit: 0
+command: /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v420-followup-x_yzzu61/recording_search_cost_smoke /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v420-followup-x_yzzu61/recording_search_cost_smoke-data
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+referenced observation identity/metadata 오류
+
+exit: 1
+cleanup owned temporary root removed=True
+source /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_search_cost_smoke.cpp sha256 47fd99fa812c0a8cd302b50213b7dad7d2791a0a27ecaedf70452d80f54f6f20
+command: c++ -std=c++17 -Wall -Wextra -Werror -O2 -DGST_USE_UNSTABLE_API=1 -DMEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND=1 -DMEDIA_SERVER_ENABLE_YOUTUBE_SOURCE=0 -DMEDIA_SERVER_USE_GSTREAMER=1 -DMEDIA_SERVER_USE_LIBSODIUM=1 -DMEDIA_SERVER_USE_ONNXRUNTIME=1 -DMEDIA_SERVER_USE_OPENSSL=1 -DMEDIA_SERVER_USE_PANGOCAIRO=1 -DMEDIA_SERVER_USE_SQLITE3=1 -I/Users/dhseo/Workspace/mediaServer/include -I/opt/homebrew/include/onnxruntime -isystem /opt/homebrew/Cellar/gstreamer/1.28.1/include/gstreamer-1.0 -isystem /opt/homebrew/Cellar/glib/2.86.4/include/gio-unix-2.0 -isystem /opt/homebrew/Cellar/orc/0.4.42/include/orc-0.4 -isystem /opt/homebrew/Cellar/glib/2.86.4/include -isystem /Library/Developer/CommandLineTools/SDKs/MacOSX26.sdk/usr/include/ffi -isystem /opt/homebrew/Cellar/glib/2.86.4/include/glib-2.0 -isystem /opt/homebrew/Cellar/glib/2.86.4/lib/glib-2.0/include -isystem /opt/homebrew/opt/gettext/include -isystem /opt/homebrew/Cellar/pcre2/10.47_1/include -isystem /opt/homebrew/Cellar/pango/1.57.0_2/include/pango-1.0 -isystem /opt/homebrew/Cellar/cairo/1.18.4/include/cairo -isystem /opt/homebrew/Cellar/libxext/1.3.7/include -isystem /opt/homebrew/Cellar/xorgproto/2025.1/include -isystem /opt/homebrew/Cellar/libxrender/0.9.12/include -isystem /opt/homebrew/Cellar/libx11/1.8.13/include -isystem /opt/homebrew/Cellar/libxcb/1.17.0/include -isystem /opt/homebrew/Cellar/libxau/1.0.12/include -isystem /opt/homebrew/Cellar/libxdmcp/1.1.5/include -isystem /opt/homebrew/Cellar/pixman/0.46.4/include/pixman-1 -isystem /opt/homebrew/Cellar/fribidi/1.0.16/include/fribidi -isystem /opt/homebrew/Cellar/libthai/0.1.30/include -isystem /opt/homebrew/Cellar/libdatrie/0.2.14/include -isystem /opt/homebrew/Cellar/fontconfig/2.17.1/include -isystem /opt/homebrew/Cellar/harfbuzz/13.1.1/include/harfbuzz -isystem /opt/homebrew/opt/freetype/include/freetype2 -isystem /opt/homebrew/opt/libpng/include/libpng16 -isystem /opt/homebrew/opt/graphite2/include -isystem /opt/homebrew/Cellar/libsodium/1.0.21/include -isystem /opt/homebrew/Cellar/openssl@3/3.6.2/include /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_search_cost_smoke.cpp /Users/dhseo/Workspace/mediaServer/build-gst-onnx/libmedia_server_runtime.a /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libz.tbd /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstrtspserver-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstapp-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstwebrtc-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstsdp-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstpbutils-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstaudio-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstvideo-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstbase-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstreamer-1.0.dylib /opt/homebrew/Cellar/pango/1.57.0_2/lib/libpangocairo-1.0.dylib /opt/homebrew/Cellar/pango/1.57.0_2/lib/libpango-1.0.dylib /opt/homebrew/Cellar/cairo/1.18.4/lib/libcairo.dylib /opt/homebrew/Cellar/harfbuzz/13.1.1/lib/libharfbuzz.dylib /opt/homebrew/Cellar/glib/2.86.4/lib/libgobject-2.0.dylib /opt/homebrew/Cellar/glib/2.86.4/lib/libglib-2.0.dylib /opt/homebrew/opt/gettext/lib/libintl.dylib /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libsqlite3.tbd /opt/homebrew/Cellar/libsodium/1.0.21/lib/libsodium.dylib /opt/homebrew/Cellar/openssl@3/3.6.2/lib/libssl.dylib /opt/homebrew/Cellar/openssl@3/3.6.2/lib/libcrypto.dylib /opt/homebrew/lib/libonnxruntime.dylib -o /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v420-followup-oa701mnv/recording_search_cost_smoke
+
+exit: 0
+command: /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v420-followup-oa701mnv/recording_search_cost_smoke /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v420-followup-oa701mnv/recording_search_cost_smoke-data
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+referenced observation identity/metadata 오류
+
+exit: 1
+cleanup owned temporary root removed=True
+source /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_search_cost_smoke.cpp sha256 094c2f6392295b8e0722805129d7d6f1bd1267ffa1cf0ddc90b189b38fcbc51a
+command: c++ -std=c++17 -Wall -Wextra -Werror -O2 -DGST_USE_UNSTABLE_API=1 -DMEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND=1 -DMEDIA_SERVER_ENABLE_YOUTUBE_SOURCE=0 -DMEDIA_SERVER_USE_GSTREAMER=1 -DMEDIA_SERVER_USE_LIBSODIUM=1 -DMEDIA_SERVER_USE_ONNXRUNTIME=1 -DMEDIA_SERVER_USE_OPENSSL=1 -DMEDIA_SERVER_USE_PANGOCAIRO=1 -DMEDIA_SERVER_USE_SQLITE3=1 -I/Users/dhseo/Workspace/mediaServer/include -I/opt/homebrew/include/onnxruntime -isystem /opt/homebrew/Cellar/gstreamer/1.28.1/include/gstreamer-1.0 -isystem /opt/homebrew/Cellar/glib/2.86.4/include/gio-unix-2.0 -isystem /opt/homebrew/Cellar/orc/0.4.42/include/orc-0.4 -isystem /opt/homebrew/Cellar/glib/2.86.4/include -isystem /Library/Developer/CommandLineTools/SDKs/MacOSX26.sdk/usr/include/ffi -isystem /opt/homebrew/Cellar/glib/2.86.4/include/glib-2.0 -isystem /opt/homebrew/Cellar/glib/2.86.4/lib/glib-2.0/include -isystem /opt/homebrew/opt/gettext/include -isystem /opt/homebrew/Cellar/pcre2/10.47_1/include -isystem /opt/homebrew/Cellar/pango/1.57.0_2/include/pango-1.0 -isystem /opt/homebrew/Cellar/cairo/1.18.4/include/cairo -isystem /opt/homebrew/Cellar/libxext/1.3.7/include -isystem /opt/homebrew/Cellar/xorgproto/2025.1/include -isystem /opt/homebrew/Cellar/libxrender/0.9.12/include -isystem /opt/homebrew/Cellar/libx11/1.8.13/include -isystem /opt/homebrew/Cellar/libxcb/1.17.0/include -isystem /opt/homebrew/Cellar/libxau/1.0.12/include -isystem /opt/homebrew/Cellar/libxdmcp/1.1.5/include -isystem /opt/homebrew/Cellar/pixman/0.46.4/include/pixman-1 -isystem /opt/homebrew/Cellar/fribidi/1.0.16/include/fribidi -isystem /opt/homebrew/Cellar/libthai/0.1.30/include -isystem /opt/homebrew/Cellar/libdatrie/0.2.14/include -isystem /opt/homebrew/Cellar/fontconfig/2.17.1/include -isystem /opt/homebrew/Cellar/harfbuzz/13.1.1/include/harfbuzz -isystem /opt/homebrew/opt/freetype/include/freetype2 -isystem /opt/homebrew/opt/libpng/include/libpng16 -isystem /opt/homebrew/opt/graphite2/include -isystem /opt/homebrew/Cellar/libsodium/1.0.21/include -isystem /opt/homebrew/Cellar/openssl@3/3.6.2/include /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_search_cost_smoke.cpp /Users/dhseo/Workspace/mediaServer/build-gst-onnx/libmedia_server_runtime.a /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libz.tbd /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstrtspserver-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstapp-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstwebrtc-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstsdp-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstpbutils-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstaudio-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstvideo-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstbase-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstreamer-1.0.dylib /opt/homebrew/Cellar/pango/1.57.0_2/lib/libpangocairo-1.0.dylib /opt/homebrew/Cellar/pango/1.57.0_2/lib/libpango-1.0.dylib /opt/homebrew/Cellar/cairo/1.18.4/lib/libcairo.dylib /opt/homebrew/Cellar/harfbuzz/13.1.1/lib/libharfbuzz.dylib /opt/homebrew/Cellar/glib/2.86.4/lib/libgobject-2.0.dylib /opt/homebrew/Cellar/glib/2.86.4/lib/libglib-2.0.dylib /opt/homebrew/opt/gettext/lib/libintl.dylib /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libsqlite3.tbd /opt/homebrew/Cellar/libsodium/1.0.21/lib/libsodium.dylib /opt/homebrew/Cellar/openssl@3/3.6.2/lib/libssl.dylib /opt/homebrew/Cellar/openssl@3/3.6.2/lib/libcrypto.dylib /opt/homebrew/lib/libonnxruntime.dylib -o /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v420-followup-bi63j5h9/recording_search_cost_smoke
+
+exit: 0
+command: /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v420-followup-bi63j5h9/recording_search_cost_smoke /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v420-followup-bi63j5h9/recording_search_cost_smoke-data
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+cost-fixture-contract:opaque ID는 SQLite rowid 형태일 수 없음
+
+exit: 1
+cleanup owned temporary root removed=True
+source /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_search_cost_smoke.cpp sha256 9d591c7d48cdcafc68b2f5465fa7cf78899700786cd85e16c87c7b0b09e12189
+command: c++ -std=c++17 -Wall -Wextra -Werror -O2 -DGST_USE_UNSTABLE_API=1 -DMEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND=1 -DMEDIA_SERVER_ENABLE_YOUTUBE_SOURCE=0 -DMEDIA_SERVER_USE_GSTREAMER=1 -DMEDIA_SERVER_USE_LIBSODIUM=1 -DMEDIA_SERVER_USE_ONNXRUNTIME=1 -DMEDIA_SERVER_USE_OPENSSL=1 -DMEDIA_SERVER_USE_PANGOCAIRO=1 -DMEDIA_SERVER_USE_SQLITE3=1 -I/Users/dhseo/Workspace/mediaServer/include -I/opt/homebrew/include/onnxruntime -isystem /opt/homebrew/Cellar/gstreamer/1.28.1/include/gstreamer-1.0 -isystem /opt/homebrew/Cellar/glib/2.86.4/include/gio-unix-2.0 -isystem /opt/homebrew/Cellar/orc/0.4.42/include/orc-0.4 -isystem /opt/homebrew/Cellar/glib/2.86.4/include -isystem /Library/Developer/CommandLineTools/SDKs/MacOSX26.sdk/usr/include/ffi -isystem /opt/homebrew/Cellar/glib/2.86.4/include/glib-2.0 -isystem /opt/homebrew/Cellar/glib/2.86.4/lib/glib-2.0/include -isystem /opt/homebrew/opt/gettext/include -isystem /opt/homebrew/Cellar/pcre2/10.47_1/include -isystem /opt/homebrew/Cellar/pango/1.57.0_2/include/pango-1.0 -isystem /opt/homebrew/Cellar/cairo/1.18.4/include/cairo -isystem /opt/homebrew/Cellar/libxext/1.3.7/include -isystem /opt/homebrew/Cellar/xorgproto/2025.1/include -isystem /opt/homebrew/Cellar/libxrender/0.9.12/include -isystem /opt/homebrew/Cellar/libx11/1.8.13/include -isystem /opt/homebrew/Cellar/libxcb/1.17.0/include -isystem /opt/homebrew/Cellar/libxau/1.0.12/include -isystem /opt/homebrew/Cellar/libxdmcp/1.1.5/include -isystem /opt/homebrew/Cellar/pixman/0.46.4/include/pixman-1 -isystem /opt/homebrew/Cellar/fribidi/1.0.16/include/fribidi -isystem /opt/homebrew/Cellar/libthai/0.1.30/include -isystem /opt/homebrew/Cellar/libdatrie/0.2.14/include -isystem /opt/homebrew/Cellar/fontconfig/2.17.1/include -isystem /opt/homebrew/Cellar/harfbuzz/13.1.1/include/harfbuzz -isystem /opt/homebrew/opt/freetype/include/freetype2 -isystem /opt/homebrew/opt/libpng/include/libpng16 -isystem /opt/homebrew/opt/graphite2/include -isystem /opt/homebrew/Cellar/libsodium/1.0.21/include -isystem /opt/homebrew/Cellar/openssl@3/3.6.2/include /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_search_cost_smoke.cpp /Users/dhseo/Workspace/mediaServer/build-gst-onnx/libmedia_server_runtime.a /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libz.tbd /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstrtspserver-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstapp-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstwebrtc-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstsdp-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstpbutils-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstaudio-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstvideo-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstbase-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstreamer-1.0.dylib /opt/homebrew/Cellar/pango/1.57.0_2/lib/libpangocairo-1.0.dylib /opt/homebrew/Cellar/pango/1.57.0_2/lib/libpango-1.0.dylib /opt/homebrew/Cellar/cairo/1.18.4/lib/libcairo.dylib /opt/homebrew/Cellar/harfbuzz/13.1.1/lib/libharfbuzz.dylib /opt/homebrew/Cellar/glib/2.86.4/lib/libgobject-2.0.dylib /opt/homebrew/Cellar/glib/2.86.4/lib/libglib-2.0.dylib /opt/homebrew/opt/gettext/lib/libintl.dylib /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libsqlite3.tbd /opt/homebrew/Cellar/libsodium/1.0.21/lib/libsodium.dylib /opt/homebrew/Cellar/openssl@3/3.6.2/lib/libssl.dylib /opt/homebrew/Cellar/openssl@3/3.6.2/lib/libcrypto.dylib /opt/homebrew/lib/libonnxruntime.dylib -o /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v420-followup-7wpexdml/recording_search_cost_smoke
+
+exit: 0
+command: /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v420-followup-7wpexdml/recording_search_cost_smoke /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v420-followup-7wpexdml/recording_search_cost_smoke-data
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[cost-prep] observations=1 ms=162.025 actualMp4Files=3 eventFacts=1
+[cost] observations=1 phase=first ms=40.3766 expectedTotal=1 returned=1 expectedId=or:6:cost-0 actualId=or:6:cost-0 equality=true
+[cost] observations=1 phase=unchanged ms=31.1317 expectedTotal=1 returned=1 expectedId=or:6:cost-0 actualId=or:6:cost-0 equality=true
+[cost-source] phase=unchanged rebuild=0 upserts=0 modelRows=6 logicalBytes=24070 playbackCandidates=2 queryCandidates=1
+[cost-source] phase=append rebuild=0 upserts=1 modelRows=6 logicalBytes=24070 playbackCandidates=2 queryCandidates=2
+[cost] observations=1 phase=append ms=39.108 expectedTotal=2 returned=1 expectedId=or:6:cost-0 actualId=or:6:cost-0 equality=true
+[cost-source] phase=finalize rebuild=1 upserts=8 modelRows=6 logicalBytes=24070 playbackCandidates=2 queryCandidates=2
+[cost] observations=1 phase=finalize ms=42.3177 expectedTotal=2 returned=1 expectedId=or:6:cost-0 actualId=or:6:cost-0 equality=true
+[cost] observations=1 phase=cursor not-applicable=single-hit
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[cost-prep] observations=1000 ms=1350.98 actualMp4Files=3 eventFacts=1
+[cost] observations=1000 phase=first ms=2137.06 expectedTotal=10 returned=1 expectedId=or:6:cost-0 actualId=or:6:cost-0 equality=true
+[cost] observations=1000 phase=unchanged ms=41.5798 expectedTotal=10 returned=1 expectedId=or:6:cost-0 actualId=or:6:cost-0 equality=true
+[cost-source] phase=unchanged rebuild=0 upserts=0 modelRows=1005 logicalBytes=3390910 playbackCandidates=2 queryCandidates=10
+[cost-source] phase=append rebuild=0 upserts=1 modelRows=1005 logicalBytes=3390910 playbackCandidates=2 queryCandidates=11
+[cost] observations=1000 phase=append ms=54.4967 expectedTotal=11 returned=1 expectedId=or:11:cost-100000 actualId=or:11:cost-100000 equality=true
+[cost-source] phase=finalize rebuild=1 upserts=1007 modelRows=1005 logicalBytes=3390910 playbackCandidates=2 queryCandidates=11
+[cost] observations=1000 phase=finalize ms=2151.29 expectedTotal=11 returned=1 expectedId=or:11:cost-100000 actualId=or:11:cost-100000 equality=true
+[cost] observations=1000 phase=cursor ms=19.7837 expectedTotal=10 returned=1 expectedId=or:8:cost-100 actualId=or:8:cost-100 equality=true
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[cost-prep] observations=10000 ms=12633.5 actualMp4Files=3 eventFacts=1
+[cost] observations=10000 phase=first ms=21357.4 expectedTotal=100 returned=1 expectedId=or:6:cost-0 actualId=or:6:cost-0 equality=true
+[cost] observations=10000 phase=unchanged ms=135.638 expectedTotal=100 returned=1 expectedId=or:6:cost-0 actualId=or:6:cost-0 equality=true
+[cost-source] phase=unchanged rebuild=0 upserts=0 modelRows=10005 logicalBytes=37446910 playbackCandidates=2 queryCandidates=100
+[cost-source] phase=append rebuild=0 upserts=1 modelRows=10005 logicalBytes=37446910 playbackCandidates=2 queryCandidates=101
+[cost] observations=10000 phase=append ms=181.504 expectedTotal=101 returned=1 expectedId=or:12:cost-1000000 actualId=or:12:cost-1000000 equality=true
+[cost-source] phase=finalize rebuild=1 upserts=10007 modelRows=10005 logicalBytes=37446910 playbackCandidates=2 queryCandidates=101
+[cost] observations=10000 phase=finalize ms=22111.6 expectedTotal=101 returned=1 expectedId=or:12:cost-1000000 actualId=or:12:cost-1000000 equality=true
+{"error":"search-snapshot-expired"}
+
+exit: 1
+cleanup owned temporary root removed=True
+source /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_search_cost_smoke.cpp sha256 3e9b0be439350dd859bf31a0f0682fed18e042e3fbd557f09267e4d31b708de0
+command: c++ -std=c++17 -Wall -Wextra -Werror -O2 -I/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v420-followup-vyehm6p0/include -DGST_USE_UNSTABLE_API=1 -DMEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND=1 -DMEDIA_SERVER_ENABLE_YOUTUBE_SOURCE=0 -DMEDIA_SERVER_USE_GSTREAMER=1 -DMEDIA_SERVER_USE_LIBSODIUM=1 -DMEDIA_SERVER_USE_ONNXRUNTIME=1 -DMEDIA_SERVER_USE_OPENSSL=1 -DMEDIA_SERVER_USE_PANGOCAIRO=1 -DMEDIA_SERVER_USE_SQLITE3=1 -I/Users/dhseo/Workspace/mediaServer/include -I/opt/homebrew/include/onnxruntime -isystem /opt/homebrew/Cellar/gstreamer/1.28.1/include/gstreamer-1.0 -isystem /opt/homebrew/Cellar/glib/2.86.4/include/gio-unix-2.0 -isystem /opt/homebrew/Cellar/orc/0.4.42/include/orc-0.4 -isystem /opt/homebrew/Cellar/glib/2.86.4/include -isystem /Library/Developer/CommandLineTools/SDKs/MacOSX26.sdk/usr/include/ffi -isystem /opt/homebrew/Cellar/glib/2.86.4/include/glib-2.0 -isystem /opt/homebrew/Cellar/glib/2.86.4/lib/glib-2.0/include -isystem /opt/homebrew/opt/gettext/include -isystem /opt/homebrew/Cellar/pcre2/10.47_1/include -isystem /opt/homebrew/Cellar/pango/1.57.0_2/include/pango-1.0 -isystem /opt/homebrew/Cellar/cairo/1.18.4/include/cairo -isystem /opt/homebrew/Cellar/libxext/1.3.7/include -isystem /opt/homebrew/Cellar/xorgproto/2025.1/include -isystem /opt/homebrew/Cellar/libxrender/0.9.12/include -isystem /opt/homebrew/Cellar/libx11/1.8.13/include -isystem /opt/homebrew/Cellar/libxcb/1.17.0/include -isystem /opt/homebrew/Cellar/libxau/1.0.12/include -isystem /opt/homebrew/Cellar/libxdmcp/1.1.5/include -isystem /opt/homebrew/Cellar/pixman/0.46.4/include/pixman-1 -isystem /opt/homebrew/Cellar/fribidi/1.0.16/include/fribidi -isystem /opt/homebrew/Cellar/libthai/0.1.30/include -isystem /opt/homebrew/Cellar/libdatrie/0.2.14/include -isystem /opt/homebrew/Cellar/fontconfig/2.17.1/include -isystem /opt/homebrew/Cellar/harfbuzz/13.1.1/include/harfbuzz -isystem /opt/homebrew/opt/freetype/include/freetype2 -isystem /opt/homebrew/opt/libpng/include/libpng16 -isystem /opt/homebrew/opt/graphite2/include -isystem /opt/homebrew/Cellar/libsodium/1.0.21/include -isystem /opt/homebrew/Cellar/openssl@3/3.6.2/include /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_search_cost_smoke.cpp /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v420-followup-vyehm6p0/src/recording/recording_search_model.cpp /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v420-followup-vyehm6p0/src/recording/recording_search_reader.cpp /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v420-followup-vyehm6p0/src/ingress/recording_search_application_service.cpp /Users/dhseo/Workspace/mediaServer/build-gst-onnx/libmedia_server_runtime.a /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libz.tbd /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstrtspserver-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstapp-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstwebrtc-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstsdp-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstpbutils-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstaudio-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstvideo-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstbase-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstreamer-1.0.dylib /opt/homebrew/Cellar/pango/1.57.0_2/lib/libpangocairo-1.0.dylib /opt/homebrew/Cellar/pango/1.57.0_2/lib/libpango-1.0.dylib /opt/homebrew/Cellar/cairo/1.18.4/lib/libcairo.dylib /opt/homebrew/Cellar/harfbuzz/13.1.1/lib/libharfbuzz.dylib /opt/homebrew/Cellar/glib/2.86.4/lib/libgobject-2.0.dylib /opt/homebrew/Cellar/glib/2.86.4/lib/libglib-2.0.dylib /opt/homebrew/opt/gettext/lib/libintl.dylib /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libsqlite3.tbd /opt/homebrew/Cellar/libsodium/1.0.21/lib/libsodium.dylib /opt/homebrew/Cellar/openssl@3/3.6.2/lib/libssl.dylib /opt/homebrew/Cellar/openssl@3/3.6.2/lib/libcrypto.dylib /opt/homebrew/lib/libonnxruntime.dylib -o /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v420-followup-vyehm6p0/recording_search_cost_smoke
+
+exit: 0
+command: /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v420-followup-vyehm6p0/recording_search_cost_smoke /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v420-followup-vyehm6p0/recording_search_cost_smoke-data
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[cost-prep] observations=1 ms=163.326 actualMp4Files=5 eventFacts=1 unusedByObjectQuery=1
+[cost] observations=1 phase=first ms=38.855 expectedTotal=1 returned=1 expectedId=or:6:cost-0 actualId=or:6:cost-0 equality=true
+[cost] observations=1 phase=unchanged ms=30.3563 expectedTotal=1 returned=1 expectedId=or:6:cost-0 actualId=or:6:cost-0 equality=true
+[cost] observations=1 phase=cursor not-applicable=single-hit
+[cost-source] phase=unchanged rebuild=0 upserts=0 modelRows=6 logicalBytes=24070 playbackCandidates=2 queryCandidates=1
+[cost-source] phase=append rebuild=0 upserts=1 modelRows=6 logicalBytes=24070 playbackCandidates=2 queryCandidates=2
+[cost] observations=1 phase=append ms=38.3498 expectedTotal=2 returned=1 expectedId=or:6:cost-0 actualId=or:6:cost-0 equality=true
+[cost-source] phase=finalize rebuild=1 upserts=8 modelRows=6 logicalBytes=24070 playbackCandidates=2 queryCandidates=2
+[cost] observations=1 phase=finalize ms=42.374 expectedTotal=2 returned=1 expectedId=or:6:cost-0 actualId=or:6:cost-0 equality=true
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[cost-prep] observations=1000 ms=1396.41 actualMp4Files=5 eventFacts=1 unusedByObjectQuery=1
+[cost] observations=1000 phase=first ms=2126.02 expectedTotal=10 returned=1 expectedId=or:6:cost-0 actualId=or:6:cost-0 equality=true
+[cost] observations=1000 phase=unchanged ms=33.0155 expectedTotal=10 returned=1 expectedId=or:6:cost-0 actualId=or:6:cost-0 equality=true
+[cost] observations=1000 phase=cursor ms=18.8854 expectedTotal=10 returned=1 expectedId=or:8:cost-100 actualId=or:8:cost-100 equality=true
+[cost-source] phase=unchanged rebuild=0 upserts=0 modelRows=1005 logicalBytes=3390910 playbackCandidates=2 queryCandidates=10
+[cost-source] phase=append rebuild=0 upserts=1 modelRows=1005 logicalBytes=3390910 playbackCandidates=2 queryCandidates=11
+[cost] observations=1000 phase=append ms=42.5653 expectedTotal=11 returned=1 expectedId=or:11:cost-100000 actualId=or:11:cost-100000 equality=true
+[cost-source] phase=finalize rebuild=1 upserts=1007 modelRows=1005 logicalBytes=3390910 playbackCandidates=2 queryCandidates=11
+[cost] observations=1000 phase=finalize ms=2126.41 expectedTotal=11 returned=1 expectedId=or:11:cost-100000 actualId=or:11:cost-100000 equality=true
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[cost-prep] observations=10000 ms=12635.1 actualMp4Files=5 eventFacts=1 unusedByObjectQuery=1
+[cost] observations=10000 phase=first ms=21091.9 expectedTotal=100 returned=1 expectedId=or:6:cost-0 actualId=or:6:cost-0 equality=true
+[cost] observations=10000 phase=unchanged ms=54.4245 expectedTotal=100 returned=1 expectedId=or:6:cost-0 actualId=or:6:cost-0 equality=true
+[cost] observations=10000 phase=cursor ms=18.7118 expectedTotal=100 returned=1 expectedId=or:8:cost-100 actualId=or:8:cost-100 equality=true
+[cost-source] phase=unchanged rebuild=0 upserts=0 modelRows=10005 logicalBytes=37446910 playbackCandidates=2 queryCandidates=100
+[cost-source] phase=append rebuild=0 upserts=1 modelRows=10005 logicalBytes=37446910 playbackCandidates=2 queryCandidates=101
+[cost] observations=10000 phase=append ms=69.683 expectedTotal=101 returned=1 expectedId=or:12:cost-1000000 actualId=or:12:cost-1000000 equality=true
+[cost-source] phase=finalize rebuild=1 upserts=10007 modelRows=10005 logicalBytes=37446910 playbackCandidates=2 queryCandidates=101
+[cost] observations=10000 phase=finalize ms=20980.1 expectedTotal=101 returned=1 expectedId=or:12:cost-1000000 actualId=or:12:cost-1000000 equality=true
+[search-cost] pass
+
+exit: 0
+cleanup owned temporary root removed=True
+source /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_search_events_smoke.cpp sha256 2184f9e613450835ff7a33a1f4b92aa3154a9a67a4cb64037f0d2a5bde329f61
+command: c++ -std=c++17 -Wall -Wextra -Werror -O2 -DGST_USE_UNSTABLE_API=1 -DMEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND=1 -DMEDIA_SERVER_ENABLE_YOUTUBE_SOURCE=0 -DMEDIA_SERVER_USE_GSTREAMER=1 -DMEDIA_SERVER_USE_LIBSODIUM=1 -DMEDIA_SERVER_USE_ONNXRUNTIME=1 -DMEDIA_SERVER_USE_OPENSSL=1 -DMEDIA_SERVER_USE_PANGOCAIRO=1 -DMEDIA_SERVER_USE_SQLITE3=1 -I/Users/dhseo/Workspace/mediaServer/include -I/opt/homebrew/include/onnxruntime -isystem /opt/homebrew/Cellar/gstreamer/1.28.1/include/gstreamer-1.0 -isystem /opt/homebrew/Cellar/glib/2.86.4/include/gio-unix-2.0 -isystem /opt/homebrew/Cellar/orc/0.4.42/include/orc-0.4 -isystem /opt/homebrew/Cellar/glib/2.86.4/include -isystem /Library/Developer/CommandLineTools/SDKs/MacOSX26.sdk/usr/include/ffi -isystem /opt/homebrew/Cellar/glib/2.86.4/include/glib-2.0 -isystem /opt/homebrew/Cellar/glib/2.86.4/lib/glib-2.0/include -isystem /opt/homebrew/opt/gettext/include -isystem /opt/homebrew/Cellar/pcre2/10.47_1/include -isystem /opt/homebrew/Cellar/pango/1.57.0_2/include/pango-1.0 -isystem /opt/homebrew/Cellar/cairo/1.18.4/include/cairo -isystem /opt/homebrew/Cellar/libxext/1.3.7/include -isystem /opt/homebrew/Cellar/xorgproto/2025.1/include -isystem /opt/homebrew/Cellar/libxrender/0.9.12/include -isystem /opt/homebrew/Cellar/libx11/1.8.13/include -isystem /opt/homebrew/Cellar/libxcb/1.17.0/include -isystem /opt/homebrew/Cellar/libxau/1.0.12/include -isystem /opt/homebrew/Cellar/libxdmcp/1.1.5/include -isystem /opt/homebrew/Cellar/pixman/0.46.4/include/pixman-1 -isystem /opt/homebrew/Cellar/fribidi/1.0.16/include/fribidi -isystem /opt/homebrew/Cellar/libthai/0.1.30/include -isystem /opt/homebrew/Cellar/libdatrie/0.2.14/include -isystem /opt/homebrew/Cellar/fontconfig/2.17.1/include -isystem /opt/homebrew/Cellar/harfbuzz/13.1.1/include/harfbuzz -isystem /opt/homebrew/opt/freetype/include/freetype2 -isystem /opt/homebrew/opt/libpng/include/libpng16 -isystem /opt/homebrew/opt/graphite2/include -isystem /opt/homebrew/Cellar/libsodium/1.0.21/include -isystem /opt/homebrew/Cellar/openssl@3/3.6.2/include /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_search_events_smoke.cpp /Users/dhseo/Workspace/mediaServer/build-gst-onnx/libmedia_server_runtime.a /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libz.tbd /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstrtspserver-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstapp-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstwebrtc-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstsdp-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstpbutils-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstaudio-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstvideo-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstbase-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstreamer-1.0.dylib /opt/homebrew/Cellar/pango/1.57.0_2/lib/libpangocairo-1.0.dylib /opt/homebrew/Cellar/pango/1.57.0_2/lib/libpango-1.0.dylib /opt/homebrew/Cellar/cairo/1.18.4/lib/libcairo.dylib /opt/homebrew/Cellar/harfbuzz/13.1.1/lib/libharfbuzz.dylib /opt/homebrew/Cellar/glib/2.86.4/lib/libgobject-2.0.dylib /opt/homebrew/Cellar/glib/2.86.4/lib/libglib-2.0.dylib /opt/homebrew/opt/gettext/lib/libintl.dylib /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libsqlite3.tbd /opt/homebrew/Cellar/libsodium/1.0.21/lib/libsodium.dylib /opt/homebrew/Cellar/openssl@3/3.6.2/lib/libssl.dylib /opt/homebrew/Cellar/openssl@3/3.6.2/lib/libcrypto.dylib /opt/homebrew/lib/libonnxruntime.dylib -o /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v420-followup-f34yzxon/recording_search_events_smoke
+
+exit: 0
+command: /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v420-followup-f34yzxon/recording_search_events_smoke /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v420-followup-f34yzxon/recording_search_events_smoke-data
+[pass] typed real event storage facts
+[pass] legacy JSON query unchanged
+[pass] event source model
+[pass] join requires linked id channel track epoch
+[pass] stored scenario reaches behaviour filter
+[pass] missing relevant evidence is incomplete, not definitive empty; output unchanged
+[pass] known same-event nonmatch ignores unrelated missing references
+[pass] another event match cannot fill selected event evidence
+[pass] unrelated object missing evidence is irrelevant
+[pass] no behaviour needs no event evidence
+[pass] unproven linked identity is incomplete
+[pass] unproven linked identity is incomplete
+[pass] unproven linked identity is incomplete
+[pass] unproven linked identity is incomplete
+[pass] excluded candidate missing evidence does not fail query
+[pass] excluded candidate missing evidence does not fail query
+[pass] excluded candidate missing evidence does not fail query
+[pass] excluded candidate missing evidence does not fail query
+[pass] excluded candidate missing evidence does not fail query
+[pass] missing event epoch cannot prove observation epoch
+[pass] query-aware evidence read excludes unrelated observations
+[pass] new search refreshes events without catalog revision change
+[pass] identical event rows deduplicated
+[pass] conflicting event identity rejected atomically
+[pass] corrupt scan is not successful empty
+[pass] partial scan rejected atomically
+[pass] empty event store clears facts no inference
+[pass] event row cap rejects partial facts
+[pass] event byte cap rejects before row cap
+[search-events] pass=29 fail=0 error=search-event-evidence-incomplete
+
+exit: 0
+source /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_search_filter_smoke.cpp sha256 226b7e4b2deb22e3fd054ead4d47d390c90feca941ae5c51cda70d9226b31bc6
+command: c++ -std=c++17 -Wall -Wextra -Werror -O2 -DGST_USE_UNSTABLE_API=1 -DMEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND=1 -DMEDIA_SERVER_ENABLE_YOUTUBE_SOURCE=0 -DMEDIA_SERVER_USE_GSTREAMER=1 -DMEDIA_SERVER_USE_LIBSODIUM=1 -DMEDIA_SERVER_USE_ONNXRUNTIME=1 -DMEDIA_SERVER_USE_OPENSSL=1 -DMEDIA_SERVER_USE_PANGOCAIRO=1 -DMEDIA_SERVER_USE_SQLITE3=1 -I/Users/dhseo/Workspace/mediaServer/include -I/opt/homebrew/include/onnxruntime -isystem /opt/homebrew/Cellar/gstreamer/1.28.1/include/gstreamer-1.0 -isystem /opt/homebrew/Cellar/glib/2.86.4/include/gio-unix-2.0 -isystem /opt/homebrew/Cellar/orc/0.4.42/include/orc-0.4 -isystem /opt/homebrew/Cellar/glib/2.86.4/include -isystem /Library/Developer/CommandLineTools/SDKs/MacOSX26.sdk/usr/include/ffi -isystem /opt/homebrew/Cellar/glib/2.86.4/include/glib-2.0 -isystem /opt/homebrew/Cellar/glib/2.86.4/lib/glib-2.0/include -isystem /opt/homebrew/opt/gettext/include -isystem /opt/homebrew/Cellar/pcre2/10.47_1/include -isystem /opt/homebrew/Cellar/pango/1.57.0_2/include/pango-1.0 -isystem /opt/homebrew/Cellar/cairo/1.18.4/include/cairo -isystem /opt/homebrew/Cellar/libxext/1.3.7/include -isystem /opt/homebrew/Cellar/xorgproto/2025.1/include -isystem /opt/homebrew/Cellar/libxrender/0.9.12/include -isystem /opt/homebrew/Cellar/libx11/1.8.13/include -isystem /opt/homebrew/Cellar/libxcb/1.17.0/include -isystem /opt/homebrew/Cellar/libxau/1.0.12/include -isystem /opt/homebrew/Cellar/libxdmcp/1.1.5/include -isystem /opt/homebrew/Cellar/pixman/0.46.4/include/pixman-1 -isystem /opt/homebrew/Cellar/fribidi/1.0.16/include/fribidi -isystem /opt/homebrew/Cellar/libthai/0.1.30/include -isystem /opt/homebrew/Cellar/libdatrie/0.2.14/include -isystem /opt/homebrew/Cellar/fontconfig/2.17.1/include -isystem /opt/homebrew/Cellar/harfbuzz/13.1.1/include/harfbuzz -isystem /opt/homebrew/opt/freetype/include/freetype2 -isystem /opt/homebrew/opt/libpng/include/libpng16 -isystem /opt/homebrew/opt/graphite2/include -isystem /opt/homebrew/Cellar/libsodium/1.0.21/include -isystem /opt/homebrew/Cellar/openssl@3/3.6.2/include /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_search_filter_smoke.cpp /Users/dhseo/Workspace/mediaServer/build-gst-onnx/libmedia_server_runtime.a /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libz.tbd /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstrtspserver-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstapp-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstwebrtc-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstsdp-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstpbutils-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstaudio-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstvideo-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstbase-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstreamer-1.0.dylib /opt/homebrew/Cellar/pango/1.57.0_2/lib/libpangocairo-1.0.dylib /opt/homebrew/Cellar/pango/1.57.0_2/lib/libpango-1.0.dylib /opt/homebrew/Cellar/cairo/1.18.4/lib/libcairo.dylib /opt/homebrew/Cellar/harfbuzz/13.1.1/lib/libharfbuzz.dylib /opt/homebrew/Cellar/glib/2.86.4/lib/libgobject-2.0.dylib /opt/homebrew/Cellar/glib/2.86.4/lib/libglib-2.0.dylib /opt/homebrew/opt/gettext/lib/libintl.dylib /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libsqlite3.tbd /opt/homebrew/Cellar/libsodium/1.0.21/lib/libsodium.dylib /opt/homebrew/Cellar/openssl@3/3.6.2/lib/libssl.dylib /opt/homebrew/Cellar/openssl@3/3.6.2/lib/libcrypto.dylib /opt/homebrew/lib/libonnxruntime.dylib -o /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v420-followup-f34yzxon/recording_search_filter_smoke
+
+exit: 0
+command: /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v420-followup-f34yzxon/recording_search_filter_smoke /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v420-followup-f34yzxon/recording_search_filter_smoke-data
+[pass] fixture-build
+[pass] F01 camera-time returns intervals without analysis
+[pass] F01 channel OR global stable order duplicate normalized
+[pass] F02 F03 half-open UTC sampled person only
+[pass] F03 object OR
+[pass] F03 exact case no synonym
+[pass] F04 F06 same-track observations never combine tags
+[pass] F04 namespaces remain distinct hits
+[pass] F06 F07 field AND list OR
+[pass] F05 stored event reference exact
+[pass] F08 event behaviour confirmed fact
+[pass] F09 named scenario fact
+[pass] F09 rule ID is not scenario name
+[pass] F10 event behaviour require same event
+[pass] F10 shared matching event
+[pass] F08 missing event facts are incomplete
+[pass] F02 unknown separate after known
+[pass] F02 separate counts
+[pass] invalid query rejects atomically
+[pass] invalid query rejects atomically
+[pass] invalid query rejects atomically
+[pass] invalid query rejects atomically
+[pass] invalid query rejects atomically
+[pass] invalid query rejects atomically
+[pass] invalid query rejects atomically
+[pass] invalid query rejects atomically
+[pass] invalid query rejects atomically
+[search-filter] pass=27 fail=0
+
+exit: 0
+source /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_search_application_smoke.cpp sha256 4bacbfe5648b9ed5697ed7d0ca993ab0e9a191461604f16442d9327bbc5b5165
+command: c++ -std=c++17 -Wall -Wextra -Werror -O2 -DGST_USE_UNSTABLE_API=1 -DMEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND=1 -DMEDIA_SERVER_ENABLE_YOUTUBE_SOURCE=0 -DMEDIA_SERVER_USE_GSTREAMER=1 -DMEDIA_SERVER_USE_LIBSODIUM=1 -DMEDIA_SERVER_USE_ONNXRUNTIME=1 -DMEDIA_SERVER_USE_OPENSSL=1 -DMEDIA_SERVER_USE_PANGOCAIRO=1 -DMEDIA_SERVER_USE_SQLITE3=1 -I/Users/dhseo/Workspace/mediaServer/include -I/opt/homebrew/include/onnxruntime -isystem /opt/homebrew/Cellar/gstreamer/1.28.1/include/gstreamer-1.0 -isystem /opt/homebrew/Cellar/glib/2.86.4/include/gio-unix-2.0 -isystem /opt/homebrew/Cellar/orc/0.4.42/include/orc-0.4 -isystem /opt/homebrew/Cellar/glib/2.86.4/include -isystem /Library/Developer/CommandLineTools/SDKs/MacOSX26.sdk/usr/include/ffi -isystem /opt/homebrew/Cellar/glib/2.86.4/include/glib-2.0 -isystem /opt/homebrew/Cellar/glib/2.86.4/lib/glib-2.0/include -isystem /opt/homebrew/opt/gettext/include -isystem /opt/homebrew/Cellar/pcre2/10.47_1/include -isystem /opt/homebrew/Cellar/pango/1.57.0_2/include/pango-1.0 -isystem /opt/homebrew/Cellar/cairo/1.18.4/include/cairo -isystem /opt/homebrew/Cellar/libxext/1.3.7/include -isystem /opt/homebrew/Cellar/xorgproto/2025.1/include -isystem /opt/homebrew/Cellar/libxrender/0.9.12/include -isystem /opt/homebrew/Cellar/libx11/1.8.13/include -isystem /opt/homebrew/Cellar/libxcb/1.17.0/include -isystem /opt/homebrew/Cellar/libxau/1.0.12/include -isystem /opt/homebrew/Cellar/libxdmcp/1.1.5/include -isystem /opt/homebrew/Cellar/pixman/0.46.4/include/pixman-1 -isystem /opt/homebrew/Cellar/fribidi/1.0.16/include/fribidi -isystem /opt/homebrew/Cellar/libthai/0.1.30/include -isystem /opt/homebrew/Cellar/libdatrie/0.2.14/include -isystem /opt/homebrew/Cellar/fontconfig/2.17.1/include -isystem /opt/homebrew/Cellar/harfbuzz/13.1.1/include/harfbuzz -isystem /opt/homebrew/opt/freetype/include/freetype2 -isystem /opt/homebrew/opt/libpng/include/libpng16 -isystem /opt/homebrew/opt/graphite2/include -isystem /opt/homebrew/Cellar/libsodium/1.0.21/include -isystem /opt/homebrew/Cellar/openssl@3/3.6.2/include /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_search_application_smoke.cpp /Users/dhseo/Workspace/mediaServer/build-gst-onnx/libmedia_server_runtime.a /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libz.tbd /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstrtspserver-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstapp-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstwebrtc-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstsdp-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstpbutils-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstaudio-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstvideo-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstbase-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstreamer-1.0.dylib /opt/homebrew/Cellar/pango/1.57.0_2/lib/libpangocairo-1.0.dylib /opt/homebrew/Cellar/pango/1.57.0_2/lib/libpango-1.0.dylib /opt/homebrew/Cellar/cairo/1.18.4/lib/libcairo.dylib /opt/homebrew/Cellar/harfbuzz/13.1.1/lib/libharfbuzz.dylib /opt/homebrew/Cellar/glib/2.86.4/lib/libgobject-2.0.dylib /opt/homebrew/Cellar/glib/2.86.4/lib/libglib-2.0.dylib /opt/homebrew/opt/gettext/lib/libintl.dylib /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libsqlite3.tbd /opt/homebrew/Cellar/libsodium/1.0.21/lib/libsodium.dylib /opt/homebrew/Cellar/openssl@3/3.6.2/lib/libssl.dylib /opt/homebrew/Cellar/openssl@3/3.6.2/lib/libcrypto.dylib /opt/homebrew/lib/libonnxruntime.dylib -o /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v420-followup-f34yzxon/recording_search_application_smoke
+
+exit: 0
+command: /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v420-followup-f34yzxon/recording_search_application_smoke /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v420-followup-f34yzxon/recording_search_application_smoke-data
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[pass] pages preserve exact unique membership and count
+[pass] cursor rejects other principal
+[pass] cursor rejects changed scope
+[pass] cursor rejects changed query
+[pass] empty explicit cursor rejected
+[pass] unknown field rejected
+[pass] mixed unauthorized channels rejected
+[pass] zero page limit rejected
+[pass] nonmember hit rejected
+[pass] partial event preserves uncovered original results
+[pass] preferred event resolves current file presentation target
+[pass] missing event file falls back to healthy original
+[pass] public result excludes internal paths and storage identity
+[search-application] pass=13 fail=0
+
+exit: 0
+cleanup owned temporary root removed=True
+source /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_search_cost_smoke.cpp sha256 3e9b0be439350dd859bf31a0f0682fed18e042e3fbd557f09267e4d31b708de0
+command: c++ -std=c++17 -Wall -Wextra -Werror -O2 -DGST_USE_UNSTABLE_API=1 -DMEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND=1 -DMEDIA_SERVER_ENABLE_YOUTUBE_SOURCE=0 -DMEDIA_SERVER_USE_GSTREAMER=1 -DMEDIA_SERVER_USE_LIBSODIUM=1 -DMEDIA_SERVER_USE_ONNXRUNTIME=1 -DMEDIA_SERVER_USE_OPENSSL=1 -DMEDIA_SERVER_USE_PANGOCAIRO=1 -DMEDIA_SERVER_USE_SQLITE3=1 -I/Users/dhseo/Workspace/mediaServer/include -I/opt/homebrew/include/onnxruntime -isystem /opt/homebrew/Cellar/gstreamer/1.28.1/include/gstreamer-1.0 -isystem /opt/homebrew/Cellar/glib/2.86.4/include/gio-unix-2.0 -isystem /opt/homebrew/Cellar/orc/0.4.42/include/orc-0.4 -isystem /opt/homebrew/Cellar/glib/2.86.4/include -isystem /Library/Developer/CommandLineTools/SDKs/MacOSX26.sdk/usr/include/ffi -isystem /opt/homebrew/Cellar/glib/2.86.4/include/glib-2.0 -isystem /opt/homebrew/Cellar/glib/2.86.4/lib/glib-2.0/include -isystem /opt/homebrew/opt/gettext/include -isystem /opt/homebrew/Cellar/pcre2/10.47_1/include -isystem /opt/homebrew/Cellar/pango/1.57.0_2/include/pango-1.0 -isystem /opt/homebrew/Cellar/cairo/1.18.4/include/cairo -isystem /opt/homebrew/Cellar/libxext/1.3.7/include -isystem /opt/homebrew/Cellar/xorgproto/2025.1/include -isystem /opt/homebrew/Cellar/libxrender/0.9.12/include -isystem /opt/homebrew/Cellar/libx11/1.8.13/include -isystem /opt/homebrew/Cellar/libxcb/1.17.0/include -isystem /opt/homebrew/Cellar/libxau/1.0.12/include -isystem /opt/homebrew/Cellar/libxdmcp/1.1.5/include -isystem /opt/homebrew/Cellar/pixman/0.46.4/include/pixman-1 -isystem /opt/homebrew/Cellar/fribidi/1.0.16/include/fribidi -isystem /opt/homebrew/Cellar/libthai/0.1.30/include -isystem /opt/homebrew/Cellar/libdatrie/0.2.14/include -isystem /opt/homebrew/Cellar/fontconfig/2.17.1/include -isystem /opt/homebrew/Cellar/harfbuzz/13.1.1/include/harfbuzz -isystem /opt/homebrew/opt/freetype/include/freetype2 -isystem /opt/homebrew/opt/libpng/include/libpng16 -isystem /opt/homebrew/opt/graphite2/include -isystem /opt/homebrew/Cellar/libsodium/1.0.21/include -isystem /opt/homebrew/Cellar/openssl@3/3.6.2/include /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_search_cost_smoke.cpp /Users/dhseo/Workspace/mediaServer/build-gst-onnx/libmedia_server_runtime.a /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libz.tbd /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstrtspserver-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstapp-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstwebrtc-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstsdp-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstpbutils-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstaudio-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstvideo-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstbase-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstreamer-1.0.dylib /opt/homebrew/Cellar/pango/1.57.0_2/lib/libpangocairo-1.0.dylib /opt/homebrew/Cellar/pango/1.57.0_2/lib/libpango-1.0.dylib /opt/homebrew/Cellar/cairo/1.18.4/lib/libcairo.dylib /opt/homebrew/Cellar/harfbuzz/13.1.1/lib/libharfbuzz.dylib /opt/homebrew/Cellar/glib/2.86.4/lib/libgobject-2.0.dylib /opt/homebrew/Cellar/glib/2.86.4/lib/libglib-2.0.dylib /opt/homebrew/opt/gettext/lib/libintl.dylib /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libsqlite3.tbd /opt/homebrew/Cellar/libsodium/1.0.21/lib/libsodium.dylib /opt/homebrew/Cellar/openssl@3/3.6.2/lib/libssl.dylib /opt/homebrew/Cellar/openssl@3/3.6.2/lib/libcrypto.dylib /opt/homebrew/lib/libonnxruntime.dylib -o /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v420-followup-p1pviux9/recording_search_cost_smoke
+
+exit: 0
+command: /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v420-followup-p1pviux9/recording_search_cost_smoke /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v420-followup-p1pviux9/recording_search_cost_smoke-data
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[cost-prep] observations=1 ms=166.688 actualMp4Files=5 eventFacts=1 unusedByObjectQuery=1
+[cost] observations=1 phase=first ms=40.5565 expectedTotal=1 returned=1 expectedId=or:6:cost-0 actualId=or:6:cost-0 equality=true
+[cost] observations=1 phase=unchanged ms=31.5374 expectedTotal=1 returned=1 expectedId=or:6:cost-0 actualId=or:6:cost-0 equality=true
+[cost] observations=1 phase=cursor not-applicable=single-hit
+[cost-source] phase=unchanged rebuild=0 upserts=0 modelRows=6 logicalBytes=24070 playbackCandidates=2 queryCandidates=1
+[cost-source] phase=append rebuild=0 upserts=1 modelRows=6 logicalBytes=24070 playbackCandidates=2 queryCandidates=2
+[cost] observations=1 phase=append ms=40.2106 expectedTotal=2 returned=1 expectedId=or:6:cost-0 actualId=or:6:cost-0 equality=true
+[cost-source] phase=finalize rebuild=1 upserts=8 modelRows=6 logicalBytes=24070 playbackCandidates=2 queryCandidates=2
+[cost] observations=1 phase=finalize ms=41.3571 expectedTotal=2 returned=1 expectedId=or:6:cost-0 actualId=or:6:cost-0 equality=true
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[cost-prep] observations=1000 ms=1387.74 actualMp4Files=5 eventFacts=1 unusedByObjectQuery=1
+[cost] observations=1000 phase=first ms=59.8492 expectedTotal=10 returned=1 expectedId=or:6:cost-0 actualId=or:6:cost-0 equality=true
+[cost] observations=1000 phase=unchanged ms=31.7713 expectedTotal=10 returned=1 expectedId=or:6:cost-0 actualId=or:6:cost-0 equality=true
+[cost] observations=1000 phase=cursor ms=19.4043 expectedTotal=10 returned=1 expectedId=or:8:cost-100 actualId=or:8:cost-100 equality=true
+[cost-source] phase=unchanged rebuild=0 upserts=0 modelRows=1005 logicalBytes=3390910 playbackCandidates=2 queryCandidates=10
+[cost-source] phase=append rebuild=0 upserts=1 modelRows=1005 logicalBytes=3390910 playbackCandidates=2 queryCandidates=11
+[cost] observations=1000 phase=append ms=44.0163 expectedTotal=11 returned=1 expectedId=or:11:cost-100000 actualId=or:11:cost-100000 equality=true
+[cost-source] phase=finalize rebuild=1 upserts=1007 modelRows=1005 logicalBytes=3390910 playbackCandidates=2 queryCandidates=11
+[cost] observations=1000 phase=finalize ms=59.9293 expectedTotal=11 returned=1 expectedId=or:11:cost-100000 actualId=or:11:cost-100000 equality=true
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[cost-prep] observations=10000 ms=12816.9 actualMp4Files=5 eventFacts=1 unusedByObjectQuery=1
+[cost] observations=10000 phase=first ms=266.859 expectedTotal=100 returned=1 expectedId=or:6:cost-0 actualId=or:6:cost-0 equality=true
+[cost] observations=10000 phase=unchanged ms=34.2286 expectedTotal=100 returned=1 expectedId=or:6:cost-0 actualId=or:6:cost-0 equality=true
+[cost] observations=10000 phase=cursor ms=19.6516 expectedTotal=100 returned=1 expectedId=or:8:cost-100 actualId=or:8:cost-100 equality=true
+[cost-source] phase=unchanged rebuild=0 upserts=0 modelRows=10005 logicalBytes=37446910 playbackCandidates=2 queryCandidates=100
+[cost-source] phase=append rebuild=0 upserts=1 modelRows=10005 logicalBytes=37446910 playbackCandidates=2 queryCandidates=101
+[cost] observations=10000 phase=append ms=81.7808 expectedTotal=101 returned=1 expectedId=or:12:cost-1000000 actualId=or:12:cost-1000000 equality=true
+[cost-source] phase=finalize rebuild=1 upserts=10007 modelRows=10005 logicalBytes=37446910 playbackCandidates=2 queryCandidates=101
+[cost] observations=10000 phase=finalize ms=264.515 expectedTotal=101 returned=1 expectedId=or:12:cost-1000000 actualId=or:12:cost-1000000 equality=true
+[search-cost] pass
+
+exit: 0
+cleanup owned temporary root removed=True
+command: c++ -std=c++17 -I/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v420-followup-wrw0y1f3/include -DGST_USE_UNSTABLE_API=1 -DMEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND=1 -DMEDIA_SERVER_ENABLE_YOUTUBE_SOURCE=0 -DMEDIA_SERVER_USE_GSTREAMER=1 -DMEDIA_SERVER_USE_LIBSODIUM=1 -DMEDIA_SERVER_USE_ONNXRUNTIME=1 -DMEDIA_SERVER_USE_OPENSSL=1 -DMEDIA_SERVER_USE_PANGOCAIRO=1 -DMEDIA_SERVER_USE_SQLITE3=1 -I/Users/dhseo/Workspace/mediaServer/include -I/opt/homebrew/include/onnxruntime -isystem /opt/homebrew/Cellar/gstreamer/1.28.1/include/gstreamer-1.0 -isystem /opt/homebrew/Cellar/glib/2.86.4/include/gio-unix-2.0 -isystem /opt/homebrew/Cellar/orc/0.4.42/include/orc-0.4 -isystem /opt/homebrew/Cellar/glib/2.86.4/include -isystem /Library/Developer/CommandLineTools/SDKs/MacOSX26.sdk/usr/include/ffi -isystem /opt/homebrew/Cellar/glib/2.86.4/include/glib-2.0 -isystem /opt/homebrew/Cellar/glib/2.86.4/lib/glib-2.0/include -isystem /opt/homebrew/opt/gettext/include -isystem /opt/homebrew/Cellar/pcre2/10.47_1/include -isystem /opt/homebrew/Cellar/pango/1.57.0_2/include/pango-1.0 -isystem /opt/homebrew/Cellar/cairo/1.18.4/include/cairo -isystem /opt/homebrew/Cellar/libxext/1.3.7/include -isystem /opt/homebrew/Cellar/xorgproto/2025.1/include -isystem /opt/homebrew/Cellar/libxrender/0.9.12/include -isystem /opt/homebrew/Cellar/libx11/1.8.13/include -isystem /opt/homebrew/Cellar/libxcb/1.17.0/include -isystem /opt/homebrew/Cellar/libxau/1.0.12/include -isystem /opt/homebrew/Cellar/libxdmcp/1.1.5/include -isystem /opt/homebrew/Cellar/pixman/0.46.4/include/pixman-1 -isystem /opt/homebrew/Cellar/fribidi/1.0.16/include/fribidi -isystem /opt/homebrew/Cellar/libthai/0.1.30/include -isystem /opt/homebrew/Cellar/libdatrie/0.2.14/include -isystem /opt/homebrew/Cellar/fontconfig/2.17.1/include -isystem /opt/homebrew/Cellar/harfbuzz/13.1.1/include/harfbuzz -isystem /opt/homebrew/opt/freetype/include/freetype2 -isystem /opt/homebrew/opt/libpng/include/libpng16 -isystem /opt/homebrew/opt/graphite2/include -isystem /opt/homebrew/Cellar/libsodium/1.0.21/include -isystem /opt/homebrew/Cellar/openssl@3/3.6.2/include -c /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v420-followup-wrw0y1f3/src/recording/recording_search_model.cpp -o /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v420-followup-wrw0y1f3/src/recording/recording_search_model.cpp.o
+
+exit: 0
+command: c++ -std=c++17 -I/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v420-followup-wrw0y1f3/include -DGST_USE_UNSTABLE_API=1 -DMEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND=1 -DMEDIA_SERVER_ENABLE_YOUTUBE_SOURCE=0 -DMEDIA_SERVER_USE_GSTREAMER=1 -DMEDIA_SERVER_USE_LIBSODIUM=1 -DMEDIA_SERVER_USE_ONNXRUNTIME=1 -DMEDIA_SERVER_USE_OPENSSL=1 -DMEDIA_SERVER_USE_PANGOCAIRO=1 -DMEDIA_SERVER_USE_SQLITE3=1 -I/Users/dhseo/Workspace/mediaServer/include -I/opt/homebrew/include/onnxruntime -isystem /opt/homebrew/Cellar/gstreamer/1.28.1/include/gstreamer-1.0 -isystem /opt/homebrew/Cellar/glib/2.86.4/include/gio-unix-2.0 -isystem /opt/homebrew/Cellar/orc/0.4.42/include/orc-0.4 -isystem /opt/homebrew/Cellar/glib/2.86.4/include -isystem /Library/Developer/CommandLineTools/SDKs/MacOSX26.sdk/usr/include/ffi -isystem /opt/homebrew/Cellar/glib/2.86.4/include/glib-2.0 -isystem /opt/homebrew/Cellar/glib/2.86.4/lib/glib-2.0/include -isystem /opt/homebrew/opt/gettext/include -isystem /opt/homebrew/Cellar/pcre2/10.47_1/include -isystem /opt/homebrew/Cellar/pango/1.57.0_2/include/pango-1.0 -isystem /opt/homebrew/Cellar/cairo/1.18.4/include/cairo -isystem /opt/homebrew/Cellar/libxext/1.3.7/include -isystem /opt/homebrew/Cellar/xorgproto/2025.1/include -isystem /opt/homebrew/Cellar/libxrender/0.9.12/include -isystem /opt/homebrew/Cellar/libx11/1.8.13/include -isystem /opt/homebrew/Cellar/libxcb/1.17.0/include -isystem /opt/homebrew/Cellar/libxau/1.0.12/include -isystem /opt/homebrew/Cellar/libxdmcp/1.1.5/include -isystem /opt/homebrew/Cellar/pixman/0.46.4/include/pixman-1 -isystem /opt/homebrew/Cellar/fribidi/1.0.16/include/fribidi -isystem /opt/homebrew/Cellar/libthai/0.1.30/include -isystem /opt/homebrew/Cellar/libdatrie/0.2.14/include -isystem /opt/homebrew/Cellar/fontconfig/2.17.1/include -isystem /opt/homebrew/Cellar/harfbuzz/13.1.1/include/harfbuzz -isystem /opt/homebrew/opt/freetype/include/freetype2 -isystem /opt/homebrew/opt/libpng/include/libpng16 -isystem /opt/homebrew/opt/graphite2/include -isystem /opt/homebrew/Cellar/libsodium/1.0.21/include -isystem /opt/homebrew/Cellar/openssl@3/3.6.2/include -c /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v420-followup-wrw0y1f3/src/recording/recording_search_reader.cpp -o /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v420-followup-wrw0y1f3/src/recording/recording_search_reader.cpp.o
+
+exit: 0
+command: c++ -std=c++17 -I/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v420-followup-wrw0y1f3/include -DGST_USE_UNSTABLE_API=1 -DMEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND=1 -DMEDIA_SERVER_ENABLE_YOUTUBE_SOURCE=0 -DMEDIA_SERVER_USE_GSTREAMER=1 -DMEDIA_SERVER_USE_LIBSODIUM=1 -DMEDIA_SERVER_USE_ONNXRUNTIME=1 -DMEDIA_SERVER_USE_OPENSSL=1 -DMEDIA_SERVER_USE_PANGOCAIRO=1 -DMEDIA_SERVER_USE_SQLITE3=1 -I/Users/dhseo/Workspace/mediaServer/include -I/opt/homebrew/include/onnxruntime -isystem /opt/homebrew/Cellar/gstreamer/1.28.1/include/gstreamer-1.0 -isystem /opt/homebrew/Cellar/glib/2.86.4/include/gio-unix-2.0 -isystem /opt/homebrew/Cellar/orc/0.4.42/include/orc-0.4 -isystem /opt/homebrew/Cellar/glib/2.86.4/include -isystem /Library/Developer/CommandLineTools/SDKs/MacOSX26.sdk/usr/include/ffi -isystem /opt/homebrew/Cellar/glib/2.86.4/include/glib-2.0 -isystem /opt/homebrew/Cellar/glib/2.86.4/lib/glib-2.0/include -isystem /opt/homebrew/opt/gettext/include -isystem /opt/homebrew/Cellar/pcre2/10.47_1/include -isystem /opt/homebrew/Cellar/pango/1.57.0_2/include/pango-1.0 -isystem /opt/homebrew/Cellar/cairo/1.18.4/include/cairo -isystem /opt/homebrew/Cellar/libxext/1.3.7/include -isystem /opt/homebrew/Cellar/xorgproto/2025.1/include -isystem /opt/homebrew/Cellar/libxrender/0.9.12/include -isystem /opt/homebrew/Cellar/libx11/1.8.13/include -isystem /opt/homebrew/Cellar/libxcb/1.17.0/include -isystem /opt/homebrew/Cellar/libxau/1.0.12/include -isystem /opt/homebrew/Cellar/libxdmcp/1.1.5/include -isystem /opt/homebrew/Cellar/pixman/0.46.4/include/pixman-1 -isystem /opt/homebrew/Cellar/fribidi/1.0.16/include/fribidi -isystem /opt/homebrew/Cellar/libthai/0.1.30/include -isystem /opt/homebrew/Cellar/libdatrie/0.2.14/include -isystem /opt/homebrew/Cellar/fontconfig/2.17.1/include -isystem /opt/homebrew/Cellar/harfbuzz/13.1.1/include/harfbuzz -isystem /opt/homebrew/opt/freetype/include/freetype2 -isystem /opt/homebrew/opt/libpng/include/libpng16 -isystem /opt/homebrew/opt/graphite2/include -isystem /opt/homebrew/Cellar/libsodium/1.0.21/include -isystem /opt/homebrew/Cellar/openssl@3/3.6.2/include -c /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v420-followup-wrw0y1f3/src/ingress/recording_search_application_service.cpp -o /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v420-followup-wrw0y1f3/src/ingress/recording_search_application_service.cpp.o
+
+exit: 0
+source /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_search_cost_smoke.cpp sha256 3e9b0be439350dd859bf31a0f0682fed18e042e3fbd557f09267e4d31b708de0
+command: c++ -std=c++17 -Wall -Wextra -Werror -O2 -I/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v420-followup-wrw0y1f3/include -DGST_USE_UNSTABLE_API=1 -DMEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND=1 -DMEDIA_SERVER_ENABLE_YOUTUBE_SOURCE=0 -DMEDIA_SERVER_USE_GSTREAMER=1 -DMEDIA_SERVER_USE_LIBSODIUM=1 -DMEDIA_SERVER_USE_ONNXRUNTIME=1 -DMEDIA_SERVER_USE_OPENSSL=1 -DMEDIA_SERVER_USE_PANGOCAIRO=1 -DMEDIA_SERVER_USE_SQLITE3=1 -I/Users/dhseo/Workspace/mediaServer/include -I/opt/homebrew/include/onnxruntime -isystem /opt/homebrew/Cellar/gstreamer/1.28.1/include/gstreamer-1.0 -isystem /opt/homebrew/Cellar/glib/2.86.4/include/gio-unix-2.0 -isystem /opt/homebrew/Cellar/orc/0.4.42/include/orc-0.4 -isystem /opt/homebrew/Cellar/glib/2.86.4/include -isystem /Library/Developer/CommandLineTools/SDKs/MacOSX26.sdk/usr/include/ffi -isystem /opt/homebrew/Cellar/glib/2.86.4/include/glib-2.0 -isystem /opt/homebrew/Cellar/glib/2.86.4/lib/glib-2.0/include -isystem /opt/homebrew/opt/gettext/include -isystem /opt/homebrew/Cellar/pcre2/10.47_1/include -isystem /opt/homebrew/Cellar/pango/1.57.0_2/include/pango-1.0 -isystem /opt/homebrew/Cellar/cairo/1.18.4/include/cairo -isystem /opt/homebrew/Cellar/libxext/1.3.7/include -isystem /opt/homebrew/Cellar/xorgproto/2025.1/include -isystem /opt/homebrew/Cellar/libxrender/0.9.12/include -isystem /opt/homebrew/Cellar/libx11/1.8.13/include -isystem /opt/homebrew/Cellar/libxcb/1.17.0/include -isystem /opt/homebrew/Cellar/libxau/1.0.12/include -isystem /opt/homebrew/Cellar/libxdmcp/1.1.5/include -isystem /opt/homebrew/Cellar/pixman/0.46.4/include/pixman-1 -isystem /opt/homebrew/Cellar/fribidi/1.0.16/include/fribidi -isystem /opt/homebrew/Cellar/libthai/0.1.30/include -isystem /opt/homebrew/Cellar/libdatrie/0.2.14/include -isystem /opt/homebrew/Cellar/fontconfig/2.17.1/include -isystem /opt/homebrew/Cellar/harfbuzz/13.1.1/include/harfbuzz -isystem /opt/homebrew/opt/freetype/include/freetype2 -isystem /opt/homebrew/opt/libpng/include/libpng16 -isystem /opt/homebrew/opt/graphite2/include -isystem /opt/homebrew/Cellar/libsodium/1.0.21/include -isystem /opt/homebrew/Cellar/openssl@3/3.6.2/include /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_search_cost_smoke.cpp /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v420-followup-wrw0y1f3/src/recording/recording_search_model.cpp.o /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v420-followup-wrw0y1f3/src/recording/recording_search_reader.cpp.o /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v420-followup-wrw0y1f3/src/ingress/recording_search_application_service.cpp.o /Users/dhseo/Workspace/mediaServer/build-gst-onnx/libmedia_server_runtime.a /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libz.tbd /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstrtspserver-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstapp-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstwebrtc-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstsdp-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstpbutils-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstaudio-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstvideo-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstbase-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstreamer-1.0.dylib /opt/homebrew/Cellar/pango/1.57.0_2/lib/libpangocairo-1.0.dylib /opt/homebrew/Cellar/pango/1.57.0_2/lib/libpango-1.0.dylib /opt/homebrew/Cellar/cairo/1.18.4/lib/libcairo.dylib /opt/homebrew/Cellar/harfbuzz/13.1.1/lib/libharfbuzz.dylib /opt/homebrew/Cellar/glib/2.86.4/lib/libgobject-2.0.dylib /opt/homebrew/Cellar/glib/2.86.4/lib/libglib-2.0.dylib /opt/homebrew/opt/gettext/lib/libintl.dylib /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libsqlite3.tbd /opt/homebrew/Cellar/libsodium/1.0.21/lib/libsodium.dylib /opt/homebrew/Cellar/openssl@3/3.6.2/lib/libssl.dylib /opt/homebrew/Cellar/openssl@3/3.6.2/lib/libcrypto.dylib /opt/homebrew/lib/libonnxruntime.dylib -o /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v420-followup-wrw0y1f3/recording_search_cost_smoke
+
+exit: 0
+source /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_search_model_smoke.cpp sha256 aa57d4550375d96b696b0f2416cb0b3144ac16fe218849cfe982d8e6d7c625da
+command: c++ -std=c++17 -Wall -Wextra -Werror -O2 -DGST_USE_UNSTABLE_API=1 -DMEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND=1 -DMEDIA_SERVER_ENABLE_YOUTUBE_SOURCE=0 -DMEDIA_SERVER_USE_GSTREAMER=1 -DMEDIA_SERVER_USE_LIBSODIUM=1 -DMEDIA_SERVER_USE_ONNXRUNTIME=1 -DMEDIA_SERVER_USE_OPENSSL=1 -DMEDIA_SERVER_USE_PANGOCAIRO=1 -DMEDIA_SERVER_USE_SQLITE3=1 -I/Users/dhseo/Workspace/mediaServer/include -I/opt/homebrew/include/onnxruntime -isystem /opt/homebrew/Cellar/gstreamer/1.28.1/include/gstreamer-1.0 -isystem /opt/homebrew/Cellar/glib/2.86.4/include/gio-unix-2.0 -isystem /opt/homebrew/Cellar/orc/0.4.42/include/orc-0.4 -isystem /opt/homebrew/Cellar/glib/2.86.4/include -isystem /Library/Developer/CommandLineTools/SDKs/MacOSX26.sdk/usr/include/ffi -isystem /opt/homebrew/Cellar/glib/2.86.4/include/glib-2.0 -isystem /opt/homebrew/Cellar/glib/2.86.4/lib/glib-2.0/include -isystem /opt/homebrew/opt/gettext/include -isystem /opt/homebrew/Cellar/pcre2/10.47_1/include -isystem /opt/homebrew/Cellar/pango/1.57.0_2/include/pango-1.0 -isystem /opt/homebrew/Cellar/cairo/1.18.4/include/cairo -isystem /opt/homebrew/Cellar/libxext/1.3.7/include -isystem /opt/homebrew/Cellar/xorgproto/2025.1/include -isystem /opt/homebrew/Cellar/libxrender/0.9.12/include -isystem /opt/homebrew/Cellar/libx11/1.8.13/include -isystem /opt/homebrew/Cellar/libxcb/1.17.0/include -isystem /opt/homebrew/Cellar/libxau/1.0.12/include -isystem /opt/homebrew/Cellar/libxdmcp/1.1.5/include -isystem /opt/homebrew/Cellar/pixman/0.46.4/include/pixman-1 -isystem /opt/homebrew/Cellar/fribidi/1.0.16/include/fribidi -isystem /opt/homebrew/Cellar/libthai/0.1.30/include -isystem /opt/homebrew/Cellar/libdatrie/0.2.14/include -isystem /opt/homebrew/Cellar/fontconfig/2.17.1/include -isystem /opt/homebrew/Cellar/harfbuzz/13.1.1/include/harfbuzz -isystem /opt/homebrew/opt/freetype/include/freetype2 -isystem /opt/homebrew/opt/libpng/include/libpng16 -isystem /opt/homebrew/opt/graphite2/include -isystem /opt/homebrew/Cellar/libsodium/1.0.21/include -isystem /opt/homebrew/Cellar/openssl@3/3.6.2/include /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_search_model_smoke.cpp /Users/dhseo/Workspace/mediaServer/build-gst-onnx/libmedia_server_runtime.a /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libz.tbd /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstrtspserver-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstapp-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstwebrtc-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstsdp-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstpbutils-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstaudio-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstvideo-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstbase-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstreamer-1.0.dylib /opt/homebrew/Cellar/pango/1.57.0_2/lib/libpangocairo-1.0.dylib /opt/homebrew/Cellar/pango/1.57.0_2/lib/libpango-1.0.dylib /opt/homebrew/Cellar/cairo/1.18.4/lib/libcairo.dylib /opt/homebrew/Cellar/harfbuzz/13.1.1/lib/libharfbuzz.dylib /opt/homebrew/Cellar/glib/2.86.4/lib/libgobject-2.0.dylib /opt/homebrew/Cellar/glib/2.86.4/lib/libglib-2.0.dylib /opt/homebrew/opt/gettext/lib/libintl.dylib /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libsqlite3.tbd /opt/homebrew/Cellar/libsodium/1.0.21/lib/libsodium.dylib /opt/homebrew/Cellar/openssl@3/3.6.2/lib/libssl.dylib /opt/homebrew/Cellar/openssl@3/3.6.2/lib/libcrypto.dylib /opt/homebrew/lib/libonnxruntime.dylib -o /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v420-followup-njkab55z/recording_search_model_smoke
+
+exit: 0
+command: /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v420-followup-njkab55z/recording_search_model_smoke /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v420-followup-njkab55z/recording_search_model_smoke-data
+[pass] M01 build
+[pass] M01 known-desc/channel/id then unknown
+[pass] M01 channel index and absent channel
+[pass] M01 source immutable / normalized projection
+[pass] M01 identity and unknown are preserved
+[pass] M01 rebuild independent of input order
+[pass] M02 duplicate cannot replace published model
+[pass] M02 empty interval rejected atomically
+[pass] M02 half-known interval rejected
+[pass] M02 unlinked event fact rejected
+[pass] M02 conflicting event facts rejected
+[pass] M01 numeric track reuse does not merge sessions
+[pass] M03 row limit overflow atomic
+[pass] M03 row limit equality
+[pass] M03 byte accounting baseline
+[pass] M03 exact byte budget admitted
+[pass] M03 one byte short rejected atomically
+[pass] M02 invalid source rejected
+[pass] M02 successful empty distinct from failed build
+[pass] M01 retained immutable model survives replacements
+[pass] L01 delta adds/updates/deletes and reorders exact expected ids
+[pass] L02 removal changes new snapshot without mutating held pages
+[pass] L01 stale predecessor requires rebuild
+[pass] L02 restarted source cannot apply old lineage
+[pass] L02 upsert/delete same id rejected atomically
+[pass] L01 empty delta advances only revision
+[pass] M03 scale explicit endpoints
+[scale] rows=1 accountedBytes=3169 elapsedUs=3
+[pass] M03 scale explicit endpoints
+[scale] rows=1000 accountedBytes=3020149 elapsedUs=2085
+[pass] M03 scale explicit endpoints
+[scale] rows=10000 accountedBytes=30200149 elapsedUs=20857
+[pass] M03 default 100001 rows rejected before projection
+[pass] M03 100000 valid rows still obey earlier 64MiB limit
+[search-model] pass=31 fail=0
+
+exit: 0
+source /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_search_filter_smoke.cpp sha256 226b7e4b2deb22e3fd054ead4d47d390c90feca941ae5c51cda70d9226b31bc6
+command: c++ -std=c++17 -Wall -Wextra -Werror -O2 -DGST_USE_UNSTABLE_API=1 -DMEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND=1 -DMEDIA_SERVER_ENABLE_YOUTUBE_SOURCE=0 -DMEDIA_SERVER_USE_GSTREAMER=1 -DMEDIA_SERVER_USE_LIBSODIUM=1 -DMEDIA_SERVER_USE_ONNXRUNTIME=1 -DMEDIA_SERVER_USE_OPENSSL=1 -DMEDIA_SERVER_USE_PANGOCAIRO=1 -DMEDIA_SERVER_USE_SQLITE3=1 -I/Users/dhseo/Workspace/mediaServer/include -I/opt/homebrew/include/onnxruntime -isystem /opt/homebrew/Cellar/gstreamer/1.28.1/include/gstreamer-1.0 -isystem /opt/homebrew/Cellar/glib/2.86.4/include/gio-unix-2.0 -isystem /opt/homebrew/Cellar/orc/0.4.42/include/orc-0.4 -isystem /opt/homebrew/Cellar/glib/2.86.4/include -isystem /Library/Developer/CommandLineTools/SDKs/MacOSX26.sdk/usr/include/ffi -isystem /opt/homebrew/Cellar/glib/2.86.4/include/glib-2.0 -isystem /opt/homebrew/Cellar/glib/2.86.4/lib/glib-2.0/include -isystem /opt/homebrew/opt/gettext/include -isystem /opt/homebrew/Cellar/pcre2/10.47_1/include -isystem /opt/homebrew/Cellar/pango/1.57.0_2/include/pango-1.0 -isystem /opt/homebrew/Cellar/cairo/1.18.4/include/cairo -isystem /opt/homebrew/Cellar/libxext/1.3.7/include -isystem /opt/homebrew/Cellar/xorgproto/2025.1/include -isystem /opt/homebrew/Cellar/libxrender/0.9.12/include -isystem /opt/homebrew/Cellar/libx11/1.8.13/include -isystem /opt/homebrew/Cellar/libxcb/1.17.0/include -isystem /opt/homebrew/Cellar/libxau/1.0.12/include -isystem /opt/homebrew/Cellar/libxdmcp/1.1.5/include -isystem /opt/homebrew/Cellar/pixman/0.46.4/include/pixman-1 -isystem /opt/homebrew/Cellar/fribidi/1.0.16/include/fribidi -isystem /opt/homebrew/Cellar/libthai/0.1.30/include -isystem /opt/homebrew/Cellar/libdatrie/0.2.14/include -isystem /opt/homebrew/Cellar/fontconfig/2.17.1/include -isystem /opt/homebrew/Cellar/harfbuzz/13.1.1/include/harfbuzz -isystem /opt/homebrew/opt/freetype/include/freetype2 -isystem /opt/homebrew/opt/libpng/include/libpng16 -isystem /opt/homebrew/opt/graphite2/include -isystem /opt/homebrew/Cellar/libsodium/1.0.21/include -isystem /opt/homebrew/Cellar/openssl@3/3.6.2/include /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_search_filter_smoke.cpp /Users/dhseo/Workspace/mediaServer/build-gst-onnx/libmedia_server_runtime.a /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libz.tbd /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstrtspserver-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstapp-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstwebrtc-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstsdp-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstpbutils-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstaudio-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstvideo-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstbase-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstreamer-1.0.dylib /opt/homebrew/Cellar/pango/1.57.0_2/lib/libpangocairo-1.0.dylib /opt/homebrew/Cellar/pango/1.57.0_2/lib/libpango-1.0.dylib /opt/homebrew/Cellar/cairo/1.18.4/lib/libcairo.dylib /opt/homebrew/Cellar/harfbuzz/13.1.1/lib/libharfbuzz.dylib /opt/homebrew/Cellar/glib/2.86.4/lib/libgobject-2.0.dylib /opt/homebrew/Cellar/glib/2.86.4/lib/libglib-2.0.dylib /opt/homebrew/opt/gettext/lib/libintl.dylib /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libsqlite3.tbd /opt/homebrew/Cellar/libsodium/1.0.21/lib/libsodium.dylib /opt/homebrew/Cellar/openssl@3/3.6.2/lib/libssl.dylib /opt/homebrew/Cellar/openssl@3/3.6.2/lib/libcrypto.dylib /opt/homebrew/lib/libonnxruntime.dylib -o /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v420-followup-njkab55z/recording_search_filter_smoke
+
+exit: 0
+command: /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v420-followup-njkab55z/recording_search_filter_smoke /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v420-followup-njkab55z/recording_search_filter_smoke-data
+[pass] fixture-build
+[pass] F01 camera-time returns intervals without analysis
+[pass] F01 channel OR global stable order duplicate normalized
+[pass] F02 F03 half-open UTC sampled person only
+[pass] F03 object OR
+[pass] F03 exact case no synonym
+[pass] F04 F06 same-track observations never combine tags
+[pass] F04 namespaces remain distinct hits
+[pass] F06 F07 field AND list OR
+[pass] F05 stored event reference exact
+[pass] F08 event behaviour confirmed fact
+[pass] F09 named scenario fact
+[pass] F09 rule ID is not scenario name
+[pass] F10 event behaviour require same event
+[pass] F10 shared matching event
+[pass] F08 missing event facts are incomplete
+[pass] F02 unknown separate after known
+[pass] F02 separate counts
+[pass] invalid query rejects atomically
+[pass] invalid query rejects atomically
+[pass] invalid query rejects atomically
+[pass] invalid query rejects atomically
+[pass] invalid query rejects atomically
+[pass] invalid query rejects atomically
+[pass] invalid query rejects atomically
+[pass] invalid query rejects atomically
+[pass] invalid query rejects atomically
+[search-filter] pass=27 fail=0
+
+exit: 0
+source /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_search_events_smoke.cpp sha256 a9b5ef47b9778b387d3a560503173d8ca751d479c99a3f9f573b1ca2e7a2bea0
+command: c++ -std=c++17 -Wall -Wextra -Werror -O2 -DGST_USE_UNSTABLE_API=1 -DMEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND=1 -DMEDIA_SERVER_ENABLE_YOUTUBE_SOURCE=0 -DMEDIA_SERVER_USE_GSTREAMER=1 -DMEDIA_SERVER_USE_LIBSODIUM=1 -DMEDIA_SERVER_USE_ONNXRUNTIME=1 -DMEDIA_SERVER_USE_OPENSSL=1 -DMEDIA_SERVER_USE_PANGOCAIRO=1 -DMEDIA_SERVER_USE_SQLITE3=1 -I/Users/dhseo/Workspace/mediaServer/include -I/opt/homebrew/include/onnxruntime -isystem /opt/homebrew/Cellar/gstreamer/1.28.1/include/gstreamer-1.0 -isystem /opt/homebrew/Cellar/glib/2.86.4/include/gio-unix-2.0 -isystem /opt/homebrew/Cellar/orc/0.4.42/include/orc-0.4 -isystem /opt/homebrew/Cellar/glib/2.86.4/include -isystem /Library/Developer/CommandLineTools/SDKs/MacOSX26.sdk/usr/include/ffi -isystem /opt/homebrew/Cellar/glib/2.86.4/include/glib-2.0 -isystem /opt/homebrew/Cellar/glib/2.86.4/lib/glib-2.0/include -isystem /opt/homebrew/opt/gettext/include -isystem /opt/homebrew/Cellar/pcre2/10.47_1/include -isystem /opt/homebrew/Cellar/pango/1.57.0_2/include/pango-1.0 -isystem /opt/homebrew/Cellar/cairo/1.18.4/include/cairo -isystem /opt/homebrew/Cellar/libxext/1.3.7/include -isystem /opt/homebrew/Cellar/xorgproto/2025.1/include -isystem /opt/homebrew/Cellar/libxrender/0.9.12/include -isystem /opt/homebrew/Cellar/libx11/1.8.13/include -isystem /opt/homebrew/Cellar/libxcb/1.17.0/include -isystem /opt/homebrew/Cellar/libxau/1.0.12/include -isystem /opt/homebrew/Cellar/libxdmcp/1.1.5/include -isystem /opt/homebrew/Cellar/pixman/0.46.4/include/pixman-1 -isystem /opt/homebrew/Cellar/fribidi/1.0.16/include/fribidi -isystem /opt/homebrew/Cellar/libthai/0.1.30/include -isystem /opt/homebrew/Cellar/libdatrie/0.2.14/include -isystem /opt/homebrew/Cellar/fontconfig/2.17.1/include -isystem /opt/homebrew/Cellar/harfbuzz/13.1.1/include/harfbuzz -isystem /opt/homebrew/opt/freetype/include/freetype2 -isystem /opt/homebrew/opt/libpng/include/libpng16 -isystem /opt/homebrew/opt/graphite2/include -isystem /opt/homebrew/Cellar/libsodium/1.0.21/include -isystem /opt/homebrew/Cellar/openssl@3/3.6.2/include /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_search_events_smoke.cpp /Users/dhseo/Workspace/mediaServer/build-gst-onnx/libmedia_server_runtime.a /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libz.tbd /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstrtspserver-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstapp-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstwebrtc-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstsdp-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstpbutils-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstaudio-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstvideo-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstbase-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstreamer-1.0.dylib /opt/homebrew/Cellar/pango/1.57.0_2/lib/libpangocairo-1.0.dylib /opt/homebrew/Cellar/pango/1.57.0_2/lib/libpango-1.0.dylib /opt/homebrew/Cellar/cairo/1.18.4/lib/libcairo.dylib /opt/homebrew/Cellar/harfbuzz/13.1.1/lib/libharfbuzz.dylib /opt/homebrew/Cellar/glib/2.86.4/lib/libgobject-2.0.dylib /opt/homebrew/Cellar/glib/2.86.4/lib/libglib-2.0.dylib /opt/homebrew/opt/gettext/lib/libintl.dylib /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libsqlite3.tbd /opt/homebrew/Cellar/libsodium/1.0.21/lib/libsodium.dylib /opt/homebrew/Cellar/openssl@3/3.6.2/lib/libssl.dylib /opt/homebrew/Cellar/openssl@3/3.6.2/lib/libcrypto.dylib /opt/homebrew/lib/libonnxruntime.dylib -o /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v420-followup-njkab55z/recording_search_events_smoke
+
+exit: 0
+command: /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v420-followup-njkab55z/recording_search_events_smoke /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v420-followup-njkab55z/recording_search_events_smoke-data
+[pass] typed real event storage facts
+[pass] legacy JSON query unchanged
+[pass] event source model
+[pass] join requires linked id channel track epoch
+[pass] stored scenario reaches behaviour filter
+[pass] producer track-prefix preserves confirmed event identity
+[pass] missing relevant evidence is incomplete, not definitive empty; output unchanged
+[pass] known same-event nonmatch ignores unrelated missing references
+[pass] another event match cannot fill selected event evidence
+[pass] unrelated object missing evidence is irrelevant
+[pass] no behaviour needs no event evidence
+[pass] unproven linked identity is incomplete
+[pass] unproven linked identity is incomplete
+[pass] unproven linked identity is incomplete
+[pass] unproven linked identity is incomplete
+[pass] excluded candidate missing evidence does not fail query
+[pass] excluded candidate missing evidence does not fail query
+[pass] excluded candidate missing evidence does not fail query
+[pass] excluded candidate missing evidence does not fail query
+[pass] excluded candidate missing evidence does not fail query
+[pass] missing event epoch cannot prove observation epoch
+[pass] query-aware evidence read excludes unrelated observations
+[pass] new search refreshes events without catalog revision change
+[pass] identical event rows deduplicated
+[pass] conflicting event identity rejected atomically
+[pass] corrupt scan is not successful empty
+[pass] partial scan rejected atomically
+[pass] empty event store clears facts no inference
+[pass] event row cap rejects partial facts
+[pass] event byte cap rejects before row cap
+[search-events] pass=30 fail=0 error=search-event-evidence-incomplete
+
+exit: 0
+source /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_search_cursor_smoke.cpp sha256 589ecd52a97242c2358b3f1faef1e7eb4f316664afaf59056ce5954b2bc978ac
+command: c++ -std=c++17 -Wall -Wextra -Werror -O2 -DGST_USE_UNSTABLE_API=1 -DMEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND=1 -DMEDIA_SERVER_ENABLE_YOUTUBE_SOURCE=0 -DMEDIA_SERVER_USE_GSTREAMER=1 -DMEDIA_SERVER_USE_LIBSODIUM=1 -DMEDIA_SERVER_USE_ONNXRUNTIME=1 -DMEDIA_SERVER_USE_OPENSSL=1 -DMEDIA_SERVER_USE_PANGOCAIRO=1 -DMEDIA_SERVER_USE_SQLITE3=1 -I/Users/dhseo/Workspace/mediaServer/include -I/opt/homebrew/include/onnxruntime -isystem /opt/homebrew/Cellar/gstreamer/1.28.1/include/gstreamer-1.0 -isystem /opt/homebrew/Cellar/glib/2.86.4/include/gio-unix-2.0 -isystem /opt/homebrew/Cellar/orc/0.4.42/include/orc-0.4 -isystem /opt/homebrew/Cellar/glib/2.86.4/include -isystem /Library/Developer/CommandLineTools/SDKs/MacOSX26.sdk/usr/include/ffi -isystem /opt/homebrew/Cellar/glib/2.86.4/include/glib-2.0 -isystem /opt/homebrew/Cellar/glib/2.86.4/lib/glib-2.0/include -isystem /opt/homebrew/opt/gettext/include -isystem /opt/homebrew/Cellar/pcre2/10.47_1/include -isystem /opt/homebrew/Cellar/pango/1.57.0_2/include/pango-1.0 -isystem /opt/homebrew/Cellar/cairo/1.18.4/include/cairo -isystem /opt/homebrew/Cellar/libxext/1.3.7/include -isystem /opt/homebrew/Cellar/xorgproto/2025.1/include -isystem /opt/homebrew/Cellar/libxrender/0.9.12/include -isystem /opt/homebrew/Cellar/libx11/1.8.13/include -isystem /opt/homebrew/Cellar/libxcb/1.17.0/include -isystem /opt/homebrew/Cellar/libxau/1.0.12/include -isystem /opt/homebrew/Cellar/libxdmcp/1.1.5/include -isystem /opt/homebrew/Cellar/pixman/0.46.4/include/pixman-1 -isystem /opt/homebrew/Cellar/fribidi/1.0.16/include/fribidi -isystem /opt/homebrew/Cellar/libthai/0.1.30/include -isystem /opt/homebrew/Cellar/libdatrie/0.2.14/include -isystem /opt/homebrew/Cellar/fontconfig/2.17.1/include -isystem /opt/homebrew/Cellar/harfbuzz/13.1.1/include/harfbuzz -isystem /opt/homebrew/opt/freetype/include/freetype2 -isystem /opt/homebrew/opt/libpng/include/libpng16 -isystem /opt/homebrew/opt/graphite2/include -isystem /opt/homebrew/Cellar/libsodium/1.0.21/include -isystem /opt/homebrew/Cellar/openssl@3/3.6.2/include /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_search_cursor_smoke.cpp /Users/dhseo/Workspace/mediaServer/build-gst-onnx/libmedia_server_runtime.a /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libz.tbd /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstrtspserver-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstapp-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstwebrtc-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstsdp-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstpbutils-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstaudio-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstvideo-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstbase-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstreamer-1.0.dylib /opt/homebrew/Cellar/pango/1.57.0_2/lib/libpangocairo-1.0.dylib /opt/homebrew/Cellar/pango/1.57.0_2/lib/libpango-1.0.dylib /opt/homebrew/Cellar/cairo/1.18.4/lib/libcairo.dylib /opt/homebrew/Cellar/harfbuzz/13.1.1/lib/libharfbuzz.dylib /opt/homebrew/Cellar/glib/2.86.4/lib/libgobject-2.0.dylib /opt/homebrew/Cellar/glib/2.86.4/lib/libglib-2.0.dylib /opt/homebrew/opt/gettext/lib/libintl.dylib /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libsqlite3.tbd /opt/homebrew/Cellar/libsodium/1.0.21/lib/libsodium.dylib /opt/homebrew/Cellar/openssl@3/3.6.2/lib/libssl.dylib /opt/homebrew/Cellar/openssl@3/3.6.2/lib/libcrypto.dylib /opt/homebrew/lib/libonnxruntime.dylib -o /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v420-followup-njkab55z/recording_search_cursor_smoke
+
+exit: 0
+command: /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v420-followup-njkab55z/recording_search_cursor_smoke /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v420-followup-njkab55z/recording_search_cursor_smoke-data
+[pass] fixture
+[pass] first page stable ties and full counts
+[pass] incomplete fixture
+[pass] incomplete first search publishes no snapshot
+[pass] incomplete attempt does not replace existing cursor snapshot
+[pass] member on later page resolves
+[pass] hit other principal rejects atomically
+[pass] hit changed scope rejected
+[pass] model member outside query cannot seek
+[pass] hit exact expiry boundary
+[pass] cursor fixture renewed after hit expiry
+[pass] normalized equivalent query resumes
+[pass] cursor replay idempotent
+[pass] unknown last final page no cursor
+[pass] other principal rejected atomically
+[pass] scope change rejected
+[pass] query change rejected
+[pass] query change rejected
+[pass] query change rejected
+[pass] query change rejected
+[pass] tampered MAC rejected
+[pass] schema mismatch rejected
+[pass] restart rejects prior server cursor
+[pass] changed source fixture
+[pass] new observation and removal do not mutate old membership
+[pass] before expiry accepted
+[pass] exact expiry rejected
+[pass] snapshot count evicts oldest
+[pass] aggregate byte budget evicts oldest
+[pass] oversized fixture exceeds unchanged pool budget
+[pass] failed admission preserves existing snapshot
+[pass] byte limit failure output unchanged
+[pass] empty successful page
+[pass] expiry arithmetic overflow rejected
+[search-cursor] pass=34 fail=0
+
+exit: 0
+source /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_search_source_smoke.cpp sha256 60e4ddcd215efc4074fbf6cd0c976a34a48b09eb65f27cf005a333cec520913b
+command: c++ -std=c++17 -Wall -Wextra -Werror -O2 -DGST_USE_UNSTABLE_API=1 -DMEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND=1 -DMEDIA_SERVER_ENABLE_YOUTUBE_SOURCE=0 -DMEDIA_SERVER_USE_GSTREAMER=1 -DMEDIA_SERVER_USE_LIBSODIUM=1 -DMEDIA_SERVER_USE_ONNXRUNTIME=1 -DMEDIA_SERVER_USE_OPENSSL=1 -DMEDIA_SERVER_USE_PANGOCAIRO=1 -DMEDIA_SERVER_USE_SQLITE3=1 -I/Users/dhseo/Workspace/mediaServer/include -I/opt/homebrew/include/onnxruntime -isystem /opt/homebrew/Cellar/gstreamer/1.28.1/include/gstreamer-1.0 -isystem /opt/homebrew/Cellar/glib/2.86.4/include/gio-unix-2.0 -isystem /opt/homebrew/Cellar/orc/0.4.42/include/orc-0.4 -isystem /opt/homebrew/Cellar/glib/2.86.4/include -isystem /Library/Developer/CommandLineTools/SDKs/MacOSX26.sdk/usr/include/ffi -isystem /opt/homebrew/Cellar/glib/2.86.4/include/glib-2.0 -isystem /opt/homebrew/Cellar/glib/2.86.4/lib/glib-2.0/include -isystem /opt/homebrew/opt/gettext/include -isystem /opt/homebrew/Cellar/pcre2/10.47_1/include -isystem /opt/homebrew/Cellar/pango/1.57.0_2/include/pango-1.0 -isystem /opt/homebrew/Cellar/cairo/1.18.4/include/cairo -isystem /opt/homebrew/Cellar/libxext/1.3.7/include -isystem /opt/homebrew/Cellar/xorgproto/2025.1/include -isystem /opt/homebrew/Cellar/libxrender/0.9.12/include -isystem /opt/homebrew/Cellar/libx11/1.8.13/include -isystem /opt/homebrew/Cellar/libxcb/1.17.0/include -isystem /opt/homebrew/Cellar/libxau/1.0.12/include -isystem /opt/homebrew/Cellar/libxdmcp/1.1.5/include -isystem /opt/homebrew/Cellar/pixman/0.46.4/include/pixman-1 -isystem /opt/homebrew/Cellar/fribidi/1.0.16/include/fribidi -isystem /opt/homebrew/Cellar/libthai/0.1.30/include -isystem /opt/homebrew/Cellar/libdatrie/0.2.14/include -isystem /opt/homebrew/Cellar/fontconfig/2.17.1/include -isystem /opt/homebrew/Cellar/harfbuzz/13.1.1/include/harfbuzz -isystem /opt/homebrew/opt/freetype/include/freetype2 -isystem /opt/homebrew/opt/libpng/include/libpng16 -isystem /opt/homebrew/opt/graphite2/include -isystem /opt/homebrew/Cellar/libsodium/1.0.21/include -isystem /opt/homebrew/Cellar/openssl@3/3.6.2/include /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_search_source_smoke.cpp /Users/dhseo/Workspace/mediaServer/build-gst-onnx/libmedia_server_runtime.a /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libz.tbd /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstrtspserver-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstapp-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstwebrtc-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstsdp-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstpbutils-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstaudio-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstvideo-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstbase-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstreamer-1.0.dylib /opt/homebrew/Cellar/pango/1.57.0_2/lib/libpangocairo-1.0.dylib /opt/homebrew/Cellar/pango/1.57.0_2/lib/libpango-1.0.dylib /opt/homebrew/Cellar/cairo/1.18.4/lib/libcairo.dylib /opt/homebrew/Cellar/harfbuzz/13.1.1/lib/libharfbuzz.dylib /opt/homebrew/Cellar/glib/2.86.4/lib/libgobject-2.0.dylib /opt/homebrew/Cellar/glib/2.86.4/lib/libglib-2.0.dylib /opt/homebrew/opt/gettext/lib/libintl.dylib /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libsqlite3.tbd /opt/homebrew/Cellar/libsodium/1.0.21/lib/libsodium.dylib /opt/homebrew/Cellar/openssl@3/3.6.2/lib/libssl.dylib /opt/homebrew/Cellar/openssl@3/3.6.2/lib/libcrypto.dylib /opt/homebrew/lib/libonnxruntime.dylib -o /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v420-followup-njkab55z/recording_search_source_smoke
+
+exit: 0
+command: /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v420-followup-njkab55z/recording_search_source_smoke /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v420-followup-njkab55z/recording_search_source_smoke-data
+[pass] journal-open
+[pass] closed-source-rejected
+[pass] catalog-open
+[pass] empty-source-success
+[pass] invalid-channel-output-unchanged
+[pass] finalize
+[pass] unknown-observation-put
+[pass] unknown-is-not-inferred
+[pass] stored-locator-put
+[pass] observation-delta-only
+[pass] stored-locator-utc-and-pts
+[pass] unchanged-model-reused
+[pass] search-does-not-write-journal
+[pass] capture-before-observation
+[pass] observation-keeps-resolution-valid
+[pass] new-model-held-snapshot-independent
+[pass] capacity-failure-output-unchanged
+[pass] scope-change-rebuild
+[pass] history-gap-rebuild
+[pass] structural-change-invalidates-captured-batch
+[pass] corruption-new-state-old-snapshot-preserved
+[pass] journal-reopen-rebuild
+[pass] sqlite-reopen-rebuild
+[pass] rebuild-does-not-write-journal
+[pass] v2-journal-fixture
+[pass] v2-unknown-fixture
+[pass] v2-source-open
+[pass] v2-mappings-separate-clock-overlap-preserved
+[pass] v2-unknown-retains-media-axis
+[pass] v2-deletion-pending-refresh
+[pass] v2-tombstone-removes-all-mappings-held-model-unchanged
+[pass] v2-read-journal-unchanged
+[pass] v2-source-open
+[pass] v2-reopen-tombstone-no-resurrection
+[pass] v2-read-journal-unchanged
+[search-source] pass=35 fail=0 error=
+
+exit: 0
+source /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_search_generation_smoke.cpp sha256 322bf6595b89096636a59722d8e710adf0b2c83f94f55ad601b5987baea5fe1d
+command: c++ -std=c++17 -Wall -Wextra -Werror -O2 -DGST_USE_UNSTABLE_API=1 -DMEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND=1 -DMEDIA_SERVER_ENABLE_YOUTUBE_SOURCE=0 -DMEDIA_SERVER_USE_GSTREAMER=1 -DMEDIA_SERVER_USE_LIBSODIUM=1 -DMEDIA_SERVER_USE_ONNXRUNTIME=1 -DMEDIA_SERVER_USE_OPENSSL=1 -DMEDIA_SERVER_USE_PANGOCAIRO=1 -DMEDIA_SERVER_USE_SQLITE3=1 -I/Users/dhseo/Workspace/mediaServer/include -I/opt/homebrew/include/onnxruntime -isystem /opt/homebrew/Cellar/gstreamer/1.28.1/include/gstreamer-1.0 -isystem /opt/homebrew/Cellar/glib/2.86.4/include/gio-unix-2.0 -isystem /opt/homebrew/Cellar/orc/0.4.42/include/orc-0.4 -isystem /opt/homebrew/Cellar/glib/2.86.4/include -isystem /Library/Developer/CommandLineTools/SDKs/MacOSX26.sdk/usr/include/ffi -isystem /opt/homebrew/Cellar/glib/2.86.4/include/glib-2.0 -isystem /opt/homebrew/Cellar/glib/2.86.4/lib/glib-2.0/include -isystem /opt/homebrew/opt/gettext/include -isystem /opt/homebrew/Cellar/pcre2/10.47_1/include -isystem /opt/homebrew/Cellar/pango/1.57.0_2/include/pango-1.0 -isystem /opt/homebrew/Cellar/cairo/1.18.4/include/cairo -isystem /opt/homebrew/Cellar/libxext/1.3.7/include -isystem /opt/homebrew/Cellar/xorgproto/2025.1/include -isystem /opt/homebrew/Cellar/libxrender/0.9.12/include -isystem /opt/homebrew/Cellar/libx11/1.8.13/include -isystem /opt/homebrew/Cellar/libxcb/1.17.0/include -isystem /opt/homebrew/Cellar/libxau/1.0.12/include -isystem /opt/homebrew/Cellar/libxdmcp/1.1.5/include -isystem /opt/homebrew/Cellar/pixman/0.46.4/include/pixman-1 -isystem /opt/homebrew/Cellar/fribidi/1.0.16/include/fribidi -isystem /opt/homebrew/Cellar/libthai/0.1.30/include -isystem /opt/homebrew/Cellar/libdatrie/0.2.14/include -isystem /opt/homebrew/Cellar/fontconfig/2.17.1/include -isystem /opt/homebrew/Cellar/harfbuzz/13.1.1/include/harfbuzz -isystem /opt/homebrew/opt/freetype/include/freetype2 -isystem /opt/homebrew/opt/libpng/include/libpng16 -isystem /opt/homebrew/opt/graphite2/include -isystem /opt/homebrew/Cellar/libsodium/1.0.21/include -isystem /opt/homebrew/Cellar/openssl@3/3.6.2/include /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_search_generation_smoke.cpp /Users/dhseo/Workspace/mediaServer/build-gst-onnx/libmedia_server_runtime.a /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libz.tbd /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstrtspserver-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstapp-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstwebrtc-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstsdp-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstpbutils-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstaudio-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstvideo-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstbase-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstreamer-1.0.dylib /opt/homebrew/Cellar/pango/1.57.0_2/lib/libpangocairo-1.0.dylib /opt/homebrew/Cellar/pango/1.57.0_2/lib/libpango-1.0.dylib /opt/homebrew/Cellar/cairo/1.18.4/lib/libcairo.dylib /opt/homebrew/Cellar/harfbuzz/13.1.1/lib/libharfbuzz.dylib /opt/homebrew/Cellar/glib/2.86.4/lib/libgobject-2.0.dylib /opt/homebrew/Cellar/glib/2.86.4/lib/libglib-2.0.dylib /opt/homebrew/opt/gettext/lib/libintl.dylib /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libsqlite3.tbd /opt/homebrew/Cellar/libsodium/1.0.21/lib/libsodium.dylib /opt/homebrew/Cellar/openssl@3/3.6.2/lib/libssl.dylib /opt/homebrew/Cellar/openssl@3/3.6.2/lib/libcrypto.dylib /opt/homebrew/lib/libonnxruntime.dylib -o /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v420-followup-njkab55z/recording_search_generation_smoke
+
+exit: 0
+command: /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v420-followup-njkab55z/recording_search_generation_smoke /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v420-followup-njkab55z/recording_search_generation_smoke-data
+[pass] generation-search-refresh
+[pass] generation-original-sample-exact-utc
+[pass] generation-missing-original-stays-unplaced
+[pass] generation-search-journal-unchanged
+[pass] generation-search-refresh
+[pass] generation-original-sample-exact-utc
+[pass] generation-missing-original-stays-unplaced
+[pass] generation-search-journal-unchanged
+[pass] generation-reopen-rebuild-preserves-held-model
+[pass] generation-search-refresh
+[pass] generation-original-sample-exact-utc
+[pass] generation-missing-original-stays-unplaced
+[pass] generation-search-journal-unchanged
+[pass] generation-reopen-rebuild-preserves-held-model
+[search-generation] pass=14 fail=0
+
+exit: 0
+source /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_search_precedence_smoke.cpp sha256 fdde33fa5dc3701b3715a11b83c36706258ff79d59a6cdcbe51459457dd05779
+command: c++ -std=c++17 -Wall -Wextra -Werror -O2 -DGST_USE_UNSTABLE_API=1 -DMEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND=1 -DMEDIA_SERVER_ENABLE_YOUTUBE_SOURCE=0 -DMEDIA_SERVER_USE_GSTREAMER=1 -DMEDIA_SERVER_USE_LIBSODIUM=1 -DMEDIA_SERVER_USE_ONNXRUNTIME=1 -DMEDIA_SERVER_USE_OPENSSL=1 -DMEDIA_SERVER_USE_PANGOCAIRO=1 -DMEDIA_SERVER_USE_SQLITE3=1 -I/Users/dhseo/Workspace/mediaServer/include -I/opt/homebrew/include/onnxruntime -isystem /opt/homebrew/Cellar/gstreamer/1.28.1/include/gstreamer-1.0 -isystem /opt/homebrew/Cellar/glib/2.86.4/include/gio-unix-2.0 -isystem /opt/homebrew/Cellar/orc/0.4.42/include/orc-0.4 -isystem /opt/homebrew/Cellar/glib/2.86.4/include -isystem /Library/Developer/CommandLineTools/SDKs/MacOSX26.sdk/usr/include/ffi -isystem /opt/homebrew/Cellar/glib/2.86.4/include/glib-2.0 -isystem /opt/homebrew/Cellar/glib/2.86.4/lib/glib-2.0/include -isystem /opt/homebrew/opt/gettext/include -isystem /opt/homebrew/Cellar/pcre2/10.47_1/include -isystem /opt/homebrew/Cellar/pango/1.57.0_2/include/pango-1.0 -isystem /opt/homebrew/Cellar/cairo/1.18.4/include/cairo -isystem /opt/homebrew/Cellar/libxext/1.3.7/include -isystem /opt/homebrew/Cellar/xorgproto/2025.1/include -isystem /opt/homebrew/Cellar/libxrender/0.9.12/include -isystem /opt/homebrew/Cellar/libx11/1.8.13/include -isystem /opt/homebrew/Cellar/libxcb/1.17.0/include -isystem /opt/homebrew/Cellar/libxau/1.0.12/include -isystem /opt/homebrew/Cellar/libxdmcp/1.1.5/include -isystem /opt/homebrew/Cellar/pixman/0.46.4/include/pixman-1 -isystem /opt/homebrew/Cellar/fribidi/1.0.16/include/fribidi -isystem /opt/homebrew/Cellar/libthai/0.1.30/include -isystem /opt/homebrew/Cellar/libdatrie/0.2.14/include -isystem /opt/homebrew/Cellar/fontconfig/2.17.1/include -isystem /opt/homebrew/Cellar/harfbuzz/13.1.1/include/harfbuzz -isystem /opt/homebrew/opt/freetype/include/freetype2 -isystem /opt/homebrew/opt/libpng/include/libpng16 -isystem /opt/homebrew/opt/graphite2/include -isystem /opt/homebrew/Cellar/libsodium/1.0.21/include -isystem /opt/homebrew/Cellar/openssl@3/3.6.2/include /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_search_precedence_smoke.cpp /Users/dhseo/Workspace/mediaServer/build-gst-onnx/libmedia_server_runtime.a /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libz.tbd /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstrtspserver-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstapp-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstwebrtc-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstsdp-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstpbutils-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstaudio-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstvideo-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstbase-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstreamer-1.0.dylib /opt/homebrew/Cellar/pango/1.57.0_2/lib/libpangocairo-1.0.dylib /opt/homebrew/Cellar/pango/1.57.0_2/lib/libpango-1.0.dylib /opt/homebrew/Cellar/cairo/1.18.4/lib/libcairo.dylib /opt/homebrew/Cellar/harfbuzz/13.1.1/lib/libharfbuzz.dylib /opt/homebrew/Cellar/glib/2.86.4/lib/libgobject-2.0.dylib /opt/homebrew/Cellar/glib/2.86.4/lib/libglib-2.0.dylib /opt/homebrew/opt/gettext/lib/libintl.dylib /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libsqlite3.tbd /opt/homebrew/Cellar/libsodium/1.0.21/lib/libsodium.dylib /opt/homebrew/Cellar/openssl@3/3.6.2/lib/libssl.dylib /opt/homebrew/Cellar/openssl@3/3.6.2/lib/libcrypto.dylib /opt/homebrew/lib/libonnxruntime.dylib -o /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v420-followup-njkab55z/recording_search_precedence_smoke
+
+exit: 0
+command: /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v420-followup-njkab55z/recording_search_precedence_smoke /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v420-followup-njkab55z/recording_search_precedence_smoke-data
+[pass] partial event preserves both uncovered original ranges
+[pass] overlapping events stable ID priority
+[pass] candidate order and duplicate invariant
+[pass] unproven foreign unhealthy event cannot replace original
+[pass] unproven foreign unhealthy event cannot replace original
+[pass] unproven foreign unhealthy event cannot replace original
+[pass] unproven foreign unhealthy event cannot replace original
+[pass] unproven foreign unhealthy event cannot replace original
+[pass] unproven foreign unhealthy event cannot replace original
+[pass] unproven foreign unhealthy event cannot replace original
+[pass] unproven foreign unhealthy event cannot replace original
+[pass] observation point inside event
+[pass] exclusive event end keeps original
+[pass] full event clipped to original
+[pass] missing original identity never inferred
+[pass] invalid candidate rejects atomically
+[pass] candidate cap explicit failure
+[search-precedence] pass=17 fail=0
+
+exit: 0
+source /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_search_playback_smoke.cpp sha256 40734e6ad7d8dfd40bb8fcc5ac3ad16597630bd7261bba56434d473af8a9a7a5
+command: c++ -std=c++17 -Wall -Wextra -Werror -O2 -DGST_USE_UNSTABLE_API=1 -DMEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND=1 -DMEDIA_SERVER_ENABLE_YOUTUBE_SOURCE=0 -DMEDIA_SERVER_USE_GSTREAMER=1 -DMEDIA_SERVER_USE_LIBSODIUM=1 -DMEDIA_SERVER_USE_ONNXRUNTIME=1 -DMEDIA_SERVER_USE_OPENSSL=1 -DMEDIA_SERVER_USE_PANGOCAIRO=1 -DMEDIA_SERVER_USE_SQLITE3=1 -I/Users/dhseo/Workspace/mediaServer/include -I/opt/homebrew/include/onnxruntime -isystem /opt/homebrew/Cellar/gstreamer/1.28.1/include/gstreamer-1.0 -isystem /opt/homebrew/Cellar/glib/2.86.4/include/gio-unix-2.0 -isystem /opt/homebrew/Cellar/orc/0.4.42/include/orc-0.4 -isystem /opt/homebrew/Cellar/glib/2.86.4/include -isystem /Library/Developer/CommandLineTools/SDKs/MacOSX26.sdk/usr/include/ffi -isystem /opt/homebrew/Cellar/glib/2.86.4/include/glib-2.0 -isystem /opt/homebrew/Cellar/glib/2.86.4/lib/glib-2.0/include -isystem /opt/homebrew/opt/gettext/include -isystem /opt/homebrew/Cellar/pcre2/10.47_1/include -isystem /opt/homebrew/Cellar/pango/1.57.0_2/include/pango-1.0 -isystem /opt/homebrew/Cellar/cairo/1.18.4/include/cairo -isystem /opt/homebrew/Cellar/libxext/1.3.7/include -isystem /opt/homebrew/Cellar/xorgproto/2025.1/include -isystem /opt/homebrew/Cellar/libxrender/0.9.12/include -isystem /opt/homebrew/Cellar/libx11/1.8.13/include -isystem /opt/homebrew/Cellar/libxcb/1.17.0/include -isystem /opt/homebrew/Cellar/libxau/1.0.12/include -isystem /opt/homebrew/Cellar/libxdmcp/1.1.5/include -isystem /opt/homebrew/Cellar/pixman/0.46.4/include/pixman-1 -isystem /opt/homebrew/Cellar/fribidi/1.0.16/include/fribidi -isystem /opt/homebrew/Cellar/libthai/0.1.30/include -isystem /opt/homebrew/Cellar/libdatrie/0.2.14/include -isystem /opt/homebrew/Cellar/fontconfig/2.17.1/include -isystem /opt/homebrew/Cellar/harfbuzz/13.1.1/include/harfbuzz -isystem /opt/homebrew/opt/freetype/include/freetype2 -isystem /opt/homebrew/opt/libpng/include/libpng16 -isystem /opt/homebrew/opt/graphite2/include -isystem /opt/homebrew/Cellar/libsodium/1.0.21/include -isystem /opt/homebrew/Cellar/openssl@3/3.6.2/include /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_search_playback_smoke.cpp /Users/dhseo/Workspace/mediaServer/build-gst-onnx/libmedia_server_runtime.a /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libz.tbd /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstrtspserver-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstapp-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstwebrtc-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstsdp-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstpbutils-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstaudio-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstvideo-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstbase-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstreamer-1.0.dylib /opt/homebrew/Cellar/pango/1.57.0_2/lib/libpangocairo-1.0.dylib /opt/homebrew/Cellar/pango/1.57.0_2/lib/libpango-1.0.dylib /opt/homebrew/Cellar/cairo/1.18.4/lib/libcairo.dylib /opt/homebrew/Cellar/harfbuzz/13.1.1/lib/libharfbuzz.dylib /opt/homebrew/Cellar/glib/2.86.4/lib/libgobject-2.0.dylib /opt/homebrew/Cellar/glib/2.86.4/lib/libglib-2.0.dylib /opt/homebrew/opt/gettext/lib/libintl.dylib /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libsqlite3.tbd /opt/homebrew/Cellar/libsodium/1.0.21/lib/libsodium.dylib /opt/homebrew/Cellar/openssl@3/3.6.2/lib/libssl.dylib /opt/homebrew/Cellar/openssl@3/3.6.2/lib/libcrypto.dylib /opt/homebrew/lib/libonnxruntime.dylib -o /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v420-followup-njkab55z/recording_search_playback_smoke
+
+exit: 0
+command: /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v420-followup-njkab55z/recording_search_playback_smoke /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v420-followup-njkab55z/recording_search_playback_smoke-data
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[pass] intent cannot replace source
+[pass] completed job invalidates prior source view
+[pass] actual completed outputs yield playable proven candidates
+[pass] actual original coverage retains uncovered source tail
+[pass] missing event file cannot supersede source
+[pass] restored file is revalidated on new lookup
+[pass] legacy timeline page limit unchanged
+[search-playback] pass=7 fail=0
+
+exit: 0
+source /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_search_seek_smoke.cpp sha256 aa9d120860043a994e41bb3843921bc0ff1d6c6c88d12680329f17d1f83c0b93
+command: c++ -std=c++17 -Wall -Wextra -Werror -O2 -DGST_USE_UNSTABLE_API=1 -DMEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND=1 -DMEDIA_SERVER_ENABLE_YOUTUBE_SOURCE=0 -DMEDIA_SERVER_USE_GSTREAMER=1 -DMEDIA_SERVER_USE_LIBSODIUM=1 -DMEDIA_SERVER_USE_ONNXRUNTIME=1 -DMEDIA_SERVER_USE_OPENSSL=1 -DMEDIA_SERVER_USE_PANGOCAIRO=1 -DMEDIA_SERVER_USE_SQLITE3=1 -I/Users/dhseo/Workspace/mediaServer/include -I/opt/homebrew/include/onnxruntime -isystem /opt/homebrew/Cellar/gstreamer/1.28.1/include/gstreamer-1.0 -isystem /opt/homebrew/Cellar/glib/2.86.4/include/gio-unix-2.0 -isystem /opt/homebrew/Cellar/orc/0.4.42/include/orc-0.4 -isystem /opt/homebrew/Cellar/glib/2.86.4/include -isystem /Library/Developer/CommandLineTools/SDKs/MacOSX26.sdk/usr/include/ffi -isystem /opt/homebrew/Cellar/glib/2.86.4/include/glib-2.0 -isystem /opt/homebrew/Cellar/glib/2.86.4/lib/glib-2.0/include -isystem /opt/homebrew/opt/gettext/include -isystem /opt/homebrew/Cellar/pcre2/10.47_1/include -isystem /opt/homebrew/Cellar/pango/1.57.0_2/include/pango-1.0 -isystem /opt/homebrew/Cellar/cairo/1.18.4/include/cairo -isystem /opt/homebrew/Cellar/libxext/1.3.7/include -isystem /opt/homebrew/Cellar/xorgproto/2025.1/include -isystem /opt/homebrew/Cellar/libxrender/0.9.12/include -isystem /opt/homebrew/Cellar/libx11/1.8.13/include -isystem /opt/homebrew/Cellar/libxcb/1.17.0/include -isystem /opt/homebrew/Cellar/libxau/1.0.12/include -isystem /opt/homebrew/Cellar/libxdmcp/1.1.5/include -isystem /opt/homebrew/Cellar/pixman/0.46.4/include/pixman-1 -isystem /opt/homebrew/Cellar/fribidi/1.0.16/include/fribidi -isystem /opt/homebrew/Cellar/libthai/0.1.30/include -isystem /opt/homebrew/Cellar/libdatrie/0.2.14/include -isystem /opt/homebrew/Cellar/fontconfig/2.17.1/include -isystem /opt/homebrew/Cellar/harfbuzz/13.1.1/include/harfbuzz -isystem /opt/homebrew/opt/freetype/include/freetype2 -isystem /opt/homebrew/opt/libpng/include/libpng16 -isystem /opt/homebrew/opt/graphite2/include -isystem /opt/homebrew/Cellar/libsodium/1.0.21/include -isystem /opt/homebrew/Cellar/openssl@3/3.6.2/include /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_search_seek_smoke.cpp /Users/dhseo/Workspace/mediaServer/build-gst-onnx/libmedia_server_runtime.a /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libz.tbd /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstrtspserver-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstapp-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstwebrtc-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstsdp-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstpbutils-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstaudio-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstvideo-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstbase-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstreamer-1.0.dylib /opt/homebrew/Cellar/pango/1.57.0_2/lib/libpangocairo-1.0.dylib /opt/homebrew/Cellar/pango/1.57.0_2/lib/libpango-1.0.dylib /opt/homebrew/Cellar/cairo/1.18.4/lib/libcairo.dylib /opt/homebrew/Cellar/harfbuzz/13.1.1/lib/libharfbuzz.dylib /opt/homebrew/Cellar/glib/2.86.4/lib/libgobject-2.0.dylib /opt/homebrew/Cellar/glib/2.86.4/lib/libglib-2.0.dylib /opt/homebrew/opt/gettext/lib/libintl.dylib /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libsqlite3.tbd /opt/homebrew/Cellar/libsodium/1.0.21/lib/libsodium.dylib /opt/homebrew/Cellar/openssl@3/3.6.2/lib/libssl.dylib /opt/homebrew/Cellar/openssl@3/3.6.2/lib/libcrypto.dylib /opt/homebrew/lib/libonnxruntime.dylib -o /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v420-followup-njkab55z/recording_search_seek_smoke
+
+exit: 0
+command: /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v420-followup-njkab55z/recording_search_seek_smoke /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v420-followup-njkab55z/recording_search_seek_smoke-data
+[pass] 30fps source has native file proof
+[pass] source PTS maps to file frame not UTC delta
+[pass] actual seek returns independently decoded target frame
+[pass] between-sample time uses exact native interval
+[pass] foreign channel rejected without output change
+[pass] unrepresentable source time unavailable
+[pass] outside source unavailable
+[pass] missing file has no seek proof
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[pass] unsupported default mux profile gives explicit unavailable
+[search-seek] pass=9 fail=0
+
+exit: 0
+source /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_search_derived_seek_smoke.cpp sha256 21ba2bff8317a71a679356cd70f8ef080b41ce55f0e966b549fff3d1934dbba3
+command: c++ -std=c++17 -Wall -Wextra -Werror -O2 -DGST_USE_UNSTABLE_API=1 -DMEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND=1 -DMEDIA_SERVER_ENABLE_YOUTUBE_SOURCE=0 -DMEDIA_SERVER_USE_GSTREAMER=1 -DMEDIA_SERVER_USE_LIBSODIUM=1 -DMEDIA_SERVER_USE_ONNXRUNTIME=1 -DMEDIA_SERVER_USE_OPENSSL=1 -DMEDIA_SERVER_USE_PANGOCAIRO=1 -DMEDIA_SERVER_USE_SQLITE3=1 -I/Users/dhseo/Workspace/mediaServer/include -I/opt/homebrew/include/onnxruntime -isystem /opt/homebrew/Cellar/gstreamer/1.28.1/include/gstreamer-1.0 -isystem /opt/homebrew/Cellar/glib/2.86.4/include/gio-unix-2.0 -isystem /opt/homebrew/Cellar/orc/0.4.42/include/orc-0.4 -isystem /opt/homebrew/Cellar/glib/2.86.4/include -isystem /Library/Developer/CommandLineTools/SDKs/MacOSX26.sdk/usr/include/ffi -isystem /opt/homebrew/Cellar/glib/2.86.4/include/glib-2.0 -isystem /opt/homebrew/Cellar/glib/2.86.4/lib/glib-2.0/include -isystem /opt/homebrew/opt/gettext/include -isystem /opt/homebrew/Cellar/pcre2/10.47_1/include -isystem /opt/homebrew/Cellar/pango/1.57.0_2/include/pango-1.0 -isystem /opt/homebrew/Cellar/cairo/1.18.4/include/cairo -isystem /opt/homebrew/Cellar/libxext/1.3.7/include -isystem /opt/homebrew/Cellar/xorgproto/2025.1/include -isystem /opt/homebrew/Cellar/libxrender/0.9.12/include -isystem /opt/homebrew/Cellar/libx11/1.8.13/include -isystem /opt/homebrew/Cellar/libxcb/1.17.0/include -isystem /opt/homebrew/Cellar/libxau/1.0.12/include -isystem /opt/homebrew/Cellar/libxdmcp/1.1.5/include -isystem /opt/homebrew/Cellar/pixman/0.46.4/include/pixman-1 -isystem /opt/homebrew/Cellar/fribidi/1.0.16/include/fribidi -isystem /opt/homebrew/Cellar/libthai/0.1.30/include -isystem /opt/homebrew/Cellar/libdatrie/0.2.14/include -isystem /opt/homebrew/Cellar/fontconfig/2.17.1/include -isystem /opt/homebrew/Cellar/harfbuzz/13.1.1/include/harfbuzz -isystem /opt/homebrew/opt/freetype/include/freetype2 -isystem /opt/homebrew/opt/libpng/include/libpng16 -isystem /opt/homebrew/opt/graphite2/include -isystem /opt/homebrew/Cellar/libsodium/1.0.21/include -isystem /opt/homebrew/Cellar/openssl@3/3.6.2/include /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_search_derived_seek_smoke.cpp /Users/dhseo/Workspace/mediaServer/build-gst-onnx/libmedia_server_runtime.a /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libz.tbd /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstrtspserver-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstapp-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstwebrtc-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstsdp-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstpbutils-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstaudio-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstvideo-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstbase-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstreamer-1.0.dylib /opt/homebrew/Cellar/pango/1.57.0_2/lib/libpangocairo-1.0.dylib /opt/homebrew/Cellar/pango/1.57.0_2/lib/libpango-1.0.dylib /opt/homebrew/Cellar/cairo/1.18.4/lib/libcairo.dylib /opt/homebrew/Cellar/harfbuzz/13.1.1/lib/libharfbuzz.dylib /opt/homebrew/Cellar/glib/2.86.4/lib/libgobject-2.0.dylib /opt/homebrew/Cellar/glib/2.86.4/lib/libglib-2.0.dylib /opt/homebrew/opt/gettext/lib/libintl.dylib /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libsqlite3.tbd /opt/homebrew/Cellar/libsodium/1.0.21/lib/libsodium.dylib /opt/homebrew/Cellar/openssl@3/3.6.2/lib/libssl.dylib /opt/homebrew/Cellar/openssl@3/3.6.2/lib/libcrypto.dylib /opt/homebrew/lib/libonnxruntime.dylib -o /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v420-followup-njkab55z/recording_search_derived_seek_smoke
+
+exit: 0
+command: /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v420-followup-njkab55z/recording_search_derived_seek_smoke /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v420-followup-njkab55z/recording_search_derived_seek_smoke-data
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[pass] intent output seek unavailable
+[pass] original AU maps to current output presentation
+[pass] derived accurate seek matches independent original decoded frame
+[pass] different source GOP output has independent file origin
+[pass] foreign channel rejects atomically
+[pass] foreign original segment rejected
+[pass] unbound output rejected
+[pass] outside derived actual range rejected
+[pass] missing output no seek proof
+[pass] restored output revalidated
+[search-derived-seek] pass=10 fail=0
+
+exit: 0
+source /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_search_application_smoke.cpp sha256 4bacbfe5648b9ed5697ed7d0ca993ab0e9a191461604f16442d9327bbc5b5165
+command: c++ -std=c++17 -Wall -Wextra -Werror -O2 -DGST_USE_UNSTABLE_API=1 -DMEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND=1 -DMEDIA_SERVER_ENABLE_YOUTUBE_SOURCE=0 -DMEDIA_SERVER_USE_GSTREAMER=1 -DMEDIA_SERVER_USE_LIBSODIUM=1 -DMEDIA_SERVER_USE_ONNXRUNTIME=1 -DMEDIA_SERVER_USE_OPENSSL=1 -DMEDIA_SERVER_USE_PANGOCAIRO=1 -DMEDIA_SERVER_USE_SQLITE3=1 -I/Users/dhseo/Workspace/mediaServer/include -I/opt/homebrew/include/onnxruntime -isystem /opt/homebrew/Cellar/gstreamer/1.28.1/include/gstreamer-1.0 -isystem /opt/homebrew/Cellar/glib/2.86.4/include/gio-unix-2.0 -isystem /opt/homebrew/Cellar/orc/0.4.42/include/orc-0.4 -isystem /opt/homebrew/Cellar/glib/2.86.4/include -isystem /Library/Developer/CommandLineTools/SDKs/MacOSX26.sdk/usr/include/ffi -isystem /opt/homebrew/Cellar/glib/2.86.4/include/glib-2.0 -isystem /opt/homebrew/Cellar/glib/2.86.4/lib/glib-2.0/include -isystem /opt/homebrew/opt/gettext/include -isystem /opt/homebrew/Cellar/pcre2/10.47_1/include -isystem /opt/homebrew/Cellar/pango/1.57.0_2/include/pango-1.0 -isystem /opt/homebrew/Cellar/cairo/1.18.4/include/cairo -isystem /opt/homebrew/Cellar/libxext/1.3.7/include -isystem /opt/homebrew/Cellar/xorgproto/2025.1/include -isystem /opt/homebrew/Cellar/libxrender/0.9.12/include -isystem /opt/homebrew/Cellar/libx11/1.8.13/include -isystem /opt/homebrew/Cellar/libxcb/1.17.0/include -isystem /opt/homebrew/Cellar/libxau/1.0.12/include -isystem /opt/homebrew/Cellar/libxdmcp/1.1.5/include -isystem /opt/homebrew/Cellar/pixman/0.46.4/include/pixman-1 -isystem /opt/homebrew/Cellar/fribidi/1.0.16/include/fribidi -isystem /opt/homebrew/Cellar/libthai/0.1.30/include -isystem /opt/homebrew/Cellar/libdatrie/0.2.14/include -isystem /opt/homebrew/Cellar/fontconfig/2.17.1/include -isystem /opt/homebrew/Cellar/harfbuzz/13.1.1/include/harfbuzz -isystem /opt/homebrew/opt/freetype/include/freetype2 -isystem /opt/homebrew/opt/libpng/include/libpng16 -isystem /opt/homebrew/opt/graphite2/include -isystem /opt/homebrew/Cellar/libsodium/1.0.21/include -isystem /opt/homebrew/Cellar/openssl@3/3.6.2/include /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_search_application_smoke.cpp /Users/dhseo/Workspace/mediaServer/build-gst-onnx/libmedia_server_runtime.a /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libz.tbd /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstrtspserver-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstapp-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstwebrtc-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstsdp-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstpbutils-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstaudio-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstvideo-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstbase-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstreamer-1.0.dylib /opt/homebrew/Cellar/pango/1.57.0_2/lib/libpangocairo-1.0.dylib /opt/homebrew/Cellar/pango/1.57.0_2/lib/libpango-1.0.dylib /opt/homebrew/Cellar/cairo/1.18.4/lib/libcairo.dylib /opt/homebrew/Cellar/harfbuzz/13.1.1/lib/libharfbuzz.dylib /opt/homebrew/Cellar/glib/2.86.4/lib/libgobject-2.0.dylib /opt/homebrew/Cellar/glib/2.86.4/lib/libglib-2.0.dylib /opt/homebrew/opt/gettext/lib/libintl.dylib /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libsqlite3.tbd /opt/homebrew/Cellar/libsodium/1.0.21/lib/libsodium.dylib /opt/homebrew/Cellar/openssl@3/3.6.2/lib/libssl.dylib /opt/homebrew/Cellar/openssl@3/3.6.2/lib/libcrypto.dylib /opt/homebrew/lib/libonnxruntime.dylib -o /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v420-followup-njkab55z/recording_search_application_smoke
+
+exit: 0
+command: /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v420-followup-njkab55z/recording_search_application_smoke /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v420-followup-njkab55z/recording_search_application_smoke-data
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[pass] pages preserve exact unique membership and count
+[pass] cursor rejects other principal
+[pass] cursor rejects changed scope
+[pass] cursor rejects changed query
+[pass] empty explicit cursor rejected
+[pass] unknown field rejected
+[pass] mixed unauthorized channels rejected
+[pass] zero page limit rejected
+[pass] nonmember hit rejected
+[pass] partial event preserves uncovered original results
+[pass] preferred event resolves current file presentation target
+[pass] missing event file falls back to healthy original
+[pass] public result excludes internal paths and storage identity
+[search-application] pass=13 fail=0
+
+exit: 0
+source /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_search_concurrent_smoke.cpp sha256 cba48275d78a7ab624e079e01549c189b4c1f3f9df313a85c68870e79ac7c5a2
+command: c++ -std=c++17 -Wall -Wextra -Werror -O2 -DGST_USE_UNSTABLE_API=1 -DMEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND=1 -DMEDIA_SERVER_ENABLE_YOUTUBE_SOURCE=0 -DMEDIA_SERVER_USE_GSTREAMER=1 -DMEDIA_SERVER_USE_LIBSODIUM=1 -DMEDIA_SERVER_USE_ONNXRUNTIME=1 -DMEDIA_SERVER_USE_OPENSSL=1 -DMEDIA_SERVER_USE_PANGOCAIRO=1 -DMEDIA_SERVER_USE_SQLITE3=1 -I/Users/dhseo/Workspace/mediaServer/include -I/opt/homebrew/include/onnxruntime -isystem /opt/homebrew/Cellar/gstreamer/1.28.1/include/gstreamer-1.0 -isystem /opt/homebrew/Cellar/glib/2.86.4/include/gio-unix-2.0 -isystem /opt/homebrew/Cellar/orc/0.4.42/include/orc-0.4 -isystem /opt/homebrew/Cellar/glib/2.86.4/include -isystem /Library/Developer/CommandLineTools/SDKs/MacOSX26.sdk/usr/include/ffi -isystem /opt/homebrew/Cellar/glib/2.86.4/include/glib-2.0 -isystem /opt/homebrew/Cellar/glib/2.86.4/lib/glib-2.0/include -isystem /opt/homebrew/opt/gettext/include -isystem /opt/homebrew/Cellar/pcre2/10.47_1/include -isystem /opt/homebrew/Cellar/pango/1.57.0_2/include/pango-1.0 -isystem /opt/homebrew/Cellar/cairo/1.18.4/include/cairo -isystem /opt/homebrew/Cellar/libxext/1.3.7/include -isystem /opt/homebrew/Cellar/xorgproto/2025.1/include -isystem /opt/homebrew/Cellar/libxrender/0.9.12/include -isystem /opt/homebrew/Cellar/libx11/1.8.13/include -isystem /opt/homebrew/Cellar/libxcb/1.17.0/include -isystem /opt/homebrew/Cellar/libxau/1.0.12/include -isystem /opt/homebrew/Cellar/libxdmcp/1.1.5/include -isystem /opt/homebrew/Cellar/pixman/0.46.4/include/pixman-1 -isystem /opt/homebrew/Cellar/fribidi/1.0.16/include/fribidi -isystem /opt/homebrew/Cellar/libthai/0.1.30/include -isystem /opt/homebrew/Cellar/libdatrie/0.2.14/include -isystem /opt/homebrew/Cellar/fontconfig/2.17.1/include -isystem /opt/homebrew/Cellar/harfbuzz/13.1.1/include/harfbuzz -isystem /opt/homebrew/opt/freetype/include/freetype2 -isystem /opt/homebrew/opt/libpng/include/libpng16 -isystem /opt/homebrew/opt/graphite2/include -isystem /opt/homebrew/Cellar/libsodium/1.0.21/include -isystem /opt/homebrew/Cellar/openssl@3/3.6.2/include /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_search_concurrent_smoke.cpp /Users/dhseo/Workspace/mediaServer/build-gst-onnx/libmedia_server_runtime.a /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libz.tbd /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstrtspserver-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstapp-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstwebrtc-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstsdp-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstpbutils-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstaudio-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstvideo-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstbase-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstreamer-1.0.dylib /opt/homebrew/Cellar/pango/1.57.0_2/lib/libpangocairo-1.0.dylib /opt/homebrew/Cellar/pango/1.57.0_2/lib/libpango-1.0.dylib /opt/homebrew/Cellar/cairo/1.18.4/lib/libcairo.dylib /opt/homebrew/Cellar/harfbuzz/13.1.1/lib/libharfbuzz.dylib /opt/homebrew/Cellar/glib/2.86.4/lib/libgobject-2.0.dylib /opt/homebrew/Cellar/glib/2.86.4/lib/libglib-2.0.dylib /opt/homebrew/opt/gettext/lib/libintl.dylib /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libsqlite3.tbd /opt/homebrew/Cellar/libsodium/1.0.21/lib/libsodium.dylib /opt/homebrew/Cellar/openssl@3/3.6.2/lib/libssl.dylib /opt/homebrew/Cellar/openssl@3/3.6.2/lib/libcrypto.dylib /opt/homebrew/lib/libonnxruntime.dylib -o /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v420-followup-njkab55z/recording_search_concurrent_smoke
+
+exit: 0
+command: /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v420-followup-njkab55z/recording_search_concurrent_smoke /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v420-followup-njkab55z/recording_search_concurrent_smoke-data
+[pass] competing search finishes under existing application serialization
+[pass] writer packet advances inside measured search interval
+[pass] recording packets advance while search requests execute
+[pass] post-finalize search exposes three actual source seconds
+[pass] writer finalizes all three GOP segments
+[pass] all finalized files remain healthy after concurrent reads
+[concurrent] searches=16 ready=16 transientUnavailable=0 observations=10000 competingMs=149.403 maxSearchMs=156.632 progressingSearches=8 packets=90
+[search-concurrent] pass=6 fail=0
+
+exit: 0
+cleanup owned temporary root removed=True
+command: /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v420-followup-wrw0y1f3/recording_search_cost_smoke /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v420-followup-wrw0y1f3/recording_search_cost_smoke-data
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[cost-prep] observations=1 ms=162.162 actualMp4Files=5 eventFacts=1 unusedByObjectQuery=1
+[cost] observations=1 phase=first ms=40.2314 expectedTotal=1 returned=1 expectedId=or:6:cost-0 actualId=or:6:cost-0 equality=true
+[cost] observations=1 phase=unchanged ms=30.8255 expectedTotal=1 returned=1 expectedId=or:6:cost-0 actualId=or:6:cost-0 equality=true
+[cost] observations=1 phase=cursor not-applicable=single-hit
+[cost-source] phase=unchanged rebuild=0 upserts=0 modelRows=6 logicalBytes=24070 playbackCandidates=2 queryCandidates=1
+[cost-source] phase=append rebuild=0 upserts=1 modelRows=6 logicalBytes=24070 playbackCandidates=2 queryCandidates=2
+[cost] observations=1 phase=append ms=39.0866 expectedTotal=2 returned=1 expectedId=or:6:cost-0 actualId=or:6:cost-0 equality=true
+[cost-source] phase=finalize rebuild=1 upserts=8 modelRows=6 logicalBytes=24070 playbackCandidates=2 queryCandidates=2
+[cost] observations=1 phase=finalize ms=41.7949 expectedTotal=2 returned=1 expectedId=or:6:cost-0 actualId=or:6:cost-0 equality=true
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[cost-prep] observations=1000 ms=1353.49 actualMp4Files=5 eventFacts=1 unusedByObjectQuery=1
+[cost] observations=1000 phase=first ms=2208.88 expectedTotal=10 returned=1 expectedId=or:6:cost-0 actualId=or:6:cost-0 equality=true
+[cost] observations=1000 phase=unchanged ms=43.668 expectedTotal=10 returned=1 expectedId=or:6:cost-0 actualId=or:6:cost-0 equality=true
+[cost] observations=1000 phase=cursor ms=20.124 expectedTotal=10 returned=1 expectedId=or:8:cost-100 actualId=or:8:cost-100 equality=true
+[cost-source] phase=unchanged rebuild=0 upserts=0 modelRows=1005 logicalBytes=3390910 playbackCandidates=2 queryCandidates=10
+[cost-source] phase=append rebuild=0 upserts=1 modelRows=1005 logicalBytes=3390910 playbackCandidates=2 queryCandidates=11
+[cost] observations=1000 phase=append ms=55.2249 expectedTotal=11 returned=1 expectedId=or:11:cost-100000 actualId=or:11:cost-100000 equality=true
+[cost-source] phase=finalize rebuild=1 upserts=1007 modelRows=1005 logicalBytes=3390910 playbackCandidates=2 queryCandidates=11
+[cost] observations=1000 phase=finalize ms=2212.22 expectedTotal=11 returned=1 expectedId=or:11:cost-100000 actualId=or:11:cost-100000 equality=true
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[cost-prep] observations=10000 ms=12712 actualMp4Files=5 eventFacts=1 unusedByObjectQuery=1
+[cost] observations=10000 phase=first ms=21576.7 expectedTotal=100 returned=1 expectedId=or:6:cost-0 actualId=or:6:cost-0 equality=true
+[cost] observations=10000 phase=unchanged ms=138.688 expectedTotal=100 returned=1 expectedId=or:6:cost-0 actualId=or:6:cost-0 equality=true
+[cost] observations=10000 phase=cursor ms=20.1045 expectedTotal=100 returned=1 expectedId=or:8:cost-100 actualId=or:8:cost-100 equality=true
+[cost-source] phase=unchanged rebuild=0 upserts=0 modelRows=10005 logicalBytes=37446910 playbackCandidates=2 queryCandidates=100
+[cost-source] phase=append rebuild=0 upserts=1 modelRows=10005 logicalBytes=37446910 playbackCandidates=2 queryCandidates=101
+[cost] observations=10000 phase=append ms=187.097 expectedTotal=101 returned=1 expectedId=or:12:cost-1000000 actualId=or:12:cost-1000000 equality=true
+[cost-source] phase=finalize rebuild=1 upserts=10007 modelRows=10005 logicalBytes=37446910 playbackCandidates=2 queryCandidates=101
+[cost] observations=10000 phase=finalize ms=22233 expectedTotal=101 returned=1 expectedId=or:12:cost-1000000 actualId=or:12:cost-1000000 equality=true
+[search-cost] pass
+
+exit: 0
+cleanup owned temporary root removed=True
+source /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_search_cost_smoke.cpp sha256 2cadaecf3a258e6a2043e4afc9f441f14da969716fe63d9d2526f8dd6c50e061
+command: c++ -std=c++17 -Wall -Wextra -Werror -O2 -DGST_USE_UNSTABLE_API=1 -DMEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND=1 -DMEDIA_SERVER_ENABLE_YOUTUBE_SOURCE=0 -DMEDIA_SERVER_USE_GSTREAMER=1 -DMEDIA_SERVER_USE_LIBSODIUM=1 -DMEDIA_SERVER_USE_ONNXRUNTIME=1 -DMEDIA_SERVER_USE_OPENSSL=1 -DMEDIA_SERVER_USE_PANGOCAIRO=1 -DMEDIA_SERVER_USE_SQLITE3=1 -I/Users/dhseo/Workspace/mediaServer/include -I/opt/homebrew/include/onnxruntime -isystem /opt/homebrew/Cellar/gstreamer/1.28.1/include/gstreamer-1.0 -isystem /opt/homebrew/Cellar/glib/2.86.4/include/gio-unix-2.0 -isystem /opt/homebrew/Cellar/orc/0.4.42/include/orc-0.4 -isystem /opt/homebrew/Cellar/glib/2.86.4/include -isystem /Library/Developer/CommandLineTools/SDKs/MacOSX26.sdk/usr/include/ffi -isystem /opt/homebrew/Cellar/glib/2.86.4/include/glib-2.0 -isystem /opt/homebrew/Cellar/glib/2.86.4/lib/glib-2.0/include -isystem /opt/homebrew/opt/gettext/include -isystem /opt/homebrew/Cellar/pcre2/10.47_1/include -isystem /opt/homebrew/Cellar/pango/1.57.0_2/include/pango-1.0 -isystem /opt/homebrew/Cellar/cairo/1.18.4/include/cairo -isystem /opt/homebrew/Cellar/libxext/1.3.7/include -isystem /opt/homebrew/Cellar/xorgproto/2025.1/include -isystem /opt/homebrew/Cellar/libxrender/0.9.12/include -isystem /opt/homebrew/Cellar/libx11/1.8.13/include -isystem /opt/homebrew/Cellar/libxcb/1.17.0/include -isystem /opt/homebrew/Cellar/libxau/1.0.12/include -isystem /opt/homebrew/Cellar/libxdmcp/1.1.5/include -isystem /opt/homebrew/Cellar/pixman/0.46.4/include/pixman-1 -isystem /opt/homebrew/Cellar/fribidi/1.0.16/include/fribidi -isystem /opt/homebrew/Cellar/libthai/0.1.30/include -isystem /opt/homebrew/Cellar/libdatrie/0.2.14/include -isystem /opt/homebrew/Cellar/fontconfig/2.17.1/include -isystem /opt/homebrew/Cellar/harfbuzz/13.1.1/include/harfbuzz -isystem /opt/homebrew/opt/freetype/include/freetype2 -isystem /opt/homebrew/opt/libpng/include/libpng16 -isystem /opt/homebrew/opt/graphite2/include -isystem /opt/homebrew/Cellar/libsodium/1.0.21/include -isystem /opt/homebrew/Cellar/openssl@3/3.6.2/include /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_search_cost_smoke.cpp /Users/dhseo/Workspace/mediaServer/build-gst-onnx/libmedia_server_runtime.a /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libz.tbd /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstrtspserver-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstapp-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstwebrtc-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstsdp-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstpbutils-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstaudio-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstvideo-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstbase-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstreamer-1.0.dylib /opt/homebrew/Cellar/pango/1.57.0_2/lib/libpangocairo-1.0.dylib /opt/homebrew/Cellar/pango/1.57.0_2/lib/libpango-1.0.dylib /opt/homebrew/Cellar/cairo/1.18.4/lib/libcairo.dylib /opt/homebrew/Cellar/harfbuzz/13.1.1/lib/libharfbuzz.dylib /opt/homebrew/Cellar/glib/2.86.4/lib/libgobject-2.0.dylib /opt/homebrew/Cellar/glib/2.86.4/lib/libglib-2.0.dylib /opt/homebrew/opt/gettext/lib/libintl.dylib /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libsqlite3.tbd /opt/homebrew/Cellar/libsodium/1.0.21/lib/libsodium.dylib /opt/homebrew/Cellar/openssl@3/3.6.2/lib/libssl.dylib /opt/homebrew/Cellar/openssl@3/3.6.2/lib/libcrypto.dylib /opt/homebrew/lib/libonnxruntime.dylib -o /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v420-followup-_aasfi3g/recording_search_cost_smoke
+
+exit: 0
+command: /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v420-followup-_aasfi3g/recording_search_cost_smoke /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v420-followup-_aasfi3g/recording_search_cost_smoke-data
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[cost-filter] object=person limit=1 behaviour=none
+[cost-prep] observations=1 ms=169.021 actualMp4Files=5 eventFacts=1
+[cost] observations=1 phase=first ms=40.3385 expectedTotal=1 returned=1 expectedId=or:6:cost-0 actualId=or:6:cost-0 equality=true
+[cost] observations=1 phase=unchanged ms=31.4237 expectedTotal=1 returned=1 expectedId=or:6:cost-0 actualId=or:6:cost-0 equality=true
+[cost] observations=1 phase=cursor not-applicable=single-hit
+[cost-source] phase=unchanged rebuild=0 upserts=0 modelRows=6 logicalBytes=24070 playbackCandidates=2 queryCandidates=1
+[cost-source] phase=append rebuild=0 upserts=1 modelRows=6 logicalBytes=24070 playbackCandidates=2 queryCandidates=2
+[cost] observations=1 phase=append ms=40.8907 expectedTotal=2 returned=1 expectedId=or:6:cost-0 actualId=or:6:cost-0 equality=true
+[cost-source] phase=finalize rebuild=1 upserts=8 modelRows=6 logicalBytes=24070 playbackCandidates=2 queryCandidates=2
+[cost] observations=1 phase=finalize ms=40.8311 expectedTotal=2 returned=1 expectedId=or:6:cost-0 actualId=or:6:cost-0 equality=true
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[cost-filter] object=person limit=1 behaviour=none
+[cost-prep] observations=1000 ms=1385.4 actualMp4Files=5 eventFacts=1
+[cost] observations=1000 phase=first ms=60.2046 expectedTotal=10 returned=1 expectedId=or:6:cost-0 actualId=or:6:cost-0 equality=true
+[cost] observations=1000 phase=unchanged ms=31.9388 expectedTotal=10 returned=1 expectedId=or:6:cost-0 actualId=or:6:cost-0 equality=true
+[cost] observations=1000 phase=cursor ms=19.3571 expectedTotal=10 returned=1 expectedId=or:8:cost-100 actualId=or:8:cost-100 equality=true
+[cost-source] phase=unchanged rebuild=0 upserts=0 modelRows=1005 logicalBytes=3390910 playbackCandidates=2 queryCandidates=10
+[cost-source] phase=append rebuild=0 upserts=1 modelRows=1005 logicalBytes=3390910 playbackCandidates=2 queryCandidates=11
+[cost] observations=1000 phase=append ms=44.0062 expectedTotal=11 returned=1 expectedId=or:11:cost-100000 actualId=or:11:cost-100000 equality=true
+[cost-source] phase=finalize rebuild=1 upserts=1007 modelRows=1005 logicalBytes=3390910 playbackCandidates=2 queryCandidates=11
+[cost] observations=1000 phase=finalize ms=60.0747 expectedTotal=11 returned=1 expectedId=or:11:cost-100000 actualId=or:11:cost-100000 equality=true
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[cost-filter] object=person limit=1 behaviour=none
+[cost-prep] observations=10000 ms=13626.1 actualMp4Files=5 eventFacts=1
+[cost] observations=10000 phase=first ms=266.584 expectedTotal=100 returned=1 expectedId=or:6:cost-0 actualId=or:6:cost-0 equality=true
+[cost] observations=10000 phase=unchanged ms=33.728 expectedTotal=100 returned=1 expectedId=or:6:cost-0 actualId=or:6:cost-0 equality=true
+[cost] observations=10000 phase=cursor ms=19.3013 expectedTotal=100 returned=1 expectedId=or:8:cost-100 actualId=or:8:cost-100 equality=true
+[cost-source] phase=unchanged rebuild=0 upserts=0 modelRows=10005 logicalBytes=37446910 playbackCandidates=2 queryCandidates=100
+[cost-source] phase=append rebuild=0 upserts=1 modelRows=10005 logicalBytes=37446910 playbackCandidates=2 queryCandidates=101
+[cost] observations=10000 phase=append ms=81.4845 expectedTotal=101 returned=1 expectedId=or:12:cost-1000000 actualId=or:12:cost-1000000 equality=true
+[cost-source] phase=finalize rebuild=1 upserts=10007 modelRows=10005 logicalBytes=37446910 playbackCandidates=2 queryCandidates=101
+[cost] observations=10000 phase=finalize ms=264.588 expectedTotal=101 returned=1 expectedId=or:12:cost-1000000 actualId=or:12:cost-1000000 equality=true
+[search-cost] pass
+
+exit: 0
+cleanup owned temporary root removed=True
+source /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_search_cost_smoke.cpp sha256 2cadaecf3a258e6a2043e4afc9f441f14da969716fe63d9d2526f8dd6c50e061
+command: c++ -std=c++17 -Wall -Wextra -Werror -O2 -DGST_USE_UNSTABLE_API=1 -DMEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND=1 -DMEDIA_SERVER_ENABLE_YOUTUBE_SOURCE=0 -DMEDIA_SERVER_USE_GSTREAMER=1 -DMEDIA_SERVER_USE_LIBSODIUM=1 -DMEDIA_SERVER_USE_ONNXRUNTIME=1 -DMEDIA_SERVER_USE_OPENSSL=1 -DMEDIA_SERVER_USE_PANGOCAIRO=1 -DMEDIA_SERVER_USE_SQLITE3=1 -I/Users/dhseo/Workspace/mediaServer/include -I/opt/homebrew/include/onnxruntime -isystem /opt/homebrew/Cellar/gstreamer/1.28.1/include/gstreamer-1.0 -isystem /opt/homebrew/Cellar/glib/2.86.4/include/gio-unix-2.0 -isystem /opt/homebrew/Cellar/orc/0.4.42/include/orc-0.4 -isystem /opt/homebrew/Cellar/glib/2.86.4/include -isystem /Library/Developer/CommandLineTools/SDKs/MacOSX26.sdk/usr/include/ffi -isystem /opt/homebrew/Cellar/glib/2.86.4/include/glib-2.0 -isystem /opt/homebrew/Cellar/glib/2.86.4/lib/glib-2.0/include -isystem /opt/homebrew/opt/gettext/include -isystem /opt/homebrew/Cellar/pcre2/10.47_1/include -isystem /opt/homebrew/Cellar/pango/1.57.0_2/include/pango-1.0 -isystem /opt/homebrew/Cellar/cairo/1.18.4/include/cairo -isystem /opt/homebrew/Cellar/libxext/1.3.7/include -isystem /opt/homebrew/Cellar/xorgproto/2025.1/include -isystem /opt/homebrew/Cellar/libxrender/0.9.12/include -isystem /opt/homebrew/Cellar/libx11/1.8.13/include -isystem /opt/homebrew/Cellar/libxcb/1.17.0/include -isystem /opt/homebrew/Cellar/libxau/1.0.12/include -isystem /opt/homebrew/Cellar/libxdmcp/1.1.5/include -isystem /opt/homebrew/Cellar/pixman/0.46.4/include/pixman-1 -isystem /opt/homebrew/Cellar/fribidi/1.0.16/include/fribidi -isystem /opt/homebrew/Cellar/libthai/0.1.30/include -isystem /opt/homebrew/Cellar/libdatrie/0.2.14/include -isystem /opt/homebrew/Cellar/fontconfig/2.17.1/include -isystem /opt/homebrew/Cellar/harfbuzz/13.1.1/include/harfbuzz -isystem /opt/homebrew/opt/freetype/include/freetype2 -isystem /opt/homebrew/opt/libpng/include/libpng16 -isystem /opt/homebrew/opt/graphite2/include -isystem /opt/homebrew/Cellar/libsodium/1.0.21/include -isystem /opt/homebrew/Cellar/openssl@3/3.6.2/include /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_search_cost_smoke.cpp /Users/dhseo/Workspace/mediaServer/build-gst-onnx/libmedia_server_runtime.a /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libz.tbd /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstrtspserver-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstapp-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstwebrtc-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstsdp-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstpbutils-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstaudio-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstvideo-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstbase-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstreamer-1.0.dylib /opt/homebrew/Cellar/pango/1.57.0_2/lib/libpangocairo-1.0.dylib /opt/homebrew/Cellar/pango/1.57.0_2/lib/libpango-1.0.dylib /opt/homebrew/Cellar/cairo/1.18.4/lib/libcairo.dylib /opt/homebrew/Cellar/harfbuzz/13.1.1/lib/libharfbuzz.dylib /opt/homebrew/Cellar/glib/2.86.4/lib/libgobject-2.0.dylib /opt/homebrew/Cellar/glib/2.86.4/lib/libglib-2.0.dylib /opt/homebrew/opt/gettext/lib/libintl.dylib /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libsqlite3.tbd /opt/homebrew/Cellar/libsodium/1.0.21/lib/libsodium.dylib /opt/homebrew/Cellar/openssl@3/3.6.2/lib/libssl.dylib /opt/homebrew/Cellar/openssl@3/3.6.2/lib/libcrypto.dylib /opt/homebrew/lib/libonnxruntime.dylib -o /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v420-followup-dirpm8qd/recording_search_cost_smoke
+
+exit: 0
+command: /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v420-followup-dirpm8qd/recording_search_cost_smoke /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v420-followup-dirpm8qd/recording_search_cost_smoke-data
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[cost-filter] object=person limit=1 behaviour=scenario:Arrival
+[cost-prep] observations=1 ms=193.866 actualMp4Files=5 eventFacts=1
+[cost] observations=1 phase=first ms=43.1829 expectedTotal=1 returned=1 expectedId=or:6:cost-0 actualId=or:6:cost-0 equality=true
+[cost] observations=1 phase=unchanged ms=32.4541 expectedTotal=1 returned=1 expectedId=or:6:cost-0 actualId=or:6:cost-0 equality=true
+[cost] observations=1 phase=cursor not-applicable=single-hit
+[cost-source] phase=unchanged rebuild=0 upserts=0 modelRows=6 logicalBytes=24070 playbackCandidates=2 queryCandidates=1
+[cost-source] phase=append rebuild=0 upserts=1 modelRows=6 logicalBytes=24070 playbackCandidates=2 queryCandidates=2
+[cost] observations=1 phase=append ms=43.5498 expectedTotal=2 returned=1 expectedId=or:6:cost-0 actualId=or:6:cost-0 equality=true
+[cost-source] phase=finalize rebuild=1 upserts=8 modelRows=6 logicalBytes=24070 playbackCandidates=2 queryCandidates=2
+[cost] observations=1 phase=finalize ms=41.4411 expectedTotal=2 returned=1 expectedId=or:6:cost-0 actualId=or:6:cost-0 equality=true
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[cost-filter] object=person limit=1 behaviour=scenario:Arrival
+[cost-prep] observations=1000 ms=1434.01 actualMp4Files=5 eventFacts=1
+[cost] observations=1000 phase=first ms=63.7482 expectedTotal=10 returned=1 expectedId=or:6:cost-0 actualId=or:6:cost-0 equality=true
+[cost] observations=1000 phase=unchanged ms=35.1618 expectedTotal=10 returned=1 expectedId=or:6:cost-0 actualId=or:6:cost-0 equality=true
+[cost] observations=1000 phase=cursor ms=19.393 expectedTotal=10 returned=1 expectedId=or:8:cost-100 actualId=or:8:cost-100 equality=true
+[cost-source] phase=unchanged rebuild=0 upserts=0 modelRows=1005 logicalBytes=3390910 playbackCandidates=2 queryCandidates=10
+[cost-source] phase=append rebuild=0 upserts=1 modelRows=1005 logicalBytes=3390910 playbackCandidates=2 queryCandidates=11
+[cost] observations=1000 phase=append ms=47.2678 expectedTotal=11 returned=1 expectedId=or:11:cost-100000 actualId=or:11:cost-100000 equality=true
+[cost-source] phase=finalize rebuild=1 upserts=1007 modelRows=1005 logicalBytes=3390910 playbackCandidates=2 queryCandidates=11
+[cost] observations=1000 phase=finalize ms=63.6507 expectedTotal=11 returned=1 expectedId=or:11:cost-100000 actualId=or:11:cost-100000 equality=true
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[cost-filter] object=person limit=1 behaviour=scenario:Arrival
+[cost-prep] observations=10000 ms=12850.8 actualMp4Files=5 eventFacts=1
+[cost] observations=10000 phase=first ms=298.901 expectedTotal=100 returned=1 expectedId=or:6:cost-0 actualId=or:6:cost-0 equality=true
+[cost] observations=10000 phase=unchanged ms=65.8585 expectedTotal=100 returned=1 expectedId=or:6:cost-0 actualId=or:6:cost-0 equality=true
+[cost] observations=10000 phase=cursor ms=19.5947 expectedTotal=100 returned=1 expectedId=or:8:cost-100 actualId=or:8:cost-100 equality=true
+[cost-source] phase=unchanged rebuild=0 upserts=0 modelRows=10005 logicalBytes=37446910 playbackCandidates=2 queryCandidates=100
+[cost-source] phase=append rebuild=0 upserts=1 modelRows=10005 logicalBytes=37446910 playbackCandidates=2 queryCandidates=101
+[cost] observations=10000 phase=append ms=114.572 expectedTotal=101 returned=1 expectedId=or:12:cost-1000000 actualId=or:12:cost-1000000 equality=true
+[cost-source] phase=finalize rebuild=1 upserts=10007 modelRows=10005 logicalBytes=37446910 playbackCandidates=2 queryCandidates=101
+[cost] observations=10000 phase=finalize ms=303.314 expectedTotal=101 returned=1 expectedId=or:12:cost-1000000 actualId=or:12:cost-1000000 equality=true
+[search-cost] pass
+
+exit: 0
+cleanup owned temporary root removed=True
+source /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_public_media_smoke.cpp sha256 4ff31ef333b754364007d7488f1597440f9b78f7e4040dce5a74a4ecc72ba241
+command: c++ -std=c++17 -Wall -Wextra -Werror -O2 -DGST_USE_UNSTABLE_API=1 -DMEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND=1 -DMEDIA_SERVER_ENABLE_YOUTUBE_SOURCE=0 -DMEDIA_SERVER_USE_GSTREAMER=1 -DMEDIA_SERVER_USE_LIBSODIUM=1 -DMEDIA_SERVER_USE_ONNXRUNTIME=1 -DMEDIA_SERVER_USE_OPENSSL=1 -DMEDIA_SERVER_USE_PANGOCAIRO=1 -DMEDIA_SERVER_USE_SQLITE3=1 -I/Users/dhseo/Workspace/mediaServer/include -I/opt/homebrew/include/onnxruntime -isystem /opt/homebrew/Cellar/gstreamer/1.28.1/include/gstreamer-1.0 -isystem /opt/homebrew/Cellar/glib/2.86.4/include/gio-unix-2.0 -isystem /opt/homebrew/Cellar/orc/0.4.42/include/orc-0.4 -isystem /opt/homebrew/Cellar/glib/2.86.4/include -isystem /Library/Developer/CommandLineTools/SDKs/MacOSX26.sdk/usr/include/ffi -isystem /opt/homebrew/Cellar/glib/2.86.4/include/glib-2.0 -isystem /opt/homebrew/Cellar/glib/2.86.4/lib/glib-2.0/include -isystem /opt/homebrew/opt/gettext/include -isystem /opt/homebrew/Cellar/pcre2/10.47_1/include -isystem /opt/homebrew/Cellar/pango/1.57.0_2/include/pango-1.0 -isystem /opt/homebrew/Cellar/cairo/1.18.4/include/cairo -isystem /opt/homebrew/Cellar/libxext/1.3.7/include -isystem /opt/homebrew/Cellar/xorgproto/2025.1/include -isystem /opt/homebrew/Cellar/libxrender/0.9.12/include -isystem /opt/homebrew/Cellar/libx11/1.8.13/include -isystem /opt/homebrew/Cellar/libxcb/1.17.0/include -isystem /opt/homebrew/Cellar/libxau/1.0.12/include -isystem /opt/homebrew/Cellar/libxdmcp/1.1.5/include -isystem /opt/homebrew/Cellar/pixman/0.46.4/include/pixman-1 -isystem /opt/homebrew/Cellar/fribidi/1.0.16/include/fribidi -isystem /opt/homebrew/Cellar/libthai/0.1.30/include -isystem /opt/homebrew/Cellar/libdatrie/0.2.14/include -isystem /opt/homebrew/Cellar/fontconfig/2.17.1/include -isystem /opt/homebrew/Cellar/harfbuzz/13.1.1/include/harfbuzz -isystem /opt/homebrew/opt/freetype/include/freetype2 -isystem /opt/homebrew/opt/libpng/include/libpng16 -isystem /opt/homebrew/opt/graphite2/include -isystem /opt/homebrew/Cellar/libsodium/1.0.21/include -isystem /opt/homebrew/Cellar/openssl@3/3.6.2/include /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_public_media_smoke.cpp /Users/dhseo/Workspace/mediaServer/build-gst-onnx/libmedia_server_runtime.a /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libz.tbd /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstrtspserver-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstapp-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstwebrtc-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstsdp-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstpbutils-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstaudio-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstvideo-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstbase-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstreamer-1.0.dylib /opt/homebrew/Cellar/pango/1.57.0_2/lib/libpangocairo-1.0.dylib /opt/homebrew/Cellar/pango/1.57.0_2/lib/libpango-1.0.dylib /opt/homebrew/Cellar/cairo/1.18.4/lib/libcairo.dylib /opt/homebrew/Cellar/harfbuzz/13.1.1/lib/libharfbuzz.dylib /opt/homebrew/Cellar/glib/2.86.4/lib/libgobject-2.0.dylib /opt/homebrew/Cellar/glib/2.86.4/lib/libglib-2.0.dylib /opt/homebrew/opt/gettext/lib/libintl.dylib /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libsqlite3.tbd /opt/homebrew/Cellar/libsodium/1.0.21/lib/libsodium.dylib /opt/homebrew/Cellar/openssl@3/3.6.2/lib/libssl.dylib /opt/homebrew/Cellar/openssl@3/3.6.2/lib/libcrypto.dylib /opt/homebrew/lib/libonnxruntime.dylib -o /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v420-followup-42b0g6mw/recording_public_media_smoke
+
+exit: 0
+command: /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v420-followup-42b0g6mw/recording_public_media_smoke /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v420-followup-42b0g6mw/recording_public_media_smoke-data
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[pass] D3A-05 미완료 출력 거부
+[pass] D3A-05 미완료 출력 거부
+[pass] D3A-05 미완료 출력 거부
+[pass] D3A-05 미완료 출력 거부
+[pass] D3A-02 요청 충족 상태 구분
+[pass] S11-I30-R03 실제 검증된 Event MP4 출력 제공
+[pass] D3A-03 권한/다른 채널 거부
+[pass] D3A-01 application V2 채널 권한 후 제공
+[pass] D3A-06 제공 중 삭제 거부
+[pass] D3A-06 fd 해제 후 hold0
+[pass] S11-I30-R03 실제 검증된 Event MP4 출력 제공
+[pass] D3A-03 권한/다른 채널 거부
+[pass] D3A-01 application V2 채널 권한 후 제공
+[pass] D3A-06 제공 중 삭제 거부
+[pass] D3A-06 fd 해제 후 hold0
+[pass] D3A-04 실제 파일 있는 manual Event 거부
+[pass] D3A-07 immutable metadata 다른 결박 거부
+[pass] D3A-08 원본 보존 삭제 완료
+[pass] D3A-08 원본 보존 삭제 완료
+[pass] D3A-08 원본 삭제 뒤 검증된 출력 제공
+[pass] D3A-07 실제 파일 크기 변조 거부·hold0
+[pass] D3A-07 동일 크기 파일 내용 변조 거부·hold0
+[pass] D3A-06 hold 해제 후 삭제 전이·새 제공 거부
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[pass] D3A-05 미완료 출력 거부
+[pass] D3A-05 미완료 출력 거부
+[pass] D3A-05 미완료 출력 거부
+[pass] D3A-05 미완료 출력 거부
+[pass] D3A-02 요청 충족 상태 구분
+[pass] S11-I30-R03 partial MP4 출력 제공
+[pass] D3A-03 권한/다른 채널 거부
+[pass] D3A-01 application V2 채널 권한 후 제공
+[pass] D3A-06 제공 중 삭제 거부
+[pass] D3A-06 fd 해제 후 hold0
+[pass] S11-I30-R03 partial MP4 출력 제공
+[pass] D3A-03 권한/다른 채널 거부
+[pass] D3A-01 application V2 채널 권한 후 제공
+[pass] D3A-06 제공 중 삭제 거부
+[pass] D3A-06 fd 해제 후 hold0
+[pass] D3A-04 실제 파일 있는 manual Event 거부
+[pass] D3A-07 immutable metadata 다른 결박 거부
+[pass] D3A-08 원본 보존 삭제 완료
+[pass] D3A-08 원본 보존 삭제 완료
+[pass] D3A-08 원본 삭제 뒤 검증된 출력 제공
+[pass] D3A-07 실제 파일 크기 변조 거부·hold0
+[pass] D3A-07 동일 크기 파일 내용 변조 거부·hold0
+[pass] D3A-06 hold 해제 후 삭제 전이·새 제공 거부
+[summary] pass=46 fail=0
+
+exit: 0
+source /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_public_timeline_smoke.cpp sha256 bfedfc8c45df5f0b58ea855b3382d642039776d37e653a9641f18e1a51377d4b
+command: c++ -std=c++17 -Wall -Wextra -Werror -O2 -DGST_USE_UNSTABLE_API=1 -DMEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND=1 -DMEDIA_SERVER_ENABLE_YOUTUBE_SOURCE=0 -DMEDIA_SERVER_USE_GSTREAMER=1 -DMEDIA_SERVER_USE_LIBSODIUM=1 -DMEDIA_SERVER_USE_ONNXRUNTIME=1 -DMEDIA_SERVER_USE_OPENSSL=1 -DMEDIA_SERVER_USE_PANGOCAIRO=1 -DMEDIA_SERVER_USE_SQLITE3=1 -I/Users/dhseo/Workspace/mediaServer/include -I/opt/homebrew/include/onnxruntime -isystem /opt/homebrew/Cellar/gstreamer/1.28.1/include/gstreamer-1.0 -isystem /opt/homebrew/Cellar/glib/2.86.4/include/gio-unix-2.0 -isystem /opt/homebrew/Cellar/orc/0.4.42/include/orc-0.4 -isystem /opt/homebrew/Cellar/glib/2.86.4/include -isystem /Library/Developer/CommandLineTools/SDKs/MacOSX26.sdk/usr/include/ffi -isystem /opt/homebrew/Cellar/glib/2.86.4/include/glib-2.0 -isystem /opt/homebrew/Cellar/glib/2.86.4/lib/glib-2.0/include -isystem /opt/homebrew/opt/gettext/include -isystem /opt/homebrew/Cellar/pcre2/10.47_1/include -isystem /opt/homebrew/Cellar/pango/1.57.0_2/include/pango-1.0 -isystem /opt/homebrew/Cellar/cairo/1.18.4/include/cairo -isystem /opt/homebrew/Cellar/libxext/1.3.7/include -isystem /opt/homebrew/Cellar/xorgproto/2025.1/include -isystem /opt/homebrew/Cellar/libxrender/0.9.12/include -isystem /opt/homebrew/Cellar/libx11/1.8.13/include -isystem /opt/homebrew/Cellar/libxcb/1.17.0/include -isystem /opt/homebrew/Cellar/libxau/1.0.12/include -isystem /opt/homebrew/Cellar/libxdmcp/1.1.5/include -isystem /opt/homebrew/Cellar/pixman/0.46.4/include/pixman-1 -isystem /opt/homebrew/Cellar/fribidi/1.0.16/include/fribidi -isystem /opt/homebrew/Cellar/libthai/0.1.30/include -isystem /opt/homebrew/Cellar/libdatrie/0.2.14/include -isystem /opt/homebrew/Cellar/fontconfig/2.17.1/include -isystem /opt/homebrew/Cellar/harfbuzz/13.1.1/include/harfbuzz -isystem /opt/homebrew/opt/freetype/include/freetype2 -isystem /opt/homebrew/opt/libpng/include/libpng16 -isystem /opt/homebrew/opt/graphite2/include -isystem /opt/homebrew/Cellar/libsodium/1.0.21/include -isystem /opt/homebrew/Cellar/openssl@3/3.6.2/include /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_public_timeline_smoke.cpp /Users/dhseo/Workspace/mediaServer/build-gst-onnx/libmedia_server_runtime.a /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libz.tbd /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstrtspserver-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstapp-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstwebrtc-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstsdp-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstpbutils-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstaudio-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstvideo-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstbase-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstreamer-1.0.dylib /opt/homebrew/Cellar/pango/1.57.0_2/lib/libpangocairo-1.0.dylib /opt/homebrew/Cellar/pango/1.57.0_2/lib/libpango-1.0.dylib /opt/homebrew/Cellar/cairo/1.18.4/lib/libcairo.dylib /opt/homebrew/Cellar/harfbuzz/13.1.1/lib/libharfbuzz.dylib /opt/homebrew/Cellar/glib/2.86.4/lib/libgobject-2.0.dylib /opt/homebrew/Cellar/glib/2.86.4/lib/libglib-2.0.dylib /opt/homebrew/opt/gettext/lib/libintl.dylib /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libsqlite3.tbd /opt/homebrew/Cellar/libsodium/1.0.21/lib/libsodium.dylib /opt/homebrew/Cellar/openssl@3/3.6.2/lib/libssl.dylib /opt/homebrew/Cellar/openssl@3/3.6.2/lib/libcrypto.dylib /opt/homebrew/lib/libonnxruntime.dylib -o /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v420-followup-42b0g6mw/recording_public_timeline_smoke
+
+exit: 0
+command: /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v420-followup-42b0g6mw/recording_public_timeline_smoke /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v420-followup-42b0g6mw/recording_public_timeline_smoke-data
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[pass] D3B-01 actual V2 원본·문자열 UTC·독립 unplaced 응답
+[pass] D3B-14 mismatch/nonintegral mapping은 unplaced
+[pass] D3B-14 mismatch/nonintegral mapping은 unplaced
+[pass] D3B-02 문법/범위 오류400
+[pass] D3B-02 문법/범위 오류400
+[pass] D3B-02 문법/범위 오류400
+[pass] D3B-02 문법/범위 오류400
+[pass] D3B-02 문법/범위 오류400
+[pass] D3B-02 문법/범위 오류400
+[pass] D3B-02 권한 거부403
+[pass] LP25-T01 omitted/mapping exact JSON identity
+[pass] LP25-T06 invalid unplacedUnit 400
+[pass] LP25-T06 authorize before invalid unit
+[pass] LP25-T06 invalid unplacedUnit 400
+[pass] LP25-T06 authorize before invalid unit
+[pass] LP25-T06 invalid unplacedUnit 400
+[pass] LP25-T06 authorize before invalid unit
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[pass] D3B-13 Intent placeholder no file/null time
+[pass] D3B-13 accepted/no-job 상태 보존
+[pass] D3B-05 Ready 출력 시간과 재생불가 분리
+[pass] D3B-05 Committed 출력 시간과 재생불가 분리
+[pass] D3B-05 실제 검증된 파생2출력 시간/파일 독립
+[pass] D3B-07 같은 UTC 다른 segment/epoch는 원본 숨김 없음
+[pass] D3B-13 출력 생성 뒤 job placeholder 없음
+[pass] D3B-07 page 밖 이벤트도 원본 전체 충족 판정
+[pass] D3B-06 일부 중첩 원본은 보존
+[pass] D3B-04 재조회 stable itemId/order
+[pass] D3B-12 요청축/문자열/공개 whitelist
+[pass] D3B-08 동일 size 변조 출력은 비재생
+[pass] D3B-08 파일 누락 Complete와 재생불가/숨김 분리
+[pass] D3B-08 실제 tombstone 출력 deleted 보존
+[pass] D3B-09 source tombstone 뒤 durable UTC 투영
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[pass] D3B-05 partial 요청 실제 출력 jobComplete
+[pass] D3B-14 actual 출력 mismatch mapping은 unplaced·partial 파일 제공 분리
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[pass] D3B-13 Failed placeholder no file/null time
+[pass] LP25-T04 failed placeholder unchanged without group members
+[pass] D3B-03/04 UTC0와 same-file 다중 mapping 독립 ID
+[pass] D3B-03 int64 최대 UTC ns 문자열 정밀도
+[pass] D3B-11 관련 없는 known4352 누적은 짧은 질의 허용
+[pass] D3B-11 실제 관련4352 상한 명시 실패
+[pass] D3B-02/11 관련 상한503
+[pass] D3B-10/11 unknown4354 count와 bounded 첫 페이지
+[pass] D3B-10 known/unplaced 독립 동일 offset 페이지
+[pass] LP25-T08 4352 unknown mappings become 17 files plus 2 invalid files
+[pass] LP25-T02 file group stable opaque IDs null UTC and all member identities
+[pass] LP25-T03 invalid fractional mapping provenance uncertainty and source PTS retained
+[pass] LP25-T08 file-unit page boundaries exact and stable including empty last page
+[pass] LP25-T08 known 4096 cap unchanged in file mode
+[pass] D3B-11 offset+limit overflow 명시 실패
+[pass] D3B-11 전체 unknown deep-copy 없이35074 첫 페이지 허용
+[pass] D3B-11 deep offset64MiB workspace 초과는 결과 없이 명시 실패
+[pass] LP25-T03 nonadjacent unknown members preserve gap and outer file range
+[pass] LP25-T03 null end PTS remains null and fixed writer reason is preserved
+[pass] LP25-T04 mixed known rows exact and distinct files never coalesce
+[pass] LP25-T03 group public whitelist excludes raw source store epoch and paths
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[pass] LP25-T04 intent placeholder unchanged alongside file groups
+[pass] LP25-T05 full two output file groups preserve request playback and members
+[pass] LP25-T07 corrupt output remains grouped and not playable
+[pass] LP25-T07 tombstone output preserves group provenance and cannot play
+[pass] LP25-T07 reopen exact group IDs member provenance and deleted state
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[pass] LP25-T04 intent placeholder unchanged alongside file groups
+[pass] LP25-T05 partial two output file groups preserve request playback and members
+[pass] LP25-T07 corrupt output remains grouped and not playable
+[pass] LP25-T07 tombstone output preserves group provenance and cannot play
+[pass] LP25-T07 reopen exact group IDs member provenance and deleted state
+[pass] LP25-T08 file-unit accumulated workspace cap rejects without partial response
+[summary] pass=66 fail=0
+
+exit: 0
+cleanup owned temporary root removed=True
+
+```
+
+</details>
+
+<details>
+<summary>UI 수정 전 RED</summary>
+
+```text
+✔ late search response cannot replace newer query or revive invalidated results (9.161292ms)
+✔ late seek and metadata cannot move a newer selected file (1.069208ms)
+✔ expired snapshot asks for new search and never loads a file (0.656042ms)
+✖ setting currentTime is seeking, only current media completion succeeds (0.77875ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 3
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 42.35125
+
+✖ failing tests:
+
+test at scripts/internal/recording_search_ui_state.test.mjs:65:1
+✖ setting currentTime is seeking, only current media completion succeeds (0.77875ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /탐색 중/. Input:
+
+  '검색 시점으로 이동했습니다. 재생 버튼을 누르세요.'
+
+      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_search_ui_state.test.mjs:70:46)
+      at async Test.run (node:internal/test_runner/test:1113:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: '검색 시점으로 이동했습니다. 재생 버튼을 누르세요.',
+    expected: /탐색 중/,
+    operator: 'match',
+    diff: 'simple'
+  }
+
+```
+
+</details>
+
+<details>
+<summary>UI 최종</summary>
+
+```text
+✔ late search response cannot replace newer query or revive invalidated results (9.12225ms)
+✔ late seek and metadata cannot move a newer selected file (0.838375ms)
+✔ expired snapshot asks for new search and never loads a file (0.56975ms)
+✔ setting currentTime is seeking, only current media completion succeeds (0.599333ms)
+✔ same URL new selection rejects old metadata seeked and error events (0.612666ms)
+✔ completion requires data, no pending seek, no media error, and target within frame tolerance (0.450959ms)
+✔ same current position waits for current data without needing seeked (0.850541ms)
+✔ bounds invalid response unsupported position and media failure remain distinct (0.429125ms)
+✔ incomplete evidence is not empty success (0.390416ms)
+✔ seeked before current data stays pending until loadeddata (0.435583ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 10
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 42.413583
+
+```
+
+</details>
+
+<details>
+<summary>HTTP 최초</summary>
+
+```text
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[pass] D3D-01 actual managed 원본과 jobComplete2출력·physical 검증
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-http-seed.ZeTxAr bytes=9884680 removed=true
+[elapsed] seconds=2 source=bash-SECONDS
+[seed-subcheck] PASS D3D-01 generated2출력 manifest/containment/hash
+[auth-subcheck] PASS I12~I16 principal 0 route 0 expected=200 actual=200
+[auth-subcheck] PASS I02 principal 0 허용 채널만 status 반환
+[auth-subcheck] PASS I01 principal 0 실제 비녹화 상태
+[auth-subcheck] PASS S07-http-observations-global
+[auth-subcheck] PASS I02/I17 principal 0 route 0 민감 field 비노출
+[auth-subcheck] PASS I12~I16 principal 0 route 1 expected=200 actual=200
+[auth-subcheck] PASS I02/I17 principal 0 route 1 민감 field 비노출
+[auth-subcheck] PASS I12~I16 principal 0 route 2 expected=200 actual=200
+[auth-subcheck] PASS I12~I16 principal 1 route 0 expected=200 actual=200
+[auth-subcheck] PASS I02 principal 1 허용 채널만 status 반환
+[auth-subcheck] PASS I01 principal 1 실제 비녹화 상태
+[auth-subcheck] PASS S07-http-observations-limited principal 1
+[auth-subcheck] PASS I02/I17 principal 1 route 0 민감 field 비노출
+[auth-subcheck] PASS I12~I16 principal 1 route 1 expected=200 actual=200
+[auth-subcheck] PASS I02/I17 principal 1 route 1 민감 field 비노출
+[auth-subcheck] PASS I12~I16 principal 1 route 2 expected=200 actual=200
+[auth-subcheck] PASS I12~I16 principal 2 route 0 expected=403 actual=403
+[auth-subcheck] PASS I02/I17 principal 2 route 0 민감 field 비노출
+[auth-subcheck] PASS I12~I16 principal 2 route 1 expected=403 actual=403
+[auth-subcheck] PASS I02/I17 principal 2 route 1 민감 field 비노출
+[auth-subcheck] PASS I12~I16 principal 2 route 2 expected=403 actual=403
+[auth-subcheck] PASS I12~I16 principal 3 route 0 expected=200 actual=200
+[auth-subcheck] PASS I02 principal 3 허용 채널만 status 반환
+[auth-subcheck] PASS I01 principal 3 실제 비녹화 상태
+[auth-subcheck] PASS S07-http-observations-limited principal 3
+[auth-subcheck] PASS I02/I17 principal 3 route 0 민감 field 비노출
+[auth-subcheck] PASS I12~I16 principal 3 route 1 expected=403 actual=403
+[auth-subcheck] PASS I02/I17 principal 3 route 1 민감 field 비노출
+[auth-subcheck] PASS I12~I16 principal 3 route 2 expected=404 actual=404
+[auth-subcheck] PASS I12~I16 principal 4 route 0 expected=403 actual=403
+[auth-subcheck] PASS I02/I17 principal 4 route 0 민감 field 비노출
+[auth-subcheck] PASS I12~I16 principal 4 route 1 expected=403 actual=403
+[auth-subcheck] PASS I02/I17 principal 4 route 1 민감 field 비노출
+[auth-subcheck] PASS I12~I16 principal 4 route 2 expected=403 actual=403
+[auth-subcheck] PASS I15 미인증 API expected=401 actual=401
+[auth-subcheck] PASS I15 미인증 API expected=401 actual=401
+[auth-subcheck] PASS I15 미인증 API expected=401 actual=401
+[auth-subcheck] PASS I16 operator의 다른 채널 조회 거부
+[auth-subcheck] PASS I34 viewer 녹화 화면 거부 status=403
+[auth-subcheck] PASS I17 인증 fixture plaintext 저장 없음
+[auth-subcheck] PASS V420-A01 search role/scope principal 0
+[auth-subcheck] PASS V420-A02 sanitized search response
+[auth-subcheck] PASS V420-A02 search no-store
+[auth-subcheck] PASS V420-A01 search role/scope principal 1
+[auth-subcheck] PASS V420-A02 sanitized search response
+[auth-subcheck] PASS V420-A02 search no-store
+[auth-subcheck] PASS V420-A01 search role/scope principal 2
+[auth-subcheck] PASS V420-A02 sanitized search response
+[auth-subcheck] PASS V420-A01 search role/scope principal 3
+[auth-subcheck] PASS V420-A02 sanitized search response
+[auth-subcheck] PASS V420-A01 search role/scope principal 4
+[auth-subcheck] PASS V420-A02 sanitized search response
+[auth-subcheck] PASS V420-A01 anonymous denied
+[auth-subcheck] PASS V420-A01 mixed channel request denied
+[auth-subcheck] PASS V420-F08 required missing evidence has sanitized 503 and no snapshot
+[auth-subcheck] PASS V420-F08 authorization precedes evidence disclosure
+[auth-subcheck] PASS V420-F08 unrelated missing observation does not fail search
+[auth-subcheck] PASS V420-F08 no behaviour query keeps existing reference search
+[cleanup] PASS {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v410-s06-Yic5Qn","rootBeforeBytes":2681657,"rootBeforeEntries":322,"rootSymlinksNotFollowed":277,"rootAbsent":true,"process":{"pid":67301,"exitCode":0,"signalCode":null,"graceful":true},"ports":[{"kind":"rtsp","port":61828,"closed":true,"evidence":"ECONNREFUSED"},{"kind":"http","port":61829,"closed":true,"evidence":"ECONNREFUSED"}],"attempted":6,"failureCount":0,"cleanupElapsedMs":114,"verifierElapsedMs":4587}
+[V410-S06 verifier] FAIL: V420-F08 producer track identity yields confirmed HTTP match
+
+```
+
+</details>
+
+<details>
+<summary>HTTP 수정 후</summary>
+
+```text
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[pass] D3D-01 actual managed 원본과 jobComplete2출력·physical 검증
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-http-seed.OlLDKj bytes=9884680 removed=true
+[elapsed] seconds=2 source=bash-SECONDS
+[seed-subcheck] PASS D3D-01 generated2출력 manifest/containment/hash
+[auth-subcheck] PASS I12~I16 principal 0 route 0 expected=200 actual=200
+[auth-subcheck] PASS I02 principal 0 허용 채널만 status 반환
+[auth-subcheck] PASS I01 principal 0 실제 비녹화 상태
+[auth-subcheck] PASS S07-http-observations-global
+[auth-subcheck] PASS I02/I17 principal 0 route 0 민감 field 비노출
+[auth-subcheck] PASS I12~I16 principal 0 route 1 expected=200 actual=200
+[auth-subcheck] PASS I02/I17 principal 0 route 1 민감 field 비노출
+[auth-subcheck] PASS I12~I16 principal 0 route 2 expected=200 actual=200
+[auth-subcheck] PASS I12~I16 principal 1 route 0 expected=200 actual=200
+[auth-subcheck] PASS I02 principal 1 허용 채널만 status 반환
+[auth-subcheck] PASS I01 principal 1 실제 비녹화 상태
+[auth-subcheck] PASS S07-http-observations-limited principal 1
+[auth-subcheck] PASS I02/I17 principal 1 route 0 민감 field 비노출
+[auth-subcheck] PASS I12~I16 principal 1 route 1 expected=200 actual=200
+[auth-subcheck] PASS I02/I17 principal 1 route 1 민감 field 비노출
+[auth-subcheck] PASS I12~I16 principal 1 route 2 expected=200 actual=200
+[auth-subcheck] PASS I12~I16 principal 2 route 0 expected=403 actual=403
+[auth-subcheck] PASS I02/I17 principal 2 route 0 민감 field 비노출
+[auth-subcheck] PASS I12~I16 principal 2 route 1 expected=403 actual=403
+[auth-subcheck] PASS I02/I17 principal 2 route 1 민감 field 비노출
+[auth-subcheck] PASS I12~I16 principal 2 route 2 expected=403 actual=403
+[auth-subcheck] PASS I12~I16 principal 3 route 0 expected=200 actual=200
+[auth-subcheck] PASS I02 principal 3 허용 채널만 status 반환
+[auth-subcheck] PASS I01 principal 3 실제 비녹화 상태
+[auth-subcheck] PASS S07-http-observations-limited principal 3
+[auth-subcheck] PASS I02/I17 principal 3 route 0 민감 field 비노출
+[auth-subcheck] PASS I12~I16 principal 3 route 1 expected=403 actual=403
+[auth-subcheck] PASS I02/I17 principal 3 route 1 민감 field 비노출
+[auth-subcheck] PASS I12~I16 principal 3 route 2 expected=404 actual=404
+[auth-subcheck] PASS I12~I16 principal 4 route 0 expected=403 actual=403
+[auth-subcheck] PASS I02/I17 principal 4 route 0 민감 field 비노출
+[auth-subcheck] PASS I12~I16 principal 4 route 1 expected=403 actual=403
+[auth-subcheck] PASS I02/I17 principal 4 route 1 민감 field 비노출
+[auth-subcheck] PASS I12~I16 principal 4 route 2 expected=403 actual=403
+[auth-subcheck] PASS I15 미인증 API expected=401 actual=401
+[auth-subcheck] PASS I15 미인증 API expected=401 actual=401
+[auth-subcheck] PASS I15 미인증 API expected=401 actual=401
+[auth-subcheck] PASS I16 operator의 다른 채널 조회 거부
+[auth-subcheck] PASS I34 viewer 녹화 화면 거부 status=403
+[auth-subcheck] PASS I17 인증 fixture plaintext 저장 없음
+[auth-subcheck] PASS V420-A01 search role/scope principal 0
+[auth-subcheck] PASS V420-A02 sanitized search response
+[auth-subcheck] PASS V420-A02 search no-store
+[auth-subcheck] PASS V420-A01 search role/scope principal 1
+[auth-subcheck] PASS V420-A02 sanitized search response
+[auth-subcheck] PASS V420-A02 search no-store
+[auth-subcheck] PASS V420-A01 search role/scope principal 2
+[auth-subcheck] PASS V420-A02 sanitized search response
+[auth-subcheck] PASS V420-A01 search role/scope principal 3
+[auth-subcheck] PASS V420-A02 sanitized search response
+[auth-subcheck] PASS V420-A01 search role/scope principal 4
+[auth-subcheck] PASS V420-A02 sanitized search response
+[auth-subcheck] PASS V420-A01 anonymous denied
+[auth-subcheck] PASS V420-A01 mixed channel request denied
+[auth-subcheck] PASS V420-F08 required missing evidence has sanitized 503 and no snapshot
+[auth-subcheck] PASS V420-F08 authorization precedes evidence disclosure
+[auth-subcheck] PASS V420-F08 unrelated missing observation does not fail search
+[auth-subcheck] PASS V420-F08 no behaviour query keeps existing reference search
+[auth-subcheck] PASS V420-F08 producer track identity yields confirmed HTTP match
+[auth-subcheck] PASS V420-F08 confirmed HTTP nonmatch is normal empty
+[auth-subcheck] PASS V420-C01 first page and cursor
+[auth-subcheck] PASS V420-C02 cross-user cursor denied
+[auth-subcheck] PASS V420-C01 stable HTTP snapshot
+[auth-subcheck] PASS V420-C01 no duplicate hit
+[auth-subcheck] PASS V420-C01 stable HTTP snapshot
+[auth-subcheck] PASS V420-C01 no duplicate hit
+[auth-subcheck] PASS V420-C01 stable HTTP snapshot
+[auth-subcheck] PASS V420-C01 no duplicate hit
+[auth-subcheck] PASS V420-C01 exact total membership
+[auth-subcheck] PASS V420-P03 authenticated hit playback URL
+[auth-subcheck] PASS V420-P03 selected media uses existing protected range route
+[auth-subcheck] PASS V420-P03 snapshot nonmember denied
+[auth-subcheck] PASS V420-A01 integrator fixture created
+[auth-subcheck] PASS V420-A01 integrator fixture login
+[auth-subcheck] PASS V420-A01 integrator search access denied
+[auth-subcheck] PASS V420-A01 integrator search access denied
+[auth-subcheck] PASS V420-F10 empty cursor rejected
+[S06 HTTP AUTH] checks=77 fail=0 actualUiActions=NOT_RUN
+[cleanup] PASS {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v410-s06-EaLn4s","rootBeforeBytes":2682417,"rootBeforeEntries":322,"rootSymlinksNotFollowed":277,"rootAbsent":true,"process":{"pid":67508,"exitCode":0,"signalCode":null,"graceful":true},"ports":[{"kind":"rtsp","port":61924,"closed":true,"evidence":"ECONNREFUSED"},{"kind":"http","port":61925,"closed":true,"evidence":"ECONNREFUSED"}],"attempted":6,"failureCount":0,"cleanupElapsedMs":867,"verifierElapsedMs":4905}
+
+```
+
+</details>
+
+<details>
+<summary>HTTP seed 마지막 준비</summary>
+
+```text
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[pass] D3D-01 actual managed 원본과 jobComplete2출력·physical 검증
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-http-seed.KsouSo bytes=10308797 removed=true
+[elapsed] seconds=2 source=bash-SECONDS
+
+```
+
+</details>
+
+<details>
+<summary>graph 최초</summary>
+
+```text
+[FAIL] current graph hash and metrics are exact: debt:line-count-drift:src/ingress/product_ui_page_scripts.cpp
+[FAIL] Slice 32 completion and current graph separation is fail-closed: current graph is not independently bound to the current source
+- PASS: versioned current architecture policy and continuation are explicit
+- FAIL: current graph hash and metrics are exact
+- PASS: current graph negative mutations reject forbidden edge and cycle
+- FAIL: Slice 32 completion and current graph separation is fail-closed
+- summary: pass=2 fail=2
+
+```
+
+</details>
+
+<details>
+<summary>generator 최초 준비 오류</summary>
+
+```text
+✖ current graph generator binds measured values without rewriting historical decisions (81.21625ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 113.283542
+
+✖ failing tests:
+
+test at scripts/internal/structure_owner_classification.test.mjs:452:1
+✖ current graph generator binds measured values without rewriting historical decisions (81.21625ms)
+  AssertionError [ERR_ASSERTION]: node:fs:439
+      return binding.readFileUtf8(path, stringToFlags(options.flag));
+                     ^
+
+  Error: ENOENT: no such file or directory, open '/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/structure-current-bind-vt3FEJ/test/fixtures/v390_structure_stabilization_slice32_completion_graph.json'
+      at Object.readFileSync (node:fs:439:20)
+      at readText (file:///private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/structure-current-bind-vt3FEJ/scripts/internal/verify_v390_structure_stabilization_execution.mjs:3024:37)
+      at readJson (file:///private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/structure-current-bind-vt3FEJ/scripts/internal/verify_v390_structure_stabilization_execution.mjs:3025:45)
+      at file:///private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/structure-current-bind-vt3FEJ/scripts/internal/verify_v390_structure_stabilization_execution.mjs:47:25
+      at ModuleJob.run (node:internal/modules/esm/module_job:413:25)
+      at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:660:26)
+      at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5) {
+    errno: -2,
+    code: 'ENOENT',
+    syscall: 'open',
+    path: '/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/structure-current-bind-vt3FEJ/test/fixtures/v390_structure_stabilization_slice32_completion_graph.json'
+  }
+
+  Node.js v24.13.0
+
+
+  1 !== 0
+
+      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/structure_owner_classification.test.mjs:465:12)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.start (node:internal/test_runner/test:1003:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:358:17) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+```
+
+</details>
+
+<details>
+<summary>generator 무효 include 반례</summary>
+
+```text
+✖ current graph generator binds measured values without rewriting historical decisions (288.241542ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 320.720042
+
+✖ failing tests:
+
+test at scripts/internal/structure_owner_classification.test.mjs:452:1
+✖ current graph generator binds measured values without rewriting historical decisions (288.241542ms)
+  AssertionError [ERR_ASSERTION]: Expected "actual" to be strictly unequal to: 0
+      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/structure_owner_classification.test.mjs:473:12)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.start (node:internal/test_runner/test:1003:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:358:17) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 0,
+    expected: 0,
+    operator: 'notStrictEqual',
+    diff: 'simple'
+  }
+
+```
+
+</details>
+
+<details>
+<summary>generator 실제 금지 include 반례</summary>
+
+```text
+✖ current graph generator binds measured values without rewriting historical decisions (289.063708ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 323.038458
+
+✖ failing tests:
+
+test at scripts/internal/structure_owner_classification.test.mjs:452:1
+✖ current graph generator binds measured values without rewriting historical decisions (289.063708ms)
+  AssertionError [ERR_ASSERTION]: Expected "actual" to be strictly unequal to: 0
+      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/structure_owner_classification.test.mjs:473:12)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.start (node:internal/test_runner/test:1003:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:358:17) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 0,
+    expected: 0,
+    operator: 'notStrictEqual',
+    diff: 'simple'
+  }
+
+```
+
+</details>
+
+<details>
+<summary>generator 최종</summary>
+
+```text
+✔ current graph generator binds measured values without rewriting historical decisions (256.577ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 288.5165
+
+```
+
+</details>
+
+<details>
+<summary>graph 최종</summary>
+
+```text
+- PASS: versioned current architecture policy and continuation are explicit
+- PASS: current graph hash and metrics are exact
+- PASS: current graph negative mutations reject forbidden edge and cycle
+- PASS: Slice 32 completion and current graph separation is fail-closed
+- summary: pass=4 fail=0
+
+```
+
+</details>
+
+<details>
+<summary>CMake 구조</summary>
+
+```text
+- PASS: composition executable and runtime static library are distinct
+- PASS: production C++ sources have exact composition/runtime ownership
+- PASS: runtime target owns optional source, compile definitions, includes, and external links
+- PASS: current graph and writer bind both actual CMake targets
+- PASS: target ownership and topology mutations fail closed
+- summary: pass=5 fail=0
+
+```
+
+</details>
+
+<details>
+<summary>comment 최초</summary>
+
+```text
+[fail] 한글 설명이 없는 주석
+  - scripts/internal/recording_search_application_smoke.cpp:38:        // Use a single full-page snapshot for each selected hit.
+  - scripts/internal/recording_search_compatibility_smoke.cpp:15:            // Metadata-only golden: an empty owned placeholder satisfies path admission, never media validity.
+  - scripts/internal/recording_search_cursor_smoke.cpp:44:    // Independent pool keeps subsequent cursor tests at their original clock.
+
+== Code comment policy summary ==
+- files: 1329
+- missing headers: 0
+- english-only comments: 3
+
+```
+
+</details>
+
+<details>
+<summary>comment 최종</summary>
+
+```text
+
+== Code comment policy summary ==
+- files: 1329
+- missing headers: 0
+- english-only comments: 0
+
+```
+
+</details>
+
+<details>
+<summary>최종 UI build</summary>
+
+```text
+[  1%] Building CXX object CMakeFiles/media_server_runtime.dir/src/ingress/product_ui_page_scripts.cpp.o
+[  2%] Linking CXX static library libmedia_server_runtime.a
+[ 99%] Built target media_server_runtime
+[ 99%] Linking CXX executable media_server
+[100%] Built target media_server
+
+```
+
+</details>
+
+위 로그 외 마지막 graph 연결 검사에서 쓰기 위치 수=1 정적 기대가 fail하여 3/4였다.
+승인된 current binding 쓰기를 반영한 뒤 graph4/4·generator1/1로 재검증했다.
+두 UI 브라우저 탭은 종료했고 viewport override는 설정하지 않았다. 서버는 stdin 종료·exit0,
+소유 fixture 제거와 RTSP/HTTP port close를 확인했다. UI 준비 출력의 actualUiPass=false를
+실제 브라우저 PASS 자동 판정으로 변조하지 않았다.
+
+```text
+{"uiPreparationLog":{"truncated":false,"droppedBytes":0,"writeFailed":false},"actualUiPass":false}
+[cleanup] PASS {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v410-s06-xXZiFt","rootBeforeBytes":15242747,"rootBeforeEntries":428,"rootSymlinksNotFollowed":277,"rootAbsent":true,"process":{"pid":67622,"exitCode":0,"signalCode":null,"graceful":true},"ports":[{"kind":"rtsp","port":62016,"closed":true,"evidence":"ECONNREFUSED"},{"kind":"http","port":62017,"closed":true,"evidence":"ECONNREFUSED"}],"attempted":6,"failureCount":0,"cleanupElapsedMs":595,"verifierElapsedMs":285655}
+
+
+{"uiPreparationLog":{"truncated":false,"droppedBytes":0,"writeFailed":false},"actualUiPass":false}
+[cleanup] PASS {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v410-s06-rT6bcy","rootBeforeBytes":15242954,"rootBeforeEntries":428,"rootSymlinksNotFollowed":277,"rootAbsent":true,"process":{"pid":68146,"exitCode":0,"signalCode":null,"graceful":true},"ports":[{"kind":"rtsp","port":62301,"closed":true,"evidence":"ECONNREFUSED"},{"kind":"http","port":62302,"closed":true,"evidence":"ECONNREFUSED"}],"attempted":6,"failureCount":0,"cleanupElapsedMs":897,"verifierElapsedMs":271232}
+```
+
+
+문서 링크 최종: 296문서/9230링크/15이미지, failures0. 로그 삽입 중 빈 줄의 후행 공백은 제거했다.
+UI proxy 62044/62324도 connect_ex=61(ECONNREFUSED)로 종료를 확인했다.
+
+재현 명령: `cmake --build build-gst-onnx --target media_server -j2`,
+`node --test scripts/internal/recording_search_ui_state.test.mjs`,
+`node scripts/internal/verify_v410_recording_ui_contract.mjs --http-auth`,
+`bash scripts/internal/verify_recording_http_seed.sh --self-test`,
+`node --test --test-name-pattern='current graph generator' scripts/internal/structure_owner_classification.test.mjs`,
+`node scripts/internal/verify_v390_structure_stabilization_execution.mjs --write-current-graph --bind-current-graph`,
+동일 도구 `--graph-only`, `node scripts/internal/verify_v390_cmake_internal_target_separation.mjs`,
+`node scripts/internal/verify_code_comments.mjs`, `node scripts/internal/verify_docs_links.mjs`,
+변경 mjs의 `node --check`, `git diff --check`. native compile/실행 명령은 위 원출력이다.
+최종 UI build/HTTP/VM/native/graph/CMake/comment/문서/구문 검사는 각각 exit0이다.
+
+커밋 후 실제 제품 diff와 source 바이트를 검증 대상 hash와 대조해 일치를 확인했다.
+push 전 origin fetch에서 원격은 여전히 리뷰 HEAD였고 승인된 코드 커밋2개만 ahead였다.
+이 증거 전용 커밋은 제품 검사 입력을 변경하지 않는다. 일반 push와 원격/CI 최종 관측은
+사용자에게 최종 보고하며, 이 기록을 제품 테스트의 합격 입력으로 사용하지 않는다.
