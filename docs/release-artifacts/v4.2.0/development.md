@@ -4916,3 +4916,16 @@ exit1로 종료됐다. feature-gates의 앞선 31개 명령은 통과했지만 3
 3차 cleanup은 PASS이고 실행 프로세스 종료(exit1)를 확인했다.
 최종 기록 보존 외 새 검사·수정·위임은 하지 않았다. PR·병합·tag·Release도 수행하지 않았다.
 재개에는 세 번째 실패 후 중단 조건을 해소하는 명시적 지시가 필요하다.
+
+사용자가 중단 조건 해제와 inventory 정합 수정부터의 재개를 승인했다. 재개 base는
+`82997f8f76075e9ac9b4db53aeb6674825123e47`, 로컬/원격 일치 및 작업 트리/index clean이었다.
+inventory의 현행 목표 v4.1.1을 v4.2.0으로 맞추고 개발 당시 장시간 제외 문구의 시점을 명시했다.
+재개 후 첫 `verify-project-inventory`는 scope pin을 통과했으나 문서 전체 hash의 manifest
+결속이 남아 exit1(17pass/1fail)이었다. 기존 `verify-v390-review4-feature-semantic-source-audit
+--apply-approved-manifest`로 기존 승인 986행/51검사 PASS 후 적용(exit0)했으며 승인 원장은
+수정하지 않았다. JSON 전후의 값 차이는 inventorySha256 하나다. 도구가 축약한 JSON은
+기존 들여쓰기 형태로 직렬화만 복원했다. 기대 hash를 직접 편집하지 않았다.
+두 번째 직접 `verify-project-inventory`는 exit0,18pass/0fail(재개 base+해당 미커밋 변경)이다.
+이후 JSON 공백 복원은 값이 동일하며 다음 canonical 실행의 최종 바이트에서 다시 검증된다.
+문서 링크와 diff 공백도 통과했다. 과거 세 실패는 그대로 유지하며 재개 후 직접 검사는
+1실패→1통과다. 제품 코드는 변경하지 않았다.

@@ -9,8 +9,8 @@
 계약은 [v4.2.0 개발 설계](superpowers/specs/2026-10-03-v420-structured-search-design.md)에 둔다.
 아래는 실행 전 정의다. 결과는 [개발 기록](release-artifacts/v4.2.0/development.md)에서 확인한다.
 `안정화`는 각 행의 단기 검사이며 전체 안정화/릴리즈 PASS를 뜻하지 않는다.
-30분·120분·릴리즈 UI 풀테스트는 이번 사용자 목표에서 제외했다. 아래 UI는 변경 기능의
-단기 직접 확인과 향후 릴리즈 매핑을 구분한다. 새 event/scenario 판정·line direction·tracker/
+개발 보완 당시에는 30분·120분·릴리즈 UI 풀테스트를 제외했다. 현재 릴리즈 검증은
+별도 승인된 실행 범위를 따르며, 아래 UI는 변경 기능의 단기 직접 확인과 릴리즈 매핑을 구분한다. 새 event/scenario 판정·line direction·tracker/
 Re-ID 정책은 변경하지 않으며 검색은 저장된 사실을 소비한다.
 
 | 기능 ID | route/control/action과 독립 기대값 | 안정화 | 30분 | 120분 | UI |
@@ -2240,7 +2240,7 @@ ST13 검증기 경계: seed/read-model shell 조기실패(CXX 실패 포함)는 
 | V410-S07-10 | 실제 event ID와 production observer wiring·recording off 독립 | S07 focused, S05 | 비대상 | 비대상 | 비대상: 기존 serializer 불변 |
 
 
-이 문서는 현재 release 목표 `v4.1.1` 기준의 기능별 테스트 분류 기준표입니다.
+이 문서는 현재 release 목표 `v4.2.0` 기준의 기능별 테스트 분류 기준표입니다.
 현재 소스 목표는 이미 공개된 버전이나 실제 실행 증거와 별개이며, 공개 상태는 릴리즈 metadata를 따릅니다.
 독자는 개발/테스트 에이전트이며, lifecycle은 active release target 동안 유지되는 test inventory입니다.
 AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, 이 문서는 기능 ID와 테스트 영역만 관리합니다.
