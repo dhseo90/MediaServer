@@ -16,6 +16,7 @@
 | V430-R02 | 활성 자료 고정·누적 identity 증가; 필수 ID/receipt 보존, 반복 삭제·off·재시작/재구축의 논리/RSS 분리 | 규모·소유 측정 | 향후 순환 | 필요성 판정 | 비대상: 내부 |
 | V430-R03 | 검색 snapshot 299초 유효/300초 만료; 실제 시계 fixture의 20ms idle 만료 뒤 2초 안에 후속 요청 없이 weak owner 해제, caller page 보존, 미래 만료를 기다리지 않는 종료(1초 이내) | `bash scripts/internal/verify_recording_search_lifetime.sh`; crypto on/off | 향후 idle/재활성화 | 필요성 판정 | 기존 만료 안내 |
 | V430-R04 | 검색 4요청·녹화 동시 진행; 기존 ID/건수/순서/권한·최종 파일 불변, 대기/준비/지연·peak 예산 | 실제 writer 단기 통합 | 향후 혼합 부하 | 필요성 판정 | 비대상: 내부 |
+| V430-R05 | 요청별 행동 근거 준비: 1,000문서 중 person 하나만 해당할 때 정확한 candidate-17 한 결과, 원본 1,000행 불변, 요청 모델 1행/논리량 원본의 1% 미만, 불일치 정상 empty; 기존 incomplete 근거·동일 event 결합/페이지 유지 | `recording_search_events_smoke.cpp`와 application/cost 영향 회귀 | 향후 검색 | 영향 판정 | 결과 계약 유지 |
 | V430-E01 | image/text/cross-modal contract; 동일 차원 다른 모델·전처리 혼합 거부, 구계약 새 공간으로 재색인 | 값/실제 모델; 세부 준비 중 | 향후 색인 | 영향 판정 | 미정 |
 | V430-EMBED-PREP | 고정 revision의 weight/tokenizer SHA-256 일치, local CPU image FP32[1,3,224,224]/text INT64[1,64]→각 768값, 공급자·export/dependency hash 보존 | 격리 준비/shape | 비대상: 준비 | 비대상: 준비 | 비대상: 내부 |
 | V430-EMBED-TOKEN | 영어/한국어/빈 문자열/공백/긴 입력의 공급자 대비 C++ token ID 전체 일치, BOS 없음·EOS 포함·오른쪽 PAD·총 64; 빈 사용자 질의는 application에서 거부 | tokenizer parity | 향후 검색 | 영향 판정 | 입력 오류 연결 |

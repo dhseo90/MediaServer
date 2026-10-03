@@ -42,6 +42,23 @@ int main(int argc,char**argv){
     RecordingSearchQuery query;query.channels={"one"};query.start_time_ms=1000;query.end_time_ms=2000;
     query.behaviours={"scenario:Arrival"};RecordingSearchMatches matches;
     Check(model->Query(query,&matches,&error)&&matches.positions.size()==1,"stored scenario reaches behaviour filter");
+    {
+        std::vector<SearchDocument> rows;
+        for(int i=0;i<1000;++i){auto row=d;row.id="candidate-"+std::to_string(i);row.object=i==17?"person":"car";rows.push_back(std::move(row));}
+        std::shared_ptr<const RecordingSearchModel> many_source,selected;
+        Check(RecordingSearchModel::Build(rows,"catalog",1,&many_source,&error),"R04 candidate fixture");
+        auto selected_query=query;selected_query.objects={"person"};
+        Check(many_source&&RecordingSearchReader::WithEventFacts(*many_source,&selected,&error,{},&selected_query)&&
+              selected->Query(selected_query,&matches,&error)&&matches.positions.size()==1&&
+              selected->documents()[matches.positions[0]].id=="candidate-17"&&
+              selected->documents().size()==1&&many_source->documents().size()==1000&&
+              selected->accounted_bytes()<many_source->accounted_bytes()/100,
+              "R04 query-local enrichment preserves exact result with reduced copy and immutable source");
+        auto absent=selected_query;absent.objects={"absent"};
+        Check(RecordingSearchReader::WithEventFacts(*many_source,&selected,&error,{},&absent)&&
+              selected->documents().empty()&&selected->Query(absent,&matches,&error)&&matches.positions.empty(),
+              "R04 excluded candidates are ready-empty without carrying full source");
+    }
     auto projected=d;projected.track_id="track-7";std::shared_ptr<const RecordingSearchModel> projected_model;
     Check(RecordingSearchModel::Build({projected},"catalog",1,&projected_model,&error)&&
         RecordingSearchReader::WithEventFacts(*projected_model,&projected_model,&error)&&projected_model->Query(query,&matches,&error)&&matches.positions.size()==1,

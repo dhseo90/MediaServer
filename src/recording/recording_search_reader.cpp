@@ -87,15 +87,20 @@ bool RecordingSearchReader::WithEventFacts(const RecordingSearchModel& source,
     const RecordingSearchQuery* query) {
     if (!output) {if(error)*error="search-invalid-output";return false;}
     try {
-        auto documents=source.documents();
-        std::map<std::string,std::vector<std::size_t>> channels;
-        for(auto& document:documents)document.event_facts.clear();
         RecordingSearchMatches candidates;
         if(query) {
             if(!source.BehaviourCandidates(*query,&candidates,error))return false;
-        } else for(std::size_t i=0;i<documents.size();++i)candidates.positions.push_back(i);
-        for(const auto i:candidates.positions)
-            if(!documents[i].event_ids.empty())channels[documents[i].channel_id].push_back(i);
+        } else for(std::size_t i=0;i<source.documents().size();++i)candidates.positions.push_back(i);
+        // 질의가 배제한 행은 요청 전용 사본에 복사하지 않는다. 공유 source와 기존 snapshot은
+        // 불변이며, query가 없는 기존 전체 enrichment 호출은 그대로 모든 행을 소비한다.
+        std::vector<SearchDocument> documents;
+        documents.reserve(candidates.positions.size());
+        std::map<std::string,std::vector<std::size_t>> channels;
+        for(const auto position:candidates.positions){
+            documents.push_back(source.documents().at(position));
+            auto& document=documents.back();document.event_facts.clear();
+            if(!document.event_ids.empty())channels[document.channel_id].push_back(documents.size()-1);
+        }
         for(const auto& channel:channels) {
             std::vector<ingress::EventSearchApplicationFact> facts;
             if(!ingress::ReadEventSearchFactsForApplication(channel.first,&facts,error))return false;

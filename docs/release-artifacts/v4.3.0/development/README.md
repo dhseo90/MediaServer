@@ -46,5 +46,28 @@ application 검사는 실제 원본·파생 파일/페이지·권한·검색 see
 모든 실행은 종료했고 소유 임시 경로 제거를 확인했다. 전체 서버 RSS, 4요청, 8채널,
 100,000 identity, 30분/120분·실제 UI 검증으로 확대하지 않는다.
 
-남은 작업: R02 규모·전체 소유량, R04 동시 부하와 5~10번 개발.
-모델·격리 의존성 준비는 사용자 승인 후 별도 담당자가 진행 중이다.
+## R02 삭제 이력 기준 측정 / R04·R05 검색 복사·동시 요청
+
+기준 `3a8b8935`와 R04/R05 diff에서 실행했다. 행동 필터용 요청 사본은 object/channel/time 등으로
+배제된 행을 복사하지 않는다. query 없는 전체 enrichment와 공유 원본·기존 snapshot은 유지한다.
+
+| 명령·대상 | 원출력 | exit·판정 |
+| --- | --- | --- |
+| `bash scripts/internal/verify_recording_generation_scale.sh bounded-deleted` | [삭제 이력 기준](r02-deleted-baseline.log) | 0, 101초. 실제 제품 archive로 1,020/2,049개 삭제 segment, 4,080/8,196 mutation identity, pin/hold·삭제·checkpoint·SQLite/JSONL 재기동 검사 |
+| `cmake --build build-gst-onnx -j 4` | [증분 제품 빌드](r04-build.log) | 0 |
+| 현행 CMake defines/includes/link와 제품 archive로 events/application/concurrent/cost fixture 컴파일·격리 실행 | [검색 영향 회귀](r04-search-regression.log) | 0. events 33, application 13, concurrent 8 PASS/0 FAIL; cost 1/1,000/10,000 관측의 독립 위치·ID/개수 oracle 일치 |
+
+삭제 이력 2,049개에서 parent peak RSS 129,646,592바이트, 재기동은 SQLite 99,205,120바이트 /
+JSONL 92,110,848바이트였다. 격리 파일 전체 논리 크기는 36,277,429바이트다. template 기반
+파일·메타데이터 검사이며 전체 observer drain이나 100,000 identity 검증이 아니다.
+
+R05는 공유 문서 1,000개를 유지하면서 person 후보 한 개만 요청 사본에 남기고 논리량이
+원본 1% 미만임을 확인했다. 기존 event evidence 불완전 거부와 빈 후보도 확인했다.
+4개 동시 client는 총 165회 응답(성공 163, 일시적 503 2), 응답 전체 p95 144.702ms /
+최대 160.214ms였다. 503은 latency 관측에 포함하고 성공 건수에서는 제외했다.
+writer 90 packet/3 GOP 파일 확정과 현재 media 건강도를 확인했다. 단기 개발 fixture이며
+8채널 운영·100,000 identity·전체 서버 혼합 RSS·장시간 안정성의 증거로 확대하지 않는다.
+각 실행은 종료했고 소유 임시 경로 제거를 확인했다.
+
+남은 작업: R02 목표 규모·전체 소유량과 5~10번 개발. 모델·격리 의존성은 준비됐으나
+제품 C++ 전처리·검색 통합은 미완료다.
