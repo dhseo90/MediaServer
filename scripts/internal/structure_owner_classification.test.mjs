@@ -1,6 +1,7 @@
 // 파일 용도: 승인된 exact 소유·제한 파일 연결과 기존 직접 packet 계약 진입점을 검사한다.
 // SAFE-211/SAFE-215 관련 데이터 자체검사이며 전체 graph·readiness PASS가 아니다.
 import test from 'node:test';
+import {spawnSync} from 'node:child_process';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
@@ -446,4 +447,29 @@ test('OWNER-2B supervisor는 명시 입력을 소유하고 전역 설정을 읽�
   assert(!implementation.includes('GetAppConfig'));
   assert(!implementation.includes('#include "app_config.h"'));
   assert(read('include/recording/recording_supervisor.h').includes('const std::string stream_route_;'));
+});
+
+test('current graph generator binds measured values without rewriting historical decisions',()=>{
+  const temporary=fs.mkdtempSync(path.join(os.tmpdir(),'structure-current-bind-'));
+  try {
+    copyCurrentGraphInputs(root,temporary);
+    const ledgerPath='test/fixtures/v390_structure_stabilization_execution.json';
+    const original=JSON.parse(read(ledgerPath));
+    for(const file of [original.approvalDecision.path,original.completionGraph.path,'scripts/internal/verify_v390_structure_stabilization_execution.mjs',
+      'scripts/internal/structure_dependency_policy_lib.mjs','scripts/internal/script_arg_utils.mjs','scripts/internal/webrtc_http_server_source_bundle.mjs']) {
+      fs.mkdirSync(path.dirname(path.join(temporary,file)),{recursive:true});fs.copyFileSync(path.join(root,file),path.join(temporary,file));
+    }
+    fs.appendFileSync(path.join(temporary,'src/ingress/product_ui_page_scripts.cpp'),'\n');
+    const command=path.join(temporary,'scripts/internal/verify_v390_structure_stabilization_execution.mjs');
+    const generated=spawnSync(process.execPath,[command,'--write-current-graph','--bind-current-graph'],{encoding:'utf8'});
+    assert.equal(generated.status,0,generated.stderr);
+    const updated=JSON.parse(fs.readFileSync(path.join(temporary,ledgerPath),'utf8'));
+    assert.notEqual(updated.currentGraph.sha256,original.currentGraph.sha256);
+    const restored=structuredClone(updated);restored.currentGraph=original.currentGraph;assert.deepEqual(restored,original);
+    assert.deepEqual(validateCurrentSourceGraph(temporary).errors,[]);
+    const before=fs.readFileSync(path.join(temporary,ledgerPath),'utf8');
+    fs.appendFileSync(path.join(temporary,'include/recording/segment_writer.h'),'#include "media_types.h"\n');
+    const rejected=spawnSync(process.execPath,[command,'--write-current-graph','--bind-current-graph'],{encoding:'utf8'});
+    assert.notEqual(rejected.status,0);assert.equal(fs.readFileSync(path.join(temporary,ledgerPath),'utf8'),before);
+  } finally {fs.rmSync(temporary,{recursive:true});assert(!fs.existsSync(temporary));}
 });

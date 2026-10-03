@@ -500,6 +500,20 @@ std::unique_ptr<ResolvedRecordingMedia> RecordingReadService::ResolveMediaWithCo
 bool RecordingReadService::QueryTimeline(const RecordingTimelineQuery& query,
                                          RecordingTimelineResult* result,
                                          std::string* error) const {
+    return QueryTimelineImpl(query,result,error,1000);
+}
+bool RecordingReadService::QuerySearchTimeline(const std::string& channel,std::int64_t start,std::int64_t end,
+    RecordingTimelineResult* output,std::string* error) const {
+    if(!output){if(error)*error="search-invalid-output";return false;}
+    RecordingTimelineResult result;
+    if(!QueryTimelineImpl({channel,start,end,0,100000,false},&result,error,100000))return false;
+    if(result.items.size()!=result.total||result.unplaced_items.size()!=result.unplaced_total) {
+        if(error)*error="search-playback-projection-incomplete";return false;
+    }
+    *output=std::move(result);return true;
+}
+bool RecordingReadService::QueryTimelineImpl(const RecordingTimelineQuery& query,
+    RecordingTimelineResult* result,std::string* error,std::size_t max_limit) const {
     recording::latency::Scope latency_scope(recording::latency::Operation::Query,recording::latency::Source::Read,__LINE__,true);
     if (!result) {
         if (error) *error = "timeline result is required";
@@ -509,7 +523,7 @@ bool RecordingReadService::QueryTimeline(const RecordingTimelineQuery& query,
     // channel ID는 opaque media ID가 아니다. 기존 숫자형 채널 식별자를 유지한다.
     if (query.channel_id.empty() || query.channel_id.size() > 256 ||
         query.channel_id.find('\0') != std::string::npos || query.start_ms < 0 ||
-        query.end_ms <= query.start_ms || query.limit == 0 || query.limit > 1000) {
+        query.end_ms <= query.start_ms || query.limit == 0 || query.limit > max_limit) {
         if (error) *error = "invalid timeline query";
         return false;
     }

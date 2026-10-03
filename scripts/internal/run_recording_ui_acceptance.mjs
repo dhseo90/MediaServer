@@ -135,7 +135,10 @@ export async function runRecordingUiAcceptance(context,options){
   const action=async(id,fn)=>{
     const row=results.find(r=>r.id===id);assert(row&&row.status==='notRun','duplicate action');active=row;
     const startedAt=new Date().toISOString();trace.push({id,phase:'begin',at:startedAt,principal,viewport:page.viewportSize(),theme:await page.locator('html').getAttribute('data-theme')});
-    try{const detail=await fn();row.evidence.push(write(id+'.json',{id,startedAt,completedAt:new Date().toISOString(),observedViewport:page.viewportSize(),observedTheme:await page.locator('html').getAttribute('data-theme'),detail}),await screenshot(id));row.status='pass';}
+    try{const detail=await fn();
+      // 선택 목록 대신 전체 플레이어와 상태가 보이는 위치에서 재생 관련 증거를 보존한다.
+      if(['I28-event','I29-original','I31-partial','I31-deleted','I31-corrupt','I31-pending','I34-admin'].includes(id))await page.locator('#opsRecordingPlayer').evaluate(node=>node.scrollIntoView({block:'center'}));
+      row.evidence.push(write(id+'.json',{id,startedAt,completedAt:new Date().toISOString(),observedViewport:page.viewportSize(),observedTheme:await page.locator('html').getAttribute('data-theme'),detail}),await screenshot(id));row.status='pass';}
     catch(error){row.status='fail';row.reason=redactAcceptanceText(error.message,secrets);throw error;}
     finally{trace.push({id,phase:'end',at:new Date().toISOString(),status:row.status,principal});}
   };

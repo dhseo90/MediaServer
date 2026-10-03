@@ -7,15 +7,11 @@
 
 ## 현재 공개 상태
 
-- 현재 소스 버전: `4.1.0`
-- Live GitHub Latest: `https://github.com/dhseo90/MediaServer/releases/latest`
-- 현재 release target: `v4.1.0`
-- 직전 공개 baseline: `v4.0.0 Local Operations Policy and Stabilization`
-- 이전 공개 baseline: `v3.9.1 Release Correctness and Public Repository Hygiene`
-- 현재 source roadmap: `v4.1.0 Recording Foundation`
-- S11 제품 검증과 B14 공개 준비는 완료했습니다. v4.1.0 외부 release는 signed tag,
-  source-only GitHub Release, `verify-release-metadata --published` evidence로 확인합니다.
-- public repository 기준은 source-only 공개입니다.
+소스 버전·공개 목표·기록된 공개 관측은 [릴리즈 metadata](release-policy.md#소스와-기록된-공개-상태)를 따른다.
+현재 목표 v4.2.0의 기능·검증·운영 제한은 [릴리즈 노트](release-notes-v4.2.0.md)에 둔다.
+GitHub의 실제 현재 공개 상태는 [Latest](https://github.com/dhseo90/MediaServer/releases/latest)에서 확인한다.
+public repository의 공개 범위는 source-only이며 signed tag·Release·외부 공개 확인을 검증 완료와 구분한다.
+아래 자동 검사·GitHub 설정 확인의 성공은 실제 해당 cut의 결과로 판정한다.
 
 ## 공개 대상
 

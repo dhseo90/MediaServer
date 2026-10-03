@@ -1,6 +1,6 @@
 # 파일 용도: CMake 빌드 옵션과 GStreamer 연동 타깃을 정의한다.
 cmake_minimum_required(VERSION 3.16)
-project(media_server VERSION 4.1.1 LANGUAGES CXX)
+project(media_server VERSION 4.2.0 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -93,6 +93,11 @@ add_library(media_server_runtime STATIC
     src/ingress/product_ui_action_execution_deferral.cpp
     src/ingress/product_ui_auth_pages.cpp
     src/recording/recording_contracts.cpp
+    src/recording/recording_search_precedence.cpp
+    src/recording/recording_search_snapshots.cpp
+    src/recording/recording_search_model.cpp
+    src/recording/recording_search_source.cpp
+    src/recording/recording_search_reader.cpp
     src/recording/event_clip_deriver.cpp
     src/recording/event_recording_bridge.cpp
     src/recording/gstreamer_segment_writer.cpp
@@ -128,6 +133,7 @@ add_library(media_server_runtime STATIC
     src/recording/recording_evidence_observer.cpp
     src/recording/recording_runtime_composition.cpp
     src/recording/recording_derived_remux.cpp
+    src/ingress/recording_search_application_service.cpp
     src/ingress/recording_application_service.cpp
     src/recording/retention_coordinator.cpp
     src/recording/recording_session_service.cpp

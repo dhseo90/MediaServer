@@ -5,6 +5,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import {RECORDING_UI_ACTIONS,createResultManifest,parseAcceptanceArgs,prepareOutputDirectory,redactAcceptanceText,writeSanitizedArtifact,findSeekSeedItem,findTimelinePosition,validateI30Observation,assessRecordingConsole} from './run_recording_ui_acceptance.mjs';
+import {validateC03Unplaced} from './run_recording_search_ui_acceptance.mjs';
 import {recordingGeometry,foreignPlayableMedia} from './recording_ui_after_playback.mjs';
 const root=fs.mkdtempSync(path.join(os.tmpdir(),'media-server-recording-ui-acceptance-test-'));let pass=0,fail=0;
 function check(name,fn){try{fn();pass++;console.log(`PASS: ${name}`);}catch(error){fail++;console.log(`FAIL: ${name}: ${error.message}`);}}
@@ -44,6 +45,14 @@ try {
     const e={session:1,action:c.action,route:c.route,status:403};
     assert.equal(assessRecordingConsole([c],[n],[e]).unapproved.length,0);
     for(const [messages,network,expected] of [[[c],[n],[]],[[{...c,session:2}],[n],[e]],[[c],[{...n,action:'other'}],[e]],[[c],[n,{...n,requestId:2}],[e]],[[{...c,type:'warning'}],[n],[e]],[[c,c],[n],[e]]])assert(assessRecordingConsole(messages,network,expected).unapproved.length>0);
+  });
+  check('AU10 C03는 신규 unknown의 독립 식별·동일 질의·전체 페이지를 요구한다',()=>{
+    const old={id:'old',channelId:'1'},added={id:'new',segmentId:'segment-new',channelId:'3',startTimeNs:null,endTimeNs:null,timeProvenance:'unknown'};
+    const first={snapshotId:'old-snapshot',knownCount:1,unplacedCount:0,nextCursor:null,items:[old]};
+    const page={snapshotId:'new-snapshot',knownCount:1,unplacedCount:1,nextCursor:'next',items:[old]};
+    const input={first,held:[first],fresh:[page,{...page,nextCursor:null,items:[added]}],before:{total:0,unplacedTotal:0},after:{total:0,unplacedTotal:1,unplacedItems:[{segmentId:'segment-new',channelId:'3',catalogState:'finalized',completeness:'complete',startTimeMs:null,endTimeMs:null,members:[{mappingProvenance:'unknown'}]}]},oldQuery:{includeUnplaced:'true',channelIds:'1,3',startTimeMs:'1',endTimeMs:'2',limit:'20'},newQuery:{includeUnplaced:'true',channelIds:'1,3',startTimeMs:'1',endTimeMs:'2',limit:'20'}};
+    assert.deepEqual(validateC03Unplaced(input).newResultIds,['new']);
+    for(const mutate of [x=>x.newQuery.includeUnplaced='false',x=>x.newQuery.endTimeMs='3',x=>x.after.unplacedItems[0].catalogState='writing',x=>x.after.unplacedItems[0].members[0].mappingProvenance='estimated',x=>x.fresh.pop(),x=>x.fresh[1].items[0].segmentId='unrelated',x=>x.fresh[1].items[0].startTimeNs='1',x=>x.fresh[1].items[0].channelId='4',x=>x.fresh[1].items[0].id='old',x=>x.fresh[1].snapshotId='other',x=>x.held[0].items[0].channelId='3']){const bad=structuredClone(input);mutate(bad);assert.throws(()=>validateC03Unplaced(bad));}
   });
 } finally {fs.rmSync(root,{recursive:true,force:true});}
 console.log(JSON.stringify({pass,fail,actualUi:false}));process.exitCode=fail?1:0;

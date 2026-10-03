@@ -163,6 +163,11 @@ struct EventStorageSnapshot {
     std::string last_error;
 };
 
+// 검색 전용 최소 사실. raw metadata/경로를 보유하지 않는다.
+struct EventSearchFact {
+    std::string event_id, channel_id, event_type, scenario_name, stream_epoch_id;
+    std::uint64_t track_id{0};
+};
 struct EventRecordQueryOptions {
     std::string event_id;
     std::string event_type;
@@ -183,9 +188,12 @@ struct EventRecordQueryOptions {
     std::size_t offset{0};
     std::size_t limit{100};
     bool include_archives{false};
+    bool search_facts_only{false}; // 내부 읽기 전용; 기존 JSON 조회 기본값은 유지한다.
 };
 
 struct EventRecordQueryResult {
+    std::vector<EventSearchFact> search_facts;
+    std::size_t search_fact_bytes{0};
     EventStorageSnapshot storage;
     bool file_exists{false};
     std::vector<std::string> records_json;

@@ -56,6 +56,15 @@ int main(int argc,char** argv){
            !retention.AdmitDerivedJob(store.catalog,intent,10).accepted)throw std::runtime_error("seed-intent-admission");
         recording::DerivedJobService service(store.catalog,store.journal,{root,30000,{}});const auto result=service.Run(intent.job_id);
         if(!result.complete||!result.job||!result.job->ready||result.job->ready->outputs.size()!=2)throw std::runtime_error("seed-job-incomplete");
+        recording::AnalysisObservationV2 observation;observation.observation_id="http-missing-behaviour";
+        observation.source_id="1";observation.channel_id="1";observation.analysis_namespace="http-evidence-ns";
+        observation.track_id="track-1";observation.class_label="person";observation.confidence=.8;
+        observation.bbox={0,0,.5,.5};observation.selection_reasons={"event"};observation.event_ids={"http-missing-event"};
+        if(!store.catalog.PutObservationV2(observation,&error))throw std::runtime_error(error);
+        observation.observation_id="http-confirmed-behaviour";observation.track_id="track-7";observation.event_ids={"http-confirmed-event"};
+        if(!store.catalog.PutObservationV2(observation,&error))throw std::runtime_error(error);
+        std::filesystem::create_directories(parent/"events");
+        {std::ofstream events(parent/"events/events.jsonl");events<<"{\"schema\":\"media-server.va.event-record.v1\",\"eventId\":\"http-confirmed-event\",\"channelId\":\"1\",\"trackId\":7,\"eventType\":\"Intrusion\",\"scenarioName\":\"Arrival\",\"startTime\":1000,\"updateTime\":1000,\"endTime\":2000}\n";if(!events)throw std::runtime_error("seed-event-write");}
         auto pending=reference;pending.reference_id="http-accepted-only";pending.owner_id="http-pending-event";
         if(!store.catalog.PutConsumerReference(pending,&error)||!store.catalog.AcceptDerivedReference(pending,&error))throw std::runtime_error(error);
         std::optional<recording::RecordingSegmentV2> transport;

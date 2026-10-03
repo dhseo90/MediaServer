@@ -11,6 +11,7 @@
 #endif
 
 #include <algorithm>
+#include <atomic>
 #include <deque>
 #include <iostream>
 #include <limits>

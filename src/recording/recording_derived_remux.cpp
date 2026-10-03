@@ -419,4 +419,25 @@ DerivedRemuxResult DeriveRecordingH264Remux(const DerivedRemuxRequest& request) 
     return result;
 #endif
 }
+bool ResolveRecordingPresentationTime(int fd,std::uint64_t bytes,const std::string& sha256,
+    std::int64_t pts,const std::string& vcl,std::int64_t* stream,std::int64_t* duration,std::string* error) {
+#if !MEDIA_SERVER_USE_GSTREAMER
+    (void)fd;(void)bytes;(void)sha256;(void)pts;(void)vcl;(void)stream;(void)duration;
+    if(error)*error="gstreamer-unavailable";return false;
+#else
+    const std::function<bool()> cancelled;
+    const Budget budget{Clock::now()+std::chrono::seconds(5),cancelled};
+    try {
+        Require(stream&&duration&&fd>=0&&bytes>0&&bytes<=kInputLimit&&sha256.size()==64&&vcl.size()==64,"presentation-input-invalid");
+        struct stat before{},after{};
+        Require(::fstat(fd,&before)==0&&S_ISREG(before.st_mode)&&before.st_size>=0&&static_cast<std::uint64_t>(before.st_size)==bytes,"presentation-file-invalid");
+        Require(FileHash(fd,bytes,budget)==sha256,"presentation-file-changed");
+        const auto samples=ReadAus(fd,bytes,false,budget);const Au* match=nullptr;
+        for(const auto& sample:samples)if(sample.pts==pts&&sample.vcl==vcl){Require(!match,"presentation-ambiguous");match=&sample;}
+        Require(match&&match->stream>=0&&match->duration>0,"presentation-unavailable");
+        Require(::fstat(fd,&after)==0&&Stable(before,after)&&FileHash(fd,bytes,budget)==sha256,"presentation-file-changed");
+        *stream=match->stream;*duration=match->duration;if(error)error->clear();return true;
+    }catch(const std::exception& ex){if(error)*error=ex.what();return false;}
+#endif
+}
 } // namespace recording

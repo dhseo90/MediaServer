@@ -5,6 +5,7 @@
 #include "recording/recording_runtime_composition.h"
 #include "recording/recording_derived_job_service.h"
 #include "recording/recording_derived_selection.h"
+#include "recording/recording_search_reader.h"
 #include "ingress/recording_application_service.h"
 #include <openssl/evp.h>
 #include <fcntl.h>
@@ -123,6 +124,54 @@ Job Derive(Store& store,const Encoded& input,const std::vector<recording::Record
         Require(store.catalog.PutConsumerReference(pending,&error)&&store.catalog.AcceptDerivedReference(pending,&error),"accepted-only");}
     return result;
 }
+// 릴리즈 검색 UI 전용 저장 사실. 기존 기본 녹화 fixture에서는 호출하지 않는다.
+void SearchUiFacts(Store& store,const Encoded& media,const Encoded& original,const std::filesystem::path& parent){
+    std::ofstream events(parent/"events/events.jsonl",std::ios::app);
+    Require(bool(events),"search-events-open");
+    const char* types[]={"Intrusion","LineCrossing","Intrusion","Intrusion"};
+    const char* scenarios[]={"","","intrusion-dwell","loitering"};
+    for(int index=0;index<32;++index){
+        const auto& packet=media.packets.at(index<4?30+index*30:30);
+        recording::RecordingConsumerReferenceV1 ref;
+        ref.reference_id="ui-release-ref-"+std::to_string(index);ref.kind="observation";
+        ref.owner_id="ui-release-"+std::to_string(index);ref.source_id="1";ref.channel_id="1";
+        ref.analysis_namespace=(index==29||index==30)?"ui-release-ns-"+std::to_string(index):"ui-release";ref.analysis_track_id="track-7";ref.analysis_pts=packet.pts;
+        ref.association_quality="timestamp-match";
+        ref.original=recording::RecordingConsumerOriginalV1{packet.observation->source_generation,
+            packet.observation->generation_order,packet.observation->ordinal,packet.track_id,*packet.observation->pts_ns};
+        recording::AnalysisObservationV2 o;o.observation_id=ref.owner_id;o.source_id="1";o.channel_id="1";
+        o.analysis_namespace=ref.analysis_namespace;o.track_id=ref.analysis_track_id;o.pts=packet.pts;
+        o.first_seen_pts=o.pts;o.last_seen_pts=o.pts;o.class_label=index<4?"person":index==31?"event-combination":index>=29?"track-collision":"paging";
+        o.confidence=.8;o.bbox={0,0,.5,.5};o.selection_reasons={"event"};
+        if(index==31)o.event_ids={"ui-release-event-0","ui-release-event-3"};
+        o.zone_ids={index%2?"zone-b":"zone-a"};o.rule_ids={index%2?"rule-b":"rule-a"};
+        if(index<4){const auto id="ui-release-event-"+std::to_string(index);o.event_ids={id};
+            events<<"{\"schema\":\"media-server.va.event-record.v1\",\"eventId\":"<<std::quoted(id)
+                <<",\"channelId\":\"1\",\"trackId\":7,\"eventType\":"<<std::quoted(types[index])
+                <<",\"scenarioName\":"<<std::quoted(scenarios[index])<<",\"startTime\":1000,\"updateTime\":1000,\"endTime\":2000}\n";}
+        std::string error;Require(store.catalog.PutReferencedObservation(o,ref,&error),"search-release-observation");
+    }
+    for(const int index:{0,20}){
+        const auto& packet=original.packets.at(index);recording::RecordingConsumerReferenceV1 ref;
+        ref.reference_id="ui-release-derived-ref-"+std::to_string(index);ref.owner_id="ui-release-derived-"+std::to_string(index);
+        ref.kind="observation";ref.source_id="1";ref.channel_id="1";ref.analysis_namespace="ui-release-derived";
+        ref.analysis_track_id="track-8";ref.analysis_pts=packet.pts;ref.association_quality="timestamp-match";
+        ref.original=recording::RecordingConsumerOriginalV1{packet.observation->source_generation,
+            packet.observation->generation_order,packet.observation->ordinal,packet.track_id,*packet.observation->pts_ns};
+        recording::AnalysisObservationV2 o;o.observation_id=ref.owner_id;o.source_id="1";o.channel_id="1";
+        o.analysis_namespace=ref.analysis_namespace;o.track_id=ref.analysis_track_id;o.pts=packet.pts;
+        o.first_seen_pts=o.pts;o.last_seen_pts=o.pts;o.class_label="event-search";o.confidence=.8;o.bbox={0,0,.5,.5};o.selection_reasons={"event"};
+        std::string error;Require(store.catalog.PutReferencedObservation(o,ref,&error),"search-release-derived");
+    }
+    recording::AnalysisObservationV2 unknown;unknown.observation_id="ui-release-unknown";
+    unknown.source_id="1";unknown.channel_id="1";unknown.analysis_namespace="ui-release";
+    unknown.track_id="track-unknown";unknown.class_label="unknown-fixture";unknown.confidence=.8;
+    unknown.bbox={0,0,.5,.5};unknown.selection_reasons={"event"};std::string error;
+    Require(store.catalog.PutObservationV2(unknown,&error)&&bool(events),"search-release-unknown");
+    for(int i=0;i<2;++i){auto epoch=unknown;epoch.observation_id="ui-release-epoch-"+std::to_string(i);
+        epoch.class_label="epoch-collision";epoch.track_id="track-7";epoch.stream_epoch_id="ui-release-epoch-"+std::to_string(i);
+        Require(store.catalog.PutObservationV2(epoch,&error),"search-release-epoch");}
+}
 void FileJson(std::ostream& out,Store& store,const recording::RecordingSegmentV2& s){
     const auto location=store.catalog.FindSegmentMediaLocation(s.segment_id);Require(location&&location->first==store.root,"manifest-location");
     out<<"{\"id\":"<<std::quoted(s.segment_id)<<",\"relativePath\":"<<std::quoted(location->second.string())
@@ -142,8 +191,38 @@ std::string Snapshot(Store& store,std::int64_t begin,std::int64_t end){
     pages<<']';return pages.str();
 }
 }
+// 서버 종료를 확인한 wrapper만 생성하는 소유 marker가 있어야 catalog를 재개방한다.
+int MutateSearchFixture(const std::filesystem::path& root,const std::string& action){
+    const auto parent=std::filesystem::canonical(root.parent_path());
+    Require(root.filename()=="recordings"&&root.parent_path()==parent&&
+        parent.filename().string().rfind("media-server-v410-s06-",0)==0&&
+        !std::filesystem::is_symlink(root)&&std::filesystem::is_regular_file(parent/"search-server-stopped"),"search-mutation-owner");
+    Require(action=="add"||action=="capacity"||action=="restart","search-mutation-action");
+    Store store(root);std::string error;
+    if(action=="add"){
+        const auto rows=store.catalog.QueryReferencedObservations("1");
+        const auto found=std::find_if(rows.begin(),rows.end(),[](const auto& row){return row.observation.observation_id=="ui-release-0";});
+        Require(found!=rows.end(),"search-mutation-source");auto o=found->observation;auto ref=found->reference;
+        o.observation_id="ui-release-added";o.class_label="added";ref.owner_id=o.observation_id;ref.reference_id="ui-release-added-ref";
+        Require(store.catalog.PutReferencedObservation(o,ref,&error),"search-mutation-add");
+    }else if(action=="capacity"){
+        recording::AnalysisObservationV2 o;o.source_id="1";o.channel_id="1";o.analysis_namespace="ui-capacity";
+        o.track_id="capacity";o.class_label="capacity";o.confidence=.8;o.bbox={0,0,.5,.5};o.selection_reasons={"event"};
+        // 600행의 유효한 참조 문자열로 기존 64MiB 논리 admission을 넘긴다.
+        // 100,001행 또는 실제 파일 100,001개 검사로 보고하지 않는다.
+        for(int i=0;i<64;++i){o.zone_ids.push_back(std::string(240,'z')+std::to_string(i));o.rule_ids.push_back(std::string(240,'r')+std::to_string(i));}
+        for(int i=0;i<600;++i){o.observation_id="ui-capacity-"+std::to_string(i);
+            Require(store.catalog.PutObservationV2(o,&error),"search-mutation-capacity");}
+        recording::RecordingReadService read(store.catalog);recording::RecordingSearchReader search(store.catalog,read);
+        std::shared_ptr<const recording::RecordingSearchModel> model;
+        Require(!search.Refresh({"1"},nullptr,&model,&error)&&error=="search-capacity-exceeded"&&!model,"search-capacity-oracle");
+    }
+    std::cout<<"[search-fixture-mutation] "<<action<<" complete\n";return 0;
+}
+
 int main(int argc,char** argv){
-    if(argc!=5)return 2;gst_init(nullptr,nullptr);
+    if(argc==4&&std::string(argv[1])=="--search-mutate"){try{return MutateSearchFixture(argv[2],argv[3]);}catch(const std::exception& e){std::cerr<<e.what()<<'\n';return 1;}}
+    if(argc!=5&&argc!=6)return 2;gst_init(nullptr,nullptr);
     try{
         const std::filesystem::path root(argv[1]),manifest(argv[2]);const auto parent=std::filesystem::canonical(root.parent_path());const auto name=parent.filename().string();
         Require(root.filename()=="recordings"&&root.parent_path()==parent&&manifest.parent_path()==parent&&
@@ -152,7 +231,8 @@ int main(int argc,char** argv){
             !std::filesystem::exists(manifest)&&!std::filesystem::is_symlink(manifest),"seed-owned-root");
         std::optional<std::int64_t> anchor;const std::string argument(argv[3]);
         if(argument!="unknown"){Require(!argument.empty()&&argument.find_first_not_of("0123456789")==std::string::npos,"anchor-format");anchor=std::stoll(argument);Require(*anchor>=946684800000LL&&*anchor<=4102444800000LL,"anchor-bounds");}
-        const std::filesystem::path seek(argv[4]);
+        const bool search=argc==6&&std::string(argv[5])=="search";Require(argc==5||search,"seed-mode");
+        const std::filesystem::path seek(argv[4]);Require(!search||seek!="none","search-seek-required");
         if(seek!="none")Require(anchor&&seek==parent/"input/seek-event.mp4"&&std::filesystem::canonical(seek)==seek,"seek-owned-input");
         // 운영 mutation 시각은 명시 anchor 또는 실제 실행 시각이다. 이를 unknown 영상 UTC로 사용하지 않는다.
         const auto now_ms=anchor.value_or(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count());
@@ -173,6 +253,18 @@ int main(int argc,char** argv){
                 Require(store.catalog.FinalizeSegmentV2(s,file.string(),&error),"page-finalize");
             }
             if(seek!="none"){auto media=ReadSeek(seek);Clock(media,anchor,"ui-seek-generation");const auto written=Write(store,media,30000);
+                for(const int index:{30,60}) {
+                    const auto& packet=media.packets.at(index);recording::RecordingConsumerReferenceV1 ref;
+                    ref.reference_id="ui-search-ref-"+std::to_string(index);ref.kind="observation";ref.owner_id="ui-search-"+std::to_string(index);
+                    ref.source_id="1";ref.channel_id="1";ref.analysis_namespace="ui-search";ref.analysis_track_id="track-ui";ref.analysis_pts=packet.pts;
+                    ref.association_quality="timestamp-match";ref.original=recording::RecordingConsumerOriginalV1{packet.observation->source_generation,
+                        packet.observation->generation_order,packet.observation->ordinal,packet.track_id,*packet.observation->pts_ns};
+                    recording::AnalysisObservationV2 o;o.observation_id=ref.owner_id;o.source_id="1";o.channel_id="1";o.analysis_namespace=ref.analysis_namespace;
+                    o.track_id=ref.analysis_track_id;o.pts=ref.analysis_pts;o.first_seen_pts=o.pts;o.last_seen_pts=o.pts;o.class_label="person";
+                    o.confidence=.8;o.bbox={0,0,.5,.5};o.selection_reasons={"event"};o.event_ids={"ui-missing-event"};std::string error;
+                    Require(store.catalog.PutReferencedObservation(o,ref,&error),"search-observation");
+                }
+                if(search)SearchUiFacts(store,media,input,parent);
                 Require(written.size()==1&&written.front().container=="mp4","seek-single-mp4");std::ostringstream out;FileJson(out,store,written.front());seek_json=out.str();}
             std::ostringstream file_out;FileJson(file_out,store,originals.front());files=file_out.str();
             std::ostringstream job_out;job_out<<'[';

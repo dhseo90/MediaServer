@@ -200,3 +200,48 @@ GitHub 동적 Releases sidebar의 공개 링크 판정 보완, OPS-041 독립 AI
 일부 원출력·migration·diff는 무손실 gzip이며, 외부 HTML/JS는 선택 관측과 hash만 남았다.
 후보 원본은 같은 보존 커밋의 적용 audit을 compact JSON과 줄바꿈으로 직렬화한 바이트와 같다.
 제품·기존 실행 결과·메모리 운영 제한·공개 태그는 변경하지 않았다. 후속 PR·CI·공개 확인은 PR에 기록한다.
+
+## v4.2.0 개발과 최종 검증
+
+현재 완료 범위와 운영 제한은 [v4.2.0 릴리즈 노트](../release-notes-v4.2.0.md#검증과-공개-상태)에 둡니다.
+아래 최종 보존 트리는 `2695bfac610429c0da55a4ff4f4bcaae6d95832f`이며,
+경로 접두사는 `docs/release-artifacts/v4.2.0/`입니다. 각 원문에 있는 source·시각·FAIL·미실행은 그대로입니다.
+
+| 묶음 | 보존 위치 | 실행·표현 구분 |
+| --- | --- | --- |
+| 개발·세 후속 보완·Linux 준비 | [development.md](https://github.com/dhseo90/MediaServer/blob/2695bfac610429c0da55a4ff4f4bcaae6d95832f/docs/release-artifacts/v4.2.0/development.md), 같은 트리의 `release-preparation-20261003/` | 개발 회귀와 Linux의 실제 source·환경·미검증 범위를 유지 |
+| canonical 최종 결과 | [report.md](https://github.com/dhseo90/MediaServer/blob/aa2ea23a2ddab768d765b4650172e0ad3e884b41/docs/release-artifacts/v4.2.0/test-acceptance-current-final/report.md) | 실행 `ce163652`, 최초 보존 `aa2ea23a`; 일반30분·기본 UI424·일반120분과 원래 제외 조건 |
+| canonical 과거 1·2·3차 실패 | 각각 `f99eeda950194f76fc01e056cadbd61d32b617d6`, `4ad2fe20ae03dd676cab1c4c8bf3e1f0f71238e3`, `82997f8f76075e9ac9b4db53aeb6674825123e47`의 `test-acceptance-current-final/` | 선행 실패와 파생 integrity 실패·cleanup을 최종 PASS와 구분 |
+| 녹화/검색 UI와 후속 기대 정합 | [release-execution-20261003/](https://github.com/dhseo90/MediaServer/tree/2695bfac610429c0da55a4ff4f4bcaae6d95832f/docs/release-artifacts/v4.2.0/release-execution-20261003)의 `recording-ui-attempt-1/`, `recording-ui-attempt-2/`, `search-ui-attempt-{1,2,3}/`, `c03-budget-followup/`, `c02-budget-final/search-ui-review.json` | 녹화31 action의 두 실행 검토 범위, 검색38 action/30 ID와 별도106개 캡처 검토. 과거 실패와 raw review 플래그 유지 |
+| 녹화120 최초 예산 실패·후속 통과 | 같은 실행 트리의 `recording-longrun-attempt-1.log`, `c02-budget-final/recording120-result.json`, `c02-budget-final/recording120-review.json`, `c02-budget-final/recording120-command.log.gz` | 최초119분 실패를 보존하고 `b6ad8df6` 실행의 기능·저장·복제·재기동·재활성화·cleanup PASS와 자원 승인 미해결을 구분 |
+| 최종 판단 PNG 원본 추가 보존 | 같은 실행 트리의 [final-original-preservation.json](https://github.com/dhseo90/MediaServer/blob/2695bfac610429c0da55a4ff4f4bcaae6d95832f/docs/release-artifacts/v4.2.0/release-execution-20261003/final-original-preservation.json) | 녹화42+47개, 검색106개: 195개/30,741,295바이트. 기존 검토 목록·실행·파일명·크기·hash와 연결 |
+
+새 PNG195개와 보존 목록은 커밋에서 다시 읽어 로컬 원본과 바이트/hash를 대조했습니다.
+PNG는 원본 바이트이며 기존 약340MB canonical 자료는 재복사하지 않았습니다.
+무손실 gzip은 압축 표현과 해제 원본 hash를 구분하며, 정제본·발췌는 원본과 같은 바이트가 아닙니다.
+실패한 검색 시도의 로컬 PNG·실패 root·생성 미디어 등 최종 판단의 추가 원본 보존 범위 밖 자료는
+새로 Git에 넣거나 삭제하지 않았습니다. 기존 목록의 로컬 전용 표시는 당시 상태이며 새 PNG 연결은 위 목록을 따릅니다.
+원본이 없는 자료를 새 캡처로 재현하지 않았습니다.
+
+종료 자료 정리는 위 최종 트리의 5,252개 파일/385,034,764바이트(저장 표현 기준)를 대상으로 합니다.
+개발 기록·단일 개발 캡처·준비 run·canonical run·추가 실행 run의 정확한 삭제 목록은 별도 정리 커밋의 diff입니다.
+실행별 무결성 검사의 과거 산출물 입력과 현행 fixture를 구분했고, launcher는 새 출력 디렉터리를 생성합니다.
+제품·설정·fixture·golden·baseline·정책·승인 원장과 v4.1.0의 필수 receipt 디렉터리는 유지합니다.
+기능 정의의 결과 링크 변경에 필요한 manifest 문서 결속만 기존 승인 검증 producer로 갱신하며 승인 내용은 바꾸지 않습니다.
+소유가 확인되지 않은 ignored 자료·사용자 저장소·로컬 실패 root는 정리 대상이 아닙니다.
+제품·UI·장시간·Linux 검사를 다시 실행한 정리가 아니며 운영 위험 수용·자원 안정성 승인·공개 완료를 뜻하지 않습니다.
+
+```sh
+git show 2695bfac610429c0da55a4ff4f4bcaae6d95832f:docs/release-artifacts/v4.2.0/development.md
+git show 2695bfac610429c0da55a4ff4f4bcaae6d95832f:docs/release-artifacts/v4.2.0/release-execution-20261003/final-original-preservation.json
+git show 2695bfac610429c0da55a4ff4f4bcaae6d95832f:docs/release-artifacts/v4.2.0/release-execution-20261003/c02-budget-final/recording120-review.json
+```
+
+### v4.2.0 공개 준비의 문서 자체검사 보완
+
+공개 확인기의 응답 대역이 v4.1.1에 고정되어 현행 v4.2.0 문서와 어긋난 자체검사를 보완했다.
+최초291pass/20fail과 수정 후311pass/0fail, base+diff/hash는
+`dbea05e639dd5b4317a20b9cb80949f7c9e66fa9`의 `docs/release-artifacts/v4.2.0/publication-preparation-20261004/`에서 조회한다.
+원출력·patch는 무손실 gzip이며 원본/저장 표현 hash를 구분한다. 새4개 파일(22,438바이트)을
+Git에서 재조회·해제 대조한 뒤 별도 정리 커밋에서 제거했다. 제품·공개 확인기 본문·승인 원장은 불변이며,
+실제 제품·UI·장시간 재실행이나 외부 공개 확인을 대신하는 증거가 아니다.

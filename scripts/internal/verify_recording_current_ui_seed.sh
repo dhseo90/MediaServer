@@ -53,7 +53,10 @@ if [[ "${1:-}" == "--self-test" ]];then
  test ! -e "$RUN_DIR/media-server-current-ui-seed.symlink/rejected.json"
  echo 'PASS: LP26-U01-A invalid owned target rejected without new artifacts'
 else
- test "$#" = 4
- "$RUN_DIR/check" "$1" "$2" "$3" "$4"
+ test "$#" = 4 || { test "$#" = 5 && test "$5" = search; }
+ "$RUN_DIR/check" "$@"
+ if [[ "${5:-}" == search ]];then
+  node -e 'const f=require("fs"),p=require("path"),root=f.realpathSync(p.dirname(process.argv[2]));if(!/^media-server-v410-s06-/.test(p.basename(root)))throw Error("search tool owner");f.copyFileSync(process.argv[1],p.join(root,"search-fixture-tool"),f.constants.COPYFILE_EXCL);f.chmodSync(p.join(root,"search-fixture-tool"),0o700)' "$RUN_DIR/check" "$1"
+ fi
  node "$SCRIPT_DIR/recording_current_ui_seed.mjs" "$(dirname "$1")" "$2"
 fi

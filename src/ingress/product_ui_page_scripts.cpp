@@ -10366,6 +10366,148 @@ void AppendOpsShellScript(std::ostringstream& out,
           player.addEventListener('loadedmetadata', () => { if (selected && player.getAttribute('src')) setText('opsRecordingPlaybackSupport', '영상 메타데이터 로드 완료. 재생 버튼으로 확인하세요.'); });
           status().then(load);
         }
+        if (window.location.pathname === '/ops/events' && document.getElementById('opsSearchForm')) {
+          const el = name => document.getElementById('opsSearch' + name);
+          let player = el('Player');
+          let requestVersion = 0, selectionVersion = 0, query = null, snapshot = '', cursor = '', rows = [], selected = '';
+          let pendingTarget = null;
+          const local = ms => new Date(ms - new Date(ms).getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+          el('Start').value = local(Date.now() - 3600000); el('End').value = local(Date.now());
+          const say = (name, text) => { el(name).textContent = text; };
+          const clearSelection = () => {
+            ++selectionVersion; selected = ''; pendingTarget = null;
+            player.pause(); player.removeAttribute('src'); player.load();
+            // 같은 URL을 다시 선택해도 이전 미디어의 queued event가 새 선택에 도달하지 않는다.
+            const previous = player; player = previous.cloneNode(false); previous.replaceWith(player);
+            wirePlayer(player, selectionVersion);
+            say('Playback', '결과를 선택하면 검색 시점으로 이동합니다.');
+          };
+          const read = async url => {
+            const response = await fetch(url, { credentials: 'same-origin', cache: 'no-store' });
+            if (!response.ok) {
+              const body = await response.json().catch(() => ({}));
+              const error = new Error(response.status === 503 && body.error === 'search-event-evidence-incomplete' ?
+                '행동 근거가 부족해 검색 결과를 판정하지 못했습니다. 잠시 후 다시 검색하세요.' : response.status === 410 ? '검색이 만료됐습니다. 다시 검색하세요.' :
+                response.status === 403 || response.status === 401 ? '검색 권한이 없습니다. 카메라와 로그인 상태를 확인하세요.' :
+                response.status === 400 ? '검색 조건이 올바르지 않습니다.' : '검색을 준비하지 못했습니다. 잠시 후 다시 검색하세요.');
+              throw error;
+            }
+            return response.json();
+          };
+          const time = ns => {
+            if (typeof ns !== 'string' || !/^[0-9]+$/.test(ns)) return '시간 미확인';
+            const ms = Number(BigInt(ns) / 1000000n);
+            return Number.isSafeInteger(ms) && ms <= 8640000000000000 ? new Date(ms).toLocaleString() : '시간 미확인';
+          };
+          const currentTarget = () => {
+            const target = pendingTarget;
+            return target && target.version === selectionVersion && target.url === player.getAttribute('src') &&
+              (!player.currentSrc || player.currentSrc === player.src) ? target : null;
+          };
+          const finishTarget = () => {
+            const target = currentTarget();
+            if (!target || !['seeking', 'current'].includes(target.phase) || (target.phase === 'seeking' && !target.seeked) || player.seeking || player.readyState < 2 || player.error) return;
+            if (Math.abs(player.currentTime - target.seconds) > target.tolerance) {
+              pendingTarget = null; say('Playback', '검색 위치 탐색을 완료하지 못했습니다. 다시 선택하세요.'); return;
+            }
+            target.phase = 'complete';
+            say('Playback', '검색 시점으로 이동했습니다. 재생 버튼을 누르세요.');
+          };
+          const applyTarget = () => {
+            const target = currentTarget();
+            if (!target || target.phase !== 'metadata' || player.readyState < 1 || player.error) return;
+            if (target.seconds === null) {
+              target.phase = 'unavailable';
+              say('Playback', '정확한 검색 위치를 확인할 수 없습니다. 파일 시작부터 재생할 수 있습니다.'); return;
+            }
+            if (!Number.isFinite(player.duration) || target.seconds >= player.duration) {
+              pendingTarget = null; say('Playback', '검색 위치가 현재 파일 범위를 벗어났습니다. 다시 검색하세요.'); return;
+            }
+            say('Playback', '검색 시점으로 탐색 중…');
+            // 현재 위치가 목표와 같으면 브라우저가 seeked를 생략할 수 있다. 읽을 수 있는 현재 데이터로 확인한다.
+            if (player.currentTime === target.seconds && !player.seeking) {
+              target.phase = 'current'; finishTarget(); return;
+            }
+            target.phase = 'seeking';
+            try { player.currentTime = target.seconds; }
+            catch { pendingTarget = null; say('Playback', '검색 위치 탐색을 시작하지 못했습니다. 다시 선택하세요.'); }
+          };
+          const wirePlayer = (media, version) => {
+            const current = () => media === player && version === selectionVersion && currentTarget();
+            media.addEventListener('loadedmetadata', () => { if (current()) applyTarget(); });
+            media.addEventListener('seeked', () => { const target = current(); if (target) { target.seeked = true; finishTarget(); } });
+            media.addEventListener('loadeddata', () => { if (current()) finishTarget(); });
+            media.addEventListener('error', () => {
+              if (current() && media.error) { pendingTarget = null; say('Playback', '영상을 읽지 못했습니다. 브라우저 지원과 현재 파일 상태를 확인하세요.'); }
+            });
+          };
+          const select = async item => {
+            clearSelection(); selected = item.id; const version = selectionVersion;
+            el('Rows').querySelectorAll('button').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.hit === selected)));
+            say('Playback', '현재 파일과 재생 위치를 확인하는 중…');
+            const params = new URLSearchParams(query); params.set('snapshotId', snapshot); params.set('hitId', item.id);
+            try {
+              const data = await read('/ops/api/recordings/search/seek?' + params);
+              if (version !== selectionVersion) return;
+              if (!data.playable || !/^\/ops\/api\/recordings\/media\/[A-Za-z0-9._:-]+$/.test(data.playbackUrl || '')) {
+                say('Playback', '현재 파일을 재생할 수 없습니다. 삭제·누락 상태일 수 있으니 다시 검색하세요.'); return;
+              }
+              if (data.seekAvailable && (!Number.isFinite(data.targetSeconds) || data.targetSeconds < 0 || !Number.isFinite(data.frameDurationSeconds) || data.frameDurationSeconds <= 0)) throw new Error('재생 위치 응답이 올바르지 않습니다.');
+              pendingTarget = { version, url: data.playbackUrl, seconds: data.seekAvailable ? data.targetSeconds : null, tolerance: data.frameDurationSeconds, phase: 'metadata' };
+              player.src = data.playbackUrl; player.load(); applyTarget();
+            } catch (error) { if (version === selectionVersion) say('Playback', error.message); }
+          };
+          const render = () => {
+            el('Rows').replaceChildren();
+            for (const item of rows) {
+              const button = document.createElement('button'); button.type = 'button'; button.className = 'button-secondary';
+              button.dataset.hit = item.id; button.setAttribute('aria-pressed', 'false');
+              const basis = { 'source-capture': '원본 시각', 'server-observed': '서버 관측 시각', estimated: '추정 시각' }[item.timeProvenance] || '시간 근거 미확인';
+              const choice = item.selectionReason === 'event-priority' ? '이벤트 우선' : item.selectionReason === 'original-fallback' ? '원본 대체' : '원본';
+              button.textContent = `${item.channelId} · ${item.kind === 'observation' ? '분석 관측' : '녹화 구간'} · ${time(item.startTimeNs)}${item.startTimeNs === null ? ' (조회 시간 포함 여부 미확인)' : ' · ' + basis} · ${choice} · ${item.object || '객체 조건 없음'}${item.track ? ' · Track ' + item.track : ''} · ${item.playable ? '재생 가능' : '재생 불가'}`;
+              button.addEventListener('click', () => select(item)); el('Rows').append(button);
+            }
+          };
+          const load = async next => {
+            const version = ++requestVersion; clearSelection(); rows = []; render(); el('Next').disabled = true;
+            if (!next) {
+              const channels = [...el('Channels').selectedOptions].map(option => option.value);
+              const start = Date.parse(el('Start').value), end = Date.parse(el('End').value);
+              if (!channels.length || channels.length > 32 || !Number.isSafeInteger(start) || !Number.isSafeInteger(end) || start < 0 || end <= start || end - start > 31 * 86400000) {
+                say('Status', '카메라 1~32개와 31일 이내의 올바른 시간 범위를 선택하세요.'); return;
+              }
+              query = new URLSearchParams({ channelIds: channels.join(','), startTimeMs: String(start), endTimeMs: String(end), limit: el('Limit').value, includeUnplaced: String(el('Unplaced').checked) });
+              for (const name of ['Object', 'Track', 'Event', 'Zone', 'Rule', 'Behaviour']) {
+                const value = el(name).value.trim(); if (value) query.set(name.toLowerCase(), value.split(',').map(part => part.trim()).join(','));
+              }
+              cursor = ''; snapshot = '';
+            }
+            const params = new URLSearchParams(query); if (next && cursor) params.set('cursor', cursor);
+            say('Status', '검색 중…'); el('Submit').disabled = true;
+            try {
+              const data = await read('/ops/api/recordings/search?' + params);
+              if (version !== requestVersion) return;
+              if (!Array.isArray(data.items) || typeof data.snapshotId !== 'string' || !Number.isSafeInteger(data.knownCount) || !Number.isSafeInteger(data.unplacedCount)) throw new Error('검색 응답이 올바르지 않습니다.');
+              rows = data.items; snapshot = data.snapshotId; cursor = data.nextCursor || ''; render(); el('Next').disabled = !cursor;
+              say('Status', `시간 확인 ${data.knownCount}개 · 시간 미확인 ${data.unplacedCount}개 · 현재 페이지 ${rows.length}개${rows.length ? '' : ' · 일치하는 결과가 없습니다.'}`);
+            } catch (error) { if (version === requestVersion) say('Status', error.message); }
+            finally { if (version === requestVersion) el('Submit').disabled = false; }
+          };
+          el('Form').addEventListener('submit', event => { event.preventDefault(); load(false); });
+          const invalidateSearch = () => {
+            ++requestVersion; clearSelection(); cursor = ''; rows = []; render(); el('Next').disabled = true; el('Submit').disabled = false;
+            say('Status', '조건이 변경됐습니다. 검색 버튼을 눌러 다시 조회하세요.');
+          };
+          el('Form').addEventListener('input', invalidateSearch);
+          el('Form').addEventListener('change', invalidateSearch);
+          el('Next').addEventListener('click', () => { if (cursor) load(true); });
+          read('/ops/api/recordings/status').then(data => {
+            el('Channels').replaceChildren(...data.channels.map(channel => {
+              const option = document.createElement('option'); option.value = channel.channelId; option.textContent = channel.displayName || channel.channelId; return option;
+            }));
+            if (el('Channels').options.length) el('Channels').options[0].selected = true;
+          }).catch(error => say('Status', error.message));
+        }
         document.getElementById('eventRecordsEvidenceSelect')?.addEventListener('change', () => {
           opsEventRecordsOffset = 0;
           refreshEvents().catch(error => setText('eventRecordSummary', error.message));

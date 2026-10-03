@@ -39,7 +39,7 @@ export async function runRecordingAfterPlayback(h){
     await timelineAction(()=>p().locator('#opsRecordingChannelFilter').selectOption('2'),0,false);
     const rows=h.getTimeline(),state=await snapshot(),message=await text(p(),'#opsRecordingListStatus');
     assert(!rows.items.length&&!rows.unplacedItems.length&&!state.src&&state.paused&&message.includes('없습니다'),'gap stale playback');
-    const proof={rows:rows.total,unknown:rows.unplacedTotal,state,message};await timelineAction(()=>p().locator('#opsRecordingChannelFilter').selectOption('1'));
+    await p().locator('#opsRecordingListStatus').scrollIntoViewIfNeeded();await h.screenshot('I31-gap-empty');const proof={rows:rows.total,unknown:rows.unplacedTotal,state,message};await timelineAction(()=>p().locator('#opsRecordingChannelFilter').selectOption('1'));
     return proof;
   });
   await action('I31-error',async()=>{
@@ -51,7 +51,7 @@ export async function runRecordingAfterPlayback(h){
     const [response]=await Promise.all([waiting,p().locator('#opsRecordingLoad').click()]);assert(response.status()===503,'expected one shot503');
     await p().waitForFunction(()=>document.querySelector('#opsRecordingListStatus').textContent.includes('불러오지 못했습니다'));
     const state=await snapshot(),message=await text(p(),'#opsRecordingListStatus');assert(!state.src&&state.paused&&!fs.existsSync(marker),'error must clear stale media');
-    const proof={status:503,state,message};await load();return proof;
+    await p().locator('#opsRecordingListStatus').scrollIntoViewIfNeeded();await h.screenshot('I31-error-guidance');const proof={status:503,state,message};await load();return proof;
   });
   async function status(){
     const waiting=p().waitForResponse(r=>new URL(r.url()).pathname==='/ops/api/recordings/status');

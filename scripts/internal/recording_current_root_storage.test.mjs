@@ -3,8 +3,8 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import {CURRENT_ROOT_CAP_BYTES,measureCurrentRoot,measureCurrentRootStable,measureCurrentSqlitePages,statCurrentRunEntry,isTransientSqliteJournalMiss} from './recording_current_observer.mjs';
-const root=fs.mkdtempSync(path.join(os.tmpdir(),'media-server-root-storage-test-'));
+import {CURRENT_ROOT_CAP_BYTES,measureCurrentRoot,measureCurrentRootStable,measureCurrentSqlitePages,statCurrentRunEntry,isTransientSqliteJournalMiss,freezeCurrentWorkspace,measureCurrentWorkspace,workspaceBounds,measureCurrentCopy,runCurrentRecovery} from './recording_current_observer.mjs';
+const root=fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(),'media-server-root-storage-test-')));
 fs.chmodSync(root,0o700);
 const start=performance.now();let passed=0,failed=0;
 const check=(title,run)=>{try{run();passed++;console.log('[pass] '+title);}catch(error){failed++;console.log('[fail] '+title);throw error;}};
@@ -137,15 +137,15 @@ try{
   });
   check('LP26-O06-C runner retains timeout and emits periodic and failure measurements',()=>{
     const runner=fs.readFileSync(new URL('./verify_recording_current_longrun.mjs',import.meta.url),'utf8');
-    assert(runner.includes('AbortSignal.timeout(4000)'));assert(runner.includes("rootDiagnostic('sample')"));assert(runner.includes("rootDiagnostic('failure-live',measureCurrentRootStable(root),true)"));
-    assert(runner.includes("const storage=measureCurrentRootStable(root);if(storage.capExceeded){rootDiagnostic('root-cap')"));
-    assert(runner.includes("rootDiagnostic('final-live',measureCurrentRootStable(root),true)"));assert(runner.includes('journalMutationTypesCoverage'));
+    assert(runner.includes('AbortSignal.timeout(4000)'));assert(runner.includes("rootDiagnostic('sample')"));assert(runner.includes("rootDiagnostic('failure-live',storageNow(),true)"));
+    assert(runner.includes("const storage=storageNow();if(storage.capExceeded){rootDiagnostic('root-cap')"));
+    assert(runner.includes("rootDiagnostic('final-live',storageNow(),true)"));assert(runner.includes('journalMutationTypesCoverage'));
   });
   check('B11-O05 live SQLite PRAGMA를 금지하고 종료 뒤에만 page 통계를 측정',()=>{
     const runner=fs.readFileSync(new URL('./verify_recording_current_longrun.mjs',import.meta.url),'utf8');
-    assert(runner.includes('function rootDiagnostic(reason,measurement=measureCurrentRootStable(root),final=false)'));
+    assert(runner.includes('function rootDiagnostic(reason,measurement=storageNow(),final=false)'));
     const stopped=runner.indexOf('for(const app of processes)try{await stop(app);}catch{failed++;}');
-    const postStop=runner.indexOf("rootDiagnostic('post-stop',measureCurrentRootStable(root,{sqlitePages:true}),true)");
+    const postStop=runner.indexOf("rootDiagnostic('post-stop',{...measureCurrentRootStable(root,{sqlitePages:true}),...storageNow()},true)");
     assert(stopped>=0&&postStop>stopped);
     const live=runner.slice(0,stopped);assert(!live.includes("measureCurrentRootStable(root,{sqlitePages:true})"));
   });
@@ -154,6 +154,22 @@ try{
     const after=measureCurrentRoot(root);assert.equal(after.categories.generationTransaction.bytes,before.categories.generationTransaction.bytes+151);
     assert.deepEqual(after.categories.generationSnapshot,before.categories.generationSnapshot);assert.equal(after.totalBytes,before.totalBytes+151);
   });
+  const workspaceRoot=path.join(root,'workspace');fs.mkdirSync(workspaceRoot,{mode:0o700});fs.mkdirSync(path.join(workspaceRoot,'input'));
+  for(const name of ['input/retention-9101.mp4','input/retention-9201.mp4','normalize','process-metrics','catalog-instrumented.cpp'])fs.writeFileSync(path.join(workspaceRoot,name),'fixed');
+  const baseline=freezeCurrentWorkspace(workspaceRoot,{capBytes:1024,inputMaxBytes:64});
+  check('W01 fixed/variable total and unknown files',()=>{assert.equal(baseline.fixedBytes,25);fs.writeFileSync(path.join(workspaceRoot,'new-unknown'),Buffer.alloc(7));const m=measureCurrentWorkspace(workspaceRoot,baseline);assert.equal(m.totalBytes,32);assert.equal(m.variableBytes,7);assert.equal(measureCurrentRoot(workspaceRoot).capBytes,CURRENT_ROOT_CAP_BYTES);});
+  check('W02 boundary equality and overage fail closed',()=>{assert.equal(workspaceBounds(1023+25,25,1023,1024).combinedBytes,2071);for(const n of [1024,1025]){assert.throws(()=>workspaceBounds(n+25,25,0,1024));assert.throws(()=>workspaceBounds(25,25,n,1024));}assert.throws(()=>workspaceBounds(25+1024,25,1024,1024));});
+  check('W03 changed, replaced, missing fixed files are never rebased',()=>{const f=path.join(workspaceRoot,'normalize');fs.appendFileSync(f,'x');assert.throws(()=>measureCurrentWorkspace(workspaceRoot,baseline));fs.unlinkSync(f);assert.throws(()=>measureCurrentWorkspace(workspaceRoot,baseline));fs.writeFileSync(f,'fixed');assert.throws(()=>measureCurrentWorkspace(workspaceRoot,baseline));});
+  const current=freezeCurrentWorkspace(workspaceRoot,{capBytes:1024,inputMaxBytes:64}),copyRoot=path.join(root,'workspace-copy');fs.mkdirSync(copyRoot,{mode:0o700});const cs=fs.statSync(copyRoot),copy={root:copyRoot,identity:{dev:cs.dev,ino:cs.ino}};
+  check('W04 copy ownership symlink and entry limits',()=>{fs.symlinkSync(workspaceRoot,path.join(copyRoot,'escape'));assert.throws(()=>measureCurrentCopy(copyRoot,copy.identity));fs.unlinkSync(path.join(copyRoot,'escape'));for(let i=0;i<4096;i++)fs.writeFileSync(path.join(copyRoot,String(i)),'');assert.throws(()=>measureCurrentCopy(copyRoot,copy.identity));for(let i=0;i<4096;i++)fs.unlinkSync(path.join(copyRoot,String(i)));});
+  const observe=()=>measureCurrentWorkspace(workspaceRoot,current,copy);
+  const run=script=>runCurrentRecovery({command:process.execPath,args:['-e',script],env:{PATH:process.env.PATH},observe,timeoutMs:1500,intervalMs:20});
+  const success=await run('setTimeout(()=>process.exit(0),70)');check('W05 async native success monitored and group closed',()=>{assert.equal(success.status,0);assert.equal(success.monitor.failure,null);assert(success.monitor.samples>1&&success.groupClosed);});
+  const growth=await run('require("fs").writeFileSync('+JSON.stringify(path.join(copyRoot,'native-temp'))+',Buffer.alloc(1024));setInterval(()=>{},1000)');
+  check('W06 actual native temporary growth detected during execution',()=>{assert.equal(growth.monitor.failure,'workspace-copy-cap');assert(growth.groupClosed);assert.notEqual(growth.status,0);});fs.unlinkSync(path.join(copyRoot,'native-temp'));
+  const childFailure=await run('process.exit(7)');check('W07 child failure remains failure',()=>{assert.equal(childFailure.status,7);assert(childFailure.groupClosed);});
+  let probes=0;const monitorFailure=await runCurrentRecovery({command:process.execPath,args:['-e','setInterval(()=>{},1000)'],env:{PATH:process.env.PATH},observe:()=>{if(++probes>1)throw Error('injected-monitor-failure');},timeoutMs:1500,intervalMs:20});
+  check('W08 observation failure stops child and cannot pass',()=>{assert.equal(monitorFailure.monitor.failure,'injected-monitor-failure');assert(monitorFailure.groupClosed);});
 }catch{if(!failed){failed++;console.log('[fail] LP26-O06 setup/runtime');}}
 finally{
   let bytes=null;try{bytes=measureCurrentRoot(root).totalBytes;}catch{failed++;}

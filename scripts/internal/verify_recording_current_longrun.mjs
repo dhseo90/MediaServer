@@ -6,7 +6,7 @@ import os from 'node:os';
 import dgram from 'node:dgram';
 import {spawn,spawnSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
-import {CurrentRecordingObserver,CurrentLongrunProgress,CurrentObservationBudget,summarizeCurrentSamples,closedJournalComplete,disabledChannelsExact,measureCurrentRootStable,summarizeFixtureGeneration} from './recording_current_observer.mjs';
+import {CurrentRecordingObserver,CurrentLongrunProgress,CurrentObservationBudget,summarizeCurrentSamples,closedJournalComplete,disabledChannelsExact,measureCurrentRootStable,summarizeFixtureGeneration,freezeCurrentWorkspace,measureCurrentWorkspace,workspaceBounds,runCurrentRecovery} from './recording_current_observer.mjs';
 import {collectProcess} from './recording_foundation_observer.mjs';
 import {parseLongrunArgs,sampleContinuity,nextRecordingSettings,mediaAbsent,assertSampleStep,summarizeAvailableSamples,slowTraceSummary,nextSampleDelay} from './recording_longrun_progress.mjs';
 import {measuredHttpResponse} from './recording_current_app_helpers.mjs';
@@ -21,6 +21,8 @@ const duration=short?30000:diagnoseFast?780000:diagnoseOriginal?1440000:parseLon
 if(!path.isAbsolute(root)||fs.realpathSync(root)!==root||!path.basename(root).startsWith('media-server-current-observer-')||(fs.statSync(root).mode&0o777)!==0o700)throw Error('owned-run-root');
 const start=performance.now(),deadline=start+(short?180000:diagnoseFast?900000:diagnoseOriginal?1500000:7380000),processes=[],samples=[],ports=[];
 const native=path.join(root,'normalize'),collector=path.join(root,'process-metrics');
+let workspace=null;
+const storageNow=()=>workspace?measureCurrentWorkspace(root,workspace):measureCurrentRootStable(root);
 let cancelled=false,failed=0,passed=0,observer,progress,phaseResult,summary,udp,udpClosed=false,observationStart=null;
 process.on('SIGTERM',()=>{cancelled=true;});process.on('SIGINT',()=>{cancelled=true;});
 const pause=ms=>new Promise(r=>setTimeout(r,ms));
@@ -29,12 +31,12 @@ function size(dir){let bytes=0,entries=0;function visit(p){const s=fs.lstatSync(
   if(s.isSymbolicLink()){if(!p.startsWith(path.join(root,'gst-cache')+path.sep))throw Error('root-unsafe-symlink');bytes+=s.size;return;}
   if(s.isDirectory())for(const n of fs.readdirSync(p))visit(path.join(p,n));else{if(!s.isFile()||s.nlink!==1)throw Error('root-unsafe-file');bytes+=s.size;}}visit(dir);return bytes;}
 // live SQLite에 별도 reader lock을 만들지 않는다. page PRAGMA는 writer 종료 뒤 post-stop에서만 실행한다.
-function rootDiagnostic(reason,measurement=measureCurrentRootStable(root),final=false){const journalMutationTypes=observer?{...observer.typeCounts}:null;
+function rootDiagnostic(reason,measurement=storageNow(),final=false){const journalMutationTypes=observer?{...observer.typeCounts}:null;
   const journalMutationTypesCoverage=observer?'drained-prefix-only; unread-or-partial-tail-excluded':'observer-unavailable';
   console.log('[root-storage] '+JSON.stringify({reason,final,elapsedMs:Math.round(performance.now()-start),journalMutationTypes,journalMutationTypesCoverage,...measurement}));return measurement;}
 function cadence(){if(observationStart!==null){const now=performance.now(),previous=samples.at(-1)?.phaseAt??observationStart;
   if(now-previous>15000){console.log('[sample-gap] '+JSON.stringify({previousAt:previous,observedAt:now,gapMs:now-previous,limitMs:15000}));throw Error('sample-gap');}}}
-function budget(){if(cancelled)throw Error('observation-cancelled');if(performance.now()>deadline)throw Error('observation-deadline');cadence();const storage=measureCurrentRootStable(root);if(storage.capExceeded){rootDiagnostic('root-cap');throw Error('observation-root-cap');}if(processes.some(p=>p.overflow))throw Error('private-log-cap');cadence();}
+function budget(){if(cancelled)throw Error('observation-cancelled');if(performance.now()>deadline)throw Error('observation-deadline');cadence();const storage=storageNow();if(storage.capExceeded){rootDiagnostic('root-cap');throw Error('observation-root-cap');}if(processes.some(p=>p.overflow))throw Error('private-log-cap');cadence();}
 async function until(fn,ms=15000){const end=performance.now()+ms;while(performance.now()<end){budget();const v=await fn();if(v)return v;await pause(100);}throw Error('observation-wait-timeout');}
 function environment(http,rtsp,stun){const env={PATH:process.env.PATH,HOME:root,TMPDIR:path.join(root,'tmp')};
   const values={SKIP_LOCAL_ENV:1,SKIP_BUILD:1,BIN_PATH:path.join(repo,'build-gst-onnx/media_server'),AUTH_MODE:'off',ENABLE_AI:0,ENABLE_LAB:0,ENABLE_OPS:1,ENABLE_CLIENT:0,ENABLE_YOUTUBE_SOURCE:0,
@@ -106,7 +108,7 @@ function verifyStatusUsage(status){
       row.eventBytes===0&&usage.deleted>0&&usage.history>usage.alive,'LP26-O11 independent status usage '+id);
   }
 }
-function snapshot(){
+async function snapshot(){
   if(processes.some(p=>!p.result?.archiveSafe))throw Error('snapshot-live-owner');
   const original=path.join(root,'recordings'),sourceTree=snapshotTree(original);
   if(sourceTree.bytes>=448*1024*1024)throw Error('snapshot-byte-cap');
@@ -114,14 +116,17 @@ function snapshot(){
   const copyIdentity=diagnosticRootIdentity(copyRoot,copyParent,'current-observer-snapshot'),copy=path.join(copyRoot,'recordings');
   let copied=false,primary=null,result,copyTree=null,receiptPreserved=false,originalUnchanged=false,manifestUnchanged=false,groupClosed=false,childSuccess=false;
   try{
-    copyTree=copyVerified(original,copy,sourceTree);copied=true;if(copyTree.bytes>=448*1024*1024)throw Error('snapshot-byte-cap');
+    const admitted=storageNow();workspaceBounds(admitted.totalBytes,workspace.fixedBytes,sourceTree.bytes,workspace.capBytes);
+    copyTree=copyVerified(original,copy,sourceTree,n=>workspaceBounds(admitted.totalBytes,workspace.fixedBytes,n,workspace.capBytes));copied=true;if(copyTree.bytes>=448*1024*1024)throw Error('snapshot-byte-cap');
     const manifestEntries=[
       {name:'catalog-source',file:path.join(repo,'src/recording/recording_catalog.cpp')},{name:'catalog-instrumented',file:path.join(root,'catalog-instrumented.cpp')},
       {name:'runtime-archive',file:path.join(repo,'build-gst-onnx/libmedia_server_runtime.a')},{name:'native-source',file:path.join(repo,'scripts/internal/recording_current_observer_native.cpp')},
       {name:'trace-header',file:path.join(repo,'scripts/internal/recording_archive_phase_trace.h')},{name:'generation-observation',file:path.join(repo,'scripts/internal/recording_generation_observation.h')},{name:'native-binary',file:native}],manifest=sourceManifest(manifestEntries);
-    const childStart=performance.now(),r=spawnSync(native,['--snapshot',copy],{encoding:'utf8',timeout:15000,maxBuffer:16384,detached:true,env:snapshotEnvironment()});
+    const childStart=performance.now(),copyStat=fs.lstatSync(copyRoot);
+    const r=await runCurrentRecovery({command:native,args:['--snapshot',copy],env:{...snapshotEnvironment(),TMPDIR:copyRoot,HOME:copyRoot},observe:()=>measureCurrentWorkspace(root,workspace,{root:copyRoot,identity:{dev:copyStat.dev,ino:copyStat.ino}})});
+    console.log('[workspace-copy-monitor] '+JSON.stringify(r.monitor));
     const child=summarizeSpawnDiagnostic(r,{elapsedMs:performance.now()-childStart}),trace=validatedPhaseReceipt(r.stderr);console.log('[snapshot-process] '+JSON.stringify(child));
-    try{process.kill(-r.pid,0);}catch(error){groupClosed=error?.code==='ESRCH';}childSuccess=groupClosed&&!r.error&&!r.signal&&r.status===0;
+    groupClosed=r.groupClosed;childSuccess=groupClosed&&!r.error&&!r.signal&&r.status===0&&!r.monitor.failure;
     try{const after=snapshotTree(original);originalUnchanged=after.sha256===sourceTree.sha256&&after.bytes===sourceTree.bytes&&after.count===sourceTree.count;}catch{}
     try{manifestUnchanged=JSON.stringify(sourceManifest(manifestEntries))===JSON.stringify(manifest);}catch{}
     const receiptPath=path.join(process.env.MEDIA_SERVER_RECORDING_RECEIPT_DIR??'',`o28-current-snapshot-${crypto.randomUUID()}.json`);
@@ -150,8 +155,10 @@ try{
   let generatedBytes=null;try{const s=fs.lstatSync(path.join(root,'input/retention.mp4'));if(s.isFile()&&s.nlink===1)generatedBytes=s.size;}catch{}
   console.log('[fixture-generation] '+JSON.stringify(summarizeFixtureGeneration(generated,{elapsedMs:Math.round(performance.now()-generationStart),outputBytes:generatedBytes})));
   check(generated.status===0&&!generated.error&&!generated.signal&&generatedBytes!==null&&generatedBytes>0&&generatedBytes<96*1024*1024,'LP26-O05 original bounded retention fixture');
-  for(const id of ['9101','9201'])fs.copyFileSync(path.join(root,'input/retention.mp4'),path.join(root,'input',source(id).file),fs.constants.COPYFILE_EXCL);
+  budget();
+  for(const id of ['9101','9201']){fs.copyFileSync(path.join(root,'input/retention.mp4'),path.join(root,'input',source(id).file),fs.constants.COPYFILE_EXCL);budget();}
   fs.unlinkSync(path.join(root,'input/retention.mp4'));
+  if(!diagnose){workspace=freezeCurrentWorkspace(root);console.log('[workspace-fixed] '+JSON.stringify(workspace));}
   check(new Set(['9101','9201'].map(id=>fs.realpathSync(path.join(root,'input',source(id).file)))).size===2,'LP26-O05 distinct canonical sources');
   fs.writeFileSync(path.join(root,'state/sources.json'),JSON.stringify({sources:[]}));fs.writeFileSync(path.join(root,'state/views.json'),JSON.stringify({views:[]}));
   udp=dgram.createSocket('udp4');await new Promise((resolve,reject)=>{udp.once('error',reject);udp.bind(0,'127.0.0.1',resolve);});const stun=udp.address().port;
@@ -175,21 +182,21 @@ try{
   else check(Object.values(phaseResult.channels).every(c=>c.finalized>0&&c.deleted>0),'LP26-O05 both channels retained and progressed');
   summary=summarizeCurrentSamples(samples);observationStart=null;progress.setActive(performance.now(),false);await settings(first,false);await stop(first);
   const tail=await drain(performance.now());check(closedJournalComplete(tail),'LP26-O02 closed journal no partial tail');
-  if(!diagnose){const before=snapshot();
+  if(!diagnose){const before=await snapshot();
   const second=await launch(stun);const s=await request(second,'GET','/ops/api/recordings/status');
   verifyStatusUsage(s);
   console.log('[channel-observation] '+JSON.stringify({expectedIds,channels:s.channels?.map(c=>({id:c.channelId,enabled:c.enabled,active:c.active}))}));
   check(disabledChannelsExact(s,expectedIds),'LP26-O05 disabled restart');
-  await stop(second);const after=snapshot();check(JSON.stringify(before)===JSON.stringify(after),'LP26-O05 restart exact catalog media state');
+  await stop(second);const after=await snapshot();check(JSON.stringify(before)===JSON.stringify(after),'LP26-O05 restart exact catalog media state');
   const third=await launch(stun);const known=Object.fromEntries(Object.entries(progress.channels).map(([id,c])=>[id,c.finalized]));await settings(third,true);progress.setActive(performance.now(),true);
   await until(async()=>{await drain(performance.now());return Object.entries(progress.channels).every(([id,c])=>c.finalized>known[id]);},30000);check(true,'LP26-O05 reenabled recording after restart');await stop(third);
-  check(closedJournalComplete(await drain(performance.now())),'LP26-O02 final restart closed journal no partial tail');snapshot();}
-  }catch(error){failed++;try{rootDiagnostic('failure-live',measureCurrentRootStable(root),true);}catch{console.log('[root-storage] '+JSON.stringify({reason:'failure-live',final:true,measurementAvailable:false,journalMutationTypes:observer?{...observer.typeCounts}:null,journalMutationTypesCoverage:observer?'drained-prefix-only; unread-or-partial-tail-excluded':'observer-unavailable',rawPathsPublished:false}));}console.error('[fail] current observation: '+(error?.message?.match(/^[a-zA-Z0-9 .:-]+$/)?error.message:'redacted-error'));}
+  check(closedJournalComplete(await drain(performance.now())),'LP26-O02 final restart closed journal no partial tail');await snapshot();}
+  }catch(error){failed++;try{rootDiagnostic('failure-live',storageNow(),true);}catch{console.log('[root-storage] '+JSON.stringify({reason:'failure-live',final:true,measurementAvailable:false,journalMutationTypes:observer?{...observer.typeCounts}:null,journalMutationTypesCoverage:observer?'drained-prefix-only; unread-or-partial-tail-excluded':'observer-unavailable',rawPathsPublished:false}));}console.error('[fail] current observation: '+(error?.message?.match(/^[a-zA-Z0-9 .:-]+$/)?error.message:'redacted-error'));}
 finally{
   observationStart=null;summary=summarizeAvailableSamples(samples);
-  try{rootDiagnostic('final-live',measureCurrentRootStable(root),true);}catch{console.log('[root-storage] '+JSON.stringify({reason:'final-live',final:true,measurementAvailable:false,journalMutationTypes:observer?{...observer.typeCounts}:null,journalMutationTypesCoverage:observer?'drained-prefix-only; unread-or-partial-tail-excluded':'observer-unavailable',rawPathsPublished:false}));}
+  try{rootDiagnostic('final-live',storageNow(),true);}catch{console.log('[root-storage] '+JSON.stringify({reason:'final-live',final:true,measurementAvailable:false,journalMutationTypes:observer?{...observer.typeCounts}:null,journalMutationTypesCoverage:observer?'drained-prefix-only; unread-or-partial-tail-excluded':'observer-unavailable',rawPathsPublished:false}));}
   for(const app of processes)try{await stop(app);}catch{failed++;}
-  try{rootDiagnostic('post-stop',measureCurrentRootStable(root,{sqlitePages:true}),true);}catch{failed++;console.log('[root-storage] '+JSON.stringify({reason:'post-stop',final:true,measurementAvailable:false,journalMutationTypes:observer?{...observer.typeCounts}:null,journalMutationTypesCoverage:observer?'drained-prefix-only; unread-or-partial-tail-excluded':'observer-unavailable',rawPathsPublished:false}));}
+  try{rootDiagnostic('post-stop',{...measureCurrentRootStable(root,{sqlitePages:true}),...storageNow()},true);}catch{failed++;console.log('[root-storage] '+JSON.stringify({reason:'post-stop',final:true,measurementAvailable:false,journalMutationTypes:observer?{...observer.typeCounts}:null,journalMutationTypesCoverage:observer?'drained-prefix-only; unread-or-partial-tail-excluded':'observer-unavailable',rawPathsPublished:false}));}
   for(const app of processes){try{fs.closeSync(app.logFd);const text=fs.readFileSync(app.log,'utf8');
     const categories=['file evidence unavailable','storageBlocked','shutdown','ERROR','WARNING'].map(code=>({code,count:text.split(code).length-1}));
     const blocked=fs.existsSync(path.join(root,'cleanup-blocked'));

@@ -749,6 +749,43 @@ POST URL 자체는 rule output 설정에서 관리합니다. 외부 이벤트 JS
 
 ## Recording env
 
+### 구조화 녹화 검색 API (v4.2.0)
+
+`GET /ops/api/recordings/search`는 admin/operator 역할, `ops:read`와 요청한 모든 채널의
+`source:read:<channel>` 권한을 요구한다. viewer/integrator는 사용할 수 없다.
+
+| 입력 | 의미 |
+| --- | --- |
+| `channelIds` | 쉼표로 구분한 명시 채널 1~32개. 일부 채널만 권한이 있으면 전체 거부 |
+| `startTimeMs`, `endTimeMs` | UTC 밀리초 정수, `[start,end)`, 최대 31일 |
+| `object`, `track`, `event`, `zone`, `rule`, `behaviour` | 선택 필터, 각 최대 32개 쉼표 값. 필드 안 OR/필드 사이 AND, 동일 관측 기준 |
+| `includeUnplaced` | 기본 false. true는 시각 미확인 결과와 별도 건수 포함 |
+| `limit` | 기본 50, 1~200 |
+| `cursor` | 첫 응답의 nextCursor. 원래 질의 전체와 함께 제출, 빈 값은 거부 |
+
+결과는 `schema`, `snapshotId`, `nextCursor`, `knownCount`, `unplacedCount`, `items`다.
+각 item에는 안정 `id`, `channelId`, `kind`, 원본 segment/observation 참조,
+`startTimeNs`/`endTimeNs`(정수 문자열 또는 null), 시간 근거·불확실성,
+관측 필터 값, `selectionReason`, `playable`, `playbackUrl`, `unavailableReason`가 있다.
+정렬은 UTC 내림차순/channel·ID 오름차순이며 시간 미확인은 뒤에 온다.
+메타데이터 필터가 있으면 관측 단위, 없으면 녹화 구간 단위다.
+
+`GET /ops/api/recordings/search/seek`는 원래 검색 조건과 `snapshotId`, `hitId`를 받는다.
+snapshot의 실제 멤버만 선택 가능하며 `playable`, `playbackUrl`, `seekAvailable`,
+`targetSeconds`, `frameDurationSeconds`, `reason`, `timeBasis`를 반환한다.
+위치를 입증하지 못하면 targetSeconds는 null이고 `seek-unavailable`이다.
+URL의 미디어 요청에서도 현재 권한과 fd/hold 보호를 다시 적용한다.
+
+잘못된 질의/cursor는 400, 권한·질의 결박 불일치는 403, snapshot 만료/선택 불가는 410,
+미준비·용량 초과는 503이다. 용량 초과는 `search-capacity-exceeded`로 구분한다.
+행동 결과를 결정하는 데 필요한 연결 이벤트가 누락되거나 연결을 입증하지 못하면
+`search-event-evidence-incomplete`이며 snapshot/건수를 반환하지 않는다. 확인된 일치는
+다른 참조 누락에도 반환할 수 있고, 다른 조건으로 제외된 관측의 누락은 해당 검색에 영향을 주지 않는다.
+snapshot은 5분/최대 8개/합산 논리 128MiB이며 재시작 시 만료된다.
+read model은 최대 100,000행/논리 64MiB이고 먼저 도달한 한도를 적용한다.
+RSS 보장이나 기존 catalog 누적 RAM 상한을 뜻하지 않는다. 파일 경로·source URL·인증 자료는 반환하지 않는다.
+상세 의미는 [검색 계약](superpowers/specs/2026-10-03-v420-structured-search-design.md)을 따른다.
+
 ### 녹화 조회재생 API (v4.1.0 S06)
 
 기본 인증 모드는 `auto`다. 아래 API는 Ops 접근 권한과 채널별 `source:read:<channelId>`

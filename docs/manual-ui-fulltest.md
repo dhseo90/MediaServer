@@ -7,7 +7,8 @@
 공개 릴리즈 관측이나 과거 실행 결과를 검토 없이 현재 소스의 PASS로 이월하지 않는다.
 기존 증거의 유효성은 diff·source·환경·검증 경계로 판단한다.
 
-현재 대상은 baseline **424개 + 녹화 8개 = 432개 ID**다.
+기존 대상은 baseline **424개 + 녹화 8개 = 432개 ID**다. v4.2.0 릴리즈에서는 아래
+[V420 검색 UI 추가 대상](#v420-검색-ui-추가-대상)을 함께 확인한다.
 baseline은 `test/fixtures/project_feature_implementation_evidence.json`의 UI 대상
 `manualUiCaseId`, `uiEvidence.screenRoute`, product UI anchor와 inventory를 대조한다.
 녹화는 `V410-S06-I27`~`V410-S06-I34`의 31개 action을 별도로 실행한다.
@@ -172,3 +173,43 @@ VLM의 default-off/privacy·profile 저장/후보 선택과 실제 provider 호�
 결과는 실행 단위 한 곳에 명령·source/환경·UTC·exit·stdout/stderr·개별 결과·실패 연결·cleanup을
 남기고 다른 문서는 링크한다. token usage source/start/end/consumed·elapsed는 측정값만 쓰며
 없으면 미집계 사유를 남긴다. 커밋·푸시 가능 여부와 실제 수행을 구분한다.
+
+
+## V420 검색 UI 추가 대상
+
+기준은 [기능 정의](project-feature-test-inventory.md#v420-구조화-검색)의 UI 비대상 외 30개
+기능 연결이다. canonical 424개 case나 녹화 8개 ID의 수를 바꾸지 않는다. 아래 기능 그룹은
+보고 단위가 아니며 실제 실행은 각 기능 ID·action·정상/오류/경계별로 기록한다.
+기존 녹화 timeline의 filter/seek와 `/ops/events`의 `opsSearchForm`은 별도 control이다.
+현재 baseline manifest/qualifier의 통과만으로 이 추가 대상을 PASS로 판정하지 않는다.
+
+| 기능 ID | 실제 control/action과 독립 완료 조건 |
+| --- | --- |
+| V420-M02, M03 | 검색 제출 후 불완전/용량 오류를 정상 빈 결과와 구분하고 snapshot 결과를 게시하지 않음 |
+| V420-L01, L02 | 관측 추가 뒤 재검색, 삭제/손상·재시작 뒤 재검색 및 hit 재생 상태 확인 |
+| V420-F01~F07 | 카메라·시간·객체·track·event·zone·rule 각각의 입력/제출과 독립 기대 결과 확인 |
+| V420-F08-I/L/D/O | Intrusion, LineCrossing, intrusion-dwell, loitering을 저장된 연결 사실별로 구분. 같은 이벤트 조건과 근거 부족 안내 확인 |
+| V420-F09, F10 | 복합 AND/OR·잘못된 입력·불명 시각·정상 빈 결과를 각각 확인 |
+| V420-C01~C03 | 다음 페이지의 중복/누락, 조건 변경·만료 안내, 추가/삭제 뒤 기존 snapshot 멤버십과 재생 거부 확인 |
+| V420-E01, E02 | 동일 원본 이벤트 우선, partial 밖 원본·미완성·현재 파일 fallback 확인 |
+| V420-P01~P03 | 원본/파생 hit 선택→탐색 중→현재 선택의 완료, 미지원·삭제·권한 실패 안내 확인. UTC 차이 offset 대체 금지 |
+| V420-A01, A02 | admin/scoped operator와 미인증/viewer/integrator/다른 채널의 접근·공개 정보 경계 확인 |
+| V420-U01 | 검색→페이지→재생, 재검색/취소/다른 hit 및 같은 파일의 다른 시점 선택, 오래된 응답·metadata/seeked/error 무효화 확인 |
+| V420-U02 | 390/1440px 각각 light/dark에서 폼·결과·전체 플레이어 잘림, nav/client 경계 확인 |
+| V420-K02 | 현재 V2/generation 자료 조회·재생과 pin/hold/삭제 상태 연결 확인 |
+
+정확한 허용 오차는 응답 frame duration이다. 브라우저 seek 완료를 표시 frame hash 증명으로
+보고하지 않는다. 비동기 VM과 native 독립 decode 검사는 보완 증거이며 실제 UI 조작의 대체가 아니다.
+각 direct-browser/hybrid 기록은 위 Policy v4의 역할/scope·현재 source·시각·상관된 완료 oracle·
+artifact 비노출·cleanup 조건을 따른다. 테스트용 데이터/오류 조건이 준비되지 않으면 notRun이며
+과거 개발 브라우저 관측으로 릴리즈 전체 PASS를 만들지 않는다.
+
+검색 추가 대상의 실행 연결은 [기존 격리 fixture를 사용하는 검색 UI 실행기](../scripts/internal/run_recording_search_ui_acceptance.mjs)다.
+`node scripts/internal/run_recording_search_ui_acceptance.mjs <절대 임시 출력 경로>`로 실행하며,
+출력은 시스템 임시 디렉터리 바로 아래의 비어 있는 `media-server-recording-ui-acceptance-` 접두사
+소유 디렉터리여야 한다. `--ui-search-fixture`는 인증 UI 준비에서만 사용한다. 정상 종료·포트 닫힘을
+확인한 뒤에만 추가/재개방/용량 fixture를 준비하고, 실제 UI 결과와 시각 검토·미실행 범위를 구분한다.
+
+재시작 전 cursor는 새 pool의 MAC 검증에서 HTTP400 `search-invalid-cursor`로 거부된다.
+C02-restart는 현재 조건 오류 안내·이전 목록/재생 제거와 같은 권한의 새 검색/cursor 성공을 확인한다.
+같은 pool의 유효 cursor TTL 만료는 HTTP410 `search-snapshot-expired`와 만료 안내로 구분한다.

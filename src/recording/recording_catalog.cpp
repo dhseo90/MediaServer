@@ -584,6 +584,10 @@ bool RecordingCatalog::Open(std::string* error) {
     checkpoint_cache_.reset();
     timeline_read_candidates_={};
     if (opened_) {const bool owns=journal_.OwnsCatalog(this);if(!owns)automatic_noop_eligible_=false;return owns&&(!generation_backend_||CanReadLocked(error));}
+    static std::atomic<std::uint64_t> next_search_instance{1};
+    search_instance_=next_search_instance.fetch_add(1);
+    search_changes_.clear();search_rebuild_revision_=source_snapshot_revision_;
+    search_resolution_revision_=source_snapshot_revision_;
     const bool first_open=!automatic_noop_open_attempted_;
     automatic_noop_open_attempted_=true;automatic_noop_eligible_=false;
     if(journal_.generation_state_)return OpenGenerationLocked(error);
@@ -1443,6 +1447,31 @@ bool RecordingCatalog::ValidateMutationLocked(const RecordingMutationV1& mutatio
     // 기존 획득 계약을 따른다. typed 값/ID/revision/hold/SQL/원장에는 쓰지 않는다.
     return ApplyMutationLocked(parsed,false,error,nullptr,{},nullptr,nullptr,nullptr,{},nullptr,false);
 }
+void RecordingCatalog::NoteSearchMutationLocked(const RecordingMutationV1& mutation) noexcept {
+    const bool observation = mutation.mutation_type == RecordingMutationType::ObservationPut ||
+        mutation.mutation_type == RecordingMutationType::ObservationV2Put ||
+        mutation.mutation_type == RecordingMutationType::ReferencedObservationPut;
+    if (!observation) {
+        search_resolution_revision_ = source_snapshot_revision_;
+        search_rebuild_revision_ = source_snapshot_revision_;
+        search_changes_.clear();
+        return;
+    }
+    // 이 부가 index의 allocation 실패가 원본 녹화 쓰기를 실패시키면 안 된다.
+    try {
+        if (mutation.entity_id.size() > 512) {
+            search_changes_.clear();search_rebuild_revision_ = source_snapshot_revision_;return;
+        }
+        if (search_changes_.size() == 1024) {
+            search_rebuild_revision_ = search_changes_.front().revision;
+            search_changes_.pop_front();
+        }
+        search_changes_.push_back({source_snapshot_revision_, mutation.mutation_type, mutation.entity_id});
+    } catch (...) {
+        search_changes_.clear();search_rebuild_revision_ = source_snapshot_revision_;
+    }
+}
+
 bool RecordingCatalog::ApplyMutationLocked(const RecordingMutationV1& mutation,
                                            bool count_duplicate,
                                            std::string* error,PreparedDerivedMutation* prepared,RecordingMutationHandle owned,
@@ -1452,6 +1481,7 @@ bool RecordingCatalog::ApplyMutationLocked(const RecordingMutationV1& mutation,
     if(apply) {
     if(source_snapshot_revision_==std::numeric_limits<std::uint64_t>::max())source_snapshot_revision_valid_=false;
     else ++source_snapshot_revision_;
+    NoteSearchMutationLocked(mutation);
     }
     // 소유 주소는 검증 증명이 아니다. schema/enum을 포함한 원래 모든 필드를 확인한다.
     if(owned&&(owned->schema!=mutation.schema||owned->mutation_type!=mutation.mutation_type||
