@@ -442,11 +442,11 @@ function authPasswords() {
 }
 
 export function uiAuthPreparationOptions(args) {
-  assert((args.length === 2 || (args.length === 3 && args[2] === '--ui-seek-fixture')) && args[0] === '--ui-anchor-utc-ms', 'UI anchor required: --ui-anchor-utc-ms VALUE [--ui-seek-fixture]');
+  assert((args.length === 2 || (args.length === 3 && ['--ui-seek-fixture','--ui-search-fixture'].includes(args[2]))) && args[0] === '--ui-anchor-utc-ms', 'UI anchor required: --ui-anchor-utc-ms VALUE [--ui-seek-fixture|--ui-search-fixture]');
   assert(/^\d+$/.test(args[1]), 'invalid UI anchor');
   const anchor = Number(args[1]);
   assert(Number.isSafeInteger(anchor) && anchor >= 946684800000 && anchor <= 4102444800000, 'invalid UI anchor');
-  return Object.freeze({anchor, holdMs: 60 * 60 * 1000,seekFixture:args.length===3});
+  return Object.freeze({anchor, holdMs: 60 * 60 * 1000,seekFixture:args.length===3,searchFixture:args[2]==='--ui-search-fixture'});
 }
 
 export function validateUiSeekProbe(probe) {
@@ -708,7 +708,8 @@ export async function runVerifier(requestedMode = process.argv[2] || "--full", o
   if (uiDriver !== undefined && (!uiMode || typeof uiDriver !== 'function')) throw new Error('UI driver는 ui-direct/ui-auth-direct mode에서만 허용됨');
   const uiAuth = mode === '--ui-auth-direct' ? uiAuthPreparationOptions(uiArgs) : null;
   const uiDirect = mode === '--ui-direct' && uiArgs.length > 0 ? uiAuthPreparationOptions(uiArgs) : null;
-  if (!uiAuth && !uiDirect && uiArgs.includes('--ui-seek-fixture')) throw new Error('seek fixture requires UI anchor');
+  if (!uiAuth && !uiDirect && uiArgs.some(flag=>['--ui-seek-fixture','--ui-search-fixture'].includes(flag))) throw new Error('seek fixture requires UI anchor');
+  if(uiDirect?.searchFixture)throw new Error('search fixture requires authenticated UI mode');
   const httpPasswords=mode==='--http-auth'?createUiAuthPasswords():null;
   let httpSeed=null;
   let currentUiSeed=null;
@@ -755,7 +756,7 @@ export async function runVerifier(requestedMode = process.argv[2] || "--full", o
     } else if (mode === '--ui-direct' || uiAuth) {
       const manifest=path.join(root,'ui-seed-manifest.json');
       execFileSync('bash', [path.join(repo, 'scripts/internal/verify_recording_current_ui_seed.sh'), path.join(root, 'recordings'),manifest,
-        uiAuth?String(uiAuth.anchor):uiDirect?String(uiDirect.anchor):'unknown',seekFixture?.file??'none'], { cwd: repo, stdio: 'inherit',env:uiSeedEnvironment() });
+        uiAuth?String(uiAuth.anchor):uiDirect?String(uiDirect.anchor):'unknown',seekFixture?.file??'none',...((uiAuth||uiDirect)?.searchFixture?['search']:[])], { cwd: repo, stdio: 'inherit',env:uiSeedEnvironment() });
       currentUiSeed=JSON.parse(fs.readFileSync(manifest,'utf8'));
       validateCurrentUiSeed(root,currentUiSeed);
       console.log('[ui-seed] current-managed; mapping units; seek=original-MP4; events=derived-fMP4; actualUiPass=false');
@@ -782,7 +783,7 @@ export async function runVerifier(requestedMode = process.argv[2] || "--full", o
     }
     const env = (mode === '--http-auth' || uiAuth)
       ? Object.freeze({ ...isolatedEnv, MEDIA_SERVER_AUTH_MODE: 'auto',
-        ...(mode === '--http-auth' ? {MEDIA_SERVER_ANALYSIS_EVENT_STORAGE_ENABLED:'1'} : {}),
+        ...(mode === '--http-auth'||uiAuth?.searchFixture ? {MEDIA_SERVER_ANALYSIS_EVENT_STORAGE_ENABLED:'1'} : {}),
         // 채널 편집 UI의 파일 선택 목록은 격리 input을 읽는 /lab/files를 사용한다.
         ...(uiAuth ? {MEDIA_SERVER_ENABLE_LAB:'1',MEDIA_SERVER_WEBRTC_STUN_SERVER:`stun://127.0.0.1:${uiUdpPort}`,MEDIA_SERVER_WEBRTC_TURN_SERVER:''} : {}) })
       : mode === '--ui-direct'
@@ -794,6 +795,9 @@ export async function runVerifier(requestedMode = process.argv[2] || "--full", o
     const privateLog = uiMode ? path.join(root,'server-private.log') : null;
     if (privateLog) fs.writeFileSync(privateLog,'',{flag:'wx',mode:0o600});
     let privateLogBytes = 0;
+    const baseUrl = `http://127.0.0.1:${httpPort}`;
+    let uiRestarting=false;
+    const launchPreparedServer=async()=>{
     child = spawn("./server.sh", ["foreground"], {
       cwd: repo,
       env,
@@ -833,9 +837,27 @@ export async function runVerifier(requestedMode = process.argv[2] || "--full", o
     child.on("error", error => {
       logState.processErrorCode = error?.code || "unknown";
     });
-    const baseUrl = `http://127.0.0.1:${httpPort}`;
     uiStage = 'ready';
     await waitReady(baseUrl, child, logState);
+    };
+    await launchPreparedServer();
+    const mutateSearchFixture=async action=>{
+      assert(uiAuth?.searchFixture&&!uiRestarting&&['add','capacity','restart'].includes(action),'search fixture mutation scope');
+      uiRestarting=true;
+      const marker=path.join(root,'search-server-stopped');
+      try {
+        const stopped=await stopServer(child);
+        await assertPortClosed(httpPort);await assertPortClosed(rtspPort);
+        assert(!fs.existsSync(marker),'search stopped marker exists');
+        fs.writeFileSync(marker,'owned server stopped and both ports closed\n',{flag:'wx',mode:0o600});
+        execFileSync(path.join(root,'search-fixture-tool'),['--search-mutate',path.join(root,'recordings'),action],
+          {cwd:repo,env:uiSeedEnvironment(),timeout:60000,maxBuffer:65536,stdio:['ignore','pipe','pipe']});
+        fs.unlinkSync(marker);
+        await launchPreparedServer();
+        console.log('[ui-search-restart] '+JSON.stringify({action,previousStop:stopped,pid:child.pid,ready:true}));
+        return {action,previousStop:stopped,ready:true};
+      } finally {uiRestarting=false;}
+    };
 
     if (mode === '--http-lifecycle') {
       await verifyRecordingHttpLifecycle(baseUrl, httpSeed, root, child);
@@ -849,8 +871,11 @@ export async function runVerifier(requestedMode = process.argv[2] || "--full", o
         assertLocalIceConfig(await iceResponse.json(), uiUdpPort);
         uiStage = 'source';
         for (const id of ['3','4']) {
+          const source=uiLiveSource(id,`s06-channel-${id}.mp4`,id==='4');
+          // 검색의 정상 필터는 고정 자료에서 확인하고, 녹화 병행 사례가 명시적으로 활성화한다.
+          if(uiAuth.searchFixture)source.recording.enabled=false;
           const response = await auth.call('/ops/api/sources',{method:'POST',headers:{Cookie:auth.cookies[0],'Content-Type':'application/json'},
-            body:JSON.stringify(uiLiveSource(id,`s06-channel-${id}.mp4`,id==='4'))});
+            body:JSON.stringify(source)});
           assert(response.ok,'UI live source preparation failed'); await response.arrayBuffer();
         }
         uiAuthAccounts=auth.accounts;
@@ -867,10 +892,12 @@ export async function runVerifier(requestedMode = process.argv[2] || "--full", o
             accounts: uiAuthAccounts ?? [],
             observationPath: uiProxy.logPath,
             serverLogPath: privateLog,
+            ...(uiAuth?.searchFixture?{mutateSearchFixture}:{}),
             timeoutMs: uiAuth ? uiAuth.holdMs : 15 * 60 * 1000,
           }, uiAuth ? uiAuth.holdMs : 15 * 60 * 1000,
           () => !logState.privateLogFailed && !uiProxy?.failure &&
-            child.exitCode === null && child.signalCode === null && !logState.processErrorCode);
+            !logState.processErrorCode && (uiRestarting ||
+              (child.exitCode === null && child.signalCode === null)));
         } finally {
           uiAuthAccounts = null; // driver 종료·실패 뒤 비밀 참조를 해제하며 메모리 소거를 보장하지 않는다.
         }

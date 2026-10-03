@@ -9,7 +9,7 @@ const end=source.indexOf("        document.getElementById('eventRecordsEvidenceS
 assert(start>=0&&end>start);
 const script=source.slice(start,end);
 class Element {
-  constructor(){this.value='';this.checked=false;this.children=[];this.attrs={};this.dataset={};this.events=new Map();this.selectedOptions=[{value:'1'}];this.options=[];this.duration=10;this.readyState=0;this.currentTime=0;this.seeking=false;this.error=null;}
+  constructor(){this.value='';this.checked=false;this.children=[];this.attrs={};this.dataset={};this.events=new Map();this.selectedOptions=[{value:'1'}];this.options=[];this.duration=10;this.readyState=0;this.currentTime=0;this.seeking=false;this.error=null;this.paused=true;}
   addEventListener(name,fn){const list=this.events.get(name)||[];list.push(fn);this.events.set(name,list);}
   fire(name){return Promise.all((this.events.get(name)||[]).map(fn=>fn({preventDefault(){}})));}
   setAttribute(name,value){this.attrs[name]=value;}
@@ -111,4 +111,15 @@ test('seeked before current data stays pending until loadeddata',async()=>{
   const f=await selectedFixture();const p=await f.choose(0);p.readyState=1;await p.fire('loadedmetadata');
   p.seeking=false;await p.fire('seeked');assert.match(f.el('opsSearchPlayback').textContent,/탐색 중/);
   p.readyState=2;await p.fire('loadeddata');assert.match(f.el('opsSearchPlayback').textContent,/이동했습니다/);
+});
+
+test('restart MAC error400 and same-pool expiry410 clear results with distinct guidance',async()=>{
+  for(const [status,error,message] of [[400,'search-invalid-cursor','검색 조건이 올바르지 않습니다.'],[410,'search-snapshot-expired','검색이 만료됐습니다. 다시 검색하세요.']]){
+    const {el,pending,answer}=fixture();await flush();await el('opsSearchForm').fire('submit');answer(pending.shift(),{...page('old',[hit('a')]),nextCursor:'old-cursor'});await flush();
+    el('opsSearchPlayer').src='/ops/api/recordings/media/a';
+    const next=el('opsSearchNext').fire('click');answer(pending.shift(),{error},status);await next;await flush();
+    assert.equal(el('opsSearchStatus').textContent,message);assert.equal(el('opsSearchRows').children.length,0);assert.equal(el('opsSearchPlayer').src,'');assert(el('opsSearchPlayer').paused);
+    await el('opsSearchForm').fire('submit');const fresh=pending.shift();assert(!new URLSearchParams(fresh.url.split('?')[1]).has('cursor'));answer(fresh,{...page('new',[hit('b')]),nextCursor:'new-cursor'});await flush();
+    const resume=el('opsSearchNext').fire('click');const request=pending.shift();assert.equal(new URLSearchParams(request.url.split('?')[1]).get('cursor'),'new-cursor');answer(request,page('new',[hit('c')]));await resume;await flush();assert.equal(el('opsSearchRows').children[0].dataset.hit,'c');
+  }
 });

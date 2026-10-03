@@ -203,3 +203,13 @@ VLM의 default-off/privacy·profile 저장/후보 선택과 실제 provider 호�
 각 direct-browser/hybrid 기록은 위 Policy v4의 역할/scope·현재 source·시각·상관된 완료 oracle·
 artifact 비노출·cleanup 조건을 따른다. 테스트용 데이터/오류 조건이 준비되지 않으면 notRun이며
 과거 개발 브라우저 관측으로 릴리즈 전체 PASS를 만들지 않는다.
+
+검색 추가 대상의 실행 연결은 [기존 격리 fixture를 사용하는 검색 UI 실행기](../scripts/internal/run_recording_search_ui_acceptance.mjs)다.
+`node scripts/internal/run_recording_search_ui_acceptance.mjs <절대 임시 출력 경로>`로 실행하며,
+출력은 시스템 임시 디렉터리 바로 아래의 비어 있는 `media-server-recording-ui-acceptance-` 접두사
+소유 디렉터리여야 한다. `--ui-search-fixture`는 인증 UI 준비에서만 사용한다. 정상 종료·포트 닫힘을
+확인한 뒤에만 추가/재개방/용량 fixture를 준비하고, 실제 UI 결과와 시각 검토·미실행 범위를 구분한다.
+
+재시작 전 cursor는 새 pool의 MAC 검증에서 HTTP400 `search-invalid-cursor`로 거부된다.
+C02-restart는 현재 조건 오류 안내·이전 목록/재생 제거와 같은 권한의 새 검색/cursor 성공을 확인한다.
+같은 pool의 유효 cursor TTL 만료는 HTTP410 `search-snapshot-expired`와 만료 안내로 구분한다.

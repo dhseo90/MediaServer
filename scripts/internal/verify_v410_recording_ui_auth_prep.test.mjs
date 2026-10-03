@@ -56,6 +56,8 @@ try {
   check('SF01 optional seek fixture is accepted only with explicit UI anchor',()=>{
     assert(uiAuthPreparationOptions(['--ui-anchor-utc-ms','1789084800000','--ui-seek-fixture']).seekFixture===true);
     assert(uiAuthPreparationOptions(['--ui-anchor-utc-ms','1789084800000']).seekFixture===false);
+    const search=uiAuthPreparationOptions(['--ui-anchor-utc-ms','1789084800000','--ui-search-fixture']);assert(search.seekFixture&&search.searchFixture);
+    assert(uiAuthPreparationOptions(['--ui-anchor-utc-ms','1789084800000','--ui-seek-fixture']).searchFixture===false);
     for(const mode of ['--ui-direct','--http-auth']){
       const r=spawnSync(process.execPath,[path.join(repo,'scripts/internal/verify_v410_recording_ui_contract.mjs'),mode,'--ui-seek-fixture'],{encoding:'utf8'});
       assert(r.status===1&&/UI anchor required|seek fixture requires UI anchor/.test(r.stderr));

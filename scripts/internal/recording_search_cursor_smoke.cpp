@@ -56,10 +56,10 @@ int main(){
         if(mode==2)changed.include_unplaced=false;if(mode==3)changed.objects={"person"};
         Check(!pool.Resume(cursor,changed,"alice","scope-1",&page,&error,now),"query change rejected");}
     auto tampered=cursor;tampered.back()=tampered.back()=='a'?'b':'a';
-    Check(!pool.Resume(tampered,q,"alice","scope-1",&page,&error,now),"tampered MAC rejected");
+    Check(!pool.Resume(tampered,q,"alice","scope-1",&page,&error,now)&&error=="search-invalid-cursor","tampered MAC rejected");
     Check(!pool.Resume("v2."+cursor.substr(3),q,"alice","scope-1",&page,&error,now),"schema mismatch rejected");
     RecordingSearchSnapshots restarted;
-    Check(!restarted.Resume(cursor,q,"alice","scope-1",&page,&error,now),"restart rejects prior server cursor");
+    Check(!restarted.Resume(cursor,q,"alice","scope-1",&page,&error,now)&&error=="search-invalid-cursor","restart rejects prior server cursor");
     std::shared_ptr<const RecordingSearchModel> newer;
     Check(RecordingSearchModel::Build({Doc("new","one",1700)},"catalog",2,&newer,&error),"changed source fixture");
     Check(pool.Begin(newer,q,"alice","scope-1",&page,&error,now)&&Ids(page)==std::vector<std::string>{"new"}&&
