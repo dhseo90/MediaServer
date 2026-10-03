@@ -1573,6 +1573,30 @@ void AppendOpsEventsPage(std::ostringstream& out) {
         <p id="opsRecordingPlaybackSupport" role="status">브라우저의 형식·코덱 지원에 따라 재생이 제한될 수 있습니다.</p>
         <p id="opsRecordingPlaybackStatus" role="status">재생할 구간을 선택하세요.</p>
       </section>
+      <section class="section-card ops-workspace-wide ops-recording-search" data-testid="ops-recording-search">
+        <h3>녹화 구조화 검색</h3>
+        <p>저장된 관측으로 검색합니다. 같은 조건의 값은 쉼표로 구분하며, 서로 다른 조건은 모두 충족해야 합니다.</p>
+        <form id="opsSearchForm" class="actions ops-recording-filters">
+          <label>카메라 (복수 선택)<select id="opsSearchChannels" multiple size="3" required aria-describedby="opsSearchChannelHelp"></select></label>
+          <label>시작 시간 (현지 시간)<input id="opsSearchStart" type="datetime-local" required /></label>
+          <label>종료 시간 (현지 시간)<input id="opsSearchEnd" type="datetime-local" required /></label>
+          <label>객체<input id="opsSearchObject" placeholder="person, car" /></label>
+          <label>Track<input id="opsSearchTrack" placeholder="저장된 track ID" /></label>
+          <label>이벤트<input id="opsSearchEvent" placeholder="이벤트 ID" /></label>
+          <label>영역<input id="opsSearchZone" placeholder="영역 ID" /></label>
+          <label>규칙<input id="opsSearchRule" placeholder="규칙 ID" /></label>
+          <label>행동<input id="opsSearchBehaviour" placeholder="event:Intrusion, scenario:loitering" /></label>
+          <label>페이지당 결과<select id="opsSearchLimit"><option>20</option><option selected>50</option><option>100</option><option>200</option></select></label>
+          <label class="ops-recording-original"><input id="opsSearchUnplaced" type="checkbox" /> 시간 미확인 자료 포함</label>
+          <button id="opsSearchSubmit" type="submit">검색</button>
+        </form>
+        <p id="opsSearchChannelHelp">카메라를 1~32개 선택하세요. 최대 31일 범위를 조회합니다.</p>
+        <p id="opsSearchStatus" role="status">카메라와 시간 범위를 선택하세요.</p>
+        <div id="opsSearchRows" class="ops-recording-rows" aria-label="구조화 검색 결과"></div>
+        <button id="opsSearchNext" type="button" class="button-secondary" disabled>다음 페이지</button>
+        <video id="opsSearchPlayer" controls preload="metadata" playsinline aria-label="검색 결과 녹화영상"></video>
+        <p id="opsSearchPlayback" role="status">결과를 선택하면 검색 시점으로 이동합니다.</p>
+      </section>
       <section class="section-card ops-workspace-wide incident-memory-search" data-testid="ops-events-semantic-search" data-incident-memory-search="local-index">
         <div class="toolbar">
           <div>

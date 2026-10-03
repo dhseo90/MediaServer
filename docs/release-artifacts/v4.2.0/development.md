@@ -14,8 +14,9 @@
   6 동일 원본 이벤트 우선과 실제 파일/파생 출력 후보 연결을 구현·단기 검증했다.
   7 원본·파생 파일 presentation seek와 실제 frame 대조를 구현·검증했다.
   8 검색·seek service와 HTTP 연결을 구현했다. application 13개 및 실제 HTTP 67개 검사가 통과했다.
-  8 권한/hit 수명과 source/generation 회귀를 추가 확인했다. 다음은 9 UI 연결이다.
-  9 UI, 10 최종 회귀·문서·push는 미완료다. 제품 완료·push 미수행.
+  8 권한/hit 수명과 source/generation 회귀를 추가 확인했다.
+  9 구조화 검색 UI 연결과 변경 영역 직접 조작·비동기 경계 검증을 마쳤다.
+  10 최종 회귀·문서·push는 미완료다. 제품 완료·push 미수행.
 
 ## 실행 결과
 
@@ -1745,3 +1746,50 @@ exit 1. integrator 계정에 ops/source scope를 지정한 fixture 생성이 거
 [S06 HTTP AUTH] checks=71 fail=0 actualUiActions=NOT_RUN
 [cleanup] PASS {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v410-s06-gqTaF8","rootBeforeBytes":2668742,"rootBeforeEntries":321,"rootSymlinksNotFollowed":277,"rootAbsent":true,"process":{"pid":63312,"exitCode":0,"signalCode":null,"graceful":true},"ports":[{"kind":"rtsp","port":60463,"closed":true,"evidence":"ECONNREFUSED"},{"kind":"http","port":60464,"closed":true,"evidence":"ECONNREFUSED"}],"attempted":6,"failureCount":0,"cleanupElapsedMs":135,"verifierElapsedMs":3808}
 ```
+
+### 9 UI 최초 직접 검증과 발견 사항
+
+source: 02ac4de7 + UI worktree. `cmake --build build-gst-onnx --target media_server -j2` exit 0.
+실행: `node scripts/internal/verify_v410_recording_ui_contract.mjs --ui-direct --ui-anchor-utc-ms 1789084800000 --ui-seek-fixture`.
+격리 auth off 개발 fixture, CUA 내장 브라우저에서 실제 DOM 조작. 실제 HTTP auth 결과를 대신하지 않는다.
+
+- 2026-09-11 현지 08:59~10:00 검색: known 108, 첫 페이지 20, 다음 페이지 20과 ID 교집합 0.
+- person 필터 빈 결과 표시. 시간 미확인 포함 시 unknown 35 별도 표시. 역전 시간은 입력 오류.
+- 이벤트 우선 결과 선택 후 video readyState 4/duration 1/currentTime 0, Space 재생 후 paused false/time 0.009162.
+- 빠른 이벤트→원본 선택은 최종 원본 선택과 seek-unavailable 안내를 유지했다.
+- 1440x1000 light/dark 폼과 390x844 light/dark 폼 직접 screenshot 확인. 모바일 section width358,
+  input/select/button/video의 가로 화면 이탈 목록은 빈 배열이었다. 전체 페이지 축소 캡처를 사용하지 않았다.
+- 실패: 객체 입력 변경 후 다른 필드 클릭에도 기존 영상 src와 결과가 남았다. 기대는 즉시 무효화다.
+  `change`만 감시한 흐름에 `input`도 연결하여 입력 즉시 request/selection generation을 갱신한다.
+  다음 단계는 보류하고 해당 UI 동작을 재검증한다. 실제 지연 응답 순서 반전의 강제 재현은 아직 미실행이다.
+- 전체 릴리즈 UI PASS가 아니며 원본 seek/frame 오차는 앞선 native 증거와 구분한다.
+
+### 9 입력 무효화 수정 직접 재검증
+
+같은 명령으로 새 소유 fixture와 재빌드 서버를 실행했다. CUA 내장 브라우저에서
+동일 시간 검색→이벤트 우선 선택→객체 person 입력을 수행했다.
+관측: 선택 직후 media URL 있음, 입력 직후 `src=null`, `rows=0`,
+상태 `조건이 변경됐습니다. 검색 버튼을 눌러 다시 조회하세요.`. 최초 결함 해소 확인.
+두 UI 실행 모두 stdin 종료 후 서버 exit0, 임시 root 부재와 HTTP/RTSP 포트 폐쇄 확인.
+첫 실행 verifierElapsedMs232986, 재검증 소요는 아래 도구 관측값을 따르며 모델 실행시간이 아니다.
+viewport override reset 및 두 임시 브라우저 tab 닫음.
+UI 전체 완료 판정 전 강제로 뒤바뀐 비동기 응답의 경계 검사와 변경 영역 최종 점검이 남는다.
+
+### 9 변경 영역 판정
+
+- 기존 타임라인/원본 보기를 보존한 별도 구조화 검색 영역을 같은 Ops events 페이지에 연결했다.
+  카메라 다중 선택·8종 조건·페이지·시간 미확인 구분·서버 결정 이벤트 우선·snapshot seek를 소비한다.
+- 최초 입력 변경 결함을 수정하고 브라우저에서 src null/rows0과 재검색 안내를 직접 확인했다.
+- `node --test scripts/internal/recording_search_ui_state.test.mjs`: exit0, tests3/pass3/fail0.
+  검색 응답 순서 반전, seek 응답 순서 반전, 입력 후 늦은 metadata, 만료 상태를 실제 제품 script로 검사했다.
+- 재검증 cleanup: server pid63966 exit0, root 부재, RTSP60852/HTTP60853 closed=true,
+  proxy 포함 cleanup failureCount0, verifierElapsedMs81094. 소요는 해당 harness 관측값이다.
+- 두 실행은 변경 기능 단기 UI 확인이며 릴리즈 UI 풀테스트/임의 codec·장치 정확도 검증은 아니다.
+- 다음은 10 기존 golden 호환·검색 병행 영향·최종 문서/버전·누적 diff·push이다.
+
+9단계 구조 검사 최초 exit1: graph-only pass2/fail2. product_ui_page_scripts.cpp의
+`debt:line-count-drift`와 그에 따른 current source binding 실패. 새 UI 줄 수를 현행 graph에
+반영하지 않은 metadata 불일치다. 다음 단계 보류 후 기존 generator로 현행 값만 갱신한다.
+문서 링크는 295파일/9222링크 failures0, diff check exit0.
+
+9단계 구조 metadata 갱신 후 graph-only 4/4, diff check exit0. 과거 graph/소비자 계약 변경 없음.
