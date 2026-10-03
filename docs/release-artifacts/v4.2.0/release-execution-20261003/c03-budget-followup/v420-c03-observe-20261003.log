@@ -1,0 +1,14 @@
+file://[PATH]
+function assert(value,message){if(!value)throw new Error(message);}
+                                               ^
+
+Error: owned temp output required
+    at assert (file://[PATH]
+    at prepareOutputDirectory (file://[PATH]
+    at file://[PATH]
+    at ModuleJob.run (node:internal/modules/esm/module_job:413:25)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:660:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)
+
+Node.js v24.13.0

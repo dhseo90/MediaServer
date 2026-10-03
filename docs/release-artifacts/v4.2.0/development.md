@@ -5018,3 +5018,78 @@ PR·병합·tag·Release도 수행하지 않는다. 재개에는 세 번째 UI �
 증거 포함 `git diff --cached --check`는 raw patch 4개의 context 빈 줄(` `)을
 후행 공백으로 판정해 exit2였다. 적용 가능한 원본 patch와 hash를 보존하기 위해 편집하지 않았다.
 수기 개발 기록의 공백 검사와 새 링크 대상 존재 확인은 통과했다. 추가 제품 검사는 실행하지 않았다.
+
+### C03 제한 재개와 녹화 root 예산안 — 최종 검색 UI 실패로 종료
+
+사용자가 A(C03 관측·테스트 전제 보완)와 B(기존 자료의 root 예산안)만 재개했다.
+진입 로컬/원격은 `a2543f37a494b5f7f8e1db1e6882781ba9969c04`로 일치했고,
+남은 9파일의 binary diff는 기존 보존 patch SHA-256 `067a8d84…`와 바이트가 같았다.
+중복 적용·제품 수정·기존 실패 편집은 하지 않았다. 새 자료는
+[C03/예산 실행 증거](release-execution-20261003/c03-budget-followup/preservation.json),
+[실제 실행 소스](release-execution-20261003/c03-budget-followup/tested-source.json)에 연결한다.
+
+- 관측 명령은 검색 UI 실행기에 `--c03-observe`를 지정했다. 최초 `/tmp` 경로 명령은
+  `owned temp output required`로 제품/브라우저 시작 전에 exit1이었다. 실제 시스템 임시
+  경로의 관측 1회는 exit1, C03 1fail/37notRun, 기존 증가 assertion 실패를 보존했다.
+  HTTP200 known108→108, unplaced0→0이고, 독립 timeline은 새 채널3 확정 파일 2개의
+  UTC가 null, mapping provenance가 unknown임을 확인했다. 녹화 bytes 증가는 known 증가의
+  근거가 아니었다. 과거 세 번째 실패 당시 응답을 복원한 것은 아니다.
+- 수정은 처음/새 검색의 동일 `includeUnplaced=true` 질의를 고정하고, 전체 페이지를
+  보존·대조하여 새 unknown segment/result ID를 독립 timeline과 결속한다. 시간 미확인
+  자료가 질의 UTC에 속한다고 주장하지 않는다. HTTP 상태/본문·정규화 질의·각 페이지·
+  snapshot/count·녹화 활성/종료 상태는 assertion 전에 저장한다. 제품 시간·cursor 계약은 불변이다.
+- 단기 준비: `node scripts/internal/recording_ui_acceptance.test.mjs` 10/10(새 C03 판정에
+  정상과 질의 변경·오귀속·known 변조·페이지 누락 등 11반례 포함),
+  `node scripts/internal/verify_v410_recording_ui_auth_prep.test.mjs` 21/21,
+  driver boundary 6/6, 스크립트 분류13/13, 기능 연결986·negative15/15·review4GlobalErrors0,
+  문서 링크·주석·변경 구문·소스 공백 exit0. 정적 검사는 최종 UI 실패 전에 시작했다.
+- 조건부 최종 명령 `node scripts/internal/run_recording_search_ui_acceptance.mjs <owned-output>`는
+  1회만 실행했다. exit1, **30pass/1fail/7notRun**. C03은 기존143개 멤버/8페이지 유지,
+  known108→108, unplaced35→37, 신규2개 ID와 독립 확정 파일 일치로 PASS했다.
+  원본/파생 seek, 현재 삭제·손상/fallback, 늦은 search/seek 응답도 action PASS였다.
+  C02-restart에서 기대410 대신 HTTP400 `search-invalid-cursor`가 반환됐다.
+  실제 오류 본문은 trace에 보존됐으며 이후 원인 조사·수정·자동 재실행을 하지 않았다.
+  C02-expiry, L01-add-restart, operator/viewer/integrator/anonymous 4개, M03-capacity는 미실행이다.
+  고정 F07 통과는 배경 녹화 중 과거503의 내부 원인 확정을 뜻하지 않는다.
+- 직접 시각 확인은 C03-new-search, M02-missing-http-503, P02-derived-player-0/1,
+  P03-corrupt-current-file-player-0, U02-390-light/dark-player-0,
+  U02-1440-dark-player-0, U02-390-light-form-top/dark-form-bottom의 10캡처다.
+  선택 화면의 안내·전체 플레이어/상태·정보 비노출을 확인했지만 87캡처 전수 검토나 권한
+  미실행을 포함한 UI 전체 PASS로 승격하지 않는다. seeked/시간 허용 오차는 표시 frame 정확성 증명이 아니다.
+- 두 실제 실행 모두 browserClosed, 서버 정상exit0, HTTP/RTSP/UDP 종료·소유 fixture 부재를
+  확인했다. 최종 서버PID80315, RTSP57939/HTTP57940. JSON/text는 Git, PNG와 원로그는
+  로컬 보존이다. 정제 로그는 원로그와 같은 바이트라고 하지 않는다.
+
+녹화 예산안은 **고정 fixture와 가변 영역 분리(안2)**로 정한다. 실제 실패 root는 소유
+identity(dev16777232/ino166085811/uid501,0700)를 확인하고 크기/분류만 읽었으며,
+현재408,615,477바이트로 기존 post-stop과 일치했다. 원장 개방·제품 실행·파일 변경은 없다.
+
+| 경계 | 예산안과 근거 |
+| --- | --- |
+| 고정 F | 서로 다른 canonical 입력2개124,668,810 + 도구10,174,952 + 계측 소스286,411 = **135,130,173바이트**. 실행 준비 종료 때 실제 크기·identity로 고정하고 변화 시 실패. 파일을 검사 밖으로 옮기지 않는다. |
+| 가변 R | 확정 media·partial·Journal/Generation/SQLite 및 보조/transaction·cache·state·log·tmp 등 **나머지 전부**. 기존448MiB 보호 예산을 R에 유지하는 제안이다. 실패 시 R=334,744,771바이트. 운영 녹화 quota가 아니다. |
+| 실행 root | **F + 469,762,048 = 604,892,221바이트**(이번 고정 입력 기준). 실패값을 조금 올린 상수가 아니라 고정 영역 실측과 기존 가변 보호 예산의 합이다. 향후 F가 달라지면 입력 상한과 준비 검사를 다시 적용한다. |
+| 입력 준비 | 현재 생성 입력 하나가96MiB 미만이고 두 독립 복사본을 만든 후 원본을 지운다. 준비 중 최대3입력 <288MiB에 도구·cache 등을 합산하며, 이 단계의 기존 전체448MiB 제한은 유지한다. 두 source를 같은 파일/pipeline으로 합치지 않는다. |
+| 정지·복제·재기동 | 원본 root와 별도 recovery copy가 겹친다. copy는 기존448MiB/4096entry와 native journal 제한을 유지하고, 총 작업 공간 상한은 **F + 2×448MiB = 1,074,654,269바이트**로 명시한다. 기존 post-stop product270,322,211바이트를 그대로 복사하면 총678,937,688바이트다. 복제 내부 SQLite 재구축·임시 파일도 copy 예산에 포함한다. 세 복제는 순차 정리하므로 동시3개로 계산하지 않는다. |
+
+변경할 정확한 경계는 `recording_current_observer.mjs`의 고정/가변 집계와
+`verify_recording_current_longrun.mjs`의 준비 완료 baseline·budget 및 snapshot 복제 전후의
+합산 검사다. 직접 소비자인 `recording_archive_diagnostic_profile.mjs`와 native의 기존
+448MiB/4096entry receipt·journal 경계는 완화하지 않는다. copy 실행 중 임시 증가도 포함하는
+보호 연결이 필요하며, native 후 크기 기록만으로 최고 사용량 보호를 주장하지 않는다.
+현재 전역448MiB 상수와 실행기는 **변경하지 않았다**. 이 예산은 보호 한도 제안이지,
+미관측120분 마지막 구간·재기동·복제 최고점이 반드시 들어온다는 보장은 아니다.
+채널2·120분·segment2초·quota·삭제/재기동 조건·100000ID/32MiB 관측 한도를 유지한다.
+재개 전 결정할 것은 이 고정/가변·동시복제 예산 및 보호 연결의 적용 승인과 녹화120분 실행 승인이다.
+
+검증된 기존 녹화31-action 캡처 수정과 선택형 C++ seed/shell 준비는 분리 코드 커밋 대상이다.
+검색 driver·재시작 wrapper·연결 단위검사·실행 문서는 미완료 상태로 남기고 실제 소스 patch를
+보존한다. C03 PASS를 검색 전체 완료로 표시하지 않는다. 제품 불변이므로 `ce163652…`의
+canonical, 기존 Linux·개발·녹화 UI 증거는 각 실제 범위에서 유지하며 이번에 재실행하지 않았다.
+일반 acceptance/기본424/일반30·120/녹화120·PR·병합·tag·Release는 실행하지 않았다.
+
+코드 커밋은 `162cf3895cab5cfc494f1f0c87e737999d2fb43f`(캡처3파일),
+`70fc1aee7b524d2ff81d68ebdbd50e4232f2fdea`(선택형 seed2파일)이다.
+커밋 뒤에도 실행 대상 소스 hash는 모두 같았고, canonical 대상 대비 `src/include` diff는 없다.
+미완료5파일(검색 driver·wrapper·두 연결 단위검사·UI 실행 문서)은 작업 트리에 보존한다.
+새 실행 patch의 context 빈 줄은 원본 바이트 보존을 위해 편집하지 않으며 공백 검사 예외로 구분한다.

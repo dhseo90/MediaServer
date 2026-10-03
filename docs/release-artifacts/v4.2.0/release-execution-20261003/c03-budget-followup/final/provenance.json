@@ -1,0 +1,20 @@
+{
+  "head": "a2543f37a494b5f7f8e1db1e6882781ba9969c04",
+  "patchSha256": "9dc5752649bb46c21bf1f1d69042a5f5dfc5897eab8d0e056750878f6ad31ccc",
+  "productSha256": "253810c36869096349c05ad68caacfc21b569e6d6aba13b5223d13c01d84969b",
+  "runnerSha256": "42eb3c5a25550f85b434da3b8b3935c9ada2914ba53b4bb9c68c312811290754",
+  "fingerprints": {
+    "scripts/internal/recording_current_ui_seed.cpp": "38dc824f289fe523f848b32162088ce955a6848c173f8e731e803a039c00c142",
+    "scripts/internal/verify_recording_current_ui_seed.sh": "86eb8de4cf1fdd31059deb47ac5e5df5639581cc20609ccf12493acf94e59a31",
+    "scripts/internal/verify_v410_recording_ui_contract.mjs": "8af686d41bcccbe65883831436b05fe3946612965bf15e179c1518166af40a14",
+    "test/fixtures/ui_fulltest_evidence_policy_v4.json": "cfabd2644b2cb18757fd82e2362294bfa0f919307391c060709651ea5c78db14"
+  },
+  "evidenceMode": "qualified-native-automation",
+  "fallback": "native Chrome with visual review; no in-app renderer",
+  "reproductionCommand": "node scripts/internal/run_recording_search_ui_acceptance.mjs <new-owned-output-directory>",
+  "actionManifestSha256": "9c232d97f0487f32d39ac373f2b6c840149a176d80ed0280015614166edbd152",
+  "manualIntervention": false,
+  "browserVersion": "152.0.7977.83",
+  "moduleVersion": "1.62.1",
+  "policySha256": "318f9bfc035095d0b17333289204192a9d4e1f1771125718aa40b40d662b566c"
+}

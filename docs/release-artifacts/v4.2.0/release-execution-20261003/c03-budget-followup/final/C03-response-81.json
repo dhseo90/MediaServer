@@ -1,0 +1,101 @@
+{
+  "status": 200,
+  "query": {
+    "channelIds": "1,3",
+    "startTimeMs": "1791028560000",
+    "endTimeMs": "1791028740000",
+    "limit": "20",
+    "includeUnplaced": "true",
+    "cursor": "v1.8e87e8d0beb16f4c3fb8b9c2dc83a241.140.1daa04acb336f2a2431d0c51732896795da262914e2feeeceaffc41340bf627f"
+  },
+  "normalizedQuery": {
+    "channels": [
+      "1",
+      "3"
+    ],
+    "startTimeMs": 1791028560000,
+    "endTimeMs": 1791028740000,
+    "includeUnplaced": true,
+    "limit": 20,
+    "filters": {
+      "object": [],
+      "track": [],
+      "event": [],
+      "zone": [],
+      "rule": [],
+      "behaviour": []
+    }
+  },
+  "body": {
+    "schema": "media-server.recording-search.v1",
+    "snapshotId": "8e87e8d0beb16f4c3fb8b9c2dc83a241",
+    "nextCursor": null,
+    "knownCount": 108,
+    "unplacedCount": 35,
+    "items": [
+      {
+        "id": "s2:70:dj-a280d9014096009a45022f75fc77ca23247c6b5905b73a42843e78bc351aaedd-o186:dj-a280d9014096009a45022f75fc77ca23247c6b5905b73a42843e78bc351aaedd-o1-utc-unavailable",
+        "channelId": "1",
+        "kind": "recording",
+        "segmentId": "dj-a280d9014096009a45022f75fc77ca23247c6b5905b73a42843e78bc351aaedd-o1",
+        "observationId": "",
+        "startTimeNs": null,
+        "endTimeNs": null,
+        "timeProvenance": "unknown",
+        "uncertaintyNs": null,
+        "object": "",
+        "track": "",
+        "eventIds": [],
+        "zoneIds": [],
+        "ruleIds": [],
+        "playable": true,
+        "playbackUrl": "/ops/api/recordings/media/dj-a280d9014096009a45022f75fc77ca23247c6b5905b73a42843e78bc351aaedd-o1",
+        "preferredEventId": "",
+        "selectionReason": "original",
+        "unavailableReason": ""
+      },
+      {
+        "id": "s2:70:dj-d16e06b8e4aa96a2caf24dd88ecf57f27363269e0f5fd09539f043dbdad0c2b9-o086:dj-d16e06b8e4aa96a2caf24dd88ecf57f27363269e0f5fd09539f043dbdad0c2b9-o0-utc-unavailable",
+        "channelId": "1",
+        "kind": "recording",
+        "segmentId": "dj-d16e06b8e4aa96a2caf24dd88ecf57f27363269e0f5fd09539f043dbdad0c2b9-o0",
+        "observationId": "",
+        "startTimeNs": null,
+        "endTimeNs": null,
+        "timeProvenance": "unknown",
+        "uncertaintyNs": null,
+        "object": "",
+        "track": "",
+        "eventIds": [],
+        "zoneIds": [],
+        "ruleIds": [],
+        "playable": true,
+        "playbackUrl": "/ops/api/recordings/media/dj-d16e06b8e4aa96a2caf24dd88ecf57f27363269e0f5fd09539f043dbdad0c2b9-o0",
+        "preferredEventId": "",
+        "selectionReason": "original",
+        "unavailableReason": ""
+      },
+      {
+        "id": "s2:70:dj-d16e06b8e4aa96a2caf24dd88ecf57f27363269e0f5fd09539f043dbdad0c2b9-o186:dj-d16e06b8e4aa96a2caf24dd88ecf57f27363269e0f5fd09539f043dbdad0c2b9-o1-utc-unavailable",
+        "channelId": "1",
+        "kind": "recording",
+        "segmentId": "dj-d16e06b8e4aa96a2caf24dd88ecf57f27363269e0f5fd09539f043dbdad0c2b9-o1",
+        "observationId": "",
+        "startTimeNs": null,
+        "endTimeNs": null,
+        "timeProvenance": "unknown",
+        "uncertaintyNs": null,
+        "object": "",
+        "track": "",
+        "eventIds": [],
+        "zoneIds": [],
+        "ruleIds": [],
+        "playable": true,
+        "playbackUrl": "/ops/api/recordings/media/dj-d16e06b8e4aa96a2caf24dd88ecf57f27363269e0f5fd09539f043dbdad0c2b9-o1",
+        "preferredEventId": "",
+        "selectionReason": "original",
+        "unavailableReason": ""
+      }
+    ]
+  }
+}

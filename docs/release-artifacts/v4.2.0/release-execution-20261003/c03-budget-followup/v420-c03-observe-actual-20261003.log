@@ -1,0 +1,30 @@
+[start] 2026-10-03T11:51:59Z
+Darwin arm64
+Apple clang version 21.0.0 (clang-2100.3.34.2)
+38dc824f289fe523f848b32162088ce955a6848c173f8e731e803a039c00c142  [PATH]
+f9bd09ba278871b479284014e757bc494e6b471bd43fd505536a474f62fcd639  [PATH]
+404784ececbb74556fa2e32975f879e2632a96311bc7ed0e41bce069d167b8a6  [PATH]
+86eb8de4cf1fdd31059deb47ac5e5df5639581cc20609ccf12493acf94e59a31  [PATH]
+f53192a630bc0378638ece917308611a95f819e5fc2537dec3235202da7d94ed  [PATH]
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+PASS: LP26-U06-A managed Catalog reopen public timeline and persistent generation unchanged
+PASS: B06-V02 actual Runtime B seed and fresh reopen preserve authoritative files
+PASS: LP26-U01-A current managed UI seed oracle
+PASS: LP26-U02-A current managed UI seed oracle
+PASS: LP26-U03-A current managed UI seed oracle
+PASS: LP26-U04-A current managed UI seed oracle
+PASS: LP26-U05-A current managed UI seed oracle
+[ui-seed-summary] {"rows":146,"known":115,"unknown":31,"pages":2,"actualUiPass":false}
+[cleanup] {"path":"[PATH]","bytes":13537884,"removed":true}
+[elapsed] seconds=9 source=bash-SECONDS actualUiPass=false
+[ui-seed] current-managed; mapping units; seek=original-MP4; events=derived-fMP4; actualUiPass=false
+[ui-seed-selection] {"seekSegmentId":"7311b404-7b7b-4125-8c44-16e2f3b0818e","eventOutputIds":[{"scenario":"full","ids":["dj-2ca08adb931fc5d2116a9a5d6b68059162fa297227ddb5f8b1addcc30cd1e7bf-o0","dj-2ca08adb931fc5d2116a9a5d6b68059162fa297227ddb5f8b1addcc30cd1e7bf-o1"]},{"scenario":"partial","ids":["dj-80864a2584cd68e184bda8d55dabd6a149e67a1b48bfcccc41eb257c140a6e55-o0","dj-80864a2584cd68e184bda8d55dabd6a149e67a1b48bfcccc41eb257c140a6e55-o1"]}],"actualUiPass":false}
+[search-ui-action] C03-live-membership begin
+[search-ui-action] C03-live-membership fail
+{"uiPreparationLog":{"truncated":false,"droppedBytes":0,"writeFailed":false},"actualUiPass":false}
+[cleanup] PASS {"root":"[PATH]","rootBeforeBytes":27753937,"rootBeforeEntries":436,"rootSymlinksNotFollowed":277,"rootAbsent":true,"process":{"pid":79712,"exitCode":0,"signalCode":null,"graceful":true},"ports":[{"kind":"rtsp","port":57768,"closed":true,"evidence":"ECONNREFUSED"},{"kind":"http","port":57769,"closed":true,"evidence":"ECONNREFUSED"}],"attempted":6,"failureCount":0,"cleanupElapsedMs":362,"verifierElapsedMs":25571,"uiUdpClosed":true}
+search UI run failed; inspect private evidence: UI auth preparation failed stage=driver code=PREPARATION_FAILED

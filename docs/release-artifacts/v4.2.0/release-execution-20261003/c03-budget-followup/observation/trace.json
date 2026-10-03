@@ -1,0 +1,65 @@
+[
+  {
+    "id": "C03-live-membership",
+    "phase": "begin",
+    "at": "2026-10-03T11:52:12.300Z"
+  },
+  {
+    "action": "C03-live-membership",
+    "selector": "#opsSearchSubmit",
+    "operation": "click",
+    "at": 1791028332373
+  },
+  {
+    "action": "C03-live-membership",
+    "selector": "#opsSearchNext",
+    "operation": "click",
+    "at": 1791028343176
+  },
+  {
+    "action": "C03-live-membership",
+    "selector": "#opsSearchNext",
+    "operation": "click",
+    "at": 1791028343265
+  },
+  {
+    "action": "C03-live-membership",
+    "selector": "#opsSearchNext",
+    "operation": "click",
+    "at": 1791028343361
+  },
+  {
+    "action": "C03-live-membership",
+    "selector": "#opsSearchNext",
+    "operation": "click",
+    "at": 1791028343458
+  },
+  {
+    "action": "C03-live-membership",
+    "selector": "#opsSearchNext",
+    "operation": "click",
+    "at": 1791028343595
+  },
+  {
+    "action": "C03-live-membership",
+    "selector": "#opsSearchSubmit",
+    "operation": "click",
+    "at": 1791028343730
+  },
+  {
+    "id": "C03-live-membership",
+    "phase": "end",
+    "at": "2026-10-03T11:52:24.643Z",
+    "status": "fail",
+    "role": {
+      "requestedRole": "admin",
+      "requestedScopes": [
+        "*"
+      ],
+      "role": "admin",
+      "scopes": [
+        "*"
+      ]
+    }
+  }
+]

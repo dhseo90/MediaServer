@@ -1,0 +1,134 @@
+{
+  "identity": {
+    "dev": 16777232,
+    "ino": 166085811,
+    "uid": 501,
+    "mode": 448
+  },
+  "measurement": {
+    "totalBytes": 408615477,
+    "capBytes": 469762048,
+    "capExceeded": false,
+    "entries": 494,
+    "categories": {
+      "input": {
+        "bytes": 124668810,
+        "files": 2
+      },
+      "media": {
+        "bytes": 125711414,
+        "files": 6
+      },
+      "mediaPartial": {
+        "bytes": 0,
+        "files": 0
+      },
+      "journal": {
+        "bytes": 91996462,
+        "files": 89
+      },
+      "checkpoint": {
+        "bytes": 0,
+        "files": 0
+      },
+      "generationSnapshot": {
+        "bytes": 13248797,
+        "files": 1
+      },
+      "generationIdentity": {
+        "bytes": 12941696,
+        "files": 88
+      },
+      "generationEvidence": {
+        "bytes": 0,
+        "files": 0
+      },
+      "generationManifest": {
+        "bytes": 403,
+        "files": 1
+      },
+      "generationTransaction": {
+        "bytes": 0,
+        "files": 0
+      },
+      "sqlite": {
+        "bytes": 26423296,
+        "files": 1
+      },
+      "wal": {
+        "bytes": 0,
+        "files": 0
+      },
+      "sqliteAux": {
+        "bytes": 0,
+        "files": 0
+      },
+      "tmp": {
+        "bytes": 0,
+        "files": 0
+      },
+      "log": {
+        "bytes": 12289,
+        "files": 1
+      },
+      "state": {
+        "bytes": 4655,
+        "files": 2
+      },
+      "events": {
+        "bytes": 0,
+        "files": 0
+      },
+      "cache": {
+        "bytes": 3146149,
+        "files": 280
+      },
+      "tools": {
+        "bytes": 10174952,
+        "files": 2
+      },
+      "recordingsOther": {
+        "bytes": 143,
+        "files": 3
+      },
+      "other": {
+        "bytes": 286411,
+        "files": 1
+      }
+    },
+    "ownership": {
+      "productRecording": {
+        "bytes": 270322211,
+        "files": 189
+      },
+      "fixtureInput": {
+        "bytes": 124668810,
+        "files": 2
+      },
+      "observerTools": {
+        "bytes": 10174952,
+        "files": 2
+      },
+      "cache": {
+        "bytes": 3146149,
+        "files": 280
+      },
+      "temporary": {
+        "bytes": 0,
+        "files": 0
+      },
+      "runtimeSupport": {
+        "bytes": 16944,
+        "files": 3
+      },
+      "other": {
+        "bytes": 286411,
+        "files": 1
+      }
+    },
+    "transientJournalMisses": 0,
+    "measurement": "logical-file-bytes-nonatomic",
+    "rawPathsPublished": false,
+    "transientTreeRetries": 0
+  }
+}

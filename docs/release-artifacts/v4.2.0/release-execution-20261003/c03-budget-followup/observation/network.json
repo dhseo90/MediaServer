@@ -1,0 +1,240 @@
+[
+  {
+    "action": "setup",
+    "path": "/login",
+    "status": 200,
+    "method": "GET",
+    "at": 1791028330926
+  },
+  {
+    "action": "setup",
+    "path": "/login",
+    "status": 302,
+    "method": "POST",
+    "at": 1791028331094
+  },
+  {
+    "action": "setup",
+    "path": "/ops/home",
+    "status": 200,
+    "method": "GET",
+    "at": 1791028331096
+  },
+  {
+    "action": "setup",
+    "path": "/auth/whoami",
+    "status": 200,
+    "method": "GET",
+    "at": 1791028331127
+  },
+  {
+    "action": "setup",
+    "path": "/ops/api/vlm/profiles",
+    "status": 200,
+    "method": "GET",
+    "at": 1791028331127
+  },
+  {
+    "action": "setup",
+    "path": "/ops/api/vlm/evaluation-results",
+    "status": 200,
+    "method": "GET",
+    "at": 1791028331127
+  },
+  {
+    "action": "setup",
+    "path": "/ops/api/rules/catalog",
+    "status": 200,
+    "method": "GET",
+    "at": 1791028331127
+  },
+  {
+    "action": "setup",
+    "path": "/ops/api/vlm/evaluation-promotion-guard",
+    "status": 200,
+    "method": "GET",
+    "at": 1791028331127
+  },
+  {
+    "action": "setup",
+    "path": "/ops/api/sources",
+    "status": 200,
+    "method": "GET",
+    "at": 1791028331127
+  },
+  {
+    "action": "setup",
+    "path": "/ops/api/runtime/status",
+    "status": 200,
+    "method": "GET",
+    "at": 1791028331127
+  },
+  {
+    "action": "setup",
+    "path": "/ops/api/views",
+    "status": 200,
+    "method": "GET",
+    "at": 1791028331127
+  },
+  {
+    "action": "setup",
+    "path": "/ops/api/diagnostics/log-tail",
+    "status": 200,
+    "method": "GET",
+    "at": 1791028331127
+  },
+  {
+    "action": "setup",
+    "path": "/ops/api/users",
+    "status": 200,
+    "method": "GET",
+    "at": 1791028331127
+  },
+  {
+    "action": "setup",
+    "path": "/ops/api/events/status",
+    "status": 200,
+    "method": "GET",
+    "at": 1791028331127
+  },
+  {
+    "action": "setup",
+    "path": "/ops/events",
+    "status": 200,
+    "method": "GET",
+    "at": 1791028331135
+  },
+  {
+    "action": "setup",
+    "path": "/auth/whoami",
+    "status": 200,
+    "method": "GET",
+    "at": 1791028331156
+  },
+  {
+    "action": "setup",
+    "path": "/ops/api/vlm/profiles",
+    "status": 200,
+    "method": "GET",
+    "at": 1791028331179
+  },
+  {
+    "action": "setup",
+    "path": "/ops/api/audit",
+    "status": 200,
+    "method": "GET",
+    "at": 1791028331180
+  },
+  {
+    "action": "setup",
+    "path": "/ops/api/vlm/evaluation-promotion-guard",
+    "status": 200,
+    "method": "GET",
+    "at": 1791028331180
+  },
+  {
+    "action": "setup",
+    "path": "/ops/api/vlm/evaluation-results",
+    "status": 200,
+    "method": "GET",
+    "at": 1791028331180
+  },
+  {
+    "action": "setup",
+    "path": "/ops/api/recordings/status",
+    "status": 200,
+    "method": "GET",
+    "at": 1791028331180
+  },
+  {
+    "action": "setup",
+    "path": "/ops/api/recordings/status",
+    "status": 200,
+    "method": "GET",
+    "at": 1791028331180
+  },
+  {
+    "action": "setup",
+    "path": "/ops/api/alerts/deliveries",
+    "status": 200,
+    "method": "GET",
+    "at": 1791028331180
+  },
+  {
+    "action": "setup",
+    "path": "/ops/api/events/status",
+    "status": 200,
+    "method": "GET",
+    "at": 1791028331180
+  },
+  {
+    "action": "setup",
+    "path": "/ops/api/events/reviews",
+    "status": 200,
+    "method": "GET",
+    "at": 1791028331191
+  },
+  {
+    "action": "setup",
+    "path": "/ops/api/recordings/timeline",
+    "status": 200,
+    "method": "GET",
+    "at": 1791028331666
+  },
+  {
+    "action": "setup",
+    "path": "/ops/api/recordings/media/dj-2ca08adb931fc5d2116a9a5d6b68059162fa297227ddb5f8b1addcc30cd1e7bf-o1",
+    "status": 206,
+    "method": "GET",
+    "at": 1791028331730
+  },
+  {
+    "action": "C03-live-membership",
+    "path": "/ops/api/recordings/search",
+    "status": 200,
+    "method": "GET",
+    "at": 1791028333017
+  },
+  {
+    "action": "C03-live-membership",
+    "path": "/ops/api/recordings/search",
+    "status": 200,
+    "method": "GET",
+    "at": 1791028343250
+  },
+  {
+    "action": "C03-live-membership",
+    "path": "/ops/api/recordings/search",
+    "status": 200,
+    "method": "GET",
+    "at": 1791028343342
+  },
+  {
+    "action": "C03-live-membership",
+    "path": "/ops/api/recordings/search",
+    "status": 200,
+    "method": "GET",
+    "at": 1791028343443
+  },
+  {
+    "action": "C03-live-membership",
+    "path": "/ops/api/recordings/search",
+    "status": 200,
+    "method": "GET",
+    "at": 1791028343580
+  },
+  {
+    "action": "C03-live-membership",
+    "path": "/ops/api/recordings/search",
+    "status": 200,
+    "method": "GET",
+    "at": 1791028343647
+  },
+  {
+    "action": "C03-live-membership",
+    "path": "/ops/api/recordings/search",
+    "status": 200,
+    "method": "GET",
+    "at": 1791028344614
+  }
+]

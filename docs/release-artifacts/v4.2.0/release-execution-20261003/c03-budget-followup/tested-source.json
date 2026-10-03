@@ -1,0 +1,16 @@
+{
+  "base": "a2543f37a494b5f7f8e1db1e6882781ba9969c04",
+  "patchSha256": "9dc5752649bb46c21bf1f1d69042a5f5dfc5897eab8d0e056750878f6ad31ccc",
+  "files": {
+    "docs/manual-ui-fulltest.md": "318f9bfc035095d0b17333289204192a9d4e1f1771125718aa40b40d662b566c",
+    "scripts/internal/recording_current_ui_seed.cpp": "38dc824f289fe523f848b32162088ce955a6848c173f8e731e803a039c00c142",
+    "scripts/internal/recording_ui_acceptance.test.mjs": "5a20fa7170f72cd357ce07e9686899967cc5b77c7b7df7a85e8000ba83937812",
+    "scripts/internal/recording_ui_after_playback.mjs": "a5a300d40d4f8b47bbb50277769dec03ff6945a21496e24cb87d7033454a63ad",
+    "scripts/internal/recording_ui_before_playback.mjs": "404d99cfdf284f15be9e639e1c9477b21ac384da708663f9106a2e1291f72753",
+    "scripts/internal/run_recording_search_ui_acceptance.mjs": "42eb3c5a25550f85b434da3b8b3935c9ada2914ba53b4bb9c68c312811290754",
+    "scripts/internal/run_recording_ui_acceptance.mjs": "e55ee4947d6952449f6f4217a682555c5dc1818ab6c6b1c1fe4443caf8c27526",
+    "scripts/internal/verify_recording_current_ui_seed.sh": "86eb8de4cf1fdd31059deb47ac5e5df5639581cc20609ccf12493acf94e59a31",
+    "scripts/internal/verify_v410_recording_ui_auth_prep.test.mjs": "b47e8ba5e82738c9fa9b14032252279eef987539a82cd77ffdecf5d0d4b9a6a2",
+    "scripts/internal/verify_v410_recording_ui_contract.mjs": "8af686d41bcccbe65883831436b05fe3946612965bf15e179c1518166af40a14"
+  }
+}
