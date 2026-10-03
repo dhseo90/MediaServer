@@ -2,7 +2,7 @@
 
 [![Preflight](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml)
 [![Licensing and Artifact Guardrails](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml)
-![Source Version](https://img.shields.io/badge/source-4.1.1-informational)
+![Source Version](https://img.shields.io/badge/source-4.2.0-informational)
 
 A C++17 media server for macOS and Linux with RTSP/WebRTC relaying, YOLO/ONNX
 video analytics, and continuous/event recording. Manage channels and analysis
@@ -10,9 +10,9 @@ rules in a browser, watch live streams, and review recorded video.
 
 [한국어](README.md) · [Documentation](docs/en/README.md) ·
 [Latest release](https://github.com/dhseo90/MediaServer/releases/latest) ·
-[v4.1.1 release candidate notes](docs/release-notes-v4.1.1.md)
+[v4.2.0 release candidate notes](docs/release-notes-v4.2.0.md)
 
-The current source is a v4.1.1 release candidate. The recorded published version is
+The current source is a v4.2.0 release candidate. The recorded published version is
 v4.1.0; use the Latest release link above to check the current publication status.
 
 ## Features
@@ -21,6 +21,8 @@ v4.1.0; use the Latest release link above to check the current publication statu
 - Analytics: object-detection overlays, saved rules and scenarios, event delivery, and analysis metadata.
 - Recording: per-channel continuous and event-linked recording, capacity-bounded circular retention,
   event-priority timelines, and playback.
+- Structured search: filter recordings by camera, time, object, track, event, zone, rule and behaviour;
+  jump to the search position when file timing evidence is available.
 - Operations: manage channels, rules, users, and diagnostics in `/ops`;
   watch authorized live streams in `/client`.
 - Event review: browse event records, incident timelines, and recordings in `/ops/events`.

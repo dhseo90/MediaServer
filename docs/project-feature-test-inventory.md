@@ -4194,3 +4194,17 @@ V420-U01 비동기 경계는 실제 UI script 블록의 단기 VM 검사로 응�
 이전 검색 응답이 새 결과를 덮지 않음, 오래된 seek가 새 파일 URL/위치를 덮지 않음,
 입력 무효화 후 metadata가 위치를 복원하지 않음, 만료가 파일을 로드하지 않음을 확인한다.
 이는 위 브라우저 직접 검증을 보완하며 실제 브라우저 실행으로 보고하지 않는다.
+
+### V420-K01~03 최종 개발 회귀
+
+기존 v1 golden fixture의 baseline Git blob과 현재 바이트를 대조하고 기존 contract reader 검사를
+실행한다. 기존 public timeline/media 검사는 현재 runtime에 연결하여 시간·상태·권한·hold와
+삭제 보호를 확인한다. 별도 concurrent fixture는 실제 30fps 90-frame managed writer에
+검색 요청을 병행하고 packet 전진, 최종 3개 GOP 세그먼트·검색 결과·현재 파일 건강도를 확인한다.
+동시 구조 변경의 503은 명시 미준비이며 성공으로 집계하지 않는다. 쓰기 종료 후 최종 검색은 반드시
+200/3개여야 한다. 검색 코드가 media/source callback에 연결되거나 source worker를 생성하지
+않는지는 누적 diff와 소비 경계로 별도 대조한다. 장시간 안정성·누수 검사의 대체가 아니다.
+
+V420-K01은 수정하지 않은 v1 segments/observations golden을 현행 catalog/search reader에 입력해
+녹화2구간, person/track/event/zone/rule 복합관측1건, 정확한 UTC2500ms/PTS315000/90000 timebase,
+exclusive query end를 대조한다. metadata-only golden에 미디어가 있다고 주장하지 않는다.

@@ -16,7 +16,8 @@
   8 검색·seek service와 HTTP 연결을 구현했다. application 13개 및 실제 HTTP 67개 검사가 통과했다.
   8 권한/hit 수명과 source/generation 회귀를 추가 확인했다.
   9 구조화 검색 UI 연결과 변경 영역 직접 조작·비동기 경계 검증을 마쳤다.
-  10 최종 회귀·문서·push는 미완료다. 제품 완료·push 미수행.
+  10 최종 개발 회귀·문서·버전 정리를 마쳤다. 아래 완료 대조를 따르며,
+  최종 커밋·원격 push 결과는 이 작업의 최종 보고에서 실제 Git 조회로 확인한다.
 
 ## 실행 결과
 
@@ -1793,3 +1794,398 @@ UI 전체 완료 판정 전 강제로 뒤바뀐 비동기 응답의 경계 검�
 문서 링크는 295파일/9222링크 failures0, diff check exit0.
 
 9단계 구조 metadata 갱신 후 graph-only 4/4, diff check exit0. 과거 graph/소비자 계약 변경 없음.
+
+### 10 최종 개발 단기 회귀
+
+source: eb221f73 + stage10 worktree.
+
+```text
+golden unchanged: 8 files; baseline 5990bbcc; SHA256 aggregate 6141eb02996dfad034b79db90e25459484953172b08390c3c7f533d01779d205
+command: bash scripts/internal/verify_v410_recording_contracts.sh
+[verify] build v4.1.0 recording contract smoke: /tmp/media_server_v410_recording_contracts-64511
+[pass] opaque ID 허용
+[pass] 빈 opaque ID 거부
+[pass] path opaque ID 거부
+[pass] SQLite rowid 형태 opaque ID 거부
+[pass] 반개구간 겹침
+[pass] 맞닿은 반개구간 비겹침
+[pass] 빈 반개구간 거부
+[pass] fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/segments.jsonl
+[pass] fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/segments.jsonl
+[pass] V1 segment golden row count
+[pass] unknown optional field를 포함한 segment parse:
+[pass] segment provenance semantic
+[pass] segment UTC/end PTS semantic
+[pass] segment media/checksum semantic
+[pass] segment lifecycle/retention semantic
+[pass] unknown optional field 뒤 known ID 보존
+[pass] PTS/timebase exact 보존
+[pass] public JSON에 filesystem path 비노출
+[pass] segment canonical 재parse
+[pass] PTS/timebase round-trip
+[pass] unknown lifecycle를 호환 parse
+[pass] unknown lifecycle를 Unknown으로 보존
+[pass] unknown lifecycle 비재생
+[pass] fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/segments.jsonl
+[pass] fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/segments.jsonl
+[pass] segments.jsonl parse[0]:
+[pass] segments.jsonl additive optional known semantic parity[0]
+[pass] V1 schema probe anchor
+[pass] segments.jsonl changed schema rejected
+[pass] required ID probe anchor
+[pass] segments.jsonl missing required ID rejected
+[pass] segments.jsonl canonical parse[0]:
+[pass] segments.jsonl canonical parity[0]
+[pass] segments.jsonl parse[1]:
+[pass] segments.jsonl additive optional known semantic parity[1]
+[pass] V1 schema probe anchor
+[pass] segments.jsonl changed schema rejected
+[pass] required ID probe anchor
+[pass] segments.jsonl missing required ID rejected
+[pass] segments.jsonl canonical parse[1]:
+[pass] segments.jsonl canonical parity[1]
+[pass] fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/event-links.jsonl
+[pass] fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/event-links.jsonl
+[pass] event-links.jsonl parse[0]:
+[pass] event-links.jsonl additive optional known semantic parity[0]
+[pass] V1 schema probe anchor
+[pass] event-links.jsonl changed schema rejected
+[pass] required ID probe anchor
+[pass] event-links.jsonl missing required ID rejected
+[pass] event-links.jsonl canonical parse[0]:
+[pass] event-links.jsonl canonical parity[0]
+[pass] fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/observations.jsonl
+[pass] fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/observations.jsonl
+[pass] observations.jsonl parse[0]:
+[pass] observations.jsonl additive optional known semantic parity[0]
+[pass] V1 schema probe anchor
+[pass] observations.jsonl changed schema rejected
+[pass] required ID probe anchor
+[pass] observations.jsonl missing required ID rejected
+[pass] observations.jsonl canonical parse[0]:
+[pass] observations.jsonl canonical parity[0]
+[pass] fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/tombstones.jsonl
+[pass] fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/tombstones.jsonl
+[pass] tombstones.jsonl parse[0]:
+[pass] tombstones.jsonl additive optional known semantic parity[0]
+[pass] V1 schema probe anchor
+[pass] tombstones.jsonl changed schema rejected
+[pass] required ID probe anchor
+[pass] tombstones.jsonl missing required ID rejected
+[pass] tombstones.jsonl canonical parse[0]:
+[pass] tombstones.jsonl canonical parity[0]
+[pass] fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/event-links.jsonl
+[pass] fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/event-links.jsonl
+[pass] link ID/provenance semantic
+[pass] link requested range/status semantic
+[pass] link overlap/missing semantic
+[pass] link fallback/time semantic
+[pass] fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/observations.jsonl
+[pass] fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/observations.jsonl
+[pass] observation ID/provenance semantic
+[pass] observation exact locator semantic
+[pass] observation detection semantic
+[pass] observation association/time semantic
+[pass] fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/tombstones.jsonl
+[pass] fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/tombstones.jsonl
+[pass] tombstone ID/provenance semantic
+[pass] tombstone range/checksum/legacy retention semantic
+[pass] tombstone segment ID 재사용 거부
+[pass] 새 segment ID 허용
+[pass] S10-M01 V2 accepts adjacent media and backward overlapping UTC mappings
+[pass] S10-M01 literal parser preserves exact int64 above double precision
+[pass] S10-M01 serializer matches independent canonical literal
+[pass] S10-M02 unknown final media endpoint and null UTC roundtrip
+[pass] S10-M02 actual UTC zero remains known
+[pass] S10-M03 empty mappings rejected
+[pass] S10-M03 initial media gap rejected
+[pass] S10-M03 interior media gap rejected
+[pass] S10-M03 media overlap rejected
+[pass] S10-M03 final media gap rejected
+[pass] S10-M03 duplicate mapping ID rejected
+[pass] S10-M03 reversed mapping media rejected
+[pass] S10-M03 reversed segment media rejected
+[pass] S10-M03 nonfinal unknown media end rejected
+[pass] S10-M03 known missing UTC endpoint rejected
+[pass] S10-M03 negative uncertainty rejected
+[pass] S10-M03 nonincreasing known UTC rejected
+[pass] S10-M03 unknown with UTC value rejected
+[pass] S10-M03 unknown without reason rejected
+[pass] S10-M03 estimated without reason rejected
+[pass] S10-M04 reason byte limit rejected
+[pass] S10-M04 exact 256 unique adjacent mappings accepted
+[pass] S10-M04 mapping count limit rejected
+[pass] S10-M04 exact 256 byte estimated reason accepted
+[pass] S10-M02 bounded unknown mapping preserves media endpoint
+[pass] S10-M04 exact JSON size limit accepted
+[pass] S10-M04 nonpositive order rejected
+[pass] S10-M04 nonpositive timebase rejected
+[pass] S10-M04 invalid opaque ID rejected
+[pass] S10-M04 nonfinalized lifecycle rejected
+[pass] S10-M04 invalid physical integrity rejected
+[pass] S10-M04 V2 unknown retention rejected
+[pass] S10-M04 oversized physical string rejected by validator and serializer
+[pass] S10-M04 parser rejects and preserves output schema
+[pass] S10-M04 parser rejects and preserves output unknown-key
+[pass] S10-M04 parser rejects and preserves output duplicate-key
+[pass] S10-M04 parser rejects and preserves output integer-overflow
+[pass] S10-M04 parser rejects and preserves output fraction
+[pass] S10-M04 parser rejects and preserves output wrong-type
+[pass] S10-M04 parser rejects and preserves output timebase-overflow
+[pass] S10-M04 parser rejects and preserves output mapping-schema
+[pass] S10-M04 parser rejects and preserves output provenance
+[pass] S10-M04 parser rejects and preserves output unknown-retention
+[pass] S10-M04 parser rejects and preserves output mapping-key
+[pass] S10-M04 parser rejects and preserves output json-cap
+[pass] S10-M04 parser null output rejected
+[verify-v410-recording-contracts] pass=135 fail=0
+[cleanup] path=/tmp/media_server_v410_recording_contracts-64511 bytes=734040 removed=true
+
+
+exit: 0
+command: bash scripts/internal/verify_recording_public_timeline.sh
+[pass] D3B-01 actual V2 원본·문자열 UTC·독립 unplaced 응답
+[pass] D3B-14 mismatch/nonintegral mapping은 unplaced
+[pass] D3B-14 mismatch/nonintegral mapping은 unplaced
+[pass] D3B-02 문법/범위 오류400
+[pass] D3B-02 문법/범위 오류400
+[pass] D3B-02 문법/범위 오류400
+[pass] D3B-02 문법/범위 오류400
+[pass] D3B-02 문법/범위 오류400
+[pass] D3B-02 문법/범위 오류400
+[pass] D3B-02 권한 거부403
+[pass] LP25-T01 omitted/mapping exact JSON identity
+[pass] LP25-T06 invalid unplacedUnit 400
+[pass] LP25-T06 authorize before invalid unit
+[pass] LP25-T06 invalid unplacedUnit 400
+[pass] LP25-T06 authorize before invalid unit
+[pass] LP25-T06 invalid unplacedUnit 400
+[pass] LP25-T06 authorize before invalid unit
+[pass] D3B-13 Intent placeholder no file/null time
+[pass] D3B-13 accepted/no-job 상태 보존
+[pass] D3B-05 Ready 출력 시간과 재생불가 분리
+[pass] D3B-05 Committed 출력 시간과 재생불가 분리
+[pass] D3B-05 실제 검증된 파생2출력 시간/파일 독립
+[pass] D3B-07 같은 UTC 다른 segment/epoch는 원본 숨김 없음
+[pass] D3B-13 출력 생성 뒤 job placeholder 없음
+[pass] D3B-07 page 밖 이벤트도 원본 전체 충족 판정
+[pass] D3B-06 일부 중첩 원본은 보존
+[pass] D3B-04 재조회 stable itemId/order
+[pass] D3B-12 요청축/문자열/공개 whitelist
+[pass] D3B-08 동일 size 변조 출력은 비재생
+[pass] D3B-08 파일 누락 Complete와 재생불가/숨김 분리
+[pass] D3B-08 실제 tombstone 출력 deleted 보존
+[pass] D3B-09 source tombstone 뒤 durable UTC 투영
+[pass] D3B-05 partial 요청 실제 출력 jobComplete
+[pass] D3B-14 actual 출력 mismatch mapping은 unplaced·partial 파일 제공 분리
+[pass] D3B-13 Failed placeholder no file/null time
+[pass] LP25-T04 failed placeholder unchanged without group members
+[pass] D3B-03/04 UTC0와 same-file 다중 mapping 독립 ID
+[pass] D3B-03 int64 최대 UTC ns 문자열 정밀도
+[pass] D3B-11 관련 없는 known4352 누적은 짧은 질의 허용
+[pass] D3B-11 실제 관련4352 상한 명시 실패
+[pass] D3B-02/11 관련 상한503
+[pass] D3B-10/11 unknown4354 count와 bounded 첫 페이지
+[pass] D3B-10 known/unplaced 독립 동일 offset 페이지
+[pass] LP25-T08 4352 unknown mappings become 17 files plus 2 invalid files
+[pass] LP25-T02 file group stable opaque IDs null UTC and all member identities
+[pass] LP25-T03 invalid fractional mapping provenance uncertainty and source PTS retained
+[pass] LP25-T08 file-unit page boundaries exact and stable including empty last page
+[pass] LP25-T08 known 4096 cap unchanged in file mode
+[pass] D3B-11 offset+limit overflow 명시 실패
+[pass] D3B-11 전체 unknown deep-copy 없이35074 첫 페이지 허용
+[pass] D3B-11 deep offset64MiB workspace 초과는 결과 없이 명시 실패
+[pass] LP25-T03 nonadjacent unknown members preserve gap and outer file range
+[pass] LP25-T03 null end PTS remains null and fixed writer reason is preserved
+[pass] LP25-T04 mixed known rows exact and distinct files never coalesce
+[pass] LP25-T03 group public whitelist excludes raw source store epoch and paths
+[pass] LP25-T04 intent placeholder unchanged alongside file groups
+[pass] LP25-T05 full two output file groups preserve request playback and members
+[pass] LP25-T07 corrupt output remains grouped and not playable
+[pass] LP25-T07 tombstone output preserves group provenance and cannot play
+[pass] LP25-T07 reopen exact group IDs member provenance and deleted state
+[pass] LP25-T04 intent placeholder unchanged alongside file groups
+[pass] LP25-T05 partial two output file groups preserve request playback and members
+[pass] LP25-T07 corrupt output remains grouped and not playable
+[pass] LP25-T07 tombstone output preserves group provenance and cannot play
+[pass] LP25-T07 reopen exact group IDs member provenance and deleted state
+[pass] LP25-T08 file-unit accumulated workspace cap rejects without partial response
+[summary] pass=66 fail=0
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-public-timeline.TP9j0I bytes=51257000 removed=true
+[elapsed] seconds=14 source=bash-SECONDS
+
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+
+exit: 0
+command: bash scripts/internal/verify_recording_public_media.sh
+[pass] D3A-05 미완료 출력 거부
+[pass] D3A-05 미완료 출력 거부
+[pass] D3A-05 미완료 출력 거부
+[pass] D3A-05 미완료 출력 거부
+[pass] D3A-02 요청 충족 상태 구분
+[pass] S11-I30-R03 실제 검증된 Event MP4 출력 제공
+[pass] D3A-03 권한/다른 채널 거부
+[pass] D3A-01 application V2 채널 권한 후 제공
+[pass] D3A-06 제공 중 삭제 거부
+[pass] D3A-06 fd 해제 후 hold0
+[pass] S11-I30-R03 실제 검증된 Event MP4 출력 제공
+[pass] D3A-03 권한/다른 채널 거부
+[pass] D3A-01 application V2 채널 권한 후 제공
+[pass] D3A-06 제공 중 삭제 거부
+[pass] D3A-06 fd 해제 후 hold0
+[pass] D3A-04 실제 파일 있는 manual Event 거부
+[pass] D3A-07 immutable metadata 다른 결박 거부
+[pass] D3A-08 원본 보존 삭제 완료
+[pass] D3A-08 원본 보존 삭제 완료
+[pass] D3A-08 원본 삭제 뒤 검증된 출력 제공
+[pass] D3A-07 실제 파일 크기 변조 거부·hold0
+[pass] D3A-07 동일 크기 파일 내용 변조 거부·hold0
+[pass] D3A-06 hold 해제 후 삭제 전이·새 제공 거부
+[pass] D3A-05 미완료 출력 거부
+[pass] D3A-05 미완료 출력 거부
+[pass] D3A-05 미완료 출력 거부
+[pass] D3A-05 미완료 출력 거부
+[pass] D3A-02 요청 충족 상태 구분
+[pass] S11-I30-R03 partial MP4 출력 제공
+[pass] D3A-03 권한/다른 채널 거부
+[pass] D3A-01 application V2 채널 권한 후 제공
+[pass] D3A-06 제공 중 삭제 거부
+[pass] D3A-06 fd 해제 후 hold0
+[pass] S11-I30-R03 partial MP4 출력 제공
+[pass] D3A-03 권한/다른 채널 거부
+[pass] D3A-01 application V2 채널 권한 후 제공
+[pass] D3A-06 제공 중 삭제 거부
+[pass] D3A-06 fd 해제 후 hold0
+[pass] D3A-04 실제 파일 있는 manual Event 거부
+[pass] D3A-07 immutable metadata 다른 결박 거부
+[pass] D3A-08 원본 보존 삭제 완료
+[pass] D3A-08 원본 보존 삭제 완료
+[pass] D3A-08 원본 삭제 뒤 검증된 출력 제공
+[pass] D3A-07 실제 파일 크기 변조 거부·hold0
+[pass] D3A-07 동일 크기 파일 내용 변조 거부·hold0
+[pass] D3A-06 hold 해제 후 삭제 전이·새 제공 거부
+[summary] pass=46 fail=0
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-public-media.cI4ddW bytes=12398720 removed=true
+[elapsed] seconds=3 source=bash-SECONDS
+
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+
+exit: 0
+command: c++ -std=c++17 -Wall -Wextra -Werror -O2 -DGST_USE_UNSTABLE_API=1 -DMEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND=1 -DMEDIA_SERVER_ENABLE_YOUTUBE_SOURCE=0 -DMEDIA_SERVER_USE_GSTREAMER=1 -DMEDIA_SERVER_USE_LIBSODIUM=1 -DMEDIA_SERVER_USE_ONNXRUNTIME=1 -DMEDIA_SERVER_USE_OPENSSL=1 -DMEDIA_SERVER_USE_PANGOCAIRO=1 -DMEDIA_SERVER_USE_SQLITE3=1 -I/Users/dhseo/Workspace/mediaServer/include -I/opt/homebrew/include/onnxruntime -isystem /opt/homebrew/Cellar/gstreamer/1.28.1/include/gstreamer-1.0 -isystem /opt/homebrew/Cellar/glib/2.86.4/include/gio-unix-2.0 -isystem /opt/homebrew/Cellar/orc/0.4.42/include/orc-0.4 -isystem /opt/homebrew/Cellar/glib/2.86.4/include -isystem /Library/Developer/CommandLineTools/SDKs/MacOSX26.sdk/usr/include/ffi -isystem /opt/homebrew/Cellar/glib/2.86.4/include/glib-2.0 -isystem /opt/homebrew/Cellar/glib/2.86.4/lib/glib-2.0/include -isystem /opt/homebrew/opt/gettext/include -isystem /opt/homebrew/Cellar/pcre2/10.47_1/include -isystem /opt/homebrew/Cellar/pango/1.57.0_2/include/pango-1.0 -isystem /opt/homebrew/Cellar/cairo/1.18.4/include/cairo -isystem /opt/homebrew/Cellar/libxext/1.3.7/include -isystem /opt/homebrew/Cellar/xorgproto/2025.1/include -isystem /opt/homebrew/Cellar/libxrender/0.9.12/include -isystem /opt/homebrew/Cellar/libx11/1.8.13/include -isystem /opt/homebrew/Cellar/libxcb/1.17.0/include -isystem /opt/homebrew/Cellar/libxau/1.0.12/include -isystem /opt/homebrew/Cellar/libxdmcp/1.1.5/include -isystem /opt/homebrew/Cellar/pixman/0.46.4/include/pixman-1 -isystem /opt/homebrew/Cellar/fribidi/1.0.16/include/fribidi -isystem /opt/homebrew/Cellar/libthai/0.1.30/include -isystem /opt/homebrew/Cellar/libdatrie/0.2.14/include -isystem /opt/homebrew/Cellar/fontconfig/2.17.1/include -isystem /opt/homebrew/Cellar/harfbuzz/13.1.1/include/harfbuzz -isystem /opt/homebrew/opt/freetype/include/freetype2 -isystem /opt/homebrew/opt/libpng/include/libpng16 -isystem /opt/homebrew/opt/graphite2/include -isystem /opt/homebrew/Cellar/libsodium/1.0.21/include -isystem /opt/homebrew/Cellar/openssl@3/3.6.2/include scripts/internal/recording_search_concurrent_smoke.cpp /Users/dhseo/Workspace/mediaServer/build-gst-onnx/libmedia_server_runtime.a /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libz.tbd /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstrtspserver-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstapp-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstwebrtc-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstsdp-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstpbutils-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstaudio-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstvideo-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstbase-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstreamer-1.0.dylib /opt/homebrew/Cellar/pango/1.57.0_2/lib/libpangocairo-1.0.dylib /opt/homebrew/Cellar/pango/1.57.0_2/lib/libpango-1.0.dylib /opt/homebrew/Cellar/cairo/1.18.4/lib/libcairo.dylib /opt/homebrew/Cellar/harfbuzz/13.1.1/lib/libharfbuzz.dylib /opt/homebrew/Cellar/glib/2.86.4/lib/libgobject-2.0.dylib /opt/homebrew/Cellar/glib/2.86.4/lib/libglib-2.0.dylib /opt/homebrew/opt/gettext/lib/libintl.dylib /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libsqlite3.tbd /opt/homebrew/Cellar/libsodium/1.0.21/lib/libsodium.dylib /opt/homebrew/Cellar/openssl@3/3.6.2/lib/libssl.dylib /opt/homebrew/Cellar/openssl@3/3.6.2/lib/libcrypto.dylib /opt/homebrew/lib/libonnxruntime.dylib -o /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v420-final-short-w_dcfvuv/concurrent
+
+
+exit: 0
+command: /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v420-final-short-w_dcfvuv/concurrent /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v420-final-short-w_dcfvuv/fixture
+[pass] recording packets advance while search requests execute
+[pass] post-finalize search exposes three actual source seconds
+[pass] writer finalizes all three GOP segments
+[pass] all finalized files remain healthy after concurrent reads
+[concurrent] searches=60 ready=59 transientUnavailable=1 packets=90
+[search-concurrent] pass=4 fail=0
+
+
+exit: 0
+cleanup: owned temporary root removed=True
+```
+
+10단계 로컬 metadata 3/3, 문서 링크 296파일/9229링크 failures0.
+최초 diff check exit2는 위 테스트 원출력의 줄 끝 공백 11곳이었다. 출력 의미를 유지하며 줄 끝
+공백만 제거했다. 위 Markdown은 stdout/stderr의 의미 기록이며 원출력과 같은 바이트라고 하지 않는다.
+
+### 10 golden 현행 검색 연결
+
+```text
+command: c++ -std=c++17 -Wall -Wextra -Werror -O2 -DGST_USE_UNSTABLE_API=1 -DMEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND=1 -DMEDIA_SERVER_ENABLE_YOUTUBE_SOURCE=0 -DMEDIA_SERVER_USE_GSTREAMER=1 -DMEDIA_SERVER_USE_LIBSODIUM=1 -DMEDIA_SERVER_USE_ONNXRUNTIME=1 -DMEDIA_SERVER_USE_OPENSSL=1 -DMEDIA_SERVER_USE_PANGOCAIRO=1 -DMEDIA_SERVER_USE_SQLITE3=1 -I/Users/dhseo/Workspace/mediaServer/include -I/opt/homebrew/include/onnxruntime -isystem /opt/homebrew/Cellar/gstreamer/1.28.1/include/gstreamer-1.0 -isystem /opt/homebrew/Cellar/glib/2.86.4/include/gio-unix-2.0 -isystem /opt/homebrew/Cellar/orc/0.4.42/include/orc-0.4 -isystem /opt/homebrew/Cellar/glib/2.86.4/include -isystem /Library/Developer/CommandLineTools/SDKs/MacOSX26.sdk/usr/include/ffi -isystem /opt/homebrew/Cellar/glib/2.86.4/include/glib-2.0 -isystem /opt/homebrew/Cellar/glib/2.86.4/lib/glib-2.0/include -isystem /opt/homebrew/opt/gettext/include -isystem /opt/homebrew/Cellar/pcre2/10.47_1/include -isystem /opt/homebrew/Cellar/pango/1.57.0_2/include/pango-1.0 -isystem /opt/homebrew/Cellar/cairo/1.18.4/include/cairo -isystem /opt/homebrew/Cellar/libxext/1.3.7/include -isystem /opt/homebrew/Cellar/xorgproto/2025.1/include -isystem /opt/homebrew/Cellar/libxrender/0.9.12/include -isystem /opt/homebrew/Cellar/libx11/1.8.13/include -isystem /opt/homebrew/Cellar/libxcb/1.17.0/include -isystem /opt/homebrew/Cellar/libxau/1.0.12/include -isystem /opt/homebrew/Cellar/libxdmcp/1.1.5/include -isystem /opt/homebrew/Cellar/pixman/0.46.4/include/pixman-1 -isystem /opt/homebrew/Cellar/fribidi/1.0.16/include/fribidi -isystem /opt/homebrew/Cellar/libthai/0.1.30/include -isystem /opt/homebrew/Cellar/libdatrie/0.2.14/include -isystem /opt/homebrew/Cellar/fontconfig/2.17.1/include -isystem /opt/homebrew/Cellar/harfbuzz/13.1.1/include/harfbuzz -isystem /opt/homebrew/opt/freetype/include/freetype2 -isystem /opt/homebrew/opt/libpng/include/libpng16 -isystem /opt/homebrew/opt/graphite2/include -isystem /opt/homebrew/Cellar/libsodium/1.0.21/include -isystem /opt/homebrew/Cellar/openssl@3/3.6.2/include scripts/internal/recording_search_compatibility_smoke.cpp /Users/dhseo/Workspace/mediaServer/build-gst-onnx/libmedia_server_runtime.a /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libz.tbd /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstrtspserver-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstapp-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstwebrtc-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstsdp-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstpbutils-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstaudio-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstvideo-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstbase-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstreamer-1.0.dylib /opt/homebrew/Cellar/pango/1.57.0_2/lib/libpangocairo-1.0.dylib /opt/homebrew/Cellar/pango/1.57.0_2/lib/libpango-1.0.dylib /opt/homebrew/Cellar/cairo/1.18.4/lib/libcairo.dylib /opt/homebrew/Cellar/harfbuzz/13.1.1/lib/libharfbuzz.dylib /opt/homebrew/Cellar/glib/2.86.4/lib/libgobject-2.0.dylib /opt/homebrew/Cellar/glib/2.86.4/lib/libglib-2.0.dylib /opt/homebrew/opt/gettext/lib/libintl.dylib /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libsqlite3.tbd /opt/homebrew/Cellar/libsodium/1.0.21/lib/libsodium.dylib /opt/homebrew/Cellar/openssl@3/3.6.2/lib/libssl.dylib /opt/homebrew/Cellar/openssl@3/3.6.2/lib/libcrypto.dylib /opt/homebrew/lib/libonnxruntime.dylib -o /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v420-golden-3npxabz7/check
+
+
+exit: 0
+command: /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v420-golden-3npxabz7/check /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v420-golden-3npxabz7/store test/fixtures/recording/v1
+[search-compatibility] pass=0 fail=1
+
+media path가 recording root 밖이거나 파일이 없음
+
+exit: 1
+cleanup: owned temporary root removed=True
+```
+
+10단계 golden 연결 최초 exit1/pass0/fail1: FinalizeSegment의 기존 경로 존재 검사에서
+fixture 준비 실패. golden 바이트·메타데이터는 유지하고 소유 임시 빈 파일을 경로에 만들며,
+크기/미디어가 맞지 않아 재생은 반드시 거부됨을 확인한다. 제품 admission을 완화하지 않는다.
+
+### 10 golden 경로 준비 수정 재검증
+
+```text
+command: c++ -std=c++17 -Wall -Wextra -Werror -O2 -DGST_USE_UNSTABLE_API=1 -DMEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND=1 -DMEDIA_SERVER_ENABLE_YOUTUBE_SOURCE=0 -DMEDIA_SERVER_USE_GSTREAMER=1 -DMEDIA_SERVER_USE_LIBSODIUM=1 -DMEDIA_SERVER_USE_ONNXRUNTIME=1 -DMEDIA_SERVER_USE_OPENSSL=1 -DMEDIA_SERVER_USE_PANGOCAIRO=1 -DMEDIA_SERVER_USE_SQLITE3=1 -I/Users/dhseo/Workspace/mediaServer/include -I/opt/homebrew/include/onnxruntime -isystem /opt/homebrew/Cellar/gstreamer/1.28.1/include/gstreamer-1.0 -isystem /opt/homebrew/Cellar/glib/2.86.4/include/gio-unix-2.0 -isystem /opt/homebrew/Cellar/orc/0.4.42/include/orc-0.4 -isystem /opt/homebrew/Cellar/glib/2.86.4/include -isystem /Library/Developer/CommandLineTools/SDKs/MacOSX26.sdk/usr/include/ffi -isystem /opt/homebrew/Cellar/glib/2.86.4/include/glib-2.0 -isystem /opt/homebrew/Cellar/glib/2.86.4/lib/glib-2.0/include -isystem /opt/homebrew/opt/gettext/include -isystem /opt/homebrew/Cellar/pcre2/10.47_1/include -isystem /opt/homebrew/Cellar/pango/1.57.0_2/include/pango-1.0 -isystem /opt/homebrew/Cellar/cairo/1.18.4/include/cairo -isystem /opt/homebrew/Cellar/libxext/1.3.7/include -isystem /opt/homebrew/Cellar/xorgproto/2025.1/include -isystem /opt/homebrew/Cellar/libxrender/0.9.12/include -isystem /opt/homebrew/Cellar/libx11/1.8.13/include -isystem /opt/homebrew/Cellar/libxcb/1.17.0/include -isystem /opt/homebrew/Cellar/libxau/1.0.12/include -isystem /opt/homebrew/Cellar/libxdmcp/1.1.5/include -isystem /opt/homebrew/Cellar/pixman/0.46.4/include/pixman-1 -isystem /opt/homebrew/Cellar/fribidi/1.0.16/include/fribidi -isystem /opt/homebrew/Cellar/libthai/0.1.30/include -isystem /opt/homebrew/Cellar/libdatrie/0.2.14/include -isystem /opt/homebrew/Cellar/fontconfig/2.17.1/include -isystem /opt/homebrew/Cellar/harfbuzz/13.1.1/include/harfbuzz -isystem /opt/homebrew/opt/freetype/include/freetype2 -isystem /opt/homebrew/opt/libpng/include/libpng16 -isystem /opt/homebrew/opt/graphite2/include -isystem /opt/homebrew/Cellar/libsodium/1.0.21/include -isystem /opt/homebrew/Cellar/openssl@3/3.6.2/include scripts/internal/recording_search_compatibility_smoke.cpp /Users/dhseo/Workspace/mediaServer/build-gst-onnx/libmedia_server_runtime.a /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libz.tbd /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstrtspserver-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstapp-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstwebrtc-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstsdp-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstpbutils-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstaudio-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstvideo-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstbase-1.0.dylib /opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstreamer-1.0.dylib /opt/homebrew/Cellar/pango/1.57.0_2/lib/libpangocairo-1.0.dylib /opt/homebrew/Cellar/pango/1.57.0_2/lib/libpango-1.0.dylib /opt/homebrew/Cellar/cairo/1.18.4/lib/libcairo.dylib /opt/homebrew/Cellar/harfbuzz/13.1.1/lib/libharfbuzz.dylib /opt/homebrew/Cellar/glib/2.86.4/lib/libgobject-2.0.dylib /opt/homebrew/Cellar/glib/2.86.4/lib/libglib-2.0.dylib /opt/homebrew/opt/gettext/lib/libintl.dylib /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libsqlite3.tbd /opt/homebrew/Cellar/libsodium/1.0.21/lib/libsodium.dylib /opt/homebrew/Cellar/openssl@3/3.6.2/lib/libssl.dylib /opt/homebrew/Cellar/openssl@3/3.6.2/lib/libcrypto.dylib /opt/homebrew/lib/libonnxruntime.dylib -o /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v420-golden-retest-tdnw1nte/check
+
+
+exit: 0
+command: /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v420-golden-retest-tdnw1nte/check /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v420-golden-retest-tdnw1nte/store test/fixtures/recording/v1
+[pass] golden two recording intervals preserved
+[pass] golden same-observation filter conjunction
+[pass] golden exact identity UTC PTS and timebase
+[pass] golden observation excludes exact query end
+[pass] metadata fixture never invents physical playback
+[search-compatibility] pass=5 fail=0
+
+
+exit: 0
+cleanup: owned temporary root removed=True
+```
+
+### 10 개발 완료 대조
+
+| 단계 | 직접 근거·판정 |
+| --- | --- |
+| 1 계약 | 개발 설계와 V420 기능 정의, 조사 출처·비범위 확정 |
+| 2 모델 | 모델 31개, 1/1000/10000행·100000/100001행과 논리 byte 경계 검증 |
+| 3 입력/수명 | source35·generation14, 증분·삭제·재개방·원장 불변 |
+| 4 필터 | 필터27·실제 이벤트13, 동일 관측/동일 이벤트 AND와 근거 부족 거부 |
+| 5 페이지 | cursor/hit31, 사용자/scope/질의·변조·만료·축출·불변 membership |
+| 6 우선 선택 | 선택17·실제 후보7·application13, 동일 원본 partial 잔여와 현재 파일 fallback |
+| 7 위치 | 원본9·파생10, 독립 디코딩 frame hash와 실제 seek 대조; 미지원 명시 |
+| 8 API | 실제 HTTP71, admin/operator/anonymous/viewer/integrator/scope·media Range |
+| 9 UI | 브라우저 직접 검색·페이지·재생·390/1440 light/dark, 입력 무효화 재검증, 비동기3 |
+| 10 호환/마감 | 기존 계약135·timeline66·media46·golden 검색5·검색 병행4, 전체 build와 문서/버전 정합 |
+
+숫자는 각 suite의 최종 판정이며 서로 다른 실행을 합산해 단일 실행이라고 보고하지 않는다.
+기존 실패와 수정·재검증은 위에 보존했다. golden 원본 바이트는 baseline5990bbcc와 동일하다.
+검색 병행은 90packet 동안 60요청 중 ready59/미준비1, 종료 후 결과3/건강한 파일3이다.
+동시 갱신 중 미준비를 성공 응답으로 숨기지 않았다.
+
+누적 diff에서 core/source worker·GStreamer writer·runtime composition·기존 recording fixture의
+변경은 없다. 새 검색 호출은 Ops HTTP/application/read 경계에 있고 callback에서 검색 정렬·파일
+검사를 수행하지 않는다. catalog 변경은 bounded 변화 통지와 revision 무효화이며 원본 저장 형식,
+순서·UTC·pin/hold·retention 판정을 바꾸지 않는다. 기존 public timeline/media 회귀로 소비 경계도 확인했다.
+
+VERSION/CMake/releaseTarget은 4.2.0으로 일치하고 README 양언어·색인·API/UI·backlog/roadmap을
+현행 기능에 맞췄다. 과거 published tag/URL/observedAt은 그대로 유지했다.
+로컬 metadata3/3, docs296파일/9229링크 failures0, graph4/4, diff check0이다.
+
+실행 환경은 macOS arm64이며 Linux 실제 실행·외부 장치/provider 검증을 주장하지 않는다.
+모든 소유 fixture/binary·서버·포트·브라우저 정리를 확인했다. 테스트 준비와 실제 제품 검증을 구분했다.
+30분·120분·릴리즈 UI 풀테스트·predev는 사용자 제외로 미실행이며 PASS가 아니다.
+PR/병합/태그/GitHub Release는 수행하지 않는다. 개발 산출물의 완성과 릴리즈 가능 판정은 별개다.
+
+최종 영문 색인 연결 후 docs296파일/9230링크 failures0, metadata3/3, diff check0.
+origin/v4.2.0 fetch 성공. 공개 상태를 조회하거나 published metadata를 변경하지 않았다.
