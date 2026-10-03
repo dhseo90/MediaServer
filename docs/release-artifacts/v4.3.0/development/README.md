@@ -256,3 +256,18 @@ bytes를 덮어쓰지 않았다. tracked JSON·영상·이미지38개 불변 및
 정리를 확인했다. 원출력은 `models/v430-siglip2/retrieval/retrieval-prepare-{first,final,boundaries}.log`,
 구조화 결과는 `preparation.json.retrieval_preparation`과 `retrieval/reproduction-boundaries.json`이다.
 준비 과정은 실제 모델 품질 재실행이 아니다. 추출기 버전 변경에 따른 bytes 차이는 실패한다.
+
+
+## Cache 강제 중단·재시작
+
+[강제 중단 실행](visual-store-interruption.log)은 enabled35/disabled3 검사 exit0이다.
+완성본을 보존한 채 소유 child를 rename 직전에 SIGSTOP하고 SIGKILL·waitpid로 회수했다.
+이전 완성 cache를 다시 읽고, writer 잠금 해제 후 고정 pending을 회수하여 같은 결과를
+게시했다. 동시 writer는 거부하며 pending symlink와 전용 형식이 아닌 bytes는 건드리지 않는다.
+정상·주입 오류·재시작 뒤 pending 부재와 소유 임시 directory 부재를 확인했다.
+
+기존 random 임시명은 반복 중단 때 누적될 수 있으므로 전용 directory의 writer flock과
+고정 pending 한 개로 바꿨다. `.visual-writer.lock`은 유지하는 빈 잠금 파일이고,
+`.visual-pending.v1`만 검증 후 회수한다. 이전 cache 포맷·공간ID·원본 녹화는 그대로다.
+임의 경로를 순회·삭제하는 cleanup은 추가하지 않았다. 실제 OS 디스크 고갈/전원 장애나
+임의 파일시스템의 fsync 내구성을 이번 단기 검사로 입증한 것은 아니다.

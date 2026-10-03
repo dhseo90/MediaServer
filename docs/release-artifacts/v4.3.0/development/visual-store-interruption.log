@@ -1,0 +1,15 @@
+UTC start 2026-10-03T19:03:58Z
+src/recording/visual_index_store.cpp sha256=151798ef80fe9c53f015f5a5905e51296f93b26d1fbd11a346e6bd4da051a1f9
+scripts/internal/visual_index_store_smoke.cpp sha256=1d9cbacfc52f698734664898efc70f97873a6bf9033be7f4462171e3d9019e65
+src/recording/visual_search_index.cpp sha256=1064607bc2fc771fe6226915e5b2c0747f9ea6cda1edf91984f00f4ade13c501
+command ['c++', '-std=c++17', '-O2', '-Wall', '-Wextra', '-Werror', '-Iinclude', '-DMEDIA_SERVER_VISUAL_STORE_TEST=1', '-DMEDIA_SERVER_USE_SIGLIP2=1', 'src/recording/visual_index_store.cpp', 'src/recording/visual_search_index.cpp', 'scripts/internal/visual_index_store_smoke.cpp', '-o', '/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v430-visual-store-9kib4es7/smoke', '-I/opt/homebrew/Cellar/glib/2.86.4/include/glib-2.0', '-I/opt/homebrew/Cellar/glib/2.86.4/lib/glib-2.0/include', '-I/opt/homebrew/opt/gettext/include', '-I/opt/homebrew/Cellar/pcre2/10.47_1/include', '-L/opt/homebrew/Cellar/glib/2.86.4/lib', '-lglib-2.0', '-L/opt/homebrew/opt/gettext/lib', '-lintl']
+exit=0
+command ['/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v430-visual-store-9kib4es7/smoke', '/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v430-visual-store-9kib4es7/1']
+PASS visual store checks=35
+exit=0
+command ['c++', '-std=c++17', '-O2', '-Wall', '-Wextra', '-Werror', '-Iinclude', '-DMEDIA_SERVER_VISUAL_STORE_TEST=1', '-DMEDIA_SERVER_USE_SIGLIP2=0', 'src/recording/visual_index_store.cpp', 'src/recording/visual_search_index.cpp', 'scripts/internal/visual_index_store_smoke.cpp', '-o', '/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v430-visual-store-9kib4es7/smoke']
+exit=0
+command ['/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v430-visual-store-9kib4es7/smoke', '/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v430-visual-store-9kib4es7/0']
+PASS visual store checks=3
+exit=0
+temporary_directory_absent=True

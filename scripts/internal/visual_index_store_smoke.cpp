@@ -5,6 +5,11 @@
 #include <iostream>
 #include <stdexcept>
 #include <sys/stat.h>
+#include <sys/wait.h>
+#include <unistd.h>
+#include <csignal>
+#include <chrono>
+#include <thread>
 using namespace recording;
 namespace {
 int checks=0;
@@ -31,7 +36,7 @@ int main(int argc,char**argv){
         Check(!store.Load(contract,&loaded,&error)&&error=="visual-cache-missing"&&loaded==index,"missing cache");
         Check(store.Save(*index,&error),"initial save");
         std::filesystem::path cache;
-        for(const auto& entry:std::filesystem::directory_iterator(root/"cache")){Check(cache.empty(),"one cache file");cache=entry.path();}
+        for(const auto& entry:std::filesystem::directory_iterator(root/"cache")){if(entry.path().filename()==".visual-writer.lock")continue;Check(cache.empty(),"one cache file");cache=entry.path();}
         struct stat st{};Check(::stat(cache.c_str(),&st)==0&&(st.st_mode&0777)==0600,"private cache mode");
         const auto original=Read(cache);
         Check(store.Load(contract,&loaded,&error)&&loaded!=index,"fresh loaded owner");
@@ -44,7 +49,25 @@ int main(int argc,char**argv){
         Check(!store.Save(*empty,&error)&&error=="visual-cache-write-failed"&&Read(cache)==original,"failure before rename preserves old cache");
         ::unsetenv("V430_VISUAL_STORE_FAIL_BEFORE_RENAME");
         std::size_t files=0;for(const auto& entry:std::filesystem::directory_iterator(root/"cache")){(void)entry;++files;}
-        Check(files==1,"failed temporary removed");
+        Check(files==2&&!std::filesystem::exists(root/"cache"/".visual-pending.v1"),"failed temporary removed; one durable lock and one cache");
+        const pid_t child=::fork();Check(child>=0,"fork interrupted writer");
+        if(child==0){::setenv("V430_VISUAL_STORE_STOP_BEFORE_RENAME","1",1);std::string reason;store.Save(*empty,&reason);::_exit(2);}
+        struct ChildGuard {pid_t pid;~ChildGuard(){if(pid>0){::kill(pid,SIGKILL);int status;::waitpid(pid,&status,0);}}} child_guard{child};
+        int child_status=0;pid_t observed=0;const auto stop_deadline=std::chrono::steady_clock::now()+std::chrono::seconds(2);
+        while(observed==0&&std::chrono::steady_clock::now()<stop_deadline){observed=::waitpid(child,&child_status,WUNTRACED|WNOHANG);if(!observed)std::this_thread::sleep_for(std::chrono::milliseconds(5));}
+        if(observed==child&&!WIFSTOPPED(child_status))child_guard.pid=-1;
+        Check(observed==child&&WIFSTOPPED(child_status),"writer stopped before rename");
+        Check(!store.Save(*empty,&error)&&error=="visual-cache-writer-unavailable","concurrent writer cannot replace pending file");
+        Check(::kill(child,SIGKILL)==0&&::waitpid(child,&child_status,0)==child&&WIFSIGNALED(child_status),"owned interrupted process reaped");
+        child_guard.pid=-1;
+        Check(store.Load(contract,&loaded,&error)&&loaded->documents().size()==1&&Read(cache)==original,"interruption preserves previous complete cache");
+        Check(std::filesystem::exists(root/"cache"/".visual-pending.v1"),"crash leaves bounded single pending file");
+        Check(store.Save(*index,&error)&&Read(cache)==original&&!std::filesystem::exists(root/"cache"/".visual-pending.v1"),"restart reclaims verified pending and republishes");
+        const auto pending=root/"cache"/".visual-pending.v1";
+        Write(root/"unowned","untouched");std::filesystem::create_symlink(root/"unowned",pending);
+        Check(!store.Save(*index,&error)&&Read(root/"unowned")=="untouched"&&std::filesystem::is_symlink(pending),"pending symlink remains untouched");std::filesystem::remove(pending);
+        Write(pending,"unknown bytes");::chmod(pending.c_str(),0600);
+        Check(!store.Save(*index,&error)&&Read(pending)=="unknown bytes","unknown pending bytes remain untouched");std::filesystem::remove(pending);
         for(int mutation=0;mutation<6;++mutation){auto bytes=original;
             if(mutation==0)bytes[0]^=1;
             if(mutation==1)bytes[bytes.size()-1]^=1;
