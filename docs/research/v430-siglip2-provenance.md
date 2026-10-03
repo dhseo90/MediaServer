@@ -187,3 +187,60 @@ memory loader 진단 원출력 `adapter-verify-load-diagnostic.log`와 최종 FD
 EINTR의 정상 복구·실제 image/text smoke, ENOSPC 실패 전파를 주입해 검증한다.
 일반 빌드에는 주입 경로가 없다. 정상 constructor·주입 constructor·모든 거부의 전후 열린 FD
 집합을 대조하고 소유 임시 경로 부재를 확인한다. 실제 OS 디스크를 소진하는 검사는 아니다.
+
+## 고정 scene retrieval smoke
+
+`V430-Q02`는 실제 C++ encoder와 제품 `VisualSearchIndex::Build/Search`를 함께 실행한다.
+기준 소스는 `d8dfd0fbb13544a02eb725ac1fd79b52df781c71`의 encoder/index header·cpp 네 파일이며,
+실행 전에 해당 commit bytes와 현재 소스 SHA를 대조한다. driver는
+[`siglip2_retrieval_smoke.cpp`](../../scripts/internal/siglip2_retrieval_smoke.cpp)이다.
+원본 공개 fixture 영상 SHA는 `bba0c676f6cfc5fcad72ecaaf1c8db104d3a96b89329f96ca3108621ec3abb0b`이며,
+0/1/3/6초 frame의 PTS는 0/15360/46080/92160, time base는 1/15360이다.
+직접 시각 확인한 거리·공원·거실·주방의 중앙 구분선을 제외한 crop 좌표와 원본·crop SHA는
+작은 tracked [`v430-siglip2-retrieval.json`](../../scripts/fixtures/v430-siglip2-retrieval.json)에
+최초 고정 JSON bytes 그대로 보존한다. 큰 원본 frame/crop PNG·RGB는 Git 밖에 둔다.
+
+model 점수를 보기 전에 영어·한국어 각 scene 2개씩 positive 16개와 무관 4개·하드 네거티브
+4개를 고정했다. fixture SHA는 `c33830caba38ff806788e8913c6dadc84fdc5164ff103928b96bc9f82560b9d2`,
+canonical query SHA는 `18e97621750e0f63296917274a24cc80547a402f93cface61e11d23789824521`이다.
+시각별 네 crop 총 16개를 실제 image embedding으로 색인하고, 24개 질의를 실제 text embedding으로
+조회한다. 명시한 네 fixture channel과 `top_k=16`, cosine threshold -1로 전체 순위를 얻는다.
+이미 정렬된 hit에서 scene이 처음 나타난 순서(각 scene 네 시각의 최대 score)를 독립 scene rank로
+정의하고 positive 16개의 Hit@1≥0.75/MRR≥0.875를 판정한다. 영어·한국어 수치는 따로 보고한다.
+negative에는 정답 scene이 없으므로 이 지표에서 제외하고 최대 score와 scene 순위만 관측한다.
+없는 조합의 nearest 결과를 올바른 검색으로 취급하지 않으며 거부 threshold가 보정됐다고 주장하지 않는다.
+
+```sh
+third_party/v430-embedding/venv/bin/python scripts/internal/prepare_v430_siglip2.py retrieval-prepare
+third_party/v430-embedding/venv/bin/python scripts/internal/prepare_v430_siglip2.py retrieval-verify
+```
+
+`retrieval-prepare`는 기존 FFmpeg/FFprobe와 고정 Pillow 11.3.0만 사용하며 모델을 로드하지 않는다.
+원본 영상 SHA·1280×720·time base 1/15360 및 네 exact PTS의 유일 존재를 확인하고, 최초 supplier와
+동일한 `ffmpeg -ss <초> -i <영상> -frames:v 1 <PNG>` 명령과 Pillow crop/PNG 설정으로 재생성한다.
+소유 staging 안에서 4개 source PNG·16개 crop PNG·16개 RGB의 기존 SHA를 전부 대조한 뒤
+누락된 Git 밖 파일만 생성한다. 기존 bytes가 다르면 덮어쓰지 않고 실패한다. staging은 성공·실패
+모두 정리하고 준비 결과를 `preparation.json.retrieval_preparation`에 별도로 남긴다.
+`retrieval-verify`는 tracked JSON을 직접 읽으므로 Git 밖 manifest를 수동 준비할 필요가 없다.
+추출기/PNG encoder 버전이 달라 bytes가 바뀌면 고정 SHA에서 실패하며 기대 SHA를 자동 갱신하지 않는다.
+픽셀 재생성의 PASS는 실제 모델 retrieval 결과의 재실행이나 품질 보장을 뜻하지 않는다.
+재현 준비의 정상 실행은 36개 이미지 산출물과 JSON copy의 기존 SHA가 모두 일치했다.
+고정 JSON의 소유 부정 copy와 한 byte를 변경한 소유 RGB copy는 각각 SHA 불일치로 exit 1을
+반환했고, 기존 RGB를 덮어쓰지 않았다. tracked JSON·영상·36개 원본 이미지의 불변과
+소유 staging/부정 fixture 부재를 확인했다. 준비 stdout/stderr는 `retrieval-prepare-first.log`,
+최종 helper 분리 뒤 `retrieval-prepare-final.log`, 오류 경계는 `retrieval-prepare-boundaries.log`와
+`retrieval/reproduction-boundaries.json`에 보존한다. 모델 추론은 다시 실행하지 않았다.
+
+startup(고정 SHA·FD 복사·session 생성), image 색인 준비, 첫 text 전체 지연을 분리한다.
+그 후 warm 23개 encoder+Search total의 nearest-rank p95≤2초/max≤5초와 C++ process RSS≤4GiB를
+판정한다. 8GiB 공간에는 모델·의존성·`build-gst-onnx`의 현재 logical bytes 및 한 ONNX의 최대
+임시 FD 공간 예약을 함께 포함한다. 원문·정답·score·개별 지연·실패는
+`preparation.json.retrieval_verification`, `retrieval/results.json`과 실행 log 한 곳에서 추적한다.
+한 생성 영상의 네 고정 scene을 반복 시각으로 조회하는 smoke이며 16개 독립 영상이나
+실제 감시 영상·action 인식·한국어 검색 전반의 품질을 입증하지 않는다. 제품 recording source/
+event 연결·권한·HTTP API·UI 검증과 전체 제품의 혼합 RSS는 별도 단계다.
+
+고정 fixture의 positive 순위·warm 지연·RSS 기준은 첫 실행에서 통과했다. 결과는
+`retrieval-verify-first.log`와 위 구조화 결과로 추적한다. 하드 네거티브의 최대 score와 일부
+positive의 최대 score가 겹쳤으므로 단일 cosine threshold로 모두 수용·거부할 수 있다고
+해석하지 않는다. 점수를 보고 질의·정답·threshold를 바꾸지 않았다.

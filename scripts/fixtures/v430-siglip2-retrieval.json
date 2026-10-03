@@ -1,0 +1,612 @@
+{
+  "schema": "media-server.siglip2-retrieval-fixture.v1",
+  "baseline_commit": "d8dfd0fbb13544a02eb725ac1fd79b52df781c71",
+  "source_video": "video/va_four_scene_sample.mp4",
+  "source_video_sha256": "bba0c676f6cfc5fcad72ecaaf1c8db104d3a96b89329f96ca3108621ec3abb0b",
+  "provenance_document": "docs/sample-fixture-provenance.md",
+  "timestamps_seconds": [
+    0,
+    1,
+    3,
+    6
+  ],
+  "crop_box_semantics": "Pillow crop [left,top,right,bottom), exclude 16px central divider strip",
+  "labels_fixed_before_scores": true,
+  "queries": [
+    {
+      "id": "road-en-1",
+      "kind": "positive",
+      "language": "en",
+      "expected_scene": "road",
+      "text": "A city street with a bus, a bicycle, and a motorcycle."
+    },
+    {
+      "id": "road-en-2",
+      "kind": "positive",
+      "language": "en",
+      "expected_scene": "road",
+      "text": "Vehicles and pedestrians at an urban intersection."
+    },
+    {
+      "id": "road-ko-1",
+      "kind": "positive",
+      "language": "ko",
+      "expected_scene": "road",
+      "text": "버스와 자전거, 오토바이가 있는 도심 거리."
+    },
+    {
+      "id": "road-ko-2",
+      "kind": "positive",
+      "language": "ko",
+      "expected_scene": "road",
+      "text": "도시 교차로에서 차량과 보행자가 지나간다."
+    },
+    {
+      "id": "park-en-1",
+      "kind": "positive",
+      "language": "en",
+      "expected_scene": "park",
+      "text": "People and a dog on a path in a green park."
+    },
+    {
+      "id": "park-en-2",
+      "kind": "positive",
+      "language": "en",
+      "expected_scene": "park",
+      "text": "A child plays with a soccer ball beside a park bench."
+    },
+    {
+      "id": "park-ko-1",
+      "kind": "positive",
+      "language": "ko",
+      "expected_scene": "park",
+      "text": "푸른 공원 산책로에 사람들과 개가 있다."
+    },
+    {
+      "id": "park-ko-2",
+      "kind": "positive",
+      "language": "ko",
+      "expected_scene": "park",
+      "text": "공원 벤치 옆에서 아이가 축구공을 가지고 논다."
+    },
+    {
+      "id": "living-en-1",
+      "kind": "positive",
+      "language": "en",
+      "expected_scene": "living",
+      "text": "A living room with a television and a sofa."
+    },
+    {
+      "id": "living-en-2",
+      "kind": "positive",
+      "language": "en",
+      "expected_scene": "living",
+      "text": "A laptop and keyboard on a coffee table in front of a couch."
+    },
+    {
+      "id": "living-ko-1",
+      "kind": "positive",
+      "language": "ko",
+      "expected_scene": "living",
+      "text": "텔레비전과 소파가 있는 거실."
+    },
+    {
+      "id": "living-ko-2",
+      "kind": "positive",
+      "language": "ko",
+      "expected_scene": "living",
+      "text": "소파 앞 낮은 테이블에 노트북과 키보드가 놓여 있다."
+    },
+    {
+      "id": "kitchen-en-1",
+      "kind": "positive",
+      "language": "en",
+      "expected_scene": "kitchen",
+      "text": "A kitchen dining table with pizza and food."
+    },
+    {
+      "id": "kitchen-en-2",
+      "kind": "positive",
+      "language": "en",
+      "expected_scene": "kitchen",
+      "text": "A dining table beside a refrigerator and a kitchen stove."
+    },
+    {
+      "id": "kitchen-ko-1",
+      "kind": "positive",
+      "language": "ko",
+      "expected_scene": "kitchen",
+      "text": "피자와 음식이 놓인 주방 식탁."
+    },
+    {
+      "id": "kitchen-ko-2",
+      "kind": "positive",
+      "language": "ko",
+      "expected_scene": "kitchen",
+      "text": "냉장고와 가스레인지 옆에 식탁이 있는 주방."
+    },
+    {
+      "id": "unrelated-en-1",
+      "kind": "unrelated",
+      "language": "en",
+      "expected_scene": null,
+      "text": "An airplane flying over the ocean."
+    },
+    {
+      "id": "unrelated-ko-1",
+      "kind": "unrelated",
+      "language": "ko",
+      "expected_scene": null,
+      "text": "바다 위를 비행하는 비행기."
+    },
+    {
+      "id": "unrelated-en-2",
+      "kind": "unrelated",
+      "language": "en",
+      "expected_scene": null,
+      "text": "A skier descending a snowy mountain."
+    },
+    {
+      "id": "unrelated-ko-2",
+      "kind": "unrelated",
+      "language": "ko",
+      "expected_scene": null,
+      "text": "눈 덮인 산을 내려오는 스키 선수."
+    },
+    {
+      "id": "hard_negative-en-1",
+      "kind": "hard_negative",
+      "language": "en",
+      "expected_scene": null,
+      "text": "A dog sitting on a sofa in a living room."
+    },
+    {
+      "id": "hard_negative-ko-1",
+      "kind": "hard_negative",
+      "language": "ko",
+      "expected_scene": null,
+      "text": "거실 소파에 앉아 있는 개."
+    },
+    {
+      "id": "hard_negative-en-2",
+      "kind": "hard_negative",
+      "language": "en",
+      "expected_scene": null,
+      "text": "A pizza on a bench in a green park."
+    },
+    {
+      "id": "hard_negative-ko-2",
+      "kind": "hard_negative",
+      "language": "ko",
+      "expected_scene": null,
+      "text": "푸른 공원 벤치 위에 놓인 피자."
+    }
+  ],
+  "scenes": {
+    "road": {
+      "crop_box": [
+        0,
+        0,
+        632,
+        352
+      ]
+    },
+    "park": {
+      "crop_box": [
+        648,
+        0,
+        1280,
+        352
+      ]
+    },
+    "living": {
+      "crop_box": [
+        0,
+        368,
+        632,
+        720
+      ]
+    },
+    "kitchen": {
+      "crop_box": [
+        648,
+        368,
+        1280,
+        720
+      ]
+    }
+  },
+  "documents": [
+    {
+      "id": "road-0s",
+      "scene": "road",
+      "requested_timestamp_seconds": 0,
+      "source_frame": "models/v430-siglip2/parity/frame-0.png",
+      "source_frame_sha256": "2c2144241d18b8bc7639f8e4565f517aa8f4549f22f549f79780f7cd8fa89ec3",
+      "crop_box": [
+        0,
+        0,
+        632,
+        352
+      ],
+      "width": 632,
+      "height": 352,
+      "stride": 1896,
+      "crop_png": "models/v430-siglip2/retrieval/road-0s.png",
+      "crop_png_sha256": "ec5503da51fdbaa197dcd9a5c6e800ab070ae701e4923ca49392f7edfc510a7c",
+      "rgb": "models/v430-siglip2/retrieval/road-0s.rgb",
+      "rgb_sha256": "ae9e1282773cc75d42f0e5a60fe02492cf130b350ed0649af5bd9d1fec423427",
+      "media_pts": 0,
+      "time_base_num": 1,
+      "time_base_den": 15360
+    },
+    {
+      "id": "park-0s",
+      "scene": "park",
+      "requested_timestamp_seconds": 0,
+      "source_frame": "models/v430-siglip2/parity/frame-0.png",
+      "source_frame_sha256": "2c2144241d18b8bc7639f8e4565f517aa8f4549f22f549f79780f7cd8fa89ec3",
+      "crop_box": [
+        648,
+        0,
+        1280,
+        352
+      ],
+      "width": 632,
+      "height": 352,
+      "stride": 1896,
+      "crop_png": "models/v430-siglip2/retrieval/park-0s.png",
+      "crop_png_sha256": "61c0a7d2a59a9322de1c43c28c41815a04bf1024fc78f8ec1e42adafc375000a",
+      "rgb": "models/v430-siglip2/retrieval/park-0s.rgb",
+      "rgb_sha256": "847ce9797b5378a5ee72ea8b534a8e03457c8b014d5ab78654c24224150f31a5",
+      "media_pts": 0,
+      "time_base_num": 1,
+      "time_base_den": 15360
+    },
+    {
+      "id": "living-0s",
+      "scene": "living",
+      "requested_timestamp_seconds": 0,
+      "source_frame": "models/v430-siglip2/parity/frame-0.png",
+      "source_frame_sha256": "2c2144241d18b8bc7639f8e4565f517aa8f4549f22f549f79780f7cd8fa89ec3",
+      "crop_box": [
+        0,
+        368,
+        632,
+        720
+      ],
+      "width": 632,
+      "height": 352,
+      "stride": 1896,
+      "crop_png": "models/v430-siglip2/retrieval/living-0s.png",
+      "crop_png_sha256": "f1db979f3082cfbbcfb3dfe3b463f591edc64ace834b7e60a356e6da308da8e6",
+      "rgb": "models/v430-siglip2/retrieval/living-0s.rgb",
+      "rgb_sha256": "378c3e36354aea0ec1666f191dc5d2f4ac3f3529b9e8cfe517d248da33a34920",
+      "media_pts": 0,
+      "time_base_num": 1,
+      "time_base_den": 15360
+    },
+    {
+      "id": "kitchen-0s",
+      "scene": "kitchen",
+      "requested_timestamp_seconds": 0,
+      "source_frame": "models/v430-siglip2/parity/frame-0.png",
+      "source_frame_sha256": "2c2144241d18b8bc7639f8e4565f517aa8f4549f22f549f79780f7cd8fa89ec3",
+      "crop_box": [
+        648,
+        368,
+        1280,
+        720
+      ],
+      "width": 632,
+      "height": 352,
+      "stride": 1896,
+      "crop_png": "models/v430-siglip2/retrieval/kitchen-0s.png",
+      "crop_png_sha256": "087838c1e61382b84cd02995770eaf9f06e89140440fb33f1cd8fd765d7a208f",
+      "rgb": "models/v430-siglip2/retrieval/kitchen-0s.rgb",
+      "rgb_sha256": "9526377dd68ec3a02fb29e03428025fdadc07c775680dd611747bf77554c8dda",
+      "media_pts": 0,
+      "time_base_num": 1,
+      "time_base_den": 15360
+    },
+    {
+      "id": "road-1s",
+      "scene": "road",
+      "requested_timestamp_seconds": 1,
+      "source_frame": "models/v430-siglip2/parity/frame-1.png",
+      "source_frame_sha256": "5c5bb92ef5def529cc9c0a4272cf918ca17cedb12c64d617acbd6c6d129cd05b",
+      "crop_box": [
+        0,
+        0,
+        632,
+        352
+      ],
+      "width": 632,
+      "height": 352,
+      "stride": 1896,
+      "crop_png": "models/v430-siglip2/retrieval/road-1s.png",
+      "crop_png_sha256": "70bf6009a931e5ddc88f6e53c999c8aa47639cfa1c0abe74873854901565ac8a",
+      "rgb": "models/v430-siglip2/retrieval/road-1s.rgb",
+      "rgb_sha256": "de4a7cb08c32a341c7478850fa4f3b57bfd43a3d2870133ec31c741cb4c3467a",
+      "media_pts": 15360,
+      "time_base_num": 1,
+      "time_base_den": 15360
+    },
+    {
+      "id": "park-1s",
+      "scene": "park",
+      "requested_timestamp_seconds": 1,
+      "source_frame": "models/v430-siglip2/parity/frame-1.png",
+      "source_frame_sha256": "5c5bb92ef5def529cc9c0a4272cf918ca17cedb12c64d617acbd6c6d129cd05b",
+      "crop_box": [
+        648,
+        0,
+        1280,
+        352
+      ],
+      "width": 632,
+      "height": 352,
+      "stride": 1896,
+      "crop_png": "models/v430-siglip2/retrieval/park-1s.png",
+      "crop_png_sha256": "5eeee0e659eb739396019afb67a544964fc02402287515bb88fc33dbb9fb9dec",
+      "rgb": "models/v430-siglip2/retrieval/park-1s.rgb",
+      "rgb_sha256": "3b557d3a21dc26599a76186fb6e8268cf11c80860d50ff393758c1f3db110bb1",
+      "media_pts": 15360,
+      "time_base_num": 1,
+      "time_base_den": 15360
+    },
+    {
+      "id": "living-1s",
+      "scene": "living",
+      "requested_timestamp_seconds": 1,
+      "source_frame": "models/v430-siglip2/parity/frame-1.png",
+      "source_frame_sha256": "5c5bb92ef5def529cc9c0a4272cf918ca17cedb12c64d617acbd6c6d129cd05b",
+      "crop_box": [
+        0,
+        368,
+        632,
+        720
+      ],
+      "width": 632,
+      "height": 352,
+      "stride": 1896,
+      "crop_png": "models/v430-siglip2/retrieval/living-1s.png",
+      "crop_png_sha256": "6bc7e579c8e70e2a0419744f23be9b86ed50909cb0d0d9df6efc15ca30e2c505",
+      "rgb": "models/v430-siglip2/retrieval/living-1s.rgb",
+      "rgb_sha256": "83dfaa0228f98a3417b823510c3533c91541ffd455ce9ecbd9c5126ae2268eaa",
+      "media_pts": 15360,
+      "time_base_num": 1,
+      "time_base_den": 15360
+    },
+    {
+      "id": "kitchen-1s",
+      "scene": "kitchen",
+      "requested_timestamp_seconds": 1,
+      "source_frame": "models/v430-siglip2/parity/frame-1.png",
+      "source_frame_sha256": "5c5bb92ef5def529cc9c0a4272cf918ca17cedb12c64d617acbd6c6d129cd05b",
+      "crop_box": [
+        648,
+        368,
+        1280,
+        720
+      ],
+      "width": 632,
+      "height": 352,
+      "stride": 1896,
+      "crop_png": "models/v430-siglip2/retrieval/kitchen-1s.png",
+      "crop_png_sha256": "74fe5794db2696a1d14e83eb865e65ae9206425ae00e989b70c0af0d0da7a60a",
+      "rgb": "models/v430-siglip2/retrieval/kitchen-1s.rgb",
+      "rgb_sha256": "681c89788bc64aaa0f4f0a7f4321ae1728b6a027411c416e6c3dc9b13c362869",
+      "media_pts": 15360,
+      "time_base_num": 1,
+      "time_base_den": 15360
+    },
+    {
+      "id": "road-3s",
+      "scene": "road",
+      "requested_timestamp_seconds": 3,
+      "source_frame": "models/v430-siglip2/parity/frame-2.png",
+      "source_frame_sha256": "5a572b9e768a721a496e197a15bcfdfd8c5572e0233bb550cc97bd2b31300ab9",
+      "crop_box": [
+        0,
+        0,
+        632,
+        352
+      ],
+      "width": 632,
+      "height": 352,
+      "stride": 1896,
+      "crop_png": "models/v430-siglip2/retrieval/road-3s.png",
+      "crop_png_sha256": "70bf6009a931e5ddc88f6e53c999c8aa47639cfa1c0abe74873854901565ac8a",
+      "rgb": "models/v430-siglip2/retrieval/road-3s.rgb",
+      "rgb_sha256": "de4a7cb08c32a341c7478850fa4f3b57bfd43a3d2870133ec31c741cb4c3467a",
+      "media_pts": 46080,
+      "time_base_num": 1,
+      "time_base_den": 15360
+    },
+    {
+      "id": "park-3s",
+      "scene": "park",
+      "requested_timestamp_seconds": 3,
+      "source_frame": "models/v430-siglip2/parity/frame-2.png",
+      "source_frame_sha256": "5a572b9e768a721a496e197a15bcfdfd8c5572e0233bb550cc97bd2b31300ab9",
+      "crop_box": [
+        648,
+        0,
+        1280,
+        352
+      ],
+      "width": 632,
+      "height": 352,
+      "stride": 1896,
+      "crop_png": "models/v430-siglip2/retrieval/park-3s.png",
+      "crop_png_sha256": "49b307d828b903b8cf88b8fa433cf135c187bac5d380481e56ef903ba294246e",
+      "rgb": "models/v430-siglip2/retrieval/park-3s.rgb",
+      "rgb_sha256": "255b1d22cc3eeaf9a0a3cb44ce3ba552e01d563efd487441e2eb9b497d723559",
+      "media_pts": 46080,
+      "time_base_num": 1,
+      "time_base_den": 15360
+    },
+    {
+      "id": "living-3s",
+      "scene": "living",
+      "requested_timestamp_seconds": 3,
+      "source_frame": "models/v430-siglip2/parity/frame-2.png",
+      "source_frame_sha256": "5a572b9e768a721a496e197a15bcfdfd8c5572e0233bb550cc97bd2b31300ab9",
+      "crop_box": [
+        0,
+        368,
+        632,
+        720
+      ],
+      "width": 632,
+      "height": 352,
+      "stride": 1896,
+      "crop_png": "models/v430-siglip2/retrieval/living-3s.png",
+      "crop_png_sha256": "4ee8520db503b82cc1100609c6226171cca4829d8bdc8bcb521804f674f0245f",
+      "rgb": "models/v430-siglip2/retrieval/living-3s.rgb",
+      "rgb_sha256": "9e8448cc0d20cd6c894488597fff6190e0296a5b9f38914de5bf89206b76bbe5",
+      "media_pts": 46080,
+      "time_base_num": 1,
+      "time_base_den": 15360
+    },
+    {
+      "id": "kitchen-3s",
+      "scene": "kitchen",
+      "requested_timestamp_seconds": 3,
+      "source_frame": "models/v430-siglip2/parity/frame-2.png",
+      "source_frame_sha256": "5a572b9e768a721a496e197a15bcfdfd8c5572e0233bb550cc97bd2b31300ab9",
+      "crop_box": [
+        648,
+        368,
+        1280,
+        720
+      ],
+      "width": 632,
+      "height": 352,
+      "stride": 1896,
+      "crop_png": "models/v430-siglip2/retrieval/kitchen-3s.png",
+      "crop_png_sha256": "8180030e0fea560dc4bc5f2823033928fb19db8122ade0e42977cdd9aa2523b9",
+      "rgb": "models/v430-siglip2/retrieval/kitchen-3s.rgb",
+      "rgb_sha256": "43b8142be84874752c03fa60f237298111b8fd775773fcd0acb4d27b268a3dc8",
+      "media_pts": 46080,
+      "time_base_num": 1,
+      "time_base_den": 15360
+    },
+    {
+      "id": "road-6s",
+      "scene": "road",
+      "requested_timestamp_seconds": 6,
+      "source_frame": "models/v430-siglip2/parity/frame-3.png",
+      "source_frame_sha256": "83fdc3afcad0701a8ee12caa1f90beb55de80b8398fea7230d7890b9300ebba6",
+      "crop_box": [
+        0,
+        0,
+        632,
+        352
+      ],
+      "width": 632,
+      "height": 352,
+      "stride": 1896,
+      "crop_png": "models/v430-siglip2/retrieval/road-6s.png",
+      "crop_png_sha256": "70bf6009a931e5ddc88f6e53c999c8aa47639cfa1c0abe74873854901565ac8a",
+      "rgb": "models/v430-siglip2/retrieval/road-6s.rgb",
+      "rgb_sha256": "de4a7cb08c32a341c7478850fa4f3b57bfd43a3d2870133ec31c741cb4c3467a",
+      "media_pts": 92160,
+      "time_base_num": 1,
+      "time_base_den": 15360
+    },
+    {
+      "id": "park-6s",
+      "scene": "park",
+      "requested_timestamp_seconds": 6,
+      "source_frame": "models/v430-siglip2/parity/frame-3.png",
+      "source_frame_sha256": "83fdc3afcad0701a8ee12caa1f90beb55de80b8398fea7230d7890b9300ebba6",
+      "crop_box": [
+        648,
+        0,
+        1280,
+        352
+      ],
+      "width": 632,
+      "height": 352,
+      "stride": 1896,
+      "crop_png": "models/v430-siglip2/retrieval/park-6s.png",
+      "crop_png_sha256": "c83f74a913f1a58a4a69b42e5c63b6b7ab9609195d08647bedcbbd1f05e1fdf3",
+      "rgb": "models/v430-siglip2/retrieval/park-6s.rgb",
+      "rgb_sha256": "32c6960518acf092226aaf3b21d00a935be81bdff305c262fa3c96e4fcc622d4",
+      "media_pts": 92160,
+      "time_base_num": 1,
+      "time_base_den": 15360
+    },
+    {
+      "id": "living-6s",
+      "scene": "living",
+      "requested_timestamp_seconds": 6,
+      "source_frame": "models/v430-siglip2/parity/frame-3.png",
+      "source_frame_sha256": "83fdc3afcad0701a8ee12caa1f90beb55de80b8398fea7230d7890b9300ebba6",
+      "crop_box": [
+        0,
+        368,
+        632,
+        720
+      ],
+      "width": 632,
+      "height": 352,
+      "stride": 1896,
+      "crop_png": "models/v430-siglip2/retrieval/living-6s.png",
+      "crop_png_sha256": "e07caa50b29f2c99b6a65247f805be2154092aa12d68324ca975ae350abff774",
+      "rgb": "models/v430-siglip2/retrieval/living-6s.rgb",
+      "rgb_sha256": "edadef8c9e9d6a157b4802bed626203c9c307b94cec7921952c07c42ccad091c",
+      "media_pts": 92160,
+      "time_base_num": 1,
+      "time_base_den": 15360
+    },
+    {
+      "id": "kitchen-6s",
+      "scene": "kitchen",
+      "requested_timestamp_seconds": 6,
+      "source_frame": "models/v430-siglip2/parity/frame-3.png",
+      "source_frame_sha256": "83fdc3afcad0701a8ee12caa1f90beb55de80b8398fea7230d7890b9300ebba6",
+      "crop_box": [
+        648,
+        368,
+        1280,
+        720
+      ],
+      "width": 632,
+      "height": 352,
+      "stride": 1896,
+      "crop_png": "models/v430-siglip2/retrieval/kitchen-6s.png",
+      "crop_png_sha256": "e38fe1f4623e1f90f7a623f46c171bc56f55652043a36ecadca009e61652b8cc",
+      "rgb": "models/v430-siglip2/retrieval/kitchen-6s.rgb",
+      "rgb_sha256": "f4fe734d8eb6ec13a4e51a91ee2b5b840e43d13570abe62a609346eecc2b8377",
+      "media_pts": 92160,
+      "time_base_num": 1,
+      "time_base_den": 15360
+    }
+  ],
+  "quality_metrics": {
+    "candidate_documents": 16,
+    "unique_scenes": 4,
+    "scene_rank": "exact index top16, stable descending scores, first hit of each unique scene (max score across four timestamps)",
+    "positive_query_count": 16,
+    "hit_at_1_min": 0.75,
+    "mrr_min": 0.875,
+    "search_threshold": -1,
+    "negative_policy": "no relevant scene; report ranks/max scores only, exclude from Hit@1/MRR; rejection threshold calibration not claimed"
+  },
+  "limitations": "One generated video, four scene contents reused at four timestamps; no independent-video, real-world, action, identity or Korean broad quality claim.",
+  "queries_sha256": "18e97621750e0f63296917274a24cc80547a402f93cface61e11d23789824521",
+  "source_stream": {
+    "codec": "h264",
+    "width": 1280,
+    "height": 720,
+    "fps": "30/1",
+    "time_base": [
+      1,
+      15360
+    ],
+    "duration_seconds": 8
+  }
+}

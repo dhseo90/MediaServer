@@ -12,6 +12,7 @@ import shutil
 import shlex
 import subprocess
 import sys
+import tempfile
 import time
 from types import SimpleNamespace
 import urllib.request
@@ -32,6 +33,9 @@ FILES = ["model.safetensors", "config.json", "preprocessor_config.json",
          "tokenizer.model", "tokenizer.json", "tokenizer_config.json",
          "special_tokens_map.json", "README.md"]
 BUDGET = 8 * 1024 ** 3
+RETRIEVAL_FIXTURE = ROOT / "scripts/fixtures/v430-siglip2-retrieval.json"
+RETRIEVAL_FIXTURE_SHA = "c33830caba38ff806788e8913c6dadc84fdc5164ff103928b96bc9f82560b9d2"
+RETRIEVAL_QUERIES_SHA = "18e97621750e0f63296917274a24cc80547a402f93cface61e11d23789824521"
 
 
 def sha(path):
@@ -520,9 +524,225 @@ def adapter_verify(_):
     print("PASS: independent C++ pixels, token IDs, real image/text encoder, errors and disabled build",flush=True)
 
 
+def fixed_retrieval_fixture():
+    """Tracked 사전 라벨/기대 hash만 읽는다. 모델이나 기존 결과는 로드하지 않는다."""
+    if sha(RETRIEVAL_FIXTURE) != RETRIEVAL_FIXTURE_SHA:
+        raise RuntimeError("Tracked pre-score retrieval fixture hash mismatch")
+    fixture = json.loads(RETRIEVAL_FIXTURE.read_text(encoding="utf-8"))
+    queries_hash = hashlib.sha256(json.dumps(fixture["queries"], ensure_ascii=False,
+        sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+    if queries_hash != RETRIEVAL_QUERIES_SHA:
+        raise RuntimeError("Tracked pre-score retrieval query hash mismatch")
+    return fixture
+
+
+def publish_retrieval_outputs(pending, evidence):
+    """소유 모델 경로의 모든 기존 bytes를 먼저 확인하고 누락 파일만 생성한다."""
+    for relative, (_, expected) in pending.items():
+        destination = ROOT / relative
+        if not destination.is_relative_to(MODEL) or any(parent.is_symlink() for parent in [destination, *destination.parents]):
+            raise RuntimeError("Unsafe reproduction destination")
+        if destination.exists() and sha(destination) != expected:
+            evidence["first_mismatch"] = {"path": relative, "expected": expected,
+                "actual": sha(destination), "original_preserved": True}
+            raise RuntimeError("Existing retrieval bytes mismatch; not overwritten: " + relative)
+    for relative, (generated, expected) in pending.items():
+        destination = ROOT / relative
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        reused = destination.exists()
+        if not reused:
+            with destination.open("xb") as output:
+                output.write(generated.read_bytes())
+        evidence["outputs"].append({"path": relative, "sha256": sha(destination),
+            "expected_sha256": expected, "bytes": destination.stat().st_size, "reused": reused})
+
+
+def retrieval_prepare(_):
+    """고정 공개 영상에서 PNG/RGB를 재생성·exact SHA 검사한다. 추론하지 않는다."""
+    from PIL import Image, __version__ as pillow_version
+    fixture = fixed_retrieval_fixture()
+    video = ROOT / fixture["source_video"]
+    if sha(video) != fixture["source_video_sha256"]:
+        raise RuntimeError("Retrieval source video changed")
+    if pillow_version != "11.3.0":
+        raise RuntimeError("Retrieval PNG reproduction requires fixed Pillow 11.3.0")
+    work = MODEL / "retrieval"
+    work.mkdir(parents=True, exist_ok=True)
+    # 기존 품질 결과를 덮지 않는 독립 준비 결과. 출력은 모든 SHA가 일치한 뒤에만 게시한다.
+    evidence = {"status": "RUNNING", "feature_id": "V430-Q02",
+        "scope": "fixture bytes reproduction only; no model inference or quality rerun",
+        "fixture_sha256": RETRIEVAL_FIXTURE_SHA, "queries_sha256": RETRIEVAL_QUERIES_SHA,
+        "source_video_sha256": fixture["source_video_sha256"], "pillow_version": pillow_version,
+        "outputs": [], "commands": []}
+    record("retrieval_preparation", evidence)
+    try:
+        # 최대 4 source RGB PNG + 16 crop PNG/RGB의 보수적 staging 예약.
+        costs = sum(size(path) for path in [MODEL, DEPS, ROOT / "build-gst-onnx"])
+        if costs + 64 * 1024**2 > BUDGET:
+            raise RuntimeError("Retrieval reproduction 8GiB budget exceeded")
+        evidence["workspace_bytes_before"] = costs
+        evidence["ffmpeg_version"] = run(["ffmpeg", "-version"], capture=True).stdout.splitlines()[0]
+        evidence["ffprobe_version"] = run(["ffprobe", "-version"], capture=True).stdout.splitlines()[0]
+        probe = ["ffprobe", "-v", "error", "-select_streams", "v:0", "-show_frames",
+                 "-show_streams", "-show_entries", "stream=time_base,width,height:frame=best_effort_timestamp",
+                 "-of", "json", video]
+        evidence["commands"].append(list(map(str, probe)))
+        observed = json.loads(run(probe, capture=True).stdout)
+        stream = observed["streams"]
+        if len(stream) != 1 or stream[0]["time_base"] != "1/15360" or (stream[0]["width"], stream[0]["height"]) != (1280, 720):
+            raise RuntimeError("Retrieval source stream contract mismatch")
+        pts = [int(frame["best_effort_timestamp"]) for frame in observed["frames"]]
+        expected_pts = {doc["media_pts"] for doc in fixture["documents"]}
+        if any(pts.count(value) != 1 for value in expected_pts):
+            raise RuntimeError("Retrieval source PTS missing or ambiguous")
+        with tempfile.TemporaryDirectory(prefix="reproduce-", dir=work) as stage_name:
+            stage = Path(stage_name)
+            evidence["owned_staging_path"] = str(stage.relative_to(ROOT))
+            pending = {}
+            for index, second in enumerate(fixture["timestamps_seconds"]):
+                documents = [doc for doc in fixture["documents"] if doc["requested_timestamp_seconds"] == second]
+                frame_path = stage / f"frame-{index}.png"
+                # 최초 supplier frame 생성 명령과 동일한 seek/PNG 설정을 보존한다.
+                command = ["ffmpeg", "-hide_banner", "-loglevel", "error", "-y", "-ss", str(second),
+                           "-i", video, "-frames:v", "1", frame_path]
+                evidence["commands"].append(list(map(str, command)))
+                run(command, capture=True)
+                with Image.open(frame_path) as decoded:
+                    image = decoded.convert("RGB")
+                for doc in documents:
+                    if doc["media_pts"] * doc["time_base_num"] != second * doc["time_base_den"]:
+                        raise RuntimeError("Fixed retrieval timestamp/PTS mismatch")
+                    if sha(frame_path) != doc["source_frame_sha256"]:
+                        evidence["first_mismatch"] = {"document_id": doc["id"], "field": "source_frame",
+                            "expected": doc["source_frame_sha256"], "actual": sha(frame_path)}
+                        raise RuntimeError("Reproduced source PNG hash mismatch: " + doc["id"])
+                    pending[doc["source_frame"]] = (frame_path, doc["source_frame_sha256"])
+                    crop = image.crop(doc["crop_box"])
+                    if crop.size != (doc["width"], doc["height"]) or doc["stride"] != doc["width"] * 3:
+                        raise RuntimeError("Fixed retrieval crop dimensions mismatch")
+                    png = stage / Path(doc["crop_png"]).name
+                    rgb = stage / Path(doc["rgb"]).name
+                    crop.save(png)
+                    rgb.write_bytes(crop.tobytes())
+                    for field, generated in [("crop_png", png), ("rgb", rgb)]:
+                        actual = sha(generated)
+                        expected = doc[field + "_sha256"]
+                        if actual != expected:
+                            evidence["first_mismatch"] = {"document_id": doc["id"], "field": field,
+                                                          "expected": expected, "actual": actual}
+                            raise RuntimeError("Reproduced crop hash mismatch: " + doc["id"] + ":" + field)
+                        pending[doc[field]] = (generated, expected)
+            pending["models/v430-siglip2/retrieval/fixture.json"] = (RETRIEVAL_FIXTURE, RETRIEVAL_FIXTURE_SHA)
+            publish_retrieval_outputs(pending, evidence)
+            evidence["generated_counts"] = {"source_png": 4, "crop_png": 16, "crop_rgb": 16}
+        evidence.update(status="PASS", owned_staging_absent=not (ROOT / evidence["owned_staging_path"]).exists())
+        record("retrieval_preparation", evidence)
+        print(json.dumps({"status": "PASS", "scope": evidence["scope"], "generated_counts": evidence["generated_counts"],
+                          "fixture_sha256": RETRIEVAL_FIXTURE_SHA, "queries_sha256": RETRIEVAL_QUERIES_SHA}, indent=2))
+    except Exception as error:
+        evidence.update(status="FAIL", error=str(error), owned_staging_absent=
+            not evidence.get("owned_staging_path") or not (ROOT / evidence["owned_staging_path"]).exists())
+        record("retrieval_preparation", evidence)
+        raise
+
+
+def retrieval_verify(_):
+    """점수 확인 전에 고정한 공개 scene/query로 실제 C++ encoder+index를 판정한다."""
+    baseline="d8dfd0fbb13544a02eb725ac1fd79b52df781c71"
+    expected_fixture=RETRIEVAL_FIXTURE_SHA
+    expected_queries=RETRIEVAL_QUERIES_SHA
+    work=MODEL/"retrieval"; fixture_path=RETRIEVAL_FIXTURE
+    sources=["include/analysis/siglip2_encoder.h","src/analysis/siglip2_encoder.cpp",
+             "include/recording/visual_search_index.h","src/recording/visual_search_index.cpp"]
+    source_hashes={}
+    for path in sources:
+        fixed=subprocess.check_output(["git","show",baseline+":"+path],cwd=ROOT)
+        expected=hashlib.sha256(fixed).hexdigest();actual=sha(ROOT/path)
+        if actual!=expected:raise RuntimeError("Retrieval baseline source mismatch: "+path)
+        source_hashes[path]=actual
+    if sha(fixture_path)!=expected_fixture:raise RuntimeError("Pre-score retrieval fixture hash mismatch")
+    fixture=fixed_retrieval_fixture()
+    queries_hash=hashlib.sha256(json.dumps(fixture["queries"],ensure_ascii=False,sort_keys=True,separators=(",",":")).encode()).hexdigest()
+    if queries_hash!=expected_queries or fixture["baseline_commit"]!=baseline:raise RuntimeError("Pre-score retrieval queries/baseline mismatch")
+    if sha(ROOT/fixture["source_video"])!=fixture["source_video_sha256"]:raise RuntimeError("Retrieval source video changed")
+    def budget():
+        costs={str(path.relative_to(ROOT)):size(path) for path in [MODEL,DEPS,ROOT/"build-gst-onnx"]}
+        total=sum(costs.values());reserved=1129352764
+        if total+reserved>BUDGET:raise RuntimeError("Retrieval 8GiB budget including product build/temp reserve exceeded")
+        return {"logical_bytes":costs,"total_bytes":total,"temp_reserve_bytes":reserved,"budget_bytes":BUDGET}
+    evidence={"status":"RUNNING","feature_id":"V430-Q02","baseline_commit":baseline,
+              "baseline_source_sha256":source_hashes,"fixture_sha256":expected_fixture,"queries_sha256":expected_queries,
+              "driver_sha256":sha(ROOT/"scripts/internal/siglip2_retrieval_smoke.cpp"),
+              "preparation_script_sha256":sha(Path(__file__)),"workspace":budget(),
+              "thresholds":{"scene_hit_at_1_min":.75,"scene_mrr_min":.875,"warm_p95_ms_max":2000,
+                            "warm_max_ms_max":5000,"process_rss_bytes_max":4*1024**3},
+              "limitations":fixture["limitations"]}
+    record("retrieval_verification",evidence)
+    rows=[]
+    for doc in fixture["documents"]:
+        for field in ["source_frame","crop_png","rgb"]:
+            if sha(ROOT/doc[field])!=doc[field+"_sha256"]:raise RuntimeError("Pre-score retrieval pixel hash mismatch")
+        rows.append(" ".join([json.dumps(doc["id"]),json.dumps(doc["scene"]),str(doc["media_pts"]),
+                  str(doc["time_base_num"]),str(doc["time_base_den"]),str(doc["width"]),str(doc["height"]),str(doc["stride"]),
+                  json.dumps(Path(doc["rgb"]).name),json.dumps(doc["rgb_sha256"])]))
+    (work/"documents.txt").write_text("\n".join(rows)+"\n")
+    rows=[]
+    for query in fixture["queries"]:
+        name=query["id"]+".txt";(work/name).write_text(query["text"],encoding="utf-8")
+        rows.append(" ".join(json.dumps(value) for value in [query["id"],query["kind"],query["language"],query["expected_scene"] or "none",name]))
+    (work/"queries.txt").write_text("\n".join(rows)+"\n")
+    prefix=DEPS/"sentencepiece";driver=work/"siglip2_retrieval_smoke"
+    flags=shlex.split(subprocess.check_output(["pkg-config","--cflags","--libs","libonnxruntime","glib-2.0"],text=True))
+    lib=subprocess.check_output(["pkg-config","--variable=libdir","libonnxruntime"],text=True).strip()
+    run(["c++","-std=c++17","-O2","-DMEDIA_SERVER_USE_SIGLIP2=1",f"-I{ROOT/'include'}",
+         ROOT/"src/analysis/siglip2_encoder.cpp",ROOT/"src/recording/visual_search_index.cpp",
+         ROOT/"scripts/internal/siglip2_retrieval_smoke.cpp",f"-I{prefix/'include'}",prefix/"lib/libsentencepiece.a",
+         *flags,f"-Wl,-rpath,{lib}","-o",driver])
+    result=work/"results.json"
+    run([driver,MODEL,work,result,fixture["source_video_sha256"]])
+    actual=json.loads(result.read_text());labels={q["id"]:q for q in fixture["queries"]}
+    if len(actual["cases"])!=24 or {q["id"] for q in actual["cases"]}!=set(labels):raise RuntimeError("Retrieval cases incomplete")
+    cases=[]
+    for case in actual["cases"]:
+        label=labels[case["id"]]
+        if case["kind"]!=label["kind"] or case["language"]!=label["language"] or case["expected_scene"]!=(label["expected_scene"] or "none"):
+            raise RuntimeError("Retrieval ground truth changed")
+        seen=set();scene_hits=[]
+        for hit in case["hits"]:
+            if hit["scene"] not in seen:seen.add(hit["scene"]);scene_hits.append(hit)
+        if len(scene_hits)!=4:raise RuntimeError("Retrieval scene ranks incomplete")
+        entry={**case,"text":label["text"],"scene_hits":scene_hits}
+        if label["kind"]=="positive":
+            rank=next(i+1 for i,h in enumerate(scene_hits) if h["scene"]==label["expected_scene"])
+            entry.update(scene_rank=rank,hit_at_1=rank==1,reciprocal_rank=1/rank)
+        else:entry.update(expected_scene=None,interpretation="No relevant crop; nearest score is diagnostic, rejection threshold uncalibrated")
+        cases.append(entry)
+    def quality(items):
+        return {"queries":len(items),"hit_at_1":sum(q["hit_at_1"] for q in items)/len(items),
+                "mrr":sum(q["reciprocal_rank"] for q in items)/len(items)}
+    positives=[q for q in cases if q["kind"]=="positive"]
+    overall=quality(positives);languages={lang:quality([q for q in positives if q["language"]==lang]) for lang in ["en","ko"]}
+    warm=sorted(q["total_ms"] for q in actual["cases"][1:])
+    latency={"startup_ms":actual["startup_ms"],"image_encode_ms":actual["image_encode_ms"],"index_build_ms":actual["index_build_ms"],
+             "first_text_case":actual["cases"][0]["id"],"first_text_total_ms":actual["cases"][0]["total_ms"],
+             "warm_queries":len(warm),"warm_median_ms":warm[len(warm)//2],"warm_p95_ms":warm[math.ceil(.95*len(warm))-1],
+             "warm_max_ms":max(warm),"percentile_method":"nearest-rank; first text excluded; encoder+Search total"}
+    failures=[]
+    if overall["queries"]!=16 or overall["hit_at_1"]<.75 or overall["mrr"]<.875:failures.append("scene-quality")
+    if latency["warm_queries"]!=23 or latency["warm_p95_ms"]>2000 or latency["warm_max_ms"]>5000:failures.append("warm-latency")
+    if actual["max_rss_bytes"]>4*1024**3:failures.append("process-rss")
+    if list((DEPS/"tmp").glob("media-server-siglip2-*")):failures.append("temporary-path-cleanup")
+    evidence.update(status="FAIL" if failures else "PASS",failures=failures,overall=overall,languages=languages,latency=latency,cases=cases,
+                    max_rss_bytes=actual["max_rss_bytes"],started_unix_ms=actual["started_unix_ms"],finished_unix_ms=actual["finished_unix_ms"],
+                    index_logical_bytes=actual["index_logical_bytes"],results_json=str(result),workspace=budget(),temporary_loader_paths_absent=True)
+    record("retrieval_verification",evidence)
+    print(json.dumps({"status":evidence["status"],"quality":overall,"languages":languages,"latency":latency,"max_rss_bytes":actual["max_rss_bytes"]},indent=2),flush=True)
+    if failures:raise RuntimeError("Fixed retrieval criteria failed: "+", ".join(failures))
+
+
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("action",choices=["bootstrap","assets","sentencepiece","export","verify","adapter-verify","status"])
+    parser.add_argument("action",choices=["bootstrap","assets","sentencepiece","export","verify","adapter-verify","retrieval-prepare","retrieval-verify","status"])
     parser.add_argument("--python",default=sys.executable)
     args=parser.parse_args()
     for path in [MODEL,DEPS,DEPS/"tmp",DEPS/"source",DEPS/"build",DEPS/"cache"]:

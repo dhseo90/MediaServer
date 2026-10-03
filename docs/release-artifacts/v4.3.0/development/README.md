@@ -238,3 +238,21 @@ SigLIP2를 연결한 exit0이다. 원본 PTS9,000,000,000ns의 frame에서 유�
 이벤트 snapshot 조사에서 기존 manifest의 ms 시각과 가장 가까운 frame 선택은 정확한
 original sample 연결 증명이 아님을 확인했다. 기존 snapshot을 임의 승격하지 않으며,
 생산·저장 경로 확장 또는 이번 버전 제외 여부를 사용자에게 확인 중이다.
+
+
+## 고정 영상 retrieval 품질과 재현 준비
+
+실제 encoder/index의 최초 품질 실행 `models/v430-siglip2/retrieval-verify-first.log`는 exit0이다.
+사전 고정한 네 장면·영어8/한국어8 positive 모두 scene Hit@1=1/MRR=1이었다.
+23개 warm 질의 p95 95.701542ms/max95.729167ms, process peak3,146,563,584바이트다.
+무관 질의4개와 없는 조합4개는 정답 없는 진단 대상으로 보존했다. 없는 조합의 점수가 일부
+positive와 겹치므로 단일 threshold의 정확한 거부나 일반 감시 영상 품질을 주장하지 않는다.
+개별384개 점수·24개 질의와 지연은 `preparation.json.retrieval_verification`에 남아 있다.
+
+작은 고정 JSON은 `scripts/fixtures/v430-siglip2-retrieval.json`에 최초 bytes 그대로 보존했다.
+모델 미로딩 `retrieval-prepare`는 source PNG4개/crop PNG16개/RGB16개와 manifest copy의
+기존 hash37개를 대조해 exit0이었다. JSON/RGB 소유 부정 copy는 각각 기대 exit1이며 기존
+bytes를 덮어쓰지 않았다. tracked JSON·영상·이미지38개 불변 및 staging/부정 fixture/pyc
+정리를 확인했다. 원출력은 `models/v430-siglip2/retrieval/retrieval-prepare-{first,final,boundaries}.log`,
+구조화 결과는 `preparation.json.retrieval_preparation`과 `retrieval/reproduction-boundaries.json`이다.
+준비 과정은 실제 모델 품질 재실행이 아니다. 추출기 버전 변경에 따른 bytes 차이는 실패한다.
