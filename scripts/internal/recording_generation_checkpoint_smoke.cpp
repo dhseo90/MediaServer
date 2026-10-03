@@ -12,6 +12,12 @@ bool RecoverCheckpointTransaction(const std::filesystem::path&);
 #include "recording/recording_cutover_candidate.h"
 #include "recording_generation_observation.h"
 namespace recording {
+struct RecordingGenerationResidencyProbe {
+    static void Read(const RecordingJournal& journal,std::size_t* count,
+        std::size_t* historical,std::size_t* active) {
+        journal.ProbeGenerationIdentityStorage(count,historical,active);
+    }
+};
 struct RecordingGenerationTransactionProbe {
     static void Hook(void(*hook)(const char*)){RecordingGenerationTransaction::fault_hook_=hook;}
     static bool Recover(RecordingCatalog& catalog,const RecordingCutoverCandidateLimits& limits,std::string* error){return catalog.RecoverManagedCutover(limits,8U*1024U*1024U,error);}
@@ -63,6 +69,43 @@ void Actual(const std::filesystem::path& root,std::size_t copies=1,bool manifest
 }
 RecordingGenerationManifest Manifest(const std::filesystem::path& root) {
     RecordingGenerationManifest value;Need(ParseRecordingGenerationManifest(Read(root/"recording-generation.json"),&value,&error));return value;
+}
+void IdentityResidency(const std::filesystem::path& root) {
+    Actual(root);
+    const auto original=Read(root/"evidence-1-0.jsonl");
+    const auto measure=[&](RecordingJournal& journal,const char* phase,bool has_active) {
+        std::size_t count=0,historical=0,active=0;
+        RecordingGenerationResidencyProbe::Read(journal,&count,&historical,&active);
+        std::cout<<"[identity-residency] phase="<<phase<<" count="<<count
+                 <<" historicalDuplicateBytes="<<historical<<" activeCachedBytes="<<active<<'\n';
+        Check("V430-R01",count>0&&historical==0&&(has_active?active>0:active==0),
+              "historical identity retains no duplicate digest string; active cache bounded by active rows");
+    };
+    for(int iteration=0;iteration<2;++iteration) {
+        RecordingJournal journal(Options(root));Need(journal.Open(&error));
+        RecordingCatalog catalog(journal,CO(root));Need(catalog.Open(&error));
+        measure(journal,iteration?"reopen":"open",false);
+        RecordingMutationLink link;RecordingMutationHandle record;
+        Need(Links::Link(journal,"historical",&link));Need(Links::Get(journal,link,&record));
+        Check("V430-R01",SerializeRecordingMutationV1(*record)+"\n"==original,
+              "cold link retains exact independent original envelope");
+        RecordingOrderReservationV1 reservation;
+        const auto request="residency-request-"+std::to_string(iteration);
+        const auto segment="residency-segment-"+std::to_string(iteration);
+        Need(catalog.ReserveRecordingOrder("store",request,segment,"channel",&reservation,&error));
+        const auto expected=reservation;
+        measure(journal,"append",true);
+        Need(catalog.Checkpoint(&error));measure(journal,"checkpoint",false);
+        Check("V430-R01",catalog.ReserveRecordingOrder("store",request,segment,"channel",&reservation,&error)&&
+              std::tie(reservation.schema,reservation.store_id,reservation.request_id,reservation.segment_id,reservation.channel_id,reservation.sequence)==
+              std::tie(expected.schema,expected.store_id,expected.request_id,expected.segment_id,expected.channel_id,expected.sequence),
+              "historical reservation retry retains exact sequence and tuple");
+        Check("V430-R01",!catalog.ReserveRecordingOrder("store",request,"different-segment","channel",&reservation,&error),
+              "historical reservation conflict remains rejected");
+        Need(Links::Get(journal,link,&record));
+        Check("V430-R01",SerializeRecordingMutationV1(*record)+"\n"==original&&Read(root/"evidence-1-0.jsonl")==original,
+              "rotation preserves historical link and sealed original bytes");
+    }
 }
 void ExportValueBoundary(const std::filesystem::path& root) {
     Actual(root);const auto manifest=Manifest(root);
@@ -292,10 +335,13 @@ void Jobs(const std::filesystem::path& base) {
 }
 #endif
 int main(int argc,char** argv) {
-    if(argc!=2)return 2;
+    if(argc!=2&&argc!=3)return 2;
+    if(argc==3&&std::string(argv[2])!="residency")return 2;
     try {
         const std::filesystem::path root(argv[1]);std::filesystem::create_directories(root);
 #if MEDIA_SERVER_USE_OPENSSL && MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND
+        IdentityResidency(root/"identity-residency");
+        if(argc==3)return failures?1:0;
         ExportValueBoundary(root/"export-values");Rotation(root/"rotate");ObserverRace(root/"observer-race");Failures(root/"failures");Cost(root/"cost");Admission(root/"admission");Threshold(root/"threshold");Limits(root/"limits");Jobs(root/"jobs");SQL_CHECKPOINT_CASES::Run(root);
 #else
         Write(root/".recording-store-format",Marker());RecordingJournal journal(Options(root));

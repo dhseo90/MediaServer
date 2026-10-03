@@ -1,0 +1,95 @@
+[start] 2026-10-03T16:49:55Z
+Darwin 27.0.0 arm64
+Apple clang version 21.0.0 (clang-2100.3.34.2)
+03929f7c300a72e6380af54586888cef26cbf0ddbad7a8457dd31726fe9e5794  src/recording/recording_catalog.cpp
+f86e7ea3cbe3a58c611cb042e351d2e2137d9e81d2c8b4c8bbcd8477f8be65a9  src/recording/recording_catalog_snapshot_export.cpp
+a1c660c5255aec9735d9bf7b8a3a88cf2d73ce00a65a08f91b0adc1942ae585b  src/recording/recording_catalog_cutover_candidate.cpp
+db53a68401c30833734a57c3a83c7996acaa7eade86222a29adaabc160c0c6c7  src/recording/recording_cutover_stage_writer.cpp
+42511082174b9bcf14cf957b2604d0685f0f4d5f0b60de82512cee61dc618ce1  src/recording/recording_timeline_projection.cpp
+f60c07e1b4d4fef74ace7f41911806277685b0fec5412633045ec0eefdd9a979  src/recording/recording_read_service.cpp
+5ddf655217005345b92d3c3d839d1151b6b68575b388de69eb9267ebbfa3c591  src/recording/retention_coordinator.cpp
+9ea8a90caa8a57d4ecb177fc63c018c13accd73b8bf784e1d5a567ca10991028  src/recording/recording_finalize_recovery.cpp
+bf9fb621ce43fbec4323b159ddfb646a91864ca7f3f03836fd7c5a1db7bf796f  src/recording/recording_finalize_ticket.cpp
+31a4f8d9fcc73657a652cd538262d49043c6e1a73a318fcb3643bb6377601cdb  src/recording/recording_file_evidence.cpp
+64906ef59b651800c009ab84174ee58d8aabfbb5ac95f0d5f7fb7b858e5dbbcf  src/recording/recording_media_inspector.cpp
+be1057725d0a0b54d705543ce635da6c832e4c53fbec008e91ad63c9a1d0f58b  src/domain/strict_json.cpp
+960635a08aa900bebfae961cd9e534ab6b91fbace213e1a7416227e7292ec890  src/recording/recording_contracts.cpp
+4e8d31d88f5ba29f347a878e308a89f6087d6cb1fcb1ba33a9c2ea92ce8906e3  src/recording/recording_journal.cpp
+319ef9eb696f86b0c2806da74d6600312cadfd3e54e70d2aad8bc7d7792c73e1  src/recording/recording_cutover_input.cpp
+fbed2090cf6779e06688073c547ae624e2f7c6bd3b3406276702ae300755e946  src/recording/recording_generation_transaction.cpp
+7fd444caa2244008d03e060abb3655c2650988239b1c22dd7390fb7e9ccbed67  src/recording/recording_generation_receipt.cpp
+3dcdd1d4f24b89402ac951f51939c405ae5c5b77a0c88b64f0790d090903b248  src/recording/recording_generation_manifest.cpp
+13959bfc857110f7533a659d426a8c67f86b505b75ab0844dd35f3a073abf83a  src/recording/recording_generation_cold_mutation.cpp
+fd87fe5e381436c95e827f7094d46d732f93b273c7877ceb6aa9a9dfa9ed9dc7  src/recording/recording_generation_files.cpp
+f3685cafe9c440185035955a406e303328eadc27112cb244e7e7404ea7933bd1  src/recording/recording_catalog_snapshot.cpp
+37bfb810644302f1610c301330aa1773593c6de6e47eeeff9988185570e3abfb  src/recording/recording_order_history_snapshot.cpp
+c553d90b6e2d747a858685fc534af0366a24218f57cc4d01939c197a8d16ac63  src/recording/recording_identity_shard.cpp
+4ce7b4ea3929becab8358eda22f6f163f4f5c62336c7852e0fb4025e36bb168b  src/recording/recording_derived_selection.cpp
+2bc62d61b90b129f90efb8a2c0c74e242ab4167942314499933cc8edf092a41d  src/recording/recording_derived_job.cpp
+79ad4ad654a876bf3ac55a7b7a3b7f675324f10b715807378ffa3279482e60dc  src/recording/recording_derived_job_ready.cpp
+308957f98dd4bf791e8c5cd431e4e459d2cf2d70dc6e8f4470e1fe5edc5388ec  src/recording/recording_catalog_generation_projection.cpp
+9692fc9fa791dbbe422011450d459afaeec96e5badfacfa5ff16f638f8bb09a7  src/recording/recording_generation_active.cpp
+e56489d42e039a4c34ee93b0e4262a923b07e31676228ef823c1e67037281482  scripts/internal/recording_generation_checkpoint_smoke.cpp
+832842921e9674a0d1fc0d0947548d5f82f7795755ef94b00e848398504465aa  include/recording/recording_catalog.h
+bfd99b1940c4bc636dbd9817bb5eacab3e21bd9cab0d24a645d6648d5b95312c  include/recording/recording_journal.h
+bedf1c1167d250b114140e2273c4d9e7ed233b6cb8d420f289f5cea61d89f9b5  include/recording/recording_generation_recovery_session.h
+91e507a7a161e4d796dcff72511037aa715f5bc7cf26d313dacd3b967b90c930  scripts/internal/recording_generation_checkpoint_sql_cases.inc
+9d34e2dc71b8ecac1e427c71a378f688a700865172bea053d5214ed94eaf3a5d  include/recording/recording_generation_manifest.h
+53a2e43edf9c14a9bf133f516298abf0cf3d567fee75fc3e374ba2a799ecfc38  include/recording/recording_generation_files.h
+c581c0b322cc32da971a88126ce9fbcd0b26371cee1a5cd1e1f9a154ef7d917c  scripts/internal/recording_catalog_generation_scratch_smoke.cpp
+17362fbda3e98e52bc9587725e499b658ea9e73e124d251b3188563a7d53514d  scripts/internal/recording_catalog_generation_projection_smoke.cpp
+6d144742f87417461ea5de566785a0618e697dbf7e5789d8f4b4e679845bfca8  scripts/internal/recording_journal_generation_readonly_smoke.cpp
+794e5db5535987378bdee6fd6c7e436563e61c1d70aa7add9d847f327b60ae9f  /Users/dhseo/Workspace/mediaServer/scripts/internal/verify_recording_generation_checkpoint.sh
+[config] crypto=1 sqlite=1 backend=1
+[identity-residency] phase=open count=1 historicalDuplicateBytes=0 activeCachedBytes=0
+V430-R01 PASS historical identity retains no duplicate digest string; active cache bounded by active rows
+V430-R01 PASS cold link retains exact independent original envelope
+[identity-residency] phase=append count=2 historicalDuplicateBytes=0 activeCachedBytes=101
+V430-R01 PASS historical identity retains no duplicate digest string; active cache bounded by active rows
+[identity-residency] phase=checkpoint count=2 historicalDuplicateBytes=0 activeCachedBytes=0
+V430-R01 PASS historical identity retains no duplicate digest string; active cache bounded by active rows
+V430-R01 PASS historical reservation retry retains exact sequence and tuple
+V430-R01 PASS historical reservation conflict remains rejected
+V430-R01 PASS rotation preserves historical link and sealed original bytes
+[identity-residency] phase=reopen count=2 historicalDuplicateBytes=0 activeCachedBytes=0
+V430-R01 PASS historical identity retains no duplicate digest string; active cache bounded by active rows
+V430-R01 PASS cold link retains exact independent original envelope
+[identity-residency] phase=append count=3 historicalDuplicateBytes=0 activeCachedBytes=101
+V430-R01 PASS historical identity retains no duplicate digest string; active cache bounded by active rows
+[identity-residency] phase=checkpoint count=3 historicalDuplicateBytes=0 activeCachedBytes=0
+V430-R01 PASS historical identity retains no duplicate digest string; active cache bounded by active rows
+V430-R01 PASS historical reservation retry retains exact sequence and tuple
+V430-R01 PASS historical reservation conflict remains rejected
+V430-R01 PASS rotation preserves historical link and sealed original bytes
+[config] crypto=1 sqlite=0 backend=1
+[identity-residency] phase=open count=1 historicalDuplicateBytes=0 activeCachedBytes=0
+V430-R01 PASS historical identity retains no duplicate digest string; active cache bounded by active rows
+V430-R01 PASS cold link retains exact independent original envelope
+[identity-residency] phase=append count=2 historicalDuplicateBytes=0 activeCachedBytes=101
+V430-R01 PASS historical identity retains no duplicate digest string; active cache bounded by active rows
+[identity-residency] phase=checkpoint count=2 historicalDuplicateBytes=0 activeCachedBytes=0
+V430-R01 PASS historical identity retains no duplicate digest string; active cache bounded by active rows
+V430-R01 PASS historical reservation retry retains exact sequence and tuple
+V430-R01 PASS historical reservation conflict remains rejected
+V430-R01 PASS rotation preserves historical link and sealed original bytes
+[identity-residency] phase=reopen count=2 historicalDuplicateBytes=0 activeCachedBytes=0
+V430-R01 PASS historical identity retains no duplicate digest string; active cache bounded by active rows
+V430-R01 PASS cold link retains exact independent original envelope
+[identity-residency] phase=append count=3 historicalDuplicateBytes=0 activeCachedBytes=101
+V430-R01 PASS historical identity retains no duplicate digest string; active cache bounded by active rows
+[identity-residency] phase=checkpoint count=3 historicalDuplicateBytes=0 activeCachedBytes=0
+V430-R01 PASS historical identity retains no duplicate digest string; active cache bounded by active rows
+V430-R01 PASS historical reservation retry retains exact sequence and tuple
+V430-R01 PASS historical reservation conflict remains rejected
+V430-R01 PASS rotation preserves historical link and sealed original bytes
+[config] crypto=0 sqlite=1 backend=1
+B03-C06 PASS unsupported B remains closed
+B03-C06 PASS backend-enabled v1 open append replay
+B03-C06 PASS v1 reopen unchanged
+[config] crypto=1 sqlite=1 backend=0
+B03-C06 PASS unsupported B remains closed
+B03-C06 PASS backend-enabled v1 open append replay
+B03-C06 PASS v1 checkpoint remains available
+B03-C06 PASS v1 reopen unchanged
+[end] 2026-10-03T16:50:48Z
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-generation-checkpoint.l2PZBd bytes=35928174 removed=true

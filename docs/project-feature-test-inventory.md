@@ -12,11 +12,15 @@
 
 | 기능 ID | route/control/action과 독립 기대값 | 안정화 | 30분 | 120분 | UI |
 | --- | --- | --- | --- | --- | --- |
-| V430-R01 | historical identity 상주 중복; 기존 entity/time/digest 문자열과 조회 결과 동일, checkpoint/reopen 뒤 중복 digest 문자열 0바이트, active identity 유지 | native residency 및 append/checkpoint/cold-link 회귀 | 향후 녹화 병행 | 이력 수명 영향으로 필요성 판정 | 비대상: 내부 |
+| V430-R01 | historical identity 상주 중복; 기존 entity/time/digest 문자열과 조회 결과 동일, checkpoint/reopen 뒤 중복 digest 문자열 0바이트, active identity 유지 | `verify_recording_generation_checkpoint.sh residency` 및 기존 append/checkpoint/cold-link 회귀 | 향후 녹화 병행 | 이력 수명 영향으로 필요성 판정 | 비대상: 내부 |
 | V430-R02 | 활성 자료 고정·누적 identity 증가; 필수 ID/receipt 보존, 반복 삭제·off·재시작/재구축의 논리/RSS 분리 | 규모·소유 측정 | 향후 순환 | 필요성 판정 | 비대상: 내부 |
 | V430-R03 | 검색 snapshot 299초 유효/300초 만료, idle 후 상주 해제, caller가 가진 불변 결과 수명 보존 | 수명 oracle | 향후 idle/재활성화 | 필요성 판정 | 기존 만료 안내 |
 | V430-R04 | 검색 4요청·녹화 동시 진행; 기존 ID/건수/순서/권한·최종 파일 불변, 대기/준비/지연·peak 예산 | 실제 writer 단기 통합 | 향후 혼합 부하 | 필요성 판정 | 비대상: 내부 |
 | V430-E01 | image/text/cross-modal contract; 동일 차원 다른 모델·전처리 혼합 거부, 구계약 새 공간으로 재색인 | 값/실제 모델; 세부 준비 중 | 향후 색인 | 영향 판정 | 미정 |
+| V430-EMBED-PREP | 고정 revision의 weight/tokenizer SHA-256 일치, local CPU image FP32[1,3,224,224]/text INT64[1,64]→각 768값, 공급자·export/dependency hash 보존 | 격리 준비/shape | 비대상: 준비 | 비대상: 준비 | 비대상: 내부 |
+| V430-EMBED-TOKEN | 영어/한국어/빈 문자열/공백/긴 입력의 공급자 대비 C++ token ID 전체 일치, BOS 없음·EOS 포함·오른쪽 PAD·총 64; 빈 사용자 질의는 application에서 거부 | tokenizer parity | 향후 검색 | 영향 판정 | 입력 오류 연결 |
+| V430-EMBED-PARITY | 고정 실제 image/text 입력의 공급자↔ONNX FP32 CPU L2 정규화 출력: 모든 유한 값, 최대 절대 오차≤1e-4 및 cosine≥0.99999; 실패 시 완화 금지 | 실제 모델 parity | 향후 모델 수명 | 영향 판정 | 비대상: 내부 |
+| V430-EMBED-SMOKE | 실제 로컬 encoder에 출처 확인 이미지와 영어/한국어 질의를 입력, 유한 768차원·L2 norm 오차≤1e-5 및 서로 다른 입력의 비동일 출력; retrieval 품질 PASS와 구분 | 실제 추론 smoke | 향후 혼합 | 영향 판정 | 검색 연결 |
 | V430-I01 | event snapshot/대표 frame 색인; 원본 참조·삭제/누락·중단/rebuild, 부분 게시 금지 | 저장·실제 frame; 세부 준비 중 | 향후 순환 | 영향 판정 | 미정 |
 | V430-Q01 | exact top-k; 독립 score/동점 ID/threshold·NaN/Inf/zero norm/차원 mismatch | native oracle; 세부 준비 중 | 향후 검색 | 영향 판정 | 미정 |
 | V430-Q02 | 실제 text→frame; 고정 모델/fixture의 Hit@K·MRR·지연·메모리·디스크 | 실제 추론; 기준 준비 중 | 향후 혼합 | 영향 판정 | 미정 |

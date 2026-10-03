@@ -633,6 +633,8 @@ struct RecordingJournalGenerationState {
     RecordingCatalogGenerationProjection projection;
     // snapshot 이후 active를 소비한 Journal 전용 인덱스. Catalog 상태 전이 증명이 아니다.
     OrderHistoryIndex order;
+    // active만 합성 identity를 캐시한다. historical은 검증된 chain의 최초 행에서 복원한다.
+    // 필수 ID/최초 ordinal/entity/time/digest와 cold 위치는 그대로 보존한다.
     struct Identity { std::string digest; bool historical; std::size_t slot; };
     std::unordered_map<std::string,Identity> identities;
     std::unordered_set<std::string> archive_names;
@@ -644,6 +646,19 @@ struct RecordingJournalGenerationState {
     struct stat manifest_binding{},active_binding{};
 #endif
 };
+#if defined(MEDIA_SERVER_RECORDING_GENERATION_TESTING)
+void RecordingJournal::ProbeGenerationIdentityStorage(std::size_t* count,
+    std::size_t* historical_bytes,std::size_t* active_bytes) const {
+    std::lock_guard lock(mu_);
+    *count=0;*historical_bytes=0;*active_bytes=0;
+#if MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND && !defined(_WIN32)
+    if(!generation_state_)return;
+    *count=generation_state_->identities.size();
+    for(const auto& entry:generation_state_->identities)
+        (entry.second.historical?*historical_bytes:*active_bytes)+=entry.second.digest.size();
+#endif
+}
+#endif
 struct RecordingJournal::ColdReadProof {
 #if MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND && MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
     const RecordingJournal* owner=nullptr;
@@ -751,6 +766,14 @@ std::string EnvelopeIdentity(const RecordingMutationV1& mutation) {
 std::string MutationIdentityKey(const std::string& entity,std::int64_t occurred,const std::string& digest) {
     return std::to_string(entity.size())+":"+entity+":"+std::to_string(occurred)+":"+digest;
 }
+#if MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND && !defined(_WIN32)
+std::string GenerationIdentityKey(const RecordingJournalGenerationState& state,
+    const RecordingJournalGenerationState::Identity& identity) {
+    if(!identity.historical)return identity.digest;
+    const auto& row=state.chain.first_acceptances.at(identity.slot).first_row;
+    return MutationIdentityKey(row.entity_id,row.occurred_at_ms,row.identity);
+}
+#endif
 RecordingJournalRecordLocationHandle MakeLocation(const std::shared_ptr<const char>& generation,
     std::size_t ordinal,std::uint64_t offset,std::string_view raw,const RecordingMutationHandle& record,
     const std::string& identity,bool canonical_raw=false) {
@@ -898,9 +921,7 @@ bool ValidateGenerationActiveIndex(RecordingJournalGenerationState* state,std::s
     }
     for(std::size_t i=0;i<state->chain.first_acceptances.size();++i) {
         const auto& first=state->chain.first_acceptances[i];
-        const auto& row=first.first_row;
-        state->identities.emplace(first.mutation_id,RecordingJournalGenerationState::Identity{
-            MutationIdentityKey(row.entity_id,row.occurred_at_ms,row.identity),true,i});
+        state->identities.emplace(first.mutation_id,RecordingJournalGenerationState::Identity{{},true,i});
     }
     const auto cut=state->active.manifest.cut_ordinal;
     for(std::size_t i=0;i<state->active.rows.size();++i) {
@@ -911,7 +932,7 @@ bool ValidateGenerationActiveIndex(RecordingJournalGenerationState* state,std::s
         if(digest.empty())return Fail(error,"B active identity digest 실패");
         const auto identity=MutationIdentityKey(mutation.entity_id,mutation.occurred_at_ms,digest);
         const auto previous=state->identities.find(mutation.mutation_id);
-        if(previous!=state->identities.end()&&previous->second.digest!=identity)return Fail(error,"B active mutation ID 충돌");
+        if(previous!=state->identities.end()&&GenerationIdentityKey(*state,previous->second)!=identity)return Fail(error,"B active mutation ID 충돌");
         // 동일 ID 물리 재시도도 기존 v1 IndexRecord와 같이 Consume한다.
         // Receipt는 originalSha256 identity를 유지하므로 원래 event 재시도와 호환된다.
         if(!order.Consume(mutation,error))return false;
@@ -1465,7 +1486,7 @@ bool RecordingJournal::MakeGenerationMutationLink(const std::string& id,Recordin
     try {
         if(!state.link_epoch)state.link_epoch=std::make_shared<const char>(0);
         auto ref=std::make_shared<RecordingGenerationMutationRef>();
-        ref->epoch=state.link_epoch;ref->mutation_id=id;ref->identity=found->second.digest;
+        ref->epoch=state.link_epoch;ref->mutation_id=id;ref->identity=GenerationIdentityKey(state,found->second);
         ref->ordinal=found->second.historical?state.chain.first_acceptances.at(found->second.slot).first_global_ordinal:
             state.active.rows.at(found->second.slot).global_ordinal;
         RecordingMutationLink result;result.generation_ref_=std::move(ref);
@@ -1510,7 +1531,7 @@ bool RecordingJournal::ReadGenerationRecovery(const std::shared_ptr<RecordingGen
         result->mutation=row.mutation;result->retry=seen;result->global_ordinal=row.global_ordinal;
         if(!state.link_epoch)state.link_epoch=std::make_shared<const char>(0);
         auto ref=std::make_shared<RecordingGenerationMutationRef>();ref->epoch=state.link_epoch;
-        ref->mutation_id=row.mutation.mutation_id;ref->identity=first.digest;
+        ref->mutation_id=row.mutation.mutation_id;ref->identity=GenerationIdentityKey(state,first);
         ref->ordinal=first.historical?state.chain.first_acceptances.at(first.slot).first_global_ordinal:state.active.rows.at(first.slot).global_ordinal;
         result->link.generation_ref_=std::move(ref);
         *out=std::move(result);++session->next;return true;
@@ -1593,7 +1614,7 @@ bool RecordingJournal::VisitGenerationIdentities(const std::shared_ptr<Recording
         const auto& first=pair.second;
         if(first.historical) {
             const auto& row=state.chain.first_acceptances.at(first.slot).first_row;
-            if(!visit(pair.first,row.type,row.entity_id,row.occurred_at_ms,row.global_ordinal,first.digest))return false;
+            if(!visit(pair.first,row.type,row.entity_id,row.occurred_at_ms,row.global_ordinal,GenerationIdentityKey(state,first)))return false;
         }else {
             const auto& row=state.active.rows.at(first.slot);const auto& m=row.mutation;
             if(!visit(pair.first,m.mutation_type,m.entity_id,m.occurred_at_ms,row.global_ordinal,first.digest))return false;
@@ -1644,7 +1665,7 @@ bool RecordingJournal::AcquireMutationLinkWithProof(const RecordingMutationLink&
         if(!state.link_epoch||ref.epoch!=state.link_epoch)return Fail(error,"B link 세션/인스턴스 거부");
         try {
             const auto found=state.identities.find(ref.mutation_id);
-            if(found==state.identities.end()||found->second.digest!=ref.identity)return Fail(error,"B link identity 권위 거부");
+            if(found==state.identities.end()||GenerationIdentityKey(state,found->second)!=ref.identity)return Fail(error,"B link identity 권위 거부");
             const auto& location=found->second;
             RecordingMutationV1 value;
             std::shared_ptr<ColdReadProof> prepared;
@@ -2332,7 +2353,7 @@ bool RecordingJournal::ValidatePreappend(const void* owner,const RecordingMutati
 #if MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND && !defined(_WIN32)
     if(generation_state_) {
         const auto old=generation_state_->identities.find(mutation.mutation_id);
-        if(old!=generation_state_->identities.end()&&old->second.digest!=identity)
+        if(old!=generation_state_->identities.end()&&GenerationIdentityKey(*generation_state_,old->second)!=identity)
             return Fail(error,"preappend B mutation ID 충돌");
         return generation_state_->order.Consume(mutation,error,false);
     }
@@ -2438,7 +2459,8 @@ bool RecordingJournal::PrepareGenerationCheckpoint(const void* owner,
         orders.ordinary_ids.assign(current.order.ordinary_ids.begin(),current.order.ordinary_ids.end());
         orders.legacy_segments.assign(current.order.legacy_segments.begin(),current.order.legacy_segments.end());
         for(std::size_t i=0;i<plan->chain.first_acceptances.size();++i){const auto& accepted=plan->chain.first_acceptances[i];
-            pending.identities.emplace(accepted.mutation_id,RecordingJournalGenerationState::Identity{current.identities.at(accepted.mutation_id).digest,true,i});}
+            (void)current.identities.at(accepted.mutation_id);
+            pending.identities.emplace(accepted.mutation_id,RecordingJournalGenerationState::Identity{{},true,i});}
         *output=std::move(plan);if(error)error->clear();return true;
     }catch(...){return Fail(error,"B checkpoint prepare 자원 실패");}
 #else
@@ -2570,7 +2592,7 @@ bool RecordingJournal::GenerationRotationNeededLocked(const RecordingMutationV1&
            !state.order.Consume(m,error,false))return Fail(error,"B rotation candidate envelope/order 거부");
         const auto old=state.identities.find(m.mutation_id);
         if(old!=state.identities.end()) {
-            if(m.mutation_type!=RecordingMutationType::RecordingOrderReserved&&old->second.digest!=MutationIdentityKey(m.entity_id,m.occurred_at_ms,EnvelopeIdentity(m)))return Fail(error,"B rotation candidate ID 충돌");
+            if(m.mutation_type!=RecordingMutationType::RecordingOrderReserved&&GenerationIdentityKey(state,old->second)!=MutationIdentityKey(m.entity_id,m.occurred_at_ms,EnvelopeIdentity(m)))return Fail(error,"B rotation candidate ID 충돌");
             *needed=false;return true;
         }
         if(state.identities.size()>=generation_limits_.identity_unique_ids||state.active.rows.size()>=UINT64_MAX-state.active.manifest.cut_ordinal||
@@ -2698,8 +2720,8 @@ bool RecordingJournal::AppendGenerationLocked(const void* owner,const RecordingM
         const auto prior=state.identities.find(m.mutation_id);const bool retry=prior!=state.identities.end();
         auto identity=MutationIdentityKey(m.entity_id,m.occurred_at_ms,digest);
         // 예약 retry는 검증된 원래 tuple/time을 그대로 사용한다. 원문 표현을 새 identity로 바꾸지 않는다.
-        if(retry&&reservation)identity=prior->second.digest;
-        if(retry&&prior->second.digest!=identity)return Fail(error,"B mutation ID 충돌");
+        if(retry&&reservation)identity=GenerationIdentityKey(state,prior->second);
+        if(retry&&GenerationIdentityKey(state,prior->second)!=identity)return Fail(error,"B mutation ID 충돌");
         if(!state.order.Consume(parsed,error,false))return false;
         if(reservation&&state.order.bound_store!=managed_store_id_&&!state.order.bound_store.empty())return Fail(error,"B reservation store 충돌");
         const auto slot=retry?prior->second.slot:state.active.rows.size();

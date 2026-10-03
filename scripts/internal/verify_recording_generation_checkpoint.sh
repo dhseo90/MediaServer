@@ -2,6 +2,8 @@
 # 파일 용도: 녹화 세대 checkpoint smoke의 빌드·실행·정리를 수행한다.
 # B 명시 opt-in 세대 회전 focused. 실서버/운영 자료에 접근하지 않는다.
 set -euo pipefail
+task_case="${1:-all}"
+[[ "$task_case" == all || "$task_case" == residency ]] || exit 2
 task_script="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 task_repo="$(cd "$task_script/../.." && pwd)"
 task_parent="$(cd "${TMPDIR:-/tmp}" && pwd -P)"
@@ -49,6 +51,8 @@ for task_config in '1 1 1' '1 0 1' '0 1 1' '1 1 0'; do
  "${CXX:-c++}" -std=c++17 -Wall -Wextra -Werror -pthread -Iinclude \
   -DMEDIA_SERVER_USE_OPENSSL="$task_crypto" -DMEDIA_SERVER_USE_SQLITE3="$task_sqlite" -DMEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND="$task_backend" -DMEDIA_SERVER_RECORDING_GENERATION_TESTING=1 \
   "${task_cflags[@]}" "${task_sources[@]}" "${task_libs[@]}" -lz -o "$task_root/checkpoint-$task_crypto-$task_sqlite-$task_backend"
- "$task_root/checkpoint-$task_crypto-$task_sqlite-$task_backend" "$task_root/fixtures-$task_crypto-$task_sqlite-$task_backend"
+ task_args=("$task_root/fixtures-$task_crypto-$task_sqlite-$task_backend")
+ if [[ "$task_case" == residency ]]; then task_args+=(residency); fi
+ "$task_root/checkpoint-$task_crypto-$task_sqlite-$task_backend" "${task_args[@]}"
 done
 date -u '+[end] %Y-%m-%dT%H:%M:%SZ'
