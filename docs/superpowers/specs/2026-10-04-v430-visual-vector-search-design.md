@@ -84,6 +84,29 @@ API·UI는 기존 Ops 권한 경계에서 추가하며 Client/viewer 노출과 p
 상세 route/control은 구현 전에 테스트 정의에 확정한다. 상시녹화 색인은 후반에 설정 주기와
 bounded 작업 수명으로 확장하고 기존 source worker·미디어 blocking 정책을 유지한다.
 
+### 제품 연결의 구현 경계
+
+제품 활성화는 기본 off인 별도 설정으로 한다. 모델은 준비된 로컬 directory만 읽고, 파생 cache는
+녹화 root 안의 전용 `visual-cache` directory에 둔다. 기본 재스캔은60초, 상시녹화 sample 간격은
+10초이며 각각 유한한 설정 범위를 검사한다. worker는 한 개이고 작업 요청은 한 개로 합친다.
+이전 reader가 구세대를 보유하면 세 번째 게시본 준비를 기다린다. 재시작 cache는 현재 원본을
+대체하지 않으며, 질의와 선택 재생 때 동일 channel/segment/hash/시각 참조를 다시 검증한다.
+
+대표 frame은 확정된 V2 원본의 file evidence가 있는 정확한 sample만 사용한다. 기존
+`SourceSeek`의 verified native presentation으로 변환한 뒤 별도 FD decoder에서 같은 표시
+시각의 RGB를 얻는다. frame 간 시각을 임의로 근처 영상으로 바꾸지 않는다. 기존 V1·불완전
+file evidence·지원하지 않는 decode는 제외 이유/건수를 구분하며 완료한 전체 지원으로 숨기지 않는다.
+이벤트 snapshot은 실제 image와 recorded manifest가 있고 event/channel/epoch/정확한 원본 sample
+연결이 확인된 경우에만 추가한다. marker JSON이나 단순히 시간상 가까운 이미지는 영상 벡터로
+색인하지 않는다. snapshot을 원본 영상의 동일 decoded pixel이라는 증거로 주장하지 않는다.
+
+Ops 전용 `visual-search`, `visual-search/seek`, `visual-search/status`를 기존
+`/ops/api/recordings/` 아래에 연결한다. 요청 채널 전체를 기존 operator/ops:read/source:read
+경계에서 확인한 뒤 추론한다. 검색 결과는 문서 ID·채널·점수·현재 재생 정보만 정제해 반환한다.
+원본 경로·모델 파일·벡터·임의 JSON을 노출하지 않는다. 선택 재생은 서버가 보유한 문서 참조를
+사용하고 매번 현재 scope와 파일 상태를 확인한다. 모델 미준비/용량 초과/취소·현재 원본 실패는
+빈 성공 결과와 구분한다. 기존 구조화 검색·페이지·선택 재생 API는 그대로 유지한다.
+
 ## 4. 순서와 완료 증거
 
 | 이슈 | 산출물과 다음 단계 조건 |

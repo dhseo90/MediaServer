@@ -32,9 +32,18 @@
 | V430-EMBED-SMOKE | 실제 로컬 encoder에 출처 확인 이미지와 영어/한국어 질의를 입력, 유한 768차원·L2 norm 오차≤1e-5 및 서로 다른 입력의 비동일 출력; retrieval 품질 PASS와 구분 | 실제 추론 smoke | 향후 혼합 | 영향 판정 | 검색 연결 |
 | V430-I01-STORE | 전용 owner directory의 공간ID별 cache: little-endian FP32/전체SHA256/96MiB/20k행 제한. fsync→rename→directory fsync 뒤 게시; 저장 중 오류는 임시 소유 파일만 제거. missing/손상/뒤추가/짧은파일/다른 계약/과대 count·size·최종/중간 directory symlink·FIFO 비차단 거부와 출력 불변. 강제 rename 직전 실패·이전 게시본 보존·재시작 load 동일·원본 참조 exact. disabled 빌드 명시 거부. cache는 원본이 아니며 실패 시 전체 재색인 | `visual_index_store_smoke.cpp` 격리 native 단기 | 후속 | 중단 재색인 후속 | 내부 |
 | V430-I01-DECODE | caller 보호 FD의 독립 appsrc/pread RGB decode. 160×90/25fps red MP4의0/40ms/3.96초 sample start가 같은 색/크기/stream time, 중간 시각·범위 밖·invalid/짧은파일·취소·disabled 거부 및 출력 불변. FD offset/소유/원문hash 불변, 종료 후 pipeline 해제. size≤512MiB·RGB≤4096×2160/32MiB·budget1~5000ms. SourceSeek로 검증한 파일 표시 시각과 original PTS를 구분 | `visual_frame_decoder_smoke.cpp`와 실제 GStreamer fixture | 실제 녹화 통합 후속 | decoder 수명 후속 | 내부 |
+| V430-I01-SOURCE | 실제 writer의 원본PTS7초 시작/30fps/90packet을3파일로 확정 후 period1초 정확히3대표frame, 같은epoch의 파일 경계를 넘어period10초는1개. 원본PTS와 SourceSeek 파일표시시각 구분 및 RGB실제decode, fullfile/압축AU hash/current channel 참조 보존. 잘못된 period/누락·부정 evidence/hash/channel 거부, UTC unknown은null, 취소와삭제 뒤현재Resolve 거부. 원본 수정/ID재사용 없음. 선택 model 인자 실행은 실제 writer RGB→SigLIP2 finite768/norm오차≤1e-5, 해당process peak≤4GiB 추가 | `recording_visual_source_smoke.cpp` 제품 runtime 링크 | 실제 모델 혼합 후속 | 보존/정리 영향 | 내부 |
 | V430-I01 | event snapshot/대표 frame 색인; 원본 참조·삭제/누락·중단/rebuild, 부분 게시 금지 | 저장·실제 frame; 세부 준비 중 | 향후 순환 | 영향 판정 | 미정 |
 | V430-Q01 | 고정 SigLIP2 image/text/cross 전체 계약 exact match. 768차원 finite/L2오차≤1e-4, 중복 ID/부정 hash/잘못된 시간 기준 거부. top-k 1~200, inclusive threshold[-1,1], score 내림차순/ID 오름차순; 무작위 독립 long-double 전수정렬 oracle, 동점/빈결과/UTC반개구간/채널/현재 삭제 탈락 후보 보충. NaN/Inf/zero norm/차원·계약 mismatch·용량 초과·callback 예외에서 기존 출력 불변. 불변 게시본과 신규 build의 독립성 | `visual_search_index_smoke.cpp` 순수 native 단기 | 향후 검색 | 영향 판정 | 내부 |
 | V430-Q02 | 고정 공개4분할 영상0/1/3/6초의 632×352 crop16개, 사전 scene label4개/EN8·KO8 positive와 GT없는 negative8개(query SHA18e97621750e0f63296917274a24cc80547a402f93cface61e11d23789824521). 실제 C++ SigLIP2→VisualSearchIndex exact top16, scene별최고score rank의 Hit@1≥.75/MRR≥.875; 언어별 별도 보고. negative는 무관4/없는조합4의 순위·점수만 보존하며 거부율 보장 아님. startup/첫text/warm23개 latency 분리, warm p95≤2초/max≤5초, peak≤4GiB/workspace≤8GiB. 네 시각을 독립16장면으로 세지 않음 | `prepare_v430_siglip2.py retrieval-verify` | 실제 녹화 혼합 후속 | 모델 수명 영향 | 후속 |
+
+V430-Q02 재현 준비는 `prepare_v430_siglip2.py retrieval-prepare`로 모델을 로딩하지 않는다.
+tracked fixture SHA `c33830caba38ff806788e8913c6dadc84fdc5164ff103928b96bc9f82560b9d2`,
+query SHA `18e97621750e0f63296917274a24cc80547a402f93cface61e11d23789824521`을 유지하고,
+고정 source SHA 확인 후 PTS0/15360/46080/92160의 source PNG4개·crop PNG16개·RGB16개의
+기존 SHA exact를 기대한다. 불일치하면 기존 fixture를 덮어쓰지 않고 실패한다.
+이 준비 검증은 실제 inference 품질 검증을 대신하지 않는다.
+
 | V430-A01 | 벡터 검색·선택 재생; admin/scoped operator 허용, viewer/integrator·혼합 금지 채널 거부·공개 정제 | HTTP/재생; route 준비 중 | 향후 역할/재생 | 영향 판정 | 미정 |
 | V430-I02-WORKER | worker1/요청 coalesce1/게시본2세대 제한. startup cache→현재 전체 재구축, 동일 참조 embedding 재사용, 새/변경/삭제 반영, encode/source/capacity 실패 시 이전 게시본 보존·오류 정제. reader가 이전 세대 보유 중 세 번째 build 대기, 취소·stop join·재활성화, callback 동시1·자원 해제. 실제 미디어 callback에서 실행하지 않음 | `visual_index_worker_smoke.cpp` 격리 짧은 lifecycle | 제품 통합 후속 | 종료 영향 후속 | 내부 |
 | V430-I02 | 상시녹화 설정 주기 색인; bounded 대기/중복·실패·종료·재활성화, 미디어 callback 분리 | worker 통합; 세부 준비 중 | 향후 녹화/색인 | 영향 판정 | 미정 |

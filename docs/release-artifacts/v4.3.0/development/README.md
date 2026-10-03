@@ -211,3 +211,30 @@ PID15267 부재와 정확한 소유 임시 directory 부재를 확인했다. 같
 
 제품 영향 build: `cmake --build build-gst-onnx --parallel 2`, tool session79877, exit0.
 새 decoder를 runtime archive에 컴파일하고 media_server 링크를 완료했다.
+
+
+## 실제 녹화 대표 frame의 모델 연결
+
+`RecordingVisualSource`는 확정된 V2 file evidence에서 같은 channel/epoch의 파일 경계를
+넘어 sample 주기를 유지한다. 원본 ns PTS와 파일 표시 시간을 구분하고 현재 media/AU hash,
+재생 보호 FD 및 기존 SourceSeek 검사를 통과한 frame만 decode한다. legacy·무증명 원본은
+제외 수로 표시하며 수용량 초과·취소에서 부분 목록을 게시하지 않는다.
+
+[최초 build](visual-source-build.log)는 exit0이지만 int64 경계의 부동소수 변환 경고가 있었다.
+`2^63` 경계를 정확히 비교하도록 수정했다. [최초 fixture](visual-source.log)는 exit1:
+unknown UTC 시험이 필수 mapping 전체를 지워 source validation을 실패시켰다.
+유효한 unknown mapping으로 수정한 [재검증](visual-source-retry.log)은 다른 시험의
+잘못된 corruption reason `fixture-invalid`에서 exit1이었다. 두 실패는 예상 RED가 아니다.
+기존 허용 reason `container-invalid`를 사용한 [상태 재검증](visual-source-state-retry.log)은
+45개 검사/exit0이다. 실제 H.264 3파일, 1초/10초 주기의 파일 경계, UTC 미확인, hash·채널·
+취소·지원 제외, 손상/삭제의 옛 참조 거부, FD 보유 중 삭제 거부와 해제 후 삭제를 확인했다.
+
+[실제 모델 연결](visual-source-model.log)은 제품 archive를 링크한 같은 fixture에 실제
+SigLIP2를 연결한 exit0이다. 원본 PTS9,000,000,000ns의 frame에서 유한 L2 768차원을
+생성했고 peak RSS3,175,776,256바이트를 측정했다. 817개 검사 중768개는 각 차원의 유한성
+검사로 독립 기능 수가 아니다. 모든 실행의 소유 임시 directory 부재가 로그에 있다.
+이 결과는 8채널·100k 이력·4검색과 모델을 함께 실행한 측정이나 HTTP/UI 완료가 아니다.
+
+이벤트 snapshot 조사에서 기존 manifest의 ms 시각과 가장 가까운 frame 선택은 정확한
+original sample 연결 증명이 아님을 확인했다. 기존 snapshot을 임의 승격하지 않으며,
+생산·저장 경로 확장 또는 이번 버전 제외 여부를 사용자에게 확인 중이다.

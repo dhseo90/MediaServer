@@ -104,6 +104,7 @@ add_library(media_server_runtime STATIC
     src/recording/visual_index_store.cpp
     src/recording/visual_index_worker.cpp
     src/recording/visual_frame_decoder.cpp
+    src/recording/recording_visual_source.cpp
     src/recording/recording_search_reader.cpp
     src/recording/event_clip_deriver.cpp
     src/recording/event_recording_bridge.cpp
