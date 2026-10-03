@@ -1,0 +1,346 @@
+diff --git a/config/docs_ui_assets.json b/config/docs_ui_assets.json
+index 369c50d5..53ee2a29 100644
+--- a/config/docs_ui_assets.json
++++ b/config/docs_ui_assets.json
+@@ -1,10 +1,10 @@
+ {
+   "schema": "media-server.docs-ui-assets.v1",
+   "baseline": {
+-    "sourceVersion": "4.1.1",
+-    "releaseTarget": "v4.1.1",
++    "sourceVersion": "4.2.0",
++    "releaseTarget": "v4.2.0",
+     "publishedRelease": "v4.0.0",
+-    "publicReleaseStatus": "v4.1.1-source-v4.0.0-published",
++    "publicReleaseStatus": "v4.2.0-source-v4.0.0-published",
+     "capturedAt": "2026-08-31",
+     "theme": "dark",
+     "sampleVideo": "va_four_scene_sample.mp4",
+diff --git a/docs/manual-ui-fulltest.md b/docs/manual-ui-fulltest.md
+index a6f12eec..5184b7e5 100644
+--- a/docs/manual-ui-fulltest.md
++++ b/docs/manual-ui-fulltest.md
+@@ -7,7 +7,8 @@
+ 공개 릴리즈 관측이나 과거 실행 결과를 검토 없이 현재 소스의 PASS로 이월하지 않는다.
+ 기존 증거의 유효성은 diff·source·환경·검증 경계로 판단한다.
+ 
+-현재 대상은 baseline **424개 + 녹화 8개 = 432개 ID**다.
++기존 대상은 baseline **424개 + 녹화 8개 = 432개 ID**다. v4.2.0 릴리즈에서는 아래
++[V420 검색 UI 추가 대상](#v420-검색-ui-추가-대상)을 함께 확인한다.
+ baseline은 `test/fixtures/project_feature_implementation_evidence.json`의 UI 대상
+ `manualUiCaseId`, `uiEvidence.screenRoute`, product UI anchor와 inventory를 대조한다.
+ 녹화는 `V410-S06-I27`~`V410-S06-I34`의 31개 action을 별도로 실행한다.
+@@ -172,3 +173,33 @@ VLM의 default-off/privacy·profile 저장/후보 선택과 실제 provider 호
+ 결과는 실행 단위 한 곳에 명령·source/환경·UTC·exit·stdout/stderr·개별 결과·실패 연결·cleanup을
+ 남기고 다른 문서는 링크한다. token usage source/start/end/consumed·elapsed는 측정값만 쓰며
+ 없으면 미집계 사유를 남긴다. 커밋·푸시 가능 여부와 실제 수행을 구분한다.
++
++
++## V420 검색 UI 추가 대상
++
++기준은 [기능 정의](project-feature-test-inventory.md#v420-구조화-검색)의 UI 비대상 외 30개
++기능 연결이다. canonical 424개 case나 녹화 8개 ID의 수를 바꾸지 않는다. 아래 기능 그룹은
++보고 단위가 아니며 실제 실행은 각 기능 ID·action·정상/오류/경계별로 기록한다.
++기존 녹화 timeline의 filter/seek와 `/ops/events`의 `opsSearchForm`은 별도 control이다.
++현재 baseline manifest/qualifier의 통과만으로 이 추가 대상을 PASS로 판정하지 않는다.
++
++| 기능 ID | 실제 control/action과 독립 완료 조건 |
++| --- | --- |
++| V420-M02, M03 | 검색 제출 후 불완전/용량 오류를 정상 빈 결과와 구분하고 snapshot 결과를 게시하지 않음 |
++| V420-L01, L02 | 관측 추가 뒤 재검색, 삭제/손상·재시작 뒤 재검색 및 hit 재생 상태 확인 |
++| V420-F01~F07 | 카메라·시간·객체·track·event·zone·rule 각각의 입력/제출과 독립 기대 결과 확인 |
++| V420-F08-I/L/D/O | Intrusion, LineCrossing, intrusion-dwell, loitering을 저장된 연결 사실별로 구분. 같은 이벤트 조건과 근거 부족 안내 확인 |
++| V420-F09, F10 | 복합 AND/OR·잘못된 입력·불명 시각·정상 빈 결과를 각각 확인 |
++| V420-C01~C03 | 다음 페이지의 중복/누락, 조건 변경·만료 안내, 추가/삭제 뒤 기존 snapshot 멤버십과 재생 거부 확인 |
++| V420-E01, E02 | 동일 원본 이벤트 우선, partial 밖 원본·미완성·현재 파일 fallback 확인 |
++| V420-P01~P03 | 원본/파생 hit 선택→탐색 중→현재 선택의 완료, 미지원·삭제·권한 실패 안내 확인. UTC 차이 offset 대체 금지 |
++| V420-A01, A02 | admin/scoped operator와 미인증/viewer/integrator/다른 채널의 접근·공개 정보 경계 확인 |
++| V420-U01 | 검색→페이지→재생, 재검색/취소/다른 hit 및 같은 파일의 다른 시점 선택, 오래된 응답·metadata/seeked/error 무효화 확인 |
++| V420-U02 | 390/1440px 각각 light/dark에서 폼·결과·전체 플레이어 잘림, nav/client 경계 확인 |
++| V420-K02 | 현재 V2/generation 자료 조회·재생과 pin/hold/삭제 상태 연결 확인 |
++
++정확한 허용 오차는 응답 frame duration이다. 브라우저 seek 완료를 표시 frame hash 증명으로
++보고하지 않는다. 비동기 VM과 native 독립 decode 검사는 보완 증거이며 실제 UI 조작의 대체가 아니다.
++각 direct-browser/hybrid 기록은 위 Policy v4의 역할/scope·현재 source·시각·상관된 완료 oracle·
++artifact 비노출·cleanup 조건을 따른다. 테스트용 데이터/오류 조건이 준비되지 않으면 notRun이며
++과거 개발 브라우저 관측으로 릴리즈 전체 PASS를 만들지 않는다.
+diff --git a/docs/project-feature-test-inventory.md b/docs/project-feature-test-inventory.md
+index 0b791271..39525048 100644
+--- a/docs/project-feature-test-inventory.md
++++ b/docs/project-feature-test-inventory.md
+@@ -50,6 +50,27 @@ Re-ID 정책은 변경하지 않으며 검색은 저장된 사실을 소비한
+ | V420-K03 | 검색 병행 녹화; 새 source worker 없음·검색 작업을 미디어 callback에서 수행하지 않음·종료 정리 | 한정 runtime 통합 | 향후 녹화 병행 | 영향 판정 | 비대상: 내부 수명 |
+ 
+ 
++### V420 단기 검사 소스 연결
++
++아래는 기존 native fixture와 Node 검사의 기능 연결이다. native fixture는 현재 제품 runtime
++archive와 해당 빌드의 C++ 정의·include·link 입력으로 컴파일한다. 실행 결과는 개발 기록에 둔다.
++이 표는 실행 증거나 릴리즈 UI/장시간 검사를 대신하지 않는다.
++
++| 기능 | 기존 검사 소스 |
++| --- | --- |
++| M01~03 | `scripts/internal/recording_search_model_smoke.cpp` |
++| F01~10 | `scripts/internal/recording_search_filter_smoke.cpp`, `scripts/internal/recording_search_events_smoke.cpp` |
++| L01~02 | `scripts/internal/recording_search_generation_smoke.cpp`, `scripts/internal/recording_search_source_smoke.cpp` |
++| C01~03 | `scripts/internal/recording_search_cursor_smoke.cpp` |
++| E01~02 | `scripts/internal/recording_search_precedence_smoke.cpp`, `scripts/internal/recording_search_playback_smoke.cpp` |
++| P01~03 | `scripts/internal/recording_search_seek_smoke.cpp`, `scripts/internal/recording_search_derived_seek_smoke.cpp` |
++| A01~02 | `scripts/internal/recording_search_application_smoke.cpp`, `scripts/internal/recording_search_http_checks.mjs` |
++| U01 | `node --test scripts/internal/recording_search_ui_state.test.mjs` |
++| K01~03 | `scripts/internal/recording_search_compatibility_smoke.cpp`, `scripts/internal/recording_search_concurrent_smoke.cpp`, `scripts/internal/recording_search_cost_smoke.cpp` |
++
++릴리즈 실제 UI의 V420 대상 연결은 [UI 풀테스트 기준](manual-ui-fulltest.md#v420-검색-ui-추가-대상)에 둔다.
++
++
+ ## B14 공개 증거 정제 사전 등록
+ 
+ 기존 OPS-163/SAFE-196 공개 준비의 자료/검증 경계 보완이며 새 제품 기능 ID가 아니다.
+diff --git a/test/fixtures/manual_ui_fulltest_va_seed_matrix.json b/test/fixtures/manual_ui_fulltest_va_seed_matrix.json
+index 41fc28e2..5f71bca9 100644
+--- a/test/fixtures/manual_ui_fulltest_va_seed_matrix.json
++++ b/test/fixtures/manual_ui_fulltest_va_seed_matrix.json
+@@ -1,7 +1,7 @@
+ {
+   "schema": "media-server.manual-ui-fulltest-va-seed-matrix.v1",
+-  "description": "v4.1.1 현재 소스와 v4.0.0 공개 기준의 수동 UI 풀테스트 준비용 일회성 VA seed matrix입니다. 실행 증거나 운영 데이터가 아닙니다.",
+-  "releaseTarget": "v4.1.1",
++  "description": "v4.2.0 현재 소스와 v4.0.0 공개 기준의 수동 UI 풀테스트 준비용 일회성 VA seed matrix입니다. 실행 증거나 운영 데이터가 아닙니다.",
++  "releaseTarget": "v4.2.0",
+   "publishedReleaseTarget": "v4.0.0",
+   "usageBoundary": {
+     "authMode": "auto",
+diff --git a/test/fixtures/v390_review4_semantic_proofs_evt_client_media_lab.json b/test/fixtures/v390_review4_semantic_proofs_evt_client_media_lab.json
+index af64e119..f31061ba 100644
+--- a/test/fixtures/v390_review4_semantic_proofs_evt_client_media_lab.json
++++ b/test/fixtures/v390_review4_semantic_proofs_evt_client_media_lab.json
+@@ -866,7 +866,7 @@
+           "file": "src/analysis/event_storage.cpp",
+           "symbol": "ListCompactedEventRecordFiles",
+           "anchor": "for (const auto& entry : std::filesystem::directory_iterator(parent, ec)) {",
+-          "line": 3518,
++          "line": 3538,
+           "contextSha256": "a4643331f6381abab22916013bd15f104348b7897cd74332efa4cdc0d7bd2327"
+         },
+         "state": {
+@@ -906,14 +906,14 @@
+           "kind": "function-containment",
+           "witness": "The dispatch reaches the feature-specific action or projection builder.",
+           "source": "src/analysis/event_storage.cpp:3491",
+-          "target": "src/analysis/event_storage.cpp:3518"
++          "target": "src/analysis/event_storage.cpp:3538"
+         },
+         {
+           "from": "action",
+           "to": "state",
+           "kind": "function-containment",
+           "witness": "The action writes the authoritative state, reject, or schema projection.",
+-          "source": "src/analysis/event_storage.cpp:3518",
++          "source": "src/analysis/event_storage.cpp:3538",
+           "target": "src/analysis/event_storage.cpp:3536"
+         },
+         {
+@@ -966,7 +966,7 @@
+           "file": "src/analysis/event_storage.cpp",
+           "symbol": "CleanupCompactedEventRecordFiles",
+           "anchor": "if (!ListCompactedEventRecordFiles(&list, error_message)) {",
+-          "line": 3627,
++          "line": 3647,
+           "contextSha256": "24767c1b4948e2069da7edebd8eacf955dbf434a9a6fdd2f2f9f7b58adc7b94f"
+         },
+         "state": {
+@@ -1006,14 +1006,14 @@
+           "kind": "function-containment",
+           "witness": "The dispatch reaches the feature-specific action or projection builder.",
+           "source": "src/analysis/event_storage.cpp:3618",
+-          "target": "src/analysis/event_storage.cpp:3627"
++          "target": "src/analysis/event_storage.cpp:3647"
+         },
+         {
+           "from": "action",
+           "to": "state",
+           "kind": "function-containment",
+           "witness": "The action writes the authoritative state, reject, or schema projection.",
+-          "source": "src/analysis/event_storage.cpp:3627",
++          "source": "src/analysis/event_storage.cpp:3647",
+           "target": "src/analysis/event_storage.cpp:3632"
+         },
+         {
+@@ -1066,7 +1066,7 @@
+           "file": "src/analysis/event_storage.cpp",
+           "symbol": "ResolveCompactedEventRecordFile",
+           "anchor": "if (!ListCompactedEventRecordFiles(&list, error_message)) {",
+-          "line": 3573,
++          "line": 3593,
+           "contextSha256": "24767c1b4948e2069da7edebd8eacf955dbf434a9a6fdd2f2f9f7b58adc7b94f"
+         },
+         "state": {
+@@ -1106,14 +1106,14 @@
+           "kind": "function-containment",
+           "witness": "The dispatch reaches the feature-specific action or projection builder.",
+           "source": "src/analysis/event_storage.cpp:3559",
+-          "target": "src/analysis/event_storage.cpp:3573"
++          "target": "src/analysis/event_storage.cpp:3593"
+         },
+         {
+           "from": "action",
+           "to": "state",
+           "kind": "function-containment",
+           "witness": "The action writes the authoritative state, reject, or schema projection.",
+-          "source": "src/analysis/event_storage.cpp:3573",
++          "source": "src/analysis/event_storage.cpp:3593",
+           "target": "src/analysis/event_storage.cpp:3572"
+         },
+         {
+@@ -5949,14 +5949,14 @@
+           "file": "src/analysis/event_storage.cpp",
+           "symbol": "WriteFrameBundleManifest",
+           "anchor": "if (frames.empty() || event_frame_index >= frames.size()) {",
+-          "line": 1981,
++          "line": 1983,
+           "contextSha256": "60550e5e53bd3d5aeb81cf38ee44f6653cc5e0275a77ee0a5995524ee87f1ab6"
+         },
+         "action": {
+           "file": "src/analysis/event_storage.cpp",
+           "symbol": "WriteFrameBundleManifest",
+           "anchor": "std::ofstream manifest(manifest_path, std::ios::out | std::ios::trunc);",
+-          "line": 1990,
++          "line": 1992,
+           "contextSha256": "f567029619a492ffbaed59ce17ccdc5030c462601363fa88df7856ed08b1adbd"
+         },
+         "state": {
+@@ -5988,22 +5988,22 @@
+           "kind": "function-containment",
+           "witness": "Actual owner contains input dispatch.",
+           "source": "src/analysis/event_storage.cpp:1972",
+-          "target": "src/analysis/event_storage.cpp:1981"
++          "target": "src/analysis/event_storage.cpp:1983"
+         },
+         {
+           "from": "dispatch",
+           "to": "action",
+           "kind": "function-containment",
+           "witness": "Dispatch reaches feature action.",
+-          "source": "src/analysis/event_storage.cpp:1981",
+-          "target": "src/analysis/event_storage.cpp:1990"
++          "source": "src/analysis/event_storage.cpp:1983",
++          "target": "src/analysis/event_storage.cpp:1992"
+         },
+         {
+           "from": "action",
+           "to": "state",
+           "kind": "function-containment",
+           "witness": "Action emits authoritative state/reject/projection.",
+-          "source": "src/analysis/event_storage.cpp:1990",
++          "source": "src/analysis/event_storage.cpp:1992",
+           "target": "src/analysis/event_storage.cpp:1999"
+         },
+         {
+@@ -13539,7 +13539,7 @@
+           "file": "src/ingress/webrtc_http_server_runtime.cpp",
+           "symbol": "WebRtcHttpServer::Start:AddRemoteIceCandidate-callsite",
+           "anchor": "bridge->AddRemoteIceCandidate(static_cast<std::uint32_t>(*mline), *candidate);",
+-          "line": 4982,
++          "line": 4999,
+           "contextSha256": "d1edeef36c31e7dc016b6ba543393f65e9f70e49c18a350a34cefa9b2ea074d4"
+         },
+         "action": {
+@@ -13578,14 +13578,14 @@
+           "kind": "function-containment",
+           "witness": "Start contains the validated candidate/mline branch.",
+           "source": "src/ingress/webrtc_http_server_runtime.cpp:335",
+-          "target": "src/ingress/webrtc_http_server_runtime.cpp:4982"
++          "target": "src/ingress/webrtc_http_server_runtime.cpp:4999"
+         },
+         {
+           "from": "dispatch",
+           "to": "action",
+           "kind": "direct-callsite",
+           "witness": "The route directly calls AddRemoteIceCandidate only after invalid payload guard.",
+-          "source": "src/ingress/webrtc_http_server_runtime.cpp:4982",
++          "source": "src/ingress/webrtc_http_server_runtime.cpp:4999",
+           "target": "src/ingress/webrtc_egress_session.cpp:2288"
+         },
+         {
+@@ -18153,7 +18153,7 @@
+           "file": "src/ingress/webrtc_http_server_runtime.cpp",
+           "symbol": "tap-snapshot-response",
+           "anchor": "ok.body.assign(reinterpret_cast<const char*>(image.data.data()), image.data.size());",
+-          "line": 4658,
++          "line": 4675,
+           "contextSha256": "8273d4ebd317fea6f23f0d046b87756f1c4989173c9d1ed3c17f413ac6e7efdd"
+         },
+         "readback": {
+@@ -18194,14 +18194,14 @@
+           "kind": "function-containment",
+           "witness": "The action owns the authoritative response/state emission.",
+           "source": "src/ingress/webrtc_http_server_runtime.cpp:4647",
+-          "target": "src/ingress/webrtc_http_server_runtime.cpp:4658"
++          "target": "src/ingress/webrtc_http_server_runtime.cpp:4675"
+         },
+         {
+           "from": "state",
+           "to": "readback",
+           "kind": "runtime-readback",
+           "witness": "The managed HTTP verifier independently observes image from the product response.",
+-          "source": "src/ingress/webrtc_http_server_runtime.cpp:4658",
++          "source": "src/ingress/webrtc_http_server_runtime.cpp:4675",
+           "target": "scripts/internal/verify_v390_review4_lab_core_api.mjs:135"
+         },
+         {
+@@ -18253,7 +18253,7 @@
+           "file": "src/ingress/webrtc_http_server_runtime.cpp",
+           "symbol": "tap-overlay-response",
+           "anchor": "ok.body.assign(reinterpret_cast<const char*>(image.data.data()), image.data.size());",
+-          "line": 4717,
++          "line": 4734,
+           "contextSha256": "8273d4ebd317fea6f23f0d046b87756f1c4989173c9d1ed3c17f413ac6e7efdd"
+         },
+         "readback": {
+@@ -18294,14 +18294,14 @@
+           "kind": "function-containment",
+           "witness": "The action owns the authoritative response/state emission.",
+           "source": "src/ingress/webrtc_http_server_runtime.cpp:4706",
+-          "target": "src/ingress/webrtc_http_server_runtime.cpp:4717"
++          "target": "src/ingress/webrtc_http_server_runtime.cpp:4734"
+         },
+         {
+           "from": "state",
+           "to": "readback",
+           "kind": "runtime-readback",
+           "witness": "The managed HTTP verifier independently observes image from the product response.",
+-          "source": "src/ingress/webrtc_http_server_runtime.cpp:4717",
++          "source": "src/ingress/webrtc_http_server_runtime.cpp:4734",
+           "target": "scripts/internal/verify_v390_review4_lab_core_api.mjs:138"
+         },
+         {
+diff --git a/test/fixtures/v390_review4_semantic_proofs_safe_ops.json b/test/fixtures/v390_review4_semantic_proofs_safe_ops.json
+index 512ed068..83a2e8af 100644
+--- a/test/fixtures/v390_review4_semantic_proofs_safe_ops.json
++++ b/test/fixtures/v390_review4_semantic_proofs_safe_ops.json
+@@ -23465,7 +23465,7 @@
+           "file": "src/analysis/event_storage.cpp",
+           "symbol": "WriteEvidenceManifest",
+           "anchor": "std::ofstream manifest(manifest_path, std::ios::out | std::ios::trunc);",
+-          "line": 2070,
++          "line": 2072,
+           "contextSha256": "f567029619a492ffbaed59ce17ccdc5030c462601363fa88df7856ed08b1adbd"
+         },
+         "action": {
+@@ -23504,14 +23504,14 @@
+           "kind": "function-containment",
+           "witness": "SAFE-084 owner-dispatch",
+           "source": "src/analysis/event_storage.cpp:2052",
+-          "target": "src/analysis/event_storage.cpp:2070"
++          "target": "src/analysis/event_storage.cpp:2072"
+         },
+         {
+           "from": "dispatch",
+           "to": "action",
+           "kind": "function-containment",
+           "witness": "SAFE-084 dispatch-action",
+-          "source": "src/analysis/event_storage.cpp:2070",
++          "source": "src/analysis/event_storage.cpp:2072",
+           "target": "src/analysis/event_storage.cpp:2077"
+         },
+         {

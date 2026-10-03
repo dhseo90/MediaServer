@@ -4757,3 +4757,66 @@ HTTP 보존 출력의 Authorization/Cookie 값과 password/token/passwordHash JS
 소유 임시 root: /tmp/v420-residual-work, 파일 702개/328459616bytes, symlink0.
 모든 실행 handle 종료(exit0), HTTP 소유 프로세스·포트 종료 및 root 부재는 위 cleanup 출력으로 확인했다.
 원출력 포함 여부 대조 후 위 소유 root 제거·부재 확인 완료. 새 media/binary/운영 자료는 Git에 포함하지 않았다.
+
+
+## 2026-10-03 릴리즈 준비 연결 보완과 Linux 환경 확인
+
+대상은 `c13317ede01635c52ee7f1243a8b91ed3ba2b2da`의 v4.2.0이다. 시작 작업 트리와
+index는 비어 있었고 실제 origin/v4.2.0도 같은 SHA였다. 제품 C++/header/CMake와 검사기
+실행 코드는 변경하지 않았다. 세 개발 후속 항목은 완료 상태를 유지한다.
+167개 회귀·HTTP77·동시 진행6의 실행 대상은 `d97247d2d519fcb84e5ebdd487c75350dcc84d29`
++ 당시 diff이며 제품 바이트는 `21c028d154d8a92ca0040789f317edf2233c85ff`에 반영됐다.
+이후 c133은 기록 변경이다. 앞선 브라우저/비동기 근거의 검색 UI는
+`7578d43b29e3523aaaa0f2a88e95c03f77b073ed` 이후 그대로다. 이 검사를 이번에 재실행하지 않았다.
+
+seed/docs asset의 현재 source/target을 v4.2.0으로 맞추고 과거 capture/published 값은 유지했다.
+13개 누락 검사 소스를 기존 inventory에 연결했다. 실제 검색 UI의 30개 기능 연결은
+[기존 UI 문서의 addendum](../../manual-ui-fulltest.md#v420-검색-ui-추가-대상)에 정의했다.
+424개 기본 case, 녹화 8개 ID/31 action, V420 30개 기능 연결을 새 합계 case 수로 합산하지 않는다.
+
+최초 semantic 후보는 986행 중 unresolved8, carry-forward682/독립 검토304였다.
+중복 anchor 8행의 실제 함수 위치와 edge만 보정했으며 anchor/context hash/기대값은 유지했다.
+최종 후보는 unresolved0, 동등687/독립 검토299다. 별도 승인된 gpt-6-astra/xhigh 검토자
+1명이 299행의 실제 이전 source와 현재 delta를 검토해 재연결을 승인했다.
+[독립 검토 근거](release-preparation-20261003/review-notes.md)와 같은 디렉터리의 판정 JSON,
+review package, migration evidence, 동결 patch를 보존했다. 동결 tree는
+`2a8afda89ab67776518584d059283c4d57d54c88`, tracked diff SHA-256은
+`46f480815571eb6f0ec6fca356b24b79fe1538cc34db678ca203d83ffdb55b06`이다.
+기존 `produce_v390_review4_migration_aware_approvals.mjs --write-ledger`에 이 입력을 전달해
+exit0으로 audit/approval/implementation/native를 원자적으로 갱신했다. 승인 값을 직접 편집하지 않았다.
+
+짧은 준비 검사 결과(실제 실행이며 제품/UI PASS와 구분):
+- `prepare_manual_ui_fulltest_seed.mjs --dry-run`: exit0, accounts4/sources6/profiles7/templates12/vaRules12/invalid1, HTTP0.
+- `verify_docs_ui_assets.mjs`: exit0, 10pass/0fail. `verify_script_inventory.mjs`: exit0, 13pass/0fail.
+- `./server.sh verify-release-metadata`: exit0, 3pass/0fail. 원격 공개 상태는 이 검사로 확인하지 않았다.
+- producer 적용 뒤 `verify_feature_inventory_coverage.mjs`: exit0, 986covered/0missing, 8pass/0fail.
+- producer 적용 뒤 `verify_v390_ui_native_exact_cases.mjs`: exit0, 424(positive423/negative1), actualBrowserExecution=not-run.
+- 위 Node 명령 경로는 `scripts/internal/`이다. seed/assets/metadata의 원출력은 이번 대화 도구 출력에만 있으며, 재구성한 원출력 파일을 만들지 않았다.
+- 변경 C++/스크립트가 없으므로 앞선 comments/구문·구조 근거를 유지했다. 문서 링크·공백은 보존 후 별도 확인한다.
+
+Linux는 호스트 설치 없이 격리 Docker 이미지에만 도구 설치 승인을 받아 진행했다.
+안정판 Debian13.6 이미지의 최초 CMake는 make 누락으로 exit1, make 보완 뒤 GStreamer1.26.2가
+제품 최소1.28에 미달해 exit1이었다. backports에도 1.28이 없음을 확인하고 별도 Debian sid
+이미지를 만들었다. 최종 이미지/recipe/컴파일 flags와 실패 원출력은 같은 증거 디렉터리에 보존했다.
+환경은 Linux ARM64, GCC16.2.0, CMake4.3.4, Node24.21.0, GStreamer1.28.7,
+OpenSSL3.6.5/SQLite3.53.4/libsodium1.0.22다. GStreamer ON, ONNX OFF, generation backend1,
+OpenSSL/SQLite/libsodium ON, PangoCairo OFF의 기존 basic 제품 구성이다.
+`docker run --rm --network=none --read-only --tmpfs /tmp:rw,exec`에 소스를 `/src:ro`,
+소유 임시 빌드 경로를 `/work`로 마운트하고
+`cmake -S /src -B /work/build -DMEDIA_SERVER_USE_GSTREAMER=ON -DMEDIA_SERVER_USE_ONNXRUNTIME=OFF -DCMAKE_BUILD_TYPE=Release && cmake --build /work/build -j 4`를 실행했다.
+CMake 구성은 통과했으나 제품 빌드는 exit2: `src/analysis/raw_video_decoder.cpp:363`의
+`std::atomic<bool>` incomplete type이다. 직접 `<atomic>` include가 없다. 제품 변경 금지 범위라
+수정하지 않았으며 이후 컴파일/링크·단기 기동·실제 미디어는 미실행/미확인이다.
+환경 설치 성공을 Linux 제품 검증 성공으로 판정하지 않는다. sid는 안정판 배포 검증도 아니다.
+
+모든 빌드/검사 handle 종료를 확인했고 Docker 컨테이너 목록은 비어 있다. 후속 재개용 이미지와
+소유 임시 root `/tmp/v420-release-prep.qD9qQS`의 원자료·부분 build는 의도적으로 보존한다.
+새 media/운영 데이터/자격증명을 Git에 넣지 않는다. 30분/일반120분/녹화120분/UI풀테스트/predev/
+전체 acceptance/PR/병합/tag/Release는 이번 미실행이다. 일반120은 현행 gate의 누적5영역,
+녹화120은 Catalog mutation·검색 공유 경로 때문에 별도로 필요하다. 녹화 runner는 구조화 검색
+부하를 발생시키지 않으며 단기 동시성6을 장기 부하 보증으로 승격하지 않는다.
+최종 실행 범위표와 승인할 실행 묶음은 이번 최종 보고 한 곳에 둔다.
+
+보존 후 `verify_docs_links.mjs` exit0: 297문서/9235링크/15이미지/365anchor/0fail.
+`git diff --check` exit0. 보존된 decision/package/migration 바이트의 hash가 producer 원장의
+세 결박 값과 일치한다. 이 기록 추가는 제품 검사 재실행이나 Linux 실패 해소가 아니다.

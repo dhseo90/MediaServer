@@ -50,6 +50,27 @@ Re-ID 정책은 변경하지 않으며 검색은 저장된 사실을 소비한�
 | V420-K03 | 검색 병행 녹화; 새 source worker 없음·검색 작업을 미디어 callback에서 수행하지 않음·종료 정리 | 한정 runtime 통합 | 향후 녹화 병행 | 영향 판정 | 비대상: 내부 수명 |
 
 
+### V420 단기 검사 소스 연결
+
+아래는 기존 native fixture와 Node 검사의 기능 연결이다. native fixture는 현재 제품 runtime
+archive와 해당 빌드의 C++ 정의·include·link 입력으로 컴파일한다. 실행 결과는 개발 기록에 둔다.
+이 표는 실행 증거나 릴리즈 UI/장시간 검사를 대신하지 않는다.
+
+| 기능 | 기존 검사 소스 |
+| --- | --- |
+| M01~03 | `scripts/internal/recording_search_model_smoke.cpp` |
+| F01~10 | `scripts/internal/recording_search_filter_smoke.cpp`, `scripts/internal/recording_search_events_smoke.cpp` |
+| L01~02 | `scripts/internal/recording_search_generation_smoke.cpp`, `scripts/internal/recording_search_source_smoke.cpp` |
+| C01~03 | `scripts/internal/recording_search_cursor_smoke.cpp` |
+| E01~02 | `scripts/internal/recording_search_precedence_smoke.cpp`, `scripts/internal/recording_search_playback_smoke.cpp` |
+| P01~03 | `scripts/internal/recording_search_seek_smoke.cpp`, `scripts/internal/recording_search_derived_seek_smoke.cpp` |
+| A01~02 | `scripts/internal/recording_search_application_smoke.cpp`, `scripts/internal/recording_search_http_checks.mjs` |
+| U01 | `node --test scripts/internal/recording_search_ui_state.test.mjs` |
+| K01~03 | `scripts/internal/recording_search_compatibility_smoke.cpp`, `scripts/internal/recording_search_concurrent_smoke.cpp`, `scripts/internal/recording_search_cost_smoke.cpp` |
+
+릴리즈 실제 UI의 V420 대상 연결은 [UI 풀테스트 기준](manual-ui-fulltest.md#v420-검색-ui-추가-대상)에 둔다.
+
+
 ## B14 공개 증거 정제 사전 등록
 
 기존 OPS-163/SAFE-196 공개 준비의 자료/검증 경계 보완이며 새 제품 기능 ID가 아니다.

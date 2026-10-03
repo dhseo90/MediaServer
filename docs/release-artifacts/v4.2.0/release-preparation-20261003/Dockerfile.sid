@@ -1,0 +1,2 @@
+FROM debian:sid-slim
+RUN apt-get update && apt-get install -y --no-install-recommends g++ make cmake pkg-config nodejs git ca-certificates libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev libgstreamer-plugins-bad1.0-dev libgstrtspserver-1.0-dev gstreamer1.0-tools gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly libssl-dev libsodium-dev libsqlite3-dev && rm -rf /var/lib/apt/lists/*

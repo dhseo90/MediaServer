@@ -1,0 +1,63 @@
+Linux aarch64
+c++ (Debian 16.2.0-3) 16.2.0
+cmake version 4.3.4
+v24.21.0
+1.28.7
+1.28.7
+3.6.5
+3.53.4
+1.0.22
+-- The CXX compiler identification is GNU 16.2.0
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: /usr/bin/c++ - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Found ZLIB: /usr/lib/aarch64-linux-gnu/libz.so (found version "1.3.2")
+-- Checking for modules 'gstreamer-1.0>=1.28;gstreamer-rtsp-server-1.0>=1.28;gstreamer-pbutils-1.0>=1.28;gstreamer-app-1.0>=1.28;gstreamer-webrtc-1.0>=1.28;gstreamer-sdp-1.0>=1.28'
+--   Found gstreamer-1.0, version 1.28.7
+--   Found gstreamer-rtsp-server-1.0, version 1.28.7
+--   Found gstreamer-pbutils-1.0, version 1.28.7
+--   Found gstreamer-app-1.0, version 1.28.7
+--   Found gstreamer-webrtc-1.0, version 1.28.7
+--   Found gstreamer-sdp-1.0, version 1.28.7
+-- Configuring done (0.2s)
+-- Generating done (0.0s)
+-- Build files have been written to: /work/build
+[  2%] Building CXX object CMakeFiles/media_server_runtime.dir/src/analysis/appearance_extractor.cpp.o
+[  3%] Building CXX object CMakeFiles/media_server_runtime.dir/src/analysis/analysis_session_service.cpp.o
+[  3%] Building CXX object CMakeFiles/media_server_runtime.dir/src/analysis/analysis_manager.cpp.o
+[  3%] Building CXX object CMakeFiles/media_server_runtime.dir/src/analysis/category_tokens.cpp.o
+[  4%] Building CXX object CMakeFiles/media_server_runtime.dir/src/analysis/detector_factory.cpp.o
+[  4%] Building CXX object CMakeFiles/media_server_runtime.dir/src/analysis/dummy_detector.cpp.o
+[  5%] Building CXX object CMakeFiles/media_server_runtime.dir/src/analysis/event_manager.cpp.o
+[  6%] Building CXX object CMakeFiles/media_server_runtime.dir/src/analysis/event_feature_search_index.cpp.o
+[  6%] Building CXX object CMakeFiles/media_server_runtime.dir/src/analysis/event_post_dispatcher.cpp.o
+[  7%] Building CXX object CMakeFiles/media_server_runtime.dir/src/analysis/event_retention_cleanup.cpp.o
+[  8%] Building CXX object CMakeFiles/media_server_runtime.dir/src/analysis/event_rule_engine.cpp.o
+[  8%] Building CXX object CMakeFiles/media_server_runtime.dir/src/analysis/event_search_query.cpp.o
+[  9%] Building CXX object CMakeFiles/media_server_runtime.dir/src/analysis/event_storage.cpp.o
+[ 10%] Building CXX object CMakeFiles/media_server_runtime.dir/src/analysis/incident_memory.cpp.o
+[ 10%] Building CXX object CMakeFiles/media_server_runtime.dir/src/analysis/image_frame_loader.cpp.o
+[ 11%] Building CXX object CMakeFiles/media_server_runtime.dir/src/analysis/intrusion_after_line_crossing_scenario.cpp.o
+[ 12%] Building CXX object CMakeFiles/media_server_runtime.dir/src/analysis/intrusion_dwell_scenario.cpp.o
+[ 12%] Building CXX object CMakeFiles/media_server_runtime.dir/src/analysis/loitering_scenario.cpp.o
+[ 13%] Building CXX object CMakeFiles/media_server_runtime.dir/src/analysis/metadata_subscription_filter.cpp.o
+[ 14%] Building CXX object CMakeFiles/media_server_runtime.dir/src/analysis/object_tracker.cpp.o
+[ 14%] Building CXX object CMakeFiles/media_server_runtime.dir/src/analysis/overlay_renderer.cpp.o
+[ 15%] Building CXX object CMakeFiles/media_server_runtime.dir/src/analysis/raw_video_decoder.cpp.o
+[ 16%] Building CXX object CMakeFiles/media_server_runtime.dir/src/analysis/re_entry_scenario.cpp.o
+/src/src/analysis/raw_video_decoder.cpp:363:23: error: field 'running_' has incomplete type 'std::atomic<bool>'
+  363 |     std::atomic<bool> running_{false};
+      |                       ^~~~~~~~
+In file included from /usr/include/c++/16/bits/shared_ptr_atomic.h:33,
+                 from /usr/include/c++/16/memory:83,
+                 from /src/include/analysis/raw_video_decoder.h:7,
+                 from /src/src/analysis/raw_video_decoder.cpp:4:
+/usr/include/c++/16/bits/atomic_base.h:173:12: note: declaration of 'struct std::atomic<bool>'
+  173 |     struct atomic;
+      |            ^~~~~~
+gmake[2]: *** [CMakeFiles/media_server_runtime.dir/build.make:373: CMakeFiles/media_server_runtime.dir/src/analysis/raw_video_decoder.cpp.o] Error 1
+gmake[2]: *** Waiting for unfinished jobs....
+gmake[1]: *** [CMakeFiles/Makefile2:90: CMakeFiles/media_server_runtime.dir/all] Error 2
+gmake: *** [Makefile:91: all] Error 2
