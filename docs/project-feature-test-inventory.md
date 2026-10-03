@@ -13,6 +13,7 @@
 | 기능 ID | route/control/action과 독립 기대값 | 안정화 | 30분 | 120분 | UI |
 | --- | --- | --- | --- | --- | --- |
 | V430-EMBED-PIXEL | C++ RGB→Pillow11.3 bilinear: 1280×720/641×479/224×224/23×17/1×1/1×257/257×1/224×17/17×224/7×511/511×7, checker·gradient·border impulse와 stride padding 11. resized uint8 exact, FP32 NCHW abs≤1e-6 | `prepare_v430_siglip2.py adapter-verify` | 혼합 부하 후속 | 메모리 신호 판정 | 내부 |
+| V430-EMBED-LOAD | 고정 가중치/threads1에서 private compile 진단으로 token/image/text read→hash→ORT ctor→buffer해제→최초infer의 currentRSS/peak/UTCms 관측. fd 대안은 O_EXCL0600 생성·즉시unlink·1MiB stream copy/size/SHA검증 후 같은 self-contained bytes를 `/dev/fd`(Linux `/proc/self/fd`)로 로드. close/unlink/shortwrite/digest/error 정리, 원본불변, memory loader로 묵시fallback 금지. parity 기존동일·peak≤4GiB·작업공간≤8GiB | `prepare_v430_siglip2.py adapter-verify`와 소유 진단 실행 | 임베딩 혼합 후속 | 메모리 수명 후속 | 내부 |
 | V430-EMBED-ADAPTER | 실제 4 frame·10 text 공급자↔C++ L2 maxabs≤1e-4/cosine≥.99999, finite768/norm오차≤1e-5. 토큰64개 exact. 빈/Unicode공백/invalidUTF8 text·nullRGB·비양수 크기·짧은 stride·span overflow·dimension16385/span256MiB+1/text16385bytes·missing/corrupt model·shape/type mismatch 거부, 경로/내용 비노출. 허용 경계 dimension16384×1/text16384bytes/span정확256MiB(1×2,stride=256MiB−3)는 finite768. span=(height−1)×stride+width×3. 실제 asset buffer의 고정 크기/SHA256 확인 후 같은 bytes로 SP/ORT 로드. 같은 크기 다른 tokenizer/ONNX 및 shortfile 거부, 기존 source 변경 없음. disabled 빌드는 ORT/SP 없이 명확한 거부 | `prepare_v430_siglip2.py adapter-verify`, owned negative fixture | 혼합 부하 후속 | 메모리 신호 판정 | 내부 |
 | V430-R01 | historical identity 상주 중복; 기존 entity/time/digest 문자열과 조회 결과 동일, checkpoint/reopen 뒤 중복 digest 문자열 0바이트, active identity 유지 | `verify_recording_generation_checkpoint.sh residency` 및 기존 append/checkpoint/cold-link 회귀 | 향후 녹화 병행 | 이력 수명 영향으로 필요성 판정 | 비대상: 내부 |
 | V430-R02 | 활성 자료 고정·누적 identity 증가; 필수 ID/receipt 보존, 반복 삭제·off·재시작/재구축의 논리/RSS 분리 | 규모·소유 측정 | 향후 순환 | 필요성 판정 | 비대상: 내부 |
@@ -29,10 +30,12 @@
 | V430-EMBED-TOKEN | 영어/한국어/빈 문자열/공백/긴 입력의 공급자 대비 C++ token ID 전체 일치, BOS 없음·EOS 포함·오른쪽 PAD·총 64; 빈 사용자 질의는 application에서 거부 | tokenizer parity | 향후 검색 | 영향 판정 | 입력 오류 연결 |
 | V430-EMBED-PARITY | 고정 실제 image/text 입력의 공급자↔ONNX FP32 CPU L2 정규화 출력: 모든 유한 값, 최대 절대 오차≤1e-4 및 cosine≥0.99999; 실패 시 완화 금지 | 실제 모델 parity | 향후 모델 수명 | 영향 판정 | 비대상: 내부 |
 | V430-EMBED-SMOKE | 실제 로컬 encoder에 출처 확인 이미지와 영어/한국어 질의를 입력, 유한 768차원·L2 norm 오차≤1e-5 및 서로 다른 입력의 비동일 출력; retrieval 품질 PASS와 구분 | 실제 추론 smoke | 향후 혼합 | 영향 판정 | 검색 연결 |
+| V430-I01-STORE | 전용 owner directory의 공간ID별 cache: little-endian FP32/전체SHA256/96MiB/20k행 제한. fsync→rename→directory fsync 뒤 게시; 저장 중 오류는 임시 소유 파일만 제거. missing/손상/뒤추가/짧은파일/다른 계약/과대 count·size·최종/중간 directory symlink·FIFO 비차단 거부와 출력 불변. 강제 rename 직전 실패·이전 게시본 보존·재시작 load 동일·원본 참조 exact. disabled 빌드 명시 거부. cache는 원본이 아니며 실패 시 전체 재색인 | `visual_index_store_smoke.cpp` 격리 native 단기 | 후속 | 중단 재색인 후속 | 내부 |
 | V430-I01 | event snapshot/대표 frame 색인; 원본 참조·삭제/누락·중단/rebuild, 부분 게시 금지 | 저장·실제 frame; 세부 준비 중 | 향후 순환 | 영향 판정 | 미정 |
-| V430-Q01 | exact top-k; 독립 score/동점 ID/threshold·NaN/Inf/zero norm/차원 mismatch | native oracle; 세부 준비 중 | 향후 검색 | 영향 판정 | 미정 |
+| V430-Q01 | 고정 SigLIP2 image/text/cross 전체 계약 exact match. 768차원 finite/L2오차≤1e-4, 중복 ID/부정 hash/잘못된 시간 기준 거부. top-k 1~200, inclusive threshold[-1,1], score 내림차순/ID 오름차순; 무작위 독립 long-double 전수정렬 oracle, 동점/빈결과/UTC반개구간/채널/현재 삭제 탈락 후보 보충. NaN/Inf/zero norm/차원·계약 mismatch·용량 초과·callback 예외에서 기존 출력 불변. 불변 게시본과 신규 build의 독립성 | `visual_search_index_smoke.cpp` 순수 native 단기 | 향후 검색 | 영향 판정 | 내부 |
 | V430-Q02 | 실제 text→frame; 고정 모델/fixture의 Hit@K·MRR·지연·메모리·디스크 | 실제 추론; 기준 준비 중 | 향후 혼합 | 영향 판정 | 미정 |
 | V430-A01 | 벡터 검색·선택 재생; admin/scoped operator 허용, viewer/integrator·혼합 금지 채널 거부·공개 정제 | HTTP/재생; route 준비 중 | 향후 역할/재생 | 영향 판정 | 미정 |
+| V430-I02-WORKER | worker1/요청 coalesce1/게시본2세대 제한. startup cache→현재 전체 재구축, 동일 참조 embedding 재사용, 새/변경/삭제 반영, encode/source/capacity 실패 시 이전 게시본 보존·오류 정제. reader가 이전 세대 보유 중 세 번째 build 대기, 취소·stop join·재활성화, callback 동시1·자원 해제. 실제 미디어 callback에서 실행하지 않음 | `visual_index_worker_smoke.cpp` 격리 짧은 lifecycle | 제품 통합 후속 | 종료 영향 후속 | 내부 |
 | V430-I02 | 상시녹화 설정 주기 색인; bounded 대기/중복·실패·종료·재활성화, 미디어 callback 분리 | worker 통합; 세부 준비 중 | 향후 녹화/색인 | 영향 판정 | 미정 |
 | V430-U01 | Ops 검색 입력→유사 결과→재생; empty/invalid/unavailable·늦은 응답과 light/dark·모바일 | 변경 영역 직접 조작; control 준비 중 | 향후 UI 병행 | 영향 판정 | 단기 직접 UI·별도 릴리즈 풀테스트 |
 

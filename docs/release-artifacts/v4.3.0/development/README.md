@@ -134,3 +134,59 @@ p95 778.955ms/max1,341.08ms, 720packet/24파일(각 채널3개) 건강도와 wri
 이 결과로 정한 단기 자원 profile의 선행 개발 기준을 충족했다. 100,000행 전체를 어떤 metadata
 폭에서도 허용한다는 보장이 아니며 검색64MiB admission이 먼저 적용된다. 더 높은 해상도/codec,
 장시간·실제 UI·Linux 및 **임베딩을 추가한** 혼합 부하는 아직 별도 검증 대상이다.
+
+
+## 벡터 값 계약·exact 순위·파생 cache의 단기 검증
+
+`VisualSearchIndex`는 고정 image/text/cross-modal 계약, 유한 L2 768차원과 원본 hash·시간 참조를
+검사한 완성 게시본만 받는다. 채널·선택 UTC 반개구간을 적용한 뒤 현재 원본 검증 callback을
+통과한 후보의 exact dot score를 내림차순, 동점 ID를 오름차순으로 반환한다. top-k 메모리는
+최대 200개이며, 게시본은 20,000문서/96MiB 기본 admission을 사용한다. 이 단계는 실제 모델
+retrieval 품질·권한 HTTP·현재 파일 건강도 구현의 완료 증거가 아니다.
+
+- [벡터 순위 실행](visual-index.log): native C++17 `-O2 -Wall -Wextra -Werror`, exit0,
+  1,665개 검사. seed430의 독립 long-double 전수정렬 oracle와 20개 질의 순위·점수 일치,
+  계약/NaN/Inf/0norm/차원/중복/용량/필터/threshold/실패 시 이전 출력 보존을 확인했다.
+- [cache 최초](visual-store.log): enabled 검사는23개 PASS였으나 disabled fixture의 사용하지 않는
+  두 helper가 `-Werror`에서 컴파일 실패해 전체 exit1. 예상 RED가 아니다.
+- [cache 재검증](visual-store-retry.log): 해당 helper를 enabled 전용으로 한정한 뒤 동일 기준으로
+  enabled23/disabled3 검사 PASS, exit0. SHA/짧은파일/뒤추가/부정길이/계약/용량/경로 symlink,
+  rename 직전 주입 실패와 이전 원문 보존·임시 파일 부재·재로딩 필드 exact를 확인했다.
+
+[경로 경계 추가](visual-store-paths.log)는 중간 directory symlink 거부와 FIFO 비차단 거부를
+추가한 뒤 enabled26/disabled3, exit0을 확인했다.
+
+cache는 전용 owner directory에서 공간 ID별로 분리한 파생 자료다. 완료 파일만 fsync/rename으로
+게시하고 cache 실패는 원본 재색인이 필요한 상태다. 실제 worker 강제 종료·재시작의 재색인
+수명 검증은 아직 남았다. 위 두 실행은 포트·서버를 만들지 않았으며 임시 directory 부재를
+각 로그에서 확인했다. 모델/의존 파일은 승인된 지속 준비물로 유지한다.
+
+
+## SigLIP2 adapter·제품 빌드와 색인 worker
+
+고정 Google 모델·토크나이저·ONNX 및 공급자 parity의 원출력/구조화 결과는 승인된 Git 제외
+`models/v430-siglip2/preparation.json`과 해당 경로의 실행별 logs에 유지한다. 원본 모델은
+그대로 보존했고, 준비 script/출처와 라이선스 계약은 [provenance](../../../research/v430-siglip2-provenance.md)를 따른다.
+최초 memory loader 진단에서는 image/text read buffer 단계에서 약372MB/1,129MB가 증가하고
+free 직후 current RSS가 내려가지 않았다. 검증한 원본을 private0600 임시 FD로 stream copy하여
+SHA 확인 후 같은 inode를 ORT path loader로 전달하는 방식으로 바꿨다. 임시 이름은 생성 즉시
+unlink하고 정상/오류 모두 FD를 닫는다. 원본 모델을 다시 읽는 fallback은 없다.
+
+`adapter-verify-fd-loader-final.log`의 최종 exit0은11개 pixel uint8/FP32 exact0,
+실제4frame/8정상text의 maxabs9.1307946e-7, mincos0.9999999999834759,
+normerror1.61057e-8을 확인했다. 빈질의2개 거부,21오류/3허용경계/disabled,
+부분쓰기·read/write EINTR·ENOSPC와 FD 집합/임시경로 정리를 같은 기준으로 검증했다.
+encoder C++ process peak는3,155,230,720바이트, 오류 process는3,189,817,344바이트다.
+진단 memory loader process peak3,916,873,728 대비 encoder761,643,008바이트 감소이며
+서로 다른 process peak를 합산해 제품 혼합 부하의 측정값으로 주장하지 않는다.
+부정 fixture18개/1,140,550,812바이트와 소유 tmp를 제거·부재 확인했다.
+원본 모델/venv/export 등 지속 준비물은4,114,053,252바이트로 유지한다(제품 build 별도).
+
+[제품 build](embedding-product-build.log)는 기존 `build-gst-onnx`에
+`MEDIA_SERVER_USE_SIGLIP2=ON`, 격리 SentencePiece prefix를 지정하고 parallel2로 빌드한 exit0이다.
+제품 binary에 연결되지만 HTTP 검색 기능이 연결됐다는 뜻은 아니다.
+[worker 단기 실행](visual-worker.log)은21개 검사 PASS/exit0이며 동일 참조 embedding 재사용,
+현재 reader가 구세대를 잡은 동안 세 번째 build 대기, 추가·삭제 반영, source/encoder 실패의
+이전 게시본 보존, 요청100개 coalesce, encoder 동시1, 취소1초 이내 종료와 재활성화를 확인했다.
+이 fixture는 대체 encoder로 수명만 검증하며 실제 모델 품질이나 녹화 decode 검증이 아니다.
+소유 임시 directory 부재를 확인했다. 준비 원출력의 최초 실패와 재검증은 삭제하지 않았다.

@@ -1,0 +1,19 @@
+UTC start 2026-10-03T17:58:37Z
+src/recording/visual_index_store.cpp sha256=a493391e1e31898847ced0063c44e67b3efa8f20fb3d6b58360bef908517361b
+scripts/internal/visual_index_store_smoke.cpp sha256=ffe9807fd416c55abc9ed2d810fea82a44ee15f54ae9c1dba6bffad314643898
+src/recording/visual_search_index.cpp sha256=1064607bc2fc771fe6226915e5b2c0747f9ea6cda1edf91984f00f4ade13c501
+command ['c++', '-std=c++17', '-O2', '-Wall', '-Wextra', '-Werror', '-Iinclude', '-DMEDIA_SERVER_VISUAL_STORE_TEST=1', '-DMEDIA_SERVER_USE_SIGLIP2=1', 'src/recording/visual_index_store.cpp', 'src/recording/visual_search_index.cpp', 'scripts/internal/visual_index_store_smoke.cpp', '-o', '/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v430-visual-store-c0awhc3r/smoke', '-I/opt/homebrew/Cellar/glib/2.86.4/include/glib-2.0', '-I/opt/homebrew/Cellar/glib/2.86.4/lib/glib-2.0/include', '-I/opt/homebrew/opt/gettext/include', '-I/opt/homebrew/Cellar/pcre2/10.47_1/include', '-L/opt/homebrew/Cellar/glib/2.86.4/lib', '-lglib-2.0', '-L/opt/homebrew/opt/gettext/lib', '-lintl']
+exit=0
+command ['/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v430-visual-store-c0awhc3r/smoke', '/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v430-visual-store-c0awhc3r/1']
+PASS visual store checks=23
+exit=0
+command ['c++', '-std=c++17', '-O2', '-Wall', '-Wextra', '-Werror', '-Iinclude', '-DMEDIA_SERVER_VISUAL_STORE_TEST=1', '-DMEDIA_SERVER_USE_SIGLIP2=0', 'src/recording/visual_index_store.cpp', 'src/recording/visual_search_index.cpp', 'scripts/internal/visual_index_store_smoke.cpp', '-o', '/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v430-visual-store-c0awhc3r/smoke']
+scripts/internal/visual_index_store_smoke.cpp:12:13: error: unused function 'Read' [-Werror,-Wunused-function]
+   12 | std::string Read(const std::filesystem::path& p){std::ifstream f(p,std::ios::binary);return {std::istreambuf_iterator<char>(f),{}};}
+      |             ^~~~
+scripts/internal/visual_index_store_smoke.cpp:13:6: error: unused function 'Write' [-Werror,-Wunused-function]
+   13 | void Write(const std::filesystem::path& p,const std::string& s){std::ofstream f(p,std::ios::binary|std::ios::trunc);f.write(s.data(),s.size());if(!f)throw std::runtime_error("fixture write");}
+      |      ^~~~~
+2 errors generated.
+exit=1
+temporary_directory_absent=True

@@ -102,10 +102,63 @@
       ]
     },
     {
+      "id": "siglip2",
+      "name": "Google SigLIP2 base patch16-224",
+      "license": "Apache-2.0 (고정 공급자 model/tokenizer checkpoint)",
+      "usage": "선택 로컬 다국어 이미지·텍스트 임베딩",
+      "source": "https://huggingface.co/google/siglip2-base-patch16-224/tree/75de2d55ec2d0b4efc50b3e9ad70dba96a7b2fa2",
+      "distribution": "승인된 prepare_v430_siglip2.py로 Git 제외 models/v430-siglip2에 준비. 서버의 자동 다운로드 없음",
+      "versionPolicy": "고정 revision 및 원본/ONNX/tokenizer SHA256와 전처리를 contract ID에 결박한다. docs/research/v430-siglip2-provenance.md 참조",
+      "minimumVersion": "선택 기능. 고정 768차원/224 RGB/64 token FP32 export",
+      "bundlePolicy": "모델 포함 배포에는 Google license/notice와 변환 사실·provenance를 유지한다. 원본 가중치·venv를 기본 source 배포에 포함하지 않는다.",
+      "assets": [
+        {
+          "label": "SigLIP2 image encoder",
+          "path": "models/v430-siglip2/onnx/image_encoder.onnx",
+          "sha256": true,
+          "optional": true
+        },
+        {
+          "label": "SigLIP2 text encoder",
+          "path": "models/v430-siglip2/onnx/text_encoder.onnx",
+          "sha256": true,
+          "optional": true
+        },
+        {
+          "label": "SigLIP2 tokenizer",
+          "path": "models/v430-siglip2/upstream/tokenizer.model",
+          "sha256": true,
+          "optional": true
+        }
+      ]
+    },
+    {
+      "id": "sentencepiece",
+      "name": "SentencePiece C++",
+      "license": "Apache-2.0; 내부 third-party 구성요소는 각 고지 적용",
+      "usage": "선택 SigLIP2 Gemma tokenizer의 로컬 C++ tokenization",
+      "source": "https://github.com/google/sentencepiece/tree/v0.2.0",
+      "distribution": "third_party/v430-embedding/sentencepiece의 격리 static library. 전역 설치 없음",
+      "versionPolicy": "v0.2.0 source archive SHA 고정; 실제 build metadata는 격리 preparation.json에 보존",
+      "minimumVersion": "선택 SigLIP2 빌드의 명시 prefix 필요",
+      "bundlePolicy": "정적 링크 binary 배포 시 SentencePiece Apache-2.0 및 내장 protobuf-lite 등 third_party의 license/copyright/notice를 함께 포함한다."
+    },
+    {
+      "id": "pillow-preprocessing",
+      "name": "Pillow 전처리 상호운용 기준",
+      "license": "MIT-CMU",
+      "usage": "독립 C++ RGB resize의 상호운용 기준과 격리 Python parity oracle",
+      "source": "https://github.com/python-pillow/Pillow/blob/11.3.0/LICENSE",
+      "distribution": "Pillow C source를 제품에 compile/link하지 않음. Python 준비 venv에서만 실행",
+      "versionPolicy": "Pillow11.3.0 bilinear의 pixel/rounding 계약을 독립 C++ 구현과 직접 대조",
+      "minimumVersion": "준비·검증 도구 Pillow11.3.0",
+      "bundlePolicy": "Pillow를 포함하는 준비 도구 배포에는 Secret Labs AB, Fredrik Lundh와 contributors, Jeffrey A. Clark와 contributors의 copyright 및 MIT-CMU permission notice를 유지한다."
+    },
+    {
       "id": "onnxruntime",
       "name": "ONNX Runtime",
       "license": "MIT",
-      "usage": "선택 YOLO detector runtime과 실험적 Re-ID hook",
+      "usage": "선택 YOLO detector, 실험적 Re-ID hook 및 SigLIP2 로컬 encoder",
       "source": "Microsoft ONNX Runtime release archive 또는 시스템 패키지 관리자",
       "distribution": "Linux에서 ./server.sh install 실행 시 third_party/onnxruntime로 다운로드될 수 있음",
       "versionPolicy": "Linux 자동 설치 기본값은 1.20.1입니다. Homebrew/수동 설치 환경은 감지된 버전을 snapshot에 기록합니다.",
