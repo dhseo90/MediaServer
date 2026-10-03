@@ -1,7 +1,7 @@
 # Media Server v4.2.0
 
 v4.2.0은 기존 녹화 카탈로그와 분석 관측을 사용하는 구조화 검색을 추가합니다.
-소스 버전과 공개 목표는 v4.2.0이며, 태그·GitHub Release 공개 완료를 뜻하지 않습니다.
+v4.2.0은 서명 태그에 연결된 [source-only Release](https://github.com/dhseo90/MediaServer/releases/tag/v4.2.0)로 공개했습니다.
 기록된 공개 관측은 [릴리즈 정책](release-policy.md#소스와-기록된-공개-상태)에 유지합니다.
 
 ## 추가 기능

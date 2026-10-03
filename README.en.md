@@ -10,10 +10,10 @@ rules in a browser, watch live streams, and review recorded video.
 
 [한국어](README.md) · [Documentation](docs/en/README.md) ·
 [Latest release](https://github.com/dhseo90/MediaServer/releases/latest) ·
-[v4.2.0 release candidate notes](docs/release-notes-v4.2.0.md)
+[v4.2.0 release notes](docs/release-notes-v4.2.0.md)
 
-The current source is a v4.2.0 release candidate. The recorded published version is
-v4.1.1; use the Latest release link above to check the current publication status.
+The current source and recorded published version are v4.2.0. Use the Latest
+release link above to check the current publication status.
 
 ## Features
 
