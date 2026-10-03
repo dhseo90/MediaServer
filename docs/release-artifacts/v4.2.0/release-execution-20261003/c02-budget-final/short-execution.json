@@ -91,5 +91,16 @@
     "canonical": "ce163652d3c4b976cb263a4569331529595f55c5 product source unchanged; no general/basic424/Linux rerun"
   },
   "cleanup": "Short async child/copy fixtures cleaned and process groups closed; app-observe root and three recovery copies absent, three product processes/ports and UDP closed. Owned cursor executable remains /tmp/v420-c02-cursor for evidence, no process running.",
-  "sourceBinding": "tested-source.json/patch and execution-binding.json; tests ran in working tree, not rerun at later evidence HEAD"
+  "sourceBinding": "tested-source.json/patch and execution-binding.json; tests ran in working tree, not rerun at later evidence HEAD",
+  "evidenceWhitespace": {
+    "initialStagedCheckExit": 2,
+    "cause": "Original TAP failure output v420-c02-state.log lines26/28 contains two-space lines. The shell command continued to evidence commit; this is not a full diff-check PASS.",
+    "rawOutputPreserved": true,
+    "checkLog": "short-logs/evidence-whitespace.log.gz",
+    "confirmationCommand": "git diff debfe085e359a736e8a067186f287e01629f0ac4 HEAD --check -- . :!docs/release-artifacts/v4.2.0/release-execution-20261003/c02-budget-final/tested-source.patch :!docs/release-artifacts/v4.2.0/release-execution-20261003/c02-budget-final/short-logs/v420-c02-state.log",
+    "confirmationExit": 0,
+    "exceptionScope": "Only byte-preserved original patch and TAP output; no source-code whitespace exemption",
+    "checkLogSha256": "931a4e4c3fd692e7de16ccfa9827c8ee5539717eb784d12d3d051d559c53f9c3",
+    "packaging": "The copied check output itself repeated the raw trailing spaces and its staged check returned2; preserved losslessly as gzip instead. Original /tmp check output retained. No product tests repeated."
+  }
 }
