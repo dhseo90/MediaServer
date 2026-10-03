@@ -1,0 +1,15 @@
+UTC 2026-10-03T18:18:39Z
+src/recording/visual_frame_decoder.cpp sha256=175260ac33ca81a03c92b1fc91b34f9199b05999f36f6cb3dfdbd7e43ad70b5a
+scripts/internal/visual_frame_decoder_smoke.cpp sha256=03c8b1d16ec520a152368f98a7f23a248937f5ae70a0ad916913371343457fee
+command ['c++', '-std=c++17', '-O2', '-Wall', '-Wextra', '-Werror', '-pthread', '-Iinclude', '-DMEDIA_SERVER_USE_GSTREAMER=1', 'src/recording/visual_frame_decoder.cpp', 'scripts/internal/visual_frame_decoder_smoke.cpp', '-I/opt/homebrew/Cellar/gstreamer/1.28.1/include/gstreamer-1.0', '-I/opt/homebrew/Cellar/glib/2.86.4/include', '-I/Library/Developer/CommandLineTools/SDKs/MacOSX26.sdk/usr/include/ffi', '-I/opt/homebrew/Cellar/glib/2.86.4/include/glib-2.0', '-I/opt/homebrew/Cellar/glib/2.86.4/lib/glib-2.0/include', '-I/opt/homebrew/opt/gettext/include', '-I/opt/homebrew/Cellar/pcre2/10.47_1/include', '-I/opt/homebrew/Cellar/orc/0.4.42/include/orc-0.4', '-L/opt/homebrew/Cellar/gstreamer/1.28.1/lib', '-lgstapp-1.0', '-lgstvideo-1.0', '-lgstbase-1.0', '-lgstreamer-1.0', '-Wl,-rpath,/opt/homebrew/Cellar/gstreamer/1.28.1/lib', '-L/opt/homebrew/Cellar/glib/2.86.4/lib', '-lgobject-2.0', '-lglib-2.0', '-L/opt/homebrew/opt/gettext/lib', '-lintl', '-o', '/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v430-visual-frame-7tlkl88u/smoke']
+exit=0
+command ['/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v430-visual-frame-7tlkl88u/smoke', '/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v430-visual-frame-7tlkl88u/red.mp4']
+PASS visual frame checks=43222
+exit=0
+command ['c++', '-std=c++17', '-O2', '-Wall', '-Wextra', '-Werror', '-pthread', '-Iinclude', '-DMEDIA_SERVER_USE_GSTREAMER=0', 'src/recording/visual_frame_decoder.cpp', 'scripts/internal/visual_frame_decoder_smoke.cpp', '-o', '/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v430-visual-frame-7tlkl88u/smoke']
+exit=0
+command ['/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v430-visual-frame-7tlkl88u/smoke', '/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v430-visual-frame-7tlkl88u/red.mp4']
+PASS visual frame checks=8
+exit=0
+media_sha256=3f711c87e60984e0cbe1c3a95b5c1947a8113810e227125fe59c3dfe2c4f452a unchanged=True
+temporary_directory_absent=True

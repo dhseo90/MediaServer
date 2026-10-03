@@ -190,3 +190,24 @@ encoder C++ process peak는3,155,230,720바이트, 오류 process는3,189,817,34
 이전 게시본 보존, 요청100개 coalesce, encoder 동시1, 취소1초 이내 종료와 재활성화를 확인했다.
 이 fixture는 대체 encoder로 수명만 검증하며 실제 모델 품질이나 녹화 decode 검증이 아니다.
 소유 임시 directory 부재를 확인했다. 준비 원출력의 최초 실패와 재검증은 삭제하지 않았다.
+
+
+## 보호 FD의 영상 frame 추출
+
+`DecodeVisualFrame`는 caller의 FD 소유권·offset을 유지하는 appsrc/pread 경로에서 처음부터
+디코딩하여 검증된 파일 표시 시각과 일치하는 RGB sample만 반환한다. 근처 frame 대체나
+공유 source pipeline 접근을 하지 않는다. 최대 입력512MiB, RGB4096×2160/32MiB와5초
+work budget을 적용하고 종료 시 pipeline을 NULL로 전환한다. OS I/O 정체의 절대 종료시간을
+보장하는 것은 아니며 실제 녹화 SourceSeek→frame 연결 검증은 후속이다.
+
+[최초 실행](visual-frame.log)은 테스트 영상을 만드는 `gst-launch`가60초 timeout으로 끝나
+추출 코드 컴파일/실행에 도달하지 못했다. 예상 RED가 아니다. subprocess가 자식을 종료·회수했고
+PID15267 부재와 정확한 소유 임시 directory 부재를 확인했다. 같은 GStreamer pipeline을
+기존 native fixture 방식의 C++ API로 생성하자5초 안에 완료되어 CLI 경계와 분리됐다.
+[재실행](visual-frame-native.log)은 exit0이며 실제160×90/25fps red MP4의0/40ms/3.96초
+표시 시각·전체 RGB 색·크기, 중간시각/범위밖의 거부, 취소·크기·시간 예산·disabled 경계를
+확인했다. FD offset37·열린 소유 FD·원본SHA를 유지했으며 임시 directory를 제거했다.
+개별 pixel 검사를 포함한 수는 enabled43,222/disabled8이며 별도 기능 수로 환산하지 않는다.
+
+제품 영향 build: `cmake --build build-gst-onnx --parallel 2`, tool session79877, exit0.
+새 decoder를 runtime archive에 컴파일하고 media_server 링크를 완료했다.
