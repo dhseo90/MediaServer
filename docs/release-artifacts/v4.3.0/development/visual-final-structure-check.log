@@ -1,0 +1,24 @@
+command ['node', 'scripts/internal/verify_v390_structure_stabilization_execution.mjs']
+[FAIL] historical approval is separate from actual execution: current branch mismatch
+[FAIL] composition root extraction preserves lifecycle ownership: composition source missing lifecycle anchor: analysis::AnalysisSessionService analysis_sessions(session_manager);
+[FAIL] current continuation binds the exact completed Slice 1-32 frontier: Slice 32 named binding mismatch: slice32:policy
+- PASS: versioned current architecture policy and continuation are explicit
+- FAIL: historical approval is separate from actual execution
+- PASS: slice order and completion frontier are fail-closed
+- PASS: current graph hash and metrics are exact
+- PASS: current graph negative mutations reject forbidden edge and cycle
+- PASS: Slice 32 completion and current graph separation is fail-closed
+- FAIL: composition root extraction preserves lifecycle ownership
+- PASS: route/API Slice owns exact action deferral response behind the outer auth guard
+- PASS: registry/domain Slice consumes injected read authorization without transport dependency
+- PASS: UI Slice owns the exact action deferral workspace outside mixed server/page units
+- PASS: VLM parser Slice owns provenance validation and generic strict JSON outside transport
+- PASS: verifier/docs Slice separates current evidence from historical and conditional contracts
+- PASS: historical non-production Slice remains separate and REVIEW4-65 evidence stays non-final
+- FAIL: current continuation binds the exact completed Slice 1-32 frontier
+- PASS: dirty worktree paths stay inside the active slice declaration
+- PASS: historical readiness remains immutable while current order is explicit
+- PASS: negative mutations reject false progress
+- summary: pass=14 fail=3
+
+exit=1

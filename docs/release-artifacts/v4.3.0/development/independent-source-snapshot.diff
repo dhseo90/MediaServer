@@ -1,0 +1,1041 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 0f6b3ecf..6729b9a1 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -1,6 +1,6 @@
+ # 파일 용도: CMake 빌드 옵션과 GStreamer 연동 타깃을 정의한다.
+ cmake_minimum_required(VERSION 3.16)
+-project(media_server VERSION 4.2.0 LANGUAGES CXX)
++project(media_server VERSION 4.3.0 LANGUAGES CXX)
+ 
+ set(CMAKE_CXX_STANDARD 17)
+ set(CMAKE_CXX_STANDARD_REQUIRED ON)
+diff --git a/README.en.md b/README.en.md
+index 6e6b3428..93a80b3d 100644
+--- a/README.en.md
++++ b/README.en.md
+@@ -2,7 +2,7 @@
+ 
+ [![Preflight](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml)
+ [![Licensing and Artifact Guardrails](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml)
+-![Source Version](https://img.shields.io/badge/source-4.2.0-informational)
++![Source Version](https://img.shields.io/badge/source-4.3.0-informational)
+ 
+ A C++17 media server for macOS and Linux with RTSP/WebRTC relaying, YOLO/ONNX
+ video analytics, and continuous/event recording. Manage channels and analysis
+@@ -10,10 +10,10 @@ rules in a browser, watch live streams, and review recorded video.
+ 
+ [한국어](README.md) · [Documentation](docs/en/README.md) ·
+ [Latest release](https://github.com/dhseo90/MediaServer/releases/latest) ·
+-[v4.2.0 release notes](docs/release-notes-v4.2.0.md)
++[v4.3.0 release notes](docs/release-notes-v4.3.0.md)
+ 
+-The current source and recorded published version are v4.2.0. Use the Latest
+-release link above to check the current publication status.
++The current source and release target are v4.3.0, pending release validation. The recorded
++published version is v4.2.0. Use the Latest release link above to check publication status.
+ 
+ ## Features
+ 
+@@ -27,8 +27,8 @@ release link above to check the current publication status.
+   watch authorized live streams in `/client`.
+ - Event review: browse event records, incident timelines, and recordings in `/ops/events`.
+ 
+-Natural-language search across recordings is part of the
+-[future roadmap](docs/v410-v49-recording-search-roadmap.md), not the current feature set.
++Optional Korean/English visual similarity search uses a separately prepared local SigLIP2 model.
++It searches representative frames and event snapshots with verified source links; similarity is not evidence of an event.
+ This is not a complete VMS/NVR or a guarantee of indefinite video retention.
+ The default distribution is source-only; AI models and media-runtime binaries are not included.
+ 
+diff --git a/README.md b/README.md
+index 2e2df228..7666e8ba 100644
+--- a/README.md
++++ b/README.md
+@@ -2,7 +2,7 @@
+ 
+ [![Preflight](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml)
+ [![Licensing and Artifact Guardrails](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml)
+-![Source Version](https://img.shields.io/badge/source-4.2.0-informational)
++![Source Version](https://img.shields.io/badge/source-4.3.0-informational)
+ 
+ RTSP/WebRTC 영상 중계, YOLO/ONNX 영상 분석, 상시·이벤트 녹화를 제공하는
+ macOS/Linux용 C++17 미디어 서버입니다. 브라우저에서 채널과 분석 룰을 관리하고,
+@@ -10,9 +10,9 @@ macOS/Linux용 C++17 미디어 서버입니다. 브라우저에서 채널과 분
+ 
+ [English](README.en.md) · [문서](docs/README.md) ·
+ [최신 릴리즈](https://github.com/dhseo90/MediaServer/releases/latest) ·
+-[v4.2.0 변경 사항](docs/release-notes-v4.2.0.md)
++[v4.3.0 변경 사항](docs/release-notes-v4.3.0.md)
+ 
+-현재 소스와 기록된 공개 버전은 v4.2.0이며,
++현재 소스와 공개 목표는 v4.3.0이며 릴리즈 검증 전입니다. 기록된 공개 버전은 v4.2.0입니다.
+ 현재 공개 상태는 위 최신 릴리즈 링크에서 확인하세요.
+ 
+ ## 주요 기능
+@@ -27,7 +27,9 @@ macOS/Linux용 C++17 미디어 서버입니다. 브라우저에서 채널과 분
+   `/client`에서 권한이 부여된 라이브 영상을 봅니다.
+ - 이벤트 조회: `/ops/events`에서 이벤트 기록·사건 타임라인과 녹화를 조회합니다.
+ 
+-자연어로 녹화 영상을 찾는 검색은 [후속 로드맵](docs/v410-v49-recording-search-roadmap.md)입니다.
++한국어·영어 영상 유사도 검색은 로컬 SigLIP2 모델을 별도 준비해 활성화할 수 있습니다.
++원본 연결이 확인된 대표 프레임과 이벤트 스냅샷을 검색하며, 점수는 사건 발생의 증거가 아닙니다.
++지원 범위와 설정은 [설정 참조](docs/config-reference.md)에 있습니다.
+ 현재 버전은 완성형 VMS/NVR이나 무기한 영상 보관을 보장하지 않습니다.
+ 기본 배포는 소스만 제공하며 AI 모델·미디어 런타임 바이너리는 포함하지 않습니다.
+ 
+diff --git a/VERSION b/VERSION
+index 6aba2b24..80895903 100644
+--- a/VERSION
++++ b/VERSION
+@@ -1 +1 @@
+-4.2.0
++4.3.0
+diff --git a/docs/README.md b/docs/README.md
+index 64d84754..77e71aa3 100644
+--- a/docs/README.md
++++ b/docs/README.md
+@@ -113,7 +113,7 @@ VLM은 기본 비활성입니다. 모델 선택, runtime opt-in, 검토와 후
+ 검증 도구의 준비 검사, 실제 제품·UI 실행, 30분·120분 검증은 각각 구분합니다.
+ 대표 이미지는 제품 화면 안내이며 UI 풀테스트나 릴리즈 실행 증거가 아닙니다.
+ 
+-버전별 변경 사항: [v4.2.0 구조화 검색 후보](release-notes-v4.2.0.md), [v4.1.1 릴리즈 후보](release-notes-v4.1.1.md),
++버전별 변경 사항: [v4.3.0 영상 유사도 검색 개발](release-notes-v4.3.0.md), [v4.2.0 구조화 검색 후보](release-notes-v4.2.0.md), [v4.1.1 릴리즈 후보](release-notes-v4.1.1.md),
+ [v4.1.0](release-notes-v4.1.0.md),
+ [v4.0.0](release-artifacts/v4.0.0/release-notes.md),
+ [v3.9.1](release-artifacts/v3.9.1/release-notes.md),
+diff --git a/docs/config-reference.md b/docs/config-reference.md
+index 76ef23f1..9632a212 100644
+--- a/docs/config-reference.md
++++ b/docs/config-reference.md
+@@ -752,7 +752,7 @@ POST URL 자체는 rule output 설정에서 관리합니다. 외부 이벤트 JS
+ ### 영상 유사도 검색 API (v4.3.0 개발)
+ 
+ 기본 비활성인 로컬 SigLIP2 기능이다. 빌드에 `MEDIA_SERVER_USE_SIGLIP2=ON`과 준비된
+-`SentencePiece_ROOT`가 필요하다. [모델 준비와 고정 출처](research/v430-siglip2-provenance.md)를
++`MEDIA_SERVER_SENTENCEPIECE_ROOT`가 필요하다. [모델 준비와 고정 출처](research/v430-siglip2-provenance.md)를
+ 따라 로컬 파일을 먼저 준비한다. 제품은 모델을 자동 다운로드하지 않는다.
+ 
+ | 환경 변수 | 기본값 | 의미 |
+@@ -768,6 +768,7 @@ file evidence만 사용하며 최대 파일512MiB/RGB4096×2160을 지원한다.
+ 숨기지 않는다. 이 수치는 [개발 계약](superpowers/specs/2026-10-04-v430-visual-vector-search-design.md)의
+ 단기 profile이며 일반 운영 규모·장시간 지원 보장이 아니다.
+ 
++수집이 꺼진 등록 채널도 과거 녹화의 검색 대상이며, 삭제된 채널은 현재 결과에서 사용할 수 없다.
+ `GET /ops/api/recordings/visual-search`는 기존 Ops의 operator 역할/`ops:read`와 요청한
+ 모든 `source:read:<channel>`을 먼저 검사한다. Client/viewer/integrator에는 제공하지 않는다.
+ 
+@@ -779,16 +780,22 @@ file evidence만 사용하며 최대 파일512MiB/RGB4096×2160을 지원한다.
+ | `threshold` | inclusive cosine 하한[-1,1], 기본-1. 사건 판정 기준이 아님 |
+ | `startTimeMs`, `endTimeMs` | 선택 UTC ms 정수 쌍, `[start,end)`. 지정하면 UTC 미확인 frame 제외 |
+ 
+-응답은 `kind=representative-frame`, `scoreMeaning=similarity-not-evidence`, `items`이며
+-각 항목은 `id/channelId/score/timeNs`와 현재 재생 URL·위치다. `timeNs`는 정수 문자열 또는
++응답은 `kind=visual-frame`, `scoreMeaning=similarity-not-evidence`, `items`이며
++각 항목은 `id/channelId/score/timeNs`, `kind=representative-frame|event-snapshot`과 현재 재생 URL·위치다. `timeNs`는 정수 문자열 또는
+ null이다. score 내림차순/동점ID 오름차순 exact top-k이며 원본 경로·벡터·모델 파일은 노출하지 않는다.
+ `GET .../visual-search/seek?channelId=...&hitId=...`는 서버의 현재 게시본에서 찾아 권한과
+ 원본 hash/sample/삭제·손상·파일 재생 위치를 다시 확인한다. 해당 hit가 없어지면410이다.
+ `GET .../visual-search/status`는 활성화/worker 상태와 허용 채널별 색인 frame 수, 최근 스캔의
+-examined/unsupported 파일 수를 반환한다. 최근 스캔과 게시된 frame 수는 갱신 시점이 다를 수 있다.
+-
+-기존 이벤트 snapshot은 정확한 original sample 증명이 없어 현재 구현에서 제외된다.
+-legacy·무증명/미지원 파일의 제외 수는 상태로 표시한다. 시각 또는 가까운 이미지로 증명을
++examined/unsupported 파일·스냅샷 수를 반환한다. 최근 스캔과 게시된 frame 수는 갱신 시점이 다를 수 있다.
++
++이벤트 저장과 snapshot hook을 함께 활성화하면 해당 snapshot directory의 JPEG도 색인한다.
++새 내부 manifest에는 실제 선택한 RGB frame의 원본 generation/order/track/ordinal/PTS ns와
++RGB·JPEG 해시가 남는다. 원본 후보의 유일 file evidence와 보호 FD decode RGB가 일치한 경우에만
++JPEG를 임베딩한다. 이벤트 발생 시각이나 TimestampMatch만으로 픽셀 동일성을 주장하지 않는다.
++기존 무증명·JPEG 외 snapshot은 제외하며 현재 이벤트 삭제도 조회/선택 때 다시 확인한다.
++개별 manifest64KiB/JPEG16MiB, 이벤트 사실8MiB/20,000건 한도를 적용한다. 증거 자체가 있는
++후보의 픽셀 대조나 decode 실패는 색인 실패로 처리하고 부분 게시하지 않는다.
++legacy·무증명/미지원 파일의 제외 수는 상태로 표시한다. 명시적인 codec 미지원과 해상도 상한 초과는 제외·집계하지만, 파일 무결성·픽셀 불일치·timeout은 새 색인 전체 실패로 처리한다. 시각 또는 가까운 이미지로 증명을
+ 대체하지 않는다. 재구축 중에는 이전 완성 게시본을 현재 원본 재검증과 함께 사용할 수 있지만,
+ 최초 준비 전이나 색인 실패는503이며 정상 빈 결과와 다르다. 잘못된 입력400/권한403/미인증401,
+ 동시 요청 또는 추론 대기 초과503이다. 응답은 no-store다. 개발 검증·실제 UI·릴리즈 완료 상태는
+diff --git a/docs/development-backlog.md b/docs/development-backlog.md
+index f820d28b..d5a41881 100644
+--- a/docs/development-backlog.md
++++ b/docs/development-backlog.md
+@@ -6,14 +6,14 @@
+ 
+ ## 현재 기준
+ 
+-- 소스 버전과 릴리즈 목표는 `4.2.0`이다. 구조화 검색의 완료 범위와 공개 상태는
+-  [릴리즈 노트](release-notes-v4.2.0.md)에서 구분한다.
++- 소스 버전과 릴리즈 목표는 `4.3.0`이다. 개발 범위와 릴리즈 검증 전 상태는
++  [릴리즈 노트](release-notes-v4.3.0.md)에서 구분한다.
+ - 저장소의 기록된 공개 버전·관측 시각·공개 URL의 기준은
+   [릴리즈 metadata](release-policy.md#소스와-기록된-공개-상태)이며 원격 상태의 실시간 확인과 구분한다.
+ - v4.1.0 녹화 기반은 [릴리즈 노트](release-notes-v4.1.0.md)의 구현 범위로 마감됐다.
+   옛 S05·S10·S11 진행·실패 기록은 [Git 이력](history/README.md)에 있으며 현재 개발 과제가 아니다.
+ - v4.2.0 개발 범위와 제한은 [릴리즈 노트](release-notes-v4.2.0.md)를 따른다.
+-  다음 제품 개발 v4.3.0은 별도 승인 범위다.
++  v4.3.0은 승인된 개발 브랜치에서 진행 중이며 [개발 계약](superpowers/specs/2026-10-04-v430-visual-vector-search-design.md)을 따른다.
+ 
+ ## 별도 승인 릴리즈
+ 
+@@ -61,7 +61,7 @@ runtime composition의 cutover 제한값 생성은 승인된 정확한 파일 
+ 
+ | 항목 | 현재 경계와 후속 결정 |
+ | --- | --- |
+-| 녹화·검색 | 녹화 기반과 구조화 검색을 제공한다. 벡터·자연어 검색은 후속 계획이며 기존 이벤트 검색과 녹화 관측 검색의 결과 단위를 구분한다. |
++| 녹화·검색 | 녹화 기반과 구조화 검색을 제공한다. v4.3.0 개발에서는 로컬 SigLIP2 대표 프레임 및 원본 픽셀 대조를 거친 이벤트 snapshot 검색을 연결했다. focused 실제 UI와 제품 독립 검토를 마쳤으며 증거 정합·개발 마감은 진행 중이다. 기존 이벤트/관측/영상 유사 결과의 의미를 구분한다. |
+ | 시간과 재생 | 원본·미디어 위치와 UTC 품질은 별개다. 불명·모호·삭제 상태를 정상 단일 결과로 만들지 않으며 모든 카메라의 촬영 시각 동기화나 자동 후속 세그먼트 재생을 보장하지 않는다. |
+ | 운영 기능 승격 | `action-execution`, `persistent-credential-store`, `production-restore`, `external-vlm-provider-call`, `model-backed-reid-session`은 로컬 정책의 보류·실험 경계를 유지한다. 상태/결정 조회나 fixture 성공을 실제 실행 기능으로 승격하지 않는다. |
+ | 제품화 후보 | Incident OS primary nav 승격, Evidence default-on, 로컬 Action Execution, 영구 credential store, tracker 기본 선택, 로컬 VLM 운영 경로는 버전·범위 재승인 전 미배정 후보다. 과거의 “v4.1.0에서 구현” 문구는 현행 일정이 아니다. |
+@@ -73,7 +73,9 @@ runtime composition의 cutover 제한값 생성은 승인된 정확한 파일 
+ 
+ ### 녹화 누적 이력의 메모리 운영 한계
+ 
+-미해결 항목이다. 현재 generation 경로의 Catalog/Journal은 mutation identity·order를 중복·충돌·예약 재사용 방지에,
++장기 운용 한계는 남아 있다. v4.3.0에서는 사전에 정한 단기 규모에서 이력 중복·검색 수명과
++실제 모델/녹화 혼합 예산을 검증했다([개발 기록](release-artifacts/v4.3.0/development/README.md)).
++무제한 이력이나 일반 운영 장비의 장시간 안정성 보장은 아니다. 현재 generation 경로의 Catalog/Journal은 mutation identity·order를 중복·충돌·예약 재사용 방지에,
+ retired receipt·source 요약을 미디어 삭제 후의 참조·삭제·조회 판단에 사용한다.
+ 이 이력은 미디어 삭제·녹화 off·checkpoint로 함께 지워지지 않으므로 파일 quota/age는 이력 RAM 상한이 아니다.
+ 
+@@ -90,10 +92,11 @@ v4.2.0의 후속 기능 검증과 자원 검토도 이 제한을 해소하지 
+ 
+ 후속 개발 대상은 v4.3.0으로 배정한다. 벡터 검색 확장에 앞서 누적 이력 RAM과 검색 동시 부하의
+ 지원 범위·예산·수명을 다루며, 순서와 완료 기준은 [v4.3.0 선행 과제](v410-v49-recording-search-roadmap.md#선행-과제-누적-이력-ram과-검색-동시-부하)에 둔다.
+-계획 등록 후에도 이 항목은 미해결이며, 구현·검증은 해당 버전 착수 승인 후 진행한다.
++현재 승인된 개발의 유한한 지원 범위·예산은 [v4.3.0 개발 계약](superpowers/specs/2026-10-04-v430-visual-vector-search-design.md)에 확정했다.
++과거 진단의 한계와 새 개발 검증의 범위를 구분한다.
+ 
+-추가 진단 실행은 종료한다. 후속 작업을 시작하려면 지원할 누적 이력 규모·운영 RAM 예산·장기 관리 범위를
+-먼저 결정해야 한다. 이번 정리는 추가 실행·개발·새 메모리 정책의 승인이 아니며,
++과거 추가 스택 진단은 종료 상태를 유지한다. v4.3.0 개발 승인은 별도이며 장기 운영 범위를
++자동 확대하지 않는다.
+ 2채널·120분 관측을 지원 상한으로 바꾸거나 관측 메모리 값을 새 합격선으로 삼지 않는다.
+ 
+ 운영·계약의 상세 기준은 [문서 색인](README.md), [UI 가이드](ui-guide.md),
+diff --git a/docs/en/README.md b/docs/en/README.md
+index a7a2781f..062cf207 100644
+--- a/docs/en/README.md
++++ b/docs/en/README.md
+@@ -50,7 +50,7 @@ external TURN/WHEP, and real ONVIF devices require their own field checks.
+ | Review actual UI test requirements and documentation images | [UI fulltest criteria](../manual-ui-fulltest.md), [Image policy](../assets/ui/README.md) |
+ | Prepare a release and distinguish source from published versions | [Release policy](../release-policy.md), [Versioning policy](../versioning-policy.md) |
+ | Review unresolved work and future development | [Backlog](../development-backlog.md), [Recording and search roadmap](../v410-v49-recording-search-roadmap.md) |
+-| Read version changes | [v4.2.0 structured search candidate](../release-notes-v4.2.0.md), [v4.1.1 release candidate notes](../release-notes-v4.1.1.md), [v4.1.0 release notes](../release-notes-v4.1.0.md), [Earlier release notes](../README.md#유지보수자-검증과-배포) |
++| Read version changes | [v4.3.0 visual search development](../release-notes-v4.3.0.md), [v4.2.0 structured search candidate](../release-notes-v4.2.0.md), [v4.1.1 release candidate notes](../release-notes-v4.1.1.md), [v4.1.0 release notes](../release-notes-v4.1.0.md), [Earlier release notes](../README.md#유지보수자-검증과-배포) |
+ 
+ Documentation checks and representative screenshots do not establish product,
+ UI fulltest, 30-minute, or 120-minute test results. The verification guides define
+diff --git a/docs/media-server-architecture.md b/docs/media-server-architecture.md
+index 90f3e1d0..3ed521b0 100644
+--- a/docs/media-server-architecture.md
++++ b/docs/media-server-architecture.md
+@@ -424,7 +424,36 @@ H.264/MP4 원본에서 video-only fragmented MP4를 생성합니다. 원본 확
+ 
+ 설정에서 저장 확인·타임라인·재생으로 이어지는 사용법은 [UI 가이드](./ui-guide.md#녹화-조회와-재생-v410-s06),
+ HTTP 응답·권한은 [녹화 API](./config-reference.md#녹화-조회재생-api-v410-s06)를 봅니다.
+-관측 자료 저장은 후속 검색의 기반이며, 자연어로 영상을 찾아 재생하는 기능의 구현 완료를 뜻하지 않습니다.
++관측 자료의 구조화 검색과 영상 픽셀의 유사도 검색은 별도 경로입니다.
++
++### 로컬 영상 유사도 검색 (v4.3.0 개발)
++
++`VisualSearchApplicationService`는 기본 off인 로컬 SigLIP2와 색인 worker를 소유합니다.
++확정된 V2 H.264/MP4 file evidence에서 `RecordingVisualSource`가 주기 sample을 선택하고,
++기존 재생 보호 FD와 `SourceSeek`로 검증한 파일 표시 시각을 `DecodeVisualFrame`에 전달합니다.
++디코딩·전처리·추론은 별도 작업에서 실행하며 공유 source callback을 막지 않습니다.
++
++```text
++Catalog의 확정 원본 -> 현재 hash/sample 증명 -> 보호 FD의 RGB -> SigLIP2 image
++                                                              |
++                                                 완성 벡터 게시본 + 파생 cache
++                                                              |
++Ops 역할/채널 scope -> SigLIP2 text -> exact top-k + 현재 원본 재검증 -> 선택 재생
++```
++
++불변 게시본은 이전/신규 두 세대로 제한하고 worker·추론은 각각 한 개입니다. 반복 작업은
++한 요청으로 합치며 실패에서 부분 색인을 게시하지 않습니다. cache는 전용 directory의
++writer 잠금·고정 pending 한 개·fsync/rename으로 저장하며 중단 후 형식이 확인된 pending만
++회수합니다. 원본 저장·보존 정책의 권위가 아니고 기존 원장·미디어를 수정하지 않습니다.
++
++현재 등록 채널은 수집이 꺼져도 과거 녹화를 검색할 수 있습니다. 검색/선택 재생마다 현재
++scope와 원본을 검사하고, Client/viewer에는 기능·벡터·경로를 노출하지 않습니다.
++새 이벤트 snapshot manifest는 실제 선택 frame의 원본 후보와 RGB/JPEG 해시를 내부 저장합니다.
++현재 유일 원본의 보호 FD decode RGB가 선택 frame과 일치해야 JPEG 임베딩을 허용합니다.
++manifest 전체 해시가 cache identity에 포함되고, 조회·선택 시 현재 이벤트와 JPEG/원본도 확인합니다.
++기존 무증명 snapshot은 제외합니다. 유사도는 사건·동일 인물의 증거가 아닙니다.
++지원 한도와 API는 [설정 참조](config-reference.md#영상-유사도-검색-api-v430-개발),
++개발/미실행 상태는 [개발 기록](release-artifacts/v4.3.0/development/README.md)을 따릅니다.
+ 
+ ## 4. Source 종류
+ 
+diff --git a/docs/project-feature-test-inventory.md b/docs/project-feature-test-inventory.md
+index 174b0cf1..f1b5caae 100644
+--- a/docs/project-feature-test-inventory.md
++++ b/docs/project-feature-test-inventory.md
+@@ -38,11 +38,21 @@
+ | V430-Q01 | 고정 SigLIP2 image/text/cross 전체 계약 exact match. 768차원 finite/L2오차≤1e-4, 중복 ID/부정 hash/잘못된 시간 기준 거부. top-k 1~200, inclusive threshold[-1,1], score 내림차순/ID 오름차순; 무작위 독립 long-double 전수정렬 oracle, 동점/빈결과/UTC반개구간/채널/현재 삭제 탈락 후보 보충. NaN/Inf/zero norm/차원·계약 mismatch·용량 초과·callback 예외에서 기존 출력 불변. 불변 게시본과 신규 build의 독립성 | `visual_search_index_smoke.cpp` 순수 native 단기 | 향후 검색 | 영향 판정 | 내부 |
+ | V430-Q02 | 고정 공개4분할 영상0/1/3/6초의 632×352 crop16개, 사전 scene label4개/EN8·KO8 positive와 GT없는 negative8개(query SHA18e97621750e0f63296917274a24cc80547a402f93cface61e11d23789824521). 실제 C++ SigLIP2→VisualSearchIndex exact top16, scene별최고score rank의 Hit@1≥.75/MRR≥.875; 언어별 별도 보고. negative는 무관4/없는조합4의 순위·점수만 보존하며 거부율 보장 아님. startup/첫text/warm23개 latency 분리, warm p95≤2초/max≤5초, peak≤4GiB/workspace≤8GiB. 네 시각을 독립16장면으로 세지 않음 | `prepare_v430_siglip2.py retrieval-verify` | 실제 녹화 혼합 후속 | 모델 수명 영향 | 후속 |
+ | V430-A02-HTTP | 최신 제품 binary·loopback 격리 HTTP/RTSP/UDP STUN·독립 auth/source/recording root, 모델·녹화OFF. admin/scoped operator의 허용채널 검색/seek는503(기능OFF), status200 disabled; viewer/integrator403·익명401·scoped 혼합금지403·invalid400. 모든응답 no-store, 공개 JSON에 path/vector/token/sourceURL 없음. 소유서버 SIGTERM exit0·포트닫힘·root inode확인후정리·부재. 자격증명/원문서버로그 보존금지 | `visual_search_http_checks.mjs`, 총60초/request5초 | 실제모델HTTP후속 | 기존shutdown회귀 | UI대체아님 |
+-| V430-A01-APP | `/ops/api/recordings/visual-search`, `/seek`, `/status`: 모든 channel 사전권한, 금지혼합403, invalid400·빈Unicode질의400·unready503·현재삭제410, score/ID/channel/time/현재재생만 공개. 동시요청4 admission·추론1·시간budget5초/추론대기2초, 준비뒤4thread×6질의 모두200·p95≤2초/max≤5초, 재색인중이전완성본조회·최초게시전503, 모델OFF·missing 명확거부. 실제 writer→주기색인→KO/EN질의→동일원본 seek, 현재scope/채널변경, corrupt/delete 및 shutdown 확인. 상태는 허용채널 counts만 공개 | `visual_search_application_smoke.cpp` 실제 모델/제품 archive 단기 | 혼합후속 | 수명후속 | 변경UI후속 |
++| V430-A01-APP | `/ops/api/recordings/visual-search`, `/seek`, `/status`: 모든 channel 사전권한, 금지혼합403, invalid400·빈Unicode질의400·unready503·현재삭제410, score/ID/channel/time/현재재생만 공개. 동시요청4 admission·추론1·시간budget5초/추론대기2초, 준비뒤4thread×6질의 모두200·p95≤2초/max≤5초, 재색인중이전완성본조회·최초게시전503, 모델OFF·missing 명확거부. 실제 writer→주기색인→KO/EN질의→동일원본 seek, 현재scope/채널삭제, 수집off인등록채널의과거녹화조회유지, corrupt/delete 및 shutdown 확인. 상태는 허용채널 counts만 공개 | `visual_search_application_smoke.cpp` 실제 모델/제품 archive 단기 | 혼합후속 | 수명후속 | 변경UI후속 |
+ | V430-A01 | 벡터 검색·선택 재생; admin/scoped operator 허용, viewer/integrator·혼합 금지 채널 거부·공개 정제 | HTTP/재생; route 준비 중 | 향후 역할/재생 | 영향 판정 | 미정 |
+ | V430-I02-WORKER | worker1/요청 coalesce1/게시본2세대 제한. startup cache→현재 전체 재구축, 동일 참조 embedding 재사용, 새/변경/삭제 반영, encode/source/capacity 실패 시 이전 게시본 보존·오류 정제. reader가 이전 세대 보유 중 세 번째 build 대기, 취소·stop join·재활성화, callback 동시1·자원 해제. 실제 미디어 callback에서 실행하지 않음 | `visual_index_worker_smoke.cpp` 격리 짧은 lifecycle | 제품 통합 후속 | 종료 영향 후속 | 내부 |
+ | V430-I02 | 상시녹화 설정 주기 색인; bounded 대기/중복·실패·종료·재활성화, 미디어 callback 분리 | worker 통합; 세부 준비 중 | 향후 녹화/색인 | 영향 판정 | 미정 |
+-| V430-U01 | Ops events의 `opsVisualForm/Channels/Text/Limit/Threshold/Start/End/Submit/Refresh/Rows/Player`: 검색→유사 결과→현재seek/재생, optional 시간쌍·threshold·empty/invalid/unavailable·403/410, 비활성/색인중/미지원 coverage. 늦은 검색/seek/이전player event 차단, metadata만으로 성공 금지·readyState/seeked/오차검사, unsafe playback URL 거부. textContent로 입력 표시. desktop/mobile/light/dark에서 control/전체player 보존 | `visual_search_ui_state.test.mjs`+기존 search 상태 회귀·변경영역 직접조작 | 향후 UI 병행 | 영향 판정 | 단기 직접 UI·별도 릴리즈 풀테스트 |
++| V430-S02-SOURCE | 실제 V2 writer의 source generation/order/track/ordinal/ns·유일 file AU 결합과 현재보호FD decode RGB SHA를 snapshot생성 입력RGB SHA와 exact비교 후 실제JPEG decode→SigLIP768벡터. 기존 proof없음·nearest·다른pixels·원본삭제·이미지/manifest변조·symlink/비정규파일·허용root이탈 제외/거부, cache identity에 전체manifestSHA 포함. event현재조회/채널scope재검사 후검색/seek, public경로·hash·원본식별자료비노출. ≤20k문서/8MiB eventfacts/16MiB이미지/64KiB manifest/FDcleanup, 같은snapshot입력의warm재사용·변경시재색인 | `recording_visual_snapshot_smoke.cpp` actualwriter/dispatcher/model 단기 | snapshot·검색회귀 | worker수명 후속 | 실제UI 후속 |
++| V430-S01-PROOF | 실제 snapshot으로 선택된 RGB frame만 source TimestampMatch/동일 PTS ns·track/generation/order/ordinal과 canonical RGB SHA·저장 image SHA를 내부 manifest에 남김. TimestampMatch를 decoded 고유성으로 승격하지 않음. RGB tight/4byte padded 행 동일, 음수/overflow/차원·길이·track/PTS 불일치·nearest/ambiguous·cryptoOFF는 증거 없음. strict JSON 중복/누락/숫자문자열 경계 거부와 실패시 출력불변. 공개 Event POST 불변 | `event_snapshot_proof_smoke.cpp` native 단기, 후속 실제 writer/snapshot 연계 | snapshot 영향 후속 | bounded 준비 후속 | 기존 이미지 UI 불변 |
++| V430-S03-EPOCH | 이벤트 result의 TimestampMatch·PTS 대응 원본 세대/order/track으로 snapshot 후보를 제한. 동일PTS의 후속 재연결 frame이 들어와도 이전 세대 RGB 선택; v2 proof에 eventEpoch 결박. 없는/상이한 association·epoch 거부, 현재 EventRecord epoch변경 시 cached seek410/검색제외; 기존 v1 proof 소급승격금지 | `event_snapshot_proof_smoke.cpp`, `recording_visual_snapshot_smoke.cpp` | 영향 회귀 | 별도 판정 | 공개 payload 불변, UI없는 내부경계 |
++| V430-A03-BUDGET | Search의 같은5초deadline/stop을 물리SHA·demux/native proof까지 전달, 보호FD 재사용. 만료시 출력불변·native읽기중cancel·후속정상검증, snapshot I/O/hash오류503으로200empty금지, corrupt현재게시본503→다음전체재색인후후보제외200, 확정삭제만 후보제외, 응답직전 만료재확인. EventRecord 비매칭 행·archive 열거·과대 행 건너뛰기에도 취소 전달, 중복 상태 복구scan 생략, Seek 이벤트조회 전 예산 시작. OS blocking I/O 절대상한은 보장하지 않음 | `recording_visual_snapshot_smoke.cpp` 및 기존 API/reader 회귀 | 영향 회귀 | 별도 판정 | UI없는 내부 경계 |
++| V430-W02-UNSUPPORTED | 실제 decoded caps의4096×2160상한 초과·명시 codec-not-found만 미지원으로 분류, 정상 문서와 혼합 시 정상 전체게시/채널별 제외수. timeout/I/O/원본변경/픽셀불일치는 계속 전체실패·이전완성본보존. 단순 decode실패를 미지원으로 완화하지 않음 | `visual_frame_decoder_smoke.cpp`, `visual_index_worker_smoke.cpp` | 영향 회귀 | 별도 판정 | UI coverage 기존필드 반영 |
++| V430-U01-CODEC-ID | fixture전용 고정CAVLC/qp0/ref1/bframes0/weightp0/GOP240에서 SPS/PPS유일·progressive420/8bit/POC2/gaps0/maxref1/FMO0/redundant0, 첫IDR+239referenceP·single slice·old frame_num=ordinal-1 mod16·reorder/MMCO/longterm없음을 선행검사. frame_num4→12bit(+8bit)로SPS·slice식별자만변환해 CAVLC/I_PCM bytephase 보존, 엄격EPB/UE/truncation/unknownNAL/parameter변경/B/nonref/다중slice/잘못된참조거부. 원본/codec/변환본 YUV420decodedSHA exact·시간/해상도/240AU·고유VCL240·실제V2/native원본증명/reopen/8대표oracle 전부유지, 변환버전/코드SHA/명령/파생SHA보존. 개발fixture이며원본지원확대주장금지. codec실행전변환단기negative검증, 준비60초·소유cleanup·제품서버미기동 | `v430_fixture_h264_identity.py`와 `visual_search_ui_fixture.mjs --seed-only` | 릴리즈대체아님 | 릴리즈대체아님 | 실제UI별도 |
++| V430-U01-DERIVED | 고정 공개4신 원본 보존·SHA 재대조. 기존 local ffmpeg/libx264 qp0·yuv420p·GOP240·bframes0·threads1·bitexact 고정 codec 파생. 초기 revision의 실제4bit/ordinal40→56중복 관측 후 revision2는 intra-refresh1 추가(예상frame_num7bit,240고유 기준 유지); 실제 명령/버전/파생SHA 보존·다음 실행 동일SHA. decoded raw YUV420 SHA 원본↔파생 exact,1280×720/30fps/240AU/8초, canonical VCL hash240개 고유. 실제B writer original evidence/ns/hash·reopen·SourceSeek·대표8개 기존 oracle 유지. seed-only 준비60초/model·서버·포트미기동/소유root정리; UIhold는 별도 준비 성공후300초 | `visual_search_ui_fixture.mjs --seed-only` | 릴리즈대체아님 | 릴리즈대체아님 | 실제UI별도 |
++| V430-U01-SEED | 고정공개4신sample SHA bba0c676f6cfc5fcad72ecaaf1c8db104d3a96b89329f96ca3108621ec3abb0b·H2641280×720/30fps/8초/240AU를 source PTS/DTS/duration/generation/ordinal 보존해 실제B writer로단일V2파일확정. 입력AU↔file evidence ordinal/ns/hash·reopen불변·현재SourceSeek정확·1초대표8개(독립PTS선택oracle) 확인. 소유0700root·localHTTP/RTSP/UDP STUN·외부호출없음·modelON·등록source1수집off/recordingfalse·authauto빈users로/setup. 모델/dep/build/fixture+임시FD예약≤8GiB. 준비60초·UIhold300초/연장없음,종료/포트폐쇄/소유root부재확인 | `visual_search_ui_seed.cpp`와 `visual_search_ui_fixture.mjs` | 릴리즈대체아님 | 릴리즈대체아님 | main 실제브라우저조작별도 |
++| V430-U01 | Ops events의 `opsVisualForm/Channels/Text/Limit/Threshold/Start/End/Submit/Refresh/Rows/Player`: 검색→유사 결과→현재seek/재생, optional 시간쌍·threshold·empty/invalid/unavailable·403/410, 비활성/색인중/미지원 coverage. 상태 새로고침 시작·정상·실패에서 이전 결과 개수 제거, 늦은 검색/seek/이전player event 차단, metadata만으로 성공 금지·readyState/seeked/오차검사·최초탐색완료후사용자수동seek는성공안내불변, unsafe playback URL 거부. textContent로 입력 표시. desktop/mobile/light/dark에서 control/전체player 보존 | `visual_search_ui_state.test.mjs`+기존 search 상태 회귀·변경영역 직접조작 | 향후 UI 병행 | 영향 판정 | 단기 직접 UI·별도 릴리즈 풀테스트 |
++
++V430-U01 재실행은 사용자 승인된 `--browser-ready` 10분 1회로 수행한다. 기존 API fixture bootstrap은 준비이며 UI setup PASS가 아니다. 수집 off 채널의 한국어·영어 검색, 결과 선택과 영상 진행, threshold 빈 결과, 불완전 시간 입력 오류를 실제 브라우저로 확인하고 미실행 항목은 별도로 남긴다.
+ 
+ V430-Q02 재현 준비는 `prepare_v430_siglip2.py retrieval-prepare`로 모델을 로딩하지 않는다.
+ tracked fixture SHA `c33830caba38ff806788e8913c6dadc84fdc5164ff103928b96bc9f82560b9d2`,
+diff --git a/docs/release-artifacts/v4.3.0/development/README.md b/docs/release-artifacts/v4.3.0/development/README.md
+index c6627401..dfa6824f 100644
+--- a/docs/release-artifacts/v4.3.0/development/README.md
++++ b/docs/release-artifacts/v4.3.0/development/README.md
+@@ -308,3 +308,257 @@ reserved2,133,393,408바이트는 Catalog의512MiB 논리량으로 부르지 않
+ 
+ [통합 build](visual-integration-build.log)는 cache 중단 복구 변경까지 제품 archive/binary에
+ 연결한 exit0이다. 이후 UI의 탐색완료 표시 수정은 다음 UI build로 검증한다.
++
++## UI 개발·현재 증거의 미해결 사항
++
++Ops 대표 프레임 검색 화면과 현재 선택 재생을 구현했다. 수집 off인 등록 채널도 과거 녹화를
++검색하도록 공급 목록을 보정했다. 현재 채널 삭제와 scope 검사는 유지한다. 앞 API 검사의
++“채널 비활성”은 fixture 공급 목록에서 채널을 제거한 조건이며 수집 off의 직접 검증이 아니다.
++이 화면과 수집 off 보정은 실제 UI 확인 전이며 아직 완료로 판정하지 않는다.
++
++- [UI 상태 회귀](visual-ui-state-settled.log): 기존 구조화 검색과 새 화면을 합쳐18검사 PASS,
++  exit0. 늦은 응답/이전 player event, 오류 응답, URL·seek 경계와 최초 탐색 완료 뒤 수동
++  이동을 확인했다. VM 상태 검사이므로 브라우저·영상 표시·재생 PASS가 아니다.
++- [현재 제품 build](visual-ui-history-build.log): 수집 off 채널 공급 보정까지 exit0.
++  이전 [UI build](visual-ui-build.log), [탐색 완료 build](visual-ui-settled-build.log)도 보존했다.
++- [worker 영향 회귀](visual-worker-interruption-regression.log): cache 중단 복구 변경 후
++  21검사 PASS,4encode/7scan, exit0 및 소유 임시 directory 부재 확인.
++- [구조 검사](visual-structure-check.log): 4검사 PASS, exit0. 기존 허용 의존 관계 안에서
++  현재346파일/157translation unit을 [연결](visual-structure-bind.log)했다. 과거 승인 기록을
++  새 검토로 바꾸지 않았다.
++- [실제 UI 준비](visual-ui-preparation.json): FAIL. 최초 seed 컴파일의 iostream 누락을
++  수정한 후 공개4신 원본240 AU/8초/대표8시점은 확인했으나 writer가
++  `ambiguous-original-vcl`로 정확 원본 증명을 거부했다. 두 실패와 실제 명령·출력은 해당
++  JSON에 보존했다. 모델/서버/브라우저 검증은 실행하지 않았고 소유 임시 root 부재를 확인했다.
++  원본 증명 기준을 완화하지 않았다. 대체 ball 영상 UI 검증 또는 별도 codec 파생 fixture의
++  사용 결정을 요청했으며 승인 전 대체 실행하지 않는다.
++- [기능 증거 검사](visual-feature-evidence-check.log):
++  `node scripts/internal/verify_feature_implementation_evidence.mjs`, exit1.
++  inventory/manifest986행은 일치하지만 inventory hash와 기존 REVIEW4 source/body 연결
++  불일치595건, negative fixture0/15 미실행이다. 제품 결함595개나 새 독립 검토 완료를
++  의미하지 않는다. 검토 증거 갱신과 필요한 재검증이 남았으며 해시만 바꿔 PASS 처리하지 않았다.
++  실패 로그의 ID/role을 현행 manifest의 `semanticEvidence.review4Proof.roles`와 읽기 전용으로
++  대조한 결과,594건은297개 기능이 공유하는 `src/ingress/webrtc_http_server_runtime.cpp`
++  한 파일의 연결이고 나머지1건은 inventory hash다. v4.2.0 tag 대비 해당 파일의 변경은
++  녹화 권한 거부 응답에 no-store 추가와 visual-search 세 route 연결이다. 검사는 파일 전체
++  SHA와 enclosing body SHA를 묶으므로 공유 파일 변경이 여러 기능의 재검토 요구로 전파된다.
++  이는 불일치 발생 범위를 좁힌 결과이며297개 기능의 동작 동등성이나 독립 승인 증거는 아니다.
++
++기존 이벤트 snapshot의 정확 원본 증거가 부족하여 대표 frame만 완성할지, snapshot 생성·저장
++범위를 확장할지의 결정도 남아 있다. 버전 선언은4.2.0이며 v4.3.0 개발 완료·최종 push·
++릴리즈 테스트 진입 준비를 주장하지 않는다. 위 실패 이후 새 제품 수정이나 대체 검증은
++진행하지 않았으며 기존 미커밋 변경을 보존했다.
++
++## 승인 후 이벤트 스냅샷 원본 증명 확장
++
++사용자가 권장한 스냅샷 생성·저장 확장과 공개4신 codec 파생 fixture 개발을 승인하여 재개했다.
++`originalFrameProof`는 실제 snapshot으로 선택된 frame의 ns 단위 원본 후보와 RGB/JPEG 해시를
++기존 내부 manifest에 추가한다. 이벤트 시각이나 TimestampMatch를 decoded 고유성으로 승격하지
++않는다. 현재 유일 원본의 보호 FD decode RGB가 저장 후보와 일치해야 실제 JPEG를 임베딩한다.
++manifest 전체 SHA가 cache ID를 구분하며 조회·선택은 현재 이벤트·채널 권한·이미지와 원본을
++다시 확인한다. 기존 무증명/미지원 snapshot은 제외하고 후보 픽셀 불일치는 색인 실패로 처리한다.
++
++- 후보 증거 단기 검사: [최초 컴파일 실패](snapshot-proof-first.log)의 initializer list 타입
++  불일치와 [두 번째 컴파일 실패](snapshot-proof-retry.log)의 Werror 복사 경고를 수정했다.
++  둘 다 예상 RED가 아니다. [수정 후](snapshot-proof-compile-fixed.log) OpenSSL on31검사 /
++  off2검사 PASS, exit0 및 소유 임시 경로 부재 확인. hash 독립 고정값, RGB row padding,
++  ns/track 불일치·nearest·ambiguous, strict JSON/숫자 경계·실패 출력 불변을 확인했다.
++- [실제 snapshot 원본 연결](snapshot-source-first.log): 실제 B writer/dispatcher가 저장한
++  JPEG와 manifest에서805검사 PASS, exit0. 현재 원본 RGB 대조→JPEG decode→실제 SigLIP2,
++  manifest/image 변조·symlink·삭제/재생보호를 확인했다. peak RSS3,180,544,000바이트.
++- [검색/선택 연결 추가](snapshot-source-api.log):818검사 PASS, exit0. 한국어 실제 검색의
++  snapshot 포함, 최소 공개 필드, 권한403, 이벤트 삭제 후 cached hit410/검색 제외를 확인했다.
++  [snapshot 존재 사실 필터 반영 후](snapshot-source-event-filter.log)818검사 PASS,
++  peak RSS3,197,730,816바이트. 두 실행 모두 소유 임시 경로 부재 확인.
++- [통합 build](snapshot-integration-build.log), [현재 이벤트 필터/UI build](snapshot-events-filter-build.log): exit0.
++  [UI 상태 검사](snapshot-ui-state.log)18 PASS, exit0이며 실제 UI 검증 대체가 아니다.
++- [기존 분석 상태 회귀](snapshot-analysis-regression.log):181 PASS와 SAFE-083/084 clip/manifest
++  확인, exit0. 스크립트 출력에서 식별한 build directory와 비민감 빈 dependency scan 출력의
++  owner/형식·현재 내용을 확인하고 정리·부재 결과를 같은 로그에 남겼다.
++- [현재 구조 연결](snapshot-structure-bind.log)은349파일/159translation unit/18edge이며
++  [구조 검사](snapshot-structure-check.log)4 PASS, exit0. 허용 의존 관계는 확대하지 않았다.
++- [기존 dispatcher 회귀 최초 실패](snapshot-dispatcher-regression.log): fixture의 수동 link 목록에
++  현행 retired receipt 구현과 기존 zlib 연결이 빠져 exit1. 소유 임시 경로는 정리됐다.
++  제품 판정이나 예상 RED가 아니다. 실제 정의 파일과 기존 의존성을 연결한
++  [재실행](snapshot-dispatcher-regression-retry.log)은5개 실제 process와2개 mutation 음성대조
++  PASS, exit0/40.828초이며 소유47파일/28,426,132바이트 정리·root 부재를 확인했다.
++
++- [기존 대표 프레임 API 회귀](snapshot-representative-api-regression.log):54검사 PASS,
++  exit0. 4thread×6회 검색 모두200, warm p95 385.792ms/max447.178ms,
++  peak RSS3,195,371,520바이트이며 소유 임시 경로 부재를 확인했다.
++
++공개4신 codec 준비의 초기4bit frame_num 16주기 중복과 intra-refresh 적용 후128주기
++중복 실패는 [준비 결과](visual-ui-preparation.json)에 보존했다. 이후 격리 fixture 전용
++CAVLC frame_num 4→12bit 변환에서 원본·codec 파생·최종 MP4의 decoded YUV 동일성과
++240개 고유 AU, 현재 V2 원본 증명, 대표8시점의 재조회 불변을 확인했다. 최종 MP4 SHA는
++`589f63229089e8f1230c0eb6c33bc6800125541eb47e3e9f75f0dc4598089049`다.
++이는 파생 fixture 준비 PASS이며 원래 공개 MP4의 strict 원본 증명 지원을 고쳤다는 뜻은 아니다.
++
++실제 모델 서버는 준비15,252ms 후8개768차원 유한 정규화 문서를 확인했다. 300초 hold 동안
++1초 간격으로 관측한 최대 RSS는3,189,948,416바이트다. startup 전체 peak나 부하 검증값은 아니다.
++브라우저는 `/setup` 화면까지만 관측했으며 검색·선택·영상 재생은 미실행이다.
++따라서 `actualUiPass=false`를 유지한다. 2026-10-03T23:27:16.996Z 한도에 자동 종료됐고
++서버 exit0, HTTP/RTSP 포트 폐쇄, UDP 종료, 소유 임시 root 부재와 브라우저 탭 닫기를 확인했다.
++한도를 연장하거나 준비 PASS를 실제 UI PASS로 바꾸지 않았다.
++
++실제 UI 재실행과 별도 모델의 최종 독립 검토 승인을 요청했다. 실제 UI·최종 독립 검토·
++증거 갱신·버전 확정·최종 푸시는 아직 완료하지 않았다.
++
++
++## 승인된 실제 UI 재실행
++
++사용자가 독립 검토와 UI 재실행을 각각 승인했다. `--browser-ready` 모드는 기존 인증 fixture
++API로 폐기용 계정을 준비하고 소유 root의0600 handoff만 사용했다. 브라우저 setup 검증은 아니다.
++현재 binary SHA `e925fa7187c70fdd488eeb4a4fb1ff9568905bc9a76fc20dd25f9dd517a3bc5f`,
++준비15,601ms, 준비·브라우저·정리 합403,228ms로 승인된 hold600초 이내에 종료했다.
++실제 조작은 Codex in-app browser의 native/Playwright UI API로 수행했다. DOM 읽기는
++표시 내용과 video.currentTime/duration/readyState/크기/error 확인에만 사용했다.
++
++| 직접 조작 | 기대값과 관측 | 판정 |
++| --- | --- | --- |
++| 수집 off 등록 채널, 한국어 장면 설명 | 실제 모델 결과8개, score약0.040 | PASS |
++| 영어 장면 설명 | 실제 모델 결과8개, score약0.047 | PASS |
++| 한국어 첫 결과 선택 | currentTime2초, duration8초, readyState4,1280×720,error없음 | PASS |
++| 실제 재생 버튼 | currentTime2→8초, ended=true,error없음, 전체4신 영상 관측 | PASS |
++| threshold1 | 결과없음 안내, 이전 결과·player 비움 | PASS |
++| 시작시간만 입력 | 시작·종료 모두 입력 안내, 결과·player 비움 | PASS |
++| 정상 시간쌍 입력 | 08:30~08:40 현지시간에8결과 | PASS |
++| 상태 새로고침 | coverage갱신/결과비움은 수행하나 '8개 유사 결과' 문구 잔존 | FAIL |
++|390×844 모바일 light/dark | 입력·버튼 읽기 가능, 전체player와controls 표시, 선택1초로 이동 | PASS |
++| viewer 로그인·Ops 직접경로 | Client Live/Dashboard만 표시, Ops경로 Access Denied | PASS |
++
++시각 증거는 [전체 재생](visual-ui-playback.jpg), [입력 오류](visual-ui-input-error.jpg),
++[모바일 다크 폼](visual-ui-mobile-dark-form.jpg), [모바일 다크 영상](visual-ui-mobile-dark-player.jpg),
++[모바일 라이트 폼](visual-ui-mobile-light-form.jpg), [viewer 거부](visual-ui-viewer-denied.jpg)에 둔다.
++이미지는 각각 현재 viewport이며 전체 페이지나 모든 결과 행을 한 장에 담았다고 주장하지 않는다.
++동일4신 전체 영상의8시점으로 실제 연결·재생을 확인했으며 장면별 순위 품질 검증의 대체가 아니다.
++
++UI setup/실제 snapshot 결과/410 삭제 경합/모델 unavailable의 실제 브라우저 조작은 미실행이다.
++기존 API·VM 증거와 구분하며 이 실행 전체를 UI PASS 또는 릴리즈 풀테스트 PASS로 판정하지 않는다.
++RSS는 hold 중1초 간격 관측 최대3,191,193,600바이트다. 소유 서버 정상exit0, HTTP/RTSP폐쇄,
++UDP종료,18,512,350바이트 임시 root 부재, 탭 닫기와 viewport 초기화를 확인했다.
++최초300초 실행과 이번 실행의 준비·정리 원자료는 [준비 JSON](visual-ui-preparation.json)에 유지한다.
++
++
++## 최종 독립 검토 1차
++
++사용자 명시 승인으로 새 `gpt-6-astra` / `xhigh` 에이전트가 읽기 전용 검토를 수행했다.
++기준은 `8244db05`→HEAD `cb5855a3b1ffa90a6d10778c715d6b0c91606ca7`와 당시 미커밋 변경이다.
++검토 시작149파일 SHA를 메인이 보관·대조했으며 검토 중 제품 소스 변경은 없었다.
++UI 승인에 따른 fixture/정의/실행기록·화면만 추가됐다. 모델은 도구에 지정한 값이며
++확인하지 않은 snapshot이나 service tier 적용을 주장하지 않는다. 검토자는 새 테스트·빌드·
++브라우저·외부 호출·파일/Git 변경을 실행하지 않았다.
++
++- P1: snapshot 후보 proof가 선택 frame만 검증하고 이벤트의 source association/epoch와
++  결합하지 않는다. reconnect 후 PTS 중복 때 이전 이벤트에 새 세대 frame이 연결될 수 있다.
++  `event_storage.cpp:2412`, `recording_visual_snapshots.cpp:68`, `EventFacts`의 epoch 누락.
++  코드 경로 확인이며 경합 실행 재현은 아직 없다.
++- P2: Search의5초 deadline이 하위 원본 검증에 전달되지 않고 Resolve실패를 후보 제외로
++  처리한다. 마지막 후보가 timeout/I/O로 탈락하면200빈결과가 가능하다.
++  `visual_search_application_service.cpp:128`, `recording_visual_source.cpp:113`.
++  확정 삭제 제외와 검증 실패를 구분하고 하위·응답 직전까지 예산을 전달해야 한다.
++- P2 설계 불일치: 미지원 decode를 제외·집계한다는 계약과 Encode실패 시 전체 unavailable
++  전파가 다르다. 예:4096×2160상한 밖 입력. 무결성/픽셀 불일치 시 전체실패 정책 자체를
++  결함으로 판정한 것은 아니다. `visual_index_worker.cpp:60`, `SelectSamples:34`.
++- P2: 상태 새로고침 후 결과 개수 잔존. 위 실제 UI 관측을 소스로 확인했다.
++  `product_ui_page_scripts.cpp:10530`.
++
++이슈1~5와7은 명시한 제한 profile·기존증거 범위에서 완료로 검토됐고,
++6·8·9는 위 결함,10은 결함·증거 불일치·버전/최종기록·커밋/푸시 때문에 미완료다.
++개발 완료 판정은 보류다. 검토의 '새 결함 미발견'을 미실행 테스트 PASS로 바꾸지 않는다.
++
++
++### 독립 검토 후 UI 수정
++
++새로고침 시작·성공·실패마다 결과 안내를 갱신하도록 수정했다. 첫 추가 fixture의 정규식
++SyntaxError는 [최초 출력](visual-ui-refresh-red.log)에 예상 RED가 아닌 준비 실패로 보존했다.
++[수정한 fixture](visual-ui-refresh-red-retry.log)는 제품의 잔존 '2개' assertion에서 예상대로
++실패했다. 제품 수정 후 [구조화 검색·영상 검색 상태 회귀](visual-ui-refresh-green.log)는19검사
++PASS/exit0이다. 실제 브라우저 수정 후 재확인은 아직 미실행이며 이전 화면 증거를 수정 후
++PASS로 재사용하지 않는다. 나머지 독립 검토3항목은 미해소다.
++
++같은 독립 검토자가 좁은 UI 수정과 로그를 읽고4번은 코드상 해소로 확인했다. 직접 실행은 없었고,
++수정 후 실제 UI 미실행과 나머지3항목의 전체 완료 보류 판정은 유지했다.
++
++
++### P1 이벤트·스냅샷 세대 연결 보완
++
++queued AnalysisResult의 PTS/TimestampMatch 원본으로 후보 generation/order/track을 제한하고,
++proof 생성에서 재검사한다. 내부 proof v2의 필수 eventEpoch를 현재 EventRecord와 수집·검색·선택에서
++대조한다. 공개 Event payload와 파생 cache 저장 형식은 유지하며 기존 v1 증거를 소급 승격하지 않는다.
++같은 독립 검토자는 코드와 반례 fixture를 읽고 P1 코드상 해소로 판정했다. 검토자의 새 실행은 없다.
++
++- [제품 build](snapshot-epoch-build.log): exit0.
++- [후보 proof](snapshot-epoch-proof.log): OpenSSL on36/off2 PASS, exit0. 다른 세대/order,
++  누락 association/epoch 거부와 원래 엄격한 parser·RGB 계약을 확인했다.
++- [실제 저장·검색 연결](snapshot-epoch-source.log):823검사 PASS, exit0,
++  peak RSS3,197,878,272바이트. 동일 PTS의 다른 세대 백색 frame을 나중에 넣어도 이전 세대 RGB를
++  선택했고, 이벤트 epoch 변경 후 cached seek410/검색 제외를 확인했다. 기존 변조·삭제·hold
++  검사를 함께 유지했다. 소유 임시 root 부재를 확인했으며 GStreamer scanner 경고는 원출력에 보존했다.
++
++남은 제품 수정은 검색 deadline/실패 전파와 미지원 디코드 처리다. 공유 reader의 반복 파일 검증을
++같은 보호 FD·요청 예산으로 연결하되 정상 삭제 제외와 timeout/I/O 실패를 구분해야 한다.
++이 항목은 아직 구현·검증하지 않았으며 전체 개발 완료 판정은 계속 보류다.
++
++
++### P2 검색 예산·실패 전파와 미지원 decode 보완
++
++Search/Seek는 같은 5초 예산과 stop을 이벤트 facts, 물리 SHA/demux와 native evidence
++검증에 전달하며 source seek는 이미 보호한 FD를 재사용한다. 확정 삭제만 후보에서 제외하고
++I/O·hash·timeout 실패를 503으로 전파한다. 이벤트 비매칭 행·archive 열거·과대 행 skip도
++협력적으로 취소한다. 내부 facts 조회의 중복 상태 복구 scan을 생략하며 일반 공개 조회 기본값은 유지한다.
++OS blocking I/O와 ONNX 호출 자체의 선점 중단까지 보장하는 절대 wall-clock 한도는 아니다.
++
++명시적으로 확인된 해상도 상한 초과·codec 미지원만 제외하고 채널별 개수를 표시한다.
++무결성·픽셀 불일치·timeout·취소는 전체 새 색인 실패로 유지해 이전 완성본을 보존한다.
++독립 검토자는 두 P2를 코드상 해소로 판정했고 이번 범위에서 추가 제품 회귀를 발견하지 못했다.
++코드와 기록 읽기이며 검토자 직접 실행은 없다.
++
++- [예산 초기 build](visual-budget-build.log), [최종 이벤트 예산 build](visual-event-budget-build.log): exit0.
++- [예산 연결 검사](visual-budget-source.log):830검사 PASS, peak RSS3,198,484,480바이트.
++- [이벤트 취소 포함 검사](visual-event-budget-source.log):837검사 PASS. 다만 과대행 assertion은
++  약400KiB에서 취소되어 1MiB 초과 skip 증거로는 무효다. 다른 검사는 유지한다.
++- [보정 후 재검사](visual-event-budget-source-retry.log):837검사 PASS, exit0,
++  peak RSS3,201,351,680바이트. 350회 callback 뒤 취소하여 과대행 skip 분기를 실행한다.
++- [미지원 build](visual-unsupported-build.log):exit0.
++- [실제 decoder·worker](visual-unsupported-runtime.log):frame43,225·worker26검사 PASS, exit0.
++  유효4352×64 MP4의 명시적 제외, 건강/미지원 혼합 게시와 무결성 실패 시 기존 게시본 보존을 확인했다.
++
++모든 runtime 소유 임시 root 부재가 기록돼 있다. GStreamer plugin scanner 경고는 원출력에 보존한다.
++사용자가 승인한 수정 후 실제 UI 재실행을 진행한다. 릴리즈 전체 UI·30분·120분 증거와 구분한다.
++
++
++### 승인된 수정 후 UI 재실행
++
++새 제품 binary로 같은 공개 4신 V2 codec fixture를 준비했다. 첫 준비는 loopback 포트의
++sandbox EPERM으로 서버 시작 전에 실패했으며 root 부재를 확인했다. 권한 있는 재실행으로
++준비했고 두 결과는 `visual-ui-preparation.json`의 현재 실행/previousRuns에 각각 보존된다.
++
++실제 브라우저에서 admin 로그인 → `/ops/events` → 한국어/영어 검색 각각8결과,
++한국어 첫 결과2초 이동(1280×720/8초/error 없음), 재생 버튼으로8초까지 정상 완료를 확인했다.
++수정한 색인 상태 새로고침은 결과·player를 초기화하고 이전8개 안내를 지운 뒤 재검색 안내를 표시했다.
++threshold1 빈 결과, 시작 시간만 입력 시 오류,09:10~09:20 정상 구간8결과를 확인했다.
++390×844 light/dark의 입력·상태 가독성과 viewer 로그인 후 Live/Dashboard 메뉴만 표시,
++`/ops/events` Access Denied를 확인했다. 임시 viewport/테마는 복원하고 생성 탭을 닫았다.
++[새로고침 수정 화면](visual-ui-refresh-rerun.png)을 보존한다.
++
++이는 변경 경로의 focused 실제 UI 재확인이다. API로 준비한 계정을 사용했으며 setup UI,
++이벤트 snapshot 실제 UI, 삭제 race/503 실제 UI, 릴리즈 전체 UI·30분·120분은 실행하지 않았다.
++준비 도구의 `actualUiPass:false`는 준비 결과를 제품 UI 전체 합격으로 승격하지 않는 경계다.
++stdin이 닫힌 실행 세션에서는 수동 `stop` 전달이 불가능하여 기존600초 자동 종료를 기다린다.
++자동 종료·포트·root 정리 확인은 아래 최종 상태에 기록한다.
++
++
++현재 구조 graph는 [바인딩](visual-final-structure-bind.log)/[현행 검사](visual-final-graph-check.log)
++exit0·4검사 PASS다. 실수로 실행한 [전체 과거 Slice 검사](visual-final-structure-check.log)는
++14PASS/3FAIL로 보존한다. v390 기록의 branch·composition anchor·slice32 policy 결박이
++현재 v430과 다르다는 실패이며 과거 승인 자료를 수정하지 않았다. graph-only 성공을 전체
++검사 성공으로 대체하지 않는다. 현재 릴리즈 검증에서 필요한 역사 도구 적용 범위는 별도 확인 대상이다.
++
++UI 재실행 정리 확인: binary `6885313e084e0338d7117270e0b6e3f357cc86f33e24450e5822064d6902c3df`, 준비 15805ms, 전체 616717ms, sampled peak RSS 3191226368바이트. 기존600초 자동 종료 후 소유 서버 exit0(강제 종료 없음), HTTP/RTSP 포트 닫힘·UDP 닫힘·소유 root 부재 확인. 실행 exit0이며 실제 focused UI 결과는 위 본문에 구분한다.
++
++대표 프레임 API 회귀의 [최초 출력](visual-final-api-regression.log)은51번째 corrupt candidate excluded에서FAIL이다. 기존 fixture는 재색인 전 old ready 게시본에서도200을 기대했으며 새 승인 계약은 검증 실패503이다. 잘못된 반환값을 허용하지 않도록503에서 대기하고 다음 전체 재색인의200에서 corrupt ID 부재를 요구하도록 fixture를 보정한다. 동시4검색24건은 p95 398.404ms/max430.942ms였으나 전체 검사를PASS로 기록하지 않는다.
++
++[API 회귀 재검증](visual-final-api-regression-retry.log)은59검사 PASS/exit0, 동시4검색24건 p95 399.877ms/max430.444ms, peak RSS3,195,387,904바이트다. 소유 root 부재를 확인했다. 서버 변경은 `fdf4f3e7`, 실제 UI와 fixture는 `9f9f3bc0`로 분할 커밋했다. 소스 VERSION/CMake는4.3.0으로 올렸으며 이전 UI binary와의 차이는 이 버전 표기 변경으로 구분한다.
++
++버전 표기 갱신 후 [build](visual-version-build.log), [로컬 release metadata](visual-release-metadata.log), [문서 링크](visual-docs-links.log), [현행 graph](visual-version-graph-check.log)는 exit0이다. 외부 공개·전체 릴리즈 gate 실행을 뜻하지 않는다. 기존 증거7개 좌표 보정으로986개 모두 연결됐고689개동일이관/297개공통변경 재판정 집합을 확정했다. 최종 독립 판단 결박과 승인 원자 적용은 진행 중이다.
+diff --git a/docs/release-policy.md b/docs/release-policy.md
+index 2d800e00..eb055b83 100644
+--- a/docs/release-policy.md
++++ b/docs/release-policy.md
+@@ -17,9 +17,9 @@
+ {
+   "schema": "media-server.release-context.v1",
+   "repository": "dhseo90/MediaServer",
+-  "releaseTarget": "v4.2.0",
+-  "priorPublishedTag": "v4.1.1",
+-  "releaseNotes": "docs/release-notes-v4.2.0.md",
++  "releaseTarget": "v4.3.0",
++  "priorPublishedTag": "v4.2.0",
++  "releaseNotes": "docs/release-notes-v4.3.0.md",
+   "roadmap": "docs/v410-v49-recording-search-roadmap.md",
+   "distribution": "source-only",
+   "tagType": "signed-annotated",
+@@ -31,14 +31,11 @@
+ }
+ ```
+ 
+-현재 소스·공개 목표와 기록된 공개 릴리즈는 v4.2.0이며 사용자용 설명과 완료한 검증 범위는 [릴리즈 노트](release-notes-v4.2.0.md)에 있다.
+-초기 개발에서 제외했던 릴리즈 검증은 이후 별도 승인으로 실행했고, 원래 source·환경·제외 범위를 유지한다.
+-`priorPublishedTag`는 이번 공개 전 GitHub Latest API로 확인한 v4.1.1이다.
+-v4.1.0을 가리켰던 이전 관측은 Git 이력에 보존한다. 검증 완료와 외부 공개 완료는 구분한다.
++현재 소스·공개 목표는 v4.3.0이며 [릴리즈 노트](release-notes-v4.3.0.md)에 개발 범위와 제한을 설명한다.
++릴리즈 검증·외부 공개는 아직 수행하지 않았다. `priorPublishedTag`는 기록된 공개 v4.2.0이며,
++위 `published`의 관측 시각과 URL은 기존 근거를 유지한다. 이번 개발에서 원격 공개 상태를 재조회한 것은 아니다.
+ [녹화·검색 로드맵](v410-v49-recording-search-roadmap.md)의 구현·잔여 계획과
+-[GitHub Latest 조회](https://github.com/dhseo90/MediaServer/releases/latest)는 서로 다른 자료다.
+-위 공개 관측은 기존 공개 확인기의 Latest·Release·저장소 링크·원격 태그 대조 결과다.
+-제품·UI·장시간 검증을 이 시점에 다시 실행한 결과는 아니다.
++[GitHub Latest](https://github.com/dhseo90/MediaServer/releases/latest)의 공개 상태를 구분한다.
+ 
+ ## 배포 범위
+ 
+diff --git a/docs/superpowers/specs/2026-10-04-v430-visual-vector-search-design.md b/docs/superpowers/specs/2026-10-04-v430-visual-vector-search-design.md
+index 5fc33c37..d64ee992 100644
+--- a/docs/superpowers/specs/2026-10-04-v430-visual-vector-search-design.md
++++ b/docs/superpowers/specs/2026-10-04-v430-visual-vector-search-design.md
+@@ -96,9 +96,19 @@ bounded 작업 수명으로 확장하고 기존 source worker·미디어 blockin
+ `SourceSeek`의 verified native presentation으로 변환한 뒤 별도 FD decoder에서 같은 표시
+ 시각의 RGB를 얻는다. frame 간 시각을 임의로 근처 영상으로 바꾸지 않는다. 기존 V1·불완전
+ file evidence·지원하지 않는 decode는 제외 이유/건수를 구분하며 완료한 전체 지원으로 숨기지 않는다.
++명시적인 codec 미지원·해상도 상한 초과만 제외하며 무결성·timeout은 전체 재색인을 실패시킨다.
++Search/Seek의 5초 예산과 stop은 이벤트 행/archive·과대행 skip, SHA/demux/native proof까지
++공유하며 이미 보호한 FD를 재사용한다. 확정 삭제만 제외하고 읽기·검증 실패는503으로 응답한다.
++OS blocking I/O와 ONNX 호출 자체의 선점 중단은 보장하지 않는다.
+ 이벤트 snapshot은 실제 image와 recorded manifest가 있고 event/channel/epoch/정확한 원본 sample
+ 연결이 확인된 경우에만 추가한다. marker JSON이나 단순히 시간상 가까운 이미지는 영상 벡터로
+-색인하지 않는다. snapshot을 원본 영상의 동일 decoded pixel이라는 증거로 주장하지 않는다.
++색인하지 않는다. JPEG bytes 자체를 원본 decoded RGB와 같은 바이트라고 주장하지 않는다.
++사용자가 승인한 생성·저장 확장으로 실제 선택 frame의 RGB SHA와 저장 JPEG SHA 및 원본 후보를
++내부 manifest에 남긴다. 이벤트 result의 원본 세대/order/track과 같은 후보만 선택하고
++필수 eventEpoch를 v2 proof에 결박한다. 조회·선택 때 현재 EventRecord epoch와도 대조하며
++증거가 없는 기존 v1 후보를 소급 승격하지 않는다. 현재 유일 original sample의 보호 FD decode RGB를 선택 frame의 SHA와
++대조한 뒤 실제 JPEG를 임베딩한다. 기존 snapshot의 증거를 소급 생성하지 않는다.
++manifest 전체 hash가 색인 ID를 구분하며 현재 이벤트 존재·이미지 hash·원본 재생을 재검사한다.
+ 
+ Ops 전용 `visual-search`, `visual-search/seek`, `visual-search/status`를 기존
+ `/ops/api/recordings/` 아래에 연결한다. 요청 채널 전체를 기존 operator/ops:read/source:read
+diff --git a/docs/ui-guide.md b/docs/ui-guide.md
+index ed69e535..f923692b 100644
+--- a/docs/ui-guide.md
++++ b/docs/ui-guide.md
+@@ -304,6 +304,24 @@ Ops 접근 권한과 해당 채널의 `source:read:<channelId>` scope로 조회
+ 원본 미디어 시각 요청을 날짜처럼 표시하지 않습니다. 브라우저의 codec/container 지원이
+ 필요하며 형식 지원 감지나 메타데이터 로드는 실제 디코딩 성공이 아닙니다.
+ 
++### 영상 유사도 검색 (v4.3.0 개발)
++
++`/ops/events`의 **영상 유사도 검색**에서 허용된 카메라와 한국어·영어 장면 설명을 입력합니다.
++`장면 검색`을 누르면 녹화 대표 프레임과 원본 연결을 확인한 이벤트 스냅샷을 유사도 순서로 표시합니다.
++결과 수와 최소 유사도를 조절할 수 있고, 시간 범위를 사용하려면 시작·종료를 모두 입력합니다.
++시간을 지정하면 시각 미확인 프레임은 제외됩니다. 점수는 사건 발생이나 확실한 일치의 증거가
++아니므로 결과의 실제 영상을 확인해야 합니다.
++
++색인 상태에는 추출/재확인 주기와 허용 카메라별 색인 frame·최근 스캔·미지원 파일/스냅샷 수가 보입니다.
++비활성·준비 중·준비 실패는 검색 결과0건과 다릅니다. `색인 상태 새로고침`으로 다시 확인합니다.
++추출 간격 사이의 장면, 지원하지 않는 파일과 원본 연결 증거가 없는 기존 이벤트 스냅샷은
++검색되지 않을 수 있습니다. 이 기능은 Ops 전용이며 Client navigation에는 추가하지 않습니다.
++
++결과를 선택하면 현재 원본과 정확한 파일 재생 위치를 다시 확인합니다. 삭제·손상·권한 변경으로
++재생할 수 없으면 다시 검색하라는 안내를 표시합니다. 조건 또는 선택을 바꾸면 이전 응답과
++미디어 이벤트는 무효화됩니다. 실제 영상 데이터와 탐색 완료를 확인한 뒤 이동 성공을 표시합니다.
++기존 구조화 검색과 별도로 사용하며 검색 점수를 기존 이벤트/행동 판정으로 바꾸지 않습니다.
++
+ ### 녹화 구조화 검색 (v4.2.0)
+ 
+ 같은 `/ops/events`의 `녹화 구조화 검색`에서 카메라 1~32개와 최대 31일의 시간 범위를
+diff --git a/test/fixtures/v390_review4_semantic_proofs_evt_client_media_lab.json b/test/fixtures/v390_review4_semantic_proofs_evt_client_media_lab.json
+index f31061ba..7c2f0dd7 100644
+--- a/test/fixtures/v390_review4_semantic_proofs_evt_client_media_lab.json
++++ b/test/fixtures/v390_review4_semantic_proofs_evt_client_media_lab.json
+@@ -966,7 +966,7 @@
+           "file": "src/analysis/event_storage.cpp",
+           "symbol": "CleanupCompactedEventRecordFiles",
+           "anchor": "if (!ListCompactedEventRecordFiles(&list, error_message)) {",
+-          "line": 3647,
++          "line": 3706,
+           "contextSha256": "24767c1b4948e2069da7edebd8eacf955dbf434a9a6fdd2f2f9f7b58adc7b94f"
+         },
+         "state": {
+@@ -1006,14 +1006,14 @@
+           "kind": "function-containment",
+           "witness": "The dispatch reaches the feature-specific action or projection builder.",
+           "source": "src/analysis/event_storage.cpp:3618",
+-          "target": "src/analysis/event_storage.cpp:3647"
++          "target": "src/analysis/event_storage.cpp:3706"
+         },
+         {
+           "from": "action",
+           "to": "state",
+           "kind": "function-containment",
+           "witness": "The action writes the authoritative state, reject, or schema projection.",
+-          "source": "src/analysis/event_storage.cpp:3647",
++          "source": "src/analysis/event_storage.cpp:3706",
+           "target": "src/analysis/event_storage.cpp:3632"
+         },
+         {
+@@ -1066,7 +1066,7 @@
+           "file": "src/analysis/event_storage.cpp",
+           "symbol": "ResolveCompactedEventRecordFile",
+           "anchor": "if (!ListCompactedEventRecordFiles(&list, error_message)) {",
+-          "line": 3593,
++          "line": 3652,
+           "contextSha256": "24767c1b4948e2069da7edebd8eacf955dbf434a9a6fdd2f2f9f7b58adc7b94f"
+         },
+         "state": {
+@@ -1106,14 +1106,14 @@
+           "kind": "function-containment",
+           "witness": "The dispatch reaches the feature-specific action or projection builder.",
+           "source": "src/analysis/event_storage.cpp:3559",
+-          "target": "src/analysis/event_storage.cpp:3593"
++          "target": "src/analysis/event_storage.cpp:3652"
+         },
+         {
+           "from": "action",
+           "to": "state",
+           "kind": "function-containment",
+           "witness": "The action writes the authoritative state, reject, or schema projection.",
+-          "source": "src/analysis/event_storage.cpp:3593",
++          "source": "src/analysis/event_storage.cpp:3652",
+           "target": "src/analysis/event_storage.cpp:3572"
+         },
+         {
+@@ -5949,14 +5949,14 @@
+           "file": "src/analysis/event_storage.cpp",
+           "symbol": "WriteFrameBundleManifest",
+           "anchor": "if (frames.empty() || event_frame_index >= frames.size()) {",
+-          "line": 1983,
++          "line": 1997,
+           "contextSha256": "60550e5e53bd3d5aeb81cf38ee44f6653cc5e0275a77ee0a5995524ee87f1ab6"
+         },
+         "action": {
+           "file": "src/analysis/event_storage.cpp",
+           "symbol": "WriteFrameBundleManifest",
+           "anchor": "std::ofstream manifest(manifest_path, std::ios::out | std::ios::trunc);",
+-          "line": 1992,
++          "line": 2006,
+           "contextSha256": "f567029619a492ffbaed59ce17ccdc5030c462601363fa88df7856ed08b1adbd"
+         },
+         "state": {
+@@ -5988,22 +5988,22 @@
+           "kind": "function-containment",
+           "witness": "Actual owner contains input dispatch.",
+           "source": "src/analysis/event_storage.cpp:1972",
+-          "target": "src/analysis/event_storage.cpp:1983"
++          "target": "src/analysis/event_storage.cpp:1997"
+         },
+         {
+           "from": "dispatch",
+           "to": "action",
+           "kind": "function-containment",
+           "witness": "Dispatch reaches feature action.",
+-          "source": "src/analysis/event_storage.cpp:1983",
+-          "target": "src/analysis/event_storage.cpp:1992"
++          "source": "src/analysis/event_storage.cpp:1997",
++          "target": "src/analysis/event_storage.cpp:2006"
+         },
+         {
+           "from": "action",
+           "to": "state",
+           "kind": "function-containment",
+           "witness": "Action emits authoritative state/reject/projection.",
+-          "source": "src/analysis/event_storage.cpp:1992",
++          "source": "src/analysis/event_storage.cpp:2006",
+           "target": "src/analysis/event_storage.cpp:1999"
+         },
+         {
+@@ -13539,7 +13539,7 @@
+           "file": "src/ingress/webrtc_http_server_runtime.cpp",
+           "symbol": "WebRtcHttpServer::Start:AddRemoteIceCandidate-callsite",
+           "anchor": "bridge->AddRemoteIceCandidate(static_cast<std::uint32_t>(*mline), *candidate);",
+-          "line": 4999,
++          "line": 5008,
+           "contextSha256": "d1edeef36c31e7dc016b6ba543393f65e9f70e49c18a350a34cefa9b2ea074d4"
+         },
+         "action": {
+@@ -13578,14 +13578,14 @@
+           "kind": "function-containment",
+           "witness": "Start contains the validated candidate/mline branch.",
+           "source": "src/ingress/webrtc_http_server_runtime.cpp:335",
+-          "target": "src/ingress/webrtc_http_server_runtime.cpp:4999"
++          "target": "src/ingress/webrtc_http_server_runtime.cpp:5008"
+         },
+         {
+           "from": "dispatch",
+           "to": "action",
+           "kind": "direct-callsite",
+           "witness": "The route directly calls AddRemoteIceCandidate only after invalid payload guard.",
+-          "source": "src/ingress/webrtc_http_server_runtime.cpp:4999",
++          "source": "src/ingress/webrtc_http_server_runtime.cpp:5008",
+           "target": "src/ingress/webrtc_egress_session.cpp:2288"
+         },
+         {
+@@ -18153,7 +18153,7 @@
+           "file": "src/ingress/webrtc_http_server_runtime.cpp",
+           "symbol": "tap-snapshot-response",
+           "anchor": "ok.body.assign(reinterpret_cast<const char*>(image.data.data()), image.data.size());",
+-          "line": 4675,
++          "line": 4684,
+           "contextSha256": "8273d4ebd317fea6f23f0d046b87756f1c4989173c9d1ed3c17f413ac6e7efdd"
+         },
+         "readback": {
+@@ -18194,14 +18194,14 @@
+           "kind": "function-containment",
+           "witness": "The action owns the authoritative response/state emission.",
+           "source": "src/ingress/webrtc_http_server_runtime.cpp:4647",
+-          "target": "src/ingress/webrtc_http_server_runtime.cpp:4675"
++          "target": "src/ingress/webrtc_http_server_runtime.cpp:4684"
+         },
+         {
+           "from": "state",
+           "to": "readback",
+           "kind": "runtime-readback",
+           "witness": "The managed HTTP verifier independently observes image from the product response.",
+-          "source": "src/ingress/webrtc_http_server_runtime.cpp:4675",
++          "source": "src/ingress/webrtc_http_server_runtime.cpp:4684",
+           "target": "scripts/internal/verify_v390_review4_lab_core_api.mjs:135"
+         },
+         {
+@@ -18253,7 +18253,7 @@
+           "file": "src/ingress/webrtc_http_server_runtime.cpp",
+           "symbol": "tap-overlay-response",
+           "anchor": "ok.body.assign(reinterpret_cast<const char*>(image.data.data()), image.data.size());",
+-          "line": 4734,
++          "line": 4743,
+           "contextSha256": "8273d4ebd317fea6f23f0d046b87756f1c4989173c9d1ed3c17f413ac6e7efdd"
+         },
+         "readback": {
+@@ -18294,14 +18294,14 @@
+           "kind": "function-containment",
+           "witness": "The action owns the authoritative response/state emission.",
+           "source": "src/ingress/webrtc_http_server_runtime.cpp:4706",
+-          "target": "src/ingress/webrtc_http_server_runtime.cpp:4734"
++          "target": "src/ingress/webrtc_http_server_runtime.cpp:4743"
+         },
+         {
+           "from": "state",
+           "to": "readback",
+           "kind": "runtime-readback",
+           "witness": "The managed HTTP verifier independently observes image from the product response.",
+-          "source": "src/ingress/webrtc_http_server_runtime.cpp:4734",
++          "source": "src/ingress/webrtc_http_server_runtime.cpp:4743",
+           "target": "scripts/internal/verify_v390_review4_lab_core_api.mjs:138"
+         },
+         {
+diff --git a/test/fixtures/v390_review4_semantic_proofs_safe_ops.json b/test/fixtures/v390_review4_semantic_proofs_safe_ops.json
+index 83a2e8af..f5d1c179 100644
+--- a/test/fixtures/v390_review4_semantic_proofs_safe_ops.json
++++ b/test/fixtures/v390_review4_semantic_proofs_safe_ops.json
+@@ -23465,7 +23465,7 @@
+           "file": "src/analysis/event_storage.cpp",
+           "symbol": "WriteEvidenceManifest",
+           "anchor": "std::ofstream manifest(manifest_path, std::ios::out | std::ios::trunc);",
+-          "line": 2072,
++          "line": 2086,
+           "contextSha256": "f567029619a492ffbaed59ce17ccdc5030c462601363fa88df7856ed08b1adbd"
+         },
+         "action": {
+@@ -23504,14 +23504,14 @@
+           "kind": "function-containment",
+           "witness": "SAFE-084 owner-dispatch",
+           "source": "src/analysis/event_storage.cpp:2052",
+-          "target": "src/analysis/event_storage.cpp:2072"
++          "target": "src/analysis/event_storage.cpp:2086"
+         },
+         {
+           "from": "dispatch",
+           "to": "action",
+           "kind": "function-containment",
+           "witness": "SAFE-084 dispatch-action",
+-          "source": "src/analysis/event_storage.cpp:2072",
++          "source": "src/analysis/event_storage.cpp:2086",
+           "target": "src/analysis/event_storage.cpp:2077"
+         },
+         {
+diff --git a/test/fixtures/v390_structure_stabilization_current_graph.json b/test/fixtures/v390_structure_stabilization_current_graph.json
+index c07d7982..1862ebbf 100644
+--- a/test/fixtures/v390_structure_stabilization_current_graph.json
++++ b/test/fixtures/v390_structure_stabilization_current_graph.json
+@@ -11,8 +11,8 @@
+     ".cpp",
+     ".h"
+   ],
+-  "expectedProductionFiles": 332,
+-  "expectedCppFiles": 150,
++  "expectedProductionFiles": 349,
++  "expectedCppFiles": 159,
+   "moduleClassifiers": [
+     {
+       "id": "composition-root",
+@@ -133,11 +133,24 @@
+         "src/recording/recording_session_service.cpp",
+         "src/recording/recording_startup_recovery.cpp",
+         "include/recording/recording_search_reader.h",
+-        "src/recording/recording_search_reader.cpp"
++        "src/recording/recording_search_reader.cpp",
++        "include/ingress/visual_search_application_service.h",
++        "src/ingress/visual_search_application_service.cpp",
++        "include/recording/recording_visual_source.h",
++        "src/recording/recording_visual_source.cpp",
++        "src/recording/recording_visual_snapshots.cpp",
++        "include/recording/visual_frame_decoder.h",
++        "src/recording/visual_frame_decoder.cpp",
++        "include/recording/visual_index_worker.h",
++        "src/recording/visual_index_worker.cpp",
++        "include/recording/visual_index_store.h",
++        "src/recording/visual_index_store.cpp",
++        "include/recording/visual_search_index.h",
++        "src/recording/visual_search_index.cpp"
+       ],
+       "prefixes": [],
+-      "expectedFileCount": 87,
+-      "expectedCppCount": 38
++      "expectedFileCount": 100,
++      "expectedCppCount": 45
+     },
+     {
+       "id": "domain-and-registry-owners",
+@@ -268,8 +281,8 @@
+         "include/ingress/analysis_overlay_probe.h",
+         "src/ingress/analysis_overlay_probe.cpp"
+       ],
+-      "expectedFileCount": 75,
+-      "expectedCppCount": 37
++      "expectedFileCount": 79,
++      "expectedCppCount": 39
+     },
+     {
+       "id": "core-utilities",
+@@ -329,7 +342,7 @@
+       "expectedCppCount": 16
+     }
+   ],
+-  "expectedFileOwnershipSha256": "c226c5d43278a2abf5af95ac9003ee0ba03087ca99e3281651810922d93f3297",
++  "expectedFileOwnershipSha256": "66cca6c721ba0380d514568d0a74ca299d7dccfbe1a1f2b388935482e1205d92",
+   "cmake": {
+     "file": "CMakeLists.txt",
+     "targets": [
+@@ -344,6 +357,7 @@
+           "src/analysis/detector_factory.cpp",
+           "src/analysis/dummy_detector.cpp",
+           "src/analysis/event_manager.cpp",
++          "src/analysis/siglip2_encoder.cpp",
+           "src/analysis/event_feature_search_index.cpp",
+           "src/analysis/event_post_dispatcher.cpp",
+           "src/analysis/event_retention_cleanup.cpp",
+@@ -363,6 +377,7 @@
+           "src/analysis/scene_context_builder.cpp",
+           "src/analysis/scenario_engine.cpp",
+           "src/analysis/snapshot_encoder.cpp",
++          "src/analysis/event_snapshot_proof.cpp",
+           "src/analysis/track_state_manager.cpp",
+           "src/analysis/tracked_object_metadata.cpp",
+           "src/analysis/va_runtime_metadata.cpp",
+@@ -417,6 +432,12 @@
+           "src/recording/recording_search_snapshots.cpp",
+           "src/recording/recording_search_model.cpp",
+           "src/recording/recording_search_source.cpp",
++          "src/recording/visual_search_index.cpp",
++          "src/recording/visual_index_store.cpp",
++          "src/recording/visual_index_worker.cpp",
++          "src/recording/visual_frame_decoder.cpp",
++          "src/recording/recording_visual_source.cpp",
++          "src/recording/recording_visual_snapshots.cpp",
+           "src/recording/recording_search_reader.cpp",
+           "src/recording/event_clip_deriver.cpp",
+           "src/recording/event_recording_bridge.cpp",
+@@ -454,6 +475,7 @@
+           "src/recording/recording_runtime_composition.cpp",
+           "src/recording/recording_derived_remux.cpp",
+           "src/ingress/recording_search_application_service.cpp",
++          "src/ingress/visual_search_application_service.cpp",
+           "src/ingress/recording_application_service.cpp",
+           "src/recording/retention_coordinator.cpp",
+           "src/recording/recording_session_service.cpp",
+@@ -486,9 +508,9 @@
+           "src/ingress/gstreamer_rtsp_server.cpp",
+           "src/core/youtube_resolver.cpp"
+         ],
+-        "productionSourceSha256": "574dc2c75f3bfeeabb12cfc5afaa7a98b21d138f0180ca4f990f5e8a73a61f5c",
+-        "declaredSourceCount": 148,
+-        "defaultActiveSourceCount": 147,
++        "productionSourceSha256": "8071da2bf296d423db2c3cd9e0071a261c78d3dd79ff85b64b6c3a37ab771742",
++        "declaredSourceCount": 157,
++        "defaultActiveSourceCount": 156,
+         "conditionalSources": [
+           {
+             "path": "src/core/youtube_resolver.cpp",
+@@ -548,14 +570,14 @@
+     },
+     {
+       "direction": "analysis-services -> domain-and-registry-owners",
+-      "witnessCount": 2,
+-      "witnessSha256": "59a2717878afc62ba907bde4f4cb437fac9a2a9fd402ddaae924830e53c8a19e",
++      "witnessCount": 3,
++      "witnessSha256": "a948c519f20a4bcc7b7e9d48abe827589c74349e044e02622bba5038643e2ad2",
+       "allowedByTarget": true
+     },
+     {
+       "direction": "application-service-interfaces -> analysis-services",
+-      "witnessCount": 30,
+-      "witnessSha256": "e03f3f9c8510430e8cfc4bb73b5203a336181ef24f7ae2db12320984a503ddb8",
++      "witnessCount": 34,
++      "witnessSha256": "405aade317b0276cc05efe143d76d5a76e155cddab50154dd0da82401b17672d",
+       "allowedByTarget": true
+     },
+     {
+@@ -572,8 +594,8 @@
+     },
+     {
+       "direction": "application-service-interfaces -> domain-and-registry-owners",
+-      "witnessCount": 38,
+-      "witnessSha256": "ca814d54fa1861f1ad3a54d8278b1d2f5c640e96d3804c1b330e5c0ba04d30bb",
++      "witnessCount": 39,
++      "witnessSha256": "f25bff6319ea80a33a4aa6db85e766adc44ea4faf3b7c8566e1cc7cf8e810cec",
+       "allowedByTarget": true
+     },
+     {
+@@ -706,7 +728,7 @@
+     },
+     {
+       "file": "src/ingress/webrtc_http_server_runtime.cpp",
+-      "lineCount": 5303,
++      "lineCount": 5312,
+       "primaryOwner": "transport-and-auth-adapter",
+       "embeddedResponsibilities": [
+         "ops-route-groups",
+@@ -730,7 +752,7 @@
+     },
+     {
+       "file": "src/ingress/product_ui_page_scripts.cpp",
+-      "lineCount": 10633,
++      "lineCount": 10723,
+       "primaryOwner": "product-ui-workspaces",
+       "embeddedResponsibilities": [
+         "ops-workspaces",
+diff --git a/test/fixtures/v390_structure_stabilization_execution.json b/test/fixtures/v390_structure_stabilization_execution.json
+index 60aa3c93..66936bba 100644
+--- a/test/fixtures/v390_structure_stabilization_execution.json
++++ b/test/fixtures/v390_structure_stabilization_execution.json
+@@ -71,15 +71,15 @@
+   "currentGraph": {
+     "path": "test/fixtures/v390_structure_stabilization_current_graph.json",
+     "schema": "media-server.v390-structure-stabilization-current-graph.v1",
+-    "sha256": "db532a4a8a18d68d15a4987c2effd74b67415f878fea7a640dcd5dd2091cebfd",
++    "sha256": "102f6a99e95a01d8d12d00785350648bcf14ccfbfee78d54d708a03f5878d34c",
+     "metrics": {
+-      "productionFiles": 332,
+-      "cppSources": 150,
++      "productionFiles": 349,
++      "cppSources": 159,
+       "moduleOwners": 10,
+       "cmakeTargets": 2,
+       "targetViolationDirections": 0,
+       "largestSccOwners": 0,
+-      "largestMixedOwnerFileLines": 10633,
++      "largestMixedOwnerFileLines": 10723,
+       "internalTargetSeparation": true
+     }
+   },

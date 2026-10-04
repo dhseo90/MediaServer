@@ -2,7 +2,7 @@
 
 [![Preflight](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml)
 [![Licensing and Artifact Guardrails](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml)
-![Source Version](https://img.shields.io/badge/source-4.2.0-informational)
+![Source Version](https://img.shields.io/badge/source-4.3.0-informational)
 
 A C++17 media server for macOS and Linux with RTSP/WebRTC relaying, YOLO/ONNX
 video analytics, and continuous/event recording. Manage channels and analysis
@@ -10,10 +10,10 @@ rules in a browser, watch live streams, and review recorded video.
 
 [한국어](README.md) · [Documentation](docs/en/README.md) ·
 [Latest release](https://github.com/dhseo90/MediaServer/releases/latest) ·
-[v4.2.0 release notes](docs/release-notes-v4.2.0.md)
+[v4.3.0 release notes](docs/release-notes-v4.3.0.md)
 
-The current source and recorded published version are v4.2.0. Use the Latest
-release link above to check the current publication status.
+The current source and release target are v4.3.0, pending release validation. The recorded
+published version is v4.2.0. Use the Latest release link above to check publication status.
 
 ## Features
 
@@ -27,8 +27,8 @@ release link above to check the current publication status.
   watch authorized live streams in `/client`.
 - Event review: browse event records, incident timelines, and recordings in `/ops/events`.
 
-Natural-language search across recordings is part of the
-[future roadmap](docs/v410-v49-recording-search-roadmap.md), not the current feature set.
+Optional Korean/English visual similarity search uses a separately prepared local SigLIP2 model.
+It searches representative frames and event snapshots with verified source links; similarity is not evidence of an event.
 This is not a complete VMS/NVR or a guarantee of indefinite video retention.
 The default distribution is source-only; AI models and media-runtime binaries are not included.
 

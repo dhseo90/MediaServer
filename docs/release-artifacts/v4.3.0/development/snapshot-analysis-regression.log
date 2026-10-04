@@ -1,0 +1,199 @@
+[verify] build analysis state smoke: /tmp/media_server_analysis_state_smoke-27916
+[verify] check no TensorRT/OpenVINO dependency was added for appearance hooks
+[pass] appearance hook dependency scan omits TensorRT references
+[pass] appearance hook dependency scan omits OpenVINO references
+[analysis][appearance] ONNX Re-ID readiness failed (model-file-missing), falling back to NoOp
+[analysis][appearance] ONNX Re-ID readiness failed (model-checksum-missing), falling back to NoOp
+[analysis][appearance] ONNX Re-ID readiness failed (model-checksum-invalid), falling back to NoOp
+[analysis][appearance] ONNX Re-ID readiness failed (model-provenance-missing), falling back to NoOp
+[analysis][appearance] ONNX Re-ID readiness failed (openssl-runtime-unavailable), falling back to NoOp
+[pass] ObjectTracker creates first track id
+[pass] ObjectTracker preserves immature direction-history track
+[pass] ObjectTracker direction score selects continuing movement
+[pass] ObjectTracker association confidence is exposed
+[pass] ObjectTracker class consistency blocks id stealing
+[pass] ObjectTracker vehicle category keeps jittered labels stable
+[pass] ObjectTracker lost buffer reacquires short gap
+[pass] ObjectTracker reacquired state clears after stable observation
+[pass] ObjectTracker motion prediction reacquires fast moving track
+[pass] Kalman-lite tracker reacquires short-gap predicted track
+[pass] Kalman-lite tracker filters bbox center
+[pass] ByteTrack hides low-confidence association from public metadata
+[pass] ByteTrack preserves id through low-confidence association
+[pass] ByteTrack blocks new public id from low-confidence detection
+[pass] ByteTrack lost buffer floor reacquires short detection gap
+[pass] TrackHealth uses tracker associationConfidence metadata
+[pass] TrackStateManager keeps same numeric track id per channel
+[pass] TrackStateManager preserves stream channel separation
+[pass] TrackStateManager caps observation history
+[pass] TrackStateManager caps trajectory history
+[pass] TrackStateManager retains first seen timestamp
+[pass] TrackStateManager retains last seen timestamp
+[pass] TrackStateManager transitions active track to lost
+[pass] TrackStateManager records lost since timestamp
+[pass] TrackHealth records missed frame state
+[pass] TrackHealth records lost state
+[pass] TrackingIssueReport records missed-frame spike
+[pass] TrackingIssueReport records lost track issue
+[pass] TrackingIssueReport explains lost-track scenario impact
+[pass] TrackStateManager transitions lost track to terminated
+[pass] TrackStateManager cleans expired terminated tracks
+[pass] TrackStateManager preserves other channel active tracks during cleanup
+[pass] TrackStateManager enforces max active tracks per stream
+[pass] TrackHealth flags overlap risk
+[pass] TrackHealth marks overlap risk as unstable
+[pass] TrackingIssueReport records overlap risk
+[pass] TrackingIssueReport explains overlap operator action
+[pass] TrackHealth records direction instability
+[pass] TrackingIssueReport records instability issue
+[pass] TrackingIssueReport explains instability impact
+[pass] TrackStateManager exposes lost to reacquired lifecycle
+[pass] TrackStateManager metrics count reacquired tracks
+[pass] TrackingIssueReport records reacquired transition
+[pass] TrackingIssueReport explains reacquired review action
+[pass] TrackingIssueReport serializes v1 schema
+[pass] TrackingIssueReport omits raw counter-only wording
+[pass] NoOpAppearanceExtractor leaves appearance profile absent
+[pass] NoOpAppearanceExtractor reports disabled runtime state
+[pass] NoOp fallback leaves worker queue and crop counters at zero
+[pass] NoOpAppearanceExtractor does not call real model
+[pass] TrackStateManager passes bounded RGB bbox crop
+[pass] TrackStateManager attaches appearance embedding
+[pass] TrackStateManager records appearance extractor completion
+[pass] Appearance policy enforces per stream Re-ID rate limit
+[pass] Missing Re-ID model path falls back to NoOp
+[pass] Re-ID model without checksum gate falls back to NoOp
+[pass] Invalid Re-ID model checksum falls back to NoOp
+[pass] Missing Re-ID model provenance falls back to NoOp
+[pass] Mismatched Re-ID model checksum falls back to NoOp
+[pass] TrackStateManager calculates ground plane speed
+[pass] TrackStateManager records ground plane speed units
+[pass] SceneContextBuilder includes active track
+[pass] SceneContextBuilder calculates current zone
+[pass] SceneContextBuilder detects restricted zone membership
+[pass] SceneContextBuilder calculates dwell time
+[pass] SceneContextBuilder uses bbox bottom center foot point
+[pass] SceneContextBuilder projects foot point to ground plane
+[pass] SceneContextBuilder projects trajectory ground points
+[pass] SceneContextBuilder calculates ground plane speed
+[pass] SceneContextBuilder falls back when homography is unavailable
+[pass] SceneContextBuilder calculates line crossing state
+[pass] SceneContextBuilder keeps channel scoped geometry
+[pass] SceneContextBuilder keeps vaRule scoped geometry
+[pass] EventManager emits confirmed active candidate
+[pass] EventManager suppresses duplicate candidate during cooldown
+[pass] EventManager emits candidate after cooldown
+[pass] EventManager records emitted lifecycle counter
+[pass] EventManager records suppressed lifecycle counter
+[pass] EventManager clears inactive candidate state
+[pass] EventManager cleans expired lifecycle state
+[pass] ScenarioEngine emits intrusion dwell candidate
+[pass] IntrusionDwellScenario emits enter phase
+[pass] IntrusionDwellScenario emits dwell phase
+[pass] IntrusionDwellScenario suppresses duplicate dwell event
+[pass] IntrusionDwellScenario emits re-entry phase
+[pass] IntrusionDwellScenario cleans stale track state
+[pass] ScenarioEngine keeps scenario output stable
+[pass] ReEntryScenario records exit observation
+[pass] ReEntryScenario emits re-entry candidate
+[pass] ReEntryScenario enforces cooldown
+[pass] ReEntryScenario enforces re-entry window
+[safe-056-cross-zone] {"configuredZonesObserved":true,"configuredZoneMode":"configured-zones","eventType":"re-entry","WebRTCSchemaChanged":false,"schemaChanged":false,"mediaPathChanged":false,"viewerClientExposureAdded":false}
+[pass] ReEntryScenario emits configured cross-zone re-entry candidate
+[pass] ReEntryScenario filters configured cross-zone destinations
+[pass] WrongDirectionScenario accepts allowed direction
+[pass] WrongDirectionScenario emits wrong direction candidate
+[pass] WrongDirectionScenario records raw direction
+[pass] WrongDirectionScenario enforces cooldown
+[pass] IntrusionAfterLineCrossingScenario records line crossing
+[pass] IntrusionAfterLineCrossingScenario requires zone entry
+[pass] IntrusionAfterLineCrossingScenario requires dwell time
+[pass] IntrusionAfterLineCrossingScenario suppresses duplicate event
+[pass] IntrusionAfterLineCrossingScenario enforces crossing window
+[pass] LoiteringScenario requires dwell time
+[pass] LoiteringScenario tracks trajectory duration
+[pass] LoiteringScenario enforces movement radius
+[pass] LoiteringScenario suppresses duplicate event
+[pass] LoiteringScenario clears state after exit
+[pass] ZoneOccupancyScenario counts occupancy
+[pass] ZoneOccupancyScenario requires dwell time
+[pass] ZoneOccupancyScenario selects representative track
+[pass] ZoneOccupancyScenario suppresses duplicate event
+[pass] ZoneOccupancyScenario filters by zone
+[pass] EventStorage writes event record
+[pass] EventStorage queries event records
+[pass] EventStorage filters archive records
+[pass] EventStorage compacts archived records
+[pass] EventStorage preserves active record count
+[pass] VLM observation store writes side storage
+[pass] VLM observation query correlates EventRecord by eventId
+[pass] VLM observation correlation report preserves event payload boundary
+[pass] VLM summary search returns sidecar candidates
+[pass] VLM summary search preserves EventRecord correlation boundary
+[pass] VLM rule suggestion returns manual-save candidates
+[pass] VLM rule suggestion preserves no-auto-apply boundary
+[review4-safe-032-036] {"schema":"media-server.vlm-feature-queue-outcome.v1","taskId":"vlm-feature-task-evt-v300-s04-timeout","eventId":"evt-v300-s04-timeout-001","triggerMode":"background","status":"failed","queueAction":"drop-vlm-task","failureReason":"queue-timeout","featureSetStored":false,"featureRevision":0,"queueSize":1,"contractInvariants":{"runtimeProviderCallPerformed":false,"mediaPathBlocked":false,"eventRecordBlocked":false,"metadataFanoutBlocked":false,"eventPostDispatchBlocked":false,"eventPostPayloadChanged":false,"webrtcDataChannelSchemaChanged":false,"sseWsMetadataSchemaChanged":false,"rtspWebrtcMediaPathChanged":false,"viewerClientExposureAdded":false,"rawPromptStored":false,"rawProviderResponseStored":false,"credentialStored":false}}
+[pass] V300 S04 background feature queue enqueues evidence tasks
+[pass] V300 S04 queue worker stores structured FeatureSet revision
+[pass] V300 S04 lazy trigger runs without default-on provider behavior
+[pass] V300 S04 missing-runtime stays VLM-only
+[pass] V300 S04 timeout drops VLM task without media backpressure
+[pass] V300 S04 invalid output is discarded without FeatureSet retention
+[pass] V300 S05 stores feature-only revision without raw prompt or response
+[pass] V300 S05 rejects raw prompt retention material
+[pass] V300 S05 rejects raw provider response retention material
+[pass] V300 S05 rejects raw evidence reference retention material
+[pass] V300 S05 rejects raw provider request bodies with whitespace
+[pass] V300 S05 reanalysis creates a new revision without provider replay
+[pass] V300 S05 previous revision is preserved for review history
+[pass] V300 S05 stale reanalysis revision is rejected
+[pass] V300 S06 natural language query converts to constrained Search DSL
+[pass] V300 S06 text tags and filters match event documents
+[pass] V300 S06 rejects identity or watchlist search
+[pass] V300 S06 preserves provider/schema/media boundary invariants
+[pass] V300 S07 indexes EventRecord FeatureSet EvidenceManifest and review state
+[pass] V300 S07 indexes only latest FeatureSet revision
+[pass] V300 S07 skips orphan and privacy rejected records
+[pass] V300 S07 rebuild clears stale search results
+[pass] V300 S07 preserves provider/schema/media/UI boundary invariants
+[pass] V310 S07 keeps optional vector search default-off
+[pass] V310 S07 indexes only explicit non-identifying quality embeddings
+[pass] V310 S07 ranks optional vector results without provider calls
+[pass] V310 S07 rebuild clears stale vector entries
+[pass] V310 S07 preserves schema/media/client boundaries
+[pass] V300 S09 dry-run selects expired non-pinned events only
+[pass] V300 S09 pin exclusion preserves pinned evidence
+[pass] V300 S09 apply deletes evidence feature and search lifecycle together
+[pass] V310 S08 apply deletes encoded clip lifecycle entries with event retention cleanup
+[pass] V300 S09 audit trail records dry-run and apply cleanup boundaries
+[pass] V300 S09 preserves provider/schema/media/viewer boundary invariants
+[safe-083-encoded-clip] {"continuousRecording":false,"archiveApi":false,"eventPostPayloadChanged":false,"viewerClientExposureAdded":false}
+[safe-084-evidence-manifest] {"eventFrame":true,"representativeImage":true,"bboxCrop":true,"rawPromptStored":false,"rawResponseStored":false}
+[pass] Event recorder writes snapshot media
+[pass] Event recorder writes bbox crop media
+[pass] Event recorder writes clip media
+[pass] Event recorder encodes bounded event clip media
+[pass] Event recorder records encoded clip queue status
+[pass] Event recorder writes V300 evidence manifest
+[pass] Event recorder writes pre-event-post frame bundle manifest
+[pass] SAFE-083 continuousRecording/archiveApi encoded clip preserves schema and client boundaries
+[pass] SAFE-084 eventFrame evidence manifest preserves required fields and raw-material boundary
+[pass] Event recorder records snapshot evidence path
+[pass] Event recorder records VLM evidence refs
+[pass] Event recorder records clip evidence path
+[pass] VaRuntimeMetadata builder emits schema
+[pass] VaRuntimeMetadata builder emits frame identity
+[pass] VaRuntimeMetadata builder emits tracked objects
+[pass] VaRuntimeMetadata builder emits scenario states
+[pass] VaRuntimeMetadata builder preserves WebRTC compatibility
+[pass] VaMetadata subscription filters by channel
+[pass] VaMetadata subscription filters by stream
+[pass] VaMetadata subscription filters by rule
+[pass] VaMetadata subscription filters by scenario
+[pass] Rule-level tracking policy resolves profile tracker
+[pass] Rule-level tracking policy resolves profile Re-ID mode
+[summary] pass=181 fail=0
+[pass] SAFE-083 compiled encoded clip readback
+[pass] SAFE-084 compiled evidence manifest readback
+
+[owned-cleanup] {"root": "/private/tmp/media_server_analysis_state_smoke-27916", "rootIdentity": [16777232, 166575515, 501], "binarySha256": "e84b2f730733d0812714ce57acf8c7c2fdadb8eefa17c11902191666872b9897", "rootAbsent": true, "dependencyOutputAbsent": true}

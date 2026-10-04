@@ -752,7 +752,7 @@ POST URL 자체는 rule output 설정에서 관리합니다. 외부 이벤트 JS
 ### 영상 유사도 검색 API (v4.3.0 개발)
 
 기본 비활성인 로컬 SigLIP2 기능이다. 빌드에 `MEDIA_SERVER_USE_SIGLIP2=ON`과 준비된
-`SentencePiece_ROOT`가 필요하다. [모델 준비와 고정 출처](research/v430-siglip2-provenance.md)를
+`MEDIA_SERVER_SENTENCEPIECE_ROOT`가 필요하다. [모델 준비와 고정 출처](research/v430-siglip2-provenance.md)를
 따라 로컬 파일을 먼저 준비한다. 제품은 모델을 자동 다운로드하지 않는다.
 
 | 환경 변수 | 기본값 | 의미 |
@@ -768,6 +768,7 @@ file evidence만 사용하며 최대 파일512MiB/RGB4096×2160을 지원한다.
 숨기지 않는다. 이 수치는 [개발 계약](superpowers/specs/2026-10-04-v430-visual-vector-search-design.md)의
 단기 profile이며 일반 운영 규모·장시간 지원 보장이 아니다.
 
+수집이 꺼진 등록 채널도 과거 녹화의 검색 대상이며, 삭제된 채널은 현재 결과에서 사용할 수 없다.
 `GET /ops/api/recordings/visual-search`는 기존 Ops의 operator 역할/`ops:read`와 요청한
 모든 `source:read:<channel>`을 먼저 검사한다. Client/viewer/integrator에는 제공하지 않는다.
 
@@ -779,16 +780,22 @@ file evidence만 사용하며 최대 파일512MiB/RGB4096×2160을 지원한다.
 | `threshold` | inclusive cosine 하한[-1,1], 기본-1. 사건 판정 기준이 아님 |
 | `startTimeMs`, `endTimeMs` | 선택 UTC ms 정수 쌍, `[start,end)`. 지정하면 UTC 미확인 frame 제외 |
 
-응답은 `kind=representative-frame`, `scoreMeaning=similarity-not-evidence`, `items`이며
-각 항목은 `id/channelId/score/timeNs`와 현재 재생 URL·위치다. `timeNs`는 정수 문자열 또는
+응답은 `kind=visual-frame`, `scoreMeaning=similarity-not-evidence`, `items`이며
+각 항목은 `id/channelId/score/timeNs`, `kind=representative-frame|event-snapshot`과 현재 재생 URL·위치다. `timeNs`는 정수 문자열 또는
 null이다. score 내림차순/동점ID 오름차순 exact top-k이며 원본 경로·벡터·모델 파일은 노출하지 않는다.
 `GET .../visual-search/seek?channelId=...&hitId=...`는 서버의 현재 게시본에서 찾아 권한과
 원본 hash/sample/삭제·손상·파일 재생 위치를 다시 확인한다. 해당 hit가 없어지면410이다.
 `GET .../visual-search/status`는 활성화/worker 상태와 허용 채널별 색인 frame 수, 최근 스캔의
-examined/unsupported 파일 수를 반환한다. 최근 스캔과 게시된 frame 수는 갱신 시점이 다를 수 있다.
+examined/unsupported 파일·스냅샷 수를 반환한다. 최근 스캔과 게시된 frame 수는 갱신 시점이 다를 수 있다.
 
-기존 이벤트 snapshot은 정확한 original sample 증명이 없어 현재 구현에서 제외된다.
-legacy·무증명/미지원 파일의 제외 수는 상태로 표시한다. 시각 또는 가까운 이미지로 증명을
+이벤트 저장과 snapshot hook을 함께 활성화하면 해당 snapshot directory의 JPEG도 색인한다.
+새 내부 manifest에는 실제 선택한 RGB frame의 원본 generation/order/track/ordinal/PTS ns와
+RGB·JPEG 해시가 남는다. 원본 후보의 유일 file evidence와 보호 FD decode RGB가 일치한 경우에만
+JPEG를 임베딩한다. 이벤트 발생 시각이나 TimestampMatch만으로 픽셀 동일성을 주장하지 않는다.
+기존 무증명·JPEG 외 snapshot은 제외하며 현재 이벤트 삭제도 조회/선택 때 다시 확인한다.
+개별 manifest64KiB/JPEG16MiB, 이벤트 사실8MiB/20,000건 한도를 적용한다. 증거 자체가 있는
+후보의 픽셀 대조나 decode 실패는 색인 실패로 처리하고 부분 게시하지 않는다.
+legacy·무증명/미지원 파일의 제외 수는 상태로 표시한다. 명시적인 codec 미지원과 해상도 상한 초과는 제외·집계하지만, 파일 무결성·픽셀 불일치·timeout은 새 색인 전체 실패로 처리한다. 시각 또는 가까운 이미지로 증명을
 대체하지 않는다. 재구축 중에는 이전 완성 게시본을 현재 원본 재검증과 함께 사용할 수 있지만,
 최초 준비 전이나 색인 실패는503이며 정상 빈 결과와 다르다. 잘못된 입력400/권한403/미인증401,
 동시 요청 또는 추론 대기 초과503이다. 응답은 no-store다. 개발 검증·실제 UI·릴리즈 완료 상태는

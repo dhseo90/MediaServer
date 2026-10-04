@@ -1,0 +1,15 @@
+command: ['cmake', '--build', 'build-gst-onnx', '-j', '4']
+[  2%] Building CXX object CMakeFiles/media_server_runtime.dir/src/analysis/analysis_session_service.cpp.o
+[  2%] Building CXX object CMakeFiles/media_server_runtime.dir/src/analysis/analysis_manager.cpp.o
+[  2%] Building CXX object CMakeFiles/media_server_runtime.dir/src/analysis/event_storage.cpp.o
+[  3%] Building CXX object CMakeFiles/media_server_runtime.dir/src/analysis/vlm_observation_store.cpp.o
+[  4%] Building CXX object CMakeFiles/media_server_runtime.dir/src/ingress/event_storage_application_service.cpp.o
+[  4%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/event_recording_bridge.cpp.o
+[  4%] Building CXX object CMakeFiles/media_server_runtime.dir/src/ingress/visual_search_application_service.cpp.o
+[  5%] Linking CXX static library libmedia_server_runtime.a
+[ 99%] Built target media_server_runtime
+[ 99%] Building CXX object CMakeFiles/media_server.dir/src/application/media_server_application.cpp.o
+[ 99%] Linking CXX executable media_server
+[100%] Built target media_server
+
+exit=0

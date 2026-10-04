@@ -1,0 +1,25 @@
+✔ late search response cannot replace newer query or revive invalidated results (10.134583ms)
+✔ late seek and metadata cannot move a newer selected file (0.765625ms)
+✔ expired snapshot asks for new search and never loads a file (0.549041ms)
+✔ setting currentTime is seeking, only current media completion succeeds (0.512ms)
+✔ same URL new selection rejects old metadata seeked and error events (0.640084ms)
+✔ completion requires data, no pending seek, no media error, and target within frame tolerance (0.485792ms)
+✔ same current position waits for current data without needing seeked (0.753083ms)
+✔ bounds invalid response unsupported position and media failure remain distinct (0.422792ms)
+✔ incomplete evidence is not empty success (0.400542ms)
+✔ seeked before current data stays pending until loadeddata (0.527458ms)
+✔ restart MAC error400 and same-pool expiry410 clear results with distinct guidance (1.145334ms)
+✔ late query cannot revive results after changed input (2.614708ms)
+✔ late selection and old media events cannot change current player (1.140458ms)
+✔ permission and removed source errors never load media (1.04525ms)
+✔ unsafe playback URL and invalid seek time are rejected (0.92475ms)
+✔ same current position waits for decoded data; outside tolerance is not completion (0.44225ms)
+✔ empty results and disabled state are distinguished (0.920583ms)
+ℹ tests 17
+ℹ suites 0
+ℹ pass 17
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 46.67725

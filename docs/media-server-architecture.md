@@ -424,7 +424,36 @@ H.264/MP4 원본에서 video-only fragmented MP4를 생성합니다. 원본 확�
 
 설정에서 저장 확인·타임라인·재생으로 이어지는 사용법은 [UI 가이드](./ui-guide.md#녹화-조회와-재생-v410-s06),
 HTTP 응답·권한은 [녹화 API](./config-reference.md#녹화-조회재생-api-v410-s06)를 봅니다.
-관측 자료 저장은 후속 검색의 기반이며, 자연어로 영상을 찾아 재생하는 기능의 구현 완료를 뜻하지 않습니다.
+관측 자료의 구조화 검색과 영상 픽셀의 유사도 검색은 별도 경로입니다.
+
+### 로컬 영상 유사도 검색 (v4.3.0 개발)
+
+`VisualSearchApplicationService`는 기본 off인 로컬 SigLIP2와 색인 worker를 소유합니다.
+확정된 V2 H.264/MP4 file evidence에서 `RecordingVisualSource`가 주기 sample을 선택하고,
+기존 재생 보호 FD와 `SourceSeek`로 검증한 파일 표시 시각을 `DecodeVisualFrame`에 전달합니다.
+디코딩·전처리·추론은 별도 작업에서 실행하며 공유 source callback을 막지 않습니다.
+
+```text
+Catalog의 확정 원본 -> 현재 hash/sample 증명 -> 보호 FD의 RGB -> SigLIP2 image
+                                                              |
+                                                 완성 벡터 게시본 + 파생 cache
+                                                              |
+Ops 역할/채널 scope -> SigLIP2 text -> exact top-k + 현재 원본 재검증 -> 선택 재생
+```
+
+불변 게시본은 이전/신규 두 세대로 제한하고 worker·추론은 각각 한 개입니다. 반복 작업은
+한 요청으로 합치며 실패에서 부분 색인을 게시하지 않습니다. cache는 전용 directory의
+writer 잠금·고정 pending 한 개·fsync/rename으로 저장하며 중단 후 형식이 확인된 pending만
+회수합니다. 원본 저장·보존 정책의 권위가 아니고 기존 원장·미디어를 수정하지 않습니다.
+
+현재 등록 채널은 수집이 꺼져도 과거 녹화를 검색할 수 있습니다. 검색/선택 재생마다 현재
+scope와 원본을 검사하고, Client/viewer에는 기능·벡터·경로를 노출하지 않습니다.
+새 이벤트 snapshot manifest는 실제 선택 frame의 원본 후보와 RGB/JPEG 해시를 내부 저장합니다.
+현재 유일 원본의 보호 FD decode RGB가 선택 frame과 일치해야 JPEG 임베딩을 허용합니다.
+manifest 전체 해시가 cache identity에 포함되고, 조회·선택 시 현재 이벤트와 JPEG/원본도 확인합니다.
+기존 무증명 snapshot은 제외합니다. 유사도는 사건·동일 인물의 증거가 아닙니다.
+지원 한도와 API는 [설정 참조](config-reference.md#영상-유사도-검색-api-v430-개발),
+개발/미실행 상태는 [개발 기록](release-artifacts/v4.3.0/development/README.md)을 따릅니다.
 
 ## 4. Source 종류
 

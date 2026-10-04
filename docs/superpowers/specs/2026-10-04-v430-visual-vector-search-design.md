@@ -96,9 +96,19 @@ bounded 작업 수명으로 확장하고 기존 source worker·미디어 blockin
 `SourceSeek`의 verified native presentation으로 변환한 뒤 별도 FD decoder에서 같은 표시
 시각의 RGB를 얻는다. frame 간 시각을 임의로 근처 영상으로 바꾸지 않는다. 기존 V1·불완전
 file evidence·지원하지 않는 decode는 제외 이유/건수를 구분하며 완료한 전체 지원으로 숨기지 않는다.
+명시적인 codec 미지원·해상도 상한 초과만 제외하며 무결성·timeout은 전체 재색인을 실패시킨다.
+Search/Seek의 5초 예산과 stop은 이벤트 행/archive·과대행 skip, SHA/demux/native proof까지
+공유하며 이미 보호한 FD를 재사용한다. 확정 삭제만 제외하고 읽기·검증 실패는503으로 응답한다.
+OS blocking I/O와 ONNX 호출 자체의 선점 중단은 보장하지 않는다.
 이벤트 snapshot은 실제 image와 recorded manifest가 있고 event/channel/epoch/정확한 원본 sample
 연결이 확인된 경우에만 추가한다. marker JSON이나 단순히 시간상 가까운 이미지는 영상 벡터로
-색인하지 않는다. snapshot을 원본 영상의 동일 decoded pixel이라는 증거로 주장하지 않는다.
+색인하지 않는다. JPEG bytes 자체를 원본 decoded RGB와 같은 바이트라고 주장하지 않는다.
+사용자가 승인한 생성·저장 확장으로 실제 선택 frame의 RGB SHA와 저장 JPEG SHA 및 원본 후보를
+내부 manifest에 남긴다. 이벤트 result의 원본 세대/order/track과 같은 후보만 선택하고
+필수 eventEpoch를 v2 proof에 결박한다. 조회·선택 때 현재 EventRecord epoch와도 대조하며
+증거가 없는 기존 v1 후보를 소급 승격하지 않는다. 현재 유일 original sample의 보호 FD decode RGB를 선택 frame의 SHA와
+대조한 뒤 실제 JPEG를 임베딩한다. 기존 snapshot의 증거를 소급 생성하지 않는다.
+manifest 전체 hash가 색인 ID를 구분하며 현재 이벤트 존재·이미지 hash·원본 재생을 재검사한다.
 
 Ops 전용 `visual-search`, `visual-search/seek`, `visual-search/status`를 기존
 `/ops/api/recordings/` 아래에 연결한다. 요청 채널 전체를 기존 operator/ops:read/source:read

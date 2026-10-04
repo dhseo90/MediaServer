@@ -1,0 +1,10 @@
+src/analysis/event_snapshot_proof.cpp sha256=1d334fd140f10744487e91b91118ed1475333ecaedff8fc1593040e4fd7c141f
+src/domain/strict_json.cpp sha256=be1057725d0a0b54d705543ce635da6c832e4c53fbec008e91ad63c9a1d0f58b
+scripts/internal/event_snapshot_proof_smoke.cpp sha256=96a79418679705c62573fe84de05f6e6d37ef83aca2d4fb7843e1ddeeae70c81
+command ['c++', '-std=c++17', '-O2', '-Wall', '-Wextra', '-Werror', '-Iinclude', '-DMEDIA_SERVER_USE_OPENSSL=1', 'src/analysis/event_snapshot_proof.cpp', 'src/domain/strict_json.cpp', 'scripts/internal/event_snapshot_proof_smoke.cpp', '-o', '/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v430-snapshot-proof-3d7vd4ev/proof', '-I/opt/homebrew/Cellar/openssl@3/3.6.2/include', '-L/opt/homebrew/Cellar/openssl@3/3.6.2/lib', '-lssl', '-lcrypto']
+scripts/internal/event_snapshot_proof_smoke.cpp:32:37: error: deduced conflicting types ('const char *' vs 'basic_string<char, std::char_traits<char>, std::allocator<char>>') for initializer list element type
+   32 |         for(const std::string input:{"{}",json.substr(0,json.size()-1)+",\"width\":\"1\"}",json+"x",std::string(8193,'x')}){
+      |                                     ^~~~~ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1 error generated.
+exit=1
+temporary_directory_absent=True

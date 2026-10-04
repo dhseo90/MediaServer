@@ -11,8 +11,8 @@
     ".cpp",
     ".h"
   ],
-  "expectedProductionFiles": 332,
-  "expectedCppFiles": 150,
+  "expectedProductionFiles": 349,
+  "expectedCppFiles": 159,
   "moduleClassifiers": [
     {
       "id": "composition-root",
@@ -133,11 +133,24 @@
         "src/recording/recording_session_service.cpp",
         "src/recording/recording_startup_recovery.cpp",
         "include/recording/recording_search_reader.h",
-        "src/recording/recording_search_reader.cpp"
+        "src/recording/recording_search_reader.cpp",
+        "include/ingress/visual_search_application_service.h",
+        "src/ingress/visual_search_application_service.cpp",
+        "include/recording/recording_visual_source.h",
+        "src/recording/recording_visual_source.cpp",
+        "src/recording/recording_visual_snapshots.cpp",
+        "include/recording/visual_frame_decoder.h",
+        "src/recording/visual_frame_decoder.cpp",
+        "include/recording/visual_index_worker.h",
+        "src/recording/visual_index_worker.cpp",
+        "include/recording/visual_index_store.h",
+        "src/recording/visual_index_store.cpp",
+        "include/recording/visual_search_index.h",
+        "src/recording/visual_search_index.cpp"
       ],
       "prefixes": [],
-      "expectedFileCount": 87,
-      "expectedCppCount": 38
+      "expectedFileCount": 100,
+      "expectedCppCount": 45
     },
     {
       "id": "domain-and-registry-owners",
@@ -268,8 +281,8 @@
         "include/ingress/analysis_overlay_probe.h",
         "src/ingress/analysis_overlay_probe.cpp"
       ],
-      "expectedFileCount": 75,
-      "expectedCppCount": 37
+      "expectedFileCount": 79,
+      "expectedCppCount": 39
     },
     {
       "id": "core-utilities",
@@ -329,7 +342,7 @@
       "expectedCppCount": 16
     }
   ],
-  "expectedFileOwnershipSha256": "c226c5d43278a2abf5af95ac9003ee0ba03087ca99e3281651810922d93f3297",
+  "expectedFileOwnershipSha256": "66cca6c721ba0380d514568d0a74ca299d7dccfbe1a1f2b388935482e1205d92",
   "cmake": {
     "file": "CMakeLists.txt",
     "targets": [
@@ -344,6 +357,7 @@
           "src/analysis/detector_factory.cpp",
           "src/analysis/dummy_detector.cpp",
           "src/analysis/event_manager.cpp",
+          "src/analysis/siglip2_encoder.cpp",
           "src/analysis/event_feature_search_index.cpp",
           "src/analysis/event_post_dispatcher.cpp",
           "src/analysis/event_retention_cleanup.cpp",
@@ -363,6 +377,7 @@
           "src/analysis/scene_context_builder.cpp",
           "src/analysis/scenario_engine.cpp",
           "src/analysis/snapshot_encoder.cpp",
+          "src/analysis/event_snapshot_proof.cpp",
           "src/analysis/track_state_manager.cpp",
           "src/analysis/tracked_object_metadata.cpp",
           "src/analysis/va_runtime_metadata.cpp",
@@ -417,6 +432,12 @@
           "src/recording/recording_search_snapshots.cpp",
           "src/recording/recording_search_model.cpp",
           "src/recording/recording_search_source.cpp",
+          "src/recording/visual_search_index.cpp",
+          "src/recording/visual_index_store.cpp",
+          "src/recording/visual_index_worker.cpp",
+          "src/recording/visual_frame_decoder.cpp",
+          "src/recording/recording_visual_source.cpp",
+          "src/recording/recording_visual_snapshots.cpp",
           "src/recording/recording_search_reader.cpp",
           "src/recording/event_clip_deriver.cpp",
           "src/recording/event_recording_bridge.cpp",
@@ -454,6 +475,7 @@
           "src/recording/recording_runtime_composition.cpp",
           "src/recording/recording_derived_remux.cpp",
           "src/ingress/recording_search_application_service.cpp",
+          "src/ingress/visual_search_application_service.cpp",
           "src/ingress/recording_application_service.cpp",
           "src/recording/retention_coordinator.cpp",
           "src/recording/recording_session_service.cpp",
@@ -486,9 +508,9 @@
           "src/ingress/gstreamer_rtsp_server.cpp",
           "src/core/youtube_resolver.cpp"
         ],
-        "productionSourceSha256": "574dc2c75f3bfeeabb12cfc5afaa7a98b21d138f0180ca4f990f5e8a73a61f5c",
-        "declaredSourceCount": 148,
-        "defaultActiveSourceCount": 147,
+        "productionSourceSha256": "8071da2bf296d423db2c3cd9e0071a261c78d3dd79ff85b64b6c3a37ab771742",
+        "declaredSourceCount": 157,
+        "defaultActiveSourceCount": 156,
         "conditionalSources": [
           {
             "path": "src/core/youtube_resolver.cpp",
@@ -548,14 +570,14 @@
     },
     {
       "direction": "analysis-services -> domain-and-registry-owners",
-      "witnessCount": 2,
-      "witnessSha256": "59a2717878afc62ba907bde4f4cb437fac9a2a9fd402ddaae924830e53c8a19e",
+      "witnessCount": 3,
+      "witnessSha256": "a948c519f20a4bcc7b7e9d48abe827589c74349e044e02622bba5038643e2ad2",
       "allowedByTarget": true
     },
     {
       "direction": "application-service-interfaces -> analysis-services",
-      "witnessCount": 30,
-      "witnessSha256": "e03f3f9c8510430e8cfc4bb73b5203a336181ef24f7ae2db12320984a503ddb8",
+      "witnessCount": 34,
+      "witnessSha256": "405aade317b0276cc05efe143d76d5a76e155cddab50154dd0da82401b17672d",
       "allowedByTarget": true
     },
     {
@@ -572,8 +594,8 @@
     },
     {
       "direction": "application-service-interfaces -> domain-and-registry-owners",
-      "witnessCount": 38,
-      "witnessSha256": "ca814d54fa1861f1ad3a54d8278b1d2f5c640e96d3804c1b330e5c0ba04d30bb",
+      "witnessCount": 39,
+      "witnessSha256": "f25bff6319ea80a33a4aa6db85e766adc44ea4faf3b7c8566e1cc7cf8e810cec",
       "allowedByTarget": true
     },
     {
@@ -706,7 +728,7 @@
     },
     {
       "file": "src/ingress/webrtc_http_server_runtime.cpp",
-      "lineCount": 5303,
+      "lineCount": 5312,
       "primaryOwner": "transport-and-auth-adapter",
       "embeddedResponsibilities": [
         "ops-route-groups",
@@ -730,7 +752,7 @@
     },
     {
       "file": "src/ingress/product_ui_page_scripts.cpp",
-      "lineCount": 10633,
+      "lineCount": 10723,
       "primaryOwner": "product-ui-workspaces",
       "embeddedResponsibilities": [
         "ops-workspaces",

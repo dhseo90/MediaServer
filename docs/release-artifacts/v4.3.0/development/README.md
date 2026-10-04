@@ -2,7 +2,7 @@
 
 개발 계약은 [설계](../../../superpowers/specs/2026-10-04-v430-visual-vector-search-design.md),
 기능별 기대값은 [inventory](../../../project-feature-test-inventory.md#v430-자원-수명과-벡터-검색)에 둔다.
-현재 개발 중이다. 릴리즈용 검사·30분·120분·UI 풀테스트·PR·병합·공개는 실행하지 않았다.
+이슈1~9 구현과 개발 직접 검증을 마쳤다. 이슈10의 버전·문서·증거·정리도 확인했으며 최종 커밋과 브랜치 push 결과는 종합 보고에 기록한다. 릴리즈용 검사·30분·120분·UI 풀테스트·PR·병합·공개는 실행하지 않았다.
 
 ## R01 historical identity 중복 상주 제거
 
@@ -308,3 +308,303 @@ reserved2,133,393,408바이트는 Catalog의512MiB 논리량으로 부르지 않
 
 [통합 build](visual-integration-build.log)는 cache 중단 복구 변경까지 제품 archive/binary에
 연결한 exit0이다. 이후 UI의 탐색완료 표시 수정은 다음 UI build로 검증한다.
+
+## UI 개발·현재 증거의 미해결 사항
+
+Ops 대표 프레임 검색 화면과 현재 선택 재생을 구현했다. 수집 off인 등록 채널도 과거 녹화를
+검색하도록 공급 목록을 보정했다. 현재 채널 삭제와 scope 검사는 유지한다. 앞 API 검사의
+“채널 비활성”은 fixture 공급 목록에서 채널을 제거한 조건이며 수집 off의 직접 검증이 아니다.
+이 화면과 수집 off 보정은 실제 UI 확인 전이며 아직 완료로 판정하지 않는다.
+
+- [UI 상태 회귀](visual-ui-state-settled.log): 기존 구조화 검색과 새 화면을 합쳐18검사 PASS,
+  exit0. 늦은 응답/이전 player event, 오류 응답, URL·seek 경계와 최초 탐색 완료 뒤 수동
+  이동을 확인했다. VM 상태 검사이므로 브라우저·영상 표시·재생 PASS가 아니다.
+- [현재 제품 build](visual-ui-history-build.log): 수집 off 채널 공급 보정까지 exit0.
+  이전 [UI build](visual-ui-build.log), [탐색 완료 build](visual-ui-settled-build.log)도 보존했다.
+- [worker 영향 회귀](visual-worker-interruption-regression.log): cache 중단 복구 변경 후
+  21검사 PASS,4encode/7scan, exit0 및 소유 임시 directory 부재 확인.
+- [구조 검사](visual-structure-check.log): 4검사 PASS, exit0. 기존 허용 의존 관계 안에서
+  현재346파일/157translation unit을 [연결](visual-structure-bind.log)했다. 과거 승인 기록을
+  새 검토로 바꾸지 않았다.
+- [실제 UI 준비](visual-ui-preparation.json): FAIL. 최초 seed 컴파일의 iostream 누락을
+  수정한 후 공개4신 원본240 AU/8초/대표8시점은 확인했으나 writer가
+  `ambiguous-original-vcl`로 정확 원본 증명을 거부했다. 두 실패와 실제 명령·출력은 해당
+  JSON에 보존했다. 모델/서버/브라우저 검증은 실행하지 않았고 소유 임시 root 부재를 확인했다.
+  원본 증명 기준을 완화하지 않았다. 대체 ball 영상 UI 검증 또는 별도 codec 파생 fixture의
+  사용 결정을 요청했으며 승인 전 대체 실행하지 않는다.
+- [기능 증거 검사](visual-feature-evidence-check.log):
+  `node scripts/internal/verify_feature_implementation_evidence.mjs`, exit1.
+  inventory/manifest986행은 일치하지만 inventory hash와 기존 REVIEW4 source/body 연결
+  불일치595건, negative fixture0/15 미실행이다. 제품 결함595개나 새 독립 검토 완료를
+  의미하지 않는다. 검토 증거 갱신과 필요한 재검증이 남았으며 해시만 바꿔 PASS 처리하지 않았다.
+  실패 로그의 ID/role을 현행 manifest의 `semanticEvidence.review4Proof.roles`와 읽기 전용으로
+  대조한 결과,594건은297개 기능이 공유하는 `src/ingress/webrtc_http_server_runtime.cpp`
+  한 파일의 연결이고 나머지1건은 inventory hash다. v4.2.0 tag 대비 해당 파일의 변경은
+  녹화 권한 거부 응답에 no-store 추가와 visual-search 세 route 연결이다. 검사는 파일 전체
+  SHA와 enclosing body SHA를 묶으므로 공유 파일 변경이 여러 기능의 재검토 요구로 전파된다.
+  이는 불일치 발생 범위를 좁힌 결과이며297개 기능의 동작 동등성이나 독립 승인 증거는 아니다.
+
+기존 이벤트 snapshot의 정확 원본 증거가 부족하여 대표 frame만 완성할지, snapshot 생성·저장
+범위를 확장할지의 결정도 남아 있다. 버전 선언은4.2.0이며 v4.3.0 개발 완료·최종 push·
+릴리즈 테스트 진입 준비를 주장하지 않는다. 위 실패 이후 새 제품 수정이나 대체 검증은
+진행하지 않았으며 기존 미커밋 변경을 보존했다.
+
+## 승인 후 이벤트 스냅샷 원본 증명 확장
+
+사용자가 권장한 스냅샷 생성·저장 확장과 공개4신 codec 파생 fixture 개발을 승인하여 재개했다.
+`originalFrameProof`는 실제 snapshot으로 선택된 frame의 ns 단위 원본 후보와 RGB/JPEG 해시를
+기존 내부 manifest에 추가한다. 이벤트 시각이나 TimestampMatch를 decoded 고유성으로 승격하지
+않는다. 현재 유일 원본의 보호 FD decode RGB가 저장 후보와 일치해야 실제 JPEG를 임베딩한다.
+manifest 전체 SHA가 cache ID를 구분하며 조회·선택은 현재 이벤트·채널 권한·이미지와 원본을
+다시 확인한다. 기존 무증명/미지원 snapshot은 제외하고 후보 픽셀 불일치는 색인 실패로 처리한다.
+
+- 후보 증거 단기 검사: [최초 컴파일 실패](snapshot-proof-first.log)의 initializer list 타입
+  불일치와 [두 번째 컴파일 실패](snapshot-proof-retry.log)의 Werror 복사 경고를 수정했다.
+  둘 다 예상 RED가 아니다. [수정 후](snapshot-proof-compile-fixed.log) OpenSSL on31검사 /
+  off2검사 PASS, exit0 및 소유 임시 경로 부재 확인. hash 독립 고정값, RGB row padding,
+  ns/track 불일치·nearest·ambiguous, strict JSON/숫자 경계·실패 출력 불변을 확인했다.
+- [실제 snapshot 원본 연결](snapshot-source-first.log): 실제 B writer/dispatcher가 저장한
+  JPEG와 manifest에서805검사 PASS, exit0. 현재 원본 RGB 대조→JPEG decode→실제 SigLIP2,
+  manifest/image 변조·symlink·삭제/재생보호를 확인했다. peak RSS3,180,544,000바이트.
+- [검색/선택 연결 추가](snapshot-source-api.log):818검사 PASS, exit0. 한국어 실제 검색의
+  snapshot 포함, 최소 공개 필드, 권한403, 이벤트 삭제 후 cached hit410/검색 제외를 확인했다.
+  [snapshot 존재 사실 필터 반영 후](snapshot-source-event-filter.log)818검사 PASS,
+  peak RSS3,197,730,816바이트. 두 실행 모두 소유 임시 경로 부재 확인.
+- [통합 build](snapshot-integration-build.log), [현재 이벤트 필터/UI build](snapshot-events-filter-build.log): exit0.
+  [UI 상태 검사](snapshot-ui-state.log)18 PASS, exit0이며 실제 UI 검증 대체가 아니다.
+- [기존 분석 상태 회귀](snapshot-analysis-regression.log):181 PASS와 SAFE-083/084 clip/manifest
+  확인, exit0. 스크립트 출력에서 식별한 build directory와 비민감 빈 dependency scan 출력의
+  owner/형식·현재 내용을 확인하고 정리·부재 결과를 같은 로그에 남겼다.
+- [현재 구조 연결](snapshot-structure-bind.log)은349파일/159translation unit/18edge이며
+  [구조 검사](snapshot-structure-check.log)4 PASS, exit0. 허용 의존 관계는 확대하지 않았다.
+- [기존 dispatcher 회귀 최초 실패](snapshot-dispatcher-regression.log): fixture의 수동 link 목록에
+  현행 retired receipt 구현과 기존 zlib 연결이 빠져 exit1. 소유 임시 경로는 정리됐다.
+  제품 판정이나 예상 RED가 아니다. 실제 정의 파일과 기존 의존성을 연결한
+  [재실행](snapshot-dispatcher-regression-retry.log)은5개 실제 process와2개 mutation 음성대조
+  PASS, exit0/40.828초이며 소유47파일/28,426,132바이트 정리·root 부재를 확인했다.
+
+- [기존 대표 프레임 API 회귀](snapshot-representative-api-regression.log):54검사 PASS,
+  exit0. 4thread×6회 검색 모두200, warm p95 385.792ms/max447.178ms,
+  peak RSS3,195,371,520바이트이며 소유 임시 경로 부재를 확인했다.
+
+공개4신 codec 준비의 초기4bit frame_num 16주기 중복과 intra-refresh 적용 후128주기
+중복 실패는 [준비 결과](visual-ui-preparation.json)에 보존했다. 이후 격리 fixture 전용
+CAVLC frame_num 4→12bit 변환에서 원본·codec 파생·최종 MP4의 decoded YUV 동일성과
+240개 고유 AU, 현재 V2 원본 증명, 대표8시점의 재조회 불변을 확인했다. 최종 MP4 SHA는
+`589f63229089e8f1230c0eb6c33bc6800125541eb47e3e9f75f0dc4598089049`다.
+이는 파생 fixture 준비 PASS이며 원래 공개 MP4의 strict 원본 증명 지원을 고쳤다는 뜻은 아니다.
+
+실제 모델 서버는 준비15,252ms 후8개768차원 유한 정규화 문서를 확인했다. 300초 hold 동안
+1초 간격으로 관측한 최대 RSS는3,189,948,416바이트다. startup 전체 peak나 부하 검증값은 아니다.
+브라우저는 `/setup` 화면까지만 관측했으며 검색·선택·영상 재생은 미실행이다.
+따라서 `actualUiPass=false`를 유지한다. 2026-10-03T23:27:16.996Z 한도에 자동 종료됐고
+서버 exit0, HTTP/RTSP 포트 폐쇄, UDP 종료, 소유 임시 root 부재와 브라우저 탭 닫기를 확인했다.
+한도를 연장하거나 준비 PASS를 실제 UI PASS로 바꾸지 않았다.
+
+실제 UI 재실행과 별도 모델의 최종 독립 검토 승인을 요청했다. 실제 UI·최종 독립 검토·
+증거 갱신·버전 확정·최종 푸시는 아직 완료하지 않았다.
+
+
+## 승인된 실제 UI 재실행
+
+사용자가 독립 검토와 UI 재실행을 각각 승인했다. `--browser-ready` 모드는 기존 인증 fixture
+API로 폐기용 계정을 준비하고 소유 root의0600 handoff만 사용했다. 브라우저 setup 검증은 아니다.
+현재 binary SHA `e925fa7187c70fdd488eeb4a4fb1ff9568905bc9a76fc20dd25f9dd517a3bc5f`,
+준비15,601ms, 준비·브라우저·정리 합403,228ms로 승인된 hold600초 이내에 종료했다.
+실제 조작은 Codex in-app browser의 native/Playwright UI API로 수행했다. DOM 읽기는
+표시 내용과 video.currentTime/duration/readyState/크기/error 확인에만 사용했다.
+
+| 직접 조작 | 기대값과 관측 | 판정 |
+| --- | --- | --- |
+| 수집 off 등록 채널, 한국어 장면 설명 | 실제 모델 결과8개, score약0.040 | PASS |
+| 영어 장면 설명 | 실제 모델 결과8개, score약0.047 | PASS |
+| 한국어 첫 결과 선택 | currentTime2초, duration8초, readyState4,1280×720,error없음 | PASS |
+| 실제 재생 버튼 | currentTime2→8초, ended=true,error없음, 전체4신 영상 관측 | PASS |
+| threshold1 | 결과없음 안내, 이전 결과·player 비움 | PASS |
+| 시작시간만 입력 | 시작·종료 모두 입력 안내, 결과·player 비움 | PASS |
+| 정상 시간쌍 입력 | 08:30~08:40 현지시간에8결과 | PASS |
+| 상태 새로고침 | coverage갱신/결과비움은 수행하나 '8개 유사 결과' 문구 잔존 | FAIL |
+|390×844 모바일 light/dark | 입력·버튼 읽기 가능, 전체player와controls 표시, 선택1초로 이동 | PASS |
+| viewer 로그인·Ops 직접경로 | Client Live/Dashboard만 표시, Ops경로 Access Denied | PASS |
+
+시각 증거는 [전체 재생](visual-ui-playback.jpg), [입력 오류](visual-ui-input-error.jpg),
+[모바일 다크 폼](visual-ui-mobile-dark-form.jpg), [모바일 다크 영상](visual-ui-mobile-dark-player.jpg),
+[모바일 라이트 폼](visual-ui-mobile-light-form.jpg), [viewer 거부](visual-ui-viewer-denied.jpg)에 둔다.
+이미지는 각각 현재 viewport이며 전체 페이지나 모든 결과 행을 한 장에 담았다고 주장하지 않는다.
+동일4신 전체 영상의8시점으로 실제 연결·재생을 확인했으며 장면별 순위 품질 검증의 대체가 아니다.
+
+UI setup/실제 snapshot 결과/410 삭제 경합/모델 unavailable의 실제 브라우저 조작은 미실행이다.
+기존 API·VM 증거와 구분하며 이 실행 전체를 UI PASS 또는 릴리즈 풀테스트 PASS로 판정하지 않는다.
+RSS는 hold 중1초 간격 관측 최대3,191,193,600바이트다. 소유 서버 정상exit0, HTTP/RTSP폐쇄,
+UDP종료,18,512,350바이트 임시 root 부재, 탭 닫기와 viewport 초기화를 확인했다.
+최초300초 실행과 이번 실행의 준비·정리 원자료는 [준비 JSON](visual-ui-preparation.json)에 유지한다.
+
+
+## 최종 독립 검토 1차
+
+사용자 명시 승인으로 새 `gpt-6-astra` / `xhigh` 에이전트가 읽기 전용 검토를 수행했다.
+기준은 `8244db05`→HEAD `cb5855a3b1ffa90a6d10778c715d6b0c91606ca7`와 당시 미커밋 변경이다.
+검토 시작149파일 SHA를 메인이 보관·대조했으며 검토 중 제품 소스 변경은 없었다.
+UI 승인에 따른 fixture/정의/실행기록·화면만 추가됐다. 모델은 도구에 지정한 값이며
+확인하지 않은 snapshot이나 service tier 적용을 주장하지 않는다. 검토자는 새 테스트·빌드·
+브라우저·외부 호출·파일/Git 변경을 실행하지 않았다.
+
+- P1: snapshot 후보 proof가 선택 frame만 검증하고 이벤트의 source association/epoch와
+  결합하지 않는다. reconnect 후 PTS 중복 때 이전 이벤트에 새 세대 frame이 연결될 수 있다.
+  `event_storage.cpp:2412`, `recording_visual_snapshots.cpp:68`, `EventFacts`의 epoch 누락.
+  코드 경로 확인이며 경합 실행 재현은 아직 없다.
+- P2: Search의5초 deadline이 하위 원본 검증에 전달되지 않고 Resolve실패를 후보 제외로
+  처리한다. 마지막 후보가 timeout/I/O로 탈락하면200빈결과가 가능하다.
+  `visual_search_application_service.cpp:128`, `recording_visual_source.cpp:113`.
+  확정 삭제 제외와 검증 실패를 구분하고 하위·응답 직전까지 예산을 전달해야 한다.
+- P2 설계 불일치: 미지원 decode를 제외·집계한다는 계약과 Encode실패 시 전체 unavailable
+  전파가 다르다. 예:4096×2160상한 밖 입력. 무결성/픽셀 불일치 시 전체실패 정책 자체를
+  결함으로 판정한 것은 아니다. `visual_index_worker.cpp:60`, `SelectSamples:34`.
+- P2: 상태 새로고침 후 결과 개수 잔존. 위 실제 UI 관측을 소스로 확인했다.
+  `product_ui_page_scripts.cpp:10530`.
+
+이슈1~5와7은 명시한 제한 profile·기존증거 범위에서 완료로 검토됐고,
+6·8·9는 위 결함,10은 결함·증거 불일치·버전/최종기록·커밋/푸시 때문에 미완료다.
+개발 완료 판정은 보류다. 검토의 '새 결함 미발견'을 미실행 테스트 PASS로 바꾸지 않는다.
+
+
+### 독립 검토 후 UI 수정
+
+새로고침 시작·성공·실패마다 결과 안내를 갱신하도록 수정했다. 첫 추가 fixture의 정규식
+SyntaxError는 [최초 출력](visual-ui-refresh-red.log)에 예상 RED가 아닌 준비 실패로 보존했다.
+[수정한 fixture](visual-ui-refresh-red-retry.log)는 제품의 잔존 '2개' assertion에서 예상대로
+실패했다. 제품 수정 후 [구조화 검색·영상 검색 상태 회귀](visual-ui-refresh-green.log)는19검사
+PASS/exit0이다. 실제 브라우저 수정 후 재확인은 아직 미실행이며 이전 화면 증거를 수정 후
+PASS로 재사용하지 않는다. 나머지 독립 검토3항목은 미해소다.
+
+같은 독립 검토자가 좁은 UI 수정과 로그를 읽고4번은 코드상 해소로 확인했다. 직접 실행은 없었고,
+수정 후 실제 UI 미실행과 나머지3항목의 전체 완료 보류 판정은 유지했다.
+
+
+### P1 이벤트·스냅샷 세대 연결 보완
+
+queued AnalysisResult의 PTS/TimestampMatch 원본으로 후보 generation/order/track을 제한하고,
+proof 생성에서 재검사한다. 내부 proof v2의 필수 eventEpoch를 현재 EventRecord와 수집·검색·선택에서
+대조한다. 공개 Event payload와 파생 cache 저장 형식은 유지하며 기존 v1 증거를 소급 승격하지 않는다.
+같은 독립 검토자는 코드와 반례 fixture를 읽고 P1 코드상 해소로 판정했다. 검토자의 새 실행은 없다.
+
+- [제품 build](snapshot-epoch-build.log): exit0.
+- [후보 proof](snapshot-epoch-proof.log): OpenSSL on36/off2 PASS, exit0. 다른 세대/order,
+  누락 association/epoch 거부와 원래 엄격한 parser·RGB 계약을 확인했다.
+- [실제 저장·검색 연결](snapshot-epoch-source.log):823검사 PASS, exit0,
+  peak RSS3,197,878,272바이트. 동일 PTS의 다른 세대 백색 frame을 나중에 넣어도 이전 세대 RGB를
+  선택했고, 이벤트 epoch 변경 후 cached seek410/검색 제외를 확인했다. 기존 변조·삭제·hold
+  검사를 함께 유지했다. 소유 임시 root 부재를 확인했으며 GStreamer scanner 경고는 원출력에 보존했다.
+
+남은 제품 수정은 검색 deadline/실패 전파와 미지원 디코드 처리다. 공유 reader의 반복 파일 검증을
+같은 보호 FD·요청 예산으로 연결하되 정상 삭제 제외와 timeout/I/O 실패를 구분해야 한다.
+이 항목은 아직 구현·검증하지 않았으며 전체 개발 완료 판정은 계속 보류다.
+
+
+### P2 검색 예산·실패 전파와 미지원 decode 보완
+
+Search/Seek는 같은 5초 예산과 stop을 이벤트 facts, 물리 SHA/demux와 native evidence
+검증에 전달하며 source seek는 이미 보호한 FD를 재사용한다. 확정 삭제만 후보에서 제외하고
+I/O·hash·timeout 실패를 503으로 전파한다. 이벤트 비매칭 행·archive 열거·과대 행 skip도
+협력적으로 취소한다. 내부 facts 조회의 중복 상태 복구 scan을 생략하며 일반 공개 조회 기본값은 유지한다.
+OS blocking I/O와 ONNX 호출 자체의 선점 중단까지 보장하는 절대 wall-clock 한도는 아니다.
+
+명시적으로 확인된 해상도 상한 초과·codec 미지원만 제외하고 채널별 개수를 표시한다.
+무결성·픽셀 불일치·timeout·취소는 전체 새 색인 실패로 유지해 이전 완성본을 보존한다.
+독립 검토자는 두 P2를 코드상 해소로 판정했고 이번 범위에서 추가 제품 회귀를 발견하지 못했다.
+코드와 기록 읽기이며 검토자 직접 실행은 없다.
+
+- [예산 초기 build](visual-budget-build.log), [최종 이벤트 예산 build](visual-event-budget-build.log): exit0.
+- [예산 연결 검사](visual-budget-source.log):830검사 PASS, peak RSS3,198,484,480바이트.
+- [이벤트 취소 포함 검사](visual-event-budget-source.log):837검사 PASS. 다만 과대행 assertion은
+  약400KiB에서 취소되어 1MiB 초과 skip 증거로는 무효다. 다른 검사는 유지한다.
+- [보정 후 재검사](visual-event-budget-source-retry.log):837검사 PASS, exit0,
+  peak RSS3,201,351,680바이트. 350회 callback 뒤 취소하여 과대행 skip 분기를 실행한다.
+- [미지원 build](visual-unsupported-build.log):exit0.
+- [실제 decoder·worker](visual-unsupported-runtime.log):frame43,225·worker26검사 PASS, exit0.
+  유효4352×64 MP4의 명시적 제외, 건강/미지원 혼합 게시와 무결성 실패 시 기존 게시본 보존을 확인했다.
+
+모든 runtime 소유 임시 root 부재가 기록돼 있다. GStreamer plugin scanner 경고는 원출력에 보존한다.
+사용자가 승인한 수정 후 실제 UI 재실행을 진행한다. 릴리즈 전체 UI·30분·120분 증거와 구분한다.
+
+
+### 승인된 수정 후 UI 재실행
+
+새 제품 binary로 같은 공개 4신 V2 codec fixture를 준비했다. 첫 준비는 loopback 포트의
+sandbox EPERM으로 서버 시작 전에 실패했으며 root 부재를 확인했다. 권한 있는 재실행으로
+준비했고 두 결과는 `visual-ui-preparation.json`의 현재 실행/previousRuns에 각각 보존된다.
+
+실제 브라우저에서 admin 로그인 → `/ops/events` → 한국어/영어 검색 각각8결과,
+한국어 첫 결과2초 이동(1280×720/8초/error 없음), 재생 버튼으로8초까지 정상 완료를 확인했다.
+수정한 색인 상태 새로고침은 결과·player를 초기화하고 이전8개 안내를 지운 뒤 재검색 안내를 표시했다.
+threshold1 빈 결과, 시작 시간만 입력 시 오류,09:10~09:20 정상 구간8결과를 확인했다.
+390×844 light/dark의 입력·상태 가독성과 viewer 로그인 후 Live/Dashboard 메뉴만 표시,
+`/ops/events` Access Denied를 확인했다. 임시 viewport/테마는 복원하고 생성 탭을 닫았다.
+[새로고침 수정 화면](visual-ui-refresh-rerun.png)을 보존한다.
+
+이는 변경 경로의 focused 실제 UI 재확인이다. API로 준비한 계정을 사용했으며 setup UI,
+이벤트 snapshot 실제 UI, 삭제 race/503 실제 UI, 릴리즈 전체 UI·30분·120분은 실행하지 않았다.
+준비 도구의 `actualUiPass:false`는 준비 결과를 제품 UI 전체 합격으로 승격하지 않는 경계다.
+stdin이 닫힌 실행 세션에서는 수동 `stop` 전달이 불가능하여 기존600초 자동 종료를 기다린다.
+자동 종료·포트·root 정리 확인은 아래 최종 상태에 기록한다.
+
+
+현재 구조 graph는 [바인딩](visual-final-structure-bind.log)/[현행 검사](visual-final-graph-check.log)
+exit0·4검사 PASS다. 실수로 실행한 [전체 과거 Slice 검사](visual-final-structure-check.log)는
+14PASS/3FAIL로 보존한다. v390 기록의 branch·composition anchor·slice32 policy 결박이
+현재 v430과 다르다는 실패이며 과거 승인 자료를 수정하지 않았다. graph-only 성공을 전체
+검사 성공으로 대체하지 않는다. 현재 릴리즈 검증에서 필요한 역사 도구 적용 범위는 별도 확인 대상이다.
+
+UI 재실행 정리 확인: binary `6885313e084e0338d7117270e0b6e3f357cc86f33e24450e5822064d6902c3df`, 준비 15805ms, 전체 616717ms, sampled peak RSS 3191226368바이트. 기존600초 자동 종료 후 소유 서버 exit0(강제 종료 없음), HTTP/RTSP 포트 닫힘·UDP 닫힘·소유 root 부재 확인. 실행 exit0이며 실제 focused UI 결과는 위 본문에 구분한다.
+
+대표 프레임 API 회귀의 [최초 출력](visual-final-api-regression.log)은51번째 corrupt candidate excluded에서FAIL이다. 기존 fixture는 재색인 전 old ready 게시본에서도200을 기대했으며 새 승인 계약은 검증 실패503이다. 잘못된 반환값을 허용하지 않도록503에서 대기하고 다음 전체 재색인의200에서 corrupt ID 부재를 요구하도록 fixture를 보정한다. 동시4검색24건은 p95 398.404ms/max430.942ms였으나 전체 검사를PASS로 기록하지 않는다.
+
+[API 회귀 재검증](visual-final-api-regression-retry.log)은59검사 PASS/exit0, 동시4검색24건 p95 399.877ms/max430.444ms, peak RSS3,195,387,904바이트다. 소유 root 부재를 확인했다. 서버 변경은 `fdf4f3e7`, 실제 UI와 fixture는 `9f9f3bc0`로 분할 커밋했다. 소스 VERSION/CMake는4.3.0으로 올렸으며 이전 UI binary와의 차이는 이 버전 표기 변경으로 구분한다.
+
+버전 표기 갱신 후 [build](visual-version-build.log), [로컬 release metadata](visual-release-metadata.log), [문서 링크](visual-docs-links.log), [현행 graph](visual-version-graph-check.log)는 exit0이다. 외부 공개·전체 릴리즈 gate 실행을 뜻하지 않는다. 기존 증거7개 좌표 보정으로986개 모두 연결됐고689개동일이관/297개공통변경 재판정 집합을 확정했다. 최종 독립 판단 결박과 승인 원자 적용은 진행 중이다.
+
+
+## 개발 마감 판정
+
+독립 검토의 P1 세대 연결과 P2 예산/실패 전파·미지원 제외·UI 상태 초기화는 수정·직접 검증·재검토로 해소했다.
+실제 UI는 승인된 변경 영역 재실행만 PASS이며 릴리즈 전체 UI는 미실행이다.
+
+[독립 판단](independent-source-decisions.json)과 [고정 자료](independent-source-package.json)는
+297개 변경 연결만 승인한다. [이관 근거](source-migration-evidence.json)로689개의 기존 승인을 유지하고
+[원자 적용](source-migration-apply.log) exit0 후 [현행 증거 검사](visual-final-feature-evidence.log)는
+986개 source/verifier/semantic 연결, validation/global 오류0, negative fixture15/15 PASS다.
+이 검사는 실행 증거가 아니다. 최초 candidate는7개 중복 anchor 좌표 미해결이었으며,
+EVT-010/011/060, MEDIA-007, LAB-026/027, SAFE-084의 기존 함수·context 바이트를 독립 대조한 뒤
+좌표만 보정했다. 과거 audit/approval 원본은 `cb5855a3:test/fixtures/`의 같은 파일과 실제 바이트가
+일치함을 확인해 중복 보존하지 않았다. [검토 diff](independent-source-snapshot.diff), 판단/package/이관/적용 로그의
+보존 사본 바이트를 대조했고 소유 임시 검토 root를 정리해 부재를 확인했다.
+
+현행 구조 gate의 handoff/readiness는 실제로 `--graph-only`를 호출한다. 실수로 실행한 역사 Slice 전체
+모드3FAIL을 현행 graph4PASS로 덮어쓰지 않으며, 실패한 역사 승인·분기·anchor를 변경하지 않는다.
+
+| 이슈 | 개발 판정 |
+| --- | --- |
+| 1 | 지원 규모·자원·동시성의 유한한 기준 확정 |
+| 2 | 동일 조건의100,000 identity 전후 소유량/RSS 측정 완료 |
+| 3 | 중복 상주량 개선과 ID·복구·삭제·pin/hold 영향 회귀 완료 |
+| 4 | idle snapshot 만료·후보 사본·예약 중 검색 갱신 비용과 혼합 부하 검증 완료 |
+| 5 | 실제 SigLIP2·tokenizer·contract·출처/라이선스·한영 품질 fixture 고정 |
+| 6 | 대표 frame/이벤트 snapshot 원본 연결·재색인·중단 복구·contract 분리 구현 |
+| 7 | exact top-k·threshold·안정 정렬·오류 경계 검증 완료 |
+| 8 | 실제 텍스트 검색·권한·현재 재생과 변경 영역 UI 재확인 완료 |
+| 9 | 설정 주기 색인·게시 세대/admission·취소·종료·재활성화 구현·검증 |
+| 10 | build·영향 회귀·독립 검토·문서/VERSION4.3.0·증거/임시정리 확인, 분할 커밋 후 push 단계 |
+
+릴리즈 잔여는 순서대로 다음과 같다. 아래 실행·공개 권한을 이번 개발 승인에서 추정하지 않는다.
+
+1. 릴리즈 cut의 안정화/build/Auth/media 및 영향 회귀, `verify-predev` 실행 범위와 격리 환경을 별도 승인한다.
+2. 필수30분과 Policy v4 실제 UI 전수 검증을 실행한다. 이번 focused UI와 fixture/정적 검사는 대체 증거가 아니다.
+3. 새 worker·자동 만료·FD 검증·추론 수명 변경 때문에120분 검증을 권장한다. 현재 gate/기능 매핑에서 필요성을 최종 판단하고 별도 실행 승인을 받는다.
+4. required CI·라이선스/배포 검토와 원본 기록 보존 확인을 마친 뒤 승인된 기록 정리 커밋을 만든다.
+5. 별도 승인으로 PR 생성·main 병합, 최종 main 재확인, signed annotated tag와 서명/원격hash 검증, source-only Release 공개와 실제 Latest 확인을 수행한다.
+6. 공개 결과 확인 후 별도 승인으로 로컬·원격 v4.3.0 브랜치를 삭제한다.
+
+지원 범위는 개발 계약의 제한 profile이다. 무기한 이력·임의 codec·장시간 운용 안정성,
+calibrated 사건 판단·얼굴/신원 검색·다음 버전 기능을 완료한 것으로 확대하지 않는다.
+
+최종 staged diff 검사의 첫 exit2는 원본 patch의 빈 context행 접두 공백과 실패 stdout의 빈 들여쓰기2행 때문이다. raw bytes와 검토 hash를 보존하기 위해 기존 `.gitattributes`의 불변 실행자료 방식에 따라 위두파일만 blank-at-eol에서 제외했다. 소스/문서의 공백 검사와 제품 합격 조건은 유지하며 원문을 trim하지 않았다. 마지막 [문서 링크 확인](visual-closeout-docs-links.log)은 exit0이다.

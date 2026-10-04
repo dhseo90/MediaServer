@@ -1,0 +1,18 @@
+src/analysis/event_snapshot_proof.cpp sha256=08bad6c90048b6ab880cf56bc96eb2141acbed74cd69ccda271fe24c75928df2
+src/domain/strict_json.cpp sha256=be1057725d0a0b54d705543ce635da6c832e4c53fbec008e91ad63c9a1d0f58b
+scripts/internal/event_snapshot_proof_smoke.cpp sha256=d61ea3951001057156c22b4dd3e5652efdd400c3251002fce21a10e1a4762c79
+command ['c++', '-std=c++17', '-O2', '-Wall', '-Wextra', '-Werror', '-Iinclude', '-DMEDIA_SERVER_USE_OPENSSL=1', 'src/analysis/event_snapshot_proof.cpp', 'src/domain/strict_json.cpp', 'scripts/internal/event_snapshot_proof_smoke.cpp', '-o', '/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v430-snapshot-epoch-proof-g75kej4x/proof-1', '-I/opt/homebrew/Cellar/openssl@3/3.6.2/include', '-L/opt/homebrew/Cellar/openssl@3/3.6.2/lib', '-lssl', '-lcrypto']
+
+exit=0
+command ['/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v430-snapshot-epoch-proof-g75kej4x/proof-1']
+PASS snapshot candidate proof checks=36
+
+exit=0
+command ['c++', '-std=c++17', '-O2', '-Wall', '-Wextra', '-Werror', '-Iinclude', '-DMEDIA_SERVER_USE_OPENSSL=0', 'src/analysis/event_snapshot_proof.cpp', 'src/domain/strict_json.cpp', 'scripts/internal/event_snapshot_proof_smoke.cpp', '-o', '/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v430-snapshot-epoch-proof-g75kej4x/proof-0']
+
+exit=0
+command ['/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v430-snapshot-epoch-proof-g75kej4x/proof-0']
+PASS snapshot candidate proof checks=2
+
+exit=0
+owned root absent=True

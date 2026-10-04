@@ -1,0 +1,8 @@
+command ['cmake', '--build', 'build-gst-onnx', '-j', '4']
+-- Configuring done (0.1s)
+-- Generating done (0.0s)
+-- Build files have been written to: /Users/dhseo/Workspace/mediaServer/build-gst-onnx
+[ 99%] Built target media_server_runtime
+[100%] Built target media_server
+
+exit=0

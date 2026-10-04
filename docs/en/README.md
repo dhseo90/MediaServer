@@ -50,7 +50,7 @@ external TURN/WHEP, and real ONVIF devices require their own field checks.
 | Review actual UI test requirements and documentation images | [UI fulltest criteria](../manual-ui-fulltest.md), [Image policy](../assets/ui/README.md) |
 | Prepare a release and distinguish source from published versions | [Release policy](../release-policy.md), [Versioning policy](../versioning-policy.md) |
 | Review unresolved work and future development | [Backlog](../development-backlog.md), [Recording and search roadmap](../v410-v49-recording-search-roadmap.md) |
-| Read version changes | [v4.2.0 structured search candidate](../release-notes-v4.2.0.md), [v4.1.1 release candidate notes](../release-notes-v4.1.1.md), [v4.1.0 release notes](../release-notes-v4.1.0.md), [Earlier release notes](../README.md#유지보수자-검증과-배포) |
+| Read version changes | [v4.3.0 visual search development](../release-notes-v4.3.0.md), [v4.2.0 structured search candidate](../release-notes-v4.2.0.md), [v4.1.1 release candidate notes](../release-notes-v4.1.1.md), [v4.1.0 release notes](../release-notes-v4.1.0.md), [Earlier release notes](../README.md#유지보수자-검증과-배포) |
 
 Documentation checks and representative screenshots do not establish product,
 UI fulltest, 30-minute, or 120-minute test results. The verification guides define

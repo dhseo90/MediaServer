@@ -1,0 +1,38 @@
+command: node --test scripts/internal/visual_search_ui_state.test.mjs
+✔ late query cannot revive results after changed input (4.430125ms)
+✔ late selection and old media events cannot change current player (1.057208ms)
+✔ permission and removed source errors never load media (1.126708ms)
+✔ unsafe playback URL and invalid seek time are rejected (0.946167ms)
+✔ same current position waits for decoded data and later manual seeking preserves completion (0.723583ms)
+✔ empty results and disabled state are distinguished (0.404458ms)
+✔ first completed seek outside frame tolerance is rejected (0.379958ms)
+✖ refresh clears previous result count during pending, success and failure (0.503917ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 7
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 37.583417
+
+✖ failing tests:
+
+test at scripts/internal/visual_search_ui_state.test.mjs:81:1
+✖ refresh clears previous result count during pending, success and failure (0.503917ms)
+  AssertionError [ERR_ASSERTION]: The input was expected to not match the regular expression /2개/. Input:
+  
+  '2개 유사 결과입니다. 실제 영상을 확인하세요.'
+  
+      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/visual_search_ui_state.test.mjs:85:57)
+      at async Test.run (node:internal/test_runner/test:1113:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: '2개 유사 결과입니다. 실제 영상을 확인하세요.',
+    expected: /2개/,
+    operator: 'doesNotMatch',
+    diff: 'simple'
+  }
+
+exit: 1

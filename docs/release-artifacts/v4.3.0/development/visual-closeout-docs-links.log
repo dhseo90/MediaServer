@@ -1,0 +1,12 @@
+command ['node', 'scripts/internal/verify_docs_links.mjs']
+
+== Docs link verification summary ==
+- markdown files: 299
+- local links: 9379
+- local images: 14
+- local anchors: 377
+- indexed docs: 91
+- index coverage exclusions: 191
+- failures: 0
+
+exit=0

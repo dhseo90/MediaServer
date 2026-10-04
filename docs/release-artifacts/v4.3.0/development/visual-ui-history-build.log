@@ -1,0 +1,4 @@
+[ 99%] Built target media_server_runtime
+[ 99%] Building CXX object CMakeFiles/media_server.dir/src/application/media_server_application.cpp.o
+[ 99%] Linking CXX executable media_server
+[100%] Built target media_server
