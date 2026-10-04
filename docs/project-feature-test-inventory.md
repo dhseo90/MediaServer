@@ -43,6 +43,17 @@ v4.4.0에 포함할 리뷰 지적 6건의 정상·오류·경계 기준이다. �
 | V440-PR77-05 | OpenSSL 두 발견 경로 모두 없는 SigLIP2 ON 구성은 configure 실패. 유효 hash/proof 생성과 현재 지원 표시 유지, crypto OFF 하위 함수의 안전한 실패 유지 | CMake/proof native | 비대상: 구성 검사 | 비대상: 구성 검사 | 지원 표시 회귀 |
 | V440-PR77-06 | 단일 추론/worker 제한을 유지한 ONNX 내부 연산4의 기존12개 text/image embedding·token parity(원래 오차 기준) 및 고정 retrieval 회귀. 지원 30fps/두파일·1초당 210원본frame·실제모델 준비≤45초, 허용 limit200 3회 실제결과200/max≤5초. 기존 opt-in completion trace의 visual-search-request에서 요청별 full preparation2과 reuse≥398 관측(실제 디스크 byte량과 구분). 경쟁 후보·동일 segment 반복 frame에서 요청 및 단일 Rebuild 내 검증 재사용. 현재 원장 envelope/row SHA·catalog/lifecycle 확인 뒤 strict 파싱 결과만 재사용. active 반복·정상 append·archive 회전·fork/owner·동일크기/다른행/ inode/symlink/hardlink 변조와 historical 회귀하며 성공·실패·취소·예외 반환 시 build cache 해제. 물리/native 증명·현재 식별자·권한·취소·5초 예산 유지, 응답까지 hold 유지 및 해제 후 retention 성공. 실제 3개3150-sample 파일/201개단일-frame/큰 유효V2 설명의 8MiB·200-entry eviction/oversized uncached 경계에서 재검증·정확 결과·논리 비용·FD/response hold 해제를 verify_visual_request_media_cache.py로 확인. 파일변조·교체·삭제 거부. 독립 frame decoder는 정확한 이전 keyframe에서 재개하고 실제 sample 시각±1ns만 허용하며 중간 시각·이웃 대체·EOF를 거부, FD offset·취소·5초 예산 유지. 실제 읽기/검증 횟수와 지연을 구분. 내부 재생 후보는 event만 투영하되 기존 full timeline을 독립 oracle로 비교한다: intent/complete·partial/미배치/파일누락·복구/출력삭제/원본삭제·다른채널·source revision 거부, 공개 timeline JSON·전체 삭제 이력·ID/순서/페이지 한도 불변. 실제 B 전환·재개방/retired receipt에서 관련 원본 archive의 cold/warm 손상(완료 job 원장 손상은 기존 request-proof 회귀)과 확인된 권위 상실은 출력 불변 거부. 별도 archive의 미소비 continuous 상세는 lazy 검증하며 full 조회 시 strict 거부. 누적 삭제 저장소 복사본에서 full timeline/재생 후보 비용을 각각 측정 | index/source/application 및 reader 회귀 | I420 두 채널 녹화·기존64MiB write예약+256KiB 보관 여유분의 quota로 순환삭제, 1초 scan/sample 실제 SigLIP2와 structured 각2개 동시검색/15초·양쪽 증거보존·재시작 뒤 PNG 불변, p95≤2초/max≤5초·RSS≤4GiB·격리 root≤448MiB | 보호 수명 최종 diff로 판정 | 결과와 선택 재생 |
 
+
+V440-PR77-02/06·V440-S01/R01의 120분 판정은 변경된 실제 경로에서 수행한다.
+2개 I420 160×90/30fps 녹화·2초 segment·1초 SigLIP2 scan/sample·15초마다 structured2+visual2 검색과
+증거 생성을 병행하고 원본 순환 삭제·원장 회전·현재 권위 재획득·원본 삭제 후 보존 PNG/manifest·재시작을 확인한다.
+실제 관측은120분 이상, 전체 실행 예산은123분이다. 성공 검색 p95≤2초/max≤5초, RSS≤4GiB,
+소유 variable root≤448MiB, observer≤100000 logical ID/32MiB, private log≤4MiB, sample gap≤15초와
+기존 source readiness15초를 유지한다. RSS/FD/thread/이력/진행·정리를 실측해 메인이 추세를 판정하며,
+사후 기울기0 기준을 추가하지 않는다. 이 경로의120분을 미변경 VA/Event POST 공통 반복으로 대체하지 않는다.
+45초 색인/200개 결과5초 기준은 PR77-06 focused 정의 그대로이며 이 혼합 부하의20개 검색과 구분한다.
+실행 recipe는 승인된 mixed observer에 `--duration-minutes 120`을 적용하며 당시 driver/계획/명령은 버전 실행 자료에 보존한다.
+
 ## v430 자원 수명과 벡터 검색
 
 계약·업무 순서는 [v4.3.0 개발 설계](superpowers/specs/2026-10-04-v430-visual-vector-search-design.md)에 둔다.

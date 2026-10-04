@@ -30,6 +30,81 @@
       "path": "docs/release-artifacts/v4.1.0/20260905-s05-identity-actual-rerun/verify-actual-rerun.mjs",
       "sha256": "0628b00fc2d5a2b48928ed77a7c9c9e1f00e07ef574b4a36c544cc0fe36b2e8c",
       "reason": "당시 실행 source의 해시 증거를 보존하므로 상단 주석을 변경하지 않는다."
+    },
+    {
+      "path": "docs/release-artifacts/v4.4.0/development/actual-ui-disabled-1/actual-ui.mjs",
+      "sha256": "3bfc102da8e8a814a280d25f86bff4c9f1f82a5a3e3f6b8244150251a02159c0",
+      "reason": "a5046c7f1에 보존한 당시 진단 실행 원문을 유지한다. 릴리즈 기록 정리 시 이 경로의 예외도 함께 제거한다."
+    },
+    {
+      "path": "docs/release-artifacts/v4.4.0/development/actual-ui-normal-1/actual-ui.mjs",
+      "sha256": "88988f0f574e8086d1347c0b2e67e323c2b822c95fd94d9838e44925de8b0dcf",
+      "reason": "a5046c7f1에 보존한 당시 진단 실행 원문을 유지한다. 릴리즈 기록 정리 시 이 경로의 예외도 함께 제거한다."
+    },
+    {
+      "path": "docs/release-artifacts/v4.4.0/development/actual-ui-normal-2/actual-ui.mjs",
+      "sha256": "4fd61b7cf10f827aca11278346d1237844335bfd206aeb0e6800a93843a93500",
+      "reason": "a5046c7f1에 보존한 당시 진단 실행 원문을 유지한다. 릴리즈 기록 정리 시 이 경로의 예외도 함께 제거한다."
+    },
+    {
+      "path": "docs/release-artifacts/v4.4.0/development/actual-ui-rich-1/actual-ui.mjs",
+      "sha256": "4fd61b7cf10f827aca11278346d1237844335bfd206aeb0e6800a93843a93500",
+      "reason": "a5046c7f1에 보존한 당시 진단 실행 원문을 유지한다. 릴리즈 기록 정리 시 이 경로의 예외도 함께 제거한다."
+    },
+    {
+      "path": "docs/release-artifacts/v4.4.0/development/actual-ui-rich-2/actual-ui.mjs",
+      "sha256": "cb7422afe642ffccdfdc49940464215e4243959df0a3cd09959b0cd9c0cea01d",
+      "reason": "a5046c7f1에 보존한 당시 진단 실행 원문을 유지한다. 릴리즈 기록 정리 시 이 경로의 예외도 함께 제거한다."
+    },
+    {
+      "path": "docs/release-artifacts/v4.4.0/development/actual-ui-rich-3/actual-ui.mjs",
+      "sha256": "3bfc102da8e8a814a280d25f86bff4c9f1f82a5a3e3f6b8244150251a02159c0",
+      "reason": "a5046c7f1에 보존한 당시 진단 실행 원문을 유지한다. 릴리즈 기록 정리 시 이 경로의 예외도 함께 제거한다."
+    },
+    {
+      "path": "docs/release-artifacts/v4.4.0/development/mixed-preparation/memory-decode-14/diagnostic.cpp",
+      "sha256": "2bac55008f67437436fffb4542fcd7a0c39155000aa09c024d62517f15301927",
+      "reason": "a5046c7f1에 보존한 당시 진단 실행 원문을 유지한다. 릴리즈 기록 정리 시 이 경로의 예외도 함께 제거한다."
+    },
+    {
+      "path": "docs/release-artifacts/v4.4.0/development/mixed-preparation/memory-history-11/diagnostic.cpp",
+      "sha256": "87b6835ad825dbc22f87d93cdeb80ac451770d4006a8adf71261c55f63c5fe07",
+      "reason": "a5046c7f1에 보존한 당시 진단 실행 원문을 유지한다. 릴리즈 기록 정리 시 이 경로의 예외도 함께 제거한다."
+    },
+    {
+      "path": "docs/release-artifacts/v4.4.0/development/mixed-preparation/memory-history-12/diagnostic.cpp",
+      "sha256": "1b690cd28220ba1da7742c9581cdbd3cf7d51a442f798bb3adfa359a315215b0",
+      "reason": "a5046c7f1에 보존한 당시 진단 실행 원문을 유지한다. 릴리즈 기록 정리 시 이 경로의 예외도 함께 제거한다."
+    },
+    {
+      "path": "docs/release-artifacts/v4.4.0/development/mixed-preparation/memory-history-13/diagnostic.cpp",
+      "sha256": "87a5a872c5f49b2c03cbd6e3e0308ca82a5ac25185f2d5306ef894eadf7e663e",
+      "reason": "a5046c7f1에 보존한 당시 진단 실행 원문을 유지한다. 릴리즈 기록 정리 시 이 경로의 예외도 함께 제거한다."
+    },
+    {
+      "path": "docs/release-artifacts/v4.4.0/development/mixed-preparation/mixed-diagnostic.cpp",
+      "sha256": "214ca1b8468926f36de208d9f653cdabd7079d5a3f0d4da578239180266fabc5",
+      "reason": "a5046c7f1에 보존한 당시 진단 실행 원문을 유지한다. 릴리즈 기록 정리 시 이 경로의 예외도 함께 제거한다."
+    },
+    {
+      "path": "docs/release-artifacts/v4.4.0/development/mixed-preparation/mixed-profile-8/profile.cpp",
+      "sha256": "917c12f4a9339e0fdda5c5b6100bc2ee034d49487617e55e6ab0820f4600929a",
+      "reason": "a5046c7f1에 보존한 당시 진단 실행 원문을 유지한다. 릴리즈 기록 정리 시 이 경로의 예외도 함께 제거한다."
+    },
+    {
+      "path": "docs/release-artifacts/v4.4.0/development/mixed-preparation/mixed-profile-9/profile.cpp",
+      "sha256": "917c12f4a9339e0fdda5c5b6100bc2ee034d49487617e55e6ab0820f4600929a",
+      "reason": "a5046c7f1에 보존한 당시 진단 실행 원문을 유지한다. 릴리즈 기록 정리 시 이 경로의 예외도 함께 제거한다."
+    },
+    {
+      "path": "docs/release-artifacts/v4.4.0/development/pr77-cache-boundaries-wrapper-12.py",
+      "sha256": "4a4edee4d8b104c075a7939d150b7a3433ab61ac391d83d53d4563fe86dee4b7",
+      "reason": "a5046c7f1에 보존한 당시 진단 실행 원문을 유지한다. 릴리즈 기록 정리 시 이 경로의 예외도 함께 제거한다."
+    },
+    {
+      "path": "docs/release-artifacts/v4.4.0/development/pr77-cache-boundaries-wrapper-13.py",
+      "sha256": "1cc987a630ab945c0cc5bf5b034207a1bf67cea9ce068a91c6f43bfd7132db62",
+      "reason": "a5046c7f1에 보존한 당시 진단 실행 원문을 유지한다. 릴리즈 기록 정리 시 이 경로의 예외도 함께 제거한다."
     }
   ],
   "headerPatterns": [
@@ -82,6 +157,36 @@
     },
     {
       "pattern": "^OPS_RENDERER_BYTE_BASELINE_(BEGIN|END)$"
+    },
+    {
+      "path": "docs/release-artifacts/v4.4.0/development/actual-ui-disabled-1/actual-ui.mjs",
+      "line": 16,
+      "pattern": "^Absence,\\ not\\ the\\ value,\\ selects\\ the\\ original\\ short\\ seed\\ in\\ the\\ native\\ preparation\\.$"
+    },
+    {
+      "path": "docs/release-artifacts/v4.4.0/development/actual-ui-normal-1/actual-ui.mjs",
+      "line": 16,
+      "pattern": "^Absence,\\ not\\ the\\ value,\\ selects\\ the\\ original\\ short\\ seed\\ in\\ the\\ native\\ preparation\\.$"
+    },
+    {
+      "path": "docs/release-artifacts/v4.4.0/development/actual-ui-normal-2/actual-ui.mjs",
+      "line": 16,
+      "pattern": "^Absence,\\ not\\ the\\ value,\\ selects\\ the\\ original\\ short\\ seed\\ in\\ the\\ native\\ preparation\\.$"
+    },
+    {
+      "path": "docs/release-artifacts/v4.4.0/development/actual-ui-rich-1/actual-ui.mjs",
+      "line": 16,
+      "pattern": "^Absence,\\ not\\ the\\ value,\\ selects\\ the\\ original\\ short\\ seed\\ in\\ the\\ native\\ preparation\\.$"
+    },
+    {
+      "path": "docs/release-artifacts/v4.4.0/development/actual-ui-rich-2/actual-ui.mjs",
+      "line": 16,
+      "pattern": "^Absence,\\ not\\ the\\ value,\\ selects\\ the\\ original\\ short\\ seed\\ in\\ the\\ native\\ preparation\\.$"
+    },
+    {
+      "path": "docs/release-artifacts/v4.4.0/development/actual-ui-rich-3/actual-ui.mjs",
+      "line": 16,
+      "pattern": "^Absence,\\ not\\ the\\ value,\\ selects\\ the\\ original\\ short\\ seed\\ in\\ the\\ native\\ preparation\\.$"
     }
   ]
 }

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""RequestMedia의 실제 저장소 경계만 검사한다. 모델 추론이나 서버/포트는 실행하지 않는다."""
+# 파일 용도: RequestMedia의 실제 저장소 경계를 검사하며 모델 추론이나 서버/포트는 실행하지 않는다.
 import argparse, hashlib, json, os, pathlib, shlex, shutil, subprocess, tempfile, time
 parser=argparse.ArgumentParser();parser.add_argument('--build',required=True);parser.add_argument('--output',required=True);args=parser.parse_args()
 repo=pathlib.Path(__file__).resolve().parents[2];build=(repo/args.build).resolve();output=(repo/args.output).resolve();output.parent.mkdir(parents=True,exist_ok=True)

@@ -10,7 +10,7 @@ auto CandidateKey(const recording::SearchPlaybackCandidate& c){return std::make_
         c.original.source_id,c.original.store_id,c.original.media_epoch_id,c.original.segment_id,
         c.original.time_base_num,c.original.time_base_den,c.original.start_pts,c.original.end_pts,
         c.event_id,c.output_segment_id,c.playable,c.provenance_verified,c.job_id);}
-// Full timeline is the unchanged independent oracle, including deleted/unplaced rows.
+// 삭제·미배치 행을 포함한 기존 전체 타임라인을 독립 기대값으로 사용한다.
 template<class S> bool SameEventCandidates(S& store,recording::RecordingSearchReader& search,
     const recording::RecordingSearchModel& model,const recording::RecordingSearchQuery& q) {
     recording::RecordingReadService read(store.catalog);
@@ -115,7 +115,7 @@ int main(int argc,char** argv){
         check(SameEventCandidates(unplaced,unplaced_search,*model,q)&&unplaced_search.PlaybackCandidates(*model,q,&candidates,&error)&&candidates.empty(),
             "unplaced partial event is not a proven UTC replacement");
 
-        // Production B ownership, retired receipts and cold archives, not the legacy A fixture.
+        // 실제 B 소유권과 퇴역 영수증·미캐시 archive를 재개방해 검사한다.
         for(const std::string mode:{"unrelated","related-cold","related-warm"}) {
             const auto root=std::filesystem::weakly_canonical(argv[1])/("generation-"+mode);
             recording::DerivedJobIntentV1 durable;recording::RecordingSegmentV2 unrelated_known,unrelated_unknown;
@@ -156,7 +156,7 @@ int main(int argc,char** argv){
                 if(!entry.is_regular_file()||(name.find("evidence-")!=0&&name.find("active-")!=0)||
                    entry.path()==runtime.journal().path()||entry.path().extension()!=".jsonl")continue;
                 std::ifstream in(entry.path(),std::ios::binary);std::string line;bool found=false,related=false;
-                // Bound/deleted rows may use the existing compressed physical envelope.
+                // 결속·삭제 행은 기존 압축 물리 envelope를 사용할 수 있다.
                 while(std::getline(in,line))if(!line.empty()) {
                     recording::RecordingMutationV1 mutation;
                     if(!recording::ParseRecordingMutationV1(line,&mutation,&error))throw std::runtime_error(error);
