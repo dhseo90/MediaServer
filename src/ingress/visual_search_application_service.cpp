@@ -1,5 +1,6 @@
 // 파일 용도: 현재 channel 권한·원본 검증 뒤 local text→video 검색과 재생을 연결한다.
 #include "ingress/visual_search_application_service.h"
+#include "ingress/evidence_application_service.h"
 #include "analysis/event_storage.h"
 #include <algorithm>
 #include <charconv>
@@ -190,5 +191,36 @@ ApplicationServiceResult VisualSearchApplicationService::Seek(const Query& raw,c
         if(!resolved)return Error(410,"visual-hit-unavailable");
         return {200,"OK","{\"hitId\":"+Quote(it->id)+","+Playback(*it,seek)+"}"};
     }catch(const std::exception&){return Error(503,"visual-search-unavailable");}
+}
+ApplicationServiceResult VisualSearchApplicationService::Evidence(const Query& raw,const Authorize& authorize,
+    EvidenceApplicationService& evidence){
+    try{
+        if(raw.size()!=2||!raw.count("hitId")||!raw.count("channelId")||Get(raw,"hitId").empty()||Get(raw,"hitId").size()>1024||
+            !recording::ValidateRecordingReferenceId(Get(raw,"channelId"),nullptr))return Error(400,"visual-invalid-query");
+        const auto channel=Get(raw,"channelId");if(!authorize||!authorize(channel))return Error(403,"recording-channel-forbidden");
+        if(!worker_||stopped_)return Error(503,"visual-search-unavailable");
+        Flight flight(requests_);if(!flight.admitted)return Error(503,"visual-search-busy");
+        std::vector<std::string> current;if(!channels_(&current))return Error(503,"visual-search-unavailable");
+        if(std::find(current.begin(),current.end(),channel)==current.end())return Error(410,"visual-channel-unavailable");
+        const auto index=worker_->Snapshot();if(!index)return Error(503,"visual-index-not-ready");
+        const auto id=Get(raw,"hitId");const auto& docs=index->documents();
+        const auto it=std::lower_bound(docs.begin(),docs.end(),id,[](const auto& d,const auto& key){return d.id<key;});
+        if(it==docs.end()||it->id!=id||it->channel_id!=channel)return Error(410,"visual-hit-unavailable");
+        const auto deadline=std::chrono::steady_clock::now()+std::chrono::seconds(5);
+        const auto expired=[&]{return stopped_||std::chrono::steady_clock::now()>=deadline;};
+        if(!it->event_id.empty()){
+            std::vector<recording::VisualSnapshotEvent> events;
+            if(!EventFacts(!options_.snapshot_directory.empty(),{channel},&events,expired))return Error(503,"visual-source-unavailable");
+            if(!CurrentEvent(*it,events,source_))return Error(410,"visual-hit-unavailable");
+        }
+        recording::SearchSeekTarget seek;std::unique_ptr<recording::ResolvedRecordingMedia> media;std::string error;
+        if(!source_.Resolve(*it,&seek,&media,&error,expired,deadline))return Error(410,"visual-hit-unavailable");
+        recording::SearchDocument hit;hit.id=it->id;hit.channel_id=it->channel_id;hit.segment_id=it->segment_id;
+        hit.media_pts=it->media_pts;hit.time_base_num=it->time_base_num;hit.time_base_den=it->time_base_den;
+        if(it->utc_ns&&*it->utc_ns<INT64_MAX){hit.start_ns=it->utc_ns;hit.end_ns=*it->utc_ns+1;}
+        hit.time_provenance="visual-source-mapping";
+        if(!it->event_id.empty())hit.event_ids.push_back(it->event_id);
+        return evidence.Create(hit,"visual",it->media_sha256,authorize);
+    }catch(...){return Error(503,"evidence-create-failed");}
 }
 } // namespace ingress

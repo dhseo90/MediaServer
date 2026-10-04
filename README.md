@@ -2,7 +2,7 @@
 
 [![Preflight](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml)
 [![Licensing and Artifact Guardrails](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml)
-![Source Version](https://img.shields.io/badge/source-4.3.0-informational)
+![Source Version](https://img.shields.io/badge/source-4.4.0-informational)
 
 RTSP/WebRTC 영상 중계, YOLO/ONNX 영상 분석, 상시·이벤트 녹화를 제공하는
 macOS/Linux용 C++17 미디어 서버입니다. 브라우저에서 채널과 분석 룰을 관리하고,
@@ -10,9 +10,9 @@ macOS/Linux용 C++17 미디어 서버입니다. 브라우저에서 채널과 분
 
 [English](README.en.md) · [문서](docs/README.md) ·
 [최신 릴리즈](https://github.com/dhseo90/MediaServer/releases/latest) ·
-[v4.3.0 변경 사항](docs/release-notes-v4.3.0.md)
+[v4.4.0 개발 변경 사항](docs/release-notes-v4.4.0.md)
 
-현재 소스와 공개 목표는 v4.3.0이며 릴리즈 검증 전입니다. 기록된 공개 버전은 v4.2.0입니다.
+현재 소스와 공개 목표는 v4.4.0이며 개발 구현·단기 검증을 마쳤고 릴리즈 검증이 남아 있습니다. 기록된 공개 버전은 v4.3.0입니다.
 현재 공개 상태는 위 최신 릴리즈 링크에서 확인하세요.
 
 ## 주요 기능

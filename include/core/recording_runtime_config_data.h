@@ -11,6 +11,7 @@
 namespace core {
 
 struct RecordingRuntimeConfigData {
+    bool evidence_enabled{false};
     bool visual_search_enabled{false};
     std::string visual_search_model_directory;
     int visual_search_scan_seconds{60};

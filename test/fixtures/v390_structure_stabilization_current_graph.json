@@ -11,8 +11,8 @@
     ".cpp",
     ".h"
   ],
-  "expectedProductionFiles": 349,
-  "expectedCppFiles": 159,
+  "expectedProductionFiles": 359,
+  "expectedCppFiles": 164,
   "moduleClassifiers": [
     {
       "id": "composition-root",
@@ -146,11 +146,21 @@
         "include/recording/visual_index_store.h",
         "src/recording/visual_index_store.cpp",
         "include/recording/visual_search_index.h",
-        "src/recording/visual_search_index.cpp"
+        "src/recording/visual_search_index.cpp",
+        "include/recording/evidence_frame_extractor.h",
+        "include/recording/evidence_package.h",
+        "include/recording/evidence_package_builder.h",
+        "include/recording/evidence_package_store.h",
+        "src/recording/evidence_frame_extractor.cpp",
+        "src/recording/evidence_package.cpp",
+        "src/recording/evidence_package_builder.cpp",
+        "src/recording/evidence_package_store.cpp",
+        "include/ingress/evidence_application_service.h",
+        "src/ingress/evidence_application_service.cpp"
       ],
       "prefixes": [],
-      "expectedFileCount": 100,
-      "expectedCppCount": 45
+      "expectedFileCount": 110,
+      "expectedCppCount": 50
     },
     {
       "id": "domain-and-registry-owners",
@@ -342,7 +352,7 @@
       "expectedCppCount": 16
     }
   ],
-  "expectedFileOwnershipSha256": "66cca6c721ba0380d514568d0a74ca299d7dccfbe1a1f2b388935482e1205d92",
+  "expectedFileOwnershipSha256": "28e0f9beb93f9ddeacd1c0ff5d24c5bf963df27fb949f3bb9f405ce5fe5a9634",
   "cmake": {
     "file": "CMakeLists.txt",
     "targets": [
@@ -433,6 +443,10 @@
           "src/recording/recording_search_model.cpp",
           "src/recording/recording_search_source.cpp",
           "src/recording/visual_search_index.cpp",
+          "src/recording/evidence_frame_extractor.cpp",
+          "src/recording/evidence_package.cpp",
+          "src/recording/evidence_package_store.cpp",
+          "src/recording/evidence_package_builder.cpp",
           "src/recording/visual_index_store.cpp",
           "src/recording/visual_index_worker.cpp",
           "src/recording/visual_frame_decoder.cpp",
@@ -476,6 +490,7 @@
           "src/recording/recording_derived_remux.cpp",
           "src/ingress/recording_search_application_service.cpp",
           "src/ingress/visual_search_application_service.cpp",
+          "src/ingress/evidence_application_service.cpp",
           "src/ingress/recording_application_service.cpp",
           "src/recording/retention_coordinator.cpp",
           "src/recording/recording_session_service.cpp",
@@ -508,9 +523,9 @@
           "src/ingress/gstreamer_rtsp_server.cpp",
           "src/core/youtube_resolver.cpp"
         ],
-        "productionSourceSha256": "8071da2bf296d423db2c3cd9e0071a261c78d3dd79ff85b64b6c3a37ab771742",
-        "declaredSourceCount": 157,
-        "defaultActiveSourceCount": 156,
+        "productionSourceSha256": "b14ac96d8601927e20def6bffb60cd5b6ae0ebd07e5d446d6e34773e4540a763",
+        "declaredSourceCount": 162,
+        "defaultActiveSourceCount": 161,
         "conditionalSources": [
           {
             "path": "src/core/youtube_resolver.cpp",
@@ -594,8 +609,8 @@
     },
     {
       "direction": "application-service-interfaces -> domain-and-registry-owners",
-      "witnessCount": 39,
-      "witnessSha256": "f25bff6319ea80a33a4aa6db85e766adc44ea4faf3b7c8566e1cc7cf8e810cec",
+      "witnessCount": 42,
+      "witnessSha256": "7a06a059473617a4ef9ecf57b81c00b6bb606094e5e4192c85cddf7e2c3e557f",
       "allowedByTarget": true
     },
     {
@@ -728,7 +743,7 @@
     },
     {
       "file": "src/ingress/webrtc_http_server_runtime.cpp",
-      "lineCount": 5312,
+      "lineCount": 5376,
       "primaryOwner": "transport-and-auth-adapter",
       "embeddedResponsibilities": [
         "ops-route-groups",
@@ -752,7 +767,7 @@
     },
     {
       "file": "src/ingress/product_ui_page_scripts.cpp",
-      "lineCount": 10723,
+      "lineCount": 10834,
       "primaryOwner": "product-ui-workspaces",
       "embeddedResponsibilities": [
         "ops-workspaces",

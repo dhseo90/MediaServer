@@ -113,7 +113,7 @@ VLM은 기본 비활성입니다. 모델 선택, runtime opt-in, 검토와 후�
 검증 도구의 준비 검사, 실제 제품·UI 실행, 30분·120분 검증은 각각 구분합니다.
 대표 이미지는 제품 화면 안내이며 UI 풀테스트나 릴리즈 실행 증거가 아닙니다.
 
-버전별 변경 사항: [v4.3.0 영상 유사도 검색 개발](release-notes-v4.3.0.md), [v4.2.0 구조화 검색 후보](release-notes-v4.2.0.md), [v4.1.1 릴리즈 후보](release-notes-v4.1.1.md),
+버전별 변경 사항: [v4.4.0 증거 패키지 개발](release-notes-v4.4.0.md), [v4.3.0 영상 유사도 검색 개발](release-notes-v4.3.0.md), [v4.2.0 구조화 검색 후보](release-notes-v4.2.0.md), [v4.1.1 릴리즈 후보](release-notes-v4.1.1.md),
 [v4.1.0](release-notes-v4.1.0.md),
 [v4.0.0](release-artifacts/v4.0.0/release-notes.md),
 [v3.9.1](release-artifacts/v3.9.1/release-notes.md),

@@ -20,7 +20,7 @@
 
 현재 소스는 상시·이벤트 녹화, 보존, 조회/재생과 구조화 녹화 검색을 포함한다.
 정확한 범위·제약은 [녹화 설정과 API](config-reference.md#recording-env),
-[사용자 흐름](ui-guide.md), 해당 [릴리즈 노트](release-notes-v4.3.0.md)를 따른다.
+[사용자 흐름](ui-guide.md), 해당 [릴리즈 노트](release-notes-v4.4.0.md)를 따른다.
 `source-only`는 배포 형태이며 녹화 미구현이나 live-only라는 뜻이 아니다.
 
 ## 버전 번호의 의미

@@ -452,6 +452,8 @@ int RunMediaServerApplication(int argc, char** argv) {
     ingress::GStreamerRtspServer gst_rtsp_server(session_manager, analysis_sessions);
     const auto webrtc_http_runtime_config = BuildWebRtcHttpRuntimeConfig(config);
     recording::RecordingReadService recording_reads(recording_catalog, config.analysis_event_clip_dir);
+    ingress::EvidenceApplicationService evidence_packages(recording_catalog, recording_reads,
+        config.evidence_enabled && config.recording_enabled, recording_root / "evidence-packages", config.recording_reserved_free_bytes);
     ingress::VisualSearchApplicationService::Options visual_options;
     visual_options.enabled = config.visual_search_enabled;
     visual_options.model_directory = config.visual_search_model_directory;
@@ -494,7 +496,7 @@ int RunMediaServerApplication(int argc, char** argv) {
             return true;
         }, [observation_projector] {
             return observation_projector ? observation_projector->GetStatus() : recording::AnalysisObservationProjector::Status{};
-        }, &visual_search);
+        }, &visual_search, &evidence_packages);
     ingress::WebRtcHttpServer webrtc_http_server(
         *webrtc_media_sessions,
         *analysis_session_lifecycle,
@@ -596,6 +598,7 @@ int RunMediaServerApplication(int argc, char** argv) {
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }
 
+    evidence_packages.Stop();
     webrtc_http_server.Stop();
     visual_search.Stop();
     gst_rtsp_server.Stop();

@@ -7,6 +7,7 @@
 #include <condition_variable>
 #include <deque>
 #include <filesystem>
+#include <functional>
 #include <memory>
 #include <mutex>
 #include <optional>
@@ -146,6 +147,9 @@ public:
                                      const std::string& store_id, std::string* error) const;
     bool Checkpoint(std::string* error);
     bool FindDerivedJob(const std::string& job_id,std::optional<DerivedJobRecordV1>* result,std::string* error) const;
+    // 기존 event/source에 한정한 얇은 ID 조회. 과거 job 본문 전체를 materialize하지 않는다.
+    bool FindEventDerivedJobIds(const std::string& channel,const std::string& event,const std::string& source_segment,
+        std::vector<std::string>* result,std::string* error,const std::function<bool()>& cancelled = {}) const;
     bool SnapshotDerivedJobs(std::vector<DerivedJobRecordV1>* result,std::string* error) const;
     bool SnapshotActiveDerivedJobs(std::size_t limit,std::vector<DerivedJobRecordV1>* result,bool* more,std::string* error) const;
     // 내부 caller는 실제 소유물 cleanup 완료 후 호출한다. 5.3b가 inode/경로 증명을 담당한다.

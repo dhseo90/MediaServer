@@ -1617,6 +1617,19 @@ void AppendOpsEventsPage(std::ostringstream& out) {
         <video id="opsVisualPlayer" controls preload="metadata" playsinline aria-label="영상 검색 결과 재생"></video>
         <p id="opsVisualPlayback" role="status">결과를 선택하면 현재 원본의 해당 시점으로 이동합니다.</p>
       </section>
+      <section class="section-card ops-workspace-wide ops-recording-search" data-testid="ops-evidence-packages">
+        <h3>보존한 증거 패키지</h3>
+        <p>검색 결과의 ‘증거 보존’으로 대표 프레임과 연결된 이벤트 영상을 보존합니다. 원본 순환 삭제와 별도로 유지하며, 자료가 빠진 패키지는 부분 보존으로 표시합니다.</p>
+        <div class="actions ops-recording-filters">
+          <label>카메라<select id="opsEvidenceChannel" aria-label="보존 증거 카메라"></select></label>
+          <button id="opsEvidenceRefresh" type="button" class="button-secondary">보존 목록 조회</button>
+          <button id="opsEvidenceNext" type="button" class="button-secondary" disabled>다음 목록</button>
+        </div>
+        <p id="opsEvidenceCreateStatus" role="status">자동으로 보존하지 않습니다. 검색 결과에서 자료를 선택하세요.</p>
+        <p id="opsEvidenceStatus" role="status">카메라를 선택해 보존 목록을 조회하세요.</p>
+        <div id="opsEvidenceRows" class="ops-recording-rows" aria-label="보존 패키지 목록"></div>
+        <div id="opsEvidenceDetail" aria-label="증거 패키지 상세" aria-live="polite"></div>
+      </section>
       <section class="section-card ops-workspace-wide incident-memory-search" data-testid="ops-events-semantic-search" data-incident-memory-search="local-index">
         <div class="toolbar">
           <div>

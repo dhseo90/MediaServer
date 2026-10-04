@@ -4,6 +4,26 @@
 종료 버전의 실행 시점·실패·승인 기록은 [Git 이력 안내](history/README.md)에서 조회한다.
 아래 역사 링크는 출처 조회용이며 일반 검사 실행의 입력이나 현재 승인·PASS가 아니다.
 
+## v440 증거 패키지
+
+[개발 계약](superpowers/specs/2026-10-04-v440-evidence-package-design.md)에 따른 실행 전 정의다.
+전체 구현 이후 검사하며 아래 행은 PASS 기록이 아니다.
+
+V440-M01의 native clip 경계에는 30fps 원본 정수 PTS와 native rational tick이 다른
+표본 하나만 관측된 요청을 포함한다. 선택된 ordinal/generation/track/PTS로 연결하며,
+GOP 디코드 의존 표본만 존재할 때는 관측 연관을 만들지 않는다.
+
+| 기능 ID | route/control/action과 독립 기대값 | 안정화 | 30분 | 120분 | UI |
+| --- | --- | --- | --- | --- | --- |
+| V440-C01 | EvidencePackageV1 codec: 모든 참조/nullable 시각/partial 이유 roundtrip, 중복 키·변조·unknown schema·과대 크기 거부, 실패 시 출력 불변 | native contract | 내부 | 내부 | 비대상 |
+| V440-F01 | 실제 V2 sample→FrameLocatorV1→packed RGB/PNG. 동일 추출/reopen 픽셀 hash 동일, 파일·sample·RGB·PNG hash 의미 분리, 잘못된 channel/PTS/UTC/index·삭제·corrupt 거부 | 실제 decoder native | 녹화 병행 | 수명 영향 판정 | 보존 이미지 |
+| V440-F02 | 1/8 frame 경계·시간순·동일 PTS 모호성·unknown UTC·range 공백·미지원 V1. 독립 sample 순서 oracle, 인접 frame 대체 금지 | native sequence | 녹화 병행 | 수명 영향 판정 | 순서·누락 안내 |
+| V440-M01 | hit/recording/clip/frame/track/event/observation 참조와 출처 보존. 실제 WithPlayback의 event-priority 선택 ID와 영상 event snapshot의 정확한 원본 sample에 연결된 기존 clip 보존. event 없는 대표 frame·다른 event/source/PTS는 clip 연관을 만들지 않음. 삭제 clip은 deleted partial, 없는 clip은 not-applicable, 삭제 원본 partial, checksum 불일치/I/O/timeout 실패. 생성 당시 manifest 불변, 현재 상태 분리 | builder/store native | 순환 병행 | 삭제/복구 영향 판정 | 상태 요약 |
+| V440-S01 | 원본 순환 삭제 후 보존 PNG/clip bytes·hash·ID 유지, reopen 동일. pending 미공개, 원자 게시 중단·중복 내용·corrupt·symlink/외부 경로 거부. hold 해제·원본 pin/재생 보호 유지 | storage/native 통합 | 필수 순환 | 필요성 판정 | 원본 삭제 안내/보존 재생 |
+| V440-A01 | POST search/evidence 및 visual-search/evidence: 서버 hit만 소비, forged/expired400·410, 생성 ops:write 추가, 혼합/타채널403, disabled503. GET evidence 목록/상세/assets 현재 역할/scope, viewer403·익명401·path/raw source/인증 비노출, no-store/nosniff | application·격리 HTTP | 병행 | 종료 영향 판정 | 직접 조작 |
+| V440-R01 | 동시 생성1·8frame·256MiB package·2GiB store·reserve·30초 경계, 초과에서 기존 증거 불변. 녹화/검색 진행·종료/실패 cleanup·peak RSS≤4GiB·격리 작업공간≤8GiB | bounded native 혼합 | 별도 승인 | 별도 승인 | 내부 |
+| V440-U01 | 기존 검색 결과→명시 보존→목록→상세→이미지/clip; disabled/partial/forbidden/expired/손상·늦은 응답·중복 클릭, light/dark/mobile 가독성, nav 유지·viewer 비노출 | 상태 회귀+변경영역 UI | 릴리즈 별도 | 영향 판정 | 실제 UI 풀테스트 별도 |
+
 ## v430 자원 수명과 벡터 검색
 
 계약·업무 순서는 [v4.3.0 개발 설계](superpowers/specs/2026-10-04-v430-visual-vector-search-design.md)에 둔다.

@@ -739,6 +739,23 @@ bool RecordingCatalog::FindDerivedJob(const std::string& id,
     if(found)*result=*found;
     if(error)error->clear();return true;
 }
+bool RecordingCatalog::FindEventDerivedJobIds(const std::string& channel,const std::string& event,const std::string& source,
+    std::vector<std::string>* result,std::string* error,const std::function<bool()>& cancelled) const {
+    recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__);
+    if(!result||!opened_||!derived_job_state_authoritative_||!CanReadLocked(error))return Fail(error,"evidence-clip-catalog-unavailable");
+    std::vector<std::string> ids;
+    for(const auto& [id,entry]:derived_jobs_){
+        if(cancelled&&cancelled())return Fail(error,"evidence-timeout");
+        if(entry.channel!=channel||entry.state!=DerivedJobState::Complete||
+            std::find(entry.source_ids.begin(),entry.source_ids.end(),source)==entry.source_ids.end())continue;
+        const auto ref=consumer_references_.find(entry.reference);
+        if(ref==consumer_references_.end())return Fail(error,"evidence-clip-reference-unavailable");
+        if(ref->second.kind!="event"||ref->second.channel_id!=channel||ref->second.owner_id!=event)continue;
+        if(ids.size()==4096)return Fail(error,"evidence-clip-candidate-capacity");
+        ids.push_back(id);
+    }
+    std::sort(ids.begin(),ids.end());*result=std::move(ids);if(error)error->clear();return true;
+}
 bool RecordingCatalog::SnapshotDerivedJobs(std::vector<DerivedJobRecordV1>* result,std::string* error) const {
     recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__);
     if(result)result->clear();

@@ -30,7 +30,7 @@ const flush=()=>new Promise(resolve=>setImmediate(resolve));
 function fixture(){
   const elements=new Map();const el=name=>{const id='opsVisual'+name;if(!elements.has(id))elements.set(id,new Element());elements.get(id).replaceHook=copy=>elements.set(id,copy);return elements.get(id);};
   const pending=[];
-  vm.runInNewContext(script,{window:{location:{pathname:'/ops/events'}},document:{getElementById:id=>el(id.slice(9)),createElement:()=>new Element()},URLSearchParams,Date,Number,BigInt,Error,Set,fetch:url=>new Promise(resolve=>pending.push({url,resolve}))});
+  vm.runInNewContext(script,{evidenceUi:null,window:{location:{pathname:'/ops/events'}},document:{getElementById:id=>el(id.slice(9)),createElement:()=>new Element()},URLSearchParams,Date,Number,BigInt,Error,Set,fetch:url=>new Promise(resolve=>pending.push({url,resolve}))});
   const answer=(entry,data,status=200)=>entry.resolve({ok:status===200,status,json:async()=>data});
   answer(pending.shift(),{enabled:true,searchAvailable:true,state:'ready',sampleSeconds:10,scanSeconds:60,channels:[{channelId:'1',indexedFrames:3,examinedSegments:3,unsupportedSegments:0}]});
   el('Text').value='붉은 장면';el('Limit').value='20';el('Threshold').value='-1';

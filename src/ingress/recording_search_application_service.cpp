@@ -157,4 +157,20 @@ ApplicationServiceResult RecordingApplicationService::SearchSeek(const Query& ra
         return {200,"OK",out.str()};
     }catch(const std::exception&){return Error(503,"recording-search-unavailable");}
 }
+ApplicationServiceResult RecordingApplicationService::SearchEvidence(const Query& raw,const std::string& principal,
+    const std::string& scope,const ChannelAuthorizer& authorize) const {
+    try {
+        recording::RecordingSearchQuery query;
+        if(!Parse(raw,true,&query))return Error(400,"invalid-recording-search-query");
+        if(principal.empty()||scope.empty()||!Authorized(query,authorize))return Error(403,"recording-channel-forbidden");
+        if(!enabled_||!evidence_)return EvidenceUnavailable();
+        std::shared_ptr<SearchState> state;
+        {std::lock_guard<std::mutex> lock(search_mutex_);state=search_state_;}
+        if(!state)return Error(410,"search-snapshot-expired");
+        std::shared_ptr<const recording::RecordingSearchModel> model;std::size_t position=0;std::string error;
+        if(!state->snapshots.ResolveHit(Get(raw,"snapshotId"),Get(raw,"hitId"),query,principal,scope,&model,&position,&error))
+            return error=="search-invalid-snapshot"?Error(400,error):Failure(error);
+        return evidence_->Create(model->documents()[position],"structured","",authorize);
+    }catch(...){return Error(503,"evidence-create-failed");}
+}
 } // namespace ingress

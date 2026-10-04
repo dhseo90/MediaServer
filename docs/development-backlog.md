@@ -6,14 +6,14 @@
 
 ## 현재 기준
 
-- 소스 버전과 릴리즈 목표는 `4.3.0`이다. 개발 범위와 검증·공개 상태는
-  [릴리즈 노트](release-notes-v4.3.0.md)에서 구분한다.
+- 소스 버전과 릴리즈 목표는 `4.4.0`이다. 증거 패키지 개발 범위와 검증·공개 상태는
+  [릴리즈 노트](release-notes-v4.4.0.md)에서 구분한다.
 - 저장소의 기록된 공개 버전·관측 시각·공개 URL의 기준은
   [릴리즈 metadata](release-policy.md#소스와-기록된-공개-상태)이며 원격 상태의 실시간 확인과 구분한다.
 - v4.1.0 녹화 기반은 [릴리즈 노트](release-notes-v4.1.0.md)의 구현 범위로 마감됐다.
   옛 S05·S10·S11 진행·실패 기록은 [Git 이력](history/README.md)에 있으며 현재 개발 과제가 아니다.
 - v4.2.0 개발 범위와 제한은 [릴리즈 노트](release-notes-v4.2.0.md)를 따른다.
-  v4.3.0은 승인된 구현·단기 검증과 로컬 공통 릴리즈 검증을 마쳤으며 required CI·공개 절차는 남아 있다. [개발 계약](superpowers/specs/2026-10-04-v430-visual-vector-search-design.md)을 따른다.
+  v4.3.0의 공개 관측은 릴리즈 metadata에 기록돼 있다. 이번 개발의 검증으로 대체하지 않는다. [개발 계약](superpowers/specs/2026-10-04-v430-visual-vector-search-design.md)을 따른다.
 
 ## 별도 승인 릴리즈
 
