@@ -27,6 +27,7 @@ std::optional<std::int64_t> Utc(const RecordingSegmentV2& segment,std::int64_t n
     return matches==1?result:std::nullopt;
 }
 }
+std::optional<std::int64_t> RecordingVisualSource::SampleUtc(const RecordingSegmentV2& segment,std::int64_t ns){return Utc(segment,ns);}
 bool RecordingVisualSource::SelectSamples(const RecordingSegmentV2& segment,const RecordingSourceBindingV1& binding,
     unsigned period,std::vector<VisualSearchDocument>* output,std::string* error,std::optional<std::int64_t> previous){
     if(!output||period<1||period>3600)return Fail(error,"visual-invalid-sample-period");
@@ -94,8 +95,17 @@ bool RecordingVisualSource::Collect(const std::vector<std::string>& channels,uns
     *output=std::move(docs);*coverage=std::move(counts);if(error)error->clear();return true;
 }
 bool RecordingVisualSource::Resolve(const VisualSearchDocument& doc,SearchSeekTarget* seek,
-    std::unique_ptr<ResolvedRecordingMedia>* output,std::string* error)const{
+    std::unique_ptr<ResolvedRecordingMedia>* output,std::string* error,const std::function<bool()>& cancelled,
+    std::chrono::steady_clock::time_point deadline)const{
+    const auto expired=[&]{return std::chrono::steady_clock::now()>=deadline||(cancelled&&cancelled());};
+    if(expired())return Fail(error,"visual-cancelled");
     if(!seek||!output||doc.time_base_num!=1||doc.time_base_den!=1000000000)return Fail(error,"visual-invalid-frame-reference");
+    if(!doc.event_id.empty()){
+        VisualSearchDocument current;
+        if(!SnapshotDocument(doc.event_id,doc.channel_id,&current,error)||current.id!=doc.id||current.segment_id!=doc.segment_id||
+            current.media_sha256!=doc.media_sha256||current.frame_sha256!=doc.frame_sha256||current.media_pts!=doc.media_pts)
+            return Fail(error,"visual-snapshot-changed");
+    }
     const auto segment=catalog_.FindSegmentV2ById(doc.segment_id);
     if(!segment||segment->channel_id!=doc.channel_id||segment->checksum_sha256!=doc.media_sha256)return Fail(error,"visual-source-unavailable");
     const auto binding=catalog_.FindSourceBinding(doc.segment_id);
@@ -103,16 +113,19 @@ bool RecordingVisualSource::Resolve(const VisualSearchDocument& doc,SearchSeekTa
     unsigned found=0;
     for(const auto& sample:binding->file_evidence->samples)if(sample.original_pts_ns==doc.media_pts&&sample.sample_sha256==doc.frame_sha256)++found;
     if(found!=1)return Fail(error,"visual-source-unavailable");
-    auto media=reader_.ResolveMedia(doc.channel_id,doc.segment_id);if(!media)return Fail(error,"visual-source-unavailable");
+    MediaInspectionOptions options;options.deadline=deadline;options.cancelled=cancelled;
+    auto media=reader_.ResolveMedia(doc.channel_id,doc.segment_id,std::move(options));if(!media)return Fail(error,expired()?"visual-cancelled":"visual-source-unavailable");
     SearchSeekTarget target;RecordingSearchReader search(catalog_,reader_);
-    if(!search.SourceSeek(doc.channel_id,doc.segment_id,doc.media_pts,1,1000000000,&target,error))return false;
+    if(!search.SourceSeek(doc.channel_id,doc.segment_id,doc.media_pts,1,1000000000,&target,error,media.get(),cancelled,deadline))return false;
+    if(expired())return Fail(error,"visual-cancelled");
     *seek=std::move(target);*output=std::move(media);if(error)error->clear();return true;
 }
 bool RecordingVisualSource::Encode(VisualSearchDocument* doc,analysis::Siglip2Encoder& encoder,
     std::string* error,const std::function<bool()>& cancelled)const{
     if(!doc)return Fail(error,"visual-invalid-frame-reference");
+    if(!doc->event_id.empty())return EncodeSnapshot(doc,encoder,error,cancelled);
     SearchSeekTarget seek;std::unique_ptr<ResolvedRecordingMedia> media;
-    if(!Resolve(*doc,&seek,&media,error))return false;
+    if(!Resolve(*doc,&seek,&media,error,cancelled))return false;
     const long double ns=static_cast<long double>(seek.seconds)*1000000000;
     if(!std::isfinite(ns)||ns<0||ns>=std::ldexp(1.0L,63))return Fail(error,"visual-invalid-frame-reference");
     VisualRgbFrame frame;

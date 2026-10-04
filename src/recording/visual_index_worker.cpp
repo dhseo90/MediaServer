@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <stdexcept>
 #include <unordered_map>
+#include <set>
 namespace recording {
 namespace {
 bool Same(const VisualSearchDocument& a,const VisualSearchDocument& b) {
@@ -53,12 +54,24 @@ bool VisualIndexWorker::Rebuild(const Cancelled& cancelled,std::string* error){
     }
     std::unordered_map<std::string,const VisualSearchDocument*> prior;
     if(base)for(const auto& row:base->documents())prior.emplace(row.id,&row);
+    std::set<std::pair<std::string,std::string>> unsupported_segments,unsupported_snapshots;
     for(auto& row:docs){
+        if(row.event_id.empty()&&unsupported_segments.count({row.channel_id,row.segment_id}))continue;
         if(cancelled())return Fail(error,"visual-cancelled");
         const auto found=prior.find(row.id);
         if(found!=prior.end()&&Same(row,*found->second))row.embedding=found->second->embedding;
-        else if(!encode_(&row,cancelled,error))return false;
+        else if(!encode_(&row,cancelled,error)){
+            if(cancelled())return Fail(error,"visual-cancelled");
+            if(!error||*error!="visual-frame-unsupported")return false;
+            if(row.event_id.empty())unsupported_segments.emplace(row.channel_id,row.segment_id);
+            else unsupported_snapshots.emplace(row.channel_id,row.id);
+            error->clear();
+        }
     }
+    docs.erase(std::remove_if(docs.begin(),docs.end(),[&](const auto& row){
+        return row.event_id.empty()?unsupported_segments.count({row.channel_id,row.segment_id})!=0:
+            unsupported_snapshots.count({row.channel_id,row.id})!=0;
+    }),docs.end());
     std::shared_ptr<const VisualSearchIndex> complete;
     if(!VisualSearchIndex::Build(VisualEmbeddingContract::Siglip2(),std::move(docs),&complete,error,limits_))return false;
     if(cancelled())return Fail(error,"visual-cancelled");
@@ -66,7 +79,10 @@ bool VisualIndexWorker::Rebuild(const Cancelled& cancelled,std::string* error){
     // Stop 뒤 cache는 완성본일 수 있지만 종료 중 새 메모리 게시를 하지 않는다.
     if(cancelled())return Fail(error,"visual-cancelled");
     {std::lock_guard lock(mutex_);retired_=current_;current_=std::move(complete);++status_.generation;
-        status_.documents=current_->documents().size();status_.state="ready";status_.error.clear();}
+        status_.documents=current_->documents().size();status_.state="ready";status_.error.clear();
+        status_.unsupported_segments.clear();status_.unsupported_snapshots.clear();
+        for(const auto& entry:unsupported_segments)++status_.unsupported_segments[entry.first];
+        for(const auto& entry:unsupported_snapshots)++status_.unsupported_snapshots[entry.first];}
     return true;
 }
 void VisualIndexWorker::Run(){

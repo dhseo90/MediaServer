@@ -6,12 +6,14 @@
 #include <condition_variable>
 #include <mutex>
 #include <thread>
+#include <map>
 
 namespace recording {
 struct VisualIndexWorkerStatus {
     std::string state{"stopped"}, error;
     std::uint64_t generation{0};
     std::size_t documents{0};
+    std::map<std::string,std::size_t> unsupported_segments,unsupported_snapshots;
 };
 class VisualIndexWorker {
 public:

@@ -46,6 +46,7 @@ add_library(media_server_runtime STATIC
     src/analysis/scene_context_builder.cpp
     src/analysis/scenario_engine.cpp
     src/analysis/snapshot_encoder.cpp
+    src/analysis/event_snapshot_proof.cpp
     src/analysis/track_state_manager.cpp
     src/analysis/tracked_object_metadata.cpp
     src/analysis/va_runtime_metadata.cpp
@@ -105,6 +106,7 @@ add_library(media_server_runtime STATIC
     src/recording/visual_index_worker.cpp
     src/recording/visual_frame_decoder.cpp
     src/recording/recording_visual_source.cpp
+    src/recording/recording_visual_snapshots.cpp
     src/recording/recording_search_reader.cpp
     src/recording/event_clip_deriver.cpp
     src/recording/event_recording_bridge.cpp

@@ -21,7 +21,7 @@ using Clock=std::chrono::steady_clock;
 struct Context {
     int fd;std::uint64_t bytes,offset{0};Clock::time_point deadline;
     std::function<bool()> cancelled;GstElement* pipeline;GstElement* convert;
-    std::mutex mutex;std::atomic<bool> failed{false},video{false};
+    std::mutex mutex;std::atomic<bool> failed{false},video{false},unsupported{false};
     bool Stop()const{return Clock::now()>=deadline||(cancelled&&cancelled());}
 };
 void Need(GstAppSrc* source,guint requested,gpointer user){
@@ -46,7 +46,11 @@ gboolean Seek(GstAppSrc*,guint64 offset,gpointer user){auto& c=*static_cast<Cont
 void Pad(GstElement*,GstPad* pad,gpointer user){
     auto& c=*static_cast<Context*>(user);GstCaps* caps=gst_pad_get_current_caps(pad);
     const char* type=caps&&gst_caps_get_size(caps)?gst_structure_get_name(gst_caps_get_structure(caps,0)):"";
-    const bool video=g_str_has_prefix(type,"video/x-raw");if(caps)gst_caps_unref(caps);
+    const bool video=g_str_has_prefix(type,"video/x-raw");
+    if(video&&caps){int width=0,height=0;const auto* shape=gst_caps_get_structure(caps,0);
+        if(gst_structure_get_int(shape,"width",&width)&&gst_structure_get_int(shape,"height",&height)&&
+            (width>4096||height>2160)){c.unsupported=true;c.failed=true;gst_caps_unref(caps);return;}}
+    if(caps)gst_caps_unref(caps);
     GstElement* sink=c.convert;
     if(video){if(c.video.exchange(true)){c.failed=true;return;}}
     else{sink=gst_element_factory_make("fakesink",nullptr);if(!sink){c.failed=true;return;}
@@ -101,7 +105,9 @@ bool DecodeVisualFrame(int fd,std::uint64_t bytes,std::int64_t target,VisualRgbF
             GstSample* sample=gst_app_sink_try_pull_sample(GST_APP_SINK(sink),20*GST_MSECOND);
             if(sample){found=Copy(sample,target,&result);gst_sample_unref(sample);if(found)break;}
             GstMessage* message=gst_bus_pop_filtered(bus,GST_MESSAGE_ERROR);
-            if(message){context.failed=true;gst_message_unref(message);break;}
+            if(message){GError* problem=nullptr;gst_message_parse_error(message,&problem,nullptr);
+                if(problem&&problem->domain==GST_STREAM_ERROR&&problem->code==GST_STREAM_ERROR_CODEC_NOT_FOUND)context.unsupported=true;
+                if(problem)g_error_free(problem);context.failed=true;gst_message_unref(message);break;}
             if(!sample&&gst_app_sink_is_eos(GST_APP_SINK(sink)))break;
         }
         gst_object_unref(bus);
@@ -122,6 +128,7 @@ bool DecodeVisualFrame(int fd,std::uint64_t bytes,std::int64_t target,VisualRgbF
 #endif
     if(bm.tv_nsec!=am.tv_nsec||bc.tv_nsec!=ac.tv_nsec||before.st_dev!=after.st_dev||before.st_ino!=after.st_ino||before.st_size!=after.st_size||
         before.st_mtime!=after.st_mtime||before.st_ctime!=after.st_ctime)return Fail(error,"visual-frame-file-changed");
+    if(context.unsupported)return Fail(error,"visual-frame-unsupported");
     if(context.failed||!found)return Fail(error,"visual-frame-unavailable");
     *output=std::move(result);if(error)error->clear();return true;
 #else

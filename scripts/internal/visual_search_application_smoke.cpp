@@ -74,10 +74,17 @@ int main(int argc,char** argv){try{
     Check(located.body.find("verified-native-file-presentation")!=std::string::npos&&located.body.find(doc.segment_id)!=std::string::npos,"exact existing playback contract");
     Check(service.Seek(seek,[](const auto&){return false;}).status==403,"scope revoked at selection");
     auto wrong=seek;wrong["hitId"]="unknown";Check(service.Seek(wrong,authorized).status==410,"unknown hit");
-    visible=false;Check(service.Seek(seek,authorized).status==410&&service.Search(q,authorized).status==410,"disabled current channel");visible=true;
+    visible=false;Check(service.Seek(seek,authorized).status==410&&service.Search(q,authorized).status==410,"removed current channel");visible=true;
     Check(runtime.catalog().MarkSegmentCorrupt(doc.segment_id,"container-invalid",&error),"current corruption");
     Check(service.Seek(seek,authorized).status==410,"old index cannot play corruption");
-    Ready(service,authorized);const auto after=service.Search(q,authorized);Check(after.status==200&&after.body.find(doc.id)==std::string::npos,"corrupt candidate excluded");
+    // 현재 게시본의 검증 실패는503, 다음 전체 재색인에서 corrupt 후보가 제외된 뒤200이다.
+    const auto rebuilt_deadline=std::chrono::steady_clock::now()+std::chrono::seconds(15);bool rebuilt=false;
+    while(std::chrono::steady_clock::now()<rebuilt_deadline){
+        const auto after=service.Search(q,authorized);
+        Check(after.status==503||(after.status==200&&after.body.find(doc.id)==std::string::npos),"corrupt never returned as healthy search result");
+        if(after.status==200){rebuilt=true;break;}std::this_thread::sleep_for(std::chrono::milliseconds(20));
+    }
+    Check(rebuilt,"complete rebuild excludes corrupt candidate");
     service.Stop();Check(service.Search(q,authorized).status==503,"stop rejects search");
     struct rusage usage{};Check(getrusage(RUSAGE_SELF,&usage)==0,"RSS observation");std::uint64_t peak=usage.ru_maxrss;
 #ifndef __APPLE__

@@ -128,6 +128,7 @@ struct DemuxContext {
     guint64 size;
     guint64 offset{0};
     Clock::time_point deadline;
+    std::function<bool()> cancelled;
     GstElement* pipeline;
     const char* expected_caps;
     std::mutex offset_mutex;
@@ -137,7 +138,7 @@ struct DemuxContext {
 void NeedData(GstAppSrc* source, guint length, gpointer user) {
     auto& c = *static_cast<DemuxContext*>(user);
     std::unique_lock<std::mutex> lock(c.offset_mutex);
-    if (Clock::now() >= c.deadline) { c.expired = true; gst_app_src_end_of_stream(source); return; }
+    if ((Clock::now() >= c.deadline || (c.cancelled && c.cancelled()))) { c.expired = true; gst_app_src_end_of_stream(source); return; }
     if (c.offset >= c.size) { gst_app_src_end_of_stream(source); return; }
     if (length > 16*1024*1024 || length == 0) { c.request_limit = true; gst_app_src_end_of_stream(source); return; }
     const auto amount = static_cast<gsize>(std::min<guint64>(c.size-c.offset,length));
@@ -148,7 +149,7 @@ void NeedData(GstAppSrc* source, guint length, gpointer user) {
         c.io_error = true; gst_app_src_end_of_stream(source); return;
     }
     gsize read_size = 0;
-    while (read_size < amount && Clock::now() < c.deadline) {
+    while (read_size < amount && Clock::now() < c.deadline && !(c.cancelled && c.cancelled())) {
         const auto got = ::pread(c.fd,map.data+read_size,std::min<gsize>(amount-read_size,65536),static_cast<off_t>(c.offset+read_size));
         if (got < 0 && errno == EINTR) continue;
         if (got <= 0) break;
@@ -193,7 +194,7 @@ void PadAdded(GstElement*, GstPad* pad, gpointer user) {
     if (!target || gst_pad_link(pad,target) != GST_PAD_LINK_OK || !gst_element_sync_state_with_parent(sink)) c.setup_error = true;
     if (target) gst_object_unref(target);
 }
-MediaInspectionResult Demux(Binding& binding, const RecordingMediaDescriptor& segment, Clock::time_point deadline) {
+MediaInspectionResult Demux(Binding& binding, const RecordingMediaDescriptor& segment, Clock::time_point deadline, const std::function<bool()>& cancelled = {}) {
     GError* init_error = nullptr;
     if (!gst_init_check(nullptr,nullptr,&init_error)) { if (init_error) g_error_free(init_error); return Unavailable("gstreamer-init"); }
     GstElement* pipeline = gst_pipeline_new(nullptr);
@@ -206,7 +207,7 @@ MediaInspectionResult Demux(Binding& binding, const RecordingMediaDescriptor& se
         if (demux) gst_object_unref(demux);
         return Unavailable("plugin-unavailable");
     }
-    DemuxContext context{binding.file_fd.value,static_cast<guint64>(binding.file_stat.st_size),0,deadline,pipeline,
+    DemuxContext context{binding.file_fd.value,static_cast<guint64>(binding.file_stat.st_size),0,deadline,cancelled,pipeline,
         segment.container == "webm" ? "video/x-vp8" : "video/x-h264",{}};
     GstAppSrcCallbacks callbacks{}; callbacks.need_data = NeedData; callbacks.seek_data = SeekData;
     gst_app_src_set_callbacks(GST_APP_SRC(source),&callbacks,&context,nullptr);
@@ -218,10 +219,13 @@ MediaInspectionResult Demux(Binding& binding, const RecordingMediaDescriptor& se
     auto result = Unavailable("pipeline-setup");
     if (gst_element_link(source,demux) && gst_element_set_state(pipeline,GST_STATE_PLAYING) != GST_STATE_CHANGE_FAILURE) {
         GstBus* bus = gst_element_get_bus(pipeline);
-        const auto remaining = deadline-Clock::now();
-        GstMessage* message = remaining > Clock::duration::zero() ? gst_bus_timed_pop_filtered(bus,
-            std::chrono::duration_cast<std::chrono::nanoseconds>(remaining).count(),
-            static_cast<GstMessageType>(GST_MESSAGE_EOS|GST_MESSAGE_ERROR)) : nullptr;
+        GstMessage* message = nullptr;
+        while (!message && Clock::now() < deadline && !(cancelled && cancelled())) {
+            const auto remaining = std::min(deadline-Clock::now(),Clock::duration(std::chrono::milliseconds(25)));
+            if (remaining <= Clock::duration::zero()) break;
+            message = gst_bus_timed_pop_filtered(bus,std::chrono::duration_cast<std::chrono::nanoseconds>(remaining).count(),
+                static_cast<GstMessageType>(GST_MESSAGE_EOS|GST_MESSAGE_ERROR));
+        }
         if (!message) result = Unavailable("timeout");
         else if (GST_MESSAGE_TYPE(message) == GST_MESSAGE_ERROR) {
             GError* error = nullptr; gchar* debug = nullptr; gst_message_parse_error(message,&error,&debug);
@@ -241,12 +245,12 @@ MediaInspectionResult Demux(Binding& binding, const RecordingMediaDescriptor& se
     if (context.io_error) result = Unavailable("read-error");
     if (context.setup_error) result = Unavailable("pipeline-setup");
     if (context.request_limit) result = Unavailable("request-limit");
-    if (context.expired || Clock::now() >= deadline) result = Unavailable("timeout");
+    if (context.expired || Clock::now() >= deadline || (cancelled && cancelled())) result = Unavailable("timeout");
     gst_object_unref(pipeline);
     return result;
 }
-MediaInspectionResult Inspect(Binding& binding, const RecordingMediaDescriptor& segment, Clock::time_point deadline) {
-    if (Clock::now() >= deadline) return Unavailable("timeout");
+MediaInspectionResult Inspect(Binding& binding, const RecordingMediaDescriptor& segment, Clock::time_point deadline, const std::function<bool()>& cancelled = {}) {
+    if ((Clock::now() >= deadline || (cancelled && cancelled()))) return Unavailable("timeout");
     if (!MetadataSupported(segment)) return Unavailable("unsupported-metadata");
     if (binding.missing) return Corrupt("missing-media",segment.retention_class == RecordingRetentionClass::Event ? "derived-media-missing" : "missing-media");
     if (static_cast<std::uint64_t>(binding.file_stat.st_size) != segment.size_bytes) return Corrupt("size-mismatch","checksum-mismatch");
@@ -255,7 +259,7 @@ MediaInspectionResult Inspect(Binding& binding, const RecordingMediaDescriptor& 
     std::array<unsigned char,65536> bytes{};
     off_t offset = 0;
     while (offset < binding.file_stat.st_size) {
-        if (Clock::now() >= deadline) { g_checksum_free(checksum); return Unavailable("timeout"); }
+        if ((Clock::now() >= deadline || (cancelled && cancelled()))) { g_checksum_free(checksum); return Unavailable("timeout"); }
         ssize_t got = ::pread(binding.file_fd.value,bytes.data(),std::min<off_t>(bytes.size(),binding.file_stat.st_size-offset),offset);
         if (got < 0 && errno == EINTR) continue;
         if (got <= 0) { g_checksum_free(checksum); return Unavailable("read-error"); }
@@ -263,9 +267,9 @@ MediaInspectionResult Inspect(Binding& binding, const RecordingMediaDescriptor& 
     }
     const bool matched = g_ascii_strcasecmp(g_checksum_get_string(checksum),segment.checksum_sha256.c_str()) == 0;
     g_checksum_free(checksum);
-    if (Clock::now() >= deadline) return Unavailable("timeout");
+    if ((Clock::now() >= deadline || (cancelled && cancelled()))) return Unavailable("timeout");
     if (!matched) return Corrupt("checksum-mismatch","checksum-mismatch");
-    return Demux(binding,segment,deadline);
+    return Demux(binding,segment,deadline,cancelled);
 }
 #endif
 } // namespace
@@ -273,10 +277,10 @@ MediaInspectionResult InspectRecordingPhysicalMedia(const std::filesystem::path&
     const std::filesystem::path& relative, const RecordingMediaDescriptor& segment, MediaInspectionOptions options) {
 #if MEDIA_SERVER_USE_GSTREAMER
     if (options.budget.count() <= 0 || options.budget > std::chrono::minutes(1)) return Unavailable("timeout");
-    const auto deadline = Clock::now()+options.budget;
+    const auto deadline = std::min(Clock::now()+options.budget,options.deadline);
     Binding binding;
     if (!binding.Open(root,relative)) return Unavailable("unsafe-or-unavailable-path");
-    auto result = Inspect(binding,segment,deadline);
+    auto result = Inspect(binding,segment,deadline,options.cancelled);
     if (!binding.Unchanged()) return Unavailable("file-changed");
     if (Clock::now() >= deadline) return Unavailable("timeout");
     return result;
@@ -288,7 +292,7 @@ MediaInspectionResult InspectRecordingPhysicalMedia(const std::filesystem::path&
 MediaInspectionResult InspectRecordingPhysicalMediaFd(int fd,const RecordingMediaDescriptor& descriptor,MediaInspectionOptions options) {
 #if MEDIA_SERVER_USE_GSTREAMER
     if(options.budget.count()<=0 || options.budget>std::chrono::minutes(1)) return Unavailable("timeout");
-    const auto deadline=Clock::now()+options.budget;
+    const auto deadline=std::min(Clock::now()+options.budget,options.deadline);
     Binding binding;
     binding.file_fd=Fd(::fcntl(fd,F_DUPFD_CLOEXEC,0));
     struct stat caller_before{},caller_after{},duplicate_after{};
@@ -298,7 +302,7 @@ MediaInspectionResult InspectRecordingPhysicalMediaFd(int fd,const RecordingMedi
        binding.file_stat.st_size<0 || !Stable(caller_before,binding.file_stat))
         return Unavailable("unsafe-or-unavailable-fd");
     // SHA와 demux 모두 이 복제 FD의 pread를 사용하며 caller의 offset을 바꾸지 않는다.
-    auto result=Inspect(binding,descriptor,deadline);
+    auto result=Inspect(binding,descriptor,deadline,options.cancelled);
     if(::fstat(fd,&caller_after)!=0 || ::fstat(binding.file_fd.value,&duplicate_after)!=0 ||
        !Stable(caller_before,caller_after) || !Stable(binding.file_stat,duplicate_after))
         return Unavailable("file-changed");
@@ -315,10 +319,10 @@ MediaInspectionResult InspectRecordingPhysicalMediaPair(const std::filesystem::p
 #if MEDIA_SERVER_USE_GSTREAMER
     if(options.budget.count()<=0||options.budget>std::chrono::minutes(1))return Unavailable("timeout");
     if(first==second||first.filename()==second.filename()||first.parent_path()!=second.parent_path())return Unavailable("invalid-pair");
-    const auto deadline=Clock::now()+options.budget;Binding a,b;
+    const auto deadline=std::min(Clock::now()+options.budget,options.deadline);Binding a,b;
     if(!a.Open(root,first,2)||!b.Open(root,second,2)||a.missing||b.missing||
        !Identity(a.parent_stat,b.parent_stat)||!Stable(a.file_stat,b.file_stat))return Unavailable("unsafe-pair");
-    auto result=Inspect(a,descriptor,deadline);
+    auto result=Inspect(a,descriptor,deadline,options.cancelled);
     if(!a.Unchanged()||!b.Unchanged())return Unavailable("pair-changed");
     if(Clock::now()>=deadline)return Unavailable("timeout");
     return result;
@@ -335,7 +339,7 @@ MediaInspectionResult InspectAndMarkRecordingMedia(RecordingCatalog& catalog,
     const std::string& segment_id, MediaInspectionOptions options) {
 #if MEDIA_SERVER_USE_GSTREAMER
     if (options.budget.count() <= 0 || options.budget > std::chrono::minutes(1)) return Unavailable("timeout");
-    const auto deadline = Clock::now()+options.budget;
+    const auto deadline = std::min(Clock::now()+options.budget,options.deadline);
     const auto segment = catalog.FindSegmentById(segment_id);
     const auto segment_v2 = segment?std::optional<RecordingSegmentV2>{}:catalog.FindSegmentV2ById(segment_id);
     const auto location = catalog.FindSegmentMediaLocation(segment_id);
@@ -346,7 +350,7 @@ MediaInspectionResult InspectAndMarkRecordingMedia(RecordingCatalog& catalog,
     const RecordingMediaDescriptor descriptor=segment?
         RecordingMediaDescriptor{segment->container,segment->video_codecs,segment->size_bytes,segment->checksum_sha256,segment->retention_class}:
         RecordingMediaDescriptor{segment_v2->container,segment_v2->video_codecs,segment_v2->size_bytes,segment_v2->checksum_sha256,segment_v2->retention_class};
-    auto result = Inspect(binding,descriptor,deadline);
+    auto result = Inspect(binding,descriptor,deadline,options.cancelled);
     if (!binding.Unchanged()) return Unavailable("file-changed");
     if (Clock::now() >= deadline) return Unavailable("timeout");
     const auto current = catalog.FindSegmentById(segment_id);

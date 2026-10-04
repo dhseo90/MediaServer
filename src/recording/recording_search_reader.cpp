@@ -159,7 +159,9 @@ bool RecordingSearchReader::PlaybackCandidates(const RecordingSearchModel& model
      catch(const std::length_error&){if(error)*error="search-playback-candidate-capacity";return false;}
 }
 bool RecordingSearchReader::SourceSeek(const std::string& channel,const std::string& segment,
-    std::int64_t pts,std::int32_t num,std::int32_t den,SearchSeekTarget* output,std::string* error) const {
+    std::int64_t pts,std::int32_t num,std::int32_t den,SearchSeekTarget* output,std::string* error,
+    const ResolvedRecordingMedia* verified_media,const std::function<bool()>& cancelled,
+    std::chrono::steady_clock::time_point deadline) const {
     const auto unavailable=[&](const char* reason){if(error)*error=reason;return false;};
     if(!output||pts<0||num<=0||den<=0)return unavailable("seek-unavailable-invalid-time");
     const __int128 scaled=static_cast<__int128>(pts)*num*1000000000;
@@ -168,10 +170,15 @@ bool RecordingSearchReader::SourceSeek(const std::string& channel,const std::str
     const auto binding=catalog_.FindSourceBinding(segment);
     if(!binding||binding->channel_id!=channel||binding->segment_id!=segment||!binding->file_evidence)
         return unavailable("seek-unavailable-file-evidence");
-    auto media=reader_.ResolveMedia(channel,segment);
-    if(!media)return unavailable("seek-unavailable-media");
+    const auto expired=[&]{return std::chrono::steady_clock::now()>=deadline||(cancelled&&cancelled());};
+    if(expired())return unavailable("seek-cancelled");
+    std::unique_ptr<ResolvedRecordingMedia> owned;
+    if(!verified_media){MediaInspectionOptions options;options.deadline=deadline;options.cancelled=cancelled;
+        owned=reader_.ResolveMedia(channel,segment,std::move(options));verified_media=owned.get();}
+    if(!verified_media)return unavailable(expired()?"seek-cancelled":"seek-unavailable-media");
     std::string evidence_error;
-    if(!VerifyRecordingFileEvidenceFd(media->fd(),*binding,&evidence_error))return unavailable("seek-unavailable-file-evidence");
+    if(!VerifyRecordingFileEvidenceFd(verified_media->fd(),*binding,&evidence_error,expired))
+        return unavailable(expired()?"seek-cancelled":"seek-unavailable-file-evidence");
     const auto& evidence=*binding->file_evidence;
     const RecordingFileSampleEvidenceV1* selected=nullptr;
     for(const auto& sample:evidence.samples)if(sample.original_pts_ns==ns){
@@ -192,6 +199,7 @@ bool RecordingSearchReader::SourceSeek(const std::string& channel,const std::str
     result.seconds=static_cast<double>(selected->native_pts-evidence.edit_media_time)/evidence.timescale;
     result.frame_duration_seconds=static_cast<double>(selected->native_duration)/evidence.timescale;
     result.sample_ordinal=selected->ordinal;result.basis="verified-native-file-presentation";
+    if(expired())return unavailable("seek-cancelled");
     *output=std::move(result);if(error)error->clear();return true;
 }
 bool RecordingSearchReader::DerivedSeek(const std::string& channel,const std::string& job_id,

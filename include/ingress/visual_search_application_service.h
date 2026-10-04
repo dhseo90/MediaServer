@@ -11,6 +11,7 @@ public:
     struct Options {
         bool enabled{false};
         std::string model_directory, cache_directory;
+        std::string snapshot_directory;
         unsigned scan_seconds{60}, sample_seconds{10};
     };
     using Channels = std::function<bool(std::vector<std::string>*)>;

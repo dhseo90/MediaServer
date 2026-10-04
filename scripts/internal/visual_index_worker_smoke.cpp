@@ -22,6 +22,8 @@ int main(int argc,char**argv){
             *docs={Row("a")};if(mode!=0)docs->push_back(Row("b"));
             if(mode==2||mode==4)docs->push_back(Row("c"));
             if(mode==5)docs->clear();
+            if(mode==6||mode==7){*docs={Row(mode==6?"unsupported":"corrupt"),Row("healthy")};
+                docs->front().segment_id="bad-file";docs->back().segment_id="good-file";}
             return true;
         };
         const auto encode=[&](auto* row,const auto& cancelled,std::string* error){
@@ -29,6 +31,8 @@ int main(int argc,char**argv){
             struct Guard{std::atomic<int>& n;~Guard(){--n;}}guard{active};
             if(mode==4){while(!cancelled())std::this_thread::sleep_for(2ms);return false;}
             if(mode==2){*error="secret";return false;}
+            if((mode==6||mode==7)&&row->segment_id=="bad-file"){
+                *error=mode==6?"visual-frame-unsupported":"visual-frame-file-changed";return false;}
             row->embedding.assign(768,0);row->embedding[0]=1;return true;
         };
         VisualIndexWorker worker(VisualIndexStore(argv[1]),source,encode,1h);
@@ -58,6 +62,14 @@ int main(int argc,char**argv){
         Check(worker.Snapshot()->documents().empty(),"deletion reflected");worker.Stop();
         std::shared_ptr<const VisualSearchIndex> disk;std::string error;
         Check(VisualIndexStore(argv[1]).Load(VisualEmbeddingContract::Siglip2(),&disk,&error)&&disk->documents().empty(),"restart cache complete");
+        mode=6;Check(worker.Start(),"mixed supported/unsupported restart");
+        Check(Wait([&]{return worker.Status().generation==5;}),"unsupported file does not block healthy publication");
+        Check(worker.Snapshot()->documents().size()==1&&worker.Snapshot()->documents().front().id=="healthy"&&
+            worker.Status().unsupported_segments.at("camera")==1,"healthy result and channel exclusion coverage");
+        mode=7;worker.RequestRebuild();
+        Check(Wait([&]{return worker.Status().state=="unavailable";}),"integrity failure still fails entire build");
+        Check(worker.Status().generation==5&&worker.Snapshot()->documents().front().id=="healthy","integrity failure never publishes partial");
+        worker.Stop();
         Check(maximum==1,"no encoder overlap");
         std::cout<<"PASS visual worker checks="<<checks<<" encodes="<<encodes<<" source_scans="<<sources<<"\n";return 0;
     }catch(const std::exception& e){std::cerr<<"FAIL "<<e.what()<<" checks="<<checks<<"\n";return 1;}

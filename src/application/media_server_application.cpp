@@ -458,12 +458,15 @@ int RunMediaServerApplication(int argc, char** argv) {
     visual_options.cache_directory = (recording_root / "visual-cache").string();
     visual_options.scan_seconds = config.visual_search_scan_seconds;
     visual_options.sample_seconds = config.visual_search_sample_seconds;
+    if(config.analysis_event_storage_enabled&&config.analysis_event_snapshot_hook_enabled)
+        visual_options.snapshot_directory=config.analysis_event_snapshot_dir;
     ingress::VisualSearchApplicationService visual_search(recording_catalog, recording_reads, visual_options,
         [](auto* channels) {
             std::vector<ingress::SourceViewApplicationService::SourceRecord> sources;
             std::vector<ingress::SourceViewApplicationService::PublishedViewRecord> views;
             if (!ingress::SourceViewApplicationService::Instance().Snapshot(&sources,&views,nullptr)) return false;
-            for (const auto& source : sources) if (source.enabled) channels->push_back(source.source_id);
+            // 수집 off인 기존 채널의 과거 녹화도 기존 scope 안에서 검색한다.
+            for (const auto& source : sources) channels->push_back(source.source_id);
             return true;
         });
     ingress::RecordingApplicationService recording_api(

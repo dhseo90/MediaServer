@@ -189,6 +189,7 @@ struct EventRecordQueryOptions {
     std::size_t limit{100};
     bool include_archives{false};
     bool search_facts_only{false}; // 내부 읽기 전용; 기존 JSON 조회 기본값은 유지한다.
+    std::function<bool()> cancelled; // 내부 조회 예산/종료 신호; 기본 조회 계약은 유지한다.
 };
 
 struct EventRecordQueryResult {

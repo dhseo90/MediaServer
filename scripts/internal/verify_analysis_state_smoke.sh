@@ -41,6 +41,8 @@ echo "[verify] build analysis state smoke: ${BUILD_DIR}"
   "${ROOT_DIR}/src/analysis/scenario_engine.cpp" \
   "${ROOT_DIR}/src/analysis/scene_context_builder.cpp" \
   "${ROOT_DIR}/src/analysis/snapshot_encoder.cpp" \
+  "${ROOT_DIR}/src/analysis/event_snapshot_proof.cpp" \
+  "${ROOT_DIR}/src/domain/strict_json.cpp" \
   "${ROOT_DIR}/src/analysis/track_state_manager.cpp" \
   "${ROOT_DIR}/src/analysis/va_runtime_metadata.cpp" \
   "${ROOT_DIR}/src/analysis/vlm_feature_retention.cpp" \
