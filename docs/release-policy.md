@@ -32,8 +32,9 @@
 ```
 
 현재 소스·공개 목표는 v4.3.0이며 [릴리즈 노트](release-notes-v4.3.0.md)에 개발 범위와 제한을 설명한다.
-릴리즈 검증·외부 공개는 아직 수행하지 않았다. `priorPublishedTag`는 기록된 공개 v4.2.0이며,
-위 `published`의 관측 시각과 URL은 기존 근거를 유지한다. 이번 개발에서 원격 공개 상태를 재조회한 것은 아니다.
+로컬 릴리즈 검증과 PR #77의 required CI를 통과했다. 외부 공개는 별도 확인한다.
+`priorPublishedTag`는 기록된 공개 v4.2.0이며,
+위 `published`의 관측 시각과 URL은 기존 근거를 유지한다. 공개 후 실제 Latest·태그 검증 결과에 따라 관측 값을 갱신한다.
 [녹화·검색 로드맵](v410-v49-recording-search-roadmap.md)의 구현·잔여 계획과
 [GitHub Latest](https://github.com/dhseo90/MediaServer/releases/latest)의 공개 상태를 구분한다.
 
