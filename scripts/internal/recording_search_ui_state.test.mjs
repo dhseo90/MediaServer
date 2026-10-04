@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 const source=fs.readFileSync(new URL('../../src/ingress/product_ui_page_scripts.cpp',import.meta.url),'utf8');
 const start=source.indexOf("        if (window.location.pathname === '/ops/events' && document.getElementById('opsSearchForm')) {");
-const end=source.indexOf("        document.getElementById('eventRecordsEvidenceSelect')",start);
+const end=source.indexOf("        if (window.location.pathname === '/ops/events' && document.getElementById('opsVisualForm')) {",start);
 assert(start>=0&&end>start);
 const script=source.slice(start,end);
 class Element {

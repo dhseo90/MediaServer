@@ -10508,6 +10508,96 @@ void AppendOpsShellScript(std::ostringstream& out,
             if (el('Channels').options.length) el('Channels').options[0].selected = true;
           }).catch(error => say('Status', error.message));
         }
+        if (window.location.pathname === '/ops/events' && document.getElementById('opsVisualForm')) {
+          const el = name => document.getElementById('opsVisual' + name);
+          const say = (name, text) => { el(name).textContent = text; };
+          let revision = 0, selection = 0, player = el('Player'), enabled = false;
+          const read = async (path, params) => {
+            const response = await fetch('/ops/api/recordings/visual-search' + path + (params ? '?' + params : ''), { credentials: 'same-origin', cache: 'no-store' });
+            if (!response.ok) throw new Error(response.status === 401 || response.status === 403 ? '이 카메라를 검색할 권한이 없습니다.' : response.status === 400 ? '검색 조건을 확인하세요.' : response.status === 410 ? '현재 결과를 사용할 수 없습니다. 다시 검색하세요.' : '모델 또는 색인이 준비되지 않았거나 사용 중입니다. 상태를 새로고침하고 다시 시도하세요.');
+            return response.json();
+          };
+          const clearPlayer = () => {
+            ++selection; player.pause(); player.removeAttribute('src'); player.load();
+            const previous = player; player = previous.cloneNode(false); previous.replaceWith(player);
+            say('Playback', '결과를 선택하면 현재 원본의 해당 시점으로 이동합니다.');
+          };
+          const invalidate = () => {
+            ++revision; clearPlayer(); el('Rows').replaceChildren(); el('Submit').disabled = !enabled;
+            say('Status', '조건이 변경됐습니다. 장면 검색을 눌러 조회하세요.');
+          };
+          const status = async () => {
+            const version = ++revision; clearPlayer(); el('Rows').replaceChildren(); el('Submit').disabled = true;
+            say('Status', '색인 상태를 확인하는 중입니다. 이전 결과를 지웠습니다.');
+            try {
+              const data = await read('/status'); if (version !== revision) return;
+              const selected = new Set([...el('Channels').selectedOptions].map(option => option.value));
+              if (!Array.isArray(data.channels)) throw new Error('색인 상태를 읽지 못했습니다.');
+              el('Channels').replaceChildren(...data.channels.map(channel => {
+                const option = document.createElement('option'); option.value = channel.channelId; option.textContent = channel.channelId;
+                option.selected = selected.has(channel.channelId); return option;
+              }));
+              if (!el('Channels').selectedOptions.length && el('Channels').options.length) el('Channels').options[0].selected = true;
+              enabled = data.enabled && data.searchAvailable === true;
+              const state = { disabled: '비활성', starting: '준비 중', indexing: '색인 중', ready: '검색 가능', unavailable: '색인 준비 실패', stopped: '중지' }[data.state] || '미확인';
+              const counts = data.channels.map(c => `${c.channelId}: 색인 ${c.indexedFrames}프레임 · 최근 스캔 ${c.examinedSegments}파일 · 미지원 ${c.unsupportedSegments}파일 / ${c.unsupportedSnapshots || 0}스냅샷`).join(' / ');
+              const snapshots = data.eventSnapshots === 'verified-original-pixels' ? '원본 픽셀을 대조한 이벤트 스냅샷 포함' : '이벤트 스냅샷 색인 비활성';
+              say('Coverage', `${state}${data.enabled ? ' · 추출 간격 ' + data.sampleSeconds + '초 / 재확인 ' + data.scanSeconds + '초' : ''}${counts ? ' · ' + counts : ''} · ${snapshots}. 증거가 없는 기존 스냅샷은 제외됩니다.`);
+            say('Status', enabled ? '색인 상태를 갱신했습니다. 장면을 다시 검색하세요.' : '현재 검색을 사용할 수 없습니다. 색인 상태를 확인하세요.');
+            } catch (error) { if (version === revision) { enabled = false; say('Coverage', error.message); say('Status', '색인 상태를 확인하지 못했습니다. 다시 새로고침하세요.'); } }
+            finally { if (version === revision) el('Submit').disabled = !enabled; }
+          };
+          const select = async item => {
+            clearPlayer(); const version = selection; say('Playback', '현재 원본과 재생 위치를 확인하는 중…');
+            try {
+              const data = await read('/seek', new URLSearchParams({ channelId: item.channelId, hitId: item.id }));
+              if (version !== selection) return;
+              if (!data.playable || !data.seekAvailable || !/^\/ops\/api\/recordings\/media\/[A-Za-z0-9._:-]+$/.test(data.playbackUrl || '') || !Number.isFinite(data.targetSeconds) || data.targetSeconds < 0 || !Number.isFinite(data.frameDurationSeconds) || data.frameDurationSeconds <= 0) throw new Error('재생 위치를 확인하지 못했습니다.');
+              const media = player; let applied = false, seeked = false, settled = false;
+              const current = () => version === selection && media === player;
+              const finish = () => {
+                if (!current() || settled || !applied || !seeked || media.seeking || media.readyState < 2 || media.error) return;
+                settled = true;
+                say('Playback', Math.abs(media.currentTime - data.targetSeconds) <= data.frameDurationSeconds ? '검색 시점으로 이동했습니다. 재생 버튼을 누르세요.' : '검색 위치로 이동하지 못했습니다. 다시 선택하세요.');
+              };
+              media.addEventListener('loadedmetadata', () => {
+                if (!current() || applied) return;
+                if (!Number.isFinite(media.duration) || data.targetSeconds >= media.duration) { say('Playback', '검색 위치가 현재 파일 범위를 벗어났습니다.'); return; }
+                applied = true; seeked = media.currentTime === data.targetSeconds;
+                if (!seeked) media.currentTime = data.targetSeconds; finish();
+              });
+              media.addEventListener('seeked', () => { seeked = true; finish(); });
+              media.addEventListener('loadeddata', finish);
+              media.addEventListener('error', () => { if (current()) say('Playback', '영상 재생에 실패했습니다. 현재 파일과 브라우저 지원을 확인하세요.'); });
+              player.src = data.playbackUrl; player.load();
+            } catch (error) { if (version === selection) say('Playback', error.message); }
+          };
+          el('Form').addEventListener('submit', async event => {
+            event.preventDefault(); const version = ++revision; clearPlayer(); el('Rows').replaceChildren();
+            const ids = [...el('Channels').selectedOptions].map(option => option.value);
+            const params = new URLSearchParams({ channelIds: ids.join(','), text: el('Text').value, limit: el('Limit').value, threshold: el('Threshold').value });
+            if (el('Start').value || el('End').value) {
+              const a = Date.parse(el('Start').value), b = Date.parse(el('End').value);
+              if (!Number.isSafeInteger(a) || !Number.isSafeInteger(b) || a < 0 || a >= b) { say('Status', '시작과 종료 시간을 모두 올바르게 입력하세요.'); return; }
+              params.set('startTimeMs', String(a)); params.set('endTimeMs', String(b));
+            }
+            el('Submit').disabled = true; say('Status', '장면을 검색하는 중…');
+            try {
+              const data = await read('', params); if (version !== revision) return;
+              if (!Array.isArray(data.items)) throw new Error('검색 응답을 읽지 못했습니다.');
+              for (const item of data.items) {
+                const button = document.createElement('button'); button.type = 'button'; button.className = 'button-secondary';
+                const stamp = typeof item.timeNs === 'string' && /^[0-9]+$/.test(item.timeNs) ? new Date(Number(BigInt(item.timeNs) / 1000000n)).toLocaleString() : '시간 미확인';
+                button.textContent = `${item.channelId} · ${stamp} · 유사도 ${Number(item.score).toFixed(3)}`;
+                button.addEventListener('click', () => select(item)); el('Rows').append(button);
+              }
+              say('Status', data.items.length ? `${data.items.length}개 유사 결과입니다. 실제 영상을 확인하세요.` : '조건에 맞는 색인 프레임이 없습니다.');
+            } catch (error) { if (version === revision) say('Status', error.message); }
+            finally { if (version === revision) el('Submit').disabled = !enabled; }
+          });
+          el('Form').addEventListener('input', invalidate); el('Form').addEventListener('change', invalidate);
+          el('Refresh').addEventListener('click', status); status();
+        }
         document.getElementById('eventRecordsEvidenceSelect')?.addEventListener('change', () => {
           opsEventRecordsOffset = 0;
           refreshEvents().catch(error => setText('eventRecordSummary', error.message));
