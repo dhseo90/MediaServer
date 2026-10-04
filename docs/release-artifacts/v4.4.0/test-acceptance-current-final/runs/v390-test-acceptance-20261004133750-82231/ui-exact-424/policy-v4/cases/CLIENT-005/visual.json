@@ -1,0 +1,9 @@
+{
+  "schema": "media-server.ui-raw-visual-capture.v1",
+  "caseId": "CLIENT-005",
+  "correlationId": "CLIENT-005:activate-control:completion",
+  "targetSelector": "#liveAllStop",
+  "screenshotSha256": "450bf76c97b74f77f3b00c5643b602ace1ddad2b428e95cd47fc00e43d45764f",
+  "measurementSha256": "92cd290c8ec5103acc2053eb566d793b144784ae21d70d259a0e6f3b943af061",
+  "qualificationStatus": "unqualified-raw-capture"
+}

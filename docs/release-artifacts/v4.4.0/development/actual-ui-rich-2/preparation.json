@@ -1,0 +1,58 @@
+{
+  "schema": "media-server.evidence-http-auth.v1",
+  "featureId": "V440-U01-PREPARATION",
+  "status": "PASS",
+  "scope": "actual loopback HTTP, model OFF; separate from actual-model API and actual UI",
+  "startedAtMs": 1791130630752,
+  "command": "node scripts/internal/evidence_http_checks.mjs",
+  "checks": [
+    {
+      "id": "V440-A01 plaintext credentials absent",
+      "status": "PASS",
+      "expected": true,
+      "actual": true
+    },
+    {
+      "id": "V440-A01 authstore private mode",
+      "status": "PASS",
+      "expected": 384,
+      "actual": 384
+    }
+  ],
+  "cleanup": {
+    "root": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-evidence-http-mcg1oQ",
+    "rootIdentity": "16777232:168324688",
+    "rootAbsent": true,
+    "process": {
+      "exited": true,
+      "forced": false,
+      "exitCode": 0,
+      "signalCode": null
+    },
+    "http": {
+      "closed": true,
+      "evidence": "ECONNREFUSED"
+    },
+    "rtsp": {
+      "closed": true,
+      "evidence": "ECONNREFUSED"
+    },
+    "udpClosed": true
+  },
+  "modelInference": false,
+  "totalBudgetMs": 360000,
+  "workBudgetMs": 345000,
+  "actualUiPass": false,
+  "binarySha256": "b3b996b81d676fb11a7d1145ffcc6d774005bcb5ca83013ad3c37640f8d5eb8f",
+  "sourceSha256": "7483c7ddfd0dc0b9b6e69718252f29a768d285e64ecfbc849d4ff2bd51926e4b",
+  "ports": {
+    "http": 61666,
+    "rtsp": 61665,
+    "udp": 61770
+  },
+  "fixtureSha256": "560a820777f45440782eb119e8c30b71c88730e696c9594576d737cd4cc73d7c",
+  "pid": 31435,
+  "finishedAtMs": 1791130646777,
+  "elapsedMs": 16025,
+  "exit": 0
+}

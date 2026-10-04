@@ -1,0 +1,84 @@
+{
+  "status": 200,
+  "query": {
+    "channelIds": "1",
+    "startTimeMs": "1791136260000",
+    "endTimeMs": "1791136320000",
+    "limit": "50",
+    "includeUnplaced": "true",
+    "object": "epoch-collision",
+    "track": "track-7"
+  },
+  "normalizedQuery": {
+    "channels": [
+      "1"
+    ],
+    "startTimeMs": 1791136260000,
+    "endTimeMs": 1791136320000,
+    "includeUnplaced": true,
+    "limit": 50,
+    "filters": {
+      "object": [
+        "epoch-collision"
+      ],
+      "track": [
+        "track-7"
+      ],
+      "event": [],
+      "zone": [],
+      "rule": [],
+      "behaviour": []
+    }
+  },
+  "body": {
+    "schema": "media-server.recording-search.v1",
+    "snapshotId": "6dfbf1ee7d91d59cf92b33da16da8f81",
+    "nextCursor": null,
+    "knownCount": 0,
+    "unplacedCount": 2,
+    "items": [
+      {
+        "id": "o2:18:ui-release-epoch-0",
+        "channelId": "1",
+        "kind": "observation",
+        "segmentId": "",
+        "observationId": "ui-release-epoch-0",
+        "startTimeNs": null,
+        "endTimeNs": null,
+        "timeProvenance": "",
+        "uncertaintyNs": null,
+        "object": "epoch-collision",
+        "track": "track-7",
+        "eventIds": [],
+        "zoneIds": [],
+        "ruleIds": [],
+        "playable": false,
+        "playbackUrl": "",
+        "preferredEventId": "",
+        "selectionReason": "original",
+        "unavailableReason": "unresolved-original"
+      },
+      {
+        "id": "o2:18:ui-release-epoch-1",
+        "channelId": "1",
+        "kind": "observation",
+        "segmentId": "",
+        "observationId": "ui-release-epoch-1",
+        "startTimeNs": null,
+        "endTimeNs": null,
+        "timeProvenance": "",
+        "uncertaintyNs": null,
+        "object": "epoch-collision",
+        "track": "track-7",
+        "eventIds": [],
+        "zoneIds": [],
+        "ruleIds": [],
+        "playable": false,
+        "playbackUrl": "",
+        "preferredEventId": "",
+        "selectionReason": "original",
+        "unavailableReason": "unresolved-original"
+      }
+    ]
+  }
+}

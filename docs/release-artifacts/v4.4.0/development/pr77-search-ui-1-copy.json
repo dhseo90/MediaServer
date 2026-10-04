@@ -1,0 +1,65 @@
+{
+  "copiedAt": "2026-10-04T17:52:41.667559+00:00",
+  "source": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-recording-ui-acceptance-v440-btxieehz",
+  "ownership": {
+    "dev": 16777232,
+    "ino": 168525517,
+    "uid": 501
+  },
+  "destination": "docs/release-artifacts/v4.4.0/development/pr77-search-ui-1-artifacts",
+  "sameBytes": true,
+  "files": [
+    {
+      "path": "artifacts.json",
+      "bytes": 1526,
+      "sha256": "f6dc37f17f3eb9509defd1f2fc5ad1456517189a003453e9873141c1c5fd95f0"
+    },
+    {
+      "path": "console.json",
+      "bytes": 3,
+      "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
+    },
+    {
+      "path": "network.json",
+      "bytes": 3892,
+      "sha256": "a149fd31242a327e51bc2cbfc5ada13839f03e3e4a668643fe6b6698141afa28"
+    },
+    {
+      "path": "provenance.json",
+      "bytes": 1358,
+      "sha256": "c0157ef6ca3cd832aa8a791a52fb386c4199c5e8a30439834db94c3f41960054"
+    },
+    {
+      "path": "response-2.json",
+      "bytes": 5542,
+      "sha256": "4e50e313b3f81093d7066c4d15e027af0eea784335962c87e2b47cf74da4a004"
+    },
+    {
+      "path": "results.json",
+      "bytes": 3082,
+      "sha256": "86e9ac2cf7982f24e1250ae7ee68cebad01f4af988e1bb920d22e19d2f20131c"
+    },
+    {
+      "path": "screenshots.json",
+      "bytes": 3,
+      "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
+    },
+    {
+      "path": "seed-oracle.json",
+      "bytes": 215990,
+      "sha256": "979944931df33f637904ad027d940ca0980e36bda55ff186675c0e6f066533ee"
+    },
+    {
+      "path": "server-log.txt",
+      "bytes": 726,
+      "sha256": "3a393bebe8b4e23d2499bc2d1e9189f9329a3b683b34ef31a4e16074468003f8"
+    },
+    {
+      "path": "trace.json",
+      "bytes": 492,
+      "sha256": "7e8e0825adf5937df63072535584a6b8e73cf8d4ba2fa2f1218ac1f17eee1426"
+    }
+  ],
+  "sourceStillExists": true,
+  "gitPreserved": false
+}

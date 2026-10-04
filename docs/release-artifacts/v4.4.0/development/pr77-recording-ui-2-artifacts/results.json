@@ -1,0 +1,406 @@
+{
+  "mode": "--all",
+  "results": [
+    {
+      "id": "I27-filter",
+      "feature": "V410-S06-I27",
+      "title": "정상 필터",
+      "status": "pass",
+      "evidence": [
+        {
+          "path": "I27-filter.json",
+          "sha256": "3bbb107ebeb4d58aab59945fe78625e8aff7758c9dc94266a496ab31aa613098",
+          "bytes": 572
+        },
+        {
+          "path": "I27-filter.png",
+          "sha256": "d2eb55ad8c39da26272fc1a570c02d5f34662478dfcffefcc44b6c6fae8086f4",
+          "bytes": 212184
+        }
+      ]
+    },
+    {
+      "id": "I27-empty",
+      "feature": "V410-S06-I27",
+      "title": "빈값·빈 결과",
+      "status": "pass",
+      "evidence": [
+        {
+          "path": "I27-empty.json",
+          "sha256": "c642947eecbda4497bbd599de9b380df6ceea845c781707f2d35f8fbd2ef514b",
+          "bytes": 420
+        },
+        {
+          "path": "I27-empty.png",
+          "sha256": "a5ce07813e797d55f0201e0c1f1823b840c183cced07898eddaedd9c01fb5839",
+          "bytes": 52407
+        }
+      ]
+    },
+    {
+      "id": "I27-inverted",
+      "feature": "V410-S06-I27",
+      "title": "역전 시간",
+      "status": "pass",
+      "evidence": [
+        {
+          "path": "I27-inverted.json",
+          "sha256": "927b7cdeee879acb71fd4f70b44c2a95e0aee1ca24c0eba25c2f780b9889b188",
+          "bytes": 378
+        },
+        {
+          "path": "I27-inverted.png",
+          "sha256": "4d367065777a6660a35823a1d5210ed53f1fbf785a31f8e88cdb6c21bb22f434",
+          "bytes": 185880
+        }
+      ]
+    },
+    {
+      "id": "I27-page",
+      "feature": "V410-S06-I27",
+      "title": "페이지",
+      "status": "pass",
+      "evidence": [
+        {
+          "path": "I27-page.json",
+          "sha256": "04019ad73eb1a8f90367c0b420bd11a3741f0f1ec9f0e62fc3a29f3ed3b98d04",
+          "bytes": 331
+        },
+        {
+          "path": "I27-page.png",
+          "sha256": "ac1562067b2ef9d72a71632085c2659125fe25f156678f2d5d4ccfa9584ee70c",
+          "bytes": 52637
+        }
+      ]
+    },
+    {
+      "id": "I28-event",
+      "feature": "V410-S06-I28",
+      "title": "이벤트 우선",
+      "status": "fail",
+      "evidence": [],
+      "reason": "page.waitForFunction: Timeout 10000ms exceeded."
+    },
+    {
+      "id": "I29-original",
+      "feature": "V410-S06-I29",
+      "title": "원본",
+      "status": "notRun",
+      "evidence": []
+    },
+    {
+      "id": "I30-play",
+      "feature": "V410-S06-I30",
+      "title": "재생",
+      "status": "notRun",
+      "evidence": []
+    },
+    {
+      "id": "I30-pause",
+      "feature": "V410-S06-I30",
+      "title": "정지",
+      "status": "notRun",
+      "evidence": []
+    },
+    {
+      "id": "I30-seek",
+      "feature": "V410-S06-I30",
+      "title": "탐색",
+      "status": "notRun",
+      "evidence": []
+    },
+    {
+      "id": "I31-partial",
+      "feature": "V410-S06-I31",
+      "title": "partial",
+      "status": "notRun",
+      "evidence": []
+    },
+    {
+      "id": "I31-deleted",
+      "feature": "V410-S06-I31",
+      "title": "삭제",
+      "status": "notRun",
+      "evidence": []
+    },
+    {
+      "id": "I31-corrupt",
+      "feature": "V410-S06-I31",
+      "title": "손상",
+      "status": "notRun",
+      "evidence": []
+    },
+    {
+      "id": "I31-pending",
+      "feature": "V410-S06-I31",
+      "title": "미완결 event",
+      "status": "notRun",
+      "evidence": []
+    },
+    {
+      "id": "I31-gap",
+      "feature": "V410-S06-I31",
+      "title": "공백",
+      "status": "notRun",
+      "evidence": []
+    },
+    {
+      "id": "I31-error",
+      "feature": "V410-S06-I31",
+      "title": "오류",
+      "status": "notRun",
+      "evidence": []
+    },
+    {
+      "id": "I32-quota",
+      "feature": "V410-S06-I32",
+      "title": "quota",
+      "status": "notRun",
+      "evidence": []
+    },
+    {
+      "id": "I32-active",
+      "feature": "V410-S06-I32",
+      "title": "활성",
+      "status": "notRun",
+      "evidence": []
+    },
+    {
+      "id": "I32-blocked",
+      "feature": "V410-S06-I32",
+      "title": "blocked",
+      "status": "notRun",
+      "evidence": []
+    },
+    {
+      "id": "I33-navigation",
+      "feature": "V410-S06-I33",
+      "title": "navigation",
+      "status": "notRun",
+      "evidence": []
+    },
+    {
+      "id": "I34-admin",
+      "feature": "V410-S06-I34",
+      "title": "admin",
+      "status": "notRun",
+      "evidence": []
+    },
+    {
+      "id": "I34-operator",
+      "feature": "V410-S06-I34",
+      "title": "operator scope",
+      "status": "notRun",
+      "evidence": []
+    },
+    {
+      "id": "I34-viewer-unauth",
+      "feature": "V410-S06-I34",
+      "title": "viewer·미인증",
+      "status": "notRun",
+      "evidence": []
+    },
+    {
+      "id": "I34-redaction",
+      "feature": "V410-S06-I34",
+      "title": "redaction",
+      "status": "notRun",
+      "evidence": []
+    },
+    {
+      "id": "I34-320-light",
+      "feature": "V410-S06-I34",
+      "title": "320 light",
+      "status": "notRun",
+      "evidence": []
+    },
+    {
+      "id": "I34-320-dark",
+      "feature": "V410-S06-I34",
+      "title": "320 dark",
+      "status": "notRun",
+      "evidence": []
+    },
+    {
+      "id": "I34-390-light",
+      "feature": "V410-S06-I34",
+      "title": "390 light",
+      "status": "notRun",
+      "evidence": []
+    },
+    {
+      "id": "I34-390-dark",
+      "feature": "V410-S06-I34",
+      "title": "390 dark",
+      "status": "notRun",
+      "evidence": []
+    },
+    {
+      "id": "I34-760-light",
+      "feature": "V410-S06-I34",
+      "title": "760 light",
+      "status": "notRun",
+      "evidence": []
+    },
+    {
+      "id": "I34-760-dark",
+      "feature": "V410-S06-I34",
+      "title": "760 dark",
+      "status": "notRun",
+      "evidence": []
+    },
+    {
+      "id": "I34-1180-light",
+      "feature": "V410-S06-I34",
+      "title": "1180 light",
+      "status": "notRun",
+      "evidence": []
+    },
+    {
+      "id": "I34-1180-dark",
+      "feature": "V410-S06-I34",
+      "title": "1180 dark",
+      "status": "notRun",
+      "evidence": []
+    }
+  ],
+  "pass": 4,
+  "fail": 1,
+  "notRun": 26,
+  "failure": "page.waitForFunction: Timeout 10000ms exceeded.",
+  "browserClosed": true,
+  "artifacts": [
+    {
+      "path": "I27-filter-known.png",
+      "sha256": "08efa6effeab82bb13c5b7dbd2de5bae1d55ef98c118e5c5ddd42efd60728cb7",
+      "bytes": 232701
+    },
+    {
+      "path": "I27-filter-unplaced.png",
+      "sha256": "e4320409e8bb33f4279680d698cd05ee9501a547c018622cdc9021efd0deb457",
+      "bytes": 148300
+    },
+    {
+      "path": "I27-filter.json",
+      "sha256": "3bbb107ebeb4d58aab59945fe78625e8aff7758c9dc94266a496ab31aa613098",
+      "bytes": 572
+    },
+    {
+      "path": "I27-filter.png",
+      "sha256": "d2eb55ad8c39da26272fc1a570c02d5f34662478dfcffefcc44b6c6fae8086f4",
+      "bytes": 212184
+    },
+    {
+      "path": "I27-empty-invalid.png",
+      "sha256": "9cc1d2fe6755efe10935c831677c493df945c4f9a17b9ab532ae7ba3995c0dae",
+      "bytes": 213503
+    },
+    {
+      "path": "I27-empty-result.png",
+      "sha256": "36ce774b994b77f21a0a3dcd362f0bfc1b45d792c1d58a44ca0828aaf1759bc0",
+      "bytes": 43280
+    },
+    {
+      "path": "I27-empty-player.png",
+      "sha256": "8e8f83d6492066016bc0ef7e536a4b66990e7aae9e637731374c6e35f399f736",
+      "bytes": 24074
+    },
+    {
+      "path": "I27-empty.json",
+      "sha256": "c642947eecbda4497bbd599de9b380df6ceea845c781707f2d35f8fbd2ef514b",
+      "bytes": 420
+    },
+    {
+      "path": "I27-empty.png",
+      "sha256": "a5ce07813e797d55f0201e0c1f1823b840c183cced07898eddaedd9c01fb5839",
+      "bytes": 52407
+    },
+    {
+      "path": "I27-inverted-guidance.png",
+      "sha256": "a8dcbb65012ac4d0e2bbff3ccb532e7e35a7f1be53e37079172eccf81b892948",
+      "bytes": 119471
+    },
+    {
+      "path": "I27-inverted-player.png",
+      "sha256": "2248fac4997c8b07d280e56a04f7d8892c18bfb728fcc27f937cccc7ae442ade",
+      "bytes": 24468
+    },
+    {
+      "path": "I27-inverted.json",
+      "sha256": "927b7cdeee879acb71fd4f70b44c2a95e0aee1ca24c0eba25c2f780b9889b188",
+      "bytes": 378
+    },
+    {
+      "path": "I27-inverted.png",
+      "sha256": "4d367065777a6660a35823a1d5210ed53f1fbf785a31f8e88cdb6c21bb22f434",
+      "bytes": 185880
+    },
+    {
+      "path": "I27-page-next.png",
+      "sha256": "5c0c1ef27ab5d6dbc2a36f0a74b3ae054fd2733ade65838c8f60c8a3f1288726",
+      "bytes": 126838
+    },
+    {
+      "path": "I27-page-restored.png",
+      "sha256": "2fcc5df4e33406cb7737458670b5c379f1a2fd1a518ee6229848ff57faed1c78",
+      "bytes": 82965
+    },
+    {
+      "path": "I27-page-player.png",
+      "sha256": "2dc4829e6d2a68a00f7a60c1ba98cd17635ba72a9cd6acbdefe4674731522dc8",
+      "bytes": 52595
+    },
+    {
+      "path": "I27-page.json",
+      "sha256": "04019ad73eb1a8f90367c0b420bd11a3741f0f1ec9f0e62fc3a29f3ed3b98d04",
+      "bytes": 331
+    },
+    {
+      "path": "I27-page.png",
+      "sha256": "ac1562067b2ef9d72a71632085c2659125fe25f156678f2d5d4ccfa9584ee70c",
+      "bytes": 52637
+    },
+    {
+      "path": "final.png",
+      "sha256": "23f362bc26a7f32efa2a33eb7538cd46f399413d77594be6ca0f7a308a9bf1cc",
+      "bytes": 186171
+    },
+    {
+      "path": "trace.json",
+      "sha256": "f4f76de8f70e9b7569f502ab4330f96afc651219df5c44b9263d7583bc473207",
+      "bytes": 3789
+    },
+    {
+      "path": "browser-console.json",
+      "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+      "bytes": 3
+    },
+    {
+      "path": "media.json",
+      "sha256": "7ac2d3792c4062b1dea0b08174052bea503cfc88008deb791c76d57db73650d8",
+      "bytes": 351
+    },
+    {
+      "path": "network.json",
+      "sha256": "80f31cf41a3353c02ad154e414d4c78d732c1590b79df178901ed3991622c578",
+      "bytes": 6608
+    },
+    {
+      "path": "seed-oracle.json",
+      "sha256": "e7205f829d28d03f36d30c1a32b613b58afc67cd001295bcff59a479dfd00849",
+      "bytes": 215990
+    },
+    {
+      "path": "server-log.txt",
+      "sha256": "3a393bebe8b4e23d2499bc2d1e9189f9329a3b683b34ef31a4e16074468003f8",
+      "bytes": 726
+    },
+    {
+      "path": "provenance.json",
+      "sha256": "07cfb5d2b530435092f67d5bf24038a77342c20f83f1cd9a9724fc3ae4544d5c",
+      "bytes": 1505
+    }
+  ],
+  "visualReviewRequired": true,
+  "uiFulltestPass": false
+}

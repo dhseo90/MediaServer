@@ -1,0 +1,34 @@
+{
+  "schema": "media-server.ui-evidence-redaction-scan.v1",
+  "scope": "case",
+  "status": "PASS",
+  "caseId": "UI-013",
+  "correlationId": "UI-013:assert-product-state:completion",
+  "scannedArtifacts": [
+    {
+      "path": "cases/012-UI-013/screenshots/UI-013.png",
+      "sha256": "bcf2c4567a6dba0754810d0896d8219fe90283ae0ccc353175e40709fa606535"
+    },
+    {
+      "path": "policy-v4/cases/UI-013/trace.json",
+      "sha256": "febbbb81ae4ae73e71a0d665a9101dd75dd118901f760b084bb18cc5e371b7fb"
+    },
+    {
+      "path": "policy-v4/cases/UI-013/browser-console.json",
+      "sha256": "e9ceabb4ae91e43d9356d065b021c67a28e6da306d2f5a92810e703327d568e8"
+    },
+    {
+      "path": "policy-v4/cases/UI-013/server.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "policy-v4/cases/UI-013/visual-measurement.json",
+      "sha256": "91e59016d22f8f3207fb28f652631b8793d58ac4988c8e9d8f9b190d383f9f0a"
+    },
+    {
+      "path": "policy-v4/cases/UI-013/visual.json",
+      "sha256": "b243f213a49d36278b3221a2529c8cf21b25c7c8219ed78876686b276d748137"
+    }
+  ],
+  "findings": []
+}

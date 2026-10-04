@@ -1,0 +1,66 @@
+{
+  "status": 200,
+  "query": {
+    "channelIds": "1",
+    "startTimeMs": "1791136680000",
+    "endTimeMs": "1791136740000",
+    "limit": "50",
+    "includeUnplaced": "false",
+    "object": "added"
+  },
+  "normalizedQuery": {
+    "channels": [
+      "1"
+    ],
+    "startTimeMs": 1791136680000,
+    "endTimeMs": 1791136740000,
+    "includeUnplaced": false,
+    "limit": 50,
+    "filters": {
+      "object": [
+        "added"
+      ],
+      "track": [],
+      "event": [],
+      "zone": [],
+      "rule": [],
+      "behaviour": []
+    }
+  },
+  "body": {
+    "schema": "media-server.recording-search.v1",
+    "snapshotId": "ffa66f4f2965b40c141665205f57f71c",
+    "nextCursor": null,
+    "knownCount": 1,
+    "unplacedCount": 0,
+    "items": [
+      {
+        "id": "or:16:ui-release-added",
+        "channelId": "1",
+        "kind": "observation",
+        "segmentId": "e5b394f6-7f38-4b15-a0b1-8d50dc322acb",
+        "observationId": "ui-release-added",
+        "startTimeNs": "1791136681000000000",
+        "endTimeNs": "1791136681000000001",
+        "timeProvenance": "estimated",
+        "uncertaintyNs": "2001000",
+        "object": "added",
+        "track": "track-7",
+        "eventIds": [
+          "ui-release-event-0"
+        ],
+        "zoneIds": [
+          "zone-a"
+        ],
+        "ruleIds": [
+          "rule-a"
+        ],
+        "playable": true,
+        "playbackUrl": "/ops/api/recordings/media/e5b394f6-7f38-4b15-a0b1-8d50dc322acb",
+        "preferredEventId": "",
+        "selectionReason": "original",
+        "unavailableReason": ""
+      }
+    ]
+  }
+}

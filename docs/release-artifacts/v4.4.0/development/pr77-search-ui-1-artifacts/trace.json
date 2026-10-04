@@ -1,0 +1,29 @@
+[
+  {
+    "id": "F03-object",
+    "phase": "begin",
+    "at": "2026-10-04T17:40:38.435Z"
+  },
+  {
+    "action": "F03-object",
+    "selector": "#opsSearchSubmit",
+    "operation": "click",
+    "at": 1791135638484
+  },
+  {
+    "id": "F03-object",
+    "phase": "end",
+    "at": "2026-10-04T17:40:38.701Z",
+    "status": "fail",
+    "role": {
+      "requestedRole": "admin",
+      "requestedScopes": [
+        "*"
+      ],
+      "role": "admin",
+      "scopes": [
+        "*"
+      ]
+    }
+  }
+]

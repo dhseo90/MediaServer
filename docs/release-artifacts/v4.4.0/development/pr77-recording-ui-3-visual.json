@@ -1,0 +1,366 @@
+{
+  "reviewedAt": "2026-10-04T18:00:31.185487+00:00",
+  "automation": {
+    "pass": 31,
+    "fail": 0,
+    "notRun": 0
+  },
+  "visualResult": "PASS-recording-addendum",
+  "pngCount": 57,
+  "screenshots": [
+    {
+      "path": "I27-empty-invalid.png",
+      "sha256": "91efc2aa4459041e61e62c5354244ba26734734d4682a1d21fcb237c8f7dc9a0",
+      "reviewer": "independent-gpt-6-astra-xhigh",
+      "viewed": true
+    },
+    {
+      "path": "I27-empty-player.png",
+      "sha256": "570a29f2f471163b8838b453e0acdc60ec563c0245d958713d002ab97ecf4437",
+      "reviewer": "independent-gpt-6-astra-xhigh",
+      "viewed": true
+    },
+    {
+      "path": "I27-empty-result.png",
+      "sha256": "d577eb4a4f8b270759f5a1f091b8514c4a55f01f0b5b1eb66dd4af85b37cd851",
+      "reviewer": "independent-gpt-6-astra-xhigh",
+      "viewed": true
+    },
+    {
+      "path": "I27-empty.png",
+      "sha256": "293fcf7f3e075c6d92d83fdc0e79740c19fded6be40cb8e768e64800ba15221c",
+      "reviewer": "independent-gpt-6-astra-xhigh",
+      "viewed": true
+    },
+    {
+      "path": "I27-filter-known.png",
+      "sha256": "4ef259514c9afb37fb465e781690150c23601359fdd3e0f8ebe4e194cf58e16b",
+      "reviewer": "independent-gpt-6-astra-xhigh",
+      "viewed": true
+    },
+    {
+      "path": "I27-filter-unplaced.png",
+      "sha256": "e4320409e8bb33f4279680d698cd05ee9501a547c018622cdc9021efd0deb457",
+      "reviewer": "independent-gpt-6-astra-xhigh",
+      "viewed": true
+    },
+    {
+      "path": "I27-filter.png",
+      "sha256": "a191433d411656116faa4d4771896b31e19ab836a9a155dab3498b3ea8256e5e",
+      "reviewer": "independent-gpt-6-astra-xhigh",
+      "viewed": true
+    },
+    {
+      "path": "I27-inverted-guidance.png",
+      "sha256": "66aeb91d778fe524b7e4817040f3a1bd51e72ce8cd4d23ad55a62f2c1cd6c9ad",
+      "reviewer": "independent-gpt-6-astra-xhigh",
+      "viewed": true
+    },
+    {
+      "path": "I27-inverted-player.png",
+      "sha256": "eb5ee7ac7c3ba290cdffdadfd6a7ba3176f66e85d6df9d8f1b3bc9098f6685bd",
+      "reviewer": "independent-gpt-6-astra-xhigh",
+      "viewed": true
+    },
+    {
+      "path": "I27-inverted.png",
+      "sha256": "40bd3a98b8dd96ddb82886c0387f8001b12d7bf603fc112e82e4a72f5759cc0a",
+      "reviewer": "independent-gpt-6-astra-xhigh",
+      "viewed": true
+    },
+    {
+      "path": "I27-page-next.png",
+      "sha256": "d086bacfc2f3bc0fb3275d43b5ef896619bde0a417bdb370a31d1868de393851",
+      "reviewer": "independent-gpt-6-astra-xhigh",
+      "viewed": true
+    },
+    {
+      "path": "I27-page-player.png",
+      "sha256": "b13efcc1566781377936af2241696e2667c8652011611dff91918db93b542f99",
+      "reviewer": "independent-gpt-6-astra-xhigh",
+      "viewed": true
+    },
+    {
+      "path": "I27-page-restored.png",
+      "sha256": "49afc90cd5ab0c60606d1fde1eb0f33e6aaf74ab863836cdad22bd2e306eb9db",
+      "reviewer": "independent-gpt-6-astra-xhigh",
+      "viewed": true
+    },
+    {
+      "path": "I27-page.png",
+      "sha256": "e5a1df03a14b2e32f1b69115edb5cd48f88a1f8bb092570af13c4a9316c4b830",
+      "reviewer": "independent-gpt-6-astra-xhigh",
+      "viewed": true
+    },
+    {
+      "path": "I28-event.png",
+      "sha256": "a5ce07813e797d55f0201e0c1f1823b840c183cced07898eddaedd9c01fb5839",
+      "reviewer": "main",
+      "viewed": true
+    },
+    {
+      "path": "I29-original-selected.png",
+      "sha256": "7672ed2cfad70aacd6d51ac1fa2497483f900db0c156fd7ef1ca3d1072d6af68",
+      "reviewer": "main",
+      "viewed": true
+    },
+    {
+      "path": "I29-original.png",
+      "sha256": "6848e7affdedd28789ba4973d5b5ab4dddd04e6629c095a72a227781a0243bc4",
+      "reviewer": "main",
+      "viewed": true
+    },
+    {
+      "path": "I30-pause.png",
+      "sha256": "473775aa4c08d39afaa09f889a7be69c82e96b7d26650151ef6e8ab3e5f4af48",
+      "reviewer": "main",
+      "viewed": true
+    },
+    {
+      "path": "I30-play.png",
+      "sha256": "5224bcf52fd95cbfd98653782eb58be43e56002027eda84c3d6974b5b49d34c5",
+      "reviewer": "main",
+      "viewed": true
+    },
+    {
+      "path": "I30-seek.png",
+      "sha256": "266beed4409eab88bc3ba084d8b1b5810d6277be3644cfe4d689638b50c2bfb6",
+      "reviewer": "main",
+      "viewed": true
+    },
+    {
+      "path": "I31-corrupt.png",
+      "sha256": "42cf9ab4753f3a20a9698566fa0d08a4b14b13015cf42307ce4b0b46faab7fd9",
+      "reviewer": "independent-gpt-6-astra-xhigh",
+      "viewed": true
+    },
+    {
+      "path": "I31-deleted.png",
+      "sha256": "a22f2d70b60291a688b6362ce030e48e950115fa2351db46d6356fd49e7d3131",
+      "reviewer": "independent-gpt-6-astra-xhigh",
+      "viewed": true
+    },
+    {
+      "path": "I31-error-guidance.png",
+      "sha256": "45904a5a5f613bb84197016eebdfc245b1585efccacb7c4c474e41b2387fb513",
+      "reviewer": "independent-gpt-6-astra-xhigh",
+      "viewed": true
+    },
+    {
+      "path": "I31-error-player.png",
+      "sha256": "d693b9c6075822e5cb2e9e28329d6017626e69e2849592863e81a31d311878d4",
+      "reviewer": "independent-gpt-6-astra-xhigh",
+      "viewed": true
+    },
+    {
+      "path": "I31-error.png",
+      "sha256": "bd40793a95a6e06b4fce4e1517c9c0c9c4bfcb6eef70f943b3a515df3b1f4435",
+      "reviewer": "independent-gpt-6-astra-xhigh",
+      "viewed": true
+    },
+    {
+      "path": "I31-gap-empty.png",
+      "sha256": "31eff662f40a158112fcc605a654fcb3a04812fb8afe07f22394a641a5a575f5",
+      "reviewer": "independent-gpt-6-astra-xhigh",
+      "viewed": true
+    },
+    {
+      "path": "I31-gap-player.png",
+      "sha256": "2d9af1ea0f3b531558dfed4b458fe4f60cf3e66aa598f7baec5c18cdd5fc3871",
+      "reviewer": "independent-gpt-6-astra-xhigh",
+      "viewed": true
+    },
+    {
+      "path": "I31-gap.png",
+      "sha256": "a5ce07813e797d55f0201e0c1f1823b840c183cced07898eddaedd9c01fb5839",
+      "reviewer": "independent-gpt-6-astra-xhigh",
+      "viewed": true
+    },
+    {
+      "path": "I31-partial.png",
+      "sha256": "1a3bfa3602b0961a4b81e3919c807da2a3f2a54b9b7011fb0a7144596b1950cd",
+      "reviewer": "independent-gpt-6-astra-xhigh",
+      "viewed": true
+    },
+    {
+      "path": "I31-pending.png",
+      "sha256": "71d1bc7ecf90fb3dd970fd989cf697ca6be5d41f7e1e57838e67c057810fda43",
+      "reviewer": "independent-gpt-6-astra-xhigh",
+      "viewed": true
+    },
+    {
+      "path": "I32-active.png",
+      "sha256": "91bd7a43a610c66c024ad79c4efaa6fff39885194773cfdfff384d362f9c1d16",
+      "reviewer": "independent-gpt-6-astra-xhigh",
+      "viewed": true
+    },
+    {
+      "path": "I32-blocked.png",
+      "sha256": "6b14e5907180cea405e74bc4b1242b0f62c03b6bd617d0852f51ce98ba6d756e",
+      "reviewer": "independent-gpt-6-astra-xhigh",
+      "viewed": true
+    },
+    {
+      "path": "I32-quota.png",
+      "sha256": "5bd707e9259d38ff62fb3d181b8de4b7138ee023ffb77d24cd98dbac8092bd9e",
+      "reviewer": "independent-gpt-6-astra-xhigh",
+      "viewed": true
+    },
+    {
+      "path": "I33-navigation.png",
+      "sha256": "625a235301562e03fea0fef83d6ecab15b48b7990610b568c4f40a5d023df58e",
+      "reviewer": "independent-gpt-6-astra-xhigh",
+      "viewed": true
+    },
+    {
+      "path": "I34-1180-dark-filters.png",
+      "sha256": "f75f47442e04f1749ab3f262ac2199a599adf267c7e3e2d8ab9db77c30883c3e",
+      "reviewer": "main",
+      "viewed": true
+    },
+    {
+      "path": "I34-1180-dark.png",
+      "sha256": "29d9a91740e7b86fe726e0e28290c0fcc4cd22c7747c1bf26fb308157d28cb51",
+      "reviewer": "main",
+      "viewed": true
+    },
+    {
+      "path": "I34-1180-light-filters.png",
+      "sha256": "ec222f2d3d19c8153e693e0ad7842e7a5bf9884d82f38dc16d44464156231112",
+      "reviewer": "main",
+      "viewed": true
+    },
+    {
+      "path": "I34-1180-light.png",
+      "sha256": "4a9ff362b6deecf12eae12c64be3a7cfab3d83c34ba17a60e0934e671387bf14",
+      "reviewer": "main",
+      "viewed": true
+    },
+    {
+      "path": "I34-320-dark-filters.png",
+      "sha256": "74ef95c49f0bd6db47b6f76acafadd75717a1f6604cc975c6e1cf628d2ccfae5",
+      "reviewer": "main",
+      "viewed": true
+    },
+    {
+      "path": "I34-320-dark.png",
+      "sha256": "d4c4102c6a73f5eacdd2fe09db6beb76fda56a7e55b130f5d91d4b6e490281ea",
+      "reviewer": "main",
+      "viewed": true
+    },
+    {
+      "path": "I34-320-light-filters.png",
+      "sha256": "75c35d5c0cd25e05cb7325886912e35d826d28392196707829981eb0fde0f378",
+      "reviewer": "main",
+      "viewed": true
+    },
+    {
+      "path": "I34-320-light.png",
+      "sha256": "4ce2192c342101e4fbf56996a2e6e1288a1c4ebf1d791fa52d52a876376b9286",
+      "reviewer": "main",
+      "viewed": true
+    },
+    {
+      "path": "I34-390-dark-filters.png",
+      "sha256": "f0c3fec39cfb6187879285d28e34a7d401f1dc7364c83f715124698f3577bb36",
+      "reviewer": "main",
+      "viewed": true
+    },
+    {
+      "path": "I34-390-dark.png",
+      "sha256": "3aa5281a2bf14a389b552c4ad9289d623a8bd1c0666b9e4ec74a1d675cdb85a6",
+      "reviewer": "main",
+      "viewed": true
+    },
+    {
+      "path": "I34-390-light-filters.png",
+      "sha256": "69a3cb2e2a77fb7053a2f4bb4c406c00f90606599cc83a1f54383d08319f996a",
+      "reviewer": "main",
+      "viewed": true
+    },
+    {
+      "path": "I34-390-light.png",
+      "sha256": "673aaec8f2231c0fd628a89208dc01028351c35145947cb3cbf0b773a21a89c2",
+      "reviewer": "main",
+      "viewed": true
+    },
+    {
+      "path": "I34-760-dark-filters.png",
+      "sha256": "822f2b4b229503efbb8a99c498b7c682ec4ef0d26724ddb353778d5355c6c59a",
+      "reviewer": "main",
+      "viewed": true
+    },
+    {
+      "path": "I34-760-dark.png",
+      "sha256": "d6e4d718956fd39a61c4d24016eecaf08a57dae8c2dec598a3e3ed6c26fe0acb",
+      "reviewer": "main",
+      "viewed": true
+    },
+    {
+      "path": "I34-760-light-filters.png",
+      "sha256": "d482986fed3531cc9f3a83c59ebf81dcdfb6dcb14d692787160514737d6e2436",
+      "reviewer": "main",
+      "viewed": true
+    },
+    {
+      "path": "I34-760-light.png",
+      "sha256": "cfba1d0681a1f8a5f3db5598e145e269da11262cf649a94b0cf037cc5f585393",
+      "reviewer": "main",
+      "viewed": true
+    },
+    {
+      "path": "I34-admin.png",
+      "sha256": "41731e77adc80f612bd3e05642d8d1aa85af71d53c36ded985da7e2b85ff7bfb",
+      "reviewer": "main",
+      "viewed": true
+    },
+    {
+      "path": "I34-operator.png",
+      "sha256": "93ca3d42b4e04880abf5b41463a15857269378d4346d9599ff98c328c839e9f5",
+      "reviewer": "main",
+      "viewed": true
+    },
+    {
+      "path": "I34-redaction.png",
+      "sha256": "8cc2c2f061a83432767893eabdb81021fc1081d6d79d8a59bd1fe5be339b07ec",
+      "reviewer": "main",
+      "viewed": true
+    },
+    {
+      "path": "I34-unauth-empty-login.png",
+      "sha256": "fea3ebd0794a0e0dab3617aa124e721c6e50341a95a58cbfb18787168570dec6",
+      "reviewer": "main",
+      "viewed": true
+    },
+    {
+      "path": "I34-viewer-redaction.png",
+      "sha256": "0d1216ec99c7c6465e2485b9bfe9ea72bdb9ba1a75f5680422f123ab922bb8cb",
+      "reviewer": "main",
+      "viewed": true
+    },
+    {
+      "path": "I34-viewer-unauth.png",
+      "sha256": "93ca3d42b4e04880abf5b41463a15857269378d4346d9599ff98c328c839e9f5",
+      "reviewer": "main",
+      "viewed": true
+    },
+    {
+      "path": "final.png",
+      "sha256": "c6b28b16107ad21e90796643e837efe7b054e8fea16e252b7e92142179cd6efa",
+      "reviewer": "main",
+      "viewed": true
+    }
+  ],
+  "resultsSha256": "2375cf10c84322073d3125885449059711d5019dfc5c704e4c7cde0b13a00636",
+  "scope": "recording31 only; canonical424 separate",
+  "notes": [
+    "previous clipped capture gaps resolved by guidance/whole-player and known/unplaced/pagination pairs",
+    "I29-original-selected captures original before toggling, I29-original is post-toggle state",
+    "I32/I33 state and menu readable; background loading is not final timeline evidence",
+    "paused metadata-loaded frames may show native buffering paint; actual play/pause/seek independently confirmed in I30",
+    "viewer client has no Ops nav or source/private data; unauth login fields empty"
+  ],
+  "priorIncomplete": "pr77-recording-ui-1-visual.json",
+  "failedCaptureOrdering": "pr77-recording-ui-2-cause.json",
+  "cleanup": "execution log confirms browser/server/root/ports/UDP cleanup; artifact temp copy/cleanup pending"
+}

@@ -1,0 +1,72 @@
+{
+  "status": 200,
+  "query": {
+    "channelIds": "1",
+    "startTimeMs": "1791136260000",
+    "endTimeMs": "1791136320000",
+    "limit": "50",
+    "includeUnplaced": "false",
+    "object": "person",
+    "event": "ui-release-event-3",
+    "behaviour": "scenario:loitering"
+  },
+  "normalizedQuery": {
+    "channels": [
+      "1"
+    ],
+    "startTimeMs": 1791136260000,
+    "endTimeMs": 1791136320000,
+    "includeUnplaced": false,
+    "limit": 50,
+    "filters": {
+      "object": [
+        "person"
+      ],
+      "track": [],
+      "event": [
+        "ui-release-event-3"
+      ],
+      "zone": [],
+      "rule": [],
+      "behaviour": [
+        "scenario:loitering"
+      ]
+    }
+  },
+  "body": {
+    "schema": "media-server.recording-search.v1",
+    "snapshotId": "89c0f2479ed6be398a905f21f9f54f1c",
+    "nextCursor": null,
+    "knownCount": 1,
+    "unplacedCount": 0,
+    "items": [
+      {
+        "id": "or:12:ui-release-3",
+        "channelId": "1",
+        "kind": "observation",
+        "segmentId": "df874f5b-792f-4059-a998-08f597908708",
+        "observationId": "ui-release-3",
+        "startTimeNs": "1791136264000000000",
+        "endTimeNs": "1791136264000000001",
+        "timeProvenance": "estimated",
+        "uncertaintyNs": "2001000",
+        "object": "person",
+        "track": "track-7",
+        "eventIds": [
+          "ui-release-event-3"
+        ],
+        "zoneIds": [
+          "zone-b"
+        ],
+        "ruleIds": [
+          "rule-b"
+        ],
+        "playable": true,
+        "playbackUrl": "/ops/api/recordings/media/df874f5b-792f-4059-a998-08f597908708",
+        "preferredEventId": "",
+        "selectionReason": "original",
+        "unavailableReason": ""
+      }
+    ]
+  }
+}

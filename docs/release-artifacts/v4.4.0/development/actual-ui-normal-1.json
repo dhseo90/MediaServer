@@ -1,0 +1,55 @@
+{
+  "status": "FAIL",
+  "scope": "actual Chrome partial run; not full UI PASS",
+  "sourcePlan": "ui-plan-current.json",
+  "observedPassFromToolStdout": [
+    "structured-save",
+    "duplicate-click",
+    "visual-save",
+    "pr77-rebuild-fallback",
+    "list-detail"
+  ],
+  "firstFailure": {
+    "case": "late-detail",
+    "kind": "test-driver unhandled route error",
+    "message": "route.fulfill: Route is already handled!",
+    "exit": 1
+  },
+  "notRun": [
+    "responsive",
+    "operator",
+    "viewer-anonymous",
+    "real-expiry"
+  ],
+  "originalReport": "not written because driver terminated; not reconstructed",
+  "screenshots": [
+    {
+      "file": "visual-save.png",
+      "sha256": "25764d467d7c61b8115667c72453b616b44440edc1e4820b72aae041d13b8211"
+    },
+    {
+      "file": "pr77-fallback-results.png",
+      "sha256": "74fd9a86cb09bcb946791303a93a2e15bb94481b0196d985d099f35832a6ee12"
+    },
+    {
+      "file": "pr77-rebuild-warning.png",
+      "sha256": "73c4a77da2b947b490110870f3831c9c0a8908c93943a764a4028bce202f952c"
+    },
+    {
+      "file": "structured-save.png",
+      "sha256": "229761d53e2868a62eebf10d69673cda0565dbcf7faa09a562b340c704b1b6dc"
+    }
+  ],
+  "cleanup": {
+    "fixtureRoot": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-evidence-http-8lZ6mS",
+    "dev": 16777232,
+    "ino": 168307500,
+    "uid": 501,
+    "processCheck": "ps found no current UI fixture, build-pr77 media server, or headless Playwright Chrome",
+    "openFilesCheck": "lsof +D returned1 and no process",
+    "listenerCheck": "media server listeners only original test PID60548 ports60369/60370; original test retained",
+    "individualAllocatedPorts": "not captured before driver failure",
+    "rootAbsent": true,
+    "observedAt": "2026-10-04T16:02:52.750790+00:00"
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "command": [
+    "bash",
+    "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v440-ui-ezgeweg5/mixed-30.sh",
+    "--app-observe"
+  ],
+  "startedAt": "2026-10-04T16:29:47.438647+00:00",
+  "status": "FAIL",
+  "productBinarySha256": "b3b996b81d676fb11a7d1145ffcc6d774005bcb5ca83013ad3c37640f8d5eb8f",
+  "productDiffSha256": "4e18d2efccd5ee62e9db7ab5060308ff455093f6f605a3858759d810f0eb5419",
+  "driverHashes": {
+    "mixed-30.mjs": "86fbc044b2d103f1e10d37eb610dc159dced28557a07d8336520f798836ac3c1",
+    "mixed-30.sh": "6f1faed949cc2f2d0e8bf8a2b48f96b3719eed80a64435e35242d439ad7c4669"
+  },
+  "scope": "bounded diagnostic for first failed evidence creation response; no criterion change",
+  "exit": 1,
+  "elapsedSeconds": 30.532288791029714
+}

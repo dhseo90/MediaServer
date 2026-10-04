@@ -1,0 +1,19 @@
+{
+  "command": [
+    "bash",
+    "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v440-ui-ezgeweg5/mixed-30.sh",
+    "--duration-minutes",
+    "30"
+  ],
+  "startedAt": "2026-10-04T17:25:09.779258+00:00",
+  "status": "PASS",
+  "productBinarySha256": "4eaf41faebabb057958b3d9fcf55a2ceafb08b6eabd6baa024e7039c9b70314d",
+  "productDiffSha256": "3f5cfab88cbaa39d18e995ae82dc66b512c9b2377d33badd3274f8d6a9560ed8",
+  "driverHashes": {
+    "mixed-30.mjs": "4ab41d2424e056300ab893261706b55c51998be6724f22211e3288cd54c51edd",
+    "mixed-30.sh": "6f1faed949cc2f2d0e8bf8a2b48f96b3719eed80a64435e35242d439ad7c4669"
+  },
+  "scope": "approved actual30min mixed recording/search/evidence; total1980sec; exact production track contract;256KiB retained headroom; no time limit change",
+  "exit": 0,
+  "elapsedSeconds": 1844.8079675830086
+}

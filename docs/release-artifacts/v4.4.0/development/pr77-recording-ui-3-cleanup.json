@@ -1,0 +1,13 @@
+{
+  "at": "2026-10-04T18:22:35.107855+00:00",
+  "ownedOutput": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-recording-ui-acceptance-v440-6ale_geh",
+  "ownership": {
+    "dev": 16777232,
+    "ino": 168560954,
+    "uid": 501
+  },
+  "sameBytesCopyManifest": "pr77-recording-ui-3-copy.json",
+  "deletedFiles": 111,
+  "outputAbsent": true,
+  "fixtureAndPorts": "see original completed run log; already absent/closed"
+}

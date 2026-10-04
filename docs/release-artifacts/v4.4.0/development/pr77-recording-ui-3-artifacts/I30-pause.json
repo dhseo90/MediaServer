@@ -1,0 +1,39 @@
+{
+  "id": "I30-pause",
+  "startedAt": "2026-10-04T17:53:45.156Z",
+  "completedAt": "2026-10-04T17:53:45.517Z",
+  "observedViewport": {
+    "width": 1180,
+    "height": 900
+  },
+  "observedTheme": "light",
+  "detail": {
+    "control": "#opsRecordingPlayer",
+    "action": "focused Space",
+    "beforePause": {
+      "paused": true,
+      "currentTime": 0.903274,
+      "readyState": 4,
+      "duration": 10,
+      "videoWidth": 1280,
+      "videoHeight": 720,
+      "frames": 32,
+      "src": "/ops/api/recordings/media/103d8d25-f94d-4af0-bddb-9d9158703426",
+      "error": null,
+      "focused": true
+    },
+    "afterPause": {
+      "paused": true,
+      "currentTime": 0.903274,
+      "readyState": 4,
+      "duration": 10,
+      "videoWidth": 1280,
+      "videoHeight": 720,
+      "frames": 32,
+      "src": "/ops/api/recordings/media/103d8d25-f94d-4af0-bddb-9d9158703426",
+      "error": null,
+      "focused": true,
+      "elapsedMs": 355.47291699999914
+    }
+  }
+}

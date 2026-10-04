@@ -1,0 +1,55 @@
+[counter] archive_full_reads=1
+B08-Q01 PASS same request repeated typed Complete acquisition hashes archive once
+B08-Q01 PASS strict typed acquisition stores one private proof
+B08-Q02 PASS B logical context charge is nonzero and bounded
+B08-Q02 PASS copy retains typed candidates but never proof
+B08-Q02 PASS copied request repeats full archive verification
+B08-Q02 PASS new request repeats full archive verification
+B08-Q02 PASS zero optional budget uses strict fallback
+B08-Q04 PASS proof preserves media eligibility and acquire/release hold
+B08-Q03 PASS fork cannot reuse request proof
+B08-Q03 PASS foreign Journal proof rejected even with equal archive bytes
+B08-Q03 PASS request proof retains one archive descriptor
+B08-Q03 PASS request destruction releases retained archive descriptor
+B08-Q02 PASS own active append invalidates proof and fully verifies again
+B08-Q02 PASS normal generation rotation returns to full verification
+B08-Q02 PASS fresh owner strictly verifies archive again
+B08-Q03 PASS same-size tamper rejects without strict fallback accepting changed archive
+B08-Q03 PASS same-size poisoned owner stays rejected
+B08-Q03 PASS other-row tamper rejects without strict fallback accepting changed archive
+B08-Q03 PASS other-row poisoned owner stays rejected
+B08-Q03 PASS inode tamper rejects without strict fallback accepting changed archive
+B08-Q03 PASS inode poisoned owner stays rejected
+B08-Q03 PASS symlink tamper rejects without strict fallback accepting changed archive
+B08-Q03 PASS symlink poisoned owner stays rejected
+B08-Q03 PASS hardlink tamper rejects without strict fallback accepting changed archive
+B08-Q03 PASS hardlink poisoned owner stays rejected
+V440-PR77 PASS active repeat reuses strict immutable envelope without extra FD
+V440-PR77 PASS ordinary acquisition keeps strict equal semantics
+V440-PR77 PASS active proof rejects fork with output unchanged
+V440-PR77 PASS active proof rejects different catalog owner
+V440-PR77 PASS own append strictly reacquires unchanged active row
+V440-PR77 PASS active reuse resumes after append
+V440-PR77 PASS active to historical rotation strictly reacquires without false poison
+V440-PR77 PASS rotated proof reuses verified historical row
+V440-PR77 PASS active and rotated proof destruction releases descriptor
+V440-PR77 PASS active repeat reuses strict immutable envelope without extra FD
+V440-PR77 PASS ordinary acquisition keeps strict equal semantics
+V440-PR77 PASS same-size current active tamper rejects without changing output
+V440-PR77 PASS active poisoned owner remains rejected
+V440-PR77 PASS active repeat reuses strict immutable envelope without extra FD
+V440-PR77 PASS ordinary acquisition keeps strict equal semantics
+V440-PR77 PASS other-row current active tamper rejects without changing output
+V440-PR77 PASS active poisoned owner remains rejected
+V440-PR77 PASS active repeat reuses strict immutable envelope without extra FD
+V440-PR77 PASS ordinary acquisition keeps strict equal semantics
+V440-PR77 PASS inode current active tamper rejects without changing output
+V440-PR77 PASS active poisoned owner remains rejected
+V440-PR77 PASS active repeat reuses strict immutable envelope without extra FD
+V440-PR77 PASS ordinary acquisition keeps strict equal semantics
+V440-PR77 PASS symlink current active tamper rejects without changing output
+V440-PR77 PASS active poisoned owner remains rejected
+V440-PR77 PASS active repeat reuses strict immutable envelope without extra FD
+V440-PR77 PASS ordinary acquisition keeps strict equal semantics
+V440-PR77 PASS hardlink current active tamper rejects without changing output
+V440-PR77 PASS active poisoned owner remains rejected

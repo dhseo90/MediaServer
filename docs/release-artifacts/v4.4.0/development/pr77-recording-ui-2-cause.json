@@ -1,0 +1,18 @@
+{
+  "recordedAt": "2026-10-04T17:53:22.310034+00:00",
+  "observed": {
+    "pass": 4,
+    "fail": 1,
+    "notRun": 26,
+    "action": "I28-event",
+    "failure": "new capture readiness wait exceeded existing 10000ms before scrolling video into viewport",
+    "failurePlayerState": "not captured; do not infer readyState/decoded frame count"
+  },
+  "sourceEvidence": "final.png shows list viewport, selected video remains below viewport; video is preload=metadata",
+  "hypothesis": "Chrome defers offscreen frame paint; waiting before exposing video can prevent new capture criterion from progressing",
+  "fix": "scroll into viewport before same readiness wait; repeat centered whole-player geometry after readiness; capture state on failure",
+  "timeoutChanged": false,
+  "assertionsRemoved": false,
+  "productChanged": false,
+  "followup": "pr77-recording-ui-3.json"
+}

@@ -1,0 +1,9 @@
+{
+  "schema": "media-server.ui-raw-visual-capture.v1",
+  "caseId": "UI-028",
+  "correlationId": "UI-028:toggle-checkbox:completion",
+  "targetSelector": "#opsVlmProfileEnabled",
+  "screenshotSha256": "971a91d7ec8ca41532f55eb0271d1429be4c5ee105e9694d549f5d27693d47a3",
+  "measurementSha256": "972bc69437e74620bd07e5faf5a53d3eb49e5d7652bbbbeecb993fd6c15453aa",
+  "qualificationStatus": "unqualified-raw-capture"
+}

@@ -1,0 +1,16 @@
+{
+  "id": "I27-page",
+  "startedAt": "2026-10-04T17:53:38.291Z",
+  "completedAt": "2026-10-04T17:53:39.864Z",
+  "observedViewport": {
+    "width": 1180,
+    "height": 900
+  },
+  "observedTheme": "light",
+  "detail": {
+    "pageOffset": 100,
+    "previousEnabled": true,
+    "nextDisabled": true,
+    "previousDisabled": true
+  }
+}

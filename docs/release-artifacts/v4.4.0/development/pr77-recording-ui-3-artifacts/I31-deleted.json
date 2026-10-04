@@ -1,0 +1,28 @@
+{
+  "id": "I31-deleted",
+  "startedAt": "2026-10-04T17:53:47.121Z",
+  "completedAt": "2026-10-04T17:53:47.805Z",
+  "observedViewport": {
+    "width": 1180,
+    "height": 900
+  },
+  "observedTheme": "light",
+  "detail": {
+    "scenario": "deleted",
+    "item": "v2-event:70:dj-dc5924f3a537e670f5b362a1644b7bf1c74653a501a81909c6aeb2b11784f4b7-o039:a9a514fc-0e2c-4b11-957d-464392c4b27c-m0:7000000000:8000000000",
+    "catalogState": "deleted",
+    "message": "삭제·미완성·파일 누락 상태로 재생할 수 없습니다.",
+    "state": {
+      "paused": true,
+      "currentTime": 0,
+      "readyState": 0,
+      "duration": null,
+      "videoWidth": 0,
+      "videoHeight": 0,
+      "frames": 0,
+      "src": null,
+      "error": null,
+      "focused": false
+    }
+  }
+}

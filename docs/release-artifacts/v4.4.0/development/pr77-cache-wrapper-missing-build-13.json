@@ -1,0 +1,31 @@
+{
+  "sourceCommit": "789583126c71a4aace24c9ae2cac1d67f7beb32d",
+  "results": [],
+  "cleanup": {
+    "root": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-visual-cache-zx74sd66",
+    "rootAbsent": true
+  },
+  "scope": "real V2 media; source copy changes field access only; product budgets unchanged",
+  "sourceSha256": "e7d5f497491e49246a2a6f246675e5a8d8657adba9c0de61d495532f5ca56243",
+  "observedCopySha256": "5aaf4dda166508062250680f8328ac1fe520ba9fbc0ce2c55acf92074ae36cca",
+  "copyChange": "one public access label; no behavior/budget replacement",
+  "exception": {
+    "type": "FileNotFoundError",
+    "message": "[Errno 2] No such file or directory: '/Users/dhseo/.codex/worktrees/v440-pr77-fixes/mediaServer/nonexistent-owned-build-13/libmedia_server_runtime.a'"
+  },
+  "status": "FAIL",
+  "expectedFailureVerification": {
+    "command": [
+      "python3",
+      "scripts/internal/verify_visual_request_media_cache.py",
+      "--build",
+      "nonexistent-owned-build-13",
+      "--output",
+      "docs/release-artifacts/v4.4.0/development/pr77-cache-wrapper-missing-build-13.json"
+    ],
+    "exit": 1,
+    "expected": "missing build rejects before execution; no PASS; owned root absent",
+    "status": "PASS",
+    "wrapperSha256": "1cc987a630ab945c0cc5bf5b034207a1bf67cea9ce068a91c6f43bfd7132db62"
+  }
+}

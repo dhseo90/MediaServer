@@ -1,0 +1,41 @@
+{
+  "status": 200,
+  "query": {
+    "channelIds": "1",
+    "startTimeMs": "1791136680000",
+    "endTimeMs": "1791136740000",
+    "limit": "50",
+    "includeUnplaced": "false",
+    "object": "person",
+    "track": "absent"
+  },
+  "normalizedQuery": {
+    "channels": [
+      "1"
+    ],
+    "startTimeMs": 1791136680000,
+    "endTimeMs": 1791136740000,
+    "includeUnplaced": false,
+    "limit": 50,
+    "filters": {
+      "object": [
+        "person"
+      ],
+      "track": [
+        "absent"
+      ],
+      "event": [],
+      "zone": [],
+      "rule": [],
+      "behaviour": []
+    }
+  },
+  "body": {
+    "schema": "media-server.recording-search.v1",
+    "snapshotId": "cee31a6dd7fb2d6c82707fd644812e66",
+    "nextCursor": null,
+    "knownCount": 0,
+    "unplacedCount": 0,
+    "items": []
+  }
+}

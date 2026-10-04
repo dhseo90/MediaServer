@@ -1,0 +1,28 @@
+{
+  "id": "I31-corrupt",
+  "startedAt": "2026-10-04T17:53:47.831Z",
+  "completedAt": "2026-10-04T17:53:48.539Z",
+  "observedViewport": {
+    "width": 1180,
+    "height": 900
+  },
+  "observedTheme": "light",
+  "detail": {
+    "scenario": "corrupt",
+    "item": "v2-event:70:dj-3c90f0db9766aacf57079fd078361ae8c899e5dd7ed94cce4cf370c243c3fe74-o039:a9a514fc-0e2c-4b11-957d-464392c4b27c-m0:7000000000:8000000000",
+    "catalogState": "corrupt",
+    "message": "삭제·미완성·파일 누락 상태로 재생할 수 없습니다.",
+    "state": {
+      "paused": true,
+      "currentTime": 0,
+      "readyState": 0,
+      "duration": null,
+      "videoWidth": 0,
+      "videoHeight": 0,
+      "frames": 0,
+      "src": null,
+      "error": null,
+      "focused": false
+    }
+  }
+}

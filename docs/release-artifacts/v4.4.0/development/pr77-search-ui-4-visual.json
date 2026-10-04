@@ -1,0 +1,167 @@
+{
+  "reviewedAt": "2026-10-04T18:18:19.456089+00:00",
+  "automation": {
+    "pass": 38,
+    "fail": 0,
+    "notRun": 0
+  },
+  "visualResult": "PASS-search-addendum-with-retained-ui3-evidence",
+  "productSha256": "4eaf41faebabb057958b3d9fcf55a2ceafb08b6eabd6baa024e7039c9b70314d",
+  "reviewedSupplement": [
+    {
+      "path": "A01-operator-count-6-pagination.png",
+      "sha256": "812b5b9a41c84adbe492e03b9697a2ff3b8960fbbfdf7623e339b7a35f8b8979",
+      "reviewer": "main",
+      "viewed": true
+    },
+    {
+      "path": "A01-operator-count-6-rows-0.png",
+      "sha256": "eb2d760213b01f37cb9905ece07f7d55611fb86a06a67bb3ad7ad06beabdb4af",
+      "reviewer": "main",
+      "viewed": true
+    },
+    {
+      "path": "C01-first-pagination.png",
+      "sha256": "c667c337f748fdbcb6c9e0c3ae1998e7dd88042aa65db9727492a86178fbf3c5",
+      "reviewer": "main",
+      "viewed": true
+    },
+    {
+      "path": "C01-first-rows-0.png",
+      "sha256": "f6b74eee9833176bf0ca3c8bfdba89d03299c6f5985a2a3c11e62fdde5da8bab",
+      "reviewer": "main",
+      "viewed": true
+    },
+    {
+      "path": "C01-first-rows-1.png",
+      "sha256": "ed22b7d962a964563a154990a35005256f87a134eb2581b61a5232e9ab8264e9",
+      "reviewer": "main",
+      "viewed": true
+    },
+    {
+      "path": "C01-first-rows-2.png",
+      "sha256": "32dadc70c55448b24304f218a7c8aa952d1a869762d7b6406bbdc04a83e297ef",
+      "reviewer": "main",
+      "viewed": true
+    },
+    {
+      "path": "C01-second-pagination.png",
+      "sha256": "eee1232bafffcb0b47e3ff14440382aee8aaaa5d92a98897ce57d94e2d8222a2",
+      "reviewer": "main",
+      "viewed": true
+    },
+    {
+      "path": "C01-second-rows-0.png",
+      "sha256": "207d9b43472fddd5752925816f4f056f4402a42f0658c6d015f2cb59df112c4e",
+      "reviewer": "main",
+      "viewed": true
+    },
+    {
+      "path": "C02-expiry-http-410-player.png",
+      "sha256": "d9d1b9a79408eaf9938457bbdeb86a3b06fe838f9c22a606e979e2633c414bba",
+      "reviewer": "main",
+      "viewed": true
+    },
+    {
+      "path": "C02-restart-http-400-player.png",
+      "sha256": "5bd71f46f1839f7779fd1bc4c16980b86b6cfefacbd67b1dd589fd763b839004",
+      "reviewer": "main",
+      "viewed": true
+    },
+    {
+      "path": "C03-new-search-pagination.png",
+      "sha256": "c71064a7def8cc6eeb1f5f3253a67b8aabc9cd70548257899d0ec3031342df36",
+      "reviewer": "main",
+      "viewed": true
+    },
+    {
+      "path": "C03-new-search-rows-0.png",
+      "sha256": "d1c1c436b97ce33e875d114071841189575262ff99b33a55ff6c05005e0ca0f2",
+      "reviewer": "main",
+      "viewed": true
+    },
+    {
+      "path": "F01-channels-count-6-pagination.png",
+      "sha256": "812b5b9a41c84adbe492e03b9697a2ff3b8960fbbfdf7623e339b7a35f8b8979",
+      "reviewer": "main",
+      "viewed": true
+    },
+    {
+      "path": "F01-channels-count-6-rows-0.png",
+      "sha256": "033f9ba4ea344b5b81b80590da7efa1b60615507b2a7069109275c9810ef330e",
+      "reviewer": "main",
+      "viewed": true
+    },
+    {
+      "path": "F03-object-count-6-pagination.png",
+      "sha256": "812b5b9a41c84adbe492e03b9697a2ff3b8960fbbfdf7623e339b7a35f8b8979",
+      "reviewer": "main",
+      "viewed": true
+    },
+    {
+      "path": "F03-object-count-6-rows-0.png",
+      "sha256": "033f9ba4ea344b5b81b80590da7efa1b60615507b2a7069109275c9810ef330e",
+      "reviewer": "main",
+      "viewed": true
+    },
+    {
+      "path": "F04-epoch-pagination.png",
+      "sha256": "09db423533b032190b1ea886304a602ef367c727591271e7e7fc7207d9f50a0e",
+      "reviewer": "main",
+      "viewed": true
+    },
+    {
+      "path": "F04-epoch-rows-0.png",
+      "sha256": "7906ec5ca6712b89eab55142cda798eacd9f4c722a79ba0788a09f76338c0bb6",
+      "reviewer": "main",
+      "viewed": true
+    },
+    {
+      "path": "F04-epoch.png",
+      "sha256": "4e32735552ee15c72e670de28708c70845be43c2aec314f91cbb9ce918bc7351",
+      "reviewer": "main",
+      "viewed": true
+    },
+    {
+      "path": "F10-invalid-http-400-player.png",
+      "sha256": "b40f9f1b0782d536c0f9a63150116b550c3044dbe69bb16ffbaeddb6fdf4ae5c",
+      "reviewer": "main",
+      "viewed": true
+    },
+    {
+      "path": "M02-missing-http-503-player.png",
+      "sha256": "082c758c65d4cf98015d487d8b7bacee67e9954a7f916c82f54c44914f42121a",
+      "reviewer": "main",
+      "viewed": true
+    },
+    {
+      "path": "M03-capacity-http-503-player.png",
+      "sha256": "e51422ec637a998a03d6081ab7168573748200fd7f0128be468d7d659fb90441",
+      "reviewer": "main",
+      "viewed": true
+    },
+    {
+      "path": "P02-derived-player-1.png",
+      "sha256": "84ecf64cb63063d3c378a83ddde82cefecf75c906454659f041900a68edfd1bb",
+      "reviewer": "main",
+      "viewed": true
+    },
+    {
+      "path": "U01-late-search-player.png",
+      "sha256": "fa7d8e46f171761d8633f8acc07fbf006e54f04ccbb7322c411e1c6faee81b2b",
+      "reviewer": "main",
+      "viewed": true
+    }
+  ],
+  "retainedVisualEvidence": "pr77-search-ui-3-visual.json: 106 images directly reviewed by main and independent reviewer; retain unaffected states, use this run only for enumerated capture gaps. Both runs use identical product binary and source505b2dac. UI helper changed only selectors and capture readiness/position; public UI unchanged.",
+  "reviewNotes": [
+    "Derived0-second player shows actual ball image, whole viewport/controls and completion guidance; same10sec wait now after scrolling and positive decoded-frame count4.",
+    "All6 filtered/operator rows,2 epoch-unplaced rows,20/5 paging rows with overlapping captures and enabled/disabled next buttons are readable.",
+    "C03 final page shows both new channel3 rows including whole preservation buttons.",
+    "400/410/503 and late-empty states have matching status/zero-list plus whole empty player paired captures."
+  ],
+  "ui4OtherImages": "Not claimed individually re-reviewed; prior UI3 unaffected evidence retained.",
+  "scope": "38 search addendum actions; canonical424 remains separate.",
+  "resultsSha256": "1be600ad46809a7adbeedf29d5862a215978147acf7efbef578ef70554197cac",
+  "cleanup": "run log confirms server and browser exit; owned fixture absent; HTTP/RTSP/UDP closed; copied evidence pending owned-output cleanup."
+}

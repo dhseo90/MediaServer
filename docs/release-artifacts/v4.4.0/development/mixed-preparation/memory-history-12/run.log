@@ -1,0 +1,11 @@
+[fixed-memory] {"phase":"encoded-input-only","queries":0,"rssBytes":26017792,"peakRssBytes":26017792,"heapUsedBytes":3141776,"heapReservedBytes":33554432,"blocks":26050,"zones":2}
+[fixed-memory] {"phase":"seed-runtime","queries":0,"rssBytes":35110912,"peakRssBytes":35110912,"heapUsedBytes":3854304,"heapReservedBytes":37748736,"blocks":32525,"zones":2}
+[history-count] live=1 deleted=50
+[fixed-memory] {"phase":"deleted-batch","queries":50,"rssBytes":37535744,"peakRssBytes":37535744,"heapUsedBytes":5848560,"heapReservedBytes":37748736,"blocks":35477,"zones":2}
+[history-count] live=1 deleted=100
+[fixed-memory] {"phase":"deleted-batch","queries":100,"rssBytes":40976384,"peakRssBytes":40976384,"heapUsedBytes":4896512,"heapReservedBytes":50331648,"blocks":38266,"zones":2}
+[history-count] live=1 deleted=150
+[fixed-memory] {"phase":"deleted-batch","queries":150,"rssBytes":41402368,"peakRssBytes":41402368,"heapUsedBytes":6890384,"heapReservedBytes":50331648,"blocks":41711,"zones":2}
+[history-count] live=1 deleted=200
+[fixed-memory] {"phase":"deleted-batch","queries":200,"rssBytes":43384832,"peakRssBytes":43384832,"heapUsedBytes":6142432,"heapReservedBytes":54525952,"blocks":45233,"zones":2}
+FAIL strict replay

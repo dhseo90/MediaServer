@@ -1,0 +1,24 @@
+{
+  "id": "I32-blocked",
+  "startedAt": "2026-10-04T17:38:44.226Z",
+  "completedAt": "2026-10-04T17:38:44.271Z",
+  "observedViewport": {
+    "width": 1180,
+    "height": 900
+  },
+  "observedTheme": "light",
+  "detail": {
+    "channel": {
+      "channelId": "4",
+      "displayName": "S09 UI 4",
+      "enabled": true,
+      "active": true,
+      "storageBlocked": true,
+      "continuousBytes": 0,
+      "eventBytes": 0,
+      "continuousMaxBytes": 1048576,
+      "eventMaxBytes": 134217728
+    },
+    "shown": "S06 channel 1: 녹화 중 아님 · 상시 6551620/10737418240 bytes · 이벤트 77038/10737418240 bytes / S06 channel 2: 녹화 중 아님 · 상시 0/10737418240 bytes · 이벤트 0/10737418240 bytes / S09 UI 3: 녹화 중 · 상시 255268/134217728 bytes · 이벤트 0/134217728 bytes / S09 UI 4: 녹화 중 · 저장 공간 차단 · 상시 0/1048576 bytes · 이벤트 0/134217728 bytes"
+  }
+}

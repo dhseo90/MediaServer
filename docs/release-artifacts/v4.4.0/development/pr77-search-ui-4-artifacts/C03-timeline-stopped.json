@@ -1,0 +1,137 @@
+{
+  "query": {
+    "channelId": "3",
+    "startTimeMs": "1791137400000",
+    "endTimeMs": "1791137640000",
+    "limit": "1000",
+    "unplacedUnit": "file"
+  },
+  "status": 200,
+  "body": {
+    "total": 0,
+    "unplacedTotal": 2,
+    "offset": 0,
+    "limit": 1000,
+    "items": [],
+    "unplacedItems": [
+      {
+        "itemId": "v2-file-group:36:1a1fe7bf-e594-4cc4-8e4a-c5f85ff6a8be0:",
+        "segmentId": "1a1fe7bf-e594-4cc4-8e4a-c5f85ff6a8be",
+        "channelId": "3",
+        "kind": "continuous",
+        "displayPriority": 100,
+        "startTimeMs": null,
+        "endTimeMs": null,
+        "eventId": "",
+        "referenceId": "",
+        "jobId": "",
+        "jobState": "",
+        "catalogState": "finalized",
+        "completeness": "complete",
+        "playable": true,
+        "unavailableReason": "utc-unavailable",
+        "playbackUrl": "/ops/api/recordings/media/1a1fe7bf-e594-4cc4-8e4a-c5f85ff6a8be",
+        "contentType": "video/mp4",
+        "rangeBasis": "file-group",
+        "requestedRange": null,
+        "actualRange": null,
+        "orderSequence": "117",
+        "utcRange": null,
+        "mediaRange": {
+          "timeBasis": "segment-media-pts",
+          "startPts": "0",
+          "endPts": "1033333333",
+          "timeBaseNum": "1",
+          "timeBaseDen": "1000000000"
+        },
+        "hideByEvent": false,
+        "supersededByEventIds": [],
+        "eventOverlaps": [],
+        "members": [
+          {
+            "itemId": "v2-source:36:1a1fe7bf-e594-4cc4-8e4a-c5f85ff6a8be39:1a1fe7bf-e594-4cc4-8e4a-c5f85ff6a8be-m0",
+            "mappingId": "1a1fe7bf-e594-4cc4-8e4a-c5f85ff6a8be-m0",
+            "mappingProvenance": "unknown",
+            "uncertaintyNs": null,
+            "reason": "pts-reordering-or-duplicate",
+            "unavailableReason": "utc-unavailable",
+            "mediaRange": {
+              "timeBasis": "segment-media-pts",
+              "startPts": "0",
+              "endPts": "1033333333",
+              "timeBaseNum": "1",
+              "timeBaseDen": "1000000000"
+            },
+            "sourceSegmentId": "1a1fe7bf-e594-4cc4-8e4a-c5f85ff6a8be",
+            "sourceMappingRange": {
+              "timeBasis": "segment-media-pts",
+              "startPts": "0",
+              "endPts": "1033333333",
+              "timeBaseNum": "1",
+              "timeBaseDen": "1000000000"
+            }
+          }
+        ]
+      },
+      {
+        "itemId": "v2-file-group:36:4d4dc90c-02c8-4bdd-a398-465d532bd3950:",
+        "segmentId": "4d4dc90c-02c8-4bdd-a398-465d532bd395",
+        "channelId": "3",
+        "kind": "continuous",
+        "displayPriority": 100,
+        "startTimeMs": null,
+        "endTimeMs": null,
+        "eventId": "",
+        "referenceId": "",
+        "jobId": "",
+        "jobState": "",
+        "catalogState": "finalized",
+        "completeness": "complete",
+        "playable": true,
+        "unavailableReason": "utc-unavailable",
+        "playbackUrl": "/ops/api/recordings/media/4d4dc90c-02c8-4bdd-a398-465d532bd395",
+        "contentType": "video/mp4",
+        "rangeBasis": "file-group",
+        "requestedRange": null,
+        "actualRange": null,
+        "orderSequence": "116",
+        "utcRange": null,
+        "mediaRange": {
+          "timeBasis": "segment-media-pts",
+          "startPts": "0",
+          "endPts": "10066666666",
+          "timeBaseNum": "1",
+          "timeBaseDen": "1000000000"
+        },
+        "hideByEvent": false,
+        "supersededByEventIds": [],
+        "eventOverlaps": [],
+        "members": [
+          {
+            "itemId": "v2-source:36:4d4dc90c-02c8-4bdd-a398-465d532bd39539:4d4dc90c-02c8-4bdd-a398-465d532bd395-m0",
+            "mappingId": "4d4dc90c-02c8-4bdd-a398-465d532bd395-m0",
+            "mappingProvenance": "unknown",
+            "uncertaintyNs": null,
+            "reason": "pts-reordering-or-duplicate",
+            "unavailableReason": "utc-unavailable",
+            "mediaRange": {
+              "timeBasis": "segment-media-pts",
+              "startPts": "0",
+              "endPts": "10066666666",
+              "timeBaseNum": "1",
+              "timeBaseDen": "1000000000"
+            },
+            "sourceSegmentId": "4d4dc90c-02c8-4bdd-a398-465d532bd395",
+            "sourceMappingRange": {
+              "timeBasis": "segment-media-pts",
+              "startPts": "0",
+              "endPts": "10066666666",
+              "timeBaseNum": "1",
+              "timeBaseDen": "1000000000"
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

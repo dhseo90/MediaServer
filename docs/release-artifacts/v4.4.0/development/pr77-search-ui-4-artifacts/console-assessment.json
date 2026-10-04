@@ -1,0 +1,66 @@
+[
+  {
+    "action": "M02-missing",
+    "type": "error",
+    "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+    "route": "/ops/api/recordings/search",
+    "at": 1791137463498,
+    "approved": true
+  },
+  {
+    "action": "F10-invalid",
+    "type": "error",
+    "text": "Failed to load resource: the server responded with a status of 400 (Bad Request)",
+    "route": "/ops/api/recordings/search",
+    "at": 1791137464428,
+    "approved": true
+  },
+  {
+    "action": "C02-restart",
+    "type": "error",
+    "text": "Failed to load resource: the server responded with a status of 400 (Bad Request)",
+    "route": "/ops/api/recordings/search",
+    "at": 1791137489845,
+    "approved": true
+  },
+  {
+    "action": "C02-expiry",
+    "type": "error",
+    "text": "Failed to load resource: the server responded with a status of 410 (Gone)",
+    "route": "/ops/api/recordings/search",
+    "at": 1791137790571,
+    "approved": true
+  },
+  {
+    "action": "A01-operator",
+    "type": "error",
+    "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+    "route": "/ops/api/users",
+    "at": 1791137794787,
+    "approved": true
+  },
+  {
+    "action": "A01-denied-2",
+    "type": "error",
+    "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+    "route": "/ops/events",
+    "at": 1791137798342,
+    "approved": true
+  },
+  {
+    "action": "A01-denied-5",
+    "type": "error",
+    "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+    "route": "/ops/events",
+    "at": 1791137799240,
+    "approved": true
+  },
+  {
+    "action": "M03-capacity",
+    "type": "error",
+    "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+    "route": "/ops/api/recordings/search",
+    "at": 1791137821350,
+    "approved": true
+  }
+]

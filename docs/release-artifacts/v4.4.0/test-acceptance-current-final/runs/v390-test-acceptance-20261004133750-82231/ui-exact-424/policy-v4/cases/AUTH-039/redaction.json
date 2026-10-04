@@ -1,0 +1,34 @@
+{
+  "schema": "media-server.ui-evidence-redaction-scan.v1",
+  "scope": "case",
+  "status": "PASS",
+  "caseId": "AUTH-039",
+  "correlationId": "AUTH-039:execute-persisted-action:completion",
+  "scannedArtifacts": [
+    {
+      "path": "cases/143-AUTH-039/screenshots/AUTH-039.png",
+      "sha256": "5496dd54ed0392560bf4508475e693a74d112f9b4b8f5eb58bbc040cfc83eb64"
+    },
+    {
+      "path": "policy-v4/cases/AUTH-039/trace.json",
+      "sha256": "ae45fd178ea7be33c1d5ce546696efa20842e4e1b4b5306f733d09c249216fbf"
+    },
+    {
+      "path": "policy-v4/cases/AUTH-039/browser-console.json",
+      "sha256": "6d7349926310966c348b363df4bdf7def278d6d724ba335cdd308959638b4de8"
+    },
+    {
+      "path": "policy-v4/cases/AUTH-039/server.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "policy-v4/cases/AUTH-039/visual-measurement.json",
+      "sha256": "42bc0d49c7c09ee91d581ebc46a537f4eedd3c617fb9c2f01e01e8fa42819345"
+    },
+    {
+      "path": "policy-v4/cases/AUTH-039/visual.json",
+      "sha256": "fc6ef89f3b26507d9d4c75dc2c52b470de41f7a48b751375f2d3ef5a87e0933f"
+    }
+  ],
+  "findings": []
+}

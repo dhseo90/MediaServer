@@ -1,0 +1,41 @@
+{
+  "status": 200,
+  "query": {
+    "channelIds": "1",
+    "startTimeMs": "1791136260000",
+    "endTimeMs": "1791136320000",
+    "limit": "50",
+    "includeUnplaced": "false",
+    "object": "vehicle",
+    "behaviour": "scenario:Absent"
+  },
+  "normalizedQuery": {
+    "channels": [
+      "1"
+    ],
+    "startTimeMs": 1791136260000,
+    "endTimeMs": 1791136320000,
+    "includeUnplaced": false,
+    "limit": 50,
+    "filters": {
+      "object": [
+        "vehicle"
+      ],
+      "track": [],
+      "event": [],
+      "zone": [],
+      "rule": [],
+      "behaviour": [
+        "scenario:Absent"
+      ]
+    }
+  },
+  "body": {
+    "schema": "media-server.recording-search.v1",
+    "snapshotId": "9cfd039301518274f580308566d60ffc",
+    "nextCursor": null,
+    "knownCount": 0,
+    "unplacedCount": 0,
+    "items": []
+  }
+}

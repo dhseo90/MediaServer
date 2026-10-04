@@ -1,0 +1,49 @@
+{
+  "status": 200,
+  "response": {
+    "hitId": "or:20:ui-release-derived-0",
+    "playable": true,
+    "playbackUrl": "/ops/api/recordings/media/c837cd3b-0b52-4001-9a70-84af8adaef3f",
+    "seekAvailable": false,
+    "targetSeconds": null,
+    "frameDurationSeconds": null,
+    "reason": "seek-unavailable",
+    "timeBasis": ""
+  },
+  "state": {
+    "time": 0,
+    "duration": 1,
+    "readyState": 4,
+    "seeking": false,
+    "error": null,
+    "src": "/ops/api/recordings/media/c837cd3b-0b52-4001-9a70-84af8adaef3f",
+    "width": 160,
+    "height": 90,
+    "frames": 4
+  },
+  "message": "정확한 검색 위치를 확인할 수 없습니다. 파일 시작부터 재생할 수 있습니다.",
+  "events": [
+    {
+      "type": "status",
+      "at": 26633.80000001192,
+      "text": "결과를 선택하면 검색 시점으로 이동합니다."
+    },
+    {
+      "type": "status",
+      "at": 26633.80000001192,
+      "text": "현재 파일과 재생 위치를 확인하는 중…"
+    },
+    {
+      "type": "loadedmetadata",
+      "at": 26658.900000035763,
+      "time": 0,
+      "seeking": false,
+      "readyState": 4
+    },
+    {
+      "type": "status",
+      "at": 26658.900000035763,
+      "text": "정확한 검색 위치를 확인할 수 없습니다. 파일 시작부터 재생할 수 있습니다."
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "state": "prepared-not-executed",
+  "featureIds": [
+    "V440-F01",
+    "V440-F02",
+    "V440-M01",
+    "V440-S01",
+    "V440-A01",
+    "V440-R01",
+    "V440-PR77-02",
+    "V440-PR77-06"
+  ],
+  "base": "existing current recording observer; product binary unchanged",
+  "execution": "30-second preparation first, then separately approved actual30; never claim120 from this harness",
+  "fixture": "2 owned I420 160x90/30fps ball sources,64KiB continuous quota; Auth off isolated loopback; actual local SigLIP2 scan/sample 1sec",
+  "expectations": [
+    "2 structured + 2 actual SigLIP2 searches concurrently every15s; explicit busy/index-not-ready/source-changed503 counted, each client >=1 success, real visual results and visual evidence creation >=1; successful p95<=2s/max<=5s",
+    "2 simultaneous evidence creates,201 or explicit busy503; at least1created per cycle",
+    "1..8 actualPNG in complete package; partial under retention race must name missing/deleted/unsupported reference, counted separately; at least1 complete",
+    "initial manifest and PNG SHA256 survive actual original retention deletion and restart",
+    "both recording channels finalize/delete and remain active; inherited source off/on and restart checks",
+    "native process RSS<=4GiB; inherited stricter448MiB variable fixture cap, complete cleanup"
+  ],
+  "durationMs": 1800000,
+  "totalBudgetMs": 1980000,
+  "resourceTrend": "measured; main judges plateau, no automatic leak PASS",
+  "sourceHashes": {
+    "mixed-30.mjs": "8dec2e9adb78b5a6b452d5309c918ce4e7ff094c5c1e3c62450aab1d73ae5b47",
+    "mixed-30.sh": "6f1faed949cc2f2d0e8bf8a2b48f96b3719eed80a64435e35242d439ad7c4669"
+  },
+  "source": "/Users/dhseo/.codex/worktrees/v440-pr77-fixes/mediaServer/build-pr77/media_server"
+}

@@ -1,0 +1,76 @@
+{
+  "rawResult": "actual-ui-rich-3/actual-ui.json",
+  "rawResultSha256": "e817201af25be3bf1f53d986f70ffb18106682075e0e73aec73fa59712c2f748",
+  "automationStatus": "PASS-pending-visual-review",
+  "cases": [
+    {
+      "id": "deleted-clip",
+      "status": "PASS"
+    },
+    {
+      "id": "partial",
+      "status": "PASS"
+    },
+    {
+      "id": "corrupt",
+      "status": "PASS"
+    }
+  ],
+  "sourceHashes": {
+    "CMakeLists.txt": "1e518bebe5d58a34e04298dd41a55f7f78e5ccc192d1c6b44907847cd7dd28e7",
+    "include/recording/recording_catalog.h": "0184a0d353bc2d777eed2f212a7ae8bbe12e6bdb3a784939bfb6e7999f76a618",
+    "include/recording/recording_read_service.h": "0dade2ef02607670e0427871b70a68be515a0bc998192d703026d9fe1020361b",
+    "include/recording/recording_search_reader.h": "ebda13c77e3c80dfef4bcfa20734dbd1dcecdf25e012151944624b4dc4e426ff",
+    "include/recording/recording_visual_source.h": "873b5ef3d60441a367dfa3caa5fae17be7850a9bd37e9cf03a4d0b84063b1f67",
+    "include/recording/visual_index_worker.h": "4956604096fb309f76b894b03cd776a09f2e57467fef70b8c0919e7ec4b5006d",
+    "src/analysis/siglip2_encoder.cpp": "36df2729f2b026c31dfa861b8e28899fe4a945416bff57fc935b56cc2e0fa404",
+    "src/ingress/product_ui_page_scripts.cpp": "412ee9c56344be6f9feb300a731e18e80e7f24fb182697cb4bd618f7e0862812",
+    "src/ingress/visual_search_application_service.cpp": "e7d5f497491e49246a2a6f246675e5a8d8657adba9c0de61d495532f5ca56243",
+    "src/recording/recording_catalog.cpp": "4caec81e623741fc0641407626fc09386c1a4caddba745589b818cea0accc801",
+    "src/recording/recording_journal.cpp": "0ac2558aaca69b9c4eca0a18cb6e485e05d2041d713e22e18c29751676b9c9fd",
+    "src/recording/recording_read_service.cpp": "6fe6ca01b7ae22b1a7c81e62067168fda9b64f2a38c33b5d08b53338878c0e95",
+    "src/recording/recording_search_reader.cpp": "890cc57a0137cc754bf17e35e84afa5c0d82722bb4cea73d0d323b45d7b77c73",
+    "src/recording/recording_visual_snapshots.cpp": "c8e766b6ab6657b966926964f73a6b500133c6595d1df946fb9e1ac2fb2a8611",
+    "src/recording/recording_visual_source.cpp": "d33f201cdcf9ca58d9c67d5c13ce39cccad344fa47151d50b2c33128d3ccecea",
+    "src/recording/visual_frame_decoder.cpp": "c2971cd344ee494e1ee9b97f34a02f5af121cd595467d3c44140eb3559ff0aff",
+    "src/recording/visual_index_worker.cpp": "f283eb14fe0c460d03319d8808e7d74ab59f0c3bb5508d5d46b393d67d564a0e"
+  },
+  "binarySha256": "b3b996b81d676fb11a7d1145ffcc6d774005bcb5ca83013ad3c37640f8d5eb8f",
+  "cleanup": {
+    "root": "[PATH]",
+    "rootIdentity": "16777232:168327211",
+    "rootAbsent": true,
+    "process": {
+      "exited": true,
+      "forced": false,
+      "exitCode": 0,
+      "signalCode": null
+    },
+    "http": {
+      "closed": true,
+      "evidence": "ECONNREFUSED"
+    },
+    "rtsp": {
+      "closed": true,
+      "evidence": "ECONNREFUSED"
+    },
+    "udpClosed": true
+  },
+  "wholeSuitePass": false,
+  "featureIds": [
+    "V440-U01"
+  ],
+  "visualReview": {
+    "status": "PASS",
+    "reviewer": "main agent",
+    "reviewedAt": "2026-10-04T16:21:35.170698+00:00",
+    "scope": "actual native Chrome interaction plus complete changed evidence/visual sections; synthetic ball, no 4-scene VA overlay; separate from canonical 424 cases",
+    "observations": [
+      "한글 상태/controls와 전체 보존 frames/clip 영역 잘림 없음, 불필요 원문 경로·인증자료 비노출.",
+      "원본 삭제와 별도 보존 안내, native 재생·정지·끝 탐색, partial 누락 안내 및 손상 오류 후 상세 비움 확인."
+    ]
+  },
+  "status": "PASS-addendum",
+  "retestOf": "actual-ui-rich-2.json",
+  "correction": "native End key for end-boundary action; 10s timeout and actual playback assertions unchanged"
+}

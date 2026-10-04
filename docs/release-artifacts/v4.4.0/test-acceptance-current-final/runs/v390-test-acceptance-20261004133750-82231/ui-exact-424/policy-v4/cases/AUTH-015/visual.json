@@ -1,0 +1,9 @@
+{
+  "schema": "media-server.ui-raw-visual-capture.v1",
+  "caseId": "AUTH-015",
+  "correlationId": "AUTH-015:submit-form:completion",
+  "targetSelector": "#invite-create-form button[type=\"submit\"]",
+  "screenshotSha256": "b13da1a069c413a92ea0a36155246f44aba72e4f1bddddd5c45891d6cc47c51b",
+  "measurementSha256": "2651a734b41a3c2809cec2df8ba9502c1e3947abe54ff04b9be606f0c470b55c",
+  "qualificationStatus": "unqualified-raw-capture"
+}

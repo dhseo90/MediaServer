@@ -1,0 +1,25 @@
+open ok=1 ms=1109.12
+iteration=0
+refresh ok=1 ms=2.93383
+timeline ok=1 ms=942.05
+playback ok=1 ms=2.25529
+visual-collect ok=1 ms=77.4565
+counts search=195 timeline=6654 visual=31
+visual-prepare ok=1 ms=10.7498
+visual-reuse ok=1 ms=1.12621
+iteration=1
+refresh ok=1 ms=2.89583
+timeline ok=1 ms=932.479
+playback ok=1 ms=2.20987
+visual-collect ok=1 ms=77.5282
+counts search=195 timeline=6654 visual=31
+visual-prepare ok=1 ms=10.6487
+visual-reuse ok=1 ms=1.20396
+iteration=2
+refresh ok=1 ms=2.82333
+timeline ok=1 ms=922.635
+playback ok=1 ms=2.17425
+visual-collect ok=1 ms=79.0263
+counts search=195 timeline=6654 visual=31
+visual-prepare ok=1 ms=11.9313
+visual-reuse ok=1 ms=1.22308

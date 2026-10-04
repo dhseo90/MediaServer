@@ -1,0 +1,82 @@
+[
+  {
+    "type": "error",
+    "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+    "route": "/ops/api/recordings/timeline",
+    "session": 1,
+    "action": "I31-error",
+    "at": 1791135518235
+  },
+  {
+    "type": "error",
+    "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+    "route": "/ops/api/users",
+    "session": 2,
+    "action": "I34-operator",
+    "at": 1791135526878
+  },
+  {
+    "type": "error",
+    "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+    "route": "/ops/api/recordings/timeline",
+    "session": 2,
+    "action": "I34-operator",
+    "at": 1791135528880
+  },
+  {
+    "type": "error",
+    "text": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "route": "/ops/api/recordings/media/6b52f08d-af66-46cf-a5a6-8480bb7e5050",
+    "session": 2,
+    "action": "I34-operator",
+    "at": 1791135528901
+  },
+  {
+    "type": "error",
+    "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+    "route": "/ops/api/users",
+    "session": 3,
+    "action": "I34-operator",
+    "at": 1791135530610
+  },
+  {
+    "type": "error",
+    "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+    "route": "/ops/home",
+    "session": 4,
+    "action": "I34-operator",
+    "at": 1791135531520
+  },
+  {
+    "type": "error",
+    "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+    "route": "/ops/events",
+    "session": 4,
+    "action": "I34-operator",
+    "at": 1791135531542
+  },
+  {
+    "type": "error",
+    "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+    "route": "/ops/api/users",
+    "session": 5,
+    "action": "I34-operator",
+    "at": 1791135531912
+  },
+  {
+    "type": "error",
+    "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+    "route": "/ops/events",
+    "session": 6,
+    "action": "I34-viewer-unauth",
+    "at": 1791135533409
+  },
+  {
+    "type": "error",
+    "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+    "route": "/ops/api/users",
+    "session": 8,
+    "action": "I34-viewer-unauth",
+    "at": 1791135533992
+  }
+]

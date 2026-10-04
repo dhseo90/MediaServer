@@ -1,0 +1,15 @@
+{
+  "id": "I28-event",
+  "startedAt": "2026-10-04T17:53:39.897Z",
+  "completedAt": "2026-10-04T17:53:40.606Z",
+  "observedViewport": {
+    "width": 1180,
+    "height": 900
+  },
+  "observedTheme": "light",
+  "detail": {
+    "expected": "v2-event:70:dj-3c90f0db9766aacf57079fd078361ae8c899e5dd7ed94cce4cf370c243c3fe74-o139:fc6c4aeb-968f-48aa-96df-324453d689e3-m0:8000000000:9000000000",
+    "actualSrc": "/ops/api/recordings/media/dj-3c90f0db9766aacf57079fd078361ae8c899e5dd7ed94cce4cf370c243c3fe74-o1",
+    "badge": "이벤트 우선"
+  }
+}

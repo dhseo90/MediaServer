@@ -1,0 +1,1968 @@
+{
+  "sourceCommit": "789583126c71a4aace24c9ae2cac1d67f7beb32d",
+  "binarySha256": "b3b996b81d676fb11a7d1145ffcc6d774005bcb5ca83013ad3c37640f8d5eb8f",
+  "schema": "media-server.v440-actual-ui-addendum.v1",
+  "mode": "normal",
+  "startedAt": "2026-10-04T16:04:05.136Z",
+  "browser": "native Chrome",
+  "headless": true,
+  "visualReview": "pending",
+  "wholeSuitePass": false,
+  "cases": [
+    {
+      "id": "structured-save",
+      "status": "PASS",
+      "startedAt": "2026-10-04T16:04:12.651Z",
+      "observation": {
+        "status": 201,
+        "id": "ep-1540e9fc04d6661947731c03d69f2b5601eb719ec08b06c9138169b725a52f51",
+        "loaded": [
+          {
+            "width": 160,
+            "height": 90,
+            "alt": "보존 프레임 1"
+          },
+          {
+            "width": 160,
+            "height": 90,
+            "alt": "보존 프레임 2"
+          },
+          {
+            "width": 160,
+            "height": 90,
+            "alt": "보존 프레임 3"
+          },
+          {
+            "width": 160,
+            "height": 90,
+            "alt": "보존 프레임 4"
+          },
+          {
+            "width": 160,
+            "height": 90,
+            "alt": "보존 프레임 5"
+          },
+          {
+            "width": 160,
+            "height": 90,
+            "alt": "보존 프레임 6"
+          },
+          {
+            "width": 160,
+            "height": 90,
+            "alt": "보존 프레임 7"
+          },
+          {
+            "width": 160,
+            "height": 90,
+            "alt": "보존 프레임 8"
+          }
+        ]
+      },
+      "finishedAt": "2026-10-04T16:04:12.938Z"
+    },
+    {
+      "id": "duplicate-click",
+      "status": "PASS",
+      "startedAt": "2026-10-04T16:04:12.938Z",
+      "observation": {
+        "postRequests": 1,
+        "response": 201,
+        "delay": "250ms real response; payload unchanged"
+      },
+      "finishedAt": "2026-10-04T16:04:13.393Z"
+    },
+    {
+      "id": "visual-save",
+      "status": "PASS",
+      "startedAt": "2026-10-04T16:04:13.393Z",
+      "observation": {
+        "searchStatus": 200,
+        "saveStatus": 201,
+        "id": "ep-3933f7bad9b9c1d0eaf61965754c1df9601a34e3bf80344827ea508689971632",
+        "loaded": [
+          {
+            "width": 160,
+            "height": 90,
+            "alt": "보존 프레임 1"
+          }
+        ]
+      },
+      "finishedAt": "2026-10-04T16:04:13.700Z"
+    },
+    {
+      "id": "pr77-rebuild-fallback",
+      "status": "PASS",
+      "startedAt": "2026-10-04T16:04:13.700Z",
+      "observation": {
+        "featureId": "V440-PR77-02",
+        "state": "ready",
+        "searchAvailable": true,
+        "searchStatus": 200,
+        "results": 1
+      },
+      "finishedAt": "2026-10-04T16:04:14.920Z"
+    },
+    {
+      "id": "list-detail",
+      "status": "PASS",
+      "startedAt": "2026-10-04T16:04:14.921Z",
+      "observation": {
+        "id": "ep-1540e9fc04d6661947731c03d69f2b5601eb719ec08b06c9138169b725a52f51",
+        "status": 200
+      },
+      "finishedAt": "2026-10-04T16:04:15.059Z"
+    },
+    {
+      "id": "late-detail",
+      "status": "PASS",
+      "startedAt": "2026-10-04T16:04:15.060Z",
+      "observation": {
+        "delayedResponse": "real200",
+        "newChannel": "2",
+        "detailEmpty": true,
+        "disposition": "real response delivered"
+      },
+      "finishedAt": "2026-10-04T16:04:15.352Z"
+    },
+    {
+      "id": "responsive",
+      "status": "PASS",
+      "startedAt": "2026-10-04T16:04:15.353Z",
+      "observation": [
+        {
+          "width": 320,
+          "theme": "light",
+          "geometry": [
+            {
+              "tag": "SELECT",
+              "left": 33,
+              "right": 287,
+              "width": 254
+            },
+            {
+              "tag": "BUTTON",
+              "left": 33,
+              "right": 287,
+              "width": 254
+            },
+            {
+              "tag": "BUTTON",
+              "left": 33,
+              "right": 287,
+              "width": 254
+            },
+            {
+              "tag": "BUTTON",
+              "left": 33,
+              "right": 287,
+              "width": 254
+            },
+            {
+              "tag": "BUTTON",
+              "left": 33,
+              "right": 287,
+              "width": 254
+            },
+            {
+              "tag": "BUTTON",
+              "left": 33,
+              "right": 287,
+              "width": 254
+            },
+            {
+              "tag": "BUTTON",
+              "left": 33,
+              "right": 287,
+              "width": 254
+            },
+            {
+              "tag": "IMG",
+              "left": 33,
+              "right": 193,
+              "width": 160
+            },
+            {
+              "tag": "IMG",
+              "left": 33,
+              "right": 193,
+              "width": 160
+            },
+            {
+              "tag": "IMG",
+              "left": 33,
+              "right": 193,
+              "width": 160
+            },
+            {
+              "tag": "IMG",
+              "left": 33,
+              "right": 193,
+              "width": 160
+            },
+            {
+              "tag": "IMG",
+              "left": 33,
+              "right": 193,
+              "width": 160
+            },
+            {
+              "tag": "IMG",
+              "left": 33,
+              "right": 193,
+              "width": 160
+            },
+            {
+              "tag": "IMG",
+              "left": 33,
+              "right": 193,
+              "width": 160
+            },
+            {
+              "tag": "IMG",
+              "left": 33,
+              "right": 193,
+              "width": 160
+            }
+          ]
+        },
+        {
+          "width": 320,
+          "theme": "dark",
+          "geometry": [
+            {
+              "tag": "SELECT",
+              "left": 33,
+              "right": 287,
+              "width": 254
+            },
+            {
+              "tag": "BUTTON",
+              "left": 33,
+              "right": 287,
+              "width": 254
+            },
+            {
+              "tag": "BUTTON",
+              "left": 33,
+              "right": 287,
+              "width": 254
+            },
+            {
+              "tag": "BUTTON",
+              "left": 33,
+              "right": 287,
+              "width": 254
+            },
+            {
+              "tag": "BUTTON",
+              "left": 33,
+              "right": 287,
+              "width": 254
+            },
+            {
+              "tag": "BUTTON",
+              "left": 33,
+              "right": 287,
+              "width": 254
+            },
+            {
+              "tag": "BUTTON",
+              "left": 33,
+              "right": 287,
+              "width": 254
+            },
+            {
+              "tag": "IMG",
+              "left": 33,
+              "right": 193,
+              "width": 160
+            },
+            {
+              "tag": "IMG",
+              "left": 33,
+              "right": 193,
+              "width": 160
+            },
+            {
+              "tag": "IMG",
+              "left": 33,
+              "right": 193,
+              "width": 160
+            },
+            {
+              "tag": "IMG",
+              "left": 33,
+              "right": 193,
+              "width": 160
+            },
+            {
+              "tag": "IMG",
+              "left": 33,
+              "right": 193,
+              "width": 160
+            },
+            {
+              "tag": "IMG",
+              "left": 33,
+              "right": 193,
+              "width": 160
+            },
+            {
+              "tag": "IMG",
+              "left": 33,
+              "right": 193,
+              "width": 160
+            },
+            {
+              "tag": "IMG",
+              "left": 33,
+              "right": 193,
+              "width": 160
+            }
+          ]
+        },
+        {
+          "width": 390,
+          "theme": "light",
+          "geometry": [
+            {
+              "tag": "SELECT",
+              "left": 33,
+              "right": 357,
+              "width": 324
+            },
+            {
+              "tag": "BUTTON",
+              "left": 33,
+              "right": 357,
+              "width": 324
+            },
+            {
+              "tag": "BUTTON",
+              "left": 33,
+              "right": 357,
+              "width": 324
+            },
+            {
+              "tag": "BUTTON",
+              "left": 33,
+              "right": 357,
+              "width": 324
+            },
+            {
+              "tag": "BUTTON",
+              "left": 33,
+              "right": 357,
+              "width": 324
+            },
+            {
+              "tag": "BUTTON",
+              "left": 33,
+              "right": 357,
+              "width": 324
+            },
+            {
+              "tag": "BUTTON",
+              "left": 33,
+              "right": 357,
+              "width": 324
+            },
+            {
+              "tag": "IMG",
+              "left": 33,
+              "right": 193,
+              "width": 160
+            },
+            {
+              "tag": "IMG",
+              "left": 33,
+              "right": 193,
+              "width": 160
+            },
+            {
+              "tag": "IMG",
+              "left": 33,
+              "right": 193,
+              "width": 160
+            },
+            {
+              "tag": "IMG",
+              "left": 33,
+              "right": 193,
+              "width": 160
+            },
+            {
+              "tag": "IMG",
+              "left": 33,
+              "right": 193,
+              "width": 160
+            },
+            {
+              "tag": "IMG",
+              "left": 33,
+              "right": 193,
+              "width": 160
+            },
+            {
+              "tag": "IMG",
+              "left": 33,
+              "right": 193,
+              "width": 160
+            },
+            {
+              "tag": "IMG",
+              "left": 33,
+              "right": 193,
+              "width": 160
+            }
+          ]
+        },
+        {
+          "width": 390,
+          "theme": "dark",
+          "geometry": [
+            {
+              "tag": "SELECT",
+              "left": 33,
+              "right": 357,
+              "width": 324
+            },
+            {
+              "tag": "BUTTON",
+              "left": 33,
+              "right": 357,
+              "width": 324
+            },
+            {
+              "tag": "BUTTON",
+              "left": 33,
+              "right": 357,
+              "width": 324
+            },
+            {
+              "tag": "BUTTON",
+              "left": 33,
+              "right": 357,
+              "width": 324
+            },
+            {
+              "tag": "BUTTON",
+              "left": 33,
+              "right": 357,
+              "width": 324
+            },
+            {
+              "tag": "BUTTON",
+              "left": 33,
+              "right": 357,
+              "width": 324
+            },
+            {
+              "tag": "BUTTON",
+              "left": 33,
+              "right": 357,
+              "width": 324
+            },
+            {
+              "tag": "IMG",
+              "left": 33,
+              "right": 193,
+              "width": 160
+            },
+            {
+              "tag": "IMG",
+              "left": 33,
+              "right": 193,
+              "width": 160
+            },
+            {
+              "tag": "IMG",
+              "left": 33,
+              "right": 193,
+              "width": 160
+            },
+            {
+              "tag": "IMG",
+              "left": 33,
+              "right": 193,
+              "width": 160
+            },
+            {
+              "tag": "IMG",
+              "left": 33,
+              "right": 193,
+              "width": 160
+            },
+            {
+              "tag": "IMG",
+              "left": 33,
+              "right": 193,
+              "width": 160
+            },
+            {
+              "tag": "IMG",
+              "left": 33,
+              "right": 193,
+              "width": 160
+            },
+            {
+              "tag": "IMG",
+              "left": 33,
+              "right": 193,
+              "width": 160
+            }
+          ]
+        },
+        {
+          "width": 760,
+          "theme": "light",
+          "geometry": [
+            {
+              "tag": "SELECT",
+              "left": 33,
+              "right": 727,
+              "width": 694
+            },
+            {
+              "tag": "BUTTON",
+              "left": 33,
+              "right": 727,
+              "width": 694
+            },
+            {
+              "tag": "BUTTON",
+              "left": 33,
+              "right": 727,
+              "width": 694
+            },
+            {
+              "tag": "BUTTON",
+              "left": 33,
+              "right": 727,
+              "width": 694
+            },
+            {
+              "tag": "BUTTON",
+              "left": 33,
+              "right": 727,
+              "width": 694
+            },
+            {
+              "tag": "BUTTON",
+              "left": 33,
+              "right": 727,
+              "width": 694
+            },
+            {
+              "tag": "BUTTON",
+              "left": 33,
+              "right": 727,
+              "width": 694
+            },
+            {
+              "tag": "IMG",
+              "left": 33,
+              "right": 193,
+              "width": 160
+            },
+            {
+              "tag": "IMG",
+              "left": 33,
+              "right": 193,
+              "width": 160
+            },
+            {
+              "tag": "IMG",
+              "left": 33,
+              "right": 193,
+              "width": 160
+            },
+            {
+              "tag": "IMG",
+              "left": 33,
+              "right": 193,
+              "width": 160
+            },
+            {
+              "tag": "IMG",
+              "left": 33,
+              "right": 193,
+              "width": 160
+            },
+            {
+              "tag": "IMG",
+              "left": 33,
+              "right": 193,
+              "width": 160
+            },
+            {
+              "tag": "IMG",
+              "left": 33,
+              "right": 193,
+              "width": 160
+            },
+            {
+              "tag": "IMG",
+              "left": 33,
+              "right": 193,
+              "width": 160
+            }
+          ]
+        },
+        {
+          "width": 760,
+          "theme": "dark",
+          "geometry": [
+            {
+              "tag": "SELECT",
+              "left": 33,
+              "right": 727,
+              "width": 694
+            },
+            {
+              "tag": "BUTTON",
+              "left": 33,
+              "right": 727,
+              "width": 694
+            },
+            {
+              "tag": "BUTTON",
+              "left": 33,
+              "right": 727,
+              "width": 694
+            },
+            {
+              "tag": "BUTTON",
+              "left": 33,
+              "right": 727,
+              "width": 694
+            },
+            {
+              "tag": "BUTTON",
+              "left": 33,
+              "right": 727,
+              "width": 694
+            },
+            {
+              "tag": "BUTTON",
+              "left": 33,
+              "right": 727,
+              "width": 694
+            },
+            {
+              "tag": "BUTTON",
+              "left": 33,
+              "right": 727,
+              "width": 694
+            },
+            {
+              "tag": "IMG",
+              "left": 33,
+              "right": 193,
+              "width": 160
+            },
+            {
+              "tag": "IMG",
+              "left": 33,
+              "right": 193,
+              "width": 160
+            },
+            {
+              "tag": "IMG",
+              "left": 33,
+              "right": 193,
+              "width": 160
+            },
+            {
+              "tag": "IMG",
+              "left": 33,
+              "right": 193,
+              "width": 160
+            },
+            {
+              "tag": "IMG",
+              "left": 33,
+              "right": 193,
+              "width": 160
+            },
+            {
+              "tag": "IMG",
+              "left": 33,
+              "right": 193,
+              "width": 160
+            },
+            {
+              "tag": "IMG",
+              "left": 33,
+              "right": 193,
+              "width": 160
+            },
+            {
+              "tag": "IMG",
+              "left": 33,
+              "right": 193,
+              "width": 160
+            }
+          ]
+        },
+        {
+          "width": 1180,
+          "theme": "light",
+          "geometry": [
+            {
+              "tag": "SELECT",
+              "left": 33,
+              "right": 920.578125,
+              "width": 887.578125
+            },
+            {
+              "tag": "BUTTON",
+              "left": 932.578125,
+              "right": 1049.625,
+              "width": 117.046875
+            },
+            {
+              "tag": "BUTTON",
+              "left": 1061.625,
+              "right": 1147,
+              "width": 85.375
+            },
+            {
+              "tag": "BUTTON",
+              "left": 33,
+              "right": 1147,
+              "width": 1114
+            },
+            {
+              "tag": "BUTTON",
+              "left": 33,
+              "right": 1147,
+              "width": 1114
+            },
+            {
+              "tag": "BUTTON",
+              "left": 33,
+              "right": 1147,
+              "width": 1114
+            },
+            {
+              "tag": "BUTTON",
+              "left": 33,
+              "right": 1147,
+              "width": 1114
+            },
+            {
+              "tag": "IMG",
+              "left": 33,
+              "right": 193,
+              "width": 160
+            },
+            {
+              "tag": "IMG",
+              "left": 33,
+              "right": 193,
+              "width": 160
+            },
+            {
+              "tag": "IMG",
+              "left": 33,
+              "right": 193,
+              "width": 160
+            },
+            {
+              "tag": "IMG",
+              "left": 33,
+              "right": 193,
+              "width": 160
+            },
+            {
+              "tag": "IMG",
+              "left": 33,
+              "right": 193,
+              "width": 160
+            },
+            {
+              "tag": "IMG",
+              "left": 33,
+              "right": 193,
+              "width": 160
+            },
+            {
+              "tag": "IMG",
+              "left": 33,
+              "right": 193,
+              "width": 160
+            },
+            {
+              "tag": "IMG",
+              "left": 33,
+              "right": 193,
+              "width": 160
+            }
+          ]
+        },
+        {
+          "width": 1180,
+          "theme": "dark",
+          "geometry": [
+            {
+              "tag": "SELECT",
+              "left": 33,
+              "right": 920.578125,
+              "width": 887.578125
+            },
+            {
+              "tag": "BUTTON",
+              "left": 932.578125,
+              "right": 1049.625,
+              "width": 117.046875
+            },
+            {
+              "tag": "BUTTON",
+              "left": 1061.625,
+              "right": 1147,
+              "width": 85.375
+            },
+            {
+              "tag": "BUTTON",
+              "left": 33,
+              "right": 1147,
+              "width": 1114
+            },
+            {
+              "tag": "BUTTON",
+              "left": 33,
+              "right": 1147,
+              "width": 1114
+            },
+            {
+              "tag": "BUTTON",
+              "left": 33,
+              "right": 1147,
+              "width": 1114
+            },
+            {
+              "tag": "BUTTON",
+              "left": 33,
+              "right": 1147,
+              "width": 1114
+            },
+            {
+              "tag": "IMG",
+              "left": 33,
+              "right": 193,
+              "width": 160
+            },
+            {
+              "tag": "IMG",
+              "left": 33,
+              "right": 193,
+              "width": 160
+            },
+            {
+              "tag": "IMG",
+              "left": 33,
+              "right": 193,
+              "width": 160
+            },
+            {
+              "tag": "IMG",
+              "left": 33,
+              "right": 193,
+              "width": 160
+            },
+            {
+              "tag": "IMG",
+              "left": 33,
+              "right": 193,
+              "width": 160
+            },
+            {
+              "tag": "IMG",
+              "left": 33,
+              "right": 193,
+              "width": 160
+            },
+            {
+              "tag": "IMG",
+              "left": 33,
+              "right": 193,
+              "width": 160
+            },
+            {
+              "tag": "IMG",
+              "left": 33,
+              "right": 193,
+              "width": 160
+            }
+          ]
+        }
+      ],
+      "finishedAt": "2026-10-04T16:04:16.430Z"
+    },
+    {
+      "id": "operator",
+      "status": "PASS",
+      "startedAt": "2026-10-04T16:04:16.430Z",
+      "observation": {
+        "allowed": 200,
+        "forbidden": 403
+      },
+      "finishedAt": "2026-10-04T16:04:17.614Z"
+    },
+    {
+      "id": "viewer-anonymous",
+      "status": "PASS",
+      "startedAt": "2026-10-04T16:04:17.614Z",
+      "observation": [
+        {
+          "role": "viewer",
+          "route": "/ops/events",
+          "status": 403,
+          "api": 403
+        },
+        {
+          "role": "anonymous",
+          "route": "/login",
+          "status": 200,
+          "api": 401
+        }
+      ],
+      "finishedAt": "2026-10-04T16:04:19.066Z"
+    },
+    {
+      "id": "real-expiry",
+      "status": "PASS",
+      "startedAt": "2026-10-04T16:04:19.066Z",
+      "observation": {
+        "elapsedMs": 301139,
+        "status": 410
+      },
+      "finishedAt": "2026-10-04T16:09:13.789Z"
+    }
+  ],
+  "requests": [
+    {
+      "action": "setup",
+      "path": "/login",
+      "method": "GET",
+      "status": 200,
+      "at": 1791129851751
+    },
+    {
+      "action": "setup",
+      "path": "/login",
+      "method": "POST",
+      "status": 302,
+      "at": 1791129851951
+    },
+    {
+      "action": "setup",
+      "path": "/ops/home",
+      "method": "GET",
+      "status": 200,
+      "at": 1791129851952
+    },
+    {
+      "action": "setup",
+      "path": "/auth/whoami",
+      "method": "GET",
+      "status": 200,
+      "at": 1791129851972
+    },
+    {
+      "action": "setup",
+      "path": "/ops/api/vlm/profiles",
+      "method": "GET",
+      "status": 200,
+      "at": 1791129851984
+    },
+    {
+      "action": "setup",
+      "path": "/ops/api/vlm/evaluation-results",
+      "method": "GET",
+      "status": 200,
+      "at": 1791129851985
+    },
+    {
+      "action": "setup",
+      "path": "/ops/api/vlm/evaluation-promotion-guard",
+      "method": "GET",
+      "status": 200,
+      "at": 1791129851985
+    },
+    {
+      "action": "setup",
+      "path": "/ops/api/sources",
+      "method": "GET",
+      "status": 200,
+      "at": 1791129851985
+    },
+    {
+      "action": "setup",
+      "path": "/ops/api/rules/catalog",
+      "method": "GET",
+      "status": 200,
+      "at": 1791129851985
+    },
+    {
+      "action": "setup",
+      "path": "/ops/api/views",
+      "method": "GET",
+      "status": 200,
+      "at": 1791129851985
+    },
+    {
+      "action": "setup",
+      "path": "/ops/api/runtime/status",
+      "method": "GET",
+      "status": 200,
+      "at": 1791129851986
+    },
+    {
+      "action": "setup",
+      "path": "/ops/api/events/status",
+      "method": "GET",
+      "status": 200,
+      "at": 1791129851986
+    },
+    {
+      "action": "setup",
+      "path": "/ops/api/diagnostics/log-tail",
+      "method": "GET",
+      "status": 200,
+      "at": 1791129851986
+    },
+    {
+      "action": "setup",
+      "path": "/ops/api/users",
+      "method": "GET",
+      "status": 200,
+      "at": 1791129851986
+    },
+    {
+      "action": "setup",
+      "path": "/ops/events",
+      "method": "GET",
+      "status": 200,
+      "at": 1791129851991
+    },
+    {
+      "action": "setup",
+      "path": "/auth/whoami",
+      "method": "GET",
+      "status": 200,
+      "at": 1791129852016
+    },
+    {
+      "action": "setup",
+      "path": "/ops/api/recordings/status",
+      "method": "GET",
+      "status": 200,
+      "at": 1791129852016
+    },
+    {
+      "action": "setup",
+      "path": "/ops/api/recordings/visual-search/status",
+      "method": "GET",
+      "status": 200,
+      "at": 1791129852016
+    },
+    {
+      "action": "setup",
+      "path": "/ops/api/vlm/profiles",
+      "method": "GET",
+      "status": 200,
+      "at": 1791129852016
+    },
+    {
+      "action": "setup",
+      "path": "/ops/api/vlm/evaluation-promotion-guard",
+      "method": "GET",
+      "status": 200,
+      "at": 1791129852016
+    },
+    {
+      "action": "setup",
+      "path": "/ops/api/vlm/evaluation-results",
+      "method": "GET",
+      "status": 200,
+      "at": 1791129852016
+    },
+    {
+      "action": "setup",
+      "path": "/ops/api/recordings/status",
+      "method": "GET",
+      "status": 200,
+      "at": 1791129852045
+    },
+    {
+      "action": "setup",
+      "path": "/ops/api/alerts/deliveries",
+      "method": "GET",
+      "status": 200,
+      "at": 1791129852045
+    },
+    {
+      "action": "setup",
+      "path": "/ops/api/events/status",
+      "method": "GET",
+      "status": 200,
+      "at": 1791129852045
+    },
+    {
+      "action": "setup",
+      "path": "/ops/api/audit",
+      "method": "GET",
+      "status": 200,
+      "at": 1791129852045
+    },
+    {
+      "action": "setup",
+      "path": "/ops/api/recordings/status",
+      "method": "GET",
+      "status": 200,
+      "at": 1791129852048
+    },
+    {
+      "action": "setup",
+      "path": "/ops/api/events/reviews",
+      "method": "GET",
+      "status": 200,
+      "at": 1791129852058
+    },
+    {
+      "action": "setup",
+      "path": "/ops/api/recordings/timeline",
+      "method": "GET",
+      "status": 200,
+      "at": 1791129852061
+    },
+    {
+      "action": "setup",
+      "path": "/ops/api/recordings/search",
+      "method": "GET",
+      "status": 200,
+      "at": 1791129852643
+    },
+    {
+      "action": "structured-save",
+      "path": "/ops/api/recordings/search/evidence",
+      "method": "POST",
+      "status": 201,
+      "at": 1791129852826
+    },
+    {
+      "action": "structured-save",
+      "path": "/ops/api/recordings/evidence/ep-1540e9fc04d6661947731c03d69f2b5601eb719ec08b06c9138169b725a52f51",
+      "method": "GET",
+      "status": 200,
+      "at": 1791129852829
+    },
+    {
+      "action": "structured-save",
+      "path": "/ops/api/recordings/evidence/ep-1540e9fc04d6661947731c03d69f2b5601eb719ec08b06c9138169b725a52f51/assets/0",
+      "method": "GET",
+      "status": 200,
+      "at": 1791129852831
+    },
+    {
+      "action": "structured-save",
+      "path": "/ops/api/recordings/evidence/ep-1540e9fc04d6661947731c03d69f2b5601eb719ec08b06c9138169b725a52f51/assets/1",
+      "method": "GET",
+      "status": 200,
+      "at": 1791129852834
+    },
+    {
+      "action": "structured-save",
+      "path": "/ops/api/recordings/evidence/ep-1540e9fc04d6661947731c03d69f2b5601eb719ec08b06c9138169b725a52f51/assets/2",
+      "method": "GET",
+      "status": 200,
+      "at": 1791129852836
+    },
+    {
+      "action": "structured-save",
+      "path": "/ops/api/recordings/evidence/ep-1540e9fc04d6661947731c03d69f2b5601eb719ec08b06c9138169b725a52f51/assets/3",
+      "method": "GET",
+      "status": 200,
+      "at": 1791129852839
+    },
+    {
+      "action": "structured-save",
+      "path": "/ops/api/recordings/evidence/ep-1540e9fc04d6661947731c03d69f2b5601eb719ec08b06c9138169b725a52f51/assets/4",
+      "method": "GET",
+      "status": 200,
+      "at": 1791129852846
+    },
+    {
+      "action": "structured-save",
+      "path": "/ops/api/recordings/evidence/ep-1540e9fc04d6661947731c03d69f2b5601eb719ec08b06c9138169b725a52f51/assets/5",
+      "method": "GET",
+      "status": 200,
+      "at": 1791129852849
+    },
+    {
+      "action": "structured-save",
+      "path": "/ops/api/recordings/evidence/ep-1540e9fc04d6661947731c03d69f2b5601eb719ec08b06c9138169b725a52f51/assets/6",
+      "method": "GET",
+      "status": 200,
+      "at": 1791129852851
+    },
+    {
+      "action": "structured-save",
+      "path": "/ops/api/recordings/evidence/ep-1540e9fc04d6661947731c03d69f2b5601eb719ec08b06c9138169b725a52f51/assets/7",
+      "method": "GET",
+      "status": 200,
+      "at": 1791129852854
+    },
+    {
+      "action": "duplicate-click",
+      "path": "/ops/api/recordings/search/evidence",
+      "method": "POST",
+      "status": 201,
+      "at": 1791129853355
+    },
+    {
+      "action": "duplicate-click",
+      "path": "/ops/api/recordings/evidence/ep-3a18987ebc8df7e86978cd6568ca601099044643c64ac1d205a65f64fb8fa882",
+      "method": "GET",
+      "status": 200,
+      "at": 1791129853361
+    },
+    {
+      "action": "duplicate-click",
+      "path": "/ops/api/recordings/evidence/ep-3a18987ebc8df7e86978cd6568ca601099044643c64ac1d205a65f64fb8fa882/assets/0",
+      "method": "GET",
+      "status": 200,
+      "at": 1791129853363
+    },
+    {
+      "action": "duplicate-click",
+      "path": "/ops/api/recordings/evidence/ep-3a18987ebc8df7e86978cd6568ca601099044643c64ac1d205a65f64fb8fa882/assets/1",
+      "method": "GET",
+      "status": 200,
+      "at": 1791129853366
+    },
+    {
+      "action": "duplicate-click",
+      "path": "/ops/api/recordings/evidence/ep-3a18987ebc8df7e86978cd6568ca601099044643c64ac1d205a65f64fb8fa882/assets/2",
+      "method": "GET",
+      "status": 200,
+      "at": 1791129853369
+    },
+    {
+      "action": "duplicate-click",
+      "path": "/ops/api/recordings/evidence/ep-3a18987ebc8df7e86978cd6568ca601099044643c64ac1d205a65f64fb8fa882/assets/3",
+      "method": "GET",
+      "status": 200,
+      "at": 1791129853371
+    },
+    {
+      "action": "duplicate-click",
+      "path": "/ops/api/recordings/evidence/ep-3a18987ebc8df7e86978cd6568ca601099044643c64ac1d205a65f64fb8fa882/assets/4",
+      "method": "GET",
+      "status": 200,
+      "at": 1791129853378
+    },
+    {
+      "action": "duplicate-click",
+      "path": "/ops/api/recordings/evidence/ep-3a18987ebc8df7e86978cd6568ca601099044643c64ac1d205a65f64fb8fa882/assets/5",
+      "method": "GET",
+      "status": 200,
+      "at": 1791129853381
+    },
+    {
+      "action": "duplicate-click",
+      "path": "/ops/api/recordings/evidence/ep-3a18987ebc8df7e86978cd6568ca601099044643c64ac1d205a65f64fb8fa882/assets/6",
+      "method": "GET",
+      "status": 200,
+      "at": 1791129853384
+    },
+    {
+      "action": "duplicate-click",
+      "path": "/ops/api/recordings/evidence/ep-3a18987ebc8df7e86978cd6568ca601099044643c64ac1d205a65f64fb8fa882/assets/7",
+      "method": "GET",
+      "status": 200,
+      "at": 1791129853386
+    },
+    {
+      "action": "visual-save",
+      "path": "/ops/api/recordings/visual-search/status",
+      "method": "GET",
+      "status": 200,
+      "at": 1791129853443
+    },
+    {
+      "action": "visual-save",
+      "path": "/ops/api/recordings/visual-search",
+      "method": "GET",
+      "status": 200,
+      "at": 1791129853549
+    },
+    {
+      "action": "visual-save",
+      "path": "/ops/api/recordings/visual-search/evidence",
+      "method": "POST",
+      "status": 201,
+      "at": 1791129853608
+    },
+    {
+      "action": "visual-save",
+      "path": "/ops/api/recordings/evidence/ep-3933f7bad9b9c1d0eaf61965754c1df9601a34e3bf80344827ea508689971632",
+      "method": "GET",
+      "status": 200,
+      "at": 1791129853610
+    },
+    {
+      "action": "visual-save",
+      "path": "/ops/api/recordings/evidence/ep-3933f7bad9b9c1d0eaf61965754c1df9601a34e3bf80344827ea508689971632/assets/0",
+      "method": "GET",
+      "status": 200,
+      "at": 1791129853611
+    },
+    {
+      "action": "pr77-rebuild-fallback",
+      "path": "/ops/api/recordings/visual-search/status",
+      "method": "GET",
+      "status": 200,
+      "at": 1791129853743
+    },
+    {
+      "action": "pr77-rebuild-fallback",
+      "path": "/ops/api/recordings/visual-search/status",
+      "method": "GET",
+      "status": 200,
+      "at": 1791129853926
+    },
+    {
+      "action": "pr77-rebuild-fallback",
+      "path": "/ops/api/recordings/visual-search/status",
+      "method": "GET",
+      "status": 200,
+      "at": 1791129854109
+    },
+    {
+      "action": "pr77-rebuild-fallback",
+      "path": "/ops/api/recordings/visual-search/status",
+      "method": "GET",
+      "status": 200,
+      "at": 1791129854293
+    },
+    {
+      "action": "pr77-rebuild-fallback",
+      "path": "/ops/api/recordings/visual-search/status",
+      "method": "GET",
+      "status": 200,
+      "at": 1791129854476
+    },
+    {
+      "action": "pr77-rebuild-fallback",
+      "path": "/ops/api/recordings/visual-search/status",
+      "method": "GET",
+      "status": 200,
+      "at": 1791129854660
+    },
+    {
+      "action": "pr77-rebuild-fallback",
+      "path": "/ops/api/recordings/visual-search",
+      "method": "GET",
+      "status": 200,
+      "at": 1791129854835
+    },
+    {
+      "action": "list-detail",
+      "path": "/ops/api/recordings/evidence",
+      "method": "GET",
+      "status": 200,
+      "at": 1791129854975
+    },
+    {
+      "action": "list-detail",
+      "path": "/ops/api/recordings/evidence/ep-1540e9fc04d6661947731c03d69f2b5601eb719ec08b06c9138169b725a52f51",
+      "method": "GET",
+      "status": 200,
+      "at": 1791129855024
+    },
+    {
+      "action": "list-detail",
+      "path": "/ops/api/recordings/evidence/ep-1540e9fc04d6661947731c03d69f2b5601eb719ec08b06c9138169b725a52f51/assets/0",
+      "method": "GET",
+      "status": 200,
+      "at": 1791129855027
+    },
+    {
+      "action": "list-detail",
+      "path": "/ops/api/recordings/evidence/ep-1540e9fc04d6661947731c03d69f2b5601eb719ec08b06c9138169b725a52f51/assets/1",
+      "method": "GET",
+      "status": 200,
+      "at": 1791129855029
+    },
+    {
+      "action": "list-detail",
+      "path": "/ops/api/recordings/evidence/ep-1540e9fc04d6661947731c03d69f2b5601eb719ec08b06c9138169b725a52f51/assets/2",
+      "method": "GET",
+      "status": 200,
+      "at": 1791129855032
+    },
+    {
+      "action": "list-detail",
+      "path": "/ops/api/recordings/evidence/ep-1540e9fc04d6661947731c03d69f2b5601eb719ec08b06c9138169b725a52f51/assets/3",
+      "method": "GET",
+      "status": 200,
+      "at": 1791129855034
+    },
+    {
+      "action": "list-detail",
+      "path": "/ops/api/recordings/evidence/ep-1540e9fc04d6661947731c03d69f2b5601eb719ec08b06c9138169b725a52f51/assets/4",
+      "method": "GET",
+      "status": 200,
+      "at": 1791129855037
+    },
+    {
+      "action": "list-detail",
+      "path": "/ops/api/recordings/evidence/ep-1540e9fc04d6661947731c03d69f2b5601eb719ec08b06c9138169b725a52f51/assets/5",
+      "method": "GET",
+      "status": 200,
+      "at": 1791129855039
+    },
+    {
+      "action": "list-detail",
+      "path": "/ops/api/recordings/evidence/ep-1540e9fc04d6661947731c03d69f2b5601eb719ec08b06c9138169b725a52f51/assets/6",
+      "method": "GET",
+      "status": 200,
+      "at": 1791129855044
+    },
+    {
+      "action": "list-detail",
+      "path": "/ops/api/recordings/evidence/ep-1540e9fc04d6661947731c03d69f2b5601eb719ec08b06c9138169b725a52f51/assets/7",
+      "method": "GET",
+      "status": 200,
+      "at": 1791129855046
+    },
+    {
+      "action": "late-detail",
+      "path": "/ops/api/recordings/evidence",
+      "method": "GET",
+      "status": 200,
+      "at": 1791129855108
+    },
+    {
+      "action": "late-detail",
+      "path": "/ops/api/recordings/evidence/ep-1540e9fc04d6661947731c03d69f2b5601eb719ec08b06c9138169b725a52f51",
+      "method": "GET",
+      "status": 200,
+      "at": 1791129855158
+    },
+    {
+      "action": "responsive",
+      "path": "/ops/api/recordings/evidence",
+      "method": "GET",
+      "status": 200,
+      "at": 1791129855408
+    },
+    {
+      "action": "responsive",
+      "path": "/ops/api/recordings/evidence/ep-1540e9fc04d6661947731c03d69f2b5601eb719ec08b06c9138169b725a52f51",
+      "method": "GET",
+      "status": 200,
+      "at": 1791129855457
+    },
+    {
+      "action": "responsive",
+      "path": "/ops/api/recordings/evidence/ep-1540e9fc04d6661947731c03d69f2b5601eb719ec08b06c9138169b725a52f51/assets/0",
+      "method": "GET",
+      "status": 200,
+      "at": 1791129855459
+    },
+    {
+      "action": "responsive",
+      "path": "/ops/api/recordings/evidence/ep-1540e9fc04d6661947731c03d69f2b5601eb719ec08b06c9138169b725a52f51/assets/1",
+      "method": "GET",
+      "status": 200,
+      "at": 1791129855462
+    },
+    {
+      "action": "responsive",
+      "path": "/ops/api/recordings/evidence/ep-1540e9fc04d6661947731c03d69f2b5601eb719ec08b06c9138169b725a52f51/assets/2",
+      "method": "GET",
+      "status": 200,
+      "at": 1791129855465
+    },
+    {
+      "action": "responsive",
+      "path": "/ops/api/recordings/evidence/ep-1540e9fc04d6661947731c03d69f2b5601eb719ec08b06c9138169b725a52f51/assets/3",
+      "method": "GET",
+      "status": 200,
+      "at": 1791129855467
+    },
+    {
+      "action": "responsive",
+      "path": "/ops/api/recordings/evidence/ep-1540e9fc04d6661947731c03d69f2b5601eb719ec08b06c9138169b725a52f51/assets/4",
+      "method": "GET",
+      "status": 200,
+      "at": 1791129855470
+    },
+    {
+      "action": "responsive",
+      "path": "/ops/api/recordings/evidence/ep-1540e9fc04d6661947731c03d69f2b5601eb719ec08b06c9138169b725a52f51/assets/5",
+      "method": "GET",
+      "status": 200,
+      "at": 1791129855472
+    },
+    {
+      "action": "responsive",
+      "path": "/ops/api/recordings/evidence/ep-1540e9fc04d6661947731c03d69f2b5601eb719ec08b06c9138169b725a52f51/assets/6",
+      "method": "GET",
+      "status": 200,
+      "at": 1791129855480
+    },
+    {
+      "action": "responsive",
+      "path": "/ops/api/recordings/evidence/ep-1540e9fc04d6661947731c03d69f2b5601eb719ec08b06c9138169b725a52f51/assets/7",
+      "method": "GET",
+      "status": 200,
+      "at": 1791129855482
+    },
+    {
+      "action": "operator",
+      "path": "/login",
+      "method": "GET",
+      "status": 200,
+      "at": 1791129856532
+    },
+    {
+      "action": "operator",
+      "path": "/login",
+      "method": "POST",
+      "status": 302,
+      "at": 1791129856714
+    },
+    {
+      "action": "operator",
+      "path": "/ops/home",
+      "method": "GET",
+      "status": 200,
+      "at": 1791129856715
+    },
+    {
+      "action": "operator",
+      "path": "/auth/whoami",
+      "method": "GET",
+      "status": 200,
+      "at": 1791129856746
+    },
+    {
+      "action": "operator",
+      "path": "/ops/api/vlm/profiles",
+      "method": "GET",
+      "status": 200,
+      "at": 1791129856746
+    },
+    {
+      "action": "operator",
+      "path": "/ops/api/vlm/evaluation-results",
+      "method": "GET",
+      "status": 200,
+      "at": 1791129856746
+    },
+    {
+      "action": "operator",
+      "path": "/ops/api/vlm/evaluation-promotion-guard",
+      "method": "GET",
+      "status": 200,
+      "at": 1791129856746
+    },
+    {
+      "action": "operator",
+      "path": "/ops/api/sources",
+      "method": "GET",
+      "status": 200,
+      "at": 1791129856746
+    },
+    {
+      "action": "operator",
+      "path": "/ops/api/views",
+      "method": "GET",
+      "status": 200,
+      "at": 1791129856746
+    },
+    {
+      "action": "operator",
+      "path": "/ops/api/rules/catalog",
+      "method": "GET",
+      "status": 200,
+      "at": 1791129856746
+    },
+    {
+      "action": "operator",
+      "path": "/ops/api/runtime/status",
+      "method": "GET",
+      "status": 200,
+      "at": 1791129856746
+    },
+    {
+      "action": "operator",
+      "path": "/ops/api/events/status",
+      "method": "GET",
+      "status": 200,
+      "at": 1791129856748
+    },
+    {
+      "action": "operator",
+      "path": "/ops/api/users",
+      "method": "GET",
+      "status": 403,
+      "at": 1791129856749
+    },
+    {
+      "action": "operator",
+      "path": "/ops/api/diagnostics/log-tail",
+      "method": "GET",
+      "status": 200,
+      "at": 1791129856749
+    },
+    {
+      "action": "operator",
+      "path": "/ops/events",
+      "method": "GET",
+      "status": 200,
+      "at": 1791129856751
+    },
+    {
+      "action": "operator",
+      "path": "/auth/whoami",
+      "method": "GET",
+      "status": 200,
+      "at": 1791129856773
+    },
+    {
+      "action": "operator",
+      "path": "/ops/api/recordings/visual-search/status",
+      "method": "GET",
+      "status": 200,
+      "at": 1791129856773
+    },
+    {
+      "action": "operator",
+      "path": "/ops/api/vlm/evaluation-results",
+      "method": "GET",
+      "status": 200,
+      "at": 1791129856799
+    },
+    {
+      "action": "operator",
+      "path": "/ops/api/vlm/profiles",
+      "method": "GET",
+      "status": 200,
+      "at": 1791129856799
+    },
+    {
+      "action": "operator",
+      "path": "/ops/api/recordings/status",
+      "method": "GET",
+      "status": 200,
+      "at": 1791129856799
+    },
+    {
+      "action": "operator",
+      "path": "/ops/api/vlm/evaluation-promotion-guard",
+      "method": "GET",
+      "status": 200,
+      "at": 1791129856799
+    },
+    {
+      "action": "operator",
+      "path": "/ops/api/audit",
+      "method": "GET",
+      "status": 200,
+      "at": 1791129856802
+    },
+    {
+      "action": "operator",
+      "path": "/ops/api/recordings/status",
+      "method": "GET",
+      "status": 200,
+      "at": 1791129856802
+    },
+    {
+      "action": "operator",
+      "path": "/ops/api/events/status",
+      "method": "GET",
+      "status": 200,
+      "at": 1791129856802
+    },
+    {
+      "action": "operator",
+      "path": "/ops/api/alerts/deliveries",
+      "method": "GET",
+      "status": 200,
+      "at": 1791129856802
+    },
+    {
+      "action": "operator",
+      "path": "/ops/api/recordings/status",
+      "method": "GET",
+      "status": 200,
+      "at": 1791129856802
+    },
+    {
+      "action": "operator",
+      "path": "/ops/api/recordings/timeline",
+      "method": "GET",
+      "status": 200,
+      "at": 1791129856812
+    },
+    {
+      "action": "operator",
+      "path": "/ops/api/events/reviews",
+      "method": "GET",
+      "status": 200,
+      "at": 1791129856812
+    },
+    {
+      "action": "operator",
+      "path": "/ops/api/recordings/evidence",
+      "method": "GET",
+      "status": 200,
+      "at": 1791129857367
+    },
+    {
+      "action": "operator",
+      "path": "/ops/api/recordings/search",
+      "method": "GET",
+      "status": 200,
+      "at": 1791129857436
+    },
+    {
+      "action": "operator",
+      "path": "/ops/api/recordings/search/evidence",
+      "method": "POST",
+      "status": 403,
+      "at": 1791129857484
+    },
+    {
+      "action": "operator",
+      "path": "/ops/api/recordings/evidence",
+      "method": "GET",
+      "status": 403,
+      "at": 1791129857533
+    },
+    {
+      "action": "viewer-anonymous",
+      "path": "/login",
+      "method": "GET",
+      "status": 200,
+      "at": 1791129857723
+    },
+    {
+      "action": "viewer-anonymous",
+      "path": "/login",
+      "method": "POST",
+      "status": 302,
+      "at": 1791129857907
+    },
+    {
+      "action": "viewer-anonymous",
+      "path": "/client/live",
+      "method": "GET",
+      "status": 200,
+      "at": 1791129857909
+    },
+    {
+      "action": "viewer-anonymous",
+      "path": "/auth/whoami",
+      "method": "GET",
+      "status": 200,
+      "at": 1791129857922
+    },
+    {
+      "action": "viewer-anonymous",
+      "path": "/client/api/preferences/live-layout",
+      "method": "GET",
+      "status": 200,
+      "at": 1791129857922
+    },
+    {
+      "action": "viewer-anonymous",
+      "path": "/ops/events",
+      "method": "GET",
+      "status": 403,
+      "at": 1791129857937
+    },
+    {
+      "action": "viewer-anonymous",
+      "path": "/ops/events",
+      "method": "GET",
+      "status": 302,
+      "at": 1791129858545
+    },
+    {
+      "action": "viewer-anonymous",
+      "path": "/login",
+      "method": "GET",
+      "status": 200,
+      "at": 1791129858546
+    },
+    {
+      "action": "real-expiry",
+      "path": "/ops/api/recordings/search/evidence",
+      "method": "POST",
+      "status": 410,
+      "at": 1791130153682
+    }
+  ],
+  "screenshots": [
+    {
+      "path": "structured-save.png",
+      "sha256": "570305f1a47ad4103513012be1bc1588fda8ff4933af69b6f487ab6996c789b3"
+    },
+    {
+      "path": "visual-save.png",
+      "sha256": "fa734d753e59baa4970d4a0c546c290d76e827122f4e64567568a6e6dd61a2b8"
+    },
+    {
+      "path": "pr77-rebuild-warning.png",
+      "sha256": "73c4a77da2b947b490110870f3831c9c0a8908c93943a764a4028bce202f952c"
+    },
+    {
+      "path": "pr77-fallback-results.png",
+      "sha256": "74fd9a86cb09bcb946791303a93a2e15bb94481b0196d985d099f35832a6ee12"
+    },
+    {
+      "path": "evidence-320-light.png",
+      "sha256": "0009233e5ab66cff1576ca49e043209c20381f55d619b441f2161acee5740ef1"
+    },
+    {
+      "path": "evidence-320-dark.png",
+      "sha256": "3474a2522ee3915f140f949643981b7a1f28c41e7c0c44b52ef72c49862efb9a"
+    },
+    {
+      "path": "evidence-390-light.png",
+      "sha256": "72b652ef8c579f25d2b41415c35eabe2919f83236852fc302b0fdf1f3d589bb9"
+    },
+    {
+      "path": "evidence-390-dark.png",
+      "sha256": "21ead28b3a29d9f321e4978114c2bc2d1af8911085a4f35999143ca64911f7eb"
+    },
+    {
+      "path": "evidence-760-light.png",
+      "sha256": "e7634e0bc1109e190818658eb1bc0b4b088f1bdc34497dee4e6535bb00a620c3"
+    },
+    {
+      "path": "evidence-760-dark.png",
+      "sha256": "199f872b2894090fdec0a7ca069c16bf68926bb36e72485264e2753412ea4ad7"
+    },
+    {
+      "path": "evidence-1180-light.png",
+      "sha256": "c6a1a33829260a09e101e2915d5876962520d51d043dfef9e5d239bd7276792b"
+    },
+    {
+      "path": "evidence-1180-dark.png",
+      "sha256": "073147a535ba3ccd967b99751e46d9aaacb3a39913bb462b8ac33e4dbe515d34"
+    },
+    {
+      "path": "operator-forbidden.png",
+      "sha256": "1e00934975100bc61b7e0dbfdc26210660d2f21ab30b0c7bf732be1111c831f5"
+    },
+    {
+      "path": "expired.png",
+      "sha256": "78efa5ff39c87dbcdcbe0a1fd2f90cce89a941f8342817082fd9c94a02a3df37"
+    }
+  ],
+  "cleanup": {
+    "browserClosed": true,
+    "fixtureExit": {
+      "code": 0,
+      "signal": null
+    }
+  },
+  "sourceHashes": {
+    "CMakeLists.txt": "1e518bebe5d58a34e04298dd41a55f7f78e5ccc192d1c6b44907847cd7dd28e7",
+    "include/recording/recording_catalog.h": "0184a0d353bc2d777eed2f212a7ae8bbe12e6bdb3a784939bfb6e7999f76a618",
+    "include/recording/recording_read_service.h": "0dade2ef02607670e0427871b70a68be515a0bc998192d703026d9fe1020361b",
+    "include/recording/recording_search_reader.h": "ebda13c77e3c80dfef4bcfa20734dbd1dcecdf25e012151944624b4dc4e426ff",
+    "include/recording/recording_visual_source.h": "873b5ef3d60441a367dfa3caa5fae17be7850a9bd37e9cf03a4d0b84063b1f67",
+    "include/recording/visual_index_worker.h": "4956604096fb309f76b894b03cd776a09f2e57467fef70b8c0919e7ec4b5006d",
+    "src/analysis/siglip2_encoder.cpp": "36df2729f2b026c31dfa861b8e28899fe4a945416bff57fc935b56cc2e0fa404",
+    "src/ingress/product_ui_page_scripts.cpp": "412ee9c56344be6f9feb300a731e18e80e7f24fb182697cb4bd618f7e0862812",
+    "src/ingress/visual_search_application_service.cpp": "e7d5f497491e49246a2a6f246675e5a8d8657adba9c0de61d495532f5ca56243",
+    "src/recording/recording_catalog.cpp": "4caec81e623741fc0641407626fc09386c1a4caddba745589b818cea0accc801",
+    "src/recording/recording_journal.cpp": "0ac2558aaca69b9c4eca0a18cb6e485e05d2041d713e22e18c29751676b9c9fd",
+    "src/recording/recording_read_service.cpp": "6fe6ca01b7ae22b1a7c81e62067168fda9b64f2a38c33b5d08b53338878c0e95",
+    "src/recording/recording_search_reader.cpp": "890cc57a0137cc754bf17e35e84afa5c0d82722bb4cea73d0d323b45d7b77c73",
+    "src/recording/recording_visual_snapshots.cpp": "c8e766b6ab6657b966926964f73a6b500133c6595d1df946fb9e1ac2fb2a8611",
+    "src/recording/recording_visual_source.cpp": "d33f201cdcf9ca58d9c67d5c13ce39cccad344fa47151d50b2c33128d3ccecea",
+    "src/recording/visual_frame_decoder.cpp": "c2971cd344ee494e1ee9b97f34a02f5af121cd595467d3c44140eb3559ff0aff",
+    "src/recording/visual_index_worker.cpp": "f283eb14fe0c460d03319d8808e7d74ab59f0c3bb5508d5d46b393d67d564a0e"
+  },
+  "sourceDiffSha256": "4e18d2efccd5ee62e9db7ab5060308ff455093f6f605a3858759d810f0eb5419",
+  "driverHashes": {
+    "actual-ui.mjs": "4fd61b7cf10f827aca11278346d1237844335bfd206aeb0e6800a93843a93500",
+    "ui-fixture.mjs": "7483c7ddfd0dc0b9b6e69718252f29a768d285e64ecfbc849d4ff2bd51926e4b",
+    "ui-seed.cpp": "1404fb8b72e87ce4563656951687454321f8a1601f24bc955881f3977d2b61ec",
+    "ui-media-fixture.h": "c08a5c05b9d73ebd3539385967df4955ee301c2f3ba401b27c5a1163f502593f"
+  },
+  "browserVersion": "152.0.7977.83",
+  "preparation": {
+    "schema": "media-server.evidence-http-auth.v1",
+    "featureId": "V440-U01-PREPARATION",
+    "status": "PASS",
+    "scope": "actual loopback HTTP, model OFF; separate from actual-model API and actual UI",
+    "startedAtMs": 1791129845222,
+    "command": "node scripts/internal/evidence_http_checks.mjs",
+    "checks": [
+      {
+        "id": "V440-A01 plaintext credentials absent",
+        "status": "PASS",
+        "expected": true,
+        "actual": true
+      },
+      {
+        "id": "V440-A01 authstore private mode",
+        "status": "PASS",
+        "expected": 384,
+        "actual": 384
+      }
+    ],
+    "cleanup": {
+      "root": "[PATH]",
+      "rootIdentity": "16777232:168311441",
+      "rootAbsent": true,
+      "process": {
+        "exited": true,
+        "forced": false,
+        "exitCode": 0,
+        "signalCode": null
+      },
+      "http": {
+        "closed": true,
+        "evidence": "ECONNREFUSED"
+      },
+      "rtsp": {
+        "closed": true,
+        "evidence": "ECONNREFUSED"
+      },
+      "udpClosed": true
+    },
+    "modelInference": true,
+    "totalBudgetMs": 360000,
+    "workBudgetMs": 345000,
+    "actualUiPass": false,
+    "binarySha256": "b3b996b81d676fb11a7d1145ffcc6d774005bcb5ca83013ad3c37640f8d5eb8f",
+    "sourceSha256": "7483c7ddfd0dc0b9b6e69718252f29a768d285e64ecfbc849d4ff2bd51926e4b",
+    "ports": {
+      "http": 58531,
+      "rtsp": 58530,
+      "udp": 64108
+    },
+    "fixtureSha256": "560a820777f45440782eb119e8c30b71c88730e696c9594576d737cd4cc73d7c",
+    "pid": 20832,
+    "finishedAtMs": 1791130154466,
+    "elapsedMs": 309244,
+    "exit": 0
+  },
+  "status": "PASS-pending-visual-review",
+  "finishedAt": "2026-10-04T16:09:14.472Z",
+  "stderr": ""
+}

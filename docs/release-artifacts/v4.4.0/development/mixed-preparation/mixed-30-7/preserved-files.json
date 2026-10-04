@@ -1,0 +1,31 @@
+{
+  "source": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v440-ui-ezgeweg5/mixed-30-7",
+  "files": [
+    {
+      "path": "mixed-30.mjs",
+      "bytes": 37923,
+      "sha256": "4ab41d2424e056300ab893261706b55c51998be6724f22211e3288cd54c51edd"
+    },
+    {
+      "path": "run.log",
+      "bytes": 584006,
+      "sha256": "afce7f023ee3a68a906ed8dc8de8259ab1fca0aba64f7637081090b12eedaf2f"
+    },
+    {
+      "path": "mixed-30.sh",
+      "bytes": 5182,
+      "sha256": "6f1faed949cc2f2d0e8bf8a2b48f96b3719eed80a64435e35242d439ad7c4669"
+    },
+    {
+      "path": "mixed-plan.json",
+      "bytes": 2977,
+      "sha256": "968aa637603c4a145f73d6b0e4d3159df7e31dcdcf041a6147ea45a776c8982a"
+    },
+    {
+      "path": "execution.json",
+      "bytes": 843,
+      "sha256": "47fc9bebf925a9a80e5e5f33a40236217c70a139d58bd5cd25014d9424c9f3bc"
+    }
+  ],
+  "scope": "Small execution/diagnostic records only; no raw recordings or private server logs. mixed-30-7 is FAIL."
+}

@@ -1,0 +1,19 @@
+-- The CXX compiler identification is AppleClang 21.0.0.21000334
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: /usr/bin/c++ - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Found ZLIB: /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libz.tbd (found version "1.2.12")
+-- Checking for modules 'gstreamer-1.0>=1.28;gstreamer-rtsp-server-1.0>=1.28;gstreamer-pbutils-1.0>=1.28;gstreamer-app-1.0>=1.28;gstreamer-webrtc-1.0>=1.28;gstreamer-sdp-1.0>=1.28'
+--   Found gstreamer-1.0, version 1.28.1
+--   Found gstreamer-rtsp-server-1.0, version 1.28.1
+--   Found gstreamer-pbutils-1.0, version 1.28.1
+--   Found gstreamer-app-1.0, version 1.28.1
+--   Found gstreamer-webrtc-1.0, version 1.28.1
+--   Found gstreamer-sdp-1.0, version 1.28.1
+-- Checking for module 'glib-2.0'
+--   Found glib-2.0, version 2.86.4
+-- Configuring done (0.8s)
+-- Generating done (0.0s)
+-- Build files have been written to: /Users/dhseo/.codex/worktrees/v440-pr77-fixes/mediaServer/build-pr77

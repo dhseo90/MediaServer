@@ -1,0 +1,14 @@
+{
+  "command": [
+    "cmake",
+    "--build",
+    "build-pr77",
+    "-j",
+    "4"
+  ],
+  "exit": 0,
+  "elapsedSeconds": 1.6703520840383135,
+  "timeoutSeconds": 180,
+  "binarySha256": "62e1dc3330d0a5e4159629062a640950d2422fbb96b8205f99d6b14f03b80443",
+  "log": "pr77-build-6.log"
+}

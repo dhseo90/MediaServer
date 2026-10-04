@@ -1,0 +1,34 @@
+{
+  "schema": "media-server.ui-evidence-redaction-scan.v1",
+  "scope": "case",
+  "status": "PASS",
+  "caseId": "EVT-071",
+  "correlationId": "EVT-071:assert-product-state:completion",
+  "scannedArtifacts": [
+    {
+      "path": "cases/327-EVT-061/screenshots/EVT-061.png",
+      "sha256": "559ff00d7b31608beee49e4689947381682b5a0f2b1d3b32fdecbd8b41b5e57b"
+    },
+    {
+      "path": "policy-v4/cases/EVT-071/trace.json",
+      "sha256": "cdada198b181aae97bbf1fccc46e29cfbe27792788a16de8a4215fc26bb30a2b"
+    },
+    {
+      "path": "policy-v4/cases/EVT-071/browser-console.json",
+      "sha256": "07d2dfa9fc4a26557c0ce87fc79b8e466542f4036b3279765d11dc69b64d3632"
+    },
+    {
+      "path": "policy-v4/cases/EVT-071/server.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "policy-v4/cases/EVT-071/visual-measurement.json",
+      "sha256": "384eca8909a4c75d7f11971fd4301e3a88a4891965901466ad70a0dcdd278ddd"
+    },
+    {
+      "path": "policy-v4/cases/EVT-071/visual.json",
+      "sha256": "f1fd8f7006c3b90517c7cbbec0fe84e17a32ec4aa8b8f9ff85900c84bf4f2924"
+    }
+  ],
+  "findings": []
+}

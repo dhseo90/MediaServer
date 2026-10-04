@@ -1,0 +1,22 @@
+{
+  "recordedAt": "2026-10-04T18:02:12.097387+00:00",
+  "reviewer": "approved independent gpt-6-astra/xhigh; main owns final judgement",
+  "sourceBase": "505b2dac45fcccecda5423bb7921b4fc5aa97576",
+  "productDiffBytes": 0,
+  "recordingReview": "capture-only changes, existing assertions/timeouts preserved; original-before-toggle and gap/error-before-recovery; whole-player vertical assertion added",
+  "searchReview": "initial global data-hit selector recommendation corrected: positive counts and hit selection narrow; non200/late-empty/restart-error retain all-button-zero assertions",
+  "recordingEvidence": "pr77-recording-ui-3-visual.json",
+  "searchEvidence": "pr77-search-ui-2.json plus pr77-search-ui-3.json pending; do not claim prior38 proves restored all-button-zero",
+  "unit": {
+    "command": "node --test scripts/internal/recording_ui_acceptance.test.mjs",
+    "log": "pr77-ui-runner-unit-1.log",
+    "result": "10 named assertions pass; test runner pass1/fail0"
+  },
+  "files": {
+    "scripts/internal/run_recording_ui_acceptance.mjs": "bddff384dc8f16c0c03a64bc04bbb6282dd8e79df4aa04165a9990e00bd224c5",
+    "scripts/internal/recording_ui_before_playback.mjs": "71c26e3dd01ef5f8d660aa6a9bb8a80cfeeffe36997ba5f142f764861f01a5ae",
+    "scripts/internal/recording_ui_after_playback.mjs": "3d557293a0cbd620db6890b891863102990e2cc485e10b4a243a6af7a2351aa6",
+    "scripts/internal/run_recording_search_ui_acceptance.mjs": "d5795c7d608216492a64a9e05ed351c7f4926bec308403e34c16a279fe913785"
+  },
+  "remaining": "search media screenshot at P02-derived-player-1 is blank despite readyState4; actual frame visual proof pending"
+}

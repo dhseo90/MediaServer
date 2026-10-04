@@ -1,0 +1,15 @@
+{
+  "id": "I34-redaction",
+  "startedAt": "2026-10-04T17:38:55.413Z",
+  "completedAt": "2026-10-04T17:38:57.959Z",
+  "observedViewport": {
+    "width": 1180,
+    "height": 900
+  },
+  "observedTheme": "light",
+  "detail": {
+    "operatorPrivateFields": false,
+    "credentialPlaintext": false,
+    "viewerPrivateFields": false
+  }
+}

@@ -1,0 +1,88 @@
+{
+  "status": 200,
+  "query": {
+    "channelIds": "1",
+    "startTimeMs": "1791136260000",
+    "endTimeMs": "1791136320000",
+    "limit": "50",
+    "includeUnplaced": "false",
+    "object": "person",
+    "track": "track-ui"
+  },
+  "normalizedQuery": {
+    "channels": [
+      "1"
+    ],
+    "startTimeMs": 1791136260000,
+    "endTimeMs": 1791136320000,
+    "includeUnplaced": false,
+    "limit": 50,
+    "filters": {
+      "object": [
+        "person"
+      ],
+      "track": [
+        "track-ui"
+      ],
+      "event": [],
+      "zone": [],
+      "rule": [],
+      "behaviour": []
+    }
+  },
+  "body": {
+    "schema": "media-server.recording-search.v1",
+    "snapshotId": "4ffd4ab58392bee3bb8fe946ed5b929e",
+    "nextCursor": null,
+    "knownCount": 2,
+    "unplacedCount": 0,
+    "items": [
+      {
+        "id": "or:12:ui-search-60",
+        "channelId": "1",
+        "kind": "observation",
+        "segmentId": "df874f5b-792f-4059-a998-08f597908708",
+        "observationId": "ui-search-60",
+        "startTimeNs": "1791136262000000000",
+        "endTimeNs": "1791136262000000001",
+        "timeProvenance": "estimated",
+        "uncertaintyNs": "2001000",
+        "object": "person",
+        "track": "track-ui",
+        "eventIds": [
+          "ui-missing-event"
+        ],
+        "zoneIds": [],
+        "ruleIds": [],
+        "playable": true,
+        "playbackUrl": "/ops/api/recordings/media/df874f5b-792f-4059-a998-08f597908708",
+        "preferredEventId": "",
+        "selectionReason": "original",
+        "unavailableReason": ""
+      },
+      {
+        "id": "or:12:ui-search-30",
+        "channelId": "1",
+        "kind": "observation",
+        "segmentId": "df874f5b-792f-4059-a998-08f597908708",
+        "observationId": "ui-search-30",
+        "startTimeNs": "1791136261000000000",
+        "endTimeNs": "1791136261000000001",
+        "timeProvenance": "estimated",
+        "uncertaintyNs": "2001000",
+        "object": "person",
+        "track": "track-ui",
+        "eventIds": [
+          "ui-missing-event"
+        ],
+        "zoneIds": [],
+        "ruleIds": [],
+        "playable": true,
+        "playbackUrl": "/ops/api/recordings/media/df874f5b-792f-4059-a998-08f597908708",
+        "preferredEventId": "",
+        "selectionReason": "original",
+        "unavailableReason": ""
+      }
+    ]
+  }
+}

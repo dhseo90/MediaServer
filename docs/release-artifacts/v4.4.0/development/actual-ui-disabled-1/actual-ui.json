@@ -1,0 +1,329 @@
+{
+  "sourceCommit": "789583126c71a4aace24c9ae2cac1d67f7beb32d",
+  "binarySha256": "b3b996b81d676fb11a7d1145ffcc6d774005bcb5ca83013ad3c37640f8d5eb8f",
+  "schema": "media-server.v440-actual-ui-addendum.v1",
+  "mode": "disabled",
+  "startedAt": "2026-10-04T16:19:19.706Z",
+  "browser": "native Chrome",
+  "headless": true,
+  "visualReview": "pending",
+  "wholeSuitePass": false,
+  "cases": [
+    {
+      "id": "disabled",
+      "status": "PASS",
+      "startedAt": "2026-10-04T16:19:23.686Z",
+      "observation": {
+        "status": 503,
+        "message": "evidence-disabled"
+      },
+      "finishedAt": "2026-10-04T16:19:23.820Z"
+    }
+  ],
+  "requests": [
+    {
+      "action": "setup",
+      "path": "/login",
+      "method": "GET",
+      "status": 200,
+      "at": 1791130762904
+    },
+    {
+      "action": "setup",
+      "path": "/login",
+      "method": "POST",
+      "status": 302,
+      "at": 1791130763084
+    },
+    {
+      "action": "setup",
+      "path": "/ops/home",
+      "method": "GET",
+      "status": 200,
+      "at": 1791130763086
+    },
+    {
+      "action": "setup",
+      "path": "/auth/whoami",
+      "method": "GET",
+      "status": 200,
+      "at": 1791130763116
+    },
+    {
+      "action": "setup",
+      "path": "/ops/api/sources",
+      "method": "GET",
+      "status": 200,
+      "at": 1791130763116
+    },
+    {
+      "action": "setup",
+      "path": "/ops/api/vlm/evaluation-results",
+      "method": "GET",
+      "status": 200,
+      "at": 1791130763116
+    },
+    {
+      "action": "setup",
+      "path": "/ops/api/vlm/evaluation-promotion-guard",
+      "method": "GET",
+      "status": 200,
+      "at": 1791130763116
+    },
+    {
+      "action": "setup",
+      "path": "/ops/api/views",
+      "method": "GET",
+      "status": 200,
+      "at": 1791130763116
+    },
+    {
+      "action": "setup",
+      "path": "/ops/api/vlm/profiles",
+      "method": "GET",
+      "status": 200,
+      "at": 1791130763116
+    },
+    {
+      "action": "setup",
+      "path": "/ops/api/rules/catalog",
+      "method": "GET",
+      "status": 200,
+      "at": 1791130763117
+    },
+    {
+      "action": "setup",
+      "path": "/ops/api/runtime/status",
+      "method": "GET",
+      "status": 200,
+      "at": 1791130763117
+    },
+    {
+      "action": "setup",
+      "path": "/ops/api/diagnostics/log-tail",
+      "method": "GET",
+      "status": 200,
+      "at": 1791130763117
+    },
+    {
+      "action": "setup",
+      "path": "/ops/api/events/status",
+      "method": "GET",
+      "status": 200,
+      "at": 1791130763118
+    },
+    {
+      "action": "setup",
+      "path": "/ops/api/users",
+      "method": "GET",
+      "status": 200,
+      "at": 1791130763118
+    },
+    {
+      "action": "setup",
+      "path": "/ops/events",
+      "method": "GET",
+      "status": 200,
+      "at": 1791130763119
+    },
+    {
+      "action": "setup",
+      "path": "/auth/whoami",
+      "method": "GET",
+      "status": 200,
+      "at": 1791130763140
+    },
+    {
+      "action": "setup",
+      "path": "/ops/api/vlm/profiles",
+      "method": "GET",
+      "status": 200,
+      "at": 1791130763165
+    },
+    {
+      "action": "setup",
+      "path": "/ops/api/recordings/status",
+      "method": "GET",
+      "status": 200,
+      "at": 1791130763165
+    },
+    {
+      "action": "setup",
+      "path": "/ops/api/recordings/visual-search/status",
+      "method": "GET",
+      "status": 200,
+      "at": 1791130763165
+    },
+    {
+      "action": "setup",
+      "path": "/ops/api/vlm/evaluation-results",
+      "method": "GET",
+      "status": 200,
+      "at": 1791130763165
+    },
+    {
+      "action": "setup",
+      "path": "/ops/api/vlm/evaluation-promotion-guard",
+      "method": "GET",
+      "status": 200,
+      "at": 1791130763165
+    },
+    {
+      "action": "setup",
+      "path": "/ops/api/audit",
+      "method": "GET",
+      "status": 200,
+      "at": 1791130763168
+    },
+    {
+      "action": "setup",
+      "path": "/ops/api/alerts/deliveries",
+      "method": "GET",
+      "status": 200,
+      "at": 1791130763168
+    },
+    {
+      "action": "setup",
+      "path": "/ops/api/events/status",
+      "method": "GET",
+      "status": 200,
+      "at": 1791130763168
+    },
+    {
+      "action": "setup",
+      "path": "/ops/api/recordings/status",
+      "method": "GET",
+      "status": 200,
+      "at": 1791130763168
+    },
+    {
+      "action": "setup",
+      "path": "/ops/api/recordings/status",
+      "method": "GET",
+      "status": 200,
+      "at": 1791130763168
+    },
+    {
+      "action": "setup",
+      "path": "/ops/api/recordings/timeline",
+      "method": "GET",
+      "status": 200,
+      "at": 1791130763177
+    },
+    {
+      "action": "setup",
+      "path": "/ops/api/events/reviews",
+      "method": "GET",
+      "status": 200,
+      "at": 1791130763177
+    },
+    {
+      "action": "disabled",
+      "path": "/ops/api/recordings/evidence",
+      "method": "GET",
+      "status": 503,
+      "at": 1791130763747
+    }
+  ],
+  "screenshots": [
+    {
+      "path": "disabled.png",
+      "sha256": "781facee01ffd484be4e8fff78500b486199a594e3eda3f37aac6c96ac0ee606"
+    }
+  ],
+  "cleanup": {
+    "browserClosed": true,
+    "fixtureExit": {
+      "code": 0,
+      "signal": null
+    }
+  },
+  "sourceHashes": {
+    "CMakeLists.txt": "1e518bebe5d58a34e04298dd41a55f7f78e5ccc192d1c6b44907847cd7dd28e7",
+    "include/recording/recording_catalog.h": "0184a0d353bc2d777eed2f212a7ae8bbe12e6bdb3a784939bfb6e7999f76a618",
+    "include/recording/recording_read_service.h": "0dade2ef02607670e0427871b70a68be515a0bc998192d703026d9fe1020361b",
+    "include/recording/recording_search_reader.h": "ebda13c77e3c80dfef4bcfa20734dbd1dcecdf25e012151944624b4dc4e426ff",
+    "include/recording/recording_visual_source.h": "873b5ef3d60441a367dfa3caa5fae17be7850a9bd37e9cf03a4d0b84063b1f67",
+    "include/recording/visual_index_worker.h": "4956604096fb309f76b894b03cd776a09f2e57467fef70b8c0919e7ec4b5006d",
+    "src/analysis/siglip2_encoder.cpp": "36df2729f2b026c31dfa861b8e28899fe4a945416bff57fc935b56cc2e0fa404",
+    "src/ingress/product_ui_page_scripts.cpp": "412ee9c56344be6f9feb300a731e18e80e7f24fb182697cb4bd618f7e0862812",
+    "src/ingress/visual_search_application_service.cpp": "e7d5f497491e49246a2a6f246675e5a8d8657adba9c0de61d495532f5ca56243",
+    "src/recording/recording_catalog.cpp": "4caec81e623741fc0641407626fc09386c1a4caddba745589b818cea0accc801",
+    "src/recording/recording_journal.cpp": "0ac2558aaca69b9c4eca0a18cb6e485e05d2041d713e22e18c29751676b9c9fd",
+    "src/recording/recording_read_service.cpp": "6fe6ca01b7ae22b1a7c81e62067168fda9b64f2a38c33b5d08b53338878c0e95",
+    "src/recording/recording_search_reader.cpp": "890cc57a0137cc754bf17e35e84afa5c0d82722bb4cea73d0d323b45d7b77c73",
+    "src/recording/recording_visual_snapshots.cpp": "c8e766b6ab6657b966926964f73a6b500133c6595d1df946fb9e1ac2fb2a8611",
+    "src/recording/recording_visual_source.cpp": "d33f201cdcf9ca58d9c67d5c13ce39cccad344fa47151d50b2c33128d3ccecea",
+    "src/recording/visual_frame_decoder.cpp": "c2971cd344ee494e1ee9b97f34a02f5af121cd595467d3c44140eb3559ff0aff",
+    "src/recording/visual_index_worker.cpp": "f283eb14fe0c460d03319d8808e7d74ab59f0c3bb5508d5d46b393d67d564a0e"
+  },
+  "sourceDiffSha256": "4e18d2efccd5ee62e9db7ab5060308ff455093f6f605a3858759d810f0eb5419",
+  "driverHashes": {
+    "actual-ui.mjs": "3bfc102da8e8a814a280d25f86bff4c9f1f82a5a3e3f6b8244150251a02159c0",
+    "ui-fixture.mjs": "7483c7ddfd0dc0b9b6e69718252f29a768d285e64ecfbc849d4ff2bd51926e4b",
+    "ui-seed.cpp": "1404fb8b72e87ce4563656951687454321f8a1601f24bc955881f3977d2b61ec",
+    "ui-media-fixture.h": "c08a5c05b9d73ebd3539385967df4955ee301c2f3ba401b27c5a1163f502593f"
+  },
+  "browserVersion": "152.0.7977.83",
+  "preparation": {
+    "schema": "media-server.evidence-http-auth.v1",
+    "featureId": "V440-U01-PREPARATION",
+    "status": "PASS",
+    "scope": "actual loopback HTTP, model OFF; separate from actual-model API and actual UI",
+    "startedAtMs": 1791130759791,
+    "command": "node scripts/internal/evidence_http_checks.mjs",
+    "checks": [
+      {
+        "id": "V440-A01 plaintext credentials absent",
+        "status": "PASS",
+        "expected": true,
+        "actual": true
+      },
+      {
+        "id": "V440-A01 authstore private mode",
+        "status": "PASS",
+        "expected": 384,
+        "actual": 384
+      }
+    ],
+    "cleanup": {
+      "root": "[PATH]",
+      "rootIdentity": "16777232:168329447",
+      "rootAbsent": true,
+      "process": {
+        "exited": true,
+        "forced": false,
+        "exitCode": 0,
+        "signalCode": null
+      },
+      "http": {
+        "closed": true,
+        "evidence": "ECONNREFUSED"
+      },
+      "rtsp": {
+        "closed": true,
+        "evidence": "ECONNREFUSED"
+      },
+      "udpClosed": true
+    },
+    "modelInference": false,
+    "totalBudgetMs": 360000,
+    "workBudgetMs": 345000,
+    "actualUiPass": false,
+    "binarySha256": "b3b996b81d676fb11a7d1145ffcc6d774005bcb5ca83013ad3c37640f8d5eb8f",
+    "sourceSha256": "7483c7ddfd0dc0b9b6e69718252f29a768d285e64ecfbc849d4ff2bd51926e4b",
+    "ports": {
+      "http": 62247,
+      "rtsp": 62246,
+      "udp": 54436
+    },
+    "fixtureSha256": "560a820777f45440782eb119e8c30b71c88730e696c9594576d737cd4cc73d7c",
+    "pid": 33173,
+    "finishedAtMs": 1791130764664,
+    "elapsedMs": 4873,
+    "exit": 0
+  },
+  "status": "PASS-pending-visual-review",
+  "finishedAt": "2026-10-04T16:19:24.667Z",
+  "stderr": ""
+}

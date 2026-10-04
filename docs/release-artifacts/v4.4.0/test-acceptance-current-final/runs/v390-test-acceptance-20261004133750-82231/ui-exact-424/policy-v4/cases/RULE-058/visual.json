@@ -1,0 +1,9 @@
+{
+  "schema": "media-server.ui-raw-visual-capture.v1",
+  "caseId": "RULE-058",
+  "correlationId": "RULE-058:execute-persisted-action:completion",
+  "targetSelector": "body",
+  "screenshotSha256": "63b3b2f4f2c42f81946cf2a663668d80be422e2d281968bba866f6b4748428d9",
+  "measurementSha256": "e559dfb2396797f3d0ab1ba4a1f9437e2ec8d488605c35e9273489e97b59f755",
+  "qualificationStatus": "unqualified-raw-capture"
+}

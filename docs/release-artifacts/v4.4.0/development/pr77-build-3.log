@@ -1,0 +1,6 @@
+[  1%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/visual_frame_decoder.cpp.o
+[  2%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/recording_catalog.cpp.o
+[  3%] Linking CXX static library libmedia_server_runtime.a
+[ 99%] Built target media_server_runtime
+[ 99%] Linking CXX executable media_server
+[100%] Built target media_server

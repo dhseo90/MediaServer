@@ -1,0 +1,41 @@
+{
+  "status": 200,
+  "response": {
+    "hitId": "or:12:ui-release-3",
+    "playable": false,
+    "playbackUrl": "",
+    "seekAvailable": false,
+    "targetSeconds": null,
+    "frameDurationSeconds": null,
+    "reason": "media-unavailable",
+    "timeBasis": ""
+  },
+  "state": {
+    "time": 0,
+    "duration": null,
+    "readyState": 0,
+    "seeking": false,
+    "error": null,
+    "src": null,
+    "width": 0,
+    "height": 0
+  },
+  "message": "현재 파일을 재생할 수 없습니다. 삭제·누락 상태일 수 있으니 다시 검색하세요.",
+  "events": [
+    {
+      "type": "status",
+      "at": 27557.5,
+      "text": "결과를 선택하면 검색 시점으로 이동합니다."
+    },
+    {
+      "type": "status",
+      "at": 27557.5,
+      "text": "현재 파일과 재생 위치를 확인하는 중…"
+    },
+    {
+      "type": "status",
+      "at": 27577.5,
+      "text": "현재 파일을 재생할 수 없습니다. 삭제·누락 상태일 수 있으니 다시 검색하세요."
+    }
+  ]
+}

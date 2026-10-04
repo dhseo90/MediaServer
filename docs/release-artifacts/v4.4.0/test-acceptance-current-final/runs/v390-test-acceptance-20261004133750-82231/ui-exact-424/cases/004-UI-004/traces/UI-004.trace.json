@@ -1,0 +1,2730 @@
+{
+  "schema": "media-server.v390-ui-native-interaction-trace.v2",
+  "caseId": "UI-004",
+  "featureId": "UI-004",
+  "dispatch": "playwright-native",
+  "requested": {
+    "schema": "media-server.v390-ui-canonical-requested.v1",
+    "route": "/password/change",
+    "accountRole": "operator",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "theme": "light",
+    "controlAction": {
+      "selector": "[data-testid=\"auth-password-change-form\"]",
+      "actionAnchor": "ChangeUserPassword"
+    }
+  },
+  "observed": {
+    "schema": "media-server.v390-ui-runtime-observed.v1",
+    "screenRoute": "/password/change",
+    "accountRole": "operator",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "theme": "light",
+    "controlAction": {
+      "selector": "[data-testid=\"auth-password-change-form\"] button[type=\"submit\"]",
+      "applicability": "required",
+      "exists": true,
+      "visible": true,
+      "enabled": true
+    },
+    "provenance": {
+      "screenRoute": "browser-location",
+      "accountRole": "session-whoami",
+      "viewport": "browser-inner-size",
+      "theme": "browser-media-query",
+      "controlAction": "dom-selector-state"
+    }
+  },
+  "navigation": {
+    "status": 200,
+    "url": "http://127.0.0.1:51446/password/change",
+    "invocationId": "UI-004:initial-document-navigation",
+    "requestKind": "document-navigation",
+    "resourceType": "document",
+    "method": "GET",
+    "requestedPath": "/password/change",
+    "observedPath": "/password/change",
+    "sameOrigin": true,
+    "requestAttemptCount": 1,
+    "requestCandidateCount": 1,
+    "responseCandidateCount": 1,
+    "requestResponseBound": true,
+    "correlationObserved": false,
+    "redirectCount": 0,
+    "retryCount": 0,
+    "reloadCount": 0,
+    "unownedNavigationCount": 0,
+    "additionalFetchCount": 0,
+    "requestReissued": false,
+    "totalDocumentNavigationCount": 1,
+    "orderedDocumentNavigations": [
+      {
+        "sequence": 2,
+        "responseSequence": 3,
+        "invocationId": "UI-004:initial-document-navigation",
+        "navigationKind": "initial-document-navigation",
+        "method": "GET",
+        "path": "/password/change",
+        "resourceType": "document",
+        "sameOrigin": true,
+        "correlationPresent": false,
+        "correlationDigest": "",
+        "redirected": false,
+        "redirectedFromRequestId": "",
+        "requestId": "native-request-1",
+        "caseRequestIdentity": "UI-004:request-1",
+        "caseRequestSequence": 1,
+        "responseStatus": 200,
+        "responseBound": true,
+        "responseRequestId": "native-request-1",
+        "responseRequestObjectObserved": true,
+        "responseLocationPath": "",
+        "navigationEpoch": 1,
+        "ledgerOwner": "page",
+        "sourceOwner": "page",
+        "ownerPhase": "bootstrap",
+        "initiatorActionId": "",
+        "requestOwnershipKind": "initial-page-load",
+        "actionInvocationId": "",
+        "navigationInvocationId": "UI-004:initial-document-navigation"
+      }
+    ],
+    "listenerStartSequence": 1,
+    "listenerEndSequence": null,
+    "listenerActive": true,
+    "listenerInstalledBeforeFirstNavigation": true,
+    "navigationAfterListenerEndCount": 0
+  },
+  "setup": [
+    {
+      "kind": "bind-role-session",
+      "setupId": "UI-004:role-session",
+      "accountRole": "operator",
+      "required": true,
+      "status": "PASS"
+    },
+    {
+      "kind": "seed-reviewed-state",
+      "setupId": "UI-004:reviewed-state",
+      "strategy": "form-submit",
+      "route": "/password/change",
+      "semanticCallChainSha256": "9c4184328b7e508ea2d19e434887507a548dd3312fefbe0b8abdad884b9781ca",
+      "persistedMutation": true,
+      "fixtureId": "ui-004-review4-fixture",
+      "beforeSnapshotRef": "UI-004:before-product-state",
+      "status": "PASS"
+    },
+    {
+      "kind": "prepare-form-submit-ui-lifecycle",
+      "schema": "media-server.v390-ui-form-lifecycle.v1",
+      "adapter": "auth-standard-submit",
+      "formSelector": "[data-testid=\"auth-password-change-form\"]",
+      "submitSelector": "[data-testid=\"auth-password-change-form\"] button[type=\"submit\"]",
+      "entrySelector": null,
+      "fieldControls": [
+        {
+          "name": "currentPassword",
+          "control": "fill"
+        },
+        {
+          "name": "password",
+          "control": "fill"
+        },
+        {
+          "name": "confirm",
+          "control": "fill"
+        }
+      ],
+      "phases": [
+        "enter-form-mode",
+        "populate-typed-controls",
+        "activate-submit-control",
+        "capture-correlated-response-identity",
+        "authoritative-readback"
+      ],
+      "deferredFixture": {
+        "prepared": false
+      },
+      "status": "PASS"
+    }
+  ],
+  "inputs": [
+    {
+      "inputId": "UI-004:semantic-expectation",
+      "kind": "reviewed-semantic-expectation",
+      "valueSha256": "d97d5f54966ab4dcc224d967fc5ff1820ebbdc7e2cddee8c625b219bccda1ab4",
+      "sensitive": false
+    },
+    {
+      "inputId": "UI-004:form-values",
+      "kind": "form-values",
+      "actualValue": {
+        "currentPassword": {
+          "secretRef": "UI-004:fixture-current-password",
+          "redacted": true
+        },
+        "password": {
+          "secretRef": "UI-004:fixture-password",
+          "redacted": true
+        },
+        "confirm": {
+          "secretRef": "UI-004:fixture-password",
+          "redacted": true
+        }
+      },
+      "fields": [
+        "currentPassword",
+        "password",
+        "confirm"
+      ],
+      "submit": true,
+      "seedReference": {
+        "fixtureId": "ui-004-review4-fixture",
+        "accountRole": "operator",
+        "route": "/password/change"
+      },
+      "sensitive": true,
+      "redacted": true
+    }
+  ],
+  "actions": [
+    {
+      "kind": "wait-visible",
+      "dispatch": "playwright-native",
+      "actionId": "UI-004:wait-visible",
+      "selector": "[data-testid=\"auth-password-change-form\"] button[type=\"submit\"]",
+      "selectorSource": "review4-form-submit-control-override",
+      "status": "PASS"
+    },
+    {
+      "kind": "submit-form",
+      "dispatch": "playwright-native",
+      "actionId": "UI-004:submit-form",
+      "selector": "[data-testid=\"auth-password-change-form\"]",
+      "submitSelector": "[data-testid=\"auth-password-change-form\"] button[type=\"submit\"]",
+      "method": "POST",
+      "action": "/password/change",
+      "fields": [
+        "currentPassword",
+        "password",
+        "confirm"
+      ],
+      "inputId": "UI-004:form-values",
+      "uiLifecycle": {
+        "schema": "media-server.v390-ui-form-lifecycle.v1",
+        "adapter": "auth-standard-submit",
+        "formSelector": "[data-testid=\"auth-password-change-form\"]",
+        "submitSelector": "[data-testid=\"auth-password-change-form\"] button[type=\"submit\"]",
+        "entrySelector": null,
+        "fieldControls": [
+          {
+            "name": "currentPassword",
+            "control": "fill"
+          },
+          {
+            "name": "password",
+            "control": "fill"
+          },
+          {
+            "name": "confirm",
+            "control": "fill"
+          }
+        ],
+        "requiredPhases": [
+          "enter-form-mode",
+          "populate-typed-controls",
+          "activate-submit-control",
+          "capture-correlated-response-identity",
+          "authoritative-readback"
+        ]
+      },
+      "semanticCompletion": {
+        "schema": "media-server.v390-ui-action-completion.v2",
+        "required": true,
+        "phase": "primary-action",
+        "actionId": "UI-004:submit-form",
+        "actionKind": "submit-form",
+        "controlSelector": "[data-testid=\"auth-password-change-form\"] button[type=\"submit\"]",
+        "linkedPrimaryActionId": null,
+        "completionMode": "request",
+        "requiredSource": "endpoint-dom",
+        "correlationId": "UI-004:submit-form:completion",
+        "request": {
+          "initiatorActionId": "UI-004:submit-form",
+          "requestOwnershipKind": "primary-action",
+          "correlationHeader": "x-media-server-correlation-id",
+          "correlationId": "UI-004:submit-form:completion",
+          "correlationSource": "request-header",
+          "method": "POST",
+          "urlPathTemplate": "/password/change",
+          "urlPath": "/password/change",
+          "pathParameters": {},
+          "allowedStatuses": [
+            302
+          ]
+        },
+        "localTransition": null,
+        "expectedBehaviorSha256": "d97d5f54966ab4dcc224d967fc5ff1820ebbdc7e2cddee8c625b219bccda1ab4",
+        "readback": {
+          "identity": "independent-readback:scripts/internal/verify_auth_workflow.sh#verify_password_change_lifecycle#9340030976791206830a7629ec606b38495510d32bc146ce2db58a7b49aae713",
+          "expectedStateIdentity": "product-state:src/ingress/http_auth.cpp#ChangeUserPassword#4d887882ecfd0a790d0dbfe643c1c0fc16b86c680a150fa84e2606d25b406809",
+          "expectedBehaviorSha256": "d97d5f54966ab4dcc224d967fc5ff1820ebbdc7e2cddee8c625b219bccda1ab4",
+          "allowedObservationSources": [
+            "browser-dom",
+            "readback-request",
+            "event-record",
+            "server-log"
+          ],
+          "staticLocatorIsNotRuntimePass": true
+        },
+        "readbackIdentity": "independent-readback:scripts/internal/verify_auth_workflow.sh#verify_password_change_lifecycle#9340030976791206830a7629ec606b38495510d32bc146ce2db58a7b49aae713",
+        "readbackExpectation": {
+          "submitted": true,
+          "method": "POST",
+          "action": "/password/change",
+          "fields": [
+            "currentPassword",
+            "password",
+            "confirm"
+          ]
+        },
+        "attestedAlternatives": [
+          "persisted-readback",
+          "event-record",
+          "server-log"
+        ]
+      },
+      "executed": true,
+      "correlationId": "UI-004:submit-form:completion",
+      "completionPhase": "primary-action",
+      "actionKind": "submit-form",
+      "controlSelector": "[data-testid=\"auth-password-change-form\"] button[type=\"submit\"]",
+      "semanticCompletionRequired": true,
+      "completionMode": "request",
+      "expectedReadbackIdentity": "independent-readback:scripts/internal/verify_auth_workflow.sh#verify_password_change_lifecycle#9340030976791206830a7629ec606b38495510d32bc146ce2db58a7b49aae713",
+      "expectedBehaviorSha256": "d97d5f54966ab4dcc224d967fc5ff1820ebbdc7e2cddee8c625b219bccda1ab4",
+      "expectedReadbackExpectation": {
+        "submitted": true,
+        "method": "POST",
+        "action": "/password/change",
+        "fields": [
+          "currentPassword",
+          "password",
+          "confirm"
+        ]
+      },
+      "expectedEndpoint": {
+        "correlationId": "UI-004:submit-form:completion",
+        "method": "POST",
+        "urlPath": "/password/change",
+        "urlPathTemplate": "/password/change",
+        "allowedStatuses": [
+          302
+        ],
+        "initiatorActionId": "UI-004:submit-form",
+        "requestOwnershipKind": "primary-action",
+        "runtimeBindingSource": "native-completion-contract"
+      },
+      "expectedLocalTransition": null,
+      "expectedNavigationBinding": null,
+      "allowedCompletionSources": [
+        "endpoint-dom",
+        "persisted-readback",
+        "event-record",
+        "server-log"
+      ],
+      "executedControlSelector": "[data-testid=\"auth-password-change-form\"] button[type=\"submit\"]",
+      "executedKind": "submit",
+      "formUiLifecycle": {
+        "schema": "media-server.v390-ui-form-lifecycle.v1",
+        "adapter": "auth-standard-submit",
+        "formSelector": "[data-testid=\"auth-password-change-form\"]",
+        "submitSelector": "[data-testid=\"auth-password-change-form\"] button[type=\"submit\"]",
+        "entrySelector": null,
+        "fieldControls": [
+          {
+            "name": "currentPassword",
+            "control": "fill"
+          },
+          {
+            "name": "password",
+            "control": "fill"
+          },
+          {
+            "name": "confirm",
+            "control": "fill"
+          }
+        ],
+        "phases": [
+          "enter-form-mode",
+          "populate-typed-controls",
+          "activate-submit-control",
+          "capture-correlated-response-identity",
+          "authoritative-readback"
+        ],
+        "deferredFixture": {
+          "prepared": false
+        }
+      },
+      "typedFormInputs": [
+        {
+          "name": "currentPassword",
+          "control": "fill",
+          "valueSource": "runtime-secret-ref",
+          "status": "PASS"
+        },
+        {
+          "name": "password",
+          "control": "fill",
+          "valueSource": "runtime-secret-ref",
+          "status": "PASS"
+        },
+        {
+          "name": "confirm",
+          "control": "fill",
+          "valueSource": "runtime-secret-ref",
+          "status": "PASS"
+        }
+      ],
+      "runtimeSecretRedaction": {
+        "schema": "media-server.v390-ui-runtime-secret-redaction.v1",
+        "status": "PASS",
+        "registeredSecrets": 2,
+        "redactedTextNodes": 0,
+        "redactedValues": 0,
+        "redactedAttributes": 0,
+        "residualSecrets": 0
+      },
+      "before": {
+        "selector": "[data-testid=\"auth-password-change-form\"] button[type=\"submit\"]",
+        "candidateCount": 1,
+        "navigationEpoch": 1,
+        "exists": true,
+        "visible": true,
+        "tag": "button",
+        "hidden": false,
+        "disabled": false,
+        "readOnly": false,
+        "open": false,
+        "href": "",
+        "title": "",
+        "ariaLabel": "",
+        "ariaPressed": "",
+        "text": "비밀번호 변경",
+        "value": "",
+        "checked": false,
+        "selectedValues": [],
+        "optionValues": [],
+        "url": "http://127.0.0.1:51446/password/change"
+      },
+      "after": {
+        "selector": "[data-testid=\"auth-password-change-form\"] button[type=\"submit\"]",
+        "candidateCount": 0,
+        "navigationEpoch": 3,
+        "exists": false,
+        "visible": false,
+        "tag": "",
+        "hidden": false,
+        "disabled": false,
+        "readOnly": false,
+        "open": false,
+        "href": "",
+        "title": "",
+        "ariaLabel": "",
+        "ariaPressed": "",
+        "text": "",
+        "value": "",
+        "checked": false,
+        "selectedValues": [],
+        "optionValues": [],
+        "url": "http://127.0.0.1:51446/login"
+      },
+      "status": "PASS",
+      "formResponseIdentity": {
+        "schema": "media-server.v390-ui-document-form-submit-binding.v1",
+        "requestId": "native-request-4",
+        "caseRequestIdentity": "UI-004:request-4",
+        "caseRequestSequence": 4,
+        "initiatorActionId": "UI-004:submit-form",
+        "requestOwnershipKind": "primary-action",
+        "method": "POST",
+        "path": "/password/change",
+        "status": 302,
+        "requestKind": "document-navigation",
+        "resourceType": "document",
+        "sameOrigin": true,
+        "correlationObserved": false,
+        "responseRequestObjectObserved": true,
+        "redirectCount": 1,
+        "redirectPath": "/login",
+        "redirectRequestId": "native-request-5",
+        "requestAttemptCount": 1,
+        "responseCandidateCount": 1,
+        "reissueCount": 0,
+        "adapter": "auth-standard-submit",
+        "productIdentity": null
+      },
+      "completionStatus": "awaiting-independent-readback"
+    },
+    {
+      "kind": "verify-independent-readback",
+      "dispatch": "playwright-native",
+      "actionId": "UI-004:verify-independent-readback",
+      "expectedStateIdentity": "product-state:src/ingress/http_auth.cpp#ChangeUserPassword#4d887882ecfd0a790d0dbfe643c1c0fc16b86c680a150fa84e2606d25b406809",
+      "expectedBehaviorSha256": "d97d5f54966ab4dcc224d967fc5ff1820ebbdc7e2cddee8c625b219bccda1ab4",
+      "readbackIdentity": "independent-readback:scripts/internal/verify_auth_workflow.sh#verify_password_change_lifecycle#9340030976791206830a7629ec606b38495510d32bc146ce2db58a7b49aae713",
+      "readbackLocator": {
+        "file": "scripts/internal/verify_auth_workflow.sh",
+        "symbol": "verify_password_change_lifecycle",
+        "contextSha256": "9340030976791206830a7629ec606b38495510d32bc146ce2db58a7b49aae713"
+      },
+      "verifierCommand": "verify-auth-users",
+      "runtimeEvidenceRequired": true,
+      "staticLocatorIsNotRuntimePass": true,
+      "semanticCompletion": {
+        "schema": "media-server.v390-ui-action-completion.v2",
+        "required": true,
+        "phase": "independent-readback",
+        "actionId": "UI-004:verify-independent-readback",
+        "actionKind": "verify-independent-readback",
+        "controlSelector": null,
+        "linkedPrimaryActionId": "UI-004:submit-form",
+        "completionMode": "readback",
+        "requiredSource": "browser-dom-readback",
+        "correlationId": "UI-004:verify-independent-readback:completion",
+        "request": null,
+        "localTransition": null,
+        "expectedBehaviorSha256": "d97d5f54966ab4dcc224d967fc5ff1820ebbdc7e2cddee8c625b219bccda1ab4",
+        "readback": {
+          "identity": "independent-readback:scripts/internal/verify_auth_workflow.sh#verify_password_change_lifecycle#9340030976791206830a7629ec606b38495510d32bc146ce2db58a7b49aae713",
+          "expectedStateIdentity": "product-state:src/ingress/http_auth.cpp#ChangeUserPassword#4d887882ecfd0a790d0dbfe643c1c0fc16b86c680a150fa84e2606d25b406809",
+          "expectedBehaviorSha256": "d97d5f54966ab4dcc224d967fc5ff1820ebbdc7e2cddee8c625b219bccda1ab4",
+          "allowedObservationSources": [
+            "browser-dom",
+            "readback-request",
+            "event-record",
+            "server-log"
+          ],
+          "staticLocatorIsNotRuntimePass": true
+        },
+        "readbackIdentity": "independent-readback:scripts/internal/verify_auth_workflow.sh#verify_password_change_lifecycle#9340030976791206830a7629ec606b38495510d32bc146ce2db58a7b49aae713",
+        "readbackExpectation": {
+          "readbackIdentity": "independent-readback:scripts/internal/verify_auth_workflow.sh#verify_password_change_lifecycle#9340030976791206830a7629ec606b38495510d32bc146ce2db58a7b49aae713",
+          "expectedStateIdentity": "product-state:src/ingress/http_auth.cpp#ChangeUserPassword#4d887882ecfd0a790d0dbfe643c1c0fc16b86c680a150fa84e2606d25b406809",
+          "expectedBehaviorSha256": "d97d5f54966ab4dcc224d967fc5ff1820ebbdc7e2cddee8c625b219bccda1ab4",
+          "runtimeEvidenceRequired": true
+        },
+        "attestedAlternatives": [
+          "persisted-readback",
+          "event-record",
+          "server-log"
+        ]
+      },
+      "completionPhase": "independent-readback",
+      "linkedPrimaryActionId": "UI-004:submit-form",
+      "semanticReadback": {
+        "schema": "media-server.v390-ui-semantic-readback.v2",
+        "identity": "independent-readback:scripts/internal/verify_auth_workflow.sh#verify_password_change_lifecycle#9340030976791206830a7629ec606b38495510d32bc146ce2db58a7b49aae713",
+        "correlationId": "UI-004:submit-form:completion",
+        "actionId": "UI-004:submit-form",
+        "expectedBehaviorSha256": "d97d5f54966ab4dcc224d967fc5ff1820ebbdc7e2cddee8c625b219bccda1ab4",
+        "observationSource": "readback-request",
+        "selector": "[data-testid=\"auth-password-change-form\"] button[type=\"submit\"]",
+        "observation": {
+          "actual": {
+            "schema": "media-server.v390-ui-runtime-form-submit-readback.v1",
+            "submitted": true,
+            "method": "POST",
+            "action": "/password/change",
+            "fields": [
+              "currentPassword",
+              "password",
+              "confirm"
+            ],
+            "responseStatus": 302,
+            "responseRequestId": "native-request-4",
+            "authoritative": true,
+            "readbackKind": "password-change-old-deny-new-history-reuse-deny",
+            "principal": {
+              "authenticated": true,
+              "username": "ui_operator",
+              "role": "operator"
+            },
+            "previousPasswordStatus": 401,
+            "usersStoreSha256": "12a22f29de92af2879bbb74d2bbf101424317c55c43d398888ad67c6a8ac4d1e",
+            "checks": {
+              "oldPasswordDenied": true,
+              "newPasswordAccepted": true,
+              "historyReuseDenied": true,
+              "historyRotated": true,
+              "plaintextAbsent": true
+            },
+            "profileId": "form-readback:UI-004",
+            "expectedBehaviorSha256": "d97d5f54966ab4dcc224d967fc5ff1820ebbdc7e2cddee8c625b219bccda1ab4"
+          }
+        },
+        "observationSha256": "09d05b9fa3457418566b258820adce74e206e2bb334e8ebfb36d79287afe7916"
+      },
+      "runtimeMutationReadback": null,
+      "runtimeFormSubmitReadback": {
+        "schema": "media-server.v390-ui-runtime-form-submit-readback.v1",
+        "submitted": true,
+        "method": "POST",
+        "action": "/password/change",
+        "fields": [
+          "currentPassword",
+          "password",
+          "confirm"
+        ],
+        "responseStatus": 302,
+        "responseRequestId": "native-request-4",
+        "authoritative": true,
+        "readbackKind": "password-change-old-deny-new-history-reuse-deny",
+        "principal": {
+          "authenticated": true,
+          "username": "ui_operator",
+          "role": "operator"
+        },
+        "previousPasswordStatus": 401,
+        "usersStoreSha256": "12a22f29de92af2879bbb74d2bbf101424317c55c43d398888ad67c6a8ac4d1e",
+        "checks": {
+          "oldPasswordDenied": true,
+          "newPasswordAccepted": true,
+          "historyReuseDenied": true,
+          "historyRotated": true,
+          "plaintextAbsent": true
+        },
+        "profileId": "form-readback:UI-004",
+        "expectedBehaviorSha256": "d97d5f54966ab4dcc224d967fc5ff1820ebbdc7e2cddee8c625b219bccda1ab4"
+      },
+      "runtimeEndpointActionReadback": null,
+      "rejectedActionReadback": null,
+      "evidenceStages": null,
+      "status": "PASS"
+    }
+  ],
+  "completionEvents": [
+    {
+      "pass": true,
+      "source": "navigation-network-dom",
+      "reason": "",
+      "correlationId": "UI-004:navigation",
+      "beforeDigest": "",
+      "afterDigest": "de63ddff425e93447f4e1bd3218fd676ee525900bef25fd61374cdc2a53a2911",
+      "networkResponses": [
+        {
+          "phase": "request-start",
+          "requestId": "native-request-1",
+          "caseRequestIdentity": "UI-004:request-1",
+          "caseRequestSequence": 1,
+          "requestKind": "document-navigation",
+          "resourceType": "document",
+          "sameOrigin": true,
+          "redirectedFromRequestId": "",
+          "correlationId": "",
+          "correlationSource": "none",
+          "correlationInjectionSource": "",
+          "correlationRouteState": "correlation-absent",
+          "correlationRouteActionId": "",
+          "correlationRouteDigest": "",
+          "requestHeaderDigest": "",
+          "ledgerOwner": "page",
+          "sourceOwner": "page",
+          "ownerPhase": "bootstrap",
+          "actionRegistrationKind": "",
+          "exactActionRequestOwned": false,
+          "initiatorActionId": "",
+          "renderCycleId": "",
+          "requestOwnershipKind": "initial-page-load",
+          "lifecycleClass": "bootstrap-document",
+          "actionInvocationId": "",
+          "navigationInvocationId": "UI-004:initial-document-navigation",
+          "requestStartedAtMs": 1791123909699,
+          "method": "GET",
+          "status": 0,
+          "url": "http://127.0.0.1:51446/password/change",
+          "requestBody": null
+        },
+        {
+          "phase": "response",
+          "requestId": "native-request-1",
+          "caseRequestIdentity": "UI-004:request-1",
+          "caseRequestSequence": 1,
+          "responseRequestObjectObserved": true,
+          "requestIdentitySource": "playwright-response-request",
+          "requestKind": "document-navigation",
+          "resourceType": "document",
+          "sameOrigin": true,
+          "correlationId": "",
+          "correlationSource": "none",
+          "responseCorrelationSource": "none",
+          "requestHeaderDigest": "",
+          "correlationRouteState": "correlation-absent",
+          "correlationRouteActionId": "",
+          "correlationRouteDigest": "",
+          "responseEchoHeaderContract": "not-required",
+          "responseEchoHeaderObserved": false,
+          "ledgerOwner": "page",
+          "sourceOwner": "page",
+          "ownerPhase": "bootstrap",
+          "exactActionRequestOwned": false,
+          "initiatorActionId": "",
+          "renderCycleId": "",
+          "requestOwnershipKind": "initial-page-load",
+          "lifecycleClass": "bootstrap-document",
+          "actionInvocationId": "",
+          "navigationInvocationId": "UI-004:initial-document-navigation",
+          "requestStartedAtMs": 1791123909699,
+          "responseObservedAtMs": 1791123909712,
+          "method": "GET",
+          "status": 200,
+          "httpOk": true,
+          "url": "http://127.0.0.1:51446/password/change",
+          "responseHeaders": {
+            "content-type": "text/html; charset=utf-8",
+            "location": ""
+          },
+          "responseLocationPath": ""
+        },
+        {
+          "phase": "request-start",
+          "requestId": "native-request-2",
+          "caseRequestIdentity": "UI-004:request-2",
+          "caseRequestSequence": 2,
+          "requestKind": "application-fetch",
+          "resourceType": "fetch",
+          "sameOrigin": true,
+          "redirectedFromRequestId": "",
+          "correlationId": "",
+          "correlationSource": "none",
+          "correlationInjectionSource": "",
+          "correlationRouteState": "correlation-absent",
+          "correlationRouteActionId": "",
+          "correlationRouteDigest": "",
+          "requestHeaderDigest": "",
+          "ledgerOwner": "page",
+          "sourceOwner": "page",
+          "ownerPhase": "bootstrap",
+          "actionRegistrationKind": "",
+          "exactActionRequestOwned": false,
+          "initiatorActionId": "",
+          "renderCycleId": "",
+          "requestOwnershipKind": "bootstrap",
+          "lifecycleClass": "bootstrap-fetch",
+          "actionInvocationId": "",
+          "navigationInvocationId": "",
+          "requestStartedAtMs": 1791123909773,
+          "method": "GET",
+          "status": 0,
+          "url": "http://127.0.0.1:51446/auth/whoami",
+          "requestBody": null
+        },
+        {
+          "phase": "response",
+          "requestId": "native-request-2",
+          "caseRequestIdentity": "UI-004:request-2",
+          "caseRequestSequence": 2,
+          "responseRequestObjectObserved": true,
+          "requestIdentitySource": "playwright-response-request",
+          "requestKind": "application-fetch",
+          "resourceType": "fetch",
+          "sameOrigin": true,
+          "correlationId": "",
+          "correlationSource": "none",
+          "responseCorrelationSource": "none",
+          "requestHeaderDigest": "",
+          "correlationRouteState": "correlation-absent",
+          "correlationRouteActionId": "",
+          "correlationRouteDigest": "",
+          "responseEchoHeaderContract": "not-required",
+          "responseEchoHeaderObserved": false,
+          "ledgerOwner": "page",
+          "sourceOwner": "page",
+          "ownerPhase": "bootstrap",
+          "exactActionRequestOwned": false,
+          "initiatorActionId": "",
+          "renderCycleId": "",
+          "requestOwnershipKind": "bootstrap",
+          "lifecycleClass": "bootstrap-fetch",
+          "actionInvocationId": "",
+          "navigationInvocationId": "",
+          "requestStartedAtMs": 1791123909773,
+          "responseObservedAtMs": 1791123909776,
+          "method": "GET",
+          "status": 200,
+          "httpOk": true,
+          "url": "http://127.0.0.1:51446/auth/whoami",
+          "responseHeaders": {
+            "content-type": "application/json; charset=utf-8",
+            "location": ""
+          },
+          "responseLocationPath": ""
+        }
+      ],
+      "completionRequest": null,
+      "semanticReadback": {
+        "schema": "media-server.v390-ui-semantic-readback.v1",
+        "identity": "UI-004:navigation",
+        "correlationId": "UI-004:navigation",
+        "actionId": "UI-004:navigate",
+        "observationSource": "browser-dom",
+        "selector": null,
+        "expected": {
+          "exists": true,
+          "visible": true
+        },
+        "observed": {
+          "exists": true,
+          "visible": true
+        }
+      },
+      "expectedEndpoint": null,
+      "expectedNavigationBinding": {
+        "schema": "media-server.v390-ui-navigation-trust-binding.v1",
+        "requestKind": "document-navigation",
+        "invocationId": "UI-004:initial-document-navigation",
+        "method": "GET",
+        "requestedPath": "/password/change",
+        "expectedCanonicalRoute": "/password/change",
+        "expectedObservedPath": "/password/change",
+        "exactRequestSequence": 1,
+        "exactRedirectCount": 0,
+        "correlationRequired": false,
+        "allowedStatuses": [
+          200
+        ],
+        "authoritativeReadback": null
+      },
+      "completionMode": "navigationBinding",
+      "completionPhase": "initial-navigation",
+      "actionId": "UI-004:navigate",
+      "actionKind": "navigate",
+      "controlSelector": null,
+      "navigationTrustEvidence": {
+        "schema": "media-server.v390-ui-navigation-trust-evidence.v1",
+        "pass": true,
+        "requestKind": "document-navigation",
+        "invocationId": "UI-004:initial-document-navigation",
+        "method": "GET",
+        "resourceType": "document",
+        "sameOrigin": true,
+        "requestedPath": "/password/change",
+        "expectedObservedPath": "/password/change",
+        "observedPath": "/password/change",
+        "correlationRequired": false,
+        "correlationObserved": false,
+        "requestAttemptCount": 1,
+        "requestCandidateCount": 1,
+        "responseCandidateCount": 1,
+        "requestResponseBound": true,
+        "redirectCount": 0,
+        "retryCount": 0,
+        "reloadCount": 0,
+        "unownedNavigationCount": 0,
+        "additionalFetchCount": 0,
+        "requestReissued": false,
+        "totalDocumentNavigationCount": 1,
+        "orderedDocumentNavigations": [
+          {
+            "sequence": 2,
+            "responseSequence": 3,
+            "invocationId": "UI-004:initial-document-navigation",
+            "navigationKind": "initial-document-navigation",
+            "method": "GET",
+            "path": "/password/change",
+            "resourceType": "document",
+            "sameOrigin": true,
+            "correlationPresent": false,
+            "correlationDigest": "",
+            "redirected": false,
+            "redirectedFromRequestId": "",
+            "requestId": "native-request-1",
+            "caseRequestIdentity": "UI-004:request-1",
+            "caseRequestSequence": 1,
+            "responseStatus": 200,
+            "responseBound": true,
+            "responseRequestId": "native-request-1",
+            "responseRequestObjectObserved": true,
+            "responseLocationPath": "",
+            "navigationEpoch": 1,
+            "ledgerOwner": "page",
+            "sourceOwner": "page",
+            "ownerPhase": "bootstrap",
+            "initiatorActionId": "",
+            "requestOwnershipKind": "initial-page-load",
+            "actionInvocationId": "",
+            "navigationInvocationId": "UI-004:initial-document-navigation"
+          }
+        ],
+        "listenerStartSequence": 1,
+        "listenerEndSequence": null,
+        "listenerActive": true,
+        "listenerInstalledBeforeFirstNavigation": true,
+        "navigationAfterListenerEndCount": 0,
+        "expectedLifecycleNavigationCount": 1,
+        "failurePhase": "",
+        "failureCode": ""
+      }
+    },
+    {
+      "pass": true,
+      "source": "endpoint-dom",
+      "reason": "",
+      "correlationId": "UI-004:submit-form:completion",
+      "beforeDigest": "5d659a5037aba165df64e8a5f9638fe95fdf304a82b97f1aa63a8c28f528f6ed",
+      "afterDigest": "1cc3c2214dad397645d4fff528fd22afda6da4daf3301b0dd9f6e23c7b2bb2f3",
+      "networkResponses": [
+        {
+          "phase": "response",
+          "requestId": "native-request-4",
+          "caseRequestIdentity": "UI-004:request-4",
+          "caseRequestSequence": 4,
+          "responseRequestObjectObserved": true,
+          "requestIdentitySource": "playwright-response-request",
+          "requestKind": "document-navigation",
+          "resourceType": "document",
+          "sameOrigin": true,
+          "correlationId": "UI-004:submit-form:completion",
+          "correlationSource": "document-form-request-response-identity",
+          "responseCorrelationSource": "none",
+          "requestHeaderDigest": "",
+          "correlationRouteState": "correlation-absent",
+          "correlationRouteActionId": "",
+          "correlationRouteDigest": "",
+          "responseEchoHeaderContract": "not-required",
+          "responseEchoHeaderObserved": false,
+          "ledgerOwner": "action",
+          "sourceOwner": "explicit-action-registration",
+          "ownerPhase": "primary-action",
+          "exactActionRequestOwned": true,
+          "initiatorActionId": "UI-004:submit-form",
+          "renderCycleId": "",
+          "requestOwnershipKind": "primary-action",
+          "lifecycleClass": "primary-action",
+          "actionInvocationId": "UI-004:submit-form",
+          "navigationInvocationId": "UI-004:form-submit-document-navigation",
+          "requestStartedAtMs": 1791123909872,
+          "responseObservedAtMs": 1791123910088,
+          "method": "POST",
+          "status": 302,
+          "httpOk": false,
+          "url": "http://127.0.0.1:51446/password/change",
+          "responseHeaders": {
+            "content-type": "text/plain; charset=utf-8",
+            "location": "/login"
+          },
+          "responseLocationPath": "/login",
+          "documentFormResponseIdentity": {
+            "schema": "media-server.v390-ui-document-form-submit-binding.v1",
+            "requestId": "native-request-4",
+            "caseRequestIdentity": "UI-004:request-4",
+            "caseRequestSequence": 4,
+            "initiatorActionId": "UI-004:submit-form",
+            "requestOwnershipKind": "primary-action",
+            "method": "POST",
+            "path": "/password/change",
+            "status": 302,
+            "requestKind": "document-navigation",
+            "resourceType": "document",
+            "sameOrigin": true,
+            "correlationObserved": false,
+            "responseRequestObjectObserved": true,
+            "redirectCount": 1,
+            "redirectPath": "/login",
+            "redirectRequestId": "native-request-5",
+            "requestAttemptCount": 1,
+            "responseCandidateCount": 1,
+            "reissueCount": 0,
+            "adapter": "auth-standard-submit",
+            "productIdentity": null
+          }
+        }
+      ],
+      "completionRequest": {
+        "phase": "response",
+        "requestId": "native-request-4",
+        "caseRequestIdentity": "UI-004:request-4",
+        "caseRequestSequence": 4,
+        "responseRequestObjectObserved": true,
+        "requestIdentitySource": "playwright-response-request",
+        "requestKind": "document-navigation",
+        "resourceType": "document",
+        "sameOrigin": true,
+        "correlationId": "UI-004:submit-form:completion",
+        "correlationSource": "document-form-request-response-identity",
+        "responseCorrelationSource": "none",
+        "requestHeaderDigest": "",
+        "correlationRouteState": "correlation-absent",
+        "correlationRouteActionId": "",
+        "correlationRouteDigest": "",
+        "responseEchoHeaderContract": "not-required",
+        "responseEchoHeaderObserved": false,
+        "ledgerOwner": "action",
+        "sourceOwner": "explicit-action-registration",
+        "ownerPhase": "primary-action",
+        "exactActionRequestOwned": true,
+        "initiatorActionId": "UI-004:submit-form",
+        "renderCycleId": "",
+        "requestOwnershipKind": "primary-action",
+        "lifecycleClass": "primary-action",
+        "actionInvocationId": "UI-004:submit-form",
+        "navigationInvocationId": "UI-004:form-submit-document-navigation",
+        "requestStartedAtMs": 1791123909872,
+        "responseObservedAtMs": 1791123910088,
+        "method": "POST",
+        "status": 302,
+        "httpOk": false,
+        "url": "http://127.0.0.1:51446/password/change",
+        "responseHeaders": {
+          "content-type": "text/plain; charset=utf-8",
+          "location": "/login"
+        },
+        "responseLocationPath": "/login",
+        "documentFormResponseIdentity": {
+          "schema": "media-server.v390-ui-document-form-submit-binding.v1",
+          "requestId": "native-request-4",
+          "caseRequestIdentity": "UI-004:request-4",
+          "caseRequestSequence": 4,
+          "initiatorActionId": "UI-004:submit-form",
+          "requestOwnershipKind": "primary-action",
+          "method": "POST",
+          "path": "/password/change",
+          "status": 302,
+          "requestKind": "document-navigation",
+          "resourceType": "document",
+          "sameOrigin": true,
+          "correlationObserved": false,
+          "responseRequestObjectObserved": true,
+          "redirectCount": 1,
+          "redirectPath": "/login",
+          "redirectRequestId": "native-request-5",
+          "requestAttemptCount": 1,
+          "responseCandidateCount": 1,
+          "reissueCount": 0,
+          "adapter": "auth-standard-submit",
+          "productIdentity": null
+        }
+      },
+      "semanticReadback": {
+        "schema": "media-server.v390-ui-semantic-readback.v2",
+        "identity": "independent-readback:scripts/internal/verify_auth_workflow.sh#verify_password_change_lifecycle#9340030976791206830a7629ec606b38495510d32bc146ce2db58a7b49aae713",
+        "correlationId": "UI-004:submit-form:completion",
+        "actionId": "UI-004:submit-form",
+        "expectedBehaviorSha256": "d97d5f54966ab4dcc224d967fc5ff1820ebbdc7e2cddee8c625b219bccda1ab4",
+        "observationSource": "readback-request",
+        "selector": "[data-testid=\"auth-password-change-form\"] button[type=\"submit\"]",
+        "observation": {
+          "actual": {
+            "schema": "media-server.v390-ui-runtime-form-submit-readback.v1",
+            "submitted": true,
+            "method": "POST",
+            "action": "/password/change",
+            "fields": [
+              "currentPassword",
+              "password",
+              "confirm"
+            ],
+            "responseStatus": 302,
+            "responseRequestId": "native-request-4",
+            "authoritative": true,
+            "readbackKind": "password-change-old-deny-new-history-reuse-deny",
+            "principal": {
+              "authenticated": true,
+              "username": "ui_operator",
+              "role": "operator"
+            },
+            "previousPasswordStatus": 401,
+            "usersStoreSha256": "12a22f29de92af2879bbb74d2bbf101424317c55c43d398888ad67c6a8ac4d1e",
+            "checks": {
+              "oldPasswordDenied": true,
+              "newPasswordAccepted": true,
+              "historyReuseDenied": true,
+              "historyRotated": true,
+              "plaintextAbsent": true
+            },
+            "profileId": "form-readback:UI-004",
+            "expectedBehaviorSha256": "d97d5f54966ab4dcc224d967fc5ff1820ebbdc7e2cddee8c625b219bccda1ab4"
+          }
+        },
+        "observationSha256": "09d05b9fa3457418566b258820adce74e206e2bb334e8ebfb36d79287afe7916"
+      },
+      "expectedEndpoint": {
+        "correlationId": "UI-004:submit-form:completion",
+        "method": "POST",
+        "urlPath": "/password/change",
+        "urlPathTemplate": "/password/change",
+        "allowedStatuses": [
+          302
+        ],
+        "initiatorActionId": "UI-004:submit-form",
+        "requestOwnershipKind": "primary-action",
+        "runtimeBindingSource": "native-completion-contract"
+      },
+      "expectedNavigationBinding": null,
+      "completionMode": "requestBinding",
+      "completionPhase": "primary-action",
+      "actionId": "UI-004:submit-form",
+      "actionKind": "submit-form",
+      "controlSelector": "[data-testid=\"auth-password-change-form\"] button[type=\"submit\"]"
+    }
+  ],
+  "rawPrimaryObservations": [
+    {
+      "schema": "media-server.v390-ui-raw-primary-observation.v1",
+      "action": {
+        "actionId": "UI-004:submit-form",
+        "actionKind": "submit-form",
+        "executedKind": "submit",
+        "controlSelector": "[data-testid=\"auth-password-change-form\"] button[type=\"submit\"]",
+        "executionOwnerSelector": "[data-testid=\"auth-password-change-form\"] button[type=\"submit\"]",
+        "correlationId": "UI-004:submit-form:completion",
+        "dispatch": "playwright-native",
+        "completionMode": "request",
+        "declaredRequest": {
+          "correlationId": "UI-004:submit-form:completion",
+          "method": "POST",
+          "urlPath": "/password/change",
+          "urlPathTemplate": "/password/change",
+          "allowedStatuses": [
+            302
+          ],
+          "initiatorActionId": "UI-004:submit-form",
+          "requestOwnershipKind": "primary-action",
+          "runtimeBindingSource": "native-completion-contract"
+        }
+      },
+      "before": {
+        "selector": "[data-testid=\"auth-password-change-form\"] button[type=\"submit\"]",
+        "candidateCount": 1,
+        "navigationEpoch": 1,
+        "exists": true,
+        "visible": true,
+        "tag": "button",
+        "hidden": false,
+        "disabled": false,
+        "readOnly": false,
+        "open": false,
+        "href": "",
+        "title": "",
+        "ariaLabel": "",
+        "ariaPressed": "",
+        "text": "비밀번호 변경",
+        "value": "",
+        "checked": false,
+        "selectedValues": [],
+        "optionValues": [],
+        "url": "http://127.0.0.1:51446/password/change"
+      },
+      "after": {
+        "selector": "[data-testid=\"auth-password-change-form\"] button[type=\"submit\"]",
+        "candidateCount": 0,
+        "navigationEpoch": 3,
+        "exists": false,
+        "visible": false,
+        "tag": "",
+        "hidden": false,
+        "disabled": false,
+        "readOnly": false,
+        "open": false,
+        "href": "",
+        "title": "",
+        "ariaLabel": "",
+        "ariaPressed": "",
+        "text": "",
+        "value": "",
+        "checked": false,
+        "selectedValues": [],
+        "optionValues": [],
+        "url": "http://127.0.0.1:51446/login"
+      },
+      "navigation": null,
+      "networkEntries": [
+        {
+          "phase": "request-start",
+          "requestId": "native-request-4",
+          "caseRequestIdentity": "UI-004:request-4",
+          "caseRequestSequence": 4,
+          "requestKind": "document-navigation",
+          "resourceType": "document",
+          "sameOrigin": true,
+          "redirectedFromRequestId": "",
+          "correlationId": "",
+          "correlationSource": "none",
+          "correlationInjectionSource": "",
+          "correlationRouteState": "correlation-absent",
+          "correlationRouteActionId": "",
+          "correlationRouteDigest": "",
+          "requestHeaderDigest": "",
+          "ledgerOwner": "action",
+          "sourceOwner": "explicit-action-registration",
+          "ownerPhase": "primary-action",
+          "actionRegistrationKind": "manifest-envelope-sequence",
+          "exactActionRequestOwned": true,
+          "initiatorActionId": "UI-004:submit-form",
+          "renderCycleId": "",
+          "requestOwnershipKind": "primary-action",
+          "lifecycleClass": "primary-action",
+          "actionInvocationId": "UI-004:submit-form",
+          "navigationInvocationId": "UI-004:form-submit-document-navigation",
+          "requestStartedAtMs": 1791123909872,
+          "method": "POST",
+          "status": 0,
+          "url": "http://127.0.0.1:51446/password/change",
+          "requestBody": {
+            "identity": {
+              "id": "",
+              "sourceId": "",
+              "viewId": "",
+              "channelId": "",
+              "ruleId": "",
+              "profileId": "",
+              "eventId": "",
+              "username": ""
+            },
+            "fieldNames": []
+          }
+        },
+        {
+          "phase": "response",
+          "requestId": "native-request-4",
+          "caseRequestIdentity": "UI-004:request-4",
+          "caseRequestSequence": 4,
+          "responseRequestObjectObserved": true,
+          "requestIdentitySource": "playwright-response-request",
+          "requestKind": "document-navigation",
+          "resourceType": "document",
+          "sameOrigin": true,
+          "correlationId": "",
+          "correlationSource": "none",
+          "responseCorrelationSource": "none",
+          "requestHeaderDigest": "",
+          "correlationRouteState": "correlation-absent",
+          "correlationRouteActionId": "",
+          "correlationRouteDigest": "",
+          "responseEchoHeaderContract": "not-required",
+          "responseEchoHeaderObserved": false,
+          "ledgerOwner": "action",
+          "sourceOwner": "explicit-action-registration",
+          "ownerPhase": "primary-action",
+          "exactActionRequestOwned": true,
+          "initiatorActionId": "UI-004:submit-form",
+          "renderCycleId": "",
+          "requestOwnershipKind": "primary-action",
+          "lifecycleClass": "primary-action",
+          "actionInvocationId": "UI-004:submit-form",
+          "navigationInvocationId": "UI-004:form-submit-document-navigation",
+          "requestStartedAtMs": 1791123909872,
+          "responseObservedAtMs": 1791123910088,
+          "method": "POST",
+          "status": 302,
+          "httpOk": false,
+          "url": "http://127.0.0.1:51446/password/change",
+          "responseHeaders": {
+            "content-type": "text/plain; charset=utf-8",
+            "location": "/login"
+          },
+          "responseLocationPath": "/login"
+        },
+        {
+          "phase": "request-start",
+          "requestId": "native-request-5",
+          "caseRequestIdentity": "UI-004:request-5",
+          "caseRequestSequence": 5,
+          "requestKind": "document-navigation",
+          "resourceType": "document",
+          "sameOrigin": true,
+          "redirectedFromRequestId": "native-request-4",
+          "correlationId": "",
+          "correlationSource": "none",
+          "correlationInjectionSource": "",
+          "correlationRouteState": "correlation-absent",
+          "correlationRouteActionId": "",
+          "correlationRouteDigest": "",
+          "requestHeaderDigest": "",
+          "ledgerOwner": "page",
+          "sourceOwner": "document-navigation-ledger",
+          "ownerPhase": "document-navigation-chain",
+          "actionRegistrationKind": "",
+          "exactActionRequestOwned": false,
+          "initiatorActionId": "",
+          "renderCycleId": "",
+          "requestOwnershipKind": "document-navigation-chain",
+          "lifecycleClass": "document-redirect-chain",
+          "actionInvocationId": "UI-004:submit-form",
+          "navigationInvocationId": "UI-004:form-submit-document-navigation",
+          "requestStartedAtMs": 1791123910089,
+          "method": "GET",
+          "status": 0,
+          "url": "http://127.0.0.1:51446/login",
+          "requestBody": null
+        },
+        {
+          "phase": "response",
+          "requestId": "native-request-5",
+          "caseRequestIdentity": "UI-004:request-5",
+          "caseRequestSequence": 5,
+          "responseRequestObjectObserved": true,
+          "requestIdentitySource": "playwright-response-request",
+          "requestKind": "document-navigation",
+          "resourceType": "document",
+          "sameOrigin": true,
+          "correlationId": "",
+          "correlationSource": "none",
+          "responseCorrelationSource": "none",
+          "requestHeaderDigest": "",
+          "correlationRouteState": "correlation-absent",
+          "correlationRouteActionId": "",
+          "correlationRouteDigest": "",
+          "responseEchoHeaderContract": "not-required",
+          "responseEchoHeaderObserved": false,
+          "ledgerOwner": "page",
+          "sourceOwner": "document-navigation-ledger",
+          "ownerPhase": "document-navigation-chain",
+          "exactActionRequestOwned": false,
+          "initiatorActionId": "",
+          "renderCycleId": "",
+          "requestOwnershipKind": "document-navigation-chain",
+          "lifecycleClass": "document-redirect-chain",
+          "actionInvocationId": "UI-004:submit-form",
+          "navigationInvocationId": "UI-004:form-submit-document-navigation",
+          "requestStartedAtMs": 1791123910089,
+          "responseObservedAtMs": 1791123910090,
+          "method": "GET",
+          "status": 200,
+          "httpOk": true,
+          "url": "http://127.0.0.1:51446/login",
+          "responseHeaders": {
+            "content-type": "text/html; charset=utf-8",
+            "location": ""
+          },
+          "responseLocationPath": ""
+        }
+      ],
+      "requestBinding": {
+        "schema": "media-server.v390-ui-document-form-submit-binding.v1",
+        "requestId": "native-request-4",
+        "caseRequestIdentity": "UI-004:request-4",
+        "caseRequestSequence": 4,
+        "initiatorActionId": "UI-004:submit-form",
+        "requestOwnershipKind": "primary-action",
+        "method": "POST",
+        "path": "/password/change",
+        "status": 302,
+        "requestKind": "document-navigation",
+        "resourceType": "document",
+        "sameOrigin": true,
+        "correlationObserved": false,
+        "responseRequestObjectObserved": true,
+        "redirectCount": 1,
+        "redirectPath": "/login",
+        "redirectRequestId": "native-request-5",
+        "requestAttemptCount": 1,
+        "responseCandidateCount": 1,
+        "reissueCount": 0,
+        "adapter": "auth-standard-submit",
+        "productIdentity": null
+      },
+      "semanticReadback": {
+        "schema": "media-server.v390-ui-semantic-readback.v2",
+        "identity": "independent-readback:scripts/internal/verify_auth_workflow.sh#verify_password_change_lifecycle#9340030976791206830a7629ec606b38495510d32bc146ce2db58a7b49aae713",
+        "correlationId": "UI-004:submit-form:completion",
+        "actionId": "UI-004:submit-form",
+        "expectedBehaviorSha256": "d97d5f54966ab4dcc224d967fc5ff1820ebbdc7e2cddee8c625b219bccda1ab4",
+        "observationSource": "readback-request",
+        "selector": "[data-testid=\"auth-password-change-form\"] button[type=\"submit\"]",
+        "observation": {
+          "actual": {
+            "schema": "media-server.v390-ui-runtime-form-submit-readback.v1",
+            "submitted": true,
+            "method": "POST",
+            "action": "/password/change",
+            "fields": [
+              "currentPassword",
+              "password",
+              "confirm"
+            ],
+            "responseStatus": 302,
+            "responseRequestId": "native-request-4",
+            "authoritative": true,
+            "readbackKind": "password-change-old-deny-new-history-reuse-deny",
+            "principal": {
+              "authenticated": true,
+              "username": "ui_operator",
+              "role": "operator"
+            },
+            "previousPasswordStatus": 401,
+            "usersStoreSha256": "12a22f29de92af2879bbb74d2bbf101424317c55c43d398888ad67c6a8ac4d1e",
+            "checks": {
+              "oldPasswordDenied": true,
+              "newPasswordAccepted": true,
+              "historyReuseDenied": true,
+              "historyRotated": true,
+              "plaintextAbsent": true
+            },
+            "profileId": "form-readback:UI-004",
+            "expectedBehaviorSha256": "d97d5f54966ab4dcc224d967fc5ff1820ebbdc7e2cddee8c625b219bccda1ab4"
+          }
+        },
+        "observationSha256": "09d05b9fa3457418566b258820adce74e206e2bb334e8ebfb36d79287afe7916"
+      }
+    }
+  ],
+  "expectedResults": [
+    {
+      "resultId": "UI-004:semantic-result",
+      "kind": "reviewed-semantic-result",
+      "expectedBehavior": "S08 `auth-password-change-form`, 사용자 지정 테스트 pw -> 임시 pw 변경 성공, 임시 pw 로그인, 즉시 원래 pw 재사용 거부, history count 기준 복원 후 최종 로그인 확인",
+      "expectedBehaviorSha256": "d97d5f54966ab4dcc224d967fc5ff1820ebbdc7e2cddee8c625b219bccda1ab4",
+      "endpointHints": [],
+      "stateLocator": {
+        "file": "src/ingress/http_auth.cpp",
+        "symbol": "ChangeUserPassword",
+        "contextSha256": "4d887882ecfd0a790d0dbfe643c1c0fc16b86c680a150fa84e2606d25b406809"
+      },
+      "readbackLocator": {
+        "file": "scripts/internal/verify_auth_workflow.sh",
+        "symbol": "verify_password_change_lifecycle",
+        "contextSha256": "9340030976791206830a7629ec606b38495510d32bc146ce2db58a7b49aae713"
+      },
+      "completion": {
+        "schema": "media-server.v390-ui-action-completion.v2",
+        "required": true,
+        "phase": "primary-action",
+        "actionId": "UI-004:submit-form",
+        "actionKind": "submit-form",
+        "controlSelector": "[data-testid=\"auth-password-change-form\"] button[type=\"submit\"]",
+        "linkedPrimaryActionId": null,
+        "completionMode": "request",
+        "requiredSource": "endpoint-dom",
+        "correlationId": "UI-004:submit-form:completion",
+        "request": {
+          "initiatorActionId": "UI-004:submit-form",
+          "requestOwnershipKind": "primary-action",
+          "correlationHeader": "x-media-server-correlation-id",
+          "correlationId": "UI-004:submit-form:completion",
+          "correlationSource": "request-header",
+          "method": "POST",
+          "urlPathTemplate": "/password/change",
+          "urlPath": "/password/change",
+          "pathParameters": {},
+          "allowedStatuses": [
+            302
+          ]
+        },
+        "localTransition": null,
+        "expectedBehaviorSha256": "d97d5f54966ab4dcc224d967fc5ff1820ebbdc7e2cddee8c625b219bccda1ab4",
+        "readback": {
+          "identity": "independent-readback:scripts/internal/verify_auth_workflow.sh#verify_password_change_lifecycle#9340030976791206830a7629ec606b38495510d32bc146ce2db58a7b49aae713",
+          "expectedStateIdentity": "product-state:src/ingress/http_auth.cpp#ChangeUserPassword#4d887882ecfd0a790d0dbfe643c1c0fc16b86c680a150fa84e2606d25b406809",
+          "expectedBehaviorSha256": "d97d5f54966ab4dcc224d967fc5ff1820ebbdc7e2cddee8c625b219bccda1ab4",
+          "allowedObservationSources": [
+            "browser-dom",
+            "readback-request",
+            "event-record",
+            "server-log"
+          ],
+          "staticLocatorIsNotRuntimePass": true
+        },
+        "readbackIdentity": "independent-readback:scripts/internal/verify_auth_workflow.sh#verify_password_change_lifecycle#9340030976791206830a7629ec606b38495510d32bc146ce2db58a7b49aae713",
+        "readbackExpectation": {
+          "submitted": true,
+          "method": "POST",
+          "action": "/password/change",
+          "fields": [
+            "currentPassword",
+            "password",
+            "confirm"
+          ]
+        },
+        "attestedAlternatives": [
+          "persisted-readback",
+          "event-record",
+          "server-log"
+        ]
+      }
+    }
+  ],
+  "cleanup": [
+    {
+      "cleanupId": "UI-004:restore-fixture",
+      "status": "PASS",
+      "source": "exact-file-snapshot-restore",
+      "readback": {
+        "status": "PASS",
+        "identity": "independent-readback:scripts/internal/verify_auth_workflow.sh#verify_password_change_lifecycle#9340030976791206830a7629ec606b38495510d32bc146ce2db58a7b49aae713:cleanup",
+        "expectation": "equal-before",
+        "cleanupSource": "exact-file-snapshot-restore"
+      }
+    },
+    {
+      "cleanupId": "UI-004:after-cleanup-original-login",
+      "status": "PASS",
+      "source": "restored-auth-store-final-login",
+      "readback": {
+        "status": "PASS",
+        "loginStatus": 302,
+        "authoritativeStateRestoredAfterReadback": true
+      }
+    },
+    {
+      "cleanupId": "UI-004:authoritative-state-boundary",
+      "status": "PASS",
+      "source": "acceptance-owned-state-file-byte-readback",
+      "unexpectedStateChange": false,
+      "finalStateRestored": true
+    }
+  ],
+  "navigationOwnerLifecycleEvidence": {
+    "schema": "media-server.v390-ui-navigation-pre-action-owner-binding.v1",
+    "caseId": "UI-004",
+    "invocationId": "UI-004:form-submit-document-navigation",
+    "sourceOwner": {
+      "schema": "media-server.v390-ui-browser-callback-result.v1",
+      "callbackId": "adapter.navigation-owner",
+      "selector": "[data-testid=\"auth-password-change-form\"] button[type=\"submit\"]",
+      "candidateCount": 1,
+      "navigationEpoch": 1,
+      "exists": true,
+      "visible": true
+    },
+    "destinationOwner": {
+      "schema": "media-server.v390-ui-browser-callback-result.v1",
+      "callbackId": "adapter.navigation-owner",
+      "selector": "body",
+      "candidateCount": 1,
+      "navigationEpoch": 3,
+      "exists": true,
+      "visible": true
+    },
+    "sourceRoute": "http://127.0.0.1:51446/password/change",
+    "destinationRoute": "/login",
+    "epochRelation": "advanced"
+  },
+  "actionOwnedRequestLedgerEvidence": {
+    "schema": "media-server.v390-ui-action-owned-request-ledger-binding.v1",
+    "caseId": "UI-004",
+    "actionId": "UI-004:submit-form",
+    "correlationId": "UI-004:submit-form:completion",
+    "primaryRequestPath": "/password/change",
+    "runtimeMaterialized": true,
+    "primaryRequestId": "native-request-4",
+    "primaryRequestSequence": 4,
+    "primaryResponseStatus": 302,
+    "requestCount": 1,
+    "responseCount": 1,
+    "additionalFetchCount": 0,
+    "pageOwnedRequestCount": 1,
+    "pageOwnedResponseCount": 1,
+    "actionCorrelationLeakCount": 0,
+    "pageOwnedRequestLedger": [
+      {
+        "phase": "request-start",
+        "requestId": "native-request-5",
+        "caseRequestSequence": 5,
+        "method": "GET",
+        "path": "/login",
+        "sourceOwner": "document-navigation-ledger",
+        "ownerPhase": "document-navigation-chain",
+        "requestOwnershipKind": "document-navigation-chain",
+        "lifecycleClass": "document-redirect-chain"
+      },
+      {
+        "phase": "response",
+        "requestId": "native-request-5",
+        "caseRequestSequence": 5,
+        "method": "GET",
+        "path": "/login",
+        "sourceOwner": "document-navigation-ledger",
+        "ownerPhase": "document-navigation-chain",
+        "requestOwnershipKind": "document-navigation-chain",
+        "lifecycleClass": "document-redirect-chain"
+      }
+    ],
+    "orderedCallFlow": [
+      {
+        "requestId": "native-request-4",
+        "caseRequestSequence": 4,
+        "method": "POST",
+        "path": "/password/change"
+      }
+    ],
+    "pass": true
+  },
+  "requestNavigationLifecycleEvidence": {
+    "plan": {
+      "schema": "media-server.v390-ui-request-navigation-lifecycle-plan.v1",
+      "caseId": "UI-004",
+      "classification": "document-form-redirect",
+      "sourceRoute": "/password/change",
+      "sourceSelector": "[data-testid=\"auth-password-change-form\"] button[type=\"submit\"]",
+      "finalRoute": "/login",
+      "declaredHopCount": 2,
+      "primaryHopCount": 2,
+      "readbackHopCount": 0,
+      "steps": [
+        {
+          "invocationId": "UI-004:form-submit-document-navigation",
+          "kind": "form-submit-document-navigation",
+          "action": "[data-testid=\"auth-password-change-form\"] button[type=\"submit\"]",
+          "sourceRoute": "/password/change",
+          "destinationRoute": "/login",
+          "sourceSelector": "[data-testid=\"auth-password-change-form\"] button[type=\"submit\"]",
+          "owner": "primary-document-form",
+          "ownershipPhase": "primary-action",
+          "declaredHopCount": 2,
+          "expectedHops": [
+            {
+              "method": "POST",
+              "path": "/password/change",
+              "allowedStatuses": [
+                302
+              ],
+              "redirected": false,
+              "redirectTarget": "/login",
+              "networkOwnership": "action-envelope"
+            },
+            {
+              "method": "GET",
+              "path": "/login",
+              "allowedStatuses": [
+                200
+              ],
+              "redirected": true,
+              "redirectTarget": "",
+              "networkOwnership": "document-navigation-chain"
+            }
+          ]
+        }
+      ]
+    },
+    "scope": {
+      "schema": "media-server.v390-ui-request-navigation-scope.v1",
+      "startEpoch": 1,
+      "endEpoch": 3,
+      "ownerLifecycles": [
+        {
+          "schema": "media-server.v390-ui-navigation-owner-lifecycle.v1",
+          "caseId": "UI-004",
+          "invocationId": "UI-004:form-submit-document-navigation",
+          "kind": "form-submit-document-navigation",
+          "action": "[data-testid=\"auth-password-change-form\"] button[type=\"submit\"]",
+          "sourceRoute": "http://127.0.0.1:51446/password/change",
+          "destinationRoute": "http://127.0.0.1:51446/login",
+          "sourceOwner": {
+            "schema": "media-server.v390-ui-browser-callback-result.v1",
+            "callbackId": "adapter.navigation-owner",
+            "selector": "[data-testid=\"auth-password-change-form\"] button[type=\"submit\"]",
+            "candidateCount": 1,
+            "navigationEpoch": 1,
+            "exists": true,
+            "visible": true
+          },
+          "destinationOwner": {
+            "schema": "media-server.v390-ui-browser-callback-result.v1",
+            "callbackId": "adapter.navigation-owner",
+            "selector": "body",
+            "candidateCount": 1,
+            "navigationEpoch": 3,
+            "exists": true,
+            "visible": true
+          },
+          "documentChain": {
+            "schema": "media-server.v390-ui-owned-document-chain.v1",
+            "invocationId": "UI-004:form-submit-document-navigation",
+            "kind": "form-submit-document-navigation",
+            "hopCount": 2,
+            "hops": [
+              {
+                "sequence": 4,
+                "responseSequence": 5,
+                "invocationId": "UI-004:form-submit-document-navigation",
+                "navigationKind": "form-submit-document-navigation",
+                "method": "POST",
+                "path": "/password/change",
+                "resourceType": "document",
+                "sameOrigin": true,
+                "correlationPresent": false,
+                "correlationDigest": "",
+                "redirected": false,
+                "redirectedFromRequestId": "",
+                "requestId": "native-request-4",
+                "caseRequestIdentity": "UI-004:request-4",
+                "caseRequestSequence": 4,
+                "responseStatus": 302,
+                "responseBound": true,
+                "responseRequestId": "native-request-4",
+                "responseRequestObjectObserved": true,
+                "responseLocationPath": "/login",
+                "navigationEpoch": 2,
+                "ledgerOwner": "action",
+                "sourceOwner": "explicit-action-registration",
+                "ownerPhase": "primary-action",
+                "initiatorActionId": "UI-004:submit-form",
+                "requestOwnershipKind": "primary-action",
+                "actionInvocationId": "UI-004:submit-form",
+                "navigationInvocationId": "UI-004:form-submit-document-navigation"
+              },
+              {
+                "sequence": 6,
+                "responseSequence": 7,
+                "invocationId": "UI-004:form-submit-document-navigation",
+                "navigationKind": "form-submit-document-navigation",
+                "method": "GET",
+                "path": "/login",
+                "resourceType": "document",
+                "sameOrigin": true,
+                "correlationPresent": false,
+                "correlationDigest": "",
+                "redirected": true,
+                "redirectedFromRequestId": "native-request-4",
+                "requestId": "native-request-5",
+                "caseRequestIdentity": "UI-004:request-5",
+                "caseRequestSequence": 5,
+                "responseStatus": 200,
+                "responseBound": true,
+                "responseRequestId": "native-request-5",
+                "responseRequestObjectObserved": true,
+                "responseLocationPath": "",
+                "navigationEpoch": 3,
+                "ledgerOwner": "page",
+                "sourceOwner": "document-navigation-ledger",
+                "ownerPhase": "document-navigation-chain",
+                "initiatorActionId": "",
+                "requestOwnershipKind": "document-navigation-chain",
+                "actionInvocationId": "UI-004:submit-form",
+                "navigationInvocationId": "UI-004:form-submit-document-navigation"
+              }
+            ]
+          }
+        }
+      ],
+      "documentNavigations": [
+        {
+          "sequence": 4,
+          "responseSequence": 5,
+          "invocationId": "UI-004:form-submit-document-navigation",
+          "navigationKind": "form-submit-document-navigation",
+          "method": "POST",
+          "path": "/password/change",
+          "resourceType": "document",
+          "sameOrigin": true,
+          "correlationPresent": false,
+          "correlationDigest": "",
+          "redirected": false,
+          "redirectedFromRequestId": "",
+          "requestId": "native-request-4",
+          "caseRequestIdentity": "UI-004:request-4",
+          "caseRequestSequence": 4,
+          "responseStatus": 302,
+          "responseBound": true,
+          "responseRequestId": "native-request-4",
+          "responseRequestObjectObserved": true,
+          "responseLocationPath": "/login",
+          "navigationEpoch": 2,
+          "ledgerOwner": "action",
+          "sourceOwner": "explicit-action-registration",
+          "ownerPhase": "primary-action",
+          "initiatorActionId": "UI-004:submit-form",
+          "requestOwnershipKind": "primary-action",
+          "actionInvocationId": "UI-004:submit-form",
+          "navigationInvocationId": "UI-004:form-submit-document-navigation"
+        },
+        {
+          "sequence": 6,
+          "responseSequence": 7,
+          "invocationId": "UI-004:form-submit-document-navigation",
+          "navigationKind": "form-submit-document-navigation",
+          "method": "GET",
+          "path": "/login",
+          "resourceType": "document",
+          "sameOrigin": true,
+          "correlationPresent": false,
+          "correlationDigest": "",
+          "redirected": true,
+          "redirectedFromRequestId": "native-request-4",
+          "requestId": "native-request-5",
+          "caseRequestIdentity": "UI-004:request-5",
+          "caseRequestSequence": 5,
+          "responseStatus": 200,
+          "responseBound": true,
+          "responseRequestId": "native-request-5",
+          "responseRequestObjectObserved": true,
+          "responseLocationPath": "",
+          "navigationEpoch": 3,
+          "ledgerOwner": "page",
+          "sourceOwner": "document-navigation-ledger",
+          "ownerPhase": "document-navigation-chain",
+          "initiatorActionId": "",
+          "requestOwnershipKind": "document-navigation-chain",
+          "actionInvocationId": "UI-004:submit-form",
+          "navigationInvocationId": "UI-004:form-submit-document-navigation"
+        }
+      ]
+    },
+    "binding": {
+      "schema": "media-server.v390-ui-request-navigation-lifecycle-binding.v1",
+      "caseId": "UI-004",
+      "classification": "document-form-redirect",
+      "navigationCount": 1,
+      "declaredHopCount": 2,
+      "ownedDocumentCommitCount": 2,
+      "primaryHopCount": 2,
+      "readbackHopCount": 0,
+      "sourceOwnerSelector": "[data-testid=\"auth-password-change-form\"] button[type=\"submit\"]",
+      "sourceEpoch": 1,
+      "finalEpoch": 3,
+      "epochDelta": 2,
+      "hopMode": "multi-hop",
+      "finalRoute": "/login",
+      "epochRelation": "advanced-action",
+      "pass": true
+    }
+  },
+  "postActionVisualTargetEvidence": {
+    "schema": "media-server.v390-ui-post-action-visual-target.v1",
+    "caseId": "UI-004",
+    "actionId": "UI-004:submit-form",
+    "completionMode": "request",
+    "sourceSelectorSha256": "3ec9d136e0089ef4e5a2aa50711ddfc928bf1bae6e00c40346baec4d34cf3690",
+    "sourceOwnerSelectorSha256": "3ec9d136e0089ef4e5a2aa50711ddfc928bf1bae6e00c40346baec4d34cf3690",
+    "requestedState": "visible",
+    "observedRoute": "/login",
+    "navigationEpoch": 3,
+    "ownerCandidateCount": 1,
+    "sourceSelectorRewaited": false,
+    "selector": "[data-testid=\"auth-login-form\"]",
+    "bindingKind": "post-action-visible-destination-owner",
+    "sourceDetached": true,
+    "sourceHidden": false,
+    "epochRelation": "advanced"
+  },
+  "requestActionOwnershipEvidence": {
+    "schema": "media-server.v390-ui-request-action-ownership-lifecycle.v1",
+    "caseId": "UI-004",
+    "expectedPhases": [
+      "bootstrap-settling",
+      "source-before-frozen",
+      "primary-action",
+      "independent-readback",
+      "post-action-observation"
+    ],
+    "completedPhases": [
+      {
+        "sequence": 1,
+        "phase": "bootstrap-settling",
+        "caseId": "UI-004",
+        "actionId": "UI-004:initial-document-navigation",
+        "ownershipMode": "initial-page-load-ended-and-attested",
+        "status": "attested",
+        "endedScopeCount": 0
+      },
+      {
+        "sequence": 2,
+        "phase": "source-before-frozen",
+        "caseId": "UI-004",
+        "actionId": "UI-004:submit-form",
+        "ownershipMode": "exact-one-visible-source-owner-frozen",
+        "status": "attested",
+        "endedScopeCount": 0
+      },
+      {
+        "sequence": 3,
+        "phase": "primary-action",
+        "caseId": "UI-004",
+        "actionId": "UI-004:submit-form",
+        "ownershipMode": "primary-scope-ended-and-attested",
+        "status": "attested",
+        "endedScopeCount": 1
+      },
+      {
+        "sequence": 4,
+        "phase": "independent-readback",
+        "caseId": "UI-004",
+        "actionId": "UI-004:submit-form",
+        "ownershipMode": "independent-readback-scopes-ended-and-attested",
+        "status": "attested",
+        "endedScopeCount": 1
+      },
+      {
+        "sequence": 5,
+        "phase": "post-action-observation",
+        "caseId": "UI-004",
+        "actionId": "UI-004:submit-form",
+        "ownershipMode": "post-action-visual-observation-complete",
+        "status": "attested",
+        "endedScopeCount": 0
+      }
+    ],
+    "nextPhase": "complete",
+    "activeOwner": null,
+    "lifecycle": [
+      {
+        "event": "attest",
+        "phase": "bootstrap-settling",
+        "caseId": "UI-004",
+        "actionId": "UI-004:initial-document-navigation",
+        "ownershipMode": "initial-page-load-ended-and-attested",
+        "status": "attested",
+        "endedScopeCount": 0
+      },
+      {
+        "event": "attest",
+        "phase": "source-before-frozen",
+        "caseId": "UI-004",
+        "actionId": "UI-004:submit-form",
+        "ownershipMode": "exact-one-visible-source-owner-frozen",
+        "status": "attested",
+        "endedScopeCount": 0
+      },
+      {
+        "event": "begin",
+        "scopeSequence": 1,
+        "caseId": "UI-004",
+        "phase": "primary-action",
+        "actionId": "UI-004:submit-form",
+        "ownershipKind": "primary-action"
+      },
+      {
+        "event": "register",
+        "scopeSequence": 1,
+        "requestId": "native-request-4"
+      },
+      {
+        "event": "request-complete",
+        "scopeSequence": 1,
+        "requestId": "native-request-4"
+      },
+      {
+        "event": "end",
+        "phase": "primary-action",
+        "caseId": "UI-004",
+        "actionId": "UI-004:submit-form",
+        "correlationId": "UI-004:submit-form:completion",
+        "ownershipKind": "primary-action",
+        "ownershipMode": "explicit-begin-register-end",
+        "scopeSequence": 1,
+        "activeRequestCount": 0,
+        "status": "attested"
+      },
+      {
+        "event": "attest",
+        "phase": "primary-action",
+        "caseId": "UI-004",
+        "actionId": "UI-004:submit-form",
+        "ownershipMode": "primary-scope-ended-and-attested",
+        "status": "attested",
+        "endedScopeCount": 1
+      },
+      {
+        "event": "begin",
+        "scopeSequence": 2,
+        "caseId": "UI-004",
+        "phase": "independent-readback",
+        "actionId": "UI-004:submit-form",
+        "ownershipKind": "independent-readback"
+      },
+      {
+        "event": "end",
+        "phase": "independent-readback",
+        "caseId": "UI-004",
+        "actionId": "UI-004:submit-form",
+        "correlationId": "UI-004:submit-form:completion",
+        "ownershipKind": "independent-readback",
+        "ownershipMode": "explicit-begin-register-end",
+        "scopeSequence": 2,
+        "activeRequestCount": 0,
+        "status": "attested"
+      },
+      {
+        "event": "attest",
+        "phase": "independent-readback",
+        "caseId": "UI-004",
+        "actionId": "UI-004:submit-form",
+        "ownershipMode": "independent-readback-scopes-ended-and-attested",
+        "status": "attested",
+        "endedScopeCount": 1
+      },
+      {
+        "event": "attest",
+        "phase": "post-action-observation",
+        "caseId": "UI-004",
+        "actionId": "UI-004:submit-form",
+        "ownershipMode": "post-action-visual-observation-complete",
+        "status": "attested",
+        "endedScopeCount": 0
+      }
+    ],
+    "complete": true
+  },
+  "actionRequestScopeLedgerEvidence": [
+    {
+      "schema": "media-server.v390-ui-action-request-scope-ledgers.v1",
+      "scopeSequence": 1,
+      "caseId": "UI-004",
+      "phase": "primary-action",
+      "actionId": "UI-004:submit-form",
+      "actionOwnedRequestLedgers": [
+        {
+          "schema": "media-server.v390-ui-action-request-envelope-ledger.v1",
+          "caseId": "UI-004",
+          "phase": "primary-action",
+          "actionId": "UI-004:submit-form",
+          "correlationId": "UI-004:submit-form:completion",
+          "method": "POST",
+          "target": "/password/change",
+          "targetMatchMode": "exact",
+          "observedTargets": [
+            "/password/change"
+          ],
+          "requestKind": "document-navigation",
+          "expectedRequestCount": 1,
+          "requestCount": 1,
+          "responseCount": 1,
+          "requestSequences": [
+            4
+          ],
+          "statuses": [
+            302
+          ],
+          "pass": true,
+          "responseBarrier": {
+            "schema": "media-server.v390-ui-object-bound-response-barrier.v1",
+            "label": "UI-004:UI-004:submit-form:POST /password/change",
+            "expectedResponseCount": 1,
+            "responseCount": 1,
+            "settlement": "resolved",
+            "settled": true,
+            "activeWaiterCount": 0,
+            "activeTimerCount": 0,
+            "pass": true
+          }
+        }
+      ],
+      "pageOwnedRequestLedger": [
+        {
+          "phase": "request-start",
+          "requestId": "native-request-5",
+          "caseRequestIdentity": "UI-004:request-5",
+          "caseRequestSequence": 5,
+          "requestKind": "document-navigation",
+          "resourceType": "document",
+          "sameOrigin": true,
+          "redirectedFromRequestId": "native-request-4",
+          "correlationId": "",
+          "correlationSource": "none",
+          "correlationInjectionSource": "",
+          "correlationRouteState": "correlation-absent",
+          "correlationRouteActionId": "",
+          "correlationRouteDigest": "",
+          "requestHeaderDigest": "",
+          "ledgerOwner": "page",
+          "sourceOwner": "document-navigation-ledger",
+          "ownerPhase": "document-navigation-chain",
+          "actionRegistrationKind": "",
+          "exactActionRequestOwned": false,
+          "initiatorActionId": "",
+          "renderCycleId": "",
+          "requestOwnershipKind": "document-navigation-chain",
+          "lifecycleClass": "document-redirect-chain",
+          "actionInvocationId": "UI-004:submit-form",
+          "navigationInvocationId": "UI-004:form-submit-document-navigation",
+          "requestStartedAtMs": 1791123910089,
+          "method": "GET",
+          "status": 0,
+          "url": "http://127.0.0.1:51446/login",
+          "requestBody": null
+        },
+        {
+          "phase": "response",
+          "requestId": "native-request-5",
+          "caseRequestIdentity": "UI-004:request-5",
+          "caseRequestSequence": 5,
+          "responseRequestObjectObserved": true,
+          "requestIdentitySource": "playwright-response-request",
+          "requestKind": "document-navigation",
+          "resourceType": "document",
+          "sameOrigin": true,
+          "correlationId": "",
+          "correlationSource": "none",
+          "responseCorrelationSource": "none",
+          "requestHeaderDigest": "",
+          "correlationRouteState": "correlation-absent",
+          "correlationRouteActionId": "",
+          "correlationRouteDigest": "",
+          "responseEchoHeaderContract": "not-required",
+          "responseEchoHeaderObserved": false,
+          "ledgerOwner": "page",
+          "sourceOwner": "document-navigation-ledger",
+          "ownerPhase": "document-navigation-chain",
+          "exactActionRequestOwned": false,
+          "initiatorActionId": "",
+          "renderCycleId": "",
+          "requestOwnershipKind": "document-navigation-chain",
+          "lifecycleClass": "document-redirect-chain",
+          "actionInvocationId": "UI-004:submit-form",
+          "navigationInvocationId": "UI-004:form-submit-document-navigation",
+          "requestStartedAtMs": 1791123910089,
+          "responseObservedAtMs": 1791123910090,
+          "method": "GET",
+          "status": 200,
+          "httpOk": true,
+          "url": "http://127.0.0.1:51446/login",
+          "responseHeaders": {
+            "content-type": "text/html; charset=utf-8",
+            "location": ""
+          },
+          "responseLocationPath": ""
+        }
+      ],
+      "actionCorrelationLeakCount": 0
+    },
+    {
+      "schema": "media-server.v390-ui-action-request-scope-ledgers.v1",
+      "scopeSequence": 2,
+      "caseId": "UI-004",
+      "phase": "independent-readback",
+      "actionId": "UI-004:submit-form",
+      "actionOwnedRequestLedgers": [],
+      "pageOwnedRequestLedger": [],
+      "actionCorrelationLeakCount": 0
+    }
+  ],
+  "pageOwnedRequestLedger": [
+    {
+      "phase": "request-start",
+      "requestId": "native-request-1",
+      "caseRequestIdentity": "UI-004:request-1",
+      "caseRequestSequence": 1,
+      "requestKind": "document-navigation",
+      "resourceType": "document",
+      "sameOrigin": true,
+      "redirectedFromRequestId": "",
+      "correlationId": "",
+      "correlationSource": "none",
+      "correlationInjectionSource": "",
+      "correlationRouteState": "correlation-absent",
+      "correlationRouteActionId": "",
+      "correlationRouteDigest": "",
+      "requestHeaderDigest": "",
+      "ledgerOwner": "page",
+      "sourceOwner": "page",
+      "ownerPhase": "bootstrap",
+      "actionRegistrationKind": "",
+      "exactActionRequestOwned": false,
+      "initiatorActionId": "",
+      "renderCycleId": "",
+      "requestOwnershipKind": "initial-page-load",
+      "lifecycleClass": "bootstrap-document",
+      "actionInvocationId": "",
+      "navigationInvocationId": "UI-004:initial-document-navigation",
+      "requestStartedAtMs": 1791123909699,
+      "method": "GET",
+      "status": 0,
+      "url": "http://127.0.0.1:51446/password/change",
+      "requestBody": null
+    },
+    {
+      "phase": "response",
+      "requestId": "native-request-1",
+      "caseRequestIdentity": "UI-004:request-1",
+      "caseRequestSequence": 1,
+      "responseRequestObjectObserved": true,
+      "requestIdentitySource": "playwright-response-request",
+      "requestKind": "document-navigation",
+      "resourceType": "document",
+      "sameOrigin": true,
+      "correlationId": "",
+      "correlationSource": "none",
+      "responseCorrelationSource": "none",
+      "requestHeaderDigest": "",
+      "correlationRouteState": "correlation-absent",
+      "correlationRouteActionId": "",
+      "correlationRouteDigest": "",
+      "responseEchoHeaderContract": "not-required",
+      "responseEchoHeaderObserved": false,
+      "ledgerOwner": "page",
+      "sourceOwner": "page",
+      "ownerPhase": "bootstrap",
+      "exactActionRequestOwned": false,
+      "initiatorActionId": "",
+      "renderCycleId": "",
+      "requestOwnershipKind": "initial-page-load",
+      "lifecycleClass": "bootstrap-document",
+      "actionInvocationId": "",
+      "navigationInvocationId": "UI-004:initial-document-navigation",
+      "requestStartedAtMs": 1791123909699,
+      "responseObservedAtMs": 1791123909712,
+      "method": "GET",
+      "status": 200,
+      "httpOk": true,
+      "url": "http://127.0.0.1:51446/password/change",
+      "responseHeaders": {
+        "content-type": "text/html; charset=utf-8",
+        "location": ""
+      },
+      "responseLocationPath": ""
+    },
+    {
+      "phase": "request-start",
+      "requestId": "native-request-2",
+      "caseRequestIdentity": "UI-004:request-2",
+      "caseRequestSequence": 2,
+      "requestKind": "application-fetch",
+      "resourceType": "fetch",
+      "sameOrigin": true,
+      "redirectedFromRequestId": "",
+      "correlationId": "",
+      "correlationSource": "none",
+      "correlationInjectionSource": "",
+      "correlationRouteState": "correlation-absent",
+      "correlationRouteActionId": "",
+      "correlationRouteDigest": "",
+      "requestHeaderDigest": "",
+      "ledgerOwner": "page",
+      "sourceOwner": "page",
+      "ownerPhase": "bootstrap",
+      "actionRegistrationKind": "",
+      "exactActionRequestOwned": false,
+      "initiatorActionId": "",
+      "renderCycleId": "",
+      "requestOwnershipKind": "bootstrap",
+      "lifecycleClass": "bootstrap-fetch",
+      "actionInvocationId": "",
+      "navigationInvocationId": "",
+      "requestStartedAtMs": 1791123909773,
+      "method": "GET",
+      "status": 0,
+      "url": "http://127.0.0.1:51446/auth/whoami",
+      "requestBody": null
+    },
+    {
+      "phase": "response",
+      "requestId": "native-request-2",
+      "caseRequestIdentity": "UI-004:request-2",
+      "caseRequestSequence": 2,
+      "responseRequestObjectObserved": true,
+      "requestIdentitySource": "playwright-response-request",
+      "requestKind": "application-fetch",
+      "resourceType": "fetch",
+      "sameOrigin": true,
+      "correlationId": "",
+      "correlationSource": "none",
+      "responseCorrelationSource": "none",
+      "requestHeaderDigest": "",
+      "correlationRouteState": "correlation-absent",
+      "correlationRouteActionId": "",
+      "correlationRouteDigest": "",
+      "responseEchoHeaderContract": "not-required",
+      "responseEchoHeaderObserved": false,
+      "ledgerOwner": "page",
+      "sourceOwner": "page",
+      "ownerPhase": "bootstrap",
+      "exactActionRequestOwned": false,
+      "initiatorActionId": "",
+      "renderCycleId": "",
+      "requestOwnershipKind": "bootstrap",
+      "lifecycleClass": "bootstrap-fetch",
+      "actionInvocationId": "",
+      "navigationInvocationId": "",
+      "requestStartedAtMs": 1791123909773,
+      "responseObservedAtMs": 1791123909776,
+      "method": "GET",
+      "status": 200,
+      "httpOk": true,
+      "url": "http://127.0.0.1:51446/auth/whoami",
+      "responseHeaders": {
+        "content-type": "application/json; charset=utf-8",
+        "location": ""
+      },
+      "responseLocationPath": ""
+    },
+    {
+      "phase": "request-start",
+      "requestId": "native-request-3",
+      "caseRequestIdentity": "UI-004:request-3",
+      "caseRequestSequence": 3,
+      "requestKind": "application-fetch",
+      "resourceType": "fetch",
+      "sameOrigin": true,
+      "redirectedFromRequestId": "",
+      "correlationId": "",
+      "correlationSource": "none",
+      "correlationInjectionSource": "",
+      "correlationRouteState": "correlation-absent",
+      "correlationRouteActionId": "",
+      "correlationRouteDigest": "",
+      "requestHeaderDigest": "",
+      "ledgerOwner": "page",
+      "sourceOwner": "page",
+      "ownerPhase": "background-refresh",
+      "actionRegistrationKind": "",
+      "exactActionRequestOwned": false,
+      "initiatorActionId": "",
+      "renderCycleId": "",
+      "requestOwnershipKind": "background-refresh",
+      "lifecycleClass": "background-fetch",
+      "actionInvocationId": "",
+      "navigationInvocationId": "",
+      "requestStartedAtMs": 1791123909797,
+      "method": "GET",
+      "status": 0,
+      "url": "http://127.0.0.1:51446/auth/whoami",
+      "requestBody": null
+    },
+    {
+      "phase": "response",
+      "requestId": "native-request-3",
+      "caseRequestIdentity": "UI-004:request-3",
+      "caseRequestSequence": 3,
+      "responseRequestObjectObserved": true,
+      "requestIdentitySource": "playwright-response-request",
+      "requestKind": "application-fetch",
+      "resourceType": "fetch",
+      "sameOrigin": true,
+      "correlationId": "",
+      "correlationSource": "none",
+      "responseCorrelationSource": "none",
+      "requestHeaderDigest": "",
+      "correlationRouteState": "correlation-absent",
+      "correlationRouteActionId": "",
+      "correlationRouteDigest": "",
+      "responseEchoHeaderContract": "not-required",
+      "responseEchoHeaderObserved": false,
+      "ledgerOwner": "page",
+      "sourceOwner": "page",
+      "ownerPhase": "background-refresh",
+      "exactActionRequestOwned": false,
+      "initiatorActionId": "",
+      "renderCycleId": "",
+      "requestOwnershipKind": "background-refresh",
+      "lifecycleClass": "background-fetch",
+      "actionInvocationId": "",
+      "navigationInvocationId": "",
+      "requestStartedAtMs": 1791123909797,
+      "responseObservedAtMs": 1791123909798,
+      "method": "GET",
+      "status": 200,
+      "httpOk": true,
+      "url": "http://127.0.0.1:51446/auth/whoami",
+      "responseHeaders": {
+        "content-type": "application/json; charset=utf-8",
+        "location": ""
+      },
+      "responseLocationPath": ""
+    },
+    {
+      "phase": "request-start",
+      "requestId": "native-request-5",
+      "caseRequestIdentity": "UI-004:request-5",
+      "caseRequestSequence": 5,
+      "requestKind": "document-navigation",
+      "resourceType": "document",
+      "sameOrigin": true,
+      "redirectedFromRequestId": "native-request-4",
+      "correlationId": "",
+      "correlationSource": "none",
+      "correlationInjectionSource": "",
+      "correlationRouteState": "correlation-absent",
+      "correlationRouteActionId": "",
+      "correlationRouteDigest": "",
+      "requestHeaderDigest": "",
+      "ledgerOwner": "page",
+      "sourceOwner": "document-navigation-ledger",
+      "ownerPhase": "document-navigation-chain",
+      "actionRegistrationKind": "",
+      "exactActionRequestOwned": false,
+      "initiatorActionId": "",
+      "renderCycleId": "",
+      "requestOwnershipKind": "document-navigation-chain",
+      "lifecycleClass": "document-redirect-chain",
+      "actionInvocationId": "UI-004:submit-form",
+      "navigationInvocationId": "UI-004:form-submit-document-navigation",
+      "requestStartedAtMs": 1791123910089,
+      "method": "GET",
+      "status": 0,
+      "url": "http://127.0.0.1:51446/login",
+      "requestBody": null
+    },
+    {
+      "phase": "response",
+      "requestId": "native-request-5",
+      "caseRequestIdentity": "UI-004:request-5",
+      "caseRequestSequence": 5,
+      "responseRequestObjectObserved": true,
+      "requestIdentitySource": "playwright-response-request",
+      "requestKind": "document-navigation",
+      "resourceType": "document",
+      "sameOrigin": true,
+      "correlationId": "",
+      "correlationSource": "none",
+      "responseCorrelationSource": "none",
+      "requestHeaderDigest": "",
+      "correlationRouteState": "correlation-absent",
+      "correlationRouteActionId": "",
+      "correlationRouteDigest": "",
+      "responseEchoHeaderContract": "not-required",
+      "responseEchoHeaderObserved": false,
+      "ledgerOwner": "page",
+      "sourceOwner": "document-navigation-ledger",
+      "ownerPhase": "document-navigation-chain",
+      "exactActionRequestOwned": false,
+      "initiatorActionId": "",
+      "renderCycleId": "",
+      "requestOwnershipKind": "document-navigation-chain",
+      "lifecycleClass": "document-redirect-chain",
+      "actionInvocationId": "UI-004:submit-form",
+      "navigationInvocationId": "UI-004:form-submit-document-navigation",
+      "requestStartedAtMs": 1791123910089,
+      "responseObservedAtMs": 1791123910090,
+      "method": "GET",
+      "status": 200,
+      "httpOk": true,
+      "url": "http://127.0.0.1:51446/login",
+      "responseHeaders": {
+        "content-type": "text/html; charset=utf-8",
+        "location": ""
+      },
+      "responseLocationPath": ""
+    },
+    {
+      "phase": "request-start",
+      "requestId": "native-request-6",
+      "caseRequestIdentity": "UI-004:request-6",
+      "caseRequestSequence": 6,
+      "requestKind": "application-fetch",
+      "resourceType": "fetch",
+      "sameOrigin": true,
+      "redirectedFromRequestId": "",
+      "correlationId": "",
+      "correlationSource": "none",
+      "correlationInjectionSource": "",
+      "correlationRouteState": "correlation-absent",
+      "correlationRouteActionId": "",
+      "correlationRouteDigest": "",
+      "requestHeaderDigest": "",
+      "ledgerOwner": "page",
+      "sourceOwner": "page",
+      "ownerPhase": "background-refresh",
+      "actionRegistrationKind": "",
+      "exactActionRequestOwned": false,
+      "initiatorActionId": "",
+      "renderCycleId": "",
+      "requestOwnershipKind": "background-refresh",
+      "lifecycleClass": "background-fetch",
+      "actionInvocationId": "",
+      "navigationInvocationId": "",
+      "requestStartedAtMs": 1791123911503,
+      "method": "GET",
+      "status": 0,
+      "url": "http://127.0.0.1:51446/auth/whoami",
+      "requestBody": null
+    },
+    {
+      "phase": "response",
+      "requestId": "native-request-6",
+      "caseRequestIdentity": "UI-004:request-6",
+      "caseRequestSequence": 6,
+      "responseRequestObjectObserved": true,
+      "requestIdentitySource": "playwright-response-request",
+      "requestKind": "application-fetch",
+      "resourceType": "fetch",
+      "sameOrigin": true,
+      "correlationId": "",
+      "correlationSource": "none",
+      "responseCorrelationSource": "none",
+      "requestHeaderDigest": "",
+      "correlationRouteState": "correlation-absent",
+      "correlationRouteActionId": "",
+      "correlationRouteDigest": "",
+      "responseEchoHeaderContract": "not-required",
+      "responseEchoHeaderObserved": false,
+      "ledgerOwner": "page",
+      "sourceOwner": "page",
+      "ownerPhase": "background-refresh",
+      "exactActionRequestOwned": false,
+      "initiatorActionId": "",
+      "renderCycleId": "",
+      "requestOwnershipKind": "background-refresh",
+      "lifecycleClass": "background-fetch",
+      "actionInvocationId": "",
+      "navigationInvocationId": "",
+      "requestStartedAtMs": 1791123911503,
+      "responseObservedAtMs": 1791123911505,
+      "method": "GET",
+      "status": 401,
+      "httpOk": false,
+      "url": "http://127.0.0.1:51446/auth/whoami",
+      "responseHeaders": {
+        "content-type": "application/json; charset=utf-8",
+        "location": ""
+      },
+      "responseLocationPath": ""
+    }
+  ],
+  "postActionVisualRoleEvidence": {
+    "schema": "media-server.v390-ui-post-action-visual-role.v1",
+    "caseId": "UI-004",
+    "actionId": "UI-004:submit-form",
+    "route": "/login",
+    "accountRole": "anonymous",
+    "source": "browser-auth-whoami"
+  },
+  "requestLifecycleEvaluation": {
+    "status": "PASS",
+    "census": {
+      "requestCount": 6,
+      "responseCount": 6,
+      "classified": 6,
+      "unclassified": 0,
+      "multiplyClassified": 0,
+      "captureErrors": 0,
+      "duplicateResponses": 0,
+      "failureCount": 0
+    },
+    "diagnostics": {
+      "sequenceDomain": "diagnostic-seal-and-after-seal-only",
+      "diagnosticErrors": 0,
+      "seal": {
+        "sequence": 1,
+        "timestamp": 1791123911879
+      },
+      "afterSeal": [],
+      "requests": [
+        {
+          "requestIdentity": "UI-004:object-1",
+          "legacyRequestId": "native-request-1",
+          "method": "GET",
+          "path": "",
+          "pathOmitted": true,
+          "start": {
+            "sequence": 1,
+            "timestamp": 1791123909698
+          },
+          "responses": [
+            {
+              "sequence": 2,
+              "timestamp": 1791123909711,
+              "status": 200
+            }
+          ],
+          "finished": [
+            {
+              "sequence": 3,
+              "timestamp": 1791123909721
+            }
+          ],
+          "failed": []
+        },
+        {
+          "requestIdentity": "UI-004:object-3",
+          "legacyRequestId": "native-request-2",
+          "method": "GET",
+          "path": "/auth/whoami",
+          "pathOmitted": false,
+          "start": {
+            "sequence": 4,
+            "timestamp": 1791123909773
+          },
+          "responses": [
+            {
+              "sequence": 5,
+              "timestamp": 1791123909776,
+              "status": 200
+            }
+          ],
+          "finished": [
+            {
+              "sequence": 6,
+              "timestamp": 1791123909776
+            }
+          ],
+          "failed": []
+        },
+        {
+          "requestIdentity": "UI-004:object-5",
+          "legacyRequestId": "native-request-3",
+          "method": "GET",
+          "path": "/auth/whoami",
+          "pathOmitted": false,
+          "start": {
+            "sequence": 7,
+            "timestamp": 1791123909797
+          },
+          "responses": [
+            {
+              "sequence": 8,
+              "timestamp": 1791123909798,
+              "status": 200
+            }
+          ],
+          "finished": [
+            {
+              "sequence": 9,
+              "timestamp": 1791123909798
+            }
+          ],
+          "failed": []
+        },
+        {
+          "requestIdentity": "UI-004:object-7",
+          "legacyRequestId": "native-request-4",
+          "method": "POST",
+          "path": "",
+          "pathOmitted": true,
+          "start": {
+            "sequence": 10,
+            "timestamp": 1791123909872
+          },
+          "responses": [
+            {
+              "sequence": 11,
+              "timestamp": 1791123910088,
+              "status": 302
+            }
+          ],
+          "finished": [
+            {
+              "sequence": 12,
+              "timestamp": 1791123910089
+            }
+          ],
+          "failed": []
+        },
+        {
+          "requestIdentity": "UI-004:object-9",
+          "legacyRequestId": "native-request-5",
+          "method": "GET",
+          "path": "/login",
+          "pathOmitted": false,
+          "start": {
+            "sequence": 13,
+            "timestamp": 1791123910089
+          },
+          "responses": [
+            {
+              "sequence": 14,
+              "timestamp": 1791123910090,
+              "status": 200
+            }
+          ],
+          "finished": [
+            {
+              "sequence": 15,
+              "timestamp": 1791123910097
+            }
+          ],
+          "failed": []
+        },
+        {
+          "requestIdentity": "UI-004:object-11",
+          "legacyRequestId": "native-request-6",
+          "method": "GET",
+          "path": "/auth/whoami",
+          "pathOmitted": false,
+          "start": {
+            "sequence": 16,
+            "timestamp": 1791123911503
+          },
+          "responses": [
+            {
+              "sequence": 17,
+              "timestamp": 1791123911505,
+              "status": 401
+            }
+          ],
+          "finished": [],
+          "failed": []
+        }
+      ]
+    },
+    "requests": [
+      {
+        "requestIdentity": "UI-004:object-1",
+        "redirectedFromIdentity": null,
+        "correlationDigest": ""
+      },
+      {
+        "requestIdentity": "UI-004:object-3",
+        "redirectedFromIdentity": null,
+        "correlationDigest": ""
+      },
+      {
+        "requestIdentity": "UI-004:object-5",
+        "redirectedFromIdentity": null,
+        "correlationDigest": ""
+      },
+      {
+        "requestIdentity": "UI-004:object-7",
+        "redirectedFromIdentity": null,
+        "correlationDigest": "0d18be0dcfc3ee037d640f2b1148e2e5eb4025649bef0e4a9fbe0d7364515a86"
+      },
+      {
+        "requestIdentity": "UI-004:object-9",
+        "redirectedFromIdentity": "UI-004:object-7",
+        "correlationDigest": "0d18be0dcfc3ee037d640f2b1148e2e5eb4025649bef0e4a9fbe0d7364515a86"
+      },
+      {
+        "requestIdentity": "UI-004:object-11",
+        "redirectedFromIdentity": null,
+        "correlationDigest": ""
+      }
+    ],
+    "classifications": [
+      {
+        "requestIdentity": "UI-004:object-1",
+        "responseIdentity": "UI-004:object-2",
+        "requestKind": "document-navigation",
+        "classification": "bootstrap",
+        "owner": "page",
+        "phase": "bootstrap-document"
+      },
+      {
+        "requestIdentity": "UI-004:object-3",
+        "responseIdentity": "UI-004:object-4",
+        "requestKind": "application-fetch",
+        "classification": "background",
+        "owner": "page",
+        "phase": "background-refresh"
+      },
+      {
+        "requestIdentity": "UI-004:object-5",
+        "responseIdentity": "UI-004:object-6",
+        "requestKind": "application-fetch",
+        "classification": "background",
+        "owner": "page",
+        "phase": "background-refresh"
+      },
+      {
+        "requestIdentity": "UI-004:object-7",
+        "responseIdentity": "UI-004:object-8",
+        "requestKind": "document-navigation",
+        "classification": "action",
+        "owner": "action",
+        "phase": "primary-action"
+      },
+      {
+        "requestIdentity": "UI-004:object-9",
+        "responseIdentity": "UI-004:object-10",
+        "requestKind": "document-navigation",
+        "classification": "redirect",
+        "owner": "page",
+        "phase": "document-redirect-chain"
+      },
+      {
+        "requestIdentity": "UI-004:object-11",
+        "responseIdentity": "UI-004:object-12",
+        "requestKind": "application-fetch",
+        "classification": "background",
+        "owner": "page",
+        "phase": "background-refresh"
+      }
+    ],
+    "failures": []
+  }
+}

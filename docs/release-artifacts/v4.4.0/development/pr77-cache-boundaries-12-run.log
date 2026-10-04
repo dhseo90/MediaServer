@@ -1,0 +1,448 @@
+PASS byte-limit store
+PASS owned source writer
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS three 3150-sample files
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS actual cache entry and byte accounting bounded
+PASS 8MiB actual LRU eviction occurs
+PASS response hold protects evicted media
+PASS owned media byte restored
+PASS evicted source is fully rechecked and tamper preserves output
+PASS exact native result through cache: 
+PASS actual cache entry and byte accounting bounded
+PASS evicted valid source requires new full preparation
+PASS response hold survives entire cache destruction
+PASS byte-limit request releases FD and retention holds
+PASS entry-limit store
+PASS owned source writer
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS supported exact source frame
+PASS 201 exact single-frame segments
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS actual cache entry and byte accounting bounded
+PASS 200-entry actual LRU eviction occurs
+PASS exact native result through cache: 
+PASS actual cache entry and byte accounting bounded
+PASS entry eviction reacquires oldest source and updates LRU
+PASS entry eviction retains separate response hold
+PASS entry-limit request releases FD and retention holds
+PASS oversized store
+PASS oversized native reservation
+PASS oversized fixture has description capacity
+PASS oversized segment remains below 1MiB JSON limit
+PASS oversized input remains in public V2 contract
+PASS oversized original finalized: 
+PASS supported exact source frame
+PASS oversized exact document
+OBS oversized segmentJsonBytes=1047552 retainedBytes=8408012 cacheLimitBytes=8388608
+PASS actual single proof exceeds cache byte capacity
+PASS exact native result through cache: 
+PASS exact native result through cache: 
+PASS actual cache entry and byte accounting bounded
+PASS oversized source uses bounded uncached full preparation each time
+PASS oversized temporary proof retains response hold
+PASS oversized request releases FD and retention holds
+PASS cache boundaries checks=446

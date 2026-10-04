@@ -1,0 +1,25 @@
+{
+  "results": [
+    {
+      "command": [
+        "./server.sh",
+        "verify-v390-review4-feature-semantic-source-audit",
+        "--apply-approved-manifest"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 98.97654112498276,
+      "log": "pr77-current-bindings-1-1.log"
+    },
+    {
+      "command": [
+        "./server.sh",
+        "verify-v390-review4-structure-stabilization-execution",
+        "--write-current-graph",
+        "--bind-current-graph"
+      ],
+      "exit": 1,
+      "elapsedSeconds": 0.4244986670091748,
+      "log": "pr77-current-bindings-1-2.log"
+    }
+  ]
+}

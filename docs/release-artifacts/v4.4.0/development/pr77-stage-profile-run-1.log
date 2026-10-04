@@ -1,0 +1,6 @@
+retainedBytes=5870290
+sample=0 resolveMs=46.027 decodeMs=83.988 inferenceMs=321.14 dimension=768
+sample=20 resolveMs=46.3125 decodeMs=13.0417 inferenceMs=312.359 dimension=768
+sample=40 resolveMs=45.7512 decodeMs=10.1364 inferenceMs=312.512 dimension=768
+sample=60 resolveMs=45.6978 decodeMs=10.5259 inferenceMs=311.332 dimension=768
+sample=80 resolveMs=46.3715 decodeMs=13.4632 inferenceMs=310.455 dimension=768

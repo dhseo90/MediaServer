@@ -1,0 +1,1815 @@
+[
+  {
+    "action": "setup",
+    "path": "/login",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136306238
+  },
+  {
+    "action": "setup",
+    "path": "/login",
+    "status": 302,
+    "method": "POST",
+    "at": 1791136306431
+  },
+  {
+    "action": "setup",
+    "path": "/ops/home",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136306434
+  },
+  {
+    "action": "setup",
+    "path": "/auth/whoami",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136306468
+  },
+  {
+    "action": "setup",
+    "path": "/ops/api/vlm/profiles",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136306468
+  },
+  {
+    "action": "setup",
+    "path": "/ops/api/vlm/evaluation-results",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136306468
+  },
+  {
+    "action": "setup",
+    "path": "/ops/api/vlm/evaluation-promotion-guard",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136306469
+  },
+  {
+    "action": "setup",
+    "path": "/ops/api/rules/catalog",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136306469
+  },
+  {
+    "action": "setup",
+    "path": "/ops/api/sources",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136306469
+  },
+  {
+    "action": "setup",
+    "path": "/ops/api/runtime/status",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136306469
+  },
+  {
+    "action": "setup",
+    "path": "/ops/api/views",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136306469
+  },
+  {
+    "action": "setup",
+    "path": "/ops/api/events/status",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136306469
+  },
+  {
+    "action": "setup",
+    "path": "/ops/api/users",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136306469
+  },
+  {
+    "action": "setup",
+    "path": "/ops/api/diagnostics/log-tail",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136306469
+  },
+  {
+    "action": "setup",
+    "path": "/ops/events",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136306479
+  },
+  {
+    "action": "setup",
+    "path": "/auth/whoami",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136306503
+  },
+  {
+    "action": "setup",
+    "path": "/ops/api/recordings/visual-search/status",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136306528
+  },
+  {
+    "action": "setup",
+    "path": "/ops/api/vlm/evaluation-results",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136306528
+  },
+  {
+    "action": "setup",
+    "path": "/ops/api/vlm/profiles",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136306528
+  },
+  {
+    "action": "setup",
+    "path": "/ops/api/recordings/status",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136306528
+  },
+  {
+    "action": "setup",
+    "path": "/ops/api/recordings/status",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136306530
+  },
+  {
+    "action": "setup",
+    "path": "/ops/api/vlm/evaluation-promotion-guard",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136306530
+  },
+  {
+    "action": "setup",
+    "path": "/ops/api/audit",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136306530
+  },
+  {
+    "action": "setup",
+    "path": "/ops/api/alerts/deliveries",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136306530
+  },
+  {
+    "action": "setup",
+    "path": "/ops/api/events/status",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136306530
+  },
+  {
+    "action": "setup",
+    "path": "/ops/api/recordings/status",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136306530
+  },
+  {
+    "action": "setup",
+    "path": "/ops/api/events/reviews",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136306543
+  },
+  {
+    "action": "setup",
+    "path": "/ops/api/recordings/timeline",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136306608
+  },
+  {
+    "action": "F03-object",
+    "path": "/ops/api/recordings/search",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136307420
+  },
+  {
+    "action": "F03-object",
+    "path": "/ops/api/recordings/search",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136307741
+  },
+  {
+    "action": "F04-track",
+    "path": "/ops/api/recordings/search",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136308153
+  },
+  {
+    "action": "F04-track",
+    "path": "/ops/api/recordings/search",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136308471
+  },
+  {
+    "action": "F04-track",
+    "path": "/ops/api/recordings/search",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136308793
+  },
+  {
+    "action": "F04-track",
+    "path": "/ops/api/recordings/search",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136309147
+  },
+  {
+    "action": "F05-event",
+    "path": "/ops/api/recordings/search",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136309611
+  },
+  {
+    "action": "F05-event",
+    "path": "/ops/api/recordings/search",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136309916
+  },
+  {
+    "action": "V420-F06",
+    "path": "/ops/api/recordings/search",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136310293
+  },
+  {
+    "action": "V420-F06",
+    "path": "/ops/api/recordings/search",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136310581
+  },
+  {
+    "action": "V420-F07",
+    "path": "/ops/api/recordings/search",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136311031
+  },
+  {
+    "action": "V420-F07",
+    "path": "/ops/api/recordings/search",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136311430
+  },
+  {
+    "action": "V420-F08-I",
+    "path": "/ops/api/recordings/search",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136311863
+  },
+  {
+    "action": "V420-F08-I",
+    "path": "/ops/api/recordings/search",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136312165
+  },
+  {
+    "action": "V420-F08-L",
+    "path": "/ops/api/recordings/search",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136312526
+  },
+  {
+    "action": "V420-F08-L",
+    "path": "/ops/api/recordings/search",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136312837
+  },
+  {
+    "action": "V420-F08-D",
+    "path": "/ops/api/recordings/search",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136313272
+  },
+  {
+    "action": "V420-F08-D",
+    "path": "/ops/api/recordings/search",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136313580
+  },
+  {
+    "action": "V420-F08-O",
+    "path": "/ops/api/recordings/search",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136313924
+  },
+  {
+    "action": "V420-F08-O",
+    "path": "/ops/api/recordings/search",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136314208
+  },
+  {
+    "action": "F09-combined",
+    "path": "/ops/api/recordings/search",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136314684
+  },
+  {
+    "action": "F09-combined",
+    "path": "/ops/api/recordings/search",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136315027
+  },
+  {
+    "action": "F09-same-event",
+    "path": "/ops/api/recordings/search",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136315441
+  },
+  {
+    "action": "F09-same-event",
+    "path": "/ops/api/recordings/search",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136315747
+  },
+  {
+    "action": "M02-missing",
+    "path": "/ops/api/recordings/search",
+    "status": 503,
+    "method": "GET",
+    "at": 1791136316140
+  },
+  {
+    "action": "M02-unrelated",
+    "path": "/ops/api/recordings/search",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136316557
+  },
+  {
+    "action": "M02-unrelated",
+    "path": "/ops/api/recordings/search",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136316917
+  },
+  {
+    "action": "F10-invalid",
+    "path": "/ops/api/recordings/search",
+    "status": 400,
+    "method": "GET",
+    "at": 1791136317103
+  },
+  {
+    "action": "F10-unknown",
+    "path": "/ops/api/recordings/search",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136317440
+  },
+  {
+    "action": "F10-unknown",
+    "path": "/ops/api/recordings/search",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136317750
+  },
+  {
+    "action": "F10-unknown",
+    "path": "/ops/api/recordings/search/seek",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136317803
+  },
+  {
+    "action": "F01-channels",
+    "path": "/ops/api/recordings/search",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136318328
+  },
+  {
+    "action": "F01-channels",
+    "path": "/ops/api/recordings/search",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136318421
+  },
+  {
+    "action": "F02-time",
+    "path": "/ops/api/recordings/search",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136318647
+  },
+  {
+    "action": "C01-pages",
+    "path": "/ops/api/recordings/search",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136318970
+  },
+  {
+    "action": "C01-pages",
+    "path": "/ops/api/recordings/search",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136319071
+  },
+  {
+    "action": "C03-live-membership",
+    "path": "/ops/api/recordings/search",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136319565
+  },
+  {
+    "action": "C03-live-membership",
+    "path": "/ops/api/recordings/search",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136329791
+  },
+  {
+    "action": "C03-live-membership",
+    "path": "/ops/api/recordings/search",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136329890
+  },
+  {
+    "action": "C03-live-membership",
+    "path": "/ops/api/recordings/search",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136329994
+  },
+  {
+    "action": "C03-live-membership",
+    "path": "/ops/api/recordings/search",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136330153
+  },
+  {
+    "action": "C03-live-membership",
+    "path": "/ops/api/recordings/search",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136330243
+  },
+  {
+    "action": "C03-live-membership",
+    "path": "/ops/api/recordings/search",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136330324
+  },
+  {
+    "action": "C03-live-membership",
+    "path": "/ops/api/recordings/search",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136330472
+  },
+  {
+    "action": "C03-live-membership",
+    "path": "/ops/api/recordings/search",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136330817
+  },
+  {
+    "action": "C03-live-membership",
+    "path": "/ops/api/recordings/search",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136330907
+  },
+  {
+    "action": "C03-live-membership",
+    "path": "/ops/api/recordings/search",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136331006
+  },
+  {
+    "action": "C03-live-membership",
+    "path": "/ops/api/recordings/search",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136331107
+  },
+  {
+    "action": "C03-live-membership",
+    "path": "/ops/api/recordings/search",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136331243
+  },
+  {
+    "action": "C03-live-membership",
+    "path": "/ops/api/recordings/search",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136331311
+  },
+  {
+    "action": "C03-live-membership",
+    "path": "/ops/api/recordings/search",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136331383
+  },
+  {
+    "action": "C03-live-membership",
+    "path": "/ops/api/recordings/search",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136331505
+  },
+  {
+    "action": "P01-original",
+    "path": "/ops/api/recordings/search",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136331858
+  },
+  {
+    "action": "P01-original",
+    "path": "/ops/api/recordings/search/seek",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136332087
+  },
+  {
+    "action": "P01-original",
+    "path": "/ops/api/recordings/media/df874f5b-792f-4059-a998-08f597908708",
+    "status": 206,
+    "method": "GET",
+    "at": 1791136332108
+  },
+  {
+    "action": "P01-original",
+    "path": "/ops/api/recordings/media/df874f5b-792f-4059-a998-08f597908708",
+    "status": 206,
+    "method": "GET",
+    "at": 1791136332131
+  },
+  {
+    "action": "P01-original",
+    "path": "/ops/api/recordings/media/df874f5b-792f-4059-a998-08f597908708",
+    "status": 206,
+    "method": "GET",
+    "at": 1791136332156
+  },
+  {
+    "action": "P01-original",
+    "path": "/ops/api/recordings/search/seek",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136332499
+  },
+  {
+    "action": "P02-derived",
+    "path": "/ops/api/recordings/search",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136332838
+  },
+  {
+    "action": "P02-derived",
+    "path": "/ops/api/recordings/search/seek",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136332949
+  },
+  {
+    "action": "P02-derived",
+    "path": "/ops/api/recordings/media/dj-b33c6e67ecea7b5eff08abf512258cf051312cc4a0871438d040f9cf52c2cba0-o0",
+    "status": 206,
+    "method": "GET",
+    "at": 1791136332977
+  },
+  {
+    "action": "P02-derived",
+    "path": "/ops/api/recordings/search/seek",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136333071
+  },
+  {
+    "action": "P02-derived",
+    "path": "/ops/api/recordings/media/3d9ea584-2e53-487a-82ba-06c3c47357e9",
+    "status": 206,
+    "method": "GET",
+    "at": 1791136333076
+  },
+  {
+    "action": "E02-current-fallback",
+    "path": "/ops/api/recordings/search",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136333587
+  },
+  {
+    "action": "E02-current-fallback",
+    "path": "/ops/api/recordings/search/seek",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136333638
+  },
+  {
+    "action": "E02-current-fallback",
+    "path": "/ops/api/recordings/media/a4424b91-cdc0-40c4-b8b9-0e396ef2dfbe",
+    "status": 206,
+    "method": "GET",
+    "at": 1791136333643
+  },
+  {
+    "action": "P03-missing-current-file",
+    "path": "/ops/api/recordings/search",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136334005
+  },
+  {
+    "action": "P03-missing-current-file",
+    "path": "/ops/api/recordings/search/seek",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136334054
+  },
+  {
+    "action": "P03-missing-current-file",
+    "path": "/ops/api/recordings/search",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136334342
+  },
+  {
+    "action": "P03-corrupt-current-file",
+    "path": "/ops/api/recordings/search",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136334668
+  },
+  {
+    "action": "P03-corrupt-current-file",
+    "path": "/ops/api/recordings/search/seek",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136334737
+  },
+  {
+    "action": "P03-corrupt-current-file",
+    "path": "/ops/api/recordings/search",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136335086
+  },
+  {
+    "action": "U02-390-light",
+    "path": "/ops/api/recordings/search",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136335564
+  },
+  {
+    "action": "U02-390-light",
+    "path": "/ops/api/recordings/search/seek",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136335776
+  },
+  {
+    "action": "U02-390-light",
+    "path": "/ops/api/recordings/media/df874f5b-792f-4059-a998-08f597908708",
+    "status": 206,
+    "method": "GET",
+    "at": 1791136335794
+  },
+  {
+    "action": "U02-390-light",
+    "path": "/ops/api/recordings/media/df874f5b-792f-4059-a998-08f597908708",
+    "status": 206,
+    "method": "GET",
+    "at": 1791136335848
+  },
+  {
+    "action": "U02-390-dark",
+    "path": "/ops/api/recordings/search",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136336404
+  },
+  {
+    "action": "U02-390-dark",
+    "path": "/ops/api/recordings/search/seek",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136336627
+  },
+  {
+    "action": "U02-1440-light",
+    "path": "/ops/api/recordings/search",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136337256
+  },
+  {
+    "action": "U02-1440-light",
+    "path": "/ops/api/recordings/search/seek",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136337450
+  },
+  {
+    "action": "U02-1440-dark",
+    "path": "/ops/api/recordings/search",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136338053
+  },
+  {
+    "action": "U02-1440-dark",
+    "path": "/ops/api/recordings/search/seek",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136338240
+  },
+  {
+    "action": "U01-late-search",
+    "path": "/ops/api/recordings/search",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136338942
+  },
+  {
+    "action": "U01-late-search",
+    "path": "/ops/api/recordings/search",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136339173
+  },
+  {
+    "action": "U01-late-seek",
+    "path": "/ops/api/recordings/search",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136339500
+  },
+  {
+    "action": "U01-late-seek",
+    "path": "/ops/api/recordings/search/seek",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136339737
+  },
+  {
+    "action": "U01-late-seek",
+    "path": "/ops/api/recordings/media/df874f5b-792f-4059-a998-08f597908708",
+    "status": 206,
+    "method": "GET",
+    "at": 1791136339754
+  },
+  {
+    "action": "U01-late-seek",
+    "path": "/ops/api/recordings/media/df874f5b-792f-4059-a998-08f597908708",
+    "status": 206,
+    "method": "GET",
+    "at": 1791136339768
+  },
+  {
+    "action": "U01-late-seek",
+    "path": "/ops/api/recordings/media/df874f5b-792f-4059-a998-08f597908708",
+    "status": 206,
+    "method": "GET",
+    "at": 1791136339791
+  },
+  {
+    "action": "U01-late-seek",
+    "path": "/ops/api/recordings/search/seek",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136340066
+  },
+  {
+    "action": "C02-restart",
+    "path": "/ops/api/recordings/search",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136340451
+  },
+  {
+    "action": "C02-restart",
+    "path": "/ops/api/recordings/search/seek",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136340652
+  },
+  {
+    "action": "C02-restart",
+    "path": "/ops/api/recordings/media/df874f5b-792f-4059-a998-08f597908708",
+    "status": 206,
+    "method": "GET",
+    "at": 1791136340670
+  },
+  {
+    "action": "C02-restart",
+    "path": "/ops/api/recordings/search",
+    "status": 400,
+    "method": "GET",
+    "at": 1791136343072
+  },
+  {
+    "action": "C02-restart",
+    "path": "/ops/api/recordings/search",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136343378
+  },
+  {
+    "action": "C02-restart",
+    "path": "/ops/api/recordings/search",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136343438
+  },
+  {
+    "action": "C02-expiry",
+    "path": "/ops/api/recordings/search",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136343658
+  },
+  {
+    "action": "C02-expiry",
+    "path": "/ops/api/recordings/search",
+    "status": 410,
+    "method": "GET",
+    "at": 1791136643816
+  },
+  {
+    "action": "L01-add-restart",
+    "path": "/ops/api/recordings/search",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136644201
+  },
+  {
+    "action": "L01-add-restart",
+    "path": "/ops/events",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136646174
+  },
+  {
+    "action": "L01-add-restart",
+    "path": "/auth/whoami",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136646201
+  },
+  {
+    "action": "L01-add-restart",
+    "path": "/ops/api/recordings/visual-search/status",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136646220
+  },
+  {
+    "action": "L01-add-restart",
+    "path": "/ops/api/vlm/profiles",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136646221
+  },
+  {
+    "action": "L01-add-restart",
+    "path": "/ops/api/vlm/evaluation-results",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136646222
+  },
+  {
+    "action": "L01-add-restart",
+    "path": "/ops/api/recordings/status",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136646222
+  },
+  {
+    "action": "L01-add-restart",
+    "path": "/ops/api/vlm/evaluation-promotion-guard",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136646222
+  },
+  {
+    "action": "L01-add-restart",
+    "path": "/ops/api/recordings/status",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136646222
+  },
+  {
+    "action": "L01-add-restart",
+    "path": "/ops/api/audit",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136646222
+  },
+  {
+    "action": "L01-add-restart",
+    "path": "/ops/api/alerts/deliveries",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136646222
+  },
+  {
+    "action": "L01-add-restart",
+    "path": "/ops/api/events/status",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136646222
+  },
+  {
+    "action": "L01-add-restart",
+    "path": "/ops/api/recordings/status",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136646222
+  },
+  {
+    "action": "L01-add-restart",
+    "path": "/ops/api/events/reviews",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136646230
+  },
+  {
+    "action": "L01-add-restart",
+    "path": "/ops/api/recordings/timeline",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136646590
+  },
+  {
+    "action": "L01-add-restart",
+    "path": "/ops/api/recordings/media/dj-7f13ef3c41344579a388a73c58c89a4658e7f8afadacefea166cd2bc01c46538-o1",
+    "status": 206,
+    "method": "GET",
+    "at": 1791136646652
+  },
+  {
+    "action": "L01-add-restart",
+    "path": "/ops/api/recordings/search",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136647476
+  },
+  {
+    "action": "A01-operator",
+    "path": "/login",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136647665
+  },
+  {
+    "action": "A01-operator",
+    "path": "/login",
+    "status": 302,
+    "method": "POST",
+    "at": 1791136647845
+  },
+  {
+    "action": "A01-operator",
+    "path": "/ops/home",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136647846
+  },
+  {
+    "action": "A01-operator",
+    "path": "/auth/whoami",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136647877
+  },
+  {
+    "action": "A01-operator",
+    "path": "/ops/api/vlm/profiles",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136647878
+  },
+  {
+    "action": "A01-operator",
+    "path": "/ops/api/vlm/evaluation-results",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136647878
+  },
+  {
+    "action": "A01-operator",
+    "path": "/ops/api/vlm/evaluation-promotion-guard",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136647878
+  },
+  {
+    "action": "A01-operator",
+    "path": "/ops/api/sources",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136647878
+  },
+  {
+    "action": "A01-operator",
+    "path": "/ops/api/rules/catalog",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136647878
+  },
+  {
+    "action": "A01-operator",
+    "path": "/ops/api/runtime/status",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136647878
+  },
+  {
+    "action": "A01-operator",
+    "path": "/ops/api/views",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136647878
+  },
+  {
+    "action": "A01-operator",
+    "path": "/ops/api/users",
+    "status": 403,
+    "method": "GET",
+    "at": 1791136647878
+  },
+  {
+    "action": "A01-operator",
+    "path": "/ops/api/events/status",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136647879
+  },
+  {
+    "action": "A01-operator",
+    "path": "/ops/api/diagnostics/log-tail",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136647879
+  },
+  {
+    "action": "A01-operator",
+    "path": "/ops/events",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136647883
+  },
+  {
+    "action": "A01-operator",
+    "path": "/auth/whoami",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136647905
+  },
+  {
+    "action": "A01-operator",
+    "path": "/ops/api/recordings/visual-search/status",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136647929
+  },
+  {
+    "action": "A01-operator",
+    "path": "/ops/api/vlm/profiles",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136647929
+  },
+  {
+    "action": "A01-operator",
+    "path": "/ops/api/vlm/evaluation-results",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136647932
+  },
+  {
+    "action": "A01-operator",
+    "path": "/ops/api/recordings/status",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136647932
+  },
+  {
+    "action": "A01-operator",
+    "path": "/ops/api/recordings/status",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136647932
+  },
+  {
+    "action": "A01-operator",
+    "path": "/ops/api/vlm/evaluation-promotion-guard",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136647932
+  },
+  {
+    "action": "A01-operator",
+    "path": "/ops/api/audit",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136647932
+  },
+  {
+    "action": "A01-operator",
+    "path": "/ops/api/alerts/deliveries",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136647932
+  },
+  {
+    "action": "A01-operator",
+    "path": "/ops/api/events/status",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136647932
+  },
+  {
+    "action": "A01-operator",
+    "path": "/ops/api/recordings/status",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136647933
+  },
+  {
+    "action": "A01-operator",
+    "path": "/ops/api/events/reviews",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136647944
+  },
+  {
+    "action": "A01-operator",
+    "path": "/ops/api/recordings/timeline",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136648431
+  },
+  {
+    "action": "A01-operator",
+    "path": "/ops/api/recordings/media/dj-7f13ef3c41344579a388a73c58c89a4658e7f8afadacefea166cd2bc01c46538-o1",
+    "status": 206,
+    "method": "GET",
+    "at": 1791136648497
+  },
+  {
+    "action": "A01-operator",
+    "path": "/ops/api/recordings/search",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136649391
+  },
+  {
+    "action": "A01-operator",
+    "path": "/login",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136649570
+  },
+  {
+    "action": "A01-operator",
+    "path": "/login",
+    "status": 302,
+    "method": "POST",
+    "at": 1791136649737
+  },
+  {
+    "action": "A01-operator",
+    "path": "/ops/home",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136649738
+  },
+  {
+    "action": "A01-operator",
+    "path": "/auth/whoami",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136649768
+  },
+  {
+    "action": "A01-operator",
+    "path": "/ops/api/vlm/profiles",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136649769
+  },
+  {
+    "action": "A01-operator",
+    "path": "/ops/api/vlm/evaluation-results",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136649769
+  },
+  {
+    "action": "A01-operator",
+    "path": "/ops/api/vlm/evaluation-promotion-guard",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136649769
+  },
+  {
+    "action": "A01-operator",
+    "path": "/ops/api/rules/catalog",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136649769
+  },
+  {
+    "action": "A01-operator",
+    "path": "/ops/api/views",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136649770
+  },
+  {
+    "action": "A01-operator",
+    "path": "/ops/api/sources",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136649770
+  },
+  {
+    "action": "A01-operator",
+    "path": "/ops/api/runtime/status",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136649770
+  },
+  {
+    "action": "A01-operator",
+    "path": "/ops/api/events/status",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136649770
+  },
+  {
+    "action": "A01-operator",
+    "path": "/ops/api/diagnostics/log-tail",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136649770
+  },
+  {
+    "action": "A01-operator",
+    "path": "/ops/api/users",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136649770
+  },
+  {
+    "action": "A01-operator",
+    "path": "/ops/events",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136649774
+  },
+  {
+    "action": "A01-operator",
+    "path": "/auth/whoami",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136649796
+  },
+  {
+    "action": "A01-operator",
+    "path": "/ops/api/vlm/profiles",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136649820
+  },
+  {
+    "action": "A01-operator",
+    "path": "/ops/api/recordings/visual-search/status",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136649820
+  },
+  {
+    "action": "A01-operator",
+    "path": "/ops/api/vlm/evaluation-results",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136649820
+  },
+  {
+    "action": "A01-operator",
+    "path": "/ops/api/recordings/status",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136649820
+  },
+  {
+    "action": "A01-operator",
+    "path": "/ops/api/vlm/evaluation-promotion-guard",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136649823
+  },
+  {
+    "action": "A01-operator",
+    "path": "/ops/api/alerts/deliveries",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136649823
+  },
+  {
+    "action": "A01-operator",
+    "path": "/ops/api/audit",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136649823
+  },
+  {
+    "action": "A01-operator",
+    "path": "/ops/api/events/status",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136649823
+  },
+  {
+    "action": "A01-operator",
+    "path": "/ops/api/recordings/status",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136649823
+  },
+  {
+    "action": "A01-operator",
+    "path": "/ops/api/recordings/status",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136649824
+  },
+  {
+    "action": "A01-operator",
+    "path": "/ops/api/events/reviews",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136649839
+  },
+  {
+    "action": "A01-operator",
+    "path": "/ops/api/recordings/timeline",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136650318
+  },
+  {
+    "action": "A01-operator",
+    "path": "/ops/api/recordings/media/dj-7f13ef3c41344579a388a73c58c89a4658e7f8afadacefea166cd2bc01c46538-o1",
+    "status": 206,
+    "method": "GET",
+    "at": 1791136650386
+  },
+  {
+    "action": "A01-denied-2",
+    "path": "/login",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136651139
+  },
+  {
+    "action": "A01-denied-2",
+    "path": "/login",
+    "status": 302,
+    "method": "POST",
+    "at": 1791136651319
+  },
+  {
+    "action": "A01-denied-2",
+    "path": "/client/live",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136651321
+  },
+  {
+    "action": "A01-denied-2",
+    "path": "/auth/whoami",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136651334
+  },
+  {
+    "action": "A01-denied-2",
+    "path": "/client/api/preferences/live-layout",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136651334
+  },
+  {
+    "action": "A01-denied-2",
+    "path": "/ops/events",
+    "status": 403,
+    "method": "GET",
+    "at": 1791136651349
+  },
+  {
+    "action": "A01-denied-5",
+    "path": "/login",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136652051
+  },
+  {
+    "action": "A01-denied-5",
+    "path": "/login",
+    "status": 302,
+    "method": "POST",
+    "at": 1791136652224
+  },
+  {
+    "action": "A01-denied-5",
+    "path": "/auth/whoami",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136652225
+  },
+  {
+    "action": "A01-denied-5",
+    "path": "/ops/events",
+    "status": 403,
+    "method": "GET",
+    "at": 1791136652241
+  },
+  {
+    "action": "A01-denied-null",
+    "path": "/ops/events",
+    "status": 302,
+    "method": "GET",
+    "at": 1791136652939
+  },
+  {
+    "action": "A01-denied-null",
+    "path": "/login",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136652940
+  },
+  {
+    "action": "M03-capacity",
+    "path": "/login",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136653632
+  },
+  {
+    "action": "M03-capacity",
+    "path": "/login",
+    "status": 302,
+    "method": "POST",
+    "at": 1791136653801
+  },
+  {
+    "action": "M03-capacity",
+    "path": "/ops/home",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136653802
+  },
+  {
+    "action": "M03-capacity",
+    "path": "/auth/whoami",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136653832
+  },
+  {
+    "action": "M03-capacity",
+    "path": "/ops/api/vlm/profiles",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136653833
+  },
+  {
+    "action": "M03-capacity",
+    "path": "/ops/api/vlm/evaluation-results",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136653833
+  },
+  {
+    "action": "M03-capacity",
+    "path": "/ops/api/vlm/evaluation-promotion-guard",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136653833
+  },
+  {
+    "action": "M03-capacity",
+    "path": "/ops/api/sources",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136653834
+  },
+  {
+    "action": "M03-capacity",
+    "path": "/ops/api/rules/catalog",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136653834
+  },
+  {
+    "action": "M03-capacity",
+    "path": "/ops/api/views",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136653834
+  },
+  {
+    "action": "M03-capacity",
+    "path": "/ops/api/runtime/status",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136653834
+  },
+  {
+    "action": "M03-capacity",
+    "path": "/ops/api/users",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136653834
+  },
+  {
+    "action": "M03-capacity",
+    "path": "/ops/api/events/status",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136653834
+  },
+  {
+    "action": "M03-capacity",
+    "path": "/ops/api/diagnostics/log-tail",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136653834
+  },
+  {
+    "action": "M03-capacity",
+    "path": "/ops/events",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136653839
+  },
+  {
+    "action": "M03-capacity",
+    "path": "/auth/whoami",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136653860
+  },
+  {
+    "action": "M03-capacity",
+    "path": "/ops/api/vlm/evaluation-results",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136653887
+  },
+  {
+    "action": "M03-capacity",
+    "path": "/ops/api/vlm/profiles",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136653888
+  },
+  {
+    "action": "M03-capacity",
+    "path": "/ops/api/recordings/visual-search/status",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136653888
+  },
+  {
+    "action": "M03-capacity",
+    "path": "/ops/api/recordings/status",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136653888
+  },
+  {
+    "action": "M03-capacity",
+    "path": "/ops/api/audit",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136653888
+  },
+  {
+    "action": "M03-capacity",
+    "path": "/ops/api/recordings/status",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136653888
+  },
+  {
+    "action": "M03-capacity",
+    "path": "/ops/api/vlm/evaluation-promotion-guard",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136653888
+  },
+  {
+    "action": "M03-capacity",
+    "path": "/ops/api/alerts/deliveries",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136653888
+  },
+  {
+    "action": "M03-capacity",
+    "path": "/ops/api/events/status",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136653888
+  },
+  {
+    "action": "M03-capacity",
+    "path": "/ops/api/recordings/status",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136653888
+  },
+  {
+    "action": "M03-capacity",
+    "path": "/ops/api/events/reviews",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136653898
+  },
+  {
+    "action": "M03-capacity",
+    "path": "/ops/api/recordings/timeline",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136654385
+  },
+  {
+    "action": "M03-capacity",
+    "path": "/ops/api/recordings/media/dj-7f13ef3c41344579a388a73c58c89a4658e7f8afadacefea166cd2bc01c46538-o1",
+    "status": 206,
+    "method": "GET",
+    "at": 1791136654452
+  },
+  {
+    "action": "M03-capacity",
+    "path": "/ops/events",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136672641
+  },
+  {
+    "action": "M03-capacity",
+    "path": "/auth/whoami",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136672661
+  },
+  {
+    "action": "M03-capacity",
+    "path": "/ops/api/vlm/profiles",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136672661
+  },
+  {
+    "action": "M03-capacity",
+    "path": "/ops/api/recordings/visual-search/status",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136672661
+  },
+  {
+    "action": "M03-capacity",
+    "path": "/ops/api/recordings/status",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136672661
+  },
+  {
+    "action": "M03-capacity",
+    "path": "/ops/api/vlm/evaluation-results",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136672661
+  },
+  {
+    "action": "M03-capacity",
+    "path": "/ops/api/audit",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136672661
+  },
+  {
+    "action": "M03-capacity",
+    "path": "/ops/api/vlm/evaluation-promotion-guard",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136672661
+  },
+  {
+    "action": "M03-capacity",
+    "path": "/ops/api/events/status",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136672661
+  },
+  {
+    "action": "M03-capacity",
+    "path": "/ops/api/alerts/deliveries",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136672661
+  },
+  {
+    "action": "M03-capacity",
+    "path": "/ops/api/recordings/status",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136672678
+  },
+  {
+    "action": "M03-capacity",
+    "path": "/ops/api/recordings/status",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136672679
+  },
+  {
+    "action": "M03-capacity",
+    "path": "/ops/api/events/reviews",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136672686
+  },
+  {
+    "action": "M03-capacity",
+    "path": "/ops/api/recordings/timeline",
+    "status": 200,
+    "method": "GET",
+    "at": 1791136673056
+  },
+  {
+    "action": "M03-capacity",
+    "path": "/ops/api/recordings/media/dj-7f13ef3c41344579a388a73c58c89a4658e7f8afadacefea166cd2bc01c46538-o1",
+    "status": 206,
+    "method": "GET",
+    "at": 1791136673118
+  },
+  {
+    "action": "M03-capacity",
+    "path": "/ops/api/recordings/search",
+    "status": 503,
+    "method": "GET",
+    "at": 1791136673897
+  }
+]

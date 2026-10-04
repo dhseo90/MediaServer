@@ -1,0 +1,19 @@
+{
+  "id": "I29-original",
+  "startedAt": "2026-10-04T17:38:28.805Z",
+  "completedAt": "2026-10-04T17:38:31.253Z",
+  "observedViewport": {
+    "width": 1180,
+    "height": 900
+  },
+  "observedTheme": "light",
+  "detail": {
+    "hiddenBefore": 1,
+    "beforeRows": 14,
+    "afterRows": 15,
+    "selectedSrc": "/ops/api/recordings/media/0b7e1b9b-1ad3-4949-9527-3cfe8dfd6b8f",
+    "afterSrc": "/ops/api/recordings/media/ui-page-99",
+    "playerCleared": false,
+    "unknownTotal": 31
+  }
+}

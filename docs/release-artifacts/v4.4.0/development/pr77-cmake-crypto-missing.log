@@ -1,0 +1,19 @@
+-- The CXX compiler identification is AppleClang 21.0.0.21000334
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: /usr/bin/c++ - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Found ZLIB: /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libz.tbd (found version "1.2.12")
+-- Checking for modules 'gstreamer-1.0>=1.28;gstreamer-rtsp-server-1.0>=1.28;gstreamer-pbutils-1.0>=1.28;gstreamer-app-1.0>=1.28;gstreamer-webrtc-1.0>=1.28;gstreamer-sdp-1.0>=1.28'
+--   Found gstreamer-1.0, version 1.28.1
+--   Found gstreamer-rtsp-server-1.0, version 1.28.1
+--   Found gstreamer-pbutils-1.0, version 1.28.1
+--   Found gstreamer-app-1.0, version 1.28.1
+--   Found gstreamer-webrtc-1.0, version 1.28.1
+--   Found gstreamer-sdp-1.0, version 1.28.1
+CMake Error at CMakeLists.txt:301 (message):
+  SigLIP2 requires OpenSSL for verified event snapshot hashes.
+
+
+-- Configuring incomplete, errors occurred!

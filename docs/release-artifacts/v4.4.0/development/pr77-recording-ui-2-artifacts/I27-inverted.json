@@ -1,0 +1,15 @@
+{
+  "id": "I27-inverted",
+  "startedAt": "2026-10-04T17:50:29.402Z",
+  "completedAt": "2026-10-04T17:50:30.015Z",
+  "observedViewport": {
+    "width": 1180,
+    "height": 900
+  },
+  "observedTheme": "light",
+  "detail": {
+    "invalidStartValue": "2026-10-05T02:52",
+    "status": "채널과 올바른 시작·종료 시간을 선택하세요.",
+    "playerCleared": true
+  }
+}

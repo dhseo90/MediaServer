@@ -1,0 +1,1451 @@
+{
+  "schema": "media-server.ui-cross-cutting-evidence.v1",
+  "obligationId": "client-viewer-redaction",
+  "qualificationStatus": "unqualified-raw-capture",
+  "correlationId": "v390-cross-client-viewer-redaction",
+  "caseSetSha256": "c3ad1b4e51c6993e0af7fd78b78bbdd8fe35af13c69207f63bb2a85c2979b2fe",
+  "measuredEvidenceRefs": [
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "suite-finalizer/visual-matrix/visual-UI-009-320-light.png",
+      "bytes": 37747,
+      "sha256": "ff1512175305160444bc076e1c6cf0dd9b1fffc232e0366a8a784895f8c62578",
+      "contentType": "image/png",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-009-320-light:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "policy-v4/visual-matrix/visual-UI-009-320-light/measurement.json",
+      "bytes": 12559,
+      "sha256": "1f8d5041bcb065bb24e469e4f7f5a5dc53d2988ff1f384ec3d29e1b5805acd82",
+      "contentType": "application/json",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-009-320-light:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "suite-finalizer/visual-matrix/visual-UI-009-320-dark.png",
+      "bytes": 38670,
+      "sha256": "3be77025476789532a9cb4e120a5bc46a8db49465e1ec706181f9df4dcebcdeb",
+      "contentType": "image/png",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-009-320-dark:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "policy-v4/visual-matrix/visual-UI-009-320-dark/measurement.json",
+      "bytes": 12532,
+      "sha256": "6bd5e47b70212c3334f1bf65bbe1cf5bcba8ef600688cfebd09f6b0dc3494ea3",
+      "contentType": "application/json",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-009-320-dark:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "suite-finalizer/visual-matrix/visual-UI-009-390-light.png",
+      "bytes": 38584,
+      "sha256": "068245a905acda128152f68e6552a2e37ee98983bf4bcda59b80327274d2f0ab",
+      "contentType": "image/png",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-009-390-light:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "policy-v4/visual-matrix/visual-UI-009-390-light/measurement.json",
+      "bytes": 12575,
+      "sha256": "364c059e5d826df08528f1a7b7df90fdbdad0e29f35d6bfb1af336a4c8a1747f",
+      "contentType": "application/json",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-009-390-light:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "suite-finalizer/visual-matrix/visual-UI-009-390-dark.png",
+      "bytes": 39542,
+      "sha256": "c6163d44aa91feabbf1a34d599cd008a9fa47af2e0da3a4ddf806ab06d0afb10",
+      "contentType": "image/png",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-009-390-dark:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "policy-v4/visual-matrix/visual-UI-009-390-dark/measurement.json",
+      "bytes": 12548,
+      "sha256": "6086a58d8823b1ef747c8efc7451ca132f02156ebe49e4be96c266ad50708dca",
+      "contentType": "application/json",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-009-390-dark:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "suite-finalizer/visual-matrix/visual-UI-009-760-light.png",
+      "bytes": 55588,
+      "sha256": "346eae6106b7ef242235f89ed5a11614c4202c7c9219921c2455caca9817ad37",
+      "contentType": "image/png",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-009-760-light:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "policy-v4/visual-matrix/visual-UI-009-760-light/measurement.json",
+      "bytes": 17378,
+      "sha256": "a043b0a1d82d31fbdbaa4fbf293c2d5f74b76e01173fe46cf8a001c6d4464c1c",
+      "contentType": "application/json",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-009-760-light:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "suite-finalizer/visual-matrix/visual-UI-009-760-dark.png",
+      "bytes": 56505,
+      "sha256": "1b230554ccd73b0d93dd934d691f30a0b20bf01e90fc7b71f3b37871ad0e2733",
+      "contentType": "image/png",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-009-760-dark:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "policy-v4/visual-matrix/visual-UI-009-760-dark/measurement.json",
+      "bytes": 17338,
+      "sha256": "b428893d23d29e35519fd48ae103173602ac101221f63150e1785a74d3d9adec",
+      "contentType": "application/json",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-009-760-dark:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "suite-finalizer/visual-matrix/visual-UI-009-1180-light.png",
+      "bytes": 73998,
+      "sha256": "0f5429c74fed5faa288b4d19535512b944dfd8a22e4e230b9dd5855d4cdca782",
+      "contentType": "image/png",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-009-1180-light:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "policy-v4/visual-matrix/visual-UI-009-1180-light/measurement.json",
+      "bytes": 20398,
+      "sha256": "bc2090464b389a07749b6a14efa5b1bf7c9fd7aa0f714e992a27b9501c6ce7f2",
+      "contentType": "application/json",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-009-1180-light:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "suite-finalizer/visual-matrix/visual-UI-009-1180-dark.png",
+      "bytes": 74580,
+      "sha256": "10538e8e86b17efaae2133f406893f794a141cf2415a50d6d28f5a19139b761c",
+      "contentType": "image/png",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-009-1180-dark:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "policy-v4/visual-matrix/visual-UI-009-1180-dark/measurement.json",
+      "bytes": 20354,
+      "sha256": "0ca4a3fd76a6f63af145caed8e4a5e85780f66f03d986ec9dc83a030ecdd1dc7",
+      "contentType": "application/json",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-009-1180-dark:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "suite-finalizer/visual-matrix/visual-UI-010-320-light.png",
+      "bytes": 33852,
+      "sha256": "22fd402589b325369c1168ba7b81fd5c64fb86106a61210a6db200effc5b41e4",
+      "contentType": "image/png",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-010-320-light:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "policy-v4/visual-matrix/visual-UI-010-320-light/measurement.json",
+      "bytes": 17951,
+      "sha256": "cc6968510f3fd59eb7942504951e1e0ced7b4ade78cb9020febaa8bcf6023eab",
+      "contentType": "application/json",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-010-320-light:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "suite-finalizer/visual-matrix/visual-UI-010-320-dark.png",
+      "bytes": 34469,
+      "sha256": "30ed50b30b4fb55fb24d7e1e5fa928c869904ca94b6514c8cf6b4af937475087",
+      "contentType": "image/png",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-010-320-dark:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "policy-v4/visual-matrix/visual-UI-010-320-dark/measurement.json",
+      "bytes": 17926,
+      "sha256": "318653f7de9b5c50ea1c9513498e4abfe7ce20e61baa1d79555f72a69e4bc2d5",
+      "contentType": "application/json",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-010-320-dark:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "suite-finalizer/visual-matrix/visual-UI-010-390-light.png",
+      "bytes": 34866,
+      "sha256": "15c9d51d8816125c192dd3d43d83c1707b300f9b590682d7caea6cf6c65f72aa",
+      "contentType": "image/png",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-010-390-light:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "policy-v4/visual-matrix/visual-UI-010-390-light/measurement.json",
+      "bytes": 19433,
+      "sha256": "aef73e5af1d81a544c390c7d3fc61a7ad1213e0a5a7f4d4ca36a09555d1dcd84",
+      "contentType": "application/json",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-010-390-light:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "suite-finalizer/visual-matrix/visual-UI-010-390-dark.png",
+      "bytes": 35579,
+      "sha256": "235ba46578fc3340885bafa82cf968893caf065b0caac6b07cbb336478cd2dc4",
+      "contentType": "image/png",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-010-390-dark:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "policy-v4/visual-matrix/visual-UI-010-390-dark/measurement.json",
+      "bytes": 19401,
+      "sha256": "85f0717b41cb7cccd6e94c984b2e96812a20ca2108ae8fc86936ce26bdf46c98",
+      "contentType": "application/json",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-010-390-dark:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "suite-finalizer/visual-matrix/visual-UI-010-760-light.png",
+      "bytes": 40792,
+      "sha256": "c87dc22cf63f5007c760ed48c8517c1cc53bc9ee183334692652031da0d72543",
+      "contentType": "image/png",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-010-760-light:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "policy-v4/visual-matrix/visual-UI-010-760-light/measurement.json",
+      "bytes": 19467,
+      "sha256": "167f1d1b9b6f63f2e72d8dd8bd6c6683b2ff7608a56f86ffc58ccbfe675d631a",
+      "contentType": "application/json",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-010-760-light:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "suite-finalizer/visual-matrix/visual-UI-010-760-dark.png",
+      "bytes": 41559,
+      "sha256": "f6ae2c25694e8bf024bfab13bec3ee764ff47f33a23c639e5c96e59b9f736489",
+      "contentType": "image/png",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-010-760-dark:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "policy-v4/visual-matrix/visual-UI-010-760-dark/measurement.json",
+      "bytes": 19435,
+      "sha256": "5845c311a02ceefa86ab53a33e17d503ffc403d25f7a7e70a5e903793e4360ae",
+      "contentType": "application/json",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-010-760-dark:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "suite-finalizer/visual-matrix/visual-UI-010-1180-light.png",
+      "bytes": 97816,
+      "sha256": "ba6e14613a7e92edb41aec579a070669e54ef7ec29c8e5bc3c5e4db46daa74f8",
+      "contentType": "image/png",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-010-1180-light:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "policy-v4/visual-matrix/visual-UI-010-1180-light/measurement.json",
+      "bytes": 28957,
+      "sha256": "7f8c3bc7e94f529d439c0ae874f5eaa679c16b7779fed7497acd176719fc18a3",
+      "contentType": "application/json",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-010-1180-light:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "suite-finalizer/visual-matrix/visual-UI-010-1180-dark.png",
+      "bytes": 97744,
+      "sha256": "505249f4f8212498de863ba388046a9b181fb9bfafef7a8bb99ab28e1269d1b9",
+      "contentType": "image/png",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-010-1180-dark:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "policy-v4/visual-matrix/visual-UI-010-1180-dark/measurement.json",
+      "bytes": 28912,
+      "sha256": "5ef46d964b6216ecbe20d185cb6c618c677e8b7afc15dde461588a80c42bf79f",
+      "contentType": "application/json",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-010-1180-dark:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "suite-finalizer/visual-matrix/visual-UI-011-320-light.png",
+      "bytes": 30028,
+      "sha256": "b359e96dce5dda4ae7593799bccba5051da71cfaddd2f31ee4e80170b4fb84c6",
+      "contentType": "image/png",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-011-320-light:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "policy-v4/visual-matrix/visual-UI-011-320-light/measurement.json",
+      "bytes": 31435,
+      "sha256": "f5c1f170443e272d531547926234774be09de1f8878d707b0d832f7773e61da3",
+      "contentType": "application/json",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-011-320-light:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "suite-finalizer/visual-matrix/visual-UI-011-320-dark.png",
+      "bytes": 29977,
+      "sha256": "44bcddb6446bfaccaac1bf71ae2d3df7a7e1dd7f9f2876b280e791dfc9e4cde5",
+      "contentType": "image/png",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-011-320-dark:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "policy-v4/visual-matrix/visual-UI-011-320-dark/measurement.json",
+      "bytes": 31408,
+      "sha256": "6ae8fdce02179acab93de1cb2e10eebcd5f3c4ab9334b3df5b070ef3d183b44e",
+      "contentType": "application/json",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-011-320-dark:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "suite-finalizer/visual-matrix/visual-UI-011-390-light.png",
+      "bytes": 30941,
+      "sha256": "998f7e236c6abd079562f09bdd63617a945d55a2e716521c0b9ddb5fd2668953",
+      "contentType": "image/png",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-011-390-light:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "policy-v4/visual-matrix/visual-UI-011-390-light/measurement.json",
+      "bytes": 31846,
+      "sha256": "56868a5beecbe37b89f1263f63b2e9bbf334c6d7cb61718b16581b24033490ef",
+      "contentType": "application/json",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-011-390-light:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "suite-finalizer/visual-matrix/visual-UI-011-390-dark.png",
+      "bytes": 30764,
+      "sha256": "68380ec72ed1e0314ef9f4aa4a3b601e0d88bd8bfe5f05865307e45b5a777c21",
+      "contentType": "image/png",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-011-390-dark:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "policy-v4/visual-matrix/visual-UI-011-390-dark/measurement.json",
+      "bytes": 31817,
+      "sha256": "8f652512839b9c6ba8ca1a955b1ab216581a87d8b0ee773e5f595ced2cd29920",
+      "contentType": "application/json",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-011-390-dark:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "suite-finalizer/visual-matrix/visual-UI-011-760-light.png",
+      "bytes": 47070,
+      "sha256": "9bd7456bc2a5cbd7026aa223c2e4686b192bac96279993124348865ed733f78a",
+      "contentType": "image/png",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-011-760-light:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "policy-v4/visual-matrix/visual-UI-011-760-light/measurement.json",
+      "bytes": 32204,
+      "sha256": "e9978be3ee029a91775f598aa1e8474216038dd231867a4a38944d1cc4026fb6",
+      "contentType": "application/json",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-011-760-light:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "suite-finalizer/visual-matrix/visual-UI-011-760-dark.png",
+      "bytes": 46545,
+      "sha256": "f99993730203a275ff2da7ebe79021ec0d4be62520c63a440a6bf248e267b838",
+      "contentType": "image/png",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-011-760-dark:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "policy-v4/visual-matrix/visual-UI-011-760-dark/measurement.json",
+      "bytes": 32175,
+      "sha256": "4510b666f9aca0e64f706274a676c084f114b84d112b8b53a57d73ebe386294f",
+      "contentType": "application/json",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-011-760-dark:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "suite-finalizer/visual-matrix/visual-UI-011-1180-light.png",
+      "bytes": 151629,
+      "sha256": "190158bcbe55dc1fea381b85cbba94fcd0ec7debfe783c0dc80176dd24a5c2b2",
+      "contentType": "image/png",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-011-1180-light:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "policy-v4/visual-matrix/visual-UI-011-1180-light/measurement.json",
+      "bytes": 35196,
+      "sha256": "053812063b40b56ab14c891fa12d3498a035766a1f3b891f7c8d18fc0865ca8a",
+      "contentType": "application/json",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-011-1180-light:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "suite-finalizer/visual-matrix/visual-UI-011-1180-dark.png",
+      "bytes": 150720,
+      "sha256": "0ebc4922b20d97753446b9311b414b1d0559c14ecbd2eaa0ebe2e3cdbc39d403",
+      "contentType": "image/png",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-011-1180-dark:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "policy-v4/visual-matrix/visual-UI-011-1180-dark/measurement.json",
+      "bytes": 35165,
+      "sha256": "6229c0069aab563ec8001f34d8ac990231943216069ef76b3a1e09adab2fe3f4",
+      "contentType": "application/json",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-011-1180-dark:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "suite-finalizer/visual-matrix/visual-UI-012-320-light.png",
+      "bytes": 32847,
+      "sha256": "d24116827c2e8dcc4af4addd341bdf80054b671eed284a3a066deb97bdb9b9d8",
+      "contentType": "image/png",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-012-320-light:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "policy-v4/visual-matrix/visual-UI-012-320-light/measurement.json",
+      "bytes": 31635,
+      "sha256": "bbe88e44e7eda3bd52c989ff6f743ef8b35bb8063b7f106bff315acc81221689",
+      "contentType": "application/json",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-012-320-light:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "suite-finalizer/visual-matrix/visual-UI-012-320-dark.png",
+      "bytes": 32564,
+      "sha256": "45bd55165ebdad702e49feebbc28fcc2c13f857bf06b0d8af5746767cc5701d5",
+      "contentType": "image/png",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-012-320-dark:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "policy-v4/visual-matrix/visual-UI-012-320-dark/measurement.json",
+      "bytes": 31608,
+      "sha256": "4e5cd93df8421c923312f6b9102c6e8bfc69da94f54dcb53a96407ee99acb4dd",
+      "contentType": "application/json",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-012-320-dark:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "suite-finalizer/visual-matrix/visual-UI-012-390-light.png",
+      "bytes": 33432,
+      "sha256": "51a2f1cdb1b7ebbdfda142d50bb5a93356dbf299ac5d5928eaf0791175fe32d4",
+      "contentType": "image/png",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-012-390-light:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "policy-v4/visual-matrix/visual-UI-012-390-light/measurement.json",
+      "bytes": 31651,
+      "sha256": "202c12b8aea8091e80911d1c32f40b13cf36ea36e29d63d2292be09c64a7fdfd",
+      "contentType": "application/json",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-012-390-light:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "suite-finalizer/visual-matrix/visual-UI-012-390-dark.png",
+      "bytes": 33111,
+      "sha256": "3eaa20c14bb3a0d917bc5a09e90745a3bad46736d949d37044256e0d38f984fc",
+      "contentType": "image/png",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-012-390-dark:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "policy-v4/visual-matrix/visual-UI-012-390-dark/measurement.json",
+      "bytes": 31624,
+      "sha256": "8408b1518d741eeed39346065c0267e58fbe2b90afd1913c80f5a619ab49e64d",
+      "contentType": "application/json",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-012-390-dark:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "suite-finalizer/visual-matrix/visual-UI-012-760-light.png",
+      "bytes": 52545,
+      "sha256": "1936d5b450bb133db04407d6eb596a1568216f1fb50972ce0e51abbdcd7a9d50",
+      "contentType": "image/png",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-012-760-light:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "policy-v4/visual-matrix/visual-UI-012-760-light/measurement.json",
+      "bytes": 34981,
+      "sha256": "d4432c16c8bcb994b5e1fca620f27732941eeb2db6342383b0490e7df56acb08",
+      "contentType": "application/json",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-012-760-light:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "suite-finalizer/visual-matrix/visual-UI-012-760-dark.png",
+      "bytes": 51933,
+      "sha256": "ffbffea905c5fb350c057e957d95ccfa4d056bbe24c85f91445a1cc1784cb8d4",
+      "contentType": "image/png",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-012-760-dark:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "policy-v4/visual-matrix/visual-UI-012-760-dark/measurement.json",
+      "bytes": 34945,
+      "sha256": "7434df737759a862b4855488bf9bf994cef099b0217c01f7d3d3fcfc87f23019",
+      "contentType": "application/json",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-012-760-dark:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "suite-finalizer/visual-matrix/visual-UI-012-1180-light.png",
+      "bytes": 131148,
+      "sha256": "54fda2485d8e7e72a47ab662ee39905890455e3bbd18c2f2ed17e98dca022cf9",
+      "contentType": "image/png",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-012-1180-light:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "policy-v4/visual-matrix/visual-UI-012-1180-light/measurement.json",
+      "bytes": 45677,
+      "sha256": "5493888c7fc59dcd3e7f043490c1b6887f0017690402780144a67d8ec94b1c5a",
+      "contentType": "application/json",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-012-1180-light:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "suite-finalizer/visual-matrix/visual-UI-012-1180-dark.png",
+      "bytes": 130190,
+      "sha256": "4076f80d0fffe57fb82c324c09a9dafadb3f039c7575883ca1a0252a0492462a",
+      "contentType": "image/png",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-012-1180-dark:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "policy-v4/visual-matrix/visual-UI-012-1180-dark/measurement.json",
+      "bytes": 45606,
+      "sha256": "c21a7f9941df96a7037e248db66c845e22f72780313c09cc5c85bc2561f4ed8d",
+      "contentType": "application/json",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-012-1180-dark:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "suite-finalizer/visual-matrix/visual-UI-013-320-light.png",
+      "bytes": 53413,
+      "sha256": "6972234f2b6445a8c2fee6b0a0c02bc7a4a68c94dfa5b00f1c9a64cd2483fcff",
+      "contentType": "image/png",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-013-320-light:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "policy-v4/visual-matrix/visual-UI-013-320-light/measurement.json",
+      "bytes": 22280,
+      "sha256": "50d8b0e553182e2c7c96c64eac94c0acef04905e24a4a7db9d8df87db5a4a3db",
+      "contentType": "application/json",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-013-320-light:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "suite-finalizer/visual-matrix/visual-UI-013-320-dark.png",
+      "bytes": 53847,
+      "sha256": "b800fe36805b03d7f7174507695f616902fbc58ccef3a8791e09b3f08bdf821e",
+      "contentType": "image/png",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-013-320-dark:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "policy-v4/visual-matrix/visual-UI-013-320-dark/measurement.json",
+      "bytes": 22246,
+      "sha256": "20c7ec946f1e3ee8959a6e53b74e5fe9f4281d20c95a075e99d4d3fdc60b85f3",
+      "contentType": "application/json",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-013-320-dark:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "suite-finalizer/visual-matrix/visual-UI-013-390-light.png",
+      "bytes": 70369,
+      "sha256": "eb45116e79c2abf455ef0469f65542d84810dd0d27cdee3c3bd3a6932489c727",
+      "contentType": "image/png",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-013-390-light:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "policy-v4/visual-matrix/visual-UI-013-390-light/measurement.json",
+      "bytes": 22997,
+      "sha256": "0a03a57f5f70243e04c31e0176ec03b18bdace2831e094a66a8468a43d20e318",
+      "contentType": "application/json",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-013-390-light:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "suite-finalizer/visual-matrix/visual-UI-013-390-dark.png",
+      "bytes": 70565,
+      "sha256": "aef8e4b1140c43984327866a755b86b752db67bc78f8173d20c35d33c8e3651a",
+      "contentType": "image/png",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-013-390-dark:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "policy-v4/visual-matrix/visual-UI-013-390-dark/measurement.json",
+      "bytes": 22961,
+      "sha256": "0a20d2e09461bfd21ca922e4485c309d6ea918feb850023b3668387c96812c89",
+      "contentType": "application/json",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-013-390-dark:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "suite-finalizer/visual-matrix/visual-UI-013-760-light.png",
+      "bytes": 78721,
+      "sha256": "f34ea36932a97af0afe7c5e35a8d484c2315e5bf9c14e4750dc68a733238e80c",
+      "contentType": "image/png",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-013-760-light:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "policy-v4/visual-matrix/visual-UI-013-760-light/measurement.json",
+      "bytes": 24167,
+      "sha256": "05f8b3191b0d863fa4b7fdce74c718b206f45c480e35000a8d4a432262934288",
+      "contentType": "application/json",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-013-760-light:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "suite-finalizer/visual-matrix/visual-UI-013-760-dark.png",
+      "bytes": 78956,
+      "sha256": "0271a6871b6c6b5605fe4169a13afa17bd98a9ec0c052fb8ee00c288d100ee6c",
+      "contentType": "image/png",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-013-760-dark:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "policy-v4/visual-matrix/visual-UI-013-760-dark/measurement.json",
+      "bytes": 24132,
+      "sha256": "90a19a4826a40bad7f2b86952d8854c8cd173cd34ccfcfe69cf323d0824e77f9",
+      "contentType": "application/json",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-013-760-dark:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "suite-finalizer/visual-matrix/visual-UI-013-1180-light.png",
+      "bytes": 146830,
+      "sha256": "e8e280173fa4539a4d7fddb30d718800a89f61687ea4d1d46d0b1c9fde002223",
+      "contentType": "image/png",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-013-1180-light:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "policy-v4/visual-matrix/visual-UI-013-1180-light/measurement.json",
+      "bytes": 46035,
+      "sha256": "fee8ee459fc7426da238cf150cbf01729a37af0f9cd60a98bb20d76bd947acd8",
+      "contentType": "application/json",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-013-1180-light:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "suite-finalizer/visual-matrix/visual-UI-013-1180-dark.png",
+      "bytes": 146832,
+      "sha256": "8dfb544fe7e755033b0b92989a44cb087b4c6f754266aaa64459c644a25aeac6",
+      "contentType": "image/png",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-013-1180-dark:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "policy-v4/visual-matrix/visual-UI-013-1180-dark/measurement.json",
+      "bytes": 45966,
+      "sha256": "3c9e45a866d7eb50dac570569a99a622c0b4f5b9a9a4e02703d6d9e5288faddc",
+      "contentType": "application/json",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-013-1180-dark:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "suite-finalizer/visual-matrix/visual-UI-014-320-light.png",
+      "bytes": 55667,
+      "sha256": "d948178d5c187cbda3291d60b6101d47e6a2f67ac54bc76de39b9c909e2b0a2c",
+      "contentType": "image/png",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-014-320-light:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "policy-v4/visual-matrix/visual-UI-014-320-light/measurement.json",
+      "bytes": 11546,
+      "sha256": "5fe25167480a4bd47728648b988ac7c048626e3678f3b6ab5a21043ed0d15e02",
+      "contentType": "application/json",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-014-320-light:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "suite-finalizer/visual-matrix/visual-UI-014-320-dark.png",
+      "bytes": 55763,
+      "sha256": "1d179a1062487f65ede3e6ab308edcd9f19fee49793d62f268a666bce61702fc",
+      "contentType": "image/png",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-014-320-dark:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "policy-v4/visual-matrix/visual-UI-014-320-dark/measurement.json",
+      "bytes": 11531,
+      "sha256": "ca108ccdfff6147ce889fa086a264b56af78f824c7307b5452396efeda302877",
+      "contentType": "application/json",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-014-320-dark:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "suite-finalizer/visual-matrix/visual-UI-014-390-light.png",
+      "bytes": 64716,
+      "sha256": "1cf84b74d374d02000a39d1b0a2158c51afc43d326cb93e81466bfa6e79d513a",
+      "contentType": "image/png",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-014-390-light:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "policy-v4/visual-matrix/visual-UI-014-390-light/measurement.json",
+      "bytes": 11878,
+      "sha256": "224ebbfd916f6f50dfdb2b3d635f6a2104b6b0400873c53d191d8bbad7d29df5",
+      "contentType": "application/json",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-014-390-light:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "suite-finalizer/visual-matrix/visual-UI-014-390-dark.png",
+      "bytes": 64812,
+      "sha256": "9c4c7370cf60afd2411584a28273b84b39b8c3aababee3acc1c5df3c501367ec",
+      "contentType": "image/png",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-014-390-dark:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "policy-v4/visual-matrix/visual-UI-014-390-dark/measurement.json",
+      "bytes": 11863,
+      "sha256": "af13dc2fe44783608ade0a547008c930bd2c749466e5cbaf3c492f3b41317dbb",
+      "contentType": "application/json",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-014-390-dark:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "suite-finalizer/visual-matrix/visual-UI-014-760-light.png",
+      "bytes": 69494,
+      "sha256": "5841bdf9ce51304914ccc89460e32924d517948832206f896f265e974ca38ebb",
+      "contentType": "image/png",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-014-760-light:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "policy-v4/visual-matrix/visual-UI-014-760-light/measurement.json",
+      "bytes": 13372,
+      "sha256": "4f71d8ea4140c65f540f9d102988db3ab4c49e918e6ca2d9fd9ae045f37c1cc3",
+      "contentType": "application/json",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-014-760-light:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "suite-finalizer/visual-matrix/visual-UI-014-760-dark.png",
+      "bytes": 69593,
+      "sha256": "9d771035315faa4969e95eb090f3437aa95f90aca18f8af2420d7afd8a20f7a3",
+      "contentType": "image/png",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-014-760-dark:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "policy-v4/visual-matrix/visual-UI-014-760-dark/measurement.json",
+      "bytes": 13358,
+      "sha256": "285f407fb7af7b3887d721de1dfb40cc03822807781a95b9c8a7ad6445acac52",
+      "contentType": "application/json",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-014-760-dark:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "suite-finalizer/visual-matrix/visual-UI-014-1180-light.png",
+      "bytes": 122593,
+      "sha256": "286bdf98a93842434187c3249c4c2da4b272971dea60426e46bab4655f18c66b",
+      "contentType": "image/png",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-014-1180-light:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "policy-v4/visual-matrix/visual-UI-014-1180-light/measurement.json",
+      "bytes": 21081,
+      "sha256": "0ca1be49321c0d5c21c90602d62f354a0d369da7e1b4326da82943b1d33c7613",
+      "contentType": "application/json",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-014-1180-light:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "suite-finalizer/visual-matrix/visual-UI-014-1180-dark.png",
+      "bytes": 122871,
+      "sha256": "684e0c7e13f452986092d8ddb2fe4918a0e98f9f9e2e1bd11a6e32948b67f1b6",
+      "contentType": "image/png",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-014-1180-dark:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "policy-v4/visual-matrix/visual-UI-014-1180-dark/measurement.json",
+      "bytes": 21049,
+      "sha256": "89888452357044180fc856112b885e2fc9b97b850c47b79531f8b27aa503f763",
+      "contentType": "application/json",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-014-1180-dark:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "suite-finalizer/visual-matrix/visual-UI-022-320-light.png",
+      "bytes": 46676,
+      "sha256": "fab13f7527680d64b15f81890533aa3bcdefac52f0c5633a0bcd2991bff9d1bd",
+      "contentType": "image/png",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-022-320-light:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "policy-v4/visual-matrix/visual-UI-022-320-light/measurement.json",
+      "bytes": 14580,
+      "sha256": "f97b550fc577df50e787d63a894dfb3b6ab0c8603925cb00143e5e07057c0e17",
+      "contentType": "application/json",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-022-320-light:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "suite-finalizer/visual-matrix/visual-UI-022-320-dark.png",
+      "bytes": 47495,
+      "sha256": "5a42180122825d9b1c490b3110c17a55e4421426126dbd1fc19db74cc5b66419",
+      "contentType": "image/png",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-022-320-dark:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "policy-v4/visual-matrix/visual-UI-022-320-dark/measurement.json",
+      "bytes": 14553,
+      "sha256": "4d8c061a106388f5eec885fe2358f8884a157e6f0252ab9c391f8617f160c0b0",
+      "contentType": "application/json",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-022-320-dark:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "suite-finalizer/visual-matrix/visual-UI-022-390-light.png",
+      "bytes": 47888,
+      "sha256": "1501ab7f9d3cbec26a656d0a3afe44272ea9d9d93ab4fdd2cc19ebee5445efa1",
+      "contentType": "image/png",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-022-390-light:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "policy-v4/visual-matrix/visual-UI-022-390-light/measurement.json",
+      "bytes": 14993,
+      "sha256": "901895f66abfb4aad5c728be8c38fa00246681fe1df8763f3f0247bcbf845e23",
+      "contentType": "application/json",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-022-390-light:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "suite-finalizer/visual-matrix/visual-UI-022-390-dark.png",
+      "bytes": 48556,
+      "sha256": "2713729eff4f10fe42449293daa1fa742bebe45e10caf9d832b00af5fc0ea6f4",
+      "contentType": "image/png",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-022-390-dark:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "policy-v4/visual-matrix/visual-UI-022-390-dark/measurement.json",
+      "bytes": 14964,
+      "sha256": "c0e2bba07ec0843418fa912e9b1923222fc35452889112453dde235ca6ce2953",
+      "contentType": "application/json",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-022-390-dark:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "suite-finalizer/visual-matrix/visual-UI-022-760-light.png",
+      "bytes": 55738,
+      "sha256": "525d6f52cf981523f560eb94d970fc1d1cc644cd44f75ea5f1fd02e3042964e6",
+      "contentType": "image/png",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-022-760-light:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "policy-v4/visual-matrix/visual-UI-022-760-light/measurement.json",
+      "bytes": 15345,
+      "sha256": "d1a5e81c82d2e90655383b46486845311bd00caae78e38382a24a0988814e610",
+      "contentType": "application/json",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-022-760-light:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "suite-finalizer/visual-matrix/visual-UI-022-760-dark.png",
+      "bytes": 56597,
+      "sha256": "e72d27c257238e8f9478bad00631f0c475bcec234ca0a0e16a8be186983e760f",
+      "contentType": "image/png",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-022-760-dark:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "policy-v4/visual-matrix/visual-UI-022-760-dark/measurement.json",
+      "bytes": 15316,
+      "sha256": "aae4e1e12c26f4049a6e6044411aa84e9de9c6fd2f29b319dd74d390d95c827d",
+      "contentType": "application/json",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-022-760-dark:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "suite-finalizer/visual-matrix/visual-UI-022-1180-light.png",
+      "bytes": 85942,
+      "sha256": "b22efbc6aef04d57ba396c1f0c38c812be2097cdac35aa4a60d8463d36d0dc37",
+      "contentType": "image/png",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-022-1180-light:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "policy-v4/visual-matrix/visual-UI-022-1180-light/measurement.json",
+      "bytes": 21038,
+      "sha256": "6f7b539ce7dec9607bf697ae0f70ce72917c7c01a4bd1fb686755bbd243c3e70",
+      "contentType": "application/json",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-022-1180-light:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "suite-finalizer/visual-matrix/visual-UI-022-1180-dark.png",
+      "bytes": 86213,
+      "sha256": "3aab894867a6c3051454769a21add0c811dad6ffa2d017db4c3b3c91507f4c44",
+      "contentType": "image/png",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-022-1180-dark:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "policy-v4/visual-matrix/visual-UI-022-1180-dark/measurement.json",
+      "bytes": 20993,
+      "sha256": "43aff2b600e4aa917fb89eec55bae7a13e2cd4ff32553efcd2580eb69a2df3f3",
+      "contentType": "application/json",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-022-1180-dark:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "suite-finalizer/visual-matrix/visual-UI-015-320-light.png",
+      "bytes": 43813,
+      "sha256": "4bc496a92ddd247c24ed4cb60134dd167ea2e4187123c43363aea455835a3f23",
+      "contentType": "image/png",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-015-320-light:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "policy-v4/visual-matrix/visual-UI-015-320-light/measurement.json",
+      "bytes": 27376,
+      "sha256": "5d71dbdbac35dc1d9da61c99c9da4fb142e337ed6d09d007f4d77ed01257e59a",
+      "contentType": "application/json",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-015-320-light:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "suite-finalizer/visual-matrix/visual-UI-015-320-dark.png",
+      "bytes": 44937,
+      "sha256": "da948df2c70981a85ec610441649fddff1240bf18c2aafc88c822413e8d4fdee",
+      "contentType": "image/png",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-015-320-dark:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "policy-v4/visual-matrix/visual-UI-015-320-dark/measurement.json",
+      "bytes": 27332,
+      "sha256": "8ca545f530a7ab8d273cb4c5589123b8edd2ad190e7de31f5f08aec3e7d6b41c",
+      "contentType": "application/json",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-015-320-dark:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "suite-finalizer/visual-matrix/visual-UI-015-390-light.png",
+      "bytes": 47096,
+      "sha256": "b55925a5e3946237eecfc1b94cba869f7f08d0b0501e76100ea4c7060cf60788",
+      "contentType": "image/png",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-015-390-light:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "policy-v4/visual-matrix/visual-UI-015-390-light/measurement.json",
+      "bytes": 27385,
+      "sha256": "847d7ec4f6987a77074b4c3d2637b5baefc2a031887cd8eff68eb303ce7b412a",
+      "contentType": "application/json",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-015-390-light:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "suite-finalizer/visual-matrix/visual-UI-015-390-dark.png",
+      "bytes": 47596,
+      "sha256": "52cb3d1969febdbf20db5a861a0192ac8e403abcd1338e4712da76c1f472125d",
+      "contentType": "image/png",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-015-390-dark:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "policy-v4/visual-matrix/visual-UI-015-390-dark/measurement.json",
+      "bytes": 27343,
+      "sha256": "355adc100298d22b6cd2025fd2f02aa27760434b7841d975125e040ada074705",
+      "contentType": "application/json",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-015-390-dark:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "suite-finalizer/visual-matrix/visual-UI-015-760-light.png",
+      "bytes": 67498,
+      "sha256": "d1be1d658021607bfca2a32899f590374f28e0d04f492c6995a3de19a6540dcd",
+      "contentType": "image/png",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-015-760-light:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "policy-v4/visual-matrix/visual-UI-015-760-light/measurement.json",
+      "bytes": 27531,
+      "sha256": "aad97721a793149b76fe481d3656aeafb151aceb78259bbf9e1cb5ae40edeadc",
+      "contentType": "application/json",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-015-760-light:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "suite-finalizer/visual-matrix/visual-UI-015-760-dark.png",
+      "bytes": 68411,
+      "sha256": "71e02b6296fa1c1bafe894696e1d429ee9db75be6106f20de36e93548de31874",
+      "contentType": "image/png",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-015-760-dark:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "policy-v4/visual-matrix/visual-UI-015-760-dark/measurement.json",
+      "bytes": 27486,
+      "sha256": "044839954774d0b4caf09c01c9af2dd8746807c650aa37b29ccaed25db1b964d",
+      "contentType": "application/json",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-015-760-dark:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "suite-finalizer/visual-matrix/visual-UI-015-1180-light.png",
+      "bytes": 110378,
+      "sha256": "148e600dabde0be51f179d1c5aeb6155185947cf280fd0ed93a71b06aec5022e",
+      "contentType": "image/png",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-015-1180-light:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "policy-v4/visual-matrix/visual-UI-015-1180-light/measurement.json",
+      "bytes": 41613,
+      "sha256": "b9c7b06ce35eba8553e0915b20581d8e4a42cc740c4cefae1427407d7fe9be41",
+      "contentType": "application/json",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-015-1180-light:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "suite-finalizer/visual-matrix/visual-UI-015-1180-dark.png",
+      "bytes": 110623,
+      "sha256": "bef1a631654aa20beda89a164e57a8e7c4b9bea71d0408831b5513bdf11c431a",
+      "contentType": "image/png",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-015-1180-dark:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "policy-v4/visual-matrix/visual-UI-015-1180-dark/measurement.json",
+      "bytes": 41542,
+      "sha256": "01db5ed631add973c37bbeb967c33ba23bcec458bf114869f1d07ece5557bdc6",
+      "contentType": "application/json",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-015-1180-dark:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "suite-finalizer/visual-matrix/visual-UI-016-320-light.png",
+      "bytes": 45917,
+      "sha256": "f86b22fe22d7468ccf423696a4cff1dbff19daa6be530e9efa13d589b02b1a27",
+      "contentType": "image/png",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-016-320-light:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "policy-v4/visual-matrix/visual-UI-016-320-light/measurement.json",
+      "bytes": 15024,
+      "sha256": "63c7c89d821daa96f00f09dfa7125711dc1d33d20e9b1f312c86bd78772314e5",
+      "contentType": "application/json",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-016-320-light:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "suite-finalizer/visual-matrix/visual-UI-016-320-dark.png",
+      "bytes": 46118,
+      "sha256": "f1965023bb427ee07088f055fe4b9b2ab7fa38ccb794a1dba9292ad2785f29b1",
+      "contentType": "image/png",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-016-320-dark:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "policy-v4/visual-matrix/visual-UI-016-320-dark/measurement.json",
+      "bytes": 15002,
+      "sha256": "2e2531d86ee9e76ca5d76ffbfca787be754aaa3bbd9cf0b946b9894462b549e6",
+      "contentType": "application/json",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-016-320-dark:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "suite-finalizer/visual-matrix/visual-UI-016-390-light.png",
+      "bytes": 46893,
+      "sha256": "02b915c77202d17f620c99bdb400559d6feb24b99a97ffb078ecee11db063615",
+      "contentType": "image/png",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-016-390-light:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "policy-v4/visual-matrix/visual-UI-016-390-light/measurement.json",
+      "bytes": 15030,
+      "sha256": "8b691a30776074f4258c4e0445a1204316be23a66a59c549732277a5f5cc3ee8",
+      "contentType": "application/json",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-016-390-light:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "suite-finalizer/visual-matrix/visual-UI-016-390-dark.png",
+      "bytes": 47074,
+      "sha256": "7b56bd88f8bf52e70813dd3eb2f121c61dc7401812cec6704c036dd10bfef337",
+      "contentType": "image/png",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-016-390-dark:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "policy-v4/visual-matrix/visual-UI-016-390-dark/measurement.json",
+      "bytes": 15008,
+      "sha256": "668ebb60ef96d611d6d31576bfe015286edab9d87da7a346110af11b6ff49dfd",
+      "contentType": "application/json",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-016-390-dark:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "suite-finalizer/visual-matrix/visual-UI-016-760-light.png",
+      "bytes": 55059,
+      "sha256": "c06a5aa83e85ea6d7da94d488b0acf8a2fa568c86913ed63902fab4cc42e67cb",
+      "contentType": "image/png",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-016-760-light:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "policy-v4/visual-matrix/visual-UI-016-760-light/measurement.json",
+      "bytes": 19630,
+      "sha256": "669ac824ea09941539e9fd1ae410dc3d06fdb727ac27f75aef9565c96dc07d78",
+      "contentType": "application/json",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-016-760-light:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "suite-finalizer/visual-matrix/visual-UI-016-760-dark.png",
+      "bytes": 55301,
+      "sha256": "00b7cb943e7c6c33e7b8b657acdd95a53e2ad921f239ed50ee666312101d6c5b",
+      "contentType": "image/png",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-016-760-dark:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "policy-v4/visual-matrix/visual-UI-016-760-dark/measurement.json",
+      "bytes": 19596,
+      "sha256": "3529f630a778c0fff074a021837349087306bc8bd968335b7c5d394c62131d8d",
+      "contentType": "application/json",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-016-760-dark:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "suite-finalizer/visual-matrix/visual-UI-016-1180-light.png",
+      "bytes": 93144,
+      "sha256": "e7c92b33e86ec282db59a8917c94b2f38e872911cb4906732fef7ec67089d8c5",
+      "contentType": "image/png",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-016-1180-light:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "policy-v4/visual-matrix/visual-UI-016-1180-light/measurement.json",
+      "bytes": 25865,
+      "sha256": "120833526b605f8d0348d1e0b7d0feb83eb4cca95170e8c6ae96604296c24e66",
+      "contentType": "application/json",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-016-1180-light:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "suite-finalizer/visual-matrix/visual-UI-016-1180-dark.png",
+      "bytes": 93616,
+      "sha256": "cf454d8590906ba0223a0dca0dc3634d2fccccf42a0b45064b868c00c922df85",
+      "contentType": "image/png",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-016-1180-dark:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "policy-v4/visual-matrix/visual-UI-016-1180-dark/measurement.json",
+      "bytes": 25815,
+      "sha256": "9cc9471ce82bc35c55c9ee4ad4902337d0e6a8cc510905076d84ceb2d9767f98",
+      "contentType": "application/json",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-016-1180-dark:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "suite-finalizer/visual-matrix/visual-UI-017-320-light.png",
+      "bytes": 50727,
+      "sha256": "f27eab825292b92a4814432935053e218cd0b05974eedee13c61e6e9e5e4398a",
+      "contentType": "image/png",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-017-320-light:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "policy-v4/visual-matrix/visual-UI-017-320-light/measurement.json",
+      "bytes": 12694,
+      "sha256": "dc4c1963c16ba7086a9590c3956f74bcbc2544195cb31854976a05bdb8a36ef3",
+      "contentType": "application/json",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-017-320-light:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "suite-finalizer/visual-matrix/visual-UI-017-320-dark.png",
+      "bytes": 51083,
+      "sha256": "ec787ac5b02521123635448e4eecf63206d3c892278edcf22a51efb316b1ada6",
+      "contentType": "image/png",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-017-320-dark:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "policy-v4/visual-matrix/visual-UI-017-320-dark/measurement.json",
+      "bytes": 12756,
+      "sha256": "7fe87f73c958d14dd04393ad7dd62bdb8e9acb5be1bb3460b0fcd29cfad929b0",
+      "contentType": "application/json",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-017-320-dark:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "suite-finalizer/visual-matrix/visual-UI-017-390-light.png",
+      "bytes": 53487,
+      "sha256": "bf68ca3bd8ad29cb3a061b6d0869aad94ea420e426bb5fa1ff231faf90242642",
+      "contentType": "image/png",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-017-390-light:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "policy-v4/visual-matrix/visual-UI-017-390-light/measurement.json",
+      "bytes": 13075,
+      "sha256": "396a7f505e93128d631d48bba1dbb229cc318200684642223095d811fb8eb24c",
+      "contentType": "application/json",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-017-390-light:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "suite-finalizer/visual-matrix/visual-UI-017-390-dark.png",
+      "bytes": 54162,
+      "sha256": "c608ab0387fba045f8e834eb057b9f5b719f9a7cbb4520bea9d20de9756e74a6",
+      "contentType": "image/png",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-017-390-dark:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "policy-v4/visual-matrix/visual-UI-017-390-dark/measurement.json",
+      "bytes": 13137,
+      "sha256": "492dc5c9e4787d1898bad7811216ff72f07a13f2f8891a737c3c0172a74129b6",
+      "contentType": "application/json",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-017-390-dark:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "suite-finalizer/visual-matrix/visual-UI-017-760-light.png",
+      "bytes": 64416,
+      "sha256": "32c009f8f189bf2c17e76ecbeaef3780d7a2062de88aa4177f6e8c2acbbda840",
+      "contentType": "image/png",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-017-760-light:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "policy-v4/visual-matrix/visual-UI-017-760-light/measurement.json",
+      "bytes": 14588,
+      "sha256": "aace409e625a777905510c7139824d99878501dd357a2da597a3835331f2e870",
+      "contentType": "application/json",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-017-760-light:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "suite-finalizer/visual-matrix/visual-UI-017-760-dark.png",
+      "bytes": 65095,
+      "sha256": "446aa05ef3f9c4d017b03eafa56f8fdf137c2c161d6ae1172d3dbecb19441088",
+      "contentType": "image/png",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-017-760-dark:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "policy-v4/visual-matrix/visual-UI-017-760-dark/measurement.json",
+      "bytes": 14705,
+      "sha256": "689a20212afe75b2747d5de6f6ac849283eb6b3e4ef442cc4d1486bc5aec8025",
+      "contentType": "application/json",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-017-760-dark:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "suite-finalizer/visual-matrix/visual-UI-017-1180-light.png",
+      "bytes": 103659,
+      "sha256": "cabbc5bfa7e96ca5bb27993823e4ea1e5ba3bbe1c75024ecc764cf249b69e409",
+      "contentType": "image/png",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-017-1180-light:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "policy-v4/visual-matrix/visual-UI-017-1180-light/measurement.json",
+      "bytes": 20642,
+      "sha256": "5688fb811ad4de797482e985560c7bb5faf7f4e2ebe5db19eb8198e69f3246e5",
+      "contentType": "application/json",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-017-1180-light:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "suite-finalizer/visual-matrix/visual-UI-017-1180-dark.png",
+      "bytes": 104626,
+      "sha256": "88a07e77ad21e97470cf26f495e5c9714567e5d630727b66e1b3098738587f78",
+      "contentType": "image/png",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-017-1180-dark:navigation"
+    },
+    {
+      "schema": "media-server.ui-evidence-ref.v1",
+      "path": "policy-v4/visual-matrix/visual-UI-017-1180-dark/measurement.json",
+      "bytes": 20864,
+      "sha256": "12c94c6dc908e9978533760e446ec7ca25c46bedc841a92a733636ac8e3f81c1",
+      "contentType": "application/json",
+      "caseId": "__suite__",
+      "correlationId": "visual-UI-017-1180-dark:navigation"
+    }
+  ],
+  "rawVariantCount": 80,
+  "sourceCaseEvidence": []
+}

@@ -1,0 +1,14 @@
+PASS normal constructor descriptors closed
+PASS embedding text-0
+PASS embedding text-1
+PASS embedding text-2
+PASS embedding text-3
+PASS embedding text-6
+PASS embedding text-7
+PASS embedding text-8
+PASS embedding text-9
+PASS embedding image-0
+PASS embedding image-1
+PASS embedding image-2
+PASS embedding image-3
+RESOURCE {"started_unix_ms":1791128494018,"finished_unix_ms":1791128498738,"max_rss_bytes":3159752704}

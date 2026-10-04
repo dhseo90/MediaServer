@@ -1,0 +1,1148 @@
+{
+  "schema": "media-server.v390-ui-case-child.v1",
+  "result": "PASS",
+  "executionStatus": "case-child-browser-evidence",
+  "releaseEvidenceEligible": false,
+  "policyV4Qualification": "not-eligible-single-case-child",
+  "uiFulltestPass": false,
+  "actualBrowserExecution": true,
+  "sourceBinding": {
+    "baselineSourceCommitSha": "327afe0d4b3282400f1925252c59a53b87827224",
+    "verificationCommitSha": "789583126c71a4aace24c9ae2cac1d67f7beb32d",
+    "verificationBranch": "v4.4.0",
+    "runnerSchema": "media-server.v390-ui-canonical-parent.v1",
+    "manifestSha256": "0e6233dd59f1d86fa2b9cac0dbefc784984a94b8a6b4ff060769ffb0da62d09e",
+    "implementationFiles": {
+      "runner": {
+        "path": "scripts/internal/run_v390_ui_native_exact_cases.mjs",
+        "sha256": "71565dbfbac9a75a721e7d1bb4c4945e7376ac0b1ce9f7fce824eeca8591d2ae"
+      },
+      "library": {
+        "path": "scripts/internal/v390_ui_native_exact_cases_lib.mjs",
+        "sha256": "c238f47dd9656674c68ce9e545980c76e3e2351bb5fd62375eafc9d97214af61"
+      },
+      "adapter": {
+        "path": "scripts/internal/v390_ui_native_adapter.mjs",
+        "sha256": "1700b24486a5027b7bb3fe6306c3774dae220a3a7db051c2778a34e7cc44c7ed"
+      },
+      "recorder": {
+        "path": "scripts/internal/v390_ui_request_event_recorder.mjs",
+        "sha256": "c8fba8290f1c9b3e856c8ac05d2911254500d243966ea96ce61cccc68f90a2e9"
+      },
+      "evaluator": {
+        "path": "scripts/internal/v390_ui_request_lifecycle_evaluator.mjs",
+        "sha256": "f3ad6af79b7c24f7064d06d3342df5ee195caba2b61aba5a3f06e254d622613b"
+      }
+    },
+    "implementationSha256": "55446fdade942c8a168c708503611a1cd7e11b67682db81d60d84de2a89c67b1",
+    "buildSha256": "bcf364f589a7d421945bb61154a348a39bdaf8731b16d288d4971a3252839cf4"
+  },
+  "policyInputRef": {
+    "schema": "media-server.v390-ui-case-policy-input-ref.v1",
+    "caseId": "RULE-076",
+    "runId": "a3598725-7bba-40fb-8176-e2b8504d68ba",
+    "path": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.4.0/test-acceptance-current-final/runs/v390-test-acceptance-20261004133750-82231/ui-exact-424/cases/260-RULE-076/policy-input.json",
+    "bytes": 68780,
+    "sha256": "55cb92025ace4a18cb2c060bcd1eec5da85771ed8758b261ed676d9e9bf8a653"
+  },
+  "selection": {
+    "caseId": "RULE-076",
+    "selectedIds": [
+      "RULE-076"
+    ],
+    "selected": 1
+  },
+  "counts": {
+    "selected": 1,
+    "attempted": 1,
+    "pass": 1,
+    "fail": 0,
+    "notRun": 0,
+    "unsupported": 0,
+    "runnerAbort": 0
+  },
+  "case": {
+    "caseId": "RULE-076",
+    "featureId": "RULE-076",
+    "status": "PASS",
+    "failureClass": "",
+    "failurePhase": "",
+    "failureCode": "",
+    "failureMessage": "",
+    "failureCensus": [],
+    "requestLifecycleEvaluation": {
+      "status": "PASS",
+      "census": {
+        "requestCount": 27,
+        "responseCount": 27,
+        "classified": 27,
+        "unclassified": 0,
+        "multiplyClassified": 0,
+        "captureErrors": 0,
+        "duplicateResponses": 0,
+        "failureCount": 0
+      },
+      "diagnostics": {
+        "sequenceDomain": "diagnostic-seal-and-after-seal-only",
+        "diagnosticErrors": 0,
+        "seal": {
+          "sequence": 1,
+          "timestamp": 1791124810963
+        },
+        "afterSeal": [],
+        "requests": [
+          {
+            "requestIdentity": "RULE-076:object-1",
+            "legacyRequestId": "native-request-1",
+            "method": "GET",
+            "path": "/ops/rules",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 1,
+              "timestamp": 1791124806872
+            },
+            "responses": [
+              {
+                "sequence": 2,
+                "timestamp": 1791124806876,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 13,
+                "timestamp": 1791124806897
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "RULE-076:object-3",
+            "legacyRequestId": "native-request-2",
+            "method": "GET",
+            "path": "/auth/whoami",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 3,
+              "timestamp": 1791124806894
+            },
+            "responses": [
+              {
+                "sequence": 14,
+                "timestamp": 1791124806953,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 24,
+                "timestamp": 1791124806955
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "RULE-076:object-4",
+            "legacyRequestId": "native-request-3",
+            "method": "GET",
+            "path": "/ops/api/vlm/profiles",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 4,
+              "timestamp": 1791124806894
+            },
+            "responses": [
+              {
+                "sequence": 15,
+                "timestamp": 1791124806953,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 25,
+                "timestamp": 1791124806955
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "RULE-076:object-5",
+            "legacyRequestId": "native-request-4",
+            "method": "GET",
+            "path": "/ops/api/vlm/evaluation-results",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 5,
+              "timestamp": 1791124806894
+            },
+            "responses": [
+              {
+                "sequence": 17,
+                "timestamp": 1791124806953,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 27,
+                "timestamp": 1791124806955
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "RULE-076:object-6",
+            "legacyRequestId": "native-request-5",
+            "method": "GET",
+            "path": "/ops/api/vlm/evaluation-promotion-guard",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 6,
+              "timestamp": 1791124806894
+            },
+            "responses": [
+              {
+                "sequence": 18,
+                "timestamp": 1791124806953,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 28,
+                "timestamp": 1791124806955
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "RULE-076:object-7",
+            "legacyRequestId": "native-request-6",
+            "method": "GET",
+            "path": "/ops/api/audit",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 7,
+              "timestamp": 1791124806895
+            },
+            "responses": [
+              {
+                "sequence": 16,
+                "timestamp": 1791124806953,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 26,
+                "timestamp": 1791124806955
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "RULE-076:object-8",
+            "legacyRequestId": "native-request-7",
+            "method": "GET",
+            "path": "/ops/api/rules/catalog",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 8,
+              "timestamp": 1791124806895
+            },
+            "responses": [
+              {
+                "sequence": 19,
+                "timestamp": 1791124806954,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 29,
+                "timestamp": 1791124806955
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "RULE-076:object-9",
+            "legacyRequestId": "native-request-8",
+            "method": "GET",
+            "path": "/lab/analysis/profiles",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 9,
+              "timestamp": 1791124806895
+            },
+            "responses": [
+              {
+                "sequence": 20,
+                "timestamp": 1791124806954,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 30,
+                "timestamp": 1791124806955
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "RULE-076:object-10",
+            "legacyRequestId": "native-request-9",
+            "method": "GET",
+            "path": "/ops/api/sources",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 10,
+              "timestamp": 1791124806895
+            },
+            "responses": [
+              {
+                "sequence": 21,
+                "timestamp": 1791124806954,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 31,
+                "timestamp": 1791124806955
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "RULE-076:object-11",
+            "legacyRequestId": "native-request-10",
+            "method": "GET",
+            "path": "/ops/api/views",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 11,
+              "timestamp": 1791124806895
+            },
+            "responses": [
+              {
+                "sequence": 22,
+                "timestamp": 1791124806954,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 32,
+                "timestamp": 1791124806955
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "RULE-076:object-12",
+            "legacyRequestId": "native-request-11",
+            "method": "GET",
+            "path": "/lab/analysis/capabilities",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 12,
+              "timestamp": 1791124806895
+            },
+            "responses": [
+              {
+                "sequence": 23,
+                "timestamp": 1791124806954,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 33,
+                "timestamp": 1791124806955
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "RULE-076:object-23",
+            "legacyRequestId": "native-request-12",
+            "method": "GET",
+            "path": "/ops/api/vlm/rule-suggestion-draft-bridge",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 34,
+              "timestamp": 1791124806959
+            },
+            "responses": [
+              {
+                "sequence": 38,
+                "timestamp": 1791124806971,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 39,
+                "timestamp": 1791124806977
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "RULE-076:object-24",
+            "legacyRequestId": "native-request-13",
+            "method": "GET",
+            "path": "/ops/api/vlm/rule-suggestion-drafts",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 35,
+              "timestamp": 1791124806959
+            },
+            "responses": [
+              {
+                "sequence": 36,
+                "timestamp": 1791124806962,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 37,
+                "timestamp": 1791124806962
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "RULE-076:object-27",
+            "legacyRequestId": "native-request-14",
+            "method": "GET",
+            "path": "/auth/whoami",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 40,
+              "timestamp": 1791124806991
+            },
+            "responses": [
+              {
+                "sequence": 41,
+                "timestamp": 1791124806992,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 42,
+                "timestamp": 1791124806992
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "RULE-076:object-29",
+            "legacyRequestId": "native-request-15",
+            "method": "GET",
+            "path": "/auth/whoami",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 43,
+              "timestamp": 1791124807022
+            },
+            "responses": [
+              {
+                "sequence": 44,
+                "timestamp": 1791124807024,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 45,
+                "timestamp": 1791124807025
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "RULE-076:object-31",
+            "legacyRequestId": "native-request-16",
+            "method": "PUT",
+            "path": "/lab/analysis/rules/3920076",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 46,
+              "timestamp": 1791124809011
+            },
+            "responses": [
+              {
+                "sequence": 47,
+                "timestamp": 1791124809046,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 48,
+                "timestamp": 1791124809046
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "RULE-076:object-33",
+            "legacyRequestId": "native-request-17",
+            "method": "GET",
+            "path": "/auth/whoami",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 49,
+              "timestamp": 1791124809047
+            },
+            "responses": [
+              {
+                "sequence": 50,
+                "timestamp": 1791124809050,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 51,
+                "timestamp": 1791124809050
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "RULE-076:object-35",
+            "legacyRequestId": "native-request-18",
+            "method": "POST",
+            "path": "/ops/api/audit",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 52,
+              "timestamp": 1791124809051
+            },
+            "responses": [
+              {
+                "sequence": 53,
+                "timestamp": 1791124809055,
+                "status": 201
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 54,
+                "timestamp": 1791124809055
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "RULE-076:object-37",
+            "legacyRequestId": "native-request-19",
+            "method": "GET",
+            "path": "/ops/api/audit",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 55,
+              "timestamp": 1791124809062
+            },
+            "responses": [
+              {
+                "sequence": 61,
+                "timestamp": 1791124809068,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 66,
+                "timestamp": 1791124809069
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "RULE-076:object-38",
+            "legacyRequestId": "native-request-20",
+            "method": "GET",
+            "path": "/ops/api/rules/catalog",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 56,
+              "timestamp": 1791124809063
+            },
+            "responses": [
+              {
+                "sequence": 62,
+                "timestamp": 1791124809068,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 68,
+                "timestamp": 1791124809069
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "RULE-076:object-39",
+            "legacyRequestId": "native-request-21",
+            "method": "GET",
+            "path": "/lab/analysis/profiles",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 57,
+              "timestamp": 1791124809063
+            },
+            "responses": [
+              {
+                "sequence": 63,
+                "timestamp": 1791124809069,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 69,
+                "timestamp": 1791124809069
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "RULE-076:object-40",
+            "legacyRequestId": "native-request-22",
+            "method": "GET",
+            "path": "/ops/api/sources",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 58,
+              "timestamp": 1791124809063
+            },
+            "responses": [
+              {
+                "sequence": 64,
+                "timestamp": 1791124809069,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 70,
+                "timestamp": 1791124809069
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "RULE-076:object-41",
+            "legacyRequestId": "native-request-23",
+            "method": "GET",
+            "path": "/ops/api/views",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 59,
+              "timestamp": 1791124809063
+            },
+            "responses": [
+              {
+                "sequence": 65,
+                "timestamp": 1791124809069,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 71,
+                "timestamp": 1791124809069
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "RULE-076:object-42",
+            "legacyRequestId": "native-request-24",
+            "method": "GET",
+            "path": "/lab/analysis/capabilities",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 60,
+              "timestamp": 1791124809063
+            },
+            "responses": [
+              {
+                "sequence": 67,
+                "timestamp": 1791124809069,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 72,
+                "timestamp": 1791124809069
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "RULE-076:object-49",
+            "legacyRequestId": "native-request-25",
+            "method": "GET",
+            "path": "/ops/api/vlm/rule-suggestion-draft-bridge",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 73,
+              "timestamp": 1791124809083
+            },
+            "responses": [
+              {
+                "sequence": 75,
+                "timestamp": 1791124809093,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 77,
+                "timestamp": 1791124809094
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "RULE-076:object-50",
+            "legacyRequestId": "native-request-26",
+            "method": "GET",
+            "path": "/ops/api/vlm/rule-suggestion-drafts",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 74,
+              "timestamp": 1791124809083
+            },
+            "responses": [
+              {
+                "sequence": 76,
+                "timestamp": 1791124809093,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 78,
+                "timestamp": 1791124809094
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "RULE-076:object-53",
+            "legacyRequestId": "native-request-27",
+            "method": "GET",
+            "path": "/auth/whoami",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 79,
+              "timestamp": 1791124810425
+            },
+            "responses": [
+              {
+                "sequence": 80,
+                "timestamp": 1791124810427,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 81,
+                "timestamp": 1791124810427
+              }
+            ],
+            "failed": []
+          }
+        ]
+      },
+      "requests": [
+        {
+          "requestIdentity": "RULE-076:object-1",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "RULE-076:object-3",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "RULE-076:object-4",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "RULE-076:object-5",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "RULE-076:object-6",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "RULE-076:object-7",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "RULE-076:object-8",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "RULE-076:object-9",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "RULE-076:object-10",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "RULE-076:object-11",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "RULE-076:object-12",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "RULE-076:object-23",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "RULE-076:object-24",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "RULE-076:object-27",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "RULE-076:object-29",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "RULE-076:object-31",
+          "redirectedFromIdentity": null,
+          "correlationDigest": "9761058ec838d511aa2fb7796db5a3db08e852c9c6f6c4d6b932a8ca66f121c3"
+        },
+        {
+          "requestIdentity": "RULE-076:object-33",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "RULE-076:object-35",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "RULE-076:object-37",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "RULE-076:object-38",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "RULE-076:object-39",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "RULE-076:object-40",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "RULE-076:object-41",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "RULE-076:object-42",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "RULE-076:object-49",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "RULE-076:object-50",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "RULE-076:object-53",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        }
+      ],
+      "classifications": [
+        {
+          "requestIdentity": "RULE-076:object-1",
+          "responseIdentity": "RULE-076:object-2",
+          "requestKind": "document-navigation",
+          "classification": "bootstrap",
+          "owner": "page",
+          "phase": "bootstrap-document"
+        },
+        {
+          "requestIdentity": "RULE-076:object-3",
+          "responseIdentity": "RULE-076:object-13",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "RULE-076:object-4",
+          "responseIdentity": "RULE-076:object-14",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "RULE-076:object-5",
+          "responseIdentity": "RULE-076:object-16",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "RULE-076:object-6",
+          "responseIdentity": "RULE-076:object-17",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "RULE-076:object-7",
+          "responseIdentity": "RULE-076:object-15",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "RULE-076:object-8",
+          "responseIdentity": "RULE-076:object-18",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "RULE-076:object-9",
+          "responseIdentity": "RULE-076:object-19",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "RULE-076:object-10",
+          "responseIdentity": "RULE-076:object-20",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "RULE-076:object-11",
+          "responseIdentity": "RULE-076:object-21",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "RULE-076:object-12",
+          "responseIdentity": "RULE-076:object-22",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "RULE-076:object-23",
+          "responseIdentity": "RULE-076:object-26",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "RULE-076:object-24",
+          "responseIdentity": "RULE-076:object-25",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "RULE-076:object-27",
+          "responseIdentity": "RULE-076:object-28",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "RULE-076:object-29",
+          "responseIdentity": "RULE-076:object-30",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "RULE-076:object-31",
+          "responseIdentity": "RULE-076:object-32",
+          "requestKind": "application-fetch",
+          "classification": "action",
+          "owner": "action",
+          "phase": "primary-action"
+        },
+        {
+          "requestIdentity": "RULE-076:object-33",
+          "responseIdentity": "RULE-076:object-34",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "RULE-076:object-35",
+          "responseIdentity": "RULE-076:object-36",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "RULE-076:object-37",
+          "responseIdentity": "RULE-076:object-43",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "RULE-076:object-38",
+          "responseIdentity": "RULE-076:object-44",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "RULE-076:object-39",
+          "responseIdentity": "RULE-076:object-45",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "RULE-076:object-40",
+          "responseIdentity": "RULE-076:object-46",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "RULE-076:object-41",
+          "responseIdentity": "RULE-076:object-47",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "RULE-076:object-42",
+          "responseIdentity": "RULE-076:object-48",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "RULE-076:object-49",
+          "responseIdentity": "RULE-076:object-51",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "RULE-076:object-50",
+          "responseIdentity": "RULE-076:object-52",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "RULE-076:object-53",
+          "responseIdentity": "RULE-076:object-54",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        }
+      ],
+      "failures": []
+    },
+    "cleanupAttestation": {
+      "schema": "media-server.v390-ui-case-cleanup-attestation.v1",
+      "pass": true,
+      "primaryFailurePresent": false,
+      "primaryFailurePreserved": false,
+      "caseRuntimeRestoreAttempted": true,
+      "caseRuntimeRestored": true,
+      "browserCloseAttempted": true,
+      "browserContextClosed": true,
+      "cleanupEntryCount": 2,
+      "failureCode": ""
+    }
+  },
+  "timing": {
+    "startedAtMs": 1791124806301,
+    "finishedAtMs": 1791124811127,
+    "durationMs": 4826,
+    "startedAt": "2026-10-04T14:40:06.301Z",
+    "finishedAt": "2026-10-04T14:40:11.127Z"
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "schema": "media-server.ui-raw-visual-capture.v1",
+  "caseId": "CLIENT-009",
+  "correlationId": "CLIENT-009:execute-persisted-action:completion",
+  "targetSelector": "#liveSaveLayoutPreference",
+  "screenshotSha256": "a950d940f4a56e7ab2ac76214169e797f738472d773148e4609540db0e1a3ab0",
+  "measurementSha256": "a3b4af56714d367bb71c0edf9be6fa7ba450bc9709f834c0c8e41dea47a64eec",
+  "qualificationStatus": "unqualified-raw-capture"
+}

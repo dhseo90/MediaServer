@@ -1,0 +1,326 @@
+[
+  {
+    "requestId": 1,
+    "route": "/login",
+    "method": "GET",
+    "session": 1,
+    "action": "preparation",
+    "status": 200,
+    "at": 1791136226588
+  },
+  {
+    "requestId": 2,
+    "route": "/login",
+    "method": "POST",
+    "session": 1,
+    "action": "preparation",
+    "status": 302,
+    "at": 1791136226762
+  },
+  {
+    "requestId": 3,
+    "route": "/ops/home",
+    "method": "GET",
+    "session": 1,
+    "action": "preparation",
+    "status": 200,
+    "at": 1791136226764
+  },
+  {
+    "requestId": 4,
+    "route": "/ops/api/vlm/evaluation-results",
+    "method": "GET",
+    "session": 1,
+    "action": "preparation",
+    "status": 200,
+    "at": 1791136226796
+  },
+  {
+    "requestId": 5,
+    "route": "/ops/api/vlm/profiles",
+    "method": "GET",
+    "session": 1,
+    "action": "preparation",
+    "status": 200,
+    "at": 1791136226796
+  },
+  {
+    "requestId": 6,
+    "route": "/ops/api/vlm/evaluation-promotion-guard",
+    "method": "GET",
+    "session": 1,
+    "action": "preparation",
+    "status": 200,
+    "at": 1791136226796
+  },
+  {
+    "requestId": 7,
+    "route": "/ops/api/rules/catalog",
+    "method": "GET",
+    "session": 1,
+    "action": "preparation",
+    "status": 200,
+    "at": 1791136226796
+  },
+  {
+    "requestId": 8,
+    "route": "/ops/api/sources",
+    "method": "GET",
+    "session": 1,
+    "action": "preparation",
+    "status": 200,
+    "at": 1791136226796
+  },
+  {
+    "requestId": 9,
+    "route": "/ops/api/views",
+    "method": "GET",
+    "session": 1,
+    "action": "preparation",
+    "status": 200,
+    "at": 1791136226796
+  },
+  {
+    "requestId": 10,
+    "route": "/ops/api/runtime/status",
+    "method": "GET",
+    "session": 1,
+    "action": "preparation",
+    "status": 200,
+    "at": 1791136226796
+  },
+  {
+    "requestId": 11,
+    "route": "/ops/api/diagnostics/log-tail",
+    "method": "GET",
+    "session": 1,
+    "action": "preparation",
+    "status": 200,
+    "at": 1791136226797
+  },
+  {
+    "requestId": 12,
+    "route": "/ops/api/users",
+    "method": "GET",
+    "session": 1,
+    "action": "preparation",
+    "status": 200,
+    "at": 1791136226797
+  },
+  {
+    "requestId": 13,
+    "route": "/ops/api/events/status",
+    "method": "GET",
+    "session": 1,
+    "action": "preparation",
+    "status": 200,
+    "at": 1791136226797
+  },
+  {
+    "requestId": 14,
+    "route": "/ops/events",
+    "method": "GET",
+    "session": 1,
+    "action": "preparation",
+    "status": 200,
+    "at": 1791136226806
+  },
+  {
+    "requestId": 15,
+    "route": "/ops/api/recordings/status",
+    "method": "GET",
+    "session": 1,
+    "action": "preparation",
+    "status": 200,
+    "at": 1791136226852
+  },
+  {
+    "requestId": 16,
+    "route": "/ops/api/vlm/profiles",
+    "method": "GET",
+    "session": 1,
+    "action": "preparation",
+    "status": 200,
+    "at": 1791136226852
+  },
+  {
+    "requestId": 17,
+    "route": "/ops/api/recordings/visual-search/status",
+    "method": "GET",
+    "session": 1,
+    "action": "preparation",
+    "status": 200,
+    "at": 1791136226852
+  },
+  {
+    "requestId": 18,
+    "route": "/ops/api/vlm/evaluation-results",
+    "method": "GET",
+    "session": 1,
+    "action": "preparation",
+    "status": 200,
+    "at": 1791136226854
+  },
+  {
+    "requestId": 19,
+    "route": "/ops/api/recordings/status",
+    "method": "GET",
+    "session": 1,
+    "action": "preparation",
+    "status": 200,
+    "at": 1791136226854
+  },
+  {
+    "requestId": 20,
+    "route": "/ops/api/audit",
+    "method": "GET",
+    "session": 1,
+    "action": "preparation",
+    "status": 200,
+    "at": 1791136226854
+  },
+  {
+    "requestId": 21,
+    "route": "/ops/api/vlm/evaluation-promotion-guard",
+    "method": "GET",
+    "session": 1,
+    "action": "preparation",
+    "status": 200,
+    "at": 1791136226854
+  },
+  {
+    "requestId": 22,
+    "route": "/ops/api/events/status",
+    "method": "GET",
+    "session": 1,
+    "action": "preparation",
+    "status": 200,
+    "at": 1791136226854
+  },
+  {
+    "requestId": 23,
+    "route": "/ops/api/alerts/deliveries",
+    "method": "GET",
+    "session": 1,
+    "action": "preparation",
+    "status": 200,
+    "at": 1791136226854
+  },
+  {
+    "requestId": 24,
+    "route": "/ops/api/recordings/status",
+    "method": "GET",
+    "session": 1,
+    "action": "preparation",
+    "status": 200,
+    "at": 1791136226855
+  },
+  {
+    "requestId": 25,
+    "route": "/ops/api/events/reviews",
+    "method": "GET",
+    "session": 1,
+    "action": "preparation",
+    "status": 200,
+    "at": 1791136226864
+  },
+  {
+    "requestId": 26,
+    "route": "/ops/api/recordings/timeline",
+    "method": "GET",
+    "session": 1,
+    "action": "preparation",
+    "status": 200,
+    "at": 1791136226911
+  },
+  {
+    "requestId": 27,
+    "route": "/ops/api/recordings/timeline",
+    "method": "GET",
+    "session": 1,
+    "action": "preparation",
+    "status": 200,
+    "at": 1791136227845
+  },
+  {
+    "requestId": 28,
+    "route": "/ops/api/recordings/media/dj-5e9100c323dcdba54f1e64e1ef40c8aecfcfbac2d3401bc70ba809d293f29c33-o1",
+    "method": "GET",
+    "session": 1,
+    "action": "I27-filter",
+    "status": 206,
+    "at": 1791136227907
+  },
+  {
+    "requestId": 29,
+    "route": "/ops/api/recordings/timeline",
+    "method": "GET",
+    "session": 1,
+    "action": "I27-filter",
+    "status": 200,
+    "at": 1791136228410
+  },
+  {
+    "requestId": 30,
+    "route": "/ops/api/recordings/timeline",
+    "method": "GET",
+    "session": 1,
+    "action": "I27-empty",
+    "status": 200,
+    "at": 1791136228707
+  },
+  {
+    "requestId": 31,
+    "route": "/ops/api/recordings/timeline",
+    "method": "GET",
+    "session": 1,
+    "action": "I27-empty",
+    "status": 200,
+    "at": 1791136229321
+  },
+  {
+    "requestId": 32,
+    "route": "/ops/api/recordings/timeline",
+    "method": "GET",
+    "session": 1,
+    "action": "I27-inverted",
+    "status": 200,
+    "at": 1791136229985
+  },
+  {
+    "requestId": 33,
+    "route": "/ops/api/recordings/timeline",
+    "method": "GET",
+    "session": 1,
+    "action": "I27-page",
+    "status": 200,
+    "at": 1791136230687
+  },
+  {
+    "requestId": 34,
+    "route": "/ops/api/recordings/media/ui-page-99",
+    "method": "GET",
+    "session": 1,
+    "action": "I27-page",
+    "status": 206,
+    "at": 1791136230699
+  },
+  {
+    "requestId": 35,
+    "route": "/ops/api/recordings/timeline",
+    "method": "GET",
+    "session": 1,
+    "action": "I27-page",
+    "status": 200,
+    "at": 1791136231321
+  },
+  {
+    "requestId": 36,
+    "route": "/ops/api/recordings/timeline",
+    "method": "GET",
+    "session": 1,
+    "action": "I28-event",
+    "status": 200,
+    "at": 1791136232166
+  }
+]

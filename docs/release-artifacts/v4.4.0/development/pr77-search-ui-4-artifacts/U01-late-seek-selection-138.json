@@ -1,0 +1,68 @@
+{
+  "status": 200,
+  "response": {
+    "hitId": "or:12:ui-release-2",
+    "playable": true,
+    "playbackUrl": "/ops/api/recordings/media/6e0b1135-66e7-48b2-ad40-d881502979ef",
+    "seekAvailable": true,
+    "targetSeconds": 3,
+    "frameDurationSeconds": 0.03333333333333333,
+    "reason": "",
+    "timeBasis": "verified-native-file-presentation"
+  },
+  "state": {
+    "time": 3,
+    "duration": 10,
+    "readyState": 4,
+    "seeking": false,
+    "error": null,
+    "src": "/ops/api/recordings/media/6e0b1135-66e7-48b2-ad40-d881502979ef",
+    "width": 1280,
+    "height": 720,
+    "frames": 94
+  },
+  "message": "검색 시점으로 이동했습니다. 재생 버튼을 누르세요.",
+  "events": [
+    {
+      "type": "status",
+      "at": 32285.80000001192,
+      "text": "결과를 선택하면 검색 시점으로 이동합니다."
+    },
+    {
+      "type": "status",
+      "at": 32285.80000001192,
+      "text": "현재 파일과 재생 위치를 확인하는 중…"
+    },
+    {
+      "type": "loadedmetadata",
+      "at": 32470.900000035763,
+      "time": 0,
+      "seeking": false,
+      "readyState": 4
+    },
+    {
+      "type": "status",
+      "at": 32470.900000035763,
+      "text": "검색 시점으로 탐색 중…"
+    },
+    {
+      "type": "seeking",
+      "at": 32470.900000035763,
+      "time": 3,
+      "seeking": true,
+      "readyState": 1
+    },
+    {
+      "type": "seeked",
+      "at": 32498.100000023842,
+      "time": 3,
+      "seeking": false,
+      "readyState": 4
+    },
+    {
+      "type": "status",
+      "at": 32498.200000047684,
+      "text": "검색 시점으로 이동했습니다. 재생 버튼을 누르세요."
+    }
+  ]
+}

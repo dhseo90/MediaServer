@@ -171,3 +171,148 @@ HTTP/RTSP 포트 폐쇄, UDP socket 폐쇄, 인증 저장소를 포함한 임시
 1차 canonical acceptance는 `6127e64f`의 clean source에서 빌드와 선행 31개 feature gate를 통과한 뒤 `verify-project-inventory`에서 중단됐다. 원인은 inventory의 현재 release 목표와 VA seed의 releaseTarget이 v4.3.0인 메타데이터 두 건이다. 해당 source 목표만 v4.4.0으로 수정하고 공개 baseline v4.0.0, fixture 입력, 판정 기준은 유지한다. 30분·424 UI·120분은 not-run이며 cleanup PASS다. [최초 실패](../test-acceptance-current-final/first-failure.json)와 원출력은 재실행 전 Git에 보존한다. 경로 정제 관계는 기존 [정제 기록](release-path-redaction.json)에 연결했다.
 
 후속 검사에서 신규 `evidence_ui_state.test.mjs`와 `verify_evidence_package.sh`의 현행 문서 참조 누락도 발견했다. 기능 목록에 실제 실행 명령과 UI 준비 경계를 추가했다. 두 메타데이터 수정의 원출력과 후속 결과는 [1차 검사](release-inventory-binding-checks.json), [수정 후 재검사](release-inventory-binding-retest.json)에 둔다. 제품 코드와 986개 독립 source 승인 값은 그대로이며 implementation manifest의 inventorySha256만 달라졌다.
+
+## PR #77 후속 수정과 검증
+
+사용자는 PR #77의 리뷰 6건을 v4.4.0에 포함하고, 실행 중인 원래 릴리즈 테스트를 중단하지
+않도록 지시했다. 원래 `v4.4.0`/`7895831`의 실행은 유지하고 분리 worktree에서 수정했다.
+아래 결과는 수정된 source hash·실제 runtime archive에 대한 단기 관측이다. 이전 HEAD의
+장시간·공통 UI 결과를 이 수정의 PASS로 바꾸지 않는다. 현행 final integrity gate는 동일
+HEAD를 요구하므로 최종 코드 고정 뒤 새 canonical 묶음이 필요하다.
+
+| PR 리뷰 | 반영 범위 | 직접 단기 검증 |
+| --- | --- | --- |
+| 4176918446 | 요청 채널별 EventFacts 수집, 요청 채널 전체 20,000행/8MiB 유지 | 타 채널20,001행이 있어도 검색/seek 성공, 선택 채널 및 두 선택 채널 합산 상한 거부 |
+| 4176918451 | 재색인 실패 시 이전 완성본을 ready로 유지, 정제된 갱신 오류 안내 | 실제 cache 저장 실패 후 이전 결과 검색, 최초 실패503, worker 성공/실패/취소/예외 자원 해제 |
+| 4176918462 | SigLIP2 활성 구성에서 GStreamer 필수 | 비지원 구성 configure 거부, 지원 구성 실제 빌드·frame 검색 |
+| 4176957099 | snapshot 손상·I/O 실패는 전체 수집 실패, 정상 미지원/삭제는 명시 제외 | JPEG·manifest·symlink 실패와 docs/coverage 보존, missing/null proof·manifest-only·정상 삭제 제외, 실제 실패 후 복구 |
+| 4176957106 | SigLIP2 활성 구성에서 OpenSSL 필수 | 두 discovery 경로 모두 없으면 거부, CMake fallback 성공, crypto OFF proof 안전 실패 |
+| 4176957112 | 요청/단일 Rebuild의 물리 증명 재사용, 현재 원장·파일·권한 재검 유지 | 파일/원장 변조·교체·fork/owner 거부, append/회전 strict 재획득, hold/취소/출력 불변, 실제200결과 |
+
+[구성 검사](pr77-cmake-1.json), [최종 원장/source/application 단기 검사](pr77-focused-7.json),
+[other-row 수정 재검](pr77-proof-9.json), [snapshot 경계 검사](pr77-boundaries-10.json)에 명령·exit·source와
+원출력을 연결했다. 독립 검토가 지적한 `other-row` 입력 중복은 기존 해당 증거만 무효로 기록하고,
+별도 원장 행을 추가해 그 행을 훼손하는 입력으로 다시 통과했다.
+
+사용자 결정에 따라 최초 색인 준비 **45초**, 검색 **5초**, 실제 결과 **200개**를 유지했다.
+처음에는 물리/native 증명, 원장 파싱, 프레임 순차 decode, 단일 CPU 연산이 누적돼 실패했다.
+[단계별 직접 측정](pr77-stage-profile-1.json)과 [연산 스레드 비교](pr77-thread-profile-1.json) 뒤
+현재 파일 결속·행 읽기/SHA를 유지한 private immutable proof, 정확한 이전 keyframe seek,
+단일 추론을 유지한 세션 내부 ORT 4/1 연산을 적용했다. 실패 원출력은 focused1~6에 남겼다.
+Focused6의 최초 색인은 통과했으나200개 검색은503이었고, 이를 최종 통과로 덮어쓰지 않았다.
+
+Focused7은210개 실제 frame 색인 준비31.9405초,200개 결과3회 각1087.29/1078.36/1053.5ms,
+네 동시 검색24회 p95 247.289ms/max277.196ms, process peak RSS3,214,442,496bytes였다.
+[동일 입력 연산 비교](pr77-siglip2-parity-6.log)는12개embedding/8개token 값이 일치했고,
+[기존 고정24개 질의](pr77-retrieval-8.json)는16개 positive의 Hit@1/MRR1.0과 기존 latency/RSS 기준을 통과했다.
+cache8MiB는 추정 보관량의 논리 상한이며 전체 RSS·임시 파싱·응답 hold의 총량이 아니다.
+completion trace의 preparation/reuse는 물리 디스크 읽기 byte량이나 전체 FD 수가 아니다.
+
+실제 Chrome의 실패 안내/검색과 증거 보존·권한·반응형·실제 만료 사례, 변경 경로 혼합 장시간,
+새 source canonical 묶음, 최종 CI·공개는 아직 진행 대상이다. 소유 PR77 임시 fixture와 격리
+worktree는 후속 검증·증거 보존을 위해 유지 중이며 cleanup 완료를 주장하지 않는다.
+
+
+[실제 캐시 경계 재검](pr77-cache-boundaries-12.json)은446 assertion을 통과했다.
+8MiB/200개 LRU eviction 뒤 원본 재검증·응답 hold·FD 해제와 단일 oversized uncached 경로를 확인했다.
+첫11회는 fixture 설명900,000자가8MiB 증명에 못 미쳐 실패했고,
+공개1MiB JSON 계약 내1,047,552바이트 입력으로 보정한12회에서 실제 비용8,408,012바이트를 관측했다.
+제품 상한은 변경하지 않았다. 검증 wrapper의 예외 시 오보고 경로도 수정했으며
+[missing-build 오류 검사](pr77-cache-wrapper-missing-build-13.json)는 미실행FAIL·소유 root 정리를 확인했다.
+
+[정상 실제UI](actual-ui-normal-2.json) 10개 action, [보존 clip/partial/손상](actual-ui-rich-3.json) 3개,
+[비활성](actual-ui-disabled-1.json) 1개가 native Chrome와 메인 시각 확인을 통과했다.
+실제301초 만료, 권한 차단,320/390/760/1180 light/dark, PR77 재색인 실패 뒤 이전 결과 검색을 포함한다.
+전체424 canonical UI를 대체하지 않는 변경 영역 addendum이다. 합성 공 영상을 사용했고4신 VA overlay는 이 추가검사 범위가 아니다.
+최초normal의 늦은 응답 route handler 순서 오류는 [실패 기록](actual-ui-normal-1.json)에 남겼다.
+rich1/2의 native 방향키 끝 탐색 가정 오류는 각각 기록을 보존하고, 실제 End 키로 재검했다.
+각 서버·Chrome 종료와 HTTP/RTSP/UDP 폐쇄·격리 인증 root 부재를 확인했다.
+변경 경로 혼합 장시간·최종 source canonical 묶음·required CI·공개는 여전히 미완료다.
+
+
+혼합 준비에서 발견한 실제 GStreamer `<64hex>/001` track ID의 증거 manifest 거부를 수정했다.
+원본 source binding의 기존 nonempty/1024byte/control-free 계약에 frame track 검사만 맞췄으며,
+파일 참조 ID와 자산 경로·권한·시간·생성 상한은 그대로다. [수정 전 RED](evidence-track-red-1.json)는
+실제 생성에서 `evidence-invalid-manifest`였고, [재검증](evidence-track-green-3.json)은1028 assertion을 통과했다.
+GREEN2는 새 track과 fixture event 참조의 기존 `video-0` 불일치로 clip 단계에서 실패했으며 결과를 보존했다.
+독립 읽기 검토는 source binding 계약 동일성과 track이 경로에 사용되지 않음을 확인했다.
+이 codec 수정은 기존 UI 표시·역할·만료 계약을 바꾸지 않아 해당 UI addendum을 유지한다.
+실제 stream track의 생성·보존은 새 native/혼합 검사로 보완하며 최종 source 전체 묶음은 별도다.
+
+[혼합 준비 원출력](mixed-preparation/preservation.json)은 최초 quota/삭제 시점 입력 오류와 실제 제품 실패를 분리한다.
+64KiB quota가64MiB 생산 write 예약보다 작았던 입력 오류,64KiB 보관 여유분에서 약2초 만에 삭제된
+색인 원본, 실제 track manifest 거부, 아직 보관 중인 원본을 삭제 확인 대상으로 선택한 실패를 남겼다.
+제품 quota·45초 색인·5초 검색 기준을 변경하지 않았다. 입력을256KiB 보관 여유분으로 설정하고
+관측된 오래된 live visual 원본을 선택한 [단기6회](mixed-preparation/mixed-short-6/execution.json)는
+30.1285초 관측과111 assertion을 통과했다. 네 client 각2회 검색, 실제 시각 결과40개,
+시각·구조화 증거 각1개, 원본 삭제와 두 패키지의 재시작 후 manifest/PNG 불변을 확인했다.
+세 프로세스·포트·UDP 종료와 해당 소유 root 부재를 확인했으나, 실패 진단 root들은 증거 보존 후 정리가 남아 있다.
+이 결과는 장시간 PASS가 아니다. 동일 고정 binary의 승인된30분 혼합 검사를 이어 실행한다.
+
+
+[혼합30분 첫 실행](mixed-preparation/mixed-30-7/execution.json)은 약405초 관측에서5초 요청 timeout으로 실패했다.
+성공 검색 지연도 최대4161.99ms로 증가했으며 전체30분 PASS가 아니다. 소유 서버·HTTP/RTSP/UDP는 종료했고 실패 저장소는 진단용으로 유지했다.
+[수정 전 저장소 복사본](mixed-preparation/mixed-profile-8/execution.json)에서 재생 후보 조회는932~951ms,
+실제로 소비하지 않는 continuous 삭제 이력을 포함한 full timeline6654행을 만들었다.
+private 이벤트 후보 경로에서 이 행 생성만 생략하고 관련 job·원본·출력 strict 검증과 현재 authority/source guard는 유지했다.
+[수정 후 같은 저장소 복사본](mixed-preparation/mixed-profile-9/execution.json)은 후보2.17~2.26ms,
+공개 full timeline6654행/922~942ms로 관측됐다. 별도 archive의 사용하지 않는 과거 continuous 상세는 lazy 검증하며,
+full timeline이 해당 상세를 소비해 손상을 검출한 뒤에는 후보도 권위 상실로 거부한다.
+[직접 회귀](pr77-playback-7.json)는27항목 PASS: 기존 full timeline과 후보/공개 JSON의 동일성,
+intent/partial/미배치/누락복구/원본·출력삭제/타채널/실제B전환·재개방/관련 archive cold·warm 손상과 전체 출력 불변을 확인했다.
+앞선1~5회 fixture 실패(512mapping 상한, 비허용 삭제 사유, 압축·봉인 원장 파일 선택)를 각 원출력에 보존했다.
+기존 job 원장 손상 검증은pr77-proof-9이며, 신규 B 검사는tombstone archive를 대상으로 한다.
+공개 JSON 비교는 후보 호출 전후 비교이고 이전 바이너리 JSON과의 비교는 아니다.
+내부 completion trace는 기존 구조 정책이 허용한 RecordingReadService adapter에서 같은 시점/필드로 기록한다.
+구조1/2 실패는 금지된 직접 include였으며, 정책을 완화하지 않은 [구조3](pr77-structure-3.json)에서 현재 graph 생성·결속을 통과했다.
+[혼합 준비 실패 root 정리](mixed-preparation/cleanup.json)는1~5회 root 부재를 확인했다. 이후 실패/진단 root는 추가 보존·정리 대상이다.
+
+[최종 독립 소스 검토](pr77-independent-final.json)는 위 source/test diff hash에서 추가 릴리즈 차단 결함을 발견하지 못했다. 메인이 같은 diff와 신규 cache 파일 hash를 대조했다. 혼합30분·최종 canonical·CI 통과를 뜻하지 않는다.
+[공개 timeline](pr77-public-timeline-1.json)66개와 [실제 derived seek](pr77-derived-seek-1.json)10개 회귀를 통과했다. [계측 adapter](pr77-trace-adapter-2.json)는 두 reference hash·시간·카운터를 확인했다. 첫 adapter1의 상대시계 최초값0을 금지한 fixture 가정은 실패로 보존하고 기존 begin≥0 계약에 맞춰 재검했다.
+
+
+제품 수정은 `5f124c9be5b49f5128e93135da24fa024342f78e`(실제 track ID codec),
+`505b2dac45fcccecda5423bb7921b4fc5aa97576`(PR77와 검색 후보 비용)에 반영했다.
+원본 checkout과 격리 worktree의 제품 binary SHA는
+`4eaf41faebabb057958b3d9fcf55a2ceafb08b6eabd6baa024e7039c9b70314d`로 같았다.
+
+[수정 후 혼합30분](mixed-preparation/mixed-30-9/execution.json)은 실제 관측1801.522초,
+5798 assertion PASS/0 FAIL이었다. 4 client 성공 검색482회(p95 732.531ms/max1033.073ms),
+명시503 2회, structured 생성120회(complete116/partial4), visual 생성120회를 관측했다.
+2채널 합계1796개 확정/1782개 삭제, 선택 원본의 실제 삭제 뒤 보존 manifest/PNG와 재시작을 확인했다.
+프로세스 RSS 최대3,190,276,096bytes와 fixture 한도는 통과했다. 5분 warmup 이후25분 RSS는
+67,354,624bytes 증가했고 평탄 구간은 확인하지 못했다. FD 변화1/thread 변화0이며,
+자동 `resourceTrendPass:false/reviewRequired:true`를 수동으로 덮어쓰지 않는다.
+[메인·독립 자원 검토](mixed-preparation/mixed-30-9/assessment.json)는 최종 canonical 실행 전에
+수정해야 할 새 제품 결함을 확인하지 못했다. 최종 30·120분 결과와 자원 추세의 판정은 남아 있다.
+원출력은 해당 run.log, receipt와 [복사 대조](mixed-preparation/copy-8-9.json)에 있으며 소유 서버/포트/root는 정리됐다.
+
+[고정 데이터 진단](mixed-preparation/memory-fixed-10/assessment.json)은 준비45초를 유지해27.227초,
+200개 검색23회 최대1242.07ms였다. query5~23의 요청/응답 임시 객체 해제 후 live heap은32bytes 범위였다.
+[저장 이력 분리](mixed-preparation/memory-history-13/assessment.json)는 모델 없이200회 확정/삭제와
+fresh B 재개방(live1/deleted200)을 확인했고 owner 파괴 후 heap은 최초/재개방 모두3,629,408bytes였다.
+앞선11/12의 잘못된 V1 예약/Replay fixture 호출 실패는 원출력과 failure-cause에 남겼다.
+[디코딩·추론 분리](mixed-preparation/memory-decode-14/assessment.json)는 worker embedding 재사용 없이
+실제 DecodeVisualFrame/EncodeRgb100회와 각768차원/정규화 결과를 확인했다.
+세 진단은 저장 이력·할당 예약과 검색/디코더 수명을 구분하는 단기 근거다. 원래30분의64.23MiB를
+특정 원인에 전부 귀속하거나 전체 누수 없음/120분 완료로 승격하지 않는다. 각 소유 임시 root는 제거됐다.
+
+녹화 UI는 [3회차 시각 판정](pr77-recording-ui-3-visual.json)의31개 조작/57장 직접 검토로 마쳤다.
+검색 UI는 [3회차](pr77-search-ui-3-visual.json)의38개 조작과106장 검토 중 확인된 캡처 누락을
+[4회차](pr77-search-ui-4-visual.json)의38개 재조작/24장 보완 시각 확인으로 연결했다.
+동일 제품의 무관한3회차 시각 근거는 유지하고, 파생0초 frame·오류 전체 player·마지막 결과·페이지 버튼·epoch 상태만4회차로 보완했다.
+4회차129장 전체를 다시 직접 봤다는 뜻은 아니다. 앞선 recording1/2 및 search1/2의 실패·부분 증거도 보존했다.
+선택자는 결과 hit만 세도록 고치되 오류/늦은 응답의 모든 button0 검사는 유지했다.
+보완은 `716edc9132a3679f128c44f21a99621ce80dad56`의 검사 도구4파일뿐이며 제품 코드는 바뀌지 않았다.
+[도구 자체검사](pr77-ui-runner-unit-2.log)는10항목 PASS이고 각 실행 서버/브라우저/포트와 복사 완료 임시 output은 정리됐다.
+이 UI addendum은 canonical424와 별개다. 기존 canonical의7895831 소스 결과는 수정 후 소스의 최종 PASS가 아니며,
+최종 canonical·required CI·공개는 아직 남아 있다. 사용자는 현재 development와 test-acceptance-current-final 자료 및
+같은 두 경로의 최종 재검증 자료를 누적1GiB 이내로 Git 보존하고, 바이트 대조 후 별도 정리하는 범위를 승인했다.
+
+UI 캡처 도구 수정 뒤 [소스·승인 연결 재검사](pr77-source-audit-3.json)는51항목/986 feature 연결을 통과했다.
+[추가 임시 정리](mixed-preparation/cleanup.json)는 진단 복사본4개와 종료된 mixed30-7 실패 root의 부재를 확인했다.
+정리 전에 원출력 바이트·소유권·열린 파일 부재를 확인했고 GStreamer 캐시는 링크만 제거했다.
+상위 UI 준비 작업공간도123개 출력·소스·계획의 보존 바이트와 열린 파일 부재를 확인한 뒤 제거했다.
+[격리 worktree 정리](pr77-worktree-evidence-copy.json)는 원본과 동일한 중복 기록280개와 빌드 산출물366개를 제거했다.
+제품 실행 파일은 원본과 동일했고 소스 변경34개도 통합본과 같았다. 과거 정리 기록1개는 변경 전 바이트를 유지했다.
+앱의 보관 도구는 고정된 작업/작업공간 보호 때문에 checkout 보관을 거부했다. worktree는 그대로 남아 있으며 강제 삭제하지 않았다.

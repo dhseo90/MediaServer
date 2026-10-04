@@ -1,0 +1,540 @@
+{
+  "schema": "media-server.v390-ui-case-child.v1",
+  "result": "PASS",
+  "executionStatus": "case-child-browser-evidence",
+  "releaseEvidenceEligible": false,
+  "policyV4Qualification": "not-eligible-single-case-child",
+  "uiFulltestPass": false,
+  "actualBrowserExecution": true,
+  "sourceBinding": {
+    "baselineSourceCommitSha": "327afe0d4b3282400f1925252c59a53b87827224",
+    "verificationCommitSha": "789583126c71a4aace24c9ae2cac1d67f7beb32d",
+    "verificationBranch": "v4.4.0",
+    "runnerSchema": "media-server.v390-ui-canonical-parent.v1",
+    "manifestSha256": "0e6233dd59f1d86fa2b9cac0dbefc784984a94b8a6b4ff060769ffb0da62d09e",
+    "implementationFiles": {
+      "runner": {
+        "path": "scripts/internal/run_v390_ui_native_exact_cases.mjs",
+        "sha256": "71565dbfbac9a75a721e7d1bb4c4945e7376ac0b1ce9f7fce824eeca8591d2ae"
+      },
+      "library": {
+        "path": "scripts/internal/v390_ui_native_exact_cases_lib.mjs",
+        "sha256": "c238f47dd9656674c68ce9e545980c76e3e2351bb5fd62375eafc9d97214af61"
+      },
+      "adapter": {
+        "path": "scripts/internal/v390_ui_native_adapter.mjs",
+        "sha256": "1700b24486a5027b7bb3fe6306c3774dae220a3a7db051c2778a34e7cc44c7ed"
+      },
+      "recorder": {
+        "path": "scripts/internal/v390_ui_request_event_recorder.mjs",
+        "sha256": "c8fba8290f1c9b3e856c8ac05d2911254500d243966ea96ce61cccc68f90a2e9"
+      },
+      "evaluator": {
+        "path": "scripts/internal/v390_ui_request_lifecycle_evaluator.mjs",
+        "sha256": "f3ad6af79b7c24f7064d06d3342df5ee195caba2b61aba5a3f06e254d622613b"
+      }
+    },
+    "implementationSha256": "55446fdade942c8a168c708503611a1cd7e11b67682db81d60d84de2a89c67b1",
+    "buildSha256": "bcf364f589a7d421945bb61154a348a39bdaf8731b16d288d4971a3252839cf4"
+  },
+  "policyInputRef": {
+    "schema": "media-server.v390-ui-case-policy-input-ref.v1",
+    "caseId": "UI-077",
+    "runId": "a3598725-7bba-40fb-8176-e2b8504d68ba",
+    "path": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.4.0/test-acceptance-current-final/runs/v390-test-acceptance-20261004133750-82231/ui-exact-424/cases/076-UI-077/policy-input.json",
+    "bytes": 45400,
+    "sha256": "de73ef709add38537f523b998a80e09205061d8a5d33602867ec2c9309584d48"
+  },
+  "selection": {
+    "caseId": "UI-077",
+    "selectedIds": [
+      "UI-077"
+    ],
+    "selected": 1
+  },
+  "counts": {
+    "selected": 1,
+    "attempted": 1,
+    "pass": 1,
+    "fail": 0,
+    "notRun": 0,
+    "unsupported": 0,
+    "runnerAbort": 0
+  },
+  "case": {
+    "caseId": "UI-077",
+    "featureId": "UI-077",
+    "status": "PASS",
+    "failureClass": "",
+    "failurePhase": "",
+    "failureCode": "",
+    "failureMessage": "",
+    "failureCensus": [],
+    "requestLifecycleEvaluation": {
+      "status": "PASS",
+      "census": {
+        "requestCount": 11,
+        "responseCount": 11,
+        "classified": 11,
+        "unclassified": 0,
+        "multiplyClassified": 0,
+        "captureErrors": 0,
+        "duplicateResponses": 0,
+        "failureCount": 0
+      },
+      "diagnostics": {
+        "sequenceDomain": "diagnostic-seal-and-after-seal-only",
+        "diagnosticErrors": 0,
+        "seal": {
+          "sequence": 1,
+          "timestamp": 1791124108944
+        },
+        "afterSeal": [],
+        "requests": [
+          {
+            "requestIdentity": "UI-077:object-1",
+            "legacyRequestId": "native-request-1",
+            "method": "GET",
+            "path": "/client/live",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 1,
+              "timestamp": 1791124107715
+            },
+            "responses": [
+              {
+                "sequence": 2,
+                "timestamp": 1791124107721,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 3,
+                "timestamp": 1791124107736
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "UI-077:object-3",
+            "legacyRequestId": "native-request-2",
+            "method": "GET",
+            "path": "/auth/whoami",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 4,
+              "timestamp": 1791124107737
+            },
+            "responses": [
+              {
+                "sequence": 6,
+                "timestamp": 1791124107775,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 8,
+                "timestamp": 1791124107776
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "UI-077:object-4",
+            "legacyRequestId": "native-request-3",
+            "method": "GET",
+            "path": "/client/api/preferences/live-layout",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 5,
+              "timestamp": 1791124107737
+            },
+            "responses": [
+              {
+                "sequence": 7,
+                "timestamp": 1791124107775,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 9,
+                "timestamp": 1791124107776
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "UI-077:object-7",
+            "legacyRequestId": "native-request-4",
+            "method": "GET",
+            "path": "/client/api/views/9001/dashboard",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 10,
+              "timestamp": 1791124107777
+            },
+            "responses": [
+              {
+                "sequence": 13,
+                "timestamp": 1791124107792,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 15,
+                "timestamp": 1791124107792
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "UI-077:object-8",
+            "legacyRequestId": "native-request-5",
+            "method": "GET",
+            "path": "/client/api/views/9001/events",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 11,
+              "timestamp": 1791124107777
+            },
+            "responses": [
+              {
+                "sequence": 12,
+                "timestamp": 1791124107792,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 14,
+                "timestamp": 1791124107792
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "UI-077:object-11",
+            "legacyRequestId": "native-request-6",
+            "method": "GET",
+            "path": "/auth/whoami",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 16,
+              "timestamp": 1791124107810
+            },
+            "responses": [
+              {
+                "sequence": 17,
+                "timestamp": 1791124107812,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 18,
+                "timestamp": 1791124107812
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "UI-077:object-13",
+            "legacyRequestId": "native-request-7",
+            "method": "GET",
+            "path": "/auth/whoami",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 19,
+              "timestamp": 1791124107828
+            },
+            "responses": [
+              {
+                "sequence": 20,
+                "timestamp": 1791124107830,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 21,
+                "timestamp": 1791124107831
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "UI-077:object-15",
+            "legacyRequestId": "native-request-8",
+            "method": "GET",
+            "path": "/client/live",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 22,
+              "timestamp": 1791124107839
+            },
+            "responses": [
+              {
+                "sequence": 23,
+                "timestamp": 1791124107841,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 24,
+                "timestamp": 1791124107842
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "UI-077:object-17",
+            "legacyRequestId": "native-request-9",
+            "method": "GET",
+            "path": "/client/api/views/9001/dashboard",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 25,
+              "timestamp": 1791124107916
+            },
+            "responses": [
+              {
+                "sequence": 26,
+                "timestamp": 1791124107930,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 27,
+                "timestamp": 1791124107930
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "UI-077:object-19",
+            "legacyRequestId": "native-request-10",
+            "method": "GET",
+            "path": "/client/live",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 28,
+              "timestamp": 1791124108441
+            },
+            "responses": [
+              {
+                "sequence": 29,
+                "timestamp": 1791124108447,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 30,
+                "timestamp": 1791124108448
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "UI-077:object-21",
+            "legacyRequestId": "native-request-11",
+            "method": "GET",
+            "path": "/auth/whoami",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 31,
+              "timestamp": 1791124108585
+            },
+            "responses": [
+              {
+                "sequence": 32,
+                "timestamp": 1791124108588,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 33,
+                "timestamp": 1791124108588
+              }
+            ],
+            "failed": []
+          }
+        ]
+      },
+      "requests": [
+        {
+          "requestIdentity": "UI-077:object-1",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "UI-077:object-3",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "UI-077:object-4",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "UI-077:object-7",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "UI-077:object-8",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "UI-077:object-11",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "UI-077:object-13",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "UI-077:object-15",
+          "redirectedFromIdentity": null,
+          "correlationDigest": "3463d35c8091b8cddf0b832db8107e43973aec41f38647a11570f4905c4676fc"
+        },
+        {
+          "requestIdentity": "UI-077:object-17",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "UI-077:object-19",
+          "redirectedFromIdentity": null,
+          "correlationDigest": "3463d35c8091b8cddf0b832db8107e43973aec41f38647a11570f4905c4676fc"
+        },
+        {
+          "requestIdentity": "UI-077:object-21",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        }
+      ],
+      "classifications": [
+        {
+          "requestIdentity": "UI-077:object-1",
+          "responseIdentity": "UI-077:object-2",
+          "requestKind": "document-navigation",
+          "classification": "bootstrap",
+          "owner": "page",
+          "phase": "bootstrap-document"
+        },
+        {
+          "requestIdentity": "UI-077:object-3",
+          "responseIdentity": "UI-077:object-5",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "UI-077:object-4",
+          "responseIdentity": "UI-077:object-6",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "UI-077:object-7",
+          "responseIdentity": "UI-077:object-10",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "UI-077:object-8",
+          "responseIdentity": "UI-077:object-9",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "UI-077:object-11",
+          "responseIdentity": "UI-077:object-12",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "UI-077:object-13",
+          "responseIdentity": "UI-077:object-14",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "UI-077:object-15",
+          "responseIdentity": "UI-077:object-16",
+          "requestKind": "application-fetch",
+          "classification": "action",
+          "owner": "action",
+          "phase": "primary-action"
+        },
+        {
+          "requestIdentity": "UI-077:object-17",
+          "responseIdentity": "UI-077:object-18",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "UI-077:object-19",
+          "responseIdentity": "UI-077:object-20",
+          "requestKind": "application-fetch",
+          "classification": "action",
+          "owner": "action",
+          "phase": "primary-action"
+        },
+        {
+          "requestIdentity": "UI-077:object-21",
+          "responseIdentity": "UI-077:object-22",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        }
+      ],
+      "failures": []
+    },
+    "cleanupAttestation": {
+      "schema": "media-server.v390-ui-case-cleanup-attestation.v1",
+      "pass": true,
+      "primaryFailurePresent": false,
+      "primaryFailurePreserved": false,
+      "caseRuntimeRestoreAttempted": true,
+      "caseRuntimeRestored": true,
+      "browserCloseAttempted": true,
+      "browserContextClosed": true,
+      "cleanupEntryCount": 2,
+      "failureCode": ""
+    }
+  },
+  "timing": {
+    "startedAtMs": 1791124107319,
+    "finishedAtMs": 1791124109134,
+    "durationMs": 1815,
+    "startedAt": "2026-10-04T14:28:27.319Z",
+    "finishedAt": "2026-10-04T14:28:29.134Z"
+  }
+}

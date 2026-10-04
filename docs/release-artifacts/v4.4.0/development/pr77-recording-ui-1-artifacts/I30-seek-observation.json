@@ -1,0 +1,59 @@
+{
+  "beforeSeek": {
+    "paused": true,
+    "currentTime": 0.765397,
+    "readyState": 4,
+    "duration": 10,
+    "videoWidth": 1280,
+    "videoHeight": 720,
+    "frames": 28,
+    "src": "/ops/api/recordings/media/c68f4f5e-6084-491e-a771-aef314a11076",
+    "error": null,
+    "focused": true
+  },
+  "afterSeek": {
+    "paused": true,
+    "currentTime": 2.7654,
+    "readyState": 4,
+    "duration": 10,
+    "videoWidth": 1280,
+    "videoHeight": 720,
+    "frames": 261,
+    "src": "/ops/api/recordings/media/c68f4f5e-6084-491e-a771-aef314a11076",
+    "error": null,
+    "focused": true,
+    "seekingObserved": true,
+    "seekedObserved": true
+  },
+  "beforeEvents": {
+    "seeking": 0,
+    "seeked": 0
+  },
+  "events": {
+    "seeking": 20,
+    "seeked": 1
+  },
+  "media": [
+    {
+      "id": "c68f4f5e-6084-491e-a771-aef314a11076",
+      "status": 206,
+      "range": "bytes=0-",
+      "contentRange": "bytes 0-5358848/5358849",
+      "at": 1791135512403
+    },
+    {
+      "id": "c68f4f5e-6084-491e-a771-aef314a11076",
+      "status": 206,
+      "range": "bytes=5341184-",
+      "contentRange": "bytes 5341184-5358848/5358849",
+      "at": 1791135512418
+    },
+    {
+      "id": "c68f4f5e-6084-491e-a771-aef314a11076",
+      "status": 206,
+      "range": "bytes=589824-",
+      "contentRange": "bytes 589824-5358848/5358849",
+      "at": 1791135512470
+    }
+  ]
+}

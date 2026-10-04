@@ -1,0 +1,22 @@
+{
+  "sourceCommit": "505b2dac45fcccecda5423bb7921b4fc5aa97576",
+  "runnerHash": "e55ee4947d6952449f6f4217a682555c5dc1818ab6c6b1c1fe4443caf8c27526",
+  "fingerprints": {
+    "AGENTS.md": "647c508aa5e855784a8f8c711643cb3488c682736540df4be54262a5cf1420ba",
+    "test/fixtures/ui_fulltest_evidence_policy_v4.json": "cfabd2644b2cb18757fd82e2362294bfa0f919307391c060709651ea5c78db14",
+    "docs/manual-ui-result-template.md": "f88d897968577b2fa14916202d42be6ecfb945d20f5590b8a29b702c362f59bb",
+    "scripts/internal/run_recording_ui_acceptance.mjs": "e55ee4947d6952449f6f4217a682555c5dc1818ab6c6b1c1fe4443caf8c27526",
+    "scripts/internal/recording_ui_before_playback.mjs": "404d99cfdf284f15be9e639e1c9477b21ac384da708663f9106a2e1291f72753",
+    "scripts/internal/recording_ui_after_playback.mjs": "a5a300d40d4f8b47bbb50277769dec03ff6945a21496e24cb87d7033454a63ad",
+    "scripts/internal/verify_v410_recording_ui_contract.mjs": "8af686d41bcccbe65883831436b05fe3946612965bf15e179c1518166af40a14"
+  },
+  "actionManifestSha256": "7db97cd52cabf8f55da674c1f69d7ba1a31624bb50880907b1be6ae0f241b47c",
+  "productHash": "4eaf41faebabb057958b3d9fcf55a2ceafb08b6eabd6baa024e7039c9b70314d",
+  "seedHash": "b5b4f69a04215703174eccdf776fd5552d4bb9e6f4b7360777b586d4c0f6d001",
+  "moduleVersion": "1.62.1",
+  "browserVersion": "152.0.7977.83",
+  "evidenceMode": "qualified-native-automation",
+  "fallback": "native Chrome instead of prior failed in-app renderer",
+  "manualIntervention": false,
+  "visualReviewRequired": true
+}

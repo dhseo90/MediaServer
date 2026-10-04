@@ -1,0 +1,9 @@
+{
+  "schema": "media-server.ui-raw-visual-capture.v1",
+  "caseId": "SAFE-038",
+  "correlationId": "SAFE-038:activate-control:completion",
+  "targetSelector": "[data-vlm-rule-draft-index]",
+  "screenshotSha256": "4d7d29e6c787f05131df685f97487de12fcad1d0d4eacb275a6cb4e5109bf4fe",
+  "measurementSha256": "f18a98bfcb78a3ff19e904ba0ab9c142659ff0b7235099f3759ce8db1586908d",
+  "qualificationStatus": "unqualified-raw-capture"
+}

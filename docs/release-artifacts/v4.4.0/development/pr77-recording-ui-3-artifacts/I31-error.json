@@ -1,0 +1,26 @@
+{
+  "id": "I31-error",
+  "startedAt": "2026-10-04T17:53:49.930Z",
+  "completedAt": "2026-10-04T17:53:51.286Z",
+  "observedViewport": {
+    "width": 1180,
+    "height": 900
+  },
+  "observedTheme": "light",
+  "detail": {
+    "status": 503,
+    "state": {
+      "paused": true,
+      "currentTime": 0,
+      "readyState": 0,
+      "duration": null,
+      "videoWidth": 0,
+      "videoHeight": 0,
+      "frames": 0,
+      "src": null,
+      "error": null,
+      "focused": false
+    },
+    "message": "녹화 구간을 불러오지 못했습니다. 권한과 서버 상태를 확인하세요."
+  }
+}

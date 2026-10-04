@@ -1,0 +1,9 @@
+{
+  "schema": "media-server.ui-raw-visual-capture.v1",
+  "caseId": "UI-095",
+  "correlationId": "UI-095:assert-visible-read-model:completion",
+  "targetSelector": "#dashSiteOperationsSiteList > [data-v370-site-operations-workspace-entry]:first-child",
+  "screenshotSha256": "e1966f5907a180a524ee5eff890d8e8f4b0cee057d9e3d8fc42b7189f2476069",
+  "measurementSha256": "408c119bff08b121b5644dff495fbeb8d60b21d2d90eee3ae10299ae339cd6be",
+  "qualificationStatus": "unqualified-raw-capture"
+}

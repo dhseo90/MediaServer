@@ -1,0 +1,21 @@
+{
+  "id": "I27-empty",
+  "startedAt": "2026-10-04T17:38:25.541Z",
+  "completedAt": "2026-10-04T17:38:26.131Z",
+  "observedViewport": {
+    "width": 1180,
+    "height": 900
+  },
+  "observedTheme": "light",
+  "detail": {
+    "invalid": true,
+    "timelineRequestsBefore": 3,
+    "emptyCounts": {
+      "items": 0,
+      "unplacedItems": 0,
+      "total": 0,
+      "unplacedTotal": 0
+    },
+    "playerCleared": true
+  }
+}

@@ -1,0 +1,15 @@
+[fixed-memory] {"phase":"encoded-input-only","queries":0,"rssBytes":25886720,"peakRssBytes":25886720,"heapUsedBytes":3141776,"heapReservedBytes":29360128,"blocks":26050,"zones":2}
+[fixed-memory] {"phase":"seed-runtime","queries":0,"rssBytes":34996224,"peakRssBytes":34996224,"heapUsedBytes":3854304,"heapReservedBytes":33554432,"blocks":32525,"zones":2}
+[history-count] live=1 deleted=50
+[fixed-memory] {"phase":"deleted-batch","queries":50,"rssBytes":37486592,"peakRssBytes":37486592,"heapUsedBytes":5848560,"heapReservedBytes":37748736,"blocks":35477,"zones":2}
+[history-count] live=1 deleted=100
+[fixed-memory] {"phase":"deleted-batch","queries":100,"rssBytes":40927232,"peakRssBytes":40927232,"heapUsedBytes":4896512,"heapReservedBytes":41943040,"blocks":38266,"zones":2}
+[history-count] live=1 deleted=150
+[fixed-memory] {"phase":"deleted-batch","queries":150,"rssBytes":41500672,"peakRssBytes":41500672,"heapUsedBytes":6890384,"heapReservedBytes":46137344,"blocks":41711,"zones":2}
+[history-count] live=1 deleted=200
+[fixed-memory] {"phase":"deleted-batch","queries":200,"rssBytes":43515904,"peakRssBytes":43515904,"heapUsedBytes":6142432,"heapReservedBytes":46137344,"blocks":45233,"zones":2}
+[fixed-memory] {"phase":"runtime-destroyed","queries":200,"rssBytes":42696704,"peakRssBytes":43515904,"heapUsedBytes":3629408,"heapReservedBytes":46137344,"blocks":32054,"zones":2}
+[history-reopened] live=1 deleted=200
+[fixed-memory] {"phase":"reopened-current-owner","queries":200,"rssBytes":45432832,"peakRssBytes":45432832,"heapUsedBytes":5924208,"heapReservedBytes":50331648,"blocks":45369,"zones":2}
+[fixed-memory] {"phase":"reopened-owner-destroyed","queries":200,"rssBytes":44613632,"peakRssBytes":45432832,"heapUsedBytes":3629408,"heapReservedBytes":50331648,"blocks":32054,"zones":2}
+PASS history diagnostic; no model, search worker, HTTP, package or new decoding per clone

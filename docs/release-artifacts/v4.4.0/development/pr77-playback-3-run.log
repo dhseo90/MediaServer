@@ -1,0 +1,29 @@
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[pass] intent cannot replace source
+[pass] intent matches full timeline and public JSON
+[pass] completed job invalidates prior source view
+[pass] actual completed outputs yield playable proven candidates
+[pass] partial complete job matches full timeline and public JSON
+[pass] actual original coverage retains uncovered source tail
+[pass] missing file matches full timeline and public JSON
+[pass] missing event file cannot supersede source
+[pass] restored file is revalidated on new lookup
+[pass] restored file matches full timeline and public JSON
+[pass] retired source change invalidates prior source view
+[pass] deleted unplaced history leaves exact event candidates and public JSON
+[pass] full timeline retains every deleted history mapping
+[pass] deleted originals retain proven event candidates
+[pass] deleted output matches full timeline and public JSON
+[pass] foreign channel cannot acquire event candidates
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[pass] unplaced partial event is not a proven UTC replacement
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[pass] B retired source retains exact event candidates after reopen
+[pass] B full timeline retains known and unplaced retired mapping IDs
+one isolated tombstone archive required: 0

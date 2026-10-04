@@ -1,0 +1,442 @@
+{
+  "schema": "media-server.v390-ui-case-policy-input.v1",
+  "caseId": "AUTH-007",
+  "runId": "a3598725-7bba-40fb-8176-e2b8504d68ba",
+  "result": {
+    "caseId": "AUTH-007",
+    "featureId": "AUTH-007",
+    "status": "PASS",
+    "dispatch": "playwright-native",
+    "manualIntervention": false,
+    "actualBrowserExecution": true,
+    "requested": {
+      "schema": "media-server.v390-ui-canonical-requested.v1",
+      "route": "/login",
+      "accountRole": "anonymous",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "[data-testid=\"auth-password-policy\"]",
+        "actionAnchor": "AuthenticateUserPassword"
+      }
+    },
+    "observed": {
+      "schema": "media-server.v390-ui-runtime-observed.v1",
+      "screenRoute": "/login",
+      "accountRole": "anonymous",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "[data-testid=\"auth-login-form\"] button[type=\"submit\"]",
+        "applicability": "required",
+        "exists": true,
+        "visible": true,
+        "enabled": true
+      },
+      "provenance": {
+        "screenRoute": "browser-location",
+        "accountRole": "session-whoami",
+        "viewport": "browser-inner-size",
+        "theme": "browser-media-query",
+        "controlAction": "dom-selector-state"
+      }
+    },
+    "visibleAssertion": {
+      "pass": true,
+      "visible": true,
+      "selector": "body"
+    },
+    "visualMeasurement": {
+      "schema": "media-server.ui-browser-visual-measurement.v2",
+      "caseBinding": {
+        "canonicalCaseId": "AUTH-007",
+        "featureId": "AUTH-007",
+        "screenId": "AUTH-007",
+        "screenRoute": "/login",
+        "accountRole": "anonymous",
+        "targetSelector": "body"
+      },
+      "route": "/login",
+      "accountRole": "anonymous",
+      "requestedTheme": "light",
+      "appliedTheme": "light",
+      "mediaTheme": "light",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "devicePixelRatio": 1
+      },
+      "document": {
+        "scrollWidth": 390,
+        "scrollHeight": 844,
+        "clientWidth": 390,
+        "clientHeight": 844
+      },
+      "target": {
+        "selector": "body",
+        "visible": true,
+        "documentTarget": true,
+        "rect": {
+          "x": 0,
+          "y": 13,
+          "left": 0,
+          "top": 13,
+          "right": 390,
+          "bottom": 48,
+          "width": 390,
+          "height": 35
+        }
+      },
+      "textSamples": [
+        {
+          "foreground": "rgb(0, 0, 0)",
+          "background": "rgb(255, 255, 255)",
+          "fontSizePx": 13,
+          "fontWeight": "400",
+          "rect": {
+            "x": 0,
+            "y": 13,
+            "left": 0,
+            "top": 13,
+            "right": 390,
+            "bottom": 48,
+            "width": 390,
+            "height": 35
+          }
+        }
+      ],
+      "focus": {
+        "focusableCount": 0,
+        "applicable": false
+      },
+      "liveVideo": null,
+      "postActionVisualOwner": {
+        "schema": "media-server.v390-ui-post-action-visual-target.v1",
+        "caseId": "AUTH-007",
+        "actionId": "AUTH-007:submit-form",
+        "completionMode": "request",
+        "sourceSelectorSha256": "afe1055784837e4a883b8a4f92c55b77facafee2a5641bfa7cafed7a94dad980",
+        "sourceOwnerSelectorSha256": "afe1055784837e4a883b8a4f92c55b77facafee2a5641bfa7cafed7a94dad980",
+        "requestedState": "visible",
+        "observedRoute": "/login",
+        "navigationEpoch": 2,
+        "ownerCandidateCount": 1,
+        "sourceSelectorRewaited": false,
+        "selector": "body",
+        "bindingKind": "post-readback-visible-document-owner",
+        "sourceDetached": true,
+        "sourceHidden": false,
+        "epochRelation": "advanced-action"
+      },
+      "focusSamples": [
+        {
+          "index": 0,
+          "focusIdentity": "body > div",
+          "tag": "div",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "none",
+          "outlineWidth": "3px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 1,
+          "focusIdentity": "body",
+          "tag": "body",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "none",
+          "outlineWidth": "3px",
+          "boxShadow": "none"
+        }
+      ]
+    },
+    "visualExpectedCase": {
+      "canonicalCaseId": "AUTH-007",
+      "featureId": "AUTH-007",
+      "screenId": "AUTH-007",
+      "screenRoute": "/login",
+      "accountRole": "anonymous",
+      "targetSelector": "body",
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "liveVideoRequired": false
+    },
+    "screenshotPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.4.0/test-acceptance-current-final/runs/v390-test-acceptance-20261004133750-82231/ui-exact-424/cases/118-AUTH-007/screenshots/AUTH-007.png",
+    "tracePath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.4.0/test-acceptance-current-final/runs/v390-test-acceptance-20261004133750-82231/ui-exact-424/cases/118-AUTH-007/traces/AUTH-007.trace.json",
+    "browserConsolePath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.4.0/test-acceptance-current-final/runs/v390-test-acceptance-20261004133750-82231/ui-exact-424/cases/118-AUTH-007/logs/AUTH-007.browser-console.json",
+    "cleanupAttestation": {
+      "schema": "media-server.v390-ui-case-cleanup-attestation.v1",
+      "pass": true,
+      "primaryFailurePresent": false,
+      "primaryFailurePreserved": false,
+      "caseRuntimeRestoreAttempted": true,
+      "caseRuntimeRestored": true,
+      "browserCloseAttempted": true,
+      "browserContextClosed": true,
+      "cleanupEntryCount": 2,
+      "failureCode": ""
+    },
+    "requestLifecycleEvaluation": {
+      "status": "PASS",
+      "census": {
+        "requestCount": 6,
+        "responseCount": 6,
+        "classified": 6,
+        "unclassified": 0,
+        "multiplyClassified": 0,
+        "captureErrors": 0,
+        "duplicateResponses": 0,
+        "failureCount": 0
+      },
+      "diagnostics": {
+        "sequenceDomain": "diagnostic-seal-and-after-seal-only",
+        "diagnosticErrors": 0,
+        "seal": {
+          "sequence": 1,
+          "timestamp": 1791124227636
+        },
+        "afterSeal": [],
+        "requests": [
+          {
+            "requestIdentity": "AUTH-007:object-1",
+            "legacyRequestId": "native-request-1",
+            "method": "GET",
+            "path": "/login",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 1,
+              "timestamp": 1791124226098
+            },
+            "responses": [
+              {
+                "sequence": 2,
+                "timestamp": 1791124226101,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 3,
+                "timestamp": 1791124226108
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "AUTH-007:object-3",
+            "legacyRequestId": "native-request-2",
+            "method": "GET",
+            "path": "/auth/whoami",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 4,
+              "timestamp": 1791124226155
+            },
+            "responses": [
+              {
+                "sequence": 5,
+                "timestamp": 1791124226157,
+                "status": 401
+              }
+            ],
+            "finished": [],
+            "failed": []
+          },
+          {
+            "requestIdentity": "AUTH-007:object-5",
+            "legacyRequestId": "native-request-3",
+            "method": "GET",
+            "path": "/auth/whoami",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 6,
+              "timestamp": 1791124226180
+            },
+            "responses": [
+              {
+                "sequence": 7,
+                "timestamp": 1791124226182,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 8,
+                "timestamp": 1791124226182
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "AUTH-007:object-7",
+            "legacyRequestId": "native-request-4",
+            "method": "POST",
+            "path": "/login",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 9,
+              "timestamp": 1791124226267
+            },
+            "responses": [
+              {
+                "sequence": 10,
+                "timestamp": 1791124226269,
+                "status": 403
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 11,
+                "timestamp": 1791124226283
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "AUTH-007:object-9",
+            "legacyRequestId": "native-request-5",
+            "method": "GET",
+            "path": "/auth/whoami",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 12,
+              "timestamp": 1791124227281
+            },
+            "responses": [
+              {
+                "sequence": 13,
+                "timestamp": 1791124227285,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 14,
+                "timestamp": 1791124227286
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "AUTH-007:object-11",
+            "legacyRequestId": "native-request-6",
+            "method": "GET",
+            "path": "/auth/whoami",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 15,
+              "timestamp": 1791124227317
+            },
+            "responses": [
+              {
+                "sequence": 16,
+                "timestamp": 1791124227320,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 17,
+                "timestamp": 1791124227321
+              }
+            ],
+            "failed": []
+          }
+        ]
+      },
+      "requests": [
+        {
+          "requestIdentity": "AUTH-007:object-1",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "AUTH-007:object-3",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "AUTH-007:object-5",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "AUTH-007:object-7",
+          "redirectedFromIdentity": null,
+          "correlationDigest": "a50bbf001665f18ede200ff8c0ddb53addeef70523d063a6853b10caed894f9d"
+        },
+        {
+          "requestIdentity": "AUTH-007:object-9",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "AUTH-007:object-11",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        }
+      ],
+      "classifications": [
+        {
+          "requestIdentity": "AUTH-007:object-1",
+          "responseIdentity": "AUTH-007:object-2",
+          "requestKind": "document-navigation",
+          "classification": "bootstrap",
+          "owner": "page",
+          "phase": "bootstrap-document"
+        },
+        {
+          "requestIdentity": "AUTH-007:object-3",
+          "responseIdentity": "AUTH-007:object-4",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "AUTH-007:object-5",
+          "responseIdentity": "AUTH-007:object-6",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "AUTH-007:object-7",
+          "responseIdentity": "AUTH-007:object-8",
+          "requestKind": "document-navigation",
+          "classification": "action",
+          "owner": "action",
+          "phase": "same-route-rejection"
+        },
+        {
+          "requestIdentity": "AUTH-007:object-9",
+          "responseIdentity": "AUTH-007:object-10",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "AUTH-007:object-11",
+          "responseIdentity": "AUTH-007:object-12",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        }
+      ],
+      "failures": []
+    }
+  }
+}

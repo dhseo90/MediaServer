@@ -1,0 +1,32 @@
+{
+  "assessedAt": "2026-10-04T18:33:48.130145+00:00",
+  "subject": "mixed-30-9 resource trend and targeted native diagnostics",
+  "sourceHead": "505b2dac45fcccecda5423bb7921b4fc5aa97576",
+  "binarySha256": "4eaf41faebabb057958b3d9fcf55a2ceafb08b6eabd6baa024e7039c9b70314d",
+  "runLogSha256": "88a2dafcbe533bef2d24ad396bcf6ef5933df270fd2feb230a4ca62cde131b54",
+  "observed": {
+    "resourceTrendPass": false,
+    "reviewRequired": true,
+    "rssPeakBytes": 3190276096,
+    "postWarmupRssDeltaBytes": 67354624,
+    "plateauObserved": false
+  },
+  "independentReview": {
+    "agent": "/root/release_independent_review",
+    "model": "gpt-6-astra",
+    "reasoning": "xhigh",
+    "summary": "새로 입증된 제품 메모리 결함은 없어 승인된 최종 canonical 30·120분 검증을 진행할 수 있다. 릴리즈 판정과 전체 누수 없음은 별개다."
+  },
+  "mainDecision": "최종 canonical 실행 전 추가 제품 수정이 필요한 메모리 결함은 현재 증거로 확인되지 않았다. 기존 resourceTrendPass:false를 유지하고 최종 source의 30·120분 결과와 자원 추세를 다시 판정한다.",
+  "criteria": "V440-R01 RSS 4GiB/workspace 8GiB; PR77-06 mixed fixture 448MiB 및 검색 지연·진행·정리 기준. 기존 정의에 RSS slope=0 합격 기준은 없다.",
+  "supportingDiagnostics": [
+    "../memory-fixed-10/assessment.json",
+    "../memory-history-13/assessment.json",
+    "../memory-decode-14/assessment.json"
+  ],
+  "limits": [
+    "원래 혼합30분 RSS 증가64.23MiB의 원인을 모두 귀속하지 못했다.",
+    "고정 검색·저장 이력·디코딩을 분리한 단기 진단은 120분 또는 전체 누수 부재 증거가 아니다.",
+    "완료·릴리즈 PASS가 아니며 최종 canonical과 cleanup, 메인의 자원 판정이 남아 있다."
+  ]
+}

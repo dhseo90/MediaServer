@@ -1,0 +1,3945 @@
+{
+  "results": [
+    {
+      "id": "F03-object",
+      "status": "pass",
+      "features": [
+        "V420-F03"
+      ],
+      "role": {
+        "requestedRole": "admin",
+        "requestedScopes": [
+          "*"
+        ],
+        "role": "admin",
+        "scopes": [
+          "*"
+        ]
+      },
+      "startedAt": "2026-10-04T17:51:47.184Z",
+      "observation": {
+        "yes": {
+          "known": 6,
+          "unknown": 0,
+          "ids": [
+            "or:12:ui-release-3",
+            "or:12:ui-release-2",
+            "or:12:ui-release-1",
+            "or:12:ui-search-60",
+            "or:12:ui-release-0",
+            "or:12:ui-search-30"
+          ]
+        },
+        "no": {
+          "known": 0,
+          "unknown": 0,
+          "ids": []
+        }
+      },
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "theme": "light",
+      "endedAt": "2026-10-04T17:51:47.816Z"
+    },
+    {
+      "id": "F04-track",
+      "status": "pass",
+      "features": [
+        "V420-F04"
+      ],
+      "role": {
+        "requestedRole": "admin",
+        "requestedScopes": [
+          "*"
+        ],
+        "role": "admin",
+        "scopes": [
+          "*"
+        ]
+      },
+      "startedAt": "2026-10-04T17:51:47.816Z",
+      "observation": {
+        "yes": {
+          "known": 4,
+          "unknown": 0,
+          "ids": [
+            "or:12:ui-release-3",
+            "or:12:ui-release-2",
+            "or:12:ui-release-1",
+            "or:12:ui-release-0"
+          ]
+        },
+        "no": {
+          "known": 0,
+          "unknown": 0,
+          "ids": []
+        },
+        "distinct": {
+          "known": 2,
+          "unknown": 0,
+          "ids": [
+            "or:13:ui-release-29",
+            "or:13:ui-release-30"
+          ]
+        },
+        "epoch": {
+          "schema": "media-server.recording-search.v1",
+          "snapshotId": "6dfbf1ee7d91d59cf92b33da16da8f81",
+          "nextCursor": null,
+          "knownCount": 0,
+          "unplacedCount": 2,
+          "items": [
+            {
+              "id": "o2:18:ui-release-epoch-0",
+              "channelId": "1",
+              "kind": "observation",
+              "segmentId": "",
+              "observationId": "ui-release-epoch-0",
+              "startTimeNs": null,
+              "endTimeNs": null,
+              "timeProvenance": "",
+              "uncertaintyNs": null,
+              "object": "epoch-collision",
+              "track": "track-7",
+              "eventIds": [],
+              "zoneIds": [],
+              "ruleIds": [],
+              "playable": false,
+              "playbackUrl": "",
+              "preferredEventId": "",
+              "selectionReason": "original",
+              "unavailableReason": "unresolved-original"
+            },
+            {
+              "id": "o2:18:ui-release-epoch-1",
+              "channelId": "1",
+              "kind": "observation",
+              "segmentId": "",
+              "observationId": "ui-release-epoch-1",
+              "startTimeNs": null,
+              "endTimeNs": null,
+              "timeProvenance": "",
+              "uncertaintyNs": null,
+              "object": "epoch-collision",
+              "track": "track-7",
+              "eventIds": [],
+              "zoneIds": [],
+              "ruleIds": [],
+              "playable": false,
+              "playbackUrl": "",
+              "preferredEventId": "",
+              "selectionReason": "original",
+              "unavailableReason": "unresolved-original"
+            }
+          ]
+        }
+      },
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "theme": "light",
+      "endedAt": "2026-10-04T17:51:49.233Z"
+    },
+    {
+      "id": "F05-event",
+      "status": "pass",
+      "features": [
+        "V420-F05"
+      ],
+      "role": {
+        "requestedRole": "admin",
+        "requestedScopes": [
+          "*"
+        ],
+        "role": "admin",
+        "scopes": [
+          "*"
+        ]
+      },
+      "startedAt": "2026-10-04T17:51:49.233Z",
+      "observation": {
+        "yes": {
+          "known": 1,
+          "unknown": 0,
+          "ids": [
+            "or:12:ui-release-0"
+          ]
+        },
+        "no": {
+          "known": 0,
+          "unknown": 0,
+          "ids": []
+        }
+      },
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "theme": "light",
+      "endedAt": "2026-10-04T17:51:49.983Z"
+    },
+    {
+      "id": "V420-F06",
+      "status": "pass",
+      "features": [
+        "V420-F06"
+      ],
+      "role": {
+        "requestedRole": "admin",
+        "requestedScopes": [
+          "*"
+        ],
+        "role": "admin",
+        "scopes": [
+          "*"
+        ]
+      },
+      "startedAt": "2026-10-04T17:51:49.983Z",
+      "observation": {
+        "yes": {
+          "known": 2,
+          "unknown": 0,
+          "ids": [
+            "or:12:ui-release-2",
+            "or:12:ui-release-0"
+          ]
+        },
+        "no": {
+          "known": 0,
+          "unknown": 0,
+          "ids": []
+        }
+      },
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "theme": "light",
+      "endedAt": "2026-10-04T17:51:50.666Z"
+    },
+    {
+      "id": "V420-F07",
+      "status": "pass",
+      "features": [
+        "V420-F07"
+      ],
+      "role": {
+        "requestedRole": "admin",
+        "requestedScopes": [
+          "*"
+        ],
+        "role": "admin",
+        "scopes": [
+          "*"
+        ]
+      },
+      "startedAt": "2026-10-04T17:51:50.666Z",
+      "observation": {
+        "yes": {
+          "known": 2,
+          "unknown": 0,
+          "ids": [
+            "or:12:ui-release-2",
+            "or:12:ui-release-0"
+          ]
+        },
+        "no": {
+          "known": 0,
+          "unknown": 0,
+          "ids": []
+        }
+      },
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "theme": "light",
+      "endedAt": "2026-10-04T17:51:51.506Z"
+    },
+    {
+      "id": "V420-F08-I",
+      "status": "pass",
+      "features": [
+        "V420-F08-I"
+      ],
+      "role": {
+        "requestedRole": "admin",
+        "requestedScopes": [
+          "*"
+        ],
+        "role": "admin",
+        "scopes": [
+          "*"
+        ]
+      },
+      "startedAt": "2026-10-04T17:51:51.506Z",
+      "observation": {
+        "yes": {
+          "known": 1,
+          "unknown": 0,
+          "ids": [
+            "or:12:ui-release-0"
+          ]
+        },
+        "no": {
+          "known": 0,
+          "unknown": 0,
+          "ids": []
+        }
+      },
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "theme": "light",
+      "endedAt": "2026-10-04T17:51:52.231Z"
+    },
+    {
+      "id": "V420-F08-L",
+      "status": "pass",
+      "features": [
+        "V420-F08-L"
+      ],
+      "role": {
+        "requestedRole": "admin",
+        "requestedScopes": [
+          "*"
+        ],
+        "role": "admin",
+        "scopes": [
+          "*"
+        ]
+      },
+      "startedAt": "2026-10-04T17:51:52.231Z",
+      "observation": {
+        "yes": {
+          "known": 1,
+          "unknown": 0,
+          "ids": [
+            "or:12:ui-release-1"
+          ]
+        },
+        "no": {
+          "known": 0,
+          "unknown": 0,
+          "ids": []
+        }
+      },
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "theme": "light",
+      "endedAt": "2026-10-04T17:51:52.921Z"
+    },
+    {
+      "id": "V420-F08-D",
+      "status": "pass",
+      "features": [
+        "V420-F08-D"
+      ],
+      "role": {
+        "requestedRole": "admin",
+        "requestedScopes": [
+          "*"
+        ],
+        "role": "admin",
+        "scopes": [
+          "*"
+        ]
+      },
+      "startedAt": "2026-10-04T17:51:52.922Z",
+      "observation": {
+        "yes": {
+          "known": 1,
+          "unknown": 0,
+          "ids": [
+            "or:12:ui-release-2"
+          ]
+        },
+        "no": {
+          "known": 0,
+          "unknown": 0,
+          "ids": []
+        }
+      },
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "theme": "light",
+      "endedAt": "2026-10-04T17:51:53.647Z"
+    },
+    {
+      "id": "V420-F08-O",
+      "status": "pass",
+      "features": [
+        "V420-F08-O"
+      ],
+      "role": {
+        "requestedRole": "admin",
+        "requestedScopes": [
+          "*"
+        ],
+        "role": "admin",
+        "scopes": [
+          "*"
+        ]
+      },
+      "startedAt": "2026-10-04T17:51:53.647Z",
+      "observation": {
+        "yes": {
+          "known": 1,
+          "unknown": 0,
+          "ids": [
+            "or:12:ui-release-3"
+          ]
+        },
+        "no": {
+          "known": 0,
+          "unknown": 0,
+          "ids": []
+        }
+      },
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "theme": "light",
+      "endedAt": "2026-10-04T17:51:54.280Z"
+    },
+    {
+      "id": "F09-combined",
+      "status": "pass",
+      "features": [
+        "V420-F09"
+      ],
+      "role": {
+        "requestedRole": "admin",
+        "requestedScopes": [
+          "*"
+        ],
+        "role": "admin",
+        "scopes": [
+          "*"
+        ]
+      },
+      "startedAt": "2026-10-04T17:51:54.280Z",
+      "observation": {
+        "match": {
+          "known": 2,
+          "unknown": 0,
+          "ids": [
+            "or:12:ui-release-2",
+            "or:12:ui-release-0"
+          ]
+        },
+        "contradiction": {
+          "known": 0,
+          "unknown": 0,
+          "ids": []
+        }
+      },
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "theme": "light",
+      "endedAt": "2026-10-04T17:51:55.098Z"
+    },
+    {
+      "id": "F09-same-event",
+      "status": "pass",
+      "features": [
+        "V420-F09",
+        "V420-F08-O"
+      ],
+      "role": {
+        "requestedRole": "admin",
+        "requestedScopes": [
+          "*"
+        ],
+        "role": "admin",
+        "scopes": [
+          "*"
+        ]
+      },
+      "startedAt": "2026-10-04T17:51:55.098Z",
+      "observation": {
+        "different": {
+          "known": 0,
+          "unknown": 0,
+          "ids": []
+        },
+        "same": {
+          "known": 1,
+          "unknown": 0,
+          "ids": [
+            "or:13:ui-release-31"
+          ]
+        }
+      },
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "theme": "light",
+      "endedAt": "2026-10-04T17:51:55.831Z"
+    },
+    {
+      "id": "M02-missing",
+      "status": "pass",
+      "features": [
+        "V420-M02",
+        "V420-F08-I"
+      ],
+      "role": {
+        "requestedRole": "admin",
+        "requestedScopes": [
+          "*"
+        ],
+        "role": "admin",
+        "scopes": [
+          "*"
+        ]
+      },
+      "startedAt": "2026-10-04T17:51:55.831Z",
+      "observation": {
+        "data": {
+          "error": "search-event-evidence-incomplete"
+        },
+        "text": "행동 근거가 부족해 검색 결과를 판정하지 못했습니다. 잠시 후 다시 검색하세요."
+      },
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "theme": "light",
+      "endedAt": "2026-10-04T17:51:56.216Z"
+    },
+    {
+      "id": "M02-unrelated",
+      "status": "pass",
+      "features": [
+        "V420-M02"
+      ],
+      "role": {
+        "requestedRole": "admin",
+        "requestedScopes": [
+          "*"
+        ],
+        "role": "admin",
+        "scopes": [
+          "*"
+        ]
+      },
+      "startedAt": "2026-10-04T17:51:56.216Z",
+      "observation": {
+        "unrelated": {
+          "known": 0,
+          "unknown": 0,
+          "ids": []
+        },
+        "withoutBehaviour": {
+          "known": 2,
+          "unknown": 0,
+          "ids": [
+            "or:12:ui-search-60",
+            "or:12:ui-search-30"
+          ]
+        }
+      },
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "theme": "light",
+      "endedAt": "2026-10-04T17:51:56.999Z"
+    },
+    {
+      "id": "F10-invalid",
+      "status": "pass",
+      "features": [
+        "V420-F10"
+      ],
+      "role": {
+        "requestedRole": "admin",
+        "requestedScopes": [
+          "*"
+        ],
+        "role": "admin",
+        "scopes": [
+          "*"
+        ]
+      },
+      "startedAt": "2026-10-04T17:51:56.999Z",
+      "observation": {
+        "error": "invalid-recording-search-query"
+      },
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "theme": "light",
+      "endedAt": "2026-10-04T17:51:57.163Z"
+    },
+    {
+      "id": "F10-unknown",
+      "status": "pass",
+      "features": [
+        "V420-F10",
+        "V420-P03"
+      ],
+      "role": {
+        "requestedRole": "admin",
+        "requestedScopes": [
+          "*"
+        ],
+        "role": "admin",
+        "scopes": [
+          "*"
+        ]
+      },
+      "startedAt": "2026-10-04T17:51:57.163Z",
+      "observation": {
+        "excluded": {
+          "known": 0,
+          "unknown": 0,
+          "ids": []
+        },
+        "data": {
+          "schema": "media-server.recording-search.v1",
+          "snapshotId": "06a79e159d9ad8d52b86913315f9e70d",
+          "nextCursor": null,
+          "knownCount": 0,
+          "unplacedCount": 1,
+          "items": [
+            {
+              "id": "o2:18:ui-release-unknown",
+              "channelId": "1",
+              "kind": "observation",
+              "segmentId": "",
+              "observationId": "ui-release-unknown",
+              "startTimeNs": null,
+              "endTimeNs": null,
+              "timeProvenance": "",
+              "uncertaintyNs": null,
+              "object": "unknown-fixture",
+              "track": "track-unknown",
+              "eventIds": [],
+              "zoneIds": [],
+              "ruleIds": [],
+              "playable": false,
+              "playbackUrl": "",
+              "preferredEventId": "",
+              "selectionReason": "original",
+              "unavailableReason": "unresolved-original"
+            }
+          ]
+        },
+        "selection": {
+          "response": {
+            "hitId": "o2:18:ui-release-unknown",
+            "playable": false,
+            "playbackUrl": "",
+            "seekAvailable": false,
+            "targetSeconds": null,
+            "frameDurationSeconds": null,
+            "reason": "media-unavailable",
+            "timeBasis": ""
+          },
+          "state": {
+            "time": 0,
+            "duration": null,
+            "readyState": 0,
+            "seeking": false,
+            "error": null,
+            "src": null,
+            "width": 0,
+            "height": 0
+          },
+          "message": "현재 파일을 재생할 수 없습니다. 삭제·누락 상태일 수 있으니 다시 검색하세요.",
+          "events": [
+            {
+              "type": "status",
+              "at": 11307.800000011921,
+              "text": "결과를 선택하면 검색 시점으로 이동합니다."
+            },
+            {
+              "type": "status",
+              "at": 11307.800000011921,
+              "text": "현재 파일과 재생 위치를 확인하는 중…"
+            },
+            {
+              "type": "status",
+              "at": 11327.300000011921,
+              "text": "현재 파일을 재생할 수 없습니다. 삭제·누락 상태일 수 있으니 다시 검색하세요."
+            }
+          ]
+        }
+      },
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "theme": "light",
+      "endedAt": "2026-10-04T17:51:57.905Z"
+    },
+    {
+      "id": "F01-channels",
+      "status": "pass",
+      "features": [
+        "V420-F01"
+      ],
+      "role": {
+        "requestedRole": "admin",
+        "requestedScopes": [
+          "*"
+        ],
+        "role": "admin",
+        "scopes": [
+          "*"
+        ]
+      },
+      "startedAt": "2026-10-04T17:51:57.905Z",
+      "observation": {
+        "union": {
+          "known": 6,
+          "unknown": 0,
+          "ids": [
+            "or:12:ui-release-3",
+            "or:12:ui-release-2",
+            "or:12:ui-release-1",
+            "or:12:ui-search-60",
+            "or:12:ui-release-0",
+            "or:12:ui-search-30"
+          ]
+        },
+        "empty": {
+          "known": 0,
+          "unknown": 0,
+          "ids": []
+        }
+      },
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "theme": "light",
+      "endedAt": "2026-10-04T17:51:58.485Z"
+    },
+    {
+      "id": "F02-time",
+      "status": "pass",
+      "features": [
+        "V420-F02"
+      ],
+      "role": {
+        "requestedRole": "admin",
+        "requestedScopes": [
+          "*"
+        ],
+        "role": "admin",
+        "scopes": [
+          "*"
+        ]
+      },
+      "startedAt": "2026-10-04T17:51:58.485Z",
+      "observation": {
+        "outside": {
+          "known": 0,
+          "unknown": 0,
+          "ids": []
+        },
+        "text": "카메라 1~32개와 31일 이내의 올바른 시간 범위를 선택하세요."
+      },
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "theme": "light",
+      "endedAt": "2026-10-04T17:51:58.814Z"
+    },
+    {
+      "id": "C01-pages",
+      "status": "pass",
+      "features": [
+        "V420-C01"
+      ],
+      "role": {
+        "requestedRole": "admin",
+        "requestedScopes": [
+          "*"
+        ],
+        "role": "admin",
+        "scopes": [
+          "*"
+        ]
+      },
+      "startedAt": "2026-10-04T17:51:58.814Z",
+      "observation": {
+        "first": {
+          "schema": "media-server.recording-search.v1",
+          "snapshotId": "d1b9a4c23d0ad3c22bb907a91ba37ff0",
+          "nextCursor": "v1.d1b9a4c23d0ad3c22bb907a91ba37ff0.20.659008c22fe304b23e1aa54ed6eed33186f16f107e1cde64b87d635d0daa196c",
+          "knownCount": 25,
+          "unplacedCount": 0,
+          "items": [
+            {
+              "id": "or:12:ui-release-4",
+              "channelId": "1",
+              "kind": "observation",
+              "segmentId": "df874f5b-792f-4059-a998-08f597908708",
+              "observationId": "ui-release-4",
+              "startTimeNs": "1791136261000000000",
+              "endTimeNs": "1791136261000000001",
+              "timeProvenance": "estimated",
+              "uncertaintyNs": "2001000",
+              "object": "paging",
+              "track": "track-7",
+              "eventIds": [],
+              "zoneIds": [
+                "zone-a"
+              ],
+              "ruleIds": [
+                "rule-a"
+              ],
+              "playable": true,
+              "playbackUrl": "/ops/api/recordings/media/df874f5b-792f-4059-a998-08f597908708",
+              "preferredEventId": "",
+              "selectionReason": "original",
+              "unavailableReason": ""
+            },
+            {
+              "id": "or:12:ui-release-5",
+              "channelId": "1",
+              "kind": "observation",
+              "segmentId": "df874f5b-792f-4059-a998-08f597908708",
+              "observationId": "ui-release-5",
+              "startTimeNs": "1791136261000000000",
+              "endTimeNs": "1791136261000000001",
+              "timeProvenance": "estimated",
+              "uncertaintyNs": "2001000",
+              "object": "paging",
+              "track": "track-7",
+              "eventIds": [],
+              "zoneIds": [
+                "zone-b"
+              ],
+              "ruleIds": [
+                "rule-b"
+              ],
+              "playable": true,
+              "playbackUrl": "/ops/api/recordings/media/df874f5b-792f-4059-a998-08f597908708",
+              "preferredEventId": "",
+              "selectionReason": "original",
+              "unavailableReason": ""
+            },
+            {
+              "id": "or:12:ui-release-6",
+              "channelId": "1",
+              "kind": "observation",
+              "segmentId": "df874f5b-792f-4059-a998-08f597908708",
+              "observationId": "ui-release-6",
+              "startTimeNs": "1791136261000000000",
+              "endTimeNs": "1791136261000000001",
+              "timeProvenance": "estimated",
+              "uncertaintyNs": "2001000",
+              "object": "paging",
+              "track": "track-7",
+              "eventIds": [],
+              "zoneIds": [
+                "zone-a"
+              ],
+              "ruleIds": [
+                "rule-a"
+              ],
+              "playable": true,
+              "playbackUrl": "/ops/api/recordings/media/df874f5b-792f-4059-a998-08f597908708",
+              "preferredEventId": "",
+              "selectionReason": "original",
+              "unavailableReason": ""
+            },
+            {
+              "id": "or:12:ui-release-7",
+              "channelId": "1",
+              "kind": "observation",
+              "segmentId": "df874f5b-792f-4059-a998-08f597908708",
+              "observationId": "ui-release-7",
+              "startTimeNs": "1791136261000000000",
+              "endTimeNs": "1791136261000000001",
+              "timeProvenance": "estimated",
+              "uncertaintyNs": "2001000",
+              "object": "paging",
+              "track": "track-7",
+              "eventIds": [],
+              "zoneIds": [
+                "zone-b"
+              ],
+              "ruleIds": [
+                "rule-b"
+              ],
+              "playable": true,
+              "playbackUrl": "/ops/api/recordings/media/df874f5b-792f-4059-a998-08f597908708",
+              "preferredEventId": "",
+              "selectionReason": "original",
+              "unavailableReason": ""
+            },
+            {
+              "id": "or:12:ui-release-8",
+              "channelId": "1",
+              "kind": "observation",
+              "segmentId": "df874f5b-792f-4059-a998-08f597908708",
+              "observationId": "ui-release-8",
+              "startTimeNs": "1791136261000000000",
+              "endTimeNs": "1791136261000000001",
+              "timeProvenance": "estimated",
+              "uncertaintyNs": "2001000",
+              "object": "paging",
+              "track": "track-7",
+              "eventIds": [],
+              "zoneIds": [
+                "zone-a"
+              ],
+              "ruleIds": [
+                "rule-a"
+              ],
+              "playable": true,
+              "playbackUrl": "/ops/api/recordings/media/df874f5b-792f-4059-a998-08f597908708",
+              "preferredEventId": "",
+              "selectionReason": "original",
+              "unavailableReason": ""
+            },
+            {
+              "id": "or:12:ui-release-9",
+              "channelId": "1",
+              "kind": "observation",
+              "segmentId": "df874f5b-792f-4059-a998-08f597908708",
+              "observationId": "ui-release-9",
+              "startTimeNs": "1791136261000000000",
+              "endTimeNs": "1791136261000000001",
+              "timeProvenance": "estimated",
+              "uncertaintyNs": "2001000",
+              "object": "paging",
+              "track": "track-7",
+              "eventIds": [],
+              "zoneIds": [
+                "zone-b"
+              ],
+              "ruleIds": [
+                "rule-b"
+              ],
+              "playable": true,
+              "playbackUrl": "/ops/api/recordings/media/df874f5b-792f-4059-a998-08f597908708",
+              "preferredEventId": "",
+              "selectionReason": "original",
+              "unavailableReason": ""
+            },
+            {
+              "id": "or:13:ui-release-10",
+              "channelId": "1",
+              "kind": "observation",
+              "segmentId": "df874f5b-792f-4059-a998-08f597908708",
+              "observationId": "ui-release-10",
+              "startTimeNs": "1791136261000000000",
+              "endTimeNs": "1791136261000000001",
+              "timeProvenance": "estimated",
+              "uncertaintyNs": "2001000",
+              "object": "paging",
+              "track": "track-7",
+              "eventIds": [],
+              "zoneIds": [
+                "zone-a"
+              ],
+              "ruleIds": [
+                "rule-a"
+              ],
+              "playable": true,
+              "playbackUrl": "/ops/api/recordings/media/df874f5b-792f-4059-a998-08f597908708",
+              "preferredEventId": "",
+              "selectionReason": "original",
+              "unavailableReason": ""
+            },
+            {
+              "id": "or:13:ui-release-11",
+              "channelId": "1",
+              "kind": "observation",
+              "segmentId": "df874f5b-792f-4059-a998-08f597908708",
+              "observationId": "ui-release-11",
+              "startTimeNs": "1791136261000000000",
+              "endTimeNs": "1791136261000000001",
+              "timeProvenance": "estimated",
+              "uncertaintyNs": "2001000",
+              "object": "paging",
+              "track": "track-7",
+              "eventIds": [],
+              "zoneIds": [
+                "zone-b"
+              ],
+              "ruleIds": [
+                "rule-b"
+              ],
+              "playable": true,
+              "playbackUrl": "/ops/api/recordings/media/df874f5b-792f-4059-a998-08f597908708",
+              "preferredEventId": "",
+              "selectionReason": "original",
+              "unavailableReason": ""
+            },
+            {
+              "id": "or:13:ui-release-12",
+              "channelId": "1",
+              "kind": "observation",
+              "segmentId": "df874f5b-792f-4059-a998-08f597908708",
+              "observationId": "ui-release-12",
+              "startTimeNs": "1791136261000000000",
+              "endTimeNs": "1791136261000000001",
+              "timeProvenance": "estimated",
+              "uncertaintyNs": "2001000",
+              "object": "paging",
+              "track": "track-7",
+              "eventIds": [],
+              "zoneIds": [
+                "zone-a"
+              ],
+              "ruleIds": [
+                "rule-a"
+              ],
+              "playable": true,
+              "playbackUrl": "/ops/api/recordings/media/df874f5b-792f-4059-a998-08f597908708",
+              "preferredEventId": "",
+              "selectionReason": "original",
+              "unavailableReason": ""
+            },
+            {
+              "id": "or:13:ui-release-13",
+              "channelId": "1",
+              "kind": "observation",
+              "segmentId": "df874f5b-792f-4059-a998-08f597908708",
+              "observationId": "ui-release-13",
+              "startTimeNs": "1791136261000000000",
+              "endTimeNs": "1791136261000000001",
+              "timeProvenance": "estimated",
+              "uncertaintyNs": "2001000",
+              "object": "paging",
+              "track": "track-7",
+              "eventIds": [],
+              "zoneIds": [
+                "zone-b"
+              ],
+              "ruleIds": [
+                "rule-b"
+              ],
+              "playable": true,
+              "playbackUrl": "/ops/api/recordings/media/df874f5b-792f-4059-a998-08f597908708",
+              "preferredEventId": "",
+              "selectionReason": "original",
+              "unavailableReason": ""
+            },
+            {
+              "id": "or:13:ui-release-14",
+              "channelId": "1",
+              "kind": "observation",
+              "segmentId": "df874f5b-792f-4059-a998-08f597908708",
+              "observationId": "ui-release-14",
+              "startTimeNs": "1791136261000000000",
+              "endTimeNs": "1791136261000000001",
+              "timeProvenance": "estimated",
+              "uncertaintyNs": "2001000",
+              "object": "paging",
+              "track": "track-7",
+              "eventIds": [],
+              "zoneIds": [
+                "zone-a"
+              ],
+              "ruleIds": [
+                "rule-a"
+              ],
+              "playable": true,
+              "playbackUrl": "/ops/api/recordings/media/df874f5b-792f-4059-a998-08f597908708",
+              "preferredEventId": "",
+              "selectionReason": "original",
+              "unavailableReason": ""
+            },
+            {
+              "id": "or:13:ui-release-15",
+              "channelId": "1",
+              "kind": "observation",
+              "segmentId": "df874f5b-792f-4059-a998-08f597908708",
+              "observationId": "ui-release-15",
+              "startTimeNs": "1791136261000000000",
+              "endTimeNs": "1791136261000000001",
+              "timeProvenance": "estimated",
+              "uncertaintyNs": "2001000",
+              "object": "paging",
+              "track": "track-7",
+              "eventIds": [],
+              "zoneIds": [
+                "zone-b"
+              ],
+              "ruleIds": [
+                "rule-b"
+              ],
+              "playable": true,
+              "playbackUrl": "/ops/api/recordings/media/df874f5b-792f-4059-a998-08f597908708",
+              "preferredEventId": "",
+              "selectionReason": "original",
+              "unavailableReason": ""
+            },
+            {
+              "id": "or:13:ui-release-16",
+              "channelId": "1",
+              "kind": "observation",
+              "segmentId": "df874f5b-792f-4059-a998-08f597908708",
+              "observationId": "ui-release-16",
+              "startTimeNs": "1791136261000000000",
+              "endTimeNs": "1791136261000000001",
+              "timeProvenance": "estimated",
+              "uncertaintyNs": "2001000",
+              "object": "paging",
+              "track": "track-7",
+              "eventIds": [],
+              "zoneIds": [
+                "zone-a"
+              ],
+              "ruleIds": [
+                "rule-a"
+              ],
+              "playable": true,
+              "playbackUrl": "/ops/api/recordings/media/df874f5b-792f-4059-a998-08f597908708",
+              "preferredEventId": "",
+              "selectionReason": "original",
+              "unavailableReason": ""
+            },
+            {
+              "id": "or:13:ui-release-17",
+              "channelId": "1",
+              "kind": "observation",
+              "segmentId": "df874f5b-792f-4059-a998-08f597908708",
+              "observationId": "ui-release-17",
+              "startTimeNs": "1791136261000000000",
+              "endTimeNs": "1791136261000000001",
+              "timeProvenance": "estimated",
+              "uncertaintyNs": "2001000",
+              "object": "paging",
+              "track": "track-7",
+              "eventIds": [],
+              "zoneIds": [
+                "zone-b"
+              ],
+              "ruleIds": [
+                "rule-b"
+              ],
+              "playable": true,
+              "playbackUrl": "/ops/api/recordings/media/df874f5b-792f-4059-a998-08f597908708",
+              "preferredEventId": "",
+              "selectionReason": "original",
+              "unavailableReason": ""
+            },
+            {
+              "id": "or:13:ui-release-18",
+              "channelId": "1",
+              "kind": "observation",
+              "segmentId": "df874f5b-792f-4059-a998-08f597908708",
+              "observationId": "ui-release-18",
+              "startTimeNs": "1791136261000000000",
+              "endTimeNs": "1791136261000000001",
+              "timeProvenance": "estimated",
+              "uncertaintyNs": "2001000",
+              "object": "paging",
+              "track": "track-7",
+              "eventIds": [],
+              "zoneIds": [
+                "zone-a"
+              ],
+              "ruleIds": [
+                "rule-a"
+              ],
+              "playable": true,
+              "playbackUrl": "/ops/api/recordings/media/df874f5b-792f-4059-a998-08f597908708",
+              "preferredEventId": "",
+              "selectionReason": "original",
+              "unavailableReason": ""
+            },
+            {
+              "id": "or:13:ui-release-19",
+              "channelId": "1",
+              "kind": "observation",
+              "segmentId": "df874f5b-792f-4059-a998-08f597908708",
+              "observationId": "ui-release-19",
+              "startTimeNs": "1791136261000000000",
+              "endTimeNs": "1791136261000000001",
+              "timeProvenance": "estimated",
+              "uncertaintyNs": "2001000",
+              "object": "paging",
+              "track": "track-7",
+              "eventIds": [],
+              "zoneIds": [
+                "zone-b"
+              ],
+              "ruleIds": [
+                "rule-b"
+              ],
+              "playable": true,
+              "playbackUrl": "/ops/api/recordings/media/df874f5b-792f-4059-a998-08f597908708",
+              "preferredEventId": "",
+              "selectionReason": "original",
+              "unavailableReason": ""
+            },
+            {
+              "id": "or:13:ui-release-20",
+              "channelId": "1",
+              "kind": "observation",
+              "segmentId": "df874f5b-792f-4059-a998-08f597908708",
+              "observationId": "ui-release-20",
+              "startTimeNs": "1791136261000000000",
+              "endTimeNs": "1791136261000000001",
+              "timeProvenance": "estimated",
+              "uncertaintyNs": "2001000",
+              "object": "paging",
+              "track": "track-7",
+              "eventIds": [],
+              "zoneIds": [
+                "zone-a"
+              ],
+              "ruleIds": [
+                "rule-a"
+              ],
+              "playable": true,
+              "playbackUrl": "/ops/api/recordings/media/df874f5b-792f-4059-a998-08f597908708",
+              "preferredEventId": "",
+              "selectionReason": "original",
+              "unavailableReason": ""
+            },
+            {
+              "id": "or:13:ui-release-21",
+              "channelId": "1",
+              "kind": "observation",
+              "segmentId": "df874f5b-792f-4059-a998-08f597908708",
+              "observationId": "ui-release-21",
+              "startTimeNs": "1791136261000000000",
+              "endTimeNs": "1791136261000000001",
+              "timeProvenance": "estimated",
+              "uncertaintyNs": "2001000",
+              "object": "paging",
+              "track": "track-7",
+              "eventIds": [],
+              "zoneIds": [
+                "zone-b"
+              ],
+              "ruleIds": [
+                "rule-b"
+              ],
+              "playable": true,
+              "playbackUrl": "/ops/api/recordings/media/df874f5b-792f-4059-a998-08f597908708",
+              "preferredEventId": "",
+              "selectionReason": "original",
+              "unavailableReason": ""
+            },
+            {
+              "id": "or:13:ui-release-22",
+              "channelId": "1",
+              "kind": "observation",
+              "segmentId": "df874f5b-792f-4059-a998-08f597908708",
+              "observationId": "ui-release-22",
+              "startTimeNs": "1791136261000000000",
+              "endTimeNs": "1791136261000000001",
+              "timeProvenance": "estimated",
+              "uncertaintyNs": "2001000",
+              "object": "paging",
+              "track": "track-7",
+              "eventIds": [],
+              "zoneIds": [
+                "zone-a"
+              ],
+              "ruleIds": [
+                "rule-a"
+              ],
+              "playable": true,
+              "playbackUrl": "/ops/api/recordings/media/df874f5b-792f-4059-a998-08f597908708",
+              "preferredEventId": "",
+              "selectionReason": "original",
+              "unavailableReason": ""
+            },
+            {
+              "id": "or:13:ui-release-23",
+              "channelId": "1",
+              "kind": "observation",
+              "segmentId": "df874f5b-792f-4059-a998-08f597908708",
+              "observationId": "ui-release-23",
+              "startTimeNs": "1791136261000000000",
+              "endTimeNs": "1791136261000000001",
+              "timeProvenance": "estimated",
+              "uncertaintyNs": "2001000",
+              "object": "paging",
+              "track": "track-7",
+              "eventIds": [],
+              "zoneIds": [
+                "zone-b"
+              ],
+              "ruleIds": [
+                "rule-b"
+              ],
+              "playable": true,
+              "playbackUrl": "/ops/api/recordings/media/df874f5b-792f-4059-a998-08f597908708",
+              "preferredEventId": "",
+              "selectionReason": "original",
+              "unavailableReason": ""
+            }
+          ]
+        },
+        "second": {
+          "schema": "media-server.recording-search.v1",
+          "snapshotId": "d1b9a4c23d0ad3c22bb907a91ba37ff0",
+          "nextCursor": null,
+          "knownCount": 25,
+          "unplacedCount": 0,
+          "items": [
+            {
+              "id": "or:13:ui-release-24",
+              "channelId": "1",
+              "kind": "observation",
+              "segmentId": "df874f5b-792f-4059-a998-08f597908708",
+              "observationId": "ui-release-24",
+              "startTimeNs": "1791136261000000000",
+              "endTimeNs": "1791136261000000001",
+              "timeProvenance": "estimated",
+              "uncertaintyNs": "2001000",
+              "object": "paging",
+              "track": "track-7",
+              "eventIds": [],
+              "zoneIds": [
+                "zone-a"
+              ],
+              "ruleIds": [
+                "rule-a"
+              ],
+              "playable": true,
+              "playbackUrl": "/ops/api/recordings/media/df874f5b-792f-4059-a998-08f597908708",
+              "preferredEventId": "",
+              "selectionReason": "original",
+              "unavailableReason": ""
+            },
+            {
+              "id": "or:13:ui-release-25",
+              "channelId": "1",
+              "kind": "observation",
+              "segmentId": "df874f5b-792f-4059-a998-08f597908708",
+              "observationId": "ui-release-25",
+              "startTimeNs": "1791136261000000000",
+              "endTimeNs": "1791136261000000001",
+              "timeProvenance": "estimated",
+              "uncertaintyNs": "2001000",
+              "object": "paging",
+              "track": "track-7",
+              "eventIds": [],
+              "zoneIds": [
+                "zone-b"
+              ],
+              "ruleIds": [
+                "rule-b"
+              ],
+              "playable": true,
+              "playbackUrl": "/ops/api/recordings/media/df874f5b-792f-4059-a998-08f597908708",
+              "preferredEventId": "",
+              "selectionReason": "original",
+              "unavailableReason": ""
+            },
+            {
+              "id": "or:13:ui-release-26",
+              "channelId": "1",
+              "kind": "observation",
+              "segmentId": "df874f5b-792f-4059-a998-08f597908708",
+              "observationId": "ui-release-26",
+              "startTimeNs": "1791136261000000000",
+              "endTimeNs": "1791136261000000001",
+              "timeProvenance": "estimated",
+              "uncertaintyNs": "2001000",
+              "object": "paging",
+              "track": "track-7",
+              "eventIds": [],
+              "zoneIds": [
+                "zone-a"
+              ],
+              "ruleIds": [
+                "rule-a"
+              ],
+              "playable": true,
+              "playbackUrl": "/ops/api/recordings/media/df874f5b-792f-4059-a998-08f597908708",
+              "preferredEventId": "",
+              "selectionReason": "original",
+              "unavailableReason": ""
+            },
+            {
+              "id": "or:13:ui-release-27",
+              "channelId": "1",
+              "kind": "observation",
+              "segmentId": "df874f5b-792f-4059-a998-08f597908708",
+              "observationId": "ui-release-27",
+              "startTimeNs": "1791136261000000000",
+              "endTimeNs": "1791136261000000001",
+              "timeProvenance": "estimated",
+              "uncertaintyNs": "2001000",
+              "object": "paging",
+              "track": "track-7",
+              "eventIds": [],
+              "zoneIds": [
+                "zone-b"
+              ],
+              "ruleIds": [
+                "rule-b"
+              ],
+              "playable": true,
+              "playbackUrl": "/ops/api/recordings/media/df874f5b-792f-4059-a998-08f597908708",
+              "preferredEventId": "",
+              "selectionReason": "original",
+              "unavailableReason": ""
+            },
+            {
+              "id": "or:13:ui-release-28",
+              "channelId": "1",
+              "kind": "observation",
+              "segmentId": "df874f5b-792f-4059-a998-08f597908708",
+              "observationId": "ui-release-28",
+              "startTimeNs": "1791136261000000000",
+              "endTimeNs": "1791136261000000001",
+              "timeProvenance": "estimated",
+              "uncertaintyNs": "2001000",
+              "object": "paging",
+              "track": "track-7",
+              "eventIds": [],
+              "zoneIds": [
+                "zone-a"
+              ],
+              "ruleIds": [
+                "rule-a"
+              ],
+              "playable": true,
+              "playbackUrl": "/ops/api/recordings/media/df874f5b-792f-4059-a998-08f597908708",
+              "preferredEventId": "",
+              "selectionReason": "original",
+              "unavailableReason": ""
+            }
+          ]
+        }
+      },
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "theme": "light",
+      "endedAt": "2026-10-04T17:51:59.150Z"
+    },
+    {
+      "id": "C03-live-membership",
+      "status": "pass",
+      "features": [
+        "V420-C03"
+      ],
+      "role": {
+        "requestedRole": "admin",
+        "requestedScopes": [
+          "*"
+        ],
+        "role": "admin",
+        "scopes": [
+          "*"
+        ]
+      },
+      "startedAt": "2026-10-04T17:51:59.150Z",
+      "observation": {
+        "newSegmentIds": [
+          "16d0bd0a-4e37-4fc7-974a-07dca5b6ca9e",
+          "951a3f5f-499d-4671-bf08-0ca3ff745fdc"
+        ],
+        "newResultIds": [
+          "s2:36:16d0bd0a-4e37-4fc7-974a-07dca5b6ca9e39:16d0bd0a-4e37-4fc7-974a-07dca5b6ca9e-m0",
+          "s2:36:951a3f5f-499d-4671-bf08-0ca3ff745fdc39:951a3f5f-499d-4671-bf08-0ca3ff745fdc-m0"
+        ],
+        "oldKnown": 108,
+        "newKnown": 108,
+        "oldUnplaced": 35,
+        "newUnplaced": 37,
+        "pages": 8,
+        "before": {
+          "channelId": "3",
+          "displayName": "S09 UI 3",
+          "enabled": false,
+          "active": false,
+          "storageBlocked": false,
+          "continuousBytes": 0,
+          "eventBytes": 0,
+          "continuousMaxBytes": 134217728,
+          "eventMaxBytes": 134217728
+        },
+        "progressed": {
+          "channelId": "3",
+          "displayName": "S09 UI 3",
+          "enabled": true,
+          "active": true,
+          "storageBlocked": false,
+          "continuousBytes": 135795,
+          "eventBytes": 0,
+          "continuousMaxBytes": 134217728,
+          "eventMaxBytes": 134217728
+        },
+        "stopped": {
+          "channelId": "3",
+          "displayName": "S09 UI 3",
+          "enabled": false,
+          "active": false,
+          "storageBlocked": false,
+          "continuousBytes": 155798,
+          "eventBytes": 0,
+          "continuousMaxBytes": 134217728,
+          "eventMaxBytes": 134217728
+        }
+      },
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "theme": "light",
+      "endedAt": "2026-10-04T17:52:11.631Z"
+    },
+    {
+      "id": "P01-original",
+      "status": "pass",
+      "features": [
+        "V420-P01",
+        "V420-U01",
+        "V420-K02"
+      ],
+      "role": {
+        "requestedRole": "admin",
+        "requestedScopes": [
+          "*"
+        ],
+        "role": "admin",
+        "scopes": [
+          "*"
+        ]
+      },
+      "startedAt": "2026-10-04T17:52:11.631Z",
+      "observation": {
+        "first": {
+          "response": {
+            "hitId": "or:12:ui-release-3",
+            "playable": true,
+            "playbackUrl": "/ops/api/recordings/media/df874f5b-792f-4059-a998-08f597908708",
+            "seekAvailable": true,
+            "targetSeconds": 4,
+            "frameDurationSeconds": 0.03333333333333333,
+            "reason": "",
+            "timeBasis": "verified-native-file-presentation"
+          },
+          "state": {
+            "time": 4,
+            "duration": 10,
+            "readyState": 4,
+            "seeking": false,
+            "error": null,
+            "src": "/ops/api/recordings/media/df874f5b-792f-4059-a998-08f597908708",
+            "width": 1280,
+            "height": 720
+          },
+          "message": "검색 시점으로 이동했습니다. 재생 버튼을 누르세요.",
+          "events": [
+            {
+              "type": "status",
+              "at": 25424.600000023842,
+              "text": "결과를 선택하면 검색 시점으로 이동합니다."
+            },
+            {
+              "type": "status",
+              "at": 25424.600000023842,
+              "text": "현재 파일과 재생 위치를 확인하는 중…"
+            },
+            {
+              "type": "loadedmetadata",
+              "at": 25655.400000035763,
+              "time": 0,
+              "seeking": false,
+              "readyState": 4
+            },
+            {
+              "type": "status",
+              "at": 25655.600000023842,
+              "text": "검색 시점으로 탐색 중…"
+            },
+            {
+              "type": "seeking",
+              "at": 25659.5,
+              "time": 4,
+              "seeking": true,
+              "readyState": 1
+            },
+            {
+              "type": "seeked",
+              "at": 25731.100000023842,
+              "time": 4,
+              "seeking": false,
+              "readyState": 4
+            },
+            {
+              "type": "status",
+              "at": 25731.200000047684,
+              "text": "검색 시점으로 이동했습니다. 재생 버튼을 누르세요."
+            }
+          ]
+        },
+        "second": {
+          "response": {
+            "hitId": "or:12:ui-release-2",
+            "playable": true,
+            "playbackUrl": "/ops/api/recordings/media/df874f5b-792f-4059-a998-08f597908708",
+            "seekAvailable": true,
+            "targetSeconds": 3,
+            "frameDurationSeconds": 0.03333333333333333,
+            "reason": "",
+            "timeBasis": "verified-native-file-presentation"
+          },
+          "state": {
+            "time": 3,
+            "duration": 10,
+            "readyState": 4,
+            "seeking": false,
+            "error": null,
+            "src": "/ops/api/recordings/media/df874f5b-792f-4059-a998-08f597908708",
+            "width": 1280,
+            "height": 720
+          },
+          "message": "검색 시점으로 이동했습니다. 재생 버튼을 누르세요.",
+          "events": [
+            {
+              "type": "status",
+              "at": 25875.400000035763,
+              "text": "결과를 선택하면 검색 시점으로 이동합니다."
+            },
+            {
+              "type": "status",
+              "at": 25875.400000035763,
+              "text": "현재 파일과 재생 위치를 확인하는 중…"
+            },
+            {
+              "type": "loadedmetadata",
+              "at": 26024.30000001192,
+              "time": 0,
+              "seeking": false,
+              "readyState": 4
+            },
+            {
+              "type": "status",
+              "at": 26024.5,
+              "text": "검색 시점으로 탐색 중…"
+            },
+            {
+              "type": "seeking",
+              "at": 26024.5,
+              "time": 3,
+              "seeking": true,
+              "readyState": 1
+            },
+            {
+              "type": "seeked",
+              "at": 26047.600000023842,
+              "time": 3,
+              "seeking": false,
+              "readyState": 4
+            },
+            {
+              "type": "status",
+              "at": 26047.700000047684,
+              "text": "검색 시점으로 이동했습니다. 재생 버튼을 누르세요."
+            }
+          ]
+        }
+      },
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "theme": "light",
+      "endedAt": "2026-10-04T17:52:12.668Z"
+    },
+    {
+      "id": "P02-derived",
+      "status": "pass",
+      "features": [
+        "V420-P02",
+        "V420-E01",
+        "V420-E02"
+      ],
+      "role": {
+        "requestedRole": "admin",
+        "requestedScopes": [
+          "*"
+        ],
+        "role": "admin",
+        "scopes": [
+          "*"
+        ]
+      },
+      "startedAt": "2026-10-04T17:52:12.668Z",
+      "observation": {
+        "data": {
+          "schema": "media-server.recording-search.v1",
+          "snapshotId": "9cb7a4f161198c582290e1e66594c725",
+          "nextCursor": null,
+          "knownCount": 2,
+          "unplacedCount": 0,
+          "items": [
+            {
+              "id": "or:21:ui-release-derived-20",
+              "channelId": "1",
+              "kind": "observation",
+              "segmentId": "3d9ea584-2e53-487a-82ba-06c3c47357e9",
+              "observationId": "ui-release-derived-20",
+              "startTimeNs": "1791136262000000000",
+              "endTimeNs": "1791136262000000001",
+              "timeProvenance": "estimated",
+              "uncertaintyNs": "2001000",
+              "object": "event-search",
+              "track": "track-8",
+              "eventIds": [],
+              "zoneIds": [],
+              "ruleIds": [],
+              "playable": true,
+              "playbackUrl": "/ops/api/recordings/media/3d9ea584-2e53-487a-82ba-06c3c47357e9",
+              "preferredEventId": "",
+              "selectionReason": "original",
+              "unavailableReason": ""
+            },
+            {
+              "id": "or:20:ui-release-derived-0",
+              "channelId": "1",
+              "kind": "observation",
+              "segmentId": "a4424b91-cdc0-40c4-b8b9-0e396ef2dfbe",
+              "observationId": "ui-release-derived-0",
+              "startTimeNs": "1791136260000000000",
+              "endTimeNs": "1791136260000000001",
+              "timeProvenance": "estimated",
+              "uncertaintyNs": "2001000",
+              "object": "event-search",
+              "track": "track-8",
+              "eventIds": [],
+              "zoneIds": [],
+              "ruleIds": [],
+              "playable": true,
+              "playbackUrl": "/ops/api/recordings/media/dj-b33c6e67ecea7b5eff08abf512258cf051312cc4a0871438d040f9cf52c2cba0-o0",
+              "preferredEventId": "ui-full-event",
+              "selectionReason": "event-priority",
+              "unavailableReason": ""
+            }
+          ]
+        },
+        "event": {
+          "response": {
+            "hitId": "or:20:ui-release-derived-0",
+            "playable": true,
+            "playbackUrl": "/ops/api/recordings/media/dj-b33c6e67ecea7b5eff08abf512258cf051312cc4a0871438d040f9cf52c2cba0-o0",
+            "seekAvailable": true,
+            "targetSeconds": 0,
+            "frameDurationSeconds": 0.1,
+            "reason": "",
+            "timeBasis": "verified-derived-file-presentation"
+          },
+          "state": {
+            "time": 0,
+            "duration": 1,
+            "readyState": 4,
+            "seeking": false,
+            "error": null,
+            "src": "/ops/api/recordings/media/dj-b33c6e67ecea7b5eff08abf512258cf051312cc4a0871438d040f9cf52c2cba0-o0",
+            "width": 160,
+            "height": 90
+          },
+          "message": "검색 시점으로 이동했습니다. 재생 버튼을 누르세요.",
+          "events": [
+            {
+              "type": "status",
+              "at": 26407.80000001192,
+              "text": "결과를 선택하면 검색 시점으로 이동합니다."
+            },
+            {
+              "type": "status",
+              "at": 26407.80000001192,
+              "text": "현재 파일과 재생 위치를 확인하는 중…"
+            },
+            {
+              "type": "loadedmetadata",
+              "at": 26500.700000047684,
+              "time": 0,
+              "seeking": false,
+              "readyState": 4
+            },
+            {
+              "type": "status",
+              "at": 26500.80000001192,
+              "text": "검색 시점으로 탐색 중…"
+            },
+            {
+              "type": "status",
+              "at": 26500.80000001192,
+              "text": "검색 시점으로 이동했습니다. 재생 버튼을 누르세요."
+            }
+          ]
+        },
+        "original": {
+          "response": {
+            "hitId": "or:21:ui-release-derived-20",
+            "playable": true,
+            "playbackUrl": "/ops/api/recordings/media/3d9ea584-2e53-487a-82ba-06c3c47357e9",
+            "seekAvailable": false,
+            "targetSeconds": null,
+            "frameDurationSeconds": null,
+            "reason": "seek-unavailable",
+            "timeBasis": ""
+          },
+          "state": {
+            "time": 0,
+            "duration": 1,
+            "readyState": 4,
+            "seeking": false,
+            "error": null,
+            "src": "/ops/api/recordings/media/3d9ea584-2e53-487a-82ba-06c3c47357e9",
+            "width": 160,
+            "height": 90
+          },
+          "message": "정확한 검색 위치를 확인할 수 없습니다. 파일 시작부터 재생할 수 있습니다.",
+          "events": [
+            {
+              "type": "status",
+              "at": 26575.600000023842,
+              "text": "결과를 선택하면 검색 시점으로 이동합니다."
+            },
+            {
+              "type": "status",
+              "at": 26575.600000023842,
+              "text": "현재 파일과 재생 위치를 확인하는 중…"
+            },
+            {
+              "type": "loadedmetadata",
+              "at": 26599.80000001192,
+              "time": 0,
+              "seeking": false,
+              "readyState": 4
+            },
+            {
+              "type": "status",
+              "at": 26599.80000001192,
+              "text": "정확한 검색 위치를 확인할 수 없습니다. 파일 시작부터 재생할 수 있습니다."
+            }
+          ]
+        }
+      },
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "theme": "light",
+      "endedAt": "2026-10-04T17:52:13.179Z"
+    },
+    {
+      "id": "E02-current-fallback",
+      "status": "pass",
+      "features": [
+        "V420-E02",
+        "V420-P03"
+      ],
+      "role": {
+        "requestedRole": "admin",
+        "requestedScopes": [
+          "*"
+        ],
+        "role": "admin",
+        "scopes": [
+          "*"
+        ]
+      },
+      "startedAt": "2026-10-04T17:52:13.179Z",
+      "observation": {
+        "preferred": "/ops/api/recordings/media/dj-b33c6e67ecea7b5eff08abf512258cf051312cc4a0871438d040f9cf52c2cba0-o0",
+        "fallback": {
+          "response": {
+            "hitId": "or:20:ui-release-derived-0",
+            "playable": true,
+            "playbackUrl": "/ops/api/recordings/media/a4424b91-cdc0-40c4-b8b9-0e396ef2dfbe",
+            "seekAvailable": false,
+            "targetSeconds": null,
+            "frameDurationSeconds": null,
+            "reason": "seek-unavailable",
+            "timeBasis": ""
+          },
+          "state": {
+            "time": 0,
+            "duration": 1,
+            "readyState": 4,
+            "seeking": false,
+            "error": null,
+            "src": "/ops/api/recordings/media/a4424b91-cdc0-40c4-b8b9-0e396ef2dfbe",
+            "width": 160,
+            "height": 90
+          },
+          "message": "정확한 검색 위치를 확인할 수 없습니다. 파일 시작부터 재생할 수 있습니다.",
+          "events": [
+            {
+              "type": "status",
+              "at": 27141.100000023842,
+              "text": "결과를 선택하면 검색 시점으로 이동합니다."
+            },
+            {
+              "type": "status",
+              "at": 27141.100000023842,
+              "text": "현재 파일과 재생 위치를 확인하는 중…"
+            },
+            {
+              "type": "loadedmetadata",
+              "at": 27167.100000023842,
+              "time": 0,
+              "seeking": false,
+              "readyState": 4
+            },
+            {
+              "type": "status",
+              "at": 27167.30000001192,
+              "text": "정확한 검색 위치를 확인할 수 없습니다. 파일 시작부터 재생할 수 있습니다."
+            }
+          ]
+        }
+      },
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "theme": "light",
+      "endedAt": "2026-10-04T17:52:13.718Z"
+    },
+    {
+      "id": "P03-missing-current-file",
+      "status": "pass",
+      "features": [
+        "V420-P03",
+        "V420-L02",
+        "V420-K02"
+      ],
+      "role": {
+        "requestedRole": "admin",
+        "requestedScopes": [
+          "*"
+        ],
+        "role": "admin",
+        "scopes": [
+          "*"
+        ]
+      },
+      "startedAt": "2026-10-04T17:52:13.718Z",
+      "observation": {
+        "initialSnapshot": "3d6ccb7feb3bc11c56d6e2ed2fc4936f",
+        "unavailable": {
+          "response": {
+            "hitId": "or:12:ui-release-3",
+            "playable": false,
+            "playbackUrl": "",
+            "seekAvailable": false,
+            "targetSeconds": null,
+            "frameDurationSeconds": null,
+            "reason": "media-unavailable",
+            "timeBasis": ""
+          },
+          "state": {
+            "time": 0,
+            "duration": null,
+            "readyState": 0,
+            "seeking": false,
+            "error": null,
+            "src": null,
+            "width": 0,
+            "height": 0
+          },
+          "message": "현재 파일을 재생할 수 없습니다. 삭제·누락 상태일 수 있으니 다시 검색하세요.",
+          "events": [
+            {
+              "type": "status",
+              "at": 27557.5,
+              "text": "결과를 선택하면 검색 시점으로 이동합니다."
+            },
+            {
+              "type": "status",
+              "at": 27557.5,
+              "text": "현재 파일과 재생 위치를 확인하는 중…"
+            },
+            {
+              "type": "status",
+              "at": 27577.5,
+              "text": "현재 파일을 재생할 수 없습니다. 삭제·누락 상태일 수 있으니 다시 검색하세요."
+            }
+          ]
+        },
+        "fresh": {
+          "schema": "media-server.recording-search.v1",
+          "snapshotId": "376d375690bfa8421ac6d807c3fbdc4d",
+          "nextCursor": null,
+          "knownCount": 4,
+          "unplacedCount": 0,
+          "items": [
+            {
+              "id": "or:12:ui-release-3",
+              "channelId": "1",
+              "kind": "observation",
+              "segmentId": "df874f5b-792f-4059-a998-08f597908708",
+              "observationId": "ui-release-3",
+              "startTimeNs": "1791136264000000000",
+              "endTimeNs": "1791136264000000001",
+              "timeProvenance": "estimated",
+              "uncertaintyNs": "2001000",
+              "object": "person",
+              "track": "track-7",
+              "eventIds": [
+                "ui-release-event-3"
+              ],
+              "zoneIds": [
+                "zone-b"
+              ],
+              "ruleIds": [
+                "rule-b"
+              ],
+              "playable": false,
+              "playbackUrl": "",
+              "preferredEventId": "",
+              "selectionReason": "original",
+              "unavailableReason": "media-unavailable"
+            },
+            {
+              "id": "or:12:ui-release-2",
+              "channelId": "1",
+              "kind": "observation",
+              "segmentId": "df874f5b-792f-4059-a998-08f597908708",
+              "observationId": "ui-release-2",
+              "startTimeNs": "1791136263000000000",
+              "endTimeNs": "1791136263000000001",
+              "timeProvenance": "estimated",
+              "uncertaintyNs": "2001000",
+              "object": "person",
+              "track": "track-7",
+              "eventIds": [
+                "ui-release-event-2"
+              ],
+              "zoneIds": [
+                "zone-a"
+              ],
+              "ruleIds": [
+                "rule-a"
+              ],
+              "playable": false,
+              "playbackUrl": "",
+              "preferredEventId": "",
+              "selectionReason": "original",
+              "unavailableReason": "media-unavailable"
+            },
+            {
+              "id": "or:12:ui-release-1",
+              "channelId": "1",
+              "kind": "observation",
+              "segmentId": "df874f5b-792f-4059-a998-08f597908708",
+              "observationId": "ui-release-1",
+              "startTimeNs": "1791136262000000000",
+              "endTimeNs": "1791136262000000001",
+              "timeProvenance": "estimated",
+              "uncertaintyNs": "2001000",
+              "object": "person",
+              "track": "track-7",
+              "eventIds": [
+                "ui-release-event-1"
+              ],
+              "zoneIds": [
+                "zone-b"
+              ],
+              "ruleIds": [
+                "rule-b"
+              ],
+              "playable": false,
+              "playbackUrl": "",
+              "preferredEventId": "",
+              "selectionReason": "original",
+              "unavailableReason": "media-unavailable"
+            },
+            {
+              "id": "or:12:ui-release-0",
+              "channelId": "1",
+              "kind": "observation",
+              "segmentId": "df874f5b-792f-4059-a998-08f597908708",
+              "observationId": "ui-release-0",
+              "startTimeNs": "1791136261000000000",
+              "endTimeNs": "1791136261000000001",
+              "timeProvenance": "estimated",
+              "uncertaintyNs": "2001000",
+              "object": "person",
+              "track": "track-7",
+              "eventIds": [
+                "ui-release-event-0"
+              ],
+              "zoneIds": [
+                "zone-a"
+              ],
+              "ruleIds": [
+                "rule-a"
+              ],
+              "playable": false,
+              "playbackUrl": "",
+              "preferredEventId": "",
+              "selectionReason": "original",
+              "unavailableReason": "media-unavailable"
+            }
+          ]
+        }
+      },
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "theme": "light",
+      "endedAt": "2026-10-04T17:52:14.383Z"
+    },
+    {
+      "id": "P03-corrupt-current-file",
+      "status": "pass",
+      "features": [
+        "V420-P03",
+        "V420-L02"
+      ],
+      "role": {
+        "requestedRole": "admin",
+        "requestedScopes": [
+          "*"
+        ],
+        "role": "admin",
+        "scopes": [
+          "*"
+        ]
+      },
+      "startedAt": "2026-10-04T17:52:14.383Z",
+      "observation": {
+        "unavailable": {
+          "response": {
+            "hitId": "or:12:ui-release-3",
+            "playable": false,
+            "playbackUrl": "",
+            "seekAvailable": false,
+            "targetSeconds": null,
+            "frameDurationSeconds": null,
+            "reason": "media-unavailable",
+            "timeBasis": ""
+          },
+          "state": {
+            "time": 0,
+            "duration": null,
+            "readyState": 0,
+            "seeking": false,
+            "error": null,
+            "src": null,
+            "width": 0,
+            "height": 0
+          },
+          "message": "현재 파일을 재생할 수 없습니다. 삭제·누락 상태일 수 있으니 다시 검색하세요.",
+          "events": [
+            {
+              "type": "status",
+              "at": 28240.80000001192,
+              "text": "결과를 선택하면 검색 시점으로 이동합니다."
+            },
+            {
+              "type": "status",
+              "at": 28240.80000001192,
+              "text": "현재 파일과 재생 위치를 확인하는 중…"
+            },
+            {
+              "type": "status",
+              "at": 28260.80000001192,
+              "text": "현재 파일을 재생할 수 없습니다. 삭제·누락 상태일 수 있으니 다시 검색하세요."
+            }
+          ]
+        },
+        "fresh": {
+          "schema": "media-server.recording-search.v1",
+          "snapshotId": "736dec22418b9e1430d88862a88fdf6f",
+          "nextCursor": null,
+          "knownCount": 4,
+          "unplacedCount": 0,
+          "items": [
+            {
+              "id": "or:12:ui-release-3",
+              "channelId": "1",
+              "kind": "observation",
+              "segmentId": "df874f5b-792f-4059-a998-08f597908708",
+              "observationId": "ui-release-3",
+              "startTimeNs": "1791136264000000000",
+              "endTimeNs": "1791136264000000001",
+              "timeProvenance": "estimated",
+              "uncertaintyNs": "2001000",
+              "object": "person",
+              "track": "track-7",
+              "eventIds": [
+                "ui-release-event-3"
+              ],
+              "zoneIds": [
+                "zone-b"
+              ],
+              "ruleIds": [
+                "rule-b"
+              ],
+              "playable": false,
+              "playbackUrl": "",
+              "preferredEventId": "",
+              "selectionReason": "original",
+              "unavailableReason": "media-unavailable"
+            },
+            {
+              "id": "or:12:ui-release-2",
+              "channelId": "1",
+              "kind": "observation",
+              "segmentId": "df874f5b-792f-4059-a998-08f597908708",
+              "observationId": "ui-release-2",
+              "startTimeNs": "1791136263000000000",
+              "endTimeNs": "1791136263000000001",
+              "timeProvenance": "estimated",
+              "uncertaintyNs": "2001000",
+              "object": "person",
+              "track": "track-7",
+              "eventIds": [
+                "ui-release-event-2"
+              ],
+              "zoneIds": [
+                "zone-a"
+              ],
+              "ruleIds": [
+                "rule-a"
+              ],
+              "playable": false,
+              "playbackUrl": "",
+              "preferredEventId": "",
+              "selectionReason": "original",
+              "unavailableReason": "media-unavailable"
+            },
+            {
+              "id": "or:12:ui-release-1",
+              "channelId": "1",
+              "kind": "observation",
+              "segmentId": "df874f5b-792f-4059-a998-08f597908708",
+              "observationId": "ui-release-1",
+              "startTimeNs": "1791136262000000000",
+              "endTimeNs": "1791136262000000001",
+              "timeProvenance": "estimated",
+              "uncertaintyNs": "2001000",
+              "object": "person",
+              "track": "track-7",
+              "eventIds": [
+                "ui-release-event-1"
+              ],
+              "zoneIds": [
+                "zone-b"
+              ],
+              "ruleIds": [
+                "rule-b"
+              ],
+              "playable": false,
+              "playbackUrl": "",
+              "preferredEventId": "",
+              "selectionReason": "original",
+              "unavailableReason": "media-unavailable"
+            },
+            {
+              "id": "or:12:ui-release-0",
+              "channelId": "1",
+              "kind": "observation",
+              "segmentId": "df874f5b-792f-4059-a998-08f597908708",
+              "observationId": "ui-release-0",
+              "startTimeNs": "1791136261000000000",
+              "endTimeNs": "1791136261000000001",
+              "timeProvenance": "estimated",
+              "uncertaintyNs": "2001000",
+              "object": "person",
+              "track": "track-7",
+              "eventIds": [
+                "ui-release-event-0"
+              ],
+              "zoneIds": [
+                "zone-a"
+              ],
+              "ruleIds": [
+                "rule-a"
+              ],
+              "playable": false,
+              "playbackUrl": "",
+              "preferredEventId": "",
+              "selectionReason": "original",
+              "unavailableReason": "media-unavailable"
+            }
+          ]
+        }
+      },
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "theme": "light",
+      "endedAt": "2026-10-04T17:52:15.136Z"
+    },
+    {
+      "id": "U02-390-light",
+      "status": "pass",
+      "features": [
+        "V420-U02"
+      ],
+      "role": {
+        "requestedRole": "admin",
+        "requestedScopes": [
+          "*"
+        ],
+        "role": "admin",
+        "scopes": [
+          "*"
+        ]
+      },
+      "startedAt": "2026-10-04T17:52:15.137Z",
+      "observation": {
+        "width": 390,
+        "theme": "light",
+        "geometry": [
+          {
+            "id": "opsSearchChannels",
+            "left": 33,
+            "right": 357,
+            "width": 324,
+            "label": "카메라 (복수 선택)S06 channel 1S06 channel 2S09 UI 3S09 UI 4",
+            "focusable": true
+          },
+          {
+            "id": "opsSearchStart",
+            "left": 33,
+            "right": 357,
+            "width": 324,
+            "label": "시작 시간 (현지 시간)",
+            "focusable": true
+          },
+          {
+            "id": "opsSearchEnd",
+            "left": 33,
+            "right": 357,
+            "width": 324,
+            "label": "종료 시간 (현지 시간)",
+            "focusable": true
+          },
+          {
+            "id": "opsSearchObject",
+            "left": 33,
+            "right": 357,
+            "width": 324,
+            "label": "객체",
+            "focusable": true
+          },
+          {
+            "id": "opsSearchTrack",
+            "left": 33,
+            "right": 357,
+            "width": 324,
+            "label": "Track",
+            "focusable": true
+          },
+          {
+            "id": "opsSearchEvent",
+            "left": 33,
+            "right": 357,
+            "width": 324,
+            "label": "이벤트",
+            "focusable": true
+          },
+          {
+            "id": "opsSearchZone",
+            "left": 33,
+            "right": 357,
+            "width": 324,
+            "label": "영역",
+            "focusable": true
+          },
+          {
+            "id": "opsSearchRule",
+            "left": 33,
+            "right": 357,
+            "width": 324,
+            "label": "규칙",
+            "focusable": true
+          },
+          {
+            "id": "opsSearchBehaviour",
+            "left": 33,
+            "right": 357,
+            "width": 324,
+            "label": "행동",
+            "focusable": true
+          },
+          {
+            "id": "opsSearchLimit",
+            "left": 33,
+            "right": 357,
+            "width": 324,
+            "label": "페이지당 결과2050100200",
+            "focusable": true
+          },
+          {
+            "id": "opsSearchUnplaced",
+            "left": 33,
+            "right": 51,
+            "width": 18,
+            "label": "시간 미확인 자료 포함",
+            "focusable": true
+          },
+          {
+            "id": "opsSearchSubmit",
+            "left": 33,
+            "right": 357,
+            "width": 324,
+            "label": "검색",
+            "focusable": true
+          },
+          {
+            "id": "opsSearchPlayer",
+            "left": 33,
+            "right": 357,
+            "width": 324,
+            "label": "검색 결과 녹화영상",
+            "focusable": true
+          }
+        ],
+        "focus": {
+          "id": "",
+          "tag": "BUTTON"
+        }
+      },
+      "viewport": {
+        "width": 390,
+        "height": 1000
+      },
+      "theme": "light",
+      "endedAt": "2026-10-04T17:52:16.024Z"
+    },
+    {
+      "id": "U02-390-dark",
+      "status": "pass",
+      "features": [
+        "V420-U02"
+      ],
+      "role": {
+        "requestedRole": "admin",
+        "requestedScopes": [
+          "*"
+        ],
+        "role": "admin",
+        "scopes": [
+          "*"
+        ]
+      },
+      "startedAt": "2026-10-04T17:52:16.024Z",
+      "observation": {
+        "width": 390,
+        "theme": "dark",
+        "geometry": [
+          {
+            "id": "opsSearchChannels",
+            "left": 33,
+            "right": 357,
+            "width": 324,
+            "label": "카메라 (복수 선택)S06 channel 1S06 channel 2S09 UI 3S09 UI 4",
+            "focusable": true
+          },
+          {
+            "id": "opsSearchStart",
+            "left": 33,
+            "right": 357,
+            "width": 324,
+            "label": "시작 시간 (현지 시간)",
+            "focusable": true
+          },
+          {
+            "id": "opsSearchEnd",
+            "left": 33,
+            "right": 357,
+            "width": 324,
+            "label": "종료 시간 (현지 시간)",
+            "focusable": true
+          },
+          {
+            "id": "opsSearchObject",
+            "left": 33,
+            "right": 357,
+            "width": 324,
+            "label": "객체",
+            "focusable": true
+          },
+          {
+            "id": "opsSearchTrack",
+            "left": 33,
+            "right": 357,
+            "width": 324,
+            "label": "Track",
+            "focusable": true
+          },
+          {
+            "id": "opsSearchEvent",
+            "left": 33,
+            "right": 357,
+            "width": 324,
+            "label": "이벤트",
+            "focusable": true
+          },
+          {
+            "id": "opsSearchZone",
+            "left": 33,
+            "right": 357,
+            "width": 324,
+            "label": "영역",
+            "focusable": true
+          },
+          {
+            "id": "opsSearchRule",
+            "left": 33,
+            "right": 357,
+            "width": 324,
+            "label": "규칙",
+            "focusable": true
+          },
+          {
+            "id": "opsSearchBehaviour",
+            "left": 33,
+            "right": 357,
+            "width": 324,
+            "label": "행동",
+            "focusable": true
+          },
+          {
+            "id": "opsSearchLimit",
+            "left": 33,
+            "right": 357,
+            "width": 324,
+            "label": "페이지당 결과2050100200",
+            "focusable": true
+          },
+          {
+            "id": "opsSearchUnplaced",
+            "left": 33,
+            "right": 51,
+            "width": 18,
+            "label": "시간 미확인 자료 포함",
+            "focusable": true
+          },
+          {
+            "id": "opsSearchSubmit",
+            "left": 33,
+            "right": 357,
+            "width": 324,
+            "label": "검색",
+            "focusable": true
+          },
+          {
+            "id": "opsSearchPlayer",
+            "left": 33,
+            "right": 357,
+            "width": 324,
+            "label": "검색 결과 녹화영상",
+            "focusable": true
+          }
+        ],
+        "focus": {
+          "id": "",
+          "tag": "BUTTON"
+        }
+      },
+      "viewport": {
+        "width": 390,
+        "height": 1000
+      },
+      "theme": "dark",
+      "endedAt": "2026-10-04T17:52:16.859Z"
+    },
+    {
+      "id": "U02-1440-light",
+      "status": "pass",
+      "features": [
+        "V420-U02"
+      ],
+      "role": {
+        "requestedRole": "admin",
+        "requestedScopes": [
+          "*"
+        ],
+        "role": "admin",
+        "scopes": [
+          "*"
+        ]
+      },
+      "startedAt": "2026-10-04T17:52:16.859Z",
+      "observation": {
+        "width": 1440,
+        "theme": "light",
+        "geometry": [
+          {
+            "id": "opsSearchChannels",
+            "left": 33,
+            "right": 367.5,
+            "width": 334.5,
+            "label": "카메라 (복수 선택)S06 channel 1S06 channel 2S09 UI 3S09 UI 4",
+            "focusable": true
+          },
+          {
+            "id": "opsSearchStart",
+            "left": 379.5,
+            "right": 714,
+            "width": 334.5,
+            "label": "시작 시간 (현지 시간)",
+            "focusable": true
+          },
+          {
+            "id": "opsSearchEnd",
+            "left": 726,
+            "right": 1060.5,
+            "width": 334.5,
+            "label": "종료 시간 (현지 시간)",
+            "focusable": true
+          },
+          {
+            "id": "opsSearchObject",
+            "left": 1072.5,
+            "right": 1407,
+            "width": 334.5,
+            "label": "객체",
+            "focusable": true
+          },
+          {
+            "id": "opsSearchTrack",
+            "left": 33,
+            "right": 367.5,
+            "width": 334.5,
+            "label": "Track",
+            "focusable": true
+          },
+          {
+            "id": "opsSearchEvent",
+            "left": 379.5,
+            "right": 714,
+            "width": 334.5,
+            "label": "이벤트",
+            "focusable": true
+          },
+          {
+            "id": "opsSearchZone",
+            "left": 726,
+            "right": 1060.5,
+            "width": 334.5,
+            "label": "영역",
+            "focusable": true
+          },
+          {
+            "id": "opsSearchRule",
+            "left": 1072.5,
+            "right": 1407,
+            "width": 334.5,
+            "label": "규칙",
+            "focusable": true
+          },
+          {
+            "id": "opsSearchBehaviour",
+            "left": 33,
+            "right": 461.09375,
+            "width": 428.09375,
+            "label": "행동",
+            "focusable": true
+          },
+          {
+            "id": "opsSearchLimit",
+            "left": 473.09375,
+            "right": 901.203125,
+            "width": 428.109375,
+            "label": "페이지당 결과2050100200",
+            "focusable": true
+          },
+          {
+            "id": "opsSearchUnplaced",
+            "left": 913.203125,
+            "right": 931.203125,
+            "width": 18,
+            "label": "시간 미확인 자료 포함",
+            "focusable": true
+          },
+          {
+            "id": "opsSearchSubmit",
+            "left": 1353.3125,
+            "right": 1407,
+            "width": 53.6875,
+            "label": "검색",
+            "focusable": true
+          },
+          {
+            "id": "opsSearchPlayer",
+            "left": 33,
+            "right": 1407,
+            "width": 1374,
+            "label": "검색 결과 녹화영상",
+            "focusable": true
+          }
+        ],
+        "focus": {
+          "id": "",
+          "tag": "BUTTON"
+        }
+      },
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "theme": "light",
+      "endedAt": "2026-10-04T17:52:17.717Z"
+    },
+    {
+      "id": "U02-1440-dark",
+      "status": "pass",
+      "features": [
+        "V420-U02"
+      ],
+      "role": {
+        "requestedRole": "admin",
+        "requestedScopes": [
+          "*"
+        ],
+        "role": "admin",
+        "scopes": [
+          "*"
+        ]
+      },
+      "startedAt": "2026-10-04T17:52:17.717Z",
+      "observation": {
+        "width": 1440,
+        "theme": "dark",
+        "geometry": [
+          {
+            "id": "opsSearchChannels",
+            "left": 33,
+            "right": 367.5,
+            "width": 334.5,
+            "label": "카메라 (복수 선택)S06 channel 1S06 channel 2S09 UI 3S09 UI 4",
+            "focusable": true
+          },
+          {
+            "id": "opsSearchStart",
+            "left": 379.5,
+            "right": 714,
+            "width": 334.5,
+            "label": "시작 시간 (현지 시간)",
+            "focusable": true
+          },
+          {
+            "id": "opsSearchEnd",
+            "left": 726,
+            "right": 1060.5,
+            "width": 334.5,
+            "label": "종료 시간 (현지 시간)",
+            "focusable": true
+          },
+          {
+            "id": "opsSearchObject",
+            "left": 1072.5,
+            "right": 1407,
+            "width": 334.5,
+            "label": "객체",
+            "focusable": true
+          },
+          {
+            "id": "opsSearchTrack",
+            "left": 33,
+            "right": 367.5,
+            "width": 334.5,
+            "label": "Track",
+            "focusable": true
+          },
+          {
+            "id": "opsSearchEvent",
+            "left": 379.5,
+            "right": 714,
+            "width": 334.5,
+            "label": "이벤트",
+            "focusable": true
+          },
+          {
+            "id": "opsSearchZone",
+            "left": 726,
+            "right": 1060.5,
+            "width": 334.5,
+            "label": "영역",
+            "focusable": true
+          },
+          {
+            "id": "opsSearchRule",
+            "left": 1072.5,
+            "right": 1407,
+            "width": 334.5,
+            "label": "규칙",
+            "focusable": true
+          },
+          {
+            "id": "opsSearchBehaviour",
+            "left": 33,
+            "right": 461.09375,
+            "width": 428.09375,
+            "label": "행동",
+            "focusable": true
+          },
+          {
+            "id": "opsSearchLimit",
+            "left": 473.09375,
+            "right": 901.203125,
+            "width": 428.109375,
+            "label": "페이지당 결과2050100200",
+            "focusable": true
+          },
+          {
+            "id": "opsSearchUnplaced",
+            "left": 913.203125,
+            "right": 931.203125,
+            "width": 18,
+            "label": "시간 미확인 자료 포함",
+            "focusable": true
+          },
+          {
+            "id": "opsSearchSubmit",
+            "left": 1353.3125,
+            "right": 1407,
+            "width": 53.6875,
+            "label": "검색",
+            "focusable": true
+          },
+          {
+            "id": "opsSearchPlayer",
+            "left": 33,
+            "right": 1407,
+            "width": 1374,
+            "label": "검색 결과 녹화영상",
+            "focusable": true
+          }
+        ],
+        "focus": {
+          "id": "",
+          "tag": "BUTTON"
+        }
+      },
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "theme": "dark",
+      "endedAt": "2026-10-04T17:52:18.551Z"
+    },
+    {
+      "id": "U01-late-search",
+      "status": "pass",
+      "features": [
+        "V420-U01"
+      ],
+      "role": {
+        "requestedRole": "admin",
+        "requestedScopes": [
+          "*"
+        ],
+        "role": "admin",
+        "scopes": [
+          "*"
+        ]
+      },
+      "startedAt": "2026-10-04T17:52:18.552Z",
+      "observation": {
+        "freshCount": 0,
+        "lateResponseObserved": true
+      },
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "theme": "dark",
+      "endedAt": "2026-10-04T17:52:19.213Z"
+    },
+    {
+      "id": "U01-late-seek",
+      "status": "pass",
+      "features": [
+        "V420-U01"
+      ],
+      "role": {
+        "requestedRole": "admin",
+        "requestedScopes": [
+          "*"
+        ],
+        "role": "admin",
+        "scopes": [
+          "*"
+        ]
+      },
+      "startedAt": "2026-10-04T17:52:19.213Z",
+      "observation": {
+        "current": {
+          "response": {
+            "hitId": "or:12:ui-release-2",
+            "playable": true,
+            "playbackUrl": "/ops/api/recordings/media/df874f5b-792f-4059-a998-08f597908708",
+            "seekAvailable": true,
+            "targetSeconds": 3,
+            "frameDurationSeconds": 0.03333333333333333,
+            "reason": "",
+            "timeBasis": "verified-native-file-presentation"
+          },
+          "state": {
+            "time": 3,
+            "duration": 10,
+            "readyState": 4,
+            "seeking": false,
+            "error": null,
+            "src": "/ops/api/recordings/media/df874f5b-792f-4059-a998-08f597908708",
+            "width": 1280,
+            "height": 720
+          },
+          "message": "검색 시점으로 이동했습니다. 재생 버튼을 누르세요.",
+          "events": [
+            {
+              "type": "status",
+              "at": 33109.60000002384,
+              "text": "결과를 선택하면 검색 시점으로 이동합니다."
+            },
+            {
+              "type": "status",
+              "at": 33109.60000002384,
+              "text": "현재 파일과 재생 위치를 확인하는 중…"
+            },
+            {
+              "type": "loadedmetadata",
+              "at": 33292.60000002384,
+              "time": 0,
+              "seeking": false,
+              "readyState": 4
+            },
+            {
+              "type": "status",
+              "at": 33292.700000047684,
+              "text": "검색 시점으로 탐색 중…"
+            },
+            {
+              "type": "seeking",
+              "at": 33292.80000001192,
+              "time": 3,
+              "seeking": true,
+              "readyState": 1
+            },
+            {
+              "type": "seeked",
+              "at": 33321.30000001192,
+              "time": 3,
+              "seeking": false,
+              "readyState": 4
+            },
+            {
+              "type": "status",
+              "at": 33321.40000003576,
+              "text": "검색 시점으로 이동했습니다. 재생 버튼을 누르세요."
+            }
+          ]
+        },
+        "time": 3,
+        "lateResponseObserved": true
+      },
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "theme": "dark",
+      "endedAt": "2026-10-04T17:52:20.106Z"
+    },
+    {
+      "id": "C02-restart",
+      "status": "pass",
+      "features": [
+        "V420-C02"
+      ],
+      "role": {
+        "requestedRole": "admin",
+        "requestedScopes": [
+          "*"
+        ],
+        "role": "admin",
+        "scopes": [
+          "*"
+        ]
+      },
+      "startedAt": "2026-10-04T17:52:20.106Z",
+      "observation": {
+        "initialSnapshot": "28cffd6b622b422610b9700b5bc4f80f",
+        "lifecycle": {
+          "action": "restart",
+          "previousStop": {
+            "exited": true,
+            "forced": false,
+            "exitCode": 0,
+            "signalCode": null
+          },
+          "ready": true
+        },
+        "response": {
+          "error": "search-invalid-cursor"
+        },
+        "text": "검색 조건이 올바르지 않습니다.",
+        "state": {
+          "src": null,
+          "paused": true
+        },
+        "fresh": {
+          "schema": "media-server.recording-search.v1",
+          "snapshotId": "e3ff09a9be8debf0cea8e19e26017b02",
+          "nextCursor": "v1.e3ff09a9be8debf0cea8e19e26017b02.20.ac6a7229e8de3122cdf2d09e10fb8125e3db4cf034a04e08ac89c29f09d3437e",
+          "knownCount": 25,
+          "unplacedCount": 0,
+          "items": [
+            {
+              "id": "or:12:ui-release-4",
+              "channelId": "1",
+              "kind": "observation",
+              "segmentId": "df874f5b-792f-4059-a998-08f597908708",
+              "observationId": "ui-release-4",
+              "startTimeNs": "1791136261000000000",
+              "endTimeNs": "1791136261000000001",
+              "timeProvenance": "estimated",
+              "uncertaintyNs": "2001000",
+              "object": "paging",
+              "track": "track-7",
+              "eventIds": [],
+              "zoneIds": [
+                "zone-a"
+              ],
+              "ruleIds": [
+                "rule-a"
+              ],
+              "playable": true,
+              "playbackUrl": "/ops/api/recordings/media/df874f5b-792f-4059-a998-08f597908708",
+              "preferredEventId": "",
+              "selectionReason": "original",
+              "unavailableReason": ""
+            },
+            {
+              "id": "or:12:ui-release-5",
+              "channelId": "1",
+              "kind": "observation",
+              "segmentId": "df874f5b-792f-4059-a998-08f597908708",
+              "observationId": "ui-release-5",
+              "startTimeNs": "1791136261000000000",
+              "endTimeNs": "1791136261000000001",
+              "timeProvenance": "estimated",
+              "uncertaintyNs": "2001000",
+              "object": "paging",
+              "track": "track-7",
+              "eventIds": [],
+              "zoneIds": [
+                "zone-b"
+              ],
+              "ruleIds": [
+                "rule-b"
+              ],
+              "playable": true,
+              "playbackUrl": "/ops/api/recordings/media/df874f5b-792f-4059-a998-08f597908708",
+              "preferredEventId": "",
+              "selectionReason": "original",
+              "unavailableReason": ""
+            },
+            {
+              "id": "or:12:ui-release-6",
+              "channelId": "1",
+              "kind": "observation",
+              "segmentId": "df874f5b-792f-4059-a998-08f597908708",
+              "observationId": "ui-release-6",
+              "startTimeNs": "1791136261000000000",
+              "endTimeNs": "1791136261000000001",
+              "timeProvenance": "estimated",
+              "uncertaintyNs": "2001000",
+              "object": "paging",
+              "track": "track-7",
+              "eventIds": [],
+              "zoneIds": [
+                "zone-a"
+              ],
+              "ruleIds": [
+                "rule-a"
+              ],
+              "playable": true,
+              "playbackUrl": "/ops/api/recordings/media/df874f5b-792f-4059-a998-08f597908708",
+              "preferredEventId": "",
+              "selectionReason": "original",
+              "unavailableReason": ""
+            },
+            {
+              "id": "or:12:ui-release-7",
+              "channelId": "1",
+              "kind": "observation",
+              "segmentId": "df874f5b-792f-4059-a998-08f597908708",
+              "observationId": "ui-release-7",
+              "startTimeNs": "1791136261000000000",
+              "endTimeNs": "1791136261000000001",
+              "timeProvenance": "estimated",
+              "uncertaintyNs": "2001000",
+              "object": "paging",
+              "track": "track-7",
+              "eventIds": [],
+              "zoneIds": [
+                "zone-b"
+              ],
+              "ruleIds": [
+                "rule-b"
+              ],
+              "playable": true,
+              "playbackUrl": "/ops/api/recordings/media/df874f5b-792f-4059-a998-08f597908708",
+              "preferredEventId": "",
+              "selectionReason": "original",
+              "unavailableReason": ""
+            },
+            {
+              "id": "or:12:ui-release-8",
+              "channelId": "1",
+              "kind": "observation",
+              "segmentId": "df874f5b-792f-4059-a998-08f597908708",
+              "observationId": "ui-release-8",
+              "startTimeNs": "1791136261000000000",
+              "endTimeNs": "1791136261000000001",
+              "timeProvenance": "estimated",
+              "uncertaintyNs": "2001000",
+              "object": "paging",
+              "track": "track-7",
+              "eventIds": [],
+              "zoneIds": [
+                "zone-a"
+              ],
+              "ruleIds": [
+                "rule-a"
+              ],
+              "playable": true,
+              "playbackUrl": "/ops/api/recordings/media/df874f5b-792f-4059-a998-08f597908708",
+              "preferredEventId": "",
+              "selectionReason": "original",
+              "unavailableReason": ""
+            },
+            {
+              "id": "or:12:ui-release-9",
+              "channelId": "1",
+              "kind": "observation",
+              "segmentId": "df874f5b-792f-4059-a998-08f597908708",
+              "observationId": "ui-release-9",
+              "startTimeNs": "1791136261000000000",
+              "endTimeNs": "1791136261000000001",
+              "timeProvenance": "estimated",
+              "uncertaintyNs": "2001000",
+              "object": "paging",
+              "track": "track-7",
+              "eventIds": [],
+              "zoneIds": [
+                "zone-b"
+              ],
+              "ruleIds": [
+                "rule-b"
+              ],
+              "playable": true,
+              "playbackUrl": "/ops/api/recordings/media/df874f5b-792f-4059-a998-08f597908708",
+              "preferredEventId": "",
+              "selectionReason": "original",
+              "unavailableReason": ""
+            },
+            {
+              "id": "or:13:ui-release-10",
+              "channelId": "1",
+              "kind": "observation",
+              "segmentId": "df874f5b-792f-4059-a998-08f597908708",
+              "observationId": "ui-release-10",
+              "startTimeNs": "1791136261000000000",
+              "endTimeNs": "1791136261000000001",
+              "timeProvenance": "estimated",
+              "uncertaintyNs": "2001000",
+              "object": "paging",
+              "track": "track-7",
+              "eventIds": [],
+              "zoneIds": [
+                "zone-a"
+              ],
+              "ruleIds": [
+                "rule-a"
+              ],
+              "playable": true,
+              "playbackUrl": "/ops/api/recordings/media/df874f5b-792f-4059-a998-08f597908708",
+              "preferredEventId": "",
+              "selectionReason": "original",
+              "unavailableReason": ""
+            },
+            {
+              "id": "or:13:ui-release-11",
+              "channelId": "1",
+              "kind": "observation",
+              "segmentId": "df874f5b-792f-4059-a998-08f597908708",
+              "observationId": "ui-release-11",
+              "startTimeNs": "1791136261000000000",
+              "endTimeNs": "1791136261000000001",
+              "timeProvenance": "estimated",
+              "uncertaintyNs": "2001000",
+              "object": "paging",
+              "track": "track-7",
+              "eventIds": [],
+              "zoneIds": [
+                "zone-b"
+              ],
+              "ruleIds": [
+                "rule-b"
+              ],
+              "playable": true,
+              "playbackUrl": "/ops/api/recordings/media/df874f5b-792f-4059-a998-08f597908708",
+              "preferredEventId": "",
+              "selectionReason": "original",
+              "unavailableReason": ""
+            },
+            {
+              "id": "or:13:ui-release-12",
+              "channelId": "1",
+              "kind": "observation",
+              "segmentId": "df874f5b-792f-4059-a998-08f597908708",
+              "observationId": "ui-release-12",
+              "startTimeNs": "1791136261000000000",
+              "endTimeNs": "1791136261000000001",
+              "timeProvenance": "estimated",
+              "uncertaintyNs": "2001000",
+              "object": "paging",
+              "track": "track-7",
+              "eventIds": [],
+              "zoneIds": [
+                "zone-a"
+              ],
+              "ruleIds": [
+                "rule-a"
+              ],
+              "playable": true,
+              "playbackUrl": "/ops/api/recordings/media/df874f5b-792f-4059-a998-08f597908708",
+              "preferredEventId": "",
+              "selectionReason": "original",
+              "unavailableReason": ""
+            },
+            {
+              "id": "or:13:ui-release-13",
+              "channelId": "1",
+              "kind": "observation",
+              "segmentId": "df874f5b-792f-4059-a998-08f597908708",
+              "observationId": "ui-release-13",
+              "startTimeNs": "1791136261000000000",
+              "endTimeNs": "1791136261000000001",
+              "timeProvenance": "estimated",
+              "uncertaintyNs": "2001000",
+              "object": "paging",
+              "track": "track-7",
+              "eventIds": [],
+              "zoneIds": [
+                "zone-b"
+              ],
+              "ruleIds": [
+                "rule-b"
+              ],
+              "playable": true,
+              "playbackUrl": "/ops/api/recordings/media/df874f5b-792f-4059-a998-08f597908708",
+              "preferredEventId": "",
+              "selectionReason": "original",
+              "unavailableReason": ""
+            },
+            {
+              "id": "or:13:ui-release-14",
+              "channelId": "1",
+              "kind": "observation",
+              "segmentId": "df874f5b-792f-4059-a998-08f597908708",
+              "observationId": "ui-release-14",
+              "startTimeNs": "1791136261000000000",
+              "endTimeNs": "1791136261000000001",
+              "timeProvenance": "estimated",
+              "uncertaintyNs": "2001000",
+              "object": "paging",
+              "track": "track-7",
+              "eventIds": [],
+              "zoneIds": [
+                "zone-a"
+              ],
+              "ruleIds": [
+                "rule-a"
+              ],
+              "playable": true,
+              "playbackUrl": "/ops/api/recordings/media/df874f5b-792f-4059-a998-08f597908708",
+              "preferredEventId": "",
+              "selectionReason": "original",
+              "unavailableReason": ""
+            },
+            {
+              "id": "or:13:ui-release-15",
+              "channelId": "1",
+              "kind": "observation",
+              "segmentId": "df874f5b-792f-4059-a998-08f597908708",
+              "observationId": "ui-release-15",
+              "startTimeNs": "1791136261000000000",
+              "endTimeNs": "1791136261000000001",
+              "timeProvenance": "estimated",
+              "uncertaintyNs": "2001000",
+              "object": "paging",
+              "track": "track-7",
+              "eventIds": [],
+              "zoneIds": [
+                "zone-b"
+              ],
+              "ruleIds": [
+                "rule-b"
+              ],
+              "playable": true,
+              "playbackUrl": "/ops/api/recordings/media/df874f5b-792f-4059-a998-08f597908708",
+              "preferredEventId": "",
+              "selectionReason": "original",
+              "unavailableReason": ""
+            },
+            {
+              "id": "or:13:ui-release-16",
+              "channelId": "1",
+              "kind": "observation",
+              "segmentId": "df874f5b-792f-4059-a998-08f597908708",
+              "observationId": "ui-release-16",
+              "startTimeNs": "1791136261000000000",
+              "endTimeNs": "1791136261000000001",
+              "timeProvenance": "estimated",
+              "uncertaintyNs": "2001000",
+              "object": "paging",
+              "track": "track-7",
+              "eventIds": [],
+              "zoneIds": [
+                "zone-a"
+              ],
+              "ruleIds": [
+                "rule-a"
+              ],
+              "playable": true,
+              "playbackUrl": "/ops/api/recordings/media/df874f5b-792f-4059-a998-08f597908708",
+              "preferredEventId": "",
+              "selectionReason": "original",
+              "unavailableReason": ""
+            },
+            {
+              "id": "or:13:ui-release-17",
+              "channelId": "1",
+              "kind": "observation",
+              "segmentId": "df874f5b-792f-4059-a998-08f597908708",
+              "observationId": "ui-release-17",
+              "startTimeNs": "1791136261000000000",
+              "endTimeNs": "1791136261000000001",
+              "timeProvenance": "estimated",
+              "uncertaintyNs": "2001000",
+              "object": "paging",
+              "track": "track-7",
+              "eventIds": [],
+              "zoneIds": [
+                "zone-b"
+              ],
+              "ruleIds": [
+                "rule-b"
+              ],
+              "playable": true,
+              "playbackUrl": "/ops/api/recordings/media/df874f5b-792f-4059-a998-08f597908708",
+              "preferredEventId": "",
+              "selectionReason": "original",
+              "unavailableReason": ""
+            },
+            {
+              "id": "or:13:ui-release-18",
+              "channelId": "1",
+              "kind": "observation",
+              "segmentId": "df874f5b-792f-4059-a998-08f597908708",
+              "observationId": "ui-release-18",
+              "startTimeNs": "1791136261000000000",
+              "endTimeNs": "1791136261000000001",
+              "timeProvenance": "estimated",
+              "uncertaintyNs": "2001000",
+              "object": "paging",
+              "track": "track-7",
+              "eventIds": [],
+              "zoneIds": [
+                "zone-a"
+              ],
+              "ruleIds": [
+                "rule-a"
+              ],
+              "playable": true,
+              "playbackUrl": "/ops/api/recordings/media/df874f5b-792f-4059-a998-08f597908708",
+              "preferredEventId": "",
+              "selectionReason": "original",
+              "unavailableReason": ""
+            },
+            {
+              "id": "or:13:ui-release-19",
+              "channelId": "1",
+              "kind": "observation",
+              "segmentId": "df874f5b-792f-4059-a998-08f597908708",
+              "observationId": "ui-release-19",
+              "startTimeNs": "1791136261000000000",
+              "endTimeNs": "1791136261000000001",
+              "timeProvenance": "estimated",
+              "uncertaintyNs": "2001000",
+              "object": "paging",
+              "track": "track-7",
+              "eventIds": [],
+              "zoneIds": [
+                "zone-b"
+              ],
+              "ruleIds": [
+                "rule-b"
+              ],
+              "playable": true,
+              "playbackUrl": "/ops/api/recordings/media/df874f5b-792f-4059-a998-08f597908708",
+              "preferredEventId": "",
+              "selectionReason": "original",
+              "unavailableReason": ""
+            },
+            {
+              "id": "or:13:ui-release-20",
+              "channelId": "1",
+              "kind": "observation",
+              "segmentId": "df874f5b-792f-4059-a998-08f597908708",
+              "observationId": "ui-release-20",
+              "startTimeNs": "1791136261000000000",
+              "endTimeNs": "1791136261000000001",
+              "timeProvenance": "estimated",
+              "uncertaintyNs": "2001000",
+              "object": "paging",
+              "track": "track-7",
+              "eventIds": [],
+              "zoneIds": [
+                "zone-a"
+              ],
+              "ruleIds": [
+                "rule-a"
+              ],
+              "playable": true,
+              "playbackUrl": "/ops/api/recordings/media/df874f5b-792f-4059-a998-08f597908708",
+              "preferredEventId": "",
+              "selectionReason": "original",
+              "unavailableReason": ""
+            },
+            {
+              "id": "or:13:ui-release-21",
+              "channelId": "1",
+              "kind": "observation",
+              "segmentId": "df874f5b-792f-4059-a998-08f597908708",
+              "observationId": "ui-release-21",
+              "startTimeNs": "1791136261000000000",
+              "endTimeNs": "1791136261000000001",
+              "timeProvenance": "estimated",
+              "uncertaintyNs": "2001000",
+              "object": "paging",
+              "track": "track-7",
+              "eventIds": [],
+              "zoneIds": [
+                "zone-b"
+              ],
+              "ruleIds": [
+                "rule-b"
+              ],
+              "playable": true,
+              "playbackUrl": "/ops/api/recordings/media/df874f5b-792f-4059-a998-08f597908708",
+              "preferredEventId": "",
+              "selectionReason": "original",
+              "unavailableReason": ""
+            },
+            {
+              "id": "or:13:ui-release-22",
+              "channelId": "1",
+              "kind": "observation",
+              "segmentId": "df874f5b-792f-4059-a998-08f597908708",
+              "observationId": "ui-release-22",
+              "startTimeNs": "1791136261000000000",
+              "endTimeNs": "1791136261000000001",
+              "timeProvenance": "estimated",
+              "uncertaintyNs": "2001000",
+              "object": "paging",
+              "track": "track-7",
+              "eventIds": [],
+              "zoneIds": [
+                "zone-a"
+              ],
+              "ruleIds": [
+                "rule-a"
+              ],
+              "playable": true,
+              "playbackUrl": "/ops/api/recordings/media/df874f5b-792f-4059-a998-08f597908708",
+              "preferredEventId": "",
+              "selectionReason": "original",
+              "unavailableReason": ""
+            },
+            {
+              "id": "or:13:ui-release-23",
+              "channelId": "1",
+              "kind": "observation",
+              "segmentId": "df874f5b-792f-4059-a998-08f597908708",
+              "observationId": "ui-release-23",
+              "startTimeNs": "1791136261000000000",
+              "endTimeNs": "1791136261000000001",
+              "timeProvenance": "estimated",
+              "uncertaintyNs": "2001000",
+              "object": "paging",
+              "track": "track-7",
+              "eventIds": [],
+              "zoneIds": [
+                "zone-b"
+              ],
+              "ruleIds": [
+                "rule-b"
+              ],
+              "playable": true,
+              "playbackUrl": "/ops/api/recordings/media/df874f5b-792f-4059-a998-08f597908708",
+              "preferredEventId": "",
+              "selectionReason": "original",
+              "unavailableReason": ""
+            }
+          ]
+        },
+        "resumed": {
+          "schema": "media-server.recording-search.v1",
+          "snapshotId": "e3ff09a9be8debf0cea8e19e26017b02",
+          "nextCursor": null,
+          "knownCount": 25,
+          "unplacedCount": 0,
+          "items": [
+            {
+              "id": "or:13:ui-release-24",
+              "channelId": "1",
+              "kind": "observation",
+              "segmentId": "df874f5b-792f-4059-a998-08f597908708",
+              "observationId": "ui-release-24",
+              "startTimeNs": "1791136261000000000",
+              "endTimeNs": "1791136261000000001",
+              "timeProvenance": "estimated",
+              "uncertaintyNs": "2001000",
+              "object": "paging",
+              "track": "track-7",
+              "eventIds": [],
+              "zoneIds": [
+                "zone-a"
+              ],
+              "ruleIds": [
+                "rule-a"
+              ],
+              "playable": true,
+              "playbackUrl": "/ops/api/recordings/media/df874f5b-792f-4059-a998-08f597908708",
+              "preferredEventId": "",
+              "selectionReason": "original",
+              "unavailableReason": ""
+            },
+            {
+              "id": "or:13:ui-release-25",
+              "channelId": "1",
+              "kind": "observation",
+              "segmentId": "df874f5b-792f-4059-a998-08f597908708",
+              "observationId": "ui-release-25",
+              "startTimeNs": "1791136261000000000",
+              "endTimeNs": "1791136261000000001",
+              "timeProvenance": "estimated",
+              "uncertaintyNs": "2001000",
+              "object": "paging",
+              "track": "track-7",
+              "eventIds": [],
+              "zoneIds": [
+                "zone-b"
+              ],
+              "ruleIds": [
+                "rule-b"
+              ],
+              "playable": true,
+              "playbackUrl": "/ops/api/recordings/media/df874f5b-792f-4059-a998-08f597908708",
+              "preferredEventId": "",
+              "selectionReason": "original",
+              "unavailableReason": ""
+            },
+            {
+              "id": "or:13:ui-release-26",
+              "channelId": "1",
+              "kind": "observation",
+              "segmentId": "df874f5b-792f-4059-a998-08f597908708",
+              "observationId": "ui-release-26",
+              "startTimeNs": "1791136261000000000",
+              "endTimeNs": "1791136261000000001",
+              "timeProvenance": "estimated",
+              "uncertaintyNs": "2001000",
+              "object": "paging",
+              "track": "track-7",
+              "eventIds": [],
+              "zoneIds": [
+                "zone-a"
+              ],
+              "ruleIds": [
+                "rule-a"
+              ],
+              "playable": true,
+              "playbackUrl": "/ops/api/recordings/media/df874f5b-792f-4059-a998-08f597908708",
+              "preferredEventId": "",
+              "selectionReason": "original",
+              "unavailableReason": ""
+            },
+            {
+              "id": "or:13:ui-release-27",
+              "channelId": "1",
+              "kind": "observation",
+              "segmentId": "df874f5b-792f-4059-a998-08f597908708",
+              "observationId": "ui-release-27",
+              "startTimeNs": "1791136261000000000",
+              "endTimeNs": "1791136261000000001",
+              "timeProvenance": "estimated",
+              "uncertaintyNs": "2001000",
+              "object": "paging",
+              "track": "track-7",
+              "eventIds": [],
+              "zoneIds": [
+                "zone-b"
+              ],
+              "ruleIds": [
+                "rule-b"
+              ],
+              "playable": true,
+              "playbackUrl": "/ops/api/recordings/media/df874f5b-792f-4059-a998-08f597908708",
+              "preferredEventId": "",
+              "selectionReason": "original",
+              "unavailableReason": ""
+            },
+            {
+              "id": "or:13:ui-release-28",
+              "channelId": "1",
+              "kind": "observation",
+              "segmentId": "df874f5b-792f-4059-a998-08f597908708",
+              "observationId": "ui-release-28",
+              "startTimeNs": "1791136261000000000",
+              "endTimeNs": "1791136261000000001",
+              "timeProvenance": "estimated",
+              "uncertaintyNs": "2001000",
+              "object": "paging",
+              "track": "track-7",
+              "eventIds": [],
+              "zoneIds": [
+                "zone-a"
+              ],
+              "ruleIds": [
+                "rule-a"
+              ],
+              "playable": true,
+              "playbackUrl": "/ops/api/recordings/media/df874f5b-792f-4059-a998-08f597908708",
+              "preferredEventId": "",
+              "selectionReason": "original",
+              "unavailableReason": ""
+            }
+          ]
+        }
+      },
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "theme": "dark",
+      "endedAt": "2026-10-04T17:52:23.505Z"
+    },
+    {
+      "id": "C02-expiry",
+      "status": "pass",
+      "features": [
+        "V420-C02"
+      ],
+      "role": {
+        "requestedRole": "admin",
+        "requestedScopes": [
+          "*"
+        ],
+        "role": "admin",
+        "scopes": [
+          "*"
+        ]
+      },
+      "startedAt": "2026-10-04T17:52:23.505Z",
+      "observation": {
+        "elapsedMs": 300214,
+        "response": {
+          "error": "search-snapshot-expired"
+        },
+        "text": "검색이 만료됐습니다. 다시 검색하세요."
+      },
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "theme": "dark",
+      "endedAt": "2026-10-04T17:57:23.924Z"
+    },
+    {
+      "id": "L01-add-restart",
+      "status": "pass",
+      "features": [
+        "V420-L01",
+        "V420-L02",
+        "V420-C02"
+      ],
+      "role": {
+        "requestedRole": "admin",
+        "requestedScopes": [
+          "*"
+        ],
+        "role": "admin",
+        "scopes": [
+          "*"
+        ]
+      },
+      "startedAt": "2026-10-04T17:57:23.924Z",
+      "observation": {
+        "before": {
+          "known": 0,
+          "unknown": 0,
+          "ids": []
+        },
+        "lifecycle": {
+          "action": "add",
+          "previousStop": {
+            "exited": true,
+            "forced": false,
+            "exitCode": 0,
+            "signalCode": null
+          },
+          "ready": true
+        },
+        "after": {
+          "known": 1,
+          "unknown": 0,
+          "ids": [
+            "or:16:ui-release-added"
+          ]
+        }
+      },
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "theme": "dark",
+      "endedAt": "2026-10-04T17:57:27.559Z"
+    },
+    {
+      "id": "A01-operator",
+      "status": "pass",
+      "features": [
+        "V420-A01",
+        "V420-A02"
+      ],
+      "role": {
+        "requestedRole": "operator",
+        "requestedScopes": [
+          "ops:read",
+          "source:read:1"
+        ],
+        "role": "operator",
+        "scopes": [
+          "ops:read",
+          "source:read:1"
+        ]
+      },
+      "startedAt": "2026-10-04T17:57:27.559Z",
+      "observation": {
+        "allowed": {
+          "known": 6,
+          "unknown": 0,
+          "ids": [
+            "or:12:ui-release-3",
+            "or:12:ui-release-2",
+            "or:12:ui-release-1",
+            "or:12:ui-search-60",
+            "or:12:ui-release-0",
+            "or:12:ui-search-30"
+          ]
+        },
+        "options": [
+          "1"
+        ],
+        "principal": {
+          "requestedRole": "operator",
+          "requestedScopes": [
+            "ops:read",
+            "source:read:1"
+          ],
+          "role": "operator",
+          "scopes": [
+            "ops:read",
+            "source:read:1"
+          ]
+        }
+      },
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "theme": "light",
+      "endedAt": "2026-10-04T17:57:29.470Z"
+    },
+    {
+      "id": "A01-denied-2",
+      "status": "pass",
+      "features": [
+        "V420-A01",
+        "V420-A02"
+      ],
+      "role": {
+        "requestedRole": "viewer",
+        "requestedScopes": [
+          "view:read:1"
+        ],
+        "role": "viewer",
+        "scopes": [
+          "view:read:1"
+        ]
+      },
+      "startedAt": "2026-10-04T17:57:31.034Z",
+      "observation": {
+        "principal": {
+          "requestedRole": "viewer",
+          "requestedScopes": [
+            "view:read:1"
+          ],
+          "role": "viewer",
+          "scopes": [
+            "view:read:1"
+          ]
+        },
+        "status": 403,
+        "route": "/ops/events"
+      },
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "theme": "light",
+      "endedAt": "2026-10-04T17:57:31.929Z"
+    },
+    {
+      "id": "A01-denied-5",
+      "status": "pass",
+      "features": [
+        "V420-A01",
+        "V420-A02"
+      ],
+      "role": {
+        "requestedRole": "integrator",
+        "requestedScopes": [
+          "event:read:1",
+          "metadata:read:1"
+        ],
+        "role": "integrator",
+        "scopes": [
+          "event:read:1",
+          "metadata:read:1"
+        ]
+      },
+      "startedAt": "2026-10-04T17:57:31.929Z",
+      "observation": {
+        "principal": {
+          "requestedRole": "integrator",
+          "requestedScopes": [
+            "event:read:1",
+            "metadata:read:1"
+          ],
+          "role": "integrator",
+          "scopes": [
+            "event:read:1",
+            "metadata:read:1"
+          ]
+        },
+        "status": 403,
+        "route": "/ops/events"
+      },
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "theme": "light",
+      "endedAt": "2026-10-04T17:57:32.816Z"
+    },
+    {
+      "id": "A01-denied-null",
+      "status": "pass",
+      "features": [
+        "V420-A01",
+        "V420-A02"
+      ],
+      "role": {
+        "role": "anonymous"
+      },
+      "startedAt": "2026-10-04T17:57:32.816Z",
+      "observation": {
+        "principal": {
+          "role": "anonymous"
+        },
+        "status": 200,
+        "route": "/login"
+      },
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "theme": "light",
+      "endedAt": "2026-10-04T17:57:33.507Z"
+    },
+    {
+      "id": "M03-capacity",
+      "status": "pass",
+      "features": [
+        "V420-M03"
+      ],
+      "role": {
+        "requestedRole": "admin",
+        "requestedScopes": [
+          "*"
+        ],
+        "role": "admin",
+        "scopes": [
+          "*"
+        ]
+      },
+      "startedAt": "2026-10-04T17:57:33.507Z",
+      "observation": {
+        "lifecycle": {
+          "action": "capacity",
+          "previousStop": {
+            "exited": true,
+            "forced": false,
+            "exitCode": 0,
+            "signalCode": null
+          },
+          "ready": true
+        },
+        "data": {
+          "error": "search-capacity-exceeded"
+        },
+        "text": "검색을 준비하지 못했습니다. 잠시 후 다시 검색하세요."
+      },
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "theme": "light",
+      "endedAt": "2026-10-04T17:57:53.974Z"
+    }
+  ],
+  "pass": 38,
+  "fail": 0,
+  "notRun": 0,
+  "failure": null,
+  "browserClosed": true,
+  "c03Observe": false,
+  "uiFulltestPass": false,
+  "visualReviewRequired": true
+}

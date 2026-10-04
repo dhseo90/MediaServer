@@ -1,0 +1,411 @@
+{
+  "performedAt": "2026-10-04T16:53:20.103128+00:00",
+  "scope": "only five stopped owned failed preparation roots; raw private logs/fixture media removed after sanitized diagnostic output preservation",
+  "records": [
+    {
+      "run": 1,
+      "root": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-observer-3BCIBp",
+      "identity": {
+        "root": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-observer-3BCIBp",
+        "dev": 16777232,
+        "ino": 168332636,
+        "uid": 501
+      },
+      "bytes": 13829827,
+      "closedProcessIds": [
+        36927
+      ],
+      "originalCleanup": [
+        {
+          "schema": "recording-process-cleanup-v1",
+          "attemptCount": 1,
+          "pid": 36927,
+          "exitCode": 0,
+          "signalCode": null,
+          "exitedObserved": true,
+          "stopCode": "complete",
+          "forcedTermination": "not-used",
+          "normalExitPass": true,
+          "normalShutdownPass": true,
+          "archiveSafe": true,
+          "ports": [
+            {
+              "kind": "http",
+              "port": 63329,
+              "status": "pass",
+              "code": "closed",
+              "closed": true
+            },
+            {
+              "kind": "rtsp",
+              "port": 63330,
+              "status": "pass",
+              "code": "closed",
+              "closed": true
+            }
+          ]
+        }
+      ],
+      "freshLsofEmpty": true,
+      "rootAbsent": true
+    },
+    {
+      "run": 2,
+      "root": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-observer-Wv0Kbp",
+      "identity": {
+        "root": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-observer-Wv0Kbp",
+        "dev": 16777232,
+        "ino": 168333653,
+        "uid": 501
+      },
+      "bytes": 13829827,
+      "closedProcessIds": [
+        38338
+      ],
+      "originalCleanup": [
+        {
+          "schema": "recording-process-cleanup-v1",
+          "attemptCount": 1,
+          "pid": 38338,
+          "exitCode": 0,
+          "signalCode": null,
+          "exitedObserved": true,
+          "stopCode": "complete",
+          "forcedTermination": "not-used",
+          "normalExitPass": true,
+          "normalShutdownPass": true,
+          "archiveSafe": true,
+          "ports": [
+            {
+              "kind": "http",
+              "port": 63754,
+              "status": "pass",
+              "code": "closed",
+              "closed": true
+            },
+            {
+              "kind": "rtsp",
+              "port": 63755,
+              "status": "pass",
+              "code": "closed",
+              "closed": true
+            }
+          ]
+        }
+      ],
+      "freshLsofEmpty": true,
+      "rootAbsent": true
+    },
+    {
+      "run": 3,
+      "root": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-observer-MAmvlR",
+      "identity": {
+        "root": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-observer-MAmvlR",
+        "dev": 16777232,
+        "ino": 168334738,
+        "uid": 501
+      },
+      "bytes": 14356005,
+      "closedProcessIds": [
+        40394
+      ],
+      "originalCleanup": [
+        {
+          "schema": "recording-process-cleanup-v1",
+          "attemptCount": 1,
+          "pid": 40394,
+          "exitCode": 0,
+          "signalCode": null,
+          "exitedObserved": true,
+          "stopCode": "complete",
+          "forcedTermination": "not-used",
+          "normalExitPass": true,
+          "normalShutdownPass": true,
+          "archiveSafe": true,
+          "ports": [
+            {
+              "kind": "http",
+              "port": 64357,
+              "status": "pass",
+              "code": "closed",
+              "closed": true
+            },
+            {
+              "kind": "rtsp",
+              "port": 64358,
+              "status": "pass",
+              "code": "closed",
+              "closed": true
+            }
+          ]
+        }
+      ],
+      "freshLsofEmpty": true,
+      "rootAbsent": true
+    },
+    {
+      "run": 4,
+      "root": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-observer-E86qt2",
+      "identity": {
+        "root": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-observer-E86qt2",
+        "dev": 16777232,
+        "ino": 168335934,
+        "uid": 501
+      },
+      "bytes": 14356817,
+      "closedProcessIds": [
+        41854
+      ],
+      "originalCleanup": [
+        {
+          "schema": "recording-process-cleanup-v1",
+          "attemptCount": 1,
+          "pid": 41854,
+          "exitCode": 0,
+          "signalCode": null,
+          "exitedObserved": true,
+          "stopCode": "complete",
+          "forcedTermination": "not-used",
+          "normalExitPass": true,
+          "normalShutdownPass": true,
+          "archiveSafe": true,
+          "ports": [
+            {
+              "kind": "http",
+              "port": 64795,
+              "status": "pass",
+              "code": "closed",
+              "closed": true
+            },
+            {
+              "kind": "rtsp",
+              "port": 64796,
+              "status": "pass",
+              "code": "closed",
+              "closed": true
+            }
+          ]
+        }
+      ],
+      "freshLsofEmpty": true,
+      "rootAbsent": true
+    },
+    {
+      "run": 5,
+      "root": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-observer-C99BBS",
+      "identity": {
+        "root": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-observer-C99BBS",
+        "dev": 16777232,
+        "ino": 168341493,
+        "uid": 501
+      },
+      "bytes": 15098748,
+      "closedProcessIds": [
+        53805,
+        54182
+      ],
+      "originalCleanup": [
+        {
+          "schema": "recording-process-cleanup-v1",
+          "attemptCount": 1,
+          "pid": 53805,
+          "exitCode": 0,
+          "signalCode": null,
+          "exitedObserved": true,
+          "stopCode": "complete",
+          "forcedTermination": "not-used",
+          "normalExitPass": true,
+          "normalShutdownPass": true,
+          "archiveSafe": true,
+          "ports": [
+            {
+              "kind": "http",
+              "port": 51695,
+              "status": "pass",
+              "code": "closed",
+              "closed": true
+            },
+            {
+              "kind": "rtsp",
+              "port": 51696,
+              "status": "pass",
+              "code": "closed",
+              "closed": true
+            }
+          ]
+        },
+        {
+          "schema": "recording-process-cleanup-v1",
+          "attemptCount": 1,
+          "pid": 54182,
+          "exitCode": 0,
+          "signalCode": null,
+          "exitedObserved": true,
+          "stopCode": "complete",
+          "forcedTermination": "not-used",
+          "normalExitPass": true,
+          "normalShutdownPass": true,
+          "archiveSafe": true,
+          "ports": [
+            {
+              "kind": "http",
+              "port": 51835,
+              "status": "pass",
+              "code": "closed",
+              "closed": true
+            },
+            {
+              "kind": "rtsp",
+              "port": 51836,
+              "status": "pass",
+              "code": "closed",
+              "closed": true
+            }
+          ]
+        }
+      ],
+      "freshLsofEmpty": true,
+      "rootAbsent": true
+    }
+  ],
+  "diagnosticCopies": [
+    {
+      "name": "mixed-diagnostic-5",
+      "root": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v440-ui-ezgeweg5/mixed-diagnostic-5",
+      "dev": 16777232,
+      "ino": 168337372,
+      "uid": 501,
+      "files": 21,
+      "bytes": 12155592,
+      "preservedOutputByteMatch": true,
+      "freshLsofEmpty": true,
+      "rootAbsent": true,
+      "performedAt": "2026-10-04T18:35:37.566082+00:00",
+      "excluded": "synthetic recording copies and compiled diagnostic binary; outputs/source were byte-compared before removal"
+    },
+    {
+      "name": "mixed-diagnostic-6",
+      "root": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v440-ui-ezgeweg5/mixed-diagnostic-6",
+      "dev": 16777232,
+      "ino": 168338128,
+      "uid": 501,
+      "files": 22,
+      "bytes": 12209073,
+      "preservedOutputByteMatch": true,
+      "freshLsofEmpty": true,
+      "rootAbsent": true,
+      "performedAt": "2026-10-04T18:35:37.640318+00:00",
+      "excluded": "synthetic recording copies and compiled diagnostic binary; outputs/source were byte-compared before removal"
+    },
+    {
+      "name": "mixed-profile-8",
+      "root": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v440-ui-ezgeweg5/mixed-profile-8",
+      "dev": 16777232,
+      "ino": 168359211,
+      "uid": 501,
+      "files": 93,
+      "bytes": 22052386,
+      "preservedOutputByteMatch": true,
+      "freshLsofEmpty": true,
+      "rootAbsent": true,
+      "performedAt": "2026-10-04T18:35:37.722063+00:00",
+      "excluded": "synthetic recording copies and compiled diagnostic binary; outputs/source were byte-compared before removal"
+    },
+    {
+      "name": "mixed-profile-9",
+      "root": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v440-ui-ezgeweg5/mixed-profile-9",
+      "dev": 16777232,
+      "ino": 168477572,
+      "uid": 501,
+      "files": 93,
+      "bytes": 22053652,
+      "preservedOutputByteMatch": true,
+      "freshLsofEmpty": true,
+      "rootAbsent": true,
+      "performedAt": "2026-10-04T18:35:37.802488+00:00",
+      "excluded": "synthetic recording copies and compiled diagnostic binary; outputs/source were byte-compared before removal"
+    }
+  ],
+  "mixed30FailedRoot": {
+    "run": 7,
+    "root": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-observer-gdlJBy",
+    "dev": 16777232,
+    "ino": 168344972,
+    "uid": 501,
+    "files": 99,
+    "bytes": 23185601,
+    "gstCacheSymlinksUnlinked": 277,
+    "symlinkTargetsTouched": false,
+    "originalCleanup": [
+      {
+        "schema": "recording-process-cleanup-v1",
+        "attemptCount": 1,
+        "pid": 57340,
+        "exitCode": 0,
+        "signalCode": null,
+        "exitedObserved": true,
+        "stopCode": "complete",
+        "forcedTermination": "not-used",
+        "normalExitPass": true,
+        "normalShutdownPass": true,
+        "archiveSafe": true,
+        "ports": [
+          {
+            "kind": "http",
+            "port": 52889,
+            "status": "pass",
+            "code": "closed",
+            "closed": true
+          },
+          {
+            "kind": "rtsp",
+            "port": 52890,
+            "status": "pass",
+            "code": "closed",
+            "closed": true
+          }
+        ]
+      }
+    ],
+    "freshPidAbsent": true,
+    "freshLsofEmpty": true,
+    "rootAbsent": true,
+    "performedAt": "2026-10-04T18:37:00.637956+00:00",
+    "instrumentedGeneratedSourceSha256": "3b861de2ed948e9fea4abfcc158edff3a7275f8f11e76028e2c1750d49a57f78",
+    "scope": "stopped synthetic diagnostic store, private logs and generated native fixture; preserved run/driver/receipts remain under mixed-30-7"
+  },
+  "uiPreparationWorkspace": {
+    "performedAt": "2026-10-04T18:40:10.936172+00:00",
+    "ownership": {
+      "root": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v440-ui-ezgeweg5",
+      "parent": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T",
+      "dev": 16777232,
+      "ino": 167497519,
+      "uid": 501
+    },
+    "files": 126,
+    "bytes": 32048835,
+    "byteMatchedFiles": 123,
+    "byteMatchedFilesDigest": "d4d532136fca50d293922912a5735ae92e56d5a27d2be584cbfa28ad862e2e1a",
+    "excludedCompiledExecutablesAndOwnershipReceipt": [
+      {
+        "path": "ui-seed",
+        "bytes": 12313912,
+        "sha256": "805536f6ce4eda11fd1fc4025f58482f4d13f1ebf4e635edc19ecb4180474658"
+      },
+      {
+        "path": "ownership.json",
+        "bytes": 228,
+        "sha256": "c12724de59f3c0258bf7145847ff86c0464c06dbd635e6802549c87386135986"
+      },
+      {
+        "path": "ui-seed-current",
+        "bytes": 12357776,
+        "sha256": "560a820777f45440782eb119e8c30b71c88730e696c9594576d737cd4cc73d7c"
+      }
+    ],
+    "freshLsofEmpty": true,
+    "rootAbsent": true,
+    "scope": "123 output/source/plan files SHA256-matched against existing development evidence; compiled fixture executables excluded from Git"
+  }
+}
