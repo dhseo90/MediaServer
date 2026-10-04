@@ -1,0 +1,221 @@
+{
+  "startedAt": "2026-10-04T23:17:50.601681+00:00",
+  "scope": "launcher fixture only; no product/model/server/port",
+  "timeoutSeconds": 30,
+  "sourceHead": "f20517ae3819daf1dac5cba5b86853d7d509a582",
+  "wrapperSha256": "6e27198fe078e811183b7c27851525521143a8e0c3cb90ccf25e44742eca98cf",
+  "previousFailure": "launcher-checks-1.json",
+  "result": "PASS",
+  "cases": [
+    {
+      "case": "normal-exit",
+      "pass": true,
+      "result": {
+        "status": "PASS",
+        "childExit": 0,
+        "exit": 0,
+        "executionElapsedSeconds": 0.024376625020522624,
+        "elapsedSeconds": 0.024419875000603497,
+        "timeoutSeconds": 3,
+        "timedOut": false,
+        "interruptedSignals": [],
+        "residualGroupAfterCommand": false,
+        "cleanupSignals": [],
+        "processGroupAbsent": true,
+        "cleanupErrors": [],
+        "cleanupOnlySeconds": 1.2708012945950031e-05,
+        "registeredGroupsAbsent": true,
+        "residualRegisteredGroups": false,
+        "registeredGroupSignals": [],
+        "registeredGroupCleanupSeconds": 6.582995411008596e-06,
+        "finishedAt": "2026-10-04T23:17:50.637047+00:00"
+      }
+    },
+    {
+      "case": "nonzero-exit",
+      "pass": true,
+      "result": {
+        "status": "FAIL",
+        "childExit": 7,
+        "exit": 1,
+        "executionElapsedSeconds": 0.024548790999688208,
+        "elapsedSeconds": 0.024583375023212284,
+        "timeoutSeconds": 3,
+        "timedOut": false,
+        "interruptedSignals": [],
+        "residualGroupAfterCommand": false,
+        "cleanupSignals": [],
+        "processGroupAbsent": true,
+        "cleanupErrors": [],
+        "cleanupOnlySeconds": 6.582995411008596e-06,
+        "registeredGroupsAbsent": true,
+        "residualRegisteredGroups": false,
+        "registeredGroupSignals": [],
+        "registeredGroupCleanupSeconds": 6.375019438564777e-06,
+        "finishedAt": "2026-10-04T23:17:50.661763+00:00"
+      }
+    },
+    {
+      "case": "deadline-with-descendant",
+      "pass": true,
+      "result": {
+        "status": "FAIL",
+        "childExit": 0,
+        "exit": 124,
+        "executionElapsedSeconds": 0.40675662498688325,
+        "elapsedSeconds": 0.509329250024166,
+        "timeoutSeconds": 0.4,
+        "timedOut": true,
+        "interruptedSignals": [],
+        "residualGroupAfterCommand": true,
+        "cleanupSignals": [
+          "SIGTERM"
+        ],
+        "processGroupAbsent": true,
+        "cleanupErrors": [],
+        "cleanupOnlySeconds": 0.10247820900985971,
+        "registeredGroupsAbsent": true,
+        "residualRegisteredGroups": false,
+        "registeredGroupSignals": [],
+        "registeredGroupCleanupSeconds": 2.5707995519042015e-05,
+        "finishedAt": "2026-10-04T23:17:51.172933+00:00"
+      },
+      "unrelatedSentinelAlive": true,
+      "descendantCreated": true
+    },
+    {
+      "case": "receipt-callback-failure",
+      "pass": true,
+      "result": {
+        "status": "FAIL",
+        "exit": 1,
+        "errorType": "OSError",
+        "childExit": -15,
+        "elapsedSeconds": 0.10530358296819031,
+        "timeoutSeconds": 3,
+        "interruptedSignals": [],
+        "cleanupSignals": [
+          "SIGTERM"
+        ],
+        "processGroupAbsent": true,
+        "cleanupErrors": [],
+        "cleanupOnlySeconds": 0.10084070800803602,
+        "registeredGroupsAbsent": true,
+        "residualRegisteredGroups": false,
+        "registeredGroupSignals": [],
+        "registeredGroupCleanupSeconds": 1.9499973859637976e-05,
+        "finishedAt": "2026-10-04T23:17:51.279287+00:00"
+      }
+    },
+    {
+      "case": "detached-recovery-registration",
+      "pass": true,
+      "result": {
+        "status": "FAIL",
+        "childExit": -9,
+        "exit": 124,
+        "executionElapsedSeconds": 0.40051816700724885,
+        "elapsedSeconds": 10.663933209027164,
+        "timeoutSeconds": 0.4,
+        "timedOut": true,
+        "interruptedSignals": [],
+        "residualGroupAfterCommand": true,
+        "cleanupSignals": [
+          "SIGTERM",
+          "SIGKILL"
+        ],
+        "processGroupAbsent": true,
+        "cleanupErrors": [],
+        "cleanupOnlySeconds": 10.152961125015281,
+        "registeredGroupsAbsent": true,
+        "residualRegisteredGroups": true,
+        "registeredGroupSignals": [
+          {
+            "group": 91509,
+            "signal": "SIGTERM"
+          }
+        ],
+        "registeredGroupCleanupSeconds": 0.11043245805194601,
+        "finishedAt": "2026-10-04T23:18:01.981570+00:00"
+      },
+      "defaultHookResult": {
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "pid": 91515,
+        "stdout": "",
+        "stderr": "",
+        "groupClosed": true,
+        "monitor": {
+          "failure": null,
+          "samples": 1,
+          "intervalMs": 100,
+          "maxGapMs": 24.893124999999998,
+          "elapsedMs": 24.965375,
+          "peak": null,
+          "continuousEnforcement": false
+        }
+      },
+      "unrelatedSentinelAlive": true
+    },
+    {
+      "case": "registration-error",
+      "pass": true,
+      "helperResult": {
+        "status": null,
+        "signal": "SIGTERM",
+        "error": null,
+        "pid": 91517,
+        "stdout": "",
+        "stderr": "",
+        "groupClosed": true,
+        "monitor": {
+          "failure": "recovery-group-registration",
+          "samples": 1,
+          "intervalMs": 100,
+          "maxGapMs": 1.9605829999999997,
+          "elapsedMs": 2.008499999999998,
+          "peak": null,
+          "continuousEnforcement": false
+        }
+      },
+      "preparationStatus": "FAIL",
+      "productStarted": false
+    }
+  ],
+  "failure": null,
+  "ownedProcessGroups": [
+    91502,
+    91503,
+    91504,
+    91505,
+    91507,
+    91508,
+    91509,
+    91514,
+    91516,
+    91518
+  ],
+  "sentinelCleanup": {
+    "cleanupSignals": [
+      "SIGTERM"
+    ],
+    "processGroupAbsent": true,
+    "cleanupErrors": [],
+    "cleanupOnlySeconds": 0.11014604201773182
+  },
+  "elapsedSeconds": 12.060794207965955,
+  "ownedProcessGroupsAbsent": {
+    "91502": true,
+    "91503": true,
+    "91504": true,
+    "91505": true,
+    "91507": true,
+    "91508": true,
+    "91509": true,
+    "91514": true,
+    "91516": true,
+    "91518": true
+  },
+  "temporaryRootAbsent": true
+}

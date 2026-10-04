@@ -1,0 +1,23 @@
+{
+  "command": [
+    "bash",
+    "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v440-launcher-checks-fy297guh/fixture-repo/docs/release-artifacts/v4.4.0/development/mixed-preparation/mixed-120-15/mixed-120.sh",
+    "--duration-minutes",
+    "120"
+  ],
+  "startedAt": "2026-10-04T23:18:02.476688+00:00",
+  "status": "FAIL",
+  "wrapperPid": 91518,
+  "sourceHead": "ffffffffffffffffffffffffffffffffffffffff",
+  "productBinarySha256": "11c621cd6c03fdf8dad31a33f1fe32021325fb1934e057314ec13696edb11847",
+  "driverHashes": {},
+  "wrapperSha256": "6e27198fe078e811183b7c27851525521143a8e0c3cb90ccf25e44742eca98cf",
+  "timeoutSeconds": 7380,
+  "scope": "actual changed-path120min; compile/restart/cleanup included in123min; not whole-suite PASS",
+  "reviewRequired": true,
+  "resourceTrendPass": false,
+  "uiFulltestPass": false,
+  "exit": 1,
+  "preparationErrorType": "FileExistsError",
+  "productStarted": false
+}

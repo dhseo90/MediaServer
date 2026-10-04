@@ -20,11 +20,15 @@ def group_alive(group):
         return True
     except ProcessLookupError:
         return False
+    except PermissionError:
+        # macOS의 미회수 종료 자식도 EPERM이다. ESRCH가 확인되기 전에는 부재로 판정하지 않는다.
+        return True
 
 
 def stop_created_group(child):
     begin = time.monotonic()
     sent = []
+    errors = []
     for number, grace in ((signal.SIGTERM, 10), (signal.SIGKILL, 2)):
         child.poll()
         if not group_alive(child.pid):
@@ -34,13 +38,17 @@ def stop_created_group(child):
             sent.append(signal.Signals(number).name)
         except ProcessLookupError:
             break
+        except PermissionError:
+            errors.append({'signal': signal.Signals(number).name, 'error': 'PermissionError'})
         deadline = time.monotonic() + grace
-        while group_alive(child.pid) and time.monotonic() < deadline:
+        while time.monotonic() < deadline:
             child.poll()
+            if not group_alive(child.pid):
+                break
             time.sleep(0.1)
     child.poll()
     return {'cleanupSignals': sent, 'processGroupAbsent': not group_alive(child.pid),
-            'cleanupOnlySeconds': time.monotonic() - begin}
+            'cleanupErrors': errors, 'cleanupOnlySeconds': time.monotonic() - begin}
 
 
 def registered_groups(registry):

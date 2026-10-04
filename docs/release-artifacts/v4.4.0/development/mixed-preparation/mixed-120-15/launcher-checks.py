@@ -25,10 +25,22 @@ rows = []
 groups = []
 sentinel = None
 failure = None
+log_dest = directory / 'launcher-checks-2'
+log_dest.mkdir()
+receipt = directory / 'launcher-checks-2.json'
+if receipt.exists():
+    raise FileExistsError(receipt)
 record = {'startedAt': datetime.datetime.now(datetime.timezone.utc).isoformat(),
           'scope': 'launcher fixture only; no product/model/server/port', 'timeoutSeconds': 30,
           'sourceHead': subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=repo, text=True).strip(),
           'wrapperSha256': hashlib.sha256((directory / 'run-bounded.py').read_bytes()).hexdigest()}
+record['previousFailure'] = 'launcher-checks-1.json'
+
+
+def register(pid):
+    groups.append(pid)
+    with (log_dest / 'created-groups.jsonl').open('a') as output:
+        output.write(json.dumps({'pid': pid}) + '\n')
 
 
 def check(condition, message):
@@ -41,7 +53,7 @@ def check(condition, message):
 def execute(name, command, seconds=3, started=None, registry=None, env=None, cwd=None):
     check(True, 'before-case')
     def capture(pid):
-        groups.append(pid)
+        register(pid)
         if started:
             started(pid)
     return run_owned(command, root / (name + '.log'), seconds, cwd or repo,
@@ -72,6 +84,7 @@ try:
     rows.append({'case': 'nonzero-exit', 'pass': True, 'result': r})
 
     sentinel = subprocess.Popen([sys.executable, '-c', 'import time;time.sleep(30)'], start_new_session=True)
+    register(sentinel.pid)
     descendant = """import subprocess,sys,time,signal,json
 child=subprocess.Popen([sys.executable,'-c','import time;time.sleep(30)'])
 def stopped(number,frame):
@@ -151,15 +164,24 @@ except Exception as error:
     failure = {'type': type(error).__name__, 'message': str(error)}
 finally:
     signal.setitimer(signal.ITIMER_REAL, 0)
+    record.update(result='FAIL', cases=rows, failure=failure, ownedProcessGroups=groups)
+    receipt.write_text(json.dumps(record, ensure_ascii=False, indent=2) + '\n')
     if sentinel is not None:
-        runtime['stop_created_group'](sentinel)
-        groups.append(sentinel.pid)
-    group_absence = {str(pid): not group_alive(pid) for pid in groups}
+        try:
+            record['sentinelCleanup'] = runtime['stop_created_group'](sentinel)
+        except Exception as error:
+            record['cleanupError'] = {'type': type(error).__name__, 'message': str(error)}
+            failure = failure or record['cleanupError']
+    group_absence = {}
+    for pid in groups:
+        try:
+            group_absence[str(pid)] = not group_alive(pid)
+        except Exception as error:
+            group_absence[str(pid)] = False
+            record.setdefault('observationErrors', []).append({'pid': pid, 'type': type(error).__name__})
     record.update(result='PASS' if failure is None and all(group_absence.values()) and len(rows) == 6 else 'FAIL',
                   cases=rows, failure=failure, elapsedSeconds=time.monotonic() - began,
                   ownedProcessGroupsAbsent=group_absence)
-    log_dest = directory / 'launcher-checks-1'
-    log_dest.mkdir()
     for file in root.glob('*.log'):
         shutil.copyfile(file, log_dest / file.name)
     for file in root.glob('*.mjs'):
@@ -171,6 +193,6 @@ finally:
     record['temporaryRootAbsent'] = not root.exists()
     if not record['temporaryRootAbsent'] or record['elapsedSeconds'] > 30:
         record['result'] = 'FAIL'
-    (directory / 'launcher-checks-1.json').write_text(json.dumps(record, ensure_ascii=False, indent=2) + '\n')
+    receipt.write_text(json.dumps(record, ensure_ascii=False, indent=2) + '\n')
     print(json.dumps(record, ensure_ascii=False, indent=2))
 raise SystemExit(0 if record['result'] == 'PASS' else 1)
