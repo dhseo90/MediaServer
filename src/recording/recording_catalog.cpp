@@ -2392,6 +2392,52 @@ bool RecordingCatalog::ReleaseInactiveDetailsLocked(const std::string* changed,s
         if(!journal_.ReleaseRecordResidents(this,error)){derived_job_state_authoritative_=false;return false;}return true;
     }catch(...){derived_job_state_authoritative_=false;return Fail(error,"상세 resident 해제 미확인");}
 }
+RecordingCatalog::SourceBindingHandle RecordingCatalog::ReadSourceBinding(const std::string& id,
+    SourceBindingReadContext* context,std::string* error) const {
+    recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__);
+    if(!context||(context->owner&&context->owner!=this)||!opened_||!derived_job_state_authoritative_||
+       (generation_backend_&&!CanReadLocked(error))||EffectiveLifecycleV2Locked(id)!=RecordingLifecycle::Finalized)return {};
+    const auto found=source_bindings_.find(id);const auto original=segments_v2_.find(id);
+    if(found==source_bindings_.end()||!found->second||original==segments_v2_.end())return {};
+    const auto& entry=found->second;
+    const auto failed=[&]()->SourceBindingHandle{derived_job_state_authoritative_=false;Fail(error,"source binding 상세 재획득 거부");return {};};
+    bool materialized=false;
+    try {
+        RecordingMutationHandle envelope;
+        if(!journal_.OwnsCatalog(this)||!journal_.AcquireMutationLinkForRead(this,entry.mutation,&context->cold,&envelope,error)||
+           !envelope||envelope->mutation_id!=entry.latest_mutation_id||envelope->entity_id!=id||
+           envelope->mutation_type!=RecordingMutationType::SegmentV2BoundFinalized)return failed();
+        const auto segment_json=SerializeRecordingSegmentV2(original->second);
+        if(context->binding&&context->envelope&&context->binding->segment_id==id&&context->segment_json==segment_json){
+            const auto& a=*envelope;const auto& b=*context->envelope;
+            if(a.schema==b.schema&&a.mutation_id==b.mutation_id&&a.entity_id==b.entity_id&&
+               a.mutation_type==b.mutation_type&&a.occurred_at_ms==b.occurred_at_ms&&a.payload_json==b.payload_json){
+                if(error)error->clear();return context->binding;
+            }
+        }
+        SourceBindingHandle parsed;
+        if(!MaterializeSourceBinding(entry,original->second,envelope,&parsed,error)||!parsed)return failed();
+        materialized=true;
+        // 공유 handle은 한 번만 세고, 실제 vector/string capacity와 envelope/cold 보관을 포함한다.
+        std::size_t retained=sizeof(SourceBindingReadContext)+sizeof(RecordingSourceBindingV1)+2*sizeof(RecordingMutationV1)+
+            parsed->samples.capacity()*sizeof(RecordingSourceSampleV1)+2*segment_json.capacity()+8192;
+        for(const auto* text:{&parsed->schema,&parsed->segment_id,&parsed->source_id,&parsed->channel_id,&parsed->store_id,
+            &parsed->media_epoch_id,&parsed->source_generation,&parsed->track_id,&parsed->incomplete_reason})retained+=text->capacity()+1;
+        if(parsed->file_evidence){const auto& evidence=*parsed->file_evidence;
+            retained+=evidence.profile.capacity()+evidence.file_sha256.capacity()+2+
+                evidence.samples.capacity()*sizeof(RecordingFileSampleEvidenceV1);
+            for(const auto& sample:evidence.samples)retained+=sample.vcl_sha256.capacity()+sample.sample_sha256.capacity()+2;
+        }
+        for(const auto* text:{&envelope->schema,&envelope->mutation_id,&envelope->entity_id,&envelope->payload_json,&envelope->physical_json})
+            retained+=2*(text->capacity()+1);
+        SourceBindingReadContext next;next.owner=this;next.binding=std::move(parsed);next.envelope=std::move(envelope);
+        next.segment_json=segment_json;next.retained_bytes=retained;next.cold=context->cold;*context=std::move(next);
+        if(error)error->clear();return context->binding;
+    }catch(...){
+        // 검증된 원장의 선택적 cache 산정/보관 실패는 catalog 전체의 권위 상실이 아니다.
+        if(materialized){Fail(error,"source binding read cache capacity");return {};}return failed();
+    }
+}
 std::optional<RecordingSourceBindingV1> RecordingCatalog::FindSourceBinding(const std::string& id) const {
     recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__);
     if(!opened_||!derived_job_state_authoritative_||(generation_backend_&&!CanReadLocked(nullptr))||EffectiveLifecycleV2Locked(id)!=RecordingLifecycle::Finalized)return std::nullopt;

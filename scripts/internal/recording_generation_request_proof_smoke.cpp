@@ -46,6 +46,59 @@ void CompleteFixture(const std::filesystem::path& root){
 }
 RecordingCatalog::Options ReadOptions(const std::filesystem::path& root){RecordingCatalog::Options o(root/"recording-catalog.sqlite3",root,false);o.enable_v2_storage=true;return o;}
 #endif
+#if MEDIA_SERVER_USE_OPENSSL && MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND
+void ActiveProofCases(const std::filesystem::path& root){
+    using Probe=RecordingJournalGenerationReadOnlyProbe;
+    for(const std::string mode:{"normal","same-size","other-row","inode","symlink","hardlink"}){
+        const auto path=root/mode;std::filesystem::create_directories(path);CompleteFixture(path);
+        RecordingJournal owner(Options(path));Need(owner.Open(&error));auto options=ReadOptions(path);options.enable_generation_writes=true;
+        RecordingCatalog catalog(owner,options);Need(catalog.Open(&error));RecordingOrderReservationV1 reserved;
+        Need(catalog.ReserveRecordingOrder("store","active-proof-order","active-proof-segment","channel",&reserved,&error));
+        if(mode=="other-row")Need(catalog.ReserveRecordingOrder("store","other-active-order","other-active-segment","channel",&reserved,&error));
+        RecordingMutationLink link;Need(Probe::Link(owner,"active-proof-order",&link));
+        Probe::ReadProof proof;RecordingMutationHandle first,again;
+        const int before=OpenDescriptors();Need(Probe::ReadProofLink(owner,&catalog,link,&proof,&first));
+        Need(Probe::ReadProofLink(owner,&catalog,link,&proof,&again));
+        Check("V440-PR77",first==again&&proof&&OpenDescriptors()==before,"active repeat reuses strict immutable envelope without extra FD");
+        const auto canonical=SerializeRecordingMutationV1(*first);
+        RecordingMutationHandle strict;Need(Probe::Get(owner,link,&strict));
+        Check("V440-PR77",strict!=first&&SerializeRecordingMutationV1(*strict)==canonical,"ordinary acquisition keeps strict equal semantics");
+        if(mode=="normal"){
+            const auto pid=::fork();Need(pid>=0);if(pid==0){auto output=first;::_exit(!Probe::ReadProofLink(owner,&catalog,link,&proof,&output)&&output==first?0:1);}
+            int status=0;Need(::waitpid(pid,&status,0)==pid);Check("V440-PR77",WIFEXITED(status)&&WEXITSTATUS(status)==0,"active proof rejects fork with output unchanged");
+            auto wrong=first;Check("V440-PR77",!Probe::ReadProofLink(owner,&owner,link,&proof,&wrong)&&wrong==first,"active proof rejects different catalog owner");
+            Need(catalog.ReserveRecordingOrder("store","active-proof-append","active-proof-next","channel",&reserved,&error));
+            Need(Probe::ReadProofLink(owner,&catalog,link,&proof,&again));
+            Check("V440-PR77",again!=first&&SerializeRecordingMutationV1(*again)==canonical,"own append strictly reacquires unchanged active row");
+            auto appended=again;Need(Probe::ReadProofLink(owner,&catalog,link,&proof,&again));Check("V440-PR77",again==appended,"active reuse resumes after append");
+            Need(catalog.Checkpoint(&error));RecordingGenerationArchiveReadsForTest(true);
+            Need(Probe::ReadProofLink(owner,&catalog,link,&proof,&again));
+            Check("V440-PR77",again!=appended&&SerializeRecordingMutationV1(*again)==canonical&&RecordingGenerationArchiveReadsForTest()==1,"active to historical rotation strictly reacquires without false poison");
+            auto rotated=again;Need(Probe::ReadProofLink(owner,&catalog,link,&proof,&again));
+            Check("V440-PR77",again==rotated&&RecordingGenerationArchiveReadsForTest()==1,"rotated proof reuses verified historical row");
+            proof.reset();Check("V440-PR77",OpenDescriptors()==before,"active and rotated proof destruction releases descriptor");
+            continue;
+        }
+        const auto file=owner.path();const auto bytes=Read(file);struct stat original{};Need(::stat(file.c_str(),&original)==0);
+        if(mode=="same-size"||mode=="other-row"){
+            const int fd=::open(file.c_str(),O_WRONLY|O_NOFOLLOW);Need(fd>=0);
+            const auto offset=bytes.rfind(mode=="other-row"?"other-active-order":"active-proof-order");Need(offset<bytes.size());
+            const char changed=bytes[offset]=='x'?'y':'x';Need(::pwrite(fd,&changed,1,static_cast<off_t>(offset))==1);
+#if defined(__APPLE__)
+            const timespec times[2]={original.st_atimespec,original.st_mtimespec};
+#else
+            const timespec times[2]={original.st_atim,original.st_mtim};
+#endif
+            Need(::futimens(fd,times)==0);Need(::close(fd)==0);
+        }else if(mode=="hardlink")Need(::link(file.c_str(),(path/"extra-active-link").c_str())==0);
+        else {std::filesystem::rename(file,path/"old-active");if(mode=="inode")Write(file,bytes);else Need(::symlink("old-active",file.c_str())==0);}
+        again=first;const bool rejected=!Probe::ReadProofLink(owner,&catalog,link,&proof,&again);
+        Check("V440-PR77",rejected&&again==first&&!owner.HasManagedLease(),(mode+" current active tamper rejects without changing output").c_str());
+        Check("V440-PR77",!Probe::ReadProofLink(owner,&catalog,link,&proof,&again),"active poisoned owner remains rejected");
+    }
+}
+#endif
+
 int main(int argc,char** argv){
     if(argc!=2)return 2;
     try {const std::filesystem::path root=argv[1];std::filesystem::create_directories(root);
@@ -116,6 +169,9 @@ int main(int argc,char** argv){
         }
 #else
         RecordingJournal j(Options(root));Check("B08-Q04",j.Open(&error),"v1 remains available in unsupported B build");
+#endif
+#if MEDIA_SERVER_USE_OPENSSL && MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND
+        ActiveProofCases(root/"active-proof");
 #endif
         return failures?1:0;
     }catch(const std::exception& e){std::cerr<<"fixture: "<<e.what()<<'\n';return 2;}

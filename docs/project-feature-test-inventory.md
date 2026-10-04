@@ -20,7 +20,7 @@ GOP 디코드 의존 표본만 존재할 때는 관측 연관을 만들지 않�
 
 | 기능 ID | route/control/action과 독립 기대값 | 안정화 | 30분 | 120분 | UI |
 | --- | --- | --- | --- | --- | --- |
-| V440-C01 | EvidencePackageV1 codec: 모든 참조/nullable 시각/partial 이유 roundtrip, 중복 키·변조·unknown schema·과대 크기 거부, 실패 시 출력 불변 | native contract | 내부 | 내부 | 비대상 |
+| V440-C01 | EvidencePackageV1 codec: 실제 GStreamer `<64hex>/001` 원본 track ID를 byte 그대로 보존하고 source binding과 같은 1..1024byte·제어문자 금지 경계(1024 허용/1025·빈값·ASCII 0..31/127 거부), 모든 참조/nullable 시각/partial 이유 roundtrip, 중복 키·변조·unknown schema·과대 크기 거부, 실패 시 출력 불변 | native contract | 내부 | 내부 | 비대상 |
 | V440-F01 | 실제 V2 sample→FrameLocatorV1→packed RGB/PNG. 동일 추출/reopen 픽셀 hash 동일, 파일·sample·RGB·PNG hash 의미 분리, 잘못된 channel/PTS/UTC/index·삭제·corrupt 거부 | 실제 decoder native | 녹화 병행 | 수명 영향 판정 | 보존 이미지 |
 | V440-F02 | 1/8 frame 경계·시간순·동일 PTS 모호성·unknown UTC·range 공백·미지원 V1. 독립 sample 순서 oracle, 인접 frame 대체 금지 | native sequence | 녹화 병행 | 수명 영향 판정 | 순서·누락 안내 |
 | V440-M01 | hit/recording/clip/frame/track/event/observation 참조와 출처 보존. 실제 WithPlayback의 event-priority 선택 ID와 영상 event snapshot의 정확한 원본 sample에 연결된 기존 clip 보존. event 없는 대표 frame·다른 event/source/PTS는 clip 연관을 만들지 않음. 삭제 clip은 deleted partial, 없는 clip은 not-applicable, 삭제 원본 partial, checksum 불일치/I/O/timeout 실패. 생성 당시 manifest 불변, 현재 상태 분리 | builder/store native | 순환 병행 | 삭제/복구 영향 판정 | 상태 요약 |
@@ -28,6 +28,20 @@ GOP 디코드 의존 표본만 존재할 때는 관측 연관을 만들지 않�
 | V440-A01 | POST search/evidence 및 visual-search/evidence: 서버 hit만 소비, forged/expired400·410, 생성 ops:write 추가, 혼합/타채널403, disabled503. GET evidence 목록/상세/assets 현재 역할/scope, viewer403·익명401·path/raw source/인증 비노출, no-store/nosniff | application·격리 HTTP | 병행 | 종료 영향 판정 | 직접 조작 |
 | V440-R01 | 동시 생성1·8frame·256MiB package·2GiB store·reserve·30초 경계, 초과에서 기존 증거 불변. 녹화/검색 진행·종료/실패 cleanup·peak RSS≤4GiB·격리 작업공간≤8GiB | bounded native 혼합 | 별도 승인 | 별도 승인 | 내부 |
 | V440-U01 | 기존 검색 결과→명시 보존→목록→상세→이미지/clip; disabled/partial/forbidden/expired/손상·늦은 응답·중복 클릭, light/dark/mobile 가독성, nav 유지·viewer 비노출 | 상태 회귀+변경영역 UI | 릴리즈 별도 | 영향 판정 | 실제 UI 풀테스트 별도 |
+
+### PR #77 영상 검색 수정의 실행 전 정의
+
+v4.4.0에 포함할 리뷰 지적 6건의 정상·오류·경계 기준이다. 현재 실행 중인 이전 소스의
+공통 acceptance와 수정 후 검사를 구분하며, 아래 정의 자체는 PASS가 아니다.
+
+| 기능 ID | 독립 기대값과 영향 검사 | 안정화 | 30분 | 120분 | 실제 UI |
+| --- | --- | --- | --- | --- | --- |
+| V440-PR77-01 | 타 채널 snapshot 20,001행이 있어도 요청 채널의 정상 검색/seek 유지. 요청 채널 자체 및 요청 채널 합계의 20,000행·8MiB 초과는 명시 실패, 취소와 epoch 충돌 거부 유지 | snapshot/application native | 영상 검색 병행 | 최종 diff로 판정 | 권한과 결과 |
+| V440-PR77-02 | 정상 게시→수집/인코드/cache 저장 실패→이전 완성본 실제 검색 가능, 갱신 오류 공개 정제·UI 안내. 최초 게시 없는 실패는503, 원본변경·권한 취소는 계속 거부 | worker/application/UI state | 재색인 병행 | worker 수명 영향 판정 | 이전 색인과 오류 안내 |
+| V440-PR77-03 | SigLIP2 ON+GStreamer OFF는 configure 실패. 지원 ON 구성 빌드·실제 frame 검색 유지 | CMake 구성/native | 기존 증거 영향 판정 | 비대상: 구성 검사 | 비대상 |
+| V440-PR77-04 | JPEG/manifest 손상·I/O·symlink 실패 중 재색인은 전체 실패·이전 게시본 보존. 구형 marker/없는 proof/정상 epoch 변경·삭제는 명시 제외. 출력 docs/coverage는 실패 시 불변 | snapshot/worker/application native | 오류 복구 병행 | 최종 수명 diff로 판정 | 실패와 회복 상태 |
+| V440-PR77-05 | OpenSSL 두 발견 경로 모두 없는 SigLIP2 ON 구성은 configure 실패. 유효 hash/proof 생성과 현재 지원 표시 유지, crypto OFF 하위 함수의 안전한 실패 유지 | CMake/proof native | 비대상: 구성 검사 | 비대상: 구성 검사 | 지원 표시 회귀 |
+| V440-PR77-06 | 단일 추론/worker 제한을 유지한 ONNX 내부 연산4의 기존12개 text/image embedding·token parity(원래 오차 기준) 및 고정 retrieval 회귀. 지원 30fps/두파일·1초당 210원본frame·실제모델 준비≤45초, 허용 limit200 3회 실제결과200/max≤5초. 기존 opt-in completion trace의 visual-search-request에서 요청별 full preparation2과 reuse≥398 관측(실제 디스크 byte량과 구분). 경쟁 후보·동일 segment 반복 frame에서 요청 및 단일 Rebuild 내 검증 재사용. 현재 원장 envelope/row SHA·catalog/lifecycle 확인 뒤 strict 파싱 결과만 재사용. active 반복·정상 append·archive 회전·fork/owner·동일크기/다른행/ inode/symlink/hardlink 변조와 historical 회귀하며 성공·실패·취소·예외 반환 시 build cache 해제. 물리/native 증명·현재 식별자·권한·취소·5초 예산 유지, 응답까지 hold 유지 및 해제 후 retention 성공. 실제 3개3150-sample 파일/201개단일-frame/큰 유효V2 설명의 8MiB·200-entry eviction/oversized uncached 경계에서 재검증·정확 결과·논리 비용·FD/response hold 해제를 verify_visual_request_media_cache.py로 확인. 파일변조·교체·삭제 거부. 독립 frame decoder는 정확한 이전 keyframe에서 재개하고 실제 sample 시각±1ns만 허용하며 중간 시각·이웃 대체·EOF를 거부, FD offset·취소·5초 예산 유지. 실제 읽기/검증 횟수와 지연을 구분. 내부 재생 후보는 event만 투영하되 기존 full timeline을 독립 oracle로 비교한다: intent/complete·partial/미배치/파일누락·복구/출력삭제/원본삭제·다른채널·source revision 거부, 공개 timeline JSON·전체 삭제 이력·ID/순서/페이지 한도 불변. 실제 B 전환·재개방/retired receipt에서 관련 원본 archive의 cold/warm 손상(완료 job 원장 손상은 기존 request-proof 회귀)과 확인된 권위 상실은 출력 불변 거부. 별도 archive의 미소비 continuous 상세는 lazy 검증하며 full 조회 시 strict 거부. 누적 삭제 저장소 복사본에서 full timeline/재생 후보 비용을 각각 측정 | index/source/application 및 reader 회귀 | I420 두 채널 녹화·기존64MiB write예약+256KiB 보관 여유분의 quota로 순환삭제, 1초 scan/sample 실제 SigLIP2와 structured 각2개 동시검색/15초·양쪽 증거보존·재시작 뒤 PNG 불변, p95≤2초/max≤5초·RSS≤4GiB·격리 root≤448MiB | 보호 수명 최종 diff로 판정 | 결과와 선택 재생 |
 
 ## v430 자원 수명과 벡터 검색
 

@@ -99,16 +99,53 @@ int main(int argc,char** argv){try{
     Check(!source.Encode(&altered.front(),encoder,&error)&&error=="visual-snapshot-pixels-mismatch","wrong selected pixels never embedded");
     Write(manifest,original_manifest);}
     const auto jpg=snapshots/"snapshot-event.snapshot.jpg";const auto original_image=Read(jpg);Write(jpg,"changed");
-    Check(!source.Resolve(docs.front(),&seek,&media,&error),"changed image hash denied");Write(jpg,original_image);
+    Check(!source.Resolve(docs.front(),&seek,&media,&error),"changed image hash denied");
+    const auto preserved_docs=docs;const auto preserved_count=coverage.at("snapshot-channel").examined_snapshots;
+    Check(!source.CollectSnapshots({{"snapshot-event","snapshot-channel","analysis-epoch"}},&docs,&coverage,&error)&&
+        error=="visual-snapshot-integrity-failed"&&docs.size()==preserved_docs.size()&&docs.front().id==preserved_docs.front().id&&
+        coverage.at("snapshot-channel").examined_snapshots==preserved_count,"corrupt JPEG fails collection without publishing partial docs or coverage");
+    Write(jpg,original_image);
+    Write(manifest,"{malformed");
+    Check(!source.CollectSnapshots({{"snapshot-event","snapshot-channel","analysis-epoch"}},&docs,&coverage,&error)&&
+        error=="visual-snapshot-invalid-proof"&&docs.size()==preserved_docs.size(),"malformed manifest fails collection");
+    Write(manifest,original_manifest);
+    std::filesystem::rename(jpg,snapshots/"owned-cleanup-image.jpg");
+    std::vector<recording::VisualSearchDocument> after_cleanup;auto cleanup_coverage=coverage;
+    Check(source.CollectSnapshots({{"snapshot-event","snapshot-channel","analysis-epoch"}},&after_cleanup,&cleanup_coverage,&error)&&
+        after_cleanup.empty()&&cleanup_coverage.at("snapshot-channel").unsupported_snapshots==coverage.at("snapshot-channel").unsupported_snapshots+1,
+        "normal image-only cleanup is explicitly excluded");
+    Check(!source.Resolve(docs.front(),&seek,&media,&error),"cleaned image cannot resolve a cached snapshot");
+    std::filesystem::rename(snapshots/"owned-cleanup-image.jpg",jpg);
     std::filesystem::rename(jpg,snapshots/"owned-image.jpg");std::filesystem::create_symlink(snapshots/"owned-image.jpg",jpg);
-    Check(!source.Resolve(docs.front(),&seek,&media,&error),"image symlink denied");std::filesystem::remove(jpg);std::filesystem::rename(snapshots/"owned-image.jpg",jpg);
+    Check(!source.Resolve(docs.front(),&seek,&media,&error),"image symlink denied");
+    Check(!source.CollectSnapshots({{"snapshot-event","snapshot-channel","analysis-epoch"}},&docs,&coverage,&error)&&
+        error=="visual-snapshot-read-failed"&&docs.size()==preserved_docs.size()&&docs.front().id==preserved_docs.front().id,
+        "symlink collection fails without partial publication");
+    std::filesystem::remove(jpg);std::filesystem::rename(snapshots/"owned-image.jpg",jpg);
+    for(const std::string mode:{"missing-proof","null-proof","manifest-only"}){
+        auto legacy=original_manifest;const auto proof_key=std::string("\"originalFrameProof\":")+*json;
+        const auto proof_at=legacy.find(proof_key);Check(proof_at!=std::string::npos,"legacy proof fixture location");
+        if(mode=="missing-proof")legacy.erase(proof_at,proof_key.size()+1);
+        else if(mode=="null-proof")legacy.replace(proof_at,proof_key.size(),"\"originalFrameProof\":null");
+        else {
+            const auto capture=legacy.find("\"captureStatus\":\"recorded\"");Check(capture!=std::string::npos,"legacy capture fixture");
+            legacy.replace(capture,std::string("\"captureStatus\":\"recorded\"").size(),"\"captureStatus\":\"manifest-only\"");
+            const auto recorded=legacy.find("\"recorded\":true");Check(recorded!=std::string::npos,"legacy recorded fixture");
+            legacy.replace(recorded,std::string("\"recorded\":true").size(),"\"recorded\":false");
+        }
+        Write(manifest,legacy);std::vector<recording::VisualSearchDocument> legacy_docs;auto legacy_coverage=coverage;
+        Check(source.CollectSnapshots({{"snapshot-event","snapshot-channel","analysis-epoch"}},&legacy_docs,&legacy_coverage,&error)&&
+            legacy_docs.empty()&&legacy_coverage.at("snapshot-channel").unsupported_snapshots==coverage.at("snapshot-channel").unsupported_snapshots+1,
+            mode+" is explicitly excluded without failing the rebuild");
+    }
+    Write(manifest,original_manifest);
     Check(source.Resolve(docs.front(),&seek,&media,&error),"restored exact fixture");
     {
         using Service=ingress::VisualSearchApplicationService;Service::Options options;options.enabled=true;
         options.model_directory=argv[2];options.cache_directory=(root/"visual-cache").string();options.snapshot_directory=snapshots.string();
         options.scan_seconds=60;options.sample_seconds=1; // 오류 주입 중 게시본은 고정하고 현재 검증만 대조한다.
-        Service service(runtime.catalog(),reader,options,[](auto* channels){*channels={"snapshot-channel"};return true;});
-        const Service::Authorize allowed=[](const auto& c){return c=="snapshot-channel";};
+        Service service(runtime.catalog(),reader,options,[](auto* channels){*channels={"snapshot-channel","second-channel"};return true;});
+        const Service::Authorize allowed=[](const auto& c){return c=="snapshot-channel"||c=="second-channel";};
         const auto deadline=std::chrono::steady_clock::now()+std::chrono::seconds(15);bool ready=false;
         while(std::chrono::steady_clock::now()<deadline){const auto status=service.Status(allowed);
             if(status.body.find("\"state\":\"ready\"")!=std::string::npos){ready=true;break;}std::this_thread::sleep_for(std::chrono::milliseconds(20));}
@@ -123,7 +160,37 @@ int main(int argc,char** argv){try{
         const auto failed_source=service.Search(query,allowed);
         Check(failed_source.status==503,"snapshot I/O or hash failure is not successful empty search");
         Write(jpg,original_image);
-        const auto events=Read(root/"events.jsonl");auto epoch_changed=events;
+        const auto events=Read(root/"events.jsonl");
+        auto other_event=events;const std::string channel_marker="\"channelId\":\"snapshot-channel\"";
+        const auto channel_at=other_event.find(channel_marker);Check(channel_at!=std::string::npos,"channel-scoped event fixture");
+        other_event.replace(channel_at,channel_marker.size(),"\"channelId\":\"unrequested-channel\"");
+        std::string unrelated_history;unrelated_history.reserve(other_event.size()*20001+events.size());
+        for(unsigned n=0;n<20001;++n)unrelated_history+=other_event;
+        unrelated_history+=events;Write(root/"events.jsonl",unrelated_history);
+        const auto scoped=service.Search(query,allowed);
+        Check(scoped.status==200&&scoped.body.find("event-snapshot")!=std::string::npos,"unrequested 20001 rows do not exhaust selected channel facts");
+        Check(service.Seek(select,allowed).status==200,"channel-scoped facts keep selected snapshot seek available");
+        std::string own_history;own_history.reserve(events.size()*20001);
+        for(unsigned n=0;n<20001;++n)own_history+=events;
+        Write(root/"events.jsonl",own_history);
+        Check(service.Search(query,allowed).status==503,"selected channel facts still enforce the combined row and byte bounds");
+        auto large_fact=events;const auto scenario=large_fact.find("\"scenarioName\":\"\"");Check(scenario!=std::string::npos,"multi-channel byte fixture");
+        large_fact.replace(scenario,std::string("\"scenarioName\":\"\"").size(),"\"scenarioName\":\""+std::string(4096,'s')+"\"");
+        auto second_fact=large_fact;const auto second_at=second_fact.find(channel_marker);Check(second_at!=std::string::npos,"second fact channel");
+        second_fact.replace(second_at,channel_marker.size(),"\"channelId\":\"second-channel\"");
+        std::string combined;for(unsigned n=0;n<600;++n){combined+=large_fact;combined+=second_fact;}Write(root/"events.jsonl",combined);
+        std::size_t aggregate_bytes=0;
+        for(const auto& channel:{"snapshot-channel","second-channel"}){
+            analysis::EventRecordQueryOptions fact_options;fact_options.search_facts_only=true;fact_options.include_archives=true;
+            fact_options.channel_id=channel;fact_options.evidence="snapshot";fact_options.limit=20000;
+            analysis::EventRecordQueryResult facts;
+            Check(analysis::QueryEventRecords(fact_options,&facts,&error)&&facts.search_facts.size()==600&&!facts.truncated&&!facts.has_more&&facts.search_fact_bytes<=8*1024*1024,
+                "each selected channel remains individually below row and byte caps");aggregate_bytes+=facts.search_fact_bytes;
+        }
+        Check(aggregate_bytes>8*1024*1024,"two selected channels exceed aggregate byte cap below row cap");
+        auto combined_query=query;combined_query["channelIds"]="snapshot-channel,second-channel";
+        Check(service.Search(combined_query,allowed).status==503,"selected channels share one aggregate byte budget");
+        Write(root/"events.jsonl",events);auto epoch_changed=events;
         const auto epoch_at=epoch_changed.find("analysis-epoch");Check(epoch_at!=std::string::npos,"event epoch fixture");
         epoch_changed.replace(epoch_at,14,"changed-epoch");Write(root/"events.jsonl",epoch_changed);
         Check(service.Seek(select,allowed).status==410,"changed event epoch denies cached snapshot seek");
@@ -134,9 +201,36 @@ int main(int argc,char** argv){try{
         const auto gone=service.Search(query,allowed);Check(gone.status==200&&gone.body.find("event-snapshot")==std::string::npos,"removed event excluded from old index search");
         service.Stop();Write(root/"events.jsonl",events);
     }
+    {
+        using Service=ingress::VisualSearchApplicationService;Service::Options options;options.enabled=true;
+        options.model_directory=argv[2];options.cache_directory=(root/"rebuild-cache").string();options.snapshot_directory=snapshots.string();options.scan_seconds=1;options.sample_seconds=1;
+        Service service(runtime.catalog(),reader,options,[](auto* channels){*channels={"snapshot-channel"};return true;});
+        const Service::Authorize allowed=[](const auto& c){return c=="snapshot-channel";};
+        auto wait_status=[&](const std::string& marker,unsigned seconds){
+            const auto end=std::chrono::steady_clock::now()+std::chrono::seconds(seconds);
+            while(std::chrono::steady_clock::now()<end){auto status=service.Status(allowed);if(status.status==200&&status.body.find(marker)!=std::string::npos)return status.body;std::this_thread::sleep_for(std::chrono::milliseconds(20));}
+            throw std::runtime_error("snapshot rebuild status deadline: "+service.Status(allowed).body);
+        };
+        const auto before=wait_status("\"state\":\"ready\"",15);
+        const Service::Query query{{"text","움직이는 공"},{"channelIds","snapshot-channel"},{"limit","10"}};
+        Check(service.Search(query,allowed).status==200,"complete snapshot index before rebuild corruption");
+        Write(jpg,"owned corrupt JPEG during actual rebuild");
+        const auto failed=wait_status("\"error\":\"visual-index-build-failed\"",5);
+        Check(failed.find("\"searchAvailable\":true")!=std::string::npos,"snapshot rebuild failure retains previous published index");
+        const auto frames=before.substr(before.find("\"indexedFrames\":"));
+        Check(failed.find(frames)!=std::string::npos,"failed snapshot rebuild keeps complete channel coverage and frame count");
+        Check(service.Search(query,allowed).status==503,"retained index still refuses currently corrupt snapshot");
+        Write(jpg,original_image);
+        const auto restored=service.Search(query,allowed);Check(restored.status==200&&restored.body.find("event-snapshot")!=std::string::npos,"restored original is searchable through retained complete index");
+        wait_status("\"error\":\"\"",5);Check(service.Search(query,allowed).status==200,"successful rebuild clears error and serves complete index");service.Stop();
+    }
     Check(!runtime.catalog().RequestDeletion(reference.segment_id,"continuous-capacity",&error),"snapshot source held during read");media.reset();
     Check(runtime.catalog().RequestDeletion(reference.segment_id,"continuous-capacity",&error),"delete after release");
     Check(!source.Resolve(docs.front(),&seek,&media,&error),"deleted source never replayed");
+    std::vector<recording::VisualSearchDocument> deleted_docs;auto deleted_coverage=coverage;
+    Check(source.CollectSnapshots({{"snapshot-event","snapshot-channel","analysis-epoch"}},&deleted_docs,&deleted_coverage,&error)&&
+        deleted_docs.empty()&&deleted_coverage.at("snapshot-channel").unsupported_snapshots==coverage.at("snapshot-channel").unsupported_snapshots+1,
+        "source entering normal deletion is explicitly excluded from rebuild");
     struct rusage usage{};Check(::getrusage(RUSAGE_SELF,&usage)==0,"resource measurement");std::uint64_t rss=usage.ru_maxrss;
 #ifndef __APPLE__
     rss*=1024;

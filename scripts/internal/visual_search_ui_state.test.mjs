@@ -88,3 +88,13 @@ test('refresh clears previous result count during pending, success and failure',
     assert.match(f.el('Status').textContent,code===200?/다시 검색/:/못했습니다/);
   }
 });
+
+test('failed rebuild keeps previous index searchable and shows a safe warning',async()=>{
+  const f=await results();const refresh=f.el('Refresh').fire('click');
+  f.answer(f.pending.shift(),{enabled:true,searchAvailable:true,state:'ready',error:'private diagnostic must stay hidden',sampleSeconds:1,scanSeconds:1,channels:[]});
+  await refresh;assert.equal(f.el('Submit').disabled,false);
+  assert.match(f.el('Status').textContent,/최근 색인 갱신에 실패/);assert.match(f.el('Status').textContent,/이전 완성 색인/);
+  assert.doesNotMatch(f.el('Status').textContent,/private diagnostic/);
+  const search=f.el('Form').fire('submit');f.answer(f.pending.shift(),{items:[item('still-current')]});await search;
+  assert.equal(f.el('Rows').children.length,1);
+});

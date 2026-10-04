@@ -5,12 +5,47 @@
 #include <map>
 #include <set>
 #include <tuple>
+#include <sys/stat.h>
 #include "recording/recording_file_evidence.h"
 #include "recording/recording_derived_remux.h"
 #include "ingress/event_storage_application_service.h"
 
 namespace recording {
 namespace {
+bool NativeSeek(const RecordingFileEvidenceV1& evidence,std::int64_t ns,SearchSeekTarget* output,std::string* error,
+    const std::function<bool()>& expired){
+    const auto unavailable=[&](const char* reason){if(error)*error=reason;return false;};
+    const RecordingFileSampleEvidenceV1* selected=nullptr;
+    for(const auto& sample:evidence.samples)if(sample.original_pts_ns==ns){
+        if(selected)return unavailable("seek-unavailable-ambiguous-sample");selected=&sample;
+    }
+    if(!selected)for(const auto& sample:evidence.samples){
+        const __int128 position=(static_cast<__int128>(ns)-evidence.writer_origin_ns)*evidence.timescale;
+        const __int128 start=static_cast<__int128>(sample.native_pts)*1000000000;
+        const __int128 end=(static_cast<__int128>(sample.native_pts)+sample.native_duration)*1000000000;
+        if(start<=position&&position<end){
+            if(selected)return unavailable("seek-unavailable-ambiguous-sample");selected=&sample;
+        }
+    }
+    if(!selected||selected->native_pts<evidence.edit_media_time)return unavailable("seek-unavailable-outside-file");
+    SearchSeekTarget result;
+    result.seconds=static_cast<double>(selected->native_pts-evidence.edit_media_time)/evidence.timescale;
+    result.frame_duration_seconds=static_cast<double>(selected->native_duration)/evidence.timescale;
+    result.sample_ordinal=selected->ordinal;result.basis="verified-native-file-presentation";
+    if(expired())return unavailable("seek-cancelled");
+    *output=std::move(result);if(error)error->clear();return true;
+}
+bool SameFileState(const struct stat& a,const struct stat& b){
+    if(!S_ISREG(a.st_mode)||!S_ISREG(b.st_mode)||a.st_dev!=b.st_dev||a.st_ino!=b.st_ino||a.st_size!=b.st_size||
+        a.st_nlink!=b.st_nlink||a.st_mode!=b.st_mode||a.st_uid!=b.st_uid||a.st_gid!=b.st_gid)return false;
+#ifdef __APPLE__
+    return a.st_mtimespec.tv_sec==b.st_mtimespec.tv_sec&&a.st_mtimespec.tv_nsec==b.st_mtimespec.tv_nsec&&
+        a.st_ctimespec.tv_sec==b.st_ctimespec.tv_sec&&a.st_ctimespec.tv_nsec==b.st_ctimespec.tv_nsec;
+#else
+    return a.st_mtim.tv_sec==b.st_mtim.tv_sec&&a.st_mtim.tv_nsec==b.st_mtim.tv_nsec&&
+        a.st_ctim.tv_sec==b.st_ctim.tv_sec&&a.st_ctim.tv_nsec==b.st_ctim.tv_nsec;
+#endif
+}
 void Locate(SearchDocument& d, const ConsumerReferenceResolution& resolution) {
     if (resolution.exact.size() != 1 || !resolution.unindexed.empty()) {
         d.unavailable_reason = resolution.exact.size() > 1 ? "ambiguous-original" :
@@ -141,7 +176,7 @@ bool RecordingSearchReader::PlaybackCandidates(const RecordingSearchModel& model
         std::vector<SearchPlaybackCandidate> candidates;
         for(const auto& channel:query.channels) {
             RecordingTimelineResult timeline;
-            if(!reader_.QuerySearchTimeline(channel,query.start_time_ms,query.end_time_ms,&timeline,error))return false;
+            if(!reader_.QuerySearchEventTimeline(channel,query.start_time_ms,query.end_time_ms,&timeline,error))return false;
             for(const auto& item:timeline.items) {
                 if(item.kind!="event"||!item.playable||item.job_state!="complete"||item.event_id.empty())continue;
                 for(const auto& proof:item.coverage) {
@@ -179,28 +214,73 @@ bool RecordingSearchReader::SourceSeek(const std::string& channel,const std::str
     std::string evidence_error;
     if(!VerifyRecordingFileEvidenceFd(verified_media->fd(),*binding,&evidence_error,expired))
         return unavailable(expired()?"seek-cancelled":"seek-unavailable-file-evidence");
-    const auto& evidence=*binding->file_evidence;
-    const RecordingFileSampleEvidenceV1* selected=nullptr;
-    for(const auto& sample:evidence.samples)if(sample.original_pts_ns==ns){
-        if(selected)return unavailable("seek-unavailable-ambiguous-sample");selected=&sample;
-    }
-    if(!selected)for(const auto& sample:evidence.samples){
-        // 검증된 native tick 구간과 source ns를 정수 교차곱으로 비교한다.
-        const __int128 position=(static_cast<__int128>(ns)-evidence.writer_origin_ns)*evidence.timescale;
-        const __int128 start=static_cast<__int128>(sample.native_pts)*1000000000;
-        const __int128 end=(static_cast<__int128>(sample.native_pts)+sample.native_duration)*1000000000;
-        if(start<=position&&position<end){
-            if(selected)return unavailable("seek-unavailable-ambiguous-sample");selected=&sample;
-        }
-    }
-    if(!selected||selected->native_pts<evidence.edit_media_time)return unavailable("seek-unavailable-outside-file");
-    // 실제 검증된 MP4 native tick과 edit를 사용한다. UTC나 요청 구간의 시작을 빼지 않는다.
-    SearchSeekTarget result;
-    result.seconds=static_cast<double>(selected->native_pts-evidence.edit_media_time)/evidence.timescale;
-    result.frame_duration_seconds=static_cast<double>(selected->native_duration)/evidence.timescale;
-    result.sample_ordinal=selected->ordinal;result.basis="verified-native-file-presentation";
-    if(expired())return unavailable("seek-cancelled");
-    *output=std::move(result);if(error)error->clear();return true;
+    return NativeSeek(*binding->file_evidence,ns,output,error,expired);
+}
+struct RecordingSearchReader::PreparedSource::Impl {
+    RecordingCatalog* catalog{};
+    RecordingSegmentV2 segment;
+    std::pair<std::filesystem::path,std::filesystem::path> location;
+    mutable RecordingCatalog::SourceBindingReadContext context;
+    std::shared_ptr<const RecordingSourceBindingV1> binding;
+    struct stat verified{};
+    std::shared_ptr<ResolvedRecordingMedia> media;
+};
+RecordingSearchReader::PreparedSource::PreparedSource(std::unique_ptr<Impl> value):impl_(std::move(value)){}
+RecordingSearchReader::PreparedSource::~PreparedSource()=default;
+std::shared_ptr<const ResolvedRecordingMedia> RecordingSearchReader::PreparedSource::Hold() const{return impl_->media;}
+bool RecordingSearchReader::PreparedSource::Matches(const std::string& channel,const std::string& segment,const std::string& sha) const {
+    return impl_->segment.channel_id==channel&&impl_->segment.segment_id==segment&&impl_->segment.checksum_sha256==sha;
+}
+bool RecordingSearchReader::PreparedSource::MatchesFrame(std::int64_t pts,const std::string& sha) const {
+    if(!impl_->binding||!impl_->binding->file_evidence)return false;unsigned found=0;
+    for(const auto& sample:impl_->binding->file_evidence->samples)if(sample.original_pts_ns==pts&&sample.sample_sha256==sha)++found;
+    return found==1;
+}
+std::size_t RecordingSearchReader::PreparedSource::retained_bytes() const {
+    return sizeof(Impl)+impl_->context.retained_bytes+4*SerializeRecordingSegmentV2(impl_->segment).size()+
+        4*(impl_->location.first.native().capacity()+impl_->location.second.native().capacity())+8192;
+}
+std::unique_ptr<RecordingSearchReader::PreparedSource> RecordingSearchReader::PrepareSource(
+    const std::string& channel,const std::string& id,std::string* error,const std::function<bool()>& cancelled,
+    std::chrono::steady_clock::time_point deadline) const {
+    const auto expired=[&]{return std::chrono::steady_clock::now()>=deadline||(cancelled&&cancelled());};
+    const auto fail=[&](const char* reason)->std::unique_ptr<PreparedSource>{if(error)*error=reason;return {};};
+    if(expired())return fail("seek-cancelled");
+    auto proof=std::make_unique<PreparedSource::Impl>();proof->catalog=&catalog_;
+    if(!catalog_.AcquireMediaV2(channel,id,&proof->segment,&proof->location,error))return {};
+    struct Release {RecordingCatalog& catalog;const std::string& id;~Release(){catalog.AdjustHoldCount(id,-1,nullptr);}} release{catalog_,id};
+    const auto binding=catalog_.ReadSourceBinding(id,&proof->context,error);
+    if(!binding||!binding->file_evidence||!ValidateRecordingSourceBindingForSegment(*binding,proof->segment,error))return fail("seek-unavailable-file-evidence");
+    MediaInspectionOptions options;options.deadline=deadline;options.cancelled=cancelled;
+    proof->media=reader_.ResolveMedia(channel,id,std::move(options));
+    if(!proof->media)return fail(expired()?"seek-cancelled":"seek-unavailable-media");
+    struct stat after{};
+    if(::fstat(proof->media->fd(),&proof->verified)!=0||
+        !VerifyRecordingFileEvidenceFd(proof->media->fd(),*binding,error,expired)||
+        ::fstat(proof->media->fd(),&after)!=0||!SameFileState(proof->verified,after))return fail(expired()?"seek-cancelled":"seek-unavailable-file-evidence");
+    proof->binding=binding;
+    const auto current=catalog_.ReadSourceBinding(id,&proof->context,error);
+    if(!current||current!=proof->binding||
+        !reader_.RevalidateHeldMediaV2(*proof->media,proof->segment,proof->location))return fail("seek-unavailable-source-changed");
+    if(expired())return fail("seek-cancelled");
+    if(error)error->clear();return std::unique_ptr<PreparedSource>(new PreparedSource(std::move(proof)));
+}
+bool RecordingSearchReader::SourceSeekPrepared(const PreparedSource& prepared,std::int64_t pts,std::int32_t num,
+    std::int32_t den,SearchSeekTarget* output,std::string* error,const std::function<bool()>& cancelled,
+    std::chrono::steady_clock::time_point deadline) const {
+    const auto fail=[&](const char* reason){if(error)*error=reason;return false;};
+    const auto expired=[&]{return std::chrono::steady_clock::now()>=deadline||(cancelled&&cancelled());};
+    if(!output||pts<0||num<=0||den<=0)return fail("seek-unavailable-invalid-time");
+    if(expired())return fail("seek-cancelled");
+    const __int128 scaled=static_cast<__int128>(pts)*num*1000000000;
+    if(scaled%den||scaled/den>std::numeric_limits<std::int64_t>::max())return fail("seek-unavailable-unrepresentable-time");
+    const auto& proof=*prepared.impl_;
+    if(proof.catalog!=&catalog_)return fail("seek-unavailable-source-changed");
+    const auto binding=catalog_.ReadSourceBinding(proof.segment.segment_id,&proof.context,error);struct stat current{};
+    if(!binding||!binding->file_evidence||binding!=proof.binding||
+        !reader_.RevalidateHeldMediaV2(*proof.media,proof.segment,proof.location)||
+        ::fstat(proof.media->fd(),&current)!=0||!SameFileState(proof.verified,current))return fail("seek-unavailable-source-changed");
+    return NativeSeek(*binding->file_evidence,static_cast<std::int64_t>(scaled/den),output,error,expired);
 }
 bool RecordingSearchReader::DerivedSeek(const std::string& channel,const std::string& job_id,
     const std::string& original_id,const std::string& output_id,std::int64_t original_ns,

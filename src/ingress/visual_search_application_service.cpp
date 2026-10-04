@@ -44,17 +44,77 @@ struct Flight {
     explicit Flight(std::atomic<unsigned>& c):count(c){auto n=count.load();while(n<4){if(count.compare_exchange_weak(n,n+1)){admitted=true;break;}}}
     ~Flight(){if(admitted)--count;}
 };
+// 한 요청 안에서만 재사용한다. 교체된 cache의 FD도 최종 선택 결과가 보유하면 응답까지 유지한다.
+class RequestMedia {
+    using Prepared=recording::RecordingVisualSource::PreparedSource;
+    using Key=std::pair<std::string,std::string>;
+    struct Entry {std::unique_ptr<Prepared> proof;std::size_t bytes;std::uint64_t used;};
+    const recording::RecordingVisualSource& source_;
+    std::function<bool()> cancelled_;
+    std::chrono::steady_clock::time_point deadline_;
+    std::map<Key,Entry> entries_;
+    std::size_t bytes_{0},peak_bytes_{0};std::uint64_t sequence_{0},prepared_{0},reused_{0};
+    const std::uint64_t started_{recording::RecordingReadService::TracePreparationStarted()};
+    const char* trace_reference_;
+public:
+    RequestMedia(const recording::RecordingVisualSource& source,std::function<bool()> cancelled,
+        std::chrono::steady_clock::time_point deadline,const char* trace_reference="visual-search-request")
+        :source_(source),cancelled_(std::move(cancelled)),deadline_(deadline),trace_reference_(trace_reference){}
+    ~RequestMedia(){recording::RecordingReadService::TracePreparationCompleted(
+        trace_reference_,started_,prepared_,reused_,peak_bytes_);}
+private:
+    Prepared* Acquire(const recording::VisualSearchDocument& doc,std::unique_ptr<Prepared>& temporary,std::string* error){
+        constexpr std::size_t capacity=8*1024*1024,fd_capacity=200;
+        const Key key{doc.channel_id,doc.segment_id};auto found=entries_.find(key);
+        Prepared* proof=nullptr;
+        if(found!=entries_.end()){found->second.used=++sequence_;proof=found->second.proof.get();++reused_;}
+        else {
+            temporary=source_.Prepare(doc,error,cancelled_,deadline_);if(!temporary)return nullptr;++prepared_;
+            const auto cost=temporary->retained_bytes();
+            if(cost<=capacity){
+                while(!entries_.empty()&&(entries_.size()>=fd_capacity||bytes_>capacity-cost)){
+                    const auto oldest=std::min_element(entries_.begin(),entries_.end(),[](const auto& a,const auto& b){return a.second.used<b.second.used;});
+                    bytes_-=oldest->second.bytes;entries_.erase(oldest);
+                }
+                bytes_+=cost;peak_bytes_=std::max(peak_bytes_,bytes_);
+                found=entries_.emplace(key,Entry{std::move(temporary),cost,++sequence_}).first;proof=found->second.proof.get();
+            } else proof=temporary.get(); // 단일 큰 증명도 기존 지원 범위에서 검증하며 cache에 쌓지 않는다.
+        }
+        return proof;
+    }
+public:
+    bool Resolve(const recording::VisualSearchDocument& doc,recording::SearchSeekTarget* target,
+        std::shared_ptr<const recording::ResolvedRecordingMedia>* hold,std::string* error){
+        std::unique_ptr<Prepared> temporary;const auto* proof=Acquire(doc,temporary,error);if(!proof)return false;
+        if(!source_.ResolvePrepared(doc,*proof,target,error,cancelled_,deadline_))return false;
+        if(hold)*hold=proof->Hold();return true;
+    }
+    bool Encode(recording::VisualSearchDocument* doc,analysis::Siglip2Encoder& encoder,std::string* error){
+        if(!doc->event_id.empty())return source_.Encode(doc,encoder,error,cancelled_);
+        std::unique_ptr<Prepared> temporary;const auto* proof=Acquire(*doc,temporary,error);if(!proof)return false;
+        return source_.Encode(doc,encoder,error,cancelled_,proof);
+    }
+};
 bool EventFacts(bool enabled,const std::vector<std::string>& channels,
     std::vector<recording::VisualSnapshotEvent>* facts,const std::function<bool()>& cancelled){
     facts->clear();if(cancelled&&cancelled())return false;if(!enabled)return true;
-    analysis::EventRecordQueryOptions options;options.search_facts_only=true;options.include_archives=true;options.evidence="snapshot";options.limit=20000;options.cancelled=cancelled;
-    analysis::EventRecordQueryResult result;std::string error;
-    if(!analysis::QueryEventRecords(options,&result,&error)||result.truncated||result.has_more||result.skipped_corrupt_lines||result.partial_line_count)return false;
+    analysis::EventRecordQueryOptions options;options.search_facts_only=true;options.include_archives=true;options.evidence="snapshot";options.cancelled=cancelled;
+    constexpr std::size_t capacity=20000;
+    std::size_t returned=0,bytes=0;
     std::map<std::pair<std::string,std::string>,std::string> epochs;
-    for(const auto& fact:result.search_facts){if(cancelled&&cancelled())return false;if(std::find(channels.begin(),channels.end(),fact.channel_id)!=channels.end()){
-        const auto inserted=epochs.emplace(std::make_pair(fact.event_id,fact.channel_id),fact.stream_epoch_id);
-        if(!inserted.second&&inserted.first->second!=fact.stream_epoch_id)return false;
-    }
+    // 타 채널의 이력은 이 요청의 한도에 포함하지 않는다. 요청 채널 전체의 기존 한도는 유지한다.
+    for(const auto& channel:std::set<std::string>(channels.begin(),channels.end())){
+        if(cancelled&&cancelled())return false;
+        options.channel_id=channel;options.limit=std::max<std::size_t>(1,capacity-returned);
+        analysis::EventRecordQueryResult result;std::string error;
+        if(!analysis::QueryEventRecords(options,&result,&error)||result.truncated||result.has_more||result.skipped_corrupt_lines||result.partial_line_count||
+            result.search_facts.size()>capacity-returned||result.search_fact_bytes>8*1024*1024-bytes)return false;
+        returned+=result.search_facts.size();bytes+=result.search_fact_bytes;
+        for(const auto& fact:result.search_facts){
+            if((cancelled&&cancelled())||fact.channel_id!=channel)return false;
+            const auto inserted=epochs.emplace(std::make_pair(fact.event_id,fact.channel_id),fact.stream_epoch_id);
+            if(!inserted.second&&inserted.first->second!=fact.stream_epoch_id)return false;
+        }
     }
     for(const auto& entry:epochs)facts->push_back({entry.first.first,entry.first.second,entry.second});return true;
 }
@@ -94,11 +154,14 @@ VisualSearchApplicationService::VisualSearchApplicationService(recording::Record
             if(!EventFacts(!options_.snapshot_directory.empty(),channels,&events,cancelled)){*error="visual-source-unavailable";return false;}
             if(!source_.CollectSnapshots(events,docs,&counts,error,cancelled))return false;
             std::lock_guard lock(coverage_mutex_);coverage_=std::move(counts);return true;
-        },[this](auto* doc,const auto& cancelled,std::string* error){
-            std::unique_lock<std::timed_mutex> lock(inference_,std::defer_lock);
-            while(!lock.try_lock_for(std::chrono::milliseconds(25)))if(cancelled())return false;
-            if(cancelled())return false;return source_.Encode(doc,*encoder_,error,cancelled);
-        },std::chrono::seconds(options_.scan_seconds));
+        },recording::VisualIndexWorker::EncodeFactory([this]{
+            auto media=std::make_shared<RequestMedia>(source_,[this]{return stopped_.load();},std::chrono::steady_clock::time_point::max(),"visual-index-build");
+            return [this,media](auto* doc,const auto& cancelled,std::string* error){
+                std::unique_lock<std::timed_mutex> lock(inference_,std::defer_lock);
+                while(!lock.try_lock_for(std::chrono::milliseconds(25)))if(cancelled())return false;
+                if(cancelled())return false;return media->Encode(doc,*encoder_,error);
+            };
+        }),std::chrono::seconds(options_.scan_seconds));
     worker_->Start();
     } catch(const std::exception&) { worker_.reset(); encoder_.reset(); }
 }
@@ -144,12 +207,13 @@ ApplicationServiceResult VisualSearchApplicationService::Search(const Query& raw
             if(!lock.try_lock_until(std::min(deadline,std::chrono::steady_clock::now()+std::chrono::seconds(2))))return Error(503,"visual-search-busy");
             try{query.embedding=encoder_->EncodeText(Get(raw,"text"));}catch(const std::invalid_argument&){return Error(400,"visual-invalid-text");}}
         std::vector<recording::VisualSearchHit> hits;std::string error;
+        RequestMedia media_cache(source_,expired,deadline);
         const auto eligible=[&](const auto& doc){
             if(stopped_||std::chrono::steady_clock::now()>=deadline)throw std::runtime_error("budget");
             if(!authorize(doc.channel_id)||!CurrentEvent(doc,events,source_))return false;
-            recording::SearchSeekTarget seek;std::unique_ptr<recording::ResolvedRecordingMedia> media;
+            recording::SearchSeekTarget seek;
             if(source_.IsDeleted(doc))return false;
-            if(!source_.Resolve(doc,&seek,&media,&error,expired,deadline)){
+            if(!media_cache.Resolve(doc,&seek,nullptr,&error)){
                 if(!expired()&&source_.IsDeleted(doc))return false;
                 throw std::runtime_error("visual-source-unavailable");
             }
@@ -158,10 +222,12 @@ ApplicationServiceResult VisualSearchApplicationService::Search(const Query& raw
         if(!index->Search(query,eligible,&hits,&error))return Error(503,"visual-search-unavailable");
         if(expired())return Error(503,"visual-search-busy");
         std::ostringstream out;out.imbue(std::locale::classic());out<<std::setprecision(17)<<"{\"kind\":\"visual-frame\",\"scoreMeaning\":\"similarity-not-evidence\",\"items\":[";
+        std::vector<std::shared_ptr<const recording::ResolvedRecordingMedia>> response_holds;response_holds.reserve(hits.size());
         bool comma=false;for(const auto& hit:hits){const auto& d=index->documents()[hit.document_index];
             if(stopped_||std::chrono::steady_clock::now()>=deadline)return Error(503,"visual-search-busy");
-            recording::SearchSeekTarget seek;std::unique_ptr<recording::ResolvedRecordingMedia> media;
-            if(!authorize(d.channel_id)||!source_.Resolve(d,&seek,&media,&error,expired,deadline))return Error(503,"visual-source-changed");
+            recording::SearchSeekTarget seek;std::shared_ptr<const recording::ResolvedRecordingMedia> media;
+            if(!authorize(d.channel_id)||!media_cache.Resolve(d,&seek,&media,&error))return Error(503,"visual-source-changed");
+            response_holds.push_back(std::move(media));
             if(comma)out<<',';comma=true;out<<"{\"id\":"<<Quote(d.id)<<",\"kind\":"<<Quote(d.event_id.empty()?"representative-frame":"event-snapshot")<<",\"channelId\":"<<Quote(d.channel_id)<<",\"score\":"<<hit.score<<",\"timeNs\":"<<(d.utc_ns?Quote(std::to_string(*d.utc_ns)):"null")<<','<<Playback(d,seek)<<'}';}
         if(expired())return Error(503,"visual-search-busy");
         out<<"]}";return {200,"OK",out.str()};

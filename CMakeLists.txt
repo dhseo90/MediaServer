@@ -294,6 +294,12 @@ endif()
 
 # 선택 모델은 자동 다운로드하지 않는다. 승인된 격리 준비 도구의 prefix를 명시한다.
 if(MEDIA_SERVER_USE_SIGLIP2)
+    if(NOT MEDIA_SERVER_USE_GSTREAMER)
+        message(FATAL_ERROR "SigLIP2 requires MEDIA_SERVER_USE_GSTREAMER=ON for verified video frames.")
+    endif()
+    if(NOT OPENSSL_FOUND AND NOT OpenSSL_FOUND)
+        message(FATAL_ERROR "SigLIP2 requires OpenSSL for verified event snapshot hashes.")
+    endif()
     if(NOT MEDIA_SERVER_USE_ONNXRUNTIME OR NOT PkgConfig_FOUND OR NOT MEDIA_SERVER_SENTENCEPIECE_ROOT)
         message(FATAL_ERROR "SigLIP2 requires ONNX Runtime and pkg-config for GLib.")
     endif()

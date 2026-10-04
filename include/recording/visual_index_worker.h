@@ -22,7 +22,11 @@ public:
     // 입력 metadata에는 embedding이 없어도 된다. 양 callback은 취소를 관측해야 한다.
     using Source = std::function<bool(std::vector<VisualSearchDocument>*,const Cancelled&,std::string*)>;
     using Encode = std::function<bool(VisualSearchDocument*,const Cancelled&,std::string*)>;
+    // 생성한 callback과 자원은 Rebuild의 모든 종료 경로에서 함께 파괴된다.
+    using EncodeFactory = std::function<Encode()>;
     VisualIndexWorker(VisualIndexStore store,Source source,Encode encode,
+        std::chrono::milliseconds interval,VisualIndexLimits limits = {});
+    VisualIndexWorker(VisualIndexStore store,Source source,EncodeFactory encode_factory,
         std::chrono::milliseconds interval,VisualIndexLimits limits = {});
     ~VisualIndexWorker();
     VisualIndexWorker(const VisualIndexWorker&)=delete;
@@ -37,7 +41,7 @@ private:
     bool Rebuild(const Cancelled&,std::string*);
     VisualIndexStore store_;
     Source source_;
-    Encode encode_;
+    EncodeFactory encode_factory_;
     std::chrono::milliseconds interval_;
     VisualIndexLimits limits_;
     mutable std::mutex mutex_;

@@ -42,35 +42,52 @@ struct Snapshot {
     analysis::EventSnapshotProof proof;std::string source,id;std::vector<unsigned char> image;
     Fd image_fd;
 };
-bool Read(const std::string& root,const std::string& event,const std::string& channel,Snapshot* out){
-    if(event.empty()||event.size()>1024||channel.empty()||channel.size()>1024)return false;
-    Fd dir(Directory(root));if(dir.value<0)return false;
+bool Read(const std::string& root,const std::string& event,const std::string& channel,Snapshot* out,std::string* error=nullptr){
+    if(event.empty()||event.size()>1024||channel.empty()||channel.size()>1024)return Fail(error,"visual-snapshot-invalid-reference");
+    Fd dir(Directory(root));if(dir.value<0)return Fail(error,"visual-snapshot-read-failed");
     const auto base=Token(event)+".snapshot";Fd manifest(::openat(dir.value,(base+".json").c_str(),O_RDONLY|O_NONBLOCK|O_NOFOLLOW|O_CLOEXEC));
-    std::vector<unsigned char> bytes;if(!Bytes(manifest.value,65536,&bytes))return false;
-    ingress::StrictJsonObjectDocument d;std::string error;
-    if(!ingress::ParseStrictJsonObjectDocument(std::string(bytes.begin(),bytes.end()),&d,&error))return false;
+    if(manifest.value<0)return Fail(error,errno==ENOENT?"visual-snapshot-unsupported":"visual-snapshot-read-failed");
+    std::vector<unsigned char> bytes;if(!Bytes(manifest.value,65536,&bytes))return Fail(error,"visual-snapshot-read-failed");
+    ingress::StrictJsonObjectDocument d;std::string parse_error;
+    if(!ingress::ParseStrictJsonObjectDocument(std::string(bytes.begin(),bytes.end()),&d,&parse_error))return Fail(error,"visual-snapshot-invalid-proof");
     auto s=[&](const char* key){return ingress::StrictJsonStringField(d,key).value_or("");};
+    if(s("schema")!="media-server.va.event-snapshot-hook.v1"||s("eventId")!=event||s("channelId")!=channel)
+        return Fail(error,"visual-snapshot-invalid-proof");
+    // 명시적인 구형 marker와 증명 없는 기록만 미지원이다. 손상된 증명을 같은 상태로 숨기지 않는다.
+    const auto recorded=ingress::StrictJsonBoolField(d,"recorded");
+    if(s("captureStatus")=="manifest-only"&&recorded==std::optional<bool>(false))return Fail(error,"visual-snapshot-unsupported");
+    if(s("captureStatus")!="recorded"||recorded!=std::optional<bool>(true))return Fail(error,"visual-snapshot-invalid-proof");
+    const auto* proof_field=d.Find("originalFrameProof");
+    if(!proof_field||proof_field->type==ingress::StrictJsonType::Null)return Fail(error,"visual-snapshot-unsupported");
     const auto proof=ingress::StrictJsonObjectField(d,"originalFrameProof");
-    if(s("schema")!="media-server.va.event-snapshot-hook.v1"||s("captureStatus")!="recorded"||
-        ingress::StrictJsonBoolField(d,"recorded")!=std::optional<bool>(true)||s("eventId")!=event||s("channelId")!=channel||
-        !proof||!analysis::ParseEventSnapshotProof(*proof,&out->proof)||s("contentType")!="image/jpeg")return false;
-    out->source=s("streamId");if(!ValidateRecordingReferenceId(out->source,nullptr))return false;
+    if(!proof||!analysis::ParseEventSnapshotProof(*proof,&out->proof))return Fail(error,"visual-snapshot-invalid-proof");
+    if(s("contentType")!="image/jpeg")return Fail(error,"visual-snapshot-unsupported");
+    out->source=s("streamId");if(!ValidateRecordingReferenceId(out->source,nullptr))return Fail(error,"visual-snapshot-invalid-proof");
     // manifest의 mediaPath는 실행 경로로 사용하지 않는다. 고정 basename과 trusted root의 FD만 연다.
     out->image_fd.value=::openat(dir.value,(base+".jpg").c_str(),O_RDONLY|O_NONBLOCK|O_NOFOLLOW|O_CLOEXEC);
-    if(!Bytes(out->image_fd.value,16*1024*1024,&out->image)||analysis::SnapshotBytesSha256(out->image.data(),out->image.size())!=out->proof.image_sha256)return false;
+    // 운영 evidence cleanup은 manifest를 남기고 이미지만 삭제할 수 있다.
+    if(out->image_fd.value<0&&errno==ENOENT)return Fail(error,"visual-snapshot-unsupported");
+    if(!Bytes(out->image_fd.value,16*1024*1024,&out->image))return Fail(error,"visual-snapshot-read-failed");
+    if(analysis::SnapshotBytesSha256(out->image.data(),out->image.size())!=out->proof.image_sha256)return Fail(error,"visual-snapshot-integrity-failed");
     // 전체 manifest hash로 event/channel/source와 proof 변경 모두 cache 재사용에서 분리한다.
-    out->id="snapshot:"+analysis::SnapshotBytesSha256(bytes.data(),bytes.size());return out->id.size()==73;
+    out->id="snapshot:"+analysis::SnapshotBytesSha256(bytes.data(),bytes.size());
+    if(out->id.size()!=73)return Fail(error,"visual-snapshot-integrity-failed");
+    if(error)error->clear();return true;
 }
 }
 bool RecordingVisualSource::SnapshotDocument(const std::string& event,const std::string& channel,VisualSearchDocument* out,std::string* error)const{
-    Snapshot snapshot;if(!out||!Read(snapshots_,event,channel,&snapshot))return Fail(error,"visual-snapshot-proof-unavailable");
+    if(!out)return Fail(error,"visual-snapshot-invalid-reference");
+    Snapshot snapshot;if(!Read(snapshots_,event,channel,&snapshot,error))return false;
     const auto& p=snapshot.proof.original;RecordingOriginalResult matches;
-    if(!catalog_.ResolveOriginalSample(channel,snapshot.source,p.source_generation,p.generation_order,p.track_id,p.ordinal,p.pts_ns,&matches,error)||
-        matches.exact.size()!=1||!matches.unknown.empty())return Fail(error,"visual-snapshot-original-unavailable");
+    if(!catalog_.ResolveOriginalSample(channel,snapshot.source,p.source_generation,p.generation_order,p.track_id,p.ordinal,p.pts_ns,&matches,error))
+        return Fail(error,"visual-snapshot-source-failed");
+    if(matches.exact.size()!=1||!matches.unknown.empty())return Fail(error,"visual-snapshot-unsupported");
     const auto& segment=matches.exact.front().segment;
     const auto binding=catalog_.FindSourceBinding(segment.segment_id);
-    if(!binding||!binding->file_evidence||segment.container!="mp4"||segment.video_codecs!=std::vector<std::string>{"h264"}||
-        segment.size_bytes>512ULL*1024*1024||!ValidateRecordingSourceBindingForSegment(*binding,segment,error))return Fail(error,"visual-snapshot-original-unavailable");
+    if(!binding)return Fail(error,catalog_.IsDeletedSegmentId(segment.segment_id)?"visual-snapshot-unsupported":"visual-snapshot-source-failed");
+    if(!binding->file_evidence||segment.container!="mp4"||segment.video_codecs!=std::vector<std::string>{"h264"}||
+        segment.size_bytes>512ULL*1024*1024)return Fail(error,"visual-snapshot-unsupported");
+    if(!ValidateRecordingSourceBindingForSegment(*binding,segment,error))return Fail(error,"visual-snapshot-source-failed");
     const RecordingFileSampleEvidenceV1* sample=nullptr;unsigned count=0;
     for(const auto& s:binding->file_evidence->samples)if(s.ordinal==p.ordinal&&s.original_pts_ns==std::int64_t(p.pts_ns)&&s.native_pts>=binding->file_evidence->edit_media_time){sample=&s;++count;}
     if(count!=1)return Fail(error,"visual-snapshot-original-unavailable");
@@ -88,7 +105,14 @@ bool RecordingVisualSource::CollectSnapshots(const std::vector<VisualSnapshotEve
     for(const auto& event:events){if(cancelled&&cancelled())return Fail(error,"visual-cancelled");
         if(!counts.count(event.channel_id)||!seen.emplace(event.event_id,event.channel_id).second)continue;
         auto& c=counts[event.channel_id];++c.examined_snapshots;VisualSearchDocument doc;std::string reason;
-        if(!SnapshotDocument(event.event_id,event.channel_id,&doc,&reason)||!SnapshotMatchesEvent(doc,event.stream_epoch_id)){++c.unsupported_snapshots;continue;}
+        if(!SnapshotDocument(event.event_id,event.channel_id,&doc,&reason)){
+            if(reason!="visual-snapshot-unsupported")return Fail(error,reason.c_str());
+            ++c.unsupported_snapshots;continue;
+        }
+        if(!SnapshotMatchesEvent(doc,event.stream_epoch_id,&reason)){
+            if(!reason.empty())return Fail(error,reason.c_str());
+            ++c.unsupported_snapshots;continue;
+        }
         if(docs->size()+additions.size()>=20000)return Fail(error,"visual-index-capacity");
         ++c.event_snapshots;additions.push_back(std::move(doc));}
     docs->insert(docs->end(),std::make_move_iterator(additions.begin()),std::make_move_iterator(additions.end()));

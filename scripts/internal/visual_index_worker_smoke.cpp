@@ -46,10 +46,10 @@ int main(int argc,char**argv){
         oldest.reset();Check(Wait([&]{return worker.Status().generation==3;}),"old reader release resumes build");
         Check(encodes==2&&worker.Snapshot()->documents().size()==2,"only added frame encoded");
         auto preserved=worker.Snapshot();mode=2;worker.RequestRebuild();
-        Check(Wait([&]{return worker.Status().state=="unavailable";}),"encode failure visible");
+        Check(Wait([&]{return worker.Status().state=="ready"&&!worker.Status().error.empty();}),"encode failure visible");
         Check(worker.Snapshot()==preserved&&worker.Status().error=="visual-index-build-failed","no partial publication or private error");
         mode=3;const int before_failure=sources;worker.RequestRebuild();
-        Check(Wait([&]{return sources>before_failure&&worker.Status().state=="unavailable";}),"source failure visible");
+        Check(Wait([&]{return sources>before_failure&&worker.Status().state=="ready"&&!worker.Status().error.empty();}),"source failure visible");
         Check(worker.Snapshot()==preserved,"source failure preserves old");
         mode=4;worker.RequestRebuild();Check(Wait([&]{return active==1;}),"work in flight");
         const int during=sources;for(int i=0;i<100;++i)worker.RequestRebuild();
@@ -67,9 +67,35 @@ int main(int argc,char**argv){
         Check(worker.Snapshot()->documents().size()==1&&worker.Snapshot()->documents().front().id=="healthy"&&
             worker.Status().unsupported_segments.at("camera")==1,"healthy result and channel exclusion coverage");
         mode=7;worker.RequestRebuild();
-        Check(Wait([&]{return worker.Status().state=="unavailable";}),"integrity failure still fails entire build");
+        Check(Wait([&]{return worker.Status().state=="ready"&&!worker.Status().error.empty();}),"integrity failure still fails entire build");
         Check(worker.Status().generation==5&&worker.Snapshot()->documents().front().id=="healthy","integrity failure never publishes partial");
         worker.Stop();
+        {
+            const auto empty=std::filesystem::path(argv[1])/"initial-failure";std::filesystem::create_directory(empty);::chmod(empty.c_str(),0700);
+            VisualIndexWorker initial(VisualIndexStore(empty),[](auto*,const auto&,std::string* error){*error="injected-source-failure";return false;},encode,1h);
+            Check(initial.Start(),"initial failure worker starts");
+            Check(Wait([&]{return initial.Status().state=="unavailable"&&!initial.Status().error.empty();}),"initial failure without complete index remains unavailable");
+            Check(!initial.Snapshot(),"initial failure never publishes an empty replacement");initial.Stop();
+        }
+        {
+            const auto path=std::filesystem::path(argv[1])/"build-scope";std::filesystem::create_directory(path);::chmod(path.c_str(),0700);
+            std::atomic<int> owned{0},factories{0},behavior{0},entered{0};
+            struct Lease {std::atomic<int>& count;explicit Lease(std::atomic<int>& c):count(c){++count;}~Lease(){--count;}};
+            VisualIndexWorker scoped(VisualIndexStore(path),[&](auto* docs,const auto&,auto*){*docs={Row(std::to_string(behavior.load()))};return true;},
+                VisualIndexWorker::EncodeFactory([&]{++factories;auto lease=std::make_shared<Lease>(owned);
+                    return [&,lease](auto* doc,const auto& cancelled,std::string* error){
+                        ++entered;if(behavior==2)throw std::runtime_error("owned exception");
+                        if(behavior==3){while(!cancelled())std::this_thread::sleep_for(2ms);return false;}
+                        if(behavior==1){*error="owned encode failure";return false;}
+                        doc->embedding.assign(768,0);doc->embedding[0]=1;return true;
+                    };}),1h);
+            Check(scoped.Start(),"build-scope worker starts");
+            Check(Wait([&]{return scoped.Status().generation==1&&owned==0;}),"successful rebuild releases callback resource");
+            for(int failure:{1,2}){const auto before=factories.load();behavior=failure;scoped.RequestRebuild();
+                Check(Wait([&]{return factories>before&&owned==0&&!scoped.Status().error.empty();}),"failure and exception both release callback resource");}
+            behavior=3;scoped.RequestRebuild();Check(Wait([&]{return owned==1&&entered==4;}),"cancellable build holds one local resource");
+            scoped.Stop();Check(owned==0,"cancel and join release local callback resource");
+        }
         Check(maximum==1,"no encoder overlap");
         std::cout<<"PASS visual worker checks="<<checks<<" encodes="<<encodes<<" source_scans="<<sources<<"\n";return 0;
     }catch(const std::exception& e){std::cerr<<"FAIL "<<e.what()<<" checks="<<checks<<"\n";return 1;}

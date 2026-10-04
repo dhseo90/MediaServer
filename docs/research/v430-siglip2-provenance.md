@@ -147,7 +147,8 @@ RGB 버퍼 접근 span은 `(height-1)*stride+width*3`이며 최대 256MiB이다.
 overflow·short stride·상한 초과는 토큰화나 resize 할당 전에 거부한다.
 caller는 최소 span 크기 버퍼의 소유권과 수명을 유지해야 한다. 이 pointer API로 실제 버퍼 크기를
 추론하지 않는다. 같은 encoder의 단일 mutex가 토큰화와 RGB 전처리부터 추론까지 보호하므로,
-여러 호출의 임시 resize tensor가 동시에 쌓이지 않는다. CPU ORT intra/inter threads는 각각 1이다.
+여러 호출의 임시 resize tensor가 동시에 쌓이지 않는다. v4.4.0의 CPU ORT intra/inter threads는 각 세션당 4/1이다.
+worker와 동시 추론은 각각 1개로 유지하며, 내부 연산 병렬화는 서버 전체 스레드 수의 상한을 뜻하지 않는다.
 
 `TokenizeText`는 `g_utf8_validate` → Unicode 공백 질의 거부 → `g_utf8_strdown` →
 SentencePiece identity normalization 순서이며 별도 NFKC/공백 축약을 하지 않는다.

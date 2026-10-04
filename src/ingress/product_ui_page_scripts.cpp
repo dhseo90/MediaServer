@@ -10653,7 +10653,7 @@ void AppendOpsShellScript(std::ostringstream& out,
               const counts = data.channels.map(c => `${c.channelId}: 색인 ${c.indexedFrames}프레임 · 최근 스캔 ${c.examinedSegments}파일 · 미지원 ${c.unsupportedSegments}파일 / ${c.unsupportedSnapshots || 0}스냅샷`).join(' / ');
               const snapshots = data.eventSnapshots === 'verified-original-pixels' ? '원본 픽셀을 대조한 이벤트 스냅샷 포함' : '이벤트 스냅샷 색인 비활성';
               say('Coverage', `${state}${data.enabled ? ' · 추출 간격 ' + data.sampleSeconds + '초 / 재확인 ' + data.scanSeconds + '초' : ''}${counts ? ' · ' + counts : ''} · ${snapshots}. 증거가 없는 기존 스냅샷은 제외됩니다.`);
-            say('Status', enabled ? '색인 상태를 갱신했습니다. 장면을 다시 검색하세요.' : '현재 검색을 사용할 수 없습니다. 색인 상태를 확인하세요.');
+              say('Status', enabled && data.error ? '최근 색인 갱신에 실패했습니다. 이전 완성 색인으로 검색할 수 있으며, 다음 갱신에서 다시 시도합니다.' : enabled ? '색인 상태를 갱신했습니다. 장면을 다시 검색하세요.' : '현재 검색을 사용할 수 없습니다. 색인 상태를 확인하세요.');
             } catch (error) { if (version === revision) { enabled = false; say('Coverage', error.message); say('Status', '색인 상태를 확인하지 못했습니다. 다시 새로고침하세요.'); } }
             finally { if (version === revision) el('Submit').disabled = !enabled; }
           };
