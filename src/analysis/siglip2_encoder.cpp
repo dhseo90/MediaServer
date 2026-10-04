@@ -107,10 +107,10 @@ struct FilterRow {
     std::vector<std::int32_t> weights;
 };
 
-// Independent interoperability implementation of Pillow 11.3 RGB BILINEAR:
-// src/libImaging/Resample.c (Pillow/MIT-CMU). No Pillow source is compiled/linked.
-// Half-pixel centers, widened downsample triangle, clipped+normalized borders,
-// 22bit coefficients, and rounding after each uint8 horizontal/vertical pass.
+// Pillow 11.3 RGB BILINEAR와의 독립적인 호환 구현이다.
+// 참조: src/libImaging/Resample.c (Pillow/MIT-CMU); Pillow 소스를 컴파일하거나 링크하지 않는다.
+// 반 픽셀 중심, 축소 비율에 따른 삼각 필터 확장, 경계 자르기와 정규화를 적용한다.
+// 22비트 계수와 uint8 가로·세로 각 단계 뒤 반올림을 사용한다.
 std::vector<FilterRow> Filters(int input_size) {
     const double scale = static_cast<double>(static_cast<float>(input_size)) / Siglip2Encoder::kImageSize;
     const double support = std::max(1.0, scale);
@@ -186,8 +186,8 @@ private:
     int value_;
 };
 
-// Private inode: only the owning FD remains after creation, including on errors.
-// Source paths are never reopened after the fixed size/SHA admission.
+// 생성 후 오류 경로에서도 소유 FD만 남는 비공개 inode를 사용한다.
+// 고정 크기와 SHA 검증 후 원본 경로를 다시 열지 않는다.
 class VerifiedTemporaryFile {
 public:
     VerifiedTemporaryFile(const std::filesystem::path& path, std::size_t size, const char* digest) {

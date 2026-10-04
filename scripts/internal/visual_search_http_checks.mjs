@@ -43,7 +43,7 @@ async function responseCase({call,check,cookie,request,id,expected,disabled=fals
   check(!leaked,id+' no private material',false,leaked);
 }
 
-// enabled UI fixtureでもこの関数の拒否ケースはモデルを呼ばない。actual UI PASSではない。
+// 활성 UI fixture에서도 이 함수의 거부 사례는 모델을 호출하지 않는다. 실제 UI 합격 증거는 아니다.
 export async function verifyVisualSearchHttpDenials({cookies,integratorCookie,call,check}){
   assert(cookies?.length===5&&integratorCookie,'HTTP fixture principals missing');
   for(const [label,cookie] of [['viewer',cookies[2]],['integrator',integratorCookie],['no-ops',cookies[4]]])

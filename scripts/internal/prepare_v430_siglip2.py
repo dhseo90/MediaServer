@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# 파일 용도: 승인된 SigLIP2 모델과 격리 의존성을 준비하고 호환성을 검증한다.
 """승인된 v4.3 SigLIP2 로컬 준비. 제품 실행/전역 설치/Git 변경을 하지 않는다."""
 import argparse
 import hashlib
@@ -130,7 +131,7 @@ def bootstrap(args):
     if not venv.exists():
         run([args.python, "-m", "venv", venv])
     python = venv / "bin/python"
-    # Wheel artifacts are retained with actual hashes, and install is entirely local.
+    # Wheel 파일은 실제 해시와 함께 보존하고 로컬 파일만으로 설치한다.
     wheels = DEPS / "wheels"
     wheels.mkdir(exist_ok=True)
     guard(2 * 1024 ** 3)
@@ -161,7 +162,7 @@ def assets(_):
 
 
 def sentencepiece(_):
-    # Source tag is recorded along with the actual archive hash before building.
+    # 빌드 전에 소스 태그와 실제 archive 해시를 함께 기록한다.
     archive = DEPS / "sentencepiece-v0.2.0.tar.gz"
     digest = download("https://github.com/google/sentencepiece/archive/refs/tags/v0.2.0.tar.gz", archive,
                       expected="9970f0a0afee1648890293321665e5b2efa04eaec9f1671fcf8048f456f5bb86", maximum=20 * 1024 ** 2)
@@ -186,8 +187,8 @@ def load_model():
     torch.set_num_threads(2)
     upstream = MODEL / "upstream"
     model = AutoModel.from_pretrained(str(upstream), local_files_only=True, attn_implementation="eager").eval().float()
-    # 4.49 SiglipProcessor assumes the older SigLIP tokenizer. The checkpoint
-    # explicitly declares GemmaTokenizer, so load the official components separately.
+    # 4.49 SiglipProcessor는 이전 SigLIP tokenizer를 가정한다.
+    # 체크포인트의 GemmaTokenizer 선언에 따라 공식 구성요소를 각각 로드한다.
     processor = SimpleNamespace(tokenizer=AutoTokenizer.from_pretrained(str(upstream),local_files_only=True),
                                 image_processor=AutoImageProcessor.from_pretrained(str(upstream),local_files_only=True,use_fast=False))
     return model, processor
@@ -343,7 +344,7 @@ def verify(args):
         run(["ffmpeg","-hide_banner","-loglevel","error","-y","-ss",str(second),"-i",video,"-frames:v","1",image_path])
         image=Image.open(image_path).convert("RGB")
         values=processor.image_processor(images=image,return_tensors="pt")["pixel_values"]
-        # Independent C++-contract preprocessing is compared to provider RGB preprocessing.
+        # 독립적인 C++ 계약 전처리를 공급자의 RGB 전처리와 비교한다.
         pixels=np.asarray(image.resize((224,224),Image.Resampling.BILINEAR),dtype=np.float32)
         pixels=((pixels/255.-.5)/.5).transpose(2,0,1)[None,...].copy()
         pre_error=float(np.max(np.abs(pixels-values.numpy())))
@@ -359,8 +360,8 @@ def verify(args):
         image_features.append(cpp_obs.reshape(-1))
     images=np.stack(image_features);texts_arr=np.stack(text_features)
     images/=np.linalg.norm(images,axis=1,keepdims=True);texts_arr/=np.linalg.norm(texts_arr,axis=1,keepdims=True)
-    # Scalar accumulation avoids platform BLAS floating-point status warnings;
-    # encoder and normalization checks remain unchanged.
+    # 스칼라 누산으로 플랫폼 BLAS의 부동소수점 상태 경고를 피한다.
+    # encoder와 정규화 검사는 그대로 유지한다.
     scores=np.array([[math.fsum(float(a)*float(b) for a,b in zip(t,i)) for i in images] for t in texts_arr])
     norm_error=float(max(np.max(np.abs(np.linalg.norm(images,axis=1)-1)),np.max(np.abs(np.linalg.norm(texts_arr,axis=1)-1))))
     if images.shape[1]!=768 or texts_arr.shape[1]!=768 or norm_error>1e-5 or not np.isfinite(scores).all() or np.allclose(images[0],images[1]) or np.allclose(texts_arr[0],texts_arr[1]):

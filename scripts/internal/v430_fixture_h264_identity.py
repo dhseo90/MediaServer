@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# 파일 용도: 개발 UI fixture의 H.264 식별자를 확장하고 원본 보존을 검증한다.
 """개발 UI fixture 전용 H.264 CAVLC frame_num 확장. 제품 입력/decoder로 사용하지 않는다."""
 import argparse
 import hashlib
