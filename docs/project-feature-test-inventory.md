@@ -9,6 +9,11 @@
 [개발 계약](superpowers/specs/2026-10-04-v440-evidence-package-design.md)에 따른 실행 전 정의다.
 전체 구현 이후 검사하며 아래 행은 PASS 기록이 아니다.
 
+안정화 명령은 `bash scripts/internal/verify_evidence_package.sh`(native),
+같은 명령의 `--http-only`·`--visual-http`(격리 HTTP/실제 로컬 모델),
+`node --test scripts/internal/evidence_ui_state.test.mjs`(UI 상태 회귀)다.
+`--ui`는 실제 UI 조작을 위한 격리 서버 준비이며 그 자체로 UI PASS가 아니다.
+
 V440-M01의 native clip 경계에는 30fps 원본 정수 PTS와 native rational tick이 다른
 표본 하나만 관측된 요청을 포함한다. 선택된 ordinal/generation/track/PTS로 연결하며,
 GOP 디코드 의존 표본만 존재할 때는 관측 연관을 만들지 않는다.
@@ -2318,7 +2323,7 @@ ST13 검증기 경계: seed/read-model shell 조기실패(CXX 실패 포함)는 
 | V410-S07-10 | 실제 event ID와 production observer wiring·recording off 독립 | S07 focused, S05 | 비대상 | 비대상 | 비대상: 기존 serializer 불변 |
 
 
-이 문서는 현재 release 목표 `v4.3.0` 기준의 기능별 테스트 분류 기준표입니다.
+이 문서는 현재 release 목표 `v4.4.0` 기준의 기능별 테스트 분류 기준표입니다.
 현재 소스 목표는 이미 공개된 버전이나 실제 실행 증거와 별개이며, 공개 상태는 릴리즈 metadata를 따릅니다.
 독자는 개발/테스트 에이전트이며, lifecycle은 active release target 동안 유지되는 test inventory입니다.
 AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, 이 문서는 기능 ID와 테스트 영역만 관리합니다.
