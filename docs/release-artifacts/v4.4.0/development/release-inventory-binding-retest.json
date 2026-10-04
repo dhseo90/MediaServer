@@ -1,0 +1,31 @@
+{
+  "previousFailure": "release-inventory-binding-checks.json",
+  "sourceApprovalChanges": "none; implementation manifest only inventorySha256 differs",
+  "checks": [
+    {
+      "command": [
+        "./server.sh",
+        "verify-project-inventory"
+      ],
+      "exit": 0,
+      "log": "release-inventory-binding-retest-1.log"
+    },
+    {
+      "command": [
+        "./server.sh",
+        "verify-script-inventory"
+      ],
+      "exit": 0,
+      "log": "release-inventory-binding-retest-2.log"
+    },
+    {
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "exit": 0,
+      "log": "release-inventory-binding-retest-3.log"
+    }
+  ]
+}

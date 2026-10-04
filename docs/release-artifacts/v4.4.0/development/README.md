@@ -167,3 +167,7 @@ HTTP/RTSP 포트 폐쇄, UDP socket 폐쇄, 인증 저장소를 포함한 임시
 - producer가 확장한 implementation manifest는 기존 compact serializer로 되돌렸다. [형식 대조](release-manifest-format-equality.json)는 전체 parsed JSON 값의 동일성과 25MiB 이하를 확인한다. 실행 결과는 [형식 변경 후 검사](release-manifest-format-checks.json)에 둔다. 독립 승인 의미나 과거 검토 provenance는 변경하지 않았다.
 
 구현 커밋 `eddbb684f1c1f8ebe5e681b356534600b18cc252`에 제품·테스트·현행 문서를 저장했다. 신규 파일 stage 검사에서 발견한 후행 공백 한 개는 [실패·수정 대조](release-staged-whitespace.json)대로 제거했고 재검사는 exit 0이다. 형식 변경 후 세 검사도 모두 exit 0이다.
+
+1차 canonical acceptance는 `6127e64f`의 clean source에서 빌드와 선행 31개 feature gate를 통과한 뒤 `verify-project-inventory`에서 중단됐다. 원인은 inventory의 현재 release 목표와 VA seed의 releaseTarget이 v4.3.0인 메타데이터 두 건이다. 해당 source 목표만 v4.4.0으로 수정하고 공개 baseline v4.0.0, fixture 입력, 판정 기준은 유지한다. 30분·424 UI·120분은 not-run이며 cleanup PASS다. [최초 실패](../test-acceptance-current-final/first-failure.json)와 원출력은 재실행 전 Git에 보존한다. 경로 정제 관계는 기존 [정제 기록](release-path-redaction.json)에 연결했다.
+
+후속 검사에서 신규 `evidence_ui_state.test.mjs`와 `verify_evidence_package.sh`의 현행 문서 참조 누락도 발견했다. 기능 목록에 실제 실행 명령과 UI 준비 경계를 추가했다. 두 메타데이터 수정의 원출력과 후속 결과는 [1차 검사](release-inventory-binding-checks.json), [수정 후 재검사](release-inventory-binding-retest.json)에 둔다. 제품 코드와 986개 독립 source 승인 값은 그대로이며 implementation manifest의 inventorySha256만 달라졌다.

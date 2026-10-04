@@ -1,0 +1,11 @@
+[pass] current UI documentation links and execution identifiers
+[pass] Policy v4 and role/redaction definitions remain connected
+[pass] current 424 baseline plus recording 8 IDs and 31 actions
+[pass] v3.5-v3.8 bridge binds all 36 exact IDs to route/control/action semantic evidence
+[pass] inventory longrun mapping counts are derived from the current 986-row manifest
+
+== Manual UI evidence verification summary ==
+- result: not provided; template/checklist only
+- pass: 5
+- fail: 0
+- uiFulltest: not-run-by-this-command

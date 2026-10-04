@@ -1,0 +1,107 @@
+{
+  "schema": "media-server.user-test-failure-handoff.v1",
+  "generatedAt": "2026-10-04T13:23:09.034Z",
+  "suite": "release",
+  "userCommand": "./test_release.sh",
+  "result": "fail",
+  "source": {
+    "commitSha": "6127e64f773a8d06cea8d37fdd0c898bd20c407d",
+    "branch": "v4.4.0",
+    "worktreeClean": true
+  },
+  "counts": {
+    "total": 50,
+    "pass": 36,
+    "fail": 3,
+    "notRun": 11
+  },
+  "firstFailure": {
+    "stage": "feature-gates",
+    "testcaseId": "project-inventory",
+    "command": "./server.sh verify-project-inventory",
+    "exitCode": 1,
+    "errorSummary": "[pass] current feature expansion rows exist | [pass] manual UI docs reference inventory | [pass] manual checklist references seed fixture | [pass] manual result template references seed fixture | [pass] VA seed inventory commands select the latest published baseline explicitly | [pass] AGENTS links current individual feature test definitions | [fail] manual UI VA seed matrix covers required current release cases: seed fixture must target current source v4.4.0 | == Project feature/test inventory summary == | - featureRows: 986 | - seedFixture: test/fixtures/manual_ui_fulltest_va_seed_matrix.json | - pass: 16 | - fail: 2",
+    "logPath": "<repo>/docs/release-artifacts/v4.4.0/test-acceptance-current-final/runs/v390-test-acceptance-20261004131647-71763/feature-gates-32-project-inventory.log",
+    "reproductionCommand": "./test_release.sh"
+  },
+  "laterNotRun": [
+    {
+      "scope": "check",
+      "id": "feature-gates/feature-inventory-coverage",
+      "reason": ""
+    },
+    {
+      "scope": "check",
+      "id": "feature-gates/release-evidence-index",
+      "reason": ""
+    },
+    {
+      "scope": "check",
+      "id": "feature-gates/script-inventory",
+      "reason": ""
+    },
+    {
+      "scope": "check",
+      "id": "feature-gates/git-diff-check",
+      "reason": ""
+    },
+    {
+      "scope": "stage",
+      "id": "server-longrun-30",
+      "reason": "not run after feature-gates failure"
+    },
+    {
+      "scope": "stage",
+      "id": "ui-environment-bootstrap",
+      "reason": "not run after feature-gates failure"
+    },
+    {
+      "scope": "stage",
+      "id": "ui-exact-424",
+      "reason": "not run after feature-gates failure"
+    },
+    {
+      "scope": "stage",
+      "id": "ui-fulltest-qualification",
+      "reason": "not run after feature-gates failure"
+    },
+    {
+      "scope": "stage",
+      "id": "longrun-120-decision",
+      "reason": "not run after feature-gates failure"
+    },
+    {
+      "scope": "stage",
+      "id": "server-longrun-120",
+      "reason": "not run after feature-gates failure"
+    },
+    {
+      "scope": "stage",
+      "id": "ui-final-integrity",
+      "reason": "not selected by release suite"
+    }
+  ],
+  "cleanup": {
+    "status": "pass",
+    "checks": [
+      {
+        "id": "",
+        "status": "pass"
+      },
+      {
+        "id": "",
+        "status": "pass"
+      },
+      {
+        "id": "",
+        "status": "pass"
+      },
+      {
+        "id": "",
+        "status": "pass"
+      }
+    ]
+  },
+  "sourceSummaryPath": "<repo>/docs/release-artifacts/v4.4.0/test-acceptance-current-final/summary.json",
+  "compactSummaryPath": "<repo>/docs/release-artifacts/v4.4.0/test-acceptance-current-final/test-run-summary.json"
+}

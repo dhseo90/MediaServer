@@ -1,0 +1,5 @@
+command=./server.sh build
+sourceCommitSha=6127e64f773a8d06cea8d37fdd0c898bd20c407d
+sourceWorktreeStatusSha256=2361c85bfceaecca94e3725008455ce305ba101fcc0868f9374269382775a04a
+buildPath=<repo>/build-gst-onnx/media_server
+buildSha256=bcf364f589a7d421945bb61154a348a39bdaf8731b16d288d4971a3252839cf4

@@ -217,6 +217,96 @@
           "sanitizedSha256": "9bcdb35fd6000a59c9740d562821bda5ec196b30c35c7c7e3318033e0781d566"
         }
       ]
+    },
+    {
+      "at": "2026-10-04T13:26:40.142338+00:00",
+      "reason": "failed first canonical acceptance, personal path prefixes only; original digest fields remain original",
+      "files": [
+        {
+          "file": "docs/release-artifacts/v4.4.0/test-acceptance-current-final/summary.json",
+          "originalBytes": 93362,
+          "originalSha256": "ab308fcc3b5626285721018adf760384eb62634376c403f35e7eac0a532279a9",
+          "sanitizedBytes": 90590,
+          "sanitizedSha256": "9615b4208e8a1369cf48c510b5d7ca0f0e3b41ed13a91a72d7019d10a0fbd606"
+        },
+        {
+          "file": "docs/release-artifacts/v4.4.0/test-acceptance-current-final/failure-handoff.json",
+          "originalBytes": 3366,
+          "originalSha256": "599e5b5dff50e98fe2d85a52d0eb0e2407e43f9bcdc0159e33f6217a6836fd0e",
+          "sanitizedBytes": 3282,
+          "sanitizedSha256": "95ab3e2ee9a76faadbbf1d5470f21f3b7e3665b16e7caa79e9f470d32488cd8e"
+        },
+        {
+          "file": "docs/release-artifacts/v4.4.0/test-acceptance-current-final/report.md",
+          "originalBytes": 15988,
+          "originalSha256": "ec02d13f8a37b7b78ce08d1502387df39a1c0fd12fcc498ce81dc4293b96e9fd",
+          "sanitizedBytes": 14700,
+          "sanitizedSha256": "16e4a195109aabf831b116a2095c5d80d30d3a07860de6af34dd8e1ad315c670"
+        },
+        {
+          "file": "docs/release-artifacts/v4.4.0/test-acceptance-current-final/first-failure.md",
+          "originalBytes": 10568,
+          "originalSha256": "344d1c332505f52e72e4fb02914b7abcdc708de69970e96bea85d71dac5a555e",
+          "sanitizedBytes": 10512,
+          "sanitizedSha256": "94df11127fbd0b69f9f662a2742d4b5e06f99a8d9dc141888b4173d069c435a6"
+        },
+        {
+          "file": "docs/release-artifacts/v4.4.0/test-acceptance-current-final/first-failure.json",
+          "originalBytes": 15975,
+          "originalSha256": "e0e8aa821f204fa4668f749b3215443679451cc4bc64167c7421bdab70161412",
+          "sanitizedBytes": 15835,
+          "sanitizedSha256": "d601f58c50d928cca6e16082fd5eabedc752bccbee513e56c3758c6e4c3b2cd1"
+        },
+        {
+          "file": "docs/release-artifacts/v4.4.0/test-acceptance-current-final/test-run-summary.json",
+          "originalBytes": 21716,
+          "originalSha256": "d6e38d42e0e83a5b59daad97f0e1952149cadf3ca047f0d5f02dbbaf8d7f2d37",
+          "sanitizedBytes": 20596,
+          "sanitizedSha256": "55c73b17b4b86bd3b431cef91d6a0cea8eec614c7159edc380b9f3762800a669"
+        },
+        {
+          "file": "docs/release-artifacts/v4.4.0/test-acceptance-current-final/failure-handoff.md",
+          "originalBytes": 2080,
+          "originalSha256": "a62f5ce91e998deba272dc1d0b2950de05188cd4ef8ded864015c04db17cd550",
+          "sanitizedBytes": 1996,
+          "sanitizedSha256": "43e51b4a9c3dc4cc084db9a5a9891b07e36495fe78aafb6fda3a054fdb20c5ff"
+        },
+        {
+          "file": "docs/release-artifacts/v4.4.0/test-acceptance-current-final/runs/v390-test-acceptance-20261004131647-71763/preflight.log",
+          "originalBytes": 869,
+          "originalSha256": "7675c648c5ed8b0dac8767b20c6604a4f1a21d14e56c69688b9ec41c6f2709c2",
+          "sanitizedBytes": 813,
+          "sanitizedSha256": "7302dd5f32aa36073480aa066b0bcbbd70a99064b365ac65945d16fc907155f3"
+        },
+        {
+          "file": "docs/release-artifacts/v4.4.0/test-acceptance-current-final/runs/v390-test-acceptance-20261004131647-71763/report.log",
+          "originalBytes": 246,
+          "originalSha256": "79d636e66c8032c6064fdb298ae5647294d62995236dbb727081120f8946e021",
+          "sanitizedBytes": 190,
+          "sanitizedSha256": "18e7d2fb363116fc96c548976608de6d80d598bd3de49fedc2004ab988a27256"
+        },
+        {
+          "file": "docs/release-artifacts/v4.4.0/test-acceptance-current-final/runs/v390-test-acceptance-20261004131647-71763/cleanup.log",
+          "originalBytes": 851,
+          "originalSha256": "102685e7380034608589bbddeb98c22206414c2ab0c5d46c3332f42103cfbe00",
+          "sanitizedBytes": 795,
+          "sanitizedSha256": "c45d9bccd11e64ebfdeb183db70220e73efb1536e71d751e7458bb959f0e4c54"
+        },
+        {
+          "file": "docs/release-artifacts/v4.4.0/test-acceptance-current-final/runs/v390-test-acceptance-20261004131647-71763/final-integrity.log",
+          "originalBytes": 1424,
+          "originalSha256": "1314bee2c1ca021120a4546969c0e632816f3e1c5f5852b9a4f9b03a8227d109",
+          "sanitizedBytes": 1368,
+          "sanitizedSha256": "c04752fc381db085f449dc13ad10a0b4c1047c7cd7180eb3fa97e4a4ceca32d0"
+        },
+        {
+          "file": "docs/release-artifacts/v4.4.0/test-acceptance-current-final/runs/v390-test-acceptance-20261004131647-71763/build.log",
+          "originalBytes": 325,
+          "originalSha256": "9923bcbfe43e72e9f1af87e8568380caeff42f654bbc7d1f501916adfd74f8c6",
+          "sanitizedBytes": 297,
+          "sanitizedSha256": "6cc8129c541348fe2d654a4ef2b05c4d1746ebc95cc2dd889d00efb940ba96b8"
+        }
+      ]
     }
   ]
 }

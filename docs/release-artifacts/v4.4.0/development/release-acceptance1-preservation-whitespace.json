@@ -1,0 +1,6 @@
+{
+  "command": "git diff --cached --check",
+  "exit": 2,
+  "output": "docs/release-artifacts/v4.4.0/test-acceptance-current-final/failure-handoff.md:32: new blank line at EOF.\n",
+  "disposition": "preserve generated failure handoff bytes; not a product PASS claim"
+}
