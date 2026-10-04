@@ -24,10 +24,10 @@ v4.3.0 개발 소스는 녹화 이력·검색 자원 수명을 개선하고, 로
 
 ## 검증 상태
 
-개발 중 직접 검사와 focused 실제 UI 재검증은 [개발 기록](release-artifacts/v4.3.0/development/README.md)에
+개발 중 직접 검사와 focused 실제 UI 재검증은 [개발 기록](history/README.md#v430-개발과-로컬-검증)에
 최초 실패와 재검증을 함께 보존했습니다. 이후 `b41fcff9`에서 실행한
-[`./test_release.sh` 결과](release-artifacts/v4.3.0/test-acceptance-current-final/report.md)는
+[`./test_release.sh` 결과](history/README.md#v430-개발과-로컬-검증)는
 안정화·30분·120분·Policy v4 실제 UI 424건과 실행 자원 정리에 합격했습니다.
 공통 서버 장시간 검증은 SigLIP2 검색·색인의 장시간 혼합 부하 증거가 아니며,
 424건의 기존 UI 묶음과 신규 검색의 개발 중 직접 UI 검증은 구분합니다.
-외부 TURN 검증은 실행하지 않았습니다. required CI와 기록 보존·정리, 공개 절차는 남아 있습니다.
+외부 TURN 검증은 실행하지 않았습니다. 실행 기록은 Git 원본 대조 후 현행 트리에서 정리했습니다. required CI와 공개 절차는 남아 있습니다.

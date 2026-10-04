@@ -453,7 +453,7 @@ scope와 원본을 검사하고, Client/viewer에는 기능·벡터·경로를 �
 manifest 전체 해시가 cache identity에 포함되고, 조회·선택 시 현재 이벤트와 JPEG/원본도 확인합니다.
 기존 무증명 snapshot은 제외합니다. 유사도는 사건·동일 인물의 증거가 아닙니다.
 지원 한도와 API는 [설정 참조](config-reference.md#영상-유사도-검색-api-v430-개발),
-개발/미실행 상태는 [개발 기록](release-artifacts/v4.3.0/development/README.md)을 따릅니다.
+개발/미실행 상태는 [개발 기록](history/README.md#v430-개발과-로컬-검증)을 따릅니다.
 
 ## 4. Source 종류
 

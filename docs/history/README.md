@@ -245,3 +245,29 @@ git show 2695bfac610429c0da55a4ff4f4bcaae6d95832f:docs/release-artifacts/v4.2.0/
 원출력·patch는 무손실 gzip이며 원본/저장 표현 hash를 구분한다. 새4개 파일(22,438바이트)을
 Git에서 재조회·해제 대조한 뒤 별도 정리 커밋에서 제거했다. 제품·공개 확인기 본문·승인 원장은 불변이며,
 실제 제품·UI·장시간 재실행이나 외부 공개 확인을 대신하는 증거가 아니다.
+
+## v430 개발과 로컬 검증
+
+현재 지원 범위·검증 한계·공개 상태는 [v4.3.0 릴리즈 노트](../release-notes-v4.3.0.md#검증-상태)를 따른다.
+보존 기준은 로컬 커밋 `f2e0d0815f6a690891467d0ce91183b002bf6766`이며 아직 원격 보존은 확인하지 않았다.
+경로 접두사는 `docs/release-artifacts/v4.3.0/`이다.
+
+| 기록 | 원래 경로와 보존 범위 |
+| --- | --- |
+| 개발·독립 검토·변경 UI | `development/README.md`와 같은 디렉터리의 원본 113개. 최초 실패·재검증·출처·당시 미실행을 유지 |
+| 로컬 공통 최종 검증 | `test-acceptance-current-final/report.md`와 실행별 원본. 최초 보존은 `982a815f263e525799a0e45b9bbe18f2b97ebe9e`, 실행 소스는 `b41fcff9` |
+| fixture 형식 정리 | 같은 결과 디렉터리의 `manifest-format-equality.json`과 관련 검사 로그. JSON 값 변경 없이 기존 compact 직렬화 적용 |
+| 공개 준비 최초 검사 | 같은 디렉터리의 `release-preparation-checks.json`과 원출력. 공개 준비 4 PASS/4 FAIL 및 이력 비밀정보 검사 PASS, 배포 제외 정책과 생성 자료를 구분 |
+
+개발 기록 113개/3,778,007바이트와 최종 검증 원본 4,625개/340,908,912바이트를
+Git에서 다시 읽어 현행 파일과 바이트 단위로 대조했다. 후속 형식 검증·보존 확인·공개 준비 기록
+15개/275,777바이트도 최종 보존 커밋에서 실제 바이트를 대조했다. 원본 표현을 정제·재작성하지 않았다.
+보존된 실행 기록 4,753개/344,962,696바이트를 별도 정리 커밋의 대상으로 현행 트리에서 삭제했다.
+정확한 대상은 정리 커밋의 삭제 diff이며, 두 실행 디렉터리의 부재를 확인했다.
+제품·설정·테스트 정의·fixture·출처/라이선스 문서는 유지한다.
+실행 기록을 쓰는 도구는 출력 경로를 생성하며, 과거 결과는 현행 검사 입력이 아니다.
+
+```sh
+git show 653e42e689c1b6f07884ba546119cf02c1c0fa93:docs/release-artifacts/v4.3.0/development/README.md
+git show 982a815f263e525799a0e45b9bbe18f2b97ebe9e:docs/release-artifacts/v4.3.0/test-acceptance-current-final/report.md
+```

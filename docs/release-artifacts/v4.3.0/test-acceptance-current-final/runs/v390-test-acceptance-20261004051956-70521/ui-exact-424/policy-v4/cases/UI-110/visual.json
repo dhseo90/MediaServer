@@ -1,9 +1,0 @@
-{
-  "schema": "media-server.ui-raw-visual-capture.v1",
-  "caseId": "UI-110",
-  "correlationId": "UI-110:assert-visible-read-model:completion",
-  "targetSelector": "#opsVlmRuleDraftBridgeStatus",
-  "screenshotSha256": "83d001943d729fd421409da8a6ba4aa7624199fe795d1cc93d8703e6765ce4a6",
-  "measurementSha256": "d71125e6da02f8399319aeffcb23ab79026a33741eed3671befe3d4a7178827d",
-  "qualificationStatus": "unqualified-raw-capture"
-}

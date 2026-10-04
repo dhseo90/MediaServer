@@ -1,9 +1,0 @@
-{
-  "schema": "media-server.ui-raw-visual-capture.v1",
-  "caseId": "UI-101",
-  "correlationId": "UI-101:assert-visible-read-model:completion",
-  "targetSelector": "#dashSiteExportHandoffBundleList > [data-v370-export-handoff-bundle-entry]:first-child",
-  "screenshotSha256": "e1966f5907a180a524ee5eff890d8e8f4b0cee057d9e3d8fc42b7189f2476069",
-  "measurementSha256": "ac6b955daf5cd3b5f95c9304cf398a572761f9e4346e6d28038f65ad59864938",
-  "qualificationStatus": "unqualified-raw-capture"
-}

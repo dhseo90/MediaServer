@@ -1,9 +1,0 @@
-{
-  "schema": "media-server.ui-raw-visual-capture.v1",
-  "caseId": "UI-094",
-  "correlationId": "UI-094:assert-visible-read-model:completion",
-  "targetSelector": "#dashSimulationWorkspaceVlmAssistedExplanationList > [data-v360-vlm-assisted-simulation-explanation-entry]:first-child",
-  "screenshotSha256": "e1966f5907a180a524ee5eff890d8e8f4b0cee057d9e3d8fc42b7189f2476069",
-  "measurementSha256": "9d7a5c2391dc0bd51643e7010c0b2517c41c81c16e030c1673408316e7984a0e",
-  "qualificationStatus": "unqualified-raw-capture"
-}

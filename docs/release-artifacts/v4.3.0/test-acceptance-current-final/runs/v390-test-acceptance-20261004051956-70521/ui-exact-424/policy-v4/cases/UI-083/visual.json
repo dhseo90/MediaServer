@@ -1,9 +1,0 @@
-{
-  "schema": "media-server.ui-raw-visual-capture.v1",
-  "caseId": "UI-083",
-  "correlationId": "UI-083:assert-visible-read-model:completion",
-  "targetSelector": "[data-testid=\"client-impact-forecast\"]",
-  "screenshotSha256": "bb0c609c3fda2c22aebd0eea07aae5ce9f5b01445364182a2dd3cd172e37c27a",
-  "measurementSha256": "c6e616b535046df20d7a8bff325c5faefc5a94829db89d13b062f4ba8646399e",
-  "qualificationStatus": "unqualified-raw-capture"
-}

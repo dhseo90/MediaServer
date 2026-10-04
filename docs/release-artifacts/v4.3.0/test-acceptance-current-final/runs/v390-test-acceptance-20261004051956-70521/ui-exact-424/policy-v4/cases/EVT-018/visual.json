@@ -1,9 +1,0 @@
-{
-  "schema": "media-server.ui-raw-visual-capture.v1",
-  "caseId": "EVT-018",
-  "correlationId": "EVT-018:execute-persisted-action:completion",
-  "targetSelector": "#alertDeliverySave",
-  "screenshotSha256": "ad1cf73b1b150a86d3f02333c585f635430e97957b0119d7c5a11c9ad3715192",
-  "measurementSha256": "e178ba9b60217138fa12ebe2ed87f7e0ff0e101656558274429a643f7301eb91",
-  "qualificationStatus": "unqualified-raw-capture"
-}

@@ -1,9 +1,0 @@
-{
-  "schema": "media-server.ui-raw-visual-capture.v1",
-  "caseId": "EVT-026",
-  "correlationId": "EVT-026:assert-visible-read-model:completion",
-  "targetSelector": "#dashRootCauseList",
-  "screenshotSha256": "9b5994082b9b1e5d52f88593364dbece0120636c0940f6bae099189460482d07",
-  "measurementSha256": "c3e8eb05b4241d1887091ce9ce374df043e758fe65743e0e761428ea4944dc62",
-  "qualificationStatus": "unqualified-raw-capture"
-}

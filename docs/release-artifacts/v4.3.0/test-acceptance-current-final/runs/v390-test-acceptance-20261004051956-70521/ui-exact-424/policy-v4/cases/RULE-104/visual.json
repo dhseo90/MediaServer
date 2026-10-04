@@ -1,9 +1,0 @@
-{
-  "schema": "media-server.ui-raw-visual-capture.v1",
-  "caseId": "RULE-104",
-  "correlationId": "RULE-104:activate-control:completion",
-  "targetSelector": "[data-testid=\"ops-approval-gated-rule-draft-readiness\"]",
-  "screenshotSha256": "13eaa915bd0b130dbf63b9f4068bfd9f662bce6ec1604c83e160d903eabfc2a6",
-  "measurementSha256": "18b0df3f6c78047a311c28c4754b130d0390fa905bbeaa04193bfa229a451339",
-  "qualificationStatus": "unqualified-raw-capture"
-}

@@ -1,9 +1,0 @@
-{
-  "schema": "media-server.ui-raw-visual-capture.v1",
-  "caseId": "UI-066",
-  "correlationId": "UI-066:assert-visible-read-model:completion",
-  "targetSelector": "#v320OperatorResolutionFlowGrid",
-  "screenshotSha256": "794c08e7298bdf67b1033e82513a153452aef7a500581b198e3ae4bb3471ed94",
-  "measurementSha256": "3c35828ed3d802155f481a42480f446ade0f0b3d232500077752323f0eedf2ff",
-  "qualificationStatus": "unqualified-raw-capture"
-}

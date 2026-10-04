@@ -1,9 +1,0 @@
-{
-  "schema": "media-server.ui-raw-visual-capture.v1",
-  "caseId": "AUTH-004",
-  "correlationId": "AUTH-004:submit-form:completion",
-  "targetSelector": "[data-testid=\"client-live-workspace\"]",
-  "screenshotSha256": "c735a44297710740fa9ccb57205cbe5e3b42780ef782122e9de4d23e36bd0cc3",
-  "measurementSha256": "e4e1e76999f7e69106f2a71046a24a3a8d8281e1fc7cccf573d1be12cf6695ab",
-  "qualificationStatus": "unqualified-raw-capture"
-}

@@ -1,9 +1,0 @@
-UTC 2026-10-03T18:15:52Z
-src/recording/visual_frame_decoder.cpp sha256=175260ac33ca81a03c92b1fc91b34f9199b05999f36f6cb3dfdbd7e43ad70b5a
-scripts/internal/visual_frame_decoder_smoke.cpp sha256=1e0fc1c807c7a9f7f3ac67700cd94b1983d382aa401b9d7131d8bb513d3f1a9a
-command ['gst-launch-1.0', '-q', 'videotestsrc', 'num-buffers=100', 'pattern=red', '!', 'video/x-raw,width=160,height=90,framerate=25/1', '!', 'videoconvert', '!', 'x264enc', 'tune=zerolatency', '!', 'h264parse', '!', 'mp4mux', '!', 'filesink', 'location=/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v430-visual-frame-vh4sb57k/red.mp4']
-2026-10-04 03:15:52.410 gst-launch-1.0[15267:6074106] Failure on line 688 in function id scheduleApplicationNotification(LSNotificationCode, NSWorkspaceNotificationCenter *): noErr == _LSModifyNotification(notificationID, 1, &code, 0, NULL, NULL, NULL)
-2026-10-04 03:15:52.553 gst-launch-1.0[15267:6074107] Connection Invalid error for service com.apple.hiservices-xpcservice.
-2026-10-04 03:15:52.553 gst-launch-1.0[15267:6074106] Error received in message reply handler: Connection invalid
-generator subprocess.TimeoutExpired after 60 seconds; parent session22463 exit1. subprocess.run killed and waited for child. No decoder compile/run occurred.
-observed_pid15267=absent temporary_directory_absent=True

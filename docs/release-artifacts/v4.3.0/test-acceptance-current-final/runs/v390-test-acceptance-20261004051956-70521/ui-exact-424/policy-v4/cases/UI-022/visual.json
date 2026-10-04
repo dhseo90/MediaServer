@@ -1,9 +1,0 @@
-{
-  "schema": "media-server.ui-raw-visual-capture.v1",
-  "caseId": "UI-022",
-  "correlationId": "UI-022:assert-disabled-control:completion",
-  "targetSelector": "#opsVlmExternalTransferWarningAck",
-  "screenshotSha256": "e95e0ad6155363dac199b52aa27c6a429ad3768ef135de22f17fe174cac0d6bd",
-  "measurementSha256": "2341dec6e374fa000b1dd98ca08b2259cbad8803fc957832f7e122240b6ecc83",
-  "qualificationStatus": "unqualified-raw-capture"
-}

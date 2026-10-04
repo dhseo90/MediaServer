@@ -156,7 +156,7 @@ S10 시간·식별·저장 보강과 S11 최종 검증으로 마감했다.
 
 개발 범위와 순서는 [v4.3.0 개발 계약](superpowers/specs/2026-10-04-v430-visual-vector-search-design.md)에 둔다.
 아래 선행 과제와 벡터 검색을 유한한 개발 profile에서 구현·직접 검증했다.
-[개발 기록](release-artifacts/v4.3.0/development/README.md)의 단기 결과는 릴리즈 검증 완료를 뜻하지 않는다.
+[개발 기록](history/README.md#v430-개발과-로컬-검증)의 단기 결과는 릴리즈 검증 완료를 뜻하지 않는다.
 
 벡터 색인으로 자원 사용을 늘리기 전에 [녹화 누적 이력의 메모리 운영 한계](development-backlog.md#녹화-누적-이력의-메모리-운영-한계)를
 이 버전의 선행 개발 과제로 다뤘다. v4.2.0의 과거 검증은 원래 source·환경의 기록으로 유지하며,

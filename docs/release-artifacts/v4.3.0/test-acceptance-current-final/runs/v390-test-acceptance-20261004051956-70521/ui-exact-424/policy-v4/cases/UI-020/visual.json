@@ -1,9 +1,0 @@
-{
-  "schema": "media-server.ui-raw-visual-capture.v1",
-  "caseId": "UI-020",
-  "correlationId": "UI-020:assert-visible-read-model:completion",
-  "targetSelector": ".ops-workspace-diagnostic-grid",
-  "screenshotSha256": "238e4b8ed693108e95fa90986686d7c6dee79447505571d5b17c57eb60c132af",
-  "measurementSha256": "2d9d290bedfb4e39b2c3af336565c4f2e25b3ae7ee47e7f0cb675bfed3fbee59",
-  "qualificationStatus": "unqualified-raw-capture"
-}

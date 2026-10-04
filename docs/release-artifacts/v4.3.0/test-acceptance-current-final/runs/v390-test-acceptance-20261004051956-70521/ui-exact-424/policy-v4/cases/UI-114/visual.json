@@ -1,9 +1,0 @@
-{
-  "schema": "media-server.ui-raw-visual-capture.v1",
-  "caseId": "UI-114",
-  "correlationId": "UI-114:assert-visible-read-model:completion",
-  "targetSelector": "#dashFieldEvidenceBridgeList",
-  "screenshotSha256": "4a66d3f1887f97122390c23962bed7b3c6d175de5c40e65730872257581e0c7d",
-  "measurementSha256": "dc10d661ced4f5e6907b2222f5985473ca7f29a9afb09e477f999c3112c66321",
-  "qualificationStatus": "unqualified-raw-capture"
-}

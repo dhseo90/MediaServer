@@ -6,14 +6,14 @@
 
 ## 현재 기준
 
-- 소스 버전과 릴리즈 목표는 `4.3.0`이다. 개발 범위와 릴리즈 검증 전 상태는
+- 소스 버전과 릴리즈 목표는 `4.3.0`이다. 개발 범위와 검증·공개 상태는
   [릴리즈 노트](release-notes-v4.3.0.md)에서 구분한다.
 - 저장소의 기록된 공개 버전·관측 시각·공개 URL의 기준은
   [릴리즈 metadata](release-policy.md#소스와-기록된-공개-상태)이며 원격 상태의 실시간 확인과 구분한다.
 - v4.1.0 녹화 기반은 [릴리즈 노트](release-notes-v4.1.0.md)의 구현 범위로 마감됐다.
   옛 S05·S10·S11 진행·실패 기록은 [Git 이력](history/README.md)에 있으며 현재 개발 과제가 아니다.
 - v4.2.0 개발 범위와 제한은 [릴리즈 노트](release-notes-v4.2.0.md)를 따른다.
-  v4.3.0은 승인된 개발 범위의 구현·단기 검증을 마쳤으며 릴리즈 검증은 남아 있다. [개발 계약](superpowers/specs/2026-10-04-v430-visual-vector-search-design.md)을 따른다.
+  v4.3.0은 승인된 구현·단기 검증과 로컬 공통 릴리즈 검증을 마쳤으며 required CI·공개 절차는 남아 있다. [개발 계약](superpowers/specs/2026-10-04-v430-visual-vector-search-design.md)을 따른다.
 
 ## 별도 승인 릴리즈
 
@@ -61,7 +61,7 @@ runtime composition의 cutover 제한값 생성은 승인된 정확한 파일 �
 
 | 항목 | 현재 경계와 후속 결정 |
 | --- | --- |
-| 녹화·검색 | 녹화 기반과 구조화 검색을 제공한다. v4.3.0 개발에서는 로컬 SigLIP2 대표 프레임 및 원본 픽셀 대조를 거친 이벤트 snapshot 검색을 연결했다. focused 실제 UI·제품 독립 검토를 마쳤다. 릴리즈 안정화·장시간·실제 UI 전수 검증은 남아 있다. 기존 이벤트/관측/영상 유사 결과의 의미를 구분한다. |
+| 녹화·검색 | 녹화 기반과 구조화 검색을 제공한다. v4.3.0 개발에서는 로컬 SigLIP2 대표 프레임 및 원본 픽셀 대조를 거친 이벤트 snapshot 검색을 연결했다. focused 실제 UI·제품 독립 검토를 마쳤다. 공통 안정화·30분·120분·기존 실제 UI 424건을 통과했다. 실제 모델의 지속 혼합 부하와 신규 UI의 미실행 경계까지 검증한 것은 아니다. 기존 이벤트/관측/영상 유사 결과의 의미를 구분한다. |
 | 시간과 재생 | 원본·미디어 위치와 UTC 품질은 별개다. 불명·모호·삭제 상태를 정상 단일 결과로 만들지 않으며 모든 카메라의 촬영 시각 동기화나 자동 후속 세그먼트 재생을 보장하지 않는다. |
 | 운영 기능 승격 | `action-execution`, `persistent-credential-store`, `production-restore`, `external-vlm-provider-call`, `model-backed-reid-session`은 로컬 정책의 보류·실험 경계를 유지한다. 상태/결정 조회나 fixture 성공을 실제 실행 기능으로 승격하지 않는다. |
 | 제품화 후보 | Incident OS primary nav 승격, Evidence default-on, 로컬 Action Execution, 영구 credential store, tracker 기본 선택, 로컬 VLM 운영 경로는 버전·범위 재승인 전 미배정 후보다. 과거의 “v4.1.0에서 구현” 문구는 현행 일정이 아니다. |
@@ -74,7 +74,7 @@ runtime composition의 cutover 제한값 생성은 승인된 정확한 파일 �
 ### 녹화 누적 이력의 메모리 운영 한계
 
 장기 운용 한계는 남아 있다. v4.3.0에서는 사전에 정한 단기 규모에서 이력 중복·검색 수명과
-실제 모델/녹화 혼합 예산을 검증했다([개발 기록](release-artifacts/v4.3.0/development/README.md)).
+실제 모델/녹화 혼합 예산을 검증했다([개발 기록](history/README.md#v430-개발과-로컬-검증)).
 무제한 이력이나 일반 운영 장비의 장시간 안정성 보장은 아니다. 현재 generation 경로의 Catalog/Journal은 mutation identity·order를 중복·충돌·예약 재사용 방지에,
 retired receipt·source 요약을 미디어 삭제 후의 참조·삭제·조회 판단에 사용한다.
 이 이력은 미디어 삭제·녹화 off·checkpoint로 함께 지워지지 않으므로 파일 quota/age는 이력 RAM 상한이 아니다.
