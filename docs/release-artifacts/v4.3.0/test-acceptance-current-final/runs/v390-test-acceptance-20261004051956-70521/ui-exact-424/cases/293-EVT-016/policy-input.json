@@ -1,0 +1,1385 @@
+{
+  "schema": "media-server.v390-ui-case-policy-input.v1",
+  "caseId": "EVT-016",
+  "runId": "62ee8d29-6693-4be2-8304-e95c80c9e39a",
+  "result": {
+    "caseId": "EVT-016",
+    "featureId": "EVT-016",
+    "status": "PASS",
+    "dispatch": "playwright-native",
+    "manualIntervention": false,
+    "actualBrowserExecution": true,
+    "requested": {
+      "schema": "media-server.v390-ui-canonical-requested.v1",
+      "route": "/ops/events",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#opsV320ResolutionTimeline",
+        "actionAnchor": "WebRtcHttpServer::Start"
+      }
+    },
+    "observed": {
+      "schema": "media-server.v390-ui-runtime-observed.v1",
+      "screenRoute": "/ops/events",
+      "accountRole": "operator",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "#opsV320ResolutionTimeline",
+        "applicability": "required",
+        "exists": true,
+        "visible": true,
+        "enabled": true
+      },
+      "provenance": {
+        "screenRoute": "browser-location",
+        "accountRole": "session-whoami",
+        "viewport": "browser-inner-size",
+        "theme": "browser-media-query",
+        "controlAction": "dom-selector-state"
+      }
+    },
+    "visibleAssertion": {
+      "pass": true,
+      "visible": true,
+      "selector": "body"
+    },
+    "visualMeasurement": {
+      "schema": "media-server.ui-browser-visual-measurement.v2",
+      "caseBinding": {
+        "canonicalCaseId": "EVT-016",
+        "featureId": "EVT-016",
+        "screenId": "EVT-016",
+        "screenRoute": "/ops/events",
+        "accountRole": "operator",
+        "targetSelector": "#opsV320ResolutionTimeline"
+      },
+      "route": "/ops/events",
+      "accountRole": "operator",
+      "requestedTheme": "light",
+      "appliedTheme": "light",
+      "mediaTheme": "light",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "devicePixelRatio": 1
+      },
+      "document": {
+        "scrollWidth": 390,
+        "scrollHeight": 33432,
+        "clientWidth": 390,
+        "clientHeight": 844
+      },
+      "target": {
+        "selector": "#opsV320ResolutionTimeline",
+        "visible": true,
+        "documentTarget": false,
+        "rect": {
+          "x": 46,
+          "y": -21.171875,
+          "left": 46,
+          "top": -21.171875,
+          "right": 344,
+          "bottom": 866.125,
+          "width": 298,
+          "height": 887.296875
+        }
+      },
+      "textSamples": [
+        {
+          "foreground": "rgb(92, 105, 114)",
+          "background": "rgb(255, 255, 255)",
+          "fontSizePx": 12,
+          "fontWeight": "400",
+          "rect": {
+            "x": 59,
+            "y": -8.171875,
+            "left": 59,
+            "top": -8.171875,
+            "right": 331,
+            "bottom": 7.828125,
+            "width": 272,
+            "height": 16
+          }
+        },
+        {
+          "foreground": "rgb(23, 28, 31)",
+          "background": "rgb(255, 255, 255)",
+          "fontSizePx": 16,
+          "fontWeight": "700",
+          "rect": {
+            "x": 59,
+            "y": 15.828125,
+            "left": 59,
+            "top": 15.828125,
+            "right": 331,
+            "bottom": 37.828125,
+            "width": 272,
+            "height": 22
+          }
+        },
+        {
+          "foreground": "rgb(92, 105, 114)",
+          "background": "rgb(255, 255, 255)",
+          "fontSizePx": 12,
+          "fontWeight": "400",
+          "rect": {
+            "x": 59,
+            "y": 45.828125,
+            "left": 59,
+            "top": 45.828125,
+            "right": 331,
+            "bottom": 80.609375,
+            "width": 272,
+            "height": 34.78125
+          }
+        },
+        {
+          "foreground": "rgb(92, 105, 114)",
+          "background": "rgb(255, 255, 255)",
+          "fontSizePx": 12,
+          "fontWeight": "400",
+          "rect": {
+            "x": 59,
+            "y": 114.609375,
+            "left": 59,
+            "top": 114.609375,
+            "right": 331,
+            "bottom": 130.609375,
+            "width": 272,
+            "height": 16
+          }
+        },
+        {
+          "foreground": "rgb(23, 28, 31)",
+          "background": "rgb(255, 255, 255)",
+          "fontSizePx": 16,
+          "fontWeight": "700",
+          "rect": {
+            "x": 59,
+            "y": 138.609375,
+            "left": 59,
+            "top": 138.609375,
+            "right": 331,
+            "bottom": 160.609375,
+            "width": 272,
+            "height": 22
+          }
+        },
+        {
+          "foreground": "rgb(92, 105, 114)",
+          "background": "rgb(255, 255, 255)",
+          "fontSizePx": 12,
+          "fontWeight": "400",
+          "rect": {
+            "x": 59,
+            "y": 168.609375,
+            "left": 59,
+            "top": 168.609375,
+            "right": 331,
+            "bottom": 186,
+            "width": 272,
+            "height": 17.390625
+          }
+        },
+        {
+          "foreground": "rgb(92, 105, 114)",
+          "background": "rgb(255, 255, 255)",
+          "fontSizePx": 12,
+          "fontWeight": "400",
+          "rect": {
+            "x": 59,
+            "y": 220,
+            "left": 59,
+            "top": 220,
+            "right": 331,
+            "bottom": 236,
+            "width": 272,
+            "height": 16
+          }
+        },
+        {
+          "foreground": "rgb(23, 28, 31)",
+          "background": "rgb(255, 255, 255)",
+          "fontSizePx": 16,
+          "fontWeight": "700",
+          "rect": {
+            "x": 59,
+            "y": 244,
+            "left": 59,
+            "top": 244,
+            "right": 331,
+            "bottom": 266,
+            "width": 272,
+            "height": 22
+          }
+        },
+        {
+          "foreground": "rgb(92, 105, 114)",
+          "background": "rgb(255, 255, 255)",
+          "fontSizePx": 12,
+          "fontWeight": "400",
+          "rect": {
+            "x": 59,
+            "y": 274,
+            "left": 59,
+            "top": 274,
+            "right": 331,
+            "bottom": 291.390625,
+            "width": 272,
+            "height": 17.390625
+          }
+        },
+        {
+          "foreground": "rgb(92, 105, 114)",
+          "background": "rgb(255, 255, 255)",
+          "fontSizePx": 12,
+          "fontWeight": "400",
+          "rect": {
+            "x": 59,
+            "y": 325.390625,
+            "left": 59,
+            "top": 325.390625,
+            "right": 331,
+            "bottom": 341.390625,
+            "width": 272,
+            "height": 16
+          }
+        },
+        {
+          "foreground": "rgb(23, 28, 31)",
+          "background": "rgb(255, 255, 255)",
+          "fontSizePx": 16,
+          "fontWeight": "700",
+          "rect": {
+            "x": 59,
+            "y": 349.390625,
+            "left": 59,
+            "top": 349.390625,
+            "right": 331,
+            "bottom": 371.390625,
+            "width": 272,
+            "height": 22
+          }
+        },
+        {
+          "foreground": "rgb(92, 105, 114)",
+          "background": "rgb(255, 255, 255)",
+          "fontSizePx": 12,
+          "fontWeight": "400",
+          "rect": {
+            "x": 59,
+            "y": 379.390625,
+            "left": 59,
+            "top": 379.390625,
+            "right": 331,
+            "bottom": 414.171875,
+            "width": 272,
+            "height": 34.78125
+          }
+        },
+        {
+          "foreground": "rgb(92, 105, 114)",
+          "background": "rgb(255, 255, 255)",
+          "fontSizePx": 12,
+          "fontWeight": "400",
+          "rect": {
+            "x": 59,
+            "y": 448.171875,
+            "left": 59,
+            "top": 448.171875,
+            "right": 331,
+            "bottom": 464.171875,
+            "width": 272,
+            "height": 16
+          }
+        },
+        {
+          "foreground": "rgb(23, 28, 31)",
+          "background": "rgb(255, 255, 255)",
+          "fontSizePx": 16,
+          "fontWeight": "700",
+          "rect": {
+            "x": 59,
+            "y": 472.171875,
+            "left": 59,
+            "top": 472.171875,
+            "right": 331,
+            "bottom": 494.171875,
+            "width": 272,
+            "height": 22
+          }
+        },
+        {
+          "foreground": "rgb(92, 105, 114)",
+          "background": "rgb(255, 255, 255)",
+          "fontSizePx": 12,
+          "fontWeight": "400",
+          "rect": {
+            "x": 59,
+            "y": 502.171875,
+            "left": 59,
+            "top": 502.171875,
+            "right": 331,
+            "bottom": 536.953125,
+            "width": 272,
+            "height": 34.78125
+          }
+        },
+        {
+          "foreground": "rgb(92, 105, 114)",
+          "background": "rgb(255, 255, 255)",
+          "fontSizePx": 12,
+          "fontWeight": "400",
+          "rect": {
+            "x": 59,
+            "y": 570.953125,
+            "left": 59,
+            "top": 570.953125,
+            "right": 331,
+            "bottom": 586.953125,
+            "width": 272,
+            "height": 16
+          }
+        },
+        {
+          "foreground": "rgb(23, 28, 31)",
+          "background": "rgb(255, 255, 255)",
+          "fontSizePx": 16,
+          "fontWeight": "700",
+          "rect": {
+            "x": 59,
+            "y": 594.953125,
+            "left": 59,
+            "top": 594.953125,
+            "right": 331,
+            "bottom": 616.953125,
+            "width": 272,
+            "height": 22
+          }
+        },
+        {
+          "foreground": "rgb(92, 105, 114)",
+          "background": "rgb(255, 255, 255)",
+          "fontSizePx": 12,
+          "fontWeight": "400",
+          "rect": {
+            "x": 59,
+            "y": 624.953125,
+            "left": 59,
+            "top": 624.953125,
+            "right": 331,
+            "bottom": 642.34375,
+            "width": 272,
+            "height": 17.390625
+          }
+        },
+        {
+          "foreground": "rgb(92, 105, 114)",
+          "background": "rgb(255, 255, 255)",
+          "fontSizePx": 12,
+          "fontWeight": "400",
+          "rect": {
+            "x": 59,
+            "y": 676.34375,
+            "left": 59,
+            "top": 676.34375,
+            "right": 331,
+            "bottom": 692.34375,
+            "width": 272,
+            "height": 16
+          }
+        },
+        {
+          "foreground": "rgb(23, 28, 31)",
+          "background": "rgb(255, 255, 255)",
+          "fontSizePx": 16,
+          "fontWeight": "700",
+          "rect": {
+            "x": 59,
+            "y": 700.34375,
+            "left": 59,
+            "top": 700.34375,
+            "right": 331,
+            "bottom": 722.34375,
+            "width": 272,
+            "height": 22
+          }
+        },
+        {
+          "foreground": "rgb(92, 105, 114)",
+          "background": "rgb(255, 255, 255)",
+          "fontSizePx": 12,
+          "fontWeight": "400",
+          "rect": {
+            "x": 59,
+            "y": 730.34375,
+            "left": 59,
+            "top": 730.34375,
+            "right": 331,
+            "bottom": 747.734375,
+            "width": 272,
+            "height": 17.390625
+          }
+        },
+        {
+          "foreground": "rgb(92, 105, 114)",
+          "background": "rgb(255, 255, 255)",
+          "fontSizePx": 12,
+          "fontWeight": "400",
+          "rect": {
+            "x": 59,
+            "y": 781.734375,
+            "left": 59,
+            "top": 781.734375,
+            "right": 331,
+            "bottom": 797.734375,
+            "width": 272,
+            "height": 16
+          }
+        },
+        {
+          "foreground": "rgb(23, 28, 31)",
+          "background": "rgb(255, 255, 255)",
+          "fontSizePx": 16,
+          "fontWeight": "700",
+          "rect": {
+            "x": 59,
+            "y": 805.734375,
+            "left": 59,
+            "top": 805.734375,
+            "right": 331,
+            "bottom": 827.734375,
+            "width": 272,
+            "height": 22
+          }
+        },
+        {
+          "foreground": "rgb(92, 105, 114)",
+          "background": "rgb(255, 255, 255)",
+          "fontSizePx": 12,
+          "fontWeight": "400",
+          "rect": {
+            "x": 59,
+            "y": 835.734375,
+            "left": 59,
+            "top": 835.734375,
+            "right": 331,
+            "bottom": 853.125,
+            "width": 272,
+            "height": 17.390625
+          }
+        }
+      ],
+      "focus": {
+        "focusableCount": 100,
+        "applicable": true
+      },
+      "liveVideo": null,
+      "postActionVisualOwner": {
+        "schema": "media-server.v390-ui-post-action-visual-target.v1",
+        "caseId": "EVT-016",
+        "actionId": "EVT-016:assert-visible-read-model",
+        "completionMode": "request",
+        "sourceSelectorSha256": "e4f120233cf7fc1ee5294f72dff661b053a950b833602676b8441ccae09735d1",
+        "sourceOwnerSelectorSha256": "e4f120233cf7fc1ee5294f72dff661b053a950b833602676b8441ccae09735d1",
+        "requestedState": "visible",
+        "observedRoute": "/ops/events",
+        "navigationEpoch": 1,
+        "ownerCandidateCount": 1,
+        "sourceSelectorRewaited": false,
+        "selector": "#opsV320ResolutionTimeline",
+        "bindingKind": "post-action-visible-source-owner",
+        "sourceDetached": false,
+        "sourceHidden": false,
+        "epochRelation": "same-document"
+      },
+      "focusSamples": [
+        {
+          "index": 0,
+          "focusIdentity": "#opsRecordingChannelFilter",
+          "tag": "select",
+          "id": "opsRecordingChannelFilter",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "solid",
+          "outlineWidth": "3px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 1,
+          "focusIdentity": "#opsRecordingStartTime",
+          "tag": "input",
+          "id": "opsRecordingStartTime",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "solid",
+          "outlineWidth": "3px",
+          "boxShadow": "none"
+        }
+      ]
+    },
+    "visualExpectedCase": {
+      "canonicalCaseId": "EVT-016",
+      "featureId": "EVT-016",
+      "screenId": "EVT-016",
+      "screenRoute": "/ops/events",
+      "accountRole": "operator",
+      "targetSelector": "#opsV320ResolutionTimeline",
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "liveVideoRequired": false
+    },
+    "screenshotPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.3.0/test-acceptance-current-final/runs/v390-test-acceptance-20261004051956-70521/ui-exact-424/cases/292-EVT-007/screenshots/EVT-007.png",
+    "tracePath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.3.0/test-acceptance-current-final/runs/v390-test-acceptance-20261004051956-70521/ui-exact-424/cases/293-EVT-016/traces/EVT-016.trace.json",
+    "browserConsolePath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.3.0/test-acceptance-current-final/runs/v390-test-acceptance-20261004051956-70521/ui-exact-424/cases/293-EVT-016/logs/EVT-016.browser-console.json",
+    "cleanupAttestation": {
+      "schema": "media-server.v390-ui-case-cleanup-attestation.v1",
+      "pass": true,
+      "primaryFailurePresent": false,
+      "primaryFailurePreserved": false,
+      "caseRuntimeRestoreAttempted": true,
+      "caseRuntimeRestored": true,
+      "browserCloseAttempted": true,
+      "browserContextClosed": true,
+      "cleanupEntryCount": 3,
+      "failureCode": ""
+    },
+    "requestLifecycleEvaluation": {
+      "status": "PASS",
+      "census": {
+        "requestCount": 21,
+        "responseCount": 21,
+        "classified": 21,
+        "unclassified": 0,
+        "multiplyClassified": 0,
+        "captureErrors": 0,
+        "duplicateResponses": 0,
+        "failureCount": 0
+      },
+      "diagnostics": {
+        "sequenceDomain": "diagnostic-seal-and-after-seal-only",
+        "diagnosticErrors": 0,
+        "seal": {
+          "sequence": 1,
+          "timestamp": 1791095052969
+        },
+        "afterSeal": [],
+        "requests": [
+          {
+            "requestIdentity": "EVT-016:object-1",
+            "legacyRequestId": "native-request-1",
+            "method": "GET",
+            "path": "/ops/events",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 1,
+              "timestamp": 1791095051613
+            },
+            "responses": [
+              {
+                "sequence": 2,
+                "timestamp": 1791095051626,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 13,
+                "timestamp": 1791095051699
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-016:object-3",
+            "legacyRequestId": "native-request-2",
+            "method": "GET",
+            "path": "/auth/whoami",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 3,
+              "timestamp": 1791095051645
+            },
+            "responses": [
+              {
+                "sequence": 17,
+                "timestamp": 1791095051712,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 27,
+                "timestamp": 1791095051714
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-016:object-4",
+            "legacyRequestId": "native-request-3",
+            "method": "GET",
+            "path": "/ops/api/recordings/status",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 4,
+              "timestamp": 1791095051645
+            },
+            "responses": [
+              {
+                "sequence": 18,
+                "timestamp": 1791095051712,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 28,
+                "timestamp": 1791095051714
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-016:object-5",
+            "legacyRequestId": "native-request-4",
+            "method": "GET",
+            "path": "/ops/api/recordings/status",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 5,
+              "timestamp": 1791095051645
+            },
+            "responses": [
+              {
+                "sequence": 23,
+                "timestamp": 1791095051712,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 33,
+                "timestamp": 1791095051714
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-016:object-6",
+            "legacyRequestId": "native-request-5",
+            "method": "GET",
+            "path": "/ops/api/recordings/visual-search/status",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 6,
+              "timestamp": 1791095051646
+            },
+            "responses": [
+              {
+                "sequence": 14,
+                "timestamp": 1791095051711,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 24,
+                "timestamp": 1791095051713
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-016:object-7",
+            "legacyRequestId": "native-request-6",
+            "method": "GET",
+            "path": "/ops/api/vlm/profiles",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 7,
+              "timestamp": 1791095051646
+            },
+            "responses": [
+              {
+                "sequence": 15,
+                "timestamp": 1791095051712,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 25,
+                "timestamp": 1791095051714
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-016:object-8",
+            "legacyRequestId": "native-request-7",
+            "method": "GET",
+            "path": "/ops/api/vlm/evaluation-results",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 8,
+              "timestamp": 1791095051646
+            },
+            "responses": [
+              {
+                "sequence": 16,
+                "timestamp": 1791095051712,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 26,
+                "timestamp": 1791095051714
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-016:object-9",
+            "legacyRequestId": "native-request-8",
+            "method": "GET",
+            "path": "/ops/api/vlm/evaluation-promotion-guard",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 9,
+              "timestamp": 1791095051646
+            },
+            "responses": [
+              {
+                "sequence": 19,
+                "timestamp": 1791095051712,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 29,
+                "timestamp": 1791095051714
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-016:object-10",
+            "legacyRequestId": "native-request-9",
+            "method": "GET",
+            "path": "/ops/api/audit",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 10,
+              "timestamp": 1791095051647
+            },
+            "responses": [
+              {
+                "sequence": 20,
+                "timestamp": 1791095051712,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 30,
+                "timestamp": 1791095051714
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-016:object-11",
+            "legacyRequestId": "native-request-10",
+            "method": "GET",
+            "path": "/ops/api/events/status",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 11,
+              "timestamp": 1791095051647
+            },
+            "responses": [
+              {
+                "sequence": 22,
+                "timestamp": 1791095051712,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 32,
+                "timestamp": 1791095051714
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-016:object-12",
+            "legacyRequestId": "native-request-11",
+            "method": "GET",
+            "path": "/ops/api/alerts/deliveries",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 12,
+              "timestamp": 1791095051647
+            },
+            "responses": [
+              {
+                "sequence": 21,
+                "timestamp": 1791095051712,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 31,
+                "timestamp": 1791095051714
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-016:object-23",
+            "legacyRequestId": "native-request-12",
+            "method": "GET",
+            "path": "/ops/api/events/reviews",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 34,
+              "timestamp": 1791095051718
+            },
+            "responses": [
+              {
+                "sequence": 35,
+                "timestamp": 1791095051726,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 36,
+                "timestamp": 1791095051726
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-016:object-25",
+            "legacyRequestId": "native-request-13",
+            "method": "GET",
+            "path": "/auth/whoami",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 37,
+              "timestamp": 1791095051767
+            },
+            "responses": [
+              {
+                "sequence": 38,
+                "timestamp": 1791095051768,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 39,
+                "timestamp": 1791095051769
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-016:object-27",
+            "legacyRequestId": "native-request-14",
+            "method": "GET",
+            "path": "/auth/whoami",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 40,
+              "timestamp": 1791095051781
+            },
+            "responses": [
+              {
+                "sequence": 41,
+                "timestamp": 1791095051783,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 42,
+                "timestamp": 1791095051783
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-016:object-29",
+            "legacyRequestId": "native-request-15",
+            "method": "GET",
+            "path": "/ops/events",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 43,
+              "timestamp": 1791095051795
+            },
+            "responses": [
+              {
+                "sequence": 44,
+                "timestamp": 1791095051797,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 45,
+                "timestamp": 1791095051799
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-016:object-31",
+            "legacyRequestId": "native-request-16",
+            "method": "GET",
+            "path": "/ops/api/events/status",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 46,
+              "timestamp": 1791095051880
+            },
+            "responses": [
+              {
+                "sequence": 50,
+                "timestamp": 1791095051895,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 53,
+                "timestamp": 1791095051895
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-016:object-32",
+            "legacyRequestId": "native-request-17",
+            "method": "GET",
+            "path": "/ops/api/alerts/deliveries",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 47,
+              "timestamp": 1791095051880
+            },
+            "responses": [
+              {
+                "sequence": 49,
+                "timestamp": 1791095051895,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 52,
+                "timestamp": 1791095051895
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-016:object-33",
+            "legacyRequestId": "native-request-18",
+            "method": "GET",
+            "path": "/ops/api/recordings/status",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 48,
+              "timestamp": 1791095051880
+            },
+            "responses": [
+              {
+                "sequence": 51,
+                "timestamp": 1791095051895,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 54,
+                "timestamp": 1791095051895
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-016:object-37",
+            "legacyRequestId": "native-request-19",
+            "method": "GET",
+            "path": "/ops/api/events/reviews",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 55,
+              "timestamp": 1791095051895
+            },
+            "responses": [
+              {
+                "sequence": 56,
+                "timestamp": 1791095051899,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 57,
+                "timestamp": 1791095051899
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-016:object-39",
+            "legacyRequestId": "native-request-20",
+            "method": "GET",
+            "path": "/ops/api/events/status",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 58,
+              "timestamp": 1791095052400
+            },
+            "responses": [
+              {
+                "sequence": 59,
+                "timestamp": 1791095052404,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 60,
+                "timestamp": 1791095052405
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "EVT-016:object-41",
+            "legacyRequestId": "native-request-21",
+            "method": "GET",
+            "path": "/auth/whoami",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 61,
+              "timestamp": 1791095052633
+            },
+            "responses": [
+              {
+                "sequence": 62,
+                "timestamp": 1791095052636,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 63,
+                "timestamp": 1791095052636
+              }
+            ],
+            "failed": []
+          }
+        ]
+      },
+      "requests": [
+        {
+          "requestIdentity": "EVT-016:object-1",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-016:object-3",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-016:object-4",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-016:object-5",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-016:object-6",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-016:object-7",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-016:object-8",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-016:object-9",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-016:object-10",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-016:object-11",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-016:object-12",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-016:object-23",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-016:object-25",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-016:object-27",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-016:object-29",
+          "redirectedFromIdentity": null,
+          "correlationDigest": "b97f9e7df836c6770b5fcc4bb73651eef0387148b2a704135b65f641efa90de3"
+        },
+        {
+          "requestIdentity": "EVT-016:object-31",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-016:object-32",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-016:object-33",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-016:object-37",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "EVT-016:object-39",
+          "redirectedFromIdentity": null,
+          "correlationDigest": "b97f9e7df836c6770b5fcc4bb73651eef0387148b2a704135b65f641efa90de3"
+        },
+        {
+          "requestIdentity": "EVT-016:object-41",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        }
+      ],
+      "classifications": [
+        {
+          "requestIdentity": "EVT-016:object-1",
+          "responseIdentity": "EVT-016:object-2",
+          "requestKind": "document-navigation",
+          "classification": "bootstrap",
+          "owner": "page",
+          "phase": "bootstrap-document"
+        },
+        {
+          "requestIdentity": "EVT-016:object-3",
+          "responseIdentity": "EVT-016:object-16",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-016:object-4",
+          "responseIdentity": "EVT-016:object-17",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-016:object-5",
+          "responseIdentity": "EVT-016:object-22",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-016:object-6",
+          "responseIdentity": "EVT-016:object-13",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-016:object-7",
+          "responseIdentity": "EVT-016:object-14",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-016:object-8",
+          "responseIdentity": "EVT-016:object-15",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-016:object-9",
+          "responseIdentity": "EVT-016:object-18",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-016:object-10",
+          "responseIdentity": "EVT-016:object-19",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-016:object-11",
+          "responseIdentity": "EVT-016:object-21",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-016:object-12",
+          "responseIdentity": "EVT-016:object-20",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-016:object-23",
+          "responseIdentity": "EVT-016:object-24",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-016:object-25",
+          "responseIdentity": "EVT-016:object-26",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-016:object-27",
+          "responseIdentity": "EVT-016:object-28",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-016:object-29",
+          "responseIdentity": "EVT-016:object-30",
+          "requestKind": "application-fetch",
+          "classification": "action",
+          "owner": "action",
+          "phase": "primary-action"
+        },
+        {
+          "requestIdentity": "EVT-016:object-31",
+          "responseIdentity": "EVT-016:object-35",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-016:object-32",
+          "responseIdentity": "EVT-016:object-34",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-016:object-33",
+          "responseIdentity": "EVT-016:object-36",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-016:object-37",
+          "responseIdentity": "EVT-016:object-38",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "EVT-016:object-39",
+          "responseIdentity": "EVT-016:object-40",
+          "requestKind": "application-fetch",
+          "classification": "action",
+          "owner": "action",
+          "phase": "primary-action"
+        },
+        {
+          "requestIdentity": "EVT-016:object-41",
+          "responseIdentity": "EVT-016:object-42",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        }
+      ],
+      "failures": []
+    }
+  }
+}

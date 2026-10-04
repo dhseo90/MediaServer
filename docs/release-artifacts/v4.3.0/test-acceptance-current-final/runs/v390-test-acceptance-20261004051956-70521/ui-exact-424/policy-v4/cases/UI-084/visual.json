@@ -1,0 +1,9 @@
+{
+  "schema": "media-server.ui-raw-visual-capture.v1",
+  "caseId": "UI-084",
+  "correlationId": "UI-084:assert-visible-read-model:completion",
+  "targetSelector": "[data-testid=\"client-operations-notice\"]",
+  "screenshotSha256": "bb0c609c3fda2c22aebd0eea07aae5ce9f5b01445364182a2dd3cd172e37c27a",
+  "measurementSha256": "d399765aaf55b0bfb8d288a155046e50f8b27b5fe0e57e940f1713afb95ea8cd",
+  "qualificationStatus": "unqualified-raw-capture"
+}

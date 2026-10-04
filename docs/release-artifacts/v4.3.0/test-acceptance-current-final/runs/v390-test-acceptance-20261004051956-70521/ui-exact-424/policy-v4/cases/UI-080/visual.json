@@ -1,0 +1,9 @@
+{
+  "schema": "media-server.ui-raw-visual-capture.v1",
+  "caseId": "UI-080",
+  "correlationId": "UI-080:assert-visible-read-model:completion",
+  "targetSelector": "#v350IncidentCommandHandoffGrid",
+  "screenshotSha256": "794c08e7298bdf67b1033e82513a153452aef7a500581b198e3ae4bb3471ed94",
+  "measurementSha256": "fbee7112e9fb441b301b447f69d4e2e1751219cbed7bcf8f2d0e2384757664ca",
+  "qualificationStatus": "unqualified-raw-capture"
+}

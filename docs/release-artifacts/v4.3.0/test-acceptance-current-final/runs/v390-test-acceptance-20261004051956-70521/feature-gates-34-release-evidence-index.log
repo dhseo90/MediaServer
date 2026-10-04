@@ -1,0 +1,7 @@
+[pass] 현행 기록 정책·기능·명령 연결
+[pass] OPS-039 source/published/next/runway 경계 회귀 정의
+
+== Release evidence index verification summary ==
+- scope: current-definitions-only; execution-evidence-not-verified
+- pass: 2
+- fail: 0

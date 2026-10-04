@@ -1,0 +1,9 @@
+{
+  "schema": "media-server.ui-raw-visual-capture.v1",
+  "caseId": "UI-074",
+  "correlationId": "UI-074:assert-visible-read-model:completion",
+  "targetSelector": "[data-testid=\"source-backup-recovery-handoff\"]",
+  "screenshotSha256": "fd3d91297518c36d3827f85bae8e8226b1cf12597d265c50c09aa667411785ee",
+  "measurementSha256": "60bf24f68d32211855fd2c2a6da52a541b010495ae8d79b8eecaf3ca818ec59e",
+  "qualificationStatus": "unqualified-raw-capture"
+}

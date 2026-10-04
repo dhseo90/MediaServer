@@ -1,0 +1,34 @@
+{
+  "schema": "media-server.ui-evidence-redaction-scan.v1",
+  "scope": "case",
+  "status": "PASS",
+  "caseId": "AUTH-033",
+  "correlationId": "AUTH-033:submit-form:completion",
+  "scannedArtifacts": [
+    {
+      "path": "cases/137-AUTH-033/screenshots/AUTH-033.png",
+      "sha256": "421f9707dcf233c46dc93e73dff56b51b2ac193ed7d8332355c43fb45ddeb452"
+    },
+    {
+      "path": "policy-v4/cases/AUTH-033/trace.json",
+      "sha256": "32e52f748f0b5f4f1bb7d33ae2efa4398b08b46c128f491a7c71fe4e1a70b38e"
+    },
+    {
+      "path": "policy-v4/cases/AUTH-033/browser-console.json",
+      "sha256": "a4d249bfde99ee52c054691f04eb4a479748933ebe1efe8e8642027f051da1f4"
+    },
+    {
+      "path": "policy-v4/cases/AUTH-033/server.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "policy-v4/cases/AUTH-033/visual-measurement.json",
+      "sha256": "8fc06bd055e421e2370f539f4f20c648fe4ab377bd81dff402e23536f96a401f"
+    },
+    {
+      "path": "policy-v4/cases/AUTH-033/visual.json",
+      "sha256": "84170c01dcba6dc52af01f1fb77b4879b67e4be1ba10d2e377b4b608d6376df7"
+    }
+  ],
+  "findings": []
+}

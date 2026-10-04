@@ -1,0 +1,1125 @@
+{
+  "schema": "media-server.ui-browser-visual-measurement.v2",
+  "caseBinding": {
+    "canonicalCaseId": "RULE-067",
+    "featureId": "RULE-067",
+    "screenId": "RULE-067",
+    "screenRoute": "/ops/rules",
+    "accountRole": "operator",
+    "targetSelector": "body"
+  },
+  "route": "/ops/rules",
+  "accountRole": "operator",
+  "requestedTheme": "light",
+  "appliedTheme": "light",
+  "mediaTheme": "light",
+  "viewport": {
+    "width": 390,
+    "height": 844,
+    "devicePixelRatio": 1
+  },
+  "document": {
+    "scrollWidth": 390,
+    "scrollHeight": 20045,
+    "clientWidth": 390,
+    "clientHeight": 844
+  },
+  "target": {
+    "selector": "body",
+    "visible": true,
+    "documentTarget": true,
+    "rect": {
+      "x": 0,
+      "y": -11540,
+      "left": 0,
+      "top": -11540,
+      "right": 390,
+      "bottom": 8505.109375,
+      "width": 390,
+      "height": 20045.109375
+    }
+  },
+  "textSamples": [
+    {
+      "foreground": "rgb(23, 28, 31)",
+      "background": "rgb(255, 255, 255)",
+      "fontSizePx": 11,
+      "fontWeight": "850",
+      "rect": {
+        "x": 46,
+        "y": -25.78125,
+        "left": 46,
+        "top": -25.78125,
+        "right": 344,
+        "bottom": 6.21875,
+        "width": 298,
+        "height": 32
+      }
+    },
+    {
+      "foreground": "rgb(23, 28, 31)",
+      "background": "rgb(238, 243, 245)",
+      "fontSizePx": 11,
+      "fontWeight": "850",
+      "rect": {
+        "x": 46,
+        "y": 14.21875,
+        "left": 46,
+        "top": 14.21875,
+        "right": 344,
+        "bottom": 46.21875,
+        "width": 298,
+        "height": 32
+      }
+    },
+    {
+      "foreground": "rgb(255, 255, 255)",
+      "background": "rgb(185, 28, 28)",
+      "fontSizePx": 11,
+      "fontWeight": "850",
+      "rect": {
+        "x": 55,
+        "y": 63.21875,
+        "left": 55,
+        "top": 63.21875,
+        "right": 335,
+        "bottom": 95.21875,
+        "width": 280,
+        "height": 32
+      }
+    },
+    {
+      "foreground": "rgb(29, 78, 216)",
+      "background": "rgb(219, 234, 254)",
+      "fontSizePx": 11,
+      "fontWeight": "900",
+      "rect": {
+        "x": 33,
+        "y": 113.21875,
+        "left": 33,
+        "top": 113.21875,
+        "right": 68.03125,
+        "bottom": 137.21875,
+        "width": 35.03125,
+        "height": 24
+      }
+    },
+    {
+      "foreground": "color(srgb 0.10949 0.270588 0.716471)",
+      "background": "color(srgb 0.875922 0.902824 0.978588)",
+      "fontSizePx": 11,
+      "fontWeight": "900",
+      "rect": {
+        "x": 76.03125,
+        "y": 113.21875,
+        "left": 76.03125,
+        "top": 113.21875,
+        "right": 145.9375,
+        "bottom": 137.21875,
+        "width": 69.90625,
+        "height": 24
+      }
+    },
+    {
+      "foreground": "rgb(23, 28, 31)",
+      "background": "rgb(243, 246, 248)",
+      "fontSizePx": 15,
+      "fontWeight": "700",
+      "rect": {
+        "x": 33,
+        "y": 137.21875,
+        "left": 33,
+        "top": 137.21875,
+        "right": 145.9375,
+        "bottom": 157.21875,
+        "width": 112.9375,
+        "height": 20
+      }
+    },
+    {
+      "foreground": "rgb(92, 105, 114)",
+      "background": "rgb(243, 246, 248)",
+      "fontSizePx": 13,
+      "fontWeight": "400",
+      "rect": {
+        "x": 33,
+        "y": 157.21875,
+        "left": 33,
+        "top": 157.21875,
+        "right": 145.9375,
+        "bottom": 176.0625,
+        "width": 112.9375,
+        "height": 18.84375
+      }
+    },
+    {
+      "foreground": "rgb(23, 28, 31)",
+      "background": "rgb(255, 255, 255)",
+      "fontSizePx": 16,
+      "fontWeight": "850",
+      "rect": {
+        "x": 33,
+        "y": 184.0625,
+        "left": 33,
+        "top": 184.0625,
+        "right": 357,
+        "bottom": 224.0625,
+        "width": 324,
+        "height": 40
+      }
+    },
+    {
+      "foreground": "rgb(23, 28, 31)",
+      "background": "rgb(255, 255, 255)",
+      "fontSizePx": 16,
+      "fontWeight": "850",
+      "rect": {
+        "x": 33,
+        "y": 232.0625,
+        "left": 33,
+        "top": 232.0625,
+        "right": 357,
+        "bottom": 272.0625,
+        "width": 324,
+        "height": 40
+      }
+    },
+    {
+      "foreground": "rgb(23, 28, 31)",
+      "background": "rgb(238, 243, 245)",
+      "fontSizePx": 16,
+      "fontWeight": "700",
+      "rect": {
+        "x": 50,
+        "y": 305.0625,
+        "left": 50,
+        "top": 305.0625,
+        "right": 127.203125,
+        "bottom": 327.0625,
+        "width": 77.203125,
+        "height": 22
+      }
+    },
+    {
+      "foreground": "rgb(92, 105, 114)",
+      "background": "rgb(238, 243, 245)",
+      "fontSizePx": 13,
+      "fontWeight": "400",
+      "rect": {
+        "x": 50,
+        "y": 327.0625,
+        "left": 50,
+        "top": 327.0625,
+        "right": 340,
+        "bottom": 383.59375,
+        "width": 290,
+        "height": 56.53125
+      }
+    },
+    {
+      "foreground": "rgb(23, 28, 31)",
+      "background": "rgb(255, 255, 255)",
+      "fontSizePx": 16,
+      "fontWeight": "800",
+      "rect": {
+        "x": 50,
+        "y": 395.59375,
+        "left": 50,
+        "top": 395.59375,
+        "right": 236.625,
+        "bottom": 417.59375,
+        "width": 186.625,
+        "height": 22
+      }
+    },
+    {
+      "foreground": "rgb(29, 78, 216)",
+      "background": "rgb(219, 234, 254)",
+      "fontSizePx": 11,
+      "fontWeight": "900",
+      "rect": {
+        "x": 63,
+        "y": 442.59375,
+        "left": 63,
+        "top": 442.59375,
+        "right": 327,
+        "bottom": 466.59375,
+        "width": 264,
+        "height": 24
+      }
+    },
+    {
+      "foreground": "rgb(23, 28, 31)",
+      "background": "rgb(255, 255, 255)",
+      "fontSizePx": 16,
+      "fontWeight": "700",
+      "rect": {
+        "x": 63,
+        "y": 474.59375,
+        "left": 63,
+        "top": 474.59375,
+        "right": 327,
+        "bottom": 496.59375,
+        "width": 264,
+        "height": 22
+      }
+    },
+    {
+      "foreground": "rgb(92, 105, 114)",
+      "background": "rgb(255, 255, 255)",
+      "fontSizePx": 13,
+      "fontWeight": "400",
+      "rect": {
+        "x": 63,
+        "y": 504.59375,
+        "left": 63,
+        "top": 504.59375,
+        "right": 327,
+        "bottom": 542.28125,
+        "width": 264,
+        "height": 37.6875
+      }
+    },
+    {
+      "foreground": "rgb(29, 78, 216)",
+      "background": "rgb(219, 234, 254)",
+      "fontSizePx": 11,
+      "fontWeight": "900",
+      "rect": {
+        "x": 63,
+        "y": 580.28125,
+        "left": 63,
+        "top": 580.28125,
+        "right": 327,
+        "bottom": 604.28125,
+        "width": 264,
+        "height": 24
+      }
+    },
+    {
+      "foreground": "rgb(23, 28, 31)",
+      "background": "rgb(255, 255, 255)",
+      "fontSizePx": 16,
+      "fontWeight": "700",
+      "rect": {
+        "x": 63,
+        "y": 612.28125,
+        "left": 63,
+        "top": 612.28125,
+        "right": 327,
+        "bottom": 634.28125,
+        "width": 264,
+        "height": 22
+      }
+    },
+    {
+      "foreground": "rgb(92, 105, 114)",
+      "background": "rgb(255, 255, 255)",
+      "fontSizePx": 13,
+      "fontWeight": "400",
+      "rect": {
+        "x": 63,
+        "y": 642.28125,
+        "left": 63,
+        "top": 642.28125,
+        "right": 327,
+        "bottom": 661.125,
+        "width": 264,
+        "height": 18.84375
+      }
+    },
+    {
+      "foreground": "rgb(29, 78, 216)",
+      "background": "rgb(219, 234, 254)",
+      "fontSizePx": 11,
+      "fontWeight": "900",
+      "rect": {
+        "x": 63,
+        "y": 699.125,
+        "left": 63,
+        "top": 699.125,
+        "right": 327,
+        "bottom": 723.125,
+        "width": 264,
+        "height": 24
+      }
+    },
+    {
+      "foreground": "rgb(23, 28, 31)",
+      "background": "rgb(255, 255, 255)",
+      "fontSizePx": 16,
+      "fontWeight": "700",
+      "rect": {
+        "x": 63,
+        "y": 731.125,
+        "left": 63,
+        "top": 731.125,
+        "right": 327,
+        "bottom": 753.125,
+        "width": 264,
+        "height": 22
+      }
+    },
+    {
+      "foreground": "rgb(92, 105, 114)",
+      "background": "rgb(255, 255, 255)",
+      "fontSizePx": 13,
+      "fontWeight": "400",
+      "rect": {
+        "x": 63,
+        "y": 761.125,
+        "left": 63,
+        "top": 761.125,
+        "right": 327,
+        "bottom": 779.96875,
+        "width": 264,
+        "height": 18.84375
+      }
+    },
+    {
+      "foreground": "rgb(29, 78, 216)",
+      "background": "rgb(219, 234, 254)",
+      "fontSizePx": 11,
+      "fontWeight": "900",
+      "rect": {
+        "x": 63,
+        "y": 817.96875,
+        "left": 63,
+        "top": 817.96875,
+        "right": 327,
+        "bottom": 841.96875,
+        "width": 264,
+        "height": 24
+      }
+    }
+  ],
+  "focus": {
+    "focusableCount": 69,
+    "applicable": true
+  },
+  "liveVideo": null,
+  "postActionVisualOwner": {
+    "schema": "media-server.v390-ui-post-action-visual-target.v1",
+    "caseId": "RULE-067",
+    "actionId": "RULE-067:execute-persisted-action",
+    "completionMode": "request",
+    "sourceSelectorSha256": "49a23b50f5659a07cc80b2642454b7137c30592e6765dfb64e72222298696f82",
+    "sourceOwnerSelectorSha256": "49a23b50f5659a07cc80b2642454b7137c30592e6765dfb64e72222298696f82",
+    "requestedState": "visible",
+    "observedRoute": "/ops/rules",
+    "navigationEpoch": 1,
+    "ownerCandidateCount": 1,
+    "sourceSelectorRewaited": false,
+    "selector": "body",
+    "bindingKind": "post-action-visible-document-owner",
+    "sourceDetached": false,
+    "sourceHidden": true,
+    "epochRelation": "same-document"
+  },
+  "focusSamples": [
+    {
+      "index": 0,
+      "focusIdentity": "#opsRulesComposerEdit",
+      "tag": "button",
+      "id": "opsRulesComposerEdit",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 1,
+      "focusIdentity": "#opsRulesComposerClose",
+      "tag": "button",
+      "id": "opsRulesComposerClose",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 2,
+      "focusIdentity": "#opsRulesReviewEventRecordLink",
+      "tag": "a",
+      "id": "opsRulesReviewEventRecordLink",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 3,
+      "focusIdentity": "#opsRulesAuditRefresh",
+      "tag": "button",
+      "id": "opsRulesAuditRefresh",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 4,
+      "focusIdentity": "#ops-rules-audit-list-audit-q",
+      "tag": "input",
+      "id": "ops-rules-audit-list-audit-q",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "solid",
+      "outlineWidth": "3px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 5,
+      "focusIdentity": "#ops-rules-audit-list-audit-actor",
+      "tag": "input",
+      "id": "ops-rules-audit-list-audit-actor",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "solid",
+      "outlineWidth": "3px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 6,
+      "focusIdentity": "#ops-rules-audit-list-audit-user",
+      "tag": "input",
+      "id": "ops-rules-audit-list-audit-user",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "solid",
+      "outlineWidth": "3px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 7,
+      "focusIdentity": "#ops-rules-audit-list-audit-target",
+      "tag": "input",
+      "id": "ops-rules-audit-list-audit-target",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "solid",
+      "outlineWidth": "3px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 8,
+      "focusIdentity": "#ops-rules-audit-list-audit-action",
+      "tag": "select",
+      "id": "ops-rules-audit-list-audit-action",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "solid",
+      "outlineWidth": "3px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 9,
+      "focusIdentity": "#ops-rules-audit-list-audit-from",
+      "tag": "input",
+      "id": "ops-rules-audit-list-audit-from",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "solid",
+      "outlineWidth": "3px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 10,
+      "focusIdentity": "#ops-rules-audit-list-audit-to",
+      "tag": "input",
+      "id": "ops-rules-audit-list-audit-to",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "solid",
+      "outlineWidth": "3px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 11,
+      "focusIdentity": "#ops-rules-audit-list-audit-limit",
+      "tag": "select",
+      "id": "ops-rules-audit-list-audit-limit",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "solid",
+      "outlineWidth": "3px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 12,
+      "focusIdentity": "body > main > section > section:nth-of-type(2) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(2) > button:nth-of-type(1)",
+      "tag": "button",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 13,
+      "focusIdentity": "body > main > section > section:nth-of-type(2) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(2) > button:nth-of-type(2)",
+      "tag": "button",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 14,
+      "focusIdentity": "body > main > section > section:nth-of-type(2) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(2) > button:nth-of-type(3)",
+      "tag": "button",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 15,
+      "focusIdentity": "body > main > section > section:nth-of-type(2) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(2) > button:nth-of-type(4)",
+      "tag": "button",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 16,
+      "focusIdentity": "body > main > section > section:nth-of-type(2) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(2) > button:nth-of-type(5)",
+      "tag": "button",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 17,
+      "focusIdentity": "body > main > section > section:nth-of-type(2) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(2) > button:nth-of-type(6)",
+      "tag": "button",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 18,
+      "focusIdentity": "body > main > section > section:nth-of-type(2) > div:nth-of-type(2) > div:nth-of-type(2) > article > div:nth-of-type(4) > button",
+      "tag": "button",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 19,
+      "focusIdentity": "body > main > section > section:nth-of-type(2) > div:nth-of-type(2) > div:nth-of-type(2) > article > details > summary",
+      "tag": "summary",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 20,
+      "focusIdentity": "body",
+      "tag": "body",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "none",
+      "outlineWidth": "3px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 21,
+      "focusIdentity": "body > main > header > div > div:nth-of-type(1) > nav > a:nth-of-type(1)",
+      "tag": "a",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 22,
+      "focusIdentity": "body > main > header > div > div:nth-of-type(1) > nav > a:nth-of-type(2)",
+      "tag": "a",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 23,
+      "focusIdentity": "body > main > header > div > div:nth-of-type(1) > nav > a:nth-of-type(3)",
+      "tag": "a",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 24,
+      "focusIdentity": "body > main > header > div > div:nth-of-type(1) > nav > a:nth-of-type(4)",
+      "tag": "a",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 25,
+      "focusIdentity": "body > main > header > div > div:nth-of-type(1) > nav > a:nth-of-type(5)",
+      "tag": "a",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 26,
+      "focusIdentity": "#themeToggleBtn",
+      "tag": "button",
+      "id": "themeToggleBtn",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 27,
+      "focusIdentity": "body > main > header > div > div:nth-of-type(2) > div > div:nth-of-type(2) > label > select",
+      "tag": "select",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "solid",
+      "outlineWidth": "3px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 28,
+      "focusIdentity": "body > main > header > div > div:nth-of-type(2) > form > button",
+      "tag": "button",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 29,
+      "focusIdentity": "#opsRulesRefresh",
+      "tag": "button",
+      "id": "opsRulesRefresh",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 30,
+      "focusIdentity": "body > main > section > div:nth-of-type(4) > section:nth-of-type(2) > div:nth-of-type(2) > article:nth-of-type(1) > div:nth-of-type(2) > a",
+      "tag": "a",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 31,
+      "focusIdentity": "#opsRulesPrereqProfilesAction",
+      "tag": "button",
+      "id": "opsRulesPrereqProfilesAction",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 32,
+      "focusIdentity": "#opsRulesPrereqTemplatesAction",
+      "tag": "button",
+      "id": "opsRulesPrereqTemplatesAction",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 33,
+      "focusIdentity": "#opsRulesPrereqVaRulesAction",
+      "tag": "button",
+      "id": "opsRulesPrereqVaRulesAction",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 34,
+      "focusIdentity": "#opsScenarioBuilderApply",
+      "tag": "button",
+      "id": "opsScenarioBuilderApply",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 35,
+      "focusIdentity": "#opsScenarioBuilderType",
+      "tag": "select",
+      "id": "opsScenarioBuilderType",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "solid",
+      "outlineWidth": "3px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 36,
+      "focusIdentity": "#opsScenarioBuilderPreset",
+      "tag": "select",
+      "id": "opsScenarioBuilderPreset",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "solid",
+      "outlineWidth": "3px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 37,
+      "focusIdentity": "#opsScenarioBuilderClasses",
+      "tag": "input",
+      "id": "opsScenarioBuilderClasses",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "solid",
+      "outlineWidth": "3px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 38,
+      "focusIdentity": "body > main > section > div:nth-of-type(5) > section:nth-of-type(1) > div:nth-of-type(3) > details > summary",
+      "tag": "summary",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 39,
+      "focusIdentity": "#opsVlmRuleDraftKindSelect",
+      "tag": "select",
+      "id": "opsVlmRuleDraftKindSelect",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "solid",
+      "outlineWidth": "3px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 40,
+      "focusIdentity": "#opsVlmRuleDraftRefresh",
+      "tag": "button",
+      "id": "opsVlmRuleDraftRefresh",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 41,
+      "focusIdentity": "#opsRulesFilterInput",
+      "tag": "input",
+      "id": "opsRulesFilterInput",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "solid",
+      "outlineWidth": "3px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 42,
+      "focusIdentity": "#opsAddVaRuleBtn",
+      "tag": "button",
+      "id": "opsAddVaRuleBtn",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 43,
+      "focusIdentity": "#opsAddEventRuleBtn",
+      "tag": "button",
+      "id": "opsAddEventRuleBtn",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 44,
+      "focusIdentity": "#opsAddProfileBtn",
+      "tag": "button",
+      "id": "opsAddProfileBtn",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 45,
+      "focusIdentity": "#opsCreateEventRuleBtn",
+      "tag": "button",
+      "id": "opsCreateEventRuleBtn",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 46,
+      "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(3) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(1) > td:nth-of-type(6) > div > button",
+      "tag": "button",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 47,
+      "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(3) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(1) > td:nth-of-type(6) > div > details > summary",
+      "tag": "summary",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 48,
+      "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(3) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(2) > td:nth-of-type(6) > div > button",
+      "tag": "button",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 49,
+      "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(3) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(2) > td:nth-of-type(6) > div > details > summary",
+      "tag": "summary",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 50,
+      "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(3) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(3) > td:nth-of-type(6) > div > button",
+      "tag": "button",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 51,
+      "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(3) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(3) > td:nth-of-type(6) > div > details > summary",
+      "tag": "summary",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 52,
+      "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(3) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(4) > td:nth-of-type(6) > div > button",
+      "tag": "button",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 53,
+      "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(3) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(4) > td:nth-of-type(6) > div > details > summary",
+      "tag": "summary",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 54,
+      "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(3) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(5) > td:nth-of-type(6) > div > button",
+      "tag": "button",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 55,
+      "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(3) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(5) > td:nth-of-type(6) > div > details > summary",
+      "tag": "summary",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 56,
+      "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(3) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(6) > td:nth-of-type(6) > div > button",
+      "tag": "button",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 57,
+      "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(3) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(6) > td:nth-of-type(6) > div > details > summary",
+      "tag": "summary",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 58,
+      "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(3) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(7) > td:nth-of-type(6) > div > button",
+      "tag": "button",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 59,
+      "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(3) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(7) > td:nth-of-type(6) > div > details > summary",
+      "tag": "summary",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 60,
+      "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(3) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(8) > td:nth-of-type(6) > div > button",
+      "tag": "button",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 61,
+      "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(3) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(8) > td:nth-of-type(6) > div > details > summary",
+      "tag": "summary",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 62,
+      "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(3) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(9) > td:nth-of-type(6) > div > button",
+      "tag": "button",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 63,
+      "focusIdentity": "body > main > section > div:nth-of-type(6) > section:nth-of-type(3) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(9) > td:nth-of-type(6) > div > details > summary",
+      "tag": "summary",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    }
+  ]
+}

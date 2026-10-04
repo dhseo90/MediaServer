@@ -1,0 +1,1107 @@
+{
+  "schema": "media-server.ui-browser-visual-measurement.v2",
+  "caseBinding": {
+    "canonicalCaseId": "UI-011",
+    "featureId": "UI-011",
+    "screenId": "ops-sources",
+    "screenRoute": "/ops/sources",
+    "accountRole": "operator",
+    "targetSelector": "[data-testid=\"ops-sources-page\"] > .ops-workspace-hero"
+  },
+  "route": "/ops/sources",
+  "accountRole": "operator",
+  "requestedTheme": "dark",
+  "appliedTheme": "dark",
+  "mediaTheme": "dark",
+  "viewport": {
+    "width": 760,
+    "height": 844,
+    "devicePixelRatio": 1
+  },
+  "document": {
+    "scrollWidth": 760,
+    "scrollHeight": 28830,
+    "clientWidth": 760,
+    "clientHeight": 844
+  },
+  "target": {
+    "selector": "[data-testid=\"ops-sources-page\"] > .ops-workspace-hero",
+    "visible": true,
+    "documentTarget": false,
+    "rect": {
+      "x": 16,
+      "y": 281,
+      "left": 16,
+      "top": 281,
+      "right": 744,
+      "bottom": 361.03125,
+      "width": 728,
+      "height": 80.03125
+    }
+  },
+  "textSamples": [
+    {
+      "foreground": "rgb(245, 247, 248)",
+      "background": "rgb(21, 23, 25)",
+      "fontSizePx": 15,
+      "fontWeight": "950",
+      "rect": {
+        "x": 66,
+        "y": 19,
+        "left": 66,
+        "top": 19,
+        "right": 738,
+        "bottom": 34,
+        "width": 672,
+        "height": 15
+      }
+    },
+    {
+      "foreground": "rgb(198, 205, 210)",
+      "background": "rgb(21, 23, 25)",
+      "fontSizePx": 12,
+      "fontWeight": "750",
+      "rect": {
+        "x": 66,
+        "y": 37,
+        "left": 66,
+        "top": 37,
+        "right": 738,
+        "bottom": 49,
+        "width": 672,
+        "height": 12
+      }
+    },
+    {
+      "foreground": "rgb(198, 205, 210)",
+      "background": "rgb(21, 23, 25)",
+      "fontSizePx": 12,
+      "fontWeight": "900",
+      "rect": {
+        "x": 146.46875,
+        "y": 81.28125,
+        "left": 146.46875,
+        "top": 81.28125,
+        "right": 156.859375,
+        "bottom": 94.71875,
+        "width": 10.390625,
+        "height": 13.4375
+      }
+    },
+    {
+      "foreground": "rgb(198, 205, 210)",
+      "background": "rgb(21, 23, 25)",
+      "fontSizePx": 12,
+      "fontWeight": "900",
+      "rect": {
+        "x": 370.21875,
+        "y": 81.28125,
+        "left": 370.21875,
+        "top": 81.28125,
+        "right": 411.75,
+        "bottom": 94.71875,
+        "width": 41.53125,
+        "height": 13.4375
+      }
+    },
+    {
+      "foreground": "rgb(99, 168, 255)",
+      "background": "rgb(21, 23, 25)",
+      "fontSizePx": 12,
+      "fontWeight": "900",
+      "rect": {
+        "x": 619.9375,
+        "y": 81.28125,
+        "left": 619.9375,
+        "top": 81.28125,
+        "right": 640.703125,
+        "bottom": 94.71875,
+        "width": 20.765625,
+        "height": 13.4375
+      }
+    },
+    {
+      "foreground": "rgb(198, 205, 210)",
+      "background": "rgb(21, 23, 25)",
+      "fontSizePx": 12,
+      "fontWeight": "900",
+      "rect": {
+        "x": 146.46875,
+        "y": 127.28125,
+        "left": 146.46875,
+        "top": 127.28125,
+        "right": 156.859375,
+        "bottom": 140.71875,
+        "width": 10.390625,
+        "height": 13.4375
+      }
+    },
+    {
+      "foreground": "rgb(198, 205, 210)",
+      "background": "rgb(21, 23, 25)",
+      "fontSizePx": 12,
+      "fontWeight": "900",
+      "rect": {
+        "x": 365.03125,
+        "y": 127.28125,
+        "left": 365.03125,
+        "top": 127.28125,
+        "right": 416.9375,
+        "bottom": 140.71875,
+        "width": 51.90625,
+        "height": 13.4375
+      }
+    },
+    {
+      "foreground": "rgb(245, 247, 248)",
+      "background": "rgb(29, 32, 35)",
+      "fontSizePx": 12,
+      "fontWeight": "850",
+      "rect": {
+        "x": 22,
+        "y": 208,
+        "left": 22,
+        "top": 208,
+        "right": 94,
+        "bottom": 244,
+        "width": 72,
+        "height": 36
+      }
+    },
+    {
+      "foreground": "rgb(245, 247, 248)",
+      "background": "rgb(21, 23, 25)",
+      "fontSizePx": 19,
+      "fontWeight": "700",
+      "rect": {
+        "x": 35,
+        "y": 298,
+        "left": 35,
+        "top": 298,
+        "right": 717,
+        "bottom": 318.890625,
+        "width": 682,
+        "height": 20.890625
+      }
+    },
+    {
+      "foreground": "rgb(198, 205, 210)",
+      "background": "rgb(21, 23, 25)",
+      "fontSizePx": 13,
+      "fontWeight": "400",
+      "rect": {
+        "x": 35,
+        "y": 323.890625,
+        "left": 35,
+        "top": 323.890625,
+        "right": 717,
+        "bottom": 344.03125,
+        "width": 682,
+        "height": 20.140625
+      }
+    },
+    {
+      "foreground": "rgb(245, 247, 248)",
+      "background": "rgb(21, 23, 25)",
+      "fontSizePx": 15,
+      "fontWeight": "700",
+      "rect": {
+        "x": 33,
+        "y": 394.03125,
+        "left": 33,
+        "top": 394.03125,
+        "right": 368.3125,
+        "bottom": 414.03125,
+        "width": 335.3125,
+        "height": 20
+      }
+    },
+    {
+      "foreground": "rgb(198, 205, 210)",
+      "background": "rgb(21, 23, 25)",
+      "fontSizePx": 16,
+      "fontWeight": "400",
+      "rect": {
+        "x": 33,
+        "y": 414.03125,
+        "left": 33,
+        "top": 414.03125,
+        "right": 368.3125,
+        "bottom": 438.828125,
+        "width": 335.3125,
+        "height": 24.796875
+      }
+    },
+    {
+      "foreground": "rgb(198, 205, 210)",
+      "background": "rgb(21, 23, 25)",
+      "fontSizePx": 12,
+      "fontWeight": "850",
+      "rect": {
+        "x": 48,
+        "y": 468.828125,
+        "left": 48,
+        "top": 468.828125,
+        "right": 712,
+        "bottom": 484.828125,
+        "width": 664,
+        "height": 16
+      }
+    },
+    {
+      "foreground": "rgb(245, 247, 248)",
+      "background": "rgb(21, 23, 25)",
+      "fontSizePx": 25,
+      "fontWeight": "700",
+      "rect": {
+        "x": 48,
+        "y": 488.828125,
+        "left": 48,
+        "top": 488.828125,
+        "right": 712,
+        "bottom": 522.828125,
+        "width": 664,
+        "height": 34
+      }
+    },
+    {
+      "foreground": "rgb(198, 205, 210)",
+      "background": "rgb(21, 23, 25)",
+      "fontSizePx": 12,
+      "fontWeight": "850",
+      "rect": {
+        "x": 48,
+        "y": 550.828125,
+        "left": 48,
+        "top": 550.828125,
+        "right": 712,
+        "bottom": 566.828125,
+        "width": 664,
+        "height": 16
+      }
+    },
+    {
+      "foreground": "rgb(245, 247, 248)",
+      "background": "rgb(21, 23, 25)",
+      "fontSizePx": 25,
+      "fontWeight": "700",
+      "rect": {
+        "x": 48,
+        "y": 570.828125,
+        "left": 48,
+        "top": 570.828125,
+        "right": 712,
+        "bottom": 604.828125,
+        "width": 664,
+        "height": 34
+      }
+    },
+    {
+      "foreground": "rgb(198, 205, 210)",
+      "background": "rgb(21, 23, 25)",
+      "fontSizePx": 12,
+      "fontWeight": "850",
+      "rect": {
+        "x": 48,
+        "y": 632.828125,
+        "left": 48,
+        "top": 632.828125,
+        "right": 712,
+        "bottom": 648.828125,
+        "width": 664,
+        "height": 16
+      }
+    },
+    {
+      "foreground": "rgb(245, 247, 248)",
+      "background": "rgb(21, 23, 25)",
+      "fontSizePx": 25,
+      "fontWeight": "700",
+      "rect": {
+        "x": 48,
+        "y": 652.828125,
+        "left": 48,
+        "top": 652.828125,
+        "right": 712,
+        "bottom": 686.828125,
+        "width": 664,
+        "height": 34
+      }
+    },
+    {
+      "foreground": "rgb(198, 205, 210)",
+      "background": "rgb(21, 23, 25)",
+      "fontSizePx": 12,
+      "fontWeight": "850",
+      "rect": {
+        "x": 48,
+        "y": 714.828125,
+        "left": 48,
+        "top": 714.828125,
+        "right": 712,
+        "bottom": 730.828125,
+        "width": 664,
+        "height": 16
+      }
+    },
+    {
+      "foreground": "rgb(245, 247, 248)",
+      "background": "rgb(21, 23, 25)",
+      "fontSizePx": 25,
+      "fontWeight": "700",
+      "rect": {
+        "x": 48,
+        "y": 734.828125,
+        "left": 48,
+        "top": 734.828125,
+        "right": 712,
+        "bottom": 768.828125,
+        "width": 664,
+        "height": 34
+      }
+    },
+    {
+      "foreground": "rgb(198, 205, 210)",
+      "background": "rgb(21, 23, 25)",
+      "fontSizePx": 12,
+      "fontWeight": "850",
+      "rect": {
+        "x": 48,
+        "y": 796.828125,
+        "left": 48,
+        "top": 796.828125,
+        "right": 712,
+        "bottom": 812.828125,
+        "width": 664,
+        "height": 16
+      }
+    },
+    {
+      "foreground": "rgb(245, 247, 248)",
+      "background": "rgb(21, 23, 25)",
+      "fontSizePx": 25,
+      "fontWeight": "700",
+      "rect": {
+        "x": 48,
+        "y": 816.828125,
+        "left": 48,
+        "top": 816.828125,
+        "right": 712,
+        "bottom": 850.828125,
+        "width": 664,
+        "height": 34
+      }
+    }
+  ],
+  "focus": {
+    "focusableCount": 288,
+    "applicable": true
+  },
+  "liveVideo": null,
+  "focusSamples": [
+    {
+      "index": 0,
+      "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(2) > div:nth-of-type(3) > article:nth-of-type(1) > div > a",
+      "tag": "a",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 1,
+      "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(2) > div:nth-of-type(3) > article:nth-of-type(2) > div > a",
+      "tag": "a",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 2,
+      "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(2) > div:nth-of-type(3) > article:nth-of-type(3) > div > a",
+      "tag": "a",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 3,
+      "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(2) > div:nth-of-type(3) > article:nth-of-type(4) > div > a",
+      "tag": "a",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 4,
+      "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(2) > div:nth-of-type(3) > article:nth-of-type(5) > div > a",
+      "tag": "a",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 5,
+      "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(2) > div:nth-of-type(3) > article:nth-of-type(6) > div > a",
+      "tag": "a",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 6,
+      "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(2) > div:nth-of-type(3) > article:nth-of-type(7) > div > a",
+      "tag": "a",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 7,
+      "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(2) > div:nth-of-type(3) > article:nth-of-type(8) > div > a",
+      "tag": "a",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 8,
+      "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(3) > div:nth-of-type(3) > div:nth-of-type(2) > div > a:nth-of-type(1)",
+      "tag": "a",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 9,
+      "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(3) > div:nth-of-type(3) > div:nth-of-type(2) > div > a:nth-of-type(2)",
+      "tag": "a",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 10,
+      "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(3) > div:nth-of-type(3) > div:nth-of-type(2) > div > a:nth-of-type(3)",
+      "tag": "a",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 11,
+      "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(3) > div:nth-of-type(3) > div:nth-of-type(2) > div > a:nth-of-type(4)",
+      "tag": "a",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 12,
+      "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(3) > div:nth-of-type(3) > div:nth-of-type(2) > div > a:nth-of-type(5)",
+      "tag": "a",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 13,
+      "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(3) > div:nth-of-type(3) > div:nth-of-type(3) > div > article:nth-of-type(1) > div > a",
+      "tag": "a",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 14,
+      "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(3) > div:nth-of-type(3) > div:nth-of-type(3) > div > article:nth-of-type(2) > div > a",
+      "tag": "a",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 15,
+      "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(3) > div:nth-of-type(3) > div:nth-of-type(3) > div > article:nth-of-type(3) > div > a",
+      "tag": "a",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 16,
+      "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(3) > div:nth-of-type(3) > div:nth-of-type(3) > div > article:nth-of-type(4) > div > a",
+      "tag": "a",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 17,
+      "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(3) > div:nth-of-type(3) > div:nth-of-type(3) > div > article:nth-of-type(5) > div > a",
+      "tag": "a",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 18,
+      "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(3) > div:nth-of-type(3) > div:nth-of-type(3) > div > article:nth-of-type(6) > div > a",
+      "tag": "a",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 19,
+      "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(3) > div:nth-of-type(3) > div:nth-of-type(3) > div > article:nth-of-type(7) > div > a",
+      "tag": "a",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 20,
+      "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(3) > div:nth-of-type(3) > div:nth-of-type(3) > div > article:nth-of-type(8) > div > a",
+      "tag": "a",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 21,
+      "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(4) > div:nth-of-type(3) > div:nth-of-type(1) > div > a:nth-of-type(1)",
+      "tag": "a",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 22,
+      "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(4) > div:nth-of-type(3) > div:nth-of-type(1) > div > a:nth-of-type(2)",
+      "tag": "a",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 23,
+      "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(4) > div:nth-of-type(3) > div:nth-of-type(1) > div > a:nth-of-type(3)",
+      "tag": "a",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 24,
+      "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(4) > div:nth-of-type(3) > div:nth-of-type(1) > div > a:nth-of-type(4)",
+      "tag": "a",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 25,
+      "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(4) > div:nth-of-type(3) > div:nth-of-type(2) > div > a:nth-of-type(1)",
+      "tag": "a",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 26,
+      "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(4) > div:nth-of-type(3) > div:nth-of-type(2) > div > a:nth-of-type(2)",
+      "tag": "a",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 27,
+      "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(4) > div:nth-of-type(3) > div:nth-of-type(2) > div > a:nth-of-type(3)",
+      "tag": "a",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 28,
+      "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(4) > div:nth-of-type(3) > div:nth-of-type(2) > div > a:nth-of-type(4)",
+      "tag": "a",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 29,
+      "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(5) > div:nth-of-type(3) > div:nth-of-type(2) > div > a:nth-of-type(1)",
+      "tag": "a",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 30,
+      "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(5) > div:nth-of-type(3) > div:nth-of-type(2) > div > a:nth-of-type(2)",
+      "tag": "a",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 31,
+      "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(5) > div:nth-of-type(3) > div:nth-of-type(2) > div > a:nth-of-type(3)",
+      "tag": "a",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 32,
+      "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(5) > div:nth-of-type(3) > div:nth-of-type(2) > div > a:nth-of-type(4)",
+      "tag": "a",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 33,
+      "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(5) > div:nth-of-type(3) > div:nth-of-type(2) > div > a:nth-of-type(5)",
+      "tag": "a",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 34,
+      "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(6) > div:nth-of-type(3) > div > div > article:nth-of-type(1) > a",
+      "tag": "a",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 35,
+      "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(6) > div:nth-of-type(3) > div > div > article:nth-of-type(2) > a",
+      "tag": "a",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 36,
+      "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(6) > div:nth-of-type(3) > div > div > article:nth-of-type(3) > a",
+      "tag": "a",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 37,
+      "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(6) > div:nth-of-type(3) > div > div > article:nth-of-type(4) > a",
+      "tag": "a",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 38,
+      "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(6) > div:nth-of-type(3) > div > div > article:nth-of-type(5) > a",
+      "tag": "a",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 39,
+      "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(6) > div:nth-of-type(3) > div > div > article:nth-of-type(6) > a",
+      "tag": "a",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 40,
+      "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(6) > div:nth-of-type(3) > div > div > article:nth-of-type(7) > a",
+      "tag": "a",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 41,
+      "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(6) > div:nth-of-type(3) > div > div > article:nth-of-type(8) > a",
+      "tag": "a",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 42,
+      "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(6) > div:nth-of-type(3) > div > div > article:nth-of-type(9) > a",
+      "tag": "a",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 43,
+      "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(6) > div:nth-of-type(3) > div > div > article:nth-of-type(10) > a",
+      "tag": "a",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 44,
+      "focusIdentity": "#add-channel",
+      "tag": "button",
+      "id": "add-channel",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 45,
+      "focusIdentity": "#refresh",
+      "tag": "button",
+      "id": "refresh",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 46,
+      "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(9) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(1) > td:nth-of-type(4) > div > button",
+      "tag": "button",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 47,
+      "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(9) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(1) > td:nth-of-type(6) > div > button:nth-of-type(1)",
+      "tag": "button",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 48,
+      "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(9) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(1) > td:nth-of-type(6) > div > button:nth-of-type(2)",
+      "tag": "button",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 49,
+      "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(9) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(1) > td:nth-of-type(7) > div > button:nth-of-type(1)",
+      "tag": "button",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 50,
+      "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(9) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(1) > td:nth-of-type(7) > div > button:nth-of-type(2)",
+      "tag": "button",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 51,
+      "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(9) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(1) > td:nth-of-type(8) > div > button",
+      "tag": "button",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 52,
+      "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(9) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(1) > td:nth-of-type(8) > div > details > summary",
+      "tag": "summary",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 53,
+      "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(9) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(2) > td:nth-of-type(4) > div > button",
+      "tag": "button",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 54,
+      "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(9) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(2) > td:nth-of-type(6) > div > button:nth-of-type(1)",
+      "tag": "button",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 55,
+      "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(9) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(2) > td:nth-of-type(6) > div > button:nth-of-type(2)",
+      "tag": "button",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 56,
+      "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(9) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(2) > td:nth-of-type(7) > div > button:nth-of-type(1)",
+      "tag": "button",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 57,
+      "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(9) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(2) > td:nth-of-type(7) > div > button:nth-of-type(2)",
+      "tag": "button",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 58,
+      "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(9) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(2) > td:nth-of-type(8) > div > button",
+      "tag": "button",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 59,
+      "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(9) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(2) > td:nth-of-type(8) > div > details > summary",
+      "tag": "summary",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 60,
+      "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(9) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(3) > td:nth-of-type(4) > div > button",
+      "tag": "button",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 61,
+      "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(9) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(3) > td:nth-of-type(6) > div > button:nth-of-type(1)",
+      "tag": "button",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 62,
+      "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(9) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(3) > td:nth-of-type(6) > div > button:nth-of-type(2)",
+      "tag": "button",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 63,
+      "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(9) > div:nth-of-type(2) > table > tbody > tr:nth-of-type(3) > td:nth-of-type(7) > div > button:nth-of-type(1)",
+      "tag": "button",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    }
+  ]
+}

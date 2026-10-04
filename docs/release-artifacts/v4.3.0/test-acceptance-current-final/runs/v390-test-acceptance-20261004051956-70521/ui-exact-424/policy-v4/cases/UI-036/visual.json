@@ -1,0 +1,9 @@
+{
+  "schema": "media-server.ui-raw-visual-capture.v1",
+  "caseId": "UI-036",
+  "correlationId": "UI-036:activate-control:completion",
+  "targetSelector": "[data-vlm-rule-draft-index]",
+  "screenshotSha256": "51328c0e4d2ebf1db5c50cf277042536a5ab9b0b5f7beec9dc3ef43b06d781ed",
+  "measurementSha256": "668553a4c26bca22ab5e023497f682d4a753765280bb4fdbd906309cdd898af4",
+  "qualificationStatus": "unqualified-raw-capture"
+}

@@ -1,0 +1,9 @@
+{
+  "schema": "media-server.ui-raw-visual-capture.v1",
+  "caseId": "RULE-101",
+  "correlationId": "RULE-101:activate-control:completion",
+  "targetSelector": "#opsRulesComposerSave",
+  "screenshotSha256": "96bd3eb1b14a61e87d2623416bb4c394afc68809adef5c1002c25ab42c38a840",
+  "measurementSha256": "c48dd8f07a12568bc2f38f3bcc5176c3c09daa515a5a496603c674591e49aa98",
+  "qualificationStatus": "unqualified-raw-capture"
+}

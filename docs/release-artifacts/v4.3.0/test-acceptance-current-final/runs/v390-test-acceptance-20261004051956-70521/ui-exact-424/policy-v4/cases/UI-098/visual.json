@@ -1,0 +1,9 @@
+{
+  "schema": "media-server.ui-raw-visual-capture.v1",
+  "caseId": "UI-098",
+  "correlationId": "UI-098:assert-visible-read-model:completion",
+  "targetSelector": "#dashSiteFieldEvidenceAttachmentList > [data-v370-field-evidence-attachment-entry]:first-child",
+  "screenshotSha256": "e1966f5907a180a524ee5eff890d8e8f4b0cee057d9e3d8fc42b7189f2476069",
+  "measurementSha256": "ed8b75028822e58ed6c3566d138e25e0418434bf35be591b61e49b0febd711ee",
+  "qualificationStatus": "unqualified-raw-capture"
+}

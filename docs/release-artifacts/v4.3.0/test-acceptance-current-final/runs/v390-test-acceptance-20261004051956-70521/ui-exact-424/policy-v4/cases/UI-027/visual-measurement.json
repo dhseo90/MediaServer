@@ -1,0 +1,718 @@
+{
+  "schema": "media-server.ui-browser-visual-measurement.v2",
+  "caseBinding": {
+    "canonicalCaseId": "UI-027",
+    "featureId": "UI-027",
+    "screenId": "UI-027",
+    "screenRoute": "/ops/vlm",
+    "accountRole": "operator",
+    "targetSelector": "#opsVlmRuntimeStatusList"
+  },
+  "route": "/ops/vlm",
+  "accountRole": "operator",
+  "requestedTheme": "light",
+  "appliedTheme": "light",
+  "mediaTheme": "light",
+  "viewport": {
+    "width": 390,
+    "height": 844,
+    "devicePixelRatio": 1
+  },
+  "document": {
+    "scrollWidth": 390,
+    "scrollHeight": 7870,
+    "clientWidth": 390,
+    "clientHeight": 844
+  },
+  "target": {
+    "selector": "#opsVlmRuntimeStatusList",
+    "visible": true,
+    "documentTarget": false,
+    "rect": {
+      "x": 33,
+      "y": 92.5,
+      "left": 33,
+      "top": 92.5,
+      "right": 357,
+      "bottom": 750.5625,
+      "width": 324,
+      "height": 658.0625
+    }
+  },
+  "textSamples": [
+    {
+      "foreground": "rgb(29, 78, 216)",
+      "background": "rgb(219, 234, 254)",
+      "fontSizePx": 11,
+      "fontWeight": "900",
+      "rect": {
+        "x": 33,
+        "y": -23.5,
+        "left": 33,
+        "top": -23.5,
+        "right": 148.453125,
+        "bottom": 0.5,
+        "width": 115.453125,
+        "height": 24
+      }
+    },
+    {
+      "foreground": "rgb(29, 78, 216)",
+      "background": "rgb(219, 234, 254)",
+      "fontSizePx": 11,
+      "fontWeight": "900",
+      "rect": {
+        "x": 156.453125,
+        "y": -23.5,
+        "left": 156.453125,
+        "top": -23.5,
+        "right": 295.125,
+        "bottom": 0.5,
+        "width": 138.671875,
+        "height": 24
+      }
+    },
+    {
+      "foreground": "rgb(29, 78, 216)",
+      "background": "rgb(219, 234, 254)",
+      "fontSizePx": 11,
+      "fontWeight": "900",
+      "rect": {
+        "x": 33,
+        "y": 8.5,
+        "left": 33,
+        "top": 8.5,
+        "right": 138.109375,
+        "bottom": 32.5,
+        "width": 105.109375,
+        "height": 24
+      }
+    },
+    {
+      "foreground": "rgb(29, 78, 216)",
+      "background": "rgb(219, 234, 254)",
+      "fontSizePx": 11,
+      "fontWeight": "900",
+      "rect": {
+        "x": 146.109375,
+        "y": 8.5,
+        "left": 146.109375,
+        "top": 8.5,
+        "right": 255.515625,
+        "bottom": 32.5,
+        "width": 109.40625,
+        "height": 24
+      }
+    },
+    {
+      "foreground": "rgb(29, 78, 216)",
+      "background": "rgb(219, 234, 254)",
+      "fontSizePx": 11,
+      "fontWeight": "900",
+      "rect": {
+        "x": 33,
+        "y": 40.5,
+        "left": 33,
+        "top": 40.5,
+        "right": 155.5625,
+        "bottom": 64.5,
+        "width": 122.5625,
+        "height": 24
+      }
+    },
+    {
+      "foreground": "rgb(23, 28, 31)",
+      "background": "rgb(255, 255, 255)",
+      "fontSizePx": 16,
+      "fontWeight": "700",
+      "rect": {
+        "x": 46,
+        "y": 105.5,
+        "left": 46,
+        "top": 105.5,
+        "right": 344,
+        "bottom": 127.5,
+        "width": 298,
+        "height": 22
+      }
+    },
+    {
+      "foreground": "rgb(92, 105, 114)",
+      "background": "rgb(255, 255, 255)",
+      "fontSizePx": 13,
+      "fontWeight": "400",
+      "rect": {
+        "x": 46,
+        "y": 129.5,
+        "left": 46,
+        "top": 129.5,
+        "right": 344,
+        "bottom": 184.0625,
+        "width": 298,
+        "height": 54.5625
+      }
+    },
+    {
+      "foreground": "rgb(29, 78, 216)",
+      "background": "rgb(219, 234, 254)",
+      "fontSizePx": 11,
+      "fontWeight": "900",
+      "rect": {
+        "x": 46,
+        "y": 192.0625,
+        "left": 46,
+        "top": 192.0625,
+        "right": 344,
+        "bottom": 216.0625,
+        "width": 298,
+        "height": 24
+      }
+    },
+    {
+      "foreground": "rgb(23, 28, 31)",
+      "background": "rgb(255, 255, 255)",
+      "fontSizePx": 16,
+      "fontWeight": "700",
+      "rect": {
+        "x": 46,
+        "y": 254.0625,
+        "left": 46,
+        "top": 254.0625,
+        "right": 344,
+        "bottom": 276.0625,
+        "width": 298,
+        "height": 22
+      }
+    },
+    {
+      "foreground": "rgb(92, 105, 114)",
+      "background": "rgb(255, 255, 255)",
+      "fontSizePx": 13,
+      "fontWeight": "400",
+      "rect": {
+        "x": 46,
+        "y": 278.0625,
+        "left": 46,
+        "top": 278.0625,
+        "right": 344,
+        "bottom": 314.4375,
+        "width": 298,
+        "height": 36.375
+      }
+    },
+    {
+      "foreground": "rgb(180, 83, 9)",
+      "background": "rgb(255, 244, 214)",
+      "fontSizePx": 11,
+      "fontWeight": "900",
+      "rect": {
+        "x": 46,
+        "y": 322.4375,
+        "left": 46,
+        "top": 322.4375,
+        "right": 344,
+        "bottom": 346.4375,
+        "width": 298,
+        "height": 24
+      }
+    },
+    {
+      "foreground": "rgb(23, 28, 31)",
+      "background": "rgb(255, 255, 255)",
+      "fontSizePx": 16,
+      "fontWeight": "700",
+      "rect": {
+        "x": 46,
+        "y": 384.4375,
+        "left": 46,
+        "top": 384.4375,
+        "right": 344,
+        "bottom": 406.4375,
+        "width": 298,
+        "height": 22
+      }
+    },
+    {
+      "foreground": "rgb(92, 105, 114)",
+      "background": "rgb(255, 255, 255)",
+      "fontSizePx": 13,
+      "fontWeight": "400",
+      "rect": {
+        "x": 46,
+        "y": 408.4375,
+        "left": 46,
+        "top": 408.4375,
+        "right": 344,
+        "bottom": 426.625,
+        "width": 298,
+        "height": 18.1875
+      }
+    },
+    {
+      "foreground": "rgb(29, 78, 216)",
+      "background": "rgb(219, 234, 254)",
+      "fontSizePx": 11,
+      "fontWeight": "900",
+      "rect": {
+        "x": 46,
+        "y": 434.625,
+        "left": 46,
+        "top": 434.625,
+        "right": 344,
+        "bottom": 458.625,
+        "width": 298,
+        "height": 24
+      }
+    },
+    {
+      "foreground": "rgb(23, 28, 31)",
+      "background": "rgb(255, 255, 255)",
+      "fontSizePx": 16,
+      "fontWeight": "700",
+      "rect": {
+        "x": 46,
+        "y": 496.625,
+        "left": 46,
+        "top": 496.625,
+        "right": 344,
+        "bottom": 518.625,
+        "width": 298,
+        "height": 22
+      }
+    },
+    {
+      "foreground": "rgb(92, 105, 114)",
+      "background": "rgb(255, 255, 255)",
+      "fontSizePx": 13,
+      "fontWeight": "400",
+      "rect": {
+        "x": 46,
+        "y": 520.625,
+        "left": 46,
+        "top": 520.625,
+        "right": 344,
+        "bottom": 575.1875,
+        "width": 298,
+        "height": 54.5625
+      }
+    },
+    {
+      "foreground": "rgb(180, 83, 9)",
+      "background": "rgb(255, 244, 214)",
+      "fontSizePx": 11,
+      "fontWeight": "900",
+      "rect": {
+        "x": 46,
+        "y": 583.1875,
+        "left": 46,
+        "top": 583.1875,
+        "right": 344,
+        "bottom": 607.1875,
+        "width": 298,
+        "height": 24
+      }
+    },
+    {
+      "foreground": "rgb(23, 28, 31)",
+      "background": "rgb(255, 255, 255)",
+      "fontSizePx": 16,
+      "fontWeight": "700",
+      "rect": {
+        "x": 46,
+        "y": 645.1875,
+        "left": 46,
+        "top": 645.1875,
+        "right": 344,
+        "bottom": 667.1875,
+        "width": 298,
+        "height": 22
+      }
+    },
+    {
+      "foreground": "rgb(92, 105, 114)",
+      "background": "rgb(255, 255, 255)",
+      "fontSizePx": 13,
+      "fontWeight": "400",
+      "rect": {
+        "x": 46,
+        "y": 669.1875,
+        "left": 46,
+        "top": 669.1875,
+        "right": 344,
+        "bottom": 705.5625,
+        "width": 298,
+        "height": 36.375
+      }
+    },
+    {
+      "foreground": "rgb(29, 78, 216)",
+      "background": "rgb(219, 234, 254)",
+      "fontSizePx": 11,
+      "fontWeight": "900",
+      "rect": {
+        "x": 46,
+        "y": 713.5625,
+        "left": 46,
+        "top": 713.5625,
+        "right": 344,
+        "bottom": 737.5625,
+        "width": 298,
+        "height": 24
+      }
+    },
+    {
+      "foreground": "rgb(23, 28, 31)",
+      "background": "rgb(243, 246, 248)",
+      "fontSizePx": 15,
+      "fontWeight": "700",
+      "rect": {
+        "x": 33,
+        "y": 796.5625,
+        "left": 33,
+        "top": 796.5625,
+        "right": 357,
+        "bottom": 816.5625,
+        "width": 324,
+        "height": 20
+      }
+    },
+    {
+      "foreground": "rgb(92, 105, 114)",
+      "background": "rgb(243, 246, 248)",
+      "fontSizePx": 16,
+      "fontWeight": "400",
+      "rect": {
+        "x": 33,
+        "y": 816.5625,
+        "left": 33,
+        "top": 816.5625,
+        "right": 357,
+        "bottom": 890.953125,
+        "width": 324,
+        "height": 74.390625
+      }
+    }
+  ],
+  "focus": {
+    "focusableCount": 26,
+    "applicable": true
+  },
+  "liveVideo": null,
+  "postActionVisualOwner": {
+    "schema": "media-server.v390-ui-post-action-visual-target.v1",
+    "caseId": "UI-027",
+    "actionId": "UI-027:assert-visible-read-model",
+    "completionMode": "request",
+    "sourceSelectorSha256": "adc2b7ebf71e6b6b050f9c8a1dc1eca187d407939ca5909d95ff88d25a7e5137",
+    "sourceOwnerSelectorSha256": "adc2b7ebf71e6b6b050f9c8a1dc1eca187d407939ca5909d95ff88d25a7e5137",
+    "requestedState": "visible",
+    "observedRoute": "/ops/vlm",
+    "navigationEpoch": 1,
+    "ownerCandidateCount": 1,
+    "sourceSelectorRewaited": false,
+    "selector": "#opsVlmRuntimeStatusList",
+    "bindingKind": "post-action-visible-source-owner",
+    "sourceDetached": false,
+    "sourceHidden": false,
+    "epochRelation": "same-document"
+  },
+  "focusSamples": [
+    {
+      "index": 0,
+      "focusIdentity": "#opsVlmHardwareClass",
+      "tag": "select",
+      "id": "opsVlmHardwareClass",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "solid",
+      "outlineWidth": "3px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 1,
+      "focusIdentity": "#opsVlmRuntimeReadiness",
+      "tag": "select",
+      "id": "opsVlmRuntimeReadiness",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "solid",
+      "outlineWidth": "3px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 2,
+      "focusIdentity": "#opsVlmPrivacyMode",
+      "tag": "select",
+      "id": "opsVlmPrivacyMode",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "solid",
+      "outlineWidth": "3px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 3,
+      "focusIdentity": "#opsVlmCloudOptIn",
+      "tag": "select",
+      "id": "opsVlmCloudOptIn",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "solid",
+      "outlineWidth": "3px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 4,
+      "focusIdentity": "body > main > section > div:nth-of-type(4) > section:nth-of-type(2) > div:nth-of-type(4) > table > tbody > tr:nth-of-type(1) > td:nth-of-type(1) > button",
+      "tag": "button",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 5,
+      "focusIdentity": "body > main > section > div:nth-of-type(4) > section:nth-of-type(2) > div:nth-of-type(4) > table > tbody > tr:nth-of-type(2) > td:nth-of-type(1) > button",
+      "tag": "button",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 6,
+      "focusIdentity": "body > main > section > div:nth-of-type(4) > section:nth-of-type(3) > div:nth-of-type(3) > table > tbody > tr:nth-of-type(1) > td:nth-of-type(1) > button",
+      "tag": "button",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 7,
+      "focusIdentity": "body > main > section > div:nth-of-type(4) > section:nth-of-type(3) > div:nth-of-type(3) > table > tbody > tr:nth-of-type(2) > td:nth-of-type(1) > button",
+      "tag": "button",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 8,
+      "focusIdentity": "#opsVlmSaveProfile",
+      "tag": "button",
+      "id": "opsVlmSaveProfile",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 9,
+      "focusIdentity": "#opsVlmProfileId",
+      "tag": "input",
+      "id": "opsVlmProfileId",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "solid",
+      "outlineWidth": "3px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 10,
+      "focusIdentity": "#opsVlmPromptProfile",
+      "tag": "select",
+      "id": "opsVlmPromptProfile",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "solid",
+      "outlineWidth": "3px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 11,
+      "focusIdentity": "#opsVlmEvaluationStatus",
+      "tag": "input",
+      "id": "opsVlmEvaluationStatus",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "solid",
+      "outlineWidth": "3px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 12,
+      "focusIdentity": "#opsVlmActivationStatus",
+      "tag": "select",
+      "id": "opsVlmActivationStatus",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "solid",
+      "outlineWidth": "3px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 13,
+      "focusIdentity": "#opsVlmProfileEnabled",
+      "tag": "input",
+      "id": "opsVlmProfileEnabled",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "solid",
+      "outlineWidth": "3px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 14,
+      "focusIdentity": "#opsVlmFallbackProfileId",
+      "tag": "input",
+      "id": "opsVlmFallbackProfileId",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "solid",
+      "outlineWidth": "3px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 15,
+      "focusIdentity": "#opsVlmDisabledReason",
+      "tag": "input",
+      "id": "opsVlmDisabledReason",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "solid",
+      "outlineWidth": "3px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 16,
+      "focusIdentity": "body > main > section > details > summary",
+      "tag": "summary",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 17,
+      "focusIdentity": "body",
+      "tag": "body",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "none",
+      "outlineWidth": "3px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 18,
+      "focusIdentity": "body > main > header > div > div:nth-of-type(1) > nav > a:nth-of-type(1)",
+      "tag": "a",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 19,
+      "focusIdentity": "body > main > header > div > div:nth-of-type(1) > nav > a:nth-of-type(2)",
+      "tag": "a",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 20,
+      "focusIdentity": "body > main > header > div > div:nth-of-type(1) > nav > a:nth-of-type(3)",
+      "tag": "a",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 21,
+      "focusIdentity": "body > main > header > div > div:nth-of-type(1) > nav > a:nth-of-type(4)",
+      "tag": "a",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 22,
+      "focusIdentity": "body > main > header > div > div:nth-of-type(1) > nav > a:nth-of-type(5)",
+      "tag": "a",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 23,
+      "focusIdentity": "#themeToggleBtn",
+      "tag": "button",
+      "id": "themeToggleBtn",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 24,
+      "focusIdentity": "body > main > header > div > div:nth-of-type(2) > div > div:nth-of-type(2) > label > select",
+      "tag": "select",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "solid",
+      "outlineWidth": "3px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 25,
+      "focusIdentity": "body > main > header > div > div:nth-of-type(2) > form > button",
+      "tag": "button",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    },
+    {
+      "index": 26,
+      "focusIdentity": "#opsVlmRefresh",
+      "tag": "button",
+      "id": "opsVlmRefresh",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "auto",
+      "outlineWidth": "1px",
+      "boxShadow": "none"
+    }
+  ]
+}

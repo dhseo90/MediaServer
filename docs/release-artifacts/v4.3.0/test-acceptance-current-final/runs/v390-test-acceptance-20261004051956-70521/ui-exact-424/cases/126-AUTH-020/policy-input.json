@@ -1,0 +1,1657 @@
+{
+  "schema": "media-server.v390-ui-case-policy-input.v1",
+  "caseId": "AUTH-020",
+  "runId": "62ee8d29-6693-4be2-8304-e95c80c9e39a",
+  "result": {
+    "caseId": "AUTH-020",
+    "featureId": "AUTH-020",
+    "status": "PASS",
+    "dispatch": "playwright-native",
+    "manualIntervention": false,
+    "actualBrowserExecution": true,
+    "requested": {
+      "schema": "media-server.v390-ui-canonical-requested.v1",
+      "route": "/ops/users",
+      "accountRole": "admin",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "actionAnchor": "SetAuthUserEnabled"
+      }
+    },
+    "observed": {
+      "schema": "media-server.v390-ui-runtime-observed.v1",
+      "screenRoute": "/ops/users",
+      "accountRole": "admin",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": null,
+        "applicability": "not-applicable",
+        "exists": false,
+        "visible": false,
+        "enabled": false
+      },
+      "provenance": {
+        "screenRoute": "browser-location",
+        "accountRole": "session-whoami",
+        "viewport": "browser-inner-size",
+        "theme": "browser-media-query",
+        "controlAction": "dom-selector-state"
+      }
+    },
+    "visibleAssertion": {
+      "pass": true,
+      "visible": true,
+      "selector": "body"
+    },
+    "visualMeasurement": {
+      "schema": "media-server.ui-browser-visual-measurement.v2",
+      "caseBinding": {
+        "canonicalCaseId": "AUTH-020",
+        "featureId": "AUTH-020",
+        "screenId": "AUTH-020",
+        "screenRoute": "/ops/users",
+        "accountRole": "admin",
+        "targetSelector": "body"
+      },
+      "route": "/ops/users",
+      "accountRole": "admin",
+      "requestedTheme": "light",
+      "appliedTheme": "light",
+      "mediaTheme": "light",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "devicePixelRatio": 1
+      },
+      "document": {
+        "scrollWidth": 390,
+        "scrollHeight": 6312,
+        "clientWidth": 390,
+        "clientHeight": 844
+      },
+      "target": {
+        "selector": "body",
+        "visible": true,
+        "documentTarget": true,
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "left": 0,
+          "top": 0,
+          "right": 390,
+          "bottom": 6311.765625,
+          "width": 390,
+          "height": 6311.765625
+        }
+      },
+      "textSamples": [
+        {
+          "foreground": "rgb(23, 28, 31)",
+          "background": "rgb(243, 246, 248)",
+          "fontSizePx": 15,
+          "fontWeight": "950",
+          "rect": {
+            "x": 66,
+            "y": 19,
+            "left": 66,
+            "top": 19,
+            "right": 368,
+            "bottom": 34,
+            "width": 302,
+            "height": 15
+          }
+        },
+        {
+          "foreground": "rgb(92, 105, 114)",
+          "background": "rgb(243, 246, 248)",
+          "fontSizePx": 12,
+          "fontWeight": "750",
+          "rect": {
+            "x": 66,
+            "y": 37,
+            "left": 66,
+            "top": 37,
+            "right": 368,
+            "bottom": 49,
+            "width": 302,
+            "height": 12
+          }
+        },
+        {
+          "foreground": "rgb(92, 105, 114)",
+          "background": "rgb(243, 246, 248)",
+          "fontSizePx": 12,
+          "fontWeight": "900",
+          "rect": {
+            "x": 84.796875,
+            "y": 81.28125,
+            "left": 84.796875,
+            "top": 81.28125,
+            "right": 95.1875,
+            "bottom": 94.71875,
+            "width": 10.390625,
+            "height": 13.4375
+          }
+        },
+        {
+          "foreground": "rgb(92, 105, 114)",
+          "background": "rgb(243, 246, 248)",
+          "fontSizePx": 12,
+          "fontWeight": "900",
+          "rect": {
+            "x": 185.234375,
+            "y": 81.28125,
+            "left": 185.234375,
+            "top": 81.28125,
+            "right": 226.765625,
+            "bottom": 94.71875,
+            "width": 41.53125,
+            "height": 13.4375
+          }
+        },
+        {
+          "foreground": "rgb(92, 105, 114)",
+          "background": "rgb(243, 246, 248)",
+          "fontSizePx": 12,
+          "fontWeight": "900",
+          "rect": {
+            "x": 311.609375,
+            "y": 81.28125,
+            "left": 311.609375,
+            "top": 81.28125,
+            "right": 332.375,
+            "bottom": 94.71875,
+            "width": 20.765625,
+            "height": 13.4375
+          }
+        },
+        {
+          "foreground": "rgb(92, 105, 114)",
+          "background": "rgb(243, 246, 248)",
+          "fontSizePx": 12,
+          "fontWeight": "900",
+          "rect": {
+            "x": 84.796875,
+            "y": 127.28125,
+            "left": 84.796875,
+            "top": 127.28125,
+            "right": 95.1875,
+            "bottom": 140.71875,
+            "width": 10.390625,
+            "height": 13.4375
+          }
+        },
+        {
+          "foreground": "rgb(29, 78, 216)",
+          "background": "rgb(243, 246, 248)",
+          "fontSizePx": 12,
+          "fontWeight": "900",
+          "rect": {
+            "x": 190.421875,
+            "y": 127.28125,
+            "left": 190.421875,
+            "top": 127.28125,
+            "right": 221.5625,
+            "bottom": 140.71875,
+            "width": 31.140625,
+            "height": 13.4375
+          }
+        },
+        {
+          "foreground": "rgb(92, 105, 114)",
+          "background": "rgb(243, 246, 248)",
+          "fontSizePx": 12,
+          "fontWeight": "900",
+          "rect": {
+            "x": 296.046875,
+            "y": 127.28125,
+            "left": 296.046875,
+            "top": 127.28125,
+            "right": 347.953125,
+            "bottom": 140.71875,
+            "width": 51.90625,
+            "height": 13.4375
+          }
+        },
+        {
+          "foreground": "rgb(23, 28, 31)",
+          "background": "rgb(255, 255, 255)",
+          "fontSizePx": 12,
+          "fontWeight": "850",
+          "rect": {
+            "x": 296,
+            "y": 164,
+            "left": 296,
+            "top": 164,
+            "right": 368,
+            "bottom": 200,
+            "width": 72,
+            "height": 36
+          }
+        },
+        {
+          "foreground": "rgb(23, 28, 31)",
+          "background": "rgb(243, 246, 248)",
+          "fontSizePx": 19,
+          "fontWeight": "700",
+          "rect": {
+            "x": 35,
+            "y": 300,
+            "left": 35,
+            "top": 300,
+            "right": 247.796875,
+            "bottom": 320.890625,
+            "width": 212.796875,
+            "height": 20.890625
+          }
+        },
+        {
+          "foreground": "rgb(92, 105, 114)",
+          "background": "rgb(243, 246, 248)",
+          "fontSizePx": 13,
+          "fontWeight": "400",
+          "rect": {
+            "x": 35,
+            "y": 325.890625,
+            "left": 35,
+            "top": 325.890625,
+            "right": 247.796875,
+            "bottom": 366.171875,
+            "width": 212.796875,
+            "height": 40.28125
+          }
+        },
+        {
+          "foreground": "rgb(255, 255, 255)",
+          "background": "rgb(29, 78, 216)",
+          "fontSizePx": 16,
+          "fontWeight": "850",
+          "rect": {
+            "x": 255.796875,
+            "y": 300,
+            "left": 255.796875,
+            "top": 300,
+            "right": 355,
+            "bottom": 340,
+            "width": 99.203125,
+            "height": 40
+          }
+        },
+        {
+          "foreground": "rgb(23, 28, 31)",
+          "background": "rgb(243, 246, 248)",
+          "fontSizePx": 18,
+          "fontWeight": "700",
+          "rect": {
+            "x": 33,
+            "y": 438,
+            "left": 33,
+            "top": 438,
+            "right": 357,
+            "bottom": 463,
+            "width": 324,
+            "height": 25
+          }
+        },
+        {
+          "foreground": "rgb(92, 105, 114)",
+          "background": "rgb(243, 246, 248)",
+          "fontSizePx": 16,
+          "fontWeight": "400",
+          "rect": {
+            "x": 33,
+            "y": 463,
+            "left": 33,
+            "top": 463,
+            "right": 357,
+            "bottom": 512.59375,
+            "width": 324,
+            "height": 49.59375
+          }
+        },
+        {
+          "foreground": "rgb(29, 78, 216)",
+          "background": "rgb(219, 234, 254)",
+          "fontSizePx": 11,
+          "fontWeight": "900",
+          "rect": {
+            "x": 33,
+            "y": 520.59375,
+            "left": 33,
+            "top": 520.59375,
+            "right": 187.328125,
+            "bottom": 544.59375,
+            "width": 154.328125,
+            "height": 24
+          }
+        },
+        {
+          "foreground": "rgb(92, 105, 114)",
+          "background": "rgb(243, 246, 248)",
+          "fontSizePx": 12,
+          "fontWeight": "850",
+          "rect": {
+            "x": 46,
+            "y": 584.390625,
+            "left": 46,
+            "top": 584.390625,
+            "right": 176,
+            "bottom": 600.390625,
+            "width": 130,
+            "height": 16
+          }
+        },
+        {
+          "foreground": "rgb(23, 28, 31)",
+          "background": "rgb(243, 246, 248)",
+          "fontSizePx": 16,
+          "fontWeight": "700",
+          "rect": {
+            "x": 46,
+            "y": 603.390625,
+            "left": 46,
+            "top": 603.390625,
+            "right": 176,
+            "bottom": 624.984375,
+            "width": 130,
+            "height": 21.59375
+          }
+        },
+        {
+          "foreground": "rgb(92, 105, 114)",
+          "background": "rgb(243, 246, 248)",
+          "fontSizePx": 12,
+          "fontWeight": "850",
+          "rect": {
+            "x": 214,
+            "y": 573.59375,
+            "left": 214,
+            "top": 573.59375,
+            "right": 344,
+            "bottom": 589.59375,
+            "width": 130,
+            "height": 16
+          }
+        },
+        {
+          "foreground": "rgb(23, 28, 31)",
+          "background": "rgb(243, 246, 248)",
+          "fontSizePx": 16,
+          "fontWeight": "700",
+          "rect": {
+            "x": 214,
+            "y": 592.59375,
+            "left": 214,
+            "top": 592.59375,
+            "right": 344,
+            "bottom": 635.78125,
+            "width": 130,
+            "height": 43.1875
+          }
+        },
+        {
+          "foreground": "rgb(92, 105, 114)",
+          "background": "rgb(243, 246, 248)",
+          "fontSizePx": 12,
+          "fontWeight": "850",
+          "rect": {
+            "x": 46,
+            "y": 684.578125,
+            "left": 46,
+            "top": 684.578125,
+            "right": 176,
+            "bottom": 700.578125,
+            "width": 130,
+            "height": 16
+          }
+        },
+        {
+          "foreground": "rgb(23, 28, 31)",
+          "background": "rgb(243, 246, 248)",
+          "fontSizePx": 16,
+          "fontWeight": "700",
+          "rect": {
+            "x": 46,
+            "y": 703.578125,
+            "left": 46,
+            "top": 703.578125,
+            "right": 176,
+            "bottom": 725.171875,
+            "width": 130,
+            "height": 21.59375
+          }
+        },
+        {
+          "foreground": "rgb(92, 105, 114)",
+          "background": "rgb(243, 246, 248)",
+          "fontSizePx": 12,
+          "fontWeight": "850",
+          "rect": {
+            "x": 214,
+            "y": 673.78125,
+            "left": 214,
+            "top": 673.78125,
+            "right": 344,
+            "bottom": 689.78125,
+            "width": 130,
+            "height": 16
+          }
+        },
+        {
+          "foreground": "rgb(23, 28, 31)",
+          "background": "rgb(243, 246, 248)",
+          "fontSizePx": 16,
+          "fontWeight": "700",
+          "rect": {
+            "x": 214,
+            "y": 692.78125,
+            "left": 214,
+            "top": 692.78125,
+            "right": 344,
+            "bottom": 735.96875,
+            "width": 130,
+            "height": 43.1875
+          }
+        },
+        {
+          "foreground": "rgb(92, 105, 114)",
+          "background": "rgb(243, 246, 248)",
+          "fontSizePx": 13,
+          "fontWeight": "400",
+          "rect": {
+            "x": 33,
+            "y": 764.96875,
+            "left": 33,
+            "top": 764.96875,
+            "right": 357,
+            "bottom": 840.34375,
+            "width": 324,
+            "height": 75.375
+          }
+        }
+      ],
+      "focus": {
+        "focusableCount": 48,
+        "applicable": true
+      },
+      "liveVideo": null,
+      "postActionVisualOwner": {
+        "schema": "media-server.v390-ui-post-action-visual-target.v1",
+        "caseId": "AUTH-020",
+        "actionId": "AUTH-020:execute-endpoint-action",
+        "completionMode": "request",
+        "sourceSelectorSha256": "230d8358dc8e8890b4c58deeb62912ee2f20357ae92a5cc861b98e68fe31acb5",
+        "sourceOwnerSelectorSha256": "230d8358dc8e8890b4c58deeb62912ee2f20357ae92a5cc861b98e68fe31acb5",
+        "requestedState": "visible",
+        "observedRoute": "/ops/users",
+        "navigationEpoch": 1,
+        "ownerCandidateCount": 1,
+        "sourceSelectorRewaited": false,
+        "selector": "body",
+        "bindingKind": "post-action-visible-document-owner",
+        "sourceDetached": false,
+        "sourceHidden": false,
+        "epochRelation": "same-document"
+      },
+      "focusSamples": [
+        {
+          "index": 0,
+          "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(1) > div > table > tbody > tr:nth-of-type(1) > td:nth-of-type(9) > div > button",
+          "tag": "button",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 1,
+          "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(1) > div > table > tbody > tr:nth-of-type(1) > td:nth-of-type(9) > div > details > summary",
+          "tag": "summary",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 2,
+          "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(1) > div > table > tbody > tr:nth-of-type(2) > td:nth-of-type(9) > div > button",
+          "tag": "button",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 3,
+          "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(1) > div > table > tbody > tr:nth-of-type(2) > td:nth-of-type(9) > div > details > summary",
+          "tag": "summary",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 4,
+          "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(1) > div > table > tbody > tr:nth-of-type(3) > td:nth-of-type(9) > div > button",
+          "tag": "button",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 5,
+          "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(1) > div > table > tbody > tr:nth-of-type(3) > td:nth-of-type(9) > div > details > summary",
+          "tag": "summary",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 6,
+          "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(1) > div > table > tbody > tr:nth-of-type(4) > td:nth-of-type(9) > div > button",
+          "tag": "button",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 7,
+          "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(1) > div > table > tbody > tr:nth-of-type(4) > td:nth-of-type(9) > div > details > summary",
+          "tag": "summary",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 8,
+          "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(1) > div > table > tbody > tr:nth-of-type(5) > td:nth-of-type(9) > div > button",
+          "tag": "button",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 9,
+          "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(1) > div > table > tbody > tr:nth-of-type(5) > td:nth-of-type(9) > div > details > summary",
+          "tag": "summary",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 10,
+          "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(2) > div:nth-of-type(1) > a",
+          "tag": "a",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 11,
+          "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(3) > form > label:nth-of-type(1) > input",
+          "tag": "input",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "solid",
+          "outlineWidth": "3px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 12,
+          "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(3) > form > label:nth-of-type(2) > input",
+          "tag": "input",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "solid",
+          "outlineWidth": "3px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 13,
+          "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(3) > form > label:nth-of-type(3) > select",
+          "tag": "select",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "solid",
+          "outlineWidth": "3px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 14,
+          "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(3) > form > label:nth-of-type(4) > input",
+          "tag": "input",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "solid",
+          "outlineWidth": "3px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 15,
+          "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(3) > form > label:nth-of-type(5) > input",
+          "tag": "input",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "solid",
+          "outlineWidth": "3px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 16,
+          "focusIdentity": "body > main > section > div:nth-of-type(2) > section:nth-of-type(3) > form > button",
+          "tag": "button",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 17,
+          "focusIdentity": "#user-audit-refresh",
+          "tag": "button",
+          "id": "user-audit-refresh",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 18,
+          "focusIdentity": "#user-audit-list-audit-q",
+          "tag": "input",
+          "id": "user-audit-list-audit-q",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "solid",
+          "outlineWidth": "3px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 19,
+          "focusIdentity": "#user-audit-list-audit-actor",
+          "tag": "input",
+          "id": "user-audit-list-audit-actor",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "solid",
+          "outlineWidth": "3px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 20,
+          "focusIdentity": "#user-audit-list-audit-user",
+          "tag": "input",
+          "id": "user-audit-list-audit-user",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "solid",
+          "outlineWidth": "3px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 21,
+          "focusIdentity": "#user-audit-list-audit-target",
+          "tag": "input",
+          "id": "user-audit-list-audit-target",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "solid",
+          "outlineWidth": "3px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 22,
+          "focusIdentity": "#user-audit-list-audit-action",
+          "tag": "select",
+          "id": "user-audit-list-audit-action",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "solid",
+          "outlineWidth": "3px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 23,
+          "focusIdentity": "#user-audit-list-audit-from",
+          "tag": "input",
+          "id": "user-audit-list-audit-from",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "solid",
+          "outlineWidth": "3px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 24,
+          "focusIdentity": "#user-audit-list-audit-to",
+          "tag": "input",
+          "id": "user-audit-list-audit-to",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "solid",
+          "outlineWidth": "3px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 25,
+          "focusIdentity": "#user-audit-list-audit-limit",
+          "tag": "select",
+          "id": "user-audit-list-audit-limit",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "solid",
+          "outlineWidth": "3px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 26,
+          "focusIdentity": "body > main > section > section:nth-of-type(3) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(2) > button:nth-of-type(1)",
+          "tag": "button",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 27,
+          "focusIdentity": "body > main > section > section:nth-of-type(3) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(2) > button:nth-of-type(2)",
+          "tag": "button",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 28,
+          "focusIdentity": "body > main > section > section:nth-of-type(3) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(2) > button:nth-of-type(3)",
+          "tag": "button",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 29,
+          "focusIdentity": "body > main > section > section:nth-of-type(3) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(2) > button:nth-of-type(4)",
+          "tag": "button",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 30,
+          "focusIdentity": "body > main > section > section:nth-of-type(3) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(2) > button:nth-of-type(5)",
+          "tag": "button",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 31,
+          "focusIdentity": "body > main > section > section:nth-of-type(3) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(2) > button:nth-of-type(6)",
+          "tag": "button",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 32,
+          "focusIdentity": "body",
+          "tag": "body",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "none",
+          "outlineWidth": "3px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 33,
+          "focusIdentity": "body > main > header > div > div:nth-of-type(1) > nav > a:nth-of-type(1)",
+          "tag": "a",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 34,
+          "focusIdentity": "body > main > header > div > div:nth-of-type(1) > nav > a:nth-of-type(2)",
+          "tag": "a",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 35,
+          "focusIdentity": "body > main > header > div > div:nth-of-type(1) > nav > a:nth-of-type(3)",
+          "tag": "a",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 36,
+          "focusIdentity": "body > main > header > div > div:nth-of-type(1) > nav > a:nth-of-type(4)",
+          "tag": "a",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 37,
+          "focusIdentity": "body > main > header > div > div:nth-of-type(1) > nav > a:nth-of-type(5)",
+          "tag": "a",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 38,
+          "focusIdentity": "body > main > header > div > div:nth-of-type(1) > nav > a:nth-of-type(6)",
+          "tag": "a",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 39,
+          "focusIdentity": "#themeToggleBtn",
+          "tag": "button",
+          "id": "themeToggleBtn",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 40,
+          "focusIdentity": "body > main > header > div > div:nth-of-type(2) > div > div:nth-of-type(2) > label > select",
+          "tag": "select",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "solid",
+          "outlineWidth": "3px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 41,
+          "focusIdentity": "body > main > header > div > div:nth-of-type(2) > form > button",
+          "tag": "button",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 42,
+          "focusIdentity": "#add-user-btn",
+          "tag": "button",
+          "id": "add-user-btn",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 43,
+          "focusIdentity": "#refresh-btn",
+          "tag": "button",
+          "id": "refresh-btn",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        }
+      ]
+    },
+    "visualExpectedCase": {
+      "canonicalCaseId": "AUTH-020",
+      "featureId": "AUTH-020",
+      "screenId": "AUTH-020",
+      "screenRoute": "/ops/users",
+      "accountRole": "admin",
+      "targetSelector": "body",
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "liveVideoRequired": false
+    },
+    "screenshotPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.3.0/test-acceptance-current-final/runs/v390-test-acceptance-20261004051956-70521/ui-exact-424/cases/126-AUTH-020/screenshots/AUTH-020.png",
+    "tracePath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.3.0/test-acceptance-current-final/runs/v390-test-acceptance-20261004051956-70521/ui-exact-424/cases/126-AUTH-020/traces/AUTH-020.trace.json",
+    "browserConsolePath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.3.0/test-acceptance-current-final/runs/v390-test-acceptance-20261004051956-70521/ui-exact-424/cases/126-AUTH-020/logs/AUTH-020.browser-console.json",
+    "cleanupAttestation": {
+      "schema": "media-server.v390-ui-case-cleanup-attestation.v1",
+      "pass": true,
+      "primaryFailurePresent": false,
+      "primaryFailurePreserved": false,
+      "caseRuntimeRestoreAttempted": true,
+      "caseRuntimeRestored": true,
+      "browserCloseAttempted": true,
+      "browserContextClosed": true,
+      "cleanupEntryCount": 2,
+      "failureCode": ""
+    },
+    "requestLifecycleEvaluation": {
+      "status": "PASS",
+      "census": {
+        "requestCount": 16,
+        "responseCount": 16,
+        "classified": 16,
+        "unclassified": 0,
+        "multiplyClassified": 0,
+        "captureErrors": 0,
+        "duplicateResponses": 0,
+        "failureCount": 0
+      },
+      "diagnostics": {
+        "sequenceDomain": "diagnostic-seal-and-after-seal-only",
+        "diagnosticErrors": 0,
+        "seal": {
+          "sequence": 1,
+          "timestamp": 1791094334184
+        },
+        "afterSeal": [],
+        "requests": [
+          {
+            "requestIdentity": "AUTH-020:object-1",
+            "legacyRequestId": "native-request-1",
+            "method": "GET",
+            "path": "/ops/users",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 1,
+              "timestamp": 1791094332173
+            },
+            "responses": [
+              {
+                "sequence": 2,
+                "timestamp": 1791094332177,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 8,
+                "timestamp": 1791094332190
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "AUTH-020:object-3",
+            "legacyRequestId": "native-request-2",
+            "method": "GET",
+            "path": "/ops/api/audit",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 3,
+              "timestamp": 1791094332188
+            },
+            "responses": [
+              {
+                "sequence": 9,
+                "timestamp": 1791094332234,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 14,
+                "timestamp": 1791094332237
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "AUTH-020:object-4",
+            "legacyRequestId": "native-request-3",
+            "method": "GET",
+            "path": "/client/api/views",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 4,
+              "timestamp": 1791094332189
+            },
+            "responses": [
+              {
+                "sequence": 11,
+                "timestamp": 1791094332236,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 16,
+                "timestamp": 1791094332237
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "AUTH-020:object-5",
+            "legacyRequestId": "native-request-4",
+            "method": "GET",
+            "path": "/ops/api/users",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 5,
+              "timestamp": 1791094332189
+            },
+            "responses": [
+              {
+                "sequence": 10,
+                "timestamp": 1791094332236,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 15,
+                "timestamp": 1791094332237
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "AUTH-020:object-6",
+            "legacyRequestId": "native-request-5",
+            "method": "GET",
+            "path": "/ops/api/access-requests",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 6,
+              "timestamp": 1791094332189
+            },
+            "responses": [
+              {
+                "sequence": 12,
+                "timestamp": 1791094332237,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 17,
+                "timestamp": 1791094332237
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "AUTH-020:object-7",
+            "legacyRequestId": "native-request-6",
+            "method": "GET",
+            "path": "/ops/api/invites",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 7,
+              "timestamp": 1791094332189
+            },
+            "responses": [
+              {
+                "sequence": 13,
+                "timestamp": 1791094332237,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 18,
+                "timestamp": 1791094332237
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "AUTH-020:object-13",
+            "legacyRequestId": "native-request-7",
+            "method": "GET",
+            "path": "/ops/api/audit",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 19,
+              "timestamp": 1791094332237
+            },
+            "responses": [
+              {
+                "sequence": 20,
+                "timestamp": 1791094332245,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 21,
+                "timestamp": 1791094332245
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "AUTH-020:object-15",
+            "legacyRequestId": "native-request-8",
+            "method": "GET",
+            "path": "/auth/whoami",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 22,
+              "timestamp": 1791094332257
+            },
+            "responses": [
+              {
+                "sequence": 23,
+                "timestamp": 1791094332259,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 24,
+                "timestamp": 1791094332259
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "AUTH-020:object-17",
+            "legacyRequestId": "native-request-9",
+            "method": "GET",
+            "path": "/auth/whoami",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 25,
+              "timestamp": 1791094332266
+            },
+            "responses": [
+              {
+                "sequence": 26,
+                "timestamp": 1791094332268,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 27,
+                "timestamp": 1791094332268
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "AUTH-020:object-19",
+            "legacyRequestId": "native-request-10",
+            "method": "POST",
+            "path": "/ops/api/users/auth-020-review4-fixture/disable",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 28,
+              "timestamp": 1791094332276
+            },
+            "responses": [
+              {
+                "sequence": 29,
+                "timestamp": 1791094332279,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 30,
+                "timestamp": 1791094332279
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "AUTH-020:object-21",
+            "legacyRequestId": "native-request-11",
+            "method": "GET",
+            "path": "/client/api/views",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 31,
+              "timestamp": 1791094333174
+            },
+            "responses": [
+              {
+                "sequence": 35,
+                "timestamp": 1791094333189,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 39,
+                "timestamp": 1791094333190
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "AUTH-020:object-22",
+            "legacyRequestId": "native-request-12",
+            "method": "GET",
+            "path": "/ops/api/users",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 32,
+              "timestamp": 1791094333174
+            },
+            "responses": [
+              {
+                "sequence": 36,
+                "timestamp": 1791094333189,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 40,
+                "timestamp": 1791094333190
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "AUTH-020:object-23",
+            "legacyRequestId": "native-request-13",
+            "method": "GET",
+            "path": "/ops/api/access-requests",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 33,
+              "timestamp": 1791094333174
+            },
+            "responses": [
+              {
+                "sequence": 37,
+                "timestamp": 1791094333190,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 41,
+                "timestamp": 1791094333190
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "AUTH-020:object-24",
+            "legacyRequestId": "native-request-14",
+            "method": "GET",
+            "path": "/ops/api/invites",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 34,
+              "timestamp": 1791094333174
+            },
+            "responses": [
+              {
+                "sequence": 38,
+                "timestamp": 1791094333190,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 42,
+                "timestamp": 1791094333190
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "AUTH-020:object-29",
+            "legacyRequestId": "native-request-15",
+            "method": "GET",
+            "path": "/ops/api/audit",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 43,
+              "timestamp": 1791094333190
+            },
+            "responses": [
+              {
+                "sequence": 44,
+                "timestamp": 1791094333194,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 45,
+                "timestamp": 1791094333194
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "AUTH-020:object-31",
+            "legacyRequestId": "native-request-16",
+            "method": "GET",
+            "path": "/auth/whoami",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 46,
+              "timestamp": 1791094333743
+            },
+            "responses": [
+              {
+                "sequence": 47,
+                "timestamp": 1791094333746,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 48,
+                "timestamp": 1791094333746
+              }
+            ],
+            "failed": []
+          }
+        ]
+      },
+      "requests": [
+        {
+          "requestIdentity": "AUTH-020:object-1",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "AUTH-020:object-3",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "AUTH-020:object-4",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "AUTH-020:object-5",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "AUTH-020:object-6",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "AUTH-020:object-7",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "AUTH-020:object-13",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "AUTH-020:object-15",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "AUTH-020:object-17",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "AUTH-020:object-19",
+          "redirectedFromIdentity": null,
+          "correlationDigest": "31744b43651cf2426b8289b8b26fbd09dd156a3d3bdaa19da735ea0800c18c29"
+        },
+        {
+          "requestIdentity": "AUTH-020:object-21",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "AUTH-020:object-22",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "AUTH-020:object-23",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "AUTH-020:object-24",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "AUTH-020:object-29",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "AUTH-020:object-31",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        }
+      ],
+      "classifications": [
+        {
+          "requestIdentity": "AUTH-020:object-1",
+          "responseIdentity": "AUTH-020:object-2",
+          "requestKind": "document-navigation",
+          "classification": "bootstrap",
+          "owner": "page",
+          "phase": "bootstrap-document"
+        },
+        {
+          "requestIdentity": "AUTH-020:object-3",
+          "responseIdentity": "AUTH-020:object-8",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "AUTH-020:object-4",
+          "responseIdentity": "AUTH-020:object-10",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "AUTH-020:object-5",
+          "responseIdentity": "AUTH-020:object-9",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "AUTH-020:object-6",
+          "responseIdentity": "AUTH-020:object-11",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "AUTH-020:object-7",
+          "responseIdentity": "AUTH-020:object-12",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "AUTH-020:object-13",
+          "responseIdentity": "AUTH-020:object-14",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "AUTH-020:object-15",
+          "responseIdentity": "AUTH-020:object-16",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "AUTH-020:object-17",
+          "responseIdentity": "AUTH-020:object-18",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "AUTH-020:object-19",
+          "responseIdentity": "AUTH-020:object-20",
+          "requestKind": "application-fetch",
+          "classification": "action",
+          "owner": "action",
+          "phase": "primary-action"
+        },
+        {
+          "requestIdentity": "AUTH-020:object-21",
+          "responseIdentity": "AUTH-020:object-25",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "AUTH-020:object-22",
+          "responseIdentity": "AUTH-020:object-26",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "AUTH-020:object-23",
+          "responseIdentity": "AUTH-020:object-27",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "AUTH-020:object-24",
+          "responseIdentity": "AUTH-020:object-28",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "AUTH-020:object-29",
+          "responseIdentity": "AUTH-020:object-30",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "AUTH-020:object-31",
+          "responseIdentity": "AUTH-020:object-32",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        }
+      ],
+      "failures": []
+    }
+  }
+}

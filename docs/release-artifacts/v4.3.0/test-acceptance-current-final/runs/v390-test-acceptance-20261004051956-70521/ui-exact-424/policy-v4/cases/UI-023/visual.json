@@ -1,0 +1,9 @@
+{
+  "schema": "media-server.ui-raw-visual-capture.v1",
+  "caseId": "UI-023",
+  "correlationId": "UI-023:execute-persisted-action:completion",
+  "targetSelector": "#opsVlmSaveProfile",
+  "screenshotSha256": "391aacf5db7421d705dfef93e55b72af0079ff45b95dbf3f4f6922b09ed16837",
+  "measurementSha256": "77b3c935fe857cced0d9c0068cef711b507ecdee284b23eca58d43db02f86dab",
+  "qualificationStatus": "unqualified-raw-capture"
+}

@@ -1,0 +1,556 @@
+{
+  "schema": "media-server.v390-ui-case-policy-input.v1",
+  "caseId": "AUTH-034",
+  "runId": "62ee8d29-6693-4be2-8304-e95c80c9e39a",
+  "result": {
+    "caseId": "AUTH-034",
+    "featureId": "AUTH-034",
+    "status": "PASS",
+    "dispatch": "playwright-native",
+    "manualIntervention": false,
+    "actualBrowserExecution": true,
+    "requested": {
+      "schema": "media-server.v390-ui-canonical-requested.v1",
+      "route": "/invite/setup",
+      "accountRole": "anonymous",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "[data-testid=\"auth-invite-setup-form\"]",
+        "actionAnchor": "CompleteInvitePasswordSetup"
+      }
+    },
+    "observed": {
+      "schema": "media-server.v390-ui-runtime-observed.v1",
+      "screenRoute": "/invite/setup",
+      "accountRole": "anonymous",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "controlAction": {
+        "selector": "[data-testid=\"auth-invite-setup-form\"] button[type=\"submit\"]",
+        "applicability": "required",
+        "exists": true,
+        "visible": true,
+        "enabled": true
+      },
+      "provenance": {
+        "screenRoute": "browser-location",
+        "accountRole": "session-whoami",
+        "viewport": "browser-inner-size",
+        "theme": "browser-media-query",
+        "controlAction": "dom-selector-state"
+      }
+    },
+    "visibleAssertion": {
+      "pass": true,
+      "visible": true,
+      "selector": "body"
+    },
+    "visualMeasurement": {
+      "schema": "media-server.ui-browser-visual-measurement.v2",
+      "caseBinding": {
+        "canonicalCaseId": "AUTH-034",
+        "featureId": "AUTH-034",
+        "screenId": "AUTH-034",
+        "screenRoute": "/login",
+        "accountRole": "anonymous",
+        "targetSelector": "[data-testid=\"auth-login-form\"]"
+      },
+      "route": "/login",
+      "accountRole": "anonymous",
+      "requestedTheme": "light",
+      "appliedTheme": "light",
+      "mediaTheme": "light",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "devicePixelRatio": 1
+      },
+      "document": {
+        "scrollWidth": 390,
+        "scrollHeight": 844,
+        "clientWidth": 390,
+        "clientHeight": 844
+      },
+      "target": {
+        "selector": "[data-testid=\"auth-login-form\"]",
+        "visible": true,
+        "documentTarget": false,
+        "rect": {
+          "x": 29,
+          "y": 121.59375,
+          "left": 29,
+          "top": 121.59375,
+          "right": 361,
+          "bottom": 358.21875,
+          "width": 332,
+          "height": 236.625
+        }
+      },
+      "textSamples": [
+        {
+          "foreground": "rgb(92, 105, 114)",
+          "background": "rgb(243, 246, 248)",
+          "fontSizePx": 11,
+          "fontWeight": "900",
+          "rect": {
+            "x": 54,
+            "y": 16,
+            "left": 54,
+            "top": 16,
+            "right": 378,
+            "bottom": 27,
+            "width": 324,
+            "height": 11
+          }
+        },
+        {
+          "foreground": "rgb(15, 118, 110)",
+          "background": "rgb(255, 255, 255)",
+          "fontSizePx": 12,
+          "fontWeight": "900",
+          "rect": {
+            "x": 29,
+            "y": 87,
+            "left": 29,
+            "top": 87,
+            "right": 135.140625,
+            "bottom": 105.59375,
+            "width": 106.140625,
+            "height": 18.59375
+          }
+        },
+        {
+          "foreground": "rgb(23, 28, 31)",
+          "background": "rgb(255, 255, 255)",
+          "fontSizePx": 22,
+          "fontWeight": "700",
+          "rect": {
+            "x": 29,
+            "y": 121.59375,
+            "left": 29,
+            "top": 121.59375,
+            "right": 361,
+            "bottom": 146.21875,
+            "width": 332,
+            "height": 24.625
+          }
+        },
+        {
+          "foreground": "rgb(92, 105, 114)",
+          "background": "rgb(255, 255, 255)",
+          "fontSizePx": 13,
+          "fontWeight": "850",
+          "rect": {
+            "x": 29,
+            "y": 158.21875,
+            "left": 29,
+            "top": 158.21875,
+            "right": 361,
+            "bottom": 226.21875,
+            "width": 332,
+            "height": 68
+          }
+        },
+        {
+          "foreground": "rgb(92, 105, 114)",
+          "background": "rgb(255, 255, 255)",
+          "fontSizePx": 13,
+          "fontWeight": "850",
+          "rect": {
+            "x": 29,
+            "y": 238.21875,
+            "left": 29,
+            "top": 238.21875,
+            "right": 361,
+            "bottom": 306.21875,
+            "width": 332,
+            "height": 68
+          }
+        },
+        {
+          "foreground": "rgb(255, 255, 255)",
+          "background": "rgb(15, 118, 110)",
+          "fontSizePx": 16,
+          "fontWeight": "850",
+          "rect": {
+            "x": 29,
+            "y": 318.21875,
+            "left": 29,
+            "top": 318.21875,
+            "right": 361,
+            "bottom": 358.21875,
+            "width": 332,
+            "height": 40
+          }
+        }
+      ],
+      "focus": {
+        "focusableCount": 5,
+        "applicable": true
+      },
+      "liveVideo": null,
+      "postActionVisualOwner": {
+        "schema": "media-server.v390-ui-post-action-visual-target.v1",
+        "caseId": "AUTH-034",
+        "actionId": "AUTH-034:submit-form",
+        "completionMode": "request",
+        "sourceSelectorSha256": "64a3cfe9f1f2eaf8a7a03d5127ba6c74b7b95e7452f872b1a7a0591dcefca639",
+        "sourceOwnerSelectorSha256": "64a3cfe9f1f2eaf8a7a03d5127ba6c74b7b95e7452f872b1a7a0591dcefca639",
+        "requestedState": "visible",
+        "observedRoute": "/login",
+        "navigationEpoch": 3,
+        "ownerCandidateCount": 1,
+        "sourceSelectorRewaited": false,
+        "selector": "[data-testid=\"auth-login-form\"]",
+        "bindingKind": "post-action-visible-destination-owner",
+        "sourceDetached": true,
+        "sourceHidden": false,
+        "epochRelation": "advanced"
+      },
+      "focusSamples": [
+        {
+          "index": 0,
+          "focusIdentity": "body > main > form > label:nth-of-type(1) > input",
+          "tag": "input",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "solid",
+          "outlineWidth": "3px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 1,
+          "focusIdentity": "body > main > form > label:nth-of-type(2) > input",
+          "tag": "input",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "solid",
+          "outlineWidth": "3px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 2,
+          "focusIdentity": "body > main > form > button",
+          "tag": "button",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 3,
+          "focusIdentity": "body",
+          "tag": "body",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "none",
+          "outlineWidth": "3px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 4,
+          "focusIdentity": "#themeToggleBtn",
+          "tag": "button",
+          "id": "themeToggleBtn",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "auto",
+          "outlineWidth": "1px",
+          "boxShadow": "none"
+        },
+        {
+          "index": 5,
+          "focusIdentity": "body > div > label > select",
+          "tag": "select",
+          "id": "",
+          "testId": "",
+          "visible": true,
+          "outlineStyle": "solid",
+          "outlineWidth": "3px",
+          "boxShadow": "none"
+        }
+      ]
+    },
+    "visualExpectedCase": {
+      "canonicalCaseId": "AUTH-034",
+      "featureId": "AUTH-034",
+      "screenId": "AUTH-034",
+      "screenRoute": "/login",
+      "accountRole": "anonymous",
+      "targetSelector": "[data-testid=\"auth-login-form\"]",
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "liveVideoRequired": false
+    },
+    "screenshotPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.3.0/test-acceptance-current-final/runs/v390-test-acceptance-20261004051956-70521/ui-exact-424/cases/002-UI-002/screenshots/UI-002.png",
+    "tracePath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.3.0/test-acceptance-current-final/runs/v390-test-acceptance-20261004051956-70521/ui-exact-424/cases/138-AUTH-034/traces/AUTH-034.trace.json",
+    "browserConsolePath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.3.0/test-acceptance-current-final/runs/v390-test-acceptance-20261004051956-70521/ui-exact-424/cases/138-AUTH-034/logs/AUTH-034.browser-console.json",
+    "cleanupAttestation": {
+      "schema": "media-server.v390-ui-case-cleanup-attestation.v1",
+      "pass": true,
+      "primaryFailurePresent": false,
+      "primaryFailurePreserved": false,
+      "caseRuntimeRestoreAttempted": true,
+      "caseRuntimeRestored": true,
+      "browserCloseAttempted": true,
+      "browserContextClosed": true,
+      "cleanupEntryCount": 2,
+      "failureCode": ""
+    },
+    "requestLifecycleEvaluation": {
+      "status": "PASS",
+      "census": {
+        "requestCount": 6,
+        "responseCount": 6,
+        "classified": 6,
+        "unclassified": 0,
+        "multiplyClassified": 0,
+        "captureErrors": 0,
+        "duplicateResponses": 0,
+        "failureCount": 0
+      },
+      "diagnostics": {
+        "sequenceDomain": "diagnostic-seal-and-after-seal-only",
+        "diagnosticErrors": 0,
+        "seal": {
+          "sequence": 1,
+          "timestamp": 1791094365505
+        },
+        "afterSeal": [],
+        "requests": [
+          {
+            "requestIdentity": "AUTH-034:object-1",
+            "legacyRequestId": "native-request-1",
+            "method": "GET",
+            "path": "/invite/setup",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 1,
+              "timestamp": 1791094363735
+            },
+            "responses": [
+              {
+                "sequence": 2,
+                "timestamp": 1791094363740,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 3,
+                "timestamp": 1791094363748
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "AUTH-034:object-3",
+            "legacyRequestId": "native-request-2",
+            "method": "GET",
+            "path": "/auth/whoami",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 4,
+              "timestamp": 1791094363803
+            },
+            "responses": [
+              {
+                "sequence": 5,
+                "timestamp": 1791094363805,
+                "status": 401
+              }
+            ],
+            "finished": [],
+            "failed": []
+          },
+          {
+            "requestIdentity": "AUTH-034:object-5",
+            "legacyRequestId": "native-request-3",
+            "method": "GET",
+            "path": "/auth/whoami",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 6,
+              "timestamp": 1791094363822
+            },
+            "responses": [
+              {
+                "sequence": 7,
+                "timestamp": 1791094363823,
+                "status": 401
+              }
+            ],
+            "finished": [],
+            "failed": []
+          },
+          {
+            "requestIdentity": "AUTH-034:object-7",
+            "legacyRequestId": "native-request-4",
+            "method": "POST",
+            "path": "/invite/setup",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 8,
+              "timestamp": 1791094363901
+            },
+            "responses": [
+              {
+                "sequence": 9,
+                "timestamp": 1791094364007,
+                "status": 302
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 10,
+                "timestamp": 1791094364007
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "AUTH-034:object-9",
+            "legacyRequestId": "native-request-5",
+            "method": "GET",
+            "path": "/login",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 11,
+              "timestamp": 1791094364007
+            },
+            "responses": [
+              {
+                "sequence": 12,
+                "timestamp": 1791094364008,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 13,
+                "timestamp": 1791094364015
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "AUTH-034:object-11",
+            "legacyRequestId": "native-request-6",
+            "method": "GET",
+            "path": "/auth/whoami",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 14,
+              "timestamp": 1791094365166
+            },
+            "responses": [
+              {
+                "sequence": 15,
+                "timestamp": 1791094365167,
+                "status": 401
+              }
+            ],
+            "finished": [],
+            "failed": []
+          }
+        ]
+      },
+      "requests": [
+        {
+          "requestIdentity": "AUTH-034:object-1",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "AUTH-034:object-3",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "AUTH-034:object-5",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "AUTH-034:object-7",
+          "redirectedFromIdentity": null,
+          "correlationDigest": "dc707e171b9138260390314873183005b7e6580248b5423568cd738c0c0072dd"
+        },
+        {
+          "requestIdentity": "AUTH-034:object-9",
+          "redirectedFromIdentity": "AUTH-034:object-7",
+          "correlationDigest": "dc707e171b9138260390314873183005b7e6580248b5423568cd738c0c0072dd"
+        },
+        {
+          "requestIdentity": "AUTH-034:object-11",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        }
+      ],
+      "classifications": [
+        {
+          "requestIdentity": "AUTH-034:object-1",
+          "responseIdentity": "AUTH-034:object-2",
+          "requestKind": "document-navigation",
+          "classification": "bootstrap",
+          "owner": "page",
+          "phase": "bootstrap-document"
+        },
+        {
+          "requestIdentity": "AUTH-034:object-3",
+          "responseIdentity": "AUTH-034:object-4",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "AUTH-034:object-5",
+          "responseIdentity": "AUTH-034:object-6",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "AUTH-034:object-7",
+          "responseIdentity": "AUTH-034:object-8",
+          "requestKind": "document-navigation",
+          "classification": "action",
+          "owner": "action",
+          "phase": "primary-action"
+        },
+        {
+          "requestIdentity": "AUTH-034:object-9",
+          "responseIdentity": "AUTH-034:object-10",
+          "requestKind": "document-navigation",
+          "classification": "redirect",
+          "owner": "page",
+          "phase": "document-redirect-chain"
+        },
+        {
+          "requestIdentity": "AUTH-034:object-11",
+          "responseIdentity": "AUTH-034:object-12",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        }
+      ],
+      "failures": []
+    }
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "schema": "media-server.ui-raw-visual-capture.v1",
+  "caseId": "UI-026",
+  "correlationId": "UI-026:activate-control:completion",
+  "targetSelector": "[data-vlm-option-id=\"local-qwen3-vl-4b\"]",
+  "screenshotSha256": "59d181f85ebfa3481bf61d0654111cf90f2efc2921a4421264c7a01a4285103c",
+  "measurementSha256": "3dce0244033526f770acf170af0a4c857a2c7543a8afe6777b4c1875f9c0706e",
+  "qualificationStatus": "unqualified-raw-capture"
+}

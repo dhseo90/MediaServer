@@ -6,3 +6,11 @@ docs/release-artifacts/v3.9.1/test-acceptance-current-final/runs/v390-test-accep
 # Preserve exact review patch context and original failed-test stdout bytes.
 docs/release-artifacts/v4.3.0/development/independent-source-snapshot.diff whitespace=-blank-at-eol
 docs/release-artifacts/v4.3.0/development/visual-ui-refresh-red-retry.log whitespace=-blank-at-eol
+
+# 해시로 연결된 최종 보고서와 원본 실행 로그의 바이트를 보존한다.
+docs/release-artifacts/v4.3.0/test-acceptance-current-final/report.md whitespace=-blank-at-eol
+docs/release-artifacts/v4.3.0/test-acceptance-current-final/runs/v390-test-acceptance-20261004051956-70521/server-longrun-30.log whitespace=-blank-at-eol
+docs/release-artifacts/v4.3.0/test-acceptance-current-final/runs/v390-test-acceptance-20261004051956-70521/server-longrun-120.log whitespace=-blank-at-eol
+docs/release-artifacts/v4.3.0/test-acceptance-current-final/runs/v390-test-acceptance-20261004051956-70521/server-longrun-30/soak-case-loop.log whitespace=-blank-at-eol
+docs/release-artifacts/v4.3.0/test-acceptance-current-final/runs/v390-test-acceptance-20261004051956-70521/server-longrun-120/soak-case-loop.log whitespace=-blank-at-eol
+docs/release-artifacts/v4.3.0/test-acceptance-current-final/runs/v390-test-acceptance-20261004051956-70521/ui-fulltest-qualification/report.md whitespace=-blank-at-eof

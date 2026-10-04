@@ -1,0 +1,34 @@
+{
+  "schema": "media-server.ui-evidence-redaction-scan.v1",
+  "scope": "case",
+  "status": "PASS",
+  "caseId": "CLIENT-009",
+  "correlationId": "CLIENT-009:execute-persisted-action:completion",
+  "scannedArtifacts": [
+    {
+      "path": "cases/343-CLIENT-009/screenshots/CLIENT-009.png",
+      "sha256": "e109d72cf320075fd3ebfe614a790b50a0cd795f6bd545c62d93540a37d29957"
+    },
+    {
+      "path": "policy-v4/cases/CLIENT-009/trace.json",
+      "sha256": "770735c0356b8c9b7e86732393a0461c901ce69087d5e680d919ae6d8457a357"
+    },
+    {
+      "path": "policy-v4/cases/CLIENT-009/browser-console.json",
+      "sha256": "0afc149b1ba494a71241886da2abeb2de5e582eac5ad8d82e14eb2f297436641"
+    },
+    {
+      "path": "policy-v4/cases/CLIENT-009/server.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "policy-v4/cases/CLIENT-009/visual-measurement.json",
+      "sha256": "a3b4af56714d367bb71c0edf9be6fa7ba450bc9709f834c0c8e41dea47a64eec"
+    },
+    {
+      "path": "policy-v4/cases/CLIENT-009/visual.json",
+      "sha256": "769fce815abeb32585040d86687f9b57e7797968e31febac047037db2f409461"
+    }
+  ],
+  "findings": []
+}

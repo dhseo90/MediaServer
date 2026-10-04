@@ -1,0 +1,14 @@
+[pass] 현행 기능 정의·정책·dispatch 연결 (실행 증거 아님)
+[pass] closure fixture records exact no-device not-run state
+[pass] feature inventory records Development 18 no-device closure
+[pass] roadmap and release evidence close the step as not-run, not PASS
+[pass] server dispatch exposes the closure verifier
+
+== v3.9.0 external field smoke no-device closure ==
+- targets: 3
+- executionStatus: conditional-not-run
+- externalNetworkAttempted: false
+- fieldPassClaimed: false
+- releasePassClaimed: false
+- pass: 5
+- fail: 0

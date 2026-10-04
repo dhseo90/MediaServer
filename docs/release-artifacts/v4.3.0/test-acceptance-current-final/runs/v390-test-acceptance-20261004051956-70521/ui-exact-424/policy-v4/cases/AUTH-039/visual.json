@@ -1,0 +1,9 @@
+{
+  "schema": "media-server.ui-raw-visual-capture.v1",
+  "caseId": "AUTH-039",
+  "correlationId": "AUTH-039:execute-persisted-action:completion",
+  "targetSelector": "#request-form button[type=\"submit\"]",
+  "screenshotSha256": "5496dd54ed0392560bf4508475e693a74d112f9b4b8f5eb58bbc040cfc83eb64",
+  "measurementSha256": "42bc0d49c7c09ee91d581ebc46a537f4eedd3c617fb9c2f01e01e8fa42819345",
+  "qualificationStatus": "unqualified-raw-capture"
+}

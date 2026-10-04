@@ -1,0 +1,3103 @@
+{
+  "schema": "media-server.v390-ui-native-interaction-trace.v2",
+  "caseId": "SRC-038",
+  "featureId": "SRC-038",
+  "dispatch": "playwright-native",
+  "requested": {
+    "schema": "media-server.v390-ui-canonical-requested.v1",
+    "route": "/client/api/views/{id}/events",
+    "accountRole": "viewer",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "theme": "light",
+    "controlAction": {
+      "selector": "[data-testid=\"${escapeHtml(testId)}\"]",
+      "actionAnchor": "AppendClientSafeSourceStatusDigestJson"
+    }
+  },
+  "observed": {
+    "schema": "media-server.v390-ui-runtime-observed.v1",
+    "screenRoute": "/client/events",
+    "accountRole": "viewer",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "theme": "light",
+    "controlAction": {
+      "selector": "[data-testid=\"client-safe-source-status-digest\"]",
+      "applicability": "required",
+      "exists": true,
+      "visible": true,
+      "enabled": true
+    },
+    "provenance": {
+      "screenRoute": "browser-location",
+      "accountRole": "session-whoami",
+      "viewport": "browser-inner-size",
+      "theme": "browser-media-query",
+      "controlAction": "dom-selector-state"
+    }
+  },
+  "navigation": {
+    "status": 200,
+    "url": "http://127.0.0.1:60577/client/events",
+    "invocationId": "SRC-038:initial-document-navigation",
+    "requestKind": "document-navigation",
+    "resourceType": "document",
+    "method": "GET",
+    "requestedPath": "/client/events",
+    "observedPath": "/client/events",
+    "sameOrigin": true,
+    "requestAttemptCount": 1,
+    "requestCandidateCount": 1,
+    "responseCandidateCount": 1,
+    "requestResponseBound": true,
+    "correlationObserved": false,
+    "redirectCount": 0,
+    "retryCount": 0,
+    "reloadCount": 0,
+    "unownedNavigationCount": 0,
+    "additionalFetchCount": 0,
+    "requestReissued": false,
+    "totalDocumentNavigationCount": 1,
+    "orderedDocumentNavigations": [
+      {
+        "sequence": 2,
+        "responseSequence": 3,
+        "invocationId": "SRC-038:initial-document-navigation",
+        "navigationKind": "initial-document-navigation",
+        "method": "GET",
+        "path": "/client/events",
+        "resourceType": "document",
+        "sameOrigin": true,
+        "correlationPresent": false,
+        "correlationDigest": "",
+        "redirected": false,
+        "redirectedFromRequestId": "",
+        "requestId": "native-request-1",
+        "caseRequestIdentity": "SRC-038:request-1",
+        "caseRequestSequence": 1,
+        "responseStatus": 200,
+        "responseBound": true,
+        "responseRequestId": "native-request-1",
+        "responseRequestObjectObserved": true,
+        "responseLocationPath": "",
+        "navigationEpoch": 1,
+        "ledgerOwner": "page",
+        "sourceOwner": "page",
+        "ownerPhase": "bootstrap",
+        "initiatorActionId": "",
+        "requestOwnershipKind": "initial-page-load",
+        "actionInvocationId": "",
+        "navigationInvocationId": "SRC-038:initial-document-navigation"
+      }
+    ],
+    "listenerStartSequence": 1,
+    "listenerEndSequence": null,
+    "listenerActive": true,
+    "listenerInstalledBeforeFirstNavigation": true,
+    "navigationAfterListenerEndCount": 0
+  },
+  "setup": [
+    {
+      "kind": "bind-role-session",
+      "setupId": "SRC-038:role-session",
+      "accountRole": "viewer",
+      "required": true,
+      "status": "PASS"
+    },
+    {
+      "kind": "seed-reviewed-state",
+      "setupId": "SRC-038:reviewed-state",
+      "strategy": "read-only-state",
+      "route": "/client/events",
+      "semanticCallChainSha256": "0b8931f0a506c348044c78538bd071a1f359f956c82237ab63b33329992b5676",
+      "persistedMutation": false,
+      "fixtureId": "src-038-review4-fixture",
+      "beforeSnapshotRef": null,
+      "status": "PASS"
+    }
+  ],
+  "inputs": [
+    {
+      "inputId": "SRC-038:semantic-expectation",
+      "kind": "reviewed-semantic-expectation",
+      "valueSha256": "31edb7a8cd0baf3d7ea6ca5ac8390294f6149bc8e73b36934790ce4a51256b13",
+      "sensitive": false
+    },
+    {
+      "inputId": "SRC-038:product-read-input",
+      "kind": "product-state-request",
+      "actualValue": {
+        "method": "GET",
+        "path": "/client/api/views/{id}/events",
+        "accountRole": "viewer"
+      },
+      "sensitive": false
+    }
+  ],
+  "actions": [
+    {
+      "kind": "wait-visible",
+      "dispatch": "playwright-native",
+      "actionId": "SRC-038:wait-visible",
+      "selector": "[data-testid=\"client-safe-source-status-digest\"]",
+      "selectorSource": "review4-canonical-product-control",
+      "status": "PASS"
+    },
+    {
+      "kind": "assert-visible-read-model",
+      "dispatch": "playwright-native",
+      "actionId": "SRC-038:assert-visible-read-model",
+      "selector": "[data-testid=\"client-safe-source-status-digest\"]",
+      "semanticCompletion": {
+        "schema": "media-server.v390-ui-action-completion.v2",
+        "required": true,
+        "phase": "primary-action",
+        "actionId": "SRC-038:assert-visible-read-model",
+        "actionKind": "assert-visible-read-model",
+        "controlSelector": "[data-testid=\"client-safe-source-status-digest\"]",
+        "linkedPrimaryActionId": null,
+        "completionMode": "request",
+        "requiredSource": "endpoint-dom",
+        "correlationId": "SRC-038:assert-visible-read-model:completion",
+        "request": {
+          "initiatorActionId": "SRC-038:assert-visible-read-model",
+          "requestOwnershipKind": "primary-action",
+          "correlationHeader": "x-media-server-correlation-id",
+          "correlationId": "SRC-038:assert-visible-read-model:completion",
+          "correlationSource": "request-header",
+          "method": "GET",
+          "urlPathTemplate": "/client/api/views/{viewId}/events",
+          "urlPath": "/client/api/views/9001/events",
+          "pathParameters": {
+            "viewId": "9001"
+          },
+          "parameterSource": "runtime-default-view",
+          "allowedStatuses": [
+            200
+          ]
+        },
+        "localTransition": null,
+        "expectedBehaviorSha256": "31edb7a8cd0baf3d7ea6ca5ac8390294f6149bc8e73b36934790ce4a51256b13",
+        "readback": {
+          "identity": "independent-readback:scripts/internal/verify_ops_source_registry_api.mjs#assertRemainingSourceReadModels#d5a655683983711549bd06aa2b9cbdfa25e49e234c99f15f6ab20457bd3ae742",
+          "expectedStateIdentity": "product-state:src/ingress/webrtc_http_server.cpp#AppendClientSafeSourceStatusDigestJson#232014d6dffa91bc04d419e2d49b187dc0b36270a205f7cf8565eb912bfccf28",
+          "expectedBehaviorSha256": "31edb7a8cd0baf3d7ea6ca5ac8390294f6149bc8e73b36934790ce4a51256b13",
+          "allowedObservationSources": [
+            "browser-dom",
+            "readback-request",
+            "event-record",
+            "server-log"
+          ],
+          "staticLocatorIsNotRuntimePass": true
+        },
+        "readbackIdentity": "independent-readback:scripts/internal/verify_ops_source_registry_api.mjs#assertRemainingSourceReadModels#d5a655683983711549bd06aa2b9cbdfa25e49e234c99f15f6ab20457bd3ae742",
+        "readbackExpectation": {
+          "exists": true,
+          "visible": true
+        },
+        "attestedAlternatives": [
+          "persisted-readback",
+          "event-record",
+          "server-log"
+        ]
+      },
+      "executed": true,
+      "correlationId": "SRC-038:assert-visible-read-model:completion",
+      "completionPhase": "primary-action",
+      "actionKind": "assert-visible-read-model",
+      "controlSelector": "[data-testid=\"client-safe-source-status-digest\"]",
+      "semanticCompletionRequired": true,
+      "completionMode": "request",
+      "expectedReadbackIdentity": "independent-readback:scripts/internal/verify_ops_source_registry_api.mjs#assertRemainingSourceReadModels#d5a655683983711549bd06aa2b9cbdfa25e49e234c99f15f6ab20457bd3ae742",
+      "expectedBehaviorSha256": "31edb7a8cd0baf3d7ea6ca5ac8390294f6149bc8e73b36934790ce4a51256b13",
+      "expectedReadbackExpectation": {
+        "exists": true,
+        "visible": true
+      },
+      "expectedEndpoint": {
+        "correlationId": "SRC-038:assert-visible-read-model:completion",
+        "method": "GET",
+        "urlPath": "/client/api/views/9001/events",
+        "urlPathTemplate": "/client/api/views/{viewId}/events",
+        "allowedStatuses": [
+          200
+        ],
+        "initiatorActionId": "SRC-038:assert-visible-read-model",
+        "requestOwnershipKind": "primary-action",
+        "runtimeBindingSource": "native-completion-contract"
+      },
+      "expectedLocalTransition": null,
+      "expectedNavigationBinding": null,
+      "allowedCompletionSources": [
+        "endpoint-dom",
+        "persisted-readback",
+        "event-record",
+        "server-log"
+      ],
+      "observed": {
+        "selector": "[data-testid=\"client-safe-source-status-digest\"]",
+        "candidateCount": 1,
+        "navigationEpoch": 1,
+        "exists": true,
+        "visible": true,
+        "tag": "section",
+        "hidden": false,
+        "disabled": false,
+        "readOnly": false,
+        "open": false,
+        "href": "",
+        "title": "",
+        "ariaLabel": "viewer-safe source status digest",
+        "ariaPressed": "",
+        "text": "소스 상태 digest 허용된 소스 상태와 연결 요약만 표시됩니다. viewer-safe view scope locator 숨김 source offline / disconnected offline · disconnected · video unavailable · metadata unavailable · source unavailable attention",
+        "value": "",
+        "checked": false,
+        "selectedValues": [],
+        "optionValues": [],
+        "url": "http://127.0.0.1:60577/client/events",
+        "requestCorrelationEvidence": {
+          "schema": "media-server.v390-ui-request-correlation-evidence.v1",
+          "pass": true,
+          "requestExpected": true,
+          "requestObserved": true,
+          "requestKind": "application-fetch",
+          "expectedMethod": "GET",
+          "expectedPath": "/client/api/views/9001/events",
+          "expectedActionId": "SRC-038:assert-visible-read-model",
+          "expectedCaseId": "SRC-038",
+          "expectedInitiatorActionId": "",
+          "expectedRenderCycleId": "",
+          "expectedCorrelationRouteState": "",
+          "expectedCorrelationRouteActionId": "",
+          "observedMethod": "GET",
+          "observedPath": "/client/api/views/9001/events",
+          "listenerInstalledBeforeRequest": true,
+          "correlationRequired": true,
+          "correlationGenerated": true,
+          "correlationAttached": true,
+          "correlationObserved": true,
+          "correlationMatched": true,
+          "correlationDigest": "7e076fed8def85aec1026d965973d8eb5f7c6c581a221618420ee0faf4565d8d",
+          "expectedCorrelationDigest": "7e076fed8def85aec1026d965973d8eb5f7c6c581a221618420ee0faf4565d8d",
+          "initiatingRequestCorrelationDigest": "7e076fed8def85aec1026d965973d8eb5f7c6c581a221618420ee0faf4565d8d",
+          "responseRequestCorrelationDigest": "7e076fed8def85aec1026d965973d8eb5f7c6c581a221618420ee0faf4565d8d",
+          "caseRequestIdentity": "SRC-038:request-6",
+          "caseRequestSequence": 6,
+          "responseRequestIdentity": "SRC-038:request-6",
+          "responseRequestSequence": 6,
+          "requestIdentityMatched": true,
+          "initiatingRequestActionId": "SRC-038:assert-visible-read-model",
+          "responseRequestActionId": "SRC-038:assert-visible-read-model",
+          "initiatingRequestRenderCycleId": "",
+          "responseRequestRenderCycleId": "",
+          "initiatingRequestCorrelationRouteState": "preserved-explicit-inner",
+          "responseRequestCorrelationRouteState": "preserved-explicit-inner",
+          "initiatingRequestCorrelationRouteActionId": "SRC-038:assert-visible-read-model",
+          "responseRequestCorrelationRouteActionId": "SRC-038:assert-visible-read-model",
+          "initiatingRequestCorrelationRouteDigest": "7e076fed8def85aec1026d965973d8eb5f7c6c581a221618420ee0faf4565d8d",
+          "responseRequestCorrelationRouteDigest": "7e076fed8def85aec1026d965973d8eb5f7c6c581a221618420ee0faf4565d8d",
+          "responseRequestObjectObserved": true,
+          "responseRequestMethod": "GET",
+          "responseRequestPath": "/client/api/views/9001/events",
+          "responseRequestHeaderDigest": "0565631809cd77e57a02479cf1c835c6c8f2f39490e55cbd8c6ec304194f44ad",
+          "responseStatus": 200,
+          "responseEchoHeaderRequired": false,
+          "responseEchoHeaderObserved": false,
+          "requestCandidateCount": 1,
+          "matchedRequestCount": 1,
+          "responseCandidateCount": 1,
+          "matchedResponseCount": 1,
+          "requestAttemptCount": 1,
+          "requestReissued": false,
+          "failurePhase": "",
+          "failureCode": ""
+        }
+      },
+      "status": "PASS",
+      "completionStatus": "awaiting-independent-readback"
+    },
+    {
+      "kind": "verify-independent-readback",
+      "dispatch": "playwright-native",
+      "actionId": "SRC-038:verify-independent-readback",
+      "expectedStateIdentity": "product-state:src/ingress/webrtc_http_server.cpp#AppendClientSafeSourceStatusDigestJson#232014d6dffa91bc04d419e2d49b187dc0b36270a205f7cf8565eb912bfccf28",
+      "expectedBehaviorSha256": "31edb7a8cd0baf3d7ea6ca5ac8390294f6149bc8e73b36934790ce4a51256b13",
+      "readbackIdentity": "independent-readback:scripts/internal/verify_ops_source_registry_api.mjs#assertRemainingSourceReadModels#d5a655683983711549bd06aa2b9cbdfa25e49e234c99f15f6ab20457bd3ae742",
+      "readbackLocator": {
+        "file": "scripts/internal/verify_ops_source_registry_api.mjs",
+        "symbol": "assertRemainingSourceReadModels",
+        "contextSha256": "d5a655683983711549bd06aa2b9cbdfa25e49e234c99f15f6ab20457bd3ae742"
+      },
+      "verifierCommand": "verify-ops-source-registry-api",
+      "runtimeEvidenceRequired": true,
+      "staticLocatorIsNotRuntimePass": true,
+      "semanticCompletion": {
+        "schema": "media-server.v390-ui-action-completion.v2",
+        "required": true,
+        "phase": "independent-readback",
+        "actionId": "SRC-038:verify-independent-readback",
+        "actionKind": "verify-independent-readback",
+        "controlSelector": null,
+        "linkedPrimaryActionId": "SRC-038:assert-visible-read-model",
+        "completionMode": "readback",
+        "requiredSource": "browser-dom-readback",
+        "correlationId": "SRC-038:verify-independent-readback:completion",
+        "request": null,
+        "localTransition": null,
+        "expectedBehaviorSha256": "31edb7a8cd0baf3d7ea6ca5ac8390294f6149bc8e73b36934790ce4a51256b13",
+        "readback": {
+          "identity": "independent-readback:scripts/internal/verify_ops_source_registry_api.mjs#assertRemainingSourceReadModels#d5a655683983711549bd06aa2b9cbdfa25e49e234c99f15f6ab20457bd3ae742",
+          "expectedStateIdentity": "product-state:src/ingress/webrtc_http_server.cpp#AppendClientSafeSourceStatusDigestJson#232014d6dffa91bc04d419e2d49b187dc0b36270a205f7cf8565eb912bfccf28",
+          "expectedBehaviorSha256": "31edb7a8cd0baf3d7ea6ca5ac8390294f6149bc8e73b36934790ce4a51256b13",
+          "allowedObservationSources": [
+            "browser-dom",
+            "readback-request",
+            "event-record",
+            "server-log"
+          ],
+          "staticLocatorIsNotRuntimePass": true
+        },
+        "readbackIdentity": "independent-readback:scripts/internal/verify_ops_source_registry_api.mjs#assertRemainingSourceReadModels#d5a655683983711549bd06aa2b9cbdfa25e49e234c99f15f6ab20457bd3ae742",
+        "readbackExpectation": {
+          "readbackIdentity": "independent-readback:scripts/internal/verify_ops_source_registry_api.mjs#assertRemainingSourceReadModels#d5a655683983711549bd06aa2b9cbdfa25e49e234c99f15f6ab20457bd3ae742",
+          "expectedStateIdentity": "product-state:src/ingress/webrtc_http_server.cpp#AppendClientSafeSourceStatusDigestJson#232014d6dffa91bc04d419e2d49b187dc0b36270a205f7cf8565eb912bfccf28",
+          "expectedBehaviorSha256": "31edb7a8cd0baf3d7ea6ca5ac8390294f6149bc8e73b36934790ce4a51256b13",
+          "runtimeEvidenceRequired": true
+        },
+        "attestedAlternatives": [
+          "persisted-readback",
+          "event-record",
+          "server-log"
+        ]
+      },
+      "completionPhase": "independent-readback",
+      "linkedPrimaryActionId": "SRC-038:assert-visible-read-model",
+      "semanticReadback": {
+        "schema": "media-server.v390-ui-semantic-readback.v2",
+        "identity": "independent-readback:scripts/internal/verify_ops_source_registry_api.mjs#assertRemainingSourceReadModels#d5a655683983711549bd06aa2b9cbdfa25e49e234c99f15f6ab20457bd3ae742",
+        "correlationId": "SRC-038:assert-visible-read-model:completion",
+        "actionId": "SRC-038:assert-visible-read-model",
+        "expectedBehaviorSha256": "31edb7a8cd0baf3d7ea6ca5ac8390294f6149bc8e73b36934790ce4a51256b13",
+        "observationSource": "browser-dom",
+        "selector": "[data-testid=\"client-safe-source-status-digest\"]",
+        "observation": {
+          "before": {
+            "selector": "[data-testid=\"client-safe-source-status-digest\"]",
+            "candidateCount": 1,
+            "navigationEpoch": 1,
+            "exists": true,
+            "visible": true,
+            "tag": "section",
+            "hidden": false,
+            "disabled": false,
+            "readOnly": false,
+            "open": false,
+            "href": "",
+            "title": "",
+            "ariaLabel": "viewer-safe source status digest",
+            "ariaPressed": "",
+            "text": "소스 상태 digest 허용된 소스 상태와 연결 요약만 표시됩니다. viewer-safe view scope locator 숨김 source offline / disconnected offline · disconnected · video unavailable · metadata unavailable · source unavailable attention",
+            "value": "",
+            "checked": false,
+            "selectedValues": [],
+            "optionValues": [],
+            "url": "http://127.0.0.1:60577/client/events"
+          },
+          "after": {
+            "selector": "[data-testid=\"client-safe-source-status-digest\"]",
+            "candidateCount": 1,
+            "navigationEpoch": 1,
+            "exists": true,
+            "visible": true,
+            "tag": "section",
+            "hidden": false,
+            "disabled": false,
+            "readOnly": false,
+            "open": false,
+            "href": "",
+            "title": "",
+            "ariaLabel": "viewer-safe source status digest",
+            "ariaPressed": "",
+            "text": "소스 상태 digest 허용된 소스 상태와 연결 요약만 표시됩니다. viewer-safe view scope locator 숨김 source offline / disconnected offline · disconnected · video unavailable · metadata unavailable · source unavailable attention",
+            "value": "",
+            "checked": false,
+            "selectedValues": [],
+            "optionValues": [],
+            "url": "http://127.0.0.1:60577/client/events"
+          },
+          "beforeSnapshots": {},
+          "snapshots": {},
+          "actual": {
+            "exactRuntimeOracle": {
+              "schema": "media-server.v390-ui-exact-runtime-observation.v1",
+              "caseId": "SRC-038",
+              "featureMeaning": {
+                "text": "`/client/api/views/{id}/events`와 client dashboard payload가 PublishedView-scoped source/tap 상태만 읽어 source status와 connection health를 요약하고 source URL/raw locator/credential/client scope 외 노출/source registry write를 만들지 않음",
+                "sha256": "31edb7a8cd0baf3d7ea6ca5ac8390294f6149bc8e73b36934790ce4a51256b13"
+              },
+              "interaction": {
+                "kind": "existing-primary-action-or-navigation",
+                "selector": "[data-testid=\"client-safe-source-status-digest\"]"
+              },
+              "responses": [
+                {
+                  "method": "GET",
+                  "urlPath": "/client/api/views/9001/events",
+                  "status": 200,
+                  "source": "fresh-browser-fetch",
+                  "bodyDigest": "d6af7a03a4f4a8fb850e2ca7ed38ea84cdf55a6f5778f840178aaae34a595dde",
+                  "assertionEvidence": [],
+                  "sampleCount": 1,
+                  "sampleDigests": [
+                    "d6af7a03a4f4a8fb850e2ca7ed38ea84cdf55a6f5778f840178aaae34a595dde"
+                  ],
+                  "requestCorrelationEvidence": {
+                    "schema": "media-server.v390-ui-request-correlation-evidence.v1",
+                    "pass": true,
+                    "requestExpected": true,
+                    "requestObserved": true,
+                    "requestKind": "application-fetch",
+                    "expectedMethod": "GET",
+                    "expectedPath": "/client/api/views/9001/events",
+                    "expectedActionId": "SRC-038:assert-visible-read-model",
+                    "expectedCaseId": "SRC-038",
+                    "expectedInitiatorActionId": "",
+                    "expectedRenderCycleId": "",
+                    "expectedCorrelationRouteState": "",
+                    "expectedCorrelationRouteActionId": "",
+                    "observedMethod": "GET",
+                    "observedPath": "/client/api/views/9001/events",
+                    "listenerInstalledBeforeRequest": true,
+                    "correlationRequired": true,
+                    "correlationGenerated": true,
+                    "correlationAttached": true,
+                    "correlationObserved": true,
+                    "correlationMatched": true,
+                    "correlationDigest": "7e076fed8def85aec1026d965973d8eb5f7c6c581a221618420ee0faf4565d8d",
+                    "expectedCorrelationDigest": "7e076fed8def85aec1026d965973d8eb5f7c6c581a221618420ee0faf4565d8d",
+                    "initiatingRequestCorrelationDigest": "7e076fed8def85aec1026d965973d8eb5f7c6c581a221618420ee0faf4565d8d",
+                    "responseRequestCorrelationDigest": "7e076fed8def85aec1026d965973d8eb5f7c6c581a221618420ee0faf4565d8d",
+                    "caseRequestIdentity": "SRC-038:request-7",
+                    "caseRequestSequence": 7,
+                    "responseRequestIdentity": "SRC-038:request-7",
+                    "responseRequestSequence": 7,
+                    "requestIdentityMatched": true,
+                    "initiatingRequestActionId": "SRC-038:assert-visible-read-model",
+                    "responseRequestActionId": "SRC-038:assert-visible-read-model",
+                    "initiatingRequestRenderCycleId": "",
+                    "responseRequestRenderCycleId": "",
+                    "initiatingRequestCorrelationRouteState": "preserved-explicit-inner",
+                    "responseRequestCorrelationRouteState": "preserved-explicit-inner",
+                    "initiatingRequestCorrelationRouteActionId": "SRC-038:assert-visible-read-model",
+                    "responseRequestCorrelationRouteActionId": "SRC-038:assert-visible-read-model",
+                    "initiatingRequestCorrelationRouteDigest": "7e076fed8def85aec1026d965973d8eb5f7c6c581a221618420ee0faf4565d8d",
+                    "responseRequestCorrelationRouteDigest": "7e076fed8def85aec1026d965973d8eb5f7c6c581a221618420ee0faf4565d8d",
+                    "responseRequestObjectObserved": true,
+                    "responseRequestMethod": "GET",
+                    "responseRequestPath": "/client/api/views/9001/events",
+                    "responseRequestHeaderDigest": "0565631809cd77e57a02479cf1c835c6c8f2f39490e55cbd8c6ec304194f44ad",
+                    "responseStatus": 200,
+                    "responseEchoHeaderRequired": false,
+                    "responseEchoHeaderObserved": false,
+                    "requestCandidateCount": 1,
+                    "matchedRequestCount": 1,
+                    "responseCandidateCount": 1,
+                    "matchedResponseCount": 1,
+                    "requestAttemptCount": 1,
+                    "requestReissued": false,
+                    "failurePhase": "",
+                    "failureCode": ""
+                  }
+                }
+              ],
+              "dom": [
+                {
+                  "selector": ".client-viewer-events",
+                  "count": 1,
+                  "visibleCount": 1,
+                  "textDigest": "046c6d78",
+                  "responseCount": 1,
+                  "propertyEvidence": [],
+                  "semanticEvidence": [],
+                  "attributeEvidence": {
+                    "schema": "media-server.v390-ui-exact-dom-attribute-binding-evidence.v1",
+                    "pass": true,
+                    "failurePhase": "",
+                    "failureCode": "PASS",
+                    "selectorDigest": "604e60f48ddac95445b624e3fed28446862c89a7e54cd3b83415810d578dc3ee",
+                    "candidateCount": 1,
+                    "candidateEvidenceCount": 1,
+                    "exactNodeSelection": false,
+                    "selectedIndex": -1,
+                    "selectedIndices": [
+                      0
+                    ],
+                    "selectedNodeCount": 1,
+                    "candidateDigest": "d690d9e5c05ad743c7326ebbba94a5ae3a20b81117da9a4727c24a65b9b644f3",
+                    "attributes": [
+                      {
+                        "name": "class",
+                        "operator": "includes",
+                        "expectedValue": null,
+                        "expectedValueDigest": "d94c2b0aba8cef8fc5da32c05ef9636a7a853dffbaf1ae0798fe6ed8fd173b02",
+                        "pass": true,
+                        "observations": [
+                          {
+                            "index": 0,
+                            "observedName": "class",
+                            "observedValue": null,
+                            "observedValueDigest": "d94c2b0aba8cef8fc5da32c05ef9636a7a853dffbaf1ae0798fe6ed8fd173b02",
+                            "pass": true
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  "attributeOwnerEvidence": []
+                }
+              ],
+              "cleanup": {
+                "strategy": "no-op-with-state-proof",
+                "status": "PASS"
+              },
+              "nativePrimaryControl": {
+                "applicability": "required",
+                "selector": "[data-testid=\"client-safe-source-status-digest\"]",
+                "route": "/client/events",
+                "visible": true,
+                "enabled": true,
+                "status": "PASS"
+              },
+              "forbiddenNetworkObserved": 0,
+              "requestedRoute": "/client/api/views/{id}/events",
+              "observedRoute": "/client/events",
+              "routeLifecycle": {
+                "sourceRoute": "/client/api/views/{id}/events",
+                "destinationRoute": "/client/events",
+                "splitApiAndScreen": true,
+                "sourceObservation": "fresh-browser-fetch",
+                "sourceNavigationStatus": null,
+                "screenPreparationStatus": null,
+                "restoreNavigationStatus": null
+              }
+            }
+          }
+        },
+        "observationSha256": "68ec9dfcafc60081d3b672b866911c3bceb8431f4407dd42af1c661c9f7ba70a"
+      },
+      "runtimeMutationReadback": null,
+      "runtimeFormSubmitReadback": null,
+      "runtimeEndpointActionReadback": null,
+      "rejectedActionReadback": null,
+      "evidenceStages": null,
+      "status": "PASS"
+    }
+  ],
+  "completionEvents": [
+    {
+      "pass": true,
+      "source": "navigation-network-dom",
+      "reason": "",
+      "correlationId": "SRC-038:navigation",
+      "beforeDigest": "",
+      "afterDigest": "28c576d534ed6e23142edcf88da903e6b85cc507cca9597a8be6aba94e2b6a8a",
+      "networkResponses": [
+        {
+          "phase": "request-start",
+          "requestId": "native-request-1",
+          "caseRequestIdentity": "SRC-038:request-1",
+          "caseRequestSequence": 1,
+          "requestKind": "document-navigation",
+          "resourceType": "document",
+          "sameOrigin": true,
+          "redirectedFromRequestId": "",
+          "correlationId": "",
+          "correlationSource": "none",
+          "correlationInjectionSource": "",
+          "correlationRouteState": "correlation-absent",
+          "correlationRouteActionId": "",
+          "correlationRouteDigest": "",
+          "requestHeaderDigest": "",
+          "ledgerOwner": "page",
+          "sourceOwner": "page",
+          "ownerPhase": "bootstrap",
+          "actionRegistrationKind": "",
+          "exactActionRequestOwned": false,
+          "initiatorActionId": "",
+          "renderCycleId": "",
+          "requestOwnershipKind": "initial-page-load",
+          "lifecycleClass": "bootstrap-document",
+          "actionInvocationId": "",
+          "navigationInvocationId": "SRC-038:initial-document-navigation",
+          "requestStartedAtMs": 1791094482122,
+          "method": "GET",
+          "status": 0,
+          "url": "http://127.0.0.1:60577/client/events",
+          "requestBody": null
+        },
+        {
+          "phase": "response",
+          "requestId": "native-request-1",
+          "caseRequestIdentity": "SRC-038:request-1",
+          "caseRequestSequence": 1,
+          "responseRequestObjectObserved": true,
+          "requestIdentitySource": "playwright-response-request",
+          "requestKind": "document-navigation",
+          "resourceType": "document",
+          "sameOrigin": true,
+          "correlationId": "",
+          "correlationSource": "none",
+          "responseCorrelationSource": "none",
+          "requestHeaderDigest": "",
+          "correlationRouteState": "correlation-absent",
+          "correlationRouteActionId": "",
+          "correlationRouteDigest": "",
+          "responseEchoHeaderContract": "not-required",
+          "responseEchoHeaderObserved": false,
+          "ledgerOwner": "page",
+          "sourceOwner": "page",
+          "ownerPhase": "bootstrap",
+          "exactActionRequestOwned": false,
+          "initiatorActionId": "",
+          "renderCycleId": "",
+          "requestOwnershipKind": "initial-page-load",
+          "lifecycleClass": "bootstrap-document",
+          "actionInvocationId": "",
+          "navigationInvocationId": "SRC-038:initial-document-navigation",
+          "requestStartedAtMs": 1791094482122,
+          "responseObservedAtMs": 1791094482131,
+          "method": "GET",
+          "status": 200,
+          "httpOk": true,
+          "url": "http://127.0.0.1:60577/client/events",
+          "responseHeaders": {
+            "content-type": "text/html; charset=utf-8",
+            "location": ""
+          },
+          "responseLocationPath": ""
+        },
+        {
+          "phase": "request-start",
+          "requestId": "native-request-2",
+          "caseRequestIdentity": "SRC-038:request-2",
+          "caseRequestSequence": 2,
+          "requestKind": "application-fetch",
+          "resourceType": "fetch",
+          "sameOrigin": true,
+          "redirectedFromRequestId": "",
+          "correlationId": "",
+          "correlationSource": "none",
+          "correlationInjectionSource": "",
+          "correlationRouteState": "correlation-absent",
+          "correlationRouteActionId": "",
+          "correlationRouteDigest": "",
+          "requestHeaderDigest": "",
+          "ledgerOwner": "page",
+          "sourceOwner": "page",
+          "ownerPhase": "bootstrap",
+          "actionRegistrationKind": "",
+          "exactActionRequestOwned": false,
+          "initiatorActionId": "",
+          "renderCycleId": "",
+          "requestOwnershipKind": "bootstrap",
+          "lifecycleClass": "bootstrap-fetch",
+          "actionInvocationId": "",
+          "navigationInvocationId": "SRC-038:initial-document-navigation",
+          "requestStartedAtMs": 1791094482142,
+          "method": "GET",
+          "status": 0,
+          "url": "http://127.0.0.1:60577/auth/whoami",
+          "requestBody": null
+        },
+        {
+          "phase": "request-start",
+          "requestId": "native-request-3",
+          "caseRequestIdentity": "SRC-038:request-3",
+          "caseRequestSequence": 3,
+          "requestKind": "application-fetch",
+          "resourceType": "fetch",
+          "sameOrigin": true,
+          "redirectedFromRequestId": "",
+          "correlationId": "",
+          "correlationSource": "none",
+          "correlationInjectionSource": "",
+          "correlationRouteState": "correlation-absent",
+          "correlationRouteActionId": "",
+          "correlationRouteDigest": "",
+          "requestHeaderDigest": "",
+          "ledgerOwner": "page",
+          "sourceOwner": "page",
+          "ownerPhase": "bootstrap",
+          "actionRegistrationKind": "",
+          "exactActionRequestOwned": false,
+          "initiatorActionId": "",
+          "renderCycleId": "",
+          "requestOwnershipKind": "bootstrap",
+          "lifecycleClass": "bootstrap-fetch",
+          "actionInvocationId": "",
+          "navigationInvocationId": "SRC-038:initial-document-navigation",
+          "requestStartedAtMs": 1791094482142,
+          "method": "GET",
+          "status": 0,
+          "url": "http://127.0.0.1:60577/client/api/views/9001/events?limit=20",
+          "requestBody": null
+        },
+        {
+          "phase": "response",
+          "requestId": "native-request-2",
+          "caseRequestIdentity": "SRC-038:request-2",
+          "caseRequestSequence": 2,
+          "responseRequestObjectObserved": true,
+          "requestIdentitySource": "playwright-response-request",
+          "requestKind": "application-fetch",
+          "resourceType": "fetch",
+          "sameOrigin": true,
+          "correlationId": "",
+          "correlationSource": "none",
+          "responseCorrelationSource": "none",
+          "requestHeaderDigest": "",
+          "correlationRouteState": "correlation-absent",
+          "correlationRouteActionId": "",
+          "correlationRouteDigest": "",
+          "responseEchoHeaderContract": "not-required",
+          "responseEchoHeaderObserved": false,
+          "ledgerOwner": "page",
+          "sourceOwner": "page",
+          "ownerPhase": "bootstrap",
+          "exactActionRequestOwned": false,
+          "initiatorActionId": "",
+          "renderCycleId": "",
+          "requestOwnershipKind": "bootstrap",
+          "lifecycleClass": "bootstrap-fetch",
+          "actionInvocationId": "",
+          "navigationInvocationId": "SRC-038:initial-document-navigation",
+          "requestStartedAtMs": 1791094482142,
+          "responseObservedAtMs": 1791094482182,
+          "method": "GET",
+          "status": 200,
+          "httpOk": true,
+          "url": "http://127.0.0.1:60577/auth/whoami",
+          "responseHeaders": {
+            "content-type": "application/json; charset=utf-8",
+            "location": ""
+          },
+          "responseLocationPath": ""
+        },
+        {
+          "phase": "response",
+          "requestId": "native-request-3",
+          "caseRequestIdentity": "SRC-038:request-3",
+          "caseRequestSequence": 3,
+          "responseRequestObjectObserved": true,
+          "requestIdentitySource": "playwright-response-request",
+          "requestKind": "application-fetch",
+          "resourceType": "fetch",
+          "sameOrigin": true,
+          "correlationId": "",
+          "correlationSource": "none",
+          "responseCorrelationSource": "none",
+          "requestHeaderDigest": "",
+          "correlationRouteState": "correlation-absent",
+          "correlationRouteActionId": "",
+          "correlationRouteDigest": "",
+          "responseEchoHeaderContract": "not-required",
+          "responseEchoHeaderObserved": false,
+          "ledgerOwner": "page",
+          "sourceOwner": "page",
+          "ownerPhase": "bootstrap",
+          "exactActionRequestOwned": false,
+          "initiatorActionId": "",
+          "renderCycleId": "",
+          "requestOwnershipKind": "bootstrap",
+          "lifecycleClass": "bootstrap-fetch",
+          "actionInvocationId": "",
+          "navigationInvocationId": "SRC-038:initial-document-navigation",
+          "requestStartedAtMs": 1791094482142,
+          "responseObservedAtMs": 1791094482183,
+          "method": "GET",
+          "status": 200,
+          "httpOk": true,
+          "url": "http://127.0.0.1:60577/client/api/views/9001/events?limit=20",
+          "responseHeaders": {
+            "content-type": "application/json; charset=utf-8",
+            "location": ""
+          },
+          "responseLocationPath": ""
+        },
+        {
+          "phase": "request-start",
+          "requestId": "native-request-4",
+          "caseRequestIdentity": "SRC-038:request-4",
+          "caseRequestSequence": 4,
+          "requestKind": "application-fetch",
+          "resourceType": "fetch",
+          "sameOrigin": true,
+          "redirectedFromRequestId": "",
+          "correlationId": "",
+          "correlationSource": "none",
+          "correlationInjectionSource": "",
+          "correlationRouteState": "correlation-absent",
+          "correlationRouteActionId": "",
+          "correlationRouteDigest": "",
+          "requestHeaderDigest": "",
+          "ledgerOwner": "page",
+          "sourceOwner": "page",
+          "ownerPhase": "bootstrap",
+          "actionRegistrationKind": "",
+          "exactActionRequestOwned": false,
+          "initiatorActionId": "",
+          "renderCycleId": "",
+          "requestOwnershipKind": "bootstrap",
+          "lifecycleClass": "bootstrap-fetch",
+          "actionInvocationId": "",
+          "navigationInvocationId": "",
+          "requestStartedAtMs": 1791094482198,
+          "method": "GET",
+          "status": 0,
+          "url": "http://127.0.0.1:60577/auth/whoami",
+          "requestBody": null
+        },
+        {
+          "phase": "response",
+          "requestId": "native-request-4",
+          "caseRequestIdentity": "SRC-038:request-4",
+          "caseRequestSequence": 4,
+          "responseRequestObjectObserved": true,
+          "requestIdentitySource": "playwright-response-request",
+          "requestKind": "application-fetch",
+          "resourceType": "fetch",
+          "sameOrigin": true,
+          "correlationId": "",
+          "correlationSource": "none",
+          "responseCorrelationSource": "none",
+          "requestHeaderDigest": "",
+          "correlationRouteState": "correlation-absent",
+          "correlationRouteActionId": "",
+          "correlationRouteDigest": "",
+          "responseEchoHeaderContract": "not-required",
+          "responseEchoHeaderObserved": false,
+          "ledgerOwner": "page",
+          "sourceOwner": "page",
+          "ownerPhase": "bootstrap",
+          "exactActionRequestOwned": false,
+          "initiatorActionId": "",
+          "renderCycleId": "",
+          "requestOwnershipKind": "bootstrap",
+          "lifecycleClass": "bootstrap-fetch",
+          "actionInvocationId": "",
+          "navigationInvocationId": "",
+          "requestStartedAtMs": 1791094482198,
+          "responseObservedAtMs": 1791094482200,
+          "method": "GET",
+          "status": 200,
+          "httpOk": true,
+          "url": "http://127.0.0.1:60577/auth/whoami",
+          "responseHeaders": {
+            "content-type": "application/json; charset=utf-8",
+            "location": ""
+          },
+          "responseLocationPath": ""
+        }
+      ],
+      "completionRequest": null,
+      "semanticReadback": {
+        "schema": "media-server.v390-ui-semantic-readback.v1",
+        "identity": "SRC-038:navigation",
+        "correlationId": "SRC-038:navigation",
+        "actionId": "SRC-038:navigate",
+        "observationSource": "browser-dom",
+        "selector": null,
+        "expected": {
+          "exists": true,
+          "visible": true
+        },
+        "observed": {
+          "exists": true,
+          "visible": true
+        }
+      },
+      "expectedEndpoint": null,
+      "expectedNavigationBinding": {
+        "schema": "media-server.v390-ui-navigation-trust-binding.v1",
+        "requestKind": "document-navigation",
+        "invocationId": "SRC-038:initial-document-navigation",
+        "method": "GET",
+        "requestedPath": "/client/events",
+        "expectedCanonicalRoute": "/client/events",
+        "expectedObservedPath": "/client/events",
+        "exactRequestSequence": 1,
+        "exactRedirectCount": 0,
+        "correlationRequired": false,
+        "allowedStatuses": [
+          200
+        ],
+        "authoritativeReadback": null
+      },
+      "completionMode": "navigationBinding",
+      "completionPhase": "initial-navigation",
+      "actionId": "SRC-038:navigate",
+      "actionKind": "navigate",
+      "controlSelector": null,
+      "navigationTrustEvidence": {
+        "schema": "media-server.v390-ui-navigation-trust-evidence.v1",
+        "pass": true,
+        "requestKind": "document-navigation",
+        "invocationId": "SRC-038:initial-document-navigation",
+        "method": "GET",
+        "resourceType": "document",
+        "sameOrigin": true,
+        "requestedPath": "/client/events",
+        "expectedObservedPath": "/client/events",
+        "observedPath": "/client/events",
+        "correlationRequired": false,
+        "correlationObserved": false,
+        "requestAttemptCount": 1,
+        "requestCandidateCount": 1,
+        "responseCandidateCount": 1,
+        "requestResponseBound": true,
+        "redirectCount": 0,
+        "retryCount": 0,
+        "reloadCount": 0,
+        "unownedNavigationCount": 0,
+        "additionalFetchCount": 0,
+        "requestReissued": false,
+        "totalDocumentNavigationCount": 1,
+        "orderedDocumentNavigations": [
+          {
+            "sequence": 2,
+            "responseSequence": 3,
+            "invocationId": "SRC-038:initial-document-navigation",
+            "navigationKind": "initial-document-navigation",
+            "method": "GET",
+            "path": "/client/events",
+            "resourceType": "document",
+            "sameOrigin": true,
+            "correlationPresent": false,
+            "correlationDigest": "",
+            "redirected": false,
+            "redirectedFromRequestId": "",
+            "requestId": "native-request-1",
+            "caseRequestIdentity": "SRC-038:request-1",
+            "caseRequestSequence": 1,
+            "responseStatus": 200,
+            "responseBound": true,
+            "responseRequestId": "native-request-1",
+            "responseRequestObjectObserved": true,
+            "responseLocationPath": "",
+            "navigationEpoch": 1,
+            "ledgerOwner": "page",
+            "sourceOwner": "page",
+            "ownerPhase": "bootstrap",
+            "initiatorActionId": "",
+            "requestOwnershipKind": "initial-page-load",
+            "actionInvocationId": "",
+            "navigationInvocationId": "SRC-038:initial-document-navigation"
+          }
+        ],
+        "listenerStartSequence": 1,
+        "listenerEndSequence": null,
+        "listenerActive": true,
+        "listenerInstalledBeforeFirstNavigation": true,
+        "navigationAfterListenerEndCount": 0,
+        "expectedLifecycleNavigationCount": 1,
+        "failurePhase": "",
+        "failureCode": ""
+      }
+    },
+    {
+      "pass": true,
+      "source": "endpoint-dom",
+      "reason": "",
+      "correlationId": "SRC-038:assert-visible-read-model:completion",
+      "beforeDigest": "fdccbed2550dd436dd37b65671b83c71529c7cd10513eac55ed50223181a5509",
+      "afterDigest": "fdccbed2550dd436dd37b65671b83c71529c7cd10513eac55ed50223181a5509",
+      "networkResponses": [
+        {
+          "phase": "response",
+          "requestId": "catalog-runtime-c9c36b6920038456b827c597",
+          "correlationId": "SRC-038:assert-visible-read-model:completion",
+          "correlationSource": "semantic-readback-catalog-runtime",
+          "method": "GET",
+          "status": 200,
+          "url": "/client/api/views/9001/events",
+          "source": "fresh-browser-fetch",
+          "bodyDigest": "d6af7a03a4f4a8fb850e2ca7ed38ea84cdf55a6f5778f840178aaae34a595dde",
+          "catalogRuntimeAttestationSha256": "c9c36b6920038456b827c59714985ff7799c87df80326606ebb78a8061c2c28f",
+          "catalogRuntimeResponseCount": 1,
+          "actualBrowserRequestObserved": true
+        }
+      ],
+      "completionRequest": {
+        "phase": "response",
+        "requestId": "catalog-runtime-c9c36b6920038456b827c597",
+        "correlationId": "SRC-038:assert-visible-read-model:completion",
+        "correlationSource": "semantic-readback-catalog-runtime",
+        "method": "GET",
+        "status": 200,
+        "url": "/client/api/views/9001/events",
+        "source": "fresh-browser-fetch",
+        "bodyDigest": "d6af7a03a4f4a8fb850e2ca7ed38ea84cdf55a6f5778f840178aaae34a595dde",
+        "catalogRuntimeAttestationSha256": "c9c36b6920038456b827c59714985ff7799c87df80326606ebb78a8061c2c28f",
+        "catalogRuntimeResponseCount": 1,
+        "actualBrowserRequestObserved": true
+      },
+      "semanticReadback": {
+        "schema": "media-server.v390-ui-semantic-readback.v2",
+        "identity": "independent-readback:scripts/internal/verify_ops_source_registry_api.mjs#assertRemainingSourceReadModels#d5a655683983711549bd06aa2b9cbdfa25e49e234c99f15f6ab20457bd3ae742",
+        "correlationId": "SRC-038:assert-visible-read-model:completion",
+        "actionId": "SRC-038:assert-visible-read-model",
+        "expectedBehaviorSha256": "31edb7a8cd0baf3d7ea6ca5ac8390294f6149bc8e73b36934790ce4a51256b13",
+        "observationSource": "browser-dom",
+        "selector": "[data-testid=\"client-safe-source-status-digest\"]",
+        "observation": {
+          "before": {
+            "selector": "[data-testid=\"client-safe-source-status-digest\"]",
+            "candidateCount": 1,
+            "navigationEpoch": 1,
+            "exists": true,
+            "visible": true,
+            "tag": "section",
+            "hidden": false,
+            "disabled": false,
+            "readOnly": false,
+            "open": false,
+            "href": "",
+            "title": "",
+            "ariaLabel": "viewer-safe source status digest",
+            "ariaPressed": "",
+            "text": "소스 상태 digest 허용된 소스 상태와 연결 요약만 표시됩니다. viewer-safe view scope locator 숨김 source offline / disconnected offline · disconnected · video unavailable · metadata unavailable · source unavailable attention",
+            "value": "",
+            "checked": false,
+            "selectedValues": [],
+            "optionValues": [],
+            "url": "http://127.0.0.1:60577/client/events"
+          },
+          "after": {
+            "selector": "[data-testid=\"client-safe-source-status-digest\"]",
+            "candidateCount": 1,
+            "navigationEpoch": 1,
+            "exists": true,
+            "visible": true,
+            "tag": "section",
+            "hidden": false,
+            "disabled": false,
+            "readOnly": false,
+            "open": false,
+            "href": "",
+            "title": "",
+            "ariaLabel": "viewer-safe source status digest",
+            "ariaPressed": "",
+            "text": "소스 상태 digest 허용된 소스 상태와 연결 요약만 표시됩니다. viewer-safe view scope locator 숨김 source offline / disconnected offline · disconnected · video unavailable · metadata unavailable · source unavailable attention",
+            "value": "",
+            "checked": false,
+            "selectedValues": [],
+            "optionValues": [],
+            "url": "http://127.0.0.1:60577/client/events"
+          },
+          "beforeSnapshots": {},
+          "snapshots": {},
+          "actual": {
+            "exactRuntimeOracle": {
+              "schema": "media-server.v390-ui-exact-runtime-observation.v1",
+              "caseId": "SRC-038",
+              "featureMeaning": {
+                "text": "`/client/api/views/{id}/events`와 client dashboard payload가 PublishedView-scoped source/tap 상태만 읽어 source status와 connection health를 요약하고 source URL/raw locator/credential/client scope 외 노출/source registry write를 만들지 않음",
+                "sha256": "31edb7a8cd0baf3d7ea6ca5ac8390294f6149bc8e73b36934790ce4a51256b13"
+              },
+              "interaction": {
+                "kind": "existing-primary-action-or-navigation",
+                "selector": "[data-testid=\"client-safe-source-status-digest\"]"
+              },
+              "responses": [
+                {
+                  "method": "GET",
+                  "urlPath": "/client/api/views/9001/events",
+                  "status": 200,
+                  "source": "fresh-browser-fetch",
+                  "bodyDigest": "d6af7a03a4f4a8fb850e2ca7ed38ea84cdf55a6f5778f840178aaae34a595dde",
+                  "assertionEvidence": [],
+                  "sampleCount": 1,
+                  "sampleDigests": [
+                    "d6af7a03a4f4a8fb850e2ca7ed38ea84cdf55a6f5778f840178aaae34a595dde"
+                  ],
+                  "requestCorrelationEvidence": {
+                    "schema": "media-server.v390-ui-request-correlation-evidence.v1",
+                    "pass": true,
+                    "requestExpected": true,
+                    "requestObserved": true,
+                    "requestKind": "application-fetch",
+                    "expectedMethod": "GET",
+                    "expectedPath": "/client/api/views/9001/events",
+                    "expectedActionId": "SRC-038:assert-visible-read-model",
+                    "expectedCaseId": "SRC-038",
+                    "expectedInitiatorActionId": "",
+                    "expectedRenderCycleId": "",
+                    "expectedCorrelationRouteState": "",
+                    "expectedCorrelationRouteActionId": "",
+                    "observedMethod": "GET",
+                    "observedPath": "/client/api/views/9001/events",
+                    "listenerInstalledBeforeRequest": true,
+                    "correlationRequired": true,
+                    "correlationGenerated": true,
+                    "correlationAttached": true,
+                    "correlationObserved": true,
+                    "correlationMatched": true,
+                    "correlationDigest": "7e076fed8def85aec1026d965973d8eb5f7c6c581a221618420ee0faf4565d8d",
+                    "expectedCorrelationDigest": "7e076fed8def85aec1026d965973d8eb5f7c6c581a221618420ee0faf4565d8d",
+                    "initiatingRequestCorrelationDigest": "7e076fed8def85aec1026d965973d8eb5f7c6c581a221618420ee0faf4565d8d",
+                    "responseRequestCorrelationDigest": "7e076fed8def85aec1026d965973d8eb5f7c6c581a221618420ee0faf4565d8d",
+                    "caseRequestIdentity": "SRC-038:request-7",
+                    "caseRequestSequence": 7,
+                    "responseRequestIdentity": "SRC-038:request-7",
+                    "responseRequestSequence": 7,
+                    "requestIdentityMatched": true,
+                    "initiatingRequestActionId": "SRC-038:assert-visible-read-model",
+                    "responseRequestActionId": "SRC-038:assert-visible-read-model",
+                    "initiatingRequestRenderCycleId": "",
+                    "responseRequestRenderCycleId": "",
+                    "initiatingRequestCorrelationRouteState": "preserved-explicit-inner",
+                    "responseRequestCorrelationRouteState": "preserved-explicit-inner",
+                    "initiatingRequestCorrelationRouteActionId": "SRC-038:assert-visible-read-model",
+                    "responseRequestCorrelationRouteActionId": "SRC-038:assert-visible-read-model",
+                    "initiatingRequestCorrelationRouteDigest": "7e076fed8def85aec1026d965973d8eb5f7c6c581a221618420ee0faf4565d8d",
+                    "responseRequestCorrelationRouteDigest": "7e076fed8def85aec1026d965973d8eb5f7c6c581a221618420ee0faf4565d8d",
+                    "responseRequestObjectObserved": true,
+                    "responseRequestMethod": "GET",
+                    "responseRequestPath": "/client/api/views/9001/events",
+                    "responseRequestHeaderDigest": "0565631809cd77e57a02479cf1c835c6c8f2f39490e55cbd8c6ec304194f44ad",
+                    "responseStatus": 200,
+                    "responseEchoHeaderRequired": false,
+                    "responseEchoHeaderObserved": false,
+                    "requestCandidateCount": 1,
+                    "matchedRequestCount": 1,
+                    "responseCandidateCount": 1,
+                    "matchedResponseCount": 1,
+                    "requestAttemptCount": 1,
+                    "requestReissued": false,
+                    "failurePhase": "",
+                    "failureCode": ""
+                  }
+                }
+              ],
+              "dom": [
+                {
+                  "selector": ".client-viewer-events",
+                  "count": 1,
+                  "visibleCount": 1,
+                  "textDigest": "046c6d78",
+                  "responseCount": 1,
+                  "propertyEvidence": [],
+                  "semanticEvidence": [],
+                  "attributeEvidence": {
+                    "schema": "media-server.v390-ui-exact-dom-attribute-binding-evidence.v1",
+                    "pass": true,
+                    "failurePhase": "",
+                    "failureCode": "PASS",
+                    "selectorDigest": "604e60f48ddac95445b624e3fed28446862c89a7e54cd3b83415810d578dc3ee",
+                    "candidateCount": 1,
+                    "candidateEvidenceCount": 1,
+                    "exactNodeSelection": false,
+                    "selectedIndex": -1,
+                    "selectedIndices": [
+                      0
+                    ],
+                    "selectedNodeCount": 1,
+                    "candidateDigest": "d690d9e5c05ad743c7326ebbba94a5ae3a20b81117da9a4727c24a65b9b644f3",
+                    "attributes": [
+                      {
+                        "name": "class",
+                        "operator": "includes",
+                        "expectedValue": null,
+                        "expectedValueDigest": "d94c2b0aba8cef8fc5da32c05ef9636a7a853dffbaf1ae0798fe6ed8fd173b02",
+                        "pass": true,
+                        "observations": [
+                          {
+                            "index": 0,
+                            "observedName": "class",
+                            "observedValue": null,
+                            "observedValueDigest": "d94c2b0aba8cef8fc5da32c05ef9636a7a853dffbaf1ae0798fe6ed8fd173b02",
+                            "pass": true
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  "attributeOwnerEvidence": []
+                }
+              ],
+              "cleanup": {
+                "strategy": "no-op-with-state-proof",
+                "status": "PASS"
+              },
+              "nativePrimaryControl": {
+                "applicability": "required",
+                "selector": "[data-testid=\"client-safe-source-status-digest\"]",
+                "route": "/client/events",
+                "visible": true,
+                "enabled": true,
+                "status": "PASS"
+              },
+              "forbiddenNetworkObserved": 0,
+              "requestedRoute": "/client/api/views/{id}/events",
+              "observedRoute": "/client/events",
+              "routeLifecycle": {
+                "sourceRoute": "/client/api/views/{id}/events",
+                "destinationRoute": "/client/events",
+                "splitApiAndScreen": true,
+                "sourceObservation": "fresh-browser-fetch",
+                "sourceNavigationStatus": null,
+                "screenPreparationStatus": null,
+                "restoreNavigationStatus": null
+              }
+            }
+          }
+        },
+        "observationSha256": "68ec9dfcafc60081d3b672b866911c3bceb8431f4407dd42af1c661c9f7ba70a"
+      },
+      "expectedEndpoint": {
+        "correlationId": "SRC-038:assert-visible-read-model:completion",
+        "method": "GET",
+        "urlPath": "/client/api/views/9001/events",
+        "urlPathTemplate": "/client/api/views/{viewId}/events",
+        "allowedStatuses": [
+          200
+        ],
+        "initiatorActionId": "SRC-038:assert-visible-read-model",
+        "requestOwnershipKind": "primary-action",
+        "runtimeBindingSource": "native-completion-contract"
+      },
+      "expectedNavigationBinding": null,
+      "completionMode": "requestBinding",
+      "completionPhase": "primary-action",
+      "actionId": "SRC-038:assert-visible-read-model",
+      "actionKind": "assert-visible-read-model",
+      "controlSelector": "[data-testid=\"client-safe-source-status-digest\"]"
+    }
+  ],
+  "rawPrimaryObservations": [
+    {
+      "schema": "media-server.v390-ui-raw-primary-observation.v1",
+      "action": {
+        "actionId": "SRC-038:assert-visible-read-model",
+        "actionKind": "assert-visible-read-model",
+        "executedKind": "assert-visible-read-model",
+        "controlSelector": "[data-testid=\"client-safe-source-status-digest\"]",
+        "executionOwnerSelector": "[data-testid=\"client-safe-source-status-digest\"]",
+        "correlationId": "SRC-038:assert-visible-read-model:completion",
+        "dispatch": "playwright-native",
+        "completionMode": "request",
+        "declaredRequest": {
+          "correlationId": "SRC-038:assert-visible-read-model:completion",
+          "method": "GET",
+          "urlPath": "/client/api/views/9001/events",
+          "urlPathTemplate": "/client/api/views/{viewId}/events",
+          "allowedStatuses": [
+            200
+          ],
+          "initiatorActionId": "SRC-038:assert-visible-read-model",
+          "requestOwnershipKind": "primary-action",
+          "runtimeBindingSource": "native-completion-contract"
+        }
+      },
+      "before": {
+        "selector": "[data-testid=\"client-safe-source-status-digest\"]",
+        "candidateCount": 1,
+        "navigationEpoch": 1,
+        "exists": true,
+        "visible": true,
+        "tag": "section",
+        "hidden": false,
+        "disabled": false,
+        "readOnly": false,
+        "open": false,
+        "href": "",
+        "title": "",
+        "ariaLabel": "viewer-safe source status digest",
+        "ariaPressed": "",
+        "text": "소스 상태 digest 허용된 소스 상태와 연결 요약만 표시됩니다. viewer-safe view scope locator 숨김 source offline / disconnected offline · disconnected · video unavailable · metadata unavailable · source unavailable attention",
+        "value": "",
+        "checked": false,
+        "selectedValues": [],
+        "optionValues": [],
+        "url": "http://127.0.0.1:60577/client/events"
+      },
+      "after": {
+        "selector": "[data-testid=\"client-safe-source-status-digest\"]",
+        "candidateCount": 1,
+        "navigationEpoch": 1,
+        "exists": true,
+        "visible": true,
+        "tag": "section",
+        "hidden": false,
+        "disabled": false,
+        "readOnly": false,
+        "open": false,
+        "href": "",
+        "title": "",
+        "ariaLabel": "viewer-safe source status digest",
+        "ariaPressed": "",
+        "text": "소스 상태 digest 허용된 소스 상태와 연결 요약만 표시됩니다. viewer-safe view scope locator 숨김 source offline / disconnected offline · disconnected · video unavailable · metadata unavailable · source unavailable attention",
+        "value": "",
+        "checked": false,
+        "selectedValues": [],
+        "optionValues": [],
+        "url": "http://127.0.0.1:60577/client/events"
+      },
+      "navigation": null,
+      "networkEntries": [
+        {
+          "phase": "request-start",
+          "requestId": "native-request-6",
+          "caseRequestIdentity": "SRC-038:request-6",
+          "caseRequestSequence": 6,
+          "requestKind": "application-fetch",
+          "resourceType": "fetch",
+          "sameOrigin": true,
+          "redirectedFromRequestId": "",
+          "correlationId": "SRC-038:assert-visible-read-model:completion",
+          "correlationSource": "request-header",
+          "correlationInjectionSource": "route-continue",
+          "correlationRouteState": "preserved-explicit-inner",
+          "correlationRouteActionId": "SRC-038:assert-visible-read-model",
+          "correlationRouteDigest": "7e076fed8def85aec1026d965973d8eb5f7c6c581a221618420ee0faf4565d8d",
+          "requestHeaderDigest": "0565631809cd77e57a02479cf1c835c6c8f2f39490e55cbd8c6ec304194f44ad",
+          "ledgerOwner": "action",
+          "sourceOwner": "explicit-action-registration",
+          "ownerPhase": "primary-action",
+          "actionRegistrationKind": "manifest-envelope-sequence",
+          "exactActionRequestOwned": true,
+          "initiatorActionId": "SRC-038:assert-visible-read-model",
+          "renderCycleId": "",
+          "requestOwnershipKind": "primary-action",
+          "lifecycleClass": "primary-action",
+          "actionInvocationId": "SRC-038:assert-visible-read-model",
+          "navigationInvocationId": "",
+          "requestStartedAtMs": 1791094482222,
+          "method": "GET",
+          "status": 0,
+          "url": "http://127.0.0.1:60577/client/api/views/9001/events",
+          "requestBody": null
+        },
+        {
+          "phase": "response",
+          "requestId": "native-request-6",
+          "caseRequestIdentity": "SRC-038:request-6",
+          "caseRequestSequence": 6,
+          "responseRequestObjectObserved": true,
+          "requestIdentitySource": "playwright-response-request",
+          "requestKind": "application-fetch",
+          "resourceType": "fetch",
+          "sameOrigin": true,
+          "correlationId": "SRC-038:assert-visible-read-model:completion",
+          "correlationSource": "request-header",
+          "responseCorrelationSource": "initiating-request-identity",
+          "requestHeaderDigest": "0565631809cd77e57a02479cf1c835c6c8f2f39490e55cbd8c6ec304194f44ad",
+          "correlationRouteState": "preserved-explicit-inner",
+          "correlationRouteActionId": "SRC-038:assert-visible-read-model",
+          "correlationRouteDigest": "7e076fed8def85aec1026d965973d8eb5f7c6c581a221618420ee0faf4565d8d",
+          "responseEchoHeaderContract": "not-required",
+          "responseEchoHeaderObserved": false,
+          "ledgerOwner": "action",
+          "sourceOwner": "explicit-action-registration",
+          "ownerPhase": "primary-action",
+          "exactActionRequestOwned": true,
+          "initiatorActionId": "SRC-038:assert-visible-read-model",
+          "renderCycleId": "",
+          "requestOwnershipKind": "primary-action",
+          "lifecycleClass": "primary-action",
+          "actionInvocationId": "SRC-038:assert-visible-read-model",
+          "navigationInvocationId": "",
+          "requestStartedAtMs": 1791094482222,
+          "responseObservedAtMs": 1791094482225,
+          "method": "GET",
+          "status": 200,
+          "httpOk": true,
+          "url": "http://127.0.0.1:60577/client/api/views/9001/events",
+          "responseHeaders": {
+            "content-type": "application/json; charset=utf-8",
+            "location": ""
+          },
+          "responseLocationPath": ""
+        }
+      ],
+      "requestBinding": {
+        "schema": "media-server.v390-ui-request-correlation-evidence.v1",
+        "pass": true,
+        "requestExpected": true,
+        "requestObserved": true,
+        "requestKind": "application-fetch",
+        "expectedMethod": "GET",
+        "expectedPath": "/client/api/views/9001/events",
+        "expectedActionId": "SRC-038:assert-visible-read-model",
+        "expectedCaseId": "SRC-038",
+        "expectedInitiatorActionId": "",
+        "expectedRenderCycleId": "",
+        "expectedCorrelationRouteState": "",
+        "expectedCorrelationRouteActionId": "",
+        "observedMethod": "GET",
+        "observedPath": "/client/api/views/9001/events",
+        "listenerInstalledBeforeRequest": true,
+        "correlationRequired": true,
+        "correlationGenerated": true,
+        "correlationAttached": true,
+        "correlationObserved": true,
+        "correlationMatched": true,
+        "correlationDigest": "7e076fed8def85aec1026d965973d8eb5f7c6c581a221618420ee0faf4565d8d",
+        "expectedCorrelationDigest": "7e076fed8def85aec1026d965973d8eb5f7c6c581a221618420ee0faf4565d8d",
+        "initiatingRequestCorrelationDigest": "7e076fed8def85aec1026d965973d8eb5f7c6c581a221618420ee0faf4565d8d",
+        "responseRequestCorrelationDigest": "7e076fed8def85aec1026d965973d8eb5f7c6c581a221618420ee0faf4565d8d",
+        "caseRequestIdentity": "SRC-038:request-6",
+        "caseRequestSequence": 6,
+        "responseRequestIdentity": "SRC-038:request-6",
+        "responseRequestSequence": 6,
+        "requestIdentityMatched": true,
+        "initiatingRequestActionId": "SRC-038:assert-visible-read-model",
+        "responseRequestActionId": "SRC-038:assert-visible-read-model",
+        "initiatingRequestRenderCycleId": "",
+        "responseRequestRenderCycleId": "",
+        "initiatingRequestCorrelationRouteState": "preserved-explicit-inner",
+        "responseRequestCorrelationRouteState": "preserved-explicit-inner",
+        "initiatingRequestCorrelationRouteActionId": "SRC-038:assert-visible-read-model",
+        "responseRequestCorrelationRouteActionId": "SRC-038:assert-visible-read-model",
+        "initiatingRequestCorrelationRouteDigest": "7e076fed8def85aec1026d965973d8eb5f7c6c581a221618420ee0faf4565d8d",
+        "responseRequestCorrelationRouteDigest": "7e076fed8def85aec1026d965973d8eb5f7c6c581a221618420ee0faf4565d8d",
+        "responseRequestObjectObserved": true,
+        "responseRequestMethod": "GET",
+        "responseRequestPath": "/client/api/views/9001/events",
+        "responseRequestHeaderDigest": "0565631809cd77e57a02479cf1c835c6c8f2f39490e55cbd8c6ec304194f44ad",
+        "responseStatus": 200,
+        "responseEchoHeaderRequired": false,
+        "responseEchoHeaderObserved": false,
+        "requestCandidateCount": 1,
+        "matchedRequestCount": 1,
+        "responseCandidateCount": 1,
+        "matchedResponseCount": 1,
+        "requestAttemptCount": 1,
+        "requestReissued": false,
+        "failurePhase": "",
+        "failureCode": ""
+      },
+      "semanticReadback": {
+        "schema": "media-server.v390-ui-semantic-readback.v2",
+        "identity": "independent-readback:scripts/internal/verify_ops_source_registry_api.mjs#assertRemainingSourceReadModels#d5a655683983711549bd06aa2b9cbdfa25e49e234c99f15f6ab20457bd3ae742",
+        "correlationId": "SRC-038:assert-visible-read-model:completion",
+        "actionId": "SRC-038:assert-visible-read-model",
+        "expectedBehaviorSha256": "31edb7a8cd0baf3d7ea6ca5ac8390294f6149bc8e73b36934790ce4a51256b13",
+        "observationSource": "browser-dom",
+        "selector": "[data-testid=\"client-safe-source-status-digest\"]",
+        "observation": {
+          "before": {
+            "selector": "[data-testid=\"client-safe-source-status-digest\"]",
+            "candidateCount": 1,
+            "navigationEpoch": 1,
+            "exists": true,
+            "visible": true,
+            "tag": "section",
+            "hidden": false,
+            "disabled": false,
+            "readOnly": false,
+            "open": false,
+            "href": "",
+            "title": "",
+            "ariaLabel": "viewer-safe source status digest",
+            "ariaPressed": "",
+            "text": "소스 상태 digest 허용된 소스 상태와 연결 요약만 표시됩니다. viewer-safe view scope locator 숨김 source offline / disconnected offline · disconnected · video unavailable · metadata unavailable · source unavailable attention",
+            "value": "",
+            "checked": false,
+            "selectedValues": [],
+            "optionValues": [],
+            "url": "http://127.0.0.1:60577/client/events"
+          },
+          "after": {
+            "selector": "[data-testid=\"client-safe-source-status-digest\"]",
+            "candidateCount": 1,
+            "navigationEpoch": 1,
+            "exists": true,
+            "visible": true,
+            "tag": "section",
+            "hidden": false,
+            "disabled": false,
+            "readOnly": false,
+            "open": false,
+            "href": "",
+            "title": "",
+            "ariaLabel": "viewer-safe source status digest",
+            "ariaPressed": "",
+            "text": "소스 상태 digest 허용된 소스 상태와 연결 요약만 표시됩니다. viewer-safe view scope locator 숨김 source offline / disconnected offline · disconnected · video unavailable · metadata unavailable · source unavailable attention",
+            "value": "",
+            "checked": false,
+            "selectedValues": [],
+            "optionValues": [],
+            "url": "http://127.0.0.1:60577/client/events"
+          },
+          "beforeSnapshots": {},
+          "snapshots": {},
+          "actual": {
+            "exactRuntimeOracle": {
+              "schema": "media-server.v390-ui-exact-runtime-observation.v1",
+              "caseId": "SRC-038",
+              "featureMeaning": {
+                "text": "`/client/api/views/{id}/events`와 client dashboard payload가 PublishedView-scoped source/tap 상태만 읽어 source status와 connection health를 요약하고 source URL/raw locator/credential/client scope 외 노출/source registry write를 만들지 않음",
+                "sha256": "31edb7a8cd0baf3d7ea6ca5ac8390294f6149bc8e73b36934790ce4a51256b13"
+              },
+              "interaction": {
+                "kind": "existing-primary-action-or-navigation",
+                "selector": "[data-testid=\"client-safe-source-status-digest\"]"
+              },
+              "responses": [
+                {
+                  "method": "GET",
+                  "urlPath": "/client/api/views/9001/events",
+                  "status": 200,
+                  "source": "fresh-browser-fetch",
+                  "bodyDigest": "d6af7a03a4f4a8fb850e2ca7ed38ea84cdf55a6f5778f840178aaae34a595dde",
+                  "assertionEvidence": [],
+                  "sampleCount": 1,
+                  "sampleDigests": [
+                    "d6af7a03a4f4a8fb850e2ca7ed38ea84cdf55a6f5778f840178aaae34a595dde"
+                  ],
+                  "requestCorrelationEvidence": {
+                    "schema": "media-server.v390-ui-request-correlation-evidence.v1",
+                    "pass": true,
+                    "requestExpected": true,
+                    "requestObserved": true,
+                    "requestKind": "application-fetch",
+                    "expectedMethod": "GET",
+                    "expectedPath": "/client/api/views/9001/events",
+                    "expectedActionId": "SRC-038:assert-visible-read-model",
+                    "expectedCaseId": "SRC-038",
+                    "expectedInitiatorActionId": "",
+                    "expectedRenderCycleId": "",
+                    "expectedCorrelationRouteState": "",
+                    "expectedCorrelationRouteActionId": "",
+                    "observedMethod": "GET",
+                    "observedPath": "/client/api/views/9001/events",
+                    "listenerInstalledBeforeRequest": true,
+                    "correlationRequired": true,
+                    "correlationGenerated": true,
+                    "correlationAttached": true,
+                    "correlationObserved": true,
+                    "correlationMatched": true,
+                    "correlationDigest": "7e076fed8def85aec1026d965973d8eb5f7c6c581a221618420ee0faf4565d8d",
+                    "expectedCorrelationDigest": "7e076fed8def85aec1026d965973d8eb5f7c6c581a221618420ee0faf4565d8d",
+                    "initiatingRequestCorrelationDigest": "7e076fed8def85aec1026d965973d8eb5f7c6c581a221618420ee0faf4565d8d",
+                    "responseRequestCorrelationDigest": "7e076fed8def85aec1026d965973d8eb5f7c6c581a221618420ee0faf4565d8d",
+                    "caseRequestIdentity": "SRC-038:request-7",
+                    "caseRequestSequence": 7,
+                    "responseRequestIdentity": "SRC-038:request-7",
+                    "responseRequestSequence": 7,
+                    "requestIdentityMatched": true,
+                    "initiatingRequestActionId": "SRC-038:assert-visible-read-model",
+                    "responseRequestActionId": "SRC-038:assert-visible-read-model",
+                    "initiatingRequestRenderCycleId": "",
+                    "responseRequestRenderCycleId": "",
+                    "initiatingRequestCorrelationRouteState": "preserved-explicit-inner",
+                    "responseRequestCorrelationRouteState": "preserved-explicit-inner",
+                    "initiatingRequestCorrelationRouteActionId": "SRC-038:assert-visible-read-model",
+                    "responseRequestCorrelationRouteActionId": "SRC-038:assert-visible-read-model",
+                    "initiatingRequestCorrelationRouteDigest": "7e076fed8def85aec1026d965973d8eb5f7c6c581a221618420ee0faf4565d8d",
+                    "responseRequestCorrelationRouteDigest": "7e076fed8def85aec1026d965973d8eb5f7c6c581a221618420ee0faf4565d8d",
+                    "responseRequestObjectObserved": true,
+                    "responseRequestMethod": "GET",
+                    "responseRequestPath": "/client/api/views/9001/events",
+                    "responseRequestHeaderDigest": "0565631809cd77e57a02479cf1c835c6c8f2f39490e55cbd8c6ec304194f44ad",
+                    "responseStatus": 200,
+                    "responseEchoHeaderRequired": false,
+                    "responseEchoHeaderObserved": false,
+                    "requestCandidateCount": 1,
+                    "matchedRequestCount": 1,
+                    "responseCandidateCount": 1,
+                    "matchedResponseCount": 1,
+                    "requestAttemptCount": 1,
+                    "requestReissued": false,
+                    "failurePhase": "",
+                    "failureCode": ""
+                  }
+                }
+              ],
+              "dom": [
+                {
+                  "selector": ".client-viewer-events",
+                  "count": 1,
+                  "visibleCount": 1,
+                  "textDigest": "046c6d78",
+                  "responseCount": 1,
+                  "propertyEvidence": [],
+                  "semanticEvidence": [],
+                  "attributeEvidence": {
+                    "schema": "media-server.v390-ui-exact-dom-attribute-binding-evidence.v1",
+                    "pass": true,
+                    "failurePhase": "",
+                    "failureCode": "PASS",
+                    "selectorDigest": "604e60f48ddac95445b624e3fed28446862c89a7e54cd3b83415810d578dc3ee",
+                    "candidateCount": 1,
+                    "candidateEvidenceCount": 1,
+                    "exactNodeSelection": false,
+                    "selectedIndex": -1,
+                    "selectedIndices": [
+                      0
+                    ],
+                    "selectedNodeCount": 1,
+                    "candidateDigest": "d690d9e5c05ad743c7326ebbba94a5ae3a20b81117da9a4727c24a65b9b644f3",
+                    "attributes": [
+                      {
+                        "name": "class",
+                        "operator": "includes",
+                        "expectedValue": null,
+                        "expectedValueDigest": "d94c2b0aba8cef8fc5da32c05ef9636a7a853dffbaf1ae0798fe6ed8fd173b02",
+                        "pass": true,
+                        "observations": [
+                          {
+                            "index": 0,
+                            "observedName": "class",
+                            "observedValue": null,
+                            "observedValueDigest": "d94c2b0aba8cef8fc5da32c05ef9636a7a853dffbaf1ae0798fe6ed8fd173b02",
+                            "pass": true
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  "attributeOwnerEvidence": []
+                }
+              ],
+              "cleanup": {
+                "strategy": "no-op-with-state-proof",
+                "status": "PASS"
+              },
+              "nativePrimaryControl": {
+                "applicability": "required",
+                "selector": "[data-testid=\"client-safe-source-status-digest\"]",
+                "route": "/client/events",
+                "visible": true,
+                "enabled": true,
+                "status": "PASS"
+              },
+              "forbiddenNetworkObserved": 0,
+              "requestedRoute": "/client/api/views/{id}/events",
+              "observedRoute": "/client/events",
+              "routeLifecycle": {
+                "sourceRoute": "/client/api/views/{id}/events",
+                "destinationRoute": "/client/events",
+                "splitApiAndScreen": true,
+                "sourceObservation": "fresh-browser-fetch",
+                "sourceNavigationStatus": null,
+                "screenPreparationStatus": null,
+                "restoreNavigationStatus": null
+              }
+            }
+          }
+        },
+        "observationSha256": "68ec9dfcafc60081d3b672b866911c3bceb8431f4407dd42af1c661c9f7ba70a"
+      }
+    }
+  ],
+  "expectedResults": [
+    {
+      "resultId": "SRC-038:semantic-result",
+      "kind": "reviewed-semantic-result",
+      "expectedBehavior": "`/client/api/views/{id}/events`와 client dashboard payload가 PublishedView-scoped source/tap 상태만 읽어 source status와 connection health를 요약하고 source URL/raw locator/credential/client scope 외 노출/source registry write를 만들지 않음",
+      "expectedBehaviorSha256": "31edb7a8cd0baf3d7ea6ca5ac8390294f6149bc8e73b36934790ce4a51256b13",
+      "endpointHints": [
+        "/client/api/views/"
+      ],
+      "stateLocator": {
+        "file": "src/ingress/webrtc_http_server.cpp",
+        "symbol": "AppendClientSafeSourceStatusDigestJson",
+        "contextSha256": "232014d6dffa91bc04d419e2d49b187dc0b36270a205f7cf8565eb912bfccf28"
+      },
+      "readbackLocator": {
+        "file": "scripts/internal/verify_ops_source_registry_api.mjs",
+        "symbol": "assertRemainingSourceReadModels",
+        "contextSha256": "d5a655683983711549bd06aa2b9cbdfa25e49e234c99f15f6ab20457bd3ae742"
+      },
+      "completion": {
+        "schema": "media-server.v390-ui-action-completion.v2",
+        "required": true,
+        "phase": "primary-action",
+        "actionId": "SRC-038:assert-visible-read-model",
+        "actionKind": "assert-visible-read-model",
+        "controlSelector": "[data-testid=\"client-safe-source-status-digest\"]",
+        "linkedPrimaryActionId": null,
+        "completionMode": "request",
+        "requiredSource": "endpoint-dom",
+        "correlationId": "SRC-038:assert-visible-read-model:completion",
+        "request": {
+          "initiatorActionId": "SRC-038:assert-visible-read-model",
+          "requestOwnershipKind": "primary-action",
+          "correlationHeader": "x-media-server-correlation-id",
+          "correlationId": "SRC-038:assert-visible-read-model:completion",
+          "correlationSource": "request-header",
+          "method": "GET",
+          "urlPathTemplate": "/client/api/views/{viewId}/events",
+          "urlPath": "/client/api/views/9001/events",
+          "pathParameters": {
+            "viewId": "9001"
+          },
+          "parameterSource": "runtime-default-view",
+          "allowedStatuses": [
+            200
+          ]
+        },
+        "localTransition": null,
+        "expectedBehaviorSha256": "31edb7a8cd0baf3d7ea6ca5ac8390294f6149bc8e73b36934790ce4a51256b13",
+        "readback": {
+          "identity": "independent-readback:scripts/internal/verify_ops_source_registry_api.mjs#assertRemainingSourceReadModels#d5a655683983711549bd06aa2b9cbdfa25e49e234c99f15f6ab20457bd3ae742",
+          "expectedStateIdentity": "product-state:src/ingress/webrtc_http_server.cpp#AppendClientSafeSourceStatusDigestJson#232014d6dffa91bc04d419e2d49b187dc0b36270a205f7cf8565eb912bfccf28",
+          "expectedBehaviorSha256": "31edb7a8cd0baf3d7ea6ca5ac8390294f6149bc8e73b36934790ce4a51256b13",
+          "allowedObservationSources": [
+            "browser-dom",
+            "readback-request",
+            "event-record",
+            "server-log"
+          ],
+          "staticLocatorIsNotRuntimePass": true
+        },
+        "readbackIdentity": "independent-readback:scripts/internal/verify_ops_source_registry_api.mjs#assertRemainingSourceReadModels#d5a655683983711549bd06aa2b9cbdfa25e49e234c99f15f6ab20457bd3ae742",
+        "readbackExpectation": {
+          "exists": true,
+          "visible": true
+        },
+        "attestedAlternatives": [
+          "persisted-readback",
+          "event-record",
+          "server-log"
+        ]
+      }
+    }
+  ],
+  "cleanup": [
+    {
+      "kind": "no-op-cleanup",
+      "cleanupId": "SRC-038:no-persisted-mutation",
+      "persistedMutation": false,
+      "assertion": "reviewed workflow does not persist product state",
+      "semanticCallChainSha256": "0b8931f0a506c348044c78538bd071a1f359f956c82237ab63b33329992b5676",
+      "status": "PASS"
+    },
+    {
+      "cleanupId": "SRC-038:authoritative-state-boundary",
+      "status": "PASS",
+      "source": "acceptance-owned-state-file-byte-readback",
+      "unexpectedStateChange": false,
+      "finalStateRestored": true
+    }
+  ],
+  "actionOwnedRequestLedgerEvidence": {
+    "schema": "media-server.v390-ui-action-owned-request-ledger-binding.v1",
+    "caseId": "SRC-038",
+    "actionId": "SRC-038:assert-visible-read-model",
+    "correlationId": "SRC-038:assert-visible-read-model:completion",
+    "primaryRequestPath": "/client/api/views/9001/events",
+    "runtimeMaterialized": true,
+    "primaryRequestId": "native-request-6",
+    "primaryRequestSequence": 6,
+    "primaryResponseStatus": 200,
+    "requestCount": 1,
+    "responseCount": 1,
+    "additionalFetchCount": 0,
+    "pageOwnedRequestCount": 0,
+    "pageOwnedResponseCount": 0,
+    "actionCorrelationLeakCount": 0,
+    "pageOwnedRequestLedger": [],
+    "orderedCallFlow": [
+      {
+        "requestId": "native-request-6",
+        "caseRequestSequence": 6,
+        "method": "GET",
+        "path": "/client/api/views/9001/events"
+      }
+    ],
+    "pass": true
+  },
+  "requestNavigationLifecycleEvidence": {
+    "plan": {
+      "schema": "media-server.v390-ui-request-navigation-lifecycle-plan.v1",
+      "caseId": "SRC-038",
+      "classification": "same-document-no-navigation",
+      "sourceRoute": "/client/events",
+      "sourceSelector": "[data-testid=\"client-safe-source-status-digest\"]",
+      "finalRoute": "/client/events",
+      "declaredHopCount": 0,
+      "primaryHopCount": 0,
+      "readbackHopCount": 0,
+      "steps": []
+    },
+    "scope": {
+      "schema": "media-server.v390-ui-request-navigation-scope.v1",
+      "startEpoch": 1,
+      "endEpoch": 1,
+      "ownerLifecycles": [],
+      "documentNavigations": []
+    },
+    "binding": {
+      "schema": "media-server.v390-ui-request-navigation-lifecycle-binding.v1",
+      "caseId": "SRC-038",
+      "classification": "same-document-no-navigation",
+      "navigationCount": 0,
+      "declaredHopCount": 0,
+      "ownedDocumentCommitCount": 0,
+      "primaryHopCount": 0,
+      "readbackHopCount": 0,
+      "sourceOwnerSelector": "[data-testid=\"client-safe-source-status-digest\"]",
+      "sourceEpoch": 1,
+      "finalEpoch": 1,
+      "epochDelta": 0,
+      "hopMode": "zero-hop",
+      "finalRoute": "/client/events",
+      "epochRelation": "same-document",
+      "pass": true
+    }
+  },
+  "postActionVisualTargetEvidence": {
+    "schema": "media-server.v390-ui-post-action-visual-target.v1",
+    "caseId": "SRC-038",
+    "actionId": "SRC-038:assert-visible-read-model",
+    "completionMode": "request",
+    "sourceSelectorSha256": "90f547ddd0a1a6c986d23f2fbd16b0430de724c34447c1c948328b70e1b98008",
+    "sourceOwnerSelectorSha256": "90f547ddd0a1a6c986d23f2fbd16b0430de724c34447c1c948328b70e1b98008",
+    "requestedState": "visible",
+    "observedRoute": "/client/events",
+    "navigationEpoch": 1,
+    "ownerCandidateCount": 1,
+    "sourceSelectorRewaited": false,
+    "selector": "[data-testid=\"client-safe-source-status-digest\"]",
+    "bindingKind": "post-action-visible-source-owner",
+    "sourceDetached": false,
+    "sourceHidden": false,
+    "epochRelation": "same-document"
+  },
+  "requestActionOwnershipEvidence": {
+    "schema": "media-server.v390-ui-request-action-ownership-lifecycle.v1",
+    "caseId": "SRC-038",
+    "expectedPhases": [
+      "bootstrap-settling",
+      "source-before-frozen",
+      "primary-action",
+      "independent-readback",
+      "post-action-observation"
+    ],
+    "completedPhases": [
+      {
+        "sequence": 1,
+        "phase": "bootstrap-settling",
+        "caseId": "SRC-038",
+        "actionId": "SRC-038:initial-document-navigation",
+        "ownershipMode": "initial-page-load-ended-and-attested",
+        "status": "attested",
+        "endedScopeCount": 0
+      },
+      {
+        "sequence": 2,
+        "phase": "source-before-frozen",
+        "caseId": "SRC-038",
+        "actionId": "SRC-038:assert-visible-read-model",
+        "ownershipMode": "exact-one-visible-source-owner-frozen",
+        "status": "attested",
+        "endedScopeCount": 0
+      },
+      {
+        "sequence": 3,
+        "phase": "primary-action",
+        "caseId": "SRC-038",
+        "actionId": "SRC-038:assert-visible-read-model",
+        "ownershipMode": "primary-scope-ended-and-attested",
+        "status": "attested",
+        "endedScopeCount": 1
+      },
+      {
+        "sequence": 4,
+        "phase": "independent-readback",
+        "caseId": "SRC-038",
+        "actionId": "SRC-038:assert-visible-read-model",
+        "ownershipMode": "independent-readback-scopes-ended-and-attested",
+        "status": "attested",
+        "endedScopeCount": 2
+      },
+      {
+        "sequence": 5,
+        "phase": "post-action-observation",
+        "caseId": "SRC-038",
+        "actionId": "SRC-038:assert-visible-read-model",
+        "ownershipMode": "post-action-visual-observation-complete",
+        "status": "attested",
+        "endedScopeCount": 0
+      }
+    ],
+    "nextPhase": "complete",
+    "activeOwner": null,
+    "lifecycle": [
+      {
+        "event": "attest",
+        "phase": "bootstrap-settling",
+        "caseId": "SRC-038",
+        "actionId": "SRC-038:initial-document-navigation",
+        "ownershipMode": "initial-page-load-ended-and-attested",
+        "status": "attested",
+        "endedScopeCount": 0
+      },
+      {
+        "event": "attest",
+        "phase": "source-before-frozen",
+        "caseId": "SRC-038",
+        "actionId": "SRC-038:assert-visible-read-model",
+        "ownershipMode": "exact-one-visible-source-owner-frozen",
+        "status": "attested",
+        "endedScopeCount": 0
+      },
+      {
+        "event": "begin",
+        "scopeSequence": 1,
+        "caseId": "SRC-038",
+        "phase": "primary-action",
+        "actionId": "SRC-038:assert-visible-read-model",
+        "ownershipKind": "primary-action"
+      },
+      {
+        "event": "register",
+        "scopeSequence": 1,
+        "requestId": "native-request-6"
+      },
+      {
+        "event": "request-complete",
+        "scopeSequence": 1,
+        "requestId": "native-request-6"
+      },
+      {
+        "event": "end",
+        "phase": "primary-action",
+        "caseId": "SRC-038",
+        "actionId": "SRC-038:assert-visible-read-model",
+        "correlationId": "SRC-038:assert-visible-read-model:completion",
+        "ownershipKind": "primary-action",
+        "ownershipMode": "explicit-begin-register-end",
+        "scopeSequence": 1,
+        "activeRequestCount": 0,
+        "status": "attested"
+      },
+      {
+        "event": "attest",
+        "phase": "primary-action",
+        "caseId": "SRC-038",
+        "actionId": "SRC-038:assert-visible-read-model",
+        "ownershipMode": "primary-scope-ended-and-attested",
+        "status": "attested",
+        "endedScopeCount": 1
+      },
+      {
+        "event": "begin",
+        "scopeSequence": 2,
+        "caseId": "SRC-038",
+        "phase": "independent-readback",
+        "actionId": "SRC-038:assert-visible-read-model",
+        "ownershipKind": "independent-readback"
+      },
+      {
+        "event": "end",
+        "phase": "independent-readback",
+        "caseId": "SRC-038",
+        "actionId": "SRC-038:assert-visible-read-model",
+        "correlationId": "SRC-038:assert-visible-read-model:completion",
+        "ownershipKind": "independent-readback",
+        "ownershipMode": "explicit-begin-register-end",
+        "scopeSequence": 2,
+        "activeRequestCount": 0,
+        "status": "attested"
+      },
+      {
+        "event": "begin",
+        "scopeSequence": 3,
+        "caseId": "SRC-038",
+        "phase": "independent-readback",
+        "actionId": "SRC-038:assert-visible-read-model",
+        "ownershipKind": "independent-readback"
+      },
+      {
+        "event": "register",
+        "scopeSequence": 3,
+        "requestId": "native-request-7"
+      },
+      {
+        "event": "request-complete",
+        "scopeSequence": 3,
+        "requestId": "native-request-7"
+      },
+      {
+        "event": "end",
+        "phase": "independent-readback",
+        "caseId": "SRC-038",
+        "actionId": "SRC-038:assert-visible-read-model",
+        "correlationId": "SRC-038:assert-visible-read-model:completion",
+        "ownershipKind": "independent-readback",
+        "ownershipMode": "explicit-begin-register-end",
+        "scopeSequence": 3,
+        "activeRequestCount": 0,
+        "status": "attested"
+      },
+      {
+        "event": "attest",
+        "phase": "independent-readback",
+        "caseId": "SRC-038",
+        "actionId": "SRC-038:assert-visible-read-model",
+        "ownershipMode": "independent-readback-scopes-ended-and-attested",
+        "status": "attested",
+        "endedScopeCount": 2
+      },
+      {
+        "event": "attest",
+        "phase": "post-action-observation",
+        "caseId": "SRC-038",
+        "actionId": "SRC-038:assert-visible-read-model",
+        "ownershipMode": "post-action-visual-observation-complete",
+        "status": "attested",
+        "endedScopeCount": 0
+      }
+    ],
+    "complete": true
+  },
+  "actionRequestScopeLedgerEvidence": [
+    {
+      "schema": "media-server.v390-ui-action-request-scope-ledgers.v1",
+      "scopeSequence": 1,
+      "caseId": "SRC-038",
+      "phase": "primary-action",
+      "actionId": "SRC-038:assert-visible-read-model",
+      "actionOwnedRequestLedgers": [
+        {
+          "schema": "media-server.v390-ui-action-request-envelope-ledger.v1",
+          "caseId": "SRC-038",
+          "phase": "primary-action",
+          "actionId": "SRC-038:assert-visible-read-model",
+          "correlationId": "SRC-038:assert-visible-read-model:completion",
+          "method": "GET",
+          "target": "/client/api/views/9001/events",
+          "targetMatchMode": "exact",
+          "observedTargets": [
+            "/client/api/views/9001/events"
+          ],
+          "requestKind": "application-fetch",
+          "expectedRequestCount": 1,
+          "requestCount": 1,
+          "responseCount": 1,
+          "requestSequences": [
+            6
+          ],
+          "statuses": [
+            200
+          ],
+          "pass": true,
+          "responseBarrier": {
+            "schema": "media-server.v390-ui-object-bound-response-barrier.v1",
+            "label": "SRC-038:SRC-038:assert-visible-read-model:GET /client/api/views/9001/events",
+            "expectedResponseCount": 1,
+            "responseCount": 1,
+            "settlement": "resolved",
+            "settled": true,
+            "activeWaiterCount": 0,
+            "activeTimerCount": 0,
+            "pass": true
+          }
+        }
+      ],
+      "pageOwnedRequestLedger": [],
+      "actionCorrelationLeakCount": 0
+    },
+    {
+      "schema": "media-server.v390-ui-action-request-scope-ledgers.v1",
+      "scopeSequence": 2,
+      "caseId": "SRC-038",
+      "phase": "independent-readback",
+      "actionId": "SRC-038:assert-visible-read-model",
+      "actionOwnedRequestLedgers": [],
+      "pageOwnedRequestLedger": [],
+      "actionCorrelationLeakCount": 0
+    },
+    {
+      "schema": "media-server.v390-ui-action-request-scope-ledgers.v1",
+      "scopeSequence": 3,
+      "caseId": "SRC-038",
+      "phase": "independent-readback",
+      "actionId": "SRC-038:assert-visible-read-model",
+      "actionOwnedRequestLedgers": [
+        {
+          "schema": "media-server.v390-ui-action-request-envelope-ledger.v1",
+          "caseId": "SRC-038",
+          "phase": "independent-readback",
+          "actionId": "SRC-038:assert-visible-read-model",
+          "correlationId": "SRC-038:assert-visible-read-model:completion",
+          "method": "GET",
+          "target": "/client/api/views/9001/events",
+          "targetMatchMode": "exact",
+          "observedTargets": [
+            "/client/api/views/9001/events"
+          ],
+          "requestKind": "application-fetch",
+          "expectedRequestCount": 1,
+          "requestCount": 1,
+          "responseCount": 1,
+          "requestSequences": [
+            7
+          ],
+          "statuses": [
+            200
+          ],
+          "pass": true,
+          "responseBarrier": {
+            "schema": "media-server.v390-ui-object-bound-response-barrier.v1",
+            "label": "SRC-038:SRC-038:assert-visible-read-model:GET /client/api/views/9001/events",
+            "expectedResponseCount": 1,
+            "responseCount": 1,
+            "settlement": "resolved",
+            "settled": true,
+            "activeWaiterCount": 0,
+            "activeTimerCount": 0,
+            "pass": true
+          }
+        }
+      ],
+      "pageOwnedRequestLedger": [
+        {
+          "phase": "request-start",
+          "requestId": "native-request-7",
+          "caseRequestIdentity": "SRC-038:request-7",
+          "caseRequestSequence": 7,
+          "requestKind": "application-fetch",
+          "resourceType": "fetch",
+          "sameOrigin": true,
+          "redirectedFromRequestId": "",
+          "correlationId": "SRC-038:assert-visible-read-model:completion",
+          "correlationSource": "request-header",
+          "correlationInjectionSource": "route-continue",
+          "correlationRouteState": "preserved-explicit-inner",
+          "correlationRouteActionId": "SRC-038:assert-visible-read-model",
+          "correlationRouteDigest": "7e076fed8def85aec1026d965973d8eb5f7c6c581a221618420ee0faf4565d8d",
+          "requestHeaderDigest": "0565631809cd77e57a02479cf1c835c6c8f2f39490e55cbd8c6ec304194f44ad",
+          "ledgerOwner": "page",
+          "sourceOwner": "page",
+          "ownerPhase": "independent-readback",
+          "actionRegistrationKind": "manifest-envelope-sequence",
+          "exactActionRequestOwned": true,
+          "initiatorActionId": "SRC-038:assert-visible-read-model",
+          "renderCycleId": "",
+          "requestOwnershipKind": "independent-readback",
+          "lifecycleClass": "independent-readback",
+          "actionInvocationId": "SRC-038:assert-visible-read-model",
+          "navigationInvocationId": "",
+          "requestStartedAtMs": 1791094482270,
+          "method": "GET",
+          "status": 0,
+          "url": "http://127.0.0.1:60577/client/api/views/9001/events",
+          "requestBody": null
+        },
+        {
+          "phase": "response",
+          "requestId": "native-request-7",
+          "caseRequestIdentity": "SRC-038:request-7",
+          "caseRequestSequence": 7,
+          "responseRequestObjectObserved": true,
+          "requestIdentitySource": "playwright-response-request",
+          "requestKind": "application-fetch",
+          "resourceType": "fetch",
+          "sameOrigin": true,
+          "correlationId": "SRC-038:assert-visible-read-model:completion",
+          "correlationSource": "request-header",
+          "responseCorrelationSource": "initiating-request-identity",
+          "requestHeaderDigest": "0565631809cd77e57a02479cf1c835c6c8f2f39490e55cbd8c6ec304194f44ad",
+          "correlationRouteState": "preserved-explicit-inner",
+          "correlationRouteActionId": "SRC-038:assert-visible-read-model",
+          "correlationRouteDigest": "7e076fed8def85aec1026d965973d8eb5f7c6c581a221618420ee0faf4565d8d",
+          "responseEchoHeaderContract": "not-required",
+          "responseEchoHeaderObserved": false,
+          "ledgerOwner": "page",
+          "sourceOwner": "page",
+          "ownerPhase": "independent-readback",
+          "exactActionRequestOwned": true,
+          "initiatorActionId": "SRC-038:assert-visible-read-model",
+          "renderCycleId": "",
+          "requestOwnershipKind": "independent-readback",
+          "lifecycleClass": "independent-readback",
+          "actionInvocationId": "SRC-038:assert-visible-read-model",
+          "navigationInvocationId": "",
+          "requestStartedAtMs": 1791094482270,
+          "responseObservedAtMs": 1791094482272,
+          "method": "GET",
+          "status": 200,
+          "httpOk": true,
+          "url": "http://127.0.0.1:60577/client/api/views/9001/events",
+          "responseHeaders": {
+            "content-type": "application/json; charset=utf-8",
+            "location": ""
+          },
+          "responseLocationPath": ""
+        }
+      ],
+      "actionCorrelationLeakCount": 0
+    }
+  ],
+  "pageOwnedRequestLedger": [
+    {
+      "phase": "request-start",
+      "requestId": "native-request-1",
+      "caseRequestIdentity": "SRC-038:request-1",
+      "caseRequestSequence": 1,
+      "requestKind": "document-navigation",
+      "resourceType": "document",
+      "sameOrigin": true,
+      "redirectedFromRequestId": "",
+      "correlationId": "",
+      "correlationSource": "none",
+      "correlationInjectionSource": "",
+      "correlationRouteState": "correlation-absent",
+      "correlationRouteActionId": "",
+      "correlationRouteDigest": "",
+      "requestHeaderDigest": "",
+      "ledgerOwner": "page",
+      "sourceOwner": "page",
+      "ownerPhase": "bootstrap",
+      "actionRegistrationKind": "",
+      "exactActionRequestOwned": false,
+      "initiatorActionId": "",
+      "renderCycleId": "",
+      "requestOwnershipKind": "initial-page-load",
+      "lifecycleClass": "bootstrap-document",
+      "actionInvocationId": "",
+      "navigationInvocationId": "SRC-038:initial-document-navigation",
+      "requestStartedAtMs": 1791094482122,
+      "method": "GET",
+      "status": 0,
+      "url": "http://127.0.0.1:60577/client/events",
+      "requestBody": null
+    },
+    {
+      "phase": "response",
+      "requestId": "native-request-1",
+      "caseRequestIdentity": "SRC-038:request-1",
+      "caseRequestSequence": 1,
+      "responseRequestObjectObserved": true,
+      "requestIdentitySource": "playwright-response-request",
+      "requestKind": "document-navigation",
+      "resourceType": "document",
+      "sameOrigin": true,
+      "correlationId": "",
+      "correlationSource": "none",
+      "responseCorrelationSource": "none",
+      "requestHeaderDigest": "",
+      "correlationRouteState": "correlation-absent",
+      "correlationRouteActionId": "",
+      "correlationRouteDigest": "",
+      "responseEchoHeaderContract": "not-required",
+      "responseEchoHeaderObserved": false,
+      "ledgerOwner": "page",
+      "sourceOwner": "page",
+      "ownerPhase": "bootstrap",
+      "exactActionRequestOwned": false,
+      "initiatorActionId": "",
+      "renderCycleId": "",
+      "requestOwnershipKind": "initial-page-load",
+      "lifecycleClass": "bootstrap-document",
+      "actionInvocationId": "",
+      "navigationInvocationId": "SRC-038:initial-document-navigation",
+      "requestStartedAtMs": 1791094482122,
+      "responseObservedAtMs": 1791094482131,
+      "method": "GET",
+      "status": 200,
+      "httpOk": true,
+      "url": "http://127.0.0.1:60577/client/events",
+      "responseHeaders": {
+        "content-type": "text/html; charset=utf-8",
+        "location": ""
+      },
+      "responseLocationPath": ""
+    },
+    {
+      "phase": "request-start",
+      "requestId": "native-request-2",
+      "caseRequestIdentity": "SRC-038:request-2",
+      "caseRequestSequence": 2,
+      "requestKind": "application-fetch",
+      "resourceType": "fetch",
+      "sameOrigin": true,
+      "redirectedFromRequestId": "",
+      "correlationId": "",
+      "correlationSource": "none",
+      "correlationInjectionSource": "",
+      "correlationRouteState": "correlation-absent",
+      "correlationRouteActionId": "",
+      "correlationRouteDigest": "",
+      "requestHeaderDigest": "",
+      "ledgerOwner": "page",
+      "sourceOwner": "page",
+      "ownerPhase": "bootstrap",
+      "actionRegistrationKind": "",
+      "exactActionRequestOwned": false,
+      "initiatorActionId": "",
+      "renderCycleId": "",
+      "requestOwnershipKind": "bootstrap",
+      "lifecycleClass": "bootstrap-fetch",
+      "actionInvocationId": "",
+      "navigationInvocationId": "SRC-038:initial-document-navigation",
+      "requestStartedAtMs": 1791094482142,
+      "method": "GET",
+      "status": 0,
+      "url": "http://127.0.0.1:60577/auth/whoami",
+      "requestBody": null
+    },
+    {
+      "phase": "request-start",
+      "requestId": "native-request-3",
+      "caseRequestIdentity": "SRC-038:request-3",
+      "caseRequestSequence": 3,
+      "requestKind": "application-fetch",
+      "resourceType": "fetch",
+      "sameOrigin": true,
+      "redirectedFromRequestId": "",
+      "correlationId": "",
+      "correlationSource": "none",
+      "correlationInjectionSource": "",
+      "correlationRouteState": "correlation-absent",
+      "correlationRouteActionId": "",
+      "correlationRouteDigest": "",
+      "requestHeaderDigest": "",
+      "ledgerOwner": "page",
+      "sourceOwner": "page",
+      "ownerPhase": "bootstrap",
+      "actionRegistrationKind": "",
+      "exactActionRequestOwned": false,
+      "initiatorActionId": "",
+      "renderCycleId": "",
+      "requestOwnershipKind": "bootstrap",
+      "lifecycleClass": "bootstrap-fetch",
+      "actionInvocationId": "",
+      "navigationInvocationId": "SRC-038:initial-document-navigation",
+      "requestStartedAtMs": 1791094482142,
+      "method": "GET",
+      "status": 0,
+      "url": "http://127.0.0.1:60577/client/api/views/9001/events?limit=20",
+      "requestBody": null
+    },
+    {
+      "phase": "response",
+      "requestId": "native-request-2",
+      "caseRequestIdentity": "SRC-038:request-2",
+      "caseRequestSequence": 2,
+      "responseRequestObjectObserved": true,
+      "requestIdentitySource": "playwright-response-request",
+      "requestKind": "application-fetch",
+      "resourceType": "fetch",
+      "sameOrigin": true,
+      "correlationId": "",
+      "correlationSource": "none",
+      "responseCorrelationSource": "none",
+      "requestHeaderDigest": "",
+      "correlationRouteState": "correlation-absent",
+      "correlationRouteActionId": "",
+      "correlationRouteDigest": "",
+      "responseEchoHeaderContract": "not-required",
+      "responseEchoHeaderObserved": false,
+      "ledgerOwner": "page",
+      "sourceOwner": "page",
+      "ownerPhase": "bootstrap",
+      "exactActionRequestOwned": false,
+      "initiatorActionId": "",
+      "renderCycleId": "",
+      "requestOwnershipKind": "bootstrap",
+      "lifecycleClass": "bootstrap-fetch",
+      "actionInvocationId": "",
+      "navigationInvocationId": "SRC-038:initial-document-navigation",
+      "requestStartedAtMs": 1791094482142,
+      "responseObservedAtMs": 1791094482182,
+      "method": "GET",
+      "status": 200,
+      "httpOk": true,
+      "url": "http://127.0.0.1:60577/auth/whoami",
+      "responseHeaders": {
+        "content-type": "application/json; charset=utf-8",
+        "location": ""
+      },
+      "responseLocationPath": ""
+    },
+    {
+      "phase": "response",
+      "requestId": "native-request-3",
+      "caseRequestIdentity": "SRC-038:request-3",
+      "caseRequestSequence": 3,
+      "responseRequestObjectObserved": true,
+      "requestIdentitySource": "playwright-response-request",
+      "requestKind": "application-fetch",
+      "resourceType": "fetch",
+      "sameOrigin": true,
+      "correlationId": "",
+      "correlationSource": "none",
+      "responseCorrelationSource": "none",
+      "requestHeaderDigest": "",
+      "correlationRouteState": "correlation-absent",
+      "correlationRouteActionId": "",
+      "correlationRouteDigest": "",
+      "responseEchoHeaderContract": "not-required",
+      "responseEchoHeaderObserved": false,
+      "ledgerOwner": "page",
+      "sourceOwner": "page",
+      "ownerPhase": "bootstrap",
+      "exactActionRequestOwned": false,
+      "initiatorActionId": "",
+      "renderCycleId": "",
+      "requestOwnershipKind": "bootstrap",
+      "lifecycleClass": "bootstrap-fetch",
+      "actionInvocationId": "",
+      "navigationInvocationId": "SRC-038:initial-document-navigation",
+      "requestStartedAtMs": 1791094482142,
+      "responseObservedAtMs": 1791094482183,
+      "method": "GET",
+      "status": 200,
+      "httpOk": true,
+      "url": "http://127.0.0.1:60577/client/api/views/9001/events?limit=20",
+      "responseHeaders": {
+        "content-type": "application/json; charset=utf-8",
+        "location": ""
+      },
+      "responseLocationPath": ""
+    },
+    {
+      "phase": "request-start",
+      "requestId": "native-request-4",
+      "caseRequestIdentity": "SRC-038:request-4",
+      "caseRequestSequence": 4,
+      "requestKind": "application-fetch",
+      "resourceType": "fetch",
+      "sameOrigin": true,
+      "redirectedFromRequestId": "",
+      "correlationId": "",
+      "correlationSource": "none",
+      "correlationInjectionSource": "",
+      "correlationRouteState": "correlation-absent",
+      "correlationRouteActionId": "",
+      "correlationRouteDigest": "",
+      "requestHeaderDigest": "",
+      "ledgerOwner": "page",
+      "sourceOwner": "page",
+      "ownerPhase": "bootstrap",
+      "actionRegistrationKind": "",
+      "exactActionRequestOwned": false,
+      "initiatorActionId": "",
+      "renderCycleId": "",
+      "requestOwnershipKind": "bootstrap",
+      "lifecycleClass": "bootstrap-fetch",
+      "actionInvocationId": "",
+      "navigationInvocationId": "",
+      "requestStartedAtMs": 1791094482198,
+      "method": "GET",
+      "status": 0,
+      "url": "http://127.0.0.1:60577/auth/whoami",
+      "requestBody": null
+    },
+    {
+      "phase": "response",
+      "requestId": "native-request-4",
+      "caseRequestIdentity": "SRC-038:request-4",
+      "caseRequestSequence": 4,
+      "responseRequestObjectObserved": true,
+      "requestIdentitySource": "playwright-response-request",
+      "requestKind": "application-fetch",
+      "resourceType": "fetch",
+      "sameOrigin": true,
+      "correlationId": "",
+      "correlationSource": "none",
+      "responseCorrelationSource": "none",
+      "requestHeaderDigest": "",
+      "correlationRouteState": "correlation-absent",
+      "correlationRouteActionId": "",
+      "correlationRouteDigest": "",
+      "responseEchoHeaderContract": "not-required",
+      "responseEchoHeaderObserved": false,
+      "ledgerOwner": "page",
+      "sourceOwner": "page",
+      "ownerPhase": "bootstrap",
+      "exactActionRequestOwned": false,
+      "initiatorActionId": "",
+      "renderCycleId": "",
+      "requestOwnershipKind": "bootstrap",
+      "lifecycleClass": "bootstrap-fetch",
+      "actionInvocationId": "",
+      "navigationInvocationId": "",
+      "requestStartedAtMs": 1791094482198,
+      "responseObservedAtMs": 1791094482200,
+      "method": "GET",
+      "status": 200,
+      "httpOk": true,
+      "url": "http://127.0.0.1:60577/auth/whoami",
+      "responseHeaders": {
+        "content-type": "application/json; charset=utf-8",
+        "location": ""
+      },
+      "responseLocationPath": ""
+    },
+    {
+      "phase": "request-start",
+      "requestId": "native-request-5",
+      "caseRequestIdentity": "SRC-038:request-5",
+      "caseRequestSequence": 5,
+      "requestKind": "application-fetch",
+      "resourceType": "fetch",
+      "sameOrigin": true,
+      "redirectedFromRequestId": "",
+      "correlationId": "",
+      "correlationSource": "none",
+      "correlationInjectionSource": "",
+      "correlationRouteState": "correlation-absent",
+      "correlationRouteActionId": "",
+      "correlationRouteDigest": "",
+      "requestHeaderDigest": "",
+      "ledgerOwner": "page",
+      "sourceOwner": "page",
+      "ownerPhase": "background-refresh",
+      "actionRegistrationKind": "",
+      "exactActionRequestOwned": false,
+      "initiatorActionId": "",
+      "renderCycleId": "",
+      "requestOwnershipKind": "background-refresh",
+      "lifecycleClass": "background-fetch",
+      "actionInvocationId": "",
+      "navigationInvocationId": "",
+      "requestStartedAtMs": 1791094482212,
+      "method": "GET",
+      "status": 0,
+      "url": "http://127.0.0.1:60577/auth/whoami",
+      "requestBody": null
+    },
+    {
+      "phase": "response",
+      "requestId": "native-request-5",
+      "caseRequestIdentity": "SRC-038:request-5",
+      "caseRequestSequence": 5,
+      "responseRequestObjectObserved": true,
+      "requestIdentitySource": "playwright-response-request",
+      "requestKind": "application-fetch",
+      "resourceType": "fetch",
+      "sameOrigin": true,
+      "correlationId": "",
+      "correlationSource": "none",
+      "responseCorrelationSource": "none",
+      "requestHeaderDigest": "",
+      "correlationRouteState": "correlation-absent",
+      "correlationRouteActionId": "",
+      "correlationRouteDigest": "",
+      "responseEchoHeaderContract": "not-required",
+      "responseEchoHeaderObserved": false,
+      "ledgerOwner": "page",
+      "sourceOwner": "page",
+      "ownerPhase": "background-refresh",
+      "exactActionRequestOwned": false,
+      "initiatorActionId": "",
+      "renderCycleId": "",
+      "requestOwnershipKind": "background-refresh",
+      "lifecycleClass": "background-fetch",
+      "actionInvocationId": "",
+      "navigationInvocationId": "",
+      "requestStartedAtMs": 1791094482212,
+      "responseObservedAtMs": 1791094482214,
+      "method": "GET",
+      "status": 200,
+      "httpOk": true,
+      "url": "http://127.0.0.1:60577/auth/whoami",
+      "responseHeaders": {
+        "content-type": "application/json; charset=utf-8",
+        "location": ""
+      },
+      "responseLocationPath": ""
+    },
+    {
+      "phase": "request-start",
+      "requestId": "native-request-7",
+      "caseRequestIdentity": "SRC-038:request-7",
+      "caseRequestSequence": 7,
+      "requestKind": "application-fetch",
+      "resourceType": "fetch",
+      "sameOrigin": true,
+      "redirectedFromRequestId": "",
+      "correlationId": "SRC-038:assert-visible-read-model:completion",
+      "correlationSource": "request-header",
+      "correlationInjectionSource": "route-continue",
+      "correlationRouteState": "preserved-explicit-inner",
+      "correlationRouteActionId": "SRC-038:assert-visible-read-model",
+      "correlationRouteDigest": "7e076fed8def85aec1026d965973d8eb5f7c6c581a221618420ee0faf4565d8d",
+      "requestHeaderDigest": "0565631809cd77e57a02479cf1c835c6c8f2f39490e55cbd8c6ec304194f44ad",
+      "ledgerOwner": "page",
+      "sourceOwner": "page",
+      "ownerPhase": "independent-readback",
+      "actionRegistrationKind": "manifest-envelope-sequence",
+      "exactActionRequestOwned": true,
+      "initiatorActionId": "SRC-038:assert-visible-read-model",
+      "renderCycleId": "",
+      "requestOwnershipKind": "independent-readback",
+      "lifecycleClass": "independent-readback",
+      "actionInvocationId": "SRC-038:assert-visible-read-model",
+      "navigationInvocationId": "",
+      "requestStartedAtMs": 1791094482270,
+      "method": "GET",
+      "status": 0,
+      "url": "http://127.0.0.1:60577/client/api/views/9001/events",
+      "requestBody": null
+    },
+    {
+      "phase": "response",
+      "requestId": "native-request-7",
+      "caseRequestIdentity": "SRC-038:request-7",
+      "caseRequestSequence": 7,
+      "responseRequestObjectObserved": true,
+      "requestIdentitySource": "playwright-response-request",
+      "requestKind": "application-fetch",
+      "resourceType": "fetch",
+      "sameOrigin": true,
+      "correlationId": "SRC-038:assert-visible-read-model:completion",
+      "correlationSource": "request-header",
+      "responseCorrelationSource": "initiating-request-identity",
+      "requestHeaderDigest": "0565631809cd77e57a02479cf1c835c6c8f2f39490e55cbd8c6ec304194f44ad",
+      "correlationRouteState": "preserved-explicit-inner",
+      "correlationRouteActionId": "SRC-038:assert-visible-read-model",
+      "correlationRouteDigest": "7e076fed8def85aec1026d965973d8eb5f7c6c581a221618420ee0faf4565d8d",
+      "responseEchoHeaderContract": "not-required",
+      "responseEchoHeaderObserved": false,
+      "ledgerOwner": "page",
+      "sourceOwner": "page",
+      "ownerPhase": "independent-readback",
+      "exactActionRequestOwned": true,
+      "initiatorActionId": "SRC-038:assert-visible-read-model",
+      "renderCycleId": "",
+      "requestOwnershipKind": "independent-readback",
+      "lifecycleClass": "independent-readback",
+      "actionInvocationId": "SRC-038:assert-visible-read-model",
+      "navigationInvocationId": "",
+      "requestStartedAtMs": 1791094482270,
+      "responseObservedAtMs": 1791094482272,
+      "method": "GET",
+      "status": 200,
+      "httpOk": true,
+      "url": "http://127.0.0.1:60577/client/api/views/9001/events",
+      "responseHeaders": {
+        "content-type": "application/json; charset=utf-8",
+        "location": ""
+      },
+      "responseLocationPath": ""
+    },
+    {
+      "phase": "request-start",
+      "requestId": "native-request-8",
+      "caseRequestIdentity": "SRC-038:request-8",
+      "caseRequestSequence": 8,
+      "requestKind": "application-fetch",
+      "resourceType": "fetch",
+      "sameOrigin": true,
+      "redirectedFromRequestId": "",
+      "correlationId": "",
+      "correlationSource": "none",
+      "correlationInjectionSource": "",
+      "correlationRouteState": "correlation-absent",
+      "correlationRouteActionId": "",
+      "correlationRouteDigest": "",
+      "requestHeaderDigest": "",
+      "ledgerOwner": "page",
+      "sourceOwner": "page",
+      "ownerPhase": "background-refresh",
+      "actionRegistrationKind": "",
+      "exactActionRequestOwned": false,
+      "initiatorActionId": "",
+      "renderCycleId": "",
+      "requestOwnershipKind": "background-refresh",
+      "lifecycleClass": "background-fetch",
+      "actionInvocationId": "",
+      "navigationInvocationId": "",
+      "requestStartedAtMs": 1791094482347,
+      "method": "GET",
+      "status": 0,
+      "url": "http://127.0.0.1:60577/auth/whoami",
+      "requestBody": null
+    },
+    {
+      "phase": "response",
+      "requestId": "native-request-8",
+      "caseRequestIdentity": "SRC-038:request-8",
+      "caseRequestSequence": 8,
+      "responseRequestObjectObserved": true,
+      "requestIdentitySource": "playwright-response-request",
+      "requestKind": "application-fetch",
+      "resourceType": "fetch",
+      "sameOrigin": true,
+      "correlationId": "",
+      "correlationSource": "none",
+      "responseCorrelationSource": "none",
+      "requestHeaderDigest": "",
+      "correlationRouteState": "correlation-absent",
+      "correlationRouteActionId": "",
+      "correlationRouteDigest": "",
+      "responseEchoHeaderContract": "not-required",
+      "responseEchoHeaderObserved": false,
+      "ledgerOwner": "page",
+      "sourceOwner": "page",
+      "ownerPhase": "background-refresh",
+      "exactActionRequestOwned": false,
+      "initiatorActionId": "",
+      "renderCycleId": "",
+      "requestOwnershipKind": "background-refresh",
+      "lifecycleClass": "background-fetch",
+      "actionInvocationId": "",
+      "navigationInvocationId": "",
+      "requestStartedAtMs": 1791094482347,
+      "responseObservedAtMs": 1791094482349,
+      "method": "GET",
+      "status": 200,
+      "httpOk": true,
+      "url": "http://127.0.0.1:60577/auth/whoami",
+      "responseHeaders": {
+        "content-type": "application/json; charset=utf-8",
+        "location": ""
+      },
+      "responseLocationPath": ""
+    }
+  ],
+  "postActionVisualRoleEvidence": {
+    "schema": "media-server.v390-ui-post-action-visual-role.v1",
+    "caseId": "SRC-038",
+    "actionId": "SRC-038:assert-visible-read-model",
+    "route": "/client/events",
+    "accountRole": "viewer",
+    "source": "browser-auth-whoami"
+  },
+  "requestLifecycleEvaluation": {
+    "status": "PASS",
+    "census": {
+      "requestCount": 8,
+      "responseCount": 8,
+      "classified": 8,
+      "unclassified": 0,
+      "multiplyClassified": 0,
+      "captureErrors": 0,
+      "duplicateResponses": 0,
+      "failureCount": 0
+    },
+    "diagnostics": {
+      "sequenceDomain": "diagnostic-seal-and-after-seal-only",
+      "diagnosticErrors": 0,
+      "seal": {
+        "sequence": 1,
+        "timestamp": 1791094482686
+      },
+      "afterSeal": [],
+      "requests": [
+        {
+          "requestIdentity": "SRC-038:object-1",
+          "legacyRequestId": "native-request-1",
+          "method": "GET",
+          "path": "/client/events",
+          "pathOmitted": false,
+          "start": {
+            "sequence": 1,
+            "timestamp": 1791094482121
+          },
+          "responses": [
+            {
+              "sequence": 2,
+              "timestamp": 1791094482131,
+              "status": 200
+            }
+          ],
+          "finished": [
+            {
+              "sequence": 5,
+              "timestamp": 1791094482143
+            }
+          ],
+          "failed": []
+        },
+        {
+          "requestIdentity": "SRC-038:object-3",
+          "legacyRequestId": "native-request-2",
+          "method": "GET",
+          "path": "/auth/whoami",
+          "pathOmitted": false,
+          "start": {
+            "sequence": 3,
+            "timestamp": 1791094482142
+          },
+          "responses": [
+            {
+              "sequence": 6,
+              "timestamp": 1791094482182,
+              "status": 200
+            }
+          ],
+          "finished": [
+            {
+              "sequence": 8,
+              "timestamp": 1791094482183
+            }
+          ],
+          "failed": []
+        },
+        {
+          "requestIdentity": "SRC-038:object-4",
+          "legacyRequestId": "native-request-3",
+          "method": "GET",
+          "path": "/client/api/views/9001/events",
+          "pathOmitted": false,
+          "start": {
+            "sequence": 4,
+            "timestamp": 1791094482142
+          },
+          "responses": [
+            {
+              "sequence": 7,
+              "timestamp": 1791094482183,
+              "status": 200
+            }
+          ],
+          "finished": [
+            {
+              "sequence": 9,
+              "timestamp": 1791094482183
+            }
+          ],
+          "failed": []
+        },
+        {
+          "requestIdentity": "SRC-038:object-7",
+          "legacyRequestId": "native-request-4",
+          "method": "GET",
+          "path": "/auth/whoami",
+          "pathOmitted": false,
+          "start": {
+            "sequence": 10,
+            "timestamp": 1791094482198
+          },
+          "responses": [
+            {
+              "sequence": 11,
+              "timestamp": 1791094482200,
+              "status": 200
+            }
+          ],
+          "finished": [
+            {
+              "sequence": 12,
+              "timestamp": 1791094482200
+            }
+          ],
+          "failed": []
+        },
+        {
+          "requestIdentity": "SRC-038:object-9",
+          "legacyRequestId": "native-request-5",
+          "method": "GET",
+          "path": "/auth/whoami",
+          "pathOmitted": false,
+          "start": {
+            "sequence": 13,
+            "timestamp": 1791094482212
+          },
+          "responses": [
+            {
+              "sequence": 14,
+              "timestamp": 1791094482214,
+              "status": 200
+            }
+          ],
+          "finished": [
+            {
+              "sequence": 15,
+              "timestamp": 1791094482214
+            }
+          ],
+          "failed": []
+        },
+        {
+          "requestIdentity": "SRC-038:object-11",
+          "legacyRequestId": "native-request-6",
+          "method": "GET",
+          "path": "/client/api/views/9001/events",
+          "pathOmitted": false,
+          "start": {
+            "sequence": 16,
+            "timestamp": 1791094482222
+          },
+          "responses": [
+            {
+              "sequence": 17,
+              "timestamp": 1791094482224,
+              "status": 200
+            }
+          ],
+          "finished": [
+            {
+              "sequence": 18,
+              "timestamp": 1791094482225
+            }
+          ],
+          "failed": []
+        },
+        {
+          "requestIdentity": "SRC-038:object-13",
+          "legacyRequestId": "native-request-7",
+          "method": "GET",
+          "path": "/client/api/views/9001/events",
+          "pathOmitted": false,
+          "start": {
+            "sequence": 19,
+            "timestamp": 1791094482270
+          },
+          "responses": [
+            {
+              "sequence": 20,
+              "timestamp": 1791094482272,
+              "status": 200
+            }
+          ],
+          "finished": [
+            {
+              "sequence": 21,
+              "timestamp": 1791094482272
+            }
+          ],
+          "failed": []
+        },
+        {
+          "requestIdentity": "SRC-038:object-15",
+          "legacyRequestId": "native-request-8",
+          "method": "GET",
+          "path": "/auth/whoami",
+          "pathOmitted": false,
+          "start": {
+            "sequence": 22,
+            "timestamp": 1791094482347
+          },
+          "responses": [
+            {
+              "sequence": 23,
+              "timestamp": 1791094482349,
+              "status": 200
+            }
+          ],
+          "finished": [
+            {
+              "sequence": 24,
+              "timestamp": 1791094482349
+            }
+          ],
+          "failed": []
+        }
+      ]
+    },
+    "requests": [
+      {
+        "requestIdentity": "SRC-038:object-1",
+        "redirectedFromIdentity": null,
+        "correlationDigest": ""
+      },
+      {
+        "requestIdentity": "SRC-038:object-3",
+        "redirectedFromIdentity": null,
+        "correlationDigest": ""
+      },
+      {
+        "requestIdentity": "SRC-038:object-4",
+        "redirectedFromIdentity": null,
+        "correlationDigest": ""
+      },
+      {
+        "requestIdentity": "SRC-038:object-7",
+        "redirectedFromIdentity": null,
+        "correlationDigest": ""
+      },
+      {
+        "requestIdentity": "SRC-038:object-9",
+        "redirectedFromIdentity": null,
+        "correlationDigest": ""
+      },
+      {
+        "requestIdentity": "SRC-038:object-11",
+        "redirectedFromIdentity": null,
+        "correlationDigest": "7e076fed8def85aec1026d965973d8eb5f7c6c581a221618420ee0faf4565d8d"
+      },
+      {
+        "requestIdentity": "SRC-038:object-13",
+        "redirectedFromIdentity": null,
+        "correlationDigest": "7e076fed8def85aec1026d965973d8eb5f7c6c581a221618420ee0faf4565d8d"
+      },
+      {
+        "requestIdentity": "SRC-038:object-15",
+        "redirectedFromIdentity": null,
+        "correlationDigest": ""
+      }
+    ],
+    "classifications": [
+      {
+        "requestIdentity": "SRC-038:object-1",
+        "responseIdentity": "SRC-038:object-2",
+        "requestKind": "document-navigation",
+        "classification": "bootstrap",
+        "owner": "page",
+        "phase": "bootstrap-document"
+      },
+      {
+        "requestIdentity": "SRC-038:object-3",
+        "responseIdentity": "SRC-038:object-5",
+        "requestKind": "application-fetch",
+        "classification": "background",
+        "owner": "page",
+        "phase": "background-refresh"
+      },
+      {
+        "requestIdentity": "SRC-038:object-4",
+        "responseIdentity": "SRC-038:object-6",
+        "requestKind": "application-fetch",
+        "classification": "background",
+        "owner": "page",
+        "phase": "background-refresh"
+      },
+      {
+        "requestIdentity": "SRC-038:object-7",
+        "responseIdentity": "SRC-038:object-8",
+        "requestKind": "application-fetch",
+        "classification": "background",
+        "owner": "page",
+        "phase": "background-refresh"
+      },
+      {
+        "requestIdentity": "SRC-038:object-9",
+        "responseIdentity": "SRC-038:object-10",
+        "requestKind": "application-fetch",
+        "classification": "background",
+        "owner": "page",
+        "phase": "background-refresh"
+      },
+      {
+        "requestIdentity": "SRC-038:object-11",
+        "responseIdentity": "SRC-038:object-12",
+        "requestKind": "application-fetch",
+        "classification": "action",
+        "owner": "action",
+        "phase": "primary-action"
+      },
+      {
+        "requestIdentity": "SRC-038:object-13",
+        "responseIdentity": "SRC-038:object-14",
+        "requestKind": "application-fetch",
+        "classification": "action",
+        "owner": "action",
+        "phase": "primary-action"
+      },
+      {
+        "requestIdentity": "SRC-038:object-15",
+        "responseIdentity": "SRC-038:object-16",
+        "requestKind": "application-fetch",
+        "classification": "background",
+        "owner": "page",
+        "phase": "background-refresh"
+      }
+    ],
+    "failures": []
+  }
+}

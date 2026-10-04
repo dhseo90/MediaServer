@@ -1,0 +1,9 @@
+{
+  "schema": "media-server.ui-raw-visual-capture.v1",
+  "caseId": "SAFE-118",
+  "correlationId": "SAFE-118:assert-product-state:completion",
+  "targetSelector": "body",
+  "screenshotSha256": "73461215ec093d22e9525bf0a45ae3799083f1378dff233d9969612fd44058c6",
+  "measurementSha256": "bccb2243e958195d243c5ec020196f6375da020f43d4f168eac6d5cd9b713c20",
+  "qualificationStatus": "unqualified-raw-capture"
+}

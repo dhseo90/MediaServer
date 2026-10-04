@@ -1,0 +1,1756 @@
+{
+  "schema": "media-server.v390-ui-case-child.v1",
+  "result": "PASS",
+  "executionStatus": "case-child-browser-evidence",
+  "releaseEvidenceEligible": false,
+  "policyV4Qualification": "not-eligible-single-case-child",
+  "uiFulltestPass": false,
+  "actualBrowserExecution": true,
+  "sourceBinding": {
+    "baselineSourceCommitSha": "327afe0d4b3282400f1925252c59a53b87827224",
+    "verificationCommitSha": "b41fcff976467a459b8f219fcac64f9a687feb96",
+    "verificationBranch": "v4.3.0",
+    "runnerSchema": "media-server.v390-ui-canonical-parent.v1",
+    "manifestSha256": "4acd7c35efd2e630bc33450153525c0f8d4ba1930e2cfbc140f6f9e2d4098a04",
+    "implementationFiles": {
+      "runner": {
+        "path": "scripts/internal/run_v390_ui_native_exact_cases.mjs",
+        "sha256": "71565dbfbac9a75a721e7d1bb4c4945e7376ac0b1ce9f7fce824eeca8591d2ae"
+      },
+      "library": {
+        "path": "scripts/internal/v390_ui_native_exact_cases_lib.mjs",
+        "sha256": "c238f47dd9656674c68ce9e545980c76e3e2351bb5fd62375eafc9d97214af61"
+      },
+      "adapter": {
+        "path": "scripts/internal/v390_ui_native_adapter.mjs",
+        "sha256": "1700b24486a5027b7bb3fe6306c3774dae220a3a7db051c2778a34e7cc44c7ed"
+      },
+      "recorder": {
+        "path": "scripts/internal/v390_ui_request_event_recorder.mjs",
+        "sha256": "c8fba8290f1c9b3e856c8ac05d2911254500d243966ea96ce61cccc68f90a2e9"
+      },
+      "evaluator": {
+        "path": "scripts/internal/v390_ui_request_lifecycle_evaluator.mjs",
+        "sha256": "f3ad6af79b7c24f7064d06d3342df5ee195caba2b61aba5a3f06e254d622613b"
+      }
+    },
+    "implementationSha256": "55446fdade942c8a168c708503611a1cd7e11b67682db81d60d84de2a89c67b1",
+    "buildSha256": "6885313e084e0338d7117270e0b6e3f357cc86f33e24450e5822064d6902c3df"
+  },
+  "policyInputRef": {
+    "schema": "media-server.v390-ui-case-policy-input-ref.v1",
+    "caseId": "UI-079",
+    "runId": "62ee8d29-6693-4be2-8304-e95c80c9e39a",
+    "path": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.3.0/test-acceptance-current-final/runs/v390-test-acceptance-20261004051956-70521/ui-exact-424/cases/078-UI-079/policy-input.json",
+    "bytes": 86861,
+    "sha256": "01895f39f720aa7290c57d9818d2ec5bce40b665f6a34d9f95b4ba69eeafe1b7"
+  },
+  "selection": {
+    "caseId": "UI-079",
+    "selectedIds": [
+      "UI-079"
+    ],
+    "selected": 1
+  },
+  "counts": {
+    "selected": 1,
+    "attempted": 1,
+    "pass": 1,
+    "fail": 0,
+    "notRun": 0,
+    "unsupported": 0,
+    "runnerAbort": 0
+  },
+  "case": {
+    "caseId": "UI-079",
+    "featureId": "UI-079",
+    "status": "PASS",
+    "failureClass": "",
+    "failurePhase": "",
+    "failureCode": "",
+    "failureMessage": "",
+    "failureCensus": [],
+    "requestLifecycleEvaluation": {
+      "status": "PASS",
+      "census": {
+        "requestCount": 43,
+        "responseCount": 43,
+        "classified": 43,
+        "unclassified": 0,
+        "multiplyClassified": 0,
+        "captureErrors": 0,
+        "duplicateResponses": 0,
+        "failureCount": 0
+      },
+      "diagnostics": {
+        "sequenceDomain": "diagnostic-seal-and-after-seal-only",
+        "diagnosticErrors": 0,
+        "seal": {
+          "sequence": 1,
+          "timestamp": 1791094198498
+        },
+        "afterSeal": [],
+        "requests": [
+          {
+            "requestIdentity": "UI-079:object-1",
+            "legacyRequestId": "native-request-1",
+            "method": "GET",
+            "path": "/ops/sources",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 1,
+              "timestamp": 1791094197302
+            },
+            "responses": [
+              {
+                "sequence": 2,
+                "timestamp": 1791094197306,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 21,
+                "timestamp": 1791094197325
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "UI-079:object-3",
+            "legacyRequestId": "native-request-2",
+            "method": "GET",
+            "path": "/ops/api/audit",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 3,
+              "timestamp": 1791094197321
+            },
+            "responses": [
+              {
+                "sequence": 22,
+                "timestamp": 1791094197367,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 40,
+                "timestamp": 1791094197369
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "UI-079:object-4",
+            "legacyRequestId": "native-request-3",
+            "method": "GET",
+            "path": "/ops/api/onvif/credential-provider-status",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 4,
+              "timestamp": 1791094197322
+            },
+            "responses": [
+              {
+                "sequence": 23,
+                "timestamp": 1791094197368,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 41,
+                "timestamp": 1791094197369
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "UI-079:object-5",
+            "legacyRequestId": "native-request-4",
+            "method": "GET",
+            "path": "/ops/api/onvif/live-import-persist-decision",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 5,
+              "timestamp": 1791094197323
+            },
+            "responses": [
+              {
+                "sequence": 24,
+                "timestamp": 1791094197368,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 42,
+                "timestamp": 1791094197369
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "UI-079:object-6",
+            "legacyRequestId": "native-request-5",
+            "method": "GET",
+            "path": "/ops/api/sources",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 6,
+              "timestamp": 1791094197323
+            },
+            "responses": [
+              {
+                "sequence": 27,
+                "timestamp": 1791094197368,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 45,
+                "timestamp": 1791094197369
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "UI-079:object-7",
+            "legacyRequestId": "native-request-6",
+            "method": "GET",
+            "path": "/ops/api/views",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 7,
+              "timestamp": 1791094197323
+            },
+            "responses": [
+              {
+                "sequence": 25,
+                "timestamp": 1791094197368,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 43,
+                "timestamp": 1791094197369
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "UI-079:object-8",
+            "legacyRequestId": "native-request-7",
+            "method": "GET",
+            "path": "/client/api/views",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 8,
+              "timestamp": 1791094197323
+            },
+            "responses": [
+              {
+                "sequence": 28,
+                "timestamp": 1791094197368,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 46,
+                "timestamp": 1791094197369
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "UI-079:object-9",
+            "legacyRequestId": "native-request-8",
+            "method": "GET",
+            "path": "/ops/api/source-registry/onboarding-quality",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 9,
+              "timestamp": 1791094197324
+            },
+            "responses": [
+              {
+                "sequence": 26,
+                "timestamp": 1791094197368,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 44,
+                "timestamp": 1791094197369
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "UI-079:object-10",
+            "legacyRequestId": "native-request-9",
+            "method": "GET",
+            "path": "/ops/api/source-registry/reliability-timeline",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 10,
+              "timestamp": 1791094197324
+            },
+            "responses": [
+              {
+                "sequence": 29,
+                "timestamp": 1791094197368,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 47,
+                "timestamp": 1791094197369
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "UI-079:object-11",
+            "legacyRequestId": "native-request-10",
+            "method": "GET",
+            "path": "/ops/api/source-registry/reliability-search-metrics",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 11,
+              "timestamp": 1791094197324
+            },
+            "responses": [
+              {
+                "sequence": 30,
+                "timestamp": 1791094197368,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 48,
+                "timestamp": 1791094197369
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "UI-079:object-12",
+            "legacyRequestId": "native-request-11",
+            "method": "GET",
+            "path": "/ops/api/source-registry/backup-recovery-handoff",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 12,
+              "timestamp": 1791094197324
+            },
+            "responses": [
+              {
+                "sequence": 33,
+                "timestamp": 1791094197368,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 51,
+                "timestamp": 1791094197369
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "UI-079:object-13",
+            "legacyRequestId": "native-request-12",
+            "method": "GET",
+            "path": "/ops/api/source-registry/staging-restore-validation-handoff",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 13,
+              "timestamp": 1791094197324
+            },
+            "responses": [
+              {
+                "sequence": 31,
+                "timestamp": 1791094197368,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 49,
+                "timestamp": 1791094197369
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "UI-079:object-14",
+            "legacyRequestId": "native-request-13",
+            "method": "GET",
+            "path": "/ops/api/source-registry/continuity-drill/contract",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 14,
+              "timestamp": 1791094197324
+            },
+            "responses": [
+              {
+                "sequence": 32,
+                "timestamp": 1791094197368,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 50,
+                "timestamp": 1791094197369
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "UI-079:object-15",
+            "legacyRequestId": "native-request-14",
+            "method": "GET",
+            "path": "/ops/api/source-registry/recovery-candidate-package",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 15,
+              "timestamp": 1791094197324
+            },
+            "responses": [
+              {
+                "sequence": 34,
+                "timestamp": 1791094197368,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 52,
+                "timestamp": 1791094197369
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "UI-079:object-16",
+            "legacyRequestId": "native-request-15",
+            "method": "GET",
+            "path": "/ops/api/source-registry/source-health-replay-drift-diff",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 16,
+              "timestamp": 1791094197324
+            },
+            "responses": [
+              {
+                "sequence": 35,
+                "timestamp": 1791094197368,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 53,
+                "timestamp": 1791094197369
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "UI-079:object-17",
+            "legacyRequestId": "native-request-16",
+            "method": "GET",
+            "path": "/ops/api/source-registry/approval-gated-recovery-checklist",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 17,
+              "timestamp": 1791094197324
+            },
+            "responses": [
+              {
+                "sequence": 37,
+                "timestamp": 1791094197368,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 55,
+                "timestamp": 1791094197369
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "UI-079:object-18",
+            "legacyRequestId": "native-request-17",
+            "method": "GET",
+            "path": "/ops/api/source-registry/drill-evidence-export-cleanup-manifest",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 18,
+              "timestamp": 1791094197325
+            },
+            "responses": [
+              {
+                "sequence": 39,
+                "timestamp": 1791094197369,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 57,
+                "timestamp": 1791094197369
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "UI-079:object-19",
+            "legacyRequestId": "native-request-18",
+            "method": "GET",
+            "path": "/ops/api/source-registry/field-bridge-condition-gates",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 19,
+              "timestamp": 1791094197325
+            },
+            "responses": [
+              {
+                "sequence": 38,
+                "timestamp": 1791094197369,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 56,
+                "timestamp": 1791094197369
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "UI-079:object-20",
+            "legacyRequestId": "native-request-19",
+            "method": "GET",
+            "path": "/auth/whoami",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 20,
+              "timestamp": 1791094197325
+            },
+            "responses": [
+              {
+                "sequence": 36,
+                "timestamp": 1791094197368,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 54,
+                "timestamp": 1791094197369
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "UI-079:object-39",
+            "legacyRequestId": "native-request-20",
+            "method": "GET",
+            "path": "/ops/api/audit",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 58,
+              "timestamp": 1791094197370
+            },
+            "responses": [
+              {
+                "sequence": 59,
+                "timestamp": 1791094197385,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 60,
+                "timestamp": 1791094197385
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "UI-079:object-41",
+            "legacyRequestId": "native-request-21",
+            "method": "GET",
+            "path": "/auth/whoami",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 61,
+              "timestamp": 1791094197397
+            },
+            "responses": [
+              {
+                "sequence": 62,
+                "timestamp": 1791094197399,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 63,
+                "timestamp": 1791094197399
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "UI-079:object-43",
+            "legacyRequestId": "native-request-22",
+            "method": "GET",
+            "path": "/auth/whoami",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 64,
+              "timestamp": 1791094197406
+            },
+            "responses": [
+              {
+                "sequence": 65,
+                "timestamp": 1791094197408,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 66,
+                "timestamp": 1791094197408
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "UI-079:object-45",
+            "legacyRequestId": "native-request-23",
+            "method": "GET",
+            "path": "/ops/sources",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 67,
+              "timestamp": 1791094197419
+            },
+            "responses": [
+              {
+                "sequence": 68,
+                "timestamp": 1791094197422,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 69,
+                "timestamp": 1791094197422
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "UI-079:object-47",
+            "legacyRequestId": "native-request-24",
+            "method": "GET",
+            "path": "/ops/api/onvif/credential-provider-status",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 70,
+              "timestamp": 1791094197492
+            },
+            "responses": [
+              {
+                "sequence": 87,
+                "timestamp": 1791094197521,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 104,
+                "timestamp": 1791094197522
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "UI-079:object-48",
+            "legacyRequestId": "native-request-25",
+            "method": "GET",
+            "path": "/ops/api/onvif/live-import-persist-decision",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 71,
+              "timestamp": 1791094197493
+            },
+            "responses": [
+              {
+                "sequence": 88,
+                "timestamp": 1791094197521,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 105,
+                "timestamp": 1791094197522
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "UI-079:object-49",
+            "legacyRequestId": "native-request-26",
+            "method": "GET",
+            "path": "/ops/api/sources",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 72,
+              "timestamp": 1791094197493
+            },
+            "responses": [
+              {
+                "sequence": 89,
+                "timestamp": 1791094197521,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 106,
+                "timestamp": 1791094197522
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "UI-079:object-50",
+            "legacyRequestId": "native-request-27",
+            "method": "GET",
+            "path": "/ops/api/views",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 73,
+              "timestamp": 1791094197493
+            },
+            "responses": [
+              {
+                "sequence": 90,
+                "timestamp": 1791094197521,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 107,
+                "timestamp": 1791094197522
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "UI-079:object-51",
+            "legacyRequestId": "native-request-28",
+            "method": "GET",
+            "path": "/client/api/views",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 74,
+              "timestamp": 1791094197494
+            },
+            "responses": [
+              {
+                "sequence": 92,
+                "timestamp": 1791094197522,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 109,
+                "timestamp": 1791094197522
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "UI-079:object-52",
+            "legacyRequestId": "native-request-29",
+            "method": "GET",
+            "path": "/ops/api/source-registry/onboarding-quality",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 75,
+              "timestamp": 1791094197494
+            },
+            "responses": [
+              {
+                "sequence": 91,
+                "timestamp": 1791094197522,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 108,
+                "timestamp": 1791094197522
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "UI-079:object-53",
+            "legacyRequestId": "native-request-30",
+            "method": "GET",
+            "path": "/ops/api/source-registry/reliability-timeline",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 76,
+              "timestamp": 1791094197494
+            },
+            "responses": [
+              {
+                "sequence": 93,
+                "timestamp": 1791094197522,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 110,
+                "timestamp": 1791094197522
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "UI-079:object-54",
+            "legacyRequestId": "native-request-31",
+            "method": "GET",
+            "path": "/ops/api/source-registry/reliability-search-metrics",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 77,
+              "timestamp": 1791094197494
+            },
+            "responses": [
+              {
+                "sequence": 97,
+                "timestamp": 1791094197522,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 114,
+                "timestamp": 1791094197522
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "UI-079:object-55",
+            "legacyRequestId": "native-request-32",
+            "method": "GET",
+            "path": "/ops/api/source-registry/backup-recovery-handoff",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 78,
+              "timestamp": 1791094197494
+            },
+            "responses": [
+              {
+                "sequence": 94,
+                "timestamp": 1791094197522,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 111,
+                "timestamp": 1791094197522
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "UI-079:object-56",
+            "legacyRequestId": "native-request-33",
+            "method": "GET",
+            "path": "/ops/api/source-registry/staging-restore-validation-handoff",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 79,
+              "timestamp": 1791094197494
+            },
+            "responses": [
+              {
+                "sequence": 96,
+                "timestamp": 1791094197522,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 113,
+                "timestamp": 1791094197522
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "UI-079:object-57",
+            "legacyRequestId": "native-request-34",
+            "method": "GET",
+            "path": "/ops/api/source-registry/continuity-drill/contract",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 80,
+              "timestamp": 1791094197494
+            },
+            "responses": [
+              {
+                "sequence": 95,
+                "timestamp": 1791094197522,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 112,
+                "timestamp": 1791094197522
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "UI-079:object-58",
+            "legacyRequestId": "native-request-35",
+            "method": "GET",
+            "path": "/ops/api/source-registry/recovery-candidate-package",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 81,
+              "timestamp": 1791094197494
+            },
+            "responses": [
+              {
+                "sequence": 98,
+                "timestamp": 1791094197522,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 115,
+                "timestamp": 1791094197522
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "UI-079:object-59",
+            "legacyRequestId": "native-request-36",
+            "method": "GET",
+            "path": "/ops/api/source-registry/source-health-replay-drift-diff",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 82,
+              "timestamp": 1791094197494
+            },
+            "responses": [
+              {
+                "sequence": 101,
+                "timestamp": 1791094197522,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 118,
+                "timestamp": 1791094197522
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "UI-079:object-60",
+            "legacyRequestId": "native-request-37",
+            "method": "GET",
+            "path": "/ops/api/source-registry/approval-gated-recovery-checklist",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 83,
+              "timestamp": 1791094197494
+            },
+            "responses": [
+              {
+                "sequence": 100,
+                "timestamp": 1791094197522,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 117,
+                "timestamp": 1791094197522
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "UI-079:object-61",
+            "legacyRequestId": "native-request-38",
+            "method": "GET",
+            "path": "/ops/api/source-registry/drill-evidence-export-cleanup-manifest",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 84,
+              "timestamp": 1791094197494
+            },
+            "responses": [
+              {
+                "sequence": 102,
+                "timestamp": 1791094197522,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 119,
+                "timestamp": 1791094197522
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "UI-079:object-62",
+            "legacyRequestId": "native-request-39",
+            "method": "GET",
+            "path": "/ops/api/source-registry/field-bridge-condition-gates",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 85,
+              "timestamp": 1791094197494
+            },
+            "responses": [
+              {
+                "sequence": 103,
+                "timestamp": 1791094197522,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 120,
+                "timestamp": 1791094197522
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "UI-079:object-63",
+            "legacyRequestId": "native-request-40",
+            "method": "GET",
+            "path": "/auth/whoami",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 86,
+              "timestamp": 1791094197494
+            },
+            "responses": [
+              {
+                "sequence": 99,
+                "timestamp": 1791094197522,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 116,
+                "timestamp": 1791094197522
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "UI-079:object-81",
+            "legacyRequestId": "native-request-41",
+            "method": "GET",
+            "path": "/ops/api/audit",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 121,
+              "timestamp": 1791094197523
+            },
+            "responses": [
+              {
+                "sequence": 122,
+                "timestamp": 1791094197528,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 123,
+                "timestamp": 1791094197528
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "UI-079:object-83",
+            "legacyRequestId": "native-request-42",
+            "method": "GET",
+            "path": "/ops/sources",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 124,
+              "timestamp": 1791094198017
+            },
+            "responses": [
+              {
+                "sequence": 125,
+                "timestamp": 1791094198021,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 126,
+                "timestamp": 1791094198021
+              }
+            ],
+            "failed": []
+          },
+          {
+            "requestIdentity": "UI-079:object-85",
+            "legacyRequestId": "native-request-43",
+            "method": "GET",
+            "path": "/auth/whoami",
+            "pathOmitted": false,
+            "start": {
+              "sequence": 127,
+              "timestamp": 1791094198126
+            },
+            "responses": [
+              {
+                "sequence": 128,
+                "timestamp": 1791094198128,
+                "status": 200
+              }
+            ],
+            "finished": [
+              {
+                "sequence": 129,
+                "timestamp": 1791094198128
+              }
+            ],
+            "failed": []
+          }
+        ]
+      },
+      "requests": [
+        {
+          "requestIdentity": "UI-079:object-1",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "UI-079:object-3",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "UI-079:object-4",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "UI-079:object-5",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "UI-079:object-6",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "UI-079:object-7",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "UI-079:object-8",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "UI-079:object-9",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "UI-079:object-10",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "UI-079:object-11",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "UI-079:object-12",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "UI-079:object-13",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "UI-079:object-14",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "UI-079:object-15",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "UI-079:object-16",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "UI-079:object-17",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "UI-079:object-18",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "UI-079:object-19",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "UI-079:object-20",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "UI-079:object-39",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "UI-079:object-41",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "UI-079:object-43",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "UI-079:object-45",
+          "redirectedFromIdentity": null,
+          "correlationDigest": "0611743f0472377b0cbe3107f6885aa2e59f02a4c598b9ae275477d00b0f89ef"
+        },
+        {
+          "requestIdentity": "UI-079:object-47",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "UI-079:object-48",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "UI-079:object-49",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "UI-079:object-50",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "UI-079:object-51",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "UI-079:object-52",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "UI-079:object-53",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "UI-079:object-54",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "UI-079:object-55",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "UI-079:object-56",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "UI-079:object-57",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "UI-079:object-58",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "UI-079:object-59",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "UI-079:object-60",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "UI-079:object-61",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "UI-079:object-62",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "UI-079:object-63",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "UI-079:object-81",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        },
+        {
+          "requestIdentity": "UI-079:object-83",
+          "redirectedFromIdentity": null,
+          "correlationDigest": "0611743f0472377b0cbe3107f6885aa2e59f02a4c598b9ae275477d00b0f89ef"
+        },
+        {
+          "requestIdentity": "UI-079:object-85",
+          "redirectedFromIdentity": null,
+          "correlationDigest": ""
+        }
+      ],
+      "classifications": [
+        {
+          "requestIdentity": "UI-079:object-1",
+          "responseIdentity": "UI-079:object-2",
+          "requestKind": "document-navigation",
+          "classification": "bootstrap",
+          "owner": "page",
+          "phase": "bootstrap-document"
+        },
+        {
+          "requestIdentity": "UI-079:object-3",
+          "responseIdentity": "UI-079:object-21",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "UI-079:object-4",
+          "responseIdentity": "UI-079:object-22",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "UI-079:object-5",
+          "responseIdentity": "UI-079:object-23",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "UI-079:object-6",
+          "responseIdentity": "UI-079:object-26",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "UI-079:object-7",
+          "responseIdentity": "UI-079:object-24",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "UI-079:object-8",
+          "responseIdentity": "UI-079:object-27",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "UI-079:object-9",
+          "responseIdentity": "UI-079:object-25",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "UI-079:object-10",
+          "responseIdentity": "UI-079:object-28",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "UI-079:object-11",
+          "responseIdentity": "UI-079:object-29",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "UI-079:object-12",
+          "responseIdentity": "UI-079:object-32",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "UI-079:object-13",
+          "responseIdentity": "UI-079:object-30",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "UI-079:object-14",
+          "responseIdentity": "UI-079:object-31",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "UI-079:object-15",
+          "responseIdentity": "UI-079:object-33",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "UI-079:object-16",
+          "responseIdentity": "UI-079:object-34",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "UI-079:object-17",
+          "responseIdentity": "UI-079:object-36",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "UI-079:object-18",
+          "responseIdentity": "UI-079:object-38",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "UI-079:object-19",
+          "responseIdentity": "UI-079:object-37",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "UI-079:object-20",
+          "responseIdentity": "UI-079:object-35",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "UI-079:object-39",
+          "responseIdentity": "UI-079:object-40",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "UI-079:object-41",
+          "responseIdentity": "UI-079:object-42",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "UI-079:object-43",
+          "responseIdentity": "UI-079:object-44",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "UI-079:object-45",
+          "responseIdentity": "UI-079:object-46",
+          "requestKind": "application-fetch",
+          "classification": "action",
+          "owner": "action",
+          "phase": "primary-action"
+        },
+        {
+          "requestIdentity": "UI-079:object-47",
+          "responseIdentity": "UI-079:object-64",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "UI-079:object-48",
+          "responseIdentity": "UI-079:object-65",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "UI-079:object-49",
+          "responseIdentity": "UI-079:object-66",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "UI-079:object-50",
+          "responseIdentity": "UI-079:object-67",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "UI-079:object-51",
+          "responseIdentity": "UI-079:object-69",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "UI-079:object-52",
+          "responseIdentity": "UI-079:object-68",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "UI-079:object-53",
+          "responseIdentity": "UI-079:object-70",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "UI-079:object-54",
+          "responseIdentity": "UI-079:object-74",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "UI-079:object-55",
+          "responseIdentity": "UI-079:object-71",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "UI-079:object-56",
+          "responseIdentity": "UI-079:object-73",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "UI-079:object-57",
+          "responseIdentity": "UI-079:object-72",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "UI-079:object-58",
+          "responseIdentity": "UI-079:object-75",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "UI-079:object-59",
+          "responseIdentity": "UI-079:object-78",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "UI-079:object-60",
+          "responseIdentity": "UI-079:object-77",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "UI-079:object-61",
+          "responseIdentity": "UI-079:object-79",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "UI-079:object-62",
+          "responseIdentity": "UI-079:object-80",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "UI-079:object-63",
+          "responseIdentity": "UI-079:object-76",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "UI-079:object-81",
+          "responseIdentity": "UI-079:object-82",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        },
+        {
+          "requestIdentity": "UI-079:object-83",
+          "responseIdentity": "UI-079:object-84",
+          "requestKind": "application-fetch",
+          "classification": "action",
+          "owner": "action",
+          "phase": "primary-action"
+        },
+        {
+          "requestIdentity": "UI-079:object-85",
+          "responseIdentity": "UI-079:object-86",
+          "requestKind": "application-fetch",
+          "classification": "background",
+          "owner": "page",
+          "phase": "background-refresh"
+        }
+      ],
+      "failures": []
+    },
+    "cleanupAttestation": {
+      "schema": "media-server.v390-ui-case-cleanup-attestation.v1",
+      "pass": true,
+      "primaryFailurePresent": false,
+      "primaryFailurePreserved": false,
+      "caseRuntimeRestoreAttempted": true,
+      "caseRuntimeRestored": true,
+      "browserCloseAttempted": true,
+      "browserContextClosed": true,
+      "cleanupEntryCount": 2,
+      "failureCode": ""
+    }
+  },
+  "timing": {
+    "startedAtMs": 1791094196923,
+    "finishedAtMs": 1791094198669,
+    "durationMs": 1746,
+    "startedAt": "2026-10-04T06:09:56.923Z",
+    "finishedAt": "2026-10-04T06:09:58.669Z"
+  }
+}

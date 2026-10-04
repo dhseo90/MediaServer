@@ -1,0 +1,13 @@
+{
+  "schema": "media-server.ui-browser-console.v1",
+  "caseId": "RULE-003",
+  "correlationId": "RULE-003:assert-visible-read-model:completion",
+  "messages": [],
+  "census": {
+    "schema": "media-server.v390-ui-console-census.v1",
+    "messageCount": 0,
+    "severeMessageCount": 0,
+    "unapprovedMessageCount": 0,
+    "entries": []
+  }
+}

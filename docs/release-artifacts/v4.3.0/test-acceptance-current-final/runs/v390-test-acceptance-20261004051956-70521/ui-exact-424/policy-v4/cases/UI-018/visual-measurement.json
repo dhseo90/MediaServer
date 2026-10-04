@@ -1,0 +1,96 @@
+{
+  "schema": "media-server.ui-browser-visual-measurement.v2",
+  "caseBinding": {
+    "canonicalCaseId": "UI-018",
+    "featureId": "UI-018",
+    "screenId": "UI-018",
+    "screenRoute": "/lab",
+    "accountRole": "operator",
+    "targetSelector": "body"
+  },
+  "route": "/lab",
+  "accountRole": "operator",
+  "requestedTheme": "light",
+  "appliedTheme": "light",
+  "mediaTheme": "light",
+  "viewport": {
+    "width": 390,
+    "height": 844,
+    "devicePixelRatio": 1
+  },
+  "document": {
+    "scrollWidth": 390,
+    "scrollHeight": 844,
+    "clientWidth": 390,
+    "clientHeight": 844
+  },
+  "target": {
+    "selector": "body",
+    "visible": true,
+    "documentTarget": true,
+    "rect": {
+      "x": 8,
+      "y": 13,
+      "left": 8,
+      "top": 13,
+      "right": 382,
+      "bottom": 28,
+      "width": 374,
+      "height": 15
+    }
+  },
+  "textSamples": [
+    {
+      "foreground": "rgb(0, 0, 0)",
+      "background": "rgb(255, 255, 255)",
+      "fontSizePx": 13,
+      "fontWeight": "400",
+      "rect": {
+        "x": 8,
+        "y": 13,
+        "left": 8,
+        "top": 13,
+        "right": 382,
+        "bottom": 28,
+        "width": 374,
+        "height": 15
+      }
+    }
+  ],
+  "focus": {
+    "focusableCount": 0,
+    "applicable": false
+  },
+  "liveVideo": null,
+  "postActionVisualOwner": {
+    "schema": "media-server.v390-ui-post-action-visual-target.v1",
+    "caseId": "UI-018",
+    "actionId": "UI-018:navigate",
+    "completionMode": "navigation",
+    "sourceSelectorSha256": "230d8358dc8e8890b4c58deeb62912ee2f20357ae92a5cc861b98e68fe31acb5",
+    "sourceOwnerSelectorSha256": "230d8358dc8e8890b4c58deeb62912ee2f20357ae92a5cc861b98e68fe31acb5",
+    "requestedState": "visible",
+    "observedRoute": "/lab",
+    "navigationEpoch": 1,
+    "ownerCandidateCount": 1,
+    "sourceSelectorRewaited": false,
+    "selector": "body",
+    "bindingKind": "post-action-visible-document-owner",
+    "sourceDetached": false,
+    "sourceHidden": false,
+    "epochRelation": "advanced"
+  },
+  "focusSamples": [
+    {
+      "index": 0,
+      "focusIdentity": "body",
+      "tag": "body",
+      "id": "",
+      "testId": "",
+      "visible": true,
+      "outlineStyle": "none",
+      "outlineWidth": "3px",
+      "boxShadow": "none"
+    }
+  ]
+}

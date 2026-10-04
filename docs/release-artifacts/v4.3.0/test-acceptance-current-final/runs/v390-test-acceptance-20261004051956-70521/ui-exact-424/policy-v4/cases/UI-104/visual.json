@@ -1,0 +1,9 @@
+{
+  "schema": "media-server.ui-raw-visual-capture.v1",
+  "caseId": "UI-104",
+  "correlationId": "UI-104:assert-visible-read-model:completion",
+  "targetSelector": "#dashActionOutcomeSourceList > [data-v380-outcome-observer-entry]:first-child",
+  "screenshotSha256": "e1966f5907a180a524ee5eff890d8e8f4b0cee057d9e3d8fc42b7189f2476069",
+  "measurementSha256": "bd5bf4ebe09c96e6ae30dc64f7c0f23a6ad81add2e373364a7b2de75862d328e",
+  "qualificationStatus": "unqualified-raw-capture"
+}
