@@ -1,0 +1,11 @@
+Traceback (most recent call last):
+  File "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.4.0/development/mixed-preparation/mixed-120-15/launcher-checks.py", line 155, in <module>
+    runtime['stop_created_group'](sentinel)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.4.0/development/mixed-preparation/mixed-120-15/run-bounded.py", line 38, in stop_created_group
+    while group_alive(child.pid) and time.monotonic() < deadline:
+          ~~~~~~~~~~~^^^^^^^^^^^
+  File "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.4.0/development/mixed-preparation/mixed-120-15/run-bounded.py", line 19, in group_alive
+    os.killpg(group, 0)
+    ~~~~~~~~~^^^^^^^^^^
+PermissionError: [Errno 1] Operation not permitted

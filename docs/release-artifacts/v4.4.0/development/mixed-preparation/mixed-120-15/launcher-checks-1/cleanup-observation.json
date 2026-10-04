@@ -1,0 +1,31 @@
+{
+  "checkedAt": "2026-10-04T23:12:50.960116+00:00",
+  "rootIdentity": {
+    "dev": 16777232,
+    "ino": 168775777,
+    "uid": 501
+  },
+  "matchingFixtureOrProductCommands": [],
+  "knownDescendantPid": 90775,
+  "knownDescendantAbsent": true,
+  "openFilesAbsent": true,
+  "files": [
+    {
+      "name": "normal.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "deadline.log",
+      "bytes": 25,
+      "sha256": "719780e2a246667e877e54cc7eccc6d4d40c7d3cca09758c2c2eac4cdfb97f65"
+    },
+    {
+      "name": "nonzero.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "limitation": "원래 검사 결과 JSON 기록이 예외로 중단되어 전체 생성 PGID와 최초 내부 예외는 보존되지 않았다. processGroupAbsent를 추정 복원하지 않는다.",
+  "temporaryRootAbsent": true
+}

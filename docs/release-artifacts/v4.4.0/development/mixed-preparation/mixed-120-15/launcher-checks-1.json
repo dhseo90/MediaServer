@@ -1,0 +1,21 @@
+{
+  "result": "FAIL",
+  "exit": 1,
+  "command": [
+    "python3",
+    "docs/release-artifacts/v4.4.0/development/mixed-preparation/mixed-120-15/launcher-checks.py"
+  ],
+  "sourceHead": "e476bad9ea4deab141c80fda2c4f1046509ce5e9",
+  "wrapperSha256": "d9dafdcece88fcba922aad38914d84b3b8484d380dd7df830a29db45680fe5c1",
+  "launcherChecksSha256": "28588980b2c549bbd698b4e09c9af6da9ea0fc42f458dbf8ebe30a40e39f1880",
+  "timeoutSeconds": 30,
+  "executionElapsedSeconds": null,
+  "elapsedUnavailableReason": "실행 중 finally 예외로 자체 측정 결과 미기록. 도구 wall time을 검사 실측으로 대체하지 않는다.",
+  "error": "PermissionError at os.killpg(group,0) during sentinel cleanup; initial case failure unavailable",
+  "individualResults": "not recorded; do not reconstruct PASS",
+  "product120Started": false,
+  "originalOutput": "launcher-checks-1/tool-stderr.txt",
+  "cleanupObservation": "launcher-checks-1/cleanup-observation.json",
+  "processGroupContractVerified": false,
+  "recordedAt": "2026-10-04T23:13:38.511775+00:00"
+}

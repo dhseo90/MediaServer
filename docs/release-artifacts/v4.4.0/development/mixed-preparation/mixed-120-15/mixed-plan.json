@@ -1,5 +1,5 @@
 {
-  "state": "stopped-before-execution",
+  "state": "blocked-launcher-cleanup-failure",
   "featureIds": [
     "V440-F01",
     "V440-F02",
@@ -59,14 +59,16 @@
   },
   "productBinarySha256": "4eaf41faebabb057958b3d9fcf55a2ceafb08b6eabd6baa024e7039c9b70314d",
   "executionAuthorization": {
-    "status": "stopped-by-user",
-    "instruction": "테스트 전면 중단. 정확히 어떤 테스트 진행할지 산정 후 보고",
-    "followup": "미커밋 정리·커밋·푸시 및 테스트/잔여 이슈/예상시간 재산정만 승인. 테스트 재개 승인이 아니다.",
-    "recordedAt": "2026-10-04T22:37:27.541618+00:00",
+    "status": "stopped-by-cleanup-failure",
+    "instruction": "승인",
+    "approvedScope": "변경 경로120분/총123분 한도, 실행기 준비 확인, 마감 정합성, 필수CI 재개",
+    "recordedAt": "2026-10-04T23:07:25.217524+00:00",
     "executionStarted": false,
-    "requiresNewExplicitResume": true
+    "requiresNewExplicitResume": true,
+    "newStopReason": "launcher cleanup PermissionError; follow-up command/PID absence and owned temporary cleanup observed, but original process-group proof unavailable",
+    "statusBeforeNewStop": "explicitly-resumed-by-user"
   },
-  "preExecutionBlocker": "실행기·별도 recovery 그룹 등록·최종 결속/실패 기록을 소스 보완했다. 실행 확인은 미실행이며 사용자 명시 재개 확인 대기.",
+  "preExecutionBlocker": "첫 실행기 검사는cleanup PermissionError와 결과 기록 중단으로 FAIL. AGENTS 4장 중단 사유 해소 지시 전 수정·재검·제품120분 미시작.",
   "launcherChecksPlanned": {
     "scope": "실제 제품/모델/포트를 실행하지 않는 외부 실행기 종료 경계 확인",
     "timeBudgetSeconds": 30,
@@ -96,7 +98,7 @@
         "expected": "상위 등록 실패는 native 종료·명시FAIL, RUNNING으로 종료하지 않음"
       }
     ],
-    "execution": "not-run; user resume pending"
+    "execution": "attempt1 exit1; no product execution; see launcher-checks-1.json"
   },
   "preparationUpdatedAt": "2026-10-04T22:51:32.549630+00:00",
   "wrapperSha256": "d9dafdcece88fcba922aad38914d84b3b8484d380dd7df830a29db45680fe5c1",
@@ -114,5 +116,13 @@
     "reviewedWrapperSha256": "a5573b878e2596893ce46c38164b5595cf42240c67f4f1caf5c1b1a47e47806b",
     "subsequentMainFix": "registry O_EXCL creation precedes RUNNING receipt; preparation exception creates FAIL and never starts product",
     "updatedAt": "2026-10-04T23:01:34.217424+00:00"
+  },
+  "previousExecutionAuthorization": {
+    "status": "stopped-by-user",
+    "instruction": "테스트 전면 중단. 정확히 어떤 테스트 진행할지 산정 후 보고",
+    "followup": "미커밋 정리·커밋·푸시 및 테스트/잔여 이슈/예상시간 재산정만 승인. 테스트 재개 승인이 아니다.",
+    "recordedAt": "2026-10-04T22:37:27.541618+00:00",
+    "executionStarted": false,
+    "requiresNewExplicitResume": true
   }
 }
