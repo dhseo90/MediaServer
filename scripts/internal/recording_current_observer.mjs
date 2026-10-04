@@ -460,7 +460,7 @@ export function measureCurrentWorkspace(root,baseline,copy=null){
   return {...storage,...workspaceBounds(storage.totalBytes,baseline.fixedBytes,copyStorage.bytes,baseline.capBytes),copyEntries:copyStorage.entries,capBytes:baseline.fixedBytes+baseline.capBytes,capExceeded:false,workspacePolicy:'fixed-plus-variable-v1'};
 }
 // spawnSync와 달리 실제 자식 실행 중 감시한다. 100ms 주기이며 표본 사이 순간 최고치는 보장하지 않는다.
-export async function runCurrentRecovery({command,args,env,observe,timeoutMs=15000,outputCap=16384,intervalMs=100}){
+export async function runCurrentRecovery({command,args,env,observe,onGroup=null,timeoutMs=15000,outputCap=16384,intervalMs=100}){
   need(timeoutMs>0&&timeoutMs<=15000&&outputCap>0&&outputCap<=16384&&intervalMs>0&&intervalMs<=100,'recovery-monitor-options');
   observe();const began=performance.now(),child=spawn(command,args,{env,stdio:['ignore','pipe','pipe'],detached:true});
   let stdout='',stderr='',bytes=0,failure=null,error=null,force=null,last=began,maxGapMs=0,samples=0,peak=null;
@@ -471,11 +471,14 @@ export async function runCurrentRecovery({command,args,env,observe,timeoutMs=150
   child.stdout.on('data',b=>collect(b,false));child.stderr.on('data',b=>collect(b,true));child.on('error',e=>{error=e;failure??='recovery-spawn';});
   const abort=()=>stop('recovery-cancelled');process.once('SIGTERM',abort);process.once('SIGINT',abort);
   const timer=setTimeout(()=>{error=Object.assign(Error('timeout'),{code:'ETIMEDOUT'});stop('recovery-timeout');},timeoutMs),poll=setInterval(sample,intervalMs);
+  // 외부 총시간 제한이 있는 호출만 실제 별도 그룹의 소유권을 상위 실행기에 등록한다.
+  if(onGroup&&child.pid)try{onGroup({event:'started',pid:child.pid});}catch{stop('recovery-group-registration');}
   const ended=await new Promise(resolve=>child.once('close',(status,signal)=>resolve({status,signal})));
   clearInterval(poll);clearTimeout(timer);sample();
   let groupClosed=!child.pid;
   for(let i=0;child.pid&&i<20;i++){try{process.kill(-child.pid,0);}catch(e){groupClosed=e.code==='ESRCH';break;}stop('recovery-child-remains');if(i>=10)signal('SIGKILL');await new Promise(r=>setTimeout(r,100));}
   clearTimeout(force);process.removeListener('SIGTERM',abort);process.removeListener('SIGINT',abort);
   if(!groupClosed)failure??='recovery-group-open';
+  if(onGroup&&child.pid&&groupClosed)try{onGroup({event:'closed',pid:child.pid});}catch{failure??='recovery-group-registration';}
   return {...ended,error,pid:child.pid,stdout,stderr,groupClosed,monitor:{failure,samples,intervalMs,maxGapMs,elapsedMs:performance.now()-began,peak,continuousEnforcement:false}};
 }

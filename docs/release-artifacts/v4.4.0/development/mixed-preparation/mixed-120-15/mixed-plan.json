@@ -50,7 +50,7 @@
   "timeChangeReason": "completed30min passes are retained; this is the separately approved120min lifetime/resource observation, not a timeout extension to turn a failed run into PASS",
   "resourceDecision": "keep raw resourceTrendPass:false/reviewRequired:true; main assesses trend with actual history/FD/thread/progress/cleanup; no retrospective slope0 threshold",
   "driverHashes": {
-    "mixed-120.mjs": "ea7e2ea9709de9e5cf35269941aa58cd2f14e1becd6481d1b6c6ab20267ad540",
+    "mixed-120.mjs": "ff7eb6f26f8396ae1ad5725b4c64883a8598c679875e609c5c3734b45deb369b",
     "mixed-120.sh": "427b5f369007d40868755e3c6eeaac9783af3cbc5c2060174e27539076155a63"
   },
   "retained30DriverHashes": {
@@ -66,5 +66,53 @@
     "executionStarted": false,
     "requiresNewExplicitResume": true
   },
-  "preExecutionBlocker": "총123분을 컴파일·마지막 snapshot·cleanup까지 강제하는 외부 실행 관리가 아직 준비되지 않았다. 제품 부하를 실행한 적 없다."
+  "preExecutionBlocker": "실행기·별도 recovery 그룹 등록·최종 결속/실패 기록을 소스 보완했다. 실행 확인은 미실행이며 사용자 명시 재개 확인 대기.",
+  "launcherChecksPlanned": {
+    "scope": "실제 제품/모델/포트를 실행하지 않는 외부 실행기 종료 경계 확인",
+    "timeBudgetSeconds": 30,
+    "cases": [
+      {
+        "name": "normal-exit",
+        "expected": "자식exit0·그룹부재·시간이내만 PASS"
+      },
+      {
+        "name": "nonzero-exit",
+        "expected": "자식exit7을 FAIL로 보존"
+      },
+      {
+        "name": "deadline-with-descendant",
+        "expected": "자기 그룹의 부모/자식만 종료·한도 초과FAIL·별도 sentinel 생존"
+      },
+      {
+        "name": "receipt-callback-failure",
+        "expected": "spawn 뒤 기록 예외도 FAIL 및 소유 그룹 종료"
+      },
+      {
+        "name": "detached-recovery-registration",
+        "expected": "실제 등록된 별도 그룹도 종료·부재 확인, 기존 onGroup=null 소비자는 기존 동작 유지"
+      },
+      {
+        "name": "registration-error",
+        "expected": "상위 등록 실패는 native 종료·명시FAIL, RUNNING으로 종료하지 않음"
+      }
+    ],
+    "execution": "not-run; user resume pending"
+  },
+  "preparationUpdatedAt": "2026-10-04T22:51:32.549630+00:00",
+  "wrapperSha256": "d9dafdcece88fcba922aad38914d84b3b8484d380dd7df830a29db45680fe5c1",
+  "observerSourceSha256": "1c2c73f8f05963e39f5cc45ac2d5eb63a6686fe36b17c660bee5f0d9e2d47e8c",
+  "launcherSourceReview": {
+    "reviewer": "/root/release_independent_review",
+    "executedTests": false,
+    "findings": [
+      "final binding and receipt exception handling",
+      "final binding bounded by remaining budget",
+      "detached snapshot group registration",
+      "registry preparation failure must not leave a new RUNNING receipt"
+    ],
+    "disposition": "main source fixes complete; execution checks pending user resume",
+    "reviewedWrapperSha256": "a5573b878e2596893ce46c38164b5595cf42240c67f4f1caf5c1b1a47e47806b",
+    "subsequentMainFix": "registry O_EXCL creation precedes RUNNING receipt; preparation exception creates FAIL and never starts product",
+    "updatedAt": "2026-10-04T23:01:34.217424+00:00"
+  }
 }

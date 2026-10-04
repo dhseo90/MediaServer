@@ -173,7 +173,9 @@ async function snapshot(){
       {name:'runtime-archive',file:path.join(repo,'build-gst-onnx/libmedia_server_runtime.a')},{name:'native-source',file:path.join(repo,'scripts/internal/recording_current_observer_native.cpp')},
       {name:'trace-header',file:path.join(repo,'scripts/internal/recording_archive_phase_trace.h')},{name:'generation-observation',file:path.join(repo,'scripts/internal/recording_generation_observation.h')},{name:'native-binary',file:native}],manifest=sourceManifest(manifestEntries);
     const childStart=performance.now(),copyStat=fs.lstatSync(copyRoot);
-    const r=await runCurrentRecovery({command:native,args:['--snapshot',copy],env:{...snapshotEnvironment(),TMPDIR:copyRoot,HOME:copyRoot},observe:()=>measureCurrentWorkspace(root,workspace,{root:copyRoot,identity:{dev:copyStat.dev,ino:copyStat.ino}})});
+    const r=await runCurrentRecovery({command:native,args:['--snapshot',copy],env:{...snapshotEnvironment(),TMPDIR:copyRoot,HOME:copyRoot},
+      onGroup:event=>{const file=process.env.MEDIA_SERVER_OWNED_RECOVERY_GROUPS;if(!file)throw Error('recovery-owner-registry');fs.appendFileSync(file,JSON.stringify(event)+'\n');},
+      observe:()=>measureCurrentWorkspace(root,workspace,{root:copyRoot,identity:{dev:copyStat.dev,ino:copyStat.ino}})});
     console.log('[workspace-copy-monitor] '+JSON.stringify(r.monitor));
     const child=summarizeSpawnDiagnostic(r,{elapsedMs:performance.now()-childStart}),trace=validatedPhaseReceipt(r.stderr);console.log('[snapshot-process] '+JSON.stringify(child));
     groupClosed=r.groupClosed;childSuccess=groupClosed&&!r.error&&!r.signal&&r.status===0&&!r.monitor.failure;
