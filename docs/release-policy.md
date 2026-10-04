@@ -24,17 +24,18 @@
   "distribution": "source-only",
   "tagType": "signed-annotated",
   "published": {
-    "tag": "v4.2.0",
-    "url": "https://github.com/dhseo90/MediaServer/releases/tag/v4.2.0",
-    "observedAt": "2026-10-03T16:14:13.891Z"
+    "tag": "v4.3.0",
+    "url": "https://github.com/dhseo90/MediaServer/releases/tag/v4.3.0",
+    "observedAt": "2026-10-04T09:36:44.509Z"
   }
 }
 ```
 
 현재 소스·공개 목표는 v4.3.0이며 [릴리즈 노트](release-notes-v4.3.0.md)에 개발 범위와 제한을 설명한다.
-로컬 릴리즈 검증과 PR #77의 required CI를 통과했다. 외부 공개는 별도 확인한다.
-`priorPublishedTag`는 기록된 공개 v4.2.0이며,
-위 `published`의 관측 시각과 URL은 기존 근거를 유지한다. 공개 후 실제 Latest·태그 검증 결과에 따라 관측 값을 갱신한다.
+로컬 릴리즈 검증과 PR #77·병합 main의 required CI를 통과했다.
+v4.3.0 source-only Release의 Latest·URL·원격 태그와 GitHub 서명 검증을 확인했다.
+`priorPublishedTag`는 이전 공개 v4.2.0이며, 위 `published`는 이번 공개 확인의 관측 시각과 URL이다.
+공개 태그는 `2e49046c7a305d92efe3ecf8e9287bcadd7f5479`에 고정하고 이후 관측 기록 유지보수와 구분한다.
 [녹화·검색 로드맵](v410-v49-recording-search-roadmap.md)의 구현·잔여 계획과
 [GitHub Latest](https://github.com/dhseo90/MediaServer/releases/latest)의 공개 상태를 구분한다.
 
