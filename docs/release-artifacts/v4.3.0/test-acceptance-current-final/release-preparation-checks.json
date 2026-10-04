@@ -1,0 +1,41 @@
+{
+  "schema": "media-server.v430-release-preparation-checks.v1",
+  "sourceAtStart": "b41fcff976467a459b8f219fcac64f9a687feb96",
+  "sourceBoundary": "공개 준비 최초 검사는 fixture compact화와 증거 보존 커밋 이전의 추적 트리를 읽었다. 당시 미커밋 변경은 개발 README와 릴리즈 노트의 검증 상태 문구였으며 실제 제품 소스는 b41fcff9이다.",
+  "remoteCiExecuted": false,
+  "checks": [
+    {
+      "command": "./server.sh write-dependency-notice --check",
+      "exitCode": 0,
+      "outputRetention": "tool stdout only; not reconstructed"
+    },
+    {
+      "command": "./server.sh verify-public-repo-readiness --report docs/release-artifacts/v4.3.0/test-acceptance-current-final/public-repo-readiness.md",
+      "exitCode": 1,
+      "stdout": "public-repo-readiness.log",
+      "report": "public-repo-readiness.md",
+      "pass": 4,
+      "fail": 4,
+      "historySecretScan": "pass",
+      "remainingCause": "raw execution paths, personal/temporary paths, media allowlist; size failure subsequently fixed in 0da2b3f18"
+    },
+    {
+      "command": "./server.sh verify-bundle-policy --output docs/release-artifacts/v4.3.0/test-acceptance-current-final/bundle-policy.md --json-output docs/release-artifacts/v4.3.0/test-acceptance-current-final/bundle-policy.json",
+      "exitCode": 0,
+      "stdout": "bundle-policy.log",
+      "report": "bundle-policy.json"
+    },
+    {
+      "command": "./server.sh dependency-snapshot --stable --output docs/release-artifacts/v4.3.0/test-acceptance-current-final/dependency-snapshot.md --json-output docs/release-artifacts/v4.3.0/test-acceptance-current-final/dependency-snapshot.json --no-linked-libs",
+      "exitCode": 0,
+      "stdout": "dependency-snapshot.log",
+      "result": "snapshot generation; not a legal approval"
+    },
+    {
+      "command": "./server.sh source-offer-checklist --stable --bundle-policy-report docs/release-artifacts/v4.3.0/test-acceptance-current-final/bundle-policy.json --output docs/release-artifacts/v4.3.0/test-acceptance-current-final/source-offer-checklist.md",
+      "exitCode": 0,
+      "stdout": "source-offer-checklist.log",
+      "result": "checklist generation"
+    }
+  ]
+}

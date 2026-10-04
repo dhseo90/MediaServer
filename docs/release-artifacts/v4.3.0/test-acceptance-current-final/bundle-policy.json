@@ -1,0 +1,13 @@
+{
+  "schema": "media-server.bundle-policy-report.v1",
+  "generatedAt": "2026-10-04T08:47:51.207Z",
+  "status": "pass",
+  "allowRiskyRuntime": false,
+  "scanLinkedLibraries": true,
+  "policy": "config/bundle_distribution_policy.json",
+  "bundleDir": ".",
+  "filesScanned": 8393,
+  "pathHitCount": 0,
+  "linkedHitCount": 0,
+  "hits": []
+}

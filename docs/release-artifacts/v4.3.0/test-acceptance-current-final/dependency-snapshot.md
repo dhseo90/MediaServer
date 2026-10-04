@@ -1,0 +1,42 @@
+# Dependency Snapshot
+
+<!-- 이 파일은 ./server.sh dependency-snapshot 명령으로 생성합니다. -->
+
+- schema: media-server.dependency-snapshot.v1
+- generatedAt: stable
+- inventory: config/third_party_attribution.json
+- platform: Darwin 27.0.0 arm64
+- binary: build-gst-onnx/media_server
+
+이 snapshot은 현재 개발/배포 환경에서 감지한 dependency 버전과 asset hash입니다.
+패키지 매니저로 설치되는 항목은 환경마다 달라질 수 있으므로, release 전에는 이 파일을 다시 생성합니다.
+
+| 구성요소 | 기준 버전/정책 | 감지 결과 | Asset/hash | 주의 |
+| --- | --- | --- | --- | --- |
+| SQLite | 별도 고정 없음. 빌드 및 저장/복구 검증 결과로 지원 환경을 확인합니다. CMake의 SQLITE3_FOUND로 선택하고 실제 설치 버전은 dependency snapshot에서 확인합니다. | sqlite3: 3.51.0 | - | - |
+| GStreamer, gst-rtsp-server, gst-plugins-base/good/bad | minimum supported version: 1.28 GStreamer 1.0 API/pkg-config namespace를 사용하며, 실제 설치 버전은 pkg-config 결과를 release snapshot에 기록합니다. | gstreamer-1.0: 1.28.1; gstreamer-rtsp-server-1.0: 1.28.1; gstreamer-pbutils-1.0: 1.28.1; gstreamer-app-1.0: 1.28.1; gstreamer-webrtc-1.0: 1.28.1; gstreamer-sdp-1.0: 1.28.1 | - | - |
+| libnice and libnice GStreamer plugin | 미고정. 설치 패키지와 GStreamer plugin 호환성을 우선합니다. GStreamer WebRTC ICE 기능에 필요한 libnice 설치 버전을 release snapshot에 기록합니다. | nice: 0.1.23 | - | - |
+| Cairo and Pango | 미고정. 없으면 MEDIA_SERVER_USE_PANGOCAIRO=0으로 빌드합니다. PangoCairo가 발견되면 overlay text rendering에 사용하고, 설치 버전은 release snapshot에 기록합니다. | pangocairo: 1.57.0; cairo: 1.18.4; pango: 1.57.0 | - | - |
+| Google SigLIP2 base patch16-224 | 선택 기능. 고정 768차원/224 RGB/64 token FP32 export 고정 revision 및 원본/ONNX/tokenizer SHA256와 전처리를 contract ID에 결박한다. docs/research/v430-siglip2-provenance.md 참조 | - | SigLIP2 image encoder: 371695117 bytes, sha256=cca2e4fa86196ebcae3345f4795ccfa3c9910768aac8e2d1f90c43ff518e3cd3; SigLIP2 text encoder: 1129352764 bytes, sha256=b131191ed9673021885c18514d3fc08e04e8c40f603788d21ecb4448d5e9af57; SigLIP2 tokenizer: 4241003 bytes, sha256=61a7b147390c64585d6c3543dd6fc636906c9af3865a5548f27f31aee1d4c8e2 | - |
+| SentencePiece C++ | 선택 SigLIP2 빌드의 명시 prefix 필요 v0.2.0 source archive SHA 고정; 실제 build metadata는 격리 preparation.json에 보존 | - | - | - |
+| Pillow 전처리 상호운용 기준 | 준비·검증 도구 Pillow11.3.0 Pillow11.3.0 bilinear의 pixel/rounding 계약을 독립 C++ 구현과 직접 대조 | - | - | - |
+| ONNX Runtime | 1.20.1 기본 설치 기준. 최신 시스템 패키지도 허용합니다. Linux 자동 설치 기본값은 1.20.1입니다. Homebrew/수동 설치 환경은 감지된 버전을 snapshot에 기록합니다. | libonnxruntime: 1.25.0 | - | - |
+| libsodium | 미고정. 없으면 fallback password hashing 경로를 사용합니다. 발견되면 MEDIA_SERVER_USE_LIBSODIUM=1로 빌드하고, 설치 버전은 snapshot에 기록합니다. | libsodium: 1.0.21 | - | - |
+| FFmpeg and ffprobe | 미고정. 검증 스크립트는 ffmpeg/ffprobe command 존재 여부와 실제 probe 성공 여부를 기준으로 판단합니다. 패키지 관리자 설치 버전을 사용합니다. release snapshot은 ffmpeg/ffprobe version과 GPL build flag 포함 여부를 기록합니다. | ffmpeg: 8.0.1; ffprobe: 8.0.1 | - | ffmpeg: GPL build flag 감지; ffprobe: GPL build flag 감지 |
+| Ultralytics YOLO model asset yolo11n.onnx | 기본 모델 파일명 기준 yolo11n.onnx. URL은 MEDIA_SERVER_YOLO_MODEL_URL로 바꿀 수 있습니다. 기본 다운로드 URL은 Ultralytics assets v8.4.0의 yolo11n.onnx입니다. 실제 파일 hash는 snapshot에 기록합니다. | - | models/yolo11n.onnx: 10930182 bytes, Ultralytics assets v8.4.0, sha256=634279b40c07c6391472c51ad45b81ebc48706a9a1fe72dd3396322acd0c053b | - |
+| Optional YOLO layout verification model assets | 선택 검증 전용이라 제품 실행 필수 조건이 아닙니다. 기본 검증 URL은 스크립트에 고정되어 있고 실제 파일 hash는 snapshot에 기록합니다. | - | models/yolov5n.onnx: 3981910 bytes, Ultralytics YOLOv5 v7.0 release asset, sha256=04f0e55c26f58d17145b36045780fe1250d5bd2187543e11568e5141d05b3262; models/yolov8n-640x640-end2end.onnx: 13869046 bytes, YOLOv8 end-to-end ONNX sample, sha256=d056ca1cf43372d39dc0c30cbb044e0c161988fc72d3d16c17071e220879b7fa | - |
+| COCO class labels | 고정 파일명 models/coco.names 80개 COCO class label 목록을 생성합니다. snapshot에는 줄 수와 hash를 기록합니다. | - | models/coco.names: 621 bytes, 80 lines, sha256=bd17f1ee35d5f3c862a4894605855abbb9dda4b0621fdb0ac4c2c8c7bb7e730a | - |
+| OpenCV Python | 미고정. 예제 client가 import 실패 시 설치 안내를 출력합니다. 예제 client를 실행하는 환경에서 cv2 import version을 snapshot에 기록합니다. | cv2: 4.13.0 | - | - |
+| Transitive linked libraries from media/runtime packages | 직접 고정하지 않음. 상위 media/runtime package와 OS SDK가 결정합니다. 정확한 파일 경로와 current version은 `./server.sh dependency-snapshot`의 linked library section에 기록합니다. | - | - | - |
+| CMake, pkg-config, Node.js, Python 3, curl | CMake 3.16+, C++17 compiler, Node.js/Python 3/curl/pkg-config command 필요 CMake 최소 요구 버전은 3.16입니다. 나머지 tool의 실제 버전은 snapshot에 기록합니다. | cmake: 4.2.3; pkg-config: 2.5.1; node: 24.13.0; python3: 3.14.4; curl: 8.7.1 | - | - |
+| yt-dlp and Deno | 제품 핵심 실행 필수 조건이 아닙니다. YouTube import/source opt-in lab build에서만 필요하며 snapshot에 버전을 기록합니다. | yt-dlp: 2026.03.17; deno: 2.7.13 | - | - |
+
+## GStreamer Element Snapshot
+
+| Element | Status | Plugin | Version | License | File | Usage | Risk |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| x264enc | timeout | - | - | - | - | RTSP/WebRTC H264 재인코딩 | spawnSync gst-inspect-1.0 ETIMEDOUT; x264 external library는 GPL 의무를 만들 수 있어 binary bundle 포함 시 별도 검토가 필요합니다. |
+| x265enc | timeout | - | - | - | - | RTSP H265 route 재인코딩 | spawnSync gst-inspect-1.0 ETIMEDOUT; x265 external library는 GPL 의무를 만들 수 있어 binary bundle 포함 시 별도 검토가 필요합니다. |
+| avdec_h264 | timeout | - | - | - | - | WebRTC/VA raw frame 생성용 H264 decode | spawnSync gst-inspect-1.0 ETIMEDOUT; gst-libav/FFmpeg 경유 decoder일 수 있어 bundle 포함 시 FFmpeg build flag와 license를 확인합니다. |
+| avdec_h265 | timeout | - | - | - | - | WebRTC/VA raw frame 생성용 H265 decode | spawnSync gst-inspect-1.0 ETIMEDOUT; gst-libav/FFmpeg 경유 decoder일 수 있어 bundle 포함 시 FFmpeg build flag와 license를 확인합니다. |
+| avenc_aac | timeout | - | - | - | - | RTSP AAC audio 재인코딩 | spawnSync gst-inspect-1.0 ETIMEDOUT; gst-libav/FFmpeg 경유 encoder일 수 있어 bundle 포함 시 FFmpeg build flag와 license를 확인합니다. |
