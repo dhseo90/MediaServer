@@ -1,0 +1,15 @@
+{
+  "observedAt": "2026-10-04T12:55:15.672Z",
+  "scope": "modified and untracked files before preservation",
+  "previousAttempt": {
+    "command": "node --input-type=module, scanTrackedTextFile(process.cwd(),file,policy)",
+    "exit": 1,
+    "error": "EISDIR: illegal operation on a directory, read",
+    "cause": "caller supplied repository directory instead of absolute file path",
+    "result": "not completed"
+  },
+  "command": "node --input-type=module, scanTrackedTextFile(path.resolve(file),file,policy)",
+  "files": 141,
+  "hits": [],
+  "exit": 0
+}

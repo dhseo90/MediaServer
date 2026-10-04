@@ -1,0 +1,21 @@
+[
+  {
+    "command": [
+      "./server.sh",
+      "verify-docs-links"
+    ],
+    "exit": 0,
+    "elapsedSeconds": 0.292,
+    "log": "release-doc-followup-1-1.log"
+  },
+  {
+    "command": [
+      "git",
+      "diff",
+      "--check"
+    ],
+    "exit": 0,
+    "elapsedSeconds": 0.045,
+    "log": "release-doc-followup-1-2.log"
+  }
+]

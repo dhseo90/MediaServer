@@ -1,0 +1,596 @@
+{
+  "schema": "media-server.evidence-http-auth.v1",
+  "featureId": "V440-A01-HTTP",
+  "status": "PASS",
+  "scope": "actual loopback HTTP, model OFF; separate from actual-model API and actual UI",
+  "startedAtMs": 1791118179104,
+  "command": "node scripts/internal/evidence_http_checks.mjs",
+  "checks": [
+    {
+      "id": "enabled seeded package listing",
+      "status": "PASS",
+      "expected": true,
+      "actual": true
+    },
+    {
+      "id": "current product search returns seeded recording",
+      "status": "PASS",
+      "expected": true,
+      "actual": true
+    },
+    {
+      "id": "server snapshot creates immutable evidence",
+      "status": "PASS",
+      "expected": true,
+      "actual": true
+    },
+    {
+      "id": "created manifest and eight exact frames",
+      "status": "PASS",
+      "expected": true,
+      "actual": true
+    },
+    {
+      "id": "download bytes match immutable SHA256",
+      "status": "PASS",
+      "expected": true,
+      "actual": true
+    },
+    {
+      "id": "asset cache/content boundary",
+      "status": "PASS",
+      "expected": true,
+      "actual": true
+    },
+    {
+      "id": "byte range exact slice",
+      "status": "PASS",
+      "expected": true,
+      "actual": true
+    },
+    {
+      "id": "asset HEAD no body and full length",
+      "status": "PASS",
+      "expected": true,
+      "actual": true
+    },
+    {
+      "id": "range outside asset",
+      "status": "PASS",
+      "expected": 416,
+      "actual": 416
+    },
+    {
+      "id": "viewer detail blocked",
+      "status": "PASS",
+      "expected": 403,
+      "actual": 403
+    },
+    {
+      "id": "viewer asset blocked",
+      "status": "PASS",
+      "expected": 403,
+      "actual": 403
+    },
+    {
+      "id": "without source detail blocked",
+      "status": "PASS",
+      "expected": 403,
+      "actual": 403
+    },
+    {
+      "id": "without source asset blocked",
+      "status": "PASS",
+      "expected": 403,
+      "actual": 403
+    },
+    {
+      "id": "read-only operator cannot create",
+      "status": "PASS",
+      "expected": 403,
+      "actual": 403
+    },
+    {
+      "id": "allowed operator reads asset",
+      "status": "PASS",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "id": "malformed snapshot rejected",
+      "status": "PASS",
+      "expected": 400,
+      "actual": 400
+    },
+    {
+      "id": "expired snapshot cannot create",
+      "status": "PASS",
+      "expected": 410,
+      "actual": 410
+    },
+    {
+      "id": "forged hit cannot create",
+      "status": "PASS",
+      "expected": 410,
+      "actual": 410
+    },
+    {
+      "id": "missing valid ID",
+      "status": "PASS",
+      "expected": 404,
+      "actual": 404
+    },
+    {
+      "id": "V440-A01 plaintext credentials absent",
+      "status": "PASS",
+      "expected": true,
+      "actual": true
+    },
+    {
+      "id": "V440-A01 authstore private mode",
+      "status": "PASS",
+      "expected": 384,
+      "actual": 384
+    }
+  ],
+  "cleanup": {
+    "root": "<tmp>/media-server-evidence-http-TL7Cfn",
+    "rootIdentity": "16777232:167489204",
+    "process": {
+      "exited": true,
+      "forced": false,
+      "exitCode": 0,
+      "signalCode": null
+    },
+    "http": {
+      "closed": true,
+      "evidence": "ECONNREFUSED"
+    },
+    "rtsp": {
+      "closed": true,
+      "evidence": "ECONNREFUSED"
+    },
+    "udpClosed": true,
+    "rootAbsent": true
+  },
+  "modelInference": false,
+  "totalBudgetMs": 60000,
+  "workBudgetMs": 45000,
+  "actualUiPass": false,
+  "previousRuns": [
+    {
+      "schema": "media-server.evidence-http-auth.v1",
+      "featureId": "V440-A01-HTTP",
+      "status": "FAIL",
+      "scope": "actual loopback HTTP, model OFF; separate from actual-model API and actual UI",
+      "startedAtMs": 1791114026383,
+      "command": "node scripts/internal/evidence_http_checks.mjs",
+      "checks": [],
+      "cleanup": {
+        "root": "<tmp>/media-server-evidence-http-8IdthC",
+        "rootIdentity": "16777232:167470285",
+        "process": {
+          "exited": true,
+          "exitCode": 1,
+          "signalCode": null,
+          "graceful": false
+        },
+        "http": {
+          "closed": true,
+          "evidence": "ECONNREFUSED"
+        },
+        "rtsp": {
+          "closed": true,
+          "evidence": "ECONNREFUSED"
+        },
+        "udpClosed": true,
+        "rootAbsent": true
+      },
+      "modelInference": false,
+      "totalBudgetMs": 60000,
+      "workBudgetMs": 45000,
+      "binarySha256": "0bf3109b6c00325e0e3d07c3e38d1131cc8288eeb8f279ea87f510fbac25686c",
+      "sourceSha256": "341b84ce07538daf9bb962d98da1d439afb0cb02cf21e81eaf4b9d59b2412c27",
+      "ports": {
+        "http": 49509,
+        "rtsp": 49508,
+        "udp": 63404
+      },
+      "fixtureSha256": "648eb5f61f64636a9bdaa621349fa730dc0f3edad76fc33eb31b2340a0d4fe39",
+      "pid": 61428,
+      "firstFailure": {
+        "id": "product server startup",
+        "expected": "successful isolated run",
+        "actual": "sanitized failure"
+      },
+      "finishedAtMs": 1791114028210,
+      "elapsedMs": 1827,
+      "exit": 1
+    },
+    {
+      "schema": "media-server.evidence-http-auth.v1",
+      "featureId": "V440-A01-HTTP",
+      "status": "FAIL",
+      "scope": "actual loopback HTTP, model OFF; separate from actual-model API and actual UI",
+      "startedAtMs": 1791114078663,
+      "command": "node scripts/internal/evidence_http_checks.mjs",
+      "checks": [],
+      "cleanup": {
+        "root": "<tmp>/media-server-evidence-http-98TMAC",
+        "rootIdentity": "16777232:167470997",
+        "process": {
+          "exited": true,
+          "exitCode": 1,
+          "signalCode": null,
+          "graceful": false
+        },
+        "http": {
+          "closed": true,
+          "evidence": "ECONNREFUSED"
+        },
+        "rtsp": {
+          "closed": true,
+          "evidence": "ECONNREFUSED"
+        },
+        "udpClosed": true,
+        "rootAbsent": true
+      },
+      "modelInference": false,
+      "totalBudgetMs": 60000,
+      "workBudgetMs": 45000,
+      "binarySha256": "0bf3109b6c00325e0e3d07c3e38d1131cc8288eeb8f279ea87f510fbac25686c",
+      "sourceSha256": "f4cb9cc15670b4366235e0c9cac5388ec36a653a9c549245d9e49eb01577fa7d",
+      "ports": {
+        "http": 49536,
+        "rtsp": 49535,
+        "udp": 52483
+      },
+      "fixtureSha256": "648eb5f61f64636a9bdaa621349fa730dc0f3edad76fc33eb31b2340a0d4fe39",
+      "pid": 61564,
+      "firstFailure": {
+        "id": "product server startup",
+        "expected": "successful isolated run",
+        "actual": "sanitized failure"
+      },
+      "failureDiagnostics": [
+        "recording startup recovery complete: deleted=0 recovered=0 inspected=1 corrupt=0",
+        "recording supervisor start failed: duplicate canonical source in source registry file: file:sample_h264_video_only.mp4"
+      ],
+      "finishedAtMs": 1791114081784,
+      "elapsedMs": 3121,
+      "exit": 1
+    },
+    {
+      "schema": "media-server.evidence-http-auth.v1",
+      "featureId": "V440-A01-HTTP",
+      "status": "FAIL",
+      "scope": "actual loopback HTTP, model OFF; separate from actual-model API and actual UI",
+      "startedAtMs": 1791114109008,
+      "command": "node scripts/internal/evidence_http_checks.mjs",
+      "checks": [
+        {
+          "id": "enabled seeded package listing",
+          "status": "PASS",
+          "expected": true,
+          "actual": true
+        },
+        {
+          "id": "current product search returns seeded recording",
+          "status": "PASS",
+          "expected": true,
+          "actual": true
+        },
+        {
+          "id": "server snapshot creates immutable evidence",
+          "status": "PASS",
+          "expected": true,
+          "actual": true
+        },
+        {
+          "id": "created manifest and eight exact frames",
+          "status": "PASS",
+          "expected": true,
+          "actual": true
+        },
+        {
+          "id": "download bytes match immutable SHA256",
+          "status": "PASS",
+          "expected": true,
+          "actual": true
+        },
+        {
+          "id": "asset cache/content boundary",
+          "status": "PASS",
+          "expected": true,
+          "actual": true
+        },
+        {
+          "id": "byte range exact slice",
+          "status": "PASS",
+          "expected": true,
+          "actual": true
+        },
+        {
+          "id": "asset HEAD no body and full length",
+          "status": "PASS",
+          "expected": true,
+          "actual": true
+        },
+        {
+          "id": "range outside asset",
+          "status": "PASS",
+          "expected": 416,
+          "actual": 416
+        },
+        {
+          "id": "viewer detail blocked",
+          "status": "PASS",
+          "expected": 403,
+          "actual": 403
+        },
+        {
+          "id": "viewer asset blocked",
+          "status": "PASS",
+          "expected": 403,
+          "actual": 403
+        },
+        {
+          "id": "without source detail blocked",
+          "status": "PASS",
+          "expected": 403,
+          "actual": 403
+        },
+        {
+          "id": "without source asset blocked",
+          "status": "PASS",
+          "expected": 403,
+          "actual": 403
+        },
+        {
+          "id": "read-only operator cannot create",
+          "status": "PASS",
+          "expected": 403,
+          "actual": 403
+        },
+        {
+          "id": "allowed operator reads asset",
+          "status": "PASS",
+          "expected": 200,
+          "actual": 200
+        },
+        {
+          "id": "expired snapshot cannot create",
+          "status": "FAIL",
+          "expected": 410,
+          "actual": 503
+        }
+      ],
+      "cleanup": {
+        "root": "<tmp>/media-server-evidence-http-ARuWOy",
+        "rootIdentity": "16777232:167471731",
+        "process": {
+          "exited": true,
+          "forced": false,
+          "exitCode": 0,
+          "signalCode": null
+        },
+        "http": {
+          "closed": true,
+          "evidence": "ECONNREFUSED"
+        },
+        "rtsp": {
+          "closed": true,
+          "evidence": "ECONNREFUSED"
+        },
+        "udpClosed": true,
+        "rootAbsent": true
+      },
+      "modelInference": false,
+      "totalBudgetMs": 60000,
+      "workBudgetMs": 45000,
+      "binarySha256": "0bf3109b6c00325e0e3d07c3e38d1131cc8288eeb8f279ea87f510fbac25686c",
+      "sourceSha256": "0111df434834c41a48eed2ce8be76bda22744ba1266a25b1a7653b66e8e19b77",
+      "ports": {
+        "http": 49573,
+        "rtsp": 49572,
+        "udp": 52808
+      },
+      "fixtureSha256": "648eb5f61f64636a9bdaa621349fa730dc0f3edad76fc33eb31b2340a0d4fe39",
+      "pid": 61696,
+      "firstFailure": {
+        "id": "expired snapshot cannot create",
+        "expected": 410,
+        "actual": 503
+      },
+      "failureDiagnostics": [
+        "recording startup recovery complete: deleted=0 recovered=0 inspected=1 corrupt=0"
+      ],
+      "finishedAtMs": 1791114113061,
+      "elapsedMs": 4053,
+      "exit": 1
+    },
+    {
+      "schema": "media-server.evidence-http-auth.v1",
+      "featureId": "V440-A01-HTTP",
+      "status": "PASS",
+      "scope": "actual loopback HTTP, model OFF; separate from actual-model API and actual UI",
+      "startedAtMs": 1791114201144,
+      "command": "node scripts/internal/evidence_http_checks.mjs",
+      "checks": [
+        {
+          "id": "enabled seeded package listing",
+          "status": "PASS",
+          "expected": true,
+          "actual": true
+        },
+        {
+          "id": "current product search returns seeded recording",
+          "status": "PASS",
+          "expected": true,
+          "actual": true
+        },
+        {
+          "id": "server snapshot creates immutable evidence",
+          "status": "PASS",
+          "expected": true,
+          "actual": true
+        },
+        {
+          "id": "created manifest and eight exact frames",
+          "status": "PASS",
+          "expected": true,
+          "actual": true
+        },
+        {
+          "id": "download bytes match immutable SHA256",
+          "status": "PASS",
+          "expected": true,
+          "actual": true
+        },
+        {
+          "id": "asset cache/content boundary",
+          "status": "PASS",
+          "expected": true,
+          "actual": true
+        },
+        {
+          "id": "byte range exact slice",
+          "status": "PASS",
+          "expected": true,
+          "actual": true
+        },
+        {
+          "id": "asset HEAD no body and full length",
+          "status": "PASS",
+          "expected": true,
+          "actual": true
+        },
+        {
+          "id": "range outside asset",
+          "status": "PASS",
+          "expected": 416,
+          "actual": 416
+        },
+        {
+          "id": "viewer detail blocked",
+          "status": "PASS",
+          "expected": 403,
+          "actual": 403
+        },
+        {
+          "id": "viewer asset blocked",
+          "status": "PASS",
+          "expected": 403,
+          "actual": 403
+        },
+        {
+          "id": "without source detail blocked",
+          "status": "PASS",
+          "expected": 403,
+          "actual": 403
+        },
+        {
+          "id": "without source asset blocked",
+          "status": "PASS",
+          "expected": 403,
+          "actual": 403
+        },
+        {
+          "id": "read-only operator cannot create",
+          "status": "PASS",
+          "expected": 403,
+          "actual": 403
+        },
+        {
+          "id": "allowed operator reads asset",
+          "status": "PASS",
+          "expected": 200,
+          "actual": 200
+        },
+        {
+          "id": "malformed snapshot rejected",
+          "status": "PASS",
+          "expected": 400,
+          "actual": 400
+        },
+        {
+          "id": "expired snapshot cannot create",
+          "status": "PASS",
+          "expected": 410,
+          "actual": 410
+        },
+        {
+          "id": "forged hit cannot create",
+          "status": "PASS",
+          "expected": 410,
+          "actual": 410
+        },
+        {
+          "id": "missing valid ID",
+          "status": "PASS",
+          "expected": 404,
+          "actual": 404
+        },
+        {
+          "id": "V440-A01 plaintext credentials absent",
+          "status": "PASS",
+          "expected": true,
+          "actual": true
+        },
+        {
+          "id": "V440-A01 authstore private mode",
+          "status": "PASS",
+          "expected": 384,
+          "actual": 384
+        }
+      ],
+      "cleanup": {
+        "root": "<tmp>/media-server-evidence-http-4Ojiqc",
+        "rootIdentity": "16777232:167472645",
+        "process": {
+          "exited": true,
+          "forced": false,
+          "exitCode": 0,
+          "signalCode": null
+        },
+        "http": {
+          "closed": true,
+          "evidence": "ECONNREFUSED"
+        },
+        "rtsp": {
+          "closed": true,
+          "evidence": "ECONNREFUSED"
+        },
+        "udpClosed": true,
+        "rootAbsent": true
+      },
+      "modelInference": false,
+      "totalBudgetMs": 60000,
+      "workBudgetMs": 45000,
+      "binarySha256": "db4ca306a8e50ef40995f85909624538c11dd1bdd2ca28d8fd7c7812a02057f0",
+      "sourceSha256": "093a31891f0235bba42872f58e8ac90353d21fe7585cc75525bc31b209e472ab",
+      "ports": {
+        "http": 49650,
+        "rtsp": 49649,
+        "udp": 57343
+      },
+      "fixtureSha256": "648eb5f61f64636a9bdaa621349fa730dc0f3edad76fc33eb31b2340a0d4fe39",
+      "pid": 61898,
+      "finishedAtMs": 1791114205620,
+      "elapsedMs": 4476,
+      "exit": 0
+    }
+  ],
+  "binarySha256": "5996f039bbe6e51244e1ff9703f31bde6b0a52cbcf129b4f6c0e57f951f580ef",
+  "sourceSha256": "58b0f681403c1377c89aa4b57b934dd4f6ced2340a006b216f8b486da38b770e",
+  "ports": {
+    "http": 51673,
+    "rtsp": 51672,
+    "udp": 51677
+  },
+  "fixtureSha256": "b07d028ab0d723ba309901441259fae692ede008748c90ccb635049cfc86977a",
+  "pid": 68217,
+  "finishedAtMs": 1791118185235,
+  "elapsedMs": 6131,
+  "exit": 0
+}

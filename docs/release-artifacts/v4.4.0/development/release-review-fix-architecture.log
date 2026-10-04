@@ -1,0 +1,6 @@
+command: ./server.sh verify-v390-review4-structure-stabilization-execution --write-current-graph --bind-current-graph
+startedAt: 2026-10-04T12:49:57.151523+00:00
+wrote test/fixtures/v390_structure_stabilization_current_graph.json: files=359 cpp=164 edges=18
+
+exit: 0
+finishedAt: 2026-10-04T12:49:57.328569+00:00

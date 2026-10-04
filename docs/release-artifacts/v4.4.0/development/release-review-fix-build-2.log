@@ -1,0 +1,10 @@
+command: cmake --build build-gst-onnx -j 4
+startedAt: 2026-10-04T12:46:43.705824+00:00
+[  1%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/evidence_package_builder.cpp.o
+[  2%] Linking CXX static library libmedia_server_runtime.a
+[ 99%] Built target media_server_runtime
+[ 99%] Linking CXX executable media_server
+[100%] Built target media_server
+
+exit: 0
+finishedAt: 2026-10-04T12:46:45.678308+00:00

@@ -1,0 +1,32 @@
+✔ V440-U01 explicit POST preserves selected parameters and admits one creation (13.008875ms)
+✔ V440-U01 channel change suppresses late detail and old media errors (0.980459ms)
+✔ V440-U01 forbidden and disabled are explicit without success state (2.211917ms)
+✔ V440-U01 invalid artifact ID never becomes a fetch URL (0.523334ms)
+✔ V440-U01 obsolete list does not repopulate changed channel (0.516541ms)
+✔ late search response cannot replace newer query or revive invalidated results (12.031208ms)
+✔ late seek and metadata cannot move a newer selected file (1.226292ms)
+✔ expired snapshot asks for new search and never loads a file (1.479792ms)
+✔ setting currentTime is seeking, only current media completion succeeds (0.679041ms)
+✔ same URL new selection rejects old metadata seeked and error events (0.736916ms)
+✔ completion requires data, no pending seek, no media error, and target within frame tolerance (0.455833ms)
+✔ same current position waits for current data without needing seeked (0.989458ms)
+✔ bounds invalid response unsupported position and media failure remain distinct (0.605459ms)
+✔ incomplete evidence is not empty success (0.605375ms)
+✔ seeked before current data stays pending until loadeddata (0.871958ms)
+✔ restart MAC error400 and same-pool expiry410 clear results with distinct guidance (1.842833ms)
+✔ late query cannot revive results after changed input (2.956166ms)
+✔ late selection and old media events cannot change current player (1.444041ms)
+✔ permission and removed source errors never load media (1.89225ms)
+✔ unsafe playback URL and invalid seek time are rejected (1.618333ms)
+✔ same current position waits for decoded data and later manual seeking preserves completion (0.899667ms)
+✔ empty results and disabled state are distinguished (0.414666ms)
+✔ first completed seek outside frame tolerance is rejected (0.410209ms)
+✔ refresh clears previous result count during pending, success and failure (1.132833ms)
+ℹ tests 24
+ℹ suites 0
+ℹ pass 24
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 58.181833

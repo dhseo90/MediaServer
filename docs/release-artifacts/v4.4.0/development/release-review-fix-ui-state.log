@@ -1,0 +1,38 @@
+command: node --test scripts/internal/evidence_ui_state.test.mjs scripts/internal/recording_search_ui_state.test.mjs scripts/internal/visual_search_ui_state.test.mjs
+startedAt: 2026-10-04T12:48:55.681974+00:00
+✔ V440-U01 explicit POST preserves selected parameters and admits one creation (16.513417ms)
+✔ V440-U01 channel change suppresses late detail and old media errors (1.439333ms)
+✔ V440-U01 forbidden and disabled are explicit without success state (2.744875ms)
+✔ V440-U01 invalid artifact ID never becomes a fetch URL (0.798958ms)
+✔ V440-U01 obsolete list does not repopulate changed channel (1.30575ms)
+✔ V440-U01 media loads sequentially within server admission; stale queue stops (1.107916ms)
+✔ late search response cannot replace newer query or revive invalidated results (16.371292ms)
+✔ late seek and metadata cannot move a newer selected file (1.438333ms)
+✔ expired snapshot asks for new search and never loads a file (0.851375ms)
+✔ setting currentTime is seeking, only current media completion succeeds (1.251167ms)
+✔ same URL new selection rejects old metadata seeked and error events (1.339458ms)
+✔ completion requires data, no pending seek, no media error, and target within frame tolerance (1.292291ms)
+✔ same current position waits for current data without needing seeked (1.768917ms)
+✔ bounds invalid response unsupported position and media failure remain distinct (1.362292ms)
+✔ incomplete evidence is not empty success (1.028667ms)
+✔ seeked before current data stays pending until loadeddata (1.022417ms)
+✔ restart MAC error400 and same-pool expiry410 clear results with distinct guidance (3.267ms)
+✔ late query cannot revive results after changed input (4.631666ms)
+✔ late selection and old media events cannot change current player (1.896125ms)
+✔ permission and removed source errors never load media (2.525916ms)
+✔ unsafe playback URL and invalid seek time are rejected (2.140917ms)
+✔ same current position waits for decoded data and later manual seeking preserves completion (1.563417ms)
+✔ empty results and disabled state are distinguished (0.989542ms)
+✔ first completed seek outside frame tolerance is rejected (0.844209ms)
+✔ refresh clears previous result count during pending, success and failure (1.575041ms)
+ℹ tests 25
+ℹ suites 0
+ℹ pass 25
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 79.136083
+
+exit: 0
+finishedAt: 2026-10-04T12:48:55.794413+00:00

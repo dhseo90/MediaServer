@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "operation": "Restore existing compact serialization; parsed JSON values unchanged",
+  "file": "test/fixtures/project_feature_implementation_evidence.json",
+  "recordedAt": "2026-10-04T13:11:36.645Z",
+  "before": {
+    "bytes": 26387550,
+    "sha256": "52dad144c7373e249059a17fb6998880681a90833b8cc6cd760775559a7da88c"
+  },
+  "after": {
+    "bytes": 19278736,
+    "sha256": "f8d6675205d68151a8fdc18cabedef20e06e772c58a64fad95725e0f4d5fe84b"
+  },
+  "parsedValueEquality": true,
+  "under25MiB": true
+}

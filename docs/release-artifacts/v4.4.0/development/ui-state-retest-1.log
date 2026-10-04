@@ -1,0 +1,33 @@
+✔ V440-U01 explicit POST preserves selected parameters and admits one creation (11.934958ms)
+✔ V440-U01 channel change suppresses late detail and old media errors (1.110875ms)
+✔ V440-U01 forbidden and disabled are explicit without success state (1.615875ms)
+✔ V440-U01 invalid artifact ID never becomes a fetch URL (0.503166ms)
+✔ V440-U01 obsolete list does not repopulate changed channel (0.585625ms)
+✔ V440-U01 media loads sequentially within server admission; stale queue stops (0.648584ms)
+✔ late search response cannot replace newer query or revive invalidated results (12.610375ms)
+✔ late seek and metadata cannot move a newer selected file (1.424791ms)
+✔ expired snapshot asks for new search and never loads a file (0.58775ms)
+✔ setting currentTime is seeking, only current media completion succeeds (0.619625ms)
+✔ same URL new selection rejects old metadata seeked and error events (0.675667ms)
+✔ completion requires data, no pending seek, no media error, and target within frame tolerance (0.606083ms)
+✔ same current position waits for current data without needing seeked (0.981666ms)
+✔ bounds invalid response unsupported position and media failure remain distinct (0.625625ms)
+✔ incomplete evidence is not empty success (0.784833ms)
+✔ seeked before current data stays pending until loadeddata (0.764625ms)
+✔ restart MAC error400 and same-pool expiry410 clear results with distinct guidance (1.073875ms)
+✔ late query cannot revive results after changed input (3.8685ms)
+✔ late selection and old media events cannot change current player (1.227084ms)
+✔ permission and removed source errors never load media (1.301292ms)
+✔ unsafe playback URL and invalid seek time are rejected (1.176375ms)
+✔ same current position waits for decoded data and later manual seeking preserves completion (0.898958ms)
+✔ empty results and disabled state are distinguished (0.373334ms)
+✔ first completed seek outside frame tolerance is rejected (0.342125ms)
+✔ refresh clears previous result count during pending, success and failure (0.714875ms)
+ℹ tests 25
+ℹ suites 0
+ℹ pass 25
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 59.406875

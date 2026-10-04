@@ -1,0 +1,53 @@
+{
+  "reason": "unchanged source contexts shifted by additive evidence HTTP code; approvals untouched",
+  "receipts": [
+    {
+      "id": "MEDIA-007",
+      "role": "dispatch",
+      "beforeLine": 5008,
+      "afterLine": 5072,
+      "contextSha256": "d1edeef36c31e7dc016b6ba543393f65e9f70e49c18a350a34cefa9b2ea074d4",
+      "contextIdentical": true
+    },
+    {
+      "id": "MEDIA-016",
+      "role": "state",
+      "beforeLine": 684,
+      "afterLine": 685,
+      "contextSha256": "6db5d2de0cda7ddf53428252040402474fd73b0ad42fb1e3534487addeac9cb1",
+      "contextIdentical": true
+    },
+    {
+      "id": "MEDIA-019",
+      "role": "dispatch",
+      "beforeLine": 672,
+      "afterLine": 673,
+      "contextSha256": "eec0f0f1a1a30f7647e423705eb3d0c5a2c38f30c8e110ab227f6f50a66bdcac",
+      "contextIdentical": true
+    },
+    {
+      "id": "LAB-026",
+      "role": "state",
+      "beforeLine": 4684,
+      "afterLine": 4748,
+      "contextSha256": "8273d4ebd317fea6f23f0d046b87756f1c4989173c9d1ed3c17f413ac6e7efdd",
+      "contextIdentical": true
+    },
+    {
+      "id": "LAB-027",
+      "role": "state",
+      "beforeLine": 4743,
+      "afterLine": 4807,
+      "contextSha256": "8273d4ebd317fea6f23f0d046b87756f1c4989173c9d1ed3c17f413ac6e7efdd",
+      "contextIdentical": true
+    },
+    {
+      "id": "SAFE-020",
+      "role": "state",
+      "beforeLine": 748,
+      "afterLine": 749,
+      "contextSha256": "99272dbf7a796d7e9d218b82ba9cfed04498284c5cf25190b4b30fdb4ba09a9e",
+      "contextIdentical": true
+    }
+  ]
+}

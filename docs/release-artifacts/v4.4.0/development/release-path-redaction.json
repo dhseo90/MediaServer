@@ -1,0 +1,222 @@
+{
+  "performedAt": "2026-10-04T12:14:42.611038+00:00",
+  "scope": "personal repository/home and ephemeral temp directory prefixes only",
+  "replacements": {
+    "repositoryRoot": "<repo>",
+    "homeDirectoryPrefix": "<home>/",
+    "temporaryDirectoryPrefix": "<tmp>/"
+  },
+  "evidenceBoundary": "These are sanitized copies, not byte-identical originals. Original run times, commands apart from local prefixes, exits, pass/fail outcomes and source hashes are unchanged. Unredacted bytes were held only in memory during conversion; no new temporary files or processes remain.",
+  "files": [
+    {
+      "file": "docs/release-artifacts/v4.4.0/development/build-initial.log",
+      "originalBytes": 17566,
+      "originalSha256": "cec320c9ab16bed4303b49b82a07a667a0e03bf4d7e313428c7cb9c0e9f4100f",
+      "sanitizedBytes": 17538,
+      "sanitizedSha256": "64115e24e501a1103f149b8e71a6462eacb2bdb90d23406961119145cafc9aac"
+    },
+    {
+      "file": "docs/release-artifacts/v4.4.0/development/evidence-http-enabled.json",
+      "originalBytes": 11606,
+      "originalSha256": "066d55210834652d6a75282f0ca8905973f2cc5d732280379252cb0dfdd08d55",
+      "sanitizedBytes": 11402,
+      "sanitizedSha256": "68e266e3994081f081ff97f272592d03a7985bfddeb709cac712bb5be45ce174"
+    },
+    {
+      "file": "docs/release-artifacts/v4.4.0/development/evidence-http-ui-preparation.json",
+      "originalBytes": 3421,
+      "originalSha256": "7d079eb5c269e883d34c950c06431c20bc785af81fd0e279e020a5d049ea4bca",
+      "sanitizedBytes": 3319,
+      "sanitizedSha256": "d5ee007c4eed25e7c31e679a4141f443ac90f44f7da71234a9efdc73810edf8f"
+    },
+    {
+      "file": "docs/release-artifacts/v4.4.0/development/evidence-http-visual.json",
+      "originalBytes": 2080,
+      "originalSha256": "8bc86d433139bebeae037188e57d59c605f4242cbbae31948bb796ca0bbafd5c",
+      "sanitizedBytes": 2029,
+      "sanitizedSha256": "98f3cc769b1ded9a6960aa57052d03b47039e32b73152583591e1ca28d92ce4a"
+    },
+    {
+      "file": "docs/release-artifacts/v4.4.0/development/evidence-http.json",
+      "originalBytes": 19325,
+      "originalSha256": "8e7e6fa4ff648066ef390764d4f98feeb14755ff4a473a0bd2caba7af3da84a1",
+      "sanitizedBytes": 19223,
+      "sanitizedSha256": "8b6627f5eee1dfcb06e30dc77d2e99bbce0927436625e85a1faa9f71f6daed0d"
+    },
+    {
+      "file": "docs/release-artifacts/v4.4.0/development/http-enabled-retest-1.log",
+      "originalBytes": 2166,
+      "originalSha256": "d2350d2972ea41215ecf836764343d1bec72dd850d68b1dedecc9f2f4b177805",
+      "sanitizedBytes": 2087,
+      "sanitizedSha256": "2244d754c1374f385c0a7c404efe28385b12b7174e779588b0772cd091bc6eef"
+    },
+    {
+      "file": "docs/release-artifacts/v4.4.0/development/http-enabled-retest-2.log",
+      "originalBytes": 2165,
+      "originalSha256": "c5b2372f876c8bc9eaf4cb41936dcea8bea9420fae146d4b8dd67ec542aaea9e",
+      "sanitizedBytes": 2086,
+      "sanitizedSha256": "22aa09b3a80b31dab6a36e6502ca975cd20235bdbeec1faedd15da29983dedf8"
+    },
+    {
+      "file": "docs/release-artifacts/v4.4.0/development/http-enabled-retest-3.log",
+      "originalBytes": 1706,
+      "originalSha256": "54c99ef49c0b72bb4d39c56d6be74b02af56906240391ce0fc6c16b997158d7a",
+      "sanitizedBytes": 1655,
+      "sanitizedSha256": "29e714820b06307fc53decd3af8dc5e538d2a73181c1bf17fd2e618f292901ea"
+    },
+    {
+      "file": "docs/release-artifacts/v4.4.0/development/http-visual-initial.log",
+      "originalBytes": 1703,
+      "originalSha256": "94f4790a4f7c6d568aeedc3af8d82815bb80248fcb34fcd4c0a6d6685aa93211",
+      "sanitizedBytes": 1652,
+      "sanitizedSha256": "e78749a580382abd746d0d7a9209e322c3c9238eff90c182081c6f37f06b04bf"
+    },
+    {
+      "file": "docs/release-artifacts/v4.4.0/development/native-http-retest-4.log",
+      "originalBytes": 27537,
+      "originalSha256": "5cd6b6a53ff243d558a00724855835414041b485346e74dfa8eef0776db1f9f2",
+      "sanitizedBytes": 27458,
+      "sanitizedSha256": "31e3845cec9cb14ca62ae85cea37fb7e9dceac9bfbcfbc486081f881c8d9edf5"
+    },
+    {
+      "file": "docs/release-artifacts/v4.4.0/development/native-initial.log",
+      "originalBytes": 4487,
+      "originalSha256": "87d6fd07eec363dfaf88813c4eae604a6b439f2ddb4a1d19225c9988a2ff6ef1",
+      "sanitizedBytes": 4296,
+      "sanitizedSha256": "9bcbecce638c41bf347bd399da9b416fb29eab83b07e6b9a14f67fa4323fe5c2"
+    },
+    {
+      "file": "docs/release-artifacts/v4.4.0/development/native-retest-2.log",
+      "originalBytes": 26168,
+      "originalSha256": "a16c95faf390d17d84b506fdd20397bbc7adc76b6d679407fd20378a9c9a577a",
+      "sanitizedBytes": 26066,
+      "sanitizedSha256": "4027d55da2f2974c43a0b9259fda0b82cdd59a88e4dc117c10b7bab669d39624"
+    },
+    {
+      "file": "docs/release-artifacts/v4.4.0/development/native-retest-3.log",
+      "originalBytes": 26250,
+      "originalSha256": "5a06747b46bb7847a9a9e57b3f8eb9925aa6e43f6fe37f657c8cf71bdeeac360",
+      "sanitizedBytes": 26148,
+      "sanitizedSha256": "2e0030a6f2c69ec52165b2d31088a617f4fba068ecded7a1504ef377555b9c41"
+    },
+    {
+      "file": "docs/release-artifacts/v4.4.0/development/release-source-candidate-retest-1.log",
+      "originalBytes": 246,
+      "originalSha256": "0b3b380a1a61e2668e1a88e5b34163d1456f9b2d2de5efb2cea2ff71d41d8dc0",
+      "sanitizedBytes": 218,
+      "sanitizedSha256": "b669a125aa51465b32dbe7c3b7d8ccb8ca1f84535f5d7b48471725b30a5066e2"
+    },
+    {
+      "file": "docs/release-artifacts/v4.4.0/development/release-source-candidate.log",
+      "originalBytes": 237,
+      "originalSha256": "b15513f8f47e9b022fe78c8d0284e1f34a969b4af974abd7638bd4c006f6c432",
+      "sanitizedBytes": 209,
+      "sanitizedSha256": "4c49fdb8ff47e5376573d34e9e65943b0e2e9f64bfac203492b51535b8d3cca1"
+    },
+    {
+      "file": "docs/release-artifacts/v4.4.0/development/retention-regression-retest-1.log",
+      "originalBytes": 2000,
+      "originalSha256": "498ca0340a51464c7a34efe97e8d2abcadf32d267f644890243c3d2e1261e47b",
+      "sanitizedBytes": 1949,
+      "sanitizedSha256": "b478ae3a3ed3c60b0ddc49b8bbbaafbb8c86c9fb27651af4a033eb71ae5e97cf"
+    },
+    {
+      "file": "docs/release-artifacts/v4.4.0/development/retention-regression.log",
+      "originalBytes": 2046,
+      "originalSha256": "2eab2eefed7f1b1af1b8050a2138675719ef06881eb267d739f55d2ac18c5478",
+      "sanitizedBytes": 1995,
+      "sanitizedSha256": "a91c108f857e4428f9b9b26bd3ac687e5372465843301a2a8c89b8439e08e506"
+    },
+    {
+      "file": "docs/release-artifacts/v4.4.0/development/search-lifetime.log",
+      "originalBytes": 2780,
+      "originalSha256": "f8e6a67807adbe7c7c3206b988acea988f9e5a7dc23dce3745e4c4e296e28c16",
+      "sanitizedBytes": 2729,
+      "sanitizedSha256": "14cd5be3dcb168504307307d6bd5f046b7f5ee8f752e3369b4d77c0afc00f714"
+    }
+  ],
+  "followUpRedactions": [
+    {
+      "performedAt": "2026-10-04T12:54:51.679030+00:00",
+      "files": [
+        {
+          "file": "docs/release-artifacts/v4.4.0/development/evidence-http-enabled.json",
+          "originalBytes": 16051,
+          "originalSha256": "0667a4265c11ed1d76e5096e62bbaa40fdea465093f10a288d38156026acd258",
+          "sanitizedBytes": 16000,
+          "sanitizedSha256": "02d7f10d5ebc57ef0474be0191bbd6bc3bff7c927850ef04ea0d0c4a991341e2"
+        },
+        {
+          "file": "docs/release-artifacts/v4.4.0/development/evidence-http-visual.json",
+          "originalBytes": 4463,
+          "originalSha256": "b9af2b8cbdfed0bf029ed879de0b0559f2079840016b959c1055700f522b1f70",
+          "sanitizedBytes": 4412,
+          "sanitizedSha256": "00f8c13289bbc59a9d45f6268638c4d2d4e0c9923c72c9f82592e83fefa3751c"
+        },
+        {
+          "file": "docs/release-artifacts/v4.4.0/development/release-independent-review.json",
+          "originalBytes": 37108,
+          "originalSha256": "fb4ba85c48057ff425e6d458b2fc82ccbe50b5e2998c5fe03f8a9b5f4827215f",
+          "sanitizedBytes": 37094,
+          "sanitizedSha256": "0a3ab43cbaacf4a2f19a4ffb7752d087640bb12918abc438d59e87b078f00126"
+        },
+        {
+          "file": "docs/release-artifacts/v4.4.0/development/release-preflight-2-08.log",
+          "originalBytes": 1839,
+          "originalSha256": "6b213809b34b4e82fc74c37b5de9a38f438faf4dca48888b335181881b8e340f",
+          "sanitizedBytes": 1538,
+          "sanitizedSha256": "4e73a9a1673f8beb3123a56e94efcac58fd8cd4166d92a766b192c002818ddab"
+        },
+        {
+          "file": "docs/release-artifacts/v4.4.0/development/release-review-fix-http.log",
+          "originalBytes": 1874,
+          "originalSha256": "adcab51c029d8d3c88f71b36044c2ac4108a58462f769880f3c58d3fd3e5927e",
+          "sanitizedBytes": 1823,
+          "sanitizedSha256": "aa1cc4b1081ad1f509d645ba46d8b7cd94525af73ecf14a78a7265312772f3dd"
+        },
+        {
+          "file": "docs/release-artifacts/v4.4.0/development/release-review-fix-native-1.log",
+          "originalBytes": 27155,
+          "originalSha256": "8963a8a03f1d63418085862817d63850c32b239fbbc4ce8db041688aa7ed7a20",
+          "sanitizedBytes": 27053,
+          "sanitizedSha256": "781510cbe35186e37fae9f858bdde5187573aab4b3e99102da068736342518d8"
+        },
+        {
+          "file": "docs/release-artifacts/v4.4.0/development/release-review-fix-native-3.log",
+          "originalBytes": 28086,
+          "originalSha256": "7fafda21101e8c9a6cbc5c54e40cff8415ca03cd7d9bf1cf3ebeeebb9208fdaa",
+          "sanitizedBytes": 27984,
+          "sanitizedSha256": "f1f2e3b0ef5519f8ac74609872f74964e0071f37e11892244424a10a61b29e11"
+        },
+        {
+          "file": "docs/release-artifacts/v4.4.0/development/release-review-fix-native-probe-1.log",
+          "originalBytes": 27335,
+          "originalSha256": "9da7f244e00f729e955029e294108ecefa5977670ec5a85c821fd467debc850b",
+          "sanitizedBytes": 27233,
+          "sanitizedSha256": "bd345927e692a9cd8ce8f57f5f636b4ad8a3b7fa23493a3f1976c839be40378c"
+        },
+        {
+          "file": "docs/release-artifacts/v4.4.0/development/release-review-fix-visual-http.log",
+          "originalBytes": 1874,
+          "originalSha256": "51847c86b0c4775f3b215883df94328c69cb885a1e812dc65f86099325cfab35",
+          "sanitizedBytes": 1823,
+          "sanitizedSha256": "d55e4c8af33e1d0449e0895b600fa4124ed83a10722e16f4099dadf51e2ffbd2"
+        },
+        {
+          "file": "docs/release-artifacts/v4.4.0/development/release-source-candidate-final.log",
+          "originalBytes": 521,
+          "originalSha256": "6dac0d73e86fe97839f9777ca0e6e5cd9ab96ffbe580ef54ad141babd2e64fbd",
+          "sanitizedBytes": 493,
+          "sanitizedSha256": "09f5dfaf434a014f33f0ed2aa89b18addf164e0d66a507e568a3bec4265482d7"
+        },
+        {
+          "file": "docs/release-artifacts/v4.4.0/development/release-source-migration.log",
+          "originalBytes": 3801,
+          "originalSha256": "6d3f446b23eaa43b0b1f6eb01ed45ffbb3869069feae0fa941d87d3c96f5583b",
+          "sanitizedBytes": 3745,
+          "sanitizedSha256": "9bcdb35fd6000a59c9740d562821bda5ec196b30c35c7c7e3318033e0781d566"
+        }
+      ]
+    }
+  ]
+}

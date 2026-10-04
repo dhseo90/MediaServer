@@ -1,0 +1,10 @@
+Undefined symbols for architecture arm64:
+  "recording::BuildRecordingRetiredV2Receipt(recording::RecordingTombstoneV2 const&, std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&, std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&, recording::RecordingRetiredV2Receipt*, std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>*)", referenced from:
+      recording::(anonymous namespace)::MakeRetiredReceipt(recording::RecordingTombstoneV2 const&, std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&, std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>> const&, recording::RecordingRetiredV2Receipt*) in recording_catalog-afa575.o
+  "recording::SerializeRecordingRetiredV2Receipt(recording::RecordingRetiredV2Receipt const&, std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>*, std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>*)", referenced from:
+      recording::(anonymous namespace)::MaterializeRetiredV2(recording::RecordingRetiredV2Receipt const&, std::__1::shared_ptr<recording::RecordingMutationV1 const> const&, recording::RecordingTombstoneV2*, std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>*) in recording_catalog-afa575.o
+      recording::(anonymous namespace)::MaterializeRetiredV2(recording::RecordingRetiredV2Receipt const&, std::__1::shared_ptr<recording::RecordingMutationV1 const> const&, recording::RecordingTombstoneV2*, std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>*) in recording_catalog-afa575.o
+ld: symbol(s) not found for architecture arm64
+clang++: error: linker command failed with exit code 1 (use -v to see invocation)
+[cleanup] path=<tmp>/media-server-retention-v2.zwSJF5 bytes=62691 removed=true
+[elapsed] seconds=8 source=bash-SECONDS

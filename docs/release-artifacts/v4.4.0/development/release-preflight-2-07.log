@@ -1,0 +1,13 @@
+[pass] required public docs exist
+[pass] tracked denied paths are absent
+[pass] tracked release artifacts are bounded
+[pass] tracked content has no personal or ephemeral paths
+[pass] tracked file sizes stay public-friendly
+[pass] tracked media assets are allowlisted
+[pass] current tracked content has no high-confidence secrets
+[pass] git history has no high-confidence secrets
+
+== Public repo readiness summary ==
+- pass: 8
+- fail: 0
+- history scan: enabled max=500

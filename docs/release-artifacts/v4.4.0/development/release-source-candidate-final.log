@@ -1,0 +1,10 @@
+command: node scripts/internal/verify_v390_review4_feature_semantic_source_audit.mjs --emit-candidate docs/release-artifacts/v4.4.0/development/release-source-candidate-final.json
+startedAt: 2026-10-04T12:52:48.177712+00:00
+{
+  "candidatePath": "<repo>/docs/release-artifacts/v4.4.0/development/release-source-candidate-final.json",
+  "candidateDigest": "5f8639c44d5b5b5738a671e2af38e7caa5483c12e3217022e65443c33ca6096b",
+  "items": 986
+}
+
+exit: 0
+finishedAt: 2026-10-04T12:53:11.209014+00:00

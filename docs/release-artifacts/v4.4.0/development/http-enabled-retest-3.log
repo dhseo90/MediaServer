@@ -1,0 +1,15 @@
+[start] 2026-10-04T11:43:20Z
+df60a8dbec737d50283d9d6c66928643dc1c9666
+Darwin arm64
+[source] include/recording/evidence_frame_extractor.h c9251076c8b0de4250151977ba7fa29bdb5414dd2efad88a2a323b7301f5d62d
+[source] include/recording/evidence_package.h 16e6c2547b4fde3b10fc4d09b03246b4a9c6dd33fd56242429c0d10c77dc497e
+[source] include/recording/evidence_package_builder.h 5b4ca9ae39eb018427b6f714790cec0dfd6575972afe5fcd0f4106d3826d1453
+[source] include/recording/evidence_package_store.h a5971c0c6ed806c6cfdcb0b9728e9283e19a36bad50d49c04860989ff82dced9
+[source] scripts/internal/evidence_package_smoke.cpp 1b252e2fe97909c8f3003b3e0edd6236a464daab4ec525c2aaff31f34b4dc2fb
+[source] src/recording/evidence_frame_extractor.cpp 11ed158d7862a161da731a0c54f1564613df8084e46b488f6a220760bcb49e60
+[source] src/recording/evidence_package.cpp f58f41b1e8315e6d9a2120f5c79db213b8eca11761783d56ed1eff4510154923
+[source] src/recording/evidence_package_builder.cpp 55ef0c740fa452ae09ee4d72458a09cee8849896a3cdc8460bdf4b44794df7d7
+[source] src/recording/evidence_package_store.cpp 7c48c007a110a4437263a2c32536383df2aa5ffbd63b0ed573ead9df70c68b87
+{"featureId":"V440-A01-HTTP","status":"PASS","checks":21,"elapsedMs":4476,"modelInference":false,"cleanup":{"root":"<tmp>/media-server-evidence-http-4Ojiqc","rootIdentity":"16777232:167472645","process":{"exited":true,"forced":false,"exitCode":0,"signalCode":null},"http":{"closed":true,"evidence":"ECONNREFUSED"},"rtsp":{"closed":true,"evidence":"ECONNREFUSED"},"udpClosed":true,"rootAbsent":true},"report":"docs/release-artifacts/v4.4.0/development/evidence-http-enabled.json"}
+[end] 2026-10-04T11:43:25Z
+[cleanup] removed=true

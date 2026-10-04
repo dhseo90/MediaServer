@@ -1,0 +1,22 @@
+
+== Bundle distribution policy summary ==
+- policy: config/bundle_distribution_policy.json
+- bundleDir: ../../../..<tmp>/media-server-release-bundle-irqsGd
+- files scanned: 16
+- path hits: 0
+- linked hits: 0
+[결론] 기본 bundle 정책 위반 항목이 없습니다.
+[pass] blocked risky fixture: binary-ffmpeg-cli -> ffmpeg-cli
+[pass] blocked risky fixture: offline-model-binary -> model-binary
+[pass] blocked risky fixture: container-onnx-runtime-package -> onnx-runtime-package
+[pass] blocked risky fixture: container-gstreamer-gpl-plugin -> gstreamer-gpl-risk-plugins
+[pass] release bundle dry-run workspace prepared <tmp>/media-server-release-bundle-irqsGd
+[pass] release bundle candidate source-only policy status pass
+[pass] release bundle candidate source-only files scanned 16
+[pass] release bundle candidate source-only path hit count 0
+[pass] release bundle candidate source-only linked hit count 0
+[pass] release bundle candidate source-only markdown report ../../../..<tmp>/media-server-release-bundle-irqsGd/bundle-policy-report.md
+[pass] release bundle candidate source-only json report ../../../..<tmp>/media-server-release-bundle-irqsGd/bundle-policy-report.json
+[pass] release bundle dry-run markdown summary written <tmp>/media-server-release-bundle-irqsGd/release-bundle-dry-run-summary.md
+[pass] release bundle dry-run json summary written <tmp>/media-server-release-bundle-irqsGd/release-bundle-dry-run-summary.json
+[pass] release bundle dry-run workspace cleanup complete <tmp>/media-server-release-bundle-irqsGd

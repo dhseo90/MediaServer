@@ -1,0 +1,599 @@
+{
+  "schema": "media-server.v440-independent-review.v1",
+  "reviewer": "codex-independent-v440-review:/root/release_independent_review",
+  "requestedModel": "gpt-6-astra",
+  "requestedReasoning": "xhigh",
+  "serviceTierClaim": null,
+  "reviewedAt": "2026-10-04T12:38:38.744126+00:00",
+  "baseHead": "df60a8dbec737d50283d9d6c66928643dc1c9666",
+  "phase": "initial-review",
+  "verdict": "changes-requested",
+  "candidateDigest": "5f8639c44d5b5b5738a671e2af38e7caa5483c12e3217022e65443c33ca6096b",
+  "trackedWorktreeDiffSha256": "93992ed4503a84d38516138e90f1cd4ea297893b48adf5b270db301c3139c624",
+  "sourceFiles": [
+    {
+      "path": "include/core/recording_runtime_config_data.h",
+      "sha256": "c219a59da8bae4faf8256d3bb5b1d59523e62bad2247f504a0c6a73397fa3ddc"
+    },
+    {
+      "path": "include/ingress/evidence_application_service.h",
+      "sha256": "33aecf06fb1b8c56f5cc352f1a027a8ccf537e87d6f1c02ab89b2cc3816d4e44"
+    },
+    {
+      "path": "include/ingress/recording_application_service.h",
+      "sha256": "ceeafbb25cdd82af309d91abfd70b64d0962b0cb3443ec0cbc7a9c885667a9e2"
+    },
+    {
+      "path": "include/ingress/visual_search_application_service.h",
+      "sha256": "bb01a0054dda8f8dfee5bb2a8d172add09d832b65b69d593b3c8cc944a6e1c61"
+    },
+    {
+      "path": "include/recording/evidence_frame_extractor.h",
+      "sha256": "c9251076c8b0de4250151977ba7fa29bdb5414dd2efad88a2a323b7301f5d62d"
+    },
+    {
+      "path": "include/recording/evidence_package.h",
+      "sha256": "16e6c2547b4fde3b10fc4d09b03246b4a9c6dd33fd56242429c0d10c77dc497e"
+    },
+    {
+      "path": "include/recording/evidence_package_builder.h",
+      "sha256": "5b4ca9ae39eb018427b6f714790cec0dfd6575972afe5fcd0f4106d3826d1453"
+    },
+    {
+      "path": "include/recording/evidence_package_store.h",
+      "sha256": "a5971c0c6ed806c6cfdcb0b9728e9283e19a36bad50d49c04860989ff82dced9"
+    },
+    {
+      "path": "scripts/internal/evidence_http_checks.mjs",
+      "sha256": "58b0f681403c1377c89aa4b57b934dd4f6ced2340a006b216f8b486da38b770e"
+    },
+    {
+      "path": "scripts/internal/evidence_package_smoke.cpp",
+      "sha256": "f68d125b5b7792f515a7fdccb19feb918c96236ee225245de55ba38f20c48d8d"
+    },
+    {
+      "path": "scripts/internal/evidence_ui_state.test.mjs",
+      "sha256": "1700f675d622e95c42544e3dbad5c3fe4d0e35ce4a378d76063cd9f335fd5016"
+    },
+    {
+      "path": "scripts/internal/recording_search_ui_state.test.mjs",
+      "sha256": "2c3c152167592d65c5cefd1677200fd1978dd927688ce87e5297091621858116"
+    },
+    {
+      "path": "scripts/internal/verify_evidence_package.sh",
+      "sha256": "950f6281c3b970681addfc09b31dd11e1b3830897f945f8254b7137cbabfb25f"
+    },
+    {
+      "path": "scripts/internal/verify_recording_retention_v2.sh",
+      "sha256": "67fc2c64d666429fc53030c1d336872a531e66ef9901e49c5389efe75bad294e"
+    },
+    {
+      "path": "scripts/internal/visual_search_ui_state.test.mjs",
+      "sha256": "9cf16765e175ab88ca9c44e5d3c7e9317dbf44ffdbb156ec3038eb66851e570b"
+    },
+    {
+      "path": "src/app_config.cpp",
+      "sha256": "cc338bc89bc9dd1f1c82d73728aa23475af3e465e2d96634af1b6a43c7ded31e"
+    },
+    {
+      "path": "src/application/media_server_application.cpp",
+      "sha256": "46e105ee794ee128c1ff19b9c9e20fe326b81d7b5122ab0c0d6113b7d2a3087d"
+    },
+    {
+      "path": "src/ingress/evidence_application_service.cpp",
+      "sha256": "f1dc7baed0fb433e8c7e9f475d2d78b8ee7b7379c950779a1deeb7c956e8baec"
+    },
+    {
+      "path": "src/ingress/product_ui_page_scripts.cpp",
+      "sha256": "5f5b7fdabd4a993c43113504d5591ccc8ce30adf93bbfbd9e1ad0962614f3ddf"
+    },
+    {
+      "path": "src/ingress/product_ui_server_pages.cpp",
+      "sha256": "f4c6fce400eee5b2d107005f99e8ce29bc8b32ef05e724f506408847724e8b83"
+    },
+    {
+      "path": "src/ingress/recording_search_application_service.cpp",
+      "sha256": "999d9c57dc6a2e505309577cbee6727f748818b3f6d53bf648dadfcdb63b6ceb"
+    },
+    {
+      "path": "src/ingress/visual_search_application_service.cpp",
+      "sha256": "a640404f1206a8c9897d1f33f00d49258bf641b8fdf158dd431a1cadb6b0665e"
+    },
+    {
+      "path": "src/ingress/webrtc_http_server_runtime.cpp",
+      "sha256": "03e9a48b6a380d0cb930f1a7a8b6bd4bb1a65ac94b62735ec5300b1fc807ff8d"
+    },
+    {
+      "path": "src/recording/evidence_frame_extractor.cpp",
+      "sha256": "867db47861bc15a242d12512b501c5d3cd90460eb85304d4d5fa337f1d0e69b8"
+    },
+    {
+      "path": "src/recording/evidence_package.cpp",
+      "sha256": "f58f41b1e8315e6d9a2120f5c79db213b8eca11761783d56ed1eff4510154923"
+    },
+    {
+      "path": "src/recording/evidence_package_builder.cpp",
+      "sha256": "55ef0c740fa452ae09ee4d72458a09cee8849896a3cdc8460bdf4b44794df7d7"
+    },
+    {
+      "path": "src/recording/evidence_package_store.cpp",
+      "sha256": "7c48c007a110a4437263a2c32536383df2aa5ffbd63b0ed573ead9df70c68b87"
+    }
+  ],
+  "contractFiles": [
+    {
+      "path": "docs/superpowers/specs/2026-10-04-v440-evidence-package-design.md",
+      "sha256": "5e587af085976561cf60cd575d81cb486639176bb7cc713fdf182cf0e6ddfa81"
+    },
+    {
+      "path": "docs/project-feature-test-inventory.md",
+      "sha256": "c84937af926999ae24085dd0ad34c3fc2fda959be66f3b2681adcff232d76008"
+    },
+    {
+      "path": "docs/config-reference.md",
+      "sha256": "222d32e5543bbed0b24e5558973d098d9a9ea14b3eaeb4e655ea0cf4ba7c3ca9"
+    },
+    {
+      "path": "docs/ui-guide.md",
+      "sha256": "16737e13025a23d3248a82a1355fc788b3174d0078a97fb40cbafbf97f8ff4c7"
+    }
+  ],
+  "scope": [
+    "변경 tracked 제품 코드 전체와 신규 EvidencePackage C++/header 전체 직접 검토",
+    "신규 native/HTTP/UI 검사, 변경된 기존 UI 상태 검사 및 retention wrapper 직접 검토",
+    "검색 모델/WithPlayback/SourceSeek, visual source/snapshot, request admission/drain과 소비자 코드 대조",
+    "기본 OFF, operator·ops:read/source:read 및 생성 ops:write, no-store/nosniff·manifest/UI 정제 경계 확인",
+    "원자 link 게시·pending 복구·hash/strict JSON·보호 FD·retention 분리·자원 상한 코드 검토",
+    "기존 REVIEW4 986행의 candidate/approval/hard contract 직접 대조 및 297행의 공통 HTTP 함수 변경 영향 검토"
+  ],
+  "findings": [
+    {
+      "id": "V440-IR-01",
+      "priority": "P1",
+      "status": "open",
+      "title": "event snapshot 영상 검색 hit에서 연결된 clip이 비해당으로 누락됨",
+      "location": {
+        "path": "src/ingress/visual_search_application_service.cpp",
+        "startLine": 218,
+        "endLine": 223
+      },
+      "condition": "기존 snapshot proof와 현재 EventRecord로 검증된 visual hit의 event_id에 동일 원본·채널 범위의 완료 clip이 catalog에 연결되어 있는 경우",
+      "actual": "event_ids만 복사하고 playback_segment_id/playback_event_id/playback_job_id를 채우지 않는다. EvidencePackageBuilder 112 조건에 진입하지 않고 149의 clip none/not-applicable/no-associated-clip을 저장한다. complete 결과가 가능한데 실제 clip은 보존되지 않는다.",
+      "impact": "사용자가 영상 검색 결과에서 보존한 뒤 원본/clip이 순환 삭제되면 존재했던 연결 clip을 패키지로 재생할 수 없다.",
+      "evidence": [
+        "src/recording/recording_visual_snapshots.cpp:78-80의 snapshot event_id와 원본 segment 결박",
+        "src/ingress/visual_search_application_service.cpp:210-217의 CurrentEvent/Resolve 검증",
+        "src/recording/evidence_package_builder.cpp:112-149의 playback 필드 조건과 not-applicable 분기"
+      ],
+      "minimumFix": "event_id가 있는 snapshot hit에 한하여 기존 event link 또는 verified derived job의 동일 채널·원본·PTS 범위를 확인하고 선택 clip provenance를 builder에 전달한다. representative-frame hit에 사건 연관을 새로 추론하지 않는다.",
+      "validationNeeded": "실제 event snapshot visual hit→evidence API에서 연결 clip 보존, 무연관 대표 frame의 not-applicable, 삭제/미지원/손상 경계와 정확한 원본 관계 확인"
+    },
+    {
+      "id": "V440-IR-02",
+      "priority": "P2",
+      "status": "open",
+      "title": "구조화 검색의 event-priority clip이 선택 event ID를 보존하지 않음",
+      "location": {
+        "path": "src/recording/evidence_package_builder.cpp",
+        "startLine": 57,
+        "endLine": 59
+      },
+      "condition": "일반 녹화 구간 검색에 WithPlayback이 event-priority clip을 선택한 경우",
+      "actual": "WithPlayback은 playback_event_id를 설정하지만 recording hit.event_ids는 비어 있다. builder는 event_ids만 복사하고 clip reference에도 event ID를 기록하지 않아 complete package의 eventIds와 event reference가 비어 있다.",
+      "impact": "원본/event catalog 수명과 독립적으로 남아야 할 clip→event 출처가 패키지에서 손실된다.",
+      "evidence": [
+        "src/recording/recording_search_source.cpp:133-140에서 녹화 SearchDocument에는 event_ids가 없음",
+        "src/recording/recording_search_reader.cpp:288에서 선택 event를 playback_event_id로 별도 설정",
+        "src/recording/evidence_package_builder.cpp:146에서 clip에는 derivation_id만 추가",
+        "격리 native probe가 실제 WithPlayback→builder를 연결해 재현"
+      ],
+      "minimumFix": "검증된 playback_event_id를 별도 이유(event-priority selection 등)와 함께 event reference 및 eventIds에 중복 없이 보존한다. 관측 event 연관으로 잘못 표기하지 않는다.",
+      "validationNeeded": "실제 search.WithPlayback 결과를 입력해 event-priority clip의 event ID/clip/job/source 연결이 manifest에 모두 존재하는지 확인. 수동 event_ids 주입 fixture만으로 대체하지 않는다."
+    }
+  ],
+  "directObservations": [
+    {
+      "kind": "native-isolated-probe",
+      "purpose": "V440-IR-02의 실제 검색 입력→패키지 lineage 관측",
+      "command": "c++ (현재 build-gst-onnx link.txt와 pkg-config의 GST/OpenSSL/SQLite flags) <tmp>/v440-independent-probe-*/probe.cpp -o probe; probe <owned-root>",
+      "probeConstruction": "scripts/internal/evidence_package_smoke.cpp를 actual verified clip complete까지 재사용하고 수동 clip_hit를 만들기 전에 search.Refresh→WithPlayback→선택된 hit→builder.Create를 실행. 제품/기존 검사 파일 변경 없음.",
+      "probeSourceSha256": "e8477c7dd04121be7241bae0382003a330fad01c96364b982c5069d3109847e5",
+      "archiveSha256": "7fc9afcfcb814bcc9544042035a4daca1f9b7dbb7695154e296c909dd93c5229",
+      "compileExit": 0,
+      "probeExit": 0,
+      "observation": {
+        "playbackEventId": "evidence-event",
+        "hitEventCount": 0,
+        "manifestEventCount": 0,
+        "eventRefCount": 0,
+        "assetCount": 4,
+        "status": "complete"
+      },
+      "expected": "선택된 playbackEventId가 패키지의 event provenance에 보존됨",
+      "assessment": "계약 불일치 재현; probe exit 0은 제품 합격 판정이 아니라 관측 실행 성공",
+      "stderr": "기존 Homebrew GStreamer plugin scanner의 gi/GTK dylib 경고가 출력됐지만 해당 media writer/derived job/WithPlayback/build 요청은 성공했다. 의존성 변경 안 함.",
+      "cleanup": "TemporaryDirectory 소유 native root 제거 뒤 root 부재 직접 확인. 서버/포트 미생성.",
+      "attemptNote": "첫 같은 probe 호출은 실행 tool의 session handle을 출력하지 않아 stdout/exit를 보존하지 못했다. 남은 소유 root가 없음을 직접 확인한 뒤 위 관측을 재실행했다. 최초 시도의 제품 PASS/FAIL은 추정하지 않는다."
+    }
+  ],
+  "review4": {
+    "baselineCandidateDigest": "75ead7f49bfe50aecb58accbcd7da972768dc38764bbd9f6f21c9953186f0488",
+    "candidateDigest": "5f8639c44d5b5b5738a671e2af38e7caa5483c12e3217022e65443c33ca6096b",
+    "total": 986,
+    "sourceResolved": 986,
+    "strictEquivalentRows": 689,
+    "changedRows": 297,
+    "checks": [
+      "기존/신규 candidateDigest 재계산 일치",
+      "986개 ID 순서 및 기존 audit sourceFlowDigest↔approval sourceFlowDigest 일치",
+      "신규 986개 sourceFlowDigest 재계산 일치",
+      "review4HardCandidateItems의 stableStringify equality가 689개에서 일치",
+      "나머지 297개 차이는 sourceFlowDigest와 HTTP Start enclosingBodySha256이며 CLIENT-037 dispatch enclosingBodyScope 1건 포함",
+      "featureContractSha256, semantic obligation, role anchor/context, verifier dispatch·oracle는 hard 비교에서 변하지 않음"
+    ],
+    "changedCommonBodyReview": "신규 경로는 recording_request 내부에서만 실행되며 require_ops_principal 뒤다. 기존 root/setup/login/source/rule/event/client/media/lab 및 site-operations route의 dispatch와 응답 분기는 바뀌지 않았다. 기존 recording JSON 응답에 nosniff 헤더만 추가된다. 신규 UI 코드는 /ops/events에서 opsEvidenceDetail이 있을 때만 초기화하며 기존 product route/nav, viewer shell, rule/profile payload를 변경하지 않는다.",
+    "client037": "dispatch binding이 Start 전체에서 1971-1984 GET block으로 좁아진 이유를 실제 코드에서 확인했다. /ops/api/site-operations/client-notice-by-site-view-group route의 require_ops_principal/GET→OpsV370ClientNoticeBySiteViewGroupJson, no-store가 그대로 있고 action/state function hashes와 readback/verifier bindings도 동일하다. source binding 범위 변경을 과거 승인으로 자동 복사하지 않고 신규 독립 판단 대상에 유지한다.",
+    "carryForwardDecision": "689 strict-equivalent 행은 기존 승인 원본을 보존한 migration-aware producer의 carry-forward 입력으로 재사용 가능. 신규 실행 PASS가 아니며 기존 reviewer/date를 새 source 독립검토로 덮어쓰면 안 됨.",
+    "changedFlowDecision": "297개 기존 기능에 대한 공통 HTTP 변경 영향 검토에서는 기존 계약 회귀를 발견하지 않았다. 신규 EvidencePackage의 위 2개 결함은 별도 미해소. 최종 source snapshot 고정 전 decision artifact 승인/ledger 적용하지 않음.",
+    "procedure": [
+      "main이 코드 수정 및 보고서 고정 후 workspace 밖 소유 tmp 경로에서 immutable prior audit/approval, fresh candidate, v2 migration evidence, review-package를 준비한다.",
+      "review-package는 current equivalent tree OID, tracked diff SHA256, changedFiles와 297개(또는 최종 재대조 결과)의 exact trustRebindRows를 결속해야 한다.",
+      "독립 reviewer가 각 변경 ID의 featureContract/sourceFlow/verifier/dispatch/evidence/action/state와 justification SHA를 가진 scoped-decisions v1을 작성한다.",
+      "producer produce_v390_review4_migration_aware_approvals.mjs --write-ledger --prior-audit ... --prior-approvals ... --migration-evidence ... --decisions ... --review-package ... 로만 audit/approval/manifest/native 4개를 원자 적용한다.",
+      "verify_v390_review4_feature_semantic_source_approvals.mjs 단독 --write-ledger는 stale audit를 재검증할 수 없으므로 이번 migration 적용 도구를 대신하지 않는다.",
+      "적용 뒤 approval/feature coverage/native manifest 검증을 main이 수행한다."
+    ]
+  },
+  "limitations": [
+    "직접 전체 빌드/기존 native suite/HTTP suite 재실행 없음. 기존 개발 PASS는 읽은 자료이며 이번 독립 실행 PASS로 주장하지 않음.",
+    "실제 UI·30분·120분·Linux/다른 CMake 조합·최대 용량/동시 요청 scale 실행하지 않음.",
+    "전체 저장소 무결성 보증/전역 보안 감사가 아닌 변경 경로와 관련 소비자 검토.",
+    "src/ingress/evidence_application_service.cpp의 reading_ admission은 package Open hash 검증 구간을 보호하고 반환 FD의 HTTP body 전송 동안에는 유지되지 않는다. 전송은 기존 global HTTP connection cap 및 recording gate drain으로 제한된다. API 문서의 조회 동시 4개/5초 표현은 이 검증 범위와 구분하여 main이 최종 판단할 사항."
+  ],
+  "mutations": "이 보고서만 신규 작성. 제품/테스트 정의/proof/audit/approval/manifest, git index/commit/외부 상태는 변경하지 않음.",
+  "next": "main의 두 결함 수정 뒤 같은 독립 reviewer가 수정 diff/영향 검사 및 final source hashes를 재검토한다.",
+  "followUpReviews": [
+    {
+      "phase": "fix-re-review-before-native-coordinate-fix",
+      "reviewedAt": "2026-10-04T12:51:42.807332+00:00",
+      "verdict": "changes-requested",
+      "sourceFiles": [
+        {
+          "path": "include/recording/recording_catalog.h",
+          "sha256": "354a846d757ef0fbd2460423fdfe2f79a01430cf53b656daba31f20dd472e7f4"
+        },
+        {
+          "path": "src/recording/recording_catalog.cpp",
+          "sha256": "c0d7c5a7248370c6bf53ee7aec7948def9313d4ac5e8667f67f2ce9dd2b8e473"
+        },
+        {
+          "path": "src/recording/evidence_package_builder.cpp",
+          "sha256": "b077f0a9a3bf916640d0e839221c1c30721ff3facf9dba12704339bdad2125e0"
+        },
+        {
+          "path": "scripts/internal/evidence_package_smoke.cpp",
+          "sha256": "e4c34a5d6563d449156008595cf741f8c0d56d9ddd9ffb7c42a7685e6bfc2d97"
+        },
+        {
+          "path": "docs/project-feature-test-inventory.md",
+          "sha256": "1cb45747468430062a06ddcbc9ccba4a528f3d3ffabbe8da53807eec8f1d02ad"
+        },
+        {
+          "path": "docs/config-reference.md",
+          "sha256": "c6a5f937613611452e49a06a6920dd9bf40f942805309e0249d27358ef9c0556"
+        }
+      ],
+      "findingStatus": [
+        {
+          "id": "V440-IR-01",
+          "status": "partially-fixed",
+          "assessment": "event/source 기반 bounded ID 조회, 한 job씩 검증, native VCL 재획득, tombstone일 때 durable 증명으로 clip 참조 보존은 타당하다. 아래 native 좌표 판정 잔여 결함 때문에 아직 종료하지 않는다."
+        },
+        {
+          "id": "V440-IR-02",
+          "status": "resolved-in-reviewed-source",
+          "assessment": "실제 WithPlayback이 제공한 playback_event_id를 job/link 검증 뒤 manifest event_ids와 event-priority-selection 참조에 중복 없이 추가한다. native4 실행 로그의 실제 WithPlayback 검사 성공을 읽었으며 이는 메인 실행 결과다."
+        }
+      ],
+      "additionalFinding": {
+        "id": "V440-IR-01-NATIVE",
+        "priority": "P1",
+        "parentFinding": "V440-IR-01",
+        "status": "open",
+        "location": {
+          "path": "src/recording/evidence_package_builder.cpp",
+          "startLine": 61,
+          "endLine": 65
+        },
+        "condition": "native_file_intervals job의 confirmed native slice에 속한 표본의 원본 정수 PTS가 반올림된 native start보다 작고 앞 slice가 미확인인 경우",
+        "actual": "PresentationTime{original_pts_ns,0,1}을 native presentation 구간에 넣어 requested=false로 판단하고 이미 연결된 clip을 누락한다. 30fps 표본은 original_pts=33333333ns, native start=33333333+1/3ns가 합법적이다.",
+        "evidence": [
+          "recording_contracts.cpp:499–513은 native_pts를 원본 mux PTS에서 반올림한다.",
+          "recording_derived_selection.cpp:196–199/244는 rational presentation과 정확한 candidate.original을 결속한다.",
+          "격리 probe: strict-valid binding+실제 native SelectDerivedRecording은 ordinal2의 confirmed slice를 반환하지만 현재 builder predicate는 false다."
+        ],
+        "minimumFix": "native confirmed candidate.original의 generation/order/track/ordinal/PTS를 선택할 정확 AU와 결속한다. 원본 PTS를 native 좌표로 대용하지 않는다. 후보 original에 없는 GOP 의존 표본은 계속 제외한다.",
+        "testGap": "현행 evidence smoke의 SelectDerivedRecording은 마지막 native flag 기본 false이므로 native helper 분기를 실행하지 않는다. native profile과 fractional-start 표본 회귀를 별도로 포함해야 한다."
+      },
+      "directObservation": {
+        "kind": "short-isolated-native-selection-probe",
+        "command": "c++ -std=c++17 -Iinclude <tmp>/v440-independent-native-selection-*/probe.cpp src/recording/recording_derived_selection.cpp src/recording/recording_contracts.cpp src/domain/strict_json.cpp -o probe; probe",
+        "construction": "기존 recording_derived_selection_smoke.cpp의 strict 30fps fixture를 가져와 ordinal2만 관측하고 요청33–66ms, enable native=true로 실제 선택 함수를 호출한다. 제품/테스트 파일은 수정하지 않았다.",
+        "probeSourceSha256": "20112aa39167470c912a934b72b4ebfcaa4b00818ec6d43ff4826d40f2ff89ab",
+        "compileExit": 0,
+        "probeExit": 0,
+        "output": "PROBE confirmedStart=33333333+1/3 originalPts=33333333 ordinal=2\nPROBE oldPredicate=0 exactIdentityPredicate=1 native=1",
+        "interpretation": "실행 성공으로 기존 predicate의 계약 불일치를 직접 관측; 제품 PASS가 아님.",
+        "cleanup": "소유 dev/inode/uid와 /private/tmp 경계를 확인한 임시 디렉터리만 삭제 후 부재 확인. 서버/포트 없음."
+      },
+      "mainRunEvidenceRead": [
+        {
+          "path": "docs/release-artifacts/v4.4.0/development/release-review-fix-native-4.log",
+          "sha256": "82f76bb230707d367238054f40cb7ad9c49320dd9077881202844ece2bdcc142",
+          "exit": 0,
+          "checks": 977,
+          "peakRssBytes": 108298240,
+          "cleanup": true,
+          "attribution": "메인 실행의 원출력을 읽은 결과이며 독립 reviewer 직접 실행 아님."
+        }
+      ],
+      "otherReview": [
+        "FindEventDerivedJobIds는 얇은 channel/state/source/reference만 조회하며 matching ID4096 상한과 루프 취소를 적용한다. job 본문은 builder가 한 번에 하나만 복사하여 이전 all-history materialization 제안을 사용하지 않는다.",
+        "현재 원본은 current file evidence의 전체 identity/ordinal/PTS/VCL을 검증한다. 삭제 tombstone이 확인된 원본은 공개 FindSourceBinding이 null인 기존 계약을 유지하고 durable job binding+verified output로 참조를 남긴다. 삭제 원본 frame을 새로 만들지 않으며 살아 있는 clip은 ResolveMedia의 보호/검증을 다시 통과한다.",
+        "조회4개/5초 제한이 hash검증 범위이고 HTTP 전송은 기존 연결 cap/drain이라는 config-reference 설명이 실제 수명과 일치한다."
+      ],
+      "limitations": [
+        "실제 event snapshot→visual evidence HTTP 경로는 이 reviewer가 실행하지 않았다. 현재 smoke는 builder 입력을 snapshot adapter와 같은 형태로 구성한다.",
+        "30분·120분·UI 풀테스트 및 전체 release 승인과 별개인 수정 소스 검토다.",
+        "최종 REVIEW4 snapshot 및 decisions는 아직 작성하지 않았다."
+      ]
+    },
+    {
+      "phase": "final-product-fix-re-review",
+      "reviewedAt": "2026-10-04T12:53:47.828032+00:00",
+      "verdict": "approved",
+      "approvalScope": "현재 EvidencePackage 제품 diff와 관련 소비자에 대한 독립 소스 검토. 릴리즈 gate/30분/120분/실제 UI PASS 판정이 아니다.",
+      "baseHead": "df60a8dbec737d50283d9d6c66928643dc1c9666",
+      "sourceFiles": [
+        {
+          "path": "include/core/recording_runtime_config_data.h",
+          "sha256": "c219a59da8bae4faf8256d3bb5b1d59523e62bad2247f504a0c6a73397fa3ddc"
+        },
+        {
+          "path": "include/ingress/evidence_application_service.h",
+          "sha256": "33aecf06fb1b8c56f5cc352f1a027a8ccf537e87d6f1c02ab89b2cc3816d4e44"
+        },
+        {
+          "path": "include/ingress/recording_application_service.h",
+          "sha256": "ceeafbb25cdd82af309d91abfd70b64d0962b0cb3443ec0cbc7a9c885667a9e2"
+        },
+        {
+          "path": "include/ingress/visual_search_application_service.h",
+          "sha256": "bb01a0054dda8f8dfee5bb2a8d172add09d832b65b69d593b3c8cc944a6e1c61"
+        },
+        {
+          "path": "include/recording/evidence_frame_extractor.h",
+          "sha256": "c9251076c8b0de4250151977ba7fa29bdb5414dd2efad88a2a323b7301f5d62d"
+        },
+        {
+          "path": "include/recording/evidence_package.h",
+          "sha256": "16e6c2547b4fde3b10fc4d09b03246b4a9c6dd33fd56242429c0d10c77dc497e"
+        },
+        {
+          "path": "include/recording/evidence_package_builder.h",
+          "sha256": "5b4ca9ae39eb018427b6f714790cec0dfd6575972afe5fcd0f4106d3826d1453"
+        },
+        {
+          "path": "include/recording/evidence_package_store.h",
+          "sha256": "a5971c0c6ed806c6cfdcb0b9728e9283e19a36bad50d49c04860989ff82dced9"
+        },
+        {
+          "path": "include/recording/recording_catalog.h",
+          "sha256": "354a846d757ef0fbd2460423fdfe2f79a01430cf53b656daba31f20dd472e7f4"
+        },
+        {
+          "path": "scripts/internal/evidence_http_checks.mjs",
+          "sha256": "58b0f681403c1377c89aa4b57b934dd4f6ced2340a006b216f8b486da38b770e"
+        },
+        {
+          "path": "scripts/internal/evidence_package_smoke.cpp",
+          "sha256": "e4c34a5d6563d449156008595cf741f8c0d56d9ddd9ffb7c42a7685e6bfc2d97"
+        },
+        {
+          "path": "scripts/internal/evidence_ui_state.test.mjs",
+          "sha256": "1700f675d622e95c42544e3dbad5c3fe4d0e35ce4a378d76063cd9f335fd5016"
+        },
+        {
+          "path": "scripts/internal/recording_search_ui_state.test.mjs",
+          "sha256": "2c3c152167592d65c5cefd1677200fd1978dd927688ce87e5297091621858116"
+        },
+        {
+          "path": "scripts/internal/verify_evidence_package.sh",
+          "sha256": "950f6281c3b970681addfc09b31dd11e1b3830897f945f8254b7137cbabfb25f"
+        },
+        {
+          "path": "scripts/internal/verify_recording_retention_v2.sh",
+          "sha256": "67fc2c64d666429fc53030c1d336872a531e66ef9901e49c5389efe75bad294e"
+        },
+        {
+          "path": "scripts/internal/visual_search_ui_state.test.mjs",
+          "sha256": "9cf16765e175ab88ca9c44e5d3c7e9317dbf44ffdbb156ec3038eb66851e570b"
+        },
+        {
+          "path": "src/app_config.cpp",
+          "sha256": "cc338bc89bc9dd1f1c82d73728aa23475af3e465e2d96634af1b6a43c7ded31e"
+        },
+        {
+          "path": "src/application/media_server_application.cpp",
+          "sha256": "46e105ee794ee128c1ff19b9c9e20fe326b81d7b5122ab0c0d6113b7d2a3087d"
+        },
+        {
+          "path": "src/ingress/evidence_application_service.cpp",
+          "sha256": "f1dc7baed0fb433e8c7e9f475d2d78b8ee7b7379c950779a1deeb7c956e8baec"
+        },
+        {
+          "path": "src/ingress/product_ui_page_scripts.cpp",
+          "sha256": "5f5b7fdabd4a993c43113504d5591ccc8ce30adf93bbfbd9e1ad0962614f3ddf"
+        },
+        {
+          "path": "src/ingress/product_ui_server_pages.cpp",
+          "sha256": "f4c6fce400eee5b2d107005f99e8ce29bc8b32ef05e724f506408847724e8b83"
+        },
+        {
+          "path": "src/ingress/recording_search_application_service.cpp",
+          "sha256": "999d9c57dc6a2e505309577cbee6727f748818b3f6d53bf648dadfcdb63b6ceb"
+        },
+        {
+          "path": "src/ingress/visual_search_application_service.cpp",
+          "sha256": "a640404f1206a8c9897d1f33f00d49258bf641b8fdf158dd431a1cadb6b0665e"
+        },
+        {
+          "path": "src/ingress/webrtc_http_server_runtime.cpp",
+          "sha256": "03e9a48b6a380d0cb930f1a7a8b6bd4bb1a65ac94b62735ec5300b1fc807ff8d"
+        },
+        {
+          "path": "src/recording/evidence_frame_extractor.cpp",
+          "sha256": "867db47861bc15a242d12512b501c5d3cd90460eb85304d4d5fa337f1d0e69b8"
+        },
+        {
+          "path": "src/recording/evidence_package.cpp",
+          "sha256": "f58f41b1e8315e6d9a2120f5c79db213b8eca11761783d56ed1eff4510154923"
+        },
+        {
+          "path": "src/recording/evidence_package_builder.cpp",
+          "sha256": "b077f0a9a3bf916640d0e839221c1c30721ff3facf9dba12704339bdad2125e0"
+        },
+        {
+          "path": "src/recording/evidence_package_store.cpp",
+          "sha256": "7c48c007a110a4437263a2c32536383df2aa5ffbd63b0ed573ead9df70c68b87"
+        },
+        {
+          "path": "src/recording/recording_catalog.cpp",
+          "sha256": "c0d7c5a7248370c6bf53ee7aec7948def9313d4ac5e8667f67f2ce9dd2b8e473"
+        }
+      ],
+      "contractFiles": [
+        {
+          "path": "docs/superpowers/specs/2026-10-04-v440-evidence-package-design.md",
+          "sha256": "5e587af085976561cf60cd575d81cb486639176bb7cc713fdf182cf0e6ddfa81"
+        },
+        {
+          "path": "docs/project-feature-test-inventory.md",
+          "sha256": "1cb45747468430062a06ddcbc9ccba4a528f3d3ffabbe8da53807eec8f1d02ad"
+        },
+        {
+          "path": "docs/config-reference.md",
+          "sha256": "c6a5f937613611452e49a06a6920dd9bf40f942805309e0249d27358ef9c0556"
+        },
+        {
+          "path": "docs/ui-guide.md",
+          "sha256": "16737e13025a23d3248a82a1355fc788b3174d0078a97fb40cbafbf97f8ff4c7"
+        }
+      ],
+      "findingResolutions": [
+        {
+          "id": "V440-IR-01",
+          "status": "resolved",
+          "evidence": "event_id가 있는 visual hit에 대해서만 FindEventDerivedJobIds의 동일 channel/event/source 조건으로 ID를 찾고, Complete verified job의 source/store/epoch/checksum 및 exact AU/ordinal/PTS/VCL을 대조한다. 현재 원본은 native proof 필수, 삭제 tombstone만 durable job 증명 허용. legacy link는 실제 UTC/ordered overlap half-open 범위를 확인한다. 이후 기존 ResolveMedia hold/검증/복사를 재사용한다. event 없는 대표 frame에는 clip을 추론하지 않는다.",
+          "locations": [
+            "src/recording/evidence_package_builder.cpp:22",
+            "src/recording/recording_catalog.cpp:742"
+          ]
+        },
+        {
+          "id": "V440-IR-01-NATIVE",
+          "status": "resolved",
+          "evidence": "native requested 여부를 candidate.original generation/order/track/ordinal/PTS와 verified AU로 결정한다. 정수 원본 PTS를 rational presentation 좌표로 대용하던 비교를 제거했다. 실제 native=true job과 7033–7066ms fractional 단일 관측 회귀는 clip을 보존하고 GOP 의존 표본은 제외한다.",
+          "locations": [
+            "src/recording/evidence_package_builder.cpp:68",
+            "scripts/internal/evidence_package_smoke.cpp:219"
+          ]
+        },
+        {
+          "id": "V440-IR-02",
+          "status": "resolved",
+          "evidence": "검증한 playback_event_id를 manifest event_ids 및 별도의 event-priority-selection 참조로 추가한다. 기존 search-association과 겹칠 때 참조 중복 없이 이유를 합친다. 실제 Refresh→WithPlayback hit.event_ids가 비어 있는 입력으로 native 회귀를 실행한 메인 로그를 확인했다.",
+          "locations": [
+            "src/recording/evidence_package_builder.cpp:250",
+            "scripts/internal/evidence_package_smoke.cpp:172"
+          ]
+        }
+      ],
+      "additionalReview": [
+        "얇은 catalog entry 및 기존 consumer reference만 먼저 선별하며 ID4096 상한, 루프 cancel, 실패 시 출력 불변을 유지한다. 과거 job 전체를 한 번에 materialize하지 않는다.",
+        "현재 binding과 durable job에 대해 channel/source/store/epoch/generation/order/track/unique ordinal·PTS/VCL 조건을 확인했다. FindDerivedJob의 기존 strict record 검증이 Complete/ready manifest 및 native selection proof를 재검증한다.",
+        "일반 source 조회·권한·검색 선택 계약은 변경하지 않으며 추가 조회 API는 내부 builder에서만 사용된다. HTTP role/scope, 요청 수명, worker stop/drain, 보존 파일 publication 및 삭제 계약에 추가 변경 없음.",
+        "조회 동시4개/5초가 asset hash 검증 단계에 적용되고 이후 HTTP 전송은 기존 연결 cap/drain의 적용을 받는다는 문서 정확화를 확인했다."
+      ],
+      "validationEvidence": {
+        "independentDirect": [
+          "이전 최초 R2 실제 native probe와 R1-NATIVE 실제 native selection probe는 위 역사 항목에서 원출력·source hash·exit·cleanup을 보존했다.",
+          "현재 git diff --check 직접 실행 exit0. 제품 archive/native suite/HTTP/UI는 독립 reviewer가 재실행하지 않았다."
+        ],
+        "mainRunsRead": [
+          {
+            "path": "docs/release-artifacts/v4.4.0/development/release-review-fix-build-5.log",
+            "sha256": "8d1de90c4fce8e911cd83fcae07051d93c93514c3150760a24296ba1c41c47f5",
+            "command": "cmake --build build-gst-onnx -j 4",
+            "exit": 0,
+            "checks": null,
+            "attribution": "메인 실행 원출력 읽기; 독립 reviewer 직접 실행 결과가 아님."
+          },
+          {
+            "path": "docs/release-artifacts/v4.4.0/development/release-review-fix-native-5.log",
+            "sha256": "79ae15fbc6c95f8347cbd4359bbfbd47b21b42b7f1ea873c3e6c793a77ae0a67",
+            "command": "bash scripts/internal/verify_evidence_package.sh",
+            "exit": 0,
+            "checks": 982,
+            "attribution": "메인 실행 원출력 읽기; 독립 reviewer 직접 실행 결과가 아님."
+          },
+          {
+            "path": "docs/release-artifacts/v4.4.0/development/release-review-fix-ui-state.log",
+            "sha256": "7ff41a4b822d3db38d51d64667e34822cadd1d495b8de4e168fd3255edfac5f9",
+            "command": "원출력에 기록된 Node UI 상태 검사",
+            "exit": 0,
+            "checks": 25,
+            "attribution": "메인 실행 원출력 읽기; 독립 reviewer 직접 실행 결과가 아님."
+          }
+        ],
+        "native5Details": {
+          "checks": 982,
+          "peakRssBytes": 93110272,
+          "cleanup": true,
+          "sourceLogMatchesCurrent": {
+            "src/recording/evidence_package_builder.cpp": "b077f0a9a3bf916640d0e839221c1c30721ff3facf9dba12704339bdad2125e0",
+            "scripts/internal/evidence_package_smoke.cpp": "e4c34a5d6563d449156008595cf741f8c0d56d9ddd9ffb7c42a7685e6bfc2d97"
+          },
+          "covered": [
+            "실제 WithPlayback event lineage",
+            "event snapshot 형태 visual hit exact sample clip",
+            "입력 UTC에 의존하지 않는 기존 sample 연결",
+            "대표 frame/다른 event/다른 channel·source/clip 끝 이후 표본의 비연관",
+            "native fractional 단일 관측 clip",
+            "native GOP 의존 표본 제외",
+            "실제 source+2clip retention tombstones 및 보존 자료 reopen",
+            "삭제 연결 clip의 명시적 partial"
+          ]
+        },
+        "priorFailuresPreserved": "메인 native1의 legacy intent.file_evidence 미보존 차이와 native3의 tombstone 공개 binding 차이는 기존 release-review-fix-native-1/3 로그를 변경하지 않았으며 native4/5 재검증 결과와 구분한다."
+      },
+      "unresolvedFindings": [],
+      "limitations": [
+        "실제 EventRecord snapshot→visual HTTP evidence 전체 경로는 이 reviewer가 실행하지 않았다. builder 검사는 snapshot adapter와 같은 형태의 hit를 사용하며 adapter/consumer 연결은 소스에서 확인했다.",
+        "입력 UTC를 제거한 회귀는 hit에서 UTC를 제거한 경우이며 원본 catalog의 모든 시각 근거가 사라진 fixture는 아니다. exact sample 연결의 UTC 비의존성은 구현과 해당 입력 회귀로 확인했다.",
+        "689 carry-forward/297 독립 source-flow 판단의 final immutable snapshot과 scoped decisions는 메인 제공 후 별도 결속할 예정이다. 아직 기존 approval/audit/manifest를 수정하거나 새 승인으로 재기록하지 않았다.",
+        "30분·120분·실제 UI 풀테스트/전체 release gate 및 추가 플랫폼 실행은 메인 영역으로 남는다. 소스 검토 승인으로 그 결과를 대체하지 않는다."
+      ],
+      "cleanup": "reviewer 소유 단기 probe 디렉터리 부재 확인. 이번 단계에는 임시 runtime/서버/포트 생성 없음. 제품·테스트·proof·approval·manifest·git index/commit 변경 없음; 이 보고서만 갱신."
+    }
+  ],
+  "currentReview": {
+    "phase": "final-product-fix-re-review",
+    "reviewedAt": "2026-10-04T12:53:47.828032+00:00",
+    "verdict": "approved",
+    "approvalScope": "현재 EvidencePackage 제품 diff와 관련 소비자에 대한 독립 소스 검토. 릴리즈 gate/30분/120분/실제 UI PASS 판정이 아니다.",
+    "unresolvedFindings": [],
+    "details": "followUpReviews의 마지막 항목. root initial-review와 이전 재검토 판정은 역사 그대로 보존됨.",
+    "next": "메인 최종 REVIEW4 candidate/migration/package의 source·contract·snapshot 결속 재대조 후 독립 scoped decisions 작성. 릴리즈 최종판정은 메인."
+  }
+}

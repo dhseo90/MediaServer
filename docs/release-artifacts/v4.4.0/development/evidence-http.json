@@ -1,0 +1,850 @@
+{
+  "schema": "media-server.evidence-http-auth.v1",
+  "featureId": "V440-A01-HTTP",
+  "status": "PASS",
+  "scope": "actual loopback HTTP, model OFF; separate from actual-model API and actual UI",
+  "startedAtMs": 1791113870843,
+  "command": "node scripts/internal/evidence_http_checks.mjs",
+  "checks": [
+    {
+      "id": "list viewer status",
+      "status": "PASS",
+      "expected": 403,
+      "actual": 403
+    },
+    {
+      "id": "list viewer no-store",
+      "status": "PASS",
+      "expected": "no-store",
+      "actual": "no-store"
+    },
+    {
+      "id": "list viewer structured error",
+      "status": "PASS",
+      "expected": true,
+      "actual": true
+    },
+    {
+      "id": "list viewer private data absent",
+      "status": "PASS",
+      "expected": false,
+      "actual": false
+    },
+    {
+      "id": "list integrator status",
+      "status": "PASS",
+      "expected": 403,
+      "actual": 403
+    },
+    {
+      "id": "list integrator no-store",
+      "status": "PASS",
+      "expected": "no-store",
+      "actual": "no-store"
+    },
+    {
+      "id": "list integrator structured error",
+      "status": "PASS",
+      "expected": true,
+      "actual": true
+    },
+    {
+      "id": "list integrator private data absent",
+      "status": "PASS",
+      "expected": false,
+      "actual": false
+    },
+    {
+      "id": "list no-ops status",
+      "status": "PASS",
+      "expected": 403,
+      "actual": 403
+    },
+    {
+      "id": "list no-ops no-store",
+      "status": "PASS",
+      "expected": "no-store",
+      "actual": "no-store"
+    },
+    {
+      "id": "list no-ops structured error",
+      "status": "PASS",
+      "expected": true,
+      "actual": true
+    },
+    {
+      "id": "list no-ops private data absent",
+      "status": "PASS",
+      "expected": false,
+      "actual": false
+    },
+    {
+      "id": "list anonymous status",
+      "status": "PASS",
+      "expected": 401,
+      "actual": 401
+    },
+    {
+      "id": "list anonymous no-store",
+      "status": "PASS",
+      "expected": "no-store",
+      "actual": "no-store"
+    },
+    {
+      "id": "list anonymous structured error",
+      "status": "PASS",
+      "expected": true,
+      "actual": true
+    },
+    {
+      "id": "list anonymous private data absent",
+      "status": "PASS",
+      "expected": false,
+      "actual": false
+    },
+    {
+      "id": "list admin disabled status",
+      "status": "PASS",
+      "expected": 503,
+      "actual": 503
+    },
+    {
+      "id": "list admin disabled no-store",
+      "status": "PASS",
+      "expected": "no-store",
+      "actual": "no-store"
+    },
+    {
+      "id": "list admin disabled structured error",
+      "status": "PASS",
+      "expected": true,
+      "actual": true
+    },
+    {
+      "id": "list admin disabled private data absent",
+      "status": "PASS",
+      "expected": false,
+      "actual": false
+    },
+    {
+      "id": "detail viewer status",
+      "status": "PASS",
+      "expected": 403,
+      "actual": 403
+    },
+    {
+      "id": "detail viewer no-store",
+      "status": "PASS",
+      "expected": "no-store",
+      "actual": "no-store"
+    },
+    {
+      "id": "detail viewer structured error",
+      "status": "PASS",
+      "expected": true,
+      "actual": true
+    },
+    {
+      "id": "detail viewer private data absent",
+      "status": "PASS",
+      "expected": false,
+      "actual": false
+    },
+    {
+      "id": "detail integrator status",
+      "status": "PASS",
+      "expected": 403,
+      "actual": 403
+    },
+    {
+      "id": "detail integrator no-store",
+      "status": "PASS",
+      "expected": "no-store",
+      "actual": "no-store"
+    },
+    {
+      "id": "detail integrator structured error",
+      "status": "PASS",
+      "expected": true,
+      "actual": true
+    },
+    {
+      "id": "detail integrator private data absent",
+      "status": "PASS",
+      "expected": false,
+      "actual": false
+    },
+    {
+      "id": "detail no-ops status",
+      "status": "PASS",
+      "expected": 403,
+      "actual": 403
+    },
+    {
+      "id": "detail no-ops no-store",
+      "status": "PASS",
+      "expected": "no-store",
+      "actual": "no-store"
+    },
+    {
+      "id": "detail no-ops structured error",
+      "status": "PASS",
+      "expected": true,
+      "actual": true
+    },
+    {
+      "id": "detail no-ops private data absent",
+      "status": "PASS",
+      "expected": false,
+      "actual": false
+    },
+    {
+      "id": "detail anonymous status",
+      "status": "PASS",
+      "expected": 401,
+      "actual": 401
+    },
+    {
+      "id": "detail anonymous no-store",
+      "status": "PASS",
+      "expected": "no-store",
+      "actual": "no-store"
+    },
+    {
+      "id": "detail anonymous structured error",
+      "status": "PASS",
+      "expected": true,
+      "actual": true
+    },
+    {
+      "id": "detail anonymous private data absent",
+      "status": "PASS",
+      "expected": false,
+      "actual": false
+    },
+    {
+      "id": "detail admin disabled status",
+      "status": "PASS",
+      "expected": 503,
+      "actual": 503
+    },
+    {
+      "id": "detail admin disabled no-store",
+      "status": "PASS",
+      "expected": "no-store",
+      "actual": "no-store"
+    },
+    {
+      "id": "detail admin disabled structured error",
+      "status": "PASS",
+      "expected": true,
+      "actual": true
+    },
+    {
+      "id": "detail admin disabled private data absent",
+      "status": "PASS",
+      "expected": false,
+      "actual": false
+    },
+    {
+      "id": "asset viewer status",
+      "status": "PASS",
+      "expected": 403,
+      "actual": 403
+    },
+    {
+      "id": "asset viewer no-store",
+      "status": "PASS",
+      "expected": "no-store",
+      "actual": "no-store"
+    },
+    {
+      "id": "asset viewer structured error",
+      "status": "PASS",
+      "expected": true,
+      "actual": true
+    },
+    {
+      "id": "asset viewer private data absent",
+      "status": "PASS",
+      "expected": false,
+      "actual": false
+    },
+    {
+      "id": "asset integrator status",
+      "status": "PASS",
+      "expected": 403,
+      "actual": 403
+    },
+    {
+      "id": "asset integrator no-store",
+      "status": "PASS",
+      "expected": "no-store",
+      "actual": "no-store"
+    },
+    {
+      "id": "asset integrator structured error",
+      "status": "PASS",
+      "expected": true,
+      "actual": true
+    },
+    {
+      "id": "asset integrator private data absent",
+      "status": "PASS",
+      "expected": false,
+      "actual": false
+    },
+    {
+      "id": "asset no-ops status",
+      "status": "PASS",
+      "expected": 403,
+      "actual": 403
+    },
+    {
+      "id": "asset no-ops no-store",
+      "status": "PASS",
+      "expected": "no-store",
+      "actual": "no-store"
+    },
+    {
+      "id": "asset no-ops structured error",
+      "status": "PASS",
+      "expected": true,
+      "actual": true
+    },
+    {
+      "id": "asset no-ops private data absent",
+      "status": "PASS",
+      "expected": false,
+      "actual": false
+    },
+    {
+      "id": "asset anonymous status",
+      "status": "PASS",
+      "expected": 401,
+      "actual": 401
+    },
+    {
+      "id": "asset anonymous no-store",
+      "status": "PASS",
+      "expected": "no-store",
+      "actual": "no-store"
+    },
+    {
+      "id": "asset anonymous structured error",
+      "status": "PASS",
+      "expected": true,
+      "actual": true
+    },
+    {
+      "id": "asset anonymous private data absent",
+      "status": "PASS",
+      "expected": false,
+      "actual": false
+    },
+    {
+      "id": "asset admin disabled status",
+      "status": "PASS",
+      "expected": 503,
+      "actual": 503
+    },
+    {
+      "id": "asset admin disabled no-store",
+      "status": "PASS",
+      "expected": "no-store",
+      "actual": "no-store"
+    },
+    {
+      "id": "asset admin disabled structured error",
+      "status": "PASS",
+      "expected": true,
+      "actual": true
+    },
+    {
+      "id": "asset admin disabled private data absent",
+      "status": "PASS",
+      "expected": false,
+      "actual": false
+    },
+    {
+      "id": "create viewer status",
+      "status": "PASS",
+      "expected": 403,
+      "actual": 403
+    },
+    {
+      "id": "create viewer no-store",
+      "status": "PASS",
+      "expected": "no-store",
+      "actual": "no-store"
+    },
+    {
+      "id": "create viewer structured error",
+      "status": "PASS",
+      "expected": true,
+      "actual": true
+    },
+    {
+      "id": "create viewer private data absent",
+      "status": "PASS",
+      "expected": false,
+      "actual": false
+    },
+    {
+      "id": "create integrator status",
+      "status": "PASS",
+      "expected": 403,
+      "actual": 403
+    },
+    {
+      "id": "create integrator no-store",
+      "status": "PASS",
+      "expected": "no-store",
+      "actual": "no-store"
+    },
+    {
+      "id": "create integrator structured error",
+      "status": "PASS",
+      "expected": true,
+      "actual": true
+    },
+    {
+      "id": "create integrator private data absent",
+      "status": "PASS",
+      "expected": false,
+      "actual": false
+    },
+    {
+      "id": "create no-ops status",
+      "status": "PASS",
+      "expected": 403,
+      "actual": 403
+    },
+    {
+      "id": "create no-ops no-store",
+      "status": "PASS",
+      "expected": "no-store",
+      "actual": "no-store"
+    },
+    {
+      "id": "create no-ops structured error",
+      "status": "PASS",
+      "expected": true,
+      "actual": true
+    },
+    {
+      "id": "create no-ops private data absent",
+      "status": "PASS",
+      "expected": false,
+      "actual": false
+    },
+    {
+      "id": "create anonymous status",
+      "status": "PASS",
+      "expected": 401,
+      "actual": 401
+    },
+    {
+      "id": "create anonymous no-store",
+      "status": "PASS",
+      "expected": "no-store",
+      "actual": "no-store"
+    },
+    {
+      "id": "create anonymous structured error",
+      "status": "PASS",
+      "expected": true,
+      "actual": true
+    },
+    {
+      "id": "create anonymous private data absent",
+      "status": "PASS",
+      "expected": false,
+      "actual": false
+    },
+    {
+      "id": "create admin disabled status",
+      "status": "PASS",
+      "expected": 503,
+      "actual": 503
+    },
+    {
+      "id": "create admin disabled no-store",
+      "status": "PASS",
+      "expected": "no-store",
+      "actual": "no-store"
+    },
+    {
+      "id": "create admin disabled structured error",
+      "status": "PASS",
+      "expected": true,
+      "actual": true
+    },
+    {
+      "id": "create admin disabled private data absent",
+      "status": "PASS",
+      "expected": false,
+      "actual": false
+    },
+    {
+      "id": "visual-create viewer status",
+      "status": "PASS",
+      "expected": 403,
+      "actual": 403
+    },
+    {
+      "id": "visual-create viewer no-store",
+      "status": "PASS",
+      "expected": "no-store",
+      "actual": "no-store"
+    },
+    {
+      "id": "visual-create viewer structured error",
+      "status": "PASS",
+      "expected": true,
+      "actual": true
+    },
+    {
+      "id": "visual-create viewer private data absent",
+      "status": "PASS",
+      "expected": false,
+      "actual": false
+    },
+    {
+      "id": "visual-create integrator status",
+      "status": "PASS",
+      "expected": 403,
+      "actual": 403
+    },
+    {
+      "id": "visual-create integrator no-store",
+      "status": "PASS",
+      "expected": "no-store",
+      "actual": "no-store"
+    },
+    {
+      "id": "visual-create integrator structured error",
+      "status": "PASS",
+      "expected": true,
+      "actual": true
+    },
+    {
+      "id": "visual-create integrator private data absent",
+      "status": "PASS",
+      "expected": false,
+      "actual": false
+    },
+    {
+      "id": "visual-create no-ops status",
+      "status": "PASS",
+      "expected": 403,
+      "actual": 403
+    },
+    {
+      "id": "visual-create no-ops no-store",
+      "status": "PASS",
+      "expected": "no-store",
+      "actual": "no-store"
+    },
+    {
+      "id": "visual-create no-ops structured error",
+      "status": "PASS",
+      "expected": true,
+      "actual": true
+    },
+    {
+      "id": "visual-create no-ops private data absent",
+      "status": "PASS",
+      "expected": false,
+      "actual": false
+    },
+    {
+      "id": "visual-create anonymous status",
+      "status": "PASS",
+      "expected": 401,
+      "actual": 401
+    },
+    {
+      "id": "visual-create anonymous no-store",
+      "status": "PASS",
+      "expected": "no-store",
+      "actual": "no-store"
+    },
+    {
+      "id": "visual-create anonymous structured error",
+      "status": "PASS",
+      "expected": true,
+      "actual": true
+    },
+    {
+      "id": "visual-create anonymous private data absent",
+      "status": "PASS",
+      "expected": false,
+      "actual": false
+    },
+    {
+      "id": "visual-create admin disabled status",
+      "status": "PASS",
+      "expected": 503,
+      "actual": 503
+    },
+    {
+      "id": "visual-create admin disabled no-store",
+      "status": "PASS",
+      "expected": "no-store",
+      "actual": "no-store"
+    },
+    {
+      "id": "visual-create admin disabled structured error",
+      "status": "PASS",
+      "expected": true,
+      "actual": true
+    },
+    {
+      "id": "visual-create admin disabled private data absent",
+      "status": "PASS",
+      "expected": false,
+      "actual": false
+    },
+    {
+      "id": "scoped allowed disabled status",
+      "status": "PASS",
+      "expected": 503,
+      "actual": 503
+    },
+    {
+      "id": "scoped allowed disabled no-store",
+      "status": "PASS",
+      "expected": "no-store",
+      "actual": "no-store"
+    },
+    {
+      "id": "scoped allowed disabled structured error",
+      "status": "PASS",
+      "expected": true,
+      "actual": true
+    },
+    {
+      "id": "scoped allowed disabled private data absent",
+      "status": "PASS",
+      "expected": false,
+      "actual": false
+    },
+    {
+      "id": "scoped forbidden channel status",
+      "status": "PASS",
+      "expected": 403,
+      "actual": 403
+    },
+    {
+      "id": "scoped forbidden channel no-store",
+      "status": "PASS",
+      "expected": "no-store",
+      "actual": "no-store"
+    },
+    {
+      "id": "scoped forbidden channel structured error",
+      "status": "PASS",
+      "expected": true,
+      "actual": true
+    },
+    {
+      "id": "scoped forbidden channel private data absent",
+      "status": "PASS",
+      "expected": false,
+      "actual": false
+    },
+    {
+      "id": "no source status",
+      "status": "PASS",
+      "expected": 403,
+      "actual": 403
+    },
+    {
+      "id": "no source no-store",
+      "status": "PASS",
+      "expected": "no-store",
+      "actual": "no-store"
+    },
+    {
+      "id": "no source structured error",
+      "status": "PASS",
+      "expected": true,
+      "actual": true
+    },
+    {
+      "id": "no source private data absent",
+      "status": "PASS",
+      "expected": false,
+      "actual": false
+    },
+    {
+      "id": "invalid channel status",
+      "status": "PASS",
+      "expected": 400,
+      "actual": 400
+    },
+    {
+      "id": "invalid channel no-store",
+      "status": "PASS",
+      "expected": "no-store",
+      "actual": "no-store"
+    },
+    {
+      "id": "invalid channel structured error",
+      "status": "PASS",
+      "expected": true,
+      "actual": true
+    },
+    {
+      "id": "invalid channel private data absent",
+      "status": "PASS",
+      "expected": false,
+      "actual": false
+    },
+    {
+      "id": "invalid asset index status",
+      "status": "PASS",
+      "expected": 400,
+      "actual": 400
+    },
+    {
+      "id": "invalid asset index no-store",
+      "status": "PASS",
+      "expected": "no-store",
+      "actual": "no-store"
+    },
+    {
+      "id": "invalid asset index structured error",
+      "status": "PASS",
+      "expected": true,
+      "actual": true
+    },
+    {
+      "id": "invalid asset index private data absent",
+      "status": "PASS",
+      "expected": false,
+      "actual": false
+    },
+    {
+      "id": "simple form create denied status",
+      "status": "PASS",
+      "expected": 400,
+      "actual": 400
+    },
+    {
+      "id": "simple form create denied no-store",
+      "status": "PASS",
+      "expected": "no-store",
+      "actual": "no-store"
+    },
+    {
+      "id": "simple form create denied structured error",
+      "status": "PASS",
+      "expected": true,
+      "actual": true
+    },
+    {
+      "id": "simple form create denied private data absent",
+      "status": "PASS",
+      "expected": false,
+      "actual": false
+    },
+    {
+      "id": "V440-A01 plaintext credentials absent",
+      "status": "PASS",
+      "expected": true,
+      "actual": true
+    },
+    {
+      "id": "V440-A01 authstore private mode",
+      "status": "PASS",
+      "expected": 384,
+      "actual": 384
+    }
+  ],
+  "cleanup": {
+    "root": "<tmp>/media-server-evidence-http-XD3Qgd",
+    "rootIdentity": "16777232:167468907",
+    "process": {
+      "exited": true,
+      "forced": false,
+      "exitCode": 0,
+      "signalCode": null
+    },
+    "http": {
+      "closed": true,
+      "evidence": "ECONNREFUSED"
+    },
+    "rtsp": {
+      "closed": true,
+      "evidence": "ECONNREFUSED"
+    },
+    "udpClosed": true,
+    "rootAbsent": true
+  },
+  "modelInference": false,
+  "totalBudgetMs": 60000,
+  "workBudgetMs": 45000,
+  "previousRuns": [
+    {
+      "schema": "media-server.evidence-http-auth.v1",
+      "featureId": "V440-A01-HTTP",
+      "status": "FAIL",
+      "scope": "actual loopback HTTP, model OFF; separate from actual-model API and actual UI",
+      "startedAtMs": 1791113650261,
+      "command": "node scripts/internal/evidence_http_checks.mjs",
+      "checks": [],
+      "cleanup": {
+        "root": "<tmp>/media-server-evidence-http-tA5Y8f",
+        "rootIdentity": "16777232:167467621",
+        "process": {
+          "exited": true,
+          "exitCode": null,
+          "signalCode": "SIGBUS",
+          "graceful": false
+        },
+        "http": {
+          "closed": true,
+          "evidence": "ECONNREFUSED"
+        },
+        "rtsp": {
+          "closed": true,
+          "evidence": "ECONNREFUSED"
+        },
+        "udpClosed": true,
+        "rootAbsent": true
+      },
+      "modelInference": false,
+      "totalBudgetMs": 60000,
+      "workBudgetMs": 45000,
+      "binarySha256": "e0b7c2d97e7f723461c4dfb1844b2063f4b7ce9764ef5e128f7014df27a4f517",
+      "sourceSha256": "95af032d6720792c6ad42f7ca297472d9322a350c88ae0ad8c58cb473706979a",
+      "ports": {
+        "http": 49288,
+        "rtsp": 49287,
+        "udp": 55415
+      },
+      "pid": 60806,
+      "firstFailure": {
+        "id": "product server startup",
+        "expected": "successful isolated run",
+        "actual": "sanitized failure"
+      },
+      "finishedAtMs": 1791113652354,
+      "elapsedMs": 2093,
+      "exit": 1
+    }
+  ],
+  "binarySha256": "0bf3109b6c00325e0e3d07c3e38d1131cc8288eeb8f279ea87f510fbac25686c",
+  "sourceSha256": "54b232227a58ec6f3a10f048949ee24050fe9a987b8bdff7f08351d228c1cd87",
+  "ports": {
+    "http": 49386,
+    "rtsp": 49385,
+    "udp": 54048
+  },
+  "pid": 61158,
+  "finishedAtMs": 1791113873655,
+  "elapsedMs": 2812,
+  "exit": 0
+}

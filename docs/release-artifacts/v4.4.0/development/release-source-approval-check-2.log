@@ -1,0 +1,6 @@
+== V390 REVIEW4 independent source approvals ==
+- audit rows revalidated: 986
+- candidate digest: 5f8639c44d5b5b5738a671e2af38e7caa5483c12e3217022e65443c33ca6096b
+- approvals verified: 986
+- approval ledger write: committed-fixture-verified
+- failures: 0

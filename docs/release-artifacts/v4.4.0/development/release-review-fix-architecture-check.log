@@ -1,0 +1,10 @@
+command: ./server.sh verify-v390-review4-structure-stabilization-execution --graph-only
+startedAt: 2026-10-04T12:49:57.328841+00:00
+- PASS: versioned current architecture policy and continuation are explicit
+- PASS: current graph hash and metrics are exact
+- PASS: current graph negative mutations reject forbidden edge and cycle
+- PASS: Slice 32 completion and current graph separation is fail-closed
+- summary: pass=4 fail=0
+
+exit: 0
+finishedAt: 2026-10-04T12:49:57.662071+00:00

@@ -1,0 +1,9 @@
+[  0%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/evidence_package_store.cpp.o
+[  1%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/evidence_package.cpp.o
+[  2%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/evidence_package_builder.cpp.o
+[  3%] Building CXX object CMakeFiles/media_server_runtime.dir/src/ingress/evidence_application_service.cpp.o
+[  4%] Building CXX object CMakeFiles/media_server_runtime.dir/src/ingress/webrtc_http_server_runtime.cpp.o
+[  5%] Linking CXX static library libmedia_server_runtime.a
+[ 99%] Built target media_server_runtime
+[ 99%] Linking CXX executable media_server
+[100%] Built target media_server

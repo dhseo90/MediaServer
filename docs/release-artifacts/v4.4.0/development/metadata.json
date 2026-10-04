@@ -1,0 +1,94 @@
+{
+  "schema": "media-server.release-metadata-consistency.v1",
+  "generatedAt": "2026-10-04T11:41:18.730Z",
+  "status": "pass",
+  "mode": "local-release-metadata",
+  "currentVersion": "4.4.0",
+  "currentTag": "v4.4.0",
+  "checks": [
+    {
+      "name": "current release documents preserve version and publication boundaries",
+      "status": "pass",
+      "detail": {
+        "version": "4.4.0",
+        "releaseTargetTag": "v4.4.0",
+        "publishedSnapshotTag": "v4.3.0",
+        "priorPublishedTag": "v4.3.0",
+        "tagType": "signed-annotated",
+        "distribution": "source-only",
+        "releaseNotes": "docs/release-notes-v4.4.0.md",
+        "roadmap": "docs/v410-v49-recording-search-roadmap.md"
+      }
+    },
+    {
+      "name": "historical v2.9 source-of-truth remains distinct from latest published v2.8",
+      "status": "pass",
+      "detail": {
+        "fixture": "test/fixtures/release_metadata_boundary.json",
+        "productExecutionEvidence": false,
+        "externalActionsExecuted": false
+      }
+    },
+    {
+      "name": "default mode records published metadata verification as external gate",
+      "status": "pass",
+      "detail": {
+        "mode": "local-release-metadata",
+        "status": "external-not-checked",
+        "reason": "Default mode checks local release metadata only; rerun with --published to verify GitHub Latest Release, remote tag, and release branch.",
+        "expectedReleaseUrl": "https://github.com/dhseo90/MediaServer/releases/tag/v4.4.0",
+        "releaseBranch": "v4.4.0"
+      }
+    }
+  ],
+  "releaseTargetTag": "v4.4.0",
+  "latestPublishedTag": "v4.3.0",
+  "cutPriorPublishedTag": "v4.3.0",
+  "publishedSnapshot": {
+    "tag": "v4.3.0",
+    "url": "https://github.com/dhseo90/MediaServer/releases/tag/v4.3.0",
+    "observedAt": "2026-10-04T09:36:44.509Z",
+    "source": "documented-observation-not-current-remote-verification"
+  },
+  "latestPublishedVersion": "4.3.0",
+  "github": {
+    "repository": "dhseo90/MediaServer",
+    "repositoryUrl": "https://github.com/dhseo90/MediaServer",
+    "expectedReleaseUrl": "https://github.com/dhseo90/MediaServer/releases/tag/v4.4.0",
+    "currentBranch": "v4.4.0",
+    "releaseBranch": "v4.4.0",
+    "latestRelease": null,
+    "releaseListLatest": null,
+    "releaseView": null,
+    "remoteTag": null,
+    "remoteBranch": null,
+    "repositoryLandingPage": null
+  },
+  "publishedEvidence": {
+    "schema": "media-server.published-release-evidence.v1",
+    "status": "external-not-checked",
+    "repository": "dhseo90/MediaServer",
+    "repositoryUrl": "https://github.com/dhseo90/MediaServer",
+    "expectedReleaseUrl": "https://github.com/dhseo90/MediaServer/releases/tag/v4.4.0",
+    "currentTag": "v4.4.0",
+    "releaseTargetTag": "v4.4.0",
+    "latestPublishedTag": "v4.3.0",
+    "cutPriorPublishedTag": "v4.3.0",
+    "currentBranch": "v4.4.0",
+    "releaseBranch": "v4.4.0",
+    "command": "./server.sh verify-release-metadata --published --report <report.md> --json-report <report.json>",
+    "fallbackPolicy": {
+      "schema": "media-server.github-metadata-fallback-policy.v1",
+      "ghFallback": "curl GitHub REST API /releases, /releases/latest, /releases/tags/<tag>",
+      "remoteRefFallback": "git ls-remote against https://github.com/dhseo90/MediaServer.git",
+      "failureClasses": [
+        "external-auth-or-permission",
+        "external-network",
+        "tool-unavailable",
+        "external-github-access"
+      ]
+    },
+    "evidence": {},
+    "reason": "Default mode checks local release metadata only; rerun with --published to verify GitHub Latest Release, remote tag, and release branch."
+  }
+}
