@@ -1,9 +1,0 @@
-{
-  "schema": "media-server.ui-raw-visual-capture.v1",
-  "caseId": "UI-093",
-  "correlationId": "UI-093:assert-visible-read-model:completion",
-  "targetSelector": "#dashSimulationWorkspaceFieldEvidenceAdapterList > [data-v360-field-evidence-simulation-adapter-entry]:first-child",
-  "screenshotSha256": "e1966f5907a180a524ee5eff890d8e8f4b0cee057d9e3d8fc42b7189f2476069",
-  "measurementSha256": "e29eefd707c5bea6685a643b9616de89a459ac4d30fdf60938f1dffbcb286114",
-  "qualificationStatus": "unqualified-raw-capture"
-}

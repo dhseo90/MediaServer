@@ -1,0 +1,167 @@
+[test] suite=release
+[test] command=./test_release.sh
+[test] outputDir=/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.4.0/test-acceptance-current-final
+[pass] four root launchers are executable zero-option entrypoints
+[pass] common launcher owns output, contract preflight, sanitization, and exact delegation
+[pass] compact result writer normalizes parent checks and exact UI cases without stale failure files
+[pass] compact failure handoff preserves first failure and every later not-run item
+[pass] compact result writer records failures before a child summary exists
+[pass] user launcher bootstraps checksum-bound AI assets before actual test delegation
+[pass] server launchers use OS temp while UI and release use distinct repository roots
+[pass] standalone UI verifies the exact source manifest before environment bootstrap
+[pass] standalone UI source-contract failure cannot reach the acceptance environment
+[pass] 30-minute launcher delegates only the runner-owned 30-minute suite
+[pass] 30-minute root launcher accepts a passing server summary without UI evidence
+[pass] 120-minute launcher invocation is recorded as direct user authorization
+[pass] server launchers preserve suite-specific first failure and later not-run evidence
+[pass] release launcher falls back to the failed feature-gate check testcase ID
+[pass] UI launcher prints exact canonical fields and fails closed on a false gate
+[pass] UI launcher fails closed and prints explicit blanks when canonical summary path is missing
+[pass] UI launcher prints every canonical gate blank when the top acceptance summary is absent
+[pass] UI launcher builds current source before exact 424 environment and Policy v4 stages
+[pass] UI launcher build failure never reaches bootstrap or browser execution
+[pass] UI launcher fail-stop keeps Policy v4 not-run and still cleans up
+[pass] actual UI suite rejects an OS temp artifact root before environment bootstrap
+[pass] release launcher records 120 minutes as not-required without a trigger
+[pass] release launcher automatically runs 120 minutes only after a trigger
+[pass] AGENTS 7.6.2 change classifier covers every automatic 120-minute area
+[pass] media-path ICE classification requires an independent path token
+[pass] lower runners expose automatic UI suite and conditional 120 source contracts
+
+== v3.9.0 user test launcher contract summary ==
+- pass: 26
+- fail: 0
+- actual30: not-run-by-contract
+- actual120: not-run-by-contract
+- actualUI: not-run-by-contract
+[assets] model=verified path=/Users/dhseo/Workspace/mediaServer/models/yolo11n.onnx sha256=634279b40c07c6391472c51ad45b81ebc48706a9a1fe72dd3396322acd0c053b
+[assets] labels=verified path=/Users/dhseo/Workspace/mediaServer/models/coco.names sha256=bd17f1ee35d5f3c862a4894605855abbb9dda4b0621fdb0ac4c2c8c7bb7e730a
+[progress] (1/14) preflight test; remaining=13
+[progress] (2/14) build test; remaining=12
+[env] local override skipped
+[1/2] configure: /Users/dhseo/Workspace/mediaServer/build-gst-onnx (ai=1, youtube=0)
+-- Configuring done (0.1s)
+-- Generating done (0.0s)
+-- Build files have been written to: /Users/dhseo/Workspace/mediaServer/build-gst-onnx
+[2/2] build
+[ 99%] Built target media_server_runtime
+[100%] Built target media_server
+[done] build=/Users/dhseo/Workspace/mediaServer/build-gst-onnx/media_server
+[progress] (3/14) feature-gates test; remaining=11
+[fail] 상단 용도 주석 누락
+  - docs/release-artifacts/v4.4.0/development/actual-ui-disabled-1/actual-ui.mjs
+  - docs/release-artifacts/v4.4.0/development/actual-ui-normal-1/actual-ui.mjs
+  - docs/release-artifacts/v4.4.0/development/actual-ui-normal-2/actual-ui.mjs
+  - docs/release-artifacts/v4.4.0/development/actual-ui-rich-1/actual-ui.mjs
+  - docs/release-artifacts/v4.4.0/development/actual-ui-rich-2/actual-ui.mjs
+  - docs/release-artifacts/v4.4.0/development/actual-ui-rich-3/actual-ui.mjs
+  - docs/release-artifacts/v4.4.0/development/mixed-preparation/memory-decode-14/diagnostic.cpp
+  - docs/release-artifacts/v4.4.0/development/mixed-preparation/memory-history-11/diagnostic.cpp
+  - docs/release-artifacts/v4.4.0/development/mixed-preparation/memory-history-12/diagnostic.cpp
+  - docs/release-artifacts/v4.4.0/development/mixed-preparation/memory-history-13/diagnostic.cpp
+  - docs/release-artifacts/v4.4.0/development/mixed-preparation/mixed-diagnostic.cpp
+  - docs/release-artifacts/v4.4.0/development/mixed-preparation/mixed-profile-8/profile.cpp
+  - docs/release-artifacts/v4.4.0/development/mixed-preparation/mixed-profile-9/profile.cpp
+  - docs/release-artifacts/v4.4.0/development/pr77-cache-boundaries-wrapper-12.py
+  - docs/release-artifacts/v4.4.0/development/pr77-cache-boundaries-wrapper-13.py
+  - scripts/internal/verify_visual_request_media_cache.py
+[fail] 한글 설명이 없는 주석
+  - docs/release-artifacts/v4.4.0/development/actual-ui-disabled-1/actual-ui.mjs:16:// Absence, not the value, selects the original short seed in the native preparation.
+  - docs/release-artifacts/v4.4.0/development/actual-ui-normal-1/actual-ui.mjs:16:// Absence, not the value, selects the original short seed in the native preparation.
+  - docs/release-artifacts/v4.4.0/development/actual-ui-normal-2/actual-ui.mjs:16:// Absence, not the value, selects the original short seed in the native preparation.
+  - docs/release-artifacts/v4.4.0/development/actual-ui-rich-1/actual-ui.mjs:16:// Absence, not the value, selects the original short seed in the native preparation.
+  - docs/release-artifacts/v4.4.0/development/actual-ui-rich-2/actual-ui.mjs:16:// Absence, not the value, selects the original short seed in the native preparation.
+  - docs/release-artifacts/v4.4.0/development/actual-ui-rich-3/actual-ui.mjs:16:// Absence, not the value, selects the original short seed in the native preparation.
+  - scripts/internal/recording_search_playback_smoke.cpp:13:// Full timeline is the unchanged independent oracle, including deleted/unplaced rows.
+  - scripts/internal/recording_search_playback_smoke.cpp:118:        // Production B ownership, retired receipts and cold archives, not the legacy A fixture.
+  - scripts/internal/recording_search_playback_smoke.cpp:159:                // Bound/deleted rows may use the existing compressed physical envelope.
+
+== Code comment policy summary ==
+- files: 1433
+- missing headers: 16
+- english-only comments: 9
+[progress] (4/14) server-longrun-30 not-run; remaining=10
+[progress] (5/14) ui-environment-bootstrap not-run; remaining=9
+[progress] (6/14) ui-exact-424 not-run; remaining=8
+[progress] (7/14) ui-server-cleanup test; remaining=7
+[progress] (8/14) ui-fulltest-qualification not-run; remaining=6
+[progress] (9/14) longrun-120-decision not-run; remaining=5
+[progress] (10/14) server-longrun-120 not-run; remaining=4
+[progress] (11/14) cleanup test; remaining=3
+[progress] (12/14) ui-final-integrity not-run; remaining=2
+[progress] (13/14) report test; remaining=1
+[progress] (14/14) final-integrity test; remaining=0
+[fail] canonical parent, child census, Policy source, and cleanup form one run: canonical parent summary has a symlink ancestor: /Users/dhseo/Workspace/mediaServer
+[fail] acceptance summary and actual eligibility: acceptance result is not PASS: FAIL
+[fail] canonical summary report and child evidence manifest are direct and hash-bound: required child evidence missing: server-longrun-30-summary
+[pass] source provenance and command ledger are complete
+[pass] canonical command set is exact and hash-bound
+[pass] acceptance and child summary paths are contained by the current artifact root
+[fail] Policy v4 evaluation is bound to its actual source summary: Policy v4 source summary path must be repository-relative
+[pass] first failure record matches summary state
+[pass] recovered retry preserves its earliest first failure
+[pass] canonical artifacts contain no duplicate screenshots or video placeholders
+[fail] top-level cleanup is measured: acceptance UI temporary root binding mismatch
+[fail] actual child evidence uses measured cleanup: 30-minute summary path missing
+
+== v3.9.0 final evidence integrity summary ==
+- summary: /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.4.0/test-acceptance-current-final/summary.json
+- executionMode: actual
+- finalEvidenceEligible: false
+- uiFulltestPass: false
+- qualifiedCaseCount: 0
+- sourceCommitSha: a5046c7f1f8a91075229bac48e0315c1a85af13f
+- pass: 6
+- fail: 6
+
+== v3.9.0 test acceptance bundle summary ==
+- result: FAIL
+- executionMode: actual
+- failedStage: feature-gates
+- longrun30: not-run
+- uiAutomation: not-run
+- longrun120: not-run
+- automatedAcceptanceStatus: failed
+- summaryPath: /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.4.0/test-acceptance-current-final/summary.json
+- reportPath: /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.4.0/test-acceptance-current-final/report.md
+[test] result=FAIL
+[test] stage=preflight status=PASS exit=0
+[test] stage=build status=PASS exit=0
+[test] stage=feature-gates status=FAIL exit=1
+[test] stage=server-longrun-30 status=not-run exit=
+[test] stage=ui-environment-bootstrap status=not-run exit=
+[test] stage=ui-exact-424 status=not-run exit=
+[test] stage=ui-server-cleanup status=PASS exit=0
+[test] stage=ui-fulltest-qualification status=not-run exit=
+[test] stage=longrun-120-decision status=not-run exit=
+[test] stage=server-longrun-120 status=not-run exit=
+[test] stage=cleanup status=PASS exit=0
+[test] stage=ui-final-integrity status=not-run exit=
+[test] stage=report status=PASS exit=0
+[test] stage=final-integrity status=FAIL exit=1
+[test] failureStage=feature-gates
+[test] testcaseId=code-comments
+[test] exitCode=1
+[test] logPath=/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.4.0/test-acceptance-current-final/runs/v390-test-acceptance-20261004220328-82798/feature-gates-01-code-comments.log
+[test] reproductionCommand=./test_release.sh
+[test] laterNotRun=server-longrun-30,ui-environment-bootstrap,ui-exact-424,ui-fulltest-qualification,longrun-120-decision,server-longrun-120,ui-final-integrity
+[test] exactUiSelected=
+[test] exactUiAttempted=
+[test] exactUiPass=
+[test] exactUiFail=
+[test] exactUiNotRun=
+[test] exactUiUnsupported=
+[test] exactUiRunnerAbort=
+[test] exactUiFailureCensusCount=
+[test] exactUiFailureCensusPath=
+[test] policyEligible=
+[test] policyQualified=
+[test] uiFulltestPass=
+[test] finalIntegrity=
+[test] finalIntegrityPath=
+[test] cleanup=PASS
+[test] summary=/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.4.0/test-acceptance-current-final/summary.json
+[test] report=/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.4.0/test-acceptance-current-final/report.md
+[test] compactSummary=/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.4.0/test-acceptance-current-final/test-run-summary.json
+[test] compactCounts=pass:5,fail:3,not-run:42
+[test] failureHandoff=/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.4.0/test-acceptance-current-final/failure-handoff.json

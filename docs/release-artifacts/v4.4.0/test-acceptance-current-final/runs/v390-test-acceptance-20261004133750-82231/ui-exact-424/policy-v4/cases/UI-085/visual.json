@@ -1,9 +1,0 @@
-{
-  "schema": "media-server.ui-raw-visual-capture.v1",
-  "caseId": "UI-085",
-  "correlationId": "UI-085:assert-visible-read-model:completion",
-  "targetSelector": "#dashCommandWorkspaceExportBundleMap",
-  "screenshotSha256": "e1966f5907a180a524ee5eff890d8e8f4b0cee057d9e3d8fc42b7189f2476069",
-  "measurementSha256": "0c4e6c4bc8e20f850100a4ead2829b147eac9af15f68e104937302e06f5aac1a",
-  "qualificationStatus": "unqualified-raw-capture"
-}

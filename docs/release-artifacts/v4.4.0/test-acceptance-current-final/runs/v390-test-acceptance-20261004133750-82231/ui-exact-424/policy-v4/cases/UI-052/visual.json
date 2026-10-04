@@ -1,9 +1,0 @@
-{
-  "schema": "media-server.ui-raw-visual-capture.v1",
-  "caseId": "UI-052",
-  "correlationId": "UI-052:assert-visible-read-model:completion",
-  "targetSelector": "[data-testid=\"ops-operational-action-pack\"]",
-  "screenshotSha256": "203f1ba6353c60af1b834b43ea7fc41bcb06915652c16016dd8a40f1b5485df7",
-  "measurementSha256": "57cbe75f9d8f911a4f19367eff26a481031e38d076093455b7e8b66d9b457393",
-  "qualificationStatus": "unqualified-raw-capture"
-}

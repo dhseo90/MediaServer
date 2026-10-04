@@ -1,91 +1,103 @@
 # v3.9.0 Test Acceptance Bundle
 
 schema: media-server.v390-test-acceptance-bundle.v1
-result: PASS
+result: FAIL
 executionMode: actual
 dryRun: false
-sourceCommitSha: 789583126c71a4aace24c9ae2cac1d67f7beb32d
+sourceCommitSha: a5046c7f1f8a91075229bac48e0315c1a85af13f
 sourceBranch: v4.4.0
 sourceWorktreeClean: true
-failedStage: (none)
-firstFailureCommand: (none)
-firstFailureContext: (none)
-reproductionCommand: 
-automatedAcceptanceStatus: eligible
+failedStage: feature-gates
+firstFailureCommand: ./server.sh verify-code-comments
+firstFailureContext:   - docs/release-artifacts/v4.4.0/development/actual-ui-normal-1/actual-ui.mjs:16:// Absence, not the value, selects the original short seed in the native preparation. |   - docs/release-artifacts/v4.4.0/development/actual-ui-normal-2/actual-ui.mjs:16:// Absence, not the value, selects the original short seed in the native preparation. |   - docs/release-artifacts/v4.4.0/development/actual-ui-rich-1/actual-ui.mjs:16:// Absence, not the value, selects the original short seed in the native preparation. |   - docs/release-artifacts/v4.4.0/development/actual-ui-rich-2/actual-ui.mjs:16:// Absence, not the value, selects the original short seed in the native preparation. |   - docs/release-artifacts/v4.4.0/development/actual-ui-rich-3/actual-ui.mjs:16:// Absence, not the value, selects the original short seed in the native preparation. |   - scripts/internal/recording_search_playback_smoke.cpp:13:// Full timeline is the unchanged independent oracle, including deleted/unplaced rows. |   - scripts/internal/recording_search_playback_smoke.cpp:118:        // Production B ownership, retired receipts and cold archives, not the legacy A fixture. |   - scripts/internal/recording_search_playback_smoke.cpp:159:                // Bound/deleted rows may use the existing compressed physical envelope. | == Code comment policy summary == | - files: 1433 | - missing headers: 16 | - english-only comments: 9
+reproductionCommand: ./test_release.sh
+automatedAcceptanceStatus: failed
 evidenceBoundary: actual automated acceptance is not Codex in-app manual UI fulltest, published metadata, or release-action evidence
-exactUiCoverage: 424 attempted / 424 PASS / 0 FAIL / 0 not-run / 0 unsupported / 424 total
+exactUiCoverage: not-run
 
 | stage | status | command | log/summary |
 | --- | --- | --- | --- |
-| preflight | PASS | validate actual bundle inputs | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.4.0/test-acceptance-current-final/runs/v390-test-acceptance-20261004133750-82231/preflight.log |
-| build | PASS | ./server.sh build | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.4.0/test-acceptance-current-final/runs/v390-test-acceptance-20261004133750-82231/build.log |
-| feature-gates | PASS | 36 current feature commands |  |
-| server-longrun-30 | PASS | ./server.sh verify-v390-server-longrun --duration-minutes 30 --output-dir /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.4.0/test-acceptance-current-final/runs/v390-test-acceptance-20261004133750-82231/server-longrun-30 | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.4.0/test-acceptance-current-final/runs/v390-test-acceptance-20261004133750-82231/server-longrun-30/summary.json |
-| ui-environment-bootstrap | PASS | bootstrap acceptance-owned throwaway server/auth roles/Playwright storage-state | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.4.0/test-acceptance-current-final/runs/v390-test-acceptance-20261004133750-82231/ui-environment-bootstrap.json |
-| ui-exact-424 | PASS | ./server.sh run-v390-ui-native-exact-cases --output-dir /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.4.0/test-acceptance-current-final/runs/v390-test-acceptance-20261004133750-82231/ui-exact-424 --http-base http://127.0.0.1:51446 --role-state-map /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v390_ui-GAp3H3/role-state-map.json --server-log /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v390_ui-GAp3H3/media-server.log --runtime-descriptor /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v390_ui-GAp3H3/runtime-descriptor.json --build-path build-gst-onnx/media_server | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.4.0/test-acceptance-current-final/runs/v390-test-acceptance-20261004133750-82231/ui-exact-424/summary.json |
-| ui-server-cleanup | PASS | stop exact UI throwaway server and verify ports | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.4.0/test-acceptance-current-final/runs/v390-test-acceptance-20261004133750-82231/ui-server-cleanup.log |
-| ui-fulltest-qualification | PASS | ./server.sh verify-ui-fulltest-evidence-policy-v4 --summary /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.4.0/test-acceptance-current-final/runs/v390-test-acceptance-20261004133750-82231/ui-exact-424/policy-v4-summary.json --output-dir /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.4.0/test-acceptance-current-final/runs/v390-test-acceptance-20261004133750-82231/ui-fulltest-qualification --require-eligible | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.4.0/test-acceptance-current-final/runs/v390-test-acceptance-20261004133750-82231/ui-fulltest-qualification/evaluation.json |
-| longrun-120-decision | PASS | evaluate AGENTS 7.6.2 change scope | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.4.0/test-acceptance-current-final/runs/v390-test-acceptance-20261004133750-82231/longrun-120-decision.log |
-| server-longrun-120 | PASS | ./server.sh verify-v390-server-longrun --duration-minutes 120 --output-dir /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.4.0/test-acceptance-current-final/runs/v390-test-acceptance-20261004133750-82231/server-longrun-120 | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.4.0/test-acceptance-current-final/runs/v390-test-acceptance-20261004133750-82231/server-longrun-120/summary.json |
-| cleanup | PASS | validate child cleanup and preserved evidence | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.4.0/test-acceptance-current-final/runs/v390-test-acceptance-20261004133750-82231/cleanup.log |
+| preflight | PASS | validate actual bundle inputs | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.4.0/test-acceptance-current-final/runs/v390-test-acceptance-20261004220328-82798/preflight.log |
+| build | PASS | ./server.sh build | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.4.0/test-acceptance-current-final/runs/v390-test-acceptance-20261004220328-82798/build.log |
+| feature-gates | FAIL | 36 current feature commands |  |
+| server-longrun-30 | not-run |  | not run after feature-gates failure |
+| ui-environment-bootstrap | not-run |  | not run after feature-gates failure |
+| ui-exact-424 | not-run |  | not run after feature-gates failure |
+| ui-server-cleanup | PASS | stop exact UI throwaway server and verify ports | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.4.0/test-acceptance-current-final/runs/v390-test-acceptance-20261004220328-82798/ui-server-cleanup.log |
+| ui-fulltest-qualification | not-run |  | not run after feature-gates failure |
+| longrun-120-decision | not-run |  | not run after feature-gates failure |
+| server-longrun-120 | not-run |  | not run after feature-gates failure |
+| cleanup | PASS | validate child cleanup and preserved evidence | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.4.0/test-acceptance-current-final/runs/v390-test-acceptance-20261004220328-82798/cleanup.log |
 | ui-final-integrity | not-run |  | not selected by release suite |
-| report | PASS | write acceptance summary/report | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.4.0/test-acceptance-current-final/runs/v390-test-acceptance-20261004133750-82231/report.log |
-| final-integrity | PASS | ./server.sh verify-v390-final-evidence-integrity --summary /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.4.0/test-acceptance-current-final/summary.json | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.4.0/test-acceptance-current-final/summary.json |
+| report | PASS | write acceptance summary/report | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.4.0/test-acceptance-current-final/runs/v390-test-acceptance-20261004220328-82798/report.log |
+| final-integrity | FAIL | ./server.sh verify-v390-final-evidence-integrity --summary /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.4.0/test-acceptance-current-final/summary.json | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.4.0/test-acceptance-current-final/summary.json |
 
 ## Known UI closure blockers
 
-- 없음
+- acceptance-execution-not-pass
+- policy-evaluation-schema-mismatch
+- policy-validation-not-pass
+- policy-source-evidence-schema-mismatch
+- policy-evidence-not-eligible
+- policy-ui-fulltest-not-pass
+- qualified-case-count-not-424
+- qualified-case-id-list-not-424
+- qualified-case-id-list-has-duplicates
+- qualified-case-id-list-not-canonical
+- full-suite-not-actual-browser-execution
+- requested-exact-case-count-not-424
+- full-suite-pass-count-not-424
+- full-suite-fail-not-zero
+- full-suite-notRun-not-zero
+- full-suite-unsupported-not-zero
+- full-suite-unapprovedExclusions-not-zero
+- full-suite-manualIntervention-not-zero
+- policy-source-summary-hash-missing
 
 ## Executed command ledger
 
 | stage | id | status | command | exit | log |
 | --- | --- | --- | --- | ---: | --- |
-| preflight | preflight | PASS | validate actual bundle inputs | 0 | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.4.0/test-acceptance-current-final/runs/v390-test-acceptance-20261004133750-82231/preflight.log |
-| build | build | PASS | ./server.sh build | 0 | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.4.0/test-acceptance-current-final/runs/v390-test-acceptance-20261004133750-82231/build.log |
-| feature-gates | feature-gates | PASS | 36 current feature commands | 0 |  |
-| feature-gates | code-comments | PASS | ./server.sh verify-code-comments | 0 | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.4.0/test-acceptance-current-final/runs/v390-test-acceptance-20261004133750-82231/feature-gates-01-code-comments.log |
-| feature-gates | v390-ui-native-exact-cases-contract | PASS | ./server.sh verify-v390-ui-native-exact-cases-contract | 0 | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.4.0/test-acceptance-current-final/runs/v390-test-acceptance-20261004133750-82231/feature-gates-02-v390-ui-native-exact-cases-contract.log |
-| feature-gates | v390-stabilization-release-readiness | PASS | ./server.sh verify-v390-stabilization-release-readiness | 0 | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.4.0/test-acceptance-current-final/runs/v390-test-acceptance-20261004133750-82231/feature-gates-03-v390-stabilization-release-readiness.log |
-| feature-gates | v390-entry-baseline | PASS | ./server.sh verify-v390-entry-baseline | 0 | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.4.0/test-acceptance-current-final/runs/v390-test-acceptance-20261004133750-82231/feature-gates-04-v390-entry-baseline.log |
-| feature-gates | v390-feature-completion-inventory | PASS | ./server.sh verify-v390-feature-completion-inventory | 0 | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.4.0/test-acceptance-current-final/runs/v390-test-acceptance-20261004133750-82231/feature-gates-05-v390-feature-completion-inventory.log |
-| feature-gates | v390-user-review-gate | PASS | ./server.sh verify-v390-user-review-gate | 0 | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.4.0/test-acceptance-current-final/runs/v390-test-acceptance-20261004133750-82231/feature-gates-06-v390-user-review-gate.log |
-| feature-gates | manual-ui-evidence | PASS | ./server.sh verify-manual-ui-evidence | 0 | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.4.0/test-acceptance-current-final/runs/v390-test-acceptance-20261004133750-82231/feature-gates-07-manual-ui-evidence.log |
-| feature-gates | v390-evidence-test-gate-prep | PASS | ./server.sh verify-v390-evidence-test-gate-prep | 0 | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.4.0/test-acceptance-current-final/runs/v390-test-acceptance-20261004133750-82231/feature-gates-08-v390-evidence-test-gate-prep.log |
-| feature-gates | v390-onvif-credential-provider-status | PASS | ./server.sh verify-v390-onvif-credential-provider-status | 0 | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.4.0/test-acceptance-current-final/runs/v390-test-acceptance-20261004133750-82231/feature-gates-09-v390-onvif-credential-provider-status.log |
-| feature-gates | v390-onvif-live-import-persist-decision | PASS | ./server.sh verify-v390-onvif-live-import-persist-decision | 0 | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.4.0/test-acceptance-current-final/runs/v390-test-acceptance-20261004133750-82231/feature-gates-10-v390-onvif-live-import-persist-decision.log |
-| feature-gates | v390-vlm-rule-suggestion-draft-bridge | PASS | ./server.sh verify-v390-vlm-rule-suggestion-draft-bridge | 0 | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.4.0/test-acceptance-current-final/runs/v390-test-acceptance-20261004133750-82231/feature-gates-11-v390-vlm-rule-suggestion-draft-bridge.log |
-| feature-gates | v390-vlm-incident-rule-provenance | PASS | ./server.sh verify-v390-vlm-incident-rule-provenance | 0 | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.4.0/test-acceptance-current-final/runs/v390-test-acceptance-20261004133750-82231/feature-gates-12-v390-vlm-incident-rule-provenance.log |
-| feature-gates | v390-vlm-evaluation-promotion-guard | PASS | ./server.sh verify-v390-vlm-evaluation-promotion-guard | 0 | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.4.0/test-acceptance-current-final/runs/v390-test-acceptance-20261004133750-82231/feature-gates-13-v390-vlm-evaluation-promotion-guard.log |
-| feature-gates | v390-vlm-promotion-trust-boundary | PASS | ./server.sh verify-v390-vlm-promotion-trust-boundary | 0 | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.4.0/test-acceptance-current-final/runs/v390-test-acceptance-20261004133750-82231/feature-gates-14-v390-vlm-promotion-trust-boundary.log |
-| feature-gates | v390-backup-recovery-handoff-validation | PASS | ./server.sh verify-v390-backup-recovery-handoff-validation | 0 | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.4.0/test-acceptance-current-final/runs/v390-test-acceptance-20261004133750-82231/feature-gates-15-v390-backup-recovery-handoff-validation.log |
-| feature-gates | v390-action-execution-deferral-decision | PASS | ./server.sh verify-v390-action-execution-deferral-decision | 0 | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.4.0/test-acceptance-current-final/runs/v390-test-acceptance-20261004133750-82231/feature-gates-16-v390-action-execution-deferral-decision.log |
-| feature-gates | v390-deferred-product-owner-signoff | PASS | ./server.sh verify-v390-deferred-product-owner-signoff | 0 | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.4.0/test-acceptance-current-final/runs/v390-test-acceptance-20261004133750-82231/feature-gates-17-v390-deferred-product-owner-signoff.log |
-| feature-gates | v390-conditional-field-ai-decisions | PASS | ./server.sh verify-v390-conditional-field-ai-decisions | 0 | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.4.0/test-acceptance-current-final/runs/v390-test-acceptance-20261004133750-82231/feature-gates-18-v390-conditional-field-ai-decisions.log |
-| feature-gates | v390-reid-readiness-consistency | PASS | ./server.sh verify-v390-reid-readiness-consistency | 0 | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.4.0/test-acceptance-current-final/runs/v390-test-acceptance-20261004133750-82231/feature-gates-19-v390-reid-readiness-consistency.log |
-| feature-gates | v390-onvif-source-view-atomicity | PASS | ./server.sh verify-v390-onvif-source-view-atomicity | 0 | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.4.0/test-acceptance-current-final/runs/v390-test-acceptance-20261004133750-82231/feature-gates-20-v390-onvif-source-view-atomicity.log |
-| feature-gates | v390-structure-stabilization-handoff | PASS | ./server.sh verify-v390-structure-stabilization-handoff | 0 | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.4.0/test-acceptance-current-final/runs/v390-test-acceptance-20261004133750-82231/feature-gates-21-v390-structure-stabilization-handoff.log |
-| feature-gates | v390-structure-stabilization-readiness | PASS | ./server.sh verify-v390-structure-stabilization-readiness | 0 | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.4.0/test-acceptance-current-final/runs/v390-test-acceptance-20261004133750-82231/feature-gates-22-v390-structure-stabilization-readiness.log |
-| feature-gates | v390-external-field-smoke-no-device-closure | PASS | ./server.sh verify-v390-external-field-smoke-no-device-closure | 0 | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.4.0/test-acceptance-current-final/runs/v390-test-acceptance-20261004133750-82231/feature-gates-23-v390-external-field-smoke-no-device-closure.log |
-| feature-gates | v390-truthfulness-status-vocabulary | PASS | ./server.sh verify-v390-truthfulness-status-vocabulary | 0 | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.4.0/test-acceptance-current-final/runs/v390-test-acceptance-20261004133750-82231/feature-gates-24-v390-truthfulness-status-vocabulary.log |
-| feature-gates | v390-analysis-registry-durable-write | PASS | ./server.sh verify-v390-analysis-registry-durable-write | 0 | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.4.0/test-acceptance-current-final/runs/v390-test-acceptance-20261004133750-82231/feature-gates-25-v390-analysis-registry-durable-write.log |
-| feature-gates | v390-ui-policy-v4-producer-contract | PASS | ./server.sh verify-v390-ui-policy-v4-producer-contract | 0 | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.4.0/test-acceptance-current-final/runs/v390-test-acceptance-20261004133750-82231/feature-gates-26-v390-ui-policy-v4-producer-contract.log |
-| feature-gates | v390-ui-visual-evidence-contract | PASS | ./server.sh verify-v390-ui-visual-evidence-contract | 0 | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.4.0/test-acceptance-current-final/runs/v390-test-acceptance-20261004133750-82231/feature-gates-27-v390-ui-visual-evidence-contract.log |
-| feature-gates | release-metadata | PASS | ./server.sh verify-release-metadata | 0 | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.4.0/test-acceptance-current-final/runs/v390-test-acceptance-20261004133750-82231/feature-gates-28-release-metadata.log |
-| feature-gates | docs-links | PASS | ./server.sh verify-docs-links | 0 | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.4.0/test-acceptance-current-final/runs/v390-test-acceptance-20261004133750-82231/feature-gates-29-docs-links.log |
-| feature-gates | docs-ui-assets | PASS | ./server.sh verify-docs-ui-assets | 0 | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.4.0/test-acceptance-current-final/runs/v390-test-acceptance-20261004133750-82231/feature-gates-30-docs-ui-assets.log |
-| feature-gates | feature-implementation-evidence | PASS | ./server.sh verify-feature-implementation-evidence | 0 | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.4.0/test-acceptance-current-final/runs/v390-test-acceptance-20261004133750-82231/feature-gates-31-feature-implementation-evidence.log |
-| feature-gates | project-inventory | PASS | ./server.sh verify-project-inventory | 0 | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.4.0/test-acceptance-current-final/runs/v390-test-acceptance-20261004133750-82231/feature-gates-32-project-inventory.log |
-| feature-gates | feature-inventory-coverage | PASS | ./server.sh verify-feature-inventory-coverage | 0 | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.4.0/test-acceptance-current-final/runs/v390-test-acceptance-20261004133750-82231/feature-gates-33-feature-inventory-coverage.log |
-| feature-gates | release-evidence-index | PASS | ./server.sh verify-release-evidence-index | 0 | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.4.0/test-acceptance-current-final/runs/v390-test-acceptance-20261004133750-82231/feature-gates-34-release-evidence-index.log |
-| feature-gates | script-inventory | PASS | ./server.sh verify-script-inventory | 0 | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.4.0/test-acceptance-current-final/runs/v390-test-acceptance-20261004133750-82231/feature-gates-35-script-inventory.log |
-| feature-gates | git-diff-check | PASS | git diff --check | 0 | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.4.0/test-acceptance-current-final/runs/v390-test-acceptance-20261004133750-82231/feature-gates-36-git-diff-check.log |
-| server-longrun-30 | server-longrun-30 | PASS | ./server.sh verify-v390-server-longrun --duration-minutes 30 --output-dir /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.4.0/test-acceptance-current-final/runs/v390-test-acceptance-20261004133750-82231/server-longrun-30 | 0 | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.4.0/test-acceptance-current-final/runs/v390-test-acceptance-20261004133750-82231/server-longrun-30.log |
-| ui-environment-bootstrap | ui-environment-bootstrap | PASS | bootstrap acceptance-owned throwaway server/auth roles/Playwright storage-state | 0 | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.4.0/test-acceptance-current-final/runs/v390-test-acceptance-20261004133750-82231/ui-environment-bootstrap.log |
-| ui-exact-424 | ui-exact-424 | PASS | ./server.sh run-v390-ui-native-exact-cases --output-dir /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.4.0/test-acceptance-current-final/runs/v390-test-acceptance-20261004133750-82231/ui-exact-424 --http-base http://127.0.0.1:51446 --role-state-map /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v390_ui-GAp3H3/role-state-map.json --server-log /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v390_ui-GAp3H3/media-server.log --runtime-descriptor /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v390_ui-GAp3H3/runtime-descriptor.json --build-path build-gst-onnx/media_server | 0 | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.4.0/test-acceptance-current-final/runs/v390-test-acceptance-20261004133750-82231/ui-exact-424.log |
-| ui-server-cleanup | ui-server-cleanup | PASS | stop exact UI throwaway server and verify ports | 0 | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.4.0/test-acceptance-current-final/runs/v390-test-acceptance-20261004133750-82231/ui-server-cleanup.log |
-| ui-fulltest-qualification | ui-fulltest-qualification | PASS | ./server.sh verify-ui-fulltest-evidence-policy-v4 --summary /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.4.0/test-acceptance-current-final/runs/v390-test-acceptance-20261004133750-82231/ui-exact-424/policy-v4-summary.json --output-dir /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.4.0/test-acceptance-current-final/runs/v390-test-acceptance-20261004133750-82231/ui-fulltest-qualification --require-eligible | 0 | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.4.0/test-acceptance-current-final/runs/v390-test-acceptance-20261004133750-82231/ui-fulltest-qualification.log |
-| longrun-120-decision | longrun-120-decision | PASS | evaluate AGENTS 7.6.2 change scope | 0 | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.4.0/test-acceptance-current-final/runs/v390-test-acceptance-20261004133750-82231/longrun-120-decision.log |
-| server-longrun-120 | server-longrun-120 | PASS | ./server.sh verify-v390-server-longrun --duration-minutes 120 --output-dir /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.4.0/test-acceptance-current-final/runs/v390-test-acceptance-20261004133750-82231/server-longrun-120 | 0 | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.4.0/test-acceptance-current-final/runs/v390-test-acceptance-20261004133750-82231/server-longrun-120.log |
-| cleanup | cleanup | PASS | validate child cleanup and preserved evidence | 0 | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.4.0/test-acceptance-current-final/runs/v390-test-acceptance-20261004133750-82231/cleanup.log |
-| report | report | PASS | write acceptance summary/report | 0 | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.4.0/test-acceptance-current-final/runs/v390-test-acceptance-20261004133750-82231/report.log |
-| final-integrity | final-integrity | PASS | ./server.sh verify-v390-final-evidence-integrity --summary /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.4.0/test-acceptance-current-final/summary.json | 0 | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.4.0/test-acceptance-current-final/runs/v390-test-acceptance-20261004133750-82231/final-integrity.log |
+| preflight | preflight | PASS | validate actual bundle inputs | 0 | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.4.0/test-acceptance-current-final/runs/v390-test-acceptance-20261004220328-82798/preflight.log |
+| build | build | PASS | ./server.sh build | 0 | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.4.0/test-acceptance-current-final/runs/v390-test-acceptance-20261004220328-82798/build.log |
+| feature-gates | feature-gates | FAIL | 36 current feature commands | 1 |  |
+| feature-gates | code-comments | FAIL | ./server.sh verify-code-comments | 1 | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.4.0/test-acceptance-current-final/runs/v390-test-acceptance-20261004220328-82798/feature-gates-01-code-comments.log |
+| feature-gates | v390-ui-native-exact-cases-contract | not-run | ./server.sh verify-v390-ui-native-exact-cases-contract |  |  |
+| feature-gates | v390-stabilization-release-readiness | not-run | ./server.sh verify-v390-stabilization-release-readiness |  |  |
+| feature-gates | v390-entry-baseline | not-run | ./server.sh verify-v390-entry-baseline |  |  |
+| feature-gates | v390-feature-completion-inventory | not-run | ./server.sh verify-v390-feature-completion-inventory |  |  |
+| feature-gates | v390-user-review-gate | not-run | ./server.sh verify-v390-user-review-gate |  |  |
+| feature-gates | manual-ui-evidence | not-run | ./server.sh verify-manual-ui-evidence |  |  |
+| feature-gates | v390-evidence-test-gate-prep | not-run | ./server.sh verify-v390-evidence-test-gate-prep |  |  |
+| feature-gates | v390-onvif-credential-provider-status | not-run | ./server.sh verify-v390-onvif-credential-provider-status |  |  |
+| feature-gates | v390-onvif-live-import-persist-decision | not-run | ./server.sh verify-v390-onvif-live-import-persist-decision |  |  |
+| feature-gates | v390-vlm-rule-suggestion-draft-bridge | not-run | ./server.sh verify-v390-vlm-rule-suggestion-draft-bridge |  |  |
+| feature-gates | v390-vlm-incident-rule-provenance | not-run | ./server.sh verify-v390-vlm-incident-rule-provenance |  |  |
+| feature-gates | v390-vlm-evaluation-promotion-guard | not-run | ./server.sh verify-v390-vlm-evaluation-promotion-guard |  |  |
+| feature-gates | v390-vlm-promotion-trust-boundary | not-run | ./server.sh verify-v390-vlm-promotion-trust-boundary |  |  |
+| feature-gates | v390-backup-recovery-handoff-validation | not-run | ./server.sh verify-v390-backup-recovery-handoff-validation |  |  |
+| feature-gates | v390-action-execution-deferral-decision | not-run | ./server.sh verify-v390-action-execution-deferral-decision |  |  |
+| feature-gates | v390-deferred-product-owner-signoff | not-run | ./server.sh verify-v390-deferred-product-owner-signoff |  |  |
+| feature-gates | v390-conditional-field-ai-decisions | not-run | ./server.sh verify-v390-conditional-field-ai-decisions |  |  |
+| feature-gates | v390-reid-readiness-consistency | not-run | ./server.sh verify-v390-reid-readiness-consistency |  |  |
+| feature-gates | v390-onvif-source-view-atomicity | not-run | ./server.sh verify-v390-onvif-source-view-atomicity |  |  |
+| feature-gates | v390-structure-stabilization-handoff | not-run | ./server.sh verify-v390-structure-stabilization-handoff |  |  |
+| feature-gates | v390-structure-stabilization-readiness | not-run | ./server.sh verify-v390-structure-stabilization-readiness |  |  |
+| feature-gates | v390-external-field-smoke-no-device-closure | not-run | ./server.sh verify-v390-external-field-smoke-no-device-closure |  |  |
+| feature-gates | v390-truthfulness-status-vocabulary | not-run | ./server.sh verify-v390-truthfulness-status-vocabulary |  |  |
+| feature-gates | v390-analysis-registry-durable-write | not-run | ./server.sh verify-v390-analysis-registry-durable-write |  |  |
+| feature-gates | v390-ui-policy-v4-producer-contract | not-run | ./server.sh verify-v390-ui-policy-v4-producer-contract |  |  |
+| feature-gates | v390-ui-visual-evidence-contract | not-run | ./server.sh verify-v390-ui-visual-evidence-contract |  |  |
+| feature-gates | release-metadata | not-run | ./server.sh verify-release-metadata |  |  |
+| feature-gates | docs-links | not-run | ./server.sh verify-docs-links |  |  |
+| feature-gates | docs-ui-assets | not-run | ./server.sh verify-docs-ui-assets |  |  |
+| feature-gates | feature-implementation-evidence | not-run | ./server.sh verify-feature-implementation-evidence |  |  |
+| feature-gates | project-inventory | not-run | ./server.sh verify-project-inventory |  |  |
+| feature-gates | feature-inventory-coverage | not-run | ./server.sh verify-feature-inventory-coverage |  |  |
+| feature-gates | release-evidence-index | not-run | ./server.sh verify-release-evidence-index |  |  |
+| feature-gates | script-inventory | not-run | ./server.sh verify-script-inventory |  |  |
+| feature-gates | git-diff-check | not-run | git diff --check |  |  |
+| ui-server-cleanup | ui-server-cleanup | PASS | stop exact UI throwaway server and verify ports | 0 | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.4.0/test-acceptance-current-final/runs/v390-test-acceptance-20261004220328-82798/ui-server-cleanup.log |
+| cleanup | cleanup | PASS | validate child cleanup and preserved evidence | 0 | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.4.0/test-acceptance-current-final/runs/v390-test-acceptance-20261004220328-82798/cleanup.log |
+| report | report | PASS | write acceptance summary/report | 0 | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.4.0/test-acceptance-current-final/runs/v390-test-acceptance-20261004220328-82798/report.log |
+| final-integrity | final-integrity | FAIL | ./server.sh verify-v390-final-evidence-integrity --summary /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.4.0/test-acceptance-current-final/summary.json | 1 | /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.4.0/test-acceptance-current-final/runs/v390-test-acceptance-20261004220328-82798/final-integrity.log |

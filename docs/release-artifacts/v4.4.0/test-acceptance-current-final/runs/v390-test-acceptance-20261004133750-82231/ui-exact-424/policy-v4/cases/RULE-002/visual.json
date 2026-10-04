@@ -1,9 +1,0 @@
-{
-  "schema": "media-server.ui-raw-visual-capture.v1",
-  "caseId": "RULE-002",
-  "correlationId": "RULE-002:assert-visible-read-model:completion",
-  "targetSelector": "#opsEventRuleRows > tr:first-child",
-  "screenshotSha256": "290222c6c10bc3d3e95ce244bedde35c107ecf5a3e213f0ac16f5a6e01557d04",
-  "measurementSha256": "0d29a687eedced65a85bcd6904c8f37de65f7b8b5bec80ebfa0a9829601ba58b",
-  "qualificationStatus": "unqualified-raw-capture"
-}

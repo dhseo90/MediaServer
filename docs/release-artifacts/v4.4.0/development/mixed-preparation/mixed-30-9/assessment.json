@@ -28,5 +28,17 @@
     "원래 혼합30분 RSS 증가64.23MiB의 원인을 모두 귀속하지 못했다.",
     "고정 검색·저장 이력·디코딩을 분리한 단기 진단은 120분 또는 전체 누수 부재 증거가 아니다.",
     "완료·릴리즈 PASS가 아니며 최종 canonical과 cleanup, 메인의 자원 판정이 남아 있다."
-  ]
+  ],
+  "scopeReassessment": {
+    "assessedAt": "2026-10-04T22:14:51.482315+00:00",
+    "trigger": "user: 전체 테스트를 다시한다고?",
+    "priorClaimCorrection": "최종 canonical 필요를 제품 영향상 전체424/UI·공통30·120 재실행 필요처럼 표현한 것은 과도했다. 메모리 검토는 실행 전 새 결함이 없다는 판정이지 전체 재실행의 근거가 아니다.",
+    "independentReviewer": "/root/release_independent_review (approved gpt-6-astra/xhigh)",
+    "productDiffSha256": "6d1913966e371dc3d8ff4a4eb4d52ecd8fa4e747d1d9e4f8f360333095aa0ef0",
+    "baselineSource": "789583126c71a4aace24c9ae2cac1d67f7beb32d",
+    "baselineEvidenceGitCommit": "a5046c7f1f8a91075229bac48e0315c1a85af13f",
+    "decision": "partial invalidation of changed paths; unchanged baseline424 UI and VA/Event POST/redaction/runtime-idle common30/120 evidence retained with original source; completed focused/mixed30/recording/search/UI addenda supply affected paths",
+    "remaining": "targeted120 on actual SigLIP worker/decoder/proof reuse/recording-retention/evidence/restart/resource paths; code-comments first failure correction; release gates/CI and record closeout",
+    "mechanicalBoundary": "Current canonical exactHEAD/build/final-integrity remains a separate condition; no canonical current-run PASS or modified source provenance is claimed."
+  }
 }

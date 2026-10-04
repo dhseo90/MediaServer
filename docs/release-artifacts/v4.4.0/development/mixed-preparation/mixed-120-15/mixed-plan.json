@@ -1,0 +1,70 @@
+{
+  "state": "stopped-before-execution",
+  "featureIds": [
+    "V440-F01",
+    "V440-F02",
+    "V440-M01",
+    "V440-S01",
+    "V440-A01",
+    "V440-R01",
+    "V440-PR77-02",
+    "V440-PR77-06"
+  ],
+  "base": "existing current recording observer; product binary unchanged",
+  "execution": "approved120min changed-path observation; previous full UI/common30/common120 retained only for unchanged paths; not a canonical suite PASS",
+  "fixture": "2 owned I420 160x90/30fps ball sources,64MiB production write reservation +256KiB retained-media headroom (total67,371,008bytes); Auth off isolated loopback; actual local SigLIP2 scan/sample 1sec",
+  "expectations": [
+    "2 structured + 2 actual SigLIP2 searches concurrently every15s; explicit busy/index-not-ready/source-changed503 counted, each client >=1 success, real visual results and visual evidence creation >=1; successful p95<=2s/max<=5s",
+    "2 simultaneous evidence creates,201 or explicit busy503; at least1created per cycle",
+    "1..8 actualPNG in complete package; partial under retention race must name missing/deleted/unsupported reference, counted separately; at least1 complete",
+    "both initial visual and structured manifests/PNG SHA256 survive restart; observe actual deletion of selected oldest live visual original from current journal order within30sec and retained bytes afterward",
+    "both recording channels finalize/delete and remain active; inherited source off/on and restart checks",
+    "native process RSS<=4GiB; inherited stricter448MiB variable fixture cap, complete cleanup"
+  ],
+  "durationMs": 7200000,
+  "totalBudgetMs": 7380000,
+  "resourceTrend": "measured RSS/FD/thread/history/progress; main decision required; no automatic leak PASS or newly imposed zero-slope criterion",
+  "source": "/Users/dhseo/Workspace/mediaServer/build-gst-onnx/media_server",
+  "preparation": "same completed30 fixture preparation: source POST asynchronous; both channels active/unblocked within existing15sec readiness, then continuous120min sampling; no repeated short or30min run",
+  "failureLink": "mixed-short-1/2: actual storageBlocked before writes; first async-startup hypothesis disproved. Existing production reservation64MiB exceeded mistaken64KiB fixture quota. Correct fixture quota only, no product criteria changed. mixed-short-4 actual evidence-invalid-manifest caused by valid slash source track; minimal product fix and native RED/GREEN. Visual index documents survived only~2sec at64KiB;256KiB gives predicted~14sec using observed34KiB/2sec per channel, retaining actual deletion within30sec. No time/search/model limits changed. mixed-short-5 both search/preservation succeeded; selected structured source was still inside retention window. Select oldest observed live visual hit by current journal order and verify both preserved packages;15sec query cadence anchored to observation start instead of first query completion.",
+  "plannedAt": "2026-10-04T22:11:56.482950+00:00",
+  "sourceBaselineCommit": "a5046c7f1f8a91075229bac48e0315c1a85af13f",
+  "command": [
+    "bash",
+    "docs/release-artifacts/v4.4.0/development/mixed-preparation/mixed-120-15/mixed-120.sh",
+    "--duration-minutes",
+    "120"
+  ],
+  "retained30": "../mixed-30-9/execution.json",
+  "scopeDecision": "main and independent review: actual new cache/worker/decoder paths, not repeating unchanged canonical VA/Event POST loops",
+  "limitsUnchanged": [
+    "HTTP readiness15s",
+    "successful search p95<=2s/max<=5s",
+    "RSS<=4GiB",
+    "variable fixture root<=448MiB",
+    "observer<=100000 logical IDs/32MiB",
+    "private server log<=4MiB",
+    "sample gaps<=15s",
+    "real-model focused210frame readiness45s and200result5s evidence retained separately"
+  ],
+  "timeChangeReason": "completed30min passes are retained; this is the separately approved120min lifetime/resource observation, not a timeout extension to turn a failed run into PASS",
+  "resourceDecision": "keep raw resourceTrendPass:false/reviewRequired:true; main assesses trend with actual history/FD/thread/progress/cleanup; no retrospective slope0 threshold",
+  "driverHashes": {
+    "mixed-120.mjs": "ea7e2ea9709de9e5cf35269941aa58cd2f14e1becd6481d1b6c6ab20267ad540",
+    "mixed-120.sh": "427b5f369007d40868755e3c6eeaac9783af3cbc5c2060174e27539076155a63"
+  },
+  "retained30DriverHashes": {
+    "mixed-30.mjs": "4ab41d2424e056300ab893261706b55c51998be6724f22211e3288cd54c51edd",
+    "mixed-30.sh": "6f1faed949cc2f2d0e8bf8a2b48f96b3719eed80a64435e35242d439ad7c4669"
+  },
+  "productBinarySha256": "4eaf41faebabb057958b3d9fcf55a2ceafb08b6eabd6baa024e7039c9b70314d",
+  "executionAuthorization": {
+    "status": "stopped-by-user",
+    "instruction": "테스트 전면 중단. 정확히 어떤 테스트 진행할지 산정 후 보고",
+    "followup": "미커밋 정리·커밋·푸시 및 테스트/잔여 이슈/예상시간 재산정만 승인. 테스트 재개 승인이 아니다.",
+    "recordedAt": "2026-10-04T22:37:27.541618+00:00",
+    "executionStarted": false,
+    "requiresNewExplicitResume": true
+  },
+  "preExecutionBlocker": "총123분을 컴파일·마지막 snapshot·cleanup까지 강제하는 외부 실행 관리가 아직 준비되지 않았다. 제품 부하를 실행한 적 없다."
+}

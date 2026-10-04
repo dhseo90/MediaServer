@@ -1,0 +1,32 @@
+[fail] 상단 용도 주석 누락
+  - docs/release-artifacts/v4.4.0/development/actual-ui-disabled-1/actual-ui.mjs
+  - docs/release-artifacts/v4.4.0/development/actual-ui-normal-1/actual-ui.mjs
+  - docs/release-artifacts/v4.4.0/development/actual-ui-normal-2/actual-ui.mjs
+  - docs/release-artifacts/v4.4.0/development/actual-ui-rich-1/actual-ui.mjs
+  - docs/release-artifacts/v4.4.0/development/actual-ui-rich-2/actual-ui.mjs
+  - docs/release-artifacts/v4.4.0/development/actual-ui-rich-3/actual-ui.mjs
+  - docs/release-artifacts/v4.4.0/development/mixed-preparation/memory-decode-14/diagnostic.cpp
+  - docs/release-artifacts/v4.4.0/development/mixed-preparation/memory-history-11/diagnostic.cpp
+  - docs/release-artifacts/v4.4.0/development/mixed-preparation/memory-history-12/diagnostic.cpp
+  - docs/release-artifacts/v4.4.0/development/mixed-preparation/memory-history-13/diagnostic.cpp
+  - docs/release-artifacts/v4.4.0/development/mixed-preparation/mixed-diagnostic.cpp
+  - docs/release-artifacts/v4.4.0/development/mixed-preparation/mixed-profile-8/profile.cpp
+  - docs/release-artifacts/v4.4.0/development/mixed-preparation/mixed-profile-9/profile.cpp
+  - docs/release-artifacts/v4.4.0/development/pr77-cache-boundaries-wrapper-12.py
+  - docs/release-artifacts/v4.4.0/development/pr77-cache-boundaries-wrapper-13.py
+  - scripts/internal/verify_visual_request_media_cache.py
+[fail] 한글 설명이 없는 주석
+  - docs/release-artifacts/v4.4.0/development/actual-ui-disabled-1/actual-ui.mjs:16:// Absence, not the value, selects the original short seed in the native preparation.
+  - docs/release-artifacts/v4.4.0/development/actual-ui-normal-1/actual-ui.mjs:16:// Absence, not the value, selects the original short seed in the native preparation.
+  - docs/release-artifacts/v4.4.0/development/actual-ui-normal-2/actual-ui.mjs:16:// Absence, not the value, selects the original short seed in the native preparation.
+  - docs/release-artifacts/v4.4.0/development/actual-ui-rich-1/actual-ui.mjs:16:// Absence, not the value, selects the original short seed in the native preparation.
+  - docs/release-artifacts/v4.4.0/development/actual-ui-rich-2/actual-ui.mjs:16:// Absence, not the value, selects the original short seed in the native preparation.
+  - docs/release-artifacts/v4.4.0/development/actual-ui-rich-3/actual-ui.mjs:16:// Absence, not the value, selects the original short seed in the native preparation.
+  - scripts/internal/recording_search_playback_smoke.cpp:13:// Full timeline is the unchanged independent oracle, including deleted/unplaced rows.
+  - scripts/internal/recording_search_playback_smoke.cpp:118:        // Production B ownership, retired receipts and cold archives, not the legacy A fixture.
+  - scripts/internal/recording_search_playback_smoke.cpp:159:                // Bound/deleted rows may use the existing compressed physical envelope.
+
+== Code comment policy summary ==
+- files: 1433
+- missing headers: 16
+- english-only comments: 9

@@ -1,5 +1,7 @@
 # v4.4.0 개발 검증
 
+> 최신 상태는 아래 「중단 후 테스트·릴리즈 잔여 재산정」을 따른다. 본문의 이전 미커밋·승인·실행 예정 문구는 당시 기록이며 현재 실행 허가가 아니다.
+
 v4.4.0 로드맵의 개발 구현과 아래 단기 검증을 마쳤다. 공개 릴리즈 완료 기록이 아니다.
 작업 브랜치는 `v4.4.0`, 기준 HEAD는 `df60a8dbec737d50283d9d6c66928643dc1c9666`이며
 제품·문서·검사 변경은 미커밋 상태다. macOS arm64, 기존 `build-gst-onnx`의
@@ -306,7 +308,7 @@ fresh B 재개방(live1/deleted200)을 확인했고 owner 파괴 후 heap은 최
 보완은 `716edc9132a3679f128c44f21a99621ce80dad56`의 검사 도구4파일뿐이며 제품 코드는 바뀌지 않았다.
 [도구 자체검사](pr77-ui-runner-unit-2.log)는10항목 PASS이고 각 실행 서버/브라우저/포트와 복사 완료 임시 output은 정리됐다.
 이 UI addendum은 canonical424와 별개다. 기존 canonical의7895831 소스 결과는 수정 후 소스의 최종 PASS가 아니며,
-최종 canonical·required CI·공개는 아직 남아 있다. 사용자는 현재 development와 test-acceptance-current-final 자료 및
+영향 경로의120분·정적 마감 검사·required CI·공개는 아직 남아 있다. 사용자는 현재 development와 test-acceptance-current-final 자료 및
 같은 두 경로의 최종 재검증 자료를 누적1GiB 이내로 Git 보존하고, 바이트 대조 후 별도 정리하는 범위를 승인했다.
 
 UI 캡처 도구 수정 뒤 [소스·승인 연결 재검사](pr77-source-audit-3.json)는51항목/986 feature 연결을 통과했다.
@@ -316,3 +318,105 @@ UI 캡처 도구 수정 뒤 [소스·승인 연결 재검사](pr77-source-audit-
 [격리 worktree 정리](pr77-worktree-evidence-copy.json)는 원본과 동일한 중복 기록280개와 빌드 산출물366개를 제거했다.
 제품 실행 파일은 원본과 동일했고 소스 변경34개도 통합본과 같았다. 과거 정리 기록1개는 변경 전 바이트를 유지했다.
 앱의 보관 도구는 고정된 작업/작업공간 보호 때문에 checkout 보관을 거부했다. worktree는 그대로 남아 있으며 강제 삭제하지 않았다.
+
+## 최종 검증 범위 재판정
+
+사용자의 전체 재실행 질문에 따라 실제 `7895831..505b2dac4` 제품 diff와 소비자를 메인·독립 검토가 다시 대조했다.
+전체 canonical을 반드시 새로 실행해야 한다는 앞선 설명은 과도했다. [범위 판정](mixed-preparation/mixed-30-9/assessment.json)의
+근거대로 미변경 Auth/VA/Event POST/SourceRegistry/RTSP/WebRTC와 baseline424 UI·공통30/120 증거를 유지한다.
+기존 canonical 원출력은 `a5046c7f1f8a91075229bac48e0315c1a85af13f`의
+`docs/release-artifacts/v4.4.0/test-acceptance-current-final`에서 재조회하며 실행 source7895831을 바꾸지 않는다.
+변경 영역은 완료된 focused·mixed30-9·recordingUI3·searchUI3/4·actual-ui addendum을 기능별로 연결한다.
+
+`a5046c7f1`에서 시작한 전체 실행은2026-10-04T22:03:31Z에10.106초/exit1로 종료했다.
+현재 latest run `v390-test-acceptance-20261004220328-82798`의 code-comments 최초FAIL과 후속30/UI/120 not-run,
+cleanup PASS를 그대로 남긴다. 정적 실패는 보존 코드의 용도 주석15개와 영어 주석6개,
+현행 검사 도구2파일의 주석이었다. 원문은 기존 해시·경로·행 예외에 결속했고 현행 주석만 보완했다.
+[주석 재검](pr77-code-comments-retest-1.log)은1433파일 누락0/영어 주석0이다. 제품 동작 변경이나 checker 완화는 없다.
+
+남은 장시간 대상은 [120분 실행 전 계획](mixed-preparation/mixed-120-15/mixed-plan.json)의 실제 변경 경로다.
+관측120분/총123분이며 기존 검색·RSS·저장소·sample gap·readiness 상한을 유지한다. 준비/구문 검사는 실행 PASS가 아니다.
+기존 canonical의 동일HEAD/build final-integrity 조건을 이월 판단으로 통과했다고 주장하지 않으며,
+실제 영향 검증 판정과 해당 실행기의 기계 판정은 구분한다.
+
+
+## 중단 후 테스트·릴리즈 잔여 재산정
+
+사용자의 테스트 전면 중단 지시 후 실행 중 제품 테스트·검증 서버가 없음을 프로세스 목록으로 확인했다.
+`mixed-120-15`는 execution.json/run.log가 없고 미시작이다. 후속 지시는 미커밋 정리·커밋·푸시와
+필요 테스트·브랜치 삭제까지의 잔여 작업·예상시간 산정이다. 제품 테스트, 검증 명령, CI dispatch,
+PR 생성·병합·태그·Release·브랜치 삭제의 실행 재개로 해석하지 않는다.
+이번 커밋 준비에서 수행하는 diff·Git 원문/hash·민감정보 대조는 공개 전 파일 검토이며 제품 테스트가 아니다.
+
+현재 제품 수정은 `5f124c9be`와 `505b2dac4`, UI 검사 보완은 `716edc913`에 있다.
+그 이후 `src`·`include`·CMake에는 변경이 없다. PR #77의 GitHub 리뷰 6건을 다시 대조했으며
+V440-PR77-01~06과 각각 대응한다. PR #77 자체는 v4.3.0에서 이미 병합됐고, 이번 수정의 공개는 아직 아니다.
+미커밋은 주석/보존 원문 예외, 테스트 정의의 설명·inventory hash 연결, 실패/재검사 기록과 미실행 계획이다.
+`pr77-source-audit-4`의60초 초과/exit124는 그대로 보존한다. 986개 기능 행·승인 내용을 바꾸지 않고
+설명 문서 hash만 맞춘 뒤 실행한 `pr77-manifest-retest-5`는51.848초/exit0이었다.
+
+### 테스트 판정
+
+| 카테고리 | 판정과 필요성 | 정확한 범위/근거 | 실행 상태·추가 예상시간 |
+| --- | --- | --- | --- |
+| 빌드·v4.4.0 native/HTTP/Auth·PR77 단기·오류·경계 | 기존 증거 유지 | 현재 제품과 기존 증거의 source/diff 대조. 채널 제한, 이전 색인 유지, CMake 필수 의존성, snapshot 실패 전파, proof/cache/decoder/200결과45초/5초 기준, 공개 timeline·재생 회귀 | 완료 자료 유지, 추가0분. 제품 수정 시 영향 항목만 다시 산정 |
+| 변경 경로30분 | 기존 증거 유지 | mixed-30-9의 실제1801.522초 관측, 5798 assertion, 녹화/검색/보존/삭제/재시작 | 실행 총1844.808초, 추가0분 |
+| 실제 UI | 기존 증거의 미변경 부분 유지+수정 후 보완 | baseline424의 미변경 기능, recordingUI3 31조작, searchUI3/4 38조작, actual-ui 정상/partial/disabled 보완. 캡처 누락과 보완의 연결 유지 | 추가0분. 기존 source의 PASS를 새 실행으로 바꾸지 않음 |
+| 공통30분·공통120분 | 추가 미진행 | 미변경 VA/Event POST/redaction/runtime 경계의 원래7895831 결과 유지. 새 색인/캐시의 검증 대용이 아님 | 추가0분 |
+| 변경 경로120분 | 필요 판정 유지, 실행은 사용자 중단 | V440-PR77-02/06·S01/R01: 실제 worker/decoder/cache/보호 수명 변경과30분 RSS+64.23MiB 신호. 누수 확정은 아님 | 미실행. 재개 시 실제120분, 준비·정리 포함123분 한도. 외부 총예산 강제 준비 미완료 |
+| 최종 정합성10개 | 기록·문서 정리 후1회 필요 | 아래 정확한10명령. 이전 제품 기능검사 전체36개를 자동 재실행하지 않음 | 지금 미실행. 과거 동일 항목196.246초, 예상4~6분 |
+| 원격 required CI | 최종PR와 병합main 각 필요 | main ruleset의 static-gates·guardrails. PR 최종 SHA와 병합 후 main SHA의 실제 결과/annotation | 지금 미실행. 각 시점5~10분, 두 시점 총10~20분 예상; 큐 지연 별도 |
+| 전체 test_release.sh·전체424/공통30/공통120 재실행 | 이번 추가 계획에서 미진행 | release-policy의 diff/source/환경/경계별 증거 유지. 원격 required gate에도 canonical 단일 실행은 없음 | 과거 전체1회는 약3시간24분. 이 시간을 다시 더하지 않음 |
+| 외부 장비/서비스·다른제품범위 | 미진행 | 이번 변경·승인 범위 밖 | 0분 |
+
+120분의 부하는 2채널 I420 160×90/30fps·2초 segment·1초 실제 SigLIP2 scan/sample,
+15초마다 structured2+visual2 검색과 양쪽 증거 보존이다. 이 혼합 부하의limit20과 별도 focused의
+200개 결과/최초색인45초 기준을 혼동하지 않는다. 원본 순환삭제·원장 회전·현재권위 재획득·보존 PNG/manifest
+동일성·off/on·재시작을 확인한다. 성공 검색 p95≤2초/max≤5초, RSS≤4GiB, variable root≤448MiB,
+observer100000 ID/32MiB, private log≤4MiB, sample gap≤15초와 기존15초 readiness를 유지한다.
+원장 회전 횟수, visual503의 시간 분포, RSS/FD/thread/진행을 직접 판정한다. 수치 한도 이내만으로 누수 없음이라
+하지 않으며 새로운 기울기0 기준도 만들지 않는다. Auth·snapshot 오류 주입·세밀한 hold 경계는 기존 focused 증거다.
+
+마감 정합성10개는 아래9개 `./server.sh` 명령과 `git diff --check`다.
+
+- `verify-code-comments`, `verify-release-metadata`, `verify-docs-links`, `verify-docs-ui-assets`
+- `verify-feature-implementation-evidence`, `verify-project-inventory`, `verify-feature-inventory-coverage`
+- `verify-release-evidence-index`, `verify-script-inventory`
+- `git diff --check`
+
+과거 단일 canonical은3시간24분12초 범위이며, 내장36개 gate는413.357초였다.
+선택한 정합성10개 합계196.246초는 해당 보존 summary의 각 durationMs 합이다.
+최근5개 성공 Preflight는3분54초~4분43초, guardrails는19~24초이며 두 job은 같은 시점에 병렬이다.
+현재 branch/PR에 대한 CI 성공이 아니라 예상시간의 과거 근거다. 중복 parent/child·병렬 실행을 더해
+이 브랜치 전체의 정확한 누적 테스트 시간이라고 주장하지 않는다.
+
+검사 실행만의 예상은 120~123분+정합성4~6분+CI 두 시점10~20분으로 **약2시간14분~2시간29분**이다.
+120분을 제외하는 별도 결정이면 정합성+CI만14~26분이지만, 빠진 수명/자원 증거를 PASS나 일반 릴리즈 완료로
+바꿀 수 없다. 준비10~20분, 결과 검토·보존/문서 정리20~40분, Git/서명/공개/종료10~20분은 테스트 시간이
+아닌 별도 작업 예상이다. 실패 수정·외부 검토 대기·CI 큐·보호 worktree 해제 대기는 이 예상에 포함하지 않는다.
+
+기존 증거를 유지할 수 있다는 정책 판단과 단일 canonical 실행의 기계적 PASS를 구분한다.
+`verify_v390_final_evidence_integrity`는 동일HEAD/build/명령집합의 단일 bundle을 요구하므로
+이월 자료를 넣어 현재 실행 PASS로 만들지 않는다. 최근10초 canonical의code-comments FAIL과 후속not-run은
+그대로 보존하고 해당 실패의 실제 주석 재검만 연결한다. 이번 cut의 릴리즈 판단은 현행 정책의 기능별 영향
+증거 유지/보완을 따르며 검사 삭제·source 변경·과거 결과 재라벨을 하지 않는다. 정확 UI 기능 연결과120분
+결과/cleanup 및 최종 정합성·CI 확인 전에는 출시 가능으로 판정하지 않는다.
+
+### 브랜치 삭제까지의 잔여 순서
+
+| 순서·우선순위 | 잔여 작업 | 완료 조건·의존성 | 이번 지시의 실행 범위 |
+| --- | --- | --- | --- |
+| 1 P0 | 미커밋 정리·실패/미실행 보존·브랜치 push | 정확한 파일 stage, 기존4624개 삭제 원문이a5046c7에 존재함을 대조, 새 기록 바이트 readback, origin/v4.4.0=로컬HEAD, 작업 트리 정리 | 승인됨. 테스트 PASS/릴리즈 준비 완료 커밋으로 쓰지 않음 |
+| 2 P0 | 테스트 재개 범위·시간 결정 | 이 재산정 보고 검토와 명시적 재개. 120분 전체예산 관리 준비 후 실행; 최초 실패면 후속 보류·원인 보고 | 산정만 승인, 실행 중단 유지 |
+| 3 P0 | 필요한120분 및 결과 판정 | 위 정상/오류/경계·RSS 추세·프로세스/포트/임시root 정리 확인 | 재개 지시 필요 |
+| 4 P0 | 기능별 기존 증거 적용과 최종 검토 | baseline7895831과수정505b2/5f124c/도구716edc의 기능 연결·실패→재검·미실행을 누락 없이 대조. PR77 6건 해결 근거 연결 | 현재 정책/원출력 읽기 검토만 수행 |
+| 5 P1 | 최종 기록 보존·공개 트리 정리·문서 | 승인된2경로 누적1GiB 한도, Git 원문/hash 확인 후 별도 삭제 커밋. 현행 정의/fixture 유지, 작은 이력 색인, 임시 주석 예외 제거, 릴리즈 노트 실제 상태 갱신 | 이번에는 기존 미커밋 보존까지만. 최종 삭제는 검증 완료 뒤 |
+| 6 P0 | 마감 정합성·PR·required CI | 정확한 최종 source에서10검사, PR의static-gates/guardrails 성공과annotation 확인. build/Auth/media의 기존 적용 근거 유지 | PR 생성 시 CI가 시작되므로 현재 생성하지 않음 |
+| 7 P1 | main 병합·병합후CI·서명tag·Release | 최신main·VERSION/CMake·원격·깨끗한 트리 확인, main CI, signed annotated v4.4.0 로컬/GitHub Verified/hash 확인, source-only Latest/URL 확인 | 지금 실행하지 않음 |
+| 8 P2 | 로컬/원격v4.4.0 브랜치 삭제 | 위 모든 단계 완료, main에 포함·증거 원격 보존·복구 ref 확인, main으로 전환, 로컬/원격 branch 부재 확인 | 삭제를 포함한 산정만 요청됨. 실제 삭제는 별도 승인 필요 |
+| 9 P2 | 격리worktree 정리 | 통합 소스·고유 기록 보존 확인 후 관리 도구로 보관. 기존 시도는 pinned task/workspace 보호로 거부됐으며 강제 삭제하지 않음 | 보호 해제 판단이 남음. 브랜치 삭제와 별개 |
+
+원격 읽기 확인 시 main은df60a8d, v4.4.0 branch/PR/tag는 없고 Latest는v4.3.0이었다.
+main required checks는static-gates·guardrails이며 PR #77은이미merged이다.
+따라서 이번 승인된 신규브랜치 push 자체로 CI는 시작되지 않는 현재 workflow 조건이다.
+브랜치 삭제는 출시와 보존 완료 뒤의 마지막 작업이며 지금 삭제하지 않는다.
