@@ -63,6 +63,9 @@ int main(int argc,char** argv){try{
     const auto root=std::filesystem::canonical(argv[1]);std::string error;
     recording::RecordingRuntimeStorage runtime(root/"recordings");Check(runtime.Open(&error),"V440 source storage open: "+error);
     auto input=Encode(30,false,false,160,90,30,30);Shift(input,7000000000ULL);
+    const std::string source_track=std::string(64,'a')+"/001";
+    input.descriptor.tracks.front().track_id=source_track;
+    for(auto& packet:input.packets)packet.track_id=source_track;
     recording::GStreamerSegmentWriter writer(runtime.WriterOptions(1000));
     Check(writer.Start("1","unused",input.descriptor,[](auto,auto,auto*){return false;},&error),"writer start");
     for(const auto& packet:input.packets)writer.Push(packet,0);writer.Stop();
@@ -89,6 +92,7 @@ int main(int argc,char** argv){try{
     for(std::size_t i=0;i<8;++i){const auto& frame=manifest.frames[i];
         Check(frame.pts_ns==expected[i*29/7],"V440-F02 evenly selected exact sample "+std::to_string(i));
         Check(frame.locator.has_value(),"known UTC has FrameLocatorV1");
+        Check(frame.track_id==source_track&&binding.track_id==source_track,"V440-C01 real source track identity is preserved");
         recording::EvidenceFrameV1 repeat;
         Check(extractor.Extract(hit.channel_id,*frame.locator,segment.checksum_sha256,&repeat,&error,Deadline()),"FrameLocatorV1 re-extract: "+error);
         Check(repeat.rgb_sha256==frame.rgb_sha256&&repeat.png_sha256==frame.png_sha256,"same frame and PNG digests");
@@ -121,6 +125,21 @@ int main(int argc,char** argv){try{
     for(const auto& bad:std::vector<std::string>{"{\"schema\":0,"+json.substr(1),"{\"schema\":\"unknown\"}",std::string(1024*1024+1,' ')}){
         parsed=manifest;Check(!recording::ParseEvidencePackage(bad,&parsed,&error)&&recording::SerializeEvidencePackage(parsed)==json,"invalid JSON/schema/size leaves output unchanged");
     }
+    for(const auto& track:std::vector<std::string>{source_track,std::string(1024,'a'),"track-1"}){
+        auto accepted=manifest;accepted.frames.front().track_id=track;
+        recording::EvidencePackageV1 decoded;
+        Check(recording::ValidateEvidencePackage(accepted,&error)&&
+            recording::ParseEvidencePackage(recording::SerializeEvidencePackage(accepted),&decoded,&error)&&
+            decoded.frames.front().track_id==track,"V440-C01 source track contract accepted without normalization");
+    }
+    std::vector<std::string> invalid_tracks{"",std::string(1025,'a'),std::string(1,char(127))};
+    for(int ch=0;ch<32;++ch)invalid_tracks.push_back(std::string("track/")+char(ch));
+    for(const auto& track:invalid_tracks){
+        auto rejected=manifest;rejected.frames.front().track_id=track;parsed=manifest;
+        Check(!recording::ValidateEvidencePackage(rejected,&error)&&
+            !recording::ParseEvidencePackage(recording::SerializeEvidencePackage(rejected),&parsed,&error)&&
+            recording::SerializeEvidencePackage(parsed)==json,"V440-C01 invalid source track rejected and output unchanged");
+    }
     auto file=store.Open(package_id,&error);Check(bool(file),"verified read after publish: "+error);
     const auto first=Read(file->fd(),file->AssetOffset(0),manifest.assets[0].size_bytes);
     Check(recording::EvidenceSha256(first.data(),first.size())==manifest.assets[0].sha256,"stored asset hash");
@@ -149,7 +168,7 @@ int main(int argc,char** argv){try{
     reference.owner_id="evidence-event";reference.channel_id=reference.source_id="1";
     reference.analysis_namespace="evidence-test";reference.analysis_track_id="track-1";reference.association_quality="timestamp-match";
     const auto& original=*input.packets.front().observation;
-    reference.original=recording::RecordingConsumerOriginalV1{original.source_generation,original.generation_order,original.ordinal,"video-0",*original.pts_ns};
+    reference.original=recording::RecordingConsumerOriginalV1{original.source_generation,original.generation_order,original.ordinal,source_track,*original.pts_ns};
     reference.request=recording::RecordingConsumerRequestV1{"media-pts-ms",7000,7500,0,0};reference.created_at_ms=1;
     analysis::DecodedIntervalCollector collector;
     for(const auto& packet:input.packets){analysis::DecodedIntervalEvidence interval;

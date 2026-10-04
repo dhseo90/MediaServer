@@ -47,6 +47,11 @@ bool Small(const std::string& v, bool empty = true) {
     return (empty || !v.empty()) && v.size() <= 4096 && v.find('\0') == std::string::npos;
 }
 bool Id(const std::string& v) { return ValidateRecordingReferenceId(v, nullptr); }
+// 원본 stream의 opaque track 이름이다. 파일 참조 ID가 아니며 source binding과 같은 경계로 보존한다.
+bool SourceTrack(const std::string& v) {
+    return !v.empty() && v.size() <= 1024 &&
+        std::none_of(v.begin(), v.end(), [](unsigned char c) { return c < 32 || c == 127; });
+}
 bool OptionalTime(const std::optional<std::int64_t>& n) { return !n || *n >= 0; }
 } // namespace
 std::string EvidenceJsonQuote(const std::string& value) {
@@ -109,7 +114,7 @@ bool ValidateEvidencePackage(const EvidencePackageV1& v, std::string* error) {
             f.presentation_ns < 0 || !f.sample_ordinal || f.width <= 0 || f.width > 4096 || f.height <= 0 || f.height > 2160 ||
             !EvidenceIsSha256(f.media_sha256) || !EvidenceIsSha256(f.sample_sha256) ||
             !EvidenceIsSha256(f.rgb_sha256) || !EvidenceIsSha256(f.png_sha256) ||
-            !Id(f.source_generation) || !Id(f.media_epoch_id) || !Id(f.track_id) || !f.generation_order ||
+            !Id(f.source_generation) || !Id(f.media_epoch_id) || !SourceTrack(f.track_id) || !f.generation_order ||
             !OptionalTime(f.utc_ns) || !OptionalTime(f.uncertainty_ns) || !Small(f.time_provenance, false)) return Fail(error);
         if (f.locator) {
             const auto& l = *f.locator;
