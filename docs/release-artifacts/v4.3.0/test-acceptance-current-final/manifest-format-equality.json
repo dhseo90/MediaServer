@@ -1,0 +1,9 @@
+{
+  "file": "test/fixtures/project_feature_implementation_evidence.json",
+  "beforeBytes": 26384842,
+  "afterBytes": 19276028,
+  "semanticEqual": true,
+  "canonicalSha256": "6816288d33d648b2354e979b10d5ddedb24fdce4735a0cdabe78f5aaf3c37c39",
+  "serializer": "scripts/internal/json_artifact_serialization_lib.mjs",
+  "valueChanges": 0
+}
