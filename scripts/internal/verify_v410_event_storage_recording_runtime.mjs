@@ -22,12 +22,12 @@ function checked(command, args) {
 }
 
 try {
-  const packages = ["sqlite3", "openssl", "gstreamer-1.0", "gstreamer-app-1.0", "gstreamer-video-1.0"];
+  const packages = ["sqlite3", "openssl", "zlib", "gstreamer-1.0", "gstreamer-app-1.0", "gstreamer-video-1.0"];
   const flags = checked("pkg-config", ["--cflags", ...packages]);
   const libs = checked("pkg-config", ["--libs", ...packages]);
   const common = [
     "scripts/internal/event_storage_recording_runtime_smoke.cpp",
-    "src/analysis/snapshot_encoder.cpp",
+    "src/analysis/snapshot_encoder.cpp", "src/analysis/event_snapshot_proof.cpp",
     "src/recording/event_recording_bridge.cpp", "src/recording/event_clip_deriver.cpp",
     "src/recording/recording_derived_event_worker.cpp", "src/recording/recording_derived_selection.cpp",
     "src/recording/recording_derived_job.cpp", "src/recording/recording_derived_job_ready.cpp",
@@ -37,6 +37,7 @@ try {
     "src/recording/recording_finalize_recovery.cpp", "src/recording/recording_finalize_ticket.cpp", "src/recording/recording_media_inspector.cpp",
     "src/recording/recording_file_evidence.cpp",
     "src/recording/retention_coordinator.cpp", "src/recording/recording_contracts.cpp",
+    "src/recording/recording_catalog_snapshot.cpp",
     "src/domain/strict_json.cpp",
   ].map(p => path.join(root, p));
   function build(storageSource, name) {

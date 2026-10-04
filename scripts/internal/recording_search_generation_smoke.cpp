@@ -59,6 +59,13 @@ int main(int argc,char** argv) {
             SearchCheck(Read(root/"active-2.jsonl")==before,"generation-search-journal-unchanged");
             if(held)SearchCheck(model->source_instance()!=held->source_instance()&&held->documents().size()==3,
                 "generation-reopen-rebuild-preserves-held-model");
+            SearchSourceBatch captured;Need(catalog.CaptureSearchSource({"channel"},model.get(),&captured,&error));
+            const auto prior=model;RecordingOrderReservationV1 reserved;
+            Need(catalog.ReserveRecordingOrder("store","search-unused-"+std::to_string(phase),"future-"+std::to_string(phase),"channel",&reserved,&error));
+            SearchSourceBatch after;
+            SearchCheck(catalog.ValidateSearchSource(captured,&error)&&catalog.CaptureSearchSource({"channel"},model.get(),&after,&error)&&
+                !after.rebuild&&after.delta.upserts.empty()&&after.delta.removed_ids.empty(),"V430-R04 reservation preserves source resolution and empty delta");
+            SearchCheck(search.Refresh({"channel"},model,&model,&error)&&model==prior,"V430-R04 no search change reuses identical immutable model");
         }
     }catch(const std::exception& ex){std::cerr<<ex.what()<<'\n';return 1;}
     std::cout<<"[search-generation] pass="<<search_passed<<" fail="<<search_failed<<'\n';return search_failed?1:0;

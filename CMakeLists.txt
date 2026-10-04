@@ -1,13 +1,15 @@
 # 파일 용도: CMake 빌드 옵션과 GStreamer 연동 타깃을 정의한다.
 cmake_minimum_required(VERSION 3.16)
-project(media_server VERSION 4.2.0 LANGUAGES CXX)
+project(media_server VERSION 4.3.0 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 option(MEDIA_SERVER_USE_GSTREAMER "Enable GStreamer RTSP server integration" OFF)
-option(MEDIA_SERVER_USE_ONNXRUNTIME "Enable ONNX Runtime YOLO detector" OFF)
+option(MEDIA_SERVER_USE_ONNXRUNTIME "Enable ONNX Runtime detectors and local encoders" OFF)
+option(MEDIA_SERVER_USE_SIGLIP2 "Enable verified local SigLIP2 visual search encoder" OFF)
+set(MEDIA_SERVER_SENTENCEPIECE_ROOT "" CACHE PATH "Isolated SentencePiece installation root")
 option(MEDIA_SERVER_ENABLE_YOUTUBE_SOURCE "Enable lab-only experimental YouTube source resolver" OFF)
 set(MEDIA_SERVER_ONNXRUNTIME_ROOT "" CACHE PATH "ONNX Runtime installation root")
 
@@ -24,6 +26,7 @@ add_library(media_server_runtime STATIC
     src/analysis/detector_factory.cpp
     src/analysis/dummy_detector.cpp
     src/analysis/event_manager.cpp
+    src/analysis/siglip2_encoder.cpp
     src/analysis/event_feature_search_index.cpp
     src/analysis/event_post_dispatcher.cpp
     src/analysis/event_retention_cleanup.cpp
@@ -43,6 +46,7 @@ add_library(media_server_runtime STATIC
     src/analysis/scene_context_builder.cpp
     src/analysis/scenario_engine.cpp
     src/analysis/snapshot_encoder.cpp
+    src/analysis/event_snapshot_proof.cpp
     src/analysis/track_state_manager.cpp
     src/analysis/tracked_object_metadata.cpp
     src/analysis/va_runtime_metadata.cpp
@@ -97,6 +101,12 @@ add_library(media_server_runtime STATIC
     src/recording/recording_search_snapshots.cpp
     src/recording/recording_search_model.cpp
     src/recording/recording_search_source.cpp
+    src/recording/visual_search_index.cpp
+    src/recording/visual_index_store.cpp
+    src/recording/visual_index_worker.cpp
+    src/recording/visual_frame_decoder.cpp
+    src/recording/recording_visual_source.cpp
+    src/recording/recording_visual_snapshots.cpp
     src/recording/recording_search_reader.cpp
     src/recording/event_clip_deriver.cpp
     src/recording/event_recording_bridge.cpp
@@ -134,6 +144,7 @@ add_library(media_server_runtime STATIC
     src/recording/recording_runtime_composition.cpp
     src/recording/recording_derived_remux.cpp
     src/ingress/recording_search_application_service.cpp
+    src/ingress/visual_search_application_service.cpp
     src/ingress/recording_application_service.cpp
     src/recording/retention_coordinator.cpp
     src/recording/recording_session_service.cpp
@@ -273,4 +284,25 @@ if(MEDIA_SERVER_USE_ONNXRUNTIME)
     target_compile_definitions(media_server_runtime PUBLIC MEDIA_SERVER_USE_ONNXRUNTIME=1)
 else()
     target_compile_definitions(media_server_runtime PUBLIC MEDIA_SERVER_USE_ONNXRUNTIME=0)
+endif()
+
+
+# 선택 모델은 자동 다운로드하지 않는다. 승인된 격리 준비 도구의 prefix를 명시한다.
+if(MEDIA_SERVER_USE_SIGLIP2)
+    if(NOT MEDIA_SERVER_USE_ONNXRUNTIME OR NOT PkgConfig_FOUND OR NOT MEDIA_SERVER_SENTENCEPIECE_ROOT)
+        message(FATAL_ERROR "SigLIP2 requires ONNX Runtime and pkg-config for GLib.")
+    endif()
+    pkg_check_modules(SIGLIP2_GLIB REQUIRED IMPORTED_TARGET glib-2.0)
+    find_path(SENTENCEPIECE_INCLUDE_DIR NAMES sentencepiece_processor.h
+        PATHS ${MEDIA_SERVER_SENTENCEPIECE_ROOT}/include NO_DEFAULT_PATH)
+    find_library(SENTENCEPIECE_LIBRARY NAMES sentencepiece
+        PATHS ${MEDIA_SERVER_SENTENCEPIECE_ROOT}/lib NO_DEFAULT_PATH)
+    if(NOT SENTENCEPIECE_INCLUDE_DIR OR NOT SENTENCEPIECE_LIBRARY)
+        message(FATAL_ERROR "SigLIP2 requires MEDIA_SERVER_SENTENCEPIECE_ROOT pointing to a prepared isolated prefix.")
+    endif()
+    target_include_directories(media_server_runtime PRIVATE ${SENTENCEPIECE_INCLUDE_DIR})
+    target_link_libraries(media_server_runtime PUBLIC ${SENTENCEPIECE_LIBRARY} PkgConfig::SIGLIP2_GLIB)
+    target_compile_definitions(media_server_runtime PUBLIC MEDIA_SERVER_USE_SIGLIP2=1)
+else()
+    target_compile_definitions(media_server_runtime PUBLIC MEDIA_SERVER_USE_SIGLIP2=0)
 endif()

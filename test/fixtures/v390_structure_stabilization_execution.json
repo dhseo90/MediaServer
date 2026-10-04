@@ -71,15 +71,15 @@
   "currentGraph": {
     "path": "test/fixtures/v390_structure_stabilization_current_graph.json",
     "schema": "media-server.v390-structure-stabilization-current-graph.v1",
-    "sha256": "db532a4a8a18d68d15a4987c2effd74b67415f878fea7a640dcd5dd2091cebfd",
+    "sha256": "102f6a99e95a01d8d12d00785350648bcf14ccfbfee78d54d708a03f5878d34c",
     "metrics": {
-      "productionFiles": 332,
-      "cppSources": 150,
+      "productionFiles": 349,
+      "cppSources": 159,
       "moduleOwners": 10,
       "cmakeTargets": 2,
       "targetViolationDirections": 0,
       "largestSccOwners": 0,
-      "largestMixedOwnerFileLines": 10633,
+      "largestMixedOwnerFileLines": 10723,
       "internalTargetSeparation": true
     }
   },

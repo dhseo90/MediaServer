@@ -17,9 +17,9 @@
 {
   "schema": "media-server.release-context.v1",
   "repository": "dhseo90/MediaServer",
-  "releaseTarget": "v4.2.0",
-  "priorPublishedTag": "v4.1.1",
-  "releaseNotes": "docs/release-notes-v4.2.0.md",
+  "releaseTarget": "v4.3.0",
+  "priorPublishedTag": "v4.2.0",
+  "releaseNotes": "docs/release-notes-v4.3.0.md",
   "roadmap": "docs/v410-v49-recording-search-roadmap.md",
   "distribution": "source-only",
   "tagType": "signed-annotated",
@@ -31,14 +31,12 @@
 }
 ```
 
-현재 소스·공개 목표와 기록된 공개 릴리즈는 v4.2.0이며 사용자용 설명과 완료한 검증 범위는 [릴리즈 노트](release-notes-v4.2.0.md)에 있다.
-초기 개발에서 제외했던 릴리즈 검증은 이후 별도 승인으로 실행했고, 원래 source·환경·제외 범위를 유지한다.
-`priorPublishedTag`는 이번 공개 전 GitHub Latest API로 확인한 v4.1.1이다.
-v4.1.0을 가리켰던 이전 관측은 Git 이력에 보존한다. 검증 완료와 외부 공개 완료는 구분한다.
+현재 소스·공개 목표는 v4.3.0이며 [릴리즈 노트](release-notes-v4.3.0.md)에 개발 범위와 제한을 설명한다.
+로컬 릴리즈 검증과 PR #77의 required CI를 통과했다. 외부 공개는 별도 확인한다.
+`priorPublishedTag`는 기록된 공개 v4.2.0이며,
+위 `published`의 관측 시각과 URL은 기존 근거를 유지한다. 공개 후 실제 Latest·태그 검증 결과에 따라 관측 값을 갱신한다.
 [녹화·검색 로드맵](v410-v49-recording-search-roadmap.md)의 구현·잔여 계획과
-[GitHub Latest 조회](https://github.com/dhseo90/MediaServer/releases/latest)는 서로 다른 자료다.
-위 공개 관측은 기존 공개 확인기의 Latest·Release·저장소 링크·원격 태그 대조 결과다.
-제품·UI·장시간 검증을 이 시점에 다시 실행한 결과는 아니다.
+[GitHub Latest](https://github.com/dhseo90/MediaServer/releases/latest)의 공개 상태를 구분한다.
 
 ## 배포 범위
 

@@ -26,7 +26,9 @@ public:
         std::int64_t original_ns, SearchSeekTarget*, std::string* error) const;
     bool SourceSeek(const std::string& channel, const std::string& segment,
         std::int64_t media_pts, std::int32_t time_base_num, std::int32_t time_base_den,
-        SearchSeekTarget*, std::string* error) const;
+        SearchSeekTarget*, std::string* error, const ResolvedRecordingMedia* verified_media = nullptr,
+        const std::function<bool()>& cancelled = {},
+        std::chrono::steady_clock::time_point deadline = std::chrono::steady_clock::time_point::max()) const;
     bool PlaybackCandidates(const RecordingSearchModel&, const RecordingSearchQuery&,
         std::vector<SearchPlaybackCandidate>*, std::string* error) const;
     // 새 검색마다 호출한다. 카탈로그 revision과 별개인 이벤트 사실을 재사용하지 않는다.

@@ -71,7 +71,7 @@ bool RecordingSearchReader::Refresh(const std::vector<std::string>& channels,
         Locate(batch.delta.upserts.at(pending.document_index), resolution);
     }
     if (!catalog_.ValidateSearchSource(batch, error)) return false;
-    if (!batch.rebuild && previous && previous->revision() == batch.delta.revision) {
+    if (!batch.rebuild && previous && batch.delta.upserts.empty() && batch.delta.removed_ids.empty()) {
         *output = previous;if(error)error->clear();return true;
     }
     std::shared_ptr<const RecordingSearchModel> next;
@@ -87,15 +87,20 @@ bool RecordingSearchReader::WithEventFacts(const RecordingSearchModel& source,
     const RecordingSearchQuery* query) {
     if (!output) {if(error)*error="search-invalid-output";return false;}
     try {
-        auto documents=source.documents();
-        std::map<std::string,std::vector<std::size_t>> channels;
-        for(auto& document:documents)document.event_facts.clear();
         RecordingSearchMatches candidates;
         if(query) {
             if(!source.BehaviourCandidates(*query,&candidates,error))return false;
-        } else for(std::size_t i=0;i<documents.size();++i)candidates.positions.push_back(i);
-        for(const auto i:candidates.positions)
-            if(!documents[i].event_ids.empty())channels[documents[i].channel_id].push_back(i);
+        } else for(std::size_t i=0;i<source.documents().size();++i)candidates.positions.push_back(i);
+        // 질의가 배제한 행은 요청 전용 사본에 복사하지 않는다. 공유 source와 기존 snapshot은
+        // 불변이며, query가 없는 기존 전체 enrichment 호출은 그대로 모든 행을 소비한다.
+        std::vector<SearchDocument> documents;
+        documents.reserve(candidates.positions.size());
+        std::map<std::string,std::vector<std::size_t>> channels;
+        for(const auto position:candidates.positions){
+            documents.push_back(source.documents().at(position));
+            auto& document=documents.back();document.event_facts.clear();
+            if(!document.event_ids.empty())channels[document.channel_id].push_back(documents.size()-1);
+        }
         for(const auto& channel:channels) {
             std::vector<ingress::EventSearchApplicationFact> facts;
             if(!ingress::ReadEventSearchFactsForApplication(channel.first,&facts,error))return false;
@@ -154,7 +159,9 @@ bool RecordingSearchReader::PlaybackCandidates(const RecordingSearchModel& model
      catch(const std::length_error&){if(error)*error="search-playback-candidate-capacity";return false;}
 }
 bool RecordingSearchReader::SourceSeek(const std::string& channel,const std::string& segment,
-    std::int64_t pts,std::int32_t num,std::int32_t den,SearchSeekTarget* output,std::string* error) const {
+    std::int64_t pts,std::int32_t num,std::int32_t den,SearchSeekTarget* output,std::string* error,
+    const ResolvedRecordingMedia* verified_media,const std::function<bool()>& cancelled,
+    std::chrono::steady_clock::time_point deadline) const {
     const auto unavailable=[&](const char* reason){if(error)*error=reason;return false;};
     if(!output||pts<0||num<=0||den<=0)return unavailable("seek-unavailable-invalid-time");
     const __int128 scaled=static_cast<__int128>(pts)*num*1000000000;
@@ -163,10 +170,15 @@ bool RecordingSearchReader::SourceSeek(const std::string& channel,const std::str
     const auto binding=catalog_.FindSourceBinding(segment);
     if(!binding||binding->channel_id!=channel||binding->segment_id!=segment||!binding->file_evidence)
         return unavailable("seek-unavailable-file-evidence");
-    auto media=reader_.ResolveMedia(channel,segment);
-    if(!media)return unavailable("seek-unavailable-media");
+    const auto expired=[&]{return std::chrono::steady_clock::now()>=deadline||(cancelled&&cancelled());};
+    if(expired())return unavailable("seek-cancelled");
+    std::unique_ptr<ResolvedRecordingMedia> owned;
+    if(!verified_media){MediaInspectionOptions options;options.deadline=deadline;options.cancelled=cancelled;
+        owned=reader_.ResolveMedia(channel,segment,std::move(options));verified_media=owned.get();}
+    if(!verified_media)return unavailable(expired()?"seek-cancelled":"seek-unavailable-media");
     std::string evidence_error;
-    if(!VerifyRecordingFileEvidenceFd(media->fd(),*binding,&evidence_error))return unavailable("seek-unavailable-file-evidence");
+    if(!VerifyRecordingFileEvidenceFd(verified_media->fd(),*binding,&evidence_error,expired))
+        return unavailable(expired()?"seek-cancelled":"seek-unavailable-file-evidence");
     const auto& evidence=*binding->file_evidence;
     const RecordingFileSampleEvidenceV1* selected=nullptr;
     for(const auto& sample:evidence.samples)if(sample.original_pts_ns==ns){
@@ -187,6 +199,7 @@ bool RecordingSearchReader::SourceSeek(const std::string& channel,const std::str
     result.seconds=static_cast<double>(selected->native_pts-evidence.edit_media_time)/evidence.timescale;
     result.frame_duration_seconds=static_cast<double>(selected->native_duration)/evidence.timescale;
     result.sample_ordinal=selected->ordinal;result.basis="verified-native-file-presentation";
+    if(expired())return unavailable("seek-cancelled");
     *output=std::move(result);if(error)error->clear();return true;
 }
 bool RecordingSearchReader::DerivedSeek(const std::string& channel,const std::string& job_id,

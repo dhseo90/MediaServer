@@ -1670,6 +1670,7 @@ check("records.records fixture family uses product dispatch with exact readback 
     path.join(rootDir, "src/ingress/event_storage_application_service.cpp"),
     path.join(rootDir, "src/analysis/event_storage.cpp"),
     path.join(rootDir, "src/analysis/snapshot_encoder.cpp"),
+      path.join(rootDir, "src/analysis/event_snapshot_proof.cpp"),
     path.join(rootDir, "src/domain/strict_json.cpp"),
     "-o",
     helperBinary,

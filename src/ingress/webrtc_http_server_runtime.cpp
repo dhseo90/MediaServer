@@ -752,7 +752,10 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             return std::nullopt;
                         };
                         if (recording_request) {
-                            if (const auto denied = require_ops_principal()) return *denied;
+                            if (auto denied = require_ops_principal()) {
+                                denied->headers["Cache-Control"] = "no-store";
+                                return *denied;
+                            }
                             if (!recording_service)
                                 return JsonResponse(503, "Service Unavailable", "{\"error\":\"recording unavailable\"}");
                             const auto authorize_channel = [&](const std::string& channel) {
@@ -763,6 +766,12 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                 response.headers["Cache-Control"] = "no-store";
                                 return response;
                             };
+                            if (request.method == "GET" && request.path == "/ops/api/recordings/visual-search/status")
+                                return api_response(recording_service->VisualStatus(authorize_channel));
+                            if (request.method == "GET" && request.path == "/ops/api/recordings/visual-search")
+                                return api_response(recording_service->VisualSearch(query,authorize_channel));
+                            if (request.method == "GET" && request.path == "/ops/api/recordings/visual-search/seek")
+                                return api_response(recording_service->VisualSeek(query,authorize_channel));
                             if (request.method == "GET" && request.path == "/ops/api/recordings/status")
                                 return api_response(recording_service->Status(authorize_channel,
                                     auth::RequireScope(principal_result.principal, "source:read:*")));

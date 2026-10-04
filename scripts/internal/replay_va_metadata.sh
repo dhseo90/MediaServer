@@ -28,6 +28,8 @@ echo "[replay] build VA metadata replay tool: ${BUILD_DIR}"
   "${ROOT_DIR}/src/analysis/scenario_engine.cpp" \
   "${ROOT_DIR}/src/analysis/scene_context_builder.cpp" \
   "${ROOT_DIR}/src/analysis/snapshot_encoder.cpp" \
+  "${ROOT_DIR}/src/analysis/event_snapshot_proof.cpp" \
+  "${ROOT_DIR}/src/domain/strict_json.cpp" \
   "${ROOT_DIR}/src/analysis/track_state_manager.cpp" \
   "${ROOT_DIR}/src/analysis/tracked_object_metadata.cpp" \
   "${ROOT_DIR}/src/analysis/wrong_direction_scenario.cpp" \

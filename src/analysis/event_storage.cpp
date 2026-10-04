@@ -4,6 +4,7 @@
 #include "analysis/event_storage.h"
 
 #include "analysis/snapshot_encoder.h"
+#include "analysis/event_snapshot_proof.h"
 #include "core/analysis_runtime_port.h"
 
 #if MEDIA_SERVER_USE_GSTREAMER
@@ -51,6 +52,7 @@ enum class BoundedLineStatus {
     kEnd,
     kTooLong,
     kReadError,
+    kCancelled,
 };
 
 struct BoundedLineRead {
@@ -218,19 +220,26 @@ std::string EventRecordJson(const EventRecord& record) {
     return out.str();
 }
 
-BoundedLineRead ReadBoundedJsonLine(std::istream& input, std::string* line) {
+BoundedLineRead ReadBoundedJsonLine(std::istream& input, std::string* line,
+    const std::function<bool()>& cancelled = {}) {
     if (line == nullptr) {
         return {BoundedLineStatus::kReadError, false};
     }
     line->clear();
     char ch = '\0';
+    std::size_t read_bytes = 0;
     while (input.get(ch)) {
+        if ((read_bytes++ % 4096) == 0 && cancelled && cancelled())
+            return {BoundedLineStatus::kCancelled, false};
         if (ch == '\n') {
             return {BoundedLineStatus::kLine, true};
         }
         if (line->size() >= kMaxEventRecordLineBytes) {
-            input.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-            return {BoundedLineStatus::kTooLong, !input.eof()};
+            while (input.get(ch) && ch != '\n') {
+                if ((read_bytes++ % 4096) == 0 && cancelled && cancelled())
+                    return {BoundedLineStatus::kCancelled, false};
+            }
+            return {input.bad() ? BoundedLineStatus::kReadError : BoundedLineStatus::kTooLong, !input.eof()};
         }
         line->push_back(ch);
     }
@@ -592,7 +601,8 @@ std::int64_t FileTimeMs(std::filesystem::file_time_type value) {
 }
 
 std::vector<ArchiveFileInfo> ListEventStorageArchives(const std::filesystem::path& active_path,
-                                                      std::string* error_message) {
+                                                      std::string* error_message,
+                                                      const std::function<bool()>& cancelled = {}) {
     std::vector<ArchiveFileInfo> archives;
     const std::filesystem::path parent = active_path.parent_path().empty()
                                              ? std::filesystem::path(".")
@@ -612,6 +622,10 @@ std::vector<ArchiveFileInfo> ListEventStorageArchives(const std::filesystem::pat
         return archives;
     }
     for (const auto& entry : std::filesystem::directory_iterator(parent, ec)) {
+        if (cancelled && cancelled()) {
+            if (error_message) *error_message = "event-query-cancelled";
+            return {};
+        }
         if (ec) {
             break;
         }
@@ -2192,22 +2206,31 @@ public:
         cv_.notify_all();
     }
 
-    std::optional<BufferedEventFrame> ClosestFrame(const EventRecord& record) {
+    std::optional<BufferedEventFrame> ClosestFrame(const EventRecord& record, const SourceAssociation* event_source = nullptr) {
         std::lock_guard lock(mu_);
         auto* frames = FramesLocked(record);
         if (frames == nullptr || frames->empty()) {
             return std::nullopt;
         }
         const std::int64_t event_ms = record.update_time_ms;
-        auto best = frames->begin();
-        auto best_delta = std::llabs(best->timestamp_ms - event_ms);
+        auto best = frames->end();
+        auto best_delta = std::numeric_limits<std::int64_t>::max();
         for (auto it = frames->begin(); it != frames->end(); ++it) {
+            if (event_source && event_source->original) {
+                const auto& candidate = it->frame.source_association;
+                const auto& expected = *event_source->original;
+                if (candidate.quality != SourceAssociationQuality::TimestampMatch || !candidate.original ||
+                    candidate.original->source_generation != expected.source_generation ||
+                    candidate.original->generation_order != expected.generation_order ||
+                    candidate.original->track_id != expected.track_id) continue;
+            }
             const auto delta = std::llabs(it->timestamp_ms - event_ms);
             if (delta < best_delta || (delta == best_delta && it->timestamp_ms <= event_ms)) {
                 best = it;
                 best_delta = delta;
             }
         }
+        if (best == frames->end()) return std::nullopt;
         return *best;
     }
 
@@ -2371,6 +2394,7 @@ bool WriteHookMarker(const EventRecord& record,
 
 bool WriteSnapshotMedia(const EventRecord& record,
                         const EventMediaHookOptions& options,
+                        const AnalysisResult* event_result,
                         std::string* snapshot_path,
                         std::string* error_message) {
     if (!options.enabled) {
@@ -2382,7 +2406,13 @@ bool WriteSnapshotMedia(const EventRecord& record,
         }
         return true;
     }
-    const auto frame = RecorderFrameBuffer().ClosestFrame(record);
+    const SourceAssociation* event_source = nullptr;
+    if (event_result && event_result->source_association.quality == SourceAssociationQuality::TimestampMatch &&
+        event_result->source_association.original && event_result->pts >= 0 &&
+        std::uint64_t(event_result->pts) == event_result->source_association.original->pts_ns) {
+        event_source = &event_result->source_association;
+    }
+    const auto frame = RecorderFrameBuffer().ClosestFrame(record, event_source);
     if (!frame.has_value()) {
         return WriteHookMarker(record, options, "snapshot", snapshot_path, error_message);
     }
@@ -2408,6 +2438,9 @@ bool WriteSnapshotMedia(const EventRecord& record,
         }
         return false;
     }
+    const auto original_proof = event_source
+        ? BuildEventSnapshotProof(frame->frame, encoded.data, *event_source, record.stream_epoch_id)
+        : std::nullopt;
     manifest << "{"
              << "\"schema\":\"media-server.va.event-snapshot-hook.v1\","
              << "\"captureStatus\":\"recorded\","
@@ -2419,6 +2452,7 @@ bool WriteSnapshotMedia(const EventRecord& record,
              << "\"trackId\":" << record.track_id << ","
              << "\"timestampMs\":" << record.update_time_ms << ","
              << "\"framePtsMs\":" << frame->timestamp_ms << ","
+             << "\"originalFrameProof\":" << (original_proof ? SerializeEventSnapshotProof(*original_proof) : "null") << ","
              << "\"mediaPath\":\"" << JsonEscape(media_path.string()) << "\","
              << "\"contentType\":\"" << JsonEscape(encoded.content_type) << "\","
              << "\"byteSize\":" << encoded.data.size() << ","
@@ -2737,12 +2771,14 @@ bool WriteClipMedia(const EventRecord& record,
 }
 
 class FileEventSnapshotHook final : public EventSnapshotHook {
+    const AnalysisResult* event_result_;
 public:
+    explicit FileEventSnapshotHook(const AnalysisResult* result = nullptr) : event_result_(result) {}
     bool CaptureSnapshot(const EventRecord& record,
                          const EventMediaHookOptions& options,
                          std::string* snapshot_path,
                          std::string* error_message) override {
-        return WriteSnapshotMedia(record, options, snapshot_path, error_message);
+        return WriteSnapshotMedia(record, options, event_result_, snapshot_path, error_message);
     }
 };
 
@@ -2799,7 +2835,7 @@ public:
         cv_.notify_one();
     }
 
-    EventStorageSnapshot Snapshot() const {
+    EventStorageSnapshot Snapshot(bool scan_files = true) const {
         const auto& config = core::GetAnalysisRuntimeConfig();
         EventStorageSnapshot snapshot;
         {
@@ -2832,8 +2868,10 @@ public:
             snapshot.last_clip_error = last_clip_error_;
             snapshot.last_error = last_error_;
         }
-        ApplyFileStats(&snapshot);
-        ApplyRecoveryScan(&snapshot);
+        if (scan_files) {
+            ApplyFileStats(&snapshot);
+            ApplyRecoveryScan(&snapshot);
+        }
         return snapshot;
     }
 
@@ -2940,7 +2978,7 @@ private:
         snapshot_options.pre_event_ms = config.analysis_event_pre_event_ms;
         snapshot_options.post_event_ms = config.analysis_event_post_event_ms;
         snapshot_options.clip_buffer_ms = config.analysis_event_clip_buffer_ms;
-        FileEventSnapshotHook file_snapshot_hook;
+        FileEventSnapshotHook file_snapshot_hook(&result);
         NoOpEventSnapshotHook noop_snapshot_hook;
         EventSnapshotHook& snapshot_hook =
             snapshot_options.enabled ? static_cast<EventSnapshotHook&>(file_snapshot_hook)
@@ -3193,6 +3231,10 @@ bool QueryEventRecordPath(const std::filesystem::path& path,
                           bool archive_file,
                           EventRecordQueryResult* result,
                           std::string* error_message) {
+    if (options.cancelled && options.cancelled()) {
+        if (error_message) *error_message = "event-query-cancelled";
+        return false;
+    }
     std::ifstream input(path);
     if (!input.good()) {
         if (error_message != nullptr) {
@@ -3203,7 +3245,15 @@ bool QueryEventRecordPath(const std::filesystem::path& path,
 
     std::string line;
     while (true) {
-        const BoundedLineRead read = ReadBoundedJsonLine(input, &line);
+        if (options.cancelled && options.cancelled()) {
+            if (error_message) *error_message = "event-query-cancelled";
+            return false;
+        }
+        const BoundedLineRead read = ReadBoundedJsonLine(input, &line, options.cancelled);
+        if (read.status == BoundedLineStatus::kCancelled) {
+            if (error_message) *error_message = "event-query-cancelled";
+            return false;
+        }
         if (read.status == BoundedLineStatus::kEnd) {
             break;
         }
@@ -3284,7 +3334,12 @@ bool QueryEventRecords(const EventRecordQueryOptions& options,
         return false;
     }
     *result = EventRecordQueryResult{};
-    result->storage = GetEventStorageSnapshot();
+    if (options.cancelled && options.cancelled()) {
+        if (error_message) *error_message = "event-query-cancelled";
+        return false;
+    }
+    // 검색은 아래에서 같은 파일을 검증한다. 상태용 복구 전수 조회를 중복하지 않는다.
+    result->storage = Dispatcher().Snapshot(!options.search_facts_only);
     const std::size_t limit = std::max<std::size_t>(1, options.limit);
     result->offset = options.offset;
     result->limit = limit;
@@ -3313,7 +3368,7 @@ bool QueryEventRecords(const EventRecordQueryOptions& options,
 
     if (options.include_archives && !result->has_more) {
         std::string archive_error;
-        std::vector<ArchiveFileInfo> archives = ListEventStorageArchives(path, &archive_error);
+        std::vector<ArchiveFileInfo> archives = ListEventStorageArchives(path, &archive_error, options.cancelled);
         if (!archive_error.empty()) {
             if (error_message != nullptr) {
                 *error_message = archive_error;
@@ -3331,6 +3386,10 @@ bool QueryEventRecords(const EventRecordQueryOptions& options,
                 return false;
             }
         }
+    }
+    if (options.cancelled && options.cancelled()) {
+        if (error_message) *error_message = "event-query-cancelled";
+        return false;
     }
     result->storage.skipped_corrupt_lines = result->skipped_corrupt_lines;
     result->storage.partial_line_count = result->partial_line_count;

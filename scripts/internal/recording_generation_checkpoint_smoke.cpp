@@ -11,7 +11,19 @@ bool RecoverCheckpointTransaction(const std::filesystem::path&);
 #include "recording/recording_generation_transaction.h"
 #include "recording/recording_cutover_candidate.h"
 #include "recording_generation_observation.h"
+#include <sys/resource.h>
+#include <chrono>
+#ifdef __APPLE__
+#include <malloc/malloc.h>
+#include <mach/mach.h>
+#endif
 namespace recording {
+struct RecordingGenerationResidencyProbe {
+    static void Read(const RecordingJournal& journal,std::size_t* count,
+        std::size_t* historical,std::size_t* active) {
+        journal.ProbeGenerationIdentityStorage(count,historical,active);
+    }
+};
 struct RecordingGenerationTransactionProbe {
     static void Hook(void(*hook)(const char*)){RecordingGenerationTransaction::fault_hook_=hook;}
     static bool Recover(RecordingCatalog& catalog,const RecordingCutoverCandidateLimits& limits,std::string* error){return catalog.RecoverManagedCutover(limits,8U*1024U*1024U,error);}
@@ -63,6 +75,94 @@ void Actual(const std::filesystem::path& root,std::size_t copies=1,bool manifest
 }
 RecordingGenerationManifest Manifest(const std::filesystem::path& root) {
     RecordingGenerationManifest value;Need(ParseRecordingGenerationManifest(Read(root/"recording-generation.json"),&value,&error));return value;
+}
+void IdentityResidency(const std::filesystem::path& root) {
+    Actual(root);
+    const auto original=Read(root/"evidence-1-0.jsonl");
+    const auto measure=[&](RecordingJournal& journal,const char* phase,bool has_active) {
+        std::size_t count=0,historical=0,active=0;
+        RecordingGenerationResidencyProbe::Read(journal,&count,&historical,&active);
+        std::cout<<"[identity-residency] phase="<<phase<<" count="<<count
+                 <<" historicalDuplicateBytes="<<historical<<" activeCachedBytes="<<active<<'\n';
+        Check("V430-R01",count>0&&historical==0&&(has_active?active>0:active==0),
+              "historical identity retains no duplicate digest string; active cache bounded by active rows");
+    };
+    for(int iteration=0;iteration<2;++iteration) {
+        RecordingJournal journal(Options(root));Need(journal.Open(&error));
+        RecordingCatalog catalog(journal,CO(root));Need(catalog.Open(&error));
+        measure(journal,iteration?"reopen":"open",false);
+        RecordingMutationLink link;RecordingMutationHandle record;
+        Need(Links::Link(journal,"historical",&link));Need(Links::Get(journal,link,&record));
+        Check("V430-R01",SerializeRecordingMutationV1(*record)+"\n"==original,
+              "cold link retains exact independent original envelope");
+        RecordingOrderReservationV1 reservation;
+        const auto request="residency-request-"+std::to_string(iteration);
+        const auto segment="residency-segment-"+std::to_string(iteration);
+        Need(catalog.ReserveRecordingOrder("store",request,segment,"channel",&reservation,&error));
+        const auto expected=reservation;
+        measure(journal,"append",true);
+        Need(catalog.Checkpoint(&error));measure(journal,"checkpoint",false);
+        Check("V430-R01",catalog.ReserveRecordingOrder("store",request,segment,"channel",&reservation,&error)&&
+              std::tie(reservation.schema,reservation.store_id,reservation.request_id,reservation.segment_id,reservation.channel_id,reservation.sequence)==
+              std::tie(expected.schema,expected.store_id,expected.request_id,expected.segment_id,expected.channel_id,expected.sequence),
+              "historical reservation retry retains exact sequence and tuple");
+        Check("V430-R01",!catalog.ReserveRecordingOrder("store",request,"different-segment","channel",&reservation,&error),
+              "historical reservation conflict remains rejected");
+        Need(Links::Get(journal,link,&record));
+        Check("V430-R01",SerializeRecordingMutationV1(*record)+"\n"==original&&Read(root/"evidence-1-0.jsonl")==original,
+              "rotation preserves historical link and sealed original bytes");
+    }
+}
+// 8채널의 미사용 예약 이력만 증가시킨다. 미디어/삭제/혼합 부하는 별도 fixture다.
+void IdentityScale(const std::filesystem::path& root,std::size_t count,bool baseline=false) {
+    {
+        ProjectionFixture fixture;
+        fixture.snapshot.cut_ordinal=count;fixture.manifest.cut_ordinal=count;
+        for(std::size_t i=0;i<count;++i){
+            RecordingOrderReservationV1 order;order.store_id="store";order.request_id="scale-request-"+std::to_string(i);
+            order.segment_id="scale-segment-"+std::to_string(i);order.channel_id="channel-"+std::to_string(i%8);order.sequence=i+1;
+            const auto payload="{\"schema\":\"media-server.recording-order.v1\",\"storeId\":\"store\",\"requestId\":\""+order.request_id+
+                "\",\"segmentId\":\""+order.segment_id+"\",\"channelId\":\""+order.channel_id+"\",\"sequence\":"+std::to_string(order.sequence)+"}";
+            fixture.Add(RecordingMutationType::RecordingOrderReserved,order.request_id,order.segment_id,payload,order);
+        }
+        Install(std::move(fixture),root);
+    }
+    const auto evidence_hash=Hash(Read(root/"evidence-1-0.jsonl"));
+    auto options=Options(root);options.generation_limits={256ULL*1024*1024,64ULL*1024*1024,256ULL*1024*1024,1024*1024,count+10,100};
+    for(const bool sql:{false,true}){
+        const auto started=std::chrono::steady_clock::now();
+        RecordingJournal journal(options);Need(journal.Open(&error));auto co=CO(root);co.prefer_sqlite=sql;
+        RecordingCatalog catalog(journal,co);Need(catalog.Open(&error));
+        const auto opened=std::chrono::steady_clock::now();
+        std::size_t actual=0,historical=0,active=0;RecordingGenerationResidencyProbe::Read(journal,&actual,&historical,&active);
+        Check("V430-R02-SCALE",actual==count&&(baseline?historical>0:historical==0)&&active==0,"all historical identities retained; before/after duplicate-cache expectation");
+        for(const auto i:{std::size_t(0),count/2,count-1}){
+            const auto request="scale-request-"+std::to_string(i),segment="scale-segment-"+std::to_string(i),channel="channel-"+std::to_string(i%8);
+            RecordingOrderReservationV1 result;
+            Need(catalog.ReserveRecordingOrder("store",request,segment,channel,&result,&error));
+            Check("V430-R02-SCALE",result.sequence==static_cast<std::int64_t>(i+1)&&result.request_id==request&&result.segment_id==segment&&result.channel_id==channel,"independent first/middle/last reservation tuple unchanged");
+            Check("V430-R02-SCALE",!catalog.ReserveRecordingOrder("store",request,"wrong-segment",channel,&result,&error),"historical conflict rejected at scale");
+        }
+        Check("V430-R02-SCALE",catalog.Checkpoint(&error)&&Read(root/"active-2.jsonl").empty()&&Hash(Read(root/"evidence-1-0.jsonl"))==evidence_hash,"no-op checkpoint/retry preserve immutable evidence and empty active");
+        RecordingCatalogStatusSnapshot status;Need(catalog.SnapshotStatus(&status,&error));
+        Check("V430-R02-SCALE",status.channels.empty(),"active media remains fixed at zero while eight-channel reservation history grows");
+        struct rusage usage{};Need(getrusage(RUSAGE_SELF,&usage)==0);
+#ifdef __APPLE__
+        const auto rss=static_cast<std::uint64_t>(usage.ru_maxrss);
+#else
+        const auto rss=static_cast<std::uint64_t>(usage.ru_maxrss)*1024;
+#endif
+#ifdef __APPLE__
+        vm_address_t* zones=nullptr;unsigned zone_count=0;Need(malloc_get_all_zones(mach_task_self(),nullptr,&zones,&zone_count)==KERN_SUCCESS);
+        std::size_t heap_used=0,heap_reserved=0;
+        for(unsigned z=0;z<zone_count;++z){malloc_statistics_t stats{};malloc_zone_statistics(reinterpret_cast<malloc_zone_t*>(zones[z]),&stats);heap_used+=stats.size_in_use;heap_reserved+=stats.size_allocated;}
+        std::cout<<"[native-heap] count="<<count<<" sqlite="<<sql<<" zones="<<zone_count<<" usedBytes="<<heap_used<<" reservedBytes="<<heap_reserved<<" catalogLogicalBytes=not-equal"<<std::endl;
+#endif
+        Check("V430-R02-SCALE",rss<=4ULL*1024*1024*1024,"process peak RSS stays within declared 4GiB development budget");
+        std::uint64_t disk=0;for(const auto& file:std::filesystem::recursive_directory_iterator(root))if(file.is_regular_file())disk+=file.file_size();
+        std::cout<<"[identity-scale] count="<<count<<" sqlite="<<sql<<" openMs="<<std::chrono::duration<double,std::milli>(opened-started).count()
+            <<" peakRssBytes="<<rss<<" diskLogicalBytes="<<disk<<" historicalDuplicateBytes="<<historical<<std::endl;
+    }
 }
 void ExportValueBoundary(const std::filesystem::path& root) {
     Actual(root);const auto manifest=Manifest(root);
@@ -292,10 +392,14 @@ void Jobs(const std::filesystem::path& base) {
 }
 #endif
 int main(int argc,char** argv) {
-    if(argc!=2)return 2;
+    if(argc!=2&&argc!=3)return 2;
+    if(argc==3&&std::string(argv[2])!="residency"&&std::string(argv[2])!="scale-1000"&&std::string(argv[2])!="scale-100000"&&std::string(argv[2])!="scale-baseline-1000"&&std::string(argv[2])!="scale-baseline-100000")return 2;
     try {
         const std::filesystem::path root(argv[1]);std::filesystem::create_directories(root);
 #if MEDIA_SERVER_USE_OPENSSL && MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND
+        if(argc==3&&std::string(argv[2]).rfind("scale-",0)==0){IdentityScale(root/"scale",std::stoull(std::string(argv[2]).substr(std::string(argv[2]).find_last_of('-')+1)),std::string(argv[2]).find("baseline")!=std::string::npos);return failures?1:0;}
+        IdentityResidency(root/"identity-residency");
+        if(argc==3)return failures?1:0;
         ExportValueBoundary(root/"export-values");Rotation(root/"rotate");ObserverRace(root/"observer-race");Failures(root/"failures");Cost(root/"cost");Admission(root/"admission");Threshold(root/"threshold");Limits(root/"limits");Jobs(root/"jobs");SQL_CHECKPOINT_CASES::Run(root);
 #else
         Write(root/".recording-store-format",Marker());RecordingJournal journal(Options(root));

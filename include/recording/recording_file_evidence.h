@@ -4,6 +4,7 @@
 #include "recording/segment_writer.h"
 #include <filesystem>
 #include <memory>
+#include <functional>
 typedef struct _GstElement GstElement;
 typedef struct _GstCaps GstCaps;
 namespace recording {
@@ -20,5 +21,5 @@ private:
     struct Impl;std::unique_ptr<Impl> impl_;
 };
 // fd는 호출자가 안전한 부모 경로/파일 identity에 결박한다. 내용 I/O는 catalog mutex 밖에서 호출한다.
-bool VerifyRecordingFileEvidenceFd(int fd,const RecordingSourceBindingV1&,std::string* error);
+bool VerifyRecordingFileEvidenceFd(int fd,const RecordingSourceBindingV1&,std::string* error,const std::function<bool()>& cancelled = {});
 }

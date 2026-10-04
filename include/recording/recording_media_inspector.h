@@ -3,12 +3,17 @@
 #include "recording/recording_contracts.h"
 #include <chrono>
 #include <filesystem>
+#include <functional>
 #include <string>
 namespace recording {
 class RecordingCatalog;
 enum class MediaInspectionState { Healthy, Corrupt, Unavailable };
 // 허용 예산은 0초과 60초이하. demux 단일 요청은 16MiB까지이며 초과는 Unavailable.
-struct MediaInspectionOptions { std::chrono::milliseconds budget{5000}; };
+struct MediaInspectionOptions {
+    std::chrono::milliseconds budget{5000};
+    std::chrono::steady_clock::time_point deadline{std::chrono::steady_clock::time_point::max()};
+    std::function<bool()> cancelled;
+};
 struct MediaInspectionResult {
     MediaInspectionState state{MediaInspectionState::Unavailable};
     std::string detail;

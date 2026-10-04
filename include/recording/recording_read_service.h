@@ -3,6 +3,7 @@
 
 #include "recording/recording_catalog.h"
 #include "recording/recording_query_values.h"
+#include "recording/recording_media_inspector.h"
 #include <memory>
 #include <limits>
 
@@ -55,13 +56,13 @@ public:
     bool ResolveUtcRange(const std::string& channel_id, std::int64_t start_ns, std::int64_t end_ns,
                          RecordingRangeResult* result, std::string* error) const;
     std::unique_ptr<ResolvedRecordingMedia> ResolveMedia(
-        const std::string& channel_id, const std::string& segment_id) const;
+        const std::string& channel_id, const std::string& segment_id, MediaInspectionOptions options = {}) const;
 private:
     bool QueryTimelineImpl(const RecordingTimelineQuery&, RecordingTimelineResult*, std::string*, std::size_t max_limit) const;
     RecordingCatalog& catalog_;
     bool FinishTimelineV2(const RecordingTimelineQuery&,RecordingTimelineResult*,std::string*) const;
     bool FinishTimelineWithContext(const RecordingTimelineQuery&,RecordingTimelineResult*,std::string*,RecordingCatalog::JobReadContext*) const;
-    std::unique_ptr<ResolvedRecordingMedia> ResolveMediaWithContext(const std::string&,const std::string&,RecordingCatalog::JobReadContext*) const;
+    std::unique_ptr<ResolvedRecordingMedia> ResolveMediaWithContext(const std::string&,const std::string&,RecordingCatalog::JobReadContext*, MediaInspectionOptions options = {}) const;
     std::filesystem::path event_root_;
 };
 

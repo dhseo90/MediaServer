@@ -4,7 +4,7 @@
 파일명으로 보관합니다.
 
 현재 README 대표 이미지는 제품 shell 설명용입니다. 현재 source tree와 릴리즈 목표는
-`v4.1.1` 후보이며, v4.1.0의 대표 이미지를 유지합니다. manifest의 `sourceVersion`·
+`v4.3.0` 후보이며, v4.1.0의 대표 이미지를 유지합니다. manifest의 `sourceVersion`·
 `releaseTarget`과 `publicReleaseStatus`의 source 부분은 현재 사용 대상 버전입니다.
 `publishedRelease: v4.0.0`은 이미지 baseline에 남은 과거 공개 기준이며 현재 Latest가 아닙니다.
 현재 저장소의 공개 관측은 [릴리즈 metadata](../../release-policy.md#소스와-기록된-공개-상태)를 따릅니다.

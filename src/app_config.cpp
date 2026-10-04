@@ -623,6 +623,10 @@ app::AppConfig LoadAppConfig() {
     config.enable_client = ReadBoolEnv(kEnvEnableClient, config.enable_client);
     config.file_root_path = ReadStringEnv(kEnvFileRoot, config.file_root_path);
     config.default_file_path = ReadStringEnv(kEnvDefaultFile, config.default_file_path);
+    config.visual_search_enabled = ReadBoolEnv("MEDIA_SERVER_VISUAL_SEARCH_ENABLED", false);
+    config.visual_search_model_directory = ReadStringEnv("MEDIA_SERVER_VISUAL_SEARCH_MODEL_DIRECTORY", "");
+    config.visual_search_scan_seconds = ReadIntEnv("MEDIA_SERVER_VISUAL_SEARCH_SCAN_SECONDS", 60);
+    config.visual_search_sample_seconds = ReadIntEnv("MEDIA_SERVER_VISUAL_SEARCH_SAMPLE_SECONDS", 10);
     config.recording_enabled = ReadBoolEnv(kEnvRecordingEnabled, config.recording_enabled);
     config.recording_storage_root =
         ReadStringEnv(kEnvRecordingStorageRoot, config.recording_storage_root);
@@ -1753,6 +1757,14 @@ app::AppConfig LoadAppConfig() {
                   << ", recording disabled\n";
         config.recording_enabled = false;
     }
+    if (config.visual_search_enabled && (!config.recording_enabled || config.visual_search_model_directory.empty() ||
+        config.visual_search_scan_seconds < 1 || config.visual_search_scan_seconds > 3600 ||
+        config.visual_search_sample_seconds < 1 || config.visual_search_sample_seconds > 3600)) {
+        std::cerr << "[env] invalid visual search configuration, visual search disabled\n";
+        config.visual_search_enabled = false;
+    }
+    if (!config.visual_search_model_directory.empty())
+        config.visual_search_model_directory = ResolveRuntimePath(config.visual_search_model_directory);
     return config;
 }
 

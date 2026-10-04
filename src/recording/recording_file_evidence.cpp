@@ -108,8 +108,8 @@ struct Box {std::size_t data,end;std::string type;std::vector<Box> children;};
 struct NativeSample {std::int64_t pts,dts,duration;std::string raw,vcl;};
 struct Native {std::uint32_t timescale,movie_timescale;std::int64_t edit_duration,edit_time;std::vector<NativeSample> samples;};
 class Mp4 {
-    const std::vector<unsigned char>& b_;std::size_t box_count_=0;
-    std::uint64_t U(std::size_t p,unsigned n,std::size_t end) const {Need(n<=8&&p<=end&&n<=end-p&&end<=b_.size(),"mp4-field-bound");std::uint64_t v=0;for(unsigned i=0;i<n;++i)v=(v<<8)|b_[p+i];return v;}
+    const std::vector<unsigned char>& b_;std::function<bool()> cancelled_;std::size_t box_count_=0;
+    std::uint64_t U(std::size_t p,unsigned n,std::size_t end) const {Need(!cancelled_||!cancelled_(),"file-evidence-cancelled");Need(n<=8&&p<=end&&n<=end-p&&end<=b_.size(),"mp4-field-bound");std::uint64_t v=0;for(unsigned i=0;i<n;++i)v=(v<<8)|b_[p+i];return v;}
     std::vector<Box> Boxes(std::size_t p,std::size_t end,unsigned depth) {
         Need(depth<=8,"mp4-depth");std::vector<Box> out;
         while(p<end){Need(++box_count_<=512,"mp4-box-count");auto size=U(p,4,end);Need(end-p>=8,"mp4-header");const std::string type(reinterpret_cast<const char*>(b_.data()+p+4),4);
@@ -124,7 +124,7 @@ class Mp4 {
     std::uint32_t Scale(const Box& box) const {const auto version=U(box.data,1,box.end);Need(version<=1,"mp4-time-version");const auto t=U(box.data+(version?20:12),4,box.end);Need(t,"mp4-timescale");return t;}
     std::uint32_t Count(const Box& box,unsigned stride) const {const auto n=U(box.data+4,4,box.end);Need(n<=kSamples&&box.data+8<=box.end&&n*stride==box.end-box.data-8,"mp4-table-bound");return n;}
 public:
-    explicit Mp4(const std::vector<unsigned char>& b):b_(b){}
+    explicit Mp4(const std::vector<unsigned char>& b,std::function<bool()> cancelled={}):b_(b),cancelled_(std::move(cancelled)){}
     Native Read() {
         const auto roots=Boxes(0,b_.size(),0);const auto& moov=One(roots,"moov");const auto& mdat=One(roots,"mdat");const auto& trak=One(moov.children,"trak");
         const auto& mdia=One(trak.children,"mdia");const auto& hdlr=One(mdia.children,"hdlr");Need(U(hdlr.data+8,4,hdlr.end)==0x76696465,"mp4-video-only");
@@ -164,10 +164,10 @@ public:
         Need(sample==count,"mp4-sample-total");return n;
     }
 };
-std::vector<unsigned char> ReadFile(int fd,std::uint64_t bytes,const std::string& hash) {
+std::vector<unsigned char> ReadFile(int fd,std::uint64_t bytes,const std::string& hash,const std::function<bool()>& cancelled={}) {
     Need(bytes&&bytes<=kBytes,"file-size-cap");struct stat before{},after{};Need(::fstat(fd,&before)==0&&S_ISREG(before.st_mode)&&before.st_size==static_cast<off_t>(bytes),"file-binding");
     std::vector<unsigned char> data(bytes);std::size_t done=0;
-    while(done<data.size()){const auto got=::pread(fd,data.data()+done,data.size()-done,done);if(got<0&&errno==EINTR)continue;Need(got>0,"file-read");done+=got;}
+    while(done<data.size()){Need(!cancelled||!cancelled(),"file-evidence-cancelled");const auto got=::pread(fd,data.data()+done,std::min<std::size_t>(65536,data.size()-done),done);if(got<0&&errno==EINTR)continue;Need(got>0,"file-read");done+=got;}
     Need(::fstat(fd,&after)==0&&before.st_dev==after.st_dev&&before.st_ino==after.st_ino&&before.st_size==after.st_size&&Hash(data.data(),data.size())==hash,"file-hash-binding");return data;
 }
 void MatchNative(const Native& n,const RecordingFileEvidenceV1& e) {
@@ -238,9 +238,10 @@ std::optional<RecordingFileEvidenceV1> RecordingFileEvidenceCollector::Finish(co
         auto candidate=binding;candidate.file_evidence=evidence;std::string error;if(!ValidateRecordingFileEvidence(candidate,&error))throw std::runtime_error(error);if(reason)reason->clear();return evidence;
     }catch(const std::exception& e){if(fd>=0)::close(fd);SetFinishReason(reason,FixedFinishReason(e.what()));return std::nullopt;}catch(...){if(fd>=0)::close(fd);SetFinishReason(reason,"finish-exception");return std::nullopt;}
 }
-bool VerifyRecordingFileEvidenceFd(int fd,const RecordingSourceBindingV1& binding,std::string* error) {
+bool VerifyRecordingFileEvidenceFd(int fd,const RecordingSourceBindingV1& binding,std::string* error,const std::function<bool()>& cancelled) {
+    if(cancelled&&cancelled()){if(error)*error="file-evidence-cancelled";return false;}
     if(!binding.file_evidence)return true;
-    try{Need(ValidateRecordingFileEvidence(binding,error),"file-evidence-invalid");const auto& evidence=*binding.file_evidence;const auto bytes=ReadFile(fd,evidence.file_size_bytes,evidence.file_sha256);MatchNative(Mp4(bytes).Read(),evidence);if(error)error->clear();return true;}
+    try{Need(ValidateRecordingFileEvidence(binding,error),"file-evidence-invalid");const auto& evidence=*binding.file_evidence;const auto bytes=ReadFile(fd,evidence.file_size_bytes,evidence.file_sha256,cancelled);MatchNative(Mp4(bytes,cancelled).Read(),evidence);Need(!cancelled||!cancelled(),"file-evidence-cancelled");if(error)error->clear();return true;}
     catch(const std::exception& e){if(error)*error=e.what();return false;}
 }
 }
@@ -252,6 +253,6 @@ RecordingFileEvidenceCollector::~RecordingFileEvidenceCollector()=default;
 bool RecordingFileEvidenceCollector::Attach(GstElement*,const GstCaps*) noexcept{return false;}
 void RecordingFileEvidenceCollector::Accept(const media::Packet&) noexcept{}
 std::optional<RecordingFileEvidenceV1> RecordingFileEvidenceCollector::Finish(const std::filesystem::path&,const RecordingSourceBindingV1&,std::uint64_t,const std::string&,std::string* reason) noexcept{if(reason)*reason="gstreamer-unavailable";return {};}
-bool VerifyRecordingFileEvidenceFd(int,const RecordingSourceBindingV1& b,std::string* error){if(!b.file_evidence)return true;if(error)*error="gstreamer-unavailable";return false;}
+bool VerifyRecordingFileEvidenceFd(int,const RecordingSourceBindingV1& b,std::string* error,const std::function<bool()>& cancelled){if(cancelled&&cancelled()){if(error)*error="file-evidence-cancelled";return false;}if(!b.file_evidence)return true;if(error)*error="gstreamer-unavailable";return false;}
 }
 #endif

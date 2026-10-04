@@ -2,7 +2,7 @@
 
 [![Preflight](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml)
 [![Licensing and Artifact Guardrails](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml)
-![Source Version](https://img.shields.io/badge/source-4.2.0-informational)
+![Source Version](https://img.shields.io/badge/source-4.3.0-informational)
 
 RTSP/WebRTC 영상 중계, YOLO/ONNX 영상 분석, 상시·이벤트 녹화를 제공하는
 macOS/Linux용 C++17 미디어 서버입니다. 브라우저에서 채널과 분석 룰을 관리하고,
@@ -10,9 +10,9 @@ macOS/Linux용 C++17 미디어 서버입니다. 브라우저에서 채널과 분
 
 [English](README.en.md) · [문서](docs/README.md) ·
 [최신 릴리즈](https://github.com/dhseo90/MediaServer/releases/latest) ·
-[v4.2.0 변경 사항](docs/release-notes-v4.2.0.md)
+[v4.3.0 변경 사항](docs/release-notes-v4.3.0.md)
 
-현재 소스와 기록된 공개 버전은 v4.2.0이며,
+현재 소스와 공개 목표는 v4.3.0이며 릴리즈 검증 전입니다. 기록된 공개 버전은 v4.2.0입니다.
 현재 공개 상태는 위 최신 릴리즈 링크에서 확인하세요.
 
 ## 주요 기능
@@ -27,7 +27,9 @@ macOS/Linux용 C++17 미디어 서버입니다. 브라우저에서 채널과 분
   `/client`에서 권한이 부여된 라이브 영상을 봅니다.
 - 이벤트 조회: `/ops/events`에서 이벤트 기록·사건 타임라인과 녹화를 조회합니다.
 
-자연어로 녹화 영상을 찾는 검색은 [후속 로드맵](docs/v410-v49-recording-search-roadmap.md)입니다.
+한국어·영어 영상 유사도 검색은 로컬 SigLIP2 모델을 별도 준비해 활성화할 수 있습니다.
+원본 연결이 확인된 대표 프레임과 이벤트 스냅샷을 검색하며, 점수는 사건 발생의 증거가 아닙니다.
+지원 범위와 설정은 [설정 참조](docs/config-reference.md)에 있습니다.
 현재 버전은 완성형 VMS/NVR이나 무기한 영상 보관을 보장하지 않습니다.
 기본 배포는 소스만 제공하며 AI 모델·미디어 런타임 바이너리는 포함하지 않습니다.
 

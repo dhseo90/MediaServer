@@ -1597,6 +1597,26 @@ void AppendOpsEventsPage(std::ostringstream& out) {
         <video id="opsSearchPlayer" controls preload="metadata" playsinline aria-label="검색 결과 녹화영상"></video>
         <p id="opsSearchPlayback" role="status">결과를 선택하면 검색 시점으로 이동합니다.</p>
       </section>
+      <section class="section-card ops-workspace-wide ops-recording-search" data-testid="ops-visual-search">
+        <h3>영상 유사도 검색</h3>
+        <p>한국어 또는 영어로 장면을 설명하세요. 녹화 대표 프레임과 원본 연결을 확인한 이벤트 스냅샷을 비교합니다. 점수는 사건 발생이나 정확한 일치의 증거가 아닙니다.</p>
+        <form id="opsVisualForm" class="actions ops-recording-filters">
+          <label>카메라<select id="opsVisualChannels" multiple size="3" required></select></label>
+          <label>장면 설명<input id="opsVisualText" required maxlength="16384" placeholder="공원에서 공을 가지고 노는 사람" /></label>
+          <label>결과 수<select id="opsVisualLimit"><option>10</option><option selected>20</option><option>50</option></select></label>
+          <label>최소 유사도<input id="opsVisualThreshold" type="number" min="-1" max="1" step="0.01" value="-1" /></label>
+          <label>시작 시간 (선택)<input id="opsVisualStart" type="datetime-local" /></label>
+          <label>종료 시간 (선택)<input id="opsVisualEnd" type="datetime-local" /></label>
+          <button id="opsVisualSubmit" type="submit" disabled>장면 검색</button>
+          <button id="opsVisualRefresh" type="button" class="button-secondary">색인 상태 새로고침</button>
+        </form>
+        <p>시간 범위를 지정하면 시각이 확인된 프레임만 검색합니다. 주기 사이의 장면과 지원되지 않는 파일은 검색되지 않을 수 있습니다.</p>
+        <p id="opsVisualCoverage" role="status">색인 상태를 확인하는 중입니다.</p>
+        <p id="opsVisualStatus" role="status">카메라와 장면 설명을 입력하세요.</p>
+        <div id="opsVisualRows" class="ops-recording-rows" aria-label="영상 유사도 검색 결과"></div>
+        <video id="opsVisualPlayer" controls preload="metadata" playsinline aria-label="영상 검색 결과 재생"></video>
+        <p id="opsVisualPlayback" role="status">결과를 선택하면 현재 원본의 해당 시점으로 이동합니다.</p>
+      </section>
       <section class="section-card ops-workspace-wide incident-memory-search" data-testid="ops-events-semantic-search" data-incident-memory-search="local-index">
         <div class="toolbar">
           <div>

@@ -1,6 +1,7 @@
 // 파일 용도: V420-C01~03 불변 페이지, 질의/권한 결박, 만료·축출·재시작 경계.
 #include "recording/recording_search_snapshots.h"
 #include <iostream>
+#include <thread>
 using namespace recording;
 namespace {
 int pass=0,fail=0;
@@ -84,6 +85,36 @@ int main(){
     RecordingSearchQuery empty=q;empty.channels={"absent"};
     Check(pool.Begin(model,empty,"alice","scope-1",&page,&error,now)&&page.positions.empty()&&page.next_cursor.empty()&&page.known_count==0,"empty successful page");
     Check(!pool.Begin(model,q,"alice","scope-1",&page,&error,RecordingSearchSnapshots::Clock::time_point::max()),"expiry arithmetic overflow rejected");
+    // 실제 시계에서 후속 조회 없이 pool 소유만 해제한다. 외부 page의 shared 소유는 보존한다.
+    const auto wait_released=[](const auto& weak){
+        const auto deadline=RecordingSearchSnapshots::Clock::now()+std::chrono::seconds(2);
+        while(!weak.expired()&&RecordingSearchSnapshots::Clock::now()<deadline)
+            std::this_thread::sleep_for(std::chrono::milliseconds(5));
+        return weak.expired();
+    };
+    {
+        RecordingSearchSnapshots idle({8,128*1024*1024,std::chrono::milliseconds(20)},true);
+        std::shared_ptr<const RecordingSearchModel> owned;
+        Check(RecordingSearchModel::Build({Doc("idle","one",1500)},"idle",1,&owned,&error),"R03 idle fixture");
+        std::weak_ptr<const RecordingSearchModel> weak=owned;RecordingSearchPage held_page;
+        Check(idle.Begin(owned,q,"alice","scope-1",&held_page,&error),"R03 idle snapshot begin");
+        owned.reset();held_page={};
+        Check(wait_released(weak),"R03 idle expiration releases model without another request");
+    }
+    {
+        RecordingSearchSnapshots idle({8,128*1024*1024,std::chrono::milliseconds(20)},true);
+        std::shared_ptr<const RecordingSearchModel> owned;
+        Check(RecordingSearchModel::Build({Doc("held","one",1500)},"held",1,&owned,&error),"R03 held fixture");
+        std::weak_ptr<const RecordingSearchModel> weak=owned;RecordingSearchPage held_page;
+        Check(idle.Begin(owned,q,"alice","scope-1",&held_page,&error),"R03 held snapshot begin");
+        owned.reset();std::this_thread::sleep_for(std::chrono::milliseconds(40));
+        Check(!weak.expired()&&Ids(held_page)==std::vector<std::string>{"held"},"R03 expiry preserves caller-owned immutable page");
+        held_page={};Check(wait_released(weak),"R03 last external owner release frees expired model");
+    }
+    const auto shutdown=RecordingSearchSnapshots::Clock::now();
+    {RecordingSearchSnapshots idle({},true);RecordingSearchPage held_page;
+        Check(idle.Begin(model,q,"alice","scope-1",&held_page,&error),"R03 shutdown fixture with future expiry");}
+    Check(RecordingSearchSnapshots::Clock::now()-shutdown<std::chrono::seconds(1),"R03 destructor joins without waiting for five-minute deadline");
 #endif
     std::cout<<"[search-cursor] pass="<<pass<<" fail="<<fail<<'\n';return fail?1:0;
 }
