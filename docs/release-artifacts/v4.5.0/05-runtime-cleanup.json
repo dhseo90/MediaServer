@@ -1,0 +1,17 @@
+{
+  "runtimeVersion": "0.21.0",
+  "model": "qwen3-vl:8b-instruct-q4_K_M",
+  "digest": "0533d74300e4f9bc367d675d4e64ffd073d50ff16a2b4096cc2e8a1cf8c96319",
+  "weightBytes": 6140415975,
+  "ownedServerPid": 2755,
+  "ownedChildPidsAtStop": [],
+  "loadedModelsBeforeStop": 0,
+  "serverAndChildrenAbsent": true,
+  "portClosed": true,
+  "weightsRetained": true,
+  "nativeFixtureRootsChecked": 17,
+  "nativeFixtureRootsAbsent": true,
+  "temporaryRoot": ".media_server.test/v450",
+  "temporaryRootRemoved": true,
+  "preservedLogsSha256Matched": true
+}

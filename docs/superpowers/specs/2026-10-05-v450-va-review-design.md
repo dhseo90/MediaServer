@@ -59,7 +59,8 @@ questions, contradictions, unclear와 confidence를 저장한다. 질문은 1~51
 - 개발 대상은 macOS/Linux C++17, 현 검증 장비는 Apple M5·24GiB다. 로컬 protocol은
   Ollama `/api/chat`, 1차 모델은 `qwen3-vl:8b-instruct-q4_K_M`이다. 4B Instruct Q4는
   낮은 사양의 명시적 대안이며 자동 전환하지 않는다. 30B와 별도 약관 모델은 이번 기준에서 제외한다.
-  설치된 Ollama CLI만 확인됐고 서버와 Qwen weight는 미준비다. 다운로드/설치와 품질 PASS는 별개다.
+  사용자 승인으로 전용 `models/v450-ollama`에 weight를 준비했다. digest와 실제 품질 결과는
+  [개발 실행 결과](../../release-artifacts/v4.5.0/development-results.md)에서 구분한다.
 - 외부 adapter는 Gemini `generateContent`의 다중 inline PNG와 JSON schema 출력으로 설계한다.
   model은 운영자가 명시하며 계정에서의 가용성·정책·비용 확인 없이 호출하지 않는다.
   기존 문서의 모델 이름을 최신 계정 가용성으로 추정하지 않는다.
@@ -67,6 +68,9 @@ questions, contradictions, unclear와 confidence를 저장한다. 질문은 1~51
   host만 허용한다. redirect/proxy/사용자 URL을 통한 우회와 로컬 실패 후 외부 fallback은 금지한다.
   외부 opt-in, 전송 검토 확인, model과 일시적인 env credential을 모두 요구한다.
   key는 argv·파일·UI·오류에 넣지 않는다. 현재 사용 중인 curl 실행 도구를 활용하며 신규 라이브러리는 추가하지 않는다.
+  curl은 `/usr/bin/curl`을 사용하며 Linux 전송은 glibc 2.34 이상의 closefrom spawn 기능을
+  요구한다. macOS는 CLOEXEC_DEFAULT로 열린 서버 FD 상속을 막는다. 미지원 환경에서는
+  검토 연결 실패로 처리하고 보안 조건을 생략하는 대안을 사용하지 않는다. 현재 실행 검증은 macOS다.
 - 검증 예산: 제품 서버 RSS 4GiB 이하, 로컬 모델 working set 14GiB 이하, 전용 실행
   작업공간 8GiB 이하(별도 승인한 모델 weight 제외). 모델 실행 후 자원 회수와 녹화·검색
   진행을 관측한다. 기존 녹화 이력 비용을 VLM 비용으로 오인하거나 무기한 지원으로 확대하지 않는다.
@@ -107,6 +111,9 @@ VARuleLens 코드·prompt·schema를 사용하지 않는다. 특허 상세를 �
 - [Qwen3-VL 8B model card](https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct): Apache-2.0 표기와 다중 영상 입력 계열.
 - [Ollama 모델 태그](https://ollama.com/library/qwen3-vl/tags): 명시 Instruct Q4 태그, 8B 약 6.1GB/4B 약 3.3GB. 실행 시 실제 digest를 확인한다.
 - [Ollama chat API](https://docs.ollama.com/api/chat): images와 structured format, stream 제어.
+- [Ollama 구조화 출력](https://docs.ollama.com/capabilities/structured-outputs): format schema와 prompt의 구조 설명.
+- [llama.cpp grammar 문서](https://github.com/ggml-org/llama.cpp/blob/master/grammars/README.md):
+  JSON schema subset·anyOf와 properties 조합의 제약. 최종 수용은 서버 strict codec에서 별도로 검사한다.
 - [Gemini 이미지 입력](https://ai.google.dev/gemini-api/docs/image-understanding),
   [구조화 출력](https://ai.google.dev/gemini-api/docs/structured-output): inline image와 JSON schema 계약.
 - [Gemini API 약관](https://ai.google.dev/gemini-api/terms): 계정별 적용·데이터 처리 검토가 실제 외부 사용의 선행 조건이며 이 문서는 수락을 대신하지 않는다.

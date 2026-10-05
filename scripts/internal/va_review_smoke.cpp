@@ -2,6 +2,9 @@
 #include "recording/va_review_input.h"
 #include "recording/va_review_store.h"
 #include "recording/va_review_service.h"
+#include "recording/va_review_provider.h"
+#include "va_review_quality_fixture.h"
+#include "../../src/recording/va_review_json.h"
 #include "recording_media_test_fixture.h"
 #include "recording/recording_runtime_composition.h"
 #include "recording/recording_search_reader.h"
@@ -12,6 +15,8 @@
 #include <limits>
 #include <stdexcept>
 #include <sys/stat.h>
+#include <sys/resource.h>
+#include <sys/wait.h>
 #include <unistd.h>
 #include <zlib.h>
 #ifdef __APPLE__
@@ -356,14 +361,170 @@ void QueueChecks(const std::filesystem::path& root) {
     Check(!off.Submit(package,"off","ollama","alice",permit,&duplicate,&error)&&error=="review-disabled"&&called.load()==off_before,
         "V450-Q01 disabled never invokes provider");
 }
+void ProviderChecks(const std::filesystem::path& root,const std::string& endpoint) {
+    using namespace recording;using namespace review_json;
+    Check(std::filesystem::create_directory(root/"provider"),"V450-L01 owned protocol fixture parent");
+    const auto input=Record(root/"provider").input;
+    VaReviewProviderOptions options;options.enabled=true;options.local_endpoint=endpoint;
+    unsigned calls=0;int mode=0;std::string error;VaReviewInference out;
+    const auto transport=[&](const VaReviewHttpRequest& request,auto,const auto&,std::string* response,std::string*) {
+        ++calls;
+        if(request.url==endpoint+"/api/tags") {
+            *response="{\"models\":[{\"name\":"+EvidenceJsonQuote(mode==1?"missing":options.local_model)+
+                ",\"digest\":"+EvidenceJsonQuote(std::string(64,mode==7&&calls==3?'e':'d'))+"}]}";return true;
+        }
+        Check(request.url==endpoint+"/api/chat","V450-L01 exact local chat path");
+        Doc body,user,system,format,metadata;std::vector<std::string> messages,images;
+        Check(Parse(request.body,&body)&&Array(body,"messages",&messages)&&messages.size()==2&&Parse(messages[0],&system)&&
+            Parse(messages[1],&user)&&Array(user,"images",&images)&&images.size()==2,
+            "V450-L01 ordered two-image protocol envelope");
+        Check(ingress::StrictJsonBoolField(body,"stream")==false&&body.Find("keep_alive")->raw=="0"&&
+            Parse(body.Find("format")->raw,&format),"V450-L01 nonstream schema and model unload");
+        std::string content;std::vector<std::string> frames;
+        Check(Text(user,"content",&content)&&content.find("Metadata: ")!=std::string::npos&&
+            Parse(content.substr(content.find("Metadata: ")+10,content.find('\n')-content.find("Metadata: ")-10),&metadata)&&Array(metadata,"frames",&frames)&&frames.size()==2&&
+            content.find("\"ptsNs\":1000000")!=std::string::npos&&content.find(input.question)!=std::string::npos&&
+            content.find("camera-1")==std::string::npos&&images[0]!=images[1],"V450-L01 exact frame timing and minimal metadata");
+        auto text=mode==3?"{}":std::string(R"({"schema":"media-server.va-review-provider.v1","observations":"Visible evidence supports the claim.","assessment":)")+
+            EvidenceJsonQuote(mode==8?"unknown":mode==11||mode==12?"insufficient":"supported")+
+            ",\"confidence\":"+(mode==12?"null":"0.5")+",\"frameIndices\":"+(mode==4?"[2]":mode==13?"[]":"[0,1]")+"}";
+        if(mode==9)text.insert(text.size()-1,",\"assessment\":\"supported\"");
+        if(mode==10)text.insert(text.size()-1,",\"extra\":1");
+        *response="{\"model\":"+EvidenceJsonQuote(mode==5?"unexpected":options.local_model)+
+            ",\"done\":true,\"done_reason\":"+EvidenceJsonQuote(mode==6?"length":"stop")+
+            ",\"message\":{\"role\":\"assistant\",\"content\":"+EvidenceJsonQuote(text)+"}}";
+        if(mode==2)*response="{invalid";return true;
+    };
+    const auto run=[&]{return MakeVaReviewProvider(options,transport)(input,"ollama",VaReviewService::Clock::now()+std::chrono::seconds(5),[]{return false;},&out,&error);};
+    Check(run()&&calls==3&&out.model_revision==std::string(64,'d')&&EvidenceIsSha256(out.prompt_sha256),"V450-L01 checked model digest before and after inference");
+    for(mode=1;mode<=13;++mode){if(mode==12)continue;calls=0;out.model="unchanged";Check(!run()&&out.model=="unchanged","V450-L01 rejects provider fault "+std::to_string(mode));}
+    mode=12;calls=0;Check(run()&&out.output.supports.empty()&&out.output.contradictions.empty()&&out.output.unclear.size()==1&&!out.output.confidence,
+        "V450-L01 insufficient assessment maps to uncertainty without inventing confidence");
+    mode=0;calls=0;options.enabled=false;Check(!run()&&calls==0,"V450-L01 off never sends");options.enabled=true;
+    for(const auto* bad:{"http://localhost:1","http://127.0.0.1:0","http://127.0.0.1:65536","https://example.com","http://127.0.0.1:1/path"}) {
+        options.local_endpoint=bad;Check(!run()&&calls==0,"V450-L01 forbidden endpoint rejected before transport");
+    }
+    options.local_endpoint=endpoint;
+    Check(!MakeVaReviewProvider(options,transport)(input,"ollama",VaReviewService::Clock::now()+std::chrono::seconds(5),[]{return true;},&out,&error)&&calls==0,
+        "V450-L01 cancelled before first transmission");
+    auto invalid=input;invalid.pngs[0][0]=0;
+    Check(!MakeVaReviewProvider(options,transport)(invalid,"ollama",VaReviewService::Clock::now()+std::chrono::seconds(5),[]{return false;},&out,&error)&&calls==0,
+        "V450-L01 mutated image rejected before transmission");
+    const auto fds=Fds();std::string response;
+    const auto wire=[&](const std::string& body,std::chrono::milliseconds timeout=std::chrono::seconds(3)){
+        response="unchanged";return VaReviewCurl({endpoint+"/api/chat",body,{}},VaReviewService::Clock::now()+timeout,[]{return false;},&response,&error);
+    };
+    Check(wire("{\"mode\":\"ok\"}")&&response=="{\"ok\":true}","V450-L01 actual curl stdin/stdout HTTP transport");
+    for(const auto& pair:std::vector<std::pair<std::string,std::string>>{{"401","review-provider-auth"},{"429","review-provider-rate-limit"},
+        {"404","review-missing-model"},{"500","review-provider-unavailable"},{"redirect","review-provider-unavailable"},{"large","review-response-too-large"}}) {
+        Check(!wire("{\"mode\":\""+pair.first+"\"}")&&error==pair.second&&response=="unchanged","V450-L01 actual HTTP "+pair.first+" stable failure");
+    }
+    Check(!wire("{\"mode\":\"slow\"}",std::chrono::milliseconds(80))&&error=="review-timeout","V450-L01 actual transport deadline");
+    const auto started=VaReviewService::Clock::now();
+    Check(!VaReviewCurl({endpoint+"/api/chat","{\"mode\":\"slow\"}",{}},started+std::chrono::seconds(3),
+        [&]{return VaReviewService::Clock::now()-started>std::chrono::milliseconds(50);},&response,&error)&&error=="review-cancelled",
+        "V450-L01 actual transport cancellation");
+    Check(Fds()==fds,"V450-L01 transport FD recovery after failures");
+    int status=0;errno=0;Check(::waitpid(-1,&status,WNOHANG)==-1&&errno==ECHILD,"V450-L01 no unreaped curl child");
+}
+std::vector<std::uint8_t> QualityPng(int x) {
+    const unsigned width=512,height=288;std::vector<std::uint8_t> png{137,80,78,71,13,10,26,10},header;
+    Be(header,width);Be(header,height);header.insert(header.end(),{8,2,0,0,0});Chunk(png,"IHDR",header);
+    std::vector<std::uint8_t> raw;raw.reserve(height*(width*3+1));
+    for(unsigned y=0;y<height;++y){raw.push_back(0);for(unsigned col=0;col<width;++col) {
+        const bool square=x>=0&&int(col)>=x&&int(col)<x+48&&y>=120&&y<168;
+        const std::uint8_t background=x<0?128:240;
+        raw.push_back(square?230:background);raw.push_back(square?20:background);raw.push_back(square?20:background);
+    }}
+    uLongf size=compressBound(raw.size());std::vector<std::uint8_t> compressed(size);
+    if(compress(compressed.data(),&size,raw.data(),raw.size())!=Z_OK)throw std::runtime_error("quality-png");
+    compressed.resize(size);Chunk(png,"IDAT",compressed);Chunk(png,"IEND",{});return png;
+}
+void QualityChecks(const std::filesystem::path& root,const std::string& endpoint) {
+    using namespace recording;
+    EvidencePackageStore evidence(root/"quality-evidence",{});VaReviewStore records(root/"quality-records",{});
+    std::string error;Check(evidence.Recover(&error),"V450-L01 quality evidence ready");
+    VaReviewProviderOptions provider;provider.enabled=true;provider.local_endpoint=endpoint;
+    VaReviewService::Options options;options.enabled=true;
+    const auto observed=[](const VaReviewHttpRequest& request,auto deadline,const auto& cancelled,std::string* response,std::string* error) {
+        const bool ok=VaReviewCurl(request,deadline,cancelled,response,error);
+        if(ok&&request.url.find("/api/chat")!=std::string::npos) {
+            using namespace review_json;Doc d,m,c;std::string model,reason,role,content;
+            const bool parsed=Parse(*response,&d);if(parsed){Text(d,"model",&model);Text(d,"done_reason",&reason);
+                const auto message=ingress::StrictJsonObjectField(d,"message");if(message&&Parse(*message,&m)){Text(m,"role",&role);Text(m,"content",&content);}}
+            VaReviewOutput result;const bool valid=ParseVaReviewOutput(content,8,&result,nullptr);
+            std::cout<<"[provider-shape] json="<<parsed<<" done="<<(ingress::StrictJsonBoolField(d,"done")==true)
+                <<" model="<<EvidenceJsonQuote(model)<<" reason="<<EvidenceJsonQuote(reason)<<" role="<<EvidenceJsonQuote(role)
+                <<" contentBytes="<<content.size()<<" outputValidAt8="<<valid<<" fields=";
+            if(Parse(content,&c)) {
+                for(const auto& field:c.members)std::cout<<EvidenceJsonQuote(field.key)<<',';
+                for(const char* key:{"supports","questions","contradictions","unclear"}) {
+                    std::vector<std::string> items;std::cout<<' '<<key<<"Count="<<(Array(c,key,&items)?int(items.size()):-1);
+                }
+                const auto* confidence=c.Find("confidence");
+                if(confidence&&(confidence->type==Type::Null||confidence->type==Type::Number))std::cout<<" confidence="<<confidence->raw;
+            }
+            std::cout<<std::endl;
+            if(valid)std::cout<<"[synthetic-output] "<<SerializeVaReviewOutput(result)<<std::endl;
+        }
+        return ok;
+    };
+    VaReviewService service(evidence,records,options,MakeVaReviewProvider(provider,observed));
+    Check(service.ready(),"V450-L01 quality worker ready");unsigned semantic=0,uncertain=0,schemas=0;
+    for(const auto& test:VaQualityCases()) {
+        std::vector<EvidencePayload> payloads;auto manifest=Manifest(test.x.size(),&payloads);
+        for(std::size_t i=0;i<test.x.size();++i) {
+            auto png=QualityPng(test.x[i]);const auto sha=EvidenceSha256(png.data(),png.size());
+            payloads[i].bytes=png;auto& f=manifest.frames[i];f.width=512;f.height=288;f.png_sha256=sha;
+            f.pts_ns=std::int64_t(i)*1000000000;f.presentation_ns=f.pts_ns;
+            manifest.assets[i].sha256=sha;manifest.assets[i].size_bytes=png.size();
+            auto& ref=manifest.references[i+2];ref.id=f.segment_id+":"+std::to_string(f.pts_ns);ref.sha256=sha;
+        }
+        std::string id;Check(evidence.Publish(manifest,payloads,&id,&error),std::string("V450-L01 fixture ")+test.id);
+        VaReviewJob job;const auto start=VaReviewService::Clock::now();
+        Check(service.Submit(id,test.claim,"ollama","quality",[](const auto&){return true;},&job,&error),std::string("V450-L01 submit ")+test.id);
+        do {
+            std::this_thread::sleep_for(std::chrono::milliseconds(50));
+            if(!service.Get(job.id,[](const auto&){return true;},&job,&error))throw std::runtime_error("quality-job-get");
+        }while((job.state=="queued"||job.state=="running")&&VaReviewService::Clock::now()-start<std::chrono::seconds(65));
+        VaReviewRecord record;const bool valid=job.state=="completed"&&records.Read(job.review_id,&record,&error);
+        if(valid)++schemas;
+        const std::string expected=test.expected;
+        const bool unknown=valid&&record.output.supports.empty()&&record.output.contradictions.empty()&&!record.output.unclear.empty()&&!record.output.confidence;
+        const bool correct=valid&&(expected=="unclear"?unknown:expected=="supports"?
+            !record.output.supports.empty()&&record.output.contradictions.empty():!record.output.contradictions.empty()&&record.output.supports.empty());
+        if(correct)++semantic;if(expected=="unclear"&&unknown)++uncertain;
+        std::cout<<"[quality] {\"case\":"<<EvidenceJsonQuote(test.id)<<",\"expected\":"<<EvidenceJsonQuote(expected)
+            <<",\"schemaValid\":"<<(valid?"true":"false")<<",\"categoryPass\":"<<(correct?"true":"false")
+            <<",\"elapsedMs\":"<<std::chrono::duration_cast<std::chrono::milliseconds>(VaReviewService::Clock::now()-start).count()
+            <<",\"error\":"<<EvidenceJsonQuote(job.error)<<",\"modelDigest\":"<<EvidenceJsonQuote(record.model_revision)
+            <<",\"output\":"<<(valid?SerializeVaReviewOutput(record.output):"null")<<"}"<<std::endl;
+        // schema/실행 실패는 선행 조건 실패다. 다음 사례를 실행하지 않는다.
+        Check(valid,std::string("V450-L01 real model schema ")+test.id+" "+job.error);
+    }
+    service.Stop();
+    std::cout<<"[quality-summary] schema="<<schemas<<"/12 category="<<semantic<<"/12 uncertainty="<<uncertain<<"/4 semanticTextReviewRequired=true"<<std::endl;
+    rusage usage{};Check(::getrusage(RUSAGE_SELF,&usage)==0,"V450-L01 peak RSS observation");
+#ifdef __APPLE__
+    const auto rss=usage.ru_maxrss;
+#else
+    const auto rss=usage.ru_maxrss*1024;
+#endif
+    std::cout<<"[resource] nativePeakRssBytes="<<rss<<std::endl;
+    Check(schemas==12&&semantic>=10&&uncertain==4,"V450-L01 predefined quality gates");
+    Check(rss<=4LL*1024*1024*1024,"V450-L01 native process 4GiB budget");
+}
 }
 int main(int argc,char** argv) {
     try {
-        if(argc!=2)throw std::runtime_error("owned fixture root required");
+        if(argc!=4)throw std::runtime_error("owned fixture root, mode, endpoint required");
         gst_init(nullptr,nullptr);
+        if(std::string(argv[2])=="--local")QualityChecks(argv[1],argv[3]);else {
         InputChecks(argv[1]);
         RecordChecks(argv[1]);
         QueueChecks(argv[1]);
+        ProviderChecks(argv[1],argv[3]);
+        }
         std::cout<<"[summary] pass="<<checks<<" fail=0\n";return 0;
     } catch(const std::exception& e) {std::cerr<<"[fail] "<<e.what()<<'\n';return 1;}
 }

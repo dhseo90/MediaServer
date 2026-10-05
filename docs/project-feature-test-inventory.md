@@ -9,6 +9,18 @@
 [개발 계약](superpowers/specs/2026-10-05-v450-va-review-design.md)의 실행 전 정의다.
 아래는 구현/검증 완료 기록이 아니다. 단계별 검증 명령은 해당 구현과 함께 연결한다.
 
+`bash scripts/internal/verify_va_review.sh`는 native/loopback protocol 검사다.
+`--local http://127.0.0.1:<port>`는 별도 준비·승인된 모델의 12사례를 호출한다.
+독립 oracle은 [quality fixture](../scripts/internal/va_review_quality_fixture.h)에 실행 전 고정한다.
+2/8-frame 정순·역순, 2/8-frame 정지, 1-frame 색상 존재/부재, 1-frame 이동/방향 부족,
+전체 가림·마지막 가림을 구분한다. schema/근거는 12/12, 의미는 10/12 이상,
+부족 4사례는 unclear 및 nullable confidence 4/4가 합격 기준이다.
+자동 category 판정과 함께 각 설명이 독립 oracle의 실제 위치·색상·가림에 부합하는지
+직접 대조한다. 반대 근거에 원래 주장을 반복한 문장은 의미 PASS로 세지 않는다.
+macOS 모델 작업 메모리는 전용 Ollama와 현재 자식의 `proc_pid_rusage` 물리 footprint
+합계(250ms 간격)로 관측한다. Ollama 할당량·RSS+VRAM도 별도 보고하되 unified memory의
+중복 가능 합계를 물리 사용량으로 간주하지 않는다. 14GiB 기준은 유지한다.
+
 | 기능 ID | route/control/action과 정상·오류·경계 기대값 | 안정화 | 30분 | 120분 | UI |
 | --- | --- | --- | --- | --- | --- |
 | V450-I01 | 검증한 EvidencePackageV1에서 1/8 frame 순서·시간·asset/hash·partial 유지. 빈 frame, 잘못된 ID/참조/index/hash/순서, 12MiB 초과 거부. 원본 삭제 후 동일 입력, 오류 시 출력 불변 | native 입력/원본 회귀 | 녹화 병행 | 수명 영향 | 근거 시퀀스 |

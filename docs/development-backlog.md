@@ -15,6 +15,22 @@
 - v4.2.0 개발 범위와 제한은 [릴리즈 노트](release-notes-v4.2.0.md)를 따른다.
   v4.3.0의 공개 관측은 릴리즈 metadata에 기록돼 있다. 이번 개발의 검증으로 대체하지 않는다. [개발 계약](superpowers/specs/2026-10-04-v430-visual-vector-search-design.md)을 따른다.
 
+## v4.5.0 잔여 개발과 릴리즈 순서
+
+`v4.5.0` 브랜치의 01~04 구현·단기 검증을 보존했고, 05 실제 로컬 품질은 합격하지 못했다.
+2026-10-05 사용자의 추론모델 변경 전 정리 요청에 따라 06~07은 시작하지 않았다.
+정확한 실패·최종 코드의 미실행 경계·정리는 [개발 실행 결과](release-artifacts/v4.5.0/development-results.md)에만 둔다.
+아래 중요도는 현재 출시 차단 기준이며 원래 [개발 순서](v410-v49-recording-search-roadmap.md#개발-우선순위와-선행-관계)를 변경하지 않는다.
+
+| 순서·중요도 | 남은 일과 완료 조건 | 근거·승인/검증 경계 |
+| --- | --- | --- |
+| 1 · P0 | V450-05: 마지막 미검증 prompt 또는 재선정 접근의 실제 로컬 품질 통과. 12사례 구조·근거 100%, 부족 4사례 불확실성 100%, 설명까지 포함한 의미 10/12 이상·60초·자원 예산 유지 | 직접 실패 관측. 기존 합성 검증 승인은 유지하며 새 모델 다운로드/의존성/외부 호출은 별도 범위 확인. 마지막 prompt는 protocol만 검증됨 |
+| 2 · P1 | V450-06: runtime 구성·Ops API·증거 상세 UI 연결, 접수/실행/저장/조회 시 현재 역할·채널 scope, 취소·늦은 응답·viewer 비노출 검증 | 직접 미착수. 05 선행, 구현·focused 검증 승인 범위 |
+| 3 · P2 | V450-07: 선택 provider의 명시 opt-in adapter와 전송 guard·오류 격리. 실제 계정/model/credential/privacy 조건을 확정하고 실호출 또는 제외 상태 명시 | 직접 미착수. 구현 승인과 외부 데이터 전송 승인을 구분하며 현재 외부 실호출 조건은 미확정 |
+| 4 · P0 | V450-04 잔여 영향 + 08: 실제 RTSP/WebRTC·metadata/Event POST·녹화/검색의 모델 병행 진행, 실제 모델 취소/종료와 자원 회수, API/Auth 영향·지원 Linux·구조 graph/배포 소비자 확인 | 현재 native 검사는 일부 녹화/event append/검색뿐이다. 소스/환경 차이에서 도출한 잔여 범위이며 미실행을 PASS로 삼지 않음 |
+| 5 · P0 | 코드 고정 후 독립 검토, 필수 30분과 실제 UI 풀테스트, worker/자원 수명에 매핑된 120분 수행·잔여 실패 해소 | AGENTS·검증/릴리즈 정책의 직접 기준. 장시간·UI 풀테스트·지정 모델 독립 검토는 별도 명시 승인 필요 |
+| 6 · P0 | 최종 버전·CMake·릴리즈 노트/metadata·운영 안내 정합, 검증 기록 보존 후 승인된 정리, required CI·main 최종 hash·서명/Verified·공개 확인 | VERSION은 아직 4.4.0. PR·병합·signed tag·GitHub Release는 각각 별도 승인, 브랜치 push를 릴리즈로 간주하지 않음 |
+
 ## 별도 승인 릴리즈
 
 v4.1.1 당시 C1 소스·구조 정합, C2 독립 검토와 C3 승인 원장 적용·coverage/readiness는 완료된 과거 범위다.
@@ -65,7 +81,7 @@ runtime composition의 cutover 제한값 생성은 승인된 정확한 파일 �
 | 녹화 자원 수명 | 순환삭제 후에도 catalog/identity의 이력 크기가 증가할 수 있다. v4.4.0의120분 혼합 관측은 정해진 자원 상한 이내였으나 RSS 증가가 남아 있으며 무기한 운용·누수 없음의 보장이 아니다. 장기 이력 상한/압축은 별도 범위 결정이 필요하다. |
 | 시간과 재생 | 원본·미디어 위치와 UTC 품질은 별개다. 불명·모호·삭제 상태를 정상 단일 결과로 만들지 않으며 모든 카메라의 촬영 시각 동기화나 자동 후속 세그먼트 재생을 보장하지 않는다. |
 | 운영 기능 승격 | `action-execution`, `persistent-credential-store`, `production-restore`, `external-vlm-provider-call`, `model-backed-reid-session`은 로컬 정책의 보류·실험 경계를 유지한다. 상태/결정 조회나 fixture 성공을 실제 실행 기능으로 승격하지 않는다. |
-| 제품화 후보 | Incident OS primary nav 승격, Evidence default-on, 로컬 Action Execution, 영구 credential store, tracker 기본 선택, 로컬 VLM 운영 경로는 버전·범위 재승인 전 미배정 후보다. 과거의 “v4.1.0에서 구현” 문구는 현행 일정이 아니다. |
+| 제품화 후보 | Incident OS primary nav 승격, Evidence default-on, 로컬 Action Execution, 영구 credential store, tracker 기본 선택은 버전·범위 재승인 전 미배정 후보다. 로컬 VLM 운영 경로 중 불변 증거 기반 VA Review 01~07은 v4.5.0의 approved-next-roadmap이며 실제 품질·외부 호출·릴리즈 조건은 위 잔여 항목을 따른다. 과거의 “v4.1.0에서 구현” 문구는 현행 일정이 아니다. |
 | 추적·Re-ID 연구 | 연구 또는 opt-in 경계를 유지한다. BoT-SORT/DeepSORT·OC-SORT의 연구 자료를 현재 지원 tracker나 기본 선택으로 간주하지 않는다. |
 | 검증 범위 | 외부 서비스·실기기 검증은 사용자 제외이며 PASS가 아니다. 로컬·한정 시간의 결과를 다른 장비나 무기한 운용의 보장으로 확대하지 않는다. |
 | 표시 언어 | 영문 운영 사용자 목록의 숫자 채널 권한 보조 문구에 한글이 남을 수 있다. 권한 결함과는 구분하며 수정 일정은 미정이다. |

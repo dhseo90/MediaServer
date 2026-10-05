@@ -229,6 +229,9 @@ S10 시간·식별·저장 보강과 S11 최종 검증으로 마감했다.
 아래 단계 ID는 개발 단위다. 실행 전 기능별 정상·오류·경계 기대값은 기존
 [테스트 정의](project-feature-test-inventory.md)에 등록한다.
 
+현재 구현·중단 지점은 [v4.5.0 잔여 개발](development-backlog.md#v450-잔여-개발과-릴리즈-순서)을 따른다.
+01~04의 단기 구현 검증과 05 실제 품질 미달을 구분하며 06~07은 미착수다.
+
 출발점은 v4.4.0의 [불변 증거 패키지](superpowers/specs/2026-10-04-v440-evidence-package-design.md)다.
 시간순으로 선택한 최대 8개 원본 sample, 보존 PNG/clip, checksum과 provenance를 소비한다.
 패키지 재생성이나 전체 영상 분석을 선행 과제로 추가하지 않는다. 제한된 sample 사이에서

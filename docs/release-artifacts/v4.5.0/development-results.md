@@ -56,3 +56,67 @@
   카탈로그 검색 갱신·독립 UTC query 1건, EventRecord 파일 쓰기를 확인했다.
   실제 RTSP/WebRTC 송출·metadata/Event POST 전달과 장시간 부하는 이 native 검사에 포함되지 않는다.
 - 협력적 provider 취소·worker join 500ms 이내, 임시 root 정리·부재 확인. 실제 모델은 아직 미실행.
+
+## V450-05 로컬 adapter (미완료·인계)
+
+- source: `19c0c8038` 위 provider/curl transport·고정 12-case fixture 변경. 각 로그에 실제 소스 SHA-256을 기록한다.
+- 최초 protocol 실행은 fixture 부모 디렉터리 누락으로 exit 1([원출력](05-protocol-first.log)).
+  제품 실패나 예상 RED가 아니다. 소유 fixture 부모를 만든 뒤 [재검증](05-protocol.log)은 184 PASS/exit 0이다.
+- 실제 모델 최초 실행은 two-right의 4개 배열이 모두 빈 결과여서 strict codec이 거부했다
+  ([최초](05-quality-first.log), [protocol 형태 진단](05-quality-diagnostic.log), [배열 개수 진단](05-quality-diagnostic-counts.log)).
+  세 실행 모두 exit 1, 첫 사례에서 중단했으며 다음 사례 PASS를 주장하지 않는다.
+- 근거 필수 prompt 보완 후 protocol 184 PASS([출력](05-protocol-revised.log)),
+  실제 [재검증](05-quality-revised.log)은 정순/역순 4개 구조 통과 뒤 정지 사례의 빈 결과로 exit 1이다.
+  이때 `semanticPass` 필드는 category만 검사한 자동 값이었다. 역순 설명이 원래 주장을 반복한 사실을
+  직접 발견하여 의미 PASS 주장을 철회하고, 후속 출력은 `categoryPass`와 직접 문장 대조를 분리했다.
+- nonempty anyOf schema와 prompt 내 schema 설명을 보완한 protocol은 184 PASS
+  ([출력](05-protocol-schema.log)). 실제 [12-case 실행](05-quality-schema.log)은 구조 12/12,
+  category 11/12, 부족 사례 3/4로 exit 1이다. occluded-final을 contradiction으로 잘못 분류했다.
+  two-left는 category가 맞아도 설명이 실제 위치와 달라 의미 실패다. 필수 부족 사례 100% 기준을 유지한다.
+- 위 실행의 RSS+VRAM 합계 최대는 15,620,947,520bytes, 모델 보고 할당은 7,972,486,720bytes다.
+  unified memory 중복 가능 합계는 실제 working set으로 단정하지 않는다. 품질 assertion이 먼저 실패해
+  이 실행의 자원 gate는 미실행이다. 후속에서는 SDK의 `proc_pid_rusage` 물리 footprint를 직접 측정하며
+  기존 14GiB 기준과 기존 합계 관측값을 함께 유지한다.
+- 가림 지시 보완 후 [재검증](05-quality-occlusion.log)은 구조 12/12, category 10/12,
+  부족 사례 3/4로 exit 1이다. 두 역순 사례는 설명도 실제 위치와 달랐다. 관측한 모델 물리
+  footprint 최대 7,837,310,704bytes, native peak RSS 44,187,648bytes다. 품질 실패로 자원 gate까지 통과한 실행은 아니다.
+- 모델 wire를 `observations`와 단일 `assessment`로 단순화하고 기존 public output으로 strict 변환했다.
+  [protocol](05-protocol-assessment.log)은 214 PASS/exit 0, [실제 모델](05-quality-assessment.log)은
+  구조 12/12, category 9/12, 부족 사례 1/4로 exit 1이다. 단일 방향·전체 가림·마지막 가림을
+  contradiction으로 잘못 분류했다. 반대 방향의 위치 설명은 개선됐으나 품질 합격은 아니다.
+  모델 물리 footprint 최대 7,808,671,424bytes, native peak RSS 44,023,808bytes를 관측했다.
+- 마지막 변경은 이미지/주장 뒤에 핵심 불확실성 규칙을 재명시한 prompt다.
+  [빌드](05-build-reminder.log)는 exit 0, [native/protocol](05-protocol-reminder.log)은 214 PASS/exit 0이다.
+  **이 마지막 prompt의 실제 모델 검증은 사용자 마감 정리 지시에 따라 시작하지 않았다.**
+  마지막 실제 실패를 최종 prompt의 실행 결과로 바꾸거나, 미실행을 PASS로 주장하지 않는다.
+- runtime은 Ollama 0.21.0이다. `ollama show --template`은 `{{ .Prompt }}`지만 modelfile의
+  renderer/parser는 `qwen3-vl-instruct`다. [동일 runtime renderer 소스](https://github.com/ollama/ollama/blob/v0.21.0/model/renderers/qwen3vl.go)는 system 메시지를 포함하므로
+  단순 template 문자열만으로 system 누락을 원인으로 확정하지 않았다. 별도 runtime/모델 설치·설정 변경은 하지 않았다.
+- 각 실패의 원출력과 중간 build/protocol 로그를 보존했다. 로그의 source hash는 당시 관측이며,
+  현재 코드로 모든 중간 실패를 재현했다는 뜻은 아니다. raw provider 응답 대신 합성 결과의 정제 필드만 기록했다.
+
+## 2026-10-05 마감 정리와 재개 지점
+
+- 사용자가 추론모델 변경을 위해 정리·잔여 재산정을 요청했다. 추가 구현·실제 모델 실행은 중단했다.
+  Codex 모델 설정이나 제품 VLM을 자동 교체하지 않았다. 01~04는 구현·focused 검증 커밋이며,
+  05는 **품질 미달인 미완료 코드/증거 보존 대상**이다. 06 API/UI와 07 외부 adapter는 미착수다.
+- 최초 재개 대상: 마지막 prompt를 기존 12-case oracle로 평가할지, 모델/접근법을 재선정할지 판단한다.
+  현재 provider는 한 관측 설명과 단일 판정을 supports/contradictions/unclear 중 하나로 변환하며
+  questions는 빈 배열이다. public record와 근거 index 검증은 유지한다.
+  `outputValidAt8=0` 진단은 새 provider wire를 옛 public-output parser로 읽은 값이므로 새 wire 실행의
+  합격 판정이 아니다. 각 `[quality]`의 `schemaValid`는 실제 제품 adapter와 저장 codec 결과다.
+- 새 라이브러리·모델 weight·외부 호출이 필요한 변경은 해당 범위를 명시 승인받는다.
+  30분·120분·실제 UI 풀테스트·독립 검토와 PR/병합/tag/Release는 이번 실행에 포함되지 않았다.
+  릴리즈 잔여 우선순위와 완료 조건은 [현재 backlog](../../development-backlog.md#v450-잔여-개발과-릴리즈-순서)를 따른다.
+- `git ls-remote --heads origin main v4.5.0`: 둘 다 정리 전 `5e103ea13d7f7c50ad532c5dd0fc989853856fad`.
+  `gh release view --repo dhseo90/MediaServer --json tagName,url,isDraft,isPrerelease,publishedAt`:
+  Latest `v4.4.0`, draft/prerelease false, publishedAt `2026-10-05T01:47:56Z`,
+  [공개 URL](https://github.com/dhseo90/MediaServer/releases/tag/v4.4.0). 로컬 VERSION/CMake는 4.4.0이며 4.5.0 릴리즈 작업은 미실행이다.
+- 전용 Ollama PID 2755는 정상 종료(exit 0), 시작했던 native/compile session은 종료 결과를 회수했다.
+  종료 직전 로드된 모델 0개·자식 0개, 종료 후 PID/포트 부재를 확인했다
+  ([정리·모델 provenance](05-runtime-cleanup.json)). 6,140,415,975byte weight는 Git 제외 `models/v450-ollama`에 유지한다.
+  native fixture root 17개의 부재를 재확인하고, 05 로그 19개를 원본과 SHA-256 대조한 뒤
+  소유 임시 root `.media_server.test/v450`을 제거·부재 확인했다. 다운로드 진행/반복 서버 로그는
+  모델 provenance와 정리 결과를 보존한 뒤 삭제했다. 승인된 weight는 유지한다.
+- 마감 문서 검사: `git diff --check` 공백 오류 없음, [문서 링크](closeout-docs-links.log) 302개 문서·failures 0,
+  [범위 gate](closeout-feature-scope.log) 5 PASS/0 FAIL. 제품 품질 PASS와 별개의 문서 확인이다.
