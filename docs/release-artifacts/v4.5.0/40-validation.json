@@ -8,7 +8,7 @@
     {
       "command": "cmake --build build-gst-onnx --target media_server_runtime -j 4",
       "exit": 0,
-      "log": "40-build.log"
+      "log": "40-build.log.gz"
     },
     {
       "command": "bash scripts/internal/verify_evidence_package.sh --observations",
@@ -18,37 +18,37 @@
         "recoverNewProcess": 2,
         "packageOnlyReadbackNewProcess": 9
       },
-      "log": "40-observations.log"
+      "log": "40-observations.log.gz"
     },
     {
       "command": "bash scripts/internal/verify_evidence_package.sh",
       "exit": 0,
       "pass": 1028,
-      "log": "40-package-v1.log"
+      "log": "40-package-v1.log.gz"
     },
     {
       "command": "bash scripts/internal/verify_v410_recording_contracts.sh",
       "exit": 0,
       "pass": 135,
-      "log": "40-codec.log"
+      "log": "40-codec.log.gz"
     },
     {
       "command": "bash scripts/internal/verify_va_review.sh --core-only",
       "exit": 0,
       "pass": 168,
-      "log": "40-core.log",
+      "log": "40-core.log.gz",
       "preserved38RequestSha256": "5c932342d11fddd7f73e5245d0cddcc9b02ebbe46daf3fc9f47514de88a0920b"
     },
     {
       "command": "node scripts/internal/verify_v390_structure_stabilization_execution.mjs --graph-only",
       "exit": 0,
       "pass": 4,
-      "log": "40-structure.log"
+      "log": "40-structure.log.gz"
     },
     {
       "command": "node scripts/internal/verify_code_comments.mjs",
       "exit": 1,
-      "log": "40-comments.log",
+      "log": "40-comments.log.gz",
       "existingUnchangedViolations": 13,
       "changedScopeViolations": 0,
       "baselineLineAndWholeFileBytesCompared": true
@@ -56,7 +56,7 @@
     {
       "command": "./server.sh verify-docs-links",
       "exit": 0,
-      "log": "40-docs.log"
+      "log": "40-docs.log.gz"
     },
     {
       "command": "git diff --cached --check",
@@ -64,20 +64,26 @@
     },
     {
       "command": "./server.sh verify-docs-links (evidence-only follow-up)",
+      "exit": 1,
+      "log": "40-evidence-docs.log.gz",
+      "scope": "evidence links added after code commit; product checks not repeated",
+      "correction": "design section 40 anchor retains middle dot; fixed in evidence-only follow-up"
+    },
+    {
+      "command": "./server.sh verify-docs-links (fixed evidence anchor)",
       "exit": 0,
-      "log": "40-evidence-docs.log",
-      "scope": "evidence links added after code commit; product checks not repeated"
+      "scope": "evidence-only correction; tool output showed 302 Markdown, 9573 links, 404 anchors, 0 failures"
     }
   ],
   "initialFailure": {
-    "log": "40-initial-failure.log",
+    "log": "40-initial-failure.log.gz",
     "exit": 1,
     "assertion": "actual decoder marks uncropped source geometry; detector inference not run",
     "detail": "30 packet burst fixture의 geometry gate 실패. 당시 got/geometry 개별 값은 로그에 없어 추정 복원하지 않는다. leaky queue의 keyframe 유실 가능성이 있는 burst를 2 packet 입력으로 바꾸고 동일 5초 대기 한도를 유지했다. production decoder/queue 정책은 바꾸지 않았다.",
     "revalidation": [
-      "40-intermediate-02.log",
-      "40-intermediate-03.log",
-      "40-observations.log"
+      "40-intermediate-02.log.gz",
+      "40-intermediate-03.log.gz",
+      "40-observations.log.gz"
     ],
     "intermediateLimitation": "중간 검사에는 로그에 나열한 파일 hash가 있으며 최종 전체 코드 hash 집합은 40-source.json에 있다. 중간 PASS를 최종 코드의 PASS로 승계하지 않는다."
   },
@@ -107,18 +113,38 @@
     "전체 catalog revision에 보수적으로 반응하고 조회/사본 상한 초과는 오류; 자동 재시도 없음"
   ],
   "artifactSha256": {
-    "40-build.log": "45df0d92d449559cd50e307b7431253913ba7cdea516e0998ef08f9c7e1e6ae5",
-    "40-codec.log": "7788cec02b906b911fbeaccd3e801177b6859c319fda0a88e30103040ee2dfc8",
-    "40-comments.log": "cd3d41957ade17adec1f9e05d0e15884235c8fb5885a20ddd1557589f9991d5e",
-    "40-core.log": "620bd955ac634f68df1acdc3b6fdf8a578c3dea381aa2669980481707957e4bd",
-    "40-docs.log": "0cd270e78631904dd56354d37a20473e37c4cc046c91e501601a79b897d86bb5",
-    "40-evidence-docs.log": "adffa4482176d6e9dbc8d1dc57b0c14cba8400b00ab893b38c9ab47b2d333c57",
-    "40-initial-failure.log": "091fe95022f9b24ce5c79037333732f7eae6c527d208d484917b0d0b6b2b706a",
-    "40-intermediate-02.log": "72646ecbcf266e9dc8b8386fd05ebf62844f1f4c601f48bba8a6efe7a0fa6004",
-    "40-intermediate-03.log": "d3a5f05631325db86bf5d70b9f9ab0b7af65f8670480ee05d4f25ce3e7b10870",
-    "40-observations.log": "c66e4a3abb3d202c8ed9460bbfdd2e05293a624b9a2d3fccc1c6b24558d8d4bb",
-    "40-package-v1.log": "021e27333dac6c1551023eee385b54caef9e40f80ca7fde77fc37d0e33be8aa9",
+    "40-build.log.gz": "8d28335fb291c116e328f0b76d6195e90f5ec4296fb30a25ca5b34e59d9c26bd",
+    "40-codec.log.gz": "c2b020ce17ac8e119c27a8432fefc40911632d0e6b0a58c3d72a0f49627aafca",
+    "40-comments.log.gz": "519d1f3ce9b822b0dec4e9af9d1b2b903481e24ad51fd8a2010dc4e7ef7cc6eb",
+    "40-core.log.gz": "fad34f49123f62289f2536dceaf6a6bf0edef5268f0850316a7489b32d045e10",
+    "40-docs.log.gz": "dedcd2f9c214e5d50219cf0e26413f0a484a9fe81d3b59937b3a6ec471c29f13",
+    "40-evidence-docs.log.gz": "7c1642f565d2009d78e3add611d6286447a395ee88703c20bef3750a82174c10",
+    "40-initial-failure.log.gz": "86e7a1337496573903c54c9f4fca5618b240bb01ab55a1b9b1825d010aaa5879",
+    "40-intermediate-02.log.gz": "20919d560d41d010b4bf1c5c15d2f331a7bd392986f5b673a0ff798102ec7997",
+    "40-intermediate-03.log.gz": "b66c450bfb10104ae3b5f6c094e6ef59d9ddbbbc4de07283c8b8d34adb2bf363",
+    "40-observations.log.gz": "faae89dcd8911d960b7707b921e691f88a6065e32501555aedcb0054e6898367",
+    "40-package-v1.log.gz": "942abedbf4e52a5869cfe15adff1f77ca5cd0438d6bc70fc8efa7d67476cb668",
     "40-source.json": "f22d7b2056f6d164c0d4e4922b7b6255da505ddf384136067858f665023c7e04",
-    "40-structure.log": "5ea6643dfdfb92735a8965aa33a38b9de9d30c570690efc4b8c2444236667f3c"
+    "40-structure.log.gz": "36cd8e1bec4083a81e997921d8ee123882227812cd80cdc737c2aeff6aaed864"
+  },
+  "rawLogSha256": {
+    "40-build.log.gz": "45df0d92d449559cd50e307b7431253913ba7cdea516e0998ef08f9c7e1e6ae5",
+    "40-codec.log.gz": "7788cec02b906b911fbeaccd3e801177b6859c319fda0a88e30103040ee2dfc8",
+    "40-comments.log.gz": "cd3d41957ade17adec1f9e05d0e15884235c8fb5885a20ddd1557589f9991d5e",
+    "40-core.log.gz": "620bd955ac634f68df1acdc3b6fdf8a578c3dea381aa2669980481707957e4bd",
+    "40-docs.log.gz": "0cd270e78631904dd56354d37a20473e37c4cc046c91e501601a79b897d86bb5",
+    "40-evidence-docs.log.gz": "adffa4482176d6e9dbc8d1dc57b0c14cba8400b00ab893b38c9ab47b2d333c57",
+    "40-initial-failure.log.gz": "091fe95022f9b24ce5c79037333732f7eae6c527d208d484917b0d0b6b2b706a",
+    "40-intermediate-02.log.gz": "72646ecbcf266e9dc8b8386fd05ebf62844f1f4c601f48bba8a6efe7a0fa6004",
+    "40-intermediate-03.log.gz": "d3a5f05631325db86bf5d70b9f9ab0b7af65f8670480ee05d4f25ce3e7b10870",
+    "40-observations.log.gz": "c66e4a3abb3d202c8ed9460bbfdd2e05293a624b9a2d3fccc1c6b24558d8d4bb",
+    "40-package-v1.log.gz": "021e27333dac6c1551023eee385b54caef9e40f80ca7fde77fc37d0e33be8aa9",
+    "40-structure.log.gz": "5ea6643dfdfb92735a8965aa33a38b9de9d30c570690efc4b8c2444236667f3c"
+  },
+  "evidenceWhitespaceCorrection": {
+    "originalEvidenceCommit": "8a05ec4ab",
+    "originalEvidenceDiffCheck": "FAIL: raw stdout contains trailing whitespace; commit proceeded before that result was inspected",
+    "correction": "lossless gzip; decoded bytes checked against all original logs; no history rewrite or test result change",
+    "additionalCorrection": "Original evidence-only docs command returned FAIL for a middle-dot anchor. Its exit was mistakenly recorded as 0 because a following diff command succeeded; corrected to 1, original log preserved, fixed anchor rechecked separately."
   }
 }
