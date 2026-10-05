@@ -451,3 +451,44 @@ AGENTS 4장의cleanup 실패 중단 규정에 따라 새 수정/재검/위임을
 시간 초과 시 자식 exit0이어도 FAIL/124, 별도 recovery 그룹 회수, 비소유 sentinel 생존, 기본 등록 훅 미사용,
 기록/등록 실패 전파도 확인했다. 최초 실패는 그대로 유지한다. 제품 코드/바이너리는 변경 없다.
 준비 소스와 실행 결과를 커밋해 고정한 뒤 실제 120분 관측을 실행한다. 총 7380초와 기존 기능/성능 한도는 그대로다.
+
+
+## 재개 후 변경 경로 120분 결과
+
+source `1fe0b6d259c6691982211c9eafcf4f4f84647e42`, 제품 binary SHA-256
+`4eaf41faebabb057958b3d9fcf55a2ceafb08b6eabd6baa024e7039c9b70314d`를 시작/종료에 대조했다.
+2026-10-04T23:19:48.323122Z~2026-10-05T01:21:21.628174Z에 실행했고,
+실제 관측 7200.493초, 최종 결속 포함 총 7293.261초로 승인한 7380초 안에 종료했다.
+[원출력](mixed-preparation/mixed-120-15/run.log)과 [실행 receipt](mixed-preparation/mixed-120-15/execution.json)는
+23,041 PASS/0 FAIL/exit0이며 최초 실행기 FAIL은 위 원래 경로에 유지한다.
+
+479회 혼합 부하에서 검색 1,916회 성공, 명시적 visual 503 4회, 성공 검색 p95 730.554ms/max1817.484ms다.
+503은 성공 관측 누락과 누적 개수로 cycle114/193/280/365에 각각 1회임을 대조했다.
+드라이버는 허용 오류 코드를 assertion했지만 해당 응답 본문·정확한 시각은 출력하지 않았다.
+따라서 개별 오류 코드를 추정 복원하지 않는다. 네 client는 각각480/480/477/479회 성공했다.
+구조화 보존479회(complete472/partial7), 동시 생성 busy479회, visual 보존474회와 원본 만료410 5회다.
+partial은 당시 manifest의 deleted/missing/unsupported 참조 assertion을 통과했으나 그 상세 본문은 미보존이다.
+초기 구조화/visual의 manifest·PNG를960회 재조회하고 원본 삭제·off/on·재시작 후에도 동일성을 확인했다.
+최종 녹화7,187개/순환삭제7,173개, 실제 원장 회전87회로 두 채널의 진행을 확인했다.
+
+RSS 1,440개 sample의 최고3,190,128,640B/종료1,888,452,608B,
+초기5분 이후 증가199,507,968B(190.27MiB), FD/thread 끝점 차0/0이다.
+최대 sample gap5.033초, observer64,661 ID/9,347,381B, variable root155,235,932B,
+복사 중 합산 최고338,948,202B로 사전 상한 이내다. RSS의 회수와 지속 증가가 함께 관측되며
+무한 운영·일반 누수 없음·정상상태 plateau를 증명하지 않는다. 원출력의 resourceTrendPass=false,
+reviewRequired=true와 uiFulltestPass=false는 자동 승격하지 않는다.
+정확한 파생 수치·영역별 한계는 [읽기 검토](mixed-preparation/mixed-120-15/result-review.json)에 둔다.
+
+세 native snapshot receipt의 실제 바이트/SHA가 원출력과 일치한다. 제품3개는 정상exit0,
+별도 recovery3그룹과 실행기 그룹이 종료됐으며 root와copy3개가 제거됐다.
+2026-10-05T01:25:37Z의 [별도 정리 확인](mixed-preparation/mixed-120-15/post-run-cleanup.json)에서도
+소유 PID/PGID8개·TCP포트6개·root4개 부재를 확인했다. 제품 소스·binary는 바뀌지 않았다.
+기존30분·미변경 전체UI/공통장시간·변경UI 증거는 위 영향 판단으로 유지하며 전체 테스트를 재시작하지 않는다.
+남은 단계는 자원 독립 판정, Git 원본 보존·공개 트리 정리, 마감 정합성10개와 PR/main required CI 및 공개다.
+
+
+독립 검토 `/root/release_independent_review` (승인된 gpt-6-astra/xhigh, 읽기 전용)와 메인은
+이 실행을 사전에 정한 혼합 부하·120분의 릴리즈 증거로 수용했다. 새로운 제품 blocker는 확인하지 못했다.
+사전 자원 한도·검색·진행·순환삭제/재시작·정리 기준을 충족했고, RSS 증가와 개별503 본문 미기록의 한계는
+그대로 유지한다. 일반 누수 없음이나 무기한 운영을 승인한 판정이 아니며 raw 자동 판정 flag는 수정하지 않았다.
+남은 필수 검사는 기록 정리 후 마감 정합성10개, PR/main required CI다.

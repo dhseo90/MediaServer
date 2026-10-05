@@ -1,5 +1,5 @@
 {
-  "state": "ready-for-approved120",
+  "state": "completed-exit0-bounded-resource-review-accepted",
   "featureIds": [
     "V440-F01",
     "V440-F02",
@@ -63,7 +63,7 @@
     "instruction": "테스트 재개.",
     "approvedScope": "실행기 원인 수정·동일30초 종료 검사, 통과 후 기존 승인120분/총123분 및 마감정합성/required CI",
     "recordedAt": "2026-10-04T23:17:44.851843+00:00",
-    "executionStarted": false,
+    "executionStarted": true,
     "requiresNewExplicitResume": false
   },
   "preExecutionBlocker": null,
@@ -133,5 +133,7 @@
     "newStopReason": "launcher cleanup PermissionError; follow-up command/PID absence and owned temporary cleanup observed, but original process-group proof unavailable",
     "statusBeforeNewStop": "explicitly-resumed-by-user"
   },
-  "launcherResult": "launcher-checks-2.json"
+  "launcherResult": "launcher-checks-2.json",
+  "executionResult": "execution.json",
+  "mainDecision": "result-review.json"
 }

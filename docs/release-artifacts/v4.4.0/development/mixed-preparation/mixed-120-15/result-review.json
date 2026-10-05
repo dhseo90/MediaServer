@@ -1,0 +1,230 @@
+{
+  "derivedFrom": "run.log",
+  "runLogSha256": "6f08cba7f1a7b46a003d5e4afd7e737a4bad10ea9d1b0daa2411fdf412ace795",
+  "searchUnavailable": {
+    "count": 4,
+    "cycles": [
+      {
+        "cycle": 114,
+        "missingClients": [
+          2
+        ],
+        "previousSuccessfulBatchAtMs": 1791157695469,
+        "sameBatchSuccessfulAtMs": [
+          1791157710527
+        ]
+      },
+      {
+        "cycle": 193,
+        "missingClients": [
+          3
+        ],
+        "previousSuccessfulBatchAtMs": 1791158881753,
+        "sameBatchSuccessfulAtMs": [
+          1791158896536
+        ]
+      },
+      {
+        "cycle": 280,
+        "missingClients": [
+          2
+        ],
+        "previousSuccessfulBatchAtMs": 1791160188214,
+        "sameBatchSuccessfulAtMs": [
+          1791160202832
+        ]
+      },
+      {
+        "cycle": 365,
+        "missingClients": [
+          2
+        ],
+        "previousSuccessfulBatchAtMs": 1791161459308,
+        "sameBatchSuccessfulAtMs": [
+          1791161474485
+        ]
+      }
+    ],
+    "limitation": "4 visual 503 inferred from absent success observations and counts; driver asserts allowed error code but exact error bodies/time were not logged; do not reconstruct them"
+  },
+  "structuredPartialResponses": [
+    {
+      "id": "ep-ec38d7095e53ac5fcf83e66cdab86a5b66f1f25a79dcbe6b81df796d6ddba43b",
+      "channelId": "9101",
+      "status": "partial",
+      "createdAtMs": 1791157710581,
+      "frames": 0,
+      "assets": 0
+    },
+    {
+      "id": "ep-b1d46a18bc956e4030e55275fe8b32234ad7883189f333746559c5a7da2cf106",
+      "channelId": "9101",
+      "status": "partial",
+      "createdAtMs": 1791160723565,
+      "frames": 0,
+      "assets": 0
+    },
+    {
+      "id": "ep-671db7f3c209fef4c65aaf64d56b2675963fdf30ec968e7d784e99ec5ecf6d9c",
+      "channelId": "9101",
+      "status": "partial",
+      "createdAtMs": 1791160964078,
+      "frames": 0,
+      "assets": 0
+    },
+    {
+      "id": "ep-eb97c83586ce094837334c944155ca7085f98a54fd73bcd75fc7f9cf6bc0be33",
+      "channelId": "9101",
+      "status": "partial",
+      "createdAtMs": 1791161609601,
+      "frames": 0,
+      "assets": 0
+    },
+    {
+      "id": "ep-7b19dc80a629ff94c5160a672bb3a0eaa1d16182eaaddd0b4f85f7478d9761ca",
+      "channelId": "9101",
+      "status": "partial",
+      "createdAtMs": 1791162240317,
+      "frames": 0,
+      "assets": 0
+    },
+    {
+      "id": "ep-833f9e30bb7dbd1684d5e870e4e0abec2743a74438021f9ec2e73e41489830c8",
+      "channelId": "9101",
+      "status": "partial",
+      "createdAtMs": 1791162270273,
+      "frames": 0,
+      "assets": 0
+    },
+    {
+      "id": "ep-78dddb9678fa48cb87e03af84e1da844797e7cc2cd50e2781da94b80e7076024",
+      "channelId": "9101",
+      "status": "partial",
+      "createdAtMs": 1791162300445,
+      "frames": 0,
+      "assets": 0
+    }
+  ],
+  "workspaceCopy": [
+    {
+      "samples": 104,
+      "maxGapMs": 101.86712500080466,
+      "peakCombinedBytes": 331980140,
+      "capBytes": 950149271,
+      "failure": null
+    },
+    {
+      "samples": 106,
+      "maxGapMs": 102.03433399926871,
+      "peakCombinedBytes": 336547258,
+      "capBytes": 950149271,
+      "failure": null
+    },
+    {
+      "samples": 106,
+      "maxGapMs": 101.83799999952316,
+      "peakCombinedBytes": 338948202,
+      "capBytes": 950149271,
+      "failure": null
+    }
+  ],
+  "snapshotReceiptBytesMatch": [
+    {
+      "path": "receipts/o28-current-snapshot-bd31d680-126f-4458-bc15-2c44ef4cd0a7.json",
+      "bytes": 400631,
+      "sha256": "c2311125fa30fb391f9f0a12e13e94ed4d7a63be50478671215dd1eb80cd698f",
+      "matchesLog": true
+    },
+    {
+      "path": "receipts/o28-current-snapshot-f1078782-672e-4a15-a9e8-2ff7bba63675.json",
+      "bytes": 399254,
+      "sha256": "32b477672d6c67249ea5ffa0c6ac1a0006f09c511d10ca8d069a7099936b1288",
+      "matchesLog": true
+    },
+    {
+      "path": "receipts/o28-current-snapshot-fb231714-38e1-4525-b0da-bb2ee3e95025.json",
+      "bytes": 399251,
+      "sha256": "83fb06269647b864d82fb28c9e02e5b8d6a9e3fa3f2d3376e0d8912af3f7adc8",
+      "matchesLog": true
+    }
+  ],
+  "resources": {
+    "status": "observed",
+    "resourceTrendPass": false,
+    "reviewRequired": true,
+    "sampleCount": 1440,
+    "groups": [
+      {
+        "pid": 91672,
+        "startIdentity": "macos:1791155992:880176",
+        "sampleCount": 1440,
+        "first": {
+          "phaseAt": 6522.736833,
+          "sampledAt": 1791155997959,
+          "rssBytes": 3158802432,
+          "threadCount": 36,
+          "fdCount": 29,
+          "mutationCount": 2
+        },
+        "last": {
+          "phaseAt": 7206161.465208,
+          "sampledAt": 1791163197643,
+          "rssBytes": 1888452608,
+          "threadCount": 41,
+          "fdCount": 29,
+          "mutationCount": 28737
+        },
+        "max": {
+          "rssBytes": 3190128640,
+          "threadCount": 43,
+          "fdCount": 34
+        },
+        "delta": {
+          "rssBytes": -1270349824,
+          "threadCount": 5,
+          "fdCount": 0,
+          "mutationCount": 28735
+        },
+        "elapsedMs": 7199638.728375,
+        "maxGapMs": 5033.28337499965,
+        "warmupMs": 300000,
+        "postWarmup": {
+          "status": "observed",
+          "sampleCount": 1380,
+          "delta": {
+            "rssBytes": 199507968,
+            "threadCount": 0,
+            "fdCount": 0,
+            "mutationCount": 27563
+          },
+          "elapsedMs": 6899379.658708,
+          "rssMiBPerMinute": 1.6546324546137219
+        }
+      }
+    ]
+  },
+  "maxRotations": 87,
+  "maxObserverIds": 64661,
+  "maxObserverBytes": 9347381,
+  "mainDecision": {
+    "result": "accepted-for-approved-bounded-release-cut",
+    "recordedAt": "2026-10-05T01:29:03.475162+00:00",
+    "scope": "actual changed-path120; existing focused/30/UI impact mapping retained; no new canonical PASS",
+    "basis": "all predeclared duration, progress, retention/restart, search, resource-cap and cleanup expectations satisfied; independent current-state cleanup pass",
+    "limitations": [
+      "post-warmup RSS +190.27MiB; no plateau, full RSS attribution or general leak-free claim",
+      "individual visual503 response bodies and exact timestamps not recorded",
+      "external devices/services excluded"
+    ]
+  },
+  "independentReview": {
+    "reviewer": "/root/release_independent_review",
+    "model": "gpt-6-astra",
+    "reasoning": "xhigh",
+    "scope": "read-only evidence review, no edits/tests",
+    "result": "accepted-for-approved-bounded-release-cut; no additional proven product blocker",
+    "runLogSha256": "6f08cba7f1a7b46a003d5e4afd7e737a4bad10ea9d1b0daa2411fdf412ace795",
+    "observations": "120min/source/binary/driver bindings and predeclared bounds hold; RSS reclaimed 108–152MiB three times while post-warmup net growth remains; four503 occurred around28.3/48.1/69.8/91.0min with exact codes unrecorded; six index error observations cleared at next sample",
+    "limits": "does not establish cause/plateau/general leak absence or complete release readiness"
+  }
+}
