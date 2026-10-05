@@ -140,7 +140,7 @@ recording::VaReviewRecord Record(const std::filesystem::path& root) {
 }
 void RecordChecks(const std::filesystem::path& root) {
     auto record=Record(root);std::string error;
-    for(unsigned version=1;version<=10;++version){auto historical=record;historical.adapter_version="ollama-chat-v"+std::to_string(version);
+    for(unsigned version=1;version<=11;++version){auto historical=record;historical.adapter_version="ollama-chat-v"+std::to_string(version);
         recording::VaReviewRecord decoded;const auto bytes=recording::SerializeVaReviewRecord(historical);
         Check(recording::ParseVaReviewRecord(bytes,&decoded,&error)&&recording::SerializeVaReviewRecord(decoded)==bytes,
             "V450-C01 adapter provenance preserved without historical rewriting "+std::to_string(version));}
@@ -373,21 +373,21 @@ std::string WireObservation(const std::string& value="위치 x=64",const std::st
     using recording::EvidenceJsonQuote;
     return "{\"identity\":"+EvidenceJsonQuote(identity)+",\"visibility\":"+EvidenceJsonQuote(visibility)+",\"value\":"+(value.empty()?"null":EvidenceJsonQuote(value))+"}";
 }
-std::string WireGap(const std::string& kind="unobserved-property",const std::string& target="물체",const std::string& property="position",
+std::string WireGap(const std::string& kind="unobserved-property",
     const std::string& question="가려진 구간에서 물체의 전후 위치를 비교할 수 있는 영상이 있나요?",const std::string& refs="[1]") {
     using recording::EvidenceJsonQuote;
-    return EvidenceJsonQuote(kind)+":{\"target\":"+EvidenceJsonQuote(target)+",\"property\":"+EvidenceJsonQuote(property)+
-        ",\"frameIndices\":"+refs+",\"missing\":\"가려진 구간의 위치를 볼 수 없습니다.\",\"question\":"+EvidenceJsonQuote(question)+"}";
+    return EvidenceJsonQuote(kind)+":{\"frameIndices\":"+refs+",\"missing\":\"가려진 구간의 위치를 볼 수 없습니다.\",\"question\":"+EvidenceJsonQuote(question)+"}";
 }
 std::string WireClaim(const std::string& claim,const std::string& verdict="supported",const std::string& observations="",
-    const std::string& gaps="",const std::string& scope="single",const std::string& property="position") {
+    const std::string& gaps="",const std::string& basis="visible-property",const std::string& property="position") {
     using recording::EvidenceJsonQuote;
     return "{\"claim\":"+EvidenceJsonQuote(claim)+",\"target\":\"물체\",\"property\":"+EvidenceJsonQuote(property)+
-        ",\"scope\":"+EvidenceJsonQuote(scope)+",\"observations\":{"+(observations.empty()?"\"f0\":"+WireObservation():observations)+
-        "},\"summary\":\"첫 프레임에서 물체가 보입니다.\",\"verdict\":"+EvidenceJsonQuote(verdict)+",\"gaps\":{"+gaps+"}}";
+        ",\"observations\":{"+(observations.empty()?"\"f0\":"+WireObservation():observations)+
+        "},\"summary\":\"첫 프레임에서 물체가 보입니다.\",\"decision\":{\"verdict\":"+EvidenceJsonQuote(verdict)+
+        (verdict=="insufficient"?",\"gaps\":{"+gaps+"}":",\"basis\":"+EvidenceJsonQuote(basis)+(gaps.empty()?"":",\"gaps\":{"+gaps+"}"))+"}}";
 }
 std::string WireResult(const std::string& slots,const std::string& confidence="0.5") {
-    return "{\"schema\":\"media-server.va-review-provider.v9\",\"claims\":{"+slots+"},\"confidence\":"+confidence+"}";
+    return "{\"schema\":\"media-server.va-review-provider.v10\",\"claims\":{"+slots+"},\"confidence\":"+confidence+"}";
 }
 void ProviderChecks(const std::filesystem::path& root,const std::string& endpoint) {
     using namespace recording;using namespace review_json;
@@ -396,8 +396,8 @@ void ProviderChecks(const std::filesystem::path& root,const std::string& endpoin
     const auto original=input.question;
     const auto visible="\"f0\":"+WireObservation()+",\"f1\":"+WireObservation("위치 x=400");
     const auto hidden="\"f0\":"+WireObservation()+",\"f1\":"+WireObservation("","not-visible");
-    const auto known=WireClaim(original,"supported",visible,"","endpoints");
-    const auto partial=WireClaim(original,"insufficient",hidden,WireGap(),"interval");
+    const auto known=WireClaim(original,"supported",visible,"","ordered-endpoints");
+    const auto partial=WireClaim(original,"insufficient",hidden,WireGap(),"");
     const auto valid=WireResult("\"c0\":"+known);
     VaReviewOutput decoded;std::string reason;
     const auto accepts=[&](const std::string& text,const std::string& name){
@@ -442,31 +442,32 @@ void ProviderChecks(const std::filesystem::path& root,const std::string& endpoin
     }
     input.question="  "+original+"  ";accepts(valid,"allowed surrounding spaces");input.question=original;
     // B: not-visible citations remain usable for a gap, never as an observed position.
-    rejects(WireResult("\"c0\":"+WireClaim(original,"supported",hidden,"","endpoints")),"B invisible endpoint cannot support movement","insufficient-observations");
+    rejects(WireResult("\"c0\":"+WireClaim(original,"supported",hidden,"","ordered-endpoints")),"B invisible endpoint cannot support movement","insufficient-observations");
     rejects(changed(valid,"\"visibility\":\"visible\"","\"visibility\":\"not-visible\""),"B hidden frame with position value","unobservable-property");
-    rejects(WireResult("\"c0\":"+WireClaim(original,"supported","\"f0\":"+WireObservation(),"","endpoints")),"single-frame movement","insufficient-observations");
+    rejects(WireResult("\"c0\":"+WireClaim(original,"supported","\"f0\":"+WireObservation(),"","ordered-endpoints")),"single-frame movement","insufficient-observations");
     auto same_time=input;input.manifest.frames[1].pts_ns=input.manifest.frames[0].pts_ns;
     rejects(valid,"same timestamp is not temporal evidence","insufficient-observations");input=same_time;
     rejects(changed(valid,"\"identity\":\"same\"","\"identity\":\"other\""),"different target observations cannot combine","insufficient-observations");
     rejects(changed(valid,"\"identity\":\"same\"","\"identity\":\"uncertain\""),"uncertain target match cannot combine","insufficient-observations");
-    accepts(WireResult("\"c0\":"+WireClaim(original,"insufficient",visible,WireGap("unobserved-interval"),"interval"),"null"),"visible endpoints do not establish hidden interval");
+    accepts(WireResult("\"c0\":"+WireClaim(original,"insufficient",visible,WireGap("unobserved-interval"),""),"null"),"visible endpoints do not establish hidden interval");
     input.question="물체가 보인다.";
-    accepts(WireResult("\"c0\":"+WireClaim(input.question,"contradicted","\"f0\":"+WireObservation("보이지 않음","not-visible"),"","single","visibility")),
+    accepts(WireResult("\"c0\":"+WireClaim(input.question,"contradicted","\"f0\":"+WireObservation("보이지 않음","not-visible"),"","visible-property","visibility")),
         "visible absence can contradict a visibility claim");
-    accepts(WireResult("\"c0\":"+WireClaim(input.question,"supported","\"f0\":"+WireObservation("빨간색"),"","single","color")),"single-frame color does not need two frames");
+    accepts(WireResult("\"c0\":"+WireClaim(input.question,"supported","\"f0\":"+WireObservation("빨간색"),"","visible-property","color")),"single-frame color does not need two frames");
     input.question=original;
-    // C: target/property/gap are linked structurally. Korean text meaning still requires the fixed oracle.
-    rejects(WireResult("\"c0\":"+WireClaim(original,"insufficient",hidden,WireGap("unobserved-property","다른 물체"),"interval"),"null"),"C question gap uses another target","gap-link");
-    rejects(WireResult("\"c0\":"+WireClaim(original,"insufficient",hidden,WireGap("unobserved-property","물체","color"),"interval"),"null"),"C question gap uses another property","gap-link");
-    rejects(WireResult("\"c0\":"+WireClaim(original,"insufficient",hidden,WireGap()+","+WireGap(),"interval"),"null"),"duplicate gap ID");
-    rejects(WireResult("\"c0\":"+WireClaim(original,"insufficient",hidden,WireGap()+","+WireGap("unobserved-interval"),"interval"),"null"),"duplicate question across gap kinds","duplicate-question");
-    rejects(WireResult("\"c0\":"+WireClaim(original,"supported",visible,WireGap(),"endpoints")),"unneeded question on decisive claim","unexpected-gap");
-    rejects(WireResult("\"c0\":"+WireClaim(original,"insufficient",hidden,"","interval"),"null"),"insufficient without actual gap","missing-gap");
+    // C: gaps inherit target/property; adding an independently conflicting field is rejected.
+    for(const auto* extra:{"\"target\":\"다른 물체\",","\"property\":\"color\","})
+        rejects(changed(WireResult("\"c0\":"+partial,"null"),"\"missing\":",std::string(extra)+"\"missing\":"),
+            "C gap cannot override inherited target/property","gap-link");
+    rejects(WireResult("\"c0\":"+WireClaim(original,"insufficient",hidden,WireGap()+","+WireGap(),""),"null"),"duplicate gap ID");
+    rejects(WireResult("\"c0\":"+WireClaim(original,"insufficient",hidden,WireGap()+","+WireGap("unobserved-interval"),""),"null"),"duplicate question across gap kinds","duplicate-question");
+    rejects(WireResult("\"c0\":"+WireClaim(original,"supported",visible,WireGap(),"ordered-endpoints")),"unneeded question on decisive claim","claim-shape");
+    rejects(WireResult("\"c0\":"+WireClaim(original,"insufficient",hidden,"",""),"null"),"insufficient without actual gap","missing-gap");
     rejects(WireResult("\"c0\":"+partial,"0.5"),"confidence without decisive evidence","uncertain-confidence");
-    rejects(WireResult("\"c0\":"+WireClaim(original,"insufficient",visible,WireGap("additional-frame"),"endpoints"),"null"),"gap contradicts two usable endpoint observations","gap-requirement");
+    rejects(WireResult("\"c0\":"+WireClaim(original,"insufficient",visible,WireGap("additional-frame"),"ordered-endpoints"),"null"),"gap contradicts two usable endpoint observations","gap-requirement");
     for(const auto& change:std::vector<std::pair<std::string,std::string>>{
-        {"\"schema\":\"media-server.va-review-provider.v9\"","\"schema\":\"unknown\""},
-        {"\"scope\":\"endpoints\"","\"scope\":\"unknown\""},
+        {"\"schema\":\"media-server.va-review-provider.v10\"","\"schema\":\"unknown\""},
+        {"\"basis\":\"ordered-endpoints\"","\"basis\":\"unknown\""},
         {"\"verdict\":\"supported\"","\"verdict\":\"unknown\""},
         {"\"f1\"","\"f2\""},{"\"summary\":","\"extra\":1,\"summary\":"},
         {"첫 프레임에서 물체가 보입니다.","English only."},{"\"confidence\":0.5","\"confidence\":1.1"},
@@ -488,6 +489,39 @@ void ProviderChecks(const std::filesystem::path& root,const std::string& endpoin
     // Grammar/shape cannot establish the truth of free Korean text; no blacklist masquerades as an oracle.
     accepts(changed(uncertain,"가려진 구간에서 물체의 전후 위치를 비교할 수 있는 영상이 있나요?","물체가 가려져 있는지 확인할 수 있나요?"),
         "C legacy wrong-purpose text is structurally admissible and remains a semantic FAIL oracle");
+
+    // Run 35: missing property and target identity are independent, not mutually exclusive.
+    const auto unseen="\"f0\":"+WireObservation("","not-visible","uncertain")+",\"f1\":"+WireObservation("","not-visible","uncertain");
+    const auto both_gaps=WireGap()+","+WireGap("identity","같은 물체인지 확인할 수 있는 가림 없는 영상이 있나요?");
+    accepts(WireResult("\"c0\":"+WireClaim(original,"insufficient",unseen,both_gaps),"null"),"invisible property and unknown identity coexist");
+    Check(decoded.questions.size()==2,"V450-K03 both independent deficits retained");
+    accepts(WireResult("\"c0\":"+WireClaim(original,"insufficient","\"f0\":"+WireObservation(),
+        WireGap("additional-frame","물체의 위치를 비교할 수 있는 다른 시각과 촬영 순서가 표시된 영상이 있나요?","[0]")),"null"),
+        "one observed position allows additional-frame gap without decisive basis");
+    rejects(changed(uncertain,"\"decision\":{","\"decision\":{\"basis\":\"visible-property\","),"insufficient cannot carry redundant basis","claim-shape");
+    rejects(changed(valid,"\"property\":\"position\"","\"property\":\"unspecified\""),"decisive needs specified property","ambiguous-decision");
+    rejects(changed(uncertain,"[1]","[]"),"gap needs existing evidence context","gap-link");
+    rejects(WireResult("\"c0\":"+WireClaim(original,"insufficient",visible,WireGap("unobserved-property")),"null"),"visible known property is not missing","gap-requirement");
+    rejects(WireResult("\"c0\":"+WireClaim(original,"insufficient",hidden,WireGap("identity")),"null"),"known same identity is not missing","gap-requirement");
+    accepts(WireResult("\"c0\":"+WireClaim(original,"insufficient","\"f1\":"+WireObservation("위치 x=400","visible","other"),WireGap("identity")),"null"),
+        "definitely other target is distinct from unknown identity and cannot supply target evidence");
+    accepts(WireResult("\"c0\":"+WireClaim(original,"contradicted",visible,"","ordered-endpoints")),"temporal contradiction with sufficient observations");
+    rejects(changed(valid,"\"basis\":\"ordered-endpoints\"","\"basis\":\"hidden-interval\""),"no sufficient hidden path basis","decision-basis");
+    {
+        std::ifstream file(root/"contract-replay.json");std::string data((std::istreambuf_iterator<char>(file)),{});Doc replay;
+        std::vector<std::string> examples;
+        Check(Parse(data,&replay)&&Array(replay,"cases",&examples)&&examples.size()==10,"V450-K03 ten explicitly synthetic legacy transformations");
+        const auto saved=input;
+        for(const auto& raw:examples){
+            Doc item;std::string id,claim,source_hash;std::size_t frames=0;
+            Check(Parse(raw,&item)&&Text(item,"id",&id)&&Text(item,"claim",&claim)&&Number(item,"frames",&frames)&&frames>=1&&frames<=8&&
+                Text(item,"originalContentSha256",&source_hash)&&EvidenceIsSha256(source_hash)&&item.Find("syntheticWire"),"V450-K03 replay provenance and shape");
+            input.question=claim;input.manifest.frames.resize(frames);
+            for(std::size_t i=0;i<frames;++i)input.manifest.frames[i].pts_ns=std::int64_t(i)*1000000000;
+            accepts(item.Find("syntheticWire")->raw,"run34 transformed "+id+"; receiver only, original question meaning not promoted");
+        }
+        input=saved;
+    }
 
     VaReviewProviderOptions options;options.enabled=true;options.local_endpoint=endpoint;
     unsigned calls=0;int mode=0;std::string error;VaReviewInference out;
@@ -517,6 +551,15 @@ void ProviderChecks(const std::filesystem::path& root,const std::string& endpoin
             object(claim_fields,"observations",&obs_schema)&&object(obs_schema,"properties",&obs_keys)&&
             obs_keys.members.size()==2&&obs_keys.Find("f0")&&obs_keys.Find("f1")&&!obs_keys.Find("f2"),
             "V450-K03 frame keys bounded to actual input");
+        Doc decision_schema,gap_definition,gap_fields;std::vector<std::string> alternatives;
+        Check(!claim_fields.Find("scope")&&object(claim_fields,"decision",&decision_schema)&&Array(decision_schema,"anyOf",&alternatives)&&alternatives.size()==2&&
+            object(definitions,"gap",&gap_definition)&&object(gap_definition,"properties",&gap_fields)&&gap_fields.members.size()==3&&
+            !gap_fields.Find("target")&&!gap_fields.Find("property"),"V450-K03 schema removes scope and duplicate target/property");
+        for(std::size_t i=0;i<alternatives.size();++i){Doc branch,fields;std::vector<std::string> required;
+            Check(Parse(alternatives[i],&branch)&&object(branch,"properties",&fields)&&Array(branch,"required",&required)&&required.size()==2&&fields.members.size()==2&&
+                fields.Find("verdict")&&fields.Find(i==0?"basis":"gaps")&&!fields.Find(i==0?"gaps":"basis")&&
+                ingress::StrictJsonBoolField(branch,"additionalProperties")==false,"V450-K03 decisive basis and insufficient gaps are disjoint schema branches");
+        }
         Doc metadata;std::vector<std::string> frames;
         Check(Text(user,"content",&content)&&content.find("Metadata: ")!=std::string::npos&&
             Parse(content.substr(content.find("Metadata: ")+10,content.find('\n')-content.find("Metadata: ")-10),&metadata)&&Array(metadata,"frames",&frames)&&frames.size()==2&&
@@ -528,7 +571,7 @@ void ProviderChecks(const std::filesystem::path& root,const std::string& endpoin
         if(mode==2)*response="{invalid";return true;
     };
     const auto run=[&]{return MakeVaReviewProvider(options,transport)(input,"ollama",VaReviewService::Clock::now()+std::chrono::seconds(5),[]{return false;},&out,&error);};
-    Check(run()&&calls==3&&out.model_revision==std::string(64,'d')&&EvidenceIsSha256(out.prompt_sha256)&&out.adapter_version=="ollama-chat-v10",
+    Check(run()&&calls==3&&out.model_revision==std::string(64,'d')&&EvidenceIsSha256(out.prompt_sha256)&&out.adapter_version=="ollama-chat-v11",
         "V450-L01 model digest before/after and actual adapter/prompt provenance");
     for(mode=1;mode<=8;++mode){calls=0;out.model="unchanged";const auto before=SerializeVaReviewOutput(out.output);
         Check(!run()&&out.model=="unchanged"&&SerializeVaReviewOutput(out.output)==before,"V450-L01 invalid envelope/wire/length/digest does not mutate output "+std::to_string(mode));}
@@ -661,6 +704,8 @@ std::vector<std::uint8_t> QualityPng(int x) {
 }
 void QualityChecks(const std::filesystem::path& root,const std::string& endpoint,const std::string& diagnostic="") {
     using namespace recording;
+    const bool text_mode=diagnostic=="text"||diagnostic=="text-uncertain"||diagnostic=="text-decisive";
+    const bool pair_mode=!diagnostic.empty()&&diagnostic!="text-uncertain";
     EvidencePackageStore evidence(root/"quality-evidence",{});VaReviewStore records(root/"quality-records",{});
     std::string error;Check(evidence.Recover(&error),"V450-L01 quality evidence ready");
     VaReviewProviderOptions provider;provider.enabled=true;provider.local_endpoint=endpoint;
@@ -668,7 +713,7 @@ void QualityChecks(const std::filesystem::path& root,const std::string& endpoint
     std::string known_observations;VaReviewInput evaluation_input;
     const auto observed=[&](const VaReviewHttpRequest& request,auto deadline,const auto& cancelled,std::string* response,std::string* error) {
         auto transmitted=request;
-        if(diagnostic=="text"&&request.url.find("/api/chat")!=std::string::npos){
+        if(text_mode&&request.url.find("/api/chat")!=std::string::npos){
             using namespace review_json;Doc body,user;std::vector<std::string> messages;
             if(!Parse(request.body,&body)||!Array(body,"messages",&messages)||messages.size()<3||!Parse(messages.back(),&user))
                 throw std::runtime_error("diagnostic-request-shape");
@@ -712,14 +757,15 @@ void QualityChecks(const std::filesystem::path& root,const std::string& endpoint
     Check(service.ready(),"V450-L01 quality worker ready");unsigned categories=0,uncertain=0,schemas=0,questions=0,coverage=0,pairs=0,case_index=0;
     bool preceding_correct=false;std::string preceding_package;
     auto cases=diagnostic.empty()?VaQualityCases():VaClaimPairs();
-    if(diagnostic=="text")for(const auto& test:VaQualityCases())if(std::string(test.expected)=="unclear")cases.push_back(test);
+    if(diagnostic=="text-uncertain")cases.clear();
+    if(diagnostic=="text"||diagnostic=="text-uncertain")for(const auto& test:VaQualityCases())if(std::string(test.expected)=="unclear")cases.push_back(test);
     for(const auto& test:cases) {
         known_observations.clear();
         for(std::size_t i=0;i<test.x.size();++i)
             known_observations+="프레임 "+std::to_string(i)+(test.x[i]<0?": 회색 화면만 보이고 빨간 사각형은 보이지 않는다. ":
                 ": 빨간 사각형의 왼쪽 변 x="+std::to_string(test.x[i])+", y=120, 크기 48×48. ");
         if(!diagnostic.empty())std::cout<<"[diagnostic-input] mode="<<diagnostic<<" case="<<test.id
-            <<" claim="<<EvidenceJsonQuote(test.claim)<<" suppliedObservations="<<(diagnostic=="text"?EvidenceJsonQuote(known_observations):"null")<<std::endl;
+            <<" claim="<<EvidenceJsonQuote(test.claim)<<" suppliedObservations="<<(text_mode?EvidenceJsonQuote(known_observations):"null")<<std::endl;
         std::vector<EvidencePayload> payloads;auto manifest=Manifest(test.x.size(),&payloads);
         for(std::size_t i=0;i<test.x.size();++i) {
             auto png=QualityPng(test.x[i]);const auto sha=EvidenceSha256(png.data(),png.size());
@@ -729,7 +775,7 @@ void QualityChecks(const std::filesystem::path& root,const std::string& endpoint
             auto& ref=manifest.references[i+2];ref.id=f.segment_id+":"+std::to_string(f.pts_ns);ref.sha256=sha;
         }
         std::string id;Check(evidence.Publish(manifest,payloads,&id,&error),std::string("V450-L01 fixture ")+test.id);
-        if(!diagnostic.empty()&&case_index<6&&case_index%2==1)
+        if(pair_mode&&case_index<6&&case_index%2==1)
             Check(id==preceding_package&&test.x==cases[case_index-1].x&&std::string(test.claim)!=cases[case_index-1].claim,
                 "V450-K02 inversion pair preserves identical evidence package");
         preceding_package=id;
@@ -748,7 +794,7 @@ void QualityChecks(const std::filesystem::path& root,const std::string& endpoint
         const bool correct=valid&&(expected=="unclear"?unknown:expected=="supports"?
             !record.output.supports.empty()&&record.output.contradictions.empty():!record.output.contradictions.empty()&&record.output.supports.empty());
         if(correct)++categories;if(expected=="unclear"&&unknown)++uncertain;
-        if(!diagnostic.empty()&&case_index<6&&case_index%2==1&&preceding_correct&&correct)++pairs;
+        if(pair_mode&&case_index<6&&case_index%2==1&&preceding_correct&&correct)++pairs;
         preceding_correct=correct;++case_index;
         std::vector<bool> cited(test.x.size());
         if(valid)for(const auto* group:{&record.output.supports,&record.output.contradictions,&record.output.unclear})
@@ -769,7 +815,7 @@ void QualityChecks(const std::filesystem::path& root,const std::string& endpoint
     service.Stop();
     std::cout<<(diagnostic.empty()?"[quality-summary]":"[diagnostic-summary]")<<" mode="<<diagnostic<<" schema="<<schemas<<'/'<<cases.size()
         <<" category="<<categories<<'/'<<cases.size()<<" referenceCoverage="<<coverage<<'/'<<cases.size()
-        <<(diagnostic.empty()||diagnostic=="text"?" uncertainty="+std::to_string(uncertain)+"/4 questionPresence="+std::to_string(questions)+"/4":
+        <<(diagnostic.empty()||diagnostic=="text"||diagnostic=="text-uncertain"?" uncertainty="+std::to_string(uncertain)+"/4 questionPresence="+std::to_string(questions)+"/4":
             " categoryPairPass="+std::to_string(pairs)+"/3")<<" semanticTextReviewRequired=true qualityStatus=pending-manual-review"<<std::endl;
     rusage usage{};Check(::getrusage(RUSAGE_SELF,&usage)==0,"V450-L01 peak RSS observation");
 #ifdef __APPLE__
@@ -781,6 +827,10 @@ void QualityChecks(const std::filesystem::path& root,const std::string& endpoint
     if(diagnostic.empty())Check(schemas==12&&categories>=10&&uncertain==4&&questions==4,"V450-L01 automated prerequisites; manual meaning and questions still required");
     if(diagnostic=="text")Check(schemas==10&&categories==10&&uncertain==4&&questions==4&&pairs==3,
         "V450-K02 text diagnostic covers decisive and insufficient claims; manual review required");
+    if(diagnostic=="text-uncertain")Check(schemas==4&&categories==4&&uncertain==4&&questions==4,
+        "V450-K03 four uncertain text prerequisites; manual questions still required");
+    if(diagnostic=="text-decisive"||diagnostic=="inversion")Check(schemas==6&&categories==6&&pairs==3,
+        "V450-K02 all three claim inversion pairs; manual meaning still required");
     Check(rss<=4LL*1024*1024*1024,"V450-L01 native process 4GiB budget");
 }
 void LocalLifecycleChecks(const std::filesystem::path& root,const std::string& endpoint) {
@@ -855,6 +905,8 @@ int main(int argc,char** argv) {
         if(std::string(argv[2])=="--seed")SeedHttp(argv[1]);
         else if(std::string(argv[2])=="--contract-only")ProviderChecks(argv[1],argv[3]);
         else if(std::string(argv[2])=="--local-lifecycle")LocalLifecycleChecks(argv[1],argv[3]);
+        else if(std::string(argv[2])=="--diagnostic-text-uncertain")QualityChecks(argv[1],argv[3],"text-uncertain");
+        else if(std::string(argv[2])=="--diagnostic-text-decisive")QualityChecks(argv[1],argv[3],"text-decisive");
         else if(std::string(argv[2])=="--diagnostic-text")QualityChecks(argv[1],argv[3],"text");
         else if(std::string(argv[2])=="--diagnostic-inversion")QualityChecks(argv[1],argv[3],"inversion");
         else if(std::string(argv[2])=="--local")QualityChecks(argv[1],argv[3]);else {

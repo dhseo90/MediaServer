@@ -1,0 +1,462 @@
+{
+  "kind": "synthetic transformed wire counterexamples, not original model outputs",
+  "source": "docs/release-artifacts/v4.5.0/34-contract-text.log",
+  "sourceSha256": "2e1a44ed71b784212bef071121d9495c602ecdcea75c429433509f93d7798580",
+  "transformation": "Remove scope from insufficient, map decisive endpoints to basis, nest verdict with its branch data, inherit target/property in gaps. All natural language, values, verdicts, references and confidence unchanged. Historical results unchanged.",
+  "cases": [
+    {
+      "id": "two-left-right",
+      "claim": "마지막 프레임의 빨간 사각형은 첫 프레임의 위치보다 오른쪽에 있다.",
+      "frames": 2,
+      "originalContentSha256": "e24b6622176c816a83a1ae65d1b2023d2a7e343d1fad2bd94839a3fcc46c2900",
+      "originalReceiverAccepted": true,
+      "expectedNewReceiverAccepted": true,
+      "originalQuestionMeaning": "notApplicable",
+      "syntheticWire": {
+        "schema": "media-server.va-review-provider.v10",
+        "claims": {
+          "c0": {
+            "claim": "마지막 프레임의 빨간 사각형은 첫 프레임의 위치보다 오른쪽에 있다.",
+            "target": "빨간 사각형",
+            "property": "position",
+            "observations": {
+              "f0": {
+                "identity": "same",
+                "visibility": "visible",
+                "value": "x=400, y=120"
+              },
+              "f1": {
+                "identity": "same",
+                "visibility": "visible",
+                "value": "x=64, y=120"
+              }
+            },
+            "summary": "프레임 0에서 x=400, 프레임 1에서 x=64. 오른쪽으로 이동되지 않음.",
+            "decision": {
+              "verdict": "contradicted",
+              "basis": "ordered-endpoints"
+            }
+          }
+        },
+        "confidence": 1
+      }
+    },
+    {
+      "id": "two-left-left",
+      "claim": "마지막 프레임의 빨간 사각형은 첫 프레임의 위치보다 왼쪽에 있다.",
+      "frames": 2,
+      "originalContentSha256": "a4fa62c7ec8ab83fa76bbcc93c8434e46036bc70a1bc1eeab3c4d5763448366f",
+      "originalReceiverAccepted": true,
+      "expectedNewReceiverAccepted": true,
+      "originalQuestionMeaning": "notApplicable",
+      "syntheticWire": {
+        "schema": "media-server.va-review-provider.v10",
+        "claims": {
+          "c0": {
+            "claim": "마지막 프레임의 빨간 사각형은 첫 프레임의 위치보다 왼쪽에 있다.",
+            "target": "빨간 사각형",
+            "property": "position",
+            "observations": {
+              "f0": {
+                "identity": "same",
+                "visibility": "visible",
+                "value": "x=400, y=120"
+              },
+              "f1": {
+                "identity": "same",
+                "visibility": "visible",
+                "value": "x=64, y=120"
+              }
+            },
+            "summary": "프레임 0에서 x=400, 프레임 1에서 x=64로, 왼쪽으로 이동됨.",
+            "decision": {
+              "verdict": "supported",
+              "basis": "ordered-endpoints"
+            }
+          }
+        },
+        "confidence": 1
+      }
+    },
+    {
+      "id": "eight-left-right",
+      "claim": "마지막 프레임의 빨간 사각형은 첫 프레임의 위치보다 오른쪽에 있다.",
+      "frames": 8,
+      "originalContentSha256": "d90fc89736b7bf96909f02a51fe04c9a25c1f4b494cb1e00c09330b61498758c",
+      "originalReceiverAccepted": true,
+      "expectedNewReceiverAccepted": true,
+      "originalQuestionMeaning": "notApplicable",
+      "syntheticWire": {
+        "schema": "media-server.va-review-provider.v10",
+        "claims": {
+          "c0": {
+            "claim": "마지막 프레임의 빨간 사각형은 첫 프레임의 위치보다 오른쪽에 있다.",
+            "target": "빨간 사각형",
+            "property": "position",
+            "observations": {
+              "f0": {
+                "identity": "same",
+                "visibility": "visible",
+                "value": "x=400, y=120"
+              },
+              "f1": {
+                "identity": "same",
+                "visibility": "visible",
+                "value": "x=352, y=120"
+              },
+              "f2": {
+                "identity": "same",
+                "visibility": "visible",
+                "value": "x=304, y=120"
+              },
+              "f3": {
+                "identity": "same",
+                "visibility": "visible",
+                "value": "x=256, y=120"
+              },
+              "f4": {
+                "identity": "same",
+                "visibility": "visible",
+                "value": "x=208, y=120"
+              },
+              "f5": {
+                "identity": "same",
+                "visibility": "visible",
+                "value": "x=160, y=120"
+              },
+              "f6": {
+                "identity": "same",
+                "visibility": "visible",
+                "value": "x=112, y=120"
+              },
+              "f7": {
+                "identity": "same",
+                "visibility": "visible",
+                "value": "x=64, y=120"
+              }
+            },
+            "summary": "마지막 프레임에서 빨간 사각형은 x=64로, 첫 프레임의 x=400보다 왼쪽에 위치함.",
+            "decision": {
+              "verdict": "contradicted",
+              "basis": "ordered-endpoints"
+            }
+          }
+        },
+        "confidence": 1
+      }
+    },
+    {
+      "id": "eight-left-left",
+      "claim": "마지막 프레임의 빨간 사각형은 첫 프레임의 위치보다 왼쪽에 있다.",
+      "frames": 8,
+      "originalContentSha256": "a20c4a8427b1fbb4a801f82dee7c3b35fdc1286a07959ea2003c24b18bded5a0",
+      "originalReceiverAccepted": true,
+      "expectedNewReceiverAccepted": true,
+      "originalQuestionMeaning": "notApplicable",
+      "syntheticWire": {
+        "schema": "media-server.va-review-provider.v10",
+        "claims": {
+          "c0": {
+            "claim": "마지막 프레임의 빨간 사각형은 첫 프레임의 위치보다 왼쪽에 있다.",
+            "target": "빨간 사각형",
+            "property": "position",
+            "observations": {
+              "f0": {
+                "identity": "same",
+                "visibility": "visible",
+                "value": "x=400, y=120"
+              },
+              "f1": {
+                "identity": "same",
+                "visibility": "visible",
+                "value": "x=352, y=120"
+              },
+              "f2": {
+                "identity": "same",
+                "visibility": "visible",
+                "value": "x=304, y=120"
+              },
+              "f3": {
+                "identity": "same",
+                "visibility": "visible",
+                "value": "x=256, y=120"
+              },
+              "f4": {
+                "identity": "same",
+                "visibility": "visible",
+                "value": "x=208, y=120"
+              },
+              "f5": {
+                "identity": "same",
+                "visibility": "visible",
+                "value": "x=160, y=120"
+              },
+              "f6": {
+                "identity": "same",
+                "visibility": "visible",
+                "value": "x=112, y=120"
+              },
+              "f7": {
+                "identity": "same",
+                "visibility": "visible",
+                "value": "x=64, y=120"
+              }
+            },
+            "summary": "마지막 프레임에서 빨간 사각형의 x좌표는 64로, 첫 프레임의 400보다 왼쪽에 위치함.",
+            "decision": {
+              "verdict": "supported",
+              "basis": "ordered-endpoints"
+            }
+          }
+        },
+        "confidence": 1
+      }
+    },
+    {
+      "id": "static-different",
+      "claim": "빨간 사각형의 첫 프레임과 마지막 프레임 위치가 서로 다르다.",
+      "frames": 2,
+      "originalContentSha256": "c4c9c52fa26f5b891c978a1a54ef09c2145a6f9fdad8bf4610a2702b6a5e5f6c",
+      "originalReceiverAccepted": true,
+      "expectedNewReceiverAccepted": true,
+      "originalQuestionMeaning": "notApplicable",
+      "syntheticWire": {
+        "schema": "media-server.va-review-provider.v10",
+        "claims": {
+          "c0": {
+            "claim": "빨간 사각형의 첫 프레임과 마지막 프레임 위치가 서로 다르다.",
+            "target": "빨간 사각형",
+            "property": "position",
+            "observations": {
+              "f0": {
+                "identity": "same",
+                "visibility": "visible",
+                "value": "x=208, y=120"
+              },
+              "f1": {
+                "identity": "same",
+                "visibility": "visible",
+                "value": "x=208, y=120"
+              }
+            },
+            "summary": "두 프레임에서 빨간 사각형의 위치는 동일함.",
+            "decision": {
+              "verdict": "contradicted",
+              "basis": "ordered-endpoints"
+            }
+          }
+        },
+        "confidence": 1
+      }
+    },
+    {
+      "id": "static-same",
+      "claim": "빨간 사각형의 첫 프레임과 마지막 프레임 위치가 서로 같다.",
+      "frames": 2,
+      "originalContentSha256": "f4d09a30a002b3d9a2f9c759b746282a1202a9a87c96ed6d96d8efb640f957de",
+      "originalReceiverAccepted": true,
+      "expectedNewReceiverAccepted": true,
+      "originalQuestionMeaning": "notApplicable",
+      "syntheticWire": {
+        "schema": "media-server.va-review-provider.v10",
+        "claims": {
+          "c0": {
+            "claim": "빨간 사각형의 첫 프레임과 마지막 프레임 위치가 서로 같다.",
+            "target": "빨간 사각형",
+            "property": "position",
+            "observations": {
+              "f0": {
+                "identity": "same",
+                "visibility": "visible",
+                "value": "x=208, y=120"
+              },
+              "f1": {
+                "identity": "same",
+                "visibility": "visible",
+                "value": "x=208, y=120"
+              }
+            },
+            "summary": "첫 프레임과 마지막 프레임에서 빨간 사각형의 위치는 동일함.",
+            "decision": {
+              "verdict": "supported",
+              "basis": "ordered-endpoints"
+            }
+          }
+        },
+        "confidence": 1
+      }
+    },
+    {
+      "id": "one-motion",
+      "claim": "빨간 사각형이 움직이고 있다.",
+      "frames": 1,
+      "originalContentSha256": "4f316779b7f06362f086372dc4b1c0b5cc52731310a5e1933d47897ab70a17e0",
+      "originalReceiverAccepted": false,
+      "expectedNewReceiverAccepted": true,
+      "originalQuestionMeaning": "FAIL unchanged",
+      "syntheticWire": {
+        "schema": "media-server.va-review-provider.v10",
+        "claims": {
+          "c0": {
+            "claim": "빨간 사각형이 움직이고 있다.",
+            "target": "빨간 사각형",
+            "property": "position",
+            "observations": {
+              "f0": {
+                "identity": "same",
+                "visibility": "visible",
+                "value": "왼쪽 변 x=208, y=120, 크기 48×48"
+              }
+            },
+            "summary": "프레임 0에서 빨간 사각형은 왼쪽 변 x=208, y=120, 크기 48×48 위치에 있습니다.",
+            "decision": {
+              "verdict": "insufficient",
+              "gaps": {
+                "additional-frame": {
+                  "frameIndices": [
+                    0
+                  ],
+                  "missing": "다른 프레임에서의 위치를 확인해야 움직임을 판단할 수 있습니다.",
+                  "question": "다른 프레임에서 빨간 사각형의 위치를 확인할 수 있나요?"
+                }
+              }
+            }
+          }
+        },
+        "confidence": null
+      }
+    },
+    {
+      "id": "one-direction",
+      "claim": "빨간 사각형이 오른쪽으로 움직이고 있다.",
+      "frames": 1,
+      "originalContentSha256": "1bf6237d04f616f9d67aed2a93cc2529f67e16496991253d7e7205b7776e880f",
+      "originalReceiverAccepted": false,
+      "expectedNewReceiverAccepted": true,
+      "originalQuestionMeaning": "FAIL unchanged",
+      "syntheticWire": {
+        "schema": "media-server.va-review-provider.v10",
+        "claims": {
+          "c0": {
+            "claim": "빨간 사각형이 오른쪽으로 움직이고 있다.",
+            "target": "빨간 사각형",
+            "property": "position",
+            "observations": {
+              "f0": {
+                "identity": "same",
+                "visibility": "visible",
+                "value": "왼쪽 변 x=208, y=120, 크기 48×48"
+              }
+            },
+            "summary": "프레임 0에서 빨간 사각형은 왼쪽 변 x=208, y=120에 위치해 있습니다.",
+            "decision": {
+              "verdict": "insufficient",
+              "gaps": {
+                "additional-frame": {
+                  "frameIndices": [
+                    0
+                  ],
+                  "missing": "다른 프레임에서의 위치를 확인해야 움직임을 판단할 수 있습니다.",
+                  "question": "다른 프레임에서 빨간 사각형의 위치는 어떻게 되나요?"
+                }
+              }
+            }
+          }
+        },
+        "confidence": null
+      }
+    },
+    {
+      "id": "blank-hidden",
+      "claim": "회색 화면 뒤에 가려진 빨간 사각형이 오른쪽으로 움직이고 있다.",
+      "frames": 2,
+      "originalContentSha256": "0e350b400fab99a9fdf1d983728742e06eee5b5b3246223d02308459b360ea0e",
+      "originalReceiverAccepted": true,
+      "expectedNewReceiverAccepted": true,
+      "originalQuestionMeaning": "FAIL unchanged",
+      "syntheticWire": {
+        "schema": "media-server.va-review-provider.v10",
+        "claims": {
+          "c0": {
+            "claim": "회색 화면 뒤에 가려진 빨간 사각형이 오른쪽으로 움직이고 있다.",
+            "target": "빨간 사각형",
+            "property": "position",
+            "observations": {
+              "f0": {
+                "identity": "uncertain",
+                "visibility": "not-visible",
+                "value": null
+              },
+              "f1": {
+                "identity": "uncertain",
+                "visibility": "not-visible",
+                "value": null
+              }
+            },
+            "summary": "빨간 사각형은 두 프레임 모두에서 관측 불가능하여 움직임을 판단할 수 없음.",
+            "decision": {
+              "verdict": "insufficient",
+              "gaps": {
+                "unobserved-interval": {
+                  "frameIndices": [
+                    0,
+                    1
+                  ],
+                  "missing": "빨간 사각형의 위치 변화를 확인할 수 없음.",
+                  "question": "빨간 사각형이 프레임 0에서 프레임 1 사이에 어떤 위치로 움직였는지 알려주실 수 있나요?"
+                }
+              }
+            }
+          }
+        },
+        "confidence": null
+      }
+    },
+    {
+      "id": "occluded-final",
+      "claim": "마지막 프레임에서 빨간 사각형이 회색 화면 뒤로 가려진 채 오른쪽으로 이동했다.",
+      "frames": 2,
+      "originalContentSha256": "35a88a6b3296f6ffaf269f1eafada5fa20ca9d559868522586ff2f341eebe97f",
+      "originalReceiverAccepted": false,
+      "expectedNewReceiverAccepted": true,
+      "originalQuestionMeaning": "FAIL unchanged",
+      "syntheticWire": {
+        "schema": "media-server.va-review-provider.v10",
+        "claims": {
+          "c0": {
+            "claim": "마지막 프레임에서 빨간 사각형이 회색 화면 뒤로 가려진 채 오른쪽으로 이동했다.",
+            "target": "빨간 사각형",
+            "property": "position",
+            "observations": {
+              "f0": {
+                "identity": "same",
+                "visibility": "visible",
+                "value": "x=64, y=120"
+              },
+              "f1": {
+                "identity": "same",
+                "visibility": "not-visible",
+                "value": null
+              }
+            },
+            "summary": "프레임 0에서 빨간 사각형이 보였으나, 프레임 1에서는 보이지 않음.",
+            "decision": {
+              "verdict": "insufficient",
+              "gaps": {
+                "unobserved-interval": {
+                  "frameIndices": [
+                    0,
+                    1
+                  ],
+                  "missing": "사각형이 회색 화면 뒤로 가려진 채 오른쪽으로 이동했는지 확인할 수 없음.",
+                  "question": "빨간 사각형이 프레임 0에서 프레임 1 사이에 회색 화면 뒤로 가려진 채 오른쪽으로 이동했는지 확인할 수 있나요?"
+                }
+              }
+            }
+          }
+        },
+        "confidence": null
+      }
+    }
+  ]
+}

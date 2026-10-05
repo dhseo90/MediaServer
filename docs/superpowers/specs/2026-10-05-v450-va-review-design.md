@@ -26,28 +26,43 @@ supports/contradictions/unclear와 필요한 추가 확인 질문 questions를 �
 옮기고 questions를 항상 비우던 adapter는 이 목표의 완료로 보지 않는다. 한국어 의미·근거·부족
 사례의 독립 기대값은 기존 테스트 정의/fixture에 반영한 뒤 실제 로컬 모델로 평가한다.
 
-내부 provider v9/adapter v10은 자유 질문의 원문 구간을 `claims.c0`~`c15`의 제한된 객체
+내부 provider v10/adapter v11은 자유 질문의 원문 구간을 `claims.c0`~`c15`의 제한된 객체
 슬롯에 연결한다. 입력 API에는 claim 집합/ID가 없으므로 의미 단위 분할은 여전히 모델이
 담당한다. 문장부호로 개수를 추정하지 않으며 입력 주장별 정확한 개수를 생성 전에 보장했다고
 주장하지 않는다. c0 필수·미등록 key 금지 schema와 수신기의 연속 ID·원문 순차 소비로
 중복/누락/추가·원문 바꿔쓰기를 거부한다. 같은 결론을 가진 서로 다른 주장은 허용한다.
 
-각 주장에는 target/property(position/color/state/visibility/other/unspecified),
-scope(single/endpoints/all/interval/ambiguous), 프레임 키 f0~fN의 observations,
-한국어 summary, 모델 verdict, gaps가 있다. 관측은 해당 대상의 identity(same/other/uncertain),
-visibility(visible/not-visible/unknown), 실제 요구 속성 value 또는 null을 갖는다.
-독립 comparableFrameIndices는 제거한다. 관측 불가 속성에 값이 있으면 거부하고,
-동일 대상·관측 가능 속성·서로 다른 순서의 PTS에서 비교 가능성을 검사한다. endpoint 판정은
-양 끝, all/interval의 충분 판정은 모든 프레임 관측을 요구한다. 보이는 전후 위치만으로
-숨겨진 구간 경로가 증명되지는 않으며 이는 interval의 부족 근거와 의미 평가에서 구분한다.
-visibility 자체를 묻는 주장에서는 보이지 않음도 관측일 수 있다. 구조화 관측은 영상 진실의
-독립 증명이 아니며 모델의 scope/identity/value/summary 오류는 의미 실패다.
+각 주장의 공통 필드는 claim, target/property(position/color/state/visibility/other/unspecified),
+프레임 키 f0~fN의 observations, 한국어 summary, decision이다. 공통 scope는 제거한다.
+관측은 identity(same/other/uncertain), visibility(visible/not-visible/unknown), 실제 속성 value
+또는 null이다. 속성 관측 가능성·동일성 불명·확인된 다른 대상·PTS 순서를 독립 계산한다.
+관측 불가 속성값은 거부하며 보이지 않는 속성과 동일성 불명은 함께 표현할 수 있다.
+확인된 다른 대상은 동일성 불명과 별도 상태로 보존하고 어느 쪽도 대상의 비교 근거로 쓰지 않는다.
 
-gaps의 key는 additional-frame/unobserved-property/identity/unobserved-interval/clarify-claim이다.
-각 key에 동일 target/property, 관련 기존 frameIndices, missing과 실제 한국어 question을
-묶는다. 같은 claim/gap 반복·다른 대상/속성·관측과 모순되는 gap·충분 판정의 질문은 거부한다.
-한국어 의문형 검사는 의미 검증을 대체하지 않는다. 실제 질문이 중립적이며 부족한 판정 근거를
-확보하는지는 독립 oracle로 직접 대조한다. 서버가 문구를 만들거나 답을 재분류하지 않는다.
+- 충분 decision은 `{verdict: supported|contradicted, basis}`다. visible-property는 한 시점의
+  정적 속성, ordered-endpoints는 서로 다른 순서의 PTS에서 동일 대상의 양 끝 속성 비교,
+  all-sampled-states는 모든 입력 프레임의 관측이다. 위치 비교에는 둘 이상의 시점이 필요하다.
+  가려진 중간 경로를 입증하는 basis는 없다. visible-property로 이동을 판정하는 등 모델이
+  요구 관계를 잘못 선택한 경우는 자유 원문의 의미 평가에서 거부하며 한국어 단어로 판별하지 않는다.
+- 부족 decision은 `{verdict: insufficient, gaps}`다. 충분 판정용 basis나 scope를 생성하지 않는다.
+  gaps는 additional-frame/unobserved-property/identity/unobserved-interval/clarify-claim 중
+  실제 부족을 선택한다. 관련 관측 frameIndices(1개 이상), missing, 실제 한국어 question만
+  생성하며 target/property는 상위 claim에서 상속한다. 별도 대상/속성 필드를 받지 않는다.
+  추가 시점은 사용할 수 있는 순서쌍이 없을 때, 속성 부족은 해당 속성이 관측되지 않을 때,
+  동일성 부족은 unknown/other가 있을 때 허용한다. 구간·질의 명확화의 필요성은 원문과
+  영상 의미를 함께 평가한다. 샘플 양 끝이 보여도 미관측 구간은 남을 수 있다.
+
+visibility 자체를 묻는 주장에서는 보이지 않음도 반증 관측일 수 있다. 단일 프레임의 색상·상태
+판단에 시간 비교를 강요하지 않는다. 같은 claim/gap 반복·무효 참조·관측과 모순되는 gap·충분
+판정의 질문은 거부한다. 부족 설명과 질문은 원 주장에 답을 요구하지 않고 필요한 새 자료를
+확보하도록 연결한다. 질문의 중립성·자료 요청·대상/속성·필요한 시간/구간·기존 자료 중복은
+[테스트 정의](../../project-feature-test-inventory.md#v450-va-review)에 따라 별도로 평가한다.
+서버는 질문을 생성·보정하거나 무효 응답을 재분류하지 않는다.
+
+생성 schema는 decision의 단순 anyOf 두 객체, 고정 claim/frame/gap key와 길이·범위 제한을
+사용한다. `minProperties`/`uniqueItems`를 포함한 선언의 decoder 강제는 독립 확인하지 않았다.
+비어 있는 gap·중복 index·원문 coverage·관측/시간 연결은 수신기의 필수 검증이며, schema
+선언만으로 자연어 진실·의미 분할·질문 목적·공개 그룹 전체 크기를 보장한다고 주장하지 않는다.
 
 공개 output/record v1과 권한·저장 의미는 유지한다. 모델의 verdict를 해당 공개 그룹으로
 연결하고 summary를 그대로 보존하며 gaps의 missing/question도 그대로 unclear/questions에

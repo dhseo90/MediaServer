@@ -20,7 +20,7 @@ def wait_model_unloaded(fetch, deadline, clock=time.monotonic, sleep=time.sleep)
     finally:
         print('[model-unload]',json.dumps({'observations':observations}),flush=True)
 repo=pathlib.Path(sys.argv[1]); build=repo/'build-gst-onnx'
-local=len(sys.argv)==4 and sys.argv[2] in ('--local','--diagnostic-text','--diagnostic-inversion')
+local=len(sys.argv)==4 and sys.argv[2] in ('--local','--diagnostic-text','--diagnostic-text-uncertain','--diagnostic-text-decisive','--diagnostic-inversion')
 lifecycle=len(sys.argv)==4 and sys.argv[2]=='--local-lifecycle'
 http_mode=len(sys.argv)==3 and sys.argv[2]=='--http-only'
 contract=len(sys.argv)==3 and sys.argv[2]=='--contract-only'
@@ -37,8 +37,9 @@ try:
     link=shlex.split((build/'CMakeFiles/media_server.dir/link.txt').read_text())
     libs=[str(archive),*link[link.index('libmedia_server_runtime.a')+1:]]
     flags=shlex.split(subprocess.check_output(['pkg-config','--cflags','openssl','sqlite3','gstreamer-app-1.0'],text=True))
-    sources=sorted([*repo.glob('src/recording/va_review*.cpp'),*repo.glob('src/recording/va_review*.h'),*repo.glob('include/recording/va_review*.h'),repo/'scripts/internal/va_review_smoke.cpp',repo/'scripts/internal/va_review_quality_fixture.h',repo/'scripts/internal/verify_va_review.sh'])
+    sources=sorted([*repo.glob('src/recording/va_review*.cpp'),*repo.glob('src/recording/va_review*.h'),*repo.glob('include/recording/va_review*.h'),repo/'scripts/internal/va_review_smoke.cpp',repo/'scripts/internal/va_review_quality_fixture.h',repo/'scripts/internal/verify_va_review.sh',repo/'scripts/internal/va_review_contract_replay.json'])
     for source in sources: print('[source]',source.relative_to(repo),hashlib.sha256(source.read_bytes()).hexdigest(),flush=True)
+    shutil.copyfile(repo/'scripts/internal/va_review_contract_replay.json',root/'contract-replay.json')
     subprocess.run(['c++','-std=c++17','-Wall','-Wextra','-Werror','-pthread','-I'+str(repo/'include'),
         '-DMEDIA_SERVER_USE_OPENSSL=1','-DMEDIA_SERVER_USE_SQLITE3=1','-DMEDIA_SERVER_USE_GSTREAMER=1',
         '-DMEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND=1',*flags,
@@ -155,8 +156,15 @@ try:
         print('[tls-fixture] loopback only; temporary CA; no system trust changes',flush=True)
 
     focused_started=time.monotonic()
+    stage_deadline=focused_started+800
+    if local and sys.argv[2] in ('--diagnostic-text-uncertain','--diagnostic-text-decisive'):
+        # Both text partitions share the caller's one frozen 800-second deadline, including the manual pause.
+        stage_deadline=float(os.environ['MEDIA_SERVER_VA_TEXT_DEADLINE_MONOTONIC'])
+        remaining=stage_deadline-focused_started
+        if not 0<remaining<=800:raise RuntimeError('shared text budget exhausted or invalid')
+        print('[text-budget]',json.dumps({'deadlineMonotonic':stage_deadline,'remainingSeconds':remaining}),flush=True)
     subprocess.run(['bash','-c','source "$2/scripts/internal/env_common.sh"; export MEDIA_SERVER_GST_CACHE_DIR="$1/gst-cache"; media_server_apply_homebrew_gst_env || exit; exec "$1/smoke" "$1" "$3" "$4"',
-        'va-review',str(root),str(repo),'--local-lifecycle' if lifecycle else sys.argv[2] if local or contract else '--protocol',endpoint],check=True,timeout=60 if lifecycle else 800 if local else 90,
+        'va-review',str(root),str(repo),'--local-lifecycle' if lifecycle else sys.argv[2] if local or contract else '--protocol',endpoint],check=True,timeout=60 if lifecycle else stage_deadline-time.monotonic() if local else 90,
         env=dict(os.environ,HTTP_PROXY='http://127.0.0.1:1',HTTPS_PROXY='http://127.0.0.1:1',ALL_PROXY='http://127.0.0.1:1',
             http_proxy='http://127.0.0.1:1',https_proxy='http://127.0.0.1:1',all_proxy='http://127.0.0.1:1',NO_PROXY='',no_proxy=''))
     focused_finished=time.monotonic()
@@ -173,7 +181,7 @@ try:
                 models=json.load(response)['models']
                 if not isinstance(models,list):raise RuntimeError('invalid model list')
                 return models
-        wait_model_unloaded(fetch_models,min(focused_finished+5,focused_started+800))
+        wait_model_unloaded(fetch_models,min(focused_finished+5,stage_deadline))
         print('[cleanup] modelUnloaded=true',flush=True)
 finally:
     stop.set()

@@ -44,9 +44,9 @@ try{
     ++chatCalls;const data=JSON.parse(body);
     assert(data.messages[1].images.length===1,'ordered image supplied');
     const finish=()=>{if(!res.destroyed)res.end(JSON.stringify({model:data.model,done:true,done_reason:'stop',message:{role:'assistant',
-      content:JSON.stringify({schema:'media-server.va-review-provider.v9',claims:{c0:{claim:JSON.parse(data.messages[data.messages.length-1].content.split('Metadata: ')[1].split('\n')[0]).claim,
-        target:'사각형',property:'color',scope:'single',observations:{f0:{identity:'same',visibility:'visible',value:'빨간색'}},
-        summary:'빨간 사각형이 보입니다.',verdict:'supported',gaps:{}}},confidence:0.8})}}));};
+      content:JSON.stringify({schema:'media-server.va-review-provider.v10',claims:{c0:{claim:JSON.parse(data.messages[data.messages.length-1].content.split('Metadata: ')[1].split('\n')[0]).claim,
+        target:'사각형',property:'color',observations:{f0:{identity:'same',visibility:'visible',value:'빨간색'}},
+        summary:'빨간 사각형이 보입니다.',decision:{verdict:'supported',basis:'visible-property'}}},confidence:0.8})}}));};
     if(delay){++blockedRequests;pending.add(res);res.on('close',()=>pending.delete(res));}else finish();
     }catch{providerError=true;if(!res.destroyed){res.writeHead(500);res.end('{}');}}
   });
