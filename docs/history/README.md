@@ -288,3 +288,9 @@ git show 982a815f263e525799a0e45b9bbe18f2b97ebe9e:docs/release-artifacts/v4.3.0/
 `505b2dac4`·`5f124c9be`, 실제 변경120분 source는 `1fe0b6d2`다.
 다른 source의 이월 판단을 새 단일 canonical PASS로 바꾸지 않는다. 상세 적용 범위·한계는
 [릴리즈 노트](../release-notes-v4.4.0.md), 현재 정의·명령·fixture는 기존 현행 문서와 `test/fixtures/`를 따른다.
+
+
+마감 정합성10개는 정리된 트리에서197.883초/모두exit0이었다. 원출력11개/216,855바이트는
+`5bf633244c5c9fe111efc15052be3d633c522d71`의 `development/final-static-1/`에 보존하고
+Git 바이트 대조 후 제거했다. `result.json`의 working diff hash가 대상 정리 트리를 특정한다.
+이후 이력 색인 연결만 보완했으며 최종 PR/main의 required CI를 별도로 확인한다.
