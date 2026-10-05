@@ -521,3 +521,48 @@ VLM에는 실제 프레임의 시각적 의미와 서버가 확정한 부족 근
 다음 공개 연결에는 **A 기록 일관성과 B/C 독립 영상 검증을 구분할 최소 input/result/record 표현 버전**을
 먼저 확정해야 한다. 이 결정에는 지원 관계·부족/미지원 표현과 기존 전체 출력 예산이 포함된다.
 사용자 의도 확인을 사실 인증으로 쓰지 않는다. 새 확인 API/UI·VA 결과/record 전환과 추가 모델 평가는 시작하지 않는다.
+
+
+## 41: 출처가 결속된 내부 검토 결과와 저장 v2
+
+40의 완료 경로를 유지하고 `CreateAnalysisReviewRecord` → package v2 검증 →
+`ReadAnalysisRecordReview` → 기존 core → `VaReviewStore::PublishV2`를 연결한다.
+공개 provider/요청/UI는 v1을 유지한다. 별도 새 저장 엔진이나 과거 record migration은 없다.
+
+- `media-server.va-review-record.v2` / `media-server.va-review-output.v2`, container `MSVAR02`다.
+  기존 `MSVAR01`/v1 codec·hash는 유지하며 같은 lock/pending/fsync/link 게시·quota를 공유한다.
+  복구는 양 버전을 검증하고 기존 `List`/`Read`에는 v2를 노출하지 않는다. 내부 조회는 명시 `ReadV2`다.
+- 명세의 target, 관계, 요구값, scope, spec/policy v1을 보존한다. target binding은 package ID와
+  canonical manifest SHA256, 실제 analysis namespace/track, 후보에서 보존한 engine episode 집합을
+  모두 비교한다. `internal-explicit`/`not-confirmed`이며 확인자·시각을 발명하지 않는다.
+- claim의 scope/decision evidence/gap frame index → sample 사본 → 원 관측/좌표 출처를 추적한다.
+  sample 사본은 channel/source/store/media epoch, generation/order, **미디어** track/ordinal/PTS,
+  크기/media/sample/PNG hash다. 원 관측과 원본 sample 연관·좌표/변환은 bounded candidate 사본에 남긴다.
+  analysis track과 media track의 이름이 같을 필요가 없다. `/001` 같은 원본 track 표현을 보존한다.
+- 결과에는 claim별 `supported/contradicted/insufficient/unsupported`와 구조화 gap만 저장한다.
+  A / `analysis-record-consistency` / `engine-track`만 수용한다. B/C label 전환·독립 물리 동일성 인증·
+  모델 confidence는 없다. 이는 **분석 기록상의 관계**이며 영상 사실 검증이 아니다.
+- spec(binding 포함)·관측 사본·고정 정책 descriptor에 각각 SHA256을 결속하고 record 전체는 파일 ID hash로
+  보호한다. read codec은 **보존 입력과 정책 v1만** core에 재생해 저장된 판정과 동일한지 검증한다.
+  기존 A adapter의 pure snapshot 부분을 재사용한다. 최신 package/catalog/config로 결과를 바꾸지 않는다.
+  hash는 저장 무결성이지 VA 출력의 사실 정확성 인증이 아니다.
+- record만으로 관측/출처와 core 입력·판정을 재현한다. 원 PNG·assets·나머지 package manifest는 복제하지
+  않고 불변 package ID/manifest hash로 참조한다. `CheckAnalysisReviewEvidence`는 현재 열람 가능 상태를
+  별도 검사한다. exact package 부재는 `unavailable`, 저장소 접근 실패·변조·digest 불일치는 오류이며
+  저장 판정을 수정하거나 최신 자료로 대체하지 않는다.
+- `explanationState/questionsState=not-generated`, `textOrigin=none`, `modelQuality=not-evaluated`다.
+  이 버전에서 임의 생성/확인/PASS 상태를 받아들이지 않는다. 한국어 모델 질문 생성 요구는 후속에 남는다.
+- v2는 최대16 claims/8 sample, sample당4 candidates, 관측 원문 총64KiB, 전체 record128KiB다.
+  ID·본문·좌표·참조 제한은 기존 codec/core를 적용하고 미디어 track은 기존 package와 같은1024byte다.
+  store의 record512개/총64MiB/128KiB 기본값은 확대하지 않는다. 개별 한도와 전체 직렬화 한도를 모두 검사한다.
+- `ProjectAnalysisReviewDisplay`는 표현을 영속 중복하지 않는 구형 네 그룹 **표시용** 변환이다.
+  `server-template` 문구임을 명시하고 questions 미생성·모델 미검증 상태를 유지한다. 전체 U+G/G, claim 수,
+  문자열512byte, 출력40KiB와 그룹별16개 한도를 기존 budget 검사로 검증한다.
+  전부 담기면 `available-display-only`, 한도 초과는 `unavailable-limit`, unsupported 관계는
+  `unavailable-unsupported`다. 일부 claim/gap 삭제·병합·절단이나 insufficient로의 재분류는 하지 않는다.
+
+직접 검사는 [V450-K08](../../project-feature-test-inventory.md)의 실제 projector/candidate package·record 경로와
+별도 프로세스 readback, v1 저장 회귀·core 회귀에 한정한다. fixture 좌표/명세는 명시 시험 입력이며
+검출기 추론·자유질문 해석·영상 사실·모델 질문 생성 성공으로 해석하지 않는다. 34~40 이력과 실패는 유지한다.
+다음 공개 연결에는 사용자 확인 상태/권한·API/UI 연결, 실제 설명·한국어 질문 생성과 품질 검증이 남는다.
+이번 내부 v2를 자동 공개하거나 VLM/VA Review 전체·릴리즈 완료로 확대하지 않는다.

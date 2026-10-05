@@ -4,6 +4,10 @@
 #include "recording/va_review_service.h"
 #include "recording/va_review_provider.h"
 #include "recording/va_review_observer.h"
+#include "recording/va_review_bound_record.h"
+#include "recording/analysis_observation_projector.h"
+#include "ingress/va_review_application_service.h"
+#include <csignal>
 #include <cmath>
 #include "va_review_quality_fixture.h"
 #include "../../src/recording/va_review_json.h"
@@ -902,11 +906,15 @@ void SeedHttp(const std::filesystem::path& root) {
     Check(runtime.catalog().Checkpoint(&error),"V450-A01 seed checkpoint");
 }
 }
+#include "va_review_bound_record_checks.h"
 int main(int argc,char** argv) {
     try {
         if(argc!=4)throw std::runtime_error("owned fixture root, mode, endpoint required");
         gst_init(nullptr,nullptr);
-        if(std::string(argv[2])=="--seed")SeedHttp(argv[1]);
+        if(std::string(argv[2])=="--bound-seed")BoundSeed(argv[1]);
+        else if(std::string(argv[2])=="--bound-read")BoundRead(argv[1]);
+        else if(std::string(argv[2])=="--records-only")RecordChecks(argv[1]);
+        else if(std::string(argv[2])=="--seed")SeedHttp(argv[1]);
         else if(std::string(argv[2])=="--observer-only")ObserverChecks(argv[1]);
         else if(std::string(argv[2])=="--core-only")CoreChecks(argv[1]);
         else if(std::string(argv[2])=="--observe-local")CoreObserve(argv[1],argv[3]);

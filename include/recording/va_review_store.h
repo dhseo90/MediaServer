@@ -2,6 +2,7 @@
 #pragma once
 #include "recording/va_review_record.h"
 namespace recording {
+struct VaReviewRecordV2;
 class VaReviewStore {
 public:
     struct Limits {
@@ -14,8 +15,14 @@ public:
         const std::function<bool()>& cancelled={}) const;
     bool Read(const std::string& id,VaReviewRecord*,std::string* error) const;
     bool List(std::vector<std::string>*,std::string* error) const;
+    // 내부 v2는 기존 List/Read에 노출하지 않는다. quota와 원자 게시 경계는 공유한다.
+    bool PublishV2(const VaReviewRecordV2&,std::string* id,std::string* error,
+        const std::function<bool()>& cancelled={}) const;
+    bool ReadV2(const std::string& id,VaReviewRecordV2*,std::string* error) const;
     static bool ValidId(const std::string&);
 private:
+    bool PublishBytes(const std::string& json,bool v2,std::string* id,std::string* error,
+        const std::function<bool()>& cancelled) const;
     std::filesystem::path directory_;Limits limits_;
 };
 } // namespace recording

@@ -1,5 +1,6 @@
 // 파일 용도: owner/nofollow/용량/원자성 경계 안에서 검토 결과를 보존한다.
 #include "recording/va_review_store.h"
+#include "recording/va_review_bound_record.h"
 #include <algorithm>
 #include <cerrno>
 #include <dirent.h>
@@ -12,6 +13,7 @@
 namespace recording {
 namespace {
 constexpr const char* magic="MSVAR01\n";
+constexpr const char* magic2="MSVAR02\n";
 constexpr const char* pending=".pending-review-v1";
 struct Fd {int n{-1};~Fd(){if(n>=0)::close(n);}};
 bool Fail(std::string* e,const char* s){if(e)*e=s;return false;}
@@ -76,7 +78,8 @@ bool RecoverPending(int dir,const VaReviewStore::Limits& limits,std::string* err
     if(fd.n<0)return errno==ENOENT?true:Fail(error,"review-pending-invalid");
     struct stat st{};std::string bytes;
     if(!Safe(fd.n,&st,false)||(st.st_nlink!=1&&st.st_nlink!=2)||!Contents(fd.n,limits.record_bytes+8,&bytes,false)||
-       bytes.substr(0,std::min<std::size_t>(8,bytes.size()))!=std::string(magic).substr(0,std::min<std::size_t>(8,bytes.size())))
+       (bytes.substr(0,std::min<std::size_t>(8,bytes.size()))!=std::string(magic).substr(0,std::min<std::size_t>(8,bytes.size()))&&
+        bytes.substr(0,std::min<std::size_t>(8,bytes.size()))!=std::string(magic2).substr(0,std::min<std::size_t>(8,bytes.size()))))
         return Fail(error,"review-pending-invalid");
     if(st.st_nlink==2) {
         const auto name="vr-"+EvidenceSha256(bytes.data(),bytes.size())+".review";struct stat target{};
@@ -89,11 +92,17 @@ int Lock(int dir) {
     const int fd=::openat(dir,".writer-lock-v1",O_RDWR|O_CREAT|O_NOFOLLOW|O_NONBLOCK|O_CLOEXEC,0600);
     if(!Safe(fd,nullptr)||::flock(fd,LOCK_EX|LOCK_NB)){if(fd>=0)::close(fd);return -1;}return fd;
 }
-bool ReadAt(int dir,const std::string& id,const VaReviewStore::Limits& limits,VaReviewRecord* out,std::string* error) {
+// mode=0은 복구/목록의 양 버전 검증, 1/2는 해당 typed reader만 허용한다.
+bool ReadAt(int dir,const std::string& id,const VaReviewStore::Limits& limits,int mode,
+    VaReviewRecord* out,VaReviewRecordV2* out2,int* version,std::string* error) {
     Fd fd{::openat(dir,(id+".review").c_str(),O_RDONLY|O_NONBLOCK|O_NOFOLLOW|O_CLOEXEC)};std::string bytes;
-    if(!Contents(fd.n,limits.record_bytes+8,&bytes)||bytes.size()<8||bytes.substr(0,8)!=magic||
+    if(!Contents(fd.n,limits.record_bytes+8,&bytes)||bytes.size()<8||
        "vr-"+EvidenceSha256(bytes.data(),bytes.size())!=id)return Fail(error,"review-record-unavailable");
-    return ParseVaReviewRecord(bytes.substr(8),out,error);
+    const int found=bytes.substr(0,8)==magic?1:bytes.substr(0,8)==magic2?2:0;
+    if(!found||(mode&&mode!=found))return Fail(error,"review-record-unavailable");
+    VaReviewRecord v1;VaReviewRecordV2 v2;
+    if(found==1?!ParseVaReviewRecord(bytes.substr(8),&v1,error):!ParseVaReviewRecordV2(bytes.substr(8),&v2,error))return false;
+    if(version)*version=found;if(out)*out=std::move(v1);if(out2)*out2=std::move(v2);return true;
 }
 }
 bool VaReviewStore::ValidId(const std::string& id){return id.size()==67&&id.rfind("vr-",0)==0&&EvidenceIsSha256(id.substr(3));}
@@ -103,26 +112,44 @@ bool VaReviewStore::Recover(std::string* error) const {
     if(!RecoverPending(dir.n,limits_,error))return false;
     std::vector<std::string> ids;std::uint64_t bytes=0;
     if(!Inventory(dir.n,limits_,&ids,&bytes))return Fail(error,"review-store-invalid");
-    for(const auto& id:ids){VaReviewRecord record;if(!ReadAt(dir.n,id,limits_,&record,error))return false;}
+    for(const auto& id:ids)if(!ReadAt(dir.n,id,limits_,0,nullptr,nullptr,nullptr,error))return false;
     if(error)error->clear();return true;
 }
 bool VaReviewStore::Read(const std::string& id,VaReviewRecord* out,std::string* error) const {
     if(!out||!ValidId(id))return Fail(error,"review-invalid-id");
     Fd dir{Directory(directory_,false)};if(dir.n<0)return Fail(error,"review-store-unavailable");
-    return ReadAt(dir.n,id,limits_,out,error);
+    return ReadAt(dir.n,id,limits_,1,out,nullptr,nullptr,error);
 }
 bool VaReviewStore::List(std::vector<std::string>* out,std::string* error) const {
     if(!out)return Fail(error,"review-invalid-query");
     Fd dir{Directory(directory_,false)};std::uint64_t bytes=0;
-    if(dir.n<0||!Inventory(dir.n,limits_,out,&bytes))return Fail(error,"review-store-unavailable");
-    if(error)error->clear();return true;
+    std::vector<std::string> ids,visible;
+    if(dir.n<0||!Inventory(dir.n,limits_,&ids,&bytes))return Fail(error,"review-store-unavailable");
+    for(const auto& id:ids){int version=0;
+        if(!ReadAt(dir.n,id,limits_,0,nullptr,nullptr,&version,error))return false;
+        if(version==1)visible.push_back(id);}
+    *out=std::move(visible);if(error)error->clear();return true;
+}
+bool VaReviewStore::ReadV2(const std::string& id,VaReviewRecordV2* out,std::string* error) const {
+    if(!out||!ValidId(id))return Fail(error,"review-invalid-id");
+    Fd dir{Directory(directory_,false)};if(dir.n<0)return Fail(error,"review-store-unavailable");
+    return ReadAt(dir.n,id,limits_,2,nullptr,out,nullptr,error);
+}
+bool VaReviewStore::PublishV2(const VaReviewRecordV2& record,std::string* id,std::string* error,
+    const std::function<bool()>& cancelled) const {
+    if(!id||!ValidateVaReviewRecordV2(record,error))return false;
+    return PublishBytes(SerializeVaReviewRecordV2(record),true,id,error,cancelled);
 }
 bool VaReviewStore::Publish(const VaReviewRecord& record,std::string* id,std::string* error,
     const std::function<bool()>& cancelled) const {
     if(!id||!ValidateVaReviewRecord(record,error))return false;
-    const auto json=SerializeVaReviewRecord(record);
+    return PublishBytes(SerializeVaReviewRecord(record),false,id,error,cancelled);
+}
+bool VaReviewStore::PublishBytes(const std::string& json,bool v2,std::string* id,std::string* error,
+    const std::function<bool()>& cancelled) const {
+    if(cancelled&&cancelled())return Fail(error,"review-cancelled");
     if(json.size()>limits_.record_bytes)return Fail(error,"review-record-too-large");
-    const std::string bytes=std::string(magic)+json;
+    const std::string bytes=std::string(v2?magic2:magic)+json;
     const auto digest=EvidenceSha256(bytes.data(),bytes.size());
     if(!EvidenceIsSha256(digest))return Fail(error,"review-crypto-unavailable");
     const auto result="vr-"+digest;
@@ -132,7 +159,7 @@ bool VaReviewStore::Publish(const VaReviewRecord& record,std::string* id,std::st
     std::vector<std::string> ids;std::uint64_t total=0;
     if(!Inventory(dir.n,limits_,&ids,&total))return Fail(error,"review-store-invalid");
     if(std::find(ids.begin(),ids.end(),result)!=ids.end()) {
-        VaReviewRecord prior;if(!ReadAt(dir.n,result,limits_,&prior,error))return false;
+        if(!ReadAt(dir.n,result,limits_,0,nullptr,nullptr,nullptr,error))return false;
         *id=result;if(error)error->clear();return true;
     }
     if(ids.size()>=limits_.records||total>limits_.bytes||bytes.size()>limits_.bytes-total)

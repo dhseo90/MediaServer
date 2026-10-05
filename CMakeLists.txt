@@ -106,6 +106,7 @@ add_library(media_server_runtime STATIC
     src/recording/evidence_observation.cpp
     src/recording/evidence_package.cpp
     src/recording/va_review_input.cpp
+    src/recording/va_review_bound_record.cpp
     src/recording/va_review_record.cpp
     src/recording/va_review_store.cpp
     src/recording/va_review_service.cpp

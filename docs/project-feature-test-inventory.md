@@ -150,6 +150,16 @@ V450-K07(선택적 A 관측 보존·내부 연결): `bash scripts/internal/verif
 일반 acceptance/모델/HTTP/UI/30분/120분은 이번 미실행이며 내부 경로에 실제 UI 합격을 부여하지 않는다.
 실제 detector 추론·독립 영상 사실·VLM 동일성/품질 검증으로 해석하지 않는다. 공개 v1 API/VA 입력에는 v2를 연결하지 않는다.
 
+V450-K08(내부 A 결속 결과/record v2): `python3 scripts/internal/verify_va_review_bound_record.py`.
+명시 ClaimSpec→package v2/A reader→core→원자 record 저장→별도 프로세스 readback을 검사한다.
+독립 기대값은 중심 (40,45)/(120,45), 우측 supported/좌측 contradicted이며 detector/영상 사실 검사가 아니다.
+대상·package·manifest·관측·정책·명세 digest 불일치, 타 출처/확인/질문 생성 상태 위조를 거부한다.
+부재 insufficient와 continuous-motion unsupported, 복수 claim 보존, v2 128KiB 및 실제 store byte 경계,
+구형 전체 U+G/G/40KiB 예산과 display-only 표현 상태, v1/v2 strict read·공개 목록 비노출을 각각 검사한다.
+취소/권한 거절/부분 쓰기·I/O/용량 실패에서 정상 성공·부분 게시가 없고 원본/catalog 없는 새 프로세스가
+같은 판정·근거를 읽는다. package 부재는 저장 판정과 별도 unavailable, 변조는 오류다.
+모델/질문 생성/일반 acceptance/HTTP/UI/30분/120분은 실행하지 않는다. 40 전체 보존 검사는 반복하지 않는다.
+
 V450-K06(관측 연결 후보, 공개 미연결): `--observer-only`는
 [test/fixtures/v450_review_observer.json](../test/fixtures/v450_review_observer.json)의 독립 기대값으로
 상대 bbox→원본 중심 변환, 양쪽 경계/면적/형식/유한성/null, 프레임·anchor 참조와 PNG 크기·hash를

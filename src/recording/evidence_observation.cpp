@@ -98,7 +98,12 @@ bool ReadAnalysisRecordReview(const EvidencePackageStore& store,const std::strin
     const std::vector<ReviewClaimSpec>& claims,AnalysisRecordReview* output,std::string* error) {
     if(!output||claims.empty())return Fail(error,"record-review-input");
     const auto file=store.Open(id,error);if(!file)return false;
-    AnalysisRecordReview v;v.package=file->manifest();
+    return EvaluateAnalysisRecordSnapshot(file->manifest(),claims,output,error);
+}
+bool EvaluateAnalysisRecordSnapshot(const EvidencePackageV1& snapshot,const std::vector<ReviewClaimSpec>& claims,
+    AnalysisRecordReview* output,std::string* error) {
+    if(!output||claims.empty())return Fail(error,"record-review-input");
+    AnalysisRecordReview v;v.package=snapshot;
     if(v.package.schema!="media-server.evidence-package.v2"||!ValidateEvidenceObservations(v.package,error))
         return Fail(error,"record-review-provenance-unavailable");
     const auto& target=claims.front().target_id;
