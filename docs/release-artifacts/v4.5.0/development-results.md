@@ -42,3 +42,17 @@
   실제 EACCES 쓰기 실패와 손상을 직접 검사했다. count 검사는 2개로 설정한 경계이며 기본 512개 누적 부하가 아니다.
 - `git diff --check`: 공백 오류 없음. cleanup: 소유 임시 root 제거·부재 확인, 권한 변경 원복.
 - 실제 모델·운영 서버·UI·장시간·외부 provider는 미실행이다. 준비용 Ollama는 후속 단계에 사용한다.
+
+## V450-04 비동기 작업·격리
+
+- source: `df957d8c9` 위 단일 worker 서비스와 native 수명/혼합 검사 변경.
+- `cmake --build build-gst-onnx -j 4`: exit 0([빌드 출력](04-build.log)).
+- `bash scripts/internal/verify_va_review.sh`: 최초 124 PASS 뒤 FD/thread 직접 관측 assertion을 추가하여
+  재실행, 최종 exit 0 / 126 PASS / 0 FAIL([개별 원출력](04-native.log)). 예상 RED나 제품 실패 없음.
+- worker 정확히 1개, queue4·중복 진행·권한/취소·invalid output·missing model·exception,
+  실제 단축 deadline/queue 만료·재시작 job 만료·설정한 terminal 이력5개 경계에서 검사했다.
+  장애 묶음과 join 후 FD/thread가 최초 값으로 복귀했다. 기본 64개 장기 누적 검사는 아니다.
+- provider를 대기시킨 상태에서 실제 GStreamer 30-frame 인코드→원본 녹화 확정,
+  카탈로그 검색 갱신·독립 UTC query 1건, EventRecord 파일 쓰기를 확인했다.
+  실제 RTSP/WebRTC 송출·metadata/Event POST 전달과 장시간 부하는 이 native 검사에 포함되지 않는다.
+- 협력적 provider 취소·worker join 500ms 이내, 임시 root 정리·부재 확인. 실제 모델은 아직 미실행.

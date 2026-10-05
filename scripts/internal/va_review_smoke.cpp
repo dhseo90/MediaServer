@@ -1,6 +1,11 @@
 // 파일 용도: 격리 패키지를 사용한 VA 검토 계약·저장·수명 직접 검사.
 #include "recording/va_review_input.h"
 #include "recording/va_review_store.h"
+#include "recording/va_review_service.h"
+#include "recording_media_test_fixture.h"
+#include "recording/recording_runtime_composition.h"
+#include "recording/recording_search_reader.h"
+#include "analysis/event_storage.h"
 #include <fcntl.h>
 #include <fstream>
 #include <iostream>
@@ -9,6 +14,9 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <zlib.h>
+#ifdef __APPLE__
+#include <libproc.h>
+#endif
 
 namespace {
 unsigned checks=0;
@@ -207,12 +215,155 @@ void RecordChecks(const std::filesystem::path& root) {
     const auto wrote=::pwrite(fd,&corrupt,1,9);::close(fd);
     Check(wrote==1&&!reopened.Read(id,&decoded,&error)&&!reopened.Recover(&error),"V450-S01 corrupt read/startup rejected");
 }
+template<class Predicate> void Until(Predicate predicate) {
+    const auto deadline=std::chrono::steady_clock::now()+std::chrono::seconds(5);
+    while(!predicate()) {
+        if(std::chrono::steady_clock::now()>=deadline)throw std::runtime_error("queue observation deadline");
+        std::this_thread::sleep_for(std::chrono::milliseconds(2));
+    }
+}
+recording::VaReviewJob Done(recording::VaReviewService& service,const std::string& id) {
+    recording::VaReviewJob job;std::string error;
+    Until([&]{if(!service.Get(id,[](const auto&){return true;},&job,&error))throw std::runtime_error(error);
+        return job.state!="queued"&&job.state!="running";});return job;
+}
+std::size_t Fds() {
+    return std::distance(std::filesystem::directory_iterator("/dev/fd"),std::filesystem::directory_iterator{});
+}
+std::size_t Threads() {
+#ifdef __APPLE__
+    proc_taskinfo info{};
+    if(proc_pidinfo(::getpid(),PROC_PIDTASKINFO,0,&info,sizeof(info))!=sizeof(info))throw std::runtime_error("thread-count-read");
+    return info.pti_threadnum;
+#else
+    return std::distance(std::filesystem::directory_iterator("/proc/self/task"),std::filesystem::directory_iterator{});
+#endif
+}
+void QueueChecks(const std::filesystem::path& root) {
+    const auto prototype=Record(root);const auto package=prototype.input.package_id;
+    recording::EvidencePackageStore evidence(root/"record-input",{});
+    recording::VaReviewStore store(root/"queue-reviews",{});
+    const auto permit=[](const std::string& c){return c=="camera-1";};
+    std::atomic<unsigned> called{0};std::atomic<int> mode{0};std::atomic<bool> release{false};
+    auto fake=[&](const auto& input,const std::string& provider,auto,const auto& cancelled,
+        recording::VaReviewInference* output,std::string* error) {
+        ++called;
+        while(mode==1&&!release&&!cancelled())std::this_thread::sleep_for(std::chrono::milliseconds(2));
+        if(cancelled()){*error="review-cancelled";return false;}
+        if(mode==3){*error="review-missing-model";return false;}
+        if(mode==4)throw std::runtime_error("private-provider-detail");
+        if(input.pngs.size()!=2)throw std::runtime_error("missing input bytes");
+        *output={prototype.output,provider,prototype.model,prototype.model_revision,prototype.prompt_sha256,prototype.adapter_version};
+        if(mode==2)output->output.supports.front().frame_indices={99};
+        return true;
+    };
+    recording::VaReviewService::Options options;options.enabled=true;
+    const auto baseline_fds=Fds(),baseline_threads=Threads();
+    recording::VaReviewService service(evidence,store,options,fake);
+    Check(service.ready(),"V450-Q01 worker ready");
+    Check(Threads()==baseline_threads+1,"V450-Q01 exactly one worker thread");
+    recording::VaReviewJob first,duplicate;std::string error;mode=1;
+    Check(service.Submit(package,"first","ollama","alice",permit,&first,&error),"V450-Q01 accepted asynchronously");
+    Until([&]{return called.load()==1;});
+    Check(service.Submit(package,"first","ollama","alice",permit,&duplicate,&error)&&duplicate.id==first.id,
+        "V450-Q01 active duplicate shares job");
+    std::vector<recording::VaReviewJob> queued(4);
+    for(unsigned i=0;i<4;++i)Check(service.Submit(package,"queued-"+std::to_string(i),"ollama","alice",permit,&queued[i],&error),
+        "V450-Q01 queue slot "+std::to_string(i));
+    Check(!service.Submit(package,"overflow","ollama","alice",permit,&duplicate,&error)&&error=="review-queue-full",
+        "V450-Q01 queue four boundary");
+    Check(!service.Cancel(queued[0].id,"bob",false,permit,&error)&&error=="review-forbidden","V450-Q01 other owner cannot cancel");
+    Check(service.Cancel(queued[0].id,"admin",true,permit,&error)&&Done(service,queued[0].id).state=="cancelled",
+        "V450-Q01 admin queued cancellation");
+    Check(service.Cancel(first.id,"alice",false,permit,&error)&&Done(service,first.id).state=="cancelled",
+        "V450-Q01 active cancellation");
+    release=true;mode=0;
+    for(unsigned i=1;i<4;++i)Check(Done(service,queued[i].id).state=="completed","V450-Q01 queue continues after cancellation");
+    std::vector<std::string> ids;Check(store.List(&ids,&error)&&ids.size()==3,"V450-Q01 cancelled jobs never persist");
+    for(int kind:{2,3,4}) {
+        mode=kind;recording::VaReviewJob job;
+        Check(service.Submit(package,"failure-"+std::to_string(kind),"ollama","alice",permit,&job,&error),"V450-Q01 failure task admitted");
+        const auto done=Done(service,job.id);
+        Check(done.state=="failed"&&done.error==(kind==2?"review-invalid-output":kind==3?"review-missing-model":"review-failed"),
+            "V450-Q01 isolated failure "+std::to_string(kind));
+    }
+    Check(store.List(&ids,&error)&&ids.size()==3,"V450-Q01 invalid/missing/exception no result writes");
+    std::atomic<bool> allowed{true};mode=1;release=false;const auto before=called.load();
+    recording::VaReviewJob revoked;
+    Check(service.Submit(package,"revoke","ollama","alice",[&](const auto&){return allowed.load();},&revoked,&error),
+        "V450-Q01 revocation task admitted");
+    Until([&]{return called.load()>before;});allowed=false;
+    Check(Done(service,revoked.id).error=="review-forbidden"&&store.List(&ids,&error)&&ids.size()==3,
+        "V450-Q01 current permission revocation aborts/no write");
+    Check(!service.Get(first.id,[](const auto&){return false;},&duplicate,&error)&&error=="review-forbidden",
+        "V450-Q01 status rechecks current channel scope");
+    mode=0;recording::VaReviewJob good;
+    Check(service.Submit(package,"recovery","ollama","alice",permit,&good,&error)&&Done(service,good.id).state=="completed",
+        "V450-Q01 worker usable after failures");
+    service.Stop();
+    Check(Fds()==baseline_fds&&Threads()==baseline_threads,"V450-Q01 FD/thread counts return after failure workload and join");
+    Check(!service.Submit(package,"stopped","ollama","alice",permit,&duplicate,&error)&&error=="review-disabled",
+        "V450-Q01 shutdown stops admission");
+    recording::VaReviewService restarted(evidence,store,options,fake);
+    Check(restarted.ready()&&!restarted.Get(good.id,permit,&duplicate,&error)&&error=="review-job-expired",
+        "V450-Q01 restart expires process jobs without replay");
+    restarted.Stop();
+    recording::VaReviewStore short_store(root/"short-queue",{});
+    options.execution_time=std::chrono::milliseconds(80);options.queue_wait=std::chrono::milliseconds(30);
+    mode=1;release=false;
+    recording::VaReviewService short_queue(evidence,short_store,options,fake);recording::VaReviewJob active,waiting;
+    const auto short_before=called.load();
+    Check(short_queue.Submit(package,"timeout","ollama","alice",permit,&active,&error),"V450-Q01 actual deadline task");
+    Until([&]{return called.load()>short_before;});
+    Check(short_queue.Submit(package,"queue-timeout","ollama","alice",permit,&waiting,&error),"V450-Q01 queue deadline task");
+    Check(Done(short_queue,active.id).error=="review-timeout"&&Done(short_queue,waiting.id).error=="review-queue-timeout"&&
+        called.load()==short_before+1,"V450-Q01 execution and waiting deadlines differ; expired queue not called");
+    short_queue.Stop();
+    options.execution_time=std::chrono::seconds(60);options.queue_wait=std::chrono::seconds(30);options.remembered_jobs=5;
+    recording::VaReviewStore bounded_store(root/"bounded-jobs",{});
+    recording::VaReviewService bounded(evidence,bounded_store,options,fake);mode=0;std::string oldest;
+    for(unsigned i=0;i<8;++i) {
+        recording::VaReviewJob job;
+        Check(bounded.Submit(package,"history-"+std::to_string(i),"ollama","alice",permit,&job,&error)&&Done(bounded,job.id).state=="completed",
+            "V450-Q01 finite terminal history "+std::to_string(i));if(i==0)oldest=job.id;
+    }
+    Check(!bounded.Get(oldest,permit,&duplicate,&error)&&error=="review-job-unavailable","V450-Q01 old terminal metadata evicted");
+    mode=1;release=false;const auto mixed_before=called.load();
+    Check(bounded.Submit(package,"mixed","ollama","alice",permit,&active,&error),"V450-Q01 blocking provider admitted");
+    Until([&]{return called.load()>mixed_before;});
+    recording::RecordingRuntimeStorage runtime(root/"mixed-recordings");
+    Check(runtime.Open(&error),"V450-Q01 media storage opens during provider wait");
+    auto video=Encode(30,false,false,160,90,30,30);Shift(video,7000000000ULL);
+    recording::GStreamerSegmentWriter writer(runtime.WriterOptions(1000));
+    Check(writer.Start("camera-1","unused",video.descriptor,[](auto,auto,auto*){return false;},&error),"V450-Q01 actual writer starts");
+    for(const auto& packet:video.packets)writer.Push(packet,0);writer.Stop();
+    Check(runtime.catalog().FinalizedSegmentIdsForStartup().size()==1,"V450-Q01 actual recording finalized while provider waits");
+    recording::RecordingReadService reader(runtime.catalog());recording::RecordingSearchReader search(runtime.catalog(),reader);
+    std::shared_ptr<const recording::RecordingSearchModel> model;
+    Check(search.Refresh({"camera-1"},{},&model,&error)&&!model->documents().empty(),"V450-Q01 actual search refresh proceeds");
+    recording::RecordingSearchQuery query;query.channels={"camera-1"};query.start_time_ms=1789200000000;
+    query.end_time_ms=1789200100000;recording::RecordingSearchMatches matches;
+    Check(model->Query(query,&matches,&error)&&matches.positions.size()==1,"V450-Q01 independent time query returns recorded segment");
+    analysis::FileEventStorage events((root/"events.jsonl").string());analysis::EventRecord event;
+    event.event_id="va-review-isolation-event";event.channel_id="camera-1";event.event_type="Intrusion";event.status="closed";
+    Check(events.Store(event,&error)&&std::filesystem::file_size(root/"events.jsonl")>0,"V450-Q01 actual event append proceeds");
+    Check(bounded.Get(active.id,permit,&duplicate,&error)&&duplicate.state=="running","V450-Q01 provider still pending during media/event/search progress");
+    const auto stopped_at=std::chrono::steady_clock::now();bounded.Stop();
+    Check(std::chrono::steady_clock::now()-stopped_at<std::chrono::milliseconds(500)&&Done(bounded,active.id).state=="cancelled",
+        "V450-Q01 cooperative cancellation joins worker within 500ms");
+    recording::VaReviewService::Options disabled;
+    recording::VaReviewService off(evidence,store,disabled,fake);const auto off_before=called.load();
+    Check(!off.Submit(package,"off","ollama","alice",permit,&duplicate,&error)&&error=="review-disabled"&&called.load()==off_before,
+        "V450-Q01 disabled never invokes provider");
+}
 }
 int main(int argc,char** argv) {
     try {
         if(argc!=2)throw std::runtime_error("owned fixture root required");
+        gst_init(nullptr,nullptr);
         InputChecks(argv[1]);
         RecordChecks(argv[1]);
+        QueueChecks(argv[1]);
         std::cout<<"[summary] pass="<<checks<<" fail=0\n";return 0;
     } catch(const std::exception& e) {std::cerr<<"[fail] "<<e.what()<<'\n';return 1;}
 }
