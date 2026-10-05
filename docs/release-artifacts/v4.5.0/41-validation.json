@@ -1,0 +1,298 @@
+{
+  "scope": "출처가 결속된 검토 결과·저장 버전과 내부 A 경로 연결",
+  "codeCommit": "40e83ebdebc09c96f5963a4de3a7be6c0176b58d",
+  "source": "41-source.json",
+  "modelCalls": 0,
+  "detectorInferences": 0,
+  "tests": [
+    {
+      "command": [
+        "cmake",
+        "--build",
+        "build-gst-onnx",
+        "--target",
+        "media_server_runtime",
+        "-j4"
+      ],
+      "exit": 0,
+      "log": "41-build-initial.log.gz",
+      "source": "41-source-initial.json",
+      "rawLogSha256": "40067ab4be86b2e1bdd29fd9ef79d06c219bae57cff365ee7d9d4d883284fd83"
+    },
+    {
+      "command": [
+        "cmake",
+        "--build",
+        "build-gst-onnx",
+        "--target",
+        "media_server_runtime",
+        "-j4"
+      ],
+      "exit": 0,
+      "log": "41-build-focused.log.gz",
+      "source": "41-source-focused.json",
+      "rawLogSha256": "9689679f560ec1047d3955454835274adc819b7b676f7210ffe8f3446924fea4"
+    },
+    {
+      "command": [
+        "python3",
+        "scripts/internal/verify_va_review_bound_record.py"
+      ],
+      "exit": 1,
+      "log": "41-focused.log.gz",
+      "source": "41-source-focused.json",
+      "rawLogSha256": "84eefe81abae4f9baa8e582b6612af72268f5470bc0222fcb920fe239f439af4"
+    },
+    {
+      "command": [
+        "cmake",
+        "--build",
+        "build-gst-onnx",
+        "--target",
+        "media_server_runtime",
+        "-j4"
+      ],
+      "exit": 0,
+      "log": "41-build-repair.log.gz",
+      "source": "41-source-repair.json",
+      "rawLogSha256": "c1a292f162b6a1edc3b1eadbf8de18fb4f66f0baef384a0c5cac93eadf84d48c"
+    },
+    {
+      "command": [
+        "python3",
+        "scripts/internal/verify_va_review_bound_record.py"
+      ],
+      "exit": 0,
+      "log": "41-repair.log.gz",
+      "source": "41-source-repair.json",
+      "rawLogSha256": "01f7e28a3b9c2a577b65ffae2a31f372bc92420c11caee51ad6ef522f6e5f6b3",
+      "phaseResults": [
+        {
+          "pass": 91,
+          "fail": 0
+        },
+        {
+          "pass": 17,
+          "fail": 0
+        },
+        {
+          "pass": 52,
+          "fail": 0
+        },
+        {
+          "pass": 168,
+          "fail": 0
+        }
+      ]
+    },
+    {
+      "command": [
+        "cmake",
+        "--build",
+        "build-gst-onnx",
+        "--target",
+        "media_server_runtime",
+        "-j4"
+      ],
+      "exit": 0,
+      "log": "41-build.log.gz",
+      "source": "41-source.json",
+      "rawLogSha256": "c1a292f162b6a1edc3b1eadbf8de18fb4f66f0baef384a0c5cac93eadf84d48c"
+    },
+    {
+      "command": [
+        "python3",
+        "scripts/internal/verify_va_review_bound_record.py"
+      ],
+      "exit": 0,
+      "log": "41-records.log.gz",
+      "source": "41-source.json",
+      "rawLogSha256": "ec66d931171c50368f9952802deb1f5a6b759f94e6b2c0f7a331e21e379cfaf6",
+      "phaseResults": [
+        {
+          "pass": 93,
+          "fail": 0
+        },
+        {
+          "pass": 17,
+          "fail": 0
+        },
+        {
+          "pass": 52,
+          "fail": 0
+        },
+        {
+          "pass": 168,
+          "fail": 0
+        }
+      ]
+    },
+    {
+      "command": [
+        "node",
+        "scripts/internal/verify_v390_structure_stabilization_execution.mjs",
+        "--graph-only"
+      ],
+      "exit": 0,
+      "log": "41-structure.log.gz",
+      "source": "41-source.json",
+      "rawLogSha256": "5ea6643dfdfb92735a8965aa33a38b9de9d30c570690efc4b8c2444236667f3c"
+    },
+    {
+      "command": [
+        "node",
+        "scripts/internal/verify_code_comments.mjs"
+      ],
+      "exit": 1,
+      "log": "41-comments.log.gz",
+      "source": "41-source.json",
+      "rawLogSha256": "1c8dcba279a01c3d4dfddadb55c7bb7fa447f1ff53ba1f13d62403dfc3446639"
+    },
+    {
+      "command": [
+        "./server.sh",
+        "verify-docs-links"
+      ],
+      "exit": 0,
+      "log": "41-docs.log.gz",
+      "source": "41-source.json",
+      "rawLogSha256": "860568e741441bb1ef5ea179d271c8956ee45cc1aa3dd5693e168846e6399722"
+    },
+    {
+      "command": [
+        "node",
+        "scripts/internal/verify_script_inventory.mjs"
+      ],
+      "exit": 0,
+      "log": "41-inventory.log.gz",
+      "source": "41-source.json",
+      "rawLogSha256": "92e692a3173f517ac5430005d1cf361195ac0dad7e505a2ffaddc893da6cdecf"
+    },
+    {
+      "command": [
+        "./server.sh",
+        "verify-docs-links"
+      ],
+      "exit": 0,
+      "scope": "evidence-only docs follow-up; no product retest",
+      "log": "41-evidence-docs.log.gz",
+      "rawLogSha256": "bc7bbe13c1eadc0d8952037fd90a2f921795830411119853edeabfd246a1b4bb"
+    }
+  ],
+  "finalPhaseOrder": [
+    "creation-storage-v2",
+    "fresh-process-readback",
+    "v1-record-regression",
+    "core-regression"
+  ],
+  "initialFailure": {
+    "log": "41-focused.log.gz",
+    "exit": 1,
+    "assertion": "K08 all claims/four structured gaps retained",
+    "expectedAtExecution": "16 insufficient claims with four gap objects per claim",
+    "actualAtExecution": "assertion false; individual gap counts were not printed and are not reconstructed as raw output",
+    "cause": "New fixture counted identity/position separately for each frame. Existing core policy groups by gap kind; existing v450_review_core.json blank-hidden expects identity and position. Core and historical fixture were not changed.",
+    "correction": "Check exact two kinds, both frame refs [0,1] in each kind; display U=1 + G=2 and Q=2. Independent positions and decision labels unchanged.",
+    "revalidation": [
+      "41-repair.log.gz",
+      "41-records.log.gz"
+    ]
+  },
+  "buildWarning": {
+    "log": "41-build-initial.log.gz",
+    "exit": 0,
+    "detail": "Extra + token after new header include; removed before strict smoke compile. Not a product test PASS."
+  },
+  "finalRefinements": [
+    "Existing package media track permits /001; new record validator preserves that contract (fixture exercises actual form).",
+    "Bound typed decision/gap inputs before serialization; final complete focused bundle rerun after this product change."
+  ],
+  "compatibility": {
+    "v1CodecHash": "unchanged",
+    "publicProviderRequests": "v1 unchanged",
+    "publicListGet": "internal v2 excluded; actual application service tested",
+    "storage": "same lock/pending/link/fsync/quota; explicit MSVAR02 and v2 JSON; no migration"
+  },
+  "projection": {
+    "valid": "available-display-only, server-template, not-generated/not-evaluated",
+    "overflow": "unavailable-limit, no output/no truncation",
+    "unsupported": "unavailable-unsupported",
+    "recordValidityIndependent": true
+  },
+  "provenanceLimits": [
+    "A analysis-record-consistency and engine-track only; not physical identity or independent image truth",
+    "Record saves ClaimSpecs/sample lineage/raw observation/coordinates and decisions; PNG/other package content remains external immutable reference",
+    "Read codec verifies saved decisions against saved inputs/policy v1, without external catalog/current settings or modifying stored decisions",
+    "Question generation, user confirmation and model quality remain incomplete"
+  ],
+  "existingComments": {
+    "globalExit": 1,
+    "existingViolations": 13,
+    "newViolations": 0,
+    "comparison": "41-existing-comments.json",
+    "note": "va_review_smoke.cpp changed elsewhere; the eight flagged comments themselves are byte-identical to baseline; other flagged whole files unchanged"
+  },
+  "cleanup": {
+    "ownedRootsRemoved": true,
+    "seedProcessExitedAndCatalogRemovedBeforeReadback": true,
+    "childIOFailureProcessReaped": true,
+    "modelProcessPortStarted": false,
+    "unload5SecondGate": "not-run: no model execution/owned model",
+    "logs": "gzip preserves subprocess merged stdout/stderr bytes exactly"
+  },
+  "remoteBeforeCommit": "12ec97a686dbb4707cf9f211110331c4e26dbdf7",
+  "remoteCheck": {
+    "restrictedShellExit": 128,
+    "reason": "ssh DNS resolution failed in restricted environment",
+    "authorizedNetworkCheckExit": 0,
+    "remoteChanged": false
+  },
+  "notRun": [
+    "additional model evaluation",
+    "actual detector inference/independent video truth",
+    "general acceptance/full native/full HTTP",
+    "user confirmation API/UI",
+    "30min/120min/UI fulltest",
+    "public provider switch",
+    "migration",
+    "PR/main/tag/release"
+  ],
+  "historicalArtifacts34to40": "unchanged",
+  "checks": [
+    {
+      "command": "git diff --cached --check",
+      "exit": 0
+    },
+    {
+      "command": "final frozen source hash vs current files",
+      "result": "all match"
+    }
+  ],
+  "artifactSha256": {
+    "41-build-focused.log.gz": "29baf859765e9cf171c1fbb539e117a71eb589c59d3739d61aba212cef42e0f7",
+    "41-build-initial.log.gz": "aaa9bed74aff0d3a4897d068a37de9a73d69cc025988d7ec29a3acf83370da81",
+    "41-build-repair.log.gz": "4a0207a54dcd05b45f6a514c29c672ea1093ea592bfa3359f0741c576098fba6",
+    "41-build.log.gz": "4a0207a54dcd05b45f6a514c29c672ea1093ea592bfa3359f0741c576098fba6",
+    "41-comments.log.gz": "9d587ef9fdd9b1abf3eee8cb62b2c980ac341e7d0422aba735e21c1d11284a49",
+    "41-docs.log.gz": "76a79a9f5e24aa089ed6c094cb8562811b130adb7846c6bd8d53b21ad6fdd41b",
+    "41-existing-comments.json": "2c190328313d7dcab27077bd110d732d7c9d654d74e00c5fce23382f3eaace29",
+    "41-focused.log.gz": "b663d44d4ce475e9abe006c10249e7997910debd50d8255212406db64d3f8974",
+    "41-inventory.log.gz": "04e2f0744700e1a2c4715c54f85f0561d4b6ddb82b9a6a8760c3efb486d4ef9d",
+    "41-records.log.gz": "16363f812e5500cce7b1284a8209113c800cd1b167b127ec5aea34181cba341c",
+    "41-repair.log.gz": "0d8943f016ed6cd26c13bf93d539a00f39c99df064361308fd113cb72f9b1c71",
+    "41-source-focused.json": "4a982ea6be6b7fdf05c4e651506414a790008d01ff5c1a0d879ff73934120487",
+    "41-source-initial.json": "8c246b7053cb7d829f92036d4d4d82260813891b237b253f4483f0bc40818b6a",
+    "41-source-repair.json": "5b4c95c990b658d1036bfa8c6d4a24826aa5f294a4aaa2cd3542d3ac34899e8e",
+    "41-source.json": "3117ade99d2d0acb6934eeff355d5254c3601d2bb064ec8a6bd073770f037b80",
+    "41-structure.log.gz": "36cd8e1bec4083a81e997921d8ee123882227812cd80cdc737c2aeff6aaed864",
+    "41-evidence-docs.log.gz": "fc03185230258660f23737a040c53729839fd95e76b31d2acf9e391da446568b"
+  },
+  "evidenceAudit": {
+    "initialExit": 1,
+    "reason": "Temporary per-command .exit.json metadata was consolidated into tests but erroneously retained in the artifact hash inventory; audit stopped with FileNotFoundError before source/cleanup checks.",
+    "correction": "Remove only obsolete temporary-file hash entries; command, immediate exit and raw stdout logs remain in tests. No product/source/test result changed.",
+    "rawInitialAudit": "tool output only; not reconstructed as a subprocess log",
+    "recheckExit": 0,
+    "recheck": "All compressed/raw hashes and tested source bytes in code commit match; all recorded owned fixture roots absent."
+  }
+}

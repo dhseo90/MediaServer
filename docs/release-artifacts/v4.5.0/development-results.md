@@ -1069,3 +1069,24 @@ baseline의 해당 줄과 전체 파일 바이트를 대조했다. 이번 변경
 
 증거 커밋 `8a05ec4ab`의 원문 stdout 공백은 내용 삭제 없이 gzip으로 보존했다. 복원 바이트/hash를 대조했으며
 원래 로그와 첫 실패는 이전 커밋에도 유지된다. 제품 코드·검사 결과를 변경하거나 다시 실행하지 않았다.
+
+
+## 41: 출처가 결속된 내부 결과·저장 버전
+
+[설계41](../../superpowers/specs/2026-10-05-v450-va-review-design.md#41-출처가-결속된-내부-검토-결과와-저장-v2)의
+record/output v2와 package v2→A reader→core→기존 원자 저장 경로를 구현했다. 코드 `40e83ebdebc09c96f5963a4de3a7be6c0176b58d`,
+[실행 대상](41-source.json), [명령별 종료 코드·한계·최초 실패와 재검증](41-validation.json)에 결속한다.
+최종 직접 실행은 생성/저장93, 별도 프로세스 readback17, v1 record52, core168건 PASS다.
+명시 mock VA/ClaimSpec의 저장·재현 결과이며 A 기록 관계를 독립 영상 사실 검증으로 승격하지 않는다.
+
+record는 명세·실제 분석 대상·sample·관측 출처·정책과 판정을 보존한다. 원본/catalog를 제거한 뒤 새
+프로세스에서 동일 바이트를 읽었다. package 부재는 근거 열람 unavailable, 변조는 오류이며 저장 판정은
+변경하지 않는다. 구형 표시 가능/한도 초과/미지원은 별도 상태이고 서버 template는 모델 생성 문장이 아니다.
+공개 기존 목록/get은 내부 v2를 노출하지 않으며 v1 codec/hash·quota는 유지한다.
+
+최초 신규 fixture는 기존 core의 종류별 gap 묶음을 프레임별 네 객체로 잘못 가정해 실패했다.
+원로그와 당시 source hash를 보존하고, 기존 core/fixture를 유지한 채 두 종류에 두 frame 참조가 모두 남는지
+직접 검사했다. 초기 include의 + 토큰 경고도 수정했다. 최종 코드는 검사 당시 source hash와 일치한다.
+전역 주석 검사13건은 기존 원문 그대로 FAIL이며 [대조](41-existing-comments.json)에서 새 위반0건을 확인했다.
+구조4·script 분류13·문서 링크·공백 검사 PASS다. 모델/설치/검출기 추론0회, 소유 fixture/자식 프로세스 정리 완료.
+질문 생성·사용자 확인 API/UI·VLM 품질·공개 전환·릴리즈는 미완료이며 자동 시작하지 않는다.
