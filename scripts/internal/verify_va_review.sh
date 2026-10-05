@@ -25,10 +25,10 @@ lifecycle=len(sys.argv)==4 and sys.argv[2]=='--local-lifecycle'
 http_mode=len(sys.argv)==3 and sys.argv[2]=='--http-only'
 contract=len(sys.argv)==3 and sys.argv[2]=='--contract-only'
 cause_offline=len(sys.argv)==3 and sys.argv[2]=='--cause-offline'
-core_only=len(sys.argv)==3 and sys.argv[2]=='--core-only'
+core_only=len(sys.argv)==3 and sys.argv[2] in ('--core-only','--observer-only')
 observe_local=local and sys.argv[2]=='--observe-local'
 cause_ab=local and sys.argv[2]=='--cause-ab'
-if len(sys.argv)!=2 and not local and not lifecycle and not http_mode and not contract and not cause_offline and not core_only: raise RuntimeError('usage: verify_va_review.sh [--local http://127.0.0.1:port | --local-lifecycle http://127.0.0.1:port | --diagnostic-text http://127.0.0.1:port | --diagnostic-inversion http://127.0.0.1:port | --http-only | --contract-only | --cause-offline | --cause-ab http://127.0.0.1:port]')
+if len(sys.argv)!=2 and not local and not lifecycle and not http_mode and not contract and not cause_offline and not core_only: raise RuntimeError('usage: verify_va_review.sh [--local http://127.0.0.1:port | --local-lifecycle http://127.0.0.1:port | --diagnostic-text http://127.0.0.1:port | --diagnostic-inversion http://127.0.0.1:port | --http-only | --contract-only | --cause-offline | --cause-ab http://127.0.0.1:port | --core-only | --observer-only | --observe-local http://127.0.0.1:port]')
 archive=build/'libmedia_server_runtime.a'
 for directory in ('src','include'):
     for source in (repo/directory).rglob('*'):
@@ -41,12 +41,14 @@ try:
     link=shlex.split((build/'CMakeFiles/media_server.dir/link.txt').read_text())
     libs=[str(archive),*link[link.index('libmedia_server_runtime.a')+1:]]
     flags=shlex.split(subprocess.check_output(['pkg-config','--cflags','openssl','sqlite3','gstreamer-app-1.0'],text=True))
-    sources=sorted([*repo.glob('src/recording/va_review*.cpp'),*repo.glob('src/recording/va_review*.h'),*repo.glob('include/recording/va_review*.h'),repo/'scripts/internal/va_review_smoke.cpp',repo/'scripts/internal/va_review_quality_fixture.h',repo/'scripts/internal/verify_va_review.sh',repo/'scripts/internal/va_review_contract_replay.json',repo/'scripts/internal/va_review_cause_diagnostic.h',repo/'scripts/internal/va_review_core_checks.h',repo/'test/fixtures/v450_review_core.json'])
+    sources=sorted([*repo.glob('src/recording/va_review*.cpp'),*repo.glob('src/recording/va_review*.h'),*repo.glob('include/recording/va_review*.h'),repo/'scripts/internal/va_review_smoke.cpp',repo/'scripts/internal/va_review_quality_fixture.h',repo/'scripts/internal/verify_va_review.sh',repo/'scripts/internal/va_review_contract_replay.json',repo/'scripts/internal/va_review_cause_diagnostic.h',repo/'scripts/internal/va_review_core_checks.h',repo/'test/fixtures/v450_review_core.json',repo/'test/fixtures/v450_review_observer.json'])
     for source in sources: print('[source]',source.relative_to(repo),hashlib.sha256(source.read_bytes()).hexdigest(),flush=True)
     shutil.copyfile(repo/'scripts/internal/va_review_contract_replay.json',root/'contract-replay.json')
     if core_only or observe_local:
         shutil.copyfile(repo/'test/fixtures/v450_review_core.json',root/'core-fixture.json')
-        if observe_local:shutil.copyfile(repo/'docs/release-artifacts/v4.5.0/37-request-freeze.json',root/'core-plan.json')
+        shutil.copyfile(repo/'test/fixtures/v450_review_observer.json',root/'observer-fixture.json')
+        shutil.copyfile(repo/'docs/release-artifacts/v4.5.0/37-request-freeze.json',root/'previous-observation-plan.json')
+        if observe_local:shutil.copyfile(repo/'docs/release-artifacts/v4.5.0/38-request-freeze.json',root/'core-plan.json')
     if cause_offline or cause_ab:
         artifact=repo/'docs/release-artifacts/v4.5.0'
         prior=json.loads((artifact/'35-evaluation-freeze.json').read_text())
@@ -194,7 +196,7 @@ try:
             http_proxy='http://127.0.0.1:1',https_proxy='http://127.0.0.1:1',all_proxy='http://127.0.0.1:1',NO_PROXY='',no_proxy=''))
     focused_finished=time.monotonic()
     if core_only:
-        target=repo/'docs/release-artifacts/v4.5.0/37-request-freeze.json'
+        target=repo/'docs/release-artifacts/v4.5.0/38-request-freeze.json'
         data=(root/'core-plan.json').read_bytes()
         if target.exists():
             if target.read_bytes()!=data:raise RuntimeError('frozen observation request changed')

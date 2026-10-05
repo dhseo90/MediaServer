@@ -1,0 +1,251 @@
+{
+  "base": "aaf04f98e37965ef3ddd72d5b3ba1f483541408a",
+  "historicalInterpretation": "37 remains original-pixel FAIL 3/8; no reinterpretation",
+  "historicalHashes": {
+    "docs/release-artifacts/v4.5.0/37-evaluation.json": "493bf1e5ca510b999721250b8e576169a5d744da4e61e8368f375864bf7c6a4e",
+    "docs/release-artifacts/v4.5.0/37-observation.log": "6b083a66cebf270b6a6987f3bb37c8e1412c5df353a454d0970a2c338a393482",
+    "docs/release-artifacts/v4.5.0/37-request-freeze.json": "c540932427ca1f33d87b2ea30f95fc237788bc6961a36347906a26882303bece",
+    "docs/release-artifacts/v4.5.0/37-pixel-oracle.json": "e8d202d3426b6b2d4ff11ec26d53b1991c407d8aa431418b3536de31ec0a3d39"
+  },
+  "decodedFrames": [
+    {
+      "case": "one-motion",
+      "frame": 0,
+      "key": "f0",
+      "ptsNs": 0,
+      "width": 512,
+      "height": 288,
+      "pngSha256": "2a019820ff7e8cc68e0dce82b9f56e4a566da1dd19cbaa925aea3ce6b7b719f0",
+      "bboxExclusive": [
+        208,
+        120,
+        256,
+        168
+      ]
+    },
+    {
+      "case": "one-direction",
+      "frame": 0,
+      "key": "f0",
+      "ptsNs": 0,
+      "width": 512,
+      "height": 288,
+      "pngSha256": "2a019820ff7e8cc68e0dce82b9f56e4a566da1dd19cbaa925aea3ce6b7b719f0",
+      "bboxExclusive": [
+        208,
+        120,
+        256,
+        168
+      ]
+    },
+    {
+      "case": "blank-hidden",
+      "frame": 0,
+      "key": "f0",
+      "ptsNs": 0,
+      "width": 512,
+      "height": 288,
+      "pngSha256": "e186d1adb71171aad65968d03e6016a50c64028cefce5e6778303138b01e4db0",
+      "bboxExclusive": null
+    },
+    {
+      "case": "blank-hidden",
+      "frame": 1,
+      "key": "f1",
+      "ptsNs": 1000000000,
+      "width": 512,
+      "height": 288,
+      "pngSha256": "e186d1adb71171aad65968d03e6016a50c64028cefce5e6778303138b01e4db0",
+      "bboxExclusive": null
+    },
+    {
+      "case": "occluded-final",
+      "frame": 0,
+      "key": "f0",
+      "ptsNs": 0,
+      "width": 512,
+      "height": 288,
+      "pngSha256": "f79b82bff4f500c729c54a54f7c9546b3414ad136a38ad4713f56fc5569559df",
+      "bboxExclusive": [
+        64,
+        120,
+        112,
+        168
+      ]
+    },
+    {
+      "case": "occluded-final",
+      "frame": 1,
+      "key": "f1",
+      "ptsNs": 1000000000,
+      "width": 512,
+      "height": 288,
+      "pngSha256": "e186d1adb71171aad65968d03e6016a50c64028cefce5e6778303138b01e4db0",
+      "bboxExclusive": null
+    },
+    {
+      "case": "two-right",
+      "frame": 0,
+      "key": "f0",
+      "ptsNs": 0,
+      "width": 512,
+      "height": 288,
+      "pngSha256": "f79b82bff4f500c729c54a54f7c9546b3414ad136a38ad4713f56fc5569559df",
+      "bboxExclusive": [
+        64,
+        120,
+        112,
+        168
+      ]
+    },
+    {
+      "case": "two-right",
+      "frame": 1,
+      "key": "f1",
+      "ptsNs": 1000000000,
+      "width": 512,
+      "height": 288,
+      "pngSha256": "343a93a516ced906c3576140cfa471cb870dc0051cb6363dcd65d6819375b76d",
+      "bboxExclusive": [
+        400,
+        120,
+        448,
+        168
+      ]
+    },
+    {
+      "case": "two-left",
+      "frame": 0,
+      "key": "f0",
+      "ptsNs": 0,
+      "width": 512,
+      "height": 288,
+      "pngSha256": "343a93a516ced906c3576140cfa471cb870dc0051cb6363dcd65d6819375b76d",
+      "bboxExclusive": [
+        400,
+        120,
+        448,
+        168
+      ]
+    },
+    {
+      "case": "two-left",
+      "frame": 1,
+      "key": "f1",
+      "ptsNs": 1000000000,
+      "width": 512,
+      "height": 288,
+      "pngSha256": "f79b82bff4f500c729c54a54f7c9546b3414ad136a38ad4713f56fc5569559df",
+      "bboxExclusive": [
+        64,
+        120,
+        112,
+        168
+      ]
+    },
+    {
+      "case": "static-red",
+      "frame": 0,
+      "key": "f0",
+      "ptsNs": 0,
+      "width": 512,
+      "height": 288,
+      "pngSha256": "2a019820ff7e8cc68e0dce82b9f56e4a566da1dd19cbaa925aea3ce6b7b719f0",
+      "bboxExclusive": [
+        208,
+        120,
+        256,
+        168
+      ]
+    },
+    {
+      "case": "static-blue",
+      "frame": 0,
+      "key": "f0",
+      "ptsNs": 0,
+      "width": 512,
+      "height": 288,
+      "pngSha256": "2a019820ff7e8cc68e0dce82b9f56e4a566da1dd19cbaa925aea3ce6b7b719f0",
+      "bboxExclusive": [
+        208,
+        120,
+        256,
+        168
+      ]
+    }
+  ],
+  "uniqueRequestHashes": 6,
+  "installedOllama": {
+    "version": "0.21.0",
+    "revision": "57653b8e42d69ec35f68a59857bad4d0f07994a3",
+    "formulaPatchScope": "x/imagegen/mlx wrapper generation; no Qwen processor patch declared",
+    "metadata": {
+      "general.architecture": "qwen3vl",
+      "qwen3vl.vision.attention.head_count": 16,
+      "qwen3vl.vision.attention.layer_norm_epsilon": 9.999999974752427e-07,
+      "qwen3vl.vision.block_count": 27,
+      "qwen3vl.vision.deepstack_visual_indexes": [
+        8,
+        16,
+        24
+      ],
+      "qwen3vl.vision.embedding_length": 1152,
+      "qwen3vl.vision.image_mean": [
+        0.5,
+        0.5,
+        0.5
+      ],
+      "qwen3vl.vision.image_std": [
+        0.5,
+        0.5,
+        0.5
+      ],
+      "qwen3vl.vision.longest_edge": 16777216,
+      "qwen3vl.vision.num_channels": 3,
+      "qwen3vl.vision.patch_size": 16,
+      "qwen3vl.vision.rope.freq_base": 10000.0,
+      "qwen3vl.vision.shortest_edge": 65536,
+      "qwen3vl.vision.spatial_merge_size": 2,
+      "qwen3vl.vision.temporal_patch_size": 2
+    }
+  },
+  "officialSources": {
+    "ollamaCommit": "57653b8e42d69ec35f68a59857bad4d0f07994a3",
+    "qwenNotebookUrl": "https://raw.githubusercontent.com/QwenLM/Qwen3-VL/main/cookbooks/2d_grounding.ipynb",
+    "qwenNotebookSha256": "24a39b56467c16aea1062e40157c00800e8f53266714e8270ca3238064fd9898",
+    "ollamaFiles": {
+      "imageprocessor.go": "https://github.com/ollama/ollama/blob/57653b8e42d69ec35f68a59857bad4d0f07994a3/model/models/qwen3vl/imageprocessor.go",
+      "model_models_qwen3vl_model.go": "https://github.com/ollama/ollama/blob/57653b8e42d69ec35f68a59857bad4d0f07994a3/model/models/qwen3vl/model.go",
+      "qwen3vl.go": "https://github.com/ollama/ollama/blob/57653b8e42d69ec35f68a59857bad4d0f07994a3/model/renderers/qwen3vl.go",
+      "server_prompt.go": "https://github.com/ollama/ollama/blob/57653b8e42d69ec35f68a59857bad4d0f07994a3/server/prompt.go"
+    }
+  },
+  "sourceHashes": {
+    "qwen-grounding-source.txt": "766cbd853ba5d1da6aaf46c4adde44c7378867ccc0bb49ddf6cce5558a5c7169",
+    "imageprocessor.go": "0de7376a3a491a1dd1e95e7bd66b57d06ae63e065c3e6440a81afde84335d39f",
+    "model_models_qwen3vl_model.go": "e05af13df1633c7118243b9055f66a16089155dba980fcd93f435fd84b7b0375",
+    "qwen3vl.go": "2b0e584882ca9d8f349414a4b6e8155b7b4812747abea3aeb63d4ef633820f28",
+    "server_prompt.go": "04015588d9a93c4c8f2ec001a1a30d996e0adad365239b2fc1faf1df0092b066"
+  },
+  "preprocessAssessment": {
+    "basis": "installed GGUF metadata and matching official revision source; not inference tensor observation",
+    "factor": 32,
+    "inputAndCalculatedResize": [
+      512,
+      288
+    ],
+    "minPixels": 65536,
+    "effectiveMaxPixels": 2097152,
+    "crop": "No explicit crop in Qwen ProcessImage; full image Resize call",
+    "messages": "renderer images precede content per message; sequential image IDs; context truncation exists",
+    "runtimeTensorAndFullPrompt": "not attested via supported API"
+  },
+  "readCheckCorrection": "Initial json.dumps re-serialization hash assertion failed (literal u000a vs n escape); compared original raw request slices instead. No original request mismatch.",
+  "regeneratedFrames": {
+    "offlineLog": "38-offline.log",
+    "result": "PASS",
+    "messageCount": 12,
+    "comparison": "byte-equal frame message objects including PNG base64 and frame/PTS/size metadata for all 8 semantic requests; separately decoded preserved input PNGs",
+    "originalTemporaryPngFiles": "not retained from run37; compare preserved transmitted PNG bytes and deterministic fixture regeneration"
+  }
+}

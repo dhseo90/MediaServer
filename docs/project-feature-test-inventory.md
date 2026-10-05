@@ -131,8 +131,8 @@ V450-K05(판정 핵심, 공개 경로 미연결): `--core-only`는
 복합 결핍/전칭 반례·누락, 잘못된 형식·참조 오류, 16 claim 보존, U+G/G/claim/40KiB 경계를
 검사한다. 모델 verdict/basis는 관측 codec에서 거부된다. 기존 실패에서 착안한 typed 합성 입력이며
 자유질문 해석·과거 평가 PASS가 아니다. 중심 좌표 원본 pixel, 관계 동일 허용 오차1px를 고정한다.
-`--observe-local`은 오프라인 통과 후 fixture의 actual8개를 순서대로 실제 PNG 입력으로 한 번씩
-호출한다. one-motion/one-direction은 순변위 명세의 단일 시점 부족, blank-hidden/occluded-final은
+37 실행은 오프라인 통과 후 fixture의 actual8개를 순서대로 실제 PNG 입력으로 한 번씩
+호출했다. 현재 `--observe-local`의 고정 관측 후보는 아래 V450-K06을 따른다. one-motion/one-direction은 순변위 명세의 단일 시점 부족, blank-hidden/occluded-final은
 명시 끝점 비교 부족을 검사한다. 원 자유질문의 연속 이동 해석 성공으로 계산하지 않는다.
 정적2개는 같은 빨간 사각형의 red/blue 요구값이며 모델에는 요구 정답 색상/label/사례 이름을 주지 않는다.
 oracle는 생성 픽셀 사각형의 중심(x+24,144), 실제 색red/가시성, 좌표 ±1px이며 관측 동일성 근거
@@ -140,6 +140,22 @@ oracle는 생성 픽셀 사각형의 중심(x+24,144), 실제 색red/가시성, 
 최대8호출·재시도0·60초/호출·800초 묶음, 기존 digest/options 및 native4GiB/model14GiB/workspace8GiB 유지.
 의미 오류는 수집하되 전송/시간/자원/격리/수집/정리 실패는 중단한다. native 종료 후5초 unload gate와
 사후 모델 부재를 구분한다. 실제 UI/안정화30분/120분/전체 품질은 이번 비범위이며 공개 연결도 없다.
+
+V450-K06(관측 연결 후보, 공개 미연결): `--observer-only`는
+[test/fixtures/v450_review_observer.json](../test/fixtures/v450_review_observer.json)의 독립 기대값으로
+상대 bbox→원본 중심 변환, 양쪽 경계/면적/형식/유한성/null, 프레임·anchor 참조와 PNG 크기·hash를
+검사한다. 기존 core fixture 중 영향받는 13관계 사례만 재사용하며 core 정책/±1px oracle는 유지한다.
+37의 실제 PNG를 디코딩한 독립 픽셀과 새로 생성한 PNG/base64/프레임 metadata의 바이트를 대조한다.
+`--observe-local`은 actual8 의미 사례를 요청 바이트가 같은 두 쌍만 공유하여 고유6회로 수행한다.
+one-motion/one-direction과 static-red/static-blue가 각각 한 응답을 두 명세에 적용한다.
+모델 옵션·요청·schema·입력·평가기준을 호출 전에 고정하고 재시도0, 60초/호출·800초/묶음과
+기존 자원 한도를 유지한다. bbox 원값·변환 중심·x/y 오차와 가시성/색상/동일성을 따로 평가한다.
+합성 생성기의 동일 객체 정답과 영상에서 보이는 식별 근거는 다르다. 프레임 metadata는 순서·시각·
+크기만 제공하며 추적 ID를 제공하지 않는다. 위치/일반 색·모양만으로 same/different를 확정하지 않는다.
+unknown은 보존하고 시간 비교 연결 미충족으로 기록한다. 형식 적합성, 픽셀 정확성, 동일성 근거,
+주어진 관측에 대한 core 판정, 최종 조합을 구분하며 품질 미달은 관측 미완료 체크포인트다.
+전송/시간/자원/격리/수집/정리 실패는 중단한다. native 종료 후5초 unload와 사후 부재를 구분한다.
+UI control/route 없음. 안정화/30분/120분/실제 UI는 이 내부 검사의 대상이 아니며 전체 품질/릴리즈를 대신하지 않는다.
 
 `--local-lifecycle http://127.0.0.1:<port>`는 기존 품질 12사례를 재실행하지 않는 별도 단기 수명 검사다.
 실제 provider/worker에 합성 512×288 PNG 8개를 보내고 Python monitor의 `/api/ps` 모델 로드

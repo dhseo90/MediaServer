@@ -46,8 +46,8 @@ std::string CorePlan(const std::filesystem::path& root){EvidencePackageStore sto
         Check(BuildReviewObservationRequest(input,spec,"qwen3-vl:8b-instruct-q4_K_M",&request,&error),"V450-K05 frozen image request");
         if(plan.size()>1)plan+=',';plan+="{\"case\":"+EvidenceJsonQuote(CoreText(d,"id"))+",\"requestSha256\":"+EvidenceJsonQuote(CauseHash(request))+",\"request\":"+request+"}";
     }return plan+"]";}
-void CoreChecks(const std::filesystem::path& root){using namespace recording::review_json;
-    for(const auto& raw:CoreRows(root)){const auto d=CauseDoc(raw);auto spec=CoreSpec(d);auto frames=CoreFrames(d);auto observations=CoreObservations(d,spec,frames);const auto mutation=CoreText(d,"mutation");
+void CoreChecks(const std::filesystem::path& root,const std::set<std::string>& selected={}){using namespace recording::review_json;
+    for(const auto& raw:CoreRows(root)){const auto d=CauseDoc(raw);if(!selected.empty()&&!selected.count(CoreText(d,"id")))continue;auto spec=CoreSpec(d);auto frames=CoreFrames(d);auto observations=CoreObservations(d,spec,frames);const auto mutation=CoreText(d,"mutation");
         if(mutation=="reference")observations.back().frame=9;
         if(mutation=="pts")observations.back().pts_ns++;
         if(mutation=="sha")observations.back().evidence_sha256=std::string(64,'a');
@@ -68,6 +68,7 @@ void CoreChecks(const std::filesystem::path& root){using namespace recording::re
             for(const auto& g:decisions[0].gaps){got.insert(ReviewGapName(g.kind));Check(g.target_id==spec.target_id&&!g.frames.empty(),"V450-K05 structured gap target and time reference");}
             Check(want==got,"V450-K05 all independent gap expectations");}
     }
+    if(!selected.empty())return;
     auto fixture=CauseDoc(CauseRead(root/"core-fixture.json"));std::vector<std::string> rows;Array(fixture,"budgets",&rows);
     for(const auto& raw:rows){auto row=CauseDoc(raw);unsigned s=0,u=0,g=0,bytes=0;Check(Number(row,"s",&s)&&Number(row,"u",&u)&&Number(row,"gaps",&g),"V450-K05 budget fixture");Number(row,"textBytes",&bytes);
         std::vector<ReviewDecision> ds;std::vector<ReviewExpression> es;const std::string text=bytes?std::string(bytes,ingress::StrictJsonBoolField(row,"escaped")==true?'\\':'a'):"검증 전용 표현";
@@ -81,11 +82,11 @@ void CoreChecks(const std::filesystem::path& root){using namespace recording::re
     }
     // Adapter 경계: verdict/basis는 입력 필드가 아니며 어느 값으로 바꿔도 거부한다.
     const auto row=CauseDoc(CoreRows(root).front());auto spec=CoreSpec(row);auto frames=CoreFrames(row);std::string error;
-    const std::string observation=R"({"f0":{"visibility":"visible","identity":"same","anchor":0,"identityEvidence":"같은 사각형","position":{"x":232,"y":144},"color":null}})";
+    const std::string observation=R"({"f0":{"visibility":"visible","identity":"same","anchor":0,"identityEvidence":"같은 사각형","bbox_2d":[406,417,500,583],"color":null}})";
     std::vector<ReviewObservation> obs;Check(DecodeReviewObservations(observation,spec,frames,&obs,&error),"V450-K05 typed observation codec");
     for(const auto* verdict:{"supported","contradicted"}){auto poisoned=observation;poisoned.pop_back();poisoned+=",\"verdict\":"+EvidenceJsonQuote(verdict)+",\"basis\":\"visible-property\"}";
         Check(!DecodeReviewObservations(poisoned,spec,frames,&obs,&error)&&error=="observation-shape","V450-K05 model decision/basis cannot select server policy");}
-    auto invalid=CauseReplace(observation,"232","\"232\"");Check(!DecodeReviewObservations(invalid,spec,frames,&obs,&error),"V450-K05 coordinate string rejected");
+    auto invalid=CauseReplace(observation,"406","\"406\"");Check(!DecodeReviewObservations(invalid,spec,frames,&obs,&error),"V450-K05 coordinate string rejected");
     std::vector<ReviewClaimSpec> claims(16,spec);for(unsigned i=0;i<16;++i)claims[i].id="c"+std::to_string(i);std::vector<ReviewDecision> decisions;
     Check(EvaluateReviewClaims(claims,frames,CoreObservations(row,spec,frames),&decisions,&error)&&decisions.size()==16,"V450-K05 all sixteen claims retained");
     for(unsigned i=0;i<16;++i)Check(decisions[i].claim_id==claims[i].id&&decisions[i].verdict==ReviewVerdict::Insufficient,"V450-K05 per-claim identity preserved");
@@ -98,30 +99,79 @@ void CoreChecks(const std::filesystem::path& root){using namespace recording::re
     options.bearer_token="synthetic-token";Check(!ExtractReviewObservations(input,spec,options,digest,VaReviewService::Clock::now()+std::chrono::seconds(2),[]{return false;},&obs,&error,transport)&&calls==0,"V450-K05 HTTP bearer rejected before transport");
     std::cout<<"[core-summary] actualModelCalls=0 publicPathConnected=false"<<std::endl;
 }
+void ObserverChecks(const std::filesystem::path& root){using namespace recording::review_json;
+    const auto fixture=CauseDoc(CauseRead(root/"observer-fixture.json"));std::vector<std::string> rows,regression;
+    Check(Array(fixture,"cases",&rows)&&Array(fixture,"coreRegression",&regression),"V450-K06 independent observer fixture");
+    for(const auto& raw:rows){auto d=CauseDoc(raw);ReviewFrame f{0,512,288,std::string(64,'a')};std::vector<std::string> values,size;
+        Check(Array(d,"box",&values)&&values.size()==4,"V450-K06 box fixture shape");std::array<double,4> box{};
+        for(unsigned i=0;i<4;++i)box[i]=std::stod(values[i]);if(Array(d,"size",&size)){f.width=std::stoi(size[0]);f.height=std::stoi(size[1]);}
+        const auto nonfinite=CoreText(d,"nonfinite");if(nonfinite=="nan")box[0]=std::numeric_limits<double>::quiet_NaN();if(nonfinite=="infinity")box[0]=std::numeric_limits<double>::infinity();
+        ReviewPoint point{-99,-99};std::string error;const bool accepted=ConvertReviewRelativeBox(box,f,&point,&error);std::vector<std::string> expected;
+        std::cout<<"[coordinate-check] case="<<CoreText(d,"id")<<" accepted="<<accepted<<" error="<<error<<std::endl;
+        if(Array(d,"expected",&expected))Check(accepted&&std::abs(point.x-std::stod(expected[0]))<1e-9&&std::abs(point.y-std::stod(expected[1]))<1e-9,"V450-K06 exact unrounded conversion");
+        else Check(!accepted&&error==CoreText(d,"error")&&point.x==-99&&point.y==-99,"V450-K06 no clamp/axis swap/range repair");
+    }
+    std::set<std::string> selected;for(const auto& item:regression)selected.insert(CoreText(CauseDoc("{\"v\":"+item+"}"),"v"));CoreChecks(root,selected);
+    const auto row=CauseDoc(CoreRows(root).front());auto spec=CoreSpec(row);const auto frames=CoreFrames(row);
+    const std::string valid=R"({"f0":{"visibility":"visible","identity":"same","anchor":0,"identityEvidence":"visible target","bbox_2d":[406,417,500,583],"color":null}})";
+    std::vector<ReviewObservation> observations;std::vector<ReviewCoordinateConversion> conversions;std::string error;
+    Check(DecodeReviewObservations(valid,spec,frames,&observations,&error,&conversions)&&conversions.size()==1&&std::abs(observations[0].position->x-231.936)<1e-9,"V450-K06 raw bbox and converted center separated");
+    for(const auto& replacement:std::vector<std::string>{"[406,417,500]","[406,417,500,583,600]","[\"406\",417,500,583]","[NaN,417,500,583]","[0,0,1001,1000]","[500,417,406,583]","{\"x\":232,\"y\":144}"}){
+        Check(!DecodeReviewObservations(CauseReplace(valid,"[406,417,500,583]",replacement),spec,frames,&observations,&error),"V450-K06 strict bbox form/range; no center guessing");}
+    Check(!DecodeReviewObservations(CauseReplace(valid,"\"f0\"","\"f1\""),spec,frames,&observations,&error),"V450-K06 wrong frame key rejected");
+    Check(!DecodeReviewObservations(CauseReplace(valid,"\"anchor\":0","\"anchor\":7"),spec,frames,&observations,&error),"V450-K06 wrong anchor rejected");
+    Check(!DecodeReviewObservations(CauseReplace(valid,"\"visible\"","\"not-visible\""),spec,frames,&observations,&error),"V450-K06 invisible bbox rejected");
+    const auto unknown=R"({"f0":{"visibility":"unknown","identity":"unknown","anchor":null,"identityEvidence":"","bbox_2d":null,"color":null}})";
+    Check(DecodeReviewObservations(unknown,spec,frames,&observations,&error)&&!observations[0].position&&observations[0].identity==ReviewIdentity::Unknown,"V450-K06 unknown/null preserved");
+    std::vector<ReviewDecision> decisions;Check(EvaluateReviewClaims({spec},frames,observations,&decisions,&error)&&decisions[0].verdict==ReviewVerdict::Insufficient&&decisions[0].gaps.size()==3,"V450-K06 identity/position/time deficits retained");
+    const auto plan=CorePlan(root);std::ofstream(root/"core-plan.json")<<plan;std::vector<std::string> planned,old;
+    Check(Array(CauseDoc("{\"v\":"+plan+"}"),"v",&planned)&&Array(CauseDoc("{\"v\":"+CauseRead(root/"previous-observation-plan.json")+"}"),"v",&old),"V450-K06 old/new request plans");
+    Check(planned.size()==8&&old.size()==8,"V450-K06 eight semantic inputs");std::set<std::string> unique_requests;
+    for(std::size_t i=0;i<planned.size();++i){auto now=CauseDoc(planned[i]);auto before=CauseDoc(old[i]);const auto request=now.Find("request")->raw;unique_requests.insert(request);
+        std::vector<std::string> a,b;Check(Array(CauseDoc(request),"messages",&a)&&Array(CauseDoc(before.Find("request")->raw),"messages",&b)&&a.size()==b.size(),"V450-K06 original frame message count");
+        for(std::size_t j=2;j<a.size();++j)Check(a[j]==b[j],"V450-K06 regenerated original PNG/base64/metadata byte equality with37");
+    }
+    Check(unique_requests.size()==6,"V450-K06 six exact unique requests; no hash-only sharing");
+    EvidencePackageStore store(root/"observer-input",{});Check(store.Recover(&error),"V450-K06 owned image fixture");auto input=CoreImageInput(store,row);std::string request;
+    input.pngs[0][18]^=1;Check(!BuildReviewObservationRequest(input,spec,"qwen3-vl:8b-instruct-q4_K_M",&request,&error),"V450-K06 malformed/mismatched PNG rejected");
+    input=CoreImageInput(store,row);input.manifest.frames[0].width+=1;Check(!BuildReviewObservationRequest(input,spec,"qwen3-vl:8b-instruct-q4_K_M",&request,&error),"V450-K06 original width metadata mismatch rejected");
+    std::cout<<"[observer-offline] modelCalls=0 uniquePlannedCalls=6 policyTolerancePixels=1 oracleTolerancePixels=1"<<std::endl;
+}
 void CoreObserve(const std::filesystem::path& root,const std::string& endpoint){using namespace recording::review_json;
     const auto plan=CorePlan(root);Check(plan==CauseRead(root/"core-plan.json"),"V450-K05 image request bytes equal offline freeze");
-    EvidencePackageStore store(root/"observe-input",{});std::string error;Check(store.Recover(&error),"V450-K05 observation evidence store");unsigned calls=0;
+    EvidencePackageStore store(root/"observe-input",{});std::string error;Check(store.Recover(&error),"V450-K06 observation evidence store");unsigned calls=0;
+    struct Saved {bool accepted{};std::string error;std::vector<ReviewObservation> observations;std::vector<ReviewCoordinateConversion> conversions;unsigned ordinal{};};
+    std::map<std::string,Saved> cache;
     const auto cancelled=[&]{return std::filesystem::exists(root/"cause-stop");};
     const std::string digest="0533d74300e4f9bc367d675d4e64ffd073d50ff16a2b4096cc2e8a1cf8c96319";
     for(const auto& raw:CoreRows(root)){auto d=CauseDoc(raw);if(ingress::StrictJsonBoolField(d,"actual")!=true)continue;
-        Check(calls<8&&!cancelled(),"V450-K05 call/resource bound");auto input=CoreImageInput(store,d);auto spec=CoreSpec(d);const auto frames=ReviewFrames(input);auto xs=CoreXs(d);
+        Check(!cancelled(),"V450-K06 resource observation bound");auto input=CoreImageInput(store,d);auto spec=CoreSpec(d);const auto frames=ReviewFrames(input);auto xs=CoreXs(d);
         VaReviewProviderOptions options;options.enabled=true;options.local_endpoint=endpoint;bool transport_failed=false;unsigned chats=0;
         const auto capture=[&](const VaReviewHttpRequest& request,auto deadline,const auto& cancel,std::string* response,std::string* why){
             const bool chat=request.url==endpoint+"/api/chat";if(chat){++chats;++calls;std::cout<<"[observation-request] {\"case\":"<<EvidenceJsonQuote(CoreText(d,"id"))<<",\"ordinal\":"<<calls<<",\"requestSha256\":"<<EvidenceJsonQuote(CauseHash(request.body))<<"}"<<std::endl;}
             const bool ok=VaReviewCurl(request,deadline,cancel,response,why);if(!ok)transport_failed=true;
             if(chat)std::cout<<"[observation-raw] "<<EvidenceJsonQuote(*response)<<std::endl;return ok;
         };
-        const auto start=VaReviewService::Clock::now();std::vector<ReviewObservation> obs;
-        const bool accepted=ExtractReviewObservations(input,spec,options,digest,start+std::chrono::seconds(60),cancelled,&obs,&error,capture);
+        std::string request;Check(BuildReviewObservationRequest(input,spec,options.local_model,&request,&error),"V450-K06 exact request for deduplication");
+        const bool execute=cache.count(request)==0;const auto start=VaReviewService::Clock::now();std::vector<ReviewObservation> obs;std::vector<ReviewCoordinateConversion> converted;bool accepted=false;
+        if(execute){Check(calls<6,"V450-K06 at most six model calls");accepted=ExtractReviewObservations(input,spec,options,digest,start+std::chrono::seconds(60),cancelled,&obs,&error,capture,&converted);
+            cache.emplace(request,Saved{accepted,error,obs,converted,calls});}
+        else {const auto& saved=cache.at(request);accepted=saved.accepted;error=saved.error;obs=saved.observations;converted=saved.conversions;}
+        const auto ordinal=cache.at(request).ordinal;
         const auto elapsed=std::chrono::duration_cast<std::chrono::milliseconds>(VaReviewService::Clock::now()-start).count();
-        Check(!transport_failed&&!cancelled()&&chats==1&&error!="review-timeout"&&error!="review-cancelled"&&error!="observation-model-mismatch"&&error!="observation-envelope","V450-K05 transport/time/collection/model guard");
+        Check(!transport_failed&&!cancelled()&&chats==(execute?1U:0U)&&error!="review-timeout"&&error!="review-cancelled"&&error!="observation-model-mismatch"&&error!="observation-envelope","V450-K05 transport/time/collection/model guard");
+        for(const auto& c:converted){
+            std::cout<<"[observation-coordinate] {\"case\":"<<EvidenceJsonQuote(CoreText(d,"id"))<<",\"sourceCall\":"<<ordinal<<",\"frame\":"<<c.frame<<",\"version\":"<<EvidenceJsonQuote(kReviewCoordinateConversion)
+                <<",\"bbox1000\":["<<c.bbox_1000[0]<<','<<c.bbox_1000[1]<<','<<c.bbox_1000[2]<<','<<c.bbox_1000[3]<<"],\"centerPixels\":["<<c.center_pixels.x<<','<<c.center_pixels.y
+                <<"],\"oraclePixels\":["<<xs.at(c.frame)+24<<",144],\"errorPixels\":["<<c.center_pixels.x-(xs.at(c.frame)+24)<<','<<c.center_pixels.y-144<<"]}"<<std::endl;
+        }
         bool pixel_match=accepted;std::vector<ReviewDecision> decisions;std::string core_error;bool core_ok=false;
         if(accepted){for(const auto& o:obs){const int x=xs.at(o.frame);if(x<0){if(o.visibility!=ReviewVisibility::NotVisible||o.position||o.color)pixel_match=false;}
-                else{if(o.visibility!=ReviewVisibility::Visible||o.identity!=ReviewIdentity::Same||o.identity_evidence.empty())pixel_match=false;
+                else{if(o.visibility!=ReviewVisibility::Visible)pixel_match=false;
                     if(spec.relation==ReviewRelation::ColorAt){if(o.color!=ReviewColor::Red)pixel_match=false;}
                     else if(!o.position||std::abs(o.position->x-(x+24))>1||std::abs(o.position->y-144)>1)pixel_match=false;}}
             core_ok=EvaluateReviewClaims({spec},frames,obs,&decisions,&core_error);}
-        std::cout<<"[observation-result] {\"case\":"<<EvidenceJsonQuote(CoreText(d,"id"))<<",\"accepted\":"<<(accepted?"true":"false")<<",\"error\":"<<EvidenceJsonQuote(error)<<",\"elapsedMs\":"<<elapsed
+        std::cout<<"[observation-result] {\"case\":"<<EvidenceJsonQuote(CoreText(d,"id"))<<",\"accepted\":"<<(accepted?"true":"false")<<",\"error\":"<<EvidenceJsonQuote(error)<<",\"sourceCall\":"<<ordinal<<",\"modelExecuted\":"<<(execute?"true":"false")<<",\"elapsedMs\":"<<elapsed
             <<",\"pixelOracleMatch\":"<<(pixel_match?"true":"false")<<",\"coreAccepted\":"<<(core_ok?"true":"false")<<",\"decisions\":"<<CoreDecisionJson(decisions)
             <<",\"expected\":"<<EvidenceJsonQuote(CoreText(d,"expected"))<<",\"combinedLabelMatch\":"<<(core_ok&&ReviewVerdictName(decisions[0].verdict)==CoreText(d,"expected")?"true":"false")<<",\"publicPosted\":false}"<<std::endl;
         rusage usage{};Check(::getrusage(RUSAGE_SELF,&usage)==0,"V450-K05 native resource observation");
@@ -132,5 +182,5 @@ void CoreObserve(const std::filesystem::path& root,const std::string& endpoint){
 #endif
         std::cout<<"[observation-resource] nativePeakRssBytes="<<rss<<std::endl;Check(rss<=4LL*1024*1024*1024&&!cancelled(),"V450-K05 native/model limits");
     }
-    Check(calls==8,"V450-K05 exactly eight image calls; no retries");
+    Check(calls==6,"V450-K06 six image calls, eight server cases, no retries");
 }

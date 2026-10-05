@@ -1,0 +1,226 @@
+{
+  "schema": "v450-observer-fixture.v1",
+  "conversion": "qwen3vl-bbox1000-center-v1",
+  "boxOrder": [
+    "xmin",
+    "ymin",
+    "xmax",
+    "ymax"
+  ],
+  "unit": "integer relative [0,1000], inclusive edges",
+  "formula": "centerX=(xmin+xmax)*originalWidth/2000; centerY=(ymin+ymax)*originalHeight/2000; no rounding or clamp",
+  "positionPolicyTolerancePixels": 1,
+  "pixelOracleTolerancePixels": 1,
+  "cases": [
+    {
+      "id": "full-extent",
+      "box": [
+        0,
+        0,
+        1000,
+        1000
+      ],
+      "expected": [
+        256,
+        144
+      ]
+    },
+    {
+      "id": "top-left",
+      "box": [
+        0,
+        0,
+        1,
+        1
+      ],
+      "expected": [
+        0.256,
+        0.144
+      ]
+    },
+    {
+      "id": "bottom-right",
+      "box": [
+        999,
+        999,
+        1000,
+        1000
+      ],
+      "expected": [
+        511.744,
+        287.856
+      ]
+    },
+    {
+      "id": "actual-center",
+      "box": [
+        406,
+        417,
+        500,
+        583
+      ],
+      "expected": [
+        231.936,
+        144
+      ]
+    },
+    {
+      "id": "different-dimensions",
+      "box": [
+        0,
+        0,
+        1000,
+        1000
+      ],
+      "size": [
+        100,
+        200
+      ],
+      "expected": [
+        50,
+        100
+      ]
+    },
+    {
+      "id": "negative",
+      "box": [
+        -1,
+        0,
+        100,
+        100
+      ],
+      "error": "observation-box-range"
+    },
+    {
+      "id": "over-1000",
+      "box": [
+        0,
+        0,
+        1001,
+        100
+      ],
+      "error": "observation-box-range"
+    },
+    {
+      "id": "fraction",
+      "box": [
+        0.5,
+        0,
+        100,
+        100
+      ],
+      "error": "observation-box-range"
+    },
+    {
+      "id": "nan",
+      "box": [
+        0,
+        0,
+        100,
+        100
+      ],
+      "nonfinite": "nan",
+      "error": "observation-box-range"
+    },
+    {
+      "id": "infinity",
+      "box": [
+        0,
+        0,
+        100,
+        100
+      ],
+      "nonfinite": "infinity",
+      "error": "observation-box-range"
+    },
+    {
+      "id": "zero-width",
+      "box": [
+        100,
+        0,
+        100,
+        100
+      ],
+      "error": "observation-box-area"
+    },
+    {
+      "id": "reverse-x",
+      "box": [
+        101,
+        0,
+        100,
+        100
+      ],
+      "error": "observation-box-area"
+    },
+    {
+      "id": "reverse-y",
+      "box": [
+        0,
+        101,
+        100,
+        100
+      ],
+      "error": "observation-box-area"
+    },
+    {
+      "id": "zero-height",
+      "box": [
+        0,
+        100,
+        100,
+        100
+      ],
+      "error": "observation-box-area"
+    },
+    {
+      "id": "invalid-image-size",
+      "box": [
+        0,
+        0,
+        100,
+        100
+      ],
+      "size": [
+        0,
+        288
+      ],
+      "error": "observation-coordinate-frame"
+    }
+  ],
+  "coreRegression": [
+    "one-motion",
+    "one-direction",
+    "blank-hidden",
+    "occluded-final",
+    "two-right",
+    "two-left",
+    "static-red",
+    "static-blue",
+    "same-time",
+    "different-target",
+    "unknown-observation",
+    "combined-deficits",
+    "separate-identity-anchors"
+  ],
+  "actual": {
+    "semanticCases": [
+      "one-motion",
+      "one-direction",
+      "blank-hidden",
+      "occluded-final",
+      "two-right",
+      "two-left",
+      "static-red",
+      "static-blue"
+    ],
+    "maxUniqueRequests": 6,
+    "shareOnlyExactRequestBytes": true,
+    "retries": 0,
+    "callSeconds": 60,
+    "wrapperSeconds": 800,
+    "identityOracle": "generator tracks one conceptual square across time, but images expose only equal appearance and time order, no unique physical ID/tracking metadata",
+    "identityAssessment": "single-frame self-anchor is description matching only; cross-time same/different needs evidence beyond location or generic appearance, otherwise unknown is honest but temporal requirement remains unmet",
+    "quality": "pixel accuracy, identity evidence, core on given observations, combined quality separately. No threshold change and no second candidate."
+  }
+}
