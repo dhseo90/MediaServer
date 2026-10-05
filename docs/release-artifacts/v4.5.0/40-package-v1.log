@@ -1,0 +1,1046 @@
+[start] 2026-10-05T22:43:22Z
+c2853b4025b2db0df52461663ec312cdb27a83ce
+Darwin arm64
+[source] include/recording/evidence_frame_extractor.h c9251076c8b0de4250151977ba7fa29bdb5414dd2efad88a2a323b7301f5d62d
+[source] include/recording/evidence_observation.h 9c14078c82ccbb0c87235d6814d5d074681a41ddc7aca81e6e63f8ed3e553eb7
+[source] include/recording/evidence_package.h aab68e7c9ab6ca9c157ef5f9f450d094287fbe3e24050f4efecd3b2002f290f8
+[source] include/recording/evidence_package_builder.h 15edcf153d024687b70776fe15508e1dd82dd4a1679c3a734563e36f6a00d78f
+[source] include/recording/evidence_package_store.h 620fed23a1260646424f97c79fe2221ee5deba6ccd02ff849ce003d034bf7328
+[source] scripts/internal/evidence_package_smoke.cpp 26b9bd22ba27550fd6fe4982223911fd5c45dd350dd52764289e51b57d3705aa
+[source] src/recording/evidence_frame_extractor.cpp 867db47861bc15a242d12512b501c5d3cd90460eb85304d4d5fa337f1d0e69b8
+[source] src/recording/evidence_observation.cpp 70e2458fc20d4b6a6f387795e770f6ab3fe9f6467678d1158ea13e3da20ece1b
+[source] src/recording/evidence_package.cpp 0c28e3accd312f95301ebbdf201a8e0e9e94100fac44b1635fd63ea7e5f28f85
+[source] src/recording/evidence_package_builder.cpp 3aeebd937ff7ffd4e3e3b1d50dd7e29173c21df90a8412bcd77d052cd3ab4f6d
+[source] src/recording/evidence_package_store.cpp f26f1c81b1ea6984e5dac8bfb1dd8e6f206600f0d9e41a5737d1c4c5883123af
+[pass] V440 source storage open: 
+[pass] writer start
+[pass] exact one original recording
+[pass] current product search model: 
+[pass] search result with current UTC evidence
+[pass] V440-S01 owned store ready
+[pass] V440-M01 package from actual search: 
+[pass] representative sequence complete without optional clip
+[pass] independent source sample count
+[pass] V440-F02 evenly selected exact sample 0
+[pass] known UTC has FrameLocatorV1
+[pass] V440-C01 real source track identity is preserved
+[pass] FrameLocatorV1 re-extract: 
+[pass] same frame and PNG digests
+[pass] V440-F01 PNG signature
+[pass] PNG chunk header
+[pass] PNG chunk length
+[pass] PNG CRC
+[pass] PNG RGB8 geometry
+[pass] PNG chunk header
+[pass] PNG chunk length
+[pass] PNG CRC
+[pass] PNG chunk header
+[pass] PNG chunk length
+[pass] PNG CRC
+[pass] PNG exact end
+[pass] PNG required chunks
+[pass] PNG lossless inflate
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG preserves packed RGB exactly
+[pass] no nearest frame substitution/output unchanged
+[pass] wrong UTC rejected
+[pass] wrong channel rejected
+[pass] unverified frame index rejected without ordinal inference
+[pass] V440-F02 evenly selected exact sample 1
+[pass] known UTC has FrameLocatorV1
+[pass] V440-C01 real source track identity is preserved
+[pass] FrameLocatorV1 re-extract: 
+[pass] same frame and PNG digests
+[pass] V440-F01 PNG signature
+[pass] PNG chunk header
+[pass] PNG chunk length
+[pass] PNG CRC
+[pass] PNG RGB8 geometry
+[pass] PNG chunk header
+[pass] PNG chunk length
+[pass] PNG CRC
+[pass] PNG chunk header
+[pass] PNG chunk length
+[pass] PNG CRC
+[pass] PNG exact end
+[pass] PNG required chunks
+[pass] PNG lossless inflate
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG preserves packed RGB exactly
+[pass] no nearest frame substitution/output unchanged
+[pass] wrong UTC rejected
+[pass] wrong channel rejected
+[pass] unverified frame index rejected without ordinal inference
+[pass] V440-F02 evenly selected exact sample 2
+[pass] known UTC has FrameLocatorV1
+[pass] V440-C01 real source track identity is preserved
+[pass] FrameLocatorV1 re-extract: 
+[pass] same frame and PNG digests
+[pass] V440-F01 PNG signature
+[pass] PNG chunk header
+[pass] PNG chunk length
+[pass] PNG CRC
+[pass] PNG RGB8 geometry
+[pass] PNG chunk header
+[pass] PNG chunk length
+[pass] PNG CRC
+[pass] PNG chunk header
+[pass] PNG chunk length
+[pass] PNG CRC
+[pass] PNG exact end
+[pass] PNG required chunks
+[pass] PNG lossless inflate
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG preserves packed RGB exactly
+[pass] no nearest frame substitution/output unchanged
+[pass] wrong UTC rejected
+[pass] wrong channel rejected
+[pass] unverified frame index rejected without ordinal inference
+[pass] V440-F02 evenly selected exact sample 3
+[pass] known UTC has FrameLocatorV1
+[pass] V440-C01 real source track identity is preserved
+[pass] FrameLocatorV1 re-extract: 
+[pass] same frame and PNG digests
+[pass] V440-F01 PNG signature
+[pass] PNG chunk header
+[pass] PNG chunk length
+[pass] PNG CRC
+[pass] PNG RGB8 geometry
+[pass] PNG chunk header
+[pass] PNG chunk length
+[pass] PNG CRC
+[pass] PNG chunk header
+[pass] PNG chunk length
+[pass] PNG CRC
+[pass] PNG exact end
+[pass] PNG required chunks
+[pass] PNG lossless inflate
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG preserves packed RGB exactly
+[pass] no nearest frame substitution/output unchanged
+[pass] wrong UTC rejected
+[pass] wrong channel rejected
+[pass] unverified frame index rejected without ordinal inference
+[pass] V440-F02 evenly selected exact sample 4
+[pass] known UTC has FrameLocatorV1
+[pass] V440-C01 real source track identity is preserved
+[pass] FrameLocatorV1 re-extract: 
+[pass] same frame and PNG digests
+[pass] V440-F01 PNG signature
+[pass] PNG chunk header
+[pass] PNG chunk length
+[pass] PNG CRC
+[pass] PNG RGB8 geometry
+[pass] PNG chunk header
+[pass] PNG chunk length
+[pass] PNG CRC
+[pass] PNG chunk header
+[pass] PNG chunk length
+[pass] PNG CRC
+[pass] PNG exact end
+[pass] PNG required chunks
+[pass] PNG lossless inflate
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG preserves packed RGB exactly
+[pass] no nearest frame substitution/output unchanged
+[pass] wrong UTC rejected
+[pass] wrong channel rejected
+[pass] unverified frame index rejected without ordinal inference
+[pass] V440-F02 evenly selected exact sample 5
+[pass] known UTC has FrameLocatorV1
+[pass] V440-C01 real source track identity is preserved
+[pass] FrameLocatorV1 re-extract: 
+[pass] same frame and PNG digests
+[pass] V440-F01 PNG signature
+[pass] PNG chunk header
+[pass] PNG chunk length
+[pass] PNG CRC
+[pass] PNG RGB8 geometry
+[pass] PNG chunk header
+[pass] PNG chunk length
+[pass] PNG CRC
+[pass] PNG chunk header
+[pass] PNG chunk length
+[pass] PNG CRC
+[pass] PNG exact end
+[pass] PNG required chunks
+[pass] PNG lossless inflate
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG preserves packed RGB exactly
+[pass] no nearest frame substitution/output unchanged
+[pass] wrong UTC rejected
+[pass] wrong channel rejected
+[pass] unverified frame index rejected without ordinal inference
+[pass] V440-F02 evenly selected exact sample 6
+[pass] known UTC has FrameLocatorV1
+[pass] V440-C01 real source track identity is preserved
+[pass] FrameLocatorV1 re-extract: 
+[pass] same frame and PNG digests
+[pass] V440-F01 PNG signature
+[pass] PNG chunk header
+[pass] PNG chunk length
+[pass] PNG CRC
+[pass] PNG RGB8 geometry
+[pass] PNG chunk header
+[pass] PNG chunk length
+[pass] PNG CRC
+[pass] PNG chunk header
+[pass] PNG chunk length
+[pass] PNG CRC
+[pass] PNG exact end
+[pass] PNG required chunks
+[pass] PNG lossless inflate
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG preserves packed RGB exactly
+[pass] no nearest frame substitution/output unchanged
+[pass] wrong UTC rejected
+[pass] wrong channel rejected
+[pass] unverified frame index rejected without ordinal inference
+[pass] V440-F02 evenly selected exact sample 7
+[pass] known UTC has FrameLocatorV1
+[pass] V440-C01 real source track identity is preserved
+[pass] FrameLocatorV1 re-extract: 
+[pass] same frame and PNG digests
+[pass] V440-F01 PNG signature
+[pass] PNG chunk header
+[pass] PNG chunk length
+[pass] PNG CRC
+[pass] PNG RGB8 geometry
+[pass] PNG chunk header
+[pass] PNG chunk length
+[pass] PNG CRC
+[pass] PNG chunk header
+[pass] PNG chunk length
+[pass] PNG CRC
+[pass] PNG exact end
+[pass] PNG required chunks
+[pass] PNG lossless inflate
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG no-filter row
+[pass] PNG preserves packed RGB exactly
+[pass] no nearest frame substitution/output unchanged
+[pass] wrong UTC rejected
+[pass] wrong channel rejected
+[pass] unverified frame index rejected without ordinal inference
+[pass] unknown time source open
+[pass] unknown time writer start
+[pass] unknown time finalized source
+[pass] V440-F02 actual unknown UTC decoded frame without invented locator: 
+[pass] V440-C01 canonical roundtrip
+[pass] invalid JSON/schema/size leaves output unchanged
+[pass] invalid JSON/schema/size leaves output unchanged
+[pass] invalid JSON/schema/size leaves output unchanged
+[pass] V440-C01 source track contract accepted without normalization
+[pass] V440-C01 source track contract accepted without normalization
+[pass] V440-C01 source track contract accepted without normalization
+[pass] V440-C01 invalid source track rejected and output unchanged
+[pass] V440-C01 invalid source track rejected and output unchanged
+[pass] V440-C01 invalid source track rejected and output unchanged
+[pass] V440-C01 invalid source track rejected and output unchanged
+[pass] V440-C01 invalid source track rejected and output unchanged
+[pass] V440-C01 invalid source track rejected and output unchanged
+[pass] V440-C01 invalid source track rejected and output unchanged
+[pass] V440-C01 invalid source track rejected and output unchanged
+[pass] V440-C01 invalid source track rejected and output unchanged
+[pass] V440-C01 invalid source track rejected and output unchanged
+[pass] V440-C01 invalid source track rejected and output unchanged
+[pass] V440-C01 invalid source track rejected and output unchanged
+[pass] V440-C01 invalid source track rejected and output unchanged
+[pass] V440-C01 invalid source track rejected and output unchanged
+[pass] V440-C01 invalid source track rejected and output unchanged
+[pass] V440-C01 invalid source track rejected and output unchanged
+[pass] V440-C01 invalid source track rejected and output unchanged
+[pass] V440-C01 invalid source track rejected and output unchanged
+[pass] V440-C01 invalid source track rejected and output unchanged
+[pass] V440-C01 invalid source track rejected and output unchanged
+[pass] V440-C01 invalid source track rejected and output unchanged
+[pass] V440-C01 invalid source track rejected and output unchanged
+[pass] V440-C01 invalid source track rejected and output unchanged
+[pass] V440-C01 invalid source track rejected and output unchanged
+[pass] V440-C01 invalid source track rejected and output unchanged
+[pass] V440-C01 invalid source track rejected and output unchanged
+[pass] V440-C01 invalid source track rejected and output unchanged
+[pass] V440-C01 invalid source track rejected and output unchanged
+[pass] V440-C01 invalid source track rejected and output unchanged
+[pass] V440-C01 invalid source track rejected and output unchanged
+[pass] V440-C01 invalid source track rejected and output unchanged
+[pass] V440-C01 invalid source track rejected and output unchanged
+[pass] V440-C01 invalid source track rejected and output unchanged
+[pass] V440-C01 invalid source track rejected and output unchanged
+[pass] V440-C01 invalid source track rejected and output unchanged
+[pass] verified read after publish: 
+[pass] stored asset hash
+[pass] package listing
+[pass] V440-A01 current package scope
+[pass] list channel scope
+[pass] create denied before I/O
+[pass] asset scoped access
+[pass] asset index boundary
+[pass] V440-F02 exact point selection
+[pass] duplicate PTS cannot select arbitrary frame
+[pass] half-open range end is not replaced
+[pass] preserved frame reference requires matching frame metadata
+[pass] unknown UTC stays null in manifest roundtrip
+[pass] actual clip selection/intent: 
+[pass] clip admitted with existing protection
+[pass] actual verified clip complete: 
+[pass] actual event-priority search projection: 
+[pass] plain recording search has selected event without observation event IDs
+[pass] clip candidate cancellation keeps output unchanged
+[pass] clip candidates preserve channel and source isolation
+[pass] V440-M01 real search selection retains event lineage: 
+[pass] V440-M01 event snapshot selects existing exact-sample clip: 
+[pass] existing exact-sample clip association does not depend on UTC availability: 
+[pass] representative frame cannot infer event association: 
+[pass] different event cannot borrow existing clip: 
+[pass] sample beyond clip half-open coverage remains frame-only: 
+[pass] V440-M01 associated clip package: 
+[pass] all clip/event/track/observation associations retained
+[pass] clip package integrity
+[pass] copied clip bytes match actual derived media
+[pass] native single-observation selection keeps exact identity: 
+[pass] native clip admitted
+[pass] native clip complete: 
+[pass] V440-M01 native tick rounding cannot omit the observed sample clip: 
+[pass] native GOP dependency sample is not an observed event association: 
+[pass] playback hold preserved
+[retention] ok=1 deleted=3 message=
+[pass] V440-S01 actual source and clip retention tombstones
+[pass] reopen recovery
+[pass] independent bytes and immutable provenance after deletion/reopen
+[pass] preserved clip survives original and derived media deletion/reopen
+[pass] current deletion separate from manifest
+[pass] deleted source creates explicit partial metadata
+[pass] deleted associated clip remains explicit partial, not no-associated-clip: 
+[pass] owned linked pending fixture
+[pass] published-before-cleanup crash recovery
+[pass] partial header crash cleanup
+[pass] owned symlink fixture
+[pass] store symlink rejected
+[pass] V440-R01 quota does not evict existing evidence
+[pass] cancelled write cleanup
+[pass] quota/cancel preserved existing artifact
+[pass] disk reserve rejects before publication
+[pass] manifest alone exceeding package cap rejected
+[pass] expired creation budget rejects before publication
+[pass] owned corruption fixture
+[pass] corruption injected
+[pass] corrupt manifest never treated as missing-success
+[pass] corruption is service failure, not ordinary missing 404
+[pass] service shutdown rejects requests
+[pass] resource measured
+[pass] V440-R01 process memory budget
+PASS evidence checks=1028 peakRssBytes=96468992
+[end] 2026-10-05T22:43:26Z
+[cleanup] removed=true

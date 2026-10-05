@@ -1,0 +1,124 @@
+{
+  "codeCommit": "a36fb92a0907b8ea1be77aedc23b1d73dc908e5a",
+  "source": "40-source.json",
+  "scope": "선택적 분석 관측의 출처 보존·재현 경로",
+  "modelCalls": 0,
+  "detectorInferences": 0,
+  "tests": [
+    {
+      "command": "cmake --build build-gst-onnx --target media_server_runtime -j 4",
+      "exit": 0,
+      "log": "40-build.log"
+    },
+    {
+      "command": "bash scripts/internal/verify_evidence_package.sh --observations",
+      "exit": 0,
+      "phases": {
+        "seed": 177,
+        "recoverNewProcess": 2,
+        "packageOnlyReadbackNewProcess": 9
+      },
+      "log": "40-observations.log"
+    },
+    {
+      "command": "bash scripts/internal/verify_evidence_package.sh",
+      "exit": 0,
+      "pass": 1028,
+      "log": "40-package-v1.log"
+    },
+    {
+      "command": "bash scripts/internal/verify_v410_recording_contracts.sh",
+      "exit": 0,
+      "pass": 135,
+      "log": "40-codec.log"
+    },
+    {
+      "command": "bash scripts/internal/verify_va_review.sh --core-only",
+      "exit": 0,
+      "pass": 168,
+      "log": "40-core.log",
+      "preserved38RequestSha256": "5c932342d11fddd7f73e5245d0cddcc9b02ebbe46daf3fc9f47514de88a0920b"
+    },
+    {
+      "command": "node scripts/internal/verify_v390_structure_stabilization_execution.mjs --graph-only",
+      "exit": 0,
+      "pass": 4,
+      "log": "40-structure.log"
+    },
+    {
+      "command": "node scripts/internal/verify_code_comments.mjs",
+      "exit": 1,
+      "log": "40-comments.log",
+      "existingUnchangedViolations": 13,
+      "changedScopeViolations": 0,
+      "baselineLineAndWholeFileBytesCompared": true
+    },
+    {
+      "command": "./server.sh verify-docs-links",
+      "exit": 0,
+      "log": "40-docs.log"
+    },
+    {
+      "command": "git diff --cached --check",
+      "exit": 0
+    },
+    {
+      "command": "./server.sh verify-docs-links (evidence-only follow-up)",
+      "exit": 0,
+      "log": "40-evidence-docs.log",
+      "scope": "evidence links added after code commit; product checks not repeated"
+    }
+  ],
+  "initialFailure": {
+    "log": "40-initial-failure.log",
+    "exit": 1,
+    "assertion": "actual decoder marks uncropped source geometry; detector inference not run",
+    "detail": "30 packet burst fixture의 geometry gate 실패. 당시 got/geometry 개별 값은 로그에 없어 추정 복원하지 않는다. leaky queue의 keyframe 유실 가능성이 있는 burst를 2 packet 입력으로 바꾸고 동일 5초 대기 한도를 유지했다. production decoder/queue 정책은 바꾸지 않았다.",
+    "revalidation": [
+      "40-intermediate-02.log",
+      "40-intermediate-03.log",
+      "40-observations.log"
+    ],
+    "intermediateLimitation": "중간 검사에는 로그에 나열한 파일 hash가 있으며 최종 전체 코드 hash 집합은 40-source.json에 있다. 중간 PASS를 최종 코드의 PASS로 승계하지 않는다."
+  },
+  "cleanup": {
+    "fixtureRootsRemoved": true,
+    "originalCatalogRemovalBeforeReadback": true,
+    "modelProcessPortStarted": false,
+    "unload5SecondGate": "not-run: no model calls or owned model",
+    "temporaryLogs": "copied byte-for-byte before removing owned originals"
+  },
+  "notRun": [
+    "실제 detector 추론",
+    "모델 호출/품질 평가",
+    "일반 acceptance",
+    "전체 native/HTTP",
+    "실제 UI 풀테스트",
+    "30분",
+    "120분",
+    "사용자 확인 API/UI",
+    "VA Review 결과/record 전환",
+    "릴리즈"
+  ],
+  "limitations": [
+    "A engine-track 기록 관계이며 독립 영상 사실/물리적 동일성 인증이 아님",
+    "공개 경로 v1 유지, v2는 내부 opt-in",
+    "기존 전역 주석 정책 13건 FAIL 유지, 이번 변경 파일 위반 0",
+    "전체 catalog revision에 보수적으로 반응하고 조회/사본 상한 초과는 오류; 자동 재시도 없음"
+  ],
+  "artifactSha256": {
+    "40-build.log": "45df0d92d449559cd50e307b7431253913ba7cdea516e0998ef08f9c7e1e6ae5",
+    "40-codec.log": "7788cec02b906b911fbeaccd3e801177b6859c319fda0a88e30103040ee2dfc8",
+    "40-comments.log": "cd3d41957ade17adec1f9e05d0e15884235c8fb5885a20ddd1557589f9991d5e",
+    "40-core.log": "620bd955ac634f68df1acdc3b6fdf8a578c3dea381aa2669980481707957e4bd",
+    "40-docs.log": "0cd270e78631904dd56354d37a20473e37c4cc046c91e501601a79b897d86bb5",
+    "40-evidence-docs.log": "adffa4482176d6e9dbc8d1dc57b0c14cba8400b00ab893b38c9ab47b2d333c57",
+    "40-initial-failure.log": "091fe95022f9b24ce5c79037333732f7eae6c527d208d484917b0d0b6b2b706a",
+    "40-intermediate-02.log": "72646ecbcf266e9dc8b8386fd05ebf62844f1f4c601f48bba8a6efe7a0fa6004",
+    "40-intermediate-03.log": "d3a5f05631325db86bf5d70b9f9ab0b7af65f8670480ee05d4f25ce3e7b10870",
+    "40-observations.log": "c66e4a3abb3d202c8ed9460bbfdd2e05293a624b9a2d3fccc1c6b24558d8d4bb",
+    "40-package-v1.log": "021e27333dac6c1551023eee385b54caef9e40f80ca7fde77fc37d0e33be8aa9",
+    "40-source.json": "f22d7b2056f6d164c0d4e4922b7b6255da505ddf384136067858f665023c7e04",
+    "40-structure.log": "5ea6643dfdfb92735a8965aa33a38b9de9d30c570690efc4b8c2444236667f3c"
+  }
+}

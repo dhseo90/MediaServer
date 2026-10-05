@@ -1,0 +1,11 @@
+[fail] 문서 로컬 링크/이미지 참조 오류
+  - docs/release-artifacts/v4.5.0/development-results.md: 존재하지 않는 anchor: ../../superpowers/specs/2026-10-05-v450-va-review-design.md#40-선택적-분석-관측의-출처-보존재현-경로
+
+== Docs link verification summary ==
+- markdown files: 302
+- local links: 9573
+- local images: 14
+- local anchors: 404
+- indexed docs: 92
+- index coverage exclusions: 193
+- failures: 1

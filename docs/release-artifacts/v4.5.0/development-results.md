@@ -1050,3 +1050,19 @@
   Unicode 구분자 불일치1건. 문서 링크로 수정한 뒤 [재검사](39-docs-fixed.log) exit0/failures0을 확인했다.
   `git diff --check` exit0. 기준 HEAD와 비교해 기존 문서2개에만 append됐고 기존 절·34~38 파일·
   제품 source/fixture의 diff가 없음을 직접 검사했다(exit0). 문서 변경만 커밋/일반 푸시한다.
+
+## 40: 선택적 분석 관측의 출처 보존·재현 경로
+
+새 실행 승인에 따라 실제 YOLO 좌표 출처→projector→versioned catalog→선택 sample 관측 사본→
+패키지 전용 reader→기존 core를 구현했다. 지원 범위/버전/상한/공개 경계는
+[설계40](../../superpowers/specs/2026-10-05-v450-va-review-design.md#40-선택적-분석-관측의-출처-보존재현-경로)에 둔다.
+코드는 `a36fb92a0`이며 [실행 source hash](40-source.json)와 [개별 명령·exit·결과](40-validation.json)에 결속한다.
+실제 원본/catalog 제거 뒤 새 프로세스의 package-only readback과 정상/부재/미확인/변조·취소/경쟁 검사가 통과했다.
+이는 모의 VA 출력의 자료 전달/재현 검사이며 A 기록 일관성을 독립 영상 사실 검증으로 승격하지 않는다.
+
+최초 fixture geometry 실패는 [원로그](40-initial-failure.log)에 남겼다. burst 입력 조건을 수정한 중간 검사와
+최종 검사를 구분했다. [전역 주석 검사](40-comments.log)는 수정하지 않은 기존 파일의 13건으로 FAIL이며
+baseline의 해당 줄과 전체 파일 바이트를 대조했다. 이번 변경 파일의 주석 위반은 0건이다.
+기존 34~39 원문/실패·38 요청 동결은 수정하지 않았다. 모델 호출·설치·추론 품질 평가 0회,
+임시 fixture/process 정리 완료이며 5초 모델 unload gate는 실행하지 않았다(소유 모델 없음).
+공개 API/UI·VA 결과/record 전환·추가 모델 평가·릴리즈는 미실행이다.

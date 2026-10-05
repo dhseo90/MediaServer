@@ -1,0 +1,64 @@
+[start] 2026-10-05T22:36:59Z
+c2853b4025b2db0df52461663ec312cdb27a83ce
+Darwin arm64
+[source] include/recording/evidence_frame_extractor.h c9251076c8b0de4250151977ba7fa29bdb5414dd2efad88a2a323b7301f5d62d
+[source] include/recording/evidence_observation.h 9c14078c82ccbb0c87235d6814d5d074681a41ddc7aca81e6e63f8ed3e553eb7
+[source] include/recording/evidence_package.h aab68e7c9ab6ca9c157ef5f9f450d094287fbe3e24050f4efecd3b2002f290f8
+[source] include/recording/evidence_package_builder.h 15edcf153d024687b70776fe15508e1dd82dd4a1679c3a734563e36f6a00d78f
+[source] include/recording/evidence_package_store.h 620fed23a1260646424f97c79fe2221ee5deba6ccd02ff849ce003d034bf7328
+[source] scripts/internal/evidence_observation_smoke.cpp 33579ea90e1991b912069114546ad91395f275dbdde3f613f9ff4a1db34d41fa
+[source] src/recording/evidence_frame_extractor.cpp 867db47861bc15a242d12512b501c5d3cd90460eb85304d4d5fa337f1d0e69b8
+[source] src/recording/evidence_observation.cpp 4c9d345eb82c7b89098171f2b07d05b72a6c9ece3e0f5e26d824f36d9607b8ef
+[source] src/recording/evidence_package.cpp 0c28e3accd312f95301ebbdf201a8e0e9e94100fac44b1635fd63ea7e5f28f85
+[source] src/recording/evidence_package_builder.cpp 3aeebd937ff7ffd4e3e3b1d50dd7e29173c21df90a8412bcd77d052cd3ab4f6d
+[source] src/recording/evidence_package_store.cpp f26f1c81b1ea6984e5dac8bfb1dd8e6f206600f0d9e41a5737d1c4c5883123af
+[pass] coordinate strict canonical roundtrip
+[pass] letterbox real scale/padding accepted without applying inverse twice
+[pass] invalid coordinate provenance rejected 0
+[pass] invalid coordinate provenance rejected 1
+[pass] invalid coordinate provenance rejected 2
+[pass] invalid coordinate provenance rejected 3
+[pass] invalid coordinate provenance rejected 4
+[pass] unknown/duplicate/invalid fields rejected, output unchanged
+[pass] unknown/duplicate/invalid fields rejected, output unchanged
+[pass] unknown/duplicate/invalid fields rejected, output unchanged
+[pass] real runtime storage: 
+[pass] actual full-frame decoder start
+[pass] decoder input packet
+[pass] decoder input packet
+[pass] decoder input packet
+[pass] decoder input packet
+[pass] decoder input packet
+[pass] decoder input packet
+[pass] decoder input packet
+[pass] decoder input packet
+[pass] decoder input packet
+[pass] decoder input packet
+[pass] decoder input packet
+[pass] decoder input packet
+[pass] decoder input packet
+[pass] decoder input packet
+[pass] decoder input packet
+[pass] decoder input packet
+[pass] decoder input packet
+[pass] decoder input packet
+[pass] decoder input packet
+[pass] decoder input packet
+[pass] decoder input packet
+[pass] decoder input packet
+[pass] decoder input packet
+[pass] decoder input packet
+[pass] decoder input packet
+[pass] decoder input packet
+[pass] decoder input packet
+[pass] decoder input packet
+[pass] decoder input packet
+[pass] decoder input packet
+[FAIL] actual decoder marks uncropped source geometry; detector inference not run
+Traceback (most recent call last):
+  File "<stdin>", line 23, in <module>
+  File "/opt/homebrew/Cellar/python@3.14/3.14.4/Frameworks/Python.framework/Versions/3.14/lib/python3.14/subprocess.py", line 578, in run
+    raise CalledProcessError(retcode, process.args,
+                             output=stdout, stderr=stderr)
+subprocess.CalledProcessError: Command '['/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-evidence.aEao15/evidence-smoke', '/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-evidence.aEao15', 'seed']' returned non-zero exit status 1.
+[cleanup] removed=true

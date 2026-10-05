@@ -1,0 +1,19 @@
+[fail] 한글 설명이 없는 주석
+  - scripts/internal/va_review_cause_diagnostic.h:22:    // Same PNG/manifest construction as QualityChecks; equality of the four original request hashes is checked offline.
+  - scripts/internal/va_review_cause_diagnostic.h:106:    // Hidden movement: preserve every observation byte, change only the claim's property classification.
+  - scripts/internal/va_review_smoke.cpp:373:// Provider wire fixtures are explicit model responses, never generated expectations.
+  - scripts/internal/va_review_smoke.cpp:423:    // A: preserve the duplicate claim from run 33 as two explicit slots; do not deduplicate.
+  - scripts/internal/va_review_smoke.cpp:446:    // B: not-visible citations remain usable for a gap, never as an observed position.
+  - scripts/internal/va_review_smoke.cpp:460:    // C: gaps inherit target/property; adding an independently conflicting field is rejected.
+  - scripts/internal/va_review_smoke.cpp:491:    // Grammar/shape cannot establish the truth of free Korean text; no blacklist masquerades as an oracle.
+  - scripts/internal/va_review_smoke.cpp:495:    // Run 35: missing property and target identity are independent, not mutually exclusive.
+  - scripts/internal/va_review_smoke.cpp:725:            // Preserve labeled message boundaries, replace only visual inputs with independent facts.
+  - scripts/internal/va_review_smoke.cpp:748:            // Only this isolated synthetic evaluator retains raw responses; product logging is unchanged.
+  - scripts/internal/verify_va_review.sh:188:        # Both text partitions share the caller's one frozen 800-second deadline, including the manual pause.
+  - src/recording/va_review_provider.cpp:97:        // IDs bind output slots, not pre-existing semantic claim IDs: free input segmentation remains model-owned.
+  - src/recording/va_review_provider.cpp:138:        // No text rewriting or semantic relabelling: the model's sole verdict selects its public group.
+
+== Code comment policy summary ==
+- files: 1410
+- missing headers: 0
+- english-only comments: 13
