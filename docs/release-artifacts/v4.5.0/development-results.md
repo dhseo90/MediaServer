@@ -233,3 +233,13 @@
   `.media_server.test/v450-resume`의 dev/inode/uid를 대조해 제거했다([정리 출력](08-cleanup.json)).
   승인된 모델 weight는 유지한다. [마감 문서 검사](08-closeout-docs.log)와 `git diff --check`로
   기록·링크 정합을 확인하며, 위 feature manifest FAIL은 해소되지 않은 상태로 보존한다.
+
+## 최신 범위 재개: Gemini 제거·Ollama 연결·한국어 네 항목
+
+- 사용자 goal로 개발·분할 커밋·마지막 push를 재개한다. 테스트 동일 단계의 실패가 3회를
+  초과하면 새 작업을 중단하고 보고한다. 이전 13:15 종료 작업과 구분하며 과거 실패는 유지한다.
+- Gemini 미배포 구현 제거(호환 reader/migration 없음), 자체 호스팅 Ollama만 지원, 원격 주소·
+  HTTPS/Bearer/CA, 검증은 로컬만, 네 항목 실제 생성·한국어 응답을 최신 승인 범위로 반영했다.
+- 범위 정정 단계: `./server.sh verify-docs-links` exit 0/failures 0
+  ([원출력](09-scope-docs.log)), `git diff --check` exit 0. 이 단계 실패 0회.
+  제품 수정·모델 재검증·최종 gate는 아직 미완료다. 기존 coverage FAIL을 해소했다고 하지 않는다.

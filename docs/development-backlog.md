@@ -20,18 +20,26 @@
 `v4.5.0` 브랜치의 01~04 구현·단기 검증을 보존했고, 2026-10-05 재개 평가에서
 05 최종 prompt의 실제 로컬 품질 기준과 06 API/Auth·UI 상태 단기 검증을 통과했다.
 06 fixture 시작/정리 실패는 재개 승인 후 수정·재검증했고 07 외부 adapter/protocol도 구현했다.
-외부 실제 모델 조건과 검증/제외 결정, 최종 영향 회귀·릴리즈 gate는 아직 남아 있다.
-정확한 실패·최종 코드의 미실행 경계·정리는 [개발 실행 결과](release-artifacts/v4.5.0/development-results.md)에만 둔다.
-아래 중요도는 현재 출시 차단 기준이며 원래 [개발 순서](v410-v49-recording-search-roadmap.md#개발-우선순위와-선행-관계)를 변경하지 않는다.
+최신 사용자 결정으로 Gemini는 제거하며 미배포 기능의 호환 reader/migration은 만들지 않는다.
+Ollama만 지원하고 동일 장비·컨테이너·별도 GPU 서버 연결을 구현하되 실제 모델 검증은 로컬만 수행한다.
+HTTP는 무인증, HTTPS는 필수 인증서 검증·선택 Bearer/사내 CA다. 네 항목 실제 생성·한국어 응답도 승인됐다.
+정확한 결과·실패 횟수·정리는 [개발 실행 결과](release-artifacts/v4.5.0/development-results.md)에만 둔다.
 
-| 순서·중요도 | 남은 일과 완료 조건 | 근거·승인/검증 경계 |
+| 순서·중요도 | 남은 일과 완료 조건 | 승인/검증 경계 |
 | --- | --- | --- |
-| 1 · P0 | 현재 변경의 독립 검토와 UI-001/UI-002·inventory manifest 결속 갱신, feature coverage gate 재통과 | 직접 관측 FAIL: 986개 연결은 유지되지만 inventorySha256·UI 승인 blob/body hash drift. 검증 정책의 승인된 갱신 절차와 지정 `gpt-6-astra/xhigh` 독립 검토 승인 필요 |
-| 2 · P0 | 실제 RTSP/WebRTC·metadata/Event POST·녹화/검색의 모델 병행 진행과 제품 서버 자원 예산 | 현재 native는 일부 녹화/event append/검색만 확인. 실제 모델 Cancel/Stop은 이번에 통과했지만 실제 송출/전달 혼합 부하는 미실행 |
-| 3 · P0 | Linux 빌드·glibc 2.34+ 전송 수명 확인, required CI와 배포 소비자 확인 | 현재 실행은 macOS. 구조 graph·문서·script inventory·CI/local parity 통과와 Linux/원격 CI를 구분 |
-| 4 · P0 | 코드 고정 후 필수 30분·실제 UI 풀테스트, worker 수명에 매핑된 120분과 잔여 실패 해소 | AGENTS·검증/릴리즈 정책의 직접 기준. 각 장시간·UI 풀테스트 실행은 별도 명시 승인 필요 |
-| 5 · P2·선택 | Gemini의 실제 계정/model/credential/privacy 조건 확정 후 실호출·품질 검증 또는 명시 제외 | adapter·무호출 guard·합성 protocol·외부 UI 상태는 통과. 실제 Google 전송/품질은 미실행 |
-| 6 · P0 | VERSION/CMake·릴리즈 노트/metadata·최종 기록 보존/정리, main 최종 hash·서명/Verified·공개 확인 | source VERSION은 아직 4.4.0. PR·병합·signed tag·GitHub Release는 각각 별도 승인. 브랜치 push는 릴리즈가 아님 |
+| 1 · P0 | 계약·로드맵·현재 테스트 정의 정정 | 실행 결과를 새 기준 PASS로 바꾸지 않음 |
+| 2 · P0 | Gemini 전용 구현·설정·UI·record 분기·성공 테스트 제거 | 공통 Ollama·미지원 provider 거부·과거 이력 유지 |
+| 3 · P0 | Ollama 주소·TLS·Bearer·CA 연결 확장 | 인증 프록시는 운영자 구성, 원격 실제 검증 제외 |
+| 4 · P1 | 네 항목 실제 생성·한국어 응답 | 사용자 승인, 독립 품질 oracle를 실행 전 등록 |
+| 5 · P0 | 변경 기능의 로컬 단기 검증 | TLS/auth/오류/취소·API/저장/UI와 영향 품질 |
+| 6 · P0 | 로컬 미디어·녹화·검색 혼합 회귀·지원 OS 검증 | Linux 미확인을 macOS/정적 CI로 대신하지 않음 |
+| 7 · P0 | VERSION/CMake·릴리즈 목표·노트·지원 범위 고정 | 현재 source 4.4.0, source-only 유지 |
+| 8 · P0 | 독립 검토·manifest 결속·coverage FAIL 해소 | 지정 독립 검토 별도 승인, 일반 hash 재생성 금지 |
+| 9 · P0 | 안정화·30분·120분·실제 UI | 현재 Q01 worker 수명상 120분 필요, 각 실행 승인 확인 |
+| 10 · P0 | 결과 Git 보존·별도 정리 커밋·소유 자원 회수 | 보존 원본/hash와 이력 색인 확인 |
+| 11 · P0 | push·PR·required CI·main 병합 | 분할 커밋·마지막 push 승인, PR/병합은 별도 |
+| 12 · P0 | signed annotated tag·Verified·GitHub Release·Latest 확인 | 실제 외부 상태 확인, 별도 실행 승인 |
+| 13 · 마감 | 로컬/원격 v4.5.0 브랜치 삭제 | 공개 후 보존·병합 확인, 삭제 별도 승인 |
 
 ## 별도 승인 릴리즈
 

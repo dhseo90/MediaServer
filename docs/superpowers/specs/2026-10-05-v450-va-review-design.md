@@ -20,6 +20,12 @@ questions, contradictions, unclear와 confidence를 저장한다. 질문은 1~51
 
 ## 입력과 결과
 
+최신 사용자 승인으로 네 항목의 실제 생성과 한국어 응답을 보완한다. 모델은 관측에 따라
+supports/contradictions/unclear와 필요한 추가 확인 질문 questions를 생성하며 모든 항목을
+억지로 채우지 않는다. 근거가 없는 항목은 빈 배열로 유지한다. 현재 단일 설명·3분류를 네 그룹으로
+옮기고 questions를 항상 비우던 adapter는 이 목표의 완료로 보지 않는다. 한국어 의미·근거·부족
+사례의 독립 기대값은 기존 테스트 정의/fixture에 반영한 뒤 실제 로컬 모델로 평가한다.
+
 - 입력은 서버 소유 package ID, 검증한 manifest digest, 질문, 순서가 있는 frame 참조다.
   frame은 manifest의 segment/source generation/media epoch/sample/PTS/UTC 품질과
   PNG hash 및 asset index를 보존한다. 외부 URL·파일 경로·사용자가 만든 manifest를 받지 않는다.
@@ -61,13 +67,22 @@ questions, contradictions, unclear와 confidence를 저장한다. 질문은 1~51
   낮은 사양의 명시적 대안이며 자동 전환하지 않는다. 30B와 별도 약관 모델은 이번 기준에서 제외한다.
   사용자 승인으로 전용 `models/v450-ollama`에 weight를 준비했다. digest와 실제 품질 결과는
   [개발 실행 결과](../../release-artifacts/v4.5.0/development-results.md)에서 구분한다.
-- 외부 adapter는 Gemini `generateContent`의 다중 inline PNG와 JSON schema 출력으로 설계한다.
-  model은 운영자가 명시하며 계정에서의 가용성·정책·비용 확인 없이 호출하지 않는다.
-  기존 문서의 모델 이름을 최신 계정 가용성으로 추정하지 않는다.
-- VLM은 기본 off다. 로컬 endpoint는 숫자 loopback HTTP만, 외부는 승인한 Google HTTPS
-  host만 허용한다. redirect/proxy/사용자 URL을 통한 우회와 로컬 실패 후 외부 fallback은 금지한다.
-  외부 opt-in, 전송 검토 확인, model과 일시적인 env credential을 모두 요구한다.
-  key는 argv·파일·UI·오류에 넣지 않는다. 현재 사용 중인 curl 실행 도구를 활용하며 신규 라이브러리는 추가하지 않는다.
+- 최신 사용자 결정: Gemini 전용 구현·설정·UI·저장 검증·성공 테스트를 제거한다.
+  미배포 기능이므로 Gemini 호환 reader/migration은 만들지 않는다. 실제 외부 호출은 하지 않았으며
+  과거 실행 결과를 소급 변경하지 않는다. Ollama 외 provider 요청은 전송 전에 거부한다.
+- 검토 기본 off를 유지한다. 목표 연결 계약은 동일 장비·컨테이너·별도 GPU 서버의 자체 호스팅 Ollama다. 기본 endpoint는
+  `http://127.0.0.1:11434`로 유지하고 관리자가 지정한 HTTP/HTTPS 호스트·포트를 지원한다.
+  HTTP는 무인증만 허용하며 토큰 동시 설정은 호출 전 오류다. HTTPS는 인증서·호스트명 검증을
+  필수로 하고 선택 Bearer token·사내 CA 파일을 지원한다. 인증 실패 뒤 무인증/HTTP fallback은 없다.
+  Bearer 검증은 Ollama 앞단의 운영자 인증 프록시 책임이다. 프록시 자동 설치는 범위에 없다.
+  토큰은 운영 환경에서 읽어 작업 메모리로만 전달하며 argv·로그·UI·record에 직렬화하지 않는다.
+  endpoint는 검토 요청으로 받지 않으며 URL userinfo/query/fragment, redirect와 환경 proxy 우회를 거부한다.
+  CA는 해당 연결에만 적용하고 시스템 인증서 저장소를 바꾸거나 검증 생략 옵션을 만들지 않는다.
+- 자체 호스팅 배치는 Ollama cloud 기능을 비활성화하는 운영 조건을 따른다. MediaServer가 원격
+  서버의 설정·GPU 회수를 관측했다고 주장하지 않는다. 원격 취소는 연결 종료·결과 미게시·소유 자원
+  회수를 보장하는 범위로 검증하며 원격 추론 자체의 종료는 실환경 미검증이다.
+- 실제 모델 검증은 로컬만 수행한다. loopback HTTP/HTTPS fixture로 CA·호스트명·토큰·오류·취소를
+  검사하고 컨테이너·원격 GPU 실환경 성공으로 승격하지 않는다. 새 모델/실서비스 호출은 추가하지 않는다.
   curl은 `/usr/bin/curl`을 사용하며 Linux 전송은 glibc 2.34 이상의 closefrom spawn 기능을
   요구한다. macOS는 CLOEXEC_DEFAULT로 열린 서버 FD 상속을 막는다. 미지원 환경에서는
   검토 연결 실패로 처리하고 보안 조건을 생략하는 대안을 사용하지 않는다. 현재 실행 검증은 macOS다.
@@ -99,8 +114,7 @@ API에서 권한을 다시 확인한다. no-store/nosniff와 DOM textContent를 
 실행 전 독립 답을 고정하고 schema/근거 index 유효성 100%, 부족 사례의 불확실성 표시 100%,
 의미 판정 12사례 중 10개 이상 및 개별 실행 60초 이내를 기준으로 한다. 12사례의 내용은
 V450-05 실행 전에 fixture에 등록한다. 이 제한된 평가를 일반 CCTV 정확도로 확대하지 않는다.
-외부 전송은 프로젝트 합성 fixture만 대상으로 하고 사용자 영상은 보내지 않는다.
-외부 실호출 미실행과 adapter/오류 fixture 통과는 분리한다. 30분/120분/UI 풀테스트는 이 개발 검증과 다르다.
+Gemini 실제 호출은 범위에서 제외한다. 로컬 합성 transport와 실제 로컬 모델의 결과를 구분한다. 30분/120분/UI 풀테스트는 이 개발 검증과 다르다.
 
 ## 공개 자료와 독립 구현
 
@@ -114,9 +128,3 @@ VARuleLens 코드·prompt·schema를 사용하지 않는다. 특허 상세를 �
 - [Ollama 구조화 출력](https://docs.ollama.com/capabilities/structured-outputs): format schema와 prompt의 구조 설명.
 - [llama.cpp grammar 문서](https://github.com/ggml-org/llama.cpp/blob/master/grammars/README.md):
   JSON schema subset·anyOf와 properties 조합의 제약. 최종 수용은 서버 strict codec에서 별도로 검사한다.
-- [Gemini 이미지 입력](https://ai.google.dev/gemini-api/docs/image-understanding),
-  [구조화 출력](https://ai.google.dev/gemini-api/docs/structured-output): inline image와 JSON schema 계약.
-- [Gemini API 약관](https://ai.google.dev/gemini-api/terms): 계정별 적용·데이터 처리 검토가 실제 외부 사용의 선행 조건이며 이 문서는 수락을 대신하지 않는다.
-- [Gemini generateContent API 참조](https://ai.google.dev/api/generate-content): 고정 HTTPS 경로,
-  inlineData·systemInstruction·responseJsonSchema와 modelVersion을 사용한다. 구조화 text 단일
-  candidate만 처리하며 모델별 가용성과 실호출 품질은 별도로 확인한다.

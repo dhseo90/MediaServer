@@ -34,11 +34,9 @@ focused 실행 총 60초 이내이며 제품 빌드·실제 UI·장시간 검증
 총 65초(작업 50초·정리 15초)이며 실제 모델/실제 UI 풀테스트와 구분한다.
 오류 원문·계정 credential은 출력/저장하지 않고 작업 소유 프로세스·포트·root 부재를 확인한다.
 
-07 protocol은 고정 Google HTTPS 경로·키 header·다중 inline PNG를 독립 base64 decoder로
-대조하고, schema·modelVersion·정상 종료와 401/429/timeout/oversize/불완전 응답을 검사한다.
-opt-in·전송 승인·model·key 누락/변조는 무호출, 오류는 fallback·결과 변경 없이 실패해야 한다.
-목적지/Host header/개행 우회와 취소를 전송 이전에 검사하며 실제 외부 네트워크는 호출하지 않는다.
-외부 UI는 서버 허용 시에만 선택 가능하며 전송 확인란 기본 해제·명시 실행·자동 fallback 금지를 검사한다.
+V450-P01은 최신 사용자 결정으로 제외된 Gemini 구현의 역사 ID다. 실행 결과는 기존 기록에 보존하고
+현행 성공 검사로 재사용하지 않는다. 제거와 연결 확장의 실행 전 기대값은 아래 G/N 기능 ID를 따른다.
+원격 GPU·컨테이너 실검증은 사용자 제외이며 아래 네 영역에서 로컬 fixture/모델로만 실행한다.
 
 | 기능 ID | route/control/action과 정상·오류·경계 기대값 | 안정화 | 30분 | 120분 | UI |
 | --- | --- | --- | --- | --- | --- |
@@ -49,7 +47,11 @@ opt-in·전송 승인·model·key 누락/변조는 무호출, 오류는 fallback
 | V450-L01 | Ollama opt-in off 무호출, 실제 순서 PNG·시간 전달, missing-model/연결 실패/timeout/invalid-output. 실제 12사례 schema·근거100%, 부족 사례 uncertainty100%, 의미10/12 이상·60초 이내, 서버4GiB/모델14GiB 이하 | protocol+실제 모델 | 실제 모델 병행 | 수명/자원 | 로컬 검토 |
 | V450-A01 | va-reviews POST/GET 및 va-review-jobs GET/DELETE. 익명401/viewer403·타채널403·ops:write 없는 요청 거부, 생성자/admin 취소, 실행·저장 전 권한 회수 반영, 경로/비밀 비노출 | 격리 HTTP/Auth | 조회 병행 | 종료 영향 | 직접 조작 |
 | V450-U01 | /ops/events 증거 상세 질문→실행→진행/취소→결과→근거. disabled/빈값/중복/실패/늦은 응답·채널 전환, light/dark/mobile, textContent·viewer 비노출·기존 nav | UI 상태/변경영역 | 릴리즈 별도 | 영향 판정 | 풀테스트 별도 |
-| V450-P01 | Gemini 명시 opt-in·전송 승인·일시 credential 필수, 허용 HTTPS host만 사용·redirect/proxy 거부, 401/429/timeout/oversize/invalid-output 격리. 외부 자동 fallback 없음, raw key/prompt/response 비저장. 합성 transport와 실제 provider 별도 결과 | protocol/실호출 구분 | 선택 범위 | 영향 판정 | 전송 opt-in |
+| V450-G01 | Gemini 실행/config/UI/record 분기 제거. provider=gemini와 unknown 요청은 400·전송0·저장0. Ollama 결과 조회/재시작/취소와 공통 계약 유지, 화면에 외부 선택·전송 동의 없음 | native·HTTP·UI 상태 | Ollama 병행 | 기존 수명 매핑 | Gemini 노출 없음 |
+| V450-N01 | 관리자 endpoint의 HTTP/HTTPS·DNS/IPv4/IPv6·포트 처리, userinfo/query/fragment/비허용 scheme 거부. redirect/proxy 목적지 우회0·자동 fallback0 | 로컬 protocol | 연결 병행 | worker 수명 | 설정 비노출 |
+| V450-N02 | HTTP+Bearer는 무호출 오류. HTTPS의 CA/호스트명·만료·인증 토큰 확인, 401/403/429·TLS/CA 오류에서 저장0·비밀 비노출. 검증 생략/무인증 재시도0 | 로컬 HTTPS fixture | 오류 격리 | 수명/자원 | 정제 오류 |
+| V450-N03 | 원격용 연결도 deadline·cancel·Stop 시 child reap/worker join·미게시, MediaServer 자원 기준값 회복. 실제 원격 GPU 종료/메모리 회수는 미검증 | 로컬 느린 전송 | 병행 | 필수 수명 | 취소/실패 |
+| V450-K01 | 실제 네 그룹 생성과 한국어 관측/질문, 존재하는 근거 index, 부족에서 null confidence. 단일 설명 자동 분류·questions 상시 빈값으로 대체하지 않으며 불필요한 항목 생성 금지. 실행 전 품질 fixture에 독립 oracle 추가 | 실제 로컬 품질 | 로컬 모델 병행 | 기존 수명 매핑 | 한국어 네 항목 |
 
 ## v440 증거 패키지
 
