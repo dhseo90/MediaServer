@@ -28,6 +28,12 @@ macOS 모델 작업 메모리는 전용 Ollama와 현재 자식의 `proc_pid_rus
 총 65초(작업 50초·정리 15초)이며 실제 모델/실제 UI 풀테스트와 구분한다.
 오류 원문·계정 credential은 출력/저장하지 않고 작업 소유 프로세스·포트·root 부재를 확인한다.
 
+07 protocol은 고정 Google HTTPS 경로·키 header·다중 inline PNG를 독립 base64 decoder로
+대조하고, schema·modelVersion·정상 종료와 401/429/timeout/oversize/불완전 응답을 검사한다.
+opt-in·전송 승인·model·key 누락/변조는 무호출, 오류는 fallback·결과 변경 없이 실패해야 한다.
+목적지/Host header/개행 우회와 취소를 전송 이전에 검사하며 실제 외부 네트워크는 호출하지 않는다.
+외부 UI는 서버 허용 시에만 선택 가능하며 전송 확인란 기본 해제·명시 실행·자동 fallback 금지를 검사한다.
+
 | 기능 ID | route/control/action과 정상·오류·경계 기대값 | 안정화 | 30분 | 120분 | UI |
 | --- | --- | --- | --- | --- | --- |
 | V450-I01 | 검증한 EvidencePackageV1에서 1/8 frame 순서·시간·asset/hash·partial 유지. 빈 frame, 잘못된 ID/참조/index/hash/순서, 12MiB 초과 거부. 원본 삭제 후 동일 입력, 오류 시 출력 불변 | native 입력/원본 회귀 | 녹화 병행 | 수명 영향 | 근거 시퀀스 |

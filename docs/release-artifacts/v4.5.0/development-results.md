@@ -185,3 +185,20 @@
 - 06 제품 source 빌드·214 native/protocol 및 14 UI 상태 결과를 유지한다. 이후 변경은
   검증 fixture·진단/정리와 문서이며 제품 코드를 변경하지 않았다. 실제 UI와 지정 모델의
   최종 독립 검토·미디어 병행/실제 모델 취소는 후속 항목으로 남겨 두고 07 adapter로 진행한다.
+
+## V450-07 선택 외부 adapter (protocol 구현·실호출 미확인)
+
+- 06 `fd9dfc809` 위 Gemini generateContent adapter, 4조건 opt-in, 고정 HTTPS/key header,
+  외부 전송 UI 확인을 추가했다. 공식 [API 참조](https://ai.google.dev/api/generate-content)를 확인했다.
+  단일 STOP/text·modelVersion과 기존 strict 결과/근거 codec만 수용한다. 외부 자동 fallback은 없다.
+- [빌드](07-build.log) exit 0. `bash scripts/internal/verify_va_review.sh`는 [누적 404 PASS](07-protocol.log),
+  exit 0이다. 기존 로컬/저장/worker 회귀와 외부 합성 protocol을 포함한다. exact PNG는 독립
+  OpenSSL base64 decoder로 대조했고 외부 guard·키/host 변조·취소는 실제 네트워크 전에 거부한다.
+  Google TLS 실전송/계정/model 가용성·외부 의미 품질의 검증은 아니다.
+- [실제 제품 HTTP 회귀](07-http.log) 132 PASS/5,666ms/exit 0이며 외부는 기본 disabled다.
+  누적 구조화 결과는 기존 [HTTP 결과 파일](06-http.json)에만 유지한다.
+  [UI 상태](07-ui.log)는 기존 14+외부 3=17/17 PASS/exit 0, 실제 UI 풀테스트가 아니다.
+- 보조 읽기 검토에서 외부 opt-in/전송경계/credential 비노출/종료 수명의 직접 결함을 발견하지
+  못했다. 지정 모델 최종 독립 검토와 구분한다. native/HTTP 임시 root와 소유 포트/프로세스 정리 확인.
+- 외부 계정·사용 모델·일시 credential·privacy 조건을 사용자가 아직 지정하지 않아 실호출하지
+  않았다. adapter 구현 완료와 외부 provider 승격 완료를 구분한다. 실호출 또는 명시 제외 결정이 남는다.

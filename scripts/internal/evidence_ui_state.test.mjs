@@ -90,7 +90,7 @@ test('V440-U01 media loads sequentially within server admission; stale queue sto
 });
 
 // V450-U01 실행 전 고정한 기대: 정상 명시 POST→단일 polling→완료 결과/근거 이동,
-// disabled/쓰기권한없음/빈 프레임/빈 질문/513바이트/외부 provider는 POST 없음.
+// disabled/쓰기권한없음/빈 프레임/빈 질문/513바이트/외부 비활성 provider는 POST 없음.
 // 중복 실행·취소는 각 1회, 오류는 안전 문구, 상세/채널/페이지 전환은 abort·timer 정리 및 늦은 응답 무시.
 const reviewId='vr-'+'b'.repeat(64),jobId='vj-'+'c'.repeat(32)+'-1';
 const job=(state='running',extra={})=>({id:jobId,packageId:id,state,error:'',reviewId:'',canCancel:true,...extra});
@@ -171,4 +171,45 @@ test('V450-U01 active timer is cleared on page exit and malformed IDs cannot bec
   assert.equal(f.timers.size,1);f.leave();assert.equal(f.timers.size,0);assert.equal(f.pending.length,0);
   const bad=fixture();await openReview(bad);await input(bad,'a');const work=bad.review('Execute').fire('click');await flush();bad.answer(bad.pending.shift(),job('running',{id:'https://private.invalid'}),202);await work;
   assert.equal(bad.timers.size,0);assert.equal(bad.pending.length,0);assert.match(bad.review('Status').textContent,/읽지 못/);
+});
+
+// V450-P01 UI 실행 전 기대: server externalEnabled=true만 선택 허용, 로컬 기본 유지.
+// Gemini 명시 선택 뒤 전송 확인이 없으면 POST 0회; 확인 후 기존 3필드 provider=gemini POST 1회.
+// 질문/제공자 변경과 각 실행은 확인을 해제. 실패는 fallback 0회. 채널/페이지 전환은 요청 abort·timer 0개.
+test('V450-P01 external capability defaults off; only explicit server true admits Gemini',async()=>{
+  for(const value of [false,undefined,'true']){
+    const f=fixture();await openReview(f,detail(),listData({externalEnabled:value}));await input(f);
+    assert(f.review('Provider').children.find(n=>n.value==='gemini').disabled);
+    f.review('Provider').value='gemini';await f.review('Provider').fire('change');f.review('TransferConsent').checked=true;await f.review('TransferConsent').fire('change');
+    await f.review('Execute').fire('click');assert(f.review('Execute').disabled);assert.equal(f.pending.length,0);
+  }
+});
+test('V450-P01 explicit Gemini selection requires fresh transfer confirmation and never falls back on failure',async()=>{
+  const f=fixture();await openReview(f,detail(),listData({externalEnabled:true}));await input(f);
+  assert.equal(f.review('Provider').value,'ollama');assert(f.review('ExternalNotice').hidden);assert.equal(f.review('TransferConsent').checked,false);
+  assert.equal(f.review('Provider').children.find(n=>n.value==='gemini').disabled,false);
+  f.review('Provider').value='gemini';await f.review('Provider').fire('change');assert.equal(f.review('ExternalNotice').hidden,false);
+  assert.match(f.review('ExternalNotice').children[0].textContent,/보존 프레임과 질문을 외부 모델로 전송/);
+  await f.review('Execute').fire('click');assert.equal(f.pending.length,0);
+  f.review('TransferConsent').checked=true;await f.review('TransferConsent').fire('change');assert.equal(f.review('Execute').disabled,false);
+  await input(f,'A red square remains visible.');assert.equal(f.review('TransferConsent').checked,false);assert(f.review('Execute').disabled);
+  f.review('TransferConsent').checked=true;await f.review('TransferConsent').fire('change');
+  const work=f.review('Execute').fire('click');await flush();await f.review('Execute').fire('click');assert.equal(f.pending.length,1);
+  const request=f.pending.shift();assert.equal(request.options.method,'POST');assert.deepEqual(JSON.parse(request.options.body),{packageId:id,question:'A red square remains visible.',provider:'gemini'});
+  f.answer(request,{error:'review-provider-unavailable',raw:'https://private.invalid api_key=secret'},503);await work;
+  assert.equal(f.review('Provider').value,'gemini');assert.equal(f.review('TransferConsent').checked,false);assert(f.review('Execute').disabled);assert.equal(f.pending.length,0);assert.equal(f.timers.size,0);
+  assert.doesNotMatch(f.review('Status').textContent,/https|api_key|로컬/);
+  f.review('TransferConsent').checked=true;await f.review('TransferConsent').fire('change');f.review('Provider').value='ollama';await f.review('Provider').fire('change');
+  assert.equal(f.review('TransferConsent').checked,false);assert(f.review('ExternalNotice').hidden);assert.equal(f.pending.length,0);
+});
+test('V450-P01 external request is aborted on transition and revoked capability cannot transmit again',async()=>{
+  for(const page of [false,true]){
+    const f=fixture();await openReview(f,detail(),listData({externalEnabled:true}));await input(f);
+    f.review('Provider').value='gemini';await f.review('Provider').fire('change');f.review('TransferConsent').checked=true;await f.review('TransferConsent').fire('change');
+    const work=f.review('Execute').fire('click');await flush();const request=f.pending.shift();assert.equal(JSON.parse(request.options.body).provider,'gemini');
+    if(page)f.leave();else await f.el('Channel').fire('change');assert(request.options.signal.aborted);f.answer(request,job(),202);await work;assert.equal(f.pending.length,0);assert.equal(f.timers.size,0);assert.equal(f.el('Detail').children.length,0);
+  }
+  const f=fixture();await openReview(f,detail(),listData({externalEnabled:true}));await input(f);f.review('Provider').value='gemini';await f.review('Provider').fire('change');
+  f.review('TransferConsent').checked=true;await f.review('TransferConsent').fire('change');const refresh=f.review('Refresh').fire('click');await flush();f.answer(f.pending.shift(),listData());await refresh;
+  assert.equal(f.review('Provider').value,'gemini');assert.equal(f.review('TransferConsent').checked,false);assert(f.review('Execute').disabled);await f.review('Execute').fire('click');assert.equal(f.pending.length,0);
 });

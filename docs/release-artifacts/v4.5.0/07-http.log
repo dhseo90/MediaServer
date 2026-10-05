@@ -1,0 +1,18 @@
+[fixture] /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-va-review-jvn9z196
+[source] include/recording/va_review_input.h 543fcaf1fd950927455e402b45f3747cdb95c81b8521daa4eb22ce4b87c1cc00
+[source] include/recording/va_review_provider.h 0da7baa55c8cec081669f6fdd17b9516dd07d342f2a8ae35f8d088e91ef6220b
+[source] include/recording/va_review_record.h 96f5ac21c232d0b7efcadc94d8472ea980e1c8828577753c77f892210059c27d
+[source] include/recording/va_review_service.h 1c138ecdc7227f236a06109ebf7ecec0508800463a579f70c4e85f6212820861
+[source] include/recording/va_review_store.h fcfad2a1c692321f5331b014357686abf871ab1b727ebc8093b5d339efc8c80a
+[source] scripts/internal/va_review_quality_fixture.h 9b2e166928f0d1043363ab1fe93e2c3ea90f19cad0c32053b9c483da22ed9f19
+[source] scripts/internal/va_review_smoke.cpp 6efb36b9764425ceade706e0b102a51526a4248f6543d891691e80a7e51a94fe
+[source] scripts/internal/verify_va_review.sh 187f6178bdb95f8cfbc408e736a19ec76036b65eb80a9c984a9abf7c11ad069c
+[source] src/recording/va_review_input.cpp 840df39c6fc11ca99748f55dd1c55d598e060467354dd8fd0a48b1b197cd58f1
+[source] src/recording/va_review_json.h 835cf40e95a3be8297ccf6edde1fbcf7c8aa5ffda3169f368195bc5667d065f3
+[source] src/recording/va_review_provider.cpp 72550108721e67e41900a0895c90eda3578f4b7091dbcec3cfb5179b9f32cf18
+[source] src/recording/va_review_record.cpp 3aa2e72da1f3e72b37557ed359b733639a2e1a9c3d9bbd4eb60de69ead89efba
+[source] src/recording/va_review_service.cpp 97d2f74b18f68c253ce6f50df5b33495afe7529c5abf1d1c985ebffb220d175b
+[source] src/recording/va_review_store.cpp 27cb631652d84eb98776cf0493959205fdb4888517cb70b6cc8e1d5a4108a0a4
+[source] src/recording/va_review_transport.cpp 24540c76bad7091eceb7bca8b21719cdb2af66122751bcd55aa070083cdaa1a1
+{"status":"PASS","checks":132,"elapsedMs":5666,"cleanup":{"firstProcess":{"exited":true,"forced":false,"exitCode":0,"signalCode":null},"secondProcess":{"exited":true,"forced":false,"exitCode":0,"signalCode":null},"process":{"exited":true,"forced":false,"exitCode":0,"signalCode":null},"http":{"closed":true,"evidence":"ECONNREFUSED"},"rtsp":{"closed":true,"evidence":"ECONNREFUSED"},"provider":{"closed":true,"evidence":"ECONNREFUSED"},"udpClosed":true,"rootAbsent":true}}
+[cleanup] removed=true

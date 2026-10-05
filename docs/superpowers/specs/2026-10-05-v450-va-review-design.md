@@ -117,3 +117,6 @@ VARuleLens 코드·prompt·schema를 사용하지 않는다. 특허 상세를 �
 - [Gemini 이미지 입력](https://ai.google.dev/gemini-api/docs/image-understanding),
   [구조화 출력](https://ai.google.dev/gemini-api/docs/structured-output): inline image와 JSON schema 계약.
 - [Gemini API 약관](https://ai.google.dev/gemini-api/terms): 계정별 적용·데이터 처리 검토가 실제 외부 사용의 선행 조건이며 이 문서는 수락을 대신하지 않는다.
+- [Gemini generateContent API 참조](https://ai.google.dev/api/generate-content): 고정 HTTPS 경로,
+  inlineData·systemInstruction·responseJsonSchema와 modelVersion을 사용한다. 구조화 text 단일
+  candidate만 처리하며 모델별 가용성과 실호출 품질은 별도로 확인한다.

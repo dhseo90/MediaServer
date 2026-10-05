@@ -1,7 +1,7 @@
 {
   "featureId": "V450-A01",
   "command": "bash scripts/internal/verify_va_review.sh --http-only",
-  "startedAtMs": 1791172679815,
+  "startedAtMs": 1791172944923,
   "sourceSha256": "477eb438e7bb72afbba0c653f90219244e83b2f52c25875ee982f73f815a87d8",
   "actualUiPass": false,
   "actualModel": false,
@@ -255,7 +255,7 @@
       "status": "PASS"
     },
     {
-      "id": "GET /ops/api/recordings/va-reviews/vr-d9a0397050d86b067104abd6fc40339d43dc40f5529d76d2961c06d64b32021b status 200",
+      "id": "GET /ops/api/recordings/va-reviews/vr-c5696a9c7e1020e6c1c44065e0788031c438866dd8736f365655fd0b1750d847 status 200",
       "status": "PASS"
     },
     {
@@ -271,7 +271,7 @@
       "status": "PASS"
     },
     {
-      "id": "GET /ops/api/recordings/va-reviews/vr-d9a0397050d86b067104abd6fc40339d43dc40f5529d76d2961c06d64b32021b status 403",
+      "id": "GET /ops/api/recordings/va-reviews/vr-c5696a9c7e1020e6c1c44065e0788031c438866dd8736f365655fd0b1750d847 status 403",
       "status": "PASS"
     },
     {
@@ -335,7 +335,7 @@
       "status": "PASS"
     },
     {
-      "id": "DELETE /ops/api/recordings/va-review-jobs/vj-8a2f76b1a244c287758c71bc593804c4-3 status 403",
+      "id": "DELETE /ops/api/recordings/va-review-jobs/vj-dae9f2d0b3f41b0a93fb80ae441a91d4-3 status 403",
       "status": "PASS"
     },
     {
@@ -347,7 +347,7 @@
       "status": "PASS"
     },
     {
-      "id": "DELETE /ops/api/recordings/va-review-jobs/vj-8a2f76b1a244c287758c71bc593804c4-3 status 200",
+      "id": "DELETE /ops/api/recordings/va-review-jobs/vj-dae9f2d0b3f41b0a93fb80ae441a91d4-3 status 200",
       "status": "PASS"
     },
     {
@@ -375,7 +375,7 @@
       "status": "PASS"
     },
     {
-      "id": "DELETE /ops/api/recordings/va-review-jobs/vj-8a2f76b1a244c287758c71bc593804c4-4 status 200",
+      "id": "DELETE /ops/api/recordings/va-review-jobs/vj-dae9f2d0b3f41b0a93fb80ae441a91d4-4 status 200",
       "status": "PASS"
     },
     {
@@ -483,7 +483,7 @@
       "status": "PASS"
     },
     {
-      "id": "GET /ops/api/recordings/va-review-jobs/vj-8a2f76b1a244c287758c71bc593804c4-1 status 410",
+      "id": "GET /ops/api/recordings/va-review-jobs/vj-dae9f2d0b3f41b0a93fb80ae441a91d4-1 status 410",
       "status": "PASS"
     },
     {
@@ -495,7 +495,7 @@
       "status": "PASS"
     },
     {
-      "id": "GET /ops/api/recordings/va-reviews/vr-d9a0397050d86b067104abd6fc40339d43dc40f5529d76d2961c06d64b32021b status 200",
+      "id": "GET /ops/api/recordings/va-reviews/vr-c5696a9c7e1020e6c1c44065e0788031c438866dd8736f365655fd0b1750d847 status 200",
       "status": "PASS"
     },
     {
@@ -570,23 +570,23 @@
     "rootAbsent": true
   },
   "status": "PASS",
-  "root": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-va-http-MmGDaF",
+  "root": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-va-http-2jI3IR",
   "rootIdentity": {
     "dev": 16777232,
-    "ino": 168996085,
+    "ino": 168997952,
     "uid": 501
   },
-  "binarySha256": "9a1c6d3470f661aba6bf3cd211ddb233dfb60233bb815afffd2606d5f429b4b6",
-  "fixtureSha256": "c53b1a4626fb02f420424817e6212738387738686a50ec67a77dda3aff667de2",
+  "binarySha256": "23e3eb26cdf8df6c657c7e4e498f0605835e8dcc8c18b856f80face39d8461b9",
+  "fixtureSha256": "26b5b801a246c6ee4ac16ad9f95cfcb51e2797b191de655249eeac1ee38277c3",
   "ports": {
-    "http": 52001,
-    "rtsp": 52002,
-    "provider": 52000,
-    "udp": 64865
+    "http": 52237,
+    "rtsp": 52238,
+    "provider": 52236,
+    "udp": 64407
   },
-  "pid": 16820,
+  "pid": 17727,
   "exit": 0,
-  "elapsedMs": 6336,
+  "elapsedMs": 5666,
   "previousRuns": [
     {
       "featureId": "V450-A01",
@@ -711,6 +711,596 @@
       ],
       "exit": 1,
       "elapsedMs": 918
+    },
+    {
+      "featureId": "V450-A01",
+      "command": "bash scripts/internal/verify_va_review.sh --http-only",
+      "startedAtMs": 1791172679815,
+      "sourceSha256": "477eb438e7bb72afbba0c653f90219244e83b2f52c25875ee982f73f815a87d8",
+      "actualUiPass": false,
+      "actualModel": false,
+      "checks": [
+        {
+          "id": "GET /ops/api/recordings/va-reviews status 401",
+          "status": "PASS"
+        },
+        {
+          "id": "private response headers",
+          "status": "PASS"
+        },
+        {
+          "id": "private fields absent",
+          "status": "PASS"
+        },
+        {
+          "id": "GET /ops/api/recordings/va-reviews status 403",
+          "status": "PASS"
+        },
+        {
+          "id": "private response headers",
+          "status": "PASS"
+        },
+        {
+          "id": "private fields absent",
+          "status": "PASS"
+        },
+        {
+          "id": "GET /ops/api/recordings/va-reviews status 403",
+          "status": "PASS"
+        },
+        {
+          "id": "private response headers",
+          "status": "PASS"
+        },
+        {
+          "id": "private fields absent",
+          "status": "PASS"
+        },
+        {
+          "id": "GET /ops/api/recordings/va-reviews/vr-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa status 401",
+          "status": "PASS"
+        },
+        {
+          "id": "private response headers",
+          "status": "PASS"
+        },
+        {
+          "id": "private fields absent",
+          "status": "PASS"
+        },
+        {
+          "id": "GET /ops/api/recordings/va-reviews/vr-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa status 403",
+          "status": "PASS"
+        },
+        {
+          "id": "private response headers",
+          "status": "PASS"
+        },
+        {
+          "id": "private fields absent",
+          "status": "PASS"
+        },
+        {
+          "id": "GET /ops/api/recordings/va-reviews/vr-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa status 403",
+          "status": "PASS"
+        },
+        {
+          "id": "private response headers",
+          "status": "PASS"
+        },
+        {
+          "id": "private fields absent",
+          "status": "PASS"
+        },
+        {
+          "id": "GET /ops/api/recordings/va-review-jobs/vj-bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb-1 status 401",
+          "status": "PASS"
+        },
+        {
+          "id": "private response headers",
+          "status": "PASS"
+        },
+        {
+          "id": "private fields absent",
+          "status": "PASS"
+        },
+        {
+          "id": "GET /ops/api/recordings/va-review-jobs/vj-bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb-1 status 403",
+          "status": "PASS"
+        },
+        {
+          "id": "private response headers",
+          "status": "PASS"
+        },
+        {
+          "id": "private fields absent",
+          "status": "PASS"
+        },
+        {
+          "id": "GET /ops/api/recordings/va-review-jobs/vj-bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb-1 status 403",
+          "status": "PASS"
+        },
+        {
+          "id": "private response headers",
+          "status": "PASS"
+        },
+        {
+          "id": "private fields absent",
+          "status": "PASS"
+        },
+        {
+          "id": "POST /ops/api/recordings/va-reviews status 403",
+          "status": "PASS"
+        },
+        {
+          "id": "private response headers",
+          "status": "PASS"
+        },
+        {
+          "id": "private fields absent",
+          "status": "PASS"
+        },
+        {
+          "id": "GET /ops/api/recordings/va-reviews status 403",
+          "status": "PASS"
+        },
+        {
+          "id": "private response headers",
+          "status": "PASS"
+        },
+        {
+          "id": "private fields absent",
+          "status": "PASS"
+        },
+        {
+          "id": "GET /ops/api/recordings/va-reviews status 403",
+          "status": "PASS"
+        },
+        {
+          "id": "private response headers",
+          "status": "PASS"
+        },
+        {
+          "id": "private fields absent",
+          "status": "PASS"
+        },
+        {
+          "id": "GET /ops/api/recordings/va-reviews status 200",
+          "status": "PASS"
+        },
+        {
+          "id": "private response headers",
+          "status": "PASS"
+        },
+        {
+          "id": "private fields absent",
+          "status": "PASS"
+        },
+        {
+          "id": "read only capabilities",
+          "status": "PASS"
+        },
+        {
+          "id": "POST /ops/api/recordings/va-reviews status 400",
+          "status": "PASS"
+        },
+        {
+          "id": "private response headers",
+          "status": "PASS"
+        },
+        {
+          "id": "private fields absent",
+          "status": "PASS"
+        },
+        {
+          "id": "POST /ops/api/recordings/va-reviews status 400",
+          "status": "PASS"
+        },
+        {
+          "id": "private response headers",
+          "status": "PASS"
+        },
+        {
+          "id": "private fields absent",
+          "status": "PASS"
+        },
+        {
+          "id": "POST /ops/api/recordings/va-reviews status 400",
+          "status": "PASS"
+        },
+        {
+          "id": "private response headers",
+          "status": "PASS"
+        },
+        {
+          "id": "private fields absent",
+          "status": "PASS"
+        },
+        {
+          "id": "POST /ops/api/recordings/va-reviews status 400",
+          "status": "PASS"
+        },
+        {
+          "id": "private response headers",
+          "status": "PASS"
+        },
+        {
+          "id": "private fields absent",
+          "status": "PASS"
+        },
+        {
+          "id": "POST /ops/api/recordings/va-reviews status 400",
+          "status": "PASS"
+        },
+        {
+          "id": "private response headers",
+          "status": "PASS"
+        },
+        {
+          "id": "private fields absent",
+          "status": "PASS"
+        },
+        {
+          "id": "POST /ops/api/recordings/va-reviews status 503",
+          "status": "PASS"
+        },
+        {
+          "id": "private response headers",
+          "status": "PASS"
+        },
+        {
+          "id": "private fields absent",
+          "status": "PASS"
+        },
+        {
+          "id": "invalid/forbidden external requests do not call provider",
+          "status": "PASS"
+        },
+        {
+          "id": "POST /ops/api/recordings/va-reviews status 202",
+          "status": "PASS"
+        },
+        {
+          "id": "private response headers",
+          "status": "PASS"
+        },
+        {
+          "id": "private fields absent",
+          "status": "PASS"
+        },
+        {
+          "id": "GET /ops/api/recordings/va-reviews/vr-d9a0397050d86b067104abd6fc40339d43dc40f5529d76d2961c06d64b32021b status 200",
+          "status": "PASS"
+        },
+        {
+          "id": "private response headers",
+          "status": "PASS"
+        },
+        {
+          "id": "private fields absent",
+          "status": "PASS"
+        },
+        {
+          "id": "result and frame references",
+          "status": "PASS"
+        },
+        {
+          "id": "GET /ops/api/recordings/va-reviews/vr-d9a0397050d86b067104abd6fc40339d43dc40f5529d76d2961c06d64b32021b status 403",
+          "status": "PASS"
+        },
+        {
+          "id": "private response headers",
+          "status": "PASS"
+        },
+        {
+          "id": "private fields absent",
+          "status": "PASS"
+        },
+        {
+          "id": "POST /ops/api/recordings/va-reviews status 202",
+          "status": "PASS"
+        },
+        {
+          "id": "private response headers",
+          "status": "PASS"
+        },
+        {
+          "id": "private fields absent",
+          "status": "PASS"
+        },
+        {
+          "id": "rerun immutable revision",
+          "status": "PASS"
+        },
+        {
+          "id": "GET /ops/api/recordings/va-reviews status 200",
+          "status": "PASS"
+        },
+        {
+          "id": "private response headers",
+          "status": "PASS"
+        },
+        {
+          "id": "private fields absent",
+          "status": "PASS"
+        },
+        {
+          "id": "history retained",
+          "status": "PASS"
+        },
+        {
+          "id": "POST /ops/api/users status 201",
+          "status": "PASS"
+        },
+        {
+          "id": "POST /ops/api/users status 201",
+          "status": "PASS"
+        },
+        {
+          "id": "POST /ops/api/recordings/va-reviews status 202",
+          "status": "PASS"
+        },
+        {
+          "id": "private response headers",
+          "status": "PASS"
+        },
+        {
+          "id": "private fields absent",
+          "status": "PASS"
+        },
+        {
+          "id": "DELETE /ops/api/recordings/va-review-jobs/vj-8a2f76b1a244c287758c71bc593804c4-3 status 403",
+          "status": "PASS"
+        },
+        {
+          "id": "private response headers",
+          "status": "PASS"
+        },
+        {
+          "id": "private fields absent",
+          "status": "PASS"
+        },
+        {
+          "id": "DELETE /ops/api/recordings/va-review-jobs/vj-8a2f76b1a244c287758c71bc593804c4-3 status 200",
+          "status": "PASS"
+        },
+        {
+          "id": "private response headers",
+          "status": "PASS"
+        },
+        {
+          "id": "private fields absent",
+          "status": "PASS"
+        },
+        {
+          "id": "owner cancellation",
+          "status": "PASS"
+        },
+        {
+          "id": "POST /ops/api/recordings/va-reviews status 202",
+          "status": "PASS"
+        },
+        {
+          "id": "private response headers",
+          "status": "PASS"
+        },
+        {
+          "id": "private fields absent",
+          "status": "PASS"
+        },
+        {
+          "id": "DELETE /ops/api/recordings/va-review-jobs/vj-8a2f76b1a244c287758c71bc593804c4-4 status 200",
+          "status": "PASS"
+        },
+        {
+          "id": "private response headers",
+          "status": "PASS"
+        },
+        {
+          "id": "private fields absent",
+          "status": "PASS"
+        },
+        {
+          "id": "admin cancellation",
+          "status": "PASS"
+        },
+        {
+          "id": "POST /ops/api/recordings/va-reviews status 202",
+          "status": "PASS"
+        },
+        {
+          "id": "private response headers",
+          "status": "PASS"
+        },
+        {
+          "id": "private fields absent",
+          "status": "PASS"
+        },
+        {
+          "id": "provider call began before revocation",
+          "status": "PASS"
+        },
+        {
+          "id": "current write scope revocation stops provider",
+          "status": "PASS"
+        },
+        {
+          "id": "POST /ops/api/recordings/va-reviews status 202",
+          "status": "PASS"
+        },
+        {
+          "id": "private response headers",
+          "status": "PASS"
+        },
+        {
+          "id": "private fields absent",
+          "status": "PASS"
+        },
+        {
+          "id": "logout revokes worker authorization",
+          "status": "PASS"
+        },
+        {
+          "id": "GET /ops/api/recordings/va-reviews status 200",
+          "status": "PASS"
+        },
+        {
+          "id": "private response headers",
+          "status": "PASS"
+        },
+        {
+          "id": "private fields absent",
+          "status": "PASS"
+        },
+        {
+          "id": "cancel/revoke/logout publish no result",
+          "status": "PASS"
+        },
+        {
+          "id": "POST /ops/api/recordings/va-reviews status 202",
+          "status": "PASS"
+        },
+        {
+          "id": "private response headers",
+          "status": "PASS"
+        },
+        {
+          "id": "private fields absent",
+          "status": "PASS"
+        },
+        {
+          "id": "GET /ops/api/recordings/va-reviews status 200",
+          "status": "PASS"
+        },
+        {
+          "id": "private response headers",
+          "status": "PASS"
+        },
+        {
+          "id": "private fields absent",
+          "status": "PASS"
+        },
+        {
+          "id": "disabled capability no execution",
+          "status": "PASS"
+        },
+        {
+          "id": "POST /ops/api/recordings/va-reviews status 503",
+          "status": "PASS"
+        },
+        {
+          "id": "private response headers",
+          "status": "PASS"
+        },
+        {
+          "id": "private fields absent",
+          "status": "PASS"
+        },
+        {
+          "id": "GET /ops/api/recordings/va-review-jobs/vj-8a2f76b1a244c287758c71bc593804c4-1 status 410",
+          "status": "PASS"
+        },
+        {
+          "id": "private response headers",
+          "status": "PASS"
+        },
+        {
+          "id": "private fields absent",
+          "status": "PASS"
+        },
+        {
+          "id": "GET /ops/api/recordings/va-reviews/vr-d9a0397050d86b067104abd6fc40339d43dc40f5529d76d2961c06d64b32021b status 200",
+          "status": "PASS"
+        },
+        {
+          "id": "private response headers",
+          "status": "PASS"
+        },
+        {
+          "id": "private fields absent",
+          "status": "PASS"
+        },
+        {
+          "id": "persisted record survives restart",
+          "status": "PASS"
+        },
+        {
+          "id": "GET /ops/api/recordings/va-reviews status 200",
+          "status": "PASS"
+        },
+        {
+          "id": "private response headers",
+          "status": "PASS"
+        },
+        {
+          "id": "private fields absent",
+          "status": "PASS"
+        },
+        {
+          "id": "shutdown publishes no result",
+          "status": "PASS"
+        },
+        {
+          "id": "provider handler observed no error",
+          "status": "PASS"
+        },
+        {
+          "id": "50 second work budget",
+          "status": "PASS"
+        }
+      ],
+      "cleanup": {
+        "firstProcess": {
+          "exited": true,
+          "forced": false,
+          "exitCode": 0,
+          "signalCode": null
+        },
+        "secondProcess": {
+          "exited": true,
+          "forced": false,
+          "exitCode": 0,
+          "signalCode": null
+        },
+        "process": {
+          "exited": true,
+          "forced": false,
+          "exitCode": 0,
+          "signalCode": null
+        },
+        "http": {
+          "closed": true,
+          "evidence": "ECONNREFUSED"
+        },
+        "rtsp": {
+          "closed": true,
+          "evidence": "ECONNREFUSED"
+        },
+        "provider": {
+          "closed": true,
+          "evidence": "ECONNREFUSED"
+        },
+        "udpClosed": true,
+        "rootAbsent": true
+      },
+      "status": "PASS",
+      "root": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-va-http-MmGDaF",
+      "rootIdentity": {
+        "dev": 16777232,
+        "ino": 168996085,
+        "uid": 501
+      },
+      "binarySha256": "9a1c6d3470f661aba6bf3cd211ddb233dfb60233bb815afffd2606d5f429b4b6",
+      "fixtureSha256": "c53b1a4626fb02f420424817e6212738387738686a50ec67a77dda3aff667de2",
+      "ports": {
+        "http": 52001,
+        "rtsp": 52002,
+        "provider": 52000,
+        "udp": 64865
+      },
+      "pid": 16820,
+      "exit": 0,
+      "elapsedMs": 6336
     }
   ]
 }

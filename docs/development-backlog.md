@@ -19,13 +19,14 @@
 
 `v4.5.0` 브랜치의 01~04 구현·단기 검증을 보존했고, 2026-10-05 재개 평가에서
 05 최종 prompt의 실제 로컬 품질 기준과 06 API/Auth·UI 상태 단기 검증을 통과했다.
-06 fixture 시작/정리 실패는 재개 승인 후 수정·재검증했으며 07 외부 adapter를 진행한다.
+06 fixture 시작/정리 실패는 재개 승인 후 수정·재검증했고 07 외부 adapter/protocol도 구현했다.
+외부 실제 모델 조건과 검증/제외 결정, 최종 영향 회귀·릴리즈 gate는 아직 남아 있다.
 정확한 실패·최종 코드의 미실행 경계·정리는 [개발 실행 결과](release-artifacts/v4.5.0/development-results.md)에만 둔다.
 아래 중요도는 현재 출시 차단 기준이며 원래 [개발 순서](v410-v49-recording-search-roadmap.md#개발-우선순위와-선행-관계)를 변경하지 않는다.
 
 | 순서·중요도 | 남은 일과 완료 조건 | 근거·승인/검증 경계 |
 | --- | --- | --- |
-| 3 · P2 | V450-07: 선택 provider의 명시 opt-in adapter와 전송 guard·오류 격리. 실제 계정/model/credential/privacy 조건을 확정하고 실호출 또는 제외 상태 명시 | 직접 미착수. 구현 승인과 외부 데이터 전송 승인을 구분하며 현재 외부 실호출 조건은 미확정 |
+| 3 · P2 | V450-07: 구현한 선택 Gemini adapter의 실제 계정/model/credential/privacy 조건을 확정하고 실호출 또는 제외 상태 명시 | adapter·무호출 guard·합성 protocol과 외부 UI 상태 통과. 실제 Google 전송/품질은 미실행이며 조건 미확정 |
 | 4 · P0 | V450-04 잔여 영향 + 08: 실제 RTSP/WebRTC·metadata/Event POST·녹화/검색의 모델 병행 진행, 실제 모델 취소/종료와 자원 회수, API/Auth 영향·지원 Linux·구조 graph/배포 소비자 확인 | 현재 native 검사는 일부 녹화/event append/검색뿐이다. 소스/환경 차이에서 도출한 잔여 범위이며 미실행을 PASS로 삼지 않음 |
 | 5 · P0 | 코드 고정 후 독립 검토, 필수 30분과 실제 UI 풀테스트, worker/자원 수명에 매핑된 120분 수행·잔여 실패 해소 | AGENTS·검증/릴리즈 정책의 직접 기준. 장시간·UI 풀테스트·지정 모델 독립 검토는 별도 명시 승인 필요 |
 | 6 · P0 | 최종 버전·CMake·릴리즈 노트/metadata·운영 안내 정합, 검증 기록 보존 후 승인된 정리, required CI·main 최종 hash·서명/Verified·공개 확인 | VERSION은 아직 4.4.0. PR·병합·signed tag·GitHub Release는 각각 별도 승인, 브랜치 push를 릴리즈로 간주하지 않음 |

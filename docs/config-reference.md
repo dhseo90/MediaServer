@@ -901,6 +901,18 @@ worker 1개, 대기 4개/30초, 실행 60초, job 기억 최대 64개입니다. 
 로컬 실패 후 외부 모델로 자동 전환하지 않습니다. 세부 계약은
 [VA Review 개발 계약](superpowers/specs/2026-10-05-v450-va-review-design.md)을 따릅니다.
 
+선택 Gemini adapter는 다음 네 조건을 모두 요구합니다. 기본은 모두 비활성/빈 값입니다.
+`MEDIA_SERVER_VA_REVIEW_EXTERNAL_ENABLED=1`, `MEDIA_SERVER_VA_REVIEW_EXTERNAL_TRANSFER_APPROVED=1`,
+운영자가 지정한 `MEDIA_SERVER_VA_REVIEW_GEMINI_MODEL`, 일시 환경변수
+`MEDIA_SERVER_VA_REVIEW_GEMINI_API_KEY`입니다. 계정·모델 가용성·비용·전송할 영상/질문의 개인정보
+처리 조건을 확인한 뒤 활성화합니다. key를 프로젝트 파일·실행 argv·공개 설정에 넣지 마세요.
+화면에서도 외부 모델 선택과 전송 확인이 필요합니다. 서버 설정은 실제 전송 승인 판단을 대신하지 않습니다.
+
+외부 endpoint는 Google `generativelanguage.googleapis.com`의 HTTPS `generateContent`로 고정되고
+보존 PNG와 최소 시간 metadata·질문만 보냅니다. redirect/proxy와 사용자 URL은 받지 않습니다.
+단일 STOP candidate·단일 text JSON과 modelVersion만 지원하며 도구 호출/잘린 응답/혼합 부품은 실패입니다.
+현재 외부 검증은 합성 protocol이며 계정·모델 선정과 실호출 품질은 미확인입니다.
+
 ### 녹화 조회재생 API (v4.1.0 S06)
 
 기본 인증 모드는 `auto`다. 아래 API는 Ops 접근 권한과 채널별 `source:read:<channelId>`

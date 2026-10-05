@@ -27,6 +27,13 @@ bool LocalUrl(const std::string& url) {
     return r.ec==std::errc{}&&r.ptr==port.data()+port.size()&&n>0&&n<=65535&&
         (url.substr(slash)=="/api/tags"||url.substr(slash)=="/api/chat");
 }
+bool GoogleUrl(const std::string& url) {
+    const std::string prefix="https://generativelanguage.googleapis.com/v1beta/models/",suffix=":generateContent";
+    if(url.rfind(prefix,0)!=0||url.size()<=prefix.size()+suffix.size()||url.substr(url.size()-suffix.size())!=suffix)return false;
+    const auto model=url.substr(prefix.size(),url.size()-prefix.size()-suffix.size());
+    return model.size()<=128&&std::all_of(model.begin(),model.end(),[](unsigned char c){
+        return (c>='a'&&c<='z')||(c>='A'&&c<='Z')||(c>='0'&&c<='9')||c=='_'||c=='-'||c=='.';});
+}
 std::string ConfigQuote(const std::string& value) {
     std::string out="\"";
     for(const char c:value) {
@@ -59,8 +66,17 @@ struct Child {
 }
 bool VaReviewCurl(const VaReviewHttpRequest& request,Clock::time_point deadline,
     const std::function<bool()>& cancelled,std::string* output,std::string* error) {
-    if(!output||!LocalUrl(request.url)||request.body.size()>20*1024*1024||request.headers.size()>4)
+    const bool google=GoogleUrl(request.url);
+    if(!output||(!LocalUrl(request.url)&&!google)||request.body.size()>20*1024*1024||
+        (google?(request.body.empty()||request.headers.size()!=1):!request.headers.empty()))
         return Fail(error,"review-invalid-input");
+    if(google){
+        const std::string prefix="x-goog-api-key: ";const auto& h=request.headers.front();
+        if(h.rfind(prefix,0)!=0||h.size()<=prefix.size()||h.size()>prefix.size()+256||
+            !std::all_of(h.begin()+prefix.size(),h.end(),[](unsigned char c){
+                return (c>='a'&&c<='z')||(c>='A'&&c<='Z')||(c>='0'&&c<='9')||c=='_'||c=='-';}))
+            return Fail(error,"review-invalid-input");
+    }
     for(const auto& h:request.headers)if(h.size()>512||h.find_first_of("\r\n")!=std::string::npos||h.find('\0')!=std::string::npos)
         return Fail(error,"review-invalid-input");
     if(Clock::now()>=deadline)return Fail(error,"review-timeout");
