@@ -5,6 +5,20 @@ task_repo="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$task_repo"
 python3 - "$task_repo" "$@" <<'PY'
 import ctypes, hashlib, http.server, json, os, pathlib, shlex, shutil, subprocess, sys, tempfile, threading, urllib.request, time, ssl
+def wait_model_unloaded(fetch, deadline, clock=time.monotonic, sleep=time.sleep):
+    started=clock(); observations=[]
+    try:
+        while True:
+            remaining=deadline-clock()
+            if remaining<=0:raise RuntimeError('model runner unload deadline exceeded')
+            models=fetch(min(1,remaining))
+            elapsed=clock()-started
+            observations.append({'elapsedMs':round(elapsed*1000),'modelCount':len(models)})
+            if clock()>deadline:raise RuntimeError('model runner unload deadline exceeded')
+            if not models:return
+            sleep(min(.05,max(0,deadline-clock())))
+    finally:
+        print('[model-unload]',json.dumps({'observations':observations}),flush=True)
 repo=pathlib.Path(sys.argv[1]); build=repo/'build-gst-onnx'
 local=len(sys.argv)==4 and sys.argv[2]=='--local'
 lifecycle=len(sys.argv)==4 and sys.argv[2]=='--local-lifecycle'
@@ -144,6 +158,7 @@ try:
         'va-review',str(root),str(repo),'--local-lifecycle' if lifecycle else '--local' if local else '--protocol',endpoint],check=True,timeout=60 if lifecycle else 800 if local else 90,
         env=dict(os.environ,HTTP_PROXY='http://127.0.0.1:1',HTTPS_PROXY='http://127.0.0.1:1',ALL_PROXY='http://127.0.0.1:1',
             http_proxy='http://127.0.0.1:1',https_proxy='http://127.0.0.1:1',all_proxy='http://127.0.0.1:1',NO_PROXY='',no_proxy=''))
+    focused_finished=time.monotonic()
     if lifecycle:
         elapsed=time.monotonic()-focused_started
         if resources.get('lifecycleTrials')!=2 or 'lifecycleError' in resources or elapsed>=60:raise RuntimeError('lifecycle focused gate failed')
@@ -152,8 +167,12 @@ try:
         print('[resource]',json.dumps(resources,sort_keys=True),flush=True)
         if 'observationError' in resources or not 0<resources['modelBytes']<=14*1024**3 or not 0<resources['modelPhysicalFootprintBytes']<=14*1024**3 or resources['workspaceBytes']>8*1024**3:
             raise RuntimeError('resource observation/gate failed')
-        with urllib.request.build_opener(urllib.request.ProxyHandler({})).open(endpoint+'/api/ps',timeout=2) as response:models=json.load(response)['models']
-        if models:raise RuntimeError('model runner not unloaded')
+        def fetch_models(timeout):
+            with urllib.request.build_opener(urllib.request.ProxyHandler({})).open(endpoint+'/api/ps',timeout=timeout) as response:
+                models=json.load(response)['models']
+                if not isinstance(models,list):raise RuntimeError('invalid model list')
+                return models
+        wait_model_unloaded(fetch_models,min(focused_finished+5,focused_started+800))
         print('[cleanup] modelUnloaded=true',flush=True)
 finally:
     stop.set()
