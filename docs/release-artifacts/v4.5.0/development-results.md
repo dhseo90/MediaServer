@@ -16,3 +16,16 @@
 - 준비 관측: `ollama list`는 서버 연결 불가. 로컬 Qwen weight 없음. 사용자에게 준비 상태를 알렸고
   `models/v450-ollama` 전용 다운로드·loopback 합성 검증 승인을 받았다. 이 사실은 제품 실패나 예상 TDD RED가 아니다.
 - 위 조회와 문서 검사에는 작업 소유 서버·포트·임시 디렉터리 생성 없음. 23451 listener 부재 확인.
+
+## V450-02 증거 입력
+
+- source: `95336eb15` 위 va_review_input·CMake·native 검사 변경. [원출력](02-native.log)의 소스 SHA-256으로 실행 내용을 식별한다.
+- `cmake --build build-gst-onnx -j 4`: exit 0, 제품 runtime/server 빌드 완료([빌드 출력](02-build.log)).
+- `bash scripts/internal/verify_va_review.sh`: exit 0, 입력 32 PASS/0 FAIL. 1/8 프레임 byte/PTS/unknown UTC,
+  metadata 재조회, 추가/중복 field·hash·혼합 원본·byte 상한·권한·취소·빈 partial·손상을 검사했다.
+- 검증기는 기존 원본 없이 독립 보존 패키지를 publish/reopen했다. 실제 원본 순환삭제·미디어 혼합 부하 검사는 미실행이다.
+- cleanup: 실행 소유 임시 root 부재 확인, 포트/모델 호출 없음. 제품 UI·장시간 검사는 미실행.
+- 승인한 모델 다운로드 별도 준비 완료: `qwen3-vl:8b-instruct-q4_K_M`, 6140415975bytes,
+  digest `0533d74300e4f9bc367d675d4e64ffd073d50ff16a2b4096cc2e8a1cf8c96319`.
+  다운로드 성공을 추론·품질 PASS로 간주하지 않는다. 전용 Ollama PID 2755/loopback 23451은
+  후속 로컬 검증용으로 실행 중이며 최종 정리 전이다. weight는 승인한 Git 제외 경로에 유지한다.
