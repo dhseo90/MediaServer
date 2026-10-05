@@ -15,8 +15,13 @@ bool Fail(std::string* error,const char* code){if(error)*error=code;return false
 }
 VisualIndexWorker::VisualIndexWorker(VisualIndexStore store,Source source,Encode encode,
     std::chrono::milliseconds interval,VisualIndexLimits limits)
-    :store_(std::move(store)),source_(std::move(source)),encode_(std::move(encode)),interval_(interval),limits_(limits) {
-    if(!source_||!encode_||interval_.count()<=0||!limits_.max_documents||limits_.max_documents>20000||
+    :VisualIndexWorker(std::move(store),std::move(source),EncodeFactory([encode]{return encode;}),interval,limits) {
+    if(!encode)throw std::invalid_argument("visual-worker-invalid-config");
+}
+VisualIndexWorker::VisualIndexWorker(VisualIndexStore store,Source source,EncodeFactory encode_factory,
+    std::chrono::milliseconds interval,VisualIndexLimits limits)
+    :store_(std::move(store)),source_(std::move(source)),encode_factory_(std::move(encode_factory)),interval_(interval),limits_(limits) {
+    if(!source_||!encode_factory_||interval_.count()<=0||!limits_.max_documents||limits_.max_documents>20000||
         !limits_.max_bytes||limits_.max_bytes>96ULL*1024*1024)throw std::invalid_argument("visual-worker-invalid-config");
 }
 VisualIndexWorker::~VisualIndexWorker(){Stop();}
@@ -54,13 +59,14 @@ bool VisualIndexWorker::Rebuild(const Cancelled& cancelled,std::string* error){
     }
     std::unordered_map<std::string,const VisualSearchDocument*> prior;
     if(base)for(const auto& row:base->documents())prior.emplace(row.id,&row);
+    auto encode=encode_factory_();if(!encode)return Fail(error,"visual-index-build-failed");
     std::set<std::pair<std::string,std::string>> unsupported_segments,unsupported_snapshots;
     for(auto& row:docs){
         if(row.event_id.empty()&&unsupported_segments.count({row.channel_id,row.segment_id}))continue;
         if(cancelled())return Fail(error,"visual-cancelled");
         const auto found=prior.find(row.id);
         if(found!=prior.end()&&Same(row,*found->second))row.embedding=found->second->embedding;
-        else if(!encode_(&row,cancelled,error)){
+        else if(!encode(&row,cancelled,error)){
             if(cancelled())return Fail(error,"visual-cancelled");
             if(!error||*error!="visual-frame-unsupported")return false;
             if(row.event_id.empty())unsupported_segments.emplace(row.channel_id,row.segment_id);
@@ -96,7 +102,9 @@ void VisualIndexWorker::Run(){
             if(stopping_)break;requested_=false;}
         bool ok=false;
         try{ok=Rebuild(cancelled,&error);}catch(const std::exception&){error="visual-index-build-failed";}
-        if(!ok&&!cancelled()){std::lock_guard lock(mutex_);status_.state="unavailable";
+        if(!ok&&!cancelled()){std::lock_guard lock(mutex_);
+            // 갱신 오류와 완성 색인의 사용 가능 여부를 분리한다. 각 조회는 현재 원본을 다시 확인한다.
+            status_.state=current_?"ready":"unavailable";
             // callback이 경로나 입력 내용을 반환해도 제품 상태로 내보내지 않는다.
             status_.error=error=="visual-index-capacity"?error:"visual-index-build-failed";}
     }

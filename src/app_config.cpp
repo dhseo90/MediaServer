@@ -623,6 +623,7 @@ app::AppConfig LoadAppConfig() {
     config.enable_client = ReadBoolEnv(kEnvEnableClient, config.enable_client);
     config.file_root_path = ReadStringEnv(kEnvFileRoot, config.file_root_path);
     config.default_file_path = ReadStringEnv(kEnvDefaultFile, config.default_file_path);
+    config.evidence_enabled = ReadBoolEnv("MEDIA_SERVER_EVIDENCE_ENABLED", false);
     config.visual_search_enabled = ReadBoolEnv("MEDIA_SERVER_VISUAL_SEARCH_ENABLED", false);
     config.visual_search_model_directory = ReadStringEnv("MEDIA_SERVER_VISUAL_SEARCH_MODEL_DIRECTORY", "");
     config.visual_search_scan_seconds = ReadIntEnv("MEDIA_SERVER_VISUAL_SEARCH_SCAN_SECONDS", 60);

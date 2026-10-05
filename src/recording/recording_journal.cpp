@@ -664,7 +664,8 @@ struct RecordingJournal::ColdReadProof {
     const RecordingJournal* owner=nullptr;
     pid_t pid=0;
     std::shared_ptr<const char> epoch;
-    std::string mutation_id,identity;
+    std::string mutation_id,identity,raw_sha256;
+    bool active=false;
     std::uint64_t ordinal=0,offset=0,length=0;
     RecordingGenerationFile archive;
     struct stat binding{},manifest_binding{},active_binding{};
@@ -1669,6 +1670,14 @@ bool RecordingJournal::AcquireMutationLinkWithProof(const RecordingMutationLink&
             const auto& location=found->second;
             RecordingMutationV1 value;
             std::shared_ptr<ColdReadProof> prepared;
+            if(proof&&*proof){
+                const auto& saved=**proof;
+                if(saved.owner!=this||saved.pid!=::getpid()||saved.epoch!=state.link_epoch||!saved.envelope)
+                    return Fail(error,"B read proof owner/identity rejected");
+                // 정상 checkpoint는 epoch를 유지하면서 active 행을 archive로 이동한다.
+                // 이전 active FD의 결속을 archive 증명으로 검사하기 전에 strict 경로로 돌아간다.
+                if(saved.active&&location.historical)proof->reset();
+            }
             if(location.historical) {
                 if(location.slot>=state.chain.first_acceptances.size()||
                    state.chain.first_acceptances[location.slot].first_global_ordinal!=ref.ordinal)
@@ -1729,16 +1738,41 @@ bool RecordingJournal::AcquireMutationLinkWithProof(const RecordingMutationLink&
                 }
                 if(prepared&&!bound(*prepared)){poisoned_=true;return Fail(error,"B read proof initial file changed");}
             } else {
-                if(proof)proof->reset(); // 현재 active 원문은 항상 기존 strict 검증을 거친다.
                 if(location.slot>=state.active.rows.size()||state.active.rows[location.slot].global_ordinal!=ref.ordinal)
                     return Fail(error,"B link active 좌표 거부");
                 const auto& row=state.active.rows[location.slot];
+                // active도 매번 현재 관리 FD에서 원문을 읽고 SHA를 검증한다.
                 std::string raw(static_cast<std::size_t>(row.length),'\0');
                 if(raw.empty()||!ReadAt(managed_fd_,static_cast<off_t>(row.offset),&raw)||raw.back()!='\n'||
-                   RawHash(raw)!=row.raw_sha256||!ParseRecordingMutationV1(raw.substr(0,raw.size()-1),&value,error)||
+                   RawHash(raw)!=row.raw_sha256) {
+                    poisoned_=true;return Fail(error,"B link active 원문 손상");
+                }
+                if(proof&&*proof){
+                    const auto saved=*proof;
+                    if(!saved->active||saved->mutation_id!=ref.mutation_id||saved->identity!=ref.identity||
+                       saved->ordinal!=ref.ordinal||saved->offset!=row.offset||saved->length!=row.length||
+                       saved->raw_sha256!=row.raw_sha256||
+                       !GenerationStatSame(saved->manifest_binding,state.manifest_binding)||
+                       !GenerationStatSame(saved->active_binding,state.active_binding)||
+                       !SameOwnedEnvelope(*saved->envelope,row.mutation))proof->reset();
+                    else {
+                        if(!CheckManagedStateLocked(error))return false;
+                        *record=saved->envelope;if(error)error->clear();return true;
+                    }
+                }
+                if(!ParseRecordingMutationV1(raw.substr(0,raw.size()-1),&value,error)||
                    (value.physical_json.empty()?SerializeRecordingMutationV1(value):value.physical_json)+"\n"!=raw||
                    !SameOwnedEnvelope(value,row.mutation)) {
                     poisoned_=true;return Fail(error,"B link active 원문 손상");
+                }
+                if(proof){
+                    try {
+                        prepared=std::make_shared<ColdReadProof>();prepared->active=true;
+                        prepared->owner=this;prepared->pid=::getpid();prepared->epoch=state.link_epoch;
+                        prepared->mutation_id=ref.mutation_id;prepared->identity=ref.identity;prepared->ordinal=ref.ordinal;
+                        prepared->offset=row.offset;prepared->length=row.length;prepared->raw_sha256=row.raw_sha256;
+                        prepared->manifest_binding=state.manifest_binding;prepared->active_binding=state.active_binding;
+                    }catch(...){prepared.reset();} // 선택적 proof 실패여도 위 strict 결과는 유지한다.
                 }
             }
             if(!CheckManagedStateLocked(error))return false;

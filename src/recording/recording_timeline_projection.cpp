@@ -223,7 +223,7 @@ private:
 bool RecordingCatalog::SnapshotTimelineV2(const RecordingTimelineQuery& query,RecordingTimelineResult* result,std::string* error) const {
     return SnapshotTimelineWithContext(query,result,error,nullptr);
 }
-bool RecordingCatalog::SnapshotTimelineWithContext(const RecordingTimelineQuery& query,RecordingTimelineResult* result,std::string* error,JobReadContext* context) const {
+bool RecordingCatalog::SnapshotTimelineWithContext(const RecordingTimelineQuery& query,RecordingTimelineResult* result,std::string* error,JobReadContext* context,bool event_candidates_only) const {
     recording::latency::Lock lock(mu_,recording::latency::Source::Projection,__LINE__,true);
     if(!result||!opened_||!derived_job_state_authoritative_||(generation_backend_&&!CanReadLocked(error))){if(error)*error="timeline-catalog-unavailable";return false;}
     result->v2_projection=options_.enable_v2_storage;
@@ -251,13 +251,18 @@ bool RecordingCatalog::SnapshotTimelineWithContext(const RecordingTimelineQuery&
             for(const auto& id:entry.second.output_ids)owned_outputs.insert(id);
         }
         for(const auto& entry:segments_v2_){const auto& segment=entry.second;if(segment.channel_id!=query.channel_id)continue;
-            if(segment.retention_class==RecordingRetentionClass::Continuous){collector.Source(segment,EffectiveLifecycleV2Locked(entry.first));continue;}
+            if(segment.retention_class==RecordingRetentionClass::Continuous){
+                if(!event_candidates_only)collector.Source(segment,EffectiveLifecycleV2Locked(entry.first));continue;
+            }
             if(!owned_outputs.count(entry.first)){auto row=Base(segment,EffectiveLifecycleV2Locked(entry.first));row.item_id="orphan-event:"+Key(entry.first);
                 row.completeness="unknown";row.unavailable_reason="output-binding-unavailable";collector.Add(std::move(row));}
         }
         // 삭제 이력도 기존 공개 timeline 구성원이다. 영수증을 가짜 segment로 투영하지 않고
         // 한 건씩 검증된 원문을 재획득해 기존 mapping/ID/미배치 판정을 그대로 사용한다.
         for(const auto& entry:retired_v2_){const auto& receipt=entry.second;if(receipt.channel_id!=query.channel_id)continue;
+            // 이벤트는 아래의 현재 job/output 경로에서 원본 바인딩까지 strict 검증한다.
+            // 검색이 소비하지 않는 continuous 삭제 이력의 재획득/행 생성만 생략한다.
+            if(event_candidates_only&&receipt.retention_class==RecordingRetentionClass::Continuous)continue;
             if(receipt.retention_class!=RecordingRetentionClass::Continuous&&owned_outputs.count(entry.first))continue;
             RecordingSegmentV2 segment;if(!AcquireOriginalV2Locked(entry.first,&segment,error))throw std::runtime_error("timeline-retired-unavailable");
             if(segment.retention_class==RecordingRetentionClass::Continuous){collector.Source(segment,RecordingLifecycle::Deleted);continue;}

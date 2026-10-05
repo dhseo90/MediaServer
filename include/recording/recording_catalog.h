@@ -7,6 +7,7 @@
 #include <condition_variable>
 #include <deque>
 #include <filesystem>
+#include <functional>
 #include <memory>
 #include <mutex>
 #include <optional>
@@ -146,6 +147,9 @@ public:
                                      const std::string& store_id, std::string* error) const;
     bool Checkpoint(std::string* error);
     bool FindDerivedJob(const std::string& job_id,std::optional<DerivedJobRecordV1>* result,std::string* error) const;
+    // 기존 event/source에 한정한 얇은 ID 조회. 과거 job 본문 전체를 materialize하지 않는다.
+    bool FindEventDerivedJobIds(const std::string& channel,const std::string& event,const std::string& source_segment,
+        std::vector<std::string>* result,std::string* error,const std::function<bool()>& cancelled = {}) const;
     bool SnapshotDerivedJobs(std::vector<DerivedJobRecordV1>* result,std::string* error) const;
     bool SnapshotActiveDerivedJobs(std::size_t limit,std::vector<DerivedJobRecordV1>* result,bool* more,std::string* error) const;
     // 내부 caller는 실제 소유물 cleanup 완료 후 호출한다. 5.3b가 inode/경로 증명을 담당한다.
@@ -282,6 +286,17 @@ private:
     static SourceBindingHandle FindSourceBindingOwned(const SourceBindingPool& pool,const std::string& id);
     SourceBindingHandle FindSourceBindingOwnedLocked(const std::string& id) const;
     bool AcquireSourceBindingOwnedLocked(const std::string& id,SourceBindingHandle* out,std::string* error) const;
+    friend class RecordingSearchReader;
+    // 외부 DTO가 아닌 호출 범위 증명. 현재 원장 bytes를 재확인한 뒤 파싱 결과만 재사용한다.
+    struct SourceBindingReadContext {
+        const RecordingCatalog* owner{nullptr};
+        SourceBindingHandle binding;
+        RecordingMutationHandle envelope;
+        std::shared_ptr<RecordingJournal::ColdReadProof> cold;
+        std::string segment_json;
+        std::size_t retained_bytes{0};
+    };
+    SourceBindingHandle ReadSourceBinding(const std::string&,SourceBindingReadContext*,std::string*) const;
     bool AcquireRetiredV2Locked(const std::string&,RecordingTombstoneV2*,std::string*) const;
     bool AcquireOriginalV2Locked(const std::string&,RecordingSegmentV2*,std::string*) const;
     static bool MaterializeSourceBinding(const SourceBindingEntry&,const RecordingSegmentV2&,
@@ -333,7 +348,8 @@ private:
         std::shared_ptr<RecordingJournal::ColdReadProof>* proof=nullptr) const;
     bool AcquireJobForReadLocked(const std::string&,DerivedJobHandle*,JobReadContext*,std::string*,bool* strict_content=nullptr) const;
     bool JobReadCurrentLocked(const DerivedJobEntry&,const DerivedJobRecordV1&) const;
-    bool SnapshotTimelineWithContext(const RecordingTimelineQuery&,RecordingTimelineResult*,std::string*,JobReadContext*) const;
+    bool SnapshotTimelineWithContext(const RecordingTimelineQuery&,RecordingTimelineResult*,std::string*,JobReadContext*,
+        bool event_candidates_only = false) const;
     bool AcquireMediaWithContext(const std::string&,const std::string&,RecordingSegmentV2*,
         std::pair<std::filesystem::path,std::filesystem::path>*,std::string*,JobReadContext*);
     bool ValidateMediaWithContext(const RecordingSegmentV2&,const std::pair<std::filesystem::path,std::filesystem::path>&,JobReadContext*) const;

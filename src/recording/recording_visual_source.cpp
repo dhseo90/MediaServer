@@ -100,6 +100,15 @@ bool RecordingVisualSource::Resolve(const VisualSearchDocument& doc,SearchSeekTa
     const auto expired=[&]{return std::chrono::steady_clock::now()>=deadline||(cancelled&&cancelled());};
     if(expired())return Fail(error,"visual-cancelled");
     if(!seek||!output||doc.time_base_num!=1||doc.time_base_den!=1000000000)return Fail(error,"visual-invalid-frame-reference");
+    if(!CurrentDocument(doc,error))return false;
+    MediaInspectionOptions options;options.deadline=deadline;options.cancelled=cancelled;
+    auto media=reader_.ResolveMedia(doc.channel_id,doc.segment_id,std::move(options));if(!media)return Fail(error,expired()?"visual-cancelled":"visual-source-unavailable");
+    SearchSeekTarget target;RecordingSearchReader search(catalog_,reader_);
+    if(!search.SourceSeek(doc.channel_id,doc.segment_id,doc.media_pts,1,1000000000,&target,error,media.get(),cancelled,deadline))return false;
+    if(expired())return Fail(error,"visual-cancelled");
+    *seek=std::move(target);*output=std::move(media);if(error)error->clear();return true;
+}
+bool RecordingVisualSource::CurrentDocument(const VisualSearchDocument& doc,std::string* error) const {
     if(!doc.event_id.empty()){
         VisualSearchDocument current;
         if(!SnapshotDocument(doc.event_id,doc.channel_id,&current,error)||current.id!=doc.id||current.segment_id!=doc.segment_id||
@@ -113,23 +122,34 @@ bool RecordingVisualSource::Resolve(const VisualSearchDocument& doc,SearchSeekTa
     unsigned found=0;
     for(const auto& sample:binding->file_evidence->samples)if(sample.original_pts_ns==doc.media_pts&&sample.sample_sha256==doc.frame_sha256)++found;
     if(found!=1)return Fail(error,"visual-source-unavailable");
-    MediaInspectionOptions options;options.deadline=deadline;options.cancelled=cancelled;
-    auto media=reader_.ResolveMedia(doc.channel_id,doc.segment_id,std::move(options));if(!media)return Fail(error,expired()?"visual-cancelled":"visual-source-unavailable");
-    SearchSeekTarget target;RecordingSearchReader search(catalog_,reader_);
-    if(!search.SourceSeek(doc.channel_id,doc.segment_id,doc.media_pts,1,1000000000,&target,error,media.get(),cancelled,deadline))return false;
-    if(expired())return Fail(error,"visual-cancelled");
-    *seek=std::move(target);*output=std::move(media);if(error)error->clear();return true;
+    return true;
+}
+std::unique_ptr<RecordingVisualSource::PreparedSource> RecordingVisualSource::Prepare(const VisualSearchDocument& doc,
+    std::string* error,const std::function<bool()>& cancelled,std::chrono::steady_clock::time_point deadline) const {
+    RecordingSearchReader search(catalog_,reader_);return search.PrepareSource(doc.channel_id,doc.segment_id,error,cancelled,deadline);
+}
+bool RecordingVisualSource::ResolvePrepared(const VisualSearchDocument& doc,const PreparedSource& prepared,
+    SearchSeekTarget* seek,std::string* error,const std::function<bool()>& cancelled,std::chrono::steady_clock::time_point deadline) const {
+    if(std::chrono::steady_clock::now()>=deadline||(cancelled&&cancelled()))return Fail(error,"visual-cancelled");
+    if(!seek||doc.time_base_num!=1||doc.time_base_den!=1000000000||!prepared.Matches(doc.channel_id,doc.segment_id,doc.media_sha256))
+        return Fail(error,"visual-invalid-frame-reference");
+    if(!prepared.MatchesFrame(doc.media_pts,doc.frame_sha256)||(!doc.event_id.empty()&&!CurrentDocument(doc,error)))return Fail(error,"visual-source-unavailable");
+    RecordingSearchReader search(catalog_,reader_);
+    return search.SourceSeekPrepared(prepared,doc.media_pts,1,1000000000,seek,error,cancelled,deadline);
 }
 bool RecordingVisualSource::Encode(VisualSearchDocument* doc,analysis::Siglip2Encoder& encoder,
-    std::string* error,const std::function<bool()>& cancelled)const{
+    std::string* error,const std::function<bool()>& cancelled,const PreparedSource* prepared)const{
     if(!doc)return Fail(error,"visual-invalid-frame-reference");
     if(!doc->event_id.empty())return EncodeSnapshot(doc,encoder,error,cancelled);
-    SearchSeekTarget seek;std::unique_ptr<ResolvedRecordingMedia> media;
-    if(!Resolve(*doc,&seek,&media,error,cancelled))return false;
+    SearchSeekTarget seek;std::unique_ptr<ResolvedRecordingMedia> media;std::shared_ptr<const ResolvedRecordingMedia> held;
+    if(prepared){
+        if(!ResolvePrepared(*doc,*prepared,&seek,error,cancelled,std::chrono::steady_clock::time_point::max()))return false;held=prepared->Hold();
+    }else if(!Resolve(*doc,&seek,&media,error,cancelled))return false;
+    const auto* original=held?held.get():media.get();
     const long double ns=static_cast<long double>(seek.seconds)*1000000000;
     if(!std::isfinite(ns)||ns<0||ns>=std::ldexp(1.0L,63))return Fail(error,"visual-invalid-frame-reference");
     VisualRgbFrame frame;
-    if(!DecodeVisualFrame(media->fd(),media->size_bytes(),std::llround(ns),&frame,error,cancelled))return false;
+    if(!DecodeVisualFrame(original->fd(),original->size_bytes(),std::llround(ns),&frame,error,cancelled))return false;
     if(cancelled&&cancelled())return Fail(error,"visual-cancelled");
     doc->embedding=encoder.EncodeRgb(frame.rgb.data(),frame.width,frame.height,std::size_t(frame.width)*3);
     if(error)error->clear();return true;

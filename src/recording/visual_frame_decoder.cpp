@@ -99,7 +99,19 @@ bool DecodeVisualFrame(int fd,std::uint64_t bytes,std::int64_t target,VisualRgbF
     g_object_set(sink,"sync",FALSE,"max-buffers",1,"drop",FALSE,"wait-on-eos",FALSE,nullptr);
     gst_bin_add_many(GST_BIN(pipeline),src,decode,convert,sink,nullptr);g_signal_connect(decode,"pad-added",G_CALLBACK(Pad),&context);
     VisualRgbFrame result;bool found=false;
-    if(gst_element_link(src,decode)&&gst_element_link(convert,sink)&&gst_element_set_state(pipeline,GST_STATE_PLAYING)!=GST_STATE_CHANGE_FAILURE){
+    const bool linked=gst_element_link(src,decode)&&gst_element_link(convert,sink);
+    if(linked&&target>0&&gst_element_set_state(pipeline,GST_STATE_PAUSED)!=GST_STATE_CHANGE_FAILURE){
+        GstStateChangeReturn state=GST_STATE_CHANGE_ASYNC;
+        while(state==GST_STATE_CHANGE_ASYNC&&!context.Stop()&&!context.failed)
+            state=gst_element_get_state(pipeline,nullptr,nullptr,20*GST_MSECOND);
+        if(state==GST_STATE_CHANGE_SUCCESS&&!context.Stop()&&!context.failed){
+            // 정확한 이전 keyframe부터 읽는다. target으로 PTS를 clip하지 않고 Copy가 실제 sample 시각을 대조한다.
+            // seek 미지원은 기존 시작점 순차 읽기로 돌아가며 같은 전체 5초 예산을 유지한다.
+            gst_element_seek_simple(pipeline,GST_FORMAT_TIME,
+                static_cast<GstSeekFlags>(GST_SEEK_FLAG_FLUSH|GST_SEEK_FLAG_ACCURATE|GST_SEEK_FLAG_KEY_UNIT|GST_SEEK_FLAG_SNAP_BEFORE),target);
+        }
+    }
+    if(linked&&!context.Stop()&&!context.failed&&gst_element_set_state(pipeline,GST_STATE_PLAYING)!=GST_STATE_CHANGE_FAILURE){
         GstBus* bus=gst_element_get_bus(pipeline);
         while(!context.Stop()&&!context.failed){
             GstSample* sample=gst_app_sink_try_pull_sample(GST_APP_SINK(sink),20*GST_MSECOND);

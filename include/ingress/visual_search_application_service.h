@@ -6,6 +6,7 @@
 #include <atomic>
 #include <unordered_map>
 namespace ingress {
+class EvidenceApplicationService;
 class VisualSearchApplicationService {
 public:
     struct Options {
@@ -23,6 +24,7 @@ public:
     ApplicationServiceResult Status(const Authorize&) const;
     ApplicationServiceResult Search(const Query&,const Authorize&);
     ApplicationServiceResult Seek(const Query&,const Authorize&);
+    ApplicationServiceResult Evidence(const Query&,const Authorize&,EvidenceApplicationService&);
 private:
     Options options_;
     Channels channels_;

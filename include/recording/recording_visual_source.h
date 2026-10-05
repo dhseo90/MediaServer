@@ -25,12 +25,17 @@ public:
     bool Collect(const std::vector<std::string>& channels,unsigned sample_period_seconds,
         std::vector<VisualSearchDocument>*,std::map<std::string,VisualSourceCoverage>*,
         std::string* error,const std::function<bool()>& cancelled={}) const;
+    using PreparedSource=RecordingSearchReader::PreparedSource;
     bool Encode(VisualSearchDocument*,analysis::Siglip2Encoder&,std::string* error,
-        const std::function<bool()>& cancelled={}) const;
+        const std::function<bool()>& cancelled={},const PreparedSource* prepared=nullptr) const;
     // 원본 hash/sample과 현재 파일 재생을 확인한다. 성공 FD가 caller 반환/추출 동안 보존 보호한다.
     bool Resolve(const VisualSearchDocument&,SearchSeekTarget*,std::unique_ptr<ResolvedRecordingMedia>*,std::string*,
         const std::function<bool()>& cancelled = {},
         std::chrono::steady_clock::time_point deadline = std::chrono::steady_clock::time_point::max()) const;
+    std::unique_ptr<PreparedSource> Prepare(const VisualSearchDocument&,std::string*,const std::function<bool()>&,
+        std::chrono::steady_clock::time_point) const;
+    bool ResolvePrepared(const VisualSearchDocument&,const PreparedSource&,SearchSeekTarget*,std::string*,
+        const std::function<bool()>&,std::chrono::steady_clock::time_point) const;
     bool IsDeleted(const VisualSearchDocument& doc) const { return catalog_.IsDeletedSegmentId(doc.segment_id); }
     static bool SelectSamples(const RecordingSegmentV2&,const RecordingSourceBindingV1&,unsigned period_seconds,
         std::vector<VisualSearchDocument>*,std::string* error,std::optional<std::int64_t> previous_pts={});
@@ -38,6 +43,7 @@ private:
     RecordingCatalog& catalog_;RecordingReadService& reader_;
     std::string snapshots_;
     static std::optional<std::int64_t> SampleUtc(const RecordingSegmentV2&,std::int64_t);
+    bool CurrentDocument(const VisualSearchDocument&,std::string*) const;
     bool SnapshotDocument(const std::string& event,const std::string& channel,VisualSearchDocument*,std::string*) const;
     bool EncodeSnapshot(VisualSearchDocument*,analysis::Siglip2Encoder&,std::string*,const std::function<bool()>&) const;
 };

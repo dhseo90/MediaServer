@@ -17,9 +17,9 @@
 {
   "schema": "media-server.release-context.v1",
   "repository": "dhseo90/MediaServer",
-  "releaseTarget": "v4.3.0",
-  "priorPublishedTag": "v4.2.0",
-  "releaseNotes": "docs/release-notes-v4.3.0.md",
+  "releaseTarget": "v4.4.0",
+  "priorPublishedTag": "v4.3.0",
+  "releaseNotes": "docs/release-notes-v4.4.0.md",
   "roadmap": "docs/v410-v49-recording-search-roadmap.md",
   "distribution": "source-only",
   "tagType": "signed-annotated",
@@ -31,13 +31,12 @@
 }
 ```
 
-현재 소스·공개 목표는 v4.3.0이며 [릴리즈 노트](release-notes-v4.3.0.md)에 개발 범위와 제한을 설명한다.
-로컬 릴리즈 검증과 PR #77·병합 main의 required CI를 통과했다.
-v4.3.0 source-only Release의 Latest·URL·원격 태그와 GitHub 서명 검증을 확인했다.
-`priorPublishedTag`는 이전 공개 v4.2.0이며, 위 `published`는 이번 공개 확인의 관측 시각과 URL이다.
-공개 태그는 `2e49046c7a305d92efe3ecf8e9287bcadd7f5479`에 고정하고 이후 관측 기록 유지보수와 구분한다.
-[녹화·검색 로드맵](v410-v49-recording-search-roadmap.md)의 구현·잔여 계획과
-[GitHub Latest](https://github.com/dhseo90/MediaServer/releases/latest)의 공개 상태를 구분한다.
+현재 소스·공개 목표는 v4.4.0이며 [릴리즈 노트](release-notes-v4.4.0.md)에 개발 범위와 검증 상태를 설명한다.
+기록된 공개 버전은 v4.3.0이다. 위 `published`의 시각·URL은 당시 관측이며 이번 개발에서
+공개 상태를 다시 검증한 기록이 아니다. 기존 v4.3.0 공개 태그는
+`2e49046c7a305d92efe3ecf8e9287bcadd7f5479`에 유지한다.
+v4.4.0의 기능별 검증 범위와 원본 위치는 릴리즈 노트를 따른다. required CI·PR/병합·
+서명 태그·공개 여부는 해당 원격 SHA와 GitHub 상태를 직접 확인하며 위 과거 관측으로 대신하지 않는다.
 
 ## 배포 범위
 

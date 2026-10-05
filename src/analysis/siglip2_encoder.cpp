@@ -383,7 +383,8 @@ struct Siglip2Encoder::Impl {
         }
         Diagnostic("sp_buffer_free");
         Ort::SessionOptions options;
-        options.SetIntraOpNumThreads(1);
+        // 추론은 mutex로 직렬화하고, 단일 연산 안의 CPU 작업만 4개로 제한한다.
+        options.SetIntraOpNumThreads(4);
         options.SetInterOpNumThreads(1);
         options.SetGraphOptimizationLevel(GraphOptimizationLevel::ORT_ENABLE_EXTENDED);
         {

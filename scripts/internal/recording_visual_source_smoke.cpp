@@ -5,6 +5,9 @@
 #include "recording/recording_runtime_composition.h"
 #include <iostream>
 #include <cmath>
+#include <fstream>
+#include <fcntl.h>
+#include <unistd.h>
 #include <sys/resource.h>
 namespace{int checks=0;void Check(bool b,const std::string& name){++checks;if(!b)throw std::runtime_error(name);}}
 int main(int argc,char**argv){try{
@@ -38,13 +41,49 @@ int main(int argc,char**argv){try{
     Check(source.Collect({"visual-channel"},10,&sparse,&coverage,&error)&&sparse.size()==1,"sample period spans file boundaries in the same epoch");
     Check(!source.Collect({"visual-channel"},0,&docs,&coverage,&error),"invalid period");
     Check(!source.Collect({"visual-channel"},1,&docs,&coverage,&error,[]{return true;}),"cancel collection");
-    const auto id=docs.front().segment_id;Check(runtime.catalog().MarkSegmentCorrupt(id,"container-invalid",&error),"corrupt current original");
+    // 검증 객체는 같은 요청에서만 재사용하며, 조립 중 hold와 파일 변경 거부를 함께 확인한다.
+    const auto deadline=std::chrono::steady_clock::now()+std::chrono::seconds(5);
+    auto prepared=source.Prepare(docs.front(),&error,{},deadline);Check(bool(prepared),"prepare verified source: "+error);
+    recording::SearchSeekTarget cached;cached.seconds=42;
+    Check(source.ResolvePrepared(docs.front(),*prepared,&cached,&error,{},deadline)&&cached.seconds<.04,"typed prepared seek matches existing native target");
+    auto wrong=docs.front();wrong.channel_id="other";
+    Check(!source.ResolvePrepared(wrong,*prepared,&cached,&error,{},deadline),"prepared proof is not transferable across channel");
+    wrong=docs.front();wrong.frame_sha256=std::string(64,'f');
+    Check(!source.ResolvePrepared(wrong,*prepared,&cached,&error,{},deadline),"prepared proof does not bypass exact frame hash");
+    cached.seconds=42;Check(!source.ResolvePrepared(docs.front(),*prepared,&cached,&error,[]{return true;},deadline)&&cached.seconds==42,"prepared cancellation keeps output untouched");
+    Check(!source.ResolvePrepared(docs.front(),*prepared,&cached,&error,{},std::chrono::steady_clock::now()-std::chrono::seconds(1))&&cached.seconds==42,"prepared deadline keeps output untouched");
+    const auto current_segment=*runtime.catalog().FindSegmentV2ById(docs.front().segment_id);
+    recording::RecordingSegmentV2 located;std::pair<std::filesystem::path,std::filesystem::path> location;
+    Check(runtime.catalog().AcquireMediaV2(current_segment.channel_id,current_segment.segment_id,&located,&location,&error),"locate owned media fixture");
+    Check(runtime.catalog().AdjustHoldCount(current_segment.segment_id,-1,&error),"release extra fixture locator hold");
+    const auto file=location.first/location.second;
+    {std::fstream bytes(file,std::ios::binary|std::ios::in|std::ios::out);char original=0;bytes.read(&original,1);bytes.seekp(0);bytes.put(char(original^1));bytes.flush();
+        Check(!source.ResolvePrepared(docs.front(),*prepared,&cached,&error,{},deadline),"same-size media mutation invalidates prepared proof");
+        bytes.seekp(0);bytes.put(original);bytes.flush();Check(bool(bytes),"restore owned media byte");}
+    Check(!source.ResolvePrepared(docs.front(),*prepared,&cached,&error,{},deadline),"restored bytes require fresh proof after metadata change");prepared.reset();
+    prepared=source.Prepare(docs.front(),&error,{},deadline);Check(bool(prepared),"fresh proof after exact restoration");
+    const auto saved=file.string()+".owned-backup";std::filesystem::rename(file,saved);std::filesystem::copy_file(saved,file);
+    Check(!source.ResolvePrepared(docs.front(),*prepared,&cached,&error,{},deadline),"same-byte path replacement invalidates prepared proof");
+    Check(std::filesystem::remove(file),"remove owned replacement");std::filesystem::rename(saved,file);prepared.reset();
+    prepared=source.Prepare(docs.front(),&error,{},deadline);Check(bool(prepared),"fresh proof after path restoration");
+    Check(!runtime.catalog().RequestDeletion(docs.front().segment_id,"continuous-capacity",&error),"prepared proof protects retention");
+    auto response_hold=prepared->Hold();prepared.reset();
+    Check(!runtime.catalog().RequestDeletion(docs.front().segment_id,"continuous-capacity",&error),"response hold survives cache proof eviction");response_hold.reset();
+    prepared=source.Prepare(docs.front(),&error,{},deadline);Check(bool(prepared),"proof before current lifecycle change");
+    const auto id=docs.front().segment_id;
+    Check(!runtime.catalog().MarkSegmentCorrupt(id,"container-invalid",&error),"prepared hold blocks lifecycle mutation");
+    Check(source.ResolvePrepared(docs.front(),*prepared,&cached,&error,{},deadline),"rejected lifecycle mutation leaves exact proof valid");prepared.reset();
+    Check(runtime.catalog().MarkSegmentCorrupt(id,"container-invalid",&error),"corrupt current original after hold release");
+    Check(!source.Prepare(docs.front(),&error,{},deadline),"current corrupt lifecycle rejects a new proof");
     recording::SearchSeekTarget seek;std::unique_ptr<recording::ResolvedRecordingMedia> media;
     Check(!source.Resolve(docs.front(),&seek,&media,&error),"current unavailable cannot replay old index");
     Check(source.Collect({"visual-channel"},1,&docs,&coverage,&error)&&docs.size()==2,"current unavailable leaves new index");
     const auto retiring=docs.front();Check(source.Resolve(retiring,&seek,&media,&error),"hold current source");
     Check(!runtime.catalog().RequestDeletion(retiring.segment_id,"continuous-capacity",&error),"index frame lease preserves retention guard");
-    media.reset();Check(runtime.catalog().RequestDeletion(retiring.segment_id,"continuous-capacity",&error),"retention allowed after lease release");
+    media.reset();prepared=source.Prepare(retiring,&error,{},deadline);Check(bool(prepared),"prepare separate retention source");
+    response_hold=prepared->Hold();prepared.reset();
+    Check(!runtime.catalog().RequestDeletion(retiring.segment_id,"continuous-capacity",&error),"typed response hold protects separate retention source");response_hold.reset();
+    Check(runtime.catalog().RequestDeletion(retiring.segment_id,"continuous-capacity",&error),"retention allowed after all typed response holds release");
     Check(!source.Resolve(retiring,&seek,&media,&error),"pending deletion rejects prior index reference");
     Check(source.Collect({"visual-channel"},1,&docs,&coverage,&error)&&docs.size()==1,"pending deletion excluded on rebuild");
     if(argc==3){
@@ -59,6 +98,24 @@ int main(int argc,char**argv){try{
 #endif
         Check(rss<=4ULL*1024*1024*1024,"actual source process RSS budget");
         std::cout<<"[source-model] peakRssBytes="<<rss<<" originalPts="<<actual.media_pts<<" dimension="<<actual.embedding.size()<<"\n";
+    }
+    {
+        const auto guard_root=root/"journal-guard";recording::RecordingRuntimeStorage guard(guard_root);
+        Check(guard.Open(&error),"guarded journal fixture open");recording::GStreamerSegmentWriter guard_writer(guard.WriterOptions(1000));
+        Check(guard_writer.Start("journal-channel","unused",input.descriptor,[](auto,auto,auto*){return false;},&error),"guarded source writer");
+        for(const auto& packet:input.packets)guard_writer.Push(packet,0);guard_writer.Stop();
+        recording::RecordingReadService guard_reader(guard.catalog());recording::RecordingVisualSource guard_source(guard.catalog(),guard_reader);
+        std::vector<recording::VisualSearchDocument> guard_docs;std::map<std::string,recording::VisualSourceCoverage> guard_coverage;
+        Check(guard_source.Collect({"journal-channel"},1,&guard_docs,&guard_coverage,&error)&&guard_docs.size()==3,"guarded original references");
+        const auto end=std::chrono::steady_clock::now()+std::chrono::seconds(5);auto proof=guard_source.Prepare(guard_docs.front(),&error,{},end);
+        Check(bool(proof),"guarded parsed proof prepared");recording::SearchSeekTarget target;target.seconds=42;
+        Check(!source.ResolvePrepared(guard_docs.front(),*proof,&target,&error,{},end)&&target.seconds==42,"prepared proof cannot cross catalog ownership");
+        const auto active=guard_root/"active-1.jsonl";std::fstream bytes(active,std::ios::binary|std::ios::in|std::ios::out);char first=0;
+        bytes.read(&first,1);Check(bool(bytes)&&first=='{',"owned active journal header");bytes.seekp(0);bytes.put('!');bytes.flush();
+        const bool rejected=!guard_source.ResolvePrepared(guard_docs.front(),*proof,&target,&error,{},end);
+        bytes.seekp(0);bytes.put(first);bytes.flush();Check(bool(bytes),"restore exact owned journal byte");
+        Check(rejected&&target.seconds==42,"parsed binding cache rejects current journal mutation without changing output");
+        proof.reset();
     }
     std::cout<<"PASS recording visual source checks="<<checks<<"\n";return 0;
 }catch(const std::exception& e){std::cerr<<"FAIL "<<e.what()<<" checks="<<checks<<"\n";return 1;}}

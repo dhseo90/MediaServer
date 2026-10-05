@@ -30,7 +30,7 @@ const flush=()=>new Promise(resolve=>setImmediate(resolve));
 function fixture(){
   const elements=new Map();const el=name=>{const id='opsVisual'+name;if(!elements.has(id))elements.set(id,new Element());elements.get(id).replaceHook=copy=>elements.set(id,copy);return elements.get(id);};
   const pending=[];
-  vm.runInNewContext(script,{window:{location:{pathname:'/ops/events'}},document:{getElementById:id=>el(id.slice(9)),createElement:()=>new Element()},URLSearchParams,Date,Number,BigInt,Error,Set,fetch:url=>new Promise(resolve=>pending.push({url,resolve}))});
+  vm.runInNewContext(script,{evidenceUi:null,window:{location:{pathname:'/ops/events'}},document:{getElementById:id=>el(id.slice(9)),createElement:()=>new Element()},URLSearchParams,Date,Number,BigInt,Error,Set,fetch:url=>new Promise(resolve=>pending.push({url,resolve}))});
   const answer=(entry,data,status=200)=>entry.resolve({ok:status===200,status,json:async()=>data});
   answer(pending.shift(),{enabled:true,searchAvailable:true,state:'ready',sampleSeconds:10,scanSeconds:60,channels:[{channelId:'1',indexedFrames:3,examinedSegments:3,unsupportedSegments:0}]});
   el('Text').value='붉은 장면';el('Limit').value='20';el('Threshold').value='-1';
@@ -87,4 +87,14 @@ test('refresh clears previous result count during pending, success and failure',
     await refresh;assert.doesNotMatch(f.el('Status').textContent,/2개/);
     assert.match(f.el('Status').textContent,code===200?/다시 검색/:/못했습니다/);
   }
+});
+
+test('failed rebuild keeps previous index searchable and shows a safe warning',async()=>{
+  const f=await results();const refresh=f.el('Refresh').fire('click');
+  f.answer(f.pending.shift(),{enabled:true,searchAvailable:true,state:'ready',error:'private diagnostic must stay hidden',sampleSeconds:1,scanSeconds:1,channels:[]});
+  await refresh;assert.equal(f.el('Submit').disabled,false);
+  assert.match(f.el('Status').textContent,/최근 색인 갱신에 실패/);assert.match(f.el('Status').textContent,/이전 완성 색인/);
+  assert.doesNotMatch(f.el('Status').textContent,/private diagnostic/);
+  const search=f.el('Form').fire('submit');f.answer(f.pending.shift(),{items:[item('still-current')]});await search;
+  assert.equal(f.el('Rows').children.length,1);
 });

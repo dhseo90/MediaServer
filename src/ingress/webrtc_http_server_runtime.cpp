@@ -2,6 +2,7 @@
 #include "webrtc_http_server_detail.h"
 #include "site_operations_request_diagnostic.h"
 #include <cstdlib>
+#include <charconv>
 
 namespace ingress {
 
@@ -764,8 +765,71 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             const auto api_response = [](const ApplicationServiceResult& result) {
                                 auto response = JsonResponse(result.status, result.status_text, result.body);
                                 response.headers["Cache-Control"] = "no-store";
+                                response.headers["X-Content-Type-Options"] = "nosniff";
                                 return response;
                             };
+                            if (request.method == "POST" &&
+                                (request.path == "/ops/api/recordings/search/evidence" || request.path == "/ops/api/recordings/visual-search/evidence")) {
+                                if (!auth::RequireScope(principal_result.principal,"ops:write"))
+                                    return api_response({403,"Forbidden","{\"error\":\"ops-write-required\"}"});
+                                // 단순 form POST는 받지 않는다. 선택 조건은 기존 query parser만 소비한다.
+                                if (HeaderValue(request,"Content-Type") != "application/json" || request.body != "{}")
+                                    return api_response({400,"Bad Request","{\"error\":\"evidence-empty-json-body-required\"}"});
+                                if (request.path == "/ops/api/recordings/visual-search/evidence")
+                                    return api_response(recording_service->VisualEvidence(query,authorize_channel));
+                                const auto& principal = principal_result.principal;
+                                const auto field = [](const std::string& value) { return std::to_string(value.size()) + ":" + value; };
+                                const auto identity = field(principal.auth_mode) + field(principal.username);
+                                auto scopes = principal.scopes; std::sort(scopes.begin(),scopes.end());
+                                scopes.erase(std::unique(scopes.begin(),scopes.end()),scopes.end());
+                                std::string scope = field(principal.role); for (const auto& value : scopes) scope += field(value);
+                                return api_response(recording_service->SearchEvidence(query,identity,scope,authorize_channel));
+                            }
+                            if (request.method == "GET" && request.path == "/ops/api/recordings/evidence")
+                                return api_response(recording_service->EvidenceList(query,authorize_channel));
+                            const std::string evidence_prefix = "/ops/api/recordings/evidence/";
+                            if ((request.method == "GET" || request.method == "HEAD") && request.path.rfind(evidence_prefix,0) == 0) {
+                                const auto tail = request.path.substr(evidence_prefix.size());
+                                const auto slash = tail.find('/'); const auto id = tail.substr(0,slash);
+                                if (!query.empty() || !recording::EvidencePackageStore::ValidId(id))
+                                    return api_response({400,"Bad Request","{\"error\":\"evidence-invalid-query\"}"});
+                                if (slash == std::string::npos) return api_response(recording_service->EvidenceGet(id,authorize_channel));
+                                if (tail.substr(slash,8) != "/assets/")
+                                    return api_response({404,"Not Found","{\"error\":\"evidence-unavailable\"}"});
+                                const auto text = tail.substr(slash+8); std::size_t index = 0;
+                                const auto parsed = std::from_chars(text.data(),text.data()+text.size(),index);
+                                if (text.empty() || parsed.ec != std::errc{} || parsed.ptr != text.data()+text.size() || index > 8)
+                                    return api_response({400,"Bad Request","{\"error\":\"evidence-invalid-asset\"}"});
+                                int status = 503; const auto file = recording_service->EvidenceAsset(id,index,authorize_channel,&status);
+                                if (!file) return api_response({status,status==403?"Forbidden":status==404?"Not Found":"Service Unavailable","{\"error\":\"evidence-unavailable\"}"});
+                                const auto& asset = file->manifest().assets[index];
+                                const auto range = ParseRecordingByteRange(HeaderValue(request,"Range"),asset.size_bytes);
+                                if (!range) {
+                                    auto invalid=api_response({416,"Range Not Satisfiable","{\"error\":\"invalid-evidence-range\"}"});
+                                    invalid.headers["Content-Range"]="bytes */"+std::to_string(asset.size_bytes);return invalid;
+                                }
+                                HttpResponse wire;wire.status=range->partial?206:200;wire.status_text=range->partial?"Partial Content":"OK";
+                                wire.content_type=asset.content_type;wire.headers["Accept-Ranges"]="bytes";
+                                wire.headers["Cache-Control"]="no-store";wire.headers["X-Content-Type-Options"]="nosniff";
+                                if(range->partial)wire.headers["Content-Range"]="bytes "+std::to_string(range->first)+"-"+
+                                    std::to_string(range->first+range->length-1)+"/"+std::to_string(asset.size_bytes);
+                                AddCorsHeadersForRequest(&request,&wire);std::ostringstream headers;
+                                headers<<"HTTP/1.1 "<<wire.status<<' '<<wire.status_text<<"\r\nContent-Type: "<<wire.content_type
+                                    <<"\r\nContent-Length: "<<range->length<<"\r\nConnection: close\r\n";
+                                for(const auto& header:wire.headers)headers<<header.first<<": "<<header.second<<"\r\n";
+                                headers<<"\r\n";response_sent=true;SuppressSocketSigPipe(client_fd);
+                                if(!recording_gate->Cancelled()&&SendAll(client_fd,headers.str())&&request.method!="HEAD"){
+                                    std::vector<char> buffer(256*1024);std::uint64_t sent=0;
+                                    while(sent<range->length&&!recording_gate->Cancelled()){
+                                        const auto count=std::size_t(std::min<std::uint64_t>(buffer.size(),range->length-sent));
+                                        const auto n=::pread(file->fd(),buffer.data(),count,static_cast<off_t>(file->AssetOffset(index)+range->first+sent));
+                                        if(n<0&&errno==EINTR)continue;
+                                        if(n<=0||!SendAll(client_fd,std::string(buffer.data(),std::size_t(n))))break;
+                                        sent+=std::uint64_t(n);
+                                    }
+                                }
+                                return wire;
+                            }
                             if (request.method == "GET" && request.path == "/ops/api/recordings/visual-search/status")
                                 return api_response(recording_service->VisualStatus(authorize_channel));
                             if (request.method == "GET" && request.path == "/ops/api/recordings/visual-search")

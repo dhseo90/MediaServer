@@ -10366,6 +10366,115 @@ void AppendOpsShellScript(std::ostringstream& out,
           player.addEventListener('loadedmetadata', () => { if (selected && player.getAttribute('src')) setText('opsRecordingPlaybackSupport', '영상 메타데이터 로드 완료. 재생 버튼으로 확인하세요.'); });
           status().then(load);
         }
+        const evidenceUi = (() => {
+          if (window.location.pathname !== '/ops/events' || !document.getElementById('opsEvidenceDetail')) return null;
+          const el = name => document.getElementById('opsEvidence' + name);
+          const say = (name, text) => { el(name).textContent = text; };
+          const prefix = '/ops/api/recordings/evidence';
+          let listVersion = 0, detailVersion = 0, after = '', creating = false;
+          const clearDetail = () => {
+            ++detailVersion;
+            el('Detail').querySelectorAll('video').forEach(video => { video.pause(); video.removeAttribute('src'); video.load(); });
+            el('Detail').replaceChildren();
+          };
+          const read = async (url, options = {}) => {
+            const response = await fetch(url, { credentials: 'same-origin', cache: 'no-store', ...options });
+            const data = await response.json().catch(() => ({}));
+            if (!response.ok) {
+              const text = response.status === 401 || response.status === 403 ? '증거에 접근하거나 보존할 권한이 없습니다.' :
+                response.status === 410 ? '검색 결과가 만료됐습니다. 다시 검색하세요.' :
+                response.status === 404 ? '보존 자료를 읽지 못했습니다. 삭제 또는 무결성 상태를 확인하세요.' :
+                data.error === 'evidence-disabled' ? '증거 보존 기능이 비활성입니다.' :
+                data.error === 'evidence-capacity' || data.error === 'evidence-disk-reserve' ? '보존 용량 또는 디스크 여유가 부족합니다. 기존 자료는 유지됩니다.' :
+                data.error === 'evidence-publication-uncertain' ? '저장 확정 응답을 확인하지 못했습니다. 재시도 전에 보존 목록을 조회하세요.' :
+                response.status === 400 ? '선택한 검색 결과를 확인하세요.' : '증거 처리를 완료하지 못했습니다. 잠시 후 목록과 원본 상태를 확인하세요.';
+              throw new Error(text);
+            }
+            return data;
+          };
+          const open = async id => {
+            if (!/^ep-[0-9a-f]{64}$/.test(id || '')) return;
+            clearDetail(); const version = detailVersion; say('Status', '보존 자료의 무결성을 확인하는 중…');
+            try {
+              const data = await read(prefix + '/' + id); if (version !== detailVersion) return;
+              const manifest = data.manifest;
+              if (!manifest || !Array.isArray(manifest.assets) || !Array.isArray(manifest.references) || !Array.isArray(data.currentSources)) throw new Error('증거 응답을 읽지 못했습니다.');
+              const title = document.createElement('h4'); title.textContent = `${manifest.channelId} · ${manifest.status === 'complete' ? '보존 완료' : '부분 보존'} · ${new Date(manifest.createdAtMs).toLocaleString()}`;
+              const summary = document.createElement('p');
+              const absent = manifest.references.filter(r => ['missing', 'deleted', 'unsupported'].includes(r.state));
+              const sourceDeleted = data.currentSources.some(r => r.state === 'deleted');
+              summary.textContent = `프레임 ${manifest.frames.length}개 · 누락/미지원 ${absent.length}개. ${sourceDeleted ? '원본이 삭제됐으며 아래 자료는 독립 보존본입니다.' : '생성 당시 자료를 보존합니다. 현재 원본의 재생 가능 상태는 별도입니다.'}`;
+              el('Detail').append(title, summary);
+              const labels = { recording: '원본 녹화', frame: '프레임', clip: '이벤트 영상', event: '이벤트', track: '트랙', observation: '관측' };
+              for (const ref of absent) {
+                const p = document.createElement('p'); p.textContent = `${labels[ref.kind] || '자료'}: ${ref.state === 'deleted' ? '삭제됨' : ref.state === 'unsupported' ? '추출 미지원' : '자료 없음'}`; el('Detail').append(p);
+              }
+              const mediaQueue = [];
+              const loadNext = () => {
+                if (version !== detailVersion || !mediaQueue.length) return;
+                const next = mediaQueue.shift(); next.media.src = next.url;
+              };
+              manifest.assets.forEach((asset, index) => {
+                if (!['image/png', 'video/mp4'].includes(asset.contentType) || index > 8) return;
+                const media = document.createElement(asset.contentType === 'image/png' ? 'img' : 'video');
+                media.style.maxWidth = '100%'; media.style.height = 'auto'; media.style.display = 'block';
+                if (asset.contentType === 'image/png') { media.alt = `보존 프레임 ${index + 1}`; }
+                else { media.controls = true; media.preload = 'metadata'; media.setAttribute('playsinline', ''); media.setAttribute('aria-label', '보존 이벤트 영상'); }
+                media.addEventListener(asset.contentType === 'image/png' ? 'load' : 'loadedmetadata', loadNext, { once: true });
+                media.addEventListener('error', () => { if (version === detailVersion) say('Status', '일부 보존 자료를 표시하지 못했습니다. 권한·무결성·브라우저 지원을 확인하세요.'); loadNext(); }, { once: true });
+                mediaQueue.push({ media, url: prefix + '/' + id + '/assets/' + index }); el('Detail').append(media);
+              });
+              loadNext();
+              say('Status', '패키지와 보존 파일의 해시를 확인했습니다. 보존 시점 이후의 원본 상태와 구분해 확인하세요.');
+            } catch (error) { if (version === detailVersion) say('Status', error.message); }
+          };
+          const list = async next => {
+            const version = ++listVersion; clearDetail(); el('Rows').replaceChildren(); el('Next').disabled = true;
+            if (!next) after = '';
+            if (!el('Channel').value) { say('Status', '카메라를 선택하세요.'); return; }
+            const params = new URLSearchParams({ channelId: el('Channel').value }); if (next && after) params.set('after', after);
+            say('Status', '보존 목록을 확인하는 중…'); el('Refresh').disabled = true;
+            try {
+              const data = await read(prefix + '?' + params); if (version !== listVersion) return;
+              if (!Array.isArray(data.items)) throw new Error('보존 목록을 읽지 못했습니다.');
+              for (const item of data.items) {
+                const button = document.createElement('button'); button.type = 'button'; button.className = 'button-secondary';
+                button.textContent = `${new Date(item.createdAtMs).toLocaleString()} · ${item.status === 'complete' ? '보존 완료' : '부분 보존'} · 프레임 ${item.frames}개`;
+                button.addEventListener('click', () => open(item.id)); el('Rows').append(button);
+              }
+              after = /^ep-[0-9a-f]{64}$/.test(data.nextAfter || '') ? data.nextAfter : ''; el('Next').disabled = !after;
+              say('Status', data.items.length ? `${data.items.length}개 패키지입니다. 선택해 보존 자료를 확인하세요.` : '보존한 증거가 없습니다.');
+            } catch (error) { if (version === listVersion) say('Status', error.message); }
+            finally { if (version === listVersion) el('Refresh').disabled = false; }
+          };
+          el('Refresh').addEventListener('click', () => list(false));
+          el('Next').addEventListener('click', () => { if (after) list(true); });
+          el('Channel').addEventListener('change', () => { ++listVersion; after = ''; clearDetail(); el('Rows').replaceChildren(); el('Next').disabled = true; el('Refresh').disabled = false; say('Status', '보존 목록 조회를 누르세요.'); });
+          read('/ops/api/recordings/status').then(data => {
+            if (!Array.isArray(data.channels)) return;
+            el('Channel').replaceChildren(...data.channels.map(channel => {
+              const option = document.createElement('option'); option.value = channel.channelId; option.textContent = channel.displayName || channel.channelId; return option;
+            }));
+          }).catch(error => say('Status', error.message));
+          return {
+            button(kind, params) {
+              const button = document.createElement('button'); button.type = 'button'; button.className = 'button-secondary'; button.textContent = '증거 보존';
+              const saved = new URLSearchParams(params).toString();
+              button.addEventListener('click', async () => {
+                if (creating) { say('CreateStatus', '다른 자료를 보존하고 있습니다. 완료될 때까지 기다리세요.'); return; }
+                creating = true; button.disabled = true; const version = detailVersion;
+                say('CreateStatus', '선택한 결과의 프레임과 출처를 보존하는 중…');
+                try {
+                  const data = await read('/ops/api/recordings/' + kind + '/evidence?' + saved, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
+                  say('CreateStatus', data.status === 'complete' ? '증거를 보존했습니다.' : '일부 자료가 누락되거나 미지원 상태로 보존됐습니다. 상세를 확인하세요.');
+                  if (version === detailVersion) await open(data.id);
+                } catch (error) { say('CreateStatus', error.message); }
+                finally { creating = false; button.disabled = false; }
+              });
+              return button;
+            }
+          };
+        })();
         if (window.location.pathname === '/ops/events' && document.getElementById('opsSearchForm')) {
           const el = name => document.getElementById('opsSearch' + name);
           let player = el('Player');
@@ -10466,6 +10575,7 @@ void AppendOpsShellScript(std::ostringstream& out,
               const choice = item.selectionReason === 'event-priority' ? '이벤트 우선' : item.selectionReason === 'original-fallback' ? '원본 대체' : '원본';
               button.textContent = `${item.channelId} · ${item.kind === 'observation' ? '분석 관측' : '녹화 구간'} · ${time(item.startTimeNs)}${item.startTimeNs === null ? ' (조회 시간 포함 여부 미확인)' : ' · ' + basis} · ${choice} · ${item.object || '객체 조건 없음'}${item.track ? ' · Track ' + item.track : ''} · ${item.playable ? '재생 가능' : '재생 불가'}`;
               button.addEventListener('click', () => select(item)); el('Rows').append(button);
+              if (evidenceUi) { const params = new URLSearchParams(query); params.set('snapshotId', snapshot); params.set('hitId', item.id); el('Rows').append(evidenceUi.button('search', params)); }
             }
           };
           const load = async next => {
@@ -10543,7 +10653,7 @@ void AppendOpsShellScript(std::ostringstream& out,
               const counts = data.channels.map(c => `${c.channelId}: 색인 ${c.indexedFrames}프레임 · 최근 스캔 ${c.examinedSegments}파일 · 미지원 ${c.unsupportedSegments}파일 / ${c.unsupportedSnapshots || 0}스냅샷`).join(' / ');
               const snapshots = data.eventSnapshots === 'verified-original-pixels' ? '원본 픽셀을 대조한 이벤트 스냅샷 포함' : '이벤트 스냅샷 색인 비활성';
               say('Coverage', `${state}${data.enabled ? ' · 추출 간격 ' + data.sampleSeconds + '초 / 재확인 ' + data.scanSeconds + '초' : ''}${counts ? ' · ' + counts : ''} · ${snapshots}. 증거가 없는 기존 스냅샷은 제외됩니다.`);
-            say('Status', enabled ? '색인 상태를 갱신했습니다. 장면을 다시 검색하세요.' : '현재 검색을 사용할 수 없습니다. 색인 상태를 확인하세요.');
+              say('Status', enabled && data.error ? '최근 색인 갱신에 실패했습니다. 이전 완성 색인으로 검색할 수 있으며, 다음 갱신에서 다시 시도합니다.' : enabled ? '색인 상태를 갱신했습니다. 장면을 다시 검색하세요.' : '현재 검색을 사용할 수 없습니다. 색인 상태를 확인하세요.');
             } catch (error) { if (version === revision) { enabled = false; say('Coverage', error.message); say('Status', '색인 상태를 확인하지 못했습니다. 다시 새로고침하세요.'); } }
             finally { if (version === revision) el('Submit').disabled = !enabled; }
           };
@@ -10590,6 +10700,7 @@ void AppendOpsShellScript(std::ostringstream& out,
                 const stamp = typeof item.timeNs === 'string' && /^[0-9]+$/.test(item.timeNs) ? new Date(Number(BigInt(item.timeNs) / 1000000n)).toLocaleString() : '시간 미확인';
                 button.textContent = `${item.channelId} · ${stamp} · 유사도 ${Number(item.score).toFixed(3)}`;
                 button.addEventListener('click', () => select(item)); el('Rows').append(button);
+                if (evidenceUi) el('Rows').append(evidenceUi.button('visual-search', { channelId: item.channelId, hitId: item.id }));
               }
               say('Status', data.items.length ? `${data.items.length}개 유사 결과입니다. 실제 영상을 확인하세요.` : '조건에 맞는 색인 프레임이 없습니다.');
             } catch (error) { if (version === revision) say('Status', error.message); }

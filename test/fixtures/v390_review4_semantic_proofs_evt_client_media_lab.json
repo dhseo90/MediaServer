@@ -13539,7 +13539,7 @@
           "file": "src/ingress/webrtc_http_server_runtime.cpp",
           "symbol": "WebRtcHttpServer::Start:AddRemoteIceCandidate-callsite",
           "anchor": "bridge->AddRemoteIceCandidate(static_cast<std::uint32_t>(*mline), *candidate);",
-          "line": 5008,
+          "line": 5072,
           "contextSha256": "d1edeef36c31e7dc016b6ba543393f65e9f70e49c18a350a34cefa9b2ea074d4"
         },
         "action": {
@@ -13578,14 +13578,14 @@
           "kind": "function-containment",
           "witness": "Start contains the validated candidate/mline branch.",
           "source": "src/ingress/webrtc_http_server_runtime.cpp:335",
-          "target": "src/ingress/webrtc_http_server_runtime.cpp:5008"
+          "target": "src/ingress/webrtc_http_server_runtime.cpp:5072"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "direct-callsite",
           "witness": "The route directly calls AddRemoteIceCandidate only after invalid payload guard.",
-          "source": "src/ingress/webrtc_http_server_runtime.cpp:5008",
+          "source": "src/ingress/webrtc_http_server_runtime.cpp:5072",
           "target": "src/ingress/webrtc_egress_session.cpp:2288"
         },
         {
@@ -14453,7 +14453,7 @@
           "file": "src/ingress/webrtc_http_server_runtime.cpp",
           "symbol": "create_webrtc_session_response",
           "anchor": "const auto start_result = bridge->Start(",
-          "line": 684,
+          "line": 685,
           "contextSha256": "6db5d2de0cda7ddf53428252040402474fd73b0ad42fb1e3534487addeac9cb1"
         },
         "readback": {
@@ -14494,14 +14494,14 @@
           "kind": "function-containment",
           "witness": "The session creation lambda contains the exact signaling state bridge->Start.",
           "source": "src/ingress/webrtc_http_server_runtime.cpp:644",
-          "target": "src/ingress/webrtc_http_server_runtime.cpp:684"
+          "target": "src/ingress/webrtc_http_server_runtime.cpp:685"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "runtime-readback",
           "witness": "After bridge->Start on sample_h264.mp4, the exact browser condition requires an observed video track and video track kind.",
-          "source": "src/ingress/webrtc_http_server_runtime.cpp:684",
+          "source": "src/ingress/webrtc_http_server_runtime.cpp:685",
           "target": "scripts/internal/verify_webrtc_va_metadata.mjs:555"
         },
         {
@@ -14739,7 +14739,7 @@
           "file": "src/ingress/webrtc_http_server_runtime.cpp",
           "symbol": "create_webrtc_session_response",
           "anchor": "if (!AttachWebRtcAnalysisOverlay(",
-          "line": 672,
+          "line": 673,
           "contextSha256": "eec0f0f1a1a30f7647e423705eb3d0c5a2c38f30c8e110ab227f6f50a66bdcac"
         },
         "action": {
@@ -14778,14 +14778,14 @@
           "kind": "function-containment",
           "witness": "Start session creation directly attaches the WebRTC analysis/metadata path.",
           "source": "src/ingress/webrtc_http_server_runtime.cpp:335",
-          "target": "src/ingress/webrtc_http_server_runtime.cpp:672"
+          "target": "src/ingress/webrtc_http_server_runtime.cpp:673"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "direct-callsite",
           "witness": "The dispatch anchor directly calls AttachWebRtcAnalysisOverlay.",
-          "source": "src/ingress/webrtc_http_server_runtime.cpp:672",
+          "source": "src/ingress/webrtc_http_server_runtime.cpp:673",
           "target": "src/ingress/webrtc_http_server_ops_incidents.cpp:7909"
         },
         {
@@ -18153,7 +18153,7 @@
           "file": "src/ingress/webrtc_http_server_runtime.cpp",
           "symbol": "tap-snapshot-response",
           "anchor": "ok.body.assign(reinterpret_cast<const char*>(image.data.data()), image.data.size());",
-          "line": 4684,
+          "line": 4748,
           "contextSha256": "8273d4ebd317fea6f23f0d046b87756f1c4989173c9d1ed3c17f413ac6e7efdd"
         },
         "readback": {
@@ -18194,14 +18194,14 @@
           "kind": "function-containment",
           "witness": "The action owns the authoritative response/state emission.",
           "source": "src/ingress/webrtc_http_server_runtime.cpp:4647",
-          "target": "src/ingress/webrtc_http_server_runtime.cpp:4684"
+          "target": "src/ingress/webrtc_http_server_runtime.cpp:4748"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "runtime-readback",
           "witness": "The managed HTTP verifier independently observes image from the product response.",
-          "source": "src/ingress/webrtc_http_server_runtime.cpp:4684",
+          "source": "src/ingress/webrtc_http_server_runtime.cpp:4748",
           "target": "scripts/internal/verify_v390_review4_lab_core_api.mjs:135"
         },
         {
@@ -18253,7 +18253,7 @@
           "file": "src/ingress/webrtc_http_server_runtime.cpp",
           "symbol": "tap-overlay-response",
           "anchor": "ok.body.assign(reinterpret_cast<const char*>(image.data.data()), image.data.size());",
-          "line": 4743,
+          "line": 4807,
           "contextSha256": "8273d4ebd317fea6f23f0d046b87756f1c4989173c9d1ed3c17f413ac6e7efdd"
         },
         "readback": {
@@ -18294,14 +18294,14 @@
           "kind": "function-containment",
           "witness": "The action owns the authoritative response/state emission.",
           "source": "src/ingress/webrtc_http_server_runtime.cpp:4706",
-          "target": "src/ingress/webrtc_http_server_runtime.cpp:4743"
+          "target": "src/ingress/webrtc_http_server_runtime.cpp:4807"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "runtime-readback",
           "witness": "The managed HTTP verifier independently observes image from the product response.",
-          "source": "src/ingress/webrtc_http_server_runtime.cpp:4743",
+          "source": "src/ingress/webrtc_http_server_runtime.cpp:4807",
           "target": "scripts/internal/verify_v390_review4_lab_core_api.mjs:138"
         },
         {

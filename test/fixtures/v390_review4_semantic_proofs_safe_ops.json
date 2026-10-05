@@ -17166,7 +17166,7 @@
           "file": "src/ingress/webrtc_http_server_runtime.cpp",
           "symbol": "require_ops_principal",
           "anchor": "403,",
-          "line": 748,
+          "line": 749,
           "contextSha256": "99272dbf7a796d7e9d218b82ba9cfed04498284c5cf25190b4b30fdb4ba09a9e"
         },
         "readback": {
@@ -17207,14 +17207,14 @@
           "kind": "function-containment",
           "witness": "SAFE-020 action-state",
           "source": "src/ingress/webrtc_http_server_runtime.cpp:738",
-          "target": "src/ingress/webrtc_http_server_runtime.cpp:748"
+          "target": "src/ingress/webrtc_http_server_runtime.cpp:749"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "runtime-readback",
           "witness": "SAFE-020 state-readback",
-          "source": "src/ingress/webrtc_http_server_runtime.cpp:748",
+          "source": "src/ingress/webrtc_http_server_runtime.cpp:749",
           "target": "scripts/internal/verify_auth_workflow.sh:1919"
         },
         {

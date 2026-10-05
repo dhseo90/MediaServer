@@ -30,6 +30,7 @@ function fixture(){
   const elements=new Map();const el=id=>{if(!elements.has(id))elements.set(id,new Element());elements.get(id).replaceHook=copy=>elements.set(id,copy);return elements.get(id);};
   const pending=[];
   const context={window:{location:{pathname:'/ops/events'}},document:{getElementById:el,createElement:()=>new Element()},URLSearchParams,Date,Number,BigInt,Error,fetch:url=>new Promise(resolve=>pending.push({url,resolve}))};
+  context.evidenceUi=null; // 공통 증거 workspace는 별도 상태 검사에서 검증한다.
   vm.runInNewContext(script,context);
   const answer=(entry,data,status=200)=>entry.resolve({ok:status===200,status,json:async()=>data});
   answer(pending.shift(),{channels:[{channelId:'1'}]});

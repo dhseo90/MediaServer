@@ -372,6 +372,15 @@ ResolvedRecordingMedia::~ResolvedRecordingMedia() {
     if (catalog_) catalog_->AdjustHoldCount(segment_id_, -1, nullptr);
 }
 
+bool RecordingReadService::RevalidateHeldMediaV2(const ResolvedRecordingMedia& media,
+    const RecordingSegmentV2& segment,const std::pair<std::filesystem::path,std::filesystem::path>& location) const {
+    if(media.catalog_!=&catalog_||media.segment_id_!=segment.segment_id||!catalog_.ValidateMediaV2(segment,location))return false;
+    const int current=OpenMedia(location.first,location.second);if(current<0)return false;
+    struct stat held{},named{};
+    const bool same=::fstat(media.fd_,&held)==0&&::fstat(current,&named)==0&&
+        S_ISREG(named.st_mode)&&held.st_dev==named.st_dev&&held.st_ino==named.st_ino&&held.st_size==named.st_size;
+    ::close(current);return same&&catalog_.ValidateMediaV2(segment,location);
+}
 std::unique_ptr<ResolvedRecordingMedia> RecordingReadService::ResolveMedia(
     const std::string& channel_id, const std::string& segment_id, MediaInspectionOptions options) const {
     return ResolveMediaWithContext(channel_id,segment_id,nullptr,std::move(options));
@@ -499,6 +508,11 @@ std::unique_ptr<ResolvedRecordingMedia> RecordingReadService::ResolveMediaWithCo
     return media;
 }
 
+std::uint64_t RecordingReadService::TracePreparationStarted() noexcept {return completion::Now();}
+void RecordingReadService::TracePreparationCompleted(const char* reference,std::uint64_t started,
+    std::uint64_t prepared,std::uint64_t reused,std::uint64_t peak_bytes) noexcept {
+    completion::Emit(completion::Event::Media,started,completion::Now(),reference,{},prepared,reused,peak_bytes);
+}
 bool RecordingReadService::QueryTimeline(const RecordingTimelineQuery& query,
                                          RecordingTimelineResult* result,
                                          std::string* error) const {
@@ -514,8 +528,18 @@ bool RecordingReadService::QuerySearchTimeline(const std::string& channel,std::i
     }
     *output=std::move(result);return true;
 }
+bool RecordingReadService::QuerySearchEventTimeline(const std::string& channel,std::int64_t start,std::int64_t end,
+    RecordingTimelineResult* output,std::string* error) const {
+    if(!output){if(error)*error="search-invalid-output";return false;}
+    RecordingTimelineResult result;
+    if(!QueryTimelineImpl({channel,start,end,0,100000,false},&result,error,100000,true))return false;
+    if(result.items.size()!=result.total||result.unplaced_items.size()!=result.unplaced_total) {
+        if(error)*error="search-playback-projection-incomplete";return false;
+    }
+    *output=std::move(result);return true;
+}
 bool RecordingReadService::QueryTimelineImpl(const RecordingTimelineQuery& query,
-    RecordingTimelineResult* result,std::string* error,std::size_t max_limit) const {
+    RecordingTimelineResult* result,std::string* error,std::size_t max_limit,bool event_candidates_only) const {
     recording::latency::Scope latency_scope(recording::latency::Operation::Query,recording::latency::Source::Read,__LINE__,true);
     if (!result) {
         if (error) *error = "timeline result is required";
@@ -530,7 +554,7 @@ bool RecordingReadService::QueryTimelineImpl(const RecordingTimelineQuery& query
         return false;
     }
     RecordingCatalog::JobReadContext context;
-    if(!catalog_.SnapshotTimelineWithContext(query,result,error,&context))return false;
+    if(!catalog_.SnapshotTimelineWithContext(query,result,error,&context,event_candidates_only))return false;
     if(result->v2_projection)return FinishTimelineWithContext(query,result,error,&context);
     const auto segments = catalog_.QuerySegments(query.channel_id, query.start_ms, query.end_ms);
     std::vector<EventRecordingLinkV1> links;

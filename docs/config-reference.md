@@ -838,6 +838,41 @@ read model은 최대 100,000행/논리 64MiB이고 먼저 도달한 한도를 �
 RSS 보장이나 기존 catalog 누적 RAM 상한을 뜻하지 않는다. 파일 경로·source URL·인증 자료는 반환하지 않는다.
 상세 의미는 [검색 계약](superpowers/specs/2026-10-03-v420-structured-search-design.md)을 따른다.
 
+### 증거 패키지 API (v4.4.0)
+
+`MEDIA_SERVER_EVIDENCE_ENABLED`는 기본 `0`이며 녹화 활성화와 함께 `1`로 설정합니다.
+모델 없이 구조화 검색의 결과를 보존할 수 있습니다. 영상 검색 결과를 소비하려면
+기존 영상 검색의 별도 설정이 필요합니다.
+
+| API | 요청·응답 |
+| --- | --- |
+| `POST /ops/api/recordings/search/evidence` | 원래 검색 query와 `snapshotId`, `hitId`; 서버 snapshot의 실제 결과만 선택 |
+| `POST /ops/api/recordings/visual-search/evidence` | `channelId`, `hitId`; 서버 색인의 실제 결과만 선택 |
+| `GET /ops/api/recordings/evidence` | 필수 `channelId`, 선택 `after`; ID 오름차순 최대 20개와 `nextAfter` |
+| `GET /ops/api/recordings/evidence/<id>` | 불변 `manifest`와 현재 원본 상태 `currentSources`를 별도 반환 |
+| `GET/HEAD /ops/api/recordings/evidence/<id>/assets/<index>` | 검증한 PNG/MP4 보존 파일. byte range 지원 |
+
+생성 입력은 URL query로 전달하고 `Content-Type: application/json`, 본문 `{}`를 사용합니다.
+생성 성공은 201과 패키지 `id`, `channelId`, `status`, 생성 시각·보존 수입니다.
+모든 API는 기존 operator·ops:read와 source:read 채널 scope를 요구하며 생성에는
+추가 `ops:write`가 필요합니다. viewer/integrator는 접근하지 못합니다.
+원본 경로·source URL·인증 자료를 받거나 응답하지 않으며 no-store를 적용합니다.
+
+패키지는 recording root의 `evidence-packages`에 저장됩니다. 기존 미디어 quota와
+별도인 최대 2GiB/4096개, 패키지 256MiB, 최대 8 frame, 생성 동시 1개/30초와
+목록·상세·asset 파일 검증 동시 4개/5초의 한도가 있습니다. 검증 후 HTTP 파일 전송은
+기존 서버의 연결·전송 한도를 따릅니다. 기존 reserve와 256MiB 중 큰 디스크 여유를 남깁니다.
+자동으로 만료·삭제하지 않고 상한에서 새 생성을 거부합니다.
+`evidence-capacity`, `evidence-disk-reserve`, `evidence-busy`, `evidence-timeout`은 503입니다.
+`evidence-publication-uncertain`은 게시 후 확정 응답을 확인하지 못한 상태이며 반환 ID로
+목록·상세를 확인해야 합니다. 임의 재시도로 동일 요청을 중복 보존하지 마세요.
+
+manifest의 `complete`는 선택한 대표 자료의 보존 상태이며 사건 판단·전체 영상 완전성이 아닙니다.
+미확인 시간은 null, 누락·삭제·미지원은 별도 상태입니다. 원본 부재와 손상/I/O 실패를 구분합니다.
+clip이 없는 결과의 `not-applicable`은 누락과 다릅니다. 생성 당시 manifest와 파일 hash는
+변경하지 않으며 현재 원본 삭제 여부는 `currentSources`에만 반영합니다.
+상세 형식·출처·지원 경계는 [개발 계약](superpowers/specs/2026-10-04-v440-evidence-package-design.md)을 따릅니다.
+
 ### 녹화 조회재생 API (v4.1.0 S06)
 
 기본 인증 모드는 `auto`다. 아래 API는 Ops 접근 권한과 채널별 `source:read:<channelId>`

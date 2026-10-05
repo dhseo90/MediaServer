@@ -131,13 +131,25 @@ export async function runRecordingUiAcceptance(context,options){
     const artifact={path:name+'.png',sha256:hashFile(file),bytes:fs.statSync(file).size};artifacts.push(artifact);return artifact;
   };
   const snapshot=()=>page.locator('#opsRecordingPlayer').evaluate(node=>({paused:node.paused,currentTime:node.currentTime,readyState:node.readyState,duration:Number.isFinite(node.duration)?node.duration:null,videoWidth:node.videoWidth,videoHeight:node.videoHeight,frames:node.getVideoPlaybackQuality().totalVideoFrames,src:node.getAttribute('src'),error:node.error?.code??null,focused:document.activeElement===node}));
+  const positionPlayer=async()=>{
+    // src 교체 직후 metadata/레이아웃 전이가 끝난 실제 전체 player를 담는다.
+    // 화면 밖 영상의 paint 지연과 구분하도록 먼저 노출하고 같은 readiness를 관측한다.
+    await page.locator('#opsRecordingPlayer').evaluate(node=>node.scrollIntoView({block:'center'}));
+    try{await page.waitForFunction(()=>{const v=document.querySelector('#opsRecordingPlayer');return !v.getAttribute('src')||(v.readyState>=2&&v.getVideoPlaybackQuality().totalVideoFrames>0&&!v.seeking);});}
+    catch(error){write('capture-player-failure.json',{action:active?.id,player:await snapshot(),rect:await page.locator('#opsRecordingPlayer').boundingBox(),viewport:page.viewportSize()});throw error;}
+    await page.locator('#opsRecordingPlayer').evaluate(node=>node.scrollIntoView({block:'center'}));
+    await page.locator('#opsRecordingPlayer').hover();
+    const rect=await page.locator('#opsRecordingPlayer').boundingBox();
+    assert(rect&&rect.y>=0&&rect.y+rect.height<=page.viewportSize().height,'whole player viewport required');
+  };
+  const capturePlayer=async name=>{await positionPlayer();return screenshot(name);};
   const abort=()=>{if(browser)void browser.close().catch(()=>{observationFailed=true;});};
   const action=async(id,fn)=>{
     const row=results.find(r=>r.id===id);assert(row&&row.status==='notRun','duplicate action');active=row;
     const startedAt=new Date().toISOString();trace.push({id,phase:'begin',at:startedAt,principal,viewport:page.viewportSize(),theme:await page.locator('html').getAttribute('data-theme')});
     try{const detail=await fn();
       // 선택 목록 대신 전체 플레이어와 상태가 보이는 위치에서 재생 관련 증거를 보존한다.
-      if(['I28-event','I29-original','I31-partial','I31-deleted','I31-corrupt','I31-pending','I34-admin'].includes(id))await page.locator('#opsRecordingPlayer').evaluate(node=>node.scrollIntoView({block:'center'}));
+      if(['I28-event','I29-original','I31-partial','I31-deleted','I31-corrupt','I31-pending','I34-admin'].includes(id))await positionPlayer();
       row.evidence.push(write(id+'.json',{id,startedAt,completedAt:new Date().toISOString(),observedViewport:page.viewportSize(),observedTheme:await page.locator('html').getAttribute('data-theme'),detail}),await screenshot(id));row.status='pass';}
     catch(error){row.status='fail';row.reason=redactAcceptanceText(error.message,secrets);throw error;}
     finally{trace.push({id,phase:'end',at:new Date().toISOString(),status:row.status,principal});}
@@ -203,7 +215,7 @@ export async function runRecordingUiAcceptance(context,options){
     if(await page.locator('#opsRecordingChannelFilter').inputValue()!=='1')await timelineAction(()=>page.locator('#opsRecordingChannelFilter').selectOption('1'));
     await timelineAction(()=>page.locator('#opsRecordingLoad').click());
   }
-  const harness={get page(){return page;},context,action,timelineAction,selectSeedRow,snapshot,getTimeline:()=>timeline,network,write,screenshot,switchAccount,openRecordings,getPrincipal:()=>principal,expectedErrors};
+  const harness={get page(){return page;},context,action,timelineAction,selectSeedRow,snapshot,getTimeline:()=>timeline,network,write,screenshot,capturePlayer,switchAccount,openRecordings,getPrincipal:()=>principal,expectedErrors};
   try{
     assert(!context.signal.aborted,'cancelled before launch');
     browser=await resolved.playwright.chromium.launch({headless:true,executablePath,env:secretStrippedBrowserEnv(),args:['--no-first-run']});browserVersion=browser.version();

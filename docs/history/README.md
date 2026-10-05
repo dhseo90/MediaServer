@@ -271,3 +271,26 @@ Git에서 다시 읽어 현행 파일과 바이트 단위로 대조했다. 후�
 git show 653e42e689c1b6f07884ba546119cf02c1c0fa93:docs/release-artifacts/v4.3.0/development/README.md
 git show 982a815f263e525799a0e45b9bbe18f2b97ebe9e:docs/release-artifacts/v4.3.0/test-acceptance-current-final/report.md
 ```
+
+
+## v4.4.0 증거 패키지와 검색 수정
+
+원격 `v4.4.0`에 보존한 아래 커밋에서 실행 원문을 조회한다. 경로는 모두
+`docs/release-artifacts/v4.4.0/` 기준이며 최초 실패·재검증·미실행과 당시 source를 유지한다.
+
+| 자료 | 보존 commit | 원래 경로 |
+| --- | --- | --- |
+| 기존 canonical과 개발·PR77 단기/UI·변경30분 | `a5046c7f1f8a91075229bac48e0315c1a85af13f` | `test-acceptance-current-final/`, `development/` |
+| 최근 canonical 조기 실패·중단 재산정·실행기 최초 실패와 재검·실제 변경120분 및 최종 판단 | `2f059b67fb8f4a05b4eda120eaf50ba402393ba7` | `test-acceptance-current-final/`, `development/README.md`, `development/mixed-preparation/mixed-120-15/` |
+
+최신 보존 commit의 두 경로 아래1,457개/120,955,586바이트를 Git에서 재조회해 SHA-256과
+대조한 뒤 현재 트리에서 제거했다. 기존 canonical source는 `7895831`, 최종 제품 수정은
+`505b2dac4`·`5f124c9be`, 실제 변경120분 source는 `1fe0b6d2`다.
+다른 source의 이월 판단을 새 단일 canonical PASS로 바꾸지 않는다. 상세 적용 범위·한계는
+[릴리즈 노트](../release-notes-v4.4.0.md), 현재 정의·명령·fixture는 기존 현행 문서와 `test/fixtures/`를 따른다.
+
+
+마감 정합성10개는 정리된 트리에서197.883초/모두exit0이었다. 원출력11개/216,855바이트는
+`5bf633244c5c9fe111efc15052be3d633c522d71`의 `development/final-static-1/`에 보존하고
+Git 바이트 대조 후 제거했다. `result.json`의 working diff hash가 대상 정리 트리를 특정한다.
+이후 이력 색인 연결만 보완했으며 최종 PR/main의 required CI를 별도로 확인한다.

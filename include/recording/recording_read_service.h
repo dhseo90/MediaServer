@@ -40,6 +40,10 @@ public:
     explicit RecordingReadService(RecordingCatalog& catalog,
                                   std::filesystem::path event_root = {})
         : catalog_(catalog), event_root_(std::move(event_root)) {}
+    // 내부 opt-in 계측의 구현 헤더는 녹화 모듈 안에 둔다. 공개 응답/검색 판정과 독립적이다.
+    static std::uint64_t TracePreparationStarted() noexcept;
+    static void TracePreparationCompleted(const char* reference,std::uint64_t started,
+        std::uint64_t prepared,std::uint64_t reused,std::uint64_t peak_bytes) noexcept;
     bool QueryTimeline(const RecordingTimelineQuery& query,
                        RecordingTimelineResult* result, std::string* error) const;
     // 검색 전용 전체 projection. 기존 공개 timeline의 1,000개 page 계약은 유지한다.
@@ -58,7 +62,14 @@ public:
     std::unique_ptr<ResolvedRecordingMedia> ResolveMedia(
         const std::string& channel_id, const std::string& segment_id, MediaInspectionOptions options = {}) const;
 private:
-    bool QueryTimelineImpl(const RecordingTimelineQuery&, RecordingTimelineResult*, std::string*, std::size_t max_limit) const;
+    friend class RecordingSearchReader;
+    bool RevalidateHeldMediaV2(const ResolvedRecordingMedia&,const RecordingSegmentV2&,
+        const std::pair<std::filesystem::path,std::filesystem::path>&) const;
+    // 검색 재생 후보만 소비한다. 공개 전체 timeline과 별도로 연속 녹화 행 생성을 생략한다.
+    bool QuerySearchEventTimeline(const std::string&, std::int64_t, std::int64_t,
+        RecordingTimelineResult*, std::string*) const;
+    bool QueryTimelineImpl(const RecordingTimelineQuery&, RecordingTimelineResult*, std::string*,
+        std::size_t max_limit, bool event_candidates_only = false) const;
     RecordingCatalog& catalog_;
     bool FinishTimelineV2(const RecordingTimelineQuery&,RecordingTimelineResult*,std::string*) const;
     bool FinishTimelineWithContext(const RecordingTimelineQuery&,RecordingTimelineResult*,std::string*,RecordingCatalog::JobReadContext*) const;
