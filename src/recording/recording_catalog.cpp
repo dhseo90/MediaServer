@@ -132,7 +132,9 @@ bool MergeReferenced(const ReferencedObservationV1& previous,ReferencedObservati
         return Fail(error,"referenced observation original identity 변경");
     // 새 경로에서는 분류/bbox/신뢰도를 재전달로 덮지 않고 선택·event·종료정보만 병합한다.
     const auto& p=previous.observation;auto& n=next->observation;
-    if(p.class_label!=n.class_label||p.confidence!=n.confidence||p.bbox.x!=n.bbox.x||p.bbox.y!=n.bbox.y||
+    if(p.schema!=n.schema || p.engine_first_seen_pts!=n.engine_first_seen_pts ||
+       (p.coordinates?analysis::SerializeObservationCoordinates(*p.coordinates):"") !=
+       (n.coordinates?analysis::SerializeObservationCoordinates(*n.coordinates):"") || p.class_label!=n.class_label||p.confidence!=n.confidence||p.bbox.x!=n.bbox.x||p.bbox.y!=n.bbox.y||
        p.bbox.width!=n.bbox.width||p.bbox.height!=n.bbox.height)return Fail(error,"referenced observation attributes 변경");
     return MergeObservation(p,&n,error)&&ValidateReferencedObservationV1(*next,error);
 }
@@ -2979,6 +2981,7 @@ bool RecordingCatalog::RequestDeletion(const std::string& segment_id,
 bool RecordingCatalog::PutReferencedObservation(const AnalysisObservationV2& observation, const RecordingConsumerReferenceV1& reference, std::string* error) {
     recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__);
     ReferencedObservationV1 pair;pair.observation=observation;pair.reference=reference;
+    if(observation.coordinates)pair.schema="media-server.referenced-observation.v2";
     if(!opened_||!options_.enable_v2_storage||!CanWriteLocked(error)||!ValidateReferencedObservationV1(pair,error))return false;
     const auto old=referenced_observations_.find(observation.observation_id);
     if(old!=referenced_observations_.end()) {
@@ -2991,6 +2994,36 @@ bool RecordingCatalog::PutReferencedObservation(const AnalysisObservationV2& obs
     mutation.entity_id=observation.observation_id;mutation.payload_json=SerializeReferencedObservationV1(pair);
     return AppendAndApplyLocked(std::move(mutation),error);
 }
+bool RecordingCatalog::CaptureEvidenceObservations(const std::string& channel,const std::string& source,
+    const std::string& ns,const std::string& track,std::vector<ReferencedObservationV1>* output,
+    std::uint64_t* revision,std::string* error) const {
+    recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__);
+    if(!output||!revision||!opened_||!options_.enable_v2_storage||!CanReadLocked(error)||
+       !source_snapshot_revision_valid_||!ValidateRecordingReferenceId(channel,nullptr)||
+       !ValidateRecordingReferenceId(source,nullptr)||!ValidateOpaqueId(ns,nullptr)||!ValidateOpaqueId(track,nullptr))
+        return Fail(error,"evidence-observation-snapshot-unavailable");
+    std::vector<ReferencedObservationV1> rows;std::size_t scanned=0,bytes=0;
+    for(const auto& [id,p]:referenced_observations_) {
+        (void)id;
+        if(++scanned>65536)return Fail(error,"evidence-observation-scan-limit");
+        const auto& o=p.observation;
+        if(o.channel_id!=channel||o.source_id!=source||o.analysis_namespace!=ns||o.track_id!=track)continue;
+        const auto encoded=SerializeReferencedObservationV1(p);
+        if(encoded.empty())return Fail(error,"evidence-observation-corrupt");
+        bytes+=encoded.size();
+        if(rows.size()>=256||bytes>256*1024)return Fail(error,"evidence-observation-snapshot-limit");
+        rows.push_back(p);
+    }
+    *output=std::move(rows);*revision=source_snapshot_revision_;if(error)error->clear();return true;
+}
+bool RecordingCatalog::EvidenceRevisionCurrent(std::uint64_t revision) const {
+    return GuardEvidenceRevision(revision,[]{return true;});
+}
+bool RecordingCatalog::GuardEvidenceRevision(std::uint64_t revision,const std::function<bool()>& action) const {
+    recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__);
+    return opened_&&source_snapshot_revision_valid_&&source_snapshot_revision_==revision&&CanReadLocked(nullptr)&&action&&action();
+}
+
 std::vector<ReferencedObservationV1> RecordingCatalog::QueryReferencedObservations(const std::string& channel) const {
     recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__);std::vector<ReferencedObservationV1> result;
     if(!opened_||!options_.enable_v2_storage||(generation_backend_&&!CanReadLocked(nullptr))||!ValidateRecordingReferenceId(channel,nullptr))return result;

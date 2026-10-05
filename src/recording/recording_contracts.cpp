@@ -378,7 +378,8 @@ bool ValidateReferencedObservationV1(const ReferencedObservationV1& value, std::
     const auto& o = value.observation;
     const auto& r = value.reference;
     AnalysisObservationV2 checked;
-    if(value.schema!="media-server.referenced-observation.v1"||
+    if(!((value.schema=="media-server.referenced-observation.v1" && o.schema=="media-server.analysis-observation.v2") ||
+         (value.schema=="media-server.referenced-observation.v2" && o.schema=="media-server.analysis-observation.v3"))||
        !ParseAnalysisObservationV2(SerializeAnalysisObservationV2(o),&checked,error)||
        !ValidateRecordingConsumerReferenceV1(r,error)||r.kind!="observation"||r.owner_id!=o.observation_id||
        r.source_id!=o.source_id||r.channel_id!=o.channel_id||r.analysis_namespace!=o.analysis_namespace||
@@ -1424,6 +1425,9 @@ std::string SerializeRecordingTombstoneV1(const RecordingTombstoneV1& value) {
 }
 
 std::string SerializeAnalysisObservationV2(const AnalysisObservationV2& v) {
+    if ((v.schema == "media-server.analysis-observation.v3") != v.coordinates.has_value() ||
+        (v.schema == "media-server.analysis-observation.v3") != v.engine_first_seen_pts.has_value() ||
+        (v.coordinates && !analysis::ValidateObservationCoordinates(*v.coordinates))) return {};
     std::ostringstream out;
     out << "{\"schema\":" << Quote(v.schema)
         << ",\"observation_id\":" << Quote(v.observation_id)
@@ -1451,7 +1455,10 @@ std::string SerializeAnalysisObservationV2(const AnalysisObservationV2& v) {
         << ",\"last_seen_pts\":" << v.last_seen_pts
         << ",\"duration_ns\":" << (v.duration_ns ? std::to_string(*v.duration_ns) : "null")
         << ",\"ended_reason\":" << Quote(v.ended_reason)
-        << ",\"created_at_ms\":" << v.created_at_ms << '}';
+        << ",\"created_at_ms\":" << v.created_at_ms;
+    if (v.coordinates) out << ",\"coordinates\":" << analysis::SerializeObservationCoordinates(*v.coordinates)
+        << ",\"engine_first_seen_pts\":" << *v.engine_first_seen_pts;
+    out << '}';
     return out.str();
 }
 
@@ -1503,7 +1510,18 @@ bool ParseAnalysisObservationV2(const std::string& json, AnalysisObservationV2* 
             return Fail(error, "observation-v2-duration");
         v.duration_ns = parsed;
     }
-    if (v.schema != "media-server.analysis-observation.v2" ||
+    const auto* coordinates = doc.Find("coordinates");
+    if (v.schema == "media-server.analysis-observation.v3") {
+        analysis::ObservationCoordinatesV1 c;
+        if (doc.members.size()!=26 || box.members.size()!=4 || !coordinates || coordinates->type!=Type::Object ||
+            !analysis::ParseObservationCoordinates(coordinates->raw,&c) || c.value_kind!="processed-track")
+            return Fail(error,"observation-v3-coordinates");
+        std::int64_t first=0;
+        if(!RequiredInteger(doc,"engine_first_seen_pts",&first,error)||first<0||first>v.pts)
+            return Fail(error,"observation-v3-track-episode");
+        v.engine_first_seen_pts=first;v.coordinates=std::move(c);
+    } else if (coordinates||doc.Find("engine_first_seen_pts")) return Fail(error,"observation-v2-unversioned-coordinates");
+    if ((v.schema != "media-server.analysis-observation.v2" && v.schema != "media-server.analysis-observation.v3") ||
         !ValidateOpaqueId(v.observation_id, error) ||
         !ValidateReferenceId(v.source_id, "source_id", error) ||
         !ValidateReferenceId(v.channel_id, "channel_id", error) ||
@@ -1580,3 +1598,61 @@ bool ParseRecordingTombstoneV1(const std::string& json,
 }
 
 }  // namespace recording
+
+// 좌표 출처 codec도 기존 contracts TU에 둬 독립 codec/복구 검사의 링크 계약을 유지한다.
+namespace analysis {
+namespace {
+using Doc=ingress::StrictJsonObjectDocument;
+using Type=ingress::StrictJsonType;
+bool Text(const Doc& d,const char* key,std::string* out) {
+    const auto value=ingress::StrictJsonStringField(d,key);if(!value)return false;*out=*value;return true;
+}
+template<class T> bool Number(const Doc& d,const char* key,T* out) {
+    const auto* v=d.Find(key);if(!v||v->type!=Type::Number)return false;
+    T n{};const auto r=std::from_chars(v->raw.data(),v->raw.data()+v->raw.size(),n);
+    if(r.ec!=std::errc{}||r.ptr!=v->raw.data()+v->raw.size())return false;*out=n;return true;
+}
+} // namespace
+
+bool ValidateObservationCoordinates(const ObservationCoordinatesV1& c) {
+    if(c.schema!="media-server.observation-coordinates.v1" || c.producer!="gstreamer-yolo-onnx-v1" ||
+       (c.value_kind!="detector" && c.value_kind!="processed-track") || c.units!="normalized-top-left-xywh" ||
+       c.frame_mapping!="decoded-full-frame-no-crop" || c.policy!="yolo-inverse-scale-pad-clamp-v1" ||
+       (c.resize!="stretch" && c.resize!="letterbox")) return false;
+    for(int n:{c.frame_width,c.frame_height,c.input_width,c.input_height,c.resized_width,c.resized_height})
+        if(n<=0 || n>32768) return false;
+    for(double n:{c.scale_x,c.scale_y,c.pad_x,c.pad_y}) if(!std::isfinite(n)) return false;
+    const float sx=float(c.input_width)/float(c.frame_width), sy=float(c.input_height)/float(c.frame_height);
+    if(c.resize=="stretch") return c.scale_x==sx && c.scale_y==sy && c.pad_x==0 && c.pad_y==0 &&
+        c.resized_width==c.input_width && c.resized_height==c.input_height;
+    const float scale=std::min(sx,sy);
+    const int w=std::max(1,int(std::round(float(c.frame_width)*scale)));
+    const int h=std::max(1,int(std::round(float(c.frame_height)*scale)));
+    return c.scale_x==scale && c.scale_y==scale && c.resized_width==w && c.resized_height==h &&
+        c.pad_x==std::max(0,(c.input_width-w)/2) && c.pad_y==std::max(0,(c.input_height-h)/2);
+}
+std::string SerializeObservationCoordinates(const ObservationCoordinatesV1& c) {
+    if(!ValidateObservationCoordinates(c)) return {};
+    std::ostringstream s; s<<std::setprecision(std::numeric_limits<double>::max_digits10);
+    // 문자열은 위 검증에서 고정 토큰으로 제한됐다.
+    s<<"{\"schema\":\""<<c.schema<<"\",\"producer\":\""<<c.producer<<"\",\"valueKind\":\""<<c.value_kind
+     <<"\",\"units\":\""<<c.units<<"\",\"frameMapping\":\""<<c.frame_mapping<<"\",\"policy\":\""<<c.policy
+     <<"\",\"resize\":\""<<c.resize<<"\",\"frameWidth\":"<<c.frame_width<<",\"frameHeight\":"<<c.frame_height
+     <<",\"inputWidth\":"<<c.input_width<<",\"inputHeight\":"<<c.input_height
+     <<",\"resizedWidth\":"<<c.resized_width<<",\"resizedHeight\":"<<c.resized_height
+     <<",\"scaleX\":"<<c.scale_x<<",\"scaleY\":"<<c.scale_y<<",\"padX\":"<<c.pad_x<<",\"padY\":"<<c.pad_y<<'}';
+    return s.str();
+}
+bool ParseObservationCoordinates(const std::string& text,ObservationCoordinatesV1* out) {
+    Doc d; ObservationCoordinatesV1 c;
+    if(!out || text.size()>2048 || !ingress::ParseStrictJsonObjectDocument(text,&d,nullptr) || d.members.size()!=17 ||
+       !Text(d,"schema",&c.schema) || !Text(d,"producer",&c.producer) || !Text(d,"valueKind",&c.value_kind) ||
+       !Text(d,"units",&c.units) || !Text(d,"frameMapping",&c.frame_mapping) || !Text(d,"policy",&c.policy) ||
+       !Text(d,"resize",&c.resize) || !Number(d,"frameWidth",&c.frame_width) || !Number(d,"frameHeight",&c.frame_height) ||
+       !Number(d,"inputWidth",&c.input_width) || !Number(d,"inputHeight",&c.input_height) ||
+       !Number(d,"resizedWidth",&c.resized_width) || !Number(d,"resizedHeight",&c.resized_height) ||
+       !Number(d,"scaleX",&c.scale_x) || !Number(d,"scaleY",&c.scale_y) || !Number(d,"padX",&c.pad_x) ||
+       !Number(d,"padY",&c.pad_y) || !ValidateObservationCoordinates(c)) return false;
+    *out=std::move(c); return true;
+}
+} // namespace analysis

@@ -19,7 +19,7 @@ date -u '+[start] %Y-%m-%dT%H:%M:%SZ'
 git rev-parse HEAD
 uname -sm
 python3 - "$task_repo" "$task_root" "${1:-}" <<'PY'
-import hashlib, os, pathlib, shlex, subprocess, sys
+import hashlib, os, pathlib, shlex, shutil, subprocess, sys
 repo, root = map(pathlib.Path, sys.argv[1:3])
 build = repo / 'build-gst-onnx'
 archive = build / 'libmedia_server_runtime.a'
@@ -27,18 +27,30 @@ for folder in ('src', 'include'):
     for source in (repo / folder).rglob('*'):
         if source.suffix in ('.cpp', '.h') and source.stat().st_mtime_ns > archive.stat().st_mtime_ns:
             raise RuntimeError('product archive is stale: ' + str(source.relative_to(repo)))
+observation_mode = sys.argv[3] == '--observations'
+smoke = 'evidence_observation_smoke.cpp' if observation_mode else 'evidence_package_smoke.cpp'
 link = shlex.split((build / 'CMakeFiles/media_server.dir/link.txt').read_text())
 index = link.index('libmedia_server_runtime.a')
 libs = [str(archive), *link[index + 1:]]
 flags = shlex.split(subprocess.check_output(['pkg-config', '--cflags', 'gstreamer-app-1.0', 'openssl', 'sqlite3'], text=True))
-for source in sorted([*(repo/'src/recording').glob('evidence_*.cpp'), *(repo/'include/recording').glob('evidence_*.h'), repo/'scripts/internal/evidence_package_smoke.cpp']):
+for source in sorted([*(repo/'src/recording').glob('evidence_*.cpp'), *(repo/'include/recording').glob('evidence_*.h'), repo/'scripts/internal'/smoke]):
     print('[source]', str(source.relative_to(repo)), hashlib.sha256(source.read_bytes()).hexdigest(), flush=True)
 command = [os.environ.get('CXX', 'c++'), '-std=c++17', '-Wall', '-Wextra', '-Werror', '-pthread', '-I'+str(repo/'include'),
     '-DMEDIA_SERVER_USE_GSTREAMER=1', '-DMEDIA_SERVER_USE_OPENSSL=1', '-DMEDIA_SERVER_USE_SQLITE3=1',
-    '-DMEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND=1', *flags, str(repo/'scripts/internal/evidence_package_smoke.cpp'),
+    '-DMEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND=1', *flags, str(repo/'scripts/internal'/smoke),
     *libs, '-o', str(root/'evidence-smoke')]
 subprocess.run(command, check=True, timeout=60)
-if sys.argv[3] not in ('--http-only','--visual-http','--ui'):
+if observation_mode:
+    subprocess.run([str(root/'evidence-smoke'), str(root), 'seed'], check=True, timeout=90)
+    subprocess.run([str(root/'evidence-smoke'), str(root), 'recover'], check=True, timeout=30)
+    # 이전 프로세스와 catalog 객체는 종료됐다. 테스트 소유 원본 저장소만 제거하고 별도 reader를 시작한다.
+    originals = root/'recordings'
+    if originals.is_symlink() or not originals.is_dir() or originals.resolve().parent != root:
+        raise RuntimeError('readback-removal-ownership')
+    shutil.rmtree(originals)
+    if originals.exists(): raise RuntimeError('readback-removal-remains')
+    subprocess.run([str(root/'evidence-smoke'), str(root), 'readback'], check=True, timeout=30)
+if not observation_mode and sys.argv[3] not in ('--http-only','--visual-http','--ui'):
     subprocess.run([str(root/'evidence-smoke'), str(root)], check=True, timeout=90)
 if sys.argv[3] in ('--http','--http-only','--visual-http','--ui'):
     environment = dict(os.environ, MEDIA_SERVER_EVIDENCE_FIXTURE_BIN=str(root/'evidence-smoke'))

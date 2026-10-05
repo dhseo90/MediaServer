@@ -100,6 +100,7 @@ struct YoloPreprocessInfo {
     float pad_x{0.0F};
     float pad_y{0.0F};
     bool letterbox{true};
+    int resized_width{0}, resized_height{0};
 };
 
 std::vector<float> ResizeRgbToNchwStretch(const RawVideoFrame& frame,
@@ -120,6 +121,7 @@ std::vector<float> ResizeRgbToNchwStretch(const RawVideoFrame& frame,
         info->pad_x = 0.0F;
         info->pad_y = 0.0F;
         info->letterbox = false;
+        info->resized_width = target_width; info->resized_height = target_height;
     }
 
     for (int y = 0; y < target_height; ++y) {
@@ -168,6 +170,7 @@ std::vector<float> ResizeRgbToNchwLetterbox(const RawVideoFrame& frame,
         info->pad_x = static_cast<float>(pad_left);
         info->pad_y = static_cast<float>(pad_top);
         info->letterbox = true;
+        info->resized_width = resized_width; info->resized_height = resized_height;
     }
 
     for (int y = 0; y < resized_height; ++y) {
@@ -226,6 +229,7 @@ std::vector<std::uint8_t> ResizeRgbToHwcUint8Stretch(const RawVideoFrame& frame,
         info->pad_x = 0.0F;
         info->pad_y = 0.0F;
         info->letterbox = false;
+        info->resized_width = target_width; info->resized_height = target_height;
     }
 
     for (int y = 0; y < target_height; ++y) {
@@ -272,6 +276,7 @@ std::vector<std::uint8_t> ResizeRgbToHwcUint8Letterbox(const RawVideoFrame& fram
         info->pad_x = static_cast<float>(pad_left);
         info->pad_y = static_cast<float>(pad_top);
         info->letterbox = true;
+        info->resized_width = resized_width; info->resized_height = resized_height;
     }
 
     for (int y = 0; y < resized_height; ++y) {
@@ -553,6 +558,20 @@ public:
             result->source_key = frame.source_key;
             result->pts = frame.pts;
             result->detections = ParseOutput(outputs.front(), preprocess_info);
+            result->coordinates.reset();
+            if (frame.decoded_full_source_frame) {
+                const auto& p = preprocess_info;
+                ObservationCoordinatesV1 c;
+                c.producer = "gstreamer-yolo-onnx-v1"; c.value_kind = "detector";
+                c.units = "normalized-top-left-xywh"; c.frame_mapping = "decoded-full-frame-no-crop";
+                c.policy = "yolo-inverse-scale-pad-clamp-v1";
+                c.frame_width = p.frame_width; c.frame_height = p.frame_height;
+                c.input_width = p.input_width; c.input_height = p.input_height;
+                c.resized_width = p.resized_width; c.resized_height = p.resized_height;
+                c.scale_x = p.scale_x; c.scale_y = p.scale_y; c.pad_x = p.pad_x; c.pad_y = p.pad_y;
+                c.resize = p.letterbox ? "letterbox" : "stretch";
+                result->coordinates = std::move(c);
+            }
             if (error_message != nullptr) {
                 error_message->clear();
             }

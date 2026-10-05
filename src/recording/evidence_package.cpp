@@ -1,5 +1,6 @@
 // 파일 용도: 증거 manifest의 strict JSON codec과 참조·payload 경계 검증.
 #include "recording/evidence_package.h"
+#include "recording/evidence_observation.h"
 #include "domain/strict_json.h"
 #include <algorithm>
 #include <charconv>
@@ -64,7 +65,7 @@ std::string EvidenceJsonQuote(const std::string& value) {
     return out + '"';
 }
 bool ValidateEvidencePackage(const EvidencePackageV1& v, std::string* error) {
-    if (v.schema != "media-server.evidence-package.v1" || !Id(v.channel_id) || !Small(v.hit_id, false) ||
+    if ((v.schema != "media-server.evidence-package.v1" && v.schema != "media-server.evidence-package.v2") || !Id(v.channel_id) || !Small(v.hit_id, false) ||
         (v.query_kind != "structured" && v.query_kind != "visual") || v.created_at_ms <= 0 ||
         v.retention != "evidence-hold" || v.selection_policy != "uniform-source-samples-v1" ||
         (v.status != "complete" && v.status != "partial") || !Small(v.time_provenance, false) ||
@@ -130,6 +131,7 @@ bool ValidateEvidencePackage(const EvidencePackageV1& v, std::string* error) {
         if (found == v.references.end()) return Fail(error);
         previous = f.pts_ns;
     }
+    if (!ValidateEvidenceObservations(v,error)) return false;
     if (error) error->clear(); return true;
 }
 std::string SerializeEvidencePackage(const EvidencePackageV1& v) {
@@ -165,7 +167,18 @@ std::string SerializeEvidencePackage(const EvidencePackageV1& v) {
         s += "{\"name\":" + q(a.name) + ",\"contentType\":" + q(a.content_type) + ",\"sha256\":" + q(a.sha256) +
             ",\"sizeBytes\":" + std::to_string(a.size_bytes) + '}';
     }
-    return s + "]}";
+    s += ']';
+    if (v.schema=="media-server.evidence-package.v2") {
+        s += ",\"observationSourceId\":"+q(v.observation_source_id)+",\"observationSnapshots\":["; comma=false;
+        for(const auto& snapshot:v.observation_snapshots) {
+            if(comma)s+=',';comma=true;
+            s+="{\"frameIndex\":"+std::to_string(snapshot.frame_index)+",\"pngSha256\":"+q(snapshot.png_sha256)+
+                ",\"state\":"+q(snapshot.state)+",\"reason\":"+q(snapshot.reason)+",\"candidates\":[";
+            bool inner=false;for(const auto& row:snapshot.candidates){if(inner)s+=',';inner=true;s+=SerializeReferencedObservationV1(row);}s+="]}";
+        }
+        s+=']';
+    }
+    return s + "}";
 }
 bool ParseEvidencePackage(const std::string& json, EvidencePackageV1* output, std::string* error) {
     if (!output || json.size() > 1024 * 1024) return Fail(error);
@@ -209,6 +222,20 @@ bool ParseEvidencePackage(const std::string& json, EvidencePackageV1* output, st
             !Text(e,"sha256",&a.sha256) || !Number(e,"sizeBytes",&a.size_bytes)) return Fail(error);
         v.assets.push_back(std::move(a));
     }
+    if(v.schema=="media-server.evidence-package.v2") {
+        if(d.members.size()!=23 || !Text(d,"observationSourceId",&v.observation_source_id) ||
+           !Array(d,"observationSnapshots",&items) || items.size()>8) return Fail(error);
+        const auto* snapshots=d.Find("observationSnapshots");
+        if(snapshots->raw.size()>72*1024)return Fail(error);
+        for(const auto& item:items) {
+            Doc e; EvidenceObservationSnapshotV2 snapshot;std::vector<std::string> rows;
+            if(!Parse(item,&e)||e.members.size()!=5||!Number(e,"frameIndex",&snapshot.frame_index)||
+               !Text(e,"pngSha256",&snapshot.png_sha256)||!Text(e,"state",&snapshot.state)||!Text(e,"reason",&snapshot.reason)||
+               !Array(e,"candidates",&rows)||rows.size()>4)return Fail(error);
+            for(const auto& row:rows){ReferencedObservationV1 parsed;if(!ParseReferencedObservationV1(row,&parsed,error))return false;snapshot.candidates.push_back(std::move(parsed));}
+            v.observation_snapshots.push_back(std::move(snapshot));
+        }
+    } else if(d.Find("observationSourceId")||d.Find("observationSnapshots")) return Fail(error);
     if (!ValidateEvidencePackage(v,error)) return false;
     *output = std::move(v); if (error) error->clear(); return true;
 }

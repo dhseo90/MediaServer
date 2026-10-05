@@ -11,8 +11,8 @@
     ".cpp",
     ".h"
   ],
-  "expectedProductionFiles": 373,
-  "expectedCppFiles": 171,
+  "expectedProductionFiles": 380,
+  "expectedCppFiles": 174,
   "moduleClassifiers": [
     {
       "id": "composition-root",
@@ -170,11 +170,17 @@
         "src/recording/va_review_store.cpp",
         "src/recording/va_review_transport.cpp",
         "include/ingress/va_review_application_service.h",
-        "src/ingress/va_review_application_service.cpp"
+        "src/ingress/va_review_application_service.cpp",
+        "include/recording/va_review_core.h",
+        "src/recording/va_review_core.cpp",
+        "include/recording/va_review_observer.h",
+        "src/recording/va_review_observer.cpp",
+        "include/recording/evidence_observation.h",
+        "src/recording/evidence_observation.cpp"
       ],
       "prefixes": [],
-      "expectedFileCount": 124,
-      "expectedCppCount": 57
+      "expectedFileCount": 130,
+      "expectedCppCount": 60
     },
     {
       "id": "domain-and-registry-owners",
@@ -247,10 +253,11 @@
         "include/recording/recording_search_snapshots.h",
         "src/recording/recording_search_snapshots.cpp",
         "include/recording/recording_search_precedence.h",
-        "src/recording/recording_search_precedence.cpp"
+        "src/recording/recording_search_precedence.cpp",
+        "include/domain/observation_coordinates.h"
       ],
       "prefixes": [],
-      "expectedFileCount": 69,
+      "expectedFileCount": 70,
       "expectedCppCount": 29
     },
     {
@@ -366,7 +373,7 @@
       "expectedCppCount": 16
     }
   ],
-  "expectedFileOwnershipSha256": "85d80f9abba338c7615aa10002f5d3435e03b4862e7ec2709669f1b6eda1a448",
+  "expectedFileOwnershipSha256": "82c2f8def83074bf7c213b8c779d71074dd6c89e36d6759426e28d76dda21688",
   "cmake": {
     "file": "CMakeLists.txt",
     "targets": [
@@ -458,6 +465,7 @@
           "src/recording/recording_search_source.cpp",
           "src/recording/visual_search_index.cpp",
           "src/recording/evidence_frame_extractor.cpp",
+          "src/recording/evidence_observation.cpp",
           "src/recording/evidence_package.cpp",
           "src/recording/va_review_input.cpp",
           "src/recording/va_review_record.cpp",
@@ -465,6 +473,8 @@
           "src/recording/va_review_service.cpp",
           "src/recording/va_review_transport.cpp",
           "src/recording/va_review_provider.cpp",
+          "src/recording/va_review_core.cpp",
+          "src/recording/va_review_observer.cpp",
           "src/recording/evidence_package_store.cpp",
           "src/recording/evidence_package_builder.cpp",
           "src/recording/visual_index_store.cpp",
@@ -544,9 +554,9 @@
           "src/ingress/gstreamer_rtsp_server.cpp",
           "src/core/youtube_resolver.cpp"
         ],
-        "productionSourceSha256": "ef71407bc59526a349dadf77a7751cfb1604490c3a253cae6cb91256d6532883",
-        "declaredSourceCount": 169,
-        "defaultActiveSourceCount": 168,
+        "productionSourceSha256": "06658ea3b0dc102a61bacec78fe2fccd4d412bb624093f5f3247bbb4ad15f475",
+        "declaredSourceCount": 172,
+        "defaultActiveSourceCount": 171,
         "conditionalSources": [
           {
             "path": "src/core/youtube_resolver.cpp",
@@ -606,8 +616,8 @@
     },
     {
       "direction": "analysis-services -> domain-and-registry-owners",
-      "witnessCount": 3,
-      "witnessSha256": "a948c519f20a4bcc7b7e9d48abe827589c74349e044e02622bba5038643e2ad2",
+      "witnessCount": 4,
+      "witnessSha256": "cfe5fbaade0d8002e576cb9b714d029e1a1ad555267effd15a2cc79e0574212b",
       "allowedByTarget": true
     },
     {
@@ -788,7 +798,7 @@
     },
     {
       "file": "src/ingress/product_ui_page_scripts.cpp",
-      "lineCount": 10974,
+      "lineCount": 10964,
       "primaryOwner": "product-ui-workspaces",
       "embeddedResponsibilities": [
         "ops-workspaces",

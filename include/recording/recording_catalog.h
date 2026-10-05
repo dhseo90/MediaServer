@@ -239,6 +239,13 @@ public:
     bool QueryDerivedReferenceResult(const std::string& reference_id,
         RecordingDerivedReferenceResult*,std::string* error) const;
     bool PutReferencedObservation(const AnalysisObservationV2&, const RecordingConsumerReferenceV1&, std::string*);
+    // 새 내부 package 경로 전용. 상한 초과는 부재로 숨기지 않고 실패한다.
+    bool CaptureEvidenceObservations(const std::string& channel, const std::string& source,
+        const std::string& analysis_namespace, const std::string& track,
+        std::vector<ReferencedObservationV1>*, std::uint64_t* revision, std::string* error) const;
+    bool EvidenceRevisionCurrent(std::uint64_t revision) const;
+    // action은 원자 publish의 linkat만 수행한다. revision 확인과 게시 사이 변경을 막는다.
+    bool GuardEvidenceRevision(std::uint64_t revision, const std::function<bool()>& action) const;
     std::vector<ReferencedObservationV1> QueryReferencedObservations(const std::string& channel) const;
     std::vector<RecordingConsumerReferenceV1> QueryConsumerReferences(
         const std::string& channel, const std::string& kind, const std::string& owner) const;

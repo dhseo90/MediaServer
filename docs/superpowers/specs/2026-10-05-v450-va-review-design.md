@@ -471,3 +471,53 @@ VLM에는 실제 프레임의 시각적 의미와 서버가 확정한 부족 근
 정량 좌표와 시점 간 동일성은 필요한 관계에만 요구하고, 관측에 없는 정지/숨겨진 이동을 보완 추론하지 않는다.
 사용자의 ClaimSpec 확인은 검토 의도의 확인이며 영상 사실이나 객체 동일성의 인증이 아니다.
 2묶음의 새 결과/저장 버전·확인 API/UI, 추가 모델 평가·새 관측기는 이번에 시작하지 않는다.
+
+## 40: 선택적 분석 관측의 출처 보존·재현 경로
+
+39절은 당시 조사/보류 기록으로 유지한다. 2026-10-06 새 실행 승인으로 아래 내부 경로를 구현한다.
+공개 확인 API/UI·VA Review 결과/record·provider 교체, 모델 호출·추론 품질 평가는 포함하지 않는다.
+
+- 지원 producer는 `RawVideoDecoder`의 **decoder→videoconvert 전체 프레임**과 YOLO ONNX의
+  stretch/letterbox 전처리, 기존 tracker 출력이다. decoder가 무 crop/scale 전체 프레임임을 표시하고,
+  YOLO `Analyze`가 실제 `YoloPreprocessInfo`의 frame/input/resized 크기·scale·padding을 전달한다.
+  [좌표 값 계약](../../../include/domain/observation_coordinates.h)은 원점 좌상단, 오른쪽/아래 양수,
+  전체 디코딩 프레임 정규화 xywh와 `yolo-inverse-scale-pad-clamp-v1`을 명시한다.
+  저장 값은 raw detector가 아닌 `processed-track`이다. bbox/추적 계산·표본 저장 주기는 바꾸지 않는다.
+  crop·다른 producer·과거 자료에 출처를 만들지 않으며 설정 digest도 발명하지 않는다.
+- `AnalysisObservationProjector::SubmitResult → RecordingCatalog::PutReferencedObservation`은 좌표 출처가
+  있을 때만 **analysis-observation.v3 / referenced-observation.v2**로 저장한다. v3는 기존 summary
+  `first_seen_pts` 병합과 별도로 producer의 `engine_first_seen_pts`를 보존한다. track 번호 재사용을
+  동일 episode로 연결하지 않기 위해서다. 같은 관측 ID의 bbox/연관/출처/episode 변경은 거부한다.
+  기존 observation.v2 / referenced-observation.v1의 바이트·조회·ID는 유지하고 migration하지 않는다.
+- [builder](../../../src/recording/evidence_package_builder.cpp)의 명시적 내부 `CreateWithObservations`만
+  **evidence-package.v2**를 만든다. 기존 `Create`는 계속 v1이다. 균등 최대8개 sample·PNG·미디어 계보는
+  동일하며, v2 manifest에 source ID와 프레임별 PNG hash/index·관측/reference/좌표 출처 사본을 포함한다.
+  channel/source/store/media epoch와 generation/order/media track/ordinal/PTS를 결속하며 analysis track은
+  별개다. timestamp-match와 유일한 exact 결속만 `matched`; 없음은 `missing`, 애매/연관/좌표 미확인과
+  episode 재사용은 이유를 가진 `unverified`다. 잘못된 참조/상태/버전·hash 변조는 오류다.
+  부재를 비가시성으로 해석하거나 nearest/latest로 채우지 않으며 정상 부재로 PNG 패키지를 실패시키지 않는다.
+- capture는 현재 catalog lock 아래 같은 namespace/track의 사본과 revision을 얻는다. 조회 작업은 최대65,536행,
+  후보 사본은 최대256개/256KiB, 보존은 sample당4개/총32개·관측 사본 총64KiB 이내다. 초과는 명시적 오류이며
+  절단/부분 복사하지 않는다. v2 배열 wire 입력도72KiB, 기존 manifest1MiB·package/store quota를 유지한다.
+  decode/게시 중 revision 변경은 거부하고, **최종 linkat만 revision lock 안에서 실행**하여 확인/게시 경쟁을 막는다.
+  다른 catalog 변경도 보수적으로 중단할 수 있으며 자동 재시도하지 않는다. 기존 fsync/hash/취소/실패 정리를 재사용한다.
+- [reader/adapter](../../../src/recording/evidence_observation.cpp)의 `ReadAnalysisRecordReview`는 검증된 package만
+  읽는다. catalog·원본·최신 설정 인자가 없다. 이미 역변환된 정규화 bbox의 중심을
+  `(x+w/2)*원본너비, (y+h/2)*원본높이`로 계산하며 다시 letterbox 역변환/round/clamp하지 않는다.
+  같은 namespace/track/producer episode와 source generation이 확인된 기록만 engine-track anchor로 연결한다.
+  반환 `AnalysisRecordReview`에 A/analysis-record-consistency/engine-track 및 원 관측 snapshot과 core 결과가
+  함께 남는다. 호출자가 준 한 대상의 ClaimSpec을 해당 분석 track에 명시적으로 적용하며 자연어 해석은 하지 않는다.
+  이는 **분석 기록상의 관계·내부 일관성**이며 독립 영상 검증·물리적 동일성 인증이 아니다. color를 발명하지 않고
+  missing/unverified는 unknown으로 전달한다. 연속 이동은 core의 기존 미지원, 단일 시점은 기존 부족 규칙을 유지한다.
+- 공개 evidence 조회/list/asset과 기존 VA 입력은 v1 경계를 유지해 내부 v2를 자동 공개하지 않는다.
+  core의 판정 규칙·1px 정책·모델 verdict/basis 비수용은 불변이다. B/C로 fallback하지 않는다.
+
+직접 검사는 [V450-K07](../../project-feature-test-inventory.md)의 모의 AnalysisResult와 격리 미디어를
+실제 projector/catalog/package/reader/core에 통과시킨다. 새 프로세스의 catalog 복구 후 테스트 소유
+원본/catalog 디렉터리를 제거하고 또 다른 프로세스에서 package만 재조회한다. 독립 기대 중심은
+(40,45)/(120,45), 우측 지지/좌측 반증이다. 실제 detector 추론·VLM·운영 DB/영상 검사가 아니다.
+실행 결과는 [개발 기록](../../release-artifacts/v4.5.0/development-results.md)의 40 항목에만 집계한다.
+
+다음 공개 연결에는 **A 기록 일관성과 B/C 독립 영상 검증을 구분할 최소 input/result/record 표현 버전**을
+먼저 확정해야 한다. 이 결정에는 지원 관계·부족/미지원 표현과 기존 전체 출력 예산이 포함된다.
+사용자 의도 확인을 사실 인증으로 쓰지 않는다. 새 확인 API/UI·VA 결과/record 전환과 추가 모델 평가는 시작하지 않는다.

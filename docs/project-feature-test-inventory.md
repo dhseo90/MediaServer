@@ -141,6 +141,15 @@ oracle는 생성 픽셀 사각형의 중심(x+24,144), 실제 색red/가시성, 
 의미 오류는 수집하되 전송/시간/자원/격리/수집/정리 실패는 중단한다. native 종료 후5초 unload gate와
 사후 모델 부재를 구분한다. 실제 UI/안정화30분/120분/전체 품질은 이번 비범위이며 공개 연결도 없다.
 
+V450-K07(선택적 A 관측 보존·내부 연결): `bash scripts/internal/verify_evidence_package.sh --observations`.
+모의 AnalysisResult를 실제 projector→catalog journal/checkpoint/recovery→v2 package→새 reader→core에 전달한다.
+독립 기대값은 두 bbox 중심 (40,45)/(120,45), 우측 지지/좌측 반증이다. analysis namespace/track은 media track과 다르다.
+정상 exact2·선택 sample 부재·nearest 비연결·namespace/track 재사용·ordinal/PTS 불일치·과거 출처 없음,
+좌표 codec/계산·참조/바이트 변조·취소/게시 중 revision 변경 거부·v1 회귀·출력 불변을 검사한다.
+별도 프로세스가 원본/catalog 디렉터리를 제거한 뒤 보존 package만 읽어 동일한 관측/출처/판정을 재현한다.
+일반 acceptance/모델/HTTP/UI/30분/120분은 이번 미실행이며 내부 경로에 실제 UI 합격을 부여하지 않는다.
+실제 detector 추론·독립 영상 사실·VLM 동일성/품질 검증으로 해석하지 않는다. 공개 v1 API/VA 입력에는 v2를 연결하지 않는다.
+
 V450-K06(관측 연결 후보, 공개 미연결): `--observer-only`는
 [test/fixtures/v450_review_observer.json](../test/fixtures/v450_review_observer.json)의 독립 기대값으로
 상대 bbox→원본 중심 변환, 양쪽 경계/면적/형식/유한성/null, 프레임·anchor 참조와 PNG 크기·hash를

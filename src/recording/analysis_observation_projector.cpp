@@ -46,7 +46,10 @@ bool SameReferencedIdentity(const AnalysisObservationV2& previous,
                SerializeRecordingConsumerReferenceV1(normalized) &&
            previous.class_label == next.class_label && previous.confidence == next.confidence &&
            previous.bbox.x == next.bbox.x && previous.bbox.y == next.bbox.y &&
-           previous.bbox.width == next.bbox.width && previous.bbox.height == next.bbox.height;
+           previous.bbox.width == next.bbox.width && previous.bbox.height == next.bbox.height &&
+           previous.schema == next.schema && previous.engine_first_seen_pts == next.engine_first_seen_pts &&
+           (previous.coordinates ? analysis::SerializeObservationCoordinates(*previous.coordinates) : "") ==
+           (next.coordinates ? analysis::SerializeObservationCoordinates(*next.coordinates) : "");
 }
 AnalysisObservationV2 FromTrack(const analysis::AnalysisResult& result,const analysis::Track& track,bool ended) {
     AnalysisObservationV2 o;
@@ -91,6 +94,12 @@ void AnalysisObservationProjector::SubmitResult(const analysis::AnalysisResult& 
         Submit(std::move(o));
         return;
     }
+    if (!ended && result.coordinates) {
+        o.coordinates = result.coordinates;
+        o.engine_first_seen_pts = o.first_seen_pts;
+        o.coordinates->value_kind = "processed-track";
+        o.schema = "media-server.analysis-observation.v3";
+    }
     o.stream_epoch_id.clear();
     o.frame_locator.reset();
     o.locator_reason = "unresolved";
@@ -102,8 +111,12 @@ void AnalysisObservationProjector::SubmitResult(const analysis::AnalysisResult& 
     if(ended) {
         std::lock_guard lock(mu_);
         const auto previous = tracks_.find(Key(o));
-        if (previous != tracks_.end() && previous->second.last.pts == o.pts && previous->second.reference)
+        if (previous != tracks_.end() && previous->second.last.pts == o.pts && previous->second.reference) {
             r = *previous->second.reference;
+            o.coordinates = previous->second.last.coordinates;
+            o.engine_first_seen_pts = previous->second.last.engine_first_seen_pts;
+            o.schema = previous->second.last.schema;
+        }
     } else {
         const auto& a=result.source_association;
         switch(a.quality) {

@@ -74,7 +74,7 @@ ApplicationServiceResult EvidenceApplicationService::List(const Query& query,con
             if(id<=Value(query,"after"))continue;
             const auto file=store_.Open(id,&error,cancelled);
             if(!file)return Error(503,"evidence-store-unavailable");
-            if(file->manifest().channel_id!=channel)continue;
+            if(file->manifest().schema!="media-server.evidence-package.v1"||file->manifest().channel_id!=channel)continue;
             if(count==20){more=true;break;}
             if(count++)json+=',';json+=Summary(id,file->manifest());last=id;
         }
@@ -93,6 +93,7 @@ ApplicationServiceResult EvidenceApplicationService::Get(const std::string& id,c
     if(!file)return Error(error=="evidence-not-found"?404:503,"evidence-unavailable");
     const auto& manifest=file->manifest();
     if(!authorize||!authorize(manifest.channel_id))return Error(403,"recording-channel-forbidden");
+    if(manifest.schema!="media-server.evidence-package.v1")return Error(404,"evidence-unavailable");
     std::string current="[";bool comma=false;
     for(const auto& r:manifest.references)if(r.kind=="recording"||r.kind=="clip"){
         if(r.state=="not-applicable")continue;
@@ -114,6 +115,7 @@ std::shared_ptr<recording::EvidencePackageFile> EvidenceApplicationService::Asse
     std::string error;auto file=store_.Open(id,&error,[&]{return stopped_||std::chrono::steady_clock::now()>=deadline;});
     if(!file){if(status)*status=error=="evidence-not-found"?404:503;return {};}
     if(!authorize(file->manifest().channel_id)){if(status)*status=403;return {};}
+    if(file->manifest().schema!="media-server.evidence-package.v1"){if(status)*status=404;return {};}
     if(index>=file->manifest().assets.size()){if(status)*status=404;return {};}
     if(status)*status=200;
     return file;

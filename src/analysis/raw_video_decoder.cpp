@@ -329,6 +329,8 @@ private:
                 gst_structure_get_int(structure, "width", &frame.width);
                 gst_structure_get_int(structure, "height", &frame.height);
                 frame.format = PixelFormatFromCaps(caps);
+                // 이 pipeline은 decoder → videoconvert이며 crop/scale 요소가 없다.
+                frame.decoded_full_source_frame = frame.width > 0 && frame.height > 0;
             }
 
             GstBuffer* buffer = gst_sample_get_buffer(sample);

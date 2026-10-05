@@ -1,5 +1,6 @@
 // 파일 용도: 기존 검색/녹화 의미를 보존하며 출처·대표 프레임·있을 때 clip을 독립 저장한다.
 #include "recording/evidence_package_builder.h"
+#include "recording/evidence_observation.h"
 #include "recording/recording_selection_values.h"
 #include <algorithm>
 #include <set>
@@ -147,7 +148,17 @@ bool EvidencePackageBuilder::SelectSamples(const SearchDocument& hit,const Recor
     for(std::size_t i=0;i<count;++i)selected.push_back(candidates[count==1?0:i*(candidates.size()-1)/(count-1)]);
     *output=std::move(selected);if(error)error->clear();return true;
 }
-bool EvidencePackageBuilder::Create(const SearchDocument& input,const std::string& kind,
+bool EvidencePackageBuilder::Create(const SearchDocument& hit,const std::string& kind,
+    const std::string& expected,std::string* id,EvidencePackageV1* out,std::string* error,
+    std::chrono::steady_clock::time_point deadline,const std::function<bool()>& cancelled) const {
+    return CreateImpl(false,hit,kind,expected,id,out,error,deadline,cancelled);
+}
+bool EvidencePackageBuilder::CreateWithObservations(const SearchDocument& hit,const std::string& kind,
+    const std::string& expected,std::string* id,EvidencePackageV1* out,std::string* error,
+    std::chrono::steady_clock::time_point deadline,const std::function<bool()>& cancelled) const {
+    return CreateImpl(true,hit,kind,expected,id,out,error,deadline,cancelled);
+}
+bool EvidencePackageBuilder::CreateImpl(bool observations,const SearchDocument& input,const std::string& kind,
     const std::string& expected,std::string* id,EvidencePackageV1* output,std::string* error,
     std::chrono::steady_clock::time_point deadline,const std::function<bool()>& cancelled)const{
     if(!id||!output||!ValidateRecordingReferenceId(input.channel_id,nullptr)||(kind!="structured"&&kind!="visual"))
@@ -156,9 +167,13 @@ bool EvidencePackageBuilder::Create(const SearchDocument& input,const std::strin
     if(expired())return Fail(error,"evidence-timeout");
     auto hit=input;
     if(kind=="visual"&&!SelectVisualClip(catalog_,&hit,expected,error,expired))return false;
+    std::vector<ReferencedObservationV1> observation_rows;std::uint64_t observation_revision=0;
+    if(observations&&!catalog_.CaptureEvidenceObservations(hit.channel_id,hit.source_id,hit.analysis_namespace,
+        hit.track_id,&observation_rows,&observation_revision,error))return false;
     EvidencePackageV1 package;package.channel_id=hit.channel_id;package.hit_id=hit.id;package.query_kind=kind;
     package.observation_id=hit.observation_id;package.track_id=hit.track_id;package.analysis_namespace=hit.analysis_namespace;
     package.store_id=hit.store_id;package.media_epoch_id=hit.media_epoch_id;
+    if(observations){package.schema="media-server.evidence-package.v2";package.observation_source_id=hit.source_id;}
     package.start_ns=hit.start_ns;package.end_ns=hit.end_ns;package.time_provenance=hit.time_provenance.empty()?"unknown":hit.time_provenance;
     package.uncertainty_ns=hit.uncertainty_ns;package.status="complete";
     package.created_at_ms=std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
@@ -179,7 +194,7 @@ bool EvidencePackageBuilder::Create(const SearchDocument& input,const std::strin
     }else{
         const auto channel=segment?segment->channel_id:legacy->channel_id;
         const auto hash=segment?segment->checksum_sha256:legacy->checksum_sha256;
-        if(channel!=hit.channel_id||(!expected.empty()&&expected!=hash)||
+        if(channel!=hit.channel_id||(observations&&(!segment||segment->source_id!=hit.source_id))||(!expected.empty()&&expected!=hash)||
             (segment&&((!hit.store_id.empty()&&segment->store_id!=hit.store_id)||
                        (!hit.media_epoch_id.empty()&&segment->media_epoch_id!=hit.media_epoch_id))))
             return Fail(error,"evidence-source-changed");
@@ -261,7 +276,16 @@ bool EvidencePackageBuilder::Create(const SearchDocument& input,const std::strin
         }
     }else package.references.push_back({"clip","none","not-applicable","no-associated-clip","",{}});
     if(expired())return Fail(error,"evidence-timeout");
-    if(!store_.Publish(package,payloads,id,error,expired))return false;
+    if(observations) {
+        if(!PopulateEvidenceObservations(&package,observation_rows,error))return false;
+        const auto interrupted=[&]{return expired()||!catalog_.EvidenceRevisionCurrent(observation_revision);};
+        const auto guard=[&](const std::function<bool()>& link){return catalog_.GuardEvidenceRevision(observation_revision,link);};
+        if(!store_.Publish(package,payloads,id,error,interrupted,guard)) {
+            if(error&&*error!="evidence-cleanup-failed"&&*error!="evidence-publication-uncertain"&&
+               !catalog_.EvidenceRevisionCurrent(observation_revision))*error="evidence-source-changed";
+            return false;
+        }
+    } else if(!store_.Publish(package,payloads,id,error,expired))return false;
     *output=std::move(package);if(error)error->clear();return true;
 }
 } // namespace recording

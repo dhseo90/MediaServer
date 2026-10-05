@@ -2,6 +2,7 @@
 // 동작 요약: Detection, Track, AnalysisProfile, overlay/adaptive 옵션과 profile key 생성을 포함한다.
 // 동작 요약: detector, tracker, overlay, manager 사이의 데이터 계약이다.
 #pragma once
+#include "domain/observation_coordinates.h"
 
 #include <cstddef>
 #include <cstdint>
@@ -48,6 +49,7 @@ struct RawVideoFrame {
     std::vector<unsigned char> data;
     SourceAssociation source_association;
     std::optional<std::uint64_t> source_duration_ns;
+    bool decoded_full_source_frame{false}; // raw decoder의 무 crop/scale 경로만 설정한다.
 };
 
 struct RectF {
@@ -423,6 +425,7 @@ struct AnalysisObservationContext {
 };
 
 struct AnalysisResult {
+    std::optional<ObservationCoordinatesV1> coordinates;
     std::string source_key;
     std::string profile_key;
     AnalysisContext context;

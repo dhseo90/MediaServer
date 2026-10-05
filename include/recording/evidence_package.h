@@ -12,6 +12,12 @@ struct EvidenceAssetV1 {
     std::string name, content_type, sha256;
     std::uint64_t size_bytes{0};
 };
+struct EvidenceObservationSnapshotV2 {
+    std::size_t frame_index{};
+    std::string png_sha256, state, reason;
+    // candidate 값 자체를 보존한다. ID/hash만으로 catalog를 다시 읽지 않는다.
+    std::vector<ReferencedObservationV1> candidates;
+};
 struct EvidencePackageV1 {
     std::string schema{"media-server.evidence-package.v1"};
     std::string channel_id, hit_id, query_kind, observation_id, track_id, analysis_namespace;
@@ -24,6 +30,9 @@ struct EvidencePackageV1 {
     std::vector<EvidenceReferenceV1> references;
     std::vector<EvidenceFrameV1> frames;
     std::vector<EvidenceAssetV1> assets;
+    // v2 내부 opt-in 경로에만 존재한다. v1 codec/생성 경로는 기존 바이트를 유지한다.
+    std::string observation_source_id;
+    std::vector<EvidenceObservationSnapshotV2> observation_snapshots;
 };
 bool ValidateEvidencePackage(const EvidencePackageV1&, std::string* error);
 std::string SerializeEvidencePackage(const EvidencePackageV1&);

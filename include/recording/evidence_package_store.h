@@ -35,7 +35,8 @@ public:
         : directory_(std::move(directory)), limits_(limits) {}
     bool Recover(std::string* error) const;
     bool Publish(const EvidencePackageV1&, const std::vector<EvidencePayload>&,
-        std::string* id, std::string* error, const std::function<bool()>& cancelled = {}) const;
+        std::string* id, std::string* error, const std::function<bool()>& cancelled = {},
+        const std::function<bool(const std::function<bool()>&)>& publish_guard = {}) const;
     std::shared_ptr<EvidencePackageFile> Open(const std::string& id, std::string* error,
         const std::function<bool()>& cancelled = {}) const;
     bool ListIds(std::vector<std::string>*, std::string* error) const;

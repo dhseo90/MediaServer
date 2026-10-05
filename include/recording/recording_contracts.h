@@ -1,6 +1,7 @@
 // 파일 요약: v4.1.0 녹화 기반의 버전 고정 영속 계약을 선언한다.
 // 동작 요약: 세그먼트·프레임·이벤트 연결·분석 관측·삭제 표식의 JSONL 호환 경계를 제공한다.
 #pragma once
+#include "domain/observation_coordinates.h"
 
 #include <cstdint>
 #include <optional>
@@ -242,7 +243,10 @@ struct RecordingTombstoneV1 {
 };
 
 // V1 locator 필수 계약과 분리된 검색 관측 envelope. 원본 PTS는 locator가 없어도 보존한다.
+// 같은 C++ envelope에서 v2(출처 없음)/v3(명시 좌표 출처)를 구분한다.
 struct AnalysisObservationV2 {
+    std::optional<analysis::ObservationCoordinatesV1> coordinates;
+    std::optional<std::int64_t> engine_first_seen_pts; // v3: projector 병합 전 track episode의 출처
     std::string schema{"media-server.analysis-observation.v2"};
     std::string observation_id;
     std::string source_id;

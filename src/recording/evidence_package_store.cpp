@@ -209,7 +209,8 @@ std::shared_ptr<EvidencePackageFile> EvidencePackageStore::Open(const std::strin
 #endif
 }
 bool EvidencePackageStore::Publish(const EvidencePackageV1& manifest,const std::vector<EvidencePayload>& payloads,
-    std::string* id,std::string* error,const std::function<bool()>& cancelled) const {
+    std::string* id,std::string* error,const std::function<bool()>& cancelled,
+    const std::function<bool(const std::function<bool()>&)>& publish_guard) const {
 #if MEDIA_SERVER_USE_OPENSSL
     if (!id || !ValidateEvidencePackage(manifest,error) || payloads.size()!=manifest.assets.size()) return Fail(error,"evidence-invalid-manifest");
     Fd directory{Directory(directory_,true)}; if(directory.value<0)return Fail(error,"evidence-store-unavailable");
@@ -250,11 +251,15 @@ bool EvidencePackageStore::Publish(const EvidencePackageV1& manifest,const std::
         }
         published="ep-"+hash.Finish();
         if(!ValidId(published)||offset!=size||(cancelled&&cancelled())||::fsync(file.value))throw std::runtime_error("sync");
-        if(::linkat(directory.value,pending,directory.value,(published+".evp").c_str(),0)) {
-            if(errno!=EEXIST)throw std::runtime_error("publish");
-            const auto existing_file=Open(published,error,cancelled);
-            if(!existing_file)throw std::runtime_error("collision");
-        } else linked=true;
+        bool existed=false;
+        const auto link=[&] {
+            if(::linkat(directory.value,pending,directory.value,(published+".evp").c_str(),0)) {
+                existed=errno==EEXIST;return existed;
+            }
+            linked=true;return true;
+        };
+        if(!(publish_guard?publish_guard(link):link()))throw std::runtime_error("publish");
+        if(existed&&!Open(published,error,cancelled))throw std::runtime_error("collision");
         if(::unlinkat(directory.value,pending,0))throw std::runtime_error("cleanup");owned=false;
         if(::fsync(directory.value))throw std::runtime_error("sync");
         *id=published;if(error)error->clear();return true;
@@ -265,7 +270,7 @@ bool EvidencePackageStore::Publish(const EvidencePackageV1& manifest,const std::
         return Fail(error,cancelled&&cancelled()?"evidence-timeout":"evidence-write-failed");
     }
 #else
-    (void)manifest;(void)payloads;(void)id;(void)cancelled;return Fail(error,"evidence-crypto-unavailable");
+    (void)publish_guard;(void)manifest;(void)payloads;(void)id;(void)cancelled;return Fail(error,"evidence-crypto-unavailable");
 #endif
 }
 } // namespace recording
