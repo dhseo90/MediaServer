@@ -1,8 +1,10 @@
 // 파일 용도: 격리 패키지를 사용한 VA 검토 계약·저장·수명 직접 검사.
 #include "recording/va_review_input.h"
+#include "recording/va_review_store.h"
 #include <fcntl.h>
 #include <fstream>
 #include <iostream>
+#include <limits>
 #include <stdexcept>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -108,11 +110,109 @@ void InputChecks(const std::filesystem::path& root) {
     Check(wrote==1 && !recording::LoadVaReviewInput(store,id,"review",permit,&decoded,&error),
         "V450-I01 corrupted package rejected");
 }
+recording::VaReviewRecord Record(const std::filesystem::path& root) {
+    recording::EvidencePackageStore evidence(root/"record-input",{});std::string error,id;
+    std::vector<recording::EvidencePayload> payloads;const auto manifest=Manifest(2,&payloads);
+    Check(evidence.Recover(&error)&&evidence.Publish(manifest,payloads,&id,&error),"V450-C01 evidence setup");
+    recording::VaReviewRecord v;
+    Check(recording::LoadVaReviewInput(evidence,id,"움직임을 확인할 수 있습니까?",[](const auto&){return true;},
+        &v.input,&error),"V450-C01 input setup");
+    v.output.supports.push_back({"두 프레임에서 밝기가 다릅니다.",{0,1}});
+    v.output.unclear.push_back({"이 프레임만으로 사람의 이동 여부를 알 수 없습니다.",{}});
+    v.output.confidence=0.5;v.revision_id="revision-1";v.provider="ollama";
+    v.model="qwen3-vl:8b-instruct-q4_K_M";v.model_revision=std::string(64,'d');
+    v.prompt_sha256=std::string(64,'e');v.adapter_version="ollama-chat-v1";
+    v.created_at_ms=1700000000000;v.latency_ms=123;return v;
+}
+void RecordChecks(const std::filesystem::path& root) {
+    auto record=Record(root);std::string error;
+    const auto json=recording::SerializeVaReviewOutput(record.output);
+    recording::VaReviewOutput output;
+    Check(recording::ParseVaReviewOutput(json,2,&output,&error)&&recording::SerializeVaReviewOutput(output)==json,
+        "V450-C01 grounded claims/uncertainty roundtrip");
+    const auto rejects=[&](const std::string& bad,const char* label){
+        output=record.output;
+        Check(!recording::ParseVaReviewOutput(bad,2,&output,&error)&&recording::SerializeVaReviewOutput(output)==json,
+            std::string("V450-C01 rejected ")+label+" unchanged");
+    };
+    rejects(json.substr(0,json.size()-1)+",\"extra\":false}","extra key");
+    rejects(json.substr(0,json.size()-1)+",\"confidence\":0}","duplicate key");
+    auto invalid=record.output;invalid.supports[0].frame_indices={2};rejects(recording::SerializeVaReviewOutput(invalid),"unknown frame");
+    invalid=record.output;invalid.supports[0].frame_indices={0,0};rejects(recording::SerializeVaReviewOutput(invalid),"duplicate frame");
+    invalid=record.output;invalid.supports[0].frame_indices.clear();rejects(recording::SerializeVaReviewOutput(invalid),"ungrounded support");
+    invalid=record.output;invalid.supports[0].text=std::string(513,'x');rejects(recording::SerializeVaReviewOutput(invalid),"overlong text");
+    invalid=record.output;invalid.confidence=1.0001;rejects(recording::SerializeVaReviewOutput(invalid),"confidence above one");
+    invalid.confidence=-0.1;rejects(recording::SerializeVaReviewOutput(invalid),"negative confidence");
+    invalid.confidence=std::numeric_limits<double>::infinity();rejects(recording::SerializeVaReviewOutput(invalid),"infinity");
+    invalid=record.output;invalid.supports.clear();rejects(recording::SerializeVaReviewOutput(invalid),"confidence without evidence");
+    invalid.confidence.reset();
+    Check(recording::ParseVaReviewOutput(recording::SerializeVaReviewOutput(invalid),2,&output,&error)&&!output.confidence,
+        "V450-C01 unknown confidence and ungrounded uncertainty accepted");
+    invalid=record.output;invalid.supports.resize(17,invalid.supports.front());rejects(recording::SerializeVaReviewOutput(invalid),"claim count");
+    const auto record_json=recording::SerializeVaReviewRecord(record);recording::VaReviewRecord decoded;
+    Check(recording::ParseVaReviewRecord(record_json,&decoded,&error)&&
+        recording::SerializeVaReviewRecord(decoded)==record_json&&decoded.input.pngs.empty(),"V450-C01 record provenance replay");
+    auto bad_record=record;bad_record.model_revision="unverified";
+    Check(!recording::ValidateVaReviewRecord(bad_record,&error),"V450-C01 local model digest required");
+    bad_record=record;bad_record.adapter_version="gemini-generate-content-v1";
+    Check(!recording::ValidateVaReviewRecord(bad_record,&error),"V450-C01 provider provenance mismatch");
+    recording::VaReviewStore::Limits limits;limits.records=2;
+    recording::VaReviewStore store(root/"reviews",limits);
+    Check(store.Recover(&error),"V450-S01 store startup");
+    std::string id,second;
+    Check(store.Publish(record,&id,&error)&&store.Read(id,&decoded,&error)&&
+        recording::SerializeVaReviewRecord(decoded)==record_json,"V450-S01 durable readback");
+    Check(store.Publish(record,&second,&error)&&second==id,"V450-S01 same record idempotent publication");
+    record.revision_id="revision-2";
+    Check(store.Publish(record,&second,&error)&&second!=id,"V450-S01 new revision never overwrites");
+    record.revision_id="revision-3";std::string untouched="unchanged";
+    Check(!store.Publish(record,&untouched,&error)&&error=="review-capacity"&&untouched=="unchanged",
+        "V450-S01 configured count boundary fails closed");
+    recording::VaReviewStore reopened(root/"reviews",limits);std::vector<std::string> ids;
+    Check(reopened.Recover(&error)&&reopened.List(&ids,&error)&&ids.size()==2&&reopened.Read(id,&decoded,&error)&&
+        recording::SerializeVaReviewRecord(decoded)==record_json,"V450-S01 restart original revision preserved");
+    auto tiny=limits;tiny.record_bytes=record_json.size()-1;
+    recording::VaReviewStore oversized(root/"too-large",tiny);
+    record.revision_id="revision-1";
+    Check(!oversized.Publish(record,&untouched,&error)&&error=="review-record-too-large","V450-S01 record byte cap");
+    tiny=limits;tiny.bytes=record_json.size()+7;
+    recording::VaReviewStore capacity(root/"capacity",tiny);
+    Check(!capacity.Publish(record,&untouched,&error)&&error=="review-capacity","V450-S01 store byte cap includes header");
+    tiny=limits;tiny.reserve_bytes=std::numeric_limits<std::uint64_t>::max();
+    recording::VaReviewStore reserve(root/"reserve",tiny);
+    Check(!reserve.Publish(record,&untouched,&error)&&error=="review-disk-reserve","V450-S01 disk reserve");
+    recording::VaReviewStore cancelled(root/"cancelled",limits);unsigned cancel_checks=0;
+    Check(!cancelled.Publish(record,&untouched,&error,[&]{return ++cancel_checks>=3;})&&error=="review-cancelled"&&
+        !std::filesystem::exists(root/"cancelled/.pending-review-v1")&&cancelled.List(&ids,&error)&&ids.empty(),
+        "V450-S01 cancellation after write cleans pending/no publication");
+    const auto pending_path=root/"reviews/.pending-review-v1";
+    {std::ofstream f(pending_path);f<<"MSVA";}::chmod(pending_path.c_str(),0600);
+    Check(reopened.Recover(&error)&&!std::filesystem::exists(pending_path),"V450-S01 interrupted partial header recovered");
+    Check(::link((root/"reviews"/(id+".review")).c_str(),pending_path.c_str())==0,"V450-S01 published pending fixture");
+    Check(reopened.Recover(&error)&&reopened.Read(id,&decoded,&error),"V450-S01 crash after atomic link keeps result");
+    const auto hardlink=root/"owned-hardlink";
+    Check(::link((root/"reviews"/(id+".review")).c_str(),hardlink.c_str())==0&&!reopened.Read(id,&decoded,&error),
+        "V450-S01 unexpected hardlink rejected");
+    Check(::unlink(hardlink.c_str())==0,"V450-S01 own hardlink removed");
+    std::filesystem::create_directory_symlink(root/"reviews",root/"review-link");
+    recording::VaReviewStore linked(root/"review-link",limits);
+    Check(!linked.Read(id,&decoded,&error),"V450-S01 symlink directory rejected");
+    Check(!store.Read("../record",&decoded,&error),"V450-S01 path ID rejected");
+    recording::VaReviewStore unwritable(root/"unwritable",limits);
+    Check(unwritable.Recover(&error)&&::chmod((root/"unwritable").c_str(),0500)==0,"V450-S01 write-failure setup");
+    Check(!unwritable.Publish(record,&untouched,&error)&&error=="review-write-failed","V450-S01 failed write not published");
+    Check(::chmod((root/"unwritable").c_str(),0700)==0,"V450-S01 own permissions restored");
+    const int fd=::open((root/"reviews"/(id+".review")).c_str(),O_WRONLY|O_CLOEXEC|O_NOFOLLOW);
+    Check(fd>=0,"V450-S01 corruption fixture opened");const char corrupt='x';
+    const auto wrote=::pwrite(fd,&corrupt,1,9);::close(fd);
+    Check(wrote==1&&!reopened.Read(id,&decoded,&error)&&!reopened.Recover(&error),"V450-S01 corrupt read/startup rejected");
+}
 }
 int main(int argc,char** argv) {
     try {
         if(argc!=2)throw std::runtime_error("owned fixture root required");
         InputChecks(argv[1]);
+        RecordChecks(argv[1]);
         std::cout<<"[summary] pass="<<checks<<" fail=0\n";return 0;
     } catch(const std::exception& e) {std::cerr<<"[fail] "<<e.what()<<'\n';return 1;}
 }

@@ -9,10 +9,10 @@ namespace recording {
 namespace {
 bool Fail(std::string* error, const char* code) { if (error) *error=code; return false; }
 bool Prepare(VaReviewInput* input, std::string* error) {
+    const auto manifest_json=SerializeEvidencePackage(input->manifest);
     if (!EvidencePackageStore::ValidId(input->package_id) || !VaReviewText(input->question) ||
-        !ValidateEvidencePackage(input->manifest,nullptr) ||
-        input->manifest_sha256 != EvidenceSha256(SerializeEvidencePackage(input->manifest).data(),
-                                                  SerializeEvidencePackage(input->manifest).size()))
+        !ValidateEvidencePackage(input->manifest,nullptr) || !EvidenceIsSha256(input->manifest_sha256) ||
+        input->manifest_sha256 != EvidenceSha256(manifest_json.data(),manifest_json.size()))
         return Fail(error,"review-invalid-input");
     const auto& frames=input->manifest.frames;
     if (frames.empty()) return Fail(error,"review-no-frames");

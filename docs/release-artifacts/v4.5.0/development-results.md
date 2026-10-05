@@ -29,3 +29,16 @@
   digest `0533d74300e4f9bc367d675d4e64ffd073d50ff16a2b4096cc2e8a1cf8c96319`.
   다운로드 성공을 추론·품질 PASS로 간주하지 않는다. 전용 Ollama PID 2755/loopback 23451은
   후속 로컬 검증용으로 실행 중이며 최종 정리 전이다. weight는 승인한 Git 제외 경로에 유지한다.
+
+## V450-03 결과 계약·불변 저장
+
+- source: `0133b1510` 위 record/store·codec helper·native 검사 변경. 저장 codec에서 재사용하는
+  input의 digest 형식을 명시 검증하고 manifest 중복 직렬화를 제거했다.
+- `cmake --build build-gst-onnx -j 4`: exit 0([빌드 출력](03-build.log)).
+- `bash scripts/internal/verify_va_review.sh`: exit 0, 누적 72 PASS/0 FAIL([개별 원출력](03-native.log)).
+  입력 32건과 결과/저장 40건이며 추가·중복 key, 범위 밖/중복/빈 근거, text/claim 상한,
+  confidence/unknown, model provenance, 같은 record 중복/별도 revision, reopen,
+  설정한 count/byte/reserve 상한, 쓰기 후 취소, 원자 link 직후 중단 복구, hardlink/symlink,
+  실제 EACCES 쓰기 실패와 손상을 직접 검사했다. count 검사는 2개로 설정한 경계이며 기본 512개 누적 부하가 아니다.
+- `git diff --check`: 공백 오류 없음. cleanup: 소유 임시 root 제거·부재 확인, 권한 변경 원복.
+- 실제 모델·운영 서버·UI·장시간·외부 provider는 미실행이다. 준비용 Ollama는 후속 단계에 사용한다.
