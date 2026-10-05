@@ -1,0 +1,174 @@
+{
+  "method": "PNG IDAT decode, RGB(230,20,20) exact pixel scan; no model output used",
+  "coordinateTolerancePixels": 1,
+  "frames": [
+    {
+      "case": "one-motion",
+      "frame": 0,
+      "pngSha256": "2a019820ff7e8cc68e0dce82b9f56e4a566da1dd19cbaa925aea3ce6b7b719f0",
+      "redPixelCount": 2304,
+      "bboxExclusive": [
+        208,
+        120,
+        256,
+        168
+      ],
+      "center": [
+        232.0,
+        144.0
+      ]
+    },
+    {
+      "case": "one-direction",
+      "frame": 0,
+      "pngSha256": "2a019820ff7e8cc68e0dce82b9f56e4a566da1dd19cbaa925aea3ce6b7b719f0",
+      "redPixelCount": 2304,
+      "bboxExclusive": [
+        208,
+        120,
+        256,
+        168
+      ],
+      "center": [
+        232.0,
+        144.0
+      ]
+    },
+    {
+      "case": "blank-hidden",
+      "frame": 0,
+      "pngSha256": "e186d1adb71171aad65968d03e6016a50c64028cefce5e6778303138b01e4db0",
+      "redPixelCount": 0,
+      "bboxExclusive": null,
+      "center": null
+    },
+    {
+      "case": "blank-hidden",
+      "frame": 1,
+      "pngSha256": "e186d1adb71171aad65968d03e6016a50c64028cefce5e6778303138b01e4db0",
+      "redPixelCount": 0,
+      "bboxExclusive": null,
+      "center": null
+    },
+    {
+      "case": "occluded-final",
+      "frame": 0,
+      "pngSha256": "f79b82bff4f500c729c54a54f7c9546b3414ad136a38ad4713f56fc5569559df",
+      "redPixelCount": 2304,
+      "bboxExclusive": [
+        64,
+        120,
+        112,
+        168
+      ],
+      "center": [
+        88.0,
+        144.0
+      ]
+    },
+    {
+      "case": "occluded-final",
+      "frame": 1,
+      "pngSha256": "e186d1adb71171aad65968d03e6016a50c64028cefce5e6778303138b01e4db0",
+      "redPixelCount": 0,
+      "bboxExclusive": null,
+      "center": null
+    },
+    {
+      "case": "two-right",
+      "frame": 0,
+      "pngSha256": "f79b82bff4f500c729c54a54f7c9546b3414ad136a38ad4713f56fc5569559df",
+      "redPixelCount": 2304,
+      "bboxExclusive": [
+        64,
+        120,
+        112,
+        168
+      ],
+      "center": [
+        88.0,
+        144.0
+      ]
+    },
+    {
+      "case": "two-right",
+      "frame": 1,
+      "pngSha256": "343a93a516ced906c3576140cfa471cb870dc0051cb6363dcd65d6819375b76d",
+      "redPixelCount": 2304,
+      "bboxExclusive": [
+        400,
+        120,
+        448,
+        168
+      ],
+      "center": [
+        424.0,
+        144.0
+      ]
+    },
+    {
+      "case": "two-left",
+      "frame": 0,
+      "pngSha256": "343a93a516ced906c3576140cfa471cb870dc0051cb6363dcd65d6819375b76d",
+      "redPixelCount": 2304,
+      "bboxExclusive": [
+        400,
+        120,
+        448,
+        168
+      ],
+      "center": [
+        424.0,
+        144.0
+      ]
+    },
+    {
+      "case": "two-left",
+      "frame": 1,
+      "pngSha256": "f79b82bff4f500c729c54a54f7c9546b3414ad136a38ad4713f56fc5569559df",
+      "redPixelCount": 2304,
+      "bboxExclusive": [
+        64,
+        120,
+        112,
+        168
+      ],
+      "center": [
+        88.0,
+        144.0
+      ]
+    },
+    {
+      "case": "static-red",
+      "frame": 0,
+      "pngSha256": "2a019820ff7e8cc68e0dce82b9f56e4a566da1dd19cbaa925aea3ce6b7b719f0",
+      "redPixelCount": 2304,
+      "bboxExclusive": [
+        208,
+        120,
+        256,
+        168
+      ],
+      "center": [
+        232.0,
+        144.0
+      ]
+    },
+    {
+      "case": "static-blue",
+      "frame": 0,
+      "pngSha256": "2a019820ff7e8cc68e0dce82b9f56e4a566da1dd19cbaa925aea3ce6b7b719f0",
+      "redPixelCount": 2304,
+      "bboxExclusive": [
+        208,
+        120,
+        256,
+        168
+      ],
+      "center": [
+        232.0,
+        144.0
+      ]
+    }
+  ]
+}

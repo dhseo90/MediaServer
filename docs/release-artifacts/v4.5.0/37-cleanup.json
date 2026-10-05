@@ -1,0 +1,22 @@
+{
+  "ownedServerPid": 99196,
+  "port": 23451,
+  "signal": "SIGTERM",
+  "pidAbsent": true,
+  "listenerAbsent": true,
+  "laterModelCount": 0,
+  "fiveSecondUnloadGate": "PASS: native completion anchored deadline, helper 6ms/count1 then64ms/count0; these times are relative to helper start",
+  "ownedRootsAbsent": [
+    "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-va-review-p0b8vxva",
+    "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-va-review-9xo79abx",
+    "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-va-review-gt1re76x",
+    "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-va-review-kshceey9",
+    "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-va-review-d52438jc"
+  ],
+  "defaultStorageAfterExists": false,
+  "preserved": [
+    "models/v450-ollama",
+    "/tmp/media-server-v450-observe37-ollama.log"
+  ],
+  "serverSessionExit": 0
+}

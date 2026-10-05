@@ -962,3 +962,41 @@
   문서 링크 `36-final-docs.log` exit0/failures0, source/문서 공백 검사 exit0이다.
 - 실제 비교 stdout의 `model metadata transport` 성공 행 13곳에는 끝 공백이 있다.
   원출력 bytes를 보존하며 증거 전체 공백 검사 경고와 source/문서 검사 결과를 구분한다.
+
+
+### 37: 판정 핵심 구현과 제한된 관측 검증 — 공개 경로 미연결
+
+- 사용자 승인: 36 조사 종료·사용자 확인 의도/서버 판정 방향 채택. 이번에는 1묶음의 내부 핵심,
+  직접 검사, 최대8 이미지 관측과 커밋/일반 푸시만 수행한다. 2묶음 API/UI·권한·저장 연결은 미실행.
+- 실행 코드 `d867e69709b977c46b7841ff879493de4b421d1c`, 기준 `447486c5c87fca899ea5da8137bb556ea6bf273a`.
+  [source/설정 freeze](37-evaluation-freeze.json), [요청8개](37-request-freeze.json),
+  [픽셀 직접 oracle](37-pixel-oracle.json), [축별 결과](37-evaluation.json)를 연결한다.
+  과거34~36 byte/hash는 불변이며 동일 구현자의 검토로 독립 검토가 아니다.
+- `cmake --build build-gst-onnx --target media_server_runtime -j 4`: 최초 [정수형 빌드 실패](37-build.log)
+  exit2→자료형/양수 검사 수정→[재빌드](37-build-fixed.log) exit0. 개별 gap 상한 보완 후
+  [최종 빌드](37-build-final.log) exit0. 전체 제품 테스트는 실행하지 않았다.
+- `bash scripts/internal/verify_va_review.sh --core-only`: [초기 컴파일](37-core.log) exit1
+  (검사 변수 초기화 경고)→수정 후 [직접 검사](37-core-fixed.log) exit1
+  (fixture의 공백 포함 JSON 문자열을 raw 비교하여 다른 대상 입력 누락)→strict scalar 파싱 후
+  [반례 검사](37-core-fixture-fixed.log) exit1 (잘못된 anchor 반례가 유효 자기 anchor였음).
+  의도한 잘못된 anchor를 구성하고 유효 별도 anchor 부족 대조도 추가했다. 기존 기대값은 유지했다.
+  [최종 직접 검사](37-core-final.log) exit0: fixture41·예산10경계, assertion168. 실제 모델0회.
+- `bash scripts/internal/verify_va_review.sh --observe-local http://127.0.0.1:23451`:
+  [원출력](37-observation.log) exit0/8호출/재시도0/정상종료 JSON8. 제어 assertion62는 품질 PASS가 아니다.
+  입력 허용5·좌표 범위 오류 거부3, 주어진 허용 관측에 대한 서버 판정5/5,
+  픽셀/관측 품질3/8·조합 label5/8·관측과 조합 모두 적합3/8이다. 의미 오류 뒤 재질문/수정은 하지 않았다.
+  단일 두 사례는 범위 안 오좌표, 가림 끝점·정상 전후 비교3건은 범위 밖 좌표이며 두 비교에는
+  잘못된 different 동일성도 포함된다. 허용5의 판정이 맞아도 관측 오류를 해결한 것은 아니다.
+- 위8회의 ClaimSpec은 명시 판정기 입력이다. 이동 원문 해석/연속 경로/한국어 질문 생성/
+  제품 전체 품질/실제 CCTV/장시간/UI/릴리즈는 검증하지 않았다. 기존 provider/API/UI/record/저장
+  경로는 변경하지 않아 기존 공개 오통과가 차단됐다고 주장하지 않는다.
+- [정리](37-cleanup.json): 자원 상한과 native 완료 후5초 unload gate 통과. helper의6ms/모델1→
+  64ms/모델0은 helper 시작 기준이며, 사후 조회에서도0을 확인했다. 소유 Ollama PID99196
+  TERM/세션 exit0, 포트23451·임시 root5개 부재, 기본 recording 저장소 전후 부재를 확인했다.
+  기존 승인 weight와 전용 server log는 유지한다. 추가 모델 실행은 하지 않는다.
+- 문서 링크 최초 [검사](37-docs.log)는 신규37절 anchor 철자 오류1건으로 실패했다.
+  source/문서 공백 검사 exit0, 코드 고정 뒤 공개 기존 경로 diff 없음과 freeze의 source/34~36
+  hash 불변을 다시 확인했다.
+  최초 shell exit0는 후속 공백 검사 결과이며 링크 검사의 개별 exit는 수집하지 않았다.
+  anchor 링크 수정 뒤 `node scripts/internal/verify_docs_links.mjs` 단독 [재검사](37-docs-fixed.log)는
+  exit0/failures0이다. 추가 제품·모델 검사는 실행하지 않았다.
