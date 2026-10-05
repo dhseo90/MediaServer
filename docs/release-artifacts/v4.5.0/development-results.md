@@ -292,3 +292,601 @@
 - HTTP/native 소유 root·프로세스·포트와 TLS fixture의 임시 키·인증서를 회수했다.
   실제 원격 GPU/컨테이너·원격 추론 취소/메모리는 미검증·사용자 제외다. 모델 품질과 실제 UI는
   이번 연결 검사로 대체하지 않으며 후속 한국어 네 항목 변경에서 로컬 품질을 재평가한다.
+
+### 한국어 네 항목 단계: 실패 4회로 중단
+
+- 사용자 승인: supports/questions/contradictions/unclear 실제 생성과 한국어 응답. 기존 모델·
+  12사례의 좌표/색상/가림 oracle·시간/자원 상한은 유지하고 질문만 한국어로 번역했다.
+  기준은 실행 전 inventory에 등록했다. Gemini/TLS 완료 커밋 `2c63b42e1` 이후의 작업 트리다.
+- 초기 빌드 exit 0 ([로그](12-korean-build.log)), native/TLS 295 PASS/exit 0
+  ([로그](12-korean-native.log)), HTTP/Auth 135 PASS/5,606ms/exit 0
+  ([로그](12-korean-http.log), 누적 06-http.json), UI 상태 14 PASS/exit 0
+  ([로그](12-korean-ui.log)). 이는 아래 최종 prompt/schema 변경 전의 단기 결과다.
+- 실제 모델은 기존 승인 전용 경로의 `qwen3-vl:8b-instruct-q4_K_M`, digest
+  `0533d74300e4f9bc367d675d4e64ffd073d50ff16a2b4096cc2e8a1cf8c96319`다.
+  `OLLAMA_NO_CLOUD=1`, 전용 loopback 23451에서 실행했다. 외부 provider 호출은 없다.
+- 동일 한국어 품질 단계의 실패 횟수는 4회다. 명령은 모두
+  `bash scripts/internal/verify_va_review.sh --local http://127.0.0.1:23451`, exit 1이다.
+  1. [최초](12-korean-quality.log): two-right에서 질문만 생성하고 unclear도 없어 거부됐다.
+  2. [관측 우선 지시문](12-korean-quality-retest.log): two-right의 네 배열이 모두 비었다.
+  3. [관측 필드 선행](12-korean-quality-grounded.log): two-right 통과 후 two-left의 네 배열이 비었다.
+  4. [생성 스키마 비어 있지 않은 그룹 제약](12-korean-quality-nonempty.log): 12사례 실행 후
+     schema 12/12, 자동 category 8/12, uncertainty 0/4, 추가 질문 0/4로 필수 품질 gate FAIL.
+- 2~4차 각각의 빌드는 exit 0이다([2차](12-korean-build-retest.log),
+  [3차](12-korean-build-grounded.log), [4차](12-korean-build-nonempty.log)).
+  관측 필드 선행 후 native/TLS 295 PASS ([로그](12-korean-native-grounded.log))는
+  4차 anyOf 생성 스키마 변경 전이며 최종 source 전체 PASS로 승격하지 않는다.
+- 최종 출력 직접 대조: eight-left는 마지막 위치를 오른쪽으로 잘못 설명했고, two-static은
+  동일 위치를 설명한 뒤 “반증되지 않습니다”로 결론을 뒤집었다. eight-static은 첫 프레임
+  하나만으로 전체 동일 위치 주장을 뒷받침했다. 따라서 자동 category 8개 중 이 3개도
+  의미 합격에서 제외하며, 의미 합격은 최대 5/12다. 근거 부족 4사례 모두 contradictions로
+  잘못 분류되고 questions가 비었다. 한국어 문자열/JSON 형식만으로 품질 PASS라 하지 않는다.
+- 최종 관측 자원: 모델 physical footprint 7,854,972,584byte, native peak RSS 44,023,808byte,
+  fixture workspace 184,159,306byte. 품질 gate가 먼저 실패했으므로 뒤의 자원 assertion을
+  실행한 것처럼 보고하지 않는다. 60초/품질 기준을 완화하거나 실패 사례를 제외하지 않았다.
+- 4회 실패로 새 구현·재검증을 중단했다. 최종 provider/record/fixture/inventory 수정은
+  미완료 작업 트리로 보존하며 제품 완료 커밋·푸시·릴리즈를 수행하지 않는다.
+  [정리 관측](12-korean-cleanup.json): 모델 목록 비움, 소유 Ollama PID 23688 종료와
+  23451 포트 폐쇄, 네 실행 fixture root 부재를 확인했다. Ollama 실행 tool session도 exit 0이다.
+  `/tmp/media-server-v450-korean-ollama.log`는 중단 시 서버 진단 로그로 유지한다.
+- 재개에는 이 중단 사유를 해소하는 사용자 지시가 필요하다. 핵심 잔여는 한국어 관측의
+  의미 정확도·근거 부족 분류·실제 추가 질문 생성이며, 혼합 회귀/독립 검토/릴리즈 gate는 미진행이다.
+
+### 권장 수정 승인 후 재개: 생성 순서·판단 계약·역할별 필드
+
+- 사용자가 원인 검토의 권장 수정 반영과 목표 재개를 승인했다. 이전 단계의 실패 4회는
+  유지하며 이번 재개 구간의 품질 실패도 별도로 4회에 도달해 중단했다. 자동 검사 exit와
+  필수 직접 의미 검토 결과를 구분한다. 합격선을 변경하거나 이전 실패를 소급 PASS로 바꾸지 않았다.
+- 관측→evidenceStatus→supports/contradictions→unclear→questions 순서로 변경했다.
+  충분/부분/부족과 배열·confidence의 일치를 생성/수신 양쪽에서 요구한다. 공개 API/record의
+  네 그룹·text·frameIndices 형식은 유지한다. 마지막 후보에서는 내부 문장 키를 observedEvidence,
+  missingEvidence, followUpQuestion으로 구분한다. 모델 문장·분류·근거를 그대로 옮기며
+  서버에서 자동 분류 보정·고정 질문 생성·추가 모델 호출을 하지 않는다.
+- 모델/digest·12개 한국어 질문·합성 이미지·60초/8192 context/1024 생성 한도와 자원 예산을
+  유지했다. 관측+status를 합성 검증 로그에 남겨 영상 관측과 결과 작성을 분리해 확인했다.
+  모든 실제 모델 명령은 `bash scripts/internal/verify_va_review.sh --local http://127.0.0.1:23451`다.
+
+| 비교 실행 | 자동 검사 | 직접 검토와 품질 판정 |
+| --- | --- | --- |
+| [판단 계약](13-decision-quality.log) | exit 0, schema 12/12, category 10/12, uncertainty/questions 각각 4/4 | 위치 비교의 주장 반복·누락 근거, 반증 항목의 원 주장 반복, 마지막 가림 questions가 질문 아닌 설명. 품질 FAIL 1회 |
+| [근거 작성 지시](13-reasons-quality.log) | exit 0, schema/category 12/12, uncertainty/questions 각각 4/4 | eight-right 주장 반복 제외. 마지막 가림 질문이 필요한 증거 대신 포괄적인 정보 획득 방법만 요청해 구체적 질문 3/4. 품질 FAIL 2회 |
+| [구체적 질문 지시](13-questions-quality.log) | exit 0, schema 12/12, category 11/12, uncertainty/questions 각각 4/4 | eight-left 오분류, eight-right 주장 반복, blank-hidden의 unclear에 질문을 그대로 복사, eight-static 전체 판단에 끝점만 인용. 의미 검토 불합격, 품질 FAIL 3회 |
+| [역할별 내부 필드](13-fields-quality.log) | exit 1, schema 12/12, category 9/12, uncertainty/questions 각각 4/4 | two-left를 근거 부족으로, eight-left/two-static을 supports로 오분류. 의미 합격 상한 9/12로 기준 10/12 미달. 품질 FAIL 4회 |
+
+- 마지막 후보의 근거 부족 네 사례는 필요한 다른/추가 프레임을 실제로 요청했고, unclear는
+  부족한 근거를 기술했다. 네 질문을 직접 대조했다. 근거 부족 경로는 개선됐으나 전체 품질
+  합격은 아니다. 잘못 분류한 세 사례는 observations에서 위치/정지를 맞게 읽고도 결과 그룹을
+  잘못 골랐다. 현재 핵심 장애물은 관측을 사용자 주장과 대조해 지지·반증을 선택하는 정확도다.
+- 각 후보 빌드 exit 0: [판단 계약](13-decision-build.log),
+  [근거 지시](13-reasons-build.log), [질문 형식 포함](13-reasons-build-final.log),
+  [구체 질문](13-questions-build.log), [역할 필드](13-fields-build.log).
+  native/TLS 320 PASS/exit 0 ([판단 계약](13-decision-native.log),
+  [최종 역할 필드](13-fields-native.log)); 판단 불일치·누락 질문·unknown status·출력 불변 포함.
+  HTTP/Auth 135 PASS/5,653ms/exit 0 ([로그](13-decision-http.log), 누적06-http.json)는
+  역할별 필드 변경 전이다. 최종 HTTP/UI/수명/혼합 회귀는 품질 실패로 미실행이며 이전 증거로
+  최종 전체 PASS를 주장하지 않는다.
+- 마지막 자원 관측: 모델 physical footprint 7,842,684,632byte, native peak RSS 44,236,800byte,
+  workspace 184,160,117byte. 품질 assertion 뒤의 자원 gate는 실행되지 않아 PASS로 세지 않는다.
+- [정리](13-cleanup.json): 전용 Ollama PID 28215의 모델 목록 비움, 종료와 tool session exit 0,
+  23451 포트 폐쇄, 네 품질 실행과 native/HTTP wrapper root 부재를 확인했다. HTTP 자체 root와
+  제품 프로세스/포트는 누적06-http.json의 cleanup으로 확인한다.
+  `/tmp/media-server-v450-decision-ollama.log`는 진단 로그로 유지한다.
+- 4회 중단 조건에 따라 새 수정·테스트·후속 단계를 중단했다. 미완료 코드/fixture와 최초 실패부터의
+  증거를 현재 작업 트리에 보존하며 완료 커밋·푸시·릴리즈는 하지 않았다. 재개 판단 전 자동 실행하지 않는다.
+
+### 목표 재개 전 판정 계약·평가 기준 보완
+
+- 사용자는 전체 목표를 재개하기 전에 평가 기준 고정→정답 관측 진단→같은 영상의 주장 반전→
+  계약 수정과 기존 12사례 검증을 별도 작업으로 지정했다. 전체 목표는 paused 상태를 유지한다.
+  이전 두 구간의 품질 실패 4회+4회와 원출력을 보존한다.
+- 과거 수동 판정의 정정: `13-reasons`와 `13-questions`의 eight-right는 [0,7]을 인용하여
+  실제로 맞는 상대 위치를 설명했다. 주장과 문구가 같다는 이유만으로 이를 탈락시킨 설명은
+  부정확했다. 반면 두 실행의 eight-static은 모두 [0,7]만 인용했으므로 전체 프레임을 다룬
+  근거로는 부족하다. `13-reasons`에서 이 부족을 일관되게 지적하지 않은 점을 정정한다.
+  이 정정으로 과거 실행의 전체 품질 PASS나 실패 횟수를 소급 변경하지 않는다.
+- 현행 inventory에 분류·설명·근거 범위·질문·한국어의 기준과 예/반례를 고정했다.
+  기존 fixture에 주장 반전 3쌍을 추가하고 검증기에 `--diagnostic-text`/
+  `--diagnostic-inversion`을 추가했다. text 진단은 제품 전송을 검증기 안에서 감싸 영상만
+  독립 좌표 관측문으로 바꾸며, 제품 런타임에는 진단 우회 경로를 추가하지 않는다.
+- 로컬 진단 서버 시작은 자동 승인 검토가 두 번 거부했다. 사유는 “4회 실패 후 명시적
+  재개 승인이 없다”이며 최신 준비 작업 지시를 재검토 근거로 제시한 재시도도 거부됐다.
+  서버/모델/진단은 실행되지 않았고, 준비 작업 한정 재승인을 요청했다. 이 시점에는
+  진단 결과를 요구하는 다음 제품 계약 수정·12사례 검증을 시작하지 않았다.
+- 준비 코드 확인: `c++ -std=c++17 -Wall -Wextra -Werror ... -fsyntax-only
+  scripts/internal/va_review_smoke.cpp`, `bash -n scripts/internal/verify_va_review.sh`,
+  wrapper 내 Python `compile`, 진단 파일 링크 및 `git diff --check`는 exit 0이다.
+  제품 동작/모델 품질 검증은 아니다. loopback 23451 listener는 없으며 새 소유 프로세스와
+  실행 fixture root는 만들지 않았다. 커밋·푸시는 수행하지 않았다.
+
+### 명시적 목표 재개 후 주장 판정 계약 수정
+
+- 위 자동 승인 거부 보고 이후 사용자가 “개발 목표 재개”를 명시했다. 목표 active를 확인하고
+  기존 전용 Ollama/PID 37235·loopback 23451을 시작했다. 모델/digest·8192 context·1024 생성·
+  호출당 60초·wrapper 800초·기존 자원 상한은 유지했다. 새로운 모델/외부 호출은 없다.
+- 변경 전 사전 계획한 원인 진단 두 건은 알려진 실패를 구분하기 위한 실행이다.
+  `bash scripts/internal/verify_va_review.sh --diagnostic-text http://127.0.0.1:23451`
+  ([로그](14-baseline-text.log))와 `--diagnostic-inversion` ([로그](14-baseline-inversion.log))은
+  각각 schema 6/6·category 3/6, 반전 쌍 0/3이다. wrapper exit 0은 실행/자원/정리 성공이며
+  품질 PASS가 아니다. 좌표를 정답으로 제공해도 반증 세 건의 사실을 supports에 넣어,
+  영상 인식만으로 설명되지 않는 원 주장 대조 결함을 직접 재현했다.
+- provider v3/adapter `ollama-chat-v3`는 원문을 빠짐없이 덮는 주장별 claim→observations→
+  verdict→실제 네 그룹을 생성한다. supported/contradicted/insufficient와 그룹의 일치를
+  서버도 검사한다. 복합 질문의 지지·반증·부족을 각각 보존하고 네 공개 그룹으로 문장/근거를
+  그대로 합친다. 공개 output/record 형식·수명·권한·시간 한도는 유지한다.
+- [최초 빌드](14-contract-build.log) exit 0, [native](14-contract-native.log) 439 PASS/exit 0.
+  소스 검토 중 허용된 앞뒤 공백 원문까지 보존하도록 보완했고
+  [최종 빌드](14-contract-build-final.log) exit 0,
+  [native](14-contract-native-final.log) 453 PASS/exit 0이다. 미지원/누락 판정, 원문 변조/누락,
+  그룹 불일치, 복합 질문, 전체 부족 confidence, 잘못된 응답에서 출력 불변을 포함한다.
+- 수정 후 같은 `--diagnostic-text`는 [6/6](14-contract-text.log),
+  `--diagnostic-inversion`은 [6/6·쌍 3/3](14-contract-inversion.log), 모두 exit 0이다.
+  직접 검토에서도 각 결과의 좌표/위치 관계·정지 설명·양 끝 참조·한국어가 기대와 일치한다.
+  영상 쌍의 동일 package ID도 확인했다. text 진단 후 앞뒤 공백 수신 처리만 바뀌었으며
+  사용한 공백 없는 여섯 원문·prompt/schema·모델 입력은 동일하므로 해당 진단을 유지한다.
+- 최종 계약 후보의 HTTP/Auth/재시작: [135 PASS·5,868ms·exit 0](14-contract-http.log),
+  세부 정리는 누적 06-http.json에 보존했다. UI 상태: [14 PASS·exit 0](14-contract-ui.log).
+  둘 다 실제 UI 풀테스트가 아니다. 전체 12사례 품질과 실제 모델 취소/종료 결과는 아래에 기록한다.
+- 첫 수정 후보의 [기존 12사례](14-contract-quality.log)는 exit 1이다. schema 12/12,
+  category 8/12, uncertainty 0/4, 질문 0/4로 이번 재개 구간의 품질 실패 1회다.
+  추가로 eight-left 내부 관측문은 마지막 위치를 오른쪽이라고 잘못 기술했으므로,
+  공개 반증이 맞더라도 의미 합격 상한은 7/12다. 단일 이미지에서 정지를 단정하거나
+  가려진 대상이 보이지 않는 것을 이동 주장 반증으로 해석한 네 건을 실패로 보존한다.
+- 후속 후보는 주장별 명시 판정을 유지하면서 evidenceStatus 충분성 단계를 별도로 복원한다.
+  부족이면 insufficient 판정과 unclear/questions, 충분하면 지지/반증만 허용하도록 생성/
+  수신 계약을 함께 수정한다. 이전 후보의 진단 6/6은 이 후보의 최종 품질 PASS가 아니다.
+- 충분성 복원 후보: [빌드](15-sufficiency-build.log) exit 0,
+  [native](15-sufficiency-native.log) 469 PASS/exit 0.
+  [실제 12사례](15-sufficiency-quality.log)는 자동 exit 0·schema 12/12·category 11/12·
+  uncertainty 4/4·questionPresence 4/4지만 직접 품질 검토는 FAIL 2회다.
+  two-static 오분류, eight-left의 잘못된 마지막 위치 관측, one-direction의 단일 프레임
+  “움직임 없음” 단정으로 의미 상한은 9/12다. one-motion/one-direction 질문은 명령형 문장으로
+  실제 질문 조건을 충족하지 못해 질문 합격 상한도 2/4다. 진행 보고에서 정지 비교가 맞다고
+  잘못 말한 부분은 two-static 출력 확인 후 즉시 정정했다.
+- 다음 후보는 충분성/주장 판정을 유지하고, 실제 입력 프레임 수 명시·끝점 비교와 중간
+  구간 이동의 구분·질문형 출력의 생성/수신 제약을 보완한다. 단어 하나를 서버가 덧붙여
+  질문으로 바꾸거나 모델의 분류를 보정하지 않는다. 동일 12사례와 기존 기준을 유지한다.
+- 세 번째 후보: [빌드](16-question-build.log) exit 0,
+  [native](16-question-native.log) 477 PASS/exit 0.
+  [실제 품질](16-question-quality.log) exit 1·FAIL 3회: 앞 네 사례 뒤 two-static에서
+  done_reason=length·58,535ms·잘린 JSON으로 거부됐다. 뒤 일곱 사례는 미실행이다.
+  응답 크기는 2,878byte이며 정제 관측기가 잘린 본문 자체는 보존하지 않았으므로
+  정확히 어느 필드에서 길어졌는지는 이 로그만으로 단정하지 않는다.
+- 추가 확인한 [llama.cpp upstream 변환기](https://github.com/ggml-org/llama.cpp/blob/master/common/json-schema-to-grammar.cpp)는
+  string pattern이 있으면 min/max length 분기보다 먼저 반환한다. 설치된 Ollama 바이너리의
+  동일 구현 여부를 확정한 증거는 아니다. 질문의 `.*`를 제거하고 정규식 자체에 1~159자+
+  물음표 한도를 넣으며 JSON 따옴표/역슬래시/제어문자를 삼키지 않도록 보완한다.
+  수신의 길이/질문 조건과 1,024토큰·60초 한도는 유지한다. 다음 실패면 4회 중단한다.
+- 네 번째 후보: [빌드](17-bounded-build.log) exit 0,
+  [native](17-bounded-native.log) 477 PASS/exit 0.
+  [실제 12사례](17-bounded-quality.log)는 자동 exit 0·schema 12/12·category 11/12·
+  uncertainty 4/4·questionPresence 4/4다. bounded pattern 뒤 JSON 길이 초과는 재발하지 않았고
+  실제 질문형 문장도 생성했으나, 직접 의미 검토는 FAIL 4회다. two-static은 같은 위치를
+  확인하고도 insufficient로 오분류했고, eight-left 관측은 마지막 위치를 오른쪽으로 잘못
+  기술했으며, one-motion 관측은 단일 이미지에서 “정지 상태로 보입니다”라고 추정했다.
+  마지막 두 건은 공개 결과가 각각 반증/부족이어도 내부 관측의 사실 오류를 제외하지 않는다.
+  의미 합격 상한 9/12로 기존 10/12 기준에 미달한다. 자동 exit 0을 전체 품질 PASS로 바꾸지 않는다.
+- 이번 재개 구간은 품질 후보 4회 실패로 중단한다. 앞선 두 구간의 4회+4회도 유지하며,
+  baseline 두 진단은 알려진 결함 재현으로 별도 표기한다. 다섯 번째 수정·실행은 하지 않았다.
+  마지막 자원 gate는 실행됐으며 모델 physical footprint 7,824,957,000byte,
+  native peak RSS 44,154,880byte, fixture workspace 184,260,703byte로 기존 상한 이내다.
+- [정리](17-cleanup.json): 모델 목록 비움, 소유 Ollama PID 37235 종료·tool session exit 0,
+  23451 listener 부재와 이번 14개 실행 fixture root 부재를 확인했다. HTTP 자원 정리는
+  누적 06-http.json에 있다. `/tmp/media-server-v450-contract-ollama.log`는 진단용으로 유지한다.
+  모델 weight와 기존 12/13 구간 서버 로그도 유지했다. 새 커밋·푸시는 하지 않았고,
+  미완료 제품/fixture/정의 변경과 실패 원출력을 작업 트리에 보존했다.
+- 최종 후보의 HTTP·실제 모델 Cancel/Stop·혼합 회귀·독립 검토·장시간·실제 UI·릴리즈는
+  미실행이다. 14 구간 HTTP/상태 UI와 과거 수명 검사를 최종 후보 전체 PASS로 승격하지 않는다.
+  재개 판단에는 관측 사실 오류와 충분성 오판을 안정적으로 분리할 다음 접근의 결정이 필요하다.
+  모델 변경이나 추가 추론 호출·예산 확대는 이번 중단 뒤 자동 적용하지 않았다.
+
+### 원인 분리 조치 적용 재개: 실행 승인 검토 차단
+
+- 사용자가 “조치 내용 적용해서 목표 재개”를 명시했고 목표 active를 확인했다.
+  inventory에 내부 관측·공개 결과·상호 일관성의 구분을 명시했다. 기존 의미 10/12와
+  부족/질문 4/4는 유지하며 과거 실패를 소급 PASS로 변경하지 않았다.
+- 현재 계약 그대로 `--diagnostic-text http://127.0.0.1:23451`을 실행하려 했으나 자동 승인
+  검토가 “4회 실패 이후 새 명시 승인이 없음”으로 거부했다. 최신 사용자 재개 지시와
+  goal active를 명시한 재요청도 같은 이유로 거부됐다. 명령은 실행되지 않았고
+  `18-current-text.log`도 생성되지 않았다. 다른 경로로 우회 실행하지 않았다.
+- 이번에 시작한 전용 Ollama PID 50363은 TERM 후 tool session exit 0, 23451 listener
+  부재를 확인했다. 새 검증 fixture는 생성되지 않았다. 시작 로그
+  `/tmp/media-server-v450-reassessment-ollama.log`와 기존 모델은 보존한다.
+  제품 수정·모델 진단·테스트·커밋·푸시는 이번에 수행하지 않았다. 자동 검토 차단 해소 후
+  현재 계약의 정답 관측문/동일 영상 반전 진단부터 진행해야 한다.
+
+### 로컬 진단 재승인 후 현재 계약 대조
+
+- 사용자가 로컬 진단 실행 요청을 인용해 “승인”했다. 기존 모델/digest와 provider v3를
+  바꾸지 않고 전용 Ollama PID 50990/23451에서 아래 두 명령을 순서대로 실행했다.
+  이전 후보 실패와 자동 승인 거부 이력은 유지한다. 이번 두 실행은 사전 계획한 원인 분리
+  진단이며 수정 후보의 12사례 품질 재검증이 아니다.
+- `bash scripts/internal/verify_va_review.sh --diagnostic-text http://127.0.0.1:23451`:
+  [18-current-text.log](18-current-text.log), exit 0. schema/category/reference 각 6/6,
+  주장 반전 쌍 3/3. 정답 좌표를 주면 충분성·방향·같음/다름 판정이 모두 기대와 일치한다.
+  모델 unloaded와 fixture 제거 확인. 영상 품질 PASS로 사용하지 않는다.
+- `bash scripts/internal/verify_va_review.sh --diagnostic-inversion http://127.0.0.1:23451`:
+  [18-current-inversion.log](18-current-inversion.log), exit 1. schema 6/6,
+  category 5/6·반전 쌍 2/3. 같은 두 이미지에서 “다르다”는 insufficient, “같다”는 supported다.
+  eight-left-right는 내부 관측이 마지막을 오른쪽으로 잘못 기술하지만 공개 반증은 왼쪽으로
+  맞게 설명한다. eight-left-left 내부 관측도 마지막을 중앙 근처로 기술한다(실제 x=64).
+  따라서 정답 텍스트에서는 재현되지 않는 영상 기반 충분성 오판과 내부 관측/공개 결과의
+  불일치가 현재 계약에서 재현됐다. 특정 필드·모델 양자화가 원인이라고 확정하지 않는다.
+- 이미지 진단의 native 종료 이후 wrapper가 `/api/ps` 단회 확인에서
+  `RuntimeError: model runner not unloaded`로 실패했다. 당시 모델 목록 본문은 보존되지
+  않아 목록/해제 지연을 추정하지 않는다. 후속 조회는 `{"models":[]}`였고 자식 PID는 없었다.
+  후속 빈 목록으로 최초 실패를 PASS로 바꾸지 않는다. AGENTS 4장 cleanup 실패 중단 기준에
+  따라 새 제품 수정·검증은 보류했다. 다음 조치 후보는 기존 수명 검사의 해제 5초 기준을
+  품질 wrapper에서도 관측하되 최초 목록/해제 경과를 보존하는 것이다. 아직 적용하지 않았다.
+- [18-cleanup.json](18-cleanup.json): 소유 서버 TERM·tool session exit 0, 23451 listener와
+  두 fixture root 부재 확인. 시작 로그 `/tmp/media-server-v450-approved-diagnostic-ollama.log`
+  및 모델 weight는 유지한다. 이번 제품 변경·커밋·푸시는 없다.
+
+### 모델 해제 관측 보완 승인 후 재개
+
+- 사용자가 “모델 해제 검증기 보완 후 재개 승인”을 인용해 승인했다. 소유 Ollama
+  PID 53458/23451, 기존 weight/digest·한국어·8192 context/1024 출력·60초 호출 한도 유지.
+- wrapper는 native 종료부터 최대 5초 및 기존 800초 이내에서 모델 목록을 관측한다.
+  최초/후속 모델 수와 경과를 기록하고 조회 오류·한도 초과를 실패로 전파한다. 명령/모델
+  재시도나 inference timeout 확대는 없다. 최초 18 구간 실패를 소급 PASS로 변경하지 않는다.
+  실제 모델명/원문 응답 대신 모델 수를 남기며 해제 상태의 시간 관측에 한정한다.
+- 실제 helper를 추출한 합성 clock 검사 [19-unload-helper.log](19-unload-helper.log):
+  즉시/지연 해제, 계속 점유, 늦게 끝난 조회, 조회 오류, wrapper 예산 소진 6건 PASS/exit 0.
+  `bash -n scripts/internal/verify_va_review.sh`, `git diff --check` exit 0.
+- `bash scripts/internal/verify_va_review.sh --diagnostic-inversion http://127.0.0.1:23451`:
+  [19-unload-inversion.log](19-unload-inversion.log) exit 0, 해제 최초 관측 6ms/모델 0개와
+  fixture 제거 확인. 기존 v3 분류 5/6·근거 오류는 유지되며 이번 성공은 실행/해제 검증이다.
+- 첫 수정 후보는 provider v4/adapter v4로 문장을 entries에 한 번 생성하고 모델이 네 그룹에
+  index를 지정한다. 모든 entry의 정확히 한 번 사용·역할·참조·판정 일치를 검사하며 서버는
+  문장을 생성/재분류하지 않는다. 공개 output/record v1은 그대로다. 모든 생성 문장을 평가한다.
+  [20-entry-build.log](20-entry-build.log) 빌드 exit 0,
+  [20-entry-native.log](20-entry-native.log) native exit 0(945 assertion, helper 호출 포함).
+- `--diagnostic-text`: [20-entry-text.log](20-entry-text.log) exit 0, 6/6 및 쌍 3/3,
+  사실·근거 직접 대조 일치. `--diagnostic-inversion`:
+  [20-entry-inversion.log](20-entry-inversion.log) 자동 exit 0, 분류 6/6·쌍 3/3지만
+  eight-left-right의 마지막 위치를 오른쪽으로, eight-left-left를 중앙 근처로 기술했다.
+  같은 위치의 비대칭은 해소됐으나 관측 사실 오류가 남아 후보 품질 FAIL 1회다.
+  실패를 내부 관측 제거로 숨기지 않았고 이 후보의 원래 12사례는 실행하지 않았다.
+- 두 번째 후보는 prompt/schema/모델/PNG 바이트·순서를 유지하고 각 PNG를 index가 명시된
+  개별 user 메시지에 연결한다(adapter v5, provider schema v4 유지). 마지막 메시지에 같은
+  원 질문·전체 시간 metadata를 전달한다. [Ollama chat](https://docs.ollama.com/api/chat)의
+  messages와 [vision](https://docs.ollama.com/capabilities/vision)의 메시지별 images를 사용한다.
+  text 진단은 같은 메시지 경계를 유지하며 이미지만 정답 관측문으로 대체한다.
+- [21-labeled-build.log](21-labeled-build.log) 빌드 exit 0,
+  [21-labeled-native.log](21-labeled-native.log) native exit 0(1,021 assertion, helper 호출 포함).
+  이미지 결속/순서와 기존 오류 거부를 검사했다. 뒤에 미사용된 v3 fixture 인자/출력 변환 코드를
+  제거했으며 모델 요청/판정 경로는 바뀌지 않았다. 현재 helper 소스는 후속 검사에서 다시 컴파일한다.
+- `--diagnostic-inversion`: [21-labeled-inversion.log](21-labeled-inversion.log),
+  `--diagnostic-text`: [21-labeled-text.log](21-labeled-text.log), 각각 exit 0,
+  schema/category/reference 6/6·쌍 3/3. 두 진단의 모든 실제 설명/근거도 기대와 일치한다.
+  8프레임 역순과 동일 위치 반전의 기존 오류가 이번 입력 배치에서 재현되지 않았다.
+  인과는 이 고정 모델/입력 비교 범위에 한정하며 일반 영상 정확성을 보장하지 않는다.
+  영상의 prompt_eval_count는 2프레임 1,619/8프레임 2,741로 기록됐고, 해제/fixture 제거 확인.
+- 같은 계약의 `--local` 원래 12사례 [21-labeled-quality.log](21-labeled-quality.log)는
+  exit 1이다. 앞 6건은 분류·실제 설명이 맞았지만 one-blue를 insufficient로 판단하고
+  동일 missing entry를 unclear/questions에 중복 사용해 제품이 거부했다. 이후 5건 미실행.
+  두 번째 후보 품질 FAIL 2회이며 자동 observer의 outputValidAt8은 제품 수신 성공이 아니다.
+- 다음 수정은 “화면에 보인다”는 존재/색상 주장과 가림/단일 이미지의 상태·시간 변화
+  판단을 구분한다. 부족에는 서로 다른 missing/question이 필요하므로 생성 schema의
+  entries 최소 수도 2개로 맞춘다. 기존 요구·oracle·상한은 변경하지 않았다.
+- [22-visibility-build.log](22-visibility-build.log) exit 2: schema 문자열 결합에서
+  const char 배열끼리 더한 C++ 오류. 빌드 결과 확인 전 요청한 native는
+  [22-visibility-native.log](22-visibility-native.log)에서 product build required로
+  fixture/모델 실행 전에 거부됐다. 두 결과는 같은 빌드 원인의 실패 묶음 1회이며 예상 RED가
+  아니다. 이번 재개 누적 검증 실패는 품질 2회+빌드 1회=3회로 관리한다.
+- 같은 위치를 std::string 결합으로 수정한
+  [22-visibility-build-repair.log](22-visibility-build-repair.log) exit 0 확인 후,
+  [22-visibility-native-repair.log](22-visibility-native-repair.log) native 1,021 assertion/exit 0.
+  `--diagnostic-text` [22-visibility-text.log](22-visibility-text.log)와
+  `--diagnostic-inversion` [22-visibility-inversion.log](22-visibility-inversion.log)는
+  각각 exit 0, 분류/근거 6/6·쌍 3/3. 정적 두 프레임의 동일 위치 표현은 제공된 프레임 범위로
+  평가했으며 미관측 중간 구간이 정지했다는 증명으로 사용하지 않는다.
+- `--local` [22-visibility-quality.log](22-visibility-quality.log) exit 1:
+  schema 12/12·category 9/12·referenceCoverage 12/12·uncertainty 1/4·questionPresence 1/4.
+  one-blue 오류는 해소됐지만 one-motion/one-direction/occluded-final을 반증으로 처리했다.
+  단일 이미지에서 “정지 상태”도 단정했다. 유일한 blank-hidden 질문은 화면 밖 존재 여부만
+  물어 이동 확인의 전후/가림 없는 자료를 요구하는 구체성 기준도 충족하지 않는다.
+  모델 physical footprint 7,816,683,152byte/native RSS 44,204,032byte는 관측값이며,
+  native 실패로 후속 wrapper 자원 합격 gate는 실행되지 않았다.
+- 현재 schema는 `observation` entry 선택 시 supported/contradicted 분기만 남고
+  insufficient 분기는 missing/question만 허용한다. 즉 관측 문장 생성 때 판정 분기가 먼저
+  고정될 수 있다. 세 실패 사례는 실제 observation을 먼저 생성했다. 이 구조 제약은 확인됐지만
+  모든 품질 실패를 단독으로 설명한다고 확정하지 않는다. 추가 수정/실험은 하지 않았다.
+- 품질 실패 3회+빌드 실패 1회로 사용자 중단 조건(동일 단계 3회 초과)에 도달했다.
+  과거 구간 실패 이력도 유지한다. 후속 HTTP/실제 모델 Cancel·Stop/혼합 회귀/독립 검토/
+  장시간/실제 UI/릴리즈는 미실행이다. 미완료 품질 코드는 커밋하지 않았다.
+- 검증 완료된 해제 관측만 선택 stage하여 `455226d97`로 분할 커밋했다. hook 우회 없음.
+  최종 푸시는 수행하지 않았다. [22-cleanup.json](22-cleanup.json): 모델 목록 비움 확인 후
+  소유 PID 53458 TERM·tool session exit 0, 23451 listener와 12개 fixture root 부재 확인.
+  선택 stage용 임시 patch도 삭제했다. `/tmp/media-server-v450-unload-fixed-ollama.log`와
+  기존 모델 weight는 유지한다. 실패 원출력과 미완료 source/정의/fixture는 작업 트리에 보존한다.
+
+### 관측·충분성 계약 분리 승인 후 수정
+
+- 사용자가 원인 분석의 수정 방향(schema/수신 검증 동시 수정, 부분 관측+판단 불가 검증,
+  기존 12사례/합격선 유지)을 승인했다. 과거 실패 이력과 중단 상태를 소급 변경하지 않는다.
+  이번 범위는 계약 수정·관련 단기 검증과 전체 잔여 재산정이며 장시간/릴리즈 실행이 아니다.
+- 앞 절의 “observation을 먼저 생성했다”는 순서 단정은 정정한다. 보존 로그는 파서 출력 순서이며
+  실제 생성 순서의 증거가 아니다. v4 schema의 분기 제약은 확인됐지만 단독 원인으로 확정하지 않는다.
+- provider v5/adapter v6는 entry 유형과 충분성/판정을 공통 schema에서 독립 선택한다.
+  unclear에 부분 observation과 필수 missing을 함께 참조할 수 있고 question은 별도 필수다.
+  모든 entry는 한 번만 공개되며 observation의 프레임 참조, 기존 수신 오류 거부, output/record v1,
+  동일 모델·60초·800초·자원·의미 10/12·부족/구체 질문 4/4 기준을 유지한다.
+- `bash scripts/internal/verify_va_review.sh`: [23-contract-red.log](23-contract-red.log)는
+  sandbox loopback bind PermissionError/exit 1로 예상 RED가 아니다. 소유 root 제거를 확인했다.
+  같은 명령의 sandbox 권한 재실행 [23-contract-red-retry.log](23-contract-red-retry.log)는
+  사전 지정한 `partial observation coexists with insufficient evidence unchanged` assertion에서
+  exit 1인 예상 RED이며 cleanup=true다.
+- `cmake --build build-gst-onnx -j 4`: [23-contract-build.log](23-contract-build.log) exit 0.
+  같은 native 명령의 [23-contract-native.log](23-contract-native.log)는 exit 0,
+  1,096 assertion PASS/0 FAIL이다. 부분 관측+부족 수용, missing 누락/관측 참조 누락 거부,
+  schema 유형/판정 분리와 기존 입력·저장·큐·로컬 HTTP/TLS 회귀를 포함한다. 모델 품질 PASS가 아니다.
+- 텍스트 원인 진단은 기존 주장 반전 6건에 기존 판단 불가 4건을 포함한 10건으로 보완했다.
+  가림은 보이지 않는다고만 기술하며 숨겨진 위치/정답 판정을 입력하지 않는다.
+  inversion 6건과 실제 영상 12건의 독립 oracle·합격선은 유지한다.
+- 전용 Ollama 0.21.0/PID 65326/127.0.0.1:23451, 기존 승인 weight/digest로 실행한다.
+  초기 `/api/ps`는 빈 목록, `OLLAMA_NO_CLOUD=1`·병렬 1·최대 loaded model 1이며 다운로드는 없다.
+- `--diagnostic-text http://127.0.0.1:23451`: [23-contract-text.log](23-contract-text.log)
+  exit 1, schema 5/10·category 1/10·부족/질문 존재 1/4. 부분 관측+부족을 실제로 표현한
+  occluded-final은 수용됐지만 결정 가능한 비교를 부족으로 처리하고 일부는 미참조 entry나
+  question의 unclear 참조로 거부됐다. 이번 첫 계약 후보의 실제 모델 진단 실패다.
+  native 실패로 wrapper 자원 합격 gate는 미실행이다. 소유 root는 제거됐다.
+- 다음 원인 분리 수정은 schema/수신기/프레임 입력/판정 지시/예산을 그대로 두고,
+  SystemPrompt의 단일 insufficient JSON 예시만 제거한다. 예시의 고정 unclear [0,1]과
+  questions [2]가 실제 다른 entry 구성에도 따라 나오는 현상과 부족 편향을 구분한다.
+  문장 추가·합격선 변경·서버 재분류 없이 현재 format schema로 구조를 전달한다.
+- 예시 제거: [24-no-example-build.log](24-no-example-build.log)와
+  [24-no-example-native.log](24-no-example-native.log)는 exit 0(native 1,096/0).
+  [24-no-example-text.log](24-no-example-text.log)는 exit 1, schema/category 3/10,
+  부족/질문 0/4. 예시만 제거해도 불필요한 entry/참조 불일치는 남았으며 원인 해소가 아니다.
+  두 번째 모델 진단 실패다. 두 진단은 영상 품질 실행으로 세지 않는다.
+- 세 번째 후보는 prompt/수신기/입력을 유지하고 schema의 판정별 필수 그룹·충분성 제약을
+  복원한다. 단, 기존 v4와 달리 observation은 세 분기 모두에서 허용하므로 부분 관측이
+  insufficient를 차단하지 않는다. missing/question은 부족 응답에서 허용한다. native는
+  세 분기 모두 observation 가능과 부분 관측+부족 수용을 검사한다. 단순 공통 shape가 허용한
+  필수 질문/부족 이유 누락을 수신기까지 보내는 문제를 제한하며 합격선은 바꾸지 않는다.
+- [25-branch-build.log](25-branch-build.log) exit 0,
+  [25-branch-native.log](25-branch-native.log) exit 0 / 1,124 assertion PASS/0 FAIL.
+- `bash scripts/internal/verify_va_review.sh --diagnostic-text http://127.0.0.1:23451`:
+  [25-branch-text.log](25-branch-text.log) exit 1, schema 9/10·category 6/10·부족/질문 0/4.
+  앞 주장 반전 6건은 분류·좌표 근거가 맞았다. 단일 이미지 이동/방향은 존재·위치 관측을
+  supports로 지정했고, 전체 가림은 안 보인다는 사실을 contradictions로 지정했다.
+  마지막 가림은 insufficient로 선택했으나 observation을 unclear/questions에 중복 참조하고
+  missing과 실제 question을 생성하지 않아 strict 수신기가 거부했다. 의미 품질은 FAIL이다.
+- 부분 관측+판단 불가의 표현/수용 제약은 native와 첫 진단의 실제 응답으로 해소를 확인했지만,
+  최종 모델 응답에서는 주장의 참/거짓과 관측 사실의 참/거짓을 혼동하고 부족 이유/질문 생성도
+  실패한다. schema의 기존 제약을 단독 원인으로 볼 수 없으며 영상이 없는 정답 관측문에서도
+  재현됐다. 모델 변경·자동 재분류·질문 자동 생성·추가 후보는 적용하지 않았다.
+- 이번 구간 실패는 sandbox 실행 오류 1회+실제 모델 진단 3회=4회다. 사전 지정 예상 RED는
+  여기에 포함하지 않는다. 사용자 한도에 따라 새 구현·모델 실행·후속 검증을 중단했다.
+  최신 계약의 영상 반전 6건/실제 영상 12건·HTTP/상태 UI·실제 Cancel/Stop은 미실행이다.
+  과거 22 품질 12사례를 현재 계약의 결과로 승계하지 않는다. 기존 영상 합격선은 그대로다.
+- 마지막 모델 physical footprint 7,642,259,064byte, native RSS 44,466,176byte,
+  작업공간 184,210,819byte는 관측값이다. 진단 실패로 wrapper 자원 합격 gate는 미실행이다.
+- 중단 전에 `./server.sh verify-docs-links` [25-docs.log](25-docs.log) exit 0/failures 0,
+  `git diff --check` 출력 없음. 이후에는 결과·정리 기록과 backlog의 최소 상태만 보존했다.
+- [25-cleanup.json](25-cleanup.json): 모델 목록 비움 확인 후 소유 PID 65326 TERM,
+  서버 session exit 0, PID/23451 listener/이번 fixture root 8개 부재 확인. 종료 확인의 최초
+  ps 조회는 기본 sandbox에서 차단됐으나 권한 조회로 부재를 확인했다. 승인 weight와
+  `/tmp/media-server-v450-separated-contract-ollama.log`는 유지한다.
+- 현재 미완료 제품 변경은 작업 트리에 보존했다. 이번 제품 커밋·push·PR·병합·tag·Release·
+  브랜치 삭제는 미실행이다. 전체 후속 순서/승인 경계는 기존 backlog를 갱신했으며 별도 원장은 없다.
+
+### 잔여 1~2 재개: 주장 요구·관측·평가 분리
+
+- 사용자가 잔여 1~2(판정/부족/질문 오류 해결과 현 계약 진단·영상 12사례)를 재개 승인했다.
+  과거 실패·중단 이력은 유지하며 새 모델/외부 호출/장시간/릴리즈 실행 범위는 추가하지 않았다.
+- provider v6/adapter v7은 claim 다음에 requirement를 생성하고 observations와 evaluation을
+  분리한다. 관측은 판정과 독립적이며 부족 이유/질문은 별도 문장 배열로 직접 생성한다.
+  모든 관측은 한 공개 그룹으로, 모델의 missing은 unclear로 원문 보존한다. 시간 비교를
+  충분하다고 선언하려면 서로 다른 두 프레임 이상의 근거가 필요하다. 위반은 거부하며
+  서버가 판정을 바꾸거나 질문을 만들지 않는다. 모델 requirement 타당성도 의미 검토 대상이다.
+- `cmake --build build-gst-onnx -j 4`: [26-requirement-build.log](26-requirement-build.log) exit 0.
+  `bash scripts/internal/verify_va_review.sh`: [26-requirement-native.log](26-requirement-native.log)
+  exit 0 / 904 assertion PASS/0 FAIL. 관측/평가 분리, 부분 관측+부족 수용, missing/질문 누락,
+  관측 index를 질문 대신 사용, 시간 비교의 단일 근거와 기존 원문/참조/출력 불변 거부를 포함한다.
+  이전 1,124 대비 합성 응답 helper의 반복 assertion 수가 줄었으며 제품 기능 수가 아니다.
+  기존 오류 mode 1~37과 부분 관측 38~40을 유지·새 계약으로 대응하고 41~42를 추가했다.
+- 전용 Ollama PID 70878/127.0.0.1:23451, Ollama 0.21.0, 기존 승인 Qwen 8B Instruct Q4
+  digest/weight를 그대로 사용한다. 초기 모델 목록 0, cloud off·병렬1·최대 loaded1이며
+  새 다운로드는 없다. 호출당 60초·wrapper 800초·14GiB/4GiB/8GiB와 기존 합격선을 유지한다.
+- [26-requirement-text.log](26-requirement-text.log) `--diagnostic-text` exit 1:
+  schema/category 3/10·부족/질문 1/4. 앞 여섯 사례의 원 판정과 좌표 관측은 맞지만 네 사례에서
+  일부 observation을 결과에 연결하지 않아 거부됐다. 단일 이동/방향·전체 가림은 원 verdict가
+  insufficient였으나 실제 수용은 한 건이며, 명령문에 물음표를 붙인 질문도 의미 실패다.
+  마지막 가림은 여전히 반증으로 선택했다. 영상 품질 PASS가 아니며 이번 재개 첫 실패다.
+- 다음 후보(provider v7/adapter v8)는 전체 관측 목록의 observationGroup을 모델이 직접
+  명시하고 서버가 모든 관측을 그대로 그 그룹에 연결한다. 판정에 맞춰 서버가 그룹을 바꾸거나
+  일부 잘못된 관측을 숨기지 않는다. 가림/단일 프레임은 comparisonAvailable 확인을 별도로
+  거치며 false/충분 판정 조합을 schema·수신기에서 거부한다. 질문 객체를 별도 생성하고
+  한국어 의문형 끝맺음을 제한한다. 문법 통과를 질문 구체성 PASS로 사용하지 않는다.
+  기존 합격선·시간·자원은 유지한다. 기존 index 누락 거부는 전체 관측 보존 검증으로 대체되며
+  임의 index 선택 필드와 잘못된 그룹 유형/값은 거부한다. 프레임 index 무결성 검사는 유지한다.
+- [27-evidence-build.log](27-evidence-build.log)와 [27-evidence-native.log](27-evidence-native.log)
+  exit 0, native 941 assertion/0 FAIL. [27-evidence-text.log](27-evidence-text.log) exit 1,
+  schema 10/10·category 9/10·부족/질문 존재 4/4. 연결 누락과 부족 분류는 개선됐으나
+  eight-left-right에서 보이는 두 위치가 있는데 comparisonAvailable=false로 오판했다.
+  blank-hidden 질문은 열거 반복 후 문장이 깨졌고 occluded-final 질문은 필요한 가림 없는 시야를
+  명시하지 않았다. 자동 질문 존재 4/4를 구체적 질문 품질 PASS로 취급하지 않는다. 이번 두 번째 실패다.
+- 세 번째 후보는 schema 구조/모델/입력/예산을 유지하고 비교 가능 여부가 주장 참/거짓과
+  독립임을 명시한다. 질문은 시간 부족의 전후 자료·가림의 보이는 시야를 구체적으로 묻도록 한다.
+  직전 후보의 좁은 “있나요/가능한가요” 끝맺음은 자연스러운 “있는가요”에서 종료하지 못하고
+  반복을 이어가는 응답과 함께 관측됐다. 의문형 나요/가요/습니까/까요를 생성·수신에서 허용하며
+  명령형+물음표는 여전히 거부한다. 기존 의미/구체성/Korean 합격선은 변경하지 않는다.
+- [28-comparison-build.log](28-comparison-build.log)와 [28-comparison-native.log](28-comparison-native.log)
+  exit 0, native 973 assertion/0 FAIL. [28-comparison-text.log](28-comparison-text.log) exit 1,
+  schema 10/10·category 8/10·부족/질문 존재 3/4. eight-left-right의 비교 불가 오판이 남고
+  occluded-final은 반증으로 회귀했다. 질문은 반복 명령문 뒤 “빨간나요?”, “프나요?” 등으로
+  깨졌으며 의미 FAIL이다. 이번 세 번째 실패로 영상 단계는 보류했다. fixture root 회수와
+  모델 목록 0을 확인했다. suffix 문법만 바꾸는 접근은 충분하지 않았다.
+- 마지막 후보(provider v8/adapter v9)는 비교 가능 boolean 대신 비교할 대상 상태가 실제
+  보이는 comparableFrameIndices를 모델이 직접 생성한다. 충분한 시간 비교는 서로 다른
+  관측 근거 두 개 이상을 요구하고, 부족 응답은 두 개 이상도 허용하여 다른 근거 부족을
+  표현한다. 서버는 목록을 검증할 뿐 판정을 재분류하지 않는다. 질문 생성의 suffix regex는
+  제거하되 수신 의문형 검증·명령형 거부와 기존 구체성/한국어 품질 기준은 유지한다.
+  정확한 좌표와 비교 불가 판정의 혼동, 강제 suffix와 반복 질문을 각각 확인하는 후보다.
+  기존 10/6/12사례·모델·호출 수·합격선·예산은 유지한다. 추가 실제 실패 시 사용자 한도에
+  따라 새 구현·검증을 중단하고 소유 자원 회수 및 최소 기록만 수행한다.
+- `cmake --build build-gst-onnx -j 4` [29-frame-evidence-build.log](29-frame-evidence-build.log)
+  exit 0. `bash scripts/internal/verify_va_review.sh`
+  [29-frame-evidence-native.log](29-frame-evidence-native.log) exit 0 / 1,063 assertion PASS/0 FAIL.
+  비교 프레임 중복/범위/유형·관측에 없는 index 거부, 두 관측의 충분 판정과 두 프레임이
+  있어도 다른 근거가 부족한 응답 수용, 질문 suffix grammar 부재·수신 명령형 거부를 확인했다.
+- `bash scripts/internal/verify_va_review.sh --diagnostic-text http://127.0.0.1:23451`
+  [29-frame-evidence-text.log](29-frame-evidence-text.log) exit 1. 최종 수용 기준으로
+  schema 7/10·category 6/10·referenceCoverage 7/10·부족/질문 존재 0/4다.
+  앞 주장 반전 6건은 모두 맞았고 eight-left-right의 비교 프레임은 [0,7]로 회복됐다.
+  one-motion/one-direction은 원 verdict가 insufficient였으나 질문 대신 “확인해 주세요.”를
+  생성하여 수신 거부됐다. blank-hidden도 원 verdict는 insufficient지만 “존재하지 않아”라는
+  사실 미확인 설명과 보이지 않는 프레임 [0,1]을 비교 근거로 만들었고 질문 끝맺음도 실패했다.
+  occluded-final은 보이지 않는 마지막 프레임을 비교 가능 근거로 포함해 여전히 contradicted다.
+  분류 필드만 9/10 일치한 것을 의미/완성 결과 PASS로 사용하지 않는다. 질문 반복은 줄었으나
+  실제 의문문 생성 실패가 드러났고, schema 변경만으로 가림/부재 혼동이 해소되지 않았다.
+- 이번 재개는 모델 진단 묶음 4회 FAIL이다. 내부 빌드/native PASS를 품질 진척 완료로 세지 않으며,
+  사용자 “동일 스텝 3번 초과 실패 시 중단” 한도에 따라 새 수정/실행을 멈췄다.
+  현재 계약의 영상 반전 6건·실제 영상 12건은 선행 진단 실패로 미실행이다. 과거 영상 결과를
+  승계하지 않는다. HTTP/API/Auth·UI·실제 모델 Cancel/Stop도 이번 계약으로 재검증하지 않았다.
+- 마지막 native peak RSS 44,515,328byte, 모델 physical footprint 7,645,585,040byte,
+  작업공간 184,226,499byte는 관측값이며 진단 실패로 wrapper의 최종 자원 합격 gate는 미실행이다.
+  호출당 60초·전체 800초·num_ctx 8192·num_predict 1024·temperature 0·기존 모델/품질선은 유지했다.
+- 마지막 진단 전 `./server.sh verify-docs-links` [29-docs.log](29-docs.log) exit 0/failures 0,
+  `node --check scripts/internal/va_review_http_checks.mjs` exit 0, `git diff --check` 출력 없음.
+  중단 이후에는 소유 자원 종료와 최소 실행/잔여 기록 보존만 수행한다.
+- [29-cleanup.json](29-cleanup.json): 모델 목록 0 확인 뒤 소유 PID 70878 TERM, 서버 session
+  exit 0. PID/23451 listener와 이번 26~29 fixture root 8개 부재 확인. 승인 weight와
+  `/tmp/media-server-v450-requirement-ollama.log`는 유지한다. cleanup 미확인은 없다.
+- 제품 변경은 미완료 상태로 작업 트리에 보존한다. 이번 추가 커밋/push는 하지 않았으며
+  HEAD `455226d97` 유지, 로컬 tracking 기준 ahead 4(원격 최신 재조회 아님)다.
+  잔여 1~2는 완료되지 않았고 릴리즈 blocker다. 전체 잔여 순서·승인 경계는 backlog에 갱신했다.
+
+### 잔여 1~2 재개: 생성 구조를 모델 입력에도 명시
+
+- 사용자가 1~2 완료와 후속 이슈 재산정을 지시했다. 기존 실패 이력과 3회 초과 시 중단 조건을
+  유지한다. 새 모델/외부 provider·호출 확대·시간/품질 완화는 하지 않는다.
+- 직전 소스는 schema를 format에만 전달했다. [Ollama 구조화 출력 문서](https://docs.ollama.com/capabilities/structured-outputs)는
+  응답 근거를 위해 schema 문자열을 prompt에도 전달하도록 권장한다. 이 누락이 의미 실패의
+  단독 원인이라고 단정하지 않으며, 동일 schema를 실제 모델 입력에도 제공하는 후보를 검사한다.
+  지시는 간결하게 정리하고 가림/부재 구분, 실제 한국어 의문문 예시(차량/문)를 제공한다.
+  fixture의 좌표·색상·정답은 prompt에 넣지 않는다. provider v8/adapter v9 수신 계약과
+  공개 output/record v1은 유지하고 prompt hash로 후보를 구분한다.
+- 먼저 build/native의 schema 입력 일치 및 기존 거부/보존 계약을 확인한 뒤 기존 text 10건,
+  영상 반전 6건, 영상 12건을 순차 수행한다. 선행 의미 실패는 다음 단계 PASS로 대체하지 않는다.
+  60초/800초, 8192 context/1024 생성, 기존 자원·합격선과 승인 모델을 그대로 유지한다.
+- [30-schema-grounded-build.log](30-schema-grounded-build.log) exit 0,
+  [30-schema-grounded-native.log](30-schema-grounded-native.log) exit 0 / 1,064 assertion PASS.
+  [30-schema-grounded-text.log](30-schema-grounded-text.log) exit 1: 앞 6건은 최종 category가 맞지만
+  static-different/static-same의 requirement가 single-frame-state라 내부 의미 FAIL이다.
+  7번째 one-motion은 60,058ms review-timeout으로 중단했으며 나머지 3건은 미실행이다.
+  timeout 응답 본문은 없으므로 정확한 반복 필드나 token 수는 추정하지 않는다. 최초 정답 관측
+  2프레임 입력은 prompt 2,804 tokens/27,268ms였으며 이전 후보보다 큰 입력을 직접 확인했다.
+  모델 목록 비움·fixture 회수 확인. 이번 재개 첫 실패이며 시간 한도를 늘리지 않는다.
+- 다음 후보는 반복된 evidence shape를 $defs로 공유하되 format과 모델 입력의 schema 일치를
+  유지한다. 컵/불투명 상자의 완전한 부족 응답 예시로 실제 관측·보이지 않는 상태·질문 역할을
+  보여 준다. fixture의 도형/색상/좌표·정답은 넣지 않고 정지 비교도 temporal이라는 의미를
+  명확히 한다. 수신기·공개 계약·고정 사례·예산/합격선은 그대로다.
+- 전용 Ollama PID 79978/127.0.0.1:23451, 초기 모델 목록 0, Ollama 0.21.0,
+  기존 승인 Qwen 8B Q4 digest/6,140,415,975byte weight를 사용한다. cloud off·병렬1·loaded1,
+  신규 다운로드 없음. 서버 로그 `/tmp/media-server-v450-schema-grounded-ollama-79978.log`.
+- [31-grounded-example-build.log](31-grounded-example-build.log) exit 0,
+  [31-grounded-example-native.log](31-grounded-example-native.log) exit 0 / 1,070 assertion PASS.
+  [31-grounded-example-text.log](31-grounded-example-text.log) exit 1. 앞 6건은 requirement와
+  실제 좌표 관계·원 주장 분류 모두 맞아 static의 내부 오류도 해소됐다. 그러나 one-motion에서
+  다시 60,055ms review-timeout이며 뒤 3건은 미실행이다. 두 번째 실패다.
+- 새 후보를 추측해서 반복하기 전에 같은 소스의 SystemPrompt/Schema/reminder를 직접
+  추출하고 one-motion 정답 관측문 한 건을 stream=true로만 바꿔 최대 60초 관측한다.
+  첫 부분에서 반복/필드 혼동이 보이는지와 정상적으로 짧게 종료하는지를 구분한다.
+  1024 생성/8192 context/temperature0/keep_alive0 유지, 임시 컴파일 60초 이내, 실제 제품
+  비스트리밍의 합격 증거로 사용하지 않는다. 합성 본문만 보존하고 소유 임시 root를 회수한다.
+- [32-one-motion-stream-diagnostic.json](32-one-motion-stream-diagnostic.json): 관측 script exit 0,
+  모델 응답은 60,001ms에 미완료/TimeoutError. 제품 품질 PASS가 아니다. 첫 assessment는 실제
+  부분 관측+insufficient+의문문을 생성했으나, 동일 claim/assessment를 완성된 형태로 6회 반복하고
+  7번째를 쓰다가 한도에 도달했다. 이는 stream=true 경로에서 직접 관측한 반복이며 앞 두
+  nonstream timeout의 본문을 소급 복원한 것은 아니다. 임시 컴파일 root 제거 확인.
+  이번 재개에서 제품 진단 실패 2회와 이 추가 timeout 관측 1회를 보수적으로 세어 3회로 둔다.
+- 다음 후보는 기존 claim 원문 순차 소비 계약을 생성 지시에도 명시하여 단일 주장은 assessment
+  하나만 생성하고 원문을 다루었으면 배열/JSON을 끝내도록 한다. schema의 uniqueItems도
+  명시하되, 디코더의 중복 방지 보장은 주장하지 않는다. 수신기의 중복/누락 거부는 유지하고
+  출력 일부만 잘라 성공시키거나 질문을 보정하지 않는다. 질문에는 시간 비교의 전후 상태와
+  가림 없는 시야를 구체적으로 묻도록 한다. 실제 추가 실패 시 현재 한도에 따라 중단한다.
+- [33-single-coverage-build.log](33-single-coverage-build.log) exit 0,
+  [33-single-coverage-native.log](33-single-coverage-native.log) exit 0 / 1,071 assertion PASS.
+  [33-single-coverage-text.log](33-single-coverage-text.log) exit 1: schema/category/referenceCoverage
+  9/10, uncertainty/questionPresence 3/4. 10건 모두 60초 안에 응답했지만 품질 FAIL이다.
+  앞 6건의 요구 종류·좌표 관계·분류는 맞았다. one-motion은 원문 전체를 같은 assessment로
+  두 번 생성하여 수신기가 거부했고, 단일 프레임의 위치를 “고정되어 있습니다”라고 추정했다.
+  따라서 종료 지시와 uniqueItems만으로 중복 생성이 방지됐다고 볼 수 없다.
+- 실제 질문/근거 검토: one-motion은 다른 프레임에서 변화가 보이지 않느냐는 유도 질문으로
+  필요한 자료 확보 질문이 아니다. one-direction은 대상이 있는 다른 프레임만 묻고 전후 상태
+  비교를 구체화하지 않는다. blank-hidden은 대상이 전혀 안 보이는 [0,1]을 비교 근거로 지정하고
+  다시 가려진 대상의 존재를 확인할 프레임을 물어 이동 판단의 부족을 해소하지 못한다.
+  occluded-final도 보이지 않는 프레임 1을 비교 근거에 넣고, 이동 위치가 아닌 가림 여부만 묻는다.
+  마지막 두 사례의 원 verdict는 insufficient로 바뀌었지만 내부 근거/질문 오류를 숨기고
+  완성 품질 PASS로 처리하지 않는다. questionPresence 3/4는 구체적인 질문 합격률이 아니다.
+- 이번 구간은 제품 text 묶음 FAIL 3회(30/31/33)와 한 건의 추가 timeout 관측(32)이다.
+  앞서 명시한 보수적 실행 실패 집계 4회에 따라 새 구현·검증을 중단했다. 32는 관측 script
+  exit 0/품질 PASS 아님으로 구분하며 이를 제품 suite FAIL 4회라고 바꾸어 기록하지 않는다.
+  현 소스의 영상 반전 6건·영상 12건은 미실행이며 이전 버전의 영상 증거를 승계하지 않는다.
+  API/UI·실제 모델 Cancel/Stop·장시간·독립 검토·릴리즈는 이번 범위에서 실행하지 않았다.
+- 마지막 native peak RSS 44,531,712byte, 모델 physical footprint 7,635,590,728byte,
+  작업공간 184,232,965byte는 관측값이다. 실패로 wrapper 최종 자원/해제 합격 gate는 미실행이며
+  이후 실제 모델 목록 비움을 별도 정리로 확인했다. 한도나 합격선은 확대하지 않았다.
+- 마지막 실행 전에 [33-docs.log](33-docs.log) 문서 링크 검사 exit 0/failures 0,
+  git diff --check 출력 없음. 중단 뒤에는 최소 결과·잔여 기록과 소유 자원 정리만 수행했다.
+- [33-cleanup.json](33-cleanup.json): 모델 목록 0 확인 후 소유 PID 79978 TERM, 서버 session
+  exit 0, PID/23451 listener 부재. native/text root 6개와 단일 관측 root 1개, 총 7개 부재 확인.
+  승인 weight와 서버 log는 유지한다. 추가 커밋/push 없음, HEAD 455226d97 그대로다.
+- 잔여 1은 중복 생성의 구조적 종료 보장, 관측 가능한 비교 근거, 부족을 해소할 구체적 질문으로
+  다시 좁혔다. 단순 종료 지시/uniqueItems의 충분성은 이번 응답으로 반증됐으며 추가 형식
+  재설계가 필요하다. 잔여 2의 고정 text 10/영상 반전 6/영상 12와 이후 릴리즈 순서는 backlog를 따른다.
+
+### 제한된 내부 계약 보완: 사용자 지정 네 단계
+
+- 이번 요청이 기존 중단을 해당 범위에서만 해제했다. 원격/HEAD는 `455226d975ebecae72c23c09275af6a2bba7313e`,
+  index는 비었고 로컬 11개 수정 및 12~33 실행 자료 109개가 존재했다. 원격 영문 단일 결과를
+  기준으로 되돌리지 않았다. [출발 diff](34-local-start.patch)와 [기존 파일/증거 hash](34-local-start.json)에
+  실제 로컬 출발점을 보존했다. 33 로그의 A 중복·B 보이지 않는 비교 근거·C 다른 목적 질문을
+  반례로 고정했다. 새 native 반례는 보존된 필드 값을 새 wire로 표현하며 수집되지 않은 원응답을 복원하지 않는다.
+- 실제 설치 client `ollama 0.21.0`, 승인 manifest SHA `0533d74300e4f9bc367d675d4e64ffd073d50ff16a2b4096cc2e8a1cf8c96319` 확인.
+  설치에는 실행 바이너리만 있고 독립 grammar 검사 도구는 없다. 공식 v0.21.0의
+  [SchemaToGrammar 경로](https://github.com/ollama/ollama/blob/v0.21.0/llama/llama.go)와 실제 `/api/chat` format 전달을 대조한다.
+  합성 transport/schema 선언 확인을 설치 decoder의 강제 검증 PASS로 기록하지 않는다.
+- 2/4는 provider v9/adapter v10: 제한된 claim key, 입력 범위 frame key, 속성/대상/시각 연결,
+  claim에 종속된 gap/질문을 구현한다. 자유 질문의 의미 분할은 모델 담당이며 정확한 입력 claim 수를
+  생성 전에 확보한 것은 아니다. 공개 v1·PNG·worker/권한·모델/options/60초/800초는 유지한다.
+- 3/4는 V450-K03 반례와 직접 영향만, 4/4는 고정 source에서 text10→반전6→영상12 각각 최대1회다.
+  품질 실패 뒤 재수정/모델 재호출 없이 증거·미완료 체크포인트를 보존하고 일반 push한다.
+  전체 acceptance/장시간/UI 풀테스트/PR/main/tag/Release는 이번에 실행하지 않는다.
+- 2/4 구현은 [현재 계약](../../superpowers/specs/2026-10-05-v450-va-review-design.md#입력과-결과)에 반영했다.
+  생성 단계는 제한된 c0~c15/f0~fN/gap 객체와 필드/길이/범위를 제공한다. 원문 coverage,
+  visibility/property·identity/time·scope/gap의 상호 일치는 수신기에서 확인한다. 특히 scope와 gap의
+  조합은 아직 생성 schema가 결박하지 않으므로 수신 거부가 생성 품질 해결을 뜻하지 않는다.
+- 3/4 `cmake --build build-gst-onnx -j 4` [build](34-contract-build.log) exit 0,
+  `bash scripts/internal/verify_va_review.sh --contract-only` [focused](34-contract-focused.log) exit 0/162,
+  동일 명령의 기본 [native](34-contract-native.log) exit 0/368, `--http-only`
+  [HTTP](34-contract-http.log) exit 0/135. 기존 worker·권한·PNG/hash·저장·취소·자원 회수와
+  adapter v1~v10 record byte roundtrip을 검사했다. 실행 중 코드 오류/재실행은 없었다.
+  검사 개수는 반복적인 이전 schema assertion의 개수와 품질 지표로 비교하지 않는다.
+  문서 링크 [34-docs.log](34-docs.log) exit 0/failures 0, node/bash syntax와 diff 확인을 수행했다.
+- 4/4 시작 전에 [18개 source/기준·binary·모델/options 고정](34-evaluation-freeze.json)을 남겼다.
+  전용 server 0.21.0/PID 88661/23451, 승인 모델 digest와 초기 model 목록 0을 확인했다.
+  `--diagnostic-text http://127.0.0.1:23451` [실제 원응답/수신 사유/공개 결과](34-contract-text.log)는
+  1회/10호출/exit 1이다. 사례별 여섯 축·직접 의미 검토·실행 수·자원은
+  [구조화 평가](34-evaluation.json)에만 상세히 둔다. 같은 구현 assistant가 검토했으며 독립 검토가 아니다.
+- 이번 표본은 모두 c0 한 번과 정상 stop JSON을 생성했고 숨겨진 위치값은 null이었다.
+  실제 관측문과 원 verdict는 맞았으나 one-motion/one-direction의 single+additional-frame,
+  occluded-final의 endpoints+unobserved-interval이 충돌하여 수신기가 거부했다.
+  질문은 시간 순서를 둔 위치 비교/가림 없는 자료 확보 대신 다른 위치·원 주장 확인을 묻거나
+  이동을 전제했다. 질문의 필요 필드가 연결됐어도 실제 질문 의미는 해결되지 않았다.
+- 고정 텍스트 gate FAIL에 따라 영상 반전 6건·영상 12건은 notRun이다. 모델·예시·prompt/schema를
+  다시 고치거나 두 번째 품질 실행을 하지 않았다. A/B의 이번 표본 진척을 일반 영상 품질이나
+  decoder의 부정 사례 강제 검증으로 확대하지 않는다. 코드 고정 후 source hash는 모두 일치한다.
+- 후속 검토점은 scope/요구 관계와 gap을 생성 시 함께 제한하는 계약, 중립적인 실제 근거 확보 질문이다.
+  추가로 unobserved-property 검사가 identity 불명과 관측 불가의 공존을 과도하게 거부할 가능성을
+  코드에서 확인했다. 이번 실제 응답은 그 gap 조합을 쓰지 않았으며 추가 실행/수정은 하지 않는다.
+- [정리](34-cleanup.json): 모델 목록 0 후 전용 server TERM/session exit 0, PID/23451 부재,
+  native/HTTP/text fixture 5개와 소유 구현 임시 파일 2개 부재, 기본 `.media_server/recordings`는
+  전후 모두 부재다. weight/server log는 유지한다. 실패로 wrapper의 최종 자원/5초 해제 gate는
+  미실행이며 뒤의 model 목록 0 관측을 5초 gate PASS로 대체하지 않는다.
+- 품질 미완료 체크포인트와 실행 증거를 분리해 커밋한다. 원격 기준 차이·검증 대상은 위 freeze와
+  출발 patch로 추적하며 증거 커밋 때문에 모델을 재실행하지 않는다. v4.5.0 릴리즈 완료가 아니다.
+- 코드 체크포인트 `4bc437a64041f34aed587e60d63bb3fff99af3db`의 18개 평가 source/기준 파일 hash가 freeze와 모두 일치한다.
+  실행 증거와 과거 실패 원본은 후속 보존 커밋으로 분리하며 일반 push 뒤 실제 원격 SHA는 최종 보고에서 확인한다.

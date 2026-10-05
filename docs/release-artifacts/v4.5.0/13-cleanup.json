@@ -1,0 +1,45 @@
+{
+  "ownedOllamaPid": 28215,
+  "modelsBeforeStop": [],
+  "processAbsent": true,
+  "port": 23451,
+  "listenerAbsent": true,
+  "fixtures": [
+    {
+      "log": "13-decision-quality.log",
+      "root": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-va-review-qwrbbjai",
+      "absent": true
+    },
+    {
+      "log": "13-reasons-quality.log",
+      "root": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-va-review-6h6hwkyp",
+      "absent": true
+    },
+    {
+      "log": "13-questions-quality.log",
+      "root": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-va-review-26b7i47t",
+      "absent": true
+    },
+    {
+      "log": "13-fields-quality.log",
+      "root": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-va-review-jm6a0ghg",
+      "absent": true
+    },
+    {
+      "log": "13-decision-native.log",
+      "root": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-va-review-58bzddpp",
+      "absent": true
+    },
+    {
+      "log": "13-fields-native.log",
+      "root": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-va-review-peeq2eue",
+      "absent": true
+    },
+    {
+      "log": "13-decision-http.log",
+      "root": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-va-review-ewyy4j67",
+      "absent": true
+    }
+  ],
+  "retainedServerLog": "/tmp/media-server-v450-decision-ollama.log"
+}

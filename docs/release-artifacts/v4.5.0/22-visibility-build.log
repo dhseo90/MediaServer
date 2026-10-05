@@ -1,0 +1,8 @@
+[  0%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/va_review_provider.cpp.o
+/Users/dhseo/Workspace/mediaServer/src/recording/va_review_provider.cpp:26:289: error: invalid operands to binary expression ('const char[262]' and 'const char[2]')
+   26 |     std::string value=R"({"type":"object","additionalProperties":false,"required":["claim","entries","evidenceStatus","verdict","supports","contradictions","unclear","questions"],"properties":{"claim":{"type":"string","minLength":1,"maxLength":512},"entries":{"type":"array","minItems":)"+(verdict=="insufficient"?"2":"1")+R"(,"maxItems":32,"items":{"anyOf":[)"+
+      |                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1 error generated.
+make[2]: *** [CMakeFiles/media_server_runtime.dir/src/recording/va_review_provider.cpp.o] Error 1
+make[1]: *** [CMakeFiles/media_server_runtime.dir/all] Error 2
+make: *** [all] Error 2

@@ -1,0 +1,100 @@
+[fixture] /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-va-review-qwrbbjai
+[source] include/recording/va_review_input.h 543fcaf1fd950927455e402b45f3747cdb95c81b8521daa4eb22ce4b87c1cc00
+[source] include/recording/va_review_provider.h f69c63c8b209dfa2d1daa01868f4c72de0494ee3785b3b0edba850daf4198076
+[source] include/recording/va_review_record.h 96f5ac21c232d0b7efcadc94d8472ea980e1c8828577753c77f892210059c27d
+[source] include/recording/va_review_service.h c3c6f9c4a7ebab259af79b2ff16bf1f1e94a0c776d6f612e88cdcb27e9be0baa
+[source] include/recording/va_review_store.h fcfad2a1c692321f5331b014357686abf871ab1b727ebc8093b5d339efc8c80a
+[source] scripts/internal/va_review_quality_fixture.h cd1a2920aead6c05aa8554c4d12680d5f78dfdf46ebbbeeb135bb065e2b48bea
+[source] scripts/internal/va_review_smoke.cpp f29b4d2cb00b52365472196d52bde2eeee4c350166b88839eb19b33bac589f73
+[source] scripts/internal/verify_va_review.sh 99b6e7c657222f491e2e375176890632d629b675b33344b818a8dff9f89fe3d6
+[source] src/recording/va_review_input.cpp 840df39c6fc11ca99748f55dd1c55d598e060467354dd8fd0a48b1b197cd58f1
+[source] src/recording/va_review_json.h 835cf40e95a3be8297ccf6edde1fbcf7c8aa5ffda3169f368195bc5667d065f3
+[source] src/recording/va_review_provider.cpp 998bc34c5fb766a6ef0abfa53832a2d1b94054360d31fe30caac12a24d4cb493
+[source] src/recording/va_review_record.cpp b846b1a7b8da0a933d3967073f5de91db279ad2bb53302cf998c9ffcedd1e102
+[source] src/recording/va_review_service.cpp 22777f26753c6ea64f65daaa603633a02bc0fd98036ce02460b84887a4edef0d
+[source] src/recording/va_review_store.cpp 27cb631652d84eb98776cf0493959205fdb4888517cb70b6cc8e1d5a4108a0a4
+[source] src/recording/va_review_transport.cpp c38058cffb6cca2b291d6de52bdbdd0c7298b308699c8291f6c242884090a422
+[pass] V450-L01 quality evidence ready
+[pass] V450-L01 quality worker ready
+[pass] V450-L01 fixture two-right
+[pass] V450-L01 submit two-right
+[provider-shape] json=1 done=1 model="qwen3-vl:8b-instruct-q4_K_M" reason="stop" role="assistant" contentBytes=426 outputValidAt8=1 fields="observations","evidenceStatus","schema","supports","contradictions","unclear","questions","confidence", supportsCount=1 questionsCount=0 contradictionsCount=0 unclearCount=0 confidence=1.0 observation="프레임 0에서 빨간 사각형은 왼쪽에 있고, 프레임 1에서 오른쪽에 위치함. 실제 위치 변화 확인됨." evidenceStatus="sufficient"
+[synthetic-output] {"schema":"media-server.va-review-output.v1","supports":[{"text":"마지막 프레임의 빨간 사각형은 첫 프레임의 위치보다 오른쪽에 있다.","frameIndices":[1]}],"questions":[],"contradictions":[],"unclear":[],"confidence":1}
+[quality] {"case":"two-right","expected":"supports","schemaValid":true,"categoryPass":true,"elapsedMs":13921,"error":"","modelDigest":"0533d74300e4f9bc367d675d4e64ffd073d50ff16a2b4096cc2e8a1cf8c96319","output":{"schema":"media-server.va-review-output.v1","supports":[{"text":"마지막 프레임의 빨간 사각형은 첫 프레임의 위치보다 오른쪽에 있다.","frameIndices":[1]}],"questions":[],"contradictions":[],"unclear":[],"confidence":1}}
+[pass] V450-L01 real model schema two-right 
+[pass] V450-L01 fixture two-left
+[pass] V450-L01 submit two-left
+[provider-shape] json=1 done=1 model="qwen3-vl:8b-instruct-q4_K_M" reason="stop" role="assistant" contentBytes=591 outputValidAt8=1 fields="observations","evidenceStatus","schema","supports","contradictions","unclear","questions","confidence", supportsCount=0 questionsCount=1 contradictionsCount=0 unclearCount=1 confidence=null observation="프레임 0에서 빨간 사각형은 오른쪽에 위치하고, 프레임 1에서 왼쪽으로 이동해 나타남. 마지막 프레임은 첫 프레임보다 오른쪽에 있지 않음." evidenceStatus="insufficient"
+[synthetic-output] {"schema":"media-server.va-review-output.v1","supports":[],"questions":[{"text":"프레임 0에서 빨간 사각형의 정확한 위치를 확인할 수 있는지?","frameIndices":[0]}],"contradictions":[],"unclear":[{"text":"프레임 0에서 빨간 사각형이 오른쪽에 있었는지 확인할 수 없음.","frameIndices":[0]}],"confidence":null}
+[quality] {"case":"two-left","expected":"contradictions","schemaValid":true,"categoryPass":false,"elapsedMs":16324,"error":"","modelDigest":"0533d74300e4f9bc367d675d4e64ffd073d50ff16a2b4096cc2e8a1cf8c96319","output":{"schema":"media-server.va-review-output.v1","supports":[],"questions":[{"text":"프레임 0에서 빨간 사각형의 정확한 위치를 확인할 수 있는지?","frameIndices":[0]}],"contradictions":[],"unclear":[{"text":"프레임 0에서 빨간 사각형이 오른쪽에 있었는지 확인할 수 없음.","frameIndices":[0]}],"confidence":null}}
+[pass] V450-L01 real model schema two-left 
+[pass] V450-L01 fixture eight-right
+[pass] V450-L01 submit eight-right
+[provider-shape] json=1 done=1 model="qwen3-vl:8b-instruct-q4_K_M" reason="stop" role="assistant" contentBytes=430 outputValidAt8=1 fields="observations","evidenceStatus","schema","supports","contradictions","unclear","questions","confidence", supportsCount=1 questionsCount=0 contradictionsCount=0 unclearCount=0 confidence=1.0 observation="프레임 0에서 빨간 사각형은 왼쪽에 있고, 프레임 7에서 오른쪽에 위치함. 색상은 빨강, 배경은 회색." evidenceStatus="sufficient"
+[synthetic-output] {"schema":"media-server.va-review-output.v1","supports":[{"text":"마지막 프레임의 빨간 사각형은 첫 프레임의 위치보다 오른쪽에 있다.","frameIndices":[7]}],"questions":[],"contradictions":[],"unclear":[],"confidence":1}
+[quality] {"case":"eight-right","expected":"supports","schemaValid":true,"categoryPass":true,"elapsedMs":22133,"error":"","modelDigest":"0533d74300e4f9bc367d675d4e64ffd073d50ff16a2b4096cc2e8a1cf8c96319","output":{"schema":"media-server.va-review-output.v1","supports":[{"text":"마지막 프레임의 빨간 사각형은 첫 프레임의 위치보다 오른쪽에 있다.","frameIndices":[7]}],"questions":[],"contradictions":[],"unclear":[],"confidence":1}}
+[pass] V450-L01 real model schema eight-right 
+[pass] V450-L01 fixture eight-left
+[pass] V450-L01 submit eight-left
+[provider-shape] json=1 done=1 model="qwen3-vl:8b-instruct-q4_K_M" reason="stop" role="assistant" contentBytes=445 outputValidAt8=1 fields="observations","evidenceStatus","schema","supports","contradictions","unclear","questions","confidence", supportsCount=0 questionsCount=0 contradictionsCount=1 unclearCount=0 confidence=0.99 observation="프레임 0에서 빨간 사각형은 오른쪽에 위치하고, 프레임 7에서 왼쪽으로 이동해 오른쪽보다 왼쪽에 있습니다." evidenceStatus="sufficient"
+[synthetic-output] {"schema":"media-server.va-review-output.v1","supports":[],"questions":[],"contradictions":[{"text":"마지막 프레임의 빨간 사각형은 첫 프레임의 위치보다 오른쪽에 있다.","frameIndices":[0,7]}],"unclear":[],"confidence":0.98999999999999999}
+[quality] {"case":"eight-left","expected":"contradictions","schemaValid":true,"categoryPass":true,"elapsedMs":22792,"error":"","modelDigest":"0533d74300e4f9bc367d675d4e64ffd073d50ff16a2b4096cc2e8a1cf8c96319","output":{"schema":"media-server.va-review-output.v1","supports":[],"questions":[],"contradictions":[{"text":"마지막 프레임의 빨간 사각형은 첫 프레임의 위치보다 오른쪽에 있다.","frameIndices":[0,7]}],"unclear":[],"confidence":0.98999999999999999}}
+[pass] V450-L01 real model schema eight-left 
+[pass] V450-L01 fixture two-static
+[pass] V450-L01 submit two-static
+[provider-shape] json=1 done=1 model="qwen3-vl:8b-instruct-q4_K_M" reason="stop" role="assistant" contentBytes=417 outputValidAt8=1 fields="observations","evidenceStatus","schema","supports","contradictions","unclear","questions","confidence", supportsCount=0 questionsCount=0 contradictionsCount=1 unclearCount=0 confidence=1.0 observation="모든 프레임에서 빨간 사각형은 동일한 위치에 있습니다. 프레임 0과 1 모두 중앙에 위치합니다." evidenceStatus="sufficient"
+[synthetic-output] {"schema":"media-server.va-review-output.v1","supports":[],"questions":[],"contradictions":[{"text":"빨간 사각형의 첫 프레임과 마지막 프레임 위치가 서로 다르다.","frameIndices":[0,1]}],"unclear":[],"confidence":1}
+[quality] {"case":"two-static","expected":"contradictions","schemaValid":true,"categoryPass":true,"elapsedMs":14543,"error":"","modelDigest":"0533d74300e4f9bc367d675d4e64ffd073d50ff16a2b4096cc2e8a1cf8c96319","output":{"schema":"media-server.va-review-output.v1","supports":[],"questions":[],"contradictions":[{"text":"빨간 사각형의 첫 프레임과 마지막 프레임 위치가 서로 다르다.","frameIndices":[0,1]}],"unclear":[],"confidence":1}}
+[pass] V450-L01 real model schema two-static 
+[pass] V450-L01 fixture one-red
+[pass] V450-L01 submit one-red
+[provider-shape] json=1 done=1 model="qwen3-vl:8b-instruct-q4_K_M" reason="stop" role="assistant" contentBytes=371 outputValidAt8=1 fields="observations","evidenceStatus","schema","supports","contradictions","unclear","questions","confidence", supportsCount=1 questionsCount=0 contradictionsCount=0 unclearCount=0 confidence=1 observation="프레임 0에서 중앙에 빨간 사각형이 명확히 보입니다. 배경은 회색입니다." evidenceStatus="sufficient"
+[synthetic-output] {"schema":"media-server.va-review-output.v1","supports":[{"text":"프레임 0에서 빨간 사각형이 중앙에 위치해 있습니다.","frameIndices":[0]}],"questions":[],"contradictions":[],"unclear":[],"confidence":1}
+[quality] {"case":"one-red","expected":"supports","schemaValid":true,"categoryPass":true,"elapsedMs":12785,"error":"","modelDigest":"0533d74300e4f9bc367d675d4e64ffd073d50ff16a2b4096cc2e8a1cf8c96319","output":{"schema":"media-server.va-review-output.v1","supports":[{"text":"프레임 0에서 빨간 사각형이 중앙에 위치해 있습니다.","frameIndices":[0]}],"questions":[],"contradictions":[],"unclear":[],"confidence":1}}
+[pass] V450-L01 real model schema one-red 
+[pass] V450-L01 fixture one-blue
+[pass] V450-L01 submit one-blue
+[provider-shape] json=1 done=1 model="qwen3-vl:8b-instruct-q4_K_M" reason="stop" role="assistant" contentBytes=576 outputValidAt8=1 fields="observations","evidenceStatus","schema","supports","contradictions","unclear","questions","confidence", supportsCount=0 questionsCount=1 contradictionsCount=0 unclearCount=1 confidence=null observation="프레임 0에서 붉은 사각형만 보이며, 파란 사각형은 전혀 보이지 않음" evidenceStatus="insufficient"
+[synthetic-output] {"schema":"media-server.va-review-output.v1","supports":[],"questions":[{"text":"파란 사각형이 실제로 존재했는지, 또는 다른 색상의 사각형이 잘못 인식되었는지 확인할 수 있는 추가 이미지가 있나요?","frameIndices":[0]}],"contradictions":[],"unclear":[{"text":"파란 사각형이 존재하는지 여부를 확인할 수 없는 프레임입니다.","frameIndices":[0]}],"confidence":null}
+[quality] {"case":"one-blue","expected":"contradictions","schemaValid":true,"categoryPass":false,"elapsedMs":14873,"error":"","modelDigest":"0533d74300e4f9bc367d675d4e64ffd073d50ff16a2b4096cc2e8a1cf8c96319","output":{"schema":"media-server.va-review-output.v1","supports":[],"questions":[{"text":"파란 사각형이 실제로 존재했는지, 또는 다른 색상의 사각형이 잘못 인식되었는지 확인할 수 있는 추가 이미지가 있나요?","frameIndices":[0]}],"contradictions":[],"unclear":[{"text":"파란 사각형이 존재하는지 여부를 확인할 수 없는 프레임입니다.","frameIndices":[0]}],"confidence":null}}
+[pass] V450-L01 real model schema one-blue 
+[pass] V450-L01 fixture one-motion
+[pass] V450-L01 submit one-motion
+[provider-shape] json=1 done=1 model="qwen3-vl:8b-instruct-q4_K_M" reason="stop" role="assistant" contentBytes=576 outputValidAt8=1 fields="observations","evidenceStatus","schema","supports","contradictions","unclear","questions","confidence", supportsCount=0 questionsCount=1 contradictionsCount=0 unclearCount=1 confidence=null observation="프레임 0에서 빨간 사각형은 정지 상태로 중앙에 위치해 있습니다. 움직임은 관찰 불가." evidenceStatus="insufficient"
+[synthetic-output] {"schema":"media-server.va-review-output.v1","supports":[],"questions":[{"text":"다른 프레임에서 빨간 사각형의 위치가 변했는지 확인할 수 있는 데이터를 제공해 주세요.","frameIndices":[0]}],"contradictions":[],"unclear":[{"text":"움직임을 확인하기 위해 여러 프레임을 비교할 수 있는 데이터가 필요합니다.","frameIndices":[0]}],"confidence":null}
+[quality] {"case":"one-motion","expected":"unclear","schemaValid":true,"categoryPass":true,"elapsedMs":14865,"error":"","modelDigest":"0533d74300e4f9bc367d675d4e64ffd073d50ff16a2b4096cc2e8a1cf8c96319","output":{"schema":"media-server.va-review-output.v1","supports":[],"questions":[{"text":"다른 프레임에서 빨간 사각형의 위치가 변했는지 확인할 수 있는 데이터를 제공해 주세요.","frameIndices":[0]}],"contradictions":[],"unclear":[{"text":"움직임을 확인하기 위해 여러 프레임을 비교할 수 있는 데이터가 필요합니다.","frameIndices":[0]}],"confidence":null}}
+[pass] V450-L01 real model schema one-motion 
+[pass] V450-L01 fixture one-direction
+[pass] V450-L01 submit one-direction
+[provider-shape] json=1 done=1 model="qwen3-vl:8b-instruct-q4_K_M" reason="stop" role="assistant" contentBytes=558 outputValidAt8=1 fields="observations","evidenceStatus","schema","supports","contradictions","unclear","questions","confidence", supportsCount=0 questionsCount=1 contradictionsCount=0 unclearCount=1 confidence=null observation="프레임 0에서 빨간 사각형은 화면 중앙에 위치하며, 움직임이나 방향 변화는 관찰되지 않음" evidenceStatus="insufficient"
+[synthetic-output] {"schema":"media-server.va-review-output.v1","supports":[],"questions":[{"text":"다른 프레임에서 빨간 사각형의 위치 변화를 확인할 수 있는지 확인해 주세요","frameIndices":[0]}],"contradictions":[],"unclear":[{"text":"프레임 0에서 빨간 사각형이 오른쪽으로 움직이고 있는지 확인할 수 없음","frameIndices":[0]}],"confidence":null}
+[quality] {"case":"one-direction","expected":"unclear","schemaValid":true,"categoryPass":true,"elapsedMs":15136,"error":"","modelDigest":"0533d74300e4f9bc367d675d4e64ffd073d50ff16a2b4096cc2e8a1cf8c96319","output":{"schema":"media-server.va-review-output.v1","supports":[],"questions":[{"text":"다른 프레임에서 빨간 사각형의 위치 변화를 확인할 수 있는지 확인해 주세요","frameIndices":[0]}],"contradictions":[],"unclear":[{"text":"프레임 0에서 빨간 사각형이 오른쪽으로 움직이고 있는지 확인할 수 없음","frameIndices":[0]}],"confidence":null}}
+[pass] V450-L01 real model schema one-direction 
+[pass] V450-L01 fixture blank-hidden
+[pass] V450-L01 submit blank-hidden
+[provider-shape] json=1 done=1 model="qwen3-vl:8b-instruct-q4_K_M" reason="stop" role="assistant" contentBytes=700 outputValidAt8=1 fields="observations","evidenceStatus","schema","supports","contradictions","unclear","questions","confidence", supportsCount=0 questionsCount=1 contradictionsCount=0 unclearCount=1 confidence=null observation="모든 프레임은 회색으로, 빨간 사각형이나 움직임은 전혀 보이지 않음. 프레임 0과 1 모두 동일한 회색 화면." evidenceStatus="insufficient"
+[synthetic-output] {"schema":"media-server.va-review-output.v1","supports":[],"questions":[{"text":"이 시퀀스에 빨간 사각형이 실제로 존재하고, 움직이고 있는지 확인할 수 있는 다른 프레임이 있나요?","frameIndices":[0,1]}],"contradictions":[],"unclear":[{"text":"회색 화면 뒤에 가려진 빨간 사각형이 오른쪽으로 움직이고 있는지 확인할 수 없음. 실제 움직임/방향은 프레임 간 변화 없이 판단 불가.","frameIndices":[0,1]}],"confidence":null}
+[quality] {"case":"blank-hidden","expected":"unclear","schemaValid":true,"categoryPass":true,"elapsedMs":19039,"error":"","modelDigest":"0533d74300e4f9bc367d675d4e64ffd073d50ff16a2b4096cc2e8a1cf8c96319","output":{"schema":"media-server.va-review-output.v1","supports":[],"questions":[{"text":"이 시퀀스에 빨간 사각형이 실제로 존재하고, 움직이고 있는지 확인할 수 있는 다른 프레임이 있나요?","frameIndices":[0,1]}],"contradictions":[],"unclear":[{"text":"회색 화면 뒤에 가려진 빨간 사각형이 오른쪽으로 움직이고 있는지 확인할 수 없음. 실제 움직임/방향은 프레임 간 변화 없이 판단 불가.","frameIndices":[0,1]}],"confidence":null}}
+[pass] V450-L01 real model schema blank-hidden 
+[pass] V450-L01 fixture eight-static
+[pass] V450-L01 submit eight-static
+[provider-shape] json=1 done=1 model="qwen3-vl:8b-instruct-q4_K_M" reason="stop" role="assistant" contentBytes=458 outputValidAt8=1 fields="observations","evidenceStatus","schema","supports","contradictions","unclear","questions","confidence", supportsCount=1 questionsCount=0 contradictionsCount=0 unclearCount=0 confidence=1.0 observation="모든 프레임에서 빨간 사각형은 정확히 중앙에 위치하고 있으며, 색상과 위치가 일관됨. 프레임 0에서 7까지 모두 동일한 상태." evidenceStatus="sufficient"
+[synthetic-output] {"schema":"media-server.va-review-output.v1","supports":[{"text":"모든 프레임에서 빨간 사각형이 중앙에 고정되어 있음","frameIndices":[0,1,2,3,4,5,6,7]}],"questions":[],"contradictions":[],"unclear":[],"confidence":1}
+[quality] {"case":"eight-static","expected":"supports","schemaValid":true,"categoryPass":true,"elapsedMs":23715,"error":"","modelDigest":"0533d74300e4f9bc367d675d4e64ffd073d50ff16a2b4096cc2e8a1cf8c96319","output":{"schema":"media-server.va-review-output.v1","supports":[{"text":"모든 프레임에서 빨간 사각형이 중앙에 고정되어 있음","frameIndices":[0,1,2,3,4,5,6,7]}],"questions":[],"contradictions":[],"unclear":[],"confidence":1}}
+[pass] V450-L01 real model schema eight-static 
+[pass] V450-L01 fixture occluded-final
+[pass] V450-L01 submit occluded-final
+[provider-shape] json=1 done=1 model="qwen3-vl:8b-instruct-q4_K_M" reason="stop" role="assistant" contentBytes=691 outputValidAt8=1 fields="observations","evidenceStatus","schema","supports","contradictions","unclear","questions","confidence", supportsCount=0 questionsCount=1 contradictionsCount=0 unclearCount=1 confidence=null observation="프레임 0에서 빨간 사각형이 왼쪽에 위치하고, 프레임 1에서는 회색 화면으로 전환됨. 이동이나 가려짐은 확인 불가." evidenceStatus="insufficient"
+[synthetic-output] {"schema":"media-server.va-review-output.v1","supports":[],"questions":[{"text":"프레임 0에서 빨간 사각형이 왼쪽에 있었고, 프레임 1에서 회색 화면으로 전환됨. 이동이나 가려짐은 확인 불가.","frameIndices":[0,1]}],"contradictions":[],"unclear":[{"text":"프레임 0에서 빨간 사각형이 왼쪽에 있었고, 프레임 1에서 회색 화면으로 전환됨. 이동이나 가려짐은 확인 불가.","frameIndices":[0,1]}],"confidence":null}
+[quality] {"case":"occluded-final","expected":"unclear","schemaValid":true,"categoryPass":true,"elapsedMs":19202,"error":"","modelDigest":"0533d74300e4f9bc367d675d4e64ffd073d50ff16a2b4096cc2e8a1cf8c96319","output":{"schema":"media-server.va-review-output.v1","supports":[],"questions":[{"text":"프레임 0에서 빨간 사각형이 왼쪽에 있었고, 프레임 1에서 회색 화면으로 전환됨. 이동이나 가려짐은 확인 불가.","frameIndices":[0,1]}],"contradictions":[],"unclear":[{"text":"프레임 0에서 빨간 사각형이 왼쪽에 있었고, 프레임 1에서 회색 화면으로 전환됨. 이동이나 가려짐은 확인 불가.","frameIndices":[0,1]}],"confidence":null}}
+[pass] V450-L01 real model schema occluded-final 
+[quality-summary] schema=12/12 category=10/12 uncertainty=4/4 questions=4/4 semanticTextReviewRequired=true
+[pass] V450-L01 peak RSS observation
+[resource] nativePeakRssBytes=44089344
+[pass] V450-L01 predefined quality gates
+[pass] V450-L01 native process 4GiB budget
+[summary] pass=41 fail=0
+[resource] {"modelBytes": 7972486720, "modelPhysicalFootprintBytes": 7830544040, "modelRssPlusVramBytes": 15551233600, "modelVramBytes": 7972486720, "workspaceBytes": 184163882}
+[cleanup] modelUnloaded=true
+[resource-final] {"modelBytes": 7972486720, "modelPhysicalFootprintBytes": 7830544040, "modelRssPlusVramBytes": 15551233600, "modelVramBytes": 7972486720, "workspaceBytes": 184163882}
+[cleanup] removed=true

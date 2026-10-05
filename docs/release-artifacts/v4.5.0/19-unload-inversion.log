@@ -1,0 +1,73 @@
+[fixture] /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-va-review-z5oarn4d
+[source] include/recording/va_review_input.h 543fcaf1fd950927455e402b45f3747cdb95c81b8521daa4eb22ce4b87c1cc00
+[source] include/recording/va_review_provider.h f69c63c8b209dfa2d1daa01868f4c72de0494ee3785b3b0edba850daf4198076
+[source] include/recording/va_review_record.h 96f5ac21c232d0b7efcadc94d8472ea980e1c8828577753c77f892210059c27d
+[source] include/recording/va_review_service.h c3c6f9c4a7ebab259af79b2ff16bf1f1e94a0c776d6f612e88cdcb27e9be0baa
+[source] include/recording/va_review_store.h fcfad2a1c692321f5331b014357686abf871ab1b727ebc8093b5d339efc8c80a
+[source] scripts/internal/va_review_quality_fixture.h 4a46b462b22cf71e092319f885724c67f7506a5a491068577ecd0d632dbe6d64
+[source] scripts/internal/va_review_smoke.cpp c483d4fe9dc8b469a100a4b047452148b703c5a2e7a67513c2944e78881cd24a
+[source] scripts/internal/verify_va_review.sh bab5a657552b871b7f8f10d6f4ba3a4d1d8f425dff56274c0eb760834d1ce452
+[source] src/recording/va_review_input.cpp 840df39c6fc11ca99748f55dd1c55d598e060467354dd8fd0a48b1b197cd58f1
+[source] src/recording/va_review_json.h 835cf40e95a3be8297ccf6edde1fbcf7c8aa5ffda3169f368195bc5667d065f3
+[source] src/recording/va_review_provider.cpp 31a10bbf1dfe798c8733eeb0df5a11a86f33c04ecca354a7a835df71b96bee6f
+[source] src/recording/va_review_record.cpp 5e3c5a4955850f16ba544ef91a4fbb9119940be470dcb24c5d43d20056408713
+[source] src/recording/va_review_service.cpp 22777f26753c6ea64f65daaa603633a02bc0fd98036ce02460b84887a4edef0d
+[source] src/recording/va_review_store.cpp 27cb631652d84eb98776cf0493959205fdb4888517cb70b6cc8e1d5a4108a0a4
+[source] src/recording/va_review_transport.cpp c38058cffb6cca2b291d6de52bdbdd0c7298b308699c8291f6c242884090a422
+[pass] V450-L01 quality evidence ready
+[pass] V450-L01 quality worker ready
+[diagnostic-input] mode=inversion case=two-left-right claim="마지막 프레임의 빨간 사각형은 첫 프레임의 위치보다 오른쪽에 있다." suppliedObservations=null
+[pass] V450-L01 fixture two-left-right
+[pass] V450-L01 submit two-left-right
+[synthetic-assessment] claim="마지막 프레임의 빨간 사각형은 첫 프레임의 위치보다 오른쪽에 있다." observation="첫 프레임에서 빨간 사각형은 오른쪽에 위치하고, 마지막 프레임에서 왼쪽으로 이동해 화면 왼쪽에 위치함" verdict="contradicted" evidenceStatus="sufficient"
+[provider-shape] json=1 done=1 model="qwen3-vl:8b-instruct-q4_K_M" reason="stop" role="assistant" contentBytes=617 outputValidAt8=1 fields="schema","assessments","confidence", supportsCount=-1 questionsCount=-1 contradictionsCount=-1 unclearCount=-1 confidence=null
+[synthetic-output] {"schema":"media-server.va-review-output.v1","supports":[],"questions":[],"contradictions":[{"text":"첫 프레임에서 빨간 사각형이 오른쪽에 있고, 마지막 프레임에서 왼쪽으로 이동함","frameIndices":[0,1]}],"unclear":[],"confidence":null}
+[quality] {"case":"two-left-right","expected":"contradictions","schemaValid":true,"categoryPass":true,"referenceCoveragePass":true,"elapsedMs":17173,"error":"","modelDigest":"0533d74300e4f9bc367d675d4e64ffd073d50ff16a2b4096cc2e8a1cf8c96319","output":{"schema":"media-server.va-review-output.v1","supports":[],"questions":[],"contradictions":[{"text":"첫 프레임에서 빨간 사각형이 오른쪽에 있고, 마지막 프레임에서 왼쪽으로 이동함","frameIndices":[0,1]}],"unclear":[],"confidence":null}}
+[diagnostic-input] mode=inversion case=two-left-left claim="마지막 프레임의 빨간 사각형은 첫 프레임의 위치보다 왼쪽에 있다." suppliedObservations=null
+[pass] V450-L01 fixture two-left-left
+[pass] V450-K02 inversion pair preserves identical evidence package
+[pass] V450-L01 submit two-left-left
+[synthetic-assessment] claim="마지막 프레임의 빨간 사각형은 첫 프레임의 위치보다 왼쪽에 있다." observation="첫 프레임에서 빨간 사각형은 오른쪽에 위치하고, 마지막 프레임에서 왼쪽으로 이동해 왼쪽에 위치함" verdict="supported" evidenceStatus="sufficient"
+[provider-shape] json=1 done=1 model="qwen3-vl:8b-instruct-q4_K_M" reason="stop" role="assistant" contentBytes=624 outputValidAt8=1 fields="schema","assessments","confidence", supportsCount=-1 questionsCount=-1 contradictionsCount=-1 unclearCount=-1 confidence=null
+[synthetic-output] {"schema":"media-server.va-review-output.v1","supports":[{"text":"첫 프레임에서 빨간 사각형은 오른쪽에 있고, 마지막 프레임에서 왼쪽으로 이동해 왼쪽에 위치함","frameIndices":[0,1]}],"questions":[],"contradictions":[],"unclear":[],"confidence":null}
+[quality] {"case":"two-left-left","expected":"supports","schemaValid":true,"categoryPass":true,"referenceCoveragePass":true,"elapsedMs":17810,"error":"","modelDigest":"0533d74300e4f9bc367d675d4e64ffd073d50ff16a2b4096cc2e8a1cf8c96319","output":{"schema":"media-server.va-review-output.v1","supports":[{"text":"첫 프레임에서 빨간 사각형은 오른쪽에 있고, 마지막 프레임에서 왼쪽으로 이동해 왼쪽에 위치함","frameIndices":[0,1]}],"questions":[],"contradictions":[],"unclear":[],"confidence":null}}
+[diagnostic-input] mode=inversion case=eight-left-right claim="마지막 프레임의 빨간 사각형은 첫 프레임의 위치보다 오른쪽에 있다." suppliedObservations=null
+[pass] V450-L01 fixture eight-left-right
+[pass] V450-L01 submit eight-left-right
+[synthetic-assessment] claim="마지막 프레임의 빨간 사각형은 첫 프레임의 위치보다 오른쪽에 있다." observation="빨간 사각형은 첫 프레임(0)에서 오른쪽에 위치하고, 마지막 프레임(7)에서도 오른쪽에 위치함" verdict="contradicted" evidenceStatus="sufficient"
+[provider-shape] json=1 done=1 model="qwen3-vl:8b-instruct-q4_K_M" reason="stop" role="assistant" contentBytes=581 outputValidAt8=1 fields="schema","assessments","confidence", supportsCount=-1 questionsCount=-1 contradictionsCount=-1 unclearCount=-1 confidence=null
+[synthetic-output] {"schema":"media-server.va-review-output.v1","supports":[],"questions":[],"contradictions":[{"text":"마지막 프레임(7)의 빨간 사각형은 첫 프레임(0)보다 왼쪽으로 이동함","frameIndices":[0,7]}],"unclear":[],"confidence":null}
+[quality] {"case":"eight-left-right","expected":"contradictions","schemaValid":true,"categoryPass":true,"referenceCoveragePass":true,"elapsedMs":25844,"error":"","modelDigest":"0533d74300e4f9bc367d675d4e64ffd073d50ff16a2b4096cc2e8a1cf8c96319","output":{"schema":"media-server.va-review-output.v1","supports":[],"questions":[],"contradictions":[{"text":"마지막 프레임(7)의 빨간 사각형은 첫 프레임(0)보다 왼쪽으로 이동함","frameIndices":[0,7]}],"unclear":[],"confidence":null}}
+[diagnostic-input] mode=inversion case=eight-left-left claim="마지막 프레임의 빨간 사각형은 첫 프레임의 위치보다 왼쪽에 있다." suppliedObservations=null
+[pass] V450-L01 fixture eight-left-left
+[pass] V450-K02 inversion pair preserves identical evidence package
+[pass] V450-L01 submit eight-left-left
+[synthetic-assessment] claim="마지막 프레임의 빨간 사각형은 첫 프레임의 위치보다 왼쪽에 있다." observation="빨간 사각형은 첫 프레임(0)에서 오른쪽에 있고, 마지막 프레임(7)에서 왼쪽으로 이동해 중앙 근처에 위치함" verdict="supported" evidenceStatus="sufficient"
+[provider-shape] json=1 done=1 model="qwen3-vl:8b-instruct-q4_K_M" reason="stop" role="assistant" contentBytes=641 outputValidAt8=1 fields="schema","assessments","confidence", supportsCount=-1 questionsCount=-1 contradictionsCount=-1 unclearCount=-1 confidence=null
+[synthetic-output] {"schema":"media-server.va-review-output.v1","supports":[{"text":"빨간 사각형이 프레임 0에서 오른쪽 가장자리 근처에서 시작해, 프레임 7에선 화면 중앙 왼쪽으로 이동함","frameIndices":[0,7]}],"questions":[],"contradictions":[],"unclear":[],"confidence":null}
+[quality] {"case":"eight-left-left","expected":"supports","schemaValid":true,"categoryPass":true,"referenceCoveragePass":true,"elapsedMs":26943,"error":"","modelDigest":"0533d74300e4f9bc367d675d4e64ffd073d50ff16a2b4096cc2e8a1cf8c96319","output":{"schema":"media-server.va-review-output.v1","supports":[{"text":"빨간 사각형이 프레임 0에서 오른쪽 가장자리 근처에서 시작해, 프레임 7에선 화면 중앙 왼쪽으로 이동함","frameIndices":[0,7]}],"questions":[],"contradictions":[],"unclear":[],"confidence":null}}
+[diagnostic-input] mode=inversion case=static-different claim="빨간 사각형의 첫 프레임과 마지막 프레임 위치가 서로 다르다." suppliedObservations=null
+[pass] V450-L01 fixture static-different
+[pass] V450-L01 submit static-different
+[synthetic-assessment] claim="빨간 사각형의 첫 프레임과 마지막 프레임 위치가 서로 다르다." observation="두 프레임 모두 중앙에 빨간 사각형이 위치함" verdict="insufficient" evidenceStatus="insufficient"
+[provider-shape] json=1 done=1 model="qwen3-vl:8b-instruct-q4_K_M" reason="stop" role="assistant" contentBytes=673 outputValidAt8=1 fields="schema","assessments","confidence", supportsCount=-1 questionsCount=-1 contradictionsCount=-1 unclearCount=-1 confidence=null
+[synthetic-output] {"schema":"media-server.va-review-output.v1","supports":[],"questions":[{"text":"두 프레임에서 빨간 사각형의 위치가 동일한지 확인할 수 있는 추가 프레임을 확보할 수 있나요?","frameIndices":[0,1]}],"contradictions":[],"unclear":[{"text":"두 프레임에서 빨간 사각형의 위치가 동일한지 확인할 수 없음","frameIndices":[0,1]}],"confidence":null}
+[quality] {"case":"static-different","expected":"contradictions","schemaValid":true,"categoryPass":false,"referenceCoveragePass":true,"elapsedMs":19215,"error":"","modelDigest":"0533d74300e4f9bc367d675d4e64ffd073d50ff16a2b4096cc2e8a1cf8c96319","output":{"schema":"media-server.va-review-output.v1","supports":[],"questions":[{"text":"두 프레임에서 빨간 사각형의 위치가 동일한지 확인할 수 있는 추가 프레임을 확보할 수 있나요?","frameIndices":[0,1]}],"contradictions":[],"unclear":[{"text":"두 프레임에서 빨간 사각형의 위치가 동일한지 확인할 수 없음","frameIndices":[0,1]}],"confidence":null}}
+[diagnostic-input] mode=inversion case=static-same claim="빨간 사각형의 첫 프레임과 마지막 프레임 위치가 서로 같다." suppliedObservations=null
+[pass] V450-L01 fixture static-same
+[pass] V450-K02 inversion pair preserves identical evidence package
+[pass] V450-L01 submit static-same
+[synthetic-assessment] claim="빨간 사각형의 첫 프레임과 마지막 프레임 위치가 서로 같다." observation="두 프레임 모두 중앙에 빨간 사각형이 정지해 있음" verdict="supported" evidenceStatus="sufficient"
+[provider-shape] json=1 done=1 model="qwen3-vl:8b-instruct-q4_K_M" reason="stop" role="assistant" contentBytes=485 outputValidAt8=1 fields="schema","assessments","confidence", supportsCount=-1 questionsCount=-1 contradictionsCount=-1 unclearCount=-1 confidence=null
+[synthetic-output] {"schema":"media-server.va-review-output.v1","supports":[{"text":"두 프레임 모두 중앙에 빨간 사각형이 정지해 있음","frameIndices":[0,1]}],"questions":[],"contradictions":[],"unclear":[],"confidence":null}
+[quality] {"case":"static-same","expected":"supports","schemaValid":true,"categoryPass":true,"referenceCoveragePass":true,"elapsedMs":17087,"error":"","modelDigest":"0533d74300e4f9bc367d675d4e64ffd073d50ff16a2b4096cc2e8a1cf8c96319","output":{"schema":"media-server.va-review-output.v1","supports":[{"text":"두 프레임 모두 중앙에 빨간 사각형이 정지해 있음","frameIndices":[0,1]}],"questions":[],"contradictions":[],"unclear":[],"confidence":null}}
+[diagnostic-summary] mode=inversion schema=6/6 category=5/6 referenceCoverage=6/6 categoryPairPass=2/3 semanticTextReviewRequired=true qualityStatus=pending-manual-review
+[pass] V450-L01 peak RSS observation
+[resource] nativePeakRssBytes=44105728
+[pass] V450-L01 native process 4GiB budget
+[summary] pass=19 fail=0
+[resource] {"modelBytes": 7972486720, "modelPhysicalFootprintBytes": 7823105560, "modelRssPlusVramBytes": 15598681664, "modelVramBytes": 7972486720, "workspaceBytes": 184185788}
+[model-unload] {"observations": [{"elapsedMs": 6, "modelCount": 0}]}
+[cleanup] modelUnloaded=true
+[resource-final] {"modelBytes": 7972486720, "modelPhysicalFootprintBytes": 7823105560, "modelRssPlusVramBytes": 15598681664, "modelVramBytes": 7972486720, "workspaceBytes": 184185788}
+[cleanup] removed=true

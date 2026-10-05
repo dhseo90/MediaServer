@@ -1,0 +1,114 @@
+[fixture] /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-va-review-7fe_qt6u
+[source] include/recording/va_review_input.h 543fcaf1fd950927455e402b45f3747cdb95c81b8521daa4eb22ce4b87c1cc00
+[source] include/recording/va_review_provider.h f69c63c8b209dfa2d1daa01868f4c72de0494ee3785b3b0edba850daf4198076
+[source] include/recording/va_review_record.h 96f5ac21c232d0b7efcadc94d8472ea980e1c8828577753c77f892210059c27d
+[source] include/recording/va_review_service.h c3c6f9c4a7ebab259af79b2ff16bf1f1e94a0c776d6f612e88cdcb27e9be0baa
+[source] include/recording/va_review_store.h fcfad2a1c692321f5331b014357686abf871ab1b727ebc8093b5d339efc8c80a
+[source] scripts/internal/va_review_quality_fixture.h 4a46b462b22cf71e092319f885724c67f7506a5a491068577ecd0d632dbe6d64
+[source] scripts/internal/va_review_smoke.cpp e3153041d55ff112c1347bf01b7061b0e452a7bad93c099c3b94f966a4b6d4b7
+[source] scripts/internal/verify_va_review.sh bffb896b6caa8e40b40b04a2193d0c336795622e594b62d3e9cb6396d83c6057
+[source] src/recording/va_review_input.cpp 840df39c6fc11ca99748f55dd1c55d598e060467354dd8fd0a48b1b197cd58f1
+[source] src/recording/va_review_json.h 835cf40e95a3be8297ccf6edde1fbcf7c8aa5ffda3169f368195bc5667d065f3
+[source] src/recording/va_review_provider.cpp 10224392794282c9b29b08961e33b250254af51f0dba8087048aa6e904da621c
+[source] src/recording/va_review_record.cpp 5e3c5a4955850f16ba544ef91a4fbb9119940be470dcb24c5d43d20056408713
+[source] src/recording/va_review_service.cpp 22777f26753c6ea64f65daaa603633a02bc0fd98036ce02460b84887a4edef0d
+[source] src/recording/va_review_store.cpp 27cb631652d84eb98776cf0493959205fdb4888517cb70b6cc8e1d5a4108a0a4
+[source] src/recording/va_review_transport.cpp c38058cffb6cca2b291d6de52bdbdd0c7298b308699c8291f6c242884090a422
+[pass] V450-L01 quality evidence ready
+[pass] V450-L01 quality worker ready
+[pass] V450-L01 fixture two-right
+[pass] V450-L01 submit two-right
+[synthetic-assessment] claim="마지막 프레임의 빨간 사각형은 첫 프레임의 위치보다 오른쪽에 있다." observation="첫 프레임에서 빨간 사각형은 왼쪽에 있고, 두 번째 프레임에서 오른쪽으로 이동해 있습니다." verdict="supported"
+[provider-shape] json=1 done=1 model="qwen3-vl:8b-instruct-q4_K_M" reason="stop" role="assistant" contentBytes=560 outputValidAt8=1 fields="schema","assessments","confidence", supportsCount=-1 questionsCount=-1 contradictionsCount=-1 unclearCount=-1 confidence=null
+[synthetic-output] {"schema":"media-server.va-review-output.v1","supports":[{"text":"첫 프레임에서 사각형은 왼쪽에 있고, 두 번째 프레임에서 오른쪽으로 이동됨","frameIndices":[0,1]}],"questions":[],"contradictions":[],"unclear":[],"confidence":null}
+[quality] {"case":"two-right","expected":"supports","schemaValid":true,"categoryPass":true,"referenceCoveragePass":true,"elapsedMs":15412,"error":"","modelDigest":"0533d74300e4f9bc367d675d4e64ffd073d50ff16a2b4096cc2e8a1cf8c96319","output":{"schema":"media-server.va-review-output.v1","supports":[{"text":"첫 프레임에서 사각형은 왼쪽에 있고, 두 번째 프레임에서 오른쪽으로 이동됨","frameIndices":[0,1]}],"questions":[],"contradictions":[],"unclear":[],"confidence":null}}
+[pass] V450-L01 real model schema two-right 
+[pass] V450-L01 fixture two-left
+[pass] V450-L01 submit two-left
+[synthetic-assessment] claim="마지막 프레임의 빨간 사각형은 첫 프레임의 위치보다 오른쪽에 있다." observation="첫 프레임에서 빨간 사각형은 오른쪽에 있고, 두 번째 프레임에서 왼쪽으로 이동함" verdict="contradicted"
+[provider-shape] json=1 done=1 model="qwen3-vl:8b-instruct-q4_K_M" reason="stop" role="assistant" contentBytes=556 outputValidAt8=1 fields="schema","assessments","confidence", supportsCount=-1 questionsCount=-1 contradictionsCount=-1 unclearCount=-1 confidence=null
+[synthetic-output] {"schema":"media-server.va-review-output.v1","supports":[],"questions":[],"contradictions":[{"text":"첫 프레임에서 빨간 사각형이 오른쪽에 있고, 두 번째 프레임에서 왼쪽으로 이동함","frameIndices":[0,1]}],"unclear":[],"confidence":null}
+[quality] {"case":"two-left","expected":"contradictions","schemaValid":true,"categoryPass":true,"referenceCoveragePass":true,"elapsedMs":15919,"error":"","modelDigest":"0533d74300e4f9bc367d675d4e64ffd073d50ff16a2b4096cc2e8a1cf8c96319","output":{"schema":"media-server.va-review-output.v1","supports":[],"questions":[],"contradictions":[{"text":"첫 프레임에서 빨간 사각형이 오른쪽에 있고, 두 번째 프레임에서 왼쪽으로 이동함","frameIndices":[0,1]}],"unclear":[],"confidence":null}}
+[pass] V450-L01 real model schema two-left 
+[pass] V450-L01 fixture eight-right
+[pass] V450-L01 submit eight-right
+[synthetic-assessment] claim="마지막 프레임의 빨간 사각형은 첫 프레임의 위치보다 오른쪽에 있다." observation="빨간 사각형이 첫 프레임(0)보다 마지막 프레임(7)에 더 오른쪽에 위치함" verdict="supported"
+[provider-shape] json=1 done=1 model="qwen3-vl:8b-instruct-q4_K_M" reason="stop" role="assistant" contentBytes=536 outputValidAt8=1 fields="schema","assessments","confidence", supportsCount=-1 questionsCount=-1 contradictionsCount=-1 unclearCount=-1 confidence=null
+[synthetic-output] {"schema":"media-server.va-review-output.v1","supports":[{"text":"첫 프레임(0)에서 사각형은 왼쪽에 있고, 마지막 프레임(7)에서 오른쪽으로 이동됨","frameIndices":[0,7]}],"questions":[],"contradictions":[],"unclear":[],"confidence":null}
+[quality] {"case":"eight-right","expected":"supports","schemaValid":true,"categoryPass":true,"referenceCoveragePass":true,"elapsedMs":23419,"error":"","modelDigest":"0533d74300e4f9bc367d675d4e64ffd073d50ff16a2b4096cc2e8a1cf8c96319","output":{"schema":"media-server.va-review-output.v1","supports":[{"text":"첫 프레임(0)에서 사각형은 왼쪽에 있고, 마지막 프레임(7)에서 오른쪽으로 이동됨","frameIndices":[0,7]}],"questions":[],"contradictions":[],"unclear":[],"confidence":null}}
+[pass] V450-L01 real model schema eight-right 
+[pass] V450-L01 fixture eight-left
+[pass] V450-L01 submit eight-left
+[synthetic-assessment] claim="마지막 프레임의 빨간 사각형은 첫 프레임의 위치보다 오른쪽에 있다." observation="빨간 사각형은 첫 프레임(0)에서 오른쪽에 있었고, 마지막 프레임(7)에서도 오른쪽에 위치함" verdict="contradicted"
+[provider-shape] json=1 done=1 model="qwen3-vl:8b-instruct-q4_K_M" reason="stop" role="assistant" contentBytes=551 outputValidAt8=1 fields="schema","assessments","confidence", supportsCount=-1 questionsCount=-1 contradictionsCount=-1 unclearCount=-1 confidence=null
+[synthetic-output] {"schema":"media-server.va-review-output.v1","supports":[],"questions":[],"contradictions":[{"text":"마지막 프레임(7)에서 빨간 사각형은 첫 프레임(0)보다 왼쪽으로 이동함","frameIndices":[0,7]}],"unclear":[],"confidence":null}
+[quality] {"case":"eight-left","expected":"contradictions","schemaValid":true,"categoryPass":true,"referenceCoveragePass":true,"elapsedMs":24309,"error":"","modelDigest":"0533d74300e4f9bc367d675d4e64ffd073d50ff16a2b4096cc2e8a1cf8c96319","output":{"schema":"media-server.va-review-output.v1","supports":[],"questions":[],"contradictions":[{"text":"마지막 프레임(7)에서 빨간 사각형은 첫 프레임(0)보다 왼쪽으로 이동함","frameIndices":[0,7]}],"unclear":[],"confidence":null}}
+[pass] V450-L01 real model schema eight-left 
+[pass] V450-L01 fixture two-static
+[pass] V450-L01 submit two-static
+[synthetic-assessment] claim="빨간 사각형의 첫 프레임과 마지막 프레임 위치가 서로 다르다." observation="두 프레임 모두 빨간 사각형이 화면 중앙에 위치함" verdict="contradicted"
+[provider-shape] json=1 done=1 model="qwen3-vl:8b-instruct-q4_K_M" reason="stop" role="assistant" contentBytes=461 outputValidAt8=1 fields="schema","assessments","confidence", supportsCount=-1 questionsCount=-1 contradictionsCount=-1 unclearCount=-1 confidence=null
+[synthetic-output] {"schema":"media-server.va-review-output.v1","supports":[],"questions":[],"contradictions":[{"text":"두 프레임 모두 빨간 사각형이 화면 중앙에 고정됨","frameIndices":[0,1]}],"unclear":[],"confidence":null}
+[quality] {"case":"two-static","expected":"contradictions","schemaValid":true,"categoryPass":true,"referenceCoveragePass":true,"elapsedMs":15055,"error":"","modelDigest":"0533d74300e4f9bc367d675d4e64ffd073d50ff16a2b4096cc2e8a1cf8c96319","output":{"schema":"media-server.va-review-output.v1","supports":[],"questions":[],"contradictions":[{"text":"두 프레임 모두 빨간 사각형이 화면 중앙에 고정됨","frameIndices":[0,1]}],"unclear":[],"confidence":null}}
+[pass] V450-L01 real model schema two-static 
+[pass] V450-L01 fixture one-red
+[pass] V450-L01 submit one-red
+[synthetic-assessment] claim="빨간 사각형이 보인다." observation="화면 중앙에 빨간 사각형이 존재합니다." verdict="supported"
+[provider-shape] json=1 done=1 model="qwen3-vl:8b-instruct-q4_K_M" reason="stop" role="assistant" contentBytes=384 outputValidAt8=1 fields="schema","assessments","confidence", supportsCount=-1 questionsCount=-1 contradictionsCount=-1 unclearCount=-1 confidence=null
+[synthetic-output] {"schema":"media-server.va-review-output.v1","supports":[{"text":"화면 중앙에 빨간 사각형이 명확하게 보입니다.","frameIndices":[0]}],"questions":[],"contradictions":[],"unclear":[],"confidence":null}
+[quality] {"case":"one-red","expected":"supports","schemaValid":true,"categoryPass":true,"referenceCoveragePass":true,"elapsedMs":12540,"error":"","modelDigest":"0533d74300e4f9bc367d675d4e64ffd073d50ff16a2b4096cc2e8a1cf8c96319","output":{"schema":"media-server.va-review-output.v1","supports":[{"text":"화면 중앙에 빨간 사각형이 명확하게 보입니다.","frameIndices":[0]}],"questions":[],"contradictions":[],"unclear":[],"confidence":null}}
+[pass] V450-L01 real model schema one-red 
+[pass] V450-L01 fixture one-blue
+[pass] V450-L01 submit one-blue
+[synthetic-assessment] claim="파란 사각형이 보인다." observation="화면 중앙에 붉은 사각형만 보입니다." verdict="contradicted"
+[provider-shape] json=1 done=1 model="qwen3-vl:8b-instruct-q4_K_M" reason="stop" role="assistant" contentBytes=401 outputValidAt8=1 fields="schema","assessments","confidence", supportsCount=-1 questionsCount=-1 contradictionsCount=-1 unclearCount=-1 confidence=null
+[synthetic-output] {"schema":"media-server.va-review-output.v1","supports":[],"questions":[],"contradictions":[{"text":"화면에는 파란 사각형이 없으며, 붉은 사각형만 존재합니다.","frameIndices":[0]}],"unclear":[],"confidence":null}
+[quality] {"case":"one-blue","expected":"contradictions","schemaValid":true,"categoryPass":true,"referenceCoveragePass":true,"elapsedMs":12788,"error":"","modelDigest":"0533d74300e4f9bc367d675d4e64ffd073d50ff16a2b4096cc2e8a1cf8c96319","output":{"schema":"media-server.va-review-output.v1","supports":[],"questions":[],"contradictions":[{"text":"화면에는 파란 사각형이 없으며, 붉은 사각형만 존재합니다.","frameIndices":[0]}],"unclear":[],"confidence":null}}
+[pass] V450-L01 real model schema one-blue 
+[pass] V450-L01 fixture one-motion
+[pass] V450-L01 submit one-motion
+[synthetic-assessment] claim="빨간 사각형이 움직이고 있다." observation="프레임 0에서 빨간 사각형은 정지해 있습니다." verdict="contradicted"
+[provider-shape] json=1 done=1 model="qwen3-vl:8b-instruct-q4_K_M" reason="stop" role="assistant" contentBytes=423 outputValidAt8=1 fields="schema","assessments","confidence", supportsCount=-1 questionsCount=-1 contradictionsCount=-1 unclearCount=-1 confidence=null
+[synthetic-output] {"schema":"media-server.va-review-output.v1","supports":[],"questions":[],"contradictions":[{"text":"프레임 0에서 빨간 사각형은 움직이지 않고 정지해 있습니다.","frameIndices":[0]}],"unclear":[],"confidence":null}
+[quality] {"case":"one-motion","expected":"unclear","schemaValid":true,"categoryPass":false,"referenceCoveragePass":true,"elapsedMs":13226,"error":"","modelDigest":"0533d74300e4f9bc367d675d4e64ffd073d50ff16a2b4096cc2e8a1cf8c96319","output":{"schema":"media-server.va-review-output.v1","supports":[],"questions":[],"contradictions":[{"text":"프레임 0에서 빨간 사각형은 움직이지 않고 정지해 있습니다.","frameIndices":[0]}],"unclear":[],"confidence":null}}
+[pass] V450-L01 real model schema one-motion 
+[pass] V450-L01 fixture one-direction
+[pass] V450-L01 submit one-direction
+[synthetic-assessment] claim="빨간 사각형이 오른쪽으로 움직이고 있다." observation="프레임 0에서 빨간 사각형은 화면 중앙에 정지해 있습니다." verdict="contradicted"
+[provider-shape] json=1 done=1 model="qwen3-vl:8b-instruct-q4_K_M" reason="stop" role="assistant" contentBytes=450 outputValidAt8=1 fields="schema","assessments","confidence", supportsCount=-1 questionsCount=-1 contradictionsCount=-1 unclearCount=-1 confidence=null
+[synthetic-output] {"schema":"media-server.va-review-output.v1","supports":[],"questions":[],"contradictions":[{"text":"프레임 0에서 빨간 사각형은 정지해 있으며, 움직임 없음","frameIndices":[0]}],"unclear":[],"confidence":null}
+[quality] {"case":"one-direction","expected":"unclear","schemaValid":true,"categoryPass":false,"referenceCoveragePass":true,"elapsedMs":13922,"error":"","modelDigest":"0533d74300e4f9bc367d675d4e64ffd073d50ff16a2b4096cc2e8a1cf8c96319","output":{"schema":"media-server.va-review-output.v1","supports":[],"questions":[],"contradictions":[{"text":"프레임 0에서 빨간 사각형은 정지해 있으며, 움직임 없음","frameIndices":[0]}],"unclear":[],"confidence":null}}
+[pass] V450-L01 real model schema one-direction 
+[pass] V450-L01 fixture blank-hidden
+[pass] V450-L01 submit blank-hidden
+[synthetic-assessment] claim="회색 화면 뒤에 가려진 빨간 사각형이 오른쪽으로 움직이고 있다." observation="화면 전체가 회색으로 채워져 있으며, 빨간 사각형이나 움직임은 관찰 불가" verdict="contradicted"
+[provider-shape] json=1 done=1 model="qwen3-vl:8b-instruct-q4_K_M" reason="stop" role="assistant" contentBytes=483 outputValidAt8=1 fields="schema","assessments","confidence", supportsCount=-1 questionsCount=-1 contradictionsCount=-1 unclearCount=-1 confidence=null
+[synthetic-output] {"schema":"media-server.va-review-output.v1","supports":[],"questions":[],"contradictions":[{"text":"화면에 빨간 사각형이 전혀 보이지 않음","frameIndices":[0,1]}],"unclear":[],"confidence":null}
+[quality] {"case":"blank-hidden","expected":"unclear","schemaValid":true,"categoryPass":false,"referenceCoveragePass":true,"elapsedMs":15962,"error":"","modelDigest":"0533d74300e4f9bc367d675d4e64ffd073d50ff16a2b4096cc2e8a1cf8c96319","output":{"schema":"media-server.va-review-output.v1","supports":[],"questions":[],"contradictions":[{"text":"화면에 빨간 사각형이 전혀 보이지 않음","frameIndices":[0,1]}],"unclear":[],"confidence":null}}
+[pass] V450-L01 real model schema blank-hidden 
+[pass] V450-L01 fixture eight-static
+[pass] V450-L01 submit eight-static
+[synthetic-assessment] claim="빨간 사각형은 모든 프레임에서 같은 위치에 있다." observation="모든 프레임에서 빨간 사각형이 화면 중앙에 고정되어 있습니다." verdict="supported"
+[provider-shape] json=1 done=1 model="qwen3-vl:8b-instruct-q4_K_M" reason="stop" role="assistant" contentBytes=491 outputValidAt8=1 fields="schema","assessments","confidence", supportsCount=-1 questionsCount=-1 contradictionsCount=-1 unclearCount=-1 confidence=null
+[synthetic-output] {"schema":"media-server.va-review-output.v1","supports":[{"text":"모든 프레임에서 빨간 사각형이 화면 중앙에 위치하고 있습니다.","frameIndices":[0,1,2,3,4,5,6,7]}],"questions":[],"contradictions":[],"unclear":[],"confidence":null}
+[quality] {"case":"eight-static","expected":"supports","schemaValid":true,"categoryPass":true,"referenceCoveragePass":true,"elapsedMs":23531,"error":"","modelDigest":"0533d74300e4f9bc367d675d4e64ffd073d50ff16a2b4096cc2e8a1cf8c96319","output":{"schema":"media-server.va-review-output.v1","supports":[{"text":"모든 프레임에서 빨간 사각형이 화면 중앙에 위치하고 있습니다.","frameIndices":[0,1,2,3,4,5,6,7]}],"questions":[],"contradictions":[],"unclear":[],"confidence":null}}
+[pass] V450-L01 real model schema eight-static 
+[pass] V450-L01 fixture occluded-final
+[pass] V450-L01 submit occluded-final
+[synthetic-assessment] claim="마지막 프레임에서 빨간 사각형이 회색 화면 뒤로 가려진 채 오른쪽으로 이동했다." observation="첫 번째 프레임에서 빨간 사각형이 왼쪽에 있고, 두 번째 프레임에서는 회색 화면이 전체를 차지하며 사각형이 보이지 않음" verdict="contradicted"
+[provider-shape] json=1 done=1 model="qwen3-vl:8b-instruct-q4_K_M" reason="stop" role="assistant" contentBytes=618 outputValidAt8=1 fields="schema","assessments","confidence", supportsCount=-1 questionsCount=-1 contradictionsCount=-1 unclearCount=-1 confidence=null
+[synthetic-output] {"schema":"media-server.va-review-output.v1","supports":[],"questions":[],"contradictions":[{"text":"두 번째 프레임에서 회색 화면이 전체를 차지하며 빨간 사각형은 보이지 않음","frameIndices":[1]}],"unclear":[],"confidence":null}
+[quality] {"case":"occluded-final","expected":"unclear","schemaValid":true,"categoryPass":false,"referenceCoveragePass":true,"elapsedMs":17575,"error":"","modelDigest":"0533d74300e4f9bc367d675d4e64ffd073d50ff16a2b4096cc2e8a1cf8c96319","output":{"schema":"media-server.va-review-output.v1","supports":[],"questions":[],"contradictions":[{"text":"두 번째 프레임에서 회색 화면이 전체를 차지하며 빨간 사각형은 보이지 않음","frameIndices":[1]}],"unclear":[],"confidence":null}}
+[pass] V450-L01 real model schema occluded-final 
+[quality-summary] mode= schema=12/12 category=8/12 referenceCoverage=12/12 uncertainty=0/4 questionPresence=0/4 semanticTextReviewRequired=true qualityStatus=pending-manual-review
+[pass] V450-L01 peak RSS observation
+[resource] nativePeakRssBytes=44220416
+[fail] V450-L01 automated prerequisites; manual meaning and questions still required
+[resource-final] {"modelBytes": 7972486720, "modelPhysicalFootprintBytes": 7839309504, "modelRssPlusVramBytes": 15578152512, "modelVramBytes": 7972486720, "workspaceBytes": 184243687}
+[cleanup] removed=true
+Traceback (most recent call last):
+  File "<stdin>", line 137, in <module>
+  File "/opt/homebrew/Cellar/python@3.14/3.14.4/Frameworks/Python.framework/Versions/3.14/lib/python3.14/subprocess.py", line 578, in run
+    raise CalledProcessError(retcode, process.args,
+                             output=stdout, stderr=stderr)
+subprocess.CalledProcessError: Command '['bash', '-c', 'source "$2/scripts/internal/env_common.sh"; export MEDIA_SERVER_GST_CACHE_DIR="$1/gst-cache"; media_server_apply_homebrew_gst_env || exit; exec "$1/smoke" "$1" "$3" "$4"', 'va-review', '/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-va-review-7fe_qt6u', '/Users/dhseo/Workspace/mediaServer', '--local', 'http://127.0.0.1:23451']' returned non-zero exit status 1.

@@ -24,20 +24,26 @@
 Gemini 제거와 Ollama 주소·TLS·인증 구현의 로컬 단기 검증을 마쳤다. 컨테이너·별도 GPU 서버
 연결을 지원하되 실제 모델 검증은 로컬만 수행하며 원격 실환경은 사용자 제외/미검증이다.
 HTTP는 무인증, HTTPS는 필수 인증서 검증·선택 Bearer/사내 CA다. 네 항목 실제 생성·한국어 응답도 승인됐다.
-정확한 결과·실패 횟수·정리는 [개발 실행 결과](release-artifacts/v4.5.0/development-results.md)에만 둔다.
+현재 한국어 네 항목 계약의 실제 모델 품질은 미완료이며 위 과거 05/06 PASS를 현 계약의
+완료 증거로 승계하지 않는다. 정확한 결과·실패 횟수·정리는 [개발 실행 결과](release-artifacts/v4.5.0/development-results.md)에만 둔다.
 
 | 순서·중요도 | 남은 일과 완료 조건 | 승인/검증 경계 |
 | --- | --- | --- |
-| 4 · P1 | 네 항목 실제 생성·한국어 응답 | 사용자 승인, 독립 품질 oracle를 실행 전 등록 |
-| 5 · P0 | 변경 기능의 로컬 단기 검증 | TLS/auth/오류/취소·API/저장/UI와 영향 품질 |
-| 6 · P0 | 로컬 미디어·녹화·검색 혼합 회귀·지원 OS 검증 | Linux 미확인을 macOS/정적 CI로 대신하지 않음 |
-| 7 · P0 | VERSION/CMake·릴리즈 목표·노트·지원 범위 고정 | 현재 source 4.4.0, source-only 유지 |
-| 8 · P0 | 독립 검토·manifest 결속·coverage FAIL 해소 | 지정 독립 검토 별도 승인, 일반 hash 재생성 금지 |
-| 9 · P0 | 안정화·30분·120분·실제 UI | 현재 Q01 worker 수명상 120분 필요, 각 실행 승인 확인 |
-| 10 · P0 | 결과 Git 보존·별도 정리 커밋·소유 자원 회수 | 보존 원본/hash와 이력 색인 확인 |
-| 11 · P0 | push·PR·required CI·main 병합 | 분할 커밋·마지막 push 승인, PR/병합은 별도 |
-| 12 · P0 | signed annotated tag·Verified·GitHub Release·Latest 확인 | 실제 외부 상태 확인, 별도 실행 승인 |
-| 13 · 마감 | 로컬/원격 v4.5.0 브랜치 삭제 | 공개 후 보존·병합 확인, 삭제 별도 승인 |
+| 1 · P0 | 주장 요구/scope와 gap 생성 결박·실제 근거 확보 질문 | provider v9/adapter v10은 제한된 claim/frame/gap 객체와 수신 연결 검사를 추가했다. 고정 text 실행에서 scope/gap 충돌과 질문 목적 오류가 남아 미완료. 입력은 자유 질문이므로 사전 claim 수 보장도 미확보. 관측 불가와 동일성 불명의 공존 거부 가능성을 함께 검토. 이번 단일 평가 한도는 소진했으며 새 수정/모델 평가는 별도 재개 범위 결정 필요 |
+| 2 · P0 | 고정 진단 후 영상 품질 합격 | 이번 텍스트 gate FAIL로 영상 반전/영상12는 notRun. 후속 승인 시 text10→반전6→영상12 순서와 기존 기준 유지. 이전 source의 PASS 승계·문턱 변경·사후 보정 금지. 정확한 축별 결과는 실행 기록 참조 |
+| 3 · P0 | 공개 UI와 실제 모델 취소/Stop 영향 회귀 | 현 계약의 native 저장/권한/수명 및 합성 provider를 연결한 HTTP/Auth·재시작은 실행했다. 실제 모델 취소/Stop·공개 네 그룹 UI 상태는 미실행으로 남긴다. 실제 UI/장시간 PASS로 확대하지 않음 |
+| 4 · P0 | 실제 미디어·녹화·검색 혼합 회귀와 지원 OS 검증 | 로컬 실제 모델 병행 중 RTSP/WebRTC·event·녹화·검색·FD/thread/메모리 확인. Linux 미확인을 macOS/정적 CI로 대신하지 않음. 컨테이너/원격 GPU 실환경은 사용자 제외/미검증 유지 |
+| 5 · P0 | VERSION/CMake·노트·문서·배포 범위 고정 | 현재 source 4.4.0. Ollama 단독·HTTP 무인증/HTTPS 인증·한국어 응답·미검증 제한을 정합화하고 source-only 유지 |
+| 6 · P0 | 독립 검토·manifest 결속·coverage FAIL 해소 | 현재 source에 대해 별도 승인된 독립 검토 후 inventory/owner/dispatch/action 결속. 일반 hash 재생성으로 독립 승인을 복사하지 않음 |
+| 7 · P0 | 승인된 최종 안정화·30분·120분·실제 UI | 30분/실제 UI 필수. 현재 Q01 worker/N03 수명 매핑상 120분 필요. 장시간·verify-predev·UI 풀테스트 실행 승인 확인, 각 결과/정리 구분 |
+| 8 · P0 | 실행 결과 Git 보존·별도 기록 정리·소유 자원 회수 | 원본 bytes/hash·로컬/원격 보존·이력 색인 확인 후 승인된 기록만 정리 커밋. 실패/미실행을 삭제로 숨기지 않음 |
+| 9 · P0 | 분할 커밋·최종 push·PR·required CI·main 병합 | 분할 커밋·마지막 push 승인 유지. 누적 커밋/작업 트리/원격 차이를 확인하며 PR/병합은 별도 실행 승인 |
+| 10 · P0 | 최종 main 서명 태그·GitHub Release·Latest 확인 | signed annotated tag 로컬 검증→원격 hash/Verified→source-only 공개/Latest·URL 확인. 외부 실행 승인 필요 |
+| 11 · 마감 | 로컬/원격 v4.5.0 브랜치 삭제 | 공개·병합·보존 확인 뒤 정확한 로컬/원격 삭제 범위 승인. 후속 버전 자동 시작 없음 |
+
+로드맵의 V450-01~08 범위는 유지한다. 이번 변경은 03/05의 판정 계약과 품질 선행 조건을
+구체화하며 외부 provider 재도입이나 새 모델/엔진 도입을 승인한 것이 아니다. 이 목록은
+실행 순서와 완료 조건이며 테스트/외부 변경의 새로운 승인을 부여하지 않는다.
 
 ## 별도 승인 릴리즈
 

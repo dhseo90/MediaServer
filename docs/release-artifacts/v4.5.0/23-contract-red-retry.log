@@ -1,0 +1,975 @@
+[fixture] /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-va-review-n08rkct7
+[source] include/recording/va_review_input.h 543fcaf1fd950927455e402b45f3747cdb95c81b8521daa4eb22ce4b87c1cc00
+[source] include/recording/va_review_provider.h f69c63c8b209dfa2d1daa01868f4c72de0494ee3785b3b0edba850daf4198076
+[source] include/recording/va_review_record.h 96f5ac21c232d0b7efcadc94d8472ea980e1c8828577753c77f892210059c27d
+[source] include/recording/va_review_service.h c3c6f9c4a7ebab259af79b2ff16bf1f1e94a0c776d6f612e88cdcb27e9be0baa
+[source] include/recording/va_review_store.h fcfad2a1c692321f5331b014357686abf871ab1b727ebc8093b5d339efc8c80a
+[source] scripts/internal/va_review_quality_fixture.h 4a46b462b22cf71e092319f885724c67f7506a5a491068577ecd0d632dbe6d64
+[source] scripts/internal/va_review_smoke.cpp 5eb95b1974b51f8afa354681b5b7b33a46ae250bbda9392a157ea3f16b5f4eb2
+[source] scripts/internal/verify_va_review.sh bab5a657552b871b7f8f10d6f4ba3a4d1d8f425dff56274c0eb760834d1ce452
+[source] src/recording/va_review_input.cpp 840df39c6fc11ca99748f55dd1c55d598e060467354dd8fd0a48b1b197cd58f1
+[source] src/recording/va_review_json.h 835cf40e95a3be8297ccf6edde1fbcf7c8aa5ffda3169f368195bc5667d065f3
+[source] src/recording/va_review_provider.cpp 9cb30f9bfa08a9df30bb825d2eb2aa38258369027469741daf9ed82d84e9d0eb
+[source] src/recording/va_review_record.cpp 1be2584c000e2f6974825b036afa6a8b89531108eb703d5ea7f3b6c64a0b256e
+[source] src/recording/va_review_service.cpp 22777f26753c6ea64f65daaa603633a02bc0fd98036ce02460b84887a4edef0d
+[source] src/recording/va_review_store.cpp 27cb631652d84eb98776cf0493959205fdb4888517cb70b6cc8e1d5a4108a0a4
+[source] src/recording/va_review_transport.cpp c38058cffb6cca2b291d6de52bdbdd0c7298b308699c8291f6c242884090a422
+[loopback] http://127.0.0.1:57377
+[tls-fixture] loopback only; temporary CA; no system trust changes
+[pass] V450-I01 isolated store recovery
+[pass] V450-I01 publish 1 frames: 
+[pass] V450-I01 load 1 frames: 
+[pass] V450-I01 exact frame count
+[pass] V450-I01 independent sequence bytes/PTS/unknown UTC 0
+[pass] V450-I01 publish 8 frames: 
+[pass] V450-I01 load 8 frames: 
+[pass] V450-I01 exact frame count
+[pass] V450-I01 independent sequence bytes/PTS/unknown UTC 0
+[pass] V450-I01 independent sequence bytes/PTS/unknown UTC 1
+[pass] V450-I01 independent sequence bytes/PTS/unknown UTC 2
+[pass] V450-I01 independent sequence bytes/PTS/unknown UTC 3
+[pass] V450-I01 independent sequence bytes/PTS/unknown UTC 4
+[pass] V450-I01 independent sequence bytes/PTS/unknown UTC 5
+[pass] V450-I01 independent sequence bytes/PTS/unknown UTC 6
+[pass] V450-I01 independent sequence bytes/PTS/unknown UTC 7
+[pass] V450-I01 metadata replay excludes raw pixels
+[pass] V450-I01 extra field output unchanged
+[pass] V450-I01 duplicate field output unchanged
+[pass] V450-I01 manifest hash output unchanged
+[pass] V450-I01 frame order output unchanged
+[pass] V450-I01 source locator output unchanged
+[pass] V450-I01 mixed source generations output unchanged
+[pass] V450-I01 input byte cap output unchanged
+[pass] V450-I01 unauthorized no publish
+[pass] V450-I01 cancelled before I/O
+[pass] V450-I01 path ID rejected
+[pass] V450-I01 valid empty partial fixture
+[pass] V450-I01 empty partial distinguished
+[pass] V450-I01 reopen independent of original media
+[pass] V450-I01 own corruption fixture opened
+[pass] V450-I01 corrupted package rejected
+[pass] V450-C01 evidence setup
+[pass] V450-C01 input setup
+[pass] V450-C01 grounded claims/uncertainty roundtrip
+[pass] V450-C01 rejected extra key unchanged
+[pass] V450-C01 rejected duplicate key unchanged
+[pass] V450-C01 rejected unknown frame unchanged
+[pass] V450-C01 rejected duplicate frame unchanged
+[pass] V450-C01 rejected ungrounded support unchanged
+[pass] V450-C01 rejected overlong text unchanged
+[pass] V450-C01 rejected confidence above one unchanged
+[pass] V450-C01 rejected negative confidence unchanged
+[pass] V450-C01 rejected infinity unchanged
+[pass] V450-C01 rejected confidence without evidence unchanged
+[pass] V450-C01 unknown confidence and ungrounded uncertainty accepted
+[pass] V450-C01 rejected claim count unchanged
+[pass] V450-C01 record provenance replay
+[pass] V450-C01 local model digest required
+[pass] V450-C01 provider provenance mismatch
+[pass] V450-G01 removed provider record rejected
+[pass] V450-S01 store startup
+[pass] V450-S01 durable readback
+[pass] V450-S01 same record idempotent publication
+[pass] V450-S01 new revision never overwrites
+[pass] V450-S01 configured count boundary fails closed
+[pass] V450-S01 restart original revision preserved
+[pass] V450-S01 record byte cap
+[pass] V450-S01 store byte cap includes header
+[pass] V450-S01 disk reserve
+[pass] V450-S01 cancellation after write cleans pending/no publication
+[pass] V450-S01 interrupted partial header recovered
+[pass] V450-S01 published pending fixture
+[pass] V450-S01 crash after atomic link keeps result
+[pass] V450-S01 unexpected hardlink rejected
+[pass] V450-S01 own hardlink removed
+[pass] V450-S01 symlink directory rejected
+[pass] V450-S01 path ID rejected
+[pass] V450-S01 write-failure setup
+[pass] V450-S01 failed write not published
+[pass] V450-S01 own permissions restored
+[pass] V450-S01 corruption fixture opened
+[pass] V450-S01 corrupt read/startup rejected
+[pass] V450-C01 evidence setup
+[pass] V450-C01 input setup
+[pass] V450-Q01 worker ready
+[pass] V450-Q01 exactly one worker thread
+[pass] V450-Q01 accepted asynchronously
+[pass] V450-Q01 active duplicate shares job
+[pass] V450-Q01 queue slot 0
+[pass] V450-Q01 queue slot 1
+[pass] V450-Q01 queue slot 2
+[pass] V450-Q01 queue slot 3
+[pass] V450-Q01 queue four boundary
+[pass] V450-Q01 other owner cannot cancel
+[pass] V450-Q01 admin queued cancellation
+[pass] V450-Q01 active cancellation
+[pass] V450-Q01 queue continues after cancellation
+[pass] V450-Q01 queue continues after cancellation
+[pass] V450-Q01 queue continues after cancellation
+[pass] V450-Q01 cancelled jobs never persist
+[pass] V450-Q01 failure task admitted
+[pass] V450-Q01 isolated failure 2
+[pass] V450-Q01 failure task admitted
+[pass] V450-Q01 isolated failure 3
+[pass] V450-Q01 failure task admitted
+[pass] V450-Q01 isolated failure 4
+[pass] V450-Q01 invalid/missing/exception no result writes
+[pass] V450-Q01 revocation task admitted
+[pass] V450-Q01 current permission revocation aborts/no write
+[pass] V450-Q01 status rechecks current channel scope
+[pass] V450-Q01 worker usable after failures
+[pass] V450-Q01 FD/thread counts return after failure workload and join
+[pass] V450-Q01 shutdown stops admission
+[pass] V450-Q01 restart expires process jobs without replay
+[pass] V450-Q01 actual deadline task
+[pass] V450-Q01 queue deadline task
+[pass] V450-Q01 execution and waiting deadlines differ; expired queue not called
+[pass] V450-Q01 finite terminal history 0
+[pass] V450-Q01 finite terminal history 1
+[pass] V450-Q01 finite terminal history 2
+[pass] V450-Q01 finite terminal history 3
+[pass] V450-Q01 finite terminal history 4
+[pass] V450-Q01 finite terminal history 5
+[pass] V450-Q01 finite terminal history 6
+[pass] V450-Q01 finite terminal history 7
+[pass] V450-Q01 old terminal metadata evicted
+[pass] V450-Q01 blocking provider admitted
+[pass] V450-Q01 media storage opens during provider wait
+[pass] V450-Q01 actual writer starts
+[pass] V450-Q01 actual recording finalized while provider waits
+[pass] V450-Q01 actual search refresh proceeds
+[pass] V450-Q01 independent time query returns recorded segment
+[pass] V450-Q01 actual event append proceeds
+[pass] V450-Q01 provider still pending during media/event/search progress
+[pass] V450-Q01 cooperative cancellation joins worker within 500ms
+[pass] V450-Q01 disabled never invokes provider
+[pass] V450-L01 owned protocol fixture parent
+[pass] V450-C01 evidence setup
+[pass] V450-C01 input setup
+[pass] V450-L01 exact local chat path
+[pass] V450-L01 ordered labeled-image protocol envelope
+[pass] V450-L01 frame index bound to one image
+[pass] V450-L01 frame index bound to one image
+[pass] V450-L01 nonstream schema and model unload
+[pass] V450-L01 exact frame timing and minimal metadata
+[pass] V450-K02 synthetic assessment codec
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic assessment codec
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic assessment codec
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-L01 checked model digest before and after inference
+[pass] V450-K01 all four Korean groups preserved from provider
+[pass] V450-K02 rejects provider fault without output mutation 1
+[pass] V450-L01 exact local chat path
+[pass] V450-L01 ordered labeled-image protocol envelope
+[pass] V450-L01 frame index bound to one image
+[pass] V450-L01 frame index bound to one image
+[pass] V450-L01 nonstream schema and model unload
+[pass] V450-L01 exact frame timing and minimal metadata
+[pass] V450-K02 synthetic assessment codec
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic assessment codec
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic assessment codec
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 rejects provider fault without output mutation 2
+[pass] V450-L01 exact local chat path
+[pass] V450-L01 ordered labeled-image protocol envelope
+[pass] V450-L01 frame index bound to one image
+[pass] V450-L01 frame index bound to one image
+[pass] V450-L01 nonstream schema and model unload
+[pass] V450-L01 exact frame timing and minimal metadata
+[pass] V450-K02 synthetic assessment codec
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic assessment codec
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic assessment codec
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 rejects provider fault without output mutation 3
+[pass] V450-L01 exact local chat path
+[pass] V450-L01 ordered labeled-image protocol envelope
+[pass] V450-L01 frame index bound to one image
+[pass] V450-L01 frame index bound to one image
+[pass] V450-L01 nonstream schema and model unload
+[pass] V450-L01 exact frame timing and minimal metadata
+[pass] V450-K02 synthetic assessment codec
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic assessment codec
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic assessment codec
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 rejects provider fault without output mutation 4
+[pass] V450-L01 exact local chat path
+[pass] V450-L01 ordered labeled-image protocol envelope
+[pass] V450-L01 frame index bound to one image
+[pass] V450-L01 frame index bound to one image
+[pass] V450-L01 nonstream schema and model unload
+[pass] V450-L01 exact frame timing and minimal metadata
+[pass] V450-K02 synthetic assessment codec
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic assessment codec
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic assessment codec
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 rejects provider fault without output mutation 5
+[pass] V450-L01 exact local chat path
+[pass] V450-L01 ordered labeled-image protocol envelope
+[pass] V450-L01 frame index bound to one image
+[pass] V450-L01 frame index bound to one image
+[pass] V450-L01 nonstream schema and model unload
+[pass] V450-L01 exact frame timing and minimal metadata
+[pass] V450-K02 synthetic assessment codec
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic assessment codec
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic assessment codec
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 rejects provider fault without output mutation 6
+[pass] V450-L01 exact local chat path
+[pass] V450-L01 ordered labeled-image protocol envelope
+[pass] V450-L01 frame index bound to one image
+[pass] V450-L01 frame index bound to one image
+[pass] V450-L01 nonstream schema and model unload
+[pass] V450-L01 exact frame timing and minimal metadata
+[pass] V450-K02 synthetic assessment codec
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic assessment codec
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic assessment codec
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 rejects provider fault without output mutation 7
+[pass] V450-L01 exact local chat path
+[pass] V450-L01 ordered labeled-image protocol envelope
+[pass] V450-L01 frame index bound to one image
+[pass] V450-L01 frame index bound to one image
+[pass] V450-L01 nonstream schema and model unload
+[pass] V450-L01 exact frame timing and minimal metadata
+[pass] V450-K02 synthetic assessment codec
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic assessment codec
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic assessment codec
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 rejects provider fault without output mutation 8
+[pass] V450-L01 exact local chat path
+[pass] V450-L01 ordered labeled-image protocol envelope
+[pass] V450-L01 frame index bound to one image
+[pass] V450-L01 frame index bound to one image
+[pass] V450-L01 nonstream schema and model unload
+[pass] V450-L01 exact frame timing and minimal metadata
+[pass] V450-K02 synthetic assessment codec
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic assessment codec
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic assessment codec
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 rejects provider fault without output mutation 9
+[pass] V450-L01 exact local chat path
+[pass] V450-L01 ordered labeled-image protocol envelope
+[pass] V450-L01 frame index bound to one image
+[pass] V450-L01 frame index bound to one image
+[pass] V450-L01 nonstream schema and model unload
+[pass] V450-L01 exact frame timing and minimal metadata
+[pass] V450-K02 synthetic assessment codec
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic assessment codec
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic assessment codec
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 rejects provider fault without output mutation 10
+[pass] V450-L01 exact local chat path
+[pass] V450-L01 ordered labeled-image protocol envelope
+[pass] V450-L01 frame index bound to one image
+[pass] V450-L01 frame index bound to one image
+[pass] V450-L01 nonstream schema and model unload
+[pass] V450-L01 exact frame timing and minimal metadata
+[pass] V450-K02 synthetic assessment codec
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 rejects provider fault without output mutation 11
+[pass] V450-L01 exact local chat path
+[pass] V450-L01 ordered labeled-image protocol envelope
+[pass] V450-L01 frame index bound to one image
+[pass] V450-L01 frame index bound to one image
+[pass] V450-L01 nonstream schema and model unload
+[pass] V450-L01 exact frame timing and minimal metadata
+[pass] V450-K02 synthetic assessment codec
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic assessment codec
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic assessment codec
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 rejects provider fault without output mutation 13
+[pass] V450-L01 exact local chat path
+[pass] V450-L01 ordered labeled-image protocol envelope
+[pass] V450-L01 frame index bound to one image
+[pass] V450-L01 frame index bound to one image
+[pass] V450-L01 nonstream schema and model unload
+[pass] V450-L01 exact frame timing and minimal metadata
+[pass] V450-K02 synthetic assessment codec
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic assessment codec
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic assessment codec
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 rejects provider fault without output mutation 14
+[pass] V450-L01 exact local chat path
+[pass] V450-L01 ordered labeled-image protocol envelope
+[pass] V450-L01 frame index bound to one image
+[pass] V450-L01 frame index bound to one image
+[pass] V450-L01 nonstream schema and model unload
+[pass] V450-L01 exact frame timing and minimal metadata
+[pass] V450-K02 synthetic assessment codec
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 rejects provider fault without output mutation 15
+[pass] V450-L01 exact local chat path
+[pass] V450-L01 ordered labeled-image protocol envelope
+[pass] V450-L01 frame index bound to one image
+[pass] V450-L01 frame index bound to one image
+[pass] V450-L01 nonstream schema and model unload
+[pass] V450-L01 exact frame timing and minimal metadata
+[pass] V450-K02 synthetic assessment codec
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic assessment codec
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic assessment codec
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 rejects provider fault without output mutation 16
+[pass] V450-L01 exact local chat path
+[pass] V450-L01 ordered labeled-image protocol envelope
+[pass] V450-L01 frame index bound to one image
+[pass] V450-L01 frame index bound to one image
+[pass] V450-L01 nonstream schema and model unload
+[pass] V450-L01 exact frame timing and minimal metadata
+[pass] V450-K02 synthetic assessment codec
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic assessment codec
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic assessment codec
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 rejects provider fault without output mutation 17
+[pass] V450-L01 exact local chat path
+[pass] V450-L01 ordered labeled-image protocol envelope
+[pass] V450-L01 frame index bound to one image
+[pass] V450-L01 frame index bound to one image
+[pass] V450-L01 nonstream schema and model unload
+[pass] V450-L01 exact frame timing and minimal metadata
+[pass] V450-K02 synthetic assessment codec
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic assessment codec
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic assessment codec
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 rejects provider fault without output mutation 18
+[pass] V450-L01 exact local chat path
+[pass] V450-L01 ordered labeled-image protocol envelope
+[pass] V450-L01 frame index bound to one image
+[pass] V450-L01 frame index bound to one image
+[pass] V450-L01 nonstream schema and model unload
+[pass] V450-L01 exact frame timing and minimal metadata
+[pass] V450-K02 synthetic assessment codec
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic assessment codec
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic assessment codec
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 rejects provider fault without output mutation 19
+[pass] V450-L01 exact local chat path
+[pass] V450-L01 ordered labeled-image protocol envelope
+[pass] V450-L01 frame index bound to one image
+[pass] V450-L01 frame index bound to one image
+[pass] V450-L01 nonstream schema and model unload
+[pass] V450-L01 exact frame timing and minimal metadata
+[pass] V450-K02 synthetic assessment codec
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic assessment codec
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic assessment codec
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 rejects provider fault without output mutation 20
+[pass] V450-L01 exact local chat path
+[pass] V450-L01 ordered labeled-image protocol envelope
+[pass] V450-L01 frame index bound to one image
+[pass] V450-L01 frame index bound to one image
+[pass] V450-L01 nonstream schema and model unload
+[pass] V450-L01 exact frame timing and minimal metadata
+[pass] V450-K02 synthetic assessment codec
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic assessment codec
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic assessment codec
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 rejects provider fault without output mutation 21
+[pass] V450-L01 exact local chat path
+[pass] V450-L01 ordered labeled-image protocol envelope
+[pass] V450-L01 frame index bound to one image
+[pass] V450-L01 frame index bound to one image
+[pass] V450-L01 nonstream schema and model unload
+[pass] V450-L01 exact frame timing and minimal metadata
+[pass] V450-K02 synthetic assessment codec
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic assessment codec
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic assessment codec
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 rejects provider fault without output mutation 22
+[pass] V450-L01 exact local chat path
+[pass] V450-L01 ordered labeled-image protocol envelope
+[pass] V450-L01 frame index bound to one image
+[pass] V450-L01 frame index bound to one image
+[pass] V450-L01 nonstream schema and model unload
+[pass] V450-L01 exact frame timing and minimal metadata
+[pass] V450-K02 synthetic assessment codec
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic assessment codec
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic assessment codec
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 rejects provider fault without output mutation 23
+[pass] V450-L01 exact local chat path
+[pass] V450-L01 ordered labeled-image protocol envelope
+[pass] V450-L01 frame index bound to one image
+[pass] V450-L01 frame index bound to one image
+[pass] V450-L01 nonstream schema and model unload
+[pass] V450-L01 exact frame timing and minimal metadata
+[pass] V450-K02 synthetic assessment codec
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic assessment codec
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic assessment codec
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 rejects provider fault without output mutation 24
+[pass] V450-L01 exact local chat path
+[pass] V450-L01 ordered labeled-image protocol envelope
+[pass] V450-L01 frame index bound to one image
+[pass] V450-L01 frame index bound to one image
+[pass] V450-L01 nonstream schema and model unload
+[pass] V450-L01 exact frame timing and minimal metadata
+[pass] V450-K02 synthetic assessment codec
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic assessment codec
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic assessment codec
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 rejects provider fault without output mutation 25
+[pass] V450-L01 exact local chat path
+[pass] V450-L01 ordered labeled-image protocol envelope
+[pass] V450-L01 frame index bound to one image
+[pass] V450-L01 frame index bound to one image
+[pass] V450-L01 nonstream schema and model unload
+[pass] V450-L01 exact frame timing and minimal metadata
+[pass] V450-K02 synthetic assessment codec
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic assessment codec
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic assessment codec
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 rejects provider fault without output mutation 26
+[pass] V450-L01 exact local chat path
+[pass] V450-L01 ordered labeled-image protocol envelope
+[pass] V450-L01 frame index bound to one image
+[pass] V450-L01 frame index bound to one image
+[pass] V450-L01 nonstream schema and model unload
+[pass] V450-L01 exact frame timing and minimal metadata
+[pass] V450-K02 synthetic assessment codec
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic assessment codec
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic assessment codec
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 rejects provider fault without output mutation 27
+[pass] V450-L01 exact local chat path
+[pass] V450-L01 ordered labeled-image protocol envelope
+[pass] V450-L01 frame index bound to one image
+[pass] V450-L01 frame index bound to one image
+[pass] V450-L01 nonstream schema and model unload
+[pass] V450-L01 exact frame timing and minimal metadata
+[pass] V450-K02 synthetic assessment codec
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic assessment codec
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic assessment codec
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 rejects provider fault without output mutation 28
+[pass] V450-L01 exact local chat path
+[pass] V450-L01 ordered labeled-image protocol envelope
+[pass] V450-L01 frame index bound to one image
+[pass] V450-L01 frame index bound to one image
+[pass] V450-L01 nonstream schema and model unload
+[pass] V450-L01 exact frame timing and minimal metadata
+[pass] V450-K02 synthetic assessment codec
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic assessment codec
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic assessment codec
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 rejects provider fault without output mutation 29
+[pass] V450-L01 exact local chat path
+[pass] V450-L01 ordered labeled-image protocol envelope
+[pass] V450-L01 frame index bound to one image
+[pass] V450-L01 frame index bound to one image
+[pass] V450-L01 nonstream schema and model unload
+[pass] V450-L01 exact frame timing and minimal metadata
+[pass] V450-K02 synthetic assessment codec
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic assessment codec
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic assessment codec
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 rejects provider fault without output mutation 30
+[pass] V450-L01 exact local chat path
+[pass] V450-L01 ordered labeled-image protocol envelope
+[pass] V450-L01 frame index bound to one image
+[pass] V450-L01 frame index bound to one image
+[pass] V450-L01 nonstream schema and model unload
+[pass] V450-L01 exact frame timing and minimal metadata
+[pass] V450-K02 synthetic assessment codec
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic assessment codec
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic assessment codec
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 rejects provider fault without output mutation 31
+[pass] V450-L01 exact local chat path
+[pass] V450-L01 ordered labeled-image protocol envelope
+[pass] V450-L01 frame index bound to one image
+[pass] V450-L01 frame index bound to one image
+[pass] V450-L01 nonstream schema and model unload
+[pass] V450-L01 exact frame timing and minimal metadata
+[pass] V450-K02 synthetic assessment codec
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic assessment codec
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic assessment codec
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 rejects provider fault without output mutation 32
+[pass] V450-L01 exact local chat path
+[pass] V450-L01 ordered labeled-image protocol envelope
+[pass] V450-L01 frame index bound to one image
+[pass] V450-L01 frame index bound to one image
+[pass] V450-L01 nonstream schema and model unload
+[pass] V450-L01 exact frame timing and minimal metadata
+[pass] V450-K02 synthetic assessment codec
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic assessment codec
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic assessment codec
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 rejects provider fault without output mutation 33
+[pass] V450-L01 exact local chat path
+[pass] V450-L01 ordered labeled-image protocol envelope
+[pass] V450-L01 frame index bound to one image
+[pass] V450-L01 frame index bound to one image
+[pass] V450-L01 nonstream schema and model unload
+[pass] V450-L01 exact frame timing and minimal metadata
+[pass] V450-K02 synthetic assessment codec
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic assessment codec
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic assessment codec
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 rejects provider fault without output mutation 34
+[pass] V450-L01 exact local chat path
+[pass] V450-L01 ordered labeled-image protocol envelope
+[pass] V450-L01 frame index bound to one image
+[pass] V450-L01 frame index bound to one image
+[pass] V450-L01 nonstream schema and model unload
+[pass] V450-L01 exact frame timing and minimal metadata
+[pass] V450-K02 synthetic assessment codec
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic assessment codec
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic assessment codec
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 rejects provider fault without output mutation 35
+[pass] V450-L01 exact local chat path
+[pass] V450-L01 ordered labeled-image protocol envelope
+[pass] V450-L01 frame index bound to one image
+[pass] V450-L01 frame index bound to one image
+[pass] V450-L01 nonstream schema and model unload
+[pass] V450-L01 exact frame timing and minimal metadata
+[pass] V450-K02 synthetic assessment codec
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic assessment codec
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic assessment codec
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 rejects provider fault without output mutation 36
+[pass] V450-L01 exact local chat path
+[pass] V450-L01 ordered labeled-image protocol envelope
+[pass] V450-L01 frame index bound to one image
+[pass] V450-L01 frame index bound to one image
+[pass] V450-L01 nonstream schema and model unload
+[pass] V450-L01 exact frame timing and minimal metadata
+[pass] V450-K02 synthetic assessment codec
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic assessment codec
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic assessment codec
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 rejects provider fault without output mutation 37
+[pass] V450-L01 exact local chat path
+[pass] V450-L01 ordered labeled-image protocol envelope
+[pass] V450-L01 frame index bound to one image
+[pass] V450-L01 frame index bound to one image
+[pass] V450-L01 nonstream schema and model unload
+[pass] V450-L01 exact frame timing and minimal metadata
+[pass] V450-K02 synthetic assessment codec
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-L01 insufficient assessment maps to uncertainty without inventing confidence
+[pass] V450-L01 exact local chat path
+[pass] V450-L01 ordered labeled-image protocol envelope
+[pass] V450-L01 frame index bound to one image
+[pass] V450-L01 frame index bound to one image
+[pass] V450-L01 nonstream schema and model unload
+[pass] V450-L01 exact frame timing and minimal metadata
+[pass] V450-K02 synthetic assessment codec
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 verbatim claim preserves allowed surrounding spaces
+[pass] V450-L01 exact local chat path
+[pass] V450-L01 ordered labeled-image protocol envelope
+[pass] V450-L01 frame index bound to one image
+[pass] V450-L01 frame index bound to one image
+[pass] V450-L01 nonstream schema and model unload
+[pass] V450-L01 exact frame timing and minimal metadata
+[pass] V450-K02 synthetic assessment codec
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic assessment codec
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic assessment codec
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[pass] V450-K02 synthetic entry group
+[fail] V450-K02 partial observation coexists with insufficient evidence unchanged
+[cleanup] removed=true
+Traceback (most recent call last):
+  File "<stdin>", line 151, in <module>
+  File "/opt/homebrew/Cellar/python@3.14/3.14.4/Frameworks/Python.framework/Versions/3.14/lib/python3.14/subprocess.py", line 578, in run
+    raise CalledProcessError(retcode, process.args,
+                             output=stdout, stderr=stderr)
+subprocess.CalledProcessError: Command '['bash', '-c', 'source "$2/scripts/internal/env_common.sh"; export MEDIA_SERVER_GST_CACHE_DIR="$1/gst-cache"; media_server_apply_homebrew_gst_env || exit; exec "$1/smoke" "$1" "$3" "$4"', 'va-review', '/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-va-review-n08rkct7', '/Users/dhseo/Workspace/mediaServer', '--protocol', 'http://127.0.0.1:57377']' returned non-zero exit status 1.

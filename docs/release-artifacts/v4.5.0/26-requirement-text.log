@@ -1,0 +1,132 @@
+[fixture] /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-va-review-jmbm8yno
+[source] include/recording/va_review_input.h 543fcaf1fd950927455e402b45f3747cdb95c81b8521daa4eb22ce4b87c1cc00
+[source] include/recording/va_review_provider.h f69c63c8b209dfa2d1daa01868f4c72de0494ee3785b3b0edba850daf4198076
+[source] include/recording/va_review_record.h 96f5ac21c232d0b7efcadc94d8472ea980e1c8828577753c77f892210059c27d
+[source] include/recording/va_review_service.h c3c6f9c4a7ebab259af79b2ff16bf1f1e94a0c776d6f612e88cdcb27e9be0baa
+[source] include/recording/va_review_store.h fcfad2a1c692321f5331b014357686abf871ab1b727ebc8093b5d339efc8c80a
+[source] scripts/internal/va_review_quality_fixture.h 4a46b462b22cf71e092319f885724c67f7506a5a491068577ecd0d632dbe6d64
+[source] scripts/internal/va_review_smoke.cpp d4a85f4eef86131ea76d1c74245349a2325f967c969d15adf9a5e4c8edd21fb4
+[source] scripts/internal/verify_va_review.sh bab5a657552b871b7f8f10d6f4ba3a4d1d8f425dff56274c0eb760834d1ce452
+[source] src/recording/va_review_input.cpp 840df39c6fc11ca99748f55dd1c55d598e060467354dd8fd0a48b1b197cd58f1
+[source] src/recording/va_review_json.h 835cf40e95a3be8297ccf6edde1fbcf7c8aa5ffda3169f368195bc5667d065f3
+[source] src/recording/va_review_provider.cpp a1b8928c2fe436ad404cdfa33853934db52b5670e27803d1fff0a0d6b10654ce
+[source] src/recording/va_review_record.cpp 70ef1119248815f976c7a35957c485d4dd077e7b2273a751e26cc1db5536b10d
+[source] src/recording/va_review_service.cpp 22777f26753c6ea64f65daaa603633a02bc0fd98036ce02460b84887a4edef0d
+[source] src/recording/va_review_store.cpp 27cb631652d84eb98776cf0493959205fdb4888517cb70b6cc8e1d5a4108a0a4
+[source] src/recording/va_review_transport.cpp c38058cffb6cca2b291d6de52bdbdd0c7298b308699c8291f6c242884090a422
+[pass] V450-L01 quality evidence ready
+[pass] V450-L01 quality worker ready
+[diagnostic-input] mode=text case=two-left-right claim="마지막 프레임의 빨간 사각형은 첫 프레임의 위치보다 오른쪽에 있다." suppliedObservations="프레임 0: 빨간 사각형의 왼쪽 변 x=400, y=120, 크기 48×48. 프레임 1: 빨간 사각형의 왼쪽 변 x=64, y=120, 크기 48×48. "
+[pass] V450-L01 fixture two-left-right
+[pass] V450-L01 submit two-left-right
+[synthetic-assessment] claim="마지막 프레임의 빨간 사각형은 첫 프레임의 위치보다 오른쪽에 있다." requirement="temporal-comparison" verdict="contradicted" evidenceStatus="sufficient"
+[synthetic-observation] text="프레임 0: 빨간 사각형의 왼쪽 변 x=400, y=120, 크기 48×48."
+[synthetic-observation] text="프레임 1: 빨간 사각형의 왼쪽 변 x=64, y=120, 크기 48×48."
+[provider-shape] json=1 done=1 model="qwen3-vl:8b-instruct-q4_K_M" reason="stop" role="assistant" contentBytes=817 outputValidAt8=1 prompt_eval_count=1045 eval_count=264 fields="schema","assessments","confidence", supportsCount=-1 questionsCount=-1 contradictionsCount=-1 unclearCount=-1 confidence=null
+[synthetic-output] {"schema":"media-server.va-review-output.v1","supports":[],"questions":[],"contradictions":[{"text":"프레임 0: 빨간 사각형의 왼쪽 변 x=400, y=120, 크기 48×48.","frameIndices":[0]}],"unclear":[],"confidence":null}
+[quality] {"case":"two-left-right","expected":"contradictions","schemaValid":false,"categoryPass":false,"referenceCoveragePass":false,"elapsedMs":19394,"error":"review-invalid-output","modelDigest":"","output":null}
+[diagnostic-input] mode=text case=two-left-left claim="마지막 프레임의 빨간 사각형은 첫 프레임의 위치보다 왼쪽에 있다." suppliedObservations="프레임 0: 빨간 사각형의 왼쪽 변 x=400, y=120, 크기 48×48. 프레임 1: 빨간 사각형의 왼쪽 변 x=64, y=120, 크기 48×48. "
+[pass] V450-L01 fixture two-left-left
+[pass] V450-K02 inversion pair preserves identical evidence package
+[pass] V450-L01 submit two-left-left
+[synthetic-assessment] claim="마지막 프레임의 빨간 사각형은 첫 프레임의 위치보다 왼쪽에 있다." requirement="temporal-comparison" verdict="supported" evidenceStatus="sufficient"
+[synthetic-observation] text="프레임 0: 빨간 사각형의 왼쪽 변 x=400, y=120, 크기 48×48."
+[synthetic-observation] text="프레임 1: 빨간 사각형의 왼쪽 변 x=64, y=120, 크기 48×48."
+[provider-shape] json=1 done=1 model="qwen3-vl:8b-instruct-q4_K_M" reason="stop" role="assistant" contentBytes=811 outputValidAt8=1 prompt_eval_count=1045 eval_count=262 fields="schema","assessments","confidence", supportsCount=-1 questionsCount=-1 contradictionsCount=-1 unclearCount=-1 confidence=null
+[synthetic-output] {"schema":"media-server.va-review-output.v1","supports":[{"text":"프레임 1: 빨간 사각형의 왼쪽 변 x=64, y=120, 크기 48×48.","frameIndices":[1]}],"questions":[],"contradictions":[],"unclear":[],"confidence":null}
+[quality] {"case":"two-left-left","expected":"supports","schemaValid":false,"categoryPass":false,"referenceCoveragePass":false,"elapsedMs":19458,"error":"review-invalid-output","modelDigest":"","output":null}
+[diagnostic-input] mode=text case=eight-left-right claim="마지막 프레임의 빨간 사각형은 첫 프레임의 위치보다 오른쪽에 있다." suppliedObservations="프레임 0: 빨간 사각형의 왼쪽 변 x=400, y=120, 크기 48×48. 프레임 1: 빨간 사각형의 왼쪽 변 x=352, y=120, 크기 48×48. 프레임 2: 빨간 사각형의 왼쪽 변 x=304, y=120, 크기 48×48. 프레임 3: 빨간 사각형의 왼쪽 변 x=256, y=120, 크기 48×48. 프레임 4: 빨간 사각형의 왼쪽 변 x=208, y=120, 크기 48×48. 프레임 5: 빨간 사각형의 왼쪽 변 x=160, y=120, 크기 48×48. 프레임 6: 빨간 사각형의 왼쪽 변 x=112, y=120, 크기 48×48. 프레임 7: 빨간 사각형의 왼쪽 변 x=64, y=120, 크기 48×48. "
+[pass] V450-L01 fixture eight-left-right
+[pass] V450-L01 submit eight-left-right
+[synthetic-assessment] claim="마지막 프레임의 빨간 사각형은 첫 프레임의 위치보다 오른쪽에 있다." requirement="temporal-comparison" verdict="contradicted" evidenceStatus="sufficient"
+[synthetic-observation] text="프레임 0: 빨간 사각형의 왼쪽 변 x=400, y=120, 크기 48×48."
+[synthetic-observation] text="프레임 7: 빨간 사각형의 왼쪽 변 x=64, y=120, 크기 48×48."
+[provider-shape] json=1 done=1 model="qwen3-vl:8b-instruct-q4_K_M" reason="stop" role="assistant" contentBytes=817 outputValidAt8=1 prompt_eval_count=1525 eval_count=264 fields="schema","assessments","confidence", supportsCount=-1 questionsCount=-1 contradictionsCount=-1 unclearCount=-1 confidence=null
+[synthetic-output] {"schema":"media-server.va-review-output.v1","supports":[],"questions":[],"contradictions":[{"text":"프레임 0: 빨간 사각형의 왼쪽 변 x=400, y=120, 크기 48×48.","frameIndices":[0]}],"unclear":[],"confidence":null}
+[quality] {"case":"eight-left-right","expected":"contradictions","schemaValid":false,"categoryPass":false,"referenceCoveragePass":false,"elapsedMs":22464,"error":"review-invalid-output","modelDigest":"","output":null}
+[diagnostic-input] mode=text case=eight-left-left claim="마지막 프레임의 빨간 사각형은 첫 프레임의 위치보다 왼쪽에 있다." suppliedObservations="프레임 0: 빨간 사각형의 왼쪽 변 x=400, y=120, 크기 48×48. 프레임 1: 빨간 사각형의 왼쪽 변 x=352, y=120, 크기 48×48. 프레임 2: 빨간 사각형의 왼쪽 변 x=304, y=120, 크기 48×48. 프레임 3: 빨간 사각형의 왼쪽 변 x=256, y=120, 크기 48×48. 프레임 4: 빨간 사각형의 왼쪽 변 x=208, y=120, 크기 48×48. 프레임 5: 빨간 사각형의 왼쪽 변 x=160, y=120, 크기 48×48. 프레임 6: 빨간 사각형의 왼쪽 변 x=112, y=120, 크기 48×48. 프레임 7: 빨간 사각형의 왼쪽 변 x=64, y=120, 크기 48×48. "
+[pass] V450-L01 fixture eight-left-left
+[pass] V450-K02 inversion pair preserves identical evidence package
+[pass] V450-L01 submit eight-left-left
+[synthetic-assessment] claim="마지막 프레임의 빨간 사각형은 첫 프레임의 위치보다 왼쪽에 있다." requirement="temporal-comparison" verdict="supported" evidenceStatus="sufficient"
+[synthetic-observation] text="프레임 0: 빨간 사각형의 왼쪽 변 x=400, y=120, 크기 48×48."
+[synthetic-observation] text="프레임 7: 빨간 사각형의 왼쪽 변 x=64, y=120, 크기 48×48."
+[provider-shape] json=1 done=1 model="qwen3-vl:8b-instruct-q4_K_M" reason="stop" role="assistant" contentBytes=810 outputValidAt8=1 prompt_eval_count=1525 eval_count=265 fields="schema","assessments","confidence", supportsCount=-1 questionsCount=-1 contradictionsCount=-1 unclearCount=-1 confidence=1.0
+[synthetic-output] {"schema":"media-server.va-review-output.v1","supports":[{"text":"프레임 7: 빨간 사각형의 왼쪽 변 x=64, y=120, 크기 48×48.","frameIndices":[7]}],"questions":[],"contradictions":[],"unclear":[],"confidence":1}
+[quality] {"case":"eight-left-left","expected":"supports","schemaValid":false,"categoryPass":false,"referenceCoveragePass":false,"elapsedMs":22900,"error":"review-invalid-output","modelDigest":"","output":null}
+[diagnostic-input] mode=text case=static-different claim="빨간 사각형의 첫 프레임과 마지막 프레임 위치가 서로 다르다." suppliedObservations="프레임 0: 빨간 사각형의 왼쪽 변 x=208, y=120, 크기 48×48. 프레임 1: 빨간 사각형의 왼쪽 변 x=208, y=120, 크기 48×48. "
+[pass] V450-L01 fixture static-different
+[pass] V450-L01 submit static-different
+[synthetic-assessment] claim="빨간 사각형의 첫 프레임과 마지막 프레임 위치가 서로 다르다." requirement="temporal-comparison" verdict="contradicted" evidenceStatus="sufficient"
+[synthetic-observation] text="프레임 0: 빨간 사각형의 왼쪽 변 x=208, y=120, 크기 48×48."
+[synthetic-observation] text="프레임 1: 빨간 사각형의 왼쪽 변 x=208, y=120, 크기 48×48."
+[provider-shape] json=1 done=1 model="qwen3-vl:8b-instruct-q4_K_M" reason="stop" role="assistant" contentBytes=812 outputValidAt8=1 prompt_eval_count=1039 eval_count=261 fields="schema","assessments","confidence", supportsCount=-1 questionsCount=-1 contradictionsCount=-1 unclearCount=-1 confidence=null
+[synthetic-output] {"schema":"media-server.va-review-output.v1","supports":[],"questions":[],"contradictions":[{"text":"프레임 0: 빨간 사각형의 왼쪽 변 x=208, y=120, 크기 48×48.","frameIndices":[0]},{"text":"프레임 1: 빨간 사각형의 왼쪽 변 x=208, y=120, 크기 48×48.","frameIndices":[1]}],"unclear":[],"confidence":null}
+[quality] {"case":"static-different","expected":"contradictions","schemaValid":true,"categoryPass":true,"referenceCoveragePass":true,"elapsedMs":20266,"error":"","modelDigest":"0533d74300e4f9bc367d675d4e64ffd073d50ff16a2b4096cc2e8a1cf8c96319","output":{"schema":"media-server.va-review-output.v1","supports":[],"questions":[],"contradictions":[{"text":"프레임 0: 빨간 사각형의 왼쪽 변 x=208, y=120, 크기 48×48.","frameIndices":[0]},{"text":"프레임 1: 빨간 사각형의 왼쪽 변 x=208, y=120, 크기 48×48.","frameIndices":[1]}],"unclear":[],"confidence":null}}
+[diagnostic-input] mode=text case=static-same claim="빨간 사각형의 첫 프레임과 마지막 프레임 위치가 서로 같다." suppliedObservations="프레임 0: 빨간 사각형의 왼쪽 변 x=208, y=120, 크기 48×48. 프레임 1: 빨간 사각형의 왼쪽 변 x=208, y=120, 크기 48×48. "
+[pass] V450-L01 fixture static-same
+[pass] V450-K02 inversion pair preserves identical evidence package
+[pass] V450-L01 submit static-same
+[synthetic-assessment] claim="빨간 사각형의 첫 프레임과 마지막 프레임 위치가 서로 같다." requirement="temporal-comparison" verdict="supported" evidenceStatus="sufficient"
+[synthetic-observation] text="프레임 0: 빨간 사각형의 왼쪽 변 x=208, y=120, 크기 48×48."
+[synthetic-observation] text="프레임 1: 빨간 사각형의 왼쪽 변 x=208, y=120, 크기 48×48."
+[provider-shape] json=1 done=1 model="qwen3-vl:8b-instruct-q4_K_M" reason="stop" role="assistant" contentBytes=806 outputValidAt8=1 prompt_eval_count=1038 eval_count=258 fields="schema","assessments","confidence", supportsCount=-1 questionsCount=-1 contradictionsCount=-1 unclearCount=-1 confidence=null
+[synthetic-output] {"schema":"media-server.va-review-output.v1","supports":[{"text":"프레임 0: 빨간 사각형의 왼쪽 변 x=208, y=120, 크기 48×48.","frameIndices":[0]},{"text":"프레임 1: 빨간 사각형의 왼쪽 변 x=208, y=120, 크기 48×48.","frameIndices":[1]}],"questions":[],"contradictions":[],"unclear":[],"confidence":null}
+[quality] {"case":"static-same","expected":"supports","schemaValid":true,"categoryPass":true,"referenceCoveragePass":true,"elapsedMs":20110,"error":"","modelDigest":"0533d74300e4f9bc367d675d4e64ffd073d50ff16a2b4096cc2e8a1cf8c96319","output":{"schema":"media-server.va-review-output.v1","supports":[{"text":"프레임 0: 빨간 사각형의 왼쪽 변 x=208, y=120, 크기 48×48.","frameIndices":[0]},{"text":"프레임 1: 빨간 사각형의 왼쪽 변 x=208, y=120, 크기 48×48.","frameIndices":[1]}],"questions":[],"contradictions":[],"unclear":[],"confidence":null}}
+[diagnostic-input] mode=text case=one-motion claim="빨간 사각형이 움직이고 있다." suppliedObservations="프레임 0: 빨간 사각형의 왼쪽 변 x=208, y=120, 크기 48×48. "
+[pass] V450-L01 fixture one-motion
+[pass] V450-L01 submit one-motion
+[synthetic-assessment] claim="빨간 사각형이 움직이고 있다." requirement="temporal-comparison" verdict="insufficient" evidenceStatus="insufficient"
+[synthetic-observation] text="프레임 0: 빨간 사각형의 왼쪽 변 x=208, y=120, 크기 48×48."
+[synthetic-observation] text="단일 프레임에서 움직임 판단 불가"
+[synthetic-missing] text="이동 여부를 판단하려면 프레임 0 이전 또는 이후의 프레임이 필요합니다."
+[synthetic-questions] text="프레임 0 이전 또는 이후의 프레임이 있는지 확인할 수 있나요?"
+[synthetic-assessment] claim="빨간 사각형이 움직이고 있다." requirement="temporal-comparison" verdict="insufficient" evidenceStatus="insufficient"
+[synthetic-observation] text="프레임 0: 빨간 사각형의 왼쪽 변 x=208, y=120, 크기 48×48."
+[synthetic-missing] text="이동 여부를 판단하려면 프레임 0 이전 또는 이후의 프레임이 필요합니다."
+[synthetic-questions] text="프레임 0 이전 또는 이후의 프레임이 있는지 확인할 수 있나요?"
+[provider-shape] json=1 done=1 model="qwen3-vl:8b-instruct-q4_K_M" reason="stop" role="assistant" contentBytes=1890 outputValidAt8=1 prompt_eval_count=949 eval_count=557 fields="schema","assessments","confidence", supportsCount=-1 questionsCount=-1 contradictionsCount=-1 unclearCount=-1 confidence=null
+[synthetic-output] {"schema":"media-server.va-review-output.v1","supports":[],"questions":[{"text":"프레임 0 이전 또는 이후의 프레임이 있는지 확인할 수 있나요?","frameIndices":[0]},{"text":"프레임 0 이전 또는 이후의 프레임이 있는지 확인할 수 있나요?","frameIndices":[0]}],"contradictions":[],"unclear":[{"text":"프레임 0: 빨간 사각형의 왼쪽 변 x=208, y=120, 크기 48×48.","frameIndices":[0]},{"text":"이동 여부를 판단하려면 프레임 0 이전 또는 이후의 프레임이 필요합니다.","frameIndices":[0]},{"text":"프레임 0: 빨간 사각형의 왼쪽 변 x=208, y=120, 크기 48×48.","frameIndices":[0]},{"text":"이동 여부를 판단하려면 프레임 0 이전 또는 이후의 프레임이 필요합니다.","frameIndices":[0]}],"confidence":null}
+[quality] {"case":"one-motion","expected":"unclear","schemaValid":false,"categoryPass":false,"referenceCoveragePass":false,"elapsedMs":33718,"error":"review-invalid-output","modelDigest":"","output":null}
+[diagnostic-input] mode=text case=one-direction claim="빨간 사각형이 오른쪽으로 움직이고 있다." suppliedObservations="프레임 0: 빨간 사각형의 왼쪽 변 x=208, y=120, 크기 48×48. "
+[pass] V450-L01 fixture one-direction
+[pass] V450-L01 submit one-direction
+[synthetic-assessment] claim="빨간 사각형이 오른쪽으로 움직이고 있다." requirement="temporal-comparison" verdict="insufficient" evidenceStatus="insufficient"
+[synthetic-observation] text="프레임 0: 빨간 사각형의 왼쪽 변 x=208, y=120, 크기 48×48."
+[synthetic-missing] text="이동을 판단하려면 이 프레임 전후의 위치 비교가 필요합니다."
+[synthetic-questions] text="이 프레임 전후의 프레임이 있는지 확인해 주세요? (이동 판단을 위해) ?"
+[provider-shape] json=1 done=1 model="qwen3-vl:8b-instruct-q4_K_M" reason="stop" role="assistant" contentBytes=994 outputValidAt8=1 prompt_eval_count=953 eval_count=280 fields="schema","assessments","confidence", supportsCount=-1 questionsCount=-1 contradictionsCount=-1 unclearCount=-1 confidence=null
+[synthetic-output] {"schema":"media-server.va-review-output.v1","supports":[],"questions":[{"text":"이 프레임 전후의 프레임이 있는지 확인해 주세요? (이동 판단을 위해) ?","frameIndices":[0]}],"contradictions":[],"unclear":[{"text":"프레임 0: 빨간 사각형의 왼쪽 변 x=208, y=120, 크기 48×48.","frameIndices":[0]},{"text":"이동을 판단하려면 이 프레임 전후의 위치 비교가 필요합니다.","frameIndices":[0]}],"confidence":null}
+[quality] {"case":"one-direction","expected":"unclear","schemaValid":true,"categoryPass":true,"referenceCoveragePass":true,"elapsedMs":20638,"error":"","modelDigest":"0533d74300e4f9bc367d675d4e64ffd073d50ff16a2b4096cc2e8a1cf8c96319","output":{"schema":"media-server.va-review-output.v1","supports":[],"questions":[{"text":"이 프레임 전후의 프레임이 있는지 확인해 주세요? (이동 판단을 위해) ?","frameIndices":[0]}],"contradictions":[],"unclear":[{"text":"프레임 0: 빨간 사각형의 왼쪽 변 x=208, y=120, 크기 48×48.","frameIndices":[0]},{"text":"이동을 판단하려면 이 프레임 전후의 위치 비교가 필요합니다.","frameIndices":[0]}],"confidence":null}}
+[diagnostic-input] mode=text case=blank-hidden claim="회색 화면 뒤에 가려진 빨간 사각형이 오른쪽으로 움직이고 있다." suppliedObservations="프레임 0: 회색 화면만 보이고 빨간 사각형은 보이지 않는다. 프레임 1: 회색 화면만 보이고 빨간 사각형은 보이지 않는다. "
+[pass] V450-L01 fixture blank-hidden
+[pass] V450-L01 submit blank-hidden
+[synthetic-assessment] claim="회색 화면 뒤에 가려진 빨간 사각형이 오른쪽으로 움직이고 있다." requirement="temporal-comparison" verdict="insufficient" evidenceStatus="insufficient"
+[synthetic-observation] text="프레임 0: 회색 화면만 보이고 빨간 사각형은 보이지 않는다."
+[synthetic-observation] text="프레임 1: 회색 화면만 보이고 빨간 사각형은 보이지 않는다."
+[synthetic-missing] text="빨간 사각형이 존재하는 프레임이 없으므로, 움직임을 판단할 수 없습니다."
+[synthetic-questions] text="빨간 사각형이 보이지 않는 프레임이므로, 가림 없는 시야를 확보할 수 있는 추가 프레임이 있는지 확인할 수 있나요?"
+[provider-shape] json=1 done=1 model="qwen3-vl:8b-instruct-q4_K_M" reason="stop" role="assistant" contentBytes=1269 outputValidAt8=1 prompt_eval_count=1023 eval_count=350 fields="schema","assessments","confidence", supportsCount=-1 questionsCount=-1 contradictionsCount=-1 unclearCount=-1 confidence=null
+[synthetic-output] {"schema":"media-server.va-review-output.v1","supports":[],"questions":[{"text":"빨간 사각형이 보이지 않는 프레임이므로, 가림 없는 시야를 확보할 수 있는 추가 프레임이 있는지 확인할 수 있나요?","frameIndices":[0,1]}],"contradictions":[],"unclear":[{"text":"빨간 사각형이 존재하는 프레임이 없으므로, 움직임을 판단할 수 없습니다.","frameIndices":[0,1]}],"confidence":null}
+[quality] {"case":"blank-hidden","expected":"unclear","schemaValid":false,"categoryPass":false,"referenceCoveragePass":false,"elapsedMs":24163,"error":"review-invalid-output","modelDigest":"","output":null}
+[diagnostic-input] mode=text case=occluded-final claim="마지막 프레임에서 빨간 사각형이 회색 화면 뒤로 가려진 채 오른쪽으로 이동했다." suppliedObservations="프레임 0: 빨간 사각형의 왼쪽 변 x=64, y=120, 크기 48×48. 프레임 1: 회색 화면만 보이고 빨간 사각형은 보이지 않는다. "
+[pass] V450-L01 fixture occluded-final
+[pass] V450-L01 submit occluded-final
+[synthetic-assessment] claim="마지막 프레임에서 빨간 사각형이 회색 화면 뒤로 가려진 채 오른쪽으로 이동했다." requirement="temporal-comparison" verdict="contradicted" evidenceStatus="sufficient"
+[synthetic-observation] text="프레임 0: 빨간 사각형의 왼쪽 변 x=64, y=120, 크기 48×48."
+[synthetic-observation] text="프레임 1: 회색 화면만 보이고 빨간 사각형은 보이지 않는다."
+[provider-shape] json=1 done=1 model="qwen3-vl:8b-instruct-q4_K_M" reason="stop" role="assistant" contentBytes=842 outputValidAt8=1 prompt_eval_count=1042 eval_count=261 fields="schema","assessments","confidence", supportsCount=-1 questionsCount=-1 contradictionsCount=-1 unclearCount=-1 confidence=null
+[synthetic-output] {"schema":"media-server.va-review-output.v1","supports":[],"questions":[],"contradictions":[{"text":"프레임 1: 회색 화면만 보이고 빨간 사각형은 보이지 않는다.","frameIndices":[1]}],"unclear":[],"confidence":null}
+[quality] {"case":"occluded-final","expected":"unclear","schemaValid":false,"categoryPass":false,"referenceCoveragePass":false,"elapsedMs":20161,"error":"review-invalid-output","modelDigest":"","output":null}
+[diagnostic-summary] mode=text schema=3/10 category=3/10 referenceCoverage=3/10 uncertainty=1/4 questionPresence=1/4 semanticTextReviewRequired=true qualityStatus=pending-manual-review
+[pass] V450-L01 peak RSS observation
+[resource] nativePeakRssBytes=44367872
+[fail] V450-K02 text diagnostic covers decisive and insufficient claims; manual review required
+[resource-final] {"modelBytes": 7972486720, "modelPhysicalFootprintBytes": 7651253880, "modelRssPlusVramBytes": 15416819264, "modelVramBytes": 7972486720, "workspaceBytes": 184204316}
+[cleanup] removed=true
+Traceback (most recent call last):
+  File "<stdin>", line 151, in <module>
+  File "/opt/homebrew/Cellar/python@3.14/3.14.4/Frameworks/Python.framework/Versions/3.14/lib/python3.14/subprocess.py", line 578, in run
+    raise CalledProcessError(retcode, process.args,
+                             output=stdout, stderr=stderr)
+subprocess.CalledProcessError: Command '['bash', '-c', 'source "$2/scripts/internal/env_common.sh"; export MEDIA_SERVER_GST_CACHE_DIR="$1/gst-cache"; media_server_apply_homebrew_gst_env || exit; exec "$1/smoke" "$1" "$3" "$4"', 'va-review', '/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-va-review-jmbm8yno', '/Users/dhseo/Workspace/mediaServer', '--diagnostic-text', 'http://127.0.0.1:23451']' returned non-zero exit status 1.

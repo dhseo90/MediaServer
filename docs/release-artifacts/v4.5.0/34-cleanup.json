@@ -1,0 +1,30 @@
+{
+  "modelEmptyBeforeTermination": true,
+  "fiveSecondPostInferenceUnloadGate": "notRun: failed quality prerequisite; this later observation is cleanup only",
+  "serverPid": 88661,
+  "ownedPidsAbsent": [
+    88661
+  ],
+  "portAbsent": 23451,
+  "fixtureRootsAbsent": [
+    "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-va-review-g_ul53hp",
+    "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-va-review-i9vj8fra",
+    "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-va-review-8mcsaelf",
+    "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-va-review-0go5jc__",
+    "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-va-http-TEZXk2"
+  ],
+  "ownedImplementationTempsRemoved": [
+    "/tmp/v450-contract-prefix.txt",
+    "/tmp/v450-provider-tests.txt"
+  ],
+  "defaultStorageBefore": {
+    "exists": false,
+    "symlink": false
+  },
+  "defaultStorageAfter": {
+    "exists": false,
+    "symlink": false
+  },
+  "weightsRetained": "models/v450-ollama",
+  "serverLogRetained": "/tmp/media-server-v450-contract34-ollama.log"
+}
