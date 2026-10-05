@@ -702,6 +702,7 @@ std::vector<std::uint8_t> QualityPng(int x) {
     if(compress(compressed.data(),&size,raw.data(),raw.size())!=Z_OK)throw std::runtime_error("quality-png");
     compressed.resize(size);Chunk(png,"IDAT",compressed);Chunk(png,"IEND",{});return png;
 }
+#include "va_review_cause_diagnostic.h"
 void QualityChecks(const std::filesystem::path& root,const std::string& endpoint,const std::string& diagnostic="") {
     using namespace recording;
     const bool text_mode=diagnostic=="text"||diagnostic=="text-uncertain"||diagnostic=="text-decisive";
@@ -903,6 +904,8 @@ int main(int argc,char** argv) {
         if(argc!=4)throw std::runtime_error("owned fixture root, mode, endpoint required");
         gst_init(nullptr,nullptr);
         if(std::string(argv[2])=="--seed")SeedHttp(argv[1]);
+        else if(std::string(argv[2])=="--cause-offline")CauseOffline(argv[1]);
+        else if(std::string(argv[2])=="--cause-ab")CauseCompare(argv[1],argv[3]);
         else if(std::string(argv[2])=="--contract-only")ProviderChecks(argv[1],argv[3]);
         else if(std::string(argv[2])=="--local-lifecycle")LocalLifecycleChecks(argv[1],argv[3]);
         else if(std::string(argv[2])=="--diagnostic-text-uncertain")QualityChecks(argv[1],argv[3],"text-uncertain");

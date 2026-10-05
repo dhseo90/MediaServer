@@ -20,11 +20,13 @@ def wait_model_unloaded(fetch, deadline, clock=time.monotonic, sleep=time.sleep)
     finally:
         print('[model-unload]',json.dumps({'observations':observations}),flush=True)
 repo=pathlib.Path(sys.argv[1]); build=repo/'build-gst-onnx'
-local=len(sys.argv)==4 and sys.argv[2] in ('--local','--diagnostic-text','--diagnostic-text-uncertain','--diagnostic-text-decisive','--diagnostic-inversion')
+local=len(sys.argv)==4 and sys.argv[2] in ('--local','--diagnostic-text','--diagnostic-text-uncertain','--diagnostic-text-decisive','--diagnostic-inversion','--cause-ab')
 lifecycle=len(sys.argv)==4 and sys.argv[2]=='--local-lifecycle'
 http_mode=len(sys.argv)==3 and sys.argv[2]=='--http-only'
 contract=len(sys.argv)==3 and sys.argv[2]=='--contract-only'
-if len(sys.argv)!=2 and not local and not lifecycle and not http_mode and not contract: raise RuntimeError('usage: verify_va_review.sh [--local http://127.0.0.1:port | --local-lifecycle http://127.0.0.1:port | --diagnostic-text http://127.0.0.1:port | --diagnostic-inversion http://127.0.0.1:port | --http-only | --contract-only]')
+cause_offline=len(sys.argv)==3 and sys.argv[2]=='--cause-offline'
+cause_ab=local and sys.argv[2]=='--cause-ab'
+if len(sys.argv)!=2 and not local and not lifecycle and not http_mode and not contract and not cause_offline: raise RuntimeError('usage: verify_va_review.sh [--local http://127.0.0.1:port | --local-lifecycle http://127.0.0.1:port | --diagnostic-text http://127.0.0.1:port | --diagnostic-inversion http://127.0.0.1:port | --http-only | --contract-only | --cause-offline | --cause-ab http://127.0.0.1:port]')
 archive=build/'libmedia_server_runtime.a'
 for directory in ('src','include'):
     for source in (repo/directory).rglob('*'):
@@ -37,9 +39,23 @@ try:
     link=shlex.split((build/'CMakeFiles/media_server.dir/link.txt').read_text())
     libs=[str(archive),*link[link.index('libmedia_server_runtime.a')+1:]]
     flags=shlex.split(subprocess.check_output(['pkg-config','--cflags','openssl','sqlite3','gstreamer-app-1.0'],text=True))
-    sources=sorted([*repo.glob('src/recording/va_review*.cpp'),*repo.glob('src/recording/va_review*.h'),*repo.glob('include/recording/va_review*.h'),repo/'scripts/internal/va_review_smoke.cpp',repo/'scripts/internal/va_review_quality_fixture.h',repo/'scripts/internal/verify_va_review.sh',repo/'scripts/internal/va_review_contract_replay.json'])
+    sources=sorted([*repo.glob('src/recording/va_review*.cpp'),*repo.glob('src/recording/va_review*.h'),*repo.glob('include/recording/va_review*.h'),repo/'scripts/internal/va_review_smoke.cpp',repo/'scripts/internal/va_review_quality_fixture.h',repo/'scripts/internal/verify_va_review.sh',repo/'scripts/internal/va_review_contract_replay.json',repo/'scripts/internal/va_review_cause_diagnostic.h'])
     for source in sources: print('[source]',source.relative_to(repo),hashlib.sha256(source.read_bytes()).hexdigest(),flush=True)
     shutil.copyfile(repo/'scripts/internal/va_review_contract_replay.json',root/'contract-replay.json')
+    if cause_offline or cause_ab:
+        artifact=repo/'docs/release-artifacts/v4.5.0'
+        prior=json.loads((artifact/'35-evaluation-freeze.json').read_text())
+        cases=[];current=None;request_hash=None
+        for line in (artifact/'35-text-uncertain.log').read_text().splitlines():
+            if line.startswith('[diagnostic-input] '):current=line.split('case=')[1].split(' ')[0]
+            elif line.startswith('[wire-provenance] '):request_hash=line.split('requestSha256=')[1].split(' ')[0]
+            elif line.startswith('[synthetic-raw-response] '):
+                envelope=json.loads(json.loads(line.split(' ',1)[1]))
+                cases.append({'id':current,'requestSha256':request_hash,'content':envelope['message']['content']})
+        if [c['id'] for c in cases]!=['one-motion','one-direction','blank-hidden','occluded-final']:
+            raise RuntimeError('original four-case provenance mismatch')
+        (root/'cause-replay.json').write_text(json.dumps({'modelDigest':prior['modelDigest'],'cases':cases},ensure_ascii=False))
+        if cause_ab:shutil.copyfile(artifact/'36-request-freeze.json',root/'cause-plan.json')
     subprocess.run(['c++','-std=c++17','-Wall','-Wextra','-Werror','-pthread','-I'+str(repo/'include'),
         '-DMEDIA_SERVER_USE_OPENSSL=1','-DMEDIA_SERVER_USE_SQLITE3=1','-DMEDIA_SERVER_USE_GSTREAMER=1',
         '-DMEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND=1',*flags,
@@ -129,8 +145,12 @@ try:
                     resources['modelPhysicalFootprintBytes']=max(resources['modelPhysicalFootprintBytes'],footprint)
                     resources['workspaceBytes']=max(resources['workspaceBytes'],sum(p.stat().st_size for p in root.rglob('*') if p.is_file()))
                 except Exception as exc: resources['observationError']=type(exc).__name__
+                if cause_ab and ('observationError' in resources or resources['modelBytes']>14*1024**3 or resources['modelPhysicalFootprintBytes']>14*1024**3 or resources['workspaceBytes']>8*1024**3):
+                    (root/'cause-stop').write_text('resource limit or observation failure')
                 stop.wait(.25)
         monitor=threading.Thread(target=observe);monitor.start()
+    elif cause_offline:
+        endpoint='unused'
     else:
         server=http.server.ThreadingHTTPServer(('127.0.0.1',0),Handler)
         server.daemon_threads=False
@@ -164,10 +184,14 @@ try:
         if not 0<remaining<=800:raise RuntimeError('shared text budget exhausted or invalid')
         print('[text-budget]',json.dumps({'deadlineMonotonic':stage_deadline,'remainingSeconds':remaining}),flush=True)
     subprocess.run(['bash','-c','source "$2/scripts/internal/env_common.sh"; export MEDIA_SERVER_GST_CACHE_DIR="$1/gst-cache"; media_server_apply_homebrew_gst_env || exit; exec "$1/smoke" "$1" "$3" "$4"',
-        'va-review',str(root),str(repo),'--local-lifecycle' if lifecycle else sys.argv[2] if local or contract else '--protocol',endpoint],check=True,timeout=60 if lifecycle else stage_deadline-time.monotonic() if local else 90,
+        'va-review',str(root),str(repo),'--local-lifecycle' if lifecycle else sys.argv[2] if local or contract or cause_offline else '--protocol',endpoint],check=True,timeout=60 if lifecycle else stage_deadline-time.monotonic() if local else 90,
         env=dict(os.environ,HTTP_PROXY='http://127.0.0.1:1',HTTPS_PROXY='http://127.0.0.1:1',ALL_PROXY='http://127.0.0.1:1',
             http_proxy='http://127.0.0.1:1',https_proxy='http://127.0.0.1:1',all_proxy='http://127.0.0.1:1',NO_PROXY='',no_proxy=''))
     focused_finished=time.monotonic()
+    if cause_offline:
+        target=repo/'docs/release-artifacts/v4.5.0/36-request-freeze.json'
+        with target.open('xb') as output:output.write((root/'cause-plan.json').read_bytes())
+        print('[cause-plan-preserved]',hashlib.sha256(target.read_bytes()).hexdigest(),flush=True)
     if lifecycle:
         elapsed=time.monotonic()-focused_started
         if resources.get('lifecycleTrials')!=2 or 'lifecycleError' in resources or elapsed>=60:raise RuntimeError('lifecycle focused gate failed')

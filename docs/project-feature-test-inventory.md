@@ -108,6 +108,23 @@ macOS 모델 작업 메모리는 전용 Ollama와 현재 자식의 `proc_pid_rus
 합계(250ms 간격)로 관측한다. Ollama 할당량·RSS+VRAM도 별도 보고하되 unified memory의
 중복 가능 합계를 물리 사용량으로 간주하지 않는다. 14GiB 기준은 유지한다.
 
+V450-K04(원인 분리, 제품 변경 아님): `--cause-offline`은 35의 부족4 원응답을 수정 없이
+현재 수신기에 전달한다. 기존 PNG/manifest/텍스트 요청 재구성 hash가 35와 일치해야 한다.
+원문 coverage와 property/basis/value/summary/verdict의 의미 보장 공백, property/basis만 바꾼
+단일/가림 이동의 수신 변화, 정상 단일 색·가시성 반증, 충분16·부족8/9(gap1)·혼합12/13(gap2)의
+공개 그룹 예산을 확인한다. 잘못된 응답의 수용은 결함 재현이며 품질 PASS가 아니다.
+`--cause-ab`는 one-motion/one-direction/blank-hidden/occluded-final/two-right/two-left 순서로
+각각 A/B, B/A, A/B, B/A, A/B, B/A를 한 번만 호출한다(최대12). A는 제품 요청을 기존 텍스트
+진단과 똑같이 변환, B는 같은 원문·시각 metadata·독립 관측문으로 verdict/reason만 요청한다.
+B는 진단 대조군이며 공개 record를 만들지 않는다. 모든 요청 hash는 오프라인에서 실행 전 고정한다.
+동일 모델/digest/Ollama/options, 60초/호출·800초/묶음·14GiB 모델/4GiB native/8GiB 작업공간을
+유지한다. 정상 종료·JSON/수신·정답 분류·관측에 없는 사실 추가·불확실성·A 질문 의미를 따로
+검토한다. 최소 출력 reason도 실제 관측과 논리가 맞아야 하며 판정 label만 맞으면 충분하지 않다.
+품질 오답은 비교 관측으로 계속 수집하되 timeout/전송/수집/자원/격리/정리 오류는 남은 호출을
+중단한다. 동일 사례 재시도·제품 수정·기존 text10/반전6/영상12 추가 실행은 금지한다.
+작은 텍스트 표본의 차이는 복합 요청 전체의 기여 근거이며 특정 enum/decoder의 단독 효과,
+영상 인식·질문 요구·제품 품질 PASS 또는 독립 검증을 뜻하지 않는다.
+
 `--local-lifecycle http://127.0.0.1:<port>`는 기존 품질 12사례를 재실행하지 않는 별도 단기 수명 검사다.
 실제 provider/worker에 합성 512×288 PNG 8개를 보내고 Python monitor의 `/api/ps` 모델 로드
 직접 관측 신호 이후 생성자 Cancel과 Stop을 각각 한 번 실행한다. 두 작업 모두 cancelled·record 없음,
