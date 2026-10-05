@@ -221,6 +221,56 @@ S10 시간·식별·저장 보강과 S11 최종 검증으로 마감했다.
 4. 외부 LLM/VLM 실패가 녹화, event, search 결과를 막지 않게 한다.
 5. local-first와 provider opt-in 정책을 유지한다.
 
+### 개발 우선순위와 선행 관계
+
+2026-10-05 V450-01~07의 순차 개발과 분할 커밋·마지막 푸시가 승인됐다. 실제 외부 전송·
+장시간 검사·릴리즈 실행 조건은 별도다. 상세 계약과 지원 환경은
+[v4.5.0 개발 계약](superpowers/specs/2026-10-05-v450-va-review-design.md)에 두며,
+아래 단계 ID는 개발 단위다. 실행 전 기능별 정상·오류·경계 기대값은 기존
+[테스트 정의](project-feature-test-inventory.md)에 등록한다.
+
+출발점은 v4.4.0의 [불변 증거 패키지](superpowers/specs/2026-10-04-v440-evidence-package-design.md)다.
+시간순으로 선택한 최대 8개 원본 sample, 보존 PNG/clip, checksum과 provenance를 소비한다.
+패키지 재생성이나 전체 영상 분석을 선행 과제로 추가하지 않는다. 제한된 sample 사이에서
+관측하지 못한 행동을 없었다고 판정하거나 검색 유사도를 사건의 확률로 해석하지 않는다.
+
+현재 [VLM 프로필](vlm-runtime-opt-in-contract.md)은 `runtimeCallAllowed=false`와
+`providerCallAllowed=false`를 요구하고, [기존 feature 큐](v300-vlm-feature-queue.md)는
+실제 provider를 호출하지 않는다. [로컬 smoke](vlm-local-runtime-connection-smoke.md)도
+합성 loopback 검증이다. 이들을 실제 sequence review 구현·품질 증거로 간주하지 않는다.
+기존 계약을 유지하면서 새 versioned 실행 계약을 추가하는 방안을 먼저 정한다.
+로컬 VLM 운영 경로의 제품화는 [backlog의 범위 결정](development-backlog.md#기능-후보의-범위-결정)에
+따라 승인할 대상이며, 외부 provider의 실제 연결은 별도로 선택한다.
+
+P0는 근거·권한·저장·수명과 완료 판정의 필수 조건, P1은 사용 가능한 제품 흐름,
+P2는 명시적으로 선택할 확장이다. P0 최종 검증은 의존 기능이 완성된 뒤 수행한다.
+
+| 순서·중요도 | 개발 단위 | 선행 조건 | 산출물과 통과 조건 |
+| --- | --- | --- | --- |
+| V450-01 · P0 | 요구·계약·평가 기준 확정 | v4.4.0 계약 확인 | 검토할 질문/가설, 단일 이미지와 sequence의 의미, supports/questions/contradictions/unclear와 confidence의 범위·unknown 표현, 근거 참조와 상태를 정의한다. 대상 장비·로컬 runtime/model의 실제 채택·fallback·제외, license/provenance/privacy·운영 제약, 큐·시간·메모리·저장 예산 및 품질 합격선을 확정한다. 새 계약에 필요한 공개 자료·권리 검토를 마치고 기존 무호출 계약과의 호환 방안·기능별 독립 기대값을 정한다. |
+| V450-02 · P0 | 증거 패키지 → 검토 입력 | 01 | 서버가 검증한 package ID·digest와 frame/asset 참조만 해석한다. 시간순서·원본 PTS/time base·UTC 품질·선택 정책을 보존하며 빈/단일/누락 sequence를 구분한다. 손상 hash·다른 패키지 참조·범위 밖 index를 거부하고, 원본 순환삭제 후에도 보존 asset으로 같은 입력을 구성한다. |
+| V450-03 · P0 | 구조화 검토 결과 검증·영속화 | 01, 02 | versioned 결과를 원본 package와 분리해 저장한다. 각 판단을 해당 근거 frame/구간과 연결하고 model/runtime·prompt template·입력 변환 version/digest와 uncertainty를 남긴다. 잘못된 schema·존재하지 않는 근거·비정상 confidence는 거부한다. 원자 저장·재시작 조회·저장 실패·용량 상한을 검증하고 재검토는 이전 결과를 덮어쓰지 않는 별도 revision으로 남긴다. |
+| V450-04 · P0 | 비동기 작업·실패 격리 | 02, 03 | bounded queue/worker, 접수·실행 제한, 실제 deadline·취소·종료 join과 참조 해제를 구현한다. disabled, missing-model, queue-full, timeout, invalid-output, 저장 실패·재시작 중단을 구분한다. 실패 주입 중에도 녹화·event·검색·송출이 진행되고 queue/FD/thread/메모리가 정한 예산으로 복귀함을 직접 확인한다. |
+| V450-05 · P1 | 로컬 sequence review 연결 | 01~04 및 로컬 실행 범위 승인 | 선택한 실제 로컬 모델에 순서와 시간 간격이 있는 frame sequence를 전달한다. opt-in off에서는 호출하지 않고, 모델 부재·오류를 검토 상태로 반환한다. 독립 정답/반례가 있는 단일·복수 프레임, 순서 변화, 증거 부족 사례로 근거 연결·불확실성·품질·자원을 평가한다. 합성 응답 성공만으로 실제 모델 완료를 선언하지 않는다. |
+| V450-06 · P1 | Ops API·검토 화면 | 03~05 | 기존 `/ops/events` 증거 상세 흐름에 명시적 검토 요청, 진행/실패 상태, 구조화 결과와 근거 시퀀스 열람을 연결한다. 요청·실행·조회·asset 접근에서 현재 역할과 채널 scope를 확인하고 쓰기 권한을 정의한다. 권한 회수·타 채널 접근·재요청을 검증하며 viewer/client에 원문·진단을 노출하지 않는다. 운영자 검토와 모델 판단은 구분하고 기존 Rule/Profile 저장 흐름과 primary nav를 유지한다. |
+| V450-07 · P2 · 선택 | 외부 provider adapter | 04~06 및 provider·전송 범위 승인 | 선택된 provider만 명시 opt-in·전송 guard 뒤에 연결한다. 전송할 asset/범위·보관 정책·credential 수명을 확정하고 timeout·인증 오류·제한 응답·비정상 출력을 검토 실패로 격리한다. 로컬 실패를 외부 호출로 자동 전환하지 않는다. 실제 연결 미실행은 제외/미확인으로 남기며 fixture 통과를 provider 성공으로 승격하지 않는다. |
+| V450-08 · P0 | 영향 회귀·최종 완료 판정 | 승인된 구현 범위 고정 | 녹화·검색·증거·권한의 영향 회귀와 실제 모델 혼합 부하를 확인한다. 안정화·30분·실제 UI를 구분하고, 120분 필요성은 worker/참조 수명·미디어·자원 영향으로 판단한다. 장시간·UI 풀테스트는 별도 승인 후 실행하며 필수 미실행·실패·cleanup 미확인은 완료 blocker로 남긴다. 지원 범위·제외·알려진 한계를 정리하고 릴리즈는 별도 절차를 따른다. |
+
+승인된 개발 순서는 **01 → 02 → 03 → 04 → 05 → 06 → 07**이며 08은 후속 최종 검증이다.
+07의 adapter 개발과 실제 외부 호출의 준비·검증 상태를 구분한다. 개발 중에는 각 단계의 focused·영향 회귀를 수행하고,
+최종 묶음은 코드 고정 후 실행한다. 경계별 회귀 정의를 최종 단계까지 미루지 않는다.
+
+검토 재현의 기준은 저장된 입력·선택 순서·설정 provenance·결과·근거를 다시 대조할 수
+있는 것이다. 실제 모델을 다시 호출했을 때 문장이나 점수가 항상 같다고 보장하지 않는다.
+raw prompt·provider response·credential·source URL은 검토 저장소나 UI에 남기지 않으며,
+결과 재생에 필요한 정제된 구조화 값과 version/digest를 보존한다.
+
+교차 카메라 Entity 확정(v4.6.0), 자연어 질의 API(v4.7.0), 대화형 UI(v4.8.0),
+자동 Rule/Profile 적용·조치 실행, Evidence default-on, 영구 credential store와
+녹화 누적 이력의 전면 압축/정리는 이 순서의 비범위다. 기존 녹화 이력의 자원 한계는
+지원 예산에 반영하되 해결 범위를 자동 확대하지 않는다. VARuleLens 코드·prompt·schema는
+권리 확인 전 제외하고 요구 개념만으로 독립 구현한다.
+
 완료 기준: 검토 결과와 근거·불확실성을 재현하고 provider 실패가 녹화·이벤트·검색을 막지 않음을 확인한다.
 
 ## v4.6.0 — Correlation

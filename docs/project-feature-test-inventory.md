@@ -4,6 +4,22 @@
 종료 버전의 실행 시점·실패·승인 기록은 [Git 이력 안내](history/README.md)에서 조회한다.
 아래 역사 링크는 출처 조회용이며 일반 검사 실행의 입력이나 현재 승인·PASS가 아니다.
 
+## v450 VA Review
+
+[개발 계약](superpowers/specs/2026-10-05-v450-va-review-design.md)의 실행 전 정의다.
+아래는 구현/검증 완료 기록이 아니다. 단계별 검증 명령은 해당 구현과 함께 연결한다.
+
+| 기능 ID | route/control/action과 정상·오류·경계 기대값 | 안정화 | 30분 | 120분 | UI |
+| --- | --- | --- | --- | --- | --- |
+| V450-I01 | 검증한 EvidencePackageV1에서 1/8 frame 순서·시간·asset/hash·partial 유지. 빈 frame, 잘못된 ID/참조/index/hash/순서, 12MiB 초과 거부. 원본 삭제 후 동일 입력, 오류 시 출력 불변 | native 입력/원본 회귀 | 녹화 병행 | 수명 영향 | 근거 시퀀스 |
+| V450-C01 | supports/questions/contradictions/unclear+nullable confidence strict codec. 중복/추가 key·타입/길이/범위/근거 밖 index·중복 index 거부, 근거 없는 판단·confidence 거부, 결과 출력 불변 | native 계약 | 내부 | 내부 | 구조화 결과 |
+| V450-S01 | record 원자 저장·새 revision·reopen/digest, 512개/64MiB/128KiB·reserve 경계. pending 비공개, 손상/symlink/hardlink/쓰기 실패 거부, 기존 결과 불변·소유 정리 | native 저장 | 저장 병행 | 복구 영향 | 보존 조회 |
+| V450-Q01 | worker1/queue4/job64, 중복 진행 요청, queue-full/30초 대기/60초 실행/cancel/stop/권한 회수·재시작 만료. 실패가 녹화/event/search/송출에 전파되지 않으며 FD/thread/작업 메모리 회수 | native 작업·혼합 회귀 | 별도 승인 | worker 수명상 필요 | 진행/실패/취소 |
+| V450-L01 | Ollama opt-in off 무호출, 실제 순서 PNG·시간 전달, missing-model/연결 실패/timeout/invalid-output. 실제 12사례 schema·근거100%, 부족 사례 uncertainty100%, 의미10/12 이상·60초 이내, 서버4GiB/모델14GiB 이하 | protocol+실제 모델 | 실제 모델 병행 | 수명/자원 | 로컬 검토 |
+| V450-A01 | va-reviews POST/GET 및 va-review-jobs GET/DELETE. 익명401/viewer403·타채널403·ops:write 없는 요청 거부, 생성자/admin 취소, 실행·저장 전 권한 회수 반영, 경로/비밀 비노출 | 격리 HTTP/Auth | 조회 병행 | 종료 영향 | 직접 조작 |
+| V450-U01 | /ops/events 증거 상세 질문→실행→진행/취소→결과→근거. disabled/빈값/중복/실패/늦은 응답·채널 전환, light/dark/mobile, textContent·viewer 비노출·기존 nav | UI 상태/변경영역 | 릴리즈 별도 | 영향 판정 | 풀테스트 별도 |
+| V450-P01 | Gemini 명시 opt-in·전송 승인·일시 credential 필수, 허용 HTTPS host만 사용·redirect/proxy 거부, 401/429/timeout/oversize/invalid-output 격리. 외부 자동 fallback 없음, raw key/prompt/response 비저장. 합성 transport와 실제 provider 별도 결과 | protocol/실호출 구분 | 선택 범위 | 영향 판정 | 전송 opt-in |
+
 ## v440 증거 패키지
 
 [개발 계약](superpowers/specs/2026-10-04-v440-evidence-package-design.md)에 따른 실행 전 정의다.
