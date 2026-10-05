@@ -7,7 +7,8 @@ python3 - "$task_repo" "$@" <<'PY'
 import ctypes, hashlib, http.server, json, os, pathlib, shlex, shutil, subprocess, sys, tempfile, threading, urllib.request, time
 repo=pathlib.Path(sys.argv[1]); build=repo/'build-gst-onnx'
 local=len(sys.argv)==4 and sys.argv[2]=='--local'
-if len(sys.argv)!=2 and not local: raise RuntimeError('usage: verify_va_review.sh [--local http://127.0.0.1:port]')
+http_mode=len(sys.argv)==3 and sys.argv[2]=='--http-only'
+if len(sys.argv)!=2 and not local and not http_mode: raise RuntimeError('usage: verify_va_review.sh [--local http://127.0.0.1:port | --http-only]')
 archive=build/'libmedia_server_runtime.a'
 for directory in ('src','include'):
     for source in (repo/directory).rglob('*'):
@@ -26,6 +27,10 @@ try:
         '-DMEDIA_SERVER_USE_OPENSSL=1','-DMEDIA_SERVER_USE_SQLITE3=1','-DMEDIA_SERVER_USE_GSTREAMER=1',
         '-DMEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND=1',*flags,
         str(repo/'scripts/internal/va_review_smoke.cpp'),*libs,'-o',str(root/'smoke')],check=True,timeout=60)
+    if http_mode:
+        environment=dict(os.environ,MEDIA_SERVER_VA_REVIEW_FIXTURE_BIN=str(root/'smoke'))
+        subprocess.run(['node',str(repo/'scripts/internal/va_review_http_checks.mjs')],env=environment,check=True,timeout=70)
+        sys.exit(0)
     class Handler(http.server.BaseHTTPRequestHandler):
         def log_message(self,*args):pass
         def do_POST(self):

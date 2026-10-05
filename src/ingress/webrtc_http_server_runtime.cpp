@@ -755,6 +755,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                         if (recording_request) {
                             if (auto denied = require_ops_principal()) {
                                 denied->headers["Cache-Control"] = "no-store";
+                                denied->headers["X-Content-Type-Options"] = "nosniff";
                                 return *denied;
                             }
                             if (!recording_service)
@@ -768,6 +769,59 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                 response.headers["X-Content-Type-Options"] = "nosniff";
                                 return response;
                             };
+                            const std::string review_base="/ops/api/recordings/va-reviews";
+                            const std::string job_prefix="/ops/api/recordings/va-review-jobs/";
+                            if(request.path==review_base||request.path.rfind(review_base+"/",0)==0||request.path.rfind(job_prefix,0)==0){
+                                if(principal_result.principal.password_change_required)
+                                    return api_response({403,"Forbidden","{\"error\":\"review-forbidden\"}"});
+                                auto* reviews=recording_service->VaReviews();
+                                if(!reviews)return api_response({503,"Service Unavailable","{\"error\":\"review-disabled\"}"});
+                                const auto& principal=principal_result.principal;
+                                const auto owner=principal.auth_mode+":"+(principal.username.empty()?principal.role:principal.username);
+                                const bool writable=auth::RequireScope(principal,"ops:write");
+                                const bool mutation=request.method=="POST"||request.method=="DELETE";
+                                if(mutation&&!writable)return api_response({403,"Forbidden","{\"error\":\"review-forbidden\"}"});
+                                // HTTP stack의 request/config 참조를 worker에 넘기지 않는다. 인증 자료는 작업 메모리에만 둔다.
+                                auth::HeaderMap token_headers;
+                                const auto authorization=HeaderValue(request,"Authorization");
+                                if(!authorization.empty())token_headers.emplace("Authorization",authorization);
+                                const auto direct=auth::BuildPrincipalFromRequest(config,token_headers,{});
+                                const auto session=direct.ok?std::optional<std::string>{}:auth::ExtractSessionCookie(request.headers,config.auth_cookie_name);
+                                const auto make_authorize=[state=impl_.get(),configuration=config,session,token_headers](bool write){
+                                    return [state,configuration,session,token_headers,write](const std::string& channel){
+                                        auth::AuthResult current;
+                                        if(session){
+                                            auth::Principal saved;
+                                            {
+                                                std::lock_guard lock(state->auth_mu);
+                                                const auto found=state->auth_sessions.find(*session);
+                                                if(found==state->auth_sessions.end())return false;
+                                                const auto now=std::chrono::system_clock::now();
+                                                if(found->second.expires_at<=now||(configuration.auth_session_idle_timeout_seconds>0&&
+                                                    found->second.last_seen_at+std::chrono::seconds(configuration.auth_session_idle_timeout_seconds)<=now))return false;
+                                                saved=found->second.principal;
+                                            }
+                                            current=auth::RefreshPrincipalFromUser(configuration,saved);
+                                        }else current=auth::BuildPrincipalFromRequest(configuration,token_headers,{});
+                                        return current.ok&&!current.principal.password_change_required&&
+                                            auth::RequireRole(current.principal,{"operator"})&&auth::RequireScope(current.principal,"ops:read")&&
+                                            (!write||auth::RequireScope(current.principal,"ops:write"))&&
+                                            auth::RequireScope(current.principal,"source:read:"+channel);
+                                    };
+                                };
+                                if(request.path==review_base){
+                                    if(request.method=="POST"&&query.empty()&&HeaderValue(request,"Content-Type")=="application/json")
+                                        return api_response(reviews->Submit(request.body,owner,make_authorize(true)));
+                                    if(request.method=="GET"&&query.size()==1&&query.count("packageId"))
+                                        return api_response(reviews->List(query.at("packageId"),make_authorize(false),writable));
+                                }else if(query.empty()&&request.path.rfind(job_prefix,0)==0&&(request.method=="GET"||request.method=="DELETE")){
+                                    return api_response(reviews->Job(request.path.substr(job_prefix.size()),owner,auth::IsAdmin(principal),
+                                        writable,make_authorize(mutation),mutation));
+                                }else if(query.empty()&&request.method=="GET"&&request.path.rfind(review_base+"/",0)==0){
+                                    return api_response(reviews->Get(request.path.substr(review_base.size()+1),make_authorize(false)));
+                                }
+                                return api_response({400,"Bad Request","{\"error\":\"review-invalid-input\"}"});
+                            }
                             if (request.method == "POST" &&
                                 (request.path == "/ops/api/recordings/search/evidence" || request.path == "/ops/api/recordings/visual-search/evidence")) {
                                 if (!auth::RequireScope(principal_result.principal,"ops:write"))

@@ -138,3 +138,50 @@
   여전히 후속 영향 검증이다. native fixture root 제거와 모델 unload를 확인했다.
   전용 Ollama PID 12473/23451은 후속 통합 검증을 위해 유지 중이며 작업 종료 시 회수한다.
 - 05 로컬 adapter의 개발 품질 선행 조건이 충족돼 06 API/UI 연결로 진행한다.
+
+## V450-06 API/UI 연결 (미완료·정리 실패 후 중단)
+
+- 05 품질 통과 뒤 runtime 구성·비동기 현재 권한/session 재확인·Ops API·증거 상세 UI를 구현했다.
+  제품 코드의 [빌드](06-build.log)와 [UI 포함 빌드](06-build-ui.log)는 exit 0.
+  [native/protocol 회귀](06-native.log)는 214 PASS/exit 0이다.
+- UI 담당자의 `node --test scripts/internal/evidence_ui_state.test.mjs` 결과는 기존 6건과 신규 8건,
+  14/14 PASS/exit 0이다. 최초 mock disabled null/false 비교 2건 실패 뒤 명시 bool로 수정했고
+  추가 경계를 포함해 통과했다. 담당자 도구 출력으로 전달받았으며 별도 원출력 파일은 없다.
+  실제 UI 조작/시각/모바일·테마 검증으로 대체하지 않는다.
+- `bash scripts/internal/verify_va_review.sh --http-only`는 제품 서버 시작 단계 실패, 개별 API assertion
+  실행 0건이다([구조화 실패](06-http.json), [wrapper 원출력](06-http.log)). 서버 stdout/stderr를
+  버리는 구성이라 최초 시작 실패 원인은 미확정이며 원출력을 추정 복원하지 않는다.
+  이미 종료한 child를 검사하는 `stopServer`가 정상 종료 assertion을 요구하고, 이 예외가
+  뒤 provider/UDP/root 정리를 건너뛰었다. wrapper는 70초 뒤 Node를 종료하고 자기 fixture를 정리했다.
+- 읽기 검토에서 합성 provider async handler의 미처리 예외가 같은 정리 누락을 만들 수 있는
+  별도 경로도 확인했다. handler 오류 전파·자원별 finally·실패 진단 보존이 필요한 검증기 수정이다.
+  검증 기준이나 시간 제한을 완화할 사유가 아니다. 서버 권한/수명 읽기 점검에서는 추가 결함을
+  발견하지 못했으나 actual HTTP 미실행이므로 06 합격이 아니다. 최종 독립 검토도 아니다.
+- AGENTS 4장의 cleanup 실패 기준에 따라 새 구현·검증을 중단하고 재개 판단을 요청했다.
+  작업 소유 Node PID 15818과 Ollama PID 12473의 부재, 합성 provider 포트 51841과 Ollama 23451의
+  listener 부재를 확인했다. Ollama 모델 0개·자식 0개 확인 후 SIGTERM exit 0이다.
+  HTTP root의 생성 시각이 실행 시작 시각과 일치하고, uid/inode·고정 fixture를 대조한 뒤
+  제거·부재 확인했다([정리 관측](06-runtime-cleanup.json)). 실패한 검증기가 HTTP/RTSP 포트를
+  기록하지 않아 해당 개별 포트의 사후 확인을 주장하지 않는다. 시작 실패·정리 실패 기록은 유지한다.
+- 06 API/Auth 통합 합격, 실제 모델 취소/미디어 병행, 07 adapter, 영향 회귀·최종 독립 검토·
+  장시간/실제 UI·릴리즈는 남아 있다. 기존 코드·결과는 미완료 보존 대상으로 유지한다.
+
+## V450-06 재개: API/Auth 단기 검증 통과
+
+- 사용자가 검증기 보완 후 06→07 재개를 명시 승인했다. 정리 예외가 뒤 자원 회수를
+  건너뛰지 않도록 자원별 종료를 분리하고, provider handler 예외를 주 검사 실패로 전파하며
+  시작 오류를 정제 기록했다. 기존 시간/합격 기준을 유지했다.
+- [진단 실행](06-http-diagnostic.log)은 managed 녹화 root 초기화 전에 증거를 넣은 fixture 때문에
+  저장소 보호 검사에서 거부됐다. [다음 실행](06-http-retest.log)은 root 초기화 통과 뒤 두 채널의
+  같은 파일 canonical source 중복을 발견했다. 제품 보호 정책을 바꾸지 않고 fixture의
+  정상 저장소 초기화와 서로 다른 파일 경로를 사용했다. 두 실패는 API 0건, 자원/포트/root 회수 확인.
+  누적 개별 결과와 각 최초 실패는 [구조화 출력](06-http.json)의 previousRuns에 보존한다.
+- 최종 `bash scripts/internal/verify_va_review.sh --http-only`: exit 0, 132 PASS, 6,336ms
+  ([원출력](06-http-sources.log)). 실제 제품 서버 3회 시작/정상 종료, HTTP/RTSP/provider TCP 폐쇄,
+  UDP 폐쇄·root 제거를 확인했다. 합성 provider의 실제 HTTP이며 실제 모델/실제 UI는 아니다.
+  익명·viewer·ops/source·쓰기 경계, strict body·외부 disabled, 불변 재실행, 근거/목록/조회,
+  다른 운영자 취소 거부·생성자/admin 취소, 전송 중 최신 scope 회수·로그아웃,
+  shutdown 미게시·재시작 record 유지와 job 410을 확인했다.
+- 06 제품 source 빌드·214 native/protocol 및 14 UI 상태 결과를 유지한다. 이후 변경은
+  검증 fixture·진단/정리와 문서이며 제품 코드를 변경하지 않았다. 실제 UI와 지정 모델의
+  최종 독립 검토·미디어 병행/실제 모델 취소는 후속 항목으로 남겨 두고 07 adapter로 진행한다.

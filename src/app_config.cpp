@@ -624,6 +624,9 @@ app::AppConfig LoadAppConfig() {
     config.file_root_path = ReadStringEnv(kEnvFileRoot, config.file_root_path);
     config.default_file_path = ReadStringEnv(kEnvDefaultFile, config.default_file_path);
     config.evidence_enabled = ReadBoolEnv("MEDIA_SERVER_EVIDENCE_ENABLED", false);
+    config.va_review_enabled = ReadBoolEnv("MEDIA_SERVER_VA_REVIEW_ENABLED", false);
+    config.va_review_local_endpoint = ReadStringEnv("MEDIA_SERVER_VA_REVIEW_LOCAL_ENDPOINT", config.va_review_local_endpoint);
+    config.va_review_local_model = ReadStringEnv("MEDIA_SERVER_VA_REVIEW_LOCAL_MODEL", config.va_review_local_model);
     config.visual_search_enabled = ReadBoolEnv("MEDIA_SERVER_VISUAL_SEARCH_ENABLED", false);
     config.visual_search_model_directory = ReadStringEnv("MEDIA_SERVER_VISUAL_SEARCH_MODEL_DIRECTORY", "");
     config.visual_search_scan_seconds = ReadIntEnv("MEDIA_SERVER_VISUAL_SEARCH_SCAN_SECONDS", 60);

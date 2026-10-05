@@ -4,6 +4,7 @@
 #include "ingress/application_service_result.h"
 #include "ingress/visual_search_application_service.h"
 #include "ingress/evidence_application_service.h"
+#include "ingress/va_review_application_service.h"
 #include "recording/recording_read_service.h"
 #include "recording/analysis_observation_projector.h"
 #include <functional>
@@ -43,9 +44,11 @@ public:
                                 bool enabled, StatusProvider status_provider,
                                 ObservationStatusProvider observation_status_provider = {},
                                 VisualSearchApplicationService* visual = nullptr,
-                                EvidenceApplicationService* evidence = nullptr)
+                                EvidenceApplicationService* evidence = nullptr,
+                                VaReviewApplicationService* reviews = nullptr)
         : reader_(reader), catalog_(catalog), enabled_(enabled), status_provider_(std::move(status_provider)),
-          observation_status_provider_(std::move(observation_status_provider)), visual_(visual), evidence_(evidence) {}
+          observation_status_provider_(std::move(observation_status_provider)), visual_(visual), evidence_(evidence), reviews_(reviews) {}
+    VaReviewApplicationService* VaReviews() const { return reviews_; }
     ApplicationServiceResult SearchEvidence(const std::unordered_map<std::string,std::string>& query,
         const std::string& principal, const std::string& scope, const ChannelAuthorizer& authorize) const;
     ApplicationServiceResult VisualEvidence(const VisualSearchApplicationService::Query& query,const ChannelAuthorizer& authorize) const {
@@ -91,5 +94,6 @@ private:
     ObservationStatusProvider observation_status_provider_;
     VisualSearchApplicationService* visual_{nullptr};
     EvidenceApplicationService* evidence_{nullptr};
+    VaReviewApplicationService* reviews_{nullptr};
 };
 }  // namespace ingress

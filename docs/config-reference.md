@@ -873,6 +873,34 @@ clip이 없는 결과의 `not-applicable`은 누락과 다릅니다. 생성 당�
 변경하지 않으며 현재 원본 삭제 여부는 `currentSources`에만 반영합니다.
 상세 형식·출처·지원 경계는 [개발 계약](superpowers/specs/2026-10-04-v440-evidence-package-design.md)을 따릅니다.
 
+### 보존 영상 검토 API (v4.5.0 개발)
+
+`MEDIA_SERVER_VA_REVIEW_ENABLED=1`은 녹화·증거 보존이 활성화된 경우에만 검토 worker를 켭니다.
+기본은 off입니다. `MEDIA_SERVER_VA_REVIEW_LOCAL_ENDPOINT` 기본값은
+`http://127.0.0.1:11434`이며 숫자 loopback과 명시 포트만 받습니다.
+`MEDIA_SERVER_VA_REVIEW_LOCAL_MODEL` 기본값은 `qwen3-vl:8b-instruct-q4_K_M`입니다.
+모델 설치는 자동 수행하지 않으며 누락된 모델과 연결 실패는 검토 작업 실패로 응답합니다.
+
+| API | 요청·응답 |
+| --- | --- |
+| `POST /ops/api/recordings/va-reviews` | JSON의 `packageId`, `question`, `provider`만 허용. 202 job 참조 |
+| `GET /ops/api/recordings/va-reviews?packageId=<id>` | 현재 기능/실행 가능 상태와 해당 패키지의 보존 결과 목록 |
+| `GET /ops/api/recordings/va-reviews/<id>` | 질문·모델·실행 시각·지연·구조화 결과·프레임 근거 |
+| `GET /ops/api/recordings/va-review-jobs/<id>` | queued/running/completed/failed/cancelled와 정제 오류·결과 ID |
+| `DELETE /ops/api/recordings/va-review-jobs/<id>` | 생성자 또는 admin의 취소 요청. 이미 원자 게시한 결과는 유지 |
+
+operator/admin·ops:read·해당 source:read를 요구하고 실행/취소에는 ops:write도 필요합니다.
+접수 이후에도 현재 세션/계정/채널 권한을 재확인합니다. 질문은 1~512 UTF-8 바이트이며
+외부 URL·인증 자료·사용자 지정 manifest를 받지 않습니다. 응답은 no-store/nosniff입니다.
+프레임 index는 해당 보존 manifest의 시간순 0-based index입니다. 모델 판단은 기존 이벤트와
+운영자의 accept/dismiss를 변경하지 않으며 확신도는 모델 자체 평가입니다.
+
+worker 1개, 대기 4개/30초, 실행 60초, job 기억 최대 64개입니다. 재시작한 job은 410으로
+만료되고 자동 재호출하지 않습니다. 결과는 recording root의 `va-reviews`에 최대 512개/64MiB로
+보존하며 재실행은 새 revision을 만듭니다. 상한에서 새 저장을 거부하고 기존 결과를 삭제하지 않습니다.
+로컬 실패 후 외부 모델로 자동 전환하지 않습니다. 세부 계약은
+[VA Review 개발 계약](superpowers/specs/2026-10-05-v450-va-review-design.md)을 따릅니다.
+
 ### 녹화 조회재생 API (v4.1.0 S06)
 
 기본 인증 모드는 `auto`다. 아래 API는 Ops 접근 권한과 채널별 `source:read:<channelId>`

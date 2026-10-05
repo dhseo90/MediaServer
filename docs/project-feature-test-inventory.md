@@ -21,6 +21,13 @@ macOS 모델 작업 메모리는 전용 Ollama와 현재 자식의 `proc_pid_rus
 합계(250ms 간격)로 관측한다. Ollama 할당량·RSS+VRAM도 별도 보고하되 unified memory의
 중복 가능 합계를 물리 사용량으로 간주하지 않는다. 14GiB 기준은 유지한다.
 
+06의 `--http-only`는 소유 root·loopback HTTP/RTSP/UDP와 합성 provider를 사용한다.
+실제 계정/session으로 익명·viewer·ops/source 범위·쓰기 권한, strict body, 비활성/외부 guard,
+202 후 결과 조회·불변 재실행·목록·근거, 생성자/admin 취소·다른 운영자 취소 금지,
+진행 중 권한 회수/로그아웃 후 결과 미게시, 재시작 job 만료·record 유지, 서버 종료를 검사한다.
+총 65초(작업 50초·정리 15초)이며 실제 모델/실제 UI 풀테스트와 구분한다.
+오류 원문·계정 credential은 출력/저장하지 않고 작업 소유 프로세스·포트·root 부재를 확인한다.
+
 | 기능 ID | route/control/action과 정상·오류·경계 기대값 | 안정화 | 30분 | 120분 | UI |
 | --- | --- | --- | --- | --- | --- |
 | V450-I01 | 검증한 EvidencePackageV1에서 1/8 frame 순서·시간·asset/hash·partial 유지. 빈 frame, 잘못된 ID/참조/index/hash/순서, 12MiB 초과 거부. 원본 삭제 후 동일 입력, 오류 시 출력 불변 | native 입력/원본 회귀 | 녹화 병행 | 수명 영향 | 근거 시퀀스 |

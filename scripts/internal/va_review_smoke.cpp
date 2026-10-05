@@ -514,12 +514,32 @@ void QualityChecks(const std::filesystem::path& root,const std::string& endpoint
     Check(schemas==12&&semantic>=10&&uncertain==4,"V450-L01 predefined quality gates");
     Check(rss<=4LL*1024*1024*1024,"V450-L01 native process 4GiB budget");
 }
+void SeedHttp(const std::filesystem::path& root) {
+    using namespace recording;
+    std::string error;RecordingRuntimeStorage runtime(root/"recordings");
+    Check(runtime.Open(&error),"V450-A01 managed recording root initialized");
+    EvidencePackageStore store(root/"recordings/evidence-packages",{});
+    Check(store.Recover(&error),"V450-A01 seed recovery");
+    std::string json="{\"packages\":[";
+    for(const auto* channel:{"1","2"}) {
+        std::vector<EvidencePayload> payloads;auto manifest=Manifest(1,&payloads);manifest.channel_id=channel;
+        auto png=QualityPng(208);const auto hash=EvidenceSha256(png.data(),png.size());
+        payloads[0].bytes=png;manifest.assets[0].sha256=hash;manifest.assets[0].size_bytes=png.size();
+        manifest.frames[0].width=512;manifest.frames[0].height=288;manifest.frames[0].png_sha256=hash;
+        manifest.references[2].sha256=hash;
+        std::string id;Check(store.Publish(manifest,payloads,&id,&error),"V450-A01 seed publish");
+        if(channel[0]=='2')json+=',';json+=EvidenceJsonQuote(id);
+    }
+    std::ofstream(root/"seed.json")<<json+"]}";
+    Check(runtime.catalog().Checkpoint(&error),"V450-A01 seed checkpoint");
+}
 }
 int main(int argc,char** argv) {
     try {
         if(argc!=4)throw std::runtime_error("owned fixture root, mode, endpoint required");
         gst_init(nullptr,nullptr);
-        if(std::string(argv[2])=="--local")QualityChecks(argv[1],argv[3]);else {
+        if(std::string(argv[2])=="--seed")SeedHttp(argv[1]);
+        else if(std::string(argv[2])=="--local")QualityChecks(argv[1],argv[3]);else {
         InputChecks(argv[1]);
         RecordChecks(argv[1]);
         QueueChecks(argv[1]);

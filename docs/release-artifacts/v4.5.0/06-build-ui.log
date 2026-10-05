@@ -1,0 +1,5 @@
+[  0%] Building CXX object CMakeFiles/media_server_runtime.dir/src/ingress/product_ui_page_scripts.cpp.o
+[  1%] Linking CXX static library libmedia_server_runtime.a
+[ 99%] Built target media_server_runtime
+[ 99%] Linking CXX executable media_server
+[100%] Built target media_server

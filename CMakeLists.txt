@@ -156,6 +156,7 @@ add_library(media_server_runtime STATIC
     src/ingress/recording_search_application_service.cpp
     src/ingress/visual_search_application_service.cpp
     src/ingress/evidence_application_service.cpp
+    src/ingress/va_review_application_service.cpp
     src/ingress/recording_application_service.cpp
     src/recording/retention_coordinator.cpp
     src/recording/recording_session_service.cpp

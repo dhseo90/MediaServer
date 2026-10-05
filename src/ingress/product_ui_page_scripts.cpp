@@ -10371,9 +10371,10 @@ void AppendOpsShellScript(std::ostringstream& out,
           const el = name => document.getElementById('opsEvidence' + name);
           const say = (name, text) => { el(name).textContent = text; };
           const prefix = '/ops/api/recordings/evidence';
-          let listVersion = 0, detailVersion = 0, after = '', creating = false;
+          let listVersion = 0, detailVersion = 0, after = '', creating = false, detailController = null, reviewCleanup = () => {};
           const clearDetail = () => {
             ++detailVersion;
+            detailController?.abort(); detailController = null; reviewCleanup(); reviewCleanup = () => {};
             el('Detail').querySelectorAll('video').forEach(video => { video.pause(); video.removeAttribute('src'); video.load(); });
             el('Detail').replaceChildren();
           };
@@ -10392,13 +10393,139 @@ void AppendOpsShellScript(std::ostringstream& out,
             }
             return data;
           };
+          const reviewPanel = (id, manifest, version, mediaByAsset) => {
+            const section = document.createElement('section'); section.setAttribute('aria-label', '영상 근거 검토');
+            const make = (tag, text, name) => { const node = document.createElement(tag); if (text) node.textContent = text; if (name) node.id = 'opsVaReview' + name; return node; };
+            const title = make('h4', '영상 근거 검토');
+            const label = make('label', '확인할 주장 또는 질문 (최대 512바이트)');
+            const question = make('textarea', '', 'Question'); question.rows = 3; question.style.width = '100%'; label.append(question);
+            const providerLabel = make('label', '검토 제공자'); const provider = make('select', '', 'Provider');
+            const local = make('option', '로컬 모델'); local.value = 'ollama'; const external = make('option', '외부 모델 (사용 불가)'); external.value = 'gemini'; external.disabled = true;
+            provider.append(local, external); provider.value = 'ollama'; providerLabel.append(provider);
+            const actions = make('div'); actions.style.display = 'flex'; actions.style.flexWrap = 'wrap'; actions.style.gap = '8px';
+            const execute = make('button', '검토 실행', 'Execute'), cancel = make('button', '검토 취소', 'Cancel'), refresh = make('button', '기존 결과 조회', 'Refresh');
+            for (const button of [execute, cancel, refresh]) { button.type = 'button'; button.className = 'button button-secondary button-compact'; }
+            actions.append(execute, cancel, refresh);
+            const status = make('p', '검토 설정과 기존 결과를 확인하는 중…', 'Status'); status.setAttribute('role', 'status');
+            const rows = make('div', '', 'Rows'), result = make('div', '', 'Result');
+            section.append(title, label, providerLabel, actions, status, rows, result); el('Detail').append(section);
+            const base = '/ops/api/recordings/va-reviews', jobs = '/ops/api/recordings/va-review-jobs/';
+            let enabled = false, canExecute = false, sending = false, cancelling = false, job = null, timer = null, listSerial = 0, resultSerial = 0, jobSerial = 0, pollController = null;
+            const requests = new Set();
+            const current = () => version === detailVersion;
+            const validQuestion = () => { const text = question.value; return text.trim().length > 0 && new TextEncoder().encode(text).length <= 512 && !/[\u0000-\u001f\u007f]/.test(text) && !['://', '/Users/', '/home/', 'Bearer ', 'api_key=', 'apiKey=', 'password='].some(marker => text.includes(marker)); };
+            const active = () => !!job && ['queued', 'running'].includes(job.state);
+            const controls = () => {
+              execute.disabled = !enabled || !canExecute || !manifest.frames.length || !validQuestion() || provider.value !== 'ollama' || sending || active();
+              cancel.disabled = !active() || job.canCancel !== true || cancelling; question.disabled = sending || active(); provider.disabled = !enabled || !canExecute || sending || active();
+              refresh.textContent = active() ? '진행 상태·기존 결과 조회' : '기존 결과 조회';
+            };
+            const messages = {
+              'review-disabled': '영상 검토 기능이 비활성입니다.', 'review-external-disabled': '외부 검토는 사용할 수 없습니다.',
+              'review-queue-full': '검토 대기열이 가득 찼습니다. 잠시 후 다시 실행하세요.', 'review-timeout': '검토 제한 시간을 초과했습니다.',
+              'review-cancelled': '검토가 취소됐습니다.', 'review-forbidden': '검토 권한이 없습니다.', 'review-invalid-output': '모델 결과를 검증하지 못했습니다.',
+              'review-missing-model': '로컬 검토 모델을 사용할 수 없습니다.', 'review-provider-unavailable': '로컬 검토 모델에 연결하지 못했습니다.',
+              'review-queue-timeout': '대기 시간이 초과됐습니다.', 'review-invalid-input': '질문과 보존 프레임을 확인하세요.'
+            };
+            const request = async (url, options = {}, observeController = () => {}) => {
+              const controller = new AbortController(); requests.add(controller);
+              observeController(controller);
+              try {
+                const response = await fetch(url, { credentials: 'same-origin', cache: 'no-store', ...options, signal: controller.signal });
+                const data = await response.json().catch(() => ({}));
+                if (!response.ok) {
+                  if (data.error === 'review-disabled') enabled = false;
+                  if (response.status === 401 || response.status === 403) canExecute = false;
+                  throw new Error(messages[data.error] || (response.status === 401 || response.status === 403 ? '검토 권한이 없습니다.' : response.status === 404 || response.status === 410 ? '검토 자료를 찾을 수 없습니다. 기존 결과를 다시 조회하세요.' : '검토 요청을 완료하지 못했습니다.'));
+                }
+                return data;
+              } finally { requests.delete(controller); }
+            };
+            const showResult = async reviewId => {
+              if (!/^vr-[0-9a-f]{64}$/.test(reviewId || '')) return;
+              const serial = ++resultSerial; result.replaceChildren();
+              try {
+                const data = await request(base + '/' + reviewId); if (!current() || serial !== resultSerial) return;
+                if (data.id !== reviewId || data.packageId !== id || !data.output) throw new Error('검토 결과를 읽지 못했습니다.');
+                result.append(make('h5', '검토 결과'), make('p', data.question));
+                const labels = { supports: '뒷받침하는 근거', contradictions: '반대 근거', unclear: '불확실한 근거', questions: '추가 확인 질문' };
+                for (const [key, heading] of Object.entries(labels)) {
+                  const items = data.output[key]; if (!Array.isArray(items)) throw new Error('검토 결과를 읽지 못했습니다.');
+                  result.append(make('h5', heading)); if (!items.length) result.append(make('p', '없음'));
+                  for (const item of items) {
+                    const row = make('div'); row.append(make('p', typeof item.text === 'string' ? item.text : '내용 확인 불가'));
+                    for (const index of Array.isArray(item.frameIndices) ? item.frameIndices : []) {
+                      if (!Number.isInteger(index) || index < 0 || index >= manifest.frames.length) continue;
+                      const frame = manifest.frames[index];
+                      const ref = manifest.references.find(r => r.kind === 'frame' && r.state === 'preserved' && r.id === frame.segmentId + ':' + frame.ptsNs);
+                      const media = ref && Number.isInteger(ref.assetIndex) && mediaByAsset.get(ref.assetIndex); if (!media || manifest.assets[ref.assetIndex]?.contentType !== 'image/png') continue;
+                      const button = make('button', `근거 프레임 ${index + 1}`); button.type = 'button'; button.className = 'button button-secondary button-compact';
+                      button.addEventListener('click', () => { if (current()) { media.scrollIntoView({ block: 'center', behavior: 'smooth' }); media.setAttribute('tabindex', '-1'); media.focus({ preventScroll: true }); } }); row.append(button);
+                    }
+                    result.append(row);
+                  }
+                }
+                result.append(make('p', data.output.confidence === null ? '확신도: 판단 불가' : `모델 자체 확신도: ${data.output.confidence}`));
+              } catch (error) { if (current() && serial === resultSerial) { result.replaceChildren(); status.textContent = error.message; } }
+            };
+            const loadReviews = async () => {
+              const serial = ++listSerial; refresh.disabled = true;
+              try {
+                const data = await request(base + '?' + new URLSearchParams({ packageId: id })); if (!current() || serial !== listSerial) return;
+                if (!Array.isArray(data.items)) throw new Error('검토 목록을 읽지 못했습니다.');
+                enabled = data.enabled === true; canExecute = data.canExecute === true; rows.replaceChildren();
+                for (const item of data.items) {
+                  if (!/^vr-[0-9a-f]{64}$/.test(item.id || '')) continue;
+                  const button = make('button', `${new Date(item.createdAtMs).toLocaleString()} · ${item.provider === 'ollama' ? '로컬 검토' : '외부 검토'} · ${item.question}`);
+                  button.type = 'button'; button.className = 'button button-secondary button-compact'; button.addEventListener('click', () => showResult(item.id)); rows.append(button);
+                }
+                if (!job && !sending) status.textContent = !enabled ? messages['review-disabled'] : !canExecute ? '기존 결과를 조회할 수 있습니다. 검토 실행 권한은 없습니다.' : !manifest.frames.length ? '검토할 보존 프레임이 없습니다.' : '질문을 입력하고 검토 실행을 누르세요.';
+              } catch (error) { if (current() && serial === listSerial) { enabled = false; canExecute = false; status.textContent = error.message; } }
+              finally { if (current() && serial === listSerial) { refresh.disabled = false; controls(); } }
+            };
+            const updateJob = data => {
+              if (!/^vj-[0-9a-f]{32}-[1-9][0-9]*$/.test(data.id || '') || data.packageId !== id || !['queued', 'running', 'completed', 'failed', 'cancelled'].includes(data.state)) throw new Error('검토 진행 상태를 읽지 못했습니다.');
+              job = data; controls();
+              status.textContent = data.state === 'queued' ? '검토 대기 중…' : data.state === 'running' ? '보존 프레임을 검토하는 중…' : data.state === 'completed' ? '검토를 완료했습니다. 근거와 함께 결과를 확인하세요.' : messages[data.error] || (data.state === 'cancelled' ? messages['review-cancelled'] : '검토를 완료하지 못했습니다.');
+            };
+            const poll = async () => {
+              timer = null; if (!current() || !active()) return;
+              const serial = jobSerial;
+              try {
+                const data = await request(jobs + job.id, {}, controller => { pollController = controller; }); if (!current() || serial !== jobSerial) return; updateJob(data);
+                if (active()) timer = setTimeout(poll, 1000);
+                else if (job.state === 'completed') { loadReviews(); showResult(job.reviewId); }
+              } catch (error) { if (current() && serial === jobSerial) { status.textContent = error.message + ' 진행 상태·기존 결과 조회로 다시 확인하세요.'; controls(); } }
+              finally { if (serial === jobSerial) pollController = null; }
+            };
+            execute.addEventListener('click', async () => {
+              controls(); if (execute.disabled || !current()) return;
+              sending = true; ++jobSerial; controls(); result.replaceChildren(); ++resultSerial; status.textContent = '검토를 요청하는 중…';
+              try {
+                const data = await request(base, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ packageId: id, question: question.value, provider: provider.value }) });
+                if (!current()) return; updateJob(data); if (active()) timer = setTimeout(poll, 1000); else if (job.state === 'completed') { loadReviews(); showResult(job.reviewId); }
+              } catch (error) { if (current()) status.textContent = error.message; }
+              finally { if (current()) { sending = false; controls(); } }
+            });
+            cancel.addEventListener('click', async () => {
+              if (cancel.disabled || !current()) return; cancelling = true; ++jobSerial; pollController?.abort(); pollController = null; controls();
+              if (timer !== null) { clearTimeout(timer); timer = null; }
+              try { const data = await request(jobs + job.id, { method: 'DELETE' }); if (!current()) return; updateJob(data); if (active()) timer = setTimeout(poll, 1000); else if (job.state === 'completed') { loadReviews(); showResult(job.reviewId); } }
+              catch (error) { if (current()) { status.textContent = error.message; if (active()) timer = setTimeout(poll, 1000); } }
+              finally { if (current()) { cancelling = false; controls(); } }
+            });
+            question.addEventListener('input', controls); provider.addEventListener('change', controls);
+            refresh.addEventListener('click', () => { if (refresh.disabled) return; const work = loadReviews(); if (active() && timer === null && !pollController && !cancelling) poll(); return work; });
+            reviewCleanup = () => { if (timer !== null) clearTimeout(timer); for (const controller of requests) controller.abort(); requests.clear(); };
+            controls(); loadReviews();
+          };
           const open = async id => {
             if (!/^ep-[0-9a-f]{64}$/.test(id || '')) return;
-            clearDetail(); const version = detailVersion; say('Status', '보존 자료의 무결성을 확인하는 중…');
+            clearDetail(); const version = detailVersion; detailController = new AbortController(); say('Status', '보존 자료의 무결성을 확인하는 중…');
             try {
-              const data = await read(prefix + '/' + id); if (version !== detailVersion) return;
+              const data = await read(prefix + '/' + id, { signal: detailController.signal }); if (version !== detailVersion) return;
               const manifest = data.manifest;
-              if (!manifest || !Array.isArray(manifest.assets) || !Array.isArray(manifest.references) || !Array.isArray(data.currentSources)) throw new Error('증거 응답을 읽지 못했습니다.');
+              if (!manifest || !Array.isArray(manifest.assets) || !Array.isArray(manifest.frames) || !Array.isArray(manifest.references) || !Array.isArray(data.currentSources)) throw new Error('증거 응답을 읽지 못했습니다.');
               const title = document.createElement('h4'); title.textContent = `${manifest.channelId} · ${manifest.status === 'complete' ? '보존 완료' : '부분 보존'} · ${new Date(manifest.createdAtMs).toLocaleString()}`;
               const summary = document.createElement('p');
               const absent = manifest.references.filter(r => ['missing', 'deleted', 'unsupported'].includes(r.state));
@@ -10409,7 +10536,7 @@ void AppendOpsShellScript(std::ostringstream& out,
               for (const ref of absent) {
                 const p = document.createElement('p'); p.textContent = `${labels[ref.kind] || '자료'}: ${ref.state === 'deleted' ? '삭제됨' : ref.state === 'unsupported' ? '추출 미지원' : '자료 없음'}`; el('Detail').append(p);
               }
-              const mediaQueue = [];
+              const mediaQueue = [], mediaByAsset = new Map();
               const loadNext = () => {
                 if (version !== detailVersion || !mediaQueue.length) return;
                 const next = mediaQueue.shift(); next.media.src = next.url;
@@ -10422,9 +10549,10 @@ void AppendOpsShellScript(std::ostringstream& out,
                 else { media.controls = true; media.preload = 'metadata'; media.setAttribute('playsinline', ''); media.setAttribute('aria-label', '보존 이벤트 영상'); }
                 media.addEventListener(asset.contentType === 'image/png' ? 'load' : 'loadedmetadata', loadNext, { once: true });
                 media.addEventListener('error', () => { if (version === detailVersion) say('Status', '일부 보존 자료를 표시하지 못했습니다. 권한·무결성·브라우저 지원을 확인하세요.'); loadNext(); }, { once: true });
-                mediaQueue.push({ media, url: prefix + '/' + id + '/assets/' + index }); el('Detail').append(media);
+                mediaByAsset.set(index, media); mediaQueue.push({ media, url: prefix + '/' + id + '/assets/' + index }); el('Detail').append(media);
               });
               loadNext();
+              reviewPanel(id, manifest, version, mediaByAsset);
               say('Status', '패키지와 보존 파일의 해시를 확인했습니다. 보존 시점 이후의 원본 상태와 구분해 확인하세요.');
             } catch (error) { if (version === detailVersion) say('Status', error.message); }
           };
@@ -10450,6 +10578,7 @@ void AppendOpsShellScript(std::ostringstream& out,
           el('Refresh').addEventListener('click', () => list(false));
           el('Next').addEventListener('click', () => { if (after) list(true); });
           el('Channel').addEventListener('change', () => { ++listVersion; after = ''; clearDetail(); el('Rows').replaceChildren(); el('Next').disabled = true; el('Refresh').disabled = false; say('Status', '보존 목록 조회를 누르세요.'); });
+          window.addEventListener('pagehide', clearDetail);
           read('/ops/api/recordings/status').then(data => {
             if (!Array.isArray(data.channels)) return;
             el('Channel').replaceChildren(...data.channels.map(channel => {

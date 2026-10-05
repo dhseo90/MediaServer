@@ -1,0 +1,53 @@
+{
+  "failureRetained": true,
+  "observations": [
+    {
+      "pid": 15818,
+      "absent": true
+    },
+    {
+      "pid": 12473,
+      "absent": true
+    },
+    {
+      "port": 51841,
+      "listenerAbsent": true
+    },
+    {
+      "port": 23451,
+      "listenerAbsent": true
+    }
+  ],
+  "ownedRoot": {
+    "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-va-http-rMhnIg",
+    "dev": 16777232,
+    "ino": 168993765,
+    "birthtime": 1791172393.4618042,
+    "bootstrapNotReached": true,
+    "absent": true
+  },
+  "httpRtspPorts": "not recorded by failed harness; product process already exited; no additional claimed port observations",
+  "notes": "Node wrapper timeout 종료 뒤 소유 PID/listener 부재 확인. Ollama SIGTERM exit 0, 모델 0개. 최초 cleanup 실패와 누락 stdout/stderr는 복원하지 않음.",
+  "runtimeVersion": {
+    "version": "0.21.0"
+  },
+  "models": [
+    {
+      "name": "qwen3-vl:8b-instruct-q4_K_M",
+      "model": "qwen3-vl:8b-instruct-q4_K_M",
+      "modified_at": "2026-10-05T11:23:41.78439305+09:00",
+      "size": 6140415975,
+      "digest": "0533d74300e4f9bc367d675d4e64ffd073d50ff16a2b4096cc2e8a1cf8c96319",
+      "details": {
+        "parent_model": "",
+        "format": "gguf",
+        "family": "qwen3vl",
+        "families": [
+          "qwen3vl"
+        ],
+        "parameter_size": "8.8B",
+        "quantization_level": "Q4_K_M"
+      }
+    }
+  ]
+}

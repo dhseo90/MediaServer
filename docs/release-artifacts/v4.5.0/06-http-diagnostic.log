@@ -1,0 +1,24 @@
+[fixture] /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-va-review-pv8_a0o0
+[source] include/recording/va_review_input.h 543fcaf1fd950927455e402b45f3747cdb95c81b8521daa4eb22ce4b87c1cc00
+[source] include/recording/va_review_provider.h c31798b1e6c70babc4de01b9ced85eaeb3d0cc01cb0477aeb92b7d9d325d1659
+[source] include/recording/va_review_record.h 96f5ac21c232d0b7efcadc94d8472ea980e1c8828577753c77f892210059c27d
+[source] include/recording/va_review_service.h 1c138ecdc7227f236a06109ebf7ecec0508800463a579f70c4e85f6212820861
+[source] include/recording/va_review_store.h fcfad2a1c692321f5331b014357686abf871ab1b727ebc8093b5d339efc8c80a
+[source] scripts/internal/va_review_quality_fixture.h 9b2e166928f0d1043363ab1fe93e2c3ea90f19cad0c32053b9c483da22ed9f19
+[source] scripts/internal/va_review_smoke.cpp 685a0f62444317ca326b6a5a15c433d5a0bb73d7f3b796e8e443f29627d73e56
+[source] scripts/internal/verify_va_review.sh 187f6178bdb95f8cfbc408e736a19ec76036b65eb80a9c984a9abf7c11ad069c
+[source] src/recording/va_review_input.cpp 840df39c6fc11ca99748f55dd1c55d598e060467354dd8fd0a48b1b197cd58f1
+[source] src/recording/va_review_json.h 835cf40e95a3be8297ccf6edde1fbcf7c8aa5ffda3169f368195bc5667d065f3
+[source] src/recording/va_review_provider.cpp eb820da335cd540d3f6ee4a4c1b00cc8dc873abcc1c12c7c717e3c7af5f3b83e
+[source] src/recording/va_review_record.cpp 3aa2e72da1f3e72b37557ed359b733639a2e1a9c3d9bbd4eb60de69ead89efba
+[source] src/recording/va_review_service.cpp 97d2f74b18f68c253ce6f50df5b33495afe7529c5abf1d1c985ebffb220d175b
+[source] src/recording/va_review_store.cpp 27cb631652d84eb98776cf0493959205fdb4888517cb70b6cc8e1d5a4108a0a4
+[source] src/recording/va_review_transport.cpp bcb05b8bf5518a586b30bf2f315b36ada7ac7ca1e207015a1770ed301cac8b33
+{"status":"FAIL","checks":0,"failure":"server startup","elapsedMs":701,"cleanup":{"process":{"exited":true,"exitCode":1,"signalCode":null,"normal":false},"http":{"closed":true,"evidence":"ECONNREFUSED"},"rtsp":{"closed":true,"evidence":"ECONNREFUSED"},"provider":{"closed":true,"evidence":"ECONNREFUSED"},"udpClosed":true,"rootAbsent":true}}
+[cleanup] removed=true
+Traceback (most recent call last):
+  File "<stdin>", line 26, in <module>
+  File "/opt/homebrew/Cellar/python@3.14/3.14.4/Frameworks/Python.framework/Versions/3.14/lib/python3.14/subprocess.py", line 578, in run
+    raise CalledProcessError(retcode, process.args,
+                             output=stdout, stderr=stderr)
+subprocess.CalledProcessError: Command '['node', '/Users/dhseo/Workspace/mediaServer/scripts/internal/va_review_http_checks.mjs']' returned non-zero exit status 1.

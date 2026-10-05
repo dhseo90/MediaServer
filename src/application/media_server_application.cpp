@@ -454,6 +454,12 @@ int RunMediaServerApplication(int argc, char** argv) {
     recording::RecordingReadService recording_reads(recording_catalog, config.analysis_event_clip_dir);
     ingress::EvidenceApplicationService evidence_packages(recording_catalog, recording_reads,
         config.evidence_enabled && config.recording_enabled, recording_root / "evidence-packages", config.recording_reserved_free_bytes);
+    recording::VaReviewProviderOptions review_provider;
+    review_provider.enabled=config.va_review_enabled && config.evidence_enabled && config.recording_enabled;
+    review_provider.local_endpoint=config.va_review_local_endpoint;
+    review_provider.local_model=config.va_review_local_model;
+    ingress::VaReviewApplicationService va_reviews(recording_root,review_provider.enabled,review_provider,
+        config.recording_reserved_free_bytes);
     ingress::VisualSearchApplicationService::Options visual_options;
     visual_options.enabled = config.visual_search_enabled;
     visual_options.model_directory = config.visual_search_model_directory;
@@ -496,13 +502,15 @@ int RunMediaServerApplication(int argc, char** argv) {
             return true;
         }, [observation_projector] {
             return observation_projector ? observation_projector->GetStatus() : recording::AnalysisObservationProjector::Status{};
-        }, &visual_search, &evidence_packages);
+        }, &visual_search, &evidence_packages, &va_reviews);
     ingress::WebRtcHttpServer webrtc_http_server(
         *webrtc_media_sessions,
         *analysis_session_lifecycle,
         *analysis_session_reads,
         webrtc_http_runtime_config,
         &recording_api);
+    // worker의 현재 세션 조회 closure가 HTTP impl을 참조하므로 모든 반환/예외에서 먼저 join한다.
+    struct ReviewLifetime { ingress::VaReviewApplicationService& service; ~ReviewLifetime(){service.Stop();} } review_lifetime{va_reviews};
 
     // 외부 ingress를 열기 전에 recording bridge를 등록해야 시작 직후 이벤트도
     // bounded EventStorage queue보다 먼저 durable link를 얻는다.
@@ -599,6 +607,7 @@ int RunMediaServerApplication(int argc, char** argv) {
     }
 
     evidence_packages.Stop();
+    va_reviews.Stop();
     webrtc_http_server.Stop();
     visual_search.Stop();
     gst_rtsp_server.Stop();

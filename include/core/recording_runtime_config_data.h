@@ -12,6 +12,9 @@ namespace core {
 
 struct RecordingRuntimeConfigData {
     bool evidence_enabled{false};
+    bool va_review_enabled{false};
+    std::string va_review_local_endpoint{"http://127.0.0.1:11434"};
+    std::string va_review_local_model{"qwen3-vl:8b-instruct-q4_K_M"};
     bool visual_search_enabled{false};
     std::string visual_search_model_directory;
     int visual_search_scan_seconds{60};
