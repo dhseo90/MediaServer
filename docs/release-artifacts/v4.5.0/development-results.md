@@ -120,3 +120,21 @@
   모델 provenance와 정리 결과를 보존한 뒤 삭제했다. 승인된 weight는 유지한다.
 - 마감 문서 검사: `git diff --check` 공백 오류 없음, [문서 링크](closeout-docs-links.log) 302개 문서·failures 0,
   [범위 gate](closeout-feature-scope.log) 5 PASS/0 FAIL. 제품 품질 PASS와 별개의 문서 확인이다.
+
+## V450-05 재개: 최종 prompt 실제 품질 통과 (2026-10-05)
+
+- source: `38efcb53542e5e55fca6375642f2b59152a82e79`, 제품 코드는 변경하지 않았다.
+  `bash scripts/internal/verify_va_review.sh --local http://127.0.0.1:23451`: exit 0,
+  [원출력](05-quality-reminder.log)의 source SHA와 모델 digest로 이번 실행을 식별한다.
+- 고정 12사례 구조·근거 12/12, 자동 category 12/12, 부족 사례 4/4. 메인이 각 설명·근거 index를
+  실제 좌표/색/가림 oracle와 직접 대조해 의미 12/12를 확인했다. 정·역순 설명 모두 실제 방향과
+  맞고, 정지는 동일 위치, 색상 부재는 실제 빨강, 단일 이동/방향과 두 가림은 unclear/null이다.
+  과거 실패는 그대로 유지하며 이 합성 평가를 일반 영상 정확도로 확대하지 않는다.
+- 개별 지연 7,707~18,062ms, native peak RSS 44,040,192bytes, 모델 물리 footprint 최대
+  7,815,896,624bytes, 실행 작업공간 최대 183,986,980bytes. 각 예산 통과. 모델 보고 할당은
+  7,972,486,720bytes이며 RSS+VRAM 중복 가능 합계와 구분한다.
+- 읽기 전용 보조 검토에서 입력 순서/claim/결과 변환의 품질 왜곡 결함을 발견하지 못했다.
+  이는 지정 모델의 최종 독립 검토가 아니다. 모델 취소/종료·실제 미디어 병행·Linux·장시간·UI는
+  여전히 후속 영향 검증이다. native fixture root 제거와 모델 unload를 확인했다.
+  전용 Ollama PID 12473/23451은 후속 통합 검증을 위해 유지 중이며 작업 종료 시 회수한다.
+- 05 로컬 adapter의 개발 품질 선행 조건이 충족돼 06 API/UI 연결로 진행한다.
