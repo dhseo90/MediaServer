@@ -403,7 +403,7 @@ void ProviderChecks(const std::filesystem::path& root,const std::string& endpoin
     mode=12;calls=0;Check(run()&&out.output.supports.empty()&&out.output.contradictions.empty()&&out.output.unclear.size()==1&&!out.output.confidence,
         "V450-L01 insufficient assessment maps to uncertainty without inventing confidence");
     mode=0;calls=0;options.enabled=false;Check(!run()&&calls==0,"V450-L01 off never sends");options.enabled=true;
-    for(const auto* bad:{"http://localhost:1","http://127.0.0.1:0","http://127.0.0.1:65536","https://example.com","http://127.0.0.1:1/path"}) {
+    for(const auto* bad:{"http://127.0.0.1:0","http://127.0.0.1:65536","http://user@localhost","http://127.0.0.1:1/path","http://localhost//"}) {
         options.local_endpoint=bad;Check(!run()&&calls==0,"V450-L01 forbidden endpoint rejected before transport");
     }
     options.local_endpoint=endpoint;
@@ -434,6 +434,78 @@ void ProviderChecks(const std::filesystem::path& root,const std::string& endpoin
         "V450-L01 actual transport cancellation");
     Check(Fds()==fds,"V450-L01 transport FD recovery after failures");
     int status=0;errno=0;Check(::waitpid(-1,&status,WNOHANG)==-1&&errno==ECHILD,"V450-L01 no unreaped curl child");
+}
+// 로컬 TLS 서버만 연결한다. 원격 주소는 parser와 합성 provider 단계에서만 대조한다.
+void ConnectionChecks(const std::filesystem::path& root) {
+    using namespace recording;
+    const auto ca=(root/"tls-cert.pem").string();
+    for(const auto* endpoint:{"http://localhost","http://ollama:11434","https://gpu.internal:443",
+        "http://192.168.1.50:11434","http://[::1]:11434","https://[2001:db8::1]","https://localhost/"})
+        Check(ValidateVaReviewConnection(endpoint,"",""),"V450-N01 supported configured authority");
+    for(const auto& endpoint:std::vector<std::string>{"","ftp://localhost","http://host/path","http://host//",
+        "http://a@localhost","http://host?x","http://host#x","http://host\\path","http://127.1",
+        "http://256.1.1.1","http://host:0","http://host:65536","http://host:","http://host:1:2",
+        "http://[::1]tail","http://[bad]","http://a..b","http://-host","http://host-","http://host\n",
+        std::string("http://[::1\0evil]",18)})
+        Check(!ValidateVaReviewConnection(endpoint,"",""),"V450-N01 malformed authority rejected");
+    Check(!ValidateVaReviewConnection("http://localhost","synthetic-token",""),"V450-N02 plaintext token rejected");
+    Check(!ValidateVaReviewConnection("http://localhost","",ca),"V450-N02 CA on plaintext rejected");
+    Check(!ValidateVaReviewConnection("https://localhost","",(root/"missing-ca.pem").string()),"V450-N02 missing CA rejected");
+    Check(!ValidateVaReviewConnection("https://localhost","",root.string()),"V450-N02 CA directory rejected");
+    for(const auto& token:std::vector<std::string>{"bad token","bad\r\nHost: other","=onlypadding","a=b",std::string(4097,'a')})
+        Check(!ValidateVaReviewConnection("https://localhost",token,ca),"V450-N02 invalid credential rejected");
+    Check(ValidateVaReviewConnection("https://localhost","aB09-._~+/==",ca),"V450-N02 bearer alphabet and padding accepted");
+    Check(std::filesystem::create_directory(root/"remote-provider"),"V450-N01 isolated provider fixture");
+    const auto input=Record(root/"remote-provider").input;VaReviewProviderOptions options;options.enabled=true;
+    options.local_endpoint="https://gpu.internal:11434/";options.bearer_token="synthetic-token";options.ca_file=ca;
+    unsigned calls=0;VaReviewInference inference;std::string error;
+    const auto fake=[&](const VaReviewHttpRequest& request,auto,const auto&,std::string* response,std::string*){
+        ++calls;Check(request.headers==std::vector<std::string>{"Authorization: Bearer synthetic-token"}&&request.ca_file==ca,
+            "V450-N02 model discovery and chat receive same credentials and CA");
+        if(request.url=="https://gpu.internal:11434/api/tags"){
+            *response="{\"models\":[{\"name\":\""+options.local_model+"\",\"digest\":\""+std::string(64,'c')+"\"}]}";return true;
+        }
+        Check(request.url=="https://gpu.internal:11434/api/chat"&&request.body.find(options.bearer_token)==std::string::npos,
+            "V450-N01 canonical chat path without credential in body");
+        const auto content=R"({"schema":"media-server.va-review-provider.v1","observations":"Visible red square.","assessment":"supported","frameIndices":[0],"confidence":0.8})";
+        *response="{\"model\":\""+options.local_model+"\",\"done\":true,\"done_reason\":\"stop\",\"message\":{\"role\":\"assistant\",\"content\":"+EvidenceJsonQuote(content)+"}}";
+        return true;
+    };
+    const auto run=[&]{return MakeVaReviewProvider(options,fake)(input,"ollama",VaReviewService::Clock::now()+std::chrono::seconds(5),[]{return false;},&inference,&error);};
+    Check(run()&&calls==3,"V450-N01 remote configuration routes through synthetic transport only");
+    calls=0;options.local_endpoint="http://localhost:11434";
+    Check(!run()&&calls==0,"V450-N02 HTTP bearer rejected before first provider call");
+    options.local_endpoint="https://localhost//";
+    Check(!run()&&calls==0,"V450-N01 malformed endpoint not repaired into accepted URL");
+    unsigned port=0,expired_port=0;std::ifstream(root/"tls-ports.txt")>>port>>expired_port;
+    Check(port>0&&expired_port>0,"V450-N02 local TLS fixture ports");
+    const auto base="https://localhost:"+std::to_string(port);const auto fds=Fds();std::string response;
+    const auto wire=[&](const std::string& url,const std::string& certificate,const std::string& token,const std::string& mode,
+        std::chrono::milliseconds timeout=std::chrono::seconds(3)){
+        response="unchanged";std::vector<std::string> headers;if(!token.empty())headers.push_back("Authorization: Bearer "+token);
+        return VaReviewCurl({url,"{\"mode\":\""+mode+"\"}",headers,certificate},VaReviewService::Clock::now()+timeout,[]{return false;},&response,&error);
+    };
+    Check(wire(base+"/api/chat",ca,"synthetic-token","auth")&&response=="{\"ok\":true}","V450-N02 actual trusted TLS and bearer");
+    Check(wire(base+"/api/chat",ca,"","ok"),"V450-N02 actual TLS without auth");
+    Check(!wire(base+"/api/chat",ca,"wrong","auth")&&error=="review-provider-auth"&&response=="unchanged","V450-N02 wrong bearer has no retry");
+    Check(!wire(base+"/api/chat",ca,"","auth")&&error=="review-provider-auth","V450-N02 missing bearer rejected by gateway");
+    for(const auto& status:std::vector<std::pair<std::string,std::string>>{{"403","review-provider-auth"},{"429","review-provider-rate-limit"}})
+        Check(!wire(base+"/api/chat",ca,"synthetic-token",status.first)&&error==status.second&&response=="unchanged","V450-N02 TLS gateway error without output mutation");
+    {std::ofstream invalid(root/"invalid-ca.pem");invalid<<"not a certificate";}
+    Check(!wire(base+"/api/chat",(root/"invalid-ca.pem").string(),"","ok")&&error=="review-tls-failed","V450-N02 malformed CA fails closed");
+    Check(!wire(base+"/api/chat","","synthetic-token","auth")&&error=="review-tls-failed","V450-N02 untrusted certificate fails");
+    Check(!wire("https://127.0.0.1:"+std::to_string(port)+"/api/chat",ca,"","ok")&&error=="review-tls-failed","V450-N02 certificate hostname mismatch fails");
+    Check(!wire("https://localhost:"+std::to_string(expired_port)+"/api/chat",(root/"tls-expired.pem").string(),"","ok")&&error=="review-tls-failed","V450-N02 expired certificate fails");
+    Check(!wire(base+"/api/chat",ca,"synthetic-token","redirect")&&error=="review-provider-unavailable","V450-N01 TLS redirect not followed");
+    Check(!wire(base+"/api/chat",ca,"","slow",std::chrono::milliseconds(100))&&error=="review-timeout","V450-N03 TLS deadline aborts");
+    auto began=VaReviewService::Clock::now();
+    Check(!VaReviewCurl({base+"/api/chat","{\"mode\":\"slow\"}",{},ca},began+std::chrono::seconds(3),
+        [&]{return VaReviewService::Clock::now()-began>std::chrono::milliseconds(100);},&response,&error)&&error=="review-cancelled","V450-N03 actual TLS cancellation");
+    for(const auto& headers:std::vector<std::vector<std::string>>{{"Host: other"},{"Authorization: Bearer x\r\nHost: other"},
+        {"Authorization: Bearer x","Authorization: Bearer y"}})
+        Check(!VaReviewCurl({base+"/api/chat","{}",headers,ca},VaReviewService::Clock::now()+std::chrono::seconds(1),[]{return false;},&response,&error)&&error=="review-invalid-input","V450-N02 header injection refused");
+    Check(Fds()==fds,"V450-N03 TLS FD baseline restored");
+    int status=0;errno=0;Check(::waitpid(-1,&status,WNOHANG)==-1&&errno==ECHILD,"V450-N03 TLS children reaped");
 }
 std::vector<std::uint8_t> QualityPng(int x) {
     const unsigned width=512,height=288;std::vector<std::uint8_t> png{137,80,78,71,13,10,26,10},header;
@@ -598,6 +670,7 @@ int main(int argc,char** argv) {
         RecordChecks(argv[1]);
         QueueChecks(argv[1]);
         ProviderChecks(argv[1],argv[3]);
+        ConnectionChecks(argv[1]);
         }
         std::cout<<"[summary] pass="<<checks<<" fail=0\n";return 0;
     } catch(const std::exception& e) {std::cerr<<"[fail] "<<e.what()<<'\n';return 1;}

@@ -877,7 +877,24 @@ clip이 없는 결과의 `not-applicable`은 누락과 다릅니다. 생성 당�
 
 `MEDIA_SERVER_VA_REVIEW_ENABLED=1`은 녹화·증거 보존이 활성화된 경우에만 검토 worker를 켭니다.
 기본은 off입니다. `MEDIA_SERVER_VA_REVIEW_LOCAL_ENDPOINT` 기본값은
-`http://127.0.0.1:11434`이며 숫자 loopback과 명시 포트만 받습니다.
+`http://127.0.0.1:11434`이며 관리자 지정 HTTP/HTTPS DNS·IPv4·괄호 IPv6 주소와 포트를 받습니다.
+포트 생략 시 scheme 기본 포트를 사용하고 끝의 단일 `/`는 허용합니다. base path·userinfo·query·fragment는
+허용하지 않습니다. 같은 장비·컨테이너 서비스·별도 GPU 서버의 자체 호스팅 Ollama가 연결 대상입니다.
+이름에 LOCAL이 있는 기존 설정 키는 유지하되 접속 위치를 loopback으로 제한하지 않습니다.
+
+`MEDIA_SERVER_VA_REVIEW_BEARER_TOKEN`은 선택 토큰이며 HTTPS에서만 허용합니다.
+HTTP와 함께 설정하면 호출 전 실패하며 토큰을 빼고 재시도하지 않습니다. 토큰을 명령행·설정 예제·
+Git·로그에 넣지 마세요. 토큰 검증은 운영자가 구성한 Ollama 앞단 인증 프록시가 담당합니다.
+`MEDIA_SERVER_VA_REVIEW_CA_FILE`은 HTTPS 연결 전용 PEM CA 파일입니다. 미지정 시 curl 기본 신뢰
+저장소를 사용하고, 지정 시 그 파일로 검증합니다. OS 신뢰 저장소는 변경하지 않습니다.
+인증서 체인·만료·호스트명 검증은 필수이며 `insecure` 옵션과 HTTP 자동 전환은 없습니다.
+redirect·환경 proxy를 사용하지 않으며 관리자 endpoint를 검토 요청 payload로 받지 않습니다.
+Ollama는 cloud 기능을 끄고 자체 호스팅 모델을 준비해야 합니다. MediaServer는 모델을 자동 다운로드하거나
+다른 서버로 fallback하지 않습니다. Bearer는 `/api/tags`와 `/api/chat` 모두 같은 설정으로 전달합니다.
+
+연결 지원과 검증 범위는 다릅니다. 실제 모델·HTTP/HTTPS fixture 검증은 로컬에서만 수행하며
+컨테이너·원격 GPU 실환경은 사용자 제외/미검증입니다. 취소는 MediaServer의 연결·worker 회수와
+결과 미게시를 처리하지만 원격 GPU의 추론 종료·메모리 회수를 확인한 것으로 보고하지 않습니다.
 `MEDIA_SERVER_VA_REVIEW_LOCAL_MODEL` 기본값은 `qwen3-vl:8b-instruct-q4_K_M`입니다.
 모델 설치는 자동 수행하지 않으며 누락된 모델과 연결 실패는 검토 작업 실패로 응답합니다.
 

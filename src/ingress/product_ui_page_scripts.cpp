@@ -10423,6 +10423,8 @@ void AppendOpsShellScript(std::ostringstream& out,
               'review-queue-full': '검토 대기열이 가득 찼습니다. 잠시 후 다시 실행하세요.', 'review-timeout': '검토 제한 시간을 초과했습니다.',
               'review-cancelled': '검토가 취소됐습니다.', 'review-forbidden': '검토 권한이 없습니다.', 'review-invalid-output': '모델 결과를 검증하지 못했습니다.',
               'review-missing-model': '검토 모델을 사용할 수 없습니다.', 'review-provider-unavailable': '검토 모델에 연결하지 못했습니다.',
+              'review-connect-failed': '검토 모델에 연결하지 못했습니다.', 'review-tls-failed': '검토 서버의 보안 연결을 확인하지 못했습니다.',
+              'review-provider-auth': '검토 서버 인증에 실패했습니다.', 'review-provider-rate-limit': '검토 서버의 요청 한도를 초과했습니다.',
               'review-queue-timeout': '대기 시간이 초과됐습니다.', 'review-invalid-input': '질문과 보존 프레임을 확인하세요.'
             };
             const request = async (url, options = {}, observeController = () => {}) => {

@@ -10,7 +10,7 @@ bool Active(const VaReviewJob& job){return job.state=="queued"||job.state=="runn
 std::string SafeError(const std::string& reason) {
     for(const auto* code:{"review-invalid-input","review-no-frames","review-input-too-large","review-mixed-source",
         "review-forbidden","review-cancelled","review-timeout","review-missing-model","review-connect-failed",
-        "review-provider-auth","review-provider-rate-limit","review-provider-unavailable","review-invalid-output",
+        "review-provider-auth","review-provider-rate-limit","review-provider-unavailable","review-invalid-output","review-tls-failed",
         "review-capacity","review-disk-reserve","review-write-failed","review-cleanup-failed",
         "review-publication-uncertain","review-store-invalid","review-store-unavailable","review-store-busy",
         "review-record-too-large","review-response-too-large"})if(reason==code)return code;

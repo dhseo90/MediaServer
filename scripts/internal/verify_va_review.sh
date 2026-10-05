@@ -4,7 +4,7 @@ set -euo pipefail
 task_repo="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$task_repo"
 python3 - "$task_repo" "$@" <<'PY'
-import ctypes, hashlib, http.server, json, os, pathlib, shlex, shutil, subprocess, sys, tempfile, threading, urllib.request, time
+import ctypes, hashlib, http.server, json, os, pathlib, shlex, shutil, subprocess, sys, tempfile, threading, urllib.request, time, ssl
 repo=pathlib.Path(sys.argv[1]); build=repo/'build-gst-onnx'
 local=len(sys.argv)==4 and sys.argv[2]=='--local'
 lifecycle=len(sys.argv)==4 and sys.argv[2]=='--local-lifecycle'
@@ -17,7 +17,7 @@ for directory in ('src','include'):
             raise RuntimeError('product build required: '+str(source.relative_to(repo)))
 root=pathlib.Path(tempfile.mkdtemp(prefix='media-server-va-review-')).resolve()
 identity=root.stat(); print('[fixture]',root,flush=True)
-server=None; thread=None; stop=threading.Event(); monitor=None; resources={'modelBytes':0,'modelVramBytes':0,'modelRssPlusVramBytes':0,'modelPhysicalFootprintBytes':0,'workspaceBytes':0}
+tls_servers=[]; server=None; thread=None; stop=threading.Event(); monitor=None; resources={'modelBytes':0,'modelVramBytes':0,'modelRssPlusVramBytes':0,'modelPhysicalFootprintBytes':0,'workspaceBytes':0}
 try:
     link=shlex.split((build/'CMakeFiles/media_server.dir/link.txt').read_text())
     libs=[str(archive),*link[link.index('libmedia_server_runtime.a')+1:]]
@@ -36,14 +36,14 @@ try:
         def log_message(self,*args):pass
         def do_POST(self):
             data=json.loads(self.rfile.read(int(self.headers['Content-Length'])))
-            mode=data['mode'];status=int(mode) if mode.isdigit() else 302 if mode=='redirect' else 200
+            mode=data['mode'];status=int(mode) if mode.isdigit() else 302 if mode=='redirect' else 401 if mode=='auth' and self.headers.get('Authorization')!='Bearer synthetic-token' else 200
             if mode=='slow':stop.wait(2)
             body=b'x'*70000 if mode=='large' else b'{"ok":true}'
             try:
                 self.send_response(status)
-                if mode=='redirect':self.send_header('Location','http://invalid.invalid/must-not-follow')
+                if mode=='redirect':self.send_header('Location','http://127.0.0.1:1/must-not-follow')
                 self.send_header('Content-Length',str(len(body)));self.end_headers();self.wfile.write(body)
-            except (BrokenPipeError,ConnectionResetError):pass
+            except (BrokenPipeError,ConnectionResetError,ssl.SSLError):pass
     if local or lifecycle:
         endpoint=sys.argv[3]
         if not endpoint.startswith('http://127.0.0.1:') or not endpoint.removeprefix('http://127.0.0.1:').isdigit():raise RuntimeError('numeric loopback only')
@@ -121,9 +121,29 @@ try:
         endpoint='http://127.0.0.1:'+str(server.server_port)
         thread=threading.Thread(target=server.serve_forever);thread.start()
         print('[loopback]',endpoint,flush=True)
+        openssl=shutil.which('openssl')
+        if not openssl:raise RuntimeError('existing OpenSSL executable required; do not install automatically')
+        subprocess.run([openssl,'req','-x509','-newkey','rsa:2048','-nodes','-keyout',str(root/'tls-key.pem'),
+            '-out',str(root/'tls-cert.pem'),'-days','1','-subj','/CN=localhost',
+            '-addext','subjectAltName=DNS:localhost'],check=True,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,timeout=15)
+        expired=subprocess.run([openssl,'x509','-in',str(root/'tls-cert.pem'),'-signkey',str(root/'tls-key.pem'),
+            '-not_before','20000101000000Z','-not_after','20000102000000Z','-out',str(root/'tls-expired.pem')],
+            stdout=subprocess.DEVNULL,stderr=subprocess.PIPE,text=True,timeout=5)
+        if expired.returncode:raise RuntimeError('expired certificate fixture: '+expired.stderr[:2048])
+        for certificate in ('tls-cert.pem','tls-expired.pem'):
+            secure=http.server.ThreadingHTTPServer(('127.0.0.1',0),Handler)
+            tls_servers.append((secure,None))
+            context=ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER);context.load_cert_chain(str(root/certificate),str(root/'tls-key.pem'))
+            secure.socket=context.wrap_socket(secure.socket,server_side=True)
+            secure_thread=threading.Thread(target=secure.serve_forever);secure_thread.start();tls_servers[-1]=(secure,secure_thread)
+        (root/'tls-ports.txt').write_text(' '.join(str(server.server_port) for server,_ in tls_servers))
+        print('[tls-fixture] loopback only; temporary CA; no system trust changes',flush=True)
+
     focused_started=time.monotonic()
     subprocess.run(['bash','-c','source "$2/scripts/internal/env_common.sh"; export MEDIA_SERVER_GST_CACHE_DIR="$1/gst-cache"; media_server_apply_homebrew_gst_env || exit; exec "$1/smoke" "$1" "$3" "$4"',
-        'va-review',str(root),str(repo),'--local-lifecycle' if lifecycle else '--local' if local else '--protocol',endpoint],check=True,timeout=60 if lifecycle else 800 if local else 90)
+        'va-review',str(root),str(repo),'--local-lifecycle' if lifecycle else '--local' if local else '--protocol',endpoint],check=True,timeout=60 if lifecycle else 800 if local else 90,
+        env=dict(os.environ,HTTP_PROXY='http://127.0.0.1:1',HTTPS_PROXY='http://127.0.0.1:1',ALL_PROXY='http://127.0.0.1:1',
+            http_proxy='http://127.0.0.1:1',https_proxy='http://127.0.0.1:1',all_proxy='http://127.0.0.1:1',NO_PROXY='',no_proxy=''))
     if lifecycle:
         elapsed=time.monotonic()-focused_started
         if resources.get('lifecycleTrials')!=2 or 'lifecycleError' in resources or elapsed>=60:raise RuntimeError('lifecycle focused gate failed')
@@ -140,6 +160,11 @@ finally:
     if monitor:monitor.join(timeout=2)
     if monitor and monitor.is_alive():raise RuntimeError('monitor cleanup failed')
     if local or lifecycle:print('[resource-final]',json.dumps(resources,sort_keys=True),flush=True)
+    for secure,secure_thread in tls_servers:
+        if secure_thread:secure.shutdown()
+        secure.server_close()
+        if secure_thread:secure_thread.join(timeout=2)
+        if secure_thread and secure_thread.is_alive():raise RuntimeError('TLS fixture cleanup failed')
     if server:server.shutdown();server.server_close();thread.join(timeout=2)
     if thread and thread.is_alive():raise RuntimeError('loopback server cleanup failed')
     st=root.lstat()

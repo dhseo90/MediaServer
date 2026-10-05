@@ -267,3 +267,28 @@
   이는 위 테스트 실패 2회와 별도의 정적 지적이다. 문서 links failures 0/exit 0
   ([로그](10-gemini-removal-docs.log)). 삭제 외 로컬 prompt/입력/출력 경로는 이번에 바꾸지 않았다.
   후속 원격 연결·한국어 네 항목·최종 검증·기존 coverage FAIL은 미완료다.
+
+### Ollama 주소·HTTPS·인증 단계
+
+- source: `69b28567b` 이후 연결 diff. 기존 LOCAL_ENDPOINT 키를 유지하며 DNS/IPv4/괄호 IPv6,
+  HTTP/HTTPS·포트·끝 단일 slash를 지원한다. 관리자 endpoint만 사용하고 URL userinfo/query/
+  fragment·임의 API 경로·redirect·환경 proxy를 거부한다. Bearer는 HTTPS 전용이며 CA는 연결 전용이다.
+  토큰은 composition에서 환경변수를 읽어 provider 메모리→curl stdin으로만 전달한다.
+  `/api/tags`·`/api/chat` 모두 동일한 토큰/CA를 사용하며 인증 오류 fallback은 없다.
+- 빌드 exit 0 ([로그](11-ollama-connection-build.log)). 실제 제품 HTTP/Auth 회귀 135 PASS,
+  6,024ms/exit 0 ([로그](11-ollama-connection-http.log), 기존 누적 JSON).
+- 최초 native는 설치 OpenSSL 3.6.2가 `x509 -days -1`을 거부해 fixture 준비 exit 1이다
+  ([로그](11-ollama-connection-native.log)). 이 단계 테스트 실패 1회. 최초 stderr는 버리는
+  설정이어서 원문을 복원하지 않는다. 설치된 `openssl x509 -help`의 not_before/not_after로
+  유효기간을 2000-01-01~02로 명시하고 실패 stderr 보존을 추가했다. root 정리 확인.
+- 재검증 281 PASS/exit 0 ([로그](11-ollama-connection-native-retest.log)). 이후 등록된 proxy
+  우회 경계를 실제 환경변수로 확인하고 손상 CA·HTTPS 403/429 반례를 추가한 최종 검사는
+  284 PASS/exit 0 ([로그](11-ollama-connection-native-final.log)). 정상 TLS/Bearer·무인증,
+  누락/잘못된 토큰, 미신뢰·만료·호스트 불일치·손상 CA, redirect·헤더 주입 거부,
+  TLS timeout/취소·FD 복귀·curl reap을 실제 loopback TLS에서 확인했다.
+- UI 상태 14/14 exit 0 ([최종 로그](11-ollama-connection-ui-final.log),
+  [이전 로그](11-ollama-connection-ui.log)); TLS/인증/요청 한도의 정제 오류 문구 포함.
+  문서 failures 0/exit 0 ([로그](11-ollama-connection-docs.log)), `git diff --check` exit 0.
+- HTTP/native 소유 root·프로세스·포트와 TLS fixture의 임시 키·인증서를 회수했다.
+  실제 원격 GPU/컨테이너·원격 추론 취소/메모리는 미검증·사용자 제외다. 모델 품질과 실제 UI는
+  이번 연결 검사로 대체하지 않으며 후속 한국어 네 항목 변경에서 로컬 품질을 재평가한다.

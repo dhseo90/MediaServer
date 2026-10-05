@@ -126,7 +126,7 @@ test('V450-U01 disabled, read-only, missing frames, byte boundaries cannot submi
   assert.equal(f.review('Provider'),undefined);assert.equal(f.review('TransferConsent'),undefined);assert.equal(f.review('ExternalNotice'),undefined);
 });
 test('V450-U01 API errors use safe messages; disabled/forbidden block execution and transient failures allow retry',async()=>{
-  for(const [status,error,pattern] of [[503,'review-disabled',/비활성/],[503,'review-queue-full',/대기열/],[403,'review-forbidden',/권한/],[400,'review-invalid-input',/질문/],[410,'unknown',/찾을 수/]]){
+  for(const [status,error,pattern] of [[503,'review-disabled',/비활성/],[503,'review-queue-full',/대기열/],[503,'review-tls-failed',/보안 연결/],[503,'review-provider-auth',/인증/],[503,'review-provider-rate-limit',/한도/],[403,'review-forbidden',/권한/],[400,'review-invalid-input',/질문/],[410,'unknown',/찾을 수/]]){
     const f=fixture();await openReview(f);await input(f);const submit=f.review('Execute').fire('click');await flush();
     f.answer(f.pending.shift(),{error,raw:'Bearer private https://private.invalid'},status);await submit;
     assert.match(f.review('Status').textContent,pattern);assert.doesNotMatch(f.review('Status').textContent,/Bearer|https|unknown/);assert.equal(f.review('Execute').disabled,error==='review-disabled'||status===403);assert.equal(f.timers.size,0);

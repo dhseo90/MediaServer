@@ -6,16 +6,21 @@ namespace recording {
 struct VaReviewHttpRequest {
     std::string url,body;
     std::vector<std::string> headers;
+    std::string ca_file{};
 };
 using VaReviewTransport=std::function<bool(const VaReviewHttpRequest&,VaReviewService::Clock::time_point,
     const std::function<bool()>&,std::string*,std::string*)>;
-// URL은 고정 loopback Ollama API만 허용한다. 응답 상한/시간/취소와 child reap을 담당한다.
+// 관리자 endpoint와 인증/TLS 설정을 검증한다. 네트워크 연결은 수행하지 않는다.
+bool ValidateVaReviewConnection(const std::string& endpoint,const std::string& bearer_token,
+    const std::string& ca_file);
+// Ollama API 경로만 허용한다. TLS/인증·응답 상한/시간/취소와 child reap을 담당한다.
 bool VaReviewCurl(const VaReviewHttpRequest&,VaReviewService::Clock::time_point,
     const std::function<bool()>&,std::string* response,std::string* error);
 struct VaReviewProviderOptions {
     bool enabled{false};
     std::string local_endpoint{"http://127.0.0.1:11434"};
     std::string local_model{"qwen3-vl:8b-instruct-q4_K_M"};
+    std::string bearer_token,ca_file; // token은 메모리 전용. 공개 config/로그/argv/record 금지.
 };
 VaReviewService::Infer MakeVaReviewProvider(VaReviewProviderOptions,VaReviewTransport=VaReviewCurl);
 } // namespace recording

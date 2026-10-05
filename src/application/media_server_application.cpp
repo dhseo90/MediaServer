@@ -458,6 +458,10 @@ int RunMediaServerApplication(int argc, char** argv) {
     review_provider.enabled=config.va_review_enabled && config.evidence_enabled && config.recording_enabled;
     review_provider.local_endpoint=config.va_review_local_endpoint;
     review_provider.local_model=config.va_review_local_model;
+    review_provider.ca_file=config.va_review_ca_file;
+    if(review_provider.enabled){
+        if(const char* token=std::getenv("MEDIA_SERVER_VA_REVIEW_BEARER_TOKEN"))review_provider.bearer_token=token;
+    }
     ingress::VaReviewApplicationService va_reviews(recording_root,review_provider.enabled,review_provider,
         config.recording_reserved_free_bytes);
     ingress::VisualSearchApplicationService::Options visual_options;

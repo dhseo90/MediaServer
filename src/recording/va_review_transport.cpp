@@ -4,6 +4,7 @@
 #endif
 #include "recording/va_review_provider.h"
 #include <algorithm>
+#include <arpa/inet.h>
 #include <cerrno>
 #include <charconv>
 #include <csignal>
@@ -18,14 +19,58 @@ namespace recording {
 namespace {
 using Clock=VaReviewService::Clock;
 bool Fail(std::string* error,const char* text){if(error)*error=text;return false;}
-bool LocalUrl(const std::string& url) {
-    constexpr char prefix[]="http://127.0.0.1:";
-    if(url.rfind(prefix,0)!=0)return false;
-    const auto slash=url.find('/',sizeof(prefix)-1);if(slash==std::string::npos)return false;
-    const auto port=url.substr(sizeof(prefix)-1,slash-sizeof(prefix)+1);unsigned n=0;
-    const auto r=std::from_chars(port.data(),port.data()+port.size(),n);
-    return r.ec==std::errc{}&&r.ptr==port.data()+port.size()&&n>0&&n<=65535&&
-        (url.substr(slash)=="/api/tags"||url.substr(slash)=="/api/chat");
+bool AlphaNumeric(unsigned char c){
+    return (c>='a'&&c<='z')||(c>='A'&&c<='Z')||(c>='0'&&c<='9');
+}
+bool Endpoint(std::string value,bool* secure) {
+    if(value.empty()||value.size()>2048||std::any_of(value.begin(),value.end(),[](unsigned char c){return c<=32||c>=127;}))return false;
+    *secure=value.rfind("https://",0)==0;
+    if(!*secure&&value.rfind("http://",0)!=0)return false;
+    value.erase(0,*secure?8:7);
+    if(!value.empty()&&value.back()=='/')value.pop_back();
+    if(value.empty()||value.find_first_of("/@?#%\\")!=std::string::npos)return false;
+    std::string host,port;bool explicit_port=false;
+    if(value.front()=='['){
+        const auto close=value.find(']');if(close==std::string::npos)return false;
+        host=value.substr(1,close-1);in6_addr address{};
+        if(::inet_pton(AF_INET6,host.c_str(),&address)!=1)return false;
+        if(close+1<value.size()){
+            if(value[close+1]!=':')return false;
+            explicit_port=true;port=value.substr(close+2);
+        }
+    }else{
+        const auto colon=value.find(':');host=value.substr(0,colon);
+        if(colon!=std::string::npos){explicit_port=true;port=value.substr(colon+1);}
+        if(host.empty()||host.size()>253)return false;
+        if(std::all_of(host.begin(),host.end(),[](char c){return (c>='0'&&c<='9')||c=='.';})){
+            in_addr address{};if(::inet_pton(AF_INET,host.c_str(),&address)!=1)return false;
+        }else{
+            if(host.back()=='.')host.pop_back();
+            std::size_t begin=0;
+            while(begin<host.size()){
+                const auto dot=host.find('.',begin),end=dot==std::string::npos?host.size():dot;
+                if(end==begin||end-begin>63||!AlphaNumeric(host[begin])||!AlphaNumeric(host[end-1]))return false;
+                for(auto i=begin;i<end;++i)if(!AlphaNumeric(host[i])&&host[i]!='-')return false;
+                if(dot==std::string::npos)break;
+                begin=dot+1;if(begin==host.size())return false;
+            }
+        }
+    }
+    if(explicit_port){
+        unsigned n=0;const auto r=std::from_chars(port.data(),port.data()+port.size(),n);
+        if(r.ec!=std::errc{}||r.ptr!=port.data()+port.size()||n==0||n>65535)return false;
+    }
+    return true;
+}
+bool Bearer(const std::string& value){
+    if(value.empty()||value.size()>4096)return false;
+    bool padding=false,content=false;
+    for(const unsigned char c:value){
+        if(c=='='){padding=true;continue;}
+        if(padding||(!AlphaNumeric(c)&&c!='-'&&c!='.'&&c!='_'&&c!='~'&&c!='+'&&c!='/'))return false;
+        content=true;
+    }
+    return content;
 }
 std::string ConfigQuote(const std::string& value) {
     std::string out="\"";
@@ -57,14 +102,35 @@ struct Child {
     ~Child(){Close();}
 };
 }
+bool ValidateVaReviewConnection(const std::string& endpoint,const std::string& bearer_token,const std::string& ca_file){
+    bool secure=false;if(!Endpoint(endpoint,&secure))return false;
+    if(!bearer_token.empty()&&(!secure||!Bearer(bearer_token)))return false;
+    if(!ca_file.empty()){
+        if(!secure||ca_file.size()>4096||std::any_of(ca_file.begin(),ca_file.end(),[](unsigned char c){return c<32||c==127;}))return false;
+        std::error_code ec;
+        if(!std::filesystem::is_regular_file(ca_file,ec)||ec)return false;
+    }
+    return true;
+}
 bool VaReviewCurl(const VaReviewHttpRequest& request,Clock::time_point deadline,
     const std::function<bool()>& cancelled,std::string* output,std::string* error) {
-    if(!output||!LocalUrl(request.url)||request.body.size()>20*1024*1024||!request.headers.empty())
+    const auto scheme=request.url.find("://");
+    const auto path=scheme==std::string::npos?std::string::npos:request.url.find('/',scheme+3);
+    if(!output||path==std::string::npos||request.body.size()>20*1024*1024||request.headers.size()>1||
+        (request.url.substr(path)!="/api/tags"&&request.url.substr(path)!="/api/chat"))
         return Fail(error,"review-invalid-input");
+    std::string token;
+    if(!request.headers.empty()){
+        const std::string prefix="Authorization: Bearer ";
+        if(request.headers.front().rfind(prefix,0)!=0)return Fail(error,"review-invalid-input");
+        token=request.headers.front().substr(prefix.size());if(token.empty())return Fail(error,"review-invalid-input");
+    }
+    if(!ValidateVaReviewConnection(request.url.substr(0,path),token,request.ca_file))return Fail(error,"review-invalid-input");
     if(Clock::now()>=deadline)return Fail(error,"review-timeout");
     if(cancelled&&cancelled())return Fail(error,"review-cancelled");
     const auto ms=std::chrono::duration_cast<std::chrono::milliseconds>(deadline-Clock::now()).count();
     std::string config="url = "+ConfigQuote(request.url)+"\n";
+    if(!request.ca_file.empty())config+="cacert = "+ConfigQuote(request.ca_file)+"\n";
     config+="max-time = "+std::to_string(std::min<std::int64_t>(ms,60000)/1000.0)+"\n";
     if(!request.body.empty())config+="request = \"POST\"\nheader = \"Content-Type: application/json\"\ndata-binary = "+ConfigQuote(request.body)+"\n";
     for(const auto& header:request.headers)config+="header = "+ConfigQuote(header)+"\n";
@@ -132,7 +198,8 @@ bool VaReviewCurl(const VaReviewHttpRequest& request,Clock::time_point deadline,
     if(failure)return Fail(error,failure);
     if(!WIFEXITED(child.status)||WEXITSTATUS(child.status)!=0) {
         const int status=WIFEXITED(child.status)?WEXITSTATUS(child.status):-1;
-        return Fail(error,status==28?"review-timeout":status==63?"review-response-too-large":"review-connect-failed");
+        return Fail(error,status==28?"review-timeout":status==63?"review-response-too-large":
+            status==35||status==51||status==58||status==60||status==77?"review-tls-failed":"review-connect-failed");
     }
     constexpr char marker[]="\nMSV450_HTTP:";const auto pos=response.rfind(marker);
     if(pos==std::string::npos||response.size()-pos!=sizeof(marker)-1+3||pos>65536)return Fail(error,"review-invalid-output");

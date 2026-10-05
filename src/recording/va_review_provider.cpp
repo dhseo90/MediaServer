@@ -44,12 +44,6 @@ bool ModelName(const std::string& value) {
     return !value.empty()&&value.size()<=128&&std::all_of(value.begin(),value.end(),[](unsigned char c){
         return (c>='a'&&c<='z')||(c>='A'&&c<='Z')||(c>='0'&&c<='9')||c=='_'||c=='-'||c=='.'||c==':'||c=='/';});
 }
-bool Endpoint(const std::string& value) {
-    const std::string prefix="http://127.0.0.1:";if(value.rfind(prefix,0)!=0)return false;
-    const auto port=value.substr(prefix.size());unsigned n=0;
-    const auto r=std::from_chars(port.data(),port.data()+port.size(),n);
-    return r.ec==std::errc{}&&r.ptr==port.data()+port.size()&&n>0&&n<=65535;
-}
 bool Digest(const std::string& response,const std::string& model,std::string* digest,std::string* error) {
     Doc root;std::vector<std::string> models;
     if(response.size()>65536||!Parse(response,&root)||!Array(root,"models",&models))return Fail(error,"review-invalid-output");
@@ -86,16 +80,20 @@ std::string Content(const VaReviewInput& input) {
 }
 }
 VaReviewService::Infer MakeVaReviewProvider(VaReviewProviderOptions options,VaReviewTransport transport) {
-    return [options=std::move(options),transport=std::move(transport)](const VaReviewInput& input,const std::string& provider,
+    const bool valid_connection=ValidateVaReviewConnection(options.local_endpoint,options.bearer_token,options.ca_file);
+    if(!options.local_endpoint.empty()&&options.local_endpoint.back()=='/')options.local_endpoint.pop_back();
+    return [options=std::move(options),transport=std::move(transport),valid_connection](const VaReviewInput& input,const std::string& provider,
         VaReviewService::Clock::time_point deadline,const std::function<bool()>& cancelled,VaReviewInference* output,std::string* error) {
         if(!options.enabled)return Fail(error,"review-disabled");
         if(provider!="ollama")return Fail(error,"review-invalid-input");
-        if(!output||!transport||!Endpoint(options.local_endpoint)||!ModelName(options.local_model))return Fail(error,"review-invalid-input");
+        if(!output||!transport||!valid_connection||!ModelName(options.local_model))return Fail(error,"review-invalid-input");
         if(!Input(input,error))return false;
         const auto request=[&](const std::string& route,const std::string& body,std::string* response){
             if(VaReviewService::Clock::now()>=deadline)return Fail(error,"review-timeout");
             if(cancelled&&cancelled())return Fail(error,"review-cancelled");
-            return transport({options.local_endpoint+route,body,{}},deadline,cancelled,response,error);
+            std::vector<std::string> headers;
+            if(!options.bearer_token.empty())headers.push_back("Authorization: Bearer "+options.bearer_token);
+            return transport({options.local_endpoint+route,body,std::move(headers),options.ca_file},deadline,cancelled,response,error);
         };
         std::string response,digest;
         if(!request("/api/tags","",&response)||!Digest(response,options.local_model,&digest,error))return false;
