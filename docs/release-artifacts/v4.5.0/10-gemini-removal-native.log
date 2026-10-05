@@ -1,0 +1,29 @@
+[fixture] /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-va-review-e9nuh6am
+[source] include/recording/va_review_input.h 543fcaf1fd950927455e402b45f3747cdb95c81b8521daa4eb22ce4b87c1cc00
+[source] include/recording/va_review_provider.h 9c1995896f70fafe39f98af3ecf3e5ac99e39262011f61e56b9cf17d2e3d27a8
+[source] include/recording/va_review_record.h 96f5ac21c232d0b7efcadc94d8472ea980e1c8828577753c77f892210059c27d
+[source] include/recording/va_review_service.h c3c6f9c4a7ebab259af79b2ff16bf1f1e94a0c776d6f612e88cdcb27e9be0baa
+[source] include/recording/va_review_store.h fcfad2a1c692321f5331b014357686abf871ab1b727ebc8093b5d339efc8c80a
+[source] scripts/internal/va_review_quality_fixture.h 9b2e166928f0d1043363ab1fe93e2c3ea90f19cad0c32053b9c483da22ed9f19
+[source] scripts/internal/va_review_smoke.cpp f6bec5bd0d76dc91b3dab5fb6b33a461250dbe3a156c8d3e6503713f44069fa7
+[source] scripts/internal/verify_va_review.sh 28b5292c17b4c9bdc9d899dcc61ac14fd8957c754b5b58c5f21896184ba0e19e
+[source] src/recording/va_review_input.cpp 840df39c6fc11ca99748f55dd1c55d598e060467354dd8fd0a48b1b197cd58f1
+[source] src/recording/va_review_json.h 835cf40e95a3be8297ccf6edde1fbcf7c8aa5ffda3169f368195bc5667d065f3
+[source] src/recording/va_review_provider.cpp 7c01d5e9210f08402621b9238628d7d83f11de0845a46159ef55d54f12b18034
+[source] src/recording/va_review_record.cpp 941ce516c34e5132b475ae3df73635a636617c4a3e624049fbd67c32c8830417
+[source] src/recording/va_review_service.cpp c68afecb78c7548ad2d0ad026ae2123894f33b2ad4c1e7ff38b7d4de7f3a7509
+[source] src/recording/va_review_store.cpp 27cb631652d84eb98776cf0493959205fdb4888517cb70b6cc8e1d5a4108a0a4
+[source] src/recording/va_review_transport.cpp 3e4d34188a534081db6e8efddd8992fffdd8ce75518cb8c46e5203dacd72faef
+[cleanup] removed=true
+Traceback (most recent call last):
+  File "<stdin>", line 113, in <module>
+  File "/opt/homebrew/Cellar/python@3.14/3.14.4/Frameworks/Python.framework/Versions/3.14/lib/python3.14/socketserver.py", line 457, in __init__
+    self.server_bind()
+    ~~~~~~~~~~~~~~~~^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.4/Frameworks/Python.framework/Versions/3.14/lib/python3.14/http/server.py", line 148, in server_bind
+    socketserver.TCPServer.server_bind(self)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.4/Frameworks/Python.framework/Versions/3.14/lib/python3.14/socketserver.py", line 478, in server_bind
+    self.socket.bind(self.server_address)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+PermissionError: [Errno 1] Operation not permitted

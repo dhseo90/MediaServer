@@ -13,7 +13,7 @@ std::string SafeError(const std::string& reason) {
         "review-provider-auth","review-provider-rate-limit","review-provider-unavailable","review-invalid-output",
         "review-capacity","review-disk-reserve","review-write-failed","review-cleanup-failed",
         "review-publication-uncertain","review-store-invalid","review-store-unavailable","review-store-busy",
-        "review-record-too-large","review-response-too-large","review-external-disabled"})if(reason==code)return code;
+        "review-record-too-large","review-response-too-large"})if(reason==code)return code;
     return "review-failed";
 }
 }
@@ -39,10 +39,9 @@ bool VaReviewService::ValidJobId(const std::string& id) {
 bool VaReviewService::Submit(const std::string& id,const std::string& question,const std::string& provider,
     const std::string& owner,Authorize authorize,VaReviewJob* output,std::string* error) {
     if(!output||!EvidencePackageStore::ValidId(id)||!VaReviewText(question)||owner.empty()||owner.size()>256||
-       (provider!="ollama"&&provider!="gemini"))return Fail(error,"review-invalid-input");
+       provider!="ollama")return Fail(error,"review-invalid-input");
     if(!options_.enabled||stopped_)return Fail(error,"review-disabled");
     if(!ready_)return Fail(error,"review-store-unavailable");
-    if(provider=="gemini"&&!options_.external_enabled)return Fail(error,"review-external-disabled");
     struct Admission {
         std::atomic<unsigned>& count;bool ok;
         explicit Admission(std::atomic<unsigned>& c):count(c),ok(c.fetch_add(1)<2){}

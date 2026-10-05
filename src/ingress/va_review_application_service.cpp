@@ -17,8 +17,8 @@ ApplicationServiceResult Error(const std::string& code){
 recording::VaReviewStore::Limits Limits(std::uint64_t reserve){
     recording::VaReviewStore::Limits limits;limits.reserve_bytes=std::max(limits.reserve_bytes,reserve);return limits;
 }
-recording::VaReviewService::Options Options(bool enabled,bool external){
-    recording::VaReviewService::Options options;options.enabled=enabled;options.external_enabled=external;return options;
+recording::VaReviewService::Options Options(bool enabled){
+    recording::VaReviewService::Options options;options.enabled=enabled;return options;
 }
 struct Reading {
     std::atomic<unsigned>& count;bool admitted;
@@ -38,9 +38,9 @@ std::string JobJson(const recording::VaReviewJob& job,bool can_cancel){
 }
 VaReviewApplicationService::VaReviewApplicationService(const std::filesystem::path& root,bool enabled,
     recording::VaReviewProviderOptions provider,std::uint64_t reserve,recording::VaReviewService::Infer infer)
-    :enabled_(enabled),external_enabled_(enabled&&recording::VaReviewExternalReady(provider)),
+    :enabled_(enabled),
      evidence_(root/"evidence-packages",{}),records_(root/"va-reviews",Limits(reserve)),
-     service_(evidence_,records_,Options(enabled,external_enabled_),infer?std::move(infer):recording::MakeVaReviewProvider(std::move(provider))){}
+     service_(evidence_,records_,Options(enabled),infer?std::move(infer):recording::MakeVaReviewProvider(std::move(provider))){}
 ApplicationServiceResult VaReviewApplicationService::Submit(const std::string& body,const std::string& owner,Authorize authorize){
     StrictJsonObjectDocument doc;
     if(body.size()>2048||!ParseStrictJsonObjectDocument(body,&doc,nullptr)||doc.members.size()!=3)
@@ -60,11 +60,10 @@ ApplicationServiceResult VaReviewApplicationService::List(const std::string& pac
     if(!file)return Error("review-input-unavailable");
     const auto channel=file->manifest().channel_id;
     if(!authorize||!authorize(channel))return Error("review-forbidden");
-    if(!enabled_||stopped_)return {200,"OK",R"({"enabled":false,"externalEnabled":false,"canExecute":false,"items":[]})"};
+    if(!enabled_||stopped_)return {200,"OK",R"({"enabled":false,"canExecute":false,"items":[]})"};
     if(!service_.ready())return Error("review-store-unavailable");
     std::vector<std::string> ids;if(!records_.List(&ids,&error))return Error("review-store-unavailable");
-    std::string json="{\"enabled\":true,\"externalEnabled\":"+std::string(external_enabled_?"true":"false")+
-        ",\"canExecute\":"+std::string(can_execute?"true":"false")+",\"items\":[";
+    std::string json="{\"enabled\":true,\"canExecute\":"+std::string(can_execute?"true":"false")+",\"items\":[";
     bool comma=false;
     for(const auto& id:ids){
         if(cancelled())return Error("review-busy");

@@ -44,14 +44,6 @@ bool ModelName(const std::string& value) {
     return !value.empty()&&value.size()<=128&&std::all_of(value.begin(),value.end(),[](unsigned char c){
         return (c>='a'&&c<='z')||(c>='A'&&c<='Z')||(c>='0'&&c<='9')||c=='_'||c=='-'||c=='.'||c==':'||c=='/';});
 }
-bool GeminiName(const std::string& value) {
-    return !value.empty()&&value.size()<=128&&std::all_of(value.begin(),value.end(),[](unsigned char c){
-        return (c>='a'&&c<='z')||(c>='A'&&c<='Z')||(c>='0'&&c<='9')||c=='_'||c=='-'||c=='.';});
-}
-bool ApiKey(const std::string& value) {
-    return !value.empty()&&value.size()<=256&&std::all_of(value.begin(),value.end(),[](unsigned char c){
-        return (c>='a'&&c<='z')||(c>='A'&&c<='Z')||(c>='0'&&c<='9')||c=='_'||c=='-';});
-}
 bool Endpoint(const std::string& value) {
     const std::string prefix="http://127.0.0.1:";if(value.rfind(prefix,0)!=0)return false;
     const auto port=value.substr(prefix.size());unsigned n=0;
@@ -92,50 +84,12 @@ std::string Content(const VaReviewInput& input) {
     }
     return content+"]}";
 }
-bool Gemini(const VaReviewProviderOptions& options,const VaReviewTransport& transport,const VaReviewInput& input,
-    VaReviewService::Clock::time_point deadline,const std::function<bool()>& cancelled,VaReviewInference* output,std::string* error){
-    if(!VaReviewExternalReady(options))return Fail(error,"review-external-disabled");
-    if(!output||!transport||!Input(input,error))return Fail(error,"review-invalid-input");
-    if(VaReviewService::Clock::now()>=deadline)return Fail(error,"review-timeout");
-    if(cancelled&&cancelled())return Fail(error,"review-cancelled");
-    std::string parts="[{\"text\":"+EvidenceJsonQuote("Metadata: "+Content(input))+"}";
-    for(std::size_t i=0;i<input.pngs.size();++i){
-        parts+=",{\"text\":"+EvidenceJsonQuote("Frame "+std::to_string(i))+"},{\"inlineData\":{\"mimeType\":\"image/png\",\"data\":"+
-            EvidenceJsonQuote(Base64(input.pngs[i]))+"}}";
-    }
-    parts+=",{\"text\":"+EvidenceJsonQuote(reminder)+"}]";
-    const auto body="{\"systemInstruction\":{\"parts\":[{\"text\":"+EvidenceJsonQuote(SystemPrompt())+"}]},\"contents\":[{\"role\":\"user\",\"parts\":"+parts+
-        "}],\"generationConfig\":{\"candidateCount\":1,\"temperature\":0,\"maxOutputTokens\":1024,\"responseMimeType\":\"application/json\",\"responseJsonSchema\":"+Schema()+"}}";
-    std::string response;
-    if(cancelled&&cancelled())return Fail(error,"review-cancelled");
-    if(!transport({"https://generativelanguage.googleapis.com/v1beta/models/"+options.gemini_model+":generateContent",
-        body,{"x-goog-api-key: "+options.gemini_api_key}},deadline,cancelled,&response,error))return false;
-    Doc root,candidate,content,part,feedback;std::vector<std::string> candidates,texts;std::string revision,text;
-    if(response.size()>65536||!Parse(response,&root)||!Text(root,"modelVersion",&revision)||!GeminiName(revision)||
-        !Array(root,"candidates",&candidates)||candidates.size()!=1||!Parse(candidates[0],&candidate)||
-        ingress::StrictJsonStringField(candidate,"finishReason")!="STOP")return Fail(error,"review-invalid-output");
-    if(const auto f=ingress::StrictJsonObjectField(root,"promptFeedback");f&&(!Parse(*f,&feedback)||feedback.Find("blockReason")))
-        return Fail(error,"review-invalid-output");
-    const auto c=ingress::StrictJsonObjectField(candidate,"content");
-    if(!c||!Parse(*c,&content)||ingress::StrictJsonStringField(content,"role")!="model"||
-        !Array(content,"parts",&texts)||texts.size()!=1||!Parse(texts[0],&part)||part.members.size()!=1||!Text(part,"text",&text))
-        return Fail(error,"review-invalid-output");
-    VaReviewInference result;if(!Normalize(text,input.pngs.size(),&result.output,error))return false;
-    result.provider="gemini";result.model=options.gemini_model;result.model_revision=revision;
-    const auto system_prompt=SystemPrompt()+reminder;
-    result.prompt_sha256=EvidenceSha256(system_prompt.data(),system_prompt.size());result.adapter_version="gemini-generate-content-v1";
-    *output=std::move(result);if(error)error->clear();return true;
-}
-}
-bool VaReviewExternalReady(const VaReviewProviderOptions& options){
-    return options.enabled&&options.external_enabled&&options.external_transfer_approved&&GeminiName(options.gemini_model)&&ApiKey(options.gemini_api_key);
 }
 VaReviewService::Infer MakeVaReviewProvider(VaReviewProviderOptions options,VaReviewTransport transport) {
     return [options=std::move(options),transport=std::move(transport)](const VaReviewInput& input,const std::string& provider,
         VaReviewService::Clock::time_point deadline,const std::function<bool()>& cancelled,VaReviewInference* output,std::string* error) {
         if(!options.enabled)return Fail(error,"review-disabled");
-        if(provider=="gemini")return Gemini(options,transport,input,deadline,cancelled,output,error);
-        if(provider!="ollama")return Fail(error,"review-external-disabled");
+        if(provider!="ollama")return Fail(error,"review-invalid-input");
         if(!output||!transport||!Endpoint(options.local_endpoint)||!ModelName(options.local_model))return Fail(error,"review-invalid-input");
         if(!Input(input,error))return false;
         const auto request=[&](const std::string& route,const std::string& body,std::string* response){

@@ -10399,37 +10399,27 @@ void AppendOpsShellScript(std::ostringstream& out,
             const title = make('h4', '영상 근거 검토');
             const label = make('label', '확인할 주장 또는 질문 (최대 512바이트)');
             const question = make('textarea', '', 'Question'); question.rows = 3; question.style.width = '100%'; label.append(question);
-            const providerLabel = make('label', '검토 제공자'); const provider = make('select', '', 'Provider');
-            const local = make('option', '로컬 모델'); local.value = 'ollama'; const external = make('option', '외부 모델 (사용 불가)'); external.value = 'gemini'; external.disabled = true;
-            provider.append(local, external); provider.value = 'ollama'; providerLabel.append(provider);
-            const externalNotice = make('div', '', 'ExternalNotice'); externalNotice.hidden = true;
-            const transferLabel = make('label'); const transferConsent = make('input', '', 'TransferConsent'); transferConsent.type = 'checkbox'; transferConsent.checked = false;
-            transferLabel.append(transferConsent, make('span', '이번 질문과 보존 프레임의 외부 전송을 확인했습니다.'));
-            externalNotice.append(make('p', 'Gemini를 선택하면 보존 프레임과 질문을 외부 모델로 전송합니다. 전송할 내용을 확인한 뒤 검토 실행을 누르세요.'), transferLabel);
+            const providerLabel = make('p', '검토 엔진: Ollama');
             const actions = make('div'); actions.style.display = 'flex'; actions.style.flexWrap = 'wrap'; actions.style.gap = '8px';
             const execute = make('button', '검토 실행', 'Execute'), cancel = make('button', '검토 취소', 'Cancel'), refresh = make('button', '기존 결과 조회', 'Refresh');
             for (const button of [execute, cancel, refresh]) { button.type = 'button'; button.className = 'button button-secondary button-compact'; }
             actions.append(execute, cancel, refresh);
             const status = make('p', '검토 설정과 기존 결과를 확인하는 중…', 'Status'); status.setAttribute('role', 'status');
             const rows = make('div', '', 'Rows'), result = make('div', '', 'Result');
-            section.append(title, label, providerLabel, externalNotice, actions, status, rows, result); el('Detail').append(section);
+            section.append(title, label, providerLabel, actions, status, rows, result); el('Detail').append(section);
             const base = '/ops/api/recordings/va-reviews', jobs = '/ops/api/recordings/va-review-jobs/';
-            let enabled = false, externalEnabled = false, canExecute = false, sending = false, cancelling = false, job = null, timer = null, listSerial = 0, resultSerial = 0, jobSerial = 0, pollController = null;
+            let enabled = false, canExecute = false, sending = false, cancelling = false, job = null, timer = null, listSerial = 0, resultSerial = 0, jobSerial = 0, pollController = null;
             const requests = new Set();
             const current = () => version === detailVersion;
             const validQuestion = () => { const text = question.value; return text.trim().length > 0 && new TextEncoder().encode(text).length <= 512 && !/[\u0000-\u001f\u007f]/.test(text) && !['://', '/Users/', '/home/', 'Bearer ', 'api_key=', 'apiKey=', 'password='].some(marker => text.includes(marker)); };
             const active = () => !!job && ['queued', 'running'].includes(job.state);
             const controls = () => {
-              const selectedExternal = provider.value === 'gemini';
-              external.disabled = !enabled || !externalEnabled; external.textContent = external.disabled ? 'Gemini (사용 불가)' : 'Gemini (외부 전송)';
-              externalNotice.hidden = !selectedExternal; transferConsent.disabled = !enabled || !externalEnabled || !canExecute || sending || active();
-              execute.disabled = !enabled || !canExecute || !manifest.frames.length || !validQuestion() ||
-                !(provider.value === 'ollama' || (selectedExternal && externalEnabled && transferConsent.checked)) || sending || active();
-              cancel.disabled = !active() || job.canCancel !== true || cancelling; question.disabled = sending || active(); provider.disabled = !enabled || !canExecute || sending || active();
+              execute.disabled = !enabled || !canExecute || !manifest.frames.length || !validQuestion() || sending || active();
+              cancel.disabled = !active() || job.canCancel !== true || cancelling; question.disabled = sending || active();
               refresh.textContent = active() ? '진행 상태·기존 결과 조회' : '기존 결과 조회';
             };
             const messages = {
-              'review-disabled': '영상 검토 기능이 비활성입니다.', 'review-external-disabled': '외부 검토는 사용할 수 없습니다.',
+              'review-disabled': '영상 검토 기능이 비활성입니다.',
               'review-queue-full': '검토 대기열이 가득 찼습니다. 잠시 후 다시 실행하세요.', 'review-timeout': '검토 제한 시간을 초과했습니다.',
               'review-cancelled': '검토가 취소됐습니다.', 'review-forbidden': '검토 권한이 없습니다.', 'review-invalid-output': '모델 결과를 검증하지 못했습니다.',
               'review-missing-model': '검토 모델을 사용할 수 없습니다.', 'review-provider-unavailable': '검토 모델에 연결하지 못했습니다.',
@@ -10443,7 +10433,6 @@ void AppendOpsShellScript(std::ostringstream& out,
                 const data = await response.json().catch(() => ({}));
                 if (!response.ok) {
                   if (data.error === 'review-disabled') enabled = false;
-                  if (data.error === 'review-external-disabled') { externalEnabled = false; transferConsent.checked = false; }
                   if (response.status === 401 || response.status === 403) canExecute = false;
                   throw new Error(messages[data.error] || (response.status === 401 || response.status === 403 ? '검토 권한이 없습니다.' : response.status === 404 || response.status === 410 ? '검토 자료를 찾을 수 없습니다. 기존 결과를 다시 조회하세요.' : '검토 요청을 완료하지 못했습니다.'));
                 }
@@ -10482,11 +10471,11 @@ void AppendOpsShellScript(std::ostringstream& out,
               try {
                 const data = await request(base + '?' + new URLSearchParams({ packageId: id })); if (!current() || serial !== listSerial) return;
                 if (!Array.isArray(data.items)) throw new Error('검토 목록을 읽지 못했습니다.');
-                enabled = data.enabled === true; externalEnabled = data.externalEnabled === true; canExecute = data.canExecute === true;
-                if (!enabled || !externalEnabled || !canExecute) transferConsent.checked = false; rows.replaceChildren();
+                enabled = data.enabled === true; canExecute = data.canExecute === true;
+                rows.replaceChildren();
                 for (const item of data.items) {
                   if (!/^vr-[0-9a-f]{64}$/.test(item.id || '')) continue;
-                  const button = make('button', `${new Date(item.createdAtMs).toLocaleString()} · ${item.provider === 'ollama' ? '로컬 검토' : '외부 검토'} · ${item.question}`);
+                  const button = make('button', `${new Date(item.createdAtMs).toLocaleString()} · ${'Ollama 검토'} · ${item.question}`);
                   button.type = 'button'; button.className = 'button button-secondary button-compact'; button.addEventListener('click', () => showResult(item.id)); rows.append(button);
                 }
                 if (!job && !sending) status.textContent = !enabled ? messages['review-disabled'] : !canExecute ? '기존 결과를 조회할 수 있습니다. 검토 실행 권한은 없습니다.' : !manifest.frames.length ? '검토할 보존 프레임이 없습니다.' : '질문을 입력하고 검토 실행을 누르세요.';
@@ -10510,9 +10499,9 @@ void AppendOpsShellScript(std::ostringstream& out,
             };
             execute.addEventListener('click', async () => {
               controls(); if (execute.disabled || !current()) return;
-              sending = true; transferConsent.checked = false; ++jobSerial; controls(); result.replaceChildren(); ++resultSerial; status.textContent = '검토를 요청하는 중…';
+              sending = true; ++jobSerial; controls(); result.replaceChildren(); ++resultSerial; status.textContent = '검토를 요청하는 중…';
               try {
-                const data = await request(base, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ packageId: id, question: question.value, provider: provider.value }) });
+                const data = await request(base, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ packageId: id, question: question.value, provider: 'ollama' }) });
                 if (!current()) return; updateJob(data); if (active()) timer = setTimeout(poll, 1000); else if (job.state === 'completed') { loadReviews(); showResult(job.reviewId); }
               } catch (error) { if (current()) status.textContent = error.message; }
               finally { if (current()) { sending = false; controls(); } }
@@ -10524,8 +10513,7 @@ void AppendOpsShellScript(std::ostringstream& out,
               catch (error) { if (current()) { status.textContent = error.message; if (active()) timer = setTimeout(poll, 1000); } }
               finally { if (current()) { cancelling = false; controls(); } }
             });
-            question.addEventListener('input', () => { transferConsent.checked = false; controls(); });
-            provider.addEventListener('change', () => { transferConsent.checked = false; controls(); }); transferConsent.addEventListener('change', controls);
+            question.addEventListener('input', controls);
             refresh.addEventListener('click', () => { if (refresh.disabled) return; const work = loadReviews(); if (active() && timer === null && !pollController && !cancelling) poll(); return work; });
             reviewCleanup = () => { if (timer !== null) clearTimeout(timer); for (const controller of requests) controller.abort(); requests.clear(); };
             controls(); loadReviews();

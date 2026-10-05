@@ -18,7 +18,7 @@ public:
         bool can_write,const Authorize&,bool cancel=false);
     void Stop(){stopped_=true;service_.Stop();}
 private:
-    bool enabled_,external_enabled_;
+    bool enabled_;
     std::atomic<bool> stopped_{false};
     std::atomic<unsigned> reading_{0};
     recording::EvidencePackageStore evidence_;

@@ -85,9 +85,9 @@ bool ValidateVaReviewRecord(const VaReviewRecord& v,std::string* error) {
         !ValidateVaReviewOutput(v.output,input.manifest.frames.size(),error))return false;
     if(!Token(v.revision_id)||!Token(v.model)||!Token(v.model_revision)||!EvidenceIsSha256(v.prompt_sha256)||
        v.created_at_ms<=0||v.latency_ms<0||v.latency_ms>60000||
-       (v.provider!="ollama"&&v.provider!="gemini")||
-       v.adapter_version!=(v.provider=="ollama"?"ollama-chat-v1":"gemini-generate-content-v1")||
-       (v.provider=="ollama"&&!EvidenceIsSha256(v.model_revision)))return Fail(error);
+       v.provider!="ollama"||
+       v.adapter_version!="ollama-chat-v1"||
+       !EvidenceIsSha256(v.model_revision))return Fail(error);
     if(error)error->clear();return true;
 }
 std::string SerializeVaReviewRecord(const VaReviewRecord& v) {

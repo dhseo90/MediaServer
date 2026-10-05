@@ -458,12 +458,6 @@ int RunMediaServerApplication(int argc, char** argv) {
     review_provider.enabled=config.va_review_enabled && config.evidence_enabled && config.recording_enabled;
     review_provider.local_endpoint=config.va_review_local_endpoint;
     review_provider.local_model=config.va_review_local_model;
-    review_provider.external_enabled=config.va_review_external_enabled;
-    review_provider.external_transfer_approved=config.va_review_external_transfer_approved;
-    review_provider.gemini_model=config.va_review_gemini_model;
-    if(review_provider.external_enabled&&review_provider.external_transfer_approved){
-        if(const char* key=std::getenv("MEDIA_SERVER_VA_REVIEW_GEMINI_API_KEY"))review_provider.gemini_api_key=key;
-    }
     ingress::VaReviewApplicationService va_reviews(recording_root,review_provider.enabled,review_provider,
         config.recording_reserved_free_bytes);
     ingress::VisualSearchApplicationService::Options visual_options;

@@ -1,0 +1,37 @@
+[1/2] configure: /Users/dhseo/Workspace/mediaServer/build-gst-onnx (ai=1, youtube=0)
+-- Configuring done (0.1s)
+-- Generating done (0.0s)
+-- Build files have been written to: /Users/dhseo/Workspace/mediaServer/build-gst-onnx
+[2/2] build
+[  0%] Building CXX object CMakeFiles/media_server_runtime.dir/src/app_config.cpp.o
+[  1%] Building CXX object CMakeFiles/media_server_runtime.dir/src/core/analysis_runtime_port.cpp.o
+[  2%] Building CXX object CMakeFiles/media_server_runtime.dir/src/core/shared_stream.cpp.o
+[  2%] Building CXX object CMakeFiles/media_server_runtime.dir/src/core/source_factory.cpp.o
+[  2%] Building CXX object CMakeFiles/media_server_runtime.dir/src/core/session_manager.cpp.o
+[  3%] Building CXX object CMakeFiles/media_server_runtime.dir/src/core/source_request_parser.cpp.o
+[  4%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/va_review_record.cpp.o
+[  5%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/va_review_service.cpp.o
+[  6%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/va_review_transport.cpp.o
+[  6%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/va_review_provider.cpp.o
+[  7%] Building CXX object CMakeFiles/media_server_runtime.dir/src/ingress/recording_search_application_service.cpp.o
+[  7%] Building CXX object CMakeFiles/media_server_runtime.dir/src/ingress/va_review_application_service.cpp.o
+[  8%] Building CXX object CMakeFiles/media_server_runtime.dir/src/ingress/recording_application_service.cpp.o
+[  9%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/recording_supervisor.cpp.o
+[  9%] Building CXX object CMakeFiles/media_server_runtime.dir/src/ingress/product_ui_page_scripts.cpp.o
+[  9%] Building CXX object CMakeFiles/media_server_runtime.dir/src/ingress/source_view_registry.cpp.o
+[  9%] Building CXX object CMakeFiles/media_server_runtime.dir/src/ingress/webrtc_egress_session.cpp.o
+[ 10%] Building CXX object CMakeFiles/media_server_runtime.dir/src/ingress/webrtc_gst_utils.cpp.o
+[ 10%] Building CXX object CMakeFiles/media_server_runtime.dir/src/core/webrtc_source_registry.cpp.o
+[ 11%] Building CXX object CMakeFiles/media_server_runtime.dir/src/ingress/webrtc_source_session.cpp.o
+[ 11%] Building CXX object CMakeFiles/media_server_runtime.dir/src/ingress/webrtc_http_server.cpp.o
+[ 12%] Building CXX object CMakeFiles/media_server_runtime.dir/src/ingress/webrtc_http_server_ops_foundation.cpp.o
+[ 13%] Building CXX object CMakeFiles/media_server_runtime.dir/src/ingress/webrtc_http_server_ops_workflows.cpp.o
+[ 13%] Building CXX object CMakeFiles/media_server_runtime.dir/src/ingress/webrtc_http_server_ops_incidents.cpp.o
+[ 14%] Building CXX object CMakeFiles/media_server_runtime.dir/src/ingress/webrtc_http_server_runtime.cpp.o
+[ 15%] Building CXX object CMakeFiles/media_server_runtime.dir/src/ingress/gstreamer_rtsp_server.cpp.o
+[ 16%] Linking CXX static library libmedia_server_runtime.a
+[ 99%] Built target media_server_runtime
+[ 99%] Building CXX object CMakeFiles/media_server.dir/src/application/media_server_application.cpp.o
+[ 99%] Linking CXX executable media_server
+[100%] Built target media_server
+[done] build=/Users/dhseo/Workspace/mediaServer/build-gst-onnx/media_server

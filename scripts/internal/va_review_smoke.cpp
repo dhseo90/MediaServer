@@ -19,7 +19,6 @@
 #include <sys/wait.h>
 #include <unistd.h>
 #include <zlib.h>
-#include <openssl/evp.h>
 #ifdef __APPLE__
 #include <libproc.h>
 #endif
@@ -168,8 +167,10 @@ void RecordChecks(const std::filesystem::path& root) {
         recording::SerializeVaReviewRecord(decoded)==record_json&&decoded.input.pngs.empty(),"V450-C01 record provenance replay");
     auto bad_record=record;bad_record.model_revision="unverified";
     Check(!recording::ValidateVaReviewRecord(bad_record,&error),"V450-C01 local model digest required");
-    bad_record=record;bad_record.adapter_version="gemini-generate-content-v1";
+    bad_record=record;bad_record.adapter_version="unsupported-adapter-v1";
     Check(!recording::ValidateVaReviewRecord(bad_record,&error),"V450-C01 provider provenance mismatch");
+    bad_record=record;bad_record.provider="gemini";
+    Check(!recording::ValidateVaReviewRecord(bad_record,&error),"V450-G01 removed provider record rejected");
     recording::VaReviewStore::Limits limits;limits.records=2;
     recording::VaReviewStore store(root/"reviews",limits);
     Check(store.Recover(&error),"V450-S01 store startup");
@@ -406,6 +407,12 @@ void ProviderChecks(const std::filesystem::path& root,const std::string& endpoin
         options.local_endpoint=bad;Check(!run()&&calls==0,"V450-L01 forbidden endpoint rejected before transport");
     }
     options.local_endpoint=endpoint;
+    for(const auto* unsupported:{"gemini","unknown"}) {
+        out.model="unchanged";calls=0;
+        Check(!MakeVaReviewProvider(options,transport)(input,unsupported,VaReviewService::Clock::now()+std::chrono::seconds(5),
+            []{return false;},&out,&error)&&error=="review-invalid-input"&&calls==0&&out.model=="unchanged",
+            "V450-G01 unsupported provider never transmits or changes result");
+    }
     Check(!MakeVaReviewProvider(options,transport)(input,"ollama",VaReviewService::Clock::now()+std::chrono::seconds(5),[]{return true;},&out,&error)&&calls==0,
         "V450-L01 cancelled before first transmission");
     auto invalid=input;invalid.pngs[0][0]=0;
@@ -427,79 +434,6 @@ void ProviderChecks(const std::filesystem::path& root,const std::string& endpoin
         "V450-L01 actual transport cancellation");
     Check(Fds()==fds,"V450-L01 transport FD recovery after failures");
     int status=0;errno=0;Check(::waitpid(-1,&status,WNOHANG)==-1&&errno==ECHILD,"V450-L01 no unreaped curl child");
-}
-void ExternalChecks(const std::filesystem::path& root) {
-    using namespace recording;using namespace review_json;
-    Check(std::filesystem::create_directory(root/"external"),"V450-P01 isolated protocol fixture");
-    const auto input=Record(root/"external").input;
-    VaReviewProviderOptions options;options.enabled=true;
-    options.external_enabled=true;options.external_transfer_approved=true;
-    options.gemini_model="gemini-fixture-model";options.gemini_api_key="synthetic-key-not-a-credential";
-    unsigned calls=0;int mode=0;VaReviewInference out;std::string error;
-    const auto transport=[&](const VaReviewHttpRequest& request,auto,const auto&,std::string* response,std::string* failure){
-        ++calls;
-        Check(request.url=="https://generativelanguage.googleapis.com/v1beta/models/gemini-fixture-model:generateContent"&&
-            request.headers==std::vector<std::string>{"x-goog-api-key: synthetic-key-not-a-credential"},"V450-P01 fixed HTTPS endpoint and memory-only credential header");
-        Check(request.body.find(options.gemini_api_key)==std::string::npos&&request.body.find("camera-1")==std::string::npos,
-            "V450-P01 body excludes credential and channel identity");
-        Doc body,content,part,image,metadata,config;std::vector<std::string> contents,parts;
-        Check(Parse(request.body,&body)&&Array(body,"contents",&contents)&&contents.size()==1&&Parse(contents[0],&content)&&
-            Array(content,"parts",&parts)&&parts.size()==6,"V450-P01 interleaved frame metadata and images");
-        Check(Parse(parts[0],&part)&&part.Find("text")&&Parse(part.Find("text")->string_value.substr(10),&metadata)&&
-            ingress::StrictJsonStringField(metadata,"claim")==input.question,"V450-P01 question is data");
-        for(std::size_t i=0;i<2;++i){
-            Check(Parse(parts[1+i*2],&part)&&ingress::StrictJsonStringField(part,"text")=="Frame "+std::to_string(i),"V450-P01 ordered index");
-            Check(Parse(parts[2+i*2],&part)&&Parse(part.Find("inlineData")->raw,&image)&&
-                ingress::StrictJsonStringField(image,"mimeType")=="image/png","V450-P01 inline PNG only");
-            const auto encoded=*ingress::StrictJsonStringField(image,"data");std::vector<unsigned char> decoded(encoded.size());
-            const auto n=EVP_DecodeBlock(decoded.data(),reinterpret_cast<const unsigned char*>(encoded.data()),int(encoded.size()));
-            Check(n>=0,"V450-P01 independent base64 decoder");std::size_t padding=0;
-            for(std::size_t at=encoded.size();at&&encoded[at-1]=='=';--at)++padding;
-            decoded.resize(std::size_t(n)-padding);Check(decoded==input.pngs[i],"V450-P01 exact original PNG bytes");
-        }
-        Check(Parse(body.Find("generationConfig")->raw,&config)&&config.Find("maxOutputTokens")->raw=="1024"&&
-            ingress::StrictJsonStringField(config,"responseMimeType")=="application/json"&&config.Find("responseJsonSchema"),"V450-P01 schema and bounded generation");
-        if(mode>=10){*failure=mode==10?"review-provider-auth":mode==11?"review-provider-rate-limit":mode==12?"review-timeout":"review-response-too-large";return false;}
-        const auto output=std::string(R"({"schema":"media-server.va-review-provider.v1","observations":"Synthetic red square visible.","assessment":"supported","frameIndices":)")+
-            (mode==6?"[9]":"[0,1]")+",\"confidence\":0.8}";
-        *response="{\"modelVersion\":\"fixture-revision\",\"candidates\":[{\"finishReason\":"+EvidenceJsonQuote(mode==1?"MAX_TOKENS":"STOP")+
-            ",\"content\":{\"role\":\"model\",\"parts\":[{\"text\":"+EvidenceJsonQuote(output)+"}]}}]}";
-        if(mode==2)*response="{\"modelVersion\":\"fixture-revision\",\"candidates\":[]}";
-        if(mode==3)response->insert(response->size()-1,",\"promptFeedback\":{\"blockReason\":\"SAFETY\"}");
-        if(mode==4)response->insert(response->size()-1,",\"modelVersion\":\"duplicate\"");
-        if(mode==5)*response="{}";
-        if(mode==7)*response=std::string(65537,'x');
-        return true;
-    };
-    const auto run=[&]{return MakeVaReviewProvider(options,transport)(input,"gemini",VaReviewService::Clock::now()+std::chrono::seconds(5),[]{return false;},&out,&error);};
-    Check(run()&&calls==1&&out.provider=="gemini"&&out.model==options.gemini_model&&out.model_revision=="fixture-revision"&&
-        out.adapter_version=="gemini-generate-content-v1"&&EvidenceIsSha256(out.prompt_sha256),"V450-P01 normalized external result and provenance");
-    for(mode=1;mode<=13;++mode){if(mode==8||mode==9)continue;calls=0;out.model="unchanged";
-        Check(!run()&&calls==1&&out.model=="unchanged","V450-P01 error has no fallback or result mutation "+std::to_string(mode));}
-    mode=0;const auto valid=options;
-    for(unsigned guard=0;guard<7;++guard){options=valid;calls=0;
-        if(guard==0)options.enabled=false;if(guard==1)options.external_enabled=false;if(guard==2)options.external_transfer_approved=false;
-        if(guard==3)options.gemini_model.clear();if(guard==4)options.gemini_api_key.clear();
-        if(guard==5)options.gemini_api_key="key\nHost: invalid";if(guard==6)options.gemini_model="../invalid";
-        Check(!run()&&calls==0&&!VaReviewExternalReady(options),"V450-P01 every opt-in guard before transmission "+std::to_string(guard));
-    }
-    options=valid;calls=0;
-    Check(!MakeVaReviewProvider(options,transport)(input,"gemini",VaReviewService::Clock::now()+std::chrono::seconds(5),[]{return true;},&out,&error)&&calls==0,
-        "V450-P01 cancellation before external transmission");
-    const std::string url="https://generativelanguage.googleapis.com/v1beta/models/gemini-fixture-model:generateContent";
-    std::string response="unchanged";
-    Check(!VaReviewCurl({url,"{}",{"x-goog-api-key: synthetic-key"}},VaReviewService::Clock::now()+std::chrono::seconds(1),[]{return true;},&response,&error)&&error=="review-cancelled",
-        "V450-P01 allowed target still respects cancel without network");
-    for(const auto& bad:std::vector<std::string>{"http://generativelanguage.googleapis.com/v1beta/models/x:generateContent",
-        "https://generativelanguage.googleapis.com.evil.invalid/v1beta/models/x:generateContent",
-        "https://generativelanguage.googleapis.com@evil.invalid/v1beta/models/x:generateContent",url+"?key=bad",
-        "https://generativelanguage.googleapis.com/v1beta/models/../x:generateContent","https://127.0.0.1/v1beta/models/x:generateContent"})
-        Check(!VaReviewCurl({bad,"{}",{"x-goog-api-key: synthetic-key"}},VaReviewService::Clock::now()+std::chrono::seconds(1),[]{return true;},&response,&error)&&error=="review-invalid-input",
-            "V450-P01 destination escape rejected before network");
-    for(const auto& headers:std::vector<std::vector<std::string>>{{},{"Host: evil.invalid"},{"x-goog-api-key: key\r\nHost: evil.invalid"},
-        {"x-goog-api-key: synthetic-key","Host: evil.invalid"}})
-        Check(!VaReviewCurl({url,"{}",headers},VaReviewService::Clock::now()+std::chrono::seconds(1),[]{return true;},&response,&error)&&error=="review-invalid-input",
-            "V450-P01 header override rejected before network");
 }
 std::vector<std::uint8_t> QualityPng(int x) {
     const unsigned width=512,height=288;std::vector<std::uint8_t> png{137,80,78,71,13,10,26,10},header;
@@ -664,7 +598,6 @@ int main(int argc,char** argv) {
         RecordChecks(argv[1]);
         QueueChecks(argv[1]);
         ProviderChecks(argv[1],argv[3]);
-        ExternalChecks(argv[1]);
         }
         std::cout<<"[summary] pass="<<checks<<" fail=0\n";return 0;
     } catch(const std::exception& e) {std::cerr<<"[fail] "<<e.what()<<'\n';return 1;}

@@ -48,9 +48,9 @@ try{
     if(delay){++blockedRequests;pending.add(res);res.on('close',()=>pending.delete(res));}else finish();
     }catch{providerError=true;if(!res.destroyed){res.writeHead(500);res.end('{}');}}
   });
-  await new Promise(resolve=>provider.listen(0,'127.0.0.1',resolve));providerPort=provider.address().port;
+  await new Promise((resolve,reject)=>{provider.once('error',reject);provider.listen(0,'127.0.0.1',resolve);});providerPort=provider.address().port;
   httpPort=await reservePort();rtspPort=await reservePort();assert(httpPort!==rtspPort,'distinct ports');
-  udp=dgram.createSocket('udp4');await new Promise(resolve=>udp.bind(0,'127.0.0.1',resolve));
+  udp=dgram.createSocket('udp4');await new Promise((resolve,reject)=>{udp.once('error',reject);udp.bind(0,'127.0.0.1',resolve);});
   report.ports={http:httpPort,rtsp:rtspPort,provider:providerPort,udp:udp.address().port};
   const base=`http://127.0.0.1:${httpPort}`;
   const env={PATH:process.env.PATH,HOME:process.env.HOME,LANG:'C',LC_ALL:'C',TMPDIR:path.join(root,'tmp'),XDG_CACHE_HOME:path.join(root,'cache'),
@@ -102,12 +102,12 @@ try{
   await req(prefix,cookies[1],'POST',{packageId:packages[0],question:'Red?',provider:'ollama'},403);
   await req(prefix+'?packageId='+packages[1],cookies[1],'GET',undefined,403);
   await req(prefix+'?packageId='+packages[0],cookies[3],'GET',undefined,403);
-  const listed=await req(prefix+'?packageId='+packages[0],cookies[1]);check(listed.enabled&&!listed.canExecute&&!listed.externalEnabled,'read only capabilities');
+  const listed=await req(prefix+'?packageId='+packages[0],cookies[1]);check(listed.enabled&&!listed.canExecute&&!Object.hasOwn(listed,'externalEnabled'),'read only capabilities');
   for(const body of ['{}','{"packageId":"x","packageId":"y","question":"x","provider":"ollama"}',
     {packageId:packages[0],question:'x',provider:'ollama',url:'http://127.0.0.1'},
     {packageId:packages[0],question:'',provider:'ollama'},{packageId:packages[0],question:'x'.repeat(513),provider:'ollama'}])
     await req(prefix,admin,'POST',body,400);
-  await req(prefix,admin,'POST',{packageId:packages[0],question:'Red?',provider:'gemini'},503);check(chatCalls===0,'invalid/forbidden external requests do not call provider');
+  await req(prefix,admin,'POST',{packageId:packages[0],question:'Red?',provider:'gemini'},400);await req(prefix,admin,'POST',{packageId:packages[0],question:'Red?',provider:'unknown'},400);check(chatCalls===0,'invalid/forbidden external requests do not call provider');
   const one=await submit('Is a red square visible?');const completed=await waitJob(one.id,'completed');
   const record=await req(prefix+'/'+completed.reviewId);check(record.output.supports[0].frameIndices[0]===0&&record.packageId===packages[0],'result and frame references');
   await req(prefix+'/'+completed.reviewId,cookies[3],'GET',undefined,403);
@@ -158,8 +158,8 @@ finally{
   clearTimeout(timer);
   if(child){try{report.cleanup.process=await stopServer(child);}catch{failed=true;report.cleanup.process={exited:child.exitCode!==null||child.signalCode!==null,exitCode:child.exitCode,signalCode:child.signalCode,normal:false};}}
   for(const [name,port] of [['http',httpPort],['rtsp',rtspPort]])if(port){try{report.cleanup[name]=await assertPortClosed(port);}catch{failed=true;report.cleanup[name]={closed:false};}}
-  if(provider){try{for(const res of pending)res.destroy();provider.closeAllConnections();await new Promise(resolve=>provider.close(resolve));report.cleanup.provider=await assertPortClosed(providerPort);}catch{failed=true;report.cleanup.provider={closed:false};}}
-  if(udp){try{await new Promise(resolve=>udp.close(resolve));report.cleanup.udpClosed=true;}catch{failed=true;report.cleanup.udpClosed=false;}}
+  if(provider){try{for(const res of pending)res.destroy();provider.closeAllConnections();await new Promise(resolve=>provider.close(resolve));report.cleanup.provider=providerPort?await assertPortClosed(providerPort):{neverOpened:true};}catch{failed=true;report.cleanup.provider={closed:false};}}
+  if(udp){try{await new Promise(resolve=>udp.close(resolve));report.cleanup.udpClosed=true;}catch{failed=true;report.cleanup.udpClosed=!report.ports?.udp;}}
   try{
     assert(!child||child.exitCode!==null||child.signalCode!==null,'active process prevents root cleanup');
     const stat=fs.lstatSync(root);assert(!stat.isSymbolicLink()&&stat.dev===identity.dev&&stat.ino===identity.ino&&stat.uid===process.getuid(),'cleanup ownership');

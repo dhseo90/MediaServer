@@ -15,8 +15,6 @@ struct RecordingRuntimeConfigData {
     bool va_review_enabled{false};
     std::string va_review_local_endpoint{"http://127.0.0.1:11434"};
     std::string va_review_local_model{"qwen3-vl:8b-instruct-q4_K_M"};
-    bool va_review_external_enabled{false},va_review_external_transfer_approved{false};
-    std::string va_review_gemini_model;
     bool visual_search_enabled{false};
     std::string visual_search_model_directory;
     int visual_search_scan_seconds{60};

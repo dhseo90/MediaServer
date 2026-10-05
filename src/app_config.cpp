@@ -627,9 +627,6 @@ app::AppConfig LoadAppConfig() {
     config.va_review_enabled = ReadBoolEnv("MEDIA_SERVER_VA_REVIEW_ENABLED", false);
     config.va_review_local_endpoint = ReadStringEnv("MEDIA_SERVER_VA_REVIEW_LOCAL_ENDPOINT", config.va_review_local_endpoint);
     config.va_review_local_model = ReadStringEnv("MEDIA_SERVER_VA_REVIEW_LOCAL_MODEL", config.va_review_local_model);
-    config.va_review_external_enabled = ReadBoolEnv("MEDIA_SERVER_VA_REVIEW_EXTERNAL_ENABLED", false);
-    config.va_review_external_transfer_approved = ReadBoolEnv("MEDIA_SERVER_VA_REVIEW_EXTERNAL_TRANSFER_APPROVED", false);
-    config.va_review_gemini_model = ReadStringEnv("MEDIA_SERVER_VA_REVIEW_GEMINI_MODEL", "");
     config.visual_search_enabled = ReadBoolEnv("MEDIA_SERVER_VISUAL_SEARCH_ENABLED", false);
     config.visual_search_model_directory = ReadStringEnv("MEDIA_SERVER_VISUAL_SEARCH_MODEL_DIRECTORY", "");
     config.visual_search_scan_seconds = ReadIntEnv("MEDIA_SERVER_VISUAL_SEARCH_SCAN_SECONDS", 60);

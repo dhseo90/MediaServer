@@ -1,0 +1,22 @@
+✔ V440-U01 explicit POST preserves selected parameters and admits one creation (11.107458ms)
+✔ V440-U01 channel change suppresses late detail and old media errors (0.89925ms)
+✔ V440-U01 forbidden and disabled are explicit without success state (1.235583ms)
+✔ V440-U01 invalid artifact ID never becomes a fetch URL (0.790791ms)
+✔ V440-U01 obsolete list does not repopulate changed channel (0.501458ms)
+✔ V440-U01 media loads sequentially within server admission; stale queue stops (0.598375ms)
+✔ V450-U01 explicit review completes and frame indices resolve through references, not asset position (1.402417ms)
+✔ V450-U01 disabled, read-only, missing frames, byte boundaries cannot submit (1.887917ms)
+✔ V450-U01 API errors use safe messages; disabled/forbidden block execution and transient failures allow retry (2.5035ms)
+✔ V450-U01 cancel aborts pending poll, admits one DELETE and suppresses its late running response (0.720375ms)
+✔ V450-U01 channel/page exit aborts local requests without cancelling the server job (1.135792ms)
+✔ V450-U01 existing read-only results render safely and late result/list responses stay detached (0.538166ms)
+✔ V450-U01 failed jobs stop polling; unknown progress stays locked until an explicit recheck (1.215ms)
+✔ V450-U01 active timer is cleared on page exit and malformed IDs cannot become job URLs (0.784916ms)
+ℹ tests 14
+ℹ suites 0
+ℹ pass 14
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 62.150542

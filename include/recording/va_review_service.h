@@ -23,7 +23,7 @@ public:
     using Infer=std::function<bool(const VaReviewInput&,const std::string&,Clock::time_point,
         const std::function<bool()>&,VaReviewInference*,std::string*)>;
     struct Options {
-        bool enabled{false},external_enabled{false};
+        bool enabled{false};
         std::size_t queue_size{4},remembered_jobs{64};
         std::chrono::milliseconds queue_wait{30000},execution_time{60000};
     };

@@ -243,3 +243,27 @@
 - 범위 정정 단계: `./server.sh verify-docs-links` exit 0/failures 0
   ([원출력](09-scope-docs.log)), `git diff --check` exit 0. 이 단계 실패 0회.
   제품 수정·모델 재검증·최종 gate는 아직 미완료다. 기존 coverage FAIL을 해소했다고 하지 않는다.
+
+### Gemini 제거 단계
+
+- source: 계약 커밋 `d8c62f7cd` 이후 제품 diff. v4.5.0 Gemini adapter/Google 전송·키·설정·
+  UI 선택/동의·externalEnabled·record 분기를 제거했다. 미지원 provider는 400·무호출이며
+  Ollama 결과 조회/재시작/권한/취소를 유지한다. 미배포이므로 호환 reader/migration은 없다.
+  기존 버전의 무호출 VLM 연구 profile 계약은 이번 실행 adapter 제거와 별개로 유지한다.
+- 빌드 exit 0 ([로그](10-gemini-removal-build.log)), UI 상태 14/14 exit 0
+  ([로그](10-gemini-removal-ui.log)). 삭제한 Gemini 성공 검사 수를 PASS 수에 포함하지 않는다.
+- 최초 native·HTTP 실행은 sandbox loopback listen EPERM으로 각 exit 1, 테스트 실패 누적 2회다
+  ([native](10-gemini-removal-native.log), [HTTP](10-gemini-removal-http.log)). 제품 assertion 실패가
+  아닌 준비 실패이며 예상 RED로 바꾸지 않는다. HTTP Node의 listen error가 미처리돼 finally를
+  건너뛴 원인을 확인하고 provider/UDP 시작 예외를 catch/finally로 전달하도록 보완했다.
+- 두 wrapper fixture는 제거됐고, 남은 HTTP 합성 root는 생성 시각·uid/inode·입력 hash·열린 파일
+  부재 확인 후 제거했다([정리 관측](10-sandbox-failure-cleanup.json)). 최초 Node가 결과 JSON을
+  쓰지 못했으므로 당시 결과를 06-http.json에 추정 복원하지 않는다.
+- 동일 합격 기준으로 승인된 loopback 실행 권한을 사용한 재검증: native 217 PASS/exit 0
+  ([로그](10-gemini-removal-native-retest.log)), HTTP 135 PASS/5,652ms/exit 0
+  ([로그](10-gemini-removal-http-retest.log), [누적 JSON](06-http.json)). 소유 서버 정상 종료,
+  HTTP/RTSP/provider 포트 폐쇄·UDP 종료·root 부재를 확인했다. 실제 모델/실제 UI 검증은 아니다.
+- 사전 diff 검사에서 EOF 빈 줄 1건을 발견해 수정했고 최종 `git diff --check` exit 0이다.
+  이는 위 테스트 실패 2회와 별도의 정적 지적이다. 문서 links failures 0/exit 0
+  ([로그](10-gemini-removal-docs.log)). 삭제 외 로컬 prompt/입력/출력 경로는 이번에 바꾸지 않았다.
+  후속 원격 연결·한국어 네 항목·최종 검증·기존 coverage FAIL은 미완료다.
