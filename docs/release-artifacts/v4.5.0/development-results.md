@@ -1031,3 +1031,22 @@
   질문·저장 버전으로 우회하지 않는다. 같은 구현자의 검토이며 독립 검토나 전체 품질/릴리즈 완료가 아니다.
 - 문서 링크 최초 [검사](38-docs.log)는 새38절 anchor의 Unicode 구분자 불일치1건으로 exit1이다.
   해당 링크를 기존 기록 문서로 수정한 뒤 [재검사](38-docs-fixed.log) exit0/failures0을 확인했다. 제품/모델 재호출은 없다.
+
+
+### 39: 요구와 관측 자료 출처 확인 — 연결 보류
+
+- 기준 branch `v4.5.0`, HEAD/원격 `0de7059941276df35d4240c158a94dea58a6bff6`, clean tree/index,
+  ahead/behind0을 확인했다. 38 실험은 미충족으로 종료하며 같은 모델의 bbox/identity 재평가는 추가하지 않는다.
+- [기존 설계](../../superpowers/specs/2026-10-05-v450-va-review-design.md)의39절에 계산 정확성·관측 위치 정확성·
+  core 관계 허용 오차의 출처를 구분했다. 원 로드맵에 공통 ±1px 요구가 없으므로 로드맵은 중복 수정하지 않았다.
+- 읽기 범위는 projector의 ReferencedObservation 저장→검색 결과→패키지 builder/프레임 추출 한 경로와
+  38의 합성 입력 생성 코드다. 운영/고객 DB·영상은 열람하지 않았다. bbox가 별도 카탈로그에 저장된다는 사실과
+  선택 package에 per-frame 관측·좌표 변환 출처가 보존되지 않는 경계를 구분했다. 전체 저장 구조 감사가 아니다.
+- 실제 선택 입력에 A 관측이 없어 adapter·오프라인 연결 검사는 미실행이다. synthetic oracle를 제품 관측으로
+  대체하지 않았다. 필요한 보존 시점/필드와 A/B/C 판단 범위는 설계에만 기록했다. 제품 source/fixture/공개 계약은 불변이다.
+- 모델0회, 설치0회, 제품 빌드/전체 native·HTTP/acceptance/UI/장시간 미실행. 소유 서버·포트·모델·임시 자료를 만들지 않았다.
+  이번 산출물은 요구/자료 출처 경계와 최소 보존 변경안이며 VLM 품질 또는 VA Review 전체 완료가 아니다.
+- `node scripts/internal/verify_docs_links.mjs`: 최초 [검사](39-docs.log) exit1, 새 로드맵 anchor의
+  Unicode 구분자 불일치1건. 문서 링크로 수정한 뒤 [재검사](39-docs-fixed.log) exit0/failures0을 확인했다.
+  `git diff --check` exit0. 기준 HEAD와 비교해 기존 문서2개에만 append됐고 기존 절·34~38 파일·
+  제품 source/fixture의 diff가 없음을 직접 검사했다(exit0). 문서 변경만 커밋/일반 푸시한다.

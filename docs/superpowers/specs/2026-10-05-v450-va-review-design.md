@@ -368,3 +368,106 @@ A/B 모두 맞은 정상 사례가 기존 결함을 없애지 않으며, two-lef
 
 38 실행 결과와 잔여 관측 차단은 [개발 기록의 38절](../../release-artifacts/v4.5.0/development-results.md)에 둔다.
 공식 상대 표현 채택만으로 좌표/물리적 동일성 품질이 충족되지 않았으며 이번 후보의 추가 호출은 종료했다.
+
+
+## 39: 관측 출처별 책임과 보존 경계
+
+2026-10-06 사용자 결정으로 38 실험은 **미충족으로 종료**한다. 같은 모델의 bbox/identity
+prompt 수정·재평가는 추가하지 않는다. 아래는 후속 연결의 요구/자료 출처 계약이며 새 adapter,
+모델 호출, 저장 버전 또는 확인 API/UI 구현이 아니다. ClaimSpec·서버 판정 core·엄격한 오류 거부와
+34~38 원문/실패/기대값은 유지한다. 37~38의 실험 조건을 모든 검토의 공통 선행 조건으로 확대하지 않는다.
+
+### 원래 요구와 세 가지 정확성 기준
+
+[원래 v4.5 로드맵](../../v410-v49-recording-search-roadmap.md)은 단일/시간순 복수
+프레임, 불확실성, supports/questions/contradictions/unclear와 근거, 권한·보존·실패 격리를 요구한다.
+VLM의 모든 좌표를 ±1px로 재추출하거나 두 이미지의 물리적 동일성을 확정하라는 공통 요구는 없다.
+sequence 검토를 정적 색상 검사로 축소하지 않으며, 정량 관계에 필요한 자료가 없으면 그 관계를
+부족/미지원으로 남긴다. 다른 쉬운 주장의 정답으로 대체하지 않는다.
+
+| 기준 | 직접 출처·적용 대상 | 유지할 경계 |
+| --- | --- | --- |
+| 좌표 변환의 계산 정확성 | `ConvertReviewRelativeBox`, V450-K06의 고정 bbox→원본 중심 수식과 독립 기대값; 계산 비교 오차 `<1e-9` | 단위·범위·원본 크기가 주어졌을 때 수식 구현의 정확성이다. 영상 속 위치가 맞다는 뜻이 아니다. |
+| 영상 관측기의 위치 정확성 | 37 픽셀 oracle 및 38 고정 관측 fixture의 축별 ±1px | 해당 합성 정밀 관측 실험의 합격선이다. FAIL을 보존하고 완화/재해석하지 않는다. 원래 모든 sequence review의 공통 gate로 승격하지 않는다. |
+| 서버 관계 판정의 허용 오차 | `kReviewPositionTolerancePixels=1.0`, ClaimSpec policy v1의 image-center-pixels | 이미 주어진 위치에서 같음/다름·좌우를 결정하는 관계 정의다. 관측 모델의 허용 오차나 사실 정확성을 보장하지 않는다. core 정책은 변경하지 않는다. |
+
+### 출처와 보장 범위
+
+| 출처 | 사용할 수 있는 판단 | 보장하지 못하는 판단 |
+| --- | --- | --- |
+| A: 검토 대상 VA 엔진 출력 | 정확히 결속된 기록의 bbox·분석 track을 기준으로 한 관계 계산/내부 일관성 | VA가 실제 영상에서 객체를 올바르게 찾았다는 독립 승인, 물리적 동일성의 참, 미관측 구간의 움직임 |
+| B: 별도로 검증된 관측/사용자 정답지 | 검증 방법·annotator/도구·범위·sample·좌표/동일성 근거가 명시된 범위의 독립 대조 | 출처 표시만으로 전 영상의 정답 보장. 검토 의도를 확인한 사용자가 사실/동일성까지 인증했다는 추정 |
+| C: VLM의 이미지 관측 | 제공한 실제 프레임에서 확인 가능한 시각적 의미의 검토 후보와 그 근거 | 형식 적합성만으로 정확성 보장, A와의 동의만으로 A 승인, 근거 없는 좌표/물리적 동일성 확정 |
+
+37~38 fixture 생성기가 준 명세·좌표·동일 대상 정답은 검사 oracle다. 제품의 A 관측으로 연결하거나
+VLM의 시각적 동일성 성공으로 계산하지 않는다. hash는 바이트/참조 무결성이지 사실 정확성의 증명은 아니다.
+
+### 확인한 한 경로와 부재 경계
+
+확인 범위는 현재 source의 `AnalysisObservationProjector → ReferencedObservationV1/RecordingCatalog
+→ RecordingSearchReader/SearchDocument → EvidencePackageBuilder → 보존 PNG` 경로와 38 합성 입력이다.
+운영 패키지·고객 영상/DB를 열람한 실행 검증이 아니며, 전체 저장 구조의 감사로 확대하지 않는다.
+
+- **별도 카탈로그에 A를 보존하는 구현은 있다.** [projector](../../../src/recording/analysis_observation_projector.cpp)의
+  `FromTrack/SubmitResult`는 track bbox·분류·분석 PTS·namespace/track과 원본 연관을 생성한다.
+  [ReferencedObservationV1](../../../include/recording/recording_contracts.h)은 관측과 consumer reference를 함께 담는다.
+  `PutReferencedObservation`은 이를 journal에 기록하며 같은 ID의 bbox/원본 연관 변경을 거부한다.
+  [catalog](../../../src/recording/recording_catalog.cpp)의 `QueryReferencedObservations`는 channel의 저장 행을 반환한다.
+  원본 미디어 삭제와 이 관측 행의 보존은 구분해야 하며, package 보존만으로 카탈로그 수명까지 보장하지 않는다.
+- **정확한 연관 키는 있으나 모든 선택 프레임에 관측이 있다는 뜻은 아니다.** reference의
+  channel/source, analysis namespace/track/PTS와 `original`의 source_generation/generation_order,
+  media track/ordinal/PTS, association_quality를 사용할 수 있다. [search reader](../../../src/recording/recording_search_reader.cpp)는
+  timestamp-match·단일 해석을 요구하고 ambiguous/unresolved를 구분한다. projector는 시작/종료/event/
+  주기 관측을 선택 저장하므로, builder가 미디어 sample에서 균등 선택한 최대8프레임과 일대일이지 않다.
+- **패키지에는 프레임별 분석 관측 사본이 없다.** [package 계약](../../../include/recording/evidence_package.h)의
+  observation_id/analysis_namespace/track_id와 references는 검색 결과의 참조다.
+  [builder](../../../src/recording/evidence_package_builder.cpp)는 observation/track을 `referenced`로 남기며
+  PNG/clip만 payload로 복사한다. `SearchDocument`에도 bbox가 없다. package asset의 허용 형식은
+  image/png·video/mp4이며, ID가 존재해도 bbox·per-frame observation/reference 사본이 보존됐다고 말하지 않는다.
+- **두 track의 의미는 다르다.** package.track_id는 analysis namespace 안의 분석 대상 ID다.
+  [EvidenceFrameV1](../../../include/recording/evidence_frame_extractor.h)의 track_id는 원본 미디어 stream의 track이다.
+  source_generation/generation_order는 미디어 수명이고 analysis namespace는 분석 tap/reset 수명이다.
+  현재 [manager](../../../src/analysis/analysis_manager.cpp)는 tap별 namespace와 PTS rollback 세대를 구분하며,
+  tracker reset은 track 번호를 다시 사용한다. 숫자/문자열 track 일치만으로 namespace를 넘겨 연결하지 않는다.
+  같은 분석 track도 엔진이 주장한 연결일 뿐 독립적인 물리적 동일성 증명이 아니다.
+- **좌표 환산에는 producer의 의미가 필요하다.** 현재 [YOLO mapping](../../../src/analysis/yolo_onnx_detector.cpp)은
+  letterbox padding/scale을 역변환해 분석 입력 전체 프레임의 정규화 xywh를 만들고,
+  [tracker](../../../src/analysis/object_tracker.cpp)는 box를 smoothing/Kalman 처리할 수 있다. projector가 저장하는 것은
+  `track.detection.box`이며 raw detector bbox와 같은 자료로 간주하지 않는다. 기존 관측 envelope에는 이 값의
+  좌표 정책/변환 버전, 분석 입력 크기·crop/resize→원본 관계, detector/tracker 설정 출처가 함께 고정되지 않는다.
+  현재 코드의 계산 경로는 확인했지만 모든 과거 bbox를 선택 PNG의 원본 좌표로 환산할 근거가 보존됐다고 주장하지 않는다.
+- **원본 삭제 후:** package의 검증된 PNG와 미디어 sample 계보는 다시 읽을 수 있다. 별도 카탈로그가
+  유지하면 저장된 A 행을 조회할 수 있지만 package가 그 행/정확한 결합/변환 근거를 스냅샷으로 보존하지는 않는다.
+  누락 관측과 애매한 sample/다른 namespace/재사용 track은 별도 사유여야 하며 latest/nearest로 메우지 않는다.
+  38의 `CoreImageInput/Manifest`는 합성 PNG·가상 미디어 식별자만 만들고 A 관측/분석 namespace/대상 track을
+  생성하지 않았다. 여기서 frame.track_id를 분석 객체로 쓰거나 fixture 좌표를 A로 바꾸는 연결은 허용하지 않는다.
+
+따라서 **A의 저장 계약은 있으나 이번 선택 입력에서 재사용할 수 있는 완결된 보존 관측 연결은 없다.**
+새 adapter/오프라인 좌우 판정 연결 검사는 만들거나 실행하지 않는다. 이는 A 자료가 저장소 어디에도
+없다는 결론이 아니라, 현재 불변 package 입력만으로 해당 관측을 재현할 수 없다는 경계다.
+
+### 필요한 최소 보존 변경안과 다음 공개 연결 조건
+
+향후 A를 채택할 때 필요한 범위는 기존 관측/reference의 **선택 sample별 사본과 출처 결속**이다.
+새 일반 저장소나 전체 프레임 재분석을 먼저 도입하지 않는다. 다음 정보의 실제 보존을 승인한 뒤 연결한다.
+
+1. 분석 결과를 받는 시점에 bbox의 의미(raw detector/가공된 track), 좌표 기준·변환 정책 버전,
+   분석 입력과 원본 전체 프레임의 크기/변환 관계를 관측/reference와 함께 고정한다. 전체 프레임 정규화가
+   입증되면 `(x+w/2)*W, (y+h/2)*H`가 가능하나, crop/resize 근거가 없으면 원본 좌표로 추정하지 않는다.
+2. 패키지 프레임 선택·원자 게시 시점에 exact sample과 일치하는 관측/reference를 필요한 개수만 보존한다.
+   기존 channel/source/store/media epoch·generation/order/media track/sample ordinal/PTS·PNG hash와
+   analysis namespace/track/관측 ID를 결속한다. 카탈로그 revision/불변 digest와 함께 검증하고,
+   관측 없음·원본/참조 삭제·애매한 연결·다른 namespace/재사용 track은 명시 상태로 남긴다.
+   해당 sample에 관측이 없으면 새 detector 호출/nearest/fixture 정답으로 채우지 않는다.
+3. A/B/C 출처와 검증 수준, 동일성 근거의 종류(엔진 track/독립 정답/시각적 불명)를 보존한다.
+   B의 명시 동일성은 그 범위의 서버 검증 입력이며 VLM 성공이 아니다. image-only에서 동일성 근거가 없으면
+   unknown을 유지한다. 정상 좌우 대조는 명시적으로 같은 대상이 주어진 판정기 대조와 시각적 동일성 평가를 분리한다.
+4. 공개 연결 전 사용할 출처·지원 관계/미지원 범위를 확정하고, **분석 기록 내부 일관성**과
+   **독립 영상 검증**을 결과 표현에서 구분한다. 이 결속을 담는 최소 evidence/input/result/record 변경 필요성과
+   37의 전체 출력 예산/버전 결정을 함께 정한다. 기존 package/output/record v1을 조용히 다른 의미로 해석하지 않는다.
+
+VLM에는 실제 프레임의 시각적 의미와 서버가 확정한 부족 근거의 한국어 표현을 맡기는 방향을 유지한다.
+시간순서/구간·근거 프레임과 불확실성, 실제 생성 질문의 품질은 별도 검증 대상이며 아직 PASS가 아니다.
+정량 좌표와 시점 간 동일성은 필요한 관계에만 요구하고, 관측에 없는 정지/숨겨진 이동을 보완 추론하지 않는다.
+사용자의 ClaimSpec 확인은 검토 의도의 확인이며 영상 사실이나 객체 동일성의 인증이 아니다.
+2묶음의 새 결과/저장 버전·확인 API/UI, 추가 모델 평가·새 관측기는 이번에 시작하지 않는다.
