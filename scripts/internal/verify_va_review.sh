@@ -20,10 +20,11 @@ def wait_model_unloaded(fetch, deadline, clock=time.monotonic, sleep=time.sleep)
     finally:
         print('[model-unload]',json.dumps({'observations':observations}),flush=True)
 repo=pathlib.Path(sys.argv[1]); build=repo/'build-gst-onnx'
-local=len(sys.argv)==4 and sys.argv[2]=='--local'
+local=len(sys.argv)==4 and sys.argv[2] in ('--local','--diagnostic-text','--diagnostic-inversion')
 lifecycle=len(sys.argv)==4 and sys.argv[2]=='--local-lifecycle'
 http_mode=len(sys.argv)==3 and sys.argv[2]=='--http-only'
-if len(sys.argv)!=2 and not local and not lifecycle and not http_mode: raise RuntimeError('usage: verify_va_review.sh [--local http://127.0.0.1:port | --local-lifecycle http://127.0.0.1:port | --http-only]')
+contract=len(sys.argv)==3 and sys.argv[2]=='--contract-only'
+if len(sys.argv)!=2 and not local and not lifecycle and not http_mode and not contract: raise RuntimeError('usage: verify_va_review.sh [--local http://127.0.0.1:port | --local-lifecycle http://127.0.0.1:port | --diagnostic-text http://127.0.0.1:port | --diagnostic-inversion http://127.0.0.1:port | --http-only | --contract-only]')
 archive=build/'libmedia_server_runtime.a'
 for directory in ('src','include'):
     for source in (repo/directory).rglob('*'):
@@ -155,7 +156,7 @@ try:
 
     focused_started=time.monotonic()
     subprocess.run(['bash','-c','source "$2/scripts/internal/env_common.sh"; export MEDIA_SERVER_GST_CACHE_DIR="$1/gst-cache"; media_server_apply_homebrew_gst_env || exit; exec "$1/smoke" "$1" "$3" "$4"',
-        'va-review',str(root),str(repo),'--local-lifecycle' if lifecycle else '--local' if local else '--protocol',endpoint],check=True,timeout=60 if lifecycle else 800 if local else 90,
+        'va-review',str(root),str(repo),'--local-lifecycle' if lifecycle else sys.argv[2] if local or contract else '--protocol',endpoint],check=True,timeout=60 if lifecycle else 800 if local else 90,
         env=dict(os.environ,HTTP_PROXY='http://127.0.0.1:1',HTTPS_PROXY='http://127.0.0.1:1',ALL_PROXY='http://127.0.0.1:1',
             http_proxy='http://127.0.0.1:1',https_proxy='http://127.0.0.1:1',all_proxy='http://127.0.0.1:1',NO_PROXY='',no_proxy=''))
     focused_finished=time.monotonic()

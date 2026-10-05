@@ -86,7 +86,7 @@ bool ValidateVaReviewRecord(const VaReviewRecord& v,std::string* error) {
     if(!Token(v.revision_id)||!Token(v.model)||!Token(v.model_revision)||!EvidenceIsSha256(v.prompt_sha256)||
        v.created_at_ms<=0||v.latency_ms<0||v.latency_ms>60000||
        v.provider!="ollama"||
-       v.adapter_version!="ollama-chat-v1"||
+       (v.adapter_version!="ollama-chat-v1"&&v.adapter_version!="ollama-chat-v2"&&v.adapter_version!="ollama-chat-v3"&&v.adapter_version!="ollama-chat-v4"&&v.adapter_version!="ollama-chat-v5"&&v.adapter_version!="ollama-chat-v6"&&v.adapter_version!="ollama-chat-v7"&&v.adapter_version!="ollama-chat-v8"&&v.adapter_version!="ollama-chat-v9"&&v.adapter_version!="ollama-chat-v10")||
        !EvidenceIsSha256(v.model_revision))return Fail(error);
     if(error)error->clear();return true;
 }

@@ -26,6 +26,41 @@ supports/contradictions/unclear와 필요한 추가 확인 질문 questions를 �
 옮기고 questions를 항상 비우던 adapter는 이 목표의 완료로 보지 않는다. 한국어 의미·근거·부족
 사례의 독립 기대값은 기존 테스트 정의/fixture에 반영한 뒤 실제 로컬 모델로 평가한다.
 
+내부 provider v9/adapter v10은 자유 질문의 원문 구간을 `claims.c0`~`c15`의 제한된 객체
+슬롯에 연결한다. 입력 API에는 claim 집합/ID가 없으므로 의미 단위 분할은 여전히 모델이
+담당한다. 문장부호로 개수를 추정하지 않으며 입력 주장별 정확한 개수를 생성 전에 보장했다고
+주장하지 않는다. c0 필수·미등록 key 금지 schema와 수신기의 연속 ID·원문 순차 소비로
+중복/누락/추가·원문 바꿔쓰기를 거부한다. 같은 결론을 가진 서로 다른 주장은 허용한다.
+
+각 주장에는 target/property(position/color/state/visibility/other/unspecified),
+scope(single/endpoints/all/interval/ambiguous), 프레임 키 f0~fN의 observations,
+한국어 summary, 모델 verdict, gaps가 있다. 관측은 해당 대상의 identity(same/other/uncertain),
+visibility(visible/not-visible/unknown), 실제 요구 속성 value 또는 null을 갖는다.
+독립 comparableFrameIndices는 제거한다. 관측 불가 속성에 값이 있으면 거부하고,
+동일 대상·관측 가능 속성·서로 다른 순서의 PTS에서 비교 가능성을 검사한다. endpoint 판정은
+양 끝, all/interval의 충분 판정은 모든 프레임 관측을 요구한다. 보이는 전후 위치만으로
+숨겨진 구간 경로가 증명되지는 않으며 이는 interval의 부족 근거와 의미 평가에서 구분한다.
+visibility 자체를 묻는 주장에서는 보이지 않음도 관측일 수 있다. 구조화 관측은 영상 진실의
+독립 증명이 아니며 모델의 scope/identity/value/summary 오류는 의미 실패다.
+
+gaps의 key는 additional-frame/unobserved-property/identity/unobserved-interval/clarify-claim이다.
+각 key에 동일 target/property, 관련 기존 frameIndices, missing과 실제 한국어 question을
+묶는다. 같은 claim/gap 반복·다른 대상/속성·관측과 모순되는 gap·충분 판정의 질문은 거부한다.
+한국어 의문형 검사는 의미 검증을 대체하지 않는다. 실제 질문이 중립적이며 부족한 판정 근거를
+확보하는지는 독립 oracle로 직접 대조한다. 서버가 문구를 만들거나 답을 재분류하지 않는다.
+
+공개 output/record v1과 권한·저장 의미는 유지한다. 모델의 verdict를 해당 공개 그룹으로
+연결하고 summary를 그대로 보존하며 gaps의 missing/question도 그대로 unclear/questions에
+연결한다. 근거 index는 모델이 지정한 프레임 관측/부족 근거의 실제 index다. 불필요한 그룹은
+비우고 전체 insufficient면 confidence=null이다. 내부 필드로 공개 본문 오류를 숨기지 않는다.
+원응답의 top-level 완료·stop 종료를 요구하며 timeout/length/부분 JSON은 복구하지 않는다.
+설명 160문자/512byte, 속성 80문자/256byte, 입력당 최대 8프레임/16주장, wire 40KiB,
+공개 그룹당 16항목과 기존 응답/시간/토큰 예산을 유지한다. format과 system prompt는 동일한
+입력 프레임 수별 schema를 사용한다. record prompt digest는 실제 system prompt+고정 reminder의
+hash이며 schema를 포함한다. 합성 평가에서 별도 schema hash와 전송 request hash도 기록한다.
+생성 schema의 요청 포함·수신 반례 PASS와 실제 decoder 강제 성공은 구분한다.
+프레임별 PNG 메시지와 마지막 원 질문/시간 metadata, 원본 바이트·순서는 유지한다.
+
 - 입력은 서버 소유 package ID, 검증한 manifest digest, 질문, 순서가 있는 frame 참조다.
   frame은 manifest의 segment/source generation/media epoch/sample/PTS/UTC 품질과
   PNG hash 및 asset index를 보존한다. 외부 URL·파일 경로·사용자가 만든 manifest를 받지 않는다.

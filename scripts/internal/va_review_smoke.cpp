@@ -13,6 +13,7 @@
 #include <fstream>
 #include <iostream>
 #include <limits>
+#include <map>
 #include <stdexcept>
 #include <sys/stat.h>
 #include <sys/resource.h>
@@ -139,6 +140,10 @@ recording::VaReviewRecord Record(const std::filesystem::path& root) {
 }
 void RecordChecks(const std::filesystem::path& root) {
     auto record=Record(root);std::string error;
+    for(unsigned version=1;version<=10;++version){auto historical=record;historical.adapter_version="ollama-chat-v"+std::to_string(version);
+        recording::VaReviewRecord decoded;const auto bytes=recording::SerializeVaReviewRecord(historical);
+        Check(recording::ParseVaReviewRecord(bytes,&decoded,&error)&&recording::SerializeVaReviewRecord(decoded)==bytes,
+            "V450-C01 adapter provenance preserved without historical rewriting "+std::to_string(version));}
     const auto json=recording::SerializeVaReviewOutput(record.output);
     recording::VaReviewOutput output;
     Check(recording::ParseVaReviewOutput(json,2,&output,&error)&&recording::SerializeVaReviewOutput(output)==json,
@@ -363,61 +368,194 @@ void QueueChecks(const std::filesystem::path& root) {
     Check(!off.Submit(package,"off","ollama","alice",permit,&duplicate,&error)&&error=="review-disabled"&&called.load()==off_before,
         "V450-Q01 disabled never invokes provider");
 }
+// Provider wire fixtures are explicit model responses, never generated expectations.
+std::string WireObservation(const std::string& value="위치 x=64",const std::string& visibility="visible",const std::string& identity="same") {
+    using recording::EvidenceJsonQuote;
+    return "{\"identity\":"+EvidenceJsonQuote(identity)+",\"visibility\":"+EvidenceJsonQuote(visibility)+",\"value\":"+(value.empty()?"null":EvidenceJsonQuote(value))+"}";
+}
+std::string WireGap(const std::string& kind="unobserved-property",const std::string& target="물체",const std::string& property="position",
+    const std::string& question="가려진 구간에서 물체의 전후 위치를 비교할 수 있는 영상이 있나요?",const std::string& refs="[1]") {
+    using recording::EvidenceJsonQuote;
+    return EvidenceJsonQuote(kind)+":{\"target\":"+EvidenceJsonQuote(target)+",\"property\":"+EvidenceJsonQuote(property)+
+        ",\"frameIndices\":"+refs+",\"missing\":\"가려진 구간의 위치를 볼 수 없습니다.\",\"question\":"+EvidenceJsonQuote(question)+"}";
+}
+std::string WireClaim(const std::string& claim,const std::string& verdict="supported",const std::string& observations="",
+    const std::string& gaps="",const std::string& scope="single",const std::string& property="position") {
+    using recording::EvidenceJsonQuote;
+    return "{\"claim\":"+EvidenceJsonQuote(claim)+",\"target\":\"물체\",\"property\":"+EvidenceJsonQuote(property)+
+        ",\"scope\":"+EvidenceJsonQuote(scope)+",\"observations\":{"+(observations.empty()?"\"f0\":"+WireObservation():observations)+
+        "},\"summary\":\"첫 프레임에서 물체가 보입니다.\",\"verdict\":"+EvidenceJsonQuote(verdict)+",\"gaps\":{"+gaps+"}}";
+}
+std::string WireResult(const std::string& slots,const std::string& confidence="0.5") {
+    return "{\"schema\":\"media-server.va-review-provider.v9\",\"claims\":{"+slots+"},\"confidence\":"+confidence+"}";
+}
 void ProviderChecks(const std::filesystem::path& root,const std::string& endpoint) {
     using namespace recording;using namespace review_json;
     Check(std::filesystem::create_directory(root/"provider"),"V450-L01 owned protocol fixture parent");
-    const auto input=Record(root/"provider").input;
+    auto input=Record(root/"provider").input;input.question="물체가 움직인다.";
+    const auto original=input.question;
+    const auto visible="\"f0\":"+WireObservation()+",\"f1\":"+WireObservation("위치 x=400");
+    const auto hidden="\"f0\":"+WireObservation()+",\"f1\":"+WireObservation("","not-visible");
+    const auto known=WireClaim(original,"supported",visible,"","endpoints");
+    const auto partial=WireClaim(original,"insufficient",hidden,WireGap(),"interval");
+    const auto valid=WireResult("\"c0\":"+known);
+    VaReviewOutput decoded;std::string reason;
+    const auto accepts=[&](const std::string& text,const std::string& name){
+        const bool ok=DecodeVaReviewProviderOutput(text,input,&decoded,&reason);
+        Check(ok,"V450-K03 "+name+" reason="+reason);
+    };
+    const auto rejects=[&](const std::string& text,const std::string& name,const std::string& expected=""){
+        const auto before=SerializeVaReviewOutput(decoded);
+        const bool ok=DecodeVaReviewProviderOutput(text,input,&decoded,&reason);
+        Check(!ok&&SerializeVaReviewOutput(decoded)==before&&(expected.empty()||reason==expected),
+            "V450-K03 "+name+" reason="+reason);
+    };
+    const auto changed=[](std::string text,const std::string& from,const std::string& to){
+        const auto at=text.find(from);if(at==std::string::npos)throw std::runtime_error("missing counterexample mutation");
+        text.replace(at,from.size(),to);return text;
+    };
+    accepts(valid,"same-target ordered endpoint observations");
+    accepts(WireResult("\"c0\":"+partial,"null"),"partial observation plus insufficient and actual question");
+    Check(decoded.supports.empty()&&decoded.contradictions.empty()&&decoded.unclear.size()==2&&decoded.questions.size()==1&&!decoded.confidence,
+        "V450-K03 normal empty groups and null confidence preserved");
+    // A: preserve the duplicate claim from run 33 as two explicit slots; do not deduplicate.
+    rejects(WireResult("\"c0\":"+partial+",\"c1\":"+partial,"null"),"A duplicate claim coverage","claim-coverage");
+    rejects(WireResult("\"c0\":"+partial+",\"c0\":"+partial,"null"),"A duplicate claim ID");
+    rejects(WireResult("\"c0\":"+known+",\"c1\":"+WireClaim("물체의 위치가 변한다.")),"A paraphrased duplicate","claim-coverage");
+    rejects(WireResult("\"c1\":"+known),"missing first claim ID","claim-id");
+    rejects(WireResult("\"c0\":"+known+",\"c16\":"+known),"unknown claim ID","claim-id");
+    rejects(WireResult(""),"empty claim set");
+    input.question="물체가 보인다. 물체가 움직인다.";
+    rejects(WireResult("\"c0\":"+WireClaim("물체가 보인다.")),"omitted original claim","claim-coverage");
+    accepts(WireResult("\"c0\":"+WireClaim("물체가 보인다.")+",\"c1\":"+known),"distinct claims with same verdict");
+    accepts(WireResult("\"c0\":"+WireClaim("물체가 보인다.")+",\"c1\":"+partial),"compound supported and insufficient");
+    accepts(WireResult("\"c0\":"+WireClaim("물체가 보인다.","contradicted")+",\"c1\":"+partial),"compound contradicted and insufficient");
+    input.question="물체가 움직인다. 물체가 움직인다.";
+    accepts(WireResult("\"c0\":"+known+",\"c1\":"+known),"identical text at two distinct original spans is not global deduplication");
+    {
+        std::string slots;input.question.clear();
+        for(unsigned i=0;i<16;++i){if(i){slots+=',';input.question+=' ';}
+            input.question+=original;slots+=EvidenceJsonQuote("c"+std::to_string(i))+":"+known;}
+        accepts(WireResult(slots),"sixteen distinct original occurrences fit bounded slots and public group");
+        rejects(WireResult(slots+",\"c16\":"+known),"seventeenth claim slot rejected");
+        input.question=original;
+    }
+    input.question="  "+original+"  ";accepts(valid,"allowed surrounding spaces");input.question=original;
+    // B: not-visible citations remain usable for a gap, never as an observed position.
+    rejects(WireResult("\"c0\":"+WireClaim(original,"supported",hidden,"","endpoints")),"B invisible endpoint cannot support movement","insufficient-observations");
+    rejects(changed(valid,"\"visibility\":\"visible\"","\"visibility\":\"not-visible\""),"B hidden frame with position value","unobservable-property");
+    rejects(WireResult("\"c0\":"+WireClaim(original,"supported","\"f0\":"+WireObservation(),"","endpoints")),"single-frame movement","insufficient-observations");
+    auto same_time=input;input.manifest.frames[1].pts_ns=input.manifest.frames[0].pts_ns;
+    rejects(valid,"same timestamp is not temporal evidence","insufficient-observations");input=same_time;
+    rejects(changed(valid,"\"identity\":\"same\"","\"identity\":\"other\""),"different target observations cannot combine","insufficient-observations");
+    rejects(changed(valid,"\"identity\":\"same\"","\"identity\":\"uncertain\""),"uncertain target match cannot combine","insufficient-observations");
+    accepts(WireResult("\"c0\":"+WireClaim(original,"insufficient",visible,WireGap("unobserved-interval"),"interval"),"null"),"visible endpoints do not establish hidden interval");
+    input.question="물체가 보인다.";
+    accepts(WireResult("\"c0\":"+WireClaim(input.question,"contradicted","\"f0\":"+WireObservation("보이지 않음","not-visible"),"","single","visibility")),
+        "visible absence can contradict a visibility claim");
+    accepts(WireResult("\"c0\":"+WireClaim(input.question,"supported","\"f0\":"+WireObservation("빨간색"),"","single","color")),"single-frame color does not need two frames");
+    input.question=original;
+    // C: target/property/gap are linked structurally. Korean text meaning still requires the fixed oracle.
+    rejects(WireResult("\"c0\":"+WireClaim(original,"insufficient",hidden,WireGap("unobserved-property","다른 물체"),"interval"),"null"),"C question gap uses another target","gap-link");
+    rejects(WireResult("\"c0\":"+WireClaim(original,"insufficient",hidden,WireGap("unobserved-property","물체","color"),"interval"),"null"),"C question gap uses another property","gap-link");
+    rejects(WireResult("\"c0\":"+WireClaim(original,"insufficient",hidden,WireGap()+","+WireGap(),"interval"),"null"),"duplicate gap ID");
+    rejects(WireResult("\"c0\":"+WireClaim(original,"insufficient",hidden,WireGap()+","+WireGap("unobserved-interval"),"interval"),"null"),"duplicate question across gap kinds","duplicate-question");
+    rejects(WireResult("\"c0\":"+WireClaim(original,"supported",visible,WireGap(),"endpoints")),"unneeded question on decisive claim","unexpected-gap");
+    rejects(WireResult("\"c0\":"+WireClaim(original,"insufficient",hidden,"","interval"),"null"),"insufficient without actual gap","missing-gap");
+    rejects(WireResult("\"c0\":"+partial,"0.5"),"confidence without decisive evidence","uncertain-confidence");
+    rejects(WireResult("\"c0\":"+WireClaim(original,"insufficient",visible,WireGap("additional-frame"),"endpoints"),"null"),"gap contradicts two usable endpoint observations","gap-requirement");
+    for(const auto& change:std::vector<std::pair<std::string,std::string>>{
+        {"\"schema\":\"media-server.va-review-provider.v9\"","\"schema\":\"unknown\""},
+        {"\"scope\":\"endpoints\"","\"scope\":\"unknown\""},
+        {"\"verdict\":\"supported\"","\"verdict\":\"unknown\""},
+        {"\"f1\"","\"f2\""},{"\"summary\":","\"extra\":1,\"summary\":"},
+        {"첫 프레임에서 물체가 보입니다.","English only."},{"\"confidence\":0.5","\"confidence\":1.1"},
+        {"\"identity\":\"same\"","\"identity\":true"},{"\"value\":\"위치 x=64\"","\"value\":true"}})
+        rejects(changed(valid,change.first,change.second),"strict fields/types/index/language counterexample");
+    const auto uncertain=WireResult("\"c0\":"+partial,"null");
+    for(const auto& change:std::vector<std::pair<std::string,std::string>>{
+        {"[1]","[2]"},{"[1]","[1,1]"},{"[1]","true"},
+        {"가려진 구간에서 물체의 전후 위치를 비교할 수 있는 영상이 있나요?","전후 영상을 제공해 주세요?"},
+        {"가려진 구간에서 물체의 전후 위치를 비교할 수 있는 영상이 있나요?","전후 영상을 확인합니다."},
+        {"\"question\":","\"unexpected\":1,\"question\":"},
+        {"\"unobserved-property\":","\"unsupported-gap\":"}})
+        rejects(changed(uncertain,change.first,change.second),"strict gap/question counterexample");
+    rejects(valid.substr(0,valid.size()-1),"partial JSON is not recovered");
+    rejects(valid+valid,"multiple JSON roots are not truncated");
+    rejects(changed(valid,"\"confidence\":0.5","\"confidence\":0.5,\"confidence\":0.5"),"duplicate root key");
+    rejects(changed(valid,"\"confidence\":0.5","\"confidence\":0.5,\"extra\":1"),"extra root key");
+    rejects(std::string(40*1024+1,'x'),"wire byte ceiling");
+    // Grammar/shape cannot establish the truth of free Korean text; no blacklist masquerades as an oracle.
+    accepts(changed(uncertain,"가려진 구간에서 물체의 전후 위치를 비교할 수 있는 영상이 있나요?","물체가 가려져 있는지 확인할 수 있나요?"),
+        "C legacy wrong-purpose text is structurally admissible and remains a semantic FAIL oracle");
+
     VaReviewProviderOptions options;options.enabled=true;options.local_endpoint=endpoint;
     unsigned calls=0;int mode=0;std::string error;VaReviewInference out;
     const auto transport=[&](const VaReviewHttpRequest& request,auto,const auto&,std::string* response,std::string*) {
         ++calls;
-        if(request.url==endpoint+"/api/tags") {
-            *response="{\"models\":[{\"name\":"+EvidenceJsonQuote(mode==1?"missing":options.local_model)+
-                ",\"digest\":"+EvidenceJsonQuote(std::string(64,mode==7&&calls==3?'e':'d'))+"}]}";return true;
+        if(request.url==endpoint+"/api/tags"){
+            *response="{\"models\":[{\"name\":"+EvidenceJsonQuote(mode==1?"missing":options.local_model)+",\"digest\":"+
+                EvidenceJsonQuote(std::string(64,mode==7&&calls==3?'e':'d'))+"}]}";return true;
         }
         Check(request.url==endpoint+"/api/chat","V450-L01 exact local chat path");
-        Doc body,user,system,format,metadata;std::vector<std::string> messages,images;
-        Check(Parse(request.body,&body)&&Array(body,"messages",&messages)&&messages.size()==2&&Parse(messages[0],&system)&&
-            Parse(messages[1],&user)&&Array(user,"images",&images)&&images.size()==2,
-            "V450-L01 ordered two-image protocol envelope");
+        Doc body,system,user,format,properties,slots,slot_properties,definitions,claim_fields,claim_definition,obs_schema,obs_keys;
+        std::vector<std::string> messages,images;std::string instructions,content;
+        Check(Parse(request.body,&body)&&Array(body,"messages",&messages)&&messages.size()==4&&Parse(messages.front(),&system)&&
+            Parse(messages.back(),&user),"V450-L01 labeled image protocol");
+        for(std::size_t i=0;i<2;++i){Doc frame;std::vector<std::string> one;std::string label;
+            Check(Parse(messages[i+1],&frame)&&Text(frame,"content",&label)&&label=="Evidence frame index: "+std::to_string(i)&&
+                Array(frame,"images",&one)&&one.size()==1,"V450-L01 frame index bound to one original image");images.push_back(one.front());}
+        const auto object=[](const Doc& parent,const char* key,Doc* output){const auto value=ingress::StrictJsonObjectField(parent,key);return value&&Parse(*value,output);};
         Check(ingress::StrictJsonBoolField(body,"stream")==false&&body.Find("keep_alive")->raw=="0"&&
-            Parse(body.Find("format")->raw,&format),"V450-L01 nonstream schema and model unload");
-        std::string content;std::vector<std::string> frames;
+            object(body,"format",&format)&&Text(system,"content",&instructions)&&instructions.find(body.Find("format")->raw)!=std::string::npos,
+            "V450-K03 identical bounded schema in format and system prompt; not decoder enforcement evidence");
+        Check(object(format,"properties",&properties)&&object(properties,"claims",&slots)&&object(slots,"properties",&slot_properties)&&
+            slot_properties.members.size()==16&&slot_properties.Find("c0")&&slot_properties.Find("c15")&&!slot_properties.Find("c16")&&
+            ingress::StrictJsonBoolField(slots,"additionalProperties")==false,
+            "V450-K03 generation schema contains only c0..c15 object keys");
+        Check(object(format,"$defs",&definitions)&&object(definitions,"claim",&claim_definition)&&object(claim_definition,"properties",&claim_fields)&&
+            object(claim_fields,"observations",&obs_schema)&&object(obs_schema,"properties",&obs_keys)&&
+            obs_keys.members.size()==2&&obs_keys.Find("f0")&&obs_keys.Find("f1")&&!obs_keys.Find("f2"),
+            "V450-K03 frame keys bounded to actual input");
+        Doc metadata;std::vector<std::string> frames;
         Check(Text(user,"content",&content)&&content.find("Metadata: ")!=std::string::npos&&
             Parse(content.substr(content.find("Metadata: ")+10,content.find('\n')-content.find("Metadata: ")-10),&metadata)&&Array(metadata,"frames",&frames)&&frames.size()==2&&
             content.find("\"ptsNs\":1000000")!=std::string::npos&&content.find(input.question)!=std::string::npos&&
-            content.find("camera-1")==std::string::npos&&images[0]!=images[1],"V450-L01 exact frame timing and minimal metadata");
-        auto text=mode==3?"{}":std::string(R"({"schema":"media-server.va-review-provider.v1","observations":"Visible evidence supports the claim.","assessment":)")+
-            EvidenceJsonQuote(mode==8?"unknown":mode==11||mode==12?"insufficient":"supported")+
-            ",\"confidence\":"+(mode==12?"null":"0.5")+",\"frameIndices\":"+(mode==4?"[2]":mode==13?"[]":"[0,1]")+"}";
-        if(mode==9)text.insert(text.size()-1,",\"assessment\":\"supported\"");
-        if(mode==10)text.insert(text.size()-1,",\"extra\":1");
-        *response="{\"model\":"+EvidenceJsonQuote(mode==5?"unexpected":options.local_model)+
-            ",\"done\":true,\"done_reason\":"+EvidenceJsonQuote(mode==6?"length":"stop")+
-            ",\"message\":{\"role\":\"assistant\",\"content\":"+EvidenceJsonQuote(text)+"}}";
+            content.find("camera-1")==std::string::npos&&images[0]!=images[1],"V450-L01 exact timing/order without source metadata");
+        const auto payload=mode==3?"{}":mode==4?WireResult("\"c0\":"+partial+",\"c1\":"+partial,"null"):valid;
+        *response="{\"model\":"+EvidenceJsonQuote(mode==5?"unexpected":options.local_model)+",\"done\":"+(mode==8?"false":"true")+
+            ",\"done_reason\":"+EvidenceJsonQuote(mode==6?"length":"stop")+",\"message\":{\"role\":\"assistant\",\"content\":"+EvidenceJsonQuote(payload)+"}}";
         if(mode==2)*response="{invalid";return true;
     };
     const auto run=[&]{return MakeVaReviewProvider(options,transport)(input,"ollama",VaReviewService::Clock::now()+std::chrono::seconds(5),[]{return false;},&out,&error);};
-    Check(run()&&calls==3&&out.model_revision==std::string(64,'d')&&EvidenceIsSha256(out.prompt_sha256),"V450-L01 checked model digest before and after inference");
-    for(mode=1;mode<=13;++mode){if(mode==12)continue;calls=0;out.model="unchanged";Check(!run()&&out.model=="unchanged","V450-L01 rejects provider fault "+std::to_string(mode));}
-    mode=12;calls=0;Check(run()&&out.output.supports.empty()&&out.output.contradictions.empty()&&out.output.unclear.size()==1&&!out.output.confidence,
-        "V450-L01 insufficient assessment maps to uncertainty without inventing confidence");
+    Check(run()&&calls==3&&out.model_revision==std::string(64,'d')&&EvidenceIsSha256(out.prompt_sha256)&&out.adapter_version=="ollama-chat-v10",
+        "V450-L01 model digest before/after and actual adapter/prompt provenance");
+    for(mode=1;mode<=8;++mode){calls=0;out.model="unchanged";const auto before=SerializeVaReviewOutput(out.output);
+        Check(!run()&&out.model=="unchanged"&&SerializeVaReviewOutput(out.output)==before,"V450-L01 invalid envelope/wire/length/digest does not mutate output "+std::to_string(mode));}
     mode=0;calls=0;options.enabled=false;Check(!run()&&calls==0,"V450-L01 off never sends");options.enabled=true;
-    for(const auto* bad:{"http://127.0.0.1:0","http://127.0.0.1:65536","http://user@localhost","http://127.0.0.1:1/path","http://localhost//"}) {
-        options.local_endpoint=bad;Check(!run()&&calls==0,"V450-L01 forbidden endpoint rejected before transport");
-    }
+    for(const auto* bad:{"http://127.0.0.1:0","http://127.0.0.1:65536","http://user@localhost","http://127.0.0.1:1/path","http://localhost//"}){
+        options.local_endpoint=bad;Check(!run()&&calls==0,"V450-L01 malformed endpoint before transport");}
     options.local_endpoint=endpoint;
-    for(const auto* unsupported:{"gemini","unknown"}) {
-        out.model="unchanged";calls=0;
-        Check(!MakeVaReviewProvider(options,transport)(input,unsupported,VaReviewService::Clock::now()+std::chrono::seconds(5),
-            []{return false;},&out,&error)&&error=="review-invalid-input"&&calls==0&&out.model=="unchanged",
-            "V450-G01 unsupported provider never transmits or changes result");
-    }
+    for(const auto* unsupported:{"gemini","unknown"}){
+        Check(!MakeVaReviewProvider(options,transport)(input,unsupported,VaReviewService::Clock::now()+std::chrono::seconds(5),[]{return false;},&out,&error)&&calls==0,
+            "V450-G01 unsupported provider never transmits");}
     Check(!MakeVaReviewProvider(options,transport)(input,"ollama",VaReviewService::Clock::now()+std::chrono::seconds(5),[]{return true;},&out,&error)&&calls==0,
         "V450-L01 cancelled before first transmission");
+    Check(!MakeVaReviewProvider(options,transport)(input,"ollama",VaReviewService::Clock::now(),[]{return false;},&out,&error)&&error=="review-timeout"&&calls==0,
+        "V450-L01 expired deadline before first transmission");
     auto invalid=input;invalid.pngs[0][0]=0;
     Check(!MakeVaReviewProvider(options,transport)(invalid,"ollama",VaReviewService::Clock::now()+std::chrono::seconds(5),[]{return false;},&out,&error)&&calls==0,
-        "V450-L01 mutated image rejected before transmission");
+        "V450-L01 mutated PNG rejected before transmission");
+    {
+        EvidencePackageStore evidence(root/"provider/record-input",{});VaReviewStore store(root/"invalid-wire-records",{});
+        VaReviewService::Options service_options;service_options.enabled=true;mode=4;calls=0;
+        VaReviewService service(evidence,store,service_options,MakeVaReviewProvider(options,transport));
+        VaReviewJob job;Check(service.Submit(input.package_id,input.question,"ollama","owner",[](const auto&){return true;},&job,&error),
+            "V450-K03 invalid wire job accepted for processing");
+        const auto done=Done(service,job.id);std::vector<std::string> ids;
+        Check(done.state=="failed"&&done.error=="review-invalid-output"&&done.review_id.empty()&&store.List(&ids,&error)&&ids.empty(),
+            "V450-K03 invalid duplicate model response never stored");service.Stop();
+    }
     const auto fds=Fds();std::string response;
     const auto wire=[&](const std::string& body,std::chrono::milliseconds timeout=std::chrono::seconds(3)){
         response="unchanged";return VaReviewCurl({endpoint+"/api/chat",body,{}},VaReviewService::Clock::now()+timeout,[]{return false;},&response,&error);
@@ -467,7 +605,8 @@ void ConnectionChecks(const std::filesystem::path& root) {
         }
         Check(request.url=="https://gpu.internal:11434/api/chat"&&request.body.find(options.bearer_token)==std::string::npos,
             "V450-N01 canonical chat path without credential in body");
-        const auto content=R"({"schema":"media-server.va-review-provider.v1","observations":"Visible red square.","assessment":"supported","frameIndices":[0],"confidence":0.8})";
+        VaReviewOutput visible;visible.supports.push_back({"빨간 사각형이 보입니다.",{0}});
+        const auto content=WireResult("\"c0\":"+WireClaim(input.question));
         *response="{\"model\":\""+options.local_model+"\",\"done\":true,\"done_reason\":\"stop\",\"message\":{\"role\":\"assistant\",\"content\":"+EvidenceJsonQuote(content)+"}}";
         return true;
     };
@@ -520,38 +659,67 @@ std::vector<std::uint8_t> QualityPng(int x) {
     if(compress(compressed.data(),&size,raw.data(),raw.size())!=Z_OK)throw std::runtime_error("quality-png");
     compressed.resize(size);Chunk(png,"IDAT",compressed);Chunk(png,"IEND",{});return png;
 }
-void QualityChecks(const std::filesystem::path& root,const std::string& endpoint) {
+void QualityChecks(const std::filesystem::path& root,const std::string& endpoint,const std::string& diagnostic="") {
     using namespace recording;
     EvidencePackageStore evidence(root/"quality-evidence",{});VaReviewStore records(root/"quality-records",{});
     std::string error;Check(evidence.Recover(&error),"V450-L01 quality evidence ready");
     VaReviewProviderOptions provider;provider.enabled=true;provider.local_endpoint=endpoint;
     VaReviewService::Options options;options.enabled=true;
-    const auto observed=[](const VaReviewHttpRequest& request,auto deadline,const auto& cancelled,std::string* response,std::string* error) {
-        const bool ok=VaReviewCurl(request,deadline,cancelled,response,error);
-        if(ok&&request.url.find("/api/chat")!=std::string::npos) {
-            using namespace review_json;Doc d,m,c;std::string model,reason,role,content;
-            const bool parsed=Parse(*response,&d);if(parsed){Text(d,"model",&model);Text(d,"done_reason",&reason);
-                const auto message=ingress::StrictJsonObjectField(d,"message");if(message&&Parse(*message,&m)){Text(m,"role",&role);Text(m,"content",&content);}}
-            VaReviewOutput result;const bool valid=ParseVaReviewOutput(content,8,&result,nullptr);
-            std::cout<<"[provider-shape] json="<<parsed<<" done="<<(ingress::StrictJsonBoolField(d,"done")==true)
-                <<" model="<<EvidenceJsonQuote(model)<<" reason="<<EvidenceJsonQuote(reason)<<" role="<<EvidenceJsonQuote(role)
-                <<" contentBytes="<<content.size()<<" outputValidAt8="<<valid<<" fields=";
-            if(Parse(content,&c)) {
-                for(const auto& field:c.members)std::cout<<EvidenceJsonQuote(field.key)<<',';
-                for(const char* key:{"supports","questions","contradictions","unclear"}) {
-                    std::vector<std::string> items;std::cout<<' '<<key<<"Count="<<(Array(c,key,&items)?int(items.size()):-1);
-                }
-                const auto* confidence=c.Find("confidence");
-                if(confidence&&(confidence->type==Type::Null||confidence->type==Type::Number))std::cout<<" confidence="<<confidence->raw;
+    std::string known_observations;VaReviewInput evaluation_input;
+    const auto observed=[&](const VaReviewHttpRequest& request,auto deadline,const auto& cancelled,std::string* response,std::string* error) {
+        auto transmitted=request;
+        if(diagnostic=="text"&&request.url.find("/api/chat")!=std::string::npos){
+            using namespace review_json;Doc body,user;std::vector<std::string> messages;
+            if(!Parse(request.body,&body)||!Array(body,"messages",&messages)||messages.size()<3||!Parse(messages.back(),&user))
+                throw std::runtime_error("diagnostic-request-shape");
+            std::string content;if(!Text(user,"content",&content))throw std::runtime_error("diagnostic-request-content");
+            // Preserve labeled message boundaries, replace only visual inputs with independent facts.
+            std::string replacement="["+messages.front();
+            for(std::size_t i=1;i+1<messages.size();++i){
+                Doc frame;std::string label;if(!Parse(messages[i],&frame)||!Text(frame,"content",&label))throw std::runtime_error("diagnostic-frame-shape");
+                replacement+=",{\"role\":\"user\",\"content\":"+EvidenceJsonQuote(label)+"}";
             }
-            std::cout<<std::endl;
-            if(valid)std::cout<<"[synthetic-output] "<<SerializeVaReviewOutput(result)<<std::endl;
+            replacement+=",{\"role\":\"user\",\"content\":"+EvidenceJsonQuote(content+
+                "\nDiagnostic only: no images are attached. Use these supplied visible facts as the complete observations: "+known_observations)+"}]";
+            const auto original=body.Find("messages")->raw;const auto start=transmitted.body.find(original);
+            if(start==std::string::npos)throw std::runtime_error("diagnostic-request-replacement");
+            transmitted.body.replace(start,original.size(),replacement);
+        }
+        if(request.url.find("/api/chat")!=std::string::npos){
+            using namespace review_json;Doc body,system;std::vector<std::string> messages;std::string instructions;
+            if(!Parse(transmitted.body,&body)||!Array(body,"messages",&messages)||!Parse(messages.front(),&system)||!Text(system,"content",&instructions))
+                throw std::runtime_error("quality-provenance-shape");
+            const auto format=body.Find("format")->raw;
+            std::cout<<"[wire-provenance] requestSha256="<<EvidenceSha256(transmitted.body.data(),transmitted.body.size())
+                <<" schemaSha256="<<EvidenceSha256(format.data(),format.size())<<" systemPromptSha256="<<EvidenceSha256(instructions.data(),instructions.size())
+                <<" options="<<body.Find("options")->raw<<" stream=false keep_alive=0"<<std::endl;
+        }
+        const bool ok=VaReviewCurl(transmitted,deadline,cancelled,response,error);
+        if(ok&&request.url.find("/api/chat")!=std::string::npos){
+            // Only this isolated synthetic evaluator retains raw responses; product logging is unchanged.
+            std::cout<<"[synthetic-raw-response] "<<EvidenceJsonQuote(*response)<<std::endl;
+            using namespace review_json;Doc envelope,message;std::string content,reason;VaReviewOutput decoded;
+            const bool parsed=Parse(*response,&envelope);
+            const auto raw=ingress::StrictJsonObjectField(envelope,"message");
+            const bool has_content=raw&&Parse(*raw,&message)&&Text(message,"content",&content);
+            const bool valid=has_content&&DecodeVaReviewProviderOutput(content,evaluation_input,&decoded,&reason);
+            std::cout<<"[wire-validation] json="<<parsed<<" done="<<(ingress::StrictJsonBoolField(envelope,"done")==true)
+                <<" shapeAndLinks="<<valid<<" rejection="<<EvidenceJsonQuote(reason)<<" semanticQuality=requires-manual-review"<<std::endl;
         }
         return ok;
     };
     VaReviewService service(evidence,records,options,MakeVaReviewProvider(provider,observed));
-    Check(service.ready(),"V450-L01 quality worker ready");unsigned semantic=0,uncertain=0,schemas=0;
-    for(const auto& test:VaQualityCases()) {
+    Check(service.ready(),"V450-L01 quality worker ready");unsigned categories=0,uncertain=0,schemas=0,questions=0,coverage=0,pairs=0,case_index=0;
+    bool preceding_correct=false;std::string preceding_package;
+    auto cases=diagnostic.empty()?VaQualityCases():VaClaimPairs();
+    if(diagnostic=="text")for(const auto& test:VaQualityCases())if(std::string(test.expected)=="unclear")cases.push_back(test);
+    for(const auto& test:cases) {
+        known_observations.clear();
+        for(std::size_t i=0;i<test.x.size();++i)
+            known_observations+="프레임 "+std::to_string(i)+(test.x[i]<0?": 회색 화면만 보이고 빨간 사각형은 보이지 않는다. ":
+                ": 빨간 사각형의 왼쪽 변 x="+std::to_string(test.x[i])+", y=120, 크기 48×48. ");
+        if(!diagnostic.empty())std::cout<<"[diagnostic-input] mode="<<diagnostic<<" case="<<test.id
+            <<" claim="<<EvidenceJsonQuote(test.claim)<<" suppliedObservations="<<(diagnostic=="text"?EvidenceJsonQuote(known_observations):"null")<<std::endl;
         std::vector<EvidencePayload> payloads;auto manifest=Manifest(test.x.size(),&payloads);
         for(std::size_t i=0;i<test.x.size();++i) {
             auto png=QualityPng(test.x[i]);const auto sha=EvidenceSha256(png.data(),png.size());
@@ -561,6 +729,12 @@ void QualityChecks(const std::filesystem::path& root,const std::string& endpoint
             auto& ref=manifest.references[i+2];ref.id=f.segment_id+":"+std::to_string(f.pts_ns);ref.sha256=sha;
         }
         std::string id;Check(evidence.Publish(manifest,payloads,&id,&error),std::string("V450-L01 fixture ")+test.id);
+        if(!diagnostic.empty()&&case_index<6&&case_index%2==1)
+            Check(id==preceding_package&&test.x==cases[case_index-1].x&&std::string(test.claim)!=cases[case_index-1].claim,
+                "V450-K02 inversion pair preserves identical evidence package");
+        preceding_package=id;
+        Check(LoadVaReviewInput(evidence,id,test.claim,[](const auto&){return true;},&evaluation_input,&error),
+            "V450-K03 same input for diagnostic receiver reason");
         VaReviewJob job;const auto start=VaReviewService::Clock::now();
         Check(service.Submit(id,test.claim,"ollama","quality",[](const auto&){return true;},&job,&error),std::string("V450-L01 submit ")+test.id);
         do {
@@ -573,17 +747,30 @@ void QualityChecks(const std::filesystem::path& root,const std::string& endpoint
         const bool unknown=valid&&record.output.supports.empty()&&record.output.contradictions.empty()&&!record.output.unclear.empty()&&!record.output.confidence;
         const bool correct=valid&&(expected=="unclear"?unknown:expected=="supports"?
             !record.output.supports.empty()&&record.output.contradictions.empty():!record.output.contradictions.empty()&&record.output.supports.empty());
-        if(correct)++semantic;if(expected=="unclear"&&unknown)++uncertain;
+        if(correct)++categories;if(expected=="unclear"&&unknown)++uncertain;
+        if(!diagnostic.empty()&&case_index<6&&case_index%2==1&&preceding_correct&&correct)++pairs;
+        preceding_correct=correct;++case_index;
+        std::vector<bool> cited(test.x.size());
+        if(valid)for(const auto* group:{&record.output.supports,&record.output.contradictions,&record.output.unclear})
+            for(const auto& item:*group)for(auto index:item.frame_indices)if(index<cited.size())cited[index]=true;
+        const bool all_frames=std::string(test.id)=="eight-static";
+        const bool covered=valid&&(expected=="unclear"|| (all_frames?std::all_of(cited.begin(),cited.end(),[](bool b){return b;}):cited.front()&&cited.back()));
+        if(covered)++coverage;
+        if(expected=="unclear"&&valid&&!record.output.questions.empty())++questions;
         std::cout<<"[quality] {\"case\":"<<EvidenceJsonQuote(test.id)<<",\"expected\":"<<EvidenceJsonQuote(expected)
             <<",\"schemaValid\":"<<(valid?"true":"false")<<",\"categoryPass\":"<<(correct?"true":"false")
-            <<",\"elapsedMs\":"<<std::chrono::duration_cast<std::chrono::milliseconds>(VaReviewService::Clock::now()-start).count()
+            <<",\"referenceCoveragePass\":"<<(covered?"true":"false")<<",\"elapsedMs\":"<<std::chrono::duration_cast<std::chrono::milliseconds>(VaReviewService::Clock::now()-start).count()
             <<",\"error\":"<<EvidenceJsonQuote(job.error)<<",\"modelDigest\":"<<EvidenceJsonQuote(record.model_revision)
             <<",\"output\":"<<(valid?SerializeVaReviewOutput(record.output):"null")<<"}"<<std::endl;
         // schema/실행 실패는 선행 조건 실패다. 다음 사례를 실행하지 않는다.
-        Check(valid,std::string("V450-L01 real model schema ")+test.id+" "+job.error);
+        if(diagnostic.empty()||(!valid&&job.error!="review-invalid-output"))
+            Check(valid,std::string("V450-L01 real model schema ")+test.id+" "+job.error);
     }
     service.Stop();
-    std::cout<<"[quality-summary] schema="<<schemas<<"/12 category="<<semantic<<"/12 uncertainty="<<uncertain<<"/4 semanticTextReviewRequired=true"<<std::endl;
+    std::cout<<(diagnostic.empty()?"[quality-summary]":"[diagnostic-summary]")<<" mode="<<diagnostic<<" schema="<<schemas<<'/'<<cases.size()
+        <<" category="<<categories<<'/'<<cases.size()<<" referenceCoverage="<<coverage<<'/'<<cases.size()
+        <<(diagnostic.empty()||diagnostic=="text"?" uncertainty="+std::to_string(uncertain)+"/4 questionPresence="+std::to_string(questions)+"/4":
+            " categoryPairPass="+std::to_string(pairs)+"/3")<<" semanticTextReviewRequired=true qualityStatus=pending-manual-review"<<std::endl;
     rusage usage{};Check(::getrusage(RUSAGE_SELF,&usage)==0,"V450-L01 peak RSS observation");
 #ifdef __APPLE__
     const auto rss=usage.ru_maxrss;
@@ -591,7 +778,9 @@ void QualityChecks(const std::filesystem::path& root,const std::string& endpoint
     const auto rss=usage.ru_maxrss*1024;
 #endif
     std::cout<<"[resource] nativePeakRssBytes="<<rss<<std::endl;
-    Check(schemas==12&&semantic>=10&&uncertain==4,"V450-L01 predefined quality gates");
+    if(diagnostic.empty())Check(schemas==12&&categories>=10&&uncertain==4&&questions==4,"V450-L01 automated prerequisites; manual meaning and questions still required");
+    if(diagnostic=="text")Check(schemas==10&&categories==10&&uncertain==4&&questions==4&&pairs==3,
+        "V450-K02 text diagnostic covers decisive and insufficient claims; manual review required");
     Check(rss<=4LL*1024*1024*1024,"V450-L01 native process 4GiB budget");
 }
 void LocalLifecycleChecks(const std::filesystem::path& root,const std::string& endpoint) {
@@ -664,7 +853,10 @@ int main(int argc,char** argv) {
         if(argc!=4)throw std::runtime_error("owned fixture root, mode, endpoint required");
         gst_init(nullptr,nullptr);
         if(std::string(argv[2])=="--seed")SeedHttp(argv[1]);
+        else if(std::string(argv[2])=="--contract-only")ProviderChecks(argv[1],argv[3]);
         else if(std::string(argv[2])=="--local-lifecycle")LocalLifecycleChecks(argv[1],argv[3]);
+        else if(std::string(argv[2])=="--diagnostic-text")QualityChecks(argv[1],argv[3],"text");
+        else if(std::string(argv[2])=="--diagnostic-inversion")QualityChecks(argv[1],argv[3],"inversion");
         else if(std::string(argv[2])=="--local")QualityChecks(argv[1],argv[3]);else {
         InputChecks(argv[1]);
         RecordChecks(argv[1]);

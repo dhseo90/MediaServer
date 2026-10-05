@@ -22,5 +22,8 @@ struct VaReviewProviderOptions {
     std::string local_model{"qwen3-vl:8b-instruct-q4_K_M"};
     std::string bearer_token,ca_file; // token은 메모리 전용. 공개 config/로그/argv/record 금지.
 };
+// 내부 wire 수신기. 정제 reason만 반환하며 공개 오류는 review-invalid-output으로 유지한다.
+// 합성 평가도 이 수신기를 사용한다. 원응답 상시 기록 기능은 없다.
+bool DecodeVaReviewProviderOutput(const std::string&,const VaReviewInput&,VaReviewOutput*,std::string* reason);
 VaReviewService::Infer MakeVaReviewProvider(VaReviewProviderOptions,VaReviewTransport=VaReviewCurl);
 } // namespace recording
