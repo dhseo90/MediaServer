@@ -1,0 +1,81 @@
+{
+  "modelCountBeforeTerm": 0,
+  "unloadWithinFiveSecondsGate": "notRun: native mandatory quality gate failed; later absence is cleanup only",
+  "ownedServerPid": 92909,
+  "signal": "SIGTERM",
+  "pidAbsent": true,
+  "port": 23451,
+  "listenerAbsent": true,
+  "wrapperRoots": [
+    {
+      "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-va-review-rzzzo9z7",
+      "absent": true
+    },
+    {
+      "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-va-review-n2jr2stm",
+      "absent": true
+    },
+    {
+      "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-va-review-o_f_zhm6",
+      "absent": true
+    },
+    {
+      "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-va-review-j2brpvrv",
+      "absent": true
+    }
+  ],
+  "ownedImplementationTemporaryFilesRemoved": [
+    "/tmp/v450-contract35-edit.py",
+    "/tmp/v450-contract35-edit-tests.py",
+    "/tmp/v450-contract35-docs.py",
+    "/tmp/v450-contract35-code-message.txt",
+    "/tmp/v450-contract35-evidence.py"
+  ],
+  "defaultStorageAfter": {
+    "exists": false,
+    "symlink": false
+  },
+  "preserved": [
+    "models/v450-ollama",
+    "/tmp/media-server-v450-contract35-ollama.log"
+  ],
+  "serverSessionExit": 0,
+  "httpInnerRoot": {
+    "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-va-http-jO0Vt2",
+    "absent": true
+  },
+  "httpOwnedResources": {
+    "firstProcess": {
+      "exited": true,
+      "forced": false,
+      "exitCode": 0,
+      "signalCode": null
+    },
+    "secondProcess": {
+      "exited": true,
+      "forced": false,
+      "exitCode": 0,
+      "signalCode": null
+    },
+    "process": {
+      "exited": true,
+      "forced": false,
+      "exitCode": 0,
+      "signalCode": null
+    },
+    "http": {
+      "closed": true,
+      "evidence": "ECONNREFUSED"
+    },
+    "rtsp": {
+      "closed": true,
+      "evidence": "ECONNREFUSED"
+    },
+    "provider": {
+      "closed": true,
+      "evidence": "ECONNREFUSED"
+    },
+    "udpClosed": true,
+    "rootAbsent": true
+  }
+}

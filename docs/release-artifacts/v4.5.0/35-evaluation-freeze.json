@@ -1,0 +1,89 @@
+{
+  "base": "d6342dadf99215f2982e98b555a7b5a6db4b54e3",
+  "model": "qwen3-vl:8b-instruct-q4_K_M",
+  "modelDigest": "0533d74300e4f9bc367d675d4e64ffd073d50ff16a2b4096cc2e8a1cf8c96319",
+  "ollamaClientVersion": "0.21.0",
+  "wire": "media-server.va-review-provider.v10",
+  "adapter": "ollama-chat-v11",
+  "options": {
+    "temperature": 0,
+    "num_ctx": 8192,
+    "num_predict": 1024
+  },
+  "stream": false,
+  "keep_alive": 0,
+  "perCallSeconds": 60,
+  "perStageWrapperSeconds": 800,
+  "stageAttempts": {
+    "text": 1,
+    "inversion": 1,
+    "quality12": 1
+  },
+  "criteria": "docs/project-feature-test-inventory.md#v450-va-review (source hash above)",
+  "limitsGiB": {
+    "modelPhysicalWorkingSet": 14,
+    "nativeRss": 4,
+    "workspaceExcludingWeights": 8
+  },
+  "decoderNegativeEnforcement": "not independently executed; synthetic protocol tests are not decoder evidence",
+  "sourceSha256": {
+    "docs/project-feature-test-inventory.md": "4945aff9be675d65870c2c608126b0e6772806965b962369e71365892d88423a",
+    "docs/superpowers/specs/2026-10-05-v450-va-review-design.md": "f286e7dbad592d452cab51271a3bc313b0e7376497d814edb692d0ec9c5e0024",
+    "include/recording/va_review_input.h": "543fcaf1fd950927455e402b45f3747cdb95c81b8521daa4eb22ce4b87c1cc00",
+    "include/recording/va_review_provider.h": "6fbf72805fdfa7286946a7114adaba247ac042a653988b4259c5ef13cdfbe486",
+    "include/recording/va_review_record.h": "96f5ac21c232d0b7efcadc94d8472ea980e1c8828577753c77f892210059c27d",
+    "include/recording/va_review_service.h": "c3c6f9c4a7ebab259af79b2ff16bf1f1e94a0c776d6f612e88cdcb27e9be0baa",
+    "include/recording/va_review_store.h": "fcfad2a1c692321f5331b014357686abf871ab1b727ebc8093b5d339efc8c80a",
+    "scripts/internal/va_review_http_checks.mjs": "2e81c9b92d06e60392e06373acced4aed60f0bc06be0d09a285de4cf97713584",
+    "scripts/internal/va_review_quality_fixture.h": "4a46b462b22cf71e092319f885724c67f7506a5a491068577ecd0d632dbe6d64",
+    "scripts/internal/va_review_smoke.cpp": "50e7759e909f7d0b123398cef041f61c06925f9d81426877c88a2739ffa2ef56",
+    "scripts/internal/verify_va_review.sh": "99c5d0a5c6a4f8204db2cba95ecf7182eea2ed26f79975883ab3a1985ce2992e",
+    "src/recording/va_review_input.cpp": "840df39c6fc11ca99748f55dd1c55d598e060467354dd8fd0a48b1b197cd58f1",
+    "src/recording/va_review_json.h": "835cf40e95a3be8297ccf6edde1fbcf7c8aa5ffda3169f368195bc5667d065f3",
+    "src/recording/va_review_provider.cpp": "b858b651cabe6e8c7c2264c89ed1c3715af30fda5c86332cea2ad2220d3ce5c3",
+    "src/recording/va_review_record.cpp": "01e3a5a833b5d9201f6ec9aa1273e0fae1d58bb88d62c94fa684f5ac3bcb457f",
+    "src/recording/va_review_service.cpp": "22777f26753c6ea64f65daaa603633a02bc0fd98036ce02460b84887a4edef0d",
+    "src/recording/va_review_store.cpp": "27cb631652d84eb98776cf0493959205fdb4888517cb70b6cc8e1d5a4108a0a4",
+    "src/recording/va_review_transport.cpp": "c38058cffb6cca2b291d6de52bdbdd0c7298b308699c8291f6c242884090a422",
+    "scripts/internal/va_review_contract_replay.json": "1aab5af5f30f3c45924a59845af542458058dc242da84c0e1dea5c9084f908b8"
+  },
+  "binarySha256": "1573940929258c9a963cf5566d3fb0724ec122189c220e99f1b13ed3c70d4471",
+  "stageOrder": [
+    "text-uncertain4",
+    "manual mandatory gate",
+    "text-decisive6",
+    "inversion6",
+    "quality12"
+  ],
+  "maxActualCalls": 28,
+  "textBudget": "single monotonic deadline supplied to both text partitions, 800 seconds including manual pause; no text10 rerun",
+  "native": {
+    "regression": {
+      "pass": 428,
+      "exit": 0
+    },
+    "http": {
+      "pass": 135,
+      "exit": 0
+    }
+  },
+  "server": {
+    "version": "0.21.0",
+    "pid": 92909,
+    "port": 23451,
+    "initialLoadedModels": 0,
+    "modelBytes": 6140415975,
+    "log": "/tmp/media-server-v450-contract35-ollama.log"
+  },
+  "defaultStorageBefore": {
+    "exists": false,
+    "symlink": false
+  },
+  "historicalSha256": {
+    "34-evaluation.json": "e9ff9b4b4ba702b330da6be05f0237f40557f10352b4fff47d6733fb31e38033",
+    "34-evaluation-freeze.json": "5eccbc21fc33c9dc860b5998e6bcf68f6be697f9b11acfcfd2c15ffb6c20649f",
+    "34-contract-text.log": "2e1a44ed71b784212bef071121d9495c602ecdcea75c429433509f93d7798580"
+  },
+  "textDeadlineMonotonic": 509945.404537791,
+  "textStartUtc": "2026-10-05T12:05:11Z"
+}

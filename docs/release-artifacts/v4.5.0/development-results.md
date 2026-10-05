@@ -890,3 +890,50 @@
   출발 patch로 추적하며 증거 커밋 때문에 모델을 재실행하지 않는다. v4.5.0 릴리즈 완료가 아니다.
 - 코드 체크포인트 `4bc437a64041f34aed587e60d63bb3fff99af3db`의 18개 평가 source/기준 파일 hash가 freeze와 모두 일치한다.
   실행 증거와 과거 실패 원본은 후속 보존 커밋으로 분리하며 일반 push 뒤 실제 원격 SHA는 최종 보고에서 확인한다.
+
+### 35: 충분 판정과 부족 설명 분리 — 사용자 지정 세 단계
+
+- 기준 HEAD/원격 `d6342dadf99215f2982e98b555a7b5a6db4b54e3`, clean tree/index에서 시작했다.
+  AGENTS SHA256 `647c508aa5e855784a8f8c711643cb3488c682736540df4be54262a5cf1420ba`를 확인했다.
+  34의 10개 원응답을 그대로 읽고 기존 scope/gap 3건 거부와 질문 0/4를 변경하지 않았다.
+- provider v10/adapter v11은 공통 scope와 gap의 중복 target/property를 제거했다. 충분은
+  verdict+basis, 부족은 verdict+gaps 두 형식이며 속성 관측·unknown/other identity·PTS를
+  독립 계산한다. 공개 v1, 원문/PNG, 무효 출력 거부·저장 방지, 기존 모델/options/예산은 유지한다.
+  34의 자연어·관측값·verdict를 바꾸지 않고 새 wire로 옮긴 합성 반례는 기존 fixture 위치에
+  별도 표시했다. 원 모델 응답의 새 PASS나 decoder 강제 보장으로 간주하지 않는다.
+- 실제 실행 전에 inventory에서 질문/문맥을 중립성·새 자료 요청·대상/속성·시간/구간·중복으로
+  나눠 해석을 명확히 했다. 특정 정답 문구 대신 실제 의미를 평가하고 34의 기준/결과는 보존했다.
+- `cmake --build build-gst-onnx -j 4`: [최초 build](35-contract-build-initial.log)는 exit0이나
+  adapter allowlist 편집의 comma 경고가 있었다. 조건 연산자로 수정한 [build](35-contract-build.log)는 exit0/경고 없음.
+  native 첫 실행 요청은 자동 승인 검토 서비스의 capacity 오류로 실행되지 않았고 동일 검토 재요청은 통과했다.
+  [native 컴파일 실패](35-contract-native-compile-fail.log)는 합성 fixture 로더의 초기값 누락이다.
+  exit1/검사 본체 미실행/임시 root 회수였으며, 초기화 수정 후 아래 묶음을 한 번 실행했다.
+- `bash scripts/internal/verify_va_review.sh`: [native](35-contract-native.log) exit0/428 assertion.
+  정적/시간 비교·관측 불가+동일성 불명 공존·미충족 충분 판정 거부·원문 coverage·혼합 주장·
+  34 변환10건·저장/취소/권한·TLS와 adapter v1~v11 byte roundtrip을 포함한다.
+  `--http-only`: [HTTP](35-contract-http.log) exit0/135, 기존 결과를 보존한 `06-http.json`에 추가했다.
+  [문서 링크](35-docs.log) exit0/failures0, node/bash syntax 및 diff 확인도 수행했다.
+- 실제 평가 전 [19개 source/기준·binary·모델 고정](35-evaluation-freeze.json)을 기록했다.
+  전용 Ollama0.21.0/PID92909/23451, 기존 digest·options·60초/호출 및 text 공유800초를 유지했다.
+  `--diagnostic-text-uncertain` [원응답·수신·공개 결과](35-text-uncertain.log)는 1회/4호출/exit1이다.
+  정상 stop JSON4/4, 수신3/4, 부족 판정1/4, 질문 존재1/4, 필수 질문 의미0/4로 전체 FAIL이다.
+  [축별 수동 평가](35-evaluation.json)는 같은 구현 assistant의 검토이며 독립 검토가 아니다.
+- one-motion은 한 장으로 정지/반증을, occluded-final은 가시성으로 이동 반증을 생성하여
+  수신 가능한 의미 오답이 됐다. blank-hidden도 이동을 가시성으로 바꾸었으며 unknown identity
+  관측으로 충분 판정하여 수신기가 올바르게 거부했다. 이는 과거 유효 부족 응답의 scope 충돌과 다르다.
+  one-direction만 부족 판정을 했고 질문은 중립적 새 이미지 요청/대상·위치를 충족했지만 시간 순서가
+  빠졌다. missing의 무변화/비교 정보 부재 표현도 불명확하다. 질문만 남은 실패로 축소하지 않는다.
+- 첫4 필수 gate 실패에 따라 text나머지6·영상반전6·영상12는 notRun이다. 추가 수정/후보/호출은
+  하지 않았다. 현재 모델의 이 네 응답을 일반 능력 한계로 단정하지 않으며 후속 설계 방향은 별도 결정이다.
+  native와 실제 모델 종료 후 frozen19개 source 및 과거34 증거 hash가 모두 일치했다.
+- [정리](35-cleanup.json): 사후 모델 목록0 후 소유 server TERM/session exit0, PID/23451 부재,
+  실패한 컴파일을 포함한 wrapper root4개와 HTTP inner root1개 부재, 구현 임시 파일 회수 확인.
+  기본 recording 저장소는 전후 부재이며 승인 weight와 전용 server log는 유지한다.
+  품질 실패로 최종 자원/5초 unload gate는 notRun이다. 사후 모델 부재를 해당 gate PASS로 바꾸지 않는다.
+- 검증된 내부 코드·반례와 실제 FAIL/미실행 증거를 별도 미완료 체크포인트 커밋으로 보존한다.
+  원격 변경 확인 후 일반 push 범위만 수행하며 PR/main/tag/Release·장시간/UI 실행은 비범위다.
+- 코드 체크포인트 `b9520c7f32469926db8c62fec5e03873c9d1732f`의19개 source/기준 hash와 평가 freeze가 일치한다.
+  최종 기록 링크 검사 `35-final-docs.log`도 exit0/failures0이며 실행 증거는 후속 별도 커밋이다.
+- 증거 stage 후 `git diff --cached --check`는 exit2: native 원출력21/22/25/26행의
+  끝 공백4곳을 보고했다. 실제 stdout bytes 보존을 위해 로그를 정제하지 않았다. 앞선 source/문서
+  diff 확인은 exit0이며 이 원출력 공백을 제품 검사 실패나 전체 형식 PASS로 바꾸지 않는다.

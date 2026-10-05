@@ -1,0 +1,10 @@
+[  1%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/va_review_record.cpp.o
+[  1%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/va_review_provider.cpp.o
+/Users/dhseo/Workspace/mediaServer/src/recording/va_review_record.cpp:89:340: warning: left operand of comma operator has no effect [-Wunused-value]
+   89 |        (v.adapter_version!="ollama-chat-v1"&&v.adapter_version!="ollama-chat-v2"&&v.adapter_version!="ollama-chat-v3"&&v.adapter_version!="ollama-chat-v4"&&v.adapter_version!="ollama-chat-v5"&&v.adapter_version!="ollama-chat-v6"&&v.adapter_version!="ollama-chat-v7"&&v.adapter_version!="ollama-chat-v8"&&v.adapter_version!="ollama-chat-v9"&&v.adapter_version!="ollama-chat-v10","ollama-chat-v11")||
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1 warning generated.
+[  2%] Linking CXX static library libmedia_server_runtime.a
+[ 99%] Built target media_server_runtime
+[ 99%] Linking CXX executable media_server
+[100%] Built target media_server
