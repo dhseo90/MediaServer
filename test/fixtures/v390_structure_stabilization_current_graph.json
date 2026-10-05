@@ -11,8 +11,8 @@
     ".cpp",
     ".h"
   ],
-  "expectedProductionFiles": 359,
-  "expectedCppFiles": 164,
+  "expectedProductionFiles": 373,
+  "expectedCppFiles": 171,
   "moduleClassifiers": [
     {
       "id": "composition-root",
@@ -156,11 +156,25 @@
         "src/recording/evidence_package_builder.cpp",
         "src/recording/evidence_package_store.cpp",
         "include/ingress/evidence_application_service.h",
-        "src/ingress/evidence_application_service.cpp"
+        "src/ingress/evidence_application_service.cpp",
+        "include/recording/va_review_input.h",
+        "include/recording/va_review_provider.h",
+        "include/recording/va_review_record.h",
+        "include/recording/va_review_service.h",
+        "include/recording/va_review_store.h",
+        "src/recording/va_review_input.cpp",
+        "src/recording/va_review_json.h",
+        "src/recording/va_review_provider.cpp",
+        "src/recording/va_review_record.cpp",
+        "src/recording/va_review_service.cpp",
+        "src/recording/va_review_store.cpp",
+        "src/recording/va_review_transport.cpp",
+        "include/ingress/va_review_application_service.h",
+        "src/ingress/va_review_application_service.cpp"
       ],
       "prefixes": [],
-      "expectedFileCount": 110,
-      "expectedCppCount": 50
+      "expectedFileCount": 124,
+      "expectedCppCount": 57
     },
     {
       "id": "domain-and-registry-owners",
@@ -352,7 +366,7 @@
       "expectedCppCount": 16
     }
   ],
-  "expectedFileOwnershipSha256": "28e0f9beb93f9ddeacd1c0ff5d24c5bf963df27fb949f3bb9f405ce5fe5a9634",
+  "expectedFileOwnershipSha256": "85d80f9abba338c7615aa10002f5d3435e03b4862e7ec2709669f1b6eda1a448",
   "cmake": {
     "file": "CMakeLists.txt",
     "targets": [
@@ -445,6 +459,12 @@
           "src/recording/visual_search_index.cpp",
           "src/recording/evidence_frame_extractor.cpp",
           "src/recording/evidence_package.cpp",
+          "src/recording/va_review_input.cpp",
+          "src/recording/va_review_record.cpp",
+          "src/recording/va_review_store.cpp",
+          "src/recording/va_review_service.cpp",
+          "src/recording/va_review_transport.cpp",
+          "src/recording/va_review_provider.cpp",
           "src/recording/evidence_package_store.cpp",
           "src/recording/evidence_package_builder.cpp",
           "src/recording/visual_index_store.cpp",
@@ -491,6 +511,7 @@
           "src/ingress/recording_search_application_service.cpp",
           "src/ingress/visual_search_application_service.cpp",
           "src/ingress/evidence_application_service.cpp",
+          "src/ingress/va_review_application_service.cpp",
           "src/ingress/recording_application_service.cpp",
           "src/recording/retention_coordinator.cpp",
           "src/recording/recording_session_service.cpp",
@@ -523,9 +544,9 @@
           "src/ingress/gstreamer_rtsp_server.cpp",
           "src/core/youtube_resolver.cpp"
         ],
-        "productionSourceSha256": "b14ac96d8601927e20def6bffb60cd5b6ae0ebd07e5d446d6e34773e4540a763",
-        "declaredSourceCount": 162,
-        "defaultActiveSourceCount": 161,
+        "productionSourceSha256": "ef71407bc59526a349dadf77a7751cfb1604490c3a253cae6cb91256d6532883",
+        "declaredSourceCount": 169,
+        "defaultActiveSourceCount": 168,
         "conditionalSources": [
           {
             "path": "src/core/youtube_resolver.cpp",
@@ -609,8 +630,8 @@
     },
     {
       "direction": "application-service-interfaces -> domain-and-registry-owners",
-      "witnessCount": 42,
-      "witnessSha256": "7a06a059473617a4ef9ecf57b81c00b6bb606094e5e4192c85cddf7e2c3e557f",
+      "witnessCount": 45,
+      "witnessSha256": "36109cbf29c6a643f640d1b36c63c400604e2a3d9903698773ea78b4da66c3b8",
       "allowedByTarget": true
     },
     {
@@ -743,7 +764,7 @@
     },
     {
       "file": "src/ingress/webrtc_http_server_runtime.cpp",
-      "lineCount": 5376,
+      "lineCount": 5430,
       "primaryOwner": "transport-and-auth-adapter",
       "embeddedResponsibilities": [
         "ops-route-groups",
@@ -767,7 +788,7 @@
     },
     {
       "file": "src/ingress/product_ui_page_scripts.cpp",
-      "lineCount": 10834,
+      "lineCount": 10974,
       "primaryOwner": "product-ui-workspaces",
       "embeddedResponsibilities": [
         "ops-workspaces",

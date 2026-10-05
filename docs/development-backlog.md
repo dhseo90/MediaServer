@@ -26,10 +26,12 @@
 
 | 순서·중요도 | 남은 일과 완료 조건 | 근거·승인/검증 경계 |
 | --- | --- | --- |
-| 3 · P2 | V450-07: 구현한 선택 Gemini adapter의 실제 계정/model/credential/privacy 조건을 확정하고 실호출 또는 제외 상태 명시 | adapter·무호출 guard·합성 protocol과 외부 UI 상태 통과. 실제 Google 전송/품질은 미실행이며 조건 미확정 |
-| 4 · P0 | V450-04 잔여 영향 + 08: 실제 RTSP/WebRTC·metadata/Event POST·녹화/검색의 모델 병행 진행, 실제 모델 취소/종료와 자원 회수, API/Auth 영향·지원 Linux·구조 graph/배포 소비자 확인 | 현재 native 검사는 일부 녹화/event append/검색뿐이다. 소스/환경 차이에서 도출한 잔여 범위이며 미실행을 PASS로 삼지 않음 |
-| 5 · P0 | 코드 고정 후 독립 검토, 필수 30분과 실제 UI 풀테스트, worker/자원 수명에 매핑된 120분 수행·잔여 실패 해소 | AGENTS·검증/릴리즈 정책의 직접 기준. 장시간·UI 풀테스트·지정 모델 독립 검토는 별도 명시 승인 필요 |
-| 6 · P0 | 최종 버전·CMake·릴리즈 노트/metadata·운영 안내 정합, 검증 기록 보존 후 승인된 정리, required CI·main 최종 hash·서명/Verified·공개 확인 | VERSION은 아직 4.4.0. PR·병합·signed tag·GitHub Release는 각각 별도 승인, 브랜치 push를 릴리즈로 간주하지 않음 |
+| 1 · P0 | 현재 변경의 독립 검토와 UI-001/UI-002·inventory manifest 결속 갱신, feature coverage gate 재통과 | 직접 관측 FAIL: 986개 연결은 유지되지만 inventorySha256·UI 승인 blob/body hash drift. 검증 정책의 승인된 갱신 절차와 지정 `gpt-6-astra/xhigh` 독립 검토 승인 필요 |
+| 2 · P0 | 실제 RTSP/WebRTC·metadata/Event POST·녹화/검색의 모델 병행 진행과 제품 서버 자원 예산 | 현재 native는 일부 녹화/event append/검색만 확인. 실제 모델 Cancel/Stop은 이번에 통과했지만 실제 송출/전달 혼합 부하는 미실행 |
+| 3 · P0 | Linux 빌드·glibc 2.34+ 전송 수명 확인, required CI와 배포 소비자 확인 | 현재 실행은 macOS. 구조 graph·문서·script inventory·CI/local parity 통과와 Linux/원격 CI를 구분 |
+| 4 · P0 | 코드 고정 후 필수 30분·실제 UI 풀테스트, worker 수명에 매핑된 120분과 잔여 실패 해소 | AGENTS·검증/릴리즈 정책의 직접 기준. 각 장시간·UI 풀테스트 실행은 별도 명시 승인 필요 |
+| 5 · P2·선택 | Gemini의 실제 계정/model/credential/privacy 조건 확정 후 실호출·품질 검증 또는 명시 제외 | adapter·무호출 guard·합성 protocol·외부 UI 상태는 통과. 실제 Google 전송/품질은 미실행 |
+| 6 · P0 | VERSION/CMake·릴리즈 노트/metadata·최종 기록 보존/정리, main 최종 hash·서명/Verified·공개 확인 | source VERSION은 아직 4.4.0. PR·병합·signed tag·GitHub Release는 각각 별도 승인. 브랜치 push는 릴리즈가 아님 |
 
 ## 별도 승인 릴리즈
 

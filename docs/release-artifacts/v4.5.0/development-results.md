@@ -202,3 +202,34 @@
   못했다. 지정 모델 최종 독립 검토와 구분한다. native/HTTP 임시 root와 소유 포트/프로세스 정리 확인.
 - 외부 계정·사용 모델·일시 credential·privacy 조건을 사용자가 아직 지정하지 않아 실호출하지
   않았다. adapter 구현 완료와 외부 provider 승격 완료를 구분한다. 실호출 또는 명시 제외 결정이 남는다.
+
+## 13:15 종료 한도에 따른 영향 검증과 마감
+
+- 사용자 지정 종료 한도는 2026-10-05 13:15 KST다. 13:12부터 정리/보존으로 전환하도록
+  배정했고, 필요한 결과가 먼저 나온 뒤 새 실질 작업을 중단했다. 30분/120분·실제 UI·외부 호출은 시작하지 않았다.
+- `bash scripts/internal/verify_va_review.sh --local-lifecycle http://127.0.0.1:23451`: exit 0,
+  [21 PASS](08-lifecycle.log), focused 6,388ms. 모델 `/api/ps`의 실제 loaded 관측 후
+  Cancel과 Stop을 각각 실행했다. Cancel은 Stop 호출 전에 cancelled를 확인해 서로 구분했다.
+  두 경우 모두 record 0, curl reap·worker join·FD 4/thread 1 기준값 회복,
+  action 신호 후 모델 목록 empty는 각각 225/226ms(5초 기준)다. native root 제거·부재 확인.
+  이 모드는 모델 메모리를 측정하지 않았으며 resource-final의 초기 0값은 사용량 관측이 아니다.
+- source graph에 새 14개 파일을 기존 application-service 소유로 등록하고 [현재 graph를 결속](08-graph-bind.log)했다.
+  과거 completion/승인 데이터는 유지했다. [graph 4 PASS](08-graph.log),
+  [문서 links failures 0](08-docs.log), [범위 5 PASS](08-scope.log),
+  [script inventory 13 PASS](08-script-inventory.log), [주석 누락 0](08-comments.log),
+  [CI/local parity 6 PASS](08-ci-parity.log), 각 exit 0. 전체 CI/실제 UI 결과로 확대하지 않는다.
+- [feature inventory coverage](08-feature-coverage.log)는 **exit 1 / 7 PASS·1 FAIL**이다.
+  전체 986개 연결·missing 0이지만 inventorySha256 및 UI-001 owner/dispatch/action,
+  UI-002 owner의 독립 승인 blob/body 결속이 현재 변경과 달라 실패했다.
+  [검증 정책](../../stream-verification.md#검증-정책)에 따라 일반 manifest 재생성으로
+  독립 승인을 복사하지 않았다. 승인된 현재 소스 재검토·결속 갱신이 릴리즈 blocker다.
+- 05 품질 증거는 로컬 prompt·입력/normalize 경로가 유지됐고 07은 별도 Gemini 분기를 추가한
+  변경 범위에 근거해 유지했다. 이번 lifecycle은 품질 12사례를 재실행한 결과가 아니다.
+- 릴리즈 잔여는 [backlog의 6묶음](../../development-backlog.md#v450-잔여-개발과-릴리즈-순서)으로 재산정했다.
+  05 로컬 품질·06 API/UI·07 adapter 구현과 릴리즈 가능 여부를 구분한다.
+
+- 최종 소유 정리: Ollama PID 18054 정상 종료(exit 0) 후 PID/23451 listener 부재 확인,
+  마지막 모델 0개·자식 0개. native root 9개의 부재와 보존 로그 byte 일치를 확인한 뒤
+  `.media_server.test/v450-resume`의 dev/inode/uid를 대조해 제거했다([정리 출력](08-cleanup.json)).
+  승인된 모델 weight는 유지한다. [마감 문서 검사](08-closeout-docs.log)와 `git diff --check`로
+  기록·링크 정합을 확인하며, 위 feature manifest FAIL은 해소되지 않은 상태로 보존한다.

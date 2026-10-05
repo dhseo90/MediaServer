@@ -7,8 +7,9 @@ python3 - "$task_repo" "$@" <<'PY'
 import ctypes, hashlib, http.server, json, os, pathlib, shlex, shutil, subprocess, sys, tempfile, threading, urllib.request, time
 repo=pathlib.Path(sys.argv[1]); build=repo/'build-gst-onnx'
 local=len(sys.argv)==4 and sys.argv[2]=='--local'
+lifecycle=len(sys.argv)==4 and sys.argv[2]=='--local-lifecycle'
 http_mode=len(sys.argv)==3 and sys.argv[2]=='--http-only'
-if len(sys.argv)!=2 and not local and not http_mode: raise RuntimeError('usage: verify_va_review.sh [--local http://127.0.0.1:port | --http-only]')
+if len(sys.argv)!=2 and not local and not lifecycle and not http_mode: raise RuntimeError('usage: verify_va_review.sh [--local http://127.0.0.1:port | --local-lifecycle http://127.0.0.1:port | --http-only]')
 archive=build/'libmedia_server_runtime.a'
 for directory in ('src','include'):
     for source in (repo/directory).rglob('*'):
@@ -43,7 +44,7 @@ try:
                 if mode=='redirect':self.send_header('Location','http://invalid.invalid/must-not-follow')
                 self.send_header('Content-Length',str(len(body)));self.end_headers();self.wfile.write(body)
             except (BrokenPipeError,ConnectionResetError):pass
-    if local:
+    if local or lifecycle:
         endpoint=sys.argv[3]
         if not endpoint.startswith('http://127.0.0.1:') or not endpoint.removeprefix('http://127.0.0.1:').isdigit():raise RuntimeError('numeric loopback only')
         port=endpoint.removeprefix('http://127.0.0.1:')
@@ -60,6 +61,40 @@ try:
         libproc.proc_pid_rusage.restype=ctypes.c_int
         def observe():
             opener=urllib.request.build_opener(urllib.request.ProxyHandler({}))
+            if lifecycle:
+                try:
+                    def models():
+                        with opener.open(endpoint+'/api/ps',timeout=1) as response:return json.load(response)['models']
+                    if models():raise RuntimeError('lifecycle requires initially unloaded model')
+                    for trial in (1,2):
+                        prefix='lifecycle-'+str(trial);limit=time.monotonic()+22
+                        while not (root/(prefix+'-request')).exists():
+                            if stop.wait(.025):return
+                            if time.monotonic()>=limit:raise RuntimeError('lifecycle request signal timeout')
+                        limit=time.monotonic()+20
+                        while True:
+                            loaded=models()
+                            if any(m.get('name',m.get('model'))=='qwen3-vl:8b-instruct-q4_K_M' for m in loaded):break
+                            if stop.wait(.025):return
+                            if time.monotonic()>=limit:raise RuntimeError('lifecycle actual model load timeout')
+                        print('[model-lifecycle]',json.dumps({'trial':trial,'loaded':True,'modelCount':len(loaded)}),flush=True)
+                        (root/(prefix+'-loaded')).write_text('api-ps observed model')
+                        action=root/(prefix+'-action');limit=time.monotonic()+5
+                        while not action.exists():
+                            if stop.wait(.025):return
+                            if time.monotonic()>=limit:raise RuntimeError('lifecycle action signal timeout')
+                        action_time=action.stat().st_mtime;limit=time.monotonic()+max(0,5-(time.time()-action_time))
+                        while True:
+                            empty=not models();elapsed=time.time()-action_time
+                            if empty and elapsed<=5:break
+                            if time.monotonic()>=limit:raise RuntimeError('lifecycle unload exceeds five seconds')
+                            if stop.wait(.025):return
+                        print('[model-lifecycle]',json.dumps({'trial':trial,'unloaded':True,'actionToEmptyMs':round(elapsed*1000)}),flush=True)
+                        (root/(prefix+'-empty')).write_text('api-ps empty within five seconds')
+                        resources['lifecycleTrials']=trial
+                except Exception as exc:
+                    resources['lifecycleError']=str(exc);(root/'lifecycle-error').write_text(type(exc).__name__)
+                return
             while not stop.is_set():
                 try:
                     with opener.open(endpoint+'/api/ps',timeout=1) as response:models=json.load(response)['models']
@@ -86,8 +121,13 @@ try:
         endpoint='http://127.0.0.1:'+str(server.server_port)
         thread=threading.Thread(target=server.serve_forever);thread.start()
         print('[loopback]',endpoint,flush=True)
+    focused_started=time.monotonic()
     subprocess.run(['bash','-c','source "$2/scripts/internal/env_common.sh"; export MEDIA_SERVER_GST_CACHE_DIR="$1/gst-cache"; media_server_apply_homebrew_gst_env || exit; exec "$1/smoke" "$1" "$3" "$4"',
-        'va-review',str(root),str(repo),'--local' if local else '--protocol',endpoint],check=True,timeout=800 if local else 90)
+        'va-review',str(root),str(repo),'--local-lifecycle' if lifecycle else '--local' if local else '--protocol',endpoint],check=True,timeout=60 if lifecycle else 800 if local else 90)
+    if lifecycle:
+        elapsed=time.monotonic()-focused_started
+        if resources.get('lifecycleTrials')!=2 or 'lifecycleError' in resources or elapsed>=60:raise RuntimeError('lifecycle focused gate failed')
+        print('[lifecycle-summary]',json.dumps({'trials':2,'focusedElapsedMs':round(elapsed*1000),'actualUiPass':False,'qualityCasesExecuted':0}),flush=True)
     if local:
         print('[resource]',json.dumps(resources,sort_keys=True),flush=True)
         if 'observationError' in resources or not 0<resources['modelBytes']<=14*1024**3 or not 0<resources['modelPhysicalFootprintBytes']<=14*1024**3 or resources['workspaceBytes']>8*1024**3:
@@ -99,7 +139,7 @@ finally:
     stop.set()
     if monitor:monitor.join(timeout=2)
     if monitor and monitor.is_alive():raise RuntimeError('monitor cleanup failed')
-    if local:print('[resource-final]',json.dumps(resources,sort_keys=True),flush=True)
+    if local or lifecycle:print('[resource-final]',json.dumps(resources,sort_keys=True),flush=True)
     if server:server.shutdown();server.server_close();thread.join(timeout=2)
     if thread and thread.is_alive():raise RuntimeError('loopback server cleanup failed')
     st=root.lstat()

@@ -1,0 +1,29 @@
+{
+  "pid": 18054,
+  "exit": 0,
+  "processAbsent": true,
+  "port": 23451,
+  "listenerAbsent": true,
+  "loadedModelsBeforeStop": 0,
+  "childrenBeforeStop": [],
+  "modelDigest": "0533d74300e4f9bc367d675d4e64ffd073d50ff16a2b4096cc2e8a1cf8c96319",
+  "modelWeightsRetained": true,
+  "nativeRootsAbsent": [
+    "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-va-review-8qe2ep_r",
+    "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-va-review-c55h9ucu",
+    "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-va-review-g89e_7fz",
+    "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-va-review-jvn9z196",
+    "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-va-review-lbmw1_uf",
+    "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-va-review-ltojntzr",
+    "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-va-review-pv8_a0o0",
+    "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-va-review-sx8biw7q",
+    "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-va-review-ujxuqjvo"
+  ],
+  "resumeRoot": "/Users/dhseo/Workspace/mediaServer/.media_server.test/v450-resume",
+  "resumeRootIdentity": {
+    "dev": 16777232,
+    "ino": 168991612,
+    "uid": 501
+  },
+  "resumeRootAbsent": true
+}

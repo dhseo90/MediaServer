@@ -588,6 +588,51 @@ void QualityChecks(const std::filesystem::path& root,const std::string& endpoint
     Check(schemas==12&&semantic>=10&&uncertain==4,"V450-L01 predefined quality gates");
     Check(rss<=4LL*1024*1024*1024,"V450-L01 native process 4GiB budget");
 }
+void LocalLifecycleChecks(const std::filesystem::path& root,const std::string& endpoint) {
+    using namespace recording;
+    const auto started=VaReviewService::Clock::now();std::string error;
+    EvidencePackageStore evidence(root/"lifecycle-evidence",{});VaReviewStore records(root/"lifecycle-records",{});
+    Check(evidence.Recover(&error)&&records.Recover(&error),"V450-L01 lifecycle isolated stores ready");
+    std::vector<EvidencePayload> payloads;auto manifest=Manifest(8,&payloads);
+    for(std::size_t i=0;i<8;++i){
+        auto png=QualityPng(64+int(i)*48);const auto hash=EvidenceSha256(png.data(),png.size());
+        payloads[i].bytes=png;manifest.assets[i].sha256=hash;manifest.assets[i].size_bytes=png.size();
+        auto& frame=manifest.frames[i];frame.width=512;frame.height=288;frame.png_sha256=hash;manifest.references[i+2].sha256=hash;
+    }
+    std::string package;Check(evidence.Publish(manifest,payloads,&package,&error),"V450-L01 lifecycle eight actual PNG frames");
+    const auto waitSignal=[&](const std::string& name,std::chrono::seconds budget){
+        const auto deadline=VaReviewService::Clock::now()+budget;
+        while(!std::filesystem::exists(root/name)){
+            if(std::filesystem::exists(root/"lifecycle-error"))throw std::runtime_error("lifecycle-monitor-failed");
+            if(VaReviewService::Clock::now()>=deadline)throw std::runtime_error("lifecycle-monitor-signal-timeout");
+            std::this_thread::sleep_for(std::chrono::milliseconds(25));
+        }
+    };
+    for(unsigned trial=1;trial<=2;++trial){
+        const auto fds=Fds(),threads=Threads();VaReviewProviderOptions provider;provider.enabled=true;provider.local_endpoint=endpoint;
+        VaReviewService::Options options;options.enabled=true;
+        VaReviewService service(evidence,records,options,MakeVaReviewProvider(provider));
+        Check(service.ready(),"V450-L01 lifecycle worker ready");VaReviewJob job;
+        Check(service.Submit(package,"Compare the first and last visible positions of the red square.","ollama","lifecycle",[](const auto&){return true;},&job,&error),"V450-L01 lifecycle submit");
+        const auto prefix="lifecycle-"+std::to_string(trial);
+        {std::ofstream signal(root/(prefix+"-request"));signal<<"submitted";}
+        waitSignal(prefix+"-loaded",std::chrono::seconds(20));
+        Check(service.Get(job.id,[](const auto&){return true;},&job,&error)&&job.state=="running","V450-L01 actual loaded model while worker running");
+        {std::ofstream signal(root/(prefix+"-action"));signal<<(trial==1?"cancel":"stop");}
+        if(trial==1){Check(service.Cancel(job.id,"lifecycle",false,[](const auto&){return true;},&error),"V450-L01 cancel actual loaded model");
+            job=Done(service,job.id);Check(job.state=="cancelled","V450-L01 cancel finishes before worker Stop");}
+        service.Stop();
+        Check(service.Get(job.id,[](const auto&){return true;},&job,&error)&&job.state=="cancelled"&&job.error=="review-cancelled"&&job.review_id.empty(),"V450-L01 lifecycle cancelled without review ID");
+        std::vector<std::string> ids;Check(records.List(&ids,&error)&&ids.empty(),"V450-L01 lifecycle no published record");
+        Check(Fds()==fds&&Threads()==threads,"V450-L01 actual curl FD and worker thread recovery");
+        int status=0;errno=0;Check(::waitpid(-1,&status,WNOHANG)==-1&&errno==ECHILD,"V450-L01 actual curl child reaped");
+        {std::ofstream signal(root/(prefix+"-done"));signal<<(trial==1?"cancel":"stop");}
+        waitSignal(prefix+"-empty",std::chrono::seconds(6));
+        Check(true,"V450-L01 monitor observed model unloaded within five seconds");
+        std::cout<<"[lifecycle] trial="<<trial<<" action="<<(trial==1?"cancel":"stop")<<" state="<<job.state<<" records=0 fds="<<fds<<" threads="<<threads<<std::endl;
+    }
+    Check(VaReviewService::Clock::now()-started<std::chrono::seconds(60),"V450-L01 lifecycle total focused budget sixty seconds");
+}
 void SeedHttp(const std::filesystem::path& root) {
     using namespace recording;
     std::string error;RecordingRuntimeStorage runtime(root/"recordings");
@@ -613,6 +658,7 @@ int main(int argc,char** argv) {
         if(argc!=4)throw std::runtime_error("owned fixture root, mode, endpoint required");
         gst_init(nullptr,nullptr);
         if(std::string(argv[2])=="--seed")SeedHttp(argv[1]);
+        else if(std::string(argv[2])=="--local-lifecycle")LocalLifecycleChecks(argv[1],argv[3]);
         else if(std::string(argv[2])=="--local")QualityChecks(argv[1],argv[3]);else {
         InputChecks(argv[1]);
         RecordChecks(argv[1]);

@@ -21,6 +21,12 @@ macOS 모델 작업 메모리는 전용 Ollama와 현재 자식의 `proc_pid_rus
 합계(250ms 간격)로 관측한다. Ollama 할당량·RSS+VRAM도 별도 보고하되 unified memory의
 중복 가능 합계를 물리 사용량으로 간주하지 않는다. 14GiB 기준은 유지한다.
 
+`--local-lifecycle http://127.0.0.1:<port>`는 기존 품질 12사례를 재실행하지 않는 별도 단기 수명 검사다.
+실제 provider/worker에 합성 512×288 PNG 8개를 보내고 Python monitor의 `/api/ps` 모델 로드
+직접 관측 신호 이후 생성자 Cancel과 Stop을 각각 한 번 실행한다. 두 작업 모두 cancelled·record 없음,
+curl child reap·worker join·FD/thread 기준값 회복, 종료 신호 이후 5초 안에 모델 목록이 비어야 한다.
+focused 실행 총 60초 이내이며 제품 빌드·실제 UI·장시간 검증을 대체하지 않는다.
+
 06의 `--http-only`는 소유 root·loopback HTTP/RTSP/UDP와 합성 provider를 사용한다.
 실제 계정/session으로 익명·viewer·ops/source 범위·쓰기 권한, strict body, 비활성/외부 guard,
 202 후 결과 조회·불변 재실행·목록·근거, 생성자/admin 취소·다른 운영자 취소 금지,
