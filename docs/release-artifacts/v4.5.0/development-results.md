@@ -1000,3 +1000,34 @@
   최초 shell exit0는 후속 공백 검사 결과이며 링크 검사의 개별 exit는 수집하지 않았다.
   anchor 링크 수정 뒤 `node scripts/internal/verify_docs_links.mjs` 단독 [재검사](37-docs-fixed.log)는
   exit0/failures0이다. 추가 제품·모델 검사는 실행하지 않았다.
+
+
+### 38: 관측 좌표·동일성 연결 보완 — 미완료 관측 체크포인트
+
+- 기준 HEAD/원격 `aaf04f98e37965ef3ddd72d5b3ba1f483541408a`와 clean tree/index를 확인했다.
+  후보 코드 `9c0d0015b0d83ca98c6cbb27aed12f46db4c7de1`은 상대 bbox→원본 중심 변환과
+  직접 검사만 변경한다. core 및 공개 provider/API/UI/record/store는 불변이며 2묶음은 시작하지 않았다.
+- [입력·공식 계약 확인](38-input-contract.json): 37 보존 요청의 PNG12회분을 직접 디코딩해
+  512×288 크기·순서·key/PTS·hash·독립 픽셀을 확인했다. 새 fixture PNG/base64/프레임 message도
+  같은 바이트다. 설치0.21.0 대응 소스와 GGUF metadata상 이 입력은512×288로 계산되지만
+  내부 tensor/최종 prompt의 실행 계측은 아니다. 37의 원 픽셀 응답/FAIL/3/8은 재해석하지 않았다.
+- `cmake --build build-gst-onnx --target media_server_runtime -j 4`: [빌드](38-build.log) exit0.
+  `bash scripts/internal/verify_va_review.sh --observer-only`: [직접 검사](38-offline.log) exit0,
+  assertion132/변환15/기존 core13사례/모델0회. 불량 값 자동 보정 없이 오류로 거부한다.
+- [요청 바이트](38-request-freeze.json)와 [source/모델/options/평가 고정](38-evaluation-freeze.json) 후
+  `bash scripts/internal/verify_va_review.sh --observe-local http://127.0.0.1:23451`을 한 번 실행했다.
+  [원출력](38-observation.log) exit0, 고유 모델6회/재시도0, 명세8사례다. 바이트가 같은 단일2개와
+  정적2개만 각각 응답을 공유한다. 제어 assertion76은 관측 품질 PASS가 아니다.
+- [축별 결과](38-evaluation.json): relative bbox6개는 범위/형식 적합하지만 환산 중심 ±1px 충족0개.
+  가시성10/10·정적 색상1/1(고유 요청 기준), 수신 허용3/6요청→판정5/8명세, 허용 관측에 대한
+  판정5/5는 맞았다. unknown+anchor 모순3요청은 오류로 거부했고 두 좌우 비교의 different 근거는
+  여전히 위치 변화뿐이다. 정상 좌우 지지/반증 미도달. 조합 label5/8, 관측까지 적합3/8(고유2/6)이다.
+  거부 응답의 환산 좌표는 고정 수식에 따른 감사 계산이며 core로 반환된 관측으로 표시하지 않는다.
+- 실제 실행은 개별 최대11.301초/호출 합계56.328초, 자원 한도 이내다. [정리](38-cleanup.json)는
+  native 종료+5초 unload gate 통과(helper6ms/모델0), 별도 사후 모델0, 소유 PID2865 세션 exit0,
+  포트23451·runner·소유 임시 root/조사 script 부재를 구분해 확인했다. 승인 weight와 서버 log는 유지한다.
+- 정확한 위치 추출과 근거 있는 시간 간 대상 연결이 남은 차단이다. 모델/관측 수단 또는 정밀도·
+  동일성 근거가 필요한 지원 관계의 범위를 별도 결정해야 한다. 허용 오차 확대/프롬프트 재시도/
+  질문·저장 버전으로 우회하지 않는다. 같은 구현자의 검토이며 독립 검토나 전체 품질/릴리즈 완료가 아니다.
+- 문서 링크 최초 [검사](38-docs.log)는 새38절 anchor의 Unicode 구분자 불일치1건으로 exit1이다.
+  해당 링크를 기존 기록 문서로 수정한 뒤 [재검사](38-docs-fixed.log) exit0/failures0을 확인했다. 제품/모델 재호출은 없다.

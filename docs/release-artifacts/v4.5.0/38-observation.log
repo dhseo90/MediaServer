@@ -1,0 +1,137 @@
+[fixture] /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-va-review-arwqybp1
+[source] include/recording/va_review_core.h 50c724572c96fc78b8013157cb91005b592282ac7f91c2be925c1a9b81d72498
+[source] include/recording/va_review_input.h 543fcaf1fd950927455e402b45f3747cdb95c81b8521daa4eb22ce4b87c1cc00
+[source] include/recording/va_review_observer.h ed4a10beeca2652de3d746c89d930f85a5e09a2c4a46b9810e1766465790b039
+[source] include/recording/va_review_provider.h 6fbf72805fdfa7286946a7114adaba247ac042a653988b4259c5ef13cdfbe486
+[source] include/recording/va_review_record.h 96f5ac21c232d0b7efcadc94d8472ea980e1c8828577753c77f892210059c27d
+[source] include/recording/va_review_service.h c3c6f9c4a7ebab259af79b2ff16bf1f1e94a0c776d6f612e88cdcb27e9be0baa
+[source] include/recording/va_review_store.h fcfad2a1c692321f5331b014357686abf871ab1b727ebc8093b5d339efc8c80a
+[source] scripts/internal/va_review_cause_diagnostic.h c0e1e0f727bbaa66e5aac17ac38f4392cdfa53d0a693626df96b99e49920250a
+[source] scripts/internal/va_review_contract_replay.json 1aab5af5f30f3c45924a59845af542458058dc242da84c0e1dea5c9084f908b8
+[source] scripts/internal/va_review_core_checks.h f130fea473cfdf721a623c4c3ce69d953e690394517f778cc141eb781b51d2f2
+[source] scripts/internal/va_review_quality_fixture.h 4a46b462b22cf71e092319f885724c67f7506a5a491068577ecd0d632dbe6d64
+[source] scripts/internal/va_review_smoke.cpp d0def466272a1995e87852259cf41ef4f78d1587c7403530b721e846f50d9691
+[source] scripts/internal/verify_va_review.sh df6e1680701e70cc578e1d65b4a82702d3b140ddb5b5b2534feec3de905b077a
+[source] src/recording/va_review_core.cpp 59301ca3a819b11d50fee50b818eb45b1aa737ab6e8e27ee962752988bed8efa
+[source] src/recording/va_review_input.cpp 840df39c6fc11ca99748f55dd1c55d598e060467354dd8fd0a48b1b197cd58f1
+[source] src/recording/va_review_json.h 835cf40e95a3be8297ccf6edde1fbcf7c8aa5ffda3169f368195bc5667d065f3
+[source] src/recording/va_review_observer.cpp 1d517b3ddc48749eb149a784f80d5c275fb51887091ad336ed3539d21e4ea0e7
+[source] src/recording/va_review_provider.cpp b858b651cabe6e8c7c2264c89ed1c3715af30fda5c86332cea2ad2220d3ce5c3
+[source] src/recording/va_review_record.cpp 01e3a5a833b5d9201f6ec9aa1273e0fae1d58bb88d62c94fa684f5ac3bcb457f
+[source] src/recording/va_review_service.cpp 22777f26753c6ea64f65daaa603633a02bc0fd98036ce02460b84887a4edef0d
+[source] src/recording/va_review_store.cpp 27cb631652d84eb98776cf0493959205fdb4888517cb70b6cc8e1d5a4108a0a4
+[source] src/recording/va_review_transport.cpp c38058cffb6cca2b291d6de52bdbdd0c7298b308699c8291f6c242884090a422
+[source] test/fixtures/v450_review_core.json 558d92c7aca53db2a7c213a0949d927703ff955836322ecc19d4358d801d5927
+[source] test/fixtures/v450_review_observer.json ad7f6ebce2170a85b693ef240b11d6063f83bf870dac2b690a722acd026edcb3
+[pass] V450-K05 owned image store
+[pass] V450-K05 independent fixture loaded
+[pass] V450-K05 isolated image input
+[pass] V450-K05 frozen image request
+[pass] V450-K05 isolated image input
+[pass] V450-K05 frozen image request
+[pass] V450-K05 isolated image input
+[pass] V450-K05 frozen image request
+[pass] V450-K05 isolated image input
+[pass] V450-K05 frozen image request
+[pass] V450-K05 isolated image input
+[pass] V450-K05 frozen image request
+[pass] V450-K05 isolated image input
+[pass] V450-K05 frozen image request
+[pass] V450-K05 isolated image input
+[pass] V450-K05 frozen image request
+[pass] V450-K05 isolated image input
+[pass] V450-K05 frozen image request
+[pass] V450-K05 image request bytes equal offline freeze
+[pass] V450-K06 observation evidence store
+[pass] V450-K05 independent fixture loaded
+[pass] V450-K06 resource observation bound
+[pass] V450-K05 isolated image input
+[pass] V450-K06 exact request for deduplication
+[pass] V450-K06 at most six model calls
+[observation-request] {"case":"one-motion","ordinal":1,"requestSha256":"be091d15f302f50605a3c312056ba1b650e78b6915e8919dc5a23847ee87699c"}
+[observation-raw] "{\"model\":\"qwen3-vl:8b-instruct-q4_K_M\",\"created_at\":\"2026-10-05T14:36:33.718731Z\",\"message\":{\"role\":\"assistant\",\"content\":\"{\\\"f0\\\":{\\\"visibility\\\":\\\"visible\\\",\\\"identity\\\":\\\"unknown\\\",\\\"anchor\\\":null,\\\"identityEvidence\\\":\\\"\\\",\\\"bbox_2d\\\":[384,384,448,448],\\\"color\\\":null}}\"},\"done\":true,\"done_reason\":\"stop\",\"total_duration\":7213721666,\"load_duration\":2306272625,\"prompt_eval_count\":618,\"prompt_eval_duration\":2995684459,\"eval_count\":45,\"eval_duration\":1808466958}"
+[pass] V450-K05 transport/time/collection/model guard
+[observation-coordinate] {"case":"one-motion","sourceCall":1,"frame":0,"version":"qwen3vl-bbox1000-center-v1","bbox1000":[384,384,448,448],"centerPixels":[212.992,119.808],"oraclePixels":[232,144],"errorPixels":[-19.008,-24.192]}
+[observation-result] {"case":"one-motion","accepted":true,"error":"","sourceCall":1,"modelExecuted":true,"elapsedMs":7237,"pixelOracleMatch":false,"coreAccepted":true,"decisions":[{"claim":"c0","verdict":"insufficient","gaps":[{"kind":"ordered-time","target":"target0","beginPtsNs":0,"endPtsNs":0,"frames":[0]},{"kind":"identity","target":"target0","beginPtsNs":0,"endPtsNs":0,"frames":[0]}]}],"expected":"insufficient","combinedLabelMatch":true,"publicPosted":false}
+[pass] V450-K05 native resource observation
+[observation-resource] nativePeakRssBytes=44859392
+[pass] V450-K05 native/model limits
+[pass] V450-K06 resource observation bound
+[pass] V450-K05 isolated image input
+[pass] V450-K06 exact request for deduplication
+[pass] V450-K05 transport/time/collection/model guard
+[observation-coordinate] {"case":"one-direction","sourceCall":1,"frame":0,"version":"qwen3vl-bbox1000-center-v1","bbox1000":[384,384,448,448],"centerPixels":[212.992,119.808],"oraclePixels":[232,144],"errorPixels":[-19.008,-24.192]}
+[observation-result] {"case":"one-direction","accepted":true,"error":"","sourceCall":1,"modelExecuted":false,"elapsedMs":0,"pixelOracleMatch":false,"coreAccepted":true,"decisions":[{"claim":"c0","verdict":"insufficient","gaps":[{"kind":"ordered-time","target":"target0","beginPtsNs":0,"endPtsNs":0,"frames":[0]},{"kind":"identity","target":"target0","beginPtsNs":0,"endPtsNs":0,"frames":[0]}]}],"expected":"insufficient","combinedLabelMatch":true,"publicPosted":false}
+[pass] V450-K05 native resource observation
+[observation-resource] nativePeakRssBytes=44859392
+[pass] V450-K05 native/model limits
+[pass] V450-K06 resource observation bound
+[pass] V450-K05 isolated image input
+[pass] V450-K06 exact request for deduplication
+[pass] V450-K06 at most six model calls
+[observation-request] {"case":"blank-hidden","ordinal":2,"requestSha256":"ff2e487e83e16f3fbd9de9e5b1a6b7e22b601f60a3ec455877cb1863dadc08d3"}
+[observation-raw] "{\"model\":\"qwen3-vl:8b-instruct-q4_K_M\",\"created_at\":\"2026-10-05T14:36:43.125058Z\",\"message\":{\"role\":\"assistant\",\"content\":\"{\\\"f0\\\":{\\\"visibility\\\":\\\"not-visible\\\",\\\"identity\\\":\\\"unknown\\\",\\\"anchor\\\":null,\\\"identityEvidence\\\":\\\"\\\",\\\"bbox_2d\\\":null,\\\"color\\\":null},\\\"f1\\\":{\\\"visibility\\\":\\\"not-visible\\\",\\\"identity\\\":\\\"unknown\\\",\\\"anchor\\\":null,\\\"identityEvidence\\\":\\\"\\\",\\\"bbox_2d\\\":null,\\\"color\\\":null}}\"},\"done\":true,\"done_reason\":\"stop\",\"total_duration\":9340901792,\"load_duration\":2238793459,\"prompt_eval_count\":933,\"prompt_eval_duration\":4411941333,\"eval_count\":62,\"eval_duration\":2569787129}"
+[pass] V450-K05 transport/time/collection/model guard
+[observation-result] {"case":"blank-hidden","accepted":true,"error":"","sourceCall":2,"modelExecuted":true,"elapsedMs":9369,"pixelOracleMatch":true,"coreAccepted":true,"decisions":[{"claim":"c0","verdict":"insufficient","gaps":[{"kind":"identity","target":"target0","beginPtsNs":0,"endPtsNs":1000000000,"frames":[0,1]},{"kind":"position","target":"target0","beginPtsNs":0,"endPtsNs":1000000000,"frames":[0,1]}]}],"expected":"insufficient","combinedLabelMatch":true,"publicPosted":false}
+[pass] V450-K05 native resource observation
+[observation-resource] nativePeakRssBytes=44859392
+[pass] V450-K05 native/model limits
+[pass] V450-K06 resource observation bound
+[pass] V450-K05 isolated image input
+[pass] V450-K06 exact request for deduplication
+[pass] V450-K06 at most six model calls
+[observation-request] {"case":"occluded-final","ordinal":3,"requestSha256":"a023c257e9c1970a8962f915ecb56b1d3ec39856731a1ed544ba54b3a1ef0b42"}
+[observation-raw] "{\"model\":\"qwen3-vl:8b-instruct-q4_K_M\",\"created_at\":\"2026-10-05T14:36:53.308277Z\",\"message\":{\"role\":\"assistant\",\"content\":\"{\\\"f0\\\":{\\\"visibility\\\":\\\"visible\\\",\\\"identity\\\":\\\"unknown\\\",\\\"anchor\\\":0,\\\"identityEvidence\\\":\\\"\\\",\\\"bbox_2d\\\":[96,342,192,480],\\\"color\\\":null},\\\"f1\\\":{\\\"visibility\\\":\\\"not-visible\\\",\\\"identity\\\":\\\"unknown\\\",\\\"anchor\\\":null,\\\"identityEvidence\\\":\\\"\\\",\\\"bbox_2d\\\":null,\\\"color\\\":null}}\"},\"done\":true,\"done_reason\":\"stop\",\"total_duration\":10128009166,\"load_duration\":2273550375,\"prompt_eval_count\":933,\"prompt_eval_duration\":4679831917,\"eval_count\":74,\"eval_duration\":3037191667}"
+[pass] V450-K05 transport/time/collection/model guard
+[observation-result] {"case":"occluded-final","accepted":false,"error":"core-invalid-identity","sourceCall":3,"modelExecuted":true,"elapsedMs":10141,"pixelOracleMatch":false,"coreAccepted":false,"decisions":[],"expected":"insufficient","combinedLabelMatch":false,"publicPosted":false}
+[pass] V450-K05 native resource observation
+[observation-resource] nativePeakRssBytes=44859392
+[pass] V450-K05 native/model limits
+[pass] V450-K06 resource observation bound
+[pass] V450-K05 isolated image input
+[pass] V450-K06 exact request for deduplication
+[pass] V450-K06 at most six model calls
+[observation-request] {"case":"two-right","ordinal":4,"requestSha256":"a45ef1cb27cf54888606bfb8f5bd7b77c484aaf23cbd55960257858974cb831e"}
+[observation-raw] "{\"model\":\"qwen3-vl:8b-instruct-q4_K_M\",\"created_at\":\"2026-10-05T14:37:04.440157Z\",\"message\":{\"role\":\"assistant\",\"content\":\"{\\\"f0\\\":{\\\"visibility\\\":\\\"visible\\\",\\\"identity\\\":\\\"unknown\\\",\\\"anchor\\\":0,\\\"identityEvidence\\\":\\\"\\\",\\\"bbox_2d\\\":[96,384,192,576],\\\"color\\\":null},\\\"f1\\\":{\\\"visibility\\\":\\\"visible\\\",\\\"identity\\\":\\\"different\\\",\\\"anchor\\\":1,\\\"identityEvidence\\\":\\\"red square moved right\\\",\\\"bbox_2d\\\":[416,384,512,576],\\\"color\\\":null}}\"},\"done\":true,\"done_reason\":\"stop\",\"total_duration\":11087248458,\"load_duration\":2241890291,\"prompt_eval_count\":933,\"prompt_eval_duration\":4878240625,\"eval_count\":92,\"eval_duration\":3822648218}"
+[pass] V450-K05 transport/time/collection/model guard
+[observation-result] {"case":"two-right","accepted":false,"error":"core-invalid-identity","sourceCall":4,"modelExecuted":true,"elapsedMs":11105,"pixelOracleMatch":false,"coreAccepted":false,"decisions":[],"expected":"supported","combinedLabelMatch":false,"publicPosted":false}
+[pass] V450-K05 native resource observation
+[observation-resource] nativePeakRssBytes=44859392
+[pass] V450-K05 native/model limits
+[pass] V450-K06 resource observation bound
+[pass] V450-K05 isolated image input
+[pass] V450-K06 exact request for deduplication
+[pass] V450-K06 at most six model calls
+[observation-request] {"case":"two-left","ordinal":5,"requestSha256":"47cb27d3075bc776b1bd7a0471d144aad9862c2689ed9e62bc853f707f5fd881"}
+[observation-raw] "{\"model\":\"qwen3-vl:8b-instruct-q4_K_M\",\"created_at\":\"2026-10-05T14:37:15.769039Z\",\"message\":{\"role\":\"assistant\",\"content\":\"{\\\"f0\\\":{\\\"visibility\\\":\\\"visible\\\",\\\"identity\\\":\\\"unknown\\\",\\\"anchor\\\":0,\\\"identityEvidence\\\":\\\"\\\",\\\"bbox_2d\\\":[768,416,864,512],\\\"color\\\":null},\\\"f1\\\":{\\\"visibility\\\":\\\"visible\\\",\\\"identity\\\":\\\"different\\\",\\\"anchor\\\":1,\\\"identityEvidence\\\":\\\"red square moved to left\\\",\\\"bbox_2d\\\":[128,416,224,512],\\\"color\\\":null}}\"},\"done\":true,\"done_reason\":\"stop\",\"total_duration\":11284144875,\"load_duration\":2243297416,\"prompt_eval_count\":933,\"prompt_eval_duration\":5018286667,\"eval_count\":94,\"eval_duration\":3878983619}"
+[pass] V450-K05 transport/time/collection/model guard
+[observation-result] {"case":"two-left","accepted":false,"error":"core-invalid-identity","sourceCall":5,"modelExecuted":true,"elapsedMs":11301,"pixelOracleMatch":false,"coreAccepted":false,"decisions":[],"expected":"contradicted","combinedLabelMatch":false,"publicPosted":false}
+[pass] V450-K05 native resource observation
+[observation-resource] nativePeakRssBytes=44859392
+[pass] V450-K05 native/model limits
+[pass] V450-K06 resource observation bound
+[pass] V450-K05 isolated image input
+[pass] V450-K06 exact request for deduplication
+[pass] V450-K06 at most six model calls
+[observation-request] {"case":"static-red","ordinal":6,"requestSha256":"cae10a0e3079683ce9f1fa8c34688a3463713220d53c15a04588b436659f715c"}
+[observation-raw] "{\"model\":\"qwen3-vl:8b-instruct-q4_K_M\",\"created_at\":\"2026-10-05T14:37:22.949527Z\",\"message\":{\"role\":\"assistant\",\"content\":\"{\\\"f0\\\":{\\\"visibility\\\":\\\"visible\\\",\\\"identity\\\":\\\"same\\\",\\\"anchor\\\":0,\\\"identityEvidence\\\":\\\"red square in center\\\",\\\"bbox_2d\\\":null,\\\"color\\\":\\\"red\\\"}}\"},\"done\":true,\"done_reason\":\"stop\",\"total_duration\":7145525417,\"load_duration\":2239819959,\"prompt_eval_count\":593,\"prompt_eval_duration\":3351894375,\"eval_count\":36,\"eval_duration\":1443133669}"
+[pass] V450-K05 transport/time/collection/model guard
+[observation-result] {"case":"static-red","accepted":true,"error":"","sourceCall":6,"modelExecuted":true,"elapsedMs":7175,"pixelOracleMatch":true,"coreAccepted":true,"decisions":[{"claim":"c0","verdict":"supported","gaps":[]}],"expected":"supported","combinedLabelMatch":true,"publicPosted":false}
+[pass] V450-K05 native resource observation
+[observation-resource] nativePeakRssBytes=44859392
+[pass] V450-K05 native/model limits
+[pass] V450-K06 resource observation bound
+[pass] V450-K05 isolated image input
+[pass] V450-K06 exact request for deduplication
+[pass] V450-K05 transport/time/collection/model guard
+[observation-result] {"case":"static-blue","accepted":true,"error":"","sourceCall":6,"modelExecuted":false,"elapsedMs":0,"pixelOracleMatch":true,"coreAccepted":true,"decisions":[{"claim":"c0","verdict":"contradicted","gaps":[]}],"expected":"contradicted","combinedLabelMatch":true,"publicPosted":false}
+[pass] V450-K05 native resource observation
+[observation-resource] nativePeakRssBytes=44859392
+[pass] V450-K05 native/model limits
+[pass] V450-K06 six image calls, eight server cases, no retries
+[summary] pass=76 fail=0
+[resource] {"modelBytes": 7972486720, "modelPhysicalFootprintBytes": 7690378848, "modelRssPlusVramBytes": 15455141440, "modelVramBytes": 7972486720, "workspaceBytes": 184935686}
+[model-unload] {"observations": [{"elapsedMs": 6, "modelCount": 0}]}
+[cleanup] modelUnloaded=true
+[resource-final] {"modelBytes": 7972486720, "modelPhysicalFootprintBytes": 7690378848, "modelRssPlusVramBytes": 15455141440, "modelVramBytes": 7972486720, "workspaceBytes": 184935686}
+[cleanup] removed=true

@@ -1,0 +1,1007 @@
+{
+  "scope": "관측 좌표·동일성 연결 보완 — 미완료 관측 체크포인트",
+  "status": "OBSERVATION_REQUIREMENTS_NOT_MET",
+  "base": "aaf04f98e37965ef3ddd72d5b3ba1f483541408a",
+  "codeCommit": "9c0d0015b0d83ca98c6cbb27aed12f46db4c7de1",
+  "reviewer": "same implementing assistant, not independent review",
+  "actualCommand": "bash scripts/internal/verify_va_review.sh --observe-local http://127.0.0.1:23451",
+  "actualExit": 0,
+  "frozenCandidateUnchanged": true,
+  "actualModelCalls": 6,
+  "semanticServerCases": 8,
+  "retries": 0,
+  "normalStopResponses": 6,
+  "acceptedUniqueObservations": 3,
+  "acceptedSemanticCases": 5,
+  "invalidIdentityUniqueResponses": 3,
+  "modelNonNullBoxes": 6,
+  "validRelativeBoxes": 6,
+  "coordinateWithinOnePixel": 0,
+  "visibilityMatches": 10,
+  "visibilityEvaluated": 10,
+  "staticColorMatches": 1,
+  "staticColorEvaluated": 1,
+  "acceptedCoreDecisionsCorrect": {
+    "passed": 5,
+    "evaluated": 5
+  },
+  "invalidInputRejected": 3,
+  "combinedLabelMatch": 5,
+  "observationQuality": {
+    "uniqueRequestsPassed": 2,
+    "uniqueRequestsEvaluated": 6,
+    "semanticCasesPassed": 3,
+    "semanticCasesEvaluated": 8
+  },
+  "combinedQualityPass": 3,
+  "normalTemporalControlsReached": {
+    "supported": false,
+    "contradicted": false
+  },
+  "elapsedMsSumUniqueCalls": 56328,
+  "elapsedMsMax": 11301,
+  "calls": [
+    {
+      "case": "one-motion",
+      "ordinal": 1,
+      "requestSha256": "be091d15f302f50605a3c312056ba1b650e78b6915e8919dc5a23847ee87699c",
+      "requestLine": 51,
+      "rawSource": {
+        "path": "38-observation.log",
+        "line": 52,
+        "sha256": "23e756851ab315a7202f0b0942bbb5d772c22eb2c2cfbcb385463af90419d9ed"
+      },
+      "totalDurationNs": 7213721666,
+      "evalCount": 45,
+      "semanticCases": [
+        "one-motion",
+        "one-direction"
+      ],
+      "elapsedMs": 7237,
+      "decoderAccepted": true,
+      "decoderError": "",
+      "frames": [
+        {
+          "frame": 0,
+          "key": "f0",
+          "ptsNs": 0,
+          "pngSha256": "2a019820ff7e8cc68e0dce82b9f56e4a566da1dd19cbaa925aea3ce6b7b719f0",
+          "originalSize": [
+            512,
+            288
+          ],
+          "originalPixelOracle": {
+            "bboxExclusive": [
+              208,
+              120,
+              256,
+              168
+            ],
+            "center": [
+              232.0,
+              144.0
+            ],
+            "visible": "visible",
+            "color": "red"
+          },
+          "modelRaw": {
+            "visibility": "visible",
+            "identity": "unknown",
+            "anchor": null,
+            "identityEvidence": "",
+            "bbox_2d": [
+              384,
+              384,
+              448,
+              448
+            ],
+            "color": null
+          },
+          "coordinate": {
+            "unit": "relative integer bbox edges [0,1000] inclusive",
+            "conversionVersion": "qwen3vl-bbox1000-center-v1",
+            "bboxFormAndRangeValid": true,
+            "centerPixels": [
+              212.992,
+              119.808
+            ],
+            "conversionProvenance": "actual adapter trace",
+            "errorPixels": [
+              -19.008,
+              -24.192
+            ],
+            "withinExistingOnePixelOracle": false
+          },
+          "visibilityMatch": true,
+          "colorMatch": null,
+          "identityAssessment": "UNKNOWN_PRESERVED",
+          "physicalIdentityEvidenceProvidedByFixture": false,
+          "generatorKnowsSameConceptualSquare": true
+        }
+      ]
+    },
+    {
+      "case": "blank-hidden",
+      "ordinal": 2,
+      "requestSha256": "ff2e487e83e16f3fbd9de9e5b1a6b7e22b601f60a3ec455877cb1863dadc08d3",
+      "requestLine": 72,
+      "rawSource": {
+        "path": "38-observation.log",
+        "line": 73,
+        "sha256": "b4571a758967c90e3dfea92b65bf4f1fbf3fe7ab2d0ea7d1c333ebcd3daec876"
+      },
+      "totalDurationNs": 9340901792,
+      "evalCount": 62,
+      "semanticCases": [
+        "blank-hidden"
+      ],
+      "elapsedMs": 9369,
+      "decoderAccepted": true,
+      "decoderError": "",
+      "frames": [
+        {
+          "frame": 0,
+          "key": "f0",
+          "ptsNs": 0,
+          "pngSha256": "e186d1adb71171aad65968d03e6016a50c64028cefce5e6778303138b01e4db0",
+          "originalSize": [
+            512,
+            288
+          ],
+          "originalPixelOracle": {
+            "bboxExclusive": null,
+            "center": null,
+            "visible": "not-visible",
+            "color": null
+          },
+          "modelRaw": {
+            "visibility": "not-visible",
+            "identity": "unknown",
+            "anchor": null,
+            "identityEvidence": "",
+            "bbox_2d": null,
+            "color": null
+          },
+          "coordinate": {
+            "unit": "relative integer bbox edges [0,1000] inclusive",
+            "conversionVersion": "qwen3vl-bbox1000-center-v1",
+            "bboxFormAndRangeValid": null,
+            "centerPixels": null,
+            "conversionProvenance": "null/not requested",
+            "errorPixels": null,
+            "withinExistingOnePixelOracle": true
+          },
+          "visibilityMatch": true,
+          "colorMatch": null,
+          "identityAssessment": "UNKNOWN_PRESERVED",
+          "physicalIdentityEvidenceProvidedByFixture": false,
+          "generatorKnowsSameConceptualSquare": false
+        },
+        {
+          "frame": 1,
+          "key": "f1",
+          "ptsNs": 1000000000,
+          "pngSha256": "e186d1adb71171aad65968d03e6016a50c64028cefce5e6778303138b01e4db0",
+          "originalSize": [
+            512,
+            288
+          ],
+          "originalPixelOracle": {
+            "bboxExclusive": null,
+            "center": null,
+            "visible": "not-visible",
+            "color": null
+          },
+          "modelRaw": {
+            "visibility": "not-visible",
+            "identity": "unknown",
+            "anchor": null,
+            "identityEvidence": "",
+            "bbox_2d": null,
+            "color": null
+          },
+          "coordinate": {
+            "unit": "relative integer bbox edges [0,1000] inclusive",
+            "conversionVersion": "qwen3vl-bbox1000-center-v1",
+            "bboxFormAndRangeValid": null,
+            "centerPixels": null,
+            "conversionProvenance": "null/not requested",
+            "errorPixels": null,
+            "withinExistingOnePixelOracle": true
+          },
+          "visibilityMatch": true,
+          "colorMatch": null,
+          "identityAssessment": "UNKNOWN_PRESERVED",
+          "physicalIdentityEvidenceProvidedByFixture": false,
+          "generatorKnowsSameConceptualSquare": false
+        }
+      ]
+    },
+    {
+      "case": "occluded-final",
+      "ordinal": 3,
+      "requestSha256": "a023c257e9c1970a8962f915ecb56b1d3ec39856731a1ed544ba54b3a1ef0b42",
+      "requestLine": 83,
+      "rawSource": {
+        "path": "38-observation.log",
+        "line": 84,
+        "sha256": "a07d6a2ca97d71489747f254c825ad1b2916ad64dbecc9e4367529d6ca353ab9"
+      },
+      "totalDurationNs": 10128009166,
+      "evalCount": 74,
+      "semanticCases": [
+        "occluded-final"
+      ],
+      "elapsedMs": 10141,
+      "decoderAccepted": false,
+      "decoderError": "core-invalid-identity",
+      "frames": [
+        {
+          "frame": 0,
+          "key": "f0",
+          "ptsNs": 0,
+          "pngSha256": "f79b82bff4f500c729c54a54f7c9546b3414ad136a38ad4713f56fc5569559df",
+          "originalSize": [
+            512,
+            288
+          ],
+          "originalPixelOracle": {
+            "bboxExclusive": [
+              64,
+              120,
+              112,
+              168
+            ],
+            "center": [
+              88.0,
+              144.0
+            ],
+            "visible": "visible",
+            "color": "red"
+          },
+          "modelRaw": {
+            "visibility": "visible",
+            "identity": "unknown",
+            "anchor": 0,
+            "identityEvidence": "",
+            "bbox_2d": [
+              96,
+              342,
+              192,
+              480
+            ],
+            "color": null
+          },
+          "coordinate": {
+            "unit": "relative integer bbox edges [0,1000] inclusive",
+            "conversionVersion": "qwen3vl-bbox1000-center-v1",
+            "bboxFormAndRangeValid": true,
+            "centerPixels": [
+              73.728,
+              118.368
+            ],
+            "conversionProvenance": "independent audit using frozen adapter formula; whole observation rejected and not returned to core",
+            "errorPixels": [
+              -14.272,
+              -25.632
+            ],
+            "withinExistingOnePixelOracle": false
+          },
+          "visibilityMatch": true,
+          "colorMatch": null,
+          "identityAssessment": "INVALID_UNKNOWN_WITH_ANCHOR",
+          "physicalIdentityEvidenceProvidedByFixture": false,
+          "generatorKnowsSameConceptualSquare": true
+        },
+        {
+          "frame": 1,
+          "key": "f1",
+          "ptsNs": 1000000000,
+          "pngSha256": "e186d1adb71171aad65968d03e6016a50c64028cefce5e6778303138b01e4db0",
+          "originalSize": [
+            512,
+            288
+          ],
+          "originalPixelOracle": {
+            "bboxExclusive": null,
+            "center": null,
+            "visible": "not-visible",
+            "color": null
+          },
+          "modelRaw": {
+            "visibility": "not-visible",
+            "identity": "unknown",
+            "anchor": null,
+            "identityEvidence": "",
+            "bbox_2d": null,
+            "color": null
+          },
+          "coordinate": {
+            "unit": "relative integer bbox edges [0,1000] inclusive",
+            "conversionVersion": "qwen3vl-bbox1000-center-v1",
+            "bboxFormAndRangeValid": null,
+            "centerPixels": null,
+            "conversionProvenance": "null/not requested",
+            "errorPixels": null,
+            "withinExistingOnePixelOracle": true
+          },
+          "visibilityMatch": true,
+          "colorMatch": null,
+          "identityAssessment": "UNKNOWN_PRESERVED",
+          "physicalIdentityEvidenceProvidedByFixture": false,
+          "generatorKnowsSameConceptualSquare": false
+        }
+      ]
+    },
+    {
+      "case": "two-right",
+      "ordinal": 4,
+      "requestSha256": "a45ef1cb27cf54888606bfb8f5bd7b77c484aaf23cbd55960257858974cb831e",
+      "requestLine": 94,
+      "rawSource": {
+        "path": "38-observation.log",
+        "line": 95,
+        "sha256": "aa089fd753484c4a7f56a2ef4a782a58d2e3634f15fca82d5082f416d988451a"
+      },
+      "totalDurationNs": 11087248458,
+      "evalCount": 92,
+      "semanticCases": [
+        "two-right"
+      ],
+      "elapsedMs": 11105,
+      "decoderAccepted": false,
+      "decoderError": "core-invalid-identity",
+      "frames": [
+        {
+          "frame": 0,
+          "key": "f0",
+          "ptsNs": 0,
+          "pngSha256": "f79b82bff4f500c729c54a54f7c9546b3414ad136a38ad4713f56fc5569559df",
+          "originalSize": [
+            512,
+            288
+          ],
+          "originalPixelOracle": {
+            "bboxExclusive": [
+              64,
+              120,
+              112,
+              168
+            ],
+            "center": [
+              88.0,
+              144.0
+            ],
+            "visible": "visible",
+            "color": "red"
+          },
+          "modelRaw": {
+            "visibility": "visible",
+            "identity": "unknown",
+            "anchor": 0,
+            "identityEvidence": "",
+            "bbox_2d": [
+              96,
+              384,
+              192,
+              576
+            ],
+            "color": null
+          },
+          "coordinate": {
+            "unit": "relative integer bbox edges [0,1000] inclusive",
+            "conversionVersion": "qwen3vl-bbox1000-center-v1",
+            "bboxFormAndRangeValid": true,
+            "centerPixels": [
+              73.728,
+              138.24
+            ],
+            "conversionProvenance": "independent audit using frozen adapter formula; whole observation rejected and not returned to core",
+            "errorPixels": [
+              -14.272,
+              -5.76
+            ],
+            "withinExistingOnePixelOracle": false
+          },
+          "visibilityMatch": true,
+          "colorMatch": null,
+          "identityAssessment": "INVALID_UNKNOWN_WITH_ANCHOR",
+          "physicalIdentityEvidenceProvidedByFixture": false,
+          "generatorKnowsSameConceptualSquare": true
+        },
+        {
+          "frame": 1,
+          "key": "f1",
+          "ptsNs": 1000000000,
+          "pngSha256": "343a93a516ced906c3576140cfa471cb870dc0051cb6363dcd65d6819375b76d",
+          "originalSize": [
+            512,
+            288
+          ],
+          "originalPixelOracle": {
+            "bboxExclusive": [
+              400,
+              120,
+              448,
+              168
+            ],
+            "center": [
+              424.0,
+              144.0
+            ],
+            "visible": "visible",
+            "color": "red"
+          },
+          "modelRaw": {
+            "visibility": "visible",
+            "identity": "different",
+            "anchor": 1,
+            "identityEvidence": "red square moved right",
+            "bbox_2d": [
+              416,
+              384,
+              512,
+              576
+            ],
+            "color": null
+          },
+          "coordinate": {
+            "unit": "relative integer bbox edges [0,1000] inclusive",
+            "conversionVersion": "qwen3vl-bbox1000-center-v1",
+            "bboxFormAndRangeValid": true,
+            "centerPixels": [
+              237.568,
+              138.24
+            ],
+            "conversionProvenance": "independent audit using frozen adapter formula; whole observation rejected and not returned to core",
+            "errorPixels": [
+              -186.432,
+              -5.76
+            ],
+            "withinExistingOnePixelOracle": false
+          },
+          "visibilityMatch": true,
+          "colorMatch": null,
+          "identityAssessment": "FAIL_MOVEMENT_IS_NOT_DISTINCT_IDENTITY",
+          "physicalIdentityEvidenceProvidedByFixture": false,
+          "generatorKnowsSameConceptualSquare": true
+        }
+      ]
+    },
+    {
+      "case": "two-left",
+      "ordinal": 5,
+      "requestSha256": "47cb27d3075bc776b1bd7a0471d144aad9862c2689ed9e62bc853f707f5fd881",
+      "requestLine": 105,
+      "rawSource": {
+        "path": "38-observation.log",
+        "line": 106,
+        "sha256": "130f28f86b7233b1c65b7358ea213de49855ea7acdffa8640650467c11b301d2"
+      },
+      "totalDurationNs": 11284144875,
+      "evalCount": 94,
+      "semanticCases": [
+        "two-left"
+      ],
+      "elapsedMs": 11301,
+      "decoderAccepted": false,
+      "decoderError": "core-invalid-identity",
+      "frames": [
+        {
+          "frame": 0,
+          "key": "f0",
+          "ptsNs": 0,
+          "pngSha256": "343a93a516ced906c3576140cfa471cb870dc0051cb6363dcd65d6819375b76d",
+          "originalSize": [
+            512,
+            288
+          ],
+          "originalPixelOracle": {
+            "bboxExclusive": [
+              400,
+              120,
+              448,
+              168
+            ],
+            "center": [
+              424.0,
+              144.0
+            ],
+            "visible": "visible",
+            "color": "red"
+          },
+          "modelRaw": {
+            "visibility": "visible",
+            "identity": "unknown",
+            "anchor": 0,
+            "identityEvidence": "",
+            "bbox_2d": [
+              768,
+              416,
+              864,
+              512
+            ],
+            "color": null
+          },
+          "coordinate": {
+            "unit": "relative integer bbox edges [0,1000] inclusive",
+            "conversionVersion": "qwen3vl-bbox1000-center-v1",
+            "bboxFormAndRangeValid": true,
+            "centerPixels": [
+              417.792,
+              133.632
+            ],
+            "conversionProvenance": "independent audit using frozen adapter formula; whole observation rejected and not returned to core",
+            "errorPixels": [
+              -6.208,
+              -10.368
+            ],
+            "withinExistingOnePixelOracle": false
+          },
+          "visibilityMatch": true,
+          "colorMatch": null,
+          "identityAssessment": "INVALID_UNKNOWN_WITH_ANCHOR",
+          "physicalIdentityEvidenceProvidedByFixture": false,
+          "generatorKnowsSameConceptualSquare": true
+        },
+        {
+          "frame": 1,
+          "key": "f1",
+          "ptsNs": 1000000000,
+          "pngSha256": "f79b82bff4f500c729c54a54f7c9546b3414ad136a38ad4713f56fc5569559df",
+          "originalSize": [
+            512,
+            288
+          ],
+          "originalPixelOracle": {
+            "bboxExclusive": [
+              64,
+              120,
+              112,
+              168
+            ],
+            "center": [
+              88.0,
+              144.0
+            ],
+            "visible": "visible",
+            "color": "red"
+          },
+          "modelRaw": {
+            "visibility": "visible",
+            "identity": "different",
+            "anchor": 1,
+            "identityEvidence": "red square moved to left",
+            "bbox_2d": [
+              128,
+              416,
+              224,
+              512
+            ],
+            "color": null
+          },
+          "coordinate": {
+            "unit": "relative integer bbox edges [0,1000] inclusive",
+            "conversionVersion": "qwen3vl-bbox1000-center-v1",
+            "bboxFormAndRangeValid": true,
+            "centerPixels": [
+              90.112,
+              133.632
+            ],
+            "conversionProvenance": "independent audit using frozen adapter formula; whole observation rejected and not returned to core",
+            "errorPixels": [
+              2.112,
+              -10.368
+            ],
+            "withinExistingOnePixelOracle": false
+          },
+          "visibilityMatch": true,
+          "colorMatch": null,
+          "identityAssessment": "FAIL_MOVEMENT_IS_NOT_DISTINCT_IDENTITY",
+          "physicalIdentityEvidenceProvidedByFixture": false,
+          "generatorKnowsSameConceptualSquare": true
+        }
+      ]
+    },
+    {
+      "case": "static-red",
+      "ordinal": 6,
+      "requestSha256": "cae10a0e3079683ce9f1fa8c34688a3463713220d53c15a04588b436659f715c",
+      "requestLine": 116,
+      "rawSource": {
+        "path": "38-observation.log",
+        "line": 117,
+        "sha256": "db3f7ef7f0e550631a9504bf77dfac99f31fae93cb47c989c37b90448b16f470"
+      },
+      "totalDurationNs": 7145525417,
+      "evalCount": 36,
+      "semanticCases": [
+        "static-red",
+        "static-blue"
+      ],
+      "elapsedMs": 7175,
+      "decoderAccepted": true,
+      "decoderError": "",
+      "frames": [
+        {
+          "frame": 0,
+          "key": "f0",
+          "ptsNs": 0,
+          "pngSha256": "2a019820ff7e8cc68e0dce82b9f56e4a566da1dd19cbaa925aea3ce6b7b719f0",
+          "originalSize": [
+            512,
+            288
+          ],
+          "originalPixelOracle": {
+            "bboxExclusive": [
+              208,
+              120,
+              256,
+              168
+            ],
+            "center": [
+              232.0,
+              144.0
+            ],
+            "visible": "visible",
+            "color": "red"
+          },
+          "modelRaw": {
+            "visibility": "visible",
+            "identity": "same",
+            "anchor": 0,
+            "identityEvidence": "red square in center",
+            "bbox_2d": null,
+            "color": "red"
+          },
+          "coordinate": {
+            "unit": "relative integer bbox edges [0,1000] inclusive",
+            "conversionVersion": "qwen3vl-bbox1000-center-v1",
+            "bboxFormAndRangeValid": null,
+            "centerPixels": null,
+            "conversionProvenance": "null/not requested",
+            "errorPixels": null,
+            "withinExistingOnePixelOracle": null
+          },
+          "visibilityMatch": true,
+          "colorMatch": true,
+          "identityAssessment": "VALID_SINGLE_FRAME_DESCRIPTION_MATCH_ONLY",
+          "physicalIdentityEvidenceProvidedByFixture": false,
+          "generatorKnowsSameConceptualSquare": true
+        }
+      ]
+    }
+  ],
+  "cases": [
+    {
+      "case": "one-motion",
+      "accepted": true,
+      "error": "",
+      "sourceCall": 1,
+      "modelExecuted": true,
+      "elapsedMs": 7237,
+      "pixelOracleMatch": false,
+      "coreAccepted": true,
+      "decisions": [
+        {
+          "claim": "c0",
+          "verdict": "insufficient",
+          "gaps": [
+            {
+              "kind": "ordered-time",
+              "target": "target0",
+              "beginPtsNs": 0,
+              "endPtsNs": 0,
+              "frames": [
+                0
+              ]
+            },
+            {
+              "kind": "identity",
+              "target": "target0",
+              "beginPtsNs": 0,
+              "endPtsNs": 0,
+              "frames": [
+                0
+              ]
+            }
+          ]
+        }
+      ],
+      "expected": "insufficient",
+      "combinedLabelMatch": true,
+      "publicPosted": false,
+      "resultLine": 55,
+      "givenObservationServerAssessment": {
+        "result": "PASS",
+        "reason": "one time plus unknown identity => ordered-time and identity gaps; wrong coordinates do not affect this correct insufficiency"
+      },
+      "observationQualityPass": false,
+      "combinedQualityPass": false
+    },
+    {
+      "case": "one-direction",
+      "accepted": true,
+      "error": "",
+      "sourceCall": 1,
+      "modelExecuted": false,
+      "elapsedMs": 0,
+      "pixelOracleMatch": false,
+      "coreAccepted": true,
+      "decisions": [
+        {
+          "claim": "c0",
+          "verdict": "insufficient",
+          "gaps": [
+            {
+              "kind": "ordered-time",
+              "target": "target0",
+              "beginPtsNs": 0,
+              "endPtsNs": 0,
+              "frames": [
+                0
+              ]
+            },
+            {
+              "kind": "identity",
+              "target": "target0",
+              "beginPtsNs": 0,
+              "endPtsNs": 0,
+              "frames": [
+                0
+              ]
+            }
+          ]
+        }
+      ],
+      "expected": "insufficient",
+      "combinedLabelMatch": true,
+      "publicPosted": false,
+      "resultLine": 64,
+      "givenObservationServerAssessment": {
+        "result": "PASS",
+        "reason": "same actual response as one-motion, separate explicit ClaimSpec; same gaps"
+      },
+      "observationQualityPass": false,
+      "combinedQualityPass": false
+    },
+    {
+      "case": "blank-hidden",
+      "accepted": true,
+      "error": "",
+      "sourceCall": 2,
+      "modelExecuted": true,
+      "elapsedMs": 9369,
+      "pixelOracleMatch": true,
+      "coreAccepted": true,
+      "decisions": [
+        {
+          "claim": "c0",
+          "verdict": "insufficient",
+          "gaps": [
+            {
+              "kind": "identity",
+              "target": "target0",
+              "beginPtsNs": 0,
+              "endPtsNs": 1000000000,
+              "frames": [
+                0,
+                1
+              ]
+            },
+            {
+              "kind": "position",
+              "target": "target0",
+              "beginPtsNs": 0,
+              "endPtsNs": 1000000000,
+              "frames": [
+                0,
+                1
+              ]
+            }
+          ]
+        }
+      ],
+      "expected": "insufficient",
+      "combinedLabelMatch": true,
+      "publicPosted": false,
+      "resultLine": 75,
+      "givenObservationServerAssessment": {
+        "result": "PASS",
+        "reason": "both endpoints lack identity and position; not movement contradiction"
+      },
+      "observationQualityPass": true,
+      "combinedQualityPass": true
+    },
+    {
+      "case": "occluded-final",
+      "accepted": false,
+      "error": "core-invalid-identity",
+      "sourceCall": 3,
+      "modelExecuted": true,
+      "elapsedMs": 10141,
+      "pixelOracleMatch": false,
+      "coreAccepted": false,
+      "decisions": [],
+      "expected": "insufficient",
+      "combinedLabelMatch": false,
+      "publicPosted": false,
+      "resultLine": 86,
+      "givenObservationServerAssessment": {
+        "result": "INVALID_INPUT_REJECTED",
+        "reason": "unknown with non-null anchor is malformed; no normal insufficient produced"
+      },
+      "observationQualityPass": false,
+      "combinedQualityPass": false
+    },
+    {
+      "case": "two-right",
+      "accepted": false,
+      "error": "core-invalid-identity",
+      "sourceCall": 4,
+      "modelExecuted": true,
+      "elapsedMs": 11105,
+      "pixelOracleMatch": false,
+      "coreAccepted": false,
+      "decisions": [],
+      "expected": "supported",
+      "combinedLabelMatch": false,
+      "publicPosted": false,
+      "resultLine": 97,
+      "givenObservationServerAssessment": {
+        "result": "INVALID_INPUT_REJECTED",
+        "reason": "unknown with anchor is malformed; normal support control not reached"
+      },
+      "observationQualityPass": false,
+      "combinedQualityPass": false
+    },
+    {
+      "case": "two-left",
+      "accepted": false,
+      "error": "core-invalid-identity",
+      "sourceCall": 5,
+      "modelExecuted": true,
+      "elapsedMs": 11301,
+      "pixelOracleMatch": false,
+      "coreAccepted": false,
+      "decisions": [],
+      "expected": "contradicted",
+      "combinedLabelMatch": false,
+      "publicPosted": false,
+      "resultLine": 108,
+      "givenObservationServerAssessment": {
+        "result": "INVALID_INPUT_REJECTED",
+        "reason": "unknown with anchor is malformed; normal contradiction control not reached"
+      },
+      "observationQualityPass": false,
+      "combinedQualityPass": false
+    },
+    {
+      "case": "static-red",
+      "accepted": true,
+      "error": "",
+      "sourceCall": 6,
+      "modelExecuted": true,
+      "elapsedMs": 7175,
+      "pixelOracleMatch": true,
+      "coreAccepted": true,
+      "decisions": [
+        {
+          "claim": "c0",
+          "verdict": "supported",
+          "gaps": []
+        }
+      ],
+      "expected": "supported",
+      "combinedLabelMatch": true,
+      "publicPosted": false,
+      "resultLine": 119,
+      "givenObservationServerAssessment": {
+        "result": "PASS",
+        "reason": "red observation matches required red; supported"
+      },
+      "observationQualityPass": true,
+      "combinedQualityPass": true
+    },
+    {
+      "case": "static-blue",
+      "accepted": true,
+      "error": "",
+      "sourceCall": 6,
+      "modelExecuted": false,
+      "elapsedMs": 0,
+      "pixelOracleMatch": true,
+      "coreAccepted": true,
+      "decisions": [
+        {
+          "claim": "c0",
+          "verdict": "contradicted",
+          "gaps": []
+        }
+      ],
+      "expected": "contradicted",
+      "combinedLabelMatch": true,
+      "publicPosted": false,
+      "resultLine": 127,
+      "givenObservationServerAssessment": {
+        "result": "PASS",
+        "reason": "same red observation contradicts required blue; contradicted"
+      },
+      "observationQualityPass": true,
+      "combinedQualityPass": true
+    }
+  ],
+  "resources": {
+    "modelBytes": 7972486720,
+    "modelPhysicalFootprintBytes": 7690378848,
+    "modelRssPlusVramBytes": 15455141440,
+    "modelVramBytes": 7972486720,
+    "workspaceBytes": 184935686,
+    "nativePeakRssBytes": 44859392
+  },
+  "fiveSecondUnloadObservations": {
+    "observations": [
+      {
+        "elapsedMs": 6,
+        "modelCount": 0
+      }
+    ]
+  },
+  "cleanup": "38-cleanup.json",
+  "offline": {
+    "command": "bash scripts/internal/verify_va_review.sh --observer-only",
+    "exit": 0,
+    "log": "38-offline.log",
+    "assertions": 132,
+    "independentConversionCases": 15,
+    "existingCoreRegressionCases": 13,
+    "modelCalls": 0,
+    "buildCommand": "cmake --build build-gst-onnx --target media_server_runtime -j 4",
+    "buildExit": 0,
+    "buildLog": "38-build.log"
+  },
+  "interpretation": {
+    "coordinateExpression": "explicit bbox1000 schema and decoder/transform agree; all six raw boxes pass range/shape; old37 pixel FAIL not reinterpreted",
+    "actualLocation": "all six distinct visible position observations remain outside ±1px after fixed original-size conversion; relative contract does not prove grounding accuracy or identify internal model resolution",
+    "identity": "two temporal responses still declare different only because position changed; three responses pair unknown with anchor0 and are rejected; no visual physical-identity success",
+    "suppliedIdentityEvidence": "generator conceptually keeps one square; pixels provide equal generic appearance and frame times, no tracking ID or unique physical cue; honest unknown remains allowed but cannot satisfy temporal support/refute",
+    "nextBlocker": "precise position extraction and evidence-supported cross-time identity are unmet; broader prompt prohibitions or storage/question changes are not a solution demonstrated here",
+    "nextDecision": "separately decide observation means/model or required precision/identity-backed relation scope; no automatic model evaluation or threshold change",
+    "bundle2": "not ready for public connection; do not start result/store/API/UI implementation",
+    "coreAndPublicPaths": "unchanged; no claim existing public false passes are blocked"
+  },
+  "limitations": [
+    "No free-question interpretation or generated-question check",
+    "No overall model/CCTV quality, UI, longrun or release PASS",
+    "No repetition estimate; one fixed candidate and no retry",
+    "Audit converted values for rejected envelopes are not returned core observations",
+    "No metadata-derived same identity or new tracker introduced"
+  ],
+  "frameOccurrencesAcrossUniqueRequests": 10,
+  "finalIntegrity": {
+    "codeAndFixtureHashesMatchFreeze": true,
+    "coreMatchesOriginalCoreCommit": true,
+    "publicPathChanges": false,
+    "historical37HashesMatch": true,
+    "tracked34To37Changes": false,
+    "docsCheck": {
+      "initial": "38-docs.log",
+      "initialExit": 1,
+      "reason": "new section anchor Unicode mismatch",
+      "fixed": "38-docs-fixed.log",
+      "fixedExit": 0
+    },
+    "sourceAndDocumentDiffCheck": "git diff --check exit0"
+  },
+  "evidenceHashes": {
+    "38-input-contract.json": "23cb5a0ab12cd0ccfa8761633b4f7f30c7d34c1d64f66681a140f1b527158b65",
+    "38-cleanup.json": "98e2b288e26ef8fa793ff70369f5c536133e8d1aa902dc31af1e64fbcdd8f80b",
+    "38-docs.log": "2722d0f46194837b9a0ff99d14119913f22642b72338558ff8a81286e1ac3997",
+    "38-request-freeze.json": "5c932342d11fddd7f73e5245d0cddcc9b02ebbe46daf3fc9f47514de88a0920b",
+    "38-docs-fixed.log": "ca474c22ce6175618eddf1d3ee9b1cb51046ecb9df00718d76455ca2b2865c6c",
+    "38-evaluation-freeze.json": "0a7dacc59cb5407a3c1edb3fed37bb37fd469a349d82c64686bd7ba9f239604e",
+    "38-offline.log": "fa23697923c16df850e788d09deed8fe961f283e90677177858be361bebb2944",
+    "38-build.log": "6d6c3180b27a4c93de808be5fc7f56447bceb0a4834a7113ad5bb1f2a56ea4ea",
+    "38-observation.log": "366dfeb1803cb56c156569e49dd9d45e703a30e37a32010c626331a07a676a55"
+  }
+}

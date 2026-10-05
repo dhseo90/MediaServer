@@ -1,0 +1,23 @@
+{
+  "ownedServerPid": 2865,
+  "port": 23451,
+  "signal": "SIGTERM",
+  "laterModelCount": 0,
+  "runnerChildrenBeforeTerm": 0,
+  "fiveSecondUnloadGate": "PASS; existing native-completion+5s deadline; helper first sample 6ms/count0 (helper-relative elapsed)",
+  "ownedRootsAbsent": [
+    "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-va-review-yeqvoe_e",
+    "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-va-review-arwqybp1",
+    "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v450-observation38-sources-39cauz9c"
+  ],
+  "ownedTemporaryScriptAbsent": "/tmp/v450-observation38-input.py",
+  "preserved": [
+    "models/v450-ollama",
+    "/tmp/media-server-v450-observe38-ollama.log"
+  ],
+  "defaultModelPathAfterExists": false,
+  "pidAbsent": true,
+  "listenerAbsent": true,
+  "serverSessionExit": 0,
+  "absenceCheck": "sandbox ps launch denied; same read-only absence check completed with authorized escalation"
+}

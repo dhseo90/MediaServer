@@ -1,0 +1,120 @@
+{
+  "scope": "관측 좌표·동일성 연결 고정 후보; 공개 미연결",
+  "frozenAtUtc": "2026-10-05T14:36:10.604244+00:00",
+  "base": "aaf04f98e37965ef3ddd72d5b3ba1f483541408a",
+  "codeCommit": "9c0d0015b0d83ca98c6cbb27aed12f46db4c7de1",
+  "codeFiles": {
+    "include/recording/va_review_core.h": "50c724572c96fc78b8013157cb91005b592282ac7f91c2be925c1a9b81d72498",
+    "include/recording/va_review_input.h": "543fcaf1fd950927455e402b45f3747cdb95c81b8521daa4eb22ce4b87c1cc00",
+    "include/recording/va_review_observer.h": "ed4a10beeca2652de3d746c89d930f85a5e09a2c4a46b9810e1766465790b039",
+    "include/recording/va_review_provider.h": "6fbf72805fdfa7286946a7114adaba247ac042a653988b4259c5ef13cdfbe486",
+    "include/recording/va_review_record.h": "96f5ac21c232d0b7efcadc94d8472ea980e1c8828577753c77f892210059c27d",
+    "include/recording/va_review_service.h": "c3c6f9c4a7ebab259af79b2ff16bf1f1e94a0c776d6f612e88cdcb27e9be0baa",
+    "include/recording/va_review_store.h": "fcfad2a1c692321f5331b014357686abf871ab1b727ebc8093b5d339efc8c80a",
+    "scripts/internal/va_review_cause_diagnostic.h": "c0e1e0f727bbaa66e5aac17ac38f4392cdfa53d0a693626df96b99e49920250a",
+    "scripts/internal/va_review_contract_replay.json": "1aab5af5f30f3c45924a59845af542458058dc242da84c0e1dea5c9084f908b8",
+    "scripts/internal/va_review_core_checks.h": "f130fea473cfdf721a623c4c3ce69d953e690394517f778cc141eb781b51d2f2",
+    "scripts/internal/va_review_quality_fixture.h": "4a46b462b22cf71e092319f885724c67f7506a5a491068577ecd0d632dbe6d64",
+    "scripts/internal/va_review_smoke.cpp": "d0def466272a1995e87852259cf41ef4f78d1587c7403530b721e846f50d9691",
+    "scripts/internal/verify_va_review.sh": "df6e1680701e70cc578e1d65b4a82702d3b140ddb5b5b2534feec3de905b077a",
+    "src/recording/va_review_core.cpp": "59301ca3a819b11d50fee50b818eb45b1aa737ab6e8e27ee962752988bed8efa",
+    "src/recording/va_review_input.cpp": "840df39c6fc11ca99748f55dd1c55d598e060467354dd8fd0a48b1b197cd58f1",
+    "src/recording/va_review_json.h": "835cf40e95a3be8297ccf6edde1fbcf7c8aa5ffda3169f368195bc5667d065f3",
+    "src/recording/va_review_observer.cpp": "1d517b3ddc48749eb149a784f80d5c275fb51887091ad336ed3539d21e4ea0e7",
+    "src/recording/va_review_provider.cpp": "b858b651cabe6e8c7c2264c89ed1c3715af30fda5c86332cea2ad2220d3ce5c3",
+    "src/recording/va_review_record.cpp": "01e3a5a833b5d9201f6ec9aa1273e0fae1d58bb88d62c94fa684f5ac3bcb457f",
+    "src/recording/va_review_service.cpp": "22777f26753c6ea64f65daaa603633a02bc0fd98036ce02460b84887a4edef0d",
+    "src/recording/va_review_store.cpp": "27cb631652d84eb98776cf0493959205fdb4888517cb70b6cc8e1d5a4108a0a4",
+    "src/recording/va_review_transport.cpp": "c38058cffb6cca2b291d6de52bdbdd0c7298b308699c8291f6c242884090a422",
+    "test/fixtures/v450_review_core.json": "558d92c7aca53db2a7c213a0949d927703ff955836322ecc19d4358d801d5927",
+    "test/fixtures/v450_review_observer.json": "ad7f6ebce2170a85b693ef240b11d6063f83bf870dac2b690a722acd026edcb3"
+  },
+  "coreUnchanged": [
+    "src/recording/va_review_core.cpp",
+    "include/recording/va_review_core.h",
+    "test/fixtures/v450_review_core.json"
+  ],
+  "requestPlan": {
+    "path": "38-request-freeze.json",
+    "sha256": "5c932342d11fddd7f73e5245d0cddcc9b02ebbe46daf3fc9f47514de88a0920b",
+    "groups": {
+      "be091d15f302f50605a3c312056ba1b650e78b6915e8919dc5a23847ee87699c": [
+        "one-motion",
+        "one-direction"
+      ],
+      "ff2e487e83e16f3fbd9de9e5b1a6b7e22b601f60a3ec455877cb1863dadc08d3": [
+        "blank-hidden"
+      ],
+      "a023c257e9c1970a8962f915ecb56b1d3ec39856731a1ed544ba54b3a1ef0b42": [
+        "occluded-final"
+      ],
+      "a45ef1cb27cf54888606bfb8f5bd7b77c484aaf23cbd55960257858974cb831e": [
+        "two-right"
+      ],
+      "47cb27d3075bc776b1bd7a0471d144aad9862c2689ed9e62bc853f707f5fd881": [
+        "two-left"
+      ],
+      "cae10a0e3079683ce9f1fa8c34688a3463713220d53c15a04588b436659f715c": [
+        "static-red",
+        "static-blue"
+      ]
+    }
+  },
+  "oracle": {
+    "path": "37-pixel-oracle.json",
+    "sha256": "e8d202d3426b6b2d4ff11ec26d53b1991c407d8aa431418b3536de31ec0a3d39",
+    "tolerancePixels": 1
+  },
+  "fixture": {
+    "path": "test/fixtures/v450_review_observer.json",
+    "sha256": "ad7f6ebce2170a85b693ef240b11d6063f83bf870dac2b690a722acd026edcb3"
+  },
+  "model": {
+    "name": "qwen3-vl:8b-instruct-q4_K_M",
+    "model": "qwen3-vl:8b-instruct-q4_K_M",
+    "modified_at": "2026-10-05T11:23:41.78439305+09:00",
+    "size": 6140415975,
+    "digest": "0533d74300e4f9bc367d675d4e64ffd073d50ff16a2b4096cc2e8a1cf8c96319",
+    "details": {
+      "parent_model": "",
+      "format": "gguf",
+      "family": "qwen3vl",
+      "families": [
+        "qwen3vl"
+      ],
+      "parameter_size": "8.8B",
+      "quantization_level": "Q4_K_M"
+    }
+  },
+  "ollama": {
+    "version": "0.21.0"
+  },
+  "options": {
+    "temperature": 0,
+    "num_ctx": 8192,
+    "num_predict": 1024
+  },
+  "keepAlive": 0,
+  "limits": {
+    "calls": 6,
+    "retries": 0,
+    "perCallSeconds": 60,
+    "wrapperSeconds": 800,
+    "nativeGiB": 4,
+    "modelGiB": 14,
+    "workspaceGiB": 8
+  },
+  "identityBoundary": "single-frame self-anchor is description matching only; cross-time same/different needs evidence beyond location or generic appearance, otherwise unknown is honest but temporal requirement remains unmet",
+  "evaluation": "pixel/visibility/color and identity evidence separate; correct core insufficient on wrong coordinates does not imply observation PASS; unknown identity cannot pass cross-time requirement",
+  "server": {
+    "endpoint": "http://127.0.0.1:23451",
+    "ownedPid": 2865,
+    "command": "/opt/homebrew/bin/ollama serve",
+    "log": "/tmp/media-server-v450-observe38-ollama.log",
+    "initialModels": [],
+    "modelPath": "/Users/dhseo/Workspace/mediaServer/models/v450-ollama",
+    "preexistingDefaultModelPath": false
+  },
+  "command": "bash scripts/internal/verify_va_review.sh --observe-local http://127.0.0.1:23451",
+  "candidateChangesAfterCallsAllowed": false
+}
