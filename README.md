@@ -10,10 +10,10 @@ macOS/Linux용 C++17 미디어 서버입니다. 브라우저에서 채널과 분
 
 [English](README.en.md) · [문서](docs/README.md) ·
 [최신 릴리즈](https://github.com/dhseo90/MediaServer/releases/latest) ·
-[v4.4.0 개발 변경 사항](docs/release-notes-v4.4.0.md)
+[v4.4.0 변경 사항](docs/release-notes-v4.4.0.md)
 
-현재 소스와 공개 목표는 v4.4.0이며 개발 구현·단기 검증을 마쳤고 릴리즈 검증이 남아 있습니다. 기록된 공개 버전은 v4.3.0입니다.
-현재 공개 상태는 위 최신 릴리즈 링크에서 확인하세요.
+현재 소스와 공개 목표는 v4.4.0입니다. 지원 범위와 검증의 한계는 릴리즈 노트에서,
+현재 공개 버전은 위 최신 릴리즈 링크에서 확인하세요.
 
 ## 주요 기능
 

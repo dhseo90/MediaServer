@@ -1,8 +1,0 @@
-{
-  "observedAt": "2026-10-04T18:23:41.676071+00:00",
-  "expected": "strict durable history verification after200 finalized/deleted clones",
-  "observed": "200 clones completed;4 memory/count observations captured; final strict replay assertion failed",
-  "sourceCause": "RecordingJournal::Replay at recording_journal.cpp:2935 explicitly returns io_error_count for B generation state. Individual Replay counters were not logged; do not reconstruct as measured output.",
-  "correction": "B supported durable verification: destroy current owner, fresh RecordingRuntimeStorage::Open and exact SnapshotLocationsV2 live1/deleted200. Keep200 operations and60sec cap.",
-  "rerun": "../memory-history-13/execution.json"
-}

@@ -1,1 +1,0 @@
-{"status":null,"signal":"SIGTERM","error":null,"pid":91517,"stdout":"","stderr":"","groupClosed":true,"monitor":{"failure":"recovery-group-registration","samples":1,"intervalMs":100,"maxGapMs":1.9605829999999997,"elapsedMs":2.008499999999998,"peak":null,"continuousEnforcement":false}}

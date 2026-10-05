@@ -1,5 +1,0 @@
-command=./server.sh build
-sourceCommitSha=a5046c7f1f8a91075229bac48e0315c1a85af13f
-sourceWorktreeStatusSha256=2361c85bfceaecca94e3725008455ce305ba101fcc0868f9374269382775a04a
-buildPath=/Users/dhseo/Workspace/mediaServer/build-gst-onnx/media_server
-buildSha256=4eaf41faebabb057958b3d9fcf55a2ceafb08b6eabd6baa024e7039c9b70314d

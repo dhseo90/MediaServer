@@ -1,3 +1,0 @@
-[fixed-memory] {"phase":"encoded-input-only","queries":0,"rssBytes":26034176,"peakRssBytes":26034176,"heapUsedBytes":3141776,"heapReservedBytes":25165824,"blocks":26050,"zones":2}
-[fixed-memory] {"phase":"seed-runtime","queries":0,"rssBytes":34996224,"peakRssBytes":34996224,"heapUsedBytes":3854304,"heapReservedBytes":33554432,"blocks":32525,"zones":2}
-FAIL B read-only 예약 미지원

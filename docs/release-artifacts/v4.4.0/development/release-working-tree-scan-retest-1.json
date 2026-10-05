@@ -1,7 +1,0 @@
-{
-  "scope": "modified and untracked worktree text only; no publication or full repository/history approval",
-  "filesScanned": 101,
-  "hits": [],
-  "previous": "release-working-tree-scan.json",
-  "redactions": "release-path-redaction.json"
-}

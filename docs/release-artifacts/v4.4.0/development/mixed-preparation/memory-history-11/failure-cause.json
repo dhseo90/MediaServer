@@ -1,8 +1,0 @@
-{
-  "observedAt": "2026-10-04T18:22:06.314519+00:00",
-  "expected": "200 strict bound finalize/delete loops in managed B store",
-  "observed": "first reservation rejected: B read-only 예약 미지원",
-  "scope": "diagnostic fixture uses RecordingJournal::ReserveRecordingOrder which rejects B writes; production GStreamer writer uses RecordingCatalog::ReserveRecordingOrder (gstreamer_segment_writer.cpp:265).",
-  "correction": "route reservation through existing mutable Catalog; clone binding media_epoch_id must equal clone segment epoch. No product or deadline change.",
-  "rerun": "../memory-history-12/execution.json"
-}

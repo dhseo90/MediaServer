@@ -1,6 +1,0 @@
-wrote test/fixtures/v390_structure_stabilization_current_graph.json: files=359 cpp=164 edges=18
-- PASS: versioned current architecture policy and continuation are explicit
-- PASS: current graph hash and metrics are exact
-- PASS: current graph negative mutations reject forbidden edge and cycle
-- PASS: Slice 32 completion and current graph separation is fail-closed
-- summary: pass=4 fail=0

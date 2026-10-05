@@ -1,9 +1,0 @@
-{
-  "observedAt": "2026-10-04T13:15:18.100482+00:00",
-  "purpose": "source review package temporary directory",
-  "identityVerified": true,
-  "copiedArtifactsByteEqual": true,
-  "implementationCommit": "eddbb684f1c1f8ebe5e681b356534600b18cc252",
-  "preservationCommitMessage": "test: v4.4.0 \uac1c\ubc1c\uacfc \ub3c5\ub9bd \uac80\ud1a0 \uc790\ub8cc \ubcf4\uc874\n\n\ucd5c\ucd08 \uc2e4\ud328, \uc6d0\uc778 \uad00\uce21, \uc218\uc815 \uc7ac\uac80\uc99d, source hashes\uc640 \ub3c5\ub9bd \uc2b9\uc778 \uc790\ub8cc\ub97c \ubc84\uc804 \uc2e4\ud589 \uacbd\ub85c\uc5d0 \ubcf4\uc874\ud55c\ub2e4. \uac1c\uc778\u00b7\uc784\uc2dc \uacbd\ub85c \uc811\ub450\uc0ac\ub97c \uc815\uc81c\ud55c \ud30c\uc77c\uc740 \uc6d0\ubcf8\uacfc \uc815\uc81c\ubcf8\uc758 hash\ub97c \uad6c\ubd84\ud588\ub2e4. \uc7a5\uc2dc\uac04\u00b7\uc804\uccb4 UI\u00b7\ub9b4\ub9ac\uc988 \uc644\ub8cc \uae30\ub85d\uc774 \uc544\ub2c8\ub2e4.\n",
-  "removed": true
-}

@@ -1,7 +1,0 @@
-#include "recording/recording_runtime_composition.h"
-#include "recording/recording_search_reader.h"
-#include "recording/evidence_package_builder.h"
-#include "recording/recording_visual_source.h"
-#include <gst/gst.h>
-#include <iostream>
-int main(int argc,char**argv){if(argc!=2)return 2;gst_init(nullptr,nullptr);const std::filesystem::path root(argv[1]);std::string e;recording::RecordingRuntimeStorage storage(root);if(!storage.Open(&e)){std::cout<<"OPEN "<<e<<'\n';return 1;}recording::RecordingReadService read(storage.catalog());recording::RecordingSearchReader search(storage.catalog(),read);std::shared_ptr<const recording::RecordingSearchModel> model;if(!search.Refresh({"9101","9201"},{},&model,&e)){std::cout<<"SEARCH "<<e<<'\n';return 1;}recording::EvidencePackageStore store(root/"diagnostic-evidence",{});if(!store.Recover(&e)){std::cout<<"STORE "<<e<<'\n';return 1;}recording::EvidencePackageBuilder builder(storage.catalog(),read,store);std::cout<<"DOCS "<<model->documents().size()<<'\n';unsigned n=0;for(const auto& hit:model->documents()){if(++n>6)break;std::string id;recording::EvidencePackageV1 result;auto deadline=std::chrono::steady_clock::now()+std::chrono::seconds(2);const bool ok=builder.Create(hit,"structured","",&id,&result,&e,deadline);std::cout<<"BUILD "<<n<<" ok="<<ok<<" error="<<e<<" frames="<<result.frames.size()<<" media_pts="<<(hit.media_pts?*hit.media_pts:-1)<<" end="<<(hit.media_end_pts?*hit.media_end_pts:-1)<<'\n';}return 0;}

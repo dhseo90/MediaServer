@@ -1,7 +1,0 @@
-[pass] V440 source storage open: 
-[pass] writer start
-[pass] exact one original recording
-[pass] current product search model: 
-[pass] search result with current UTC evidence
-[pass] V440-S01 owned store ready
-FAIL V440-M01 package from actual search: evidence-invalid-manifest after=7
