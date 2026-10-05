@@ -125,6 +125,22 @@ B는 진단 대조군이며 공개 record를 만들지 않는다. 모든 요청 
 작은 텍스트 표본의 차이는 복합 요청 전체의 기여 근거이며 특정 enum/decoder의 단독 효과,
 영상 인식·질문 요구·제품 품질 PASS 또는 독립 검증을 뜻하지 않는다.
 
+V450-K05(판정 핵심, 공개 경로 미연결): `--core-only`는
+[test/fixtures/v450_review_core.json](../test/fixtures/v450_review_core.json)의 독립 기대값과
+제품 `va_review_core`를 대조한다. 단일 위치/가림/정상 시점 비교/색·가시성/같은 시각/동일성/
+복합 결핍/전칭 반례·누락, 잘못된 형식·참조 오류, 16 claim 보존, U+G/G/claim/40KiB 경계를
+검사한다. 모델 verdict/basis는 관측 codec에서 거부된다. 기존 실패에서 착안한 typed 합성 입력이며
+자유질문 해석·과거 평가 PASS가 아니다. 중심 좌표 원본 pixel, 관계 동일 허용 오차1px를 고정한다.
+`--observe-local`은 오프라인 통과 후 fixture의 actual8개를 순서대로 실제 PNG 입력으로 한 번씩
+호출한다. one-motion/one-direction은 순변위 명세의 단일 시점 부족, blank-hidden/occluded-final은
+명시 끝점 비교 부족을 검사한다. 원 자유질문의 연속 이동 해석 성공으로 계산하지 않는다.
+정적2개는 같은 빨간 사각형의 red/blue 요구값이며 모델에는 요구 정답 색상/label/사례 이름을 주지 않는다.
+oracle는 생성 픽셀 사각형의 중심(x+24,144), 실제 색red/가시성, 좌표 ±1px이며 관측 동일성 근거
+문장도 수동 확인한다. 관측 정확성/주어진 관측에 대한 판정 정확성/최종 조합을 분리한다.
+최대8호출·재시도0·60초/호출·800초 묶음, 기존 digest/options 및 native4GiB/model14GiB/workspace8GiB 유지.
+의미 오류는 수집하되 전송/시간/자원/격리/수집/정리 실패는 중단한다. native 종료 후5초 unload gate와
+사후 모델 부재를 구분한다. 실제 UI/안정화30분/120분/전체 품질은 이번 비범위이며 공개 연결도 없다.
+
 `--local-lifecycle http://127.0.0.1:<port>`는 기존 품질 12사례를 재실행하지 않는 별도 단기 수명 검사다.
 실제 provider/worker에 합성 512×288 PNG 8개를 보내고 Python monitor의 `/api/ps` 모델 로드
 직접 관측 신호 이후 생성자 Cancel과 Stop을 각각 한 번 실행한다. 두 작업 모두 cancelled·record 없음,

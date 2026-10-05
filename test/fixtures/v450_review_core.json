@@ -1,0 +1,555 @@
+{
+  "schema": "v450-core-fixture.v1",
+  "provenance": "독립 기대값. 35/36 실패에서 착안한 typed 합성 입력이며 과거 원응답 변환/새 영상 PASS가 아님. 실제 8사례 ClaimSpec도 명시 입력이고 자유질문 해석 평가 아님.",
+  "policy": {
+    "coordinate": "image-center-pixels",
+    "positionTolerancePixels": 1,
+    "oracleTolerancePixels": 1,
+    "colorPalette": [
+      "red",
+      "blue",
+      "green",
+      "yellow",
+      "black",
+      "white",
+      "gray"
+    ],
+    "maxActualCalls": 8,
+    "retries": 0,
+    "callSeconds": 60,
+    "wrapperSeconds": 800
+  },
+  "cases": [
+    {
+      "id": "one-motion",
+      "relation": "different",
+      "xs": [
+        208
+      ],
+      "expected": "insufficient",
+      "gaps": [
+        "ordered-time"
+      ],
+      "actual": true
+    },
+    {
+      "id": "one-direction",
+      "relation": "right",
+      "xs": [
+        208
+      ],
+      "expected": "insufficient",
+      "gaps": [
+        "ordered-time"
+      ],
+      "actual": true
+    },
+    {
+      "id": "blank-hidden",
+      "relation": "right",
+      "xs": [
+        -1,
+        -1
+      ],
+      "expected": "insufficient",
+      "gaps": [
+        "identity",
+        "position"
+      ],
+      "actual": true
+    },
+    {
+      "id": "occluded-final",
+      "relation": "right",
+      "xs": [
+        64,
+        -1
+      ],
+      "expected": "insufficient",
+      "gaps": [
+        "identity",
+        "position"
+      ],
+      "actual": true
+    },
+    {
+      "id": "two-right",
+      "relation": "right",
+      "xs": [
+        64,
+        400
+      ],
+      "expected": "supported",
+      "actual": true
+    },
+    {
+      "id": "two-left",
+      "relation": "right",
+      "xs": [
+        400,
+        64
+      ],
+      "expected": "contradicted",
+      "actual": true
+    },
+    {
+      "id": "static-red",
+      "relation": "color",
+      "xs": [
+        208
+      ],
+      "expected": "supported",
+      "actual": true
+    },
+    {
+      "id": "static-blue",
+      "relation": "color",
+      "xs": [
+        208
+      ],
+      "expected": "contradicted",
+      "requiredColor": "blue",
+      "actual": true
+    },
+    {
+      "id": "single-visible",
+      "relation": "visible",
+      "xs": [
+        208
+      ],
+      "expected": "supported"
+    },
+    {
+      "id": "single-not-visible",
+      "relation": "visible",
+      "xs": [
+        -1
+      ],
+      "expected": "contradicted"
+    },
+    {
+      "id": "single-absent",
+      "relation": "visible",
+      "xs": [
+        -1
+      ],
+      "expected": "supported",
+      "requiredVisible": false
+    },
+    {
+      "id": "single-stationary",
+      "relation": "same",
+      "xs": [
+        208
+      ],
+      "expected": "insufficient",
+      "gaps": [
+        "ordered-time"
+      ]
+    },
+    {
+      "id": "same-endpoints",
+      "relation": "same",
+      "xs": [
+        208,
+        208
+      ],
+      "expected": "supported"
+    },
+    {
+      "id": "different-endpoints",
+      "relation": "different",
+      "xs": [
+        208,
+        208
+      ],
+      "expected": "contradicted"
+    },
+    {
+      "id": "left-endpoints",
+      "relation": "left",
+      "xs": [
+        400,
+        64
+      ],
+      "expected": "supported"
+    },
+    {
+      "id": "within-pixel-tolerance",
+      "relation": "same",
+      "xs": [
+        64,
+        65
+      ],
+      "expected": "supported"
+    },
+    {
+      "id": "outside-pixel-tolerance",
+      "relation": "same",
+      "xs": [
+        64,
+        66
+      ],
+      "expected": "contradicted"
+    },
+    {
+      "id": "continuous-hidden",
+      "relation": "continuous",
+      "xs": [
+        64,
+        -1
+      ],
+      "expected": "unsupported"
+    },
+    {
+      "id": "same-time",
+      "relation": "right",
+      "xs": [
+        64,
+        400
+      ],
+      "expected": "insufficient",
+      "times": [
+        0,
+        0
+      ],
+      "gaps": [
+        "ordered-time"
+      ]
+    },
+    {
+      "id": "different-target",
+      "relation": "right",
+      "xs": [
+        64,
+        400
+      ],
+      "expected": "insufficient",
+      "identities": [
+        "same",
+        "different"
+      ],
+      "gaps": [
+        "identity"
+      ]
+    },
+    {
+      "id": "unknown-observation",
+      "relation": "right",
+      "xs": [
+        64,
+        null
+      ],
+      "expected": "insufficient",
+      "gaps": [
+        "identity",
+        "position"
+      ]
+    },
+    {
+      "id": "combined-deficits",
+      "relation": "right",
+      "xs": [
+        null,
+        null
+      ],
+      "expected": "insufficient",
+      "times": [
+        0,
+        0
+      ],
+      "gaps": [
+        "ordered-time",
+        "identity",
+        "position"
+      ]
+    },
+    {
+      "id": "all-red",
+      "relation": "all-color",
+      "xs": [
+        64,
+        208,
+        400
+      ],
+      "expected": "supported"
+    },
+    {
+      "id": "all-color-counterexample",
+      "relation": "all-color",
+      "xs": [
+        64,
+        null,
+        400
+      ],
+      "expected": "contradicted",
+      "colors": [
+        "blue",
+        null,
+        "red"
+      ]
+    },
+    {
+      "id": "all-color-missing",
+      "relation": "all-color",
+      "xs": [
+        64,
+        null,
+        400
+      ],
+      "expected": "insufficient",
+      "gaps": [
+        "identity",
+        "color"
+      ]
+    },
+    {
+      "id": "all-visible-counterexample",
+      "relation": "all-visible",
+      "xs": [
+        64,
+        null,
+        -1
+      ],
+      "expected": "contradicted"
+    },
+    {
+      "id": "all-position-counterexample",
+      "relation": "all-same",
+      "xs": [
+        64,
+        null,
+        400
+      ],
+      "expected": "contradicted"
+    },
+    {
+      "id": "all-position-missing",
+      "relation": "all-same",
+      "xs": [
+        208,
+        null,
+        208
+      ],
+      "expected": "insufficient",
+      "gaps": [
+        "identity",
+        "position"
+      ]
+    },
+    {
+      "id": "all-position-same",
+      "relation": "all-same",
+      "xs": [
+        208,
+        208,
+        208
+      ],
+      "expected": "supported"
+    },
+    {
+      "id": "omitted-observation",
+      "relation": "right",
+      "xs": [
+        64,
+        400
+      ],
+      "expected": "insufficient",
+      "omit": [
+        1
+      ],
+      "gaps": [
+        "identity",
+        "position"
+      ]
+    },
+    {
+      "id": "bad-reference",
+      "relation": "right",
+      "xs": [
+        64,
+        400
+      ],
+      "expected": "error",
+      "mutation": "reference",
+      "error": "core-invalid-reference"
+    },
+    {
+      "id": "bad-time-reference",
+      "relation": "right",
+      "xs": [
+        64,
+        400
+      ],
+      "expected": "error",
+      "mutation": "pts",
+      "error": "core-invalid-reference"
+    },
+    {
+      "id": "bad-sha-reference",
+      "relation": "right",
+      "xs": [
+        64,
+        400
+      ],
+      "expected": "error",
+      "mutation": "sha",
+      "error": "core-invalid-reference"
+    },
+    {
+      "id": "bad-infinite-position",
+      "relation": "right",
+      "xs": [
+        64,
+        400
+      ],
+      "expected": "error",
+      "mutation": "infinity",
+      "error": "core-invalid-coordinate"
+    },
+    {
+      "id": "bad-position-range",
+      "relation": "right",
+      "xs": [
+        64,
+        400
+      ],
+      "expected": "error",
+      "mutation": "range",
+      "error": "core-invalid-coordinate"
+    },
+    {
+      "id": "bad-coordinate-system",
+      "relation": "right",
+      "xs": [
+        64,
+        400
+      ],
+      "expected": "error",
+      "mutation": "normalized",
+      "error": "core-invalid-spec"
+    },
+    {
+      "id": "bad-duplicate-reference",
+      "relation": "right",
+      "xs": [
+        64,
+        400
+      ],
+      "expected": "error",
+      "mutation": "duplicate",
+      "error": "core-invalid-reference"
+    },
+    {
+      "id": "bad-anchor",
+      "relation": "right",
+      "xs": [
+        64,
+        400
+      ],
+      "expected": "error",
+      "mutation": "anchor",
+      "error": "core-invalid-identity-anchor"
+    },
+    {
+      "id": "bad-version",
+      "relation": "right",
+      "xs": [
+        64,
+        400
+      ],
+      "expected": "error",
+      "mutation": "version",
+      "error": "core-invalid-spec"
+    },
+    {
+      "id": "bad-hidden-value",
+      "relation": "right",
+      "xs": [
+        64,
+        400
+      ],
+      "expected": "error",
+      "mutation": "hidden-value",
+      "error": "core-unobservable-value"
+    },
+    {
+      "id": "separate-identity-anchors",
+      "relation": "right",
+      "xs": [
+        64,
+        400
+      ],
+      "expected": "insufficient",
+      "mutation": "separate-anchor",
+      "gaps": [
+        "identity"
+      ]
+    }
+  ],
+  "budgets": [
+    {
+      "s": 16,
+      "u": 0,
+      "gaps": 0,
+      "accepted": true
+    },
+    {
+      "s": 0,
+      "u": 8,
+      "gaps": 1,
+      "accepted": true
+    },
+    {
+      "s": 0,
+      "u": 9,
+      "gaps": 1,
+      "accepted": false
+    },
+    {
+      "s": 7,
+      "u": 5,
+      "gaps": 2,
+      "accepted": true
+    },
+    {
+      "s": 7,
+      "u": 6,
+      "gaps": 2,
+      "accepted": false
+    },
+    {
+      "s": 0,
+      "u": 4,
+      "gaps": 4,
+      "accepted": false
+    },
+    {
+      "s": 17,
+      "u": 0,
+      "gaps": 0,
+      "accepted": false
+    },
+    {
+      "s": 13,
+      "u": 3,
+      "gaps": 4,
+      "accepted": true,
+      "textBytes": 512
+    },
+    {
+      "s": 13,
+      "u": 3,
+      "gaps": 4,
+      "accepted": false,
+      "textBytes": 512,
+      "escaped": true
+    },
+    {
+      "s": 0,
+      "u": 1,
+      "gaps": 6,
+      "accepted": false
+    }
+  ]
+}

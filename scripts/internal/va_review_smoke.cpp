@@ -3,6 +3,8 @@
 #include "recording/va_review_store.h"
 #include "recording/va_review_service.h"
 #include "recording/va_review_provider.h"
+#include "recording/va_review_observer.h"
+#include <cmath>
 #include "va_review_quality_fixture.h"
 #include "../../src/recording/va_review_json.h"
 #include "recording_media_test_fixture.h"
@@ -703,6 +705,7 @@ std::vector<std::uint8_t> QualityPng(int x) {
     compressed.resize(size);Chunk(png,"IDAT",compressed);Chunk(png,"IEND",{});return png;
 }
 #include "va_review_cause_diagnostic.h"
+#include "va_review_core_checks.h"
 void QualityChecks(const std::filesystem::path& root,const std::string& endpoint,const std::string& diagnostic="") {
     using namespace recording;
     const bool text_mode=diagnostic=="text"||diagnostic=="text-uncertain"||diagnostic=="text-decisive";
@@ -904,6 +907,8 @@ int main(int argc,char** argv) {
         if(argc!=4)throw std::runtime_error("owned fixture root, mode, endpoint required");
         gst_init(nullptr,nullptr);
         if(std::string(argv[2])=="--seed")SeedHttp(argv[1]);
+        else if(std::string(argv[2])=="--core-only")CoreChecks(argv[1]);
+        else if(std::string(argv[2])=="--observe-local")CoreObserve(argv[1],argv[3]);
         else if(std::string(argv[2])=="--cause-offline")CauseOffline(argv[1]);
         else if(std::string(argv[2])=="--cause-ab")CauseCompare(argv[1],argv[3]);
         else if(std::string(argv[2])=="--contract-only")ProviderChecks(argv[1],argv[3]);
