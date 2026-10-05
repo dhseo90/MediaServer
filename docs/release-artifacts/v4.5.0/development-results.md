@@ -937,3 +937,28 @@
 - 증거 stage 후 `git diff --cached --check`는 exit2: native 원출력21/22/25/26행의
   끝 공백4곳을 보고했다. 실제 stdout bytes 보존을 위해 로그를 정제하지 않았다. 앞선 source/문서
   diff 확인은 exit0이며 이 원출력 공백을 제품 검사 실패나 전체 형식 PASS로 바꾸지 않는다.
+
+### 36: 원인 분리 조사 — 제품 불변
+
+- 기준 HEAD/원격 `fd27e87fb5c5f08d45d8fb53f568710e31f715af`, clean tree/index,
+  AGENTS hash와 기존 모델/설치를 확인했다. 제품 source/실행 binary는35와 동일하다.
+- `bash scripts/internal/verify_va_review.sh --cause-offline`: [오프라인](36-offline.log) exit0,
+  119개 진단 assertion/모델0회다. 35 원응답4건과 같은 A 요청 hash를 재구성해 오통과·
+  검증 경로 선택·공개 예산 충돌을 재현했다. assertion 성공은 품질 PASS가 아니다.
+- [요청12개 고정](36-request-freeze.json)과 [source·모델·기준 고정](36-evaluation-freeze.json)을
+  실제 호출 전에 남겼다. `--cause-ab http://127.0.0.1:23451` [비교 원출력](36-comparison.log)은
+  exit0/12호출/재시도0이다. 진단 제어 assertion201개를 제품 native PASS 수로 합산하지 않는다.
+  기존 전체 native/HTTP·text10/영상반전6/영상12·장시간/UI는 실행하지 않았다.
+- 축별 수동 판단·34/35 공통4 비교·예산 계산·한계는 [조사 결과](36-diagnosis.json)에,
+  최종 원인/책임 분리 권장안은 [기존 설계의 제안 절](../../superpowers/specs/2026-10-05-v450-va-review-design.md#원인-분리-조사와-구조-변경-제안-36-미구현)에 둔다.
+  같은 구현 assistant의 검토이며 독립 검토가 아니다. 과거 응답/FAIL/source hash를 수정하지 않았다.
+- [정리](36-cleanup.json): resource gate와 native 종료+5초 unload gate를 통과했다.
+  unload helper 관측은9ms/모델1→72ms/모델0이며 사후 조회에서도0이다. 소유 PID95413
+  TERM/session exit0, listener23451 부재, offline/실제 비교 임시 root2개 부재를 확인했다.
+  승인 weight·전용 server log는 유지한다. 기본 recording 저장소는 전후 부재다.
+- 제품은 변경하지 않고 진단 코드·필요 증거·제안만 커밋/일반 push한다. 이번 완료 범위는
+  원인 분리와 구조 제안 확정이며 제품 품질이나 v4.5.0 개발/릴리즈 완료가 아니다.
+- 진단 코드 `57ccddf3f23113dda24e5fd25ac30b006baaad26`의17개 평가 source/기준 hash가 freeze와 일치한다.
+  문서 링크 `36-final-docs.log` exit0/failures0, source/문서 공백 검사 exit0이다.
+- 실제 비교 stdout의 `model metadata transport` 성공 행 13곳에는 끝 공백이 있다.
+  원출력 bytes를 보존하며 증거 전체 공백 검사 경고와 source/문서 검사 결과를 구분한다.

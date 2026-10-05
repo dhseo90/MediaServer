@@ -1,0 +1,26 @@
+{
+  "modelUnloadedWithinFiveSecondsGate": "PASS in 36-comparison.log: helper observations 9ms/count1 then 72ms/count0; deadline anchored to native completion",
+  "laterPreTermModelCount": 0,
+  "ownedServerPid": 95413,
+  "signal": "SIGTERM",
+  "pidAbsent": true,
+  "listenerPort": 23451,
+  "listenerAbsent": true,
+  "ownedRootsAbsent": [
+    "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-va-review-g6y2uxn6",
+    "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-va-review-7hbusv7g"
+  ],
+  "serverSessionExit": 0,
+  "defaultStorageAfter": {
+    "exists": false,
+    "symlink": false
+  },
+  "preserved": [
+    "models/v450-ollama",
+    "/tmp/media-server-v450-cause36-ollama.log"
+  ],
+  "ownedEvidencePreparationFilesRemoved": [
+    "/tmp/v450-cause36-evidence.py",
+    "/tmp/v450-cause36-code-message.txt"
+  ]
+}

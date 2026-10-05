@@ -1,0 +1,173 @@
+{
+  "base": "fd27e87fb5c5f08d45d8fb53f568710e31f715af",
+  "productCheckpoint": "b9520c7f32469926db8c62fec5e03873c9d1732f",
+  "productUnchanged": true,
+  "sourceSha256": {
+    "include/recording/va_review_input.h": "543fcaf1fd950927455e402b45f3747cdb95c81b8521daa4eb22ce4b87c1cc00",
+    "include/recording/va_review_provider.h": "6fbf72805fdfa7286946a7114adaba247ac042a653988b4259c5ef13cdfbe486",
+    "include/recording/va_review_record.h": "96f5ac21c232d0b7efcadc94d8472ea980e1c8828577753c77f892210059c27d",
+    "include/recording/va_review_service.h": "c3c6f9c4a7ebab259af79b2ff16bf1f1e94a0c776d6f612e88cdcb27e9be0baa",
+    "include/recording/va_review_store.h": "fcfad2a1c692321f5331b014357686abf871ab1b727ebc8093b5d339efc8c80a",
+    "src/recording/va_review_input.cpp": "840df39c6fc11ca99748f55dd1c55d598e060467354dd8fd0a48b1b197cd58f1",
+    "src/recording/va_review_json.h": "835cf40e95a3be8297ccf6edde1fbcf7c8aa5ffda3169f368195bc5667d065f3",
+    "src/recording/va_review_provider.cpp": "b858b651cabe6e8c7c2264c89ed1c3715af30fda5c86332cea2ad2220d3ce5c3",
+    "src/recording/va_review_record.cpp": "01e3a5a833b5d9201f6ec9aa1273e0fae1d58bb88d62c94fa684f5ac3bcb457f",
+    "src/recording/va_review_service.cpp": "22777f26753c6ea64f65daaa603633a02bc0fd98036ce02460b84887a4edef0d",
+    "src/recording/va_review_store.cpp": "27cb631652d84eb98776cf0493959205fdb4888517cb70b6cc8e1d5a4108a0a4",
+    "src/recording/va_review_transport.cpp": "c38058cffb6cca2b291d6de52bdbdd0c7298b308699c8291f6c242884090a422",
+    "scripts/internal/va_review_cause_diagnostic.h": "c0e1e0f727bbaa66e5aac17ac38f4392cdfa53d0a693626df96b99e49920250a",
+    "scripts/internal/va_review_smoke.cpp": "4399f4b2847b01543a8f4aa4b610d12e542879c444a3688d7946daaad84c5292",
+    "scripts/internal/va_review_quality_fixture.h": "4a46b462b22cf71e092319f885724c67f7506a5a491068577ecd0d632dbe6d64",
+    "scripts/internal/verify_va_review.sh": "94b8236fc7ccd820ef730d1a7d42a7d341546239a3605dfd43a4704f0080d947",
+    "docs/project-feature-test-inventory.md": "1dec32f80a6f08cb9a992f987b04e3f1572a5af847db09b0ca1ed28177573dc5"
+  },
+  "historicalSha256": {
+    "34-evaluation.json": "e9ff9b4b4ba702b330da6be05f0237f40557f10352b4fff47d6733fb31e38033",
+    "34-contract-text.log": "2e1a44ed71b784212bef071121d9495c602ecdcea75c429433509f93d7798580",
+    "35-evaluation.json": "f06787a3113596fe19d707a8aa91c7bcd78e4c694bdc5dbae22393161b12875d",
+    "35-evaluation-freeze.json": "0a0e78a0bd16efc5efd15d05f7a6cc681d09c686f22d3a3db3d9939f67e8bdda",
+    "35-text-uncertain.log": "de0b4a7829f96babaff08383dcad9e88964d552a141a8858e7ca2257dad2ebc9"
+  },
+  "binarySha256": "1573940929258c9a963cf5566d3fb0724ec122189c220e99f1b13ed3c70d4471",
+  "requestFreeze": "36-request-freeze.json",
+  "requestFreezeSha256": "76d335fcab4209ab434d621afaf56c96bc8777390435f51e8e121a4c4464df97",
+  "callOrder": [
+    {
+      "ordinal": 1,
+      "case": "one-motion",
+      "condition": "A",
+      "requestSha256": "b421ff60ffe5028d76ab4497789574c65044c82c4114f93a47ab7242d69846f1",
+      "promptSha256": "344ec999d8e78d6a0b322a6604feb47ca761e2f95d29e5564c7d0c5757399bad",
+      "schemaSha256": "729bd3ffb6d52e02f552453f7d570e20b266d96efbf2e63a2136255cda274fac"
+    },
+    {
+      "ordinal": 2,
+      "case": "one-motion",
+      "condition": "B",
+      "requestSha256": "23df79964665f91aad8612264320d13783653b0b1bf1081017fed084bd34fb2f",
+      "promptSha256": "cc46350ecced1c91ae1c085478ce08586efedb2f895d88b8e2acb66e6013c7a5",
+      "schemaSha256": "1efc58bfbfaaa744484b001f98fa3dd4deb6a035debdabaa50b70164c11ff3cc"
+    },
+    {
+      "ordinal": 3,
+      "case": "one-direction",
+      "condition": "B",
+      "requestSha256": "9d18ce720ebaf1f9af1fb93a461287229563af2f023c93e0fe3cc64924c50b15",
+      "promptSha256": "cc46350ecced1c91ae1c085478ce08586efedb2f895d88b8e2acb66e6013c7a5",
+      "schemaSha256": "1efc58bfbfaaa744484b001f98fa3dd4deb6a035debdabaa50b70164c11ff3cc"
+    },
+    {
+      "ordinal": 4,
+      "case": "one-direction",
+      "condition": "A",
+      "requestSha256": "4966eb2c84f634fc5a35be2dfbdf9fe8a5ec1f022e9f3a615e2dcc6bfc8692c7",
+      "promptSha256": "344ec999d8e78d6a0b322a6604feb47ca761e2f95d29e5564c7d0c5757399bad",
+      "schemaSha256": "729bd3ffb6d52e02f552453f7d570e20b266d96efbf2e63a2136255cda274fac"
+    },
+    {
+      "ordinal": 5,
+      "case": "blank-hidden",
+      "condition": "A",
+      "requestSha256": "8439b991ff5021103535a3bf5623f64af1157a56e9805502fc6e819dc814cfab",
+      "promptSha256": "c0575ef750103ec0419b9b0d7beba8e06ff2f8924d718724b9ea2a638da74eed",
+      "schemaSha256": "6a6ad7f41d6fae9c29008f3b7c823ef6998aefbf3366dd20773c22f8ab7901bc"
+    },
+    {
+      "ordinal": 6,
+      "case": "blank-hidden",
+      "condition": "B",
+      "requestSha256": "46acdf460120bc535c1b0617a581c57ef04d1667064e85d6ab17df457a527ccf",
+      "promptSha256": "cc46350ecced1c91ae1c085478ce08586efedb2f895d88b8e2acb66e6013c7a5",
+      "schemaSha256": "1efc58bfbfaaa744484b001f98fa3dd4deb6a035debdabaa50b70164c11ff3cc"
+    },
+    {
+      "ordinal": 7,
+      "case": "occluded-final",
+      "condition": "B",
+      "requestSha256": "a9916a904139fc8fe4926afbdc064d95fec221c435b6621596fedf770bb069c2",
+      "promptSha256": "cc46350ecced1c91ae1c085478ce08586efedb2f895d88b8e2acb66e6013c7a5",
+      "schemaSha256": "1efc58bfbfaaa744484b001f98fa3dd4deb6a035debdabaa50b70164c11ff3cc"
+    },
+    {
+      "ordinal": 8,
+      "case": "occluded-final",
+      "condition": "A",
+      "requestSha256": "acdafca15e742c6c2ad937bba0d0656d8c2d01c87375f866b945ed84cd27b3e3",
+      "promptSha256": "c0575ef750103ec0419b9b0d7beba8e06ff2f8924d718724b9ea2a638da74eed",
+      "schemaSha256": "6a6ad7f41d6fae9c29008f3b7c823ef6998aefbf3366dd20773c22f8ab7901bc"
+    },
+    {
+      "ordinal": 9,
+      "case": "two-right",
+      "condition": "A",
+      "requestSha256": "31879734c72fc411e3ea60ad0d4b38cc7825ac1940c3ed272e0b2a3cb0523a42",
+      "promptSha256": "c0575ef750103ec0419b9b0d7beba8e06ff2f8924d718724b9ea2a638da74eed",
+      "schemaSha256": "6a6ad7f41d6fae9c29008f3b7c823ef6998aefbf3366dd20773c22f8ab7901bc"
+    },
+    {
+      "ordinal": 10,
+      "case": "two-right",
+      "condition": "B",
+      "requestSha256": "092992ffdc40a1c4ea000dccc1b8bad82d28c538c23a1d99a6e4426b69c2acf7",
+      "promptSha256": "cc46350ecced1c91ae1c085478ce08586efedb2f895d88b8e2acb66e6013c7a5",
+      "schemaSha256": "1efc58bfbfaaa744484b001f98fa3dd4deb6a035debdabaa50b70164c11ff3cc"
+    },
+    {
+      "ordinal": 11,
+      "case": "two-left",
+      "condition": "B",
+      "requestSha256": "2d794db1b5a695c8934fffad0c1f4523d240bad035bbe4d560defa32a9bd5dfd",
+      "promptSha256": "cc46350ecced1c91ae1c085478ce08586efedb2f895d88b8e2acb66e6013c7a5",
+      "schemaSha256": "1efc58bfbfaaa744484b001f98fa3dd4deb6a035debdabaa50b70164c11ff3cc"
+    },
+    {
+      "ordinal": 12,
+      "case": "two-left",
+      "condition": "A",
+      "requestSha256": "2209c13bf562aa80e1bfa895b059b2cd821fe27b69b4de928fcd9bee5e793cc9",
+      "promptSha256": "c0575ef750103ec0419b9b0d7beba8e06ff2f8924d718724b9ea2a638da74eed",
+      "schemaSha256": "6a6ad7f41d6fae9c29008f3b7c823ef6998aefbf3366dd20773c22f8ab7901bc"
+    }
+  ],
+  "model": "qwen3-vl:8b-instruct-q4_K_M",
+  "modelDigest": "0533d74300e4f9bc367d675d4e64ffd073d50ff16a2b4096cc2e8a1cf8c96319",
+  "options": {
+    "temperature": 0,
+    "num_ctx": 8192,
+    "num_predict": 1024
+  },
+  "stream": false,
+  "keep_alive": 0,
+  "perCallSeconds": 60,
+  "perWrapperSeconds": 800,
+  "maxCalls": 12,
+  "retryCount": 0,
+  "limitsGiB": {
+    "modelPhysicalWorkingSet": 14,
+    "nativeRss": 4,
+    "workspaceExcludingWeights": 8
+  },
+  "criteria": "V450-K04 in frozen inventory; both label and reason/facts reviewed, A questions separately",
+  "comparisonBoundary": "A/B compare whole requests; B is not product output or question compliance; synthetic text not vision quality",
+  "server": {
+    "version": "0.21.0",
+    "pid": 95413,
+    "port": 23451,
+    "initialLoadedModels": 0,
+    "modelBytes": 6140415975,
+    "log": "/tmp/media-server-v450-cause36-ollama.log"
+  },
+  "defaultStorageBefore": {
+    "exists": false,
+    "symlink": false
+  },
+  "frozenAtUtc": "2026-10-05T13:05:29Z",
+  "offline": {
+    "command": "bash scripts/internal/verify_va_review.sh --cause-offline",
+    "exit": 0,
+    "diagnosticAssertions": 119,
+    "actualModelCalls": 0,
+    "qualityPass": false
+  },
+  "reviewer": "same implementation assistant; not independent review"
+}
