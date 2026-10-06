@@ -29,6 +29,15 @@ def get(route):
     with opener.open(endpoint+route,timeout=1) as response:return json.load(response)
 def save(name,value):
     with (artifact/name).open('x') as f:json.dump(value,f,ensure_ascii=False,indent=2);f.write('\n')
+def parameter_map(text):
+    parsed={}
+    for line in text.splitlines():
+        key,value=line.split(None,1)
+        if key in parsed:raise ValueError('duplicate parameter: '+key)
+        number=json.loads(value)
+        if type(number) not in (int,float):raise ValueError('unexpected parameter type')
+        parsed[key]=number
+    return parsed
 server=None;cleanup={};rc=None;start=time.monotonic()
 log=(artifact/'49-ollama.log').open('xb')
 try:
@@ -47,10 +56,17 @@ try:
     assert get('/api/ps')['models']==[]
     request=urllib.request.Request(endpoint+'/api/show',json.dumps({'model':selected['model']['name']}).encode(),headers={'Content-Type':'application/json'})
     with opener.open(request,timeout=10) as response:show_raw=response.read()
+    with (artifact/'49-show.json').open('xb') as output:output.write(show_raw)
     show=json.loads(show_raw);previous_show=json.loads((artifact/'45-model-show.json').read_text())
-    for field in ('template','parameters','details','capabilities'):
+    for field in ('template','details','capabilities'):
         assert show.get(field)==previous_show.get(field), 'runtime/model metadata changed: '+field
-    save('49-model-metadata.json',{'version':version,'model':model,'template':show.get('template'),'parameters':show.get('parameters'),'capabilities':show.get('capabilities'),'showSha256':hashlib.sha256(show_raw).hexdigest(),'sameAs45MetadataFields':['template','parameters','details','capabilities']})
+    parameters=parameter_map(show['parameters'])
+    assert parameters==parameter_map(previous_show['parameters']), 'runtime parameter values changed'
+    parameter_layer=next(l for l in json.loads(manifest.read_bytes())['layers'] if l['mediaType']=='application/vnd.ollama.image.params')
+    parameter_bytes=(model_path/'blobs'/parameter_layer['digest'].replace(':','-')).read_bytes()
+    assert 'sha256:'+hashlib.sha256(parameter_bytes).hexdigest()==parameter_layer['digest']
+    assert parameters==json.loads(parameter_bytes), 'runtime parameters differ from immutable model blob'
+    save('49-model-metadata.json',{'version':version,'model':model,'template':show.get('template'),'parameters':show.get('parameters'),'capabilities':show.get('capabilities'),'showSha256':hashlib.sha256(show_raw).hexdigest(),'parameterMap':parameters,'sameAs45MetadataFields':['template','parameter-key-values','details','capabilities']})
 
     paths=['CMakeLists.txt','scripts/internal/va_review_smoke.cpp','scripts/internal/va_review_visual_checks.h','scripts/internal/verify_va_review.sh','src/recording/va_review_observer.cpp','include/recording/va_review_observer.h','include/recording/va_review_core.h','src/recording/va_review_transport.cpp','src/recording/va_review_core.cpp','test/fixtures/v450_review_visual.json']
     freeze={'baseCommit':base,'trackedDiffSha256':hashlib.sha256(subprocess.check_output(['git','diff','HEAD'],cwd=repo)).hexdigest(),'binary':str(binary),'binarySha256':hashlib.sha256(binary.read_bytes()).hexdigest(),'model':model,'ollama':version,'options':prior['options'],'keepAlive':0,'limits':prior['limits'],
