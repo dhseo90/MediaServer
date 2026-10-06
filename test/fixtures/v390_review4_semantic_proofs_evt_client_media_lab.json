@@ -13539,7 +13539,7 @@
           "file": "src/ingress/webrtc_http_server_runtime.cpp",
           "symbol": "WebRtcHttpServer::Start:AddRemoteIceCandidate-callsite",
           "anchor": "bridge->AddRemoteIceCandidate(static_cast<std::uint32_t>(*mline), *candidate);",
-          "line": 5072,
+          "line": 5163,
           "contextSha256": "d1edeef36c31e7dc016b6ba543393f65e9f70e49c18a350a34cefa9b2ea074d4"
         },
         "action": {
@@ -13578,14 +13578,14 @@
           "kind": "function-containment",
           "witness": "Start contains the validated candidate/mline branch.",
           "source": "src/ingress/webrtc_http_server_runtime.cpp:335",
-          "target": "src/ingress/webrtc_http_server_runtime.cpp:5072"
+          "target": "src/ingress/webrtc_http_server_runtime.cpp:5163"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "direct-callsite",
           "witness": "The route directly calls AddRemoteIceCandidate only after invalid payload guard.",
-          "source": "src/ingress/webrtc_http_server_runtime.cpp:5072",
+          "source": "src/ingress/webrtc_http_server_runtime.cpp:5163",
           "target": "src/ingress/webrtc_egress_session.cpp:2288"
         },
         {
@@ -18153,7 +18153,7 @@
           "file": "src/ingress/webrtc_http_server_runtime.cpp",
           "symbol": "tap-snapshot-response",
           "anchor": "ok.body.assign(reinterpret_cast<const char*>(image.data.data()), image.data.size());",
-          "line": 4748,
+          "line": 4839,
           "contextSha256": "8273d4ebd317fea6f23f0d046b87756f1c4989173c9d1ed3c17f413ac6e7efdd"
         },
         "readback": {
@@ -18194,14 +18194,14 @@
           "kind": "function-containment",
           "witness": "The action owns the authoritative response/state emission.",
           "source": "src/ingress/webrtc_http_server_runtime.cpp:4647",
-          "target": "src/ingress/webrtc_http_server_runtime.cpp:4748"
+          "target": "src/ingress/webrtc_http_server_runtime.cpp:4839"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "runtime-readback",
           "witness": "The managed HTTP verifier independently observes image from the product response.",
-          "source": "src/ingress/webrtc_http_server_runtime.cpp:4748",
+          "source": "src/ingress/webrtc_http_server_runtime.cpp:4839",
           "target": "scripts/internal/verify_v390_review4_lab_core_api.mjs:135"
         },
         {
@@ -18253,7 +18253,7 @@
           "file": "src/ingress/webrtc_http_server_runtime.cpp",
           "symbol": "tap-overlay-response",
           "anchor": "ok.body.assign(reinterpret_cast<const char*>(image.data.data()), image.data.size());",
-          "line": 4807,
+          "line": 4898,
           "contextSha256": "8273d4ebd317fea6f23f0d046b87756f1c4989173c9d1ed3c17f413ac6e7efdd"
         },
         "readback": {
@@ -18294,14 +18294,14 @@
           "kind": "function-containment",
           "witness": "The action owns the authoritative response/state emission.",
           "source": "src/ingress/webrtc_http_server_runtime.cpp:4706",
-          "target": "src/ingress/webrtc_http_server_runtime.cpp:4807"
+          "target": "src/ingress/webrtc_http_server_runtime.cpp:4898"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "runtime-readback",
           "witness": "The managed HTTP verifier independently observes image from the product response.",
-          "source": "src/ingress/webrtc_http_server_runtime.cpp:4807",
+          "source": "src/ingress/webrtc_http_server_runtime.cpp:4898",
           "target": "scripts/internal/verify_v390_review4_lab_core_api.mjs:138"
         },
         {
