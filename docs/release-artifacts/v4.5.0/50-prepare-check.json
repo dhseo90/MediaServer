@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "source": "exec tool returned exit0 for --prepare and final AST/import/request hash checks; diagnostic-only",
+  "modelCalls": 0,
+  "harnessSha256": "0d43f6db6e2e91ca75153b6bd83099c9c4f1635ee4ad8e60f7e25306d51cecb9",
+  "checks": [
+    "AST parse",
+    "request generation",
+    "actual image message count1/3/1/8",
+    "pair equality except added original image messages",
+    "original target frame keys/PTS/hash preserved",
+    "product core/observer/provider/record diff empty",
+    "git diff --check exit0"
+  ],
+  "limits": "No product regression/native/HTTP/UI suite executed"
+}

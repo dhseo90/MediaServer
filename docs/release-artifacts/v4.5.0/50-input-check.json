@@ -1,0 +1,215 @@
+{
+  "initialHead": "831963fac2e44a63f18c2684525032be7077465d",
+  "request49Sha256": "51030a81a8893125e10a290ceb88f6e2d3f1aa419c177bcebbe32f57bbb8e032",
+  "ownedPngRoot": "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v50-png-spg2yl0j",
+  "frames": [
+    {
+      "case": "V3",
+      "frameKey": "f0",
+      "ptsNs": 20000000000,
+      "sha256": "c275b8d9e58da05ed98a07d60a562e39ba496b67e5eba9b17be5203f912c28c5",
+      "bytes": 2374,
+      "size": [
+        512,
+        288
+      ],
+      "path": "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v50-png-spg2yl0j/V3-f0.png"
+    },
+    {
+      "case": "V3",
+      "frameKey": "f1",
+      "ptsNs": 22000000000,
+      "sha256": "e548176bd127b94a249bec34fa39da898f65c600a2cb2283ae0d6aa0e2af1248",
+      "bytes": 2317,
+      "size": [
+        512,
+        288
+      ],
+      "path": "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v50-png-spg2yl0j/V3-f1.png"
+    },
+    {
+      "case": "V3",
+      "frameKey": "f2",
+      "ptsNs": 24000000000,
+      "sha256": "c1cc13dc8bc0466dfdfbae5a7f26900bb1b0a25c36b2c64d17943dab3b49cbc4",
+      "bytes": 2261,
+      "size": [
+        512,
+        288
+      ],
+      "path": "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v50-png-spg2yl0j/V3-f2.png"
+    },
+    {
+      "case": "V3",
+      "frameKey": "f3",
+      "ptsNs": 26000000000,
+      "sha256": "e61e57cad304c83e0af2be650eb2c264c10a18b98478039093ddf10c35c38397",
+      "bytes": 1781,
+      "size": [
+        512,
+        288
+      ],
+      "path": "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v50-png-spg2yl0j/V3-f3.png"
+    },
+    {
+      "case": "V3",
+      "frameKey": "f4",
+      "ptsNs": 28000000000,
+      "sha256": "e548176bd127b94a249bec34fa39da898f65c600a2cb2283ae0d6aa0e2af1248",
+      "bytes": 2317,
+      "size": [
+        512,
+        288
+      ],
+      "path": "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v50-png-spg2yl0j/V3-f4.png"
+    },
+    {
+      "case": "V3",
+      "frameKey": "f5",
+      "ptsNs": 30000000000,
+      "sha256": "c1cc13dc8bc0466dfdfbae5a7f26900bb1b0a25c36b2c64d17943dab3b49cbc4",
+      "bytes": 2261,
+      "size": [
+        512,
+        288
+      ],
+      "path": "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v50-png-spg2yl0j/V3-f5.png"
+    },
+    {
+      "case": "V3",
+      "frameKey": "f6",
+      "ptsNs": 32000000000,
+      "sha256": "c275b8d9e58da05ed98a07d60a562e39ba496b67e5eba9b17be5203f912c28c5",
+      "bytes": 2374,
+      "size": [
+        512,
+        288
+      ],
+      "path": "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v50-png-spg2yl0j/V3-f6.png"
+    },
+    {
+      "case": "V3",
+      "frameKey": "f7",
+      "ptsNs": 34000000000,
+      "sha256": "e548176bd127b94a249bec34fa39da898f65c600a2cb2283ae0d6aa0e2af1248",
+      "bytes": 2317,
+      "size": [
+        512,
+        288
+      ],
+      "path": "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v50-png-spg2yl0j/V3-f7.png"
+    },
+    {
+      "case": "V6",
+      "frameKey": "f0",
+      "ptsNs": 83000000000,
+      "sha256": "5a776e62e26189968fcf67aa3a4ea82316ce4e58bfaf40607b0a27007f9e525c",
+      "bytes": 1369,
+      "size": [
+        512,
+        288
+      ],
+      "path": "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v50-png-spg2yl0j/V6-f0.png"
+    },
+    {
+      "case": "V6",
+      "frameKey": "f1",
+      "ptsNs": 89000000000,
+      "sha256": "2e0519b0db185f2cea76869a3987981c254a8ef6ca61674a6d2470f8224bf1a5",
+      "bytes": 1094,
+      "size": [
+        512,
+        288
+      ],
+      "path": "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v50-png-spg2yl0j/V6-f1.png"
+    },
+    {
+      "case": "V6",
+      "frameKey": "f2",
+      "ptsNs": 97000000000,
+      "sha256": "802b3293b824244e0d7ef3b39d0170f316defbe570bff015a70b4fa4bd467ae8",
+      "bytes": 2506,
+      "size": [
+        512,
+        288
+      ],
+      "path": "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v50-png-spg2yl0j/V6-f2.png"
+    }
+  ],
+  "visualInspection": {
+    "reviewer": "same implementer; direct view_image of all11 originals",
+    "source": "exact extracted PNG, no crop/resize/overlay/reencoding",
+    "V6-f0": "갈색 수평 판자와 검은 테두리/지지대만 보임. 가방/9/본체 색은 관측되지 않음.",
+    "V6-f1": "밝은 빈 배경과 바닥이며 판자와 픽셀상 명확히 구별됨.",
+    "V6-f2": "붉은 가방과 흰 바탕 검은 표식9가 보임.",
+    "V3-f3": "갈색 수평 판자 앞/창 영역의 흰 바탕 표식7은 보임. 별도 상자 본체 색은 보이지 않음. 흰 표식 바탕·갈색 판자를 본체 색으로 요구하지 않음.",
+    "V3-others": "표식7과 노란 본체가 보임. 이 사실을 f3의 본체 색 정답으로 사용하지 않음.",
+    "hiddenFactsRequired": false,
+    "preparation": "PASS for direct visible mark/body-color vs unavailable distinction; depth/hidden object existence not certified"
+  },
+  "priorRuntimeLog": {
+    "path": "49-ollama.log.gz",
+    "calls": [
+      {
+        "newPromptLine": 351,
+        "text": "slot   operator(): id  0 | task 0 | new prompt, n_ctx_slot = 8192, n_keep = 4, task.n_tokens = 468",
+        "imageDecodeEntries": 1,
+        "release": {
+          "line": 396,
+          "text": "slot      release: id  0 | task 0 | stop processing: n_tokens = 589, truncated = 0"
+        }
+      },
+      {
+        "newPromptLine": 737,
+        "text": "slot   operator(): id  0 | task 0 | new prompt, n_ctx_slot = 8192, n_keep = 4, task.n_tokens = 466",
+        "imageDecodeEntries": 1,
+        "release": {
+          "line": 780,
+          "text": "slot      release: id  0 | task 0 | stop processing: n_tokens = 576, truncated = 0"
+        }
+      },
+      {
+        "newPromptLine": 1117,
+        "text": "slot   operator(): id  0 | task 0 | new prompt, n_ctx_slot = 8192, n_keep = 4, task.n_tokens = 1798",
+        "imageDecodeEntries": 8,
+        "release": {
+          "line": 1388,
+          "text": "slot      release: id  0 | task 0 | stop processing: n_tokens = 2683, truncated = 0"
+        }
+      },
+      {
+        "newPromptLine": 1724,
+        "text": "slot   operator(): id  0 | task 0 | new prompt, n_ctx_slot = 8192, n_keep = 4, task.n_tokens = 1798",
+        "imageDecodeEntries": 8,
+        "release": {
+          "line": 1998,
+          "text": "slot      release: id  0 | task 0 | stop processing: n_tokens = 2683, truncated = 0"
+        }
+      },
+      {
+        "newPromptLine": 2334,
+        "text": "slot   operator(): id  0 | task 0 | new prompt, n_ctx_slot = 8192, n_keep = 4, task.n_tokens = 848",
+        "imageDecodeEntries": 3,
+        "release": {
+          "line": 2429,
+          "text": "slot      release: id  0 | task 0 | stop processing: n_tokens = 1115, truncated = 0"
+        }
+      },
+      {
+        "newPromptLine": 2765,
+        "text": "slot   operator(): id  0 | task 0 | new prompt, n_ctx_slot = 8192, n_keep = 4, task.n_tokens = 848",
+        "imageDecodeEntries": 3,
+        "release": {
+          "line": 2867,
+          "text": "slot      release: id  0 | task 0 | stop processing: n_tokens = 1154, truncated = 0"
+        }
+      }
+    ],
+    "notes": [
+      "각 호출의 로그 디코딩 entry수는 입력 수1/1/8/8/3/3과 일치. 실제 내부 feature와 frameKey 결속까지 증명하지 않음.",
+      "n_ctx_slot=8192, stop processing truncated=0. 이것은 관측된 로그 범위이며 요청 flags만으로 모든 이미지의 의미 처리를 보장하지 않음.",
+      "일반 grounding 경고: 최소1024 image tokens 권장; 실제 각decode144 tokens. 이번 진단은 옵션을 변경하지 않으며 이 메시지만으로 실패 원인 단정하지 않음.",
+      "get_dummy_batch warmup은 runtime 내부 초기화이며 별도 사용자 warmup 생성 요청은0회."
+    ]
+  }
+}
