@@ -1,0 +1,17 @@
+{
+  "status": "recovered-after-harness-abort",
+  "ownedRoot": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-va-http-HNvRuy",
+  "identity": {
+    "dev": 16777232,
+    "ino": 169289987,
+    "uid": 501
+  },
+  "rootAbsent": true,
+  "observedAtMs": 1791304373356,
+  "processObservation": "ps after abort: no media_server, chrome-headless, headless_shell or playwright runner process; existing VS Code process left untouched",
+  "openFilesObservation": "lsof on owned root printed no open files; combined diagnostic did not preserve its exit separately",
+  "ports": "second aborted run port numbers were held only in memory; individual port refusal checks not recorded",
+  "normalCleanupExecuted": false,
+  "modelCalls": "0 through last completed HTTP checks; no Ollama process started",
+  "unloadGate": "not-run"
+}
