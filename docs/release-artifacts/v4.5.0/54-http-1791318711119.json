@@ -1,0 +1,752 @@
+{
+  "featureId": "V450-E01/E02/A01/A02/A03",
+  "command": "bash scripts/internal/verify_va_review.sh --http-only",
+  "startedAtMs": 1791318711119,
+  "sourceSha256": "eb679304ed917f91e2f9ceedcbd1cbcc6572ec83964b956d02948d831967fdd0",
+  "actualUiPass": false,
+  "actualModel": false,
+  "checks": [
+    {
+      "id": "GET /ops/api/recordings/va-reviews expected 401 actual 401",
+      "status": "PASS"
+    },
+    {
+      "id": "private response headers",
+      "status": "PASS"
+    },
+    {
+      "id": "private fields absent",
+      "status": "PASS"
+    },
+    {
+      "id": "GET /ops/api/recordings/va-reviews expected 403 actual 403",
+      "status": "PASS"
+    },
+    {
+      "id": "private response headers",
+      "status": "PASS"
+    },
+    {
+      "id": "private fields absent",
+      "status": "PASS"
+    },
+    {
+      "id": "GET /ops/api/recordings/va-reviews expected 403 actual 403",
+      "status": "PASS"
+    },
+    {
+      "id": "private response headers",
+      "status": "PASS"
+    },
+    {
+      "id": "private fields absent",
+      "status": "PASS"
+    },
+    {
+      "id": "GET /ops/api/recordings/va-reviews/vr-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa expected 401 actual 401",
+      "status": "PASS"
+    },
+    {
+      "id": "private response headers",
+      "status": "PASS"
+    },
+    {
+      "id": "private fields absent",
+      "status": "PASS"
+    },
+    {
+      "id": "GET /ops/api/recordings/va-reviews/vr-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa expected 403 actual 403",
+      "status": "PASS"
+    },
+    {
+      "id": "private response headers",
+      "status": "PASS"
+    },
+    {
+      "id": "private fields absent",
+      "status": "PASS"
+    },
+    {
+      "id": "GET /ops/api/recordings/va-reviews/vr-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa expected 403 actual 403",
+      "status": "PASS"
+    },
+    {
+      "id": "private response headers",
+      "status": "PASS"
+    },
+    {
+      "id": "private fields absent",
+      "status": "PASS"
+    },
+    {
+      "id": "GET /ops/api/recordings/va-review-jobs/vj-bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb-1 expected 401 actual 401",
+      "status": "PASS"
+    },
+    {
+      "id": "private response headers",
+      "status": "PASS"
+    },
+    {
+      "id": "private fields absent",
+      "status": "PASS"
+    },
+    {
+      "id": "GET /ops/api/recordings/va-review-jobs/vj-bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb-1 expected 403 actual 403",
+      "status": "PASS"
+    },
+    {
+      "id": "private response headers",
+      "status": "PASS"
+    },
+    {
+      "id": "private fields absent",
+      "status": "PASS"
+    },
+    {
+      "id": "GET /ops/api/recordings/va-review-jobs/vj-bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb-1 expected 403 actual 403",
+      "status": "PASS"
+    },
+    {
+      "id": "private response headers",
+      "status": "PASS"
+    },
+    {
+      "id": "private fields absent",
+      "status": "PASS"
+    },
+    {
+      "id": "POST /ops/api/recordings/va-reviews expected 403 actual 403",
+      "status": "PASS"
+    },
+    {
+      "id": "private response headers",
+      "status": "PASS"
+    },
+    {
+      "id": "private fields absent",
+      "status": "PASS"
+    },
+    {
+      "id": "GET /ops/api/recordings/va-reviews expected 403 actual 403",
+      "status": "PASS"
+    },
+    {
+      "id": "private response headers",
+      "status": "PASS"
+    },
+    {
+      "id": "private fields absent",
+      "status": "PASS"
+    },
+    {
+      "id": "GET /ops/api/recordings/va-reviews expected 403 actual 403",
+      "status": "PASS"
+    },
+    {
+      "id": "private response headers",
+      "status": "PASS"
+    },
+    {
+      "id": "private fields absent",
+      "status": "PASS"
+    },
+    {
+      "id": "GET /ops/api/recordings/va-reviews expected 200 actual 200",
+      "status": "PASS"
+    },
+    {
+      "id": "private response headers",
+      "status": "PASS"
+    },
+    {
+      "id": "private fields absent",
+      "status": "PASS"
+    },
+    {
+      "id": "read only capabilities",
+      "status": "PASS"
+    },
+    {
+      "id": "POST /ops/api/recordings/va-reviews expected 400 actual 400",
+      "status": "PASS"
+    },
+    {
+      "id": "private response headers",
+      "status": "PASS"
+    },
+    {
+      "id": "private fields absent",
+      "status": "PASS"
+    },
+    {
+      "id": "POST /ops/api/recordings/va-reviews expected 400 actual 400",
+      "status": "PASS"
+    },
+    {
+      "id": "private response headers",
+      "status": "PASS"
+    },
+    {
+      "id": "private fields absent",
+      "status": "PASS"
+    },
+    {
+      "id": "POST /ops/api/recordings/va-reviews expected 400 actual 400",
+      "status": "PASS"
+    },
+    {
+      "id": "private response headers",
+      "status": "PASS"
+    },
+    {
+      "id": "private fields absent",
+      "status": "PASS"
+    },
+    {
+      "id": "POST /ops/api/recordings/va-reviews expected 400 actual 400",
+      "status": "PASS"
+    },
+    {
+      "id": "private response headers",
+      "status": "PASS"
+    },
+    {
+      "id": "private fields absent",
+      "status": "PASS"
+    },
+    {
+      "id": "POST /ops/api/recordings/va-reviews expected 400 actual 400",
+      "status": "PASS"
+    },
+    {
+      "id": "private response headers",
+      "status": "PASS"
+    },
+    {
+      "id": "private fields absent",
+      "status": "PASS"
+    },
+    {
+      "id": "POST /ops/api/recordings/va-reviews expected 400 actual 400",
+      "status": "PASS"
+    },
+    {
+      "id": "private response headers",
+      "status": "PASS"
+    },
+    {
+      "id": "private fields absent",
+      "status": "PASS"
+    },
+    {
+      "id": "POST /ops/api/recordings/va-reviews expected 400 actual 400",
+      "status": "PASS"
+    },
+    {
+      "id": "private response headers",
+      "status": "PASS"
+    },
+    {
+      "id": "private fields absent",
+      "status": "PASS"
+    },
+    {
+      "id": "invalid/forbidden external requests do not call provider",
+      "status": "PASS"
+    },
+    {
+      "id": "POST /ops/api/recordings/va-reviews expected 409 actual 409",
+      "status": "PASS"
+    },
+    {
+      "id": "private response headers",
+      "status": "PASS"
+    },
+    {
+      "id": "private fields absent",
+      "status": "PASS"
+    },
+    {
+      "id": "release refusal is explicit, not transient",
+      "status": "PASS"
+    },
+    {
+      "id": "GET /ops/api/recordings/va-reviews expected 200 actual 200",
+      "status": "PASS"
+    },
+    {
+      "id": "private response headers",
+      "status": "PASS"
+    },
+    {
+      "id": "private fields absent",
+      "status": "PASS"
+    },
+    {
+      "id": "enabled admin capability blocked",
+      "status": "PASS"
+    },
+    {
+      "id": "POST /ops/api/recordings/va-reviews expected 400 actual 400",
+      "status": "PASS"
+    },
+    {
+      "id": "private response headers",
+      "status": "PASS"
+    },
+    {
+      "id": "private fields absent",
+      "status": "PASS"
+    },
+    {
+      "id": "POST /ops/api/recordings/va-reviews expected 400 actual 400",
+      "status": "PASS"
+    },
+    {
+      "id": "private response headers",
+      "status": "PASS"
+    },
+    {
+      "id": "private fields absent",
+      "status": "PASS"
+    },
+    {
+      "id": "POST /ops/api/recordings/va-reviews expected 400 actual 400",
+      "status": "PASS"
+    },
+    {
+      "id": "private response headers",
+      "status": "PASS"
+    },
+    {
+      "id": "private fields absent",
+      "status": "PASS"
+    },
+    {
+      "id": "POST /ops/api/recordings/va-reviews expected 400 actual 400",
+      "status": "PASS"
+    },
+    {
+      "id": "private response headers",
+      "status": "PASS"
+    },
+    {
+      "id": "private fields absent",
+      "status": "PASS"
+    },
+    {
+      "id": "POST /ops/api/recordings/va-reviews/submit expected 400 actual 400",
+      "status": "PASS"
+    },
+    {
+      "id": "private response headers",
+      "status": "PASS"
+    },
+    {
+      "id": "private fields absent",
+      "status": "PASS"
+    },
+    {
+      "id": "GET /ops/api/recordings/va-reviews/vr-d5d5ab91dac18f2cff6fae9653fd14410ed8078e958c7054da97a31e4ec60803 expected 200 actual 200",
+      "status": "PASS"
+    },
+    {
+      "id": "private response headers",
+      "status": "PASS"
+    },
+    {
+      "id": "private fields absent",
+      "status": "PASS"
+    },
+    {
+      "id": "explicit fixture historical result readable",
+      "status": "PASS"
+    },
+    {
+      "id": "GET /ops/api/recordings/va-reviews/vr-d5d5ab91dac18f2cff6fae9653fd14410ed8078e958c7054da97a31e4ec60803 expected 403 actual 403",
+      "status": "PASS"
+    },
+    {
+      "id": "private response headers",
+      "status": "PASS"
+    },
+    {
+      "id": "private fields absent",
+      "status": "PASS"
+    },
+    {
+      "id": "GET /ops/api/recordings/va-review-jobs/vj-bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb-1 expected 410 actual 410",
+      "status": "PASS"
+    },
+    {
+      "id": "private response headers",
+      "status": "PASS"
+    },
+    {
+      "id": "private fields absent",
+      "status": "PASS"
+    },
+    {
+      "id": "DELETE /ops/api/recordings/va-review-jobs/vj-bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb-1 expected 410 actual 410",
+      "status": "PASS"
+    },
+    {
+      "id": "private response headers",
+      "status": "PASS"
+    },
+    {
+      "id": "private fields absent",
+      "status": "PASS"
+    },
+    {
+      "id": "GET /ops/api/recordings/a-record-packages/ep-50ac4c2112ca167d734e40dbf74060b55fd15989466f2884ad7e88fdb8cb5ce0 expected 200 actual 200",
+      "status": "PASS"
+    },
+    {
+      "id": "private response headers",
+      "status": "PASS"
+    },
+    {
+      "id": "private fields absent",
+      "status": "PASS"
+    },
+    {
+      "id": "POST /ops/api/recordings/a-record-reviews/drafts expected 201 actual 201",
+      "status": "PASS"
+    },
+    {
+      "id": "private response headers",
+      "status": "PASS"
+    },
+    {
+      "id": "private fields absent",
+      "status": "PASS"
+    },
+    {
+      "id": "POST /ops/api/recordings/a-record-reviews/drafts/ad-b4f6b83cfe43dcc4628ce0959950b8807a7885dd80f03da3414b692b5a13a7bf/execute expected 409 actual 409",
+      "status": "PASS"
+    },
+    {
+      "id": "private response headers",
+      "status": "PASS"
+    },
+    {
+      "id": "private fields absent",
+      "status": "PASS"
+    },
+    {
+      "id": "POST /ops/api/recordings/a-record-reviews/drafts/ad-b4f6b83cfe43dcc4628ce0959950b8807a7885dd80f03da3414b692b5a13a7bf/confirm expected 200 actual 200",
+      "status": "PASS"
+    },
+    {
+      "id": "private response headers",
+      "status": "PASS"
+    },
+    {
+      "id": "private fields absent",
+      "status": "PASS"
+    },
+    {
+      "id": "POST /ops/api/recordings/a-record-reviews/drafts/ad-b4f6b83cfe43dcc4628ce0959950b8807a7885dd80f03da3414b692b5a13a7bf/execute expected 202 actual 202",
+      "status": "PASS"
+    },
+    {
+      "id": "private response headers",
+      "status": "PASS"
+    },
+    {
+      "id": "private fields absent",
+      "status": "PASS"
+    },
+    {
+      "id": "GET /ops/api/recordings/a-record-reviews/jobs/vj-11596622332f956fd464986f8b61a98a-1 expected 200 actual 200",
+      "status": "PASS"
+    },
+    {
+      "id": "private response headers",
+      "status": "PASS"
+    },
+    {
+      "id": "private fields absent",
+      "status": "PASS"
+    },
+    {
+      "id": "GET /ops/api/recordings/a-record-reviews/jobs/vj-11596622332f956fd464986f8b61a98a-1 expected 200 actual 200",
+      "status": "PASS"
+    },
+    {
+      "id": "private response headers",
+      "status": "PASS"
+    },
+    {
+      "id": "private fields absent",
+      "status": "PASS"
+    },
+    {
+      "id": "A confirmation execution still completes",
+      "status": "PASS"
+    },
+    {
+      "id": "GET /ops/api/recordings/a-record-reviews/vr-f39bd61810f37987d2307d2301c1314e0d216e52edd4fac909da73cae5a5f995 expected 200 actual 200",
+      "status": "PASS"
+    },
+    {
+      "id": "private response headers",
+      "status": "PASS"
+    },
+    {
+      "id": "private fields absent",
+      "status": "PASS"
+    },
+    {
+      "id": "A stored verdict readable",
+      "status": "PASS"
+    },
+    {
+      "id": "browser admin model execution disabled with release reason",
+      "status": "PASS"
+    },
+    {
+      "id": "browser historical result remains readable",
+      "status": "PASS"
+    },
+    {
+      "id": "browser stale tab direct request rejected on server",
+      "status": "PASS"
+    },
+    {
+      "id": "browser responsive disabled 1280 light",
+      "status": "PASS"
+    },
+    {
+      "id": "browser responsive disabled 390 dark",
+      "status": "PASS"
+    },
+    {
+      "id": "browser late model response cannot replace A selection",
+      "status": "PASS"
+    },
+    {
+      "id": "browser A confirm execute store result and server material guide",
+      "status": "PASS"
+    },
+    {
+      "id": "browser communication failure never enables execution",
+      "status": "PASS"
+    },
+    {
+      "id": "browser error recovery retains history and release restriction",
+      "status": "PASS"
+    },
+    {
+      "id": "browser read only history without execution",
+      "status": "PASS"
+    },
+    {
+      "id": "browser unauthorized role/channel has no history 2",
+      "status": "PASS"
+    },
+    {
+      "id": "browser unauthorized role/channel has no history 3",
+      "status": "PASS"
+    },
+    {
+      "id": "browser changed page no script errors",
+      "status": "PASS"
+    },
+    {
+      "id": "release rejected before all provider/network calls",
+      "status": "PASS"
+    },
+    {
+      "id": "GET /ops/api/recordings/va-reviews expected 200 actual 200",
+      "status": "PASS"
+    },
+    {
+      "id": "private response headers",
+      "status": "PASS"
+    },
+    {
+      "id": "private fields absent",
+      "status": "PASS"
+    },
+    {
+      "id": "rejected requests publish zero records",
+      "status": "PASS"
+    },
+    {
+      "id": "GET /ops/api/recordings/va-reviews expected 200 actual 200",
+      "status": "PASS"
+    },
+    {
+      "id": "private response headers",
+      "status": "PASS"
+    },
+    {
+      "id": "private fields absent",
+      "status": "PASS"
+    },
+    {
+      "id": "disabled capability no execution",
+      "status": "PASS"
+    },
+    {
+      "id": "POST /ops/api/recordings/va-reviews expected 503 actual 503",
+      "status": "PASS"
+    },
+    {
+      "id": "private response headers",
+      "status": "PASS"
+    },
+    {
+      "id": "private fields absent",
+      "status": "PASS"
+    },
+    {
+      "id": "GET /ops/api/recordings/va-review-jobs/vj-bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb-1 expected 410 actual 410",
+      "status": "PASS"
+    },
+    {
+      "id": "private response headers",
+      "status": "PASS"
+    },
+    {
+      "id": "private fields absent",
+      "status": "PASS"
+    },
+    {
+      "id": "GET /ops/api/recordings/va-reviews/vr-d5d5ab91dac18f2cff6fae9653fd14410ed8078e958c7054da97a31e4ec60803 expected 200 actual 200",
+      "status": "PASS"
+    },
+    {
+      "id": "private response headers",
+      "status": "PASS"
+    },
+    {
+      "id": "private fields absent",
+      "status": "PASS"
+    },
+    {
+      "id": "persisted record survives restart",
+      "status": "PASS"
+    },
+    {
+      "id": "GET /ops/api/recordings/va-reviews expected 200 actual 200",
+      "status": "PASS"
+    },
+    {
+      "id": "private response headers",
+      "status": "PASS"
+    },
+    {
+      "id": "private fields absent",
+      "status": "PASS"
+    },
+    {
+      "id": "shutdown publishes no result",
+      "status": "PASS"
+    },
+    {
+      "id": "GET /ops/api/recordings/a-record-reviews/vr-f39bd61810f37987d2307d2301c1314e0d216e52edd4fac909da73cae5a5f995 expected 200 actual 200",
+      "status": "PASS"
+    },
+    {
+      "id": "private response headers",
+      "status": "PASS"
+    },
+    {
+      "id": "private fields absent",
+      "status": "PASS"
+    },
+    {
+      "id": "A result survives restart",
+      "status": "PASS"
+    },
+    {
+      "id": "model network calls zero through restart",
+      "status": "PASS"
+    },
+    {
+      "id": "65 second work budget",
+      "status": "PASS"
+    }
+  ],
+  "cleanup": {
+    "firstProcess": {
+      "exited": true,
+      "forced": false,
+      "exitCode": 0,
+      "signalCode": null
+    },
+    "secondProcess": {
+      "exited": true,
+      "forced": false,
+      "exitCode": 0,
+      "signalCode": null
+    },
+    "process": {
+      "exited": true,
+      "forced": false,
+      "exitCode": 0,
+      "signalCode": null
+    },
+    "http": {
+      "closed": true,
+      "evidence": "ECONNREFUSED"
+    },
+    "rtsp": {
+      "closed": true,
+      "evidence": "ECONNREFUSED"
+    },
+    "provider": {
+      "closed": true,
+      "evidence": "ECONNREFUSED"
+    },
+    "udpClosed": true,
+    "rootAbsent": true
+  },
+  "status": "PASS",
+  "root": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-va-http-5pJ1vZ",
+  "rootIdentity": {
+    "dev": 16777232,
+    "ino": 169320337,
+    "uid": 501
+  },
+  "binarySha256": "cf39890a0a28c138191d3c26a0ee2b02e472a69db954550b2c6c23643edac663",
+  "fixtureSha256": "0b07d823cc57713f455a451256abbe4bf6f6169eb8d3bb432b5680503ef09bea",
+  "ports": {
+    "http": 54187,
+    "rtsp": 54188,
+    "provider": 54186,
+    "udp": 56890
+  },
+  "pid": 76604,
+  "browser": {
+    "moduleVersion": "1.62.1",
+    "checks": [
+      "admin model execution disabled with release reason",
+      "historical result remains readable",
+      "stale tab direct request rejected on server",
+      "responsive disabled 1280 light",
+      "responsive disabled 390 dark",
+      "late model response cannot replace A selection",
+      "A confirm execute store result and server material guide",
+      "communication failure never enables execution",
+      "error recovery retains history and release restriction",
+      "read only history without execution",
+      "unauthorized role/channel has no history 2",
+      "unauthorized role/channel has no history 3",
+      "changed page no script errors"
+    ],
+    "screenshots": [
+      "54-model-1280-light-1791318711119.png",
+      "54-model-390-dark-1791318711119.png",
+      "54-A-1791318711119.png"
+    ],
+    "closed": true
+  },
+  "scopedBrowserExecuted": true,
+  "exit": 0,
+  "elapsedMs": 16882,
+  "modelCalls": 0
+}
