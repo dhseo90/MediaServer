@@ -49,6 +49,12 @@ try:
     if questions_only or questions_local:
         shutil.copyfile(repo/'test/fixtures/v450_review_questions.json',root/'question-fixture.json')
         if questions_local:shutil.copyfile(repo/'docs/release-artifacts/v4.5.0/43-request-freeze.json',root/'questions-plan.json')
+        candidate=os.environ.get('MEDIA_SERVER_VA_QUESTION_CANDIDATE')
+        candidate_plan=os.environ.get('MEDIA_SERVER_VA_QUESTION_PLAN')
+        if bool(candidate)!=bool(candidate_plan):raise RuntimeError('candidate config and plan must be specified together')
+        if candidate:
+            shutil.copyfile(candidate,root/'question-candidate.json')
+            if questions_local:shutil.copyfile(candidate_plan,root/'candidate-questions-plan.json')
     if core_only or observe_local:
         shutil.copyfile(repo/'test/fixtures/v450_review_core.json',root/'core-fixture.json')
         shutil.copyfile(repo/'test/fixtures/v450_review_observer.json',root/'observer-fixture.json')
@@ -208,6 +214,13 @@ try:
         else:
             with target.open('xb') as output:output.write(data)
         print('[question-plan-preserved]',hashlib.sha256(data).hexdigest(),flush=True)
+        if candidate:
+            target=pathlib.Path(candidate_plan);data=(root/'candidate-questions-plan.json').read_bytes()
+            if target.exists():
+                if target.read_bytes()!=data:raise RuntimeError('frozen candidate request changed')
+            else:
+                with target.open('xb') as output:output.write(data)
+            print('[candidate-plan-preserved]',hashlib.sha256(data).hexdigest(),flush=True)
     if core_only:
         target=repo/'docs/release-artifacts/v4.5.0/38-request-freeze.json'
         data=(root/'core-plan.json').read_bytes()

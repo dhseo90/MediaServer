@@ -4,6 +4,21 @@
 namespace {
 const std::string question_model="qwen3-vl:8b-instruct-q4_K_M";
 const std::string question_digest="0533d74300e4f9bc367d675d4e64ffd073d50ff16a2b4096cc2e8a1cf8c96319";
+// 평가 전용 후보 선택이다. 제품 기본값과 기존 요청 생성은 변경하지 않는다.
+struct QuestionCandidate {std::string model=question_model,digest=question_digest;bool non_thinking=false;};
+bool DecodeQuestionCandidate(const std::string& raw,QuestionCandidate* out){
+    recording::review_json::Doc d;std::string model,digest;
+    if(!recording::review_json::Parse(raw,&d)||d.members.size()!=3||
+        !recording::review_json::Text(d,"model",&model)||!recording::review_json::Text(d,"digest",&digest)||
+        !EvidenceIsSha256(digest)||ingress::StrictJsonBoolField(d,"think")!=false||model.empty()||model.size()>128||
+        !std::all_of(model.begin(),model.end(),[](unsigned char c){return std::isalnum(c)||c=='/'||c==':'||c=='-'||c=='_'||c=='.';}))return false;
+    *out={model,digest,true};return true;
+}
+QuestionCandidate ReadQuestionCandidate(const std::filesystem::path& root){QuestionCandidate c;
+    if(std::filesystem::exists(root/"question-candidate.json"))Check(DecodeQuestionCandidate(CauseRead(root/"question-candidate.json"),&c),"K10 candidate model/digest/explicit false only");return c;}
+std::string QuestionCandidateBody(std::string body,bool non_thinking){
+    if(non_thinking){Check(!body.empty()&&body.back()=='}',"K10 candidate request object");body.pop_back();body+=",\"think\":false}";}return body;
+}
 std::vector<std::string> QuestionRows(const std::filesystem::path& root){std::vector<std::string> rows;
     Check(recording::review_json::Array(CauseDoc(CauseRead(root/"question-fixture.json")),"cases",&rows)&&rows.size()==6,"K10 six frozen cases");return rows;}
 struct QuestionCase {ReviewClaimSpec spec;std::vector<ReviewFrame> frames;std::vector<ReviewObservation> observations;std::vector<ReviewDecision> decisions;ReviewQuestionInput input;std::optional<VaReviewRecordV3> record;};
@@ -38,8 +53,8 @@ QuestionCase QuestionInput(const std::filesystem::path& root,const std::string& 
     for(std::size_t i=0;i<want.size();++i)Check(CoreText(CauseDoc("{\"v\":"+want[i]+"}"),"v")==ReviewGapName(c.decisions[0].gaps[i].kind),"K10 independent expected gap kind");
     return c;
 }
-std::string QuestionPlan(const std::filesystem::path& root){std::string plan="[";
-    for(const auto& row:QuestionRows(root)){auto c=QuestionInput(root,row);std::string body,error;Check(BuildReviewQuestionRequest(c.input,question_model,&body,&error),"K10 fixed request");
+std::string QuestionPlan(const std::filesystem::path& root,const QuestionCandidate& candidate={}){std::string plan="[";
+    for(const auto& row:QuestionRows(root)){auto c=QuestionInput(root,row);std::string body,error;Check(BuildReviewQuestionRequest(c.input,candidate.model,&body,&error),"K10 fixed request");body=QuestionCandidateBody(std::move(body),candidate.non_thinking);
         if(plan.size()>1)plan+=',';plan+="{\"case\":"+EvidenceJsonQuote(CoreText(CauseDoc(row),"id"))+",\"requestSha256\":"+EvidenceJsonQuote(CauseHash(body))+",\"request\":"+body+",\"decisions\":"+CoreDecisionJson(c.decisions)+"}";
     }return plan+"]";
 }
@@ -92,18 +107,28 @@ void QuestionChecks(const std::filesystem::path& root){
     Check(!GenerateReviewQuestions(a.input,options,question_digest,deadline(),[]{return false;},&out,&error,fake)&&SerializeVaReviewRecordV3(*a.record)==before&&CoreDecisionJson(c.decisions)==original,"K10 question failure preserves record/spec/decision/gap bytes");
     auto altered=*a.record;altered.confirmation.question="변경";Check(!BuildConfirmedReviewQuestionInput(altered,&input,&error),"K10 invalid confirmed input refused");
     BoundSave(root/"questions-plan.json",QuestionPlan(root));
+    QuestionCandidate candidate;
+    const auto valid="{\"model\":\"qwen3.5:9b\",\"digest\":"+EvidenceJsonQuote(std::string(64,'a'))+",\"think\":false}";
+    Check(DecodeQuestionCandidate(valid,&candidate),"K10 candidate explicit non-thinking accepted");
+    for(const auto& bad:std::vector<std::string>{"{}",R"({"model":"qwen3.5:9b","digest":"bad","think":false})",valid.substr(0,valid.size()-1)+",\"verdict\":\"supported\"}",valid.substr(0,valid.size()-6)+"true}",valid.substr(0,valid.size()-6)+"null}"})
+        Check(!DecodeQuestionCandidate(bad,&candidate),"K10 invalid candidate settings refused without transport");
+    Check(QuestionCandidateBody("{\"model\":\"test\"}",false)=="{\"model\":\"test\"}"&&QuestionCandidateBody("{\"model\":\"test\"}",true)=="{\"model\":\"test\",\"think\":false}","K10 only explicit top-level think added; default unchanged");
+    if(std::filesystem::exists(root/"question-candidate.json"))BoundSave(root/"candidate-questions-plan.json",QuestionPlan(root,ReadQuestionCandidate(root)));
     std::cout<<"[question-scope] modelCalls=0 formatOnly=true publicConnected=false"<<std::endl;
 }
 void QuestionsLocal(const std::filesystem::path& root,const std::string& endpoint){
     const auto plan=QuestionPlan(root);Check(plan==CauseRead(root/"questions-plan.json"),"K10 exact frozen requests before first model call");
-    VaReviewProviderOptions options;options.enabled=true;options.local_endpoint=endpoint;options.local_model=question_model;unsigned chats=0;
+    const auto candidate=ReadQuestionCandidate(root);
+    if(candidate.non_thinking)Check(QuestionPlan(root,candidate)==CauseRead(root/"candidate-questions-plan.json"),"K10 exact candidate requests before first model call");
+    VaReviewProviderOptions options;options.enabled=true;options.local_endpoint=endpoint;options.local_model=candidate.model;unsigned chats=0;
     for(const auto& row:QuestionRows(root)){auto c=QuestionInput(root,row);const auto id=CoreText(CauseDoc(row),"id");ReviewQuestionOutput out;std::string error;
         bool transmission=true;const auto started=VaReviewService::Clock::now();
         auto wire=[&](const VaReviewHttpRequest& r,auto deadline,const auto& cancelled,std::string* response,std::string* e){
-            const bool chat=r.url.find("/api/chat")!=std::string::npos;if(chat){++chats;Check(chats<=6,"K10 call budget");std::cout<<"[question-request] "<<EvidenceJsonQuote(r.body)<<std::endl;}
-            const bool ok=VaReviewCurl(r,deadline,cancelled,response,e);transmission=transmission&&ok;
+            const bool chat=r.url.find("/api/chat")!=std::string::npos;auto request=r;
+            if(chat){request.body=QuestionCandidateBody(request.body,candidate.non_thinking);++chats;Check(chats<=6,"K10 call budget");std::cout<<"[question-request] "<<EvidenceJsonQuote(request.body)<<std::endl;}
+            const bool ok=VaReviewCurl(request,deadline,cancelled,response,e);transmission=transmission&&ok;
             if(chat)std::cout<<"[question-raw] "<<EvidenceJsonQuote(*response)<<std::endl;return ok;};
-        const bool accepted=GenerateReviewQuestions(c.input,options,question_digest,started+std::chrono::seconds(60),[&]{return std::filesystem::exists(root/"cause-stop");},&out,&error,wire);
+        const bool accepted=GenerateReviewQuestions(c.input,options,candidate.digest,started+std::chrono::seconds(60),[&]{return std::filesystem::exists(root/"cause-stop");},&out,&error,wire);
         std::cout<<"[question-result] {\"case\":"<<EvidenceJsonQuote(id)<<",\"accepted\":"<<(accepted?"true":"false")<<",\"error\":"<<EvidenceJsonQuote(error)<<",\"elapsedMs\":"<<std::chrono::duration_cast<std::chrono::milliseconds>(VaReviewService::Clock::now()-started).count()<<",\"questions\":{";
         for(std::size_t i=0;i<out.questions.size();++i){if(i)std::cout<<',';std::cout<<EvidenceJsonQuote(out.questions[i].first)<<':'<<EvidenceJsonQuote(out.questions[i].second);}std::cout<<"}}"<<std::endl;
         Check(transmission&&error!="review-timeout"&&error!="review-cancelled"&&error!="question-model-mismatch"&&error!="question-envelope","K10 transport/deadline/collection normal");

@@ -177,6 +177,10 @@ native4GiB/model14GiB/workspace8GiB와5초 unload 유지. 자연스러움·중�
 출처·사실 비추가를 원문과 직접 대조하며 구현자 검토임을 명시한다. explicit core 합성 입력과 실제 v3 helper
 검사를 구분하고 실제 사용자 확인/영상 인식/자유질문 해석 성공으로 세지 않는다.
 공개 route/control 없음. 단기 내부 검사이며 일반 acceptance/전체HTTP/UI/30분/120분/릴리즈는 제외한다.
+후보 비교는 `MEDIA_SERVER_VA_QUESTION_CANDIDATE`의 model/digest/think=false와
+`MEDIA_SERVER_VA_QUESTION_PLAN`을 함께 지정한다. 미지정 기본 요청 불변, 잘못된 옵션 거부,
+생성 전 기존6요청과 model/think 외 필드 동일성을 검사한다. 런타임은 평가 소유 절대경로/포트이며
+43의 의미 기준은 유지한다. 후보·런타임 조합 비교이고 모델 단독 효과나 공개 채택 검사가 아니다.
 
 V450-K06(관측 연결 후보, 공개 미연결): `--observer-only`는
 [test/fixtures/v450_review_observer.json](../test/fixtures/v450_review_observer.json)의 독립 기대값으로
