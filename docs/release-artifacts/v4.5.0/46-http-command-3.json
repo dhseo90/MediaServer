@@ -1,0 +1,12 @@
+{
+  "command": [
+    "python3",
+    "scripts/internal/verify_va_review_confirmed.py",
+    "--materials-http"
+  ],
+  "exit": 0,
+  "seconds": 8.983854374964722,
+  "rawSha256": "0b87b0743eb1d5318ac2fc26a8a03487f7a0b0da07be3b1a7dfe25e317ba6925",
+  "prior": "46-http-command-2.json",
+  "correction": "Wait for old material DOM to detach before asserting next result, instead of waiting on already-present old locator."
+}

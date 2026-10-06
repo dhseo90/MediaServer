@@ -1,0 +1,9 @@
+{
+  "command": [
+    "node",
+    "scripts/internal/verify_code_comments.mjs"
+  ],
+  "exit": 0,
+  "seconds": 0.4392744160722941,
+  "rawSha256": "e70cc50d46db73a8dadd8f6412377c6fe16d7f567097897c8f6e8d2020a97e85"
+}

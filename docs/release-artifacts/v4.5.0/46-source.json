@@ -1,0 +1,75 @@
+{
+  "base": "31c1d9e27656e36a154d6407d4fe0e821be9a484",
+  "patch": "46-source.patch.gz",
+  "rawPatchSha256": "4f936ea40b938a8fc006a44dd762515ca68855e79ba8e9e616e619463a0248e5",
+  "files": [
+    {
+      "path": "CMakeLists.txt",
+      "sha256": "8f0afb3dc7beb8c052324192396727cfb4ecbb746399e8ab7b060a763020d2f9"
+    },
+    {
+      "path": "docs/project-feature-test-inventory.md",
+      "sha256": "409962190876041e5a11a1bca5df1254b2c357daef910656a454fd9d62f23b92"
+    },
+    {
+      "path": "docs/superpowers/specs/2026-10-05-v450-va-review-design.md",
+      "sha256": "c0bab3ac281f26d088e3b631db0f05692b96f55dcd8f70cccb5ec7f785efea1f"
+    },
+    {
+      "path": "docs/v410-v49-recording-search-roadmap.md",
+      "sha256": "dff5bfe59d63b521069e28531be7fdb743144d98d5be5cf05b6eb5850118f1e2"
+    },
+    {
+      "path": "include/recording/va_review_material_requests.h",
+      "sha256": "e4b22afa72e4b363e7b0d02ae976054187e63b33719a3008ca67f677e006396d"
+    },
+    {
+      "path": "scripts/internal/va_review_confirmed_http.mjs",
+      "sha256": "2c08719bd25c68f9c077cbc64c37bda083d4552497916c96a19bd84b28d5661a"
+    },
+    {
+      "path": "scripts/internal/va_review_material_checks.h",
+      "sha256": "c1cdb730beffd6ee34be59291518f81982b29db0b90717c4b5fbd86c0e72a639"
+    },
+    {
+      "path": "scripts/internal/va_review_material_http.mjs",
+      "sha256": "1094a68a1000b0eb6af08945682777ed92546e26e4e8deae3f8db43b061b7cb5"
+    },
+    {
+      "path": "scripts/internal/va_review_smoke.cpp",
+      "sha256": "82862306e664977ccd3feed5a79ff47a191c2f1f40074b3654188adcfe8aabe4"
+    },
+    {
+      "path": "scripts/internal/verify_va_review.sh",
+      "sha256": "0c7673bc99c1e37f0e0fddac65bfc99cb2b766560c133529cf026f0a78bb40bb"
+    },
+    {
+      "path": "scripts/internal/verify_va_review_confirmed.py",
+      "sha256": "f9349f06bf742314d19692c64c347fd1fbd02910e195fee69e647050a5611c59"
+    },
+    {
+      "path": "src/ingress/a_record_review_application_service.cpp",
+      "sha256": "1fc7f22e0d950e217980f27fccf2b033d7b3d86758ecea9a15419fd62af2324c"
+    },
+    {
+      "path": "src/ingress/product_ui_page_scripts.cpp",
+      "sha256": "ee768fb439e7be3b50fac1ba56d2bd64ce860a5c6e23664f4ba03a5f920aaa3d"
+    },
+    {
+      "path": "src/recording/va_review_material_requests.cpp",
+      "sha256": "d47308e52ace5df9bad55e0d45dbbf2c713055812d01b19fc5b11fc149c8ff8a"
+    },
+    {
+      "path": "test/fixtures/v390_structure_stabilization_current_graph.json",
+      "sha256": "567e058efb03e1b613ae445619c3acce9e39077cbdafc376917acd225ebe8cee"
+    },
+    {
+      "path": "test/fixtures/v390_structure_stabilization_execution.json",
+      "sha256": "f625aa4b9e268c1449fc119e85e6388d72560a8c33b37e42f13e9a4963944c65"
+    }
+  ],
+  "historicalEvidenceUnchanged": true,
+  "modelCalls": 0,
+  "codeCommit": "1a9518fbb0675d794c05112474b264f6542b4cb5",
+  "validationBinding": "Products match build-2, offline-3 and http-3 source hashes. HTTP helper wait change affects only browser verification; offline input unchanged. Structure metadata measured afterward, no product edits."
+}

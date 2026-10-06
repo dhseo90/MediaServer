@@ -1,0 +1,11 @@
+{
+  "command": [
+    "cmake",
+    "--build",
+    "build-gst-onnx",
+    "-j",
+    "4"
+  ],
+  "exit": 0,
+  "seconds": 2.012896250002086
+}

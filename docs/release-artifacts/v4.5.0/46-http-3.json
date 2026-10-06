@@ -1,0 +1,890 @@
+{
+  "featureId": "V450-A03/U03",
+  "command": "python3 scripts/internal/verify_va_review_confirmed.py --materials-http",
+  "startedAtMs": 1791280422587,
+  "sourceSha256": "2c08719bd25c68f9c077cbc64c37bda083d4552497916c96a19bd84b28d5661a",
+  "actualUiPass": false,
+  "actualModel": false,
+  "checks": [
+    {
+      "id": "GET /ops/api/recordings/a-record-packages/ep-eaac9f7786f33c3823c77f16e4636bcd0d4ede7c4225b3023bda9dd30a285e52 expected 200 got 200 ",
+      "status": "PASS"
+    },
+    {
+      "id": "private response headers",
+      "status": "PASS"
+    },
+    {
+      "id": "private fields absent",
+      "status": "PASS"
+    },
+    {
+      "id": "POST /ops/api/recordings/a-record-reviews/drafts expected 201 got 201 ",
+      "status": "PASS"
+    },
+    {
+      "id": "private response headers",
+      "status": "PASS"
+    },
+    {
+      "id": "private fields absent",
+      "status": "PASS"
+    },
+    {
+      "id": "POST /ops/api/recordings/a-record-reviews/drafts/ad-ac90146abca27d4b9ceef393f0c96a788de587ed9934fd531260cf9e836c5790/confirm expected 200 got 200 ",
+      "status": "PASS"
+    },
+    {
+      "id": "private response headers",
+      "status": "PASS"
+    },
+    {
+      "id": "private fields absent",
+      "status": "PASS"
+    },
+    {
+      "id": "POST /ops/api/recordings/a-record-reviews/drafts/ad-ac90146abca27d4b9ceef393f0c96a788de587ed9934fd531260cf9e836c5790/execute expected 202 got 202 ",
+      "status": "PASS"
+    },
+    {
+      "id": "private response headers",
+      "status": "PASS"
+    },
+    {
+      "id": "private fields absent",
+      "status": "PASS"
+    },
+    {
+      "id": "GET /ops/api/recordings/a-record-reviews/jobs/vj-3c823384267b970bcf1f589ce3ada40e-1 expected 200 got 200 ",
+      "status": "PASS"
+    },
+    {
+      "id": "private response headers",
+      "status": "PASS"
+    },
+    {
+      "id": "private fields absent",
+      "status": "PASS"
+    },
+    {
+      "id": "GET /ops/api/recordings/a-record-reviews/jobs/vj-3c823384267b970bcf1f589ce3ada40e-1 expected 200 got 200 ",
+      "status": "PASS"
+    },
+    {
+      "id": "private response headers",
+      "status": "PASS"
+    },
+    {
+      "id": "private fields absent",
+      "status": "PASS"
+    },
+    {
+      "id": "A record completes",
+      "status": "PASS"
+    },
+    {
+      "id": "GET /ops/api/recordings/a-record-reviews/vr-190f7b763099e1478e7a08a281b2a19b426873fefa1ac9da1e4d3dff2573065a expected 200 got 200 ",
+      "status": "PASS"
+    },
+    {
+      "id": "private response headers",
+      "status": "PASS"
+    },
+    {
+      "id": "private fields absent",
+      "status": "PASS"
+    },
+    {
+      "id": "supported without request remains readable",
+      "status": "PASS"
+    },
+    {
+      "id": "POST /ops/api/recordings/a-record-reviews/drafts expected 201 got 201 ",
+      "status": "PASS"
+    },
+    {
+      "id": "private response headers",
+      "status": "PASS"
+    },
+    {
+      "id": "private fields absent",
+      "status": "PASS"
+    },
+    {
+      "id": "POST /ops/api/recordings/a-record-reviews/drafts/ad-15c68d4bbf4676507a5c1c322fada53ae6b286915b2ea47986822e414a040558/confirm expected 200 got 200 ",
+      "status": "PASS"
+    },
+    {
+      "id": "private response headers",
+      "status": "PASS"
+    },
+    {
+      "id": "private fields absent",
+      "status": "PASS"
+    },
+    {
+      "id": "POST /ops/api/recordings/a-record-reviews/drafts/ad-15c68d4bbf4676507a5c1c322fada53ae6b286915b2ea47986822e414a040558/execute expected 202 got 202 ",
+      "status": "PASS"
+    },
+    {
+      "id": "private response headers",
+      "status": "PASS"
+    },
+    {
+      "id": "private fields absent",
+      "status": "PASS"
+    },
+    {
+      "id": "GET /ops/api/recordings/a-record-reviews/jobs/vj-3c823384267b970bcf1f589ce3ada40e-2 expected 200 got 200 ",
+      "status": "PASS"
+    },
+    {
+      "id": "private response headers",
+      "status": "PASS"
+    },
+    {
+      "id": "private fields absent",
+      "status": "PASS"
+    },
+    {
+      "id": "GET /ops/api/recordings/a-record-reviews/jobs/vj-3c823384267b970bcf1f589ce3ada40e-2 expected 200 got 200 ",
+      "status": "PASS"
+    },
+    {
+      "id": "private response headers",
+      "status": "PASS"
+    },
+    {
+      "id": "private fields absent",
+      "status": "PASS"
+    },
+    {
+      "id": "A record completes",
+      "status": "PASS"
+    },
+    {
+      "id": "GET /ops/api/recordings/a-record-reviews/vr-048cd77e6c7db51e241aa66c16ec86e8394c48f60966826d208f8d740d5d5d4b expected 200 got 200 ",
+      "status": "PASS"
+    },
+    {
+      "id": "private response headers",
+      "status": "PASS"
+    },
+    {
+      "id": "private fields absent",
+      "status": "PASS"
+    },
+    {
+      "id": "contradiction without request",
+      "status": "PASS"
+    },
+    {
+      "id": "POST /ops/api/recordings/a-record-reviews/drafts expected 201 got 201 ",
+      "status": "PASS"
+    },
+    {
+      "id": "private response headers",
+      "status": "PASS"
+    },
+    {
+      "id": "private fields absent",
+      "status": "PASS"
+    },
+    {
+      "id": "POST /ops/api/recordings/a-record-reviews/drafts/ad-d62871097da51d04896a54777399c577613d8341697a03443ea0997a9e7267aa/confirm expected 200 got 200 ",
+      "status": "PASS"
+    },
+    {
+      "id": "private response headers",
+      "status": "PASS"
+    },
+    {
+      "id": "private fields absent",
+      "status": "PASS"
+    },
+    {
+      "id": "POST /ops/api/recordings/a-record-reviews/drafts/ad-d62871097da51d04896a54777399c577613d8341697a03443ea0997a9e7267aa/execute expected 202 got 202 ",
+      "status": "PASS"
+    },
+    {
+      "id": "private response headers",
+      "status": "PASS"
+    },
+    {
+      "id": "private fields absent",
+      "status": "PASS"
+    },
+    {
+      "id": "GET /ops/api/recordings/a-record-reviews/jobs/vj-3c823384267b970bcf1f589ce3ada40e-3 expected 200 got 200 ",
+      "status": "PASS"
+    },
+    {
+      "id": "private response headers",
+      "status": "PASS"
+    },
+    {
+      "id": "private fields absent",
+      "status": "PASS"
+    },
+    {
+      "id": "GET /ops/api/recordings/a-record-reviews/jobs/vj-3c823384267b970bcf1f589ce3ada40e-3 expected 200 got 200 ",
+      "status": "PASS"
+    },
+    {
+      "id": "private response headers",
+      "status": "PASS"
+    },
+    {
+      "id": "private fields absent",
+      "status": "PASS"
+    },
+    {
+      "id": "A record completes",
+      "status": "PASS"
+    },
+    {
+      "id": "GET /ops/api/recordings/a-record-reviews/vr-11500b97ed799bbf9786f184842c1fe4d074ae7eabcce4524dc392d2811b42ed expected 200 got 200 ",
+      "status": "PASS"
+    },
+    {
+      "id": "private response headers",
+      "status": "PASS"
+    },
+    {
+      "id": "private fields absent",
+      "status": "PASS"
+    },
+    {
+      "id": "unsupported does not promise solvable materials",
+      "status": "PASS"
+    },
+    {
+      "id": "GET /ops/api/recordings/a-record-packages/ep-dddb0d245c07707596fcebc41e2b797745b452880db6212f2144136334584b71 expected 200 got 200 ",
+      "status": "PASS"
+    },
+    {
+      "id": "private response headers",
+      "status": "PASS"
+    },
+    {
+      "id": "private fields absent",
+      "status": "PASS"
+    },
+    {
+      "id": "POST /ops/api/recordings/a-record-reviews/drafts expected 201 got 201 ",
+      "status": "PASS"
+    },
+    {
+      "id": "private response headers",
+      "status": "PASS"
+    },
+    {
+      "id": "private fields absent",
+      "status": "PASS"
+    },
+    {
+      "id": "POST /ops/api/recordings/a-record-reviews/drafts/ad-f79298936a0e634fe6231013a37e677972aef6241966c6f3a36dc79f94a52884/confirm expected 200 got 200 ",
+      "status": "PASS"
+    },
+    {
+      "id": "private response headers",
+      "status": "PASS"
+    },
+    {
+      "id": "private fields absent",
+      "status": "PASS"
+    },
+    {
+      "id": "POST /ops/api/recordings/a-record-reviews/drafts/ad-f79298936a0e634fe6231013a37e677972aef6241966c6f3a36dc79f94a52884/execute expected 202 got 202 ",
+      "status": "PASS"
+    },
+    {
+      "id": "private response headers",
+      "status": "PASS"
+    },
+    {
+      "id": "private fields absent",
+      "status": "PASS"
+    },
+    {
+      "id": "GET /ops/api/recordings/a-record-reviews/jobs/vj-3c823384267b970bcf1f589ce3ada40e-4 expected 200 got 200 ",
+      "status": "PASS"
+    },
+    {
+      "id": "private response headers",
+      "status": "PASS"
+    },
+    {
+      "id": "private fields absent",
+      "status": "PASS"
+    },
+    {
+      "id": "GET /ops/api/recordings/a-record-reviews/jobs/vj-3c823384267b970bcf1f589ce3ada40e-4 expected 200 got 200 ",
+      "status": "PASS"
+    },
+    {
+      "id": "private response headers",
+      "status": "PASS"
+    },
+    {
+      "id": "private fields absent",
+      "status": "PASS"
+    },
+    {
+      "id": "A record completes",
+      "status": "PASS"
+    },
+    {
+      "id": "GET /ops/api/recordings/a-record-reviews/vr-6ad90e2514942aa1cb8522bbacb47137e0096d51e46a9f2509520b8d611ec54d expected 200 got 200 ",
+      "status": "PASS"
+    },
+    {
+      "id": "private response headers",
+      "status": "PASS"
+    },
+    {
+      "id": "private fields absent",
+      "status": "PASS"
+    },
+    {
+      "id": "real missing A record yields identity and position materials",
+      "status": "PASS"
+    },
+    {
+      "id": "A source exact frame/sample metadata",
+      "status": "PASS"
+    },
+    {
+      "id": "PTS and sample retained",
+      "status": "PASS"
+    },
+    {
+      "id": "PTS and sample retained",
+      "status": "PASS"
+    },
+    {
+      "id": "A source exact frame/sample metadata",
+      "status": "PASS"
+    },
+    {
+      "id": "PTS and sample retained",
+      "status": "PASS"
+    },
+    {
+      "id": "PTS and sample retained",
+      "status": "PASS"
+    },
+    {
+      "id": "server display distinct from ungenerated model",
+      "status": "PASS"
+    },
+    {
+      "id": "POST /ops/api/recordings/a-record-reviews/drafts expected 201 got 201 ",
+      "status": "PASS"
+    },
+    {
+      "id": "private response headers",
+      "status": "PASS"
+    },
+    {
+      "id": "private fields absent",
+      "status": "PASS"
+    },
+    {
+      "id": "POST /ops/api/recordings/a-record-reviews/drafts/ad-267af71575e9847800b6bba59451dcdc0007198a9b681fd7d93450e31efc02a2/confirm expected 200 got 200 ",
+      "status": "PASS"
+    },
+    {
+      "id": "private response headers",
+      "status": "PASS"
+    },
+    {
+      "id": "private fields absent",
+      "status": "PASS"
+    },
+    {
+      "id": "POST /ops/api/recordings/a-record-reviews/drafts/ad-267af71575e9847800b6bba59451dcdc0007198a9b681fd7d93450e31efc02a2/execute expected 202 got 202 ",
+      "status": "PASS"
+    },
+    {
+      "id": "private response headers",
+      "status": "PASS"
+    },
+    {
+      "id": "private fields absent",
+      "status": "PASS"
+    },
+    {
+      "id": "GET /ops/api/recordings/a-record-reviews/jobs/vj-3c823384267b970bcf1f589ce3ada40e-5 expected 200 got 200 ",
+      "status": "PASS"
+    },
+    {
+      "id": "private response headers",
+      "status": "PASS"
+    },
+    {
+      "id": "private fields absent",
+      "status": "PASS"
+    },
+    {
+      "id": "GET /ops/api/recordings/a-record-reviews/jobs/vj-3c823384267b970bcf1f589ce3ada40e-5 expected 200 got 200 ",
+      "status": "PASS"
+    },
+    {
+      "id": "private response headers",
+      "status": "PASS"
+    },
+    {
+      "id": "private fields absent",
+      "status": "PASS"
+    },
+    {
+      "id": "A record completes",
+      "status": "PASS"
+    },
+    {
+      "id": "GET /ops/api/recordings/a-record-reviews/vr-24abf6d26daa08748df77a5aae372c2d5bc55deea7d07f62fe1586388bbf3d2a expected 200 got 200 ",
+      "status": "PASS"
+    },
+    {
+      "id": "private response headers",
+      "status": "PASS"
+    },
+    {
+      "id": "private fields absent",
+      "status": "PASS"
+    },
+    {
+      "id": "only absent middle sample requested",
+      "status": "PASS"
+    },
+    {
+      "id": "POST /ops/api/recordings/a-record-reviews/drafts expected 201 got 201 ",
+      "status": "PASS"
+    },
+    {
+      "id": "private response headers",
+      "status": "PASS"
+    },
+    {
+      "id": "private fields absent",
+      "status": "PASS"
+    },
+    {
+      "id": "POST /ops/api/recordings/a-record-reviews/drafts/ad-0f11a00e48b800b44780403dccfa214a28d66f48910fb4b11e558b846efa7ee9/confirm expected 200 got 200 ",
+      "status": "PASS"
+    },
+    {
+      "id": "private response headers",
+      "status": "PASS"
+    },
+    {
+      "id": "private fields absent",
+      "status": "PASS"
+    },
+    {
+      "id": "POST /ops/api/recordings/a-record-reviews/drafts/ad-0f11a00e48b800b44780403dccfa214a28d66f48910fb4b11e558b846efa7ee9/execute expected 202 got 202 ",
+      "status": "PASS"
+    },
+    {
+      "id": "private response headers",
+      "status": "PASS"
+    },
+    {
+      "id": "private fields absent",
+      "status": "PASS"
+    },
+    {
+      "id": "GET /ops/api/recordings/a-record-reviews/jobs/vj-3c823384267b970bcf1f589ce3ada40e-6 expected 200 got 200 ",
+      "status": "PASS"
+    },
+    {
+      "id": "private response headers",
+      "status": "PASS"
+    },
+    {
+      "id": "private fields absent",
+      "status": "PASS"
+    },
+    {
+      "id": "GET /ops/api/recordings/a-record-reviews/jobs/vj-3c823384267b970bcf1f589ce3ada40e-6 expected 200 got 200 ",
+      "status": "PASS"
+    },
+    {
+      "id": "private response headers",
+      "status": "PASS"
+    },
+    {
+      "id": "private fields absent",
+      "status": "PASS"
+    },
+    {
+      "id": "A record completes",
+      "status": "PASS"
+    },
+    {
+      "id": "GET /ops/api/recordings/a-record-reviews/vr-0d2ce9659e9591af330521c80c728c72c3f8ed5f47d2399ddd28bf41b48206b0 expected 200 got 200 ",
+      "status": "PASS"
+    },
+    {
+      "id": "private response headers",
+      "status": "PASS"
+    },
+    {
+      "id": "private fields absent",
+      "status": "PASS"
+    },
+    {
+      "id": "display limit preserves all 16 claims and 48 gaps",
+      "status": "PASS"
+    },
+    {
+      "id": "API total serialized budget",
+      "status": "PASS"
+    },
+    {
+      "id": "GET /ops/api/recordings/a-record-reviews/vr-6ad90e2514942aa1cb8522bbacb47137e0096d51e46a9f2509520b8d611ec54d expected 200 got 200 ",
+      "status": "PASS"
+    },
+    {
+      "id": "private response headers",
+      "status": "PASS"
+    },
+    {
+      "id": "private fields absent",
+      "status": "PASS"
+    },
+    {
+      "id": "GET rendering never rewrites stored record",
+      "status": "PASS"
+    },
+    {
+      "id": "GET /ops/api/recordings/a-record-reviews/vr-6ad90e2514942aa1cb8522bbacb47137e0096d51e46a9f2509520b8d611ec54d expected 403 got 403 ",
+      "status": "PASS"
+    },
+    {
+      "id": "private response headers",
+      "status": "PASS"
+    },
+    {
+      "id": "private fields absent",
+      "status": "PASS"
+    },
+    {
+      "id": "GET /ops/api/recordings/a-record-reviews/vr-6ad90e2514942aa1cb8522bbacb47137e0096d51e46a9f2509520b8d611ec54d expected 403 got 403 ",
+      "status": "PASS"
+    },
+    {
+      "id": "private response headers",
+      "status": "PASS"
+    },
+    {
+      "id": "private fields absent",
+      "status": "PASS"
+    },
+    {
+      "id": "GET /ops/api/recordings/a-record-reviews/vr-6ad90e2514942aa1cb8522bbacb47137e0096d51e46a9f2509520b8d611ec54d expected 403 got 403 ",
+      "status": "PASS"
+    },
+    {
+      "id": "private response headers",
+      "status": "PASS"
+    },
+    {
+      "id": "private fields absent",
+      "status": "PASS"
+    },
+    {
+      "id": "GET /ops/api/recordings/a-record-reviews/vr-6ad90e2514942aa1cb8522bbacb47137e0096d51e46a9f2509520b8d611ec54d expected 200 got 200 ",
+      "status": "PASS"
+    },
+    {
+      "id": "private response headers",
+      "status": "PASS"
+    },
+    {
+      "id": "private fields absent",
+      "status": "PASS"
+    },
+    {
+      "id": "authorized read-only role sees scoped guidance",
+      "status": "PASS"
+    },
+    {
+      "id": "GET /ops/api/recordings/a-record-reviews/vr-f8c83fc61d1efe1ee7f0039fd48a722aef9c4c73d229fab44cee394be4d1a92f expected 404 got 404 ",
+      "status": "PASS"
+    },
+    {
+      "id": "private response headers",
+      "status": "PASS"
+    },
+    {
+      "id": "private fields absent",
+      "status": "PASS"
+    },
+    {
+      "id": "GET /ops/api/recordings/a-record-reviews/vr-f72d4f4bf0b8550e6c87277f17b0bf794327b44a7a04857710bbcae73423e948 expected 404 got 404 ",
+      "status": "PASS"
+    },
+    {
+      "id": "private response headers",
+      "status": "PASS"
+    },
+    {
+      "id": "private fields absent",
+      "status": "PASS"
+    },
+    {
+      "id": "GET /ops/api/recordings/va-reviews/vr-f72d4f4bf0b8550e6c87277f17b0bf794327b44a7a04857710bbcae73423e948 expected 200 got 200 ",
+      "status": "PASS"
+    },
+    {
+      "id": "private response headers",
+      "status": "PASS"
+    },
+    {
+      "id": "private fields absent",
+      "status": "PASS"
+    },
+    {
+      "id": "legacy v1 unchanged",
+      "status": "PASS"
+    },
+    {
+      "id": "GET /ops/api/recordings/a-record-reviews/vr-6ad90e2514942aa1cb8522bbacb47137e0096d51e46a9f2509520b8d611ec54d expected 404 got 404 ",
+      "status": "PASS"
+    },
+    {
+      "id": "private response headers",
+      "status": "PASS"
+    },
+    {
+      "id": "private fields absent",
+      "status": "PASS"
+    },
+    {
+      "id": "GET /ops/api/recordings/a-record-reviews expected 200 got 200 ",
+      "status": "PASS"
+    },
+    {
+      "id": "private response headers",
+      "status": "PASS"
+    },
+    {
+      "id": "private fields absent",
+      "status": "PASS"
+    },
+    {
+      "id": "saved result listed",
+      "status": "PASS"
+    },
+    {
+      "id": "browser actual request meaning and origin",
+      "status": "PASS"
+    },
+    {
+      "id": "browser model state and literal original HTML retained",
+      "status": "PASS"
+    },
+    {
+      "id": "browser no horizontal overflow 1280 light",
+      "status": "PASS"
+    },
+    {
+      "id": "browser no horizontal overflow 1280 dark",
+      "status": "PASS"
+    },
+    {
+      "id": "browser no horizontal overflow 390 light",
+      "status": "PASS"
+    },
+    {
+      "id": "browser no horizontal overflow 390 dark",
+      "status": "PASS"
+    },
+    {
+      "id": "GET /ops/api/recordings/a-record-reviews expected 200 got 200 ",
+      "status": "PASS"
+    },
+    {
+      "id": "private response headers",
+      "status": "PASS"
+    },
+    {
+      "id": "private fields absent",
+      "status": "PASS"
+    },
+    {
+      "id": "saved result listed",
+      "status": "PASS"
+    },
+    {
+      "id": "browser limit keeps every structured decision and gap",
+      "status": "PASS"
+    },
+    {
+      "id": "GET /ops/api/recordings/a-record-reviews expected 200 got 200 ",
+      "status": "PASS"
+    },
+    {
+      "id": "private response headers",
+      "status": "PASS"
+    },
+    {
+      "id": "private fields absent",
+      "status": "PASS"
+    },
+    {
+      "id": "browser unsupported shown without data promise",
+      "status": "PASS"
+    },
+    {
+      "id": "GET /ops/api/recordings/a-record-reviews expected 200 got 200 ",
+      "status": "PASS"
+    },
+    {
+      "id": "private response headers",
+      "status": "PASS"
+    },
+    {
+      "id": "private fields absent",
+      "status": "PASS"
+    },
+    {
+      "id": "browser not-needed still normal result",
+      "status": "PASS"
+    },
+    {
+      "id": "GET /ops/api/recordings/a-record-reviews expected 200 got 200 ",
+      "status": "PASS"
+    },
+    {
+      "id": "private response headers",
+      "status": "PASS"
+    },
+    {
+      "id": "private fields absent",
+      "status": "PASS"
+    },
+    {
+      "id": "browser late result cannot replace new selection",
+      "status": "PASS"
+    },
+    {
+      "id": "browser read-only scoped guidance without execution",
+      "status": "PASS"
+    },
+    {
+      "id": "browser viewer or wrong channel no guidance 2",
+      "status": "PASS"
+    },
+    {
+      "id": "browser viewer or wrong channel no guidance 3",
+      "status": "PASS"
+    },
+    {
+      "id": "browser no browser exceptions",
+      "status": "PASS"
+    },
+    {
+      "id": "model transport trap: zero calls",
+      "status": "PASS"
+    },
+    {
+      "id": "180 second bounded harness",
+      "status": "PASS"
+    }
+  ],
+  "cleanup": {
+    "browserClosed": true,
+    "process": {
+      "exited": true,
+      "forced": false,
+      "exitCode": 0,
+      "signalCode": null
+    },
+    "http": {
+      "closed": true,
+      "evidence": "ECONNREFUSED"
+    },
+    "rtsp": {
+      "closed": true,
+      "evidence": "ECONNREFUSED"
+    },
+    "provider": {
+      "closed": true,
+      "evidence": "ECONNREFUSED"
+    },
+    "udpClosed": true,
+    "rootAbsent": true
+  },
+  "status": "PASS",
+  "root": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-a-review-http-cjcxop",
+  "rootIdentity": {
+    "dev": 16777232,
+    "ino": 169224151,
+    "uid": 501
+  },
+  "binarySha256": "f162ade32fb2ed3ca6a6cf2eedf6d710f7e80c308552707397850bd4b44a084b",
+  "fixtureSha256": "11426c5c906e8c431efcdc8e5a3c677b66457dc24a712b04f86c617822916865",
+  "ports": {
+    "http": 59139,
+    "rtsp": 59140,
+    "provider": 59138,
+    "udp": 59078
+  },
+  "pid": 42081,
+  "savedRecordHash": "6ad90e2514942aa1cb8522bbacb47137e0096d51e46a9f2509520b8d611ec54d",
+  "browser": {
+    "engine": "chromium",
+    "moduleVersion": "1.62.1",
+    "checks": [
+      "actual request meaning and origin",
+      "model state and literal original HTML retained",
+      "no horizontal overflow 1280 light",
+      "no horizontal overflow 1280 dark",
+      "no horizontal overflow 390 light",
+      "no horizontal overflow 390 dark",
+      "limit keeps every structured decision and gap",
+      "unsupported shown without data promise",
+      "not-needed still normal result",
+      "late result cannot replace new selection",
+      "read-only scoped guidance without execution",
+      "viewer or wrong channel no guidance 2",
+      "viewer or wrong channel no guidance 3",
+      "no browser exceptions"
+    ],
+    "screenshots": [
+      {
+        "file": "46-materials-1280-light-1791280422587.png",
+        "width": 1280,
+        "theme": "light",
+        "scope": "whole saved result and material guidance"
+      },
+      {
+        "file": "46-materials-1280-dark-1791280422587.png",
+        "width": 1280,
+        "theme": "dark",
+        "scope": "whole saved result and material guidance"
+      },
+      {
+        "file": "46-materials-390-light-1791280422587.png",
+        "width": 390,
+        "theme": "light",
+        "scope": "whole saved result and material guidance"
+      },
+      {
+        "file": "46-materials-390-dark-1791280422587.png",
+        "width": 390,
+        "theme": "dark",
+        "scope": "whole saved result and material guidance"
+      }
+    ],
+    "pageErrors": [],
+    "materialsText": "추가로 필요한 자료 — 서버 규칙\n\n자료 요청 안내 가능\n\n‘사용자가 선택한 분석 track’의 프레임 1(미디어 PTS 7000000000 ns), 프레임 8(미디어 PTS 7966666666 ns)에 대응하는 분석 namespace·track·episode의 sample 기록 연결 근거를 제공할 수 있나요? (물리적 동일성 인증 아님)\n\n대응: c0 / gap 1 · 출처: A 분석 기록 · 대상 selected-engine-track\n\n‘사용자가 선택한 분석 track’의 프레임 1(미디어 PTS 7000000000 ns), 프레임 8(미디어 PTS 7966666666 ns)에 대응하는 원본 화면 기준 위치 자료를 제공할 수 있나요?\n\n대응: c0 / gap 2 · 출처: A 분석 기록 · 대상 selected-engine-track\n\n현재 조회 시 서버 규칙으로 구성한 안내 · material-requests-v1\n\nPTS는 미디어 시점이며 촬영 UTC가 아닙니다. 이 화면은 자료 요청 안내만 제공합니다. 자료 업로드·재분석을 실행하거나 과거 저장 결과를 자동 갱신하지 않습니다."
+  },
+  "scopedBrowserExecuted": true,
+  "modelCalls": 0,
+  "exit": 0,
+  "elapsedMs": 7212
+}

@@ -1,0 +1,10 @@
+{
+  "command": [
+    "node",
+    "--test",
+    "scripts/internal/structure_owner_classification.test.mjs"
+  ],
+  "exit": 0,
+  "seconds": 2.5897709170822054,
+  "rawSha256": "f7ad727744e4338e2f90c0c9dc3851496d05e38c0c447bd16c6c0cbbdd6fdf32"
+}
