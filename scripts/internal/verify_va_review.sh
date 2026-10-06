@@ -185,7 +185,7 @@ try:
     focused_started=time.monotonic()
     stage_deadline=focused_started+800
     if local and sys.argv[2] in ('--diagnostic-text-uncertain','--diagnostic-text-decisive'):
-        # Both text partitions share the caller's one frozen 800-second deadline, including the manual pause.
+        # 두 텍스트 분할은 수동 대기를 포함해 호출자가 고정한 800초 한도를 공유한다.
         stage_deadline=float(os.environ['MEDIA_SERVER_VA_TEXT_DEADLINE_MONOTONIC'])
         remaining=stage_deadline-focused_started
         if not 0<remaining<=800:raise RuntimeError('shared text budget exhausted or invalid')

@@ -94,7 +94,7 @@ bool Normalize(const std::string& json,const VaReviewInput& input,VaReviewOutput
            !Description(part,"summary",&summary)||!Object(part,"decision",&decision)||decision.members.size()!=2||
            !Text(decision,"verdict",&verdict)||
            !OneOf(verdict,{"supported","contradicted","insufficient"})||!Object(part,"observations",&observations))return Fail(error,"claim-shape");
-        // IDs bind output slots, not pre-existing semantic claim IDs: free input segmentation remains model-owned.
+        // ID는 출력 슬롯 결속용이며 기존 의미 주장 ID가 아니다. 자유 입력 분리는 모델 책임이다.
         if(question.compare(consumed,claim.size(),claim)!=0)while(consumed<question.size()&&question[consumed]==' ')++consumed;
         if(question.compare(consumed,claim.size(),claim)!=0)return Fail(error,"claim-coverage");
         consumed+=claim.size();
@@ -135,7 +135,7 @@ bool Normalize(const std::string& json,const VaReviewInput& input,VaReviewOutput
                 return Fail(error,"insufficient-observations");
             any_decisive=true;
         }
-        // No text rewriting or semantic relabelling: the model's sole verdict selects its public group.
+        // 문장을 고치거나 의미를 재분류하지 않는다. 모델의 단일 판정이 공개 그룹을 선택한다.
         auto& group=verdict=="supported"?result.supports:verdict=="contradicted"?result.contradictions:result.unclear;
         group.push_back({summary,refs});
         std::set<std::string> question_texts;

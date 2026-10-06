@@ -374,7 +374,7 @@ void QueueChecks(const std::filesystem::path& root) {
     Check(!off.Submit(package,"off","ollama","alice",permit,&duplicate,&error)&&error=="review-disabled"&&called.load()==off_before,
         "V450-Q01 disabled never invokes provider");
 }
-// Provider wire fixtures are explicit model responses, never generated expectations.
+// 통신 fixture는 명시한 모의 응답이며 기대값을 생성하지 않는다.
 std::string WireObservation(const std::string& value="위치 x=64",const std::string& visibility="visible",const std::string& identity="same") {
     using recording::EvidenceJsonQuote;
     return "{\"identity\":"+EvidenceJsonQuote(identity)+",\"visibility\":"+EvidenceJsonQuote(visibility)+",\"value\":"+(value.empty()?"null":EvidenceJsonQuote(value))+"}";
@@ -424,7 +424,7 @@ void ProviderChecks(const std::filesystem::path& root,const std::string& endpoin
     accepts(WireResult("\"c0\":"+partial,"null"),"partial observation plus insufficient and actual question");
     Check(decoded.supports.empty()&&decoded.contradictions.empty()&&decoded.unclear.size()==2&&decoded.questions.size()==1&&!decoded.confidence,
         "V450-K03 normal empty groups and null confidence preserved");
-    // A: preserve the duplicate claim from run 33 as two explicit slots; do not deduplicate.
+    // A: 33번의 중복 주장을 명시 슬롯 둘로 유지한다. 중복을 제거하지 않는다.
     rejects(WireResult("\"c0\":"+partial+",\"c1\":"+partial,"null"),"A duplicate claim coverage","claim-coverage");
     rejects(WireResult("\"c0\":"+partial+",\"c0\":"+partial,"null"),"A duplicate claim ID");
     rejects(WireResult("\"c0\":"+known+",\"c1\":"+WireClaim("물체의 위치가 변한다.")),"A paraphrased duplicate","claim-coverage");
@@ -447,7 +447,7 @@ void ProviderChecks(const std::filesystem::path& root,const std::string& endpoin
         input.question=original;
     }
     input.question="  "+original+"  ";accepts(valid,"allowed surrounding spaces");input.question=original;
-    // B: not-visible citations remain usable for a gap, never as an observed position.
+    // B: 비가시 참조는 부족 근거로 쓸 수 있지만 관측 위치가 아니다.
     rejects(WireResult("\"c0\":"+WireClaim(original,"supported",hidden,"","ordered-endpoints")),"B invisible endpoint cannot support movement","insufficient-observations");
     rejects(changed(valid,"\"visibility\":\"visible\"","\"visibility\":\"not-visible\""),"B hidden frame with position value","unobservable-property");
     rejects(WireResult("\"c0\":"+WireClaim(original,"supported","\"f0\":"+WireObservation(),"","ordered-endpoints")),"single-frame movement","insufficient-observations");
@@ -461,7 +461,7 @@ void ProviderChecks(const std::filesystem::path& root,const std::string& endpoin
         "visible absence can contradict a visibility claim");
     accepts(WireResult("\"c0\":"+WireClaim(input.question,"supported","\"f0\":"+WireObservation("빨간색"),"","visible-property","color")),"single-frame color does not need two frames");
     input.question=original;
-    // C: gaps inherit target/property; adding an independently conflicting field is rejected.
+    // C: 부족은 대상/속성을 상속하며 독립적으로 충돌하는 필드는 거부한다.
     for(const auto* extra:{"\"target\":\"다른 물체\",","\"property\":\"color\","})
         rejects(changed(WireResult("\"c0\":"+partial,"null"),"\"missing\":",std::string(extra)+"\"missing\":"),
             "C gap cannot override inherited target/property","gap-link");
@@ -492,11 +492,11 @@ void ProviderChecks(const std::filesystem::path& root,const std::string& endpoin
     rejects(changed(valid,"\"confidence\":0.5","\"confidence\":0.5,\"confidence\":0.5"),"duplicate root key");
     rejects(changed(valid,"\"confidence\":0.5","\"confidence\":0.5,\"extra\":1"),"extra root key");
     rejects(std::string(40*1024+1,'x'),"wire byte ceiling");
-    // Grammar/shape cannot establish the truth of free Korean text; no blacklist masquerades as an oracle.
+    // 문법/형식으로 자유 한국어 문장의 사실성을 입증하지 않는다. 금지어를 정답지로 쓰지 않는다.
     accepts(changed(uncertain,"가려진 구간에서 물체의 전후 위치를 비교할 수 있는 영상이 있나요?","물체가 가려져 있는지 확인할 수 있나요?"),
         "C legacy wrong-purpose text is structurally admissible and remains a semantic FAIL oracle");
 
-    // Run 35: missing property and target identity are independent, not mutually exclusive.
+    // 35번: 속성과 대상 동일성의 결핍은 독립적이며 함께 존재할 수 있다.
     const auto unseen="\"f0\":"+WireObservation("","not-visible","uncertain")+",\"f1\":"+WireObservation("","not-visible","uncertain");
     const auto both_gaps=WireGap()+","+WireGap("identity","같은 물체인지 확인할 수 있는 가림 없는 영상이 있나요?");
     accepts(WireResult("\"c0\":"+WireClaim(original,"insufficient",unseen,both_gaps),"null"),"invisible property and unknown identity coexist");
@@ -726,7 +726,7 @@ void QualityChecks(const std::filesystem::path& root,const std::string& endpoint
             if(!Parse(request.body,&body)||!Array(body,"messages",&messages)||messages.size()<3||!Parse(messages.back(),&user))
                 throw std::runtime_error("diagnostic-request-shape");
             std::string content;if(!Text(user,"content",&content))throw std::runtime_error("diagnostic-request-content");
-            // Preserve labeled message boundaries, replace only visual inputs with independent facts.
+            // 표시한 메시지 경계를 유지하고 시각 입력만 독립 사실로 바꾼다.
             std::string replacement="["+messages.front();
             for(std::size_t i=1;i+1<messages.size();++i){
                 Doc frame;std::string label;if(!Parse(messages[i],&frame)||!Text(frame,"content",&label))throw std::runtime_error("diagnostic-frame-shape");
@@ -749,7 +749,7 @@ void QualityChecks(const std::filesystem::path& root,const std::string& endpoint
         }
         const bool ok=VaReviewCurl(transmitted,deadline,cancelled,response,error);
         if(ok&&request.url.find("/api/chat")!=std::string::npos){
-            // Only this isolated synthetic evaluator retains raw responses; product logging is unchanged.
+            // 격리된 합성 평가기만 원응답을 보존한다. 제품 로깅은 바꾸지 않는다.
             std::cout<<"[synthetic-raw-response] "<<EvidenceJsonQuote(*response)<<std::endl;
             using namespace review_json;Doc envelope,message;std::string content,reason;VaReviewOutput decoded;
             const bool parsed=Parse(*response,&envelope);

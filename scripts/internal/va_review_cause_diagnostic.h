@@ -19,7 +19,7 @@ std::vector<VaQualityCase> CauseCases() {
 }
 recording::VaReviewInput CauseInput(recording::EvidencePackageStore& evidence,const VaQualityCase& test) {
     using namespace recording;std::vector<EvidencePayload> payloads;auto manifest=Manifest(test.x.size(),&payloads);
-    // Same PNG/manifest construction as QualityChecks; equality of the four original request hashes is checked offline.
+    // QualityChecks와 같은 PNG/manifest 구성. 원래 네 요청의 hash 일치는 오프라인에서 검사한다.
     for(std::size_t i=0;i<test.x.size();++i){
         auto png=QualityPng(test.x[i]);const auto sha=EvidenceSha256(png.data(),png.size());payloads[i].bytes=png;
         auto& f=manifest.frames[i];f.width=512;f.height=288;f.png_sha256=sha;f.pts_ns=std::int64_t(i)*1000000000;f.presentation_ns=f.pts_ns;
@@ -103,7 +103,7 @@ void CauseOffline(const std::filesystem::path& root) {
             decode(temporal,inputs[i],false,"one-motion-position-ordered-endpoints","synthetic-property-basis-only");
         }
     }
-    // Hidden movement: preserve every observation byte, change only the claim's property classification.
+    // 숨겨진 이동: 관측 바이트를 유지하고 주장 속성 분류만 바꾼다.
     {auto row=CauseDoc(rows[3]);std::string wire;Check(Text(row,"content",&wire),"V450-K04 hidden original");
         const auto at=wire.find("\"property\": \"visibility\"");Check(at!=std::string::npos,"V450-K04 original property literal");
         decode(CauseReplace(wire,"\"property\": \"visibility\"","\"property\": \"position\""),inputs[3],false,"hidden-movement-position","synthetic-property-only");}
