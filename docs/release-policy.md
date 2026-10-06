@@ -17,26 +17,25 @@
 {
   "schema": "media-server.release-context.v1",
   "repository": "dhseo90/MediaServer",
-  "releaseTarget": "v4.4.0",
-  "priorPublishedTag": "v4.3.0",
-  "releaseNotes": "docs/release-notes-v4.4.0.md",
+  "releaseTarget": "v4.5.0",
+  "priorPublishedTag": "v4.4.0",
+  "releaseNotes": "docs/release-notes-v4.5.0.md",
   "roadmap": "docs/v410-v49-recording-search-roadmap.md",
   "distribution": "source-only",
   "tagType": "signed-annotated",
   "published": {
-    "tag": "v4.3.0",
-    "url": "https://github.com/dhseo90/MediaServer/releases/tag/v4.3.0",
-    "observedAt": "2026-10-04T09:36:44.509Z"
+    "tag": "v4.4.0",
+    "url": "https://github.com/dhseo90/MediaServer/releases/tag/v4.4.0",
+    "observedAt": "2026-10-06T23:17:01.233Z"
   }
 }
 ```
 
-현재 소스·공개 목표는 v4.4.0이며 [릴리즈 노트](release-notes-v4.4.0.md)에 개발 범위와 검증 상태를 설명한다.
-기록된 공개 버전은 v4.3.0이다. 위 `published`의 시각·URL은 당시 관측이며 이번 개발에서
-공개 상태를 다시 검증한 기록이 아니다. 기존 v4.3.0 공개 태그는
-`2e49046c7a305d92efe3ecf8e9287bcadd7f5479`에 유지한다.
-v4.4.0의 기능별 검증 범위와 원본 위치는 릴리즈 노트를 따른다. required CI·PR/병합·
-서명 태그·공개 여부는 해당 원격 SHA와 GitHub 상태를 직접 확인하며 위 과거 관측으로 대신하지 않는다.
+현재 소스·공개 목표는 v4.5.0 출시 후보이며 [릴리즈 노트](release-notes-v4.5.0.md)에 지원 범위와 검증 상태를 구분한다.
+위 시각에 GitHub Latest는 v4.4.0, draft/prerelease=false로 확인했고 원격 태그 객체는
+`172556b8aa79533d040438f08fabc08e98ee72ed`, 대상 commit은
+`5e103ea13d7f7c50ad532c5dd0fc989853856fad`였다. 이번 조회는 태그 생성·서명 재검증이나
+v4.5.0 공개가 아니다. required CI·PR/병합·서명 태그·공개 여부는 실제 최종 원격 상태로 확인한다.
 
 ## 배포 범위
 

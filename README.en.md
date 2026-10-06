@@ -2,7 +2,7 @@
 
 [![Preflight](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml)
 [![Licensing and Artifact Guardrails](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml)
-![Source Version](https://img.shields.io/badge/source-4.4.0-informational)
+![Source Version](https://img.shields.io/badge/source-4.5.0-informational)
 
 A C++17 media server for macOS and Linux with RTSP/WebRTC relaying, YOLO/ONNX
 video analytics, and continuous/event recording. Manage channels and analysis
@@ -10,9 +10,9 @@ rules in a browser, watch live streams, and review recorded video.
 
 [한국어](README.md) · [Documentation](docs/en/README.md) ·
 [Latest release](https://github.com/dhseo90/MediaServer/releases/latest) ·
-[v4.4.0 release notes](docs/release-notes-v4.4.0.md)
+[v4.5.0 release candidate notes](docs/release-notes-v4.5.0.md)
 
-The current source and release target are v4.4.0. See the release notes for supported scope and
+The current source and release target are the v4.5.0 release candidate. See the release notes for supported scope and
 validation limits, and the Latest release link above for the published version.
 
 ## Features
