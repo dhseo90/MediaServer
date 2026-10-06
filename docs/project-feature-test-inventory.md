@@ -26,14 +26,14 @@ A 완료는 영상 사실 검증 완료가 아니며 릴리즈 마감도 별도�
 | --- | --- |
 | 역사적 모델 후보 기준 | L01/K01/K03의 기존12사례·text10/반전6/영상12, K04 원인 조사, K06의±1px 관측, K10 질문 생성, K12 초안 편집. 과거 기준/FAIL은 유지하며46 안내와 새 C 관측의 자동 재평가 조건으로 사용하지 않음 |
 | 현재 유효한 안전·호환 회귀 | I01/C01/S01/Q01/A01/U01/G01/N01~03 및 K02/K03/K05~12의 입력·참조·codec·저장·권한·수명·기본 요청 불변 반례. 해당 코드 변경 영향에 따라 적용; 역사 표기로 제거하지 않음 |
-| 현행 v4.5 출시 경로 | 검색 입력/범위/기존 화면, 완료된 A와 K11/A03/U03의46 서버 안내. 미충족 모델 신규 Submit 제한·A/과거 조회 유지 및 영향 회귀는 묶음3 잔여 |
+| 현행 v4.5 출시 경로 | 검색 입력/범위/기존 화면, 완료된 A와 K11/A03/U03의46 서버 안내. 모델 신규 Submit 제한·A/과거 조회 유지 및 영향 회귀는 아래 E01~03 |
 | 버전 미배정 모델 기능의 보존 기준 | K13의 명시 ClaimSpec C 관측(49 후보 미충족), K14 자유질문 초안, 양쪽 통과 후 K15/A04/U04 확인/저장/공개 통합. 기존 기대값은 유지하며 검색 출시의 자동 재평가 조건으로 쓰지 않음 |
 
-실제 `scripts/internal/verify_va_review.sh`와 `va_review_smoke.cpp`의 기존 선택 분기는 그대로다.
-아래 역사 표기는 실행기의 필수 검사 삭제/면제나 새 mode 구현이 아니다. 실제 소비자와 처리 단계는
+`scripts/internal/verify_va_review.sh --plan`은 현재 출시와 명시 모델 실험의 분리를 표시한다.
+기본 protocol은 대역 안전 검사를 실행하며 실제 생성은 명시 local 모드에만 남는다. 실제 소비자와 처리 단계는
 [설계52의 마감 소비자](superpowers/specs/2026-10-05-v450-va-review-design.md#후속-검색-범위와-출시-마감-소비자)에 특정한다.
-acceptance의 정확한 ID·dispatch 연결은 묶음3의 잔여이며 이번에 expected hash·승인 원장이나
-coverage를 변경하지 않는다. Q01/N03의 일반120분 필요성은 유지한다. 녹화 전용120분을 자동 추가하지 않는다.
+현재 출시 ID·dispatch 연결은 E03에서 검사한다. 독립 approval/proof 결속은 별도 후속이며
+이 등록 검사로 승인 hash를 갱신하지 않는다. Q01/N03의 일반120분 필요성은 유지한다. 녹화 전용120분을 자동 추가하지 않는다.
 
 ### 기존 모델 v1 후보의 보존된 평가 기준
 
@@ -4695,12 +4695,12 @@ K03 추가 비용 조건: `V420_COST_VARIED=1`은 관측의 원본 표본 10개�
 
 설계52의 첫 묶음에 사용한 실행 전 정의다. [52의 실제 결과](release-artifacts/v4.5.0/52-validation.json)는
 별도 보존하며 이번 문서 개정의 제품 실행 결과로 승계하지 않는다. 아래 표 자체는 PASS 기록이 아니다.
-이 절의 `V450-S01`과 VA Review 저장 행의 동명 ID는 의미가 다르다. 기존 ID/실행 증거는 바꾸지 않고
-묶음3에서 실제 소비자 결속을 정합화한다.
+52 검색 입력의 중복 S01은 현행 `V450-T01`로 이동했다. 먼저 존재한 저장 `V450-S01`은 유지한다.
+52 보존 원문에서 S01은 당시 검색 입력 의미이며 현재 저장 검사의 승인 근거로 재사용하지 않는다.
 
 | ID | route/control/action·정상/오류/경계 기대값 | 직접 안정화 | 30분 | 120분 | 실제 UI |
 | --- | --- | --- | --- | --- | --- |
-| V450-S01 | InspectText와 기존 Tokenize/Encode: UTF-8/빈값 거부, Unicode lowercase·KO/EN/혼합·부정/수량/관계 보존, 실제 SP 본문62/63/64·짧은 다토큰, EOS/padding exact·기존 정상 token IDs/vector 허용치 유지 | encoder query probe; max abs1e-4/cos≥.99999/norm1e-5·기존16 crop/24한영 질의의 exact index 결과 대조 | 이번 미실행 | 이번 미실행 | 내부 기능 |
+| V450-T01 | InspectText와 기존 Tokenize/Encode: UTF-8/빈값 거부, Unicode lowercase·KO/EN/혼합·부정/수량/관계 보존, 실제 SP 본문62/63/64·짧은 다토큰, EOS/padding exact·기존 정상 token IDs/vector 허용치 유지 | encoder query probe; max abs1e-4/cos≥.99999/norm1e-5·기존16 crop/24한영 질의의 exact index 결과 대조 | 이번 미실행 | 이번 미실행 | 내부 기능 |
 | V450-S02 | GET `/ops/api/recordings/visual-search`: 권한→본문63 초과400(추론/search/snapshot0), empty/UTF-8 400 구분·미준비503. 성공 appliedQuery는 실제 기본값/채널/UTC/threshold/limit. 한영 실제 검색·no-store·금지채널 비노출·seek/evidence 유지 | query-only application·실제 격리 HTTP | 후속 별도 승인 | 후속 영향 판정/승인 | 정상·초과·오류 복구·재생/증거 |
 | V450-S03 | `/ops/events` opsVisualForm/Applied: 초과 사유, 실제 원문/encoder·UTC·필터 표시, 같으면 비중복, textContent, 변경/refresh/늦은 응답 무효화 | visual_search_ui_state.test.mjs | 이번 미실행 | 이번 미실행 | 변경 영역 데스크톱/모바일 light/dark·권한·조건 변경 |
 
@@ -4725,3 +4725,21 @@ K03 추가 비용 조건: `V420_COST_VARIED=1`은 관측의 원본 표본 10개�
 | V450-R01 | worker ReadView: index/통계 동시 게시, 시작·갱신 중 이전본, collect 후 encode/build/save 실패의 이전본/최초 실패, 세대 교체·cache 복구 unknown·빈값·미지원·취소 | 임의 vector/실패 주입 worker 검사. 실패 후보 metadata 게시 금지, 불변 이전 view 유지 | 이번 미실행 | 이번 미실행 | 내부 기능 |
 | V450-R02 | visual-search/status 및 search의 동일 view 통계·UTC unknown·표본 범위/top-k 분리·허가 채널만 노출. 구조화 search의 적용 조건/snapshot. 오류는 빈 결과가 아님 | 실제 기존 SigLIP2 작은 fixture·HTTP, 순위/점수/필터·63토큰·삭제/손상·no-store·seek/증거 영향 검사 | 이번 미실행 | 이번 미실행 | 허가 계정의 실제 검색·결과 정보·재생·증거 |
 | V450-R03 | /ops/events 두 검색의 카메라·시간 명시 복사, 고유 조건 보존, UTC 적용·cursor 무효화·늦은 검색/상태 차단. 현재 상태 refresh가 이전 결과 세대를 바꾸지 않음 | 실제 UI script 상태 반례. 없음/미준비/실패/unknown을 구분하며 오류 원문 비노출 | 이번 미실행 | 이번 미실행 | 변경 영역 desktop/mobile light/dark 직접 확인. worker 실패 주입과 브라우저 실제 확인 구분 |
+
+
+## V450 출시 실행 경계
+
+54 묶음의 실행 전 정의다. 기존 모델 신규 Submit은 권한 확인 후 HTTP409
+`review-model-not-adopted`로 거부한다. List의 `executionRestriction`은 같은 서버 정책이며
+`canExecute=false`다. A 확인/실행과 과거 v1 조회·job 조회/취소는 기존 권한·수명을 유지한다.
+
+| ID | route/control/action·정상/오류/경계 기대값 | 직접 안정화 | 30분 | 120분 | 실제 UI |
+| --- | --- | --- | --- | --- | --- |
+| V450-E01 | POST va-reviews: 유효 입력409·변조400·무권한403; enabled로 우회 불가; job/queue/PNG 준비/provider/publish 전 거부. 이력 원문 불변, 기존 job 취소/완료 경합·재시작/실패 유지 | verify_va_review.sh의 ReleaseAdmissionChecks·QueueChecks·RecordChecks 및 --http-only | 후속 별도 승인 | 기존 수명 영향 판정 후 승인 | E02 |
+| V450-E02 | `/ops/events` 모델 capability/거부 사유·과거 결과·A 실행 보존, 선택 변경/늦은 응답/권한·오류 복구 | --http-only 및 변경 화면 | 후속 별도 승인 | 비대상 | 변경 영역만; 전체 UI 증거 아님 |
+| V450-E03 | 출시 명령의 ID 유일성/owner/action/proof 연결, 검색/A/접수 거부 포함, 대역 안전 검사 유지, 실제 품질 실험 명시 분리; 자식 실패 전파·후속 not-run | verify_v390_test_acceptance_bundle_contract.mjs --v450-plan-only 및 coverage --v450-only | 실행 계획만 | 실행 계획만 | 비대상 |
+
+현재 명령 계획은 `v450_release_checks.mjs`의 제한된 배열을 acceptance와 coverage가 같이 사용한다.
+이는 실행 범위 정의이며 독립 승인이나 품질 PASS가 아니다. 모델 품질 실험은 기존 wrapper의
+명시적인 local 모드에 남고 출시 계획에 넣지 않는다. 기본 native 검사는 격리 대역의
+transport/decoder/취소/저장/실패 전파를 실행한다. 테스트 전용 C++ tag는 제품 HTTP/config에서 선택할 수 없다.

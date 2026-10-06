@@ -2,6 +2,7 @@
 // 파일 용도: v3.9.0 test acceptance를 dry-run 또는 실제 stop-on-first-fail bundle로 실행한다.
 
 import fs from "node:fs";
+import {v450ReleaseCommands} from "./v450_release_checks.mjs";
 import os from "node:os";
 import path from "node:path";
 import process from "node:process";
@@ -638,8 +639,11 @@ async function runFixtureStage(stageId) {
   }
   if (stageId === "feature-gates") {
     const startedAt = new Date().toISOString();
+    let priorFeatureFailure=false;
     const checks = featureCommands.map((spec, index) => {
+      if(priorFeatureFailure)return {id:spec.id,status:"not-run",command:commandText(spec),exitCode:null,logPath:""};
       const failed = options.fixtureFailFeatureCommand === spec.id;
+      if(failed)priorFeatureFailure=true;
       const logPath = path.join(runDir, `${stageId}-${String(index + 1).padStart(2, "0")}-${spec.id}.log`);
       fs.writeFileSync(logPath, failed
         ? `fixture failure at feature check ${spec.id}\n`
@@ -1547,6 +1551,7 @@ function buildFeatureCommands() {
   ];
   return [
     ...serverCommands.map(name => ({ ...command("./server.sh", [name]), id: name.replace(/^verify-/, "") })),
+    ...v450ReleaseCommands(),
     { ...command("git", ["diff", "--check"]), id: "git-diff-check" },
   ];
 }

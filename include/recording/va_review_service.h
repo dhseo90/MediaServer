@@ -29,7 +29,12 @@ public:
         std::size_t queue_size{4},remembered_jobs{64};
         std::chrono::milliseconds queue_wait{30000},execution_time{60000};
     };
+    // 제품 접수 정책. 설정·HTTP 입력으로 변경할 수 없으며 A/이력 수명에는 적용하지 않는다.
+    static constexpr const char* ModelExecutionRestriction(){return "review-model-not-adopted";}
+    // 격리 검사 실행 파일만 사용하는 명시적 생성 경계. 제품 구성에서는 사용하지 않는다.
+    struct IsolatedModelHarness {};
     VaReviewService(EvidencePackageStore&,VaReviewStore&,Options,Infer);
+    VaReviewService(EvidencePackageStore&,VaReviewStore&,Options,Infer,IsolatedModelHarness);
     ~VaReviewService();
     VaReviewService(const VaReviewService&)=delete;
     bool Submit(const std::string& package_id,const std::string& question,const std::string& provider,
@@ -53,6 +58,7 @@ private:
     void Execute(const std::shared_ptr<Task>&);
     void Finish(const std::shared_ptr<Task>&,const std::string& state,const std::string& error,const std::string& result={});
     EvidencePackageStore& evidence_;VaReviewStore& records_;Options options_;Infer infer_;
+    bool isolated_model_harness_{false};
     bool ready_{false};std::atomic<bool> stopped_{false};std::atomic<unsigned> admitting_{0};
     std::string epoch_;std::uint64_t next_{0};
     mutable std::mutex mutex_;std::condition_variable wake_;std::once_flag stop_once_;std::thread worker_;

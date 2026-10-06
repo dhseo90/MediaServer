@@ -2,6 +2,7 @@
 // 파일 용도: 모든 feature inventory ID가 verifier, 수동 UI 풀테스트, longrun gate, 제외 경계 중 하나에 연결되는지 검증한다.
 
 import fs from "node:fs";
+import {testV450ReleaseRegistration,validateV450ReleaseRegistration} from "./v450_release_checks.mjs";
 import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
@@ -38,8 +39,9 @@ Checks:
 `);
 }
 
-assertKnownOptions(rawArgs, ["report", "json-report", "h", "help"]);
+assertKnownOptions(rawArgs, ["report", "json-report", "v450-only", "h", "help"]);
 
+if(rawArgs.includes("--v450-only")){testV450ReleaseRegistration(rootDir);process.exit(0);}
 const args = parseArgs(rawArgs);
 const inventory = readText("docs/project-feature-test-inventory.md");
 const rows = parseFeatureRows(inventory);
@@ -85,6 +87,8 @@ const canonicalSourceSemanticClosureVerifiers = [
   "verify-v360-command-plan-dry-run-simulator",
 ];
 const checks = [];
+
+check("V450 current ID/dispatch registration (not independent approval)",()=>validateV450ReleaseRegistration(rootDir));
 
 check("S05 개별 동작 등록 exact 연결 (실행 증거 아님)", () => {
   validateS05Registration({ rootDir, inventoryText: inventory });

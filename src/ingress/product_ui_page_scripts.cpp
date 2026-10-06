@@ -10396,7 +10396,7 @@ void AppendOpsShellScript(std::ostringstream& out,
           const reviewPanel = (id, manifest, version, mediaByAsset) => {
             const section = document.createElement('section'); section.setAttribute('aria-label', '영상 근거 검토');
             const make = (tag, text, name) => { const node = document.createElement(tag); if (text) node.textContent = text; if (name) node.id = 'opsVaReview' + name; return node; };
-            const title = make('h4', '모델 영상 검토 · 기존 경로');
+            const title = make('h4', '모델 영상 검토 · 과거 결과');
             const label = make('label', '확인할 주장 또는 질문 (최대 512바이트)');
             const question = make('textarea', '', 'Question'); question.rows = 3; question.style.width = '100%'; label.append(question);
             const providerLabel = make('p', '검토 엔진: Ollama. 자유질문 해석·영상 의미 검토·한국어 질문 품질은 미완료입니다. A 기록 검토와 별개입니다.');
@@ -10420,6 +10420,7 @@ void AppendOpsShellScript(std::ostringstream& out,
             };
             const messages = {
               'review-disabled': '영상 검토 기능이 비활성입니다.',
+              'review-model-not-adopted': '모델 품질 미충족으로 이번 출시에서는 신규 실행을 지원하지 않습니다. 과거 결과 조회와 A 기록 검토는 유지됩니다.',
               'review-queue-full': '검토 대기열이 가득 찼습니다. 잠시 후 다시 실행하세요.', 'review-timeout': '검토 제한 시간을 초과했습니다.',
               'review-cancelled': '검토가 취소됐습니다.', 'review-forbidden': '검토 권한이 없습니다.', 'review-invalid-output': '모델 결과를 검증하지 못했습니다.',
               'review-missing-model': '검토 모델을 사용할 수 없습니다.', 'review-provider-unavailable': '검토 모델에 연결하지 못했습니다.',
@@ -10480,7 +10481,7 @@ void AppendOpsShellScript(std::ostringstream& out,
                   const button = make('button', `${new Date(item.createdAtMs).toLocaleString()} · ${'Ollama 검토'} · ${item.question}`);
                   button.type = 'button'; button.className = 'button button-secondary button-compact'; button.addEventListener('click', () => showResult(item.id)); rows.append(button);
                 }
-                if (!job && !sending) status.textContent = !enabled ? messages['review-disabled'] : !canExecute ? '기존 결과를 조회할 수 있습니다. 검토 실행 권한은 없습니다.' : !manifest.frames.length ? '검토할 보존 프레임이 없습니다.' : '질문을 입력하고 검토 실행을 누르세요.';
+                if (!job && !sending) status.textContent = !enabled ? messages['review-disabled'] : data.executionRestriction === 'review-model-not-adopted' ? messages[data.executionRestriction] : !canExecute ? '기존 결과를 조회할 수 있습니다. 검토 실행 권한은 없습니다.' : !manifest.frames.length ? '검토할 보존 프레임이 없습니다.' : '질문을 입력하고 검토 실행을 누르세요.';
               } catch (error) { if (current() && serial === listSerial) { enabled = false; canExecute = false; status.textContent = error.message; } }
               finally { if (current() && serial === listSerial) { refresh.disabled = false; controls(); } }
             };

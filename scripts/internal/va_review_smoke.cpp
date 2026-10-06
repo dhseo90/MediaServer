@@ -277,7 +277,7 @@ void QueueChecks(const std::filesystem::path& root) {
     };
     recording::VaReviewService::Options options;options.enabled=true;
     const auto baseline_fds=Fds(),baseline_threads=Threads();
-    recording::VaReviewService service(evidence,store,options,fake);
+    recording::VaReviewService service(evidence,store,options,fake,recording::VaReviewService::IsolatedModelHarness{});
     Check(service.ready(),"V450-Q01 worker ready");
     Check(Threads()==baseline_threads+1,"V450-Q01 exactly one worker thread");
     recording::VaReviewJob first,duplicate;std::string error;mode=1;
@@ -318,18 +318,20 @@ void QueueChecks(const std::filesystem::path& root) {
     mode=0;recording::VaReviewJob good;
     Check(service.Submit(package,"recovery","ollama","alice",permit,&good,&error)&&Done(service,good.id).state=="completed",
         "V450-Q01 worker usable after failures");
+    Check(service.Cancel(good.id,"alice",false,permit,&error)&&Done(service,good.id).state=="completed",
+        "V450-Q01 completion wins later cancel; saved result preserved");
     service.Stop();
     Check(Fds()==baseline_fds&&Threads()==baseline_threads,"V450-Q01 FD/thread counts return after failure workload and join");
     Check(!service.Submit(package,"stopped","ollama","alice",permit,&duplicate,&error)&&error=="review-disabled",
         "V450-Q01 shutdown stops admission");
-    recording::VaReviewService restarted(evidence,store,options,fake);
+    recording::VaReviewService restarted(evidence,store,options,fake,recording::VaReviewService::IsolatedModelHarness{});
     Check(restarted.ready()&&!restarted.Get(good.id,permit,&duplicate,&error)&&error=="review-job-expired",
         "V450-Q01 restart expires process jobs without replay");
     restarted.Stop();
     recording::VaReviewStore short_store(root/"short-queue",{});
     options.execution_time=std::chrono::milliseconds(80);options.queue_wait=std::chrono::milliseconds(30);
     mode=1;release=false;
-    recording::VaReviewService short_queue(evidence,short_store,options,fake);recording::VaReviewJob active,waiting;
+    recording::VaReviewService short_queue(evidence,short_store,options,fake,recording::VaReviewService::IsolatedModelHarness{});recording::VaReviewJob active,waiting;
     const auto short_before=called.load();
     Check(short_queue.Submit(package,"timeout","ollama","alice",permit,&active,&error),"V450-Q01 actual deadline task");
     Until([&]{return called.load()>short_before;});
@@ -339,7 +341,7 @@ void QueueChecks(const std::filesystem::path& root) {
     short_queue.Stop();
     options.execution_time=std::chrono::seconds(60);options.queue_wait=std::chrono::seconds(30);options.remembered_jobs=5;
     recording::VaReviewStore bounded_store(root/"bounded-jobs",{});
-    recording::VaReviewService bounded(evidence,bounded_store,options,fake);mode=0;std::string oldest;
+    recording::VaReviewService bounded(evidence,bounded_store,options,fake,recording::VaReviewService::IsolatedModelHarness{});mode=0;std::string oldest;
     for(unsigned i=0;i<8;++i) {
         recording::VaReviewJob job;
         Check(bounded.Submit(package,"history-"+std::to_string(i),"ollama","alice",permit,&job,&error)&&Done(bounded,job.id).state=="completed",
@@ -370,7 +372,7 @@ void QueueChecks(const std::filesystem::path& root) {
     Check(std::chrono::steady_clock::now()-stopped_at<std::chrono::milliseconds(500)&&Done(bounded,active.id).state=="cancelled",
         "V450-Q01 cooperative cancellation joins worker within 500ms");
     recording::VaReviewService::Options disabled;
-    recording::VaReviewService off(evidence,store,disabled,fake);const auto off_before=called.load();
+    recording::VaReviewService off(evidence,store,disabled,fake,recording::VaReviewService::IsolatedModelHarness{});const auto off_before=called.load();
     Check(!off.Submit(package,"off","ollama","alice",permit,&duplicate,&error)&&error=="review-disabled"&&called.load()==off_before,
         "V450-Q01 disabled never invokes provider");
 }
@@ -598,7 +600,7 @@ void ProviderChecks(const std::filesystem::path& root,const std::string& endpoin
     {
         EvidencePackageStore evidence(root/"provider/record-input",{});VaReviewStore store(root/"invalid-wire-records",{});
         VaReviewService::Options service_options;service_options.enabled=true;mode=4;calls=0;
-        VaReviewService service(evidence,store,service_options,MakeVaReviewProvider(options,transport));
+        VaReviewService service(evidence,store,service_options,MakeVaReviewProvider(options,transport),VaReviewService::IsolatedModelHarness{});
         VaReviewJob job;Check(service.Submit(input.package_id,input.question,"ollama","owner",[](const auto&){return true;},&job,&error),
             "V450-K03 invalid wire job accepted for processing");
         const auto done=Done(service,job.id);std::vector<std::string> ids;
@@ -761,7 +763,7 @@ void QualityChecks(const std::filesystem::path& root,const std::string& endpoint
         }
         return ok;
     };
-    VaReviewService service(evidence,records,options,MakeVaReviewProvider(provider,observed));
+    VaReviewService service(evidence,records,options,MakeVaReviewProvider(provider,observed),VaReviewService::IsolatedModelHarness{});
     Check(service.ready(),"V450-L01 quality worker ready");unsigned categories=0,uncertain=0,schemas=0,questions=0,coverage=0,pairs=0,case_index=0;
     bool preceding_correct=false;std::string preceding_package;
     auto cases=diagnostic.empty()?VaQualityCases():VaClaimPairs();
@@ -864,7 +866,7 @@ void LocalLifecycleChecks(const std::filesystem::path& root,const std::string& e
     for(unsigned trial=1;trial<=2;++trial){
         const auto fds=Fds(),threads=Threads();VaReviewProviderOptions provider;provider.enabled=true;provider.local_endpoint=endpoint;
         VaReviewService::Options options;options.enabled=true;
-        VaReviewService service(evidence,records,options,MakeVaReviewProvider(provider));
+        VaReviewService service(evidence,records,options,MakeVaReviewProvider(provider),VaReviewService::IsolatedModelHarness{});
         Check(service.ready(),"V450-L01 lifecycle worker ready");VaReviewJob job;
         Check(service.Submit(package,"Compare the first and last visible positions of the red square.","ollama","lifecycle",[](const auto&){return true;},&job,&error),"V450-L01 lifecycle submit");
         const auto prefix="lifecycle-"+std::to_string(trial);
@@ -886,13 +888,42 @@ void LocalLifecycleChecks(const std::filesystem::path& root,const std::string& e
     }
     Check(VaReviewService::Clock::now()-started<std::chrono::seconds(60),"V450-L01 lifecycle total focused budget sixty seconds");
 }
+void ReleaseAdmissionChecks(const std::filesystem::path& root) {
+    using namespace recording;
+    const auto dir=root/"release-admission";std::filesystem::create_directory(dir);
+    const auto record=Record(dir);const auto original=SerializeVaReviewRecord(record);
+    std::filesystem::copy(dir/"record-input",dir/"evidence-packages",std::filesystem::copy_options::recursive);
+    EvidencePackageStore packages(dir/"evidence-packages",{});VaReviewStore records(dir/"va-reviews",{});
+    std::string error,id;Check(records.Recover(&error)&&records.Publish(record,&id,&error),"V450-E01 explicit historical fixture");
+    std::atomic<unsigned> calls{0};auto trap=[&](const auto&,const auto&,auto,const auto&,VaReviewInference*,std::string*){++calls;return false;};
+    VaReviewService::Options options;options.enabled=true;VaReviewService service(packages,records,options,trap);
+    VaReviewJob job;job.id="untouched";const auto allow=[](const auto&){return true;};
+    for(unsigned i=0;i<6;++i)Check(!service.Submit(record.input.package_id,"valid claim","ollama","admin",allow,&job,&error)&&
+        error==VaReviewService::ModelExecutionRestriction()&&job.id=="untouched","V450-E01 valid submission blocked before job/queue");
+    Check(!service.Submit(record.input.package_id,"valid claim","ollama","admin",[](const auto&){return false;},&job,&error)&&
+        error=="review-forbidden","V450-E01 channel authorization before release reason");
+    service.Stop();
+    ingress::VaReviewApplicationService app(dir,true,{},0,trap);
+    const auto body="{\"packageId\":"+EvidenceJsonQuote(record.input.package_id)+",\"question\":\"valid claim\",\"provider\":\"ollama\"}";
+    Check(app.Submit(body,"admin",allow).status==409&&app.Submit(body,"operator",allow).body.find("review-model-not-adopted")!=std::string::npos,
+        "V450-E01 product admission is stable conflict, not retryable model failure");
+    for(const auto* field:{"confirmed","role","verdict","modelExecutionEnabled"})Check(app.Submit(body.substr(0,body.size()-1)+",\""+field+"\":true}","admin",allow).status==400,"V450-E01 client cannot opt in");
+    const auto list=app.List(record.input.package_id,allow,true);
+    Check(list.status==200&&list.body.find("\"canExecute\":false")!=std::string::npos&&list.body.find(VaReviewService::ModelExecutionRestriction())!=std::string::npos&&list.body.find(id)!=std::string::npos,
+        "V450-E01 capability matches product policy with history retained");
+    Check(app.Get(id,allow).status==200&&app.Get(id,[](const auto&){return false;}).status==403,"V450-E01 historical get authorized");
+    Check(app.List(record.input.package_id,[](const auto&){return false;},true).status==403,"V450-E01 list scope preserved");
+    VaReviewRecord after;std::vector<std::string> ids;
+    Check(calls==0&&records.List(&ids,&error)&&ids.size()==1&&records.Read(id,&after,&error)&&SerializeVaReviewRecord(after)==original,
+        "V450-E01 zero inference/publication; historical bytes unchanged");app.Stop();
+}
 void SeedHttp(const std::filesystem::path& root) {
     using namespace recording;
     std::string error;RecordingRuntimeStorage runtime(root/"recordings");
     Check(runtime.Open(&error),"V450-A01 managed recording root initialized");
     EvidencePackageStore store(root/"recordings/evidence-packages",{});
     Check(store.Recover(&error),"V450-A01 seed recovery");
-    std::string json="{\"packages\":[";
+    std::string json="{\"packages\":[";std::string historical;
     for(const auto* channel:{"1","2"}) {
         std::vector<EvidencePayload> payloads;auto manifest=Manifest(1,&payloads);manifest.channel_id=channel;
         auto png=QualityPng(208);const auto hash=EvidenceSha256(png.data(),png.size());
@@ -900,9 +931,14 @@ void SeedHttp(const std::filesystem::path& root) {
         manifest.frames[0].width=512;manifest.frames[0].height=288;manifest.frames[0].png_sha256=hash;
         manifest.references[2].sha256=hash;
         std::string id;Check(store.Publish(manifest,payloads,&id,&error),"V450-A01 seed publish");
+        if(channel[0]=='1'){
+            VaReviewInput review;Check(LoadVaReviewInput(store,id,"Historical synthetic result",[](const auto&){return true;},&review,&error),"V450-E01 historical input");
+            auto record=Record(root);record.input=std::move(review);record.input.pngs.clear();record.output.supports.front().frame_indices={0};
+            VaReviewStore records(root/"recordings/va-reviews",{});Check(records.Recover(&error)&&records.Publish(record,&historical,&error),"V450-E01 historical fixture without model execution");
+        }
         if(channel[0]=='2')json+=',';json+=EvidenceJsonQuote(id);
     }
-    std::ofstream(root/"seed.json")<<json+"]}";
+    std::ofstream(root/"seed.json")<<json+"],\"historicalId\":"+EvidenceJsonQuote(historical)+"}";
     Check(runtime.catalog().Checkpoint(&error),"V450-A01 seed checkpoint");
 }
 }
@@ -942,13 +978,15 @@ int main(int argc,char** argv) {
         else if(std::string(argv[2])=="--diagnostic-text-decisive")QualityChecks(argv[1],argv[3],"text-decisive");
         else if(std::string(argv[2])=="--diagnostic-text")QualityChecks(argv[1],argv[3],"text");
         else if(std::string(argv[2])=="--diagnostic-inversion")QualityChecks(argv[1],argv[3],"inversion");
-        else if(std::string(argv[2])=="--local")QualityChecks(argv[1],argv[3]);else {
+        else if(std::string(argv[2])=="--local")QualityChecks(argv[1],argv[3]);else if(std::string(argv[2])=="--protocol") {
+        ReleaseAdmissionChecks(argv[1]);
         InputChecks(argv[1]);
         RecordChecks(argv[1]);
         QueueChecks(argv[1]);
         ProviderChecks(argv[1],argv[3]);
         ConnectionChecks(argv[1]);
         }
+        else throw std::runtime_error("unknown explicit review mode");
         std::cout<<"[summary] pass="<<checks<<" fail=0\n";return 0;
     } catch(const std::exception& e) {std::cerr<<"[fail] "<<e.what()<<'\n';return 1;}
 }

@@ -2,6 +2,7 @@
 // 파일 용도: v3.9.0 test acceptance bundle dry-run command와 evidence boundary 연결을 검증한다.
 
 import fs from "node:fs";
+import {testV450ReleaseRegistration,v450ReleaseCommands} from "./v450_release_checks.mjs";
 import path from "node:path";
 import process from "node:process";
 import os from "node:os";
@@ -50,7 +51,39 @@ Checks:
 `);
 }
 
-assertKnownOptions(rawArgs, ["h", "help", "recording-root-only"]);
+assertKnownOptions(rawArgs, ["h", "help", "recording-root-only", "v450-plan-only"]);
+
+// 출시 범위만 고정: 실제 acceptance/장시간/모델은 실행하지 않는다.
+if(rawArgs.includes("--v450-plan-only")){
+  testV450ReleaseRegistration(rootDir);
+  const owned=fs.mkdtempSync(path.join(os.tmpdir(),"media-server-v450-plan-"));
+  try{
+    const bundle=path.join(scriptDir,"verify_v390_test_acceptance_bundle.mjs");
+    for(const [name,args] of [["plan",["--dry-run"]],["fail",["--fixture-fail-feature-command","v450-review-release"]]]){
+      const target=path.join(owned,name);const run=spawnSync(process.execPath,[bundle,"--output-dir",target,...args],{cwd:rootDir,encoding:"utf8",timeout:30000});
+      assert(run.status===(name==="plan"?0:1),`${name} exit ${run.status}: ${run.stderr}`);
+      const summary=JSON.parse(fs.readFileSync(path.join(target,"summary.json")));
+      if(name==="plan"){
+        for(const spec of v450ReleaseCommands())assert(summary.localReadiness.commands.some(c=>c.includes(spec.args.join(" "))),`missing release command ${spec.id}`);
+        assert(summary.stages.every(x=>x.status==="not-run"),"dry run executed a stage");
+      }else{
+        const checks=summary.stages.find(x=>x.id==="feature-gates").checks;const at=checks.findIndex(x=>x.id==="v450-review-release");
+        assert(at>=0&&checks[at].status==="FAIL"&&checks.slice(at+1).every(x=>x.status==="not-run"),"feature stop-on-first-failure");
+        for(const id of ["server-longrun-30","ui-exact-424","server-longrun-120"])assert(summary.stages.find(x=>x.id===id).status==="not-run",id+" must not run");
+      }
+    }
+    const source=fs.readFileSync(path.join(scriptDir,"verify_v390_test_acceptance_bundle.mjs"),"utf8");
+    const body=source.slice(source.indexOf("async function runCommandListStage("),source.indexOf("function runCommand(spec,"));
+    const observed=[];const stages=[];
+    const context=vm.createContext({Date,Number,path,runDir:owned,failedStage:"",failedCommand:"",stages,
+      commandText:spec=>spec.id,makeStage:x=>x,
+      runCommand:async spec=>{observed.push(spec.id);const r=spawnSync(process.execPath,["-e",`process.exit(${spec.exit})`]);return {exitCode:r.status,durationMs:0,tail:[]};}});
+    vm.runInContext(body,context);await context.runCommandListStage("feature-gates",[{id:"child-fail",exit:7},{id:"must-not-run",exit:0}]);
+    assert(observed.join(",")==="child-fail"&&stages[0].status==="FAIL"&&stages[0].checks[0].exitCode===7&&stages[0].checks[1].status==="not-run","actual child exit propagation");
+    console.log("[pass] current release dry-run, actual child exit7 propagation and fixture not-run; no product/longrun/model execution");
+  }finally{fs.rmSync(owned,{recursive:true});assert(!fs.existsSync(owned),"owned plan cleanup");}
+  process.exit(0);
+}
 
 // RG01~04 사전 명세: 실제 spawn env의 녹화 root 누락/상속 탈출을 검출하고,
 // 기존 설정과 실제 파일 cleanup을 대조한다. 서버/브라우저 실행 증거는 아니다.

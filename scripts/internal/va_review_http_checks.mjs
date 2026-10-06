@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// 파일 용도: V450-A01 실제 제품 HTTP/Auth/worker/재시작의 격리 단기 검사.
+// 파일 용도: 제품 출시 제한과 이력/A의 실제 HTTP 및 변경 화면 단기 검사.
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -14,12 +14,12 @@ import {bootstrapRecordingUiAuth,createUiAuthPasswords,reservePort,stopServer,as
 const repo=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');
 const root=fs.mkdtempSync(path.join(fs.realpathSync(os.tmpdir()),'media-server-va-http-'));
 fs.chmodSync(root,0o700);const identity=fs.statSync(root);const started=Date.now();
-const report={featureId:'V450-A01',command:'bash scripts/internal/verify_va_review.sh --http-only',startedAtMs:started,
+const report={featureId:'V450-E01/E02/A01/A02/A03',command:'bash scripts/internal/verify_va_review.sh --http-only',startedAtMs:started,
   sourceSha256:crypto.createHash('sha256').update(fs.readFileSync(fileURLToPath(import.meta.url))).digest('hex'),
   actualUiPass:false,actualModel:false,checks:[],cleanup:{},status:'RUNNING',root,
   rootIdentity:{dev:identity.dev,ino:identity.ino,uid:identity.uid}};
 let child,provider,udp,httpPort,rtspPort,providerPort,timer,expired=false,failed=false,admin;
-let delay=false,chatCalls=0,blockedRequests=0,providerError=false,diagnostics='';const pending=new Set(),secrets=[];
+let chatCalls=0,diagnostics='';const pending=new Set(),secrets=[];
 const assert=(ok,id)=>{if(!ok)throw Error(id);};
 const check=(ok,id)=>{report.checks.push({id,status:ok?'PASS':'FAIL'});assert(ok,id);};
 const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));
@@ -33,23 +33,11 @@ try{
     displayName:'fixture '+sourceId,kind:'file',file:sourceId==='1'?'sample.mp4':'second.mp4',enabled:false,recording:{enabled:false}}))}),{mode:0o600});
   fs.writeFileSync(path.join(root,'data/views.json'),'{"views":[]}',{mode:0o600});
   const seed=spawnSync(process.env.MEDIA_SERVER_VA_REVIEW_FIXTURE_BIN,[root,'--seed','unused'],{encoding:'utf8',timeout:10000});
-  assert(seed.status===0,'seed');const {packages}=JSON.parse(fs.readFileSync(path.join(root,'seed.json'),'utf8'));
+  assert(seed.status===0,'seed');const {packages,historicalId}=JSON.parse(fs.readFileSync(path.join(root,'seed.json'),'utf8'));
   report.binarySha256=hash(binary);report.fixtureSha256=hash(process.env.MEDIA_SERVER_VA_REVIEW_FIXTURE_BIN);
-  provider=http.createServer(async(req,res)=>{
-    try {
-    let body='';for await(const b of req)body+=b;
-    res.setHeader('Content-Type','application/json');
-    if(req.url==='/api/tags'){res.end(JSON.stringify({models:[{name:'qwen3-vl:8b-instruct-q4_K_M',digest:'a'.repeat(64)}]}));return;}
-    if(req.url!=='/api/chat'){res.writeHead(404);res.end('{}');return;}
-    ++chatCalls;const data=JSON.parse(body);
-    assert(data.messages[1].images.length===1,'ordered image supplied');
-    const finish=()=>{if(!res.destroyed)res.end(JSON.stringify({model:data.model,done:true,done_reason:'stop',message:{role:'assistant',
-      content:JSON.stringify({schema:'media-server.va-review-provider.v10',claims:{c0:{claim:JSON.parse(data.messages[data.messages.length-1].content.split('Metadata: ')[1].split('\n')[0]).claim,
-        target:'사각형',property:'color',observations:{f0:{identity:'same',visibility:'visible',value:'빨간색'}},
-        summary:'빨간 사각형이 보입니다.',decision:{verdict:'supported',basis:'visible-property'}}},confidence:0.8})}}));};
-    if(delay){++blockedRequests;pending.add(res);res.on('close',()=>pending.delete(res));}else finish();
-    }catch{providerError=true;if(!res.destroyed){res.writeHead(500);res.end('{}');}}
-  });
+  const aSeed=spawnSync(process.env.MEDIA_SERVER_VA_REVIEW_FIXTURE_BIN,[path.join(root,'recordings'),'--confirmed-seed','unused'],{encoding:'utf8',timeout:10000});
+  assert(aSeed.status===0,'A seed: '+aSeed.stderr);const aInfo=JSON.parse(fs.readFileSync(path.join(root,'recordings/confirmed-seed.json')));
+  provider=http.createServer((req,res)=>{++chatCalls;res.writeHead(500);res.end('{}');});
   await new Promise((resolve,reject)=>{provider.once('error',reject);provider.listen(0,'127.0.0.1',resolve);});providerPort=provider.address().port;
   httpPort=await reservePort();rtspPort=await reservePort();assert(httpPort!==rtspPort,'distinct ports');
   udp=dgram.createSocket('udp4');await new Promise((resolve,reject)=>{udp.once('error',reject);udp.bind(0,'127.0.0.1',resolve);});
@@ -80,7 +68,7 @@ try{
     for(let i=0;i<60;++i){assert(!failed&&child.exitCode===null&&!expired,'server startup');try{const r=await call('/health');await r.arrayBuffer();if(r.status===200)return;}catch{}await pause(100);}
     throw Error('readiness');
   };
-  timer=setTimeout(()=>{expired=true;child?.kill('SIGTERM');},Math.max(1,50000-(Date.now()-started)));
+  timer=setTimeout(()=>{expired=true;child?.kill('SIGTERM');},Math.max(1,65000-(Date.now()-started)));
   await start(true);
   const passwords=createUiAuthPasswords();secrets.push(...passwords);
   const auth=await bootstrapRecordingUiAuth(base,passwords,async(url,options)=>call(new URL(url).pathname,options));
@@ -96,8 +84,6 @@ try{
     }
     return JSON.parse(text);
   };
-  const submit=(question,cookie=admin,packageId=packages[0])=>req(prefix,cookie,'POST',{packageId,question,provider:'ollama'},202);
-  const waitJob=async(id,state)=>{for(let i=0;i<80;++i){const r=await call(jobs+id,{headers:{Cookie:admin}});const data=await r.json();if(data.state===state)return data;await pause(25);}throw Error('job '+state);};
   for(const route of [prefix+'?packageId='+packages[0],prefix+'/vr-'+'a'.repeat(64),jobs+'vj-'+'b'.repeat(32)+'-1']){
     await req(route,null,'GET',undefined,401);for(const i of [2,4])await req(route,cookies[i],'GET',undefined,403);
   }
@@ -110,47 +96,43 @@ try{
     {packageId:packages[0],question:'',provider:'ollama'},{packageId:packages[0],question:'x'.repeat(513),provider:'ollama'}])
     await req(prefix,admin,'POST',body,400);
   await req(prefix,admin,'POST',{packageId:packages[0],question:'Red?',provider:'gemini'},400);await req(prefix,admin,'POST',{packageId:packages[0],question:'Red?',provider:'unknown'},400);check(chatCalls===0,'invalid/forbidden external requests do not call provider');
-  const one=await submit('Is a red square visible?');const completed=await waitJob(one.id,'completed');
-  const record=await req(prefix+'/'+completed.reviewId);check(record.output.supports[0].frameIndices[0]===0&&record.packageId===packages[0],'result and frame references');
-  await req(prefix+'/'+completed.reviewId,cookies[3],'GET',undefined,403);
-  const two=await submit('Is a red square visible?');const repeated=await waitJob(two.id,'completed');check(repeated.reviewId!==completed.reviewId,'rerun immutable revision');
-  check((await req(prefix+'?packageId='+packages[0])).items.length===2,'history retained');
-  const createOperator=async username=>{
-    const password=createUiAuthPasswords()[0];
-    secrets.push(password);
-    await req('/ops/api/users',admin,'POST',{username,displayName:username,role:'operator',scopes:['ops:read','ops:write','source:read:1'],password,enabled:true,mustChangePassword:false},201);
-    const login=await call('/login',{method:'POST',body:new URLSearchParams({username,password})});assert(login.status===302,'operator login');await login.arrayBuffer();
-    const cookie=login.headers.getSetCookie().map(v=>v.split(';',1)[0]).join('; ');secrets.push(cookie);return cookie;
-  };
-  const writer=await createOperator('va-writer'),other=await createOperator('va-other');
-  delay=true;
-  const active=await submit('Cancel owner',writer);await waitJob(active.id,'running');
-  await req(jobs+active.id,other,'DELETE',undefined,403);
-  await req(jobs+active.id,writer,'DELETE');await waitJob(active.id,'cancelled');check(true,'owner cancellation');
-  const active2=await submit('Cancel admin',writer);await waitJob(active2.id,'running');await req(jobs+active2.id,admin,'DELETE');await waitJob(active2.id,'cancelled');check(true,'admin cancellation');
-  const before=blockedRequests;const revoked=await submit('Revoked while transmitting',writer);
-  for(let i=0;i<80&&blockedRequests===before;++i)await pause(25);check(blockedRequests>before,'provider call began before revocation');
-  const usersFile=path.join(root,'data/users.json');const users=JSON.parse(fs.readFileSync(usersFile,'utf8'));
-  const rows=Array.isArray(users)?users:users.users;const user=rows.find(v=>v.username==='va-writer');assert(user,'user fixture');
-  user.scopes=['ops:read','source:read:1'];fs.writeFileSync(usersFile+'.new',JSON.stringify(users),{mode:0o600});fs.renameSync(usersFile+'.new',usersFile);
-  check((await waitJob(revoked.id,'failed')).error==='review-forbidden','current write scope revocation stops provider');
-  const logout=await submit('Logout while transmitting',other);await waitJob(logout.id,'running');
-  const out=await call('/logout',{method:'POST',headers:{Cookie:other}});await out.arrayBuffer();
-  check((await waitJob(logout.id,'failed')).error==='review-forbidden','logout revokes worker authorization');
-  check((await req(prefix+'?packageId='+packages[0])).items.length===2,'cancel/revoke/logout publish no result');
-  const stopping=await submit('Stop server');await waitJob(stopping.id,'running');
+  for(const cookie of [admin]){
+    const blocked=await req(prefix,cookie,'POST',{packageId:packages[0],question:'Is a red square visible?',provider:'ollama'},409);
+    check(blocked.error==='review-model-not-adopted','release refusal is explicit, not transient');
+    const cap=await req(prefix+'?packageId='+packages[0],cookie);
+    check(cap.enabled&&!cap.canExecute&&cap.executionRestriction===blocked.error,'enabled admin capability blocked');
+  }
+  for(const extra of [{confirmed:true},{role:'admin'},{modelExecutionEnabled:true},{verdict:'supported'}])
+    await req(prefix,admin,'POST',{packageId:packages[0],question:'valid',provider:'ollama',...extra},400);
+  await req(prefix+'/submit',admin,'POST',{packageId:packages[0],question:'valid',provider:'ollama'},400);
+  const record=await req(prefix+'/'+historicalId);check(record.packageId===packages[0]&&record.output.supports.length===1,'explicit fixture historical result readable');
+  await req(prefix+'/'+historicalId,cookies[3],'GET',undefined,403);
+  const expiredJob='vj-'+'b'.repeat(32)+'-1';await req(jobs+expiredJob,admin,'GET',undefined,410);await req(jobs+expiredJob,admin,'DELETE',undefined,410);
+  const ap='/ops/api/recordings/a-record-reviews',packs='/ops/api/recordings/a-record-packages';
+  const pack=await req(packs+'/'+aInfo.packageId);
+  const draft=await req(ap+'/drafts',admin,'POST',{packageId:pack.id,targetKey:pack.targetKey,question:'끝점 위치 비교',claims:[{relation:'endpoint-right',requiredColor:'red',requiredVisible:true,frames:[0,7]}]},201);
+  const action=(name,expected)=>req(ap+'/drafts/'+draft.id+'/'+name,admin,'POST',{revision:draft.revision},expected);
+  await action('execute',409);await action('confirm',200);const aJob=await action('execute',202);let done;
+  for(let i=0;i<120;++i){done=await req(ap+'/jobs/'+aJob.id);if(!['queued','running'].includes(done.state))break;await pause(20);}
+  check(done.state==='completed','A confirmation execution still completes');
+  const aResult=await req(ap+'/'+done.reviewId);check(JSON.stringify(aResult).includes('supported'),'A stored verdict readable');
+  const {verifyReleaseUi}=await import('./va_review_release_ui.mjs');
+  await verifyReleaseUi({base,root,repo,packages,historicalId,aInfo,cookies,report,check,started});
+  check(chatCalls===0,'release rejected before all provider/network calls');
+  check((await req(prefix+'?packageId='+packages[0])).items.length===1,'rejected requests publish zero records');
   report.cleanup.firstProcess=await stopServer(child);await assertPortClosed(httpPort);await assertPortClosed(rtspPort);child=null;
-  delay=false;await start(false);
+  await start(false);
   const login=await call('/login',{method:'POST',body:new URLSearchParams({username:'admin',password:passwords[0]})});await login.arrayBuffer();admin=login.headers.getSetCookie().map(v=>v.split(';',1)[0]).join('; ');
   check(!(await req(prefix+'?packageId='+packages[0])).enabled,'disabled capability no execution');
   await req(prefix,admin,'POST',{packageId:packages[0],question:'Red?',provider:'ollama'},503);
   report.cleanup.secondProcess=await stopServer(child);await assertPortClosed(httpPort);await assertPortClosed(rtspPort);child=null;
   await start(true);
   const relogin=await call('/login',{method:'POST',body:new URLSearchParams({username:'admin',password:passwords[0]})});await relogin.arrayBuffer();admin=relogin.headers.getSetCookie().map(v=>v.split(';',1)[0]).join('; ');
-  await req(jobs+one.id,admin,'GET',undefined,410);
-  check((await req(prefix+'/'+completed.reviewId)).output.supports.length===1,'persisted record survives restart');
-  check((await req(prefix+'?packageId='+packages[0])).items.length===2,'shutdown publishes no result');
-  check(!providerError,'provider handler observed no error');check(!expired,'50 second work budget');report.status='PASS';
+  await req(jobs+expiredJob,admin,'GET',undefined,410);
+  check((await req(prefix+'/'+historicalId)).output.supports.length===1,'persisted record survives restart');
+  check((await req(prefix+'?packageId='+packages[0])).items.length===1,'shutdown publishes no result');
+  check((await req(ap+'/'+done.reviewId)).confirmedAtMs>0,'A result survives restart');
+  check(chatCalls===0,'model network calls zero through restart');check(!expired,'65 second work budget');report.status='PASS';
 }catch(error){failed=true;report.status='FAIL';report.failure=error.message.replace(/(?:\/[\w.-]+){2,}/g,'[route]');
   let safe=diagnostics;for(const value of secrets)if(value)safe=safe.split(value).join('[secret]');
   report.failureDiagnostics=safe.split('\n').filter(line=>/error|fail|fatal|invalid/i.test(line)).slice(-12)
@@ -168,8 +150,7 @@ finally{
     fs.rmSync(root,{recursive:true});report.cleanup.rootAbsent=!fs.existsSync(root);assert(report.cleanup.rootAbsent,'cleanup remains');
   }catch{failed=true;report.cleanup.failed=true;}
   report.status=failed?'FAIL':'PASS';report.exit=failed?1:0;report.elapsedMs=Date.now()-started;
-  const output=path.join(repo,'docs/release-artifacts/v4.5.0/06-http.json');
-  if(fs.existsSync(output)){const old=JSON.parse(fs.readFileSync(output));const {previousRuns=[],...last}=old;report.previousRuns=[...previousRuns,last];}
+  report.modelCalls=chatCalls;const output=path.join(repo,'docs/release-artifacts/v4.5.0',`54-http-${started}.json`);
   fs.writeFileSync(output,JSON.stringify(report,null,2)+'\n');
   console.log(JSON.stringify({status:report.status,checks:report.checks.length,failure:report.failure,elapsedMs:report.elapsedMs,cleanup:report.cleanup}));
   process.exitCode=report.exit;

@@ -10,10 +10,11 @@ using recording::EvidenceJsonQuote;
 ApplicationServiceResult Error(const std::string& code){
     const int status=code=="review-forbidden"?403:
         code=="review-invalid-input"||code=="review-invalid-id"?400:
+        code==recording::VaReviewService::ModelExecutionRestriction()?409:
         code=="review-job-expired"?410:
         code=="review-job-unavailable"||code=="review-record-unavailable"||code=="review-input-unavailable"?404:503;
     return {status,status==400?"Bad Request":status==403?"Forbidden":status==404?"Not Found":
-        status==410?"Gone":"Service Unavailable","{\"error\":"+EvidenceJsonQuote(code)+"}"};
+        status==409?"Conflict":status==410?"Gone":"Service Unavailable","{\"error\":"+EvidenceJsonQuote(code)+"}"};
 }
 recording::VaReviewStore::Limits Limits(std::uint64_t reserve){
     recording::VaReviewStore::Limits limits;limits.reserve_bytes=std::max(limits.reserve_bytes,reserve);return limits;
@@ -68,7 +69,10 @@ ApplicationServiceResult VaReviewApplicationService::List(const std::string& pac
     if(!enabled_||stopped_)return {200,"OK",R"({"enabled":false,"canExecute":false,"items":[]})"};
     if(!service_.ready())return Error("review-store-unavailable");
     std::vector<std::string> ids;if(!records_.List(&ids,&error))return Error("review-store-unavailable");
-    std::string json="{\"enabled\":true,\"canExecute\":"+std::string(can_execute?"true":"false")+",\"items\":[";
+    // 역할과 채널 권한 확인 후 출시 제한을 표시한다. 권한 문자열은 실행 정책을 바꾸지 않는다.
+    (void)can_execute;
+    std::string json="{\"enabled\":true,\"canExecute\":false,\"executionRestriction\":"+
+        EvidenceJsonQuote(recording::VaReviewService::ModelExecutionRestriction())+",\"items\":[";
     bool comma=false;
     for(const auto& id:ids){
         if(cancelled())return Error("review-busy");

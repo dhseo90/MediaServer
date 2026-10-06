@@ -3,6 +3,10 @@
 set -euo pipefail
 task_repo="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$task_repo"
+if [[ "${1:-}" == "--plan" && "$#" == 1 ]]; then
+ node --input-type=module -e 'import {v450ReleaseCommands,v450ExplicitModelExperiments,v450OfflineModelSafety} from "./scripts/internal/v450_release_checks.mjs"; console.log(JSON.stringify({defaultMode:"--protocol",defaultModelCalls:0,release:v450ReleaseCommands(),explicitQuality:v450ExplicitModelExperiments,offlineSafety:v450OfflineModelSafety,status:"plan-only"},null,2));'
+ exit 0
+fi
 python3 - "$task_repo" "$@" <<'PY'
 import ctypes, gzip, hashlib, http.server, json, os, pathlib, shlex, shutil, subprocess, sys, tempfile, threading, urllib.request, time, ssl
 def wait_model_unloaded(fetch, deadline, clock=time.monotonic, sleep=time.sleep):

@@ -881,6 +881,7 @@ clip이 없는 결과의 `not-applicable`은 누락과 다릅니다. 생성 당�
 ### 보존 영상 검토 API (v4.5.0 개발)
 
 `MEDIA_SERVER_VA_REVIEW_ENABLED=1`은 녹화·증거 보존이 활성화된 경우에만 검토 worker를 켭니다.
+현재 출시 정책의 모델 신규 실행 제한을 풀지는 않습니다. 사용자 확인 A 실행과 권한 있는 과거 모델 결과·기존 job 조회/취소는 유지합니다.
 기본은 off입니다. `MEDIA_SERVER_VA_REVIEW_LOCAL_ENDPOINT` 기본값은
 `http://127.0.0.1:11434`이며 관리자 지정 HTTP/HTTPS DNS·IPv4·괄호 IPv6 주소와 포트를 받습니다.
 포트 생략 시 scheme 기본 포트를 사용하고 끝의 단일 `/`는 허용합니다. base path·userinfo·query·fragment는
@@ -905,8 +906,8 @@ Ollama는 cloud 기능을 끄고 자체 호스팅 모델을 준비해야 합니�
 
 | API | 요청·응답 |
 | --- | --- |
-| `POST /ops/api/recordings/va-reviews` | JSON의 `packageId`, `question`, `provider`만 허용. 202 job 참조 |
-| `GET /ops/api/recordings/va-reviews?packageId=<id>` | 현재 기능/실행 가능 상태와 해당 패키지의 보존 결과 목록 |
+| `POST /ops/api/recordings/va-reviews` | JSON의 `packageId`, `question`, `provider`만 허용. 현재 출시 정책은 인증·채널 확인 후 409 `review-model-not-adopted`로 신규 모델 접수 거부 |
+| `GET /ops/api/recordings/va-reviews?packageId=<id>` | 현재 기능 상태·`canExecute=false`·`executionRestriction=review-model-not-adopted`와 해당 패키지의 보존 결과 목록 |
 | `GET /ops/api/recordings/va-reviews/<id>` | 질문·모델·실행 시각·지연·구조화 결과·프레임 근거 |
 | `GET /ops/api/recordings/va-review-jobs/<id>` | queued/running/completed/failed/cancelled와 정제 오류·결과 ID |
 | `DELETE /ops/api/recordings/va-review-jobs/<id>` | 생성자 또는 admin의 취소 요청. 이미 원자 게시한 결과는 유지 |
