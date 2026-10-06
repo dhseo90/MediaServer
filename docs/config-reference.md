@@ -774,15 +774,20 @@ file evidence만 사용하며 최대 파일512MiB/RGB4096×2160을 지원한다.
 
 | 입력 | 의미 |
 | --- | --- |
-| `text` | UTF-8 장면 설명, raw 최대16KiB. 빈 문자열·Unicode 공백만 있는 질의는 거부 |
+| `text` | UTF-8 장면 설명, raw 최대16KiB·본문 최대63토큰(기존 SigLIP2 tokenizer). 빈 문자열·Unicode 공백만 있는 질의는 거부 |
 | `channelIds` | 명시 채널1~32개, 쉼표 구분·중복 거부. 현재 서버 색인 지원 채널은 최대8개 |
 | `limit` | 결과1~200개, 기본20 |
 | `threshold` | inclusive cosine 하한[-1,1], 기본-1. 사건 판정 기준이 아님 |
 | `startTimeMs`, `endTimeMs` | 선택 UTC ms 정수 쌍, `[start,end)`. 지정하면 UTC 미확인 frame 제외 |
 
-응답은 `kind=visual-frame`, `scoreMeaning=similarity-not-evidence`, `items`이며
+응답은 `kind=visual-frame`, `scoreMeaning=similarity-not-evidence`, `appliedQuery`, `items`이며
 각 항목은 `id/channelId/score/timeNs`, `kind=representative-frame|event-snapshot`과 현재 재생 URL·위치다. `timeNs`는 정수 문자열 또는
 null이다. score 내림차순/동점ID 오름차순 exact top-k이며 원본 경로·벡터·모델 파일은 노출하지 않는다.
+`appliedQuery`는 원문 `text`, Unicode 소문자 처리 후 실제 tokenizer 입력 `encoderText`,
+절단 전 `bodyTokens`와 `maxBodyTokens=63`, 실제 적용 `channelIds/startTimeMs/endTimeMs/threshold/limit`이다.
+시간 미지정은 양쪽 null이다. 본문 초과는 추론 전에400 `visual-text-token-limit`, 빈 입력은
+`visual-text-empty`, 잘못된 UTF-8/NUL은 `visual-text-invalid-utf8`로 거부한다. 모델 미준비는503이다.
+자동 요약·번역·장면 설명의 시간/카메라 필터 자동 추출은 하지 않는다. 응답은 기존 no-store를 유지한다.
 `GET .../visual-search/seek?channelId=...&hitId=...`는 서버의 현재 게시본에서 찾아 권한과
 원본 hash/sample/삭제·손상·파일 재생 위치를 다시 확인한다. 해당 hit가 없어지면410이다.
 `GET .../visual-search/status`는 활성화/worker 상태와 허용 채널별 색인 frame 수, 최근 스캔의

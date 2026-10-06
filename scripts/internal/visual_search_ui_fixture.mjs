@@ -4,13 +4,17 @@ import fs from 'node:fs';import os from 'node:os';import path from 'node:path';i
 import dgram from 'node:dgram';import {spawn,execFileSync} from 'node:child_process';import {fileURLToPath} from 'node:url';
 import {reservePort,stopServer,assertPortClosed,bootstrapRecordingUiAuth,createUiAuthPasswords,writeUiLoginHandoff} from './verify_v410_recording_ui_contract.mjs';
 const repo=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');
-const resultPath=path.join(repo,'docs/release-artifacts/v4.3.0/development/visual-ui-preparation.json');
+const args=process.argv.slice(2),reportAt=args.indexOf('--report');
+const reportArg=reportAt<0?null:args.splice(reportAt,2)[1];
+if(reportAt>=0&&(!reportArg||reportArg.startsWith('--')))throw Error('report path required');
+const resultPath=reportArg?path.resolve(reportArg):path.join(repo,'docs/release-artifacts/v4.3.0/development/visual-ui-preparation.json');
+if(reportArg&&(!resultPath.startsWith(path.join(repo,'docs/release-artifacts')+path.sep)||fs.existsSync(resultPath)))throw Error('fresh report in release-artifacts required');
 function need(value,code){if(!value)throw Error(code);}
 function sha(file){return crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex');}
 function bytes(root){if(!fs.existsSync(root))return 0;const st=fs.lstatSync(root);if(st.isSymbolicLink())return 0;
   return st.isDirectory()?fs.readdirSync(root).reduce((sum,name)=>sum+bytes(path.join(root,name)),0):st.size;}
 async function main(){
-  need(process.argv.slice(2).every(value=>['--seed-only','--browser-ready'].includes(value)),'known preparation mode');
+  need(args.every(value=>['--seed-only','--browser-ready','--evidence'].includes(value)),'known preparation mode');
   const seedOnly=process.argv.includes('--seed-only'),browserReady=process.argv.includes('--browser-ready');
   need(!(seedOnly&&browserReady),'exclusive preparation mode');const holdMs=browserReady?600000:300000;
   const started=Date.now(),temporaryParent=fs.realpathSync(os.tmpdir());
@@ -18,7 +22,7 @@ async function main(){
   const owner=fs.lstatSync(root,{bigint:true}),identity=`${owner.dev}:${owner.ino}:${owner.uid}`;
   const binary=path.join(repo,'build-gst-onnx/media_server'),model=path.join(repo,'models/v430-siglip2');
   const report={schema:'media-server.visual-ui-preparation.v1',featureId:'V430-U01-SEED',status:'RUNNING',
-    command:'node scripts/internal/visual_search_ui_fixture.mjs'+(seedOnly?' --seed-only':browserReady?' --browser-ready':''),startedAtMs:started,preparationBudgetMs:60000,
+    command:['node','scripts/internal/visual_search_ui_fixture.mjs',...process.argv.slice(2)],startedAtMs:started,preparationBudgetMs:60000,
     uiHoldBudgetMs:seedOnly?0:holdMs,actualUiPass:false,scope:'real V2 codec-derived public sample preparation; main owns browser actions',
     sourceEnabled:false,sourceRecordingEnabled:false,homePolicy:'preserve inherited HOME',checks:[],cleanup:{},commands:[]};
   if(fs.existsSync(resultPath)){const {previousRuns=[],...last}=JSON.parse(fs.readFileSync(resultPath,'utf8'));report.previousRuns=[...previousRuns,last];}
@@ -118,6 +122,7 @@ async function main(){
       MEDIA_SERVER_DEFAULT_FILE:derivative,MEDIA_SERVER_STATE_DIR:path.join(root,'data'),MEDIA_SERVER_AUTH_USERS_FILE:path.join(root,'data/users.json'),
       MEDIA_SERVER_SOURCE_REGISTRY:path.join(root,'data/sources.json'),MEDIA_SERVER_PUBLISHED_VIEWS:path.join(root,'data/views.json'),
       MEDIA_SERVER_ANALYSIS_REGISTRY:path.join(root,'data/analysis.json'),MEDIA_SERVER_RECORDING_ENABLED:'1',
+      MEDIA_SERVER_EVIDENCE_ENABLED:args.includes('--evidence')?'1':'0',
       MEDIA_SERVER_RECORDING_STORAGE_ROOT:path.join(root,'recordings'),MEDIA_SERVER_RECORDING_RESERVED_FREE_BYTES:'0',
       MEDIA_SERVER_VISUAL_SEARCH_ENABLED:'1',MEDIA_SERVER_VISUAL_SEARCH_MODEL_DIRECTORY:model,
       MEDIA_SERVER_VISUAL_SEARCH_SCAN_SECONDS:'1',MEDIA_SERVER_VISUAL_SEARCH_SAMPLE_SECONDS:'1',

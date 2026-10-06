@@ -5,6 +5,7 @@
 #include <cmath>
 #include <chrono>
 #include <cstdlib>
+#include <cstring>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -152,6 +153,41 @@ int main(int argc, char** argv) {
                 CheckEmbedding(output);
                 Write(results / (case_id + ".f32"), output.data(), output.size());
                 std::cout << "PASS embedding " << case_id << "\n";
+            }
+        } else if (mode == "query" && argc == 3) {
+            Siglip2Encoder encoder(argv[2]);
+            const auto check=[](bool ok,const char* name){if(!ok)throw std::runtime_error(name);std::cout<<"PASS query "<<name<<"\n";};
+            for (const auto count : {62U,63U,64U}) {
+                std::string text;for(unsigned i=0;i<count;++i){if(i)text+=" ";text+="red";}
+                const auto info=encoder.InspectText(text);const auto ids=encoder.TokenizeText(text);
+                check(info.body_tokens==count,"exact repeated-word body count");
+                check(info.within_limit==(count<=63),"62/63/64 acceptance boundary");
+                check(ids[std::min(count,63U)]==1,"EOS unchanged");
+                for(std::size_t i=count+1;i<64;++i)check(ids[i]==0,"padding unchanged");
+            }
+            for(const auto& pair:std::vector<std::pair<std::string,std::string>>{
+                {"ÄBC RED 붉은 공 TWO dogs NOT behind a car","äbc red 붉은 공 two dogs not behind a car"},
+                {"두 사람이 차 뒤에 있지 않음","두 사람이 차 뒤에 있지 않음"},
+                {"  RED\t scene\n","  red\t scene\n"}}) {
+                const auto info=encoder.InspectText(pair.first);
+                check(info.original_text==pair.first&&info.encoder_text==pair.second,"Unicode and semantic words retained before tokenizer");
+                check(encoder.TokenizeText(pair.first)==encoder.TokenizeText(pair.second),"same normalization and token IDs");
+            }
+            std::string dense;for(unsigned i=0;i<24;++i)dense+="㐀";
+            const auto info=encoder.InspectText(dense);check(info.body_tokens>63&&!info.within_limit&&dense.size()<128,"short many-token UTF-8 input");
+            for(const auto& text:std::vector<std::string>{""," \t\n","　","\xff",std::string("a\0b",3)})
+                Reject([&]{encoder.InspectText(text);},"inspection rejects invalid/empty");
+            const auto base=std::filesystem::path(argv[2])/"adapter";
+            for(const auto id:{0,1,2,3,6,7,8,9}) {
+                const auto name="text-"+std::to_string(id);const auto text=ReadText(base/"fixtures"/(name+".txt"));
+                const auto old_ids=ReadText(base/"results"/(name+".i64"));const auto ids=encoder.TokenizeText(text);
+                check(old_ids.size()==ids.size()*sizeof(ids[0])&&old_ids==std::string(reinterpret_cast<const char*>(ids.data()),old_ids.size()),"preserved token IDs exact");
+                const auto raw=ReadText(base/"results"/(name+".f32"));check(raw.size()==768*sizeof(float),"preserved vector size");
+                std::vector<float> previous(768);std::memcpy(previous.data(),raw.data(),raw.size());
+                const auto actual=encoder.EncodeText(text);double dot=0,a=0,b=0,max_error=0;
+                for(std::size_t i=0;i<actual.size();++i){dot+=double(actual[i])*previous[i];a+=double(actual[i])*actual[i];b+=double(previous[i])*previous[i];max_error=std::max(max_error,std::abs(double(actual[i])-previous[i]));}
+                check(max_error<=1e-4&&dot/std::sqrt(a*b)>=.99999&&std::abs(std::sqrt(a)-1)<=1e-5,"preserved text vector tolerance");
+                std::cout<<"PARITY "<<name<<" maxAbs="<<max_error<<" cosine="<<dot/std::sqrt(a*b)<<"\n";
             }
         } else if (mode == "errors" && argc == 4) {
             Siglip2Encoder encoder(argv[2]);

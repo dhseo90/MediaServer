@@ -11,6 +11,15 @@
 #include <sys/resource.h>
 namespace {
 int checks=0;void Check(bool v,const std::string& name){++checks;if(!v)throw std::runtime_error(name);}
+// 짧은 질의 전용 분기도 기존 프로세스 RSS 상한을 확인한다.
+std::uint64_t PeakRss(){
+    struct rusage usage{};Check(getrusage(RUSAGE_SELF,&usage)==0,"RSS observation");
+    std::uint64_t bytes=usage.ru_maxrss;
+#ifndef __APPLE__
+    bytes*=1024;
+#endif
+    Check(bytes<=4ULL*1024*1024*1024,"model plus product RSS");return bytes;
+}
 using Service=ingress::VisualSearchApplicationService;
 void Json(const std::string& body){ingress::StrictJsonObjectDocument doc;std::string error;Check(ingress::ParseStrictJsonObjectDocument(body,&doc,&error),"valid public JSON");}
 void Ready(Service& service,const Service::Authorize& authorize,unsigned seconds=15){
@@ -20,7 +29,7 @@ void Ready(Service& service,const Service::Authorize& authorize,unsigned seconds
 }
 }
 int main(int argc,char** argv){try{
-    if(argc!=3)return 2;gst_init(nullptr,nullptr);const auto root=std::filesystem::weakly_canonical(argv[1]);
+    if(argc!=3&&!(argc==4&&std::string(argv[3])=="--query-only"))return 2;gst_init(nullptr,nullptr);const auto root=std::filesystem::weakly_canonical(argv[1]);
     recording::RecordingRuntimeStorage runtime(root);std::string error;Check(runtime.Open(&error),"storage open");
     auto input=Encode(90,false,false,160,90,30,30);Shift(input,7000000000ULL);
     for(const auto& channel:{"visible","hidden"}){
@@ -56,6 +65,40 @@ int main(int argc,char** argv){try{
         for(const auto& doc:docs)Check(result.body.find(doc.id)!=std::string::npos,"all allowed current references");
         for(const auto& secret:{"hidden","sha256","embedding","model_directory","sourceUrl"})Check(result.body.find(secret)==std::string::npos,"sanitized response");
         Check(result.body.find(root.string())==std::string::npos,"no local path");
+    }
+    if(argc==4){
+        // 평가 빌드는 검색 함수의 세 호출점에만 counter를 삽입한다. 제품 실행에는 삽입하지 않는다.
+#ifdef VISUAL_QUERY_PROBE
+        extern thread_local unsigned query_encode_calls,query_snapshot_calls,query_search_calls;
+        const auto reset=[](){query_encode_calls=query_snapshot_calls=query_search_calls=0;};
+#endif
+        std::string over;for(unsigned i=0;i<64;++i){if(i)over+=" ";over+="red";}
+        for(const auto& entry:std::vector<std::pair<std::string,std::string>>{{over,"visual-text-token-limit"},{"","visual-text-empty"},{"　 \t","visual-text-empty"},{"\xff","visual-text-invalid-utf8"}}){
+#ifdef VISUAL_QUERY_PROBE
+            reset();
+#endif
+            auto invalid=q;invalid["text"]=entry.first;const auto result=service.Search(invalid,authorized);
+            Check(result.status==400&&result.body.find(entry.second)!=std::string::npos,"distinct text input error");
+#ifdef VISUAL_QUERY_PROBE
+            Check(query_encode_calls==0&&query_snapshot_calls==0&&query_search_calls==0,"rejected input: no encode/snapshot/search calls");
+#endif
+        }
+        for(unsigned n:{62U,63U}){
+            auto boundary=q;boundary["text"]="";for(unsigned i=0;i<n;++i){if(i)boundary["text"]+=" ";boundary["text"]+="red";}
+#ifdef VISUAL_QUERY_PROBE
+            reset();
+#endif
+            const auto r=service.Search(boundary,authorized);Check(r.status==200,"accepted token boundary");
+            Check(r.body.find("\"bodyTokens\":"+std::to_string(n))!=std::string::npos,"server reports exact tokens");
+#ifdef VISUAL_QUERY_PROBE
+            Check(query_encode_calls==1&&query_snapshot_calls==1&&query_search_calls==1,"accepted input exercises counter control");
+#endif
+        }
+        auto defaults=q;defaults.erase("limit");defaults["text"]="RED scene";
+        const auto applied=service.Search(defaults,authorized);Check(applied.status==200,"uppercase/default search");
+        for(const auto* fragment:{"\"text\":\"RED scene\"","\"encoderText\":\"red scene\"","\"limit\":20","\"threshold\":-1","\"startTimeMs\":null","\"channelIds\":[\"visible\"]"})
+            Check(applied.body.find(fragment)!=std::string::npos,"effective query fields");
+        service.Stop();const auto peak=PeakRss();std::cout<<"PASS visual query-only checks="<<checks<<" peakRssBytes="<<peak<<"\n";return 0;
     }
     Ready(service,authorized);
     // 캐시 쓰기 실패는 새 게시를 막지만 현재 완성본의 실제 검색을 막지 않는다.
@@ -132,10 +175,6 @@ int main(int argc,char** argv){try{
         }
         large_service.Stop();
     }
-    struct rusage usage{};Check(getrusage(RUSAGE_SELF,&usage)==0,"RSS observation");std::uint64_t peak=usage.ru_maxrss;
-#ifndef __APPLE__
-    peak*=1024;
-#endif
-    Check(peak<=4ULL*1024*1024*1024,"model plus product RSS");
+    const auto peak=PeakRss();
     std::cout<<"PASS visual application checks="<<checks<<" peakRssBytes="<<peak<<"\n";return 0;
 }catch(const std::exception& e){std::cerr<<"FAIL "<<e.what()<<" checks="<<checks<<"\n";return 1;}}

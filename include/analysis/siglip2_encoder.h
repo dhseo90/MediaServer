@@ -5,6 +5,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <memory>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -39,6 +40,22 @@ public:
 
     std::vector<float> EncodeText(const std::string& text);
     std::vector<float> EncodeRgb(const std::uint8_t* rgb, int width, int height, std::size_t stride);
+
+    struct TextInputInfo {
+        std::string original_text, encoder_text;
+        std::size_t body_tokens{0};
+        bool within_limit{false};
+    };
+    // 기존 invalid_argument 소비자와 메시지를 유지하면서 검색 입력 오류만 구분한다.
+    class TextInputError : public std::invalid_argument {
+    public:
+        TextInputError(const char* code, const char* message) : std::invalid_argument(message), code_(code) {}
+        const char* code() const noexcept { return code_; }
+    private:
+        const char* code_;
+    };
+    // EncodeText와 같은 tokenizer를 사용하며 추론 없이 절단 전 정보를 반환한다.
+    TextInputInfo InspectText(const std::string& text);
 
     // 직접 계약 검증용. 입력 버퍼는 (height-1)*stride + width*3 bytes 이상이어야 한다.
     // dimension<=16384, span<=256MiB. 정수 overflow/invalid layout을 거부한다.

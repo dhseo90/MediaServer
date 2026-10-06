@@ -10869,8 +10869,27 @@ void AppendOpsShellScript(std::ostringstream& out,
           let revision = 0, selection = 0, player = el('Player'), enabled = false;
           const read = async (path, params) => {
             const response = await fetch('/ops/api/recordings/visual-search' + path + (params ? '?' + params : ''), { credentials: 'same-origin', cache: 'no-store' });
-            if (!response.ok) throw new Error(response.status === 401 || response.status === 403 ? '이 카메라를 검색할 권한이 없습니다.' : response.status === 400 ? '검색 조건을 확인하세요.' : response.status === 410 ? '현재 결과를 사용할 수 없습니다. 다시 검색하세요.' : '모델 또는 색인이 준비되지 않았거나 사용 중입니다. 상태를 새로고침하고 다시 시도하세요.');
+            if (!response.ok) {
+              const messages = {
+                'visual-text-token-limit': '장면 설명이 모델의 본문 63토큰 한도를 넘었습니다. 일부만 검색하지 않으므로 문장을 줄여 다시 입력하세요.',
+                'visual-text-empty': '장면 설명이 비어 있습니다. 공백 외의 문장을 입력하세요.',
+                'visual-text-invalid-utf8': '장면 설명의 문자 인코딩이 올바르지 않습니다. 다시 입력하세요.',
+                'visual-text-byte-limit': '장면 설명의 입력 크기 한도를 넘었습니다. 문장을 줄여 입력하세요.'
+              };
+              let detail; try { detail = await response.json(); } catch (_) {}
+              if (response.status === 400 && Object.prototype.hasOwnProperty.call(messages, detail?.error)) throw new Error(messages[detail.error]);
+              throw new Error(response.status === 401 || response.status === 403 ? '이 카메라를 검색할 권한이 없습니다.' : response.status === 400 ? '검색 조건을 확인하세요.' : response.status === 410 ? '현재 결과를 사용할 수 없습니다. 다시 검색하세요.' : '모델 또는 색인이 준비되지 않았거나 사용 중입니다. 상태를 새로고침하고 다시 시도하세요.');
+            }
             return response.json();
+          };
+          const applied = q => {
+            if (!q || typeof q.text !== 'string' || typeof q.encoderText !== 'string' ||
+                !Number.isInteger(q.bodyTokens) || q.bodyTokens < 0 || q.bodyTokens > 63 || q.maxBodyTokens !== 63 ||
+                !Array.isArray(q.channelIds) || !q.channelIds.length || q.channelIds.length > 32 || q.channelIds.some(c => typeof c !== 'string') ||
+                !Number.isFinite(q.threshold) || q.threshold < -1 || q.threshold > 1 || !Number.isInteger(q.limit) || q.limit < 1 || q.limit > 200 ||
+                !((q.startTimeMs === null && q.endTimeMs === null) || (Number.isSafeInteger(q.startTimeMs) && Number.isSafeInteger(q.endTimeMs) && q.startTimeMs >= 0 && q.startTimeMs < q.endTimeMs))) throw new Error('적용된 검색 조건을 읽지 못했습니다.');
+            const time = q.startTimeMs === null ? 'UTC 범위: 지정 안 함' : `UTC 범위: ${new Date(q.startTimeMs).toISOString()} 이상 ~ ${new Date(q.endTimeMs).toISOString()} 미만`;
+            say('Applied', `적용 장면 설명: ${q.text}${q.text === q.encoderText ? '' : '\n인코더 입력 (Unicode 소문자 처리): ' + q.encoderText}\n본문 토큰: ${q.bodyTokens}/${q.maxBodyTokens} · 카메라: ${q.channelIds.join(', ')}\n${time} · 최소 유사도: ${q.threshold} · 최대 결과 수: ${q.limit}`);
           };
           const clearPlayer = () => {
             ++selection; player.pause(); player.removeAttribute('src'); player.load();
@@ -10878,11 +10897,11 @@ void AppendOpsShellScript(std::ostringstream& out,
             say('Playback', '결과를 선택하면 현재 원본의 해당 시점으로 이동합니다.');
           };
           const invalidate = () => {
-            ++revision; clearPlayer(); el('Rows').replaceChildren(); el('Submit').disabled = !enabled;
+            ++revision; clearPlayer(); el('Rows').replaceChildren(); say('Applied', ''); el('Submit').disabled = !enabled;
             say('Status', '조건이 변경됐습니다. 장면 검색을 눌러 조회하세요.');
           };
           const status = async () => {
-            const version = ++revision; clearPlayer(); el('Rows').replaceChildren(); el('Submit').disabled = true;
+            const version = ++revision; clearPlayer(); el('Rows').replaceChildren(); say('Applied', ''); el('Submit').disabled = true;
             say('Status', '색인 상태를 확인하는 중입니다. 이전 결과를 지웠습니다.');
             try {
               const data = await read('/status'); if (version !== revision) return;
@@ -10928,7 +10947,7 @@ void AppendOpsShellScript(std::ostringstream& out,
             } catch (error) { if (version === selection) say('Playback', error.message); }
           };
           el('Form').addEventListener('submit', async event => {
-            event.preventDefault(); const version = ++revision; clearPlayer(); el('Rows').replaceChildren();
+            event.preventDefault(); const version = ++revision; clearPlayer(); el('Rows').replaceChildren(); say('Applied', '');
             const ids = [...el('Channels').selectedOptions].map(option => option.value);
             const params = new URLSearchParams({ channelIds: ids.join(','), text: el('Text').value, limit: el('Limit').value, threshold: el('Threshold').value });
             if (el('Start').value || el('End').value) {
@@ -10940,6 +10959,7 @@ void AppendOpsShellScript(std::ostringstream& out,
             try {
               const data = await read('', params); if (version !== revision) return;
               if (!Array.isArray(data.items)) throw new Error('검색 응답을 읽지 못했습니다.');
+              applied(data.appliedQuery);
               for (const item of data.items) {
                 const button = document.createElement('button'); button.type = 'button'; button.className = 'button-secondary';
                 const stamp = typeof item.timeNs === 'string' && /^[0-9]+$/.test(item.timeNs) ? new Date(Number(BigInt(item.timeNs) / 1000000n)).toLocaleString() : '시간 미확인';

@@ -23,7 +23,7 @@ bool Integer(const std::string& s,std::int64_t* value){if(s.empty())return false
 bool Parse(const Query& raw,recording::VisualSearchQuery* q){
     const std::set<std::string> keys{"text","channelIds","limit","threshold","startTimeMs","endTimeMs"};
     for(const auto& entry:raw)if(!keys.count(entry.first))return false;
-    if(Get(raw,"text").empty()||Get(raw,"text").size()>analysis::Siglip2Encoder::kMaxTextBytes)return false;
+    if(!raw.count("text")||Get(raw,"text").size()>analysis::Siglip2Encoder::kMaxTextBytes)return false;
     const auto ids=Get(raw,"channelIds");if(ids.empty()||ids.size()>32*1025)return false;
     std::size_t begin=0;std::set<std::string> unique;
     while(begin<=ids.size()){const auto end=ids.find(',',begin);const auto id=ids.substr(begin,end==std::string::npos?end:end-begin);
@@ -198,14 +198,19 @@ ApplicationServiceResult VisualSearchApplicationService::Search(const Query& raw
         for(const auto& channel:query.channels)if(std::find(current.begin(),current.end(),channel)==current.end())return Error(410,"visual-channel-unavailable");
         const auto index_state=worker_->Status().state;
         if(index_state!="ready"&&index_state!="indexing")return Error(503,"visual-index-not-ready");
-        const auto index=worker_->Snapshot();if(!index)return Error(503,"visual-index-not-ready");
         const auto deadline=std::chrono::steady_clock::now()+std::chrono::seconds(5);
         const auto expired=[&]{return stopped_||std::chrono::steady_clock::now()>=deadline;};
-        std::vector<recording::VisualSnapshotEvent> events;
-        if(!EventFacts(!options_.snapshot_directory.empty(),query.channels,&events,expired))return Error(503,"visual-source-unavailable");
+        analysis::Siglip2Encoder::TextInputInfo text;
         {std::unique_lock<std::timed_mutex> lock(inference_,std::defer_lock);
             if(!lock.try_lock_until(std::min(deadline,std::chrono::steady_clock::now()+std::chrono::seconds(2))))return Error(503,"visual-search-busy");
-            try{query.embedding=encoder_->EncodeText(Get(raw,"text"));}catch(const std::invalid_argument&){return Error(400,"visual-invalid-text");}}
+            try{
+                text=encoder_->InspectText(Get(raw,"text"));
+                if(!text.within_limit)return Error(400,"visual-text-token-limit");
+                query.embedding=encoder_->EncodeText(text.original_text);
+            }catch(const analysis::Siglip2Encoder::TextInputError& e){return Error(400,e.code());}}
+        const auto index=worker_->Snapshot();if(!index)return Error(503,"visual-index-not-ready");
+        std::vector<recording::VisualSnapshotEvent> events;
+        if(!EventFacts(!options_.snapshot_directory.empty(),query.channels,&events,expired))return Error(503,"visual-source-unavailable");
         std::vector<recording::VisualSearchHit> hits;std::string error;
         RequestMedia media_cache(source_,expired,deadline);
         const auto eligible=[&](const auto& doc){
@@ -221,7 +226,13 @@ ApplicationServiceResult VisualSearchApplicationService::Search(const Query& raw
         };
         if(!index->Search(query,eligible,&hits,&error))return Error(503,"visual-search-unavailable");
         if(expired())return Error(503,"visual-search-busy");
-        std::ostringstream out;out.imbue(std::locale::classic());out<<std::setprecision(17)<<"{\"kind\":\"visual-frame\",\"scoreMeaning\":\"similarity-not-evidence\",\"items\":[";
+        std::ostringstream out;out.imbue(std::locale::classic());out<<std::setprecision(17)<<"{\"kind\":\"visual-frame\",\"scoreMeaning\":\"similarity-not-evidence\",\"appliedQuery\":{\"text\":"
+            <<Quote(text.original_text)<<",\"encoderText\":"<<Quote(text.encoder_text)<<",\"bodyTokens\":"<<text.body_tokens
+            <<",\"maxBodyTokens\":"<<analysis::Siglip2Encoder::kTextLength-1<<",\"channelIds\":[";
+        for(std::size_t i=0;i<query.channels.size();++i){if(i)out<<',';out<<Quote(query.channels[i]);}
+        out<<"],\"startTimeMs\":"<<(query.start_utc_ns?std::to_string(*query.start_utc_ns/1000000):"null")
+            <<",\"endTimeMs\":"<<(query.end_utc_ns?std::to_string(*query.end_utc_ns/1000000):"null")
+            <<",\"threshold\":"<<query.threshold<<",\"limit\":"<<query.top_k<<"},\"items\":[";
         std::vector<std::shared_ptr<const recording::ResolvedRecordingMedia>> response_holds;response_holds.reserve(hits.size());
         bool comma=false;for(const auto& hit:hits){const auto& d=index->documents()[hit.document_index];
             if(stopped_||std::chrono::steady_clock::now()>=deadline)return Error(503,"visual-search-busy");

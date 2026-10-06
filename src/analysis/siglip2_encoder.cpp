@@ -429,28 +429,33 @@ struct Siglip2Encoder::Impl {
         }
     }
 
-    std::array<std::int64_t, kTextLength> Tokens(const std::string& value) {
-        if (value.size() > kMaxTextBytes) throw std::invalid_argument("SigLIP2 text exceeds the input limit");
+    struct PreparedText {
+        TextInputInfo info;
+        std::array<std::int64_t, kTextLength> ids{};
+    };
+    PreparedText Tokens(const std::string& value) {
+        if (value.size() > kMaxTextBytes) throw TextInputError("visual-text-byte-limit", "SigLIP2 text exceeds the input limit");
         if (value.size() > static_cast<std::size_t>(std::numeric_limits<gssize>::max()) ||
             value.find('\0') != std::string::npos || !g_utf8_validate(value.data(), value.size(), nullptr)) {
-            throw std::invalid_argument("SigLIP2 text must be valid UTF-8 without NUL");
+            throw TextInputError("visual-text-invalid-utf8", "SigLIP2 text must be valid UTF-8 without NUL");
         }
         bool content = false;
         for (const char* current = value.c_str(); *current; current = g_utf8_next_char(current)) {
             if (!g_unichar_isspace(g_utf8_get_char(current))) { content = true; break; }
         }
-        if (!content) throw std::invalid_argument("SigLIP2 text query is empty");
+        if (!content) throw TextInputError("visual-text-empty", "SigLIP2 text query is empty");
         gchar* lower = g_utf8_strdown(value.data(), value.size());
         if (!lower) throw std::runtime_error("SigLIP2 lowercase failed");
         const std::string normalized(lower);
         g_free(lower);
         std::vector<int> content_ids;
         if (!tokenizer.Encode(normalized, &content_ids).ok()) throw std::runtime_error("SigLIP2 tokenization failed");
-        std::array<std::int64_t, kTextLength> ids{};
+        PreparedText prepared;
+        prepared.info = {value, normalized, content_ids.size(), content_ids.size() <= kTextLength - 1};
         const auto count = std::min(content_ids.size(), kTextLength - 1);
-        for (std::size_t i = 0; i < count; ++i) ids[i] = content_ids[i];
-        ids[count] = 1;
-        return ids;
+        for (std::size_t i = 0; i < count; ++i) prepared.ids[i] = content_ids[i];
+        prepared.ids[count] = 1;
+        return prepared;
     }
 
     static std::vector<float> Infer(Ort::Session& session, const char* name, Ort::Value& input) {
@@ -496,7 +501,7 @@ std::array<std::int64_t, Siglip2Encoder::kTextLength> Siglip2Encoder::TokenizeTe
 #if MEDIA_SERVER_USE_SIGLIP2
     if (!impl_) throw std::runtime_error("SigLIP2 encoder is not initialized");
     const std::lock_guard<std::mutex> guard(impl_->mutex);
-    return impl_->Tokens(value);
+    return impl_->Tokens(value).ids;
 #else
     (void)value;
     Disabled();
@@ -507,11 +512,22 @@ std::vector<float> Siglip2Encoder::EncodeText(const std::string& value) {
 #if MEDIA_SERVER_USE_SIGLIP2
     if (!impl_) throw std::runtime_error("SigLIP2 encoder is not initialized");
     const std::lock_guard<std::mutex> guard(impl_->mutex);
-    auto ids = impl_->Tokens(value);
+    auto ids = impl_->Tokens(value).ids;
     const std::array<std::int64_t, 2> shape{1, 64};
     const auto memory = Ort::MemoryInfo::CreateCpu(OrtArenaAllocator, OrtMemTypeDefault);
     auto input = Ort::Value::CreateTensor<std::int64_t>(memory, ids.data(), ids.size(), shape.data(), shape.size());
     return Impl::Infer(*impl_->text, "input_ids", input);
+#else
+    (void)value;
+    Disabled();
+#endif
+}
+
+Siglip2Encoder::TextInputInfo Siglip2Encoder::InspectText(const std::string& value) {
+#if MEDIA_SERVER_USE_SIGLIP2
+    if (!impl_) throw std::runtime_error("SigLIP2 encoder is not initialized");
+    const std::lock_guard<std::mutex> guard(impl_->mutex);
+    return impl_->Tokens(value).info;
 #else
     (void)value;
     Disabled();

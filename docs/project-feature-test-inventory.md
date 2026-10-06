@@ -4674,3 +4674,17 @@ K03 추가 비용 조건: `V420_COST_VARIED=1`은 관측의 원본 표본 10개�
 기대값을 유지하며 준비·검색 비용을 기본 조건과 비교한다. 복제 파일은 실제 읽을 수 있는
 미디어지만 별도 카메라 촬영 증거가 아니다. application 잠금의 격리 계측은 대기/보유 시간을
 분리하며 제품 응답이나 잠금 범위를 바꾸지 않는다. 안정화의 단기 검사이고 30분/120분/UI는 비대상이다.
+
+
+## V450 검색 입력 마감
+
+설계52의 첫 묶음만 실행한다. 아래는 실행 전 정의이며 PASS 기록이 아니다.
+
+| ID | route/control/action·정상/오류/경계 기대값 | 직접 안정화 | 30분 | 120분 | 실제 UI |
+| --- | --- | --- | --- | --- | --- |
+| V450-S01 | InspectText와 기존 Tokenize/Encode: UTF-8/빈값 거부, Unicode lowercase·KO/EN/혼합·부정/수량/관계 보존, 실제 SP 본문62/63/64·짧은 다토큰, EOS/padding exact·기존 정상 token IDs/vector 허용치 유지 | encoder query probe; max abs1e-4/cos≥.99999/norm1e-5·기존16 crop/24한영 질의의 exact index 결과 대조 | 이번 미실행 | 이번 미실행 | 내부 기능 |
+| V450-S02 | GET `/ops/api/recordings/visual-search`: 권한→본문63 초과400(추론/search/snapshot0), empty/UTF-8 400 구분·미준비503. 성공 appliedQuery는 실제 기본값/채널/UTC/threshold/limit. 한영 실제 검색·no-store·금지채널 비노출·seek/evidence 유지 | query-only application·실제 격리 HTTP | 후속 별도 승인 | 후속 영향 판정/승인 | 정상·초과·오류 복구·재생/증거 |
+| V450-S03 | `/ops/events` opsVisualForm/Applied: 초과 사유, 실제 원문/encoder·UTC·필터 표시, 같으면 비중복, textContent, 변경/refresh/늦은 응답 무효화 | visual_search_ui_state.test.mjs | 이번 미실행 | 이번 미실행 | 변경 영역 데스크톱/모바일 light/dark·권한·조건 변경 |
+
+실제 SigLIP2와 작은 격리 fixture를 사용한다. Qwen/Ollama·새 모델 설치·전체 acceptance/UI는0회다.
+이 검사는 자연어 필터 해석이나 부정/수량 의미 인식의 품질 증거가 아니다.

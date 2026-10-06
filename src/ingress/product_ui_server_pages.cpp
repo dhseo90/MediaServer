@@ -1611,8 +1611,10 @@ void AppendOpsEventsPage(std::ostringstream& out) {
           <button id="opsVisualRefresh" type="button" class="button-secondary">색인 상태 새로고침</button>
         </form>
         <p>시간 범위를 지정하면 시각이 확인된 프레임만 검색합니다. 주기 사이의 장면과 지원되지 않는 파일은 검색되지 않을 수 있습니다.</p>
+        <p>장면 설명의 “어제”, “3번 카메라”는 시간·카메라 필터로 자동 해석하지 않습니다. 위 조건을 직접 지정하세요. 시간 입력은 현재 브라우저의 시간대이며 적용 범위는 UTC로 표시합니다. 본문은 tokenizer 기준 최대 63토큰입니다.</p>
         <p id="opsVisualCoverage" role="status">색인 상태를 확인하는 중입니다.</p>
         <p id="opsVisualStatus" role="status">카메라와 장면 설명을 입력하세요.</p>
+        <p id="opsVisualApplied" style="white-space: pre-wrap; overflow-wrap: anywhere" aria-live="polite"></p>
         <div id="opsVisualRows" class="ops-recording-rows" aria-label="영상 유사도 검색 결과"></div>
         <video id="opsVisualPlayer" controls preload="metadata" playsinline aria-label="영상 검색 결과 재생"></video>
         <p id="opsVisualPlayback" role="status">결과를 선택하면 현재 원본의 해당 시점으로 이동합니다.</p>

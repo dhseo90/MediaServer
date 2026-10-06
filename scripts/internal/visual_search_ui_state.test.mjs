@@ -31,11 +31,12 @@ function fixture(){
   const elements=new Map();const el=name=>{const id='opsVisual'+name;if(!elements.has(id))elements.set(id,new Element());elements.get(id).replaceHook=copy=>elements.set(id,copy);return elements.get(id);};
   const pending=[];
   vm.runInNewContext(script,{evidenceUi:null,window:{location:{pathname:'/ops/events'}},document:{getElementById:id=>el(id.slice(9)),createElement:()=>new Element()},URLSearchParams,Date,Number,BigInt,Error,Set,fetch:url=>new Promise(resolve=>pending.push({url,resolve}))});
-  const answer=(entry,data,status=200)=>entry.resolve({ok:status===200,status,json:async()=>data});
+  const answer=(entry,data,status=200)=>entry.resolve({ok:status===200,status,json:async()=>Array.isArray(data.items)?{appliedQuery:appliedQuery(),...data}:data});
   answer(pending.shift(),{enabled:true,searchAvailable:true,state:'ready',sampleSeconds:10,scanSeconds:60,channels:[{channelId:'1',indexedFrames:3,examinedSegments:3,unsupportedSegments:0}]});
   el('Text').value='붉은 장면';el('Limit').value='20';el('Threshold').value='-1';
   return {el,pending,answer};
 }
+const appliedQuery=()=>({text:'붉은 장면',encoderText:'붉은 장면',bodyTokens:5,maxBodyTokens:63,channelIds:['1'],startTimeMs:null,endTimeMs:null,threshold:-1,limit:20});
 const item=id=>({id,channelId:'1',timeNs:null,score:.12});
 async function results(){const f=fixture();await flush();const work=f.el('Form').fire('submit');f.answer(f.pending.shift(),{items:[item('a'),item('b')]});await work;return f;}
 test('late query cannot revive results after changed input',async()=>{
@@ -97,4 +98,25 @@ test('failed rebuild keeps previous index searchable and shows a safe warning',a
   assert.doesNotMatch(f.el('Status').textContent,/private diagnostic/);
   const search=f.el('Form').fire('submit');f.answer(f.pending.shift(),{items:[item('still-current')]});await search;
   assert.equal(f.el('Rows').children.length,1);
+});
+
+// 서버가 적용한 값만 표시하고 현재 편집 내용이나 늦은 응답으로 대체하지 않는다.
+test('applied query renders server defaults, UTC and escaped text without duplicate prose',async()=>{
+  const f=fixture();await flush();const work=f.el('Form').fire('submit');
+  f.answer(f.pending.shift(),{items:[],appliedQuery:{...appliedQuery(),text:'<B>RED</B>',encoderText:'<b>red</b>',startTimeMs:1000,endTimeMs:2000,channelIds:['2'],limit:10,threshold:.25}});await work;
+  const text=f.el('Applied').textContent;assert.match(text,/<B>RED<\/B>/);assert.match(text,/<b>red<\/b>/);assert.match(text,/1970-01-01T00:00:01.000Z/);assert.match(text,/카메라: 2/);assert.match(text,/최대 결과 수: 10/);assert.match(text,/최소 유사도: 0.25/);
+  await f.el('Form').fire('change');assert.equal(f.el('Applied').textContent,'');
+  const next=f.el('Form').fire('submit');f.answer(f.pending.shift(),{items:[]});await next;
+  assert.equal(f.el('Applied').textContent.split('붉은 장면').length-1,1);
+  const refresh=f.el('Refresh').fire('click');assert.equal(f.el('Applied').textContent,'');f.answer(f.pending.shift(),{},503);await refresh;
+});
+test('token rejection explains no truncation and permits a corrected search',async()=>{
+  const f=await results();const work=f.el('Form').fire('submit');assert.equal(f.el('Applied').textContent,'');
+  f.answer(f.pending.shift(),{error:'visual-text-token-limit'},400);await work;
+  assert.match(f.el('Status').textContent,/63토큰/);assert.match(f.el('Status').textContent,/줄여/);assert.equal(f.el('Rows').children.length,0);assert.equal(f.el('Submit').disabled,false);
+  const retry=f.el('Form').fire('submit');f.answer(f.pending.shift(),{items:[item('corrected')]});await retry;assert.equal(f.el('Rows').children.length,1);assert.match(f.el('Applied').textContent,/본문 토큰: 5\/63/);
+});
+test('late response cannot restore applied query after an edit',async()=>{
+  const f=fixture();await flush();const work=f.el('Form').fire('submit');const pending=f.pending.shift();await f.el('Form').fire('input');
+  f.answer(pending,{items:[item('stale')]});await work;assert.equal(f.el('Applied').textContent,'');assert.equal(f.el('Rows').children.length,0);
 });
