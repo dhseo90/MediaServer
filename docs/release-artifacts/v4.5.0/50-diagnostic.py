@@ -87,11 +87,19 @@ class Rusage(ctypes.Structure):
     _fields_=[('uuid',ctypes.c_uint8*16)]+[(name,ctypes.c_uint64) for name in
         ('user_time','system_time','pkg_idle_wkups','interrupt_wkups','pageins','wired_size','resident_size','phys_footprint','proc_start_abstime','proc_exit_abstime')]
 
-def run():
-    batch=requests();frozen=load('50-request-freeze.json');prior=load('49-evaluation-freeze.json')
+def run(layout_requests=None):
+    # 51은 요청 구성만 주입하고 기존 실행·계측·중단·해제 경계를 재사용한다.
+    run_id='51' if layout_requests is not None else '50'
+    batch=layout_requests() if layout_requests is not None else requests()
+    frozen=load(f'{run_id}-request-freeze.json');prior=load('49-evaluation-freeze.json')
     assert sha(pathlib.Path(__file__).read_bytes())==frozen['harnessSha256']
+    for name,digest in frozen.get('additionalCodeSha256',{}).items():assert sha((OUT/name).read_bytes())==digest
     assert sha((OUT/'49-request-freeze.json').read_bytes())==frozen['source49Sha256']
     for row,expected in zip(batch,frozen['requests']):assert sha(encoded(row['request']))==expected['requestSha256']
+    if run_id=='51':
+        reference=load('50-runtime-freeze.json')
+        assert prior['binary']==reference['binary'] and prior['binarySha256']==reference['binarySha256']
+        assert prior['model']['digest']==reference['model']['digest'] and prior['ollama']==reference['version']
     binary=pathlib.Path(prior['binary']);model_root=pathlib.Path(prior['server']['modelPath'])
     manifest=model_root/'manifests/registry.ollama.ai/library/qwen3.5/9b'
     assert sha(binary.read_bytes())==prior['binarySha256'] and sha(manifest.read_bytes())==frozen['modelDigest']
@@ -104,7 +112,7 @@ def run():
     libproc=ctypes.CDLL('/usr/lib/libproc.dylib',use_errno=True)
     libproc.proc_pid_rusage.argtypes=[ctypes.c_int,ctypes.c_int,ctypes.c_void_p];libproc.proc_pid_rusage.restype=ctypes.c_int
     resources={'modelPhysicalFootprintBytes':0,'modelBytes':0,'serverAndHarnessRssBytes':0,'workspaceBytes':0,'samples':0}
-    server=None;worker=None;connection=None;cleanup={'unloadGateExecuted':False};results=[];failure=None;started=time.monotonic();log=(OUT/'50-ollama.log').open('xb')
+    server=None;worker=None;connection=None;cleanup={'unloadGateExecuted':False};results=[];failure=None;started=time.monotonic();log=(OUT/f'{run_id}-ollama.log').open('xb')
     def observe():
         rows=subprocess.check_output(['ps','-axo','pid=,ppid=,pgid=,rss='],text=True,timeout=2)
         footprint=0;server_rss=0
@@ -117,8 +125,9 @@ def run():
                 elif ctypes.get_errno()!=3:raise RuntimeError('physical footprint collection failed')
         models=get('/api/ps')['models']
         assert all(m['digest']==frozen['modelDigest'] for m in models),'unexpected owned model'
-        workspace=sum(p.stat().st_size for p in OUT.glob('50-*') if p.is_file())
-        workspace+=sum(p.stat().st_size for p in pathlib.Path(load('50-input-check.json')['ownedPngRoot']).iterdir())
+        workspace=sum(p.stat().st_size for p in OUT.glob(f'{run_id}-*') if p.is_file())
+        if run_id=='50':
+            workspace+=sum(p.stat().st_size for p in pathlib.Path(load('50-input-check.json')['ownedPngRoot']).iterdir())
         for key,value in [('modelPhysicalFootprintBytes',footprint),('modelBytes',sum(m['size'] for m in models)),('serverAndHarnessRssBytes',server_rss),('workspaceBytes',workspace)]:resources[key]=max(resources[key],value)
         resources['samples']+=1
         assert footprint<=14*1024**3 and resources['modelBytes']<=14*1024**3 and server_rss<=4*1024**3 and workspace<=8*1024**3,'resource budget exceeded'
@@ -138,19 +147,20 @@ def run():
         assert model['digest']==frozen['modelDigest'] and model['details']==prior['model']['details']
         request=urllib.request.Request(endpoint+'/api/show',encoded({'model':model['name']}),headers={'Content-Type':'application/json'})
         with opener.open(request,timeout=10) as response:show_raw=response.read()
-        (OUT/'50-show.json').write_bytes(show_raw);show=json.loads(show_raw);old=load('49-show.json')
+        with (OUT/f'{run_id}-show.json').open('xb') as output:output.write(show_raw)
+        show=json.loads(show_raw);old=load('50-show.json' if run_id=='51' else '49-show.json')
         assert all(show.get(k)==old.get(k) for k in ('template','details','capabilities'))
         assert parameters(show['parameters'])==parameters(old['parameters'])
-        save('50-runtime-freeze.json',{'sourceCommit':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),
+        save(f'{run_id}-runtime-freeze.json',{'sourceCommit':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),
             'trackedDiffSha256':sha(subprocess.check_output(['git','diff','HEAD'])),'harnessSha256':frozen['harnessSha256'],
             'binary':str(binary),'binarySha256':prior['binarySha256'],'version':version,'model':model,
             'parameterMap':parameters(show['parameters']),'showSha256':sha(show_raw),'endpoint':endpoint,'ownedPid':server.pid,
-            'sameAs49':['binary SHA','manifest digest','details','template','parameter map','capabilities','sampling/context/think/keep_alive'],
+            ('sameAs50' if run_id=='51' else 'sameAs49'):['binary SHA','manifest digest','details','template','parameter map','capabilities','sampling/context/think/keep_alive'],
             'transport':'evaluation-only direct loopback /api/chat; products unmodified','initialModels':[]})
         for row in batch:
             ident=row['id'];start=time.monotonic();deadline=min(start+60,started+800);outcome={}
             assert next(m for m in get('/api/tags')['models'] if m['name']==model['name'])['digest']==frozen['modelDigest']
-            raw_path=OUT/f'50-{ident}-response.json';connection=http.client.HTTPConnection('127.0.0.1',port,timeout=max(.001,deadline-time.monotonic()))
+            raw_path=OUT/f'{run_id}-{ident}-response.json';connection=http.client.HTTPConnection('127.0.0.1',port,timeout=max(.001,deadline-time.monotonic()))
             # 각 호출의 원 바이트를 즉시 보존하고 부분 응답은 정상 JSON으로 복원하지 않는다.
             def call():
                 try:
@@ -219,7 +229,7 @@ def run():
         cleanup['elapsedSeconds']=time.monotonic()-started
         if not (cleanup.get('postRunModelAbsent') and cleanup.get('ownedGroupAbsent') and cleanup.get('portClosed') and cleanup.get('workerAbsent') and not cleanup.get('forced')):
             failure=failure or 'cleanup/unload incomplete'
-        save('50-execution.json',{'results':results,'failure':failure,'notRun':[r['id'] for r in batch if not (OUT/f"50-{r['id']}-response.json").exists()],
+        save(f'{run_id}-execution.json',{'results':results,'failure':failure,'notRun':[r['id'] for r in batch if not (OUT/f"{run_id}-{r['id']}-response.json").exists()],
              'resources':resources,'cleanup':cleanup,'exit':1 if failure else 0})
         print('[cleanup]',json.dumps(cleanup),flush=True)
     assert not failure and cleanup.get('postRunModelAbsent') and cleanup['ownedGroupAbsent'] and cleanup['portClosed'] and cleanup['workerAbsent'] and not cleanup['forced']
