@@ -193,6 +193,17 @@ V450-K11 / V450-A03 / V450-U03(서버 부족 근거 자료 요청): `bash script
 - 모델 transport 호출은 실패이며0회여야 한다. 기존43~45의 모델 품질 FAIL과 별개인 서버 규칙
   검사다. 단기 native/HTTP/변경 browser 범위이며 일반 acceptance/전체UI/30분/120분은 제외한다.
 
+V450-K12(서버 초안의 내부 문장화): `--rephrase-only` / `--rephrase-local`은 실제46 renderer 출력과
+동일6사례9목적을 사용한다. 원 질문·관측 목록·정답표는 모델 입력에서 제외한다. 입력 초안 일치,
+0/1기반 frame 표시 및PTS 문자열, unchanged echo, 슬롯/추가 필드/JSON/170cp/512byte/8192byte,
+timeout·취소·무항목/한도/미지원 무호출, renderer/spec/decision/gap/record 불변을 확인한다.
+공유 transport/decoder의 기존43/45 요청 생성 바이트와 기존 질문 codec 반례를 회귀한다.
+Qwen3.5:9b Q4_K_M/Ollama0.35.1/think=false와 기존 옵션·60초/800초·14GiB모델/4GiBnative/
+8GiBworkspace/5초해제를 유지하며 최대6회·재시도0이다. A형식, B의미 보존, C자료 요청/중립성,
+D자연스러움, E실질 개선을 분리하고E는 필수 의미 합격과 별개다. 실행 전47기준을 고정한다.
+입력이 달라진 과제이며45의 FAIL 해소나 일반화 품질 검사가 아니다. 구현자 직접 검토이며
+공개 연결/HTTP·UI/전체회귀/30분/120분은 비대상이다.
+
 V450-K06(관측 연결 후보, 공개 미연결): `--observer-only`는
 [test/fixtures/v450_review_observer.json](../test/fixtures/v450_review_observer.json)의 독립 기대값으로
 상대 bbox→원본 중심 변환, 양쪽 경계/면적/형식/유한성/null, 프레임·anchor 참조와 PNG 크기·hash를
