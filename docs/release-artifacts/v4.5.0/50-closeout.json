@@ -1,0 +1,30 @@
+{
+  "checks": [
+    {
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "exit": 0,
+      "log": "50-closeout-whitespace.log.gz",
+      "rawSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": [
+        "bash",
+        "server.sh",
+        "verify-docs-links"
+      ],
+      "exit": 0,
+      "log": "50-closeout-links.log.gz",
+      "rawSha256": "bd3a31066da61ee6934a4c130690b9ca9055d038e9cb930cdae7d35ca909696e"
+    }
+  ],
+  "productAndExistingFixtureDiff": "empty",
+  "pastArtifactsUnchanged": true,
+  "harnessSourceUnchangedAfterExecution": true,
+  "newJsonParse": "PASS",
+  "modelRequests": 4,
+  "productRegressionReruns": 0
+}

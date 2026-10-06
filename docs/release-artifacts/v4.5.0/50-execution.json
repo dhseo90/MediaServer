@@ -1,0 +1,78 @@
+{
+  "results": [
+    {
+      "id": "D1",
+      "elapsedMs": 7860,
+      "requestSha256": "ac1acc8576078e669926094dff0cb88709ab61f83fe553012e96720a968039a5",
+      "responseSha256": "21d371e431bad486eb9f2495252bedb896924785383e47645404aee9e77080be",
+      "responseBytes": 773,
+      "normalTermination": true,
+      "formatAccepted": true,
+      "prompt_eval_count": 313,
+      "eval_count": 107,
+      "runtimeTotalNs": 7855602000,
+      "semanticEvaluation": "pending-direct-review"
+    },
+    {
+      "id": "D2",
+      "elapsedMs": 7611,
+      "requestSha256": "f9534075864384e129836efa035afcc800a98fd452cd42fca4125a65f81931ec",
+      "responseSha256": "748b3cab61470b88295c6de192ee88ec680314a48d0d0dca86ff7c117afc17a9",
+      "responseBytes": 583,
+      "normalTermination": true,
+      "formatAccepted": true,
+      "prompt_eval_count": 671,
+      "eval_count": 76,
+      "runtimeTotalNs": 7608787667,
+      "semanticEvaluation": "pending-direct-review"
+    },
+    {
+      "id": "D3",
+      "elapsedMs": 9341,
+      "requestSha256": "2d07d60def1c8fc0a007b1ab3f5dd3cd8e2d4b94c7760fe8898a1a373d1c6c39",
+      "responseSha256": "33059827adf58bff6f1840d155b7799ca8a340ae108412d1cbedecbfcab58fc9",
+      "responseBytes": 813,
+      "normalTermination": true,
+      "formatAccepted": true,
+      "prompt_eval_count": 313,
+      "eval_count": 115,
+      "runtimeTotalNs": 9338605459,
+      "semanticEvaluation": "pending-direct-review"
+    },
+    {
+      "id": "D4",
+      "elapsedMs": 14524,
+      "requestSha256": "3cfa31d194ec7e36c3c996d5b3f097451bacf83e47083ec2b64e83d6fb9120f4",
+      "responseSha256": "5363bfcbd121be11196bf03e54437fff96c9905b6c924b3d6b6855afefb1a243",
+      "responseBytes": 813,
+      "normalTermination": true,
+      "formatAccepted": true,
+      "prompt_eval_count": 1566,
+      "eval_count": 126,
+      "runtimeTotalNs": 14521437708,
+      "semanticEvaluation": "pending-direct-review"
+    }
+  ],
+  "failure": null,
+  "notRun": [],
+  "resources": {
+    "modelPhysicalFootprintBytes": 8138153352,
+    "modelBytes": 6446372616,
+    "serverAndHarnessRssBytes": 118554624,
+    "workspaceBytes": 223224,
+    "samples": 237
+  },
+  "cleanup": {
+    "unloadGateExecuted": true,
+    "unloadGatePass": true,
+    "postRunModels": [],
+    "postRunModelAbsent": true,
+    "forced": false,
+    "workerAbsent": true,
+    "serverExit": 0,
+    "ownedGroupAbsent": true,
+    "portClosed": true,
+    "elapsedSeconds": 39.72901974990964
+  },
+  "exit": 0
+}
