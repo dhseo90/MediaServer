@@ -16,11 +16,16 @@ export function v450ReleaseCommands(){
 export const v450ExplicitModelExperiments=['--local','--diagnostic-text','--diagnostic-text-uncertain','--diagnostic-text-decisive','--diagnostic-inversion','--cause-ab','--observe-local','--questions-local','--rephrase-local','--visual-local','--local-lifecycle'];
 export const v450OfflineModelSafety=['--contract-only','--core-only','--observer-only','--questions-only','--rephrase-only','--visual-only','--visual-regression'];
 export function validateV450ReleaseRegistration(root,inventory=fs.readFileSync(path.join(root,'docs/project-feature-test-inventory.md'),'utf8'),commands=v450ReleaseCommands()){
-  const rows=inventory.split('\n').filter(x=>/^\| V450-[A-Z]\d+ \|/.test(x));
-  const ids=rows.map(x=>x.split('|')[1].trim());assert.equal(new Set(ids).size,ids.length,'duplicate V450 ID');
+  const rows=inventory.split('\n').filter(x=>/^\| V450-[A-Z]\d+(?:\/[A-Z]\d+)* \|/.test(x));
+  const ids=rows.flatMap(x=>x.split('|')[1].trim().replace('V450-','').split('/').map(id=>'V450-'+id));
+  assert.equal(new Set(ids).size,ids.length,'duplicate V450 ID');
+  // 오래된 표 밖의 K/A/U 정의도 실제 정의 머리말에서 읽는다. 본문 참조만으로 누락을 감추지 않는다.
+  const prose=inventory.split('\n').filter(x=>/^V450-[A-Z]\d+(?: \/ V450-[A-Z]\d+)*\(/.test(x))
+    .flatMap(x=>x.slice(0,x.indexOf('(')).match(/V450-[A-Z]\d+/g));
+  const declared=new Set([...ids,...prose]);
   const canonical=v450ReleaseCommands();assert.deepEqual(commands,canonical,'release command/owner/action/proof mismatch');
   const linked=commands.flatMap(x=>x.featureIds);
-  for(const id of linked)assert(inventory.includes(id),`missing V450 definition ${id}`);
+  for(const id of linked)assert(declared.has(id),`missing V450 definition ${id}`);
   const byId=id=>rows.find(x=>x.startsWith('| '+id+' |'))||'';
   assert(byId('V450-S01').includes('record 원자 저장'),'storage ID meaning changed');
   assert(byId('V450-T01').includes('InspectText'),'search ID meaning changed');
@@ -35,11 +40,13 @@ export function validateV450ReleaseRegistration(root,inventory=fs.readFileSync(p
   const defaultBody=smoke.slice(smoke.indexOf('else if(std::string(argv[2])=="--protocol")'));
   for(const fn of ['ReleaseAdmissionChecks','InputChecks','RecordChecks','QueueChecks','ProviderChecks','ConnectionChecks'])assert(defaultBody.includes(fn+'(argv[1]'),'missing default safety '+fn);
   assert(!/QualityChecks|VisualLocal|QuestionsLocal|RephraseLocal|CoreObserve/.test(defaultBody),'default quality invocation');
-  return {currentV450Rows:ids.length,ids,linkedIds:[...new Set(linked)],scope:'registration-not-independent-approval',explicitExperiments:v450ExplicitModelExperiments,offlineSafety:v450OfflineModelSafety};
+  return {currentV450Rows:rows.length,tableIds:ids,currentDefinedIds:[...declared].sort(),linkedIds:[...new Set(linked)],scope:'registration-not-independent-approval',explicitExperiments:v450ExplicitModelExperiments,offlineSafety:v450OfflineModelSafety};
 }
 export function testV450ReleaseRegistration(root){
   const inventory=fs.readFileSync(path.join(root,'docs/project-feature-test-inventory.md'),'utf8');const result=validateV450ReleaseRegistration(root,inventory);
-  for(const bad of [inventory+'\n'+inventory.split('\n').find(x=>x.startsWith('| V450-S01 |')),inventory.replaceAll('V450-T01','V450-X99')])assert.throws(()=>validateV450ReleaseRegistration(root,bad));
+  for(const bad of [inventory+'\n'+inventory.split('\n').find(x=>x.startsWith('| V450-S01 |')),
+    inventory+'\n| V450-A04 | duplicate combined ID |',
+    inventory.replace(/^\| V450-T01 \|.*\n/m,'')])assert.throws(()=>validateV450ReleaseRegistration(root,bad));
   const bad=v450ReleaseCommands();bad[0].args=['scripts/internal/verify_va_review.sh','--visual-local'];assert.throws(()=>validateV450ReleaseRegistration(root,inventory,bad));
   console.log(JSON.stringify({status:'PASS',...result,negativeChecks:['duplicate','missing','wrong-command'],modelCalls:0}));return result;
 }

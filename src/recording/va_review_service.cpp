@@ -59,7 +59,7 @@ bool VaReviewService::Submit(const std::string& id,const std::string& question,c
     if(!file)return Fail(error,"review-input-unavailable");
     const auto channel=file->manifest().channel_id;
     if(!authorize||!authorize(channel))return Fail(error,"review-forbidden");
-    if(!isolated_model_harness_)return Fail(error,ModelExecutionRestriction());
+    if(!isolated_model_harness_&&*ModelExecutionRestriction())return Fail(error,ModelExecutionRestriction());
     if(file->manifest().frames.empty())return Fail(error,"review-no-frames");
     const auto key_data=EvidenceJsonQuote(owner)+EvidenceJsonQuote(id)+EvidenceJsonQuote(question)+EvidenceJsonQuote(provider);
     const auto key=EvidenceSha256(key_data.data(),key_data.size());

@@ -2,7 +2,7 @@
 // 파일 용도: v3.9.0 test acceptance bundle dry-run command와 evidence boundary 연결을 검증한다.
 
 import fs from "node:fs";
-import {testV450ReleaseRegistration,v450ReleaseCommands} from "./v450_release_checks.mjs";
+import {testV450ReleaseRegistration,v450ReleaseCommands,v450ExplicitModelExperiments} from "./v450_release_checks.mjs";
 import path from "node:path";
 import process from "node:process";
 import os from "node:os";
@@ -80,6 +80,8 @@ if(rawArgs.includes("--v450-plan-only")){
       runCommand:async spec=>{observed.push(spec.id);const r=spawnSync(process.execPath,["-e",`process.exit(${spec.exit})`]);return {exitCode:r.status,durationMs:0,tail:[]};}});
     vm.runInContext(body,context);await context.runCommandListStage("feature-gates",[{id:"child-fail",exit:7},{id:"must-not-run",exit:0}]);
     assert(observed.join(",")==="child-fail"&&stages[0].status==="FAIL"&&stages[0].checks[0].exitCode===7&&stages[0].checks[1].status==="not-run","actual child exit propagation");
+    const quality=spawnSync("python3",[path.join(scriptDir,"verify_v450_quality_dispatch.py"),JSON.stringify(v450ExplicitModelExperiments)],{cwd:rootDir,encoding:"utf8",timeout:10000});
+    assert(quality.status===0,quality.stdout+quality.stderr);console.log(quality.stdout.trim());
     console.log("[pass] current release dry-run, actual child exit7 propagation and fixture not-run; no product/longrun/model execution");
   }finally{fs.rmSync(owned,{recursive:true});assert(!fs.existsSync(owned),"owned plan cleanup");}
   process.exit(0);

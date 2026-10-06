@@ -996,7 +996,7 @@ UTC 밀리초 범위는 시작 포함·끝 제외, 미지정은 양쪽 null이�
 Ops는 같은 문장을 중복 표시하지 않고 `textContent`를 사용한다.52 묶음1은 편집·새 검색·상태 새로고침 때 이전 정보를 지웠으며,
 묶음2는 편집·새 검색 때만 결과를 지우고 현재 상태 조회와 결과 설명을 분리한다. 늦은 응답에는 기존 revision 검사를 적용한다.
 
-직접 검사는 [V450-S01~03](../../project-feature-test-inventory.md#v450-검색-입력-마감)의 사전 정의를 따른다.
+직접 검사는 [V450-T01·S02·S03](../../project-feature-test-inventory.md#v450-검색-입력-마감)의 사전 정의를 따른다.
 
 ### 후속 검색 범위와 출시 마감 소비자
 
@@ -1011,14 +1011,14 @@ Ops는 같은 문장을 중복 표시하지 않고 `textContent`를 사용한다
 필터·재생·지연, A는 기록 관계·확인·저장/권한·서버 안내로 검증하며 영상 주장 판정 정확도와 합산하지 않는다.
 유효한 기존 SigLIP2 검증은 영향 범위에서 재사용하며 일반 품질 보장이나 이번 재실행으로 표시하지 않는다.
 
-실제 검사 소비자 정합은 (3)의 잔여다. `scripts/internal/verify_va_review.sh`와
+설계52 당시 실제 검사 소비자 정합은 (3)의 잔여였다. 현행 구현은54 후속 절을 따른다. `scripts/internal/verify_va_review.sh`와
 `scripts/internal/va_review_smoke.cpp`의 기본 안전/호환 분기와 `--visual-local`/`--visual-regression`을
 구분하고, `scripts/internal/verify_v390_test_acceptance_bundle.mjs` 및
 `scripts/internal/verify_v390_test_acceptance_bundle_contract.mjs`의 묶음/정의 연결,
 `scripts/internal/verify_feature_inventory_coverage.mjs`의 inventory/owner/dispatch 결속을 대조한다.
-현재 inventory의 `V450-S01`은 기존 저장 행과52 검색 입력 행에서 중복 사용돼 있으므로 이 단계에서
-각 소비자의 식별/참조를 함께 정합화해야 한다. 이번에는 ID·실행기·expected hash·독립 승인 원장을
-바꾸지 않는다. 문서 분리만으로 실제 gate를 통과시키거나 필수 검사·장시간/UI 풀테스트를 면제하지 않는다.
+설계52 당시 `V450-S01`은 기존 저장 행과52 검색 입력 행에서 중복 사용됐다.54에서 검색 입력만
+`V450-T01`로 옮기고 실제 소비자를 연결했다.52 문서 재정렬 당시에는 ID·실행기·expected hash·독립 승인 원장을
+변경하지 않았으며,54에서도 독립 승인 원장은 변경하지 않는다. 문서 분리만으로 실제 gate를 통과시키거나 필수 검사·장시간/UI 풀테스트를 면제하지 않는다.
 
 버전별 선행 관계와 기존 요구의 행방은 [로드맵 대조표](../../v410-v49-recording-search-roadmap.md#기존-요구의-배치-대조)에 둔다.
 이번 재정렬은 문서 개정이며 위 후속 구현·모델 실행·공개 절차의 승인이 아니다.
@@ -1049,7 +1049,7 @@ Ops의 명시 복사 버튼은 양쪽에 존재하는 카메라와 유효한31�
 
 검사 정의는 [V450-R01~03](../../project-feature-test-inventory.md#v450-검색-범위·갱신-상태·조건-연결),
 실제 실행과 미실행은 [53 검증](../../release-artifacts/v4.5.0/53-validation.json)에 둔다.
-묶음3의 신규 모델 Submit 제한·기존 중복 ID/검사 소비자·독립 승인·최종 장시간/UI/출시 gate는 남는다.
+53 완료 시 남았던 묶음3의 신규 모델 Submit 제한·중복 ID/검사 소비자는54에서 이어진다. 독립 승인·최종 장시간/UI/출시 gate는 별도 잔여다.
 
 
 ## 54. 묶음3 출시 접수와 검사 소비자 — 미완료 체크포인트
@@ -1063,3 +1063,19 @@ A 확인/실행 및 과거 결과 조회는 유지한다. List capability와 화
 직접 native448 및 명령 연결 검사는 통과했다. 실제 HTTP 재검증의 늦은 응답 대역이 예외로 종료되어
 정리 재개 승인을 요청했다. **묶음3 완료가 아니다.** 최초 실패·실행 source와 미실행 범위는
 [54 체크포인트](../../release-artifacts/v4.5.0/54-validation.json)에 둔다. 기존52·53 완료를 변경하지 않는다.
+
+### 54 후속: 출시 경계와 직접 검증 마감
+
+제품 `VaReviewService::Submit`은 bounded manifest 조회와 채널 권한 검사 후 공유된 출시 정책을 적용한다.
+`review-model-not-adopted`는 HTTP409이며 job/queue/PNG 입력 구성/provider/게시보다 앞선다. List capability도
+같은 정책을 소비한다. A 확인·실행·서버 안내, v1 이력과 기존 job 조회/취소는 유지한다. 격리 C++ 검사
+생성자는 내부 안전/호환 및 별도 실험용이며 제품 설정·HTTP 입력으로 선택할 수 없다.
+
+현재 실행 계획은 `v450_release_checks.mjs`를 실제 acceptance/coverage가 소비한다. 검색·증거·재생 수명·
+A·자료 안내·접수 거부를 출시 검사에 연결하고, 기본 native는 대역 transport/decoder/저장/취소 검사를
+유지한다. 실제 모델 생성 모드는 명시 실행에만 남는다. 명령/ID 정합을 독립 승인으로 해석하지 않는다.
+
+늦은 응답 fixture는 완료 후 route를 해제하고 callback 예외를 상위 정리에 전달하도록 수정했다.
+HTTP 실행의 소유 root·포트·PID는 시작 시 기록한다. 앞선 실패 기록은 보존하며 후속 검증·source·
+인계 범위는 [54 재개 검증](../../release-artifacts/v4.5.0/54-resume-validation.json)에 둔다.
+이번 범위 밖의 독립 검토/승인 적용, 전체 UI·30분·120분·릴리즈는 미실행이다.

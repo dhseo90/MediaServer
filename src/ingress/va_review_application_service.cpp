@@ -70,8 +70,8 @@ ApplicationServiceResult VaReviewApplicationService::List(const std::string& pac
     if(!service_.ready())return Error("review-store-unavailable");
     std::vector<std::string> ids;if(!records_.List(&ids,&error))return Error("review-store-unavailable");
     // 역할과 채널 권한 확인 후 출시 제한을 표시한다. 권한 문자열은 실행 정책을 바꾸지 않는다.
-    (void)can_execute;
-    std::string json="{\"enabled\":true,\"canExecute\":false,\"executionRestriction\":"+
+    std::string json=std::string("{\"enabled\":true,\"canExecute\":")+
+        (can_execute&&!*recording::VaReviewService::ModelExecutionRestriction()?"true":"false")+",\"executionRestriction\":"+
         EvidenceJsonQuote(recording::VaReviewService::ModelExecutionRestriction())+",\"items\":[";
     bool comma=false;
     for(const auto& id:ids){

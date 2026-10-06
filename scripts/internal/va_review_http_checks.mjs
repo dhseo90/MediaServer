@@ -18,6 +18,10 @@ const report={featureId:'V450-E01/E02/A01/A02/A03',command:'bash scripts/interna
   sourceSha256:crypto.createHash('sha256').update(fs.readFileSync(fileURLToPath(import.meta.url))).digest('hex'),
   actualUiPass:false,actualModel:false,checks:[],cleanup:{},status:'RUNNING',root,
   rootIdentity:{dev:identity.dev,ino:identity.ino,uid:identity.uid}};
+const output=path.join(repo,'docs/release-artifacts/v4.5.0',`54-http-${started}.json`);
+// 브라우저 시작 전부터 소유 root/포트/PID를 남긴다. 비정상 종료를 PASS나 정리 완료로 추정하지 않는다.
+const checkpoint=()=>fs.writeFileSync(output,JSON.stringify(report,null,2)+'\n');
+checkpoint();
 let child,provider,udp,httpPort,rtspPort,providerPort,timer,expired=false,failed=false,admin;
 let chatCalls=0,diagnostics='';const pending=new Set(),secrets=[];
 const assert=(ok,id)=>{if(!ok)throw Error(id);};
@@ -42,6 +46,7 @@ try{
   httpPort=await reservePort();rtspPort=await reservePort();assert(httpPort!==rtspPort,'distinct ports');
   udp=dgram.createSocket('udp4');await new Promise((resolve,reject)=>{udp.once('error',reject);udp.bind(0,'127.0.0.1',resolve);});
   report.ports={http:httpPort,rtsp:rtspPort,provider:providerPort,udp:udp.address().port};
+  checkpoint();
   const base=`http://127.0.0.1:${httpPort}`;
   const env={PATH:process.env.PATH,HOME:process.env.HOME,LANG:'C',LC_ALL:'C',TMPDIR:path.join(root,'tmp'),XDG_CACHE_HOME:path.join(root,'cache'),
     MEDIA_SERVER_SKIP_LOCAL_ENV:'1',MEDIA_SERVER_SKIP_BUILD:'1',MEDIA_SERVER_SKIP_ENV_CHECK:'1',MEDIA_SERVER_BIN_PATH:binary,
@@ -63,6 +68,7 @@ try{
   const start=async(enabled)=>{
     child=spawn('./server.sh',['foreground'],{cwd:repo,env:{...env,MEDIA_SERVER_VA_REVIEW_ENABLED:enabled?'1':'0'},stdio:['ignore','pipe','pipe']});
     report.pid=child.pid;
+    checkpoint();
     for(const stream of [child.stdout,child.stderr])stream.on('data',bytes=>{diagnostics=(diagnostics+bytes.toString()).slice(-16384);});
     child.on('error',()=>{failed=true;});
     for(let i=0;i<60;++i){assert(!failed&&child.exitCode===null&&!expired,'server startup');try{const r=await call('/health');await r.arrayBuffer();if(r.status===200)return;}catch{}await pause(100);}
@@ -77,7 +83,7 @@ try{
   const req=async(route,cookie=admin,method='GET',body,expected=200)=>{
     const r=await call(route,{method,headers:{...(cookie?{Cookie:cookie}:{}),...(body!==undefined?{'Content-Type':'application/json'}:{})},
       ...(body!==undefined?{body:typeof body==='string'?body:JSON.stringify(body)}:{})});
-    const text=await r.text();check(r.status===expected,`${method} ${route.split('?')[0]} status ${expected}`);
+    const text=await r.text();check(r.status===expected,`${method} ${route.split('?')[0]} expected ${expected} actual ${r.status}`);
     if(route.startsWith('/ops/api/recordings/')){
       check(r.headers.get('cache-control')==='no-store'&&r.headers.get('x-content-type-options')==='nosniff','private response headers');
       check(!/passwordHash|passwordHistory|tokenHash|sourceUrl|absolutePath|\/Users\/|\/private\/|file:\/\//i.test(text),'private fields absent');
@@ -150,8 +156,7 @@ finally{
     fs.rmSync(root,{recursive:true});report.cleanup.rootAbsent=!fs.existsSync(root);assert(report.cleanup.rootAbsent,'cleanup remains');
   }catch{failed=true;report.cleanup.failed=true;}
   report.status=failed?'FAIL':'PASS';report.exit=failed?1:0;report.elapsedMs=Date.now()-started;
-  report.modelCalls=chatCalls;const output=path.join(repo,'docs/release-artifacts/v4.5.0',`54-http-${started}.json`);
-  fs.writeFileSync(output,JSON.stringify(report,null,2)+'\n');
+  report.modelCalls=chatCalls;checkpoint();
   console.log(JSON.stringify({status:report.status,checks:report.checks.length,failure:report.failure,elapsedMs:report.elapsedMs,cleanup:report.cleanup}));
   process.exitCode=report.exit;
 }

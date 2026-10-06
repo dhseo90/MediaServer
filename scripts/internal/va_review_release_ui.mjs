@@ -23,12 +23,18 @@ export async function verifyReleaseUi({base,repo,packages,aInfo,cookies,report,c
       const file=`54-model-${width}-${theme}-${started}.png`;await panel.screenshot({path:path.join(repo,'docs/release-artifacts/v4.5.0',file)});report.browser.screenshots.push(file);
       ui(await panel.locator('#opsVaReviewExecute').isDisabled(),'responsive disabled '+width+' '+theme);
     }
-    let release;let seen;const pending=new Promise(r=>seen=r);const gate=new Promise(r=>release=r);
+    let release;let seen;let finished;let routeStarted=false;
+    const pending=new Promise(r=>seen=r),gate=new Promise(r=>release=r),settled=new Promise(r=>finished=r);
     const pattern='**/ops/api/recordings/va-reviews?*';
-    await page.route(pattern,async route=>{const response=await route.fetch();seen();await gate;await route.fulfill({response});});
-    await page.click('#opsVaReviewRefresh');await pending;
-    await page.selectOption('#opsEvidenceKind','A');await page.locator(`[data-package-id="${aInfo.missingId}"]`).click();await page.locator('#opsAReviewQuestion').waitFor();
-    release();await page.unroute(pattern);await page.fill('#opsAReviewQuestion','선택 sample 위치 자료를 확인하고 싶습니다.');
+    // 지연 응답을 완료한 뒤 route를 제거한다. callback 오류도 호출자가 회수해 HTTP finally로 전달한다.
+    const delayed=async route=>{routeStarted=true;let error;try{const response=await route.fetch({timeout:5000});seen();await gate;await route.fulfill({response});}
+      catch(e){error=e;seen();}finally{finished(error);}};
+    await page.route(pattern,delayed,{times:1});
+    try{
+      await page.click('#opsVaReviewRefresh');await Promise.race([pending,page.waitForTimeout(6000).then(()=>{throw Error('delayed capability request missing');})]);
+      await page.selectOption('#opsEvidenceKind','A');await page.locator(`[data-package-id="${aInfo.missingId}"]`).click();await page.locator('#opsAReviewQuestion').waitFor();
+    }finally{release();const error=routeStarted?await settled:null;await page.unroute(pattern,delayed);if(error)throw error;}
+    await page.fill('#opsAReviewQuestion','선택 sample 위치 자료를 확인하고 싶습니다.');
     await page.waitForTimeout(100);ui(await page.locator('#opsVaReviewExecute').count()===0&&!await page.locator('#opsAReviewPrepare').isDisabled(),'late model response cannot replace A selection');
     await page.click('#opsAReviewPrepare');await page.click('#opsAReviewConfirm');await page.waitForFunction(()=>!document.getElementById('opsAReviewExecute').disabled);
     await page.click('#opsAReviewExecute');await page.locator('#opsAReviewResult h5').first().waitFor();
