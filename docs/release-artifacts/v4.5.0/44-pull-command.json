@@ -1,0 +1,1 @@
+{"command": ["/opt/homebrew/bin/ollama", "pull", "qwen3.5:9b"], "exit": 1, "elapsedSeconds": 1.1770786249544472}
