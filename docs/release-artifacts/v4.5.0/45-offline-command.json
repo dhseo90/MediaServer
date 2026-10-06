@@ -1,0 +1,10 @@
+{
+  "command": [
+    "bash",
+    "scripts/internal/verify_va_review.sh",
+    "--questions-only"
+  ],
+  "exit": 0,
+  "elapsedSeconds": 3.802613916923292,
+  "rawSha256": "9020b882cd1355af288d160d347bdabbf0a69a40b2429da05ae0ef5548aceb85"
+}

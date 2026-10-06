@@ -1,0 +1,86 @@
+{
+  "scope": "harness syntax/comments/docs/whitespace; no product regression suite",
+  "commands": [
+    {
+      "command": [
+        "bash",
+        "-n",
+        "scripts/internal/verify_va_review.sh"
+      ],
+      "exit": 0,
+      "rawSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "rawBytes": 0,
+      "output": "45-syntax.log.gz"
+    },
+    {
+      "command": [
+        "./server.sh",
+        "verify-docs-links"
+      ],
+      "exit": 0,
+      "rawSha256": "3c9947fd6f31fa48bbce9de7c9d5656ca94e29fc982817bfc5aa8219f34e0b24",
+      "rawBytes": 186,
+      "output": "45-docs.log.gz"
+    },
+    {
+      "command": [
+        "node",
+        "scripts/internal/verify_code_comments.mjs"
+      ],
+      "exit": 0,
+      "rawSha256": "bdba5c79cc8fbae4033b6eed490637487bdd3af1c34f098b40705ee3a75a913d",
+      "rawBytes": 97,
+      "output": "45-comments.log.gz"
+    },
+    {
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "exit": 0,
+      "rawSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "rawBytes": 0,
+      "output": "45-whitespace.log.gz"
+    },
+    {
+      "command": [
+        "./server.sh",
+        "verify-docs-links"
+      ],
+      "exit": 0,
+      "rawSha256": "3076dbebf18e380935249b1422e449238205acd77117859a5e341cb0ac171465",
+      "rawBytes": 186,
+      "output": "45-docs-final.log.gz"
+    },
+    {
+      "command": [
+        "git",
+        "diff",
+        "--cached",
+        "--check"
+      ],
+      "exit": 2,
+      "rawSha256": "5445ec9bf73920773f553cbfc19b11e3ac7aa9cba5a95bc993b4b09514f63433",
+      "rawBytes": 77,
+      "output": "45-whitespace-failure.log.gz",
+      "reason": "raw patch context blank line; lossless gzip preserves original patch bytes"
+    },
+    {
+      "command": [
+        "git",
+        "diff",
+        "--cached",
+        "--check"
+      ],
+      "exit": 0,
+      "outputBytes": 0,
+      "after": "lossless gzip of execution patch"
+    }
+  ],
+  "changedEvidenceLinkCheck": {
+    "target": "45-execution.patch.gz",
+    "exists": true,
+    "uncompressedHashMatches": true
+  }
+}

@@ -1,0 +1,75 @@
+{
+  "passed": true,
+  "existingPromptSchemaInputDecisionsUnchanged": true,
+  "cases": [
+    {
+      "case": "single-time",
+      "changedFields": [
+        "model",
+        "think"
+      ],
+      "requestSha256": "9b9cd183fe5555f89215b146f02c84e03edddb3af9d10169300e9a82b51b660d",
+      "slots": [
+        "q0"
+      ]
+    },
+    {
+      "case": "unordered-pair",
+      "changedFields": [
+        "model",
+        "think"
+      ],
+      "requestSha256": "b930b003e6bba0b8feb601fc8d0aae04fda6016b5f5af1bfc79a9df63b91f6d3",
+      "slots": [
+        "q0"
+      ]
+    },
+    {
+      "case": "unlinked-target",
+      "changedFields": [
+        "model",
+        "think"
+      ],
+      "requestSha256": "aa5b37d03bf348e6a55076b36e4826578e01ade5247160eeb667e7cc55a0ad5e",
+      "slots": [
+        "q0"
+      ]
+    },
+    {
+      "case": "missing-A-sample",
+      "changedFields": [
+        "model",
+        "think"
+      ],
+      "requestSha256": "2ecbf021570490f6b4d48d65f61e7f40a00282efbcb2b42394c66fc79116b6e0",
+      "slots": [
+        "q0",
+        "q1"
+      ]
+    },
+    {
+      "case": "partial-scope-control",
+      "changedFields": [
+        "model",
+        "think"
+      ],
+      "requestSha256": "be36b1913b0fc25a27a6a073bc756e89c602620da9a6cc309b9b4389e020e2be",
+      "slots": [
+        "q0"
+      ]
+    },
+    {
+      "case": "combined-control",
+      "changedFields": [
+        "model",
+        "think"
+      ],
+      "requestSha256": "0c3e18b554994d3aa87050faac02bc9684b25569c1a18cf8926b8ea7cd56d89f",
+      "slots": [
+        "q0",
+        "q1",
+        "q2"
+      ]
+    }
+  ]
+}

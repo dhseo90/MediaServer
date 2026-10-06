@@ -1,0 +1,239 @@
+{
+  "tag": "v0.35.1",
+  "assetUrl": "https://github.com/ollama/ollama/releases/download/v0.35.1/ollama-darwin.tgz",
+  "officialDigest": "sha256:3137dbf28948ee844e0fb3e584d9b5de6879d73d9f0cb7eff3ad64930601d307",
+  "actualSha256": "3137dbf28948ee844e0fb3e584d9b5de6879d73d9f0cb7eff3ad64930601d307",
+  "bytes": 159625239,
+  "downloadAndExtractSeconds": 4.755242667044513,
+  "directory": "/Users/dhseo/Workspace/mediaServer/models/v450-question-eval/ollama-v0.35.1",
+  "files": [
+    {
+      "path": "libggml-cpu-icelake.so",
+      "bytes": 1836176
+    },
+    {
+      "path": "MLX_C_LICENSE",
+      "bytes": 1067
+    },
+    {
+      "path": "libggml-cpu-sapphirerapids.so",
+      "bytes": 2075040
+    },
+    {
+      "path": "libllama.0.dylib",
+      "bytes": 3681376
+    },
+    {
+      "path": "LLAMA_CPP_VENDORS_LICENSE",
+      "bytes": 7257
+    },
+    {
+      "path": "libmtmd.0.dylib",
+      "bytes": 1510032
+    },
+    {
+      "path": "libggml.dylib",
+      "bytes": 57840
+    },
+    {
+      "path": "libggml.0.dylib",
+      "bytes": 57840
+    },
+    {
+      "path": "FMT_LICENSE",
+      "bytes": 1431
+    },
+    {
+      "path": "libggml-cpu-sse42.so",
+      "bytes": 1044416
+    },
+    {
+      "path": "libggml-cpu-haswell.so",
+      "bytes": 1607744
+    },
+    {
+      "path": "GO_LICENSE",
+      "bytes": 145223
+    },
+    {
+      "path": "libmtmd.dylib",
+      "bytes": 1510032
+    },
+    {
+      "path": "CPP_HTTPLIB_LICENSE",
+      "bytes": 1075
+    },
+    {
+      "path": "libllama-server-impl.dylib",
+      "bytes": 3465120
+    },
+    {
+      "path": "libggml-cpu-cannonlake.so",
+      "bytes": 1843040
+    },
+    {
+      "path": "DLPACK_LICENSE",
+      "bytes": 11345
+    },
+    {
+      "path": "libggml-base.dylib",
+      "bytes": 784736
+    },
+    {
+      "path": "libggml-cpu-zen4.so",
+      "bytes": 1840416
+    },
+    {
+      "path": "libggml.0.25.3.dylib",
+      "bytes": 57840
+    },
+    {
+      "path": "libggml-blas.so",
+      "bytes": 52560
+    },
+    {
+      "path": "PICOJSON_LICENSE",
+      "bytes": 1414
+    },
+    {
+      "path": "libggml-cpu-alderlake.so",
+      "bytes": 1599488
+    },
+    {
+      "path": "libmtmd.0.5.0.dylib",
+      "bytes": 1510032
+    },
+    {
+      "path": "libllama.0.5.0.dylib",
+      "bytes": 3681376
+    },
+    {
+      "path": "libllama-common.0.5.0.dylib",
+      "bytes": 5275984
+    },
+    {
+      "path": "libllama-common.0.dylib",
+      "bytes": 5275984
+    },
+    {
+      "path": "libggml-cpu-sandybridge.so",
+      "bytes": 1401680
+    },
+    {
+      "path": "libllama.dylib",
+      "bytes": 3681376
+    },
+    {
+      "path": "LLAMA_CPP_LICENSE",
+      "bytes": 1078
+    },
+    {
+      "path": "MLX_LICENSE",
+      "bytes": 1066
+    },
+    {
+      "path": "libllama-quantize-impl.dylib",
+      "bytes": 89984
+    },
+    {
+      "path": "libggml-cpu-x64.so",
+      "bytes": 1056800
+    },
+    {
+      "path": "libggml-base.0.25.3.dylib",
+      "bytes": 784736
+    },
+    {
+      "path": "XGRAMMAR_LICENSE",
+      "bytes": 11357
+    },
+    {
+      "path": "llama-server",
+      "bytes": 17871808
+    },
+    {
+      "path": "libllama-common.dylib",
+      "bytes": 5275984
+    },
+    {
+      "path": "ollama",
+      "bytes": 49959984
+    },
+    {
+      "path": "libggml-cpu-skylakex.so",
+      "bytes": 1834784
+    },
+    {
+      "path": "llama-quantize",
+      "bytes": 10839088
+    },
+    {
+      "path": "libggml-base.0.dylib",
+      "bytes": 784736
+    },
+    {
+      "path": "libggml-cpu-cascadelake.so",
+      "bytes": 1827920
+    },
+    {
+      "path": "libggml-cpu-cooperlake.so",
+      "bytes": 1832160
+    },
+    {
+      "path": "libggml-cpu-ivybridge.so",
+      "bytes": 1423104
+    },
+    {
+      "path": "XGRAMMAR_NOTICE",
+      "bytes": 54
+    },
+    {
+      "path": "libggml-cpu-piledriver.so",
+      "bytes": 1431360
+    },
+    {
+      "path": "mlx_metal_v3/libmlx.dylib",
+      "bytes": 48241312
+    },
+    {
+      "path": "mlx_metal_v3/mlx.metallib",
+      "bytes": 136995040
+    },
+    {
+      "path": "mlx_metal_v3/libmlxc.dylib",
+      "bytes": 2062064
+    },
+    {
+      "path": "mlx_metal_v3/._mlx.metallib",
+      "bytes": 9662
+    },
+    {
+      "path": "mlx_metal_v3/libollama_xgrammar.dylib",
+      "bytes": 5192592
+    },
+    {
+      "path": "mlx_metal_v4/libjaccl.dylib",
+      "bytes": 1564800
+    },
+    {
+      "path": "mlx_metal_v4/libmlx.dylib",
+      "bytes": 20884368
+    },
+    {
+      "path": "mlx_metal_v4/mlx.metallib",
+      "bytes": 190319536
+    },
+    {
+      "path": "mlx_metal_v4/libmlxc.dylib",
+      "bytes": 1029744
+    },
+    {
+      "path": "mlx_metal_v4/._mlx.metallib",
+      "bytes": 9662
+    },
+    {
+      "path": "mlx_metal_v4/libollama_xgrammar.dylib",
+      "bytes": 2489552
+    }
+  ]
+}

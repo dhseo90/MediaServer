@@ -1,0 +1,9 @@
+{
+  "command": [
+    "/Users/dhseo/Workspace/mediaServer/models/v450-question-eval/ollama-v0.35.1/ollama",
+    "pull",
+    "qwen3.5:9b"
+  ],
+  "exit": 0,
+  "elapsedSeconds": 116.94104295806028
+}

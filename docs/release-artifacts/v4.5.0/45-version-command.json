@@ -1,0 +1,8 @@
+{
+  "command": [
+    "/Users/dhseo/Workspace/mediaServer/models/v450-question-eval/ollama-v0.35.1/ollama",
+    "--version"
+  ],
+  "exit": 0,
+  "elapsedSeconds": 0.02101404103450477
+}
