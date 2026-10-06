@@ -10,14 +10,36 @@ public:
     using Authorize=recording::VaReviewService::Authorize;
     VaReviewApplicationService(const std::filesystem::path& root, bool enabled,
         recording::VaReviewProviderOptions provider, std::uint64_t reserve,
-        recording::VaReviewService::Infer infer={});
+        recording::VaReviewService::Infer infer={},
+        std::chrono::milliseconds confirmation_ttl=std::chrono::minutes(5));
     ApplicationServiceResult Submit(const std::string& body,const std::string& owner,Authorize);
     ApplicationServiceResult List(const std::string& package_id,const Authorize&,bool can_execute);
     ApplicationServiceResult Get(const std::string& id,const Authorize&);
     ApplicationServiceResult Job(const std::string& id,const std::string& owner,bool admin,
         bool can_write,const Authorize&,bool cancel=false);
+    bool enabled() const {return enabled_;}
+    ApplicationServiceResult AnalysisPackages(const std::string& channel,const Authorize&,bool writable,const std::string& after="");
+    ApplicationServiceResult AnalysisPackage(const std::string& id,const Authorize&,bool writable);
+    ApplicationServiceResult AnalysisDraft(const std::string& body,const std::string& principal,const Authorize&);
+    ApplicationServiceResult AnalysisAction(const std::string& draft,const std::string& action,const std::string& body,
+        const std::string& principal,const Authorize&);
+    ApplicationServiceResult AnalysisList(const std::string& package,const Authorize&);
+    ApplicationServiceResult AnalysisGet(const std::string& id,const Authorize&);
+    ApplicationServiceResult AnalysisJob(const std::string& id,const std::string& owner,bool admin,bool write,const Authorize&,bool cancel);
     void Stop(){stopped_=true;service_.Stop();}
 private:
+    struct Draft {
+        recording::ConfirmedAnalysisRequest input;
+        std::string id,channel,job_id;
+        std::int64_t expires_at_ms{};
+        bool confirmed{false};
+        std::size_t bytes{};
+    };
+    std::mutex drafts_mutex_;
+    std::unordered_map<std::string,Draft> drafts_;
+    std::chrono::milliseconds confirmation_ttl_;
+    std::string draft_epoch_;
+    std::uint64_t next_draft_{};
     bool enabled_;
     std::atomic<bool> stopped_{false};
     std::atomic<unsigned> reading_{0};

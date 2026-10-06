@@ -1622,6 +1622,7 @@ void AppendOpsEventsPage(std::ostringstream& out) {
         <p>검색 결과의 ‘증거 보존’으로 대표 프레임과 연결된 이벤트 영상을 보존합니다. 원본 순환 삭제와 별도로 유지하며, 자료가 빠진 패키지는 부분 보존으로 표시합니다.</p>
         <div class="actions ops-recording-filters">
           <label>카메라<select id="opsEvidenceChannel" aria-label="보존 증거 카메라"></select></label>
+          <label>검토 경로<select id="opsEvidenceKind"><option value="v1">기존 증거·모델 결과</option><option value="A">A 기록 검토</option></select></label>
           <button id="opsEvidenceRefresh" type="button" class="button-secondary">보존 목록 조회</button>
           <button id="opsEvidenceNext" type="button" class="button-secondary" disabled>다음 목록</button>
         </div>

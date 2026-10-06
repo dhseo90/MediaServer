@@ -13,10 +13,10 @@ public:
     EvidenceApplicationService(recording::RecordingCatalog&,recording::RecordingReadService&,
         bool enabled,const std::filesystem::path& directory,std::uint64_t reserved_free_bytes);
     ApplicationServiceResult Create(const recording::SearchDocument&,const std::string& query_kind,
-        const std::string& expected_sha256,const Authorize&);
+        const std::string& expected_sha256,const Authorize&,bool observations=false);
     ApplicationServiceResult List(const Query&,const Authorize&);
     ApplicationServiceResult Get(const std::string& id,const Authorize&);
-    std::shared_ptr<recording::EvidencePackageFile> Asset(const std::string& id,std::size_t index,const Authorize&,int* status);
+    std::shared_ptr<recording::EvidencePackageFile> Asset(const std::string& id,std::size_t index,const Authorize&,int* status,bool observations=false);
     void Stop(){stopped_=true;}
 private:
     bool enabled_;

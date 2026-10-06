@@ -33,7 +33,7 @@ EvidenceApplicationService::EvidenceApplicationService(recording::RecordingCatal
     if(enabled_){std::string error;ready_=store_.Recover(&error);}
 }
 ApplicationServiceResult EvidenceApplicationService::Create(const recording::SearchDocument& hit,
-    const std::string& kind,const std::string& expected,const Authorize& authorize){
+    const std::string& kind,const std::string& expected,const Authorize& authorize,bool observations){
     if(!authorize||!authorize(hit.channel_id))return Error(403,"recording-channel-forbidden");
     if(!enabled_||stopped_)return Error(503,"evidence-disabled");
     if(!ready_)return Error(503,"evidence-store-unavailable");
@@ -43,7 +43,8 @@ ApplicationServiceResult EvidenceApplicationService::Create(const recording::Sea
         const auto deadline=std::chrono::steady_clock::now()+std::chrono::seconds(30);
         const auto cancelled=[&]{return stopped_||!authorize(hit.channel_id)||std::chrono::steady_clock::now()>=deadline;};
         recording::EvidencePackageV1 manifest;std::string id,error;
-        if(!builder_.Create(hit,kind,expected,&id,&manifest,&error,deadline,cancelled)){
+        if(!(observations?builder_.CreateWithObservations(hit,kind,expected,&id,&manifest,&error,deadline,cancelled):
+            builder_.Create(hit,kind,expected,&id,&manifest,&error,deadline,cancelled))){
             if(error=="evidence-publication-uncertain"&&recording::EvidencePackageStore::ValidId(id))
                 return {503,"Service Unavailable","{\"error\":\"evidence-publication-uncertain\",\"id\":"+EvidenceJsonQuote(id)+"}"};
             // 내부 parser/media 오류에는 경로가 포함될 수 있어 허용한 값만 공개한다.
@@ -107,7 +108,7 @@ ApplicationServiceResult EvidenceApplicationService::Get(const std::string& id,c
     return {200,"OK","{\"id\":"+EvidenceJsonQuote(id)+",\"manifest\":"+recording::SerializeEvidencePackage(manifest)+",\"currentSources\":"+current+"}"};
 }
 std::shared_ptr<recording::EvidencePackageFile> EvidenceApplicationService::Asset(const std::string& id,
-    std::size_t index,const Authorize& authorize,int* status){
+    std::size_t index,const Authorize& authorize,int* status,bool observations){
     if(status)*status=503;
     if(!enabled_||!ready_||stopped_||!authorize)return {};
     Reading flight(reading_);if(!flight.admitted)return {};
@@ -115,7 +116,7 @@ std::shared_ptr<recording::EvidencePackageFile> EvidenceApplicationService::Asse
     std::string error;auto file=store_.Open(id,&error,[&]{return stopped_||std::chrono::steady_clock::now()>=deadline;});
     if(!file){if(status)*status=error=="evidence-not-found"?404:503;return {};}
     if(!authorize(file->manifest().channel_id)){if(status)*status=403;return {};}
-    if(file->manifest().schema!="media-server.evidence-package.v1"){if(status)*status=404;return {};}
+    if(file->manifest().schema!=(observations?"media-server.evidence-package.v2":"media-server.evidence-package.v1")){if(status)*status=404;return {};}
     if(index>=file->manifest().assets.size()){if(status)*status=404;return {};}
     if(status)*status=200;
     return file;

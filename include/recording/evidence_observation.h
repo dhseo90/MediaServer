@@ -19,5 +19,6 @@ bool EvaluateAnalysisRecordSnapshot(const EvidencePackageV1&, const std::vector<
     AnalysisRecordReview*, std::string* error);
 // target_id는 명시 ClaimSpec의 대상 ID다. 자유질문을 해석하지 않는다.
 bool ReadAnalysisRecordReview(const EvidencePackageStore&, const std::string& package_id,
-    const std::vector<ReviewClaimSpec>&, AnalysisRecordReview*, std::string* error);
+    const std::vector<ReviewClaimSpec>&, AnalysisRecordReview*, std::string* error,
+    const std::function<bool()>& cancelled={});
 } // namespace recording

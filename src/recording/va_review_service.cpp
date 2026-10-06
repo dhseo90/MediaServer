@@ -13,7 +13,9 @@ std::string SafeError(const std::string& reason) {
         "review-provider-auth","review-provider-rate-limit","review-provider-unavailable","review-invalid-output","review-tls-failed",
         "review-capacity","review-disk-reserve","review-write-failed","review-cleanup-failed",
         "review-publication-uncertain","review-store-invalid","review-store-unavailable","review-store-busy",
-        "review-record-too-large","review-response-too-large"})if(reason==code)return code;
+        "review-record-too-large","review-response-too-large","review-confirmation-expired",
+        "review-target-mismatch","review-binding-digest-mismatch","record-review-provenance-unavailable",
+        "evidence-not-found","evidence-checksum-mismatch","evidence-file-invalid"})if(reason==code)return code;
     return "review-failed";
 }
 }
@@ -73,6 +75,33 @@ bool VaReviewService::Submit(const std::string& id,const std::string& question,c
     jobs_.emplace(task->job.id,task);order_.push_back(task->job.id);queue_.push_back(task);
     *output=task->job;wake_.notify_one();if(error)error->clear();return true;
 }
+bool VaReviewService::SubmitConfirmed(const ConfirmedAnalysisRequest& input,const std::string& owner,Authorize authorize,
+    VaReviewJob* output,std::string* error) {
+    if(!output||!ValidateReviewConfirmation(input.confirmation,error)||owner!=input.confirmation.principal||
+        input.confirmation.spec_sha256!=AnalysisReviewSpecDigest(input.binding,input.claims))return Fail(error,"review-invalid-confirmation");
+    if(!options_.enabled||stopped_)return Fail(error,"review-disabled");if(!ready_)return Fail(error,"review-store-unavailable");
+    if(ReviewWallTimeMs()>=input.confirmation.expires_at_ms)return Fail(error,"review-confirmation-expired");
+    if(admitting_.fetch_add(1)>=2){--admitting_;return Fail(error,"review-busy");}
+    struct Release{std::atomic<unsigned>& n;~Release(){--n;}}release{admitting_};
+    const auto deadline=Clock::now()+std::chrono::seconds(5);
+    const auto file=evidence_.Open(input.binding.package_id,error,[&]{return stopped_||Clock::now()>=deadline;});
+    if(!file)return false;
+    const auto channel=file->manifest().channel_id;
+    if(!authorize||!authorize(channel))return Fail(error,"review-forbidden");
+    const auto manifest=SerializeEvidencePackage(file->manifest());
+    if(file->manifest().schema!="media-server.evidence-package.v2"||
+        EvidenceSha256(manifest.data(),manifest.size())!=input.binding.manifest_sha256)return Fail(error,"review-target-mismatch");
+    const auto key="A:"+ReviewConfirmationDigest(input.confirmation);
+    std::lock_guard lock(mutex_);if(stopped_)return Fail(error,"review-disabled");
+    for(const auto& item:jobs_)if(item.second->key==key){*output=item.second->job;if(error)error->clear();return true;}
+    if(queue_.size()>=options_.queue_size)return Fail(error,"review-queue-full");
+    while(jobs_.size()>=options_.remembered_jobs){const auto old=std::find_if(order_.begin(),order_.end(),[&](const auto& id){return !Active(jobs_.at(id)->job);});
+        if(old==order_.end())return Fail(error,"review-queue-full");jobs_.erase(*old);order_.erase(old);}
+    auto task=std::make_shared<Task>();task->confirmed=input;task->key=key;task->authorize=std::move(authorize);task->queued=Clock::now();
+    task->job={"vj-"+epoch_+"-"+std::to_string(++next_),input.binding.package_id,channel,owner,"queued","","","A"};
+    jobs_.emplace(task->job.id,task);order_.push_back(task->job.id);queue_.push_back(task);*output=task->job;wake_.notify_one();
+    if(error)error->clear();return true;
+}
 bool VaReviewService::Get(const std::string& id,const Authorize& authorize,VaReviewJob* output,std::string* error) const {
     if(!output||!ValidJobId(id))return Fail(error,"review-invalid-id");
     VaReviewJob result;
@@ -99,22 +128,31 @@ bool VaReviewService::Cancel(const std::string& id,const std::string& owner,bool
 }
 void VaReviewService::Finish(const std::shared_ptr<Task>& task,const std::string& state,const std::string& error,const std::string& result) {
     std::lock_guard lock(mutex_);task->job.state=state;task->job.error=error;task->job.review_id=result;
-    task->authorize={};task->question.clear();
+    task->authorize={};task->question.clear();task->confirmed.reset();
 }
 void VaReviewService::Execute(const std::shared_ptr<Task>& task) {
     const auto began=Clock::now(),deadline=began+options_.execution_time;
     const auto authorize=[callback=task->authorize](const std::string& channel){
         try{return callback&&callback(channel);}catch(...){return false;}
     };
-    const auto interrupted=[&]{return stopped_||task->cancelled||Clock::now()>=deadline||!authorize(task->job.channel_id);};
+    const auto expired=[&]{return task->confirmed&&ReviewWallTimeMs()>=task->confirmed->confirmation.expires_at_ms;};
+    const auto interrupted=[&]{return stopped_||task->cancelled||Clock::now()>=deadline||expired()||!authorize(task->job.channel_id);};
     const auto fail=[&](const std::string& error){
         const bool denied=!authorize(task->job.channel_id);
         const bool timed=Clock::now()>=deadline;
         const bool cancelled=stopped_||task->cancelled;
         Finish(task,cancelled?"cancelled":"failed",denied?"review-forbidden":timed?"review-timeout":
-            cancelled?"review-cancelled":SafeError(error));
+            cancelled?"review-cancelled":expired()?"review-confirmation-expired":SafeError(error));
     };
     try {
+        if(task->confirmed){
+            const auto request=*task->confirmed;VaReviewRecordV3 record;std::string error,id;
+            if(interrupted()||!BuildAnalysisReviewRecord(evidence_,request.binding,request.claims,ReviewWallTimeMs(),authorize,
+                &record.analysis,&error,interrupted)||interrupted()){fail(error);return;}
+            record.confirmation=request.confirmation;record.confirmation_sha256=ReviewConfirmationDigest(record.confirmation);
+            if(!records_.PublishV3(record,&id,&error,interrupted)){fail(error);return;}
+            Finish(task,"completed","",id);return;
+        }
         VaReviewInput input;std::string error;
         if(!LoadVaReviewInput(evidence_,task->job.package_id,task->question,authorize,&input,&error,interrupted)) {fail(error);return;}
         VaReviewInference result;
@@ -138,7 +176,7 @@ void VaReviewService::Run() {
             if(stopped_)return;
             task=queue_.front();queue_.pop_front();
             if(Clock::now()-task->queued>=options_.queue_wait) {
-                task->job.state="failed";task->job.error="review-queue-timeout";task->authorize={};task->question.clear();continue;
+                task->job.state="failed";task->job.error="review-queue-timeout";task->authorize={};task->question.clear();task->confirmed.reset();continue;
             }
             task->job.state="running";
         }
@@ -150,7 +188,7 @@ void VaReviewService::Stop() {
         {
             std::lock_guard lock(mutex_);stopped_=true;
             for(auto& task:queue_) {task->cancelled=true;task->job.state="cancelled";task->job.error="review-cancelled";
-                task->authorize={};task->question.clear();}
+                task->authorize={};task->question.clear();task->confirmed.reset();}
             queue_.clear();
         }
         wake_.notify_all();if(worker_.joinable())worker_.join();

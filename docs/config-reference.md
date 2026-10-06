@@ -919,6 +919,15 @@ worker 1개, 대기 4개/30초, 실행 60초, job 기억 최대 64개입니다. 
 [VA Review 개발 계약](superpowers/specs/2026-10-05-v450-va-review-design.md)을 따릅니다.
 
 
+동일한 활성화 정책 아래 `/ops/events`의 **A 기록 검토**는 별도 경로다. 분석 관측 검색 결과에서
+A 패키지를 보존하거나 허용된 package v2를 선택하고, 원문·관계·시점을 직접 지정한 뒤 확인/실행한다.
+`/ops/api/recordings/a-record-packages` 및 `/a-record-reviews/drafts/{id}/confirm|execute`와
+A 결과/작업 전용 조회 경로를 사용한다. 원문 자동 해석이나 모델 호출은 하지 않는다.
+확인 결과는 명시 record v3로 보존하며 기존 모델 v1·내부 미확인 v2를 소급 변환하지 않는다.
+판정 범위는 분석 기록상의 관계이며 질문 생성은 미완료다. 세부 필드·상태·권한·수명은
+[확인 기반 A 계약](superpowers/specs/2026-10-05-v450-va-review-design.md#42-사용자-확인-기반-a-기록-검토-apiui)에 둔다.
+
+
 ### 녹화 조회재생 API (v4.1.0 S06)
 
 기본 인증 모드는 `auto`다. 아래 API는 Ops 접근 권한과 채널별 `source:read:<channelId>`

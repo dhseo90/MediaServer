@@ -3,6 +3,7 @@
 #include "recording/va_review_record.h"
 namespace recording {
 struct VaReviewRecordV2;
+struct VaReviewRecordV3;
 class VaReviewStore {
 public:
     struct Limits {
@@ -19,9 +20,12 @@ public:
     bool PublishV2(const VaReviewRecordV2&,std::string* id,std::string* error,
         const std::function<bool()>& cancelled={}) const;
     bool ReadV2(const std::string& id,VaReviewRecordV2*,std::string* error) const;
+    bool PublishV3(const VaReviewRecordV3&,std::string*,std::string*,const std::function<bool()>& cancelled={}) const;
+    bool ReadV3(const std::string&,VaReviewRecordV3*,std::string*) const;
+    bool ListConfirmed(std::vector<std::string>*,std::string*) const;
     static bool ValidId(const std::string&);
 private:
-    bool PublishBytes(const std::string& json,bool v2,std::string* id,std::string* error,
+    bool PublishBytes(const std::string& json,int version,std::string* id,std::string* error,
         const std::function<bool()>& cancelled) const;
     std::filesystem::path directory_;Limits limits_;
 };

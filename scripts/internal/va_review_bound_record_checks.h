@@ -143,7 +143,7 @@ void BoundSeed(const std::filesystem::path& root){
     Check(recovered.PublishV2(r,&exactid,&error)&&::link((recovery/(exactid+".review")).c_str(),pending.c_str())==0&&
         recovered.Recover(&error)&&recovered.ReadV2(exactid,&decoded,&error)&&!std::filesystem::exists(pending),"K08 linked v2 publish interrupted before unlink recovers");
     const auto invalid=root/"invalid-version";std::filesystem::create_directory(invalid);::chmod(invalid.c_str(),0700);
-    const auto invalidBytes="MSVAR03\n"+json;const auto invalidId="vr-"+EvidenceSha256(invalidBytes.data(),invalidBytes.size());
+    const auto invalidBytes="MSVAR04\n"+json;const auto invalidId="vr-"+EvidenceSha256(invalidBytes.data(),invalidBytes.size());
     const int iv=::open((invalid/(invalidId+".review")).c_str(),O_WRONLY|O_CREAT|O_EXCL,0600);Check(iv>=0,"K08 unknown version fixture fd");
     const auto wrote=::write(iv,invalidBytes.data(),invalidBytes.size());::close(iv);VaReviewStore invalidStore(invalid,{});
     Check(wrote==ssize_t(invalidBytes.size())&&!invalidStore.ReadV2(invalidId,&decoded,&error)&&!invalidStore.Recover(&error)&&

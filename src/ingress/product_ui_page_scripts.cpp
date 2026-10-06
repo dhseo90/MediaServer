@@ -10396,10 +10396,10 @@ void AppendOpsShellScript(std::ostringstream& out,
           const reviewPanel = (id, manifest, version, mediaByAsset) => {
             const section = document.createElement('section'); section.setAttribute('aria-label', '영상 근거 검토');
             const make = (tag, text, name) => { const node = document.createElement(tag); if (text) node.textContent = text; if (name) node.id = 'opsVaReview' + name; return node; };
-            const title = make('h4', '영상 근거 검토');
+            const title = make('h4', '모델 영상 검토 · 기존 경로');
             const label = make('label', '확인할 주장 또는 질문 (최대 512바이트)');
             const question = make('textarea', '', 'Question'); question.rows = 3; question.style.width = '100%'; label.append(question);
-            const providerLabel = make('p', '검토 엔진: Ollama');
+            const providerLabel = make('p', '검토 엔진: Ollama. 자유질문 해석·영상 의미 검토·한국어 질문 품질은 미완료입니다. A 기록 검토와 별개입니다.');
             const actions = make('div'); actions.style.display = 'flex'; actions.style.flexWrap = 'wrap'; actions.style.gap = '8px';
             const execute = make('button', '검토 실행', 'Execute'), cancel = make('button', '검토 취소', 'Cancel'), refresh = make('button', '기존 결과 조회', 'Refresh');
             for (const button of [execute, cancel, refresh]) { button.type = 'button'; button.className = 'button button-secondary button-compact'; }
@@ -10520,6 +10520,112 @@ void AppendOpsShellScript(std::ostringstream& out,
             reviewCleanup = () => { if (timer !== null) clearTimeout(timer); for (const controller of requests) controller.abort(); requests.clear(); };
             controls(); loadReviews();
           };
+          const openAnalysis = async id => {
+            clearDetail(); const version = detailVersion, base = '/ops/api/recordings/a-record-reviews';
+            const alive = () => version === detailVersion;
+            const requests = new Set(); let timer = null, intent = 0, draft = null, confirmed = false, busy = false, job = null;
+            const node = (tag, text, name) => { const n = document.createElement(tag); if (text) n.textContent = text; if (name) n.id = 'opsAReview' + name; return n; };
+            const messages = { 'review-confirmation-required': '명세 확인이 필요합니다.', 'review-confirmation-expired': '확인이 만료됐습니다. 명세를 다시 확인하세요.',
+              'review-confirmation-changed': '확인 대상이 변경됐습니다.', 'review-forbidden': '이 검토를 실행하거나 조회할 권한이 없습니다.',
+              'review-capacity': '검토 저장 용량이 부족합니다.', 'review-write-failed': '결과 저장에 실패했습니다.',
+              'review-store-unavailable': '검토 저장소를 읽을 수 없습니다.', 'review-evidence-invalid': '근거의 무결성 또는 저장 상태 오류입니다.',
+              'review-package-unavailable': '근거 패키지를 현재 열람할 수 없습니다.', 'review-disabled': 'A 기록 검토 기능이 비활성입니다.',
+              'review-cancelled': '검토가 취소됐습니다.', 'review-invalid-input': '관계·프레임 순서·질문을 확인하세요.' };
+            const request = async (url, method = 'GET', body) => {
+              const controller = new AbortController(); requests.add(controller);
+              try { const r = await fetch(url, { method, credentials: 'same-origin', cache: 'no-store', signal: controller.signal,
+                ...(body ? { headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) } : {}) });
+                const data = await r.json().catch(() => ({})); if (!r.ok) { const e = new Error(messages[data.error] || `검토 처리 오류 (${r.status})`); e.code = data.error; throw e; } return data;
+              } finally { requests.delete(controller); }
+            };
+            reviewCleanup = () => { for (const r of requests) r.abort(); if (timer) clearTimeout(timer); };
+            say('Status', 'A 분석 기록 패키지를 확인하는 중…');
+            let pack;
+            try { pack = await request('/ops/api/recordings/a-record-packages/' + id); }
+            catch (e) { if (!alive()) return; if (e.code !== 'review-package-unavailable') { say('Status', e.message); return; }
+              pack = { id, frames: [], targetLabel: '현재 근거 열람 불가', canExecute: false }; }
+            if (!alive()) return;
+            const section = node('section', '', 'Panel'); section.setAttribute('aria-label', '사용자 확인 기반 A 기록 검토');
+            section.append(node('h4', 'A 기록 검토'), node('p', '분석 기록상의 관계를 계산합니다. 실제 영상 사실·물리적 동일성 인증이 아닙니다. 자유질문 자동 해석과 모델 질문 생성은 수행하지 않습니다.'));
+            const target = node('select', '', 'Target'); const choice = node('option', `${pack.targetLabel} · ${pack.analysisNamespace || ''}`); choice.value = pack.targetKey || ''; target.append(choice);
+            const targetLabel = node('label', '패키지의 분석 대상'); targetLabel.append(target); section.append(targetLabel);
+            const question = node('textarea', '', 'Question'); question.rows = 2; question.style.width = '100%';
+            const qlabel = node('label', '원래 질문 (자동 해석하지 않음 · 최대 512바이트)'); qlabel.append(question); section.append(qlabel);
+            const relation = node('select', '', 'Relation');
+            const relations = [['endpoint-right','두 시점의 끝 위치가 오른쪽'],['endpoint-left','두 시점의 끝 위치가 왼쪽'],['endpoint-same','두 시점의 끝 위치가 같음'],
+              ['endpoint-different','두 시점의 끝 위치가 다름'],['all-same-position','지정 샘플 전체의 위치가 같음'],['visibility-at','지정 프레임의 가시성'],
+              ['all-visible','지정 샘플 전체의 가시성'],['color-at','지정 프레임의 색상 (A 색상 자료 없음)'],['all-color','지정 샘플 전체의 색상 (A 색상 자료 없음)'],['continuous-motion','연속 이동 (미지원)']];
+            for (const [value,text] of relations) { const o = node('option', text); o.value = value; relation.append(o); }
+            const relationLabel = node('label', '검토 관계'); relationLabel.append(relation); section.append(relationLabel);
+            const color = node('select', '', 'Color'); for (const [value,text] of [['red','빨강'],['blue','파랑'],['green','초록'],['yellow','노랑'],['black','검정'],['white','흰색'],['gray','회색']]) { const o=node('option',text);o.value=value;color.append(o); }
+            const colorLabel=node('label','요구 색상'); colorLabel.append(color); section.append(colorLabel);
+            const visible=node('select','', 'Visible'); for (const [value,text] of [['true','보임'],['false','보이지 않음']]) {const o=node('option',text);o.value=value;visible.append(o);}
+            const visibleLabel=node('label','요구 가시성'); visibleLabel.append(visible);section.append(visibleLabel);
+            const frameBox=node('fieldset');frameBox.append(node('legend','적용 프레임 · 시간 순서대로 선택 (관측 없음은 대상 부재가 아닙니다)'));
+            const boxes=[],images=new Map();
+            for(const f of pack.frames){const label=node('label');label.style.display='inline-block';label.style.margin='8px';const check=node('input');check.type='checkbox';check.value=f.index;check.checked=f.index===0||f.index===pack.frames.length-1;boxes.push(check);
+              label.append(check,document.createTextNode(` 프레임 ${f.index+1} · PTS ${f.ptsNs} ns · ${f.observationState}`));frameBox.append(label);}
+            section.append(frameBox);
+            const actions=node('div');actions.style.cssText='display:flex;gap:8px;flex-wrap:wrap;margin:12px 0';
+            const prepare=node('button','명세 검토','Prepare'),confirm=node('button','이 명세와 제한을 확인','Confirm'),execute=node('button','확인한 A 기록 검토 실행','Execute'),cancel=node('button','실행 취소','Cancel'),refresh=node('button','저장 결과 조회','Refresh');
+            for(const b of [prepare,confirm,execute,cancel,refresh]){b.type='button';b.className='button-secondary';actions.append(b);}section.append(actions);
+            const status=node('p','관계와 시점을 지정한 뒤 명세를 검토하세요.','Status');status.setAttribute('role','status');
+            const preview=node('div','', 'Confirmation'),rows=node('div','', 'Rows'),result=node('div','', 'Result');section.append(status,preview,rows,result);el('Detail').append(section);
+            const active=()=>job&&['queued','running'].includes(job.state);
+            const controls=()=>{prepare.disabled=!pack.canExecute||!pack.frames.length||busy||active()||!question.value.trim()||new TextEncoder().encode(question.value).length>512;
+              confirm.disabled=!draft||confirmed||busy||active();execute.disabled=!confirmed||busy||active();cancel.disabled=!active()||!job.canCancel||busy;
+              for(const input of [question,target,relation,color,visible,...boxes])input.disabled=!!active();colorLabel.hidden=!relation.value.includes('color');visibleLabel.hidden=!relation.value.includes('visib');};
+            const invalidate=()=>{++intent;draft=null;confirmed=false;preview.replaceChildren();status.textContent='명세가 변경됐습니다. 다시 확인해야 실행할 수 있습니다.';controls();};
+            for(const input of [question,target,relation,color,visible,...boxes])input.addEventListener(input===question?'input':'change',invalidate);
+            relation.addEventListener('change',()=>{if(['color-at','visibility-at'].includes(relation.value))boxes.forEach((b,i)=>b.checked=i===0);controls();});
+            const show = async reviewId => {
+              const serial=++intent;draft=null;confirmed=false;controls();
+              try {const r=await request(base+'/'+reviewId);if(!alive()||serial!==intent)return;
+                result.replaceChildren(node('h5','저장된 A 기록 검토 결과'),node('p',r.question),node('p',`분석 대상: ${r.targetLabel} · ${r.analysisNamespace} · 엔진 episode ${r.engineEpisodes.join(', ') || '미확인'}`),node('p',`확인: ${r.confirmedBy} · ${new Date(r.confirmedAtMs).toLocaleString()}`),
+                  node('p',`현재 근거 열람: ${r.evidenceAvailability==='available'?'가능':r.evidenceAvailability==='unavailable'?'unavailable — 자료 없음':'오류 — 무결성/저장 확인 필요'}`),
+                  node('p',`구형 표시: ${r.projectionStatus}. 구조화 결과는 전체 표시합니다.`),node('p','모델 질문: 미생성 · 모델 품질: 미평가'));
+                const verdicts={supported:'지지',contradicted:'반증',insufficient:'근거 부족',unsupported:'미지원'};
+                const gaps={identity:'대상 연결',position:'위치',color:'색상',visibility:'가시성','ordered-time':'시간 순서'};
+                for(let i=0;i<r.claims.length;i++){const c=r.claims[i],d=r.decisions[i];const card=node('section');card.append(node('h5',`${c.label} — ${verdicts[d.verdict]}`),node('p','판정 범위: 분석 기록상의 관계'),node('p',`프레임 ${c.frames.map(n=>n+1).join(', ')} · PTS ${c.ptsNs.join(' → ')} ns`));
+                  if(c.relation.includes('color'))card.append(node('p',`확인한 색상: ${c.requiredColor}`));if(c.relation.includes('visib'))card.append(node('p',`확인한 가시성: ${c.requiredVisible?'보임':'보이지 않음'}`));
+                  if(d.gaps.length){card.append(node('h5','추가로 필요한 자료 — 서버 규칙'));for(const g of d.gaps)card.append(node('p',`${gaps[g.kind]}: 프레임 ${g.frames.map(n=>n+1).join(', ')}`));}
+                  for(const index of d.evidenceFrames){const b=node('button',`근거 프레임 ${index+1}`);b.type='button';b.className='button-secondary';b.disabled=r.evidenceAvailability!=='available';b.addEventListener('click',()=>{const image=images.get(index);if(alive()&&image){evidence.open=true;image.scrollIntoView({block:'center'});image.focus();}});card.append(b);}result.append(card);}
+                status.textContent='저장된 구조화 판정을 조회했습니다. 영상 사실이나 모델 품질의 합격을 뜻하지 않습니다.';
+              }catch(e){if(alive()&&serial===intent)status.textContent=e.message;}
+            };
+            const loadResults=async()=>{try{const list=await request(base+'?'+new URLSearchParams({packageId:id}));if(!alive())return;rows.replaceChildren();
+                for(const item of list.items){const b=node('button',`확인된 A 결과 · ${item.question}`);b.type='button';b.className='button-secondary';b.addEventListener('click',()=>show(item.id));rows.append(b);}
+              }catch(e){if(alive())status.textContent=e.message;}};
+            const poll=async()=>{if(!alive()||!active())return;const serial=intent;
+              try{const next=await request(base+'/jobs/'+job.id);if(!alive()||serial!==intent)return;job=next;controls();
+                if(active()){status.textContent=job.state==='queued'?'A 기록 검토 대기 중…':'A 기록을 계산·저장하는 중…';timer=setTimeout(poll,250);}
+                else if(job.state==='completed'){await loadResults();await show(job.reviewId);}else status.textContent=messages[job.error]||`실행 오류: ${job.error}`;
+              }catch(e){if(alive()&&serial===intent)status.textContent=e.message;}};
+            prepare.addEventListener('click',async()=>{if(prepare.disabled)return;busy=true;const serial=++intent;draft=null;confirmed=false;controls();
+              try{const d=await request(base+'/drafts','POST',{packageId:id,targetKey:target.value,question:question.value,claims:[{relation:relation.value,requiredColor:color.value,requiredVisible:visible.value==='true',frames:boxes.filter(b=>b.checked).map(b=>Number(b.value))}]});
+                if(!alive()||serial!==intent)return;draft=d;preview.replaceChildren(node('h5','확인할 명세'),node('p',d.question),node('p',`${d.targetLabel} · ${d.analysisNamespace} · 엔진 episode ${d.engineEpisodes.join(', ') || '미확인'}`));
+                for(const c of d.claims)preview.append(node('p',`${c.label} · 프레임 ${c.frames.map(n=>n+1).join(', ')} · PTS ${c.ptsNs.join(' → ')} ns · 요구값 ${c.relation.includes('color')?c.requiredColor:c.relation.includes('visib')?String(c.requiredVisible):'관계 자체'}`));
+                preview.append(node('p',d.limitation));status.textContent='위 명세와 제한을 읽고 확인하세요. 아직 실행되지 않았습니다.';
+              }catch(e){if(alive()&&serial===intent)status.textContent=e.message;}finally{if(alive()){busy=false;controls();}}});
+            confirm.addEventListener('click',async()=>{if(confirm.disabled)return;busy=true;const serial=intent;controls();
+              try{await request(base+'/drafts/'+draft.id+'/confirm','POST',{revision:draft.revision});if(alive()&&serial===intent){confirmed=true;status.textContent='명세를 확인했습니다. 명시 실행 버튼을 눌러 A 기록을 검토하세요.';}}
+              catch(e){if(alive()&&serial===intent)status.textContent=e.message;}finally{if(alive()){busy=false;controls();}}});
+            execute.addEventListener('click',async()=>{if(execute.disabled)return;busy=true;const serial=intent;controls();
+              try{const next=await request(base+'/drafts/'+draft.id+'/execute','POST',{revision:draft.revision});if(!alive()||serial!==intent)return;job=next;status.textContent='A 기록 검토를 접수했습니다.';timer=setTimeout(poll,100);}
+              catch(e){if(alive()&&serial===intent)status.textContent=e.message;}finally{if(alive()){busy=false;controls();}}});
+            cancel.addEventListener('click',async()=>{if(cancel.disabled)return;busy=true;controls();if(timer)clearTimeout(timer);
+              try{const next=await request(base+'/jobs/'+job.id,'DELETE');if(!alive())return;job=next;status.textContent=job.state==='completed'?'이미 저장된 결과입니다.':messages[job.error]||'취소를 요청했습니다.';if(active())timer=setTimeout(poll,100);else if(job.state==='completed')show(job.reviewId);}
+              catch(e){if(alive())status.textContent=e.message;}finally{if(alive()){busy=false;controls();}}});
+            refresh.addEventListener('click',loadResults);
+            const evidence=node('details');evidence.append(node('summary','보존 근거 프레임 열람'));section.append(evidence);
+            const imageQueue=[];let imagesStarted=false;const loadNextImage=()=>{if(alive()&&imageQueue.length){const next=imageQueue.shift();next.image.src=next.url;}};
+            evidence.addEventListener('toggle',()=>{if(evidence.open&&!imagesStarted){imagesStarted=true;loadNextImage();}});
+            for(const f of pack.frames){const image=node('img');image.alt=`A 근거 프레임 ${f.index+1}`;image.style.cssText='max-width:100%;height:auto;display:block';image.tabIndex=-1;
+              images.set(f.index,image);evidence.append(image);imageQueue.push({image,url:f.imageUrl});image.addEventListener('load',loadNextImage,{once:true});image.addEventListener('error',()=>{if(alive())status.textContent='근거 이미지 열람 오류입니다. 저장된 판정과 구분해서 확인하세요.';loadNextImage();},{once:true});}
+            // 근거 링크는 닫힌 details도 열어 실제 프레임을 볼 수 있게 한다.
+            result.addEventListener('click',e=>{if(e.target.tagName==='BUTTON')evidence.open=true;});
+            controls();loadResults();say('Status','A 분석 기록 검토를 선택했습니다. 모델 영상 검토와 별개입니다.');
+          };
           const open = async id => {
             if (!/^ep-[0-9a-f]{64}$/.test(id || '')) return;
             clearDetail(); const version = detailVersion; detailController = new AbortController(); say('Status', '보존 자료의 무결성을 확인하는 중…');
@@ -10561,21 +10667,23 @@ void AppendOpsShellScript(std::ostringstream& out,
             const version = ++listVersion; clearDetail(); el('Rows').replaceChildren(); el('Next').disabled = true;
             if (!next) after = '';
             if (!el('Channel').value) { say('Status', '카메라를 선택하세요.'); return; }
+            const analysis = el('Kind').value === 'A';
             const params = new URLSearchParams({ channelId: el('Channel').value }); if (next && after) params.set('after', after);
             say('Status', '보존 목록을 확인하는 중…'); el('Refresh').disabled = true;
             try {
-              const data = await read(prefix + '?' + params); if (version !== listVersion) return;
+              const data = await read((analysis ? '/ops/api/recordings/a-record-packages' : prefix) + '?' + params); if (version !== listVersion) return;
               if (!Array.isArray(data.items)) throw new Error('보존 목록을 읽지 못했습니다.');
               for (const item of data.items) {
                 const button = document.createElement('button'); button.type = 'button'; button.className = 'button-secondary';
-                button.textContent = `${new Date(item.createdAtMs).toLocaleString()} · ${item.status === 'complete' ? '보존 완료' : '부분 보존'} · 프레임 ${item.frames}개`;
-                button.addEventListener('click', () => open(item.id)); el('Rows').append(button);
+                button.textContent = analysis ? `A 기록 · ${item.targetLabel} · 프레임 ${item.frames.length}개` : `${new Date(item.createdAtMs).toLocaleString()} · ${item.status === 'complete' ? '보존 완료' : '부분 보존'} · 프레임 ${item.frames}개`;
+                button.dataset.packageId = item.id; button.addEventListener('click', () => analysis ? openAnalysis(item.id) : open(item.id)); el('Rows').append(button);
               }
               after = /^ep-[0-9a-f]{64}$/.test(data.nextAfter || '') ? data.nextAfter : ''; el('Next').disabled = !after;
               say('Status', data.items.length ? `${data.items.length}개 패키지입니다. 선택해 보존 자료를 확인하세요.` : '보존한 증거가 없습니다.');
             } catch (error) { if (version === listVersion) say('Status', error.message); }
             finally { if (version === listVersion) el('Refresh').disabled = false; }
           };
+          el('Kind').addEventListener('change', () => list(false));
           el('Refresh').addEventListener('click', () => list(false));
           el('Next').addEventListener('click', () => { if (after) list(true); });
           el('Channel').addEventListener('change', () => { ++listVersion; after = ''; clearDetail(); el('Rows').replaceChildren(); el('Next').disabled = true; el('Refresh').disabled = false; say('Status', '보존 목록 조회를 누르세요.'); });
@@ -10587,17 +10695,17 @@ void AppendOpsShellScript(std::ostringstream& out,
             }));
           }).catch(error => say('Status', error.message));
           return {
-            button(kind, params) {
-              const button = document.createElement('button'); button.type = 'button'; button.className = 'button-secondary'; button.textContent = '증거 보존';
+            button(kind, params, analysis = false) {
+              const button = document.createElement('button'); button.type = 'button'; button.className = 'button-secondary'; button.textContent = analysis ? 'A 기록 검토용 보존' : '증거 보존';
               const saved = new URLSearchParams(params).toString();
               button.addEventListener('click', async () => {
                 if (creating) { say('CreateStatus', '다른 자료를 보존하고 있습니다. 완료될 때까지 기다리세요.'); return; }
                 creating = true; button.disabled = true; const version = detailVersion;
                 say('CreateStatus', '선택한 결과의 프레임과 출처를 보존하는 중…');
                 try {
-                  const data = await read('/ops/api/recordings/' + kind + '/evidence?' + saved, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
+                  const data = await read('/ops/api/recordings/' + kind + (analysis ? '/a-record-evidence?' : '/evidence?') + saved, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
                   say('CreateStatus', data.status === 'complete' ? '증거를 보존했습니다.' : '일부 자료가 누락되거나 미지원 상태로 보존됐습니다. 상세를 확인하세요.');
-                  if (version === detailVersion) await open(data.id);
+                  if (version === detailVersion) { el('Kind').value = analysis ? 'A' : 'v1'; if (analysis) await openAnalysis(data.id); else await open(data.id); }
                 } catch (error) { say('CreateStatus', error.message); }
                 finally { creating = false; button.disabled = false; }
               });
@@ -10705,7 +10813,7 @@ void AppendOpsShellScript(std::ostringstream& out,
               const choice = item.selectionReason === 'event-priority' ? '이벤트 우선' : item.selectionReason === 'original-fallback' ? '원본 대체' : '원본';
               button.textContent = `${item.channelId} · ${item.kind === 'observation' ? '분석 관측' : '녹화 구간'} · ${time(item.startTimeNs)}${item.startTimeNs === null ? ' (조회 시간 포함 여부 미확인)' : ' · ' + basis} · ${choice} · ${item.object || '객체 조건 없음'}${item.track ? ' · Track ' + item.track : ''} · ${item.playable ? '재생 가능' : '재생 불가'}`;
               button.addEventListener('click', () => select(item)); el('Rows').append(button);
-              if (evidenceUi) { const params = new URLSearchParams(query); params.set('snapshotId', snapshot); params.set('hitId', item.id); el('Rows').append(evidenceUi.button('search', params)); }
+              if (evidenceUi) { const params = new URLSearchParams(query); params.set('snapshotId', snapshot); params.set('hitId', item.id); el('Rows').append(evidenceUi.button('search', params)); if (item.kind === 'observation' && item.track) el('Rows').append(evidenceUi.button('search', params, true)); }
             }
           };
           const load = async next => {

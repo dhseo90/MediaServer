@@ -106,6 +106,7 @@ add_library(media_server_runtime STATIC
     src/recording/evidence_observation.cpp
     src/recording/evidence_package.cpp
     src/recording/va_review_input.cpp
+    src/recording/va_review_confirmed_record.cpp
     src/recording/va_review_bound_record.cpp
     src/recording/va_review_record.cpp
     src/recording/va_review_store.cpp
@@ -160,6 +161,7 @@ add_library(media_server_runtime STATIC
     src/ingress/recording_search_application_service.cpp
     src/ingress/visual_search_application_service.cpp
     src/ingress/evidence_application_service.cpp
+    src/ingress/a_record_review_application_service.cpp
     src/ingress/va_review_application_service.cpp
     src/ingress/recording_application_service.cpp
     src/recording/retention_coordinator.cpp

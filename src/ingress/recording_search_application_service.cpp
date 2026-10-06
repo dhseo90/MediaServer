@@ -158,7 +158,7 @@ ApplicationServiceResult RecordingApplicationService::SearchSeek(const Query& ra
     }catch(const std::exception&){return Error(503,"recording-search-unavailable");}
 }
 ApplicationServiceResult RecordingApplicationService::SearchEvidence(const Query& raw,const std::string& principal,
-    const std::string& scope,const ChannelAuthorizer& authorize) const {
+    const std::string& scope,const ChannelAuthorizer& authorize,bool observations) const {
     try {
         recording::RecordingSearchQuery query;
         if(!Parse(raw,true,&query))return Error(400,"invalid-recording-search-query");
@@ -170,7 +170,9 @@ ApplicationServiceResult RecordingApplicationService::SearchEvidence(const Query
         std::shared_ptr<const recording::RecordingSearchModel> model;std::size_t position=0;std::string error;
         if(!state->snapshots.ResolveHit(Get(raw,"snapshotId"),Get(raw,"hitId"),query,principal,scope,&model,&position,&error))
             return error=="search-invalid-snapshot"?Error(400,error):Failure(error);
-        return evidence_->Create(model->documents()[position],"structured","",authorize);
+        const auto& hit=model->documents()[position];
+        if(observations&&(hit.analysis_namespace.empty()||hit.track_id.empty()))return Error(400,"review-analysis-target-required");
+        return evidence_->Create(hit,"structured","",authorize,observations);
     }catch(...){return Error(503,"evidence-create-failed");}
 }
 } // namespace ingress

@@ -160,6 +160,13 @@ V450-K08(내부 A 결속 결과/record v2): `python3 scripts/internal/verify_va_
 같은 판정·근거를 읽는다. package 부재는 저장 판정과 별도 unavailable, 변조는 오류다.
 모델/질문 생성/일반 acceptance/HTTP/UI/30분/120분은 실행하지 않는다. 40 전체 보존 검사는 반복하지 않는다.
 
+V450-K09 / V450-A02 / V450-U02(사용자 확인 A 기록 검토): `verify_va_review_confirmed.py`의 모델 없는 codec/상태/저장 검사와 `va_review_confirmed_http.mjs`의 실제 HTTP·변경 UI 흐름.
+- `/ops/api/recordings/a-record-packages` 및 `search/a-record-evidence`: 권한 있는 v2 생성/선택/PNG; v1 목록과 내부 결과 비노출.
+- `a-record-reviews/drafts` → `confirm` → `execute`: 미확인/변경/다른 principal/만료/재시작/입력 주입 거부, 서버 확인 시각·revision, 중복 실행 식별.
+- 기존 worker → record v3 → 목록/상세: 정상 지지·반증, 부족·미지원, 전체 claims/투영 한도, 현재 근거 unavailable/변조 구분. 취소·권한 회수·쓰기/용량 오류에서 미게시. v1/v2 byte/read 의미 유지.
+- `/ops/events` `opsEvidenceKind`, `opsAReviewPrepare/Confirm/Execute/Cancel/Result`: 선택·명세 확인·실행·결과/근거, 명세 변경·늦은 응답·중복 클릭, 다른 역할/채널, desktop/mobile light/dark를 실제 브라우저로 확인한다. 템플릿은 서버 규칙, 질문 not-generated/모델 not-evaluated 유지.
+- 이 ID는 변경 영역의 단기 native/HTTP/browser 검사다. 30분/120분/일반 acceptance/UI 풀테스트는 이번 제외이며 그 PASS를 대신하지 않는다. 모의 VA는 저장·전달 fixture이며 모델/영상 사실 품질 검사가 아니다.
+
 V450-K06(관측 연결 후보, 공개 미연결): `--observer-only`는
 [test/fixtures/v450_review_observer.json](../test/fixtures/v450_review_observer.json)의 독립 기대값으로
 상대 bbox→원본 중심 변환, 양쪽 경계/면적/형식/유한성/null, 프레임·anchor 참조와 PNG 크기·hash를

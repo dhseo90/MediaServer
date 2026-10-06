@@ -1,6 +1,7 @@
 // 파일 용도: 미디어 경로와 분리된 단일 worker의 bounded VA 검토 수명.
 #pragma once
 #include "recording/va_review_store.h"
+#include "recording/va_review_confirmed_record.h"
 #include <atomic>
 #include <condition_variable>
 #include <deque>
@@ -15,6 +16,7 @@ struct VaReviewInference {
 };
 struct VaReviewJob {
     std::string id,package_id,channel_id,owner,state,error,review_id;
+    std::string kind{"model"};
 };
 class VaReviewService {
 public:
@@ -32,6 +34,7 @@ public:
     VaReviewService(const VaReviewService&)=delete;
     bool Submit(const std::string& package_id,const std::string& question,const std::string& provider,
         const std::string& owner,Authorize,VaReviewJob*,std::string* error);
+    bool SubmitConfirmed(const ConfirmedAnalysisRequest&,const std::string& owner,Authorize,VaReviewJob*,std::string*);
     bool Get(const std::string& id,const Authorize&,VaReviewJob*,std::string* error) const;
     bool Cancel(const std::string& id,const std::string& owner,bool admin,const Authorize&,std::string* error);
     void Stop();
@@ -40,6 +43,7 @@ public:
 private:
     struct Task {
         VaReviewJob job;
+        std::optional<ConfirmedAnalysisRequest> confirmed;
         std::string question,provider,key;
         Authorize authorize;
         Clock::time_point queued;

@@ -95,9 +95,9 @@ bool ValidateEvidenceObservations(const EvidencePackageV1& p,std::string* error)
     if(error)error->clear();return true;
 }
 bool ReadAnalysisRecordReview(const EvidencePackageStore& store,const std::string& id,
-    const std::vector<ReviewClaimSpec>& claims,AnalysisRecordReview* output,std::string* error) {
+    const std::vector<ReviewClaimSpec>& claims,AnalysisRecordReview* output,std::string* error,const std::function<bool()>& cancelled) {
     if(!output||claims.empty())return Fail(error,"record-review-input");
-    const auto file=store.Open(id,error);if(!file)return false;
+    const auto file=store.Open(id,error,cancelled);if(!file)return false;
     return EvaluateAnalysisRecordSnapshot(file->manifest(),claims,output,error);
 }
 bool EvaluateAnalysisRecordSnapshot(const EvidencePackageV1& snapshot,const std::vector<ReviewClaimSpec>& claims,

@@ -907,11 +907,15 @@ void SeedHttp(const std::filesystem::path& root) {
 }
 }
 #include "va_review_bound_record_checks.h"
+#include "va_review_confirmed_checks.h"
 int main(int argc,char** argv) {
     try {
         if(argc!=4)throw std::runtime_error("owned fixture root, mode, endpoint required");
         gst_init(nullptr,nullptr);
-        if(std::string(argv[2])=="--bound-seed")BoundSeed(argv[1]);
+        if(std::string(argv[2])=="--confirmed-seed")ConfirmedSeed(argv[1]);
+        else if(std::string(argv[2])=="--confirmed-checks")ConfirmedChecks(argv[1]);
+        else if(std::string(argv[2])=="--confirmed-read")ConfirmedRead(argv[1]);
+        else if(std::string(argv[2])=="--bound-seed")BoundSeed(argv[1]);
         else if(std::string(argv[2])=="--bound-read")BoundRead(argv[1]);
         else if(std::string(argv[2])=="--records-only")RecordChecks(argv[1]);
         else if(std::string(argv[2])=="--seed")SeedHttp(argv[1]);

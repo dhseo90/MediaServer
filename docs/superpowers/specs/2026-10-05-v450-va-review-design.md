@@ -566,3 +566,40 @@ VLM에는 실제 프레임의 시각적 의미와 서버가 확정한 부족 근
 검출기 추론·자유질문 해석·영상 사실·모델 질문 생성 성공으로 해석하지 않는다. 34~40 이력과 실패는 유지한다.
 다음 공개 연결에는 사용자 확인 상태/권한·API/UI 연결, 실제 설명·한국어 질문 생성과 품질 검증이 남는다.
 이번 내부 v2를 자동 공개하거나 VLM/VA Review 전체·릴리즈 완료로 확대하지 않는다.
+
+## 42: 사용자 확인 기반 A 기록 검토 API/UI
+
+40·41의 내부 경로를 유지하고 `/ops/events` 증거 상세에서 **A 기록 검토**를 명시 선택한다.
+원문은 보존하고 관계·요구값·프레임을 사용자가 지정한다. 자유질문 자동 해석, 모델 영상 의미 검토,
+한국어 모델 질문 생성은 여전히 미완료다. 기존 모델 provider 요청을 A 계산으로 바꾸지 않는다.
+
+- `GET /ops/api/recordings/a-record-packages?channelId=…[&after=…]`와 `/{id}`·`/{id}/assets/{index}`는
+  권한 있는 v2 package만 선택/열람한다. 검색의 분석 관측 결과에서 `POST search/a-record-evidence`로
+  기존 snapshot/hit → 기존 builder의 v2 경로를 호출한다. 분석 대상 없는 녹화 결과는 거부한다.
+  기존 evidence list/get, 모델 v1 결과, 내부 not-confirmed v2의 비노출 의미는 유지한다.
+- `POST a-record-reviews/drafts`의 입력은 packageId/targetKey/원문 question/claims뿐이다.
+  targetKey는 서버가 package 분석 대상에서 만든 선택 값이다. relation/요구값/frame index 외의
+  verdict·basis·관측·정책·확인자·digest 입력을 받지 않는다. 실제 manifest/namespace/track/episode와
+  canonical ClaimSpec을 서버가 결속하며 확인 화면에 관계·시점·대상과 A의 한계를 표시한다.
+- `POST …/drafts/{id}/confirm` → `POST …/drafts/{id}/execute`는 서버 revision을 요구한다.
+  인증 principal과 서버 확인시각을 저장한다. 같은 principal의 새 명세는 이전 미실행 확인을 무효화한다.
+  초안은 최대64개, 보수적으로 계산한 입력/binding 예산256KiB, 최대5분이며 FD·retention hold를 유지하지
+  않는다. worker는 명시 실행 때만 기존 큐에 작업을 접수한다. 변경 revision/다른 principal/만료는 거부한다.
+  접수·실행·게시에서 현재 role/scope/session을 다시 검사한다. 같은 확인은 같은 job이며 만료된 job을
+  재실행하지 않는다. 재시작은 임시 확인/job을 복원하지 않고 저장 결과만 보존한다.
+- 새 `media-server.va-review-record.v3` / `MSVAR03`는 변경하지 않은 v2 분석 사본과 별도의
+  `intentOrigin=user-confirmed` 확인 envelope를 결속한다. envelope의 principal/question/revision/
+  specSha256/확인·만료시각에 digest를 적용한다. 중첩 v2의 internal-explicit/not-confirmed는 분석 입력의
+  기존 의미이고, 실제 사용자 확인은 **새 v3 envelope**에만 있다. 과거 v1/v2를 변환하지 않는다.
+  총128KiB·512 records·64MiB 및 기존 lock/pending/fsync/hash/quota를 공유한다.
+- `GET a-record-reviews?packageId=…`, `/{reviewId}`, `/jobs/{jobId}`와 `DELETE /jobs/{jobId}`가
+  명시 확인된 결과·진행·취소 경로다. 저장된 명세·대상·판정·gap은 전체 표시하며 구형 투영 불가도 숨기지
+  않는다. package가 없어도 저장 결과를 조회하고 근거의 현재 unavailable/무결성 오류를 따로 표시한다.
+  판정은 **분석 기록상의 관계**이며 engine-track 연결은 물리 동일성 인증이 아니다.
+- 표시 문구는 “추가로 필요한 자료 — 서버 규칙”이다. questionsState=not-generated와
+  modelQuality=not-evaluated를 유지한다. 선택/명세가 바뀐 뒤 늦은 응답은 무시하고 PNG는 순차 열람한다.
+  no-store/권한/입력 escaping과 기존 활성화 off 정책을 유지한다. 새 primary navigation은 없다.
+
+[V450-K09/A02/U02](../../project-feature-test-inventory.md)의 모의 VA·실제 저장/HTTP/변경 브라우저 검사가
+대상이다. 모델 호출·설치·품질 재평가는0회이며 UI 풀테스트·장시간·릴리즈 검증의 대체가 아니다.
+명령별 결과와 최초 실패는 [개발 기록](../../release-artifacts/v4.5.0/development-results.md)에 연결한다.

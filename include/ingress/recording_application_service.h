@@ -50,7 +50,7 @@ public:
           observation_status_provider_(std::move(observation_status_provider)), visual_(visual), evidence_(evidence), reviews_(reviews) {}
     VaReviewApplicationService* VaReviews() const { return reviews_; }
     ApplicationServiceResult SearchEvidence(const std::unordered_map<std::string,std::string>& query,
-        const std::string& principal, const std::string& scope, const ChannelAuthorizer& authorize) const;
+        const std::string& principal, const std::string& scope, const ChannelAuthorizer& authorize,bool observations=false) const;
     ApplicationServiceResult VisualEvidence(const VisualSearchApplicationService::Query& query,const ChannelAuthorizer& authorize) const {
         return visual_ && evidence_ ? visual_->Evidence(query,authorize,*evidence_) : EvidenceUnavailable();
     }
@@ -60,9 +60,9 @@ public:
     ApplicationServiceResult EvidenceGet(const std::string& id,const ChannelAuthorizer& authorize) const {
         return evidence_ ? evidence_->Get(id,authorize) : EvidenceUnavailable();
     }
-    std::shared_ptr<recording::EvidencePackageFile> EvidenceAsset(const std::string& id,std::size_t index,const ChannelAuthorizer& authorize,int* status) const {
+    std::shared_ptr<recording::EvidencePackageFile> EvidenceAsset(const std::string& id,std::size_t index,const ChannelAuthorizer& authorize,int* status,bool observations=false) const {
         if(status)*status=503;
-        return evidence_ ? evidence_->Asset(id,index,authorize,status) : nullptr;
+        return evidence_ ? evidence_->Asset(id,index,authorize,status,observations) : nullptr;
     }
     ApplicationServiceResult VisualStatus(const ChannelAuthorizer& authorize) const {
         return visual_ ? visual_->Status(authorize) : ApplicationServiceResult{200,"OK","{\"enabled\":false,\"state\":\"disabled\",\"channels\":[]}"};

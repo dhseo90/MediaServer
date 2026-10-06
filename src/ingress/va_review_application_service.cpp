@@ -2,6 +2,7 @@
 #include "ingress/va_review_application_service.h"
 #include "domain/strict_json.h"
 #include <algorithm>
+#include <random>
 
 namespace ingress {
 namespace {
@@ -37,10 +38,14 @@ std::string JobJson(const recording::VaReviewJob& job,bool can_cancel){
 }
 }
 VaReviewApplicationService::VaReviewApplicationService(const std::filesystem::path& root,bool enabled,
-    recording::VaReviewProviderOptions provider,std::uint64_t reserve,recording::VaReviewService::Infer infer)
-    :enabled_(enabled),
+    recording::VaReviewProviderOptions provider,std::uint64_t reserve,recording::VaReviewService::Infer infer,std::chrono::milliseconds confirmation_ttl)
+    :confirmation_ttl_(confirmation_ttl),enabled_(enabled),
      evidence_(root/"evidence-packages",{}),records_(root/"va-reviews",Limits(reserve)),
-     service_(evidence_,records_,Options(enabled),infer?std::move(infer):recording::MakeVaReviewProvider(std::move(provider))){}
+     service_(evidence_,records_,Options(enabled),infer?std::move(infer):recording::MakeVaReviewProvider(std::move(provider))){
+    if(confirmation_ttl_.count()<=0||confirmation_ttl_>std::chrono::minutes(5))enabled_=false;
+    std::random_device random;std::string entropy;for(unsigned i=0;i<8;++i)entropy+=std::to_string(random())+":";
+    draft_epoch_=recording::EvidenceSha256(entropy.data(),entropy.size());
+}
 ApplicationServiceResult VaReviewApplicationService::Submit(const std::string& body,const std::string& owner,Authorize authorize){
     StrictJsonObjectDocument doc;
     if(body.size()>2048||!ParseStrictJsonObjectDocument(body,&doc,nullptr)||doc.members.size()!=3)
@@ -88,9 +93,11 @@ ApplicationServiceResult VaReviewApplicationService::Get(const std::string& id,c
 ApplicationServiceResult VaReviewApplicationService::Job(const std::string& id,const std::string& owner,bool admin,
     bool can_write,const Authorize& authorize,bool cancel){
     if(!enabled_||stopped_)return Error("review-disabled");
-    std::string error;if(cancel&&(!can_write||!service_.Cancel(id,owner,admin,authorize,&error)))
-        return Error(can_write?error:"review-forbidden");
-    recording::VaReviewJob job;if(!service_.Get(id,authorize,&job,&error))return Error(error);
+    std::string error;recording::VaReviewJob job;
+    if(!service_.Get(id,authorize,&job,&error))return Error(error);
+    if(job.kind!="model")return Error("review-job-unavailable");
+    if(cancel&&(!can_write||!service_.Cancel(id,owner,admin,authorize,&error)))return Error(can_write?error:"review-forbidden");
+    if(cancel&&!service_.Get(id,authorize,&job,&error))return Error(error);
     return {200,"OK",JobJson(job,can_write&&(admin||owner==job.owner)&&(job.state=="queued"||job.state=="running"))};
 }
 } // namespace ingress

@@ -22,6 +22,10 @@ constexpr std::size_t kVaReviewRecordV2Bytes=128*1024;
 std::string SerializeVaReviewRecordV2(const VaReviewRecordV2&);
 bool ParseVaReviewRecordV2(const std::string&,VaReviewRecordV2*,std::string*);
 bool ValidateVaReviewRecordV2(const VaReviewRecordV2&,std::string*);
+std::string AnalysisReviewSpecDigest(const ReviewTargetBindingV2&,const std::vector<ReviewClaimSpec>&);
+bool BuildAnalysisReviewRecord(const EvidencePackageStore&,const ReviewTargetBindingV2&,
+    const std::vector<ReviewClaimSpec>&,std::int64_t,const std::function<bool(const std::string&)>&,
+    VaReviewRecordV2*,std::string*,const std::function<bool()>& cancelled={});
 // 명세는 internal-explicit/not-confirmed다. 확인자·확인시각·모델 confidence를 만들지 않는다.
 bool CreateAnalysisReviewRecord(const EvidencePackageStore&,const VaReviewStore&,const ReviewTargetBindingV2&,
     const std::vector<ReviewClaimSpec>&,std::int64_t created_at_ms,

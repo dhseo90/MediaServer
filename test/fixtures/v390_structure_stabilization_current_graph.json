@@ -11,8 +11,8 @@
     ".cpp",
     ".h"
   ],
-  "expectedProductionFiles": 382,
-  "expectedCppFiles": 175,
+  "expectedProductionFiles": 385,
+  "expectedCppFiles": 177,
   "moduleClassifiers": [
     {
       "id": "composition-root",
@@ -178,11 +178,14 @@
         "include/recording/evidence_observation.h",
         "src/recording/evidence_observation.cpp",
         "include/recording/va_review_bound_record.h",
-        "src/recording/va_review_bound_record.cpp"
+        "src/recording/va_review_bound_record.cpp",
+        "include/recording/va_review_confirmed_record.h",
+        "src/recording/va_review_confirmed_record.cpp",
+        "src/ingress/a_record_review_application_service.cpp"
       ],
       "prefixes": [],
-      "expectedFileCount": 132,
-      "expectedCppCount": 61
+      "expectedFileCount": 135,
+      "expectedCppCount": 63
     },
     {
       "id": "domain-and-registry-owners",
@@ -375,7 +378,7 @@
       "expectedCppCount": 16
     }
   ],
-  "expectedFileOwnershipSha256": "a1472f7604688d910c9e0b280a5e86c7eb2a4c20e47a32957e22baa61050f10e",
+  "expectedFileOwnershipSha256": "85507606b24c69be5e0102cb547f177c024c957232dff2d2e9b07ee157bcb02d",
   "cmake": {
     "file": "CMakeLists.txt",
     "targets": [
@@ -470,6 +473,7 @@
           "src/recording/evidence_observation.cpp",
           "src/recording/evidence_package.cpp",
           "src/recording/va_review_input.cpp",
+          "src/recording/va_review_confirmed_record.cpp",
           "src/recording/va_review_bound_record.cpp",
           "src/recording/va_review_record.cpp",
           "src/recording/va_review_store.cpp",
@@ -524,6 +528,7 @@
           "src/ingress/recording_search_application_service.cpp",
           "src/ingress/visual_search_application_service.cpp",
           "src/ingress/evidence_application_service.cpp",
+          "src/ingress/a_record_review_application_service.cpp",
           "src/ingress/va_review_application_service.cpp",
           "src/ingress/recording_application_service.cpp",
           "src/recording/retention_coordinator.cpp",
@@ -557,9 +562,9 @@
           "src/ingress/gstreamer_rtsp_server.cpp",
           "src/core/youtube_resolver.cpp"
         ],
-        "productionSourceSha256": "466ed8087edf5875d975df408e1ea36b2841f635f0db2850d12a68794d882967",
-        "declaredSourceCount": 173,
-        "defaultActiveSourceCount": 172,
+        "productionSourceSha256": "0a09eaa2af587628d44c480a2204322f30fef31ab8ba75234815be309175ee3f",
+        "declaredSourceCount": 175,
+        "defaultActiveSourceCount": 174,
         "conditionalSources": [
           {
             "path": "src/core/youtube_resolver.cpp",
@@ -777,7 +782,7 @@
     },
     {
       "file": "src/ingress/webrtc_http_server_runtime.cpp",
-      "lineCount": 5430,
+      "lineCount": 5467,
       "primaryOwner": "transport-and-auth-adapter",
       "embeddedResponsibilities": [
         "ops-route-groups",
@@ -801,7 +806,7 @@
     },
     {
       "file": "src/ingress/product_ui_page_scripts.cpp",
-      "lineCount": 10964,
+      "lineCount": 11072,
       "primaryOwner": "product-ui-workspaces",
       "embeddedResponsibilities": [
         "ops-workspaces",

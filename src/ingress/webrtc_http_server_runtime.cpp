@@ -771,7 +771,13 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             };
                             const std::string review_base="/ops/api/recordings/va-reviews";
                             const std::string job_prefix="/ops/api/recordings/va-review-jobs/";
-                            if(request.path==review_base||request.path.rfind(review_base+"/",0)==0||request.path.rfind(job_prefix,0)==0){
+                            const std::string analysis_base="/ops/api/recordings/a-record-reviews";
+                            const std::string analysis_packages="/ops/api/recordings/a-record-packages";
+                            const bool analysis_create=request.path=="/ops/api/recordings/search/a-record-evidence";
+                            const bool analysis_asset=request.path.rfind(analysis_packages+"/",0)==0&&request.path.find("/assets/")!=std::string::npos;
+                            if(analysis_create||request.path==review_base||request.path.rfind(review_base+"/",0)==0||request.path.rfind(job_prefix,0)==0||
+                                request.path==analysis_base||request.path.rfind(analysis_base+"/",0)==0||
+                                (!analysis_asset&&(request.path==analysis_packages||request.path.rfind(analysis_packages+"/",0)==0))){
                                 if(principal_result.principal.password_change_required)
                                     return api_response({403,"Forbidden","{\"error\":\"review-forbidden\"}"});
                                 auto* reviews=recording_service->VaReviews();
@@ -809,6 +815,35 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                             auth::RequireScope(current.principal,"source:read:"+channel);
                                     };
                                 };
+                                if(analysis_create){
+                                    if(request.method!="POST"||HeaderValue(request,"Content-Type")!="application/json"||request.body!="{}")
+                                        return api_response({400,"Bad Request","{\"error\":\"review-invalid-input\"}"});
+                                    if(!reviews->enabled())return api_response({503,"Service Unavailable","{\"error\":\"review-disabled\"}"});
+                                    const auto field=[](const std::string& v){return std::to_string(v.size())+":"+v;};
+                                    const auto identity=field(principal.auth_mode)+field(principal.username);
+                                    auto scopes=principal.scopes;std::sort(scopes.begin(),scopes.end());scopes.erase(std::unique(scopes.begin(),scopes.end()),scopes.end());
+                                    std::string scope=field(principal.role);for(const auto& v:scopes)scope+=field(v);
+                                    return api_response(recording_service->SearchEvidence(query,identity,scope,make_authorize(true),true));
+                                }
+                                if(request.path==analysis_packages&&request.method=="GET"&&query.count("channelId")&&(query.size()==1||(query.size()==2&&query.count("after"))))
+                                    return api_response(reviews->AnalysisPackages(query.at("channelId"),make_authorize(false),writable,query.count("after")?query.at("after"):""));
+                                if(request.path.rfind(analysis_packages+"/",0)==0&&request.method=="GET"&&query.empty())
+                                    return api_response(reviews->AnalysisPackage(request.path.substr(analysis_packages.size()+1),make_authorize(false),writable));
+                                if(request.path.rfind(analysis_base,0)==0){
+                                    const auto tail=request.path.substr(analysis_base.size());
+                                    if(request.method=="GET"&&tail.empty()&&query.size()==1&&query.count("packageId"))
+                                        return api_response(reviews->AnalysisList(query.at("packageId"),make_authorize(false)));
+                                    if(query.empty()&&tail.rfind("/jobs/",0)==0&&(request.method=="GET"||request.method=="DELETE"))
+                                        return api_response(reviews->AnalysisJob(tail.substr(6),owner,auth::IsAdmin(principal),writable,make_authorize(mutation),mutation));
+                                    if(query.empty()&&request.method=="POST"&&HeaderValue(request,"Content-Type")=="application/json"){
+                                        if(tail=="/drafts")return api_response(reviews->AnalysisDraft(request.body,owner,make_authorize(true)));
+                                        if(tail.rfind("/drafts/",0)==0){const auto slash=tail.find('/',8);
+                                            if(slash!=std::string::npos)return api_response(reviews->AnalysisAction(tail.substr(8,slash-8),tail.substr(slash+1),request.body,owner,make_authorize(true)));}
+                                    }
+                                    if(query.empty()&&request.method=="GET"&&tail.rfind("/vr-",0)==0)
+                                        return api_response(reviews->AnalysisGet(tail.substr(1),make_authorize(false)));
+                                    return api_response({400,"Bad Request","{\"error\":\"review-invalid-input\"}"});
+                                }
                                 if(request.path==review_base){
                                     if(request.method=="POST"&&query.empty()&&HeaderValue(request,"Content-Type")=="application/json")
                                         return api_response(reviews->Submit(request.body,owner,make_authorize(true)));
@@ -842,8 +877,10 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             if (request.method == "GET" && request.path == "/ops/api/recordings/evidence")
                                 return api_response(recording_service->EvidenceList(query,authorize_channel));
                             const std::string evidence_prefix = "/ops/api/recordings/evidence/";
-                            if ((request.method == "GET" || request.method == "HEAD") && request.path.rfind(evidence_prefix,0) == 0) {
-                                const auto tail = request.path.substr(evidence_prefix.size());
+                            if ((request.method == "GET" || request.method == "HEAD") && (request.path.rfind(evidence_prefix,0) == 0||analysis_asset)) {
+                                if(analysis_asset&&(!recording_service->VaReviews()||!recording_service->VaReviews()->enabled()||principal_result.principal.password_change_required))
+                                    return api_response({403,"Forbidden","{\"error\":\"review-forbidden\"}"});
+                                const auto tail = request.path.substr(analysis_asset?analysis_packages.size()+1:evidence_prefix.size());
                                 const auto slash = tail.find('/'); const auto id = tail.substr(0,slash);
                                 if (!query.empty() || !recording::EvidencePackageStore::ValidId(id))
                                     return api_response({400,"Bad Request","{\"error\":\"evidence-invalid-query\"}"});
@@ -854,7 +891,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                 const auto parsed = std::from_chars(text.data(),text.data()+text.size(),index);
                                 if (text.empty() || parsed.ec != std::errc{} || parsed.ptr != text.data()+text.size() || index > 8)
                                     return api_response({400,"Bad Request","{\"error\":\"evidence-invalid-asset\"}"});
-                                int status = 503; const auto file = recording_service->EvidenceAsset(id,index,authorize_channel,&status);
+                                int status = 503; const auto file = recording_service->EvidenceAsset(id,index,authorize_channel,&status,analysis_asset);
                                 if (!file) return api_response({status,status==403?"Forbidden":status==404?"Not Found":"Service Unavailable","{\"error\":\"evidence-unavailable\"}"});
                                 const auto& asset = file->manifest().assets[index];
                                 const auto range = ParseRecordingByteRange(HeaderValue(request,"Range"),asset.size_bytes);

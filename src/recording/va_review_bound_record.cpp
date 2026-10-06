@@ -193,17 +193,17 @@ bool ParseVaReviewRecordV2(const std::string& json,VaReviewRecordV2* out,std::st
     if(!ValidateVaReviewRecordV2(v,error))return false;
     *out=std::move(v);return true;
 }
-bool CreateAnalysisReviewRecord(const EvidencePackageStore& packages,const VaReviewStore& store,const ReviewTargetBindingV2& binding,
+bool BuildAnalysisReviewRecord(const EvidencePackageStore& packages,const ReviewTargetBindingV2& binding,
     const std::vector<ReviewClaimSpec>& claims,std::int64_t created,const std::function<bool(const std::string&)>& authorize,
-    std::string* id,std::string* error,const std::function<bool()>& cancelled) {
-    if(!id)return Fail(error,"review-invalid-bound-record");
+    VaReviewRecordV2* out,std::string* error,const std::function<bool()>& cancelled) {
+    if(!out)return Fail(error,"review-invalid-bound-record");
     if(cancelled&&cancelled())return Fail(error,"review-cancelled");
     const auto file=packages.Open(binding.package_id,error,cancelled);if(!file)return false;
     if(!authorize||!authorize(file->manifest().channel_id))return Fail(error,"review-forbidden");
     if(!Bound(binding,file->manifest())||Hash(SerializeEvidencePackage(file->manifest()))!=binding.manifest_sha256)
         return Fail(error,"review-target-mismatch");
     AnalysisRecordReview read;
-    if(!ReadAnalysisRecordReview(packages,binding.package_id,claims,&read,error))return false;
+    if(!ReadAnalysisRecordReview(packages,binding.package_id,claims,&read,error,cancelled))return false;
     if(Hash(SerializeEvidencePackage(read.package))!=binding.manifest_sha256)return Fail(error,"review-binding-digest-mismatch");
     VaReviewRecordV2 v;v.binding=binding;v.claims=claims;v.created_at_ms=created;
     // 사본에 없는 package 영역을 C++ 객체에도 남기지 않는다.
@@ -211,6 +211,15 @@ bool CreateAnalysisReviewRecord(const EvidencePackageStore& packages,const VaRev
     v.decisions=read.decisions;v.spec_sha256=Hash(Spec(v));v.observation_sha256=Hash(Evidence(v.evidence));v.policy_sha256=Hash(Policy());
     if(!ValidateVaReviewRecordV2(v,error))return false;
     if(!authorize(v.evidence.channel_id))return Fail(error,"review-forbidden");
+    *out=std::move(v);return true;
+}
+std::string AnalysisReviewSpecDigest(const ReviewTargetBindingV2& b,const std::vector<ReviewClaimSpec>& c) {
+    VaReviewRecordV2 v;v.binding=b;v.claims=c;return Hash(Spec(v));
+}
+bool CreateAnalysisReviewRecord(const EvidencePackageStore& packages,const VaReviewStore& store,const ReviewTargetBindingV2& binding,
+    const std::vector<ReviewClaimSpec>& claims,std::int64_t created,const std::function<bool(const std::string&)>& authorize,
+    std::string* id,std::string* error,const std::function<bool()>& cancelled) {
+    VaReviewRecordV2 v;if(!BuildAnalysisReviewRecord(packages,binding,claims,created,authorize,&v,error,cancelled))return false;
     return store.PublishV2(v,id,error,[&]{return (cancelled&&cancelled())||!authorize(v.evidence.channel_id);});
 }
 bool ReadAnalysisReviewRecord(const VaReviewStore& store,const std::string& id,
