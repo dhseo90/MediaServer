@@ -12,10 +12,11 @@ import {bootstrapRecordingUiAuth,createUiAuthPasswords,reservePort,stopServer,as
   from './verify_v410_recording_ui_contract.mjs';
 import {resolvePlaywrightModule,resolveNativeBrowserExecutable} from './v390_ui_native_adapter.mjs';
 
+const materialMode=process.env.MEDIA_SERVER_VA_MATERIAL_CHECKS==='1';
 const repo=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');
 const root=fs.mkdtempSync(path.join(fs.realpathSync(os.tmpdir()),'media-server-a-review-http-'));
 fs.chmodSync(root,0o700);const identity=fs.statSync(root);const started=Date.now();
-const report={featureId:'V450-A02/U02',command:'python3 scripts/internal/verify_va_review_confirmed.py --http',startedAtMs:started,
+const report={featureId:materialMode?'V450-A03/U03':'V450-A02/U02',command:'python3 scripts/internal/verify_va_review_confirmed.py '+(materialMode?'--materials-http':'--http'),startedAtMs:started,
   sourceSha256:crypto.createHash('sha256').update(fs.readFileSync(fileURLToPath(import.meta.url))).digest('hex'),
   actualUiPass:false,actualModel:false,checks:[],cleanup:{},status:'RUNNING',root,
   rootIdentity:{dev:identity.dev,ino:identity.ino,uid:identity.uid}};
@@ -89,6 +90,11 @@ try{
   const action=(d,name,cookie=admin,expected=200)=>req(prefix+'/drafts/'+d.id+'/'+name,cookie,'POST',{revision:d.revision},expected);
   const waitJob=async(id)=>{for(let i=0;i<120;++i){const d=await req(jobs+id);if(!['queued','running'].includes(d.state))return d;await pause(20);}throw Error('A job deadline');};
   const execute=async(b=body())=>{const d=await draft(b);await action(d,'confirm');const job=await action(d,'execute',admin,202);const done=await waitJob(job.id);check(done.state==='completed','A record completes');return {d,job,done,result:await req(prefix+'/'+done.reviewId)};};
+  if(materialMode){
+    const {checkMaterials}=await import('./va_review_material_http.mjs');
+    await checkMaterials({repo,root,base,req,execute,body,prefix,packs,packageInfo,packages,seedInfo,cookies,admin,report,check,pause,started});
+    check(chatCalls===0,'model transport trap: zero calls');check(!expired,'180 second bounded harness');
+  }else{
   for(const route of [packs+'?channelId=1',packs+'/'+packages[0],prefix+'?packageId='+packages[0]]){
     await req(route,null,'GET',undefined,401);for(const i of [2,4])await req(route,cookies[i],'GET',undefined,403);
     await req(route,cookies[3],'GET',undefined,403);
@@ -199,6 +205,7 @@ try{
   report.cleanup.secondProcess=await stopServer(child);await assertPortClosed(httpPort);await assertPortClosed(rtspPort);child=null;
   await start(false);const l=await call('/login',{method:'POST',body:new URLSearchParams({username:'admin',password:passwords[0]})});await l.arrayBuffer();admin=l.headers.getSetCookie().map(v=>v.split(';',1)[0]).join('; ');secrets.push(admin);
   await req(packs+'?channelId=1',admin,'GET',undefined,503);check(chatCalls===0,'no model/provider request in entire HTTP/browser run');check(!expired,'180 second bounded harness');
+  }
 }catch(error){failed=true;report.status='FAIL';report.failure=error.message;report.stack=error.stack;if(page){report.failureUi=await page.locator('#opsEvidenceStatus').textContent().catch(()=>null);report.failureRows=await page.locator('#opsEvidenceRows').innerText().catch(()=>null);report.failureResult=await page.locator('#opsAReviewResult').innerText().catch(()=>null);}
   let safe=diagnostics;for(const value of secrets)if(value)safe=safe.split(value).join('[secret]');report.failureDiagnostics=safe.split('\n').filter(x=>/error|fail|fatal|invalid/i.test(x)).slice(-12);}
 finally{
@@ -209,6 +216,6 @@ finally{
   if(udp){await new Promise(resolve=>udp.close(resolve));report.cleanup.udpClosed=true;}
   try{assert(!child||child.exitCode!==null||child.signalCode!==null,'active process');const s=fs.lstatSync(root);assert(!s.isSymbolicLink()&&s.dev===identity.dev&&s.ino===identity.ino&&s.uid===process.getuid(),'root ownership');fs.rmSync(root,{recursive:true});report.cleanup.rootAbsent=!fs.existsSync(root);assert(report.cleanup.rootAbsent,'cleanup remains');}catch{failed=true;report.cleanup.failed=true;}
   report.modelCalls=chatCalls;report.status=failed?'FAIL':'PASS';report.exit=failed?1:0;report.elapsedMs=Date.now()-started;
-  const dir=path.join(repo,'docs/release-artifacts/v4.5.0');let n=1;while(fs.existsSync(path.join(dir,`42-http-${n}.json`)))++n;
-  fs.writeFileSync(path.join(dir,`42-http-${n}.json`),JSON.stringify(report,null,2)+'\n');console.log(JSON.stringify({status:report.status,checks:report.checks.length,failure:report.failure,elapsedMs:report.elapsedMs,cleanup:report.cleanup}));process.exitCode=report.exit;
+  const dir=path.join(repo,'docs/release-artifacts/v4.5.0');let n=1;while(fs.existsSync(path.join(dir,`${materialMode?'46':'42'}-http-${n}.json`)))++n;
+  fs.writeFileSync(path.join(dir,`${materialMode?'46':'42'}-http-${n}.json`),JSON.stringify(report,null,2)+'\n');console.log(JSON.stringify({status:report.status,checks:report.checks.length,failure:report.failure,elapsedMs:report.elapsedMs,cleanup:report.cleanup}));process.exitCode=report.exit;
 }

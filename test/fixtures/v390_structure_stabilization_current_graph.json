@@ -11,8 +11,8 @@
     ".cpp",
     ".h"
   ],
-  "expectedProductionFiles": 387,
-  "expectedCppFiles": 178,
+  "expectedProductionFiles": 389,
+  "expectedCppFiles": 179,
   "moduleClassifiers": [
     {
       "id": "composition-root",
@@ -183,11 +183,13 @@
         "src/recording/va_review_confirmed_record.cpp",
         "src/ingress/a_record_review_application_service.cpp",
         "include/recording/va_review_questions.h",
-        "src/recording/va_review_questions.cpp"
+        "src/recording/va_review_questions.cpp",
+        "include/recording/va_review_material_requests.h",
+        "src/recording/va_review_material_requests.cpp"
       ],
       "prefixes": [],
-      "expectedFileCount": 137,
-      "expectedCppCount": 64
+      "expectedFileCount": 139,
+      "expectedCppCount": 65
     },
     {
       "id": "domain-and-registry-owners",
@@ -380,7 +382,7 @@
       "expectedCppCount": 16
     }
   ],
-  "expectedFileOwnershipSha256": "9a69695b3fe3d2aeb7426a5c27846a0c8d8133dcd649add2d4ce1cb164d01fe0",
+  "expectedFileOwnershipSha256": "213324834d377e961296a5b07095ac1ba54a102401c57b58f219efcfd11b43fa",
   "cmake": {
     "file": "CMakeLists.txt",
     "targets": [
@@ -485,6 +487,7 @@
           "src/recording/va_review_core.cpp",
           "src/recording/va_review_observer.cpp",
           "src/recording/va_review_questions.cpp",
+          "src/recording/va_review_material_requests.cpp",
           "src/recording/evidence_package_store.cpp",
           "src/recording/evidence_package_builder.cpp",
           "src/recording/visual_index_store.cpp",
@@ -565,9 +568,9 @@
           "src/ingress/gstreamer_rtsp_server.cpp",
           "src/core/youtube_resolver.cpp"
         ],
-        "productionSourceSha256": "c22d7126ec53596f8f41bbf198c38165762984f57c9a48d277973ebd87154a26",
-        "declaredSourceCount": 176,
-        "defaultActiveSourceCount": 175,
+        "productionSourceSha256": "2aa079e3a77e9278e2c5230c750985d02e8282f6ca231d0f80b088de8a4d2170",
+        "declaredSourceCount": 177,
+        "defaultActiveSourceCount": 176,
         "conditionalSources": [
           {
             "path": "src/core/youtube_resolver.cpp",
@@ -809,7 +812,7 @@
     },
     {
       "file": "src/ingress/product_ui_page_scripts.cpp",
-      "lineCount": 11072,
+      "lineCount": 11079,
       "primaryOwner": "product-ui-workspaces",
       "embeddedResponsibilities": [
         "ops-workspaces",

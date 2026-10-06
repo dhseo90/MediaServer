@@ -10588,8 +10588,15 @@ void AppendOpsShellScript(std::ostringstream& out,
                 const gaps={identity:'대상 연결',position:'위치',color:'색상',visibility:'가시성','ordered-time':'시간 순서'};
                 for(let i=0;i<r.claims.length;i++){const c=r.claims[i],d=r.decisions[i];const card=node('section');card.append(node('h5',`${c.label} — ${verdicts[d.verdict]}`),node('p','판정 범위: 분석 기록상의 관계'),node('p',`프레임 ${c.frames.map(n=>n+1).join(', ')} · PTS ${c.ptsNs.join(' → ')} ns`));
                   if(c.relation.includes('color'))card.append(node('p',`확인한 색상: ${c.requiredColor}`));if(c.relation.includes('visib'))card.append(node('p',`확인한 가시성: ${c.requiredVisible?'보임':'보이지 않음'}`));
-                  if(d.gaps.length){card.append(node('h5','추가로 필요한 자료 — 서버 규칙'));for(const g of d.gaps)card.append(node('p',`${gaps[g.kind]}: 프레임 ${g.frames.map(n=>n+1).join(', ')}`));}
+                  if(d.gaps.length){card.append(node('h5','구조화 부족 근거'));for(const g of d.gaps)card.append(node('p',`${gaps[g.kind]}: 프레임 ${g.frames.map(n=>n+1).join(', ')}`));}
                   for(const index of d.evidenceFrames){const b=node('button',`근거 프레임 ${index+1}`);b.type='button';b.className='button-secondary';b.disabled=r.evidenceAvailability!=='available';b.addEventListener('click',()=>{const image=images.get(index);if(alive()&&image){evidence.open=true;image.scrollIntoView({block:'center'});image.focus();}});card.append(b);}result.append(card);}
+                const materials=r.materialRequests,guide=node('section','','Materials');guide.style.overflowWrap='anywhere';
+                guide.append(node('h5','추가로 필요한 자료 — 서버 규칙'));
+                const materialStates={'available':'자료 요청 안내 가능','not-needed':'현재 판정에는 요청할 자료가 없습니다.','unavailable-limit':'자료 요청의 표현 한도를 넘었습니다. 위의 전체 판정과 부족 근거를 확인하세요.','unavailable-unsupported':'지원하지 않는 관계입니다. 추가 자료만으로 지원이 보장되지 않습니다.'};
+                guide.append(node('p',materialStates[materials.status]||'자료 요청 안내를 읽을 수 없습니다.'));
+                for(const item of materials.items){guide.append(node('p',item.text),node('small',`대응: ${item.gapRefs.map(g=>`${g.claimId} / gap ${g.gapIndex+1}`).join(', ')} · 출처: A 분석 기록 · 대상 ${item.targetId}`));}
+                if(materials.unsupportedClaims.length&&materials.status!=='unavailable-unsupported')guide.append(node('p',`미지원 명세: ${materials.unsupportedClaims.join(', ')}. 자료 요청으로 해결을 보장하지 않습니다.`));
+                guide.append(node('p',`현재 조회 시 서버 규칙으로 구성한 안내 · ${materials.rendererVersion}`),node('p','PTS는 미디어 시점이며 촬영 UTC가 아닙니다. 이 화면은 자료 요청 안내만 제공합니다. 자료 업로드·재분석을 실행하거나 과거 저장 결과를 자동 갱신하지 않습니다.'));result.append(guide);
                 status.textContent='저장된 구조화 판정을 조회했습니다. 영상 사실이나 모델 품질의 합격을 뜻하지 않습니다.';
               }catch(e){if(alive()&&serial===intent)status.textContent=e.message;}
             };

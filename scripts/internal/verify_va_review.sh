@@ -26,11 +26,12 @@ http_mode=len(sys.argv)==3 and sys.argv[2]=='--http-only'
 contract=len(sys.argv)==3 and sys.argv[2]=='--contract-only'
 cause_offline=len(sys.argv)==3 and sys.argv[2]=='--cause-offline'
 core_only=len(sys.argv)==3 and sys.argv[2] in ('--core-only','--observer-only')
+materials_only=len(sys.argv)==3 and sys.argv[2]=='--materials-only'
 questions_only=len(sys.argv)==3 and sys.argv[2]=='--questions-only'
 questions_local=local and sys.argv[2]=='--questions-local'
 observe_local=local and sys.argv[2]=='--observe-local'
 cause_ab=local and sys.argv[2]=='--cause-ab'
-if len(sys.argv)!=2 and not local and not lifecycle and not http_mode and not contract and not cause_offline and not core_only and not questions_only: raise RuntimeError('usage: verify_va_review.sh [--local http://127.0.0.1:port | --local-lifecycle http://127.0.0.1:port | --diagnostic-text http://127.0.0.1:port | --diagnostic-inversion http://127.0.0.1:port | --http-only | --contract-only | --cause-offline | --cause-ab http://127.0.0.1:port | --core-only | --observer-only | --observe-local http://127.0.0.1:port | --questions-only | --questions-local http://127.0.0.1:port]')
+if len(sys.argv)!=2 and not local and not lifecycle and not http_mode and not contract and not cause_offline and not core_only and not questions_only and not materials_only: raise RuntimeError('usage: verify_va_review.sh [--local http://127.0.0.1:port | --local-lifecycle http://127.0.0.1:port | --diagnostic-text http://127.0.0.1:port | --diagnostic-inversion http://127.0.0.1:port | --http-only | --contract-only | --cause-offline | --cause-ab http://127.0.0.1:port | --core-only | --observer-only | --observe-local http://127.0.0.1:port | --materials-only | --questions-only | --questions-local http://127.0.0.1:port]')
 archive=build/'libmedia_server_runtime.a'
 for directory in ('src','include'):
     for source in (repo/directory).rglob('*'):
@@ -43,10 +44,10 @@ try:
     link=shlex.split((build/'CMakeFiles/media_server.dir/link.txt').read_text())
     libs=[str(archive),*link[link.index('libmedia_server_runtime.a')+1:]]
     flags=shlex.split(subprocess.check_output(['pkg-config','--cflags','openssl','sqlite3','gstreamer-app-1.0'],text=True))
-    sources=sorted([*repo.glob('src/recording/va_review*.cpp'),*repo.glob('src/recording/va_review*.h'),*repo.glob('include/recording/va_review*.h'),repo/'scripts/internal/va_review_smoke.cpp',repo/'scripts/internal/va_review_quality_fixture.h',repo/'scripts/internal/verify_va_review.sh',repo/'scripts/internal/va_review_contract_replay.json',repo/'scripts/internal/va_review_cause_diagnostic.h',repo/'scripts/internal/va_review_core_checks.h',repo/'scripts/internal/va_review_question_checks.h',repo/'test/fixtures/v450_review_questions.json',repo/'test/fixtures/v450_review_core.json',repo/'test/fixtures/v450_review_observer.json'])
+    sources=sorted([*repo.glob('src/recording/va_review*.cpp'),*repo.glob('src/recording/va_review*.h'),*repo.glob('include/recording/va_review*.h'),repo/'scripts/internal/va_review_smoke.cpp',repo/'scripts/internal/va_review_quality_fixture.h',repo/'scripts/internal/verify_va_review.sh',repo/'scripts/internal/va_review_contract_replay.json',repo/'scripts/internal/va_review_cause_diagnostic.h',repo/'scripts/internal/va_review_core_checks.h',repo/'scripts/internal/va_review_question_checks.h',repo/'scripts/internal/va_review_material_checks.h',repo/'test/fixtures/v450_review_questions.json',repo/'test/fixtures/v450_review_core.json',repo/'test/fixtures/v450_review_observer.json'])
     for source in sources: print('[source]',source.relative_to(repo),hashlib.sha256(source.read_bytes()).hexdigest(),flush=True)
     shutil.copyfile(repo/'scripts/internal/va_review_contract_replay.json',root/'contract-replay.json')
-    if questions_only or questions_local:
+    if questions_only or questions_local or materials_only:
         shutil.copyfile(repo/'test/fixtures/v450_review_questions.json',root/'question-fixture.json')
         if questions_local:shutil.copyfile(repo/'docs/release-artifacts/v4.5.0/43-request-freeze.json',root/'questions-plan.json')
         candidate=os.environ.get('MEDIA_SERVER_VA_QUESTION_CANDIDATE')
@@ -167,7 +168,7 @@ try:
                     (root/'cause-stop').write_text('resource limit or observation failure')
                 stop.wait(.25)
         monitor=threading.Thread(target=observe);monitor.start()
-    elif cause_offline or core_only or questions_only:
+    elif cause_offline or core_only or questions_only or materials_only:
         endpoint='unused'
     else:
         server=http.server.ThreadingHTTPServer(('127.0.0.1',0),Handler)
@@ -202,7 +203,7 @@ try:
         if not 0<remaining<=800:raise RuntimeError('shared text budget exhausted or invalid')
         print('[text-budget]',json.dumps({'deadlineMonotonic':stage_deadline,'remainingSeconds':remaining}),flush=True)
     subprocess.run(['bash','-c','source "$2/scripts/internal/env_common.sh"; export MEDIA_SERVER_GST_CACHE_DIR="$1/gst-cache"; media_server_apply_homebrew_gst_env || exit; exec "$1/smoke" "$1" "$3" "$4"',
-        'va-review',str(root),str(repo),'--local-lifecycle' if lifecycle else sys.argv[2] if local or contract or cause_offline or core_only or questions_only else '--protocol',endpoint],check=True,timeout=60 if lifecycle else stage_deadline-time.monotonic() if local else 90,
+        'va-review',str(root),str(repo),'--local-lifecycle' if lifecycle else sys.argv[2] if local or contract or cause_offline or core_only or questions_only or materials_only else '--protocol',endpoint],check=True,timeout=60 if lifecycle else stage_deadline-time.monotonic() if local else 90,
         env=dict(os.environ,HTTP_PROXY='http://127.0.0.1:1',HTTPS_PROXY='http://127.0.0.1:1',ALL_PROXY='http://127.0.0.1:1',
             http_proxy='http://127.0.0.1:1',https_proxy='http://127.0.0.1:1',all_proxy='http://127.0.0.1:1',NO_PROXY='',no_proxy=''))
     focused_finished=time.monotonic()

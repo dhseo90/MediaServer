@@ -16,8 +16,8 @@ try:
     link=shlex.split((build/'CMakeFiles/media_server.dir/link.txt').read_text());libs=[str(archive),*link[link.index('libmedia_server_runtime.a')+1:]]
     flags=shlex.split(subprocess.check_output(['pkg-config','--cflags','openssl','sqlite3','gstreamer-app-1.0'],text=True))
     run(['c++','-std=c++17','-Wall','-Wextra','-Werror','-pthread','-I'+str(repo/'include'),'-DMEDIA_SERVER_USE_OPENSSL=1','-DMEDIA_SERVER_USE_SQLITE3=1','-DMEDIA_SERVER_USE_GSTREAMER=1','-DMEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND=1',*flags,str(repo/'scripts/internal/va_review_smoke.cpp'),*libs,'-o',str(root/'smoke')])
-    if '--http' in sys.argv:
-        env=dict(os.environ,MEDIA_SERVER_VA_REVIEW_FIXTURE_BIN=str(root/'smoke'))
+    if '--http' in sys.argv or '--materials-http' in sys.argv:
+        env=dict(os.environ,MEDIA_SERVER_VA_REVIEW_FIXTURE_BIN=str(root/'smoke'),MEDIA_SERVER_VA_MATERIAL_CHECKS='1' if '--materials-http' in sys.argv else '0')
         run(['node',str(repo/'scripts/internal/va_review_confirmed_http.mjs')],timeout=240,env=env)
     else:
         (root/'seed').mkdir(mode=0o700);(root/'read').mkdir(mode=0o700)

@@ -5,6 +5,9 @@
 이 문서는 구현 계약이며 실행 결과가 아니다. 실제 모델 준비·외부 전송 조건이 미충족이면
 해당 검증은 미완료로 남긴다. V450-08의 장시간·UI 풀테스트와 릴리즈 실행은 별도 승인이다.
 
+현행 추가 계약: 확정된 서버 gap의 자료 요청 표현은 [46절](#46-서버-부족-근거-기반-자료-요청-안내)의
+명시 승인된 서버 규칙 안내를 따른다. 아래 모델 provider 계약·과거 품질 실패를 성공으로 바꾸지 않는다.
+
 ## 범위와 호환
 
 불변 EvidencePackageV1에서 시간순 PNG를 읽어 운영자의 검토 질문에 대한 supports,
@@ -630,3 +633,27 @@ A 사본을 검증하고 실제 core 결과와 대조한 뒤 `BuildReviewQuestio
 
 공개 연결은 이번 비범위다. 일반 한국어 질문 정확도·자유질문 해석·영상 의미 검토·VA Review 전체 품질은
 별도 미완료로 유지하며, 실패 결과를 보고 prompt를 바꿔 다음 실험을 자동 시작하지 않는다.
+
+## 46: 서버 부족 근거 기반 자료 요청 안내
+
+사용자 결정으로 **확정 gap의 한국어 자료 요청 표현만** 모델 직접 생성에서 서버 규칙으로
+변경한다. 43~45의 모델 후보 품질 미충족·원문은 유지한다. 자유질문 자동 해석·영상 의미와
+sequence 검토는 별도 미완료이며, 이 안내가 기존 VLM 전체 기능을 대체하지 않는다.
+
+`BuildConfirmedReviewMaterialRequests`는 검증된 v3 snapshot·A reader와 core typed gap을
+사용한다. 시간 비교의 단일 시점/동일 PTS/역순, 누락된 위치·색상·가시성, A namespace/track/
+episode/sample 기록 연결을 구분한다. 관측 부재를 비가시성으로 바꾸거나 물리적 동일성을
+인증하지 않는다. 명시 합성 입력은 `explicit-input-unverified`이며 출처 label로 승격하지 않는다.
+같은 대상·관계/요구값/scope·gap·시간·출처·요청 목적만 공유하고 원 claim/gap 참조는 모두 보존한다.
+
+기존 A 결과 GET의 `materialRequests`는 `origin=server-rule`, `material-requests-v1`,
+`generatedAt=current-read`인 조회 시 표시다. 기존 record와 hash는 그대로다.
+`available/not-needed/unavailable-limit/unavailable-unsupported`를 구분하며 16항목,
+문장170 code point/512byte, 전체 JSON8192byte와 40KiB 응답의 남은 예산을 함께 적용한다.
+초과 시 안내 전체를 한도 상태로 반환하고 구조화 판정/gap을 잘라내지 않는다. 구형 네 그룹
+투영 가능 여부와 독립적이며 `questionsState=not-generated`, `modelQuality=not-evaluated`를 유지한다.
+
+기존 `/ops/events` 결과에 “추가로 필요한 자료 — 서버 규칙”으로 표시한다. 미디어 PTS는
+촬영 UTC가 아니며 업로드·재분석·과거 결과 자동 갱신을 제공하지 않는다. 모델 표현기 fallback,
+새 endpoint/저장 버전/확인 계약은 없다. [V450-K11/A03/U03](../../project-feature-test-inventory.md)의
+단기 직접·HTTP·변경 화면 검증만 수행하며 결과는 기존 개발 기록46에 연결한다.

@@ -182,6 +182,17 @@ native4GiB/model14GiB/workspace8GiB와5초 unload 유지. 자연스러움·중�
 생성 전 기존6요청과 model/think 외 필드 동일성을 검사한다. 런타임은 평가 소유 절대경로/포트이며
 43의 의미 기준은 유지한다. 후보·런타임 조합 비교이고 모델 단독 효과나 공개 채택 검사가 아니다.
 
+V450-K11 / V450-A03 / V450-U03(서버 부족 근거 자료 요청): `bash scripts/internal/verify_va_review.sh --materials-only`,
+`python3 scripts/internal/verify_va_review_confirmed.py --materials-http`.
+- 기존6사례9gap의 typed 대상/속성/시간/출처와 실제 문장을 대조한다. 단일/동일 PTS/역순,
+  부족 프레임 교환·HTML/지시성 대상, A 기록 없음/실제 비가시성, 공유/다른 목적, 무요청/미지원,
+  잘못된 참조·무결성·문자/항목/전체 바이트 경계와 record/spec/decision/gap 불변을 검사한다.
+- 실제 A 결과 GET의 additive `materialRequests` → `/ops/events` `opsAReviewMaterials`:
+  source/version/gap 대응, 정상/불필요/한도/미지원에도 전체 구조화 결과 유지, 역할/채널 비노출,
+  선택 변경·늦은 응답·desktop/mobile light/dark를 변경 화면에서 확인한다.
+- 모델 transport 호출은 실패이며0회여야 한다. 기존43~45의 모델 품질 FAIL과 별개인 서버 규칙
+  검사다. 단기 native/HTTP/변경 browser 범위이며 일반 acceptance/전체UI/30분/120분은 제외한다.
+
 V450-K06(관측 연결 후보, 공개 미연결): `--observer-only`는
 [test/fixtures/v450_review_observer.json](../test/fixtures/v450_review_observer.json)의 독립 기대값으로
 상대 bbox→원본 중심 변환, 양쪽 경계/면적/형식/유한성/null, 프레임·anchor 참조와 PNG 크기·hash를

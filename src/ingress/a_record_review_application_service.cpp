@@ -1,5 +1,6 @@
 // 파일 용도: 제한된 A 검토 초안/확인과 기존 worker 연결. 공개 입력에서 관측·판정·출처를 받지 않는다.
 #include "ingress/va_review_application_service.h"
+#include "recording/va_review_material_requests.h"
 #include "../recording/va_review_json.h"
 #include <algorithm>
 #include <set>
@@ -175,7 +176,12 @@ ApplicationServiceResult VaReviewApplicationService::AnalysisGet(const std::stri
     for(std::size_t i=0;i<a.decisions.size();++i){if(i)s+=',';const auto& d=a.decisions[i];
         s+="{\"claimId\":"+Q(d.claim_id)+",\"verdict\":"+Q(ReviewVerdictName(d.verdict))+",\"evidenceFrames\":"+Indices(d.evidence_frames)+",\"gaps\":[";
         for(std::size_t j=0;j<d.gaps.size();++j){if(j)s+=',';s+="{\"kind\":"+Q(ReviewGapName(d.gaps[j].kind))+",\"frames\":"+Indices(d.gaps[j].frames)+"}";}s+="]}";}
-    return {200,"OK",s+"]}"};
+    ReviewMaterialRequests materials;
+    if(!BuildConfirmedReviewMaterialRequests(v,&materials,&error))return Error(503,"review-projection-invalid");
+    // 표시 정보만 기존40KiB 출력 예산의 남은 공간을 사용한다. 저장 판정/gap은 절단하지 않는다.
+    const auto base_bytes=s.size()+sizeof("],\"materialRequests\":}")-1;
+    ApplyReviewMaterialRequestBudget(&materials,base_bytes<40*1024?40*1024-base_bytes:0);
+    return {200,"OK",s+"],\"materialRequests\":"+SerializeReviewMaterialRequests(materials)+"}"};
 }
 ApplicationServiceResult VaReviewApplicationService::AnalysisJob(const std::string& id,const std::string& owner,bool admin,bool write,const Authorize& authorize,bool cancel){
     if(!enabled_||stopped_)return Error(503,"review-disabled");VaReviewJob j;std::string error;
