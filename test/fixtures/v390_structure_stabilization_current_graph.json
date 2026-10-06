@@ -11,8 +11,8 @@
     ".cpp",
     ".h"
   ],
-  "expectedProductionFiles": 385,
-  "expectedCppFiles": 177,
+  "expectedProductionFiles": 387,
+  "expectedCppFiles": 178,
   "moduleClassifiers": [
     {
       "id": "composition-root",
@@ -181,11 +181,13 @@
         "src/recording/va_review_bound_record.cpp",
         "include/recording/va_review_confirmed_record.h",
         "src/recording/va_review_confirmed_record.cpp",
-        "src/ingress/a_record_review_application_service.cpp"
+        "src/ingress/a_record_review_application_service.cpp",
+        "include/recording/va_review_questions.h",
+        "src/recording/va_review_questions.cpp"
       ],
       "prefixes": [],
-      "expectedFileCount": 135,
-      "expectedCppCount": 63
+      "expectedFileCount": 137,
+      "expectedCppCount": 64
     },
     {
       "id": "domain-and-registry-owners",
@@ -378,7 +380,7 @@
       "expectedCppCount": 16
     }
   ],
-  "expectedFileOwnershipSha256": "85507606b24c69be5e0102cb547f177c024c957232dff2d2e9b07ee157bcb02d",
+  "expectedFileOwnershipSha256": "9a69695b3fe3d2aeb7426a5c27846a0c8d8133dcd649add2d4ce1cb164d01fe0",
   "cmake": {
     "file": "CMakeLists.txt",
     "targets": [
@@ -482,6 +484,7 @@
           "src/recording/va_review_provider.cpp",
           "src/recording/va_review_core.cpp",
           "src/recording/va_review_observer.cpp",
+          "src/recording/va_review_questions.cpp",
           "src/recording/evidence_package_store.cpp",
           "src/recording/evidence_package_builder.cpp",
           "src/recording/visual_index_store.cpp",
@@ -562,9 +565,9 @@
           "src/ingress/gstreamer_rtsp_server.cpp",
           "src/core/youtube_resolver.cpp"
         ],
-        "productionSourceSha256": "0a09eaa2af587628d44c480a2204322f30fef31ab8ba75234815be309175ee3f",
-        "declaredSourceCount": 175,
-        "defaultActiveSourceCount": 174,
+        "productionSourceSha256": "c22d7126ec53596f8f41bbf198c38165762984f57c9a48d277973ebd87154a26",
+        "declaredSourceCount": 176,
+        "defaultActiveSourceCount": 175,
         "conditionalSources": [
           {
             "path": "src/core/youtube_resolver.cpp",

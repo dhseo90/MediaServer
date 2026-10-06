@@ -603,3 +603,30 @@ VLM에는 실제 프레임의 시각적 의미와 서버가 확정한 부족 근
 [V450-K09/A02/U02](../../project-feature-test-inventory.md)의 모의 VA·실제 저장/HTTP/변경 브라우저 검사가
 대상이다. 모델 호출·설치·품질 재평가는0회이며 UI 풀테스트·장시간·릴리즈 검증의 대체가 아니다.
 명령별 결과와 최초 실패는 [개발 기록](../../release-artifacts/v4.5.0/development-results.md)에 연결한다.
+
+## 43: 확정 gap의 한국어 자료 요청 표현 (내부 전용)
+
+40~42의 A API/UI와 v1/v2/v3 저장은 유지한다. `BuildConfirmedReviewQuestionInput`은 기존 v3 확인·
+A 사본을 검증하고 실제 core 결과와 대조한 뒤 `BuildReviewQuestionInput`으로 질문 슬롯을 구성한다.
+명시 core fixture helper는 사용자 확인이나 독립 관측 인증을 주장하지 않는다. 새 record/version,
+질문 영속 저장·공개 연결·모델 관측/원 주장 해석은 없다. 기존 A 경로는 계속 모델 없이 동작한다.
+
+- insufficient의 유효 gap만 질문 슬롯으로 만든다. 동일 대상/종류/범위/시각 gap은 claim 간 공유하고
+  슬롯에 claim 참조를 보존한다. 최대16슬롯이며 초과를 오류로 반환하고 절단하지 않는다.
+  supported/contradicted/unsupported 또는 빈 슬롯에는 모델을 호출하지 않는다.
+- 명세·판정·gap·필요 시점·알려진 자료와 출처가 입력이다. v3 helper는 snapshot의 missing/unverified를
+  사용하고 reader의 빈 placeholder를 실제 관측 기록이라고 표시하지 않는다. 확인자/credential/PNG를
+  모델로 보내지 않는다. 원문과 대상 설명은 JSON 데이터이며 도구 실행 기능이 없다.
+- 출력은 서버 key→한국어 문장만 허용한다. 추가/중복/누락/다른 key, verdict/관측/gap 필드, 부분 JSON,
+  정상 stop이 아닌 종료를 거부한다. 문자열170 code point 및512byte, 전체8192byte, 입력 context32KiB/
+  전체 요청40KiB 상한을 함께 적용한다. schema/형식 적합성은 의미 품질 PASS가 아니다.
+- `GenerateReviewQuestions`는 기존 transport의 endpoint/TLS/인증/취소/시간 경계를 재사용한다.
+  모델 digest를 호출 전후 확인하며 재시도·fallback·서버 템플릿 대체가 없다. 결과는 별도 메모리 반환이며
+  성공/실패가 기존 spec/decision/gap/record를 바꾸지 않는다. `generated-format-valid`도 품질 PASS가 아니다.
+- [V450-K10](../../project-feature-test-inventory.md)의 여섯 입력과 필수 의미/금지 전제를 실제 호출 전에
+  고정한다. 새 대상·시점 조합 대조군2개를 포함한다. 실제 Qwen 모델/양자화/digest/Ollama/옵션은38과
+  대조하며 최대6회·재시도0·60초/800초·기존 자원/5초 unload 조건을 유지한다. 영상은 입력하지 않는다.
+  구현자의 직접 의미 검토이며 독립 심판 모델은 없다. 실행·품질·정리 결과는 기존 개발 기록의43에 연결한다.
+
+공개 연결은 이번 비범위다. 일반 한국어 질문 정확도·자유질문 해석·영상 의미 검토·VA Review 전체 품질은
+별도 미완료로 유지하며, 실패 결과를 보고 prompt를 바꿔 다음 실험을 자동 시작하지 않는다.

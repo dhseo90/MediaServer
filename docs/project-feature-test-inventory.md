@@ -167,6 +167,17 @@ V450-K09 / V450-A02 / V450-U02(사용자 확인 A 기록 검토): `verify_va_rev
 - `/ops/events` `opsEvidenceKind`, `opsAReviewPrepare/Confirm/Execute/Cancel/Result`: 선택·명세 확인·실행·결과/근거, 명세 변경·늦은 응답·중복 클릭, 다른 역할/채널, desktop/mobile light/dark를 실제 브라우저로 확인한다. 템플릿은 서버 규칙, 질문 not-generated/모델 not-evaluated 유지.
 - 이 ID는 변경 영역의 단기 native/HTTP/browser 검사다. 30분/120분/일반 acceptance/UI 풀테스트는 이번 제외이며 그 PASS를 대신하지 않는다. 모의 VA는 저장·전달 fixture이며 모델/영상 사실 품질 검사가 아니다.
 
+V450-K10(고정 gap의 한국어 자료 요청 표현): `bash scripts/internal/verify_va_review.sh --questions-only`와
+`--questions-local http://127.0.0.1:<port>`. [독립 의미 기준](../test/fixtures/v450_review_questions.json)을 호출 전에 고정한다.
+서버 core 실제 gap → 동일 gap 단일 슬롯 → 한국어 문장만 반환. 정상 단일/복수, 빈 슬롯 무호출,
+누락/중복/추가/타 claim/판정·관측 주입, 잘못된 참조, 바이트/길이, 부분 JSON/length/timeout/취소,
+지시성 데이터, 질문 실패 전후 기존 spec/decision/gap/v3 record 불변을 검사한다.
+형식 검사는 의미 PASS가 아니다. 실제6요청/각1회/재시도0, 기존 Qwen digest·옵션·60초/800초,
+native4GiB/model14GiB/workspace8GiB와5초 unload 유지. 자연스러움·중립성·새 자료·대상/속성·시점/순서·
+출처·사실 비추가를 원문과 직접 대조하며 구현자 검토임을 명시한다. explicit core 합성 입력과 실제 v3 helper
+검사를 구분하고 실제 사용자 확인/영상 인식/자유질문 해석 성공으로 세지 않는다.
+공개 route/control 없음. 단기 내부 검사이며 일반 acceptance/전체HTTP/UI/30분/120분/릴리즈는 제외한다.
+
 V450-K06(관측 연결 후보, 공개 미연결): `--observer-only`는
 [test/fixtures/v450_review_observer.json](../test/fixtures/v450_review_observer.json)의 독립 기대값으로
 상대 bbox→원본 중심 변환, 양쪽 경계/면적/형식/유한성/null, 프레임·anchor 참조와 PNG 크기·hash를
