@@ -932,7 +932,7 @@ VERSION/CMake·release metadata·최종 노트, 기록 보존/정리, PR/CI·mai
 ## 49: 명시 명세의 C 영상 관측 내부 경로
 
 48의 B~E를 `Build/Decode/ExtractReviewVisualObservations` 계열과
-`EvaluateReviewVisualClaims`에 구현한다(요청 build 함수명은 `BuildReviewVisualRequest`).
+`EvaluateReviewVisualClaims`에 구현했다(요청 build 함수명은 `BuildReviewVisualRequest`).
 `ReviewVisualClaim`은 policy/spec2와 좌표 없음, 기존 relation에 명시적인 `ReviewSampleChange`
 색상/가시성 변경 판별자를 결속한다. v1 enum/정책·A 저장 재생과 공개 provider는 바꾸지 않는다.
 C 반환 판정에는 source/level/policy 및 해당 claim의 부분 관측 사본을 함께 남긴다.
@@ -943,4 +943,19 @@ C 반환 판정에는 source/level/policy 및 해당 claim의 부분 관측 사�
 V2 대상은 정답 색을 누출하지 않는 '상자'로 표현하며 두 회색 상자의 식별 불명 기대는 유지한다.
 최초 V3/V4 가림 그림은 회색 본체로 읽힐 여지가 있어 모델 호출 전에 거부·보존했다.
 현재 입력은 넓은 전경 판자와 표식 창을 사용한다. 기대값/사례/합격선 변경이나 호출 후 수정은 아니다.
-실행 결과와 종료 상태는 후속 증거 마감에서 기록한다. 자유질문 초안·공개 연결·자료 요청 C 연결은 미착수다.
+실제6요청은 [고정 입력](../../release-artifacts/v4.5.0/49-request-freeze.json)과
+[평가 source](../../release-artifacts/v4.5.0/49-evaluation-freeze.json)에 결속했다.
+[원응답](../../release-artifacts/v4.5.0/49-local.log.gz)과
+[축별 결과](../../release-artifacts/v4.5.0/49-evaluation.json)를 보존하며 **품질 미충족으로 후보를 종료**한다.
+정상 종료·JSON·슬롯 coverage는6/6이지만 엄격한 typed 수용과 필수 관측 의미는 V1만1/6이다.
+V2 대상 모호성, V3/V4 가려진 색 단정·anchor 누락, V5 가림/부재 혼동,
+V6 다른 프레임의 대상 귀속 및 잘못된 조합이 남았다. 일부 노출 색상·표식 인식 성공은 별도로 기록했다.
+서버는 수용한 V1의2판정을 정확히 계산했고 나머지10판정은 무효 관측으로 미실행했다.
+최종 조합2/12이며 부족4개·미지원1개의 실제 모델 조합 gate도 미충족이다.
+모델 없는864검사·기존 경로663회귀는 이 실제 품질 결과와 구분한다.
+
+준비 중 parameter 표시 문자열의 순서 비교 실패는 생성0회 상태에서 원인과 최초 오류를 보존하고
+불변 parameter blob·전체 key/value 비교로 보완했다. 최초 show 원문 미보존 한계도 기록했다.
+코드/후보 고정 후6회 단발·재시도0회, 요청60초·자원·실제5초 unload 및 별도 사후 부재 검사는 통과했다.
+완료 명칭은 **C 관측 내부 구현 체크포인트 보존, 해당 품질 축 미충족**이다.
+기존 A/v1·46 안내·과거 실패는 유지하며 자유질문 초안·공개 연결·자료 요청 C 연결은 미착수다.

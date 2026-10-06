@@ -1,0 +1,1490 @@
+{
+  "status": "quality-not-met-candidate-closed",
+  "completionLabel": "C 관측 내부 구현 체크포인트 보존, 해당 품질 축 미충족",
+  "source": {
+    "baseline": "be075ffcaa18ee911d35f40f5bff22fdadfbc322",
+    "implementationCommit": "5e9c0ebb6078ec1ecadd53ab8f9630ef50fdaad5",
+    "evaluationCommit": "208aa4ef368650214a7a68ef4389402f1a3e1d34",
+    "freeze": "49-evaluation-freeze.json",
+    "requestFreeze": "49-request-freeze.json",
+    "codeChangedAfterEvaluation": false,
+    "finalCodeAndRequestHashRecheck": "PASS; all evaluation freeze code/runner/request digests unchanged"
+  },
+  "scope": "명시 ClaimSpec의 합성 저장 PNG→C typed 관측→내부 spec/policy2 서버 계산. 자유질문 해석·사용자 확인·공개 게시·정밀 좌표·물리 동일성 인증은 아님.",
+  "review": {
+    "method": "same-implementer-direct-PNG/oracle/raw-response-review",
+    "independentReview": false,
+    "judgeModelCalls": 0,
+    "semanticPassIsNotStringEquality": true,
+    "rawResponseRepaired": false,
+    "oracleSubstitution": false
+  },
+  "summary": {
+    "modelRequests": 6,
+    "uniqueRequests": 6,
+    "retries": 0,
+    "warmups": 0,
+    "normalJsonAndSlotCoveragePass": 6,
+    "strictTypedAcceptancePass": 1,
+    "observationSemanticPass": 1,
+    "claimCount": 12,
+    "coreExecuted": 2,
+    "coreCorrectOfExecuted": 2,
+    "coreNotRunInvalidObservations": 10,
+    "finalCombinationPass": 2,
+    "finalCombinationNotMet": 10,
+    "expectedVerdicts": {
+      "supported": 4,
+      "contradicted": 3,
+      "insufficient": 4,
+      "unsupported": 1
+    },
+    "actualExecutedVerdicts": {
+      "supported": 1,
+      "contradicted": 1,
+      "insufficient": 0,
+      "unsupported": 0
+    },
+    "allRequiredGatesPass": false,
+    "insufficient4AndUnsupported1Gate": "not-met/notRun",
+    "collectionCommandExit": 0,
+    "exitMeaning": "정상 종료된 6개 응답의 수집 완료이며 품질 PASS가 아니다."
+  },
+  "cases": [
+    {
+      "id": "V1",
+      "requestSha256": "bc7a19441193421b163d3666a549cc6bab1a1ba4e95bd99d62f79099a9c52c20",
+      "rawEnvelopeSha256": "6ca9154c34602ae932b190847a59bf18521fabe6967ba73bb860a747b12b3936",
+      "rawEnvelopeBytes": 713,
+      "contentSha256": "fb3e586babe5ccce87852d27dd26782eb2c2273e5a193aba64ae4c7625145442",
+      "contentBytes": 329,
+      "doneReason": "stop",
+      "thinkingReturned": false,
+      "elapsedMs": 8737,
+      "runtimeTotalNs": 8714053542,
+      "evalCount": 122,
+      "normalJsonAndSlotCoverage": "PASS",
+      "strictTypedAcceptance": "PASS",
+      "receiptError": "",
+      "observationSemantics": "PASS",
+      "manualFindings": [
+        "단일 프레임의 표식7 상자와 blue를 맞췄다. frame-local 대신 실제 보이는 표식의 self visual-cue를 반환했으며 단일 시점 판단에는 유효하다."
+      ],
+      "frames": [
+        {
+          "frameKey": "f0",
+          "ptsNs": 13000000000,
+          "oracleRef": "test/fixtures/v450_review_visual.json#/cases/0/frames/0",
+          "observed": {
+            "targetMatch": "matched",
+            "searchability": "complete",
+            "visibility": "visible",
+            "link": "visual-cue",
+            "anchorFrameKey": "f0",
+            "cueKind": "unique-mark",
+            "cueText": "상자 표식 '7'",
+            "cueFrameKeys": [
+              "f0"
+            ],
+            "color": "blue"
+          },
+          "literalDifferences": {
+            "link": {
+              "oracle": "frame-local",
+              "observed": "visual-cue"
+            }
+          },
+          "assessment": "PASS",
+          "note": "문자열 차이 목록은 의미 판정기가 아니다. V1의 실제 표식 self-cue는 허용된다."
+        }
+      ],
+      "claims": [
+        {
+          "id": "c0",
+          "expected": "supported",
+          "actual": "supported",
+          "coreCalculation": "PASS",
+          "finalCombination": "PASS",
+          "reason": null
+        },
+        {
+          "id": "c1",
+          "expected": "contradicted",
+          "actual": "contradicted",
+          "coreCalculation": "PASS",
+          "finalCombination": "PASS",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "id": "V2",
+      "requestSha256": "52228ad25f21f0410eddf7f9cad769dd5fd9443609e6332bdae21ba27bbf4300",
+      "rawEnvelopeSha256": "276a1a2138e94896caf9e0fbc2ece14e944a150a349f70d00b6a4a0169c444a8",
+      "rawEnvelopeBytes": 689,
+      "contentSha256": "a9d3cf018cd57ed46aa703d981226b2f0d34872536f940601df55a34f0d74d46",
+      "contentBytes": 306,
+      "doneReason": "stop",
+      "thinkingReturned": false,
+      "elapsedMs": 9186,
+      "runtimeTotalNs": 9171272875,
+      "evalCount": 111,
+      "normalJsonAndSlotCoverage": "PASS",
+      "strictTypedAcceptance": "FAIL",
+      "receiptError": "visual-invalid-cue",
+      "observationSemantics": "FAIL",
+      "manualFindings": [
+        "같은 설명에 맞는 두 상자 중 하나를 matched로 단정했다. 대상 불명 때문에 color=null이어야 하며 gray를 정확히 본 것만으로 대상 선택 성공이 아니다.",
+        "frame-local에 anchor f0와 cueFrameKeys f0를 넣어 typed 계약을 위반했다."
+      ],
+      "frames": [
+        {
+          "frameKey": "f0",
+          "ptsNs": 17000000000,
+          "oracleRef": "test/fixtures/v450_review_visual.json#/cases/1/frames/0",
+          "observed": {
+            "targetMatch": "matched",
+            "searchability": "complete",
+            "visibility": "visible",
+            "link": "frame-local",
+            "anchorFrameKey": "f0",
+            "cueKind": "none",
+            "cueText": "",
+            "cueFrameKeys": [
+              "f0"
+            ],
+            "color": "gray"
+          },
+          "literalDifferences": {
+            "targetMatch": {
+              "oracle": "ambiguous",
+              "observed": "matched"
+            },
+            "visibility": {
+              "oracle": "unknown",
+              "observed": "visible"
+            },
+            "color": {
+              "oracle": null,
+              "observed": "gray"
+            },
+            "link": {
+              "oracle": "unknown",
+              "observed": "frame-local"
+            }
+          },
+          "assessment": "see-case-manual-findings",
+          "note": null
+        }
+      ],
+      "claims": [
+        {
+          "id": "c0",
+          "expected": "insufficient",
+          "actual": null,
+          "coreCalculation": "notRun-invalid-observation",
+          "finalCombination": "not-met",
+          "reason": "visual-invalid-cue"
+        }
+      ]
+    },
+    {
+      "id": "V3",
+      "requestSha256": "87cb75480dc2f5256e190a5cf32d3e3dce095fd1150ccab5b9e672a29da9e619",
+      "rawEnvelopeSha256": "1d4b86fc9ca4ad982d39997b8b1b8153a317bb2c05648b9df492c64c3f575dc5",
+      "rawEnvelopeBytes": 3271,
+      "contentSha256": "f569968d64af5ca96ecb110994d28e4c472f3cbc9bc51406aeaa9a554f522b47",
+      "contentBytes": 2528,
+      "doneReason": "stop",
+      "thinkingReturned": false,
+      "elapsedMs": 51910,
+      "runtimeTotalNs": 51871918625,
+      "evalCount": 886,
+      "normalJsonAndSlotCoverage": "PASS",
+      "strictTypedAcceptance": "FAIL",
+      "receiptError": "visual-invalid-cue",
+      "observationSemantics": "FAIL",
+      "manualFindings": [
+        "f3은 표식만 보이고 본체 색은 가려졌는데 yellow로 단정했다.",
+        "나머지 f0/f1/f2/f4/f5/f6/f7의 가리지 않은 탐색 범위까지 obstructed라고 했다.",
+        "f1~f7의 cueFrameKeys에 공통 anchor f0가 없다. 표식7·visible 및 가리지 않은 본체 yellow는 맞았다."
+      ],
+      "frames": [
+        {
+          "frameKey": "f0",
+          "ptsNs": 20000000000,
+          "oracleRef": "test/fixtures/v450_review_visual.json#/cases/2/frames/0",
+          "observed": {
+            "targetMatch": "matched",
+            "searchability": "obstructed",
+            "visibility": "visible",
+            "link": "visual-cue",
+            "anchorFrameKey": "f0",
+            "cueKind": "unique-mark",
+            "cueText": "상자 표식7",
+            "cueFrameKeys": [
+              "f0"
+            ],
+            "color": "yellow"
+          },
+          "literalDifferences": {
+            "searchability": {
+              "oracle": "complete",
+              "observed": "obstructed"
+            }
+          },
+          "assessment": "see-case-manual-findings",
+          "note": null
+        },
+        {
+          "frameKey": "f1",
+          "ptsNs": 22000000000,
+          "oracleRef": "test/fixtures/v450_review_visual.json#/cases/2/frames/1",
+          "observed": {
+            "targetMatch": "matched",
+            "searchability": "obstructed",
+            "visibility": "visible",
+            "link": "visual-cue",
+            "anchorFrameKey": "f0",
+            "cueKind": "unique-mark",
+            "cueText": "상자 표식7",
+            "cueFrameKeys": [
+              "f1"
+            ],
+            "color": "yellow"
+          },
+          "literalDifferences": {
+            "searchability": {
+              "oracle": "complete",
+              "observed": "obstructed"
+            }
+          },
+          "assessment": "see-case-manual-findings",
+          "note": null
+        },
+        {
+          "frameKey": "f2",
+          "ptsNs": 24000000000,
+          "oracleRef": "test/fixtures/v450_review_visual.json#/cases/2/frames/2",
+          "observed": {
+            "targetMatch": "matched",
+            "searchability": "obstructed",
+            "visibility": "visible",
+            "link": "visual-cue",
+            "anchorFrameKey": "f0",
+            "cueKind": "unique-mark",
+            "cueText": "상자 표식7",
+            "cueFrameKeys": [
+              "f2"
+            ],
+            "color": "yellow"
+          },
+          "literalDifferences": {
+            "searchability": {
+              "oracle": "complete",
+              "observed": "obstructed"
+            }
+          },
+          "assessment": "see-case-manual-findings",
+          "note": null
+        },
+        {
+          "frameKey": "f3",
+          "ptsNs": 26000000000,
+          "oracleRef": "test/fixtures/v450_review_visual.json#/cases/2/frames/3",
+          "observed": {
+            "targetMatch": "matched",
+            "searchability": "obstructed",
+            "visibility": "visible",
+            "link": "visual-cue",
+            "anchorFrameKey": "f0",
+            "cueKind": "unique-mark",
+            "cueText": "상자 표식7",
+            "cueFrameKeys": [
+              "f3"
+            ],
+            "color": "yellow"
+          },
+          "literalDifferences": {
+            "color": {
+              "oracle": null,
+              "observed": "yellow"
+            }
+          },
+          "assessment": "see-case-manual-findings",
+          "note": null
+        },
+        {
+          "frameKey": "f4",
+          "ptsNs": 28000000000,
+          "oracleRef": "test/fixtures/v450_review_visual.json#/cases/2/frames/4",
+          "observed": {
+            "targetMatch": "matched",
+            "searchability": "obstructed",
+            "visibility": "visible",
+            "link": "visual-cue",
+            "anchorFrameKey": "f0",
+            "cueKind": "unique-mark",
+            "cueText": "상자 표식7",
+            "cueFrameKeys": [
+              "f4"
+            ],
+            "color": "yellow"
+          },
+          "literalDifferences": {
+            "searchability": {
+              "oracle": "complete",
+              "observed": "obstructed"
+            }
+          },
+          "assessment": "see-case-manual-findings",
+          "note": null
+        },
+        {
+          "frameKey": "f5",
+          "ptsNs": 30000000000,
+          "oracleRef": "test/fixtures/v450_review_visual.json#/cases/2/frames/5",
+          "observed": {
+            "targetMatch": "matched",
+            "searchability": "obstructed",
+            "visibility": "visible",
+            "link": "visual-cue",
+            "anchorFrameKey": "f0",
+            "cueKind": "unique-mark",
+            "cueText": "상자 표식7",
+            "cueFrameKeys": [
+              "f5"
+            ],
+            "color": "yellow"
+          },
+          "literalDifferences": {
+            "searchability": {
+              "oracle": "complete",
+              "observed": "obstructed"
+            }
+          },
+          "assessment": "see-case-manual-findings",
+          "note": null
+        },
+        {
+          "frameKey": "f6",
+          "ptsNs": 32000000000,
+          "oracleRef": "test/fixtures/v450_review_visual.json#/cases/2/frames/6",
+          "observed": {
+            "targetMatch": "matched",
+            "searchability": "obstructed",
+            "visibility": "visible",
+            "link": "visual-cue",
+            "anchorFrameKey": "f0",
+            "cueKind": "unique-mark",
+            "cueText": "상자 표식7",
+            "cueFrameKeys": [
+              "f6"
+            ],
+            "color": "yellow"
+          },
+          "literalDifferences": {
+            "searchability": {
+              "oracle": "complete",
+              "observed": "obstructed"
+            }
+          },
+          "assessment": "see-case-manual-findings",
+          "note": null
+        },
+        {
+          "frameKey": "f7",
+          "ptsNs": 34000000000,
+          "oracleRef": "test/fixtures/v450_review_visual.json#/cases/2/frames/7",
+          "observed": {
+            "targetMatch": "matched",
+            "searchability": "obstructed",
+            "visibility": "visible",
+            "link": "visual-cue",
+            "anchorFrameKey": "f0",
+            "cueKind": "unique-mark",
+            "cueText": "상자 표식7",
+            "cueFrameKeys": [
+              "f7"
+            ],
+            "color": "yellow"
+          },
+          "literalDifferences": {
+            "searchability": {
+              "oracle": "complete",
+              "observed": "obstructed"
+            }
+          },
+          "assessment": "see-case-manual-findings",
+          "note": null
+        }
+      ],
+      "claims": [
+        {
+          "id": "c0",
+          "expected": "insufficient",
+          "actual": null,
+          "coreCalculation": "notRun-invalid-observation",
+          "finalCombination": "not-met",
+          "reason": "visual-invalid-cue"
+        },
+        {
+          "id": "c1",
+          "expected": "contradicted",
+          "actual": null,
+          "coreCalculation": "notRun-invalid-observation",
+          "finalCombination": "not-met",
+          "reason": "visual-invalid-cue"
+        }
+      ]
+    },
+    {
+      "id": "V4",
+      "requestSha256": "2a66f985a4f27b1a69b2e9996f875014d2c714a146527f2046f3186449fd6281",
+      "rawEnvelopeSha256": "9f4680df5bf730e107fe6bd4e3ca9484c79d8053daad86a5e28fc0c78220e60f",
+      "rawEnvelopeBytes": 3270,
+      "contentSha256": "4fd81e7b26a463615e1c52b4dbe8fba89c516955ab9a92b0428536082688b4f6",
+      "contentBytes": 2526,
+      "doneReason": "stop",
+      "thinkingReturned": false,
+      "elapsedMs": 52714,
+      "runtimeTotalNs": 52694573375,
+      "evalCount": 886,
+      "normalJsonAndSlotCoverage": "PASS",
+      "strictTypedAcceptance": "FAIL",
+      "receiptError": "visual-invalid-cue",
+      "observationSemantics": "FAIL",
+      "manualFindings": [
+        "f3의 가려진 본체 색을 yellow로 단정했다.",
+        "f0/f1/f2/f4/f5/f6/f7을 obstructed로 잘못 표시하고 f1~f7에서 anchor 참조를 누락했다.",
+        "f5의 실제 blue 반례와 다른 노출 본체 yellow, 표식7·visible은 맞았다. 그러나 일부 정답이 전체 관측 수용을 대신하지 않는다."
+      ],
+      "frames": [
+        {
+          "frameKey": "f0",
+          "ptsNs": 41000000000,
+          "oracleRef": "test/fixtures/v450_review_visual.json#/cases/3/frames/0",
+          "observed": {
+            "targetMatch": "matched",
+            "searchability": "obstructed",
+            "visibility": "visible",
+            "link": "visual-cue",
+            "anchorFrameKey": "f0",
+            "cueKind": "unique-mark",
+            "cueText": "상자 표식7",
+            "cueFrameKeys": [
+              "f0"
+            ],
+            "color": "yellow"
+          },
+          "literalDifferences": {
+            "searchability": {
+              "oracle": "complete",
+              "observed": "obstructed"
+            }
+          },
+          "assessment": "see-case-manual-findings",
+          "note": null
+        },
+        {
+          "frameKey": "f1",
+          "ptsNs": 44000000000,
+          "oracleRef": "test/fixtures/v450_review_visual.json#/cases/3/frames/1",
+          "observed": {
+            "targetMatch": "matched",
+            "searchability": "obstructed",
+            "visibility": "visible",
+            "link": "visual-cue",
+            "anchorFrameKey": "f0",
+            "cueKind": "unique-mark",
+            "cueText": "상자 표식7",
+            "cueFrameKeys": [
+              "f1"
+            ],
+            "color": "yellow"
+          },
+          "literalDifferences": {
+            "searchability": {
+              "oracle": "complete",
+              "observed": "obstructed"
+            }
+          },
+          "assessment": "see-case-manual-findings",
+          "note": null
+        },
+        {
+          "frameKey": "f2",
+          "ptsNs": 47000000000,
+          "oracleRef": "test/fixtures/v450_review_visual.json#/cases/3/frames/2",
+          "observed": {
+            "targetMatch": "matched",
+            "searchability": "obstructed",
+            "visibility": "visible",
+            "link": "visual-cue",
+            "anchorFrameKey": "f0",
+            "cueKind": "unique-mark",
+            "cueText": "상자 표식7",
+            "cueFrameKeys": [
+              "f2"
+            ],
+            "color": "yellow"
+          },
+          "literalDifferences": {
+            "searchability": {
+              "oracle": "complete",
+              "observed": "obstructed"
+            }
+          },
+          "assessment": "see-case-manual-findings",
+          "note": null
+        },
+        {
+          "frameKey": "f3",
+          "ptsNs": 50000000000,
+          "oracleRef": "test/fixtures/v450_review_visual.json#/cases/3/frames/3",
+          "observed": {
+            "targetMatch": "matched",
+            "searchability": "obstructed",
+            "visibility": "visible",
+            "link": "visual-cue",
+            "anchorFrameKey": "f0",
+            "cueKind": "unique-mark",
+            "cueText": "상자 표식7",
+            "cueFrameKeys": [
+              "f3"
+            ],
+            "color": "yellow"
+          },
+          "literalDifferences": {
+            "color": {
+              "oracle": null,
+              "observed": "yellow"
+            }
+          },
+          "assessment": "see-case-manual-findings",
+          "note": null
+        },
+        {
+          "frameKey": "f4",
+          "ptsNs": 53000000000,
+          "oracleRef": "test/fixtures/v450_review_visual.json#/cases/3/frames/4",
+          "observed": {
+            "targetMatch": "matched",
+            "searchability": "obstructed",
+            "visibility": "visible",
+            "link": "visual-cue",
+            "anchorFrameKey": "f0",
+            "cueKind": "unique-mark",
+            "cueText": "상자 표식7",
+            "cueFrameKeys": [
+              "f4"
+            ],
+            "color": "yellow"
+          },
+          "literalDifferences": {
+            "searchability": {
+              "oracle": "complete",
+              "observed": "obstructed"
+            }
+          },
+          "assessment": "see-case-manual-findings",
+          "note": null
+        },
+        {
+          "frameKey": "f5",
+          "ptsNs": 56000000000,
+          "oracleRef": "test/fixtures/v450_review_visual.json#/cases/3/frames/5",
+          "observed": {
+            "targetMatch": "matched",
+            "searchability": "obstructed",
+            "visibility": "visible",
+            "link": "visual-cue",
+            "anchorFrameKey": "f0",
+            "cueKind": "unique-mark",
+            "cueText": "상자 표식7",
+            "cueFrameKeys": [
+              "f5"
+            ],
+            "color": "blue"
+          },
+          "literalDifferences": {
+            "searchability": {
+              "oracle": "complete",
+              "observed": "obstructed"
+            }
+          },
+          "assessment": "see-case-manual-findings",
+          "note": null
+        },
+        {
+          "frameKey": "f6",
+          "ptsNs": 59000000000,
+          "oracleRef": "test/fixtures/v450_review_visual.json#/cases/3/frames/6",
+          "observed": {
+            "targetMatch": "matched",
+            "searchability": "obstructed",
+            "visibility": "visible",
+            "link": "visual-cue",
+            "anchorFrameKey": "f0",
+            "cueKind": "unique-mark",
+            "cueText": "상자 표식7",
+            "cueFrameKeys": [
+              "f6"
+            ],
+            "color": "yellow"
+          },
+          "literalDifferences": {
+            "searchability": {
+              "oracle": "complete",
+              "observed": "obstructed"
+            }
+          },
+          "assessment": "see-case-manual-findings",
+          "note": null
+        },
+        {
+          "frameKey": "f7",
+          "ptsNs": 62000000000,
+          "oracleRef": "test/fixtures/v450_review_visual.json#/cases/3/frames/7",
+          "observed": {
+            "targetMatch": "matched",
+            "searchability": "obstructed",
+            "visibility": "visible",
+            "link": "visual-cue",
+            "anchorFrameKey": "f0",
+            "cueKind": "unique-mark",
+            "cueText": "상자 표식7",
+            "cueFrameKeys": [
+              "f7"
+            ],
+            "color": "yellow"
+          },
+          "literalDifferences": {
+            "searchability": {
+              "oracle": "complete",
+              "observed": "obstructed"
+            }
+          },
+          "assessment": "see-case-manual-findings",
+          "note": null
+        }
+      ],
+      "claims": [
+        {
+          "id": "c0",
+          "expected": "contradicted",
+          "actual": null,
+          "coreCalculation": "notRun-invalid-observation",
+          "finalCombination": "not-met",
+          "reason": "visual-invalid-cue"
+        },
+        {
+          "id": "c1",
+          "expected": "supported",
+          "actual": null,
+          "coreCalculation": "notRun-invalid-observation",
+          "finalCombination": "not-met",
+          "reason": "visual-invalid-cue"
+        }
+      ]
+    },
+    {
+      "id": "V5",
+      "requestSha256": "d53db123b33c32aebfcb2849f70832f03a1653f01eea970cf08d710be6caabc7",
+      "rawEnvelopeSha256": "9033880a8c25303b062cb464ba59b2396e85643aa6d91a22d813717a9705ecad",
+      "rawEnvelopeBytes": 1266,
+      "contentSha256": "49b032c42492991e8b75eb8c9a6081201bc1e1cd8d9c10a24d586059557ecd54",
+      "contentBytes": 805,
+      "doneReason": "stop",
+      "thinkingReturned": false,
+      "elapsedMs": 17872,
+      "runtimeTotalNs": 17853779084,
+      "evalCount": 268,
+      "normalJsonAndSlotCoverage": "PASS",
+      "strictTypedAcceptance": "FAIL",
+      "receiptError": "visual-invalid-link",
+      "observationSemantics": "FAIL",
+      "manualFindings": [
+        "f0의 표식9 visible과 f1의 빈 영역 complete/not-visible은 맞았다.",
+        "f1에서 unknown targetMatch에 frame-local을 결합해 거부됐다.",
+        "f2의 전경 판자 가림을 complete/not-visible로 바꾸었다. 가림의 unknown과 탐색 가능한 부재를 구분하지 못했다."
+      ],
+      "frames": [
+        {
+          "frameKey": "f0",
+          "ptsNs": 71000000000,
+          "oracleRef": "test/fixtures/v450_review_visual.json#/cases/4/frames/0",
+          "observed": {
+            "targetMatch": "matched",
+            "searchability": "complete",
+            "visibility": "visible",
+            "link": "visual-cue",
+            "anchorFrameKey": "f0",
+            "cueKind": "unique-mark",
+            "cueText": "표식9 가방",
+            "cueFrameKeys": [
+              "f0"
+            ]
+          },
+          "literalDifferences": {
+            "link": {
+              "oracle": "frame-local",
+              "observed": "visual-cue"
+            }
+          },
+          "assessment": "see-case-manual-findings",
+          "note": null
+        },
+        {
+          "frameKey": "f1",
+          "ptsNs": 75000000000,
+          "oracleRef": "test/fixtures/v450_review_visual.json#/cases/4/frames/1",
+          "observed": {
+            "targetMatch": "unknown",
+            "searchability": "complete",
+            "visibility": "not-visible",
+            "link": "frame-local",
+            "anchorFrameKey": null,
+            "cueKind": "none",
+            "cueText": "",
+            "cueFrameKeys": []
+          },
+          "literalDifferences": {
+            "link": {
+              "oracle": "unknown",
+              "observed": "frame-local"
+            }
+          },
+          "assessment": "see-case-manual-findings",
+          "note": null
+        },
+        {
+          "frameKey": "f2",
+          "ptsNs": 79000000000,
+          "oracleRef": "test/fixtures/v450_review_visual.json#/cases/4/frames/2",
+          "observed": {
+            "targetMatch": "unknown",
+            "searchability": "complete",
+            "visibility": "not-visible",
+            "link": "frame-local",
+            "anchorFrameKey": null,
+            "cueKind": "none",
+            "cueText": "",
+            "cueFrameKeys": []
+          },
+          "literalDifferences": {
+            "searchability": {
+              "oracle": "obstructed",
+              "observed": "complete"
+            },
+            "visibility": {
+              "oracle": "unknown",
+              "observed": "not-visible"
+            },
+            "link": {
+              "oracle": "unknown",
+              "observed": "frame-local"
+            }
+          },
+          "assessment": "see-case-manual-findings",
+          "note": null
+        }
+      ],
+      "claims": [
+        {
+          "id": "c0",
+          "expected": "supported",
+          "actual": null,
+          "coreCalculation": "notRun-invalid-observation",
+          "finalCombination": "not-met",
+          "reason": "visual-invalid-link"
+        },
+        {
+          "id": "c1",
+          "expected": "insufficient",
+          "actual": null,
+          "coreCalculation": "notRun-invalid-observation",
+          "finalCombination": "not-met",
+          "reason": "visual-invalid-link"
+        }
+      ]
+    },
+    {
+      "id": "V6",
+      "requestSha256": "7a2e51efb8b73c018927ed70b63d7c1fd4cb6d2fd54f15e5c690239cc7d4ced7",
+      "rawEnvelopeSha256": "600b1f645f57cbc4aac877a9477a9e4287e2c0514f4a6b76ab8382fb6f1aea71",
+      "rawEnvelopeBytes": 1374,
+      "contentSha256": "ec7929ab4024af08111806a4a5cf30f8548c008e01e9b04afea427e43e5c6a27",
+      "contentBytes": 901,
+      "doneReason": "stop",
+      "thinkingReturned": false,
+      "elapsedMs": 19826,
+      "runtimeTotalNs": 19810155292,
+      "evalCount": 307,
+      "normalJsonAndSlotCoverage": "PASS",
+      "strictTypedAcceptance": "FAIL",
+      "receiptError": "visual-invalid-combination",
+      "observationSemantics": "FAIL",
+      "manualFindings": [
+        "f0은 전경 판자뿐인데 f2의 가방·표식9가 보인다고 답했다. 프레임 귀속/관측 사실 실패다.",
+        "f1 빈 영역을 obstructed/not-visible로 결합했고 unknown 대상에 frame-local을 붙였다.",
+        "f2의 실제 가방과 표식9 visible은 맞았다. f0의 허위 cue를 포함한 연결 주장은 맞지 않다."
+      ],
+      "frames": [
+        {
+          "frameKey": "f0",
+          "ptsNs": 83000000000,
+          "oracleRef": "test/fixtures/v450_review_visual.json#/cases/5/frames/0",
+          "observed": {
+            "targetMatch": "matched",
+            "searchability": "complete",
+            "visibility": "visible",
+            "link": "visual-cue",
+            "anchorFrameKey": "f2",
+            "cueKind": "unique-mark",
+            "cueText": "red body with white '9' label",
+            "cueFrameKeys": [
+              "f0",
+              "f2"
+            ]
+          },
+          "literalDifferences": {
+            "targetMatch": {
+              "oracle": "unknown",
+              "observed": "matched"
+            },
+            "searchability": {
+              "oracle": "obstructed",
+              "observed": "complete"
+            },
+            "visibility": {
+              "oracle": "unknown",
+              "observed": "visible"
+            },
+            "link": {
+              "oracle": "unknown",
+              "observed": "visual-cue"
+            }
+          },
+          "assessment": "see-case-manual-findings",
+          "note": null
+        },
+        {
+          "frameKey": "f1",
+          "ptsNs": 89000000000,
+          "oracleRef": "test/fixtures/v450_review_visual.json#/cases/5/frames/1",
+          "observed": {
+            "targetMatch": "unknown",
+            "searchability": "obstructed",
+            "visibility": "not-visible",
+            "link": "frame-local",
+            "anchorFrameKey": null,
+            "cueKind": "none",
+            "cueText": "",
+            "cueFrameKeys": []
+          },
+          "literalDifferences": {
+            "searchability": {
+              "oracle": "complete",
+              "observed": "obstructed"
+            },
+            "link": {
+              "oracle": "unknown",
+              "observed": "frame-local"
+            }
+          },
+          "assessment": "see-case-manual-findings",
+          "note": null
+        },
+        {
+          "frameKey": "f2",
+          "ptsNs": 97000000000,
+          "oracleRef": "test/fixtures/v450_review_visual.json#/cases/5/frames/2",
+          "observed": {
+            "targetMatch": "matched",
+            "searchability": "complete",
+            "visibility": "visible",
+            "link": "visual-cue",
+            "anchorFrameKey": "f2",
+            "cueKind": "unique-mark",
+            "cueText": "red body with white '9' label",
+            "cueFrameKeys": [
+              "f0",
+              "f2"
+            ]
+          },
+          "literalDifferences": {
+            "link": {
+              "oracle": "frame-local",
+              "observed": "visual-cue"
+            }
+          },
+          "assessment": "see-case-manual-findings",
+          "note": null
+        }
+      ],
+      "claims": [
+        {
+          "id": "c0",
+          "expected": "supported",
+          "actual": null,
+          "coreCalculation": "notRun-invalid-observation",
+          "finalCombination": "not-met",
+          "reason": "visual-invalid-combination"
+        },
+        {
+          "id": "c1",
+          "expected": "insufficient",
+          "actual": null,
+          "coreCalculation": "notRun-invalid-observation",
+          "finalCombination": "not-met",
+          "reason": "visual-invalid-combination"
+        },
+        {
+          "id": "c2",
+          "expected": "unsupported",
+          "actual": null,
+          "coreCalculation": "notRun-invalid-observation",
+          "finalCombination": "not-met",
+          "reason": "visual-invalid-combination"
+        }
+      ]
+    }
+  ],
+  "offline": {
+    "build": "49-build-final.json",
+    "visualChecks": {
+      "pass": 864,
+      "fail": 0,
+      "record": "49-offline-final.json",
+      "oracleCoreCasesPass": 12,
+      "modelCalls": 0
+    },
+    "legacyChecks": {
+      "pass": 663,
+      "fail": 0,
+      "record": "49-regression-final.json",
+      "modelCalls": 0,
+      "scope": "v1 core/38 observer/record, A v2/v3 replay, 38/43/45/47 원 요청 바이트 불변"
+    },
+    "comments": {
+      "record": "49-comments-final.json",
+      "missingHeaders": 0,
+      "englishOnly": 0
+    },
+    "structure": {
+      "record": "49-structure.json",
+      "pass": 4,
+      "scope": "graph-only; 과거 coverage FAIL 해소나 독립 승인 재결속 아님"
+    },
+    "initialFailures": [
+      {
+        "record": "49-offline-1.json",
+        "cause": "잘못된 cue 반례에서 f7은 실제 8프레임 안의 유효 참조였다. 호출 전 반례를 f8로 수정.",
+        "followup": "49-offline-2.json"
+      },
+      {
+        "record": "49-offline-2.json",
+        "cause": "context 상한 검사 준비의 단일시점 ColorAt/8프레임 조합을 AllColor로 수정. 상한·합격 기준 불변.",
+        "followup": "49-offline-3.json"
+      },
+      {
+        "record": "49-build-1.json",
+        "cause": "C++17 구조분해 capture 경고를 명시 capture로 수정",
+        "followup": "49-build-final.json"
+      }
+    ],
+    "fixturePreparation": "49-fixture-preparation-1.json",
+    "fixturePreflight": "49-preflight.json",
+    "preflightSyntaxFailure": "49-preflight-syntax-failure.txt",
+    "preparationRuntimeFailure": "49-preparation-1.json",
+    "parameterRepair": "49-parameter-check.json",
+    "firstShowRawUnavailable": true,
+    "runtimePreparationAttempts": 2,
+    "firstPreparationGenerationCalls": 0,
+    "closeout": "49-closeout.json"
+  },
+  "resources": {
+    "modelBytes": 6446372616,
+    "modelPhysicalFootprintBytes": 8138480984,
+    "modelRssPlusVramBytes": 13795301128,
+    "modelVramBytes": 6446372616,
+    "workspaceBytes": 187071921
+  },
+  "timing": {
+    "requestElapsedMs": [
+      8737,
+      9186,
+      51910,
+      52714,
+      17872,
+      19826
+    ],
+    "requestElapsedSumMs": 160245,
+    "requestElapsedMaxMs": 52714,
+    "each60SecondsGate": "PASS",
+    "ownedRunnerSeconds": 164.12516287493054,
+    "bundle800SecondsGate": "PASS",
+    "meaning": "요청 경과는 digest/transport를 포함. runner는 준비/직접 빌드/수집/정리를 포함하며 전체 작업 시간이나 순수 추론 시간이 아니다. 해석기 통합 60초 검증 아님."
+  },
+  "resourceGates": {
+    "native4GiB": "PASS; 각 요청 검사 원출력, 수치 peak는 별도 기록하지 않음",
+    "modelPhysicalFootprint14GiB": "PASS",
+    "workspace8GiB": "PASS",
+    "accounting": "Apple physical footprint 사용. RSS+VRAM 합은 진단 참고값이며 한도에 중복 합산하지 않음."
+  },
+  "cleanup": {
+    "fiveSecondUnloadGate": {
+      "executed": true,
+      "status": "PASS",
+      "observations": [
+        {
+          "elapsedMs": 20,
+          "modelCount": 0
+        }
+      ]
+    },
+    "separatePostRun": {
+      "postRunModels": [],
+      "postRunModelAbsent": true,
+      "serverForced": false,
+      "serverExit": 0,
+      "ownedGroupAbsent": true,
+      "portClosed": true,
+      "elapsedSeconds": 164.12516287493054
+    },
+    "approvedRuntimeAndWeightsRetained": true,
+    "temporaryFiles": {
+      "root": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v49-png-odp1ccy7",
+      "removed": true,
+      "files": [
+        {
+          "name": "V5-f2.png",
+          "sha256": "5a776e62e26189968fcf67aa3a4ea82316ce4e58bfaf40607b0a27007f9e525c",
+          "preservation": "request plan exact PNG"
+        },
+        {
+          "name": "V4-contact.png",
+          "sha256": "a5f32bda83ff18e715d8b23dde223d75240d1f6aa1ec671903c044e9f5e5485e",
+          "preservation": "derived contact sheet; original PNGs preserved"
+        },
+        {
+          "name": "V5-f1.png",
+          "sha256": "2e0519b0db185f2cea76869a3987981c254a8ef6ca61674a6d2470f8224bf1a5",
+          "preservation": "request plan exact PNG"
+        },
+        {
+          "name": "V5-f0.png",
+          "sha256": "088dc55e7402502e6c4ca91cc26ddb6cd10e060e2509b0cd5a63491a8a51ea10",
+          "preservation": "request plan exact PNG"
+        },
+        {
+          "name": "V1-contact.png",
+          "sha256": "c57db7085efa3fcaef8533472a39251c6840bafffa52607ffaf93be780fa1712",
+          "preservation": "derived contact sheet; original PNGs preserved"
+        },
+        {
+          "name": "V3-f0.png",
+          "sha256": "c275b8d9e58da05ed98a07d60a562e39ba496b67e5eba9b17be5203f912c28c5",
+          "preservation": "request plan exact PNG"
+        },
+        {
+          "name": "V2-contact.png",
+          "sha256": "81985b646369542864ece35d3bd7b0a39b3499818235e392b59728b556a35b28",
+          "preservation": "derived contact sheet; original PNGs preserved"
+        },
+        {
+          "name": "V6-final-f0.png",
+          "sha256": "5a776e62e26189968fcf67aa3a4ea82316ce4e58bfaf40607b0a27007f9e525c",
+          "preservation": "request plan exact PNG"
+        },
+        {
+          "name": "V1-final-f0.png",
+          "sha256": "c57db7085efa3fcaef8533472a39251c6840bafffa52607ffaf93be780fa1712",
+          "preservation": "request plan exact PNG"
+        },
+        {
+          "name": "V6-final-f1.png",
+          "sha256": "2e0519b0db185f2cea76869a3987981c254a8ef6ca61674a6d2470f8224bf1a5",
+          "preservation": "request plan exact PNG"
+        },
+        {
+          "name": "V3-f1.png",
+          "sha256": "e548176bd127b94a249bec34fa39da898f65c600a2cb2283ae0d6aa0e2af1248",
+          "preservation": "request plan exact PNG"
+        },
+        {
+          "name": "V3-f3.png",
+          "sha256": "69065e89ae2d3f81c4db3d1537aab6ed74849af2d49a79a4e99cb3f0fa441b1e",
+          "preservation": "request plan exact PNG"
+        },
+        {
+          "name": "V6-final-f2.png",
+          "sha256": "802b3293b824244e0d7ef3b39d0170f316defbe570bff015a70b4fa4bd467ae8",
+          "preservation": "request plan exact PNG"
+        },
+        {
+          "name": "V3-f2.png",
+          "sha256": "c1cc13dc8bc0466dfdfbae5a7f26900bb1b0a25c36b2c64d17943dab3b49cbc4",
+          "preservation": "request plan exact PNG"
+        },
+        {
+          "name": "V3-f6.png",
+          "sha256": "c275b8d9e58da05ed98a07d60a562e39ba496b67e5eba9b17be5203f912c28c5",
+          "preservation": "request plan exact PNG"
+        },
+        {
+          "name": "V3-f7.png",
+          "sha256": "e548176bd127b94a249bec34fa39da898f65c600a2cb2283ae0d6aa0e2af1248",
+          "preservation": "request plan exact PNG"
+        },
+        {
+          "name": "V3-f5.png",
+          "sha256": "c1cc13dc8bc0466dfdfbae5a7f26900bb1b0a25c36b2c64d17943dab3b49cbc4",
+          "preservation": "request plan exact PNG"
+        },
+        {
+          "name": "V1-f0.png",
+          "sha256": "c57db7085efa3fcaef8533472a39251c6840bafffa52607ffaf93be780fa1712",
+          "preservation": "request plan exact PNG"
+        },
+        {
+          "name": "V3-f4.png",
+          "sha256": "e548176bd127b94a249bec34fa39da898f65c600a2cb2283ae0d6aa0e2af1248",
+          "preservation": "request plan exact PNG"
+        },
+        {
+          "name": "V3-final-f6.png",
+          "sha256": "c275b8d9e58da05ed98a07d60a562e39ba496b67e5eba9b17be5203f912c28c5",
+          "preservation": "request plan exact PNG"
+        },
+        {
+          "name": "V4-f0.png",
+          "sha256": "25e24fbd0fe7c86e6dd63849cce46aa260bbbc01e6d4b01b5ddb1d90220f7e97",
+          "preservation": "request plan exact PNG"
+        },
+        {
+          "name": "V4-final-f6.png",
+          "sha256": "25e24fbd0fe7c86e6dd63849cce46aa260bbbc01e6d4b01b5ddb1d90220f7e97",
+          "preservation": "request plan exact PNG"
+        },
+        {
+          "name": "V5-final-f1.png",
+          "sha256": "2e0519b0db185f2cea76869a3987981c254a8ef6ca61674a6d2470f8224bf1a5",
+          "preservation": "request plan exact PNG"
+        },
+        {
+          "name": "V5-final-f0.png",
+          "sha256": "088dc55e7402502e6c4ca91cc26ddb6cd10e060e2509b0cd5a63491a8a51ea10",
+          "preservation": "request plan exact PNG"
+        },
+        {
+          "name": "V2-final-f0.png",
+          "sha256": "81985b646369542864ece35d3bd7b0a39b3499818235e392b59728b556a35b28",
+          "preservation": "request plan exact PNG"
+        },
+        {
+          "name": "V4-final-f7.png",
+          "sha256": "458b744cb161098696238c2cb27b0318f419ba26441f2fc846c27bd1d026ff4d",
+          "preservation": "request plan exact PNG"
+        },
+        {
+          "name": "V4-f1.png",
+          "sha256": "458b744cb161098696238c2cb27b0318f419ba26441f2fc846c27bd1d026ff4d",
+          "preservation": "request plan exact PNG"
+        },
+        {
+          "name": "V3-final-f7.png",
+          "sha256": "e548176bd127b94a249bec34fa39da898f65c600a2cb2283ae0d6aa0e2af1248",
+          "preservation": "request plan exact PNG"
+        },
+        {
+          "name": "V3-final-f5.png",
+          "sha256": "c1cc13dc8bc0466dfdfbae5a7f26900bb1b0a25c36b2c64d17943dab3b49cbc4",
+          "preservation": "request plan exact PNG"
+        },
+        {
+          "name": "V4-f3.png",
+          "sha256": "184f71593339b03f305e4f7f89427f570bc20a1b0858108f4a49aacc8de68888",
+          "preservation": "request plan exact PNG"
+        },
+        {
+          "name": "V4-final-f5.png",
+          "sha256": "7de30d70d61c6b7de695879fad57642e49c8b299eface130e89088e3b90b015f",
+          "preservation": "request plan exact PNG"
+        },
+        {
+          "name": "V5-final-f2.png",
+          "sha256": "5a776e62e26189968fcf67aa3a4ea82316ce4e58bfaf40607b0a27007f9e525c",
+          "preservation": "request plan exact PNG"
+        },
+        {
+          "name": "V4-final-f4.png",
+          "sha256": "458b744cb161098696238c2cb27b0318f419ba26441f2fc846c27bd1d026ff4d",
+          "preservation": "request plan exact PNG"
+        },
+        {
+          "name": "V4-f2.png",
+          "sha256": "a709cadc38a7091b1379c0bc958c2f31f89fbc2e23b6538a5ec6a86eba508ed6",
+          "preservation": "request plan exact PNG"
+        },
+        {
+          "name": "V3-final-f4.png",
+          "sha256": "e548176bd127b94a249bec34fa39da898f65c600a2cb2283ae0d6aa0e2af1248",
+          "preservation": "request plan exact PNG"
+        },
+        {
+          "name": "V3-final-f0.png",
+          "sha256": "c275b8d9e58da05ed98a07d60a562e39ba496b67e5eba9b17be5203f912c28c5",
+          "preservation": "request plan exact PNG"
+        },
+        {
+          "name": "V4-f6.png",
+          "sha256": "25e24fbd0fe7c86e6dd63849cce46aa260bbbc01e6d4b01b5ddb1d90220f7e97",
+          "preservation": "request plan exact PNG"
+        },
+        {
+          "name": "V4-final-f0.png",
+          "sha256": "25e24fbd0fe7c86e6dd63849cce46aa260bbbc01e6d4b01b5ddb1d90220f7e97",
+          "preservation": "request plan exact PNG"
+        },
+        {
+          "name": "V6-f2.png",
+          "sha256": "802b3293b824244e0d7ef3b39d0170f316defbe570bff015a70b4fa4bd467ae8",
+          "preservation": "request plan exact PNG"
+        },
+        {
+          "name": "V4-final-f1.png",
+          "sha256": "458b744cb161098696238c2cb27b0318f419ba26441f2fc846c27bd1d026ff4d",
+          "preservation": "request plan exact PNG"
+        },
+        {
+          "name": "V4-f7.png",
+          "sha256": "458b744cb161098696238c2cb27b0318f419ba26441f2fc846c27bd1d026ff4d",
+          "preservation": "request plan exact PNG"
+        },
+        {
+          "name": "V3-final-f1.png",
+          "sha256": "e548176bd127b94a249bec34fa39da898f65c600a2cb2283ae0d6aa0e2af1248",
+          "preservation": "request plan exact PNG"
+        },
+        {
+          "name": "V3-final-f3.png",
+          "sha256": "e61e57cad304c83e0af2be650eb2c264c10a18b98478039093ddf10c35c38397",
+          "preservation": "request plan exact PNG"
+        },
+        {
+          "name": "V4-f5.png",
+          "sha256": "7de30d70d61c6b7de695879fad57642e49c8b299eface130e89088e3b90b015f",
+          "preservation": "request plan exact PNG"
+        },
+        {
+          "name": "V4-final-f3.png",
+          "sha256": "c597c6e562686b09963f51807b92731563fd05960855d949a880fa0ef7ae5163",
+          "preservation": "request plan exact PNG"
+        },
+        {
+          "name": "V5-contact.png",
+          "sha256": "9b0fc76a41867af6c387149129fa71077e9463d514db81217cd4c46008114f67",
+          "preservation": "derived contact sheet; original PNGs preserved"
+        },
+        {
+          "name": "V6-f0.png",
+          "sha256": "5a776e62e26189968fcf67aa3a4ea82316ce4e58bfaf40607b0a27007f9e525c",
+          "preservation": "request plan exact PNG"
+        },
+        {
+          "name": "V6-f1.png",
+          "sha256": "2e0519b0db185f2cea76869a3987981c254a8ef6ca61674a6d2470f8224bf1a5",
+          "preservation": "request plan exact PNG"
+        },
+        {
+          "name": "V4-final-f2.png",
+          "sha256": "a709cadc38a7091b1379c0bc958c2f31f89fbc2e23b6538a5ec6a86eba508ed6",
+          "preservation": "request plan exact PNG"
+        },
+        {
+          "name": "V4-f4.png",
+          "sha256": "458b744cb161098696238c2cb27b0318f419ba26441f2fc846c27bd1d026ff4d",
+          "preservation": "request plan exact PNG"
+        },
+        {
+          "name": "V3-final-f2.png",
+          "sha256": "c1cc13dc8bc0466dfdfbae5a7f26900bb1b0a25c36b2c64d17943dab3b49cbc4",
+          "preservation": "request plan exact PNG"
+        },
+        {
+          "name": "V6-contact.png",
+          "sha256": "6c9b49424a4a0b10bf57a0cdd65fc8871cdbb9c1bfb3ebc8e384fc26a1af9679",
+          "preservation": "derived contact sheet; original PNGs preserved"
+        },
+        {
+          "name": "V2-f0.png",
+          "sha256": "81985b646369542864ece35d3bd7b0a39b3499818235e392b59728b556a35b28",
+          "preservation": "request plan exact PNG"
+        },
+        {
+          "name": "V3-contact.png",
+          "sha256": "a6acd5ee11661ab3f2cbceb303ebb9ddb5a2ead50fabab2d0824ae0e0ba3de5f",
+          "preservation": "derived contact sheet; original PNGs preserved"
+        }
+      ],
+      "ownedPreparationScriptsRemoved": [
+        {
+          "path": "/private/tmp/v450_make_visual_fixture.py",
+          "sha256": "80dca7b90a8bd69f3478fa935b8adecb8bb05d2f6b05ef850d25bc4e77a42252"
+        },
+        {
+          "path": "/private/tmp/v450_run49.py",
+          "sha256": "54464a676717f00fae89dc17a37ac3b0cec6d8bf16e09900ed84abcaa2aaba31"
+        },
+        {
+          "path": "/private/tmp/v450_preflight49.py",
+          "sha256": "3a2400e8d30257c880f9ce291845d97fe11af45281073fc921a5a224db3a8ee4"
+        }
+      ],
+      "retained": "actual fixture/source, draft+final request PNG bytes, raw logs and results; approved model/runtime retained"
+    }
+  },
+  "preservation": {
+    "rawLogArchives": [
+      {
+        "path": "49-build-1.log.gz",
+        "rawBytes": 3261,
+        "rawSha256": "ee4ab349cb1435f3790924c5a5888ca5ea501439cf0732eee2c3a3db5434f3a5",
+        "gzipSha256": "ed169be78c23f70943a09689755156e9e110f325be8f2622133ac9c01a91bd23"
+      },
+      {
+        "path": "49-build-2.log.gz",
+        "rawBytes": 279,
+        "rawSha256": "6fa35f6e24c6c7b2a7eae9e91cc113ca72ad10da9fd0021a52c0151ac9c8e1d9",
+        "gzipSha256": "b96d4332313667eeed932659567bf08029108da9161b28dd120b91e76b0b3f7b"
+      },
+      {
+        "path": "49-build-3.log.gz",
+        "rawBytes": 279,
+        "rawSha256": "6fa35f6e24c6c7b2a7eae9e91cc113ca72ad10da9fd0021a52c0151ac9c8e1d9",
+        "gzipSha256": "b96d4332313667eeed932659567bf08029108da9161b28dd120b91e76b0b3f7b"
+      },
+      {
+        "path": "49-build-final.log.gz",
+        "rawBytes": 275,
+        "rawSha256": "17cea2b8ca934b6871b3bf09c7d9fd2d691e6a1568276195132d23d4e400853e",
+        "gzipSha256": "5df500d06b122d1608409cb72fb50ec4796c7ee1f11078c641caf541acade1bb"
+      },
+      {
+        "path": "49-comments-final.log.gz",
+        "rawBytes": 97,
+        "rawSha256": "a41c9f406439ac3e94744814928f4948297561f7cc588253cf637fb4bc734651",
+        "gzipSha256": "9985e1ff57913e08f8a40e442348c27118be1902c05d491c517b00a7e1e2dc8c"
+      },
+      {
+        "path": "49-comments.log.gz",
+        "rawBytes": 97,
+        "rawSha256": "5fa6788d372eb3e7e38b152ca52ce4f4360c773430d6151a74dd9daecb632c78",
+        "gzipSha256": "4eebc4d15bda8bf5a176765313e77717b6eb216f4adb72f54528844dfd1e3566"
+      },
+      {
+        "path": "49-docs.log.gz",
+        "rawBytes": 186,
+        "rawSha256": "146b716a2f9283d189f2d6ecd7f4459e295aea450b6ac4d672fed30d7c13b1f3",
+        "gzipSha256": "40094635822c695cec3bdb308df9543a2c6272eb64b18d18dc1869034ba12523"
+      },
+      {
+        "path": "49-local.log.gz",
+        "rawBytes": 25551,
+        "rawSha256": "800fd2ef224be69e98d850e753c03594a4f51b2a3db6e12059db7867ebe2554e",
+        "gzipSha256": "eaaa17af84e620b5c5893ff82afdeec1a76ac34e8b820e677a6221482ded30d9"
+      },
+      {
+        "path": "49-offline-1.log.gz",
+        "rawBytes": 28042,
+        "rawSha256": "f5a318dc59379998b402560217112347b29dcfb1d5723d1b0eb5cb0f2ddffe51",
+        "gzipSha256": "b1dee97ce54042c53bc0bc5d433b10162f5870ef8f8f3c66223264ad648a1f47"
+      },
+      {
+        "path": "49-offline-2.log.gz",
+        "rawBytes": 30792,
+        "rawSha256": "5c4472151b1f3650b74fb93f3126b33bcf5a3be59c721a0d7107490912711a78",
+        "gzipSha256": "5a13c4ce98c50f0c8faaa164431ad8b2668e7a2d584c2bb813a2f348caf4ec9a"
+      },
+      {
+        "path": "49-offline-3.log.gz",
+        "rawBytes": 33728,
+        "rawSha256": "9e8bd4833aa1790d0b98cc07992b3ef609df546d3e783d684ad2bf9b3bc576c8",
+        "gzipSha256": "48b3cb3d4b90bc1f2453c23fb193d74435eb007834380887ba911a89a56187ef"
+      },
+      {
+        "path": "49-offline-4.log.gz",
+        "rawBytes": 33728,
+        "rawSha256": "959b04465f8d5119817f0d755f07df0bfa53ec4926a22de0f37df326faa58a34",
+        "gzipSha256": "54b9af4530798dc8b43ed795c70ba7faece1e9ecc7ec83396113a7289f34abde"
+      },
+      {
+        "path": "49-offline-final.log.gz",
+        "rawBytes": 34584,
+        "rawSha256": "ce402ace392a44a29ff3d2fe00db5e3236c97a0d31d120cc4e70e887ad193192",
+        "gzipSha256": "7ca23511d3f88c2ad6b201f8282e78b008b2a0984381a36bdada32a43efe37ee"
+      },
+      {
+        "path": "49-ollama.log.gz",
+        "rawBytes": 214709,
+        "rawSha256": "81ce4ea8438629a715f0b68054ce5eba861719efff445fd08125956ff131067a",
+        "gzipSha256": "e9ce034ee37c42eb03d3da74eb7b1d5a080ae504dd4c95168772db11aa3910d6"
+      },
+      {
+        "path": "49-preparation-1-ollama.log.gz",
+        "rawBytes": 2393,
+        "rawSha256": "e8b7f418da65130920850e6b84e05223c9259402bc5508499e3291db842f61d9",
+        "gzipSha256": "eca10e7457cd6142496992a23443f3579f87c6d54879ee2292d5daa7be3c1d71"
+      },
+      {
+        "path": "49-regression-1.log.gz",
+        "rawBytes": 46332,
+        "rawSha256": "4ee5fc56e5a7f7e120f7ee833a5d7fa7b84001603be196ce628f8f166971eed0",
+        "gzipSha256": "0b7aeb340ce02fc1c427ab8df194540fbf0c523a91e0fd37ae8839ebfb74e90a"
+      },
+      {
+        "path": "49-regression-final.log.gz",
+        "rawBytes": 46332,
+        "rawSha256": "828fb910f2f1721f48012763f07d9ecdba486af2214738fdd6669be20e8008bc",
+        "gzipSha256": "48956cd71384faec733e5691872ad1ab6dd2d9d172f69f19884ea1ddcc74235d"
+      },
+      {
+        "path": "49-structure.log.gz",
+        "rawBytes": 295,
+        "rawSha256": "5ea6643dfdfb92735a8965aa33a38b9de9d30c570690efc4b8c2444236667f3c",
+        "gzipSha256": "36cd8e1bec4083a81e997921d8ee123882227812cd80cdc737c2aeff6aaed864"
+      },
+      {
+        "path": "49-whitespace-final.log.gz",
+        "rawBytes": 0,
+        "rawSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "gzipSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+      },
+      {
+        "path": "49-whitespace.log.gz",
+        "rawBytes": 0,
+        "rawSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "gzipSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+      }
+    ],
+    "rawMeaning": "gzip 해제 바이트가 원출력과 동일. visual-raw의 JSON 문자열을 decode하면 원 응답 envelope 바이트를 복원한다. rawSha256은 압축 전 바이트에 대한 값.",
+    "past34Through48Unchanged": true
+  },
+  "unchanged": [
+    "v1 core/A 판정·1px 정책·v1/v2/v3 저장 의미",
+    "공개 provider/API/UI·46 서버 자료 요청 안내",
+    "기존 설치·사용자 모델·제품 기본값",
+    "38/43/45/47 품질 종료·40~42/46 완료·48 문서 계약"
+  ],
+  "notRun": [
+    "자유질문 해석기",
+    "C 공개 API/UI/record 연결",
+    "기존 모델 신규 Submit 제한",
+    "일반 acceptance/전체 HTTP/UI/30분/120분",
+    "추가 모델 평가/다운로드/설치",
+    "PR/main/tag/Release"
+  ],
+  "nextBoundary": "이 후보의 typed 조합·가림/불명·프레임 귀속 품질 미충족. 내부 구현만 보존하며 공개 연결 가능으로 판단하지 않는다. prompt/fixture 재조정·추가 모델 호출·해석기를 자동 시작하지 않는다."
+}

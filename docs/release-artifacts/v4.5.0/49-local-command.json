@@ -1,0 +1,10 @@
+{
+  "command": [
+    "bash",
+    "scripts/internal/verify_va_review.sh",
+    "--visual-local",
+    "http://127.0.0.1:61423"
+  ],
+  "exit": 0,
+  "rawSha256": "800fd2ef224be69e98d850e753c03594a4f51b2a3db6e12059db7867ebe2554e"
+}

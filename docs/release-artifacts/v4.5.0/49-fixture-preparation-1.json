@@ -1,0 +1,7 @@
+{
+  "status": "pre-call-fixture-rejected",
+  "modelCalls": 0,
+  "requestDraftSha256": "3c164ef1d57b24d3cbca8ce8c4182ff67946f1934c93777bfc76792a0aab10f2",
+  "reason": "V3/V4 f3 gray cover could be read as gray box body; visible marker readable but occlusion not sufficiently distinguished. V1/V2 and V5/V6 inspected. Repair before model calls: foreground board spanning search area with marker window; expected color remains unknown.",
+  "inspection": "same implementer viewed all24 PNGs in six contact sheets; not product UI verification"
+}

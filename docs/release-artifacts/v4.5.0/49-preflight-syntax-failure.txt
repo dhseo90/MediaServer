@@ -1,0 +1,6 @@
+Read-only preflight snippet, exit 1, before execution/model calls:
+  File "<stdin>", line 8
+    for i,(m,f) in enumerate(zip(images,manifest['frames']))):
+                                                            ^
+SyntaxError: unmatched ')'
+Corrected the extra closing parenthesis in the temporary inspection snippet; no product/input changes.

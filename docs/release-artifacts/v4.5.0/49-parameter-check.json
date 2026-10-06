@@ -1,0 +1,7 @@
+{
+  "syntax": "PASS",
+  "orderInvariant": "PASS",
+  "changedValueRejected": "PASS",
+  "duplicateRejected": "PASS",
+  "modelCalls": 0
+}
