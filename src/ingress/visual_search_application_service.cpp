@@ -39,6 +39,53 @@ bool Parse(const Query& raw,recording::VisualSearchQuery* q){
         q->start_utc_ns=a*1000000;q->end_utc_ns=b*1000000;}
     q->contract=recording::VisualEmbeddingContract::Siglip2();return true;
 }
+// 게시본 전체가 아닌 허가된 채널의 표본 통계다. UTC 구간 내부의 연속 coverage는 알 수 없다.
+std::string Stamp(const std::optional<std::int64_t>& value){return value?std::to_string(*value):"null";}
+std::string Refresh(const recording::VisualIndexReadView& view){
+    const auto& s=view.status;
+    return "{\"state\":"+Quote(s.state)+",\"attemptState\":"+Quote(s.attempt_state)+
+        ",\"attemptStartedAtMs\":"+Stamp(s.attempt_started_ms)+",\"attemptFinishedAtMs\":"+Stamp(s.attempt_finished_ms)+
+        ",\"lastSuccessAtMs\":"+Stamp(s.last_success_ms)+",\"error\":"+Quote(s.error)+
+        ",\"usingPreviousPublication\":"+(view.index&&(s.attempt_state=="running"||s.attempt_state=="failed")?"true":"false")+"}";
+}
+std::string ChannelsSummary(const recording::VisualIndexReadView& view,const std::vector<std::string>& channels,
+    const std::function<bool()>& expired={}){
+    struct Counts{std::size_t count{0},unknown{0};std::optional<std::int64_t> first,last;};
+    std::map<std::string,Counts> counts;for(const auto& id:channels)counts.emplace(id,Counts{});
+    if(view.index)for(const auto& row:view.index->documents()){
+        if(expired&&expired())throw std::runtime_error("visual-search-busy");
+        const auto it=counts.find(row.channel_id);if(it==counts.end())continue;auto& c=it->second;++c.count;
+        if(!row.utc_ns){++c.unknown;continue;}
+        if(!c.first||*row.utc_ns<*c.first)c.first=row.utc_ns;
+        if(!c.last||*row.utc_ns>*c.last)c.last=row.utc_ns;
+    }
+    std::string out="[";
+    for(const auto& entry:counts){const auto& c=entry.second;
+        const recording::VisualSourceCoverage* source=nullptr;
+        if(view.publication&&view.publication->coverage){const auto it=view.publication->coverage->find(entry.first);
+            if(it!=view.publication->coverage->end())source=&it->second;}
+        if(out.size()>1)out+=',';
+        out+="{\"channelId\":"+Quote(entry.first)+",\"indexedFrames\":"+(view.index?std::to_string(c.count):"null")+
+            ",\"unknownTimeFrames\":"+(view.index?std::to_string(c.unknown):"null")+
+            ",\"firstSampleTimeNs\":"+(c.first?Quote(std::to_string(*c.first)):"null")+
+            ",\"lastSampleTimeNs\":"+(c.last?Quote(std::to_string(*c.last)):"null")+
+            ",\"sourceCountsState\":"+Quote(source?"known":"unknown")+
+            ",\"examinedSegments\":"+(source?std::to_string(source->examined_segments):"null")+
+            ",\"unsupportedSegments\":"+(source?std::to_string(source->unsupported_segments):"null")+
+            ",\"examinedSnapshots\":"+(source?std::to_string(source->examined_snapshots):"null")+
+            ",\"unsupportedSnapshots\":"+(source?std::to_string(source->unsupported_snapshots):"null")+"}";
+    }
+    return out+"]";
+}
+std::string Publication(const recording::VisualIndexReadView& view,const std::string& channels){
+    if(!view.index||!view.publication)return "null";const auto& p=*view.publication;
+    return "{\"instanceId\":"+Quote(p.instance_id)+",\"generation\":"+(p.generation?std::to_string(*p.generation):"null")+
+        ",\"identityScope\":\"worker-instance\",\"origin\":"+Quote(p.origin)+",\"publishedAtMs\":"+Stamp(p.published_at_ms)+
+        ",\"metadataReason\":"+Quote(p.origin=="cache"?"cache-publication-history-not-stored":"live-publication")+
+        ",\"statisticsScope\":\"authorized-channels-all-indexed-samples-before-query-filters\","
+        "\"coverage\":\"unknown\",\"coverageReason\":\"sampled-index-no-continuous-coverage\","
+        "\"sourceValidation\":\"search-revalidates-current-originals\",\"channels\":"+channels+"}";
+}
 struct Flight {
     std::atomic<unsigned>& count;bool admitted{false};
     explicit Flight(std::atomic<unsigned>& c):count(c){auto n=count.load();while(n<4){if(count.compare_exchange_weak(n,n+1)){admitted=true;break;}}}
@@ -146,15 +193,15 @@ VisualSearchApplicationService::VisualSearchApplicationService(recording::Record
     if(::mkdir(options_.cache_directory.c_str(),0700)!=0&&errno!=EEXIST)throw std::runtime_error("visual-cache-unavailable");
     encoder_=std::make_unique<analysis::Siglip2Encoder>(options_.model_directory);
     worker_=std::make_unique<recording::VisualIndexWorker>(recording::VisualIndexStore(options_.cache_directory),
-        [this](auto* docs,const auto& cancelled,std::string* error){
+        recording::VisualIndexWorker::SourceWithCoverage([this](auto* docs,auto* coverage,const auto& cancelled,std::string* error){
             std::vector<std::string> channels;if(!channels_(&channels)){*error="visual-source-unavailable";return false;}
             std::map<std::string,recording::VisualSourceCoverage> counts;
             if(channels.empty())docs->clear();else if(!source_.Collect(channels,options_.sample_seconds,docs,&counts,error,cancelled))return false;
             std::vector<recording::VisualSnapshotEvent> events;
             if(!EventFacts(!options_.snapshot_directory.empty(),channels,&events,cancelled)){*error="visual-source-unavailable";return false;}
             if(!source_.CollectSnapshots(events,docs,&counts,error,cancelled))return false;
-            std::lock_guard lock(coverage_mutex_);coverage_=std::move(counts);return true;
-        },recording::VisualIndexWorker::EncodeFactory([this]{
+            *coverage=std::move(counts);return true;
+        }),recording::VisualIndexWorker::EncodeFactory([this]{
             auto media=std::make_shared<RequestMedia>(source_,[this]{return stopped_.load();},std::chrono::steady_clock::time_point::max(),"visual-index-build");
             return [this,media](auto* doc,const auto& cancelled,std::string* error){
                 std::unique_lock<std::timed_mutex> lock(inference_,std::defer_lock);
@@ -172,20 +219,17 @@ ApplicationServiceResult VisualSearchApplicationService::Status(const Authorize&
     if(!worker_)return Error(503,"visual-search-unavailable");
     try{
         std::vector<std::string> channels;if(!channels_(&channels))return Error(503,"visual-search-unavailable");
-        const auto status=worker_->Status();const auto index=worker_->Snapshot();
-        std::ostringstream out;out<<"{\"enabled\":true,\"state\":"<<Quote(status.state)<<",\"error\":"<<Quote(status.error)
-            <<",\"searchAvailable\":"<<((index&&(status.state=="ready"||status.state=="indexing")&&!stopped_)?"true":"false")
+        channels.erase(std::remove_if(channels.begin(),channels.end(),[&](const auto& id){return !authorize||!authorize(id);}),channels.end());
+        if(channels.size()>32)return Error(503,"visual-search-unavailable");
+        if(channels.empty())return {200,"OK","{\"enabled\":true,\"state\":\"restricted\",\"searchAvailable\":false,\"index\":null,\"refresh\":null,\"channels\":[]}"};
+        const auto view=worker_->ReadView();const auto summaries=ChannelsSummary(view,channels);
+        for(const auto& channel:channels)if(!authorize(channel))return Error(403,"recording-channel-forbidden");
+        std::ostringstream out;out<<"{\"enabled\":true,\"state\":"<<Quote(view.status.state)<<",\"error\":"<<Quote(view.status.error)
+            <<",\"searchAvailable\":"<<((view.index&&!stopped_)?"true":"false")
             <<",\"sampleSeconds\":"<<options_.sample_seconds<<",\"scanSeconds\":"<<options_.scan_seconds
-            <<",\"eventSnapshots\":"<<Quote(options_.snapshot_directory.empty()?"disabled":"verified-original-pixels")<<",\"channels\":[";
-        bool comma=false;std::lock_guard lock(coverage_mutex_);
-        for(const auto& channel:channels){if(!authorize||!authorize(channel))continue;if(comma)out<<',';comma=true;
-            const auto found=coverage_.find(channel);auto c=found==coverage_.end()?recording::VisualSourceCoverage{}:found->second;
-            if(const auto it=status.unsupported_segments.find(channel);it!=status.unsupported_segments.end())c.unsupported_segments+=it->second;
-            if(const auto it=status.unsupported_snapshots.find(channel);it!=status.unsupported_snapshots.end())c.unsupported_snapshots+=it->second;
-            std::size_t count=0;if(index)for(const auto& row:index->documents())if(row.channel_id==channel)++count;
-            out<<"{\"channelId\":"<<Quote(channel)<<",\"indexedFrames\":"<<count<<",\"examinedSegments\":"<<c.examined_segments<<",\"unsupportedSegments\":"<<c.unsupported_segments
-                <<",\"examinedSnapshots\":"<<c.examined_snapshots<<",\"unsupportedSnapshots\":"<<c.unsupported_snapshots<<'}';}
-        out<<"]}";return {200,"OK",out.str()};
+            <<",\"eventSnapshots\":"<<Quote(options_.snapshot_directory.empty()?"disabled":"verified-original-pixels")
+            <<",\"index\":"<<Publication(view,summaries)<<",\"refresh\":"<<Refresh(view)<<",\"channels\":"<<summaries<<"}";
+        return {200,"OK",out.str()};
     }catch(const std::exception&){return Error(503,"visual-search-unavailable");}
 }
 ApplicationServiceResult VisualSearchApplicationService::Search(const Query& raw,const Authorize& authorize){
@@ -197,7 +241,7 @@ ApplicationServiceResult VisualSearchApplicationService::Search(const Query& raw
         std::vector<std::string> current;if(!channels_(&current))return Error(503,"visual-search-unavailable");
         for(const auto& channel:query.channels)if(std::find(current.begin(),current.end(),channel)==current.end())return Error(410,"visual-channel-unavailable");
         const auto index_state=worker_->Status().state;
-        if(index_state!="ready"&&index_state!="indexing")return Error(503,"visual-index-not-ready");
+        if(index_state!="ready"&&index_state!="indexing"&&index_state!="degraded")return Error(503,"visual-index-not-ready");
         const auto deadline=std::chrono::steady_clock::now()+std::chrono::seconds(5);
         const auto expired=[&]{return stopped_||std::chrono::steady_clock::now()>=deadline;};
         analysis::Siglip2Encoder::TextInputInfo text;
@@ -208,7 +252,7 @@ ApplicationServiceResult VisualSearchApplicationService::Search(const Query& raw
                 if(!text.within_limit)return Error(400,"visual-text-token-limit");
                 query.embedding=encoder_->EncodeText(text.original_text);
             }catch(const analysis::Siglip2Encoder::TextInputError& e){return Error(400,e.code());}}
-        const auto index=worker_->Snapshot();if(!index)return Error(503,"visual-index-not-ready");
+        const auto view=worker_->ReadView();const auto index=view.index;if(!index)return Error(503,"visual-index-not-ready");
         std::vector<recording::VisualSnapshotEvent> events;
         if(!EventFacts(!options_.snapshot_directory.empty(),query.channels,&events,expired))return Error(503,"visual-source-unavailable");
         std::vector<recording::VisualSearchHit> hits;std::string error;
@@ -241,7 +285,13 @@ ApplicationServiceResult VisualSearchApplicationService::Search(const Query& raw
             response_holds.push_back(std::move(media));
             if(comma)out<<',';comma=true;out<<"{\"id\":"<<Quote(d.id)<<",\"kind\":"<<Quote(d.event_id.empty()?"representative-frame":"event-snapshot")<<",\"channelId\":"<<Quote(d.channel_id)<<",\"score\":"<<hit.score<<",\"timeNs\":"<<(d.utc_ns?Quote(std::to_string(*d.utc_ns)):"null")<<','<<Playback(d,seek)<<'}';}
         if(expired())return Error(503,"visual-search-busy");
-        out<<"]}";return {200,"OK",out.str()};
+        const auto summaries=ChannelsSummary(view,query.channels,expired);
+        for(const auto& channel:query.channels)if(!authorize(channel))return Error(403,"recording-channel-forbidden");
+        out<<"],\"index\":"<<Publication(view,summaries)<<",\"refreshAtSearch\":"<<Refresh(view)
+            <<",\"sampleSeconds\":"<<options_.sample_seconds<<",\"scanSeconds\":"<<options_.scan_seconds
+            <<",\"returnedItems\":"<<hits.size()<<"}";
+        if(expired())return Error(503,"visual-search-busy");
+        return {200,"OK",out.str()};
     }catch(const std::exception&){return Error(503,"visual-search-unavailable");}
 }
 ApplicationServiceResult VisualSearchApplicationService::Seek(const Query& raw,const Authorize& authorize){

@@ -1589,8 +1589,10 @@ void AppendOpsEventsPage(std::ostringstream& out) {
           <label>페이지당 결과<select id="opsSearchLimit"><option>20</option><option selected>50</option><option>100</option><option>200</option></select></label>
           <label class="ops-recording-original"><input id="opsSearchUnplaced" type="checkbox" /> 시간 미확인 자료 포함</label>
           <button id="opsSearchSubmit" type="submit">검색</button>
+          <button id="opsSearchToVisual" type="button" class="button-secondary">카메라·시간을 장면 검색에 복사</button>
         </form>
         <p id="opsSearchChannelHelp">카메라를 1~32개 선택하세요. 최대 31일 범위를 조회합니다.</p>
+        <p id="opsSearchApplied" style="white-space: pre-wrap; overflow-wrap: anywhere" aria-live="polite"></p>
         <p id="opsSearchStatus" role="status">카메라와 시간 범위를 선택하세요.</p>
         <div id="opsSearchRows" class="ops-recording-rows" aria-label="구조화 검색 결과"></div>
         <button id="opsSearchNext" type="button" class="button-secondary" disabled>다음 페이지</button>
@@ -1608,13 +1610,16 @@ void AppendOpsEventsPage(std::ostringstream& out) {
           <label>시작 시간 (선택)<input id="opsVisualStart" type="datetime-local" /></label>
           <label>종료 시간 (선택)<input id="opsVisualEnd" type="datetime-local" /></label>
           <button id="opsVisualSubmit" type="submit" disabled>장면 검색</button>
+          <button id="opsVisualToSearch" type="button" class="button-secondary">카메라·시간을 구조화 검색에 복사</button>
           <button id="opsVisualRefresh" type="button" class="button-secondary">색인 상태 새로고침</button>
         </form>
         <p>시간 범위를 지정하면 시각이 확인된 프레임만 검색합니다. 주기 사이의 장면과 지원되지 않는 파일은 검색되지 않을 수 있습니다.</p>
         <p>장면 설명의 “어제”, “3번 카메라”는 시간·카메라 필터로 자동 해석하지 않습니다. 위 조건을 직접 지정하세요. 시간 입력은 현재 브라우저의 시간대이며 적용 범위는 UTC로 표시합니다. 본문은 tokenizer 기준 최대 63토큰입니다.</p>
-        <p id="opsVisualCoverage" role="status">색인 상태를 확인하는 중입니다.</p>
+        <p>조건 복사는 카메라·시간만 옮깁니다. 장면 설명·유사도와 구조화 검색의 객체·Track·이벤트 등 고유 조건은 각각 유지하며 다른 검색에 적용하지 않습니다.</p>
+        <p id="opsVisualCoverage" style="white-space: pre-wrap; overflow-wrap: anywhere" role="status">색인 상태를 확인하는 중입니다.</p>
         <p id="opsVisualStatus" role="status">카메라와 장면 설명을 입력하세요.</p>
         <p id="opsVisualApplied" style="white-space: pre-wrap; overflow-wrap: anywhere" aria-live="polite"></p>
+        <p id="opsVisualUsedIndex" style="white-space: pre-wrap; overflow-wrap: anywhere" aria-live="polite"></p>
         <div id="opsVisualRows" class="ops-recording-rows" aria-label="영상 유사도 검색 결과"></div>
         <video id="opsVisualPlayer" controls preload="metadata" playsinline aria-label="영상 검색 결과 재생"></video>
         <p id="opsVisualPlayback" role="status">결과를 선택하면 현재 원본의 해당 시점으로 이동합니다.</p>

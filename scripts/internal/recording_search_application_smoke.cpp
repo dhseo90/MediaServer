@@ -18,6 +18,7 @@ int main(int argc,char** argv){
         auto auth=[](const std::string& c){return c=="probe-channel";};
         auto request=[&](const Query& q){return app.Search(q,"operator-a","scope-a",auth);};
         auto first=request(base);if(first.status!=200)throw std::runtime_error(first.body);
+        check(first.body.find("\"appliedQuery\":{")!=std::string::npos&&first.body.find("\"statisticsScope\":\"query-matches\"")!=std::string::npos&&first.body.find("\"startTimeMs\":1789200000000")!=std::string::npos,"additive applied query and snapshot statistics scope");
         auto json=Json(first.body);const auto snapshot=Field(json,"snapshotId");
         std::set<std::string> ids;std::vector<JsonObject> all;Query page=base;std::string cursor;
         for(int n=0;n<20;++n){auto response=request(page);if(response.status!=200)throw std::runtime_error(response.body);

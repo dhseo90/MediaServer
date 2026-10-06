@@ -29,9 +29,12 @@ void Ready(Service& service,const Service::Authorize& authorize,unsigned seconds
 }
 }
 int main(int argc,char** argv){try{
-    if(argc!=3&&!(argc==4&&std::string(argv[3])=="--query-only"))return 2;gst_init(nullptr,nullptr);const auto root=std::filesystem::weakly_canonical(argv[1]);
+    if(argc!=3&&!(argc==4&&(std::string(argv[3])=="--query-only"||std::string(argv[3])=="--scope-only")))return 2;gst_init(nullptr,nullptr);const auto root=std::filesystem::weakly_canonical(argv[1]);
     recording::RecordingRuntimeStorage runtime(root);std::string error;Check(runtime.Open(&error),"storage open");
+    const bool scope_only=argc==4&&std::string(argv[3])=="--scope-only";
     auto input=Encode(90,false,false,160,90,30,30);Shift(input,7000000000ULL);
+    // 이 분기에서만 clock 근거를 명시적으로 제거한다. 기존 fixture는 UTC를 제공한다.
+    if(scope_only)for(auto& packet:input.packets)packet.observation->clock_process_id.clear();
     for(const auto& channel:{"visible","hidden"}){
         recording::GStreamerSegmentWriter writer(runtime.WriterOptions(1000));
         Check(writer.Start(channel,"unused",input.descriptor,[](auto,auto,auto*){return false;},&error),"writer start");
@@ -48,6 +51,9 @@ int main(int argc,char** argv){try{
     {Service service(runtime.catalog(),reader,options,channels);Ready(service,authorized);
     auto status=service.Status(authorized);Json(status.body);Check(status.body.find("hidden")==std::string::npos,"status contains authorized channel only");
     Check(status.body.find("\"indexedFrames\":3")!=std::string::npos,"three representative frames");
+    if(scope_only)Check(status.body.find("\"unknownTimeFrames\":3")!=std::string::npos&&status.body.find("\"firstSampleTimeNs\":null")!=std::string::npos,"UTC missing remains unknown");
+    const auto restricted=service.Status([](const auto&){return false;});
+    Check(restricted.body.find("\"index\":null")!=std::string::npos&&restricted.body.find("\"refresh\":null")!=std::string::npos&&restricted.body.find("hidden")==std::string::npos,"no authorized channels: no publication or worker statistics");
     auto denied=q;denied["channelIds"]="visible,hidden";Check(service.Search(denied,authorized).status==403,"mixed forbidden before inference");
     Check(service.Search(q,[](const auto&){return false;}).status==403,"denied principal");
     auto invalid=q;invalid["threshold"]="nan";Check(service.Search(invalid,authorized).status==400,"nonfinite threshold");
@@ -61,6 +67,7 @@ int main(int argc,char** argv){try{
     for(const auto& text:{"red scene","붉은 장면"}){
         auto query=q;query["text"]=text;Ready(service,authorized);const auto result=service.Search(query,authorized);
         Check(result.status==200,"real text search: "+result.body);Json(result.body);
+        Check(result.body.find("\"index\":{")!=std::string::npos&&result.body.find("\"generation\":")!=std::string::npos&&(!scope_only||result.body.find("\"unknownTimeFrames\":3")!=std::string::npos)&&result.body.find("\"coverage\":\"unknown\"")!=std::string::npos,"search publication and honest sample statistics");
         Check(result.body.find("similarity-not-evidence")!=std::string::npos,"score meaning");
         for(const auto& doc:docs)Check(result.body.find(doc.id)!=std::string::npos,"all allowed current references");
         for(const auto& secret:{"hidden","sha256","embedding","model_directory","sourceUrl"})Check(result.body.find(secret)==std::string::npos,"sanitized response");
@@ -98,7 +105,9 @@ int main(int argc,char** argv){try{
         const auto applied=service.Search(defaults,authorized);Check(applied.status==200,"uppercase/default search");
         for(const auto* fragment:{"\"text\":\"RED scene\"","\"encoderText\":\"red scene\"","\"limit\":20","\"threshold\":-1","\"startTimeMs\":null","\"channelIds\":[\"visible\"]"})
             Check(applied.body.find(fragment)!=std::string::npos,"effective query fields");
-        service.Stop();const auto peak=PeakRss();std::cout<<"PASS visual query-only checks="<<checks<<" peakRssBytes="<<peak<<"\n";return 0;
+        if(!scope_only){service.Stop();const auto peak=PeakRss();std::cout<<"PASS visual query-only checks="<<checks<<" peakRssBytes="<<peak<<"\n";return 0;}
+        auto top=q;top["limit"]="1";const auto one=service.Search(top,authorized);Check(one.status==200&&one.body.find("\"returnedItems\":1")!=std::string::npos&&one.body.find("\"indexedFrames\":3")!=std::string::npos,"top-k count separate from all channel samples");
+        top["startTimeMs"]="1";top["endTimeMs"]="2";const auto timed=service.Search(top,authorized);Check(timed.status==200&&timed.body.find("\"returnedItems\":0")!=std::string::npos&&timed.body.find("\"indexedFrames\":3")!=std::string::npos,"time filter excludes unknown UTC without changing publication totals");
     }
     Ready(service,authorized);
     // 캐시 쓰기 실패는 새 게시를 막지만 현재 완성본의 실제 검색을 막지 않는다.
@@ -117,6 +126,7 @@ int main(int argc,char** argv){try{
     const auto fallback=service.Search(q,authorized);Check(fallback.status==200,"real search through previous complete index after rebuild failure");
     for(const auto& doc:docs)Check(fallback.body.find(doc.id)!=std::string::npos,"fallback retains exact current references");
     Check(std::filesystem::remove(cache),"remove owned cache blocker");std::filesystem::rename(saved_cache,cache);
+    if(!scope_only){
     std::atomic<unsigned> prepared{0};std::atomic<bool> start{false};
     std::vector<std::future<std::vector<double>>> searches;
     for(unsigned n=0;n<4;++n)searches.push_back(std::async(std::launch::async,[&]{
@@ -130,6 +140,8 @@ int main(int argc,char** argv){try{
     for(auto& task:searches){auto samples=task.get();latencies.insert(latencies.end(),samples.begin(),samples.end());}
     std::sort(latencies.begin(),latencies.end());Check(latencies.size()==24&&latencies[22]<=2000&&latencies.back()<=5000,"four concurrent search latency budget");
     std::cout<<"[four-searches] successes="<<latencies.size()<<" p95Ms="<<latencies[22]<<" maxMs="<<latencies.back()<<"\n";
+    }
+    Check(fallback.body.find("\"state\":\"degraded\"")!=std::string::npos&&fallback.body.find("\"usingPreviousPublication\":true")!=std::string::npos,"failed refresh distinct from usable old result");
     const auto& doc=docs.front();const Service::Query seek{{"channelId","visible"},{"hitId",doc.id}};
     const auto located=service.Seek(seek,authorized);Check(located.status==200,"selected current seek");Json(located.body);
     Check(located.body.find("verified-native-file-presentation")!=std::string::npos&&located.body.find(doc.segment_id)!=std::string::npos,"exact existing playback contract");
@@ -146,7 +158,8 @@ int main(int argc,char** argv){try{
         if(after.status==200){rebuilt=true;break;}std::this_thread::sleep_for(std::chrono::milliseconds(20));
     }
     Check(rebuilt,"complete rebuild excludes corrupt candidate");
-    service.Stop();Check(service.Search(q,authorized).status==503,"stop rejects search");}
+    service.Stop();Check(service.Search(q,authorized).status==503,"stop rejects search");
+    if(scope_only){std::cout<<"PASS visual scope checks="<<checks<<" peakRssBytes="<<PeakRss()<<"\n";return 0;}}
     {
         // 기존 증명 지원 형식인 30fps 두 파일에서 1초당 210개 후보를 얻고 상한 200개를 조회한다.
         recording::RecordingRuntimeStorage large(root/"large");Check(large.Open(&error),"large search storage");

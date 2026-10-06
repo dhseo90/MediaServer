@@ -812,7 +812,7 @@
     },
     {
       "file": "src/ingress/product_ui_page_scripts.cpp",
-      "lineCount": 11099,
+      "lineCount": 11148,
       "primaryOwner": "product-ui-workspaces",
       "embeddedResponsibilities": [
         "ops-workspaces",

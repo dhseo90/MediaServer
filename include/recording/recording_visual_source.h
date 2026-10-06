@@ -9,10 +9,6 @@ namespace recording {
 struct VisualSnapshotEvent {
     std::string event_id,channel_id,stream_epoch_id;
 };
-struct VisualSourceCoverage {
-    std::size_t examined_segments{0},unsupported_segments{0},representative_frames{0};
-    std::size_t examined_snapshots{0},unsupported_snapshots{0},event_snapshots{0};
-};
 class RecordingVisualSource {
 public:
     RecordingVisualSource(RecordingCatalog& catalog,RecordingReadService& reader,std::string snapshots={})

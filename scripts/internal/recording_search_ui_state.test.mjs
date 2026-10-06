@@ -11,6 +11,7 @@ const script=source.slice(start,end);
 class Element {
   constructor(){this.value='';this.checked=false;this.children=[];this.attrs={};this.dataset={};this.events=new Map();this.selectedOptions=[{value:'1'}];this.options=[];this.duration=10;this.readyState=0;this.currentTime=0;this.seeking=false;this.error=null;this.paused=true;}
   addEventListener(name,fn){const list=this.events.get(name)||[];list.push(fn);this.events.set(name,list);}
+  dispatchEvent(event){return this.fire(event.type);}
   fire(name){return Promise.all((this.events.get(name)||[]).map(fn=>fn({preventDefault(){}})));}
   setAttribute(name,value){this.attrs[name]=value;}
   getAttribute(name){return this.attrs[name]??null;}
@@ -29,7 +30,7 @@ const flush=()=>new Promise(resolve=>setImmediate(resolve));
 function fixture(){
   const elements=new Map();const el=id=>{if(!elements.has(id))elements.set(id,new Element());elements.get(id).replaceHook=copy=>elements.set(id,copy);return elements.get(id);};
   const pending=[];
-  const context={window:{location:{pathname:'/ops/events'}},document:{getElementById:el,createElement:()=>new Element()},URLSearchParams,Date,Number,BigInt,Error,fetch:url=>new Promise(resolve=>pending.push({url,resolve}))};
+  const context={window:{location:{pathname:'/ops/events'}},document:{getElementById:el,createElement:()=>new Element()},URLSearchParams,Date,Number,BigInt,Error,Event,fetch:url=>new Promise(resolve=>pending.push({url,resolve}))};
   context.evidenceUi=null; // 공통 증거 workspace는 별도 상태 검사에서 검증한다.
   vm.runInNewContext(script,context);
   const answer=(entry,data,status=200)=>entry.resolve({ok:status===200,status,json:async()=>data});
@@ -38,7 +39,7 @@ function fixture(){
   return {el,pending,answer};
 }
 const hit=id=>({id,channelId:'1',kind:'recording',startTimeNs:'1789084800000000000',endTimeNs:'1789084801000000000',playable:true,selectionReason:'original'});
-const page=(id,items)=>({snapshotId:id,items,knownCount:items.length,unplacedCount:0,nextCursor:null});
+const page=(id,items)=>({appliedQuery:{channelIds:['1'],startTimeMs:1000,endTimeMs:2000,limit:20,includeUnplaced:false,object:[],track:[],event:[],zone:[],rule:[],behaviour:[]},searchBasis:{snapshotId:id},snapshotId:id,items,knownCount:items.length,unplacedCount:0,nextCursor:null});
 test('late search response cannot replace newer query or revive invalidated results',async()=>{
   const {el,pending,answer}=fixture();await flush();
   await el('opsSearchForm').fire('submit');const old=pending.shift();
@@ -123,4 +124,13 @@ test('restart MAC error400 and same-pool expiry410 clear results with distinct g
     await el('opsSearchForm').fire('submit');const fresh=pending.shift();assert(!new URLSearchParams(fresh.url.split('?')[1]).has('cursor'));answer(fresh,{...page('new',[hit('b')]),nextCursor:'new-cursor'});await flush();
     const resume=el('opsSearchNext').fire('click');const request=pending.shift();assert.equal(new URLSearchParams(request.url.split('?')[1]).get('cursor'),'new-cursor');answer(request,page('new',[hit('c')]));await resume;await flush();assert.equal(el('opsSearchRows').children[0].dataset.hit,'c');
   }
+});
+
+test('explicit copy preserves visual filters and structured changes invalidate cursor and applied snapshot',async()=>{
+  const f=fixture();await flush();const e=f.el;
+  e('opsVisualChannels').options=[{value:'1',selected:false}];e('opsVisualText').value='red';e('opsVisualThreshold').value='.2';e('opsVisualLimit').value='10';
+  let changes=0;e('opsVisualForm').addEventListener('input',()=>++changes);
+  await e('opsSearchToVisual').fire('click');assert.equal(changes,1);assert.equal(e('opsVisualStart').value,e('opsSearchStart').value);assert.equal(e('opsVisualText').value,'red');assert.equal(e('opsVisualThreshold').value,'.2');assert.equal(e('opsVisualLimit').value,'10');
+  await e('opsSearchForm').fire('submit');f.answer(f.pending.shift(),{...page('owned',[hit('h')]),nextCursor:'old-cursor'});await flush();assert.match(e('opsSearchApplied').textContent,/owned/);
+  await e('opsSearchForm').fire('input');assert.equal(e('opsSearchApplied').textContent,'');assert.equal(e('opsSearchNext').disabled,true);await e('opsSearchNext').fire('click');assert.equal(f.pending.length,0);
 });

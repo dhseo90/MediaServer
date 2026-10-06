@@ -4713,3 +4713,15 @@ K03 추가 비용 조건: `V420_COST_VARIED=1`은 관측의 원본 표본 10개�
 구체적인 route/control/action·정상/오류/경계와 영역별 매핑은 각 묶음 구현 승인 후 실행 전에 등록한다.
 현재 범위 표시는 v4.7 선언 coverage/규모 검증이나 v4.8 대화/revision/만료 검증의 대체가 아니다.
 이번에는 실행기·fixture·예상값·독립 승인·VERSION/CMake를 변경하거나 제품 검사를 실행하지 않는다.
+
+
+### v450 검색 범위·갱신 상태·조건 연결
+
+묶음2의 신규 ID는 기존 문서·실행 소비자에서 미사용임을 확인했다. 아래 focused 검사는 상태/연결과
+실제 SigLIP2 검색을 구분하며 전체 acceptance·UI 풀테스트·30분/120분을 대신하지 않는다.
+
+| ID | route/control/action와 정상·오류·경계 기대 | 안정화 직접 검사 | 30분 | 120분 | 실제 UI |
+| --- | --- | --- | --- | --- | --- |
+| V450-R01 | worker ReadView: index/통계 동시 게시, 시작·갱신 중 이전본, collect 후 encode/build/save 실패의 이전본/최초 실패, 세대 교체·cache 복구 unknown·빈값·미지원·취소 | 임의 vector/실패 주입 worker 검사. 실패 후보 metadata 게시 금지, 불변 이전 view 유지 | 이번 미실행 | 이번 미실행 | 내부 기능 |
+| V450-R02 | visual-search/status 및 search의 동일 view 통계·UTC unknown·표본 범위/top-k 분리·허가 채널만 노출. 구조화 search의 적용 조건/snapshot. 오류는 빈 결과가 아님 | 실제 기존 SigLIP2 작은 fixture·HTTP, 순위/점수/필터·63토큰·삭제/손상·no-store·seek/증거 영향 검사 | 이번 미실행 | 이번 미실행 | 허가 계정의 실제 검색·결과 정보·재생·증거 |
+| V450-R03 | /ops/events 두 검색의 카메라·시간 명시 복사, 고유 조건 보존, UTC 적용·cursor 무효화·늦은 검색/상태 차단. 현재 상태 refresh가 이전 결과 세대를 바꾸지 않음 | 실제 UI script 상태 반례. 없음/미준비/실패/unknown을 구분하며 오류 원문 비노출 | 이번 미실행 | 이번 미실행 | 변경 영역 desktop/mobile light/dark 직접 확인. worker 실패 주입과 브라우저 실제 확인 구분 |

@@ -34,7 +34,5 @@ private:
     std::atomic<unsigned> requests_{0};
     std::atomic<bool> stopped_{false};
     std::timed_mutex inference_;
-    mutable std::mutex coverage_mutex_;
-    std::map<std::string,recording::VisualSourceCoverage> coverage_;
 };
 } // namespace ingress

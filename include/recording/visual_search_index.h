@@ -22,6 +22,11 @@ struct VisualSearchDocument {
     std::optional<std::int64_t> utc_ns;
     std::vector<float> embedding;
 };
+// 수집 시점의 채널별 제외 정보. 성공한 게시본에만 결속하며 cache에는 저장하지 않는다.
+struct VisualSourceCoverage {
+    std::size_t examined_segments{0},unsupported_segments{0},representative_frames{0};
+    std::size_t examined_snapshots{0},unsupported_snapshots{0},event_snapshots{0};
+};
 struct VisualIndexLimits {
     std::size_t max_documents{20000};
     // 이전 게시본과 신규 build가 공존하는 비용은 호출자가 별도로 제한한다.

@@ -10824,7 +10824,7 @@ void AppendOpsShellScript(std::ostringstream& out,
             }
           };
           const load = async next => {
-            const version = ++requestVersion; clearSelection(); rows = []; render(); el('Next').disabled = true;
+            const version = ++requestVersion; clearSelection(); rows = []; render(); say('Applied', ''); el('Next').disabled = true;
             if (!next) {
               const channels = [...el('Channels').selectedOptions].map(option => option.value);
               const start = Date.parse(el('Start').value), end = Date.parse(el('End').value);
@@ -10843,14 +10843,32 @@ void AppendOpsShellScript(std::ostringstream& out,
               const data = await read('/ops/api/recordings/search?' + params);
               if (version !== requestVersion) return;
               if (!Array.isArray(data.items) || typeof data.snapshotId !== 'string' || !Number.isSafeInteger(data.knownCount) || !Number.isSafeInteger(data.unplacedCount)) throw new Error('검색 응답이 올바르지 않습니다.');
+              const q = data.appliedQuery;
+              if (!q || !Array.isArray(q.channelIds) || !Number.isSafeInteger(q.startTimeMs) || !Number.isSafeInteger(q.endTimeMs) || data.searchBasis?.snapshotId !== data.snapshotId) throw new Error('적용된 검색 조건을 읽지 못했습니다.');
+              const filters = ['object', 'track', 'event', 'zone', 'rule', 'behaviour'].map(key => key + ': ' + (q[key]?.join(', ') || '없음')).join(' · ');
+              say('Applied', `구조화 검색 · 카메라: ${q.channelIds.join(', ')}\nUTC: ${new Date(q.startTimeMs).toISOString()} 이상 ~ ${new Date(q.endTimeMs).toISOString()} 미만\n${filters} · 시간 미확인 포함: ${q.includeUnplaced ? '예' : '아니오'} · 페이지 한도: ${q.limit}\n사용한 조회 snapshot: ${data.snapshotId} · 집계는 이 조건의 전체 일치 자료, 화면은 현재 페이지입니다. 장면 유사도 조건은 적용하지 않습니다.`);
               rows = data.items; snapshot = data.snapshotId; cursor = data.nextCursor || ''; render(); el('Next').disabled = !cursor;
               say('Status', `시간 확인 ${data.knownCount}개 · 시간 미확인 ${data.unplacedCount}개 · 현재 페이지 ${rows.length}개${rows.length ? '' : ' · 일치하는 결과가 없습니다.'}`);
             } catch (error) { if (version === requestVersion) say('Status', error.message); }
             finally { if (version === requestVersion) el('Submit').disabled = false; }
           };
+          el('ToVisual').addEventListener('click', () => {
+            const target = name => document.getElementById('opsVisual' + name);
+            const ids = [...el('Channels').selectedOptions].map(option => option.value);
+            const a = Date.parse(el('Start').value), b = Date.parse(el('End').value);
+            if (!ids.length || !Number.isSafeInteger(a) || !Number.isSafeInteger(b) || a < 0 || a >= b || b - a > 31 * 86400000 ||
+                ids.some(id => ![...target('Channels').options].some(option => option.value === id))) {
+              say('Status', '복사할 카메라와 31일 이내의 시작·종료 시간을 확인하세요. 받는 검색에서 같은 카메라를 사용할 수 있어야 합니다.'); return;
+            }
+            for (const option of target('Channels').options) option.selected = ids.includes(option.value);
+            target('Start').value = el('Start').value; target('End').value = el('End').value;
+            target('Form').dispatchEvent(new Event('input', { bubbles: true }));
+            target('Status').textContent = '카메라·시간만 복사했습니다. 이 검색의 고유 조건은 유지했습니다. 확인 후 검색하세요.';
+            say('Status', '카메라·시간을 복사했습니다. 고유 조건은 다른 검색에 적용하지 않습니다.');
+          });
           el('Form').addEventListener('submit', event => { event.preventDefault(); load(false); });
           const invalidateSearch = () => {
-            ++requestVersion; clearSelection(); cursor = ''; rows = []; render(); el('Next').disabled = true; el('Submit').disabled = false;
+            ++requestVersion; clearSelection(); cursor = ''; snapshot = ''; query = null; say('Applied', ''); rows = []; render(); el('Next').disabled = true; el('Submit').disabled = false;
             say('Status', '조건이 변경됐습니다. 검색 버튼을 눌러 다시 조회하세요.');
           };
           el('Form').addEventListener('input', invalidateSearch);
@@ -10866,7 +10884,7 @@ void AppendOpsShellScript(std::ostringstream& out,
         if (window.location.pathname === '/ops/events' && document.getElementById('opsVisualForm')) {
           const el = name => document.getElementById('opsVisual' + name);
           const say = (name, text) => { el(name).textContent = text; };
-          let revision = 0, selection = 0, player = el('Player'), enabled = false;
+          let revision = 0, statusRevision = 0, selection = 0, player = el('Player'), enabled = false, channelsLoaded = false, searching = false;
           const read = async (path, params) => {
             const response = await fetch('/ops/api/recordings/visual-search' + path + (params ? '?' + params : ''), { credentials: 'same-origin', cache: 'no-store' });
             if (!response.ok) {
@@ -10897,29 +10915,44 @@ void AppendOpsShellScript(std::ostringstream& out,
             say('Playback', '결과를 선택하면 현재 원본의 해당 시점으로 이동합니다.');
           };
           const invalidate = () => {
-            ++revision; clearPlayer(); el('Rows').replaceChildren(); say('Applied', ''); el('Submit').disabled = !enabled;
+            ++revision; searching = false; clearPlayer(); el('Rows').replaceChildren(); say('Applied', ''); say('UsedIndex', ''); el('Submit').disabled = !enabled;
             say('Status', '조건이 변경됐습니다. 장면 검색을 눌러 조회하세요.');
           };
+          const stamp = ms => Number.isSafeInteger(ms) ? new Date(ms).toISOString() : '미확인';
+          const sampleTime = ns => typeof ns === 'string' && /^[0-9]+$/.test(ns) ? stamp(Number(BigInt(ns) / 1000000n)) : '미확인';
+          const indexText = index => {
+            if (!index) return '게시 색인 없음';
+            if (!Array.isArray(index.channels) || typeof index.instanceId !== 'string') throw new Error('색인 설명을 읽지 못했습니다.');
+            const counts = index.channels.map(c => `${c.channelId}: 색인 표본 ${c.indexedFrames ?? '미확인'}개 · 시각 미확인 ${c.unknownTimeFrames ?? '미확인'}개 · 표본 UTC ${sampleTime(c.firstSampleTimeNs)} ~ ${sampleTime(c.lastSampleTimeNs)} · 수집 ${c.examinedSegments ?? '미확인'}파일/${c.examinedSnapshots ?? '미확인'}스냅샷 · 미지원 ${c.unsupportedSegments ?? '미확인'}파일/${c.unsupportedSnapshots ?? '미확인'}스냅샷`).join('\n');
+            return `실행 ${index.instanceId} 내 세대 ${index.generation ?? '미확인'} · 게시 ${stamp(index.publishedAtMs)}${index.origin === 'cache' ? ' (cache 복구: 과거 세대·게시 시각·수집 통계 미보존)' : ''}\n${counts}\n집계는 허가된 표시 채널의 게시 표본 전체이며 시간·유사도·top-k 적용 전입니다. 표본 사이의 연속 포함·누락 구간·전체 사건 수는 미확인입니다. 현재 원본은 검색·재생 때 다시 확인합니다.`;
+          };
+          const refreshText = r => {
+            if (!r) return '갱신 정보 미확인';
+            const state = { running: '갱신 중', succeeded: '갱신 성공', failed: '최근 색인 갱신에 실패', cancelled: '갱신 취소', 'not-attempted': '시도 미확인' }[r.attemptState] || '미확인';
+            return `${state}${r.usingPreviousPublication ? ' · 이전 완성 색인 사용' : ''} · 최근 시도 ${stamp(r.attemptStartedAtMs)} · 종료 ${stamp(r.attemptFinishedAtMs)} · 최근 성공 ${stamp(r.lastSuccessAtMs)} (worker 전체 시도 상태, 채널별 완전성 아님)`;
+          };
           const status = async () => {
-            const version = ++revision; clearPlayer(); el('Rows').replaceChildren(); say('Applied', ''); el('Submit').disabled = true;
-            say('Status', '색인 상태를 확인하는 중입니다. 이전 결과를 지웠습니다.');
+            const token = ++statusRevision, version = revision;
+            say('Coverage', '현재 색인 상태를 확인하는 중입니다. 검색 결과의 사용 색인은 별도로 유지합니다.');
             try {
-              const data = await read('/status'); if (version !== revision) return;
-              const selected = new Set([...el('Channels').selectedOptions].map(option => option.value));
+              const data = await read('/status'); if (token !== statusRevision || version !== revision) return;
               if (!Array.isArray(data.channels)) throw new Error('색인 상태를 읽지 못했습니다.');
-              el('Channels').replaceChildren(...data.channels.map(channel => {
-                const option = document.createElement('option'); option.value = channel.channelId; option.textContent = channel.channelId;
-                option.selected = selected.has(channel.channelId); return option;
-              }));
-              if (!el('Channels').selectedOptions.length && el('Channels').options.length) el('Channels').options[0].selected = true;
+              const allowed = data.channels.map(c => c.channelId);
+              const old = [...el('Channels').options].map(o => o.value);
+              if (!channelsLoaded || old.join(',') !== allowed.join(',')) {
+                const selected = new Set([...el('Channels').selectedOptions].map(option => option.value));
+                if (channelsLoaded) invalidate();
+                el('Channels').replaceChildren(...allowed.map(id => {
+                  const option = document.createElement('option'); option.value = id; option.textContent = id; option.selected = selected.has(id); return option;
+                }));
+                if (!channelsLoaded && !el('Channels').selectedOptions.length && el('Channels').options.length) el('Channels').options[0].selected = true;
+                channelsLoaded = true;
+              }
               enabled = data.enabled && data.searchAvailable === true;
-              const state = { disabled: '비활성', starting: '준비 중', indexing: '색인 중', ready: '검색 가능', unavailable: '색인 준비 실패', stopped: '중지' }[data.state] || '미확인';
-              const counts = data.channels.map(c => `${c.channelId}: 색인 ${c.indexedFrames}프레임 · 최근 스캔 ${c.examinedSegments}파일 · 미지원 ${c.unsupportedSegments}파일 / ${c.unsupportedSnapshots || 0}스냅샷`).join(' / ');
-              const snapshots = data.eventSnapshots === 'verified-original-pixels' ? '원본 픽셀을 대조한 이벤트 스냅샷 포함' : '이벤트 스냅샷 색인 비활성';
-              say('Coverage', `${state}${data.enabled ? ' · 추출 간격 ' + data.sampleSeconds + '초 / 재확인 ' + data.scanSeconds + '초' : ''}${counts ? ' · ' + counts : ''} · ${snapshots}. 증거가 없는 기존 스냅샷은 제외됩니다.`);
-              say('Status', enabled && data.error ? '최근 색인 갱신에 실패했습니다. 이전 완성 색인으로 검색할 수 있으며, 다음 갱신에서 다시 시도합니다.' : enabled ? '색인 상태를 갱신했습니다. 장면을 다시 검색하세요.' : '현재 검색을 사용할 수 없습니다. 색인 상태를 확인하세요.');
-            } catch (error) { if (version === revision) { enabled = false; say('Coverage', error.message); say('Status', '색인 상태를 확인하지 못했습니다. 다시 새로고침하세요.'); } }
-            finally { if (version === revision) el('Submit').disabled = !enabled; }
+              const state = { disabled: '비활성', restricted: '검색 가능 카메라 없음', starting: '준비 중', indexing: '갱신 중', ready: '게시 색인 검색 가능', degraded: '갱신 실패 · 이전 게시본 검색 가능', unavailable: '게시 색인 미준비', stopped: '중지' }[data.state] || '미확인';
+              say('Coverage', `현재 상태: ${state} · 표본 간격 ${data.sampleSeconds ?? '미확인'}초 / 갱신 주기 ${data.scanSeconds ?? '미확인'}초\n${refreshText(data.refresh)}\n${indexText(data.index)}`);
+            } catch (error) { if (token === statusRevision && version === revision) { enabled = false; say('Coverage', '현재 상태 조회 실패: ' + error.message); } }
+            finally { if (token === statusRevision) el('Submit').disabled = !enabled || searching; }
           };
           const select = async item => {
             clearPlayer(); const version = selection; say('Playback', '현재 원본과 재생 위치를 확인하는 중…');
@@ -10947,7 +10980,7 @@ void AppendOpsShellScript(std::ostringstream& out,
             } catch (error) { if (version === selection) say('Playback', error.message); }
           };
           el('Form').addEventListener('submit', async event => {
-            event.preventDefault(); const version = ++revision; clearPlayer(); el('Rows').replaceChildren(); say('Applied', '');
+            event.preventDefault(); const version = ++revision; clearPlayer(); el('Rows').replaceChildren(); say('Applied', ''); say('UsedIndex', '');
             const ids = [...el('Channels').selectedOptions].map(option => option.value);
             const params = new URLSearchParams({ channelIds: ids.join(','), text: el('Text').value, limit: el('Limit').value, threshold: el('Threshold').value });
             if (el('Start').value || el('End').value) {
@@ -10955,11 +10988,13 @@ void AppendOpsShellScript(std::ostringstream& out,
               if (!Number.isSafeInteger(a) || !Number.isSafeInteger(b) || a < 0 || a >= b) { say('Status', '시작과 종료 시간을 모두 올바르게 입력하세요.'); return; }
               params.set('startTimeMs', String(a)); params.set('endTimeMs', String(b));
             }
-            el('Submit').disabled = true; say('Status', '장면을 검색하는 중…');
+            searching = true; el('Submit').disabled = true; say('Status', '장면을 검색하는 중…');
             try {
               const data = await read('', params); if (version !== revision) return;
               if (!Array.isArray(data.items)) throw new Error('검색 응답을 읽지 못했습니다.');
+              const used = indexText(data.index);
               applied(data.appliedQuery);
+              say('UsedIndex', '이 검색이 사용한 색인: ' + used + '\n검색 시점: ' + refreshText(data.refreshAtSearch) + ` · 표본 간격 ${data.sampleSeconds}초 / 갱신 주기 ${data.scanSeconds}초 · 최종 top-k 반환 ${data.items.length}개`);
               for (const item of data.items) {
                 const button = document.createElement('button'); button.type = 'button'; button.className = 'button-secondary';
                 const stamp = typeof item.timeNs === 'string' && /^[0-9]+$/.test(item.timeNs) ? new Date(Number(BigInt(item.timeNs) / 1000000n)).toLocaleString() : '시간 미확인';
@@ -10967,11 +11002,25 @@ void AppendOpsShellScript(std::ostringstream& out,
                 button.addEventListener('click', () => select(item)); el('Rows').append(button);
                 if (evidenceUi) el('Rows').append(evidenceUi.button('visual-search', { channelId: item.channelId, hitId: item.id }));
               }
-              say('Status', data.items.length ? `${data.items.length}개 유사 결과입니다. 실제 영상을 확인하세요.` : '조건에 맞는 색인 프레임이 없습니다.');
+              say('Status', data.items.length ? `${data.items.length}개 유사 결과입니다. 실제 영상을 확인하세요.` : '현재 색인에 조건에 맞는 프레임이 없습니다. 사건이 없었다는 판정은 아닙니다.');
             } catch (error) { if (version === revision) say('Status', error.message); }
-            finally { if (version === revision) el('Submit').disabled = !enabled; }
+            finally { if (version === revision) { searching = false; el('Submit').disabled = !enabled; } }
           });
           el('Form').addEventListener('input', invalidate); el('Form').addEventListener('change', invalidate);
+          el('ToSearch').addEventListener('click', () => {
+            const target = name => document.getElementById('opsSearch' + name);
+            const ids = [...el('Channels').selectedOptions].map(option => option.value);
+            const a = Date.parse(el('Start').value), b = Date.parse(el('End').value);
+            if (!ids.length || !Number.isSafeInteger(a) || !Number.isSafeInteger(b) || a < 0 || a >= b || b - a > 31 * 86400000 ||
+                ids.some(id => ![...target('Channels').options].some(option => option.value === id))) {
+              say('Status', '복사할 카메라와 31일 이내의 시작·종료 시간을 확인하세요. 받는 검색에서 같은 카메라를 사용할 수 있어야 합니다.'); return;
+            }
+            for (const option of target('Channels').options) option.selected = ids.includes(option.value);
+            target('Start').value = el('Start').value; target('End').value = el('End').value;
+            target('Form').dispatchEvent(new Event('input', { bubbles: true }));
+            target('Status').textContent = '카메라·시간만 복사했습니다. 이 검색의 고유 조건은 유지했습니다. 확인 후 검색하세요.';
+            say('Status', '카메라·시간을 복사했습니다. 고유 조건은 다른 검색에 적용하지 않습니다.');
+          });
           el('Refresh').addEventListener('click', status); status();
         }
         document.getElementById('eventRecordsEvidenceSelect')?.addEventListener('change', () => {

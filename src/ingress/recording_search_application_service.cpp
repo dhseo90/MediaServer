@@ -120,7 +120,14 @@ ApplicationServiceResult RecordingApplicationService::Search(const Query& raw,co
                 ",\"selectionReason\":"+Quote(event?"event-priority":preferred?"original-fallback":"original")+
                 ",\"unavailableReason\":"+Quote(playable?"":target.empty()?"unresolved-original":catalog_.IsDeletedSegmentId(target)?"deleted":"media-unavailable")+"}");
         }
-        Add(json,"]}");return {200,"OK",std::move(json)};
+        Add(json,"],\"appliedQuery\":{\"channelIds\":"+List(query.channels)+",\"startTimeMs\":"+std::to_string(query.start_time_ms)+
+            ",\"endTimeMs\":"+std::to_string(query.end_time_ms)+",\"limit\":"+std::to_string(query.limit)+
+            ",\"includeUnplaced\":"+(query.include_unplaced?"true":"false")+",\"object\":"+List(query.objects)+
+            ",\"track\":"+List(query.tracks)+",\"event\":"+List(query.events)+",\"zone\":"+List(query.zones)+
+            ",\"rule\":"+List(query.rules)+",\"behaviour\":"+List(query.behaviours)+"},\"searchBasis\":{\"kind\":\"structured-query-snapshot\","
+            "\"snapshotId\":"+Quote(page.snapshot_id)+",\"statisticsScope\":\"query-matches\"}}");
+        if(!Authorized(query,authorize))return Error(403,"recording-channel-forbidden");
+        return {200,"OK",std::move(json)};
     }catch(const std::exception&){return Error(503,"recording-search-unavailable");}
 }
 ApplicationServiceResult RecordingApplicationService::SearchSeek(const Query& raw,const std::string& principal,
