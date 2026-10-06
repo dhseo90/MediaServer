@@ -1,0 +1,55 @@
+{
+  "sourceCommit": "d43749210dea147225e5544a595ff4dc08abb438",
+  "trackedDiffSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "harnessSha256": "80dd0aedd946878dc62361d3cf771b2e7871189238e1f97e5500bf86ab5b273f",
+  "binary": "/Users/dhseo/Workspace/mediaServer/models/v450-question-eval/ollama-v0.35.1/ollama",
+  "binarySha256": "5f0e245e8369a66b7b24654c51c8ec95f3eab9a1e263f6e95e20d2d4374b8e26",
+  "version": {
+    "version": "0.35.1"
+  },
+  "model": {
+    "name": "qwen3.5:9b",
+    "model": "qwen3.5:9b",
+    "modified_at": "2026-10-06T18:01:03.141667814+09:00",
+    "size": 6550825550,
+    "digest": "56671c2ab9385f9cfcb404638e32cd62d88e3501d44822208363c010179a3c90",
+    "details": {
+      "parent_model": "model.gguf",
+      "format": "gguf",
+      "family": "qwen35",
+      "families": [
+        "qwen35"
+      ],
+      "parameter_size": "9.0B",
+      "quantization_level": "Q4_K_M",
+      "context_length": 262144,
+      "embedding_length": 4096
+    },
+    "capabilities": [
+      "completion",
+      "vision",
+      "tools",
+      "thinking"
+    ]
+  },
+  "parameterMap": {
+    "presence_penalty": 1.5,
+    "temperature": 1,
+    "top_k": 20,
+    "top_p": 0.95
+  },
+  "showSha256": "8fdff6db059aa5efd5968bdbdd8ffdfc78ae473c60dca9f786b72ed7dff20a31",
+  "endpoint": "http://127.0.0.1:63516",
+  "ownedPid": 52960,
+  "sameAs50": [
+    "binary SHA",
+    "manifest digest",
+    "details",
+    "template",
+    "parameter map",
+    "capabilities",
+    "sampling/context/think/keep_alive"
+  ],
+  "transport": "evaluation-only direct loopback /api/chat; products unmodified",
+  "initialModels": []
+}
