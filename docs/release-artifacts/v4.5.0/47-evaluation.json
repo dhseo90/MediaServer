@@ -1,0 +1,413 @@
+{
+  "name": "서버 초안의 제한된 모델 문장화 후보 평가",
+  "status": "editing-quality-not-met; candidate closed",
+  "base": "e54b03cc58b9990b98a98659140e5a107479d87c",
+  "codeCommit": "e5d8180943c4283de5da1bfcb162ee72539b2f50",
+  "freeze": "47-evaluation-freeze.json",
+  "preflight": "47-preflight.json",
+  "criteria": "47-criteria.json",
+  "requests": "47-request-freeze.json",
+  "rawOutput": "47-local.log.gz",
+  "reviewer": "동일 구현자의 직접 문장 대조. 독립/심판 모델 검토 아님.",
+  "summary": {
+    "calls": 6,
+    "retries": 0,
+    "slots": 9,
+    "formatAcceptedCases": 6,
+    "formatAcceptedSlots": 9,
+    "meaningPreservedCases": 6,
+    "meaningPreservedSlots": 9,
+    "materialRequestAndNeutralitySlots": 9,
+    "naturalnessPassSlots": 6,
+    "editingQualityPassCases": 3,
+    "editingQualityPassSlots": 6,
+    "verbatimCopies": 0,
+    "substantiveImprovementDemonstratedSlots": 0
+  },
+  "cases": [
+    {
+      "case": "single-time",
+      "requestSha256": "982240612b446a838658b9970ed11054eead4b26ea9122330c472416466625da",
+      "responseSha256": "15c527d3a13949d5ee155c66ca281ebf4b7c55114b98a516f53f7f0770f4bf5b",
+      "responseBytes": 542,
+      "contentBytes": 213,
+      "stop": "normal",
+      "thinkFalseObserved": true,
+      "result": {
+        "case": "single-time",
+        "accepted": true,
+        "error": "",
+        "elapsedMs": 5157,
+        "outputState": "rephrased-format-valid"
+      },
+      "slots": [
+        {
+          "key": "q0",
+          "gapRefs": [
+            {
+              "claimId": "c0",
+              "gapIndex": 0
+            }
+          ],
+          "serverDraft": "‘입구의 흰색 운반 카트’의 프레임 1(미디어 PTS 2000000000 ns)와 비교할 다른 시점의 위치 자료 및 두 관측의 촬영 순서를 확인할 근거를 제공할 수 있나요?",
+          "modelText": "‘입구의 흰색 운반 카트’의 프레임 1(미디어 PTS 2000000000 ns)과 비교할 다른 시점의 위치 자료 및 두 관측의 촬영 순서를 확인할 근거를 제공할 수 있나요?",
+          "identicalBytes": false,
+          "A_format": "PASS",
+          "B_meaningPreservation": "PASS",
+          "C_materialRequestAndNeutrality": "PASS",
+          "D_naturalnessAndReadability": "PASS",
+          "E_improvement": "minor",
+          "substantiveBenefitDemonstrated": false,
+          "reason": "조사 와를 과로 바꿨다. 추가 시점 위치와 두 관측 순서 근거, 대상과 PTS 2000000000 ns 표기는 모두 유지한다. 소폭 문법 보정이며 의미 변경 없음.",
+          "requiredQuality": "PASS"
+        }
+      ],
+      "meaningStatus": "PASS",
+      "editingQuality": "PASS"
+    },
+    {
+      "case": "unordered-pair",
+      "requestSha256": "a2a57710455b527f450e943016ef130d5ec3cfe591784c4636c3eacc908ffb26",
+      "responseSha256": "df2c6f288a5ce11b550df8085ff45275403721262f9366a1a3891645916d7486",
+      "responseBytes": 569,
+      "contentBytes": 239,
+      "stop": "normal",
+      "thinkFalseObserved": true,
+      "result": {
+        "case": "unordered-pair",
+        "accepted": true,
+        "error": "",
+        "elapsedMs": 6794,
+        "outputState": "rephrased-format-valid"
+      },
+      "slots": [
+        {
+          "key": "q0",
+          "gapRefs": [
+            {
+              "claimId": "c0",
+              "gapIndex": 0
+            }
+          ],
+          "serverDraft": "‘작업대 옆 회색 상자’의 프레임 1(미디어 PTS 5000000000 ns), 프레임 2(미디어 PTS 5000000000 ns) 사이의 촬영 순서를 입증할 시각 기록이나 프레임 대응 자료를 제공할 수 있나요?",
+          "modelText": "‘작업대 옆 회색 상자’의 프레임 1(미디어 PTS 5000000000 ns)과 프레임 2(미디어 PTS 5000000000 ns) 사이의 촬영 순서를 입증할 시각 기록이나 프레임 대응 자료를 제공할 수 있나요?",
+          "identicalBytes": false,
+          "A_format": "PASS",
+          "B_meaningPreservation": "PASS",
+          "C_materialRequestAndNeutrality": "PASS",
+          "D_naturalnessAndReadability": "PASS",
+          "E_improvement": "minor",
+          "substantiveBenefitDemonstrated": false,
+          "reason": "쉼표를 과로 연결했다. 같은PTS 두 프레임의 촬영 순서 근거만 요청하고 세 번째 관측·기존 위치를 추가 요청하지 않는다.",
+          "requiredQuality": "PASS"
+        }
+      ],
+      "meaningStatus": "PASS",
+      "editingQuality": "PASS"
+    },
+    {
+      "case": "unlinked-target",
+      "requestSha256": "509a559c1e266aceef6adf1bbb7eac0093e1de20c7f138ef14f586fbfc55b466",
+      "responseSha256": "bac6124638664786c09180b14d1f76a636989d60a43f253a5c1062356ff02f91",
+      "responseBytes": 580,
+      "contentBytes": 250,
+      "stop": "normal",
+      "thinkFalseObserved": true,
+      "result": {
+        "case": "unlinked-target",
+        "accepted": true,
+        "error": "",
+        "elapsedMs": 6310,
+        "outputState": "rephrased-format-valid"
+      },
+      "slots": [
+        {
+          "key": "q0",
+          "gapRefs": [
+            {
+              "claimId": "c0",
+              "gapIndex": 0
+            }
+          ],
+          "serverDraft": "‘보관 구역의 줄무늬 가방’의 프레임 1(미디어 PTS 3000000000 ns), 프레임 2(미디어 PTS 7000000000 ns)의 대상 연결을 확인할 식별 가능한 특징 자료나 연속 기록을 제공할 수 있나요?",
+          "modelText": "보관 구역의 줄무늬 가방에 대한 프레임 1(미디어 PTS 3000000000 ns)과 프레임 2(미디어 PTS 7000000000 ns) 간의 대상 연결을 확인할 수 있는 식별 가능한 특징 자료나 연속 기록이 제공될까요?",
+          "identicalBytes": false,
+          "A_format": "PASS",
+          "B_meaningPreservation": "PASS",
+          "C_materialRequestAndNeutrality": "PASS",
+          "D_naturalnessAndReadability": "FAIL",
+          "E_improvement": "regression",
+          "substantiveBenefitDemonstrated": false,
+          "reason": "대상·PTS 3000000000/7000000000 ns·식별 특징 또는 연속 기록 요청은 유지한다. 다만 기록이 제공될까요라는 수동·미래형으로 요청 어조가 어색해졌다. 문맥상 자료 요청으로 읽혀 C는 통과시키며 확정적 의미 전환으로 과장하지 않는다.",
+          "requiredQuality": "FAIL"
+        }
+      ],
+      "meaningStatus": "PASS",
+      "editingQuality": "FAIL"
+    },
+    {
+      "case": "missing-A-sample",
+      "requestSha256": "204b41835e1d00eee185ea71f4dabe880fd1632a6862ab55a9298067d01d8795",
+      "responseSha256": "6bec243bb96a99521f8ff135079c50972de8d5f6927785cdbb880af2edd5bfb2",
+      "responseBytes": 805,
+      "contentBytes": 467,
+      "stop": "normal",
+      "thinkFalseObserved": true,
+      "result": {
+        "case": "missing-A-sample",
+        "accepted": true,
+        "error": "",
+        "elapsedMs": 9155,
+        "outputState": "rephrased-format-valid"
+      },
+      "slots": [
+        {
+          "key": "q0",
+          "gapRefs": [
+            {
+              "claimId": "c0",
+              "gapIndex": 0
+            }
+          ],
+          "serverDraft": "‘선택된 분석 대상’의 프레임 1(미디어 PTS 0 ns), 프레임 2(미디어 PTS 1000000000 ns)에 대응하는 분석 namespace·track·episode의 sample 기록 연결 근거를 제공할 수 있나요? (물리적 동일성 인증 아님)",
+          "modelText": "'선택된 분석 대상'의 프레임 1(미디어 PTS 0 ns), 프레임 2(미디어 PTS 1000000000 ns)에 대응하는 분석 namespace, track, episode 의 샘플 기록 연결 근거를 제공해 주실 수 있나요? (물리적 동일성 인증이 아님)",
+          "identicalBytes": false,
+          "A_format": "PASS",
+          "B_meaningPreservation": "PASS",
+          "C_materialRequestAndNeutrality": "PASS",
+          "D_naturalnessAndReadability": "PASS",
+          "E_improvement": "mixed",
+          "substantiveBenefitDemonstrated": false,
+          "reason": "A namespace/track/episode/sample 기록 연결과 물리적 동일성 인증 아님을 모두 유지한다. 샘플 및 제공해 주실 수 있나요는 이해/공손함에 도움이나 episode 의 띄어쓰기와 혼합 기술어가 남아 실질 개선은 미확인.",
+          "requiredQuality": "PASS"
+        },
+        {
+          "key": "q1",
+          "gapRefs": [
+            {
+              "claimId": "c0",
+              "gapIndex": 1
+            }
+          ],
+          "serverDraft": "‘선택된 분석 대상’의 프레임 1(미디어 PTS 0 ns), 프레임 2(미디어 PTS 1000000000 ns)에 대응하는 원본 화면 기준 위치 자료를 제공할 수 있나요?",
+          "modelText": "'선택된 분석 대상'의 프레임 1(미디어 PTS 0 ns), 프레임 2(미디어 PTS 1000000000 ns)에 대응하는 원본 화면 기준 위치 자료를 제공해 주실 수 있나요?",
+          "identicalBytes": false,
+          "A_format": "PASS",
+          "B_meaningPreservation": "PASS",
+          "C_materialRequestAndNeutrality": "PASS",
+          "D_naturalnessAndReadability": "PASS",
+          "E_improvement": "minor",
+          "substantiveBenefitDemonstrated": false,
+          "reason": "같은 두 프레임의 원본 화면 기준 위치 자료 요청을 유지하고 제공해 주실 수 있나요로 공손하게 바꿨다. 기능적 의미 추가 없음.",
+          "requiredQuality": "PASS"
+        }
+      ],
+      "meaningStatus": "PASS",
+      "editingQuality": "PASS"
+    },
+    {
+      "case": "partial-scope-control",
+      "requestSha256": "67320fdc08d3260657bf99e00f9a4b5bec6a523376f2c5dd65da2e1a5b9d4bbc",
+      "responseSha256": "50bdd6d0825c9baae15439fc47789b0cd0cbaf4be3b7b2ea73930826e3ef7106",
+      "responseBytes": 491,
+      "contentBytes": 161,
+      "stop": "normal",
+      "thinkFalseObserved": true,
+      "result": {
+        "case": "partial-scope-control",
+        "accepted": true,
+        "error": "",
+        "elapsedMs": 4269,
+        "outputState": "rephrased-format-valid"
+      },
+      "slots": [
+        {
+          "key": "q0",
+          "gapRefs": [
+            {
+              "claimId": "c0",
+              "gapIndex": 0
+            }
+          ],
+          "serverDraft": "‘선반 앞 노란 공구함’의 프레임 3(미디어 PTS 12000000000 ns)에 대응하는 원본 화면 기준 위치 자료를 제공할 수 있나요?",
+          "modelText": "선반 앞 노란 공구함'의 프레임 3(미디어 PTS 12000000000 ns)에 대응하는 원본 화면 기준 위치 자료를 제공할 수 있나요?",
+          "identicalBytes": false,
+          "A_format": "PASS",
+          "B_meaningPreservation": "PASS",
+          "C_materialRequestAndNeutrality": "PASS",
+          "D_naturalnessAndReadability": "FAIL",
+          "E_improvement": "regression",
+          "substantiveBenefitDemonstrated": false,
+          "reason": "부족한 프레임3/PTS 12000000000 ns 위치만 요청한다는 의미는 유지한다. 공구함 뒤의 닫는 인용부호만 남겨 문장부호 품질을 악화시켰다.",
+          "requiredQuality": "FAIL"
+        }
+      ],
+      "meaningStatus": "PASS",
+      "editingQuality": "FAIL"
+    },
+    {
+      "case": "combined-control",
+      "requestSha256": "8c560756ef732c164279ea9174a8497e689dafff87cc82586d7b4f411dab73f6",
+      "responseSha256": "a20878b8d96fca94dba688270e8a716491839e4c02653bca564ff6cd7eb89be3",
+      "responseBytes": 977,
+      "contentBytes": 632,
+      "stop": "normal",
+      "thinkFalseObserved": true,
+      "result": {
+        "case": "combined-control",
+        "accepted": true,
+        "error": "",
+        "elapsedMs": 12389,
+        "outputState": "rephrased-format-valid"
+      },
+      "slots": [
+        {
+          "key": "q0",
+          "gapRefs": [
+            {
+              "claimId": "c0",
+              "gapIndex": 0
+            }
+          ],
+          "serverDraft": "‘기둥 옆 접이식 의자’의 프레임 1(미디어 PTS 9000000000 ns), 프레임 2(미디어 PTS 9000000000 ns) 사이의 촬영 순서를 입증할 시각 기록이나 프레임 대응 자료를 제공할 수 있나요?",
+          "modelText": "기둥 옆 접이식 의자'의 프레임 1(미디어 PTS 9000000000 ns)과 프레임 2(미디어 PTS 9000000000 ns) 사이의 촬영 순서를 입증할 시각 기록이나 프레임 대응 자료를 제공할 수 있나요?",
+          "identicalBytes": false,
+          "A_format": "PASS",
+          "B_meaningPreservation": "PASS",
+          "C_materialRequestAndNeutrality": "PASS",
+          "D_naturalnessAndReadability": "FAIL",
+          "E_improvement": "regression",
+          "substantiveBenefitDemonstrated": false,
+          "reason": "PTS 9000000000 ns인 두 프레임의 순서 근거 요청은 유지한다. 의자 뒤의 닫는 인용부호만 남아 편집 품질은 미충족이다.",
+          "requiredQuality": "FAIL"
+        },
+        {
+          "key": "q1",
+          "gapRefs": [
+            {
+              "claimId": "c0",
+              "gapIndex": 1
+            }
+          ],
+          "serverDraft": "‘기둥 옆 접이식 의자’의 프레임 1(미디어 PTS 9000000000 ns), 프레임 2(미디어 PTS 9000000000 ns)의 대상 연결을 확인할 식별 가능한 특징 자료나 연속 기록을 제공할 수 있나요?",
+          "modelText": "'기둥 옆 접이식 의자'의 프레임 1(미디어 PTS 9000000000 ns)과 프레임 2(미디어 PTS 9000000000 ns)의 대상 연결을 확인할 식별 가능한 특징 자료나 연속 기록을 제공할 수 있나요?",
+          "identicalBytes": false,
+          "A_format": "PASS",
+          "B_meaningPreservation": "PASS",
+          "C_materialRequestAndNeutrality": "PASS",
+          "D_naturalnessAndReadability": "PASS",
+          "E_improvement": "minor",
+          "substantiveBenefitDemonstrated": false,
+          "reason": "두 프레임 대상 연결의 식별 특징/연속 기록 요청을 그대로 유지한다. 과 연결과 인용부호 종류만 바뀌어 개선 폭이 작다.",
+          "requiredQuality": "PASS"
+        },
+        {
+          "key": "q2",
+          "gapRefs": [
+            {
+              "claimId": "c0",
+              "gapIndex": 2
+            }
+          ],
+          "serverDraft": "‘기둥 옆 접이식 의자’의 프레임 2(미디어 PTS 9000000000 ns)에 대응하는 원본 화면 기준 위치 자료를 제공할 수 있나요?",
+          "modelText": "'기둥 옆 접이식 의자'의 프레임 2(미디어 PTS 9000000000 ns)에 대응하는 원본 화면 기준 위치 자료를 제공할 수 있나요?",
+          "identicalBytes": false,
+          "A_format": "PASS",
+          "B_meaningPreservation": "PASS",
+          "C_materialRequestAndNeutrality": "PASS",
+          "D_naturalnessAndReadability": "PASS",
+          "E_improvement": "none",
+          "substantiveBenefitDemonstrated": false,
+          "reason": "부족한 프레임2 위치 요청의 의미와 표현은 같고 인용부호 종류만 바뀌었다. 실질 개선 없음.",
+          "requiredQuality": "PASS"
+        }
+      ],
+      "meaningStatus": "PASS",
+      "editingQuality": "FAIL"
+    }
+  ],
+  "interpretation": "의미·자료 요청은 모두 유지했으나 편집 품질3항목이 원문보다 나빠졌다. 일부 조사/공손함 변화는 소폭 개선으로 인정하되 이점이 지연과 운영비용을 정당화한다는 근거는 없다. 이번 후보 종료, 공개 연결 권고하지 않음.",
+  "comparisonLimit": "45는 gap 해석 후 생성,47은 완성된 서버 초안 편집. 입력 과제가 달라 이전FAIL 해소나 모델 단독 비교가 아님. 이미 사용한 작은6개 개발 사례이므로 일반화/반복 안정성/실제CCTV 품질 근거 아님.",
+  "latencyMs": {
+    "perCase": [
+      5157,
+      6794,
+      6310,
+      9155,
+      4269,
+      12389
+    ],
+    "sum": 44074,
+    "mean": 7345.666666666667,
+    "min": 4269,
+    "max": 12389,
+    "meaning": "각 GenerateReviewQuestions의 digest전후확인+생성 시간; 모델 순수 추론 시간과 구분"
+  },
+  "resources": {
+    "modelBytes": 6446372616,
+    "modelPhysicalFootprintBytes": 8073846080,
+    "modelRssPlusVramBytes": 13653792520,
+    "modelVramBytes": 6446372616,
+    "workspaceBytes": 186469650
+  },
+  "resourceMeaning": "modelPhysicalFootprintBytes is gate measurement; RSS+VRAM is legacy observation only, not added to unified memory or used as peak requirement. Native each-case RSS below4GiB asserted, exact peak not collected.",
+  "unloadGate": {
+    "status": "PASS",
+    "limitSeconds": 5,
+    "observations": [
+      {
+        "elapsedMs": 6,
+        "modelCount": 0
+      }
+    ],
+    "meaning": "native 묶음 종료 이후5초 gate. 최초 조회 models0; 모델 내부 해제 지연 자체의 직접 계측은 아님"
+  },
+  "cleanup": {
+    "postRunModels": [],
+    "postRunModelAbsent": true,
+    "serverForced": false,
+    "serverExit": 0,
+    "ownedGroupAbsent": true,
+    "portClosed": true,
+    "elapsedSeconds": 47.558652916923165
+  },
+  "offline": {
+    "checks": 298,
+    "sharedRegression": 161,
+    "realModelCollectionChecks": 136,
+    "firstFailures": []
+  },
+  "productState": {
+    "A46Unchanged": true,
+    "rendererUnchanged": true,
+    "recordAndApiUiUnchanged": true,
+    "publicRephraseConnected": false,
+    "defaultModelChanged": false,
+    "homebrewUnchanged": true,
+    "approvedRuntimeAndModelPreserved": true
+  },
+  "notRun": [
+    "HTTP/browser46 재실행",
+    "일반 acceptance/전체UI/30분/120분",
+    "추가 모델/설치/업데이트/warmup/심판/재시도",
+    "PR/main/tag/Release"
+  ],
+  "remaining": [
+    "자유질문 자동 해석",
+    "영상 의미·sequence 품질",
+    "VA Review 전체 품질·릴리즈"
+  ],
+  "checks": {
+    "build-1": "47-build-1.json",
+    "offline-1": "47-offline-1.json",
+    "shared-regression": "47-shared-regression.json",
+    "comments": "47-comments.json",
+    "structure": "47-structure.json",
+    "docs": "47-docs.json",
+    "whitespace": "47-whitespace.json",
+    "docsFinal": "47-docs-final.json",
+    "whitespaceFinal": "47-whitespace-final.json",
+    "runnerSyntax": "Python ast.parse: PASS; no runtime execution"
+  },
+  "executionProvenance": "실행 당시 base+diff/hash는47-preflight와47-evaluation-freeze에 고정. 후속 코드 커밋은 이 동일 바이트를 보존하며 커밋 후 새 모델 실행을 뜻하지 않음."
+}
