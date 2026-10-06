@@ -13,6 +13,7 @@ import {bootstrapRecordingUiAuth,createUiAuthPasswords,reservePort,stopServer,as
 import {resolvePlaywrightModule,resolveNativeBrowserExecutable} from './v390_ui_native_adapter.mjs';
 
 const materialMode=process.env.MEDIA_SERVER_VA_MATERIAL_CHECKS==='1';
+const phase=materialMode?'46':process.env.MEDIA_SERVER_VA_VALIDATION_PHASE==='56'?'56':'42';
 const repo=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');
 const root=fs.mkdtempSync(path.join(fs.realpathSync(os.tmpdir()),'media-server-a-review-http-'));
 fs.chmodSync(root,0o700);const identity=fs.statSync(root);const started=Date.now();
@@ -164,11 +165,36 @@ try{
     await page.locator('#opsAReviewPanel').scrollIntoViewIfNeeded();const file=path.join(repo,'docs/release-artifacts/v4.5.0/42-'+name+'-'+started+'.png');await page.screenshot({path:file});report.browser.screenshots.push({file:path.basename(file),width,theme});if(name==='desktop-light'||name==='mobile-dark'){const full=file.replace('.png','-panel.png');await page.locator('#opsAReviewPanel').screenshot({path:full});report.browser.screenshots.push({file:path.basename(full),width,theme,scope:'whole changed panel'});}};
   await shot('desktop-light',1280,'light');await shot('mobile-dark',390,'dark');
   uiCheck(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth+1),'mobile no horizontal overflow');
-  const uiExecute=async(relation)=>{await page.selectOption('#opsAReviewRelation',relation);await page.fill('#opsAReviewQuestion','명시한 관계를 확인합니다.');await page.click('#opsAReviewPrepare');await page.click('#opsAReviewConfirm');await page.click('#opsAReviewExecute');await page.waitForFunction(()=>document.getElementById('opsAReviewStatus').textContent.startsWith('저장된 구조화'));};
+  const uiExecute=async(relation)=>{await page.selectOption('#opsAReviewRelation',relation);await page.fill('#opsAReviewQuestion','명시한 관계를 확인합니다.');await page.click('#opsAReviewPrepare');await page.click('#opsAReviewConfirm');await page.click('#opsAReviewExecute');await page.waitForFunction(()=>document.getElementById('opsAReviewStatus').textContent.includes('A 기록 검토가 완료'));await page.locator('#opsAReviewResult').filter({hasText:'명시한 관계를 확인합니다.'}).waitFor();};
   await uiExecute('continuous-motion');uiCheck((await page.locator('#opsAReviewResult').innerText()).includes('미지원'),'unsupported shown separately');
   await page.setViewportSize({width:1280,height:900});await openA('track-999');await page.locator('#opsAReviewRows button').first().click();await page.locator('#opsAReviewResult h5').first().waitFor();
   const allText=await page.locator('#opsAReviewResult').innerText();uiCheck(allText.includes('unavailable-limit')&&(allText.match(/분석 기록상의 관계/g)||[]).length===16&&allText.includes('추가로 필요한 자료 — 서버 규칙'),'projection unavailable displays all structured gaps');
   await shot('desktop-dark',1280,'dark');await shot('mobile-light',390,'light');
+  // R55-F1: 실제 job 응답을 보류한다. payload/state를 조작하지 않고 과거 결과 조회와 교차한다.
+  await page.setViewportSize({width:1280,height:900});await openA();await page.fill('#opsAReviewQuestion','진행 중 이력 조회 반례');
+  await page.click('#opsAReviewPrepare');await page.click('#opsAReviewConfirm');
+  let releaseJob,jobArrived,jobReads=0;const heldJob=new Promise(r=>releaseJob=r),jobArrival=new Promise(r=>jobArrived=r);
+  await page.route('**/a-record-reviews/jobs/*',async route=>{
+    if(route.request().method()!=='GET'){await route.continue();return;}
+    ++jobReads;const response=await route.fetch();
+    if(jobReads===1){report.browser.heldJobState=(await response.json()).state;jobArrived();await heldJob;}
+    try{await route.fulfill({response});}catch{}
+  });
+  try{
+    await page.click('#opsAReviewExecute');await jobArrival;
+    await page.locator('#opsAReviewRows button').first().click();await page.locator('#opsAReviewResult h5').first().waitFor();
+    const historicalText=await page.locator('#opsAReviewResult').innerText();
+    await page.click('#opsAReviewRefresh');uiCheck(jobReads===1,'refresh during held GET does not start duplicate polling');
+    releaseJob();await page.waitForFunction(()=>document.getElementById('opsAReviewStatus').textContent.includes('A 기록 검토가 완료'));
+    await page.waitForFunction(()=>!document.getElementById('opsAReviewQuestion').disabled);
+    uiCheck((await page.locator('#opsAReviewResult').innerText())===historicalText,'pending real job GET survives history selection; completion leaves history visible');
+    await page.locator('#opsAReviewRows button').filter({hasText:'진행 중 이력 조회 반례'}).waitFor();
+    uiCheck(await page.locator('#opsAReviewRows button').filter({hasText:'진행 중 이력 조회 반례'}).count()===1,'completed server result listed once');
+    await page.locator('#opsAReviewRows button').filter({hasText:'진행 중 이력 조회 반례'}).click();
+    await page.locator('#opsAReviewResult').filter({hasText:'진행 중 이력 조회 반례'}).waitFor();
+    uiCheck((await page.locator('#opsAReviewResult').innerText()).includes('지지'),'new completed result explicitly readable');
+    await shot('poll-history-desktop',1280,'light');report.browser.jobReads=jobReads;
+  }finally{releaseJob();await page.unroute('**/a-record-reviews/jobs/*');}
   // 늦게 돌아오는 실제 초안 응답은 현재 명세에 적용하지 않는다.
   await page.setViewportSize({width:1280,height:900});await openA();await page.fill('#opsAReviewQuestion','늦은 응답 확인');let releaseDraft,arrived;
   const arrival=new Promise(r=>arrived=r),release=new Promise(r=>releaseDraft=r);
@@ -184,7 +210,7 @@ try{
   await page.route('**/a-record-reviews/jobs/*',async route=>{if(route.request().method()!=='GET'){await route.continue();return;}const response=await route.fetch();await pause(350);try{await route.fulfill({response});}catch{}});
   await page.click('#opsAReviewPrepare');await page.click('#opsAReviewConfirm');await page.click('#opsAReviewExecute');
   const cancelButton=page.locator('#opsAReviewCancel');await page.waitForFunction(()=>!document.getElementById('opsAReviewCancel').disabled);
-  await cancelButton.click();await page.waitForFunction(()=>/취소|이미 저장|저장된 구조화/.test(document.getElementById('opsAReviewStatus').textContent));
+  await cancelButton.click();await page.waitForFunction(()=>/취소|이미 저장|저장된 구조화|A 기록 검토가 완료/.test(document.getElementById('opsAReviewStatus').textContent));
   report.browser.cancelOutcome=await page.locator('#opsAReviewStatus').innerText();uiCheck(true,'actual cancel action respects publish race');
   await page.unroute('**/a-record-reviews/jobs/*');
   fs.renameSync(packPath,path.join(root,'held-package.evp'));await openA();await page.locator('#opsAReviewRows button').first().click();await page.locator('#opsAReviewResult h5').first().waitFor();uiCheck((await page.locator('#opsAReviewResult').innerText()).includes('unavailable'),'missing evidence leaves structured result visible');fs.renameSync(path.join(root,'held-package.evp'),packPath);
@@ -216,6 +242,6 @@ finally{
   if(udp){await new Promise(resolve=>udp.close(resolve));report.cleanup.udpClosed=true;}
   try{assert(!child||child.exitCode!==null||child.signalCode!==null,'active process');const s=fs.lstatSync(root);assert(!s.isSymbolicLink()&&s.dev===identity.dev&&s.ino===identity.ino&&s.uid===process.getuid(),'root ownership');fs.rmSync(root,{recursive:true});report.cleanup.rootAbsent=!fs.existsSync(root);assert(report.cleanup.rootAbsent,'cleanup remains');}catch{failed=true;report.cleanup.failed=true;}
   report.modelCalls=chatCalls;report.status=failed?'FAIL':'PASS';report.exit=failed?1:0;report.elapsedMs=Date.now()-started;
-  const dir=path.join(repo,'docs/release-artifacts/v4.5.0');let n=1;while(fs.existsSync(path.join(dir,`${materialMode?'46':'42'}-http-${n}.json`)))++n;
-  fs.writeFileSync(path.join(dir,`${materialMode?'46':'42'}-http-${n}.json`),JSON.stringify(report,null,2)+'\n');console.log(JSON.stringify({status:report.status,checks:report.checks.length,failure:report.failure,elapsedMs:report.elapsedMs,cleanup:report.cleanup}));process.exitCode=report.exit;
+  const dir=path.join(repo,'docs/release-artifacts/v4.5.0');let n=1;while(fs.existsSync(path.join(dir,`${phase}-http-${n}.json`)))++n;
+  fs.writeFileSync(path.join(dir,`${phase}-http-${n}.json`),JSON.stringify(report,null,2)+'\n');console.log(JSON.stringify({status:report.status,checks:report.checks.length,failure:report.failure,elapsedMs:report.elapsedMs,cleanup:report.cleanup}));process.exitCode=report.exit;
 }

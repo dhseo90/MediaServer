@@ -4743,3 +4743,22 @@ K03 추가 비용 조건: `V420_COST_VARIED=1`은 관측의 원본 표본 10개�
 이는 실행 범위 정의이며 독립 승인이나 품질 PASS가 아니다. 모델 품질 실험은 기존 wrapper의
 명시적인 local 모드에 남고 출시 계획에 넣지 않는다. 기본 native 검사는 격리 대역의
 transport/decoder/취소/저장/실패 전파를 실행한다. 테스트 전용 C++ tag는 제품 HTTP/config에서 선택할 수 없다.
+
+
+### V450 출시 필수 회귀의 역방향 결속 (56)
+
+55의 분류를 유지한다. 아래 현행 분류에서 출시 필수 집합을 읽으며 명령 목록에서 역산하지 않는다.
+<!-- v450-current-product: K05 K07 K08 K09 K11 A02 U02 A03 U03 T01 S02 S03 R01 R02 R03 E01 E02 E03 -->
+<!-- v450-safety-compat: I01 C01 S01 Q01 A01 U01 G01 N01 N02 N03 -->
+<!-- v450-unassigned: K13 K14 K15 A04 U04 -->
+<!-- v450-historical-experiment: K01 K02 K03 K04 K06 K10 K12 L01 -->
+
+V450-U02 추가 반례는 실제 `openAnalysis` 스크립트를 읽는 `evidence_ui_state.test.mjs`에서
+진행 GET 보류→과거 결과 열람→응답 반환→단일 polling/완료 회수, 확인·실행 응답과 결과 조회의 독립성,
+늦은 결과/이전 job/취소 경합·종료·권한 오류를 검사한다. 실제 HTTP/변경 화면은
+`verify_va_review_confirmed.py --http`에서 실제 응답을 지연해 확인한다. 단기/변경 UI 범위이며
+전체 UI·30분·120분 근거를 대신하지 않는다.
+
+V450-E03 추가 반례는 K05 core, K07 observations, K08 bound record, U02 HTTP/UI와 E03 자체검사의
+명령/옵션/전이 호출을 제거하거나 다른 유효 명령으로 바꿔도 거부되어야 한다.
+현재 필수 정의→명령과 명령→정의 양방향을 검사하며 자식 실패/후속 not-run은 그대로 유지한다.

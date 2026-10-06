@@ -9,6 +9,8 @@ const end=source.indexOf("        if (window.location.pathname === '/ops/events'
 assert(start>=0&&end>start);
 class Element{
   constructor(tag='div'){this.tag=tag;this.children=[];this.events=new Map();this.value=tag==='textarea'?'':'1';this.style={};this.textContent='';this.disabled=false;this.attrs={};}
+  set disabled(value){this.isDisabled=!!value;}
+  get disabled(){return this.isDisabled;}
   addEventListener(name,fn){const list=this.events.get(name)||[];list.push(fn);this.events.set(name,list);}
   fire(name){return Promise.all((this.events.get(name)||[]).map(fn=>fn({preventDefault(){}})));}
   append(...items){this.children.push(...items);}
@@ -27,14 +29,14 @@ const id='ep-'+'a'.repeat(64);
 function fixture(){
   const elements=new Map(),pending=[],timers=new Map(),windowEvents=new Map();let timerId=0;
   const el=name=>{const key=name.startsWith('opsEvidence')?name:'opsEvidence'+name;if(!elements.has(key))elements.set(key,new Element());return elements.get(key);};
-  const context={window:{location:{pathname:'/ops/events'},addEventListener:(name,fn)=>windowEvents.set(name,fn)},document:{getElementById:el,createElement:tag=>new Element(tag)},
+  const context={window:{location:{pathname:'/ops/events'},addEventListener:(name,fn)=>windowEvents.set(name,fn)},document:{getElementById:el,createElement:tag=>new Element(tag),createTextNode:text=>Object.assign(new Element('text'),{textContent:text})},
     URLSearchParams,Date,Error,AbortController,TextEncoder,setTimeout:fn=>{const id=++timerId;timers.set(id,fn);return id;},clearTimeout:id=>timers.delete(id),
     fetch:(url,options)=>new Promise(resolve=>pending.push({url,options,resolve}))};
   vm.runInNewContext(source.slice(start,end)+'\nglobalThis.evidenceTest=evidenceUi;',context);
-  const answer=(request,data,status=200)=>request.resolve({ok:status>=200&&status<300,status,json:async()=>data});
+  const answer=(request,data,status=200)=>request.resolve({ok:status>=200&&status<300,status,json:async()=>structuredClone(data)});
   answer(pending.shift(),{channels:[{channelId:'1',displayName:'Camera'}]});
   const find=(node,id)=>node.id===id?node:node.children.map(child=>find(child,id)).find(Boolean);
-  return {el,pending,answer,api:context.evidenceTest,timers,leave:()=>windowEvents.get('pagehide')(),review:name=>find(el('Detail'),'opsVaReview'+name),
+  return {el,pending,answer,api:context.evidenceTest,timers,leave:()=>windowEvents.get('pagehide')(),review:name=>find(el('Detail'),'opsVaReview'+name),a:name=>find(el('Detail'),'opsAReview'+name),
     tick:async()=>{const [id,fn]=timers.entries().next().value;timers.delete(id);return fn();}};
 }
 const detail=()=>({id,manifest:{channelId:'1',status:'complete',createdAtMs:1,frames:[{}],references:[],assets:[{contentType:'image/png'}]},currentSources:[{kind:'recording',state:'deleted'}]});
@@ -170,4 +172,78 @@ test('V450-U01 active timer is cleared on page exit and malformed IDs cannot bec
   assert.equal(f.timers.size,1);f.leave();assert.equal(f.timers.size,0);assert.equal(f.pending.length,0);
   const bad=fixture();await openReview(bad);await input(bad,'a');const work=bad.review('Execute').fire('click');await flush();bad.answer(bad.pending.shift(),job('running',{id:'https://private.invalid'}),202);await work;
   assert.equal(bad.timers.size,0);assert.equal(bad.pending.length,0);assert.match(bad.review('Status').textContent,/읽지 못/);
+});
+
+// V450-U02/R55-F1: 실제 제품 스크립트의 제어된 fetch/timer. 영상·HTTP 성공 대역이 아니다.
+const aBase='/ops/api/recordings/a-record-reviews';
+const aPack={id,canExecute:true,targetKey:'target',targetLabel:'분석 대상',analysisNamespace:'fixture',frames:[{index:0,ptsNs:10},{index:1,ptsNs:20}]};
+const aDraft={id:'draft',revision:'r1',question:'새 검토',targetLabel:'대상',analysisNamespace:'fixture',engineEpisodes:[1],claims:[],limitation:'A 기록'};
+const aRecord=question=>({question,targetLabel:'대상',analysisNamespace:'fixture',engineEpisodes:[1],confirmedBy:'fixture',confirmedAtMs:1,evidenceAvailability:'available',projectionStatus:'available',claims:[],decisions:[],materialRequests:{status:'not-needed',items:[],unsupportedClaims:[],rendererVersion:'1'}});
+const aList={items:[{id:'past',question:'과거 결과'},{id:'older',question:'이전 결과'}]};
+async function openA(f){await flush();const w=f.api.button('search',{snapshotId:'s',hitId:'h'},true).fire('click');await flush();f.answer(f.pending.shift(),{id,status:'complete'},201);await flush();f.answer(f.pending.shift(),aPack);await w;f.answer(f.pending.shift(),aList);await flush();f.a('Question').value='새 검토';await f.a('Question').fire('input');}
+async function prepareA(f){const w=f.a('Prepare').fire('click');await flush();f.answer(f.pending.shift(),aDraft);await w;}
+async function confirmA(f){const w=f.a('Confirm').fire('click');await flush();f.answer(f.pending.shift(),{});await w;}
+async function executeA(f){await prepareA(f);await confirmA(f);const w=f.a('Execute').fire('click');await flush();f.answer(f.pending.shift(),job());await w;}
+async function pastA(f,index=0){const w=f.a('Rows').children[index].fire('click');await flush();f.answer(f.pending.shift(),aRecord(index?'이전 결과':'과거 결과'));await w;}
+test('V450-U02 R55-F1 past result during pending job GET keeps single polling and completion',async()=>{
+  const f=fixture();await openA(f);await executeA(f);const p=f.tick();await flush();const held=f.pending.shift();
+  await pastA(f);f.answer(held,job());await p;
+  assert.equal(f.timers.size,1,'past-result lookup must not invalidate job polling');
+  const refresh=f.a('Refresh').fire('click');await flush();assert.equal(f.pending.length,1,'refresh must not duplicate scheduled poll');f.answer(f.pending.shift(),aList);await refresh;
+  const done=f.tick();await flush();f.answer(f.pending.shift(),job('completed',{reviewId:'new',canCancel:false}));await flush();
+  f.answer(f.pending.shift(),aList);await done;assert.equal(f.timers.size,0);assert.equal(f.a('Question').disabled,false);
+  assert.equal(f.a('Result').children[1].textContent,'과거 결과','selected history stays visible');assert.match(f.a('Status').textContent,/완료/);
+});
+test('V450-U02 history lookup does not invalidate pending prepare, confirm or execute',async()=>{
+  for(const stage of ['Prepare','Confirm','Execute']){
+    const f=fixture();await openA(f);if(stage!=='Prepare')await prepareA(f);if(stage==='Execute')await confirmA(f);
+    const work=f.a(stage).fire('click');await flush();const held=f.pending.shift();await pastA(f);
+    f.answer(held,stage==='Prepare'?aDraft:stage==='Confirm'?{}:job());await work;
+    assert.equal(f.a(stage==='Prepare'?'Confirm':stage==='Confirm'?'Execute':'Cancel').disabled,false,stage);
+    if(stage==='Execute')assert.equal(f.timers.size,1);
+  }
+});
+test('V450-U02 late saved result and list cannot overwrite newer selection',async()=>{
+  const f=fixture();await openA(f);const old=f.a('Rows').children[0].fire('click');await flush();const held=f.pending.shift();await pastA(f,1);
+  f.answer(held,aRecord('오래된 늦은 응답'));await old;assert.equal(f.a('Result').children[1].textContent,'이전 결과');
+  const refresh1=f.a('Refresh').fire('click');await flush();const list=f.pending.shift();const refresh2=f.a('Refresh').fire('click');await flush();f.answer(f.pending.shift(),aList);await refresh2;
+  f.answer(list,{items:[]});await refresh1;assert.equal(f.a('Rows').children.length,2);
+});
+test('V450-U02 cancel aborts pending GET; late previous job cannot replace new job',async()=>{
+  const f=fixture();await openA(f);await executeA(f);const p=f.tick();await flush();const held=f.pending.shift();
+  const cancel=f.a('Cancel').fire('click');await flush();assert(held.options.signal.aborted);await f.a('Cancel').fire('click');assert.equal(f.pending.length,1);
+  f.answer(f.pending.shift(),job('cancelled',{error:'review-cancelled',canCancel:false}));await cancel;assert.equal(f.timers.size,0);assert.equal(f.a('Question').disabled,false);
+  await executeA(f);f.answer(held,job('completed',{reviewId:'old'}));await p;assert.equal(f.timers.size,1);assert.equal(f.a('Cancel').disabled,false);assert.equal(f.pending.length,0);
+});
+test('V450-U02 failed/cancelled jobs unlock controls while history stays visible',async()=>{
+  for(const [state,error] of [['failed','review-write-failed'],['cancelled','review-cancelled']]){
+    const f=fixture();await openA(f);await executeA(f);const p=f.tick();await flush();const held=f.pending.shift();await pastA(f);f.answer(held,job(state,{error,canCancel:false}));await p;
+    assert.equal(f.timers.size,0);assert.equal(f.a('Question').disabled,false);assert.equal(f.a('Result').children[1].textContent,'과거 결과');assert.match(f.a('Status').textContent,/실패|취소/);
+  }
+});
+test('V450-U02 completion wins cancellation without overwriting selected history',async()=>{
+  const f=fixture();await openA(f);await executeA(f);await pastA(f);const w=f.a('Cancel').fire('click');await flush();f.answer(f.pending.shift(),job('completed',{reviewId:'new',canCancel:false}));await flush();f.answer(f.pending.shift(),aList);await w;
+  assert.match(f.a('Status').textContent,/완료/);assert.equal(f.a('Result').children[1].textContent,'과거 결과');assert.equal(f.timers.size,0);assert.equal(f.a('Question').disabled,false);
+});
+test('V450-U02 progress retry has at most one GET and no extra timer',async()=>{
+  const f=fixture();await openA(f);await executeA(f);let p=f.tick();await flush();f.answer(f.pending.shift(),{error:'temporary'},503);await p;assert.equal(f.timers.size,0);
+  const r1=f.a('Refresh').fire('click');const r2=f.a('Refresh').fire('click');await flush();const pending=f.pending.splice(0);assert.equal(pending.filter(r=>r.url.includes('/jobs/')).length,1);
+  for(const r of pending)f.answer(r,r.url.includes('/jobs/')?job():aList);await r1;await r2;await flush();assert.equal(f.timers.size,1);
+});
+test('V450-U02 permission error and panel exit stop in-flight and timers',async()=>{
+  for(const mode of ['permission','channel','page']){
+    const f=fixture();await openA(f);await executeA(f);const p=f.tick();await flush();const held=f.pending.shift();
+    if(mode==='permission'){f.answer(held,{error:'review-forbidden'},403);await p;assert(f.a('Prepare').disabled);assert(f.a('Execute').disabled);}
+    else {if(mode==='page')f.leave();else await f.el('Channel').fire('change');assert(held.options.signal.aborted);f.answer(held,job());await p;assert.equal(f.el('Detail').children.length,0);}
+    assert.equal(f.timers.size,0);assert.equal(f.pending.length,0);
+  }
+});
+test('V450-U02 changed specification still rejects late confirmation',async()=>{
+  const f=fixture();await openA(f);await prepareA(f);const work=f.a('Confirm').fire('click');await flush();const held=f.pending.shift();f.a('Question').value='새 명세';await f.a('Question').fire('input');f.answer(held,{});await work;assert(f.a('Execute').disabled);assert.equal(f.a('Prepare').disabled,false);
+});
+
+test('V450-U02 permission revocation invalidates an in-flight confirmation',async()=>{
+  const f=fixture();await openA(f);await prepareA(f);const confirmation=f.a('Confirm').fire('click');await flush();const held=f.pending.shift();
+  const history=f.a('Rows').children[0].fire('click');await flush();f.answer(f.pending.shift(),{error:'review-forbidden'},403);await history;
+  f.answer(held,{});await confirmation;assert(f.a('Confirm').disabled);assert(f.a('Execute').disabled);assert.equal(f.timers.size,0);
 });

@@ -56,6 +56,8 @@ assertKnownOptions(rawArgs, ["h", "help", "recording-root-only", "v450-plan-only
 // 출시 범위만 고정: 실제 acceptance/장시간/모델은 실행하지 않는다.
 if(rawArgs.includes("--v450-plan-only")){
   testV450ReleaseRegistration(rootDir);
+  const registrationTests=spawnSync(process.execPath,['--test',path.join(scriptDir,'v450_release_checks.test.mjs')],{cwd:rootDir,encoding:'utf8',timeout:10000});
+  assert(registrationTests.status===0,registrationTests.stdout+registrationTests.stderr);console.log(registrationTests.stdout.trim());
   const owned=fs.mkdtempSync(path.join(os.tmpdir(),"media-server-v450-plan-"));
   try{
     const bundle=path.join(scriptDir,"verify_v390_test_acceptance_bundle.mjs");
@@ -74,12 +76,18 @@ if(rawArgs.includes("--v450-plan-only")){
     }
     const source=fs.readFileSync(path.join(scriptDir,"verify_v390_test_acceptance_bundle.mjs"),"utf8");
     const body=source.slice(source.indexOf("async function runCommandListStage("),source.indexOf("function runCommand(spec,"));
-    const observed=[];const stages=[];
-    const context=vm.createContext({Date,Number,path,runDir:owned,failedStage:"",failedCommand:"",stages,
-      commandText:spec=>spec.id,makeStage:x=>x,
-      runCommand:async spec=>{observed.push(spec.id);const r=spawnSync(process.execPath,["-e",`process.exit(${spec.exit})`]);return {exitCode:r.status,durationMs:0,tail:[]};}});
-    vm.runInContext(body,context);await context.runCommandListStage("feature-gates",[{id:"child-fail",exit:7},{id:"must-not-run",exit:0}]);
-    assert(observed.join(",")==="child-fail"&&stages[0].status==="FAIL"&&stages[0].checks[0].exitCode===7&&stages[0].checks[1].status==="not-run","actual child exit propagation");
+    const checkPropagation=async code=>{
+      const observed=[],stages=[];
+      const context=vm.createContext({Date,Number,path,runDir:owned,failedStage:"",failedCommand:"",stages,
+        commandText:spec=>spec.id,makeStage:x=>x,
+        runCommand:async spec=>{observed.push(spec.id);const r=spawnSync(process.execPath,["-e",`process.exit(${spec.exit})`]);return {exitCode:r.status,durationMs:0,tail:[]};}});
+      vm.runInContext(code,context);await context.runCommandListStage("feature-gates",[{id:"child-fail",exit:7},{id:"must-not-run",exit:0}]);
+      assert(observed.join(",")==="child-fail"&&stages[0].status==="FAIL"&&stages[0].checks[0].status==="FAIL"&&stages[0].checks[0].exitCode===7&&stages[0].checks[1].status==="not-run","actual child exit propagation");
+    };
+    await checkPropagation(body);
+    for(const mutant of [body.replace('status: result.exitCode === 0 ? "PASS" : "FAIL"','status: "PASS"'),body.replace('status: "not-run"','status: "PASS"')]){
+      let rejected=false;try{await checkPropagation(mutant);}catch{rejected=true;}assert(rejected,'failure/not-run laundering mutant accepted');
+    }
     const quality=spawnSync("python3",[path.join(scriptDir,"verify_v450_quality_dispatch.py"),JSON.stringify(v450ExplicitModelExperiments)],{cwd:rootDir,encoding:"utf8",timeout:10000});
     assert(quality.status===0,quality.stdout+quality.stderr);console.log(quality.stdout.trim());
     console.log("[pass] current release dry-run, actual child exit7 propagation and fixture not-run; no product/longrun/model execution");
