@@ -20,12 +20,15 @@ def wait_model_unloaded(fetch, deadline, clock=time.monotonic, sleep=time.sleep)
     finally:
         print('[model-unload]',json.dumps({'observations':observations}),flush=True)
 repo=pathlib.Path(sys.argv[1]); build=repo/'build-gst-onnx'
-local=len(sys.argv)==4 and sys.argv[2] in ('--local','--diagnostic-text','--diagnostic-text-uncertain','--diagnostic-text-decisive','--diagnostic-inversion','--cause-ab','--observe-local','--questions-local','--rephrase-local')
+local=len(sys.argv)==4 and sys.argv[2] in ('--local','--diagnostic-text','--diagnostic-text-uncertain','--diagnostic-text-decisive','--diagnostic-inversion','--cause-ab','--observe-local','--questions-local','--rephrase-local','--visual-local')
 lifecycle=len(sys.argv)==4 and sys.argv[2]=='--local-lifecycle'
 http_mode=len(sys.argv)==3 and sys.argv[2]=='--http-only'
 contract=len(sys.argv)==3 and sys.argv[2]=='--contract-only'
 cause_offline=len(sys.argv)==3 and sys.argv[2]=='--cause-offline'
 core_only=len(sys.argv)==3 and sys.argv[2] in ('--core-only','--observer-only')
+visual_only=len(sys.argv)==3 and sys.argv[2]=='--visual-only'
+visual_regression=len(sys.argv)==3 and sys.argv[2]=='--visual-regression'
+visual_local=local and sys.argv[2]=='--visual-local'
 rephrase_only=len(sys.argv)==3 and sys.argv[2]=='--rephrase-only'
 rephrase_local=local and sys.argv[2]=='--rephrase-local'
 materials_only=len(sys.argv)==3 and sys.argv[2]=='--materials-only'
@@ -33,7 +36,7 @@ questions_only=len(sys.argv)==3 and sys.argv[2]=='--questions-only'
 questions_local=local and sys.argv[2]=='--questions-local'
 observe_local=local and sys.argv[2]=='--observe-local'
 cause_ab=local and sys.argv[2]=='--cause-ab'
-if len(sys.argv)!=2 and not local and not lifecycle and not http_mode and not contract and not cause_offline and not core_only and not questions_only and not materials_only and not rephrase_only: raise RuntimeError('usage: verify_va_review.sh [--local http://127.0.0.1:port | --local-lifecycle http://127.0.0.1:port | --diagnostic-text http://127.0.0.1:port | --diagnostic-inversion http://127.0.0.1:port | --http-only | --contract-only | --cause-offline | --cause-ab http://127.0.0.1:port | --core-only | --observer-only | --observe-local http://127.0.0.1:port | --rephrase-only | --rephrase-local http://127.0.0.1:port | --materials-only | --questions-only | --questions-local http://127.0.0.1:port]')
+if len(sys.argv)!=2 and not local and not lifecycle and not http_mode and not contract and not cause_offline and not core_only and not questions_only and not materials_only and not rephrase_only and not visual_only and not visual_regression: raise RuntimeError('usage: verify_va_review.sh [--visual-only | --visual-local http://127.0.0.1:port | --visual-regression | --local http://127.0.0.1:port | --local-lifecycle http://127.0.0.1:port | --diagnostic-text http://127.0.0.1:port | --diagnostic-inversion http://127.0.0.1:port | --http-only | --contract-only | --cause-offline | --cause-ab http://127.0.0.1:port | --core-only | --observer-only | --observe-local http://127.0.0.1:port | --rephrase-only | --rephrase-local http://127.0.0.1:port | --materials-only | --questions-only | --questions-local http://127.0.0.1:port]')
 archive=build/'libmedia_server_runtime.a'
 for directory in ('src','include'):
     for source in (repo/directory).rglob('*'):
@@ -46,29 +49,32 @@ try:
     link=shlex.split((build/'CMakeFiles/media_server.dir/link.txt').read_text())
     libs=[str(archive),*link[link.index('libmedia_server_runtime.a')+1:]]
     flags=shlex.split(subprocess.check_output(['pkg-config','--cflags','openssl','sqlite3','gstreamer-app-1.0'],text=True))
-    sources=sorted([*repo.glob('src/recording/va_review*.cpp'),*repo.glob('src/recording/va_review*.h'),*repo.glob('include/recording/va_review*.h'),repo/'scripts/internal/va_review_smoke.cpp',repo/'scripts/internal/va_review_quality_fixture.h',repo/'scripts/internal/verify_va_review.sh',repo/'scripts/internal/va_review_contract_replay.json',repo/'scripts/internal/va_review_cause_diagnostic.h',repo/'scripts/internal/va_review_core_checks.h',repo/'scripts/internal/va_review_question_checks.h',repo/'scripts/internal/va_review_material_checks.h',repo/'scripts/internal/va_review_rephrase_checks.h',repo/'test/fixtures/v450_review_questions.json',repo/'test/fixtures/v450_review_core.json',repo/'test/fixtures/v450_review_observer.json'])
+    sources=sorted([*repo.glob('src/recording/va_review*.cpp'),*repo.glob('src/recording/va_review*.h'),*repo.glob('include/recording/va_review*.h'),repo/'scripts/internal/va_review_smoke.cpp',repo/'scripts/internal/va_review_quality_fixture.h',repo/'scripts/internal/verify_va_review.sh',repo/'scripts/internal/va_review_contract_replay.json',repo/'scripts/internal/va_review_cause_diagnostic.h',repo/'scripts/internal/va_review_core_checks.h',repo/'scripts/internal/va_review_question_checks.h',repo/'scripts/internal/va_review_material_checks.h',repo/'scripts/internal/va_review_rephrase_checks.h',repo/'scripts/internal/va_review_visual_checks.h',repo/'test/fixtures/v450_review_visual.json',repo/'test/fixtures/v450_review_questions.json',repo/'test/fixtures/v450_review_core.json',repo/'test/fixtures/v450_review_observer.json'])
     for source in sources: print('[source]',source.relative_to(repo),hashlib.sha256(source.read_bytes()).hexdigest(),flush=True)
     shutil.copyfile(repo/'scripts/internal/va_review_contract_replay.json',root/'contract-replay.json')
-    if questions_only or questions_local or materials_only or rephrase_only or rephrase_local:
+    if questions_only or questions_local or materials_only or rephrase_only or rephrase_local or visual_regression:
         shutil.copyfile(repo/'test/fixtures/v450_review_questions.json',root/'question-fixture.json')
-        if questions_local or rephrase_only or rephrase_local:shutil.copyfile(repo/'docs/release-artifacts/v4.5.0/43-request-freeze.json',root/'questions-plan.json')
+        if questions_local or rephrase_only or rephrase_local or visual_regression:shutil.copyfile(repo/'docs/release-artifacts/v4.5.0/43-request-freeze.json',root/'questions-plan.json')
         candidate=os.environ.get('MEDIA_SERVER_VA_QUESTION_CANDIDATE')
         candidate_plan=os.environ.get('MEDIA_SERVER_VA_QUESTION_PLAN')
         if bool(candidate)!=bool(candidate_plan):raise RuntimeError('candidate config and plan must be specified together')
         if candidate:
             shutil.copyfile(candidate,root/'question-candidate.json')
-            if questions_local or rephrase_only or rephrase_local:shutil.copyfile(candidate_plan,root/'candidate-questions-plan.json')
-    if rephrase_only or rephrase_local:
+            if questions_local or rephrase_only or rephrase_local or visual_regression:shutil.copyfile(candidate_plan,root/'candidate-questions-plan.json')
+    if rephrase_only or rephrase_local or visual_regression:
         raw=gzip.decompress((repo/'docs/release-artifacts/v4.5.0/46-offline-3.log.gz').read_bytes()).decode()
         rows=[line.removeprefix('[material-case] ') for line in raw.splitlines() if line.startswith('[material-case] ')]
         if len(rows)!=6:raise RuntimeError('original46 six outputs missing')
         (root/'material-baseline.json').write_text('{"cases":['+','.join(rows)+']}')
         if rephrase_local:shutil.copyfile(repo/'docs/release-artifacts/v4.5.0/47-request-freeze.json',root/'rephrase-plan.json')
-    if core_only or observe_local:
+    if core_only or observe_local or visual_regression:
         shutil.copyfile(repo/'test/fixtures/v450_review_core.json',root/'core-fixture.json')
         shutil.copyfile(repo/'test/fixtures/v450_review_observer.json',root/'observer-fixture.json')
         shutil.copyfile(repo/'docs/release-artifacts/v4.5.0/37-request-freeze.json',root/'previous-observation-plan.json')
         if observe_local:shutil.copyfile(repo/'docs/release-artifacts/v4.5.0/38-request-freeze.json',root/'core-plan.json')
+    if visual_only or visual_local:
+        shutil.copyfile(repo/'test/fixtures/v450_review_visual.json',root/'visual-fixture.json')
+        if visual_local:shutil.copyfile(repo/'docs/release-artifacts/v4.5.0/49-request-freeze.json',root/'visual-plan.json')
     if cause_offline or cause_ab:
         artifact=repo/'docs/release-artifacts/v4.5.0'
         prior=json.loads((artifact/'35-evaluation-freeze.json').read_text())
@@ -172,11 +178,11 @@ try:
                     resources['modelPhysicalFootprintBytes']=max(resources['modelPhysicalFootprintBytes'],footprint)
                     resources['workspaceBytes']=max(resources['workspaceBytes'],sum(p.stat().st_size for p in root.rglob('*') if p.is_file()))
                 except Exception as exc: resources['observationError']=type(exc).__name__
-                if (cause_ab or observe_local or questions_local or rephrase_local) and ('observationError' in resources or resources['modelBytes']>14*1024**3 or resources['modelPhysicalFootprintBytes']>14*1024**3 or resources['workspaceBytes']>8*1024**3):
+                if (cause_ab or observe_local or questions_local or rephrase_local or visual_local) and ('observationError' in resources or resources['modelBytes']>14*1024**3 or resources['modelPhysicalFootprintBytes']>14*1024**3 or resources['workspaceBytes']>8*1024**3):
                     (root/'cause-stop').write_text('resource limit or observation failure')
                 stop.wait(.25)
         monitor=threading.Thread(target=observe);monitor.start()
-    elif cause_offline or core_only or questions_only or materials_only or rephrase_only:
+    elif cause_offline or core_only or questions_only or materials_only or rephrase_only or visual_only or visual_regression:
         endpoint='unused'
     else:
         server=http.server.ThreadingHTTPServer(('127.0.0.1',0),Handler)
@@ -210,11 +216,22 @@ try:
         remaining=stage_deadline-focused_started
         if not 0<remaining<=800:raise RuntimeError('shared text budget exhausted or invalid')
         print('[text-budget]',json.dumps({'deadlineMonotonic':stage_deadline,'remainingSeconds':remaining}),flush=True)
-    subprocess.run(['bash','-c','source "$2/scripts/internal/env_common.sh"; export MEDIA_SERVER_GST_CACHE_DIR="$1/gst-cache"; media_server_apply_homebrew_gst_env || exit; exec "$1/smoke" "$1" "$3" "$4"',
-        'va-review',str(root),str(repo),'--local-lifecycle' if lifecycle else sys.argv[2] if local or contract or cause_offline or core_only or questions_only or materials_only or rephrase_only else '--protocol',endpoint],check=True,timeout=60 if lifecycle else stage_deadline-time.monotonic() if local else 90,
+    focused_result=subprocess.run(['bash','-c','source "$2/scripts/internal/env_common.sh"; export MEDIA_SERVER_GST_CACHE_DIR="$1/gst-cache"; media_server_apply_homebrew_gst_env || exit; exec "$1/smoke" "$1" "$3" "$4"',
+        'va-review',str(root),str(repo),'--local-lifecycle' if lifecycle else sys.argv[2] if local or contract or cause_offline or core_only or questions_only or materials_only or rephrase_only or visual_only or visual_regression else '--protocol',endpoint],check=not visual_local,timeout=60 if lifecycle else stage_deadline-time.monotonic() if local else 90,
         env=dict(os.environ,HTTP_PROXY='http://127.0.0.1:1',HTTPS_PROXY='http://127.0.0.1:1',ALL_PROXY='http://127.0.0.1:1',
             http_proxy='http://127.0.0.1:1',https_proxy='http://127.0.0.1:1',all_proxy='http://127.0.0.1:1',NO_PROXY='',no_proxy=''))
     focused_finished=time.monotonic()
+    if visual_regression:
+        for produced,prior_name in [('core-plan.json','38-request-freeze.json'),('rephrase-plan.json','47-request-freeze.json')]:
+            if (root/produced).read_bytes()!=(repo/'docs/release-artifacts/v4.5.0'/prior_name).read_bytes():raise RuntimeError('legacy request bytes changed: '+prior_name)
+        print('[visual-legacy] original38/43/45/47 requests unchanged; zero model calls',flush=True)
+    if visual_only:
+        target=repo/'docs/release-artifacts/v4.5.0/49-request-freeze.json';data=(root/'visual-plan.json').read_bytes()
+        if target.exists():
+            if target.read_bytes()!=data:raise RuntimeError('frozen visual requests changed')
+        else:
+            with target.open('xb') as output:output.write(data)
+        print('[visual-plan-preserved]',hashlib.sha256(data).hexdigest(),flush=True)
     if rephrase_only:
         target=repo/'docs/release-artifacts/v4.5.0/47-request-freeze.json';data=(root/'rephrase-plan.json').read_bytes()
         if target.exists():
@@ -255,7 +272,7 @@ try:
         print('[lifecycle-summary]',json.dumps({'trials':2,'focusedElapsedMs':round(elapsed*1000),'actualUiPass':False,'qualityCasesExecuted':0}),flush=True)
     if local:
         print('[resource]',json.dumps(resources,sort_keys=True),flush=True)
-        if 'observationError' in resources or not 0<resources['modelBytes']<=14*1024**3 or not 0<resources['modelPhysicalFootprintBytes']<=14*1024**3 or resources['workspaceBytes']>8*1024**3:
+        if not visual_local and ('observationError' in resources or not 0<resources['modelBytes']<=14*1024**3 or not 0<resources['modelPhysicalFootprintBytes']<=14*1024**3 or resources['workspaceBytes']>8*1024**3):
             raise RuntimeError('resource observation/gate failed')
         def fetch_models(timeout):
             with urllib.request.build_opener(urllib.request.ProxyHandler({})).open(endpoint+'/api/ps',timeout=timeout) as response:
@@ -264,6 +281,10 @@ try:
                 return models
         wait_model_unloaded(fetch_models,min(focused_finished+5,stage_deadline))
         print('[cleanup] modelUnloaded=true',flush=True)
+        if 'observationError' in resources or not 0<resources['modelBytes']<=14*1024**3 or not 0<resources['modelPhysicalFootprintBytes']<=14*1024**3 or resources['workspaceBytes']>8*1024**3:
+            raise RuntimeError('resource observation/gate failed')
+        if visual_local and focused_result.returncode:
+            raise RuntimeError('visual focused run failed; original exit='+str(focused_result.returncode))
 finally:
     stop.set()
     if monitor:monitor.join(timeout=2)

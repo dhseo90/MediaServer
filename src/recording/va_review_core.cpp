@@ -143,3 +143,120 @@ bool CheckReviewProjectionBudget(const std::vector<ReviewDecision>& decisions,co
     if(error)error->clear();return true;
 }
 } // namespace recording
+
+namespace recording {
+namespace {
+bool VisualColor(const ReviewVisualClaim& s){return Color(s.claim.relation);}
+bool VisualTemporal(const ReviewVisualClaim& s){return s.change!=ReviewSampleChange::None||Position(s.claim.relation);}
+const ReviewVisualObservation* VisualFind(const std::vector<ReviewVisualObservation>& obs,const std::string& target,std::size_t frame){
+    const auto it=std::find_if(obs.begin(),obs.end(),[&](const auto& o){return o.target_id==target&&o.frame==frame;});
+    return it==obs.end()?nullptr:&*it;
+}
+}
+bool ValidateReviewVisualInput(const std::vector<ReviewVisualClaim>& specs,const std::vector<ReviewFrame>& frames,
+    const std::vector<ReviewVisualObservation>& observations,std::string* error){
+    std::vector<ReviewClaimSpec> shape;
+    for(const auto& v:specs){const auto& s=v.claim;
+        if(s.spec_version!=2||s.policy_version!=2||s.coordinates!="none"||
+           v.change<ReviewSampleChange::None||v.change>ReviewSampleChange::Visibility||
+           (v.change==ReviewSampleChange::Color&&s.relation!=ReviewRelation::AllColor)||
+           (v.change==ReviewSampleChange::Visibility&&s.relation!=ReviewRelation::AllVisible))return Fail(error,"visual-invalid-spec");
+        if(!std::is_sorted(s.scope.begin(),s.scope.end()))return Fail(error,"visual-invalid-scope");
+        auto legacy=s;legacy.spec_version=1;legacy.policy_version=1;legacy.coordinates="image-center-pixels";shape.push_back(legacy);
+    }
+    // 명세의 공통 개수/문자열/참조 검증만 재사용하며 C 관측을 v1 Same으로 치환하지 않는다.
+    if(!ValidateReviewCoreInput(shape,frames,{},error)||observations.size()>128)return Fail(error,"visual-invalid-input");
+    for(std::size_t i=1;i<frames.size();++i)if(frames[i].pts_ns<frames[i-1].pts_ns)return Fail(error,"visual-invalid-time-order");
+    std::set<std::pair<std::string,std::size_t>> seen;
+    for(const auto& o:observations){
+        bool allowed=false,color=false;
+        for(const auto& v:specs)if(v.claim.target_id==o.target_id&&v.claim.relation!=ReviewRelation::ContinuousMotion&&
+            std::find(v.claim.scope.begin(),v.claim.scope.end(),o.frame)!=v.claim.scope.end()){allowed=true;color=color||VisualColor(v);}
+        if(o.source!="C"||!allowed||o.frame>=frames.size()||!seen.emplace(o.target_id,o.frame).second||
+           o.pts_ns!=frames[o.frame].pts_ns||o.evidence_sha256!=frames[o.frame].evidence_sha256)return Fail(error,"visual-invalid-reference");
+        if(o.target_match<ReviewTargetMatch::Unknown||o.target_match>ReviewTargetMatch::Ambiguous||
+           o.searchability<ReviewSearchability::Unknown||o.searchability>ReviewSearchability::Obstructed||
+           o.visibility<ReviewVisibility::Unknown||o.visibility>ReviewVisibility::NotVisible||
+           o.link<ReviewVisualLink::Unknown||o.link>ReviewVisualLink::VisualCue)return Fail(error,"visual-invalid-observation");
+        if((o.visibility==ReviewVisibility::Visible&&o.target_match!=ReviewTargetMatch::Matched)||
+           (o.target_match==ReviewTargetMatch::Ambiguous&&(o.visibility!=ReviewVisibility::Unknown||o.color))||
+           (o.visibility==ReviewVisibility::NotVisible&&(o.searchability!=ReviewSearchability::Complete||o.target_match!=ReviewTargetMatch::Unknown||o.color))||
+           (o.color&&(!color||!ValidColor(*o.color)||o.visibility!=ReviewVisibility::Visible)))return Fail(error,"visual-invalid-combination");
+        if(o.link!=ReviewVisualLink::Unknown&&(o.target_match!=ReviewTargetMatch::Matched||o.visibility!=ReviewVisibility::Visible))return Fail(error,"visual-invalid-link");
+        if(o.link==ReviewVisualLink::VisualCue){
+            if(!o.anchor_frame||*o.anchor_frame>=frames.size()||o.cue_kind!="unique-mark"||!VaReviewText(o.cue_text,256)||o.cue_frames.empty()||o.cue_frames.size()>8)
+                return Fail(error,"visual-invalid-cue");
+            std::set<std::size_t> refs(o.cue_frames.begin(),o.cue_frames.end());
+            if(refs.size()!=o.cue_frames.size()||!refs.count(o.frame)||!refs.count(*o.anchor_frame))return Fail(error,"visual-invalid-cue");
+        }else if(o.anchor_frame||o.cue_kind!="none"||!o.cue_text.empty()||!o.cue_frames.empty())return Fail(error,"visual-invalid-cue");
+    }
+    for(const auto& o:observations)if(o.link==ReviewVisualLink::VisualCue){
+        for(auto ref:o.cue_frames){const auto* a=VisualFind(observations,o.target_id,ref);
+            if(!a||a->link!=ReviewVisualLink::VisualCue||a->visibility!=ReviewVisibility::Visible||a->anchor_frame!=o.anchor_frame)
+                return Fail(error,"visual-invalid-anchor");}
+        const auto* anchor=VisualFind(observations,o.target_id,*o.anchor_frame);
+        if(!anchor||anchor->anchor_frame!=o.anchor_frame)return Fail(error,"visual-invalid-anchor");
+    }
+    if(error)error->clear();return true;
+}
+bool EvaluateReviewVisualClaims(const std::vector<ReviewVisualClaim>& specs,const std::vector<ReviewFrame>& frames,
+    const std::vector<ReviewVisualObservation>& observations,std::vector<ReviewVisualDecision>* output,std::string* error){
+    if(!output)return Fail(error,"visual-invalid-input");
+    if(!ValidateReviewVisualInput(specs,frames,observations,error))return false;
+    std::vector<ReviewVisualDecision> result;
+    for(const auto& v:specs){const auto& s=v.claim;ReviewVisualDecision bound;auto& d=bound.decision;d.claim_id=s.id;
+        if(s.relation==ReviewRelation::ContinuousMotion){d.verdict=ReviewVerdict::Unsupported;result.push_back(bound);continue;}
+        const auto gap=[&](ReviewGapKind kind,std::size_t ref){
+            auto it=std::find_if(d.gaps.begin(),d.gaps.end(),[&](const auto& g){return g.kind==kind;});
+            if(it==d.gaps.end())d.gaps.push_back({kind,s.target_id,{ref},frames[s.scope.front()].pts_ns,frames[s.scope.back()].pts_ns});
+            else if(std::find(it->frames.begin(),it->frames.end(),ref)==it->frames.end())it->frames.push_back(ref);
+        };
+        bool ordered=s.scope.size()>=2;
+        for(std::size_t i=1;i<s.scope.size();++i)if(frames[s.scope[i-1]].pts_ns>=frames[s.scope[i]].pts_ns)ordered=false;
+        if(VisualTemporal(v)&&!ordered)for(auto f:s.scope)gap(ReviewGapKind::OrderedTime,f);
+        std::vector<const ReviewVisualObservation*> usable;
+        const bool color=VisualColor(v),position=Position(s.relation);
+        const bool across_color=color&&s.relation==ReviewRelation::AllColor;
+        std::optional<std::size_t> anchor;
+        // 비교 anchor는 명세 범위의 첫 표식 관측으로 고정한다. 결과에 맞는 연결 그룹을 고르지 않는다.
+        for(auto f:s.scope){const auto* o=VisualFind(observations,s.target_id,f);if(o&&o->link==ReviewVisualLink::VisualCue){anchor=o->anchor_frame;break;}}
+        for(auto f:s.scope){const auto* o=VisualFind(observations,s.target_id,f);if(o)bound.observations.push_back(*o);
+            if(position){gap(ReviewGapKind::Position,f);gap(ReviewGapKind::Identity,f);continue;}
+            if(color){
+                const bool identified=o&&o->target_match==ReviewTargetMatch::Matched&&o->visibility==ReviewVisibility::Visible&&o->link!=ReviewVisualLink::Unknown&&
+                    (!across_color||(o->link==ReviewVisualLink::VisualCue&&o->anchor_frame==anchor));
+                if(!identified)gap(ReviewGapKind::Identity,f);
+                if(!o||!o->color)gap(ReviewGapKind::Color,f);
+                if(identified&&o->color)usable.push_back(o);
+            }else{
+                const bool known=o&&((o->visibility==ReviewVisibility::Visible&&o->target_match==ReviewTargetMatch::Matched&&o->link!=ReviewVisualLink::Unknown)||
+                    (o->visibility==ReviewVisibility::NotVisible&&o->searchability==ReviewSearchability::Complete));
+                if(known)usable.push_back(o);else{gap(ReviewGapKind::Visibility,f);if(!o||o->target_match!=ReviewTargetMatch::Matched)gap(ReviewGapKind::Identity,f);}
+            }
+        }
+        if(!position){
+            if(v.change!=ReviewSampleChange::None){
+                bool changed=false;
+                for(std::size_t a=0;a<usable.size();++a)for(std::size_t b=a+1;b<usable.size();++b){
+                    if(usable[a]->pts_ns>=usable[b]->pts_ns)continue;
+                    if(color?usable[a]->color!=usable[b]->color:usable[a]->visibility!=usable[b]->visibility){
+                        if(!changed)d.evidence_frames={usable[a]->frame,usable[b]->frame};changed=true;}
+                }
+                if(changed)d.verdict=v.required_changed?ReviewVerdict::Supported:ReviewVerdict::Contradicted;
+                else if(ordered&&d.gaps.empty())d.verdict=v.required_changed?ReviewVerdict::Contradicted:ReviewVerdict::Supported;
+            }else{
+                for(const auto* o:usable)if(color?*o->color!=s.required_color:(o->visibility==ReviewVisibility::Visible)!=s.required_visible)
+                    d.evidence_frames.push_back(o->frame);
+                if(!d.evidence_frames.empty())d.verdict=ReviewVerdict::Contradicted;
+                else if(d.gaps.empty())d.verdict=ReviewVerdict::Supported;
+            }
+        }
+        if(d.verdict!=ReviewVerdict::Insufficient){d.gaps.clear();if(d.evidence_frames.empty())for(const auto* o:usable)d.evidence_frames.push_back(o->frame);}
+        // claim 범위 밖의 유효 anchor도 판정 근거에서 재조회 가능하게 사본에 포함한다.
+        for(std::size_t i=0;i<bound.observations.size();++i){const auto refs=bound.observations[i].cue_frames;
+            for(auto ref:refs)if(!VisualFind(bound.observations,s.target_id,ref))bound.observations.push_back(*VisualFind(observations,s.target_id,ref));}
+        result.push_back(std::move(bound));
+    }
+    *output=std::move(result);if(error)error->clear();return true;
+}
+} // namespace recording

@@ -22,3 +22,14 @@ bool ExtractReviewObservations(const VaReviewInput&,const ReviewClaimSpec&,const
     std::vector<ReviewObservation>*,std::string* error,VaReviewTransport=VaReviewCurl,
     std::vector<ReviewCoordinateConversion>* conversions=nullptr);
 } // namespace recording
+
+namespace recording {
+// 별도 C 관측 요청. 기존38 좌표 요청과 공개 provider의 기본값은 그대로 유지한다.
+bool BuildReviewVisualRequest(const VaReviewInput&,const std::vector<ReviewVisualClaim>&,const std::string& model,
+    std::string* request,std::string* error);
+bool DecodeReviewVisualObservations(const std::string&,const std::vector<ReviewVisualClaim>&,const std::vector<ReviewFrame>&,
+    std::vector<ReviewVisualObservation>*,std::string* error);
+bool ExtractReviewVisualObservations(const VaReviewInput&,const std::vector<ReviewVisualClaim>&,const VaReviewProviderOptions&,
+    const std::string& expected_digest,VaReviewService::Clock::time_point,const std::function<bool()>&,
+    std::vector<ReviewVisualObservation>*,std::string* error,VaReviewTransport=VaReviewCurl);
+} // namespace recording

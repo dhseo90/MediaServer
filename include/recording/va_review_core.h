@@ -66,3 +66,40 @@ struct ReviewProjectionBudget { std::size_t claims{},supports{},contradictions{}
 bool CheckReviewProjectionBudget(const std::vector<ReviewDecision>&,const std::vector<ReviewExpression>&,
     std::size_t frames,ReviewProjectionBudget*,std::string* error);
 } // namespace recording
+
+namespace recording {
+// C 전용 계약: v1/A의 enum, 저장 재생과 동일성 의미를 변경하지 않는다.
+enum class ReviewSampleChange { None, Color, Visibility };
+enum class ReviewTargetMatch { Unknown, Matched, Ambiguous };
+enum class ReviewSearchability { Unknown, Complete, Obstructed };
+enum class ReviewVisualLink { Unknown, FrameLocal, VisualCue };
+struct ReviewVisualClaim {
+    ReviewClaimSpec claim; // spec_version/policy_version=2, coordinates="none"
+    ReviewSampleChange change{ReviewSampleChange::None};
+    bool required_changed{true}; // change 사용 시 claim.relation은 해당 AllColor/AllVisible이다.
+};
+struct ReviewVisualObservation {
+    std::string source{"C"},target_id;
+    std::size_t frame{};
+    std::int64_t pts_ns{};
+    std::string evidence_sha256;
+    ReviewTargetMatch target_match{ReviewTargetMatch::Unknown};
+    ReviewSearchability searchability{ReviewSearchability::Unknown};
+    ReviewVisibility visibility{ReviewVisibility::Unknown};
+    std::optional<ReviewColor> color;
+    ReviewVisualLink link{ReviewVisualLink::Unknown};
+    std::optional<std::size_t> anchor_frame;
+    std::string cue_kind{"none"},cue_text;
+    std::vector<std::size_t> cue_frames;
+};
+struct ReviewVisualDecision {
+    std::string source{"C"},level{"model-visual-observation"};
+    unsigned policy_version{2};
+    ReviewDecision decision;
+    std::vector<ReviewVisualObservation> observations; // 사용한 관측 및 부족 판정의 부분 관측 사본
+};
+bool ValidateReviewVisualInput(const std::vector<ReviewVisualClaim>&,const std::vector<ReviewFrame>&,
+    const std::vector<ReviewVisualObservation>&,std::string* error);
+bool EvaluateReviewVisualClaims(const std::vector<ReviewVisualClaim>&,const std::vector<ReviewFrame>&,
+    const std::vector<ReviewVisualObservation>&,std::vector<ReviewVisualDecision>*,std::string* error);
+} // namespace recording

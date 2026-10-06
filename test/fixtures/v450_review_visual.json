@@ -1,0 +1,561 @@
+{
+  "contract": "visual-observation.v1",
+  "specPolicy": 2,
+  "cases": [
+    {
+      "id": "V1",
+      "target": "표식7 상자",
+      "frames": [
+        {
+          "ptsNs": 13000000000,
+          "draw": "blue-box",
+          "color": "blue",
+          "visibility": "visible",
+          "targetMatch": "matched",
+          "searchability": "complete",
+          "link": "frame-local"
+        }
+      ],
+      "claims": [
+        {
+          "id": "c0",
+          "relation": "color",
+          "expected": "supported",
+          "scope": [
+            0
+          ],
+          "requiredColor": "blue"
+        },
+        {
+          "id": "c1",
+          "relation": "color",
+          "expected": "contradicted",
+          "scope": [
+            0
+          ],
+          "requiredColor": "red"
+        }
+      ]
+    },
+    {
+      "id": "V2",
+      "target": "상자",
+      "frames": [
+        {
+          "ptsNs": 17000000000,
+          "draw": "two-gray",
+          "color": null,
+          "visibility": "unknown",
+          "targetMatch": "ambiguous",
+          "searchability": "complete",
+          "link": "unknown"
+        }
+      ],
+      "claims": [
+        {
+          "id": "c0",
+          "relation": "color",
+          "expected": "insufficient",
+          "scope": [
+            0
+          ],
+          "requiredColor": "gray"
+        }
+      ]
+    },
+    {
+      "id": "V3",
+      "target": "표식7 상자",
+      "frames": [
+        {
+          "ptsNs": 20000000000,
+          "draw": "yellow-box",
+          "color": "yellow",
+          "visibility": "visible",
+          "targetMatch": "matched",
+          "searchability": "complete",
+          "link": "visual-cue"
+        },
+        {
+          "ptsNs": 22000000000,
+          "draw": "yellow-box",
+          "color": "yellow",
+          "visibility": "visible",
+          "targetMatch": "matched",
+          "searchability": "complete",
+          "link": "visual-cue"
+        },
+        {
+          "ptsNs": 24000000000,
+          "draw": "yellow-box",
+          "color": "yellow",
+          "visibility": "visible",
+          "targetMatch": "matched",
+          "searchability": "complete",
+          "link": "visual-cue"
+        },
+        {
+          "ptsNs": 26000000000,
+          "draw": "covered-box",
+          "color": null,
+          "visibility": "visible",
+          "targetMatch": "matched",
+          "searchability": "obstructed",
+          "link": "visual-cue"
+        },
+        {
+          "ptsNs": 28000000000,
+          "draw": "yellow-box",
+          "color": "yellow",
+          "visibility": "visible",
+          "targetMatch": "matched",
+          "searchability": "complete",
+          "link": "visual-cue"
+        },
+        {
+          "ptsNs": 30000000000,
+          "draw": "yellow-box",
+          "color": "yellow",
+          "visibility": "visible",
+          "targetMatch": "matched",
+          "searchability": "complete",
+          "link": "visual-cue"
+        },
+        {
+          "ptsNs": 32000000000,
+          "draw": "yellow-box",
+          "color": "yellow",
+          "visibility": "visible",
+          "targetMatch": "matched",
+          "searchability": "complete",
+          "link": "visual-cue"
+        },
+        {
+          "ptsNs": 34000000000,
+          "draw": "yellow-box",
+          "color": "yellow",
+          "visibility": "visible",
+          "targetMatch": "matched",
+          "searchability": "complete",
+          "link": "visual-cue"
+        }
+      ],
+      "claims": [
+        {
+          "id": "c0",
+          "relation": "all-color",
+          "expected": "insufficient",
+          "scope": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          "requiredColor": "yellow"
+        },
+        {
+          "id": "c1",
+          "relation": "all-visible",
+          "expected": "contradicted",
+          "scope": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          "change": "visibility",
+          "requiredChanged": true
+        }
+      ]
+    },
+    {
+      "id": "V4",
+      "target": "표식7 상자",
+      "frames": [
+        {
+          "ptsNs": 41000000000,
+          "draw": "yellow-box",
+          "color": "yellow",
+          "visibility": "visible",
+          "targetMatch": "matched",
+          "searchability": "complete",
+          "link": "visual-cue"
+        },
+        {
+          "ptsNs": 44000000000,
+          "draw": "yellow-box",
+          "color": "yellow",
+          "visibility": "visible",
+          "targetMatch": "matched",
+          "searchability": "complete",
+          "link": "visual-cue"
+        },
+        {
+          "ptsNs": 47000000000,
+          "draw": "yellow-box",
+          "color": "yellow",
+          "visibility": "visible",
+          "targetMatch": "matched",
+          "searchability": "complete",
+          "link": "visual-cue"
+        },
+        {
+          "ptsNs": 50000000000,
+          "draw": "covered-box",
+          "color": null,
+          "visibility": "visible",
+          "targetMatch": "matched",
+          "searchability": "obstructed",
+          "link": "visual-cue"
+        },
+        {
+          "ptsNs": 53000000000,
+          "draw": "yellow-box",
+          "color": "yellow",
+          "visibility": "visible",
+          "targetMatch": "matched",
+          "searchability": "complete",
+          "link": "visual-cue"
+        },
+        {
+          "ptsNs": 56000000000,
+          "draw": "blue-box",
+          "color": "blue",
+          "visibility": "visible",
+          "targetMatch": "matched",
+          "searchability": "complete",
+          "link": "visual-cue"
+        },
+        {
+          "ptsNs": 59000000000,
+          "draw": "yellow-box",
+          "color": "yellow",
+          "visibility": "visible",
+          "targetMatch": "matched",
+          "searchability": "complete",
+          "link": "visual-cue"
+        },
+        {
+          "ptsNs": 62000000000,
+          "draw": "yellow-box",
+          "color": "yellow",
+          "visibility": "visible",
+          "targetMatch": "matched",
+          "searchability": "complete",
+          "link": "visual-cue"
+        }
+      ],
+      "claims": [
+        {
+          "id": "c0",
+          "relation": "all-color",
+          "expected": "contradicted",
+          "scope": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          "requiredColor": "yellow"
+        },
+        {
+          "id": "c1",
+          "relation": "all-color",
+          "expected": "supported",
+          "scope": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          "change": "color",
+          "requiredChanged": true
+        }
+      ]
+    },
+    {
+      "id": "V5",
+      "target": "표식9 가방",
+      "frames": [
+        {
+          "ptsNs": 71000000000,
+          "draw": "red-bag",
+          "color": null,
+          "visibility": "visible",
+          "targetMatch": "matched",
+          "searchability": "complete",
+          "link": "frame-local"
+        },
+        {
+          "ptsNs": 75000000000,
+          "draw": "empty",
+          "color": null,
+          "visibility": "not-visible",
+          "targetMatch": "unknown",
+          "searchability": "complete",
+          "link": "unknown"
+        },
+        {
+          "ptsNs": 79000000000,
+          "draw": "board",
+          "color": null,
+          "visibility": "unknown",
+          "targetMatch": "unknown",
+          "searchability": "obstructed",
+          "link": "unknown"
+        }
+      ],
+      "claims": [
+        {
+          "id": "c0",
+          "relation": "all-visible",
+          "expected": "supported",
+          "scope": [
+            0,
+            1,
+            2
+          ],
+          "change": "visibility",
+          "requiredChanged": true
+        },
+        {
+          "id": "c1",
+          "relation": "right",
+          "expected": "insufficient",
+          "scope": [
+            0,
+            2
+          ]
+        }
+      ]
+    },
+    {
+      "id": "V6",
+      "target": "표식9 가방",
+      "frames": [
+        {
+          "ptsNs": 83000000000,
+          "draw": "board",
+          "color": null,
+          "visibility": "unknown",
+          "targetMatch": "unknown",
+          "searchability": "obstructed",
+          "link": "unknown"
+        },
+        {
+          "ptsNs": 89000000000,
+          "draw": "empty",
+          "color": null,
+          "visibility": "not-visible",
+          "targetMatch": "unknown",
+          "searchability": "complete",
+          "link": "unknown"
+        },
+        {
+          "ptsNs": 97000000000,
+          "draw": "red-bag",
+          "color": null,
+          "visibility": "visible",
+          "targetMatch": "matched",
+          "searchability": "complete",
+          "link": "frame-local"
+        }
+      ],
+      "claims": [
+        {
+          "id": "c0",
+          "relation": "all-visible",
+          "expected": "supported",
+          "scope": [
+            0,
+            1,
+            2
+          ],
+          "change": "visibility",
+          "requiredChanged": true
+        },
+        {
+          "id": "c1",
+          "relation": "right",
+          "expected": "insufficient",
+          "scope": [
+            0,
+            2
+          ]
+        },
+        {
+          "id": "c2",
+          "relation": "continuous",
+          "expected": "unsupported",
+          "scope": [
+            0,
+            1,
+            2
+          ]
+        }
+      ]
+    }
+  ],
+  "offline": [
+    {
+      "id": "single-blue",
+      "case": "V1",
+      "mutation": "none",
+      "expected": "supported"
+    },
+    {
+      "id": "single-hidden",
+      "case": "V1",
+      "mutation": "hidden",
+      "expected": "insufficient"
+    },
+    {
+      "id": "single-visible",
+      "case": "V1",
+      "mutation": "visibility",
+      "expected": "supported"
+    },
+    {
+      "id": "single-empty",
+      "case": "V1",
+      "mutation": "empty",
+      "expected": "contradicted"
+    },
+    {
+      "id": "all-known",
+      "case": "V3",
+      "mutation": "fill-color",
+      "expected": "supported"
+    },
+    {
+      "id": "counter-and-gap",
+      "case": "V4",
+      "mutation": "none",
+      "expected": "contradicted"
+    },
+    {
+      "id": "all-missing",
+      "case": "V3",
+      "mutation": "none",
+      "expected": "insufficient"
+    },
+    {
+      "id": "change-color",
+      "case": "V4",
+      "mutation": "change-color",
+      "expected": "supported"
+    },
+    {
+      "id": "no-color-change",
+      "case": "V3",
+      "mutation": "no-change",
+      "expected": "contradicted"
+    },
+    {
+      "id": "no-change-false",
+      "case": "V3",
+      "mutation": "no-change-false",
+      "expected": "supported"
+    },
+    {
+      "id": "change-false",
+      "case": "V4",
+      "mutation": "change-false",
+      "expected": "contradicted"
+    },
+    {
+      "id": "self-anchors",
+      "case": "V3",
+      "mutation": "self-anchors",
+      "expected": "insufficient"
+    },
+    {
+      "id": "frame-local-links",
+      "case": "V3",
+      "mutation": "frame-local",
+      "expected": "insufficient"
+    },
+    {
+      "id": "same-time",
+      "case": "V5",
+      "mutation": "same-time",
+      "expected": "insufficient"
+    },
+    {
+      "id": "partial-visibility",
+      "case": "V5",
+      "mutation": "partial-vis",
+      "expected": "insufficient"
+    },
+    {
+      "id": "reverse-scope",
+      "case": "V3",
+      "mutation": "reverse",
+      "expected": "error"
+    },
+    {
+      "id": "duplicate-scope",
+      "case": "V3",
+      "mutation": "duplicate",
+      "expected": "error"
+    },
+    {
+      "id": "wrong-pts",
+      "case": "V1",
+      "mutation": "pts",
+      "expected": "error"
+    },
+    {
+      "id": "wrong-hash",
+      "case": "V1",
+      "mutation": "hash",
+      "expected": "error"
+    },
+    {
+      "id": "wrong-source",
+      "case": "V1",
+      "mutation": "source",
+      "expected": "error"
+    },
+    {
+      "id": "bad-anchor",
+      "case": "V3",
+      "mutation": "anchor",
+      "expected": "error"
+    },
+    {
+      "id": "bad-cue-ref",
+      "case": "V3",
+      "mutation": "cue-ref",
+      "expected": "error"
+    },
+    {
+      "id": "unseen-color",
+      "case": "V1",
+      "mutation": "unseen-color",
+      "expected": "error"
+    },
+    {
+      "id": "color-without-link",
+      "case": "V1",
+      "mutation": "no-link",
+      "expected": "insufficient"
+    }
+  ]
+}

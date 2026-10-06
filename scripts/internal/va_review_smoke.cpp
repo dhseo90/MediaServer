@@ -911,11 +911,15 @@ void SeedHttp(const std::filesystem::path& root) {
 #include "va_review_question_checks.h"
 #include "va_review_material_checks.h"
 #include "va_review_rephrase_checks.h"
+#include "va_review_visual_checks.h"
 int main(int argc,char** argv) {
     try {
         if(argc!=4)throw std::runtime_error("owned fixture root, mode, endpoint required");
         gst_init(nullptr,nullptr);
-        if(std::string(argv[2])=="--rephrase-only")RephraseChecks(argv[1]);
+        if(std::string(argv[2])=="--visual-only")VisualChecks(argv[1]);
+        else if(std::string(argv[2])=="--visual-local")VisualLocal(argv[1],argv[3]);
+        else if(std::string(argv[2])=="--visual-regression"){CoreChecks(argv[1]);ObserverChecks(argv[1]);RecordChecks(argv[1]);RephraseChecks(argv[1]);VisualLegacyRecords(argv[1]);}
+        else if(std::string(argv[2])=="--rephrase-only")RephraseChecks(argv[1]);
         else if(std::string(argv[2])=="--rephrase-local")RephraseLocal(argv[1],argv[3]);
         else if(std::string(argv[2])=="--materials-only")MaterialChecks(argv[1]);
         else if(std::string(argv[2])=="--questions-only")QuestionChecks(argv[1]);

@@ -928,3 +928,19 @@ A package/draft/execute/list/get 모두에 영향을 준다. 전역 off는 A와 
 녹화 전용120분은 별도 변경 영향이 있을 때만 판단한다. 자동으로 두120분을 실행하지 않는다.
 VERSION/CMake·release metadata·최종 노트, 기록 보존/정리, PR/CI·main·서명/공개는 후속 마감이다.
 공개 후 브랜치 삭제는 별도 승인 정리이며 기능 합격 조건이 아니다. 이번 범위에는 제품/모델 실행이 없다.
+
+## 49: 명시 명세의 C 영상 관측 내부 경로
+
+48의 B~E를 `Build/Decode/ExtractReviewVisualObservations` 계열과
+`EvaluateReviewVisualClaims`에 구현한다(요청 build 함수명은 `BuildReviewVisualRequest`).
+`ReviewVisualClaim`은 policy/spec2와 좌표 없음, 기존 relation에 명시적인 `ReviewSampleChange`
+색상/가시성 변경 판별자를 결속한다. v1 enum/정책·A 저장 재생과 공개 provider는 바꾸지 않는다.
+C 반환 판정에는 source/level/policy 및 해당 claim의 부분 관측 사본을 함께 남긴다.
+모델의 좌표/verdict/basis·A 출처를 수용하거나 C를 v1 Same으로 치환하지 않는다.
+
+선택형 `--visual-only`/`--visual-local`/`--visual-regression`은
+[검사 정의 K13](../../project-feature-test-inventory.md#다음-두-모델-기능의-검사-정의)을 따른다.
+V2 대상은 정답 색을 누출하지 않는 '상자'로 표현하며 두 회색 상자의 식별 불명 기대는 유지한다.
+최초 V3/V4 가림 그림은 회색 본체로 읽힐 여지가 있어 모델 호출 전에 거부·보존했다.
+현재 입력은 넓은 전경 판자와 표식 창을 사용한다. 기대값/사례/합격선 변경이나 호출 후 수정은 아니다.
+실행 결과와 종료 상태는 후속 증거 마감에서 기록한다. 자유질문 초안·공개 연결·자료 요청 C 연결은 미착수다.
