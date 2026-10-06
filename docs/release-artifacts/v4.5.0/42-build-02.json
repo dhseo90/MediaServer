@@ -1,0 +1,11 @@
+{
+  "command": [
+    "cmake",
+    "--build",
+    "build-gst-onnx",
+    "--target",
+    "media_server",
+    "-j4"
+  ],
+  "exit": 2
+}

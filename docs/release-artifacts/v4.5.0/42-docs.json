@@ -1,0 +1,8 @@
+{
+  "command": [
+    "./server.sh",
+    "verify-docs-links"
+  ],
+  "exit": 0,
+  "source": "42-source.json"
+}

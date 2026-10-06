@@ -1,0 +1,52 @@
+{
+  "base": "fab1e0796024a672ad5bd850e098fc228e0f9af9",
+  "count": 13,
+  "files": [
+    {
+      "file": "scripts/internal/va_review_cause_diagnostic.h",
+      "lines": [
+        22,
+        106
+      ],
+      "nonCommentBytesUnchanged": true,
+      "baseSha256": "c0e1e0f727bbaa66e5aac17ac38f4392cdfa53d0a693626df96b99e49920250a",
+      "commentsOnlySha256": "201c821595fcca220e5cb9b6bc509648c6a08476b85394bea65ae064e3a5afdf"
+    },
+    {
+      "file": "scripts/internal/va_review_smoke.cpp",
+      "lines": [
+        377,
+        427,
+        450,
+        464,
+        495,
+        499,
+        729,
+        752
+      ],
+      "nonCommentBytesUnchanged": true,
+      "baseSha256": "1af50ec2fc9c08a4e7f3c2f84fb0191b288437adbf730ceee7a7939ce176ec79",
+      "commentsOnlySha256": "e16889e0ad5c8397f848fac7f2b2a1533796d1931ef7443bcde86a5d39b5dd8e"
+    },
+    {
+      "file": "scripts/internal/verify_va_review.sh",
+      "lines": [
+        188
+      ],
+      "nonCommentBytesUnchanged": true,
+      "baseSha256": "df6e1680701e70cc578e1d65b4a82702d3b140ddb5b5b2534feec3de905b077a",
+      "commentsOnlySha256": "112f738edfdcee9321b777276c0cf643838f2751dce30f44de4073eb7506191f"
+    },
+    {
+      "file": "src/recording/va_review_provider.cpp",
+      "lines": [
+        97,
+        138
+      ],
+      "nonCommentBytesUnchanged": true,
+      "baseSha256": "b858b651cabe6e8c7c2264c89ed1c3715af30fda5c86332cea2ad2220d3ce5c3",
+      "commentsOnlySha256": "9631db21a5850a2ef35955ee21b1429b2b3f3e097aee28150a5287715671e6f2"
+    }
+  ],
+  "patchSha256": "dd97178b6376f9d2a8874b2043f08437f2c60d7fb7e8fd5d227bbec432f1b05a"
+}

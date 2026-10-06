@@ -1,0 +1,8 @@
+{
+  "command": [
+    "node",
+    "scripts/internal/verify_v390_structure_stabilization_execution.mjs",
+    "--graph-only"
+  ],
+  "exit": 0
+}

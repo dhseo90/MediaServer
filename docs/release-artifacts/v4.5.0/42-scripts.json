@@ -1,0 +1,8 @@
+{
+  "command": [
+    "node",
+    "scripts/internal/verify_script_inventory.mjs"
+  ],
+  "exit": 0,
+  "source": "42-source.json"
+}
