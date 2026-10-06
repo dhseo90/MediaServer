@@ -9,6 +9,31 @@
 [개발 계약](superpowers/specs/2026-10-05-v450-va-review-design.md)의 실행 전 정의다.
 아래는 구현/검증 완료 기록이 아니다. 단계별 검증 명령은 해당 구현과 함께 연결한다.
 
+
+### 현행 적용 범위와 역사 기준
+
+현행 책임·관계·입출력·예산·사례의 원본은
+[설계48](superpowers/specs/2026-10-05-v450-va-review-design.md#48-현행-상태와-후속-두-모델-기능의-확정-계약)이다.
+ClaimSpec/core와40~42 A 경로·46 서버 안내는 완료 유지이며 실행 상세를 이 정의에 복제하지 않는다.
+38·43·45는 미충족 종료,47은 의미 보존 확인/편집 품질·실익 미충족으로 미채택이다.
+자유질문 초안·PNG 의미 관측·최종 통합/릴리즈는 미완료다. A 완료는 영상 사실 검증 완료가 아니다.
+
+| 분류 | 기능 ID와 적용 |
+| --- | --- |
+| 역사적 모델 후보 기준 | L01/K01/K03의 기존12사례·text10/반전6/영상12, K04 원인 조사, K06의±1px 관측, K10 질문 생성, K12 초안 편집. 과거 기준/FAIL은 유지하며46 안내와 새 C 관측의 자동 재평가 조건으로 사용하지 않음 |
+| 현재 유효한 안전·호환 회귀 | I01/C01/S01/Q01/A01/U01/G01/N01~03 및 K02/K03/K05~12의 입력·참조·codec·저장·권한·수명·기본 요청 불변 반례. 해당 코드 변경 영향에 따라 적용; 역사 표기로 제거하지 않음 |
+| 현행 개발/품질 기준 | K13의 명시 ClaimSpec 영상 관측, K14의 별도 자유질문 초안, 양쪽 통과 후 K15 확인/저장/공개 통합. 자료 요청은 K11/A03/U03의46 서버 규칙 |
+
+실제 `scripts/internal/verify_va_review.sh`와 `va_review_smoke.cpp`의 기존 선택 분기는 그대로다.
+아래 역사 표기는 실행기의 필수 검사 삭제/면제나 새 mode 구현이 아니다. 신규 mode/fixture 및
+acceptance의 정확한 ID·dispatch 연결은 후속 구현/최종 결속의 잔여이며 이번에 expected hash·승인 원장이나
+coverage를 변경하지 않는다. Q01/N03의 일반120분 필요성은 유지한다. 녹화 전용120분을 자동 추가하지 않는다.
+
+### 기존 모델 v1 후보의 보존된 평가 기준
+
+이 소절의 '재개/이번/최신'은 당시 후보 실행을 지칭한다. 이하 K01/K03의 모델 질문 조건을
+46의 현행 자료 안내나 K13/K14의 필수 질문 생성으로 적용하지 않는다. 과거 합격선은 완화하지 않는다.
+
 `bash scripts/internal/verify_va_review.sh`는 native/loopback protocol 검사다.
 `--local http://127.0.0.1:<port>`는 별도 준비·승인된 모델의 12사례를 호출한다.
 독립 oracle은 [quality fixture](../scripts/internal/va_review_quality_fixture.h)에 실행 전 고정한다.
@@ -125,7 +150,7 @@ B는 진단 대조군이며 공개 record를 만들지 않는다. 모든 요청 
 작은 텍스트 표본의 차이는 복합 요청 전체의 기여 근거이며 특정 enum/decoder의 단독 효과,
 영상 인식·질문 요구·제품 품질 PASS 또는 독립 검증을 뜻하지 않는다.
 
-V450-K05(판정 핵심, 공개 경로 미연결): `--core-only`는
+V450-K05(판정 핵심;37 당시 모델 공개 미연결, 현재40~42 A 경로 재사용): `--core-only`는
 [test/fixtures/v450_review_core.json](../test/fixtures/v450_review_core.json)의 독립 기대값과
 제품 `va_review_core`를 대조한다. 단일 위치/가림/정상 시점 비교/색·가시성/같은 시각/동일성/
 복합 결핍/전칭 반례·누락, 잘못된 형식·참조 오류, 16 claim 보존, U+G/G/claim/40KiB 경계를
@@ -140,6 +165,11 @@ oracle는 생성 픽셀 사각형의 중심(x+24,144), 실제 색red/가시성, 
 최대8호출·재시도0·60초/호출·800초 묶음, 기존 digest/options 및 native4GiB/model14GiB/workspace8GiB 유지.
 의미 오류는 수집하되 전송/시간/자원/격리/수집/정리 실패는 중단한다. native 종료 후5초 unload gate와
 사후 모델 부재를 구분한다. 실제 UI/안정화30분/120분/전체 품질은 이번 비범위이며 공개 연결도 없다.
+
+### 완료된 A 경로의 현행 회귀 정의
+
+40~42·46의 완료 범위는 유지한다. 아래 실행 제외/공개 미연결 문구는 각 검사 당시 범위이며,
+후속42의 A 공개 연결 완료를 취소하지 않는다. 개별 기대값과 기존 v1 비노출 계약은 유지한다.
 
 V450-K07(선택적 A 관측 보존·내부 연결): `bash scripts/internal/verify_evidence_package.sh --observations`.
 모의 AnalysisResult를 실제 projector→catalog journal/checkpoint/recovery→v2 package→새 reader→core에 전달한다.
@@ -167,7 +197,7 @@ V450-K09 / V450-A02 / V450-U02(사용자 확인 A 기록 검토): `verify_va_rev
 - `/ops/events` `opsEvidenceKind`, `opsAReviewPrepare/Confirm/Execute/Cancel/Result`: 선택·명세 확인·실행·결과/근거, 명세 변경·늦은 응답·중복 클릭, 다른 역할/채널, desktop/mobile light/dark를 실제 브라우저로 확인한다. 템플릿은 서버 규칙, 질문 not-generated/모델 not-evaluated 유지.
 - 이 ID는 변경 영역의 단기 native/HTTP/browser 검사다. 30분/120분/일반 acceptance/UI 풀테스트는 이번 제외이며 그 PASS를 대신하지 않는다. 모의 VA는 저장·전달 fixture이며 모델/영상 사실 품질 검사가 아니다.
 
-V450-K10(고정 gap의 한국어 자료 요청 표현): `bash scripts/internal/verify_va_review.sh --questions-only`와
+V450-K10(43·45 종료 후보의 질문 표현; 형식/무호출 반례는 영향 회귀): `bash scripts/internal/verify_va_review.sh --questions-only`와
 `--questions-local http://127.0.0.1:<port>`. [독립 의미 기준](../test/fixtures/v450_review_questions.json)을 호출 전에 고정한다.
 서버 core 실제 gap → 동일 gap 단일 슬롯 → 한국어 문장만 반환. 정상 단일/복수, 빈 슬롯 무호출,
 누락/중복/추가/타 claim/판정·관측 주입, 잘못된 참조, 바이트/길이, 부분 JSON/length/timeout/취소,
@@ -193,7 +223,7 @@ V450-K11 / V450-A03 / V450-U03(서버 부족 근거 자료 요청): `bash script
 - 모델 transport 호출은 실패이며0회여야 한다. 기존43~45의 모델 품질 FAIL과 별개인 서버 규칙
   검사다. 단기 native/HTTP/변경 browser 범위이며 일반 acceptance/전체UI/30분/120분은 제외한다.
 
-V450-K12(서버 초안의 내부 문장화): `--rephrase-only` / `--rephrase-local`은 실제46 renderer 출력과
+V450-K12(47 미채택 초안 편집; 의미 보존 확인, 편집 품질·실익 미충족): `--rephrase-only` / `--rephrase-local`은 실제46 renderer 출력과
 동일6사례9목적을 사용한다. 원 질문·관측 목록·정답표는 모델 입력에서 제외한다. 입력 초안 일치,
 0/1기반 frame 표시 및PTS 문자열, unchanged echo, 슬롯/추가 필드/JSON/170cp/512byte/8192byte,
 timeout·취소·무항목/한도/미지원 무호출, renderer/spec/decision/gap/record 불변을 확인한다.
@@ -204,7 +234,7 @@ D자연스러움, E실질 개선을 분리하고E는 필수 의미 합격과 별
 입력이 달라진 과제이며45의 FAIL 해소나 일반화 품질 검사가 아니다. 구현자 직접 검토이며
 공개 연결/HTTP·UI/전체회귀/30분/120분은 비대상이다.
 
-V450-K06(관측 연결 후보, 공개 미연결): `--observer-only`는
+V450-K06(38 미충족 종료 관측 후보; 좌표/참조 반례는 영향 회귀): `--observer-only`는
 [test/fixtures/v450_review_observer.json](../test/fixtures/v450_review_observer.json)의 독립 기대값으로
 상대 bbox→원본 중심 변환, 양쪽 경계/면적/형식/유한성/null, 프레임·anchor 참조와 PNG 크기·hash를
 검사한다. 기존 core fixture 중 영향받는 13관계 사례만 재사용하며 core 정책/±1px oracle는 유지한다.
@@ -237,21 +267,46 @@ V450-P01은 최신 사용자 결정으로 제외된 Gemini 구현의 역사 ID�
 현행 성공 검사로 재사용하지 않는다. 제거와 연결 확장의 실행 전 기대값은 아래 G/N 기능 ID를 따른다.
 원격 GPU·컨테이너 실검증은 사용자 제외이며 아래 네 영역에서 로컬 fixture/모델로만 실행한다.
 
+### 다음 두 모델 기능의 검사 정의
+
+- **V450-K13 — 명시 ClaimSpec의 C 영상 관측**: 설계48의 V1~V6 실제 PNG6요청/12판정,
+  정상 S/C·4개I·1개U, 대상 불명·부분 가림·실제 반례·정순/반대 시각 패턴·frame 귀속을 분리한다.
+  형식/관측6/6·서버/최종12/12와 공통 시간/자원/정리 조건을 충족해야 한다. 새로운 내부 선택 mode는
+  다음 observer/core 구현에서 추가한다(현재 명령 없음). 모델 없는 typed·참조/출처/예산·취소 반례를 먼저 검사한다.
+  fixture의 명시는 영상/판정 검사 입력이며 모델 자유질문 해석 성공이 아니다.
+- **V450-K14 — 자유질문 명세 초안**: 설계48의 F1~F6 텍스트6요청, exact UTF-8 span coverage와
+  독립 의미 대조6/6. 누락/병합·관계 축소·근거 없는 대상/시점 확정·지시 실행은 실패다. 원문 완전 보존만으로
+  의미 PASS를 주지 않는다. PNG/관측/verdict를 모델에 주지 않는다. 현재 명령 없음, 별도 구현·실행 단계다.
+- **V450-K15/A04/U04 — 양쪽 통과 후 확인·출처·공개 통합**: 실제 HTTP/UI→새 초안 전체 확인→C 관측→
+  서버 판정→출처 보존/readback. 기존 A·46/v1/v2/v3 호환, 미지원/미해석 전체 표시, 수정/타principal/만료 거부,
+  해석+관측 활성시간 합계60초·대기 중 무점유, 취소·권한 회수·미게시를 검사한다. 기존 모델 Submit 차단,
+  권한 있는 v1 List/Get/Job·A 실행 유지, 구형 투영 한도에서도 구조화 결과 보존이 필수다. 현재 미구현/미실행이다.
+
+관측을 먼저 구현·평가하고 해석은 독립적으로 검증한다. 두 평가를 한 명령에서 자동12호출로 합치지 않는다.
+각각 최대6회/재시도0이며 prompt/schema/PNG·입력/의미 기대값을 실행 전에 고정한다. 실제 제품 통합60초 gate는
+두 독립 평가로 대신하지 않는다. 새 기능의 단기 안정화/모델 없는 검사와 실제 생성은 구분하고,
+30분·필요한 일반120분·실제 UI 풀테스트는 최종 변경 범위에서 별도 승인·실행한다.
+
+### 기능별 영역 매핑
+
 | 기능 ID | route/control/action과 정상·오류·경계 기대값 | 안정화 | 30분 | 120분 | UI |
 | --- | --- | --- | --- | --- | --- |
 | V450-I01 | 검증한 EvidencePackageV1에서 1/8 frame 순서·시간·asset/hash·partial 유지. 빈 frame, 잘못된 ID/참조/index/hash/순서, 12MiB 초과 거부. 원본 삭제 후 동일 입력, 오류 시 출력 불변 | native 입력/원본 회귀 | 녹화 병행 | 수명 영향 | 근거 시퀀스 |
 | V450-C01 | supports/questions/contradictions/unclear+nullable confidence strict codec. 중복/추가 key·타입/길이/범위/근거 밖 index·중복 index 거부, 근거 없는 판단·confidence 거부, 결과 출력 불변 | native 계약 | 내부 | 내부 | 구조화 결과 |
 | V450-S01 | record 원자 저장·새 revision·reopen/digest, 512개/64MiB/128KiB·reserve 경계. pending 비공개, 손상/symlink/hardlink/쓰기 실패 거부, 기존 결과 불변·소유 정리 | native 저장 | 저장 병행 | 복구 영향 | 보존 조회 |
 | V450-Q01 | worker1/queue4/job64, 중복 진행 요청, queue-full/30초 대기/60초 실행/cancel/stop/권한 회수·재시작 만료. 실패가 녹화/event/search/송출에 전파되지 않으며 FD/thread/작업 메모리 회수 | native 작업·혼합 회귀 | 별도 승인 | worker 수명상 필요 | 진행/실패/취소 |
-| V450-L01 | Ollama opt-in off 무호출, 실제 순서 PNG·시간 전달, missing-model/연결 실패/timeout/invalid-output. 실제 12사례 schema·근거100%, 부족 사례 uncertainty100%, 의미10/12 이상·60초 이내, 서버4GiB/모델14GiB 이하 | protocol+실제 모델 | 실제 모델 병행 | 수명/자원 | 로컬 검토 |
+| V450-L01 | 기존 v1 후보의 역사적 품질 기준·현재 연결 안전 회귀: Ollama opt-in off 무호출, 실제 순서 PNG·시간 전달, missing-model/연결 실패/timeout/invalid-output. 실제 12사례 schema·근거100%, 부족 사례 uncertainty100%, 의미10/12 이상·60초 이내, 서버4GiB/모델14GiB 이하 | protocol+실제 모델 | 실제 모델 병행 | 수명/자원 | 로컬 검토 |
 | V450-A01 | va-reviews POST/GET 및 va-review-jobs GET/DELETE. 익명401/viewer403·타채널403·ops:write 없는 요청 거부, 생성자/admin 취소, 실행·저장 전 권한 회수 반영, 경로/비밀 비노출 | 격리 HTTP/Auth | 조회 병행 | 종료 영향 | 직접 조작 |
 | V450-U01 | /ops/events 증거 상세 질문→실행→진행/취소→결과→근거. disabled/빈값/중복/실패/늦은 응답·채널 전환, light/dark/mobile, textContent·viewer 비노출·기존 nav | UI 상태/변경영역 | 릴리즈 별도 | 영향 판정 | 풀테스트 별도 |
 | V450-G01 | Gemini 실행/config/UI/record 분기 제거. provider=gemini와 unknown 요청은 400·전송0·저장0. Ollama 결과 조회/재시작/취소와 공통 계약 유지, 화면에 외부 선택·전송 동의 없음 | native·HTTP·UI 상태 | Ollama 병행 | 기존 수명 매핑 | Gemini 노출 없음 |
 | V450-N01 | 관리자 endpoint의 HTTP/HTTPS·DNS/IPv4/IPv6·포트 처리, userinfo/query/fragment/비허용 scheme 거부. redirect/proxy 목적지 우회0·자동 fallback0 | 로컬 protocol | 연결 병행 | worker 수명 | 설정 비노출 |
 | V450-N02 | HTTP+Bearer는 무호출 오류. HTTPS의 CA/호스트명·만료·인증 토큰 확인, 401/403/429·TLS/CA 오류에서 저장0·비밀 비노출. 검증 생략/무인증 재시도0 | 로컬 HTTPS fixture | 오류 격리 | 수명/자원 | 정제 오류 |
 | V450-N03 | 원격용 연결도 deadline·cancel·Stop 시 child reap/worker join·미게시, MediaServer 자원 기준값 회복. 실제 원격 GPU 종료/메모리 회수는 미검증 | 로컬 느린 전송 | 병행 | 필수 수명 | 취소/실패 |
-| V450-K01 | 실제 네 그룹 생성과 한국어 관측/질문, 존재하는 근거 index, 부족에서 null confidence. 단일 설명 자동 분류·questions 상시 빈값으로 대체하지 않으며 불필요한 항목 생성 금지. 실행 전 품질 fixture에 독립 oracle 추가 | 실제 로컬 품질 | 로컬 모델 병행 | 기존 수명 매핑 | 한국어 네 항목 |
-| V450-K03 | 제한된 claim 슬롯·속성 관측·gap 질문 연결, strict 수신·invalid 미게시 및 고정 text10→반전6→영상12; 세부 기준은 위 실행 전 정의 | native/로컬 모델 | 기존 worker 매핑·이번 미실행 | 기존 수명 매핑·이번 미실행 | 공개 네 그룹 영향·이번 풀테스트 제외 |
+| V450-K01 | 역사적 모델 후보 기준(46 안내에 적용하지 않음): 실제 네 그룹 생성과 한국어 관측/질문, 존재하는 근거 index, 부족에서 null confidence. 단일 설명 자동 분류·questions 상시 빈값으로 대체하지 않으며 불필요한 항목 생성 금지. 실행 전 품질 fixture에 독립 oracle 추가 | 실제 로컬 품질 | 로컬 모델 병행 | 기존 수명 매핑 | 한국어 네 항목 |
+| V450-K03 | 기존 후보 기준과 strict 안전 회귀(새 경로 자동 재평가 아님): 제한된 claim 슬롯·속성 관측·gap 질문 연결, strict 수신·invalid 미게시 및 고정 text10→반전6→영상12; 세부 기준은 위 실행 전 정의 | native/로컬 모델 | 기존 worker 매핑·이번 미실행 | 기존 수명 매핑·이번 미실행 | 공개 네 그룹 영향·이번 풀테스트 제외 |
+| V450-K13 | 명시 ClaimSpec·실제 PNG→C 관측→서버 판정. 설계48 V1~V6, 6호출/12판정 및 잘못된 출처/참조·unknown·시간·자원 반례; 새 mode 미구현 | 내부 직접+실제 모델 분리 | 최종 모델 병행 | Q01/N03 일반 수명 | 내부 단계 비대상 |
+| V450-K14 | 자유질문→미확정 초안, 설계48 F1~F6. 복수 주장·불명/미지원 보존; 새 mode 미구현 | 텍스트 직접/모델 분리 | 최종 연결 영향 | 공통 수명 | 내부 단계 비대상 |
+| V450-K15/A04/U04 | 확인된 C 경로·출처 저장/조회·기존 모델 신규 Submit 제한과 A/v1 조회 유지; 총60초/대기 무점유. 현재 미구현 | 실제 HTTP/변경 UI | 최종 별도 | 일반120분 | 통합 후 실제 변경·풀테스트 구분 |
 
 ## v440 증거 패키지
 
