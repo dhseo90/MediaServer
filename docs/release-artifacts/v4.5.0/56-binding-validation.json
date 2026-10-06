@@ -1,0 +1,99 @@
+{
+  "schema": "media-server.feature-implementation-evidence-validation.v1",
+  "executionEvidenceStatus": "not-execution-evidence",
+  "result": {
+    "ok": true,
+    "errors": [],
+    "summary": {
+      "inventoryRows": 986,
+      "manifestRows": 986,
+      "sourceEvidenceRows": 986,
+      "uiEvidenceRows": 441,
+      "verifierEvidenceRows": 986,
+      "manualUiCaseRows": 424,
+      "semanticReviewedRows": 986,
+      "uniqueSemanticDigests": 986,
+      "uniqueReviewReasons": 986,
+      "reviewedCallChains": 986,
+      "errors": 0
+    }
+  },
+  "review4GlobalErrors": [],
+  "negativeChecks": [
+    {
+      "name": "missing-id",
+      "executed": true,
+      "pass": true
+    },
+    {
+      "name": "duplicate-id",
+      "executed": true,
+      "pass": true
+    },
+    {
+      "name": "wrong-section-prefix",
+      "executed": true,
+      "pass": true
+    },
+    {
+      "name": "missing-source-file",
+      "executed": true,
+      "pass": true
+    },
+    {
+      "name": "missing-source-anchor",
+      "executed": true,
+      "pass": true
+    },
+    {
+      "name": "missing-ui-control-anchor",
+      "executed": true,
+      "pass": true
+    },
+    {
+      "name": "missing-ui-screen-route",
+      "executed": true,
+      "pass": true
+    },
+    {
+      "name": "unknown-verifier-command",
+      "executed": true,
+      "pass": true
+    },
+    {
+      "name": "missing-verifier-assertion",
+      "executed": true,
+      "pass": true
+    },
+    {
+      "name": "legacy-longrun-command",
+      "executed": true,
+      "pass": true
+    },
+    {
+      "name": "inventory-hash-drift",
+      "executed": true,
+      "pass": true
+    },
+    {
+      "name": "missing-reviewed-call-chain",
+      "executed": true,
+      "pass": true
+    },
+    {
+      "name": "bulk-review-reason",
+      "executed": true,
+      "pass": true
+    },
+    {
+      "name": "safe-140-unrelated-owner",
+      "executed": true,
+      "pass": true
+    },
+    {
+      "name": "rule-017-generic-json-owner",
+      "executed": true,
+      "pass": true
+    }
+  ]
+}

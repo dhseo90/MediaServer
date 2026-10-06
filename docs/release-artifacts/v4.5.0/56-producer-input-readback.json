@@ -1,0 +1,50 @@
+{
+  "checks": [
+    {
+      "field": "decisionArtifactSha256",
+      "file": "independent-decisions-normalized.json",
+      "mode": "raw",
+      "sha256": "f9a1e97e6ea6077040c05df5948503a322f7a099a709d1228540f8197fce8801",
+      "pass": true
+    },
+    {
+      "field": "priorAuditSha256",
+      "file": "prior-audit.json",
+      "mode": "raw",
+      "sha256": "0b8ebb09830237c8c96bba5a834ad515573071248b19c44dd0cd8df15cb9bf08",
+      "pass": true
+    },
+    {
+      "field": "priorApprovalLedgerSha256",
+      "file": "prior-approvals.json",
+      "mode": "stable-json",
+      "sha256": "91def2e59a4fc4dc9c66c7fe8231e477c86b551f75c7b810d23d57a7aea9f761",
+      "pass": true
+    },
+    {
+      "field": "migrationEvidenceSha256",
+      "file": "migration-evidence.json",
+      "mode": "raw",
+      "sha256": "98e2de217784f2110407341fa6abf00ae8126a29625c3ffc657ddfb1de525caf",
+      "pass": true
+    },
+    {
+      "field": "reviewPackageSha256",
+      "file": "review-package.json",
+      "mode": "raw",
+      "sha256": "6e5ecff37815f90b14642d76ea576d79f8715663673358b91b52080fac9bce9e",
+      "pass": true
+    }
+  ],
+  "firstCheck": {
+    "exit": 1,
+    "toolOutput": "984677/174f42",
+    "cause": "검토용 추가 확인이 priorApprovalLedgerSha256을 raw byte hash로 잘못 비교. 기존 producer 계약은 stableStringify(parsed ledger). 제품/producer 오류가 아님.",
+    "observed": "91def2e59a4fc4dc9c66c7fe8231e477c86b551f75c7b810d23d57a7aea9f761",
+    "incorrectExpected": "fd153d7e7937d5bc7cfe6e9360531a3b519cd2bff5ee662f7624f6e34296884a"
+  },
+  "recheck": {
+    "exit": 0,
+    "contract": "기존 producer의 raw/stable-json 구분 그대로 재대조. 승인 파일 변경 없음."
+  }
+}
