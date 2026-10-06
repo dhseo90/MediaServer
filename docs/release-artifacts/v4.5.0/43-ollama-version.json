@@ -1,0 +1,1 @@
+{"command": ["/opt/homebrew/bin/ollama", "--version"], "exit": 0, "rawSha256": "5c1c824f08bf75fba4a8f587d899fa11df0c656dff6ecc8b62952705dd3b6bd8", "previousSandboxAttempt": "exit2 during Metal initialization, tool output truncated; no server/model call started"}

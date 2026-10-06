@@ -1,0 +1,95 @@
+[fixture] /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-va-review-qnpyk2wr
+[source] include/recording/va_review_bound_record.h 88c9fd10b22cb642bbcbd178cfddc01b33d621a131323f3fa54ed38f72ac8ae3
+[source] include/recording/va_review_confirmed_record.h 487c80ddf120d7a569c7a9870ec54930e54a67f1af663009c85677d79b216e8e
+[source] include/recording/va_review_core.h 50c724572c96fc78b8013157cb91005b592282ac7f91c2be925c1a9b81d72498
+[source] include/recording/va_review_input.h 543fcaf1fd950927455e402b45f3747cdb95c81b8521daa4eb22ce4b87c1cc00
+[source] include/recording/va_review_observer.h ed4a10beeca2652de3d746c89d930f85a5e09a2c4a46b9810e1766465790b039
+[source] include/recording/va_review_provider.h 6fbf72805fdfa7286946a7114adaba247ac042a653988b4259c5ef13cdfbe486
+[source] include/recording/va_review_questions.h d633c279c646d09e6ce3d99c39d091c64eb1341b32def66a74ca77be5ffe678f
+[source] include/recording/va_review_record.h 96f5ac21c232d0b7efcadc94d8472ea980e1c8828577753c77f892210059c27d
+[source] include/recording/va_review_service.h c98b574edc8a4ed0b79208c7ecddd95ca0ec2127383e9e1f8bf07b6f2a4acb3a
+[source] include/recording/va_review_store.h 2ae3ede363a1654bb2f821eb8df97585f768407170a355c5e25910a8e312a144
+[source] scripts/internal/va_review_cause_diagnostic.h 201c821595fcca220e5cb9b6bc509648c6a08476b85394bea65ae064e3a5afdf
+[source] scripts/internal/va_review_contract_replay.json 1aab5af5f30f3c45924a59845af542458058dc242da84c0e1dea5c9084f908b8
+[source] scripts/internal/va_review_core_checks.h f130fea473cfdf721a623c4c3ce69d953e690394517f778cc141eb781b51d2f2
+[source] scripts/internal/va_review_quality_fixture.h 4a46b462b22cf71e092319f885724c67f7506a5a491068577ecd0d632dbe6d64
+[source] scripts/internal/va_review_question_checks.h 43bf2cf39a5726d16794d27948ce60b2ead53a88a5800c0786576b94058387e4
+[source] scripts/internal/va_review_smoke.cpp 7f094b033306e202a47ac1e71ef31e27b37c36b70b3fcf976b43b32a24387da1
+[source] scripts/internal/verify_va_review.sh fb093dc18e10998264afdede866330d31c97fad9cafbc928efa0b6610754df6b
+[source] src/recording/va_review_bound_record.cpp 2475c5064d7c5719da2135f7d4c9045634e4c67bf56d6cd1011928aa60fa6231
+[source] src/recording/va_review_confirmed_record.cpp 284d991c503f947266477b38943da76987a41c4e724ac9318f5303d105e30e63
+[source] src/recording/va_review_core.cpp 59301ca3a819b11d50fee50b818eb45b1aa737ab6e8e27ee962752988bed8efa
+[source] src/recording/va_review_input.cpp fa1efcebb1537eb1b55ab2337ca97b176cf35d503a5aa01cbd1c25958c4403f8
+[source] src/recording/va_review_json.h 835cf40e95a3be8297ccf6edde1fbcf7c8aa5ffda3169f368195bc5667d065f3
+[source] src/recording/va_review_observer.cpp 1d517b3ddc48749eb149a784f80d5c275fb51887091ad336ed3539d21e4ea0e7
+[source] src/recording/va_review_provider.cpp 9631db21a5850a2ef35955ee21b1429b2b3f3e097aee28150a5287715671e6f2
+[source] src/recording/va_review_questions.cpp 28bf56f283b798a15478d450de83d388a6002fe14bf53efbfb0e0c68aec54f66
+[source] src/recording/va_review_record.cpp 01e3a5a833b5d9201f6ec9aa1273e0fae1d58bb88d62c94fa684f5ac3bcb457f
+[source] src/recording/va_review_service.cpp a8aa0642c26d9c76556b27d63d2abcb83bc1508ddaf01c444826e8f955f4b91b
+[source] src/recording/va_review_store.cpp 374ebd4dbaf55134482326e42bdbdc77ae8df07dabb36f25611e717424bd0165
+[source] src/recording/va_review_transport.cpp c38058cffb6cca2b291d6de52bdbdd0c7298b308699c8291f6c242884090a422
+[source] test/fixtures/v450_review_core.json 558d92c7aca53db2a7c213a0949d927703ff955836322ecc19d4358d801d5927
+[source] test/fixtures/v450_review_observer.json ad7f6ebce2170a85b693ef240b11d6063f83bf870dac2b690a722acd026edcb3
+[source] test/fixtures/v450_review_questions.json 8418e32dcbb78f26561061e4d222e119b7e25870e1cebf6ad7bc95e1f2f59cec
+[pass] K10 six frozen cases
+[pass] K10 actual core gaps
+[pass] K10 validated explicit core helper
+[pass] K10 independent expected gap count
+[pass] K10 independent expected gap kind
+[pass] K10 valid single slot
+[pass] K10 reject malformed/coverage/injected/limit without partial output
+[pass] K10 reject malformed/coverage/injected/limit without partial output
+[pass] K10 reject malformed/coverage/injected/limit without partial output
+[pass] K10 reject malformed/coverage/injected/limit without partial output
+[pass] K10 reject malformed/coverage/injected/limit without partial output
+[pass] K10 reject malformed/coverage/injected/limit without partial output
+[pass] K10 reject malformed/coverage/injected/limit without partial output
+[pass] K10 reject malformed/coverage/injected/limit without partial output
+[pass] K10 reject malformed/coverage/injected/limit without partial output
+[pass] K10 reject malformed/coverage/injected/limit without partial output
+[pass] K10 reject malformed/coverage/injected/limit without partial output
+[pass] K10 reject malformed/coverage/injected/limit without partial output
+[pass] K10 actual core gaps
+[pass] K10 validated explicit core helper
+[pass] K10 independent expected gap count
+[pass] K10 independent expected gap kind
+[pass] K10 independent expected gap kind
+[pass] K10 independent expected gap kind
+[pass] K10 multiple slots exact coverage
+[pass] K10 intentionally wrong semantics can pass format; not a quality PASS
+[pass] K10 forged gap/frame rejected
+[pass] K10 other claim rejected
+[pass] K10 invalid frame/observation reference
+[pass] K10 identical gap shared across claims
+[pass] K10 instruction strings stay data
+[pass] K10 escaped request structure intact
+[pass] K10 shared transport normal and pinned digest
+[pass] K10 abnormal/partial/extra failure keeps output
+[pass] K10 abnormal/partial/extra failure keeps output
+[pass] K10 abnormal/partial/extra failure keeps output
+[pass] K10 pre-cancel zero transport
+[pass] K10 expired deadline zero transport
+[pass] K10 transport timeout propagated
+[pass] K10 cancel after response prevents result publication
+[pass] K10 sixteen slots fully retained
+[pass] K10 bounded multibyte full output
+[pass] K10 exact8192 bytes accepted
+[pass] K108193 bytes refused without truncation
+[pass] K10 excess slots refused without dropping gaps
+[pass] K10 non-insufficient valid input
+[pass] K10 supported/contradicted/unsupported no call
+[pass] K10 non-insufficient valid input
+[pass] K10 supported/contradicted/unsupported no call
+[pass] K10 non-insufficient valid input
+[pass] K10 supported/contradicted/unsupported no call
+[pass] K10 non-insufficient valid input
+[pass] K10 supported/contradicted/unsupported no call
+[pass] K10 owned A package store
+[fail] K10 actual empty A snapshots
+[cleanup] removed=true
+Traceback (most recent call last):
+  File "<stdin>", line 192, in <module>
+  File "/opt/homebrew/Cellar/python@3.14/3.14.4/Frameworks/Python.framework/Versions/3.14/lib/python3.14/subprocess.py", line 578, in run
+    raise CalledProcessError(retcode, process.args,
+                             output=stdout, stderr=stderr)
+subprocess.CalledProcessError: Command '['bash', '-c', 'source "$2/scripts/internal/env_common.sh"; export MEDIA_SERVER_GST_CACHE_DIR="$1/gst-cache"; media_server_apply_homebrew_gst_env || exit; exec "$1/smoke" "$1" "$3" "$4"', 'va-review', '/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-va-review-qnpyk2wr', '/Users/dhseo/Workspace/mediaServer', '--questions-only', 'unused']' returned non-zero exit status 1.

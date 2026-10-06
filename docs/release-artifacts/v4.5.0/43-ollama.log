@@ -1,0 +1,499 @@
+time=2026-10-06T13:02:27.788+09:00 level=INFO source=routes.go:1752 msg="server config" env="map[HTTPS_PROXY: HTTP_PROXY: NO_PROXY: OLLAMA_CONTEXT_LENGTH:0 OLLAMA_DEBUG:INFO OLLAMA_DEBUG_LOG_REQUESTS:false OLLAMA_EDITOR: OLLAMA_FLASH_ATTENTION:false OLLAMA_GPU_OVERHEAD:0 OLLAMA_HOST:http://127.0.0.1:53861 OLLAMA_KEEP_ALIVE:5m0s OLLAMA_KV_CACHE_TYPE: OLLAMA_LLM_LIBRARY: OLLAMA_LOAD_TIMEOUT:5m0s OLLAMA_MAX_LOADED_MODELS:1 OLLAMA_MAX_QUEUE:512 OLLAMA_MODELS:/Users/dhseo/Workspace/mediaServer/models/v450-ollama OLLAMA_MULTIUSER_CACHE:false OLLAMA_NEW_ENGINE:false OLLAMA_NOHISTORY:false OLLAMA_NOPRUNE:false OLLAMA_NO_CLOUD:false OLLAMA_NUM_PARALLEL:1 OLLAMA_ORIGINS:[http://localhost https://localhost http://localhost:* https://localhost:* http://127.0.0.1 https://127.0.0.1 http://127.0.0.1:* https://127.0.0.1:* http://0.0.0.0 https://0.0.0.0 http://0.0.0.0:* https://0.0.0.0:* app://* file://* tauri://* vscode-webview://* vscode-file://*] OLLAMA_REMOTES:[ollama.com] OLLAMA_SCHED_SPREAD:false http_proxy: https_proxy: no_proxy:]"
+time=2026-10-06T13:02:27.788+09:00 level=INFO source=routes.go:1754 msg="Ollama cloud disabled: false"
+time=2026-10-06T13:02:27.789+09:00 level=INFO source=images.go:517 msg="total blobs: 4"
+time=2026-10-06T13:02:27.789+09:00 level=INFO source=images.go:524 msg="total unused blobs removed: 0"
+time=2026-10-06T13:02:27.791+09:00 level=INFO source=routes.go:1810 msg="Listening on 127.0.0.1:53861 (version 0.21.0)"
+time=2026-10-06T13:02:27.792+09:00 level=INFO source=runner.go:67 msg="discovering available GPUs..."
+time=2026-10-06T13:02:27.794+09:00 level=INFO source=server.go:444 msg="starting runner" cmd="/opt/homebrew/Cellar/ollama/0.21.0_1/libexec/ollama runner --ollama-engine --port 53863"
+time=2026-10-06T13:02:27.988+09:00 level=INFO source=types.go:42 msg="inference compute" id=0 filter_id=0 library=Metal compute=0.0 name=Metal description="Apple M5" libdirs="" driver=0.0 pci_id="" type=discrete total="17.8 GiB" available="17.8 GiB"
+time=2026-10-06T13:02:27.988+09:00 level=INFO source=routes.go:1860 msg="vram-based default context" total_vram="17.8 GiB" default_num_ctx=4096
+[GIN] 2026/10/06 - 13:02:27 | 200 |       1.093ms |       127.0.0.1 | GET      "/api/version"
+[GIN] 2026/10/06 - 13:02:27 | 200 |     966.042µs |       127.0.0.1 | GET      "/api/tags"
+[GIN] 2026/10/06 - 13:02:27 | 200 |     188.291µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:02:29 | 200 |      14.792µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:02:29 | 200 |      44.708µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:02:30 | 200 |      13.708µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:02:30 | 200 |      15.666µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:02:30 | 200 |      17.167µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:02:30 | 200 |      13.583µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:02:31 | 200 |     235.208µs |       127.0.0.1 | GET      "/api/tags"
+time=2026-10-06T13:02:31.090+09:00 level=INFO source=server.go:259 msg="enabling flash attention"
+time=2026-10-06T13:02:31.090+09:00 level=INFO source=server.go:444 msg="starting runner" cmd="/opt/homebrew/Cellar/ollama/0.21.0_1/libexec/ollama runner --ollama-engine --model /Users/dhseo/Workspace/mediaServer/models/v450-ollama/blobs/sha256-1329cd5ab37e5ef6faef37cd8ff8660ffc96ed5b47b34fddf8eb0912e6c82466 --port 53880"
+time=2026-10-06T13:02:31.091+09:00 level=INFO source=sched.go:484 msg="system memory" total="24.0 GiB" free="9.5 GiB" free_swap="0 B"
+time=2026-10-06T13:02:31.091+09:00 level=INFO source=sched.go:491 msg="gpu memory" id=0 library=Metal available="17.3 GiB" free="17.8 GiB" minimum="512.0 MiB" overhead="0 B"
+time=2026-10-06T13:02:31.091+09:00 level=INFO source=server.go:771 msg="loading model" "model layers"=37 requested=-1
+time=2026-10-06T13:02:31.117+09:00 level=INFO source=runner.go:1417 msg="starting ollama engine"
+time=2026-10-06T13:02:31.118+09:00 level=INFO source=runner.go:1452 msg="Server listening on 127.0.0.1:53880"
+time=2026-10-06T13:02:31.126+09:00 level=INFO source=runner.go:1290 msg=load request="{Operation:fit LoraPath:[] Parallel:1 BatchSize:512 FlashAttention:Enabled KvSize:8192 KvCacheType: NumThreads:4 GPULayers:37[ID:0 Layers:37(0..36)] MultiUserCache:false ProjectorPath: MainGPU:0 UseMmap:false}"
+time=2026-10-06T13:02:31.139+09:00 level=INFO source=ggml.go:136 msg="" architecture=qwen3vl file_type=Q4_K_M name="" description="" num_tensors=858 num_key_values=40
+ggml_metal_device_init: testing tensor API for f16 support
+[GIN] 2026/10/06 - 13:02:31 | 200 |      14.833µs |       127.0.0.1 | GET      "/api/ps"
+ggml_metal_library_init_from_source: error compiling source
+ggml_metal_device_init: - the tensor API is not supported in this environment - disabling
+ggml_metal_library_init: using embedded metal library
+ggml_metal_library_init: loaded in 0.005 sec
+ggml_metal_rsets_init: creating a residency set collection (keep_alive = 180 s)
+ggml_metal_device_init: GPU name:   Apple M5
+ggml_metal_device_init: GPU family: MTLGPUFamilyApple10  (1010)
+ggml_metal_device_init: GPU family: MTLGPUFamilyCommon3 (3003)
+ggml_metal_device_init: GPU family: MTLGPUFamilyMetal4  (5002)
+ggml_metal_device_init: simdgroup reduction   = true
+ggml_metal_device_init: simdgroup matrix mul. = true
+ggml_metal_device_init: has unified memory    = true
+ggml_metal_device_init: has bfloat            = true
+ggml_metal_device_init: has tensor            = false
+ggml_metal_device_init: use residency sets    = true
+ggml_metal_device_init: use shared buffers    = true
+ggml_metal_device_init: recommendedMaxWorkingSetSize  = 19069.67 MB
+time=2026-10-06T13:02:31.139+09:00 level=INFO source=ggml.go:104 msg=system Metal.0.EMBED_LIBRARY=1 CPU.0.NEON=1 CPU.0.ARM_FMA=1 CPU.0.FP16_VA=1 CPU.0.DOTPROD=1 CPU.0.LLAMAFILE=1 CPU.0.ACCELERATE=1 compiler=cgo(clang)
+ggml_metal_init: allocating
+ggml_metal_init: picking default device: Apple M5
+ggml_metal_init: use fusion         = true
+ggml_metal_init: use concurrency    = true
+ggml_metal_init: use graph optimize = true
+time=2026-10-06T13:02:31.379+09:00 level=INFO source=runner.go:1290 msg=load request="{Operation:alloc LoraPath:[] Parallel:1 BatchSize:512 FlashAttention:Enabled KvSize:8192 KvCacheType: NumThreads:4 GPULayers:37[ID:0 Layers:37(0..36)] MultiUserCache:false ProjectorPath: MainGPU:0 UseMmap:false}"
+[GIN] 2026/10/06 - 13:02:31 | 200 |      15.416µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:02:31 | 200 |        30.5µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:02:32 | 200 |      18.042µs |       127.0.0.1 | GET      "/api/ps"
+time=2026-10-06T13:02:32.254+09:00 level=INFO source=runner.go:1290 msg=load request="{Operation:commit LoraPath:[] Parallel:1 BatchSize:512 FlashAttention:Enabled KvSize:8192 KvCacheType: NumThreads:4 GPULayers:37[ID:0 Layers:37(0..36)] MultiUserCache:false ProjectorPath: MainGPU:0 UseMmap:false}"
+time=2026-10-06T13:02:32.254+09:00 level=INFO source=ggml.go:482 msg="offloading 36 repeating layers to GPU"
+time=2026-10-06T13:02:32.254+09:00 level=INFO source=ggml.go:489 msg="offloading output layer to GPU"
+time=2026-10-06T13:02:32.254+09:00 level=INFO source=ggml.go:494 msg="offloaded 37/37 layers to GPU"
+time=2026-10-06T13:02:32.254+09:00 level=INFO source=device.go:240 msg="model weights" device=Metal size="5.4 GiB"
+time=2026-10-06T13:02:32.254+09:00 level=INFO source=device.go:245 msg="model weights" device=CPU size="333.8 MiB"
+time=2026-10-06T13:02:32.254+09:00 level=INFO source=device.go:251 msg="kv cache" device=Metal size="1.1 GiB"
+time=2026-10-06T13:02:32.254+09:00 level=INFO source=device.go:262 msg="compute graph" device=Metal size="538.2 MiB"
+time=2026-10-06T13:02:32.254+09:00 level=INFO source=device.go:267 msg="compute graph" device=CPU size="63.3 MiB"
+time=2026-10-06T13:02:32.254+09:00 level=INFO source=device.go:272 msg="total memory" size="7.4 GiB"
+time=2026-10-06T13:02:32.254+09:00 level=INFO source=sched.go:561 msg="loaded runners" count=1
+time=2026-10-06T13:02:32.254+09:00 level=INFO source=server.go:1364 msg="waiting for llama runner to start responding"
+time=2026-10-06T13:02:32.254+09:00 level=INFO source=server.go:1398 msg="waiting for server to become available" status="llm server loading model"
+[GIN] 2026/10/06 - 13:02:32 | 200 |      55.125µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:02:32 | 200 |      36.584µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:02:32 | 200 |      33.042µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:02:33 | 200 |      32.542µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:02:33 | 200 |      22.625µs |       127.0.0.1 | GET      "/api/ps"
+time=2026-10-06T13:02:33.760+09:00 level=INFO source=server.go:1402 msg="llama runner started in 2.67 seconds"
+[GIN] 2026/10/06 - 13:02:33 | 200 |      26.125µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:02:34 | 200 |      26.042µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:02:34 | 200 |      23.833µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:02:34 | 200 |      36.333µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:02:34 | 200 |      22.334µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:02:35 | 200 |       35.25µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:02:35 | 200 |      30.625µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:02:35 | 200 |      25.375µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:02:36 | 200 |      25.084µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:02:36 | 200 |      25.125µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:02:36 | 200 |      30.166µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:02:36 | 200 |      47.291µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:02:37 | 200 |      29.959µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:02:37 | 200 |      31.375µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:02:37 | 200 |      31.625µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:02:37 | 200 |      28.209µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:02:38 | 200 |      23.875µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:02:38 | 200 |        37.5µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:02:38 | 200 |   7.64748925s |       127.0.0.1 | POST     "/api/chat"
+[GIN] 2026/10/06 - 13:02:38 | 200 |     711.125µs |       127.0.0.1 | GET      "/api/tags"
+[GIN] 2026/10/06 - 13:02:38 | 200 |     291.333µs |       127.0.0.1 | GET      "/api/tags"
+time=2026-10-06T13:02:38.780+09:00 level=INFO source=server.go:259 msg="enabling flash attention"
+time=2026-10-06T13:02:38.781+09:00 level=INFO source=server.go:444 msg="starting runner" cmd="/opt/homebrew/Cellar/ollama/0.21.0_1/libexec/ollama runner --ollama-engine --model /Users/dhseo/Workspace/mediaServer/models/v450-ollama/blobs/sha256-1329cd5ab37e5ef6faef37cd8ff8660ffc96ed5b47b34fddf8eb0912e6c82466 --port 53915"
+time=2026-10-06T13:02:38.787+09:00 level=INFO source=sched.go:484 msg="system memory" total="24.0 GiB" free="4.6 GiB" free_swap="0 B"
+time=2026-10-06T13:02:38.787+09:00 level=INFO source=sched.go:491 msg="gpu memory" id=0 library=Metal available="17.3 GiB" free="17.8 GiB" minimum="512.0 MiB" overhead="0 B"
+time=2026-10-06T13:02:38.787+09:00 level=INFO source=server.go:771 msg="loading model" "model layers"=37 requested=-1
+[GIN] 2026/10/06 - 13:02:38 | 200 |      12.375µs |       127.0.0.1 | GET      "/api/ps"
+time=2026-10-06T13:02:38.909+09:00 level=INFO source=runner.go:1417 msg="starting ollama engine"
+time=2026-10-06T13:02:38.909+09:00 level=INFO source=runner.go:1452 msg="Server listening on 127.0.0.1:53915"
+time=2026-10-06T13:02:38.918+09:00 level=INFO source=runner.go:1290 msg=load request="{Operation:fit LoraPath:[] Parallel:1 BatchSize:512 FlashAttention:Enabled KvSize:8192 KvCacheType: NumThreads:4 GPULayers:37[ID:0 Layers:37(0..36)] MultiUserCache:false ProjectorPath: MainGPU:0 UseMmap:false}"
+time=2026-10-06T13:02:38.931+09:00 level=INFO source=ggml.go:136 msg="" architecture=qwen3vl file_type=Q4_K_M name="" description="" num_tensors=858 num_key_values=40
+ggml_metal_device_init: testing tensor API for f16 support
+[GIN] 2026/10/06 - 13:02:39 | 200 |       14.75µs |       127.0.0.1 | GET      "/api/ps"
+ggml_metal_library_init_from_source: error compiling source
+ggml_metal_device_init: - the tensor API is not supported in this environment - disabling
+ggml_metal_library_init: using embedded metal library
+ggml_metal_library_init: loaded in 0.006 sec
+ggml_metal_rsets_init: creating a residency set collection (keep_alive = 180 s)
+ggml_metal_device_init: GPU name:   Apple M5
+ggml_metal_device_init: GPU family: MTLGPUFamilyApple10  (1010)
+ggml_metal_device_init: GPU family: MTLGPUFamilyCommon3 (3003)
+ggml_metal_device_init: GPU family: MTLGPUFamilyMetal4  (5002)
+ggml_metal_device_init: simdgroup reduction   = true
+ggml_metal_device_init: simdgroup matrix mul. = true
+ggml_metal_device_init: has unified memory    = true
+ggml_metal_device_init: has bfloat            = true
+ggml_metal_device_init: has tensor            = false
+ggml_metal_device_init: use residency sets    = true
+ggml_metal_device_init: use shared buffers    = true
+ggml_metal_device_init: recommendedMaxWorkingSetSize  = 19069.67 MB
+time=2026-10-06T13:02:38.931+09:00 level=INFO source=ggml.go:104 msg=system Metal.0.EMBED_LIBRARY=1 CPU.0.NEON=1 CPU.0.ARM_FMA=1 CPU.0.FP16_VA=1 CPU.0.DOTPROD=1 CPU.0.LLAMAFILE=1 CPU.0.ACCELERATE=1 compiler=cgo(clang)
+ggml_metal_init: allocating
+ggml_metal_init: picking default device: Apple M5
+ggml_metal_init: use fusion         = true
+ggml_metal_init: use concurrency    = true
+ggml_metal_init: use graph optimize = true
+time=2026-10-06T13:02:39.260+09:00 level=INFO source=runner.go:1290 msg=load request="{Operation:alloc LoraPath:[] Parallel:1 BatchSize:512 FlashAttention:Enabled KvSize:8192 KvCacheType: NumThreads:4 GPULayers:37[ID:0 Layers:37(0..36)] MultiUserCache:false ProjectorPath: MainGPU:0 UseMmap:false}"
+[GIN] 2026/10/06 - 13:02:39 | 200 |      17.208µs |       127.0.0.1 | GET      "/api/ps"
+time=2026-10-06T13:02:39.610+09:00 level=INFO source=runner.go:1290 msg=load request="{Operation:commit LoraPath:[] Parallel:1 BatchSize:512 FlashAttention:Enabled KvSize:8192 KvCacheType: NumThreads:4 GPULayers:37[ID:0 Layers:37(0..36)] MultiUserCache:false ProjectorPath: MainGPU:0 UseMmap:false}"
+time=2026-10-06T13:02:39.610+09:00 level=INFO source=ggml.go:482 msg="offloading 36 repeating layers to GPU"
+time=2026-10-06T13:02:39.610+09:00 level=INFO source=ggml.go:489 msg="offloading output layer to GPU"
+time=2026-10-06T13:02:39.610+09:00 level=INFO source=ggml.go:494 msg="offloaded 37/37 layers to GPU"
+time=2026-10-06T13:02:39.610+09:00 level=INFO source=device.go:240 msg="model weights" device=Metal size="5.4 GiB"
+time=2026-10-06T13:02:39.610+09:00 level=INFO source=device.go:245 msg="model weights" device=CPU size="333.8 MiB"
+time=2026-10-06T13:02:39.610+09:00 level=INFO source=device.go:251 msg="kv cache" device=Metal size="1.1 GiB"
+time=2026-10-06T13:02:39.610+09:00 level=INFO source=device.go:262 msg="compute graph" device=Metal size="538.2 MiB"
+time=2026-10-06T13:02:39.610+09:00 level=INFO source=device.go:267 msg="compute graph" device=CPU size="63.3 MiB"
+time=2026-10-06T13:02:39.610+09:00 level=INFO source=device.go:272 msg="total memory" size="7.4 GiB"
+time=2026-10-06T13:02:39.610+09:00 level=INFO source=sched.go:561 msg="loaded runners" count=1
+time=2026-10-06T13:02:39.610+09:00 level=INFO source=server.go:1364 msg="waiting for llama runner to start responding"
+time=2026-10-06T13:02:39.610+09:00 level=INFO source=server.go:1398 msg="waiting for server to become available" status="llm server loading model"
+[GIN] 2026/10/06 - 13:02:39 | 200 |          37µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:02:39 | 200 |      25.583µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:02:40 | 200 |      23.209µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:02:40 | 200 |       49.25µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:02:40 | 200 |      25.125µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:02:41 | 200 |      26.292µs |       127.0.0.1 | GET      "/api/ps"
+time=2026-10-06T13:02:41.117+09:00 level=INFO source=server.go:1402 msg="llama runner started in 2.33 seconds"
+[GIN] 2026/10/06 - 13:02:41 | 200 |       29.25µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:02:41 | 200 |      30.834µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:02:41 | 200 |      28.417µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:02:42 | 200 |      25.708µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:02:42 | 200 |      26.709µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:02:42 | 200 |       26.25µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:02:43 | 200 |      26.333µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:02:43 | 200 |      24.584µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:02:43 | 200 |      24.291µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:02:43 | 200 |      27.333µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:02:44 | 200 |      30.958µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:02:44 | 200 |      30.917µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:02:44 | 200 |      32.917µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:02:44 | 200 |      32.333µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:02:45 | 200 |      25.959µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:02:45 | 200 |  6.668421084s |       127.0.0.1 | POST     "/api/chat"
+[GIN] 2026/10/06 - 13:02:45 | 200 |     636.416µs |       127.0.0.1 | GET      "/api/tags"
+[GIN] 2026/10/06 - 13:02:45 | 200 |      265.75µs |       127.0.0.1 | GET      "/api/tags"
+time=2026-10-06T13:02:45.480+09:00 level=INFO source=server.go:259 msg="enabling flash attention"
+time=2026-10-06T13:02:45.481+09:00 level=INFO source=server.go:444 msg="starting runner" cmd="/opt/homebrew/Cellar/ollama/0.21.0_1/libexec/ollama runner --ollama-engine --model /Users/dhseo/Workspace/mediaServer/models/v450-ollama/blobs/sha256-1329cd5ab37e5ef6faef37cd8ff8660ffc96ed5b47b34fddf8eb0912e6c82466 --port 53955"
+time=2026-10-06T13:02:45.483+09:00 level=INFO source=sched.go:484 msg="system memory" total="24.0 GiB" free="4.5 GiB" free_swap="0 B"
+time=2026-10-06T13:02:45.483+09:00 level=INFO source=sched.go:491 msg="gpu memory" id=0 library=Metal available="17.3 GiB" free="17.8 GiB" minimum="512.0 MiB" overhead="0 B"
+time=2026-10-06T13:02:45.483+09:00 level=INFO source=server.go:771 msg="loading model" "model layers"=37 requested=-1
+time=2026-10-06T13:02:45.529+09:00 level=INFO source=runner.go:1417 msg="starting ollama engine"
+time=2026-10-06T13:02:45.529+09:00 level=INFO source=runner.go:1452 msg="Server listening on 127.0.0.1:53955"
+time=2026-10-06T13:02:45.531+09:00 level=INFO source=runner.go:1290 msg=load request="{Operation:fit LoraPath:[] Parallel:1 BatchSize:512 FlashAttention:Enabled KvSize:8192 KvCacheType: NumThreads:4 GPULayers:37[ID:0 Layers:37(0..36)] MultiUserCache:false ProjectorPath: MainGPU:0 UseMmap:false}"
+[GIN] 2026/10/06 - 13:02:45 | 200 |          20µs |       127.0.0.1 | GET      "/api/ps"
+time=2026-10-06T13:02:45.544+09:00 level=INFO source=ggml.go:136 msg="" architecture=qwen3vl file_type=Q4_K_M name="" description="" num_tensors=858 num_key_values=40
+ggml_metal_device_init: testing tensor API for f16 support
+ggml_metal_library_init_from_source: error compiling source
+ggml_metal_device_init: - the tensor API is not supported in this environment - disabling
+ggml_metal_library_init: using embedded metal library
+ggml_metal_library_init: loaded in 0.005 sec
+ggml_metal_rsets_init: creating a residency set collection (keep_alive = 180 s)
+ggml_metal_device_init: GPU name:   Apple M5
+ggml_metal_device_init: GPU family: MTLGPUFamilyApple10  (1010)
+ggml_metal_device_init: GPU family: MTLGPUFamilyCommon3 (3003)
+ggml_metal_device_init: GPU family: MTLGPUFamilyMetal4  (5002)
+ggml_metal_device_init: simdgroup reduction   = true
+ggml_metal_device_init: simdgroup matrix mul. = true
+ggml_metal_device_init: has unified memory    = true
+ggml_metal_device_init: has bfloat            = true
+ggml_metal_device_init: has tensor            = false
+ggml_metal_device_init: use residency sets    = true
+ggml_metal_device_init: use shared buffers    = true
+ggml_metal_device_init: recommendedMaxWorkingSetSize  = 19069.67 MB
+time=2026-10-06T13:02:45.544+09:00 level=INFO source=ggml.go:104 msg=system Metal.0.EMBED_LIBRARY=1 CPU.0.NEON=1 CPU.0.ARM_FMA=1 CPU.0.FP16_VA=1 CPU.0.DOTPROD=1 CPU.0.LLAMAFILE=1 CPU.0.ACCELERATE=1 compiler=cgo(clang)
+ggml_metal_init: allocating
+ggml_metal_init: picking default device: Apple M5
+ggml_metal_init: use fusion         = true
+ggml_metal_init: use concurrency    = true
+ggml_metal_init: use graph optimize = true
+time=2026-10-06T13:02:45.799+09:00 level=INFO source=runner.go:1290 msg=load request="{Operation:alloc LoraPath:[] Parallel:1 BatchSize:512 FlashAttention:Enabled KvSize:8192 KvCacheType: NumThreads:4 GPULayers:37[ID:0 Layers:37(0..36)] MultiUserCache:false ProjectorPath: MainGPU:0 UseMmap:false}"
+[GIN] 2026/10/06 - 13:02:45 | 200 |      19.917µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:02:46 | 200 |       15.75µs |       127.0.0.1 | GET      "/api/ps"
+time=2026-10-06T13:02:46.145+09:00 level=INFO source=runner.go:1290 msg=load request="{Operation:commit LoraPath:[] Parallel:1 BatchSize:512 FlashAttention:Enabled KvSize:8192 KvCacheType: NumThreads:4 GPULayers:37[ID:0 Layers:37(0..36)] MultiUserCache:false ProjectorPath: MainGPU:0 UseMmap:false}"
+time=2026-10-06T13:02:46.145+09:00 level=INFO source=ggml.go:482 msg="offloading 36 repeating layers to GPU"
+time=2026-10-06T13:02:46.145+09:00 level=INFO source=ggml.go:489 msg="offloading output layer to GPU"
+time=2026-10-06T13:02:46.145+09:00 level=INFO source=ggml.go:494 msg="offloaded 37/37 layers to GPU"
+time=2026-10-06T13:02:46.145+09:00 level=INFO source=device.go:240 msg="model weights" device=Metal size="5.4 GiB"
+time=2026-10-06T13:02:46.145+09:00 level=INFO source=device.go:245 msg="model weights" device=CPU size="333.8 MiB"
+time=2026-10-06T13:02:46.145+09:00 level=INFO source=device.go:251 msg="kv cache" device=Metal size="1.1 GiB"
+time=2026-10-06T13:02:46.145+09:00 level=INFO source=device.go:262 msg="compute graph" device=Metal size="538.2 MiB"
+time=2026-10-06T13:02:46.145+09:00 level=INFO source=device.go:267 msg="compute graph" device=CPU size="63.3 MiB"
+time=2026-10-06T13:02:46.145+09:00 level=INFO source=device.go:272 msg="total memory" size="7.4 GiB"
+time=2026-10-06T13:02:46.145+09:00 level=INFO source=sched.go:561 msg="loaded runners" count=1
+time=2026-10-06T13:02:46.145+09:00 level=INFO source=server.go:1364 msg="waiting for llama runner to start responding"
+time=2026-10-06T13:02:46.145+09:00 level=INFO source=server.go:1398 msg="waiting for server to become available" status="llm server loading model"
+[GIN] 2026/10/06 - 13:02:46 | 200 |      27.417µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:02:46 | 200 |        26.5µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:02:46 | 200 |      30.167µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:02:47 | 200 |      24.416µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:02:47 | 200 |        27.5µs |       127.0.0.1 | GET      "/api/ps"
+time=2026-10-06T13:02:47.653+09:00 level=INFO source=server.go:1402 msg="llama runner started in 2.17 seconds"
+[GIN] 2026/10/06 - 13:02:47 | 200 |      24.667µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:02:48 | 200 |      30.291µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:02:48 | 200 |        30.5µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:02:48 | 200 |      22.208µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:02:48 | 200 |      24.833µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:02:49 | 200 |      26.458µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:02:49 | 200 |      24.542µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:02:49 | 200 |      25.125µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:02:50 | 200 |      24.416µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:02:50 | 200 |      25.958µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:02:50 | 200 |      36.416µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:02:50 | 200 |      27.667µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:02:51 | 200 |      37.875µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:02:51 | 200 |          32µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:02:51 | 200 |      29.334µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:02:51 | 200 |      30.625µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:02:52 | 200 |  6.787996625s |       127.0.0.1 | POST     "/api/chat"
+[GIN] 2026/10/06 - 13:02:52 | 200 |     574.458µs |       127.0.0.1 | GET      "/api/tags"
+[GIN] 2026/10/06 - 13:02:52 | 200 |      428.25µs |       127.0.0.1 | GET      "/api/tags"
+[GIN] 2026/10/06 - 13:02:52 | 200 |       12.25µs |       127.0.0.1 | GET      "/api/ps"
+time=2026-10-06T13:02:52.293+09:00 level=INFO source=server.go:259 msg="enabling flash attention"
+time=2026-10-06T13:02:52.294+09:00 level=INFO source=server.go:444 msg="starting runner" cmd="/opt/homebrew/Cellar/ollama/0.21.0_1/libexec/ollama runner --ollama-engine --model /Users/dhseo/Workspace/mediaServer/models/v450-ollama/blobs/sha256-1329cd5ab37e5ef6faef37cd8ff8660ffc96ed5b47b34fddf8eb0912e6c82466 --port 53991"
+time=2026-10-06T13:02:52.296+09:00 level=INFO source=sched.go:484 msg="system memory" total="24.0 GiB" free="4.6 GiB" free_swap="0 B"
+time=2026-10-06T13:02:52.296+09:00 level=INFO source=sched.go:491 msg="gpu memory" id=0 library=Metal available="17.3 GiB" free="17.8 GiB" minimum="512.0 MiB" overhead="0 B"
+time=2026-10-06T13:02:52.296+09:00 level=INFO source=server.go:771 msg="loading model" "model layers"=37 requested=-1
+time=2026-10-06T13:02:52.334+09:00 level=INFO source=runner.go:1417 msg="starting ollama engine"
+time=2026-10-06T13:02:52.334+09:00 level=INFO source=runner.go:1452 msg="Server listening on 127.0.0.1:53991"
+time=2026-10-06T13:02:52.344+09:00 level=INFO source=runner.go:1290 msg=load request="{Operation:fit LoraPath:[] Parallel:1 BatchSize:512 FlashAttention:Enabled KvSize:8192 KvCacheType: NumThreads:4 GPULayers:37[ID:0 Layers:37(0..36)] MultiUserCache:false ProjectorPath: MainGPU:0 UseMmap:false}"
+time=2026-10-06T13:02:52.357+09:00 level=INFO source=ggml.go:136 msg="" architecture=qwen3vl file_type=Q4_K_M name="" description="" num_tensors=858 num_key_values=40
+ggml_metal_device_init: testing tensor API for f16 support
+ggml_metal_library_init_from_source: error compiling source
+ggml_metal_device_init: - the tensor API is not supported in this environment - disabling
+ggml_metal_library_init: using embedded metal library
+ggml_metal_library_init: loaded in 0.006 sec
+ggml_metal_rsets_init: creating a residency set collection (keep_alive = 180 s)
+ggml_metal_device_init: GPU name:   Apple M5
+ggml_metal_device_init: GPU family: MTLGPUFamilyApple10  (1010)
+ggml_metal_device_init: GPU family: MTLGPUFamilyCommon3 (3003)
+ggml_metal_device_init: GPU family: MTLGPUFamilyMetal4  (5002)
+ggml_metal_device_init: simdgroup reduction   = true
+ggml_metal_device_init: simdgroup matrix mul. = true
+ggml_metal_device_init: has unified memory    = true
+ggml_metal_device_init: has bfloat            = true
+ggml_metal_device_init: has tensor            = false
+ggml_metal_device_init: use residency sets    = true
+ggml_metal_device_init: use shared buffers    = true
+ggml_metal_device_init: recommendedMaxWorkingSetSize  = 19069.67 MB
+time=2026-10-06T13:02:52.357+09:00 level=INFO source=ggml.go:104 msg=system Metal.0.EMBED_LIBRARY=1 CPU.0.NEON=1 CPU.0.ARM_FMA=1 CPU.0.FP16_VA=1 CPU.0.DOTPROD=1 CPU.0.LLAMAFILE=1 CPU.0.ACCELERATE=1 compiler=cgo(clang)
+ggml_metal_init: allocating
+ggml_metal_init: picking default device: Apple M5
+ggml_metal_init: use fusion         = true
+ggml_metal_init: use concurrency    = true
+ggml_metal_init: use graph optimize = true
+[GIN] 2026/10/06 - 13:02:52 | 200 |      16.708µs |       127.0.0.1 | GET      "/api/ps"
+time=2026-10-06T13:02:52.615+09:00 level=INFO source=runner.go:1290 msg=load request="{Operation:alloc LoraPath:[] Parallel:1 BatchSize:512 FlashAttention:Enabled KvSize:8192 KvCacheType: NumThreads:4 GPULayers:37[ID:0 Layers:37(0..36)] MultiUserCache:false ProjectorPath: MainGPU:0 UseMmap:false}"
+[GIN] 2026/10/06 - 13:02:52 | 200 |      14.042µs |       127.0.0.1 | GET      "/api/ps"
+time=2026-10-06T13:02:52.964+09:00 level=INFO source=runner.go:1290 msg=load request="{Operation:commit LoraPath:[] Parallel:1 BatchSize:512 FlashAttention:Enabled KvSize:8192 KvCacheType: NumThreads:4 GPULayers:37[ID:0 Layers:37(0..36)] MultiUserCache:false ProjectorPath: MainGPU:0 UseMmap:false}"
+time=2026-10-06T13:02:52.964+09:00 level=INFO source=ggml.go:482 msg="offloading 36 repeating layers to GPU"
+time=2026-10-06T13:02:52.964+09:00 level=INFO source=ggml.go:489 msg="offloading output layer to GPU"
+time=2026-10-06T13:02:52.964+09:00 level=INFO source=ggml.go:494 msg="offloaded 37/37 layers to GPU"
+time=2026-10-06T13:02:52.964+09:00 level=INFO source=device.go:240 msg="model weights" device=Metal size="5.4 GiB"
+time=2026-10-06T13:02:52.964+09:00 level=INFO source=device.go:245 msg="model weights" device=CPU size="333.8 MiB"
+time=2026-10-06T13:02:52.964+09:00 level=INFO source=device.go:251 msg="kv cache" device=Metal size="1.1 GiB"
+time=2026-10-06T13:02:52.964+09:00 level=INFO source=device.go:262 msg="compute graph" device=Metal size="538.2 MiB"
+time=2026-10-06T13:02:52.964+09:00 level=INFO source=device.go:267 msg="compute graph" device=CPU size="63.3 MiB"
+time=2026-10-06T13:02:52.964+09:00 level=INFO source=device.go:272 msg="total memory" size="7.4 GiB"
+time=2026-10-06T13:02:52.964+09:00 level=INFO source=sched.go:561 msg="loaded runners" count=1
+time=2026-10-06T13:02:52.964+09:00 level=INFO source=server.go:1364 msg="waiting for llama runner to start responding"
+time=2026-10-06T13:02:52.964+09:00 level=INFO source=server.go:1398 msg="waiting for server to become available" status="llm server loading model"
+[GIN] 2026/10/06 - 13:02:53 | 200 |      36.583µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:02:53 | 200 |      29.083µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:02:53 | 200 |       29.75µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:02:53 | 200 |      29.209µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:02:54 | 200 |      23.333µs |       127.0.0.1 | GET      "/api/ps"
+time=2026-10-06T13:02:54.469+09:00 level=INFO source=server.go:1402 msg="llama runner started in 2.17 seconds"
+[GIN] 2026/10/06 - 13:02:54 | 200 |      35.625µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:02:54 | 200 |      25.042µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:02:55 | 200 |      24.833µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:02:55 | 200 |      25.542µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:02:55 | 200 |      24.334µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:02:55 | 200 |      26.875µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:02:56 | 200 |      31.917µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:02:56 | 200 |      24.917µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:02:56 | 200 |      25.666µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:02:57 | 200 |      23.291µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:02:57 | 200 |      23.375µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:02:57 | 200 |          23µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:02:57 | 200 |      31.541µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:02:58 | 200 |       30.25µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:02:58 | 200 |      31.333µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:02:58 | 200 |      29.166µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:02:58 | 200 |      32.416µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:02:59 | 200 |      27.792µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:02:59 | 200 |       76.25µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:02:59 | 200 |      40.792µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:03:00 | 200 |       37.25µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:03:00 | 200 |      30.792µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:03:00 | 200 |      33.584µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:03:00 | 200 |      36.458µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:03:00 | 200 |   8.75812325s |       127.0.0.1 | POST     "/api/chat"
+[GIN] 2026/10/06 - 13:03:00 | 200 |     675.625µs |       127.0.0.1 | GET      "/api/tags"
+[GIN] 2026/10/06 - 13:03:00 | 200 |     297.084µs |       127.0.0.1 | GET      "/api/tags"
+time=2026-10-06T13:03:01.082+09:00 level=INFO source=server.go:259 msg="enabling flash attention"
+time=2026-10-06T13:03:01.082+09:00 level=INFO source=server.go:444 msg="starting runner" cmd="/opt/homebrew/Cellar/ollama/0.21.0_1/libexec/ollama runner --ollama-engine --model /Users/dhseo/Workspace/mediaServer/models/v450-ollama/blobs/sha256-1329cd5ab37e5ef6faef37cd8ff8660ffc96ed5b47b34fddf8eb0912e6c82466 --port 54034"
+time=2026-10-06T13:03:01.084+09:00 level=INFO source=sched.go:484 msg="system memory" total="24.0 GiB" free="4.6 GiB" free_swap="0 B"
+time=2026-10-06T13:03:01.084+09:00 level=INFO source=sched.go:491 msg="gpu memory" id=0 library=Metal available="17.3 GiB" free="17.8 GiB" minimum="512.0 MiB" overhead="0 B"
+time=2026-10-06T13:03:01.084+09:00 level=INFO source=server.go:771 msg="loading model" "model layers"=37 requested=-1
+time=2026-10-06T13:03:01.125+09:00 level=INFO source=runner.go:1417 msg="starting ollama engine"
+time=2026-10-06T13:03:01.125+09:00 level=INFO source=runner.go:1452 msg="Server listening on 127.0.0.1:54034"
+time=2026-10-06T13:03:01.129+09:00 level=INFO source=runner.go:1290 msg=load request="{Operation:fit LoraPath:[] Parallel:1 BatchSize:512 FlashAttention:Enabled KvSize:8192 KvCacheType: NumThreads:4 GPULayers:37[ID:0 Layers:37(0..36)] MultiUserCache:false ProjectorPath: MainGPU:0 UseMmap:false}"
+time=2026-10-06T13:03:01.142+09:00 level=INFO source=ggml.go:136 msg="" architecture=qwen3vl file_type=Q4_K_M name="" description="" num_tensors=858 num_key_values=40
+ggml_metal_device_init: testing tensor API for f16 support
+[GIN] 2026/10/06 - 13:03:01 | 200 |        16.5µs |       127.0.0.1 | GET      "/api/ps"
+ggml_metal_library_init_from_source: error compiling source
+ggml_metal_device_init: - the tensor API is not supported in this environment - disabling
+ggml_metal_library_init: using embedded metal library
+ggml_metal_library_init: loaded in 0.006 sec
+ggml_metal_rsets_init: creating a residency set collection (keep_alive = 180 s)
+ggml_metal_device_init: GPU name:   Apple M5
+ggml_metal_device_init: GPU family: MTLGPUFamilyApple10  (1010)
+ggml_metal_device_init: GPU family: MTLGPUFamilyCommon3 (3003)
+ggml_metal_device_init: GPU family: MTLGPUFamilyMetal4  (5002)
+ggml_metal_device_init: simdgroup reduction   = true
+ggml_metal_device_init: simdgroup matrix mul. = true
+ggml_metal_device_init: has unified memory    = true
+ggml_metal_device_init: has bfloat            = true
+ggml_metal_device_init: has tensor            = false
+ggml_metal_device_init: use residency sets    = true
+ggml_metal_device_init: use shared buffers    = true
+ggml_metal_device_init: recommendedMaxWorkingSetSize  = 19069.67 MB
+time=2026-10-06T13:03:01.142+09:00 level=INFO source=ggml.go:104 msg=system Metal.0.EMBED_LIBRARY=1 CPU.0.NEON=1 CPU.0.ARM_FMA=1 CPU.0.FP16_VA=1 CPU.0.DOTPROD=1 CPU.0.LLAMAFILE=1 CPU.0.ACCELERATE=1 compiler=cgo(clang)
+ggml_metal_init: allocating
+ggml_metal_init: picking default device: Apple M5
+ggml_metal_init: use fusion         = true
+ggml_metal_init: use concurrency    = true
+ggml_metal_init: use graph optimize = true
+time=2026-10-06T13:03:01.411+09:00 level=INFO source=runner.go:1290 msg=load request="{Operation:alloc LoraPath:[] Parallel:1 BatchSize:512 FlashAttention:Enabled KvSize:8192 KvCacheType: NumThreads:4 GPULayers:37[ID:0 Layers:37(0..36)] MultiUserCache:false ProjectorPath: MainGPU:0 UseMmap:false}"
+[GIN] 2026/10/06 - 13:03:01 | 200 |      23.333µs |       127.0.0.1 | GET      "/api/ps"
+time=2026-10-06T13:03:01.775+09:00 level=INFO source=runner.go:1290 msg=load request="{Operation:commit LoraPath:[] Parallel:1 BatchSize:512 FlashAttention:Enabled KvSize:8192 KvCacheType: NumThreads:4 GPULayers:37[ID:0 Layers:37(0..36)] MultiUserCache:false ProjectorPath: MainGPU:0 UseMmap:false}"
+time=2026-10-06T13:03:01.775+09:00 level=INFO source=ggml.go:482 msg="offloading 36 repeating layers to GPU"
+time=2026-10-06T13:03:01.775+09:00 level=INFO source=ggml.go:489 msg="offloading output layer to GPU"
+time=2026-10-06T13:03:01.775+09:00 level=INFO source=ggml.go:494 msg="offloaded 37/37 layers to GPU"
+time=2026-10-06T13:03:01.775+09:00 level=INFO source=device.go:240 msg="model weights" device=Metal size="5.4 GiB"
+time=2026-10-06T13:03:01.775+09:00 level=INFO source=device.go:245 msg="model weights" device=CPU size="333.8 MiB"
+time=2026-10-06T13:03:01.775+09:00 level=INFO source=device.go:251 msg="kv cache" device=Metal size="1.1 GiB"
+time=2026-10-06T13:03:01.775+09:00 level=INFO source=device.go:262 msg="compute graph" device=Metal size="538.2 MiB"
+time=2026-10-06T13:03:01.775+09:00 level=INFO source=device.go:267 msg="compute graph" device=CPU size="63.3 MiB"
+time=2026-10-06T13:03:01.775+09:00 level=INFO source=device.go:272 msg="total memory" size="7.4 GiB"
+time=2026-10-06T13:03:01.775+09:00 level=INFO source=sched.go:561 msg="loaded runners" count=1
+time=2026-10-06T13:03:01.775+09:00 level=INFO source=server.go:1364 msg="waiting for llama runner to start responding"
+[GIN] 2026/10/06 - 13:03:01 | 200 |          22µs |       127.0.0.1 | GET      "/api/ps"
+time=2026-10-06T13:03:01.788+09:00 level=INFO source=server.go:1398 msg="waiting for server to become available" status="llm server loading model"
+[GIN] 2026/10/06 - 13:03:02 | 200 |      59.375µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:03:02 | 200 |      35.375µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:03:02 | 200 |      32.541µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:03:02 | 200 |      27.292µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:03:03 | 200 |      26.833µs |       127.0.0.1 | GET      "/api/ps"
+time=2026-10-06T13:03:03.292+09:00 level=INFO source=server.go:1402 msg="llama runner started in 2.21 seconds"
+[GIN] 2026/10/06 - 13:03:03 | 200 |      28.333µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:03:03 | 200 |      23.708µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:03:04 | 200 |      33.292µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:03:04 | 200 |       28.25µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:03:04 | 200 |      39.625µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:03:04 | 200 |      25.792µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:03:05 | 200 |      27.208µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:03:05 | 200 |      23.333µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:03:05 | 200 |       33.75µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:03:06 | 200 |      24.042µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:03:06 | 200 |      27.583µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:03:06 | 200 |      25.167µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:03:06 | 200 |      34.291µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:03:07 | 200 |      31.125µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:03:07 | 200 |      33.791µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:03:07 | 200 |      27.916µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:03:07 | 200 |      34.375µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:03:08 | 200 |       30.75µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:03:08 | 200 |      33.167µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:03:08 | 200 |  7.711530958s |       127.0.0.1 | POST     "/api/chat"
+[GIN] 2026/10/06 - 13:03:08 | 200 |     625.792µs |       127.0.0.1 | GET      "/api/tags"
+[GIN] 2026/10/06 - 13:03:08 | 200 |     265.166µs |       127.0.0.1 | GET      "/api/tags"
+time=2026-10-06T13:03:08.817+09:00 level=INFO source=server.go:259 msg="enabling flash attention"
+time=2026-10-06T13:03:08.817+09:00 level=INFO source=server.go:444 msg="starting runner" cmd="/opt/homebrew/Cellar/ollama/0.21.0_1/libexec/ollama runner --ollama-engine --model /Users/dhseo/Workspace/mediaServer/models/v450-ollama/blobs/sha256-1329cd5ab37e5ef6faef37cd8ff8660ffc96ed5b47b34fddf8eb0912e6c82466 --port 54070"
+time=2026-10-06T13:03:08.819+09:00 level=INFO source=sched.go:484 msg="system memory" total="24.0 GiB" free="4.6 GiB" free_swap="0 B"
+time=2026-10-06T13:03:08.819+09:00 level=INFO source=sched.go:491 msg="gpu memory" id=0 library=Metal available="17.3 GiB" free="17.8 GiB" minimum="512.0 MiB" overhead="0 B"
+time=2026-10-06T13:03:08.819+09:00 level=INFO source=server.go:771 msg="loading model" "model layers"=37 requested=-1
+[GIN] 2026/10/06 - 13:03:08 | 200 |      50.625µs |       127.0.0.1 | GET      "/api/ps"
+time=2026-10-06T13:03:08.861+09:00 level=INFO source=runner.go:1417 msg="starting ollama engine"
+time=2026-10-06T13:03:08.861+09:00 level=INFO source=runner.go:1452 msg="Server listening on 127.0.0.1:54070"
+time=2026-10-06T13:03:08.867+09:00 level=INFO source=runner.go:1290 msg=load request="{Operation:fit LoraPath:[] Parallel:1 BatchSize:512 FlashAttention:Enabled KvSize:8192 KvCacheType: NumThreads:4 GPULayers:37[ID:0 Layers:37(0..36)] MultiUserCache:false ProjectorPath: MainGPU:0 UseMmap:false}"
+time=2026-10-06T13:03:08.880+09:00 level=INFO source=ggml.go:136 msg="" architecture=qwen3vl file_type=Q4_K_M name="" description="" num_tensors=858 num_key_values=40
+ggml_metal_device_init: testing tensor API for f16 support
+ggml_metal_library_init_from_source: error compiling source
+ggml_metal_device_init: - the tensor API is not supported in this environment - disabling
+ggml_metal_library_init: using embedded metal library
+ggml_metal_library_init: loaded in 0.006 sec
+ggml_metal_rsets_init: creating a residency set collection (keep_alive = 180 s)
+ggml_metal_device_init: GPU name:   Apple M5
+ggml_metal_device_init: GPU family: MTLGPUFamilyApple10  (1010)
+ggml_metal_device_init: GPU family: MTLGPUFamilyCommon3 (3003)
+ggml_metal_device_init: GPU family: MTLGPUFamilyMetal4  (5002)
+ggml_metal_device_init: simdgroup reduction   = true
+ggml_metal_device_init: simdgroup matrix mul. = true
+ggml_metal_device_init: has unified memory    = true
+ggml_metal_device_init: has bfloat            = true
+ggml_metal_device_init: has tensor            = false
+ggml_metal_device_init: use residency sets    = true
+ggml_metal_device_init: use shared buffers    = true
+ggml_metal_device_init: recommendedMaxWorkingSetSize  = 19069.67 MB
+time=2026-10-06T13:03:08.880+09:00 level=INFO source=ggml.go:104 msg=system Metal.0.EMBED_LIBRARY=1 CPU.0.NEON=1 CPU.0.ARM_FMA=1 CPU.0.FP16_VA=1 CPU.0.DOTPROD=1 CPU.0.LLAMAFILE=1 CPU.0.ACCELERATE=1 compiler=cgo(clang)
+ggml_metal_init: allocating
+ggml_metal_init: picking default device: Apple M5
+ggml_metal_init: use fusion         = true
+ggml_metal_init: use concurrency    = true
+ggml_metal_init: use graph optimize = true
+[GIN] 2026/10/06 - 13:03:09 | 200 |      17.208µs |       127.0.0.1 | GET      "/api/ps"
+time=2026-10-06T13:03:09.162+09:00 level=INFO source=runner.go:1290 msg=load request="{Operation:alloc LoraPath:[] Parallel:1 BatchSize:512 FlashAttention:Enabled KvSize:8192 KvCacheType: NumThreads:4 GPULayers:37[ID:0 Layers:37(0..36)] MultiUserCache:false ProjectorPath: MainGPU:0 UseMmap:false}"
+[GIN] 2026/10/06 - 13:03:09 | 200 |      16.292µs |       127.0.0.1 | GET      "/api/ps"
+time=2026-10-06T13:03:09.538+09:00 level=INFO source=runner.go:1290 msg=load request="{Operation:commit LoraPath:[] Parallel:1 BatchSize:512 FlashAttention:Enabled KvSize:8192 KvCacheType: NumThreads:4 GPULayers:37[ID:0 Layers:37(0..36)] MultiUserCache:false ProjectorPath: MainGPU:0 UseMmap:false}"
+time=2026-10-06T13:03:09.539+09:00 level=INFO source=ggml.go:482 msg="offloading 36 repeating layers to GPU"
+time=2026-10-06T13:03:09.539+09:00 level=INFO source=ggml.go:489 msg="offloading output layer to GPU"
+time=2026-10-06T13:03:09.539+09:00 level=INFO source=ggml.go:494 msg="offloaded 37/37 layers to GPU"
+time=2026-10-06T13:03:09.539+09:00 level=INFO source=device.go:240 msg="model weights" device=Metal size="5.4 GiB"
+time=2026-10-06T13:03:09.539+09:00 level=INFO source=device.go:245 msg="model weights" device=CPU size="333.8 MiB"
+time=2026-10-06T13:03:09.539+09:00 level=INFO source=device.go:251 msg="kv cache" device=Metal size="1.1 GiB"
+time=2026-10-06T13:03:09.539+09:00 level=INFO source=device.go:262 msg="compute graph" device=Metal size="538.2 MiB"
+time=2026-10-06T13:03:09.539+09:00 level=INFO source=device.go:267 msg="compute graph" device=CPU size="63.3 MiB"
+time=2026-10-06T13:03:09.539+09:00 level=INFO source=device.go:272 msg="total memory" size="7.4 GiB"
+time=2026-10-06T13:03:09.539+09:00 level=INFO source=sched.go:561 msg="loaded runners" count=1
+time=2026-10-06T13:03:09.539+09:00 level=INFO source=server.go:1364 msg="waiting for llama runner to start responding"
+time=2026-10-06T13:03:09.539+09:00 level=INFO source=server.go:1398 msg="waiting for server to become available" status="llm server loading model"
+[GIN] 2026/10/06 - 13:03:09 | 200 |      43.083µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:03:09 | 200 |      24.958µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:03:10 | 200 |      26.084µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:03:10 | 200 |      43.208µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:03:10 | 200 |      24.666µs |       127.0.0.1 | GET      "/api/ps"
+time=2026-10-06T13:03:11.047+09:00 level=INFO source=server.go:1402 msg="llama runner started in 2.23 seconds"
+[GIN] 2026/10/06 - 13:03:11 | 200 |          45µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:03:11 | 200 |      22.416µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:03:11 | 200 |      25.375µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:03:11 | 200 |      27.083µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:03:12 | 200 |      34.542µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:03:12 | 200 |      60.292µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:03:12 | 200 |      22.542µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:03:13 | 200 |      24.959µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:03:13 | 200 |      23.667µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:03:13 | 200 |      24.625µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:03:13 | 200 |      31.083µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:03:14 | 200 |      27.459µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:03:14 | 200 |      27.917µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:03:14 | 200 |      24.083µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:03:15 | 200 |      34.292µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:03:15 | 200 |      34.292µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:03:15 | 200 |      29.834µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:03:15 | 200 |      30.333µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:03:16 | 200 |      35.875µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:03:16 | 200 |      29.917µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:03:16 | 200 |      34.333µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:03:16 | 200 |      41.708µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:03:17 | 200 |      36.209µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:03:17 | 200 |      31.375µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:03:17 | 200 |       29.75µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:03:18 | 200 |      23.167µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:03:18 | 200 |      32.542µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:03:18 | 200 |      31.792µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:03:18 | 200 |      32.166µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:03:19 | 200 |        35.5µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:03:19 | 200 |      22.333µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:03:19 | 200 | 10.955332375s |       127.0.0.1 | POST     "/api/chat"
+[GIN] 2026/10/06 - 13:03:19 | 200 |     466.291µs |       127.0.0.1 | GET      "/api/tags"
+[GIN] 2026/10/06 - 13:03:19 | 200 |      14.083µs |       127.0.0.1 | GET      "/api/ps"
+[GIN] 2026/10/06 - 13:03:19 | 200 |      19.125µs |       127.0.0.1 | GET      "/api/ps"

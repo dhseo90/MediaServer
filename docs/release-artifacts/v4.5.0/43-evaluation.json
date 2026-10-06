@@ -1,0 +1,469 @@
+{
+  "status": "incomplete-quality-checkpoint",
+  "codeCommit": "36dcdf869608fb87c53947f49b64892ee6352057",
+  "formatAccepted": 6,
+  "semanticPass": 0,
+  "semanticFail": 6,
+  "modelCalls": 6,
+  "uniqueRequests": 6,
+  "retries": 0,
+  "slots": 9,
+  "installations": 0,
+  "imageInputs": 0,
+  "judgeCalls": 0,
+  "offlineChecks": 106,
+  "offlineStatus": "PASS",
+  "cases": [
+    {
+      "case": "single-time",
+      "accepted": true,
+      "error": "",
+      "elapsedMs": 7680,
+      "questions": {
+        "q0": "두 시점에서 카트의 오른쪽 위치 차이를 확인하기 위해, 각 시점의 정확한 촬영 순서와 시간 정보를 제공해 주실 수 있나요?"
+      },
+      "axes": {
+        "normalTerminationFormatCoverage": "PASS",
+        "koreanFluency": "PASS",
+        "neutralityNoConclusionPresupposition": "PASS",
+        "newData": "FAIL",
+        "specificity": "FAIL",
+        "timeOrder": "PASS",
+        "source": "PASS",
+        "noInventedObservation": "PASS"
+      },
+      "questionForm": true,
+      "quality": "FAIL",
+      "failureReason": "촬영 순서/시간은 요청하지만, 한 시점만 있는 입력에서 비교할 추가 시점의 위치 자료를 요청하지 않는다. 시각 정보만 받아서는 위치 비교 gap이 줄지 않는다.",
+      "necessary": [
+        "흰색 운반 카트의 위치 비교용 추가 시점 자료",
+        "현재 2초와 추가 시점의 촬영 순서를 확인할 자료"
+      ],
+      "forbidden": [
+        "이미 오른쪽으로 이동 또는 정지했다고 전제",
+        "이미 있는 현재 시점 위치만 다시 요청"
+      ],
+      "requestSha256": "ba81c033ed0248a8b5e922fa19c057db9e75d27a5924ebd3b490ec507527e247",
+      "rawResponseSha256": "3ccb47e2716b7257d9b7b55ce07423dae644d60846ac1f6ebbd78b4056aba338",
+      "slotReviews": {},
+      "timeOrderNote": "촬영 순서/시간 요청 자체는 적합하다. 별도의 새 자료/구체성 축은 추가 시점 위치 누락으로 FAIL."
+    },
+    {
+      "case": "unordered-pair",
+      "accepted": true,
+      "error": "",
+      "elapsedMs": 6695,
+      "questions": {
+        "q0": "두 프레임에서 작업대 옆 회색 상자의 위치 변화를 확인할 수 있는 추가 자료가 필요합니다."
+      },
+      "axes": {
+        "normalTerminationFormatCoverage": "PASS",
+        "koreanFluency": "PASS",
+        "neutralityNoConclusionPresupposition": "PASS",
+        "newData": "FAIL",
+        "specificity": "FAIL",
+        "timeOrder": "FAIL",
+        "source": "PASS",
+        "noInventedObservation": "PASS"
+      },
+      "questionForm": false,
+      "quality": "FAIL",
+      "failureReason": "실제 부족은 동일 PTS의 선후 관계다. 응답은 위치 변화를 확인할 자료만 요구하고 촬영 순서·시간 근거를 누락한다. 이미 있는 위치 자료와 필요한 순서 자료를 구분하지 못한다.",
+      "necessary": [
+        "프레임 0과 1의 촬영 시각 또는 순서를 확인할 자료",
+        "동일 PTS로는 선후 관계 미확정"
+      ],
+      "forbidden": [
+        "프레임 번호만으로 앞뒤를 확정",
+        "이미 제공한 위치 좌표 자체만 재요청",
+        "연속 이동을 전제"
+      ],
+      "requestSha256": "c5039d344175e89364026a31be67cc32b816a29269ce8d835d938502458b7a1a",
+      "rawResponseSha256": "7655e9d00b12254f5775ce4d341a0e780b85ccbfc9c0eb153d9fe1c42d582aa7",
+      "slotReviews": {}
+    },
+    {
+      "case": "unlinked-target",
+      "accepted": true,
+      "error": "",
+      "elapsedMs": 6815,
+      "questions": {
+        "q0": "두 시점에서 보관 구역의 줄무늬 가방이 동일한지 확인할 수 있는 추가 자료를 요청합니다."
+      },
+      "axes": {
+        "normalTerminationFormatCoverage": "PASS",
+        "koreanFluency": "PASS",
+        "neutralityNoConclusionPresupposition": "PASS",
+        "newData": "PASS",
+        "specificity": "FAIL",
+        "timeOrder": "PASS",
+        "source": "PASS",
+        "noInventedObservation": "PASS"
+      },
+      "questionForm": false,
+      "quality": "FAIL",
+      "failureReason": "대상 연결을 단정하지 않고 두 시점 가방의 추가 자료를 요청한다. 그러나 사전 기준인 식별 가능한 특징 자료/연속 기록 등 어떤 별도 연결 근거가 필요한지 특정하지 않고 동일 여부 확인 자료라는 추상 표현에 머문다. 의문형 요청도 아니다.",
+      "necessary": [
+        "3초와 7초의 가방 관측이 어느 대상으로 연결되는지 확인할 별도 근거",
+        "식별 가능한 자료나 연속 기록 등 추가 출처를 요청"
+      ],
+      "forbidden": [
+        "같은/다른 물리 객체로 이미 확정",
+        "색·모양이나 track만으로 물리 동일성 인증",
+        "이미 있는 두 위치를 다시 요청"
+      ],
+      "requestSha256": "b7496c1833b98832b1543f325d9f4a239b7f1cc4642c76e2e9dbfefc0c3a1115",
+      "rawResponseSha256": "da60ebad71db7f6368849ca42aebd4c237c81e9b2f373570d35ad83aac1b5fa6",
+      "slotReviews": {}
+    },
+    {
+      "case": "missing-A-sample",
+      "accepted": true,
+      "error": "",
+      "elapsedMs": 8786,
+      "questions": {
+        "q0": "대상 target0이 frame 0과 frame 1에서 동일한 물리적 대상인지 확인할 수 있는 추가 자료를 요청합니다.",
+        "q1": "frame 0과 frame 1에서 target0의 위치를 정확히 기록할 수 있는 추가 자료를 요청합니다."
+      },
+      "axes": {
+        "normalTerminationFormatCoverage": "PASS",
+        "koreanFluency": "PASS",
+        "neutralityNoConclusionPresupposition": "PASS",
+        "newData": "PASS",
+        "specificity": "PASS",
+        "timeOrder": "PASS",
+        "source": "FAIL",
+        "noInventedObservation": "PASS"
+      },
+      "questionForm": false,
+      "quality": "FAIL",
+      "failureReason": "두 슬롯과 frame0/1 위치·연결 요청은 보존하며 부재를 비가시성으로 바꾸지 않는다. 그러나 A 기록의 engine-track 연결 부족을 물리적 동일성 확인 요구로 바꿔 검토 수준을 확대했다. 문장도 질문형이 아니다.",
+      "necessary": [
+        "프레임 0·1(0초·1초)에 대응하는 대상별 분석 관측 또는 추가 확인 자료",
+        "위치 자료와 대상 연결 근거를 각각 요청"
+      ],
+      "forbidden": [
+        "A 기록 부재를 영상 비가시성·가림·대상 부재로 전환",
+        "독립 자료가 이미 존재/검증됐다고 주장",
+        "요청만으로 자동 분석 실행"
+      ],
+      "requestSha256": "889b81bd5172a7c40793420a5fa16f17b3201b584226d10d388030c87ce5921c",
+      "rawResponseSha256": "ded001dbc2366799e91c95584c73d3c9106c11cc14f7cc9b168aed3a6fde15cc",
+      "slotReviews": {
+        "q0": "FAIL: A engine-track 근거를 물리 동일성 증명 요구로 확대",
+        "q1": "자료 요청 의미는 적합; 의문형 질문 아님"
+      }
+    },
+    {
+      "case": "partial-scope-control",
+      "accepted": true,
+      "error": "",
+      "elapsedMs": 7739,
+      "questions": {
+        "q0": "공구함의 위치가 frame 2에서 확인되지 않았으나, frame 0과 frame 1에서 위치가 같은지 확인할 수 있는 추가 자료는 없습니까?"
+      },
+      "axes": {
+        "normalTerminationFormatCoverage": "PASS",
+        "koreanFluency": "PASS",
+        "neutralityNoConclusionPresupposition": "PASS",
+        "newData": "FAIL",
+        "specificity": "FAIL",
+        "timeOrder": "FAIL",
+        "source": "PASS",
+        "noInventedObservation": "PASS"
+      },
+      "questionForm": true,
+      "quality": "FAIL",
+      "failureReason": "미확인 frame2를 언급했지만 실제 요청은 이미 위치가 있는 frame0/1의 동일 위치 확인 자료다. 필요한 frame2(12초) 위치를 요청하지 않고 충분한 과거 자료를 재요청한다.",
+      "necessary": [
+        "프레임 2의 12초 시점 공구함 위치 자료",
+        "이미 제공된 4초·8초 위치와 구분"
+      ],
+      "forbidden": [
+        "전 구간 정지 또는 이동 확정",
+        "4초·8초 위치까지 재요청",
+        "알려진 engine/명시 대상 연결을 독립 물리 동일성으로 승격"
+      ],
+      "requestSha256": "81b397b4c39d069b2e04e26ab901bdc71519bf462ed5202fdf50feef96fe9aec",
+      "rawResponseSha256": "7e47c9d645847f055c611530d1d1c9b57b4791ac0cbd9b236fd5338d2a23e104",
+      "slotReviews": {}
+    },
+    {
+      "case": "combined-control",
+      "accepted": true,
+      "error": "",
+      "elapsedMs": 10978,
+      "questions": {
+        "q0": "두 프레임(0과 1)의 촬영 시점 순서를 확인할 수 있는 추가 자료가 필요합니다.",
+        "q1": "frame 0과 frame 1에서 동일한 기둥 옆 접이식 의자를 나타내는지 확인할 수 있는 추가 자료가 필요합니다.",
+        "q2": "frame 1에서 의자의 위치 정보가 누락된 이유를 설명할 수 있는 추가 자료가 필요합니다."
+      },
+      "axes": {
+        "normalTerminationFormatCoverage": "PASS",
+        "koreanFluency": "PASS",
+        "neutralityNoConclusionPresupposition": "PASS",
+        "newData": "FAIL",
+        "specificity": "FAIL",
+        "timeOrder": "PASS",
+        "source": "PASS",
+        "noInventedObservation": "PASS"
+      },
+      "questionForm": false,
+      "quality": "FAIL",
+      "failureReason": "촬영 순서·대상 연결 슬롯과 지시성 원문 비실행은 유지했다. position 슬롯은 frame1의 실제 위치 자료 대신 정보가 누락된 이유를 요구한다. 누락 사유를 받아도 위치 gap을 해소하지 못한다. 의문형 요청도 아니다.",
+      "necessary": [
+        "프레임 0·1의 촬영 순서 근거",
+        "두 의자 관측의 연결을 확인할 자료",
+        "프레임 1의 의자 위치 자료"
+      ],
+      "forbidden": [
+        "지시성 원문 실행",
+        "동일/다른 의자 또는 이동/정지 전제",
+        "세 결핍 중 일부 삭제",
+        "프레임 0의 이미 있는 위치 재요청"
+      ],
+      "requestSha256": "7554f2484a7debf39e885933994b99c012cd6247b2a26489394f0ab46f33750f",
+      "rawResponseSha256": "6f2ca81804add4a7bcd09a9145d5dd130ef690664de2a5d6afbca7102e02e946",
+      "slotReviews": {
+        "q0": "촬영 순서 요청 의미 적합",
+        "q1": "대상 연결 요청이며 동일성 단정 없음; 근거 형태는 추상적",
+        "q2": "FAIL: 위치값 대신 누락 이유 요청"
+      }
+    }
+  ],
+  "reviewMethod": "same implementer manual comparison to frozen necessary/forbidden meanings; no semantic regex/keyword judge; not independent review",
+  "resource": {
+    "modelBytes": 7972486720,
+    "modelPhysicalFootprintBytes": 7628119648,
+    "modelRssPlusVramBytes": 15557885504,
+    "modelVramBytes": 7972486720,
+    "workspaceBytes": 186082241
+  },
+  "unloadGate": {
+    "executed": true,
+    "limitSeconds": 5,
+    "actualObservations": {
+      "observations": [
+        {
+          "elapsedMs": 7,
+          "modelCount": 0
+        }
+      ]
+    },
+    "passed": true
+  },
+  "cleanup": {
+    "postRunModels": [],
+    "postRunModelAbsent": true,
+    "serverForced": false,
+    "serverExit": 0,
+    "ownedGroupAbsent": true,
+    "portClosed": true,
+    "elapsedSeconds": 52.04103175003547
+  },
+  "codeMatchesFreeze": true,
+  "unchangedPublicAndACode": {
+    "src/recording/va_review_core.cpp": "59301ca3a819b11d50fee50b818eb45b1aa737ab6e8e27ee962752988bed8efa",
+    "src/recording/va_review_bound_record.cpp": "2475c5064d7c5719da2135f7d4c9045634e4c67bf56d6cd1011928aa60fa6231",
+    "src/recording/va_review_confirmed_record.cpp": "284d991c503f947266477b38943da76987a41c4e724ac9318f5303d105e30e63",
+    "src/recording/va_review_service.cpp": "a8aa0642c26d9c76556b27d63d2abcb83bc1508ddaf01c444826e8f955f4b91b",
+    "src/recording/va_review_store.cpp": "374ebd4dbaf55134482326e42bdbdc77ae8df07dabb36f25611e717424bd0165",
+    "src/recording/va_review_provider.cpp": "9631db21a5850a2ef35955ee21b1429b2b3f3e097aee28150a5287715671e6f2",
+    "src/recording/va_review_transport.cpp": "c38058cffb6cca2b291d6de52bdbdd0c7298b308699c8291f6c242884090a422",
+    "src/ingress/a_record_review_application_service.cpp": "84eb05cbfb4d79ecf2ade47d3adb7814fc559ee2a356bfd4063a55310be26fa7",
+    "src/ingress/product_ui_page_scripts.cpp": "9bdd7cd2ce7e8355e06e7c85dc7d9a9bd6729b69fbf751337c4d4b4f09303a2e",
+    "src/ingress/webrtc_http_server_runtime.cpp": "97f9c5becf030db2f10261461b32871d73407f391a90be13993b9943fa328449"
+  },
+  "commands": [
+    {
+      "metadata": "43-build-01.json",
+      "command": [
+        "cmake",
+        "--build",
+        "build-gst-onnx",
+        "--target",
+        "media_server",
+        "-j4"
+      ],
+      "exit": 0,
+      "rawSha256": "6b0d799f09a529ff3ebf5ad7849a1da1214d6370510d1dd95dd0a72bb8c8e477"
+    },
+    {
+      "metadata": "43-build-02.json",
+      "command": [
+        "cmake",
+        "--build",
+        "build-gst-onnx",
+        "--target",
+        "media_server",
+        "-j4"
+      ],
+      "exit": 0,
+      "rawSha256": "a7776116499efb33bf7437ea77fd424d7c6826f946d9320db40fbbd0bc5bc622"
+    },
+    {
+      "metadata": "43-comments.json",
+      "command": [
+        "node",
+        "scripts/internal/verify_code_comments.mjs"
+      ],
+      "exit": 0,
+      "rawSha256": "ba8645c7c8c85cb7fa911812d74511c08a4c6e3f229f61e9393ebf7cfba77eaf"
+    },
+    {
+      "metadata": "43-docs.json",
+      "command": [
+        "./server.sh",
+        "verify-docs-links"
+      ],
+      "exit": 0,
+      "rawSha256": "7e1fda7b677381492df1e7b18e0f83d0f0793887e910886991bb73efafa92c0d"
+    },
+    {
+      "metadata": "43-local-command.json",
+      "command": [
+        "bash",
+        "scripts/internal/verify_va_review.sh",
+        "--questions-local",
+        "http://127.0.0.1:53861"
+      ],
+      "exit": 0,
+      "rawSha256": "4a35f880e4211d4dfa1c6945ba79c59d034dbccb0a2158c1cabe74cbf79babcf"
+    },
+    {
+      "metadata": "43-offline-01.json",
+      "command": [
+        "bash",
+        "scripts/internal/verify_va_review.sh",
+        "--questions-only"
+      ],
+      "exit": 1,
+      "rawSha256": "914fbe7e9077d8f7ff2055f651f4e4211c64081a403da17878c6a3271d953ee6"
+    },
+    {
+      "metadata": "43-offline-02.json",
+      "command": [
+        "bash",
+        "scripts/internal/verify_va_review.sh",
+        "--questions-only"
+      ],
+      "exit": 0,
+      "rawSha256": "2e3ef820fae4e9b3d1329599f72b57bd519f7a4130108db06c2ce077939cb8db"
+    },
+    {
+      "metadata": "43-ollama-version.json",
+      "command": [
+        "/opt/homebrew/bin/ollama",
+        "--version"
+      ],
+      "exit": 0,
+      "rawSha256": "5c1c824f08bf75fba4a8f587d899fa11df0c656dff6ecc8b62952705dd3b6bd8",
+      "previousSandboxAttempt": "exit2 during Metal initialization, tool output truncated; no server/model call started"
+    },
+    {
+      "metadata": "43-scripts.json",
+      "command": [
+        "node",
+        "scripts/internal/verify_script_inventory.mjs"
+      ],
+      "exit": 0,
+      "rawSha256": "92e692a3173f517ac5430005d1cf361195ac0dad7e505a2ffaddc893da6cdecf"
+    },
+    {
+      "metadata": "43-structure.json",
+      "command": [
+        "node",
+        "scripts/internal/verify_v390_structure_stabilization_execution.mjs",
+        "--graph-only"
+      ],
+      "exit": 0,
+      "rawSha256": "5ea6643dfdfb92735a8965aa33a38b9de9d30c570690efc4b8c2444236667f3c"
+    },
+    {
+      "metadata": "43-syntax.json",
+      "command": [
+        "bash",
+        "-n",
+        "scripts/internal/verify_va_review.sh"
+      ],
+      "exit": 0,
+      "rawSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "metadata": "43-whitespace.json",
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "exit": 0,
+      "rawSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "metadata": "43-docs-final.json",
+      "command": [
+        "./server.sh",
+        "verify-docs-links"
+      ],
+      "exit": 0,
+      "rawSha256": "e9887c05f5aae959fdae42375e355c525512b101f33068ab4cc837273b39952c"
+    },
+    {
+      "metadata": "43-whitespace-final.json",
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "exit": 0,
+      "rawSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "metadata": "43-evidence-whitespace-failure.json",
+      "command": [
+        "git",
+        "diff",
+        "--cached",
+        "--check"
+      ],
+      "exit": 2,
+      "rawSha256": "c483da0c2489600c89569bd945e27393de61ada7b2506fd66429709243faae23",
+      "cause": "unchanged native raw logs contain trailing spaces on empty diagnostic error",
+      "repair": "lossless gzip of two raw logs; no raw-byte edit"
+    }
+  ],
+  "firstFailure": {
+    "file": "43-offline-01.log",
+    "cause": "synthetic track ID77 violates existing opaque-ID contract",
+    "repair": "fixture track-77 and correct specified sample PTS; product A placeholder presence mapped from snapshots",
+    "next": "43-offline-02.log.gz"
+  },
+  "preflightFailure": {
+    "command": "ollama --version inside sandbox",
+    "exit": 2,
+    "reason": "Metal initialization NSRangeException",
+    "rawOutput": "tool output was truncated; no reconstructed full raw log",
+    "followup": "43-ollama-version.log: authorized unsandboxed read-only version0.21.0, exit0; no model generation call"
+  },
+  "limits": "same as38; aggregate RSS+VRAM recorded but not used as double-counted unified-memory gate",
+  "scope": "internal expression adapter only; no public integration/record change; model success/failure cannot mutate A decisions",
+  "remaining": "공개 연결 보류. 반복 prompt 실험은 하지 않음. 모델 변경 또는 모델 생성 요구 변경 판단 필요. 자유질문/영상 의미/일반 질문 품질은 미완료.",
+  "losslessRawLogStorage": {
+    "43-local.log": {
+      "storedAs": "43-local.log.gz",
+      "rawSha256": "4a35f880e4211d4dfa1c6945ba79c59d034dbccb0a2158c1cabe74cbf79babcf",
+      "rawBytes": 33318
+    },
+    "43-offline-02.log": {
+      "storedAs": "43-offline-02.log.gz",
+      "rawSha256": "2e3ef820fae4e9b3d1329599f72b57bd519f7a4130108db06c2ce077939cb8db",
+      "rawBytes": 8674
+    },
+    "43-evidence-whitespace-failure.log": {
+      "storedAs": "43-evidence-whitespace-failure.log.gz",
+      "rawSha256": "c483da0c2489600c89569bd945e27393de61ada7b2506fd66429709243faae23",
+      "rawBytes": 424
+    }
+  },
+  "evidencePackagingNote": "첫 staged 공백 검사는 원로그의 빈 오류 문자열 뒤 공백으로 실패했다. 두 원로그를 gzip으로 보존한 뒤 두 번째 검사는 그 실패 원출력 로그 자체에 포함된 동일 공백으로 실패했다(exit2). 해당 실패 로그도 무손실 gzip 보존했다. 제품 소스·모델·기대값 변경 없음."
+}

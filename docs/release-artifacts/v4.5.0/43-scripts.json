@@ -1,0 +1,1 @@
+{"command": ["node", "scripts/internal/verify_script_inventory.mjs"], "exit": 0, "rawSha256": "92e692a3173f517ac5430005d1cf361195ac0dad7e505a2ffaddc893da6cdecf"}
