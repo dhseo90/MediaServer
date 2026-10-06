@@ -1,0 +1,56 @@
+{
+  "status": "PASS",
+  "scope": "direct changed-area browser, not UI fulltest",
+  "reviewer": "same implementer; no independent review",
+  "viewports": [
+    {
+      "width": 1440,
+      "height": 1100
+    },
+    {
+      "width": 390,
+      "height": 844
+    }
+  ],
+  "themes": [
+    "light",
+    "dark"
+  ],
+  "confirmed": [
+    "양방향 카메라·시간 복사와 person/red scene/threshold 고유값 보존",
+    "한국어 검색: threshold 0.1의 정상 0건과 -1의8건 구분",
+    "status refresh 전후 검색 usedIndex 문자열 동일",
+    "기존 structured 검색 1개와 서버 적용조건/snapshot 표시",
+    "64토큰 거부·설명 삭제·red scene 8개 복구",
+    "실제 seek 완료와 증거 보존 완료 상세",
+    "소유 cache 쓰기 실패 중 degraded/이전 세대232/8결과 유지·복구 후 현재244/결과232 구분",
+    "모바일390의 documentWidth390·두 form scrollWidth324",
+    "desktop/mobile light/dark 가독성 직접 확인·오류 콘솔 없음"
+  ],
+  "notBrowserTested": [
+    "cache 재시작 unknown은 worker 검사",
+    "최초 준비/encode/build 실패는 worker 검사",
+    "늦은 응답/cursor 무효화는 직접 script·application 검사",
+    "역할/채널 권한과 no-store는 실제 HTTP 검사",
+    "실운영 데이터/규모·UI 풀테스트 미실행"
+  ],
+  "screenshots": [
+    "53-desktop-light.jpg",
+    "53-desktop-dark.jpg",
+    "53-mobile-dark.jpg",
+    "53-mobile-dark-status.jpg",
+    "53-mobile-light.jpg",
+    "53-mobile-structured.jpg",
+    "53-desktop-complete.jpg"
+  ],
+  "observed": {
+    "opsEvidenceCreateStatus": "증거를 보존했습니다.",
+    "opsSearchApplied": "구조화 검색 · 카메라: 1\nUTC: 2026-10-06T14:48:00.000Z 이상 ~ 2026-10-06T15:48:00.000Z 미만\nobject: 없음 · track: 없음 · event: 없음 · zone: 없음 · rule: 없음 · behaviour: 없음 · 시간 미확인 포함: 아니오 · 페이지 한도: 50\n사용한 조회 snapshot: 9ab32dd882e874e8e5e610b1a615e1cd · 집계는 이 조건의 전체 일치 자료, 화면은 현재 페이지입니다. 장면 유사도 조건은 적용하지 않습니다.",
+    "opsSearchStatus": "시간 확인 1개 · 시간 미확인 0개 · 현재 페이지 1개",
+    "opsVisualApplied": "적용 장면 설명: red scene\n본문 토큰: 2/63 · 카메라: 1\nUTC 범위: 2026-10-06T14:48:00.000Z 이상 ~ 2026-10-06T15:48:00.000Z 미만 · 최소 유사도: -1 · 최대 결과 수: 20",
+    "opsVisualCoverage": "현재 상태: 게시 색인 검색 가능 · 표본 간격 1초 / 갱신 주기 1초\n갱신 성공 · 최근 시도 2026-10-06T15:51:11.715Z · 종료 2026-10-06T15:51:11.744Z · 최근 성공 2026-10-06T15:51:11.744Z (worker 전체 시도 상태, 채널별 완전성 아님)\n실행 f036c86b67b907ff2f2d85da9cd06986 내 세대 244 · 게시 2026-10-06T15:51:11.744Z\n1: 색인 표본 8개 · 시각 미확인 0개 · 표본 UTC 2026-10-06T15:46:34.129Z ~ 2026-10-06T15:46:41.129Z · 수집 1파일/0스냅샷 · 미지원 0파일/0스냅샷\n집계는 허가된 표시 채널의 게시 표본 전체이며 시간·유사도·top-k 적용 전입니다. 표본 사이의 연속 포함·누락 구간·전체 사건 수는 미확인입니다. 현재 원본은 검색·재생 때 다시 확인합니다.",
+    "opsVisualPlayback": "검색 시점으로 이동했습니다. 재생 버튼을 누르세요.",
+    "opsVisualStatus": "8개 유사 결과입니다. 실제 영상을 확인하세요.",
+    "opsVisualUsedIndex": "이 검색이 사용한 색인: 실행 f036c86b67b907ff2f2d85da9cd06986 내 세대 232 · 게시 2026-10-06T15:50:42.796Z\n1: 색인 표본 8개 · 시각 미확인 0개 · 표본 UTC 2026-10-06T15:46:34.129Z ~ 2026-10-06T15:46:41.129Z · 수집 1파일/0스냅샷 · 미지원 0파일/0스냅샷\n집계는 허가된 표시 채널의 게시 표본 전체이며 시간·유사도·top-k 적용 전입니다. 표본 사이의 연속 포함·누락 구간·전체 사건 수는 미확인입니다. 현재 원본은 검색·재생 때 다시 확인합니다.\n검색 시점: 최근 색인 갱신에 실패 · 이전 완성 색인 사용 · 최근 시도 2026-10-06T15:50:52.069Z · 종료 2026-10-06T15:50:52.092Z · 최근 성공 2026-10-06T15:50:42.796Z (worker 전체 시도 상태, 채널별 완전성 아님) · 표본 간격 1초 / 갱신 주기 1초 · 최종 top-k 반환 8개"
+  }
+}

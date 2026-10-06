@@ -1,0 +1,88 @@
+{
+  "status": "PASS",
+  "completion": "현재 검색 범위·갱신 상태·기존 검색 화면 연결 완료",
+  "codeCommit": "6b177a8b7937992f3c121ac9c453b487a603a68d",
+  "source": "53-source-freeze.json",
+  "commands": "53-direct.json",
+  "rawOutput": "53-direct-output.gz",
+  "rawEncoding": "gzip of concatenated command stdout+stderr raw bytes; offsets/bytes/SHA256 in commands; exits captured immediately",
+  "scope": "설계52 묶음2; same implementer review, not independent approval",
+  "results": {
+    "worker": "58; controlled fake vectors and collect/encode/build/save faults; old search publishes new generation inside eligibility callback; metadata remains old; empty/unsupported/cache unknown/cancel",
+    "visualApplication": "99 actual SigLIP2 small fixture; explicit unknown clock, scope redaction, 62/63/64, top-k/time denominators, prior index after save failure, seek/current corruption, Stop; peakRssBytes3196321792",
+    "structuredApplication": "14; pages/cursor/principal/scope/seek/partial fallback and additive applied snapshot",
+    "uiState": "26; actual production script async search/status guards, cursor invalidation, transfers/unique filters, result publication vs refresh",
+    "http": "58; 53-http.json. Prior52 same fixture ordered score sequence <=1e-4; new top2 exact IDs/scores compared with new full result; not global retrieval re-evaluation",
+    "browser": "53-browser.json; actual changed-area desktop1440x1100/mobile390x844 light/dark. Actual owned save failure injected, old8 results remained; recovery current244 vs saved result232; seek/evidence complete",
+    "static": "build + no-OpenSSL translation-unit compile; current source graph PASS; comments1440 files0 violations; docs links final PASS; whitespace PASS"
+  },
+  "firstFailures": [
+    {
+      "phase": "visual scope fixture",
+      "observed": "UTC missing assertion expected3 unknown; base Encode fixture actually supplies clock/UTC. Initial output preserved in53-direct.",
+      "fix": "Only new --scope-only branch explicitly clears fixture clock_process_id before writer; product UTC policy unchanged; final99 PASS."
+    },
+    {
+      "phase": "HTTP role fixture",
+      "observed": "Expected403 for no-source status; status contract permits200 with restricted/empty scope. First HTTP output preserved in53-http-first-failure.json and raw output; initial unexpected body was not captured.",
+      "fix": "Correct status expectation plus assert channels empty/index null/refresh null; actual unauthorized search stays403; final58 PASS."
+    },
+    {
+      "phase": "docs",
+      "observed": "New inventory anchor omitted middle dots.",
+      "fix": "Exact heading anchor fixed; subsequent link check PASS."
+    },
+    {
+      "phase": "guard equivalence helper",
+      "observed": "Byte comparison included two extra empty preprocessor lines introduced by conditional include.",
+      "fix": "Observed diff contained only empty lines; compare after excluding empty lines, preserving every nonempty line/token. Active path PASS; disabled compile separately PASS."
+    }
+  ],
+  "unchanged": [
+    "A/core/package/record/confirmation",
+    "prior52 input semantics and prior34-52 raw artifacts",
+    "models/tokenizer/embedding/preprocessing/index cache format",
+    "sampling/scan defaults and admission/time/memory budgets",
+    "VERSION/CMake/release metadata/roadmap",
+    "approval/policy/historical structural hashes: only current source graph line count+derived observation hash changed"
+  ],
+  "notRun": [
+    "Qwen/Ollama generation0; install/download0",
+    "full52 retrieval/whole acceptance/native/HTTP/UI",
+    "UI fulltest/30m/120m/Linux/production scale",
+    "bundle3 duplicate V450-S01/Submit restriction/independent approval",
+    "PR/main/tag/Release/branch deletion"
+  ],
+  "limitations": [
+    "indexed sample min/max is not continuous coverage; exact missing intervals and total event count unknown",
+    "cache does not persist publication history; time/generation/source counts null on restart",
+    "worker refresh time is whole-worker state, not per-channel freshness",
+    "copy requires paired valid <=31-day times and channels available in destination; unique filters are not transferred"
+  ],
+  "cleanup": {
+    "ui": "53-ui-preparation.json: process graceful exit0; HTTP/RTSP refused; UDP closed; owned root absent",
+    "browser": "created tab closed; viewport reset",
+    "direct": {
+      "ownedRoot": "/tmp/media-server-53-work",
+      "exactTopLevelAllowlist": [
+        "application-final",
+        "application-fixture",
+        "cache-injection.json",
+        "check-guard.py",
+        "compile.py",
+        "recording_search_application_smoke",
+        "run.py",
+        "structured-fixture",
+        "visual_index_worker_smoke",
+        "visual_search_application_smoke",
+        "worker-before-guard.cpp",
+        "worker-final",
+        "worker-fixture",
+        "worker-no-openssl.o",
+        "worker-search-final"
+      ],
+      "allEntriesOwnedAndNotSymlinks": true,
+      "rootAbsent": true
+    }
+  }
+}

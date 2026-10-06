@@ -1,0 +1,848 @@
+{
+  "status": "FAIL",
+  "error": "status s06-no-source HTTP",
+  "checks": [
+    {
+      "id": "current publication HTTP",
+      "pass": true
+    },
+    {
+      "id": "current publication no-store",
+      "pass": true
+    },
+    {
+      "id": "current publication redacted",
+      "pass": true
+    },
+    {
+      "id": "current publication",
+      "response": {
+        "enabled": true,
+        "state": "ready",
+        "error": "",
+        "searchAvailable": true,
+        "sampleSeconds": 1,
+        "scanSeconds": 1,
+        "eventSnapshots": "disabled",
+        "index": {
+          "instanceId": "f036c86b67b907ff2f2d85da9cd06986",
+          "generation": 44,
+          "identityScope": "worker-instance",
+          "origin": "rebuild",
+          "publishedAtMs": 1791301648484,
+          "metadataReason": "live-publication",
+          "statisticsScope": "authorized-channels-all-indexed-samples-before-query-filters",
+          "coverage": "unknown",
+          "coverageReason": "sampled-index-no-continuous-coverage",
+          "sourceValidation": "search-revalidates-current-originals",
+          "channels": [
+            {
+              "channelId": "1",
+              "indexedFrames": 8,
+              "unknownTimeFrames": 0,
+              "firstSampleTimeNs": "1791301594129000000",
+              "lastSampleTimeNs": "1791301601129000000",
+              "sourceCountsState": "known",
+              "examinedSegments": 1,
+              "unsupportedSegments": 0,
+              "examinedSnapshots": 0,
+              "unsupportedSnapshots": 0
+            }
+          ]
+        },
+        "refresh": {
+          "state": "ready",
+          "attemptState": "succeeded",
+          "attemptStartedAtMs": 1791301648471,
+          "attemptFinishedAtMs": 1791301648484,
+          "lastSuccessAtMs": 1791301648484,
+          "error": "",
+          "usingPreviousPublication": false
+        },
+        "channels": [
+          {
+            "channelId": "1",
+            "indexedFrames": 8,
+            "unknownTimeFrames": 0,
+            "firstSampleTimeNs": "1791301594129000000",
+            "lastSampleTimeNs": "1791301601129000000",
+            "sourceCountsState": "known",
+            "examinedSegments": 1,
+            "unsupportedSegments": 0,
+            "examinedSnapshots": 0,
+            "unsupportedSnapshots": 0
+          }
+        ]
+      }
+    },
+    {
+      "id": "current publication metadata",
+      "pass": true
+    },
+    {
+      "id": "normal HTTP",
+      "pass": true
+    },
+    {
+      "id": "normal no-store",
+      "pass": true
+    },
+    {
+      "id": "normal redacted",
+      "pass": true
+    },
+    {
+      "id": "normal",
+      "response": {
+        "kind": "visual-frame",
+        "scoreMeaning": "similarity-not-evidence",
+        "appliedQuery": {
+          "text": "A RED scene",
+          "encoderText": "a red scene",
+          "bodyTokens": 3,
+          "maxBodyTokens": 63,
+          "channelIds": [
+            "1"
+          ],
+          "startTimeMs": null,
+          "endTimeMs": null,
+          "threshold": -1,
+          "limit": 20
+        },
+        "items": [
+          {
+            "id": "frame:36:406c3794-55ee-4e12-baa1-8e04399e4690:0",
+            "kind": "representative-frame",
+            "channelId": "1",
+            "score": 0.02902135360970581,
+            "timeNs": "1791301594129000000",
+            "playbackUrl": "/ops/api/recordings/media/406c3794-55ee-4e12-baa1-8e04399e4690",
+            "playable": true,
+            "seekAvailable": true,
+            "targetSeconds": 0,
+            "frameDurationSeconds": 0.03333333333333333,
+            "timeBasis": "verified-native-file-presentation"
+          },
+          {
+            "id": "frame:36:406c3794-55ee-4e12-baa1-8e04399e4690:1000000000",
+            "kind": "representative-frame",
+            "channelId": "1",
+            "score": 0.02897122739939778,
+            "timeNs": "1791301595129000000",
+            "playbackUrl": "/ops/api/recordings/media/406c3794-55ee-4e12-baa1-8e04399e4690",
+            "playable": true,
+            "seekAvailable": true,
+            "targetSeconds": 1,
+            "frameDurationSeconds": 0.03333333333333333,
+            "timeBasis": "verified-native-file-presentation"
+          },
+          {
+            "id": "frame:36:406c3794-55ee-4e12-baa1-8e04399e4690:2000000000",
+            "kind": "representative-frame",
+            "channelId": "1",
+            "score": 0.02889941884622799,
+            "timeNs": "1791301596129000000",
+            "playbackUrl": "/ops/api/recordings/media/406c3794-55ee-4e12-baa1-8e04399e4690",
+            "playable": true,
+            "seekAvailable": true,
+            "targetSeconds": 2,
+            "frameDurationSeconds": 0.03333333333333333,
+            "timeBasis": "verified-native-file-presentation"
+          },
+          {
+            "id": "frame:36:406c3794-55ee-4e12-baa1-8e04399e4690:6000000000",
+            "kind": "representative-frame",
+            "channelId": "1",
+            "score": 0.02889941884622799,
+            "timeNs": "1791301600129000000",
+            "playbackUrl": "/ops/api/recordings/media/406c3794-55ee-4e12-baa1-8e04399e4690",
+            "playable": true,
+            "seekAvailable": true,
+            "targetSeconds": 6,
+            "frameDurationSeconds": 0.03333333333333333,
+            "timeBasis": "verified-native-file-presentation"
+          },
+          {
+            "id": "frame:36:406c3794-55ee-4e12-baa1-8e04399e4690:4000000000",
+            "kind": "representative-frame",
+            "channelId": "1",
+            "score": 0.02889901117475003,
+            "timeNs": "1791301598129000000",
+            "playbackUrl": "/ops/api/recordings/media/406c3794-55ee-4e12-baa1-8e04399e4690",
+            "playable": true,
+            "seekAvailable": true,
+            "targetSeconds": 4,
+            "frameDurationSeconds": 0.03333333333333333,
+            "timeBasis": "verified-native-file-presentation"
+          },
+          {
+            "id": "frame:36:406c3794-55ee-4e12-baa1-8e04399e4690:3000000000",
+            "kind": "representative-frame",
+            "channelId": "1",
+            "score": 0.028890957106887195,
+            "timeNs": "1791301597129000000",
+            "playbackUrl": "/ops/api/recordings/media/406c3794-55ee-4e12-baa1-8e04399e4690",
+            "playable": true,
+            "seekAvailable": true,
+            "targetSeconds": 3,
+            "frameDurationSeconds": 0.03333333333333333,
+            "timeBasis": "verified-native-file-presentation"
+          },
+          {
+            "id": "frame:36:406c3794-55ee-4e12-baa1-8e04399e4690:5000000000",
+            "kind": "representative-frame",
+            "channelId": "1",
+            "score": 0.028890957106887195,
+            "timeNs": "1791301599129000000",
+            "playbackUrl": "/ops/api/recordings/media/406c3794-55ee-4e12-baa1-8e04399e4690",
+            "playable": true,
+            "seekAvailable": true,
+            "targetSeconds": 5,
+            "frameDurationSeconds": 0.03333333333333333,
+            "timeBasis": "verified-native-file-presentation"
+          },
+          {
+            "id": "frame:36:406c3794-55ee-4e12-baa1-8e04399e4690:7000000000",
+            "kind": "representative-frame",
+            "channelId": "1",
+            "score": 0.028777056631670135,
+            "timeNs": "1791301601129000000",
+            "playbackUrl": "/ops/api/recordings/media/406c3794-55ee-4e12-baa1-8e04399e4690",
+            "playable": true,
+            "seekAvailable": true,
+            "targetSeconds": 7,
+            "frameDurationSeconds": 0.03333333333333333,
+            "timeBasis": "verified-native-file-presentation"
+          }
+        ],
+        "index": {
+          "instanceId": "f036c86b67b907ff2f2d85da9cd06986",
+          "generation": 44,
+          "identityScope": "worker-instance",
+          "origin": "rebuild",
+          "publishedAtMs": 1791301648484,
+          "metadataReason": "live-publication",
+          "statisticsScope": "authorized-channels-all-indexed-samples-before-query-filters",
+          "coverage": "unknown",
+          "coverageReason": "sampled-index-no-continuous-coverage",
+          "sourceValidation": "search-revalidates-current-originals",
+          "channels": [
+            {
+              "channelId": "1",
+              "indexedFrames": 8,
+              "unknownTimeFrames": 0,
+              "firstSampleTimeNs": "1791301594129000000",
+              "lastSampleTimeNs": "1791301601129000000",
+              "sourceCountsState": "known",
+              "examinedSegments": 1,
+              "unsupportedSegments": 0,
+              "examinedSnapshots": 0,
+              "unsupportedSnapshots": 0
+            }
+          ]
+        },
+        "refreshAtSearch": {
+          "state": "ready",
+          "attemptState": "succeeded",
+          "attemptStartedAtMs": 1791301648471,
+          "attemptFinishedAtMs": 1791301648484,
+          "lastSuccessAtMs": 1791301648484,
+          "error": "",
+          "usingPreviousPublication": false
+        },
+        "sampleSeconds": 1,
+        "scanSeconds": 1,
+        "returnedItems": 8
+      }
+    },
+    {
+      "id": "same view result size",
+      "pass": true
+    },
+    {
+      "id": "identity scope and provenance",
+      "pass": true
+    },
+    {
+      "id": "preserved fixture rank score sequence",
+      "pass": true
+    },
+    {
+      "id": "top two HTTP",
+      "pass": true
+    },
+    {
+      "id": "top two no-store",
+      "pass": true
+    },
+    {
+      "id": "top two redacted",
+      "pass": true
+    },
+    {
+      "id": "top two",
+      "response": {
+        "kind": "visual-frame",
+        "scoreMeaning": "similarity-not-evidence",
+        "appliedQuery": {
+          "text": "A RED scene",
+          "encoderText": "a red scene",
+          "bodyTokens": 3,
+          "maxBodyTokens": 63,
+          "channelIds": [
+            "1"
+          ],
+          "startTimeMs": null,
+          "endTimeMs": null,
+          "threshold": -1,
+          "limit": 2
+        },
+        "items": [
+          {
+            "id": "frame:36:406c3794-55ee-4e12-baa1-8e04399e4690:0",
+            "kind": "representative-frame",
+            "channelId": "1",
+            "score": 0.02902135360970581,
+            "timeNs": "1791301594129000000",
+            "playbackUrl": "/ops/api/recordings/media/406c3794-55ee-4e12-baa1-8e04399e4690",
+            "playable": true,
+            "seekAvailable": true,
+            "targetSeconds": 0,
+            "frameDurationSeconds": 0.03333333333333333,
+            "timeBasis": "verified-native-file-presentation"
+          },
+          {
+            "id": "frame:36:406c3794-55ee-4e12-baa1-8e04399e4690:1000000000",
+            "kind": "representative-frame",
+            "channelId": "1",
+            "score": 0.02897122739939778,
+            "timeNs": "1791301595129000000",
+            "playbackUrl": "/ops/api/recordings/media/406c3794-55ee-4e12-baa1-8e04399e4690",
+            "playable": true,
+            "seekAvailable": true,
+            "targetSeconds": 1,
+            "frameDurationSeconds": 0.03333333333333333,
+            "timeBasis": "verified-native-file-presentation"
+          }
+        ],
+        "index": {
+          "instanceId": "f036c86b67b907ff2f2d85da9cd06986",
+          "generation": 44,
+          "identityScope": "worker-instance",
+          "origin": "rebuild",
+          "publishedAtMs": 1791301648484,
+          "metadataReason": "live-publication",
+          "statisticsScope": "authorized-channels-all-indexed-samples-before-query-filters",
+          "coverage": "unknown",
+          "coverageReason": "sampled-index-no-continuous-coverage",
+          "sourceValidation": "search-revalidates-current-originals",
+          "channels": [
+            {
+              "channelId": "1",
+              "indexedFrames": 8,
+              "unknownTimeFrames": 0,
+              "firstSampleTimeNs": "1791301594129000000",
+              "lastSampleTimeNs": "1791301601129000000",
+              "sourceCountsState": "known",
+              "examinedSegments": 1,
+              "unsupportedSegments": 0,
+              "examinedSnapshots": 0,
+              "unsupportedSnapshots": 0
+            }
+          ]
+        },
+        "refreshAtSearch": {
+          "state": "ready",
+          "attemptState": "succeeded",
+          "attemptStartedAtMs": 1791301648471,
+          "attemptFinishedAtMs": 1791301648484,
+          "lastSuccessAtMs": 1791301648484,
+          "error": "",
+          "usingPreviousPublication": false
+        },
+        "sampleSeconds": 1,
+        "scanSeconds": 1,
+        "returnedItems": 2
+      }
+    },
+    {
+      "id": "top-k separate from publication denominator",
+      "pass": true
+    },
+    {
+      "id": "empty time filter HTTP",
+      "pass": true
+    },
+    {
+      "id": "empty time filter no-store",
+      "pass": true
+    },
+    {
+      "id": "empty time filter redacted",
+      "pass": true
+    },
+    {
+      "id": "empty time filter",
+      "response": {
+        "kind": "visual-frame",
+        "scoreMeaning": "similarity-not-evidence",
+        "appliedQuery": {
+          "text": "A RED scene",
+          "encoderText": "a red scene",
+          "bodyTokens": 3,
+          "maxBodyTokens": 63,
+          "channelIds": [
+            "1"
+          ],
+          "startTimeMs": 1000,
+          "endTimeMs": 2000,
+          "threshold": -1,
+          "limit": 20
+        },
+        "items": [],
+        "index": {
+          "instanceId": "f036c86b67b907ff2f2d85da9cd06986",
+          "generation": 44,
+          "identityScope": "worker-instance",
+          "origin": "rebuild",
+          "publishedAtMs": 1791301648484,
+          "metadataReason": "live-publication",
+          "statisticsScope": "authorized-channels-all-indexed-samples-before-query-filters",
+          "coverage": "unknown",
+          "coverageReason": "sampled-index-no-continuous-coverage",
+          "sourceValidation": "search-revalidates-current-originals",
+          "channels": [
+            {
+              "channelId": "1",
+              "indexedFrames": 8,
+              "unknownTimeFrames": 0,
+              "firstSampleTimeNs": "1791301594129000000",
+              "lastSampleTimeNs": "1791301601129000000",
+              "sourceCountsState": "known",
+              "examinedSegments": 1,
+              "unsupportedSegments": 0,
+              "examinedSnapshots": 0,
+              "unsupportedSnapshots": 0
+            }
+          ]
+        },
+        "refreshAtSearch": {
+          "state": "ready",
+          "attemptState": "succeeded",
+          "attemptStartedAtMs": 1791301648471,
+          "attemptFinishedAtMs": 1791301648484,
+          "lastSuccessAtMs": 1791301648484,
+          "error": "",
+          "usingPreviousPublication": false
+        },
+        "sampleSeconds": 1,
+        "scanSeconds": 1,
+        "returnedItems": 0
+      }
+    },
+    {
+      "id": "empty not unavailable",
+      "pass": true
+    },
+    {
+      "id": "tokens 63 HTTP",
+      "pass": true
+    },
+    {
+      "id": "tokens 63 no-store",
+      "pass": true
+    },
+    {
+      "id": "tokens 63 redacted",
+      "pass": true
+    },
+    {
+      "id": "tokens 63",
+      "response": {
+        "kind": "visual-frame",
+        "scoreMeaning": "similarity-not-evidence",
+        "appliedQuery": {
+          "text": "red red red red red red red red red red red red red red red red red red red red red red red red red red red red red red red red red red red red red red red red red red red red red red red red red red red red red red red red red red red red red red red",
+          "encoderText": "red red red red red red red red red red red red red red red red red red red red red red red red red red red red red red red red red red red red red red red red red red red red red red red red red red red red red red red red red red red red red red red",
+          "bodyTokens": 63,
+          "maxBodyTokens": 63,
+          "channelIds": [
+            "1"
+          ],
+          "startTimeMs": null,
+          "endTimeMs": null,
+          "threshold": -1,
+          "limit": 20
+        },
+        "items": [
+          {
+            "id": "frame:36:406c3794-55ee-4e12-baa1-8e04399e4690:7000000000",
+            "kind": "representative-frame",
+            "channelId": "1",
+            "score": 0.039416704279889074,
+            "timeNs": "1791301601129000000",
+            "playbackUrl": "/ops/api/recordings/media/406c3794-55ee-4e12-baa1-8e04399e4690",
+            "playable": true,
+            "seekAvailable": true,
+            "targetSeconds": 7,
+            "frameDurationSeconds": 0.03333333333333333,
+            "timeBasis": "verified-native-file-presentation"
+          },
+          {
+            "id": "frame:36:406c3794-55ee-4e12-baa1-8e04399e4690:0",
+            "kind": "representative-frame",
+            "channelId": "1",
+            "score": 0.03938707028931428,
+            "timeNs": "1791301594129000000",
+            "playbackUrl": "/ops/api/recordings/media/406c3794-55ee-4e12-baa1-8e04399e4690",
+            "playable": true,
+            "seekAvailable": true,
+            "targetSeconds": 0,
+            "frameDurationSeconds": 0.03333333333333333,
+            "timeBasis": "verified-native-file-presentation"
+          },
+          {
+            "id": "frame:36:406c3794-55ee-4e12-baa1-8e04399e4690:2000000000",
+            "kind": "representative-frame",
+            "channelId": "1",
+            "score": 0.03936639192026118,
+            "timeNs": "1791301596129000000",
+            "playbackUrl": "/ops/api/recordings/media/406c3794-55ee-4e12-baa1-8e04399e4690",
+            "playable": true,
+            "seekAvailable": true,
+            "targetSeconds": 2,
+            "frameDurationSeconds": 0.03333333333333333,
+            "timeBasis": "verified-native-file-presentation"
+          },
+          {
+            "id": "frame:36:406c3794-55ee-4e12-baa1-8e04399e4690:6000000000",
+            "kind": "representative-frame",
+            "channelId": "1",
+            "score": 0.03936639192026118,
+            "timeNs": "1791301600129000000",
+            "playbackUrl": "/ops/api/recordings/media/406c3794-55ee-4e12-baa1-8e04399e4690",
+            "playable": true,
+            "seekAvailable": true,
+            "targetSeconds": 6,
+            "frameDurationSeconds": 0.03333333333333333,
+            "timeBasis": "verified-native-file-presentation"
+          },
+          {
+            "id": "frame:36:406c3794-55ee-4e12-baa1-8e04399e4690:1000000000",
+            "kind": "representative-frame",
+            "channelId": "1",
+            "score": 0.039329832762727404,
+            "timeNs": "1791301595129000000",
+            "playbackUrl": "/ops/api/recordings/media/406c3794-55ee-4e12-baa1-8e04399e4690",
+            "playable": true,
+            "seekAvailable": true,
+            "targetSeconds": 1,
+            "frameDurationSeconds": 0.03333333333333333,
+            "timeBasis": "verified-native-file-presentation"
+          },
+          {
+            "id": "frame:36:406c3794-55ee-4e12-baa1-8e04399e4690:4000000000",
+            "kind": "representative-frame",
+            "channelId": "1",
+            "score": 0.039326360769270784,
+            "timeNs": "1791301598129000000",
+            "playbackUrl": "/ops/api/recordings/media/406c3794-55ee-4e12-baa1-8e04399e4690",
+            "playable": true,
+            "seekAvailable": true,
+            "targetSeconds": 4,
+            "frameDurationSeconds": 0.03333333333333333,
+            "timeBasis": "verified-native-file-presentation"
+          },
+          {
+            "id": "frame:36:406c3794-55ee-4e12-baa1-8e04399e4690:3000000000",
+            "kind": "representative-frame",
+            "channelId": "1",
+            "score": 0.039305073281951305,
+            "timeNs": "1791301597129000000",
+            "playbackUrl": "/ops/api/recordings/media/406c3794-55ee-4e12-baa1-8e04399e4690",
+            "playable": true,
+            "seekAvailable": true,
+            "targetSeconds": 3,
+            "frameDurationSeconds": 0.03333333333333333,
+            "timeBasis": "verified-native-file-presentation"
+          },
+          {
+            "id": "frame:36:406c3794-55ee-4e12-baa1-8e04399e4690:5000000000",
+            "kind": "representative-frame",
+            "channelId": "1",
+            "score": 0.039305073281951305,
+            "timeNs": "1791301599129000000",
+            "playbackUrl": "/ops/api/recordings/media/406c3794-55ee-4e12-baa1-8e04399e4690",
+            "playable": true,
+            "seekAvailable": true,
+            "targetSeconds": 5,
+            "frameDurationSeconds": 0.03333333333333333,
+            "timeBasis": "verified-native-file-presentation"
+          }
+        ],
+        "index": {
+          "instanceId": "f036c86b67b907ff2f2d85da9cd06986",
+          "generation": 44,
+          "identityScope": "worker-instance",
+          "origin": "rebuild",
+          "publishedAtMs": 1791301648484,
+          "metadataReason": "live-publication",
+          "statisticsScope": "authorized-channels-all-indexed-samples-before-query-filters",
+          "coverage": "unknown",
+          "coverageReason": "sampled-index-no-continuous-coverage",
+          "sourceValidation": "search-revalidates-current-originals",
+          "channels": [
+            {
+              "channelId": "1",
+              "indexedFrames": 8,
+              "unknownTimeFrames": 0,
+              "firstSampleTimeNs": "1791301594129000000",
+              "lastSampleTimeNs": "1791301601129000000",
+              "sourceCountsState": "known",
+              "examinedSegments": 1,
+              "unsupportedSegments": 0,
+              "examinedSnapshots": 0,
+              "unsupportedSnapshots": 0
+            }
+          ]
+        },
+        "refreshAtSearch": {
+          "state": "ready",
+          "attemptState": "succeeded",
+          "attemptStartedAtMs": 1791301648471,
+          "attemptFinishedAtMs": 1791301648484,
+          "lastSuccessAtMs": 1791301648484,
+          "error": "",
+          "usingPreviousPublication": false
+        },
+        "sampleSeconds": 1,
+        "scanSeconds": 1,
+        "returnedItems": 8
+      }
+    },
+    {
+      "id": "token limit 63",
+      "pass": true
+    },
+    {
+      "id": "tokens 64 HTTP",
+      "pass": true
+    },
+    {
+      "id": "tokens 64 no-store",
+      "pass": true
+    },
+    {
+      "id": "tokens 64 redacted",
+      "pass": true
+    },
+    {
+      "id": "tokens 64",
+      "response": {
+        "error": "visual-text-token-limit"
+      }
+    },
+    {
+      "id": "token limit 64",
+      "pass": true
+    },
+    {
+      "id": "Korean HTTP",
+      "pass": true
+    },
+    {
+      "id": "Korean no-store",
+      "pass": true
+    },
+    {
+      "id": "Korean redacted",
+      "pass": true
+    },
+    {
+      "id": "Korean",
+      "response": {
+        "kind": "visual-frame",
+        "scoreMeaning": "similarity-not-evidence",
+        "appliedQuery": {
+          "text": "공원에서 공을 가지고 노는 사람",
+          "encoderText": "공원에서 공을 가지고 노는 사람",
+          "bodyTokens": 10,
+          "maxBodyTokens": 63,
+          "channelIds": [
+            "1"
+          ],
+          "startTimeMs": null,
+          "endTimeMs": null,
+          "threshold": -1,
+          "limit": 20
+        },
+        "items": [
+          {
+            "id": "frame:36:406c3794-55ee-4e12-baa1-8e04399e4690:2000000000",
+            "kind": "representative-frame",
+            "channelId": "1",
+            "score": 0.06372129982205818,
+            "timeNs": "1791301596129000000",
+            "playbackUrl": "/ops/api/recordings/media/406c3794-55ee-4e12-baa1-8e04399e4690",
+            "playable": true,
+            "seekAvailable": true,
+            "targetSeconds": 2,
+            "frameDurationSeconds": 0.03333333333333333,
+            "timeBasis": "verified-native-file-presentation"
+          },
+          {
+            "id": "frame:36:406c3794-55ee-4e12-baa1-8e04399e4690:6000000000",
+            "kind": "representative-frame",
+            "channelId": "1",
+            "score": 0.06372129982205818,
+            "timeNs": "1791301600129000000",
+            "playbackUrl": "/ops/api/recordings/media/406c3794-55ee-4e12-baa1-8e04399e4690",
+            "playable": true,
+            "seekAvailable": true,
+            "targetSeconds": 6,
+            "frameDurationSeconds": 0.03333333333333333,
+            "timeBasis": "verified-native-file-presentation"
+          },
+          {
+            "id": "frame:36:406c3794-55ee-4e12-baa1-8e04399e4690:3000000000",
+            "kind": "representative-frame",
+            "channelId": "1",
+            "score": 0.06371278941744872,
+            "timeNs": "1791301597129000000",
+            "playbackUrl": "/ops/api/recordings/media/406c3794-55ee-4e12-baa1-8e04399e4690",
+            "playable": true,
+            "seekAvailable": true,
+            "targetSeconds": 3,
+            "frameDurationSeconds": 0.03333333333333333,
+            "timeBasis": "verified-native-file-presentation"
+          },
+          {
+            "id": "frame:36:406c3794-55ee-4e12-baa1-8e04399e4690:5000000000",
+            "kind": "representative-frame",
+            "channelId": "1",
+            "score": 0.06371278941744872,
+            "timeNs": "1791301599129000000",
+            "playbackUrl": "/ops/api/recordings/media/406c3794-55ee-4e12-baa1-8e04399e4690",
+            "playable": true,
+            "seekAvailable": true,
+            "targetSeconds": 5,
+            "frameDurationSeconds": 0.03333333333333333,
+            "timeBasis": "verified-native-file-presentation"
+          },
+          {
+            "id": "frame:36:406c3794-55ee-4e12-baa1-8e04399e4690:1000000000",
+            "kind": "representative-frame",
+            "channelId": "1",
+            "score": 0.06370732243170889,
+            "timeNs": "1791301595129000000",
+            "playbackUrl": "/ops/api/recordings/media/406c3794-55ee-4e12-baa1-8e04399e4690",
+            "playable": true,
+            "seekAvailable": true,
+            "targetSeconds": 1,
+            "frameDurationSeconds": 0.03333333333333333,
+            "timeBasis": "verified-native-file-presentation"
+          },
+          {
+            "id": "frame:36:406c3794-55ee-4e12-baa1-8e04399e4690:4000000000",
+            "kind": "representative-frame",
+            "channelId": "1",
+            "score": 0.06366557390530446,
+            "timeNs": "1791301598129000000",
+            "playbackUrl": "/ops/api/recordings/media/406c3794-55ee-4e12-baa1-8e04399e4690",
+            "playable": true,
+            "seekAvailable": true,
+            "targetSeconds": 4,
+            "frameDurationSeconds": 0.03333333333333333,
+            "timeBasis": "verified-native-file-presentation"
+          },
+          {
+            "id": "frame:36:406c3794-55ee-4e12-baa1-8e04399e4690:0",
+            "kind": "representative-frame",
+            "channelId": "1",
+            "score": 0.06346274782740226,
+            "timeNs": "1791301594129000000",
+            "playbackUrl": "/ops/api/recordings/media/406c3794-55ee-4e12-baa1-8e04399e4690",
+            "playable": true,
+            "seekAvailable": true,
+            "targetSeconds": 0,
+            "frameDurationSeconds": 0.03333333333333333,
+            "timeBasis": "verified-native-file-presentation"
+          },
+          {
+            "id": "frame:36:406c3794-55ee-4e12-baa1-8e04399e4690:7000000000",
+            "kind": "representative-frame",
+            "channelId": "1",
+            "score": 0.06325045091504261,
+            "timeNs": "1791301601129000000",
+            "playbackUrl": "/ops/api/recordings/media/406c3794-55ee-4e12-baa1-8e04399e4690",
+            "playable": true,
+            "seekAvailable": true,
+            "targetSeconds": 7,
+            "frameDurationSeconds": 0.03333333333333333,
+            "timeBasis": "verified-native-file-presentation"
+          }
+        ],
+        "index": {
+          "instanceId": "f036c86b67b907ff2f2d85da9cd06986",
+          "generation": 44,
+          "identityScope": "worker-instance",
+          "origin": "rebuild",
+          "publishedAtMs": 1791301648484,
+          "metadataReason": "live-publication",
+          "statisticsScope": "authorized-channels-all-indexed-samples-before-query-filters",
+          "coverage": "unknown",
+          "coverageReason": "sampled-index-no-continuous-coverage",
+          "sourceValidation": "search-revalidates-current-originals",
+          "channels": [
+            {
+              "channelId": "1",
+              "indexedFrames": 8,
+              "unknownTimeFrames": 0,
+              "firstSampleTimeNs": "1791301594129000000",
+              "lastSampleTimeNs": "1791301601129000000",
+              "sourceCountsState": "known",
+              "examinedSegments": 1,
+              "unsupportedSegments": 0,
+              "examinedSnapshots": 0,
+              "unsupportedSnapshots": 0
+            }
+          ]
+        },
+        "refreshAtSearch": {
+          "state": "ready",
+          "attemptState": "succeeded",
+          "attemptStartedAtMs": 1791301648471,
+          "attemptFinishedAtMs": 1791301648484,
+          "lastSuccessAtMs": 1791301648484,
+          "error": "",
+          "usingPreviousPublication": false
+        },
+        "sampleSeconds": 1,
+        "scanSeconds": 1,
+        "returnedItems": 8
+      }
+    },
+    {
+      "id": "status s06-viewer HTTP",
+      "pass": true
+    },
+    {
+      "id": "status s06-viewer no-store",
+      "pass": true
+    },
+    {
+      "id": "status s06-viewer redacted",
+      "pass": true
+    },
+    {
+      "id": "status s06-viewer",
+      "response": {
+        "error": "operator role and ops:read scope required"
+      }
+    },
+    {
+      "id": "status s06-no-source HTTP",
+      "pass": false
+    }
+  ]
+}
