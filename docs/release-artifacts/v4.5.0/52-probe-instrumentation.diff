@@ -1,0 +1,28 @@
+--- src/ingress/visual_search_application_service.cpp
++++ instrumented-test-copy
+@@ -1,3 +1,4 @@
++thread_local unsigned query_encode_calls=0,query_snapshot_calls=0,query_search_calls=0;
+ // 파일 용도: 현재 channel 권한·원본 검증 뒤 local text→video 검색과 재생을 연결한다.
+ #include "ingress/visual_search_application_service.h"
+ #include "ingress/evidence_application_service.h"
+@@ -206,9 +207,9 @@
+             try{
+                 text=encoder_->InspectText(Get(raw,"text"));
+                 if(!text.within_limit)return Error(400,"visual-text-token-limit");
+-                query.embedding=encoder_->EncodeText(text.original_text);
++                query.embedding=(++query_encode_calls,encoder_->EncodeText(text.original_text));
+             }catch(const analysis::Siglip2Encoder::TextInputError& e){return Error(400,e.code());}}
+-        const auto index=worker_->Snapshot();if(!index)return Error(503,"visual-index-not-ready");
++        const auto index=(++query_snapshot_calls,worker_->Snapshot());if(!index)return Error(503,"visual-index-not-ready");
+         std::vector<recording::VisualSnapshotEvent> events;
+         if(!EventFacts(!options_.snapshot_directory.empty(),query.channels,&events,expired))return Error(503,"visual-source-unavailable");
+         std::vector<recording::VisualSearchHit> hits;std::string error;
+@@ -224,7 +225,7 @@
+             }
+             if(expired())throw std::runtime_error("budget");return true;
+         };
+-        if(!index->Search(query,eligible,&hits,&error))return Error(503,"visual-search-unavailable");
++        if(!(++query_search_calls,index->Search(query,eligible,&hits,&error)))return Error(503,"visual-search-unavailable");
+         if(expired())return Error(503,"visual-search-busy");
+         std::ostringstream out;out.imbue(std::locale::classic());out<<std::setprecision(17)<<"{\"kind\":\"visual-frame\",\"scoreMeaning\":\"similarity-not-evidence\",\"appliedQuery\":{\"text\":"
+             <<Quote(text.original_text)<<",\"encoderText\":"<<Quote(text.encoder_text)<<",\"bodyTokens\":"<<text.body_tokens

@@ -1,0 +1,710 @@
+{
+  "status": "PASS",
+  "completion": "기존 영상 검색의 질의 절단 차단·적용 조건 표시 완료",
+  "codeCommit": "8a6fd480b1783c28c7ff9c975b4c48a42a70ed21",
+  "scope": "설계52의 첫 묶음만. A/core/package/record, 과거43~51, 모델 기본값·가중치·전처리 불변.",
+  "source": "52-source-freeze.json",
+  "output": "52-direct-output.gz",
+  "outputEncoding": "각 명령 stdout/stderr 병합 원바이트를 순서대로 결합한 gzip; commands offset/length/hash로 독립 복원",
+  "commands": [
+    {
+      "name": "application-build-boundaries",
+      "command": [
+        "c++",
+        "-std=c++17",
+        "-O2",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-pthread",
+        "-DVISUAL_QUERY_PROBE=1",
+        "-DMEDIA_SERVER_USE_GSTREAMER=1",
+        "-DMEDIA_SERVER_USE_OPENSSL=1",
+        "-DMEDIA_SERVER_USE_SQLITE3=1",
+        "-DMEDIA_SERVER_USE_SIGLIP2=1",
+        "-DMEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND=1",
+        "-Iinclude",
+        "-I/opt/homebrew/Cellar/gstreamer/1.28.1/include/gstreamer-1.0",
+        "-I/opt/homebrew/Cellar/glib/2.86.4/include",
+        "-I/Library/Developer/CommandLineTools/SDKs/MacOSX26.sdk/usr/include/ffi",
+        "-I/opt/homebrew/Cellar/openssl@3/3.6.2/include",
+        "-I/opt/homebrew/Cellar/glib/2.86.4/include/glib-2.0",
+        "-I/opt/homebrew/Cellar/glib/2.86.4/lib/glib-2.0/include",
+        "-I/opt/homebrew/opt/gettext/include",
+        "-I/opt/homebrew/Cellar/pcre2/10.47_1/include",
+        "scripts/internal/visual_search_application_smoke.cpp",
+        "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-52-b6c_5fco/instrumented-service.cpp",
+        "build-gst-onnx/libmedia_server_runtime.a",
+        "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libz.tbd",
+        "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstrtspserver-1.0.dylib",
+        "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstapp-1.0.dylib",
+        "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstwebrtc-1.0.dylib",
+        "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstsdp-1.0.dylib",
+        "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstpbutils-1.0.dylib",
+        "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstaudio-1.0.dylib",
+        "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstvideo-1.0.dylib",
+        "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstbase-1.0.dylib",
+        "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstreamer-1.0.dylib",
+        "/opt/homebrew/Cellar/pango/1.57.0_2/lib/libpangocairo-1.0.dylib",
+        "/opt/homebrew/Cellar/pango/1.57.0_2/lib/libpango-1.0.dylib",
+        "/opt/homebrew/Cellar/cairo/1.18.4/lib/libcairo.dylib",
+        "/opt/homebrew/Cellar/harfbuzz/13.1.1/lib/libharfbuzz.dylib",
+        "/opt/homebrew/Cellar/glib/2.86.4/lib/libgobject-2.0.dylib",
+        "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libsqlite3.tbd",
+        "/opt/homebrew/Cellar/libsodium/1.0.21/lib/libsodium.dylib",
+        "/opt/homebrew/Cellar/openssl@3/3.6.2/lib/libssl.dylib",
+        "/opt/homebrew/Cellar/openssl@3/3.6.2/lib/libcrypto.dylib",
+        "/opt/homebrew/lib/libonnxruntime.dylib",
+        "/Users/dhseo/Workspace/mediaServer/third_party/v430-embedding/sentencepiece/lib/libsentencepiece.a",
+        "/opt/homebrew/Cellar/glib/2.86.4/lib/libglib-2.0.dylib",
+        "/opt/homebrew/opt/gettext/lib/libintl.dylib",
+        "-o",
+        "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-52-b6c_5fco/application"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 2.068589925765991,
+      "outputOffset": 0,
+      "outputBytes": 0,
+      "outputSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "application-build-resource",
+      "command": [
+        "c++",
+        "-std=c++17",
+        "-O2",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-pthread",
+        "-DVISUAL_QUERY_PROBE=1",
+        "-DMEDIA_SERVER_USE_GSTREAMER=1",
+        "-DMEDIA_SERVER_USE_OPENSSL=1",
+        "-DMEDIA_SERVER_USE_SQLITE3=1",
+        "-DMEDIA_SERVER_USE_SIGLIP2=1",
+        "-DMEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND=1",
+        "-Iinclude",
+        "-I/opt/homebrew/Cellar/gstreamer/1.28.1/include/gstreamer-1.0",
+        "-I/opt/homebrew/Cellar/glib/2.86.4/include",
+        "-I/Library/Developer/CommandLineTools/SDKs/MacOSX26.sdk/usr/include/ffi",
+        "-I/opt/homebrew/Cellar/openssl@3/3.6.2/include",
+        "-I/opt/homebrew/Cellar/glib/2.86.4/include/glib-2.0",
+        "-I/opt/homebrew/Cellar/glib/2.86.4/lib/glib-2.0/include",
+        "-I/opt/homebrew/opt/gettext/include",
+        "-I/opt/homebrew/Cellar/pcre2/10.47_1/include",
+        "scripts/internal/visual_search_application_smoke.cpp",
+        "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-52-b6c_5fco/instrumented-service.cpp",
+        "build-gst-onnx/libmedia_server_runtime.a",
+        "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libz.tbd",
+        "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstrtspserver-1.0.dylib",
+        "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstapp-1.0.dylib",
+        "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstwebrtc-1.0.dylib",
+        "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstsdp-1.0.dylib",
+        "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstpbutils-1.0.dylib",
+        "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstaudio-1.0.dylib",
+        "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstvideo-1.0.dylib",
+        "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstbase-1.0.dylib",
+        "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstreamer-1.0.dylib",
+        "/opt/homebrew/Cellar/pango/1.57.0_2/lib/libpangocairo-1.0.dylib",
+        "/opt/homebrew/Cellar/pango/1.57.0_2/lib/libpango-1.0.dylib",
+        "/opt/homebrew/Cellar/cairo/1.18.4/lib/libcairo.dylib",
+        "/opt/homebrew/Cellar/harfbuzz/13.1.1/lib/libharfbuzz.dylib",
+        "/opt/homebrew/Cellar/glib/2.86.4/lib/libgobject-2.0.dylib",
+        "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libsqlite3.tbd",
+        "/opt/homebrew/Cellar/libsodium/1.0.21/lib/libsodium.dylib",
+        "/opt/homebrew/Cellar/openssl@3/3.6.2/lib/libssl.dylib",
+        "/opt/homebrew/Cellar/openssl@3/3.6.2/lib/libcrypto.dylib",
+        "/opt/homebrew/lib/libonnxruntime.dylib",
+        "/Users/dhseo/Workspace/mediaServer/third_party/v430-embedding/sentencepiece/lib/libsentencepiece.a",
+        "/opt/homebrew/Cellar/glib/2.86.4/lib/libglib-2.0.dylib",
+        "/opt/homebrew/opt/gettext/lib/libintl.dylib",
+        "-o",
+        "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-52-b6c_5fco/application"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 1.9996140003204346,
+      "outputOffset": 0,
+      "outputBytes": 0,
+      "outputSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "application-build",
+      "command": [
+        "c++",
+        "-std=c++17",
+        "-O2",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-pthread",
+        "-DVISUAL_QUERY_PROBE=1",
+        "-DMEDIA_SERVER_USE_GSTREAMER=1",
+        "-DMEDIA_SERVER_USE_OPENSSL=1",
+        "-DMEDIA_SERVER_USE_SQLITE3=1",
+        "-DMEDIA_SERVER_USE_SIGLIP2=1",
+        "-DMEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND=1",
+        "-Iinclude",
+        "-I/opt/homebrew/Cellar/gstreamer/1.28.1/include/gstreamer-1.0",
+        "-I/opt/homebrew/Cellar/glib/2.86.4/include",
+        "-I/Library/Developer/CommandLineTools/SDKs/MacOSX26.sdk/usr/include/ffi",
+        "-I/opt/homebrew/Cellar/openssl@3/3.6.2/include",
+        "-I/opt/homebrew/Cellar/glib/2.86.4/include/glib-2.0",
+        "-I/opt/homebrew/Cellar/glib/2.86.4/lib/glib-2.0/include",
+        "-I/opt/homebrew/opt/gettext/include",
+        "-I/opt/homebrew/Cellar/pcre2/10.47_1/include",
+        "scripts/internal/visual_search_application_smoke.cpp",
+        "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-52-b6c_5fco/instrumented-service.cpp",
+        "build-gst-onnx/libmedia_server_runtime.a",
+        "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libz.tbd",
+        "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstrtspserver-1.0.dylib",
+        "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstapp-1.0.dylib",
+        "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstwebrtc-1.0.dylib",
+        "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstsdp-1.0.dylib",
+        "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstpbutils-1.0.dylib",
+        "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstaudio-1.0.dylib",
+        "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstvideo-1.0.dylib",
+        "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstbase-1.0.dylib",
+        "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstreamer-1.0.dylib",
+        "/opt/homebrew/Cellar/pango/1.57.0_2/lib/libpangocairo-1.0.dylib",
+        "/opt/homebrew/Cellar/pango/1.57.0_2/lib/libpango-1.0.dylib",
+        "/opt/homebrew/Cellar/cairo/1.18.4/lib/libcairo.dylib",
+        "/opt/homebrew/Cellar/harfbuzz/13.1.1/lib/libharfbuzz.dylib",
+        "/opt/homebrew/Cellar/glib/2.86.4/lib/libgobject-2.0.dylib",
+        "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libsqlite3.tbd",
+        "/opt/homebrew/Cellar/libsodium/1.0.21/lib/libsodium.dylib",
+        "/opt/homebrew/Cellar/openssl@3/3.6.2/lib/libssl.dylib",
+        "/opt/homebrew/Cellar/openssl@3/3.6.2/lib/libcrypto.dylib",
+        "/opt/homebrew/lib/libonnxruntime.dylib",
+        "/Users/dhseo/Workspace/mediaServer/third_party/v430-embedding/sentencepiece/lib/libsentencepiece.a",
+        "/opt/homebrew/Cellar/glib/2.86.4/lib/libglib-2.0.dylib",
+        "/opt/homebrew/opt/gettext/lib/libintl.dylib",
+        "-o",
+        "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-52-b6c_5fco/application"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 2.133301019668579,
+      "outputOffset": 0,
+      "outputBytes": 0,
+      "outputSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "application-query-fixed",
+      "command": [
+        "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-52-b6c_5fco/application",
+        "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-52-b6c_5fco/application-fixed-root",
+        "/Users/dhseo/Workspace/mediaServer/models/v430-siglip2",
+        "--query-only"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 5.491897821426392,
+      "outputOffset": 0,
+      "outputBytes": 33,
+      "outputSha256": "8dba1e1ce353034133f15735811122533648bd4c23d30dcf61f3d9d64ef0ac80"
+    },
+    {
+      "name": "application-query-resource",
+      "command": [
+        "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-52-b6c_5fco/application",
+        "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-52-b6c_5fco/application-resource-root",
+        "/Users/dhseo/Workspace/mediaServer/models/v430-siglip2",
+        "--query-only"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 4.8281097412109375,
+      "outputOffset": 33,
+      "outputBytes": 57,
+      "outputSha256": "0db2678b212bbd165048a543a5abfa0ba52f48c4986b0584aaaf7e7db495265b"
+    },
+    {
+      "name": "application-query",
+      "command": [
+        "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-52-b6c_5fco/application",
+        "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-52-b6c_5fco/application-root",
+        "/Users/dhseo/Workspace/mediaServer/models/v430-siglip2",
+        "--query-only"
+      ],
+      "exit": 1,
+      "elapsedSeconds": 1.989551067352295,
+      "outputOffset": 90,
+      "outputBytes": 2848,
+      "outputSha256": "36b804b81c73648e2bd162effd8f67d1308ca44625f6a4970eeb80fcc6fdefd8"
+    },
+    {
+      "name": "build",
+      "command": [
+        "cmake",
+        "--build",
+        "build-gst-onnx",
+        "-j",
+        "4"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 5.246341228485107,
+      "outputOffset": 2938,
+      "outputBytes": 1802,
+      "outputSha256": "8bf9c5d1af592480148a6a5629e0f65adff8e1678615e81c7f42d9c705966dd1"
+    },
+    {
+      "name": "comments-final",
+      "command": [
+        "node",
+        "scripts/internal/verify_code_comments.mjs"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 0.36976099014282227,
+      "outputOffset": 4740,
+      "outputBytes": 97,
+      "outputSha256": "867a1f937796c72b8c8b72b69439aa6f9eecf226af0d8ca494439798a3300aee"
+    },
+    {
+      "name": "comments",
+      "command": [
+        "node",
+        "scripts/internal/verify_code_comments.mjs"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 0.3877108097076416,
+      "outputOffset": 4837,
+      "outputBytes": 97,
+      "outputSha256": "9f011e063b959406337b153eebcab1c91a758a33242ad1e6a2909519d8a8ecfe"
+    },
+    {
+      "name": "diff-check",
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 0.022999048233032227,
+      "outputOffset": 4934,
+      "outputBytes": 0,
+      "outputSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "diff-final",
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 0.02191781997680664,
+      "outputOffset": 4934,
+      "outputBytes": 0,
+      "outputSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "disabled-build",
+      "command": [
+        "c++",
+        "-std=c++17",
+        "-O2",
+        "-DMEDIA_SERVER_USE_SIGLIP2=0",
+        "-Iinclude",
+        "src/analysis/siglip2_encoder.cpp",
+        "scripts/internal/siglip2_encoder_smoke.cpp",
+        "-o",
+        "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-52-b6c_5fco/disabled"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 0.8831448554992676,
+      "outputOffset": 4934,
+      "outputBytes": 0,
+      "outputSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "disabled",
+      "command": [
+        "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-52-b6c_5fco/disabled",
+        "disabled"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 0.30614590644836426,
+      "outputOffset": 4934,
+      "outputBytes": 120,
+      "outputSha256": "11213abbe009653bff6ba284b53b72cc95f1f842b3bcbac427768646496bbcfd"
+    },
+    {
+      "name": "docs-links",
+      "command": [
+        "node",
+        "scripts/internal/verify_docs_links.mjs"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 0.33829569816589355,
+      "outputOffset": 5054,
+      "outputBytes": 186,
+      "outputSha256": "0c904b19aafd39abb2bca9b6e4da5c964ca2088373e51fb7eae78d79ac03ec8b"
+    },
+    {
+      "name": "encoder-build-boundaries",
+      "command": [
+        "c++",
+        "-std=c++17",
+        "-O2",
+        "-DMEDIA_SERVER_USE_SIGLIP2=1",
+        "-Iinclude",
+        "src/analysis/siglip2_encoder.cpp",
+        "scripts/internal/siglip2_encoder_smoke.cpp",
+        "-Ithird_party/v430-embedding/sentencepiece/include",
+        "third_party/v430-embedding/sentencepiece/lib/libsentencepiece.a",
+        "-I/opt/homebrew/Cellar/onnxruntime/1.25.0/include/onnxruntime",
+        "-I/opt/homebrew/Cellar/glib/2.86.4/include/glib-2.0",
+        "-I/opt/homebrew/Cellar/glib/2.86.4/lib/glib-2.0/include",
+        "-I/opt/homebrew/opt/gettext/include",
+        "-I/opt/homebrew/Cellar/pcre2/10.47_1/include",
+        "-L/opt/homebrew/Cellar/onnxruntime/1.25.0/lib",
+        "-lonnxruntime",
+        "-L/opt/homebrew/Cellar/glib/2.86.4/lib",
+        "-lglib-2.0",
+        "-L/opt/homebrew/opt/gettext/lib",
+        "-lintl",
+        "-Wl,-rpath,/opt/homebrew/Cellar/onnxruntime/1.25.0/lib",
+        "-o",
+        "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-52-b6c_5fco/encoder"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 1.253465175628662,
+      "outputOffset": 5240,
+      "outputBytes": 0,
+      "outputSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "encoder-build",
+      "command": [
+        "c++",
+        "-std=c++17",
+        "-O2",
+        "-DMEDIA_SERVER_USE_SIGLIP2=1",
+        "-Iinclude",
+        "src/analysis/siglip2_encoder.cpp",
+        "scripts/internal/siglip2_encoder_smoke.cpp",
+        "-Ithird_party/v430-embedding/sentencepiece/include",
+        "third_party/v430-embedding/sentencepiece/lib/libsentencepiece.a",
+        "-I/opt/homebrew/Cellar/onnxruntime/1.25.0/include/onnxruntime",
+        "-I/opt/homebrew/Cellar/glib/2.86.4/include/glib-2.0",
+        "-I/opt/homebrew/Cellar/glib/2.86.4/lib/glib-2.0/include",
+        "-I/opt/homebrew/opt/gettext/include",
+        "-I/opt/homebrew/Cellar/pcre2/10.47_1/include",
+        "-L/opt/homebrew/Cellar/onnxruntime/1.25.0/lib",
+        "-lonnxruntime",
+        "-L/opt/homebrew/Cellar/glib/2.86.4/lib",
+        "-lglib-2.0",
+        "-L/opt/homebrew/opt/gettext/lib",
+        "-lintl",
+        "-Wl,-rpath,/opt/homebrew/Cellar/onnxruntime/1.25.0/lib",
+        "-o",
+        "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-52-b6c_5fco/encoder"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 1.2263109683990479,
+      "outputOffset": 5240,
+      "outputBytes": 0,
+      "outputSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "encoder-query-fixed",
+      "command": [
+        "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-52-b6c_5fco/encoder",
+        "query",
+        "models/v430-siglip2"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 4.016631126403809,
+      "outputOffset": 5240,
+      "outputBytes": 2202,
+      "outputSha256": "203f97c868b3260219abffc7d9f217e0b1ecb421077b826fb52d21e6d30e6199"
+    },
+    {
+      "name": "encoder-query",
+      "command": [
+        "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-52-b6c_5fco/encoder",
+        "query",
+        "models/v430-siglip2"
+      ],
+      "exit": 1,
+      "elapsedSeconds": 3.880500078201294,
+      "outputOffset": 7442,
+      "outputBytes": 139,
+      "outputSha256": "361bf97e61882898af440867ff1a59f5c6e2fae817724b139bb963a1ca762c82"
+    },
+    {
+      "name": "fixture-syntax",
+      "command": [
+        "node",
+        "--check",
+        "scripts/internal/visual_search_ui_fixture.mjs"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 0.020347118377685547,
+      "outputOffset": 7581,
+      "outputBytes": 0,
+      "outputSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "http",
+      "command": [
+        "node",
+        "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-52-b6c_5fco/http.mjs",
+        "http://127.0.0.1:64914",
+        "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-visual-ui-LSYmze/ui-login-once.json",
+        "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-52-b6c_5fco/http-result.json"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 0.8761429786682129,
+      "outputOffset": 7581,
+      "outputBytes": 30,
+      "outputSha256": "a0786a5334c4569516cd47f01db366ee1495ad429ab55f0d1774cf2f94fa9660"
+    },
+    {
+      "name": "report-option",
+      "command": [
+        "node",
+        "--input-type=module",
+        "-e",
+        "import {spawnSync} from \"node:child_process\"; for(const args of [[\"--report\"],[\"--report\",\"--browser-ready\"]]){const r=spawnSync(\"node\",[\"scripts/internal/visual_search_ui_fixture.mjs\",...args],{encoding:\"utf8\"});if(r.status!==1||!r.stderr.includes(\"report path required\"))throw Error(\"missing report rejection\");} console.log(\"PASS missing report path rejected before fixture/startup\");"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 0.08945083618164062,
+      "outputOffset": 7611,
+      "outputBytes": 57,
+      "outputSha256": "7fe610d8cf9b4a2cd2c4a03551d641cf175d6cbfa5e85afc7641100373207e5c"
+    },
+    {
+      "name": "retrieval-build",
+      "command": [
+        "c++",
+        "-std=c++17",
+        "-O2",
+        "-DMEDIA_SERVER_USE_SIGLIP2=1",
+        "-Iinclude",
+        "src/analysis/siglip2_encoder.cpp",
+        "src/recording/visual_search_index.cpp",
+        "scripts/internal/siglip2_retrieval_smoke.cpp",
+        "-Ithird_party/v430-embedding/sentencepiece/include",
+        "third_party/v430-embedding/sentencepiece/lib/libsentencepiece.a",
+        "-I/opt/homebrew/Cellar/onnxruntime/1.25.0/include/onnxruntime",
+        "-I/opt/homebrew/Cellar/glib/2.86.4/include/glib-2.0",
+        "-I/opt/homebrew/Cellar/glib/2.86.4/lib/glib-2.0/include",
+        "-I/opt/homebrew/opt/gettext/include",
+        "-I/opt/homebrew/Cellar/pcre2/10.47_1/include",
+        "-L/opt/homebrew/Cellar/onnxruntime/1.25.0/lib",
+        "-lonnxruntime",
+        "-L/opt/homebrew/Cellar/glib/2.86.4/lib",
+        "-lglib-2.0",
+        "-L/opt/homebrew/opt/gettext/lib",
+        "-lintl",
+        "-Wl,-rpath,/opt/homebrew/Cellar/onnxruntime/1.25.0/lib",
+        "-o",
+        "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-52-b6c_5fco/retrieval"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 1.4266901016235352,
+      "outputOffset": 7668,
+      "outputBytes": 0,
+      "outputSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "retrieval",
+      "command": [
+        "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-52-b6c_5fco/retrieval",
+        "models/v430-siglip2",
+        "models/v430-siglip2/retrieval",
+        "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-52-b6c_5fco/retrieval-result.json",
+        "bba0c676f6cfc5fcad72ecaaf1c8db104d3a96b89329f96ca3108621ec3abb0b"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 5.554567337036133,
+      "outputOffset": 7668,
+      "outputBytes": 676,
+      "outputSha256": "ecf35a85b524c44dbad4b6e9621bc6a4a4e98212120ed65eec765684dde7a407"
+    },
+    {
+      "name": "script-inventory",
+      "command": [
+        "node",
+        "scripts/internal/verify_script_inventory.mjs"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 22.94362711906433,
+      "outputOffset": 8344,
+      "outputBytes": 941,
+      "outputSha256": "92e692a3173f517ac5430005d1cf361195ac0dad7e505a2ffaddc893da6cdecf"
+    },
+    {
+      "name": "structure-final",
+      "command": [
+        "node",
+        "--input-type=module",
+        "-e",
+        "import {assertCurrentSourceGraph} from \"./scripts/internal/structure_dependency_policy_lib.mjs\"; assertCurrentSourceGraph(process.cwd()); console.log(\"PASS current source ownership/dependency graph\");"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 0.08948493003845215,
+      "outputOffset": 9285,
+      "outputBytes": 47,
+      "outputSha256": "2ffdf392adc31b02aed2a096af4b27a092b319bc9cd36286bac7864a7bbf7ac4"
+    },
+    {
+      "name": "structure-updated",
+      "command": [
+        "node",
+        "--input-type=module",
+        "-e",
+        "import {assertCurrentSourceGraph} from \"./scripts/internal/structure_dependency_policy_lib.mjs\"; assertCurrentSourceGraph(process.cwd()); console.log(\"PASS current source ownership/dependency graph\");"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 0.09439206123352051,
+      "outputOffset": 9332,
+      "outputBytes": 47,
+      "outputSha256": "2ffdf392adc31b02aed2a096af4b27a092b319bc9cd36286bac7864a7bbf7ac4"
+    },
+    {
+      "name": "structure",
+      "command": [
+        "node",
+        "--input-type=module",
+        "-e",
+        "import {assertCurrentSourceGraph} from \"./scripts/internal/structure_dependency_policy_lib.mjs\"; assertCurrentSourceGraph(process.cwd()); console.log(\"PASS current source ownership/dependency graph\");"
+      ],
+      "exit": 1,
+      "elapsedSeconds": 0.17816710472106934,
+      "outputOffset": 9379,
+      "outputBytes": 815,
+      "outputSha256": "1e8bd4dce930994f75dc1218ee7b9f971888828470b678caf7f29c7a6b6b6af1"
+    },
+    {
+      "name": "token-oracle-boundaries",
+      "command": [
+        "third_party/v430-embedding/venv/bin/python",
+        "-c",
+        "import sentencepiece as sp; s=sp.SentencePieceProcessor(model_file=\"models/v430-siglip2/upstream/tokenizer.model\"); print(\"no trailing\",[(n,len(s.encode(\" \".join([\"red\"]*n)))) for n in (62,63,64)]); print([(t[:15],len(t),len(s.encode(t))) for t in (\"힣\"*40,\"㐀\"*40,\"🧬\"*64,\"x\"*64,\"쀍\"*32,\"é\"*40,\"abc\"*25)]); print(s.encode(\"red red \",out_type=str))"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 0.05931901931762695,
+      "outputOffset": 10194,
+      "outputBytes": 422,
+      "outputSha256": "655e869a0003c6e2ec88d07fd967805a735b969e1fd40b27907fde451a6adbb7"
+    },
+    {
+      "name": "token-oracle",
+      "command": [
+        "third_party/v430-embedding/venv/bin/python",
+        "-c",
+        "import sentencepiece as sp; s=sp.SentencePieceProcessor(model_file=\"models/v430-siglip2/upstream/tokenizer.model\"); print({w:[len(s.encode((w+\" \")*n)) for n in (1,2,61,62,63,64)] for w in (\"red\",\"cat\",\"a\",\"dog\")}); print(\"dense\",len(s.encode(\"🧬\"*24)))"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 0.11947083473205566,
+      "outputOffset": 10616,
+      "outputBytes": 132,
+      "outputSha256": "f71ec19bfff990139ee781b5968d7e6bbc0270f4cf19815a6cf536e293f43800"
+    },
+    {
+      "name": "ui-state",
+      "command": [
+        "node",
+        "--test",
+        "scripts/internal/visual_search_ui_state.test.mjs"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 0.07276415824890137,
+      "outputOffset": 10748,
+      "outputBytes": 1097,
+      "outputSha256": "0bd0a56ed24dad430eea3cda1cb4b2a779e3c884ee8997fd2531ea02a022e479"
+    }
+  ],
+  "checks": {
+    "build": "PASS",
+    "encoderBoundaries": "62/63/64, UTF8/Unicode empty/NUL, KO/EN/mixed/negation/quantity/relation,24 codepoints72tokens",
+    "tokensVectors": "preserved8 cases token IDs exact; vector maxAbs0/cosine1;existing1e-4/.99999/1e-5 criteria unchanged",
+    "retrieval": "24 existing KO/EN queries x16 frames: rank and all scores identical; new output only in52-retrieval.json.gz",
+    "application": "64 checks; counter-instrumented source copy, rejected inputs encode/snapshot/indexSearch0; accepted62/63 each1, actual-model API/rank refs;peak3214770176bytes",
+    "instrumentation": "52-probe-instrumentation.diff adds only thread-local counters to3 actual Search call sites; model/index real; deployed binary has no counters",
+    "http": "73 checks, actual SigLIP2; see52-http.json; tool exit0",
+    "browser": "direct changed-area flows and4 layouts reviewed; see52-browser.json; not full UI",
+    "static": "comments1439 files0violations; script inventory13/0; current graph PASS after line count only; docs links0failures; diff clean"
+  },
+  "firstFailures": [
+    {
+      "run": "encoder-query",
+      "kind": "test input preparation",
+      "observed": "red repeated with trailing whitespace adds a trailing SentencePiece token; assumed counts failed before inference boundary assertions",
+      "resolution": "independent installed SentencePiece probe fixed no-trailing-space62/63/64 inputs and24-codepoint byte-fallback case; production contract unchanged; encoder-query-fixed PASS"
+    },
+    {
+      "run": "application-query",
+      "kind": "fixture preparation",
+      "observed": "storage Open refused before writer/model checks; supplied root included gst-registry.bin and was0755",
+      "resolution": "fresh0700 store root separated from registry/cache and existing headless GST environment; application-query-fixed passed62 functional checks; query-only early return then explicitly retained original4GiB RSS check, final application-query-resource64 PASS"
+    },
+    {
+      "run": "structure",
+      "kind": "current structural metadata",
+      "observed": "product_ui_page_scripts.cpp lineCount drift11079→11099",
+      "resolution": "only current line count/derived metrics/content hash refreshed; policy/approval/historical records unchanged; structure-final PASS"
+    }
+  ],
+  "initialNetworkPreparation": "sandbox ls-remote DNS failure; approved read-only escalation succeeded; not a product failure",
+  "notRun": [
+    "Qwen/Ollama generation0",
+    "new model/dependency downloads0",
+    "full acceptance/UI fulltest",
+    "30m/120m",
+    "bundle2 coverage integration",
+    "bundle3 release boundary/gates",
+    "PR/merge/tag/Release"
+  ],
+  "sameImplementerReview": true,
+  "cleanup": {
+    "ui": {
+      "process": {
+        "exited": true,
+        "forced": false,
+        "exitCode": 0,
+        "signalCode": null
+      },
+      "http": {
+        "closed": true,
+        "evidence": "ECONNREFUSED"
+      },
+      "rtsp": {
+        "closed": true,
+        "evidence": "ECONNREFUSED"
+      },
+      "udpClosed": true,
+      "root": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-visual-ui-LSYmze",
+      "rootIdentity": "16777232:169270499:501",
+      "rootBytes": 20448068,
+      "rootAbsent": true
+    },
+    "uiPeakRssBytes": 3191308288,
+    "proxyPortsClosed": {
+      "64914": true,
+      "65244": true
+    },
+    "uiPidAbsent": true,
+    "browserTabClosed": true,
+    "viewportReset": true,
+    "approvedWeightsPreserved": true,
+    "ownedProbeRoot": "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-52-b6c_5fco",
+    "probeRootRemoved": true,
+    "probeRootIdentity": [
+      16777232,
+      169269068,
+      501
+    ],
+    "probeRootBytes": 19662097
+  },
+  "limits": "작은 기존 개발 fixture의 직접 회귀. 자연어 의미 인식·자동 필터·C 영상 품질·릴리즈 완료로 해석하지 않음.",
+  "evidenceFinalChecks": {
+    "docsLinks": {
+      "command": "node scripts/internal/verify_docs_links.mjs",
+      "exit": 0
+    },
+    "whitespace": {
+      "command": "git diff --check",
+      "exit": 0
+    }
+  }
+}
