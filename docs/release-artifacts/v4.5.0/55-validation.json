@@ -1,0 +1,1142 @@
+{
+  "status": "review-input-and-judgments-preserved-approval-incomplete",
+  "base": "9c003e08167924bb66900df51bd958a57dc1e4c8",
+  "locatorCommit": "b490ab01fc96ceb64e4d349ee14575bf2e5ea63d",
+  "reviewedSource": {
+    "candidateDigest": "9c8e57c7f4e91805d2bb37e76ed22f206ff1a734cfd46a9423ec704e8b094df1",
+    "rows": 986,
+    "unresolved": 0,
+    "head": "b490ab01fc96ceb64e4d349ee14575bf2e5ea63d",
+    "sourceTree": "1fee2a32b80793b3b288a1b30500167395a59d60"
+  },
+  "lastIndependentSource": {
+    "preservationCommit": "a5046c7f1f8a91075229bac48e0315c1a85af13f",
+    "path": "docs/release-artifacts/v4.4.0/development/release-independent-source-decisions.json",
+    "sha256": "f96809b13cd6387cb63a3bd225b9538458c380fd0c9c4ac79386793bd285689a",
+    "candidate": {
+      "candidateDigest": "5f8639c44d5b5b5738a671e2af38e7caa5483c12e3217022e65443c33ca6096b",
+      "rows": 986,
+      "unresolved": 0,
+      "baseHead": "df60a8dbec737d50283d9d6c66928643dc1c9666",
+      "stagedEquivalentTreeOid": "6073aa192c4b05d78e3262922229ed721b4ce934",
+      "trackedWorktreeDiffSha256": "b6a7eaa76ba76d27e038b813b31069e8a1bfa539c450170c77a55090a49a9707"
+    },
+    "reviewer": "codex-independent-v440-review:/root/release_independent_review",
+    "reviewedAt": "2026-10-04T13:02:44.732Z",
+    "verdict": "approved",
+    "decisionCount": 297
+  },
+  "baselineRetrieval": {
+    "reviewedTree": "6073aa192c4b05d78e3262922229ed721b4ce934",
+    "preservedCommit": "eddbb684f1c1f8ebe5e681b356534600b18cc252",
+    "paths": [
+      "src",
+      "include",
+      "scripts",
+      "server.sh",
+      "CMakeLists.txt",
+      "config"
+    ],
+    "changedPaths": [
+      "scripts/internal/evidence_http_checks.mjs"
+    ],
+    "purpose": "reviewed tree retrieval through committed equal product/verifier source; not new approval",
+    "exactSourceRecovery": {
+      "applyToCommit": "eddbb684f1c1f8ebe5e681b356534600b18cc252",
+      "patch": "baseline-source-delta.patch",
+      "patchSha256": "ffa637e2a5330a0d22742aec65cbaf322d6107c16d01f461131277a7f2fc4bc1",
+      "bytes": 889,
+      "meaning": "One verifier trailing-space difference. All other named product/verifier source paths are byte-identical. This does not reconstruct the entire original tree or grant new approval."
+    }
+  },
+  "cumulativeSourceDiff": {
+    "baseTree": "6073aa192c4b05d78e3262922229ed721b4ce934",
+    "head": "b490ab01fc96ceb64e4d349ee14575bf2e5ea63d",
+    "paths": [
+      "src",
+      "include",
+      "scripts",
+      "server.sh"
+    ],
+    "gitDiffBinarySha256": "044350dc5396086de03760504e662f7f450caf483452dd56dc5b838674b0f52a",
+    "gitDiffBinaryBytes": 1050911,
+    "stat": " include/analysis/analysis_types.h                  |   3 +\n include/analysis/siglip2_encoder.h                 |  17 +\n include/core/recording_runtime_config_data.h       |   4 +\n include/domain/observation_coordinates.h           |  17 +\n include/ingress/evidence_application_service.h     |   4 +-\n include/ingress/recording_application_service.h    |  14 +-\n include/ingress/va_review_application_service.h    |  50 ++\n .../ingress/visual_search_application_service.h    |   2 -\n include/recording/evidence_observation.h           |  24 +\n include/recording/evidence_package.h               |   9 +\n include/recording/evidence_package_builder.h       |   7 +\n include/recording/evidence_package_store.h         |   3 +-\n include/recording/recording_catalog.h              |  21 +-\n include/recording/recording_contracts.h            |   4 +\n include/recording/recording_read_service.h         |  13 +-\n include/recording/recording_search_reader.h        |  23 +\n include/recording/recording_visual_source.h        |  12 +-\n include/recording/va_review_bound_record.h         |  45 +\n include/recording/va_review_confirmed_record.h     |  25 +\n include/recording/va_review_core.h                 | 105 +++\n include/recording/va_review_input.h                |  20 +\n include/recording/va_review_material_requests.h    |  31 +\n include/recording/va_review_observer.h             |  35 +\n include/recording/va_review_provider.h             |  29 +\n include/recording/va_review_questions.h            |  50 ++\n include/recording/va_review_record.h               |  24 +\n include/recording/va_review_service.h              |  69 ++\n include/recording/va_review_store.h                |  32 +\n include/recording/visual_index_worker.h            |  29 +-\n include/recording/visual_search_index.h            |   5 +\n scripts/internal/evidence_http_checks.mjs          |   2 +-\n scripts/internal/evidence_observation_smoke.cpp    | 229 +++++\n scripts/internal/evidence_package_smoke.cpp        |  21 +-\n scripts/internal/evidence_ui_state.test.mjs        |  98 +-\n scripts/internal/recording_current_observer.mjs    |   5 +-\n .../recording_generation_request_proof_smoke.cpp   |  56 ++\n ...recording_journal_generation_readonly_smoke.cpp |   3 +\n .../recording_search_application_smoke.cpp         |   1 +\n .../internal/recording_search_playback_smoke.cpp   | 145 +++\n .../internal/recording_search_ui_state.test.mjs    |  14 +-\n scripts/internal/recording_ui_after_playback.mjs   |   4 +-\n scripts/internal/recording_ui_before_playback.mjs  |  11 +-\n .../internal/recording_visual_snapshot_smoke.cpp   | 104 ++-\n scripts/internal/recording_visual_source_smoke.cpp |  61 +-\n .../run_recording_search_ui_acceptance.mjs         |  37 +-\n scripts/internal/run_recording_ui_acceptance.mjs   |  16 +-\n scripts/internal/siglip2_encoder_smoke.cpp         |  36 +\n scripts/internal/v450_release_checks.mjs           |  52 ++\n scripts/internal/va_review_bound_record_checks.h   | 179 ++++\n scripts/internal/va_review_cause_diagnostic.h      | 178 ++++\n scripts/internal/va_review_confirmed_checks.h      | 120 +++\n scripts/internal/va_review_confirmed_http.mjs      | 221 +++++\n scripts/internal/va_review_contract_replay.json    | 462 ++++++++++\n scripts/internal/va_review_core_checks.h           | 186 ++++\n scripts/internal/va_review_http_checks.mjs         | 162 ++++\n scripts/internal/va_review_material_checks.h       |  66 ++\n scripts/internal/va_review_material_http.mjs       |  62 ++\n scripts/internal/va_review_quality_fixture.h       |  32 +\n scripts/internal/va_review_question_checks.h       | 139 +++\n scripts/internal/va_review_release_ui.mjs          |  53 ++\n scripts/internal/va_review_rephrase_checks.h       |  69 ++\n scripts/internal/va_review_smoke.cpp               | 992 +++++++++++++++++++++\n scripts/internal/va_review_visual_checks.h         | 143 +++\n scripts/internal/verify_evidence_package.sh        |  20 +-\n .../internal/verify_feature_inventory_coverage.mjs |   6 +-\n .../verify_v390_test_acceptance_bundle.mjs         |   5 +\n ...verify_v390_test_acceptance_bundle_contract.mjs |  37 +-\n scripts/internal/verify_v450_quality_dispatch.py   |  27 +\n scripts/internal/verify_v450_search.py             |  21 +\n scripts/internal/verify_va_review.sh               | 310 +++++++\n scripts/internal/verify_va_review_bound_record.py  |  65 ++\n scripts/internal/verify_va_review_confirmed.py     |  36 +\n .../internal/verify_visual_request_media_cache.py  |  36 +\n scripts/internal/visual_index_worker_smoke.cpp     |  73 +-\n .../internal/visual_request_media_cache_smoke.cpp  | 100 +++\n .../internal/visual_search_application_smoke.cpp   | 116 ++-\n scripts/internal/visual_search_ui_fixture.mjs      |  11 +-\n scripts/internal/visual_search_ui_state.test.mjs   |  66 +-\n src/analysis/raw_video_decoder.cpp                 |   2 +\n src/analysis/siglip2_encoder.cpp                   |  39 +-\n src/analysis/yolo_onnx_detector.cpp                |  19 +\n src/app_config.cpp                                 |   4 +\n src/application/media_server_application.cpp       |  15 +-\n .../a_record_review_application_service.cpp        | 194 ++++\n src/ingress/evidence_application_service.cpp       |  11 +-\n src/ingress/product_ui_page_scripts.cpp            | 393 +++++++-\n src/ingress/product_ui_server_pages.cpp            |  10 +-\n .../recording_search_application_service.cpp       |  15 +-\n src/ingress/va_review_application_service.cpp      | 107 +++\n src/ingress/visual_search_application_service.cpp  | 205 ++++-\n src/ingress/webrtc_http_server_runtime.cpp         |  97 +-\n src/recording/analysis_observation_projector.cpp   |  17 +-\n src/recording/evidence_observation.cpp             | 130 +++\n src/recording/evidence_package.cpp                 |  38 +-\n src/recording/evidence_package_builder.cpp         |  30 +-\n src/recording/evidence_package_store.cpp           |  19 +-\n src/recording/recording_catalog.cpp                |  81 +-\n src/recording/recording_contracts.cpp              |  82 +-\n src/recording/recording_journal.cpp                |  40 +-\n src/recording/recording_read_service.cpp           |  28 +-\n src/recording/recording_search_reader.cpp          | 126 ++-\n src/recording/recording_timeline_projection.cpp    |   9 +-\n src/recording/recording_visual_snapshots.cpp       |  60 +-\n src/recording/recording_visual_source.cpp          |  40 +-\n src/recording/va_review_bound_record.cpp           | 267 ++++++\n src/recording/va_review_confirmed_record.cpp       |  43 +\n src/recording/va_review_core.cpp                   | 262 ++++++\n src/recording/va_review_input.cpp                  | 103 +++\n src/recording/va_review_json.h                     |  33 +\n src/recording/va_review_material_requests.cpp      |  94 ++\n src/recording/va_review_observer.cpp               | 222 +++++\n src/recording/va_review_provider.cpp               | 263 ++++++\n src/recording/va_review_questions.cpp              | 161 ++++\n src/recording/va_review_record.cpp                 | 114 +++\n src/recording/va_review_service.cpp                | 202 +++++\n src/recording/va_review_store.cpp                  | 210 +++++\n src/recording/va_review_transport.cpp              | 211 +++++\n src/recording/visual_frame_decoder.cpp             |  14 +-\n src/recording/visual_index_worker.cpp              |  64 +-\n 119 files changed, 9414 insertions(+), 274 deletions(-)\n",
+    "rawDiffStored": "immutable git base tree and head; no duplicate copied source"
+  },
+  "locatorChanges": [
+    {
+      "id": "MEDIA-007",
+      "role": "dispatch",
+      "before": {
+        "file": "src/ingress/webrtc_http_server_runtime.cpp",
+        "symbol": "WebRtcHttpServer::Start:AddRemoteIceCandidate-callsite",
+        "anchor": "bridge->AddRemoteIceCandidate(static_cast<std::uint32_t>(*mline), *candidate);",
+        "line": 5072,
+        "contextSha256": "d1edeef36c31e7dc016b6ba543393f65e9f70e49c18a350a34cefa9b2ea074d4"
+      },
+      "afterLine": 5163,
+      "approvedRole": {
+        "file": "src/ingress/webrtc_http_server_runtime.cpp",
+        "symbol": "WebRtcHttpServer::Start:AddRemoteIceCandidate-callsite",
+        "anchor": "bridge->AddRemoteIceCandidate(static_cast<std::uint32_t>(*mline), *candidate);",
+        "line": 5072,
+        "contextSha256": "d1edeef36c31e7dc016b6ba543393f65e9f70e49c18a350a34cefa9b2ea074d4"
+      }
+    },
+    {
+      "id": "LAB-026",
+      "role": "state",
+      "before": {
+        "file": "src/ingress/webrtc_http_server_runtime.cpp",
+        "symbol": "tap-snapshot-response",
+        "anchor": "ok.body.assign(reinterpret_cast<const char*>(image.data.data()), image.data.size());",
+        "line": 4748,
+        "contextSha256": "8273d4ebd317fea6f23f0d046b87756f1c4989173c9d1ed3c17f413ac6e7efdd"
+      },
+      "afterLine": 4839,
+      "approvedRole": {
+        "file": "src/ingress/webrtc_http_server_runtime.cpp",
+        "symbol": "tap-snapshot-response",
+        "anchor": "ok.body.assign(reinterpret_cast<const char*>(image.data.data()), image.data.size());",
+        "line": 4748,
+        "contextSha256": "8273d4ebd317fea6f23f0d046b87756f1c4989173c9d1ed3c17f413ac6e7efdd"
+      }
+    },
+    {
+      "id": "LAB-027",
+      "role": "state",
+      "before": {
+        "file": "src/ingress/webrtc_http_server_runtime.cpp",
+        "symbol": "tap-overlay-response",
+        "anchor": "ok.body.assign(reinterpret_cast<const char*>(image.data.data()), image.data.size());",
+        "line": 4807,
+        "contextSha256": "8273d4ebd317fea6f23f0d046b87756f1c4989173c9d1ed3c17f413ac6e7efdd"
+      },
+      "afterLine": 4898,
+      "approvedRole": {
+        "file": "src/ingress/webrtc_http_server_runtime.cpp",
+        "symbol": "tap-overlay-response",
+        "anchor": "ok.body.assign(reinterpret_cast<const char*>(image.data.data()), image.data.size());",
+        "line": 4807,
+        "contextSha256": "8273d4ebd317fea6f23f0d046b87756f1c4989173c9d1ed3c17f413ac6e7efdd"
+      }
+    }
+  ],
+  "locatorVerification": [
+    {
+      "id": "MEDIA-007",
+      "branchBytesIdentical": true,
+      "branchSha256": "4890fd30858346a20e320c2e24139dd2589d8a3edb89c08cb4e4828a74815852",
+      "oldRange": [
+        5059,
+        5074
+      ],
+      "currentRange": [
+        5150,
+        5165
+      ],
+      "actionBody": {
+        "file": "src/ingress/webrtc_egress_session.cpp",
+        "symbol": "WebRtcEgressSession::AddRemoteIceCandidate",
+        "trackedBlobSha256": "c49340f07aeeb950a23fbc7e19cd0991e0215168dc750500b090e96562af91e4",
+        "enclosingBodySha256": "341a862fbb98d9a7844cd0c7517e7569f158d48e26d0f7790f4df3099cbc18c9",
+        "enclosingBodyStartLine": 2288,
+        "enclosingBodyEndLine": 2300,
+        "enclosingBodyScope": "declared-symbol"
+      },
+      "stateLine": 2292,
+      "edge2Containment": true
+    },
+    {
+      "id": "LAB-026",
+      "branchBytesIdentical": true,
+      "branchSha256": "75457ee62e4d8f84ad5407ca68624040388fedd46faaf6817c802eaecf46ec23",
+      "oldRange": [
+        4725,
+        4750
+      ],
+      "currentRange": [
+        4816,
+        4841
+      ],
+      "actionBody": {
+        "file": "src/ingress/webrtc_http_server_runtime.cpp",
+        "symbol": "WebRtcHttpServer::Start",
+        "trackedBlobSha256": "97f9c5becf030db2f10261461b32871d73407f391a90be13993b9943fa328449",
+        "enclosingBodySha256": "9a4bf7a413ee3eedff192c3557b9282cde1c614a1c310627c92858620e374a43",
+        "enclosingBodyStartLine": 336,
+        "enclosingBodyEndLine": 5255,
+        "enclosingBodyScope": "declared-symbol"
+      },
+      "stateLine": 4839,
+      "edge2Containment": true
+    },
+    {
+      "id": "LAB-027",
+      "branchBytesIdentical": true,
+      "branchSha256": "5bff18421b77c9d0d101235534bbcd562356da1f0eb69ff784108e1d8bb0358e",
+      "oldRange": [
+        4752,
+        4809
+      ],
+      "currentRange": [
+        4843,
+        4900
+      ],
+      "actionBody": {
+        "file": "src/ingress/webrtc_http_server_runtime.cpp",
+        "symbol": "WebRtcHttpServer::Start",
+        "trackedBlobSha256": "97f9c5becf030db2f10261461b32871d73407f391a90be13993b9943fa328449",
+        "enclosingBodySha256": "9a4bf7a413ee3eedff192c3557b9282cde1c614a1c310627c92858620e374a43",
+        "enclosingBodyStartLine": 336,
+        "enclosingBodyEndLine": 5255,
+        "enclosingBodyScope": "declared-symbol"
+      },
+      "stateLine": 4898,
+      "edge2Containment": true
+    }
+  ],
+  "classification": {
+    "raw54BindingErrors": "300 per-ID binding errors, not product defects",
+    "sourceFlowEquivalentCandidates": 686,
+    "hardContractEquivalentCandidates": 686,
+    "semanticFieldsOtherThanTrustChanged": 0,
+    "independentRequired": 300,
+    "enclosingAndVerifierGroups": [
+      {
+        "files": "src/ingress/webrtc_http_server_runtime.cpp",
+        "ids": [
+          "UI-001",
+          "UI-002",
+          "UI-003",
+          "UI-004",
+          "UI-005",
+          "UI-006",
+          "UI-007",
+          "UI-008",
+          "UI-011",
+          "UI-013",
+          "UI-018",
+          "AUTH-004",
+          "AUTH-005",
+          "AUTH-007",
+          "AUTH-011",
+          "AUTH-016",
+          "AUTH-017",
+          "AUTH-018",
+          "AUTH-019",
+          "AUTH-020",
+          "AUTH-021",
+          "AUTH-022",
+          "AUTH-023",
+          "AUTH-024",
+          "AUTH-028",
+          "AUTH-029",
+          "AUTH-031",
+          "AUTH-032",
+          "AUTH-033",
+          "AUTH-034",
+          "AUTH-035",
+          "AUTH-036",
+          "AUTH-037",
+          "AUTH-038",
+          "AUTH-039",
+          "AUTH-041",
+          "SRC-001",
+          "SRC-009",
+          "SRC-012",
+          "SRC-013",
+          "SRC-014",
+          "SRC-015",
+          "SRC-024",
+          "SRC-025",
+          "SRC-026",
+          "SRC-027",
+          "SRC-028",
+          "SRC-030",
+          "SRC-031",
+          "SRC-035",
+          "SRC-039",
+          "SRC-040",
+          "SRC-041",
+          "SRC-042",
+          "SRC-043",
+          "SRC-044",
+          "SRC-045",
+          "SRC-046",
+          "SRC-047",
+          "SRC-048",
+          "SRC-049",
+          "SRC-050",
+          "SRC-051",
+          "SRC-052",
+          "SRC-053",
+          "SRC-054",
+          "SRC-055",
+          "SRC-056",
+          "SRC-057",
+          "SRC-058",
+          "SRC-059",
+          "SRC-060",
+          "SRC-061",
+          "SRC-062",
+          "SRC-063",
+          "SRC-064",
+          "SRC-065",
+          "SRC-067",
+          "SRC-068",
+          "RULE-001",
+          "RULE-002",
+          "RULE-003",
+          "RULE-004",
+          "RULE-005",
+          "RULE-006",
+          "RULE-007",
+          "RULE-008",
+          "RULE-009",
+          "RULE-010",
+          "RULE-011",
+          "RULE-012",
+          "RULE-013",
+          "RULE-014",
+          "RULE-015",
+          "RULE-016",
+          "RULE-017",
+          "RULE-018",
+          "RULE-019",
+          "RULE-020",
+          "RULE-021",
+          "RULE-022",
+          "RULE-023",
+          "RULE-024",
+          "RULE-025",
+          "RULE-026",
+          "RULE-027",
+          "RULE-028",
+          "RULE-029",
+          "RULE-030",
+          "RULE-031",
+          "RULE-032",
+          "RULE-033",
+          "RULE-034",
+          "RULE-040",
+          "RULE-054",
+          "RULE-055",
+          "RULE-056",
+          "RULE-057",
+          "RULE-058",
+          "RULE-059",
+          "RULE-060",
+          "RULE-061",
+          "RULE-062",
+          "RULE-063",
+          "RULE-064",
+          "RULE-065",
+          "RULE-066",
+          "RULE-067",
+          "RULE-068",
+          "RULE-069",
+          "RULE-070",
+          "RULE-071",
+          "RULE-072",
+          "RULE-073",
+          "RULE-074",
+          "RULE-075",
+          "RULE-076",
+          "RULE-077",
+          "RULE-078",
+          "RULE-079",
+          "RULE-080",
+          "RULE-081",
+          "RULE-082",
+          "RULE-083",
+          "RULE-084",
+          "RULE-085",
+          "RULE-086",
+          "RULE-087",
+          "RULE-088",
+          "RULE-089",
+          "RULE-090",
+          "RULE-091",
+          "RULE-092",
+          "RULE-093",
+          "RULE-094",
+          "RULE-095",
+          "RULE-096",
+          "RULE-098",
+          "RULE-099",
+          "RULE-100",
+          "RULE-101",
+          "RULE-105",
+          "RULE-106",
+          "RULE-107",
+          "RULE-108",
+          "RULE-109",
+          "RULE-110",
+          "RULE-111",
+          "EVT-001",
+          "EVT-002",
+          "EVT-003",
+          "EVT-004",
+          "EVT-005",
+          "EVT-006",
+          "EVT-007",
+          "EVT-012",
+          "EVT-013",
+          "EVT-016",
+          "EVT-017",
+          "EVT-018",
+          "EVT-019",
+          "EVT-021",
+          "EVT-022",
+          "EVT-024",
+          "EVT-036",
+          "EVT-038",
+          "EVT-073",
+          "EVT-074",
+          "EVT-076",
+          "EVT-077",
+          "EVT-078",
+          "EVT-079",
+          "EVT-080",
+          "EVT-081",
+          "EVT-082",
+          "EVT-083",
+          "EVT-084",
+          "EVT-085",
+          "EVT-086",
+          "CLIENT-002",
+          "CLIENT-004",
+          "CLIENT-005",
+          "CLIENT-006",
+          "CLIENT-007",
+          "CLIENT-008",
+          "CLIENT-009",
+          "CLIENT-010",
+          "CLIENT-013",
+          "CLIENT-014",
+          "CLIENT-015",
+          "CLIENT-016",
+          "CLIENT-017",
+          "CLIENT-018",
+          "CLIENT-019",
+          "CLIENT-020",
+          "CLIENT-021",
+          "CLIENT-022",
+          "CLIENT-023",
+          "CLIENT-024",
+          "CLIENT-025",
+          "CLIENT-026",
+          "CLIENT-027",
+          "CLIENT-028",
+          "CLIENT-029",
+          "CLIENT-030",
+          "CLIENT-031",
+          "CLIENT-032",
+          "CLIENT-033",
+          "CLIENT-034",
+          "CLIENT-035",
+          "CLIENT-036",
+          "CLIENT-037",
+          "CLIENT-038",
+          "CLIENT-039",
+          "CLIENT-040",
+          "CLIENT-041",
+          "CLIENT-042",
+          "MEDIA-002",
+          "MEDIA-003",
+          "MEDIA-004",
+          "MEDIA-005",
+          "MEDIA-006",
+          "MEDIA-007",
+          "MEDIA-008",
+          "MEDIA-016",
+          "MEDIA-019",
+          "LAB-001",
+          "LAB-002",
+          "LAB-003",
+          "LAB-004",
+          "LAB-005",
+          "LAB-006",
+          "LAB-007",
+          "LAB-008",
+          "LAB-009",
+          "LAB-010",
+          "LAB-011",
+          "LAB-012",
+          "LAB-013",
+          "LAB-014",
+          "LAB-016",
+          "LAB-017",
+          "LAB-020",
+          "LAB-023",
+          "LAB-024",
+          "LAB-025",
+          "LAB-026",
+          "LAB-027",
+          "LAB-028",
+          "LAB-029",
+          "LAB-030",
+          "LAB-031",
+          "LAB-032",
+          "LAB-033",
+          "LAB-034",
+          "LAB-036",
+          "LAB-037",
+          "LAB-038",
+          "LAB-042",
+          "LAB-044",
+          "LAB-126",
+          "SAFE-003",
+          "SAFE-004",
+          "SAFE-010",
+          "SAFE-011",
+          "SAFE-012",
+          "SAFE-019",
+          "SAFE-020",
+          "OPS-120",
+          "OPS-135",
+          "OPS-170",
+          "OPS-171",
+          "OPS-172",
+          "OPS-174",
+          "OPS-175",
+          "OPS-176",
+          "OPS-177"
+        ]
+      },
+      {
+        "files": "scripts/internal/verify_feature_inventory_coverage.mjs",
+        "ids": [
+          "SAFE-200"
+        ]
+      },
+      {
+        "files": "scripts/internal/verify_v390_test_acceptance_bundle.mjs",
+        "ids": [
+          "SAFE-212"
+        ]
+      },
+      {
+        "files": "scripts/internal/verify_v390_test_acceptance_bundle_contract.mjs",
+        "ids": [
+          "OPS-179"
+        ]
+      }
+    ]
+  },
+  "reviewer": {
+    "actor": "codex-independent-v450-review:/root/independent_release55",
+    "kind": "AI independent source reviewer",
+    "requestedModel": "gpt-6-astra",
+    "requestedReasoningEffort": "xhigh",
+    "forkTurns": "none",
+    "requestSource": "parent /root confirmed exact spawn arguments",
+    "servingModelSnapshot": null,
+    "serviceTier": null,
+    "servingMetadataStatus": "not returned by spawn tool; not inferred",
+    "reviewerIsCandidateGenerator": false,
+    "implementationParticipant": false,
+    "subdelegation": false,
+    "humanApproval": false,
+    "executionPass": false
+  },
+  "reviewVerdict": "changes-requested",
+  "legacy": {
+    "independentRebindingApproved": 300,
+    "strictCarryForwardEligible": 686,
+    "applied": 0,
+    "notProductDefectCounts": true
+  },
+  "currentV450": {
+    "definitions": 41,
+    "classificationCounts": {
+      "current-release-product": 18,
+      "current-safety-and-compatibility": 10,
+      "unassigned-incomplete-not-release": 5,
+      "historical-experiment-offline-safety-only": 8
+    },
+    "decisions": [
+      {
+        "id": "V450-A01",
+        "classification": "current-safety-and-compatibility",
+        "decision": "approved",
+        "findingIds": []
+      },
+      {
+        "id": "V450-A02",
+        "classification": "current-release-product",
+        "decision": "approved",
+        "findingIds": []
+      },
+      {
+        "id": "V450-A03",
+        "classification": "current-release-product",
+        "decision": "approved",
+        "findingIds": []
+      },
+      {
+        "id": "V450-A04",
+        "classification": "unassigned-incomplete-not-release",
+        "decision": "held",
+        "findingIds": []
+      },
+      {
+        "id": "V450-C01",
+        "classification": "current-safety-and-compatibility",
+        "decision": "approved",
+        "findingIds": []
+      },
+      {
+        "id": "V450-E01",
+        "classification": "current-release-product",
+        "decision": "approved",
+        "findingIds": []
+      },
+      {
+        "id": "V450-E02",
+        "classification": "current-release-product",
+        "decision": "approved",
+        "findingIds": []
+      },
+      {
+        "id": "V450-E03",
+        "classification": "current-release-product",
+        "decision": "changes-requested",
+        "findingIds": [
+          "R55-F2"
+        ]
+      },
+      {
+        "id": "V450-G01",
+        "classification": "current-safety-and-compatibility",
+        "decision": "approved",
+        "findingIds": []
+      },
+      {
+        "id": "V450-I01",
+        "classification": "current-safety-and-compatibility",
+        "decision": "approved",
+        "findingIds": []
+      },
+      {
+        "id": "V450-K01",
+        "classification": "historical-experiment-offline-safety-only",
+        "decision": "excluded-from-release-quality-approval",
+        "findingIds": []
+      },
+      {
+        "id": "V450-K02",
+        "classification": "historical-experiment-offline-safety-only",
+        "decision": "excluded-from-release-quality-approval",
+        "findingIds": []
+      },
+      {
+        "id": "V450-K03",
+        "classification": "historical-experiment-offline-safety-only",
+        "decision": "excluded-from-release-quality-approval",
+        "findingIds": []
+      },
+      {
+        "id": "V450-K04",
+        "classification": "historical-experiment-offline-safety-only",
+        "decision": "excluded-from-release-quality-approval",
+        "findingIds": []
+      },
+      {
+        "id": "V450-K05",
+        "classification": "current-release-product",
+        "decision": "held",
+        "findingIds": [
+          "R55-F2"
+        ]
+      },
+      {
+        "id": "V450-K06",
+        "classification": "historical-experiment-offline-safety-only",
+        "decision": "excluded-from-release-quality-approval",
+        "findingIds": []
+      },
+      {
+        "id": "V450-K07",
+        "classification": "current-release-product",
+        "decision": "held",
+        "findingIds": [
+          "R55-F2"
+        ]
+      },
+      {
+        "id": "V450-K08",
+        "classification": "current-release-product",
+        "decision": "held",
+        "findingIds": [
+          "R55-F2"
+        ]
+      },
+      {
+        "id": "V450-K09",
+        "classification": "current-release-product",
+        "decision": "approved",
+        "findingIds": []
+      },
+      {
+        "id": "V450-K10",
+        "classification": "historical-experiment-offline-safety-only",
+        "decision": "excluded-from-release-quality-approval",
+        "findingIds": []
+      },
+      {
+        "id": "V450-K11",
+        "classification": "current-release-product",
+        "decision": "approved",
+        "findingIds": []
+      },
+      {
+        "id": "V450-K12",
+        "classification": "historical-experiment-offline-safety-only",
+        "decision": "excluded-from-release-quality-approval",
+        "findingIds": []
+      },
+      {
+        "id": "V450-K13",
+        "classification": "unassigned-incomplete-not-release",
+        "decision": "held",
+        "findingIds": []
+      },
+      {
+        "id": "V450-K14",
+        "classification": "unassigned-incomplete-not-release",
+        "decision": "held",
+        "findingIds": []
+      },
+      {
+        "id": "V450-K15",
+        "classification": "unassigned-incomplete-not-release",
+        "decision": "held",
+        "findingIds": []
+      },
+      {
+        "id": "V450-L01",
+        "classification": "historical-experiment-offline-safety-only",
+        "decision": "excluded-from-release-quality-approval",
+        "findingIds": []
+      },
+      {
+        "id": "V450-N01",
+        "classification": "current-safety-and-compatibility",
+        "decision": "approved",
+        "findingIds": []
+      },
+      {
+        "id": "V450-N02",
+        "classification": "current-safety-and-compatibility",
+        "decision": "approved",
+        "findingIds": []
+      },
+      {
+        "id": "V450-N03",
+        "classification": "current-safety-and-compatibility",
+        "decision": "approved",
+        "findingIds": []
+      },
+      {
+        "id": "V450-Q01",
+        "classification": "current-safety-and-compatibility",
+        "decision": "approved",
+        "findingIds": []
+      },
+      {
+        "id": "V450-R01",
+        "classification": "current-release-product",
+        "decision": "approved",
+        "findingIds": []
+      },
+      {
+        "id": "V450-R02",
+        "classification": "current-release-product",
+        "decision": "approved",
+        "findingIds": []
+      },
+      {
+        "id": "V450-R03",
+        "classification": "current-release-product",
+        "decision": "approved",
+        "findingIds": []
+      },
+      {
+        "id": "V450-S01",
+        "classification": "current-safety-and-compatibility",
+        "decision": "approved",
+        "findingIds": []
+      },
+      {
+        "id": "V450-S02",
+        "classification": "current-release-product",
+        "decision": "approved",
+        "findingIds": []
+      },
+      {
+        "id": "V450-S03",
+        "classification": "current-release-product",
+        "decision": "approved",
+        "findingIds": []
+      },
+      {
+        "id": "V450-T01",
+        "classification": "current-release-product",
+        "decision": "approved",
+        "findingIds": []
+      },
+      {
+        "id": "V450-U01",
+        "classification": "current-safety-and-compatibility",
+        "decision": "approved",
+        "findingIds": []
+      },
+      {
+        "id": "V450-U02",
+        "classification": "current-release-product",
+        "decision": "changes-requested",
+        "findingIds": [
+          "R55-F1",
+          "R55-F2"
+        ]
+      },
+      {
+        "id": "V450-U03",
+        "classification": "current-release-product",
+        "decision": "approved",
+        "findingIds": []
+      },
+      {
+        "id": "V450-U04",
+        "classification": "unassigned-incomplete-not-release",
+        "decision": "held",
+        "findingIds": []
+      }
+    ],
+    "counts": {
+      "approved": 23,
+      "held": 8,
+      "changes-requested": 2,
+      "excluded-from-release-quality-approval": 8
+    },
+    "legacyApprovalDoesNotApproveV450": true
+  },
+  "findings": [
+    {
+      "id": "R55-F1",
+      "priority": "P2",
+      "featureIds": [
+        "V450-U02"
+      ],
+      "title": "저장된 A 결과를 열면 진행 중 job polling이 중단될 수 있음"
+    },
+    {
+      "id": "R55-F2",
+      "priority": "P2",
+      "featureIds": [
+        "V450-E03",
+        "V450-K05",
+        "V450-K07",
+        "V450-K08",
+        "V450-U02"
+      ],
+      "title": "현재 A 핵심 회귀가 빠져도 출시 등록 검사가 누락을 검출하지 못함"
+    }
+  ],
+  "producer": {
+    "status": "not-run",
+    "exit": null,
+    "reason": "Mandatory V450-U02/E03 changes requested and K05/K07/K08 coverage held; atomic full application conditions not met. No partial approval applied.",
+    "appliedReadback": "not-run; original audit/approval/implementation/native manifests remain unchanged"
+  },
+  "staticBinding": {
+    "legacyRows": 986,
+    "bindingErrorCount": 596,
+    "perIdCount": 300,
+    "idsMatchMigrationRequired": true,
+    "globalEnvelopeErrors": [],
+    "negativeNotRun": 15,
+    "candidateUnresolved": 0,
+    "approvalApplied": false,
+    "productSourcesUnchanged": true
+  },
+  "commands": [
+    {
+      "command": [
+        "node",
+        "--test",
+        "scripts/internal/verify_review4_locator_resolution.test.mjs"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 0.13012858293950558,
+      "output": "prepare-0.log",
+      "sha256": "895fe9a8a5bc01d1d10a3e9d75aac86eda7f502a530177e2a39e8e6940699c2c",
+      "source": {
+        "base": "9c003e08167924bb66900df51bd958a57dc1e4c8",
+        "trackedDiffSha256": "41084e0645521b89d0dfd280a804c58a24c2565b555899e87b3e0a8e035d2a24",
+        "equivalentCommittedSource": "b490ab01fc96ceb64e4d349ee14575bf2e5ea63d"
+      },
+      "originalOutputName": "prepare-0.log",
+      "outputOffset": 0,
+      "outputBytes": 3031,
+      "outputSha256": "895fe9a8a5bc01d1d10a3e9d75aac86eda7f502a530177e2a39e8e6940699c2c"
+    },
+    {
+      "command": [
+        "node",
+        "scripts/internal/verify_v390_review4_feature_semantic_source_audit.mjs",
+        "--emit-candidate",
+        "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v450-review55-1mhbxt3d/candidate-initial.json"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 21.52925233298447,
+      "output": "prepare-1.log",
+      "sha256": "d17af017d9a5cdffe17c0334e424628f886087c6922c5683a51f48a405f2b88c",
+      "source": {
+        "base": "9c003e08167924bb66900df51bd958a57dc1e4c8",
+        "trackedDiffSha256": "41084e0645521b89d0dfd280a804c58a24c2565b555899e87b3e0a8e035d2a24",
+        "equivalentCommittedSource": "b490ab01fc96ceb64e4d349ee14575bf2e5ea63d"
+      },
+      "originalOutputName": "prepare-1.log",
+      "outputOffset": 3031,
+      "outputBytes": 225,
+      "outputSha256": "d17af017d9a5cdffe17c0334e424628f886087c6922c5683a51f48a405f2b88c"
+    },
+    {
+      "command": [
+        "node",
+        "scripts/internal/verify_v390_review4_semantic_migration_contract.mjs",
+        "--baseline",
+        "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v450-review55-1mhbxt3d/v390_review4_feature_semantic_source_audit.json",
+        "--fresh",
+        "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v450-review55-1mhbxt3d/candidate-initial.json",
+        "--report",
+        "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v450-review55-1mhbxt3d/migration-report.json",
+        "--write-evidence",
+        "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v450-review55-1mhbxt3d/migration-evidence.json"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 0.37102529196999967,
+      "sha256": "bf6c8373e882dba28f226a4e5d5fd32bf1ea1cf09bf87463a7a48c00cc8f689c",
+      "source": {
+        "head": "b490ab01fc96ceb64e4d349ee14575bf2e5ea63d"
+      },
+      "originalOutputName": "migration.log",
+      "outputOffset": 3256,
+      "outputBytes": 3261,
+      "outputSha256": "bf6c8373e882dba28f226a4e5d5fd32bf1ea1cf09bf87463a7a48c00cc8f689c"
+    },
+    {
+      "command": [
+        "node",
+        "scripts/internal/verify_feature_inventory_coverage.mjs",
+        "--v450-only"
+      ],
+      "head": "b490ab01fc96ceb64e4d349ee14575bf2e5ea63d",
+      "exit": 0,
+      "elapsedSeconds": 0.048982165986672044,
+      "sha256": "abb4124929403973c051411014691c37eb8ba388d8de47e6a53ba19d93ef900a",
+      "source": {
+        "head": "b490ab01fc96ceb64e4d349ee14575bf2e5ea63d"
+      },
+      "originalOutputName": "v450-coverage.log",
+      "outputOffset": 6517,
+      "outputBytes": 1597,
+      "outputSha256": "abb4124929403973c051411014691c37eb8ba388d8de47e6a53ba19d93ef900a"
+    },
+    {
+      "command": [
+        "node",
+        "scripts/internal/verify_feature_implementation_evidence.mjs",
+        "--json-report",
+        "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v450-review55-1mhbxt3d/current-binding-validation.json"
+      ],
+      "head": "b490ab01fc96ceb64e4d349ee14575bf2e5ea63d",
+      "exit": 1,
+      "elapsedSeconds": 39.43071224994492,
+      "outputSha256": "34629b2a97db74f237a9cff85eaf936fc82a21476c8019bc92f14a658bd7c4bf",
+      "purpose": "read-only current unapplied binding; expected stale approval is not product execution",
+      "source": {
+        "head": "b490ab01fc96ceb64e4d349ee14575bf2e5ea63d"
+      },
+      "originalOutputName": "current-binding.log",
+      "outputOffset": 8114,
+      "outputBytes": 43366
+    },
+    {
+      "command": [
+        "node",
+        "scripts/internal/verify_docs_links.mjs"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 0.2754719579825178,
+      "source": {
+        "head": "b490ab01fc96ceb64e4d349ee14575bf2e5ea63d",
+        "documentationSha256": {
+          "docs/development-backlog.md": "9e55916889860fbed6941bcb730ab5f240d11172a5c7906e1731be8be70bff81",
+          "docs/superpowers/specs/2026-10-05-v450-va-review-design.md": "b616dfd4b79a43403acf97ab2e040d1c59a44feeee95a62a67437374419933ca"
+        }
+      },
+      "outputOffset": 51480,
+      "outputBytes": 186,
+      "outputSha256": "d757aa23af4c169f5bdf8732589f584a13a10b5101e8436ac04ad27f4a014a11"
+    },
+    {
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 0.011679290910251439,
+      "source": {
+        "head": "b490ab01fc96ceb64e4d349ee14575bf2e5ea63d",
+        "documentationSha256": {
+          "docs/development-backlog.md": "9e55916889860fbed6941bcb730ab5f240d11172a5c7906e1731be8be70bff81",
+          "docs/superpowers/specs/2026-10-05-v450-va-review-design.md": "b616dfd4b79a43403acf97ab2e040d1c59a44feeee95a62a67437374419933ca"
+        }
+      },
+      "outputOffset": 51666,
+      "outputBytes": 0,
+      "outputSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "artifacts": [
+    {
+      "originalName": "review-package.json",
+      "path": "docs/release-artifacts/v4.5.0/55-review-package.json",
+      "encoding": "original bytes",
+      "originalSha256": "76d211b89b7e8514af38d220797672579d982080489032e3482e0ece1505edb2",
+      "originalBytes": 187588,
+      "storedSha256": "76d211b89b7e8514af38d220797672579d982080489032e3482e0ece1505edb2",
+      "storedBytes": 187588,
+      "readbackExact": true
+    },
+    {
+      "originalName": "independent-review.json",
+      "path": "docs/release-artifacts/v4.5.0/55-independent-review.json",
+      "encoding": "original bytes",
+      "originalSha256": "859c58b838d73b89b0d18c1417cde5296a95b2119da34c73801e2bb90129d9d3",
+      "originalBytes": 111208,
+      "storedSha256": "859c58b838d73b89b0d18c1417cde5296a95b2119da34c73801e2bb90129d9d3",
+      "storedBytes": 111208,
+      "readbackExact": true
+    },
+    {
+      "originalName": "independent-decisions.json",
+      "path": "docs/release-artifacts/v4.5.0/55-independent-decisions.json",
+      "encoding": "original bytes",
+      "originalSha256": "124526f640cd61701df121b258ac0f95ee013afb342505c732830e15d9c2ebb3",
+      "originalBytes": 504746,
+      "storedSha256": "124526f640cd61701df121b258ac0f95ee013afb342505c732830e15d9c2ebb3",
+      "storedBytes": 504746,
+      "readbackExact": true
+    },
+    {
+      "originalName": "candidate-initial.json",
+      "path": "docs/release-artifacts/v4.5.0/55-candidate.json.gz",
+      "encoding": "gzip",
+      "originalSha256": "b2f23fedb0b89a6afae9444809107b8ceefbcf4e088994be20c00909fe8d43e7",
+      "originalBytes": 7709050,
+      "storedSha256": "d8453d94f5d51a6710d3e9e20bd6ab681806fe9c3c25a497aa456503f47d88a7",
+      "storedBytes": 952913,
+      "readbackExact": true
+    },
+    {
+      "originalName": "migration-evidence.json",
+      "path": "docs/release-artifacts/v4.5.0/55-migration-evidence.json.gz",
+      "encoding": "gzip",
+      "originalSha256": "bf3a1839344a99f9912705bbde00cf4dda5340b4b9b43462f11e9ddf935bf6f0",
+      "originalBytes": 370200,
+      "storedSha256": "4ba25e9e07cc46ff80672e8ccc36ea2ad3f472282783e99e0137ed9018a5382b",
+      "storedBytes": 89343,
+      "readbackExact": true
+    },
+    {
+      "originalName": "migration-report.json",
+      "path": "docs/release-artifacts/v4.5.0/55-migration-report.json.gz",
+      "encoding": "gzip",
+      "originalSha256": "097941b426fa600376ca739b352a40fd3f60962df49862deedef7eb086200ce5",
+      "originalBytes": 510944,
+      "storedSha256": "9dff2ae9ed2dc92a9ff0f5e83fcd96bcbe71d2ce53cd9b1e734d1c21beffcc53",
+      "storedBytes": 91948,
+      "readbackExact": true
+    },
+    {
+      "originalName": "current-binding-validation.json",
+      "path": "docs/release-artifacts/v4.5.0/55-binding-validation.json.gz",
+      "encoding": "gzip",
+      "originalSha256": "b1a102efb116ab7ffc0c6403d982607b2fa799e6bbaa5a9e0afe5abfa8dbb988",
+      "originalBytes": 46128,
+      "storedSha256": "b6ba950fc4e116595dde4ce8e2cde26342bde15ccadc47ee1397e51b14107d8e",
+      "storedBytes": 2605,
+      "readbackExact": true
+    },
+    {
+      "originalName": "baseline-source-delta.patch",
+      "path": "docs/release-artifacts/v4.5.0/55-baseline-source-delta.patch.gz",
+      "encoding": "gzip",
+      "originalSha256": "ffa637e2a5330a0d22742aec65cbaf322d6107c16d01f461131277a7f2fc4bc1",
+      "originalBytes": 889,
+      "storedSha256": "82d2b48a91e78b7eaccf7f5414d51568839df517896f8a3c0c9f550fe22a5374",
+      "storedBytes": 478,
+      "readbackExact": true
+    },
+    {
+      "path": "docs/release-artifacts/v4.5.0/55-static-output.gz",
+      "encoding": "gzip of byte-exact concatenated outputs; command offsets identify originals",
+      "originalSha256": "7fef99f316395d22e6a5c6dfcb26f648d5e24c545f733f95c7964703a3cda96a",
+      "originalBytes": 51666,
+      "storedSha256": "bee7f57ec4da5891f60c4847e7c266c61182771a783f823490ab3a8fb90ef63b",
+      "storedBytes": 5093,
+      "readbackExact": true
+    }
+  ],
+  "preservation": {
+    "independentOriginalsUnmodified": true,
+    "sourceAndInputDistinctFromEvidenceCommit": true,
+    "temporaryOriginalNamesMappedByArtifacts": true,
+    "prior34to54ArtifactsUnmodified": true,
+    "readbackAllArtifactsAndCommandSlicesExact": true,
+    "approvalFilesUnchanged": {
+      "test/fixtures/v390_review4_feature_semantic_source_audit.json": "0b8ebb09830237c8c96bba5a834ad515573071248b19c44dd0cd8df15cb9bf08",
+      "test/fixtures/v390_review4_feature_semantic_source_approvals.json": "fd153d7e7937d5bc7cfe6e9360531a3b519cd2bff5ee662f7624f6e34296884a",
+      "test/fixtures/project_feature_implementation_evidence.json": "03bca11247246a4678eed3ea20a7e001260dfb6b6f2eb57c0f01d97a17f07b49",
+      "test/fixtures/v390_ui_native_exact_cases.json": "f035544fadaba243cb5142062b4474ffd9efb6971c6c7b0bfb9145d22020bca6"
+    },
+    "historicalArtifactsUnchangedCheck": "git diff base through current tracked files; only new55 evidence added"
+  },
+  "notRun": [
+    "producer application/readback",
+    "product/model/server execution",
+    "acceptance/predev",
+    "full UI",
+    "30m",
+    "120m",
+    "supported OS runtime verification",
+    "release/version/PR/tag/merge"
+  ],
+  "modelCalls": 0,
+  "unloadGate": "not-run; no model/server started",
+  "cleanup": {
+    "ownedTemporaryRoot": "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v450-review55-1mhbxt3d",
+    "status": "verified",
+    "ownedTemporaryFiles": 27,
+    "ownedTemporaryBytes": 21767740,
+    "rootAbsent": true,
+    "markerAbsent": true,
+    "serversStarted": 0,
+    "portsAllocated": 0,
+    "modelsStarted": 0,
+    "serviceProcessCleanup": "not-needed; no server/model/browser launched; one-shot checks and reviewer completed"
+  },
+  "productSourceUnchanged": true,
+  "next": [
+    "R55-F1 A poll lifetime fix and direct race case",
+    "R55-F2 required release checks and reverse missing-link counterexample",
+    "review changed source with fresh bindings; apply existing producer only if mandatory conditions all satisfied",
+    "separately authorized final runtime/UI/OS/release gates"
+  ]
+}
