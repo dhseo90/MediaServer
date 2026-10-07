@@ -1,0 +1,479 @@
+{
+  "schema": "media-server.v450-independent-delta-source-review.v1",
+  "reviewedAt": "2026-10-07T11:00:12.167Z",
+  "reviewer": {
+    "actor": "codex-independent-v450-review:/root/independent_release61",
+    "kind": "AI independent source reviewer",
+    "requestedModel": "gpt-6-astra",
+    "requestedReasoningEffort": "xhigh",
+    "configurationEvidence": "parent delegation request; serving snapshot and effective effort telemetry are not exposed to this reviewer",
+    "servingModelSnapshot": null,
+    "serviceTier": null,
+    "reviewerIsCandidateGenerator": false,
+    "implementationParticipant": false,
+    "subdelegation": false,
+    "humanApproval": false,
+    "executionPass": false
+  },
+  "verdict": "approved",
+  "verdictScope": "release61 fixed source delta only; AI source judgment, not human approval or actual acceptance/release PASS",
+  "producerEligible": true,
+  "scope": {
+    "base": "ea47adfcd6f97a1cdf5e09d5192196bcf53b15d1",
+    "head": "9cf6bf9554a69d93a6985f1af97bd653ad07fe95",
+    "tree": "67ba79a36396d48c2fef2c721c1f1eb9170cf0d1",
+    "implementationCommit": "fa79c16f094c5b307267226e868887924e7c0012",
+    "locatorCommit": "9cf6bf9554a69d93a6985f1af97bd653ad07fe95",
+    "reviewPackage": {
+      "path": "/private/tmp/media-server-release61-u9l2g2bk/review-package.json",
+      "sha256": "327447a052d04ccd19a3a91491bdb9be4f7242967ba79ab274686fd6775dd950"
+    },
+    "candidate": {
+      "path": "/private/tmp/media-server-release61-u9l2g2bk/candidate-locator.json",
+      "sha256": "5c6281009cc9bd804ff79538ce88ff13e4dc4af051001348095119d32540d6df"
+    },
+    "candidateDigest": "137543c6332a73f9a77599bfaca732bd1f54b263adee078fe5d3f8c275775906",
+    "deltaPatch": {
+      "path": "/private/tmp/media-server-release61-u9l2g2bk/delta.patch",
+      "sha256": "445524910887c50b60571e3c44d1d9399a9721ffda01b050295c7057aed49215"
+    },
+    "deltaFiles": [
+      "docs/project-feature-test-inventory.md",
+      "scripts/internal/v450_release_checks.mjs",
+      "scripts/internal/va_review_confirmed_http.mjs",
+      "scripts/internal/va_review_http_checks.mjs",
+      "scripts/internal/va_review_material_http.mjs",
+      "scripts/internal/va_review_release_ui.mjs",
+      "scripts/internal/va_review_test_artifacts.mjs",
+      "scripts/internal/va_review_test_artifacts.test.mjs",
+      "scripts/internal/verify_v390_test_acceptance_bundle.mjs",
+      "scripts/internal/verify_v390_test_acceptance_bundle_contract.mjs",
+      "test/fixtures/v390_review4_semantic_proofs_safe_ops.json"
+    ],
+    "unchangedProductSource": true,
+    "unchangedPolicyAndProvenanceLibrary": true,
+    "requiredLegacyChangedIds": [
+      "SAFE-212",
+      "OPS-179"
+    ],
+    "requiredV450DeltaIds": [
+      "V450-U02",
+      "V450-E03",
+      "V450-E02",
+      "V450-A03",
+      "V450-U03"
+    ]
+  },
+  "blockingFindings": [],
+  "requiredChanges": [],
+  "heldRequiredSourceScopes": [],
+  "sourceReview": {
+    "readFiles": [
+      {
+        "path": "docs/project-feature-test-inventory.md",
+        "sha256": "d83e36fb311994ef094da50e9c372498e29ee80e384e9240a4f63c03baeaebc4",
+        "inspection": "entire release61 diff and relevant surrounding source/consumer; no implementation edit"
+      },
+      {
+        "path": "scripts/internal/v450_release_checks.mjs",
+        "sha256": "b687a38afecba5502951292c7b41b77ee87dc80ba645afce38f2de3ad47229d5",
+        "inspection": "entire release61 diff and relevant surrounding source/consumer; no implementation edit"
+      },
+      {
+        "path": "scripts/internal/va_review_confirmed_http.mjs",
+        "sha256": "b0ada53976859f56b8579dc57632ec1ae1ded77598cd26a68d36feb0b7d98c30",
+        "inspection": "entire release61 diff and relevant surrounding source/consumer; no implementation edit"
+      },
+      {
+        "path": "scripts/internal/va_review_http_checks.mjs",
+        "sha256": "921660052bf4721a17d64025d394c9e4c62c07eaec55490016cd2cc136f26761",
+        "inspection": "entire release61 diff and relevant surrounding source/consumer; no implementation edit"
+      },
+      {
+        "path": "scripts/internal/va_review_material_http.mjs",
+        "sha256": "c33f86617ae45324abd684409ffd6a549a1098cde6992a0d1f5a3ca8229beacd",
+        "inspection": "entire release61 diff and relevant surrounding source/consumer; no implementation edit"
+      },
+      {
+        "path": "scripts/internal/va_review_release_ui.mjs",
+        "sha256": "b9b48eee8456857154db41ea6f584eac4e84a54243a273827f1e2e8dc4c6c1fb",
+        "inspection": "entire release61 diff and relevant surrounding source/consumer; no implementation edit"
+      },
+      {
+        "path": "scripts/internal/va_review_test_artifacts.mjs",
+        "sha256": "5606b7eae6872aa65ccfea9fdd9ca83c478ac6fe31758a5f20e6d15984f01f82",
+        "inspection": "entire release61 diff and relevant surrounding source/consumer; no implementation edit"
+      },
+      {
+        "path": "scripts/internal/va_review_test_artifacts.test.mjs",
+        "sha256": "b04a320540e515ff22dec97c24ca595cfe402e7a7fc611f704d48412e24ecc7a",
+        "inspection": "entire release61 diff and relevant surrounding source/consumer; no implementation edit"
+      },
+      {
+        "path": "scripts/internal/verify_v390_test_acceptance_bundle.mjs",
+        "sha256": "3ce4b1ea09d5ff60999520c4b24232da1202249aa3f6be6a009e58ed50907b2b",
+        "inspection": "entire release61 diff and relevant surrounding source/consumer; no implementation edit"
+      },
+      {
+        "path": "scripts/internal/verify_v390_test_acceptance_bundle_contract.mjs",
+        "sha256": "3041f18c62a4c167d3eaf7901d1873e5acfb9f1b4f3483a92d07c2c424bb7401",
+        "inspection": "entire release61 diff and relevant surrounding source/consumer; no implementation edit"
+      },
+      {
+        "path": "test/fixtures/v390_review4_semantic_proofs_safe_ops.json",
+        "sha256": "c648998dbc20728353f0ae5d5fdeb6bf6a80302355975c613bc4f47c4f204289",
+        "inspection": "entire release61 diff and relevant surrounding source/consumer; no implementation edit"
+      },
+      {
+        "path": "scripts/internal/verify_va_review_confirmed.py",
+        "sha256": "f9349f06bf742314d19692c64c347fd1fbd02910e195fee69e647050a5611c59",
+        "inspection": "relevant environment, source binding, final gate, launcher or decision schema sections"
+      },
+      {
+        "path": "scripts/internal/verify_va_review.sh",
+        "sha256": "d15e22849017c3225a0da2e0e612320bb1abcf0a435a3f6c76b9e593fd225050",
+        "inspection": "relevant environment, source binding, final gate, launcher or decision schema sections"
+      },
+      {
+        "path": "scripts/internal/evidence_integrity_lib.mjs",
+        "sha256": "00e94bf914e2b5e5f72518fa0bad1caefbde83f942ea2bfe6b32c431032e6874",
+        "inspection": "relevant environment, source binding, final gate, launcher or decision schema sections"
+      },
+      {
+        "path": "scripts/internal/verify_v390_final_evidence_integrity.mjs",
+        "sha256": "b4d4420c665a24c057c3ef37523f73d57b28d7070d5106f5173fae2394f7aa01",
+        "inspection": "relevant environment, source binding, final gate, launcher or decision schema sections"
+      },
+      {
+        "path": "scripts/internal/user_test_launcher_common.sh",
+        "sha256": "407854ad4d25b8c4c320b66abd528ea45e2304c17e1734b315d85b5fb372b680",
+        "inspection": "relevant environment, source binding, final gate, launcher or decision schema sections"
+      },
+      {
+        "path": "scripts/internal/produce_v390_review4_migration_aware_approvals.mjs",
+        "sha256": "7d1d2f334e2704b9d70c7e7e1fd18cf68cea6955f017cb0ac24e3c9885301ada",
+        "inspection": "relevant environment, source binding, final gate, launcher or decision schema sections"
+      },
+      {
+        "path": "scripts/internal/feature_semantic_review4_trust_lib.mjs",
+        "sha256": "07830bdb71e2330c69731c9863772703ff31a267d5992515b4c32d717eabcba7",
+        "inspection": "relevant environment, source binding, final gate, launcher or decision schema sections"
+      }
+    ],
+    "reviewedFlows": [
+      {
+        "id": "R61-OUTPUT",
+        "decision": "approved",
+        "locations": [
+          "scripts/internal/v450_release_checks.mjs:5",
+          "scripts/internal/verify_v390_test_acceptance_bundle.mjs:154",
+          "scripts/internal/verify_v390_test_acceptance_bundle.mjs:782",
+          "scripts/internal/verify_v390_test_acceptance_bundle.mjs:841",
+          "scripts/internal/verify_va_review_confirmed.py:20",
+          "scripts/internal/verify_va_review.sh:101",
+          "scripts/internal/va_review_confirmed_http.mjs:19",
+          "scripts/internal/va_review_http_checks.mjs:16"
+        ],
+        "judgment": "두 spec에만 parent artifact root와 run/check 디렉터리를 주입한다. runCommand가 childProcessEnv로 전달하고 두 Python wrapper의 dict(os.environ, ...)가 보존한다. runner와 두 screenshot 소비자는 같은 helper를 사용한다. 자식 exit 0 뒤에도 부모는 해당 경로의 report와 PNG bytes/hash/dimensions를 직접 확인하며 경로 전달이 사라져 독립 tmp에 출력한 실행은 부모 PASS가 될 수 없다."
+      },
+      {
+        "id": "R61-WRITE",
+        "decision": "approved",
+        "locations": [
+          "scripts/internal/va_review_test_artifacts.mjs:10",
+          "scripts/internal/va_review_test_artifacts.mjs:19",
+          "scripts/internal/va_review_test_artifacts.mjs:38",
+          "scripts/internal/va_review_test_artifacts.mjs:51",
+          "scripts/internal/va_review_confirmed_http.mjs:33",
+          "scripts/internal/va_review_http_checks.mjs:32"
+        ],
+        "judgment": "정규 절대경로, root 내부 경로 및 모든 디렉터리 조상의 symlink 부재를 확인하고 새 0700 디렉터리 생성만 허용한다. 저장소 내부 출력은 정확한 acceptance root로 제한한다. 파일명에 경로 구분자가 없고 최초 wx/0600 및 report 교체 시 inode/dev/nlink와 O_NOFOLLOW를 검증한다. 쓰기 실패는 우회하지 않는다. started/report/progress/error/cleanup 및 PNG가 이 디렉터리로 모이고, 독립 호출은 OS tmp의 별도 출력 디렉터리를 보존한다. runtime fixture cleanup과 retained output 수명이 분리된다. signal은 failed 상태를 유지하고 소유 서버 종료를 유도한다."
+      },
+      {
+        "id": "R61-EARLY",
+        "decision": "approved",
+        "locations": [
+          "scripts/internal/verify_v390_test_acceptance_bundle.mjs:178",
+          "scripts/internal/verify_v390_test_acceptance_bundle.mjs:202",
+          "scripts/internal/verify_v390_test_acceptance_bundle.mjs:225",
+          "scripts/internal/verify_v390_test_acceptance_bundle.mjs:830",
+          "scripts/internal/verify_v390_test_acceptance_bundle.mjs:895",
+          "scripts/internal/evidence_integrity_lib.mjs:21"
+        ],
+        "judgment": "실행 전 sourceProvenance 상수는 갱신하지 않는다. feature-gates 성공 직후 기존 provenance 수집기의 commit/branch/sourcePatchSha256를 비교한다. 외부 PNG/JSON/checkpoint, 제품/검사/fixture 변경은 동일 지문에 반영된다. 불일치 시 기존 feature stage가 FAIL로 바뀌고 다음 일반30/UI/120 단계는 not-run이다. feature 자체 실패도 원래 경로로 후속 실행을 막는다. 최종 Policy v4/current source 비교와 final-integrity 식 및 source clean preflight는 변경하지 않았다."
+      },
+      {
+        "id": "R61-SCOPE",
+        "decision": "approved",
+        "locations": [
+          "scripts/internal/verify_v390_test_acceptance_bundle_contract.mjs:58",
+          "scripts/internal/v450_release_checks.mjs:10",
+          "docs/project-feature-test-inventory.md:4767",
+          "test/fixtures/v390_review4_semantic_proofs_safe_ops.json:14683"
+        ],
+        "judgment": "기존 필수28의 명령/옵션/owner/action/proof 연결을 보존하고 plan-only 분기에 19개 출력 결속 반례를 추가했다. 새 검사는 실행 전 inventory에 정의됐다. 기존 제품 assertion과 65초/180초 및 wrapper 70초/240초 한도는 그대로다. locator 수정은 실제 runActualBundle 호출 위치/문맥의 갱신이며 semantic obligation을 바꾸지 않는다. 모델 품질 실험, 미배정5 및 역사8 범위의 승격은 없다."
+      }
+    ]
+  },
+  "legacy": {
+    "strictCarryForwardCount": 984,
+    "newIndependentDecisionIds": [
+      "SAFE-212",
+      "OPS-179"
+    ],
+    "comparison": "prior-audit와 fresh candidate의 featureContract/semanticObligation/verifier/evidenceToken을 비교했다. sourceFlowDigest/trustBindings 차이는 이 두 ID뿐이다. 984개는 기존 migration의 엄격 동등성 범위이며 새 구현 전수 재검토를 주장하지 않는다.",
+    "priorSources": {
+      "56": {
+        "path": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/56-independent-review.json",
+        "sha256": "f3d351655d1ca03b16b954c679fdd4336eacc39ea5804c43919cad50ccdd4e1b"
+      },
+      "59": {
+        "path": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/59-independent-review.json",
+        "sha256": "db84bbe510cab7113b77f73705a74a58694098e874acb16bbcc306f56c54f64d"
+      },
+      "priorApprovalLedger": {
+        "path": "/private/tmp/media-server-release61-u9l2g2bk/prior-approvals.json",
+        "sha256": "ae737ba1a9e5af2f2a109237078414607e947f34b332dcb1774ea2de0339e4db"
+      },
+      "migration": {
+        "path": "/private/tmp/media-server-release61-u9l2g2bk/migration-locator.json",
+        "sha256": "fcb182747383f74ed28f270b5c3095c9f8bb8583c5710f4d0e46aadb1257d835"
+      },
+      "migrationReport": {
+        "path": "/private/tmp/media-server-release61-u9l2g2bk/migration-report-locator.json",
+        "sha256": "b70e3343be7d1a97b9559dd992d31f28e3eeb2e5db6dd62e57732dc7c54808a6"
+      }
+    }
+  },
+  "currentV450": {
+    "requiredIds": [
+      "V450-K05",
+      "V450-K07",
+      "V450-K08",
+      "V450-K09",
+      "V450-K11",
+      "V450-A02",
+      "V450-U02",
+      "V450-A03",
+      "V450-U03",
+      "V450-T01",
+      "V450-S02",
+      "V450-S03",
+      "V450-R01",
+      "V450-R02",
+      "V450-R03",
+      "V450-E01",
+      "V450-E02",
+      "V450-E03",
+      "V450-I01",
+      "V450-C01",
+      "V450-S01",
+      "V450-Q01",
+      "V450-A01",
+      "V450-U01",
+      "V450-G01",
+      "V450-N01",
+      "V450-N02",
+      "V450-N03"
+    ],
+    "approvedRequiredSourceCount": 28,
+    "changedDecisions": [
+      {
+        "id": "V450-U02",
+        "decision": "approved",
+        "justification": "A HTTP/browser의 기존 UI/권한/실패 assertion을 유지하고 7 PNG와 report를 parent run으로 옮겼다. 원소스와 실제 wrapper 실행 282 assertions/21 browser checks, 이미지 참조를 대조했다. 기존56 제품 의미 판단을 유지한다."
+      },
+      {
+        "id": "V450-E03",
+        "decision": "approved",
+        "justification": "28 필수 등록/명령/실패전파 의미를 유지하며 출력 결속과 조기 지문 검사를 연결했다. plan-only 42 tests, 실제 exit7 전파 및 후속 not-run 변형거부, 명시11 품질실험 double 실패전파 원출력을 읽었다. 이는 전체 acceptance 실행 PASS가 아니다."
+      },
+      {
+        "id": "V450-E02",
+        "decision": "approved",
+        "justification": "신규 모델 실행 거부/이력 조회/권한 검사의 기존 의미는 불변이다. release HTTP/browser report166와 PNG3이 지정 root에 결속되며 모델 호출0이다."
+      },
+      {
+        "id": "V450-A03",
+        "decision": "approved",
+        "justification": "서버 자료 안내와 실제 A confirm/execute/store UI 검사의 출력 소비자를 helper로 연결했다. material 별도 HTTP 분기도 동일 helper 인자를 받는다. 이번 실제2개 wrapper 실행을 --materials-http 재실행으로 과장하지 않는다."
+      },
+      {
+        "id": "V450-U03",
+        "decision": "approved",
+        "justification": "자료 안내 UI 및 light/dark/mobile 캡처는 표면/행동 assertion 그대로 출력 저장만 바꾼다. 실제 release UI의 서버 자료 안내와 읽기 전용/비허용 권한 검사를 대조했고 기존 제품 판단을 유지한다."
+      }
+    ],
+    "otherRequiredSourceDecision": "56/59 독립 원본의 변경되지 않은23개 현행 범위 판단을 한계와 함께 재사용한다. 이번 src/include 변경0이다.",
+    "outsideRelease": {
+      "unassignedCount": 5,
+      "decision": "held-outside-required-release-scope",
+      "historicalExperimentCount": 8,
+      "historicalDecision": "not-adopted"
+    },
+    "legacyApprovalsDoNotApproveV450": true
+  },
+  "evidenceReadback": {
+    "commands": {
+      "path": "/private/tmp/media-server-release61-u9l2g2bk/commands.jsonl",
+      "sha256": "44d9f3183a4e0343d9c5d171cf71a0955981212cdda0b4a18bf6705e759632d3"
+    },
+    "rawLogCount": 19,
+    "allRecordedLogByteLengthsAndHashesMatched": true,
+    "directHarness": {
+      "path": "/private/tmp/media-server-release61-u9l2g2bk/direct.mjs",
+      "sha256": "04d0ea2d2eea67505c5ca86177888371541a98003999ed4df649ceea1ccea09a"
+    },
+    "direct": {
+      "path": "/private/tmp/media-server-release61-u9l2g2bk/direct/summary.json",
+      "sha256": "63dc94caa0d02a30d0c3c59e3eab460a1aa59fba8917c3f1cd2e19b710a92936"
+    },
+    "directBefore": {
+      "path": "/private/tmp/media-server-release61-u9l2g2bk/direct/before.json",
+      "sha256": "8f9eea54a4a13b2dd4d5ea62b6d3c4f32ba5c51b8c281029380832be041afa3e"
+    },
+    "preCommitSource": {
+      "path": "/private/tmp/media-server-release61-u9l2g2bk/direct-source.json",
+      "sha256": "36b07baaa359dbfed5638035572696937d8b37f9327b2a2177904c3d60f2ee93"
+    },
+    "directSourceFilesAll10MatchFixedImplementation": true,
+    "directBinarySha256": "f612a7b6ed0b75e06406dd087fa8c842c56753991391ac39c126d5d496f9ad58",
+    "directParentFunctionSourceHashMatched": true,
+    "directInitialAndFinalSourcePatchSha256": "803a9547dd3c8351fa1e7763e9414b9f729d8cddc4b7bc5824faf595626a6419",
+    "actualWrappers": [
+      {
+        "id": "v450-A-http",
+        "assertions": 282,
+        "browserChecks": 21,
+        "screenshots": 7,
+        "reportSha256": "6f791fa7d3f2863bed71abb859bb4d6617030a19c1f30d9944c539be22696669",
+        "modelCalls": 0,
+        "status": "PASS"
+      },
+      {
+        "id": "v450-release-http",
+        "assertions": 166,
+        "browserChecks": 13,
+        "screenshots": 3,
+        "reportSha256": "561c4e5bd722bb370bbf8f6353c434279f9a6da6c8008bf5f8f70576690edcd1",
+        "modelCalls": 0,
+        "status": "PASS"
+      }
+    ],
+    "pngByteHashSignatureAndDimensionMatches": 10,
+    "pngVisuallyInspected": 10,
+    "visualLimit": "기존 viewport PNG는 화면 일부이며 별도의 전체 panel PNG와 함께 읽었다. 제품 UI 풀테스트 또는 전체 화면 적격성 판정으로 승격하지 않는다.",
+    "reportedWholeDirectCommandSeconds": 29.361478090286255,
+    "directCleanupReadback": {
+      "path": "/private/tmp/media-server-release61-u9l2g2bk/direct-cleanup-readback.json",
+      "sha256": "9a69183fea033be20cc0a26e989e2551f812223ac21404ba6e50f010aa601158"
+    },
+    "reviewerConfirmedBothRuntimeRootsAbsent": true,
+    "portClosureEvidence": "원 runner cleanup과 별도 direct-cleanup-readback의 HTTP/RTSP/provider 부재를 대조했다. 리뷰어가 포트를 새로 열거나 서버를 실행하지 않았다.",
+    "focused": {
+      "tests": 19,
+      "pass": 19,
+      "fail": 0,
+      "raw": {
+        "path": "/private/tmp/media-server-release61-u9l2g2bk/focused-fixed.log",
+        "sha256": "3b34cccfa6f735caa24d637856bbe4978e3a2746ac328c5621e3e8a7b78ce404"
+      }
+    },
+    "registration": {
+      "tests": 42,
+      "pass": 42,
+      "fail": 0,
+      "childExit7AndNotRunMutations": "PASS",
+      "qualityDispatchDoubles": 11,
+      "raw": {
+        "path": "/private/tmp/media-server-release61-u9l2g2bk/registration-fixed.log",
+        "sha256": "32ba4c5ee363c4786384f476461298486d15cba0c0b56973f83e72932946ed55"
+      }
+    },
+    "preservedEarlierFailures": [
+      {
+        "name": "red",
+        "meaning": "기준 코드의 실제 출력식이 parent root를 무시함을 확인한 사전 명시 RED",
+        "raw": {
+          "path": "/private/tmp/media-server-release61-u9l2g2bk/red.log",
+          "sha256": "faf55532252a7827e6fa41bbfa8ec5e25684b6fea591289c89120854f3bdd22d"
+        }
+      },
+      {
+        "name": "focused",
+        "meaning": "tailLines VM helper 누락 18 PASS/1 FAIL; 예상 RED로 바꾸지 않고 보존",
+        "raw": {
+          "path": "/private/tmp/media-server-release61-u9l2g2bk/focused.log",
+          "sha256": "9f199ed7ad9ad8e9faaaf40b5518a229abf511a8d2407f0e291e3e0b305787ee"
+        }
+      },
+      {
+        "name": "registration",
+        "meaning": "parseArgs 중 outputDir 초기화 전 참조로 fixture summary가 없어 실패; final mapping을 초기화 후 수행하여 재검증",
+        "raw": {
+          "path": "/private/tmp/media-server-release61-u9l2g2bk/registration.log",
+          "sha256": "aef88b0cff85237d4d772d1884691361fa734f173aefed07876b88e2daaa56f0"
+        }
+      },
+      {
+        "name": "fixture-diagnostic",
+        "meaning": "초기화 순서 ReferenceError 직접 원출력",
+        "raw": {
+          "path": "/private/tmp/media-server-release61-u9l2g2bk/fixture-diagnostic.log",
+          "sha256": "d70d1825dd2bf7e4316750b77fd3b46da7334a9188a7159a4550498b1df99072"
+        }
+      }
+    ]
+  },
+  "nonBlockingEvidenceFindings": [
+    {
+      "id": "R61-N1",
+      "classification": "pre-existing default verifier startup failure; outside current release61 required delta execution",
+      "file": "scripts/internal/verify_v390_test_acceptance_bundle_contract.mjs",
+      "line": 311,
+      "precondition": "--v450-plan-only나 --recording-root-only 없이 전체 default 계약 검사를 시작함",
+      "observed": "docs/release-test-records.md readFileSync ENOENT, exit1. 전체 default 검사 결과는 FAIL이며 미해소 상태다.",
+      "baselineEvidence": "ea47adfcd6f97a1cdf5e09d5192196bcf53b15d1에 같은 releaseRecords readText 참조가 있고 git ls-tree에서 해당 문서가 없다. 이번 diff는 이 default 부분을 수정하지 않는다.",
+      "consumerImpact": "default 전체 계약 suite의 assertion들은 실행되지 않는다. 현재 v450-registration은 --v450-plan-only에서 검사 후 process.exit(0)하며 이 startup 읽기에 도달하지 않는다. buildFeatureCommands와 root release launcher도 default 전체 계약을 호출하지 않는다.",
+      "decision": "현재 승인된 출력 수정/조기결속 소스 검토 및 다음 canonical acceptance 준비에 필수 수정이나 보류로 추가하지 않는다. default suite PASS를 요구하는 작업에서는 별도 해결할 기존 장애물로 남긴다. 등록검사 PASS나 과거56/59 검토로 이 FAIL을 덮어쓰지 않는다.",
+      "raw": {
+        "path": "/private/tmp/media-server-release61-u9l2g2bk/acceptance-contract.log",
+        "sha256": "a708fdc527c9380a9fa5688cc12f3c1c139629737170347b5b237e4943add2ab"
+      }
+    }
+  ],
+  "prior60Preservation": {
+    "archive": {
+      "path": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/60-acceptance-output.tar.gz",
+      "sha256": "f089cdb1625ac7fbabf353d98bc3f72fadda2949400876d5c2f76d6d6cb363e9"
+    },
+    "archiveBytes": 35582245,
+    "currentPreservedSummary": {
+      "path": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/summary.json",
+      "sha256": "a132196e81dc2133c7103536999ad672a50104d7dd1c14cdc29fde597078c1cf"
+    },
+    "summaryResult": "FAIL",
+    "failedStage": "ui-fulltest-qualification",
+    "sourceCommit": "ea7d8aca940fb917c439cd8e958976b6321c504d",
+    "judgment": "60 원본과 실패는 그대로다. release61 단기 PASS는 60 증거의 source/hash/판정을 다시 결속하거나 전체 acceptance PASS로 승격하지 않는다."
+  },
+  "reviewerActions": {
+    "testsExecuted": [],
+    "modelsExecuted": 0,
+    "serversStarted": 0,
+    "browsersStarted": 0,
+    "acceptanceExecuted": false,
+    "producerExecuted": false,
+    "repositoryFilesChanged": false,
+    "actions": "소스/원출력 읽기, Git diff/HEAD/tree 비교, JSON/hash/PNG header 및 바이트 대조, 보존 스크린샷 시각 검토, 이 두 검토 판단 파일 작성만 수행했다.",
+    "cleanup": "리뷰어가 실행 프로세스·포트·runtime fixture를 만들지 않았다. reviewer 디렉터리의 두 판단 파일만 보존한다."
+  },
+  "limitations": [
+    "AI 독립 소스 검토이며 실제 serving snapshot이나 service tier는 추정하지 않는다.",
+    "직접2개 검사 원출력은 precommit 구현 소스의 단기 증거다. 고정 소스10파일과 binary hash를 재대조했으며 이후 변경은 locator뿐이다. 고정 HEAD의 정식 acceptance 실행 결과로 바꾸지 않는다.",
+    "프로덕션 의미와 Policy v4/provenance/final-integrity 라이브러리는 이번 변경이 없다. 56/59 원본의 미변경 범위와 한계를 재사용하며 제품 전체를 새로 검토했다고 주장하지 않는다.",
+    "장시간30/120, canonical exact424 UI, 정식 acceptance, producer, release는 이 검토에서 실행하지 않았다.",
+    "--materials-http 별도 호출과 실제 signal/강제종료의 전체 runner lifecycle은 이번 직접2개 실행에 포함되지 않는다. 해당 helper/실패전파는 소스와 모델 없는 반례에 한정한다."
+  ],
+  "nextAction": "이 고정 source/package/candidate에 대한 독립 source 검토 gate는 충족한다. 부모는 기존 producer와 입력 재대조를 수행한 뒤 기존 사용자 승인 범위의 acceptance를 진행할 수 있다. 이 판단 자체는 실행 PASS나 공개 승인 아니다."
+}

@@ -1,0 +1,103 @@
+{
+  "schema": "media-server.v390-review4-semantic-independent-scoped-decisions.v1",
+  "reviewer": "codex-independent-v450-review:/root/independent_release61",
+  "reviewerIdentity": {
+    "actor": "codex-independent-v450-review:/root/independent_release61",
+    "kind": "AI independent source reviewer",
+    "requestedModel": "gpt-6-astra",
+    "requestedReasoningEffort": "xhigh",
+    "configurationEvidence": "parent delegation request; serving snapshot and effective effort telemetry are not exposed to this reviewer",
+    "servingModelSnapshot": null,
+    "serviceTier": null,
+    "reviewerIsCandidateGenerator": false,
+    "implementationParticipant": false,
+    "subdelegation": false,
+    "humanApproval": false,
+    "executionPass": false
+  },
+  "reviewerIsCandidateGenerator": false,
+  "reviewedAt": "2026-10-07T11:00:12.167Z",
+  "verdict": "approved",
+  "reviewPackage": {
+    "path": "/private/tmp/media-server-release61-u9l2g2bk/review-package.json",
+    "sha256": "327447a052d04ccd19a3a91491bdb9be4f7242967ba79ab274686fd6775dd950"
+  },
+  "candidate": {
+    "candidateDigest": "137543c6332a73f9a77599bfaca732bd1f54b263adee078fe5d3f8c275775906",
+    "stagedEquivalentTreeOid": "67ba79a36396d48c2fef2c721c1f1eb9170cf0d1",
+    "trackedWorktreeDiffSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "head": "9cf6bf9554a69d93a6985f1af97bd653ad07fe95",
+    "sourceTree": "67ba79a36396d48c2fef2c721c1f1eb9170cf0d1",
+    "base": "ea47adfcd6f97a1cdf5e09d5192196bcf53b15d1"
+  },
+  "reviewScope": {
+    "ids": [
+      "SAFE-212",
+      "OPS-179"
+    ],
+    "meaning": "release61 fixed source delta independent decisions; 984 strict carry-forward and supplemental currentV450 judgments are separate"
+  },
+  "decisions": [
+    {
+      "id": "SAFE-212",
+      "decision": "approved",
+      "featureContractSha256": "860fda53f707d44a84bc5070a4206f4609a130c83eebd0c71abd5f40f348ac7f",
+      "sourceFlowDigest": "efa2a5b1f3c884d725e8c4014dc97f8b78a8f8bb97ace9bdb11f75d7fe3173b7",
+      "verifierCommand": "verify-v390-test-acceptance-bundle",
+      "verifierFile": "scripts/internal/verify_v390_test_acceptance_bundle.mjs",
+      "dispatchArmSha256": "d6bbf94d9336e61d7b9d1134cd61207a3b51308f7e1a856b92467ebeb85095dd",
+      "evidenceToken": "laterStagesNotRun",
+      "actionSymbol": "action:SAFE-212",
+      "stateSymbol": "state:laterStagesNotRun",
+      "justification": "SAFE-212: verify-v390-test-acceptance-bundle의 action:SAFE-212 → state:laterStagesNotRun 및 laterStagesNotRun assertion을 읽었다. 최초 sourceProvenance는 const로 유지되며 feature 종료 후 같은 수집기로 commit/branch/sourcePatchSha256를 비교한다. 차이는 feature-gates FAIL로 전파되고 기존 루프와 assertFirstFailureClosure가 이후 일반30/UI/120 not-run을 보장한다. 두 wrapper의 지정 출력은 실제 runCommand/childProcessEnv를 거쳐 전달되고 부모가 report/PNG를 검증한다. 19 반례와 실제282/166 검사 원출력, PNG10 bytes/hash/dimensions를 대조했다. 기존 최종 Policy v4와 current source 결속은 불변이다. 고정 source-flow efa2a5b1f3c884d725e8c4014dc97f8b78a8f8bb97ace9bdb11f75d7fe3173b7을 승인한다. 이는 독립 AI 소스 판단이며 실제 전체 acceptance/UI/장시간 PASS가 아니다.",
+      "justificationSha256": "1748797210d47cda6c0963aced1f10290af17019cb1e2bec15c1d3507b1939d1",
+      "newDeltaReview": true
+    },
+    {
+      "id": "OPS-179",
+      "decision": "approved",
+      "featureContractSha256": "c5032d9cb4e380632878f8e4f744b184e327a44b158d19610cc004e0c7d5ed13",
+      "sourceFlowDigest": "80702febf0128b93e019b1bfc09b08ca364335cc022b8725b9e49bf47d9e5ef2",
+      "verifierCommand": "verify-v390-test-acceptance-bundle-contract",
+      "verifierFile": "scripts/internal/verify_v390_test_acceptance_bundle_contract.mjs",
+      "dispatchArmSha256": "e1ce46f07a732664e68b4081593bbaee886a69a50390a6147d53e00a2a1d6371",
+      "evidenceToken": "server-longrun-120",
+      "actionSymbol": "runRealStage",
+      "stateSymbol": "runRealStage",
+      "justification": "OPS-179: runActualBundle → runRealStage의 고정 순서와 server-longrun-120 조건부 분기, verify-v390-test-acceptance-bundle-contract의 원래 readback assertion을 읽었다. 출력 전달은 source 변수 초기화 후 적용되어 parseArgs 재진입 오류가 해소됐고, feature 실패/조기 소스 불일치는 후속 일반 단계 실행을 막는다. --v450-plan-only가 기존 필수28 등록과 새로운 출력 반례를 함께 실행하며 42 tests와 실제 child exit7/not-run 변형거부가 보존됐다. locator는 현재 호출 위치의 갱신이고 hard contract/최종 gate/시간한도를 바꾸지 않았다. 고정 source-flow 80702febf0128b93e019b1bfc09b08ca364335cc022b8725b9e49bf47d9e5ef2를 승인한다. default 전체 계약의 docs/release-test-records.md ENOENT exit1은 기준에도 있던 별도 실행 FAIL로 보존하며 current release plan/launcher가 그 경로를 호출하지 않으므로 이번 required delta를 보류하지 않는다. 이 승인은 default suite PASS나 정식 acceptance PASS를 의미하지 않는다.",
+      "justificationSha256": "ea414ef31800612c57f5f6deb4444f0001034ad795b395ed3681ef32ace6d1a2",
+      "newDeltaReview": true
+    }
+  ],
+  "blockingFindings": [],
+  "producerEligible": true,
+  "eligibilityScope": "exact source/candidate/package independent source approval only; no human approval, execution PASS or release authorization",
+  "independentReviewArtifact": {
+    "path": "/private/tmp/media-server-release61-u9l2g2bk/reviewer/independent-review.json",
+    "sha256": "031019d9f70ea65446ec6a7c1e18c0ce8584ca8f41b11054b63f7f5fe047a8d5"
+  },
+  "currentV450": {
+    "approvedRequiredSourceCount": 28,
+    "changedIds": [
+      "V450-U02",
+      "V450-E03",
+      "V450-E02",
+      "V450-A03",
+      "V450-U03"
+    ],
+    "decisionDetails": "/private/tmp/media-server-release61-u9l2g2bk/reviewer/independent-review.json"
+  },
+  "knownUnresolvedExecutionFailure": {
+    "command": "node scripts/internal/verify_v390_test_acceptance_bundle_contract.mjs",
+    "exit": 1,
+    "finding": "R61-N1 in independent-review.json",
+    "outsideCurrentRequiredDeltaExecution": true
+  },
+  "limitations": [
+    "AI 독립 소스 검토이며 실제 serving snapshot이나 service tier는 추정하지 않는다.",
+    "직접2개 검사 원출력은 precommit 구현 소스의 단기 증거다. 고정 소스10파일과 binary hash를 재대조했으며 이후 변경은 locator뿐이다. 고정 HEAD의 정식 acceptance 실행 결과로 바꾸지 않는다.",
+    "프로덕션 의미와 Policy v4/provenance/final-integrity 라이브러리는 이번 변경이 없다. 56/59 원본의 미변경 범위와 한계를 재사용하며 제품 전체를 새로 검토했다고 주장하지 않는다.",
+    "장시간30/120, canonical exact424 UI, 정식 acceptance, producer, release는 이 검토에서 실행하지 않았다.",
+    "--materials-http 별도 호출과 실제 signal/강제종료의 전체 runner lifecycle은 이번 직접2개 실행에 포함되지 않는다. 해당 helper/실패전파는 소스와 모델 없는 반례에 한정한다."
+  ]
+}
