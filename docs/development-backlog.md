@@ -60,7 +60,12 @@ Gemini 제거와 Ollama 연결·TLS/인증의 확인된 로컬 범위도 완료�
 57 후보 준비에서 버전/문서 정합과 정적 coverage를 확인했으나, 기존 Linux sid/arm64 이미지에
 ONNX C++ 개발 헤더·SentencePiece가 없어 제품 빌드 전 중단했다.
 [준비·차단 원본](release-artifacts/v4.5.0/57-validation.json)을 보존하며 정식 acceptance는0회다.
-현재 Linux 의존성 준비 또는 이미 준비된 다른 경로의 명시가 재개 조건이다.
+58에서 별도 파생 이미지의 공식 ONNX Runtime1.23.2·SentencePiece0.2.0 C++ 준비와 제품 빌드는
+통과했다. 한영 토큰/텍스트 벡터 회귀 후 실제 영상 검색이 기존 GStreamer1.28.1 증거 계약과
+이미지의1.28.7 충돌로 실패해 후속 Linux 검사·정식 acceptance는 중단했다.
+[58 환경·실행 원본](release-artifacts/v4.5.0/58-validation.json)과
+[재현 recipe](release-artifacts/v4.5.0/58-linux.Dockerfile)를 보존한다. 재개에는1.28.1 증거
+계약을 충족하는 Linux 환경 또는 별도로 승인된 호환성 검토가 필요하며, 제품 조건은 완화하지 않았다.
 v4.4.0 변경120분 source 이후 catalog의 관측 출처 저장과 snapshot 잠금·A 저장/취소 수명이
 추가돼 녹화/검색/A 혼합의 전용120분 영향 검증도 별도 승인 잔여다. 일반120분으로 대체하지 않는다.
 

@@ -1,0 +1,819 @@
+{
+  "schema": "media-server.v450-release58-validation.v1",
+  "status": "BLOCKED-linux-gstreamer-evidence-profile",
+  "completion": "Linux C++ 환경·제품 빌드·텍스트 회귀 완료; 영상 검색 실패 이후 출시 검증 미완료",
+  "source": {
+    "entryHead": "5a4c30fc83e8e781a62696813d71e268c0c30977",
+    "entryRemoteHead": "5a4c30fc83e8e781a62696813d71e268c0c30977",
+    "entryWorktreeIndex": "clean",
+    "candidateCommit": "c81d6180390cac6d5c375b236ae3e07924d4c6d1",
+    "candidateTree": "111742aeaab25d582a7e8bb6b9275caec9137188",
+    "productVersion": "4.5.0",
+    "archiveSha256": "472fa76957bf8164c06ba0f11c56b0384f40815ec8c7d101f6271f2713bd641d",
+    "sourceManifest": "58-source-manifest.json.gz",
+    "productOrExistingVerifierChanged": false,
+    "prior56Approval": "retained; product/check meaning unchanged; no new producer/independent approval",
+    "prior57": "preserved BLOCKED as historical result",
+    "sourceManifestSha256": "ce617b5cf69507936526513cefc64c45d6342ad397a9b5b7d3ab0e3aa357321b"
+  },
+  "environment": {
+    "recipe": "58-linux.Dockerfile",
+    "recipeSha256": "2362d432dfc649e9b8932795d9d50ce768e36d0f7fc7a5cff2f3080d65b08385",
+    "baseTag": "mediaserver-v420-verify:sid-arm64",
+    "baseImageId": "sha256:22723481607c73523ec4c4e583981a765eee0f39551cf32e5f0d94d122b711f7",
+    "derivedTag": "mediaserver-v450-verify:rc58-arm64",
+    "derivedImageId": "sha256:ce72c8a15363984da642e9964189957896812061c6af1d0ef67e87b38ad5a588",
+    "derivedConfigDigest": "sha256:8f48f726c087d9eaf1e4b4bb4edda9aea631e5bd74fd5613e40c7cdaeb7e6408",
+    "os": "Debian GNU/Linux forky/sid",
+    "architecture": "linux/aarch64",
+    "compiler": "GNU 16.2.0",
+    "cmake": "4.3.4",
+    "gstreamer": "1.28.7",
+    "openssl": "3.6.5",
+    "sqlite": "3.53.4",
+    "baseImageUnchanged": true,
+    "hostInstallations": 0,
+    "aptInstallations": 0,
+    "downloadTool": "existing Python urllib with TLS; curl missing, no curl install required",
+    "noModelExportOrDownloads": true,
+    "productRunNetwork": "none",
+    "hostWritableMounts": 0,
+    "hostMounts": [
+      "tokenizer.model read-only",
+      "image_encoder.onnx read-only",
+      "text_encoder.onnx read-only"
+    ],
+    "buildRoot": "/work/repo/build-gst-onnx (owned container, removed after evidence capture)",
+    "runtimeEnv": "LD_LIBRARY_PATH=/opt/onnxruntime-linux-aarch64-1.23.2/lib set only for smoke processes; product binary has matching RUNPATH",
+    "imageRetained": true,
+    "reproduction": "Verify base ID before building. Place hash-checked existing third_party/v430-embedding/sentencepiece-v0.2.0.tar.gz and this Dockerfile in a small isolated context; docker build --pull=false. Recipe retains source/license/notices and does not include product/model/user data.",
+    "reuseBoundary": "SDK/SP development image retained, but its GStreamer1.28.7 does not satisfy the current1.28.1 recording evidence contract; not a complete release validation environment."
+  },
+  "dependencies": {
+    "onnxruntime": {
+      "version": "1.23.2 official Linux aarch64 CPU SDK",
+      "url": "https://github.com/microsoft/onnxruntime/releases/download/v1.23.2/onnxruntime-linux-aarch64-1.23.2.tgz",
+      "sha256": "7c63c73560ed76b1fac6cff8204ffe34fe180e70d6582b5332ec094810241e5c",
+      "prefix": "/opt/onnxruntime-linux-aarch64-1.23.2",
+      "librarySha256": "648ffa64fbe027ae27139109410900cf776a030dec2dbbac51053318cc44c286",
+      "companionLibrarySha256": "3b6be288fbfb7dff8770d08a23defdde18e8f7e0f5a2b344a0e5e238c999ea88",
+      "headersAndLibrariesSameSDK": true,
+      "runtimeProbeVersion": "1.23.2",
+      "runtimeProbePath": "/opt/onnxruntime-linux-aarch64-1.23.2/lib/libonnxruntime.so.1",
+      "productLddSamePrefix": true,
+      "debianBuildEquivalenceClaim": false
+    },
+    "sentencepiece": {
+      "version": "0.2.0",
+      "url": "https://github.com/google/sentencepiece/archive/refs/tags/v0.2.0.tar.gz",
+      "sha256": "9970f0a0afee1648890293321665e5b2efa04eaec9f1671fcf8048f456f5bb86",
+      "reusedHostArchive": true,
+      "prefix": "/opt/rc58-sentencepiece",
+      "staticLibrarySha256": "4cd56c7e34e0fb39066c301175b7e711949c1d77fa5d260e4dbf685835917c0f",
+      "flags": [
+        "Release",
+        "SPM_ENABLE_SHARED=OFF",
+        "SPM_BUILD_TEST=OFF",
+        "CMAKE_POLICY_VERSION_MINIMUM=3.5",
+        "CMAKE_CXX_FLAGS=-include cstdint",
+        "-j 2"
+      ],
+      "sourcePatched": false,
+      "compatibility": "GCC16 removed transitive stdint declarations relied on by v0.2.0; explicit standard header for dependency build only. First compile failure retained."
+    }
+  },
+  "cppPreparation": {
+    "status": "PASS",
+    "compileLinkRun": true,
+    "source": "#include <cstdint>\n#include <onnxruntime_cxx_api.h>\n#include <sentencepiece_processor.h>\n#include <dlfcn.h>\n#include <iostream>\n#include <vector>\n#include <string>\nint main() {\n const auto* version = OrtGetApiBase()->GetVersionString();\n if (std::string(version)!=\"1.23.2\") return 1;\n Dl_info info{}; if(!dladdr(reinterpret_cast<void*>(OrtGetApiBase),&info)) return 2;\n if(std::string(info.dli_fname).find(\"/opt/onnxruntime-linux-aarch64-1.23.2/lib/\")!=0) return 3;\n Ort::Env env(ORT_LOGGING_LEVEL_WARNING,\"rc58-cpp\");\n sentencepiece::SentencePieceProcessor sp;\n if(!sp.Load(\"/fixtures/tokenizer.model\").ok()) return 4;\n for(const std::string text:{\"red car\", \"빨간 자동차\"}) {\n  std::vector<int> ids;std::string decoded;\n  if(!sp.Encode(text,&ids).ok()||ids.empty()||!sp.Decode(ids,&decoded).ok()||decoded!=text) return 5;\n  std::cout<<\"TOKENIZER \"<<text<<\" ids=\";for(auto id:ids)std::cout<<id<<\",\";std::cout<<\" decoded=\"<<decoded<<\"\\n\";\n }\n std::cout<<\"ONNX_RUNTIME \"<<version<<\" \"<<info.dli_fname<<\"\\n\";\n}\n",
+    "sourceSha256": "b89b6089702fe897c62a75225c7d7d7d5b622592f3af967e5bb586ff0c45cb60",
+    "binarySha256": "f9122f4eb27fc3af98d9703a74c008b526ba8235c2c4384ff659cf93ab6d55a4",
+    "tokenizerRoundtrip": [
+      "red car",
+      "빨간 자동차"
+    ],
+    "notPythonImportProof": true
+  },
+  "linuxBuild": {
+    "status": "PASS",
+    "seconds": 103.26751241704915,
+    "gstreamerOn": true,
+    "onnxruntimeOn": true,
+    "siglip2On": true,
+    "cmakeLibrarySelection": "explicit official SDK and isolated SP prefix; full CMakeCache/flags/link/ldd in raw output",
+    "binarySha256": "3e385873dd176288f9da24265acc2eb842e6f7b6e30cd25acc6440bea08f9135",
+    "archiveSha256": "e31e069c6b707b1b6e22409e233498607067a3b270a9e828163e82b0d475c2ad"
+  },
+  "linuxDirect": {
+    "command": "python3 scripts/internal/verify_v450_search.py",
+    "status": "FAIL-partial",
+    "exit": 1,
+    "tokenAndText": {
+      "status": "PASS",
+      "queryAssertions": 46,
+      "cases": [
+        {
+          "case": "text-0",
+          "maxAbs": 8.9407e-08,
+          "cosinePrinted": 1.0
+        },
+        {
+          "case": "text-1",
+          "maxAbs": 8.9407e-08,
+          "cosinePrinted": 1.0
+        },
+        {
+          "case": "text-2",
+          "maxAbs": 1.19209e-07,
+          "cosinePrinted": 1.0
+        },
+        {
+          "case": "text-3",
+          "maxAbs": 6.51926e-08,
+          "cosinePrinted": 1.0
+        },
+        {
+          "case": "text-6",
+          "maxAbs": 5.4948e-08,
+          "cosinePrinted": 1.0
+        },
+        {
+          "case": "text-7",
+          "maxAbs": 6.14673e-08,
+          "cosinePrinted": 1.0
+        },
+        {
+          "case": "text-8",
+          "maxAbs": 1.19209e-07,
+          "cosinePrinted": 1.0
+        },
+        {
+          "case": "text-9",
+          "maxAbs": 1.11759e-07,
+          "cosinePrinted": 1.0
+        }
+      ],
+      "tokenIds": "8 existing cases exact",
+      "boundaries": "62/63 accepted;64 rejected; Unicode KO/EN/mixed and invalid input checks passed",
+      "tolerance": {
+        "maxAbs": 0.0001,
+        "cosineMin": 0.99999,
+        "normMaxError": 1e-05
+      },
+      "maxRssBytes": 2385502208,
+      "reference": "Existing C++ adapter/results; not a new Python reference execution",
+      "newPythonReference": false
+    },
+    "worker": {
+      "status": "PASS",
+      "checks": 58,
+      "encodes": 7,
+      "sourceScans": 9,
+      "boundary": "test-injected encoder/worker checks, not seven successful SigLIP image inferences"
+    },
+    "application": {
+      "status": "FAIL",
+      "option": "--scope-only",
+      "expected": "three representative indexed frames from fixture",
+      "actual": "assertion three representative frames failed at checks=8; preceding six capture-attach-core-gstreamer-profile messages",
+      "indexedFramesExactObserved": "not emitted by this assertion; do not invent actual count",
+      "failureSource": "src/recording/recording_file_evidence.cpp:202-210",
+      "reason": "Attach requires core1.28.1 and parser/mux plugin1.28.1; actual core and isomp4/videoparsersbad1.28.7",
+      "classification": "existing runtime outside strict recording evidence profile; not ONNX/tokenizer quality FAIL",
+      "productPolicyChanged": false
+    },
+    "imageEncodingParity": "not-run after failure; successful image inference not established",
+    "retrieval16Images24Queries": "not-run",
+    "searchUIState": "not-run after failed application predecessor",
+    "AStorageAuthorizationTransport": "not-run after failed mandatory search predecessor",
+    "shortMediaReceiveDecodeShutdown": "not-run as a completed dedicated check; failing search fixture generated/recorded input but evidence capture rejected"
+  },
+  "firstFailures": [
+    {
+      "command": "base-tools",
+      "exit": 1,
+      "reason": "curl absent; used existing Python TLS downloader without installing tools",
+      "resolved": true
+    },
+    {
+      "command": "environment-build",
+      "exit": 1,
+      "childBuildExit": 2,
+      "reason": "uint32_t declaration absent in SP0.2.0 under GCC16",
+      "initialRecipe": "# 검증 전용: 원본 tag의 image ID를 58-validation.json과 대조한 뒤 --pull=false로 빌드한다.\n# 호스트/원본 이미지를 변경하지 않으며 제품·모델·운영 자료를 포함하지 않는다.\nFROM mediaserver-v420-verify:sid-arm64\nLABEL org.mediaserver.verification=\"v450-58\" \\\n      org.mediaserver.base-id=\"sha256:22723481607c73523ec4c4e583981a765eee0f39551cf32e5f0d94d122b711f7\"\nCOPY sentencepiece-v0.2.0.tar.gz /opt/rc58-source/sentencepiece-v0.2.0.tar.gz\n# 기존 Python/TLS 도구로 공식 SDK만 다운로드한다. 전체 준비 도구/모델 export는 실행하지 않는다.\nRUN python3 -c 'import pathlib,urllib.request,hashlib; p=pathlib.Path(\"/opt/rc58-source/onnxruntime-linux-aarch64-1.23.2.tgz\"); p.write_bytes(urllib.request.urlopen(\"https://github.com/microsoft/onnxruntime/releases/download/v1.23.2/onnxruntime-linux-aarch64-1.23.2.tgz\",timeout=60).read()); assert hashlib.sha256(p.read_bytes()).hexdigest()==\"7c63c73560ed76b1fac6cff8204ffe34fe180e70d6582b5332ec094810241e5c\", \"ONNX SDK digest mismatch\"' \\\n && echo '9970f0a0afee1648890293321665e5b2efa04eaec9f1671fcf8048f456f5bb86  /opt/rc58-source/sentencepiece-v0.2.0.tar.gz' | sha256sum -c - \\\n && tar -xzf /opt/rc58-source/onnxruntime-linux-aarch64-1.23.2.tgz -C /opt \\\n && tar -xzf /opt/rc58-source/sentencepiece-v0.2.0.tar.gz -C /opt/rc58-source\nRUN cmake -S /opt/rc58-source/sentencepiece-0.2.0 -B /opt/rc58-source/sp-build \\\n      -DCMAKE_INSTALL_PREFIX=/opt/rc58-sentencepiece -DCMAKE_BUILD_TYPE=Release \\\n      -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DSPM_ENABLE_SHARED=OFF -DSPM_BUILD_TEST=OFF \\\n && cmake --build /opt/rc58-source/sp-build -j 2 \\\n && cmake --install /opt/rc58-source/sp-build\n",
+      "resolvedBy": "environment-build-cstdint, exit0"
+    },
+    {
+      "command": "linux-search",
+      "exit": 1,
+      "childExit": 127,
+      "reason": "smoke wrapper extracts archive/link libraries but omits product rpath; loader failed before first encoder process",
+      "resolvedBy": "smoke process-only LD_LIBRARY_PATH; no product/check source changed"
+    },
+    {
+      "command": "linux-search-sdk-path",
+      "exit": 1,
+      "reason": "GStreamer1.28.7 conflicts with1.28.1 recording evidence profile",
+      "resolved": false,
+      "laterStages": "not-run"
+    }
+  ],
+  "resources": {
+    "containerLimitBytes": 6442450944,
+    "cpuLimit": 2,
+    "buildParallelism": 2,
+    "pidsLimit": 256,
+    "containerMemoryPeakBytes": 5734694912,
+    "containerPeakMeaning": "cgroup usage including file cache; not process RSS and not additive to text RSS",
+    "oomEvents": 0,
+    "oomKills": 0,
+    "cgroupMaxEvents": 0,
+    "textProcessMaxRssBytes": 2385502208,
+    "textProcessLimitBytes": 4294967296,
+    "applicationPeakRss": "not available; failure before fixture reports resource result",
+    "workspaceBudgetBytes": 8589934592,
+    "workspace": "owned source/build ~162108KiB plus dependencies ~119388KiB; three read-only assets ~1.505GB; source/fixture tar ~114.3MB; no budget expansion",
+    "realQwenOllamaCalls": 0,
+    "actualSiglip2": "8 successful text encodes; image quality unverified",
+    "yoloCalls": 0
+  },
+  "acceptance": {
+    "entrypoint": "./test_release.sh",
+    "attempts": 0,
+    "maximumApprovedAttempts": 1,
+    "reason": "Linux required direct check failed before host acceptance",
+    "stabilization": "not-run",
+    "general30": "not-run",
+    "canonicalUI": "not-run",
+    "policyValidationResult": "not-run",
+    "uiFulltestPass": false,
+    "general120": "not-run",
+    "supplementalUI": "not-run",
+    "canonical424Boundary": "57 inspection retained; no V450 IDs in canonical. Do not equate424 with current complete UI scope.",
+    "priorScopedUIElevated": false
+  },
+  "recordingMixed120": {
+    "status": "not-run-not-authorized",
+    "requirement": "57 assessment retained; general120 cannot substitute"
+  },
+  "cleanup": {
+    "containerRemoved": true,
+    "readback": "cleanup-readback empty/exit0",
+    "productProcessesAbsentBeforeStop": true,
+    "listenersAbsentBeforeStop": true,
+    "wrapperOwnedTemporaryRootRemoved": true,
+    "hostServers": 0,
+    "hostBrowsers": 0,
+    "publishedPorts": 0,
+    "temporaryHostRoot": "removed after raw bytes/source manifest/probe/initial recipe readback; absence verified",
+    "derivedEnvironmentRetained": true,
+    "unloadGate": "not-run; Qwen/Ollama never started",
+    "temporaryPointerRemoved": true,
+    "evidenceReadback": "24 exact command outputs verified by per-command offset/bytes/hash; source manifest and embedded probe/failed recipe preserved"
+  },
+  "remaining": [
+    "Resolve Linux GStreamer1.28.1 evidence-profile environment or explicitly approve compatibility review; no silent relaxation",
+    "Remaining Linux image/search/media/A/storage/transport checks",
+    "Host formal acceptance and eligible supplemental UI",
+    "Separately approved recording/search/A mixed120",
+    "Historical record cleanup, PR/CI, merge, signed tag and Release separately authorized"
+  ],
+  "fixtureManifest": {
+    "adapter/fixtures/image-0.rgb": "2f5ac31268c03481ae38826e194bfa32efd3fde30dc1c0c76e9a56397159c4f5",
+    "adapter/fixtures/image-1.rgb": "f8734e3227e42cb3b612f80dbb3686191fc69e049901e030dbf2699a6b9c70e4",
+    "adapter/fixtures/image-2.rgb": "3acd92b7d7f05e291c973010ce38043d31a5cca65fa4190d02b61d3496cbe553",
+    "adapter/fixtures/image-3.rgb": "f19abb478a2a65dc96db497e365eb85604593def7bb320f3f16901942ea2da68",
+    "adapter/fixtures/text-0.txt": "edb3e6fd2ca0c0adf2742846999cd4539155715ddba948ca5290fe29618b1f18",
+    "adapter/fixtures/text-1.txt": "da05640b981f6f5c8e9bb45df9537076738d2f5f1ecdfb72c0c5acd0b5127671",
+    "adapter/fixtures/text-2.txt": "8c1c58fd1347954aa3d0d3e47c99fd6ab10d305dd8aef1456f81d0b4fe6b3a79",
+    "adapter/fixtures/text-3.txt": "ffbc67fe47a3b20f5965aaeddea71fe8a745a67ef0bb8d434539be85490c0d8b",
+    "adapter/fixtures/text-6.txt": "d89d399707b581f9eb514cfcf399560029fa519365872a6a549b40666c81608c",
+    "adapter/fixtures/text-7.txt": "545b92d4f82abb20e6eb6789186109261bc1b625b13a70ee43d2ccba42b01edb",
+    "adapter/fixtures/text-8.txt": "9b52ced817ec1f71ba747e7d6496ed6e93506e23cc930512889cf47a62a54a90",
+    "adapter/fixtures/text-9.txt": "a008656afa3fb35bbf87e3935fec759d703346a18817b71db89e1f7ceef12ae9",
+    "adapter/results/image-0.f32": "dd0d9f5d663da5592c9f7c70c481011043d15f81b12bc839cf7b65043ed504d2",
+    "adapter/results/image-1.f32": "dafcc39e6e3f5243cce0449a05aa00a049346a2090c958b28193ae124a4d5a24",
+    "adapter/results/image-2.f32": "dcefec2634daf1287b4c28d045c50462e6d1650bbdb828dc77725e6628d16234",
+    "adapter/results/image-3.f32": "b267eb7e59cc0189869997814ddd2222b3c3da010295cca40bb7f8f37ba38b6c",
+    "adapter/results/text-0.f32": "d0d8fe2c5f35107b436e913707a54bdab5f93b6a5b0c4f3abbb308266f609b45",
+    "adapter/results/text-0.i64": "e82f42e3cf69ea712b483325344209ce7416af64de4a2ddb83d829eeeec34f4c",
+    "adapter/results/text-1.f32": "651d44065c9b51f59d1b0336f62ac3f3a84cc4202ee148d06b81160f00ddec1d",
+    "adapter/results/text-1.i64": "a6d25e1b40a91fe6968edfd938dadedcfdd0c9af0d30bacf9f3026d76b0f9e38",
+    "adapter/results/text-2.f32": "5e7aa35715b0bbb84fd69f7e63910c30bd26bd052680e8b7e21a313af956f59b",
+    "adapter/results/text-2.i64": "a347ec5a2b667c83e535bc2783605bf879dc80dec6ecbe815cc6cfa4f1e19738",
+    "adapter/results/text-3.f32": "c806d2560f60f9e5f598f416f48d3274406cbb9c73839e990d985d73e84b0deb",
+    "adapter/results/text-3.i64": "d6a061d62581abdd0b3906d4d264cfebe3c7fbe2238164d7e11dfcd9753fc1b1",
+    "adapter/results/text-6.f32": "24751445ddcbc321529f6762e0640d2968ff7b2d29af3b636cbdbb3a156a723b",
+    "adapter/results/text-6.i64": "e65b2339a031c5efabbbdb50ed6f62fb6a968d36d7175f6df773203cd0d6ae3d",
+    "adapter/results/text-7.f32": "829ad9e78a592a2808f71e3d5c0e30936e104e8126b47cb7098001bf2a45c190",
+    "adapter/results/text-7.i64": "233fb96165df53fbfcd5e8bfd1b0e2e6da04734215c4a8fc55e657e4fd042d50",
+    "adapter/results/text-8.f32": "9a9dc5e8eaf69e14f250dce46c17fb2b1253179991b19372baaadbffa96fdeb4",
+    "adapter/results/text-8.i64": "325c17253dbb2144294a6d12f972d7f700b2bb33ea87c3a99fddc368e6944fb6",
+    "adapter/results/text-9.f32": "74c9076bd8e32f91b429bc30e5d10deeb06d55f6863791f4c48353446687848e",
+    "adapter/results/text-9.i64": "27657853fc723a4f5e80df405987bda73a8fde2a3f1f8c7aaea0811d73e272f2",
+    "adapter/fixtures/manifest.txt": "8832bc88e37ee49725410161279ba884bf3b67fb70ae62c421b8df2a4dcadc6d",
+    "retrieval/documents.txt": "fc5f76ceb8af8aada9cecf8ff9fb31282bb803f4a28e3d84f224f26ba023038f",
+    "retrieval/hard_negative-en-1.txt": "756c7be9f5c8958e49b8d8ba4a6313dec3bcc7b2210a2db79138c3bfe17f42ce",
+    "retrieval/hard_negative-en-2.txt": "0bf96960292589c3ebc54a8416e1525662293144107d63820424d8c9f8ff1762",
+    "retrieval/hard_negative-ko-1.txt": "5539322d930b8418b0c9824afbbb9011b2b1ccc81d8178add4f9a28c50144be3",
+    "retrieval/hard_negative-ko-2.txt": "959f92c77bb73131993166000c37737f283108dbd182e368e14294dcfeaf949a",
+    "retrieval/kitchen-0s.rgb": "9526377dd68ec3a02fb29e03428025fdadc07c775680dd611747bf77554c8dda",
+    "retrieval/kitchen-1s.rgb": "681c89788bc64aaa0f4f0a7f4321ae1728b6a027411c416e6c3dc9b13c362869",
+    "retrieval/kitchen-3s.rgb": "43b8142be84874752c03fa60f237298111b8fd775773fcd0acb4d27b268a3dc8",
+    "retrieval/kitchen-6s.rgb": "f4fe734d8eb6ec13a4e51a91ee2b5b840e43d13570abe62a609346eecc2b8377",
+    "retrieval/kitchen-en-1.txt": "f4cce0bc0580562d8bf97203bc912a96101f9258867b23e75044e8a69fcf1a6e",
+    "retrieval/kitchen-en-2.txt": "961d94dd0cd15f42ea8212536540e943ef0dad18b64d1941465012d3716890c1",
+    "retrieval/kitchen-ko-1.txt": "0a4844dd545eb750e725d5577b5c215e016e1b93316cc8df49e1e464ba673815",
+    "retrieval/kitchen-ko-2.txt": "29e4bd03bd0623b2159698b08b7340c4f6f4fadffe22b7670689f679e5d5653d",
+    "retrieval/living-0s.rgb": "378c3e36354aea0ec1666f191dc5d2f4ac3f3529b9e8cfe517d248da33a34920",
+    "retrieval/living-1s.rgb": "83dfaa0228f98a3417b823510c3533c91541ffd455ce9ecbd9c5126ae2268eaa",
+    "retrieval/living-3s.rgb": "9e8448cc0d20cd6c894488597fff6190e0296a5b9f38914de5bf89206b76bbe5",
+    "retrieval/living-6s.rgb": "edadef8c9e9d6a157b4802bed626203c9c307b94cec7921952c07c42ccad091c",
+    "retrieval/living-en-1.txt": "b00c2bb80e2d83f7398b50bc0daa36d7d3e033ee32456929a08742c553ad96a1",
+    "retrieval/living-en-2.txt": "784ea9f2288f32ca279a12615c8eb000a3ddd18aaac4844dd0b2729ed7f4e234",
+    "retrieval/living-ko-1.txt": "0407631624818791fb6155e71a72dc1a8ec4b77c86bc20741a6a046dd26bd5b4",
+    "retrieval/living-ko-2.txt": "b1f373d03792b96a13507076fd601387ac0750ef924c89ed5bad44e44f6e1da2",
+    "retrieval/park-0s.rgb": "847ce9797b5378a5ee72ea8b534a8e03457c8b014d5ab78654c24224150f31a5",
+    "retrieval/park-1s.rgb": "3b557d3a21dc26599a76186fb6e8268cf11c80860d50ff393758c1f3db110bb1",
+    "retrieval/park-3s.rgb": "255b1d22cc3eeaf9a0a3cb44ce3ba552e01d563efd487441e2eb9b497d723559",
+    "retrieval/park-6s.rgb": "32c6960518acf092226aaf3b21d00a935be81bdff305c262fa3c96e4fcc622d4",
+    "retrieval/park-en-1.txt": "8661119d0c33c08b9a2ae96fd11aeebc1fbefe20381cda5d507e2be1817cde7f",
+    "retrieval/park-en-2.txt": "a631bb3f996f0117ef6c2b0719e7506f246cfad9c8de2081de863a6cf2adb2b2",
+    "retrieval/park-ko-1.txt": "c85c107137f09be516cf664e045a72f2a1fd0f62ceb16369394d91ac5c8fe062",
+    "retrieval/park-ko-2.txt": "a25f2dc7fd873da3271f5f71b357b6171c1ffeb3f36c3f6aadf90383b29b71e6",
+    "retrieval/queries.txt": "b13dc1aed7c0d1b30f044d2343e87ee98b93743ab9ae2b16e367dc8bf6c87e50",
+    "retrieval/road-0s.rgb": "ae9e1282773cc75d42f0e5a60fe02492cf130b350ed0649af5bd9d1fec423427",
+    "retrieval/road-1s.rgb": "de4a7cb08c32a341c7478850fa4f3b57bfd43a3d2870133ec31c741cb4c3467a",
+    "retrieval/road-3s.rgb": "de4a7cb08c32a341c7478850fa4f3b57bfd43a3d2870133ec31c741cb4c3467a",
+    "retrieval/road-6s.rgb": "de4a7cb08c32a341c7478850fa4f3b57bfd43a3d2870133ec31c741cb4c3467a",
+    "retrieval/road-en-1.txt": "01c18da04e87e3c59dc1035eb3252f06dbafed44431c491c6aaaa8e5587838ac",
+    "retrieval/road-en-2.txt": "18d2b11a44826aa3df935aae23f95f7a7af682bc44c36a14865bebea38cbb6d6",
+    "retrieval/road-ko-1.txt": "b48370c0886355c83a71287d508275170edf4efbc6bed0c23485555870b83f0b",
+    "retrieval/road-ko-2.txt": "a679c7af7914e4db1e007f23b73809b6ab680ba63e612f931e0da7b9efb09911",
+    "retrieval/unrelated-en-1.txt": "ad18b6dcbb89d4b394b93edf1d611115bd2f222b3effd47f303e83a44e6c2e32",
+    "retrieval/unrelated-en-2.txt": "a97f12a48c7a2d54d4de26fcda12a90c8ae4f928c99d4537242d2030df651ad5",
+    "retrieval/unrelated-ko-1.txt": "6945ea6d10d7d97a5d6ec0744751cb34fa583a26ce885f053fd3d18d20165cbc",
+    "retrieval/unrelated-ko-2.txt": "9c95fd093d0fd99243722bd7ff27b3146348c22b69b0d0bcf603a25cb1b89c43"
+  },
+  "staticChecks": {
+    "docsLinks": "PASS303Markdown/9682links/14images/431anchors/0failures",
+    "whitespace": "PASS",
+    "scriptClassification": "Dockerfile is a version-scoped environment recipe; no runtime dispatcher/verifier registration added",
+    "globalProductRegression": "not-run after Linux failure",
+    "approvalImpact": "src/include/scripts/test/CMake/VERSION unchanged from entry; 56 approval not rewritten/reapplied"
+  },
+  "commits": {
+    "environment": "43caef341d52e427447e8d3149cbce5d63175b68",
+    "evidence": "containing commit; not a new reviewed product source"
+  },
+  "commands": [
+    {
+      "name": "base-tools",
+      "command": [
+        "docker",
+        "run",
+        "--rm",
+        "--pull",
+        "never",
+        "--network",
+        "none",
+        "--read-only",
+        "--name",
+        "mediaserver-rc58-tools",
+        "mediaserver-v420-verify:sid-arm64",
+        "sh",
+        "-c",
+        "for x in curl tar cmake c++ make python3 node git pkg-config gzip sha256sum; do command -v \"$x\" || exit 1; done; df -h /; pkg-config --modversion gstreamer-1.0 gstreamer-app-1.0 openssl sqlite3; cat /etc/os-release"
+      ],
+      "startedUnix": 1791344776.297737,
+      "elapsedSeconds": 1.1964385829633102,
+      "exit": 1,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "rawOffset": 0
+    },
+    {
+      "name": "base-inventory",
+      "command": [
+        "docker",
+        "run",
+        "--rm",
+        "--pull",
+        "never",
+        "--network",
+        "none",
+        "--read-only",
+        "--name",
+        "mediaserver-rc58-tools",
+        "mediaserver-v420-verify:sid-arm64",
+        "sh",
+        "-c",
+        "for x in curl tar cmake c++ make python3 node git pkg-config gzip sha256sum wget; do printf \"%s: \" \"$x\"; command -v \"$x\" || true; done; df -h /; pkg-config --modversion gstreamer-1.0 gstreamer-app-1.0 openssl sqlite3; cat /etc/os-release; dpkg-query -W ca-certificates openssl"
+      ],
+      "startedUnix": 1791344814.03235,
+      "elapsedSeconds": 0.119501042063348,
+      "exit": 0,
+      "bytes": 613,
+      "sha256": "0d42d0eae20bdd819da60b26e0995221b4d7b30fcf49bce5c791125682f32a2e",
+      "rawOffset": 0
+    },
+    {
+      "name": "environment-build",
+      "command": [
+        "docker",
+        "build",
+        "--pull=false",
+        "--progress=plain",
+        "--tag",
+        "mediaserver-v450-verify:rc58-arm64",
+        "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v450-rc58-wsc4uxns/context"
+      ],
+      "startedUnix": 1791344843.654196,
+      "elapsedSeconds": 14.529940832988359,
+      "exit": 1,
+      "bytes": 29015,
+      "sha256": "c2514511b8150dc4fd9d7a77a5139a387e43c05364a6182ab8d3705b99abd96a",
+      "rawOffset": 613
+    },
+    {
+      "name": "environment-build-cstdint",
+      "command": [
+        "docker",
+        "build",
+        "--pull=false",
+        "--progress=plain",
+        "--tag",
+        "mediaserver-v450-verify:rc58-arm64",
+        "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v450-rc58-wsc4uxns/context"
+      ],
+      "startedUnix": 1791344900.365098,
+      "elapsedSeconds": 17.989492457942106,
+      "exit": 0,
+      "bytes": 23058,
+      "sha256": "9ebec9fbfcfe0f43f892b04ac74f4eefa63218ecfa651c4c48c6a1bf5ae749a3",
+      "rawOffset": 29628
+    },
+    {
+      "name": "container-start",
+      "command": [
+        "docker",
+        "run",
+        "-d",
+        "--pull",
+        "never",
+        "--name",
+        "mediaserver-rc58-check",
+        "--label",
+        "org.mediaserver.verification=v450-58",
+        "--network",
+        "none",
+        "--cpus",
+        "2",
+        "--memory",
+        "6g",
+        "--memory-swap",
+        "6g",
+        "--pids-limit",
+        "256",
+        "--mount",
+        "type=bind,src=/Users/dhseo/Workspace/mediaServer/models/v430-siglip2/upstream/tokenizer.model,dst=/fixtures/tokenizer.model,readonly",
+        "--mount",
+        "type=bind,src=/Users/dhseo/Workspace/mediaServer/models/v430-siglip2/onnx/image_encoder.onnx,dst=/fixtures/models/onnx/image_encoder.onnx,readonly",
+        "--mount",
+        "type=bind,src=/Users/dhseo/Workspace/mediaServer/models/v430-siglip2/onnx/text_encoder.onnx,dst=/fixtures/models/onnx/text_encoder.onnx,readonly",
+        "mediaserver-v450-verify:rc58-arm64",
+        "sleep",
+        "infinity"
+      ],
+      "startedUnix": 1791344962.9406168,
+      "elapsedSeconds": 0.11644295800942928,
+      "exit": 0,
+      "bytes": 65,
+      "sha256": "5b8ba6e76a8953ddcc0b5ac3c76a9010f1b87f421d8ad1c36f13cf3a15c65821",
+      "rawOffset": 52686
+    },
+    {
+      "name": "probe-copy",
+      "command": [
+        "docker",
+        "cp",
+        "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v450-rc58-wsc4uxns/probe.cpp",
+        "mediaserver-rc58-check:/tmp/rc58-probe.cpp"
+      ],
+      "startedUnix": 1791344963.0888572,
+      "elapsedSeconds": 0.018007790902629495,
+      "exit": 0,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "rawOffset": 52751
+    },
+    {
+      "name": "cpp-probe",
+      "command": [
+        "docker",
+        "exec",
+        "mediaserver-rc58-check",
+        "sh",
+        "-ec",
+        "c++ -std=c++17 /tmp/rc58-probe.cpp -I/opt/onnxruntime-linux-aarch64-1.23.2/include -I/opt/rc58-sentencepiece/include /opt/rc58-sentencepiece/lib/libsentencepiece.a -L/opt/onnxruntime-linux-aarch64-1.23.2/lib -Wl,-rpath,/opt/onnxruntime-linux-aarch64-1.23.2/lib -lonnxruntime -ldl -pthread -o /tmp/rc58-probe; /tmp/rc58-probe; ldd /tmp/rc58-probe; sha256sum /opt/rc58-source/*.tar.gz /opt/rc58-source/*.tgz /opt/rc58-sentencepiece/lib/libsentencepiece.a; /opt/rc58-sentencepiece/bin/spm_encode --version"
+      ],
+      "startedUnix": 1791344963.131851,
+      "elapsedSeconds": 0.4473876670235768,
+      "exit": 0,
+      "bytes": 1387,
+      "sha256": "c65dc4f042d1a45a5965407cbc6805d31a2e7dbcca8f4a21411ba0e54aea81c2",
+      "rawOffset": 52751
+    },
+    {
+      "name": "source-copy",
+      "command": [
+        "docker",
+        "cp",
+        "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v450-rc58-wsc4uxns/source.tar",
+        "mediaserver-rc58-check:/tmp/rc58-source.tar"
+      ],
+      "startedUnix": 1791344989.653632,
+      "elapsedSeconds": 0.526698415982537,
+      "exit": 0,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "rawOffset": 54138
+    },
+    {
+      "name": "cmake-configure",
+      "command": [
+        "docker",
+        "exec",
+        "mediaserver-rc58-check",
+        "sh",
+        "-ec",
+        "mkdir -p /work/repo; tar -xf /tmp/rc58-source.tar -C /work/repo; cmake -S /work/repo -B /work/repo/build-gst-onnx -DCMAKE_BUILD_TYPE=Release -DMEDIA_SERVER_USE_GSTREAMER=ON -DMEDIA_SERVER_USE_ONNXRUNTIME=ON -DMEDIA_SERVER_USE_SIGLIP2=ON -DMEDIA_SERVER_ONNXRUNTIME_ROOT=/opt/onnxruntime-linux-aarch64-1.23.2 -DMEDIA_SERVER_SENTENCEPIECE_ROOT=/opt/rc58-sentencepiece -DCMAKE_PREFIX_PATH=/opt/onnxruntime-linux-aarch64-1.23.2\\;/opt/rc58-sentencepiece; grep -E \"^(ONNXRUNTIME_|SENTENCEPIECE_|MEDIA_SERVER_USE_|MEDIA_SERVER_.*ROOT|CMAKE_BUILD_TYPE|CMAKE_CXX_COMPILER):?\" /work/repo/build-gst-onnx/CMakeCache.txt"
+      ],
+      "startedUnix": 1791344990.204948,
+      "elapsedSeconds": 0.2985519589856267,
+      "exit": 0,
+      "bytes": 1833,
+      "sha256": "97447eddd1d8c65edf6079a8ebe77d5964ca670b703ef793d5a68225f59c5a99",
+      "rawOffset": 54138
+    },
+    {
+      "name": "cmake-build",
+      "command": [
+        "docker",
+        "exec",
+        "mediaserver-rc58-check",
+        "cmake",
+        "--build",
+        "/work/repo/build-gst-onnx",
+        "-j",
+        "2"
+      ],
+      "startedUnix": 1791345004.6347919,
+      "elapsedSeconds": 103.26751241704915,
+      "exit": 0,
+      "bytes": 18992,
+      "sha256": "b35ffce08168e4e637e392f6279eaff3752794abc402a15c47daed5404a67bba",
+      "rawOffset": 55971
+    },
+    {
+      "name": "fixture-copy",
+      "command": [
+        "docker",
+        "cp",
+        "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/v450-rc58-wsc4uxns/fixtures.tar",
+        "mediaserver-rc58-check:/tmp/rc58-fixtures.tar"
+      ],
+      "startedUnix": 1791345134.503052,
+      "elapsedSeconds": 0.1453242499846965,
+      "exit": 0,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "rawOffset": 74963
+    },
+    {
+      "name": "build-manifest",
+      "command": [
+        "docker",
+        "exec",
+        "mediaserver-rc58-check",
+        "sh",
+        "-ec",
+        "mkdir -p /fixtures/models/upstream /work/repo/models; ln -s /fixtures/tokenizer.model /fixtures/models/upstream/tokenizer.model; ln -s /fixtures/models /work/repo/models/v430-siglip2; tar -xf /tmp/rc58-fixtures.tar -C /fixtures/models; uname -sm; c++ --version; pkg-config --modversion gstreamer-1.0 openssl sqlite3; sha256sum /work/repo/build-gst-onnx/media_server /work/repo/build-gst-onnx/libmedia_server_runtime.a; ldd /work/repo/build-gst-onnx/media_server; cat /work/repo/build-gst-onnx/CMakeFiles/media_server_runtime.dir/flags.make; cat /work/repo/build-gst-onnx/CMakeFiles/media_server.dir/link.txt"
+      ],
+      "startedUnix": 1791345134.6735349,
+      "elapsedSeconds": 0.054487792076542974,
+      "exit": 0,
+      "bytes": 6149,
+      "sha256": "39a3e2458027d73014ad687a154c01b8a35a6424a59a981d3c97b89d2823c365",
+      "rawOffset": 74963
+    },
+    {
+      "name": "linux-search",
+      "command": [
+        "docker",
+        "exec",
+        "-w",
+        "/work/repo",
+        "-e",
+        "MEDIA_SERVER_SKIP_LOCAL_ENV=1",
+        "mediaserver-rc58-check",
+        "python3",
+        "scripts/internal/verify_v450_search.py"
+      ],
+      "startedUnix": 1791345134.753927,
+      "elapsedSeconds": 1.0201922920532525,
+      "exit": 1,
+      "bytes": 3732,
+      "sha256": "49793c3d7d9ae6ca006ba8205426820b7058093ab096a264a60a8255f285ba32",
+      "rawOffset": 81112
+    },
+    {
+      "name": "linux-search-sdk-path",
+      "command": [
+        "docker",
+        "exec",
+        "-w",
+        "/work/repo",
+        "-e",
+        "MEDIA_SERVER_SKIP_LOCAL_ENV=1",
+        "-e",
+        "LD_LIBRARY_PATH=/opt/onnxruntime-linux-aarch64-1.23.2/lib",
+        "mediaserver-rc58-check",
+        "python3",
+        "scripts/internal/verify_v450_search.py"
+      ],
+      "startedUnix": 1791345161.628149,
+      "elapsedSeconds": 13.15593095892109,
+      "exit": 1,
+      "bytes": 10962,
+      "sha256": "bc97ecbb159862e43a3d99b91390a6806955248f3df6f7c43212f33e95388e8a",
+      "rawOffset": 84844
+    },
+    {
+      "name": "environment-final",
+      "command": [
+        "docker",
+        "inspect",
+        "mediaserver-rc58-check",
+        "--format",
+        "{{json .}}"
+      ],
+      "startedUnix": 1791345239.0107782,
+      "elapsedSeconds": 0.022882709046825767,
+      "exit": 0,
+      "bytes": 5173,
+      "sha256": "1e748f64d51ffa8db2fa798fadca244429fb53887457044e7e586cce18ae4af4",
+      "rawOffset": 95806
+    },
+    {
+      "name": "image-final",
+      "command": [
+        "docker",
+        "image",
+        "inspect",
+        "mediaserver-v420-verify:sid-arm64",
+        "mediaserver-v450-verify:rc58-arm64"
+      ],
+      "startedUnix": 1791345239.059772,
+      "elapsedSeconds": 0.04593670798931271,
+      "exit": 0,
+      "bytes": 3911,
+      "sha256": "ceffa289f43c4076ae67c9085baca83a3bffa8a067c4846322984a69feac6288",
+      "rawOffset": 100979
+    },
+    {
+      "name": "linux-final-state",
+      "command": [
+        "docker",
+        "exec",
+        "mediaserver-rc58-check",
+        "sh",
+        "-ec",
+        "cat /sys/fs/cgroup/memory.peak; cat /sys/fs/cgroup/memory.events; cat /sys/fs/cgroup/cpu.stat; du -s /work /opt/rc58-source /opt/rc58-sentencepiece /opt/onnxruntime-linux-aarch64-1.23.2; ps -eo pid,ppid,comm; find /tmp -maxdepth 1 -name \"media-server-*\" -print; cat /proc/net/tcp; cat /proc/net/tcp6; gst-inspect-1.0 --version; gst-inspect-1.0 isomp4 | head -15; gst-inspect-1.0 videoparsersbad | head -15; test -f /opt/onnxruntime-linux-aarch64-1.23.2/LICENSE; test -f /opt/onnxruntime-linux-aarch64-1.23.2/ThirdPartyNotices.txt; sha256sum /opt/onnxruntime-linux-aarch64-1.23.2/lib/libonnxruntime.so.1.23.2 /opt/onnxruntime-linux-aarch64-1.23.2/lib/libonnxruntime_providers_shared.so"
+      ],
+      "startedUnix": 1791345239.1318169,
+      "elapsedSeconds": 0.07232941698748618,
+      "exit": 0,
+      "bytes": 2385,
+      "sha256": "1250b7be0dba520021432877af56164820f0cc8f244ab87dc0f19e8a4df08918",
+      "rawOffset": 104890
+    },
+    {
+      "name": "build-readback",
+      "command": [
+        "docker",
+        "exec",
+        "mediaserver-rc58-check",
+        "sh",
+        "-ec",
+        "cat /work/repo/build-gst-onnx/CMakeCache.txt; sha256sum /tmp/rc58-source.tar /tmp/rc58-fixtures.tar /tmp/rc58-probe.cpp /tmp/rc58-probe; test \"$(cat /work/repo/VERSION)\" = 4.5.0; test -z \"$(find /tmp -maxdepth 1 -name \"media-server-*\")\""
+      ],
+      "startedUnix": 1791345292.28195,
+      "elapsedSeconds": 0.10187587502878159,
+      "exit": 0,
+      "bytes": 32075,
+      "sha256": "c06bc172e20e22fced915b4847c13763077b240bcf12aee8f7ec5e19811e2dba",
+      "rawOffset": 107275
+    },
+    {
+      "name": "container-stop",
+      "command": [
+        "docker",
+        "stop",
+        "--time",
+        "10",
+        "mediaserver-rc58-check"
+      ],
+      "startedUnix": 1791345292.41484,
+      "elapsedSeconds": 10.071433416102082,
+      "exit": 0,
+      "bytes": 78,
+      "sha256": "444c82b81a367006f8b55f6c68e104f5e901e7dcbcbb0c75b486db6d4de66948",
+      "rawOffset": 139350
+    },
+    {
+      "name": "container-remove",
+      "command": [
+        "docker",
+        "rm",
+        "mediaserver-rc58-check"
+      ],
+      "startedUnix": 1791345302.535666,
+      "elapsedSeconds": 0.05666920798830688,
+      "exit": 0,
+      "bytes": 23,
+      "sha256": "c5788efbc874ffbe3f2f78dc8eb900b34cab017278acc9a139cb763ab67e3656",
+      "rawOffset": 139428
+    },
+    {
+      "name": "cleanup-readback",
+      "command": [
+        "docker",
+        "ps",
+        "-a",
+        "--filter",
+        "label=org.mediaserver.verification=v450-58",
+        "--format",
+        "{{.ID}} {{.Names}} {{.Status}}"
+      ],
+      "startedUnix": 1791345302.6216419,
+      "elapsedSeconds": 0.015316707897000015,
+      "exit": 0,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "rawOffset": 139451
+    },
+    {
+      "name": "docs-links",
+      "command": [
+        "node",
+        "scripts/internal/verify_docs_links.mjs"
+      ],
+      "startedUnix": 1791345418.8728619,
+      "elapsedSeconds": 0.33871954097412527,
+      "exit": 0,
+      "bytes": 186,
+      "sha256": "b7a8d370f5bd00b0653391e8cb575c81b01d23fd779298296853e21238f5d471",
+      "rawOffset": 139451
+    },
+    {
+      "name": "whitespace",
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "startedUnix": 1791345419.235788,
+      "elapsedSeconds": 0.012487625004723668,
+      "exit": 0,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "rawOffset": 139637
+    },
+    {
+      "name": "retained-image-readback",
+      "command": [
+        "docker",
+        "image",
+        "inspect",
+        "mediaserver-v420-verify:sid-arm64",
+        "mediaserver-v450-verify:rc58-arm64",
+        "--format",
+        "{{.Id}} {{.Architecture}} {{json .RepoTags}}"
+      ],
+      "startedUnix": 1791345493.9415948,
+      "elapsedSeconds": 0.0999994589947164,
+      "exit": 0,
+      "bytes": 233,
+      "sha256": "a0e34c424f9cd9199b013bfdb8466e9e5c16bf9662d740b187d0aed9263dbf21",
+      "rawOffset": 139637
+    }
+  ],
+  "rawOutput": {
+    "file": "58-output.log.gz",
+    "uncompressedSha256": "6bc163ed12de17bec922c1a1f98b1d7fd5a06cee9e083189762d6f62c9345d62",
+    "uncompressedBytes": 139870,
+    "layout": "Concatenated exact stdout/stderr bytes; offset/length/hash per command; no output rewriting",
+    "firstFailureRawPreserved": true
+  }
+}
