@@ -4763,3 +4763,9 @@ V450-U02 추가 반례는 실제 `openAnalysis` 스크립트를 읽는 `evidence
 V450-E03 추가 반례는 K05 core, K07 observations, K08 bound record, U02 HTTP/UI와 E03 자체검사의
 명령/옵션/전이 호출을 제거하거나 다른 유효 명령으로 바꿔도 거부되어야 한다.
 현재 필수 정의→명령과 명령→정의 양방향을 검사하며 자식 실패/후속 not-run은 그대로 유지한다.
+
+V450-E03/U02 출력 결속 반례는 `va_review_test_artifacts.test.mjs`에서 parent→wrapper→HTTP→capture의
+실행별 출력, 경로 이탈/충돌/쓰기 실패, 누락 전달·checkpoint 이탈·제품/검사/fixture 지문 변경을 검사한다.
+feature-gates 직후 초기 소스 지문을 재확인하고 실패 시 일반30분/UI를 실행하지 않는다.
+실제 두 HTTP wrapper의 PNG·JSON·checkpoint와 참조 hash·cleanup은 지정 run 아래에서 확인한다.
+최종 Policy v4/소스 결속은 유지하며 단기 경로 검사는 전체 UI 적격성을 대신하지 않는다.

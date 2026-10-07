@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import {resolvePlaywrightModule,resolveNativeBrowserExecutable} from './v390_ui_native_adapter.mjs';
-export async function checkMaterials({repo,root,base,req,execute,body,prefix,packs,packageInfo,packages,seedInfo,cookies,admin,report,check,pause,started}){
+export async function checkMaterials({repo,root,artifacts,base,req,execute,body,prefix,packs,packageInfo,packages,seedInfo,cookies,admin,report,check,pause,started}){
   const right=await execute();check(right.result.materialRequests.status==='not-needed'&&right.result.materialRequests.items.length===0,'supported without request remains readable');
   const left=await execute(body(packageInfo,'endpoint-left'));check(left.result.decisions[0].verdict==='contradicted'&&left.result.materialRequests.status==='not-needed','contradiction without request');
   const unsupported=await execute(body(packageInfo,'continuous-motion'));check(unsupported.result.materialRequests.status==='unavailable-unsupported'&&unsupported.result.decisions[0].verdict==='unsupported','unsupported does not promise solvable materials');
@@ -40,7 +40,7 @@ export async function checkMaterials({repo,root,base,req,execute,body,prefix,pac
     const text=await page.locator('#opsAReviewMaterials').innerText();ui(text.includes('추가로 필요한 자료 — 서버 규칙')&&text.includes('sample 기록 연결')&&text.includes('원본 화면 기준 위치')&&text.includes('물리적 동일성 인증 아님')&&text.includes('미디어 PTS')&&!text.includes('AI가 생성'),'actual request meaning and origin');
     ui((await page.locator('#opsAReviewResult').innerText()).includes('모델 질문: 미생성')&&await page.locator('#opsAReviewResult script').count()===0,'model state and literal original HTML retained');
     const shot=async(width,theme)=>{await page.setViewportSize({width,height:1000});await page.evaluate(t=>{document.documentElement.dataset.theme=t;localStorage.setItem('media-server-theme',t);},theme);
-      const file=path.join(repo,`docs/release-artifacts/v4.5.0/46-materials-${width}-${theme}-${started}.png`);await page.locator('#opsAReviewResult').screenshot({path:file});report.browser.screenshots.push({file:path.basename(file),width,theme,scope:'whole saved result and material guidance'});ui(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'no horizontal overflow '+width+' '+theme);};
+      const file=`46-materials-${width}-${theme}-${started}.png`;report.browser.screenshots.push(await artifacts.screenshot(page.locator('#opsAReviewResult'),file,{width,theme,scope:'whole saved result and material guidance'}));ui(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'no horizontal overflow '+width+' '+theme);};
     for(const [width,theme] of [[1280,'light'],[1280,'dark'],[390,'light'],[390,'dark']])await shot(width,theme);
     report.browser.materialsText=text;
     await page.setViewportSize({width:1280,height:1000});await show(limit.done.reviewId);const limitText=await page.locator('#opsAReviewResult').innerText();

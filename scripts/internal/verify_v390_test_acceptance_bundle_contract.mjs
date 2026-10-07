@@ -56,7 +56,7 @@ assertKnownOptions(rawArgs, ["h", "help", "recording-root-only", "v450-plan-only
 // 출시 범위만 고정: 실제 acceptance/장시간/모델은 실행하지 않는다.
 if(rawArgs.includes("--v450-plan-only")){
   testV450ReleaseRegistration(rootDir);
-  const registrationTests=spawnSync(process.execPath,['--test',path.join(scriptDir,'v450_release_checks.test.mjs')],{cwd:rootDir,encoding:'utf8',timeout:10000});
+  const registrationTests=spawnSync(process.execPath,['--test',path.join(scriptDir,'v450_release_checks.test.mjs'),path.join(scriptDir,'va_review_test_artifacts.test.mjs')],{cwd:rootDir,encoding:'utf8',timeout:10000});
   assert(registrationTests.status===0,registrationTests.stdout+registrationTests.stderr);console.log(registrationTests.stdout.trim());
   const owned=fs.mkdtempSync(path.join(os.tmpdir(),"media-server-v450-plan-"));
   try{

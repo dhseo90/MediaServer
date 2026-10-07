@@ -2,6 +2,11 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import assert from 'node:assert/strict';
+export function withV450ArtifactOutput(spec,{artifactRoot,runDir}){
+  if(!['v450-A-http','v450-release-http'].includes(spec.id))return spec;
+  assert(path.isAbsolute(artifactRoot)&&path.isAbsolute(runDir)&&runDir.startsWith(artifactRoot+path.sep),'invalid parent run root');
+  return {...spec,env:{...spec.env,MEDIA_SERVER_TEST_ARTIFACT_ROOT:artifactRoot,MEDIA_SERVER_TEST_OUTPUT_DIR:path.join(runDir,spec.id)}};
+}
 export function v450ReleaseCommands(){
   return [
     {id:'v450-search',file:'python3',args:['scripts/internal/verify_v450_search.py'],featureIds:['V450-T01','V450-S02','V450-S03','V450-R01','V450-R02','V450-R03'],owner:'ingress/recording',proof:'scripts/internal/visual_search_application_smoke.cpp',action:'--scope-only'},

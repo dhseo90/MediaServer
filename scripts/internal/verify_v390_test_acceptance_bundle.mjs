@@ -2,7 +2,8 @@
 // 파일 용도: v3.9.0 test acceptance를 dry-run 또는 실제 stop-on-first-fail bundle로 실행한다.
 
 import fs from "node:fs";
-import {v450ReleaseCommands} from "./v450_release_checks.mjs";
+import {v450ReleaseCommands,withV450ArtifactOutput} from "./v450_release_checks.mjs";
+import {verifyReviewTestArtifacts} from "./va_review_test_artifacts.mjs";
 import os from "node:os";
 import path from "node:path";
 import process from "node:process";
@@ -150,7 +151,7 @@ const fixtureMode = options.fixturePass || options.fixtureFailStage !== "" ||
 const executionMode = options.dryRun
   ? "dry-run"
   : (fixtureMode ? "actual-fixture" : (options.suite === "ui" ? "actual-ui-only" : "actual"));
-const featureCommands = buildFeatureCommands();
+const featureCommands = buildFeatureCommands().map(spec=>withV450ArtifactOutput(spec,{artifactRoot:outputDir,runDir}));
 const finalAcceptanceCommandSet = buildFinalAcceptanceCommandSet();
 const stages = [];
 let failedStage = "";
@@ -221,6 +222,7 @@ async function runActualBundle() {
     try {
       if (fixtureMode) await runFixtureStage(stageId);
       else await runRealStage(stageId);
+      if (stageId === "feature-gates" && !failedStage) verifyFeatureSourceBinding();
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       if (error?.uiEnvironment) uiEnvironmentSummary = error.uiEnvironment;
@@ -790,6 +792,10 @@ async function runCommandListStage(stageId, commands) {
     }
     const logPath = path.join(runDir, `${stageId}-${String(index + 1).padStart(2, "0")}-${spec.id}.log`);
     const result = await runCommand(spec, logPath);
+    if(result.exitCode===0&&spec.env?.MEDIA_SERVER_TEST_OUTPUT_DIR){
+      try{result.artifacts=verifyReviewTestArtifacts(spec.env.MEDIA_SERVER_TEST_OUTPUT_DIR);}
+      catch(error){result.exitCode=1;result.tail.push(`child artifact binding: ${error.message}`);}
+    }
     checks.push({
       id: spec.id,
       status: result.exitCode === 0 ? "PASS" : "FAIL",
@@ -798,6 +804,7 @@ async function runCommandListStage(stageId, commands) {
       durationMs: result.durationMs,
       logPath,
       tail: result.tail,
+      artifacts: result.artifacts,
     });
     if (result.exitCode !== 0) {
       failedStage = stageId;
@@ -817,6 +824,18 @@ async function runCommandListStage(stageId, commands) {
     tail: [],
     checks,
   }));
+}
+
+// 최초 결속은 유지한다. feature 출력 이탈을 장시간/UI 시작 전에 잡되 최종 gate를 대체하지 않는다.
+function verifyFeatureSourceBinding() {
+  const current=collectSourceProvenanceWithAllowedArtifacts(rootDir,outputDir);
+  const evidence={initial:sourceProvenance,current,pass:
+    current.commitSha===sourceProvenance.commitSha&&current.branch===sourceProvenance.branch&&
+    current.sourcePatchSha256===sourceProvenance.sourcePatchSha256};
+  const file=path.join(runDir,"feature-source-binding.json");writeJson(file,evidence);
+  const stage=stages.find(item=>item.id==="feature-gates");stage.sourceBinding={pass:evidence.pass,evidencePath:file};
+  if(!evidence.pass)replaceStageWithValidationFailure("feature-gates",
+    `source binding changed before longrun: ${sourceProvenance.sourcePatchSha256} -> ${current.sourcePatchSha256}; paths=${current.unapprovedDirtyPaths.join(",")}`);
 }
 
 function runCommand(spec, logPath) {

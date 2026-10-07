@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // 파일 용도: 제품 출시 제한과 이력/A의 실제 HTTP 및 변경 화면 단기 검사.
 import fs from 'node:fs';
+import {createReviewTestArtifacts} from './va_review_test_artifacts.mjs';
 import os from 'node:os';
 import path from 'node:path';
 import http from 'node:http';
@@ -12,16 +13,15 @@ import {bootstrapRecordingUiAuth,createUiAuthPasswords,reservePort,stopServer,as
   from './verify_v410_recording_ui_contract.mjs';
 
 const repo=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');
+const artifacts=createReviewTestArtifacts(repo);
 const root=fs.mkdtempSync(path.join(fs.realpathSync(os.tmpdir()),'media-server-va-http-'));
 fs.chmodSync(root,0o700);const identity=fs.statSync(root);const started=Date.now();
 const report={featureId:'V450-E01/E02/A01/A02/A03',command:'bash scripts/internal/verify_va_review.sh --http-only',startedAtMs:started,
   sourceSha256:crypto.createHash('sha256').update(fs.readFileSync(fileURLToPath(import.meta.url))).digest('hex'),
   actualUiPass:false,actualModel:false,checks:[],cleanup:{},status:'RUNNING',root,
   rootIdentity:{dev:identity.dev,ino:identity.ino,uid:identity.uid}};
-const output=path.join(repo,'docs/release-artifacts/v4.5.0',`54-http-${started}.json`);
 // 브라우저 시작 전부터 소유 root/포트/PID를 남긴다. 비정상 종료를 PASS나 정리 완료로 추정하지 않는다.
-const checkpoint=()=>fs.writeFileSync(output,JSON.stringify(report,null,2)+'\n');
-checkpoint();
+const checkpoint=()=>artifacts.checkpoint(report);
 let child,provider,udp,httpPort,rtspPort,providerPort,timer,expired=false,failed=false,admin;
 let chatCalls=0,diagnostics='';const pending=new Set(),secrets=[];
 const assert=(ok,id)=>{if(!ok)throw Error(id);};
@@ -29,7 +29,10 @@ const check=(ok,id)=>{report.checks.push({id,status:ok?'PASS':'FAIL'});assert(ok
 const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 const binary=path.join(repo,'build-gst-onnx/media_server');
 const hash=file=>crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex');
+const interrupted=signal=>{failed=true;expired=true;report.status='FAIL';report.failure='interrupted '+signal;try{checkpoint();}catch(e){console.error(e.message);}child?.kill('SIGTERM');};
+process.once('SIGTERM',interrupted);process.once('SIGINT',interrupted);
 try{
+  checkpoint();
   for(const name of ['data','input','events','recordings','tmp','gst-cache','cache'])fs.mkdirSync(path.join(root,name),{mode:0o700});
   fs.copyFileSync(path.join(repo,'video/sample_h264_video_only.mp4'),path.join(root,'input/sample.mp4'));
   fs.copyFileSync(path.join(repo,'video/sample_h264_video_only.mp4'),path.join(root,'input/second.mp4'));
@@ -123,7 +126,7 @@ try{
   check(done.state==='completed','A confirmation execution still completes');
   const aResult=await req(ap+'/'+done.reviewId);check(JSON.stringify(aResult).includes('supported'),'A stored verdict readable');
   const {verifyReleaseUi}=await import('./va_review_release_ui.mjs');
-  await verifyReleaseUi({base,root,repo,packages,historicalId,aInfo,cookies,report,check,started});
+  await verifyReleaseUi({base,root,repo,artifacts,packages,historicalId,aInfo,cookies,report,check,started});
   check(chatCalls===0,'release rejected before all provider/network calls');
   check((await req(prefix+'?packageId='+packages[0])).items.length===1,'rejected requests publish zero records');
   report.cleanup.firstProcess=await stopServer(child);await assertPortClosed(httpPort);await assertPortClosed(rtspPort);child=null;
@@ -145,6 +148,7 @@ try{
     .map(line=>line.replace(/(?:https?|rtsp|stun|turn):\/\/\S+/g,'[url]').replace(/(?:\/[\w.-]+){2,}/g,'[path]'));
 }
 finally{
+  process.removeListener('SIGTERM',interrupted);process.removeListener('SIGINT',interrupted);
   clearTimeout(timer);
   if(child){try{report.cleanup.process=await stopServer(child);}catch{failed=true;report.cleanup.process={exited:child.exitCode!==null||child.signalCode!==null,exitCode:child.exitCode,signalCode:child.signalCode,normal:false};}}
   for(const [name,port] of [['http',httpPort],['rtsp',rtspPort]])if(port){try{report.cleanup[name]=await assertPortClosed(port);}catch{failed=true;report.cleanup[name]={closed:false};}}

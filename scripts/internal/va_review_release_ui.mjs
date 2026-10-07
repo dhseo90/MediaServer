@@ -1,7 +1,6 @@
 // 파일 용도: 실제 Ops 변경 영역의 출시 제한·이력·A·늦은 capability 응답을 확인한다.
-import path from 'node:path';
 import {resolvePlaywrightModule,resolveNativeBrowserExecutable} from './v390_ui_native_adapter.mjs';
-export async function verifyReleaseUi({base,repo,packages,aInfo,cookies,report,check,started}){
+export async function verifyReleaseUi({base,repo,artifacts,packages,aInfo,cookies,report,check,started}){
   const {playwright,moduleVersion}=resolvePlaywrightModule();
   const browser=await playwright.chromium.launch({headless:true,executablePath:resolveNativeBrowserExecutable(),args:['--disable-background-networking','--disable-component-update','--no-first-run']});
   report.browser={moduleVersion,checks:[],screenshots:[],closed:false};
@@ -20,7 +19,7 @@ export async function verifyReleaseUi({base,repo,packages,aInfo,cookies,report,c
     for(const [width,theme] of [[1280,'light'],[390,'dark']]){
       await page.setViewportSize({width,height:900});await page.evaluate(t=>{document.documentElement.dataset.theme=t;localStorage.setItem('media-server-theme',t);},theme);
       const panel=page.locator('section[aria-label="영상 근거 검토"]');await panel.scrollIntoViewIfNeeded();
-      const file=`54-model-${width}-${theme}-${started}.png`;await panel.screenshot({path:path.join(repo,'docs/release-artifacts/v4.5.0',file)});report.browser.screenshots.push(file);
+      const file=`54-model-${width}-${theme}-${started}.png`;report.browser.screenshots.push(await artifacts.screenshot(panel,file,{width,theme}));
       ui(await panel.locator('#opsVaReviewExecute').isDisabled(),'responsive disabled '+width+' '+theme);
     }
     let release;let seen;let finished;let routeStarted=false;
@@ -39,7 +38,7 @@ export async function verifyReleaseUi({base,repo,packages,aInfo,cookies,report,c
     await page.click('#opsAReviewPrepare');await page.click('#opsAReviewConfirm');await page.waitForFunction(()=>!document.getElementById('opsAReviewExecute').disabled);
     await page.click('#opsAReviewExecute');await page.locator('#opsAReviewResult h5').first().waitFor();
     const text=await page.locator('#opsAReviewResult').innerText();ui(text.includes('자료')&&text.includes('서버 규칙'),'A confirm execute store result and server material guide');
-    const aShot=`54-A-${started}.png`;await page.locator('#opsAReviewPanel').screenshot({path:path.join(repo,'docs/release-artifacts/v4.5.0',aShot)});report.browser.screenshots.push(aShot);
+    const aShot=`54-A-${started}.png`;report.browser.screenshots.push(await artifacts.screenshot(page.locator('#opsAReviewPanel'),aShot));
     await open();let fail=true;await page.route(pattern,async route=>{if(fail)await route.fulfill({status:503,contentType:'application/json',body:'{"error":"review-store-unavailable"}'});else await route.continue();});
     await page.click('#opsVaReviewRefresh');await page.locator('#opsVaReviewStatus').filter({hasText:'완료하지 못했습니다'}).waitFor();
     ui(await page.locator('#opsVaReviewExecute').isDisabled(),'communication failure never enables execution');fail=false;

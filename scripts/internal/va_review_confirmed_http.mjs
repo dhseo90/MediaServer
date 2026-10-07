@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // 파일 용도: V450-A01 실제 제품 HTTP/Auth/worker/재시작의 격리 단기 검사.
 import fs from 'node:fs';
+import {createReviewTestArtifacts} from './va_review_test_artifacts.mjs';
 import os from 'node:os';
 import path from 'node:path';
 import http from 'node:http';
@@ -15,20 +16,25 @@ import {resolvePlaywrightModule,resolveNativeBrowserExecutable} from './v390_ui_
 const materialMode=process.env.MEDIA_SERVER_VA_MATERIAL_CHECKS==='1';
 const phase=materialMode?'46':process.env.MEDIA_SERVER_VA_VALIDATION_PHASE==='56'?'56':'42';
 const repo=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');
+const artifacts=createReviewTestArtifacts(repo);
 const root=fs.mkdtempSync(path.join(fs.realpathSync(os.tmpdir()),'media-server-a-review-http-'));
 fs.chmodSync(root,0o700);const identity=fs.statSync(root);const started=Date.now();
 const report={featureId:materialMode?'V450-A03/U03':'V450-A02/U02',command:'python3 scripts/internal/verify_va_review_confirmed.py '+(materialMode?'--materials-http':'--http'),startedAtMs:started,
   sourceSha256:crypto.createHash('sha256').update(fs.readFileSync(fileURLToPath(import.meta.url))).digest('hex'),
   actualUiPass:false,actualModel:false,checks:[],cleanup:{},status:'RUNNING',root,
   rootIdentity:{dev:identity.dev,ino:identity.ino,uid:identity.uid}};
+const checkpoint=()=>artifacts.checkpoint(report);
 let browser,page,child,provider,udp,httpPort,rtspPort,providerPort,timer,expired=false,failed=false,admin;
 let delay=false,chatCalls=0,blockedRequests=0,providerError=false,diagnostics='';const pending=new Set(),secrets=[];
 const assert=(ok,id)=>{if(!ok)throw Error(id);};
-const check=(ok,id)=>{report.checks.push({id,status:ok?'PASS':'FAIL'});assert(ok,id);};
+const check=(ok,id)=>{report.checks.push({id,status:ok?'PASS':'FAIL'});checkpoint();assert(ok,id);};
 const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 const binary=path.join(repo,'build-gst-onnx/media_server');
 const hash=file=>crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex');
+const interrupted=signal=>{failed=true;expired=true;report.status='FAIL';report.failure='interrupted '+signal;try{checkpoint();}catch(e){console.error(e.message);}child?.kill('SIGTERM');};
+process.once('SIGTERM',interrupted);process.once('SIGINT',interrupted);
 try{
+  checkpoint();
   for(const name of ['data','input','events','recordings','tmp','gst-cache','cache'])fs.mkdirSync(path.join(root,name),{mode:0o700});
   fs.copyFileSync(path.join(repo,'video/sample_h264_video_only.mp4'),path.join(root,'input/sample.mp4'));
   fs.copyFileSync(path.join(repo,'video/sample_h264_video_only.mp4'),path.join(root,'input/second.mp4'));
@@ -93,7 +99,7 @@ try{
   const execute=async(b=body())=>{const d=await draft(b);await action(d,'confirm');const job=await action(d,'execute',admin,202);const done=await waitJob(job.id);check(done.state==='completed','A record completes');return {d,job,done,result:await req(prefix+'/'+done.reviewId)};};
   if(materialMode){
     const {checkMaterials}=await import('./va_review_material_http.mjs');
-    await checkMaterials({repo,root,base,req,execute,body,prefix,packs,packageInfo,packages,seedInfo,cookies,admin,report,check,pause,started});
+    await checkMaterials({repo,root,artifacts,base,req,execute,body,prefix,packs,packageInfo,packages,seedInfo,cookies,admin,report,check,pause,started});
     check(chatCalls===0,'model transport trap: zero calls');check(!expired,'180 second bounded harness');
   }else{
   for(const route of [packs+'?channelId=1',packs+'/'+packages[0],prefix+'?packageId='+packages[0]]){
@@ -162,7 +168,7 @@ try{
   uiCheck((await page.locator('#opsAReviewResult').innerText()).includes('지지')&&await page.locator('#opsAReviewResult script').count()===0,'supported result and input escaping');
   await page.locator('#opsAReviewResult button').first().click();await page.waitForFunction(()=>[...document.querySelectorAll('#opsAReviewPanel img')].every(x=>x.complete&&x.naturalWidth>0));uiCheck(true,'actual evidence PNG opened');
   const shot=async(name,width,theme)=>{await page.setViewportSize({width,height:900});await page.evaluate(t=>{document.documentElement.dataset.theme=t;localStorage.setItem('media-server-theme',t);},theme);
-    await page.locator('#opsAReviewPanel').scrollIntoViewIfNeeded();const file=path.join(repo,'docs/release-artifacts/v4.5.0/42-'+name+'-'+started+'.png');await page.screenshot({path:file});report.browser.screenshots.push({file:path.basename(file),width,theme});if(name==='desktop-light'||name==='mobile-dark'){const full=file.replace('.png','-panel.png');await page.locator('#opsAReviewPanel').screenshot({path:full});report.browser.screenshots.push({file:path.basename(full),width,theme,scope:'whole changed panel'});}};
+    await page.locator('#opsAReviewPanel').scrollIntoViewIfNeeded();const file='42-'+name+'-'+started+'.png';report.browser.screenshots.push(await artifacts.screenshot(page,file,{width,theme}));if(name==='desktop-light'||name==='mobile-dark'){const full=file.replace('.png','-panel.png');report.browser.screenshots.push(await artifacts.screenshot(page.locator('#opsAReviewPanel'),full,{width,theme,scope:'whole changed panel'}));}checkpoint();};
   await shot('desktop-light',1280,'light');await shot('mobile-dark',390,'dark');
   uiCheck(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth+1),'mobile no horizontal overflow');
   const uiExecute=async(relation)=>{await page.selectOption('#opsAReviewRelation',relation);await page.fill('#opsAReviewQuestion','명시한 관계를 확인합니다.');await page.click('#opsAReviewPrepare');await page.click('#opsAReviewConfirm');await page.click('#opsAReviewExecute');await page.waitForFunction(()=>document.getElementById('opsAReviewStatus').textContent.includes('A 기록 검토가 완료'));await page.locator('#opsAReviewResult').filter({hasText:'명시한 관계를 확인합니다.'}).waitFor();};
@@ -235,6 +241,7 @@ try{
 }catch(error){failed=true;report.status='FAIL';report.failure=error.message;report.stack=error.stack;if(page){report.failureUi=await page.locator('#opsEvidenceStatus').textContent().catch(()=>null);report.failureRows=await page.locator('#opsEvidenceRows').innerText().catch(()=>null);report.failureResult=await page.locator('#opsAReviewResult').innerText().catch(()=>null);}
   let safe=diagnostics;for(const value of secrets)if(value)safe=safe.split(value).join('[secret]');report.failureDiagnostics=safe.split('\n').filter(x=>/error|fail|fatal|invalid/i.test(x)).slice(-12);}
 finally{
+  process.removeListener('SIGTERM',interrupted);process.removeListener('SIGINT',interrupted);
   clearTimeout(timer);if(browser){await browser.close();report.cleanup.browserClosed=true;}else report.cleanup.browserClosed=true;
   if(child){try{report.cleanup.process=await stopServer(child);}catch{failed=true;report.cleanup.process={exited:child.exitCode!==null||child.signalCode!==null};}}
   for(const [name,port] of [['http',httpPort],['rtsp',rtspPort]])if(port){try{report.cleanup[name]=await assertPortClosed(port);}catch{failed=true;report.cleanup[name]={closed:false};}}
@@ -242,6 +249,5 @@ finally{
   if(udp){await new Promise(resolve=>udp.close(resolve));report.cleanup.udpClosed=true;}
   try{assert(!child||child.exitCode!==null||child.signalCode!==null,'active process');const s=fs.lstatSync(root);assert(!s.isSymbolicLink()&&s.dev===identity.dev&&s.ino===identity.ino&&s.uid===process.getuid(),'root ownership');fs.rmSync(root,{recursive:true});report.cleanup.rootAbsent=!fs.existsSync(root);assert(report.cleanup.rootAbsent,'cleanup remains');}catch{failed=true;report.cleanup.failed=true;}
   report.modelCalls=chatCalls;report.status=failed?'FAIL':'PASS';report.exit=failed?1:0;report.elapsedMs=Date.now()-started;
-  const dir=path.join(repo,'docs/release-artifacts/v4.5.0');let n=1;while(fs.existsSync(path.join(dir,`${phase}-http-${n}.json`)))++n;
-  fs.writeFileSync(path.join(dir,`${phase}-http-${n}.json`),JSON.stringify(report,null,2)+'\n');console.log(JSON.stringify({status:report.status,checks:report.checks.length,failure:report.failure,elapsedMs:report.elapsedMs,cleanup:report.cleanup}));process.exitCode=report.exit;
+  checkpoint();console.log(JSON.stringify({status:report.status,checks:report.checks.length,failure:report.failure,elapsedMs:report.elapsedMs,cleanup:report.cleanup}));process.exitCode=report.exit;
 }
