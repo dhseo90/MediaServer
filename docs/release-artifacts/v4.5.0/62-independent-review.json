@@ -1,0 +1,456 @@
+{
+  "schema": "media-server.independent-ui-review-addendum.v1",
+  "reviewedAt": "2026-10-07T20:49:33.505647+00:00",
+  "reviewer": "independent_release62, read-only review; no implementation/testing/subdelegation",
+  "status": "BLOCKED; supplemental UI completion not established",
+  "wholeCurrentReleaseUiPass": false,
+  "approvalGranted": false,
+  "scope": "61 selective archive review and62 scoped supplemental UI eligibility/visual/privacy. Exact policy IDs/actions/assertions retain separate units.",
+  "references": [
+    {
+      "path": "/private/tmp/media-server-release62-independent-xh7sd7p0/61-independent-review.json",
+      "sha256": "8fff9d93143e6b97717d4dc12e487cd4a305c6cf9e7695dd6920f2d58748da4d"
+    },
+    {
+      "path": "/private/tmp/media-server-release62-independent-xh7sd7p0/62-ui-prepared-independent-review.json",
+      "sha256": "3dd6419f16dd4403aafb621163e40923762aebe72fe544d99e2079ca20b14965"
+    }
+  ],
+  "correctionToPriorReview": {
+    "original": "/private/tmp/media-server-release62-independent-xh7sd7p0/62-ui-prepared-independent-review.json",
+    "withdrawnOpenItem": "V430-U01 prior-result-count removal on refresh",
+    "decision": "No additional old-count-removal UI run required by this review. V450-R03 is the current contract: refresh preserves existing result/used publication if allowed channels unchanged. 61 refresh-binding supplies actual browser used-index preservation.",
+    "evidence": [
+      "src/ingress/product_ui_page_scripts.cpp:10940-10964",
+      "scripts/internal/visual_search_ui_state.test.mjs:85-103",
+      "docs/project-feature-test-inventory.md:4728",
+      "61 supplement/visual-ui-followup/result.json refresh-binding"
+    ],
+    "historicalConflict": "Inventory V430-U01:423 older count-removal prose conflicts with V450-R03/current source. This report neither rewrites that row nor marks the incompatible old behavior PASS."
+  },
+  "newScopedRuns": [
+    {
+      "scope": "A",
+      "exactFeatureIds": "V450-A02/U02",
+      "report": {
+        "path": "/private/tmp/media-server-release62-33a9_x09/A/report.json",
+        "sha256": "bec35273e5035e6f8522f7453c5d2ce7d88a7b1c5ac5affcbf1fb68d7e5d508d"
+      },
+      "observation": {
+        "path": "/private/tmp/media-server-release62-33a9_x09/A/browser-observation.json",
+        "sha256": "1a1769ae823bbc2035b69fc6bf8ed4dd4bee88e3bcc5dbd9c311295ede468518"
+      },
+      "source": {
+        "head": "977aea8df895a8b866c1f000ddef244dfe6e9d9d",
+        "patch": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "binary": "f612a7b6ed0b75e06406dd087fa8c842c56753991391ac39c126d5d496f9ad58",
+        "observer": "dd2969ebaee59fc200702543a8a54a2850e653d08b691dfe8ebffdc1b7f840e0",
+        "runner": "b0ada53976859f56b8579dc57632ec1ae1ded77598cd26a68d36feb0b7d98c30",
+        "policy": "8a052b1629267568288642d5fd4a652c84954a145a9234833d1a1c7d2471935e",
+        "inventory": "d83e36fb311994ef094da50e9c372498e29ee80e384e9240a4f63c03baeaebc4"
+      },
+      "sourceAfter": {
+        "head": "977aea8df895a8b866c1f000ddef244dfe6e9d9d",
+        "patch": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "assertionCount": 285,
+      "browserCheckCount": 21,
+      "browserObservedEvents": 82,
+      "eventFlags": "All captured ui-event visible/enabled/trusted true. Trusted means browser DOM isTrusted, not human interaction.",
+      "browserVersion": "152.0.7977.83",
+      "originalActualUiPass": false,
+      "modelCalls": 0,
+      "assertionStatuses": {
+        "PASS": 285
+      },
+      "cleanup": {
+        "firstProcess": {
+          "exited": true,
+          "forced": false,
+          "exitCode": 0,
+          "signalCode": null
+        },
+        "secondProcess": {
+          "exited": true,
+          "forced": false,
+          "exitCode": 0,
+          "signalCode": null
+        },
+        "browserClosed": true,
+        "process": {
+          "exited": true,
+          "forced": false,
+          "exitCode": 0,
+          "signalCode": null
+        },
+        "http": {
+          "closed": true,
+          "evidence": "ECONNREFUSED"
+        },
+        "rtsp": {
+          "closed": true,
+          "evidence": "ECONNREFUSED"
+        },
+        "provider": {
+          "closed": true,
+          "evidence": "ECONNREFUSED"
+        },
+        "udpClosed": true,
+        "rootAbsent": true
+      },
+      "screenshotsDirectlyViewed": [
+        {
+          "path": "/private/tmp/media-server-release62-33a9_x09/A/42-desktop-light-1791405824625.png",
+          "sha256": "4a23dc5de440a3f5e93618baec2d586c650acf747a265ce4a48a8f16de7d61bd",
+          "bytes": 86571,
+          "method": "tools.view_image original; independent direct visual inspection"
+        },
+        {
+          "path": "/private/tmp/media-server-release62-33a9_x09/A/42-desktop-light-1791405824625-panel.png",
+          "sha256": "29ddfad350f450f4f9ebf93eee9cc56a9fc40a07bdb3d0a01c23136eb844fe6c",
+          "bytes": 246782,
+          "method": "tools.view_image original; independent direct visual inspection"
+        },
+        {
+          "path": "/private/tmp/media-server-release62-33a9_x09/A/42-mobile-dark-1791405824625.png",
+          "sha256": "2757ca45cdd53741d7619a8c1b0db7be712b83c91eba8687729a94cb4ad3e81a",
+          "bytes": 99521,
+          "method": "tools.view_image original; independent direct visual inspection"
+        },
+        {
+          "path": "/private/tmp/media-server-release62-33a9_x09/A/42-mobile-dark-1791405824625-panel.png",
+          "sha256": "3ae86dbf417140ea048d2a50a63ebb1bb58963b31c35eaff6bdaf93bc8a74408",
+          "bytes": 234614,
+          "method": "tools.view_image original; independent direct visual inspection"
+        },
+        {
+          "path": "/private/tmp/media-server-release62-33a9_x09/A/42-desktop-dark-1791405824625.png",
+          "sha256": "f26e16a8d8af2ae685ca7cbfab248f2fab0e2c578128d2f03ad915f63e37b2e4",
+          "bytes": 120369,
+          "method": "tools.view_image original; independent direct visual inspection"
+        },
+        {
+          "path": "/private/tmp/media-server-release62-33a9_x09/A/42-mobile-light-1791405824625.png",
+          "sha256": "af78de749b7e774641ddd542759416c492a517ba09060fed27526f05715464c6",
+          "bytes": 61762,
+          "method": "tools.view_image original; independent direct visual inspection"
+        },
+        {
+          "path": "/private/tmp/media-server-release62-33a9_x09/A/42-poll-history-desktop-1791405824625.png",
+          "sha256": "06fd184775c95ff11b69d354ab85e9154868f7024b9e93efffd63ed802c6e9e4",
+          "bytes": 148475,
+          "method": "tools.view_image original; independent direct visual inspection"
+        }
+      ],
+      "observedRoles": [
+        {
+          "role": "admin",
+          "scopes": [
+            "*"
+          ]
+        },
+        {
+          "role": "admin",
+          "scopes": [
+            "*"
+          ]
+        },
+        {
+          "role": "admin",
+          "scopes": [
+            "*"
+          ]
+        },
+        {
+          "role": "admin",
+          "scopes": [
+            "*"
+          ]
+        },
+        {
+          "role": "admin",
+          "scopes": [
+            "*"
+          ]
+        },
+        {
+          "role": "admin",
+          "scopes": [
+            "*"
+          ]
+        },
+        {
+          "role": "admin",
+          "scopes": [
+            "*"
+          ]
+        },
+        {
+          "role": "operator",
+          "scopes": [
+            "ops:read",
+            "source:read:1"
+          ]
+        },
+        {
+          "role": "viewer",
+          "scopes": [
+            "view:read:1"
+          ]
+        },
+        {
+          "role": "operator",
+          "scopes": [
+            "ops:read"
+          ]
+        }
+      ],
+      "consoleAssessment": {
+        "errorCount": 2,
+        "pageErrors": 0,
+        "unapprovedErrorsWarnings": 0,
+        "reason": "A 404 correlates exactly to removed package GET, 403 to viewer denied Ops route; materials 403 to viewer denied Ops route. Viewer navigation responses are outside observer response prefix, corroborated by frozen runner role/control checks."
+      },
+      "visualAssessment": "No blocking overlap, horizontal clipping, contrast or visible credential/source URL/raw debug disclosure in viewed pixels. Full desktop-light/mobile-dark A panels supplement viewport crops. Material full result/guidance panels reviewed in both themes at1280/390. Literal script input remains readable text; model questions ungenerated/quality unevaluated.",
+      "eligibility": "Reusable for the scoped actions supported by unchanged runner completion oracles plus passive observer and this independent visual review; does not claim full baseline/full UI or model inference. Git artifact qualification still requires source-URL-sanitized server log derivative.",
+      "serverLogOriginal": {
+        "file": "server-observed.log",
+        "bytes": 4122,
+        "sha256": "552220a89f449761d2b04342d71c6c3aa8a760d3c5bbbfaffa3a07e1508e625c",
+        "redacted": true,
+        "rawEquivalent": false
+      }
+    },
+    {
+      "scope": "materials",
+      "exactFeatureIds": "V450-A03/U03",
+      "report": {
+        "path": "/private/tmp/media-server-release62-33a9_x09/materials/report.json",
+        "sha256": "de05d519399dc60ac1c917dee1f52dd3b8ce3a7ea00e5dbff5168f29cb0db95b"
+      },
+      "observation": {
+        "path": "/private/tmp/media-server-release62-33a9_x09/materials/browser-observation.json",
+        "sha256": "5784048664188316fd11d73b58a0ffd7aceb4b26731c664ef7100f17677530c7"
+      },
+      "source": {
+        "head": "977aea8df895a8b866c1f000ddef244dfe6e9d9d",
+        "patch": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "binary": "f612a7b6ed0b75e06406dd087fa8c842c56753991391ac39c126d5d496f9ad58",
+        "observer": "dd2969ebaee59fc200702543a8a54a2850e653d08b691dfe8ebffdc1b7f840e0",
+        "runner": "b0ada53976859f56b8579dc57632ec1ae1ded77598cd26a68d36feb0b7d98c30",
+        "policy": "8a052b1629267568288642d5fd4a652c84954a145a9234833d1a1c7d2471935e",
+        "inventory": "d83e36fb311994ef094da50e9c372498e29ee80e384e9240a4f63c03baeaebc4"
+      },
+      "sourceAfter": {
+        "head": "977aea8df895a8b866c1f000ddef244dfe6e9d9d",
+        "patch": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "assertionCount": 197,
+      "browserCheckCount": 14,
+      "browserObservedEvents": 17,
+      "eventFlags": "All captured ui-event visible/enabled/trusted true. Trusted means browser DOM isTrusted, not human interaction.",
+      "browserVersion": "152.0.7977.83",
+      "originalActualUiPass": false,
+      "modelCalls": 0,
+      "assertionStatuses": {
+        "PASS": 197
+      },
+      "cleanup": {
+        "browserClosed": true,
+        "process": {
+          "exited": true,
+          "forced": false,
+          "exitCode": 0,
+          "signalCode": null
+        },
+        "http": {
+          "closed": true,
+          "evidence": "ECONNREFUSED"
+        },
+        "rtsp": {
+          "closed": true,
+          "evidence": "ECONNREFUSED"
+        },
+        "provider": {
+          "closed": true,
+          "evidence": "ECONNREFUSED"
+        },
+        "udpClosed": true,
+        "rootAbsent": true
+      },
+      "screenshotsDirectlyViewed": [
+        {
+          "path": "/private/tmp/media-server-release62-33a9_x09/materials/46-materials-1280-light-1791405840085.png",
+          "sha256": "945527d8c2daf007e94da4eeb14560ce522f3b887b7d539e2b5fa3692f54a76b",
+          "bytes": 126963,
+          "method": "tools.view_image original; independent direct visual inspection"
+        },
+        {
+          "path": "/private/tmp/media-server-release62-33a9_x09/materials/46-materials-1280-dark-1791405840085.png",
+          "sha256": "6c1e78fe9dbc232d73d4a0313850630d1a5a030e2a97cc1617812d2f8a134793",
+          "bytes": 125641,
+          "method": "tools.view_image original; independent direct visual inspection"
+        },
+        {
+          "path": "/private/tmp/media-server-release62-33a9_x09/materials/46-materials-390-light-1791405840085.png",
+          "sha256": "4a1d43515a34f891f2de112824d087785fc76b4ca0c53e88e62564d0a0ff7c8d",
+          "bytes": 121511,
+          "method": "tools.view_image original; independent direct visual inspection"
+        },
+        {
+          "path": "/private/tmp/media-server-release62-33a9_x09/materials/46-materials-390-dark-1791405840085.png",
+          "sha256": "009a755788991fb143feafd7037765b4d3b2ffdf5ed54807fbc869fac7ca9a81",
+          "bytes": 120637,
+          "method": "tools.view_image original; independent direct visual inspection"
+        }
+      ],
+      "observedRoles": [
+        {
+          "role": "admin",
+          "scopes": [
+            "*"
+          ]
+        },
+        {
+          "role": "admin",
+          "scopes": [
+            "*"
+          ]
+        },
+        {
+          "role": "operator",
+          "scopes": [
+            "ops:read",
+            "source:read:1"
+          ]
+        },
+        {
+          "role": "viewer",
+          "scopes": [
+            "view:read:1"
+          ]
+        },
+        {
+          "role": "operator",
+          "scopes": [
+            "ops:read"
+          ]
+        }
+      ],
+      "consoleAssessment": {
+        "errorCount": 1,
+        "pageErrors": 0,
+        "unapprovedErrorsWarnings": 0,
+        "reason": "A 404 correlates exactly to removed package GET, 403 to viewer denied Ops route; materials 403 to viewer denied Ops route. Viewer navigation responses are outside observer response prefix, corroborated by frozen runner role/control checks."
+      },
+      "visualAssessment": "No blocking overlap, horizontal clipping, contrast or visible credential/source URL/raw debug disclosure in viewed pixels. Full desktop-light/mobile-dark A panels supplement viewport crops. Material full result/guidance panels reviewed in both themes at1280/390. Literal script input remains readable text; model questions ungenerated/quality unevaluated.",
+      "eligibility": "Reusable for the scoped actions supported by unchanged runner completion oracles plus passive observer and this independent visual review; does not claim full baseline/full UI or model inference. Git artifact qualification still requires source-URL-sanitized server log derivative.",
+      "serverLogOriginal": {
+        "file": "server-observed.log",
+        "bytes": 1374,
+        "sha256": "47745c1cc5bb25a047a2b9af11a24fb056cbf8faafb22731322a8013d916971b",
+        "redacted": true,
+        "rawEquivalent": false
+      }
+    }
+  ],
+  "observerReview": {
+    "path": "/private/tmp/media-server-release62-33a9_x09/review-observe.mjs",
+    "sha256": "dd2969ebaee59fc200702543a8a54a2850e653d08b691dfe8ebffdc1b7f840e0",
+    "finding": "Passive server stdout/stderr tap, trusted DOM event capture, role readback and browser/response/console observation. Actual runner request/response and assertions unchanged; no model call introduced.",
+    "limitations": "Response log filters /ops/api/recordings prefix, not all browser requests; completion decisions rely on original frozen runner checks plus captured events."
+  },
+  "releasePreparationBlocker": {
+    "exactFeatureIds": "V450-E01/E02/A01/A02/A03",
+    "path": "/private/tmp/media-server-release62-33a9_x09/release/report.json",
+    "sha256": "fd771f90aec73b9d12604388b09e9a69c7dafdc7737fbd229639dae6f4f6afda",
+    "failure": "A seed: [fail] K09 absent track package",
+    "exit": 1,
+    "checks": 0,
+    "productServerAndUi": "Not started in this failed preparation",
+    "cleanup": {
+      "rootAbsent": true
+    },
+    "determination": "Cause remains unknown; not classified as product defect. Diagnostic legacy-to-A success is not original run recovery. Original failure preserved. Release13 browser checks remain unqualified by this attempted replacement;61 summary has missing original console/trace/server provenance.",
+    "supportingArtifacts": [
+      {
+        "path": "/private/tmp/media-server-release62-33a9_x09/release-execution.json",
+        "sha256": "66f3740ac483c3a6e38af5966a98826f5eb34dfd116b0bf950e21638d1e5826c"
+      },
+      {
+        "path": "/private/tmp/media-server-release62-33a9_x09/release.stdout",
+        "sha256": "d2b3ab42594ccb61bf802484f65f216fb9fd012e586393b45f82b6954aad7d3a"
+      },
+      {
+        "path": "/private/tmp/media-server-release62-33a9_x09/release.stderr",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    ]
+  },
+  "remainingVisualItems": [
+    {
+      "id": "V440-U01",
+      "actions": [
+        "expired",
+        "disabled"
+      ],
+      "detail": "ui-prepared captures exclude #opsEvidenceCreateStatus; DOM results valid but actual error visual review incomplete."
+    },
+    {
+      "id": "V440-U01",
+      "actions": [
+        "viewport-320-dark",
+        "viewport-390-dark",
+        "viewport-760-dark",
+        "viewport-1180-dark"
+      ],
+      "detail": "Geometry/contrast/images assessed; dark clip ready playback/control state not established by loading/hidden-control screenshots. No product defect inferred."
+    }
+  ],
+  "artifactPrivacy": {
+    "pngDisclosureFindings": 0,
+    "patternScan": {
+      "files": [
+        "A/report.json",
+        "A/browser-observation.json",
+        "materials/report.json",
+        "materials/browser-observation.json"
+      ],
+      "patterns": [
+        "argon2 literal",
+        "quoted nonredacted passwordHash/passwordHistory/tokenHash/inviteToken/sessionCookie/authorization value",
+        "rtsp/rtsps URL"
+      ],
+      "candidateCounts": [
+        0,
+        0,
+        0
+      ],
+      "limitation": "Pattern scan plus relevant source/UI evidence, not exhaustive proof for all possible secrets."
+    },
+    "pendingSanitization": [
+      "ui-prepared/server-log.txt",
+      "A/server-observed.log",
+      "materials/server-observed.log"
+    ],
+    "reason": "Original logs contain local test/source RTSP URLs. Parent will sanitize preservation derivatives and retain separate original/derivative hashes; this review does not claim unseen derivative is verified."
+  },
+  "directReviewCounts": {
+    "release61UniquePng": 97,
+    "release62UiPreparedUniquePng": 18,
+    "release62ANewUniquePng": 7,
+    "release62MaterialsNewUniquePng": 4,
+    "totalUniquePng": 126
+  },
+  "provenancePreserved": {
+    "release61ActualUiPass": false,
+    "release62OriginalUiPassFlagsModified": false,
+    "historicalTimesSourceModelRewritten": false
+  },
+  "temporaryEvidence": {
+    "ownedRoot": "/private/tmp/media-server-release62-independent-xh7sd7p0",
+    "state": "kept pending parent evidence preservation and cleanup; no deletion performed",
+    "processesOrPortsStartedByReviewer": 0
+  },
+  "finalDetermination": "A/materials current scoped browser execution and independent visual work are reusable within exact checked scope after privacy-safe evidence preservation. UI-prepared supplies real clip/partial/corrupt/auth/late/duplicate proof with stated visual gaps and explicit status fixtures. Whole UI/release approval remains blocked by release preparation failure, uncompleted visual state captures, and final sanitized artifact qualification."
+}

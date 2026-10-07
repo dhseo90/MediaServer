@@ -1,0 +1,561 @@
+{
+  "schema": "media-server.v450.release-validation.v1",
+  "sequence": 62,
+  "status": "PARTIAL — remote recovery complete; supplemental UI qualification blocked",
+  "recordedAt": "2026-10-07T20:55:35.852199+00:00",
+  "base": {
+    "head": "977aea8df895a8b866c1f000ddef244dfe6e9d9d",
+    "tree": "d415f7a0a9a2da437d126f710ac6272ffdf95787",
+    "branch": "v4.5.0",
+    "initialWorkingTreeAndIndex": "clean",
+    "remoteBefore": "ea47adfcd6f97a1cdf5e09d5192196bcf53b15d1"
+  },
+  "remoteRecovery": {
+    "status": "PASS",
+    "commitCount": 7,
+    "commits": [
+      "977aea8df895a8b866c1f000ddef244dfe6e9d9d test: preserve repeated GitHub push rejection",
+      "2137911619bd0aaa96fc999c94211bedd9b007b0 test: preserve release61 initial remote push failure",
+      "6fb74843d9cdb278e818afd336385b3a0c0f57c4 test: record release61 archive readback and owned cleanup",
+      "c3734579c6fa0771678e014318acc112c83c6227 test: preserve release61 acceptance and supplemental UI evidence",
+      "72cc7643d681b75228b80fd646921965ecacba75 test: bind independently reviewed acceptance artifact changes",
+      "9cf6bf9554a69d93a6985f1af97bd653ad07fe95 test: align acceptance dispatch proof with early binding gate",
+      "fa79c16f094c5b307267226e868887924e7c0012 fix(test): bind A HTTP artifacts to acceptance run roots"
+    ],
+    "transport": "SSH git@github.com:dhseo90/MediaServer.git; no remote/config/history change",
+    "readOnlyObjectAudit": {
+      "newObjects": 68,
+      "newBlobs": 31,
+      "uncompressedObjectBytes": 119575558,
+      "localDiskBytesNotPushPack": 81337256,
+      "over100MiB": 0
+    },
+    "normalPushAttempts": 1,
+    "execution": {
+      "command": [
+        "git",
+        "push",
+        "--progress",
+        "origin",
+        "HEAD:refs/heads/v4.5.0"
+      ],
+      "startedAt": "2026-10-07T20:32:19.075692+00:00",
+      "endedAt": "2026-10-07T20:32:43.060112+00:00",
+      "elapsedSeconds": 23.984321292024106,
+      "exitCode": 0,
+      "target": "977aea8df895a8b866c1f000ddef244dfe6e9d9d"
+    },
+    "actualPackProgress": "68 objects,73.41 MiB (raw recovery-push.stderr); local disk bytes are not pack bytes",
+    "warning": "61 archive 67.99MB recommended-size warning; accepted, not hard-limit rejection",
+    "remoteAfter": "977aea8df895a8b866c1f000ddef244dfe6e9d9d",
+    "remoteQuery": {
+      "at": "2026-10-07T20:32:56.849966+00:00",
+      "exitCode": 0,
+      "remote": "977aea8df895a8b866c1f000ddef244dfe6e9d9d"
+    },
+    "necessaryEvidenceObject": {
+      "checkedAt": "2026-10-07T20:54:18.465082+00:00",
+      "command": [
+        "gh",
+        "api",
+        "repos/dhseo90/MediaServer/contents/docs/release-artifacts/v4.5.0/61-execution.tar.gz?ref=977aea8df895a8b866c1f000ddef244dfe6e9d9d",
+        "--jq",
+        "{sha,size,type,path}"
+      ],
+      "exit": 0,
+      "observed": {
+        "path": "docs/release-artifacts/v4.5.0/61-execution.tar.gz",
+        "sha": "dacff205287b0a41f786f94424b0752396d6f6f1",
+        "size": 71296283,
+        "type": "file"
+      },
+      "matches": true
+    },
+    "priorFailures": {
+      "transport": "configured SSH git@github.com; 현재 URL override 없음. 과거2회 별도 transport trace 없음",
+      "stage": "원격 대형파일 warning을 받은 뒤 ref update가 Internal Server Error로 거부, exit1. authentication/permission/100MiB hard-limit 메시지 없음",
+      "times": [
+        "2026-10-07T15:11:52Z",
+        "2026-10-07T15:13:49Z"
+      ],
+      "requestIds": [
+        "E474:13FCB8:10B3B:57BFE:6AC66125",
+        "E494:4C96C:10A5E:58682:6AC66198"
+      ],
+      "remoteUnchanged": "ea47adfcd6f97a1cdf5e09d5192196bcf53b15d1"
+    },
+    "officialIncidentContext": {
+      "statusUrl": "https://www.githubstatus.com/api/v2/status.json",
+      "observed": "All Systems Operational",
+      "statusPageUpdatedAt": "2026-10-07T19:25:27.985Z",
+      "incidentUrl": "https://www.githubstatus.com/incidents/djlmxz2zd0j7",
+      "incident": "Git Operations/Pull Requests/Actions; resolved2026-10-07T16:25:14.613Z",
+      "reportedDisruption": "2026-10-07 15:06–15:16 UTC",
+      "interpretation": "두 실패 시각이 공식 장애 구간과 겹침. 개별 request ID의 근본 원인 확인이나 모든 GitHub 전체 장애 단정은 아님."
+    },
+    "causeBoundary": "Past failures overlap official Git Operations incident. Individual request root cause unconfirmed; no product-test failure inferred. Old61 failure originals unchanged."
+  },
+  "preservedAcceptance": {
+    "sourceCommit": "72cc7643d681b75228b80fd646921965ecacba75",
+    "sourceTree": "db09891c5689255b7e048bb2fd99b45cd92ebbf4",
+    "binarySha256": "f612a7b6ed0b75e06406dd087fa8c842c56753991391ac39c126d5d496f9ad58",
+    "original": "docs/release-artifacts/v4.5.0/61-validation.json",
+    "runId": "v390-test-acceptance-20261007110809-502",
+    "status": "PASS retained at actual executed source",
+    "general30": "PASS20 iterations, reused",
+    "canonicalUi": "PASS424 individual cases + Policy v4 eligibility, reused; supplemental actions not added",
+    "general120": "PASS80 iterations, reused",
+    "finalIntegrity": "PASS12, reused",
+    "currentTurnFormalAcceptanceCalls": 0,
+    "currentTurnGeneral30Calls": 0,
+    "currentTurnGeneral120Calls": 0,
+    "currentTurnCanonicalUiCalls": 0,
+    "sourceReuse": {
+      "comparison": [
+        "72cc7643d681b75228b80fd646921965ecacba75",
+        "977aea8df895a8b866c1f000ddef244dfe6e9d9d"
+      ],
+      "unchangedPaths": [
+        "src",
+        "include",
+        "config",
+        "CMakeLists.txt",
+        "VERSION",
+        "scripts",
+        "test",
+        "test_release.sh",
+        "docs/manual-ui-fulltest.md",
+        "docs/project-feature-test-inventory.md"
+      ],
+      "changedProductRunnerPolicyPaths": [],
+      "laterChanges": "61 fixture execution/preparation records, evidence and backlog only; original source not relabeled as currentHEAD"
+    }
+  },
+  "supplementalEvidence": {
+    "reuse": {
+      "recording": {
+        "actionsPass": 31,
+        "featureIds": [
+          "V410-S06-I27",
+          "V410-S06-I28",
+          "V410-S06-I29",
+          "V410-S06-I30",
+          "V410-S06-I31",
+          "V410-S06-I32",
+          "V410-S06-I33",
+          "V410-S06-I34"
+        ],
+        "execution": "61 archive supplement/recording/results.json",
+        "currentWork": "no rerun; independent trace/oracle/server/console/visual/privacy inspection"
+      },
+      "structuredSearch": {
+        "actionsPass": 38,
+        "execution": "61 archive supplement/structured-search/results.json",
+        "currentWork": "no rerun; independent original exact controls/restart/TTL/oracle/visual/privacy inspection"
+      },
+      "visualSearch": {
+        "actionsPass": 23,
+        "execution": [
+          "61 archive supplement/visual-ui/result.json",
+          "61 archive supplement/visual-ui-followup/result.json"
+        ],
+        "currentWork": "reuse valid actions and inspect37 images; retain first time-fixture FAIL, no inferred original server log",
+        "boundary": "Old23 plus new scoped states do not constitute automatic whole Policy v4 qualification"
+      }
+    },
+    "newEvidenceUi": {
+      "source": {
+        "head": "977aea8df895a8b866c1f000ddef244dfe6e9d9d",
+        "patch": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "status": ""
+      },
+      "after": {
+        "head": "977aea8df895a8b866c1f000ddef244dfe6e9d9d",
+        "patch": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "status": ""
+      },
+      "binarySha256": "f612a7b6ed0b75e06406dd087fa8c842c56753991391ac39c126d5d496f9ad58",
+      "testCode": "62-execution.tar.gz:ui.mjs + seed.cpp; frozen before execution",
+      "report": "62-execution.tar.gz:ui-prepared/report.json",
+      "execution": {
+        "exit": 0,
+        "elapsedSeconds": 11.422542624990456
+      },
+      "runnerElapsedMs": 11188,
+      "actionsPass": 22,
+      "fail": 0,
+      "notRun": 0,
+      "pngCount": 18,
+      "realProduct": [
+        "retained derived clip bytes/hash, metadata/keyboard play/ended after actual original/derived retention deletion",
+        "partial0frames/deletedclip package from builder",
+        "actual .evp corruption503 and byte restore",
+        "actual permission revocation403; operator scope/viewer denial",
+        "held actual detail response and package selection; held real publish201 duplicatePOSTcount1"
+      ],
+      "explicitUiFixtures": [
+        "expired410/evidence-disabled503 browser response injection, not actual server expiry or configured-disabled proof",
+        "starting/degraded/cache-unknown public status responses, not worker execution or inference"
+      ],
+      "noSuccessResponseFabricated": true,
+      "visualRemaining": [
+        {
+          "id": "V440-U01",
+          "actions": [
+            "expired",
+            "disabled"
+          ],
+          "detail": "ui-prepared captures exclude #opsEvidenceCreateStatus; DOM results valid but actual error visual review incomplete."
+        },
+        {
+          "id": "V440-U01",
+          "actions": [
+            "viewport-320-dark",
+            "viewport-390-dark",
+            "viewport-760-dark",
+            "viewport-1180-dark"
+          ],
+          "detail": "Geometry/contrast/images assessed; dark clip ready playback/control state not established by loading/hidden-control screenshots. No product defect inferred."
+        }
+      ],
+      "cleanup": {
+        "browserClosed": true,
+        "process": {
+          "exited": true,
+          "forced": false,
+          "exitCode": 0,
+          "signalCode": null
+        },
+        "http": {
+          "closed": true,
+          "evidence": "ECONNREFUSED"
+        },
+        "rtsp": {
+          "closed": true,
+          "evidence": "ECONNREFUSED"
+        },
+        "udpClosed": true,
+        "rootAbsent": true,
+        "sourceUnchanged": true
+      }
+    },
+    "newA": {
+      "source": "977aea8df895a8b866c1f000ddef244dfe6e9d9d",
+      "report": "62-execution.tar.gz:A/report.json",
+      "execution": {
+        "command": [
+          "node",
+          "/Users/dhseo/Workspace/mediaServer/scripts/internal/va_review_confirmed_http.mjs"
+        ],
+        "startedAt": "2026-10-07T20:43:44.380205+00:00",
+        "elapsedSeconds": 15.449618957936764,
+        "exit": 0
+      },
+      "runnerElapsedMs": 15129,
+      "assertionsPass": 285,
+      "browserChecks": 21,
+      "trustedUiEvents": 82,
+      "pngCount": 7,
+      "result": "scoped actual execution and independent visual review reusable; original actualUiPass=false unchanged",
+      "cleanup": {
+        "firstProcess": {
+          "exited": true,
+          "forced": false,
+          "exitCode": 0,
+          "signalCode": null
+        },
+        "secondProcess": {
+          "exited": true,
+          "forced": false,
+          "exitCode": 0,
+          "signalCode": null
+        },
+        "browserClosed": true,
+        "process": {
+          "exited": true,
+          "forced": false,
+          "exitCode": 0,
+          "signalCode": null
+        },
+        "http": {
+          "closed": true,
+          "evidence": "ECONNREFUSED"
+        },
+        "rtsp": {
+          "closed": true,
+          "evidence": "ECONNREFUSED"
+        },
+        "provider": {
+          "closed": true,
+          "evidence": "ECONNREFUSED"
+        },
+        "udpClosed": true,
+        "rootAbsent": true
+      }
+    },
+    "newMaterials": {
+      "source": "977aea8df895a8b866c1f000ddef244dfe6e9d9d",
+      "report": "62-execution.tar.gz:materials/report.json",
+      "execution": {
+        "command": [
+          "node",
+          "/Users/dhseo/Workspace/mediaServer/scripts/internal/va_review_confirmed_http.mjs"
+        ],
+        "startedAt": "2026-10-07T20:43:59.830535+00:00",
+        "elapsedSeconds": 7.382945833960548,
+        "exit": 0
+      },
+      "runnerElapsedMs": 7029,
+      "assertionsPass": 197,
+      "browserChecks": 14,
+      "trustedUiEvents": 17,
+      "pngCount": 4,
+      "result": "scoped actual execution and independent visual review reusable; not old194 relabeled",
+      "cleanup": {
+        "browserClosed": true,
+        "process": {
+          "exited": true,
+          "forced": false,
+          "exitCode": 0,
+          "signalCode": null
+        },
+        "http": {
+          "closed": true,
+          "evidence": "ECONNREFUSED"
+        },
+        "rtsp": {
+          "closed": true,
+          "evidence": "ECONNREFUSED"
+        },
+        "provider": {
+          "closed": true,
+          "evidence": "ECONNREFUSED"
+        },
+        "udpClosed": true,
+        "rootAbsent": true
+      }
+    },
+    "modelReleaseHistory": {
+      "prior61": "166 assertions/13 browser checks executed; scoped functional result retained, original missing trace/console/server provenance not reconstructed",
+      "newReport": "62-execution.tar.gz:release/report.json",
+      "execution": {
+        "command": [
+          "node",
+          "/Users/dhseo/Workspace/mediaServer/scripts/internal/va_review_http_checks.mjs"
+        ],
+        "startedAt": "2026-10-07T20:44:07.213928+00:00",
+        "elapsedSeconds": 1.174221875029616,
+        "exit": 1
+      },
+      "runnerElapsedMs": 831,
+      "status": "FAIL preparation",
+      "firstFailure": "A seed: [fail] K09 absent track package",
+      "checks": 0,
+      "browserChecks": 0,
+      "serverStarted": false,
+      "cause": "unconfirmed; not classified as product defect",
+      "diagnostic": {
+        "code": "diagnostic-message-only.patch in62 archive; existing smoke source copied unchanged, assertion error text only",
+        "legacySeed": {
+          "command": [
+            "/private/tmp/media-server-release62-33a9_x09/review-diag",
+            "/private/tmp/media-server-release62-33a9_x09/seed-diagnostic",
+            "--seed",
+            "unused"
+          ],
+          "exit": 0,
+          "elapsedSeconds": 1.6497444169363007
+        },
+        "aSeed": {
+          "command": [
+            "/private/tmp/media-server-release62-33a9_x09/review-diag",
+            "/private/tmp/media-server-release62-33a9_x09/seed-diagnostic/recordings",
+            "--confirmed-seed",
+            "unused"
+          ],
+          "exit": 0,
+          "elapsedSeconds": 0.48483550001401454
+        },
+        "meaning": "Failure not reproduced in isolated diagnostic copy. No fix/adoption and no HTTP/UI retry; diagnostic success does not close failed run."
+      },
+      "cleanup": {
+        "rootAbsent": true
+      },
+      "followingExecution": "not-run after unresolved prerequisite failure"
+    },
+    "wholeCurrentSupplementalUiPass": false,
+    "canonicalOriginalSummaryModified": false,
+    "rawActualUiPassFlagsModified": false
+  },
+  "preparationFailures": [
+    {
+      "record": "62 archive seed-build-first-preparation-error.json",
+      "failure": "existing Bash environment helper invoked with zsh: bad substitution",
+      "effect": "no compilation/UI; corrected by Bash without source/oracle change"
+    },
+    {
+      "record": "62 archive ui/report.json + ui-first.mjs + ui-first-preparation-error.json",
+      "failure": "two isolated registry entries shared canonical file sample.mp4; product correctly rejected startup",
+      "actionsPass": 0,
+      "actionsFail": 0,
+      "actionsNotRun": 22,
+      "correction": "distinct second.mp4 isolated fixture matching existing producer; only preparation, no product/oracle/budget change",
+      "firstProcessExit": 1,
+      "cleanup": "process already exited1, ports closed, root absent; initial stopServer nonzero report preserved",
+      "revalidation": "ui-prepared/report.json22PASS"
+    }
+  ],
+  "independentReview": {
+    "reviewer": "/root/independent_release62",
+    "kind": "separate AI gpt-6-astra/xhigh, no implementation/test execution/subdelegation; not human signoff",
+    "original": "62-independent-review.json",
+    "sha256": "2b2874aeabd1ada1d7517cf6dc1a6d3b34e122578e38c6910ff5661cf50bdd84",
+    "earlierUnmodifiedJudgments": [
+      "62 archive review/61-independent-review.json",
+      "62 archive review/62-ui-prepared-independent-review.json"
+    ],
+    "directPngReview": {
+      "release61UniquePng": 97,
+      "release62UiPreparedUniquePng": 18,
+      "release62ANewUniquePng": 7,
+      "release62MaterialsNewUniquePng": 4,
+      "totalUniquePng": 126
+    },
+    "status": "BLOCKED, no whole approval",
+    "correction": "V430 historical old-count removal open item explicitly withdrawn in final addendum against currentV450-R03; prior judgment bytes preserved",
+    "policyValidationResult": "not-run whole supplemental Policy v4; static files/individual assertions not converted to uiFulltestPass"
+  },
+  "sourceAndApproval": {
+    "trackedProductCodeChanges": 0,
+    "trackedRunnerFixturePolicyApprovalChanges": 0,
+    "ephemeralTestCode": "version62 execution source only, archived and hash-bound; not adopted as product/current wrapper",
+    "afterRuns": "HEAD977 and empty diff; no source/approval edit during any run",
+    "producerApplications": 0,
+    "reason": "existing61 reviewed implementation and approval inputs unchanged; new incomplete execution/visual evidence grants no approval; legacy/Linux/acceptance not rerun"
+  },
+  "privacyPreservation": {
+    "rawRecordsKeptUnchanged": true,
+    "fourServerLogs": "privacy derivatives only; raw and derivative sha/bytes in62 execution manifest; source URLs/test-media paths removed, no claim of byte-equivalence",
+    "existing61Archive": "reference exact existing Git blob only, no5072-member rearchive",
+    "rawPriorFlags": "never rewritten",
+    "independentDerivativeReview": {
+      "status": "PASS for100 selected artifacts only; does not close whole UI",
+      "member": "review/62-privacy-preservation-addendum.json",
+      "sha256": "d3897420682fb0cb1c524412c1433ae00fa8de1aacbbad6462ccd0a274aeaa84",
+      "reviewedPreservationMapSha256": "692950e02121bf1d7043e2c4248327ea30952cfdf6f5ce74d5a0936aa763f482",
+      "facts": "98 original copies:94 identical+4privacy derivatives;2explicit generated diagnostic metadata;71text scan6patterns no candidate;29PNG byte-identical"
+    }
+  },
+  "cleanup": {
+    "checkedAt": "2026-10-07T20:53:49.572893+00:00",
+    "checks": [
+      {
+        "name": "owned-processes",
+        "command": [
+          "ps",
+          "-p",
+          "91566,91724,92058,92151",
+          "-o",
+          "pid=,ppid=,stat=,comm="
+        ],
+        "exit": 1,
+        "observedEmpty": true,
+        "stderrEmpty": true
+      },
+      {
+        "name": "tcp-ports",
+        "command": [
+          "lsof",
+          "-nP",
+          "-iTCP:62801,62800,62853,62852,63148,63149,63147,63523,63524,63522",
+          "-sTCP:LISTEN"
+        ],
+        "exit": 1,
+        "observedEmpty": true,
+        "stderrEmpty": true
+      },
+      {
+        "name": "udp-ports",
+        "command": [
+          "lsof",
+          "-nP",
+          "-iUDP:65380,65313,60311,54600"
+        ],
+        "exit": 1,
+        "observedEmpty": true,
+        "stderrEmpty": true
+      }
+    ],
+    "allExecutionReportsConfirmClosed": true,
+    "scratchRoots": [
+      "/private/tmp/media-server-release62-33a9_x09",
+      "/private/tmp/media-server-release62-independent-xh7sd7p0"
+    ],
+    "scratchState": "Preserved until successful local+remote evidence readback; final removal after push, no active server/browser/port",
+    "modelCalls": 0,
+    "ollamaUnloadGate": "not-run"
+  },
+  "notRun": {
+    "formalAcceptance": 0,
+    "general30": 0,
+    "general120": 0,
+    "canonical424": 0,
+    "linuxOrGStreamer": 0,
+    "qwenOllamaGeneration": 0,
+    "newModelOrDependencyInstall": 0,
+    "ollamaUnloadGate": "not-run",
+    "mixedRecordingSearchA120": "not-run, separate approval residual",
+    "PRMergeTagRelease": "not-run"
+  },
+  "remaining": [
+    "Release/model409/history supplemental13 browser checks: resolve original K09 absent-track seed failure cause before one scoped execution; current failure0checks/server0, diagnostic PASS not recovery.",
+    "V440-U01 expired/disabled visible status capture: current DOM assertions pass but screenshots omit #opsEvidenceCreateStatus.",
+    "V440-U01 dark clip at320/390/760/1180: layout/images inspected; ready playback/native controls not established in these screenshots.",
+    "Current full supplemental exact-action/Policy v4 qualification remains incomplete; old visual23 server stdout absent, no retroactive reconstruction. New independent scoped reuse is not blanket full UI approval.",
+    "Mixed recording/search/A120, separately approved final record cleanup, PR/required CI/main merge/signed tag/Release remain. Existing R61-N1/N2 historical reference/raw whitespace limitations unchanged."
+  ],
+  "completionBoundary": "61 remote preservation recovered; scoped UI progress and independent findings preserved. 61 acceptance retained. Required supplemental UI completion, whole release verification and publication NOT claimed.",
+  "preservation": {
+    "archive": "62-execution.tar.gz",
+    "manifest": "62-execution-manifest.json",
+    "sha256": "3df96b293bb3c9833ecab882f1538a91a042c366696841621d5a27eef99d8ce7",
+    "bytes": 2799640,
+    "files": 117,
+    "uncompressedBytes": 3402290,
+    "archiveReadback": "all listed member bytes/hash match, no duplicate/path escape/symlink; not full UI qualification",
+    "code": "frozen test-only seed.cpp/ui.mjs/ui-first.mjs/review-observe.mjs/scoped-run.py and diagnostic-message-only.patch, no adoption of diagnostic as product fix",
+    "statics": {
+      "at": "2026-10-07T20:56:29.279673+00:00",
+      "scope": "minimal evidence/document preservation checks; no product/UI rerun",
+      "checks": [
+        {
+          "name": "docs-links",
+          "command": [
+            "./server.sh",
+            "verify-docs-links"
+          ],
+          "exit": 0,
+          "elapsedSeconds": 0.2936224590521306,
+          "stdoutSha256": "1236410374a39464bf211df153200d9c06a624fb6d4015b564346ecbeef66327",
+          "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "name": "whitespace",
+          "command": [
+            "git",
+            "diff",
+            "--check"
+          ],
+          "exit": 0,
+          "elapsedSeconds": 0.012519208947196603,
+          "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ],
+      "jsonReadback": true,
+      "pythonCodeParseOnly": true
+    },
+    "remoteStatus": "new evidence pending one normal push; existing61 recovery complete",
+    "cleanupTiming": "Execution servers/browser/ports/temp roots closed. Read-only evidence scratch copies retained until remote confirmation; removal result reported after push."
+  }
+}
