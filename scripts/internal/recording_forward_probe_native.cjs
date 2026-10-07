@@ -18,3 +18,17 @@ function native(file){
  need(stts.reduce((s,e)=>s+e[0],0)===count&&(!ctts.length||ctts.reduce((s,e)=>s+e[0],0)===count),'expanded count bound');const durations=stts.flatMap(([n,d])=>{need(d>0,'positive duration');return Array(n).fill(d)}),offsets=ctts.length?ctts.flatMap(([n,d])=>Array(n).fill(d)):Array(count).fill(0);let dts=0;const samples=durations.map((duration,i)=>{const r={index:i,dts,pts:dts+offsets[i],duration,sha256:hashes[i]};dts+=duration;need(Number.isSafeInteger(dts)&&Number.isSafeInteger(r.pts)&&r.pts>=0,'tick-range');return r});return {fileBytes:b.length,fileSHA256:hash(b),timescale,movieTimescale,stts,ctts,edits,boxes,samples};
 }
 module.exports={native};
+
+// 제품 parser와 별개인 기존 native 표 판독기로 저장된 실제 sample을 대조한다.
+if(require.main===module&&process.argv[2]==='--evidence'){
+ const path=require('path'),root=process.argv[3];let files=0,samples=0;
+ for(const name of fs.readdirSync(root).filter(n=>n.endsWith('.mp4'))){
+  const file=path.join(root,name),n=native(file),e=JSON.parse(fs.readFileSync(file+'.binding.json','utf8')).file_evidence;
+  need(n.fileBytes===e.bytes&&n.fileSHA256===e.sha256,'independent-file-hash');
+  need(n.timescale===e.timescale&&n.movieTimescale===e.movie_timescale&&n.edits.length===1&&n.edits[0][0]===String(e.edit[0])&&n.edits[0][1]===String(e.edit[1])&&n.edits[0][2]===65536,'independent-time-edit');
+  need(n.samples.length===e.samples.length,'independent-count');
+  for(let i=0;i<n.samples.length;i++){const a=n.samples[i],b=e.samples[i];need(a.pts===b[7]&&a.dts===b[8]&&a.duration===b[9]&&a.sha256===b[11],'independent-sample');}
+  samples+=n.samples.length;++files;console.log(`[FE09 independent] file=${name} profile=${e.profile} samples=${n.samples.length} bytes=${n.fileBytes} hash=${n.fileSHA256}`);
+ }
+ need(files===5,'independent-five-files');console.log(JSON.stringify({files,samples,independentNativeTable:'pass'}));
+}

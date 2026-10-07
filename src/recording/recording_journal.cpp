@@ -171,7 +171,8 @@ bool ExactFile(int parent,const char* name,const std::string& bytes,struct stat*
     if(fd.value<0||!Regular(fd.value,&s)||s.st_size!=static_cast<off_t>(bytes.size()))return false;
     std::string read(bytes.size(),'\0');
     if(!ReadAt(fd.value,0,&read)||read!=bytes||!Same(parent,name,fd.value,s))return false;
-    if(bound)*bound=s;return true;
+    if(bound)*bound=s;
+    return true;
 }
 bool ReadManagedStoreId(int parent,const char* name,std::string* id,bool generation=false) {
     OwnedFd fd(::openat(parent,name,O_RDONLY|O_NOFOLLOW|O_CLOEXEC|O_NONBLOCK));
@@ -203,13 +204,17 @@ bool InitNamesOnly(int root) {
         if(name!="."&&name!=".."&&name!=kManagedLease&&name!=kManagedInit&&name!=kManagedJournal&&name!=kLegacyBarrier){ok=false;break;}
         errno=0;
     }
-    if(errno!=0)ok=false;::closedir(dir);return ok;
+    if(errno!=0)ok=false;
+    ::closedir(dir);
+    return ok;
 }
 bool EmptyDirectory(int root) {
     const int copy=::openat(root,".",O_RDONLY|O_DIRECTORY|O_CLOEXEC);if(copy<0)return false;DIR* dir=::fdopendir(copy);
     if(!dir){::close(copy);return false;}bool empty=true;errno=0;
     while(const auto* entry=::readdir(dir)){const std::string n=entry->d_name;if(n!="."&&n!=".."){empty=false;break;}errno=0;}
-    if(errno!=0)empty=false;::closedir(dir);return empty;
+    if(errno!=0)empty=false;
+    ::closedir(dir);
+    return empty;
 }
 bool PreserveTail(int parent, const std::string& name, off_t prefix, const std::string& tail) {
     // slot 충돌은 원본 byte 비교로 재사용하며 crash 중 partial격리본은 덮어쓰지 않는다.
@@ -374,8 +379,12 @@ bool Base64Decode(std::string_view source,std::string* result) {
     if(!result||source.empty()||source.size()%4)return false;
     std::string decoded;decoded.reserve(source.size()/4*3);
     const auto value=[](char c)->int {
-        if(c>='A'&&c<='Z')return c-'A';if(c>='a'&&c<='z')return c-'a'+26;
-        if(c>='0'&&c<='9')return c-'0'+52;if(c=='+')return 62;if(c=='/')return 63;return -1;
+        if(c>='A'&&c<='Z')return c-'A';
+        if(c>='a'&&c<='z')return c-'a'+26;
+        if(c>='0'&&c<='9')return c-'0'+52;
+        if(c=='+')return 62;
+        if(c=='/')return 63;
+        return -1;
     };
     for(std::size_t i=0;i<source.size();i+=4){
         const int a=value(source[i]),b=value(source[i+1]);
@@ -434,7 +443,8 @@ bool ExpandArchive(const std::string& json,const ingress::StrictJsonObjectDocume
         expanded.mutation_type!=RecordingMutationType::SegmentV2Deleted)||
        SerializeRecordingMutationV1(expanded)!=logical)return Fail(error,"압축 원장 논리 행 오류");
     expanded.physical_json=std::move(physical);*value=std::move(expanded);
-    if(error)error->clear();return true;
+    if(error)error->clear();
+    return true;
 }
 std::string PhysicalRecordingMutation(const RecordingMutationV1& value) {
     return value.physical_json.empty()?SerializeRecordingMutationV1(value):value.physical_json;
@@ -1036,7 +1046,9 @@ bool RecordingJournal::LoadManagedStateLocked(std::string* error) {
     while(offset<status.st_size){
         const auto wanted=static_cast<std::size_t>(std::min<off_t>(sizeof(block),status.st_size-offset));
         ssize_t count;do{count=::pread(managed_fd_,block,wanted,offset);}while(count<0&&errno==EINTR);
-        if(count<=0)return Fail(error,"managed index read 실패");const auto block_start=offset;offset+=count;
+        if(count<=0)return Fail(error,"managed index read 실패");
+        const auto block_start=offset;
+        offset+=count;
         for(ssize_t i=0;i<count;++i){
             if(block[i]=='\n'){
                 if(!line.empty()){RecordingMutationV1 m;if(!ParseRecordingMutationV1(line,&m,error))return false;
@@ -1228,7 +1240,8 @@ bool RecordingJournal::OpenManagedLocked(std::string* error) {
     if(!LoadManagedStateLocked(error)){
         ::close(managed_fd_);::close(lease_fd_);managed_fd_=lease_fd_=-1;opened_=false;return false;
     }
-    if(error)error->clear();return true;
+    if(error)error->clear();
+    return true;
 #else
     return Fail(error,"managed lease 지원하지 않는 OS");
 #endif
@@ -1343,7 +1356,8 @@ bool RecordingJournal::ReserveRecordingOrder(const std::string& store_id, const 
             "\",\"channelId\":\"" + Escape(channel_id) + "\",\"sequence\":" + std::to_string(order.sequence) + "}";
         const auto durable=SerializeRecordingMutationV1(mutation)+"\n";
         if (!WriteAll(fd.value,durable) || !Sync(fd.value)) {
-            if(managed_)poisoned_=true;return Fail(error, "recording order write/fsync 실패");
+            if(managed_)poisoned_=true;
+            return Fail(error, "recording order write/fsync 실패");
         }
         if(managed_){
             if(!IndexRecord(managed_state_.get(),mutation,error,{},durable,managed_state_->bytes)){poisoned_=true;return false;}
@@ -1401,7 +1415,9 @@ bool RecordingJournal::Append(const RecordingMutationV1& mutation, std::string* 
 
 bool RecordingJournal::ReadCheckpointRecords(const void* owner,RecordingMutationHandles* records,std::string* error,
     RecordingCheckpointReadSnapshotHandle* snapshot,RecordingJournalOwnedViews* views) const {
-    if(records)records->clear();if(snapshot)snapshot->reset();if(views)views->clear();
+    if(records)records->clear();
+    if(snapshot)snapshot->reset();
+    if(views)views->clear();
 #if !defined(_WIN32)
     if(managed_&&owner_pid_!=::getpid())return Fail(error,"managed fork 거부");
 #endif
@@ -1784,7 +1800,8 @@ bool RecordingJournal::AcquireMutationLinkWithProof(const RecordingMutationLink&
         return Fail(error,"B link unsupported");
 #endif
     }
-    if(record)record->reset();if(!record)return Fail(error,"mutation link output 없음");
+    if(record)record->reset();
+    if(!record)return Fail(error,"mutation link output 없음");
     if(!link.ref_){if(!link.resident_)return Fail(error,"mutation link 값 없음");*record=link.resident_;if(error)error->clear();return true;}
 #if !defined(_WIN32)
     if(managed_&&owner_pid_!=::getpid())return Fail(error,"managed fork 거부");
@@ -1799,7 +1816,8 @@ bool RecordingJournal::AcquireMutationLinkWithProof(const RecordingMutationLink&
 }
 bool RecordingJournal::MatchMutationLinkView(const RecordingMutationLink& link,const RecordingJournalOwnedViewHandle& view,
     bool* matches,std::string* error) const {
-    if(matches)*matches=false;if(!matches)return Fail(error,"mutation link 비교 output 없음");
+    if(matches)*matches=false;
+    if(!matches)return Fail(error,"mutation link 비교 output 없음");
 #if !defined(_WIN32)
     if(managed_&&owner_pid_!=::getpid())return Fail(error,"managed fork 거부");
 #endif
@@ -1843,7 +1861,8 @@ bool RecordingJournal::ReadRecordLocations(const void* owner,RecordingJournalRec
     if(!CheckManagedStateLocked(error))return false;
     if(managed_state_->records.size()!=managed_state_->locations.size()){poisoned_=true;return Fail(error,"located index 불일치");}
     try{*records=managed_state_->locations;}catch(...){records->clear();return Fail(error,"located 목록 자원 부족");}
-    if(error)error->clear();return true;
+    if(error)error->clear();
+    return true;
 }
 bool RecordingJournal::ReadRecordRefs(const void* owner,RecordingJournalRecordRefs* refs,std::string* error) const {
     if(refs)refs->clear();
@@ -1857,7 +1876,8 @@ bool RecordingJournal::ReadRecordRefs(const void* owner,RecordingJournalRecordRe
         poisoned_=true;return Fail(error,"logical ref index 불일치");
     }
     try{*refs=managed_state_->refs;}catch(...){refs->clear();return Fail(error,"logical ref 목록 자원 실패");}
-    if(error)error->clear();return true;
+    if(error)error->clear();
+    return true;
 }
 bool RecordingJournal::AcquireRecordRef(const void* owner,const RecordingJournalRecordRefHandle& ref,
     RecordingMutationHandle* record,std::string* error) const {
@@ -1942,7 +1962,8 @@ bool RecordingJournal::ReleaseRecordResidents(const void* owner,std::string* err
     for(std::size_t i=managed_state_->resident_checked;i<managed_state_->records.size();++i)
         if(!managed_state_->locations[i]->resident_fallback)managed_state_->records[i].reset();
     managed_state_->resident_checked=managed_state_->records.size();
-    if(error)error->clear();return true;
+    if(error)error->clear();
+    return true;
 }
 bool RecordingJournal::AcquireCheckpointRecordsLocked(RecordingMutationHandles* records,std::string* error,
     bool checkpoint_binding_checked) const {
@@ -2234,7 +2255,8 @@ bool RecordingJournal::BeginManagedCutoverRecovery(const void* owner,RecordingGe
 void RecordingJournal::EndManagedCutoverRecovery(){
 #if !defined(_WIN32)
     std::lock_guard lock(mu_);if(!cutover_recovery_)return;
-    if(managed_fd_>=0)::close(managed_fd_);if(lease_fd_>=0)::close(lease_fd_);
+    if(managed_fd_>=0)::close(managed_fd_);
+    if(lease_fd_>=0)::close(lease_fd_);
     managed_fd_=lease_fd_=-1;opened_=false;poisoned_=true;cutover_owner_retired_=true;
     catalog_owner_=nullptr;catalog_attachment_.reset();cutover_recovery_.reset();managed_state_.reset();
 #endif
@@ -2856,7 +2878,8 @@ bool RecordingJournal::AppendOwned(const RecordingMutationV1& mutation, const vo
                                    RecordingMutationHandle* appended,RecordingJournalOwnedViewHandle* view) {
     // 입력이 *appended를 빌린 경우에도 결과 초기화가 입력의 마지막 소유자를 제거하지 않는다.
     const RecordingMutationHandle input_lifetime=appended?*appended:RecordingMutationHandle{};
-    if(appended)appended->reset();if(view)view->reset();
+    if(appended)appended->reset();
+    if(view)view->reset();
 #if !defined(_WIN32)
     if(managed_&&owner_pid_!=::getpid())return Fail(error,"managed fork/미open 사용 거부");
 #endif

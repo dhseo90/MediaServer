@@ -15,9 +15,13 @@ ReviewClaimSpec CoreSpec(const recording::review_json::Doc& d){ReviewClaimSpec s
     s.target_description="화면의 사각형";s.relation=CoreRelation(CoreText(d,"relation"));
     if(CoreText(d,"requiredColor")=="blue")s.required_color=ReviewColor::Blue;
     if(ingress::StrictJsonBoolField(d,"requiredVisible")==false)s.required_visible=false;
-    for(std::size_t i=0;i<CoreXs(d).size();++i)s.scope.push_back(i);return s;}
+    for(std::size_t i=0;i<CoreXs(d).size();++i)s.scope.push_back(i);
+    return s;
+    }
 std::vector<ReviewFrame> CoreFrames(const recording::review_json::Doc& d){std::vector<ReviewFrame> frames;std::vector<std::string> times;recording::review_json::Array(d,"times",&times);
-    for(std::size_t i=0;i<CoreXs(d).size();++i)frames.push_back({times.empty()?std::int64_t(i)*1000000000:std::stoll(times[i]),512,288,CauseHash("synthetic-frame-"+std::to_string(i))});return frames;}
+    for(std::size_t i=0;i<CoreXs(d).size();++i)frames.push_back({times.empty()?std::int64_t(i)*1000000000:std::stoll(times[i]),512,288,CauseHash("synthetic-frame-"+std::to_string(i))});
+    return frames;
+    }
 std::vector<ReviewObservation> CoreObservations(const recording::review_json::Doc& d,const ReviewClaimSpec& s,const std::vector<ReviewFrame>& frames){
     const auto xs=CoreXs(d);std::vector<std::string> identities,colors,omit;recording::review_json::Array(d,"identities",&identities);recording::review_json::Array(d,"colors",&colors);recording::review_json::Array(d,"omit",&omit);
     std::vector<ReviewObservation> out;std::size_t anchor=0;while(anchor<xs.size()&&xs[anchor]<0)++anchor;
@@ -44,7 +48,8 @@ std::string CoreDecisionJson(const std::vector<ReviewDecision>& decisions){std::
 std::string CorePlan(const std::filesystem::path& root){EvidencePackageStore store(root/"core-images",{});std::string error;Check(store.Recover(&error),"V450-K05 owned image store");std::string plan="[";
     for(const auto& raw:CoreRows(root)){auto d=CauseDoc(raw);if(ingress::StrictJsonBoolField(d,"actual")!=true)continue;auto input=CoreImageInput(store,d);auto spec=CoreSpec(d);std::string request;
         Check(BuildReviewObservationRequest(input,spec,"qwen3-vl:8b-instruct-q4_K_M",&request,&error),"V450-K05 frozen image request");
-        if(plan.size()>1)plan+=',';plan+="{\"case\":"+EvidenceJsonQuote(CoreText(d,"id"))+",\"requestSha256\":"+EvidenceJsonQuote(CauseHash(request))+",\"request\":"+request+"}";
+        if(plan.size()>1)plan+=',';
+        plan+="{\"case\":"+EvidenceJsonQuote(CoreText(d,"id"))+",\"requestSha256\":"+EvidenceJsonQuote(CauseHash(request))+",\"request\":"+request+"}";
     }return plan+"]";}
 void CoreChecks(const std::filesystem::path& root,const std::set<std::string>& selected={}){using namespace recording::review_json;
     for(const auto& raw:CoreRows(root)){const auto d=CauseDoc(raw);if(!selected.empty()&&!selected.count(CoreText(d,"id")))continue;auto spec=CoreSpec(d);auto frames=CoreFrames(d);auto observations=CoreObservations(d,spec,frames);const auto mutation=CoreText(d,"mutation");
@@ -104,7 +109,10 @@ void ObserverChecks(const std::filesystem::path& root){using namespace recording
     Check(Array(fixture,"cases",&rows)&&Array(fixture,"coreRegression",&regression),"V450-K06 independent observer fixture");
     for(const auto& raw:rows){auto d=CauseDoc(raw);ReviewFrame f{0,512,288,std::string(64,'a')};std::vector<std::string> values,size;
         Check(Array(d,"box",&values)&&values.size()==4,"V450-K06 box fixture shape");std::array<double,4> box{};
-        for(unsigned i=0;i<4;++i)box[i]=std::stod(values[i]);if(Array(d,"size",&size)){f.width=std::stoi(size[0]);f.height=std::stoi(size[1]);}
+        for(unsigned i=0;i<4;++i)box[i]=std::stod(values[i]);
+        if(Array(d,"size",&size)){f.width=std::stoi(size[0]);
+        f.height=std::stoi(size[1]);
+        }
         const auto nonfinite=CoreText(d,"nonfinite");if(nonfinite=="nan")box[0]=std::numeric_limits<double>::quiet_NaN();if(nonfinite=="infinity")box[0]=std::numeric_limits<double>::infinity();
         ReviewPoint point{-99,-99};std::string error;const bool accepted=ConvertReviewRelativeBox(box,f,&point,&error);std::vector<std::string> expected;
         std::cout<<"[coordinate-check] case="<<CoreText(d,"id")<<" accepted="<<accepted<<" error="<<error<<std::endl;
@@ -150,7 +158,8 @@ void CoreObserve(const std::filesystem::path& root,const std::string& endpoint){
         const auto capture=[&](const VaReviewHttpRequest& request,auto deadline,const auto& cancel,std::string* response,std::string* why){
             const bool chat=request.url==endpoint+"/api/chat";if(chat){++chats;++calls;std::cout<<"[observation-request] {\"case\":"<<EvidenceJsonQuote(CoreText(d,"id"))<<",\"ordinal\":"<<calls<<",\"requestSha256\":"<<EvidenceJsonQuote(CauseHash(request.body))<<"}"<<std::endl;}
             const bool ok=VaReviewCurl(request,deadline,cancel,response,why);if(!ok)transport_failed=true;
-            if(chat)std::cout<<"[observation-raw] "<<EvidenceJsonQuote(*response)<<std::endl;return ok;
+            if(chat)std::cout<<"[observation-raw] "<<EvidenceJsonQuote(*response)<<std::endl;
+            return ok;
         };
         std::string request;Check(BuildReviewObservationRequest(input,spec,options.local_model,&request,&error),"V450-K06 exact request for deduplication");
         const bool execute=cache.count(request)==0;const auto start=VaReviewService::Clock::now();std::vector<ReviewObservation> obs;std::vector<ReviewCoordinateConversion> converted;bool accepted=false;

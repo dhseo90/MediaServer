@@ -14,7 +14,8 @@ void ConfirmedSeed(const std::filesystem::path& root){
     for(auto& p:input.packets)p.track_id=media_track;
     GStreamerSegmentWriter writer(runtime.WriterOptions(1000));
     Check(writer.Start("1","unused",input.descriptor,[](auto,auto,auto*){return false;},&error),"K09 actual writer");
-    for(const auto& p:input.packets)writer.Push(p,0);writer.Stop();
+    for(const auto& p:input.packets)writer.Push(p,0);
+    writer.Stop();
     const auto ids=runtime.catalog().FinalizedSegmentIdsForStartup();Check(ids.size()==1,"K09 one owned source");
     const auto segment=*runtime.catalog().FindSegmentV2ById(ids.front());
     const auto binding=*runtime.catalog().FindSourceBinding(ids.front());

@@ -62,6 +62,8 @@ inline void Emit(Event event,std::uint64_t begin,std::uint64_t end,const std::st
 }
 inline std::uint64_t Now() noexcept {return latency::Enabled()?latency::Now():0;}
 inline void Point(Event event,const std::string& reference,const std::string& job={},std::uint64_t n=0) noexcept {
-    if(!latency::Enabled())return;const auto at=Now();Emit(event,at,at,reference,job,n);
+    if(!latency::Enabled())return;
+    const auto at=Now();
+    Emit(event,at,at,reference,job,n);
 }
 } // namespace recording::completion

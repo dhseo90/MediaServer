@@ -14,7 +14,8 @@ recording::DerivedJobIntentV1 PrepareMedia(Store& store,bool partial,
     options.managed_journal=&store.journal;options.managed_catalog=&store.catalog;options.managed_store_id="probe-store";
     recording::GStreamerSegmentWriter writer(options);std::string error;
     if(!writer.Start(channel,"unused",input.descriptor,[](auto,auto,auto*){return false;},&error))throw std::runtime_error(error);
-    for(const auto& packet:input.packets)writer.Push(packet,0);writer.Stop();
+    for(const auto& packet:input.packets)writer.Push(packet,0);
+    writer.Stop();
     std::vector<recording::DerivedSourceEvidence> sources;
     for(const auto& segment:store.Segments())sources.push_back({segment,store.catalog.FindSourceBinding(segment.segment_id),false});
     analysis::DecodedIntervalCollector collector;
@@ -36,7 +37,9 @@ std::uint64_t Holds(recording::RecordingCatalog& catalog,const std::string& id){
     return 0;
 }
 int main(int argc,char** argv){
-    if(argc!=2)return 2;gst_init(nullptr,nullptr);int pass=0,fail=0;
+    if(argc!=2)return 2;
+    gst_init(nullptr,nullptr);
+    int pass=0,fail=0;
     auto check=[&](bool ok,const std::string& title){std::cout<<(ok?"[pass] ":"[fail] ")<<title<<'\n';ok?++pass:++fail;};
     for(bool partial:{false,true}){
         Store store(std::filesystem::path(argv[1])/(partial?"partial":"full"));auto intent=PrepareMedia(store,partial);

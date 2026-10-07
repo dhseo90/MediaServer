@@ -15,7 +15,9 @@ bool DecodeQuestionCandidate(const std::string& raw,QuestionCandidate* out){
     *out={model,digest,true};return true;
 }
 QuestionCandidate ReadQuestionCandidate(const std::filesystem::path& root){QuestionCandidate c;
-    if(std::filesystem::exists(root/"question-candidate.json"))Check(DecodeQuestionCandidate(CauseRead(root/"question-candidate.json"),&c),"K10 candidate model/digest/explicit false only");return c;}
+    if(std::filesystem::exists(root/"question-candidate.json"))Check(DecodeQuestionCandidate(CauseRead(root/"question-candidate.json"),&c),"K10 candidate model/digest/explicit false only");
+    return c;
+    }
 std::string QuestionCandidateBody(std::string body,bool non_thinking){
     if(non_thinking){Check(!body.empty()&&body.back()=='}',"K10 candidate request object");body.pop_back();body+=",\"think\":false}";}return body;
 }
@@ -55,7 +57,8 @@ QuestionCase QuestionInput(const std::filesystem::path& root,const std::string& 
 }
 std::string QuestionPlan(const std::filesystem::path& root,const QuestionCandidate& candidate={}){std::string plan="[";
     for(const auto& row:QuestionRows(root)){auto c=QuestionInput(root,row);std::string body,error;Check(BuildReviewQuestionRequest(c.input,candidate.model,&body,&error),"K10 fixed request");body=QuestionCandidateBody(std::move(body),candidate.non_thinking);
-        if(plan.size()>1)plan+=',';plan+="{\"case\":"+EvidenceJsonQuote(CoreText(CauseDoc(row),"id"))+",\"requestSha256\":"+EvidenceJsonQuote(CauseHash(body))+",\"request\":"+body+",\"decisions\":"+CoreDecisionJson(c.decisions)+"}";
+        if(plan.size()>1)plan+=',';
+        plan+="{\"case\":"+EvidenceJsonQuote(CoreText(CauseDoc(row),"id"))+",\"requestSha256\":"+EvidenceJsonQuote(CauseHash(body))+",\"request\":"+body+",\"decisions\":"+CoreDecisionJson(c.decisions)+"}";
     }return plan+"]";
 }
 std::string QuestionEnvelope(const std::string& text,const std::string& reason="stop"){return "{\"model\":"+EvidenceJsonQuote(question_model)+",\"done\":true,\"done_reason\":"+EvidenceJsonQuote(reason)+",\"message\":{\"role\":\"assistant\",\"content\":"+EvidenceJsonQuote(text)+"}}";}
@@ -127,7 +130,9 @@ void QuestionsLocal(const std::filesystem::path& root,const std::string& endpoin
             const bool chat=r.url.find("/api/chat")!=std::string::npos;auto request=r;
             if(chat){request.body=QuestionCandidateBody(request.body,candidate.non_thinking);++chats;Check(chats<=6,"K10 call budget");std::cout<<"[question-request] "<<EvidenceJsonQuote(request.body)<<std::endl;}
             const bool ok=VaReviewCurl(request,deadline,cancelled,response,e);transmission=transmission&&ok;
-            if(chat)std::cout<<"[question-raw] "<<EvidenceJsonQuote(*response)<<std::endl;return ok;};
+            if(chat)std::cout<<"[question-raw] "<<EvidenceJsonQuote(*response)<<std::endl;
+            return ok;
+            };
         const bool accepted=GenerateReviewQuestions(c.input,options,candidate.digest,started+std::chrono::seconds(60),[&]{return std::filesystem::exists(root/"cause-stop");},&out,&error,wire);
         std::cout<<"[question-result] {\"case\":"<<EvidenceJsonQuote(id)<<",\"accepted\":"<<(accepted?"true":"false")<<",\"error\":"<<EvidenceJsonQuote(error)<<",\"elapsedMs\":"<<std::chrono::duration_cast<std::chrono::milliseconds>(VaReviewService::Clock::now()-started).count()<<",\"questions\":{";
         for(std::size_t i=0;i<out.questions.size();++i){if(i)std::cout<<',';std::cout<<EvidenceJsonQuote(out.questions[i].first)<<':'<<EvidenceJsonQuote(out.questions[i].second);}std::cout<<"}}"<<std::endl;

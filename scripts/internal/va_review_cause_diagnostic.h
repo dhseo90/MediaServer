@@ -14,7 +14,8 @@ std::vector<VaQualityCase> CauseCases() {
     std::vector<VaQualityCase> result;const auto available=VaQualityCases();
     for(const auto* id:{"one-motion","one-direction","blank-hidden","occluded-final","two-right","two-left"}){
         const auto found=std::find_if(available.begin(),available.end(),[&](const auto& c){return std::string(c.id)==id;});
-        if(found==available.end())throw std::runtime_error("cause-case");result.push_back(*found);
+        if(found==available.end())throw std::runtime_error("cause-case");
+        result.push_back(*found);
     }return result;
 }
 recording::VaReviewInput CauseInput(recording::EvidencePackageStore& evidence,const VaQualityCase& test) {

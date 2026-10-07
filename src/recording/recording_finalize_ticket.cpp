@@ -114,7 +114,9 @@ bool Parse(const std::string& text,FinalizeReadyTicket* t,std::string* error){
     else if(!ParseRecordingSegmentV1(*segment,&t->segment,error))return false;
     t->partial_relative=*partial;t->final_relative=*final;
     if(!ingress::StrictJsonFieldIsNull(d,"eventLink")){const auto event=ingress::StrictJsonObjectField(d,"eventLink");EventRecordingLinkV1 l;
-        if(!event||!ParseEventRecordingLinkV1(*event,&l,error))return Fail(error,"ready event parse 실패");t->event_link=l;}
+        if(!event||!ParseEventRecordingLinkV1(*event,&l,error))return Fail(error,"ready event parse 실패");
+        t->event_link=l;
+        }
     return Validate(*t,error);
 }
 bool Read(const std::filesystem::path& root,const std::filesystem::path& relative,FinalizeReadyTicket* t,bool* missing,std::string* error,struct stat* binding){
@@ -135,12 +137,14 @@ bool Read(const std::filesystem::path& root,const std::filesystem::path& relativ
 namespace recording {
 using namespace detail::finalize_ticket;
 bool WriteFinalizeReadyTicket(const std::filesystem::path& root,const FinalizeReadyTicket& ticket,std::string* error){
-    if(!Validate(ticket,error))return false;const auto text=Serialize(ticket);
+    if(!Validate(ticket,error))return false;
+    const auto text=Serialize(ticket);
     const std::size_t envelope_limit=ticket.source_binding?(ticket.source_binding->file_evidence?3U*1024*1024+16U*1024:2U*1024*1024):1024U*1024;
     if(text.size()>envelope_limit)return Fail(error,"ready envelope 크기 거부");
     Parent p;if(!p.Open(root,TicketPath(ticket)))return Fail(error,"ready parent 불가");
     Fd fd(::openat(p.fd.fd,TicketPath(ticket).filename().c_str(),O_WRONLY|O_CREAT|O_EXCL|O_NOFOLLOW|O_CLOEXEC,0600));
-    if(fd.fd<0)return Fail(error,"ready 생성 충돌/실패");std::size_t done=0;
+    if(fd.fd<0)return Fail(error,"ready 생성 충돌/실패");
+    std::size_t done=0;
     while(done<text.size()){const auto n=::write(fd.fd,text.data()+done,text.size()-done);if(n<0&&errno==EINTR)continue;if(n<=0)return Fail(error,"ready 부분쓰기: 원본 보존");done+=n;}
     struct stat owned{},leaf{};
     return (::fsync(fd.fd)==0&&::fstat(fd.fd,&owned)==0&&

@@ -77,8 +77,10 @@ void BoundSeed(const std::filesystem::path& root){
         {"\"sampleOrdinal\":1","\"sampleOrdinal\":2"},{"\"verdict\":\"supported\"","\"verdict\":\"insufficient\""}})
         reject(replace(mutation.first,mutation.second),mutation.first);
     for(int field=0;field<4;++field){auto bad=r;
-        if(field==0)bad.spec_sha256=std::string(64,'f');if(field==1)bad.observation_sha256=std::string(64,'f');
-        if(field==2)bad.policy_sha256=std::string(64,'f');if(field==3)bad.evidence.observation_snapshots[0].candidates[0].observation.bbox.x=.9;
+        if(field==0)bad.spec_sha256=std::string(64,'f');
+        if(field==1)bad.observation_sha256=std::string(64,'f');
+        if(field==2)bad.policy_sha256=std::string(64,'f');
+        if(field==3)bad.evidence.observation_snapshots[0].candidates[0].observation.bbox.x=.9;
         reject(SerializeVaReviewRecordV2(bad),"digest/observation "+std::to_string(field));}
     reject(json.substr(0,json.size()-1)+",\"confirmedBy\":\"admin\"}","unknown confirmation field");
     reject(json.substr(0,json.size()-1)+",\"createdAtMs\":2}","duplicate field");
@@ -86,7 +88,9 @@ void BoundSeed(const std::filesystem::path& root){
     reject(json+std::string(kVaReviewRecordV2Bytes-json.size()+1,' '),"codec 128KiB plus one");
     VaReviewRecord old;Check(!ParseVaReviewRecord(json,&old,&error),"K08 v1 parser rejects v2");
     for(int field=0;field<5;++field){auto bad=b;if(field==0)bad.analysis_track_id="track-other";if(field==1)bad.analysis_namespace="other-analysis";
-        if(field==2)bad.engine_episodes={1};if(field==3)bad.target_id="other-target";if(field==4)bad.manifest_sha256=std::string(64,'f');
+        if(field==2)bad.engine_episodes={1};
+        if(field==3)bad.target_id="other-target";
+        if(field==4)bad.manifest_sha256=std::string(64,'f');
         std::string untouched="unchanged";Check(!CreateAnalysisReviewRecord(packages,store,bad,claims,1,BoundPermit,&untouched,&error)&&untouched=="unchanged","K08 reject explicit target/package binding "+std::to_string(field));}
     decoded=r;Check(!ReadAnalysisReviewRecord(store,id,[](const auto&){return false;},&decoded,&error)&&error=="review-forbidden"&&SerializeVaReviewRecordV2(decoded)==json,"K08 unauthorized read unchanged");
     std::string blocked="unchanged";

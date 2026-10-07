@@ -48,7 +48,8 @@ std::string A(const std::vector<std::string>& items) {
 }
 Doc O(const std::string& s,std::initializer_list<const char*> keys) {
     Doc d;Need(s.size()<=kCap&&ingress::ParseStrictJsonObjectDocument(s,&d,nullptr)&&d.members.size()==keys.size(),"job-json-fields");
-    for(auto key:keys)Need(d.Find(key),"job-json-field-missing");return d;
+    for(auto key:keys)Need(d.Find(key),"job-json-field-missing");
+    return d;
 }
 const ingress::StrictJsonMember& F(const Doc& d,const char* key,Type type) {
     const auto* f=d.Find(key);Need(f&&f->type==type,"job-json-type");return *f;

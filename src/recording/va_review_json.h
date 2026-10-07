@@ -14,7 +14,9 @@ inline bool Text(const Doc& d,const char* key,std::string* out) {
 template<class T> bool Number(const Doc& d,const char* key,T* out) {
     const auto* v=d.Find(key);if(!v||v->type!=Type::Number)return false;
     T n{};const auto r=std::from_chars(v->raw.data(),v->raw.data()+v->raw.size(),n);
-    if(r.ec!=std::errc{}||r.ptr!=v->raw.data()+v->raw.size())return false;*out=n;return true;
+    if(r.ec!=std::errc{}||r.ptr!=v->raw.data()+v->raw.size())return false;
+    *out=n;
+    return true;
 }
 inline bool Array(const Doc& d,const char* key,std::vector<std::string>* output) {
     const auto* v=d.Find(key);if(!v||v->type!=Type::Array)return false;

@@ -455,7 +455,9 @@ DerivedJobAdmissionResult RetentionCoordinator::AdmitDerivedJob(
     }
     RetentionPolicy policy;
     {std::lock_guard lock(mu_);const auto found=policies_.find(intent.reference.channel_id);
-        if(found==policies_.end())return reject("channel retention policy가 없음");policy=found->second;}
+        if(found==policies_.end())return reject("channel retention policy가 없음");
+        policy=found->second;
+        }
     const auto recovered=RecoverPendingForChannel(now_ms,intent.reference.channel_id);
     if(!recovered.ok)return reject(recovered.last_error);
     auto snapshot=ReadSnapshot();if(!snapshot.authoritative)return reject(snapshot.error);

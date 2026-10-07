@@ -78,7 +78,8 @@ inline void Emit(const Row& v) noexcept {
 }
 inline void Flush() noexcept {
     if(local.depth)return;
-    for(std::size_t i=0;i<local.used;++i)Emit(local.rows[i]);local.used=0;
+    for(std::size_t i=0;i<local.used;++i)Emit(local.rows[i]);
+    local.used=0;
     if(local.loss&&!loss_emitted.exchange(true)){Row loss;loss.k=3;loss.n=1;Emit(loss);}
 }
 inline void Append(Row row,bool always=false) noexcept {
@@ -110,7 +111,11 @@ class Scope {
     bool enabled_,always_,request_;Row row_;unsigned previous_=0;
 public:
     Scope(Operation operation,Source source,unsigned line,bool always=false,bool request=false) noexcept:enabled_(Enabled()),always_(always),request_(request){
-        if(!enabled_)return;if(request_){FlushFast();previous_=local.request;local.request=++next_request;}
+        if(!enabled_)return;
+        if(request_){FlushFast();
+        previous_=local.request;
+        local.request=++next_request;
+        }
         row_.k=1;row_.o=static_cast<unsigned>(operation);row_.s=static_cast<unsigned>(source);row_.l=line;row_.m=local.mutex;row_.b=row_.a=Now();
     }
     ~Scope() noexcept {if(!enabled_)return;row_.e=Now();Append(row_,always_);if(request_){FlushFast();local.request=previous_;}else Flush();}

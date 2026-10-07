@@ -1625,6 +1625,7 @@ LP04-A/B: 실패 구간 PTS 지정 gate 자체검사와 실제 1회 재현. 안�
 | FE06 | 증거 손상 거부 | identity/hash/ordinal/tick/timescale/field 변조 거부 | 비대상: 결정적 검사 | 비대상: 결정적 검사 | 비대상: 내부 계약 |
 | FE07 | 크기·잠금 비용 | 4096 경계, 직렬화 크기, 실제 catalog 전이·checkpoint 시간 기록 | S11 자원 조건 | S11 자원 조건 | 비대상: 내부 계약 |
 | FE08 | 기존 지원·비소비 경계 유지 | unsupported/ambiguous/기존 binding의 녹화 유지. 신규 기존-profile job의13필드 projection은 기존 ID/bytes/8원본 상한 유지, 저장 증거는 보존. evidence 포함 job은 full strict | S11 현행 입력 조건 | S11 현행 입력 조건 | 비대상: 내부 계약 |
+| FE09 | 정확한 파일 증거 runtime 조합 | capture smoke의1.28.1/ Linux arm641.28.7 후보 선택·혼합/nano/다른 factory 거부, FE01~08 동일 시간/hash 검증·독립 readback/seek | 후보 단기 검증·지원 채택 전 필수 | 일반 gate와 별개 | 비대상: 내부 계약 |
 
 실행은 3-A 합격 후다. 제품 TDD RED와 준비 실패를 구분하고 중앙 기록에 명령·개별 결과를 보존한다.
 

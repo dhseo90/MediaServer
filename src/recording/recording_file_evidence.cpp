@@ -21,6 +21,22 @@ namespace recording {
 namespace {
 constexpr std::size_t kSamples=4096,kBytes=32U*1024*1024;
 void Need(bool value,const char* reason){if(!value)throw std::runtime_error(reason);}
+// 정확한 릴리즈만 선택한다. plugin 조합과 실제 파일 검증은 별도로 필수다.
+const char* CoreProfile(unsigned major,unsigned minor,unsigned micro,unsigned nano) {
+    if(major!=1||minor!=28||nano!=0)return nullptr;
+    if(micro==1)return "gst-qtmux-1.28.1-default-v1";
+#if defined(__linux__) && defined(__aarch64__)
+    if(micro==7)return "gst-qtmux-1.28.7-default-v1";
+#endif
+    return nullptr;
+}
+bool PluginProfile(const char* core,const char* parser_factory,const char* parser_plugin,const char* parser_version,
+                   const char* mux_factory,const char* mux_plugin,const char* mux_version) {
+    return core&&parser_factory&&parser_plugin&&parser_version&&mux_factory&&mux_plugin&&mux_version&&
+        std::strcmp(parser_factory,"h264parse")==0&&std::strcmp(parser_plugin,"videoparsersbad")==0&&
+        std::strcmp(mux_factory,"mp4mux")==0&&std::strcmp(mux_plugin,"isomp4")==0&&
+        std::strcmp(parser_version,core)==0&&std::strcmp(mux_version,core)==0;
+}
 std::string Hash(const unsigned char* data,std::size_t size){gchar* p=g_compute_checksum_for_data(G_CHECKSUM_SHA256,data,size);Need(p,"hash");std::string s(p);g_free(p);return s;}
 std::int64_t Time(GstClockTime t){Need(GST_CLOCK_TIME_IS_VALID(t)&&t<=static_cast<std::uint64_t>(INT64_MAX),"timestamp-unavailable");return static_cast<std::int64_t>(t);}
 // 진단은 수락 조건을 바꾸지 않는다. 단계/코드를 한 원자값으로 최초 한 번만 보존한다.
@@ -42,6 +58,8 @@ constexpr const char* kCaptureCodes[]={"unknown","gstreamer-profile","parser-pad
 bool ExactToken(std::string_view list,std::string_view value) noexcept {
     while(!list.empty()){const auto end=list.find(' ');if(list.substr(0,end)==value)return true;if(end==std::string_view::npos)break;list.remove_prefix(end+1);}return false;
 }
+} // namespace
+// Pimpl 멤버의 타입에 외부 linkage를 부여해 GCC의 subobject-linkage 진단을 피한다.
 struct CaptureFailure {
     std::atomic<std::uint32_t> packed{0};
     void Record(CapturePhase phase,const char* what=nullptr) noexcept {
@@ -57,6 +75,7 @@ struct CaptureFailure {
         return std::string("capture-")+kCapturePhases[phase].name+"-"+kCaptureCodes[code];
     }
 };
+namespace {
 void ReadMuxTimes(GstBuffer* buffer,RecordingFileSampleEvidenceV1& sample,CapturePhase& phase){
     phase=CapturePhase::ObservePts;sample.mux_pts_ns=Time(GST_BUFFER_PTS(buffer));
     phase=CapturePhase::ObserveDts;sample.mux_dts_ns=Time(GST_BUFFER_DTS(buffer));
@@ -92,7 +111,7 @@ std::string Vcl(const std::vector<unsigned char>& b,unsigned width) {
         canonical.insert(canonical.end(),b.begin()+first,b.begin()+last);};
     if(width) {
         Need(width<=4,"nal-width");for(std::size_t p=0;p<b.size();) {Need(width<=b.size()-p,"nal-header");std::size_t n=0;
-            for(unsigned j=0;j<width;++j)n=(n<<8)|b[p++];Need(n&&n<=b.size()-p,"nal-bound");append(p,p+n);p+=n;}
+            for(unsigned j=0;j<width;++j){n=(n<<8)|b[p++];}Need(n&&n<=b.size()-p,"nal-bound");append(p,p+n);p+=n;}
     } else {
         std::vector<std::pair<std::size_t,std::size_t>> starts;
         for(std::size_t i=0;i+3<=b.size();) {std::size_t w=0;
@@ -100,7 +119,7 @@ std::string Vcl(const std::vector<unsigned char>& b,unsigned width) {
             else if(!b[i]&&!b[i+1]&&b[i+2]==1)w=3;
             if(w){starts.push_back({i,i+w});i+=w;}else ++i;}
         for(std::size_t i=0;i<starts.size();++i){auto end=i+1<starts.size()?starts[i+1].first:b.size();const auto begin=starts[i].second;
-            while(end>begin&&!b[end-1])--end;append(begin,end);}
+            while(end>begin&&!b[end-1]){--end;}append(begin,end);}
     }
     Need(!canonical.empty(),"vcl-missing");return Hash(canonical.data(),canonical.size());
 }
@@ -176,7 +195,7 @@ void MatchNative(const Native& n,const RecordingFileEvidenceV1& e) {
 }
 }
 struct RecordingFileEvidenceCollector::Impl {
-    std::mutex mutex;std::int64_t origin;CaptureFailure failure;unsigned input_width=0;GstPad* pad=nullptr;gulong probe=0;bool segment=false;
+    std::mutex mutex;std::int64_t origin;CaptureFailure failure;unsigned input_width=0;GstPad* pad=nullptr;gulong probe=0;bool segment=false;std::string profile;
     std::vector<RecordingFileSampleEvidenceV1> accepted,mux;
     explicit Impl(std::int64_t o):origin(o){accepted.reserve(kSamples);mux.reserve(kSamples);}
     ~Impl(){if(pad){if(probe)gst_pad_remove_probe(pad,probe);gst_object_unref(pad);}}
@@ -199,19 +218,21 @@ RecordingFileEvidenceCollector::RecordingFileEvidenceCollector(std::int64_t o):i
 RecordingFileEvidenceCollector::~RecordingFileEvidenceCollector()=default;
 bool RecordingFileEvidenceCollector::Attach(GstElement* parser,const GstCaps* input_caps) noexcept {
     auto phase=CapturePhase::AttachCore;
-    try{guint major=0,minor=0,micro=0,nano=0;gst_version(&major,&minor,&micro,&nano);Need(major==1&&minor==28&&micro==1&&nano==0,"gstreamer-profile");
+    try{guint major=0,minor=0,micro=0,nano=0;gst_version(&major,&minor,&micro,&nano);const auto* profile=CoreProfile(major,minor,micro,nano);Need(profile,"gstreamer-profile");
         phase=CapturePhase::AttachInputCaps;impl_->input_width=InputNalWidth(input_caps);
         phase=CapturePhase::AttachParserPad;auto* src=gst_element_get_static_pad(parser,"src");Need(src,"parser-pad");phase=CapturePhase::AttachMuxPad;impl_->pad=gst_pad_get_peer(src);gst_object_unref(src);Need(impl_->pad,"mux-pad");
         phase=CapturePhase::AttachMuxElement;auto* mux=gst_pad_get_parent_element(impl_->pad);Need(mux,"mux-element");phase=CapturePhase::AttachPlugin;
-        auto* mux_factory=gst_element_get_factory(mux);
-        bool versions=mux_factory&&std::string(gst_plugin_feature_get_name(GST_PLUGIN_FEATURE(mux_factory)))=="mp4mux";
-        for(auto* element:{parser,mux}) {
-            auto* factory=gst_element_get_factory(element);auto* plugin=factory?gst_plugin_feature_get_plugin(GST_PLUGIN_FEATURE(factory)):nullptr;
-            versions=versions&&plugin&&std::string(gst_plugin_get_version(plugin))=="1.28.1";
-            if(element==mux)versions=versions&&plugin&&std::string(gst_plugin_get_name(plugin))=="isomp4";
-            if(plugin)gst_object_unref(plugin);
-        }
-        gst_object_unref(mux);Need(versions,"plugin-profile");
+        auto* parser_factory=gst_element_get_factory(parser);auto* mux_factory=gst_element_get_factory(mux);
+        auto* parser_plugin=parser_factory?gst_plugin_feature_get_plugin(GST_PLUGIN_FEATURE(parser_factory)):nullptr;
+        auto* mux_plugin=mux_factory?gst_plugin_feature_get_plugin(GST_PLUGIN_FEATURE(mux_factory)):nullptr;
+        const auto core=std::to_string(major)+"."+std::to_string(minor)+"."+std::to_string(micro);
+        const bool versions=PluginProfile(core.c_str(),parser_factory?gst_plugin_feature_get_name(GST_PLUGIN_FEATURE(parser_factory)):nullptr,
+            parser_plugin?gst_plugin_get_name(parser_plugin):nullptr,parser_plugin?gst_plugin_get_version(parser_plugin):nullptr,
+            mux_factory?gst_plugin_feature_get_name(GST_PLUGIN_FEATURE(mux_factory)):nullptr,
+            mux_plugin?gst_plugin_get_name(mux_plugin):nullptr,mux_plugin?gst_plugin_get_version(mux_plugin):nullptr);
+        if(parser_plugin)gst_object_unref(parser_plugin);
+        if(mux_plugin)gst_object_unref(mux_plugin);
+        gst_object_unref(mux);Need(versions,"plugin-profile");impl_->profile=profile;
         phase=CapturePhase::AttachProbe;impl_->probe=gst_pad_add_probe(impl_->pad,static_cast<GstPadProbeType>(GST_PAD_PROBE_TYPE_BUFFER|GST_PAD_PROBE_TYPE_EVENT_DOWNSTREAM),Impl::Observe,impl_.get(),nullptr);Need(impl_->probe,"probe-install");return true;
     }catch(const std::exception& e){impl_->failure.Record(phase,e.what());return false;}catch(...){impl_->failure.Record(phase);return false;}
 }
@@ -226,7 +247,7 @@ std::optional<RecordingFileEvidenceV1> RecordingFileEvidenceCollector::Finish(co
     int fd=-1;
     try {std::lock_guard lock(impl_->mutex);if(impl_->failure.Failed()){if(reason)*reason=impl_->failure.Reason();return std::nullopt;}Need(impl_->segment,"segment-unobserved");Need(binding.index_complete&&impl_->accepted.size()==binding.samples.size()&&impl_->mux.size()==binding.samples.size(),"capture-count");
         fd=::open(path.c_str(),O_RDONLY|O_CLOEXEC|O_NOFOLLOW);Need(fd>=0,"file-open");const auto data=ReadFile(fd,bytes,sha);::close(fd);fd=-1;const auto native=Mp4(data).Read();
-        RecordingFileEvidenceV1 evidence;evidence.writer_origin_ns=impl_->origin;evidence.file_size_bytes=bytes;evidence.file_sha256=sha;evidence.timescale=native.timescale;evidence.movie_timescale=native.movie_timescale;evidence.edit_duration=native.edit_duration;evidence.edit_media_time=native.edit_time;
+        RecordingFileEvidenceV1 evidence;evidence.profile=impl_->profile;evidence.writer_origin_ns=impl_->origin;evidence.file_size_bytes=bytes;evidence.file_sha256=sha;evidence.timescale=native.timescale;evidence.movie_timescale=native.movie_timescale;evidence.edit_duration=native.edit_duration;evidence.edit_media_time=native.edit_time;
         std::unordered_map<std::string,const RecordingFileSampleEvidenceV1*> accepted;
         for(const auto& a:impl_->accepted)Need(accepted.emplace(a.vcl_sha256,&a).second,"ambiguous-original-vcl");
         Need(native.samples.size()==impl_->mux.size(),"native-count");

@@ -6,8 +6,11 @@
 #include <set>
 namespace recording {
 inline bool NativeTickFloor(std::int64_t tick,std::uint32_t scale,std::int64_t* out) {
-    if(!out||tick<0||!scale)return false;const __int128 n=static_cast<__int128>(tick)*1000000000/scale;
-    if(n>std::numeric_limits<std::int64_t>::max())return false;*out=static_cast<std::int64_t>(n);return true;
+    if(!out||tick<0||!scale)return false;
+    const __int128 n=static_cast<__int128>(tick)*1000000000/scale;
+    if(n>std::numeric_limits<std::int64_t>::max())return false;
+    *out=static_cast<std::int64_t>(n);
+    return true;
 }
 inline bool NativeAuInterval(const RecordingFileEvidenceV1& proof,const RecordingFileSampleEvidenceV1& sample,
                              const DerivedRemuxAu& au,PresentationInterval* interval) {

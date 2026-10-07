@@ -92,6 +92,7 @@ struct RecordingFileSampleEvidenceV1 {
 };
 struct RecordingFileEvidenceV1 {
     std::uint32_t version{1};
+    // 구형 값의 생성 의미는 보존한다. collector는 실제 runtime에서 선택한 값을 명시한다.
     std::string profile{"gst-qtmux-1.28.1-default-v1"};
     std::int64_t writer_origin_ns{0};
     std::uint64_t file_size_bytes{0};

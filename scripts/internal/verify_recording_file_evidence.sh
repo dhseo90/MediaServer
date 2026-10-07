@@ -29,9 +29,16 @@ read -r -a fe_flags <<< "$(pkg-config --cflags --libs gstreamer-1.0 gstreamer-ap
 "${CXX:-c++}" -std=c++17 -Wall -Wextra -Werror -pthread -I"$fe_repo/include" \
   -DMEDIA_SERVER_USE_GSTREAMER=1 -DMEDIA_SERVER_USE_SQLITE3=1 -DMEDIA_SERVER_USE_OPENSSL=1 \
   "$fe_script/recording_file_evidence_smoke.cpp" "$fe_repo/src/recording/gstreamer_segment_writer.cpp" \
-  "$fe_repo/src/recording/recording_catalog.cpp" "$fe_repo/src/recording/recording_journal.cpp" \
+  "$fe_repo/src/recording/recording_catalog.cpp" "$fe_repo/src/recording/recording_catalog_snapshot.cpp" "$fe_repo/src/recording/recording_journal.cpp" \
   "$fe_repo/src/recording/recording_finalize_recovery.cpp" "$fe_repo/src/recording/recording_finalize_ticket.cpp" "$fe_repo/src/recording/recording_file_evidence.cpp" "$fe_repo/src/recording/recording_media_inspector.cpp" \
   "$fe_repo/src/recording/recording_derived_job.cpp" "$fe_repo/src/recording/recording_derived_job_ready.cpp" \
   "$fe_repo/src/recording/recording_contracts.cpp" "$fe_repo/src/recording/retention_coordinator.cpp" \
   "$fe_repo/src/domain/strict_json.cpp" "${fe_flags[@]}" -lz -o "$fe_root/check"
 "$fe_root/check" "$fe_root"
+"$fe_root/check" --readback "$fe_root"
+node "$fe_script/recording_forward_probe_native.cjs" --evidence "$fe_root/compat"
+# 교차 OS 읽기에 필요한 소유 사본만 명시한 빈 디렉터리로 반출한다.
+if [[ -n "${MEDIA_SERVER_FILE_EVIDENCE_EXPORT:-}" ]]; then
+  [[ -d "$MEDIA_SERVER_FILE_EVIDENCE_EXPORT" && ! -L "$MEDIA_SERVER_FILE_EVIDENCE_EXPORT" && -z "$(ls -A "$MEDIA_SERVER_FILE_EVIDENCE_EXPORT")" ]] || exit 2
+  cp -R "$fe_root/compat" "$MEDIA_SERVER_FILE_EVIDENCE_EXPORT/compat"
+fi

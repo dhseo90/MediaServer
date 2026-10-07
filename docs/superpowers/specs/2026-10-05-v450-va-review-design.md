@@ -1115,3 +1115,25 @@ UI 수명 검사를 연결한다. 기존 K08 wrapper가 실행하는 `--core-onl
 기존986개는 독립 재결속300개·엄격 승계686개로 적용했다. 결속 오류0·후속 반례15개 PASS다.
 55 원판단과 locator 정합은 보존·재사용한다. 실제 HTTP의 보류된 완료 응답 회수와 제어된
 UI 스크립트의 실행 중 다음 polling 검사를 구분하며, 전체 UI·장시간·지원 OS·공개 릴리즈는 별도다.
+
+
+## 59. 정확한 GStreamer 파일 증거 프로파일 호환 후보
+
+1.28.1의 원본 packet/VCL→mux sample→MP4 native 표와 정수 원점, round/끝점 차분,
+edit·hash·4096sample/32MiB/2MiB 상한을 유지한다. 생성은 실제 core와 parser/mux의
+factory/plugin 버전을 함께 검사하고 profile을 명시한다. Linux arm64의 정확한1.28.7은
+`gst-qtmux-1.28.7-default-v1`로 구분하며 기존1.28.1 직렬화·hash·읽기 의미는 바꾸지 않는다.
+다른 micro/nano·혼합 조합은 거부한다. 구버전 reader는 새 profile을 거부한다.
+
+공식1.28.1→1.28.7의 qtmux 원본은 동일하지만 h264parse/baseparse는 upstream duration을
+보존하도록 변경됐다. 실제 고정 VFR에서는 마지막 mux duration과 native edit 길이가 달라진다.
+새 profile도 관측된 mux 시간에서 실제 파일 표로의 기존 검증식을 그대로 만족해야 하며,
+과거 profile에 새 duration을 소급하거나 두 버전 파일이 동일하다고 표현하지 않는다.
+OS와 encoder 배포도 달라 SEI/file hash 차이를 버전 하나의 효과로 단정하지 않는다.
+
+FE09는 실제 생성 profile, 혼합/개발 버전 거부,5파일 별도 프로세스 readback과 독립 native
+표 대조를 FE01~08에 연결한다. 기존 GCC 준비 진단은 검사 옵션을 낮추지 않고 토큰 불변
+줄 구분과 누락된 catalog snapshot 링크로 보완한다. profile 문자열은 발급 경로의 출처
+표시이며 그 자체가 암호학적 runtime 인증은 아니다. 변경된 시간이나 손상된 파일은
+profile만 바꿔도 유효해지지 않는다. 채택·승인 결속과 후속 acceptance는 새 검증 결과를
+따르며,56의 승인을 새 제품 소스에 자동 부여하지 않는다.

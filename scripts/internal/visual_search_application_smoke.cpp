@@ -50,6 +50,7 @@ int main(int argc,char** argv){try{
     options.enabled=true;options.model_directory=argv[2];options.cache_directory=(root/"visual-cache").string();options.scan_seconds=1;options.sample_seconds=1;
     {Service service(runtime.catalog(),reader,options,channels);Ready(service,authorized);
     auto status=service.Status(authorized);Json(status.body);Check(status.body.find("hidden")==std::string::npos,"status contains authorized channel only");
+    std::cout<<"[actual-index] "<<status.body<<'\n';
     Check(status.body.find("\"indexedFrames\":3")!=std::string::npos,"three representative frames");
     if(scope_only)Check(status.body.find("\"unknownTimeFrames\":3")!=std::string::npos&&status.body.find("\"firstSampleTimeNs\":null")!=std::string::npos,"UTC missing remains unknown");
     const auto restricted=service.Status([](const auto&){return false;});

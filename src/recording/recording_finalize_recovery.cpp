@@ -93,7 +93,9 @@ bool Quarantine(RecordingCatalog& catalog,const std::filesystem::path& root,cons
 }
 
 static bool PublishValidatedReady(const std::filesystem::path& root,const FinalizeReadyTicket& t,std::string* error){
-    if(!Validate(t,error))return false;Parent p;if(!p.Open(root,t.final_relative))return Fail(error,"publish parent 불가");
+    if(!Validate(t,error))return false;
+    Parent p;
+    if(!p.Open(root,t.final_relative))return Fail(error,"publish parent 불가");
     const auto partial=t.partial_relative.filename().string(),final=t.final_relative.filename().string();struct stat a{},b{};
     const bool has_a=::fstatat(p.fd.fd,partial.c_str(),&a,AT_SYMLINK_NOFOLLOW)==0;const int a_error=errno;
     const bool has_b=::fstatat(p.fd.fd,final.c_str(),&b,AT_SYMLINK_NOFOLLOW)==0;const int b_error=errno;
@@ -194,11 +196,14 @@ bool RecoverFinalizeReadyTickets(RecordingCatalog& catalog,const std::filesystem
     for(std::filesystem::recursive_directory_iterator it(root,ec),end;!ec&&it!=end;it.increment(ec)){
         if(it->path().extension()==".finalize-ready")tickets.push_back(it->path().lexically_relative(root));
     }
-    if(ec)return Fail(error,"ready scan 실패");std::sort(tickets.begin(),tickets.end());
+    if(ec)return Fail(error,"ready scan 실패");
+    std::sort(tickets.begin(),tickets.end());
     for(const auto& path:tickets){
         FinalizeReadyTicket t;bool missing=false;bool inserted=false;struct stat ticket_binding{};
         if(!Read(root,path,&t,&missing,error,&ticket_binding)||missing||catalog.IsDeletedSegmentId(t.segment.segment_id)){
-            if(report)++report->errors;return Fail(error,"ready invalid 또는 삭제 ID: 원본 보존");}
+            if(report)++report->errors;
+            return Fail(error,"ready invalid 또는 삭제 ID: 원본 보존");
+            }
         if(t.segment_v2) {
             const auto& v=*t.segment_v2;
             // catalog 설정 root와 같은 입력 표기로 전달한다. 물리 접근은 각 helper가 안전 정규화한다.
@@ -211,7 +216,8 @@ bool RecoverFinalizeReadyTickets(RecordingCatalog& catalog,const std::filesystem
                     catalog.RecoverFinalizedSegmentV2(v,final_path,&inserted,error);},
                 [&]{return ClearValidatedReady(root,t,error);});
             if(!completed) {
-                if(report)++report->errors;return false;
+                if(report)++report->errors;
+                return false;
             }
             if(report){if(inserted)++report->recovered;else ++report->already_committed;}
             continue;
@@ -229,14 +235,16 @@ bool RecoverFinalizeReadyTickets(RecordingCatalog& catalog,const std::filesystem
         }
         if(known&&((known->lifecycle!=RecordingLifecycle::Finalized&&!already_corrupt)||
            SerializeRecordingSegmentV1(identity)!=SerializeRecordingSegmentV1(t.segment))){
-            if(report)++report->errors;return Fail(error,"ready 기존 ID 충돌: 원본 보존");
+            if(report)++report->errors;
+            return Fail(error,"ready 기존 ID 충돌: 원본 보존");
         }
         Parent diagnostic_parent;struct stat diagnostic_status{};
         if(!diagnostic_parent.Open(root,t.final_relative)){if(report)++report->errors;return Fail(error,"ready 진단 parent 불가");}
         const bool has_diagnostic=::fstatat(diagnostic_parent.fd.fd,(TicketPath(t).filename().string()+".corrupt-info").c_str(),&diagnostic_status,AT_SYMLINK_NOFOLLOW)==0;
         if(!has_diagnostic&&errno!=ENOENT){if(report)++report->errors;return Fail(error,"ready 진단 조회 불가");}
         if(!already_corrupt&&!catalog.ValidateFinalizeRecovery(t.segment,(Root(root)/t.final_relative).string(),t.event_link,error)){
-            if(report)++report->errors;return false;
+            if(report)++report->errors;
+            return false;
         }
         const bool logical_quarantine=already_corrupt||has_diagnostic;
         if(logical_quarantine||!PublishFinalizeReady(root,t,error)){
@@ -247,15 +255,19 @@ bool RecoverFinalizeReadyTickets(RecordingCatalog& catalog,const std::filesystem
             if(!inspection_parent.Open(root,inspected_relative)||::fstatat(inspection_parent.fd.fd,inspected_relative.filename().c_str(),&inspected_binding,AT_SYMLINK_NOFOLLOW)!=0){if(report)++report->errors;return Fail(error,"격리 전 media binding 실패");}
             const auto inspected=InspectRecordingMedia(root,inspected_relative,t.segment);
             if(!exists_error&&inspected.state==MediaInspectionState::Corrupt&&inspected.detail!="missing-media"&&Quarantine(catalog,root,t,inspected,inspected_relative,inspected_binding,ticket_binding,error)){
-                if(report)++report->quarantined;continue;
+                if(report)++report->quarantined;
+                continue;
             }
-            if(report)++report->errors;return Fail(error,"ready 논리 격리 검사/진단 불일치: 원본 보존");
+            if(report)++report->errors;
+            return Fail(error,"ready 논리 격리 검사/진단 불일치: 원본 보존");
         }
         if(!catalog.RecoverFinalizedSegment(t.segment,(Root(root)/t.final_relative).string(),t.event_link,&inserted,error)||!ClearFinalizeReady(root,t,error)){
-            if(report)++report->errors;return false;
+            if(report)++report->errors;
+            return false;
         }
         if(report){if(inserted)++report->recovered;else ++report->already_committed;}
     }
-    if(error)error->clear();return true;
+    if(error)error->clear();
+    return true;
 }
 }

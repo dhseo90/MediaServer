@@ -2,6 +2,7 @@
 #include "../../src/recording/recording_file_evidence.cpp"
 #include <iostream>
 #include <thread>
+#include <dlfcn.h>
 static void Check(bool ok,const char* label){if(!ok)throw std::runtime_error(label);std::cout<<"[pass] "<<label<<'\n';}
 static std::string FinishReason(recording::RecordingFileEvidenceCollector& collector){std::string reason;const auto proof=collector.Finish({}, {},0,{},&reason);if(proof)throw std::runtime_error("failed capture unexpectedly issued proof");return reason;}
 static media::Packet Packet(){media::Packet packet;packet.observation=media::SampleObservation{};packet.observation->ordinal=1;packet.observation->pts_ns=0;packet.observation->dts_ns=0;packet.observation->duration_ns=1;packet.payload={0,0,0,1,0x65,0x80};return packet;}
@@ -24,6 +25,26 @@ static void Framing(){
  index=0;for(const auto& payload:std::vector<std::vector<unsigned char>>{{0,0,0},{0,0,0,0},{0,0,0,5,0x65,1,2,3}}){bool rejected=false;try{recording::Vcl(payload,4);}catch(const std::exception& e){rejected=std::string(e.what())==(index==0?"nal-header":"nal-bound");}Check(rejected,("F03 malformed AVC payload length case"+std::to_string(index++)).c_str());}
  {recording::RecordingFileEvidenceCollector c(0);auto* parser=gst_element_factory_make("h264parse",nullptr);if(!parser)throw std::runtime_error("F03 parser prerequisite");const bool attached=c.Attach(parser,nullptr);gst_object_unref(parser);c.Accept(Packet());Check(!attached&&FinishReason(c)=="capture-attach-input-caps-input-caps","F03 bad framing Attach remains failed after Accept");}
 }
+static void Profiles(){
+ Check(std::string(recording::CoreProfile(1,28,1,0))=="gst-qtmux-1.28.1-default-v1","FE09 legacy exact profile");
+#if defined(__linux__) && defined(__aarch64__)
+ Check(std::string(recording::CoreProfile(1,28,7,0))=="gst-qtmux-1.28.7-default-v1","FE09 Linux arm64 candidate exact profile");
+#else
+ Check(!recording::CoreProfile(1,28,7,0),"FE09 candidate unverified platform refused");
+#endif
+ for(unsigned micro:{0U,2U,6U,8U})Check(!recording::CoreProfile(1,28,micro,0),"FE09 other micro refused");
+ Check(!recording::CoreProfile(1,28,1,1)&&!recording::CoreProfile(1,28,7,1)&&!recording::CoreProfile(1,29,1,0)&&!recording::CoreProfile(2,28,1,0),"FE09 nano major minor refused");
+ for(const auto* version:{"1.28.1","1.28.7"}){
+  Check(recording::PluginProfile(version,"h264parse","videoparsersbad",version,"mp4mux","isomp4",version),"FE09 exact plugin tuple synthetic");
+  for(unsigned field=0;field<7;++field){const char* args[]={version,"h264parse","videoparsersbad",version,"mp4mux","isomp4",version};args[field]=field==0||field==3||field==6?"1.28.2":"unknown";
+   Check(!recording::PluginProfile(args[0],args[1],args[2],args[3],args[4],args[5],args[6]),"FE09 mixed version or factory/plugin refused");}
+ }
+ guint major,minor,micro,nano;gst_version(&major,&minor,&micro,&nano);Dl_info core{};
+ Check(dladdr(reinterpret_cast<void*>(&gst_version),&core)!=0,"FE09 loaded core path available");
+ std::cout<<"[runtime] core="<<major<<'.'<<minor<<'.'<<micro<<'.'<<nano<<" library="<<core.dli_fname<<" selected="<<(recording::CoreProfile(major,minor,micro,nano)?recording::CoreProfile(major,minor,micro,nano):"unsupported")<<'\n';
+ for(const char* name:{"h264parse","mp4mux"}){auto* e=gst_element_factory_make(name,nullptr);Check(e!=nullptr,"FE09 actual factory instantiated");auto* f=gst_element_get_factory(e);auto* p=gst_plugin_feature_get_plugin(GST_PLUGIN_FEATURE(f));Check(p!=nullptr,"FE09 actual loaded plugin");std::cout<<"[runtime] factory="<<gst_plugin_feature_get_name(GST_PLUGIN_FEATURE(f))<<" plugin="<<gst_plugin_get_name(p)<<" version="<<gst_plugin_get_version(p)<<" file="<<gst_plugin_get_filename(p)<<'\n';gst_object_unref(p);gst_object_unref(e);}
+ for(const char* name:{"GST_PLUGIN_SCANNER","GST_PLUGIN_SCANNER_1_0","GST_REGISTRY","GST_REGISTRY_1_0","GST_PLUGIN_PATH","GST_PLUGIN_PATH_1_0","GST_PLUGIN_SYSTEM_PATH","GST_PLUGIN_SYSTEM_PATH_1_0"})std::cout<<"[runtime-env] "<<name<<'='<<(std::getenv(name)?std::getenv(name):"<unset>")<<'\n';
+}
 int main(){try{
  gst_init(nullptr,nullptr);recording::RecordingFileEvidenceCollector collector(0);media::Packet packet;collector.Accept(packet);Check(FinishReason(collector)=="capture-accept-original-fields-original-timestamp","C01 actual Accept missing observation exact phase/code");
  const char* fields[]={"pts","dts","duration","vcl"};const char* expected[]={"capture-accept-pts-timestamp-unavailable","capture-accept-dts-timestamp-unavailable","capture-accept-duration-timestamp-unavailable","capture-accept-vcl-vcl-missing"};
@@ -36,6 +57,6 @@ int main(){try{
  for(const auto* text:{"private canary /private/path","vcl-missing suffix","timestamp-unavailable"}){recording::CaptureFailure failure;failure.Record(recording::CapturePhase::AcceptVcl,text);Check(failure.Reason()=="capture-accept-vcl-unknown","C05 arbitrary or wrong-phase exception becomes unknown");}
  Check(std::string(recording::FixedFinishReason("mp4-table-bound"))=="mp4-table-bound"&&std::string(recording::FixedFinishReason("mp4-table-bound /private/canary"))=="finish-exception","C05 Finish exact allowlist no arbitrary exception text");
  {recording::RecordingFileEvidenceCollector c(0);auto* parser=gst_element_factory_make("h264parse",nullptr);if(!parser)throw std::runtime_error("C06 parser prerequisite");auto* caps=gst_caps_from_string("video/x-h264,stream-format=byte-stream,alignment=au");const bool attached=c.Attach(parser,caps);gst_caps_unref(caps);gst_object_unref(parser);Check(!attached&&FinishReason(c)=="capture-attach-mux-pad-mux-pad","C06 actual unlinked parser remains rejected");}
- Framing();
+ Framing();Profiles();
  return 0;
  }catch(const std::exception& e){std::cerr<<"[fail] "<<e.what()<<'\n';return 1;}}

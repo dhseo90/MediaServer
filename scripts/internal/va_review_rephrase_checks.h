@@ -8,7 +8,8 @@ std::string RephraseEcho(const ReviewMaterialRequests& materials){std::string s=
 std::string RephrasePlan(const std::filesystem::path& root){const auto candidate=ReadQuestionCandidate(root);Check(candidate.non_thinking,"K12 frozen explicit non-thinking candidate");std::string plan="[";
     for(const auto& raw:QuestionRows(root)){auto c=QuestionInput(root,raw);auto materials=RephraseMaterials(c);auto input=RephraseInput(c);std::string body,error;
         Check(BuildReviewQuestionRequest(input,candidate.model,&body,&error),"K12 bounded request");body=QuestionCandidateBody(body,true);
-        if(plan.size()>1)plan+=',';plan+="{\"case\":"+EvidenceJsonQuote(CoreText(CauseDoc(raw),"id"))+",\"materials\":"+SerializeReviewMaterialRequests(materials)+",\"requestSha256\":"+EvidenceJsonQuote(CauseHash(body))+",\"request\":"+body+"}";
+        if(plan.size()>1)plan+=',';
+        plan+="{\"case\":"+EvidenceJsonQuote(CoreText(CauseDoc(raw),"id"))+",\"materials\":"+SerializeReviewMaterialRequests(materials)+",\"requestSha256\":"+EvidenceJsonQuote(CauseHash(body))+",\"request\":"+body+"}";
     }return plan+"]";
 }
 void RephraseChecks(const std::filesystem::path& root){using namespace recording::review_json;std::string error;const auto rows=QuestionRows(root);std::vector<std::string> baseline;

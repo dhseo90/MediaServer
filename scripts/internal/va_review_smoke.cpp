@@ -356,7 +356,8 @@ void QueueChecks(const std::filesystem::path& root) {
     auto video=Encode(30,false,false,160,90,30,30);Shift(video,7000000000ULL);
     recording::GStreamerSegmentWriter writer(runtime.WriterOptions(1000));
     Check(writer.Start("camera-1","unused",video.descriptor,[](auto,auto,auto*){return false;},&error),"V450-Q01 actual writer starts");
-    for(const auto& packet:video.packets)writer.Push(packet,0);writer.Stop();
+    for(const auto& packet:video.packets)writer.Push(packet,0);
+    writer.Stop();
     Check(runtime.catalog().FinalizedSegmentIdsForStartup().size()==1,"V450-Q01 actual recording finalized while provider waits");
     recording::RecordingReadService reader(runtime.catalog());recording::RecordingSearchReader search(runtime.catalog(),reader);
     std::shared_ptr<const recording::RecordingSearchModel> model;
@@ -576,7 +577,8 @@ void ProviderChecks(const std::filesystem::path& root,const std::string& endpoin
         const auto payload=mode==3?"{}":mode==4?WireResult("\"c0\":"+partial+",\"c1\":"+partial,"null"):valid;
         *response="{\"model\":"+EvidenceJsonQuote(mode==5?"unexpected":options.local_model)+",\"done\":"+(mode==8?"false":"true")+
             ",\"done_reason\":"+EvidenceJsonQuote(mode==6?"length":"stop")+",\"message\":{\"role\":\"assistant\",\"content\":"+EvidenceJsonQuote(payload)+"}}";
-        if(mode==2)*response="{invalid";return true;
+        if(mode==2)*response="{invalid";
+        return true;
     };
     const auto run=[&]{return MakeVaReviewProvider(options,transport)(input,"ollama",VaReviewService::Clock::now()+std::chrono::seconds(5),[]{return false;},&out,&error);};
     Check(run()&&calls==3&&out.model_revision==std::string(64,'d')&&EvidenceIsSha256(out.prompt_sha256)&&out.adapter_version=="ollama-chat-v11",
@@ -803,7 +805,8 @@ void QualityChecks(const std::filesystem::path& root,const std::string& endpoint
         const bool unknown=valid&&record.output.supports.empty()&&record.output.contradictions.empty()&&!record.output.unclear.empty()&&!record.output.confidence;
         const bool correct=valid&&(expected=="unclear"?unknown:expected=="supports"?
             !record.output.supports.empty()&&record.output.contradictions.empty():!record.output.contradictions.empty()&&record.output.supports.empty());
-        if(correct)++categories;if(expected=="unclear"&&unknown)++uncertain;
+        if(correct)++categories;
+        if(expected=="unclear"&&unknown)++uncertain;
         if(pair_mode&&case_index<6&&case_index%2==1&&preceding_correct&&correct)++pairs;
         preceding_correct=correct;++case_index;
         std::vector<bool> cited(test.x.size());
@@ -936,7 +939,8 @@ void SeedHttp(const std::filesystem::path& root) {
             auto record=Record(root);record.input=std::move(review);record.input.pngs.clear();record.output.supports.front().frame_indices={0};
             VaReviewStore records(root/"recordings/va-reviews",{});Check(records.Recover(&error)&&records.Publish(record,&historical,&error),"V450-E01 historical fixture without model execution");
         }
-        if(channel[0]=='2')json+=',';json+=EvidenceJsonQuote(id);
+        if(channel[0]=='2')json+=',';
+        json+=EvidenceJsonQuote(id);
     }
     std::ofstream(root/"seed.json")<<json+"],\"historicalId\":"+EvidenceJsonQuote(historical)+"}";
     Check(runtime.catalog().Checkpoint(&error),"V450-A01 seed checkpoint");

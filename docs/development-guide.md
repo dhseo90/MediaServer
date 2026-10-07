@@ -26,6 +26,16 @@ UI 사용법은 [UI 가이드](ui-guide.md)를 봅니다. 변경별 검증 기�
 - OS: macOS 또는 Linux
 - 언어·빌드: C++17 컴파일러, CMake 3.16+, pkg-config
 - 미디어: GStreamer 1.28+와 RTSP/WebRTC 플러그인. API/pkg-config 이름은 `gstreamer-1.0`을 사용합니다.
+  빌드 최소 버전과 정확한 파일 증거 생성 조건은 별개입니다. 파일 증거는 core/parser/mux가
+  모두 정확한1.28.1이거나 Linux arm64에서 모두 정확한1.28.7이고,
+  `h264parse/videoparsersbad`와 `mp4mux/isomp4`인 조합만 선택합니다.
+  실제 확인 범위는 macOS arm64/Homebrew1.28.1과 Debian forky/sid arm64/rc58의1.28.7입니다.
+  다른1.28.x·nano 개발 버전·혼합 조합은 허용하지 않습니다. 개별 파일의 시간·sample·hash
+  검증도 필수이며 이 버전 선택만으로 모든 입력이 지원되지는 않습니다.
+  새 프로그램은 기존 `gst-qtmux-1.28.1-default-v1`을 그대로 읽고, 새 조합은
+  `gst-qtmux-1.28.7-default-v1`로 구분합니다. 이전 바이너리는 새 profile을 거부하므로
+  새 자료 생성 후 구버전으로 되돌리는 읽기 호환성은 보장하지 않습니다.
+  기존 자료 읽기 지원은 오래된 runtime의 보안 승인을 뜻하지 않습니다.
 - 영상 분석: ONNX Runtime, YOLO ONNX 모델과 라벨. 기본 스크립트 빌드는 AI를 포함합니다.
 - 개발·검증 도구: Node.js, Python 3, curl, 검사에 따라 ffmpeg/ffprobe
 

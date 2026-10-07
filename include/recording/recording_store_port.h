@@ -23,7 +23,8 @@ public:
                                  std::string* error) = 0;
     virtual bool CompleteDeletion(const RecordingTombstoneV1& tombstone, std::string* error) = 0;
     virtual bool CompleteDeletionV2(const RecordingTombstoneV2&, std::string* error) {
-        if(error)*error="V2 deletion unsupported";return false;
+        if(error)*error="V2 deletion unsupported";
+        return false;
     }
     virtual std::vector<RecordingSegmentV1> QuerySegments(
         const std::string& channel_id,

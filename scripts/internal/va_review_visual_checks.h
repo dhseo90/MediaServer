@@ -11,7 +11,8 @@ std::vector<ReviewVisualClaim> VisualSpecs(const recording::review_json::Doc& ro
         for(const auto& f:VisualArray(d,"scope"))s.scope.push_back(std::stoul(f));
         const auto color=CoreText(d,"requiredColor");const std::vector<std::string> colors{"red","blue","green","yellow","black","white","gray"};auto at=std::find(colors.begin(),colors.end(),color);if(at!=colors.end())s.required_color=static_cast<ReviewColor>(at-colors.begin());
         const auto change=CoreText(d,"change");v.change=change=="color"?ReviewSampleChange::Color:change=="visibility"?ReviewSampleChange::Visibility:ReviewSampleChange::None;
-        if(ingress::StrictJsonBoolField(d,"requiredChanged")==false)v.required_changed=false;specs.push_back(v);
+        if(ingress::StrictJsonBoolField(d,"requiredChanged")==false)v.required_changed=false;
+        specs.push_back(v);
     }return specs;
 }
 std::vector<std::uint8_t> VisualPng(const std::string& draw,std::size_t index,bool alternate){
@@ -46,12 +47,14 @@ VaReviewInput VisualInput(const std::filesystem::path& root,const recording::rev
 std::string VisualOracleText(const recording::review_json::Doc& row){const auto fs=VisualArray(row,"frames");const auto specs=VisualSpecs(row);bool color=false;for(const auto& s:specs)color=color||s.claim.relation==ReviewRelation::ColorAt||s.claim.relation==ReviewRelation::AllColor;
     std::string out="{\"t0\":{";for(std::size_t i=0;i<fs.size();++i){auto d=CauseDoc(fs[i]);if(i)out+=',';const auto link=CoreText(d,"link");const bool cue=link=="visual-cue";
         out+=EvidenceJsonQuote("f"+std::to_string(i))+":{\"targetMatch\":"+EvidenceJsonQuote(CoreText(d,"targetMatch"))+",\"searchability\":"+EvidenceJsonQuote(CoreText(d,"searchability"))+",\"visibility\":"+EvidenceJsonQuote(CoreText(d,"visibility"))+",\"link\":"+EvidenceJsonQuote(link)+",\"anchorFrameKey\":"+(cue?"\"f0\"":"null")+",\"cueKind\":"+EvidenceJsonQuote(cue?"unique-mark":"none")+",\"cueText\":"+EvidenceJsonQuote(cue?"visible mark 7":"")+",\"cueFrameKeys\":"+(cue?(i?"[\"f0\",\"f"+std::to_string(i)+"\"]":"[\"f0\"]"):"[]");
-        if(color)out+=",\"color\":"+d.Find("color")->raw;out+='}';
+        if(color)out+=",\"color\":"+d.Find("color")->raw;
+        out+='}';
     }return out+"}}";
 }
 std::string VisualDecisions(const std::vector<ReviewVisualDecision>& ds){std::vector<ReviewDecision> plain;for(const auto& d:ds)plain.push_back(d.decision);return CoreDecisionJson(plain);}
 std::string VisualPlan(const std::filesystem::path& root){std::string plan="[",error;for(const auto& raw:VisualRows(root)){const auto row=CauseDoc(raw);auto input=VisualInput(root,row);std::string request;Check(BuildReviewVisualRequest(input,VisualSpecs(row),visual_model,&request,&error),"K13 build frozen PNG request: "+error);
-    if(plan.size()>1)plan+=',';plan+="{\"case\":"+EvidenceJsonQuote(CoreText(row,"id"))+",\"input\":"+SerializeVaReviewInput(input)+",\"requestSha256\":"+EvidenceJsonQuote(CauseHash(request))+",\"request\":"+request+"}";
+    if(plan.size()>1)plan+=',';
+    plan+="{\"case\":"+EvidenceJsonQuote(CoreText(row,"id"))+",\"input\":"+SerializeVaReviewInput(input)+",\"requestSha256\":"+EvidenceJsonQuote(CauseHash(request))+",\"request\":"+request+"}";
     }return plan+"]";
 }
 void VisualChecks(const std::filesystem::path& root){using namespace recording::review_json;

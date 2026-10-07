@@ -429,7 +429,8 @@ private:
         if(v2_mode)accepted=detail::AcceptSourceSample(accepted,current_source,
             {packet.observation->ordinal,*packet.observation->pts_ns});
         if (!accepted) {
-            if(v2_mode)InputFailureLocked("mux-push");return;
+            if(v2_mode)InputFailureLocked("mux-push");
+            return;
         }
         if(v2_mode&&evidence_capture)evidence_capture->Accept(packet);
         current_payload_bytes = packet.payload.size() >

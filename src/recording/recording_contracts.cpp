@@ -491,7 +491,7 @@ bool ValidateRecordingFileEvidence(const RecordingSourceBindingV1& b,std::string
     if(!b.file_evidence)return true;
     const auto& e=*b.file_evidence;
     const auto hex=[](const std::string& s){return s.size()==64&&std::all_of(s.begin(),s.end(),[](char c){return (c>='0'&&c<='9')||(c>='a'&&c<='f');});};
-    if(e.version!=1||e.profile!="gst-qtmux-1.28.1-default-v1"||!b.index_complete||e.writer_origin_ns<0||
+    if(e.version!=1||(e.profile!="gst-qtmux-1.28.1-default-v1"&&e.profile!="gst-qtmux-1.28.7-default-v1")||!b.index_complete||e.writer_origin_ns<0||
        e.file_size_bytes==0||e.file_size_bytes>32U*1024*1024||!hex(e.file_sha256)||!e.timescale||
        e.movie_timescale!=e.timescale||e.samples.empty()||e.samples.size()>4096||e.samples.size()!=b.samples.size()||
        e.edit_duration<=0||e.edit_media_time<0)return Fail(error,"file evidence profile/bound 오류");
@@ -1610,7 +1610,8 @@ bool Text(const Doc& d,const char* key,std::string* out) {
 template<class T> bool Number(const Doc& d,const char* key,T* out) {
     const auto* v=d.Find(key);if(!v||v->type!=Type::Number)return false;
     T n{};const auto r=std::from_chars(v->raw.data(),v->raw.data()+v->raw.size(),n);
-    if(r.ec!=std::errc{}||r.ptr!=v->raw.data()+v->raw.size())return false;*out=n;return true;
+    if(r.ec!=std::errc{}||r.ptr!=v->raw.data()+v->raw.size())return false;
+    *out=n;return true;
 }
 } // namespace
 

@@ -181,14 +181,37 @@ void Capacity(const Output& o) {
  Reopen(o,true,true);Reopen(o,false,false);
 }
 }
+// 저장 사본만 사용하는 별도 프로세스 진입점. 원래 catalog 객체를 열지 않는다.
+int Readback(const std::filesystem::path& root) {
+ unsigned count=0;
+ for(const auto& entry:std::filesystem::directory_iterator(root/"compat")){
+  if(entry.path().extension()!=".mp4")continue;
+  Output o;o.file=entry.path();std::string error;const auto text=Bytes(o.file.string()+".binding.json");
+  Check(ParseRecordingSourceBindingV1(text,&o.binding,&error)&&SerializeRecordingSourceBindingV1(o.binding)==text,"FE09 separate process exact binding bytes");
+  Check(ParseRecordingSegmentV2(Bytes(o.file.string()+".segment.json"),&o.segment,&error)&&ValidateRecordingSourceBindingForSegment(o.binding,o.segment,&error)&&Verify(o),"FE09 separate process file sample hash and timestamp");
+  const int fd=::open(o.file.c_str(),O_RDONLY|O_CLOEXEC|O_NOFOLLOW);
+  Check(fd>=0&&!VerifyRecordingFileEvidenceFd(fd,o.binding,&error,[]{return true;})&&error=="file-evidence-cancelled","FE09 cancelled read never verifies");if(fd>=0)::close(fd);
+  for(const auto* profile:{"gst-qtmux-1.28.1-default-v1","gst-qtmux-1.28.7-default-v1"}){auto bad=o;bad.binding.file_evidence->profile=profile;++bad.binding.file_evidence->samples[0].native_pts;Check(!Verify(bad),"FE09 relabel cannot rescue invalid time");}
+  std::cout<<"[readback] profile="<<o.binding.file_evidence->profile<<" samples="<<o.binding.samples.size()<<" hash="<<o.binding.file_evidence->file_sha256<<'\n';++count;
+ }
+ Check(count==5,"FE09 five independent file readbacks");return 0;
+}
 int main(int argc,char** argv) {
- if(argc!=2)return 2;gst_init(nullptr,nullptr);const std::filesystem::path root=argv[1];
+ if(argc==3&&std::string(argv[1])=="--readback"){try{return Readback(argv[2]);}catch(const std::exception& e){std::cerr<<e.what()<<'\n';return 1;}}
+ if(argc!=2)return 2;
+ gst_init(nullptr,nullptr);
+ const std::filesystem::path root=argv[1];
  try{
- Output first;
+ Output first;unsigned exported=0;std::filesystem::create_directory(root/"compat");
  for(int which=1;which<=4;++which){auto input=which==1?Encode(501,false,false,160,90,30,250):Encode(which==4?12:30,which==3,which==2,160,90,30,250);Shift(input,0);if(which==1)input.packets.resize(300);
  if(which==4){std::int64_t t=0;for(std::size_t i=0;i<input.packets.size();++i){auto& p=input.packets[i];p.pts=p.dts=t;p.observation->pts_ns=t;p.observation->dts_ns=t;p.observation->duration_ns=i+1==input.packets.size()?70000000:(i%2?50000000:20000000);t+=*p.observation->duration_ns;}}
  const auto outputs=Record(root/("actual-"+std::to_string(which)),input,which==1?2000:10000);Check(outputs.size()==(which==1?2U:1U),"FE02 expected segment count");
- std::size_t output_index=0;for(const auto& o:outputs){context="TP0"+std::to_string(which)+"/segment"+std::to_string(output_index++);Check(o.binding.file_evidence.has_value(),"FE01 actual evidence persisted");const auto t=Clock::now();Check(Verify(o),"FE02 physical native and hash verification");std::cout<<"[measure] file_verify_us="<<Us(t)<<" file_bytes="<<o.segment.size_bytes<<'\n';}
+ std::size_t output_index=0;for(const auto& o:outputs){context="TP0"+std::to_string(which)+"/segment"+std::to_string(output_index++);Check(o.binding.file_evidence.has_value(),"FE01 actual evidence persisted");
+ const auto copy=root/"compat"/(std::to_string(exported++)+".mp4");std::filesystem::copy_file(o.file,copy);
+ Write(copy.string()+".binding.json",SerializeRecordingSourceBindingV1(o.binding));Write(copy.string()+".segment.json",SerializeRecordingSegmentV2(o.segment));
+ guint major,minor,micro,nano;gst_version(&major,&minor,&micro,&nano);Check(o.binding.file_evidence->profile=="gst-qtmux-"+std::to_string(major)+"."+std::to_string(minor)+"."+std::to_string(micro)+"-default-v1","FE09 stored profile matches actual runtime");
+ const auto& proof=*o.binding.file_evidence;std::cout<<"[profile] "<<context<<" name="<<proof.profile<<" samples="<<proof.samples.size()<<" scale="<<proof.timescale<<" movie_scale="<<proof.movie_timescale<<" edit_duration="<<proof.edit_duration<<" edit_media_time="<<proof.edit_media_time<<" file_sha256="<<proof.file_sha256<<'\n';
+ for(std::size_t i=0;i<proof.samples.size();++i){const auto& p=proof.samples[i];std::cout<<"[sample] "<<context<<" ordinal="<<p.ordinal<<" original="<<p.original_pts_ns<<','<<p.original_dts_ns<<','<<p.original_duration_ns<<" mux="<<p.mux_pts_ns<<','<<p.mux_dts_ns<<','<<p.mux_duration_ns<<" native="<<p.native_pts<<','<<p.native_dts<<','<<p.native_duration<<" vcl="<<p.vcl_sha256<<" raw="<<p.sample_sha256<<'\n';}const auto t=Clock::now();Check(Verify(o),"FE02 physical native and hash verification");std::cout<<"[measure] file_verify_us="<<Us(t)<<" file_bytes="<<o.segment.size_bytes<<'\n';}
  if(which==1)first=outputs.front();
  }
  context="TP01/contract";Contracts(first);context="TP01/malformed";ParserFailures(first,root);Reopen(first,true,true);Reopen(first,false,false);Ready(first);
