@@ -14683,8 +14683,8 @@
           "file": "scripts/internal/verify_v390_test_acceptance_bundle.mjs",
           "symbol": "runActualBundle",
           "anchor": "else await runRealStage(stageId);",
-          "line": 219,
-          "contextSha256": "a86f30fedef63c31623bb3afbb82c7720b626297f48a5e779946a6c8ca371480"
+          "line": 224,
+          "contextSha256": "d4d5396fdb977ada91fe8406f3f8f41aba55d8d71f5db43410c45f1a28ba0b53"
         },
         "action": {
           "file": "scripts/internal/verify_v390_test_acceptance_bundle.mjs",
@@ -14722,14 +14722,14 @@
           "kind": "function-containment",
           "witness": "OPS-179 owner-dispatch",
           "source": "scripts/internal/verify_v390_test_acceptance_bundle.mjs:197",
-          "target": "scripts/internal/verify_v390_test_acceptance_bundle.mjs:219"
+          "target": "scripts/internal/verify_v390_test_acceptance_bundle.mjs:224"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "direct-callsite",
           "witness": "OPS-179 dispatch-action",
-          "source": "scripts/internal/verify_v390_test_acceptance_bundle.mjs:219",
+          "source": "scripts/internal/verify_v390_test_acceptance_bundle.mjs:224",
           "target": "scripts/internal/verify_v390_test_acceptance_bundle.mjs:248"
         },
         {
