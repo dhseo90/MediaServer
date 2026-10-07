@@ -1,0 +1,135 @@
+[
+  {
+    "fixture": "TP01",
+    "file": 0,
+    "samples": 250,
+    "changes": {
+      "bytes": {
+        "macOS1281": 227036,
+        "Linux1287": 227022
+      },
+      "sampleFields": {
+        "ordinal": 0,
+        "originalPts": 0,
+        "originalDts": 0,
+        "originalDuration": 0,
+        "muxPts": 0,
+        "muxDts": 0,
+        "muxDuration": 83,
+        "nativePts": 0,
+        "nativeDts": 0,
+        "nativeDuration": 0,
+        "vcl": 0,
+        "raw": 1
+      }
+    }
+  },
+  {
+    "fixture": "TP01",
+    "file": 1,
+    "samples": 50,
+    "changes": {
+      "sampleFields": {
+        "ordinal": 0,
+        "originalPts": 0,
+        "originalDts": 0,
+        "originalDuration": 0,
+        "muxPts": 0,
+        "muxDts": 0,
+        "muxDuration": 17,
+        "nativePts": 0,
+        "nativeDts": 0,
+        "nativeDuration": 0,
+        "vcl": 0,
+        "raw": 0
+      }
+    }
+  },
+  {
+    "fixture": "TP02",
+    "file": 2,
+    "samples": 30,
+    "changes": {
+      "bytes": {
+        "macOS1281": 28161,
+        "Linux1287": 28147
+      },
+      "sampleFields": {
+        "ordinal": 0,
+        "originalPts": 0,
+        "originalDts": 0,
+        "originalDuration": 0,
+        "muxPts": 0,
+        "muxDts": 0,
+        "muxDuration": 20,
+        "nativePts": 0,
+        "nativeDts": 0,
+        "nativeDuration": 0,
+        "vcl": 0,
+        "raw": 1
+      }
+    }
+  },
+  {
+    "fixture": "TP03",
+    "file": 3,
+    "samples": 30,
+    "changes": {
+      "bytes": {
+        "macOS1281": 19687,
+        "Linux1287": 19673
+      },
+      "sampleFields": {
+        "ordinal": 0,
+        "originalPts": 0,
+        "originalDts": 0,
+        "originalDuration": 0,
+        "muxPts": 0,
+        "muxDts": 0,
+        "muxDuration": 10,
+        "nativePts": 0,
+        "nativeDts": 0,
+        "nativeDuration": 0,
+        "vcl": 0,
+        "raw": 1
+      }
+    }
+  },
+  {
+    "fixture": "TP04",
+    "file": 4,
+    "samples": 12,
+    "changes": {
+      "bytes": {
+        "macOS1281": 11900,
+        "Linux1287": 11886
+      },
+      "edit": {
+        "macOS1281": [
+          1210,
+          0,
+          65536
+        ],
+        "Linux1287": [
+          1320,
+          0,
+          65536
+        ]
+      },
+      "sampleFields": {
+        "ordinal": 0,
+        "originalPts": 0,
+        "originalDts": 0,
+        "originalDuration": 0,
+        "muxPts": 0,
+        "muxDts": 0,
+        "muxDuration": 12,
+        "nativePts": 0,
+        "nativeDts": 0,
+        "nativeDuration": 1,
+        "vcl": 0,
+        "raw": 1
+      }
+    }
+  }
+]

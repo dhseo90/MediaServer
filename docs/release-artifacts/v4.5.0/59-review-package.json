@@ -1,0 +1,100 @@
+{
+  "schema": "media-server.v390-review4-semantic-independent-review-package.v1",
+  "candidate": {
+    "candidateDigest": "983d45f595756393c0ebe7825adab27b6669e8a85d1f2b112a0b02ff19645e53",
+    "rows": 986,
+    "unresolved": 0,
+    "head": "9d27479dd69eb27f9d2deaf86b76d8290dcea482",
+    "sourceTree": "37c984df6d676fa6a7365bcd4ed826f495ec3116"
+  },
+  "bindings": {
+    "stagedEquivalentTreeOid": "37c984df6d676fa6a7365bcd4ed826f495ec3116",
+    "trackedWorktreeDiffSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "changedFiles": []
+  },
+  "reviewScope": {
+    "changedIds": [],
+    "strictCarryForwardCount": 986,
+    "additionalRequired": [
+      "FE01",
+      "FE02",
+      "FE03",
+      "FE04",
+      "FE05",
+      "FE06",
+      "FE07",
+      "FE08",
+      "FE09",
+      "V450-K05",
+      "V450-K08",
+      "V450-K09",
+      "V450-S01",
+      "V450-S02",
+      "V450-I01",
+      "V450-C01",
+      "V450-R01"
+    ],
+    "newApprovalBoundary": "legacy parser has no recording FE or V450 rows; supplemental exact-source independent decisions required, legacy PASS alone insufficient",
+    "nonRelease": "C/questions/rephrase model experiments unchanged except lexical whitespace in shared compiled test headers; no generation"
+  },
+  "trustRebindRows": [],
+  "inputs": {
+    "implementationBase": "c2efb606a71d30ec07de70375796818b77159872",
+    "priorReviewSource": "6d91b2f9155073cd2a51f940cf35fa3333b8f44b",
+    "priorReview": "docs/release-artifacts/v4.5.0/56-independent-review.json",
+    "candidate": {
+      "path": "/tmp/v450-rc59-corqw3gi/current-candidate.json",
+      "sha256": "df59b76bd4a3df04883450b08e0e31439d079712e23e569747f3312b2befa893"
+    },
+    "direct": {
+      "path": "/tmp/v450-rc59-corqw3gi/direct-validation.json",
+      "sha256": "b3dfbbb1321307121797788c43d03856ca5e254bf4e940809175a4a3b9de6a16"
+    },
+    "diff": {
+      "path": "/tmp/v450-rc59-corqw3gi/source.patch",
+      "sha256": "de1400feaac705fea7358f6c995d93dbebadbaba4fb91f04ab68ebeec74cc8e4"
+    },
+    "paths": [
+      "docs/development-guide.md",
+      "docs/project-feature-test-inventory.md",
+      "docs/superpowers/specs/2026-10-05-v450-va-review-design.md",
+      "include/recording/recording_completion_trace.h",
+      "include/recording/recording_contracts.h",
+      "include/recording/recording_latency_trace.h",
+      "include/recording/recording_native_coverage.h",
+      "include/recording/recording_store_port.h",
+      "scripts/internal/recording_file_evidence_capture_smoke.cpp",
+      "scripts/internal/recording_file_evidence_smoke.cpp",
+      "scripts/internal/recording_forward_probe_native.cjs",
+      "scripts/internal/recording_public_media_smoke.cpp",
+      "scripts/internal/va_review_bound_record_checks.h",
+      "scripts/internal/va_review_cause_diagnostic.h",
+      "scripts/internal/va_review_confirmed_checks.h",
+      "scripts/internal/va_review_core_checks.h",
+      "scripts/internal/va_review_question_checks.h",
+      "scripts/internal/va_review_rephrase_checks.h",
+      "scripts/internal/va_review_smoke.cpp",
+      "scripts/internal/va_review_visual_checks.h",
+      "scripts/internal/verify_recording_file_evidence.sh",
+      "scripts/internal/visual_search_application_smoke.cpp",
+      "src/recording/gstreamer_segment_writer.cpp",
+      "src/recording/recording_catalog.cpp",
+      "src/recording/recording_contracts.cpp",
+      "src/recording/recording_derived_job_ready.cpp",
+      "src/recording/recording_file_evidence.cpp",
+      "src/recording/recording_finalize_recovery.cpp",
+      "src/recording/recording_finalize_ticket.cpp",
+      "src/recording/recording_journal.cpp",
+      "src/recording/retention_coordinator.cpp",
+      "src/recording/va_review_json.h"
+    ]
+  },
+  "producer": "Noop: all986 rows/trustBindings identical. Existing migration writer rejects zero unapproved IDs. Do not invent drift or rewrite ledger. Review supplemental feature scope independently.",
+  "executionLimits": {
+    "modelCalls": 0,
+    "reviewerProductRuns": 0,
+    "independentReviewerCount": 1,
+    "codeEdits": false,
+    "subdelegation": false
+  }
+}

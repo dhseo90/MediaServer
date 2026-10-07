@@ -1,0 +1,197 @@
+{
+  "schema": "media-server.v450-release59-validation.v1",
+  "status": "limited-profile-approved-pre-acceptance",
+  "completion": "정확한 Linux arm64 1.28.7 파일 증거 호환성과 변경분 독립 검토 통과. 호스트 acceptance는 아직 미실행.",
+  "source": {
+    "base": "c2efb606a71d30ec07de70375796818b77159872",
+    "reviewedHead": "9d27479dd69eb27f9d2deaf86b76d8290dcea482",
+    "reviewedTree": "37c984df6d676fa6a7365bcd4ed826f495ec3116",
+    "version": "4.5.0",
+    "prior56Source": "6d91b2f9155073cd2a51f940cf35fa3333b8f44b",
+    "manifest": "59-source-manifest.json.gz",
+    "sourceFileCount": 1416,
+    "sourceDiffSha256": "de1400feaac705fea7358f6c995d93dbebadbaba4fb91f04ab68ebeec74cc8e4",
+    "evidenceCommits": "별도 기록 커밋이며 검토 source를 최신 tree로 재표시하지 않는다."
+  },
+  "contract": {
+    "old": "gst-qtmux-1.28.1-default-v1",
+    "new": "gst-qtmux-1.28.7-default-v1",
+    "newCreationScope": "Linux aarch64, core 1.28.7 nano0 + h264parse/videoparsersbad 1.28.7 + mp4mux/isomp4 1.28.7",
+    "readScope": "새 reader는 두 정확한 profile을 검증; 구 reader는 새 profile 거부",
+    "unchanged": "MP4 구조·시간 변환·timescale/edit·hash/VCL·sample/byte 상한·취소/원자 게시 검증식",
+    "provenanceLimit": "profile 문자열은 생성 경로 출처이며 암호학적 runtime 인증이 아님. 모든 1.28.x/다른 조합 허용이 아님."
+  },
+  "environment": {
+    "image": "mediaserver-v450-verify:rc58-arm64",
+    "imageId": "sha256:ce72c8a15363984da642e9964189957896812061c6af1d0ef67e87b38ad5a588",
+    "linux": "Debian forky/sid aarch64; GCC16.2; GStreamer1.28.7; OpenSSL3.6.5",
+    "onnxRuntime": "official CPU 1.23.2 /opt/onnxruntime-linux-aarch64-1.23.2",
+    "sentencePiece": "0.2.0 /opt/rc58-sentencepiece",
+    "features": [
+      "GSTREAMER=ON",
+      "ONNXRUNTIME=ON",
+      "SIGLIP2=ON"
+    ],
+    "binarySha256": "9870bac61f5d26edac04a22abb9cb100c9346c6e23fbf4f006fdbbe0cf5bdcdc",
+    "runtimeArchiveSha256": "edcc9e89df8c55b076e7b03fd4d3d8e240e4c06d12f93457ced1b196f2af555f",
+    "host": "macOS arm64 actual core/parser/mux1.28.1; owned headless plugin mirror of Homebrew1.28.1",
+    "scanner": "default scanner path/file inspected; actual scanner exec not traced",
+    "isolation": "network none, 2CPU, 6GiB memory+swap cap, pids256, three model/tokenizer RO mounts, source copied into container",
+    "memoryPeakBytes": 5857206272,
+    "memoryPeakMeaning": "cgroup peak including build/page cache; not model RSS",
+    "oomEvents": 0,
+    "workBytesApprox": "352MiB",
+    "installations": 0
+  },
+  "directResults": {
+    "hostCapture": {
+      "pass": 78,
+      "fail": 0
+    },
+    "linuxCapture": {
+      "pass": 78,
+      "fail": 0
+    },
+    "fileEvidenceEachEnvironment": {
+      "pass": 198,
+      "readbackPass": 26,
+      "independentNativeFiles": 5,
+      "independentNativeSamples": 372
+    },
+    "linuxReadOld": {
+      "pass": 26,
+      "oldFiles": 5,
+      "reserializationUnchanged": true
+    },
+    "oldReader": {
+      "oldAccepted": 5,
+      "newRejected": 5
+    },
+    "linuxSearch": {
+      "pass": 96,
+      "indexedFrames": 3,
+      "actualImageInference": true,
+      "elapsedSeconds": 9.331463813781738,
+      "peakRssBytes": 2416955392,
+      "scope": "existing --scope-only small fixture; not full 16-image/24-query benchmark"
+    },
+    "linuxSeek": {
+      "pass": 9,
+      "scope": "30fps original reference and independently decoded frame hash; existing unsupported10fps remains unavailable"
+    },
+    "linuxA": {
+      "boundSeed": 93,
+      "freshProcessRead": 17,
+      "legacyStore": 52,
+      "core": 168,
+      "modelCalls": 0
+    },
+    "linuxPublicMedia": {
+      "pass": 46,
+      "scope": "native normal/partial derived media permission/hold/delete/corruption; known10fps warnings not treated as supported file evidence"
+    },
+    "linuxTransport": {
+      "pass": 15,
+      "scope": "owned loopback HTTP/TLS transport; no external service"
+    },
+    "linuxDecoder": {
+      "pass": 10,
+      "actualFrames": 8,
+      "scope": "VP8 encoded packets through actual decoder with source association and normal Stop; not network RTSP server integration"
+    },
+    "nativeOracleRegression": {
+      "pass": 33
+    },
+    "reused58": "text46/token8/worker58 retained as prior environment evidence, not new execution"
+  },
+  "observedDifferences": {
+    "details": "59-profile-comparison.json",
+    "summary": "original PTS/DTS/duration and VCL all match across372 samples; parser-preserved mux durations differ; native PTS/DTS unchanged; VFR last duration/edit differs and passes unchanged per-file validation",
+    "vfrEdit": {
+      "old": 1210,
+      "new": 1320,
+      "timescale": 3000
+    },
+    "sei": "four first samples differ by14 SEI bytes; VCL identical",
+    "causality": "OS/encoder distributions also differ; not version-only A/B",
+    "upstream": "59-upstream-provenance.json; qtmux source identical, parser/baseparse upstream duration change; download stdout not retained and not reconstructed"
+  },
+  "approval": {
+    "review": "59-independent-review.json",
+    "reviewer": "/root/independent_release59",
+    "kind": "independent AI source review, no new product execution by reviewer",
+    "decisionsApproved": 17,
+    "legacy986": "candidate and approval exactly unchanged; full strict carry-forward check, changed IDs0",
+    "candidateReuse": "56-candidate.json.gz exact decompressed bytes df59b76bd4a3df04883450b08e0e31439d079712e23e569747f3312b2befa893",
+    "migration": "59-migration-noop-report.json.gz; zero-change writer refuses as designed, report-only no-op; no invented reapproval",
+    "producer": "--apply-approved-manifest exit0/51checks; semantic diff inventorySha256 only, compact serialization by existing producer",
+    "readback": "986items/approval/audit/canonical/native exact unchanged; 1416 source files unchanged",
+    "coverage": "986/986, missing0,9checks PASS; native424 static PASS, actual browser not run by these commands",
+    "currentV450": "28mandatory registration PASS, 23mutations;5unassigned/8historical retained; legacy986 does not approve supplemental FE/V450 changes",
+    "readbackReview": "59-independent-readback.json; R59-E1 resolved"
+  },
+  "preparationFailures": [
+    {
+      "stage": "GCC16 strict compilation",
+      "resolution": "token-equivalent line separation and CaptureFailure namespace relocation; no Werror disable"
+    },
+    {
+      "stage": "file evidence link",
+      "resolution": "existing catalog snapshot translation unit added"
+    },
+    {
+      "stage": "store chmod injection under container root",
+      "resolution": "same unchanged test run as65534:65534; no assertion change"
+    },
+    {
+      "stage": "incorrect static command preparation",
+      "resolution": "rootDir argument and actual comment-check script corrected"
+    },
+    {
+      "stage": "legacy coverage",
+      "resolution": "inventorySha drift fixed with existing approved-manifest producer; original FAIL preserved"
+    }
+  ],
+  "hostAcceptance": {
+    "executions": 0,
+    "status": "not-run-awaiting-final-readback-and-clean-commit",
+    "canonicalOutput": "test-acceptance-current-final",
+    "general30": "not-run",
+    "canonicalUI": "not-run",
+    "uiEligibility": "not-run",
+    "general120": "not-run",
+    "supplementalUI": "not-run",
+    "mixed120": "excluded-by-user; separate required residual"
+  },
+  "cleanup": {
+    "linuxContainer": "stopped/removed, no remaining owned container/ports; rc58 image retained",
+    "modelCalls": 0,
+    "qwenOllamaUnloadGate": "not-run",
+    "hostAcceptanceResources": "not-created-yet",
+    "scratch": "pending after all evidence preservation"
+  },
+  "evidence": {
+    "commands": "59-commands.json",
+    "raw": "59-output.log.gz",
+    "layout": "exact per-command stdout/stderr concatenation with offset/bytes/hash; failures preserved",
+    "syntheticFiles": "59-file-fixtures.tar.gz",
+    "syntheticFileManifest": "59-file-fixtures-manifest.json",
+    "preparationInputs": "59-preparation-inputs.tar.gz",
+    "paths": "review original absolute scratch refs map to same-named 59-* or archived inputs; current candidate reused from56",
+    "rawSha256": "bdb0674ffd2282889a474571767f0e82962a4a0d6f06508541a57c4a84a74f2a",
+    "rawBytes": 597836
+  },
+  "residual": [
+    "formal host acceptance and required supplemental UI",
+    "mixed recording/search/A120 separate approval",
+    "record cleanup",
+    "PR/CI/merge/signed tag/Release"
+  ],
+  "staticChecks": {
+    "docs": "303Markdown/9682links/0fail",
+    "comments": "1445files/0missing/0English",
+    "scriptInventory": "13PASS",
+    "sourceGraph": "PASS",
+    "whitespace": "PASS"
+  }
+}

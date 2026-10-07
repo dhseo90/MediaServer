@@ -1,0 +1,684 @@
+{
+  "commands": [
+    {
+      "name": "linux-capture",
+      "command": [
+        "docker",
+        "exec",
+        "-w",
+        "/work/repo",
+        "-e",
+        "GST_REGISTRY=/work/gst-cache/registry.bin",
+        "-e",
+        "GST_REGISTRY_1_0=/work/gst-cache/registry.bin",
+        "mediaserver-rc59-check",
+        "bash",
+        "scripts/internal/verify_recording_file_evidence_capture.sh"
+      ],
+      "exit": 1,
+      "elapsedSeconds": 1.2862470149993896,
+      "logSha256": "c520b0898a51175b5456a156b7a8ce55c8e11741a1706bae06f4e76bd7bf9a83"
+    },
+    {
+      "name": "host-capture",
+      "command": [
+        "bash",
+        "scripts/internal/verify_recording_file_evidence_capture.sh"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 4.5563740730285645,
+      "logSha256": "c5290614072ecd88c857b6377a1556787ee1fd1ca7a9d43b6cc5e36dc586d70e"
+    },
+    {
+      "name": "linux-capture-fixed",
+      "command": [
+        "docker",
+        "exec",
+        "-w",
+        "/work/repo",
+        "mediaserver-rc59-check",
+        "bash",
+        "scripts/internal/verify_recording_file_evidence_capture.sh"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 1.5332090854644775,
+      "logSha256": "5cd8dcf12199d85ed4b40d401a2b90bf473c8611de874e946191931b3c9f0c64"
+    },
+    {
+      "name": "linux-file-evidence",
+      "command": [
+        "docker",
+        "exec",
+        "-w",
+        "/work/repo",
+        "-e",
+        "GST_REGISTRY=/work/gst-cache/registry.bin",
+        "-e",
+        "GST_REGISTRY_1_0=/work/gst-cache/registry.bin",
+        "mediaserver-rc59-check",
+        "bash",
+        "scripts/internal/verify_recording_file_evidence.sh",
+        "--run",
+        "rc59"
+      ],
+      "exit": 1,
+      "elapsedSeconds": 7.762034893035889,
+      "logSha256": "6c79e2db91bba151a76f521de086a54ae16f649068c9fbce790a942d15443681"
+    },
+    {
+      "name": "linux-file-evidence-fixed",
+      "command": [
+        "docker",
+        "exec",
+        "-w",
+        "/work/repo",
+        "-e",
+        "GST_REGISTRY=/work/gst-cache/registry.bin",
+        "-e",
+        "GST_REGISTRY_1_0=/work/gst-cache/registry.bin",
+        "mediaserver-rc59-check",
+        "bash",
+        "scripts/internal/verify_recording_file_evidence.sh",
+        "--run",
+        "rc59"
+      ],
+      "exit": 1,
+      "elapsedSeconds": 8.291615009307861,
+      "logSha256": "ce9f980913238c84b0fbe6beafa67d8a5c4067596762d8acce306c5a2b7f80c0"
+    },
+    {
+      "name": "linux-runtime-files",
+      "command": [
+        "docker",
+        "exec",
+        "mediaserver-rc59-check",
+        "sh",
+        "-c",
+        "sha256sum /usr/lib/aarch64-linux-gnu/libgstreamer-1.0.so.0 /usr/lib/aarch64-linux-gnu/libgstbase-1.0.so.0 /usr/lib/aarch64-linux-gnu/gstreamer-1.0/libgstvideoparsersbad.so /usr/lib/aarch64-linux-gnu/gstreamer-1.0/libgstisomp4.so /usr/lib/aarch64-linux-gnu/gstreamer1.0/gstreamer-1.0/gst-plugin-scanner; ldd /usr/lib/aarch64-linux-gnu/gstreamer-1.0/libgstvideoparsersbad.so; ldd /usr/lib/aarch64-linux-gnu/gstreamer-1.0/libgstisomp4.so; pkg-config --variable=pluginsdir gstreamer-1.0; cat /sys/fs/cgroup/memory.events; cat /sys/fs/cgroup/memory.peak; du -sh /work; cat /etc/os-release"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 0.05816984176635742,
+      "logSha256": "aba580a5c29dfc0475aa05f0d775ad0dd1dd265cdc70243a91c5fca2e6935ffd"
+    },
+    {
+      "name": "linux-file-evidence-linked",
+      "command": [
+        "docker",
+        "exec",
+        "-w",
+        "/work/repo",
+        "-e",
+        "GST_REGISTRY=/work/gst-cache/registry.bin",
+        "-e",
+        "GST_REGISTRY_1_0=/work/gst-cache/registry.bin",
+        "mediaserver-rc59-check",
+        "bash",
+        "scripts/internal/verify_recording_file_evidence.sh",
+        "--run",
+        "rc59"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 26.894541025161743,
+      "logSha256": "5af289080dd4e14da1e90471329a5d9643532e1d3a270dff3ee902cde7dfe4ad"
+    },
+    {
+      "name": "host-evidence",
+      "command": [
+        "env",
+        "MEDIA_SERVER_GST_CACHE_DIR=/tmp/v450-rc59-corqw3gi/host-gst",
+        "MEDIA_SERVER_FILE_EVIDENCE_EXPORT=/tmp/v450-rc59-corqw3gi/host-export",
+        "bash",
+        "scripts/internal/verify_recording_file_evidence.sh",
+        "--run",
+        "rc59"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 24.887545108795166,
+      "logSha256": "1bb1ba440256b4c259ce133e66e3135d51ced5ee8966843ac6a1963b53c7341b"
+    },
+    {
+      "name": "linux-evidence-readback",
+      "command": [
+        "docker",
+        "exec",
+        "-w",
+        "/work/repo",
+        "-e",
+        "GST_REGISTRY=/work/gst-cache/registry.bin",
+        "-e",
+        "GST_REGISTRY_1_0=/work/gst-cache/registry.bin",
+        "-e",
+        "MEDIA_SERVER_FILE_EVIDENCE_EXPORT=/work/export",
+        "mediaserver-rc59-check",
+        "bash",
+        "scripts/internal/verify_recording_file_evidence.sh",
+        "--run",
+        "rc59"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 27.735031127929688,
+      "logSha256": "d78ec053af9fcbc434f9d5073127afd8a2c144a89d36282aa852982a384ba7c6"
+    },
+    {
+      "name": "linux-configure",
+      "command": [
+        "docker",
+        "exec",
+        "-w",
+        "/work/repo",
+        "mediaserver-rc59-check",
+        "cmake",
+        "-S",
+        ".",
+        "-B",
+        "build-gst-onnx",
+        "-DCMAKE_BUILD_TYPE=Release",
+        "-DMEDIA_SERVER_USE_GSTREAMER=ON",
+        "-DMEDIA_SERVER_USE_ONNXRUNTIME=ON",
+        "-DMEDIA_SERVER_USE_SIGLIP2=ON",
+        "-DMEDIA_SERVER_ONNXRUNTIME_ROOT=/opt/onnxruntime-linux-aarch64-1.23.2",
+        "-DMEDIA_SERVER_SENTENCEPIECE_ROOT=/opt/rc58-sentencepiece",
+        "-DCMAKE_PREFIX_PATH=/opt/onnxruntime-linux-aarch64-1.23.2;/opt/rc58-sentencepiece"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 0.2736399173736572,
+      "logSha256": "f4e34cbd2be3a3bd7cdaaf3dfaf06456e2a3c450adee9a2dcc36b0bfd0f9d4b7"
+    },
+    {
+      "name": "linux-build",
+      "command": [
+        "docker",
+        "exec",
+        "-w",
+        "/work/repo",
+        "mediaserver-rc59-check",
+        "cmake",
+        "--build",
+        "build-gst-onnx",
+        "-j2"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 103.09764504432678,
+      "logSha256": "b35ffce08168e4e637e392f6279eaff3752794abc402a15c47daed5404a67bba"
+    },
+    {
+      "name": "old-codec-build",
+      "command": [
+        "c++",
+        "-std=c++17",
+        "-Iinclude",
+        "/tmp/v450-rc59-corqw3gi/codec.cpp",
+        "/tmp/v450-rc59-corqw3gi/old-contracts.cpp",
+        "src/domain/strict_json.cpp",
+        "-o",
+        "/tmp/v450-rc59-corqw3gi/old-codec"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 0.8424849510192871,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "old-codec-compat",
+      "command": [
+        "python3",
+        "/tmp/v450-rc59-corqw3gi/old_codec_check.py"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 0.4947342872619629,
+      "logSha256": "8f988b1c0eb3ded63797a5fd9615e9a5fb89b013bad7693d9e7281b4c4ee56f8"
+    },
+    {
+      "name": "linux-read-old",
+      "command": [
+        "docker",
+        "exec",
+        "-w",
+        "/work/repo",
+        "-e",
+        "LD_LIBRARY_PATH=/opt/onnxruntime-linux-aarch64-1.23.2/lib",
+        "mediaserver-rc59-check",
+        "python3",
+        "/work/linux_selected.py",
+        "recording_file_evidence_smoke",
+        "--readback",
+        "/work/host-export"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 2.325744867324829,
+      "logSha256": "f16858d34f6284ef3af0a02f20a320929acfeeb7ad6be2567cb4af73a82ac545"
+    },
+    {
+      "name": "linux-search",
+      "command": [
+        "docker",
+        "exec",
+        "-w",
+        "/work/repo",
+        "-e",
+        "LD_LIBRARY_PATH=/opt/onnxruntime-linux-aarch64-1.23.2/lib",
+        "-e",
+        "GST_REGISTRY=/work/gst-cache/registry.bin",
+        "-e",
+        "GST_REGISTRY_1_0=/work/gst-cache/registry.bin",
+        "mediaserver-rc59-check",
+        "python3",
+        "/work/linux_selected.py",
+        "visual_search_application_smoke",
+        "/work/direct/search",
+        "/work/repo/models/v430-siglip2",
+        "--scope-only"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 9.331463813781738,
+      "logSha256": "2798b412300dcaab95dd4614c203431ec40eb9d69d0f01b23ab2da5246b142dd"
+    },
+    {
+      "name": "linux-seek",
+      "command": [
+        "docker",
+        "exec",
+        "-w",
+        "/work/repo",
+        "-e",
+        "LD_LIBRARY_PATH=/opt/onnxruntime-linux-aarch64-1.23.2/lib",
+        "-e",
+        "GST_REGISTRY=/work/gst-cache/registry.bin",
+        "-e",
+        "GST_REGISTRY_1_0=/work/gst-cache/registry.bin",
+        "mediaserver-rc59-check",
+        "python3",
+        "/work/linux_selected.py",
+        "recording_search_seek_smoke",
+        "/work/direct/seek"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 1.1928513050079346,
+      "logSha256": "f97f684d2bee2faa439efe5b885b880c19b326b16777c5ca79d454a5ea69bde1"
+    },
+    {
+      "name": "nal-comparison",
+      "command": [
+        "node",
+        "/tmp/v450-rc59-corqw3gi/nal_compare.cjs",
+        "/Users/dhseo/Workspace/mediaServer/scripts/internal/recording_forward_probe_native.cjs",
+        "/tmp/v450-rc59-corqw3gi"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 0.02930593490600586,
+      "logSha256": "eb5b2fdcf04aae7682ae5a3b4bc352309f2d83afdfc27080b39be7e740d96d89"
+    },
+    {
+      "name": "comments",
+      "command": [
+        "node",
+        "scripts/internal/verify_code_comments.mjs"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 0.43906497955322266,
+      "logSha256": "191fdf14a2bdc8e022f75c29678af6b8c8e9c4ff8af7af47ef269449261b1743"
+    },
+    {
+      "name": "native-oracle-regression",
+      "command": [
+        "node",
+        "scripts/internal/recording_forward_probe_verify.test.cjs"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 0.03945112228393555,
+      "logSha256": "ba428abf112f10d27bafad85f77148c9f1fb2e1c37c5d55a83696d289b62d5e2"
+    },
+    {
+      "name": "diff-check",
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 0.024280071258544922,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "structure",
+      "command": [
+        "node",
+        "--input-type=module",
+        "-e",
+        "import {assertCurrentSourceGraph} from \"./scripts/internal/structure_dependency_policy_lib.mjs\";assertCurrentSourceGraph();"
+      ],
+      "exit": 1,
+      "elapsedSeconds": 0.02800893783569336,
+      "logSha256": "36fa3c3a26f153379817a520d584f3381bc9591ceac21b05befe31b156f0392a"
+    },
+    {
+      "name": "docs",
+      "command": [
+        "node",
+        "scripts/internal/verify_docs_links.mjs"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 0.3265101909637451,
+      "logSha256": "b7a8d370f5bd00b0653391e8cb575c81b01d23fd779298296853e21238f5d471"
+    },
+    {
+      "name": "scripts",
+      "command": [
+        "node",
+        "scripts/internal/verify_script_inventory.mjs"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 23.987782955169678,
+      "logSha256": "92e692a3173f517ac5430005d1cf361195ac0dad7e505a2ffaddc893da6cdecf"
+    },
+    {
+      "name": "structure-fixed",
+      "command": [
+        "node",
+        "--input-type=module",
+        "-e",
+        "import {assertCurrentSourceGraph} from \"./scripts/internal/structure_dependency_policy_lib.mjs\";assertCurrentSourceGraph(process.cwd());console.log(\"PASS current source graph and policy\");"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 0.13663887977600098,
+      "logSha256": "42fe98ae09084d0f15b64bbf6750c7773f34f9aacd2e901cc40ede4348398af0"
+    },
+    {
+      "name": "syntax",
+      "command": [
+        "bash",
+        "-n",
+        "scripts/internal/verify_recording_file_evidence.sh",
+        "scripts/internal/verify_recording_file_evidence_capture.sh"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 0.0032677650451660156,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "linux-runtime-final",
+      "command": [
+        "docker",
+        "exec",
+        "mediaserver-rc59-check",
+        "sh",
+        "-c",
+        "sha256sum /work/repo/build-gst-onnx/media_server /work/repo/build-gst-onnx/libmedia_server_runtime.a; ldd /work/repo/build-gst-onnx/media_server; cat /sys/fs/cgroup/memory.events /sys/fs/cgroup/memory.peak; du -sh /work"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 0.14353489875793457,
+      "logSha256": "4e401ef2bcadc697874e276dc08123308cd0ea99d047ccf6e5f80c23b789fde2"
+    },
+    {
+      "name": "linux-bound",
+      "command": [
+        "docker",
+        "exec",
+        "-w",
+        "/work/repo",
+        "-e",
+        "LD_LIBRARY_PATH=/opt/onnxruntime-linux-aarch64-1.23.2/lib",
+        "-e",
+        "GST_REGISTRY=/work/gst-cache/registry.bin",
+        "mediaserver-rc59-check",
+        "python3",
+        "scripts/internal/verify_va_review_bound_record.py"
+      ],
+      "exit": 1,
+      "elapsedSeconds": 2.448452949523926,
+      "logSha256": "a8f3175558a771f3bc9dbd03c9478ae6b9e5170ecdbf93f30fd8dd8154d7a754"
+    },
+    {
+      "name": "linux-build-bound-prep",
+      "command": [
+        "docker",
+        "exec",
+        "mediaserver-rc59-check",
+        "cmake",
+        "--build",
+        "/work/repo/build-gst-onnx",
+        "-j",
+        "2"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 4.996398210525513,
+      "logSha256": "9a8130535e54ec919337a6c04937486d59bc70468a95a1cde86165d097d52bec"
+    },
+    {
+      "name": "linux-bound-fixed",
+      "command": [
+        "docker",
+        "exec",
+        "-w",
+        "/work/repo",
+        "-e",
+        "LD_LIBRARY_PATH=/opt/onnxruntime-linux-aarch64-1.23.2/lib",
+        "-e",
+        "GST_REGISTRY=/work/gst-cache/registry.bin",
+        "mediaserver-rc59-check",
+        "python3",
+        "scripts/internal/verify_va_review_bound_record.py"
+      ],
+      "exit": 1,
+      "elapsedSeconds": 2.8719711303710938,
+      "logSha256": "600f74b18f773b68cae6c091a81dc1bbd83e54375c15456b4d8a5fe8efbcd734"
+    },
+    {
+      "name": "linux-user-diagnosis",
+      "command": [
+        "docker",
+        "exec",
+        "mediaserver-rc59-check",
+        "sh",
+        "-c",
+        "id; getent passwd nobody; ls -ld /work /work/repo /work/gst-cache; cat /proc/self/status | grep CapEff"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 0.044435977935791016,
+      "logSha256": "46e03739dd832df5be772d6ee481c1493178b2b9452c366f4999ffa10367a804"
+    },
+    {
+      "name": "linux-bound-unprivileged",
+      "command": [
+        "docker",
+        "exec",
+        "--user",
+        "65534:65534",
+        "-w",
+        "/work/repo",
+        "-e",
+        "LD_LIBRARY_PATH=/opt/onnxruntime-linux-aarch64-1.23.2/lib",
+        "-e",
+        "GST_REGISTRY=/work/unprivileged/registry.bin",
+        "mediaserver-rc59-check",
+        "python3",
+        "scripts/internal/verify_va_review_bound_record.py"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 3.0920472145080566,
+      "logSha256": "25582e4157dbb5f7c40ea4ea0bc6b145b108a052190f66d954a3d25f6cfdbd37"
+    },
+    {
+      "name": "linux-public-media",
+      "command": [
+        "docker",
+        "exec",
+        "--user",
+        "65534:65534",
+        "-w",
+        "/work/repo",
+        "-e",
+        "LD_LIBRARY_PATH=/opt/onnxruntime-linux-aarch64-1.23.2/lib",
+        "-e",
+        "GST_REGISTRY=/work/unprivileged/registry.bin",
+        "mediaserver-rc59-check",
+        "bash",
+        "scripts/internal/verify_recording_public_media.sh"
+      ],
+      "exit": 1,
+      "elapsedSeconds": 0.7211899757385254,
+      "logSha256": "839332f66929c99951de18249413fe335d87ff981e4d8ea7499a1e7af2a1a7ad"
+    },
+    {
+      "name": "linux-public-media-fixed",
+      "command": [
+        "docker",
+        "exec",
+        "--user",
+        "65534:65534",
+        "-w",
+        "/work/repo",
+        "-e",
+        "LD_LIBRARY_PATH=/opt/onnxruntime-linux-aarch64-1.23.2/lib",
+        "-e",
+        "GST_REGISTRY=/work/unprivileged/registry.bin",
+        "mediaserver-rc59-check",
+        "bash",
+        "scripts/internal/verify_recording_public_media.sh"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 1.2656548023223877,
+      "logSha256": "e5ac6bbdd8f9f2605fe2d4dc09d8786d6e139d6293a1b81fedc0ca45b2181da3"
+    },
+    {
+      "name": "linux-transport",
+      "command": [
+        "docker",
+        "exec",
+        "--user",
+        "65534:65534",
+        "-w",
+        "/work/repo",
+        "-e",
+        "GST_REGISTRY=/work/unprivileged/registry.bin",
+        "mediaserver-rc59-check",
+        "bash",
+        "scripts/internal/verify_onvif_http_transport.sh"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 0.8208980560302734,
+      "logSha256": "8443891ee87c154892250bf463fec66792679d3f570c5706220db11b0c822dcc"
+    },
+    {
+      "name": "linux-frame-decode",
+      "command": [
+        "docker",
+        "exec",
+        "--user",
+        "65534:65534",
+        "-w",
+        "/work/repo",
+        "-e",
+        "GST_REGISTRY=/work/unprivileged/registry.bin",
+        "mediaserver-rc59-check",
+        "bash",
+        "scripts/internal/verify_recording_frame_correlation.sh"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 0.7095439434051514,
+      "logSha256": "4b4cab2f4c6c4642834a3feeeb9072d8cd9d542cfd4cf07b9add0f0485b9b93e"
+    },
+    {
+      "name": "final-source-diff-check",
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 0.02004694938659668,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "candidate",
+      "command": [
+        "node",
+        "scripts/internal/verify_v390_review4_feature_semantic_source_audit.mjs",
+        "--emit-candidate",
+        "/tmp/v450-rc59-corqw3gi/current-candidate.json"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 21.971033096313477,
+      "logSha256": "e511e208dfd90046a783195dc9b2c128d4835afada61b2d28ccdd0c5110bc731"
+    },
+    {
+      "name": "comments-final",
+      "command": [
+        "node",
+        "scripts/internal/verify_source_comments.mjs"
+      ],
+      "exit": 1,
+      "elapsedSeconds": 0.026265859603881836,
+      "logSha256": "b2a5003ab3e57d541bdf09bda9d5e19ae9f1a8553dcba3e21850da885968fe9f"
+    },
+    {
+      "name": "comments-final-fixed",
+      "command": [
+        "node",
+        "scripts/internal/verify_code_comments.mjs"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 0.4142489433288574,
+      "logSha256": "191fdf14a2bdc8e022f75c29678af6b8c8e9c4ff8af7af47ef269449261b1743"
+    },
+    {
+      "name": "migration",
+      "command": [
+        "node",
+        "scripts/internal/verify_v390_review4_semantic_migration_contract.mjs",
+        "--baseline",
+        "/tmp/v450-rc59-corqw3gi/prior-v390_review4_feature_semantic_source_audit.json",
+        "--fresh",
+        "/tmp/v450-rc59-corqw3gi/current-candidate.json",
+        "--report",
+        "/tmp/v450-rc59-corqw3gi/migration-report.json",
+        "--write-evidence",
+        "/tmp/v450-rc59-corqw3gi/migration-evidence.json"
+      ],
+      "exit": 1,
+      "elapsedSeconds": 0.3906886577606201,
+      "logSha256": "b3043710f61a9436d9e4dfc8eca9bcfc9f1f844803a6900311a4febfef469c88"
+    },
+    {
+      "name": "migration-noop",
+      "command": [
+        "node",
+        "scripts/internal/verify_v390_review4_semantic_migration_contract.mjs",
+        "--baseline",
+        "/tmp/v450-rc59-corqw3gi/prior-v390_review4_feature_semantic_source_audit.json",
+        "--fresh",
+        "/tmp/v450-rc59-corqw3gi/current-candidate.json",
+        "--report",
+        "/tmp/v450-rc59-corqw3gi/migration-noop-report.json"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 0.38707900047302246,
+      "logSha256": "6da92e59c78045145f30a7496945518728340641af5b4b854712d3246d629873"
+    }
+  ],
+  "testKind": "source review inputs, not new runtime claim",
+  "allPassed": false,
+  "correctedPreparationFailures": [
+    "linux-capture",
+    "linux-file-evidence",
+    "linux-file-evidence-fixed",
+    "linux-bound",
+    "linux-bound-fixed",
+    "linux-public-media",
+    "structure",
+    "comments-final"
+  ],
+  "migrationNoop": "986 exact rows; initial write-evidence correctly refuses zero changed IDs; no producer needed for unchanged legacy bindings",
+  "profileComparison": "profile-comparison.json",
+  "gccLexicalProof": [
+    "gcc-format-proof.json",
+    "gcc-bound-format-proof.json",
+    "gcc-media-format-proof.json"
+  ],
+  "unexecuted": [
+    "host formal acceptance",
+    "full UI",
+    "general30/120",
+    "mixed120"
+  ],
+  "claims": "Actual Linux and host file evidence five files/372 samples each; Linux independent old-profile read; old-codec rejects new profile; search96 actualframes3; seek9. Raw logs define precise scope."
+}

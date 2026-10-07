@@ -1,0 +1,1063 @@
+{
+  "schema": "media-server.v450-review59-independent-source-review.v1",
+  "reviewedAt": "2026-10-07T05:06:57.692612+00:00",
+  "reviewer": {
+    "actor": "codex-independent-v450-review:/root/independent_release59",
+    "kind": "AI independent source reviewer",
+    "requestedModel": "gpt-6-astra",
+    "requestedReasoningEffort": "xhigh",
+    "forkTurns": "none",
+    "requestSource": "parent confirmed actual spawn arguments",
+    "servingModelSnapshot": null,
+    "serviceTier": null,
+    "servingMetadataStatus": "not returned; not inferred",
+    "reviewerIsCandidateGenerator": false,
+    "implementationParticipant": false,
+    "locatorAuthor": false,
+    "subdelegation": false,
+    "humanApproval": false,
+    "executionPass": false,
+    "productExecutions": 0,
+    "modelExecutions": 0,
+    "serverExecutions": 0
+  },
+  "verdict": "approved",
+  "verdictScope": "고정 source의 정확한 Linux arm64 GStreamer1.28.7 파일증거 profile 지원채택과 아래 변경영향 source판단 승인. 정식acceptance/전체UI/장시간/릴리즈 완료 승인이 아니다. 현재 manifest inventorySha drift는 별도 실제 미해결 준비실패로 남는다.",
+  "producerEligible": false,
+  "producerEligibilityMeaning": "새 legacy approval/migration producer는 changedID0이므로 불필요. 기존승인을 재검증하는 --apply-approved-manifest 정합처리는 아래 조건으로 approved.",
+  "scope": {
+    "implementationBase": "c2efb606a71d30ec07de70375796818b77159872",
+    "priorIndependentSource": "6d91b2f9155073cd2a51f940cf35fa3333b8f44b",
+    "head": "9d27479dd69eb27f9d2deaf86b76d8290dcea482",
+    "tree": "37c984df6d676fa6a7365bcd4ed826f495ec3116",
+    "trackedWorktreeDiffSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "candidateDigest": "983d45f595756393c0ebe7825adab27b6669e8a85d1f2b112a0b02ff19645e53",
+    "candidateFileSha256": "df59b76bd4a3df04883450b08e0e31439d079712e23e569747f3312b2befa893",
+    "reviewPackagePath": "/tmp/v450-rc59-corqw3gi/review-package.json",
+    "reviewPackageSha256": "5cf12c45f7838a4a53e769c5a0745faa5b729b70a8f2542c8c91ebf1fa98133c",
+    "sourcePatchSha256": "de1400feaac705fea7358f6c995d93dbebadbaba4fb91f04ab68ebeec74cc8e4",
+    "directValidationSha256": "b3dfbbb1321307121797788c43d03856ca5e254bf4e940809175a4a3b9de6a16",
+    "meaning": "56 이후 구현base까지 src/include/scripts변경0을 확인;59 실질delta와 관련소비자를 독립검토.56의 이전영역판단은 의미변경이 없는 범위에서만 재사용."
+  },
+  "findings": [],
+  "sourceReview": {
+    "changedFiles": [
+      {
+        "path": "docs/development-guide.md",
+        "sha256": "da39cf8ff81c3337d7fea557b571b6ebeb9e051f202a98214159ec2de1af1be4",
+        "inspection": "전체 변경 hunk 및 관련 현행 함수/소비자 정적 검토"
+      },
+      {
+        "path": "docs/project-feature-test-inventory.md",
+        "sha256": "d43345c7f263cd176e9b93e5d1f8419a2415d1f2e87154967dd9977051c30820",
+        "inspection": "전체 변경 hunk 및 관련 현행 함수/소비자 정적 검토"
+      },
+      {
+        "path": "docs/superpowers/specs/2026-10-05-v450-va-review-design.md",
+        "sha256": "d81ba4f2ce1e77614bf240bf908aa11df62ae9662c7931986fe23eb5174b4a5a",
+        "inspection": "전체 변경 hunk 및 관련 현행 함수/소비자 정적 검토"
+      },
+      {
+        "path": "include/recording/recording_completion_trace.h",
+        "sha256": "b656f1bffc748aead598cedf7cc1d514d3469b1bc0affce76d61825326ee217d",
+        "inspection": "공백 외 literal/comment/token 순서 동일 정적 비교 및 영향 경로 확인"
+      },
+      {
+        "path": "include/recording/recording_contracts.h",
+        "sha256": "0fc4f5b567dc4e17c9893a0b50fea1517121802f2c59da3df4bf43c8b0371221",
+        "inspection": "전체 변경 hunk 및 관련 현행 함수/소비자 정적 검토"
+      },
+      {
+        "path": "include/recording/recording_latency_trace.h",
+        "sha256": "ea751533ae17998e4e966936d2d87a657b2274d95148219f66443df0c344fce5",
+        "inspection": "공백 외 literal/comment/token 순서 동일 정적 비교 및 영향 경로 확인"
+      },
+      {
+        "path": "include/recording/recording_native_coverage.h",
+        "sha256": "6dc8677117afe2640aed353b5235e7f8467b392b2ab029d9e02144afc25370f1",
+        "inspection": "공백 외 literal/comment/token 순서 동일 정적 비교 및 영향 경로 확인"
+      },
+      {
+        "path": "include/recording/recording_store_port.h",
+        "sha256": "e57b71f9f545f34b3b8a2c1e661d564889147c825c6d188302c4a8861ebd6e92",
+        "inspection": "공백 외 literal/comment/token 순서 동일 정적 비교 및 영향 경로 확인"
+      },
+      {
+        "path": "scripts/internal/recording_file_evidence_capture_smoke.cpp",
+        "sha256": "1daf048bc86e1406e93b70477f3d248d679f187fb91c305c013e7ab86486190c",
+        "inspection": "전체 변경 hunk 및 관련 현행 함수/소비자 정적 검토"
+      },
+      {
+        "path": "scripts/internal/recording_file_evidence_smoke.cpp",
+        "sha256": "45d734b6ec99b542bead8b322ad8718e9fceeeebba3d024a9c3d3bb5af786072",
+        "inspection": "전체 변경 hunk 및 관련 현행 함수/소비자 정적 검토"
+      },
+      {
+        "path": "scripts/internal/recording_forward_probe_native.cjs",
+        "sha256": "f4a4fede87765ab1b9a5582aebfe1b56ecbcd1849ef38dc195da1034fbbf3e6c",
+        "inspection": "전체 변경 hunk 및 관련 현행 함수/소비자 정적 검토"
+      },
+      {
+        "path": "scripts/internal/recording_public_media_smoke.cpp",
+        "sha256": "e744e481a0371fdb5b6bb2f613feb3ec7e90ad53fd2bf685ea2cf63bb82ce221",
+        "inspection": "공백 외 literal/comment/token 순서 동일 정적 비교 및 영향 경로 확인"
+      },
+      {
+        "path": "scripts/internal/va_review_bound_record_checks.h",
+        "sha256": "d49f8273e2faec7f0c9761399dc65830600ddb94f433eb9860771852efd53893",
+        "inspection": "공백 외 literal/comment/token 순서 동일 정적 비교 및 영향 경로 확인"
+      },
+      {
+        "path": "scripts/internal/va_review_cause_diagnostic.h",
+        "sha256": "77d163da266cd601541da0ddd79b8f60529d37e35e14098f06f3e53623d04eaf",
+        "inspection": "공백 외 literal/comment/token 순서 동일 정적 비교 및 영향 경로 확인"
+      },
+      {
+        "path": "scripts/internal/va_review_confirmed_checks.h",
+        "sha256": "8754159684f9a29b17476764f3f3cc590eb4df3db08ae60f2729988b1f788867",
+        "inspection": "공백 외 literal/comment/token 순서 동일 정적 비교 및 영향 경로 확인"
+      },
+      {
+        "path": "scripts/internal/va_review_core_checks.h",
+        "sha256": "1f30a4296732db6ba88459928d8e504997b4055761e4ad65c51c85f8bbf306ab",
+        "inspection": "공백 외 literal/comment/token 순서 동일 정적 비교 및 영향 경로 확인"
+      },
+      {
+        "path": "scripts/internal/va_review_question_checks.h",
+        "sha256": "684f20e6f8db1f9cfaee5355921c96f1dbdb196ad335235473b311ce882bf664",
+        "inspection": "공백 외 literal/comment/token 순서 동일 정적 비교 및 영향 경로 확인"
+      },
+      {
+        "path": "scripts/internal/va_review_rephrase_checks.h",
+        "sha256": "4207783f8a3f94b1f69e36182fb8a2f6ba1ea2090d5afa3cabb6d80b1f7ac809",
+        "inspection": "공백 외 literal/comment/token 순서 동일 정적 비교 및 영향 경로 확인"
+      },
+      {
+        "path": "scripts/internal/va_review_smoke.cpp",
+        "sha256": "35a7fe337eceb2885ffd4f8b977913468687ce84035d5af9ebd7978496b55f55",
+        "inspection": "공백 외 literal/comment/token 순서 동일 정적 비교 및 영향 경로 확인"
+      },
+      {
+        "path": "scripts/internal/va_review_visual_checks.h",
+        "sha256": "36237e4f60b971e24e808ee95924de210bb876343856e893403b657b98c97003",
+        "inspection": "공백 외 literal/comment/token 순서 동일 정적 비교 및 영향 경로 확인"
+      },
+      {
+        "path": "scripts/internal/verify_recording_file_evidence.sh",
+        "sha256": "9c2564af01120c0bb7703f8c1d18841a408dc31c4b8d7ca08499a4f01bdf6b4c",
+        "inspection": "전체 변경 hunk 및 관련 현행 함수/소비자 정적 검토"
+      },
+      {
+        "path": "scripts/internal/visual_search_application_smoke.cpp",
+        "sha256": "507d67c7e367cbcb9eba83706fd96e25e207c6d79d27026e4ede0f8258025a42",
+        "inspection": "전체 변경 hunk 및 관련 현행 함수/소비자 정적 검토"
+      },
+      {
+        "path": "src/recording/gstreamer_segment_writer.cpp",
+        "sha256": "8584142ee8f9b781a5e072565af9853f1e278859d08453ff1afe24faf5ec3ee0",
+        "inspection": "공백 외 literal/comment/token 순서 동일 정적 비교 및 영향 경로 확인"
+      },
+      {
+        "path": "src/recording/recording_catalog.cpp",
+        "sha256": "fab44add25fb37162016922f8c602ef7815b5d44d40991f7935f94e0bc14bf44",
+        "inspection": "공백 외 literal/comment/token 순서 동일 정적 비교 및 영향 경로 확인"
+      },
+      {
+        "path": "src/recording/recording_contracts.cpp",
+        "sha256": "f4f90b11bac656dab3ee8dfe217d57fb4a031a07e456a12af6700ce5bdc7169b",
+        "inspection": "전체 변경 hunk 및 관련 현행 함수/소비자 정적 검토"
+      },
+      {
+        "path": "src/recording/recording_derived_job_ready.cpp",
+        "sha256": "116c84ec9c39a7438e4de4e63d07ad1cacd6b840dd2c98e531fb71048050deb5",
+        "inspection": "공백 외 literal/comment/token 순서 동일 정적 비교 및 영향 경로 확인"
+      },
+      {
+        "path": "src/recording/recording_file_evidence.cpp",
+        "sha256": "65c4c64a3b9579c827eb812f2280a2adf90a42a317db9e11c5ab84a721a9cef3",
+        "inspection": "전체 변경 hunk 및 관련 현행 함수/소비자 정적 검토"
+      },
+      {
+        "path": "src/recording/recording_finalize_recovery.cpp",
+        "sha256": "9ed3c10b00e290734edafee705b45213df4e3d2092ea7ed75780c6b9e4f59578",
+        "inspection": "공백 외 literal/comment/token 순서 동일 정적 비교 및 영향 경로 확인"
+      },
+      {
+        "path": "src/recording/recording_finalize_ticket.cpp",
+        "sha256": "bc44a815a28a1d9ca675d6f9fcc2d73423beda4ff0a092f1dd82d98c7696c113",
+        "inspection": "공백 외 literal/comment/token 순서 동일 정적 비교 및 영향 경로 확인"
+      },
+      {
+        "path": "src/recording/recording_journal.cpp",
+        "sha256": "6a5d31a099aaae861473786cca6efbac68cc16491604614c1e12ef56df4a5fee",
+        "inspection": "공백 외 literal/comment/token 순서 동일 정적 비교 및 영향 경로 확인"
+      },
+      {
+        "path": "src/recording/retention_coordinator.cpp",
+        "sha256": "8c3fe219e250796ae7dfb9f51fc1a387a6a4bfd1d9bff2e6617f673f63dc6c6b",
+        "inspection": "공백 외 literal/comment/token 순서 동일 정적 비교 및 영향 경로 확인"
+      },
+      {
+        "path": "src/recording/va_review_json.h",
+        "sha256": "14c3141dd027faf5bb208c2d8b065d2bfcc894a1434033d759910fa02808128e",
+        "inspection": "공백 외 literal/comment/token 순서 동일 정적 비교 및 영향 경로 확인"
+      }
+    ],
+    "consumerFiles": [
+      {
+        "path": "src/recording/recording_search_reader.cpp",
+        "sha256": "4b3e66887ec30f042cdd347b8c76cc70e6a913865e081c51efaf968c66f66748",
+        "inspection": "관련 함수/호출경계 정적 검토"
+      },
+      {
+        "path": "src/recording/evidence_package_builder.cpp",
+        "sha256": "3aeebd937ff7ffd4e3e3b1d50dd7e29173c21df90a8412bcd77d052cd3ab4f6d",
+        "inspection": "관련 함수/호출경계 정적 검토"
+      },
+      {
+        "path": "src/recording/evidence_frame_extractor.cpp",
+        "sha256": "867db47861bc15a242d12512b501c5d3cd90460eb85304d4d5fa337f1d0e69b8",
+        "inspection": "관련 함수/호출경계 정적 검토"
+      },
+      {
+        "path": "scripts/internal/recording_search_seek_smoke.cpp",
+        "sha256": "aa9d120860043a994e41bb3843921bc0ff1d6c6c88d12680329f17d1f83c0b93",
+        "inspection": "관련 함수/호출경계 정적 검토"
+      },
+      {
+        "path": "scripts/internal/verify_recording_file_evidence_capture.sh",
+        "sha256": "b1d078162d7ce9510f8091658fab28f438f7bc244daeaa8429693458f3089526",
+        "inspection": "관련 함수/호출경계 정적 검토"
+      },
+      {
+        "path": "scripts/internal/verify_va_review_bound_record.py",
+        "sha256": "19cb8d326297b36dc7eebe3d2d34fac3a06352c867072fd0da6946e4a376b476",
+        "inspection": "관련 함수/호출경계 정적 검토"
+      },
+      {
+        "path": "scripts/internal/verify_v390_review4_semantic_migration_contract.mjs",
+        "sha256": "e2232030fd2e9d4963b31bfc363b0139f68b771caaf22d490c890dd9a1b57b37",
+        "inspection": "관련 함수/호출경계 정적 검토"
+      },
+      {
+        "path": "scripts/internal/verify_v390_review4_feature_semantic_source_audit.mjs",
+        "sha256": "aa002af867eb18435a838ab8b93e545140395a4b05a18d77ad4475cc8498f844",
+        "inspection": "관련 함수/호출경계 정적 검토"
+      },
+      {
+        "path": "scripts/internal/feature_semantic_review4_apply.mjs",
+        "sha256": "43146a01c82b5dc179b7b2808e3284903ad2db2ebe71afc3daf5e625ffd3a0f8",
+        "inspection": "관련 함수/호출경계 정적 검토"
+      },
+      {
+        "path": "scripts/internal/feature_implementation_manifest_lib.mjs",
+        "sha256": "f97505b7a4fcab35c82a99407fa85f5b07dc595181ed3ebc0878974a96ebf195",
+        "inspection": "관련 함수/호출경계 정적 검토"
+      },
+      {
+        "path": "scripts/internal/verify_v390_ui_native_exact_cases.mjs",
+        "sha256": "344c602efdaaf6b7e072aaf902ff849f56c87294f4aa061008fa328a46037ffe",
+        "inspection": "관련 함수/호출경계 정적 검토"
+      },
+      {
+        "path": "scripts/internal/v390_ui_native_exact_cases_lib.mjs",
+        "sha256": "c238f47dd9656674c68ce9e545980c76e3e2351bb5fd62375eafc9d97214af61",
+        "inspection": "관련 함수/호출경계 정적 검토"
+      },
+      {
+        "path": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs",
+        "sha256": "1e376a7d75833775cf7bcbf6b6523a5ce83245e7de7896a6e80002b5b81a0ccb",
+        "inspection": "관련 함수/호출경계 정적 검토"
+      }
+    ],
+    "lexicalEquivalentFiles": [
+      "include/recording/recording_completion_trace.h",
+      "include/recording/recording_latency_trace.h",
+      "include/recording/recording_native_coverage.h",
+      "include/recording/recording_store_port.h",
+      "scripts/internal/recording_public_media_smoke.cpp",
+      "scripts/internal/va_review_bound_record_checks.h",
+      "scripts/internal/va_review_cause_diagnostic.h",
+      "scripts/internal/va_review_confirmed_checks.h",
+      "scripts/internal/va_review_core_checks.h",
+      "scripts/internal/va_review_question_checks.h",
+      "scripts/internal/va_review_rephrase_checks.h",
+      "scripts/internal/va_review_smoke.cpp",
+      "scripts/internal/va_review_visual_checks.h",
+      "src/recording/gstreamer_segment_writer.cpp",
+      "src/recording/recording_catalog.cpp",
+      "src/recording/recording_derived_job_ready.cpp",
+      "src/recording/recording_finalize_recovery.cpp",
+      "src/recording/recording_finalize_ticket.cpp",
+      "src/recording/recording_journal.cpp",
+      "src/recording/retention_coordinator.cpp",
+      "src/recording/va_review_json.h"
+    ],
+    "lexicalMethod": "comment/string/char literal을 보존한 C/C++ lexical sequence 비교와 diff를 대조. 컴파일러/제품검사를 실행한 것이 아님. CaptureFailure 외부linkage 및Vcl 단일문장 중괄호 추가는 따로 소스검토하여 제어흐름 유지 확인."
+  },
+  "legacy": {
+    "decision": "approved",
+    "rows": 986,
+    "candidateJsonFieldsExactlyEqual": true,
+    "candidateRawFilesByteEqual": false,
+    "rawDifferenceMeaning": "baseline/current JSON 포맷 바이트는 다를 수 있으나 파싱한 전체객체 및986items/roles/trustBindings 모두 동일",
+    "approvalJsonExactlyEqual": true,
+    "changedIds": [],
+    "strictCarryForwardCount": 986,
+    "newApprovalRequired": false,
+    "rewriteApprovalLedger": false,
+    "judgment": "기존승인 유지가 맞다. migration--write-evidence의unapprovedIds.length>0 조건에 따른exit1을 보존하고 report-only30자체검사/986eligible/0changed로 no-op을 확인했다. 임의ID/날짜/approval/sourceFlow를 새로 만들어서는 안 된다. FE/V450은이986에없어별도판단했다."
+  },
+  "fileEvidenceDecisions": [
+    {
+      "id": "FE01",
+      "decision": "approved",
+      "sourceLocations": [
+        "include/recording/recording_contracts.h:93",
+        "src/recording/recording_contracts.cpp:490"
+      ],
+      "justification": "기존 기본 profile·v1 schema·직렬화 순서는 유지하고 정확한 새 profile만 validator 허용집합에 추가했다. 실제 양쪽 roundtrip/absent 바이트 및 구형 codec의 기존5개 exact roundtrip, 새5개 거부가 이를 뒷받침한다.",
+      "evidence": [
+        "host-evidence.log",
+        "linux-evidence-readback.log",
+        "old-codec-compat.log"
+      ],
+      "executionPass": false,
+      "scopeLimit": "이번 결정은 고정 source의 변경 영향 승인이다. 정식 acceptance·전체 UI·장시간 실행 PASS가 아니다."
+    },
+    {
+      "id": "FE02",
+      "decision": "approved",
+      "sourceLocations": [
+        "src/recording/recording_file_evidence.cpp:24",
+        "src/recording/recording_file_evidence.cpp:220",
+        "src/recording/recording_file_evidence.cpp:246"
+      ],
+      "justification": "실제 core nano0 및 parser h264parse/videoparsersbad와 mux mp4mux/isomp4의 동일한 정확한 버전을 확인한 뒤 선택 profile을 Finish에 명시한다. accepted 원본 VCL→관측 mux raw/VCL→실제 native sample의 기존 대응을 유지한다. 실제 각5파일/372samples에서 대응과 물리 파일 검사가 성공했다.",
+      "evidence": [
+        "host-evidence.log",
+        "linux-evidence-readback.log",
+        "linux-capture-fixed.log",
+        "host-capture.log"
+      ],
+      "executionPass": false,
+      "scopeLimit": "이번 결정은 고정 source의 변경 영향 승인이다. 정식 acceptance·전체 UI·장시간 실행 PASS가 아니다."
+    },
+    {
+      "id": "FE03",
+      "decision": "approved",
+      "sourceLocations": [
+        "src/recording/recording_file_evidence.cpp:131",
+        "scripts/internal/recording_file_evidence_smoke.cpp:61"
+      ],
+      "justification": "MP4 parser의 box/table/edit/overflow·mdat containment·data reference 검사는 변경되지 않았다. 파일hash를 다시 계산한 malformed12종에도 기존 구조 검사 거부가 유지된다.",
+      "evidence": [
+        "host-evidence.log",
+        "linux-evidence-readback.log"
+      ],
+      "executionPass": false,
+      "scopeLimit": "이번 결정은 고정 source의 변경 영향 승인이다. 정식 acceptance·전체 UI·장시간 실행 PASS가 아니다."
+    },
+    {
+      "id": "FE04",
+      "decision": "approved",
+      "sourceLocations": [
+        "src/recording/gstreamer_segment_writer.cpp:514",
+        "src/recording/recording_finalize_recovery.cpp:103",
+        "scripts/internal/recording_file_evidence_smoke.cpp:75"
+      ],
+      "justification": "writer는 EOS 뒤 같은 파일 size/hash로 Finish를 호출하고 finalize-ready source binding에 함께 저장한다. 복구는 실제 fd 증거 검증 후에만 게시한다. 손상한 sample hash로 직접 commit/Ready replay를 시도하면 journal/catalog 불변 및 원본 보존, 정상 경로만 게시/정리가 확인됐다.",
+      "evidence": [
+        "host-evidence.log",
+        "linux-evidence-readback.log"
+      ],
+      "executionPass": false,
+      "scopeLimit": "이번 결정은 고정 source의 변경 영향 승인이다. 정식 acceptance·전체 UI·장시간 실행 PASS가 아니다."
+    },
+    {
+      "id": "FE05",
+      "decision": "approved",
+      "sourceLocations": [
+        "scripts/internal/recording_file_evidence_smoke.cpp:33",
+        "scripts/internal/recording_file_evidence_smoke.cpp:186"
+      ],
+      "justification": "SQLite reopen/checkpoint와 JSONL fallback 및 Ready 복구에서 직렬화 증거가 동일하다. 추가 readback은 원래 catalog 객체 없는 새 프로세스에서 저장된5개 binding/segment/MP4만 읽어 26개 검사를 수행한다.",
+      "evidence": [
+        "host-evidence.log",
+        "linux-evidence-readback.log",
+        "linux-read-old.log"
+      ],
+      "executionPass": false,
+      "scopeLimit": "이번 결정은 고정 source의 변경 영향 승인이다. 정식 acceptance·전체 UI·장시간 실행 PASS가 아니다."
+    },
+    {
+      "id": "FE06",
+      "decision": "approved",
+      "sourceLocations": [
+        "src/recording/recording_contracts.cpp:501",
+        "src/recording/recording_file_evidence.cpp:263",
+        "scripts/internal/recording_file_evidence_smoke.cpp:42"
+      ],
+      "justification": "원점·ordinal·hash·timescale·정수 round·다음 DTS 끝점차분·마지막 관측 mux duration·edit 경계 검증식은 그대로다. identity/tick/중복/필드/상한 변조, cancelled read와 양쪽 profile 재표기로 잘못된 native PTS를 살리는 시도가 거부된다.",
+      "evidence": [
+        "host-evidence.log",
+        "linux-evidence-readback.log"
+      ],
+      "executionPass": false,
+      "scopeLimit": "이번 결정은 고정 source의 변경 영향 승인이다. 정식 acceptance·전체 UI·장시간 실행 PASS가 아니다."
+    },
+    {
+      "id": "FE07",
+      "decision": "approved",
+      "sourceLocations": [
+        "src/recording/recording_contracts.cpp:495",
+        "scripts/internal/recording_file_evidence_smoke.cpp:149"
+      ],
+      "justification": "4096 samples/32MiB 파일/2MiB binding 상한은 불변이다. 실제4096 및4097 거부, 최악 숫자·escaped track envelope, source2/8 intent와 실제 catalog8 전이·checkpoint 측정이 남아 있다. 성능 threshold를 완화하지 않았다.",
+      "evidence": [
+        "host-evidence.log",
+        "linux-evidence-readback.log"
+      ],
+      "executionPass": false,
+      "scopeLimit": "비용은 해당 짧은 fixture의 측정치이며 일반30/120분 자원안정성이나 동시부하 PASS로 보지 않는다."
+    },
+    {
+      "id": "FE08",
+      "decision": "approved",
+      "sourceLocations": [
+        "src/recording/gstreamer_segment_writer.cpp:514",
+        "scripts/internal/recording_file_evidence_smoke.cpp:112",
+        "scripts/internal/recording_file_evidence_smoke.cpp:220"
+      ],
+      "justification": "증거를 발급하지 못하는 cap4097/중복 VCL/원본 DTS 누락은 기존 녹화를 유지한다. legacy job projection의 기존 ID/bytes와8원본 상한, 기존 full proof job의 엄격 match 및 저장·복구 의미를 유지한다.",
+      "evidence": [
+        "host-evidence.log",
+        "linux-evidence-readback.log",
+        "linux-public-media-fixed.log"
+      ],
+      "executionPass": false,
+      "scopeLimit": "이번 결정은 고정 source의 변경 영향 승인이다. 정식 acceptance·전체 UI·장시간 실행 PASS가 아니다."
+    },
+    {
+      "id": "FE09",
+      "decision": "approved",
+      "sourceLocations": [
+        "src/recording/recording_file_evidence.cpp:24",
+        "src/recording/recording_file_evidence.cpp:33",
+        "scripts/internal/recording_file_evidence_capture_smoke.cpp:28",
+        "docs/development-guide.md:29"
+      ],
+      "justification": "Linux arm64 정확한1.28.7 조합 채택을 승인한다. 기존1.28.1은 유지하고 다른micro/nano/혼합/factory는 발급하지 않는다. dladdr/실제 plugin 파일·버전, 양쪽 실제5개 파일, 별도 readback, 독립JS native표, Linux의 구형파일 읽기, 구형reader 새profile 거부 및 실제decoded seek 근거가 정합한다.",
+      "evidence": [
+        "host-evidence.log",
+        "linux-evidence-readback.log",
+        "linux-capture-fixed.log",
+        "host-capture.log",
+        "linux-runtime-files.log",
+        "linux-read-old.log",
+        "old-codec-compat.log",
+        "linux-seek.log",
+        "profile-comparison.json",
+        "nal-comparison.log"
+      ],
+      "executionPass": false,
+      "scopeLimit": "실제 관측은 Debian forky/sid arm64 rc58의1.28.7과 macOS arm64 Homebrew1.28.1이다. 혼합/개발버전 부정검사는 helper에 문자열/정수를 주는 합성 검사이며 실제 혼합라이브러리 실행이 아니다. 다른 OS/arch/micro나 모든 입력의 지원을 승인하지 않는다."
+    }
+  ],
+  "currentV450": {
+    "reviewedDeltaIds": [
+      "V450-K05",
+      "V450-K08",
+      "V450-K09",
+      "V450-S01",
+      "V450-S02",
+      "V450-I01",
+      "V450-C01",
+      "V450-R01"
+    ],
+    "decisions": [
+      {
+        "id": "V450-K05",
+        "decision": "approved",
+        "sourceLocations": [
+          "src/recording/va_review_json.h:15",
+          "scripts/internal/va_review_core_checks.h:1"
+        ],
+        "justification": "GCC 줄 구분은 토큰·literal·주석 순서를 유지한다. core 판단 구현/독립 기대 fixture는 불변이고 실제Linux core168검사와 출력 verdict/gap 및 오류의 출력불변을 확인했다. 모의관측의 정책 판정이며 detector/영상 사실 평가로 승격하지 않는다.",
+        "evidence": [
+          "linux-bound-unprivileged.log"
+        ],
+        "executionPass": false,
+        "scopeLimit": "이번 결정은 고정 source의 변경 영향 승인이다. 정식 acceptance·전체 UI·장시간 실행 PASS가 아니다."
+      },
+      {
+        "id": "V450-K08",
+        "decision": "approved",
+        "sourceLocations": [
+          "scripts/internal/va_review_bound_record_checks.h:1",
+          "scripts/internal/verify_va_review_bound_record.py:42"
+        ],
+        "justification": "A package→core→v2 record 저장 및 별도 프로세스 readback 의미는 불변이다.93 seed/17readback의 저장좌표40,45/120,45와 supported/contradicted, 원본catalog 삭제 후 같은판정, 오류/권한/partial write/미게시를 확인했다.",
+        "evidence": [
+          "linux-bound-unprivileged.log"
+        ],
+        "executionPass": false,
+        "scopeLimit": "이번 결정은 고정 source의 변경 영향 승인이다. 정식 acceptance·전체 UI·장시간 실행 PASS가 아니다."
+      },
+      {
+        "id": "V450-K09",
+        "decision": "approved",
+        "sourceLocations": [
+          "src/recording/va_review_json.h:15",
+          "scripts/internal/va_review_confirmed_checks.h:1"
+        ],
+        "justification": "공유 Number 함수 및 confirmed fixture 변경은 줄 구분뿐이며 확인/execute/recordv3/public 흐름 구현은56 이후 변경되지 않았다. profile을 소비하는 하위 proof/seek 경계를 별도 대조했고 판정·확인·저장 payload의 변경을 발견하지 않았다.56 해당 source 판단을 한계와 함께 유지한다.",
+        "evidence": [
+          "docs/release-artifacts/v4.5.0/56-independent-review.json",
+          "gcc-bound-format-proof.json"
+        ],
+        "executionPass": false,
+        "scopeLimit": "이번 confirmed/native/HTTP/browser 전체를 재실행하지 않았다. source 영향은 approved이나 새 실행판정은 held/not-run이다."
+      },
+      {
+        "id": "V450-S01",
+        "decision": "approved",
+        "sourceLocations": [
+          "src/recording/va_review_json.h:15",
+          "scripts/internal/va_review_smoke.cpp:579"
+        ],
+        "justification": "원자 저장·revision·reopen·quota·hardlink/symlink·취소·부분쓰기 계약에 의미 변경이 없다. root에서 chmod 실패주입이 작동하지 않은 최초실패를 보존하고 uid65534에서 같은 assertion을 통과했다.52legacy/93bound 검사 근거가 유지된다.",
+        "evidence": [
+          "linux-bound-fixed.log",
+          "linux-user-diagnosis.log",
+          "linux-bound-unprivileged.log"
+        ],
+        "executionPass": false,
+        "scopeLimit": "이번 결정은 고정 source의 변경 영향 승인이다. 정식 acceptance·전체 UI·장시간 실행 PASS가 아니다."
+      },
+      {
+        "id": "V450-S02",
+        "decision": "approved",
+        "sourceLocations": [
+          "scripts/internal/visual_search_application_smoke.cpp:53",
+          "src/recording/recording_search_reader.cpp:196"
+        ],
+        "justification": "검색 product 구현은 불변이며 새 proof를 기존 generic verifier/seek가 소비한다. Linux 실제SigLIP2/3indexedFrames·unknownUTC·한영질의·경계·채널권한·현재파일corruption·seek를 scope-only96검사에서 확인했다.",
+        "evidence": [
+          "linux-search.log",
+          "linux-seek.log"
+        ],
+        "executionPass": false,
+        "scopeLimit": "VISUAL_QUERY_PROBE 미사용 빌드이므로 이번96결과로 invalid입력 inference/snapshot/search 호출0을 새로 입증했다고 말하지 않는다. 실제 HTTP·전체 query/large/concurrency모드는 미실행이다."
+      },
+      {
+        "id": "V450-I01",
+        "decision": "approved",
+        "sourceLocations": [
+          "src/recording/evidence_package_builder.cpp:129",
+          "src/recording/evidence_frame_extractor.cpp:84",
+          "src/recording/recording_search_reader.cpp:196"
+        ],
+        "justification": "샘플 선택은 검증된 원본PTS·ordinal 및 native edit 범위를 쓰고 ExtractMedia는 같은 파일hash·SourceSeek·decoded frame을 요구한다. 새profile 문자열을 별도로 제한하거나 시간을 재해석하는 소비자는 없다. 시간/hash 식과 출력 identity가 같아56 source 승인을 유지한다.",
+        "evidence": [
+          "docs/release-artifacts/v4.5.0/56-independent-review.json",
+          "linux-seek.log",
+          "linux-frame-decode.log"
+        ],
+        "executionPass": false,
+        "scopeLimit": "이번 full1/8frame evidence package 검사 자체는 재실행하지 않았다. 독립decoded seek는30fps의 특정frame을 확인한 것이며 모든5fixture의 화면/영상품질 확인은 아니다."
+      },
+      {
+        "id": "V450-C01",
+        "decision": "approved",
+        "sourceLocations": [
+          "src/recording/va_review_json.h:15",
+          "scripts/internal/va_review_smoke.cpp:543"
+        ],
+        "justification": "공유 Number의 from_chars·전체소비·출력대입 조건은 줄 구분 외 동일하다.기존 provenance·strict JSON·confidence·근거밖index·출력불변검사를 포함한 legacy52가 통과했고 codec/schema 완화가 없다.",
+        "evidence": [
+          "linux-bound-unprivileged.log"
+        ],
+        "executionPass": false,
+        "scopeLimit": "이번 결정은 고정 source의 변경 영향 승인이다. 정식 acceptance·전체 UI·장시간 실행 PASS가 아니다."
+      },
+      {
+        "id": "V450-R01",
+        "decision": "approved",
+        "sourceLocations": [
+          "scripts/internal/visual_search_application_smoke.cpp:118"
+        ],
+        "justification": "worker와 publication 구현은 변경되지 않았다. 실제 search fixture의 cache저장실패에도 이전완성publication 검색/참조가 유지되고 corrupt파일은503후제외되는 경로를 확인했다.56 source 판단의 다른 미변경 시나리오는 유지한다.",
+        "evidence": [
+          "linux-search.log",
+          "docs/release-artifacts/v4.5.0/56-independent-review.json"
+        ],
+        "executionPass": false,
+        "scopeLimit": "이번실행은scope-only96이다.모든worker실패주입/재시작/취소·장시간 시나리오의 새PASS가 아니다."
+      }
+    ],
+    "otherIds": "56 원본의18current+10safety 분류와5held/8historical 비채택 상태를 이번변경으로 승격하지 않는다."
+  },
+  "profileComparison": {
+    "decision": "approved",
+    "meaning": "시간이동의동일성을가정하지않고실제관측시간→native파일의기존식으로검증",
+    "VFRLastSample": {
+      "originalDurationNsBoth": 70000000,
+      "macOS1281MuxDurationNs": 33333333,
+      "Linux1287MuxDurationNs": 70000000,
+      "macOS1281NativeDuration": 100,
+      "Linux1287NativeDuration": 210,
+      "timescale": 3000,
+      "macOS1281EditDuration": 1210,
+      "Linux1287EditDuration": 1320
+    },
+    "qtmuxPreservedBytesSha256": "689cf7467c81035c981c3a67d9b5151fe1b60d6c1948cc84739d5424d62d88d4",
+    "judgment": "보존qtmux원본은양tag바이트동일. h264parse/baseparse의upstreamduration보존변경이관측차이와일치한다.정확한1.28.1/1.28.7별도profile이합리적이다.372sample원본PTS/DTS/ordinal/VCL동일이며raw첫sample의SEI14byte차이는OS/encoder배포차이가있어GStreamer단독효과로단정하지않는다.",
+    "provenanceLimit": "upstream-provenance.json은현재바이트와기록URL의사후manifest이다.최초다운로드stdout/원격응답이없으며이번reviewer는네트워크재취득하지않았다."
+  },
+  "preservedEvidence": {
+    "inputs": [
+      {
+        "path": "/tmp/v450-rc59-corqw3gi/review-package.json",
+        "sha256": "5cf12c45f7838a4a53e769c5a0745faa5b729b70a8f2542c8c91ebf1fa98133c"
+      },
+      {
+        "path": "/tmp/v450-rc59-corqw3gi/direct-validation.json",
+        "sha256": "b3dfbbb1321307121797788c43d03856ca5e254bf4e940809175a4a3b9de6a16"
+      },
+      {
+        "path": "/tmp/v450-rc59-corqw3gi/source.patch",
+        "sha256": "de1400feaac705fea7358f6c995d93dbebadbaba4fb91f04ab68ebeec74cc8e4"
+      },
+      {
+        "path": "/tmp/v450-rc59-corqw3gi/current-candidate.json",
+        "sha256": "df59b76bd4a3df04883450b08e0e31439d079712e23e569747f3312b2befa893"
+      },
+      {
+        "path": "/tmp/v450-rc59-corqw3gi/migration-noop-report.json",
+        "sha256": "2028629acedc13ec31cbc539cec06bf8bf6fa9eace1baea7e32373118e4aa91e"
+      },
+      {
+        "path": "/tmp/v450-rc59-corqw3gi/profile-comparison.json",
+        "sha256": "cae32934208ab1fefecfb18b500baaffb1df47e0dd49a2789726b7642fa010a4"
+      },
+      {
+        "path": "/tmp/v450-rc59-corqw3gi/nal-comparison.log",
+        "sha256": "eb5b2fdcf04aae7682ae5a3b4bc352309f2d83afdfc27080b39be7e740d96d89"
+      },
+      {
+        "path": "/tmp/v450-rc59-corqw3gi/gcc-format-proof.json",
+        "sha256": "b46ec46cb35171a7bf519afae127052f7b3fe61fe4d59939638f521fef5c10ba"
+      },
+      {
+        "path": "/tmp/v450-rc59-corqw3gi/gcc-bound-format-proof.json",
+        "sha256": "4a4e515f586714d768f73421d77e8d0af855fe800e57336614e655704a7e2bea"
+      },
+      {
+        "path": "/tmp/v450-rc59-corqw3gi/gcc-media-format-proof.json",
+        "sha256": "7538c47117e2c479641fcbb1e289ff1457f01364496d3d005894b2036a53f5ed"
+      },
+      {
+        "path": "/tmp/v450-rc59-corqw3gi/upstream-provenance.json",
+        "sha256": "cdbb2127d5a186723252994bbd02eb6deffbceda9cf2333d54cc4cf303321035"
+      },
+      {
+        "path": "/tmp/v450-rc59-corqw3gi/gstbaseparse.c.diff",
+        "sha256": "29207c484c3f930c852dab89b6a70c21cc50e039cd772e9692d81c2ffc08f559"
+      },
+      {
+        "path": "/tmp/v450-rc59-corqw3gi/gsth264parse.c.diff",
+        "sha256": "b613f1ec182b4489fae1a26a89ff533764dc9065c31ab78f23eba13d36cace83"
+      },
+      {
+        "path": "/tmp/v450-rc59-corqw3gi/gstqtmux.c.diff",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "/tmp/v450-rc59-corqw3gi/codec.cpp",
+        "sha256": "cd223f4d70bf4e6e5a774550faa2e969b301ba3e0df2a89985aa314a2414a210"
+      },
+      {
+        "path": "/tmp/v450-rc59-corqw3gi/old_codec_check.py",
+        "sha256": "c0f2bdd9032321d8619dc89da9eea4be61d6d3532e2aa8c52c6dd7da9a76bc07"
+      },
+      {
+        "path": "/tmp/v450-rc59-corqw3gi/old-contracts.cpp",
+        "sha256": "1c5f55d354da928e6f4e2b8ba66bf4d8ec4d4714367328b98c894a8bf9c88256"
+      },
+      {
+        "path": "/tmp/v450-rc59-corqw3gi/linux_selected.py",
+        "sha256": "8ccbdca79827719bf267dd28646fdfb4c065a31cbc7a0152467a1cabbd3bf022"
+      }
+    ],
+    "priorIndependentReview": {
+      "path": "docs/release-artifacts/v4.5.0/56-independent-review.json",
+      "sha256": "f3d351655d1ca03b16b954c679fdd4336eacc39ea5804c43919cad50ccdd4e1b"
+    },
+    "logs": [
+      {
+        "path": "/tmp/v450-rc59-corqw3gi/linux-capture.log",
+        "sha256": "c520b0898a51175b5456a156b7a8ce55c8e11741a1706bae06f4e76bd7bf9a83",
+        "matchesDirectValidation": true,
+        "recordedExit": 1,
+        "inspection": "원출력의 관련 assertion/diagnostic/summary를 읽음"
+      },
+      {
+        "path": "/tmp/v450-rc59-corqw3gi/host-capture.log",
+        "sha256": "c5290614072ecd88c857b6377a1556787ee1fd1ca7a9d43b6cc5e36dc586d70e",
+        "matchesDirectValidation": true,
+        "recordedExit": 0,
+        "inspection": "원출력의 관련 assertion/diagnostic/summary를 읽음"
+      },
+      {
+        "path": "/tmp/v450-rc59-corqw3gi/linux-capture-fixed.log",
+        "sha256": "5cd8dcf12199d85ed4b40d401a2b90bf473c8611de874e946191931b3c9f0c64",
+        "matchesDirectValidation": true,
+        "recordedExit": 0,
+        "inspection": "원출력의 관련 assertion/diagnostic/summary를 읽음"
+      },
+      {
+        "path": "/tmp/v450-rc59-corqw3gi/linux-file-evidence.log",
+        "sha256": "6c79e2db91bba151a76f521de086a54ae16f649068c9fbce790a942d15443681",
+        "matchesDirectValidation": true,
+        "recordedExit": 1,
+        "inspection": "원출력의 관련 assertion/diagnostic/summary를 읽음"
+      },
+      {
+        "path": "/tmp/v450-rc59-corqw3gi/linux-file-evidence-fixed.log",
+        "sha256": "ce9f980913238c84b0fbe6beafa67d8a5c4067596762d8acce306c5a2b7f80c0",
+        "matchesDirectValidation": true,
+        "recordedExit": 1,
+        "inspection": "원출력의 관련 assertion/diagnostic/summary를 읽음"
+      },
+      {
+        "path": "/tmp/v450-rc59-corqw3gi/linux-runtime-files.log",
+        "sha256": "aba580a5c29dfc0475aa05f0d775ad0dd1dd265cdc70243a91c5fca2e6935ffd",
+        "matchesDirectValidation": true,
+        "recordedExit": 0,
+        "inspection": "원출력의 관련 assertion/diagnostic/summary를 읽음"
+      },
+      {
+        "path": "/tmp/v450-rc59-corqw3gi/linux-file-evidence-linked.log",
+        "sha256": "5af289080dd4e14da1e90471329a5d9643532e1d3a270dff3ee902cde7dfe4ad",
+        "matchesDirectValidation": true,
+        "recordedExit": 0,
+        "inspection": "원출력 SHA readback; 상세 실행 의미 판정에 단독 사용하지 않음"
+      },
+      {
+        "path": "/tmp/v450-rc59-corqw3gi/host-evidence.log",
+        "sha256": "1bb1ba440256b4c259ce133e66e3135d51ced5ee8966843ac6a1963b53c7341b",
+        "matchesDirectValidation": true,
+        "recordedExit": 0,
+        "inspection": "원출력의 관련 assertion/diagnostic/summary를 읽음"
+      },
+      {
+        "path": "/tmp/v450-rc59-corqw3gi/linux-evidence-readback.log",
+        "sha256": "d78ec053af9fcbc434f9d5073127afd8a2c144a89d36282aa852982a384ba7c6",
+        "matchesDirectValidation": true,
+        "recordedExit": 0,
+        "inspection": "원출력의 관련 assertion/diagnostic/summary를 읽음"
+      },
+      {
+        "path": "/tmp/v450-rc59-corqw3gi/linux-configure.log",
+        "sha256": "f4e34cbd2be3a3bd7cdaaf3dfaf06456e2a3c450adee9a2dcc36b0bfd0f9d4b7",
+        "matchesDirectValidation": true,
+        "recordedExit": 0,
+        "inspection": "원출력 SHA readback; 상세 실행 의미 판정에 단독 사용하지 않음"
+      },
+      {
+        "path": "/tmp/v450-rc59-corqw3gi/linux-build.log",
+        "sha256": "b35ffce08168e4e637e392f6279eaff3752794abc402a15c47daed5404a67bba",
+        "matchesDirectValidation": true,
+        "recordedExit": 0,
+        "inspection": "원출력 SHA readback; 상세 실행 의미 판정에 단독 사용하지 않음"
+      },
+      {
+        "path": "/tmp/v450-rc59-corqw3gi/old-codec-build.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "matchesDirectValidation": true,
+        "recordedExit": 0,
+        "inspection": "원출력 SHA readback; 상세 실행 의미 판정에 단독 사용하지 않음"
+      },
+      {
+        "path": "/tmp/v450-rc59-corqw3gi/old-codec-compat.log",
+        "sha256": "8f988b1c0eb3ded63797a5fd9615e9a5fb89b013bad7693d9e7281b4c4ee56f8",
+        "matchesDirectValidation": true,
+        "recordedExit": 0,
+        "inspection": "원출력의 관련 assertion/diagnostic/summary를 읽음"
+      },
+      {
+        "path": "/tmp/v450-rc59-corqw3gi/linux-read-old.log",
+        "sha256": "f16858d34f6284ef3af0a02f20a320929acfeeb7ad6be2567cb4af73a82ac545",
+        "matchesDirectValidation": true,
+        "recordedExit": 0,
+        "inspection": "원출력의 관련 assertion/diagnostic/summary를 읽음"
+      },
+      {
+        "path": "/tmp/v450-rc59-corqw3gi/linux-search.log",
+        "sha256": "2798b412300dcaab95dd4614c203431ec40eb9d69d0f01b23ab2da5246b142dd",
+        "matchesDirectValidation": true,
+        "recordedExit": 0,
+        "inspection": "원출력의 관련 assertion/diagnostic/summary를 읽음"
+      },
+      {
+        "path": "/tmp/v450-rc59-corqw3gi/linux-seek.log",
+        "sha256": "f97f684d2bee2faa439efe5b885b880c19b326b16777c5ca79d454a5ea69bde1",
+        "matchesDirectValidation": true,
+        "recordedExit": 0,
+        "inspection": "원출력의 관련 assertion/diagnostic/summary를 읽음"
+      },
+      {
+        "path": "/tmp/v450-rc59-corqw3gi/nal-comparison.log",
+        "sha256": "eb5b2fdcf04aae7682ae5a3b4bc352309f2d83afdfc27080b39be7e740d96d89",
+        "matchesDirectValidation": true,
+        "recordedExit": 0,
+        "inspection": "원출력 SHA readback; 상세 실행 의미 판정에 단독 사용하지 않음"
+      },
+      {
+        "path": "/tmp/v450-rc59-corqw3gi/comments.log",
+        "sha256": "191fdf14a2bdc8e022f75c29678af6b8c8e9c4ff8af7af47ef269449261b1743",
+        "matchesDirectValidation": true,
+        "recordedExit": 0,
+        "inspection": "원출력 SHA readback; 상세 실행 의미 판정에 단독 사용하지 않음"
+      },
+      {
+        "path": "/tmp/v450-rc59-corqw3gi/native-oracle-regression.log",
+        "sha256": "ba428abf112f10d27bafad85f77148c9f1fb2e1c37c5d55a83696d289b62d5e2",
+        "matchesDirectValidation": true,
+        "recordedExit": 0,
+        "inspection": "원출력의 관련 assertion/diagnostic/summary를 읽음"
+      },
+      {
+        "path": "/tmp/v450-rc59-corqw3gi/diff-check.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "matchesDirectValidation": true,
+        "recordedExit": 0,
+        "inspection": "원출력 SHA readback; 상세 실행 의미 판정에 단독 사용하지 않음"
+      },
+      {
+        "path": "/tmp/v450-rc59-corqw3gi/structure.log",
+        "sha256": "36fa3c3a26f153379817a520d584f3381bc9591ceac21b05befe31b156f0392a",
+        "matchesDirectValidation": true,
+        "recordedExit": 1,
+        "inspection": "원출력의 관련 assertion/diagnostic/summary를 읽음"
+      },
+      {
+        "path": "/tmp/v450-rc59-corqw3gi/docs.log",
+        "sha256": "b7a8d370f5bd00b0653391e8cb575c81b01d23fd779298296853e21238f5d471",
+        "matchesDirectValidation": true,
+        "recordedExit": 0,
+        "inspection": "원출력의 관련 assertion/diagnostic/summary를 읽음"
+      },
+      {
+        "path": "/tmp/v450-rc59-corqw3gi/scripts.log",
+        "sha256": "92e692a3173f517ac5430005d1cf361195ac0dad7e505a2ffaddc893da6cdecf",
+        "matchesDirectValidation": true,
+        "recordedExit": 0,
+        "inspection": "원출력의 관련 assertion/diagnostic/summary를 읽음"
+      },
+      {
+        "path": "/tmp/v450-rc59-corqw3gi/structure-fixed.log",
+        "sha256": "42fe98ae09084d0f15b64bbf6750c7773f34f9aacd2e901cc40ede4348398af0",
+        "matchesDirectValidation": true,
+        "recordedExit": 0,
+        "inspection": "원출력 SHA readback; 상세 실행 의미 판정에 단독 사용하지 않음"
+      },
+      {
+        "path": "/tmp/v450-rc59-corqw3gi/syntax.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "matchesDirectValidation": true,
+        "recordedExit": 0,
+        "inspection": "원출력 SHA readback; 상세 실행 의미 판정에 단독 사용하지 않음"
+      },
+      {
+        "path": "/tmp/v450-rc59-corqw3gi/linux-runtime-final.log",
+        "sha256": "4e401ef2bcadc697874e276dc08123308cd0ea99d047ccf6e5f80c23b789fde2",
+        "matchesDirectValidation": true,
+        "recordedExit": 0,
+        "inspection": "원출력의 관련 assertion/diagnostic/summary를 읽음"
+      },
+      {
+        "path": "/tmp/v450-rc59-corqw3gi/linux-bound.log",
+        "sha256": "a8f3175558a771f3bc9dbd03c9478ae6b9e5170ecdbf93f30fd8dd8154d7a754",
+        "matchesDirectValidation": true,
+        "recordedExit": 1,
+        "inspection": "원출력의 관련 assertion/diagnostic/summary를 읽음"
+      },
+      {
+        "path": "/tmp/v450-rc59-corqw3gi/linux-build-bound-prep.log",
+        "sha256": "9a8130535e54ec919337a6c04937486d59bc70468a95a1cde86165d097d52bec",
+        "matchesDirectValidation": true,
+        "recordedExit": 0,
+        "inspection": "원출력 SHA readback; 상세 실행 의미 판정에 단독 사용하지 않음"
+      },
+      {
+        "path": "/tmp/v450-rc59-corqw3gi/linux-bound-fixed.log",
+        "sha256": "600f74b18f773b68cae6c091a81dc1bbd83e54375c15456b4d8a5fe8efbcd734",
+        "matchesDirectValidation": true,
+        "recordedExit": 1,
+        "inspection": "원출력의 관련 assertion/diagnostic/summary를 읽음"
+      },
+      {
+        "path": "/tmp/v450-rc59-corqw3gi/linux-user-diagnosis.log",
+        "sha256": "46e03739dd832df5be772d6ee481c1493178b2b9452c366f4999ffa10367a804",
+        "matchesDirectValidation": true,
+        "recordedExit": 0,
+        "inspection": "원출력의 관련 assertion/diagnostic/summary를 읽음"
+      },
+      {
+        "path": "/tmp/v450-rc59-corqw3gi/linux-bound-unprivileged.log",
+        "sha256": "25582e4157dbb5f7c40ea4ea0bc6b145b108a052190f66d954a3d25f6cfdbd37",
+        "matchesDirectValidation": true,
+        "recordedExit": 0,
+        "inspection": "원출력의 관련 assertion/diagnostic/summary를 읽음"
+      },
+      {
+        "path": "/tmp/v450-rc59-corqw3gi/linux-public-media.log",
+        "sha256": "839332f66929c99951de18249413fe335d87ff981e4d8ea7499a1e7af2a1a7ad",
+        "matchesDirectValidation": true,
+        "recordedExit": 1,
+        "inspection": "원출력의 관련 assertion/diagnostic/summary를 읽음"
+      },
+      {
+        "path": "/tmp/v450-rc59-corqw3gi/linux-public-media-fixed.log",
+        "sha256": "e5ac6bbdd8f9f2605fe2d4dc09d8786d6e139d6293a1b81fedc0ca45b2181da3",
+        "matchesDirectValidation": true,
+        "recordedExit": 0,
+        "inspection": "원출력의 관련 assertion/diagnostic/summary를 읽음"
+      },
+      {
+        "path": "/tmp/v450-rc59-corqw3gi/linux-transport.log",
+        "sha256": "8443891ee87c154892250bf463fec66792679d3f570c5706220db11b0c822dcc",
+        "matchesDirectValidation": true,
+        "recordedExit": 0,
+        "inspection": "원출력의 관련 assertion/diagnostic/summary를 읽음"
+      },
+      {
+        "path": "/tmp/v450-rc59-corqw3gi/linux-frame-decode.log",
+        "sha256": "4b4cab2f4c6c4642834a3feeeb9072d8cd9d542cfd4cf07b9add0f0485b9b93e",
+        "matchesDirectValidation": true,
+        "recordedExit": 0,
+        "inspection": "원출력의 관련 assertion/diagnostic/summary를 읽음"
+      },
+      {
+        "path": "/tmp/v450-rc59-corqw3gi/final-source-diff-check.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "matchesDirectValidation": true,
+        "recordedExit": 0,
+        "inspection": "원출력 SHA readback; 상세 실행 의미 판정에 단독 사용하지 않음"
+      },
+      {
+        "path": "/tmp/v450-rc59-corqw3gi/candidate.log",
+        "sha256": "e511e208dfd90046a783195dc9b2c128d4835afada61b2d28ccdd0c5110bc731",
+        "matchesDirectValidation": true,
+        "recordedExit": 0,
+        "inspection": "원출력 SHA readback; 상세 실행 의미 판정에 단독 사용하지 않음"
+      },
+      {
+        "path": "/tmp/v450-rc59-corqw3gi/comments-final.log",
+        "sha256": "b2a5003ab3e57d541bdf09bda9d5e19ae9f1a8553dcba3e21850da885968fe9f",
+        "matchesDirectValidation": true,
+        "recordedExit": 1,
+        "inspection": "원출력의 관련 assertion/diagnostic/summary를 읽음"
+      },
+      {
+        "path": "/tmp/v450-rc59-corqw3gi/comments-final-fixed.log",
+        "sha256": "191fdf14a2bdc8e022f75c29678af6b8c8e9c4ff8af7af47ef269449261b1743",
+        "matchesDirectValidation": true,
+        "recordedExit": 0,
+        "inspection": "원출력의 관련 assertion/diagnostic/summary를 읽음"
+      },
+      {
+        "path": "/tmp/v450-rc59-corqw3gi/migration.log",
+        "sha256": "b3043710f61a9436d9e4dfc8eca9bcfc9f1f844803a6900311a4febfef469c88",
+        "matchesDirectValidation": true,
+        "recordedExit": 1,
+        "inspection": "원출력의 관련 assertion/diagnostic/summary를 읽음"
+      },
+      {
+        "path": "/tmp/v450-rc59-corqw3gi/migration-noop.log",
+        "sha256": "6da92e59c78045145f30a7496945518728340641af5b4b854712d3246d629873",
+        "matchesDirectValidation": true,
+        "recordedExit": 0,
+        "inspection": "원출력의 관련 assertion/diagnostic/summary를 읽음"
+      },
+      {
+        "path": "/tmp/v450-rc59-corqw3gi/linux-final-source.log",
+        "sha256": "7218de491ded51141784e6423957891d16d87f85e22a58e1b914a4367ecebd74",
+        "inspection": "package 고정 후 부모가 전달한 추가 원출력; 내용 읽음"
+      },
+      {
+        "path": "/tmp/v450-rc59-corqw3gi/legacy-coverage.log",
+        "sha256": "0fa7a7f4fbb474633bc8276dc6123c760f07b9c1907244a9e9f251445dfe2c7a",
+        "inspection": "package 고정 후 부모가 전달한 추가 원출력; 내용 읽음"
+      }
+    ],
+    "exportedFiles": "host-export/compat 및 linux-export/compat 각각5개MP4와binding/segment를읽어size/SHA를직접대조;모두일치.각372samples.원본media변경/재생성없음.",
+    "runtimeSource": {
+      "sourceFilesMatched": 1416,
+      "mismatches": 0,
+      "mediaServerSha256": "9870bac61f5d26edac04a22abb9cb100c9346c6e23fbf4f006fdbbe0cf5bdcdc",
+      "runtimeArchiveSha256": "edcc9e89df8c55b076e7b03fd4d3d8e240e4c06d12f93457ced1b196f2af555f",
+      "judgment": "고정HEAD와실제Linux사본1416파일일치보고를읽었다.최종binary/archivehash는공유Number줄구분rebuild전기록과동일하다.리뷰어가container/build를새로실행한것이아니다."
+    }
+  },
+  "evidenceFindings": [
+    {
+      "id": "R59-E1",
+      "decision": "changes-required",
+      "kind": "metadata-reconciliation-not-product-defect",
+      "path": "test/fixtures/project_feature_implementation_evidence.json",
+      "evidence": "legacy-coverage.log:986covered/missing0이나inventorySha256drift로exit1",
+      "requiredAction": "기존 --apply-approved-manifest 실행 및새diff/readback확인.승인원장과candidate986는보존.현재실패를해소하기전후속제품acceptance를진행하지않는다.",
+      "authorizedSourceJudgment": "scripts/internal/verify_v390_review4_feature_semantic_source_audit.mjs:935 및feature_semantic_review4_apply.mjs:31에서엄격후보/승인/typed/trust/semantic/sharedflow검증후기존reviewedOn/reason그대로투영하는정규경로는approved.부모의적용과readback은아직검토전.",
+      "nativeExactImpact": "native exact는전체implementation파일hash가아닌cases projection에결속한다(ui_fulltest_evidence_policy_v4_lib:509및v390_ui_native_exact_cases_lib:2808/2835).inventorySha만변경되고986items/canonical/runtimeoracle가같으면새native exact생성은불필요하다.적용diff와소비자검증으로확인해야한다."
+    }
+  ],
+  "heldExecutionDecisions": [
+    {
+      "id": "formal-acceptance",
+      "decision": "held",
+      "reason": "이번검토/단기근거로신규실행PASS를부여하지않음;지원채택근거부족을뜻하지않음"
+    },
+    {
+      "id": "full-ui",
+      "decision": "held",
+      "reason": "이번검토/단기근거로신규실행PASS를부여하지않음;지원채택근거부족을뜻하지않음"
+    },
+    {
+      "id": "general-30min",
+      "decision": "held",
+      "reason": "이번검토/단기근거로신규실행PASS를부여하지않음;지원채택근거부족을뜻하지않음"
+    },
+    {
+      "id": "general-120min",
+      "decision": "held",
+      "reason": "이번검토/단기근거로신규실행PASS를부여하지않음;지원채택근거부족을뜻하지않음"
+    },
+    {
+      "id": "mixed-120min",
+      "decision": "held",
+      "reason": "이번검토/단기근거로신규실행PASS를부여하지않음;지원채택근거부족을뜻하지않음"
+    },
+    {
+      "id": "K09-current-full-confirmed-HTTP-browser",
+      "decision": "held",
+      "reason": "이번검토/단기근거로신규실행PASS를부여하지않음;지원채택근거부족을뜻하지않음"
+    },
+    {
+      "id": "I01-current-full-1-8-frame-package",
+      "decision": "held",
+      "reason": "이번검토/단기근거로신규실행PASS를부여하지않음;지원채택근거부족을뜻하지않음"
+    }
+  ],
+  "limitations": [
+    "리뷰어는제품/모델/서버/테스트/producer를실행하지않았다.읽기·정적비교와허용된검토원본작성만수행했다.",
+    "Helper혼합/nano거부합성검사와실제1.28.1/1.28.7프로세스실행을구분했다.프로파일문자열은암호학적런타임인증이아니다.",
+    "독립JS는제품C++parser와별도구현이지만보존MP4표/samplehash비교이며실제디코딩은별도seek30fps및frame-correlation근거에한정된다.",
+    "부모실행의최초GCC/link/잘못된검사호출/rootchmod주입실패를최종PASS로덮어쓰지않았다.원출력과exit를그대로보존한다.",
+    "소유fixturecleanup은원출력의removed/absent를확인했다.외부container/전체작업정리는부모진행사항이며이번리뷰에서완료로주장하지않는다.",
+    "새schema/검증식완화/모델실험채택/다른OS지원확대는없다."
+  ],
+  "nextAction": "부모가정규manifest정합처리와readback/diff를보존한뒤본source승인과별도로준비실패해소를확인할것.그후기존승인범위내후속acceptance진행가능;현재UI/장시간/릴리즈완료는별도판정."
+}

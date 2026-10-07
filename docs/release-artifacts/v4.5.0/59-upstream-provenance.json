@@ -1,0 +1,42 @@
+{
+  "kind": "현재 보존된 공식 tag 소스 바이트의 manifest. 최초 다운로드 stdout은 별도 보존하지 않았으며 새 다운로드 실행 기록이 아님.",
+  "releaseNotes": "https://gstreamer.freedesktop.org/releases/1.28/",
+  "files": [
+    {
+      "path": "1.28.1-gstbaseparse.c",
+      "url": "https://raw.githubusercontent.com/GStreamer/gstreamer/1.28.1/subprojects/gstreamer/libs/gst/base/gstbaseparse.c",
+      "sha256": "980d9bf816ed11a581fd7d1e3e6a78848a2a60ef6b6b2fae6481048e127ef7db",
+      "bytes": 168600
+    },
+    {
+      "path": "1.28.1-gsth264parse.c",
+      "url": "https://raw.githubusercontent.com/GStreamer/gstreamer/1.28.1/subprojects/gst-plugins-bad/gst/videoparsers/gsth264parse.c",
+      "sha256": "faa74335b57bd00fb80e56b803e26b61c2e1ba276809ae48212e39554dc4b669",
+      "bytes": 138462
+    },
+    {
+      "path": "1.28.1-gstqtmux.c",
+      "url": "https://raw.githubusercontent.com/GStreamer/gstreamer/1.28.1/subprojects/gst-plugins-good/gst/isomp4/gstqtmux.c",
+      "sha256": "689cf7467c81035c981c3a67d9b5151fe1b60d6c1948cc84739d5424d62d88d4",
+      "bytes": 272462
+    },
+    {
+      "path": "1.28.7-gstbaseparse.c",
+      "url": "https://raw.githubusercontent.com/GStreamer/gstreamer/1.28.7/subprojects/gstreamer/libs/gst/base/gstbaseparse.c",
+      "sha256": "6e54f08374e4666d12ec1393f1c1f232533eb72008147eafa7e75005607f436e",
+      "bytes": 171233
+    },
+    {
+      "path": "1.28.7-gsth264parse.c",
+      "url": "https://raw.githubusercontent.com/GStreamer/gstreamer/1.28.7/subprojects/gst-plugins-bad/gst/videoparsers/gsth264parse.c",
+      "sha256": "80f5f204aeb46629664c949c3f5349b45e1ef9d1b6e89878b40b54e0e31e26fb",
+      "bytes": 138625
+    },
+    {
+      "path": "1.28.7-gstqtmux.c",
+      "url": "https://raw.githubusercontent.com/GStreamer/gstreamer/1.28.7/subprojects/gst-plugins-good/gst/isomp4/gstqtmux.c",
+      "sha256": "689cf7467c81035c981c3a67d9b5151fe1b60d6c1948cc84739d5424d62d88d4",
+      "bytes": 272462
+    }
+  ]
+}
