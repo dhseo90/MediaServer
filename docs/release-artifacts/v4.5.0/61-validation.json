@@ -1094,5 +1094,18 @@
       "sha256": "e4ebd020977716d0ed6b75a51fbe625360caa4f93e4c1d9a58e7ae4863ef3aa8",
       "rawOutput": "docs/release-artifacts/v4.5.0/test-acceptance-current-final/report.md:13: trailing whitespace.\n+reproductionCommand: \n"
     }
-  ]
+  ],
+  "firstPushFailure": {
+    "command": "git push origin HEAD:refs/heads/v4.5.0",
+    "exit": 1,
+    "localHead": "6fb74843d9cdb278e818afd336385b3a0c0f57c4",
+    "remoteBefore": "ea47adfcd6f97a1cdf5e09d5192196bcf53b15d1",
+    "requestId": "E474:13FCB8:10B3B:57BFE:6AC66125",
+    "reportedRemoteTime": "2026-10-07T15:11:52Z",
+    "warning": "61-execution.tar.gz 67.99 MB exceeds GitHub recommended 50.00 MB; warning, not 100 MB file rejection",
+    "rejection": "Internal Server Error",
+    "outputProvenance": "exec tool가 반환한 원문 text. 별도 shell 원시 byte 로그는 이 첫 push에서 생성하지 않았음. 코드/실행 검증 FAIL로 변경하지 않음.",
+    "toolOutput": "remote: warning: See https://gh.io/lfs for more information.        \nremote: warning: File docs/release-artifacts/v4.5.0/61-execution.tar.gz is 67.99 MB; this is larger than GitHub's recommended maximum file size of 50.00 MB        \nremote: warning: GH001: Large files detected. You may want to try Git Large File Storage - https://git-lfs.github.com.        \nremote: Internal Server Error        \nremote: Request ID E474:13FCB8:10B3B:57BFE:6AC66125        \nremote: Time 2026-10-07T15:11:52Z\nTo github.com:dhseo90/MediaServer.git\n ! [remote rejected]     HEAD -> v4.5.0 (Internal Server Error)\nerror: failed to push some refs to 'github.com:dhseo90/MediaServer.git'\n",
+    "boundary": "원격 재조회 후 같은 branch로 일반 push만 허용. force/rebase/history rewrite 없음. 최종 remote 상태는 후속 tool 확인 결과와 구분."
+  }
 }
