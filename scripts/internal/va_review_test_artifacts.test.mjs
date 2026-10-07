@@ -40,6 +40,22 @@ for(const outcome of ['success','failure','signal','timeout','spawn-error','thro
  assert.throws(()=>output.write('../escape','x'));assert.throws(()=>output.write('confirmed-seed.json','overwrite'));
  assert.throws(()=>output.write('oversize.txt','x'.repeat(1024*1024+1)),/limit/);
 }));
+for(const kind of ['maxBuffer-chunk','redaction-expansion'])test('seed output limit preserves both streams and exit cause: '+kind,()=>fixture(root=>{
+ const fake=path.join(root,'repo');fs.mkdirSync(path.join(fake,'build-gst-onnx'),{recursive:true});
+ fs.writeFileSync(path.join(fake,'build-gst-onnx/libmedia_server_runtime.a'),'runtime');
+ const binary=path.join(root,'fixture');fs.writeFileSync(binary,'fixture');
+ const store=path.join(root,'store');fs.mkdirSync(store);const output=createReviewTestArtifacts(repo,env(root));let calls=0;
+ const raw=Buffer.from(kind==='maxBuffer-chunk'?'x'.repeat(1024*1024+65536):'/Users/a '.repeat(110000));
+ const launch=()=>{++calls;return {status:kind==='maxBuffer-chunk'?null:0,signal:kind==='maxBuffer-chunk'?'SIGTERM':null,
+  error:kind==='maxBuffer-chunk'?Object.assign(new Error('maxBuffer exceeded'),{code:'ENOBUFS'}):undefined,
+  stdout:raw,stderr:Buffer.from('original failure details')};};
+ assert.throws(()=>runReviewSeed({fixture:binary,root:store,mode:'--seed',repo:fake,artifacts:output},launch),/preparation failed/);
+ const record=JSON.parse(fs.readFileSync(path.join(output.outputDir,'seed.json')));assert.equal(calls,1);
+ assert.equal(record.stdout.originalBytes,raw.length);assert.equal(record.stdout.bytes,1024*1024);assert(record.stdout.truncated);
+ assert.equal(record.stderr.truncated,false);assert.equal(fs.readFileSync(path.join(output.outputDir,'seed.stderr'),'utf8'),'original failure details');
+ assert.equal(record.spawnError?.code??null,kind==='maxBuffer-chunk'?'ENOBUFS':null);
+ assert.equal(record.signal,kind==='maxBuffer-chunk'?'SIGTERM':null);assert(fs.existsSync(store));
+}));
 test('parent allocates distinct run/check roots and native screenshots/checkpoints keep bytes',()=>asyncFixture(async root=>{
   const runDir=path.join(root,'runs','current');fs.mkdirSync(runDir,{recursive:true});
   const specs=v450ReleaseCommands().map(s=>withV450ArtifactOutput(s,{artifactRoot:root,runDir})).filter(s=>s.env.MEDIA_SERVER_TEST_OUTPUT_DIR);

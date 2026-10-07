@@ -35,14 +35,19 @@ export function runReviewSeed({fixture,root,mode,repo,artifacts},launch=spawnSyn
     runtimeArchiveSha256:sha(fs.readFileSync(archive)),environment,initial:listing(root),startedAt:new Date().toISOString(),timeoutMs:10000};
   const started=performance.now();let result;
   try{result=launch(fixture,args,{cwd:repo,encoding:'buffer',timeout:10000,maxBuffer:1024*1024});}
-  catch(error){result={status:null,signal:null,error};}
+  catch(error){result={status:null,signal:null,error,stdout:error.stdout,stderr:error.stderr};}
   record.elapsedMs=performance.now()-started;record.exitCode=result.status??null;record.signal=result.signal??null;
   record.spawnError=result.error?{code:result.error.code??null,message:clean(result.error.message)}:null;
   for(const name of ['stdout','stderr']){
-    const raw=Buffer.from(result[name]||'');const bytes=Buffer.from(clean(raw.toString('utf8')));
-    record[name]={...artifacts.write(label+'.'+name,bytes),originalBytes:raw.length,originalSha256:sha(raw),byteIdentical:raw.equals(bytes)};
+    const raw=Buffer.from(result[name]||'');const sanitized=Buffer.from(clean(raw.toString('utf8')));
+    // maxBuffer를 넘긴 마지막 chunk와 정제 후 길이 증가도 기존 출력 상한 안에 보존한다.
+    // 잘린 로그를 완전한 원문으로 표시하지 않고 두 stream과 종료 원인을 먼저 기록한다.
+    const bytes=sanitized.subarray(0,1024*1024),truncated=bytes.length!==sanitized.length;
+    record[name]={...artifacts.write(label+'.'+name,bytes),originalBytes:raw.length,originalSha256:sha(raw),
+      sanitizedBytes:sanitized.length,truncated,byteIdentical:raw.equals(bytes)};
   }
   record.final=listing(root);artifacts.write(label+'.json',JSON.stringify(record,null,2)+'\n');
-  assert(record.exitCode===0&&record.signal===null&&record.spawnError===null,label+' preparation failed; see '+label+'.json');
+  assert(record.exitCode===0&&record.signal===null&&record.spawnError===null&&!record.stdout.truncated&&!record.stderr.truncated,
+    label+' preparation failed; see '+label+'.json');
   return record;
 }
