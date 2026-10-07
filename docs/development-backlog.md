@@ -80,6 +80,15 @@ readback·seek·작은 영상 검색과 Linux A/저장/transport/decoder 단기 
 허용 output root 밖에 생겨 source patch 결속과 전체 UI 적격성이 실패했다. 제품 소스는 불변이다.
 출력 경로 충돌의 제한 수정과 새 실행 승인이 필요하며, 일반120분·필수 보완UI는 미실행이다.
 
+[61 출력 전달·정식 실행](release-artifacts/v4.5.0/61-validation.json)에서 두 HTTP/UI 검사의
+PNG·JSON·checkpoint를 부모 run 아래로 결속하고, 일반30분 전 소스 지문 확인을 추가했다.
+직접 반례·실제 하위 실행·독립 변경분 검토와 producer/readback을 마친 후보의 새 acceptance1회는
+기능 gate48개·일반30분·canonical424개/Policy v4 적격성·일반120분·최종 무결성을 통과했다.
+녹화31·구조화 검색38·장면 검색/증거23 action과 A/409/자료 안내의 실제 보완 실행은 별도 보존한다.
+다만 증거 UI 오류/clip 상태 전수와 보완 실행 전체의 적격성 결속은 미완료다. 최초 시간 fixture
+준비 오류와 수정 후 결과, 역사 default contract의 문서 부재 오류도 유지한다. 전체 출시 검증
+완료가 아니며, 구체적 보완 범위는 61의 `remainingQualification`을 따른다.
+
 v4.4.0 변경120분 source 이후 catalog의 관측 출처 저장과 snapshot 잠금·A 저장/취소 수명이
 추가돼 녹화/검색/A 혼합의 전용120분 영향 검증도 별도 승인 잔여다. 일반120분으로 대체하지 않는다.
 

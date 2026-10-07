@@ -1,19 +1,19 @@
 {
   "schema": "media-server.user-test-run-summary.v1",
-  "generatedAt": "2026-10-07T09:55:09.660Z",
+  "generatedAt": "2026-10-07T14:32:20.806Z",
   "suite": "release",
   "userCommand": "./test_release.sh",
-  "result": "fail",
+  "result": "pass",
   "syntheticSourceSummary": false,
   "source": {
-    "commitSha": "ea7d8aca940fb917c439cd8e958976b6321c504d",
+    "commitSha": "72cc7643d681b75228b80fd646921965ecacba75",
     "branch": "v4.5.0",
-    "worktreeClean": false
+    "worktreeClean": true
   },
   "counts": {
-    "total": 608,
-    "pass": 601,
-    "fail": 2,
+    "total": 1027,
+    "pass": 1022,
+    "fail": 0,
     "notRun": 5
   },
   "items": [
@@ -23,7 +23,7 @@
       "status": "pass",
       "originalStatus": "PASS",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007084159-15681/preflight.log",
+      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007110809-502/preflight.log",
       "reason": ""
     },
     {
@@ -32,7 +32,7 @@
       "status": "pass",
       "originalStatus": "PASS",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007084159-15681/build.log",
+      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007110809-502/build.log",
       "reason": "[env] local override skipped"
     },
     {
@@ -50,7 +50,7 @@
       "status": "pass",
       "originalStatus": "PASS",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007084159-15681/feature-gates-01-code-comments.log",
+      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007110809-502/feature-gates-01-code-comments.log",
       "reason": "== Code comment policy summary =="
     },
     {
@@ -59,7 +59,7 @@
       "status": "pass",
       "originalStatus": "PASS",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007084159-15681/feature-gates-02-v390-ui-native-exact-cases-contract.log",
+      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007110809-502/feature-gates-02-v390-ui-native-exact-cases-contract.log",
       "reason": "[pass] evidence producer failure always leaves an exact 424 failure ledger"
     },
     {
@@ -68,7 +68,7 @@
       "status": "pass",
       "originalStatus": "PASS",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007084159-15681/feature-gates-03-v390-stabilization-release-readiness.log",
+      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007110809-502/feature-gates-03-v390-stabilization-release-readiness.log",
       "reason": "[pass] 최종 acceptance 진입 안내와 launcher 모드"
     },
     {
@@ -77,7 +77,7 @@
       "status": "pass",
       "originalStatus": "PASS",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007084159-15681/feature-gates-04-v390-entry-baseline.log",
+      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007110809-502/feature-gates-04-v390-entry-baseline.log",
       "reason": "[pass] SAFE-196 canonical V390 historical baseline boundary"
     },
     {
@@ -86,7 +86,7 @@
       "status": "pass",
       "originalStatus": "PASS",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007084159-15681/feature-gates-05-v390-feature-completion-inventory.log",
+      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007110809-502/feature-gates-05-v390-feature-completion-inventory.log",
       "reason": "- inventory: docs/v390-feature-completion-inventory.md"
     },
     {
@@ -95,7 +95,7 @@
       "status": "pass",
       "originalStatus": "PASS",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007084159-15681/feature-gates-06-v390-user-review-gate.log",
+      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007110809-502/feature-gates-06-v390-user-review-gate.log",
       "reason": "- historicalApprovalStatus: approved-through-recorded-user-goals"
     },
     {
@@ -104,7 +104,7 @@
       "status": "pass",
       "originalStatus": "PASS",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007084159-15681/feature-gates-07-manual-ui-evidence.log",
+      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007110809-502/feature-gates-07-manual-ui-evidence.log",
       "reason": "[pass] current UI documentation links and execution identifiers"
     },
     {
@@ -113,7 +113,7 @@
       "status": "pass",
       "originalStatus": "PASS",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007084159-15681/feature-gates-08-v390-evidence-test-gate-prep.log",
+      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007110809-502/feature-gates-08-v390-evidence-test-gate-prep.log",
       "reason": "- schema: media-server.v390-evidence-test-gate-prep.v1"
     },
     {
@@ -122,7 +122,7 @@
       "status": "pass",
       "originalStatus": "PASS",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007084159-15681/feature-gates-09-v390-onvif-credential-provider-status.log",
+      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007110809-502/feature-gates-09-v390-onvif-credential-provider-status.log",
       "reason": "[pass] v3.9 feature completion inventory separates original review candidates from current active candidates"
     },
     {
@@ -131,7 +131,7 @@
       "status": "pass",
       "originalStatus": "PASS",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007084159-15681/feature-gates-10-v390-onvif-live-import-persist-decision.log",
+      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007110809-502/feature-gates-10-v390-onvif-live-import-persist-decision.log",
       "reason": "[pass] roadmap, stream verification, inventory, and release records map v3.9 Step 12"
     },
     {
@@ -140,7 +140,7 @@
       "status": "pass",
       "originalStatus": "PASS",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007084159-15681/feature-gates-11-v390-vlm-rule-suggestion-draft-bridge.log",
+      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007110809-502/feature-gates-11-v390-vlm-rule-suggestion-draft-bridge.log",
       "reason": "[pass] roadmap, stream verification, inventory, and release records map v3.9 Step 13"
     },
     {
@@ -149,7 +149,7 @@
       "status": "pass",
       "originalStatus": "PASS",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007084159-15681/feature-gates-12-v390-vlm-incident-rule-provenance.log",
+      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007110809-502/feature-gates-12-v390-vlm-incident-rule-provenance.log",
       "reason": "- event/candidate/evaluation source mapped: true"
     },
     {
@@ -158,7 +158,7 @@
       "status": "pass",
       "originalStatus": "PASS",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007084159-15681/feature-gates-13-v390-vlm-evaluation-promotion-guard.log",
+      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007110809-502/feature-gates-13-v390-vlm-evaluation-promotion-guard.log",
       "reason": "- step: v3.9.0 (14)"
     },
     {
@@ -167,7 +167,7 @@
       "status": "pass",
       "originalStatus": "PASS",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007084159-15681/feature-gates-14-v390-vlm-promotion-trust-boundary.log",
+      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007110809-502/feature-gates-14-v390-vlm-promotion-trust-boundary.log",
       "reason": "[pass] review-active-rejected"
     },
     {
@@ -176,7 +176,7 @@
       "status": "pass",
       "originalStatus": "PASS",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007084159-15681/feature-gates-15-v390-backup-recovery-handoff-validation.log",
+      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007110809-502/feature-gates-15-v390-backup-recovery-handoff-validation.log",
       "reason": "- schema: media-server.ops.v390-staging-restore-validation-handoff.v1"
     },
     {
@@ -185,7 +185,7 @@
       "status": "pass",
       "originalStatus": "PASS",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007084159-15681/feature-gates-16-v390-action-execution-deferral-decision.log",
+      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007110809-502/feature-gates-16-v390-action-execution-deferral-decision.log",
       "reason": "- step: v3.9.0 (16)"
     },
     {
@@ -194,7 +194,7 @@
       "status": "pass",
       "originalStatus": "PASS",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007084159-15681/feature-gates-17-v390-deferred-product-owner-signoff.log",
+      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007110809-502/feature-gates-17-v390-deferred-product-owner-signoff.log",
       "reason": "[pass] decision evidence resolves to current source, route, UI, boundary, and verifier owners"
     },
     {
@@ -203,7 +203,7 @@
       "status": "pass",
       "originalStatus": "PASS",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007084159-15681/feature-gates-18-v390-conditional-field-ai-decisions.log",
+      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007110809-502/feature-gates-18-v390-conditional-field-ai-decisions.log",
       "reason": "- fieldSelectedMode: approval-only-minimal-field-evidence-bridge"
     },
     {
@@ -212,7 +212,7 @@
       "status": "pass",
       "originalStatus": "PASS",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007084159-15681/feature-gates-19-v390-reid-readiness-consistency.log",
+      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007110809-502/feature-gates-19-v390-reid-readiness-consistency.log",
       "reason": "[pass] checksum-missing: model-checksum-missing"
     },
     {
@@ -221,7 +221,7 @@
       "status": "pass",
       "originalStatus": "PASS",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007084159-15681/feature-gates-20-v390-onvif-source-view-atomicity.log",
+      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007110809-502/feature-gates-20-v390-onvif-source-view-atomicity.log",
       "reason": "[pass] restart-pair-consistency"
     },
     {
@@ -230,7 +230,7 @@
       "status": "pass",
       "originalStatus": "PASS",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007084159-15681/feature-gates-21-v390-structure-stabilization-handoff.log",
+      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007110809-502/feature-gates-21-v390-structure-stabilization-handoff.log",
       "reason": "- schema: media-server.v390-structure-stabilization-handoff.v1"
     },
     {
@@ -239,7 +239,7 @@
       "status": "pass",
       "originalStatus": "PASS",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007084159-15681/feature-gates-22-v390-structure-stabilization-readiness.log",
+      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007110809-502/feature-gates-22-v390-structure-stabilization-readiness.log",
       "reason": "- preservedContracts: 9"
     },
     {
@@ -248,7 +248,7 @@
       "status": "pass",
       "originalStatus": "PASS",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007084159-15681/feature-gates-23-v390-external-field-smoke-no-device-closure.log",
+      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007110809-502/feature-gates-23-v390-external-field-smoke-no-device-closure.log",
       "reason": "[pass] closure fixture records exact no-device not-run state"
     },
     {
@@ -257,7 +257,7 @@
       "status": "pass",
       "originalStatus": "PASS",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007084159-15681/feature-gates-24-v390-truthfulness-status-vocabulary.log",
+      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007110809-502/feature-gates-24-v390-truthfulness-status-vocabulary.log",
       "reason": "[pass] external field state is conditional-not-run and not PASS"
     },
     {
@@ -266,7 +266,7 @@
       "status": "pass",
       "originalStatus": "PASS",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007084159-15681/feature-gates-25-v390-analysis-registry-durable-write.log",
+      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007110809-502/feature-gates-25-v390-analysis-registry-durable-write.log",
       "reason": "[pass] va-rule-create-during-rollback"
     },
     {
@@ -275,7 +275,7 @@
       "status": "pass",
       "originalStatus": "PASS",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007084159-15681/feature-gates-26-v390-ui-policy-v4-producer-contract.log",
+      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007110809-502/feature-gates-26-v390-ui-policy-v4-producer-contract.log",
       "reason": "[pass] console approvals bind expected 401 and 403 responses to validated post-action roles"
     },
     {
@@ -284,7 +284,7 @@
       "status": "pass",
       "originalStatus": "PASS",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007084159-15681/feature-gates-27-v390-ui-visual-evidence-contract.log",
+      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007110809-502/feature-gates-27-v390-ui-visual-evidence-contract.log",
       "reason": "[pass] viewport보다 큰 visible workspace는 교차를 요구하고 작은 control clipping은 거부한다"
     },
     {
@@ -293,7 +293,7 @@
       "status": "pass",
       "originalStatus": "PASS",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007084159-15681/feature-gates-28-release-metadata.log",
+      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007110809-502/feature-gates-28-release-metadata.log",
       "reason": "[pass] current release documents preserve version and publication boundaries"
     },
     {
@@ -302,7 +302,7 @@
       "status": "pass",
       "originalStatus": "PASS",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007084159-15681/feature-gates-29-docs-links.log",
+      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007110809-502/feature-gates-29-docs-links.log",
       "reason": "== Docs link verification summary =="
     },
     {
@@ -311,7 +311,7 @@
       "status": "pass",
       "originalStatus": "PASS",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007084159-15681/feature-gates-30-docs-ui-assets.log",
+      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007110809-502/feature-gates-30-docs-ui-assets.log",
       "reason": "[pass] English README uses English UI screenshots"
     },
     {
@@ -320,7 +320,7 @@
       "status": "pass",
       "originalStatus": "PASS",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007084159-15681/feature-gates-31-feature-implementation-evidence.log",
+      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007110809-502/feature-gates-31-feature-implementation-evidence.log",
       "reason": "- sourceEvidenceRows: 986"
     },
     {
@@ -329,7 +329,7 @@
       "status": "pass",
       "originalStatus": "PASS",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007084159-15681/feature-gates-32-project-inventory.log",
+      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007110809-502/feature-gates-32-project-inventory.log",
       "reason": "[pass] manual UI seed tracker Re-ID pair bytetrack/off"
     },
     {
@@ -338,7 +338,7 @@
       "status": "pass",
       "originalStatus": "PASS",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007084159-15681/feature-gates-33-feature-inventory-coverage.log",
+      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007110809-502/feature-gates-33-feature-inventory-coverage.log",
       "reason": "[pass] inventory uses only the four approved test areas"
     },
     {
@@ -347,7 +347,7 @@
       "status": "pass",
       "originalStatus": "PASS",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007084159-15681/feature-gates-34-release-evidence-index.log",
+      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007110809-502/feature-gates-34-release-evidence-index.log",
       "reason": "[pass] 현행 기록 정책·기능·명령 연결"
     },
     {
@@ -356,7 +356,7 @@
       "status": "pass",
       "originalStatus": "PASS",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007084159-15681/feature-gates-35-script-inventory.log",
+      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007110809-502/feature-gates-35-script-inventory.log",
       "reason": "[pass] current standalone script instructions target tracked files"
     },
     {
@@ -365,8 +365,8 @@
       "status": "pass",
       "originalStatus": "PASS",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007084159-15681/feature-gates-36-v450-search.log",
-      "reason": "✔ token rejection explains no truncation and permits a corrected search (0.392292ms)"
+      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007110809-502/feature-gates-36-v450-search.log",
+      "reason": "✔ token rejection explains no truncation and permits a corrected search (0.421ms)"
     },
     {
       "scope": "check",
@@ -374,7 +374,7 @@
       "status": "pass",
       "originalStatus": "PASS",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007084159-15681/feature-gates-37-v450-evidence.log",
+      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007110809-502/feature-gates-37-v450-evidence.log",
       "reason": "[pass] manifest alone exceeding package cap rejected"
     },
     {
@@ -383,7 +383,7 @@
       "status": "pass",
       "originalStatus": "PASS",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007084159-15681/feature-gates-38-v450-search-lifetime.log",
+      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007110809-502/feature-gates-38-v450-search-lifetime.log",
       "reason": "[pass] R03 held snapshot begin"
     },
     {
@@ -392,7 +392,7 @@
       "status": "pass",
       "originalStatus": "PASS",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007084159-15681/feature-gates-39-v450-review-release.log",
+      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007110809-502/feature-gates-39-v450-review-release.log",
       "reason": "[pass] V450-N02 certificate hostname mismatch fails"
     },
     {
@@ -401,7 +401,7 @@
       "status": "pass",
       "originalStatus": "PASS",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007084159-15681/feature-gates-40-v450-A-confirmed.log",
+      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007110809-502/feature-gates-40-v450-A-confirmed.log",
       "reason": "[pass] K08 fixture saved"
     },
     {
@@ -410,7 +410,7 @@
       "status": "pass",
       "originalStatus": "PASS",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007084159-15681/feature-gates-41-v450-A-observations.log",
+      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007110809-502/feature-gates-41-v450-A-observations.log",
       "reason": "[pass] original media and catalog actually absent before new reader"
     },
     {
@@ -419,7 +419,7 @@
       "status": "pass",
       "originalStatus": "PASS",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007084159-15681/feature-gates-42-v450-A-bound.log",
+      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007110809-502/feature-gates-42-v450-A-bound.log",
       "reason": "[pass] V450-K05 frozen image request"
     },
     {
@@ -428,8 +428,8 @@
       "status": "pass",
       "originalStatus": "PASS",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007084159-15681/feature-gates-43-v450-A-http.log",
-      "reason": "[source] src/recording/va_review_questions.cpp b0c4835b4b62bd81d471fb78e3c35f8263906879fed3ae350fa9855a505aa997"
+      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007110809-502/feature-gates-43-v450-A-http.log",
+      "reason": "[source] src/recording/va_review_record.cpp 01e3a5a833b5d9201f6ec9aa1273e0fae1d58bb88d62c94fa684f5ac3bcb457f"
     },
     {
       "scope": "check",
@@ -437,8 +437,8 @@
       "status": "pass",
       "originalStatus": "PASS",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007084159-15681/feature-gates-44-v450-A-ui-state.log",
-      "reason": "✔ V450-U02 progress retry has at most one GET and no extra timer (0.6005ms)"
+      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007110809-502/feature-gates-44-v450-A-ui-state.log",
+      "reason": "✔ V450-U02 progress retry has at most one GET and no extra timer (0.684875ms)"
     },
     {
       "scope": "check",
@@ -446,8 +446,8 @@
       "status": "pass",
       "originalStatus": "PASS",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007084159-15681/feature-gates-45-v450-registration.log",
-      "reason": "✔ V450-E03 rejects duplicate (1.678208ms)"
+      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007110809-502/feature-gates-45-v450-registration.log",
+      "reason": "✔ parent rejects lost wrapper output and propagates actual signal exit; real wrappers preserve env (35.744417ms)"
     },
     {
       "scope": "check",
@@ -455,7 +455,7 @@
       "status": "pass",
       "originalStatus": "PASS",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007084159-15681/feature-gates-46-v450-materials.log",
+      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007110809-502/feature-gates-46-v450-materials.log",
       "reason": "[pass] K11 170 codepoints accepted"
     },
     {
@@ -464,8 +464,8 @@
       "status": "pass",
       "originalStatus": "PASS",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007084159-15681/feature-gates-47-v450-release-http.log",
-      "reason": "[source] src/recording/va_review_provider.cpp 9631db21a5850a2ef35955ee21b1429b2b3f3e097aee28150a5287715671e6f2"
+      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007110809-502/feature-gates-47-v450-release-http.log",
+      "reason": "[source] src/recording/va_review_questions.cpp b0c4835b4b62bd81d471fb78e3c35f8263906879fed3ae350fa9855a505aa997"
     },
     {
       "scope": "check",
@@ -473,7 +473,7 @@
       "status": "pass",
       "originalStatus": "PASS",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007084159-15681/feature-gates-48-git-diff-check.log",
+      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007110809-502/feature-gates-48-git-diff-check.log",
       "reason": ""
     },
     {
@@ -482,7 +482,7 @@
       "status": "pass",
       "originalStatus": "PASS",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007084159-15681/server-longrun-30.log",
+      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007110809-502/server-longrun-30.log",
       "reason": "[progress] (9/9) report test; remaining=0"
     },
     {
@@ -491,7 +491,7 @@
       "status": "pass",
       "originalStatus": "PASS",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007084159-15681/ui-environment-bootstrap.log",
+      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007110809-502/ui-environment-bootstrap.log",
       "reason": ""
     },
     {
@@ -527,7 +527,7 @@
       "status": "pass",
       "originalStatus": "PASS",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007084159-15681/ui-exact-424.log",
+      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007110809-502/ui-exact-424.log",
       "reason": "== v3.9.0 exact native UI runner summary =="
     },
     {
@@ -536,35 +536,35 @@
       "status": "pass",
       "originalStatus": "PASS",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007084159-15681/ui-server-cleanup.log",
+      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007110809-502/ui-server-cleanup.log",
       "reason": ""
     },
     {
       "scope": "stage",
       "id": "ui-fulltest-qualification",
-      "status": "fail",
-      "originalStatus": "FAIL",
-      "exitCode": 1,
-      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007084159-15681/ui-fulltest-qualification.log",
+      "status": "pass",
+      "originalStatus": "PASS",
+      "exitCode": 0,
+      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007110809-502/ui-fulltest-qualification.log",
       "reason": "== Policy v4 UI fulltest evidence qualification =="
     },
     {
       "scope": "stage",
       "id": "longrun-120-decision",
-      "status": "not-run",
-      "originalStatus": "not-run",
-      "exitCode": null,
-      "logPath": "",
-      "reason": "not run after ui-fulltest-qualification failure"
+      "status": "pass",
+      "originalStatus": "PASS",
+      "exitCode": 0,
+      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007110809-502/longrun-120-decision.log",
+      "reason": ""
     },
     {
       "scope": "stage",
       "id": "server-longrun-120",
-      "status": "not-run",
-      "originalStatus": "not-run",
-      "exitCode": null,
-      "logPath": "",
-      "reason": "not run after ui-fulltest-qualification failure"
+      "status": "pass",
+      "originalStatus": "PASS",
+      "exitCode": 0,
+      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007110809-502/server-longrun-120.log",
+      "reason": "[progress] (9/9) report test; remaining=0"
     },
     {
       "scope": "stage",
@@ -572,7 +572,7 @@
       "status": "pass",
       "originalStatus": "PASS",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007084159-15681/cleanup.log",
+      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007110809-502/cleanup.log",
       "reason": ""
     },
     {
@@ -590,17 +590,17 @@
       "status": "pass",
       "originalStatus": "PASS",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007084159-15681/report.log",
+      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007110809-502/report.log",
       "reason": ""
     },
     {
       "scope": "stage",
       "id": "final-integrity",
-      "status": "fail",
-      "originalStatus": "FAIL",
-      "exitCode": 1,
-      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007084159-15681/final-integrity.log",
-      "reason": "[pass] canonical artifacts contain no duplicate screenshots or video placeholders"
+      "status": "pass",
+      "originalStatus": "PASS",
+      "exitCode": 0,
+      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007110809-502/final-integrity.log",
+      "reason": ""
     },
     {
       "scope": "longrun30-phase",
@@ -608,7 +608,7 @@
       "status": "pass",
       "originalStatus": "PASS",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007084159-15681/server-longrun-30/preflight.log",
+      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007110809-502/server-longrun-30/preflight.log",
       "reason": "phase=preflight; result=PASS"
     },
     {
@@ -617,7 +617,7 @@
       "status": "pass",
       "originalStatus": "PASS",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007084159-15681/server-longrun-30/build.log",
+      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007110809-502/server-longrun-30/build.log",
       "reason": "phase=build; result=PASS"
     },
     {
@@ -626,7 +626,7 @@
       "status": "pass",
       "originalStatus": "PASS",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007084159-15681/server-longrun-30/seed.log",
+      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007110809-502/server-longrun-30/seed.log",
       "reason": "phase=seed; result=PASS"
     },
     {
@@ -635,7 +635,7 @@
       "status": "pass",
       "originalStatus": "PASS",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007084159-15681/server-longrun-30/soak-case-loop.log",
+      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007110809-502/server-longrun-30/soak-case-loop.log",
       "reason": "delegated projection parent=start-server; status=PASS"
     },
     {
@@ -644,7 +644,7 @@
       "status": "pass",
       "originalStatus": "PASS",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007084159-15681/server-longrun-30/soak-case-loop.log",
+      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007110809-502/server-longrun-30/soak-case-loop.log",
       "reason": "delegated projection parent=integrated-smoke; status=PASS"
     },
     {
@@ -653,7 +653,7 @@
       "status": "pass",
       "originalStatus": "PASS",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007084159-15681/server-longrun-30/soak-case-loop.log",
+      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007110809-502/server-longrun-30/soak-case-loop.log",
       "reason": "delegated projection parent=soak-case-loop; status=PASS"
     },
     {
@@ -662,7 +662,7 @@
       "status": "pass",
       "originalStatus": "PASS",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007084159-15681/server-longrun-30/soak-case-loop.log",
+      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007110809-502/server-longrun-30/soak-case-loop.log",
       "reason": "delegated projection parent=runtime-idle; status=PASS"
     },
     {
@@ -671,7 +671,7 @@
       "status": "pass",
       "originalStatus": "PASS",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007084159-15681/server-longrun-30/cleanup.log",
+      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007110809-502/server-longrun-30/cleanup.log",
       "reason": "phase=cleanup; result=PASS"
     },
     {
@@ -680,7 +680,7 @@
       "status": "pass",
       "originalStatus": "PASS",
       "exitCode": 0,
-      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007084159-15681/server-longrun-30/report.log",
+      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007110809-502/server-longrun-30/report.log",
       "reason": "phase=report; result=PASS"
     },
     {
@@ -1667,6 +1667,3777 @@
     {
       "scope": "longrun30-delegated-step",
       "id": "longrun30/summary-report",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-phase",
+      "id": "longrun120/preflight",
+      "status": "pass",
+      "originalStatus": "PASS",
+      "exitCode": 0,
+      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007110809-502/server-longrun-120/preflight.log",
+      "reason": "phase=preflight; result=PASS"
+    },
+    {
+      "scope": "longrun120-phase",
+      "id": "longrun120/build",
+      "status": "pass",
+      "originalStatus": "PASS",
+      "exitCode": 0,
+      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007110809-502/server-longrun-120/build.log",
+      "reason": "phase=build; result=PASS"
+    },
+    {
+      "scope": "longrun120-phase",
+      "id": "longrun120/seed",
+      "status": "pass",
+      "originalStatus": "PASS",
+      "exitCode": 0,
+      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007110809-502/server-longrun-120/seed.log",
+      "reason": "phase=seed; result=PASS"
+    },
+    {
+      "scope": "longrun120-phase",
+      "id": "longrun120/start-server",
+      "status": "pass",
+      "originalStatus": "PASS",
+      "exitCode": 0,
+      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007110809-502/server-longrun-120/soak-case-loop.log",
+      "reason": "delegated projection parent=start-server; status=PASS"
+    },
+    {
+      "scope": "longrun120-phase",
+      "id": "longrun120/integrated-smoke",
+      "status": "pass",
+      "originalStatus": "PASS",
+      "exitCode": 0,
+      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007110809-502/server-longrun-120/soak-case-loop.log",
+      "reason": "delegated projection parent=integrated-smoke; status=PASS"
+    },
+    {
+      "scope": "longrun120-phase",
+      "id": "longrun120/soak-case-loop",
+      "status": "pass",
+      "originalStatus": "PASS",
+      "exitCode": 0,
+      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007110809-502/server-longrun-120/soak-case-loop.log",
+      "reason": "delegated projection parent=soak-case-loop; status=PASS"
+    },
+    {
+      "scope": "longrun120-phase",
+      "id": "longrun120/runtime-idle",
+      "status": "pass",
+      "originalStatus": "PASS",
+      "exitCode": 0,
+      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007110809-502/server-longrun-120/soak-case-loop.log",
+      "reason": "delegated projection parent=runtime-idle; status=PASS"
+    },
+    {
+      "scope": "longrun120-phase",
+      "id": "longrun120/cleanup",
+      "status": "pass",
+      "originalStatus": "PASS",
+      "exitCode": 0,
+      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007110809-502/server-longrun-120/cleanup.log",
+      "reason": "phase=cleanup; result=PASS"
+    },
+    {
+      "scope": "longrun120-phase",
+      "id": "longrun120/report",
+      "status": "pass",
+      "originalStatus": "PASS",
+      "exitCode": 0,
+      "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007110809-502/server-longrun-120/report.log",
+      "reason": "phase=report; result=PASS"
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/build",
+      "status": "not-run",
+      "originalStatus": "skip",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/server-start-queue-256",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/integrated-smoke",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/external-turn-hard-gate",
+      "status": "not-run",
+      "originalStatus": "skip",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-1-va-events",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-1-event-post-schema",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-1-event-post-recovery",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-1-redaction",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-1-runtime-idle",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-2-va-events",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-2-event-post-schema",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-2-event-post-recovery",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-2-redaction",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-2-runtime-idle",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-3-va-events",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-3-event-post-schema",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-3-event-post-recovery",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-3-redaction",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-3-runtime-idle",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-4-va-events",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-4-event-post-schema",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-4-event-post-recovery",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-4-redaction",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-4-runtime-idle",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-5-va-events",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-5-event-post-schema",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-5-event-post-recovery",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-5-redaction",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-5-runtime-idle",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-6-va-events",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-6-event-post-schema",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-6-event-post-recovery",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-6-redaction",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-6-runtime-idle",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-7-va-events",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-7-event-post-schema",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-7-event-post-recovery",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-7-redaction",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-7-runtime-idle",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-8-va-events",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-8-event-post-schema",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-8-event-post-recovery",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-8-redaction",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-8-runtime-idle",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-9-va-events",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-9-event-post-schema",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-9-event-post-recovery",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-9-redaction",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-9-runtime-idle",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-10-va-events",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-10-event-post-schema",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-10-event-post-recovery",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-10-redaction",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-10-runtime-idle",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-11-va-events",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-11-event-post-schema",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-11-event-post-recovery",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-11-redaction",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-11-runtime-idle",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-12-va-events",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-12-event-post-schema",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-12-event-post-recovery",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-12-redaction",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-12-runtime-idle",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-13-va-events",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-13-event-post-schema",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-13-event-post-recovery",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-13-redaction",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-13-runtime-idle",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-14-va-events",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-14-event-post-schema",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-14-event-post-recovery",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-14-redaction",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-14-runtime-idle",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-15-va-events",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-15-event-post-schema",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-15-event-post-recovery",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-15-redaction",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-15-runtime-idle",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-16-va-events",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-16-event-post-schema",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-16-event-post-recovery",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-16-redaction",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-16-runtime-idle",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-17-va-events",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-17-event-post-schema",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-17-event-post-recovery",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-17-redaction",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-17-runtime-idle",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-18-va-events",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-18-event-post-schema",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-18-event-post-recovery",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-18-redaction",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-18-runtime-idle",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-19-va-events",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-19-event-post-schema",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-19-event-post-recovery",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-19-redaction",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-19-runtime-idle",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-20-va-events",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-20-event-post-schema",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-20-event-post-recovery",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-20-redaction",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-20-runtime-idle",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-21-va-events",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-21-event-post-schema",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-21-event-post-recovery",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-21-redaction",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-21-runtime-idle",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-22-va-events",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-22-event-post-schema",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-22-event-post-recovery",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-22-redaction",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-22-runtime-idle",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-23-va-events",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-23-event-post-schema",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-23-event-post-recovery",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-23-redaction",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-23-runtime-idle",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-24-va-events",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-24-event-post-schema",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-24-event-post-recovery",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-24-redaction",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-24-runtime-idle",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-25-va-events",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-25-event-post-schema",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-25-event-post-recovery",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-25-redaction",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-25-runtime-idle",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-26-va-events",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-26-event-post-schema",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-26-event-post-recovery",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-26-redaction",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-26-runtime-idle",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-27-va-events",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-27-event-post-schema",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-27-event-post-recovery",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-27-redaction",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-27-runtime-idle",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-28-va-events",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-28-event-post-schema",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-28-event-post-recovery",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-28-redaction",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-28-runtime-idle",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-29-va-events",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-29-event-post-schema",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-29-event-post-recovery",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-29-redaction",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-29-runtime-idle",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-30-va-events",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-30-event-post-schema",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-30-event-post-recovery",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-30-redaction",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-30-runtime-idle",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-31-va-events",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-31-event-post-schema",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-31-event-post-recovery",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-31-redaction",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-31-runtime-idle",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-32-va-events",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-32-event-post-schema",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-32-event-post-recovery",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-32-redaction",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-32-runtime-idle",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-33-va-events",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-33-event-post-schema",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-33-event-post-recovery",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-33-redaction",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-33-runtime-idle",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-34-va-events",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-34-event-post-schema",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-34-event-post-recovery",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-34-redaction",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-34-runtime-idle",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-35-va-events",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-35-event-post-schema",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-35-event-post-recovery",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-35-redaction",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-35-runtime-idle",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-36-va-events",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-36-event-post-schema",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-36-event-post-recovery",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-36-redaction",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-36-runtime-idle",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-37-va-events",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-37-event-post-schema",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-37-event-post-recovery",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-37-redaction",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-37-runtime-idle",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-38-va-events",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-38-event-post-schema",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-38-event-post-recovery",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-38-redaction",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-38-runtime-idle",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-39-va-events",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-39-event-post-schema",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-39-event-post-recovery",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-39-redaction",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-39-runtime-idle",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-40-va-events",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-40-event-post-schema",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-40-event-post-recovery",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-40-redaction",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-40-runtime-idle",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-41-va-events",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-41-event-post-schema",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-41-event-post-recovery",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-41-redaction",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-41-runtime-idle",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-42-va-events",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-42-event-post-schema",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-42-event-post-recovery",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-42-redaction",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-42-runtime-idle",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-43-va-events",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-43-event-post-schema",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-43-event-post-recovery",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-43-redaction",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-43-runtime-idle",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-44-va-events",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-44-event-post-schema",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-44-event-post-recovery",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-44-redaction",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-44-runtime-idle",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-45-va-events",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-45-event-post-schema",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-45-event-post-recovery",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-45-redaction",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-45-runtime-idle",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-46-va-events",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-46-event-post-schema",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-46-event-post-recovery",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-46-redaction",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-46-runtime-idle",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-47-va-events",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-47-event-post-schema",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-47-event-post-recovery",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-47-redaction",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-47-runtime-idle",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-48-va-events",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-48-event-post-schema",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-48-event-post-recovery",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-48-redaction",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-48-runtime-idle",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-49-va-events",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-49-event-post-schema",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-49-event-post-recovery",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-49-redaction",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-49-runtime-idle",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-50-va-events",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-50-event-post-schema",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-50-event-post-recovery",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-50-redaction",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-50-runtime-idle",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-51-va-events",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-51-event-post-schema",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-51-event-post-recovery",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-51-redaction",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-51-runtime-idle",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-52-va-events",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-52-event-post-schema",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-52-event-post-recovery",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-52-redaction",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-52-runtime-idle",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-53-va-events",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-53-event-post-schema",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-53-event-post-recovery",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-53-redaction",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-53-runtime-idle",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-54-va-events",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-54-event-post-schema",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-54-event-post-recovery",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-54-redaction",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-54-runtime-idle",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-55-va-events",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-55-event-post-schema",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-55-event-post-recovery",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-55-redaction",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-55-runtime-idle",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-56-va-events",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-56-event-post-schema",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-56-event-post-recovery",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-56-redaction",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-56-runtime-idle",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-57-va-events",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-57-event-post-schema",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-57-event-post-recovery",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-57-redaction",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-57-runtime-idle",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-58-va-events",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-58-event-post-schema",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-58-event-post-recovery",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-58-redaction",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-58-runtime-idle",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-59-va-events",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-59-event-post-schema",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-59-event-post-recovery",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-59-redaction",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-59-runtime-idle",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-60-va-events",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-60-event-post-schema",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-60-event-post-recovery",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-60-redaction",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-60-runtime-idle",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-61-va-events",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-61-event-post-schema",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-61-event-post-recovery",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-61-redaction",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-61-runtime-idle",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-62-va-events",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-62-event-post-schema",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-62-event-post-recovery",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-62-redaction",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-62-runtime-idle",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-63-va-events",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-63-event-post-schema",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-63-event-post-recovery",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-63-redaction",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-63-runtime-idle",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-64-va-events",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-64-event-post-schema",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-64-event-post-recovery",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-64-redaction",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-64-runtime-idle",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-65-va-events",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-65-event-post-schema",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-65-event-post-recovery",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-65-redaction",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-65-runtime-idle",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-66-va-events",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-66-event-post-schema",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-66-event-post-recovery",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-66-redaction",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-66-runtime-idle",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-67-va-events",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-67-event-post-schema",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-67-event-post-recovery",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-67-redaction",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-67-runtime-idle",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-68-va-events",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-68-event-post-schema",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-68-event-post-recovery",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-68-redaction",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-68-runtime-idle",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-69-va-events",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-69-event-post-schema",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-69-event-post-recovery",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-69-redaction",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-69-runtime-idle",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-70-va-events",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-70-event-post-schema",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-70-event-post-recovery",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-70-redaction",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-70-runtime-idle",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-71-va-events",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-71-event-post-schema",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-71-event-post-recovery",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-71-redaction",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-71-runtime-idle",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-72-va-events",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-72-event-post-schema",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-72-event-post-recovery",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-72-redaction",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-72-runtime-idle",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-73-va-events",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-73-event-post-schema",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-73-event-post-recovery",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-73-redaction",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-73-runtime-idle",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-74-va-events",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-74-event-post-schema",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-74-event-post-recovery",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-74-redaction",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-74-runtime-idle",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-75-va-events",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-75-event-post-schema",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-75-event-post-recovery",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-75-redaction",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-75-runtime-idle",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-76-va-events",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-76-event-post-schema",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-76-event-post-recovery",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-76-redaction",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-76-runtime-idle",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-77-va-events",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-77-event-post-schema",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-77-event-post-recovery",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-77-redaction",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-77-runtime-idle",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-78-va-events",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-78-event-post-schema",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-78-event-post-recovery",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-78-redaction",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-78-runtime-idle",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-79-va-events",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-79-event-post-schema",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-79-event-post-recovery",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-79-redaction",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-79-runtime-idle",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-80-va-events",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-80-event-post-schema",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-80-event-post-recovery",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-80-redaction",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/soak-80-runtime-idle",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/main-runtime-idle",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/server-start-queue-2",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/event-post-queue",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/queue-runtime-idle",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/ports-clean",
+      "status": "pass",
+      "originalStatus": "pass",
+      "exitCode": null,
+      "logPath": "",
+      "reason": ""
+    },
+    {
+      "scope": "longrun120-delegated-step",
+      "id": "longrun120/summary-report",
       "status": "pass",
       "originalStatus": "pass",
       "exitCode": null,
@@ -5914,15 +9685,7 @@
       "reason": ""
     }
   ],
-  "firstFailure": {
-    "stage": "ui-fulltest-qualification",
-    "testcaseId": "ui-fulltest-qualification",
-    "command": "./server.sh verify-ui-fulltest-evidence-policy-v4 --summary /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007084159-15681/ui-exact-424/policy-v4-summary.json --output-dir /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007084159-15681/ui-fulltest-qualification --require-eligible",
-    "exitCode": 1,
-    "errorSummary": "== Policy v4 UI fulltest evidence qualification == | - policySchema: media-server.ui-fulltest-evidence-policy.v4 | - policyValidationResult: PASS | - currentEvidenceStatus: non-current-or-contract-evidence | - currentCoverage: {\"exactUiTestIds\":424,\"nativeExecutablePositive\":423,\"negativeRouteExecutable\":1,\"unsupported\":0,\"executedPass\":424,\"notRun\":0} | - evidenceEligibility: ineligible | - qualifiedCaseCount: 424 | - uiFulltestPass: false | - reasonCount: 2 | - actual-evidence-current-source-binding-missing | - source-binding-worktreePatchSha256-drift",
-    "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007084159-15681/ui-fulltest-qualification.log",
-    "reproductionCommand": "./test_release.sh"
-  },
+  "firstFailure": null,
   "cleanup": {
     "status": "pass",
     "checks": [
@@ -5946,7 +9709,8 @@
   },
   "sourceSummaryPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/summary.json",
   "linkedSummaryPaths": [
-    "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007084159-15681/server-longrun-30/summary.json",
-    "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007084159-15681/ui-exact-424/summary.json"
+    "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007110809-502/server-longrun-30/summary.json",
+    "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007110809-502/server-longrun-120/summary.json",
+    "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007110809-502/ui-exact-424/summary.json"
   ]
 }
