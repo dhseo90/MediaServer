@@ -4,11 +4,13 @@
 파일명으로 보관합니다.
 
 현재 README 대표 이미지는 제품 shell 설명용입니다. 현재 source tree와 릴리즈 목표는
-`v4.4.0` 후보이며, v4.1.0의 대표 이미지를 유지합니다. manifest의 `sourceVersion`·
+`v4.5.0` 후보이며, v4.1.0의 대표 이미지를 유지합니다. manifest의 `sourceVersion`·
 `releaseTarget`과 `publicReleaseStatus`의 source 부분은 현재 사용 대상 버전입니다.
 `publishedRelease: v4.0.0`은 이미지 baseline에 남은 과거 공개 기준이며 현재 Latest가 아닙니다.
 현재 저장소의 공개 관측은 [릴리즈 metadata](../../release-policy.md#소스와-기록된-공개-상태)를 따릅니다.
-촬영·검토 시각, 이미지별 hash와 과거 검토 결과는 변경하지 않았고 이번에 재촬영·UI 검사를 하지 않았습니다.
+촬영·검토 시각, 이미지별 hash와 과거 검토 결과는 변경하지 않았습니다.
+이 대표 이미지는 새 검색/A 화면·v4.5.0 UI 풀테스트·모델 품질의 검증 근거가 아닙니다.
+현재 용도의 재사용 검토는 과거 `directReview`와 구분해 해당 실행 기록에 남깁니다.
 실제 공개 상태는 [GitHub Latest](https://github.com/dhseo90/MediaServer/releases/latest)에서 확인합니다.
 아래 이전 촬영 기록은 촬영 당시의 사실이며 현재 공개 완료 판정이 아닙니다.
 v3.9.0 entry-baseline historical pin:
