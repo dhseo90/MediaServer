@@ -994,7 +994,71 @@
     "qwenOllamaCalls": 0,
     "unloadGate": "not-run",
     "siglip2Yolo": "기존 승인 추론 실제 사용; 모든 AI 추론0이라고 하지 않음",
-    "linux": "59 환경/직접 evidence 유효 범위 재사용. 재설치/372-sample 재실행 없음"
+    "linux": "59 환경/직접 evidence 유효 범위 재사용. 재설치/372-sample 재실행 없음",
+    "preservedOutputCleanup": {
+      "checkedAt": "2026-10-07T15:09:56.499527+00:00",
+      "preservationCommit": "c3734579c6fa0771678e014318acc112c83c6227",
+      "gitReadback": [
+        {
+          "path": "docs/release-artifacts/v4.5.0/61-execution.tar.gz",
+          "sha256": "f4ead0153eef5df5a849f25e41c1e6d776d4cf99df9916004491747e24cd9b8c",
+          "gitReadbackExact": true
+        },
+        {
+          "path": "docs/release-artifacts/v4.5.0/61-execution-manifest.json.gz",
+          "sha256": "b505a88bcee9b1f47206e03a1835cdd6b94c2ad4b7d902966a7ac8d96d73d486",
+          "gitReadbackExact": true
+        },
+        {
+          "path": "docs/release-artifacts/v4.5.0/61-preparation.tar.gz",
+          "sha256": "84de2d626286d610a9fce19a263071fbc7c16dcce1ec64334783e864a060f712",
+          "gitReadbackExact": true
+        },
+        {
+          "path": "docs/release-artifacts/v4.5.0/60-acceptance-output.tar.gz",
+          "sha256": "f089cdb1625ac7fbabf353d98bc3f72fadda2949400876d5c2f76d6d6cb363e9",
+          "gitReadbackExact": true
+        }
+      ],
+      "removedRawFileCount": 5051,
+      "removedRoots": [
+        {
+          "path": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007110809-502",
+          "absent": true
+        },
+        {
+          "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-recording-ui-acceptance-r61-recording",
+          "absent": true
+        },
+        {
+          "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-recording-ui-acceptance-r61-search",
+          "absent": true
+        },
+        {
+          "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-review-artifacts-UWSoMz",
+          "absent": true
+        },
+        {
+          "path": "/private/tmp/media-server-release61-u9l2g2bk/visual-ui",
+          "absent": true
+        },
+        {
+          "path": "/private/tmp/media-server-release61-u9l2g2bk/visual-ui-followup",
+          "absent": true
+        }
+      ],
+      "trackedRawSummaryRetained": true,
+      "productAndTestSourcesUnmodified": true
+    },
+    "finalScratchCleanup": {
+      "checkedAt": "2026-10-07T15:11:06.514466+00:00",
+      "root": "/private/tmp/media-server-release61-u9l2g2bk",
+      "absent": true,
+      "removedScratchFiles": 371,
+      "helperAbsent": true,
+      "scope": "작업 소유 helper/baseline 사본/이미 보존된 prep 로그/host probe binary와 cache만. 사용자 모델·SDK·Linux image·기존 제품 build 유지",
+      "newSourceAfterExecution": false
+    }
   },
   "remaining": [
     "현재 출시 보완 UI 전체 적격성: supplementalUi.remainingQualification의 구체적 오류/상태·artifact 결속 공백",
