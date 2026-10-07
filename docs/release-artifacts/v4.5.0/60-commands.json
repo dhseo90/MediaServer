@@ -1,0 +1,310 @@
+{
+  "schema": "media-server.command-output-index.v1",
+  "layout": "exact command stdout/stderr concatenated; offset/rawBytes/logSha256 address uncompressed60-output.log.gz bytes",
+  "commands": [
+    {
+      "name": "docs-ui-assets",
+      "command": [
+        "./server.sh",
+        "verify-docs-ui-assets"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 0.05111408233642578,
+      "logSha256": "7e6c81ec200fc79044bcc5844c39f52cbdb0b1a401d58e0f40fa35f882f535c2",
+      "rawBytes": 636,
+      "offset": 0
+    },
+    {
+      "name": "public-docs-assets",
+      "command": [
+        "./server.sh",
+        "verify-v290-public-docs-assets-refresh"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 0.49512815475463867,
+      "logSha256": "936f2b9ca23430cfc4b07117e9f617b59d6286ba709fe3e098055a7c179a9d50",
+      "rawBytes": 839,
+      "offset": 636
+    },
+    {
+      "name": "docs-links",
+      "command": [
+        "./server.sh",
+        "verify-docs-links"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 0.29080915451049805,
+      "logSha256": "8698d8bf021e1f608af8b978a0a863b79d9828e08eefd4da2b6c9f63bb1f2e13",
+      "rawBytes": 186,
+      "offset": 1475
+    },
+    {
+      "name": "release-metadata",
+      "command": [
+        "./server.sh",
+        "verify-release-metadata"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 0.0386660099029541,
+      "logSha256": "9cda5bb492e62ffb69865b146136bb2ffb4da8344c235a64796e278e1be23ffe",
+      "rawBytes": 454,
+      "offset": 1661
+    },
+    {
+      "name": "project-inventory",
+      "command": [
+        "./server.sh",
+        "verify-project-inventory"
+      ],
+      "exit": 1,
+      "elapsedSeconds": 39.67591905593872,
+      "logSha256": "df73120e5bc68c949613bd5862934a92fe966fb2b2e93d4e03f48691da5cba34",
+      "rawBytes": 203766,
+      "offset": 2115
+    },
+    {
+      "name": "candidate",
+      "command": [
+        "node",
+        "scripts/internal/verify_v390_review4_feature_semantic_source_audit.mjs",
+        "--emit-candidate",
+        "/tmp/v450-rc60-hlgj_312/candidate.json"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 21.752934217453003,
+      "logSha256": "84ce0ceedd890225e095ddc9f50c6f23ffc82ce0827933e8a543d95402f2a4e6",
+      "rawBytes": 169,
+      "offset": 205881
+    },
+    {
+      "name": "migration",
+      "command": [
+        "node",
+        "scripts/internal/verify_v390_review4_semantic_migration_contract.mjs",
+        "--baseline",
+        "/tmp/v450-rc60-hlgj_312/prior-audit.json",
+        "--fresh",
+        "/tmp/v450-rc60-hlgj_312/candidate.json",
+        "--report",
+        "/tmp/v450-rc60-hlgj_312/migration.json"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 0.38229823112487793,
+      "logSha256": "9abf1af6111724a06da42f374f55549ad158de175cf27ccfa0d308f1574309fd",
+      "rawBytes": 481,
+      "offset": 206050
+    },
+    {
+      "name": "release-evidence-index",
+      "command": [
+        "./server.sh",
+        "verify-release-evidence-index"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 0.08565616607666016,
+      "logSha256": "7c905aca1898f76312a7ee31fa5931a96f32816cd58fbf8e094b4632a375d938",
+      "rawBytes": 254,
+      "offset": 206531
+    },
+    {
+      "name": "script-inventory",
+      "command": [
+        "./server.sh",
+        "verify-script-inventory"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 23.193414211273193,
+      "logSha256": "92e692a3173f517ac5430005d1cf361195ac0dad7e505a2ffaddc893da6cdecf",
+      "rawBytes": 941,
+      "offset": 206785
+    },
+    {
+      "name": "diff-check",
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 0.017175912857055664,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "rawBytes": 0,
+      "offset": 207726
+    },
+    {
+      "name": "host-profile",
+      "command": [
+        "bash",
+        "/tmp/v450-rc60-hlgj_312/host-profile.sh"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 2.8970680236816406,
+      "logSha256": "6ddc0161543a618df1bb967aea40888c663342cc24918c9ebe00e925c46f31a5",
+      "rawBytes": 1746,
+      "offset": 207726
+    },
+    {
+      "name": "apply-approved-manifest",
+      "command": [
+        "node",
+        "scripts/internal/verify_v390_review4_feature_semantic_source_audit.mjs",
+        "--apply-approved-manifest"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 89.97805786132812,
+      "logSha256": "d044f8ac77f4e3e0a7ee0672c9d63381151b9f522393a0aa536f910913ef258f",
+      "rawBytes": 12812,
+      "offset": 209472
+    },
+    {
+      "name": "project-inventory-recheck",
+      "command": [
+        "./server.sh",
+        "verify-project-inventory"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 40.249699115753174,
+      "logSha256": "4670513193842f03ec9ea567062efe9d2dd303d621716a5cb95876d48b1dc1cd",
+      "rawBytes": 210255,
+      "offset": 222284
+    },
+    {
+      "name": "feature-implementation",
+      "command": [
+        "./server.sh",
+        "verify-feature-implementation-evidence",
+        "--json-report",
+        "/tmp/v450-rc60-hlgj_312/implementation.json"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 49.70190787315369,
+      "logSha256": "f004e8a145e0b287322992e5f2f9c356c12a495834505e9ea79a414fd1f6b6f7",
+      "rawBytes": 1141,
+      "offset": 432539
+    },
+    {
+      "name": "docs-ui-final",
+      "command": [
+        "./server.sh",
+        "verify-docs-ui-assets"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 0.05710196495056152,
+      "logSha256": "7e6c81ec200fc79044bcc5844c39f52cbdb0b1a401d58e0f40fa35f882f535c2",
+      "rawBytes": 636,
+      "offset": 433680
+    },
+    {
+      "name": "docs-links-final",
+      "command": [
+        "./server.sh",
+        "verify-docs-links"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 0.3823127746582031,
+      "logSha256": "8698d8bf021e1f608af8b978a0a863b79d9828e08eefd4da2b6c9f63bb1f2e13",
+      "rawBytes": 186,
+      "offset": 434316
+    },
+    {
+      "name": "diff-check-final",
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 0.08586883544921875,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "rawBytes": 0,
+      "offset": 434502
+    },
+    {
+      "name": "feature-coverage",
+      "command": [
+        "./server.sh",
+        "verify-feature-inventory-coverage"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 80.62866115570068,
+      "logSha256": "f3dd9d2ec3cd35ce7a806a391b6918dddd2c2377ca3039afa624f484985f9bce",
+      "rawBytes": 604,
+      "offset": 434502
+    },
+    {
+      "name": "host-acceptance",
+      "command": [
+        "./test_release.sh"
+      ],
+      "exit": 1,
+      "elapsedSeconds": 4395.533087015152,
+      "logSha256": "fc2f653723fa564e8a80e68c113e818c4f6e069f8faca6bdb559cff05c2eaf6d",
+      "rawBytes": 484279,
+      "offset": 435106
+    },
+    {
+      "name": "preserve-new-output",
+      "command": [
+        "python3",
+        "/tmp/v450-rc60-hlgj_312/preserve.py"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 3.707869052886963,
+      "logSha256": "a4bb6e95d1c536557be8824b72821a975cf3934bdc5d40666c390003e7dc361b",
+      "rawBytes": 365,
+      "offset": 919385
+    },
+    {
+      "name": "post-run-diff-check",
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "exit": 2,
+      "elapsedSeconds": 0.025747060775756836,
+      "logSha256": "daaa6b1c94d0555764c2214e1414c24d7fa084de9550304f74b5249047c02cd1",
+      "rawBytes": 106,
+      "offset": 919750
+    },
+    {
+      "name": "build-evidence",
+      "command": [
+        "python3",
+        "/tmp/v450-rc60-hlgj_312/build-evidence.py"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 0.36661791801452637,
+      "logSha256": "d271b85fd9510543f56b2d623edfd0506ada50c48d0a04f0dfc87fea31dd443c",
+      "rawBytes": 51,
+      "offset": 919856
+    },
+    {
+      "name": "final-docs-links",
+      "command": [
+        "./server.sh",
+        "verify-docs-links"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 0.31113696098327637,
+      "logSha256": "ed774c76e2b124cd314e18af0b33d87ab60247886038741746572e3392a933bb",
+      "rawBytes": 186,
+      "offset": 919907
+    },
+    {
+      "name": "final-diff-check",
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 0.025349140167236328,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "rawBytes": 0,
+      "offset": 920093
+    }
+  ],
+  "rawBytes": 920093,
+  "rawSha256": "2e0268b422b3b844fa1c194988ecfcdb5e2e23a374c3e02b7a064e854d23c40f"
+}

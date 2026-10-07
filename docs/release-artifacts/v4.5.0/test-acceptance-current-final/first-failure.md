@@ -1,39 +1,37 @@
 # v3.9.0 Acceptance First Failure
 
 schema: media-server.v390-acceptance-first-failure.v1
-recordedAt: 2026-10-07T05:20:55.693Z
-runId: v390-test-acceptance-20261007051606-99926
-sourceCommitSha: 7f2448bcd4de90e69559cbd8786ac56f420ba4a0
-failedStage: feature-gates
-testcaseId: docs-ui-assets
-error: [pass] English README uses English UI screenshots | [pass] UI guide keeps product screenshots in the shared asset set | [pass] docs UI asset policy documents capture rules | [fail] managed UI asset manifest stays complete: docs UI asset manifest source version drifted | [pass] capture script owns every documented UI asset | [pass] docs capture covers current screenshots | [pass] representative screenshot docs do not point at stale visual baselines | [pass] docs UI asset directory contains managed PNG files | [pass] VA documentation images keep full video frame bounds | == Docs UI asset verification summary == | - pass: 9 | - fail: 1
-logPath: /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007051606-99926/feature-gates-30-docs-ui-assets.log
-failedCommand: ./server.sh verify-docs-ui-assets
+recordedAt: 2026-10-07T09:55:09.111Z
+runId: v390-test-acceptance-20261007084159-15681
+sourceCommitSha: ea7d8aca940fb917c439cd8e958976b6321c504d
+failedStage: ui-fulltest-qualification
+testcaseId: ui-fulltest-qualification
+error: == Policy v4 UI fulltest evidence qualification == | - policySchema: media-server.ui-fulltest-evidence-policy.v4 | - policyValidationResult: PASS | - currentEvidenceStatus: non-current-or-contract-evidence | - currentCoverage: {"exactUiTestIds":424,"nativeExecutablePositive":423,"negativeRouteExecutable":1,"unsupported":0,"executedPass":424,"notRun":0} | - evidenceEligibility: ineligible | - qualifiedCaseCount: 424 | - uiFulltestPass: false | - reasonCount: 2 |   - actual-evidence-current-source-binding-missing |   - source-binding-worktreePatchSha256-drift
+logPath: /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007084159-15681/ui-fulltest-qualification.log
+failedCommand: ./server.sh verify-ui-fulltest-evidence-policy-v4 --summary /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007084159-15681/ui-exact-424/policy-v4-summary.json --output-dir /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007084159-15681/ui-fulltest-qualification --require-eligible
 reproductionCommand: ./test_release.sh
-context: [pass] English README uses English UI screenshots | [pass] UI guide keeps product screenshots in the shared asset set | [pass] docs UI asset policy documents capture rules | [fail] managed UI asset manifest stays complete: docs UI asset manifest source version drifted | [pass] capture script owns every documented UI asset | [pass] docs capture covers current screenshots | [pass] representative screenshot docs do not point at stale visual baselines | [pass] docs UI asset directory contains managed PNG files | [pass] VA documentation images keep full video frame bounds | == Docs UI asset verification summary == | - pass: 9 | - fail: 1
+context: == Policy v4 UI fulltest evidence qualification == | - policySchema: media-server.ui-fulltest-evidence-policy.v4 | - policyValidationResult: PASS | - currentEvidenceStatus: non-current-or-contract-evidence | - currentCoverage: {"exactUiTestIds":424,"nativeExecutablePositive":423,"negativeRouteExecutable":1,"unsupported":0,"executedPass":424,"notRun":0} | - evidenceEligibility: ineligible | - qualifiedCaseCount: 424 | - uiFulltestPass: false | - reasonCount: 2 |   - actual-evidence-current-source-binding-missing |   - source-binding-worktreePatchSha256-drift
 childFailurePhase: not-recorded
 childFailureCase: not-recorded
 childCleanupStatus: not-recorded
 
 ## Diagnostic artifact snapshots
 
-### /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007051606-99926/feature-gates-30-docs-ui-assets.log
+### /Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007084159-15681/ui-fulltest-qualification.log
 
-bytes: 682
-sha256: edb925e0d9b3659d3d4c95c333768ea227b348e619b4635fa4d4a84f7416ecbe
+bytes: 544
+sha256: c7c8b122b32113bcd6e953abb977ef7fdc58e8567b9e6c0e26ee5f9d0ce84bf8
 
 ```text
-[pass] README uses only representative product UI screenshots
-[pass] English README uses English UI screenshots
-[pass] UI guide keeps product screenshots in the shared asset set
-[pass] docs UI asset policy documents capture rules
-[fail] managed UI asset manifest stays complete: docs UI asset manifest source version drifted
-[pass] capture script owns every documented UI asset
-[pass] docs capture covers current screenshots
-[pass] representative screenshot docs do not point at stale visual baselines
-[pass] docs UI asset directory contains managed PNG files
-[pass] VA documentation images keep full video frame bounds
-== Docs UI asset verification summary ==
-- pass: 9
-- fail: 1
+== Policy v4 UI fulltest evidence qualification ==
+- policySchema: media-server.ui-fulltest-evidence-policy.v4
+- policyValidationResult: PASS
+- currentEvidenceStatus: non-current-or-contract-evidence
+- currentCoverage: {"exactUiTestIds":424,"nativeExecutablePositive":423,"negativeRouteExecutable":1,"unsupported":0,"executedPass":424,"notRun":0}
+- evidenceEligibility: ineligible
+- qualifiedCaseCount: 424
+- uiFulltestPass: false
+- reasonCount: 2
+  - actual-evidence-current-source-binding-missing
+  - source-binding-worktreePatchSha256-drift
 ```
