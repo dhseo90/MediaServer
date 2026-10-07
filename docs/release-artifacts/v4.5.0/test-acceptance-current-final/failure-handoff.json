@@ -1,0 +1,177 @@
+{
+  "schema": "media-server.user-test-failure-handoff.v1",
+  "generatedAt": "2026-10-07T05:20:55.737Z",
+  "suite": "release",
+  "userCommand": "./test_release.sh",
+  "result": "fail",
+  "source": {
+    "commitSha": "7f2448bcd4de90e69559cbd8786ac56f420ba4a0",
+    "branch": "v4.5.0",
+    "worktreeClean": true
+  },
+  "counts": {
+    "total": 62,
+    "pass": 34,
+    "fail": 3,
+    "notRun": 25
+  },
+  "firstFailure": {
+    "stage": "feature-gates",
+    "testcaseId": "docs-ui-assets",
+    "command": "./server.sh verify-docs-ui-assets",
+    "exitCode": 1,
+    "errorSummary": "[pass] English README uses English UI screenshots | [pass] UI guide keeps product screenshots in the shared asset set | [pass] docs UI asset policy documents capture rules | [fail] managed UI asset manifest stays complete: docs UI asset manifest source version drifted | [pass] capture script owns every documented UI asset | [pass] docs capture covers current screenshots | [pass] representative screenshot docs do not point at stale visual baselines | [pass] docs UI asset directory contains managed PNG files | [pass] VA documentation images keep full video frame bounds | == Docs UI asset verification summary == | - pass: 9 | - fail: 1",
+    "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007051606-99926/feature-gates-30-docs-ui-assets.log",
+    "reproductionCommand": "./test_release.sh"
+  },
+  "laterNotRun": [
+    {
+      "scope": "check",
+      "id": "feature-gates/feature-implementation-evidence",
+      "reason": ""
+    },
+    {
+      "scope": "check",
+      "id": "feature-gates/project-inventory",
+      "reason": ""
+    },
+    {
+      "scope": "check",
+      "id": "feature-gates/feature-inventory-coverage",
+      "reason": ""
+    },
+    {
+      "scope": "check",
+      "id": "feature-gates/release-evidence-index",
+      "reason": ""
+    },
+    {
+      "scope": "check",
+      "id": "feature-gates/script-inventory",
+      "reason": ""
+    },
+    {
+      "scope": "check",
+      "id": "feature-gates/v450-search",
+      "reason": ""
+    },
+    {
+      "scope": "check",
+      "id": "feature-gates/v450-evidence",
+      "reason": ""
+    },
+    {
+      "scope": "check",
+      "id": "feature-gates/v450-search-lifetime",
+      "reason": ""
+    },
+    {
+      "scope": "check",
+      "id": "feature-gates/v450-review-release",
+      "reason": ""
+    },
+    {
+      "scope": "check",
+      "id": "feature-gates/v450-A-confirmed",
+      "reason": ""
+    },
+    {
+      "scope": "check",
+      "id": "feature-gates/v450-A-observations",
+      "reason": ""
+    },
+    {
+      "scope": "check",
+      "id": "feature-gates/v450-A-bound",
+      "reason": ""
+    },
+    {
+      "scope": "check",
+      "id": "feature-gates/v450-A-http",
+      "reason": ""
+    },
+    {
+      "scope": "check",
+      "id": "feature-gates/v450-A-ui-state",
+      "reason": ""
+    },
+    {
+      "scope": "check",
+      "id": "feature-gates/v450-registration",
+      "reason": ""
+    },
+    {
+      "scope": "check",
+      "id": "feature-gates/v450-materials",
+      "reason": ""
+    },
+    {
+      "scope": "check",
+      "id": "feature-gates/v450-release-http",
+      "reason": ""
+    },
+    {
+      "scope": "check",
+      "id": "feature-gates/git-diff-check",
+      "reason": ""
+    },
+    {
+      "scope": "stage",
+      "id": "server-longrun-30",
+      "reason": "not run after feature-gates failure"
+    },
+    {
+      "scope": "stage",
+      "id": "ui-environment-bootstrap",
+      "reason": "not run after feature-gates failure"
+    },
+    {
+      "scope": "stage",
+      "id": "ui-exact-424",
+      "reason": "not run after feature-gates failure"
+    },
+    {
+      "scope": "stage",
+      "id": "ui-fulltest-qualification",
+      "reason": "not run after feature-gates failure"
+    },
+    {
+      "scope": "stage",
+      "id": "longrun-120-decision",
+      "reason": "not run after feature-gates failure"
+    },
+    {
+      "scope": "stage",
+      "id": "server-longrun-120",
+      "reason": "not run after feature-gates failure"
+    },
+    {
+      "scope": "stage",
+      "id": "ui-final-integrity",
+      "reason": "not selected by release suite"
+    }
+  ],
+  "cleanup": {
+    "status": "pass",
+    "checks": [
+      {
+        "id": "",
+        "status": "pass"
+      },
+      {
+        "id": "",
+        "status": "pass"
+      },
+      {
+        "id": "",
+        "status": "pass"
+      },
+      {
+        "id": "",
+        "status": "pass"
+      }
+    ]
+  },
+  "sourceSummaryPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/summary.json",
+  "compactSummaryPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/test-run-summary.json"
+}

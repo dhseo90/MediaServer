@@ -66,6 +66,13 @@ ONNX C++ 개발 헤더·SentencePiece가 없어 제품 빌드 전 중단했다.
 [58 환경·실행 원본](release-artifacts/v4.5.0/58-validation.json)과
 [재현 recipe](release-artifacts/v4.5.0/58-linux.Dockerfile)를 보존한다. 재개에는1.28.1 증거
 계약을 충족하는 Linux 환경 또는 별도로 승인된 호환성 검토가 필요하며, 제품 조건은 완화하지 않았다.
+
+[59 제한 호환성 검증](release-artifacts/v4.5.0/59-validation.json)에서 정확한 Linux arm64
+GStreamer1.28.7 core/parser/mux 조합을 별도 profile로 검증·독립 승인했다. 파일 증거·별도
+readback·seek·작은 영상 검색과 Linux A/저장/transport/decoder 단기 검사가 통과했다.
+호스트 정식 acceptance는1회 실행했으나 문서 UI 자산 manifest의4.4.0 기준과 제품4.5.0의
+불일치로 중단했다. 해당 자산의 현행성·시각 검토 근거 정합 후 새 실행이 필요하며,
+일반30분·전체/보완UI·일반120분은 미실행이다. 녹화·검색·A 혼합120분은 별도 승인 잔여다.
 v4.4.0 변경120분 source 이후 catalog의 관측 출처 저장과 snapshot 잠금·A 저장/취소 수명이
 추가돼 녹화/검색/A 혼합의 전용120분 영향 검증도 별도 승인 잔여다. 일반120분으로 대체하지 않는다.
 

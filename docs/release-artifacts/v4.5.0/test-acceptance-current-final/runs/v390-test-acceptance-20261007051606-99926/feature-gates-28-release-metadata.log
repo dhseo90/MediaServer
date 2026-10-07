@@ -1,0 +1,12 @@
+[pass] current release documents preserve version and publication boundaries
+[pass] historical v2.9 source-of-truth remains distinct from latest published v2.8
+[pass] default mode records published metadata verification as external gate
+
+== Release metadata consistency summary ==
+- current version: 4.5.0
+- current tag: v4.5.0
+- release target tag: v4.5.0
+- cut-prior published tag: v4.4.0
+- published metadata: external-not-checked
+- pass: 3
+- fail: 0

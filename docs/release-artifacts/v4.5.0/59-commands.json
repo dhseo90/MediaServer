@@ -915,5 +915,65 @@
     "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "rawOffset": 597836,
     "rawBytes": 0
+  },
+  {
+    "name": "host-acceptance",
+    "command": [
+      "./test_release.sh"
+    ],
+    "exit": 1,
+    "elapsedSeconds": 295.29559111595154,
+    "logSha256": "b987bd7576c1e7c3259cdc305e4f19eabc73f574e3c8b3d5c0e383f1d1914c91",
+    "rawOffset": 597836,
+    "rawBytes": 72459
+  },
+  {
+    "name": "post-acceptance-paths",
+    "command": [
+      "python3",
+      "-"
+    ],
+    "exit": 0,
+    "elapsedSeconds": 0.02023792266845703,
+    "logSha256": "8512916294e5d18b7977e49b555db8c7e39b2ad4885f32f1f53bfd1d5ab98d22",
+    "rawOffset": 670295,
+    "rawBytes": 354
+  },
+  {
+    "name": "final-owner-state",
+    "command": [
+      "python3",
+      "-"
+    ],
+    "exit": 0,
+    "elapsedSeconds": 1.2135519981384277,
+    "logSha256": "8db0cf4022d64280feccbd2c3b8bcc7451e8a16d6c0c40df03093eae36349f9b",
+    "rawOffset": 670649,
+    "rawBytes": 173
+  },
+  {
+    "name": "evidence-doc-links",
+    "command": [
+      "node",
+      "scripts/internal/verify_docs_links.mjs"
+    ],
+    "exit": 0,
+    "elapsedSeconds": 0.2798490524291992,
+    "logSha256": "8698d8bf021e1f608af8b978a0a863b79d9828e08eefd4da2b6c9f63bb1f2e13",
+    "rawOffset": 670822,
+    "rawBytes": 186
+  },
+  {
+    "name": "evidence-whitespace",
+    "command": [
+      "git",
+      "diff",
+      "--check"
+    ],
+    "exit": 0,
+    "elapsedSeconds": 0.0146331787109375,
+    "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "rawOffset": 671008,
+    "rawBytes": 0
   }
 ]

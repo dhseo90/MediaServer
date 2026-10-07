@@ -1,0 +1,114 @@
+{
+  "schema": "media-server.v390-acceptance-first-failure.v1",
+  "recordedAt": "2026-10-07T05:20:55.693Z",
+  "invocationId": "v390-test-acceptance-20261007051606-99926",
+  "runId": "v390-test-acceptance-20261007051606-99926",
+  "sourceProvenance": {
+    "commitSha": "7f2448bcd4de90e69559cbd8786ac56f420ba4a0",
+    "branch": "v4.5.0",
+    "worktreeClean": false,
+    "sourceWorktreeClean": true,
+    "dirtyPaths": [
+      "docs/release-artifacts/v4.5.0/test-acceptance-current-final/ai-asset-bootstrap.log",
+      "docs/release-artifacts/v4.5.0/test-acceptance-current-final/launcher-contract.log"
+    ],
+    "allowedArtifactPaths": [
+      "docs/release-artifacts/v4.5.0/test-acceptance-current-final/ai-asset-bootstrap.log",
+      "docs/release-artifacts/v4.5.0/test-acceptance-current-final/launcher-contract.log"
+    ],
+    "unapprovedDirtyPaths": [],
+    "allowedArtifactRoot": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final",
+    "worktreeStatusSha256": "fadd84b50091c682c72dc791175bca8328ef59cde09f0f722af44ff8e053c8b9",
+    "sourcePatchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "capturedAt": "2026-10-07T05:16:06.433Z"
+  },
+  "acceptanceCommand": "./test_release.sh",
+  "failedStage": "feature-gates",
+  "failedCommand": "./server.sh verify-docs-ui-assets",
+  "firstFailure": {
+    "stage": "feature-gates",
+    "testcaseId": "docs-ui-assets",
+    "command": "./server.sh verify-docs-ui-assets",
+    "context": "[pass] English README uses English UI screenshots | [pass] UI guide keeps product screenshots in the shared asset set | [pass] docs UI asset policy documents capture rules | [fail] managed UI asset manifest stays complete: docs UI asset manifest source version drifted | [pass] capture script owns every documented UI asset | [pass] docs capture covers current screenshots | [pass] representative screenshot docs do not point at stale visual baselines | [pass] docs UI asset directory contains managed PNG files | [pass] VA documentation images keep full video frame bounds | == Docs UI asset verification summary == | - pass: 9 | - fail: 1",
+    "error": "[pass] English README uses English UI screenshots | [pass] UI guide keeps product screenshots in the shared asset set | [pass] docs UI asset policy documents capture rules | [fail] managed UI asset manifest stays complete: docs UI asset manifest source version drifted | [pass] capture script owns every documented UI asset | [pass] docs capture covers current screenshots | [pass] representative screenshot docs do not point at stale visual baselines | [pass] docs UI asset directory contains managed PNG files | [pass] VA documentation images keep full video frame bounds | == Docs UI asset verification summary == | - pass: 9 | - fail: 1",
+    "exitCode": 1,
+    "logPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007051606-99926/feature-gates-30-docs-ui-assets.log",
+    "stderrTail": [
+      "[pass] English README uses English UI screenshots",
+      "[pass] UI guide keeps product screenshots in the shared asset set",
+      "[pass] docs UI asset policy documents capture rules",
+      "[fail] managed UI asset manifest stays complete: docs UI asset manifest source version drifted",
+      "[pass] capture script owns every documented UI asset",
+      "[pass] docs capture covers current screenshots",
+      "[pass] representative screenshot docs do not point at stale visual baselines",
+      "[pass] docs UI asset directory contains managed PNG files",
+      "[pass] VA documentation images keep full video frame bounds",
+      "== Docs UI asset verification summary ==",
+      "- pass: 9",
+      "- fail: 1"
+    ],
+    "reproductionCommand": "./test_release.sh"
+  },
+  "childFailure": null,
+  "cleanup": {
+    "acceptance": {
+      "status": "PASS",
+      "verificationSource": "child-summary-and-filesystem",
+      "childCleanupVerified": true,
+      "temporaryArtifactsRemoved": true,
+      "placeholderVideoFilesAbsent": true,
+      "duplicateScreenshotFilesAbsent": true,
+      "preservedArtifacts": [
+        "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/summary.json",
+        "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/report.md"
+      ],
+      "preservationReason": "minimum reproducible summary/report/log/screenshot evidence inside requested output directory",
+      "checks": [
+        {
+          "check": "child-cleanup-validation",
+          "status": "PASS",
+          "observed": true
+        },
+        {
+          "check": "temporary-run-paths-absent",
+          "status": "PASS",
+          "paths": []
+        },
+        {
+          "check": "placeholder-video-files-absent",
+          "status": "PASS",
+          "paths": []
+        },
+        {
+          "check": "duplicate-screenshot-files-absent",
+          "status": "PASS",
+          "groups": []
+        }
+      ]
+    },
+    "child": null
+  },
+  "diagnosticArtifacts": [
+    {
+      "originalPath": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/test-acceptance-current-final/runs/v390-test-acceptance-20261007051606-99926/feature-gates-30-docs-ui-assets.log",
+      "bytes": 682,
+      "sha256": "edb925e0d9b3659d3d4c95c333768ea227b348e619b4635fa4d4a84f7416ecbe",
+      "tail": [
+        "[pass] README uses only representative product UI screenshots",
+        "[pass] English README uses English UI screenshots",
+        "[pass] UI guide keeps product screenshots in the shared asset set",
+        "[pass] docs UI asset policy documents capture rules",
+        "[fail] managed UI asset manifest stays complete: docs UI asset manifest source version drifted",
+        "[pass] capture script owns every documented UI asset",
+        "[pass] docs capture covers current screenshots",
+        "[pass] representative screenshot docs do not point at stale visual baselines",
+        "[pass] docs UI asset directory contains managed PNG files",
+        "[pass] VA documentation images keep full video frame bounds",
+        "== Docs UI asset verification summary ==",
+        "- pass: 9",
+        "- fail: 1"
+      ]
+    }
+  ],
+  "priorFirstFailure": null
+}
