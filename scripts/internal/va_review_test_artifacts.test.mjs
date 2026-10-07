@@ -7,6 +7,7 @@ import path from 'node:path';
 import vm from 'node:vm';
 import {spawn,spawnSync,execFileSync} from 'node:child_process';
 import {createReviewTestArtifacts,verifyReviewTestArtifacts} from './va_review_test_artifacts.mjs';
+import {runReviewSeed} from './va_review_seed_process.mjs';
 import {v450ReleaseCommands,withV450ArtifactOutput} from './v450_release_checks.mjs';
 import {collectSourceProvenanceWithAllowedArtifacts as collect} from './evidence_integrity_lib.mjs';
 const repo=fs.realpathSync(new URL('../../',import.meta.url).pathname);
@@ -16,6 +17,29 @@ async function asyncFixture(fn){const root=fs.mkdtempSync(path.join(fs.realpathS
 function env(root,name='check'){return {MEDIA_SERVER_TEST_ARTIFACT_ROOT:root,MEDIA_SERVER_TEST_OUTPUT_DIR:path.join(root,name)};}
 function success(output,extra={}){const r={status:'PASS',exit:0,cleanup:{rootAbsent:true},browser:{screenshots:[]},...extra};output.checkpoint(r);return r;}
 const png=Buffer.from('89504e470d0a1a0a0000000d494844520000000200000003','hex');
+for(const outcome of ['success','failure','signal','timeout','spawn-error','throw'])test('seed single-call output retained before cleanup: '+outcome,()=>fixture(root=>{
+ const fake=path.join(root,'repo');fs.mkdirSync(path.join(fake,'build-gst-onnx'),{recursive:true});
+ fs.writeFileSync(path.join(fake,'build-gst-onnx/libmedia_server_runtime.a'),'runtime');
+ const binary=path.join(root,'fixture');fs.writeFileSync(binary,'fixture');
+ const store=path.join(root,'store');fs.mkdirSync(store);const output=createReviewTestArtifacts(repo,env(root));let calls=0;
+ const launch=(command,args,options)=>{++calls;assert.equal(command,binary);assert.deepEqual(args,[store,'--confirmed-seed','unused']);
+  assert.equal(options.cwd,fake);assert.equal(options.timeout,10000);assert.equal(options.maxBuffer,1024*1024);
+  fs.writeFileSync(path.join(store,'partial.evp'),'incomplete');
+  const error=Object.assign(new Error('seed '+store),{code:outcome==='timeout'?'ETIMEDOUT':'ENOENT'});
+  if(outcome==='throw')throw error;
+  return {status:outcome==='success'?0:outcome==='failure'?1:null,signal:outcome==='signal'?'SIGTERM':null,
+   error:['timeout','spawn-error'].includes(outcome)?error:undefined,stdout:Buffer.from('created=0 error="actual-builder-error"'),stderr:Buffer.from('rtsp://test.invalid/source '+store)};};
+ const call=()=>runReviewSeed({fixture:binary,root:store,mode:'--confirmed-seed',repo:fake,artifacts:output},launch);
+ if(outcome==='success')call();else assert.throws(call,/preparation failed/);
+ assert.equal(calls,1);const record=JSON.parse(fs.readFileSync(path.join(output.outputDir,'confirmed-seed.json')));
+ assert(record.final.files.some(x=>x.path==='partial.evp'));assert.equal(record.initial.files.length,0);
+ assert(fs.existsSync(path.join(store,'partial.evp')),'diagnostic helper never removes failure root');
+ assert.equal(record.exitCode,outcome==='success'?0:outcome==='failure'?1:null);
+ const stderr=fs.readFileSync(path.join(output.outputDir,'confirmed-seed.stderr'),'utf8');assert(!stderr.includes('rtsp://')&&!stderr.includes(store));
+ if(outcome!=='throw')assert(fs.readFileSync(path.join(output.outputDir,'confirmed-seed.stdout'),'utf8').includes('actual-builder-error'));
+ assert.throws(()=>output.write('../escape','x'));assert.throws(()=>output.write('confirmed-seed.json','overwrite'));
+ assert.throws(()=>output.write('oversize.txt','x'.repeat(1024*1024+1)),/limit/);
+}));
 test('parent allocates distinct run/check roots and native screenshots/checkpoints keep bytes',()=>asyncFixture(async root=>{
   const runDir=path.join(root,'runs','current');fs.mkdirSync(runDir,{recursive:true});
   const specs=v450ReleaseCommands().map(s=>withV450ArtifactOutput(s,{artifactRoot:root,runDir})).filter(s=>s.env.MEDIA_SERVER_TEST_OUTPUT_DIR);
@@ -48,11 +72,17 @@ test('file escape, overwrite, symlink replacement and screenshot tamper rejected
 for(const state of [{status:'FAIL',exit:1},{cleanup:{rootAbsent:false}},{failure:'SIGTERM',status:'FAIL',exit:1}])test('child failure/signal/cleanup cannot become success '+JSON.stringify(state),()=>fixture(root=>{
  const o=createReviewTestArtifacts(repo,env(root));success(o,state);assert.throws(()=>verifyReviewTestArtifacts(o.outputDir),/child failed/);
 }));
-test('both real runners reject invalid output before runtime/server/browser',()=>fixture(root=>{
- for(const file of ['va_review_confirmed_http.mjs','va_review_http_checks.mjs']){
+test('real runners reject invalid output before runtime/server/browser',()=>fixture(root=>{
+ for(const file of ['va_review_confirmed_http.mjs','va_review_http_checks.mjs','visual_search_ui_fixture.mjs']){
   const r=spawnSync(process.execPath,[path.join(repo,'scripts/internal',file)],{env:{...process.env,...env(root),MEDIA_SERVER_TEST_OUTPUT_DIR:root+'/../escape'},encoding:'utf8',timeout:5000});
   assert.equal(r.status,1);assert.match(r.stderr,/output outside parent artifact root/);assert(!r.stdout.includes('[artifacts]'));
  }
+}));
+test('visual preparation rejects ambiguous parent and legacy report before startup',()=>fixture(root=>{
+ const r=spawnSync(process.execPath,[path.join(repo,'scripts/internal/visual_search_ui_fixture.mjs'),'--report',path.join(root,'legacy.json')],
+  {env:{...process.env,...env(root)},encoding:'utf8',timeout:5000});
+ assert.equal(r.status,1);assert.match(r.stderr,/parent output and legacy report are exclusive/);
+ assert(!fs.existsSync(path.join(root,'check'))&&!fs.existsSync(path.join(root,'legacy.json')));
 }));
 test('same existing provenance detects outside PNG/JSON/product/test/fixture and checkpoint-only escape; early gate prevents longrun/UI',()=>asyncFixture(async root=>{
  const git=args=>execFileSync('git',args,{cwd:root,stdio:'pipe'});git(['init','-q']);git(['config','user.name','fixture']);git(['config','user.email','fixture@example.invalid']);

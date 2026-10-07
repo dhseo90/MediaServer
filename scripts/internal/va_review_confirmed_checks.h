@@ -19,6 +19,18 @@ void ConfirmedSeed(const std::filesystem::path& root){
     const auto ids=runtime.catalog().FinalizedSegmentIdsForStartup();Check(ids.size()==1,"K09 one owned source");
     const auto segment=*runtime.catalog().FindSegmentV2ById(ids.front());
     const auto binding=*runtime.catalog().FindSourceBinding(ids.front());
+    // 별도 버전 가정 대신 실제 writer가 보존한 profile과 현재 factory 출처를 기록한다.
+    std::cout<<"[seed-runtime] core="<<gst_version_string()<<" profile="
+             <<(binding.file_evidence?binding.file_evidence->profile:"unavailable")<<std::endl;
+    for(const auto* name:{"h264parse","mp4mux"}){
+        auto* factory=gst_element_factory_find(name);
+        auto* plugin=factory?gst_plugin_feature_get_plugin(GST_PLUGIN_FEATURE(factory)):nullptr;
+        std::cout<<"[seed-plugin] factory="<<name<<" plugin="<<(plugin?gst_plugin_get_name(plugin):"unavailable")
+                 <<" version="<<(plugin?gst_plugin_get_version(plugin):"unavailable")
+                 <<" file="<<(plugin&&gst_plugin_get_filename(plugin)?gst_plugin_get_filename(plugin):"unavailable")<<std::endl;
+        if(plugin)gst_object_unref(plugin);
+        if(factory)gst_object_unref(factory);
+    }
     RecordingReadService reader(runtime.catalog());RecordingSearchReader search(runtime.catalog(),reader);
     std::shared_ptr<const RecordingSearchModel> model;Check(search.Refresh({"1"},{},&model,&error),"K09 search model");
     const auto found=std::find_if(model->documents().begin(),model->documents().end(),[&](const auto& d){return d.segment_id==ids.front()&&d.start_ns;});
@@ -40,9 +52,14 @@ void ConfirmedSeed(const std::filesystem::path& root){
     }
     projector.StopAndDrain();EvidencePackageStore packages(root/"evidence-packages",{});Check(packages.Recover(&error),"K09 packages ready");
     EvidencePackageBuilder builder(runtime.catalog(),reader,packages);hit.analysis_namespace="synthetic-analysis-tap";hit.track_id="track-77";
-    EvidencePackageV1 p;std::string id;Check(builder.CreateWithObservations(hit,"structured","",&id,&p,&error,VaReviewService::Clock::now()+std::chrono::seconds(20)),"K09 package A: "+error);
+    EvidencePackageV1 p;std::string id;
+    const bool normal_ok=builder.CreateWithObservations(hit,"structured","",&id,&p,&error,VaReviewService::Clock::now()+std::chrono::seconds(20));
+    std::cout<<"[seed-package] track=track-77 created="<<normal_ok<<" error="<<EvidenceJsonQuote(error)<<std::endl;
+    Check(normal_ok,"K09 package A: "+error);
     const auto normal=id;hit.track_id="track-999";std::string missing;EvidencePackageV1 m;
-    Check(builder.CreateWithObservations(hit,"structured","",&missing,&m,&error,VaReviewService::Clock::now()+std::chrono::seconds(20)),"K09 absent track package");
+    const bool missing_ok=builder.CreateWithObservations(hit,"structured","",&missing,&m,&error,VaReviewService::Clock::now()+std::chrono::seconds(20));
+    std::cout<<"[seed-package] track=track-999 created="<<missing_ok<<" error="<<EvidenceJsonQuote(error)<<std::endl;
+    Check(missing_ok,"K09 absent track package: "+error);
     VaReviewStore store(root/"va-reviews",{});Check(store.Recover(&error),"K09 reviews ready");
     auto claims=BoundClaims();claims[0].scope={0,7};claims[1].scope={0,7};
     const auto canonical=SerializeEvidencePackage(p);ReviewTargetBindingV2 b{"fixed-target",normal,EvidenceSha256(canonical.data(),canonical.size()),p.analysis_namespace,p.track_id,{samples.front()}};

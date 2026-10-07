@@ -51,6 +51,7 @@ export function createReviewTestArtifacts(repo,env=process.env){
   write('started.json',JSON.stringify({status:'RUNNING',startedAt:new Date().toISOString(),allowedRoot,outputDir})+'\n');
   console.log('[artifacts] '+outputDir);
   return {allowedRoot,outputDir,
+    write:(name,bytes)=>{assert(Buffer.byteLength(bytes)<=1024*1024,'text artifact limit');return write(name,bytes);},
     checkpoint:report=>write('report.json',JSON.stringify({...report,artifactRoot:outputDir},null,2)+'\n',true),
     screenshot:async(surface,name,metadata={})=>{
       filePath(name);assert(!fs.existsSync(path.join(outputDir,name)),'screenshot collision');

@@ -3,11 +3,15 @@
 import fs from 'node:fs';import os from 'node:os';import path from 'node:path';import crypto from 'node:crypto';
 import dgram from 'node:dgram';import {spawn,execFileSync} from 'node:child_process';import {fileURLToPath} from 'node:url';
 import {reservePort,stopServer,assertPortClosed,bootstrapRecordingUiAuth,createUiAuthPasswords,writeUiLoginHandoff} from './verify_v410_recording_ui_contract.mjs';
+import {createReviewTestArtifacts} from './va_review_test_artifacts.mjs';
 const repo=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');
 const args=process.argv.slice(2),reportAt=args.indexOf('--report');
 const reportArg=reportAt<0?null:args.splice(reportAt,2)[1];
 if(reportAt>=0&&(!reportArg||reportArg.startsWith('--')))throw Error('report path required');
-const resultPath=reportArg?path.resolve(reportArg):path.join(repo,'docs/release-artifacts/v4.3.0/development/visual-ui-preparation.json');
+const parentOutput=process.env.MEDIA_SERVER_TEST_ARTIFACT_ROOT!==undefined||process.env.MEDIA_SERVER_TEST_OUTPUT_DIR!==undefined;
+if(parentOutput&&reportArg)throw Error('parent output and legacy report are exclusive');
+const artifacts=parentOutput?createReviewTestArtifacts(repo):null;
+const resultPath=artifacts?path.join(artifacts.outputDir,'report.json'):reportArg?path.resolve(reportArg):path.join(repo,'docs/release-artifacts/v4.3.0/development/visual-ui-preparation.json');
 if(reportArg&&(!resultPath.startsWith(path.join(repo,'docs/release-artifacts')+path.sep)||fs.existsSync(resultPath)))throw Error('fresh report in release-artifacts required');
 function need(value,code){if(!value)throw Error(code);}
 function sha(file){return crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex');}
@@ -26,7 +30,7 @@ async function main(){
     uiHoldBudgetMs:seedOnly?0:holdMs,actualUiPass:false,scope:'real V2 codec-derived public sample preparation; main owns browser actions',
     sourceEnabled:false,sourceRecordingEnabled:false,homePolicy:'preserve inherited HOME',checks:[],cleanup:{},commands:[]};
   if(fs.existsSync(resultPath)){const {previousRuns=[],...last}=JSON.parse(fs.readFileSync(resultPath,'utf8'));report.previousRuns=[...previousRuns,last];}
-  const save=()=>{fs.mkdirSync(path.dirname(resultPath),{recursive:true});fs.writeFileSync(resultPath,JSON.stringify(report,null,2)+'\n');};
+  const save=()=>{if(artifacts){artifacts.checkpoint(report);return;}fs.mkdirSync(path.dirname(resultPath),{recursive:true});fs.writeFileSync(resultPath,JSON.stringify(report,null,2)+'\n');};
   let child,httpPort,rtspPort,udp,timer,monitor,primary,stage='owned paths',stdinHandler;
   const check=(value,id,expected,actual)=>{report.checks.push({id,status:value?'PASS':'FAIL',expected,actual});
     if(!value){report.firstFailure??={stage,id,expected,actual};throw Error(id);}};

@@ -2,12 +2,13 @@
 // 파일 용도: 제품 출시 제한과 이력/A의 실제 HTTP 및 변경 화면 단기 검사.
 import fs from 'node:fs';
 import {createReviewTestArtifacts} from './va_review_test_artifacts.mjs';
+import {runReviewSeed} from './va_review_seed_process.mjs';
 import os from 'node:os';
 import path from 'node:path';
 import http from 'node:http';
 import dgram from 'node:dgram';
 import crypto from 'node:crypto';
-import {spawn,spawnSync} from 'node:child_process';
+import {spawn} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
 import {bootstrapRecordingUiAuth,createUiAuthPasswords,reservePort,stopServer,assertPortClosed}
   from './verify_v410_recording_ui_contract.mjs';
@@ -39,11 +40,12 @@ try{
   fs.writeFileSync(path.join(root,'data/sources.json'),JSON.stringify({sources:['1','2'].map(sourceId=>({sourceId,
     displayName:'fixture '+sourceId,kind:'file',file:sourceId==='1'?'sample.mp4':'second.mp4',enabled:false,recording:{enabled:false}}))}),{mode:0o600});
   fs.writeFileSync(path.join(root,'data/views.json'),'{"views":[]}',{mode:0o600});
-  const seed=spawnSync(process.env.MEDIA_SERVER_VA_REVIEW_FIXTURE_BIN,[root,'--seed','unused'],{encoding:'utf8',timeout:10000});
-  assert(seed.status===0,'seed');const {packages,historicalId}=JSON.parse(fs.readFileSync(path.join(root,'seed.json'),'utf8'));
   report.binarySha256=hash(binary);report.fixtureSha256=hash(process.env.MEDIA_SERVER_VA_REVIEW_FIXTURE_BIN);
-  const aSeed=spawnSync(process.env.MEDIA_SERVER_VA_REVIEW_FIXTURE_BIN,[path.join(root,'recordings'),'--confirmed-seed','unused'],{encoding:'utf8',timeout:10000});
-  assert(aSeed.status===0,'A seed: '+aSeed.stderr);const aInfo=JSON.parse(fs.readFileSync(path.join(root,'recordings/confirmed-seed.json')));
+  const seedOptions={fixture:process.env.MEDIA_SERVER_VA_REVIEW_FIXTURE_BIN,repo,artifacts};
+  report.seed=runReviewSeed({...seedOptions,root,mode:'--seed'});checkpoint();
+  const {packages,historicalId}=JSON.parse(fs.readFileSync(path.join(root,'seed.json'),'utf8'));
+  report.confirmedSeed=runReviewSeed({...seedOptions,root:path.join(root,'recordings'),mode:'--confirmed-seed'});checkpoint();
+  const aInfo=JSON.parse(fs.readFileSync(path.join(root,'recordings/confirmed-seed.json')));
   provider=http.createServer((req,res)=>{++chatCalls;res.writeHead(500);res.end('{}');});
   await new Promise((resolve,reject)=>{provider.once('error',reject);provider.listen(0,'127.0.0.1',resolve);});providerPort=provider.address().port;
   httpPort=await reservePort();rtspPort=await reservePort();assert(httpPort!==rtspPort,'distinct ports');
