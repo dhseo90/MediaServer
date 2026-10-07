@@ -1061,6 +1061,7 @@
     }
   },
   "remaining": [
+    "origin/v4.5.0 일반 푸시: 두 번 모두 GitHub Internal Server Error로 거부. force/history rewrite/세 번째 자동 시도 없이 로컬 근거 보존.",
     "현재 출시 보완 UI 전체 적격성: supplementalUi.remainingQualification의 구체적 오류/상태·artifact 결속 공백",
     "녹화·검색·A 혼합 전용120분: 별도 승인 잔여, 미실행; 일반120분으로 대체 안 함",
     "R61-N1 역사 default contract 경로 참조의 제한 정합: 현행 formal acceptance PASS와 별개",
@@ -1107,5 +1108,19 @@
     "outputProvenance": "exec tool가 반환한 원문 text. 별도 shell 원시 byte 로그는 이 첫 push에서 생성하지 않았음. 코드/실행 검증 FAIL로 변경하지 않음.",
     "toolOutput": "remote: warning: See https://gh.io/lfs for more information.        \nremote: warning: File docs/release-artifacts/v4.5.0/61-execution.tar.gz is 67.99 MB; this is larger than GitHub's recommended maximum file size of 50.00 MB        \nremote: warning: GH001: Large files detected. You may want to try Git Large File Storage - https://git-lfs.github.com.        \nremote: Internal Server Error        \nremote: Request ID E474:13FCB8:10B3B:57BFE:6AC66125        \nremote: Time 2026-10-07T15:11:52Z\nTo github.com:dhseo90/MediaServer.git\n ! [remote rejected]     HEAD -> v4.5.0 (Internal Server Error)\nerror: failed to push some refs to 'github.com:dhseo90/MediaServer.git'\n",
     "boundary": "원격 재조회 후 같은 branch로 일반 push만 허용. force/rebase/history rewrite 없음. 최종 remote 상태는 후속 tool 확인 결과와 구분."
+  },
+  "pushRetryFailure": {
+    "command": "git push origin HEAD:refs/heads/v4.5.0",
+    "exit": 1,
+    "localHead": "2137911619bd0aaa96fc999c94211bedd9b007b0",
+    "remoteBeforeRetry": "ea47adfcd6f97a1cdf5e09d5192196bcf53b15d1",
+    "requestId": "E494:4C96C:10A5E:58682:6AC66198",
+    "reportedRemoteTime": "2026-10-07T15:13:49Z",
+    "rejection": "Internal Server Error",
+    "outputProvenance": "exec tool가 반환한 원문 text. 별도 shell 원시 byte 로그는 미생성.",
+    "toolOutput": "remote: warning: See https://gh.io/lfs for more information.        \nremote: warning: File docs/release-artifacts/v4.5.0/61-execution.tar.gz is 67.99 MB; this is larger than GitHub's recommended maximum file size of 50.00 MB        \nremote: warning: GH001: Large files detected. You may want to try Git Large File Storage - https://git-lfs.github.com.        \nremote: Internal Server Error        \nremote: Request ID E494:4C96C:10A5E:58682:6AC66198        \nremote: Time 2026-10-07T15:13:49Z\nTo github.com:dhseo90/MediaServer.git\n ! [remote rejected]     HEAD -> v4.5.0 (Internal Server Error)\nerror: failed to push some refs to 'github.com:dhseo90/MediaServer.git'\n",
+    "status": "remote push incomplete; stop after two normal attempts",
+    "localEvidence": "c3734579c6fa0771678e014318acc112c83c6227의 Git archive readback으로 보존. 원격 보존 완료를 주장하지 않음.",
+    "rootCause": "대형 파일 경고와 GitHub 내부 오류가 함께 관측됨. 50MB 권장 경고를 100MB hard-limit 거부 또는 근본 원인으로 단정하지 않음."
   }
 }
