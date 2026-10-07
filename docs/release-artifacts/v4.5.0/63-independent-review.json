@@ -1,0 +1,760 @@
+{
+  "schema": "media-server.release63.independent-final-supplement-review.v1",
+  "reviewedAt": "2026-10-07T22:28:04.483204+00:00",
+  "reviewer": {
+    "role": "독립 변경분·실제 UI 증거·직접 시각·비노출 검토자",
+    "implementationOrExecutionByReviewer": false,
+    "subdelegation": false,
+    "approvalLedgerEdited": false
+  },
+  "status": "PASS_SCOPED_SUPPLEMENT_AND_DELTA_REVIEW",
+  "scopedSupplementEligible": true,
+  "remainingRequiredSupplementGaps": [],
+  "unresolvedBlockingFindingsInReviewedScope": [],
+  "wholeReleaseApprovalGranted": false,
+  "wholeCurrentReleaseUiPass": "이 독립 검토에서 새 전체 suite PASS를 발급하지 않음; 메인이 기존 exact-case 근거와 이 보완 판정을 결합해 최종 원장/정리/릴리즈 요건을 판정한다.",
+  "sourceBinding": {
+    "acceptanceSourcePreserved": "72cc7643d681b75228b80fd646921965ecacba75",
+    "reviewBase": "d887ecb500f4d7d22f12d0e31b8fae120db37748",
+    "initialCodeHead": "ec5bdfb1e5d1422f3832b213ad1dafb164219b6f",
+    "finalCodeHead": "4dc437b23e89cc7d13519ed68cffa365884ecf70",
+    "finalTree": "00c0a7597eaa53610e4b4d1499e1eb86f9295d7f",
+    "package": {
+      "path": "/private/tmp/media-server-release63-if986bq_/review-package-final.json",
+      "sha256": "c4e568d49f5db3b188a2f48e3903b21a9b06a6a5f17ada53f4977b9b09ef1c0c",
+      "bytes": 1612
+    },
+    "allSixCommittedFileHashesMatched": true,
+    "productBinarySha256": "f612a7b6ed0b75e06406dd087fa8c842c56753991391ac39c126d5d496f9ad58",
+    "productAndPolicyDiffFromAcceptance": "src/include/CMakeLists.txt/VERSION/manual-ui-fulltest.md/ui_fulltest_evidence_policy_v4.json 차이 없음",
+    "executionBinding": "release/visual/search는 d887+각 freeze patch로, search-detail은 ec5+1a7fb4…로 보존한다. 최종4dc 실행으로 소급 기재하지 않는다. 마지막 변경은 seed 출력 상한의 실패 보존 및2개 focused case뿐이며 기존 성공 경로·UI/API oracle과 제품을 바꾸지 않는다."
+  },
+  "legacyCandidate": {
+    "candidateFile": {
+      "path": "/private/tmp/media-server-release63-if986bq_/candidate-current.json",
+      "sha256": "5c6281009cc9bd804ff79538ce88ff13e4dc4af051001348095119d32540d6df",
+      "bytes": 7709050
+    },
+    "candidateDigest": "137543c6332a73f9a77599bfaca732bd1f54b263adee078fe5d3f8c275775906",
+    "items": 986,
+    "byteEqualTo61ArchiveMember": true,
+    "deepEqualTo61Items": true,
+    "existingApprovalVerifierReportedPass": 986,
+    "reapplyProducerNeeded": false,
+    "reason": "61 archive 실제 바이트와 fresh candidate가 동일하다. 최종 추가2파일도 legacy candidate의 참조/의미를 바꾸지 않는 진단 helper와 그 focused 검사다. 기존 승인 metadata를 수동 변경하거나 producer를 재적용할 근거가 없다. 신규 V450/시각 적격성은 이 별도 변경분 검토에 연결한다.",
+    "finalHeadApprovalVerifier": {
+      "record": {
+        "path": "/private/tmp/media-server-release63-if986bq_/final-approvals.json",
+        "sha256": "ddedaabab836f1ac075cea3ca13b3a830a0ffeadb68caf724ea7c4c4937bee92",
+        "bytes": 206
+      },
+      "stdout": {
+        "path": "/private/tmp/media-server-release63-if986bq_/final-approvals.stdout",
+        "sha256": "d0357708a2f5ea1be57afdc9aa1ae74ba09dec901627fcff2db69984ed56bc55",
+        "bytes": 255
+      },
+      "verified": 986,
+      "failures": 0,
+      "candidateDigestUnchanged": true,
+      "stderrEmpty": true
+    }
+  },
+  "codeReview": {
+    "files": {
+      "scripts/internal/va_review_confirmed_checks.h": "787409e75deec2f646ac7131c675bd58753f68cafb8c92082c9a2a6aaf7a8b7b",
+      "scripts/internal/va_review_http_checks.mjs": "192771931203ede8699b5ea8bfcbc85923f09dfc63d015812a6eb7f2d5edf04c",
+      "scripts/internal/va_review_seed_process.mjs": "b34e8d430521b94fbdba16a49eb1da03a1639e6cde922939018af0d591868a82",
+      "scripts/internal/va_review_test_artifacts.mjs": "f7feeeb3326aabf9c5069e7f73f08eaf35cb5f713b1e77104a94cd2e7f9ca7ef",
+      "scripts/internal/va_review_test_artifacts.test.mjs": "807cc41c9a1bb6355cd9cd20b1b441a994f406aea822ee3872bc3a4b13e32b7f",
+      "scripts/internal/visual_search_ui_fixture.mjs": "99763123035a9e2bc8f1b561f5522acaeece96b5d6c802c86b5364e9e834312e"
+    },
+    "reviewedChanges": [
+      "ConfirmedSeed의 실제 writer profile/factory 출처와 정상/absent-track builder 반환/error 진단을 추가하되 기존 두 seed 순서·deadline·assertion을 유지한다.",
+      "HTTP 준비 helper는 원래 두 번의 single-call seed 실행을 보존한다. 10000ms timeout과1MiB maxBuffer가 유지되며 실패는 계속 전파된다.",
+      "artifact.write는 기존 소유경로/identity/symlink/overwrite 경계를 재사용한다. visual fixture 부모 출력은 기존 helper로 한정하고 --report와 상호 배타이며 legacy 기본 경로 의미가 유지된다."
+    ],
+    "findingResolved": {
+      "location": "scripts/internal/va_review_seed_process.mjs stdout/stderr preservation loop",
+      "initialFinding": "초과 마지막 chunk 또는 redaction expansion이 artifact.write 1MiB 제한에 걸려 뒤 stream/종료 원인 JSON을 잃을 수 있었다.",
+      "resolution": "양 stream의 정제 prefix를 각1MiB 이내로 보존하고 원본 bytes/SHA, 정제 bytes, truncated, exit/signal/error를 JSON에 남긴 뒤 truncation도 실패로 전파한다. 임의 상한 확대나 PASS 완화 없음.",
+      "beforeEvidence": {
+        "path": "/private/tmp/media-server-release63-if986bq_/seed-limit-before.json",
+        "sha256": "9e094dcce6c7d61e2b7d41006059e69971c2f04b204173f4cbe3dab14d3d912c",
+        "bytes": 276
+      },
+      "beforeReplay": "ec5 helper 실제 바이트를 재조회한 사본에 두 신규 case를 적용하여2FAIL 보존. 수정 후 수행된 원인 확인 재현이며 chronological TDD RED라고 하지 않는다.",
+      "afterEvidence": {
+        "path": "/private/tmp/media-server-release63-if986bq_/seed-limit-fixed.json",
+        "sha256": "167df8f0b0a1a81c6ea8ec3ce150915346af2f27f2569a31852ff636b391e47e",
+        "bytes": 242
+      },
+      "afterFocusedTests": 8,
+      "modelOrProductExecutionInFocusedCases": false
+    },
+    "otherBlockingFindings": [],
+    "verificationReadNotRunByReviewer": [
+      "기존 artifact25PASS",
+      "parent visual output2PASS",
+      "static registration49PASS 및 명시11실험 dispatch failure propagation 대역",
+      "script inventory13/comment checks PASS",
+      "최종 seed8PASS/syntax/diff whitespace exit0"
+    ]
+  },
+  "releaseAndVisual": {
+    "priorIndependentReview": {
+      "path": "/private/tmp/media-server-release63-independent-zy_yh0fr/63-release-visual-independent-review.json",
+      "sha256": "0135d8eb82fc9014e10e4ce29dd564845178ba5a85c22849a169eb93ff02c41a",
+      "bytes": 18205
+    },
+    "releaseAssertions": 166,
+    "releaseBrowserChecks": 13,
+    "visualActions": 6,
+    "directPng": 15,
+    "eligibleAfterThisPrivacyReview": true,
+    "coverage": "V450-E01/E02/A01/A02/A03 release boundary와 V440-U01 expired/disabled/dark320/390/760/1180 보완",
+    "importantLimits": [
+      "expired/disabled는 명시 브라우저 HTTP410/503 응답 주입으로 UI 안내만 입증하며 실제 TTL/config runtime 재검증은 아니다.",
+      "dark4는 실제 clip160x90/ready4, keyboard play/pause·hover·controls를 입증한다. decoded counters는 누적값이며 각 너비별 새로운 완전 재생을 주장하지 않는다.",
+      "62 K09 absent-track 준비 실패 원인은 미확정이다. 63의 원래 seed→confirmed-seed와 release HTTP/UI 성공은 독립 새 성공이며 과거 실패를 복구/원인 규명으로 재작성하지 않는다.",
+      "기존 evidence HTTP disabled503/forged hit 또는0 snapshotId410도 실제 시간 경과TTL 만료 증거로 확대하지 않는다. 이번 승인된 보완은 명시 UI 오류 상태의 시각 검수이며 새 TTL 제품 실행을 완료 조건에 추가하지 않는다."
+    ]
+  },
+  "search": {
+    "report": {
+      "path": "/private/tmp/media-server-release63-if986bq_/search/result.json",
+      "sha256": "a788a40a68097005367a9143f828f13b0651ac44fda20d441f60baeed108473b",
+      "bytes": 31816
+    },
+    "execution": {
+      "path": "/private/tmp/media-server-release63-if986bq_/search-execution.json",
+      "sha256": "cb0bfd4a0731cc147befdaf0bc9f9074a7ef22c2fa1e22121b0c2f72df1586a3",
+      "bytes": 200
+    },
+    "freeze": {
+      "path": "/private/tmp/media-server-release63-if986bq_/search-freeze.json",
+      "sha256": "3a2a87ea85ee3ef6791da8c9b68b26fc0b1bcb9d4649c742b8cc64b1a0563f2e",
+      "bytes": 1385
+    },
+    "actionCount": 14,
+    "allActionsPassed": true,
+    "actions": [
+      {
+        "action": "english",
+        "featureIds": [
+          "V430-U01",
+          "V450-R02"
+        ],
+        "status": "PASS",
+        "observed": {
+          "count": 8,
+          "applied": {
+            "text": "A RED scene",
+            "encoderText": "a red scene",
+            "bodyTokens": 3,
+            "maxBodyTokens": 63,
+            "channelIds": [
+              "1"
+            ],
+            "startTimeMs": null,
+            "endTimeMs": null,
+            "threshold": -1,
+            "limit": 20
+          },
+          "index": {
+            "instanceId": "f88bbb53679c1149e70e605f7d2afaba",
+            "generation": 2,
+            "identityScope": "worker-instance",
+            "origin": "rebuild",
+            "publishedAtMs": 1791411237008,
+            "metadataReason": "live-publication",
+            "statisticsScope": "authorized-channels-all-indexed-samples-before-query-filters",
+            "coverage": "unknown",
+            "coverageReason": "sampled-index-no-continuous-coverage",
+            "sourceValidation": "search-revalidates-current-originals",
+            "channels": [
+              {
+                "channelId": "1",
+                "indexedFrames": 8,
+                "unknownTimeFrames": 0,
+                "firstSampleTimeNs": "1791411226655000000",
+                "lastSampleTimeNs": "1791411233655000000",
+                "sourceCountsState": "known",
+                "examinedSegments": 1,
+                "unsupportedSegments": 0,
+                "examinedSnapshots": 0,
+                "unsupportedSnapshots": 0
+              }
+            ]
+          }
+        }
+      },
+      {
+        "action": "korean",
+        "featureIds": [
+          "V430-U01",
+          "V450-R02"
+        ],
+        "status": "PASS",
+        "observed": {
+          "count": 8,
+          "applied": {
+            "text": "공원에서 공을 가지고 노는 사람",
+            "encoderText": "공원에서 공을 가지고 노는 사람",
+            "bodyTokens": 10,
+            "maxBodyTokens": 63,
+            "channelIds": [
+              "1"
+            ],
+            "startTimeMs": null,
+            "endTimeMs": null,
+            "threshold": -1,
+            "limit": 20
+          }
+        }
+      },
+      {
+        "action": "threshold-empty",
+        "featureIds": [
+          "V430-U01",
+          "V450-R02"
+        ],
+        "status": "PASS",
+        "observed": {
+          "text": "red scene",
+          "encoderText": "red scene",
+          "bodyTokens": 2,
+          "maxBodyTokens": 63,
+          "channelIds": [
+            "1"
+          ],
+          "startTimeMs": null,
+          "endTimeMs": null,
+          "threshold": 1,
+          "limit": 20
+        }
+      },
+      {
+        "action": "tokens63",
+        "featureIds": [
+          "V430-U01",
+          "V450-R02"
+        ],
+        "status": "PASS",
+        "observed": {
+          "tokens": 63,
+          "count": 8
+        }
+      },
+      {
+        "action": "tokens64",
+        "featureIds": [
+          "V430-U01",
+          "V450-R02"
+        ],
+        "status": "PASS",
+        "observed": {
+          "error": "visual-text-token-limit"
+        }
+      },
+      {
+        "action": "invalid-time",
+        "featureIds": [
+          "V430-U01"
+        ],
+        "status": "PASS",
+        "observed": {
+          "newSearchRequests": 0
+        }
+      },
+      {
+        "action": "condition-transfer",
+        "featureIds": [
+          "V430-U01",
+          "V450-R03"
+        ],
+        "status": "PASS",
+        "observed": {
+          "start": "2026-10-08T07:12",
+          "end": "2026-10-08T07:15",
+          "uniqueObject": "person",
+          "uniqueText": "red scene"
+        }
+      },
+      {
+        "action": "seek-play",
+        "featureIds": [
+          "V430-U01"
+        ],
+        "status": "PASS",
+        "observed": {
+          "seek": {
+            "response": {
+              "hitId": "frame:36:bdbc7963-50c3-4f1e-a55e-e54bfbef7c2e:0",
+              "playbackUrl": "/ops/api/recordings/media/bdbc7963-50c3-4f1e-a55e-e54bfbef7c2e",
+              "playable": true,
+              "seekAvailable": true,
+              "targetSeconds": 0,
+              "frameDurationSeconds": 0.03333333333333333,
+              "timeBasis": "verified-native-file-presentation"
+            },
+            "video": {
+              "time": 0,
+              "ready": 4,
+              "width": 1280,
+              "height": 720
+            }
+          },
+          "after": {
+            "time": 0.109439,
+            "paused": true
+          }
+        }
+      },
+      {
+        "action": "evidence",
+        "featureIds": [
+          "V440-U01"
+        ],
+        "status": "PASS",
+        "observed": {
+          "id": "ep-86d62338aab7ff2e59d0d9018a35cf51444ed0dc265b29ad2bde69ef8d5a65f1",
+          "status": "complete",
+          "frames": 1
+        }
+      },
+      {
+        "action": "refresh-binding",
+        "featureIds": [
+          "V450-R03"
+        ],
+        "status": "PASS",
+        "observed": {
+          "usedIndexPreserved": true,
+          "current": "현재 상태: 게시 색인 검색 가능 · 표본 간격 1초 / 갱신 주기 1초\n갱신 성공 · 최근 시도 2026-10-07T22:14:00.045Z · 종료 2026-10-07T22:14:00.059Z · 최근 성공 2026-10-07T22:14:00.059Z (worker 전체 시도 상태, 채널별 완전성 아님)\n실행 f88bbb53679c1149e70e605f7d2afaba 내 세대 5 · 게시 2026-10-07T22:14:00.059Z\n1: 색인 표본 8개 · 시각 미확인 0개 · 표본 UTC 2026-10-07T22:13:46.655Z ~ 2026-10-07T22:13:53.655Z · 수집 1파일/0스냅샷 · 미지원 0파일/0스냅샷\n집계는 허가된 표시 채널의 게시 표본 전체이며 시간·유사도·top-k 적용 전입니다. 표본 사이의 연속 포함·누락 구간·전체 사건 수는 미확인입니다. 현재 원본은 검색·재생 때 다시 확인합니다."
+        }
+      },
+      {
+        "action": "late-search",
+        "featureIds": [
+          "V450-R03"
+        ],
+        "status": "PASS",
+        "observed": {
+          "lateIgnored": true
+        }
+      },
+      {
+        "action": "late-seek",
+        "featureIds": [
+          "V430-U01",
+          "V450-R03"
+        ],
+        "status": "PASS",
+        "observed": {
+          "lateIgnored": true,
+          "latest": {
+            "response": {
+              "hitId": "frame:36:bdbc7963-50c3-4f1e-a55e-e54bfbef7c2e:1000000000",
+              "playbackUrl": "/ops/api/recordings/media/bdbc7963-50c3-4f1e-a55e-e54bfbef7c2e",
+              "playable": true,
+              "seekAvailable": true,
+              "targetSeconds": 1,
+              "frameDurationSeconds": 0.03333333333333333,
+              "timeBasis": "verified-native-file-presentation"
+            },
+            "video": {
+              "time": 1,
+              "ready": 4,
+              "width": 1280,
+              "height": 720
+            }
+          }
+        }
+      },
+      {
+        "action": "operator",
+        "featureIds": [
+          "V430-U01",
+          "V450-R02"
+        ],
+        "status": "PASS",
+        "observed": {
+          "allowedChannel": "1",
+          "count": 8
+        }
+      },
+      {
+        "action": "no-source",
+        "featureIds": [
+          "V430-U01",
+          "V450-R02"
+        ],
+        "status": "PASS",
+        "observed": {
+          "channels": 0,
+          "disabled": true
+        }
+      }
+    ],
+    "observedTrustedVisibleEnabledEvents": 72,
+    "observedRoles": [
+      {
+        "role": "admin",
+        "scopes": [
+          "*"
+        ]
+      },
+      {
+        "role": "operator",
+        "scopes": [
+          "ops:read",
+          "source:read:1"
+        ]
+      },
+      {
+        "role": "operator",
+        "scopes": [
+          "ops:read"
+        ]
+      }
+    ],
+    "actualSearch": "기존 SigLIP2와 실제8표본 색인/HTTP를 사용한다. 검색 의미 정확도나 Qwen/Ollama 품질을 주장하지 않는다. Qwen/Ollama 호출0.",
+    "serverEvidence": {
+      "browserLogEmptyByDesign": "search/server-observed.log는 브라우저 부모가 서버를 직접 만들지 않으므로0bytes이다.",
+      "actualServer": "search-preparation/server-observed.log 1433bytes SHA356ab4dab1226b12ebc816d5f67dad7b1930df77afbedff67f77ae2d82d8ebf7; observer에 product pid96443 start/exit0와 browser 실행 구간이 함께 결속된다.",
+      "qualified": true
+    },
+    "lateResponses": "route.fetch가 실제 응답을 받아 보류했다가 전달한 지연 실험이다. 가짜 검색/seek 성공응답 주입이 아니다.",
+    "statusRefresh": "현행 V450-R03에 따라 기존 결과/UsedIndex를 보존한다. 역사 V430 count 제거 요구를 복원하지 않는다."
+  },
+  "searchDetail": {
+    "report": {
+      "path": "/private/tmp/media-server-release63-if986bq_/search-detail/result.json",
+      "sha256": "2f9efc03cc79905c6aa387cf1fa79b3a3e38d9044a9f3a88010326a75af45bc4",
+      "bytes": 10509
+    },
+    "execution": {
+      "path": "/private/tmp/media-server-release63-if986bq_/search-detail-execution.json",
+      "sha256": "a7dabf5edb7d815d4c07797670bf670e76091fe690e794e648e2c3c115f87727",
+      "bytes": 207
+    },
+    "freeze": {
+      "path": "/private/tmp/media-server-release63-if986bq_/search-detail-freeze.json",
+      "sha256": "c6cefcc23ddcb679b4f80b4e19b0f8a627f727e2656299d2a02013cb5fadf5e5",
+      "bytes": 1209
+    },
+    "actions": 3,
+    "counting": "기존 invalid-time1개의 시각 보충과 operator/no-source 로그인 관측2개. 새 정책 ID3개 또는 검색3개로 세지 않는다.",
+    "invalidTimeResolution": "원래 search/invalid-time.png는 clear 뒤 조건변경 상태였다. 새 search-detail/invalid-time.png를 직접 열람해 시작만 지정된 입력과 시작/종료 모두 올바르게 입력하라는 오류를 clear 이전에 확인했다. 요청0 oracle도 유지한다.",
+    "serverEvidence": "별도 preparation observer가 제품 기동/exit0와1433bytes 실제 서버로그를 기록했다.",
+    "consoleAssessment": {
+      "searchOriginalErrors": 3,
+      "searchDetailErrors": 2,
+      "pageErrors": 0,
+      "unapprovedErrorsWarnings": 0,
+      "reason": "tokens64의400은 실제 토큰 초과 action과 상관된다. operator/no-source 로그인 직후403 두 개는 새 동일 역할 관측에서 /ops/home의 GET /ops/api/users로 console resourcePath/response가 같은 시각에 직접 확인됐다. src/ingress/webrtc_http_server_runtime.cpp1464의 관리자 전용 경계와 일치하는 허용된 거부다. 원래 로그에 없던 경로를 원래 관측값으로 소급 기입하지 않고 새 보충 관측을 근거로 분류한다.",
+      "supplementalExtract": {
+        "path": "/private/tmp/media-server-release63-if986bq_/console-route-readback.json",
+        "sha256": "19aab0098ad944efa36b0cb6de1665d6aaaf2545f49a94e20af633d630d98300",
+        "bytes": 1335
+      }
+    }
+  },
+  "directVisualReview": {
+    "additionalSearchAndDetailPng": [
+      {
+        "run": "search",
+        "path": "english.png",
+        "sha256": "f6a305d11dc9b840bf8878c39564657573d4d9b7a1236003994d45d5c856280a",
+        "bytes": 299459,
+        "scope": "[data-testid=ops-visual-search]",
+        "viewport": {
+          "width": 1180,
+          "height": 1000
+        },
+        "actualSha256": "f6a305d11dc9b840bf8878c39564657573d4d9b7a1236003994d45d5c856280a",
+        "directlyViewed": true,
+        "method": "tools.view_image original pixels; independent reviewer"
+      },
+      {
+        "run": "search",
+        "path": "korean.png",
+        "sha256": "ced2a7d52d90e38a2b8dac989617eeed9245c9b6b192b8cb277fea47bcf25203",
+        "bytes": 297627,
+        "scope": "[data-testid=ops-visual-search]",
+        "viewport": {
+          "width": 1180,
+          "height": 1000
+        },
+        "actualSha256": "ced2a7d52d90e38a2b8dac989617eeed9245c9b6b192b8cb277fea47bcf25203",
+        "directlyViewed": true,
+        "method": "tools.view_image original pixels; independent reviewer"
+      },
+      {
+        "run": "search",
+        "path": "threshold-empty.png",
+        "sha256": "c11f62ccd8b93416007049232d95eb03c84bd3b2b2effe8decfcff3eeefc7afd",
+        "bytes": 238858,
+        "scope": "[data-testid=ops-visual-search]",
+        "viewport": {
+          "width": 1180,
+          "height": 1000
+        },
+        "actualSha256": "c11f62ccd8b93416007049232d95eb03c84bd3b2b2effe8decfcff3eeefc7afd",
+        "directlyViewed": true,
+        "method": "tools.view_image original pixels; independent reviewer"
+      },
+      {
+        "run": "search",
+        "path": "tokens63.png",
+        "sha256": "17f3c08fe4985818b4ca00c5caba288a9204130bc67e9acbb00db7d68492f70b",
+        "bytes": 297609,
+        "scope": "[data-testid=ops-visual-search]",
+        "viewport": {
+          "width": 1180,
+          "height": 1000
+        },
+        "actualSha256": "17f3c08fe4985818b4ca00c5caba288a9204130bc67e9acbb00db7d68492f70b",
+        "directlyViewed": true,
+        "method": "tools.view_image original pixels; independent reviewer"
+      },
+      {
+        "run": "search",
+        "path": "tokens64.png",
+        "sha256": "8c53c05f13ad2069bbe783c8c93e022dda316351e05bd1ce281c1b9052589906",
+        "bytes": 10453,
+        "scope": "#opsVisualStatus",
+        "viewport": {
+          "width": 1180,
+          "height": 1000
+        },
+        "actualSha256": "8c53c05f13ad2069bbe783c8c93e022dda316351e05bd1ce281c1b9052589906",
+        "directlyViewed": true,
+        "method": "tools.view_image original pixels; independent reviewer"
+      },
+      {
+        "run": "search",
+        "path": "invalid-time.png",
+        "sha256": "841e53354ce65becad10f1fc110e981ee6ba585b5776b204df5bec9bc60f845c",
+        "bytes": 162404,
+        "scope": "[data-testid=ops-visual-search]",
+        "viewport": {
+          "width": 1180,
+          "height": 1000
+        },
+        "actualSha256": "841e53354ce65becad10f1fc110e981ee6ba585b5776b204df5bec9bc60f845c",
+        "directlyViewed": true,
+        "method": "tools.view_image original pixels; independent reviewer"
+      },
+      {
+        "run": "search",
+        "path": "condition-transfer.png",
+        "sha256": "81a75649a92384ea1a970c14646cc1a6eaa2e126be6c78fa618b02640310c56e",
+        "bytes": 297059,
+        "scope": "[data-testid=ops-visual-search]",
+        "viewport": {
+          "width": 1180,
+          "height": 1000
+        },
+        "actualSha256": "81a75649a92384ea1a970c14646cc1a6eaa2e126be6c78fa618b02640310c56e",
+        "directlyViewed": true,
+        "method": "tools.view_image original pixels; independent reviewer"
+      },
+      {
+        "run": "search",
+        "path": "seek-play.png",
+        "sha256": "12d85f1619ae073fb8f74290b8a23738e622f8e5252367324a959900834670b2",
+        "bytes": 1052745,
+        "scope": "#opsVisualPlayer",
+        "viewport": {
+          "width": 1180,
+          "height": 1000
+        },
+        "actualSha256": "12d85f1619ae073fb8f74290b8a23738e622f8e5252367324a959900834670b2",
+        "directlyViewed": true,
+        "method": "tools.view_image original pixels; independent reviewer"
+      },
+      {
+        "run": "search",
+        "path": "evidence.png",
+        "sha256": "8b7197306f4a8a66d9870e7dba7f60194a2d3a17b86785d8c8fa2b4df7aad028",
+        "bytes": 1092850,
+        "scope": "#opsEvidenceDetail",
+        "viewport": {
+          "width": 1180,
+          "height": 1000
+        },
+        "actualSha256": "8b7197306f4a8a66d9870e7dba7f60194a2d3a17b86785d8c8fa2b4df7aad028",
+        "directlyViewed": true,
+        "method": "tools.view_image original pixels; independent reviewer"
+      },
+      {
+        "run": "search",
+        "path": "refresh-binding.png",
+        "sha256": "c26098aa9eb0f47ad23b673185239d862bea10fda729125a44963a621c4b4392",
+        "bytes": 1354811,
+        "scope": "[data-testid=ops-visual-search]",
+        "viewport": {
+          "width": 1180,
+          "height": 1000
+        },
+        "actualSha256": "c26098aa9eb0f47ad23b673185239d862bea10fda729125a44963a621c4b4392",
+        "directlyViewed": true,
+        "method": "tools.view_image original pixels; independent reviewer"
+      },
+      {
+        "run": "search",
+        "path": "late-search.png",
+        "sha256": "3b3b3653232b5f46ba564fb1befcf697f38b4533e4a9a490d11571e82add55ea",
+        "bytes": 163374,
+        "scope": "[data-testid=ops-visual-search]",
+        "viewport": {
+          "width": 1180,
+          "height": 1000
+        },
+        "actualSha256": "3b3b3653232b5f46ba564fb1befcf697f38b4533e4a9a490d11571e82add55ea",
+        "directlyViewed": true,
+        "method": "tools.view_image original pixels; independent reviewer"
+      },
+      {
+        "run": "search",
+        "path": "late-seek.png",
+        "sha256": "0ef744a47d580b0628b4944823c8b7175f91a6aaf734ab197edf7fa6567266bd",
+        "bytes": 1355082,
+        "scope": "[data-testid=ops-visual-search]",
+        "viewport": {
+          "width": 1180,
+          "height": 1000
+        },
+        "actualSha256": "0ef744a47d580b0628b4944823c8b7175f91a6aaf734ab197edf7fa6567266bd",
+        "directlyViewed": true,
+        "method": "tools.view_image original pixels; independent reviewer"
+      },
+      {
+        "run": "search",
+        "path": "operator.png",
+        "sha256": "3b6d23bdf121be1fb72a7f68cc535721fc5cc0ca2770dd3bb1876e1d8ca09a6e",
+        "bytes": 290502,
+        "scope": "[data-testid=ops-visual-search]",
+        "viewport": {
+          "width": 1180,
+          "height": 1000
+        },
+        "actualSha256": "3b6d23bdf121be1fb72a7f68cc535721fc5cc0ca2770dd3bb1876e1d8ca09a6e",
+        "directlyViewed": true,
+        "method": "tools.view_image original pixels; independent reviewer"
+      },
+      {
+        "run": "search",
+        "path": "no-source.png",
+        "sha256": "15f17113b1444eee6a9adc249a69e63e34768a5531f2802ef1691c4aa6fc5da5",
+        "bytes": 115078,
+        "scope": "[data-testid=ops-visual-search]",
+        "viewport": {
+          "width": 1180,
+          "height": 1000
+        },
+        "actualSha256": "15f17113b1444eee6a9adc249a69e63e34768a5531f2802ef1691c4aa6fc5da5",
+        "directlyViewed": true,
+        "method": "tools.view_image original pixels; independent reviewer"
+      },
+      {
+        "run": "search-detail",
+        "path": "invalid-time.png",
+        "sha256": "07f8eb7f1f11c2429b23f10fb958546ea2f152291b0f777af198f11f5f2e1c6a",
+        "bytes": 160858,
+        "scope": "[data-testid=ops-visual-search]",
+        "viewport": {
+          "width": 1180,
+          "height": 1000
+        },
+        "actualSha256": "07f8eb7f1f11c2429b23f10fb958546ea2f152291b0f777af198f11f5f2e1c6a",
+        "directlyViewed": true,
+        "method": "tools.view_image original pixels; independent reviewer"
+      },
+      {
+        "run": "search-detail",
+        "path": "operator-login.png",
+        "sha256": "485d2964cf930eb5f2064787d5f1aa136531cde3af9d89e0d199bc8181083ae8",
+        "bytes": 160829,
+        "scope": "[data-testid=ops-visual-search]",
+        "viewport": {
+          "width": 1180,
+          "height": 1000
+        },
+        "actualSha256": "485d2964cf930eb5f2064787d5f1aa136531cde3af9d89e0d199bc8181083ae8",
+        "directlyViewed": true,
+        "method": "tools.view_image original pixels; independent reviewer"
+      },
+      {
+        "run": "search-detail",
+        "path": "no-source-login.png",
+        "sha256": "15f17113b1444eee6a9adc249a69e63e34768a5531f2802ef1691c4aa6fc5da5",
+        "bytes": 115078,
+        "scope": "[data-testid=ops-visual-search]",
+        "viewport": {
+          "width": 1180,
+          "height": 1000
+        },
+        "actualSha256": "15f17113b1444eee6a9adc249a69e63e34768a5531f2802ef1691c4aa6fc5da5",
+        "directlyViewed": true,
+        "method": "tools.view_image original pixels; independent reviewer"
+      }
+    ],
+    "release63UniquePng": 32,
+    "prior61And62IndependentlyViewedUniquePng": 126,
+    "cumulativeIndependentlyViewedUniquePng": 158,
+    "finding": "검토한 화면에서 겹침/잘림/읽을 수 없는 대비/credential/session/source URL/raw debug 노출을 발견하지 못했다. 실제 선택 영상과 native controls/timeline/focus가 표시되며4신 public sample을 확인했다. 검색 선택 전 빈 player는 미선택 상태로 해석한다.",
+    "qualification": "37개 과거 visual PNG/geometry는 이미 직접 검토한 교차 시각 증거로 재사용한다. 그 과거23 action에 서버로그가 생겼다거나 이번8 viewport가 새로 실행됐다고 주장하지 않는다."
+  },
+  "reuseAndCompleteness": {
+    "prior62Final": {
+      "path": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/62-independent-review.json",
+      "sha256": "2b2874aeabd1ada1d7517cf6dc1a6d3b34e122578e38c6910ff5661cf50bdd84",
+      "bytes": 19244
+    },
+    "preservedPriorFlags": true,
+    "reusable": [
+      "61 recording31 actions와 structured-search38 scoped 원자료",
+      "62 A285 assertions/21browser 및 materials197/14의 실제 관측과 독립검토",
+      "62 ui-prepared22 actions 실제clip/retention/partial/corrupt503/revoke403/late/duplicate 및 명시 상태 주입",
+      "62 viewer /ops/events403과 숨겨진 search/evidence controls",
+      "기존 viewport light/dark320/390/760/1180 교차 visual/geometry"
+    ],
+    "closure": "초기63에서 좁힌 visual23 중 로그가 필요한14 actual action, release13 browser, V4406 시각 상태가 신규 관측/직접시각/정제본으로 보완됐다. 추가 invalid-time 시각과 로그인403 분류도 해소되어 이 보완 범위의 필수 누락은 없다. assertion/action/정책ID를 서로 합산하지 않는다.",
+    "notGranted": [
+      "전체424 baseline 새 실행/PASS",
+      "새30분/120분 acceptance",
+      "모델 질문/질적 성능 승인",
+      "기존61/62 actualUiPass false 변경",
+      "tag/push/release 공개 승인"
+    ]
+  },
+  "privacy": {
+    "path": "/private/tmp/media-server-release63-independent-zy_yh0fr/63-final-privacy-addendum.json",
+    "sha256": "dd1f63bda06e689759eb6e6e485a5dd3516035cc0003a0b056fe71757b8fc967",
+    "bytes": 7123
+  },
+  "cleanup": {
+    "runtimeReports": "각 원문 browser/process/port/root cleanup PASS를 읽었다. search/search-detail 소유 runtime root 부재를 직접 확인했다.",
+    "independentRuntimeCheck": "cleanup-readback.json의 부모 ps/lsof7TCP/3UDP 부재 기록을 읽었다; reviewer가 새 ps/process 검사를 실행한 것으로 기재하지 않는다. 추가 search-detail은 자체 cleanup 원문으로 별도 결속한다.",
+    "ownedReviewRoot": "/private/tmp/media-server-release63-independent-zy_yh0fr",
+    "symlinkCount": 0,
+    "reviewerProcessesOrPortsStarted": 0,
+    "openFiles": "lsof +D owned review root exit1/empty output",
+    "mayParentRemoveAfterVerifiedPreservation": true,
+    "finalParentReadback": {
+      "record": {
+        "path": "/private/tmp/media-server-release63-if986bq_/cleanup-final.json",
+        "sha256": "aaa92e067a7a3e268d3c519badd51b5d6a95acc44443bf051d42e89a96c55e65",
+        "bytes": 910
+      },
+      "observedProcesses": 4,
+      "tcpPorts": 9,
+      "udpPorts": 4,
+      "allAbsent": true,
+      "scope": "부모의 read-only ps/lsof 원출력을 검토; 독립 검토자의 직접 process 실행으로 세지 않는다."
+    }
+  },
+  "finalDetermination": "고정4dc 변경분과 보완된 UI 증거는 지정 범위에서 재사용/적격이다. 새 전체 실행이나 legacy approval producer 재적용을 요구할 근거를 발견하지 못했다. 과거 실패·미확정원인·actualUiPass false와 기존 독립판정을 그대로 유지한다. 전체 릴리즈 승인과 Git 보존/정리 완료는 이 검토의 권한 밖이다."
+}

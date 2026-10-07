@@ -1,0 +1,570 @@
+{
+  "schema": "media-server.v450.release-validation.v1",
+  "sequence": 63,
+  "status": "PASS_SCOPED_SUPPLEMENTAL_UI_QUALIFICATION",
+  "recordedAt": "2026-10-07T22:33:12.243144+00:00",
+  "base": {
+    "base": "d887ecb500f4d7d22f12d0e31b8fae120db37748",
+    "remote": "d887ecb500f4d7d22f12d0e31b8fae120db37748",
+    "clean": true,
+    "root": "/private/tmp/media-server-release63-if986bq_",
+    "uid": 501,
+    "inode": 171134909
+  },
+  "source": {
+    "implementationCommit": "ec5bdfb1e5d1422f3832b213ad1dafb164219b6f",
+    "diagnosticBoundaryCommit": "4dc437b23e89cc7d13519ed68cffa365884ecf70",
+    "reviewedTree": "00c0a7597eaa53610e4b4d1499e1eb86f9295d7f",
+    "reviewPackage": "63-execution.tar.gz:review-package-final.json",
+    "productSourceChanged": false,
+    "productBinarySha256": "f612a7b6ed0b75e06406dd087fa8c842c56753991391ac39c126d5d496f9ad58",
+    "sourceBinding": "Each actual run retained pre-commit HEAD+diff, files and binary hashes; post-run helper byte-limit fix tested separately, not relabeled as new HTTP execution."
+  },
+  "preservedAcceptance": {
+    "sourceCommit": "72cc7643d681b75228b80fd646921965ecacba75",
+    "sourceTree": "db09891c5689255b7e048bb2fd99b45cd92ebbf4",
+    "result": "61 PASS retained at its actual source",
+    "original": "61-validation.json",
+    "repeatedFormalAcceptance": 0,
+    "general30": "61 PASS reused;0 new",
+    "canonicalUi": "61 individual424+Policy v4 PASS reused;0 new; supplemental actions not added to424",
+    "general120": "61 PASS reused;0 new",
+    "sourceImpact": "No product/record/permissions/model409/Policy v4 change; only diagnostic/preparation output and its tests changed."
+  },
+  "K09": {
+    "previous": "62-execution.tar.gz:release/report.json; original FAIL and diagnostic nonreproduction unchanged",
+    "cause": "UNCONFIRMED; no proven fixture or product cause corrected",
+    "originalFixtureSha256": "bfd5a91e879dc6e4a0d85467b15d0a641d7959885bb3d58af554f5170e053616",
+    "currentFixtureSha256": "584cf9459a0a2b6fa6949634b328d53af11e969fb90316b13d8c4022d4788de7",
+    "currentRuntimeArchiveSha256": "7e53123551e099aa835199290fa40416d9ffd774b29a8d3cd839fa7c024d5e6e",
+    "build": "Same62 compile/link flags and original va_review_smoke.cpp dispatch; changed diagnostic header and output path only.62 copied diagnostic added include path and its own source; prior diagnostic executable SHA not preserved, equality not claimed.",
+    "changes": "Call each normal/missing builder once; store bool before formatting actual error. Parent captures hashes, allowlisted environment, UID/command/cwd, root metadata listing, exit/signal/spawn error, stdout/stderr before cleanup. track-999 remains absent.",
+    "sequence": [
+      "fixture <fresh-root> --seed unused",
+      "fixture <same-root>/recordings --confirmed-seed unused"
+    ],
+    "originalPathAttempts": 1,
+    "seedResults": [
+      {
+        "mode": "--seed",
+        "exit": 0,
+        "signal": null,
+        "elapsedMs": 1725.4114590000001,
+        "initialFiles": 11,
+        "finalFiles": 32
+      },
+      {
+        "mode": "--confirmed-seed",
+        "exit": 0,
+        "signal": null,
+        "elapsedMs": 633.4094169999998,
+        "initialFiles": 17,
+        "finalFiles": 29
+      }
+    ],
+    "observedRuntime": "GStreamer core/h264parse(videoparsersbad)/mp4mux(isomp4)1.28.1; actual writer profile gst-qtmux-1.28.1-default-v1; plugin file paths in confirmed-seed.stdout",
+    "builderResults": {
+      "track-77": {
+        "created": true,
+        "error": ""
+      },
+      "track-999": {
+        "created": true,
+        "error": ""
+      }
+    },
+    "boundaryFix": {
+      "finding": "Oversized child chunk or redaction expansion could throw at artifact writer before recording stderr/exit metadata.",
+      "unchangedLimits": "spawn maxBuffer1MiB/timeout10000ms; text output1MiB; no sleep/retry/quota/track change",
+      "before": "Immutable ec5 helper replay:2 failing boundary cases, exact raw output seed-limit-before.stdout/stderr; replay performed after review finding, not chronological TDD",
+      "after": "8 focused seed cases PASS, preserves both bounded streams, original byte counts/SHA and truncation, propagates failure",
+      "notPastCause": "This newly found diagnostic boundary was not observed in62 original failure and is not claimed to explain it."
+    }
+  },
+  "newExecution": {
+    "releaseModelHistory": {
+      "report": "63-execution.tar.gz:release/report.json",
+      "freeze": "release-freeze.json",
+      "execution": {
+        "command": [
+          "node",
+          "/Users/dhseo/Workspace/mediaServer/scripts/internal/va_review_http_checks.mjs"
+        ],
+        "startedAt": "2026-10-07T22:06:12.817308+00:00",
+        "elapsedSeconds": 13.746905667008832,
+        "exit": 0
+      },
+      "assertionsPass": 166,
+      "browserChecks": 13,
+      "trustedUiEvents": 32,
+      "modelCalls": 0,
+      "scope": "real model409/capability/history/A-switch+execution/late capability/role/error recovery/restart checks; fixed historical/owned A fixture; actual provider calls0",
+      "originalActualUiPass": false,
+      "cleanup": {
+        "firstProcess": {
+          "exited": true,
+          "forced": false,
+          "exitCode": 0,
+          "signalCode": null
+        },
+        "secondProcess": {
+          "exited": true,
+          "forced": false,
+          "exitCode": 0,
+          "signalCode": null
+        },
+        "process": {
+          "exited": true,
+          "forced": false,
+          "exitCode": 0,
+          "signalCode": null
+        },
+        "http": {
+          "closed": true,
+          "evidence": "ECONNREFUSED"
+        },
+        "rtsp": {
+          "closed": true,
+          "evidence": "ECONNREFUSED"
+        },
+        "provider": {
+          "closed": true,
+          "evidence": "ECONNREFUSED"
+        },
+        "udpClosed": true,
+        "rootAbsent": true
+      }
+    },
+    "evidenceVisual": {
+      "report": "63-execution.tar.gz:visual/report.json",
+      "execution": {
+        "command": [
+          "node",
+          "/private/tmp/media-server-release63-if986bq_/visual.mjs"
+        ],
+        "startedAt": "2026-10-07T22:12:01.478492+00:00",
+        "elapsedSeconds": 6.9009018749929965,
+        "exit": 0
+      },
+      "actions": [
+        {
+          "id": "expired",
+          "status": "PASS"
+        },
+        {
+          "id": "disabled",
+          "status": "PASS"
+        },
+        {
+          "id": "viewport-320-dark",
+          "status": "PASS"
+        },
+        {
+          "id": "viewport-390-dark",
+          "status": "PASS"
+        },
+        {
+          "id": "viewport-760-dark",
+          "status": "PASS"
+        },
+        {
+          "id": "viewport-1180-dark",
+          "status": "PASS"
+        }
+      ],
+      "pngCount": 12,
+      "expiredDisabled": "Explicit410/503 browser error injection, UI display only; no server TTL/config-disabled reclassification. Context+status screenshots.",
+      "darkClip": "Exact selected assets/8 currentSrc, readyState4,160x90, decoded frame counter, native keyboard play/pause+hover, no CSS/DOM/video attribute override. Counter is cumulative; no per-width fresh-frame count or whole playback completion claim.",
+      "cleanup": {
+        "browserClosed": true,
+        "process": {
+          "exited": true,
+          "forced": false,
+          "exitCode": 0,
+          "signalCode": null
+        },
+        "http": {
+          "closed": true,
+          "evidence": "ECONNREFUSED"
+        },
+        "rtsp": {
+          "closed": true,
+          "evidence": "ECONNREFUSED"
+        },
+        "udpClosed": true,
+        "rootAbsent": true,
+        "sourceUnchanged": true
+      }
+    },
+    "visualSearch": {
+      "report": "63-execution.tar.gz:search/result.json",
+      "execution": {
+        "command": [
+          "node",
+          "/private/tmp/media-server-release63-if986bq_/search.mjs"
+        ],
+        "startedAt": "2026-10-07T22:13:42.008754+00:00",
+        "elapsedSeconds": 20.68572933296673,
+        "exit": 0
+      },
+      "actions": [
+        "english",
+        "korean",
+        "threshold-empty",
+        "tokens63",
+        "tokens64",
+        "invalid-time",
+        "condition-transfer",
+        "seek-play",
+        "evidence",
+        "refresh-binding",
+        "late-search",
+        "late-seek",
+        "operator",
+        "no-source"
+      ],
+      "pass": 14,
+      "scope": "Independent reviewer identified absent61 server stdout/stderr for these14 unique current actions; same assertions plus actual log/DOM/role/console evidence. Existing prepared SigLIP2 text/image inference, not Qwen/Ollama.",
+      "oldActionsNotRecounted": "61 viewport8 retained as cross-cutting visual/geometry evidence; viewer replaced by valid62 viewer denial. Do not add old23+new14 as unique total.",
+      "preparation": {
+        "checks": 9,
+        "representatives": 8,
+        "status": "PREPARATION_PASS",
+        "model": "unchanged models/v430-siglip2",
+        "maxSampledRssBytes": 3209510912
+      },
+      "cleanup": {
+        "browserClosed": true,
+        "fixtureExit": 0,
+        "fixture": {
+          "process": {
+            "exited": true,
+            "forced": false,
+            "exitCode": 0,
+            "signalCode": null
+          },
+          "http": {
+            "closed": true,
+            "evidence": "ECONNREFUSED"
+          },
+          "rtsp": {
+            "closed": true,
+            "evidence": "ECONNREFUSED"
+          },
+          "udpClosed": true,
+          "root": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-visual-ui-iGG6nK",
+          "rootIdentity": "16777232:171141733:501",
+          "rootBytes": 20444627,
+          "rootAbsent": true
+        }
+      }
+    },
+    "visualFollowup": {
+      "report": "63-execution.tar.gz:search-detail/result.json",
+      "execution": {
+        "command": [
+          "node",
+          "/private/tmp/media-server-release63-if986bq_/search-detail.mjs"
+        ],
+        "startedAt": "2026-10-07T22:23:22.793116+00:00",
+        "elapsedSeconds": 17.20812012499664,
+        "exit": 0
+      },
+      "actions": [
+        {
+          "id": "invalid-time",
+          "status": "PASS",
+          "startedAt": "2026-10-07T22:23:37.795Z",
+          "observed": {
+            "newSearchRequests": 0,
+            "errorDisplay": "시작과 종료 시간을 모두 올바르게 입력하세요."
+          },
+          "viewport": {
+            "width": 1180,
+            "height": 1000
+          },
+          "finishedAt": "2026-10-07T22:23:37.982Z"
+        },
+        {
+          "id": "operator-login",
+          "status": "PASS",
+          "startedAt": "2026-10-07T22:23:37.982Z",
+          "observed": {
+            "purpose": "observe login landing resource denial, not repeat search",
+            "route": "/ops/events"
+          },
+          "viewport": {
+            "width": 1180,
+            "height": 1000
+          },
+          "finishedAt": "2026-10-07T22:23:38.471Z"
+        },
+        {
+          "id": "no-source-login",
+          "status": "PASS",
+          "startedAt": "2026-10-07T22:23:38.472Z",
+          "observed": {
+            "purpose": "observe login landing resource denial, not repeat search",
+            "route": "/ops/events"
+          },
+          "viewport": {
+            "width": 1180,
+            "height": 1000
+          },
+          "finishedAt": "2026-10-07T22:23:38.931Z"
+        }
+      ],
+      "reason": "Independent direct visual review found invalid-time screenshot captured after clear. One exact action recaptured before clear; two role-login observations identify403 resource route, not repeat14 actions.",
+      "console403": "New controlled observation: GET /ops/api/users403 from /ops/home for operators. Matches RoleLandingPath and runtime admin guard. Earlier generic console entries are not rewritten with invented historical route fields.",
+      "cleanup": {
+        "browserClosed": true,
+        "fixtureExit": 0,
+        "fixture": {
+          "process": {
+            "exited": true,
+            "forced": false,
+            "exitCode": 0,
+            "signalCode": null
+          },
+          "http": {
+            "closed": true,
+            "evidence": "ECONNREFUSED"
+          },
+          "rtsp": {
+            "closed": true,
+            "evidence": "ECONNREFUSED"
+          },
+          "udpClosed": true,
+          "root": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-visual-ui-LsSI02",
+          "rootIdentity": "16777232:171145677:501",
+          "rootBytes": 18627766,
+          "rootAbsent": true
+        }
+      }
+    }
+  },
+  "reuse": {
+    "recording": "61 recording31 actions;62 independent exact oracle/log/visual/privacy judgment reused",
+    "structuredSearch": "61 structured38 actions;62 independent judgment reused",
+    "evidence": "62 sufficient evidence/clip actions plus63 six missing visuals",
+    "A": "62 A285assertions/21browser checks and7PNG reused; no full A rerun",
+    "materials": "62 materials197assertions/14browser checks and4PNG reused; no full rerun",
+    "visual": "61 valid37 screenshots/cross-cutting viewport/theme+62viewer/status/error actions; missing14 execution logs newly captured,1error visual followed up",
+    "priorPrivacy": "62 final addendum preserved and reused; no duplicate raw archive/re-redaction",
+    "withdrawnRequirement": "62 withdrawal of historical V430 refresh-count removal preserved; current V450-R03 used publication stays valid",
+    "units": "FeatureIDs,actions,assertions,PNG and canonical cases are separate; not summed."
+  },
+  "independentReview": {
+    "status": "PASS_SCOPED_SUPPLEMENT_AND_DELTA_REVIEW",
+    "actor": "/root/independent_release62",
+    "kind": "separate AI review, no implementation/execution/subdelegation, not human approval",
+    "record": "63-independent-review.json",
+    "sha256": "825f3e626c7e6dd5ba997b71ae7c18c48ea8105726da554a57c51c30d1353918",
+    "privacyAddendum": "63-execution.tar.gz:review/63-final-privacy-addendum.json",
+    "reviewedSource": "4dc437b23e89cc7d13519ed68cffa365884ecf70",
+    "remainingRequiredSupplementGaps": [],
+    "newPngDirectlyReviewed": 32,
+    "priorPngReadbackAndDirectReview": 126,
+    "model": "gpt-6-astra / xhigh; 검토 세션 지정, 실제 모델 snapshot은 도구에 노출되지 않음",
+    "notHumanApproval": true
+  },
+  "binding": {
+    "freshCandidateDigest": "137543c6332a73f9a77599bfaca732bd1f54b263adee078fe5d3f8c275775906",
+    "freshCandidateSha256": "5c6281009cc9bd804ff79538ce88ff13e4dc4af051001348095119d32540d6df",
+    "candidateItems": 986,
+    "allItemsAndCandidateBytesIdenticalTo61": true,
+    "producerApplications": 0,
+    "reason": "Existing candidate/approval binding unchanged; separate source delta and supplemental eligibility reviewed independently, no ledger rewrite.",
+    "statics": {
+      "static-comments": {
+        "command": [
+          "./server.sh",
+          "verify-code-comments"
+        ],
+        "startedAt": "2026-10-07T22:15:49.361882+00:00",
+        "elapsedSeconds": 0.39431441703345627,
+        "exit": 0
+      },
+      "static-scripts": {
+        "command": [
+          "./server.sh",
+          "verify-script-inventory"
+        ],
+        "startedAt": "2026-10-07T22:15:49.362389+00:00",
+        "elapsedSeconds": 28.275239999988116,
+        "exit": 0
+      },
+      "static-approvals": {
+        "command": [
+          "./server.sh",
+          "verify-v390-review4-feature-semantic-source-approvals"
+        ],
+        "startedAt": "2026-10-07T22:15:49.365883+00:00",
+        "elapsedSeconds": 21.120561750023626,
+        "exit": 0
+      },
+      "static-plan": {
+        "command": [
+          "node",
+          "scripts/internal/verify_v390_test_acceptance_bundle_contract.mjs",
+          "--v450-plan-only"
+        ],
+        "startedAt": "2026-10-07T22:15:49.371718+00:00",
+        "elapsedSeconds": 1.816587375011295,
+        "exit": 0
+      },
+      "final-syntax": {
+        "command": [
+          "node",
+          "--check",
+          "scripts/internal/va_review_seed_process.mjs"
+        ],
+        "startedAt": "2026-10-07T22:23:47.236044+00:00",
+        "elapsedSeconds": 0.02213283395394683,
+        "exit": 0
+      },
+      "final-whitespace": {
+        "command": [
+          "git",
+          "diff",
+          "--check"
+        ],
+        "startedAt": "2026-10-07T22:23:47.278493+00:00",
+        "elapsedSeconds": 0.011859750025905669,
+        "exit": 0
+      },
+      "final-comments": {
+        "command": [
+          "./server.sh",
+          "verify-code-comments"
+        ],
+        "startedAt": "2026-10-07T22:25:08.276941+00:00",
+        "elapsedSeconds": 0.43298074998892844,
+        "exit": 0
+      },
+      "final-approvals": {
+        "command": [
+          "./server.sh",
+          "verify-v390-review4-feature-semantic-source-approvals"
+        ],
+        "startedAt": "2026-10-07T22:25:08.276873+00:00",
+        "elapsedSeconds": 19.995057375053875,
+        "exit": 0
+      }
+    },
+    "finalApprovalVerification": "final-approvals.json"
+  },
+  "preparationNotes": [
+    {
+      "type": "sandbox observation boundary",
+      "command": "ps read-only final cleanup lookup",
+      "observed": "PermissionError errno1 before child start; approved read-only escalation then ps/lsof absence verified",
+      "rawAvailability": "tool output; metadata here is not reconstructed process stdout"
+    }
+  ],
+  "cleanup": {
+    "checkedAt": "2026-10-07T22:25:11.616295+00:00",
+    "checks": [
+      {
+        "command": [
+          "ps",
+          "-p",
+          "95709,96087,96443,97857",
+          "-o",
+          "pid=,ppid=,stat=,comm="
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "",
+        "observedEmpty": true
+      },
+      {
+        "command": [
+          "lsof",
+          "-nP",
+          "-iTCP:64906,64907,64905,65195,65194,65347,65346,49383,49382",
+          "-sTCP:LISTEN"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "",
+        "observedEmpty": true
+      },
+      {
+        "command": [
+          "lsof",
+          "-nP",
+          "-iUDP:59534,51244,56883,62063"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "",
+        "observedEmpty": true
+      }
+    ],
+    "allRuntimeRootsAbsent": true,
+    "qwenOllamaCalls": 0,
+    "unloadGate": "not-run",
+    "evidenceScratch": "retained until local/remote evidence readback"
+  },
+  "notRun": {
+    "formalAcceptance": 0,
+    "general30": 0,
+    "general120": 0,
+    "canonical424": 0,
+    "linuxGStreamerRevalidation": 0,
+    "qwenOllama": 0,
+    "unloadGate": "not-run",
+    "mixed120": "not-run,separate approval",
+    "publicProcedures": "not-run"
+  },
+  "remaining": [
+    "62 seed historical root cause remains unconfirmed; current original path preparation and execution passed once, no repeated-stability claim",
+    "recording/search/A mixed120 separately authorized execution",
+    "final record lifecycle cleanup",
+    "PR/requiredCI/main merge/signed tag/Release"
+  ],
+  "completionBoundary": "필수 보완 UI 실행·시각 근거·독립 적격성 마감 완료. 61 실제 실행 소스의 acceptance PASS는 유지하며, 원본 actualUiPass/62 FAIL은 수정하지 않는다. 새 전체 suite 실행·전체 출시 검증·공개 가능 판정은 아니다.",
+  "supplementalQualification": {
+    "result": "PASS",
+    "basis": "61/62의 유효한 개별 실행·독립 판단과 63의 새 실행/시각/정보 비노출 판단을 범위별 결합. canonical424에 보완 action을 합산하지 않음.",
+    "remainingRequiredActions": [],
+    "historicalRootCause": "62 K09 원인 미확정은 그대로 보존; 사용자 승인에 따라 원래 연속 경로의 새 준비 성공 뒤 해당 HTTP/UI를 1회 수행. 반복 안정성/과거 원인 해결을 주장하지 않음.",
+    "wholeReleasePass": false
+  },
+  "preservation": {
+    "archive": "63-execution.tar.gz",
+    "manifest": "63-execution-manifest.json",
+    "reviewOriginal": "63-independent-review.json",
+    "privacy": "140개 보존 후보 중136개 원본 동일,4개 서버로그 정제본. 정제 전후 bytes/hash를 별도 보존하며 원본과 동일하다고 표시하지 않음. 이후 정적/검토 원본은 별도 member로 보존.",
+    "priorReferences": "동일한62 seed.cpp/observer 및61 candidate는 재복사하지 않고 prior-reference-readback.json으로 실제 바이트 결속.",
+    "remoteStatus": "후속 일반 push와 원격 SHA/객체 readback 예정; 실제 결과는 최종 보고.",
+    "cleanupTiming": "실행 서버/브라우저/포트/fixture root 정리 완료. 보존용 소유 scratch는 원격 바이트 보존 확인 후 삭제하고 최종 보고.",
+    "sha256": "7342fdb32345df170cc9e3c61a1c396ec1b91f693205cf18adcb56f8378d0fc2",
+    "bytes": 8370978,
+    "files": 159,
+    "uncompressedBytes": 9391043,
+    "archiveReadback": "all members byte/hash equal; no duplicate/path escape/symlink",
+    "statics": {
+      "final-docs-links": {
+        "command": [
+          "./server.sh",
+          "verify-docs-links"
+        ],
+        "startedAt": "2026-10-07T22:33:22.356723+00:00",
+        "elapsedSeconds": 0.3550189579837024,
+        "exit": 0
+      },
+      "final-docs-whitespace": {
+        "command": [
+          "git",
+          "diff",
+          "--check"
+        ],
+        "startedAt": "2026-10-07T22:33:22.356712+00:00",
+        "elapsedSeconds": 0.015011582989245653,
+        "exit": 0
+      }
+    }
+  }
+}
