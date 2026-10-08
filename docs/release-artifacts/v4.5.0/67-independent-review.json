@@ -368,5 +368,70 @@
       "final image retained observation"
     ],
     "overallBoundary": "전체필수 Linux FAIL·혼합120 미실행·릴리즈미승인은 유지. 이 승인은 정확히 고정된 부분결과/실패 보존자료에 한함."
+  },
+  "finalPreservationCleanupAddendum": {
+    "reviewedAt": "2026-10-08T13:48:02.178449+00:00",
+    "decision": "approved for completed preservation and owned cleanup only",
+    "authorshipBoundary": "동일 독립 검토자의 후속 보존·정리 판단. 소유 scratch 삭제 후 이 저장소 판단파일 한 곳에 부록만 추가. 제품/검사/모델/네트워크/Docker 재실행이나 재위임 없음.",
+    "originalReview": {
+      "commit": "b8e2593e18116560fd0695e5285067fdccd69eb0",
+      "path": "docs/release-artifacts/v4.5.0/67-independent-review.json",
+      "bytes": 19610,
+      "sha256": "d6e6b13919f7f508c3c15a23496b698be0570784874053f0cfe10d6ecc8cc4f6",
+      "allOriginalFieldsPreserved": true,
+      "removeThisAddendumAndSerializeExactlyMatchesPreservedBytes": true,
+      "historicalPendingStatements": "앞선 시각의 pending은 소급 변경하지 않으며 이번 후속 관측으로만 충족 여부를 갱신."
+    },
+    "preservation": {
+      "initialPushExit": 0,
+      "observedRemoteHead": "b8e2593e18116560fd0695e5285067fdccd69eb0",
+      "remoteReadbackExit": 0,
+      "localGitWorktreeRemoteByteEqualRows": 5,
+      "localPreservedGitBytesIndependentlyChecked": 5,
+      "localPreservedGitByteMismatches": 0,
+      "postArchiveReceiptStreamsHashChecked": 12,
+      "postArchiveReceiptHashMismatches": 0,
+      "remoteEvidenceBoundary": "실제 실행된 원문/receipt에 근거. 검토자가 네트워크를 다시 조회하거나 원격 상태의 영구성을 보장하지 않음.",
+      "archiveBytes": 138492,
+      "archiveSha256": "b6281b3d3b13b2208d6607a921fb886f4c4c01f52590c0e47ec1bad6ebae57c7",
+      "archiveIndexedFilesReread": 88,
+      "archiveIndexMismatch": 0,
+      "archiveRebuilt": false,
+      "reviewInputSha256Unchanged": "43650727512e319afc28c3843a2a0f655b9081eff4ff857037f09a121d1b6f82"
+    },
+    "cleanup": {
+      "ownedContainerId": "f2ea709d82b3b5eb282892714cda20ed6fc909242d41cf6df36404306ccbb7f2",
+      "exactRemovalExit": 0,
+      "absenceEvidence": "실제 후속 inspect exit1, No such container와 [] 원문. 검토자가 Docker 재조회하지 않음.",
+      "retainedImageId": "sha256:ce72c8a15363984da642e9964189957896812061c6af1d0ef67e87b38ad5a588",
+      "retainedImageReadbackExit": 0,
+      "temporaryRoot": "/private/tmp/media-server-release67-fpdb_iat",
+      "owner": {
+        "uid": 501,
+        "inode": 171289387,
+        "device": 16777232
+      },
+      "ownerRecordMatchesOriginalArchive": true,
+      "reportedSymlinksBeforeRemoval": 0,
+      "reportedOwnershipMatched": true,
+      "reportedRemovalAt": "2026-10-08T13:46:31.961442+00:00",
+      "removalOrder": "원격 full-byte 보존 확인 후 정확한 소유 container 제거 및 scratch 삭제",
+      "rootAbsenceIndependentlyObserved": true,
+      "absenceMethod": "os.path.lexists false; dangling symlink도 없음",
+      "processScope": "host 서버/포트/장시간 작업 시작0으로 기록된 범위. 신규 host process probe 또는 제품 graceful-stop 검증을 수행한 것으로 확대하지 않음."
+    },
+    "scopeRetained": {
+      "codeDelta": "approved",
+      "legacyEquivalence": "approved",
+      "K07DirectRegression": "approved",
+      "ARequiredWrapper": "fix-required",
+      "overall": "insufficient",
+      "mixed120Attempts": 0,
+      "releaseApproval": false,
+      "originalFailurePreserved": true,
+      "newProducerApplications": 0
+    },
+    "remaining": "A 필수 legacy 쓰기실패 주입 검사 FAIL의 승인된 후속 해결/재검증과 미실행 소비자·혼합120은 그대로 남음. 현재 실패 실행의 보존·소유정리는 확인 완료. 이 부록의 후속 commit/push 여부는 작성 시점에 관측하지 않음.",
+    "modelProvenance": "기존 reviewer requestedModel/effort와 actualRuntime null 필드를 그대로 유지. 실제 runtime/snapshot 노출 확인 없음."
   }
 }
