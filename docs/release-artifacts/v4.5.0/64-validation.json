@@ -481,7 +481,7 @@
       "matchingProcesses": ""
     },
     "independentlyObservedRuntimeRootAbsent": true,
-    "parentScratchDisposition": "raw copies retained until final ordinary push/ref readback; then remove only owned root; actual final deletion reported after push"
+    "parentScratchDisposition": "removed after actual remote four-blob byte readback; see finalization"
   },
   "preservation": {
     "archive": "64-execution.tar.gz",
@@ -496,7 +496,7 @@
     "archivedMembers": 93,
     "privacyBoundary": "account/session files and credentials excluded; raw server log transformed by documented URL/path substitutions. Actual repository command/cwd/fixture paths remain for provenance, not a homepath-free claim.",
     "archiveVerificationAfterCommit": "92 indexed members SHA/bytes read from Git archive; 61 A originals byte-compared before runtime removal; archive-index is the93rd member",
-    "remote": "pending final ordinary push; result never assumed from local origin tracking ref",
+    "remote": "original archives, independent judgment and pre-finalization validation verified byte-for-byte at d0d796ff3; this cleanup metadata added afterward",
     "finalReviewBytes": 61136
   },
   "remaining": [
@@ -545,5 +545,57 @@
         "rawEncoding": "UTF-8; strings retain original bytes on re-encoding"
       }
     ]
+  },
+  "finalization": {
+    "recordedAt": "2026-10-08T10:42:51.114850+00:00",
+    "pushedAndObservedRemoteCommit": "d0d796ff3c99b018e034086c810517cd57275de7",
+    "ordinaryPushExit": 0,
+    "remoteBlobReadback": [
+      {
+        "file": "docs/release-artifacts/v4.5.0/64-preparation.tar.gz",
+        "blob": "86791c6bddd56ab5a3d2d19a14645e0746a4c1eb",
+        "exit": 0,
+        "elapsedSeconds": 0.7100537089863792,
+        "bytes": 206633,
+        "sha256": "dab38822d8ef4628137917f0d0fdab9d9fdea17a41fae2589e323a683efbf31b",
+        "sameBytes": true
+      },
+      {
+        "file": "docs/release-artifacts/v4.5.0/64-execution.tar.gz",
+        "blob": "5836c6b6f1327c6831c9eb558cbc1e88b58afd51",
+        "exit": 0,
+        "elapsedSeconds": 0.7190713330637664,
+        "bytes": 384739,
+        "sha256": "9987753f3ec25f0a41079967c50848f537055d065846d8db973c8cadde56d037",
+        "sameBytes": true
+      },
+      {
+        "file": "docs/release-artifacts/v4.5.0/64-independent-review.json",
+        "blob": "e2341fadb68d507eb6e8799fbcae08b2398f6e74",
+        "exit": 0,
+        "elapsedSeconds": 0.3801620419835672,
+        "bytes": 61136,
+        "sha256": "5f90e8db5b931078a0d36726dfce801e3a724df5ed41874d975b42d20e7d0bdb",
+        "sameBytes": true
+      },
+      {
+        "file": "docs/release-artifacts/v4.5.0/64-validation.json",
+        "blob": "27e1661a2b80c81017c6dc96293d54985371663f",
+        "exit": 0,
+        "elapsedSeconds": 0.3739579999819398,
+        "bytes": 20748,
+        "sha256": "0feb69f4f1db1385c8a4a95bf65514bea91da9ebc61784ba5f90e492b415e418",
+        "sameBytes": true
+      }
+    ],
+    "readbackScope": "These exact four blobs at d0d796ff3 were read from GitHub. This later finalization metadata is not represented as part of that prior blob readback. Archive and independent judgment bytes unchanged.",
+    "ownedScratchIdentity": {
+      "path": "/private/tmp/media-server-release64-d4ane5jz",
+      "uid": 501,
+      "inode": 171207062
+    },
+    "runtimeAlreadyAbsent": true,
+    "unrelatedDataTouched": false,
+    "ownedScratchAbsent": true
   }
 }
