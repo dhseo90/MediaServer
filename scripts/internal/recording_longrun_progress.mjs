@@ -129,3 +129,36 @@ export class LongrunProgress {
   }
   finish(now){const s=this.status(now);if(s.elapsedMs<7200000||Object.values(this.channels).some(c=>!c.finalized||!c.deleted))throw Error('longrun-incomplete');return s;}
 }
+
+// 원래 프로세스 로그 상한을 유지한다. 짧은 쓰기도 수집 실패이며 다른 제품 로그를 필터링하지 않는다.
+export function captureBoundedProcessLog(app,chunk,write,stop){
+  app.bytes+=chunk.length;
+  if(app.bytes>4*1024*1024){app.overflow=true;app.captureError='byte-cap';stop();return;}
+  try{if(write(chunk)!==chunk.length)throw Error('short-write');}
+  catch{app.overflow=true;app.captureError='write-failed';stop();return;}
+  const marker=(app.traceTail??'')+chunk.toString('utf8');app.traceTail=marker.slice(-64);
+  if(/\[visual-frame\] trace-(output-failed|config-invalid)/.test(marker)){
+    app.overflow=true;app.captureError='decoder-trace-collection';stop();
+  }
+}
+// 실제 반환 실패와 성공 중 후보 element 관측을 구분한다. 없거나 잘린 진단은 적격 수집이 아니다.
+export function frameTraceSummary(text,mode,required=true){
+  const result={status:'captured',mode,required,records:0,successes:0,failures:0,issues:[]};
+  if(!['full','bounded'].includes(mode))result.issues.push('invalid-expected-mode');
+  for(const line of text.split('\n').filter(v=>v.startsWith('[visual-frame] '))){
+    try{const r=JSON.parse(line.slice(15));
+      if(r.mode!==mode||typeof r.succeeded!=='boolean'||!Array.isArray(r.events)||
+        !['target','fd','bytes','budgetMs','requestStartNs','pid','samples','offsetBefore','offsetAfter','droppedEvents','droppedFactories'].every(k=>Number.isFinite(r[k]))||typeof r.first!=='string'||typeof r.error!=='string')throw Error();
+      result.records++;if(r.succeeded)result.successes++;else result.failures++;
+      if(r.droppedEvents||r.droppedFactories)result.issues.push('detail-truncated');
+    }catch{result.issues.push('invalid-or-write-failed-record');}
+  }
+  if(!result.records){if(required)result.issues.push('missing');else result.status='not-observed';}
+  if(mode==='bounded'&&result.successes>3)result.issues.push('success-limit');
+  result.issues=[...new Set(result.issues)];if(result.issues.length)result.status='incomplete';return result;
+}
+
+// 마지막 budget 이후 정상 종료와 경합한 수집 실패도 최종 판정에서 제거하지 않는다.
+export function processLogCaptureComplete(app,capturedBytes){
+  return !app.overflow&&!app.captureError&&app.bytes===capturedBytes&&app.bytes<=4*1024*1024;
+}

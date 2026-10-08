@@ -1,5 +1,7 @@
 // 파일 용도: 실제 MP4 표시 시각·RGB·FD offset과 거부/취소 경계를 확인한다.
 #include "recording/visual_frame_decoder.h"
+#include "recording/evidence_frame_extractor.h"
+#include <cstring>
 #include <fcntl.h>
 #include <atomic>
 #include <fstream>
@@ -16,7 +18,7 @@ int checks=0;
 void Check(bool b,const char* name){++checks;if(!b)throw std::runtime_error(name);}
 }
 int main(int argc,char**argv){int fd=-1;try{
-    if(argc!=2)return 2;
+    if(argc!=2&&(argc!=3||std::strcmp(argv[2],"--trace-probe")))return 2;
 #if MEDIA_SERVER_USE_GSTREAMER
     gst_init(nullptr,nullptr);
     const std::string launch="videotestsrc num-buffers=100 pattern=red ! video/x-raw,width=160,height=90,framerate=25/1 ! videoconvert ! x264enc tune=zerolatency ! h264parse ! mp4mux ! filesink name=output";
@@ -39,6 +41,14 @@ int main(int argc,char**argv){int fd=-1;try{
         Check(frame.width==160&&frame.height==90&&std::llabs(frame.presentation_ns-ns)<=1&&frame.rgb.size()==160*90*3,"frame geometry and presentation");
         for(std::size_t pixel=0;pixel<frame.rgb.size();pixel+=3)Check(frame.rgb[pixel]>220&&frame.rgb[pixel+1]<30&&frame.rgb[pixel+2]<30,"independent red color oracle");
         Check(::lseek(fd,0,SEEK_CUR)==37,"offset unchanged");
+    }
+    if(argc==3){
+        const auto expected=frame.rgb;
+        for(unsigned i=0;i<20;++i)Check(recording::DecodeVisualFrame(fd,st.st_size,0,&frame,&error)&&frame.rgb==expected,"many exact successes");
+        Check(!recording::DecodeVisualFrame(fd,st.st_size,20000000,&frame,&error)&&error=="visual-frame-unavailable"&&frame.rgb==expected,"late actual missing exact frame");
+        for(unsigned i=0;i<2;++i)Check(recording::DecodeVisualFrame(fd,st.st_size,0,&frame,&error)&&frame.rgb==expected,"success after failure");
+        Check(::lseek(fd,0,SEEK_CUR)==37,"trace probe offset unchanged");::close(fd);
+        std::cout<<"PASS trace probe rgb="<<recording::EvidenceSha256(expected.data(),expected.size())<<" failure=visual-frame-unavailable offset=37\n";return 0;
     }
     // 실제 codec는 정상이나 제품 추출 해상도 상한을 넘는 독립 입력.
     const auto wide_path=std::string(argv[1])+".wide.mp4";

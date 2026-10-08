@@ -25,7 +25,7 @@ using Clock=std::chrono::steady_clock;
 // 진단은 요청별 고정 공간만 사용한다. callback은 서로 다른 슬롯에 쓰고 NULL 완료 뒤 한 번 출력한다.
 struct DecodeTrace {
     struct Event {const char* kind{nullptr};std::int64_t a{0},b{0},c{0},d{0};char text[160]{};};
-    bool enabled;int fd;std::uint64_t bytes;std::int64_t target;std::uint32_t budget;
+    bool enabled,bounded{false},invalid_setting{false},succeeded{false};int fd;std::uint64_t bytes;std::int64_t target;std::uint32_t budget;
     std::string* error;Clock::time_point started{Clock::now()};
     std::array<Event,32> events{};std::array<Event,16> factories{};
     std::atomic<unsigned> event_count{0},factory_count{0},needs{0},seeks{0},pads{0},samples{0};
@@ -33,7 +33,10 @@ struct DecodeTrace {
     std::int64_t offset_before{-1},first_pts{-1},last_pts{-1},last_stream{-1};
     struct stat before{};bool before_valid{false},found{false},failed{false},video{false},unsupported{false},null_done{false};
     explicit DecodeTrace(int f,std::uint64_t n,std::int64_t t,std::uint32_t ms,std::string* e)
-        :enabled([]{const auto* value=std::getenv("MEDIA_SERVER_VERIFY_FRAME_TRACE");return value&&std::strcmp(value,"1")==0;}()),fd(f),bytes(n),target(t),budget(ms),error(e){
+        :enabled(false),fd(f),bytes(n),target(t),budget(ms),error(e){
+        const auto* value=std::getenv("MEDIA_SERVER_VERIFY_FRAME_TRACE");
+        bounded=value&&std::strcmp(value,"bounded")==0;enabled=bounded||(value&&std::strcmp(value,"1")==0);
+        invalid_setting=value&&*value&&std::strcmp(value,"0")&& !enabled;
         if(enabled){offset_before=::lseek(fd,0,SEEK_CUR);before_valid=::fstat(fd,&before)==0;}
     }
     static void Text(char* out,const char* in){if(!in)return;unsigned i=0;for(;in[i]&&i<159;++i){const unsigned char c=in[i];out[i]=(c>=32&&c<127&&c!='"'&&c!='\\')?char(c):'_';}out[i]=0;}
@@ -60,9 +63,17 @@ struct DecodeTrace {
     static void Removed(GstBin*,GstBin*,GstElement* element,gpointer user){auto& t=*static_cast<DecodeTrace*>(user);if(t.closing)return;
         auto* factory=gst_element_get_factory(element);if(factory)t.Add("factory-removed",0,0,0,0,gst_plugin_feature_get_name(GST_PLUGIN_FEATURE(factory)));
     }
-    ~DecodeTrace(){if(!enabled)return;try{
+    // 성공 표본과 실패 기록의 예산을 분리한다. callback 밖에서만 출력하며 실패는 표본 제한을 적용하지 않는다.
+    static bool SuccessSample(){static std::atomic<unsigned> count{0};unsigned n=count.load();
+        while(n<3){if(count.compare_exchange_weak(n,n+1))return true;}return false;}
+    static void OutputFailure(const char* marker){
+        // stderr 자체가 실패한 경우 stdout의 별도 수집 경로에 상태만 남긴다. decoder 반환값은 바꾸지 않는다.
+        if(std::fputs(marker,stderr)<0||std::fflush(stderr)!=0){std::fputs(marker,stdout);std::fflush(stdout);}
+    }
+    ~DecodeTrace(){if(invalid_setting){OutputFailure("[visual-frame] trace-config-invalid\n");return;}
+      if(!enabled||(bounded&&succeeded&&!SuccessSample()))return;try{
         struct stat after{};const bool valid=::fstat(fd,&after)==0;
-        std::ostringstream o;o<<"[visual-frame] {\"target\":"<<target<<",\"fd\":"<<fd<<",\"bytes\":"<<bytes<<",\"budgetMs\":"<<budget
+        std::ostringstream o;o<<"[visual-frame] {\"mode\":\""<<(bounded?"bounded":"full")<<"\",\"succeeded\":"<<(succeeded?"true":"false")<<",\"target\":"<<target<<",\"fd\":"<<fd<<",\"bytes\":"<<bytes<<",\"budgetMs\":"<<budget
           <<",\"requestStartNs\":"<<std::chrono::duration_cast<std::chrono::nanoseconds>(started.time_since_epoch()).count()<<",\"pid\":"<<::getpid()<<",\"elapsedUs\":"<<std::chrono::duration_cast<std::chrono::microseconds>(Clock::now()-started).count()
           <<",\"offsetBefore\":"<<offset_before<<",\"offsetAfter\":"<<::lseek(fd,0,SEEK_CUR)<<",\"beforeValid\":"<<before_valid<<",\"afterValid\":"<<valid
           <<",\"devBefore\":"<<before.st_dev<<",\"inoBefore\":"<<before.st_ino<<",\"sizeBefore\":"<<before.st_size
@@ -75,8 +86,8 @@ struct DecodeTrace {
         for(unsigned i=0;i<std::min<unsigned>(event_count,events.size());++i)emit(events[i]);
         for(unsigned i=0;i<std::min<unsigned>(factory_count,factories.size());++i)emit(factories[i]);if(bus_seen)emit(bus);if(first.load())emit(first_event);
         o<<"],\"droppedEvents\":"<<(event_count>events.size()?event_count-events.size():0)<<",\"droppedFactories\":"<<(factory_count>factories.size()?factory_count-factories.size():0)<<"}\n";
-        const auto line=o.str();std::fwrite(line.data(),1,line.size(),stderr);
-    }catch(...){std::fputs("[visual-frame] trace-output-failed\n",stderr);}}
+        const auto line=o.str();if(std::fwrite(line.data(),1,line.size(),stderr)!=line.size()||std::fflush(stderr)!=0)OutputFailure("[visual-frame] trace-output-failed\n");
+    }catch(...){OutputFailure("[visual-frame] trace-output-failed\n");}}
 };
 struct Context {
     int fd;std::uint64_t bytes,offset{0};Clock::time_point deadline;
@@ -214,7 +225,7 @@ bool DecodeVisualFrame(int fd,std::uint64_t bytes,std::int64_t target,VisualRgbF
         before.st_mtime!=after.st_mtime||before.st_ctime!=after.st_ctime)return Fail(error,"visual-frame-file-changed");
     if(context.unsupported)return Fail(error,"visual-frame-unsupported");
     if(context.failed||!found)return Fail(error,"visual-frame-unavailable");
-    *output=std::move(result);if(error)error->clear();return true;
+    *output=std::move(result);if(error)error->clear();trace.succeeded=true;return true;
 #else
     (void)cancelled;return Fail(error,"visual-frame-disabled");
 #endif

@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {spawnSync} from 'node:child_process';
-import {parseLongrunArgs, LongrunProgress, sampleContinuity,nextRecordingSettings,mediaAbsent} from './recording_longrun_progress.mjs';
+import {parseLongrunArgs, LongrunProgress, sampleContinuity,nextRecordingSettings,mediaAbsent,frameTraceSummary,captureBoundedProcessLog,processLogCaptureComplete} from './recording_longrun_progress.mjs';
 let passed=0,failed=0; const start=Date.now();
 function check(name,fn){try{fn();passed++;console.log(`[pass] ${name}`);}catch{failed++;console.log(`[fail] ${name}`);}}
 check('explicit 120 minutes accepted',()=>assert.equal(parseLongrunArgs(['--duration-minutes','120']),7200000));
@@ -78,5 +78,16 @@ check('S09-LD01 missing timestamp diagnostics remain specific and redacted',()=>
     });
   }
 });
-if(passed+failed!==45)failed++;
+const diagnostic={mode:'bounded',succeeded:true,events:[],target:0,fd:3,bytes:100,budgetMs:5000,requestStartNs:1,pid:2,samples:1,offsetBefore:37,offsetAfter:37,droppedEvents:0,droppedFactories:0,first:'',error:''};
+const trace=r=>'[visual-frame] '+JSON.stringify(r)+'\n';
+check('trace late actual failure is not successful fallback observation',()=>{const r=frameTraceSummary(trace({...diagnostic,first:'bus-error'})+trace({...diagnostic,succeeded:false,first:'eos-no-target',error:'visual-frame-unavailable'}),'bounded');assert.equal(r.status,'captured');assert.equal(r.successes,1);assert.equal(r.failures,1);});
+check('trace absent partial invalid setting write failure rejected',()=>{for(const s of ['', '[visual-frame] {', '[visual-frame] trace-config-invalid', '[visual-frame] trace-output-failed'])assert.equal(frameTraceSummary(s,'bounded').status,'incomplete');});
+check('trace detail truncation and wrong mode rejected',()=>{for(const r of [{...diagnostic,droppedEvents:1},{...diagnostic,droppedFactories:1},{...diagnostic,mode:'full'}])assert.equal(frameTraceSummary(trace(r),'bounded').status,'incomplete');assert.equal(frameTraceSummary(trace(diagnostic),'invalid').status,'incomplete');});
+check('trace success limit never suppresses failure coverage',()=>{assert.equal(frameTraceSummary(trace(diagnostic).repeat(4),'bounded').status,'incomplete');assert.equal(frameTraceSummary(trace({...diagnostic,succeeded:false}).repeat(10),'bounded').failures,10);});
+check('process capture preserves bytes and enforces original4MiB cap',()=>{const a={bytes:0};let stops=0,written=0;captureBoundedProcessLog(a,Buffer.alloc(4*1024*1024),b=>{written+=b.length;return b.length;},()=>stops++);assert.equal(stops,0);captureBoundedProcessLog(a,Buffer.from('x'),()=>{throw Error();},()=>stops++);assert.equal(stops,1);assert.equal(written,4*1024*1024);assert.equal(a.captureError,'byte-cap');});
+check('process capture write failure and short write stop child',()=>{for(const write of [()=>{throw Error('injected');},()=>0]){const a={bytes:0};let stops=0;captureBoundedProcessLog(a,Buffer.from('x'),write,()=>stops++);assert.equal(stops,1);assert.equal(a.captureError,'write-failed');assert.equal(a.overflow,true);}});
+check('split diagnostic write failure marker stops capture without dropping product logs',()=>{const a={bytes:0};let stops=0,text='';const write=b=>{text+=b;return b.length;};for(const v of ['product error\n[visual-fr','ame] trace-output-failed\n'])captureBoundedProcessLog(a,Buffer.from(v),write,()=>stops++);assert.equal(stops,1);assert.equal(a.captureError,'decoder-trace-collection');assert.match(text,/product error/);assert(a.traceTail.length<=64);});
+check('readback without decode is explicitly not observed; required decode missing still fails',()=>{assert.equal(frameTraceSummary('','bounded',false).status,'not-observed');assert.equal(frameTraceSummary('','bounded',true).status,'incomplete');assert.equal(frameTraceSummary('[visual-frame] trace-output-failed','bounded',false).status,'incomplete');});
+check('late capture error survives successful child exit and previously valid trace',()=>{assert(processLogCaptureComplete({bytes:1},1));for(const a of [{bytes:1,overflow:true},{bytes:1,captureError:'write-failed'},{bytes:2},{bytes:4194305}])assert.equal(processLogCaptureComplete({...a,childExit:0},1),false);});
+if(passed+failed!==54)failed++;
 console.log(`[summary] passed=${passed} failed=${failed} elapsedMs=${Date.now()-start}`);process.exitCode=failed?1:0;
