@@ -1,6 +1,8 @@
 // 파일 용도: 실제 MP4 표시 시각·RGB·FD offset과 거부/취소 경계를 확인한다.
 #include "recording/visual_frame_decoder.h"
 #include <fcntl.h>
+#include <atomic>
+#include <fstream>
 #include <sys/stat.h>
 #include <unistd.h>
 #include <iostream>
@@ -24,7 +26,8 @@ int main(int argc,char**argv){int fd=-1;try{
     const auto state=gst_element_set_state(pipeline,GST_STATE_PLAYING);GstBus* bus=gst_element_get_bus(pipeline);
     GstMessage* message=gst_bus_timed_pop_filtered(bus,5*GST_SECOND,static_cast<GstMessageType>(GST_MESSAGE_ERROR|GST_MESSAGE_EOS));
     const bool generated=state!=GST_STATE_CHANGE_FAILURE&&message&&GST_MESSAGE_TYPE(message)==GST_MESSAGE_EOS;
-    if(message)gst_message_unref(message);gst_object_unref(bus);gst_element_set_state(pipeline,GST_STATE_NULL);gst_object_unref(pipeline);
+    if(message)gst_message_unref(message);
+    gst_object_unref(bus);gst_element_set_state(pipeline,GST_STATE_NULL);gst_object_unref(pipeline);
     Check(generated,"fixture generated within five seconds");
 #endif
     fd=::open(argv[1],O_RDONLY);struct stat st{};Check(fd>=0&&::fstat(fd,&st)==0,"fixture open");
@@ -47,7 +50,8 @@ int main(int argc,char**argv){int fd=-1;try{
     GstBus* wide_bus=gst_element_get_bus(wide_pipeline);
     GstMessage* wide_message=gst_bus_timed_pop_filtered(wide_bus,5*GST_SECOND,static_cast<GstMessageType>(GST_MESSAGE_ERROR|GST_MESSAGE_EOS));
     const bool wide_ok=wide_state!=GST_STATE_CHANGE_FAILURE&&wide_message&&GST_MESSAGE_TYPE(wide_message)==GST_MESSAGE_EOS;
-    if(wide_message)gst_message_unref(wide_message);gst_object_unref(wide_bus);
+    if(wide_message)gst_message_unref(wide_message);
+    gst_object_unref(wide_bus);
     gst_element_set_state(wide_pipeline,GST_STATE_NULL);gst_object_unref(wide_pipeline);
     Check(wide_ok,"wide fixture generated within five seconds");
     const int wide_fd=::open(wide_path.c_str(),O_RDONLY);struct stat wide_stat{};
@@ -61,6 +65,14 @@ int main(int argc,char**argv){int fd=-1;try{
     for(const auto ns:{20000000LL,4000000000LL})Check(!recording::DecodeVisualFrame(fd,st.st_size,ns,&frame,&error)&&frame.rgb==before,"no neighboring substitute");
     Check(!recording::DecodeVisualFrame(fd,st.st_size,0,&frame,&error,[]{return true;})&&error=="visual-cancelled"&&frame.rgb==before,"cancellation preserves output");
     Check(!recording::DecodeVisualFrame(fd,st.st_size-1,0,&frame,&error)&&frame.rgb==before,"size mismatch");
+    // 별도 소유 복사본을 실제 취소 확인 지점에서 줄인다. 원 fixture/호출자 offset과 출력은 보존한다.
+    const auto changed_path=std::string(argv[1])+".changed.mp4";
+    {std::ifstream input(argv[1],std::ios::binary);std::ofstream copy(changed_path,std::ios::binary);copy<<input.rdbuf();Check(bool(input)&&bool(copy),"change fixture copy");}
+    const int changed_fd=::open(changed_path.c_str(),O_RDWR);Check(changed_fd>=0,"change fixture descriptor");
+    std::atomic<unsigned> calls{0};std::atomic<bool> changed{false};
+    const bool change_result=recording::DecodeVisualFrame(changed_fd,st.st_size,0,&frame,&error,[&]{if(calls.fetch_add(1)==1)changed=::ftruncate(changed_fd,st.st_size-1)==0;return false;});
+    const auto change_error=error;const bool descriptor_open=::fcntl(changed_fd,F_GETFD)!=-1;::close(changed_fd);
+    Check(changed&&!change_result&&change_error=="visual-frame-file-changed"&&frame.rgb==before&&descriptor_open,"actual file change refuses and preserves output/FD");
 #else
     Check(!recording::DecodeVisualFrame(fd,st.st_size,0,&frame,&error)&&error=="visual-frame-disabled"&&frame.rgb==std::vector<std::uint8_t>{42},"disabled refusal");
 #endif

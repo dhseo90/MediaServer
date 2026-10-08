@@ -9,7 +9,7 @@ export function requireMixedWindows(windows){
   assert(windows.length===3&&windows.every(w=>w.structured>0&&w.visual>0&&w.evidence>0&&w.visualEvidence>0),'mixed early middle late work missing');
 }
 export class AOpportunities {
-  constructor(start,duration){assert(duration===30000||duration===7200000);this.start=start;this.end=start+duration;this.next=0;this.maximum=duration===30000?1:120;this.rows=[];}
+  constructor(start,duration){assert(duration===30000||duration===600000||duration===7200000);this.start=start;this.end=start+duration;this.next=0;this.maximum=duration===30000?1:duration===600000?10:120;this.rows=[];}
   take(now,busy){if(now>=this.end||this.next>=this.maximum||now<this.start+this.next*60000)return null;
     // 지연된 기회를 한꺼번에 접수하지 않는다. 지나간 기회는 별도 미접수로 보존한다.
     const due=Math.min(this.maximum-1,Math.floor((now-this.start)/60000));

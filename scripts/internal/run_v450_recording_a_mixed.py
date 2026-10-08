@@ -174,8 +174,8 @@ def source_binding(repo):
 
 
 def main():
-    if len(sys.argv) != 3 or sys.argv[1] not in ('--prepare', '--120'):
-        raise SystemExit('usage: run_v450_recording_a_mixed.py --prepare|--120 /private/tmp/media-server-.../new-run')
+    if len(sys.argv) != 3 or sys.argv[1] not in ('--prepare', '--120', '--frame-diagnostic'):
+        raise SystemExit('usage: run_v450_recording_a_mixed.py --prepare|--120|--frame-diagnostic /private/tmp/media-server-.../new-run')
     repo = Path(__file__).resolve().parents[2]
     directory = Path(sys.argv[2])
     if not directory.is_absolute() or not str(directory).startswith('/private/tmp/media-server-') or directory.exists():
@@ -185,11 +185,11 @@ def main():
     if sys.argv[1] == '--120' and subprocess.check_output(['git', 'status', '--porcelain'], cwd=repo):
         raise SystemExit('commit source before long observation')
     directory.mkdir(mode=0o700)
-    timeout = 180 if sys.argv[1] == '--prepare' else 7380
+    timeout = 180 if sys.argv[1] == '--prepare' else 780 if sys.argv[1] == '--frame-diagnostic' else 7380
     command = ['bash', str(repo / 'scripts/internal/verify_v450_recording_a_mixed.sh')] + (
-        ['--app-observe'] if sys.argv[1] == '--prepare' else ['--duration-minutes', '120'])
+        ['--app-observe'] if sys.argv[1] == '--prepare' else ['--frame-diagnostic'] if sys.argv[1] == '--frame-diagnostic' else ['--duration-minutes', '120'])
     record = {'command': command, 'startedAt': utc_now(), 'status': 'RUNNING', 'source': source_binding(repo),
-              'timeoutSeconds': timeout, 'observationSeconds': 30 if sys.argv[1] == '--prepare' else 7200,
+              'timeoutSeconds': timeout, 'observationSeconds': 30 if sys.argv[1] == '--prepare' else 600 if sys.argv[1] == '--frame-diagnostic' else 7200,
               'wrapperSha256': hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
               'resourceTrendPass': False, 'reviewRequired': True, 'uiFulltestPass': False}
     receipt = directory / 'execution.json'

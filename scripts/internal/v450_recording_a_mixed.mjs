@@ -20,11 +20,12 @@ import {summarizeSpawnDiagnostic,validatedPhaseReceipt,snapshotTree,copyVerified
 import {removeDiagnosticRoot} from "./recording_failure_capture.mjs";
 const repo=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');
 const root=process.argv[2],args=process.argv.slice(3),short=args.length===1&&args[0]==='--app-observe';
-const duration=short?30000:parseLongrunArgs(args),diagnose=false;
+const diagnose=args.length===1&&args[0]==='--frame-diagnostic';
+const duration=short?30000:diagnose?600000:parseLongrunArgs(args);
 const artifacts=createReviewTestArtifacts(repo);
 let aLoad=null,auth=null,seedInfo=null;const passwords=createUiAuthPasswords();
 if(!path.isAbsolute(root)||fs.realpathSync(root)!==root||!path.basename(root).startsWith('media-server-current-observer-')||(fs.statSync(root).mode&0o777)!==0o700)throw Error('owned-run-root');
-const start=performance.now(),deadline=start+(short?180000:7380000),processes=[],samples=[],ports=[];
+const start=performance.now(),deadline=start+(short?180000:diagnose?780000:7380000),processes=[],samples=[],ports=[];
 const native=path.join(root,'normalize'),collector=path.join(root,'process-metrics');
 let workspace=null;
 // 부모의 새 로그/receipt도 가변 비용이다. 복구 copy만 기존 별도 C 예산으로 센다.
@@ -55,7 +56,7 @@ function environment(http,rtsp,stun){const env={PATH:process.env.PATH,HOME:proce
     ANALYSIS_EVENT_STORAGE_ENABLED:0,ANALYSIS_EVENT_STORAGE_PATH:path.join(root,'events/events.jsonl'),ANALYSIS_EVENT_POST_ENABLED:0,
     ANALYSIS_EVENT_CLIP_HOOK_ENABLED:0,ANALYSIS_EVENT_CLIP_DIR:path.join(root,'events/clips'),ANALYSIS_EVENT_SNAPSHOT_HOOK_ENABLED:0,ANALYSIS_EVENT_SNAPSHOT_DIR:path.join(root,'events/snapshots'),
     VA_REVIEW_ENABLED:1,VA_REVIEW_LOCAL_ENDPOINT:'http://127.0.0.1:1',VISUAL_SEARCH_ENABLED:1,VISUAL_SEARCH_MODEL_DIRECTORY:path.join(repo,'models/v430-siglip2'),VISUAL_SEARCH_SCAN_SECONDS:1,VISUAL_SEARCH_SAMPLE_SECONDS:1,EVIDENCE_ENABLED:1,RECORDING_ENABLED:1,RECORDING_STORAGE_ROOT:path.join(root,'recordings'),RECORDING_SEGMENT_DURATION_SECONDS:2,RECORDING_RESERVED_FREE_BYTES:0,RECORDING_RETENTION_INTERVAL_MS:1000,
-    VERIFY_RECORDING_LATENCY_TRACE:1,VERIFY_RECORDING_LATENCY_SLOW_ONLY:1,
+    VERIFY_FRAME_TRACE:diagnose?1:0,VERIFY_RECORDING_LATENCY_TRACE:1,VERIFY_RECORDING_LATENCY_SLOW_ONLY:1,
     GST_CACHE_DIR:path.join(root,'gst-cache'),GST_PLUGIN_PROFILE:'headless',WEBRTC_STUN_SERVER:`stun://127.0.0.1:${stun}`,WEBRTC_TURN_SERVER:''};
   for(const [k,v] of Object.entries(values))env['MEDIA_SERVER_'+k]=String(v);return env;
 }
@@ -253,7 +254,7 @@ try{
   check(mixed.cycles>0&&mixed.createComplete>0&&mixed.searchSuccessByClient.every(n=>n>0)&&mixed.visualResults>0&&mixed.visualCreated>0,"V440 actual mixed work occurred");const orderedLatencies=[...mixed.searchLatencyMs].sort((a,b)=>a-b);check(orderedLatencies.at(Math.ceil(orderedLatencies.length*.95)-1)<=2000&&orderedLatencies.at(-1)<=5000,"V440 successful search latency");await sample(first);const end=performance.now();check(sampleContinuity(samples,begin,end,first.child.pid,samples[0].startIdentity),'LP26-O04 sample coverage');
   phaseResult=progress.status(end);if(!short&&!diagnose)check(phaseResult.elapsedMs>=7200000,"V440 actual120 duration");
   check(Object.values(phaseResult.channels).every(c=>c.finalized>0&&c.deleted>0),'LP26-O05 both channels retained and progressed');
-  summary=summarizeCurrentSamples(samples);observationStart=null;await aLoad.controls(first,passwords[1]);progress.setActive(performance.now(),false);await settings(first,false);await stop(first);
+  summary=summarizeCurrentSamples(samples);observationStart=null;if(!diagnose)await aLoad.controls(first,passwords[1]);progress.setActive(performance.now(),false);await settings(first,false);await stop(first);
   const tail=await drain(performance.now());check(closedJournalComplete(tail),'LP26-O02 closed journal no partial tail');
   if(!diagnose){const before=await snapshot();
   const second=await launch(stun);const s=await request(second,'GET','/ops/api/recordings/status');
@@ -279,8 +280,8 @@ finally{
   }catch{failed++;console.log('[fail] server-diagnostic-capture');}}
   try{if(observer)await observer.closeAsync();}catch{failed++;try{fs.writeFileSync(path.join(root,'cleanup-blocked'),'observer transport cleanup unresolved\n',{mode:0o600});}catch{}}if(udp)try{await new Promise(r=>udp.close(r));udpClosed=true;}catch{failed++;}else udpClosed=true;
   if(!udpClosed||processes.some(p=>!p.result?.archiveSafe)){fs.writeFileSync(path.join(root,'cleanup-blocked'),'process or port safety unresolved\n',{mode:0o600});failed++;}
-  const final={mode:short?'v450-mixed-preparation':'v450-recording-search-evidence-A-mixed-120',passed,failed,elapsedMs:Math.round(performance.now()-start),verifiedDurationMs:phaseResult?.elapsedMs??null,
-    longrunObservationCompleted:!short&&!diagnose&&failed===0&&!!phaseResult,shortPreparationPass:short&&failed===0,statusCumulativePass:diagnose&&failed===0&&progress?.records.size>=1020,resourceTrendPass:false,reviewRequired:true,uiFulltestPass:false,
+  const final={mode:short?'v450-mixed-preparation':diagnose?'v450-frame-diagnostic':'v450-recording-search-evidence-A-mixed-120',passed,failed,elapsedMs:Math.round(performance.now()-start),verifiedDurationMs:phaseResult?.elapsedMs??null,
+    longrunObservationCompleted:!short&&!diagnose&&failed===0&&!!phaseResult,shortPreparationPass:short&&failed===0,frameDiagnosticPass:diagnose&&failed===0&&!!phaseResult,resourceTrendPass:false,reviewRequired:true,uiFulltestPass:false,
     evidenceLoad:mixed,aLoad:aLoad?.report()??null,phase:phaseResult??null,resources:summary??null,processCount:processes.length,processesClosed:processes.every(p=>p.result?.normalShutdownPass),udpClosed,
     footprintState:'not-measured',cpu:{maxPercent:samples.length?Math.max(...samples.map(s=>s.cpuPercent)):null},tokenStart:null,tokenEnd:null,tokenConsumed:null,tokenSource:'전용 집계 없음'};artifacts.checkpoint({...final,status:failed?'FAIL':'PASS',exit:failed?1:0});console.log(JSON.stringify(final));process.exitCode=failed?1:0;
 }

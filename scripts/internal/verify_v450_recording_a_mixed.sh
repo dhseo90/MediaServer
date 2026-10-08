@@ -2,8 +2,8 @@
 # 파일 용도: v4.5.0 녹화·검색·증거·A 혼합120분 및 단기 준비 관측. 짧은 실행은 장시간 PASS가 아니다.
 set -euo pipefail
 case "$*" in
-  --app-observe|"--duration-minutes 120") ;;
-  *) echo 'usage: verify_v450_recording_a_mixed.sh --app-observe | --duration-minutes 120' >&2; exit 2 ;;
+  --app-observe|--frame-diagnostic|"--duration-minutes 120") ;;
+  *) echo 'usage: verify_v450_recording_a_mixed.sh --app-observe | --frame-diagnostic | --duration-minutes 120' >&2; exit 2 ;;
 esac
 observer_driver="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 observer_script="$observer_driver"

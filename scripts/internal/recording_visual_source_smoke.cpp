@@ -11,12 +11,14 @@
 #include <sys/resource.h>
 namespace{int checks=0;void Check(bool b,const std::string& name){++checks;if(!b)throw std::runtime_error(name);}}
 int main(int argc,char**argv){try{
-    if(argc!=2&&argc!=3)return 2;gst_init(nullptr,nullptr);const auto root=std::filesystem::weakly_canonical(argv[1]);
+    if(argc!=2&&argc!=3)return 2;
+    gst_init(nullptr,nullptr);const auto root=std::filesystem::weakly_canonical(argv[1]);
     recording::RecordingRuntimeStorage runtime(root);std::string error;Check(runtime.Open(&error),"B storage open");
     auto input=Encode(90,false,false,160,90,30,30);Shift(input,7000000000ULL);
     recording::GStreamerSegmentWriter writer(runtime.WriterOptions(1000));
     Check(writer.Start("visual-channel","unused",input.descriptor,[](auto,auto,auto*){return false;},&error),"writer start");
-    for(const auto& packet:input.packets)writer.Push(packet,0);writer.Stop();
+    for(const auto& packet:input.packets)writer.Push(packet,0);
+    writer.Stop();
     recording::RecordingReadService reader(runtime.catalog());recording::RecordingVisualSource source(runtime.catalog(),reader);
     std::vector<recording::VisualSearchDocument> docs;std::map<std::string,recording::VisualSourceCoverage> coverage;
     Check(source.Collect({"visual-channel"},1,&docs,&coverage,&error),"collect: "+error);
@@ -103,7 +105,8 @@ int main(int argc,char**argv){try{
         const auto guard_root=root/"journal-guard";recording::RecordingRuntimeStorage guard(guard_root);
         Check(guard.Open(&error),"guarded journal fixture open");recording::GStreamerSegmentWriter guard_writer(guard.WriterOptions(1000));
         Check(guard_writer.Start("journal-channel","unused",input.descriptor,[](auto,auto,auto*){return false;},&error),"guarded source writer");
-        for(const auto& packet:input.packets)guard_writer.Push(packet,0);guard_writer.Stop();
+        for(const auto& packet:input.packets)guard_writer.Push(packet,0);
+        guard_writer.Stop();
         recording::RecordingReadService guard_reader(guard.catalog());recording::RecordingVisualSource guard_source(guard.catalog(),guard_reader);
         std::vector<recording::VisualSearchDocument> guard_docs;std::map<std::string,recording::VisualSourceCoverage> guard_coverage;
         Check(guard_source.Collect({"journal-channel"},1,&guard_docs,&guard_coverage,&error)&&guard_docs.size()==3,"guarded original references");
