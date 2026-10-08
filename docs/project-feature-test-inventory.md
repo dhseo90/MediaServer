@@ -196,6 +196,12 @@ V450-K08(내부 A 결속 결과/record v2): `python3 scripts/internal/verify_va_
 같은 판정·근거를 읽는다. package 부재는 저장 판정과 별도 unavailable, 변조는 오류다.
 모델/질문 생성/일반 acceptance/HTTP/UI/30분/120분은 실행하지 않는다. 40 전체 보존 검사는 반복하지 않는다.
 
+저장 `V450-S01`의 chmod 쓰기 거부 반례는 시험 소유 0700 디렉터리에서 신규 파일 생성이 성공하고,
+0500에서는 같은 실행 문맥의 생성이 EACCES로 거부되는 전제를 실제 확인한다. 권한 우회가 가능한
+문맥은 정식 검사에서 준비 실패이며 skip/PASS가 아니다. `verify_va_review_bound_record.py`의
+기본 실행은 전체 bound/readback/legacy/core 회귀를 유지한다. 명시적 `--write-permission-diagnostic`은
+root·비특권 권한 대조의 원 반환값만 관측하는 내부 진단이며 정식 회귀 성공으로 계산하지 않는다.
+
 V450-K09 / V450-A02 / V450-U02(사용자 확인 A 기록 검토): `verify_va_review_confirmed.py`의 모델 없는 codec/상태/저장 검사와 `va_review_confirmed_http.mjs`의 실제 HTTP·변경 UI 흐름.
 - `/ops/api/recordings/a-record-packages` 및 `search/a-record-evidence`: 권한 있는 v2 생성/선택/PNG; v1 목록과 내부 결과 비노출.
 - `a-record-reviews/drafts` → `confirm` → `execute`: 미확인/변경/다른 principal/만료/재시작/입력 주입 거부, 서버 확인 시각·revision, 중복 실행 식별.

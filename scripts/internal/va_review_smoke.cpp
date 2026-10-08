@@ -8,6 +8,7 @@
 #include "recording/analysis_observation_projector.h"
 #include "ingress/va_review_application_service.h"
 #include <csignal>
+#include <cerrno>
 #include <cmath>
 #include "va_review_quality_fixture.h"
 #include "../../src/recording/va_review_json.h"
@@ -35,6 +36,84 @@ unsigned checks=0;
 void Check(bool ok,const std::string& name) {
     if(!ok) throw std::runtime_error(name);
     ++checks; std::cout<<"[pass] "<<name<<std::endl;
+}
+// chmod 실패 주입은 실제 실행 권한에서 확인한다. 진단 대조는 정식 회귀 PASS가 아니다.
+void WriteFailureChecks(const std::filesystem::path& root,const recording::VaReviewRecord& record,
+    const recording::VaReviewStore::Limits& limits,bool diagnostic=false) {
+    const auto directory=root/"unwritable";
+    recording::VaReviewStore store(directory,limits);std::string error;
+    Check(store.Recover(&error),"V450-S01 write-failure store prepared");
+    struct stat st{};
+    Check(::lstat(directory.c_str(),&st)==0&&S_ISDIR(st.st_mode)&&st.st_uid==::geteuid()&&
+        (st.st_mode&0777)==0700,"V450-S01 owned write-failure directory");
+    const auto state=[&](const char* phase) {
+        struct stat current{};if(::lstat(directory.c_str(),&current))throw std::runtime_error("write-probe-stat");
+        std::string identity;
+#ifdef __linux__
+        std::ifstream status("/proc/self/status");std::string line;
+        while(std::getline(status,line))if(line.rfind("Uid:",0)==0||line.rfind("Gid:",0)==0||line.rfind("CapEff:",0)==0)identity+=line+"\n";
+        if(identity.empty())throw std::runtime_error("write-probe-identity");
+#endif
+        std::cout<<"[write-permission-state] {\"phase\":"<<recording::EvidenceJsonQuote(phase)
+            <<",\"uid\":"<<::getuid()<<",\"euid\":"<<::geteuid()<<",\"gid\":"<<::getgid()
+            <<",\"egid\":"<<::getegid()<<",\"directory\":"<<recording::EvidenceJsonQuote(directory.string())
+            <<",\"owner\":"<<current.st_uid<<",\"mode\":"<<(current.st_mode&0777)
+            <<",\"device\":"<<current.st_dev<<",\"inode\":"<<current.st_ino
+            <<",\"linuxIdentity\":"<<recording::EvidenceJsonQuote(identity)<<"}"<<std::endl;
+    };
+    const auto files=[&] {
+        std::map<std::string,std::string> result;
+        for(const auto& entry:std::filesystem::directory_iterator(directory)) {
+            const auto size=entry.file_size();if(size>limits.record_bytes+8)throw std::runtime_error("write-probe-file-limit");
+            std::ifstream input(entry.path(),std::ios::binary);
+            const std::string bytes((std::istreambuf_iterator<char>(input)),{});
+            if(bytes.size()!=size)throw std::runtime_error("write-probe-file-read");
+            result.emplace(entry.path().filename().string(),recording::EvidenceSha256(bytes.data(),bytes.size()));
+        }
+        return result;
+    };
+    const auto probe=[&](const char* phase) {
+        const auto path=directory/"permission-probe";
+        const int fd=::open(path.c_str(),O_WRONLY|O_CREAT|O_EXCL|O_NOFOLLOW|O_CLOEXEC,0600);
+        const int failure=fd<0?errno:0;
+        if(fd>=0){const int closed=::close(fd);const int removed=::unlink(path.c_str());
+            if(closed||removed)throw std::runtime_error("write-probe-cleanup");}
+        std::cout<<"[write-permission-probe] {\"phase\":"<<recording::EvidenceJsonQuote(phase)
+            <<",\"created\":"<<(fd>=0?"true":"false")<<",\"errno\":"<<failure<<"}"<<std::endl;
+        return fd>=0?0:failure;
+    };
+    state("0700");Check(probe("0700")==0,"V450-S01 writable creation prerequisite");
+    Check(::chmod(directory.c_str(),0500)==0,"V450-S01 write-failure setup");
+    try {
+        state("0500");const int denied=probe("0500");
+        if(!diagnostic)Check(denied==EACCES,"V450-S01 write-failure prerequisite blocked unless EACCES");
+        const auto before=files();state("before-Publish");
+        std::string returned="unchanged";
+        const bool published=store.Publish(record,&returned,&error);
+        const std::string publish_error=error;
+        const std::string publish_id=returned;
+        std::cout<<"[write-permission-publish] {\"diagnosticOnly\":"<<(diagnostic?"true":"false")
+            <<",\"published\":"<<(published?"true":"false")<<",\"error\":"<<recording::EvidenceJsonQuote(publish_error)
+            <<",\"returnedId\":"<<recording::EvidenceJsonQuote(publish_id)<<"}"<<std::endl;
+        const auto after=files();const bool pending=std::filesystem::exists(directory/".pending-review-v1");
+        std::cout<<"[write-permission-files] {\"pending\":"<<(pending?"true":"false")
+            <<",\"filesBefore\":[";
+        bool first=true;for(const auto& entry:before){if(!first)std::cout<<',';first=false;std::cout<<recording::EvidenceJsonQuote(entry.first);}
+        std::cout<<"],\"filesAfter\":[";first=true;
+        for(const auto& entry:after){if(!first)std::cout<<',';first=false;std::cout<<recording::EvidenceJsonQuote(entry.first);}
+        std::cout<<"],\"filesUnchanged\":"<<(before==after?"true":"false")<<"}"<<std::endl;
+        Check(::chmod(directory.c_str(),0700)==0,"V450-S01 own permissions restored");
+        if(!diagnostic) {
+            Check(!published&&publish_error=="review-write-failed","V450-S01 failed write not published");
+            std::vector<std::string> ids;std::string read_error;
+            Check(returned=="unchanged"&&!pending&&before==after&&store.List(&ids,&read_error)&&ids.empty()&&
+                !std::filesystem::exists(directory/"permission-probe"),"V450-S01 write denial preserves ID/data and cleans pending/probe");
+        } else std::cout<<"[diagnostic-only] permission contrast; not a regression PASS"<<std::endl;
+    } catch(...) {
+        const int restored=::chmod(directory.c_str(),0700);
+        std::cout<<"[write-permission-cleanup] restoreExit="<<restored<<std::endl;
+        throw;
+    }
 }
 void Be(std::vector<std::uint8_t>& bytes,std::uint32_t n) {
     for(int shift=24;shift>=0;shift-=8) bytes.push_back(std::uint8_t(n>>shift));
@@ -224,10 +303,9 @@ void RecordChecks(const std::filesystem::path& root) {
     recording::VaReviewStore linked(root/"review-link",limits);
     Check(!linked.Read(id,&decoded,&error),"V450-S01 symlink directory rejected");
     Check(!store.Read("../record",&decoded,&error),"V450-S01 path ID rejected");
-    recording::VaReviewStore unwritable(root/"unwritable",limits);
-    Check(unwritable.Recover(&error)&&::chmod((root/"unwritable").c_str(),0500)==0,"V450-S01 write-failure setup");
-    Check(!unwritable.Publish(record,&untouched,&error)&&error=="review-write-failed","V450-S01 failed write not published");
-    Check(::chmod((root/"unwritable").c_str(),0700)==0,"V450-S01 own permissions restored");
+    WriteFailureChecks(root,record,limits);
+    Check(reopened.Read(id,&decoded,&error)&&recording::SerializeVaReviewRecord(decoded)==record_json,
+        "V450-S01 other stored revision unchanged after write denial");
     const int fd=::open((root/"reviews"/(id+".review")).c_str(),O_WRONLY|O_CLOEXEC|O_NOFOLLOW);
     Check(fd>=0,"V450-S01 corruption fixture opened");const char corrupt='x';
     const auto wrote=::pwrite(fd,&corrupt,1,9);::close(fd);
@@ -969,6 +1047,7 @@ int main(int argc,char** argv) {
         else if(std::string(argv[2])=="--confirmed-read")ConfirmedRead(argv[1]);
         else if(std::string(argv[2])=="--bound-seed")BoundSeed(argv[1]);
         else if(std::string(argv[2])=="--bound-read")BoundRead(argv[1]);
+        else if(std::string(argv[2])=="--write-permission-diagnostic")WriteFailureChecks(argv[1],Record(argv[1]),{},true);
         else if(std::string(argv[2])=="--records-only")RecordChecks(argv[1]);
         else if(std::string(argv[2])=="--seed")SeedHttp(argv[1]);
         else if(std::string(argv[2])=="--observer-only")ObserverChecks(argv[1]);
