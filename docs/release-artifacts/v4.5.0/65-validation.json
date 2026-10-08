@@ -1,7 +1,7 @@
 {
   "schema": "media-server.v450.release-validation.v1",
   "sequence": 65,
-  "status": "PASS_SCOPED_CHANGE_PENDING_FINAL_PRESERVATION_CLEANUP",
+  "status": "PASS_SCOPED_INVALIDATION_FIX_DIRECT_REGRESSION_INDEPENDENT_REVIEW",
   "recordedAt": "2026-10-08T11:48:43.823685+00:00",
   "base": {
     "head": "38a02247aa03d8020a1793b913bdc24743f6108c",
@@ -247,7 +247,9 @@
       "actualRuntime": "확인 불가·추정하지 않음",
       "runtimeTestsExecuted": 0,
       "blockingProductFindings": 0,
-      "initialReviewOriginal": "65-execution.tar.gz:commands/independent-review-initial.json"
+      "initialReviewOriginal": "65-execution.tar.gz:commands/independent-review-initial.json",
+      "finalSha256": "33d184a902303f2ca1b9bac71b0efde5dd5ca61942e34c00fe87f99265e3aa3a",
+      "finalBytes": 36271
     },
     "producer": {
       "command": "./server.sh verify-v390-review4-feature-semantic-source-audit --apply-approved-manifest",
@@ -257,7 +259,53 @@
       "legacyItemsAndAuditApprovalsUnchanged": true,
       "reviewedProductTestSourceUnchanged": true,
       "readback": "65-execution.tar.gz:commands/producer-readback.json",
-      "formatting": "producer compact 출력 이후 기존 indent2 표시만 복원, 객체동등성확인. 과거 승인hash 수작업변경 없음."
+      "formatting": "producer compact 출력 이후 기존 indent2 표시만 복원, 객체동등성확인. 과거 승인hash 수작업변경 없음.",
+      "readbackResult": {
+        "changedManifestFields": [
+          "inventorySha256"
+        ],
+        "beforeInventorySha256": "d83e36fb311994ef094da50e9c372498e29ee80e384e9240a4f63c03baeaebc4",
+        "afterInventorySha256": "5d9462c35a5769b3270b2b506c03a253ad7f4e4edfaf68512311798e2c64e5d6",
+        "reviewedSourceHashesUnchanged": true,
+        "legacyAuditAndApprovalsUnchanged": true,
+        "manifestItemsUnchanged": true,
+        "items": 986,
+        "candidateDigest": "137543c6332a73f9a77599bfaca732bd1f54b263adee078fe5d3f8c275775906",
+        "sourceReadback": {
+          "docs/project-feature-test-inventory.md": "5d9462c35a5769b3270b2b506c03a253ad7f4e4edfaf68512311798e2c64e5d6",
+          "docs/superpowers/specs/2026-10-05-v450-va-review-design.md": "871a2925039983989bed178eb8e6d965f20e3ff3b7acb76758a6c74088fdc0a0",
+          "include/recording/evidence_package_builder.h": "3de61be417b7c9f45dfd8d5b022e85ae6049fbb4c9648dbbab7629672b6cd14b",
+          "include/recording/evidence_package_store.h": "3ccb7fb3eed1edfa292b31312467aa0762eaba3f387bf0522632894c9042b24d",
+          "include/recording/recording_catalog.h": "f1eeb40cb43392b864c16e588a2e8fafb3c0de3dec4ed15440a26ce68977698d",
+          "scripts/internal/evidence_observation_smoke.cpp": "a6ad4dbbd911a446c82f5e9a90d16c5d092621d23e4fc65d304b1f2e7c8a5d91",
+          "scripts/internal/verify_evidence_package.sh": "f80beb2d70012e02dc9c1dfc380fc99f23ff0fcd1970d3fe1e3b94b62b5fad39",
+          "src/ingress/evidence_application_service.cpp": "497f8cf449a9a9d7a0cf981302a70294ad9e861ebc8d831dd93d3cbddc554d75",
+          "src/ingress/recording_search_application_service.cpp": "aeb58caa3e51359b30f25628f33019301bc2befc0d526a137c42095e54cbc967",
+          "src/recording/evidence_package_builder.cpp": "cdd253e211243c9ced47cfc50c1240705eda8ff422e73ec62f5a615d47109cc4",
+          "src/recording/evidence_package_store.cpp": "24206aa54570ffa3cd9277352bb9edd8951cdc24b58887388a609c809e965df1",
+          "src/recording/recording_catalog.cpp": "a5a99d00ccc8a614105096eb700178b605fc90210f95c9d7981900bd045c7d8d",
+          "test/fixtures/v390_structure_stabilization_current_architecture_policy.json": "01af5c5fc091e963119825597ebceae081142b312facce69d44c9c061ca0c1b7",
+          "test/fixtures/v390_structure_stabilization_current_graph.json": "99178af3a740c9a1b5cdd444f6864ebece87683bff9e4a25b06ddde632cafd0c",
+          "test/fixtures/v390_structure_stabilization_execution.json": "a2f55339ea09128b97510ed7533e9bf40fb5edf6b70fc0deb4c2e1605932ff4a",
+          "test/fixtures/v390_review4_feature_semantic_source_approvals.json": "b30fb83ce58544acdaa2158ff41046e6991cac0bb054f6aa1e5beee21c56fa4d",
+          "test/fixtures/v390_review4_feature_semantic_source_audit.json": "87dedc1042e7919a6276d4dd1692f3e9d5af6fcf5f1a0ce4e88f8a9a1a93b978"
+        },
+        "postFormattingLogicalReadback": true,
+        "postFormattingSha256": "7e1fb3f1ec875fe187d60ab5ccdf1dc5ca0655a78fb5756f895e0e9fee8bc724"
+      },
+      "serialization": {
+        "producerOutputBytes": 19079080,
+        "producerOutputSha256": "5aeb4e86d15f2b45201df5afbdf614460b70cb22f28626b36392a670d38037be",
+        "producerOutputLines": 1,
+        "logicalDiff": [
+          "inventorySha256"
+        ],
+        "note": "기존 producer가 현재 manifest를 compact JSON으로 출력했다. 검증 후 기존 indent=2 표시 형식만 복원하고 JSON 객체 동등성을 대조한다. 승인 값 수작업 변경은 하지 않는다.",
+        "restoredIndent": 2,
+        "logicalObjectUnchanged": true,
+        "finalBytes": 26187894,
+        "finalSha256": "7e1fb3f1ec875fe187d60ab5ccdf1dc5ca0655a78fb5756f895e0e9fee8bc724"
+      }
     },
     "staticCoverage": {
       "before": {
@@ -295,9 +343,142 @@
       "runtimeRetainedBeforeReview": true,
       "source": "9719bc63aa8f077b96b7ae188d24570e2e2bc7ae"
     },
-    "ownedScratchRemoval": "PENDING_AFTER_GIT_READBACK",
+    "ownedScratchRemoval": {
+      "root": "/private/tmp/media-server-release65-f8mt8bwv",
+      "uid": 501,
+      "inode": 171266649,
+      "logicalBytesBeforeRemoval": 172481788,
+      "noFollowingExternalSymlinks": true,
+      "localAndRemoteBytesVerifiedBeforeRemoval": true,
+      "status": "PASS_ABSENT",
+      "checkedAt": "2026-10-08T11:59:41.250404+00:00"
+    },
     "modelsRuntimes": "기존 모델/이미지/runtime 유지",
-    "unloadGate": "not-run"
+    "unloadGate": "not-run",
+    "recoveryCopies": [
+      {
+        "root": "/private/tmp/media-server-release65-f8mt8bwv/mixed-prepare-01/media-server-current-observer-copy-cvURqt",
+        "bytes": 1465729,
+        "copied": true,
+        "absent": true,
+        "reason": null,
+        "receiptPreserved": true,
+        "originalUnchanged": true,
+        "manifestUnchanged": true,
+        "groupClosed": true
+      },
+      {
+        "root": "/private/tmp/media-server-release65-f8mt8bwv/mixed-prepare-01/media-server-current-observer-copy-ZKIhFC",
+        "bytes": 1472513,
+        "copied": true,
+        "absent": true,
+        "reason": null,
+        "receiptPreserved": true,
+        "originalUnchanged": true,
+        "manifestUnchanged": true,
+        "groupClosed": true
+      },
+      {
+        "root": "/private/tmp/media-server-release65-f8mt8bwv/mixed-prepare-01/media-server-current-observer-copy-LmlpjD",
+        "bytes": 1737239,
+        "copied": true,
+        "absent": true,
+        "reason": null,
+        "receiptPreserved": true,
+        "originalUnchanged": true,
+        "manifestUnchanged": true,
+        "groupClosed": true
+      }
+    ],
+    "processNormalExit": [
+      {
+        "schema": "recording-process-cleanup-v1",
+        "attemptCount": 1,
+        "pid": 26473,
+        "exitCode": 0,
+        "signalCode": null,
+        "exitedObserved": true,
+        "stopCode": "complete",
+        "forcedTermination": "not-used",
+        "normalExitPass": true,
+        "normalShutdownPass": true,
+        "archiveSafe": true,
+        "ports": [
+          {
+            "kind": "http",
+            "port": 62782,
+            "status": "pass",
+            "code": "closed",
+            "closed": true
+          },
+          {
+            "kind": "rtsp",
+            "port": 62783,
+            "status": "pass",
+            "code": "closed",
+            "closed": true
+          }
+        ]
+      },
+      {
+        "schema": "recording-process-cleanup-v1",
+        "attemptCount": 1,
+        "pid": 26624,
+        "exitCode": 0,
+        "signalCode": null,
+        "exitedObserved": true,
+        "stopCode": "complete",
+        "forcedTermination": "not-used",
+        "normalExitPass": true,
+        "normalShutdownPass": true,
+        "archiveSafe": true,
+        "ports": [
+          {
+            "kind": "http",
+            "port": 62911,
+            "status": "pass",
+            "code": "closed",
+            "closed": true
+          },
+          {
+            "kind": "rtsp",
+            "port": 62912,
+            "status": "pass",
+            "code": "closed",
+            "closed": true
+          }
+        ]
+      },
+      {
+        "schema": "recording-process-cleanup-v1",
+        "attemptCount": 1,
+        "pid": 26673,
+        "exitCode": 0,
+        "signalCode": null,
+        "exitedObserved": true,
+        "stopCode": "complete",
+        "forcedTermination": "not-used",
+        "normalExitPass": true,
+        "normalShutdownPass": true,
+        "archiveSafe": true,
+        "ports": [
+          {
+            "kind": "http",
+            "port": 62964,
+            "status": "pass",
+            "code": "closed",
+            "closed": true
+          },
+          {
+            "kind": "rtsp",
+            "port": 62965,
+            "status": "pass",
+            "code": "closed",
+            "closed": true
+          }
+        ]
+      }
+    ]
   },
   "preservation": {
     "archive": "65-execution.tar.gz",
@@ -311,7 +492,47 @@
     "actualMembers": 203,
     "localArchiveReadback": "PASS",
     "manifest": "65-execution.tar.gz:preservation-manifest.json",
-    "archiveIndex": "65-execution.tar.gz:archive-index.json"
+    "archiveIndex": "65-execution.tar.gz:archive-index.json",
+    "gitReadback": {
+      "commit": "7afe1c18cb16ba324235b3cf45fc02ec03e08cdb",
+      "archiveSha256": "fdc3a50ced7862f681bcb7e34f22955ac3fd7a1dc82df245660bffcf766e11fa",
+      "archiveBytes": 1349492,
+      "indexedMemberReadback": 202,
+      "rawSourceByteComparisons": 198,
+      "allMatch": true,
+      "pastRecordsUnchanged": true
+    },
+    "remoteReadback": {
+      "commit": "7afe1c18cb16ba324235b3cf45fc02ec03e08cdb",
+      "observedAt": "2026-10-08T11:58:27.695724+00:00",
+      "blobs": [
+        {
+          "path": "docs/release-artifacts/v4.5.0/65-execution.tar.gz",
+          "gitBlob": "30e32532eaa0401e217e16181660a221840979e2",
+          "bytes": 1349492,
+          "sha256": "fdc3a50ced7862f681bcb7e34f22955ac3fd7a1dc82df245660bffcf766e11fa",
+          "remoteMatchesLocalGit": true,
+          "exit": 0
+        },
+        {
+          "path": "docs/release-artifacts/v4.5.0/65-independent-review.json",
+          "gitBlob": "dbe15f20400baa5556c3c887e5243e6e3ea47e90",
+          "bytes": 25025,
+          "sha256": "9e82a7933288d9076f2c234ff6dc4c6b0e08b75030c00b1b156c8ee0281a1eef",
+          "remoteMatchesLocalGit": true,
+          "exit": 0
+        },
+        {
+          "path": "docs/release-artifacts/v4.5.0/65-validation.json",
+          "gitBlob": "6c2970cca39adc3f5761264b6c93074ba8ed5ca8",
+          "bytes": 15577,
+          "sha256": "ce41880c562efe0ffdc74550264b0f976a98dc88178e9d8b9ef04bf16cb370e1",
+          "remoteMatchesLocalGit": true,
+          "exit": 0
+        }
+      ],
+      "result": "PASS"
+    }
   },
   "notRun": [
     "새혼합120분",
@@ -323,8 +544,89 @@
     "PR/병합/태그/Release"
   ],
   "remaining": [
-    "원본Git재조회·원격반영·소유root정리 및 동일검토자의 최종보존부록",
-    "새혼합120분 별도승인·실행과 자원/복구판정",
+    "새혼합120분은 별도 승인·1회 실행과 자원/복구 최종판정 필요;64 내부원인 미확정 유지",
     "최종근거통합·기록정리·PR/CI·병합·서명·Release"
-  ]
+  ],
+  "finalization": {
+    "rawEvidenceCommit": "7afe1c18cb16ba324235b3cf45fc02ec03e08cdb",
+    "pushAndRemoteRecords": [
+      {
+        "command": [
+          "git",
+          "ls-remote",
+          "origin",
+          "refs/heads/v4.5.0"
+        ],
+        "exit": 0,
+        "elapsedSeconds": 2.241909980773926,
+        "head": "7afe1c18cb16ba324235b3cf45fc02ec03e08cdb",
+        "diffSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdout": {
+          "bytes": 59,
+          "sha256": "23b4b1075733b06cfdbec8faf00f9658a1d832561d844a05d53a092a9ab52dce"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "stdoutText": "38a02247aa03d8020a1793b913bdc24743f6108c\trefs/heads/v4.5.0\n",
+        "stderrText": ""
+      },
+      {
+        "command": [
+          "git",
+          "push",
+          "origin",
+          "HEAD:refs/heads/v4.5.0"
+        ],
+        "exit": 0,
+        "elapsedSeconds": 7.439197063446045,
+        "head": "7afe1c18cb16ba324235b3cf45fc02ec03e08cdb",
+        "diffSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdout": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "stderr": {
+          "bytes": 78,
+          "sha256": "0579d7e4a8cc12fe4459a35793db857e67388819e1dda76e91fa56ff4ede7143"
+        },
+        "stdoutText": "",
+        "stderrText": "To github.com:dhseo90/MediaServer.git\n   38a02247a..7afe1c18c  HEAD -> v4.5.0\n"
+      },
+      {
+        "command": [
+          "git",
+          "ls-remote",
+          "origin",
+          "refs/heads/v4.5.0"
+        ],
+        "exit": 0,
+        "elapsedSeconds": 2.206334114074707,
+        "head": "7afe1c18cb16ba324235b3cf45fc02ec03e08cdb",
+        "diffSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdout": {
+          "bytes": 59,
+          "sha256": "2ea2040a589ae5bfbb38f8a268079c89c273965f2b4e96a426916ae9a7ebdfad"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "stdoutText": "7afe1c18cb16ba324235b3cf45fc02ec03e08cdb\trefs/heads/v4.5.0\n",
+        "stderrText": ""
+      }
+    ],
+    "finalSourceInvariant": true,
+    "independentFinalization": "PASS — same independent_release65; original judgment preserved, final preservation/binding/privacy/cleanup addendum added",
+    "finalMetadataPush": "이 마감 기록 commit/push는 작성 뒤 메인이 수행한다. 실제 마지막 SHA/작업트리는 최종 응답과 Git ref를 기준으로 확인한다. 원출력/구현의7afe1c18c 원격보존은 이미 실제바이트로 확인했다."
+  },
+  "completionName": "A 증거 생성의 과도한 무효화 수정·직접 검증·독립 검토 완료",
+  "newMixed120Readiness": {
+    "minimalCodeFixAndDirectPreparation": "PASS_SCOPED",
+    "independentCodeAndPreservationReview": "APPROVE_SCOPED",
+    "historical64Cause": "UNCONFIRMED",
+    "newLongrunExecuted": false,
+    "nextConditions": "사용자의 새 실행 승인 및 실제 사용할 source/binary/env·기존부하/예산 재확인. 무누수·120분 성공을 미리 약속하지 않음."
+  }
 }

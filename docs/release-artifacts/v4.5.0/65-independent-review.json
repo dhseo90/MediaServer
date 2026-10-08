@@ -513,5 +513,220 @@
       "bytes": 473,
       "sha256": "e35dc80ad900167e20b584811d3776b73cc6eee9e8373c54289185ad587cc8c9"
     }
-  ]
+  ],
+  "finalPreservationBindingPrivacyCleanupAddendum": {
+    "schema": "media-server.release65.independent-finalization-addendum.v1",
+    "reviewedAt": "2026-10-08T12:03:47.746448+00:00",
+    "scope": "동일 독립 검토자의 후속 보존·필요 결속·정리 확인. 최초 제품/검증 판단과 한계는 변경하지 않는다. 기존 pending 필드는 최초 시점의 기록이며 이 부록이 후속 상태를 명시한다.",
+    "reviewerAgentTask": "/root/independent_release65",
+    "productOrVerifierEdits": false,
+    "testsProductModelsExecuted": 0,
+    "subdelegation": false,
+    "onlyEditedFile": "docs/release-artifacts/v4.5.0/65-independent-review.json",
+    "initialJudgment": {
+      "bytes": 25025,
+      "sha256": "9e82a7933288d9076f2c234ff6dc4c6b0e08b75030c00b1b156c8ee0281a1eef",
+      "preservedCommit": "7afe1c18cb16ba324235b3cf45fc02ec03e08cdb",
+      "preservedPath": "docs/release-artifacts/v4.5.0/65-independent-review.json",
+      "archiveMember": "commands/independent-review-initial.json",
+      "gitArchiveAndInitialWorkingBytesIdentical": true,
+      "allOriginalSubstantiveFieldsUnchanged": true
+    },
+    "currentSourceBinding": {
+      "observedHead": "7afe1c18cb16ba324235b3cf45fc02ec03e08cdb",
+      "observedTree": "56217c0f21603e5725655e0dc0a5754b00f4715a",
+      "reviewedSourceCommit": "9719bc63aa8f077b96b7ae188d24570e2e2bc7ae",
+      "reviewedFileHashesCompared": 15,
+      "reviewedFileMismatches": 0,
+      "productAndVerifierChangesSinceReview": false,
+      "legacyApprovalAndAuditFilesByteIdentical": true,
+      "past64FilesUnchangedFromBase": true
+    },
+    "requiredProducerBinding": {
+      "decision": "APPROVE_INVENTORY_BINDING_ONLY",
+      "command": "./server.sh verify-v390-review4-feature-semantic-source-audit --apply-approved-manifest",
+      "ownerExit": 0,
+      "ownerPassedChecks": 51,
+      "independentlyComparedLogicalChangedFields": [
+        "inventorySha256"
+      ],
+      "beforeInventorySha256": "d83e36fb311994ef094da50e9c372498e29ee80e384e9240a4f63c03baeaebc4",
+      "afterInventorySha256": "5d9462c35a5769b3270b2b506c03a253ad7f4e4edfaf68512311798e2c64e5d6",
+      "currentInventoryFileHashMatches": true,
+      "manifest986ItemsUnchanged": true,
+      "candidateDigest": "137543c6332a73f9a77599bfaca732bd1f54b263adee078fe5d3f8c275775906",
+      "newLegacyIndependentApprovalsIssued": false,
+      "priorReviewerIdentityCopiedAsNewApproval": false,
+      "formattingBoundary": "현재26,187,894바이트 manifest와9719의 JSON 객체를 직접 비교했다. inventorySha256 외 모든 필드(986 items 포함)가 동일하다. producer의 compact 출력/indent2 복원 경위는 보존된 serialization receipt로 읽었으며 현재 객체 동등성은 직접 확인했다. 승인 의미/hash 수작업 변경으로 판단할 근거가 없다.",
+      "coverageBefore": {
+        "exit": 1,
+        "pass": 8,
+        "fail": 1,
+        "reason": "inventorySha256 drift"
+      },
+      "coverageAfter": {
+        "exit": 0,
+        "pass": 9,
+        "fail": 0
+      },
+      "v450RegistrationOwnerExit": 0,
+      "commandStdoutStderrHashesDirectlyMatched": true,
+      "scopeBoundary": "등록/producer/coverage 결과는 필요한 결속 확인이다. 별도 신규 V450 제품 승인은 최초 독립 판단의 정확한 변경 범위에 한정되며986 과거 승인으로 자동 승격하지 않는다."
+    },
+    "archiveAndLocalGit": {
+      "path": "docs/release-artifacts/v4.5.0/65-execution.tar.gz",
+      "bytes": 1349492,
+      "sha256": "fdc3a50ced7862f681bcb7e34f22955ac3fd7a1dc82df245660bffcf766e11fa",
+      "gitCommit": "7afe1c18cb16ba324235b3cf45fc02ec03e08cdb",
+      "localArchiveAndGitBlobByteIdentical": true,
+      "regularMembers": 203,
+      "indexedMembers": 202,
+      "allIndexedMemberHashesAndBytesDirectlyMatched": true,
+      "onlyUnindexedMember": "archive-index.json",
+      "absoluteTraversalSymlinkOrNonregularMembers": 0,
+      "preservationManifestEntries": 198,
+      "allManifestPreservedBytesAndHashesDirectlyMatched": true,
+      "prior170OriginalSourceComparisons": "최초 검토 시 실제 소유 원본과 staging170항목을 직접 비교했으며 그 판단을 유지한다.",
+      "ownerFinalRawSourceComparisons": 198,
+      "ownerFinalRawSourceComparisonResult": "allMatch=true in65-validation.json preservation.gitReadback",
+      "rawOriginalsPresentForThisAddendum": false,
+      "rawOriginalComparisonBoundary": "소유 scratch가 삭제되어 이번 부록은 원본198개를 다시 직접 읽었다고 주장하지 않는다. 현재Git/압축본/member 및 최초 직접 검토와 메인의 삭제 전 최종 readback 영수증을 구분한다."
+    },
+    "remotePreservation": {
+      "recordedCommit": "7afe1c18cb16ba324235b3cf45fc02ec03e08cdb",
+      "ownerObservedAt": "2026-10-08T11:58:27.695724+00:00",
+      "ownerRemoteBlobReadbackCount": 3,
+      "ownerRemoteBlobReadbackPaths": [
+        "docs/release-artifacts/v4.5.0/65-execution.tar.gz",
+        "docs/release-artifacts/v4.5.0/65-independent-review.json",
+        "docs/release-artifacts/v4.5.0/65-validation.json"
+      ],
+      "ownerRemoteReadbackResult": "PASS; bytes/SHA256가 로컬 Git과 일치",
+      "normalPushReceiptExit": 0,
+      "postPushLsRemoteReceiptExit": 0,
+      "postPushRemoteHead": "7afe1c18cb16ba324235b3cf45fc02ec03e08cdb",
+      "embeddedPushAndRemoteStdoutStderrHashesDirectlyVerified": true,
+      "reviewerPerformedNewNetworkReadback": false,
+      "evidenceBoundary": "기존65-validation.json의 실제 일반 push·ls-remote·GitHub blob readback 영수증을 읽었다. 검토자는 원격 요청을 반복하지 않았고 로컬 Git 원본을 직접 대조했다. 이 판단은 메인이 기록한 관측 시각의 원격 보존이며 이후 metadata push가 아니다."
+    },
+    "privacy": {
+      "result": "PASS_FOR_SELECTED_PRESERVATION_SCOPE",
+      "allArchiveMembersBytePatternInspected": 203,
+      "credentialPatternFindings": 0,
+      "patterns": "Argon2·실제 passwordHash/passwordHistory/tokenHash/sessionToken 문자열값·Bearer token·Set-Cookie. 테스트/검사 소스의 민감 필드 이름과 실제 credential 값은 구별한다.",
+      "operationalUrlPatternFindingsInServerLogsStoredArtifactsAndNativeEvidence": 0,
+      "retainedNewRedCatalogBytes": 41283,
+      "newRedCatalogScope": "소유 RED의 합성 mutation/identity/generation 자료6파일. 원문URL이 없고 모델·실행파일·캐시·운영계정/세션·전체media가 포함되지 않는다. 전체 운영 catalog를 복제한 자료가 아니다.",
+      "serverLogOriginals": "최초 검토에서3개 원본과 정제본의 정확한 변환 및11개 변경줄씩을 직접 확인했다. 이 부록은 Git의 정제본과 manifest의 분리된 원문/정제 hash를 확인한다. 원문 로그가 Git에 보존됐다고 주장하지 않는다.",
+      "retainedPathMetadata": "repo/owned temporary 절대경로는 command/source provenance로 유지된다. 모든 호스트 경로가 정제됐다는 주장은 하지 않는다.",
+      "fullPrivacyGuaranteeClaim": false
+    },
+    "cleanup": {
+      "ownedScratchRoot": "/private/tmp/media-server-release65-f8mt8bwv",
+      "ownedScratchRootAbsentDirectLexists": true,
+      "ownerRemovalCheckedAt": "2026-10-08T11:59:41.250404+00:00",
+      "ownerRecordedUid": 501,
+      "ownerRecordedInode": 171266649,
+      "ownerRecordedLogicalBytesBeforeRemoval": 172481788,
+      "ownerLocalAndRemoteByteReadbackBeforeRemoval": true,
+      "ownerNoFollowingExternalSymlinks": true,
+      "ownerProcessReceiptRead": true,
+      "ownedProductPids": [
+        26473,
+        26624,
+        26673
+      ],
+      "ownerPsExit": 1,
+      "ownerPsStdoutEmpty": true,
+      "wrapperAndRegisteredGroupsAbsentInReceipt": true,
+      "normalExitAndHttpRtspPortClosureOriginalReceiptsRead": 3,
+      "recoveryCopyAbsentReceiptsRead": 3,
+      "udpClosedInOriginalReport": true,
+      "reviewerPerformedProcessPortProbeOrDeletion": false,
+      "modelsRuntimes": "메인 기록상 기존 모델/이미지/runtime 유지. 검토자가 변경하거나 실행하지 않았다.",
+      "unloadGate": "NOT_RUN"
+    },
+    "finalBoundary": {
+      "preservationBindingPrivacyAndOwnedScratchCleanupReviewComplete": true,
+      "codeDeltaDecision": "APPROVE_FOR_SCOPED_CHANGE",
+      "blockingProductFindings": 0,
+      "historical64RootCause": "UNCONFIRMED",
+      "historical64Mixed120": "FAIL_INCOMPLETE",
+      "resourceStability": "NOT_ESTABLISHED",
+      "newLongrunOrFullAcceptanceOrFullUIExecuted": false,
+      "releaseApproval": false,
+      "QwenOllamaCallsInTask": 0,
+      "allAIInferenceZeroClaim": false,
+      "thisAddendumCommit": "PENDING_OWNER",
+      "finalMetadataPush": "PENDING_OWNER",
+      "preapprovalOfFutureSourceChanges": false
+    },
+    "readEvidence": [
+      {
+        "archiveMember": "archive-index.json",
+        "bytes": 33681,
+        "sha256": "046084c772fd1a7cd0661f272262b8b90ded36e27a5c1085daaacad41cb62c13"
+      },
+      {
+        "archiveMember": "preservation-manifest.json",
+        "bytes": 75896,
+        "sha256": "84b23f294f95f1b48975579c370e195cb331dabfe4c6bac02a6415c172833aae"
+      },
+      {
+        "archiveMember": "commands/approved-manifest.json",
+        "bytes": 556,
+        "sha256": "98e1fb52f0a4dff9a83a963ddfd19687b6ff5344bf91dba7b58b22d7b9af1fe6"
+      },
+      {
+        "archiveMember": "commands/approved-manifest.stdout",
+        "bytes": 12812,
+        "sha256": "d044f8ac77f4e3e0a7ee0672c9d63381151b9f522393a0aa536f910913ef258f"
+      },
+      {
+        "archiveMember": "commands/coverage-before.json",
+        "bytes": 506,
+        "sha256": "46947ee2cdf1e76574175405150b13993d6c296d36e92b9ccd3813752c92fb07"
+      },
+      {
+        "archiveMember": "commands/coverage-before.stdout",
+        "bytes": 671,
+        "sha256": "0fa7a7f4fbb474633bc8276dc6123c760f07b9c1907244a9e9f251445dfe2c7a"
+      },
+      {
+        "archiveMember": "commands/coverage-final.json",
+        "bytes": 506,
+        "sha256": "b8fea322df8cd057eebdd9dec1bf148def936b82d463dd66e35ec73238aa648e"
+      },
+      {
+        "archiveMember": "commands/coverage-final.stdout",
+        "bytes": 604,
+        "sha256": "f3dd9d2ec3cd35ce7a806a391b6918dddd2c2377ca3039afa624f484985f9bce"
+      },
+      {
+        "archiveMember": "commands/producer-readback.json",
+        "bytes": 2766,
+        "sha256": "4fc3e7dfc560f52b3be907038c373994169287ed44be14bb4732d2e5e76a6c7a"
+      },
+      {
+        "archiveMember": "commands/producer-serialization.json",
+        "bytes": 603,
+        "sha256": "d0cd87c83b085426ba4017f70cf116910fb25696020bef82190b3469e56ce6e3"
+      },
+      {
+        "archiveMember": "commands/process-cleanup.json",
+        "bytes": 473,
+        "sha256": "e35dc80ad900167e20b584811d3776b73cc6eee9e8373c54289185ad587cc8c9"
+      },
+      {
+        "archiveMember": "commands/privacy-scan.json",
+        "bytes": 289,
+        "sha256": "76904bf1c625cf3a4030fefcf718f4a3a8c2fcee091f426200165deacac7f0a2"
+      },
+      {
+        "archiveMember": "commands/mixed-cleanup-readback.json",
+        "bytes": 13326,
+        "sha256": "b713c2eb8923d60b194164ae3f6651f027f5254708b6f867ba537baebfe02049"
+      }
+    ]
+  }
 }
