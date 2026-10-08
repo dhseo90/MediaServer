@@ -1004,5 +1004,119 @@
       "owned container/root removal and absence; approved image/SDK/models retained"
     ],
     "releaseApproval": false
+  },
+  "remotePreservationAndCleanupEligibilityAddendum": {
+    "reviewedAt": "2026-10-08T15:10:39.910924+00:00",
+    "decision": "REMOTE_SELECTED_BYTES_PRESERVED_AND_EXACT_OWNED_ROOT_CLEANUP_ELIGIBLE; actual root deletion pending",
+    "sourceRecordCommit": "7f1c6360d33c92cd07f61fbab86082d118e41a31",
+    "preservation": {
+      "pushExit": 0,
+      "remoteBranchObserved": "refs/heads/v4.5.0",
+      "observedRemoteHead": "7f1c6360d33c92cd07f61fbab86082d118e41a31",
+      "remoteReadbackRows": 8,
+      "localGitWorktreeReceiptByteMismatch": 0,
+      "remoteMethod": "실행된 remote-readback.py와 원출력/exit0를 검토. gh Git blob API base64 decode 결과를 local Git 및 worktree와 전체바이트 비교하도록 assert하며 실제8행 원출력에 일치 기록. 검토자가 네트워크를 추가 호출하지 않음.",
+      "archiveBytes": 251406,
+      "archiveSha256": "0a9ee8c8b9f67e7c3612fb7e2092a5fbf2f5b7ca0cd12e5b0e73e10c9da9458c",
+      "selectedEvidenceSufficient": true,
+      "scope": "승인된 선택 원자료·정제본과 실패/미실행 판단의 보존 충분성. 전체 private 원본/모든 runtime data가 보존됐다는 뜻 아님.",
+      "receiptStreamsReviewed": [
+        {
+          "name": "initial-push",
+          "exit": 0,
+          "streamHashesMatch": true
+        },
+        {
+          "name": "initial-remote-readback",
+          "exit": 0,
+          "streamHashesMatch": true
+        },
+        {
+          "name": "remove-owned-container",
+          "exit": 0,
+          "streamHashesMatch": true
+        }
+      ]
+    },
+    "runtimeCleanup": {
+      "ownedProductPID": 36689,
+      "psExit": 1,
+      "productAbsent": true,
+      "ports": [
+        {
+          "port": 49855,
+          "connectCode": 61,
+          "currentlyClosed": true
+        },
+        {
+          "port": 49856,
+          "connectCode": 61,
+          "currentlyClosed": true
+        }
+      ],
+      "cleanupBlockedFiles": 0,
+      "rootKeptForByteReview": true
+    },
+    "containerCleanup": {
+      "commands": [
+        {
+          "argv": [
+            "docker",
+            "container",
+            "inspect",
+            "eb5f43204e54a83079b900d5d733d61b64a22cfcc2900b22640fecbed157fb3e"
+          ],
+          "exit": 1,
+          "stdout": "[]\n",
+          "stderr": "Error response from daemon: No such container: eb5f43204e54a83079b900d5d733d61b64a22cfcc2900b22640fecbed157fb3e\n"
+        },
+        {
+          "argv": [
+            "docker",
+            "image",
+            "inspect",
+            "--format",
+            "{{.Id}}",
+            "mediaserver-v450-verify:rc58-arm64"
+          ],
+          "exit": 0,
+          "stdout": "sha256:ce72c8a15363984da642e9964189957896812061c6af1d0ef67e87b38ad5a588\n",
+          "stderr": ""
+        }
+      ],
+      "ownedContainerAbsent": true,
+      "approvedImageRetained": true,
+      "QwenOllamaCalls": 0
+    },
+    "temporaryRoot": {
+      "path": "/private/tmp/media-server-release68-89ooe93r",
+      "actualLstat": {
+        "uid": 501,
+        "inode": 171295835,
+        "device": 16777232,
+        "symlink": false
+      },
+      "matchesOriginalOwnership": true,
+      "symlinksCountReadOnlyWalk": 554,
+      "symlinksOutsideOwnedGstCachePaths": 0,
+      "deletionPlan": "최신 reviewer 판단 및 최종 보존/정리 근거를 저장소에 복사하고 바이트 확인한 뒤 exact root ownership을 다시 대조하고 shutil.rmtree로 소유 root만 제거. symlink target은 따라가지 않고 link만 제거.",
+      "actualDeletionObserved": false,
+      "absenceConfirmed": false,
+      "reviewerAfterThisWrite": "추가 작업/쓰기 없이 종료 대기. 실제 root 삭제 완료를 선행 주장하지 않음."
+    },
+    "remainingBeforeFinalClosure": [
+      "현재 최종 addendum과 필요한 push/readback/cleanup 원출력의 저장소 보존",
+      "exact owned temporary root 제거 후 부재 확인",
+      "그 후속 보존 commit/push와 실제 remote 상태를 메인이 확인"
+    ],
+    "originalJudgmentsPreserved": {
+      "codeAndLinux": "scoped approved/PASS",
+      "mixed120": "FAIL_INCOMPLETE",
+      "resourceTrendPass": false,
+      "verifiedDurationMs": null,
+      "releaseApproval": false,
+      "historical67Cause": "unconfirmed"
+    },
+    "limitations": "실제 root 제거는 이 기록 작성 이후 계획이므로 완료로 표기하지 않는다. 원격 상태는 관측 시점의 확인이며 영구 불변성 보장이 아니다."
   }
 }

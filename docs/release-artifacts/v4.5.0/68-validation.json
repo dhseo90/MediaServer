@@ -384,7 +384,10 @@
     "mixed": "FAIL/incomplete; no release approval",
     "producerApplications": 0,
     "originalJsonSha256BeforeCleanupAddendum": "1961b560d869d7d5b3efb3c70bda9d0942426a3612abb58bc387751e7371ada0",
-    "preservation": "APPROVE_SELECTED_FAILURE_PRESERVATION; no blocking preservation findings; actual raw/sanitized/package/PNG/source contrast read"
+    "preservation": "APPROVE_SELECTED_FAILURE_PRESERVATION; no blocking preservation findings; actual raw/sanitized/package/PNG/source contrast read",
+    "reviewType": "separate AI agent code/result review; no human approval or new runtime test claimed",
+    "finalPreservationCleanupAddendumSha256": "f14169b5a06e2416dcf1eb2253afe40c2b4a316628e3b7ea8555711111856aa4",
+    "sourceAndExecutionDecisionUnchanged": true
   },
   "mixed120": {
     "attempts": 1,
@@ -1056,7 +1059,132 @@
     },
     "oldArchiveCopies": 0,
     "precommitPrivacyCorrection": "Uncommitted pending archive first excluded8 URI lines; independent review required4 unnecessary source/path/route setting lines also excluded. Corrected archive and unique byte-index verified before commit; prior pending copy is private only, never Git/pushed.",
-    "fixtureProvenance": "docs/sample-fixture-provenance.md exact synthetic source/28161B SHA and six package derivation added after run; no runtime/test/expectation change"
+    "fixtureProvenance": "docs/sample-fixture-provenance.md exact synthetic source/28161B SHA and six package derivation added after run; no runtime/test/expectation change",
+    "initialPreservationCommit": "7f1c6360d33c92cd07f61fbab86082d118e41a31",
+    "initialRemoteSha": "7f1c6360d33c92cd07f61fbab86082d118e41a31",
+    "initialRemoteChangedBlobReadback": {
+      "head": "7f1c6360d33c92cd07f61fbab86082d118e41a31",
+      "remote": "7f1c6360d33c92cd07f61fbab86082d118e41a31",
+      "results": [
+        {
+          "path": "docs/development-backlog.md",
+          "bytes": 23594,
+          "sha256": "1dc2c9a1ee642725768282734cf28a42a8810dea33aa64bd6e3d462b91af8cb2",
+          "blob": "9ba52fee23b32bfa722b0c3416812908678de265",
+          "remoteExit": 0,
+          "localGitWorktreeRemoteByteEqual": true
+        },
+        {
+          "path": "docs/project-feature-test-inventory.md",
+          "bytes": 977235,
+          "sha256": "a58b6e27fe475d063d367d15dddd47dd971f063705c55ac1638e7dbfadfc5a0e",
+          "blob": "74d0bc6831268ad90081873a4a44fed0bc8950f3",
+          "remoteExit": 0,
+          "localGitWorktreeRemoteByteEqual": true
+        },
+        {
+          "path": "docs/release-artifacts/v4.5.0/68-execution.tar.gz",
+          "bytes": 251406,
+          "sha256": "0a9ee8c8b9f67e7c3612fb7e2092a5fbf2f5b7ca0cd12e5b0e73e10c9da9458c",
+          "blob": "406fb3ba0fad0cd72a3da0a1d58b6d92602d7db9",
+          "remoteExit": 0,
+          "localGitWorktreeRemoteByteEqual": true
+        },
+        {
+          "path": "docs/release-artifacts/v4.5.0/68-independent-review.json",
+          "bytes": 42045,
+          "sha256": "1961b560d869d7d5b3efb3c70bda9d0942426a3612abb58bc387751e7371ada0",
+          "blob": "cd66fefee5f10c6ca7044752c5242201940381be",
+          "remoteExit": 0,
+          "localGitWorktreeRemoteByteEqual": true
+        },
+        {
+          "path": "docs/release-artifacts/v4.5.0/68-validation.json",
+          "bytes": 40545,
+          "sha256": "c9f327865cb3b2d4406cebca9b4a6d7cd43e9a3c863e62a0db0a4b413e1a4513",
+          "blob": "e632525c6147ff47bb92e1578684aa0649e272bf",
+          "remoteExit": 0,
+          "localGitWorktreeRemoteByteEqual": true
+        },
+        {
+          "path": "docs/sample-fixture-provenance.md",
+          "bytes": 5649,
+          "sha256": "a7ff6d685a85ebe476c13026de17913d67fbadeaa5d78703fbe41aca304be1ce",
+          "blob": "7625453a149cf954e15357cd8b81394033aa3914",
+          "remoteExit": 0,
+          "localGitWorktreeRemoteByteEqual": true
+        },
+        {
+          "path": "scripts/internal/va_review_smoke.cpp",
+          "bytes": 89874,
+          "sha256": "992d43b0edc954414eff4ea44f38ddcb52580a2d5d87e402dde91dbcf47527df",
+          "blob": "6a90a57fa3c56ce876f03a13445099e6e8d88865",
+          "remoteExit": 0,
+          "localGitWorktreeRemoteByteEqual": true
+        },
+        {
+          "path": "scripts/internal/verify_va_review_bound_record.py",
+          "bytes": 6435,
+          "sha256": "2998d9b42bdb467f4c6eb1f4f5194c4233c343760dd1226becf5e249ecd34dda",
+          "blob": "6625349b03eeb4a65e7402da58e7878c674cff7b",
+          "remoteExit": 0,
+          "localGitWorktreeRemoteByteEqual": true
+        }
+      ]
+    },
+    "objectSizes": {
+      "head": "7f1c6360d33c92cd07f61fbab86082d118e41a31",
+      "remoteBeforePush": "965ee054b40ccb8c61f3c2f0b76e3cb8f08cc07b",
+      "changedBlobs": [
+        {
+          "path": "docs/development-backlog.md",
+          "bytes": 23594,
+          "sha256": "1dc2c9a1ee642725768282734cf28a42a8810dea33aa64bd6e3d462b91af8cb2"
+        },
+        {
+          "path": "docs/project-feature-test-inventory.md",
+          "bytes": 977235,
+          "sha256": "a58b6e27fe475d063d367d15dddd47dd971f063705c55ac1638e7dbfadfc5a0e"
+        },
+        {
+          "path": "docs/release-artifacts/v4.5.0/68-execution.tar.gz",
+          "bytes": 251406,
+          "sha256": "0a9ee8c8b9f67e7c3612fb7e2092a5fbf2f5b7ca0cd12e5b0e73e10c9da9458c"
+        },
+        {
+          "path": "docs/release-artifacts/v4.5.0/68-independent-review.json",
+          "bytes": 42045,
+          "sha256": "1961b560d869d7d5b3efb3c70bda9d0942426a3612abb58bc387751e7371ada0"
+        },
+        {
+          "path": "docs/release-artifacts/v4.5.0/68-validation.json",
+          "bytes": 40545,
+          "sha256": "c9f327865cb3b2d4406cebca9b4a6d7cd43e9a3c863e62a0db0a4b413e1a4513"
+        },
+        {
+          "path": "docs/sample-fixture-provenance.md",
+          "bytes": 5649,
+          "sha256": "a7ff6d685a85ebe476c13026de17913d67fbadeaa5d78703fbe41aca304be1ce"
+        },
+        {
+          "path": "scripts/internal/va_review_smoke.cpp",
+          "bytes": 89874,
+          "sha256": "992d43b0edc954414eff4ea44f38ddcb52580a2d5d87e402dde91dbcf47527df"
+        },
+        {
+          "path": "scripts/internal/verify_va_review_bound_record.py",
+          "bytes": 6435,
+          "sha256": "2998d9b42bdb467f4c6eb1f4f5194c4233c343760dd1226becf5e249ecd34dda"
+        }
+      ],
+      "uncompressedBytes": 1436783,
+      "maxBlobBytes": 977235,
+      "meaning": "uncompressed changed objects, not actual push pack bytes",
+      "localGitReadback": true
+    },
+    "archiveRebuiltAfterCommit": false,
+    "finalMetadataScope": "append-only independent readback/cleanup addendum and actual removal results; execution archive and product/test source unchanged",
+    "finalMetadataRemoteReadback": "actual check after containing final commit/push, reported in final response; no self-referential commit claim"
   },
   "priorEvidence": {
     "59Linux": "original source/environment/profile scope; no rerun",
@@ -1075,9 +1203,9 @@
       "base": "965ee054b40ccb8c61f3c2f0b76e3cb8f08cc07b"
     },
     "LinuxStopped": true,
-    "containerRemoved": false,
-    "temporaryRootRemoved": false,
-    "pending": "selected originals localGit+remote readback then exact owned removal",
+    "containerRemoved": true,
+    "temporaryRootRemoved": true,
+    "pending": null,
     "approvedImageSDKmodelsRetained": true,
     "QwenOllamaCalls": 0,
     "QwenUnloadGate": "not-run",
@@ -1099,7 +1227,69 @@
       ],
       "cleanupBlockedFiles": 0,
       "rootKeptForByteReview": true
-    }
+    },
+    "containerActualAbsence": {
+      "commands": [
+        {
+          "argv": [
+            "docker",
+            "container",
+            "inspect",
+            "eb5f43204e54a83079b900d5d733d61b64a22cfcc2900b22640fecbed157fb3e"
+          ],
+          "exit": 1,
+          "stdout": "[]\n",
+          "stderr": "Error response from daemon: No such container: eb5f43204e54a83079b900d5d733d61b64a22cfcc2900b22640fecbed157fb3e\n"
+        },
+        {
+          "argv": [
+            "docker",
+            "image",
+            "inspect",
+            "--format",
+            "{{.Id}}",
+            "mediaserver-v450-verify:rc58-arm64"
+          ],
+          "exit": 0,
+          "stdout": "sha256:ce72c8a15363984da642e9964189957896812061c6af1d0ef67e87b38ad5a588\n",
+          "stderr": ""
+        }
+      ],
+      "ownedContainerAbsent": true,
+      "approvedImageRetained": true,
+      "QwenOllamaCalls": 0
+    },
+    "temporaryRootFinalPrerequisite": {
+      "ownershipMatched": true,
+      "root": {
+        "path": "/private/tmp/media-server-release68-89ooe93r",
+        "uid": 501,
+        "inode": 171295835,
+        "device": 16777232,
+        "base": "965ee054b40ccb8c61f3c2f0b76e3cb8f08cc07b"
+      },
+      "remoteOriginalBytesConfirmed": true,
+      "containerId": "eb5f43204e54a83079b900d5d733d61b64a22cfcc2900b22640fecbed157fb3e",
+      "containerStopped": true,
+      "rootSymlinks": 554,
+      "symlinkScope": "owned GStreamer cache only; exact root deletion unlinks symlinks without following targets",
+      "temporaryRootRemoval": "pending after independent cleanup review"
+    },
+    "rootRemovalIndependentJudgment": "exact root deletion appropriate after captured source/selected original bytes and remote preservation; reviewer did not perform actual deletion",
+    "rootFinalResult": {
+      "path": "/private/tmp/media-server-release68-89ooe93r",
+      "uid": 501,
+      "inode": 171295835,
+      "device": 16777232,
+      "base": "965ee054b40ccb8c61f3c2f0b76e3cb8f08cc07b",
+      "ownershipMatchedImmediatelyBeforeDelete": true,
+      "removedAt": "2026-10-08T15:12:14.091943+00:00",
+      "method": "shutil.rmtree exact owned root, symlink targets not followed",
+      "absenceConfirmed": true,
+      "localGitAndRemoteSelectedOriginalBytesVerifiedBeforeRemoval": true,
+      "pastEvidenceDeleted": false
+    },
+    "remainingOwnedCleanup": []
   },
   "remaining": [
     "frame visual-frame-unavailable requires separately authorized scoped diagnosis/fix; no unique cause yet",
@@ -1160,6 +1350,183 @@
       },
       "rawUtf8": {
         "stdout": "\n== Docs link verification summary ==\n- markdown files: 305\n- local links: 9694\n- local images: 14\n- local anchors: 431\n- indexed docs: 93\n- index coverage exclusions: 195\n- failures: 0\n",
+        "stderr": ""
+      },
+      "byteRepresentation": "exact UTF-8 reencoding of captured original bytes"
+    },
+    {
+      "receipt": {
+        "name": "pre-push-remote",
+        "argv": [
+          "git",
+          "ls-remote",
+          "origin",
+          "refs/heads/v4.5.0"
+        ],
+        "cwd": "/Users/dhseo/Workspace/mediaServer",
+        "uid": 501,
+        "startedAt": "2026-10-08T15:05:45.750532+00:00",
+        "pid": 38366,
+        "exit": 0,
+        "elapsedSeconds": 2.1623664170037955,
+        "stdout": {
+          "bytes": 59,
+          "sha256": "800fd2cae2d1a7ef0e4e4ca3c698260c21a12af9b5b5380b9242b1a439fcbf40"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      "rawUtf8": {
+        "stdout": "965ee054b40ccb8c61f3c2f0b76e3cb8f08cc07b\trefs/heads/v4.5.0\n",
+        "stderr": ""
+      },
+      "byteRepresentation": "exact UTF-8 reencoding of captured original bytes"
+    },
+    {
+      "receipt": {
+        "name": "preservation-commit",
+        "argv": [
+          "git",
+          "commit",
+          "-m",
+          "docs(v4.5.0): preserve permission regressions and mixed-run failure",
+          "-m",
+          "Preserve actual root and UID10001 write-denial contrasts, complete Linux bound and confirmed regressions and independent source/result review. One mixed120 attempt fails on the seventh A package preparation at frame visual-frame-unavailable/503; six A jobs completed before failure. Preserve raw outputs and explicit private-log redaction, leave7200s/recovery/restart/resource stability incomplete, and keep product source and prior FAIL records unchanged."
+        ],
+        "cwd": "/Users/dhseo/Workspace/mediaServer",
+        "uid": 501,
+        "startedAt": "2026-10-08T15:06:17.083726+00:00",
+        "pid": 38379,
+        "exit": 0,
+        "elapsedSeconds": 0.035028208047151566,
+        "stdout": {
+          "bytes": 340,
+          "sha256": "cd1aa678e0c66d0ad84caabbe7f3f7b88408f0f8db15412f1d5ec8a8d05af1b1"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      "rawUtf8": {
+        "stdout": "[v4.5.0 7f1c6360d] docs(v4.5.0): preserve permission regressions and mixed-run failure\n 5 files changed, 2184 insertions(+)\n create mode 100644 docs/release-artifacts/v4.5.0/68-execution.tar.gz\n create mode 100644 docs/release-artifacts/v4.5.0/68-independent-review.json\n create mode 100644 docs/release-artifacts/v4.5.0/68-validation.json\n",
+        "stderr": ""
+      },
+      "byteRepresentation": "exact UTF-8 reencoding of captured original bytes"
+    },
+    {
+      "receipt": {
+        "name": "initial-push",
+        "argv": [
+          "git",
+          "push",
+          "origin",
+          "HEAD:refs/heads/v4.5.0"
+        ],
+        "cwd": "/Users/dhseo/Workspace/mediaServer",
+        "uid": 501,
+        "startedAt": "2026-10-08T15:06:41.510039+00:00",
+        "pid": 38414,
+        "exit": 0,
+        "elapsedSeconds": 4.655677500064485,
+        "stdout": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "stderr": {
+          "bytes": 78,
+          "sha256": "e03c0a5d29dff736b836e9cd6d66d650838ba5f1204d6db18dc22673624a0633"
+        }
+      },
+      "rawUtf8": {
+        "stdout": "",
+        "stderr": "To github.com:dhseo90/MediaServer.git\n   965ee054b..7f1c6360d  HEAD -> v4.5.0\n"
+      },
+      "byteRepresentation": "exact UTF-8 reencoding of captured original bytes"
+    },
+    {
+      "receipt": {
+        "name": "initial-remote-readback",
+        "argv": [
+          "python3",
+          "/private/tmp/media-server-release68-89ooe93r/remote-readback.py"
+        ],
+        "cwd": "/Users/dhseo/Workspace/mediaServer",
+        "uid": 501,
+        "startedAt": "2026-10-08T15:07:22.243508+00:00",
+        "pid": 38444,
+        "exit": 0,
+        "elapsedSeconds": 7.065635500010103,
+        "stdout": {
+          "bytes": 2705,
+          "sha256": "4475f0c34aff691638b19084de07f587420ea140d2e0300cf93a39c9a60f67bf"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      "rawUtf8": {
+        "stdout": "{\"command\": \"ls-remote\", \"exit\": 0, \"stdout\": \"7f1c6360d33c92cd07f61fbab86082d118e41a31\\trefs/heads/v4.5.0\\n\", \"stderr\": \"\"}\n{\n  \"head\": \"7f1c6360d33c92cd07f61fbab86082d118e41a31\",\n  \"remote\": \"7f1c6360d33c92cd07f61fbab86082d118e41a31\",\n  \"results\": [\n    {\n      \"path\": \"docs/development-backlog.md\",\n      \"bytes\": 23594,\n      \"sha256\": \"1dc2c9a1ee642725768282734cf28a42a8810dea33aa64bd6e3d462b91af8cb2\",\n      \"blob\": \"9ba52fee23b32bfa722b0c3416812908678de265\",\n      \"remoteExit\": 0,\n      \"localGitWorktreeRemoteByteEqual\": true\n    },\n    {\n      \"path\": \"docs/project-feature-test-inventory.md\",\n      \"bytes\": 977235,\n      \"sha256\": \"a58b6e27fe475d063d367d15dddd47dd971f063705c55ac1638e7dbfadfc5a0e\",\n      \"blob\": \"74d0bc6831268ad90081873a4a44fed0bc8950f3\",\n      \"remoteExit\": 0,\n      \"localGitWorktreeRemoteByteEqual\": true\n    },\n    {\n      \"path\": \"docs/release-artifacts/v4.5.0/68-execution.tar.gz\",\n      \"bytes\": 251406,\n      \"sha256\": \"0a9ee8c8b9f67e7c3612fb7e2092a5fbf2f5b7ca0cd12e5b0e73e10c9da9458c\",\n      \"blob\": \"406fb3ba0fad0cd72a3da0a1d58b6d92602d7db9\",\n      \"remoteExit\": 0,\n      \"localGitWorktreeRemoteByteEqual\": true\n    },\n    {\n      \"path\": \"docs/release-artifacts/v4.5.0/68-independent-review.json\",\n      \"bytes\": 42045,\n      \"sha256\": \"1961b560d869d7d5b3efb3c70bda9d0942426a3612abb58bc387751e7371ada0\",\n      \"blob\": \"cd66fefee5f10c6ca7044752c5242201940381be\",\n      \"remoteExit\": 0,\n      \"localGitWorktreeRemoteByteEqual\": true\n    },\n    {\n      \"path\": \"docs/release-artifacts/v4.5.0/68-validation.json\",\n      \"bytes\": 40545,\n      \"sha256\": \"c9f327865cb3b2d4406cebca9b4a6d7cd43e9a3c863e62a0db0a4b413e1a4513\",\n      \"blob\": \"e632525c6147ff47bb92e1578684aa0649e272bf\",\n      \"remoteExit\": 0,\n      \"localGitWorktreeRemoteByteEqual\": true\n    },\n    {\n      \"path\": \"docs/sample-fixture-provenance.md\",\n      \"bytes\": 5649,\n      \"sha256\": \"a7ff6d685a85ebe476c13026de17913d67fbadeaa5d78703fbe41aca304be1ce\",\n      \"blob\": \"7625453a149cf954e15357cd8b81394033aa3914\",\n      \"remoteExit\": 0,\n      \"localGitWorktreeRemoteByteEqual\": true\n    },\n    {\n      \"path\": \"scripts/internal/va_review_smoke.cpp\",\n      \"bytes\": 89874,\n      \"sha256\": \"992d43b0edc954414eff4ea44f38ddcb52580a2d5d87e402dde91dbcf47527df\",\n      \"blob\": \"6a90a57fa3c56ce876f03a13445099e6e8d88865\",\n      \"remoteExit\": 0,\n      \"localGitWorktreeRemoteByteEqual\": true\n    },\n    {\n      \"path\": \"scripts/internal/verify_va_review_bound_record.py\",\n      \"bytes\": 6435,\n      \"sha256\": \"2998d9b42bdb467f4c6eb1f4f5194c4233c343760dd1226becf5e249ecd34dda\",\n      \"blob\": \"6625349b03eeb4a65e7402da58e7878c674cff7b\",\n      \"remoteExit\": 0,\n      \"localGitWorktreeRemoteByteEqual\": true\n    }\n  ]\n}\n",
+        "stderr": ""
+      },
+      "byteRepresentation": "exact UTF-8 reencoding of captured original bytes"
+    },
+    {
+      "receipt": {
+        "name": "cleanup-ready",
+        "argv": [
+          "python3",
+          "/private/tmp/media-server-release68-89ooe93r/cleanup-check.py"
+        ],
+        "cwd": "/Users/dhseo/Workspace/mediaServer",
+        "uid": 501,
+        "startedAt": "2026-10-08T15:08:12.735410+00:00",
+        "pid": 38513,
+        "exit": 0,
+        "elapsedSeconds": 0.09800808306317776,
+        "stdout": {
+          "bytes": 543,
+          "sha256": "79621c611260fc55ee5f8bc0db70baca826913d6fe2afaf6dc2ea1ccbd0b04f2"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      "rawUtf8": {
+        "stdout": "{\"ownershipMatched\": true, \"root\": {\"path\": \"/private/tmp/media-server-release68-89ooe93r\", \"uid\": 501, \"inode\": 171295835, \"device\": 16777232, \"base\": \"965ee054b40ccb8c61f3c2f0b76e3cb8f08cc07b\"}, \"remoteOriginalBytesConfirmed\": true, \"containerId\": \"eb5f43204e54a83079b900d5d733d61b64a22cfcc2900b22640fecbed157fb3e\", \"containerStopped\": true, \"rootSymlinks\": 554, \"symlinkScope\": \"owned GStreamer cache only; exact root deletion unlinks symlinks without following targets\", \"temporaryRootRemoval\": \"pending after independent cleanup review\"}\n",
+        "stderr": ""
+      },
+      "byteRepresentation": "exact UTF-8 reencoding of captured original bytes"
+    },
+    {
+      "receipt": {
+        "name": "remove-owned-container",
+        "argv": [
+          "docker",
+          "rm",
+          "eb5f43204e54a83079b900d5d733d61b64a22cfcc2900b22640fecbed157fb3e"
+        ],
+        "cwd": "/Users/dhseo/Workspace/mediaServer",
+        "uid": 501,
+        "startedAt": "2026-10-08T15:08:47.632707+00:00",
+        "pid": 38536,
+        "exit": 0,
+        "elapsedSeconds": 1.1334676659898832,
+        "stdout": {
+          "bytes": 65,
+          "sha256": "6751fac5258513bb4ac818b912df6464e4d2a8896fec5e5b6321be69e087dbe3"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      "rawUtf8": {
+        "stdout": "eb5f43204e54a83079b900d5d733d61b64a22cfcc2900b22640fecbed157fb3e\n",
         "stderr": ""
       },
       "byteRepresentation": "exact UTF-8 reencoding of captured original bytes"
