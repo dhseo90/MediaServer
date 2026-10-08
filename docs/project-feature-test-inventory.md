@@ -4769,3 +4769,28 @@ V450-E03/U02 출력 결속 반례는 `va_review_test_artifacts.test.mjs`에서 p
 feature-gates 직후 초기 소스 지문을 재확인하고 실패 시 일반30분/UI를 실행하지 않는다.
 실제 두 HTTP wrapper의 PNG·JSON·checkpoint와 참조 hash·cleanup은 지정 run 아래에서 확인한다.
 최종 Policy v4/소스 결속은 유지하며 단기 경로 검사는 전체 UI 적격성을 대신하지 않는다.
+
+### v4.5 녹화·검색·증거·A 혼합 관측 (64)
+
+기존 LP26-O02/O03/O04/O05/O11의 2채널 확정·삭제·동일 PID 표본·중단 후 복구에
+V430-A01-APP, V440-A01, V450-R02 및 V450-A02/A03의 실제 검색·증거·확인·자료 안내를 겹친다.
+일반 acceptance/UI를 대신하지 않는 별도 승인 실행이다. 합성 VA는 시작 전 기존 projector에
+저장하고, 실행 중에는 현재 검색 snapshot에서 A package를 생성한다. detector/영상 사실 검사는 아니다.
+
+진입점은 `python3 scripts/internal/run_v450_recording_a_mixed.py --prepare <새 소유 부모 run>`와
+별도 승인된 `--120 <새 소유 부모 run>`이다. 내부 `verify_v450_recording_a_mixed.sh`가 기존 archive로
+관측/seed helper를 빌드하고 `v450_recording_a_mixed.mjs`를 실행한다. `v450_recording_a_load.mjs`는
+60초 간격 최대120기회·동시1작업·밀린 접수 금지, 실제 확인/worker/원자 저장/자료 안내를 확인한다.
+정상 3판정은 supported/contradicted/insufficient, 현재 observation hit은 단일 PTS이므로 가시성 true/false와 끝점 비교를 요청하며, 부족 자료는 추가 비교 시각/순서를 지목해야 한다.
+취소/완료 경합, 확인 후 계정 비활성, 재시작 transient 소실·저장 bytes 유지·새 작업을 따로 확인한다.
+
+부하는 과거 mixed-120-15의 2채널·4검색 클라이언트·15초 검색/보존, 5초 표본/15초 최대 공백,
+RSS 4GiB, 검색 p95 2초/max 5초, 가변448MiB/live+copy F+2C를 유지한다. A/추가 로그도 가변 비용이다.
+장시간은 단조7200초, 컴파일/종료/복구 포함 총7380초다. 준비 실행은 총180초 안의 30초 관측이며
+장시간 PASS가 아니다. 자원 추세는 별도 판단이고 기존 Catalog 누적 RAM/규모 제한을 유지한다.
+
+`node --test scripts/internal/v450_recording_a_load.test.mjs`는 기회/중복/적체 반례,
+`python3 scripts/internal/v450_recording_a_launcher_checks.py <새 소유 출력>`는 원래 bounded helper의
+자식 실패·deadline·receipt 수집 실패·분리 복구 자식 정리 반례다. 실패/잔존 프로세스는 상위 FAIL이며
+후속 장시간은 미실행이다. root는 원출력 보존 전에 자동 삭제하지 않는다. 종료 후 소유권 대조와
+비민감 근거 보존을 마친 뒤 정리한다. 현재 실행 결과는 별도 버전/run 기록에서 추적한다.
