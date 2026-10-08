@@ -146,8 +146,9 @@
     "newLongrunAcceptanceUI": "NOT_RUN_THIS_TASK"
   },
   "pending": [
-    "actual owned temporary root cleanup after byte preservation",
-    "committed archive/review bytes and final Git remote readback"
+    "copy this finaladdendum and minimal closeout receipts intoexisting69records",
+    "final closeoutcommit/generalpush andactualremoterefcheck",
+    "remove ownedcloseout scratch afterrequiredbytespreserved"
   ],
   "finalSourceAndDirectRegressionAddendum": {
     "reviewedAt": "2026-10-08T16:20:09.898860+00:00",
@@ -459,7 +460,7 @@
     "blockingCodeOrPreservationFindings": [],
     "mixed120": "NOT_RUN_THIS_TASK_PRIOR68_FAIL_INCOMPLETE_RETAINED",
     "releaseApproval": false,
-    "cleanupRemote": "PENDING_OWNER_FINALIZATION",
+    "cleanupRemote": "EXECUTION_ROOT_ABSENT_AND_PRESERVATION_COMMIT_REMOTE_BYTES_CONFIRMED; FINAL_CLOSEOUT_ADDENDUM_COMMIT_PUSH_PENDING",
     "earlierDecisionFields": "historical stage judgments preserved; latestDecision and dated addenda provide current scope",
     "implementationCommit": "6854265dbcc9c039e09ab22fac1d8e428f1f4590"
   },
@@ -492,5 +493,101 @@
     "decision": "APPROVE_FINAL_ARCHIVE_AND_DOCUMENTED_SCOPE_FOR_PRESERVATION",
     "cleanupAndRemote": "owned runtime groups/ports closed, named Linux container removal receipt observed; temporary root deletion and committed/remote evidence object readback remain pending",
     "newExecutionAuthorizationGrantedByReview": false
+  },
+  "remotePreservationAndOwnedCleanupAddendum": {
+    "reviewedAt": "2026-10-08T16:40:11.197213+00:00",
+    "implementationCommit": "6854265dbcc9c039e09ab22fac1d8e428f1f4590",
+    "preservationCommit": "5abbba6dfe81702500b9a5160cc5bcfba9baca8e",
+    "remote": {
+      "rawCommandReceiptExit": 0,
+      "rawStdoutStderrHashesMatchReceipt": true,
+      "observedRef": "origin refs/heads/v4.5.0",
+      "observedSha": "5abbba6dfe81702500b9a5160cc5bcfba9baca8e",
+      "readbackScope": "owner가GitHub원격blob을조회한원출력과receipt를읽고동일commit의로컬Git객체/현재파일바이트를독립대조. reviewer가별도network/API조회나제품실행을수행한것은아님.",
+      "objects": [
+        {
+          "path": "docs/release-artifacts/v4.5.0/69-execution.tar.gz",
+          "gitBytes": 404144,
+          "sha256": "4f734d2ca5ac06f1a4044b4e5e34a9cc8f007e15788c7227c234ae6d3e18e7a5",
+          "matchesReceipt": true,
+          "worktreeMatchesGit": true
+        },
+        {
+          "path": "docs/release-artifacts/v4.5.0/69-validation.json",
+          "gitBytes": 29555,
+          "sha256": "9905561b245f9c097648a5e399beba4a877dd7152bdbdfac377e6de638907925",
+          "matchesReceipt": true,
+          "worktreeMatchesGit": false
+        },
+        {
+          "path": "docs/release-artifacts/v4.5.0/69-independent-review.json",
+          "gitBytes": 25484,
+          "sha256": "c02809fa88f212a99efd78f9eb2bad03167f718d056957a231be2a5661da1c09",
+          "matchesReceipt": true,
+          "worktreeMatchesGit": true
+        }
+      ],
+      "previousReviewCopyMatchesRemotelyPreservedReview": true,
+      "archiveSha256": "4f734d2ca5ac06f1a4044b4e5e34a9cc8f007e15788c7227c234ae6d3e18e7a5"
+    },
+    "source": {
+      "allNineFreezeHashesStillMatch": true,
+      "workingTreeCleanAtReviewBeforeAddendumCopy": false,
+      "codeBehaviorChangedAfterFreeze": false,
+      "workingTreeState": "첫상태조회에서는clean; 이후owner가69-validation의cleanup/remotePreservation/commits만마감갱신중인diff확인. 제품9파일은freeze와동일."
+    },
+    "cleanup": {
+      "rawScriptAndRecordRead": true,
+      "originalTaskRoot": "/private/tmp/media-server-release69-deth7nj4",
+      "rootOwnershipMatchedBeforeRemoval": true,
+      "originalRootDevice": 16777232,
+      "originalRootInode": 171314752,
+      "uid": 501,
+      "rootAbsenceIndependentlyObservedNow": true,
+      "absentPidsFromOwnerObservedRecord": [
+        41488,
+        41630,
+        41672
+      ],
+      "portsClosedFromOwnerObservedRecord": [
+        {
+          "port": 51811,
+          "closed": true
+        },
+        {
+          "port": 51812,
+          "closed": true
+        }
+      ],
+      "ownedContainerAbsentFromRecord": true,
+      "approvedImageRetainedId": "sha256:ce72c8a15363984da642e9964189957896812061c6af1d0ef67e87b38ad5a588",
+      "cacheSymlinks": 1108,
+      "scope": "exactownedroot removal afterremote bytepreservation; cache symlinks unlinked without traversing externaltargets",
+      "closeoutScratch": "/private/tmp/media-server-release69-closeout currentlyholds this finaladdendum/rawcloseout receipts; main must preserve required finalbytes beforeitscleanup; not yet claiming everytemporarypathabsent"
+    },
+    "decision": "SCOPED_DIAGNOSTIC_REVIEW_COMPLETE_AND_ORIGINAL_EXECUTION_ROOT_CLEANUP_CONFIRMED; FINAL_ADDENDUM_COMMIT_PUSH_PENDING",
+    "blockingProductOrPreservationFindings": [],
+    "retainedLimits": {
+      "68Cause": "UNCONFIRMED",
+      "behaviorFixProven": false,
+      "mixed120Pass": false,
+      "formalAcceptanceAndFullUI": "NOT_RUN",
+      "resourceTrendPass": false,
+      "releaseApproval": false,
+      "automaticNextExecutionAuthorized": false
+    },
+    "remainingOwnerFinalization": [
+      "copy this finaladdendum and minimal closeout receipts intoexisting69records",
+      "final closeoutcommit/generalpush andactualremoterefcheck",
+      "remove ownedcloseout scratch afterrequiredbytespreserved"
+    ],
+    "closeoutValidationDraftReview": {
+      "delta": "only actual cleanup record/helper, prior remote rawreceipt/output, implementation/preservation commit references",
+      "remoteStdoutMatchesPreservedReceipt": true,
+      "remoteStderrMatches": true,
+      "cleanupHelperBytesMatch": true,
+      "cleanupHelperHashMatch": true,
+      "judgment": "APPROVE_EVIDENCE_ONLY_CLOSEOUT_DRAFT; not yetcommitted/pushed"
+    }
   }
 }

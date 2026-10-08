@@ -836,10 +836,68 @@
     }
   ],
   "cleanup": {
-    "ownedProductAndGroups": "closed/absent per raw execution",
-    "LinuxContainer": "removed after stopped-state and evidence preservation; rc58 image retained",
-    "temporaryRoot": "pending removal after Git/remote byte preservation",
-    "approvedImageSDKModels": "retained"
+    "recordedAt": "2026-10-08T16:38:50.152972+00:00",
+    "ownershipMatched": true,
+    "root": "/private/tmp/media-server-release69-deth7nj4",
+    "rootDevice": 16777232,
+    "rootInode": 171314752,
+    "uid": 501,
+    "preservationCommit": "5abbba6dfe81702500b9a5160cc5bcfba9baca8e",
+    "remoteOriginalSelectedBytesConfirmed": true,
+    "absentPids": [
+      41488,
+      41630,
+      41672
+    ],
+    "ports": [
+      {
+        "port": 51811,
+        "closed": true
+      },
+      {
+        "port": 51812,
+        "closed": true
+      }
+    ],
+    "ownedContainerAbsent": true,
+    "retainedImageId": "sha256:ce72c8a15363984da642e9964189957896812061c6af1d0ef67e87b38ad5a588",
+    "symlinkCount": 1108,
+    "cleanupSemantics": "remove exact owned root; unlink cache symlinks without traversing external targets",
+    "temporaryRootAbsent": true,
+    "QwenUnloadGate": "not-run",
+    "executedHelperSha256": "c027ee4a95d7a55c492a13d3a2a9c1a33579da20c989715ce8ce41e179449a37",
+    "executedHelper": "from pathlib import Path\nimport json,os,socket,subprocess,shutil,hashlib,datetime\nroot=Path('/private/tmp/media-server-release69-deth7nj4');c=Path('/private/tmp/media-server-release69-closeout')\nowner=json.loads((root/'ownership.json').read_text());assert owner=={'task':69,'root':str(root),'base':'3c64d3f936bdac69fc1afe17bea6829ce60b885c'}\nassert root.resolve()==root and root.stat().st_uid==os.getuid()\nassert json.loads((c/'remote-receipt.json').read_text())['exit']==0\narchive=Path('docs/release-artifacts/v4.5.0/69-execution.tar.gz');assert hashlib.sha256(archive.read_bytes()).hexdigest()=='4f734d2ca5ac06f1a4044b4e5e34a9cc8f007e15788c7227c234ae6d3e18e7a5'\nassert subprocess.check_output(['git','show','5abbba6dfe81702500b9a5160cc5bcfba9baca8e:'+str(archive)])==archive.read_bytes()\nabsent=[]\nfor pid in [41488,41630,41672]:\n try:os.kill(pid,0)\n except ProcessLookupError:absent.append(pid)\n else:raise RuntimeError('previous owned pid still exists; do not delete')\nports=[]\nfor port in [51811,51812]:\n with socket.socket() as s:s.settimeout(.5);closed=s.connect_ex(('127.0.0.1',port))!=0\n assert closed;ports.append({'port':port,'closed':True})\np=subprocess.run(['docker','ps','-a','--filter','name=^/mediaserver-release69-linux$','--format','{{.ID}}'],capture_output=True,text=True);assert p.returncode==0 and not p.stdout.strip()\nimage=subprocess.check_output(['docker','image','inspect','mediaserver-v450-verify:rc58-arm64','--format','{{.Id}}'],text=True).strip();assert image=='sha256:ce72c8a15363984da642e9964189957896812061c6af1d0ef67e87b38ad5a588'\nrecord={'recordedAt':datetime.datetime.now(datetime.timezone.utc).isoformat(),'ownershipMatched':True,'root':str(root),'rootDevice':root.stat().st_dev,'rootInode':root.stat().st_ino,'uid':os.getuid(),'preservationCommit':'5abbba6dfe81702500b9a5160cc5bcfba9baca8e','remoteOriginalSelectedBytesConfirmed':True,'absentPids':absent,'ports':ports,'ownedContainerAbsent':True,'retainedImageId':image,'symlinkCount':sum(x.is_symlink() for x in root.rglob('*')),'cleanupSemantics':'remove exact owned root; unlink cache symlinks without traversing external targets'}\nshutil.rmtree(root);record['temporaryRootAbsent']=not root.exists();assert record['temporaryRootAbsent'];(c/'cleanup.json').write_text(json.dumps(record,indent=2)+'\\n');print(json.dumps(record))\n"
   },
-  "next": "Historical68 earliest decoder branch remains absent. No proven behavior fix and no120 readiness approval. If requested, one same-saved-file/target comparison in matched host permission/default-auto-decoder context can separate permission/selection differences; do not force decoder or rerun automatically."
+  "next": "Historical68 earliest decoder branch remains absent. No proven behavior fix and no120 readiness approval. If requested, one same-saved-file/target comparison in matched host permission/default-auto-decoder context can separate permission/selection differences; do not force decoder or rerun automatically.",
+  "remotePreservation": {
+    "receipt": {
+      "name": "initial-remote-readback",
+      "argv": [
+        "python3",
+        "/private/tmp/media-server-release69-deth7nj4/remote-readback.py"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "startedAt": "2026-10-08T16:37:38.748949+00:00",
+      "pid": 44057,
+      "exit": 0,
+      "elapsedSeconds": 4.112750417087227,
+      "stdout": {
+        "bytes": 1134,
+        "sha256": "a5d9c7197547ed6d9c06cf7669c0a83e2279fe4e917ffeefd9319777e2a54c9c"
+      },
+      "stderr": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "stdout": "{\"command\": \"ls-remote\", \"exit\": 0, \"stdout\": \"5abbba6dfe81702500b9a5160cc5bcfba9baca8e\\trefs/heads/v4.5.0\\n\", \"stderr\": \"\"}\n{\n  \"head\": \"5abbba6dfe81702500b9a5160cc5bcfba9baca8e\",\n  \"remote\": \"5abbba6dfe81702500b9a5160cc5bcfba9baca8e\",\n  \"results\": [\n    {\n      \"path\": \"docs/release-artifacts/v4.5.0/69-execution.tar.gz\",\n      \"blob\": \"b89236ffef9bf6e9425ee111e7925a0bf6cf5e26\",\n      \"bytes\": 404144,\n      \"sha256\": \"4f734d2ca5ac06f1a4044b4e5e34a9cc8f007e15788c7227c234ae6d3e18e7a5\",\n      \"localGitWorktreeRemoteByteEqual\": true\n    },\n    {\n      \"path\": \"docs/release-artifacts/v4.5.0/69-validation.json\",\n      \"blob\": \"47ac154efdf014fbccdb747693e7bcdafbc7915c\",\n      \"bytes\": 29555,\n      \"sha256\": \"9905561b245f9c097648a5e399beba4a877dd7152bdbdfac377e6de638907925\",\n      \"localGitWorktreeRemoteByteEqual\": true\n    },\n    {\n      \"path\": \"docs/release-artifacts/v4.5.0/69-independent-review.json\",\n      \"blob\": \"66d7cf813943d8537e440c58c5ad01957e8f91aa\",\n      \"bytes\": 25484,\n      \"sha256\": \"c02809fa88f212a99efd78f9eb2bad03167f718d056957a231be2a5661da1c09\",\n      \"localGitWorktreeRemoteByteEqual\": true\n    }\n  ]\n}\n",
+    "stderr": "",
+    "representation": "captured original UTF-8 stdout/stderr; archive bytes unchanged in later closeout commit"
+  },
+  "commits": {
+    "implementation": "6854265dbcc9c039e09ab22fac1d8e428f1f4590",
+    "preservation": "5abbba6dfe81702500b9a5160cc5bcfba9baca8e",
+    "closeout": "following evidence-only commit; not new execution source"
+  }
 }
