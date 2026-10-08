@@ -1,0 +1,372 @@
+{
+  "schema": "media-server.release67.independent-change-review.v1",
+  "reviewedAt": "2026-10-08T13:25:08.778001+00:00",
+  "reviewer": {
+    "agentTask": "/root/independent_release67",
+    "role": "별도 독립 AI 검토자",
+    "requestedModel": "gpt-6-astra",
+    "requestedReasoningEffort": "high",
+    "actualRuntimeModel": null,
+    "actualRuntimeSnapshot": null,
+    "actualRuntimeReasoningEffort": null,
+    "runtimeBoundary": "요청값과 실제 runtime 확인은 구분하며 확인 불가 실제값은 추정하지 않음.",
+    "implementationParticipation": false,
+    "testOrProductExecution": false,
+    "subdelegation": false,
+    "onlyAuthoredFile": "/private/tmp/media-server-release67-fpdb_iat/independent-review.json"
+  },
+  "sourceBinding": {
+    "base": "56f892a49dde1e9d6d657593282c12c8325d7d1c",
+    "productImplementation": "0334b7449822c0e5eefcb677d792f055330365f2",
+    "path": "scripts/internal/evidence_observation_smoke.cpp",
+    "beforeSha256": "a6ad4dbbd911a446c82f5e9a90d16c5d092621d23e4fc65d304b1f2e7c8a5d91",
+    "afterSha256": "0f091147f2dbc3b77874656c7f9e9afb0a49c082b7f18f95145ef2431f8851fd",
+    "directComparison": "git show base 원본과 작업트리 bytes 비교: 개행/space 삽입 7개, 지정 원래 위치 6개, 삭제/비공백 변경 없음. 제공 before.cpp는 실제 없어 Git 원본으로 독립 확인.",
+    "productSourceDeltaFromImplementation": [],
+    "providedBeforeCopy": "inputs/evidence_observation_smoke.before.cpp 실제 경로를 후속 안내받아 읽음. base 원본 SHA256과 일치."
+  },
+  "decision": {
+    "overall": "insufficient",
+    "codeDelta": "approved",
+    "requiredLinuxRegression": "fix-required",
+    "mixed120": "not-run",
+    "preservationAndCleanup": "insufficient",
+    "releaseApproval": false,
+    "executionAuthorizationGrantedByReview": false,
+    "blockingCodeFindings": [],
+    "failureRecordAndDownstreamStop": "approved",
+    "reason": "지정 줄바꿈 수정과 직접 K07 회귀는 충족. 뒤이은 필수 A wrapper의 legacy records-only assertion 실패로 전체 Linux 선행조건 미충족. 해결·재검증 범위 결정 전 host 혼합120 진행 불가."
+  },
+  "codeReasoning": [
+    {
+      "originalLine": 58,
+      "judgment": "독립 if 세 개 유지. invalid-coordinate 검사 조건/입력/기대값 불변."
+    },
+    {
+      "originalLine": 108,
+      "judgment": "add는 calls==2일 때만 호출되고 return false는 항상 실행. capacity 최초실패 검사 의미 불변."
+    },
+    {
+      "originalLine": 191,
+      "judgment": "모든 packet Push 뒤 writer.Stop 한 번 실행. 루프 body 또는 종료 순서 변경 없음."
+    },
+    {
+      "originalLine": 243,
+      "judgment": "무관 채널 writer의 모든 Push 뒤 other.Stop 한 번 실행. 실제 finalize 반례 의미 불변."
+    },
+    {
+      "originalLine": 260,
+      "judgment": "삭제결과가 부적합하면 throw, 정상결과에서만 unrelated_deleted=true. 상태/예외 의미 불변."
+    },
+    {
+      "originalLine": 365,
+      "judgment": "argc!=3이면 exit2, 정상 인자에서 gst_init 및 canonical 경로 해석. call order 불변."
+    }
+  ],
+  "consumerReview": {
+    "path": "scripts/internal/verify_evidence_package.sh",
+    "compileFlags": [
+      "-std=c++17",
+      "-Wall",
+      "-Wextra",
+      "-Werror"
+    ],
+    "preserved": "current archive stale 검사·smoke source hash 출력·기존 link libraries·60초 compile·90초 seed·30초 recover·소유 원본삭제 확인·30초 별도 readback·check=True 실패 전파 모두 불변. runtime 모델/서버 실행은 검토자가 하지 않음."
+  },
+  "priorEvidenceImpact": {
+    "65": "기존 독립 제품 판단/host direct/30초 준비 검사의 당시 범위 유지. 줄바꿈 delta가 product behavior를 바꾸지 않으며 새 Linux/120분/전체 UI 승인으로 확대하지 않음.",
+    "66": "archive의 linux-observations receipt exit1와 stderr의 GCC misleading-indentation 6개를 직접 읽음. 최초 FAIL_COMPILE·후속 미실행 보존. 새 실제 Linux 회귀 완료 전 해소로 판정하지 않음.",
+    "64": "과거503 내부 원인 UNCONFIRMED 및 혼합120 실패 유지."
+  },
+  "pendingEvidence": [
+    "Linux A 필수 wrapper 실패 원인·주입 전제의 승인된 후속 해결/재검증; core 및 confirmed/native 미실행",
+    "필수 Linux 회귀 충족 후 별도 기존 승인 경계의 혼합120 실행 및 실제시간·동시진행·복구·자원 근거",
+    "현재 실행의 원근거 보존·소유 container/프로세스/포트/경로 cleanup 최종 확인"
+  ],
+  "evidenceRead": [
+    "AGENTS.md",
+    "docs/release-policy.md",
+    "docs/release-artifacts/v4.5.0/65-independent-review.json",
+    "docs/release-artifacts/v4.5.0/66-independent-review.json",
+    "docs/release-artifacts/v4.5.0/66-validation.json",
+    "docs/release-artifacts/v4.5.0/66-execution.tar.gz:commands/linux-observations.json",
+    "docs/release-artifacts/v4.5.0/66-execution.tar.gz:commands/linux-observations.stderr",
+    "inputs/source.diff",
+    "inputs/lexical-equivalence.json",
+    "inputs/source-snapshot.json"
+  ],
+  "limitations": [
+    "코드 변경분 승인과 실행·릴리즈 최종 승인은 별개. 모든 선행조건 충족 전 overall 승인하지 않음.",
+    "요청 모델/추론은 인계문에 따른 값이며 실제 runtime/snapshot은 도구로 확인하지 못함.",
+    "이번 판단에서 검사/제품/모델/서버/Docker 실행·Git mutation·승인파일 수정 없음."
+  ],
+  "approvalImpactReview": {
+    "reviewedAt": "2026-10-08T13:26:06.394551+00:00",
+    "decision": "approved",
+    "boundary": "기존986 legacy candidate의 동등 승계만 승인 가능. V450 신규 실행·전체 제품·릴리즈 승인이 아님.",
+    "currentCandidateDigest": "137543c6332a73f9a77599bfaca732bd1f54b263adee078fe5d3f8c275775906",
+    "directFullItemComparisonWithTrackedBaseline": true,
+    "rows": 986,
+    "strictCarryForwardEligible": 986,
+    "independentReviewRequired": 0,
+    "nonEquivalentRowDelta": 0,
+    "rowDeltaCountMeaning": "986은 전체 대조행 수이며 변경행 수가 아님.",
+    "producerReapplicationRequiredForThisWhitespaceDelta": false,
+    "registrationBoundary": "v450-registration exit0 원출력의 scope=registration-not-independent-approval 확인. 직접 K07·영향 소비자 K08/K09/A02 회귀는 실제 실행 근거를 별도로 판단.",
+    "receiptHashesMatched": [
+      "candidate stdout/stderr",
+      "migration stdout/stderr",
+      "v450-registration stdout/stderr"
+    ]
+  },
+  "observedBuildEvidence": {
+    "linuxBuildExit": 0,
+    "elapsedSeconds": 115.66249208303634,
+    "receiptRawHashesMatched": true,
+    "linuxLinkRuntimeExit": 0,
+    "linuxLinkRuntimeReceiptRawHashesMatched": true,
+    "stderr": "onnxruntime cpuid_info warning: Unknown CPU vendor. cpuinfo_vendor value: 0",
+    "judgment": "build/link 확인 범위만 충분. 런타임 기능·품질·자원 안정성 판정은 대기."
+  },
+  "linuxResultAddendum": {
+    "reviewedAt": "2026-10-08T13:30:39.470959+00:00",
+    "method": "실행 원stdout/stderr·receipt hash, 현재 wrapper/검사/제품 저장경로 읽기 전용 독립 검토. 검토자가 재실행하지 않음.",
+    "observation": {
+      "decision": "approved",
+      "feature": "V450-K07",
+      "exit": 0,
+      "elapsedSeconds": 3.0201497500529513,
+      "seedChecks": 237,
+      "recoverChecks": 2,
+      "readbackChecks": 9,
+      "changedSourceSha256Observed": "0f091147f2dbc3b77874656c7f9e9afb0a49c082b7f18f95145ef2431f8851fd",
+      "scope": "실제 writer/retention 무관변경 게시201, 관련변경 거부, 최초실패 보존, pending 정리, uncertain ID, 원본 삭제 뒤 별도 프로세스 exact bytes/readback 통과. 기존66 compile blocker의 지정 변경분 직접 회귀 충족.",
+      "isEntireReleaseOrLongrunPass": false
+    },
+    "boundWrapper": {
+      "decision": "fix-required",
+      "feature": "V450-K08 full mandatory wrapper",
+      "exit": 1,
+      "elapsedSeconds": 3.0598592089954764,
+      "compileExit": 0,
+      "boundSeed": {
+        "exit": 0,
+        "summaryPass": 93,
+        "summaryFail": 0,
+        "printedPassLines": 94,
+        "countExplanation": "fork 전후 양쪽에서 Check(child>=0)를 실행해 I/O failure child owned가 두 번 출력됨. parent 최종 summary는93. 출력행94를 assertion 최종집계로 표시하지 않음."
+      },
+      "boundRead": {
+        "exit": 0,
+        "summaryPass": 17,
+        "summaryFail": 0,
+        "originalSeedRemovedBeforeFreshProcess": true
+      },
+      "legacyRecords": {
+        "exit": 1,
+        "printedPassLinesBeforeFailure": 48,
+        "finalPassSummaryPresent": false,
+        "failedAssertion": "V450-S01 failed write not published"
+      },
+      "coreOnly": "not-run after preceding required failure",
+      "confirmedNative": "not-run",
+      "consumerRemaining": "미실행 소비자 범위를 앞선 bound 직접 통과로 대체하지 않음."
+    },
+    "finding": {
+      "id": "R67-01",
+      "priority": "P2",
+      "classification": "required Linux regression failed; permission-based failure-injection prerequisite unresolved",
+      "file": "scripts/internal/va_review_smoke.cpp",
+      "line": 229,
+      "condition": "Recover 및 chmod0500 setup 통과 후 !unwritable.Publish(...) && error==review-write-failed 조건이 false",
+      "actualPublishBool": null,
+      "actualError": null,
+      "actualPublishedOrPendingFiles": null,
+      "failedFixtureAbsent": true,
+      "missingEvidenceBoundary": "기존 wrapper finally가 identity 확인 후 root 전체를 삭제했고 후속 identity receipt에서 부재 확인. 최초 bool/error/파일은 원출력에 없고 추정 복원하지 않음.",
+      "identityObserved": {
+        "uid": 0,
+        "euid": 0,
+        "gid": 0,
+        "capEff": "00000000a80425fb",
+        "scope": "실패 뒤 동일 container의 읽기 전용 identity probe. 실패 subprocess 내부의 별도 계측값은 아님."
+      },
+      "hypothesis": "root/DAC 우회 가능한 실행 identity는 chmod0500만으로 쓰기 실패를 유도하는 전제에 영향을 줄 수 있음. 유일 원인이나 실제 Publish 성공·제품 결함을 확정하지 않음.",
+      "sourceReasoning": "Directory는 소유자/그룹·기타 권한을 검증하며 owner write bit를 직접 거부하지 않는다. PublishBytes는 pending open/write/link 결과로 실패를 분류한다. 따라서 assertion 문구만으로 어느 Publish 분기가 발생했는지 결정할 수 없다.",
+      "consumerImpact": "필수 legacy 저장 회귀가 실패해 후속 core/confirmed와 혼합120의 Linux 선행조건을 충족하지 못함.",
+      "followupBoundary": "이번 승인 수정은 observation misleading-indentation 여섯 곳뿐. 새로운 제품/fixture/권한설정 변경 또는 다른 UID 재실행은 범위 결정 후 별도 작업. warning/조건완화·검사생략으로 통과시키지 않음."
+    },
+    "mixed120": {
+      "attempts": 0,
+      "status": "not-run",
+      "functionalConcurrency": "not-run",
+      "cancelAuthorizationRecoveryRestart": "not-run",
+      "resourceTrend": "not-measured",
+      "sourceOfNonExecution": "부모의 명시 실행중단 보고 및 선행 실패 이후 wrapper 제어흐름과 현재 제공 command evidence 범위. 검토자 Docker/process 조회 없음."
+    },
+    "retainedJudgments": {
+      "codeDelta": "approved",
+      "legacy986Equivalence": "approved",
+      "65ProductReview": "unchanged original scope",
+      "66Failure": "preserved; later K07 compile/runtime success linked, not retroactively rewritten",
+      "64HistoricalCause": "unconfirmed"
+    },
+    "receiptRawHashesMatched": [
+      "linux-observations stdout/stderr",
+      "linux-A-bound stdout/stderr",
+      "linux-failure-identity stdout/stderr"
+    ],
+    "cleanupObservedSoFar": "bound wrapper owned fixture removed 메세지 + 후속 identity probe 부재 확인. 전체 container 및 observation/host scratch 최종 보존·정리는 아직 판단 대기."
+  },
+  "stoppedRunPreservationAddendum": {
+    "reviewedAt": "2026-10-08T13:37:40.846251+00:00",
+    "decision": "approved for observed stopped-run partial-result record; final preservation/cleanup pending",
+    "originalJudgmentsPreserved": true,
+    "sourceBinding": {
+      "codeCommit": "23df4af4e044530ba394823f8593ff1450bab7f7",
+      "codeTree": "c926d885a4fd356928f19cec528dbe3e9b051dfe",
+      "commitDiffDirectlyByteEqualToInput": true,
+      "commitChangedFiles": [
+        "scripts/internal/evidence_observation_smoke.cpp"
+      ],
+      "linuxFinalSourceFiles": 1641,
+      "linuxFinalSourceMismatches": 0,
+      "linuxBinarySha256": "5f779e0b5dce14ec8439a6acdddda66967df9b1d4a7a3220fd80a8da8bfc1496",
+      "linuxRuntimeArchiveSha256": "8fe303e8d656ab59402a1016d9c29c6b5b89135a92c59e94dc5589313f93a5f1",
+      "meaning": "base+source.diff 실행과 사후 code commit 내용 결속. 이후 evidence commit을 실행 HEAD로 소급하지 않음."
+    },
+    "rawEvidence": {
+      "commandReceiptsInspected": 24,
+      "stdoutStderrStreamsCompared": 48,
+      "bytesOrHashMismatches": 0,
+      "validationDraftMatchesRepositoryDraft": true,
+      "validationDraftBytes": 28813,
+      "validationDraftSha256": "683bc5fec31a5f83c5d815737c560e6ece129289483777529c6645d756cc94d6",
+      "phaseSummaryCorrection": "passOutputLines94와 actualAssertionPass93 및 raw final summary93을 구분한 수정 확인. 최초 raw 출력은 변경하지 않음."
+    },
+    "observedMetadata": {
+      "files": [
+        {
+          "path": "inputs/observed-manifest.json",
+          "bytes": 16930,
+          "sha256": "1fa3ec8d3a6bed34cb51a3948c7743274f9d2224b8e0710076b172a5b36e729b"
+        },
+        {
+          "path": "inputs/observed-rows.jsonl",
+          "bytes": 40947,
+          "sha256": "211a4f43e0a4fda3f723906592da2c55d9fa11fe2899b6fd367b52f8d7818e81"
+        }
+      ],
+      "copiedBytesMatchLinuxFinalSourceHashInventory": true,
+      "manifestFrames": 8,
+      "observationSnapshots": 8,
+      "syntheticRows": 24,
+      "privacyScope": "명시 synthetic-analysis-tap 및 부정주입 namespace의 검사 metadata. 사용자/운영 영상·계정 자료로 표시하지 않음.",
+      "boundary": "이 두 JSON은 실제 metadata bytes 사본. PNG/evp/미디어/실행 바이너리를 보존한 증거로 확대하지 않음."
+    },
+    "privacy": {
+      "scope": "현재 commands의72파일 및 두 metadata 사본과 validation 초안 총75파일. 최종 archive member 전수 검토는 별도 대기.",
+      "symlinks": 0,
+      "patternFindings": 0,
+      "patterns": [
+        "Argon2 hash",
+        "private key header",
+        "Bearer token value",
+        "nonempty passwordHash/tokenHash/sessionToken/access_token/refresh_token field value",
+        "credential-in-URL"
+      ],
+      "fullPrivacyGuarantee": false,
+      "hostPaths": "요청된 repo/run 경로와 도구 provenance 경로가 원출력에 존재하며 전체 경로 정제를 주장하지 않음."
+    },
+    "cleanup": {
+      "boundFixtureRemoved": "기존 wrapper finally 원출력 + 후속 identity probe로 확인",
+      "observationPendingFilesAtFinalSample": 0,
+      "stoppedContainer": {
+        "Running": false,
+        "Pid": 0,
+        "ExitCode": 137,
+        "OOMKilled": false
+      },
+      "stopExit": 0,
+      "stopMeaning": "sleep infinity 소유 컨테이너의 종료. 제품 graceful-stop/recovery 성공 근거가 아님.",
+      "containerObjectRemoval": "pending",
+      "hostTemporaryRootRemoval": "pending",
+      "localRemoteBytePreservation": "pending",
+      "finalImageRetainedRecheck": "pending"
+    },
+    "staticChecks": {
+      "docsLinks": {
+        "exit": 0,
+        "localLinks": 9693,
+        "failures": 0
+      },
+      "whitespaceFinal": {
+        "exit": 0
+      },
+      "draftState": "초안 docsLinks=pending은 실행시각 이후 receipt 결속으로 최종갱신 가능. 실행근거 자체는 exit0 확인."
+    },
+    "scopeDecision": "K07 지정 변경 회귀 충족/K08 필수 wrapper 실패/core·confirmed·혼합120 미실행 구분은 정확함. 코드·기존986동등승계 승인 유지. 최종 보존·정리 완료나 전체 품질·릴리즈 승인은 아님."
+  },
+  "selectedArchiveReviewAddendum": {
+    "reviewedAt": "2026-10-08T13:39:19.571110+00:00",
+    "decision": "approved for exact selected preservation bytes; final Git/remote preservation and owned deletion pending",
+    "archive": {
+      "path": "docs/release-artifacts/v4.5.0/67-execution.tar.gz",
+      "bytes": 138492,
+      "sha256": "b6281b3d3b13b2208d6607a921fb886f4c4c01f52590c0e47ec1bad6ebae57c7",
+      "regularMembers": 89,
+      "indexedOriginalFiles": 88,
+      "originalVsArchiveBytesOrHashMismatches": 0,
+      "archiveIndexExactBytesMatch": true,
+      "symlinkOrOtherMemberTypes": 0,
+      "absoluteOrParentTraversalMemberNames": 0
+    },
+    "reviewInput": {
+      "path": "review-input.json",
+      "bytes": 30857,
+      "sha256": "43650727512e319afc28c3843a2a0f655b9081eff4ff857037f09a121d1b6f82",
+      "repositoryValidationAtReviewMatches": true,
+      "previousValidationDraftArchived": false,
+      "docsLinksReceiptNowReflected": true,
+      "seedSummary93Reflected": true
+    },
+    "preservedScope": "원command receipts/stdout/stderr, 실제 합성 observation metadata 두 사본, source diff/hash manifests, 실행 capture/configure/link/final-source helper, ownership와 고정 review-input. helper 읽기 검토로 실행 의미/계측 경계를 확인했으며 새 실행하지 않음.",
+    "exclusionsConfirmedFromActualMemberNames": [
+      "source tar",
+      "full candidate/migration JSON",
+      "old before source",
+      "PNG/video/evp",
+      "product/test binaries",
+      "model/SDK/container image"
+    ],
+    "privacy": {
+      "archiveMembersScanned": 89,
+      "allUtf8Text": true,
+      "limitedSensitivePatternFindings": 0,
+      "patterns": [
+        "Argon2 hash",
+        "private key header",
+        "Bearer token value",
+        "nonempty secret field values",
+        "credential URL"
+      ],
+      "observedHttpUrls": "Debian/GStreamer 공식 환경·도움말·원본 metadata URL뿐. 실제 source URL은 이 검사에서 관측되지 않음.",
+      "scopeLimit": "제한 패턴 및 selected text/content 검토이며 모든 가능 민감정보 부재 보장은 아님. 요청 repo/run 등 실행 provenance 경로는 유지."
+    },
+    "sourceReuse": {
+      "trackedReviewFilesChecked": 15,
+      "currentFileHashesMatchReuseRecord": true,
+      "changedPathOnly": "scripts/internal/evidence_observation_smoke.cpp",
+      "productApprovalScopeExpanded": false,
+      "producerReapplicationRequired": false
+    },
+    "metadataCopyBoundary": "inputs/observation-root.json의 onlyTextCopies는 package-id도 열거하지만 실제 보존 사본은 observed-manifest.json과 observed-rows.jsonl 두 개뿐. package-id는 final-source의 길이/hash로만 남고 실제 바이트 사본을 보존한 것으로 주장하지 않는다. 원archive를 소급 변경하지 않음.",
+    "pending": [
+      "local/remote Git blob full-byte readback",
+      "stopped owned container object deletion and absence",
+      "owned parent temporary root deletion and absence",
+      "final image retained observation"
+    ],
+    "overallBoundary": "전체필수 Linux FAIL·혼합120 미실행·릴리즈미승인은 유지. 이 승인은 정확히 고정된 부분결과/실패 보존자료에 한함."
+  }
+}
