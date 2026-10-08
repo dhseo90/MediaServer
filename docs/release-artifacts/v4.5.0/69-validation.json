@@ -1,0 +1,845 @@
+{
+  "schema": "media-server.v450-limited-validation.v1",
+  "sequence": 69,
+  "status": "diagnostic-checkpoint-historical-cause-unconfirmed",
+  "completion": "프레임 실패 진단 보완·제한 관측 완료, 제품 원인 미확정",
+  "recordedAt": "2026-10-08T16:35:45.244799+00:00",
+  "base": "3c64d3f936bdac69fc1afe17bea6829ce60b885c",
+  "settings": {
+    "mainRequested": "gpt-6-astra/high",
+    "reviewerRequested": "gpt-6-astra/high",
+    "reviewerTask": "/root/independent_release69",
+    "actualMainModel": null,
+    "actualMainEffort": null,
+    "actualReviewerModel": null,
+    "actualReviewerEffort": null,
+    "limitation": "requested parameters are not observed runtime model/effort/snapshot"
+  },
+  "source": {
+    "implementationCommit": "6854265dbcc9c039e09ab22fac1d8e428f1f4590",
+    "implementationTree": "fa619653e8802b2818e09dab4d196f3d9fb8a5ce",
+    "executionSource": "base + frozen9-file diff; mixed began before implementation commit",
+    "freeze": {
+      "base": "3c64d3f936bdac69fc1afe17bea6829ce60b885c",
+      "diffSha256": "d92526095cfb710b7a67704dbe83b7e2336ce2d9115b611b8e1a26b01cfe7afd",
+      "files": [
+        {
+          "path": "docs/project-feature-test-inventory.md",
+          "sha256": "97de7ce1222249f1ff5f8873fe0e59102e4084159ac4fa65108f936031db8d62"
+        },
+        {
+          "path": "scripts/internal/recording_visual_source_smoke.cpp",
+          "sha256": "7198fcfe19187d1d519dcb9a1421c027dce577ec232680627cf148348538f839"
+        },
+        {
+          "path": "scripts/internal/run_v450_recording_a_mixed.py",
+          "sha256": "c3eb4b050a614bc4e0b7b5ece436c36cd3f4128e473851956d01af1ab6b26bc5"
+        },
+        {
+          "path": "scripts/internal/v450_recording_a_load.mjs",
+          "sha256": "ae1079570acb1b939e4ff358ad5dafd63426d3e4898c908a2cb6d685cd3a7dc5"
+        },
+        {
+          "path": "scripts/internal/v450_recording_a_load.test.mjs",
+          "sha256": "4b159eaa937def8099e06bc3a163e0a2807477d2dde2c1f9384d9b0460b332ca"
+        },
+        {
+          "path": "scripts/internal/v450_recording_a_mixed.mjs",
+          "sha256": "fe49c48bfc6b50d583ebb5f520d8de2cfb5ee2e33d76bb7bf2f35e74b330ca20"
+        },
+        {
+          "path": "scripts/internal/verify_v450_recording_a_mixed.sh",
+          "sha256": "de23c8c242b3714d01a435b96aa6eaabdda81311aca9118302435aa338146936"
+        },
+        {
+          "path": "scripts/internal/visual_frame_decoder_smoke.cpp",
+          "sha256": "093492bce2b1e6c6ea7357e69afcff9dde313f9f168170c6a4eef2b2728223fa"
+        },
+        {
+          "path": "src/recording/visual_frame_decoder.cpp",
+          "sha256": "cdc76b27a8f9b1b5c0626e732830b5896e3dcefa47ea515302f1625664e6019c"
+        }
+      ],
+      "binarySha256": "8f31010a4362e34f539b02f24902fda19f9dca4a05a43d5ddf771f0ca74bda89",
+      "runtimeSha256": "b773b91d86521f6e243fd1e10be3f874e71b558bdd66f3c652a513eeee6271de"
+    },
+    "mixedSourceStart": {
+      "head": "3c64d3f936bdac69fc1afe17bea6829ce60b885c",
+      "tree": "bea3d725223fd8a429cd95f7a2e33c5e13f50eb6",
+      "sourceSha256": "850539b7f80d410b6604548ba3cc3eac2e853101ad6e96d471a7907054af59a3",
+      "binarySha256": "8f31010a4362e34f539b02f24902fda19f9dca4a05a43d5ddf771f0ca74bda89"
+    },
+    "mixedSourceEnd": {
+      "head": "3c64d3f936bdac69fc1afe17bea6829ce60b885c",
+      "tree": "bea3d725223fd8a429cd95f7a2e33c5e13f50eb6",
+      "sourceSha256": "850539b7f80d410b6604548ba3cc3eac2e853101ad6e96d471a7907054af59a3",
+      "binarySha256": "8f31010a4362e34f539b02f24902fda19f9dca4a05a43d5ddf771f0ca74bda89"
+    },
+    "sourceUnchangedDuringMixed": true,
+    "behaviorFixProven": false,
+    "scope": "bounded opt-in diagnostics and focused test/diagnostic harness only; public errors,5s,1ns,FD/output invariants and65 final selected-input guard unchanged"
+  },
+  "historical68": {
+    "validation": "68-validation.json",
+    "raw": "68-execution.tar.gz",
+    "source": "d56808abc67f34fc4d7c12f176085c7b9e948403",
+    "failure": "seventh A preparation POST503 stage=frame first/builder=visual-frame-unavailable; published=checked=0; A job not admitted",
+    "originalMediaBytes": 28161,
+    "originalMediaSha256": "3d2135fbf45804087aa7c2d451c92bbd29755e1cac1e487604ee43f7fbd5989d",
+    "selection": "69-execution.tar.gz:inputs/selection.json and binding.json",
+    "samePriorSixSelectedFileAndOrdinal": true,
+    "sampleOrdinal": 30,
+    "originalPtsNs": 7966666666,
+    "nativePts": 2900,
+    "timescale": 3000,
+    "editMediaTime": 0,
+    "profile": "gst-qtmux-1.28.1-default-v1",
+    "derivedDecodeTargetNs": 966666667,
+    "derivedNotObservedHistoricalDecoderInvocation": true,
+    "missing": [
+      "actual failed decoder/factory",
+      "FD/read errno",
+      "bus ERROR",
+      "sample count/last PTS",
+      "first internal failure branch"
+    ],
+    "cause": "unconfirmed; unchanged historical FAIL"
+  },
+  "directComparison": {
+    "fixedPlan": "69-execution.tar.gz:inputs/diagnostic-freeze.json",
+    "directDecode": {
+      "calls": 1,
+      "decoded": true,
+      "actualPresentationNs": 966666666,
+      "callerOffsetPreserved": true,
+      "commandExit": 1,
+      "failure": "extra historical RGB byte-equality assertion, not DecodeVisualFrame failure",
+      "actualRgbSha256": "d56d2ff4d3d5a29493d995bd83915cc2d98bb53f5e0756fa6ebff792d93e4aa2",
+      "priorRgbSha256": "8a2ee77d31ada2e2f6f8175655987a9fb30e4d95f44d8b506850a59318c0a1f5",
+      "noFailedDecodeRetry": true
+    },
+    "extractorAndPackage": {
+      "extractorCalls": 1,
+      "builderCalls": 1,
+      "pass": true,
+      "input": "exact saved68 MP4, active-1 replay into new standalone catalog; not complete generation6 recovery",
+      "presentationNs": 966666666,
+      "currentOwnRgbHashConsistent": true,
+      "independentNewProcessReadback": true,
+      "packageId": "ep-81bb327de21de1fdead0a79bc19ddc8e4e175798b9f3ecc147fdfa40c50e3635",
+      "fixturePreparationFailures": [
+        "final generation6 manifest unavailable snapshots; no decoder call",
+        "standalone replay journal.Open missing; no decoder call"
+      ],
+      "actualFactoryObservation": "vtdec_hw created then removed; avdec_h264 created; default selection, no forced decoder"
+    },
+    "limits": "standalone sandbox versus host mixed permission boundary differs. Historical RGB mismatch remains recorded; no historical decoder identity was available to prove cause."
+  },
+  "directRegressions": {
+    "macOS": {
+      "productBuild": 0,
+      "decoderChecks": 43228,
+      "visualSourceChecks": 848,
+      "visualSourceActualSiglip2": true,
+      "visualSourcePeakRssBytes": 3195748352,
+      "observationsPackageChecks": {
+        "seed": 237,
+        "recover": 2,
+        "freshReadback": 9
+      }
+    },
+    "Linux": {
+      "image": "mediaserver-v450-verify:rc58-arm64",
+      "imageId": "sha256:ce72c8a15363984da642e9964189957896812061c6af1d0ef67e87b38ad5a588",
+      "OS": "Debian forky/sid aarch64",
+      "compiler": "GNU16.2.0 C++17 -Wall -Wextra -Werror",
+      "coreParserMux": "1.28.7",
+      "ONNX": "officialCPU1.23.2",
+      "SentencePiece": "0.2.0static",
+      "GSTREAMER_ONNX_SIGLIP2": "all ON",
+      "uid": 10001,
+      "gid": 10001,
+      "capEff": 0,
+      "CPU": 2,
+      "memoryBytes": 6442450944,
+      "pids": 256,
+      "network": "none",
+      "productBuildExit": 0,
+      "productBuildSeconds": 109.4848777090665,
+      "productBinarySha256": "701a2cffd9adf252fd39182d895e48af44f73b880be1ccd473b64463c7856a34",
+      "decoderChecks": 43228,
+      "visualSourceChecks": 848,
+      "visualSourceActualSiglip2": true,
+      "visualSourcePeakRssBytes": 2466693120,
+      "preparationFailures": "existing dense if/for statements triggered GCC misleading-indentation; newline-only fixes preserve behavior; copied source test initially missed existing relative include path then corrected compile invocation",
+      "newInstallations": 0
+    },
+    "harnessTests": 5,
+    "launcherFailureSignalCollectionCleanup": "PASS existing bounded contract test",
+    "countUnits": "assertions; not feature/UI counts"
+  },
+  "mixedDiagnostic": {
+    "attempts": 1,
+    "mode": "v450-frame-diagnostic",
+    "exit": 0,
+    "elapsedIncludingPreparationAndShutdownSeconds": 614.7182185839629,
+    "actualObservationMs": 600205.8503330001,
+    "frameDiagnosticPass": true,
+    "historicalFrameFailureReproduced": false,
+    "sourceAndBinaryUnchanged": true,
+    "load": "2 recording channels;4 search clients;A opportunity60seconds,max10",
+    "A": {
+      "admitted": 10,
+      "completed": 10,
+      "failed": 0,
+      "syntheticAnalysisNotDetectorAccuracy": true
+    },
+    "searchSuccessByClient": [
+      40,
+      40,
+      40,
+      40
+    ],
+    "evidence": {
+      "cycles": 39,
+      "createComplete": 38,
+      "createPartial": 1,
+      "createBusy": 39,
+      "visualCreated": 39,
+      "retainedChecks": 77
+    },
+    "channels": {
+      "9101": {
+        "finalized": 299,
+        "deleted": 292,
+        "lastAt": 608995.168042,
+        "order": "598",
+        "store": "4c42e2d9d27602f72561f5a34ebd760de7876097e245715a72cbf4d11c1abda7",
+        "knownMappings": 197,
+        "unknownMappings": 11992
+      },
+      "9201": {
+        "finalized": 299,
+        "deleted": 292,
+        "lastAt": 608995.168042,
+        "order": "599",
+        "store": "4c42e2d9d27602f72561f5a34ebd760de7876097e245715a72cbf4d11c1abda7",
+        "knownMappings": 203,
+        "unknownMappings": 11554
+      }
+    },
+    "diagnostics": {
+      "decoderSummaryCount": 1329,
+      "publicErrors": {
+        "": 1329
+      },
+      "firstReasons": {
+        "": 1329
+      },
+      "factoriesCreated": {
+        "appsrc:app:1.28.1": 1329,
+        "decodebin:playback:1.28.1": 1329,
+        "typefind:coreelements:1.28.1": 1329,
+        "videoconvert:videoconvertscale:1.28.1": 1329,
+        "appsink:app:1.28.1": 1329,
+        "qtdemux:isomp4:1.28.1": 1329,
+        "multiqueue:coreelements:1.28.1": 1329,
+        "h264parse:videoparsersbad:1.28.1": 1329,
+        "capsfilter:coreelements:1.28.1": 1329,
+        "vtdec_hw:applemedia:1.28.1": 1329
+      },
+      "aTargetDecodeCount": 10,
+      "aTarget": 966666667,
+      "aActualStreamTimes": [
+        966666666
+      ],
+      "allAFound": true,
+      "allCallerOffsetsPreserved": true,
+      "allNullDone": true,
+      "allFileIdentityUnchanged": true,
+      "maxElapsedUs": 123423,
+      "aMaxElapsedUs": 50072,
+      "seedFileSha256": "d03c33353b6beb15f53d18a787b3bb85447b83b9da3e2991e79afd6d0a4fb734",
+      "seedBytes": 28161,
+      "historicalRawDecoderUnknown": true,
+      "causalConclusion": "nonreproduction; standalone/mixed execution permission and default decoder selection differ; not concurrency-only isolation"
+    },
+    "resources": {
+      "status": "observed",
+      "resourceTrendPass": false,
+      "reviewRequired": true,
+      "sampleCount": 121,
+      "groups": [
+        {
+          "pid": 41672,
+          "startIdentity": "macos:1791476297:98069",
+          "sampleCount": 121,
+          "first": {
+            "phaseAt": 9244.014,
+            "sampledAt": 1791476303542,
+            "rssBytes": 1623261184,
+            "threadCount": 37,
+            "fdCount": 30,
+            "mutationCount": 6
+          },
+          "last": {
+            "phaseAt": 608995.168042,
+            "sampledAt": 1791476903297,
+            "rssBytes": 1653440512,
+            "threadCount": 43,
+            "fdCount": 30,
+            "mutationCount": 2370
+          },
+          "max": {
+            "rssBytes": 1653440512,
+            "threadCount": 44,
+            "fdCount": 34
+          },
+          "delta": {
+            "rssBytes": 30179328,
+            "threadCount": 6,
+            "fdCount": 0,
+            "mutationCount": 2364
+          },
+          "elapsedMs": 599751.1540420001,
+          "maxGapMs": 5009.231874999998,
+          "warmupMs": 300000,
+          "postWarmup": {
+            "status": "observed",
+            "sampleCount": 61,
+            "delta": {
+              "rssBytes": 8749056,
+              "threadCount": 0,
+              "fdCount": 3,
+              "mutationCount": 1199
+            },
+            "elapsedMs": 299486.36650000006,
+            "rssMiBPerMinute": 1.6716119863840277
+          }
+        }
+      ]
+    },
+    "cpu": {
+      "maxPercent": 300.6
+    },
+    "storageCapBytes": 469762048,
+    "storageSamplingNotHardPeakEnforcement": true,
+    "input": "regenerated same recipe; newMP4 d03c33353b6beb15f53d18a787b3bb85447b83b9da3e2991e79afd6d0a4fb734 differs from68 MP4; sample/RGB/PNG hashes match historical six. No exact historical failure reproduction claim.",
+    "actualFactoryObservation": "all1329 traces qtdemux/h264parse/vtdec_hw applemedia1.28.1; none avdec_h264. This observes instantiated successful chain, not a full runtime audit.",
+    "longrunObservationCompleted": false,
+    "resourceTrendPass": false,
+    "recoveryRestartReactivation": "not-run in diagnostic mode",
+    "processesClosed": true,
+    "udpClosed": true,
+    "processGroupAbsent": true,
+    "registeredGroupsAbsent": true,
+    "portsClosed": [
+      51811,
+      51812
+    ]
+  },
+  "firstFailuresAndCorrections": {
+    "historicalRGBComparison": "preserved exit1; exact decode succeeded; not silently converted to PASS",
+    "replayPreparation": "two exit1 preserved before extraction; only explicit standalone catalog recipe corrected",
+    "GCCPreparation": "three compile failures preserved; only formatting and temporary compile include correction",
+    "hostRuntimeProbe": "sandbox gst-inspect stalled with macOS XPC service errors; owned child terminated after123.141s exit143; identical read-only query under authorized host permissions exit0 in1.872s; no generated workload/retry"
+  },
+  "approval": {
+    "review": "69-independent-review.json",
+    "legacyCandidateDigest": "137543c6332a73f9a77599bfaca732bd1f54b263adee078fe5d3f8c275775906",
+    "all986BaselineItemsEqual": true,
+    "strictCarryForwardEligible": 986,
+    "producerApplications": 0,
+    "reason": "identical candidate; no ceremonial reapply",
+    "directNewScope": "V430-I01-DECODE/SOURCE, V430-W02-UNSUPPORTED and A/evidence mixed consumers reviewed separately; legacy count does not cover all new paths"
+  },
+  "priorEvidence": {
+    "65": "guard unchanged",
+    "68": "Linux regressions and mixed120FAIL preserved",
+    "59Linux61Acceptance63UI": "valid only for recorded source/environment; no automatic promotion to new whole-product PASS"
+  },
+  "notRun": [
+    "new mixed120",
+    "formal acceptance",
+    "full UI",
+    "30min/general120",
+    "forced decoder comparison",
+    "new model/library/install",
+    "PR/merge/tag/Release"
+  ],
+  "QwenOllamaCalls": 0,
+  "QwenUnloadGate": "not-run",
+  "Siglip2Inference": "actual direct source regressions and mixed scene search; not zero AI inference",
+  "preservation": {
+    "path": "docs/release-artifacts/v4.5.0/69-execution.tar.gz",
+    "bytes": 404144,
+    "sha256": "4f734d2ca5ac06f1a4044b4e5e34a9cc8f007e15788c7227c234ae6d3e18e7a5",
+    "members": 198,
+    "sourceByteMismatches": 0,
+    "privacy": {
+      "source": "mixed/media-server-current-observer-tt1Tp4/server-1.private.log",
+      "originalBytes": 3296158,
+      "originalSha256": "433ce8b14410407c778b1ebb98ee216465cce5bc477e1ddcf01ef41861362c14",
+      "sanitizedBytes": 3295668,
+      "sanitizedSha256": "7e1b017aa7433d58861a78138b7a33f6bb2b4e2c6874266a89a4e82289978f26",
+      "rule": "preserve exact bounded decoder/completion/latency/slow-summary lines without URI; replace other private boot/source/config lines by numbered placeholders",
+      "removed": [
+        {
+          "line": 1,
+          "offset": 0,
+          "bytes": 91,
+          "sha256": "8a241ffa588a3811ae5d33e3e1e5030c2d02bd82816ed4b0905119e207289583"
+        },
+        {
+          "line": 2,
+          "offset": 91,
+          "bytes": 21,
+          "sha256": "cfa85e35a8f6d9496fdaad4b3fb1c6e774e9e5300099fbd6f68147e10ad554db"
+        },
+        {
+          "line": 3,
+          "offset": 112,
+          "bytes": 37,
+          "sha256": "aa0198f34a87bce4b9b61de7876f307b02d6d45472e2d509406bc06d7fb885a1"
+        },
+        {
+          "line": 4,
+          "offset": 149,
+          "bytes": 37,
+          "sha256": "a5b255106269ef7ba7b530d4408aec58e8db15bd42bd98444114daf7ee011ad1"
+        },
+        {
+          "line": 5,
+          "offset": 186,
+          "bytes": 43,
+          "sha256": "4d2722e26b693e103a810dfe8ecb3031f561b576e7b805a520e17e0a663f404b"
+        },
+        {
+          "line": 6,
+          "offset": 229,
+          "bytes": 52,
+          "sha256": "4ddfd2f36954c748bf44a6774265c02fba407b41d3273f1cc48555aaeb3408b1"
+        },
+        {
+          "line": 7,
+          "offset": 281,
+          "bytes": 127,
+          "sha256": "bb27071c7af91e487a2df30278f7e994d7c299357b8874ff7066804a12a9508d"
+        },
+        {
+          "line": 8,
+          "offset": 408,
+          "bytes": 68,
+          "sha256": "290077fdf82b8fc1475880942cca8007445c3ac4ccb57acb164238d4a746ebd9"
+        },
+        {
+          "line": 9,
+          "offset": 476,
+          "bytes": 13,
+          "sha256": "aa3b77c9fdfabe7be7424173a1f347599fd047446c8638b19b56a27101587eb2"
+        },
+        {
+          "line": 10,
+          "offset": 489,
+          "bytes": 28,
+          "sha256": "abfda1af23d1e13ea889332d73d3050a1e86d378d65af5dff7395195e4dcef48"
+        },
+        {
+          "line": 11,
+          "offset": 517,
+          "bytes": 22,
+          "sha256": "c38983965fe64afe8755f109a2be2077afda97aaa98ac10a28f978a3eea10b22"
+        },
+        {
+          "line": 12,
+          "offset": 539,
+          "bytes": 81,
+          "sha256": "27eee12e9582918c036c9bfd14e292cc4bad61fb423fa64a6d0df981aabccea0"
+        },
+        {
+          "line": 13,
+          "offset": 620,
+          "bytes": 47,
+          "sha256": "8b3c5f3b5b6087b84a94dc1b4c4e812884a16996ecd62558ab7e0bb4382ed29e"
+        },
+        {
+          "line": 14,
+          "offset": 667,
+          "bytes": 47,
+          "sha256": "8b3c5f3b5b6087b84a94dc1b4c4e812884a16996ecd62558ab7e0bb4382ed29e"
+        },
+        {
+          "line": 15,
+          "offset": 714,
+          "bytes": 47,
+          "sha256": "8b3c5f3b5b6087b84a94dc1b4c4e812884a16996ecd62558ab7e0bb4382ed29e"
+        },
+        {
+          "line": 16,
+          "offset": 761,
+          "bytes": 47,
+          "sha256": "8b3c5f3b5b6087b84a94dc1b4c4e812884a16996ecd62558ab7e0bb4382ed29e"
+        },
+        {
+          "line": 17,
+          "offset": 808,
+          "bytes": 47,
+          "sha256": "8b3c5f3b5b6087b84a94dc1b4c4e812884a16996ecd62558ab7e0bb4382ed29e"
+        },
+        {
+          "line": 18,
+          "offset": 855,
+          "bytes": 47,
+          "sha256": "8b3c5f3b5b6087b84a94dc1b4c4e812884a16996ecd62558ab7e0bb4382ed29e"
+        },
+        {
+          "line": 19,
+          "offset": 902,
+          "bytes": 47,
+          "sha256": "8b3c5f3b5b6087b84a94dc1b4c4e812884a16996ecd62558ab7e0bb4382ed29e"
+        },
+        {
+          "line": 20,
+          "offset": 949,
+          "bytes": 47,
+          "sha256": "8b3c5f3b5b6087b84a94dc1b4c4e812884a16996ecd62558ab7e0bb4382ed29e"
+        },
+        {
+          "line": 21,
+          "offset": 996,
+          "bytes": 47,
+          "sha256": "8b3c5f3b5b6087b84a94dc1b4c4e812884a16996ecd62558ab7e0bb4382ed29e"
+        },
+        {
+          "line": 2254,
+          "offset": 3295652,
+          "bytes": 154,
+          "sha256": "1271e9aa3889efb288341ed2d8d51e86eb50244c7003271bb73caec80fa417ea"
+        },
+        {
+          "line": 2255,
+          "offset": 3295806,
+          "bytes": 35,
+          "sha256": "da7224dd4ca005baa4d96e4287d3fac29e05f612c47bac77407dc5d2f43f233e"
+        },
+        {
+          "line": 2256,
+          "offset": 3295841,
+          "bytes": 32,
+          "sha256": "be6d57e68cfeb2c5fdb3cf05a8c898efea434ff0d477b7109ddeae0416266ecf"
+        },
+        {
+          "line": 2257,
+          "offset": 3295873,
+          "bytes": 37,
+          "sha256": "aa0198f34a87bce4b9b61de7876f307b02d6d45472e2d509406bc06d7fb885a1"
+        },
+        {
+          "line": 2258,
+          "offset": 3295910,
+          "bytes": 45,
+          "sha256": "04acb58ac28bbd5e97776d172a69ff518b956b6e024b3183aa83e35d5ff5d686"
+        },
+        {
+          "line": 2259,
+          "offset": 3295955,
+          "bytes": 48,
+          "sha256": "b4fe59717c128312020e4d1fe3fd0f18c907a8e8c7d826b6247e03740c92d6e2"
+        },
+        {
+          "line": 2260,
+          "offset": 3296003,
+          "bytes": 51,
+          "sha256": "f3fd88065a116b0f26f1f8d1abfadad281a85ad52b51780b247af0c38047570d"
+        },
+        {
+          "line": 2261,
+          "offset": 3296054,
+          "bytes": 68,
+          "sha256": "290077fdf82b8fc1475880942cca8007445c3ac4ccb57acb164238d4a746ebd9"
+        },
+        {
+          "line": 2262,
+          "offset": 3296122,
+          "bytes": 36,
+          "sha256": "8d03595ff123515700d4c0d6aa841cfc21d29546be68eabf680b867ce16dd9f6"
+        }
+      ],
+      "rawPrivateLogCommitted": false,
+      "originalAndSanitizedAreSameBytes": false
+    }
+  },
+  "commands": [
+    {
+      "name": "candidate",
+      "exit": 0,
+      "elapsedSeconds": 25.652165708015673,
+      "receipt": "69-execution.tar.gz:commands/candidate.json"
+    },
+    {
+      "name": "comments",
+      "exit": 0,
+      "elapsedSeconds": 0.43373908405192196,
+      "receipt": "69-execution.tar.gz:commands/comments.json"
+    },
+    {
+      "name": "compile-decoder",
+      "exit": 0,
+      "elapsedSeconds": 0.4520340410526842,
+      "receipt": "69-execution.tar.gz:commands/compile-decoder.json"
+    },
+    {
+      "name": "compile-readback",
+      "exit": 0,
+      "elapsedSeconds": 0.503726041992195,
+      "receipt": "69-execution.tar.gz:commands/compile-readback.json"
+    },
+    {
+      "name": "compile-saved-journal-open",
+      "exit": 0,
+      "elapsedSeconds": 0.5761569580063224,
+      "receipt": "69-execution.tar.gz:commands/compile-saved-journal-open.json"
+    },
+    {
+      "name": "compile-saved-package",
+      "exit": 0,
+      "elapsedSeconds": 0.6073534589959309,
+      "receipt": "69-execution.tar.gz:commands/compile-saved-package.json"
+    },
+    {
+      "name": "compile-saved-replay",
+      "exit": 0,
+      "elapsedSeconds": 0.5736067499965429,
+      "receipt": "69-execution.tar.gz:commands/compile-saved-replay.json"
+    },
+    {
+      "name": "compile-saved",
+      "exit": 0,
+      "elapsedSeconds": 0.5672019160119817,
+      "receipt": "69-execution.tar.gz:commands/compile-saved.json"
+    },
+    {
+      "name": "compile-source",
+      "exit": 0,
+      "elapsedSeconds": 0.6876359169837087,
+      "receipt": "69-execution.tar.gz:commands/compile-source.json"
+    },
+    {
+      "name": "decoder-regression",
+      "exit": 0,
+      "elapsedSeconds": 0.7293716249987483,
+      "receipt": "69-execution.tar.gz:commands/decoder-regression.json"
+    },
+    {
+      "name": "direct-saved",
+      "exit": 1,
+      "elapsedSeconds": 1.8665652080671862,
+      "receipt": "69-execution.tar.gz:commands/direct-saved.json"
+    },
+    {
+      "name": "docs-links",
+      "exit": 0,
+      "elapsedSeconds": 0.44386512495111674,
+      "receipt": "69-execution.tar.gz:commands/docs-links.json"
+    },
+    {
+      "name": "evidence-regression",
+      "exit": 0,
+      "elapsedSeconds": 5.558266750071198,
+      "receipt": "69-execution.tar.gz:commands/evidence-regression.json"
+    },
+    {
+      "name": "final-comments",
+      "exit": 0,
+      "elapsedSeconds": 0.3410326249431819,
+      "receipt": "69-execution.tar.gz:commands/final-comments.json"
+    },
+    {
+      "name": "final-docs-links",
+      "exit": 0,
+      "elapsedSeconds": 0.3332534159999341,
+      "receipt": "69-execution.tar.gz:commands/final-docs-links.json"
+    },
+    {
+      "name": "final-whitespace",
+      "exit": 0,
+      "elapsedSeconds": 0.013433166081085801,
+      "receipt": "69-execution.tar.gz:commands/final-whitespace.json"
+    },
+    {
+      "name": "harness-checks",
+      "exit": 0,
+      "elapsedSeconds": 0.05512675002682954,
+      "receipt": "69-execution.tar.gz:commands/harness-checks.json"
+    },
+    {
+      "name": "host-build-diag2",
+      "exit": 0,
+      "elapsedSeconds": 1.2587888339767233,
+      "receipt": "69-execution.tar.gz:commands/host-build-diag2.json"
+    },
+    {
+      "name": "host-build-final-trace",
+      "exit": 0,
+      "elapsedSeconds": 1.252740832976997,
+      "receipt": "69-execution.tar.gz:commands/host-build-final-trace.json"
+    },
+    {
+      "name": "host-build",
+      "exit": 0,
+      "elapsedSeconds": 1.7694403749192134,
+      "receipt": "69-execution.tar.gz:commands/host-build.json"
+    },
+    {
+      "name": "host-runtime-permission",
+      "exit": 0,
+      "elapsedSeconds": 1.8720163330435753,
+      "receipt": "69-execution.tar.gz:commands/host-runtime-permission.json"
+    },
+    {
+      "name": "host-runtime",
+      "exit": 143,
+      "elapsedSeconds": 123.14126783295069,
+      "receipt": "69-execution.tar.gz:commands/host-runtime.json"
+    },
+    {
+      "name": "launcher-negatives",
+      "exit": 0,
+      "elapsedSeconds": 11.633228832972236,
+      "receipt": "69-execution.tar.gz:commands/launcher-negatives.json"
+    },
+    {
+      "name": "linux-build",
+      "exit": 0,
+      "elapsedSeconds": 109.4848777090665,
+      "receipt": "69-execution.tar.gz:commands/linux-build.json"
+    },
+    {
+      "name": "linux-compile-decoder-corrected",
+      "exit": 0,
+      "elapsedSeconds": 0.4392702499171719,
+      "receipt": "69-execution.tar.gz:commands/linux-compile-decoder-corrected.json"
+    },
+    {
+      "name": "linux-compile-decoder",
+      "exit": 1,
+      "elapsedSeconds": 0.3790770830819383,
+      "receipt": "69-execution.tar.gz:commands/linux-compile-decoder.json"
+    },
+    {
+      "name": "linux-compile-source-corrected",
+      "exit": 1,
+      "elapsedSeconds": 0.07730429095681757,
+      "receipt": "69-execution.tar.gz:commands/linux-compile-source-corrected.json"
+    },
+    {
+      "name": "linux-compile-source-includes",
+      "exit": 0,
+      "elapsedSeconds": 1.5947115420131013,
+      "receipt": "69-execution.tar.gz:commands/linux-compile-source-includes.json"
+    },
+    {
+      "name": "linux-compile-source",
+      "exit": 1,
+      "elapsedSeconds": 1.466466375044547,
+      "receipt": "69-execution.tar.gz:commands/linux-compile-source.json"
+    },
+    {
+      "name": "linux-configure",
+      "exit": 0,
+      "elapsedSeconds": 0.5030209580436349,
+      "receipt": "69-execution.tar.gz:commands/linux-configure.json"
+    },
+    {
+      "name": "linux-create",
+      "exit": 0,
+      "elapsedSeconds": 1.1219910000218078,
+      "receipt": "69-execution.tar.gz:commands/linux-create.json"
+    },
+    {
+      "name": "linux-decoder",
+      "exit": 0,
+      "elapsedSeconds": 0.5528279170393944,
+      "receipt": "69-execution.tar.gz:commands/linux-decoder.json"
+    },
+    {
+      "name": "linux-identity",
+      "exit": 0,
+      "elapsedSeconds": 0.10135595896281302,
+      "receipt": "69-execution.tar.gz:commands/linux-identity.json"
+    },
+    {
+      "name": "linux-source",
+      "exit": 0,
+      "elapsedSeconds": 4.472412540926598,
+      "receipt": "69-execution.tar.gz:commands/linux-source.json"
+    },
+    {
+      "name": "linux-start",
+      "exit": 0,
+      "elapsedSeconds": 0.08316304197069257,
+      "receipt": "69-execution.tar.gz:commands/linux-start.json"
+    },
+    {
+      "name": "linux-stop",
+      "exit": 0,
+      "elapsedSeconds": 5.090281666954979,
+      "receipt": "69-execution.tar.gz:commands/linux-stop.json"
+    },
+    {
+      "name": "migration",
+      "exit": 0,
+      "elapsedSeconds": 0.4106069579720497,
+      "receipt": "69-execution.tar.gz:commands/migration.json"
+    },
+    {
+      "name": "mixed-diagnostic",
+      "exit": 0,
+      "elapsedSeconds": 615.497909000027,
+      "receipt": "69-execution.tar.gz:commands/mixed-diagnostic.json"
+    },
+    {
+      "name": "remove-owned-container",
+      "exit": 0,
+      "elapsedSeconds": 1.1821930420119315,
+      "receipt": "69-execution.tar.gz:commands/remove-owned-container.json"
+    },
+    {
+      "name": "saved-journal-open",
+      "exit": 0,
+      "elapsedSeconds": 0.7370245000347495,
+      "receipt": "69-execution.tar.gz:commands/saved-journal-open.json"
+    },
+    {
+      "name": "saved-package",
+      "exit": 1,
+      "elapsedSeconds": 0.8036742499098182,
+      "receipt": "69-execution.tar.gz:commands/saved-package.json"
+    },
+    {
+      "name": "saved-readback",
+      "exit": 0,
+      "elapsedSeconds": 0.5266363329719752,
+      "receipt": "69-execution.tar.gz:commands/saved-readback.json"
+    },
+    {
+      "name": "saved-replay",
+      "exit": 1,
+      "elapsedSeconds": 0.653227583039552,
+      "receipt": "69-execution.tar.gz:commands/saved-replay.json"
+    },
+    {
+      "name": "visual-source-regression",
+      "exit": 0,
+      "elapsedSeconds": 4.2383424589643255,
+      "receipt": "69-execution.tar.gz:commands/visual-source-regression.json"
+    }
+  ],
+  "cleanup": {
+    "ownedProductAndGroups": "closed/absent per raw execution",
+    "LinuxContainer": "removed after stopped-state and evidence preservation; rc58 image retained",
+    "temporaryRoot": "pending removal after Git/remote byte preservation",
+    "approvedImageSDKModels": "retained"
+  },
+  "next": "Historical68 earliest decoder branch remains absent. No proven behavior fix and no120 readiness approval. If requested, one same-saved-file/target comparison in matched host permission/default-auto-decoder context can separate permission/selection differences; do not force decoder or rerun automatically."
+}
