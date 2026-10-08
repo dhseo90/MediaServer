@@ -1,0 +1,560 @@
+{
+  "schema": "media-server.release64.independent-preparation-review.v1",
+  "reviewedAt": "2026-10-08T09:46:11.066835+00:00",
+  "reviewer": {
+    "agentTask": "/root/independent_release62",
+    "role": "준비 코드·실행 근거 독립 검토자",
+    "requestedModel": "gpt-6-astra",
+    "requestedReasoningEffort": "xhigh",
+    "actualRuntimeModel": null,
+    "actualRuntimeSnapshot": null,
+    "actualRuntimeReasoningEffort": null,
+    "runtimeSettingsVerification": "도구가 실제 세션 model/effort/snapshot 메타데이터를 노출하지 않음. 요청값과 실제 적용 확인을 구분하며 설정 변경은 수행하지 않음.",
+    "independence": {
+      "productOrRunnerEdits": false,
+      "testsOrProductOrModelsExecuted": false,
+      "delegation": false,
+      "onlyAuthoredFile": "independent-preparation-review.json"
+    }
+  },
+  "scope": "기존 녹화·검색·증거 혼합 부하에 현재 공개 API의 A 확인·접수·worker·저장·조회 부하를 연결한 release64 실행기의 준비 검토. 실제120분/자원추세/UI/릴리즈 최종 판정은 포함하지 않음.",
+  "decision": {
+    "preparation05ConditionSatisfied": true,
+    "requiredUnresolvedFindings": [],
+    "readiness": "이미 승인된 혼합120분1회 실행 준비 적격",
+    "boundTo": {
+      "preLongReviewSha256": "998e4251b8d6e005db77c9fda033d9ac61e283ad628fdf8be28325c4eaa784a3",
+      "baseHead": "09fdd94c71f3d47464ffe3c8c8f41b51dea1b4ba",
+      "sourceFingerprintDuringPreparation05": "cb5b704627d1c48643ef4a921efda244b1880fb01979d74451d0e21922bc968d",
+      "productBinarySha256": "f612a7b6ed0b75e06406dd087fa8c842c56753991391ac39c126d5d496f9ad58"
+    },
+    "remainingLaunchRequirements": [
+      "기존 wrapper가 강제하는 정확한 소스 commit/clean tree 및 시작·종료 source/binary 결속 유지",
+      "부하·예산·정책 의미 변경 없이 이미 승인된120분1회 범위 유지"
+    ],
+    "longrunObservationCompleted": false,
+    "resourceTrendPass": false,
+    "uiFulltestPass": false,
+    "releaseApproval": false,
+    "finalLongrunReviewRequired": true
+  },
+  "reviewedSourceFiles": {
+    "scripts/internal/run_v450_recording_a_mixed.py": {
+      "sha256": "e80cbf338dda800a3f55d0043526da2def1a707f040ab564c9ed90e8d25e7362",
+      "actualSha256": "e80cbf338dda800a3f55d0043526da2def1a707f040ab564c9ed90e8d25e7362",
+      "matches": true
+    },
+    "scripts/internal/verify_v450_recording_a_mixed.sh": {
+      "sha256": "b14d7d46d09fd422c3241b1dcd05a33d665329137838aff02205b1ff1e5aab87",
+      "actualSha256": "b14d7d46d09fd422c3241b1dcd05a33d665329137838aff02205b1ff1e5aab87",
+      "matches": true
+    },
+    "scripts/internal/v450_recording_a_load.test.mjs": {
+      "sha256": "97df0c4e58425a90463648a93239daceb134e31c51a824158b5472f7af5800fc",
+      "actualSha256": "97df0c4e58425a90463648a93239daceb134e31c51a824158b5472f7af5800fc",
+      "matches": true
+    },
+    "scripts/internal/v450_recording_a_load.mjs": {
+      "sha256": "fb0be553849d447a1d836ac294c99dffe78d63cd94188e9b0b78c18c59d0c5c2",
+      "actualSha256": "fb0be553849d447a1d836ac294c99dffe78d63cd94188e9b0b78c18c59d0c5c2",
+      "matches": true
+    },
+    "scripts/internal/v450_recording_a_launcher_checks.py": {
+      "sha256": "d58e00d3e0c836d0b6c16e18523b0c25b8bb867f7050b81f26c09c2a8faf69c7",
+      "actualSha256": "d58e00d3e0c836d0b6c16e18523b0c25b8bb867f7050b81f26c09c2a8faf69c7",
+      "matches": true
+    },
+    "scripts/internal/v450_recording_a_mixed.mjs": {
+      "sha256": "98a0eae98d5070ef5a3ce9e8b4b110b515ce2a89b1677f6cb6d81a9f4d44657d",
+      "actualSha256": "98a0eae98d5070ef5a3ce9e8b4b110b515ce2a89b1677f6cb6d81a9f4d44657d",
+      "matches": true
+    },
+    "docs/project-feature-test-inventory.md": {
+      "sha256": "c881ed519df8ed155c2ab0bdd5476eabf847a266e20f26d12641f303011cc4e7",
+      "actualSha256": "c881ed519df8ed155c2ab0bdd5476eabf847a266e20f26d12641f303011cc4e7",
+      "matches": true
+    }
+  },
+  "findingsAndCorrections": [
+    {
+      "id": "R64-PREP-RECEIPT",
+      "initialFinding": "최종 receipt 쓰기가 예외 처리 밖에 있어 쓰기 실패 때 실제 child exit/cleanup/sourceEnd 최종 기록의 stdout 대체 보존이 유실됨.",
+      "initialLocation": "scripts/internal/run_v450_recording_a_mixed.py:217-219 at initial review",
+      "resolution": "save_final_record가 쓰기 예외를 FAIL/exit1/receiptSaved=false/receiptErrorType으로 기록하고 main이 그 결과를 stdout에 출력한다.",
+      "status": "resolved-by-source-review-and-supplied-focused-evidence",
+      "evidence": "launcher-checks-final/launcher-checks-2.json:final-receipt-fallback",
+      "testLimit": "OSError helper 반례와 실제 main 호출 경로를 읽었음. 독립 검토자가 재실행하지 않음."
+    },
+    {
+      "id": "R64-PREP-SEARCH-INPUT",
+      "initialFinding": "준비03 selector가 공개 search에 없는 analysisNamespace를 요구했다. observation hit을 native segment seed의8frame과 혼동한 입력 준비도 확인됨.",
+      "evidence": "preparation-03/preparation-cause.json; preparation-03/artifacts/report.json; preparation-03/executed-code/v450_recording_a_load.mjs",
+      "priorResultPreserved": "준비03 FAIL 유지. slot0 selector 단계에서 실패했고 완료 A 작업0, 초기/최종 저장 목록 동일. 미보존 search body를 추정 복원하지 않음.",
+      "resolution": "exact track77 선택 뒤 package GET의 targetLabel/analysisNamespace/frame1을 검사한다. visibility-at true/false 및 단일시점 endpoint-right를 현재 입력 계약으로 사용한다.",
+      "oracle": "supported,contradicted,insufficient; 마지막 gap ordered-time 하나와 추가 비교시점/순서 자료 요청",
+      "sourceBasis": [
+        "src/ingress/recording_search_application_service.cpp:115-121 공개 응답 필드",
+        "src/recording/recording_search_source.cpp:21-28 observation 단일 media_pts",
+        "src/recording/evidence_package_builder.cpp:128-149 end가 없는 hit의 정확한 단일PTS 선택",
+        "src/recording/va_review_core.cpp:74-90 및115-119 가시성/ordered-time 판정",
+        "src/recording/va_review_material_requests.cpp:47-49 단일시점 추가 비교자료 문구"
+      ],
+      "assessment": "승인된 현재 API 입력 준비 범위. 제품/core/gap 정책을 바꾸거나 실패 기대를 완화한 변경으로 보지 않음. 입력·기대 사례 자체는 바뀌었으므로8frame/중간누락 사례의 동등 실행이라고 주장할 수 없음.",
+      "status": "resolved-with-explicit-case-boundary"
+    }
+  ],
+  "preparation04Readback": {
+    "assertionsPass": 250,
+    "assertionsFail": 0,
+    "observedMs": 30164.009,
+    "sameObservedPid": 16623,
+    "channels": {
+      "9101": {
+        "finalized": 14,
+        "deleted": 7
+      },
+      "9201": {
+        "finalized": 14,
+        "deleted": 7
+      }
+    },
+    "A": "main 저장1, cancel=cancelled, revoked execute401/no publication, restart transient410와immutable readback, 재활성새저장1",
+    "nativeRecoveryCount": 3,
+    "normalProductProcessCount": 3,
+    "scope": "실제 단기 준비. 장시간 아님."
+  },
+  "deltaAfterPreparation04": {
+    "longOnlySuccessWindows": "각40분창에서 structured/visual/evidence/visualEvidence 실제 성공 필요.4번째unit에 창/항목누락 거부 있음.",
+    "collector": "ps3초/1MiB 상한 아래 샘플 시점 제품CPU와자식PID 수집. 기존5초 목표/15초 gap실패 유지.",
+    "productApiFixtureWorkloadBudgetChanged": false,
+    "threeWindowGateExecutedDuringPreparation05": false
+  },
+  "preparation05Readback": {
+    "sourceStartEqualsEnd": true,
+    "executionStatus": "PASS",
+    "exit": 0,
+    "childExit": 0,
+    "totalWithFinalBindingSeconds": 58.810305499937385,
+    "assertionsPass": 250,
+    "assertionsFail": 0,
+    "observedMs": 30163.668417,
+    "mainChannels": {
+      "9101": {
+        "finalized": 14,
+        "deleted": 7,
+        "lastAt": 37744.20775,
+        "order": "28",
+        "store": "9f8d73c5b352b431de6d11d923075e88d9cad518cfe0bec6de766316e3312d32",
+        "knownMappings": 9,
+        "unknownMappings": 562
+      },
+      "9201": {
+        "finalized": 14,
+        "deleted": 7,
+        "lastAt": 37744.20775,
+        "order": "29",
+        "store": "9f8d73c5b352b431de6d11d923075e88d9cad518cfe0bec6de766316e3312d32",
+        "knownMappings": 12,
+        "unknownMappings": 576
+      }
+    },
+    "sameObservedPid": 17388,
+    "sampleCount": 7,
+    "sameStartIdentity": true,
+    "maxConsecutiveSampleGapMs": 5007.146790999999,
+    "maxSampledRssBytes": 3191209984,
+    "cpuPercentSamples": [
+      26,
+      38.8,
+      26,
+      92,
+      52.1,
+      43.9,
+      8.8
+    ],
+    "sampledChildPidLists": [
+      [],
+      [],
+      [],
+      [],
+      [],
+      [],
+      []
+    ],
+    "footprintState": "not-measured",
+    "AControls": {
+      "cancel": {
+        "httpStatus": 200,
+        "state": "cancelled",
+        "reviewId": ""
+      },
+      "revoke": {
+        "status": 401,
+        "unchangedStore": true
+      },
+      "restart": {
+        "allLocalBytesUnchanged": true,
+        "independentHttpReadbackCount": 1,
+        "transientExpired": true
+      }
+    },
+    "ACompleted": [
+      {
+        "label": "main-0",
+        "pid": 17388,
+        "jobId": "vj-945b9a3cd4b2a1df27f098ab1c62c182-1",
+        "reviewId": "vr-a51bc84b954718e232eb440fd536b968d395f539235d97ac3c605c12bce47aaf",
+        "state": "completed"
+      },
+      {
+        "label": "reactivated",
+        "pid": 17596,
+        "jobId": "vj-3a454cbde64367ea5169ba531d31d493-1",
+        "reviewId": "vr-b30d12c8358398441d721936c7156d31d31e0549cfc086e3b5b94fdeb9535535",
+        "state": "completed"
+      }
+    ],
+    "initialReviewCount": 3,
+    "finalReviewCount": 5,
+    "searchSuccessByClientIncludingRestart": [
+      3,
+      3,
+      3,
+      3
+    ],
+    "deletedOriginalObserved": true,
+    "seedReadback": [
+      {
+        "mode": "--seed",
+        "exit": 0,
+        "signal": null,
+        "spawnError": null,
+        "runtimeArchiveSha256": "7e53123551e099aa835199290fa40416d9ffd774b29a8d3cd839fa7c024d5e6e",
+        "fixtureSha256": "7b7c658491f3f209e2af7a8bc3715c68fbf3d7acf3345b39cc69510e7974dca2",
+        "streams": {
+          "stdout": {
+            "hashMatches": true,
+            "truncated": false
+          },
+          "stderr": {
+            "hashMatches": true,
+            "truncated": false
+          }
+        }
+      },
+      {
+        "mode": "--confirmed-seed",
+        "exit": 0,
+        "signal": null,
+        "spawnError": null,
+        "runtimeArchiveSha256": "7e53123551e099aa835199290fa40416d9ffd774b29a8d3cd839fa7c024d5e6e",
+        "fixtureSha256": "7b7c658491f3f209e2af7a8bc3715c68fbf3d7acf3345b39cc69510e7974dca2",
+        "streams": {
+          "stdout": {
+            "hashMatches": true,
+            "truncated": false
+          },
+          "stderr": {
+            "hashMatches": true,
+            "truncated": false
+          }
+        }
+      }
+    ],
+    "nativeRecoveryReceipts": [
+      {
+        "path": "preparation-05/receipts/o28-current-snapshot-3e3461a0-5b48-4954-b118-d335d30de0f0.json",
+        "childExit": 0,
+        "traceStatus": "complete",
+        "traceLoss": false,
+        "sourceCopyTreeEqual": true,
+        "originalUnchanged": true,
+        "manifestUnchanged": true,
+        "groupClosed": true
+      },
+      {
+        "path": "preparation-05/receipts/o28-current-snapshot-b70005fe-eb0b-4afd-83b8-899395866099.json",
+        "childExit": 0,
+        "traceStatus": "complete",
+        "traceLoss": false,
+        "sourceCopyTreeEqual": true,
+        "originalUnchanged": true,
+        "manifestUnchanged": true,
+        "groupClosed": true
+      },
+      {
+        "path": "preparation-05/receipts/o28-current-snapshot-e852cbca-dcb1-4a9f-b4b0-4add8b57f9b6.json",
+        "childExit": 0,
+        "traceStatus": "complete",
+        "traceLoss": false,
+        "sourceCopyTreeEqual": true,
+        "originalUnchanged": true,
+        "manifestUnchanged": true,
+        "groupClosed": true
+      }
+    ],
+    "processCleanup": [
+      {
+        "schema": "recording-process-cleanup-v1",
+        "attemptCount": 1,
+        "pid": 17388,
+        "exitCode": 0,
+        "signalCode": null,
+        "exitedObserved": true,
+        "stopCode": "complete",
+        "forcedTermination": "not-used",
+        "normalExitPass": true,
+        "normalShutdownPass": true,
+        "archiveSafe": true,
+        "ports": [
+          {
+            "kind": "http",
+            "port": 58731,
+            "status": "pass",
+            "code": "closed",
+            "closed": true
+          },
+          {
+            "kind": "rtsp",
+            "port": 58732,
+            "status": "pass",
+            "code": "closed",
+            "closed": true
+          }
+        ]
+      },
+      {
+        "schema": "recording-process-cleanup-v1",
+        "attemptCount": 1,
+        "pid": 17544,
+        "exitCode": 0,
+        "signalCode": null,
+        "exitedObserved": true,
+        "stopCode": "complete",
+        "forcedTermination": "not-used",
+        "normalExitPass": true,
+        "normalShutdownPass": true,
+        "archiveSafe": true,
+        "ports": [
+          {
+            "kind": "http",
+            "port": 58858,
+            "status": "pass",
+            "code": "closed",
+            "closed": true
+          },
+          {
+            "kind": "rtsp",
+            "port": 58859,
+            "status": "pass",
+            "code": "closed",
+            "closed": true
+          }
+        ]
+      },
+      {
+        "schema": "recording-process-cleanup-v1",
+        "attemptCount": 1,
+        "pid": 17596,
+        "exitCode": 0,
+        "signalCode": null,
+        "exitedObserved": true,
+        "stopCode": "complete",
+        "forcedTermination": "not-used",
+        "normalExitPass": true,
+        "normalShutdownPass": true,
+        "archiveSafe": true,
+        "ports": [
+          {
+            "kind": "http",
+            "port": 58909,
+            "status": "pass",
+            "code": "closed",
+            "closed": true
+          },
+          {
+            "kind": "rtsp",
+            "port": 58910,
+            "status": "pass",
+            "code": "closed",
+            "closed": true
+          }
+        ]
+      }
+    ],
+    "allRecoveryCopiesAbsent": true,
+    "udpClosed": true,
+    "wrapperProcessGroupAbsent": true,
+    "registeredGroupsAbsent": true,
+    "residualRegisteredGroups": false
+  },
+  "legacyCandidate": {
+    "fileSha256": "5c6281009cc9bd804ff79538ce88ff13e4dc4af051001348095119d32540d6df",
+    "candidateDigest": "137543c6332a73f9a77599bfaca732bd1f54b263adee078fe5d3f8c275775906",
+    "items": 986,
+    "matchesPreviouslyReviewed63CandidateBytes": true,
+    "approvalVerifier": {
+      "rows": 986,
+      "verified": 986,
+      "failures": 0,
+      "evidence": "statics/approvals.log"
+    },
+    "producerReapplicationNeededForThisChange": false,
+    "scope": "후보 불변 및 제품 변경 없음에 한정. 새 혼합120분 결과를 대신하지 않음."
+  },
+  "limitations": [
+    "250은 단언 수이며 정책 기능ID/UI action 수가 아님.",
+    "준비05는30초 관측이며 실제120분 및 초·중·후 성공창 충족을 주장하지 않음.",
+    "7개 자원 표본은 장기누수/drift 판정이 아님. childPID 부재는 표본 시점 관측이며 연속 부재 보장이 아님. footprint는 미측정.",
+    "합성 projector 입력에 대한 A 분석 기록 검증이며 detector/영상 사실 또는 Qwen/Ollama 평가가 아님.",
+    "준비 root는 보존 상태다. 최종 비민감 증거 보존·소유권 확인·삭제·부재 확인을 이 사전 검토가 완료했다고 주장하지 않음."
+  ],
+  "preparationMediaFurtherInspectionNeeded": false,
+  "evidenceReferences": [
+    {
+      "path": "pre-long-review.json",
+      "sha256": "998e4251b8d6e005db77c9fda033d9ac61e283ad628fdf8be28325c4eaa784a3",
+      "bytes": 1500
+    },
+    {
+      "path": "preparation-03/preparation-cause.json",
+      "sha256": "eddd2da33c35efe525fb03ff0370f3f2ed14c057eb68662ce226082ea3a5c7a0",
+      "bytes": 761
+    },
+    {
+      "path": "preparation-03/execution.json",
+      "sha256": "5ddb7e5ff30f9afc2239f6ba9ca2bd57664dbd78e6c1737d74f8af9edb6a2cdc",
+      "bytes": 1748
+    },
+    {
+      "path": "preparation-03/artifacts/report.json",
+      "sha256": "faaa03823f153221bc4bb8a193b7b9d1c09c40059c21cb8b35c37a551f9ab6df",
+      "bytes": 3636
+    },
+    {
+      "path": "preparation-04/execution.json",
+      "sha256": "073c7149dffad869f5b36c4cfe48ddfa0e879ba4661afcfac5055154a4eb321d",
+      "bytes": 1744
+    },
+    {
+      "path": "preparation-04/artifacts/report.json",
+      "sha256": "ba5820170c154de5d72f2f09da29d86f25d235b346fc0bc48fdab856f9fde0e1",
+      "bytes": 10993
+    },
+    {
+      "path": "preparation-04/run.log",
+      "sha256": "d32341bf23036745125c41052672ee855fd35671785071361a710c3f2ecebfec",
+      "bytes": 134512
+    },
+    {
+      "path": "preparation-05/execution.json",
+      "sha256": "982a1a6c56196a1c55436a1debb820bb5c7084a9dbd84704fbfb66efc2a580b3",
+      "bytes": 1744
+    },
+    {
+      "path": "preparation-05/artifacts/report.json",
+      "sha256": "e60653e6746f57d0af3f449bc6a1b23d5cc112744fb73474e0252bcf9ab0a933",
+      "bytes": 11362
+    },
+    {
+      "path": "preparation-05/run.log",
+      "sha256": "7f2c7c9d739f405dcf2ea1e0c47edbbafbd716b01af4cbcbd297ef050bf83d61",
+      "bytes": 134554
+    },
+    {
+      "path": "boundary-final.json",
+      "sha256": "9bee8399587d32f7e5074070545586c187c839401f26106b98fbc75e245b41c9",
+      "bytes": 478
+    },
+    {
+      "path": "launcher-checks-final/launcher-checks-2.json",
+      "sha256": "b06d1402db1a7b5ef54127850d14f12c3406eb39695ff7668981b26e4de9bc6c",
+      "bytes": 6453
+    },
+    {
+      "path": "candidate.json",
+      "sha256": "5c6281009cc9bd804ff79538ce88ff13e4dc4af051001348095119d32540d6df",
+      "bytes": 7709050
+    },
+    {
+      "path": "statics/approvals.json",
+      "sha256": "506645f73d71e69472d881f9aeada3151b15bfe608af63e5bb418725284a65d5",
+      "bytes": 154
+    },
+    {
+      "path": "statics/comments.json",
+      "sha256": "b2985503bc594faf5f0ca12cc61628bdf584c466e3eb3b83d7652f830ff5e34a",
+      "bytes": 122
+    },
+    {
+      "path": "statics/links.json",
+      "sha256": "e97786f3be5aebe955ec706fc73f056fe84af56aa946731dd44da5f8789d92d0",
+      "bytes": 118
+    },
+    {
+      "path": "statics/schedule.json",
+      "sha256": "0c0cafeef86e83dc774533f14fbe7c21b82e0ee3de27d77e5059779ecb298cac",
+      "bytes": 156
+    },
+    {
+      "path": "statics/scripts.json",
+      "sha256": "fdbd2d784ac2e473684254055b0286325a0397cc6ffd4b8fefed209ace5817ac",
+      "bytes": 122
+    },
+    {
+      "path": "statics/v450.json",
+      "sha256": "7f2ed7e889756fd4336e5ef5d02718b8bf2477085bdf0ca8d5f2f267f5f71387",
+      "bytes": 154
+    },
+    {
+      "path": "statics/whitespace.json",
+      "sha256": "efa6d9895b257531b41075ffbc8c1d1ad3dbec0462e4807ff81d5b3ecd764dc7",
+      "bytes": 130
+    },
+    {
+      "path": "preparation-05/receipts/o28-current-snapshot-3e3461a0-5b48-4954-b118-d335d30de0f0.json",
+      "sha256": "fddc020e55a6a5f0746655cad2e89ad92e07e60528eb33cffd6de52bfb93ea6b",
+      "bytes": 19511
+    },
+    {
+      "path": "preparation-05/receipts/o28-current-snapshot-b70005fe-eb0b-4afd-83b8-899395866099.json",
+      "sha256": "247ccffe3fe733264cac54f8fecdbb013846d91f3e54b550e1ac535f29a96d71",
+      "bytes": 19511
+    },
+    {
+      "path": "preparation-05/receipts/o28-current-snapshot-e852cbca-dcb1-4a9f-b4b0-4add8b57f9b6.json",
+      "sha256": "24aff4b5c41138d496ed60b4701e4b2f1ff362dd48b942e1d379d089d7279710",
+      "bytes": 22256
+    },
+    {
+      "path": "preparation-05/artifacts/seed.json",
+      "sha256": "7603d389cd1544adb4dca3f711a1027983189684ffa7e12abb68b8a424d0fa41",
+      "bytes": 48378
+    },
+    {
+      "path": "preparation-05/artifacts/seed.stdout",
+      "sha256": "a34936029399d6ee44beed987daf5ff9d5899aa743f5047ccc6a20f60175a1d2",
+      "bytes": 346
+    },
+    {
+      "path": "preparation-05/artifacts/seed.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "preparation-05/artifacts/confirmed-seed.json",
+      "sha256": "175a4d4a11bede1b4a8422d984ac30be1b7dc766b34208b64016f35339bb8301",
+      "bytes": 8756
+    },
+    {
+      "path": "preparation-05/artifacts/confirmed-seed.stdout",
+      "sha256": "d4148f40fb81cac2d1adc57b6f9b69dd201e6535715fbf35d964c37c9efea32d",
+      "bytes": 1272
+    },
+    {
+      "path": "preparation-05/artifacts/confirmed-seed.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    }
+  ]
+}

@@ -1,0 +1,59 @@
+{
+  "schema": "media-server.v450.mixed-run-freeze.v1",
+  "scope": "recording/search/evidence/authenticated A, not general acceptance/UI",
+  "codeCommit": "dde70e5a31d4593880f627c14feae1f05387dc1f",
+  "codeTree": "731f54b33ce92cbd0854e4cfcb8bc4319da2bd8d",
+  "priorInputMedia": "same videotestsrc ball120 I420160x90@30fps/x264lossless/key-int-max30;2distinctactivepaths",
+  "AInput": "pre-start synthetic projector seed;disabledchannel1 copied original seed media, one observation hit selects1PTS; live snapshot→newpackage→visibility-at true/false + endpoint-right frame0 → supported/contradicted/insufficient ordered-time",
+  "claimsCreatedBeforeModelRun": true,
+  "model": "existing SigLIP2 only; runtime-freeze.json",
+  "QwenOllamaCalls": 0,
+  "observeSeconds": 7200,
+  "totalSeconds": 7380,
+  "A": {
+    "intervalSeconds": 60,
+    "maximumMainAdmissions": 120,
+    "maxInflight": 1,
+    "noCatchup": true,
+    "queueExecutionSeconds": 90,
+    "mainSuccessfulEachThird": true,
+    "storeLimits": {
+      "records": 512,
+      "bytes": 67108864,
+      "recordBytes": 131072
+    }
+  },
+  "mixed": {
+    "channels": [
+      "9101",
+      "9201"
+    ],
+    "searchClients": 4,
+    "searchPreservePeriodSeconds": 15,
+    "requestSeconds": {
+      "ordinary": 4,
+      "evidenceAndA": 5
+    },
+    "responseBytes": 4194304,
+    "searchLatencyMs": {
+      "p95": 2000,
+      "max": 5000
+    },
+    "sampleSeconds": 5,
+    "sampleMaxGapSeconds": 15,
+    "finalizationMaxStallSeconds": 30,
+    "rssBytes": 4294967296,
+    "variableRootBytes": 469762048,
+    "copyBytes": 469762048,
+    "combined": "F+2C",
+    "privateLogBytesPerProcess": 4194304
+  },
+  "measurementLimits": [
+    "sampled logical bytes not hard peak",
+    "RSS not physical footprint; no RSS+VRAM double count",
+    "resourceTrendPass is separately reviewed; existing Catalog growth limit retained"
+  ],
+  "originalMixed": "2f059b67fb8f4a05b4eda120eaf50ba402393ba7:docs/release-artifacts/v4.4.0/development/mixed-preparation/mixed-120-15",
+  "preparation": "preparation-05/execution.json",
+  "longAttemptsAuthorized": 1
+}
