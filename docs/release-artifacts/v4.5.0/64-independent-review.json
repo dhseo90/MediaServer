@@ -1,0 +1,1339 @@
+{
+  "schema": "media-server.release64.independent-result-review.v1",
+  "reviewedAt": "2026-10-08T10:30:57.504217+00:00",
+  "reviewer": {
+    "agentTask": "/root/independent_release62",
+    "role": "구현·실행에 참여하지 않은 독립 결과 검토자",
+    "requestedModel": "gpt-6-astra",
+    "requestedReasoningEffort": "xhigh",
+    "actualRuntimeModel": null,
+    "actualRuntimeSnapshot": null,
+    "actualRuntimeReasoningEffort": null,
+    "settingsBoundary": "실제 세션 model/effort/snapshot은 도구에 미노출. 요청값을 실제 확인값으로 주장하지 않음. 설정 변경 없음.",
+    "productOrRunnerEdits": false,
+    "testsProductModelsExecuted": false,
+    "subdelegation": false,
+    "onlyAuthoredFile": "independent-result-review.json"
+  },
+  "decision": {
+    "actualMixed120": "FAIL_INCOMPLETE",
+    "failurePropagation": "PASS_WITH_PRESERVED_FIRST_FAILURE",
+    "resourceStability": "NOT_ESTABLISHED",
+    "longrunObservationCompleted": false,
+    "verifiedDurationMs": null,
+    "uiFulltestPass": false,
+    "releaseApproval": false,
+    "continuedSupportOrStabilityClaim": false,
+    "preparationPassSubstitutesForThisRun": false,
+    "retryOrDiagnosticExperimentPerformedByReviewer": false,
+    "requiredUnresolved": [
+      "필수 A 현재 검색 증거 생성 POST가503 evidence-create-failed로 실패",
+      "7200초 및 초·중·후 성공창 미충족",
+      "본 run의 후속 취소/권한회수/중단복제본복구/HTTP재시작/재활성 미실행",
+      "내부 원인 미확정",
+      "장기 자원 안정성 미확인",
+      "실행자료의 최종 정제·보존·root삭제·부재 확인은 이 검토 시점 미완료"
+    ]
+  },
+  "sourceBinding": {
+    "execution": {
+      "head": "d95fe838d3aae41be83b9f53b7df93c05f3890da",
+      "tree": "dbd8b43fc3305b11fd61e6dac5d679671db71085",
+      "sourceSha256": "cb5b704627d1c48643ef4a921efda244b1880fb01979d74451d0e21922bc968d",
+      "binarySha256": "f612a7b6ed0b75e06406dd087fa8c842c56753991391ac39c126d5d496f9ad58"
+    },
+    "sourceStartEqualsEnd": true,
+    "priorReviewedSevenFiles": {
+      "scripts/internal/run_v450_recording_a_mixed.py": {
+        "sha256": "e80cbf338dda800a3f55d0043526da2def1a707f040ab564c9ed90e8d25e7362",
+        "committedBytesMatch": true
+      },
+      "scripts/internal/verify_v450_recording_a_mixed.sh": {
+        "sha256": "b14d7d46d09fd422c3241b1dcd05a33d665329137838aff02205b1ff1e5aab87",
+        "committedBytesMatch": true
+      },
+      "scripts/internal/v450_recording_a_load.test.mjs": {
+        "sha256": "97df0c4e58425a90463648a93239daceb134e31c51a824158b5472f7af5800fc",
+        "committedBytesMatch": true
+      },
+      "scripts/internal/v450_recording_a_load.mjs": {
+        "sha256": "fb0be553849d447a1d836ac294c99dffe78d63cd94188e9b0b78c18c59d0c5c2",
+        "committedBytesMatch": true
+      },
+      "scripts/internal/v450_recording_a_launcher_checks.py": {
+        "sha256": "d58e00d3e0c836d0b6c16e18523b0c25b8bb867f7050b81f26c09c2a8faf69c7",
+        "committedBytesMatch": true
+      },
+      "scripts/internal/v450_recording_a_mixed.mjs": {
+        "sha256": "98a0eae98d5070ef5a3ce9e8b4b110b515ce2a89b1677f6cb6d81a9f4d44657d",
+        "committedBytesMatch": true
+      },
+      "docs/project-feature-test-inventory.md": {
+        "sha256": "c881ed519df8ed155c2ab0bdd5476eabf847a266e20f26d12641f303011cc4e7",
+        "committedBytesMatch": true
+      }
+    },
+    "freeze": {
+      "path": "docs/release-artifacts/v4.5.0/64-execution-freeze.json",
+      "sha256": "bc86f6b4b852492bcc9c8ab2a27aa313b070671b9425e3cb7c88227bca7d3d8c",
+      "codeCommit": "dde70e5a31d4593880f627c14feae1f05387dc1f",
+      "codeTree": "731f54b33ce92cbd0854e4cfcb8bc4319da2bd8d"
+    },
+    "freezeToExecutionDifference": "dde70e5a31d4593880f627c14feae1f05387dc1f→d95fe838d3aae41be83b9f53b7df93c05f3890da diff는64-execution-freeze.json/64-preparation-review.json/64-preparation.tar.gz 세 증거파일. 실행기7개 hash 불변."
+  },
+  "firstFailure": {
+    "slot": 29,
+    "slotStartElapsedMs": 1743048.766375,
+    "timeMeaning": "관측 시작 기준 slot29 준비 시작 약1743.049초. 정확한 실패 시각으로 대체하지 않음.",
+    "lastSearch": {
+      "logLine": 9654,
+      "route": "/ops/api/recordings/search",
+      "status": 200
+    },
+    "selection": {
+      "logLine": 9657,
+      "snapshotId": "07b66fdd7a10afd2bdf6bad995553550",
+      "selectedHitId": "or:36:obs-e0feb8b49b3c653f2db2c25cacec482e",
+      "track": "track-77",
+      "kind": "observation"
+    },
+    "failureHttp": {
+      "route": "/ops/api/recordings/search/a-record-evidence",
+      "method": "POST",
+      "status": 503,
+      "elapsedMs": 133.7719999998808,
+      "bytes": 34,
+      "error": "evidence-create-failed",
+      "logLine": 9659,
+      "expectedStatus": 201
+    },
+    "harnessCatch": {
+      "logLine": 9661,
+      "message": "current observation: redacted-error",
+      "routeAndActualHttpErrorPreservedSeparately": true
+    },
+    "failedPhase": "package 생성; 해당 slot draft/confirm/execute/worker 미진입",
+    "actualResponseBodyRetention": "A-http가 파싱된 error/status/응답길이/지연을 보존. 실패 응답 원문 전체 또는 내부 error/stack은 별도로 보존되지 않음.",
+    "subsequentRequestRetryObserved": false,
+    "failurePropagatedTo": {
+      "assertionFailed": true,
+      "reportFailed": 1,
+      "reportStatus": "FAIL",
+      "reportExit": 1,
+      "shellWrapperExit": 1,
+      "launcherChildExit": 1,
+      "launcherExit": 1,
+      "timedOut": false,
+      "interruptedSignals": []
+    }
+  },
+  "causeAssessment": {
+    "confirmed": "필수 A evidence 생성의 공개 HTTP503 evidence-create-failed와 후속 중단만 확정",
+    "rootCause": "UNDETERMINED",
+    "notEquivalentTo": [
+      "C++ 예외 발생 확정",
+      "제품 용량 초과 확정",
+      "global revision 경쟁 확정",
+      "OOM/메모리 누수 확정",
+      "원본 media 삭제/손상 확정",
+      "복구 완료"
+    ],
+    "sourceFacts": [
+      {
+        "path": "src/ingress/evidence_application_service.cpp:46-57",
+        "fact": "builder false의 여러 내부 오류를evidence-create-failed로 정제하며 catch도 동일 코드를 반환. capacity/reserve/timeout/busy는 별도 허용코드."
+      },
+      {
+        "path": "src/ingress/recording_search_application_service.cpp:167-183",
+        "fact": "SearchEvidence의 catch도 동일503을 반환."
+      },
+      {
+        "path": "src/recording/recording_catalog.cpp:1513-1516",
+        "fact": "apply mutation마다 global source_snapshot_revision 증가."
+      },
+      {
+        "path": "src/recording/evidence_package_builder.cpp:170-172,279-287",
+        "fact": "관측 capture의 revision을 publication의 중단/guard에 사용하며 revision 변경 시 evidence-source-changed로 정리 가능."
+      }
+    ],
+    "hypothesisOnly": "녹화/보존 mutation과 A publication revision의 교차는 정적으로 가능한 경로. 이 run은 내부 error/stack/revision 시각을 기록하지 않아 실제 발생 분기와 인과관계는 입증되지 않음.",
+    "capacityObservation": {
+      "evidenceFiles": 264,
+      "evidenceBytes": 1438857,
+      "evidenceLimits": {
+        "packages": 4096,
+        "bytes": 2147483648
+      },
+      "reviewFiles": 32,
+      "reviewBytes": 185138,
+      "reviewLimits": {
+        "records": 512,
+        "bytes": 67108864
+      },
+      "meaning": "관측된 stopped store count/bytes가 기본 한도 내. 다른 I/O/내부원인 배제나 여유 디스크 실측을 뜻하지 않음."
+    }
+  },
+  "actualPartialWork": {
+    "assertionsPassed": 6534,
+    "assertionsFailed": 1,
+    "countUnit": "harness 단언 수; 정책 기능ID/UI action 수 아님",
+    "wrapperSecondsWithFinalBinding": 1756.5781369170872,
+    "driverElapsedMs": 1751639,
+    "lastDrainedProgress": {
+      "elapsedMs": 1742126.551875,
+      "channels": {
+        "9101": {
+          "finalized": 869,
+          "deleted": 862,
+          "lastAt": 1749835.859833,
+          "order": "1745",
+          "store": "e490ee70e028bc1770372cb1cfbf5dc1442679f421e16b72c6e2de4bf82a00cc",
+          "knownMappings": 597,
+          "unknownMappings": 32588
+        },
+        "9201": {
+          "finalized": 869,
+          "deleted": 862,
+          "lastAt": 1749835.859833,
+          "order": "1746",
+          "store": "e490ee70e028bc1770372cb1cfbf5dc1442679f421e16b72c6e2de4bf82a00cc",
+          "knownMappings": 619,
+          "unknownMappings": 31578
+        }
+      },
+      "records": 1738,
+      "logicalBytes": 1037340
+    },
+    "progressBoundary": "마지막 관측의 drained prefix. 실패 이후 unread/partial tail와 종료 중 확정·삭제 총계를 포함한 최종 catalog 검증이 아님.",
+    "observedProductPid": 18157,
+    "A": {
+      "attemptedSlots": 30,
+      "admittedJobs": 29,
+      "completedJobs": 29,
+      "uniqueJobIds": 29,
+      "allSameObservedProductPid": true,
+      "allCompletedBeforeNextAdmission": true,
+      "terminalFailureBeforeNextAdmission": true,
+      "storeVersions": {
+        "MSVAR03": 29,
+        "MSVAR02": 1,
+        "MSVAR01": 2
+      },
+      "initialLegacyOrInternalRecords": 3,
+      "newConfirmedV3Records": 29,
+      "immutableFilesActuallyHashed": 61,
+      "immutableBytesActuallyHashed": 361458,
+      "allImmutableHashesAndBytesMatch": true,
+      "storedRecordBindings": [
+        {
+          "slot": 0,
+          "reviewId": "vr-2eee7a666c541752d8d3ef2c6d8894e5d07abc6c4279ece652a53104c0bd8954",
+          "packageId": "ep-61961cc5719c244f89012a5d60713595c31e716c776379651547f2af9c21b17a",
+          "revisionMatches": true,
+          "packageMatches": true,
+          "manifestHashMatches": true,
+          "expectedVerdictsAndGap": true,
+          "singleFrameTrackNamespaceMatches": true
+        },
+        {
+          "slot": 1,
+          "reviewId": "vr-6f5afaf40a5896ffce7ca5fecc60f9a0f1776c26772acdd2b0c25ce843cc0d85",
+          "packageId": "ep-68bb046c982f858a9099767b6fbffe73d5e1f6c38a555c76e60bf78cd49e7059",
+          "revisionMatches": true,
+          "packageMatches": true,
+          "manifestHashMatches": true,
+          "expectedVerdictsAndGap": true,
+          "singleFrameTrackNamespaceMatches": true
+        },
+        {
+          "slot": 2,
+          "reviewId": "vr-fa140507c3d30c4509e6aac2656918bd5bd7b898c97dd372efafa5adcafa2064",
+          "packageId": "ep-ae220956cf295b86492294c4ad9a2005d60aa77e71800b788aa7ff6b12a73182",
+          "revisionMatches": true,
+          "packageMatches": true,
+          "manifestHashMatches": true,
+          "expectedVerdictsAndGap": true,
+          "singleFrameTrackNamespaceMatches": true
+        },
+        {
+          "slot": 3,
+          "reviewId": "vr-344c63393c9de033eec9540e1c79ba25a94d432f6a0ea4a93df084a975625e29",
+          "packageId": "ep-f48786e73089275fe238c554cad3e9594b1f7151403d759836f869e2f53f7439",
+          "revisionMatches": true,
+          "packageMatches": true,
+          "manifestHashMatches": true,
+          "expectedVerdictsAndGap": true,
+          "singleFrameTrackNamespaceMatches": true
+        },
+        {
+          "slot": 4,
+          "reviewId": "vr-11a806613693a8443fdcc0f323045d22bc69b9390f1d889295b49b033d8e1531",
+          "packageId": "ep-dead708bede7ecf09645399ded1a9f30943437c5b0610e78a5049f0c0aeab262",
+          "revisionMatches": true,
+          "packageMatches": true,
+          "manifestHashMatches": true,
+          "expectedVerdictsAndGap": true,
+          "singleFrameTrackNamespaceMatches": true
+        },
+        {
+          "slot": 5,
+          "reviewId": "vr-41c118c802c09d25bbf9f5f1c15238a0dfa3ae365c4701c5890fea98f19e5b70",
+          "packageId": "ep-5649f8919b5ccbe49be10b2b6b064130ce1e99d8af3a2cf5c9e429b81fd482d4",
+          "revisionMatches": true,
+          "packageMatches": true,
+          "manifestHashMatches": true,
+          "expectedVerdictsAndGap": true,
+          "singleFrameTrackNamespaceMatches": true
+        },
+        {
+          "slot": 6,
+          "reviewId": "vr-b3f6f33fc75c2f6cf197b121e953999019c5651601f7d3c5d5d84cd6562aebda",
+          "packageId": "ep-43822a40af666b46779e027c0c97345aaf4cc3560bd6f08d2dc2aca4d1d0e591",
+          "revisionMatches": true,
+          "packageMatches": true,
+          "manifestHashMatches": true,
+          "expectedVerdictsAndGap": true,
+          "singleFrameTrackNamespaceMatches": true
+        },
+        {
+          "slot": 7,
+          "reviewId": "vr-21ff825fcb46c8cd9e5f3b4b94982f2e599ba70b7044d7f8659d7c43cc1cd06c",
+          "packageId": "ep-415ecacba530cdc474de405135d14a65d7d4cc30e10a77e00767181a774cbc54",
+          "revisionMatches": true,
+          "packageMatches": true,
+          "manifestHashMatches": true,
+          "expectedVerdictsAndGap": true,
+          "singleFrameTrackNamespaceMatches": true
+        },
+        {
+          "slot": 8,
+          "reviewId": "vr-5c3518d5a3314980c628afc4696fd81892e4f7f0b3057ea3a8afa62db27aa990",
+          "packageId": "ep-82757e4764ecab4ab0ac8074f9b702eae408b383d384c5476012954c346bd6a0",
+          "revisionMatches": true,
+          "packageMatches": true,
+          "manifestHashMatches": true,
+          "expectedVerdictsAndGap": true,
+          "singleFrameTrackNamespaceMatches": true
+        },
+        {
+          "slot": 9,
+          "reviewId": "vr-4ef5bb6f7d99d24cda885225da82157e66f1de2324e18ee4d1b06283867bf95b",
+          "packageId": "ep-78bb71b7aa47a4e5abf32bde8e8c31e23e223e2f26c7b2786a6a9e6015914328",
+          "revisionMatches": true,
+          "packageMatches": true,
+          "manifestHashMatches": true,
+          "expectedVerdictsAndGap": true,
+          "singleFrameTrackNamespaceMatches": true
+        },
+        {
+          "slot": 10,
+          "reviewId": "vr-03db43465393af9f9b6dd04e64b90be0617cdca3750e8be38a4745c1bec625a9",
+          "packageId": "ep-cf9619b17c0164774bd04c2fdcd5eaacbe86ca9fdd7cf8c28cbb4de178a76c26",
+          "revisionMatches": true,
+          "packageMatches": true,
+          "manifestHashMatches": true,
+          "expectedVerdictsAndGap": true,
+          "singleFrameTrackNamespaceMatches": true
+        },
+        {
+          "slot": 11,
+          "reviewId": "vr-121faf6af61dc5db290e94c6d60bbabbb59cd7cae2e991ee83bb48a06c9ffba2",
+          "packageId": "ep-c84ae4e4cf0e0f4c7847ba7c1be9e7f23be07326e381282157dc47b76716262c",
+          "revisionMatches": true,
+          "packageMatches": true,
+          "manifestHashMatches": true,
+          "expectedVerdictsAndGap": true,
+          "singleFrameTrackNamespaceMatches": true
+        },
+        {
+          "slot": 12,
+          "reviewId": "vr-c1254e63a0eb09bf64426a1b9dcf229973f193e26f84da879956fa858a57483b",
+          "packageId": "ep-9f7e8f1e15e400c999bc61c031a8fa3a03305d3b8ae2a90342f1f302a7d1f01b",
+          "revisionMatches": true,
+          "packageMatches": true,
+          "manifestHashMatches": true,
+          "expectedVerdictsAndGap": true,
+          "singleFrameTrackNamespaceMatches": true
+        },
+        {
+          "slot": 13,
+          "reviewId": "vr-3f3db9d6a1717aca2d1d8f1e3e6989bf8f953be96b4924e6c8602e5b9c2b04e4",
+          "packageId": "ep-47a0520694bf29af52154fbf20b107c5b91a4f48d6923f1c31006f86bb7a66fb",
+          "revisionMatches": true,
+          "packageMatches": true,
+          "manifestHashMatches": true,
+          "expectedVerdictsAndGap": true,
+          "singleFrameTrackNamespaceMatches": true
+        },
+        {
+          "slot": 14,
+          "reviewId": "vr-f8a1ba15b1f20532f372af09d8c848c4ff8db827084b46cf38b8dce32672bd96",
+          "packageId": "ep-918674aecb1514d283c50d50a0356f0972ab1e5b6bb16e1932a44513b28c1225",
+          "revisionMatches": true,
+          "packageMatches": true,
+          "manifestHashMatches": true,
+          "expectedVerdictsAndGap": true,
+          "singleFrameTrackNamespaceMatches": true
+        },
+        {
+          "slot": 15,
+          "reviewId": "vr-3b4811e4db330547b82146b935bde096792001ed561206d309c7bec56cad26c1",
+          "packageId": "ep-dea4a2a2bbfa54be154cb9e29eab560868a541d56127d62284a4178c7a0a786a",
+          "revisionMatches": true,
+          "packageMatches": true,
+          "manifestHashMatches": true,
+          "expectedVerdictsAndGap": true,
+          "singleFrameTrackNamespaceMatches": true
+        },
+        {
+          "slot": 16,
+          "reviewId": "vr-e0d38cc2980110af830a70fe22239937f2611d4e781edfaa2b43b37d702be7c1",
+          "packageId": "ep-45e49ccf4855d119e7a506223bc2157e711596fb78742c2842f6c6e2bd51fd6f",
+          "revisionMatches": true,
+          "packageMatches": true,
+          "manifestHashMatches": true,
+          "expectedVerdictsAndGap": true,
+          "singleFrameTrackNamespaceMatches": true
+        },
+        {
+          "slot": 17,
+          "reviewId": "vr-01656f90fc1920e6063e3543c770fa5d78903c78dfb4ae9f167256423f35b22a",
+          "packageId": "ep-4549f78c38e6e30fa9a499453e60b80e7c92d8cfc7de43ce5f43a43c9ffe5218",
+          "revisionMatches": true,
+          "packageMatches": true,
+          "manifestHashMatches": true,
+          "expectedVerdictsAndGap": true,
+          "singleFrameTrackNamespaceMatches": true
+        },
+        {
+          "slot": 18,
+          "reviewId": "vr-25da5bca4e73e7d2d3d25744b8d235a8ba76384d89928d982dabe6650b8f1e54",
+          "packageId": "ep-216abd72a0284891b3be976a596ba15837d9e17c0995ff515cb517e639adf385",
+          "revisionMatches": true,
+          "packageMatches": true,
+          "manifestHashMatches": true,
+          "expectedVerdictsAndGap": true,
+          "singleFrameTrackNamespaceMatches": true
+        },
+        {
+          "slot": 19,
+          "reviewId": "vr-c44245977a509d7bafa1e5471d1737584cbfc7e76be731cb8c758692938c8ac4",
+          "packageId": "ep-f33d5d922b051ba6ecacfc72ef10cd28404920dab39bd85360ba932951414d18",
+          "revisionMatches": true,
+          "packageMatches": true,
+          "manifestHashMatches": true,
+          "expectedVerdictsAndGap": true,
+          "singleFrameTrackNamespaceMatches": true
+        },
+        {
+          "slot": 20,
+          "reviewId": "vr-f2f95dda27e1544b9b83960c7147c1e46d5960bc61c041ebba9bd029c5437344",
+          "packageId": "ep-18bfe6418ab4932c3f05d8889dd733ceaecbe8ae766de72cb9804b77990f8047",
+          "revisionMatches": true,
+          "packageMatches": true,
+          "manifestHashMatches": true,
+          "expectedVerdictsAndGap": true,
+          "singleFrameTrackNamespaceMatches": true
+        },
+        {
+          "slot": 21,
+          "reviewId": "vr-d1b1e42db642a72c5bb1cfec4a167c0e2cf7ec7d7773208c6c8ce2f263a78eaf",
+          "packageId": "ep-e80972ec17b543d4f820c76c3abc62691024b08122d9ef4a73910de464074217",
+          "revisionMatches": true,
+          "packageMatches": true,
+          "manifestHashMatches": true,
+          "expectedVerdictsAndGap": true,
+          "singleFrameTrackNamespaceMatches": true
+        },
+        {
+          "slot": 22,
+          "reviewId": "vr-a812e03d55de9ec0313b45f7a7f244accabe52be5f9cf6278eea0a89b8a7579a",
+          "packageId": "ep-4f9be0b88e35cf3eef99225043e43654df2588ddc040c4db79a6f5a43f7eb494",
+          "revisionMatches": true,
+          "packageMatches": true,
+          "manifestHashMatches": true,
+          "expectedVerdictsAndGap": true,
+          "singleFrameTrackNamespaceMatches": true
+        },
+        {
+          "slot": 23,
+          "reviewId": "vr-f2f397cd553105b0cedd5372074471d25969c198c5431bda39dea37cd5ebc1f1",
+          "packageId": "ep-8f73e1a89e1113141f520c788d18e78c30b4725290a5e2129fd186bc9e3f1938",
+          "revisionMatches": true,
+          "packageMatches": true,
+          "manifestHashMatches": true,
+          "expectedVerdictsAndGap": true,
+          "singleFrameTrackNamespaceMatches": true
+        },
+        {
+          "slot": 24,
+          "reviewId": "vr-c3f7468d75556be8da6749e2a6830a7014dad231179d6e00ca51897242f2a033",
+          "packageId": "ep-11cc4fe8b000c2ec4d498f03aca4a45b3e927a4709fd4ed4f3c6eb3346c20ecf",
+          "revisionMatches": true,
+          "packageMatches": true,
+          "manifestHashMatches": true,
+          "expectedVerdictsAndGap": true,
+          "singleFrameTrackNamespaceMatches": true
+        },
+        {
+          "slot": 25,
+          "reviewId": "vr-86a29350cf66925435edabd3d2611d06b99be4667c01c13b72d6eeb856362725",
+          "packageId": "ep-e1d3914200584559a2cf7b17d072ee87d4f9d4b6ebc63066272ad141f643ff8f",
+          "revisionMatches": true,
+          "packageMatches": true,
+          "manifestHashMatches": true,
+          "expectedVerdictsAndGap": true,
+          "singleFrameTrackNamespaceMatches": true
+        },
+        {
+          "slot": 26,
+          "reviewId": "vr-590b34101cf7e3d90cfd840afc42bd5caf3ae0b1c66164f02409112ddf66f194",
+          "packageId": "ep-1015d7bfa2ad561dad060b397261fe299f98f86a5c3205412e812b30cff63b90",
+          "revisionMatches": true,
+          "packageMatches": true,
+          "manifestHashMatches": true,
+          "expectedVerdictsAndGap": true,
+          "singleFrameTrackNamespaceMatches": true
+        },
+        {
+          "slot": 27,
+          "reviewId": "vr-8eb6e90d4c2760db196801402f84af9388a97f4d416a50fdf54e8dfe85e87536",
+          "packageId": "ep-ee9da764bafbbe9bc819b6baa0261e2114ed6f9addeba3fcdf5c3e0003d16053",
+          "revisionMatches": true,
+          "packageMatches": true,
+          "manifestHashMatches": true,
+          "expectedVerdictsAndGap": true,
+          "singleFrameTrackNamespaceMatches": true
+        },
+        {
+          "slot": 28,
+          "reviewId": "vr-6745702d86c14de63a97a2b353e55e9bf2f551a47726d9232721cecf3971aab9",
+          "packageId": "ep-8bd138930607f39c24130aff42a5cf16cddc76004e7c624703367221e88d2c80",
+          "revisionMatches": true,
+          "packageMatches": true,
+          "manifestHashMatches": true,
+          "expectedVerdictsAndGap": true,
+          "singleFrameTrackNamespaceMatches": true
+        }
+      ],
+      "noPendingReviewOrPackageFileAtStoppedReadback": true
+    },
+    "searchAndEvidence": {
+      "cycles": 116,
+      "searchSuccessByClient": [
+        117,
+        117,
+        117,
+        116
+      ],
+      "totalSuccessfulSearchResponses": 467,
+      "allowedUnavailableResponses": 1,
+      "structuredEvidenceCreated": 116,
+      "structuredComplete": 114,
+      "structuredPartial": 2,
+      "expectedConcurrentBusy": 116,
+      "visualEvidenceCreated": 115,
+      "visualExpiredHits": 1,
+      "savedReadbacks": 232,
+      "deletedOriginalObserved": true,
+      "windows": [
+        {
+          "structured": 2320,
+          "visual": 4620,
+          "evidence": 116,
+          "visualEvidence": 115
+        },
+        {
+          "structured": 0,
+          "visual": 0,
+          "evidence": 0,
+          "visualEvidence": 0
+        },
+        {
+          "structured": 0,
+          "visual": 0,
+          "evidence": 0,
+          "visualEvidence": 0
+        }
+      ],
+      "successfulSearchLatencyMs": {
+        "count": 467,
+        "p95": 699.4160419998225,
+        "max": 987.2740829999093
+      },
+      "boundary": "모두 첫40분창 일부의 부분관측. 나머지 두 창 및 전체120분 성공 아님."
+    }
+  },
+  "resources": {
+    "sampleCount": 349,
+    "samePidAndStartIdentity": true,
+    "sampleCoverageMs": 1741894.419083,
+    "maxGapMs": 5010.3027080001775,
+    "rssBytes": {
+      "first": 3167584256,
+      "last": 1755201536,
+      "peakSampled": 3190996992,
+      "limit": 4294967296
+    },
+    "postWarmup": {
+      "warmupMs": 300000,
+      "samples": 289,
+      "elapsedMs": 1441623.915291,
+      "rssDeltaBytes": 66043904,
+      "rssEndpointMiBPerMinute": 2.62139276403248,
+      "threadEndpointDelta": 0,
+      "fdEndpointDelta": 0
+    },
+    "threadsMinMax": [
+      37,
+      44
+    ],
+    "fdsMinMax": [
+      20,
+      35
+    ],
+    "cpuPeakReportedPercent": 307,
+    "sampledChildPids": [],
+    "footprintState": "not-measured",
+    "peakSampledVariableRootBytes": 59817758,
+    "variableRootLimitBytes": 469762048,
+    "observedStorageCapExceeded": false,
+    "privateLog": {
+      "bytes": 485679,
+      "sha256": "11f5a03636b712d9cf3580ab9aeb0f4939039a0e12ce3e24361bee5a6a62de14",
+      "overflow": false
+    },
+    "judgment": "부분 구간의샘플 상한·공백은 이내. warmup 이후 RSS가66,043,904bytes 증가했으며 이 수치만으로 누수 확정 또는 안정성 PASS 판정 불가. 전체120분·확장 규모·지속 지원을 보증하지 않음.",
+    "boundary": "표본값은 연속최고치가 아님. ps CPU는 물리 footprint/VRAM이 아니고 childPID 빈목록은 표본 시점만 의미.",
+    "resourceTrendPass": false
+  },
+  "cleanup": {
+    "recordedProductCleanup": [
+      {
+        "schema": "recording-process-cleanup-v1",
+        "attemptCount": 1,
+        "pid": 18157,
+        "exitCode": 0,
+        "signalCode": null,
+        "exitedObserved": true,
+        "stopCode": "complete",
+        "forcedTermination": "not-used",
+        "normalExitPass": true,
+        "normalShutdownPass": true,
+        "archiveSafe": true,
+        "ports": [
+          {
+            "kind": "http",
+            "port": 59128,
+            "status": "pass",
+            "code": "closed",
+            "closed": true
+          },
+          {
+            "kind": "rtsp",
+            "port": 59129,
+            "status": "pass",
+            "code": "closed",
+            "closed": true
+          }
+        ]
+      }
+    ],
+    "udpClosed": true,
+    "wrapperProcessGroupAbsent": true,
+    "registeredGroupsAbsent": true,
+    "residualRegisteredGroups": false,
+    "ownedRecoveryRegistryBytes": 0,
+    "recoveryReceiptsCount": 0,
+    "stoppedRuntimeStillPreserved": true,
+    "scope": "실행 종료 시점 기록에서 제품exit0·강제종료없음·HTTP/RTSP닫힘·UDP닫힘·소유 process group 부재 확인. reviewer가새프로세스/포트명령을실행해현재시점재검사한것은아님.",
+    "finalRootDeletionAndAbsenceVerified": false,
+    "stoppedCopyRecoveryPass": false
+  },
+  "notRunAfterFailure": [
+    "A finish/초중후완료 gate",
+    "전체120분 duration 및 mixed three-window gate",
+    "본 run의 cancel/completion 경합 control",
+    "본 run의 확인후 계정 비활성·실행거부 control",
+    "녹화설정비활성후 closed journal 최종단언",
+    "stopped-copy native 복구3회",
+    "disabled HTTP restart 및 A/evidence 불변재조회·transient410",
+    "재활성 녹화진척 및 새A저장",
+    "최종 복구·재시작 catalog상태 동등성"
+  ],
+  "evidenceQualityNotes": [
+    "최상위catch의redacted-error만으로원인을판단하지않고9659행A-http와9657행snapshot선택및slot29실패를연결했다.",
+    "내부code/stack부재는현근거의원인판별한계이며원문을추정복원하지않는다.",
+    "최초서버로그는rawURL/ownedpath를포함하므로그대로Git보존하면안된다. 정제본과rawhash의별도대응필요.",
+    "선택61저장파일과첫증거2개에서URL/home/passwordHash류bytepattern은발견되지않았다. 이는전체최종보존본privacy승인을대체하지않음.",
+    "준비05PASS와기존후속control증거를이번실패run의실행완료로사용하지않는다.",
+    "원인분리실험·수정·재시도는수행하지않았고본검토가그권한을부여하지않는다."
+  ],
+  "preservation": {
+    "minimumRuntimeOriginalFiles": [
+      {
+        "path": "recordings/va-reviews/vr-271b90fa0d4abb73108440f517fd208fedc01a231addbf94d5796acd8c8f61d2.review",
+        "bytes": 11520,
+        "sha256": "271b90fa0d4abb73108440f517fd208fedc01a231addbf94d5796acd8c8f61d2",
+        "reportHashAndBytesMatch": true,
+        "reason": "원문 report의 불변 저장파일 직접 대조 재검토"
+      },
+      {
+        "path": "recordings/va-reviews/vr-d5d5ab91dac18f2cff6fae9653fd14410ed8078e958c7054da97a31e4ec60803.review",
+        "bytes": 2557,
+        "sha256": "d5d5ab91dac18f2cff6fae9653fd14410ed8078e958c7054da97a31e4ec60803",
+        "reportHashAndBytesMatch": true,
+        "reason": "원문 report의 불변 저장파일 직접 대조 재검토"
+      },
+      {
+        "path": "recordings/va-reviews/vr-f72d4f4bf0b8550e6c87277f17b0bf794327b44a7a04857710bbcae73423e948.review",
+        "bytes": 3499,
+        "sha256": "f72d4f4bf0b8550e6c87277f17b0bf794327b44a7a04857710bbcae73423e948",
+        "reportHashAndBytesMatch": true,
+        "reason": "원문 report의 불변 저장파일 직접 대조 재검토"
+      },
+      {
+        "path": "recordings/evidence-packages/ep-61961cc5719c244f89012a5d60713595c31e716c776379651547f2af9c21b17a.evp",
+        "bytes": 6080,
+        "sha256": "61961cc5719c244f89012a5d60713595c31e716c776379651547f2af9c21b17a",
+        "reportHashAndBytesMatch": true,
+        "reason": "원문 report의 불변 저장파일 직접 대조 재검토"
+      },
+      {
+        "path": "recordings/va-reviews/vr-2eee7a666c541752d8d3ef2c6d8894e5d07abc6c4279ece652a53104c0bd8954.review",
+        "bytes": 5778,
+        "sha256": "2eee7a666c541752d8d3ef2c6d8894e5d07abc6c4279ece652a53104c0bd8954",
+        "reportHashAndBytesMatch": true,
+        "reason": "원문 report의 불변 저장파일 직접 대조 재검토"
+      },
+      {
+        "path": "recordings/evidence-packages/ep-68bb046c982f858a9099767b6fbffe73d5e1f6c38a555c76e60bf78cd49e7059.evp",
+        "bytes": 6080,
+        "sha256": "68bb046c982f858a9099767b6fbffe73d5e1f6c38a555c76e60bf78cd49e7059",
+        "reportHashAndBytesMatch": true,
+        "reason": "원문 report의 불변 저장파일 직접 대조 재검토"
+      },
+      {
+        "path": "recordings/va-reviews/vr-6f5afaf40a5896ffce7ca5fecc60f9a0f1776c26772acdd2b0c25ce843cc0d85.review",
+        "bytes": 5778,
+        "sha256": "6f5afaf40a5896ffce7ca5fecc60f9a0f1776c26772acdd2b0c25ce843cc0d85",
+        "reportHashAndBytesMatch": true,
+        "reason": "원문 report의 불변 저장파일 직접 대조 재검토"
+      },
+      {
+        "path": "recordings/evidence-packages/ep-ae220956cf295b86492294c4ad9a2005d60aa77e71800b788aa7ff6b12a73182.evp",
+        "bytes": 6080,
+        "sha256": "ae220956cf295b86492294c4ad9a2005d60aa77e71800b788aa7ff6b12a73182",
+        "reportHashAndBytesMatch": true,
+        "reason": "원문 report의 불변 저장파일 직접 대조 재검토"
+      },
+      {
+        "path": "recordings/va-reviews/vr-fa140507c3d30c4509e6aac2656918bd5bd7b898c97dd372efafa5adcafa2064.review",
+        "bytes": 5778,
+        "sha256": "fa140507c3d30c4509e6aac2656918bd5bd7b898c97dd372efafa5adcafa2064",
+        "reportHashAndBytesMatch": true,
+        "reason": "원문 report의 불변 저장파일 직접 대조 재검토"
+      },
+      {
+        "path": "recordings/evidence-packages/ep-f48786e73089275fe238c554cad3e9594b1f7151403d759836f869e2f53f7439.evp",
+        "bytes": 6080,
+        "sha256": "f48786e73089275fe238c554cad3e9594b1f7151403d759836f869e2f53f7439",
+        "reportHashAndBytesMatch": true,
+        "reason": "원문 report의 불변 저장파일 직접 대조 재검토"
+      },
+      {
+        "path": "recordings/va-reviews/vr-344c63393c9de033eec9540e1c79ba25a94d432f6a0ea4a93df084a975625e29.review",
+        "bytes": 5778,
+        "sha256": "344c63393c9de033eec9540e1c79ba25a94d432f6a0ea4a93df084a975625e29",
+        "reportHashAndBytesMatch": true,
+        "reason": "원문 report의 불변 저장파일 직접 대조 재검토"
+      },
+      {
+        "path": "recordings/evidence-packages/ep-dead708bede7ecf09645399ded1a9f30943437c5b0610e78a5049f0c0aeab262.evp",
+        "bytes": 6080,
+        "sha256": "dead708bede7ecf09645399ded1a9f30943437c5b0610e78a5049f0c0aeab262",
+        "reportHashAndBytesMatch": true,
+        "reason": "원문 report의 불변 저장파일 직접 대조 재검토"
+      },
+      {
+        "path": "recordings/va-reviews/vr-11a806613693a8443fdcc0f323045d22bc69b9390f1d889295b49b033d8e1531.review",
+        "bytes": 5778,
+        "sha256": "11a806613693a8443fdcc0f323045d22bc69b9390f1d889295b49b033d8e1531",
+        "reportHashAndBytesMatch": true,
+        "reason": "원문 report의 불변 저장파일 직접 대조 재검토"
+      },
+      {
+        "path": "recordings/evidence-packages/ep-5649f8919b5ccbe49be10b2b6b064130ce1e99d8af3a2cf5c9e429b81fd482d4.evp",
+        "bytes": 6080,
+        "sha256": "5649f8919b5ccbe49be10b2b6b064130ce1e99d8af3a2cf5c9e429b81fd482d4",
+        "reportHashAndBytesMatch": true,
+        "reason": "원문 report의 불변 저장파일 직접 대조 재검토"
+      },
+      {
+        "path": "recordings/va-reviews/vr-41c118c802c09d25bbf9f5f1c15238a0dfa3ae365c4701c5890fea98f19e5b70.review",
+        "bytes": 5778,
+        "sha256": "41c118c802c09d25bbf9f5f1c15238a0dfa3ae365c4701c5890fea98f19e5b70",
+        "reportHashAndBytesMatch": true,
+        "reason": "원문 report의 불변 저장파일 직접 대조 재검토"
+      },
+      {
+        "path": "recordings/evidence-packages/ep-43822a40af666b46779e027c0c97345aaf4cc3560bd6f08d2dc2aca4d1d0e591.evp",
+        "bytes": 6080,
+        "sha256": "43822a40af666b46779e027c0c97345aaf4cc3560bd6f08d2dc2aca4d1d0e591",
+        "reportHashAndBytesMatch": true,
+        "reason": "원문 report의 불변 저장파일 직접 대조 재검토"
+      },
+      {
+        "path": "recordings/va-reviews/vr-b3f6f33fc75c2f6cf197b121e953999019c5651601f7d3c5d5d84cd6562aebda.review",
+        "bytes": 5778,
+        "sha256": "b3f6f33fc75c2f6cf197b121e953999019c5651601f7d3c5d5d84cd6562aebda",
+        "reportHashAndBytesMatch": true,
+        "reason": "원문 report의 불변 저장파일 직접 대조 재검토"
+      },
+      {
+        "path": "recordings/evidence-packages/ep-415ecacba530cdc474de405135d14a65d7d4cc30e10a77e00767181a774cbc54.evp",
+        "bytes": 6080,
+        "sha256": "415ecacba530cdc474de405135d14a65d7d4cc30e10a77e00767181a774cbc54",
+        "reportHashAndBytesMatch": true,
+        "reason": "원문 report의 불변 저장파일 직접 대조 재검토"
+      },
+      {
+        "path": "recordings/va-reviews/vr-21ff825fcb46c8cd9e5f3b4b94982f2e599ba70b7044d7f8659d7c43cc1cd06c.review",
+        "bytes": 5778,
+        "sha256": "21ff825fcb46c8cd9e5f3b4b94982f2e599ba70b7044d7f8659d7c43cc1cd06c",
+        "reportHashAndBytesMatch": true,
+        "reason": "원문 report의 불변 저장파일 직접 대조 재검토"
+      },
+      {
+        "path": "recordings/evidence-packages/ep-82757e4764ecab4ab0ac8074f9b702eae408b383d384c5476012954c346bd6a0.evp",
+        "bytes": 6080,
+        "sha256": "82757e4764ecab4ab0ac8074f9b702eae408b383d384c5476012954c346bd6a0",
+        "reportHashAndBytesMatch": true,
+        "reason": "원문 report의 불변 저장파일 직접 대조 재검토"
+      },
+      {
+        "path": "recordings/va-reviews/vr-5c3518d5a3314980c628afc4696fd81892e4f7f0b3057ea3a8afa62db27aa990.review",
+        "bytes": 5778,
+        "sha256": "5c3518d5a3314980c628afc4696fd81892e4f7f0b3057ea3a8afa62db27aa990",
+        "reportHashAndBytesMatch": true,
+        "reason": "원문 report의 불변 저장파일 직접 대조 재검토"
+      },
+      {
+        "path": "recordings/evidence-packages/ep-78bb71b7aa47a4e5abf32bde8e8c31e23e223e2f26c7b2786a6a9e6015914328.evp",
+        "bytes": 6080,
+        "sha256": "78bb71b7aa47a4e5abf32bde8e8c31e23e223e2f26c7b2786a6a9e6015914328",
+        "reportHashAndBytesMatch": true,
+        "reason": "원문 report의 불변 저장파일 직접 대조 재검토"
+      },
+      {
+        "path": "recordings/va-reviews/vr-4ef5bb6f7d99d24cda885225da82157e66f1de2324e18ee4d1b06283867bf95b.review",
+        "bytes": 5778,
+        "sha256": "4ef5bb6f7d99d24cda885225da82157e66f1de2324e18ee4d1b06283867bf95b",
+        "reportHashAndBytesMatch": true,
+        "reason": "원문 report의 불변 저장파일 직접 대조 재검토"
+      },
+      {
+        "path": "recordings/evidence-packages/ep-cf9619b17c0164774bd04c2fdcd5eaacbe86ca9fdd7cf8c28cbb4de178a76c26.evp",
+        "bytes": 6080,
+        "sha256": "cf9619b17c0164774bd04c2fdcd5eaacbe86ca9fdd7cf8c28cbb4de178a76c26",
+        "reportHashAndBytesMatch": true,
+        "reason": "원문 report의 불변 저장파일 직접 대조 재검토"
+      },
+      {
+        "path": "recordings/va-reviews/vr-03db43465393af9f9b6dd04e64b90be0617cdca3750e8be38a4745c1bec625a9.review",
+        "bytes": 5778,
+        "sha256": "03db43465393af9f9b6dd04e64b90be0617cdca3750e8be38a4745c1bec625a9",
+        "reportHashAndBytesMatch": true,
+        "reason": "원문 report의 불변 저장파일 직접 대조 재검토"
+      },
+      {
+        "path": "recordings/evidence-packages/ep-c84ae4e4cf0e0f4c7847ba7c1be9e7f23be07326e381282157dc47b76716262c.evp",
+        "bytes": 6080,
+        "sha256": "c84ae4e4cf0e0f4c7847ba7c1be9e7f23be07326e381282157dc47b76716262c",
+        "reportHashAndBytesMatch": true,
+        "reason": "원문 report의 불변 저장파일 직접 대조 재검토"
+      },
+      {
+        "path": "recordings/va-reviews/vr-121faf6af61dc5db290e94c6d60bbabbb59cd7cae2e991ee83bb48a06c9ffba2.review",
+        "bytes": 5778,
+        "sha256": "121faf6af61dc5db290e94c6d60bbabbb59cd7cae2e991ee83bb48a06c9ffba2",
+        "reportHashAndBytesMatch": true,
+        "reason": "원문 report의 불변 저장파일 직접 대조 재검토"
+      },
+      {
+        "path": "recordings/evidence-packages/ep-9f7e8f1e15e400c999bc61c031a8fa3a03305d3b8ae2a90342f1f302a7d1f01b.evp",
+        "bytes": 6080,
+        "sha256": "9f7e8f1e15e400c999bc61c031a8fa3a03305d3b8ae2a90342f1f302a7d1f01b",
+        "reportHashAndBytesMatch": true,
+        "reason": "원문 report의 불변 저장파일 직접 대조 재검토"
+      },
+      {
+        "path": "recordings/va-reviews/vr-c1254e63a0eb09bf64426a1b9dcf229973f193e26f84da879956fa858a57483b.review",
+        "bytes": 5778,
+        "sha256": "c1254e63a0eb09bf64426a1b9dcf229973f193e26f84da879956fa858a57483b",
+        "reportHashAndBytesMatch": true,
+        "reason": "원문 report의 불변 저장파일 직접 대조 재검토"
+      },
+      {
+        "path": "recordings/evidence-packages/ep-47a0520694bf29af52154fbf20b107c5b91a4f48d6923f1c31006f86bb7a66fb.evp",
+        "bytes": 6080,
+        "sha256": "47a0520694bf29af52154fbf20b107c5b91a4f48d6923f1c31006f86bb7a66fb",
+        "reportHashAndBytesMatch": true,
+        "reason": "원문 report의 불변 저장파일 직접 대조 재검토"
+      },
+      {
+        "path": "recordings/va-reviews/vr-3f3db9d6a1717aca2d1d8f1e3e6989bf8f953be96b4924e6c8602e5b9c2b04e4.review",
+        "bytes": 5778,
+        "sha256": "3f3db9d6a1717aca2d1d8f1e3e6989bf8f953be96b4924e6c8602e5b9c2b04e4",
+        "reportHashAndBytesMatch": true,
+        "reason": "원문 report의 불변 저장파일 직접 대조 재검토"
+      },
+      {
+        "path": "recordings/evidence-packages/ep-918674aecb1514d283c50d50a0356f0972ab1e5b6bb16e1932a44513b28c1225.evp",
+        "bytes": 6080,
+        "sha256": "918674aecb1514d283c50d50a0356f0972ab1e5b6bb16e1932a44513b28c1225",
+        "reportHashAndBytesMatch": true,
+        "reason": "원문 report의 불변 저장파일 직접 대조 재검토"
+      },
+      {
+        "path": "recordings/va-reviews/vr-f8a1ba15b1f20532f372af09d8c848c4ff8db827084b46cf38b8dce32672bd96.review",
+        "bytes": 5778,
+        "sha256": "f8a1ba15b1f20532f372af09d8c848c4ff8db827084b46cf38b8dce32672bd96",
+        "reportHashAndBytesMatch": true,
+        "reason": "원문 report의 불변 저장파일 직접 대조 재검토"
+      },
+      {
+        "path": "recordings/evidence-packages/ep-dea4a2a2bbfa54be154cb9e29eab560868a541d56127d62284a4178c7a0a786a.evp",
+        "bytes": 6080,
+        "sha256": "dea4a2a2bbfa54be154cb9e29eab560868a541d56127d62284a4178c7a0a786a",
+        "reportHashAndBytesMatch": true,
+        "reason": "원문 report의 불변 저장파일 직접 대조 재검토"
+      },
+      {
+        "path": "recordings/va-reviews/vr-3b4811e4db330547b82146b935bde096792001ed561206d309c7bec56cad26c1.review",
+        "bytes": 5778,
+        "sha256": "3b4811e4db330547b82146b935bde096792001ed561206d309c7bec56cad26c1",
+        "reportHashAndBytesMatch": true,
+        "reason": "원문 report의 불변 저장파일 직접 대조 재검토"
+      },
+      {
+        "path": "recordings/evidence-packages/ep-45e49ccf4855d119e7a506223bc2157e711596fb78742c2842f6c6e2bd51fd6f.evp",
+        "bytes": 6080,
+        "sha256": "45e49ccf4855d119e7a506223bc2157e711596fb78742c2842f6c6e2bd51fd6f",
+        "reportHashAndBytesMatch": true,
+        "reason": "원문 report의 불변 저장파일 직접 대조 재검토"
+      },
+      {
+        "path": "recordings/va-reviews/vr-e0d38cc2980110af830a70fe22239937f2611d4e781edfaa2b43b37d702be7c1.review",
+        "bytes": 5778,
+        "sha256": "e0d38cc2980110af830a70fe22239937f2611d4e781edfaa2b43b37d702be7c1",
+        "reportHashAndBytesMatch": true,
+        "reason": "원문 report의 불변 저장파일 직접 대조 재검토"
+      },
+      {
+        "path": "recordings/evidence-packages/ep-4549f78c38e6e30fa9a499453e60b80e7c92d8cfc7de43ce5f43a43c9ffe5218.evp",
+        "bytes": 6080,
+        "sha256": "4549f78c38e6e30fa9a499453e60b80e7c92d8cfc7de43ce5f43a43c9ffe5218",
+        "reportHashAndBytesMatch": true,
+        "reason": "원문 report의 불변 저장파일 직접 대조 재검토"
+      },
+      {
+        "path": "recordings/va-reviews/vr-01656f90fc1920e6063e3543c770fa5d78903c78dfb4ae9f167256423f35b22a.review",
+        "bytes": 5778,
+        "sha256": "01656f90fc1920e6063e3543c770fa5d78903c78dfb4ae9f167256423f35b22a",
+        "reportHashAndBytesMatch": true,
+        "reason": "원문 report의 불변 저장파일 직접 대조 재검토"
+      },
+      {
+        "path": "recordings/evidence-packages/ep-216abd72a0284891b3be976a596ba15837d9e17c0995ff515cb517e639adf385.evp",
+        "bytes": 6080,
+        "sha256": "216abd72a0284891b3be976a596ba15837d9e17c0995ff515cb517e639adf385",
+        "reportHashAndBytesMatch": true,
+        "reason": "원문 report의 불변 저장파일 직접 대조 재검토"
+      },
+      {
+        "path": "recordings/va-reviews/vr-25da5bca4e73e7d2d3d25744b8d235a8ba76384d89928d982dabe6650b8f1e54.review",
+        "bytes": 5778,
+        "sha256": "25da5bca4e73e7d2d3d25744b8d235a8ba76384d89928d982dabe6650b8f1e54",
+        "reportHashAndBytesMatch": true,
+        "reason": "원문 report의 불변 저장파일 직접 대조 재검토"
+      },
+      {
+        "path": "recordings/evidence-packages/ep-f33d5d922b051ba6ecacfc72ef10cd28404920dab39bd85360ba932951414d18.evp",
+        "bytes": 6080,
+        "sha256": "f33d5d922b051ba6ecacfc72ef10cd28404920dab39bd85360ba932951414d18",
+        "reportHashAndBytesMatch": true,
+        "reason": "원문 report의 불변 저장파일 직접 대조 재검토"
+      },
+      {
+        "path": "recordings/va-reviews/vr-c44245977a509d7bafa1e5471d1737584cbfc7e76be731cb8c758692938c8ac4.review",
+        "bytes": 5778,
+        "sha256": "c44245977a509d7bafa1e5471d1737584cbfc7e76be731cb8c758692938c8ac4",
+        "reportHashAndBytesMatch": true,
+        "reason": "원문 report의 불변 저장파일 직접 대조 재검토"
+      },
+      {
+        "path": "recordings/evidence-packages/ep-18bfe6418ab4932c3f05d8889dd733ceaecbe8ae766de72cb9804b77990f8047.evp",
+        "bytes": 6080,
+        "sha256": "18bfe6418ab4932c3f05d8889dd733ceaecbe8ae766de72cb9804b77990f8047",
+        "reportHashAndBytesMatch": true,
+        "reason": "원문 report의 불변 저장파일 직접 대조 재검토"
+      },
+      {
+        "path": "recordings/va-reviews/vr-f2f95dda27e1544b9b83960c7147c1e46d5960bc61c041ebba9bd029c5437344.review",
+        "bytes": 5778,
+        "sha256": "f2f95dda27e1544b9b83960c7147c1e46d5960bc61c041ebba9bd029c5437344",
+        "reportHashAndBytesMatch": true,
+        "reason": "원문 report의 불변 저장파일 직접 대조 재검토"
+      },
+      {
+        "path": "recordings/evidence-packages/ep-e80972ec17b543d4f820c76c3abc62691024b08122d9ef4a73910de464074217.evp",
+        "bytes": 6080,
+        "sha256": "e80972ec17b543d4f820c76c3abc62691024b08122d9ef4a73910de464074217",
+        "reportHashAndBytesMatch": true,
+        "reason": "원문 report의 불변 저장파일 직접 대조 재검토"
+      },
+      {
+        "path": "recordings/va-reviews/vr-d1b1e42db642a72c5bb1cfec4a167c0e2cf7ec7d7773208c6c8ce2f263a78eaf.review",
+        "bytes": 5778,
+        "sha256": "d1b1e42db642a72c5bb1cfec4a167c0e2cf7ec7d7773208c6c8ce2f263a78eaf",
+        "reportHashAndBytesMatch": true,
+        "reason": "원문 report의 불변 저장파일 직접 대조 재검토"
+      },
+      {
+        "path": "recordings/evidence-packages/ep-4f9be0b88e35cf3eef99225043e43654df2588ddc040c4db79a6f5a43f7eb494.evp",
+        "bytes": 6080,
+        "sha256": "4f9be0b88e35cf3eef99225043e43654df2588ddc040c4db79a6f5a43f7eb494",
+        "reportHashAndBytesMatch": true,
+        "reason": "원문 report의 불변 저장파일 직접 대조 재검토"
+      },
+      {
+        "path": "recordings/va-reviews/vr-a812e03d55de9ec0313b45f7a7f244accabe52be5f9cf6278eea0a89b8a7579a.review",
+        "bytes": 5778,
+        "sha256": "a812e03d55de9ec0313b45f7a7f244accabe52be5f9cf6278eea0a89b8a7579a",
+        "reportHashAndBytesMatch": true,
+        "reason": "원문 report의 불변 저장파일 직접 대조 재검토"
+      },
+      {
+        "path": "recordings/evidence-packages/ep-8f73e1a89e1113141f520c788d18e78c30b4725290a5e2129fd186bc9e3f1938.evp",
+        "bytes": 6080,
+        "sha256": "8f73e1a89e1113141f520c788d18e78c30b4725290a5e2129fd186bc9e3f1938",
+        "reportHashAndBytesMatch": true,
+        "reason": "원문 report의 불변 저장파일 직접 대조 재검토"
+      },
+      {
+        "path": "recordings/va-reviews/vr-f2f397cd553105b0cedd5372074471d25969c198c5431bda39dea37cd5ebc1f1.review",
+        "bytes": 5778,
+        "sha256": "f2f397cd553105b0cedd5372074471d25969c198c5431bda39dea37cd5ebc1f1",
+        "reportHashAndBytesMatch": true,
+        "reason": "원문 report의 불변 저장파일 직접 대조 재검토"
+      },
+      {
+        "path": "recordings/evidence-packages/ep-11cc4fe8b000c2ec4d498f03aca4a45b3e927a4709fd4ed4f3c6eb3346c20ecf.evp",
+        "bytes": 6080,
+        "sha256": "11cc4fe8b000c2ec4d498f03aca4a45b3e927a4709fd4ed4f3c6eb3346c20ecf",
+        "reportHashAndBytesMatch": true,
+        "reason": "원문 report의 불변 저장파일 직접 대조 재검토"
+      },
+      {
+        "path": "recordings/va-reviews/vr-c3f7468d75556be8da6749e2a6830a7014dad231179d6e00ca51897242f2a033.review",
+        "bytes": 5778,
+        "sha256": "c3f7468d75556be8da6749e2a6830a7014dad231179d6e00ca51897242f2a033",
+        "reportHashAndBytesMatch": true,
+        "reason": "원문 report의 불변 저장파일 직접 대조 재검토"
+      },
+      {
+        "path": "recordings/evidence-packages/ep-e1d3914200584559a2cf7b17d072ee87d4f9d4b6ebc63066272ad141f643ff8f.evp",
+        "bytes": 6080,
+        "sha256": "e1d3914200584559a2cf7b17d072ee87d4f9d4b6ebc63066272ad141f643ff8f",
+        "reportHashAndBytesMatch": true,
+        "reason": "원문 report의 불변 저장파일 직접 대조 재검토"
+      },
+      {
+        "path": "recordings/va-reviews/vr-86a29350cf66925435edabd3d2611d06b99be4667c01c13b72d6eeb856362725.review",
+        "bytes": 5778,
+        "sha256": "86a29350cf66925435edabd3d2611d06b99be4667c01c13b72d6eeb856362725",
+        "reportHashAndBytesMatch": true,
+        "reason": "원문 report의 불변 저장파일 직접 대조 재검토"
+      },
+      {
+        "path": "recordings/evidence-packages/ep-1015d7bfa2ad561dad060b397261fe299f98f86a5c3205412e812b30cff63b90.evp",
+        "bytes": 6080,
+        "sha256": "1015d7bfa2ad561dad060b397261fe299f98f86a5c3205412e812b30cff63b90",
+        "reportHashAndBytesMatch": true,
+        "reason": "원문 report의 불변 저장파일 직접 대조 재검토"
+      },
+      {
+        "path": "recordings/va-reviews/vr-590b34101cf7e3d90cfd840afc42bd5caf3ae0b1c66164f02409112ddf66f194.review",
+        "bytes": 5778,
+        "sha256": "590b34101cf7e3d90cfd840afc42bd5caf3ae0b1c66164f02409112ddf66f194",
+        "reportHashAndBytesMatch": true,
+        "reason": "원문 report의 불변 저장파일 직접 대조 재검토"
+      },
+      {
+        "path": "recordings/evidence-packages/ep-ee9da764bafbbe9bc819b6baa0261e2114ed6f9addeba3fcdf5c3e0003d16053.evp",
+        "bytes": 6080,
+        "sha256": "ee9da764bafbbe9bc819b6baa0261e2114ed6f9addeba3fcdf5c3e0003d16053",
+        "reportHashAndBytesMatch": true,
+        "reason": "원문 report의 불변 저장파일 직접 대조 재검토"
+      },
+      {
+        "path": "recordings/va-reviews/vr-8eb6e90d4c2760db196801402f84af9388a97f4d416a50fdf54e8dfe85e87536.review",
+        "bytes": 5778,
+        "sha256": "8eb6e90d4c2760db196801402f84af9388a97f4d416a50fdf54e8dfe85e87536",
+        "reportHashAndBytesMatch": true,
+        "reason": "원문 report의 불변 저장파일 직접 대조 재검토"
+      },
+      {
+        "path": "recordings/evidence-packages/ep-8bd138930607f39c24130aff42a5cf16cddc76004e7c624703367221e88d2c80.evp",
+        "bytes": 6080,
+        "sha256": "8bd138930607f39c24130aff42a5cf16cddc76004e7c624703367221e88d2c80",
+        "reportHashAndBytesMatch": true,
+        "reason": "원문 report의 불변 저장파일 직접 대조 재검토"
+      },
+      {
+        "path": "recordings/va-reviews/vr-6745702d86c14de63a97a2b353e55e9bf2f551a47726d9232721cecf3971aab9.review",
+        "bytes": 5778,
+        "sha256": "6745702d86c14de63a97a2b353e55e9bf2f551a47726d9232721cecf3971aab9",
+        "reportHashAndBytesMatch": true,
+        "reason": "원문 report의 불변 저장파일 직접 대조 재검토"
+      },
+      {
+        "path": "recordings/evidence-packages/ep-9aaf31620a777d64b15cef98540e739b291e82f19dd7c6ba057929b144757ea3.evp",
+        "bytes": 2861,
+        "sha256": "9aaf31620a777d64b15cef98540e739b291e82f19dd7c6ba057929b144757ea3",
+        "reason": "최초 장면/구조화 증거와 원본 삭제 후 재조회 연결"
+      },
+      {
+        "path": "recordings/evidence-packages/ep-36344794440d22951476ce675d627f0cfd48e4b4d439659bbc71107c788fedb4.evp",
+        "bytes": 6360,
+        "sha256": "36344794440d22951476ce675d627f0cfd48e4b4d439659bbc71107c788fedb4",
+        "reason": "최초 장면/구조화 증거와 원본 삭제 후 재조회 연결"
+      },
+      {
+        "path": "recordings/confirmed-seed.json",
+        "bytes": 379,
+        "sha256": "fb19a6ae245bbfb8f781df2c915510308075dd551eee7313b06d23f833e2853c",
+        "reason": "seed 대상과 시간 범위"
+      },
+      {
+        "path": "seed.json",
+        "bytes": 239,
+        "sha256": "089988ce49728d8a3cfbb5dc7335875ea64a3fb6fb09888527091f40c80e55f9",
+        "reason": "최초 legacy seed 식별"
+      },
+      {
+        "path": "server-1.private.log",
+        "bytes": 485679,
+        "sha256": "11f5a03636b712d9cf3580ab9aeb0f4939039a0e12ce3e24361bee5a6a62de14",
+        "reason": "실패 시점 서버 원출력; Git에는 정제본과 원본/정제 hash 대응"
+      }
+    ],
+    "minimumOutsideRuntime": [
+      "mixed-120-01/execution.json",
+      "mixed-120-01/run.log",
+      "mixed-120-01/artifacts/report.json",
+      "mixed-120-01/artifacts/seed.json",
+      "mixed-120-01/artifacts/seed.stdout",
+      "mixed-120-01/artifacts/seed.stderr",
+      "mixed-120-01/artifacts/confirmed-seed.json",
+      "mixed-120-01/artifacts/confirmed-seed.stdout",
+      "mixed-120-01/artifacts/confirmed-seed.stderr",
+      "mixed-120-01/owned-recovery-groups.jsonl",
+      "docs/release-artifacts/v4.5.0/64-execution-freeze.json",
+      "independent-result-review.json"
+    ],
+    "ownerToSupply": "종료시 runtime 파일명/크기/hash 목록, 정제서버로그의raw/derivativehash 대응 및보존 readback. 사용자/session/인증 내용은 archive제외.",
+    "ownerProposedAdditionalContext": "실패대상 seed원본media약28KB와current generation manifest/snapshot23/active23/identity23는정황으로보존가능. 본검토가이를복구PASS나원인확정으로검증한것은아님.",
+    "fullCatalogSQLiteHistoricalJournalOrMediaCopyRequiredForThisAssessment": false,
+    "reason": "현재원출력·부분저장·범위미충족의판정은최소자료로재검토가능. race내부시각/오류가없어stopped전체복사자체로원인확정이되지않음.",
+    "furtherRuntimeOriginalInspectionRequiredByReviewer": false,
+    "finalPrivacyAndPreservationReadbackComplete": false
+  },
+  "seedReadback": [
+    {
+      "mode": "--seed",
+      "exit": 0,
+      "signal": null,
+      "spawnError": null,
+      "runtimeArchiveSha256": "7e53123551e099aa835199290fa40416d9ffd774b29a8d3cd839fa7c024d5e6e",
+      "fixtureSha256": "7b7c658491f3f209e2af7a8bc3715c68fbf3d7acf3345b39cc69510e7974dca2",
+      "streamsHashMatches": {
+        "stdout": true,
+        "stderr": true
+      },
+      "streamsTruncated": {
+        "stdout": false,
+        "stderr": false
+      }
+    },
+    {
+      "mode": "--confirmed-seed",
+      "exit": 0,
+      "signal": null,
+      "spawnError": null,
+      "runtimeArchiveSha256": "7e53123551e099aa835199290fa40416d9ffd774b29a8d3cd839fa7c024d5e6e",
+      "fixtureSha256": "7b7c658491f3f209e2af7a8bc3715c68fbf3d7acf3345b39cc69510e7974dca2",
+      "streamsHashMatches": {
+        "stdout": true,
+        "stderr": true
+      },
+      "streamsTruncated": {
+        "stdout": false,
+        "stderr": false
+      }
+    }
+  ],
+  "evidenceReferences": [
+    {
+      "path": "mixed-120-01/execution.json",
+      "sha256": "3e314e49b30dbbaa29a818d97d6a908f3382e5f8c9bde08e35e2df440964cb31",
+      "bytes": 1768
+    },
+    {
+      "path": "mixed-120-01/run.log",
+      "sha256": "2e3270b686ebeb1ea8f32202d85f3e6d2b031a3a92b086d2f5b2d08f7b0333a0",
+      "bytes": 2932382
+    },
+    {
+      "path": "mixed-120-01/artifacts/report.json",
+      "sha256": "6593217d398c44ea571e50b5caed8ce4b9f818e679c595fa1cf63148c5f15631",
+      "bytes": 136785
+    },
+    {
+      "path": "mixed-120-01/owned-recovery-groups.jsonl",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "mixed-120-01/artifacts/seed.json",
+      "sha256": "91e5d45e95dad1e93a393b6388fbaabb3169694c03499e0749d46630b9bb2b48",
+      "bytes": 48374
+    },
+    {
+      "path": "mixed-120-01/artifacts/seed.stdout",
+      "sha256": "a34936029399d6ee44beed987daf5ff9d5899aa743f5047ccc6a20f60175a1d2",
+      "bytes": 346
+    },
+    {
+      "path": "mixed-120-01/artifacts/seed.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "mixed-120-01/artifacts/confirmed-seed.json",
+      "sha256": "15aac479d0ead2e93e52a3093563b41be09dc2db5d05bcb0c70366370b033dae",
+      "bytes": 8731
+    },
+    {
+      "path": "mixed-120-01/artifacts/confirmed-seed.stdout",
+      "sha256": "dd7f169139e9682671eb19f328b37af0f027b4f11eb02bc2a158b5a8bbabe36c",
+      "bytes": 1268
+    },
+    {
+      "path": "mixed-120-01/artifacts/confirmed-seed.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    }
+  ],
+  "finalPreservationPrivacyCleanupAddendum": {
+    "schema": "release64-independent-preservation-privacy-cleanup-addendum-v1",
+    "reviewedAt": "2026-10-08T10:38:07.748711+00:00",
+    "priorReviewSha256": "5107a9ada77382bc40be502553760f68707e2add4c06b10b6f90e99f472fbdee",
+    "scope": "기존 실패·원인 미확정·부분 자원 관측·미실행 판정은 변경하지 않는다. 기존 cleanup/preservation pending 필드는 최초 판단 시점 기록이며, 아래 부록은 이후 최소 정제 증거의 보존·Git 재조회와 소유 런타임 정리만 확인한다.",
+    "productOrTestExecutionPerformedByReviewer": false,
+    "productOrRunnerEditsPerformedByReviewer": false,
+    "subdelegationPerformed": false,
+    "archive": {
+      "path": "docs/release-artifacts/v4.5.0/64-execution.tar.gz",
+      "bytes": 384739,
+      "sha256": "9987753f3ec25f0a41079967c50848f537055d065846d8db973c8cadde56d037",
+      "regularFileMembers": 93,
+      "allMembersByteIdenticalToSelectedPreservationFiles": true,
+      "absoluteTraversalSymlinkOrNonregularMembers": 0,
+      "selectedPreservationTreeSymlinks": 0,
+      "preservationManifestEntriesVerified": 84,
+      "archiveIndexEntriesVerified": 92,
+      "gitCommit": "25d3c5b7b906a8a7d8bab2760c3632f79745a043",
+      "gitBlobByteIdenticalToLocalArchive": true,
+      "localGitReadbackVerified": true,
+      "remotePreservationVerifiedByReviewer": false,
+      "archiveIncludesThisFinalReview": false
+    },
+    "originalReadback": {
+      "runReceiptReportSeedAndStdoutStderrOriginalsMatchSelectedBytes": true,
+      "storedAImmutableFilesMatched": 61,
+      "storedAImmutableComposition": "기존 초기 review 3 + 이번 완료 A review 29 + 해당 A evidence package 29. 61을 신규 A 실행 수로 합산하지 않는다.",
+      "firstStructuredAndVisualEvidencePackagesMatched": 2,
+      "syntheticOriginalMedia": {
+        "bytes": 28161,
+        "sha256": "c391aa24653a58d8049d7b0e0c246dfd839064641d472ed11018e0f1242ca2ba",
+        "matchesOwnedOriginalInput": true
+      },
+      "runtimeInventoryEntries": 390,
+      "noncredentialInventoryHashesAndBytesDirectlyMatchedBeforeCleanup": 387,
+      "credentialBoundaryEntries": 3,
+      "credentialBoundaryPaths": [
+        "state/sources.json",
+        "state/users.json",
+        "state/views.json"
+      ],
+      "credentialBoundaryContentsOrHashesPreserved": false,
+      "catalogContext": "recording-generation.json와 .recording-store-format만 보존. 전체 catalog/SQLite/과거 journal 복제본이 아니며 중단 복구 PASS 증거가 아니다.",
+      "fullCatalogOrHistoricalJournalRequiredForThisFailureAssessment": false,
+      "furtherRuntimeOriginalInspectionRequiredByReviewer": false
+    },
+    "privacy": {
+      "result": "PASS_FOR_SELECTED_PRESERVATION_SCOPE",
+      "serverLog": {
+        "rawBytes": 485679,
+        "rawSha256": "11f5a03636b712d9cf3580ab9aeb0f4939039a0e12ce3e24361bee5a6a62de14",
+        "derivativePath": "server-1.redacted.log",
+        "derivativeBytes": 485378,
+        "derivativeSha256": "b6bb32b5884aa1f4211cb5e167c4223133f1833c07344add5f436dca2ce75c4a",
+        "byteIdentical": false,
+        "changedLinesDirectlyCompared": 11,
+        "transform": "URL tokens → <redacted-url>, 소유 runtime prefix → <owned-runtime>, 저장소 prefix → <repository>. 그 밖의 줄은 원문과 동일.",
+        "rawAndDerivativeHashRolesKeptDistinct": true
+      },
+      "selectedTextAndStoredPackageReviewBytePatternInspection": "mp4 이외 선택 자료(저장 .review/.evp 포함)에서 원문 http/rtsp/stun/turn URL 및 passwordHash/passwordHistory/tokenHash/Argon2/Bearer/Set-Cookie/sessionToken 패턴 미발견. 이는 선택 보존 자료와 확인한 패턴/직접 내용 범위의 판단이다.",
+      "intentionallyRetainedRepositoryAbsolutePathMetadata": [
+        "run/execution.json",
+        "run/artifacts/seed.json",
+        "run/artifacts/confirmed-seed.json"
+      ],
+      "retainedPathReason": "사용자가 제공한 저장소 절대경로를 command/cwd/fixture 실행 출처 대조용 메타데이터로 유지한다는 메인의 명시 지시. credential 또는 원문 운영 URL 보존과 구분한다.",
+      "claimOfZeroHomePaths": false,
+      "claimOfAllMetadataPathsRedacted": false,
+      "credentialsOrRawOperationalSourceUrlsFoundInRetainedMetadata": false
+    },
+    "cleanup": {
+      "receiptPath": "/private/tmp/media-server-release64-d4ane5jz/runtime-cleanup.json",
+      "receiptSha256": "47dd257eb59a723e22dd65842fd64ecb5fb2b71e12beecb2524eaa097de7d2ca",
+      "ownerRecordedAt": "2026-10-08T10:36:13.566241+00:00",
+      "ownerRecordedRootIdentity": {
+        "root": "/private/tmp/media-server-release64-d4ane5jz/mixed-120-01/media-server-current-observer-8CGd7D",
+        "dev": 16777232,
+        "ino": 171217811,
+        "uid": 501
+      },
+      "ownerRecordedGitMemberReadbackCount": 92,
+      "ownerRecordedStoredAOriginalReadbackCount": 61,
+      "ownedRuntimeRootAbsentConfirmedByReviewerLexists": true,
+      "reviewerPerformedDeletion": false,
+      "unrelatedDataTouched": false,
+      "scope": "제품 정상 종료·포트/소유 process group 부재는 앞선 실행 원문과 보존 cleanup 기록을 읽어 확인했다. 부록에서는 지정 소유 runtime root의 현재 filesystem 부재를 직접 확인했다. reviewer가 새 서버/테스트/프로세스·포트 검사를 실행하지 않았다.",
+      "parentRawResultsRetainedUntilRemotePreservation": true,
+      "parentResultRootDeletionClaimed": false
+    },
+    "finalBoundary": {
+      "preservationPrivacyAndOwnedRuntimeCleanupReviewComplete": true,
+      "actualMixed120": "FAIL_INCOMPLETE",
+      "resourceStability": "NOT_ESTABLISHED",
+      "cause": "UNCONFIRMED",
+      "releaseApproval": false,
+      "newFailureDiagnosisExperimentOrRetryAuthorizedByThisReview": false,
+      "allOriginalSubstantiveDecisionsUnchanged": true
+    }
+  }
+}
