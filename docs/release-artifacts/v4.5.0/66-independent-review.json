@@ -1,0 +1,577 @@
+{
+  "schema": "media-server.release66.independent-result-review.v1",
+  "reviewedAt": "2026-10-08T12:41:43.781420+00:00",
+  "reviewer": {
+    "role": "기존65 독립 검토자 1명을 순차 재사용한 AI 결과·근거 검토",
+    "agentTask": "/root/independent_release65",
+    "requestedModel": "gpt-6-astra",
+    "requestedReasoningEffort": "xhigh",
+    "actualRuntimeModel": null,
+    "actualRuntimeSnapshot": null,
+    "actualRuntimeReasoningEffort": null,
+    "runtimeDisclosure": "이 검토자에게 실제 세션 model/snapshot/effort 값은 노출되지 않아 설정이나 요청값으로 추정하지 않았다.",
+    "independence": "66의 제품·검사 구현과 실행 작성에 참여하지 않았다. 65의 독립 검토를 재사용했으며 66에서는 실행 원출력·고정 소스 결속·중단 판단을 검토했다.",
+    "actions": {
+      "productEdits": 0,
+      "testEdits": 0,
+      "productExecutions": 0,
+      "testExecutions": 0,
+      "serverStarts": 0,
+      "modelExecutions": 0,
+      "subagents": 0,
+      "producerApplications": 0,
+      "gitMutations": 0,
+      "ownJudgmentJsonWrites": 1
+    },
+    "method": "읽기 전용 소스·원출력 검토, JSON 파싱, SHA/byte 대조 및 이 판단 파일 작성. 다른 사람이 남긴 승인자·판단을 복사하지 않았다."
+  },
+  "sourceBinding": {
+    "executionAndReviewHead": "bfc133f24458957ba1d0773ae517333890617049",
+    "executionAndReviewTree": "bbd2aa2b94327d55fa0dda0ec9976ead18976122",
+    "remoteObservedHead": "bfc133f24458957ba1d0773ae517333890617049",
+    "productImplementation": "0334b7449822c0e5eefcb677d792f055330365f2",
+    "priorIndependentReviewSource": "9719bc63aa8f077b96b7ae188d24570e2e2bc7ae",
+    "reviewedFiles": 15,
+    "currentReviewedFileShaMismatches": 0,
+    "linuxCopiedFiles": 1641,
+    "inputTarVsManifestMismatches": 0,
+    "manifestVsFixedGitBlobMismatches": 0,
+    "producerRecordedLinuxFinalSourceMismatches": 0,
+    "productTestApprovalSourceEdits66": 0,
+    "entryWorktree": "host-preflight source의 clean assertion과 exit0; 직접 진입 확인에서도 clean. 이후 현재 작업 트리 변경은 backlog와66 증거 파일뿐.",
+    "newApprovalProducerRequired": false,
+    "priorApprovalReuseMeaning": "제품·검사·기존 승인 조건 불변에 대한65 검토 결속 유지. Linux runtime·새120분·새 제품 품질 PASS를 생성하지 않는다.",
+    "sourceMeaning": "Linux HEAD 문자열뿐 아니라 입력 tar의 1641개 실제 바이트·manifest·고정 Git blob을 대조했고 컨테이너 종료 전 같은 파일들의 최종 SHA 결과도 읽었다. 후속 증거 커밋은 이 실행 소스로 재표시하지 않는다."
+  },
+  "decision": {
+    "status": "BLOCKED_REQUIRED_LINUX_VERIFIER_COMPILE",
+    "failureRecordAndStopDecision": "APPROVE_SCOPED",
+    "linuxProductBuild": "PASS_BUILD_ONLY",
+    "mandatoryLinuxObservationVerifier": "FAIL_COMPILE",
+    "linuxGuardStoreRuntime": "NOT_RUN",
+    "linuxAStorageAndConsumerRegression": "NOT_RUN",
+    "hostMixed120": "NOT_RUN",
+    "newProductRuntimeQualityPass": false,
+    "releaseApproval": false,
+    "completion": "실패·중단 결과의 정확한 기록은 승인 가능. 요청된 변경분 runtime 검증·120분 목표는 미완료이며 최종 보존/정리도 이 시점에는 대기다.",
+    "sourceFollowupRequired": true,
+    "scopeExpansionAuthorizedByThisReview": false
+  },
+  "exactScopeDecisions": [
+    {
+      "scope": "동일 rc58 image와 현재 bfc133 소스의 Linux 제품 빌드",
+      "judgment": "PASS",
+      "condition": "GNU16.2.0, GStreamer/ONNX/SigLIP2 ON, build exit0/108.36714745801874초. 링크·실제 산출물 SHA를 확인했다. 실행 기능 PASS로 확대하지 않는다."
+    },
+    {
+      "scope": "기존 verify_evidence_package.sh --observations",
+      "judgment": "수정 필요",
+      "condition": "현재 GCC에서 검사 소스 6곳의 -Werror=misleading-indentation으로 컴파일 exit1. 첫 필수 선행 조건이 미충족이다."
+    },
+    {
+      "scope": "첫 실패 뒤 소스·경고 기준을 유지하고 후속 A/host120 실행을 보류",
+      "judgment": "승인 가능",
+      "condition": "사용자 요청은 경로·마운트·환경 선택 오류만 보완 허용하며 제품·검사 의미/소스 수정 권한을 추가로 부여하지 않았다. 기존 승인 범위 밖 수정을 하지 않고 중단한 판단이 타당하다."
+    },
+    {
+      "scope": "선택 스냅샷 guard/store의 Linux 동작, 게시/pending 제거/독립 readback, A 저장과 consumer",
+      "judgment": "근거 부족",
+      "condition": "seed/recover/readback 시작 전 컴파일 실패. 해당 기능 성공 또는 실패를 이번 출력으로 판정할 수 없다."
+    },
+    {
+      "scope": "120분 기능 병행, 취소/권한 회수, 복사본 복구/재시작/재활성화, 장시간 자원",
+      "judgment": "근거 부족",
+      "condition": "실행 시도0, 관측0초, 제품 RSS/physical footprint 미측정. 새로운 PASS도 runtime FAIL도 아니다."
+    },
+    {
+      "scope": "최종 보존과 작업 소유 자원 정리",
+      "judgment": "후속 확인 필요",
+      "condition": "컨테이너는 stopped이지만 객체와 scratch를 보존 중. preview archive 대조는 완료했으나 최종 Git/remote 바이트 확인과 소유 대상 삭제·부재는 아직 미완료다."
+    }
+  ],
+  "findings": [
+    {
+      "id": "R66-01",
+      "category": "required-verifier-source-compatibility",
+      "priority": "P2",
+      "blocksCurrentValidation": true,
+      "file": "scripts/internal/evidence_observation_smoke.cpp",
+      "lines": [
+        58,
+        108,
+        191,
+        243,
+        260,
+        365
+      ],
+      "trigger": "기존 승인된 GNU16.2.0 Linux 이미지에서 verify_evidence_package.sh --observations가 -Wall -Wextra -Werror로 이 파일을 컴파일할 때",
+      "observed": "연속된 단문 if/for 뒤의 다른 문장이 같은 줄에 있어 GCC misleading-indentation 진단6개가 오류로 승격된다. c++ exit1 이후 Python check=True가 예외를 전파한다.",
+      "consumerImpact": "필수 observation seed→recover→독립 readback 실행이 시작되지 않아 Linux guard/store 검증과 후속 A/host120의 선행 근거를 얻지 못한다.",
+      "classification": "실제 검사 소스의 컴파일 호환성 장애. 제품 runtime guard/store 결함을 입증한 결과나 예상된 TDD RED가 아니다.",
+      "requiredFollowup": "별도 허용 범위에서 해당 제어문의 문장 배치/중괄호를 명확하게 하고 기존 assertion·조건·-Werror를 유지하는 소스 보완과 직접 재검증이 필요하다. 이 검토에서는 수정·재실행하지 않았다.",
+      "forbiddenShortcut": "warning 억제, -Werror 제거, 컴파일러 임의 교체, 필수 검사 생략 또는 과거65 PASS로 이번 Linux 선행조건을 대체하지 않는다."
+    }
+  ],
+  "observedResults": {
+    "linuxImage": {
+      "id": "sha256:ce72c8a15363984da642e9964189957896812061c6af1d0ef67e87b38ad5a588",
+      "tag": "mediaserver-v450-verify:rc58-arm64",
+      "reusedExisting": true,
+      "newInstallations": 0
+    },
+    "linuxBoundary": {
+      "architecture": "aarch64",
+      "os": "Debian forky/sid",
+      "compiler": "GNU16.2.0 Debian16.2.0-3",
+      "gstreamer": "1.28.7",
+      "onnxRuntime": "1.23.2 CPU /opt/onnxruntime-linux-aarch64-1.23.2",
+      "sentencePiece": "0.2.0 static /opt/rc58-sentencepiece",
+      "network": "none",
+      "cpus": 2,
+      "memoryBytes": 6442450944,
+      "memorySwapBytes": 6442450944,
+      "pidsLimit": 256,
+      "mounts": "/inputs와/source-git만 readonly; Linux /work/repo 복사 소스와 자체 build 사용"
+    },
+    "linuxProductBuild": {
+      "exit": 0,
+      "elapsedSeconds": 108.36714745801874,
+      "binarySha256": "5f779e0b5dce14ec8439a6acdddda66967df9b1d4a7a3220fd80a8da8bfc1496",
+      "runtimeArchiveSha256": "8fe303e8d656ab59402a1016d9c29c6b5b89135a92c59e94dc5589313f93a5f1",
+      "raw": "commands/linux-build.*, commands/linux-link-runtime.*, commands/linux-final-source.*",
+      "qualification": "CMake ON3 flags, real link/RUNPATH/ldd and plugin parser/mux paths inspected; product pipeline has not run"
+    },
+    "firstMandatoryFailure": {
+      "argv": [
+        "bash",
+        "scripts/internal/verify_evidence_package.sh",
+        "--observations"
+      ],
+      "exit": 1,
+      "elapsedSeconds": 1.162222082959488,
+      "diagnostic": "-Werror=misleading-indentation",
+      "lineCount": 6,
+      "raw": "commands/linux-observations.*",
+      "stage": "smoke c++ compile",
+      "seedCalls": 0,
+      "recoverCalls": 0,
+      "freshReadbackCalls": 0,
+      "retries": 0,
+      "failurePropagation": "wrapper subprocess.run(check=True) precedes seed/recover/readback and propagates compile failure; final-source output lists no generated files in the owned test artifact root"
+    },
+    "resources": {
+      "cgroupMemoryPeakBytes": 1735995392,
+      "oomEvents": 0,
+      "oomKillEvents": 0,
+      "meaning": "제품 build와 page cache를 포함한 cgroup 관측. 제품 RSS/physical footprint 또는 장시간 안정성 근거로 해석하지 않는다."
+    },
+    "hostPreparation": {
+      "status": "files/runtime-inspection-only",
+      "hostBinarySha256": "29da6795c7a2983c533463cdbffd1d14820892c54321c6d9519833c01789c794",
+      "hostRuntimeArchiveSha256": "69fe350383c38c5f297c5ab23d512515a3200c3429da3833919ab0b343a727b1",
+      "modelTokenizerFreezeEqual64": true,
+      "modelTokenizerFreezeEntries": 7,
+      "gstreamer": "1.28.1 inspected selected private plugin mirror and existing core; distinct from Linux1.28.7",
+      "prepare65Reused": true,
+      "prepare66Attempts": 0,
+      "existingProductOrMixedProcessesInApprovedCheck": 0,
+      "modelInferenceRequests": 0
+    },
+    "notRun": {
+      "linuxARegression": true,
+      "hostMixed120Attempts": 0,
+      "hostMixed120ObservationSeconds": 0,
+      "hostServerStarts": 0,
+      "hostMixedCancellationAuthorizationRecoveryRestartReactivation": true,
+      "newResourceTrendMeasurement": false,
+      "QwenOllamaCalls": 0,
+      "QwenOllamaUnloadGate": "not-run"
+    },
+    "inspectionFailures": {
+      "hostPs": "first PermissionError raw preserved; approved read-only retry exit0 with empty matching process list. Not a product failure.",
+      "entryRemote": "initial DNS exit128 appears only as main reported tool-output metadata; no captured raw file was supplied. Approved entry-remote receipt/stdout directly inspected and matches fixed bfc133."
+    },
+    "otherDiagnostic": "linux-link-runtime stderr contains ONNX cpuid_info Unknown CPU vendor warning; command exit0 and resolved libraries preserved. No inference/accuracy conclusion drawn.",
+    "documentationChecks": "main-produced docs-links exit0 (305 Markdown/9692 links/0 failure) and whitespace exit0 read; reviewer did not rerun checks"
+  },
+  "priorEvidenceImpact": {
+    "59Linux": "동일 기존 이미지와 당시 source/profile/sample/seek/검색의 과거 범위 유지. 새65 guard/store Linux runtime PASS는 아니다.",
+    "61Acceptance": "기존72cc7643d681b75228b80fd646921965ecacba75 source 범위 유지, 이번 재실행0.",
+    "63UI": "당시 source/환경/적격성만 유지; 이번 실제 UI0.",
+    "64": "historical503 내부 원인은 계속 UNCONFIRMED. 이번 컴파일 실패로 과거503의 원인을 소급 확정하지 않는다.",
+    "65": "독립 source 검토와 당시 host direct/short mixed 근거 유지. Linux portable verifier의 새 실패를 숨기지 않으며 전체 Linux/120분 결과로 확대하지 않는다.",
+    "approvalLedger": "source/approval 의미 변경0이므로 이번 결과 기록을 위해 producer 재적용하지 않은 판단이 타당하다."
+  },
+  "cleanupReview": {
+    "status": "STOP_CONFIRMED_FINAL_DISPOSAL_PENDING",
+    "container": "mediaserver-release66-linux",
+    "containerId": "5c8fb25a560786a8e72cb4cf8626175b8cbfaa65a06647be519c4ddc78f8c51f",
+    "stopCommandExit": 0,
+    "stopElapsedSeconds": 10.08465491689276,
+    "postStopState": {
+      "Status": "exited",
+      "Running": false,
+      "Pid": 0,
+      "ExitCode": 137,
+      "OOMKilled": false,
+      "FinishedAt": "2026-10-08T12:31:31.352678926Z"
+    },
+    "meaning": "PID1 sleep infinity에 대한 docker stop10초 뒤 종료 상태. 제품 graceful-stop/재시작 검증이 아니며137을 제품 crash나OOM으로 판정하지 않는다.",
+    "containerObjectAbsent": false,
+    "ownedScratchAbsent": false,
+    "imageRetained": true,
+    "preservationBeforeDeletion": "현재 stopped 객체와 원본 scratch를 유지한 순서가 적절하다. 최종 Git/remote 원본 바이트 보존 후 소유권 확인 삭제·부재 영수증이 필요하다."
+  },
+  "privacyAndPreservationReview": {
+    "status": "PREVIEW_SCOPED_REVIEW_ONLY",
+    "reviewedDraftValidationSha256": "a6c596f3b5dcdd824d69e780a4b6bac63f2b25881c5ad42609727d360a8b1a7a",
+    "previewArchive": {
+      "path": "docs/release-artifacts/v4.5.0/66-execution.tar.gz",
+      "bytes": 118102,
+      "sha256": "9766d4e4101fd52be7a95c416b7d2fff70a3f8aac131d6b02777c3f1b58a3f4a",
+      "regularMembers": 57,
+      "indexedFiles": 56,
+      "indexedHashMismatches": 0,
+      "archiveVsOriginalScratchMismatches": 0
+    },
+    "reviewedContents": "17 commands의 원 stdout/stderr/영수증51개, source-review-reuse15 SHA, Linux manifest1641 SHA, host freeze, capture.py, host-preflight.py, artifact-index. 신규 제품media·서버raw본문·auth/session/token 파일을 포함하지 않는 preview 목록을 확인했다.",
+    "boundedPrivacyPatterns": {
+      "privateKeyHeaders": 0,
+      "credentialHeaders": 0,
+      "urlCredentialUserinfo": 0,
+      "credentialTokenAssignments": 0
+    },
+    "semanticReview": "직접 읽은 원출력은 컴파일 진단·시스템/라이브러리/plugin 경로·버전·원격branch hash·공개 dependency provenance URL 및 테스트 코드 구문이다. 실제 비밀·운영영상·raw source URL/인증 세션은 관측하지 못했다.",
+    "limitations": "패턴검사는 비밀 부재의 포괄 증명이 아니다. 최종 archive가 바뀌면 최종 바이트/index 및 보존/정리 결속은 후속 확인해야 한다. 최초 remote DNS raw 미첨부를 재구성하지 않았다.",
+    "gitCommitAndRemoteReadback": "pending at this review; preview archive 존재를 Git/remote 원본 보존 완료로 부르지 않는다.",
+    "excludedFromGitPlan": "current source tar, 기존archive 복사본, a-native.py 준비본, binary/SDK/image/model/GStreamer cache는 보존 대상으로 확대하지 않는다."
+  },
+  "limitations": [
+    "이 검토는 원출력과 고정 소스의 독립 AI 검토이며 실제 Linux/host 제품·모델을 다시 실행한 검사가 아니다.",
+    "실행 성공한 제품 build만으로 runtime behavior·품질·기능 병행·취소/권한·복구·자원 안정성을 판정하지 않았다.",
+    "새 검사 소스 보완/재실행은 본 검토자가 승인하지 않으며 사용자 범위 결정이 필요하다.",
+    "최종 근거 커밋/원격보존, stopped container 객체 삭제, scratch 소유권·부재 확인 및 최종 메타데이터 커밋/push는 아직 관측하지 않았다."
+  ],
+  "evidenceReferences": {
+    "userRequest": {
+      "path": "/Users/dhseo/.codex/attachments/306a3912-e7d9-473c-ac26-489c61ae3070/붙여넣은 텍스트.txt",
+      "bytes": 16846,
+      "sha256": "66ddac6f8f3506b3c7b0335e78702783539ab44cb63f1a19d866435c01619129",
+      "readScope": "전체 요청"
+    },
+    "policy": [
+      {
+        "path": "/Users/dhseo/Workspace/mediaServer/AGENTS.md",
+        "bytes": 24322,
+        "sha256": "647c508aa5e855784a8f8c711643cb3488c682736540df4be54262a5cf1420ba",
+        "readScope": "작업 범위/실패 중단/증거·cleanup/독립성 적용"
+      },
+      {
+        "path": "/Users/dhseo/Workspace/mediaServer/.codex/config.toml",
+        "bytes": 1349,
+        "sha256": "b78c7258eca14a2acea13062f50328de24c9f308bf19336d6d80b998ec752e9b",
+        "readScope": "프로젝트 기본값; 현재 runtime 추정 근거 아님"
+      }
+    ],
+    "sourceReuse": {
+      "path": "/private/tmp/media-server-release66-jkxo0fnh/inputs/source-review-reuse.json",
+      "bytes": 3538,
+      "sha256": "5ca57f7e3410b6bc32c575dbd5d4e3ab792e772a42d9ad6c56c68a2e3038daa4",
+      "readScope": "전체15 exact current hash 대조"
+    },
+    "linuxSourceManifest": {
+      "path": "/private/tmp/media-server-release66-jkxo0fnh/inputs/linux-source-manifest.json",
+      "bytes": 289302,
+      "sha256": "afe526ffced5e99d958c6b23b5a6f2a50781c77e82136ca173765b6efd6a2dbf",
+      "readScope": "1641 입력tar 및 bfc133 Git blob 실제 바이트 대조"
+    },
+    "hostFreeze": {
+      "path": "/private/tmp/media-server-release66-jkxo0fnh/inputs/host-freeze.json",
+      "bytes": 2007,
+      "sha256": "164e762c28a6873e19f471b219a5887d0b93db0d57d4d93a302508daebdab867",
+      "readScope": "전체 파일명/버전/SHA 및64 model freeze 대조"
+    },
+    "priorReview": {
+      "path": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/65-independent-review.json",
+      "bytes": 36271,
+      "sha256": "33d184a902303f2ca1b9bac71b0efde5dd5ca61942e34c00fe87f99265e3aa3a",
+      "readScope": "기존 판단/후속 보존 부록 및 source 결속 재사용; 새판단 복사 아님"
+    },
+    "wrapper": {
+      "path": "/Users/dhseo/Workspace/mediaServer/scripts/internal/verify_evidence_package.sh",
+      "bytes": 4750,
+      "sha256": "f80beb2d70012e02dc9c1dfc380fc99f23ff0fcd1970d3fe1e3b94b62b5fad39",
+      "readScope": "compile→seed→recover→readback 순서/실패 전파"
+    },
+    "failingSource": {
+      "path": "/Users/dhseo/Workspace/mediaServer/scripts/internal/evidence_observation_smoke.cpp",
+      "bytes": 34781,
+      "sha256": "a6ad4dbbd911a446c82f5e9a90d16c5d092621d23e4fc65d304b1f2e7c8a5d91",
+      "readScope": "GCC가 지적한6개 구문 및 인접 소비 맥락"
+    },
+    "priorEnvironment": "58-validation.json dependency recipe/image 범위 및58-linux.Dockerfile; 59-validation.json source/환경;64-preparation.tar.gz/runtime-freeze.json",
+    "commandRoot": "/private/tmp/media-server-release66-jkxo0fnh/commands",
+    "commandReceipts": [
+      {
+        "name": "docs-links",
+        "receiptSha256": "15030dcba78572c7197d1448cc50bc274e093f2a544dc86c0db543336a0358aa",
+        "exit": 0,
+        "stdout": {
+          "bytes": 186,
+          "sha256": "7cd9a44b595d6b1dc9433aaae6887e65f5659d279943f80340e6f90be264d7b7"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "readScope": "receipt and original stdout/stderr inspected; all bytes hashed"
+      },
+      {
+        "name": "entry-remote",
+        "receiptSha256": "d175fa3057b975b3baac10056618d887a2825eec85722db7449b7d74577763ca",
+        "exit": 0,
+        "stdout": {
+          "bytes": 59,
+          "sha256": "a62a88db28bd47288ae0a2831f8d84320336dfbe4aa5e636d59bb9e9c6b7fa78"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "readScope": "receipt and original stdout/stderr inspected; all bytes hashed"
+      },
+      {
+        "name": "host-preflight",
+        "receiptSha256": "cb9f9136c2d650094fdab20352baf5e46e615c96a477cff7dac3e4ce674fff88",
+        "exit": 0,
+        "stdout": {
+          "bytes": 1727,
+          "sha256": "caa4b664678c98859c2c97a6c9f92fffe964dbbc3bd0eef2944eb3858810aae9"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "readScope": "receipt and original stdout/stderr inspected; all bytes hashed"
+      },
+      {
+        "name": "host-process-boundary-authorized",
+        "receiptSha256": "1d954224674647b3e7148f8b7e6db2f00f6b4024edb9f8e68b283c72cf85ef28",
+        "exit": 0,
+        "stdout": {
+          "bytes": 40,
+          "sha256": "6cefa7909e153a13ab9ead6c08e5902ce5628fd5eaa20cd66100c17c76e2ec39"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "readScope": "receipt and original stdout/stderr inspected; all bytes hashed"
+      },
+      {
+        "name": "host-process-boundary",
+        "receiptSha256": "1b99bb7b5e63608852027c9cc8e100ebd196746b2551d85095d3976847bfbffb",
+        "exit": 1,
+        "stdout": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "stderr": {
+          "bytes": 1961,
+          "sha256": "380a205b5f98303643d19a58fbb3838ff676cb16b044d46071165ee2618283c6"
+        },
+        "readScope": "receipt and original stdout/stderr inspected; all bytes hashed"
+      },
+      {
+        "name": "host-runtime",
+        "receiptSha256": "b4e78f99d8983d8706de90687c08a43ae68edb871bccf8d0aae01158dc2e14a5",
+        "exit": 0,
+        "stdout": {
+          "bytes": 22503,
+          "sha256": "b3757b67ac96db244c69ec159e25b8098487605b11408d4d2b3acc74ef9088a7"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "readScope": "relevant compiler/link/plugin/version/resource lines inspected; all bytes hashed"
+      },
+      {
+        "name": "linux-build",
+        "receiptSha256": "2e24824376ada583775e1a7c4674d4ad6fd6a149706c28876298fd9294d9ea38",
+        "exit": 0,
+        "stdout": {
+          "bytes": 18992,
+          "sha256": "b35ffce08168e4e637e392f6279eaff3752794abc402a15c47daed5404a67bba"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "readScope": "relevant compiler/link/plugin/version/resource lines inspected; all bytes hashed"
+      },
+      {
+        "name": "linux-configure",
+        "receiptSha256": "5e00dd6617cc9e6facfe9258787824ca454f4089941f865000494f161d421d62",
+        "exit": 0,
+        "stdout": {
+          "bytes": 1599,
+          "sha256": "002a970b36dc53a96c8e5a85f0669dc8423b563a0faa55edf93ace22bddb38eb"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "readScope": "receipt and original stdout/stderr inspected; all bytes hashed"
+      },
+      {
+        "name": "linux-create",
+        "receiptSha256": "8b7051a8541e8bacab6e1b3cd533029e4a187d90c7dc3d96d84f33122ed7e87c",
+        "exit": 0,
+        "stdout": {
+          "bytes": 65,
+          "sha256": "5885509cd044bca80acded8613b1f768962ed8d4db53f4e2a64ab9e08952f746"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "readScope": "receipt and original stdout/stderr inspected; all bytes hashed"
+      },
+      {
+        "name": "linux-final-inspect",
+        "receiptSha256": "474b9c9ba0698ec882b949e5606ab61702a5366e07acee875ab9fb4181b8a5a7",
+        "exit": 0,
+        "stdout": {
+          "bytes": 675,
+          "sha256": "d179e5e2164269e2ae107b802ab38b4002879743a7913b10e23872397d9dc99e"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "readScope": "receipt and original stdout/stderr inspected; all bytes hashed"
+      },
+      {
+        "name": "linux-final-source",
+        "receiptSha256": "ca3f7ebc6ab5e2174379d6ffe4b48e0bb30e68b39900fd0b38a83a557d161ed5",
+        "exit": 0,
+        "stdout": {
+          "bytes": 249,
+          "sha256": "72e7938cf7ed82fa03496c1b0d723e749247feb97358a887d08a1c64aa7103ec"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "readScope": "receipt and original stdout/stderr inspected; all bytes hashed"
+      },
+      {
+        "name": "linux-link-runtime",
+        "receiptSha256": "6d1834b1a49802e1dbc7b507c73ea62e67e218d24864a8e83814bd2253b2fb0f",
+        "exit": 0,
+        "stdout": {
+          "bytes": 25989,
+          "sha256": "8bfeb702fa9f1e31346339ef9267ec8e2e60495e0fe168583649575262bb512e"
+        },
+        "stderr": {
+          "bytes": 76,
+          "sha256": "f017de3c853e96b4903d2c64a4a9bd4fae3ab1b2bafbfa6c2214c1bee4d7e506"
+        },
+        "readScope": "relevant compiler/link/plugin/version/resource lines inspected; all bytes hashed"
+      },
+      {
+        "name": "linux-observations",
+        "receiptSha256": "25b91e2d2a05e5daf92279f82741f5dfa139af7e01ffc40959bedb111d29906e",
+        "exit": 1,
+        "stdout": {
+          "bytes": 1445,
+          "sha256": "7576b319941c572f94449802c0ffa3a6664ac0bb5f43142ddf2a2be037b367a2"
+        },
+        "stderr": {
+          "bytes": 6161,
+          "sha256": "87bf15e597c19e52cc1ccb44f5c9da6716443b3f4cca7ed14eb5cf360a4c4278"
+        },
+        "readScope": "receipt and original stdout/stderr inspected; all bytes hashed"
+      },
+      {
+        "name": "linux-start",
+        "receiptSha256": "e7e4346d75e667171b9c009eeb4133a5ac840f8e6e0e27936e36064e5b5b261b",
+        "exit": 0,
+        "stdout": {
+          "bytes": 28,
+          "sha256": "2b65b5b558063edfff550f4de4001a35d3d50bfa02e24cc996d8ff16aaf22cea"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "readScope": "receipt and original stdout/stderr inspected; all bytes hashed"
+      },
+      {
+        "name": "linux-stop",
+        "receiptSha256": "944d72337009c9962d6586f840057a28f481c0cf48ec6e4d3a5a7cc76cec678c",
+        "exit": 0,
+        "stdout": {
+          "bytes": 83,
+          "sha256": "25bba0b7a9a587f85bd9d83a38bf90137d9fb75e2798d68d8a82227bcf261b00"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "readScope": "receipt and original stdout/stderr inspected; all bytes hashed"
+      },
+      {
+        "name": "linux-stopped-state",
+        "receiptSha256": "425f791ce83b659b7daa632278acfc4e8ec88c258e42a0e4a640f378be267221",
+        "exit": 0,
+        "stdout": {
+          "bytes": 226,
+          "sha256": "5c925c78eaef7530fae14ad3ca4c7939ecbc5e777389dd84f87c0edad0299136"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "readScope": "receipt and original stdout/stderr inspected; all bytes hashed"
+      },
+      {
+        "name": "whitespace",
+        "receiptSha256": "3b70386d7f3768dd424eb72ef902d1f960eb00e616c37afb153bff375c989d80",
+        "exit": 0,
+        "stdout": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "readScope": "receipt and original stdout/stderr inspected; all bytes hashed"
+      }
+    ],
+    "allCommandReceiptCount": 17,
+    "allCommandStdoutStderrHashMismatches": 0,
+    "validationDraft": {
+      "path": "/private/tmp/media-server-release66-jkxo0fnh/validation.json",
+      "bytes": 9208,
+      "sha256": "a6c596f3b5dcdd824d69e780a4b6bac63f2b25881c5ad42609727d360a8b1a7a",
+      "readScope": "전체 상태·source·실패/미실행·보존/cleanup 한계"
+    },
+    "captureSources": [
+      {
+        "path": "/private/tmp/media-server-release66-jkxo0fnh/capture.py",
+        "bytes": 1015,
+        "sha256": "b1cb0b5eea8fce50314a992d80a7930398e3f255c388a5f6053a2783a6d31e1d",
+        "readScope": "별도 원stdout/stderr 생성/exit/SHA 영수증"
+      },
+      {
+        "path": "/private/tmp/media-server-release66-jkxo0fnh/host-preflight.py",
+        "bytes": 1544,
+        "sha256": "18759c13162111887e49b4fe62bd568a1bd977306fcd01ee3f28bf3ad607243d",
+        "readScope": "model freeze/assert clean/실제 host hash 검사 경로"
+      }
+    ]
+  }
+}
