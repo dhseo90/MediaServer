@@ -1142,3 +1142,23 @@ profile만 바꿔도 유효해지지 않는다. 채택·승인 결속과 후속 
 제한 지원을 승인했다. 실제5파일/372sample의 두 환경 검증·독립 native 표·readback과
 seek/영상 검색이 통과했다. 호스트 정식 acceptance1회는 문서 UI 자산 기준 버전 불일치로
 FAIL이며 후속30분/UI/120분은 미실행이다. 제한 프로파일 지원과 전체 출시 검증을 구분한다.
+
+## 설계65 — A 증거 게시의 호출 범위 의존 사본
+
+40의 전역 revision 게시 guard는 선택 자료와 무관한 녹화 확정·삭제도 거부했다. 현재 후보는
+선택 channel/source/namespace/track의 전체 관측 집합(빈 집합 포함), 선택 원본·clip의 segment/상태/경로와
+불변 bound-finalize mutation 식별자, 선택 job 및 event 연결을 캡처한다. sample/hash/generation은
+동일 ID 변경을 거부하는 기존 bound-finalize 계약에 결속된다. catalog instance·권위·deadline도 확인한다.
+전역 revision과 검색 색인 갱신 의미는 그대로 유지하며 revision 숫자는 진단 용도다.
+
+관측은 기존 65,536행 스캔·256행/256KiB 한도를 유지한다. 필요한 event 참조 스캔도 65,536행,
+선택 segment/참조 사본은 별도256KiB로 제한한다. 최종 비교와 linkat만 같은 catalog 잠금 안에서
+실행하며 decode/전체 쓰기/fsync는 밖에 둔다. 선택 자료가 변경되면 새 snapshot으로 대체하지 않는다.
+v1/v2 payload·hash·A 판정/확인 계약은 변경하지 않는다.
+
+최초 단계/고정 오류 코드·bool/예외·게시 여부를 호출 내 고정 크기 진단에 보존한다. 저장 실패 뒤
+다시 cancel/revision callback을 호출해 원인을 재분류하지 않는다. 공개 HTTP 오류의 정제 경계는 유지하고,
+기존 `MEDIA_SERVER_VERIFY_RECORDING_LATENCY_TRACE=1`에서만 제한된 내부 실패 행을 남긴다.
+알 수 없는 내부 문구는 `evidence-internal-error`로 정제하며 경로·원시 예외·관측 내용은 출력하지 않는다.
+64의 당시 내부 원인은 미확정이고 이번 결정적 재현은 별도 근거다. 단기 결과를 혼합120분 PASS로
+사용하지 않는다. 실행 정의는 [기능별 검사](../../project-feature-test-inventory.md)의65 범위를 따른다.

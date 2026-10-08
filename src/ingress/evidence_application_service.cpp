@@ -39,22 +39,25 @@ ApplicationServiceResult EvidenceApplicationService::Create(const recording::Sea
     if(!ready_)return Error(503,"evidence-store-unavailable");
     if(creating_.exchange(true))return Error(503,"evidence-busy");
     struct Release{std::atomic<bool>& flag;~Release(){flag=false;}}release{creating_};
+    recording::EvidenceFailure diagnostic;
     try{
         const auto deadline=std::chrono::steady_clock::now()+std::chrono::seconds(30);
         const auto cancelled=[&]{return stopped_||!authorize(hit.channel_id)||std::chrono::steady_clock::now()>=deadline;};
         recording::EvidencePackageV1 manifest;std::string id,error;
-        if(!(observations?builder_.CreateWithObservations(hit,kind,expected,&id,&manifest,&error,deadline,cancelled):
-            builder_.Create(hit,kind,expected,&id,&manifest,&error,deadline,cancelled))){
-            if(error=="evidence-publication-uncertain"&&recording::EvidencePackageStore::ValidId(id))
-                return {503,"Service Unavailable","{\"error\":\"evidence-publication-uncertain\",\"id\":"+EvidenceJsonQuote(id)+"}"};
+        if(!(observations?builder_.CreateWithObservations(hit,kind,expected,&id,&manifest,&error,deadline,cancelled,&diagnostic):
+            builder_.Create(hit,kind,expected,&id,&manifest,&error,deadline,cancelled,&diagnostic))){
+            if(error=="evidence-publication-uncertain"&&recording::EvidencePackageStore::ValidId(id)){
+                recording::TraceEvidenceFailure(diagnostic,"evidence-publication-uncertain");
+                return {503,"Service Unavailable","{\"error\":\"evidence-publication-uncertain\",\"id\":"+EvidenceJsonQuote(id)+"}"};}
             // 내부 parser/media 오류에는 경로가 포함될 수 있어 허용한 값만 공개한다.
             const char* code=error=="evidence-capacity"?"evidence-capacity":error=="evidence-disk-reserve"?"evidence-disk-reserve":
                 error=="evidence-timeout"?"evidence-timeout":error=="evidence-store-busy"?"evidence-busy":"evidence-create-failed";
+            recording::TraceEvidenceFailure(diagnostic,code);
             return Error(503,code);
         }
         if(!authorize(hit.channel_id))return Error(403,"recording-channel-forbidden");
         return {201,"Created",Summary(id,manifest)};
-    }catch(...){return Error(503,"evidence-create-failed");}
+    }catch(...){diagnostic.Note("application","evidence-exception",true);recording::TraceEvidenceFailure(diagnostic,"evidence-create-failed");return Error(503,"evidence-create-failed");}
 }
 ApplicationServiceResult EvidenceApplicationService::List(const Query& query,const Authorize& authorize){
     if((query.size()!=1&&query.size()!=2)||!query.count("channelId")||(query.size()==2&&!query.count("after"))||

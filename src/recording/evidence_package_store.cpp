@@ -1,5 +1,6 @@
 // 파일 용도: 소유권/크기/링크를 확인한 단일 파일 패키지 저장과 streaming hash 검증.
 #include "recording/evidence_package_store.h"
+#include "recording/recording_completion_trace.h"
 #include <algorithm>
 #include <array>
 #include <cerrno>
@@ -16,6 +17,45 @@
 #endif
 
 namespace recording {
+void EvidenceFailure::Note(const char* stage,const char* code,bool thrown) noexcept {
+    if(std::strcmp(first_stage,"none"))return;
+    first_stage=stage;first_code=code;exception=thrown;
+}
+const char* EvidenceErrorCode(const std::string& error) noexcept {
+    for(const auto* code:{"evidence-invalid-request","evidence-invalid-manifest","evidence-capacity",
+        "evidence-store-unavailable","evidence-store-busy","evidence-store-invalid","evidence-disk-reserve",
+        "evidence-timeout","evidence-write-failed","evidence-read-failed","evidence-payload-changed",
+        "evidence-publish-failed","evidence-sync-failed","evidence-cleanup-failed","evidence-publication-uncertain",
+        "evidence-source-changed","evidence-source-unavailable","evidence-frame-ambiguous","evidence-frame-not-found",
+        "evidence-frame-unplaced","evidence-invalid-frame-range","evidence-frame-unsupported",
+        "evidence-clip-association-changed","evidence-clip-unavailable","evidence-clip-unsupported",
+        "evidence-observation-snapshot-unavailable","evidence-observation-snapshot-limit","evidence-observation-scan-limit",
+        "evidence-observation-corrupt","evidence-observation-byte-limit","evidence-exception",
+        "evidence-invalid-frame","evidence-frame-index-unsupported","evidence-frame-time-mismatch","evidence-png-failed",
+        "evidence-observation-candidate-limit","evidence-observation-frame","evidence-observation-input",
+        "evidence-observation-reference","evidence-observation-state","evidence-observation-version","evidence-unversioned-observations",
+        "evidence-file-changed","evidence-file-invalid","evidence-file-unavailable","evidence-pending-invalid","evidence-crypto-unavailable",
+        "visual-cancelled","visual-frame-disabled","visual-frame-file-changed","visual-frame-invalid-file","visual-frame-invalid-request",
+        "visual-frame-runtime-unavailable","visual-frame-timeout","visual-frame-unavailable","visual-frame-unsupported",
+        "evidence-create-failed","evidence-busy","recording-channel-forbidden"})if(error==code)return code;
+    return "evidence-internal-error";
+}
+void TraceEvidenceFailure(const EvidenceFailure& d,const char* code) noexcept {
+    if(!latency::Enabled())return;
+    // 기존 진단 opt-in/출력 budget을 공유한다. 고정 코드·숫자만 출력한다.
+    try {
+        char line[768];const int n=std::snprintf(line,sizeof(line),
+            "[recording-evidence] {\"stage\":\"%s\",\"first\":\"%s\",\"exception\":%d,\"builder\":\"%s\",\"http\":\"%s\",\"published\":%d,\"checked\":%d,\"current\":%d,\"captureRevision\":%llu,\"checkRevision\":%llu}\n",
+            d.first_stage,d.first_code,d.exception,d.builder_code,EvidenceErrorCode(code),d.published,d.dependencies_checked,
+            d.dependencies_current,(unsigned long long)d.captured_revision,(unsigned long long)d.checked_revision);
+        std::lock_guard lock(completion::output_mu);
+        if(completion::lost)return;
+        if(n<=0||n>=int(sizeof(line))||completion::rows>=4095||completion::bytes+std::size_t(n)>2*1024*1024-768){
+            completion::lost=true;constexpr char loss[]="[recording-evidence] {\"lost\":true}\n";completion::Write(loss,sizeof(loss)-1);return;
+        }
+        ++completion::rows;completion::bytes+=n;completion::Write(line,n);
+    }catch(...){completion::lost=true;}
+}
 namespace {
 constexpr std::array<unsigned char,8> magic{{'M','S','E','V','P','0','1','\n'}};
 constexpr const char* pending = ".pending-evp-v1";
@@ -210,7 +250,15 @@ std::shared_ptr<EvidencePackageFile> EvidencePackageStore::Open(const std::strin
 }
 bool EvidencePackageStore::Publish(const EvidencePackageV1& manifest,const std::vector<EvidencePayload>& payloads,
     std::string* id,std::string* error,const std::function<bool()>& cancelled,
-    const std::function<bool(const std::function<bool()>&)>& publish_guard) const {
+    const std::function<bool(const std::function<bool()>&)>& publish_guard,EvidenceFailure* diagnostic) const {
+    EvidenceFailure local;auto& trace=diagnostic?*diagnostic:local;const char* stage="store-prepare";
+    struct Result {
+        EvidenceFailure& trace;const char*& stage;std::string* error;int exceptions=std::uncaught_exceptions();bool ok=false;
+        ~Result(){if(!ok)trace.Note(stage,std::uncaught_exceptions()>exceptions?"evidence-exception":
+            error?EvidenceErrorCode(*error):"evidence-internal-error",std::uncaught_exceptions()>exceptions);}
+    } result{trace,stage,error};
+    const auto interrupted=[&]{const bool stop=cancelled&&cancelled();if(stop)trace.Note(stage,"evidence-timeout");return stop;};
+    const auto abort=[&](const char* code){trace.Note(stage,code,true);throw std::runtime_error("evidence-publish-abort");};
 #if MEDIA_SERVER_USE_OPENSSL
     if (!id || !ValidateEvidencePackage(manifest,error) || payloads.size()!=manifest.assets.size()) return Fail(error,"evidence-invalid-manifest");
     Fd directory{Directory(directory_,true)}; if(directory.value<0)return Fail(error,"evidence-store-unavailable");
@@ -218,7 +266,7 @@ bool EvidencePackageStore::Publish(const EvidencePackageV1& manifest,const std::
     if(!SafeFile(lock.value,nullptr)||::flock(lock.value,LOCK_EX|LOCK_NB))return Fail(error,"evidence-store-busy");
     bool owned=false, linked=false; std::string published;
     try {
-        if(!RecoverPending(directory.value,limits_.package_bytes,error,cancelled))return false;
+        if(!RecoverPending(directory.value,limits_.package_bytes,error,interrupted))return false;
         const auto text=SerializeEvidencePackage(manifest); if(text.size()>1024*1024)return Fail(error,"evidence-capacity");
         std::uint64_t size=16+text.size();if(size>limits_.package_bytes)return Fail(error,"evidence-capacity");
         for(std::size_t i=0;i<payloads.size();++i){
@@ -234,43 +282,47 @@ bool EvidencePackageStore::Publish(const EvidencePackageV1& manifest,const std::
         if(free<static_cast<__int128>(size)+limits_.reserved_free_bytes)return Fail(error,"evidence-disk-reserve");
         Fd file{::openat(directory.value,pending,O_RDWR|O_CREAT|O_EXCL|O_NOFOLLOW|O_CLOEXEC,0600)};
         if(!SafeFile(file.value,nullptr))return Fail(error,"evidence-write-failed"); owned=true;
-        Hash hash; std::uint64_t offset=0;
+        stage="store-write";Hash hash; std::uint64_t offset=0;
         const auto write=[&](const void* p,std::size_t n){
-            if(!Transfer(file.value,const_cast<void*>(p),n,offset,true,cancelled)||!hash.Add(p,n))throw std::runtime_error("write");offset+=n;
+            if(!Transfer(file.value,const_cast<void*>(p),n,offset,true,interrupted)||!hash.Add(p,n))abort("evidence-write-failed");offset+=n;
         };
         write(magic.data(),magic.size());const auto length=Length(text.size());write(length.data(),length.size());write(text.data(),text.size());
         std::array<unsigned char,65536> buffer{};
         for(std::size_t i=0;i<payloads.size();++i){
             Hash payload_hash;const auto& p=payloads[i];std::uint64_t pos=0,left=manifest.assets[i].size_bytes;
             while(left){const auto n=std::size_t(std::min<std::uint64_t>(left,buffer.size()));const unsigned char* data;
-                if(p.media){if(!Transfer(p.media->fd(),buffer.data(),n,pos,false,cancelled))throw std::runtime_error("read");data=buffer.data();}
+                if(p.media){if(!Transfer(p.media->fd(),buffer.data(),n,pos,false,interrupted))abort("evidence-read-failed");data=buffer.data();}
                 else data=p.bytes.data()+pos;
-                if(!payload_hash.Add(data,n))throw std::runtime_error("hash");write(data,n);pos+=n;left-=n;
+                if(!payload_hash.Add(data,n))abort("evidence-write-failed");write(data,n);pos+=n;left-=n;
             }
-            if(payload_hash.Finish()!=manifest.assets[i].sha256)throw std::runtime_error("payload-changed");
+            if(payload_hash.Finish()!=manifest.assets[i].sha256)abort("evidence-payload-changed");
         }
         published="ep-"+hash.Finish();
-        if(!ValidId(published)||offset!=size||(cancelled&&cancelled())||::fsync(file.value))throw std::runtime_error("sync");
+        stage="store-sync";
+        if(!ValidId(published)||offset!=size||interrupted()||::fsync(file.value))abort("evidence-sync-failed");
+        stage="publish-guard";
         bool existed=false;
         const auto link=[&] {
             if(::linkat(directory.value,pending,directory.value,(published+".evp").c_str(),0)) {
                 existed=errno==EEXIST;return existed;
             }
-            linked=true;return true;
+            linked=true;trace.published=true;return true;
         };
-        if(!(publish_guard?publish_guard(link):link()))throw std::runtime_error("publish");
-        if(existed&&!Open(published,error,cancelled))throw std::runtime_error("collision");
-        if(::unlinkat(directory.value,pending,0))throw std::runtime_error("cleanup");owned=false;
-        if(::fsync(directory.value))throw std::runtime_error("sync");
-        *id=published;if(error)error->clear();return true;
+        if(!(publish_guard?publish_guard(link):link()))abort("evidence-publish-failed");
+        stage="published-cleanup";
+        if(existed&&!Open(published,error,interrupted))abort("evidence-publish-failed");
+        if(::unlinkat(directory.value,pending,0))abort("evidence-cleanup-failed");owned=false;
+        if(::fsync(directory.value))abort("evidence-sync-failed");
+        *id=published;if(error)error->clear();result.ok=true;return true;
     } catch (...) {
+        trace.Note(stage,"evidence-exception",true);
         // 게시 이후에는 증거를 되돌려 삭제하지 않는다. ID로 결과 확인이 가능하다.
         if(owned && ::unlinkat(directory.value,pending,0))return Fail(error,"evidence-cleanup-failed");
         if(linked){*id=published;return Fail(error,"evidence-publication-uncertain");}
-        return Fail(error,cancelled&&cancelled()?"evidence-timeout":"evidence-write-failed");
+        return Fail(error,std::strcmp(trace.first_code,"evidence-timeout")==0?"evidence-timeout":"evidence-write-failed");
     }
 #else
-    (void)publish_guard;(void)manifest;(void)payloads;(void)id;(void)cancelled;return Fail(error,"evidence-crypto-unavailable");
+    (void)interrupted;(void)abort;(void)publish_guard;(void)manifest;(void)payloads;(void)id;(void)cancelled;return Fail(error,"evidence-crypto-unavailable");
 #endif
 }
 } // namespace recording

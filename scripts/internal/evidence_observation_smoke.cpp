@@ -5,6 +5,7 @@
 #include "recording/recording_runtime_composition.h"
 #include "recording/recording_search_reader.h"
 #include "recording/analysis_observation_projector.h"
+#include "recording/retention_coordinator.h"
 #include "recording/va_review_input.h"
 #include "analysis/raw_video_decoder.h"
 #include "ingress/evidence_application_service.h"
@@ -66,6 +67,108 @@ std::vector<EvidencePayload> Payloads(const EvidencePackageFile& file){
     for(std::size_t i=0;i<file.manifest().assets.size();++i){EvidencePayload p;p.bytes.resize(file.manifest().assets[i].size_bytes);
         Check(::pread(file.fd(),p.bytes.data(),p.bytes.size(),file.AssetOffset(i))==ssize_t(p.bytes.size()),"test-owned preserved PNG read");result.push_back(std::move(p));}
     return result;
+}
+void GuardCases(const std::filesystem::path& root,RecordingRuntimeStorage& runtime,RecordingReadService& reader,
+    const SearchDocument& hit,const EvidencePackageV1& package,const std::vector<EvidencePayload>& payloads){
+    auto& catalog=runtime.catalog();std::string error;
+    const auto add=[&](const std::string& name,const std::string& track,const std::string& ns){
+        auto row=package.observation_snapshots[0].candidates[0];row.observation.observation_id=name;
+        row.reference.reference_id="ref-"+name;row.reference.owner_id=name;
+        row.observation.track_id=track;row.reference.analysis_track_id=track;
+        row.observation.analysis_namespace=ns;row.reference.analysis_namespace=ns;
+        if(!catalog.PutReferencedObservation(row.observation,row.reference,&error))throw std::runtime_error("guard-row-fixture: "+error);
+    };
+    const auto one=[&](const std::string& name,const SearchDocument& target,const std::function<bool()>& mutation,
+        bool expected,const char* code){
+        const auto directory=root/name;EvidencePackageStore store(directory,{});Check(store.Recover(&error),"guard store ready "+name);
+        EvidencePackageBuilder builder(catalog,reader,store);bool invoked=false;EvidencePackageV1 out;std::string id;
+        EvidenceFailure trace;
+        const auto boundary=[&]{if(!invoked&&std::filesystem::exists(directory/".pending-evp-v1")){invoked=true;return mutation();}return false;};
+        const bool ok=builder.CreateWithObservations(target,"structured","",&id,&out,&error,Deadline(),boundary,&trace);
+        std::cout<<"[guard] case="<<name<<" ok="<<ok<<" error="<<error<<" first="<<trace.first_code<<" stage="<<trace.first_stage
+            <<" exception="<<trace.exception<<" captured="<<trace.captured_revision<<" checked="<<trace.checked_revision<<std::endl;
+        Check(invoked&&ok==expected&&(expected||error==code),"actual builder boundary "+name);
+        Check(!std::filesystem::exists(directory/".pending-evp-v1"),"pending removed "+name);
+        std::vector<std::string> ids;Check(store.ListIds(&ids,&error)&&ids.size()==(expected?1:0),"atomic publication count "+name);
+        if(expected)Check(bool(store.Open(id,&error)),"new package independent store verification "+name);
+        return trace;
+    };
+    auto empty=hit;empty.track_id="track-999";
+    const auto absent=one("guard-empty-add",empty,[&]{add("empty-add",empty.track_id,empty.analysis_namespace);return false;},false,"evidence-source-changed");
+    Check(absent.dependencies_checked&&!absent.dependencies_current&&std::string(absent.first_code)=="evidence-source-changed",
+        "empty selection detects new related row at final guard");
+    one("guard-other-namespace",hit,[&]{add("other-ns",hit.track_id,"different-namespace");return false;},true,"");
+    one("guard-other-track",hit,[&]{add("other-track","track-555",hit.analysis_namespace);return false;},true,"");
+    const auto cancelled=one("guard-cancel-change",hit,[&]{add("cancel-related",hit.track_id,hit.analysis_namespace);return true;},false,"evidence-timeout");
+    Check(std::string(cancelled.first_code)=="evidence-timeout"&&!cancelled.dependencies_checked,"cancel first; later revision cannot reclassify as source change");
+    EvidencePackageStore::Limits limits;limits.max_packages=0;EvidencePackageStore full(root/"guard-full",limits);
+    Check(full.Recover(&error),"capacity store fixture");EvidencePackageBuilder full_builder(catalog,reader,full);
+    EvidenceFailure full_trace;unsigned calls=0;std::string unused;EvidencePackageV1 out;
+    const bool full_ok=full_builder.CreateWithObservations(hit,"structured","",&unused,&out,&error,Deadline(),[&]{
+        if(++calls==2)add("capacity-related",hit.track_id,hit.analysis_namespace);return false;
+    },&full_trace);
+    Check(!full_ok&&calls>=2&&error=="evidence-capacity"&&std::string(full_trace.first_code)=="evidence-capacity"&&
+        std::string(full_trace.first_stage)=="store-prepare","capacity error retained despite post-capture related change");
+    const auto store_case=[&](const std::string& name,const std::vector<EvidencePayload>& data,
+        const std::function<bool()>& cancel,const std::function<bool(const std::function<bool()>&)>& guard,
+        const char* expected,const char* first,bool published){
+        EvidencePackageStore store(root/name,{});Check(store.Recover(&error),"failure store ready "+name);
+        EvidenceFailure trace;std::string id;
+        const bool ok=store.Publish(package,data,&id,&error,cancel,guard,&trace);
+        std::cout<<"[store-first] "<<name<<" first="<<trace.first_code<<" final="<<error<<" stage="<<trace.first_stage<<" exception="<<trace.exception<<std::endl;
+        Check(!ok&&error==expected&&std::string(trace.first_code)==first&&trace.published==published,"first/final publication boundary "+name);
+        Check(!std::filesystem::exists(root/name/".pending-evp-v1"),"failed store pending cleanup "+name);
+        if(published)Check(EvidencePackageStore::ValidId(id)&&bool(store.Open(id,&error)),"uncertain publication keeps readable ID");
+        else {std::vector<std::string> ids;Check(id.empty()&&store.ListIds(&ids,&error)&&ids.empty(),"prepublication failure no ID");}
+    };
+    auto bad=payloads;bad[0].bytes[0]^=1;bool written_mutation=false;
+    store_case("guard-write-overlap",bad,[&]{if(!written_mutation){written_mutation=true;add("write-related",hit.track_id,hit.analysis_namespace);}return false;},{},
+        "evidence-write-failed","evidence-payload-changed",false);
+    unsigned cancel_calls=0;
+    store_case("guard-callback-count",payloads,[&]{++cancel_calls;return true;},{},"evidence-timeout","evidence-timeout",false);
+    Check(cancel_calls==1,"diagnostics/catch never invoke cancellation a second time");
+    store_case("guard-false-overlap",payloads,{},[&](const auto&){add("guard-related",hit.track_id,hit.analysis_namespace);return false;},
+        "evidence-write-failed","evidence-publish-failed",false);
+    store_case("guard-after-link",payloads,{},[](const auto& link){if(!link())throw std::runtime_error("test-link");return false;},
+        "evidence-publication-uncertain","evidence-publish-failed",true);
+    store_case("guard-exception",payloads,[]{throw std::runtime_error("private-test-path");return false;},{},
+        "evidence-write-failed","evidence-exception",false);
+    ingress::EvidenceApplicationService application(catalog,reader,true,root/"guard-http",0);bool http_changed=false;
+    auto http_hit=hit;http_hit.track_id="track-http";
+    const auto response=application.Create(http_hit,"structured","",[&](const auto& channel){
+        if(!http_changed&&std::filesystem::exists(root/"guard-http/.pending-evp-v1")){
+            http_changed=true;add("http-related",http_hit.track_id,http_hit.analysis_namespace);
+        }
+        return channel=="1";
+    },true);
+    Check(http_changed&&response.status==503&&response.body=="{\"error\":\"evidence-create-failed\"}",
+        "actual application maps related guard rejection to sanitized 503");
+    Check(!std::filesystem::exists(root/"guard-http/.pending-evp-v1"),"application rejected publication cleans pending");
+    RecordingCatalog::EvidenceSnapshot snapshot;std::vector<ReferencedObservationV1> rows;
+    Check(catalog.CaptureEvidenceObservations(hit,&rows,&snapshot,&error),"dependency snapshot before source change");
+    RecordingCatalog::EvidenceSnapshot expired;bool expired_link=false;std::string expired_error;
+    Check(!catalog.CaptureEvidenceObservations(hit,&rows,&expired,&expired_error,Clock::now()-std::chrono::seconds(1))&&
+        expired_error=="evidence-timeout","bounded dependency capture preserves deadline");
+    Check(!catalog.GuardEvidenceSnapshot(expired,[&]{expired_link=true;return true;})&&!expired_link,"invalid capture never publishes");
+    std::uint64_t captured=0,checked=0;bool current=false,linked=false;
+    Check(catalog.GuardEvidenceSnapshot(snapshot,[&]{linked=true;return true;},&captured,&checked,&current)&&linked&&current,
+        "unchanged dependency guard invokes publication action");
+    auto altered=*catalog.FindSourceBinding(hit.segment_id);altered.source_generation="different-generation";
+    const auto segment=*catalog.FindSegmentV2ById(hit.segment_id);const auto path=*catalog.FindSegmentMediaLocation(hit.segment_id);
+    Check(!catalog.FinalizeBoundSegmentV2(segment,altered,(path.first/path.second).string(),&error),
+        "normal catalog API rejects replacing selected immutable generation/sample binding");
+    auto held=reader.ResolveMedia(hit.channel_id,hit.segment_id);
+    Check(held&&!catalog.MarkSegmentCorrupt(hit.segment_id,"checksum-mismatch",&error),"selected source hold prevents conflicting lifecycle mutation");held.reset();
+    Check(catalog.MarkSegmentCorrupt(hit.segment_id,"checksum-mismatch",&error),"source lifecycle mutation without hold");
+    linked=false;
+    Check(!catalog.GuardEvidenceSnapshot(snapshot,[&]{linked=true;return true;},nullptr,nullptr,&current)&&!linked&&!current,
+        "selected source state change prevents publication action");
+    EvidencePackageStore store(root/"guard-corrupt",{});Check(store.Recover(&error),"corrupt source store ready");
+    EvidencePackageBuilder builder(catalog,reader,store);
+    Check(!builder.CreateWithObservations(hit,"structured","",&unused,&out,&error,Deadline()),"corrupt source never silently published as complete");
+    RecordingCatalog::EvidenceSnapshot old;
+    {RecordingRuntimeStorage previous(root/"restart-catalog");Check(previous.Open(&error)&&previous.catalog().CaptureEvidenceObservations(empty,&rows,&old,&error),"empty snapshot before real runtime destruction");}
+    {RecordingRuntimeStorage restarted(root/"restart-catalog");Check(restarted.Open(&error)&&!restarted.catalog().GuardEvidenceSnapshot(old,[]{return true;}),"new catalog instance rejects old snapshot after reopen");}
 }
 void Seed(const std::filesystem::path& root){
     CodecChecks();std::string error;
@@ -130,6 +233,41 @@ void Seed(const std::filesystem::path& root){
     const auto json=SerializeEvidencePackage(p);EvidencePackageV1 roundtrip;
     Check(ParseEvidencePackage(json,&roundtrip,&error)&&SerializeEvidencePackage(roundtrip)==json,"v2 strict snapshot read");
     AssertReview(store,id);Save(root/"package-id",id);Save(root/"manifest.json",json);
+    // 캡처/추출 뒤 첫 pending 쓰기 callback에서 다른 채널의 실제 확정·삭제를 완료한다.
+    const auto selected_before=SerializeRecordingSegmentV2(segment)+SerializeRecordingSourceBindingV1(binding)+canonical;
+    bool unrelated_finalized=false;std::string unrelated_id,unrelated_error;EvidencePackageV1 unrelated_package;
+    const auto finalize_other=[&]{
+        if(!unrelated_finalized&&std::filesystem::exists(root/"packages/.pending-evp-v1")){
+            unrelated_finalized=true;GStreamerSegmentWriter other(runtime.WriterOptions(1000));std::string why;
+            if(!other.Start("9101","unused",input.descriptor,[](auto,auto,auto*){return false;},&why))throw std::runtime_error("other-writer-start");
+            for(const auto& packet:input.packets)other.Push(packet,0);other.Stop();
+        }
+        return false;
+    };
+    const bool unrelated_ok=builder.CreateWithObservations(hit,"structured","",&unrelated_id,&unrelated_package,&unrelated_error,Deadline(),finalize_other);
+    std::cout<<"[invalidation] finalization="<<unrelated_finalized<<" builder="<<unrelated_ok<<" error="<<unrelated_error<<std::endl;
+    Check(unrelated_finalized,"deterministic unrelated finalization after capture");
+    RetentionCoordinator retention(runtime.catalog(),[&]{return runtime.catalog().RetentionSnapshot();},
+        [](auto* bytes,auto*){*bytes=1024ULL*1024*1024;return true;},
+        [&](const auto& path,auto* why){return RemoveContainedMediaFile(root/"recordings",path,why,{},true);},{0,1,root/"recordings"});
+    bool unrelated_deleted=false;
+    ingress::EvidenceApplicationService concurrent_service(runtime.catalog(),reader,true,root/"packages",0);
+    const auto delete_other=[&](const auto& channel){
+        if(!unrelated_deleted&&std::filesystem::exists(root/"packages/.pending-evp-v1")){
+            RetentionPlanRequest request;request.channel_id="9101";request.policy.continuous_max_bytes=1;
+            request.free_bytes=1024ULL*1024*1024;request.now_ms=INT64_MAX/2;
+            const auto removed=retention.Apply(RetentionCoordinator::Plan(runtime.catalog().RetentionSnapshot(),request),request.now_ms);
+            if(!removed.ok||removed.deleted_count!=1)throw std::runtime_error("other-retention-failed");unrelated_deleted=true;
+        }
+        return channel=="1";
+    };
+    const auto response=concurrent_service.Create(hit,"structured","",delete_other,true);
+    std::cout<<"[invalidation] deletion="<<unrelated_deleted<<" applicationStatus="<<response.status<<" body="<<response.body<<std::endl;
+    std::string selected_rows;for(const auto& row:runtime.catalog().QueryReferencedObservations("1"))selected_rows+=SerializeReferencedObservationV1(row)+"\n";
+    Check(SerializeRecordingSegmentV2(*runtime.catalog().FindSegmentV2ById(hit.segment_id))+
+        SerializeRecordingSourceBindingV1(*runtime.catalog().FindSourceBinding(hit.segment_id))+selected_rows==selected_before,
+        "selected observation/source/binding bytes unchanged across unrelated mutations");
+    Check(unrelated_ok&&unrelated_deleted&&response.status==201,"V450-K07 unrelated finalization/deletion must not invalidate A publication");
     const auto pristine=store.Open(id,&error);Check(bool(pristine),"verified package file");auto payloads=Payloads(*pristine);
     for(int mode=1;mode<=6;++mode){
         auto variant=hit;variant.track_id="track-"+std::to_string(77+mode);EvidencePackageV1 m;std::string variant_id;
@@ -206,6 +344,7 @@ void Seed(const std::filesystem::path& root){
     {std::fstream f(copy_path,std::ios::in|std::ios::out|std::ios::binary);f.seekp(24);f.put('!');}
     EvidencePackageStore corrupt(tamper_root,{});AnalysisRecordReview keep;
     Check(!ReadAnalysisRecordReview(corrupt,id,Claims(),&keep,&error),"actual package byte tamper is error, not missing observation");
+    GuardCases(root,runtime,reader,hit,p,payloads);
     Check(runtime.catalog().Checkpoint(&error),"checkpoint versioned observations");
     // 부정 주입으로 추가된 행도 포함해 복구 기대 바이트를 고정한다.
     canonical.clear();for(const auto& row:runtime.catalog().QueryReferencedObservations("1"))canonical+=SerializeReferencedObservationV1(row)+"\n";Save(root/"rows.jsonl",canonical);

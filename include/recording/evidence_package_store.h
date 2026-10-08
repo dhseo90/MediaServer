@@ -5,6 +5,17 @@
 #include <memory>
 
 namespace recording {
+// 단일 호출의 고정 크기 진단이다. 원시 예외/경로/관측 자료는 담지 않는다.
+struct EvidenceFailure {
+    const char* first_stage{"none"};
+    const char* first_code{"none"};
+    const char* builder_code{"none"};
+    bool exception{false},published{false},dependencies_checked{false},dependencies_current{false};
+    std::uint64_t captured_revision{0},checked_revision{0};
+    void Note(const char* stage,const char* code,bool thrown=false) noexcept;
+};
+const char* EvidenceErrorCode(const std::string&) noexcept;
+void TraceEvidenceFailure(const EvidenceFailure&,const char* public_code) noexcept;
 struct EvidencePayload {
     std::vector<std::uint8_t> bytes;
     std::shared_ptr<ResolvedRecordingMedia> media;
@@ -36,7 +47,8 @@ public:
     bool Recover(std::string* error) const;
     bool Publish(const EvidencePackageV1&, const std::vector<EvidencePayload>&,
         std::string* id, std::string* error, const std::function<bool()>& cancelled = {},
-        const std::function<bool(const std::function<bool()>&)>& publish_guard = {}) const;
+        const std::function<bool(const std::function<bool()>&)>& publish_guard = {},
+        EvidenceFailure* diagnostic = nullptr) const;
     std::shared_ptr<EvidencePackageFile> Open(const std::string& id, std::string* error,
         const std::function<bool()>& cancelled = {}) const;
     bool ListIds(std::vector<std::string>*, std::string* error) const;

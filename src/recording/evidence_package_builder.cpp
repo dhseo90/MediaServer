@@ -150,26 +150,37 @@ bool EvidencePackageBuilder::SelectSamples(const SearchDocument& hit,const Recor
 }
 bool EvidencePackageBuilder::Create(const SearchDocument& hit,const std::string& kind,
     const std::string& expected,std::string* id,EvidencePackageV1* out,std::string* error,
-    std::chrono::steady_clock::time_point deadline,const std::function<bool()>& cancelled) const {
-    return CreateImpl(false,hit,kind,expected,id,out,error,deadline,cancelled);
+    std::chrono::steady_clock::time_point deadline,const std::function<bool()>& cancelled,EvidenceFailure* diagnostic) const {
+    return CreateImpl(false,hit,kind,expected,id,out,error,deadline,cancelled,diagnostic);
 }
 bool EvidencePackageBuilder::CreateWithObservations(const SearchDocument& hit,const std::string& kind,
     const std::string& expected,std::string* id,EvidencePackageV1* out,std::string* error,
-    std::chrono::steady_clock::time_point deadline,const std::function<bool()>& cancelled) const {
-    return CreateImpl(true,hit,kind,expected,id,out,error,deadline,cancelled);
+    std::chrono::steady_clock::time_point deadline,const std::function<bool()>& cancelled,EvidenceFailure* diagnostic) const {
+    return CreateImpl(true,hit,kind,expected,id,out,error,deadline,cancelled,diagnostic);
 }
 bool EvidencePackageBuilder::CreateImpl(bool observations,const SearchDocument& input,const std::string& kind,
     const std::string& expected,std::string* id,EvidencePackageV1* output,std::string* error,
-    std::chrono::steady_clock::time_point deadline,const std::function<bool()>& cancelled)const{
+    std::chrono::steady_clock::time_point deadline,const std::function<bool()>& cancelled,EvidenceFailure* diagnostic)const{
+    EvidenceFailure local;auto& trace=diagnostic?*diagnostic:local;
+    const char* stage="request";
+    struct Result {
+        EvidenceFailure& trace;const char*& stage;std::string* error;int exceptions=std::uncaught_exceptions();bool ok=false;
+        ~Result(){if(!ok){const bool thrown=std::uncaught_exceptions()>exceptions;
+            trace.Note(stage,thrown?"evidence-exception":error?EvidenceErrorCode(*error):"evidence-internal-error",thrown);
+            trace.builder_code=thrown?"evidence-exception":error?EvidenceErrorCode(*error):"evidence-internal-error";}}
+    } result{trace,stage,error};
     if(!id||!output||!ValidateRecordingReferenceId(input.channel_id,nullptr)||(kind!="structured"&&kind!="visual"))
         return Fail(error,"evidence-invalid-request");
     const auto expired=[&]{return std::chrono::steady_clock::now()>=deadline||(cancelled&&cancelled());};
     if(expired())return Fail(error,"evidence-timeout");
     auto hit=input;
+    stage="clip-selection";
     if(kind=="visual"&&!SelectVisualClip(catalog_,&hit,expected,error,expired))return false;
-    std::vector<ReferencedObservationV1> observation_rows;std::uint64_t observation_revision=0;
-    if(observations&&!catalog_.CaptureEvidenceObservations(hit.channel_id,hit.source_id,hit.analysis_namespace,
-        hit.track_id,&observation_rows,&observation_revision,error))return false;
+    stage="capture";
+    std::vector<ReferencedObservationV1> observation_rows;RecordingCatalog::EvidenceSnapshot observation_snapshot;
+    if(observations&&!catalog_.CaptureEvidenceObservations(hit,&observation_rows,&observation_snapshot,error,deadline))return false;
+    if(observations)trace.captured_revision=observation_snapshot.captured_revision();
+    stage="source";
     EvidencePackageV1 package;package.channel_id=hit.channel_id;package.hit_id=hit.id;package.query_kind=kind;
     package.observation_id=hit.observation_id;package.track_id=hit.track_id;package.analysis_namespace=hit.analysis_namespace;
     package.store_id=hit.store_id;package.media_epoch_id=hit.media_epoch_id;
@@ -213,7 +224,7 @@ bool EvidencePackageBuilder::CreateImpl(bool observations,const SearchDocument& 
                 if(why=="evidence-frame-ambiguous"||why=="evidence-invalid-frame-range")return Fail(error,why.c_str());
                 Missing(package,"frame",hit.segment_id,"unsupported",why.empty()?"native-frame-proof-unavailable":why);
             }else{
-                EvidenceFrameExtractor extractor(catalog_,reader_);
+                stage="frame";EvidenceFrameExtractor extractor(catalog_,reader_);
                 for(const auto pts:samples){
                     EvidenceFrameV1 frame;
                     if(!extractor.ExtractMedia(hit.channel_id,hit.segment_id,pts,hash,&frame,&why,deadline,expired)){
@@ -232,6 +243,7 @@ bool EvidencePackageBuilder::CreateImpl(bool observations,const SearchDocument& 
         }
     }
     // 기존 event 우선 선택에서 검증한 clip만 복사한다. 없으면 원본을 clip으로 재명명하지 않는다.
+    stage="clip";
     if(!hit.playback_segment_id.empty()&&hit.playback_segment_id!=hit.segment_id){
         if(!hit.playback_job_id.empty()){
             std::optional<DerivedJobRecordV1> job;
@@ -277,15 +289,24 @@ bool EvidencePackageBuilder::CreateImpl(bool observations,const SearchDocument& 
     }else package.references.push_back({"clip","none","not-applicable","no-associated-clip","",{}});
     if(expired())return Fail(error,"evidence-timeout");
     if(observations) {
+        stage="observation-copy";
         if(!PopulateEvidenceObservations(&package,observation_rows,error))return false;
-        const auto interrupted=[&]{return expired()||!catalog_.EvidenceRevisionCurrent(observation_revision);};
-        const auto guard=[&](const std::function<bool()>& link){return catalog_.GuardEvidenceRevision(observation_revision,link);};
-        if(!store_.Publish(package,payloads,id,error,interrupted,guard)) {
+        const auto guard=[&](const std::function<bool()>& link){
+            trace.dependencies_checked=true;std::string why;
+            const bool ok=catalog_.GuardEvidenceSnapshot(observation_snapshot,link,&trace.captured_revision,
+                &trace.checked_revision,&trace.dependencies_current,&why);
+            if(!ok&&!why.empty())trace.Note("publish-guard",EvidenceErrorCode(why));
+            return ok;
+        };
+        stage="publish";
+        if(!store_.Publish(package,payloads,id,error,expired,guard,&trace)) {
+            // 먼저 기록한 실패만 분류한다. 뒤늦은 catalog 변경으로 I/O/취소 원인을 덮지 않는다.
             if(error&&*error!="evidence-cleanup-failed"&&*error!="evidence-publication-uncertain"&&
-               !catalog_.EvidenceRevisionCurrent(observation_revision))*error="evidence-source-changed";
+                std::string(trace.first_code)=="evidence-source-changed")*error="evidence-source-changed";
             return false;
         }
-    } else if(!store_.Publish(package,payloads,id,error,expired))return false;
-    *output=std::move(package);if(error)error->clear();return true;
+    } else {stage="publish";if(!store_.Publish(package,payloads,id,error,expired,{},&trace))return false;}
+
+    *output=std::move(package);if(error)error->clear();result.ok=true;return true;
 }
 } // namespace recording

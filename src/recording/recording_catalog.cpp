@@ -1,6 +1,7 @@
 // 파일 요약: 녹화 JSONL mutation을 memory/SQLite projection에 적용한다.
 // 동작 요약: idempotent replay, FK 검증, 손상 DB 격리와 range query parity를 구현한다.
 #include "recording/recording_catalog.h"
+#include "recording/recording_search_model.h"
 #include "recording/recording_latency_trace.h"
 #include "recording/recording_completion_trace.h"
 #include "recording_checkpoint_validation.h"
@@ -3015,34 +3016,94 @@ bool RecordingCatalog::PutReferencedObservation(const AnalysisObservationV2& obs
     mutation.entity_id=observation.observation_id;mutation.payload_json=SerializeReferencedObservationV1(pair);
     return AppendAndApplyLocked(std::move(mutation),error);
 }
-bool RecordingCatalog::CaptureEvidenceObservations(const std::string& channel,const std::string& source,
-    const std::string& ns,const std::string& track,std::vector<ReferencedObservationV1>* output,
-    std::uint64_t* revision,std::string* error) const {
-    recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__);
-    if(!output||!revision||!opened_||!options_.enable_v2_storage||!CanReadLocked(error)||
-       !source_snapshot_revision_valid_||!ValidateRecordingReferenceId(channel,nullptr)||
-       !ValidateRecordingReferenceId(source,nullptr)||!ValidateOpaqueId(ns,nullptr)||!ValidateOpaqueId(track,nullptr))
-        return Fail(error,"evidence-observation-snapshot-unavailable");
-    std::vector<ReferencedObservationV1> rows;std::size_t scanned=0,bytes=0;
+bool RecordingCatalog::EvidenceRowsLocked(const EvidenceSnapshot& snapshot,
+    std::vector<ReferencedObservationV1>* output,std::vector<std::string>* encoded,std::string* error) const {
+    std::size_t scanned=0,bytes=0;
     for(const auto& [id,p]:referenced_observations_) {
         (void)id;
+        if(std::chrono::steady_clock::now()>=snapshot.deadline)return Fail(error,"evidence-timeout");
         if(++scanned>65536)return Fail(error,"evidence-observation-scan-limit");
         const auto& o=p.observation;
-        if(o.channel_id!=channel||o.source_id!=source||o.analysis_namespace!=ns||o.track_id!=track)continue;
-        const auto encoded=SerializeReferencedObservationV1(p);
-        if(encoded.empty())return Fail(error,"evidence-observation-corrupt");
-        bytes+=encoded.size();
-        if(rows.size()>=256||bytes>256*1024)return Fail(error,"evidence-observation-snapshot-limit");
-        rows.push_back(p);
+        if(o.channel_id!=snapshot.channel||o.source_id!=snapshot.source||o.analysis_namespace!=snapshot.ns||o.track_id!=snapshot.track)continue;
+        auto text=SerializeReferencedObservationV1(p);
+        if(text.empty())return Fail(error,"evidence-observation-corrupt");
+        bytes+=text.size();
+        if(encoded->size()>=256||bytes>256*1024)return Fail(error,"evidence-observation-snapshot-limit");
+        encoded->push_back(std::move(text));if(output)output->push_back(p);
     }
-    *output=std::move(rows);*revision=source_snapshot_revision_;if(error)error->clear();return true;
+    std::sort(encoded->begin(),encoded->end());return true;
 }
-bool RecordingCatalog::EvidenceRevisionCurrent(std::uint64_t revision) const {
-    return GuardEvidenceRevision(revision,[]{return true;});
+bool RecordingCatalog::EvidenceDependenciesLocked(const EvidenceSnapshot& snapshot,
+    std::vector<std::string>* output,std::string* error) const {
+    std::size_t bytes=0,scanned=0;
+    const auto add=[&](const std::string& key,const std::string& value){
+        bytes+=key.size()+value.size()+32;
+        if(bytes>256*1024)return false;
+        output->push_back(std::to_string(key.size())+":"+key+value);return true;
+    };
+    for(const auto& id:snapshot.segments){
+        if(std::chrono::steady_clock::now()>=snapshot.deadline)return Fail(error,"evidence-timeout");
+        const auto v2=segments_v2_.find(id);const auto v1=segments_.find(id);const auto path=media_relpaths_.find(id);
+        const auto binding=source_bindings_.find(id);
+        if(binding!=source_bindings_.end()&&binding->second.latest_mutation_id.empty())return Fail(error,"evidence-observation-corrupt");
+        // bound finalize는 같은 ID의 변경을 거부한다. latest mutation은 sample/hash/generation 원문의 식별자다.
+        if(!add(id+"/v2",v2==segments_v2_.end()?"":SerializeRecordingSegmentV2(v2->second))||
+           !add(id+"/v1",v1==segments_.end()?"":SerializeRecordingSegmentV1(v1->second))||
+           !add(id+"/state",std::to_string(static_cast<unsigned>(EffectiveLifecycleV2Locked(id)))+":"+
+                std::to_string(tombstones_.count(id))+":"+std::to_string(tombstones_v2_.count(id))+":"+std::to_string(retired_v2_.count(id)))||
+           !add(id+"/path",path==media_relpaths_.end()?"":path->second)||
+           !add(id+"/binding",binding==source_bindings_.end()?"":binding->second.latest_mutation_id))
+            return Fail(error,"evidence-observation-snapshot-limit");
+    }
+    if(!snapshot.job.empty()){
+        const auto job=derived_jobs_.find(snapshot.job);
+        if(!add("job/"+snapshot.job,job==derived_jobs_.end()?"":job->second.latest_mutation_id))
+            return Fail(error,"evidence-observation-snapshot-limit");
+    }
+    if(!snapshot.events.empty()){
+        for(const auto& [id,link]:event_links_){
+            if(std::chrono::steady_clock::now()>=snapshot.deadline)return Fail(error,"evidence-timeout");
+        if(++scanned>65536)return Fail(error,"evidence-observation-scan-limit");
+            if(std::find(snapshot.events.begin(),snapshot.events.end(),link.event_id)!=snapshot.events.end()&&
+                !add("event/"+id,SerializeEventRecordingLinkV1(link)))return Fail(error,"evidence-observation-snapshot-limit");
+        }
+    }
+    std::sort(output->begin(),output->end());return true;
 }
-bool RecordingCatalog::GuardEvidenceRevision(std::uint64_t revision,const std::function<bool()>& action) const {
+bool RecordingCatalog::CaptureEvidenceObservations(const SearchDocument& hit,
+    std::vector<ReferencedObservationV1>* output,EvidenceSnapshot* snapshot,std::string* error,
+    std::chrono::steady_clock::time_point deadline) const {
     recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__);
-    return opened_&&source_snapshot_revision_valid_&&source_snapshot_revision_==revision&&CanReadLocked(nullptr)&&action&&action();
+    if(!output||!snapshot||!opened_||!options_.enable_v2_storage||!CanReadLocked(error)||
+       !source_snapshot_revision_valid_||!ValidateRecordingReferenceId(hit.channel_id,nullptr)||
+       !ValidateRecordingReferenceId(hit.source_id,nullptr)||!ValidateOpaqueId(hit.analysis_namespace,nullptr)||
+       !ValidateOpaqueId(hit.track_id,nullptr)||hit.event_ids.size()>64)
+        return Fail(error,"evidence-observation-snapshot-unavailable");
+    if(!ValidateOpaqueId(hit.segment_id,nullptr)||(!hit.playback_segment_id.empty()&&!ValidateOpaqueId(hit.playback_segment_id,nullptr))||
+        (!hit.playback_job_id.empty()&&!ValidateOpaqueId(hit.playback_job_id,nullptr))||
+        (!hit.playback_event_id.empty()&&!ValidateOpaqueId(hit.playback_event_id,nullptr))||
+        std::any_of(hit.event_ids.begin(),hit.event_ids.end(),[](const auto& id){return !ValidateOpaqueId(id,nullptr);}))
+        return Fail(error,"evidence-observation-snapshot-unavailable");
+    EvidenceSnapshot next;next.deadline=deadline;next.channel=hit.channel_id;next.source=hit.source_id;next.ns=hit.analysis_namespace;next.track=hit.track_id;
+    next.segments={hit.segment_id};if(!hit.playback_segment_id.empty()&&hit.playback_segment_id!=hit.segment_id)next.segments.push_back(hit.playback_segment_id);
+    next.events=hit.event_ids;if(!hit.playback_event_id.empty())next.events.push_back(hit.playback_event_id);next.job=hit.playback_job_id;
+    next.instance=search_instance_;next.revision=source_snapshot_revision_;
+    std::vector<ReferencedObservationV1> rows;
+    if(!EvidenceRowsLocked(next,&rows,&next.rows,error)||!EvidenceDependenciesLocked(next,&next.dependencies,error))return false;
+    *output=std::move(rows);*snapshot=std::move(next);if(error)error->clear();return true;
+}
+bool RecordingCatalog::GuardEvidenceSnapshot(const EvidenceSnapshot& snapshot,const std::function<bool()>& action,
+    std::uint64_t* captured,std::uint64_t* checked,bool* current,std::string* error) const {
+    recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__);
+    if(captured)*captured=snapshot.revision;if(checked)*checked=source_snapshot_revision_;if(current)*current=false;
+    if(!opened_||!options_.enable_v2_storage||!source_snapshot_revision_valid_||!snapshot.instance||
+        snapshot.instance!=search_instance_||!CanReadLocked(nullptr))return Fail(error,"evidence-source-changed");
+    std::vector<std::string> rows,dependencies;
+    if(!EvidenceRowsLocked(snapshot,nullptr,&rows,error)||!EvidenceDependenciesLocked(snapshot,&dependencies,error))return false;
+    if(rows!=snapshot.rows||dependencies!=snapshot.dependencies)return Fail(error,"evidence-source-changed");
+    if(current)*current=true;
+    if(std::chrono::steady_clock::now()>=snapshot.deadline)return Fail(error,"evidence-timeout");
+    return action&&action();
 }
 
 std::vector<ReferencedObservationV1> RecordingCatalog::QueryReferencedObservations(const std::string& channel) const {

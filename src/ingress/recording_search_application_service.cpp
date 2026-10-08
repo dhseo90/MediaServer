@@ -166,11 +166,13 @@ ApplicationServiceResult RecordingApplicationService::SearchSeek(const Query& ra
 }
 ApplicationServiceResult RecordingApplicationService::SearchEvidence(const Query& raw,const std::string& principal,
     const std::string& scope,const ChannelAuthorizer& authorize,bool observations) const {
+    const char* stage="search-query";
     try {
         recording::RecordingSearchQuery query;
         if(!Parse(raw,true,&query))return Error(400,"invalid-recording-search-query");
         if(principal.empty()||scope.empty()||!Authorized(query,authorize))return Error(403,"recording-channel-forbidden");
         if(!enabled_||!evidence_)return EvidenceUnavailable();
+        stage="search-snapshot";
         std::shared_ptr<SearchState> state;
         {std::lock_guard<std::mutex> lock(search_mutex_);state=search_state_;}
         if(!state)return Error(410,"search-snapshot-expired");
@@ -179,7 +181,9 @@ ApplicationServiceResult RecordingApplicationService::SearchEvidence(const Query
             return error=="search-invalid-snapshot"?Error(400,error):Failure(error);
         const auto& hit=model->documents()[position];
         if(observations&&(hit.analysis_namespace.empty()||hit.track_id.empty()))return Error(400,"review-analysis-target-required");
+        stage="builder-dispatch";
         return evidence_->Create(hit,"structured","",authorize,observations);
-    }catch(...){return Error(503,"evidence-create-failed");}
+    }catch(...){recording::EvidenceFailure diagnostic;diagnostic.Note(stage,"evidence-exception",true);
+        recording::TraceEvidenceFailure(diagnostic,"evidence-create-failed");return Error(503,"evidence-create-failed");}
 }
 } // namespace ingress

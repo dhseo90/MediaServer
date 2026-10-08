@@ -2,11 +2,18 @@
 # 파일 용도: 현재 제품 archive에 연결해 격리 증거 패키지를 검사한다. 서버·포트·모델 없음.
 set -euo pipefail
 task_repo="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-task_parent="$(cd "${TMPDIR:-/tmp}" && pwd -P)"
+task_parent="$(cd "${MEDIA_SERVER_TEST_ARTIFACT_ROOT:-${TMPDIR:-/tmp}}" && pwd -P)"
+if [[ -n "${MEDIA_SERVER_TEST_ARTIFACT_ROOT:-}" ]]; then
+ [[ "$task_parent" = "$MEDIA_SERVER_TEST_ARTIFACT_ROOT" && "$task_parent" = /private/tmp/media-server-* && ! -L "$task_parent" && -O "$task_parent" ]] || exit 2
+fi
 task_root="$(mktemp -d "$task_parent/media-server-evidence.XXXXXX")"
 task_identity="$(node -e 'const s=require("fs").lstatSync(process.argv[1]);console.log(`${s.dev}:${s.ino}:${s.uid}`)' "$task_root")"
 cleanup(){
  local prior=$?
+ if [[ -n "${MEDIA_SERVER_TEST_ARTIFACT_ROOT:-}" ]]; then
+  printf '[preserved-root] %s exit=%s\n' "$task_root" "$prior"
+  return "$prior"
+ fi
  node -e 'const f=require("fs"),p=require("path"),r=process.argv[1],s=f.lstatSync(r);if(p.dirname(r)!==process.argv[2]||!/^media-server-evidence\.[A-Za-z0-9]+$/.test(p.basename(r))||s.isSymbolicLink()||!s.isDirectory()||f.realpathSync(r)!==r||`${s.dev}:${s.ino}:${s.uid}`!==process.argv[3]||s.uid!==process.getuid())throw Error("cleanup-ownership");f.rmSync(r,{recursive:true});if(f.existsSync(r))throw Error("cleanup-remains");console.log("[cleanup] removed=true")' "$task_root" "$task_parent" "$task_identity" || return 1
  return "$prior"
 }

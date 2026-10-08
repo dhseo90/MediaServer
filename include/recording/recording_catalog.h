@@ -29,6 +29,7 @@ struct sqlite3;
 
 namespace recording {
 struct RecordingIdentityChainResult;
+struct SearchDocument;
 struct RecordingCatalogSnapshot;
 
 struct RecordingCatalogRecoveryReport {
@@ -239,13 +240,23 @@ public:
     bool QueryDerivedReferenceResult(const std::string& reference_id,
         RecordingDerivedReferenceResult*,std::string* error) const;
     bool PutReferencedObservation(const AnalysisObservationV2&, const RecordingConsumerReferenceV1&, std::string*);
-    // 새 내부 package 경로 전용. 상한 초과는 부재로 숨기지 않고 실패한다.
-    bool CaptureEvidenceObservations(const std::string& channel, const std::string& source,
-        const std::string& analysis_namespace, const std::string& track,
-        std::vector<ReferencedObservationV1>*, std::uint64_t* revision, std::string* error) const;
-    bool EvidenceRevisionCurrent(std::uint64_t revision) const;
-    // action은 원자 publish의 linkat만 수행한다. revision 확인과 게시 사이 변경을 막는다.
-    bool GuardEvidenceRevision(std::uint64_t revision, const std::function<bool()>& action) const;
+    // 호출 범위의 불투명 사본. 영속 revision/검색 snapshot 계약은 바꾸지 않는다.
+    class EvidenceSnapshot {
+        friend class RecordingCatalog;
+        std::string channel,source,ns,track,job;
+        std::vector<std::string> segments,events,rows,dependencies;
+        std::uint64_t instance{0},revision{0};
+        std::chrono::steady_clock::time_point deadline;
+    public:
+        std::uint64_t captured_revision() const {return revision;}
+    };
+    bool CaptureEvidenceObservations(const SearchDocument&,std::vector<ReferencedObservationV1>*,
+        EvidenceSnapshot*,std::string* error,
+        std::chrono::steady_clock::time_point deadline=std::chrono::steady_clock::time_point::max()) const;
+    // action은 linkat만 수행한다. bounded 재검증과 게시 사이 잠금을 풀지 않는다.
+    bool GuardEvidenceSnapshot(const EvidenceSnapshot&,const std::function<bool()>& action,
+        std::uint64_t* captured_revision=nullptr,std::uint64_t* checked_revision=nullptr,
+        bool* dependencies_current=nullptr,std::string* error=nullptr) const;
     std::vector<ReferencedObservationV1> QueryReferencedObservations(const std::string& channel) const;
     std::vector<RecordingConsumerReferenceV1> QueryConsumerReferences(
         const std::string& channel, const std::string& kind, const std::string& owner) const;
@@ -265,6 +276,9 @@ public:
                                                   std::int64_t end_ms) const override;
 
 private:
+    bool EvidenceRowsLocked(const EvidenceSnapshot&,std::vector<ReferencedObservationV1>*,
+        std::vector<std::string>*,std::string*) const;
+    bool EvidenceDependenciesLocked(const EvidenceSnapshot&,std::vector<std::string>*,std::string*) const;
     friend struct RecordingCutoverCandidateProbe;
     friend struct RecordingGenerationTransactionProbe;
     bool PublishManagedCutover(const struct RecordingCutoverCandidateLimits&,std::string*);
