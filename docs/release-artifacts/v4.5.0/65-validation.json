@@ -1,0 +1,330 @@
+{
+  "schema": "media-server.v450.release-validation.v1",
+  "sequence": 65,
+  "status": "PASS_SCOPED_CHANGE_PENDING_FINAL_PRESERVATION_CLEANUP",
+  "recordedAt": "2026-10-08T11:48:43.823685+00:00",
+  "base": {
+    "head": "38a02247aa03d8020a1793b913bdc24743f6108c",
+    "remote": "38a02247aa03d8020a1793b913bdc24743f6108c",
+    "clean": true,
+    "initialRemoteObservation": "로컬 추적 ref 아닌 실제 ls-remote 대조. sandbox DNS exit128 후 승인된 network 읽기 exit0; 원격 변경 없음."
+  },
+  "source": {
+    "implementationCommit": "0334b7449822c0e5eefcb677d792f055330365f2",
+    "implementationTree": "f4f96dea11bb236410c0f0af0101806f25141094",
+    "reviewCommit": "9719bc63aa8f077b96b7ae188d24570e2e2bc7ae",
+    "reviewTree": "11498ea901f375104ff5280ccef50d69b5f22ee1",
+    "reviewDelta": "제품·검사0334 이후9719는 진단 연결1개의 현행 구조 정의/측정 JSON3개뿐. 실행source로9719를 재표시하지 않는다.",
+    "binarySha256": "29da6795c7a2983c533463cdbffd1d14820892c54321c6d9519833c01789c794",
+    "runtimeArchiveSha256": "69fe350383c38c5f297c5ab23d512515a3200c3429da3833919ab0b343a727b1",
+    "sourceInvariantDuringShortRun": true
+  },
+  "historical64": {
+    "result": "FAIL_INCOMPLETE 유지",
+    "source": "d95fe838d3aae41be83b9f53b7df93c05f3890da",
+    "reference": "64-validation.json",
+    "confirmed": "30번째 A 기회의 package POST503; 앞선29완료. 그 요청의 draft/confirm/execute/worker 미시작.",
+    "internalCause": "UNCONFIRMED",
+    "missing": "당시 내부 builder 분기/오류/stack/revision 시각 없음. 새 반례의 동일503을 과거 원인 확정으로 사용하지 않는다.",
+    "K09CauseEquivalence": "주장하지 않음"
+  },
+  "deterministicReproduction": {
+    "boundary": "실제 builder capture/extract 후 첫 pending 쓰기의 기존 cancellation/authorize callback에서 mutation 완료. sleep·private revision write·가짜 builder 없음.",
+    "before": {
+      "source": "base38a02247 제품+red-evidence_observation_smoke.cpp. red01.json의 base+diffSHA 및 red-binary.json 참조",
+      "commandResult": "red01.json exit1 예상 RED; selected observation/source/binding canonical bytes 불변",
+      "unchanged": "정상 package 생성·core 판정; 보존 package를 old binary의 별도 프로세스가 readback exit0",
+      "unrelatedFinalization": "채널9101 실제 writer finalize 후 builder=false evidence-source-changed",
+      "unrelatedDeletion": "실제 retention deletion1; 실제 application503 {error:evidence-create-failed}"
+    },
+    "after": {
+      "source": "0334 구현과 동일한 최종 패치; observations-final2.json base+diffSHA 명시",
+      "unrelatedFinalization": "builder=true",
+      "unrelatedDeletion": "application201",
+      "relatedObservations": "기존 관련 관측변경 및 empty track999→관련row추가 거부; namespace/track가 다른 추가는 허용",
+      "sourceAndLinks": "선택 segment lifecycle 변경/reopen snapshot 거부, held source mutation 및 immutable generation/sample binding 교체는 정상 API가 거부. 원본변조/참조불일치는 기존 검사 유지.",
+      "overlappingFailures": "capacity/payload변조/cancel/guard/예외의 첫 오류 보존; cancellation 추가호출0, prepublication미게시/pending정리, link뒤불확실성ID조회 보존"
+    }
+  },
+  "implementation": {
+    "selection": "channel/source/namespace/track 전체 matching rows(빈 집합 포함)+선택 segment/playback segment 상태·path·불변 binding mutation ID+선택job·event refs+catalog instance. search global revision 의미/저장 형식 불변.",
+    "limits": "65536행scan/256관측/관측256KiB 유지. 의존사본256KiB·eventID64 제한, 기존deadline. 무제한 map/영속원장 없음.",
+    "atomicity": "최종 bounded 비교와 linkat를 같은 catalog mutex에서 수행; 추출·쓰기·fsync는 그 잠금 밖. 기존 store lock/hold 순서 유지.",
+    "diagnostic": "기존 opt-in·4095행/2MiB 진단 예산 공유. stage/first code/builder code/public code·bool/exception·publish state·revision/current만 기록; 고정 allowlist/수치, raw exception/경로/관측/credential 없음. 실패 뒤 revision 재조회로 첫 원인 덮지 않음.",
+    "structure": "evidence_package_store→recording_completion_trace 정확 파일 연결1개를 현행 정의에 명시. 일반 dependency 방향·상한·과거 graph/승인 불변; 독립 검토 대상."
+  },
+  "directChecks": {
+    "observations": {
+      "exit": 0,
+      "seedAssertions": 237,
+      "recoveryAssertions": 2,
+      "independentReadbackAssertions": 9,
+      "raw": "observations-final2.*"
+    },
+    "existingV1Evidence": {
+      "exit": 0,
+      "assertions": 1028,
+      "raw": "v1-native.*"
+    },
+    "ARecords": {
+      "exit": 0,
+      "boundSeed": 93,
+      "boundFreshRead": 17,
+      "confirmedSeed": 18,
+      "confirmedNative": 64,
+      "confirmedFreshRead": 2,
+      "raw": "a-native.*",
+      "readBoundary": "각 fresh reader는 별도 프로세스의 package/record copy만 받음; 원본 seed는 보존 목적으로 유지했으며 원본을 삭제했다고 주장하지 않음."
+    },
+    "build": "최종build04 exit0; build01~03 정상. 준비·단계별 변경 후 필요한 빌드만 수행.",
+    "static": "comments/scripts/docs/whitespace PASS; 구조 최초FAIL·생성거절후 정확 file edge 정합 및 graph-only4검사 PASS. migration30반례 PASS; legacy full-field 동등986/변경0. v450 registration PASS.",
+    "firstPreparationFailure": {
+      "command": "observations-final",
+      "exit": 1,
+      "actual": "observation-copy / evidence-observation-candidate-limit",
+      "fix": "새 HTTP 반례가 앞선 반례와track77을 공유해 기존4candidate 한도 초과. 해당 반례만 track-http로 격리, 한도/기대값/missingtrack999 유지. 최종2에서 통과. 최초FAIL 뒤 short통합은 보류했다."
+    },
+    "candidateArtifactPreparation": "candidate-final.json 경로를 command receipt와 중복 사용해 산출물이 receipt로 덮임. 원 stdout digest는 보존하고 서로 다른 출력명으로 후보 재생성. 최종 review-candidate-data.json으로만 결속."
+  },
+  "shortIntegration": {
+    "mode": "기존64 --prepare 1회, 실행기불변",
+    "command": "python3 scripts/internal/run_v450_recording_a_mixed.py --prepare <owned-parent>/mixed-prepare-01",
+    "freeze": "65-execution.tar.gz:commands/integration-freeze.json",
+    "exit": 0,
+    "wrapperElapsedSeconds": 61.5562469959259,
+    "observationMilliseconds": 30148.294667,
+    "assertions": {
+      "pass": 250,
+      "fail": 0
+    },
+    "load": "실제2녹화채널+4검색client/15초; A60초기회/동시1/본구간1. 추가 cancel/revoke/restart/reactivation은 기존 준비모드.30번째/29분을 합격조건으로 쓰지 않음.",
+    "channels": {
+      "9101": {
+        "finalized": 14,
+        "deleted": 7,
+        "lastAt": 38427.679,
+        "order": "28",
+        "store": "92a41a5d8fd089837ddacc389c42631016684dbb91ab6fef6fdcc9929c1643ba",
+        "knownMappings": 9,
+        "unknownMappings": 564
+      },
+      "9201": {
+        "finalized": 14,
+        "deleted": 7,
+        "lastAt": 38427.679,
+        "order": "29",
+        "store": "92a41a5d8fd089837ddacc389c42631016684dbb91ab6fef6fdcc9929c1643ba",
+        "knownMappings": 11,
+        "unknownMappings": 602
+      }
+    },
+    "searchSuccess": 12,
+    "searchUnavailable": 0,
+    "evidenceCreated": 2,
+    "evidenceBusy": 2,
+    "mainACompleted": 1,
+    "reactivatedACompleted": 1,
+    "controls": {
+      "cancel": {
+        "httpStatus": 200,
+        "state": "cancelled",
+        "reviewId": ""
+      },
+      "revoke": {
+        "status": 401,
+        "unchangedStore": true
+      },
+      "restart": {
+        "allLocalBytesUnchanged": true,
+        "independentHttpReadbackCount": 1,
+        "transientExpired": true
+      }
+    },
+    "storeInitial": {
+      "names": [
+        "vr-0e1d6051c3426c3d7b9b0740ddfbe9210fa6113d4ade4d05b737381e2ea47d58.review",
+        "vr-d5d5ab91dac18f2cff6fae9653fd14410ed8078e958c7054da97a31e4ec60803.review",
+        "vr-f72d4f4bf0b8550e6c87277f17b0bf794327b44a7a04857710bbcae73423e948.review"
+      ],
+      "bytes": 17576
+    },
+    "storeFinal": {
+      "names": [
+        "vr-0e1d6051c3426c3d7b9b0740ddfbe9210fa6113d4ade4d05b737381e2ea47d58.review",
+        "vr-3e38dac8509f69e31e7eb463b6aac3adc4f343354f6187b9e3fff56bb093ff48.review",
+        "vr-5168ca79dc916fc86691043f7db56bebf504f7b22440dbf971120cea5725cafb.review",
+        "vr-d5d5ab91dac18f2cff6fae9653fd14410ed8078e958c7054da97a31e4ec60803.review",
+        "vr-f72d4f4bf0b8550e6c87277f17b0bf794327b44a7a04857710bbcae73423e948.review"
+      ],
+      "bytes": 29132
+    },
+    "concurrency": "같은 제품 PID에서 녹화 확정/삭제·검색·channel1/track77의 새package→서버확인→A worker/저장/자료안내. 끝난 뒤copy recovery와 별도 PID재시작.",
+    "observationScope": "기존 합성 projector/catalog seed→snapshot/package 실제 경로; 본 구간의 지속 detector/projector 추론 검증 아님.",
+    "environment": "기존 macOS arm64, GStreamer core/h264parse(videoparsersbad)/mp4mux(isomp4)1.28.1 실제seed기록. 승인된 기존SigLIP2 사용, 새설치0. Linux새실행0.",
+    "resources": {
+      "status": "observed",
+      "resourceTrendPass": false,
+      "reviewRequired": true,
+      "sampleCount": 7,
+      "groups": [
+        {
+          "pid": 26473,
+          "startIdentity": "macos:1791459163:894231",
+          "sampleCount": 7,
+          "first": {
+            "phaseAt": 8654.088583,
+            "sampledAt": 1791459169892,
+            "rssBytes": 3168043008,
+            "threadCount": 37,
+            "fdCount": 30,
+            "mutationCount": 6
+          },
+          "last": {
+            "phaseAt": 38427.679,
+            "sampledAt": 1791459199667,
+            "rssBytes": 1966637056,
+            "threadCount": 41,
+            "fdCount": 30,
+            "mutationCount": 90
+          },
+          "max": {
+            "rssBytes": 3190358016,
+            "threadCount": 41,
+            "fdCount": 31
+          },
+          "delta": {
+            "rssBytes": -1201405952,
+            "threadCount": 4,
+            "fdCount": 0,
+            "mutationCount": 84
+          },
+          "elapsedMs": 29773.590416999996,
+          "maxGapMs": 5012.136209000002,
+          "warmupMs": 300000,
+          "postWarmup": {
+            "status": "insufficient",
+            "sampleCount": 0,
+            "delta": null,
+            "elapsedMs": null,
+            "rssMiBPerMinute": null
+          }
+        }
+      ]
+    },
+    "footprintState": "not-measured",
+    "cpu": {
+      "maxPercent": 63.9
+    },
+    "resourceJudgment": "표본RSS4GiB 이내, 출력/공간상한 통과.30초/7표본으로5분warmup 이후 추세없음. resourceTrendPass=false 유지; 무누수/120분PASS 아님.",
+    "QwenOllamaCalls": 0,
+    "unloadGate": "not-run"
+  },
+  "priorEvidenceImpact": {
+    "59Linux": "해당 Linux GStreamer1.28.7 파일증거/검색은 과거 source/env PASS 유지. profile/parser/seek 불변; 이번 guard/store 변경의 Linux 실행은 새로 하지 않음.",
+    "61Acceptance": "72cc7643d681b75228b80fd646921965ecacba75에서의 정식PASS 유지. 현재코드 전체PASS로 승격하지 않음; package/store/A 영향은 이번 직접 검사로 보완.",
+    "63UI": "당시 모델409/이력·시각·적격성 PASS 유지. UI/권한정의 불변, 새관측게시guard효과는 HTTP 단기로 보완; 전체 UI재실행0.",
+    "future": "수정된 guard/store가 포함된 새혼합120분은 미실행·별도승인. 새로운 자원안정성 보장 없음."
+  },
+  "approvalImpact": {
+    "candidateDigest": "137543c6332a73f9a77599bfaca732bd1f54b263adee078fe5d3f8c275775906",
+    "legacy986": "최종candidate full-field 동일·기존승인검사PASS. 새 독립승인으로 재발급하지 않음.",
+    "currentAffectedIds": [
+      "V450-K07",
+      "V450-K08",
+      "V450-K09",
+      "V450-A02",
+      "V440-F01",
+      "V440-M01",
+      "V440-S01",
+      "V440-A01"
+    ],
+    "independent": {
+      "file": "65-independent-review.json",
+      "decision": "APPROVE_FOR_SCOPED_CHANGE",
+      "reviewer": "/root/independent_release65",
+      "requestedModel": "gpt-6-astra",
+      "requestedEffort": "xhigh",
+      "actualRuntime": "확인 불가·추정하지 않음",
+      "runtimeTestsExecuted": 0,
+      "blockingProductFindings": 0,
+      "initialReviewOriginal": "65-execution.tar.gz:commands/independent-review-initial.json"
+    },
+    "producer": {
+      "command": "./server.sh verify-v390-review4-feature-semantic-source-audit --apply-approved-manifest",
+      "exit": 0,
+      "checks": 51,
+      "semanticChangeOnly": "inventorySha256",
+      "legacyItemsAndAuditApprovalsUnchanged": true,
+      "reviewedProductTestSourceUnchanged": true,
+      "readback": "65-execution.tar.gz:commands/producer-readback.json",
+      "formatting": "producer compact 출력 이후 기존 indent2 표시만 복원, 객체동등성확인. 과거 승인hash 수작업변경 없음."
+    },
+    "staticCoverage": {
+      "before": {
+        "exit": 1,
+        "reason": "inventorySha256 drift",
+        "featureRows": 986,
+        "missing": 0
+      },
+      "after": {
+        "exit": 0,
+        "pass": 9,
+        "fail": 0,
+        "featureRows": 986
+      },
+      "V450Registration": "PASS; release mandatory28 with explicit experiments separated; new scoped source review separate"
+    }
+  },
+  "cleanup": {
+    "runtimeProcesses": {
+      "observedAt": "2026-10-08T11:46:03.260706+00:00",
+      "productPids": [
+        26473,
+        26624,
+        26673
+      ],
+      "psExit": 1,
+      "psStdout": "",
+      "psStderr": "",
+      "wrapperProcessGroupAbsent": true,
+      "wrapperRegisteredGroupsAbsent": true,
+      "ports": {
+        "tcp": "existing runner allHttpClosed assertion; run.log",
+        "udp": "existing runner udpClosed=true; report.json"
+      },
+      "runtimeRetainedBeforeReview": true,
+      "source": "9719bc63aa8f077b96b7ae188d24570e2e2bc7ae"
+    },
+    "ownedScratchRemoval": "PENDING_AFTER_GIT_READBACK",
+    "modelsRuntimes": "기존 모델/이미지/runtime 유지",
+    "unloadGate": "not-run"
+  },
+  "preservation": {
+    "archive": "65-execution.tar.gz",
+    "raw": "새 직접명령stdout/stderr/즉시exit·초기RED·준비FAIL·최종검사·shortrun. 과거archive복사없음.",
+    "transformed": "server로그만 URL/호스트·소유경로 정제, 전후bytes/hash별도. 그 외 exact와synthetic package/record만 보존.",
+    "credentials": "auth/session/config secret·binary/model/cache/fullmedia tree제외",
+    "priorOriginalsChanged": false,
+    "bytes": 1349492,
+    "sha256": "fdc3a50ced7862f681bcb7e34f22955ac3fd7a1dc82df245660bffcf766e11fa",
+    "indexedMembers": 202,
+    "actualMembers": 203,
+    "localArchiveReadback": "PASS",
+    "manifest": "65-execution.tar.gz:preservation-manifest.json",
+    "archiveIndex": "65-execution.tar.gz:archive-index.json"
+  },
+  "notRun": [
+    "새혼합120분",
+    "일반30분/120분",
+    "정식acceptance",
+    "전체UI/canonical424",
+    "Linux전체회귀",
+    "Qwen/Ollama/C/질문실험",
+    "PR/병합/태그/Release"
+  ],
+  "remaining": [
+    "원본Git재조회·원격반영·소유root정리 및 동일검토자의 최종보존부록",
+    "새혼합120분 별도승인·실행과 자원/복구판정",
+    "최종근거통합·기록정리·PR/CI·병합·서명·Release"
+  ]
+}
