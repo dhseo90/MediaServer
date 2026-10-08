@@ -55,7 +55,9 @@ void CodecChecks(){
     c.resize="letterbox";c.input_height=640;c.pad_y=140;
     Check(analysis::ValidateObservationCoordinates(c),"letterbox real scale/padding accepted without applying inverse twice");
     for(int i=0;i<5;++i){auto bad=c;if(i==0)bad.scale_x=std::numeric_limits<double>::quiet_NaN();if(i==1)bad.pad_y=141;
-        if(i==2)bad.resized_width=639;if(i==3)bad.frame_mapping="crop-unknown";if(i==4)bad.units="pixels";
+        if(i==2)bad.resized_width=639;
+        if(i==3)bad.frame_mapping="crop-unknown";
+        if(i==4)bad.units="pixels";
         Check(!analysis::ValidateObservationCoordinates(bad),"invalid coordinate provenance rejected "+std::to_string(i));}
     for(const auto& text:{encoded.substr(0,encoded.size()-1)+",\"verdict\":\"supported\"}",std::string("null"),encoded.substr(0,encoded.size()-1)+",\"scaleX\":4}"})
         Check(!analysis::ParseObservationCoordinates(text,&out)&&analysis::SerializeObservationCoordinates(out)==encoded,"unknown/duplicate/invalid fields rejected, output unchanged");
@@ -105,7 +107,8 @@ void GuardCases(const std::filesystem::path& root,RecordingRuntimeStorage& runti
     Check(full.Recover(&error),"capacity store fixture");EvidencePackageBuilder full_builder(catalog,reader,full);
     EvidenceFailure full_trace;unsigned calls=0;std::string unused;EvidencePackageV1 out;
     const bool full_ok=full_builder.CreateWithObservations(hit,"structured","",&unused,&out,&error,Deadline(),[&]{
-        if(++calls==2)add("capacity-related",hit.track_id,hit.analysis_namespace);return false;
+        if(++calls==2)add("capacity-related",hit.track_id,hit.analysis_namespace);
+        return false;
     },&full_trace);
     Check(!full_ok&&calls>=2&&error=="evidence-capacity"&&std::string(full_trace.first_code)=="evidence-capacity"&&
         std::string(full_trace.first_stage)=="store-prepare","capacity error retained despite post-capture related change");
@@ -188,7 +191,8 @@ void Seed(const std::filesystem::path& root){
     }
     GStreamerSegmentWriter writer(runtime.WriterOptions(1000));
     Check(writer.Start("1","unused",input.descriptor,[](auto,auto,auto*){return false;},&error),"writer start");
-    for(const auto& p:input.packets)writer.Push(p,0);writer.Stop();
+    for(const auto& p:input.packets)writer.Push(p,0);
+    writer.Stop();
     const auto ids=runtime.catalog().FinalizedSegmentIdsForStartup();Check(ids.size()==1,"one isolated source segment");
     const auto segment=*runtime.catalog().FindSegmentV2ById(ids.front());const auto binding=*runtime.catalog().FindSourceBinding(ids.front());
     RecordingReadService reader(runtime.catalog());RecordingSearchReader search(runtime.catalog(),reader);
@@ -240,7 +244,8 @@ void Seed(const std::filesystem::path& root){
         if(!unrelated_finalized&&std::filesystem::exists(root/"packages/.pending-evp-v1")){
             unrelated_finalized=true;GStreamerSegmentWriter other(runtime.WriterOptions(1000));std::string why;
             if(!other.Start("9101","unused",input.descriptor,[](auto,auto,auto*){return false;},&why))throw std::runtime_error("other-writer-start");
-            for(const auto& packet:input.packets)other.Push(packet,0);other.Stop();
+            for(const auto& packet:input.packets)other.Push(packet,0);
+            other.Stop();
         }
         return false;
     };
@@ -257,7 +262,8 @@ void Seed(const std::filesystem::path& root){
             RetentionPlanRequest request;request.channel_id="9101";request.policy.continuous_max_bytes=1;
             request.free_bytes=1024ULL*1024*1024;request.now_ms=INT64_MAX/2;
             const auto removed=retention.Apply(RetentionCoordinator::Plan(runtime.catalog().RetentionSnapshot(),request),request.now_ms);
-            if(!removed.ok||removed.deleted_count!=1)throw std::runtime_error("other-retention-failed");unrelated_deleted=true;
+            if(!removed.ok||removed.deleted_count!=1)throw std::runtime_error("other-retention-failed");
+            unrelated_deleted=true;
         }
         return channel=="1";
     };
@@ -362,7 +368,8 @@ void Independent(const std::filesystem::path& root){
 }
 } // namespace
 int main(int argc,char** argv){try{
-    if(argc!=3)return 2;gst_init(nullptr,nullptr);const auto root=std::filesystem::canonical(argv[1]);
+    if(argc!=3)return 2;
+    gst_init(nullptr,nullptr);const auto root=std::filesystem::canonical(argv[1]);
     const std::string mode=argv[2];if(mode=="seed")Seed(root);else if(mode=="recover")Recover(root);else if(mode=="readback")Independent(root);else return 2;
     std::cout<<"[result] phase="<<mode<<" checks="<<checks<<" model_calls=0 detector_inferences=0\n";return 0;
 }catch(const std::exception& e){std::cerr<<"[FAIL] "<<e.what()<<std::endl;return 1;}}
