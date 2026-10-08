@@ -648,8 +648,8 @@
     },
     {
       "direction": "application-service-interfaces -> core-utilities",
-      "witnessCount": 6,
-      "witnessSha256": "3ba3572cab77c72e4416d913df9f2766289ef1985315263ef7b74a76dde59e98",
+      "witnessCount": 7,
+      "witnessSha256": "42f52a3afe0048127854e18144f58aa961c3a5904efa9d1d667fa11507615f77",
       "allowedByTarget": true
     },
     {

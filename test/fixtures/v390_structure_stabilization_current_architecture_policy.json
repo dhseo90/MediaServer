@@ -125,6 +125,13 @@
       "from": "composition-root",
       "to": "domain-and-registry-owners",
       "reason": "C1: RecordingRuntimeStorage::Open이 기존 cutover 복구·게시 제한값을 구성해 전달한다. 제한값·Open 실패 처리·ResetOwner·생성/파괴 순서는 변경하지 않는다."
+    },
+    {
+      "source": "src/recording/evidence_package_store.cpp",
+      "target": "include/recording/recording_completion_trace.h",
+      "from": "application-service-interfaces",
+      "to": "core-utilities",
+      "reason": "설계65: 최초 증거 실패의 정제 진단만 기존 opt-in·출력 mutex·4095행/2MiB 예산에 연결한다. 다른 파일/방향을 포괄 허용하지 않으며 제품 결과·권한·취소·저장 계약과 독립이다."
     }
   ],
   "temporaryDebtExceptions": [
