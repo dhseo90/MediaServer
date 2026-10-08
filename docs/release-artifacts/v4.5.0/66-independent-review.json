@@ -573,5 +573,198 @@
         "readScope": "model freeze/assert clean/실제 host hash 검사 경로"
       }
     ]
+  },
+  "finalPreservationReadbackCleanupAddendum": {
+    "schema": "media-server.release66.independent-finalization-addendum.v1",
+    "reviewedAt": "2026-10-08T12:53:03.668030+00:00",
+    "scope": "동일 독립 검토자의66 최초 판단 이후 보존·바이트 결속·정리·privacy 한정 부록",
+    "decision": "APPROVE_SCOPED_PRESERVATION_AND_CLEANUP_RECORD",
+    "initialJudgmentUnchanged": true,
+    "initialPendingFieldsMeaning": "상위 최초 판단의 pending·객체/scratch 보존 중 문구는 당시 상태 그대로 유지한다. 이 부록은 후속 상태만 추가하며 최초 실패/한계/PASS 범위를 덮어쓰지 않는다.",
+    "runtimeDecisionUnchanged": {
+      "linuxProductBuild": "PASS_BUILD_ONLY",
+      "mandatoryLinuxObservationVerifier": "FAIL_COMPILE",
+      "linuxGuardStoreAndA": "NOT_RUN",
+      "hostMixed120Attempts": 0,
+      "newRuntimeQualityPass": false,
+      "releaseApproval": false,
+      "R66_01": "검사 소스6곳의 GCC 호환성 보완과 직접 검증은 별도 승인 범위로 남는다.",
+      "historical64Cause": "UNCONFIRMED"
+    },
+    "reviewerActivity": {
+      "sameIndependentReviewer": true,
+      "productOrTestEdits": 0,
+      "productOrTestExecutions": 0,
+      "modelExecutions": 0,
+      "subagents": 0,
+      "gitMutations": 0,
+      "containerCommands": 0,
+      "networkQueries": 0,
+      "ownAddendumWriteOnly": true,
+      "actualModelSnapshot": "not exposed; not inferred"
+    },
+    "reviewedMetadataSnapshot": {
+      "path": "docs/release-artifacts/v4.5.0/66-validation.json",
+      "bytes": 24527,
+      "sha256": "820f8c28f3816c7e1abb72a651b4635a0173d95c515443065a9bc04ab923242c",
+      "readScope": "전체 현재 JSON, finalization의7명령 원stdout/stderr·exit·시간, remote5blob receipt, cleanup/보존 결속을 직접 읽었다."
+    },
+    "preservedOriginals": {
+      "commit": "ee823caf9cb0ba093679edf71a0289ba7d51af18",
+      "initialReview": {
+        "path": "docs/release-artifacts/v4.5.0/66-independent-review.json",
+        "bytes": 28463,
+        "sha256": "f86fabcac6376bbb70afbf728e2a6aaa12268c292d5bfdab98c030648c01bc6d",
+        "directLocalGitReadback": "byte-exact; addendum 전 현재파일도 동일"
+      },
+      "reviewedDraft": {
+        "path": "docs/release-artifacts/v4.5.0/66-review-input.json.gz",
+        "compressedBytes": 4338,
+        "compressedSha256": "e9a4712c18b1e6533aeebf786b9119dc6c39cb77c7645ff334354b3ffc01ece9",
+        "uncompressedBytes": 9208,
+        "uncompressedSha256": "a6c596f3b5dcdd824d69e780a4b6bac63f2b25881c5ad42609727d360a8b1a7a",
+        "directReadback": "Git blob/현재 gzip 일치 및 해제 바이트가 최초 검토 기록의 draft hash와 일치"
+      },
+      "archive": {
+        "path": "docs/release-artifacts/v4.5.0/66-execution.tar.gz",
+        "bytes": 118102,
+        "sha256": "9766d4e4101fd52be7a95c416b7d2fff70a3f8aac131d6b02777c3f1b58a3f4a",
+        "regularMembers": 57,
+        "indexedFiles": 56,
+        "indexedShaMismatches": 0,
+        "initialReviewCommandOutputBindings": 34,
+        "initialReviewCommandOutputMismatches": 0,
+        "directReadback": "현재archive와보존Git blob이 byte-exact; index56개와 최초판단의17명령 stdout/stderr34개 SHA를 메모리에서 대조"
+      },
+      "requiredGitBlobs": 5,
+      "directLocalOidBytesShaMismatches": 0,
+      "newRawBlobBytesTotal": 184230,
+      "sizeMeaning": "5개 새 blob의 비압축 합계. 전체 tree/commit 합계나 실제 네트워크 push pack 크기가 아니다."
+    },
+    "remotePreservation": {
+      "status": "SUPPORTED_BY_PRODUCER_RAW_RECEIPTS_AND_MATCHING_LOCAL_GIT_BYTES",
+      "actualPushedEvidenceCommit": "ee823caf9cb0ba093679edf71a0289ba7d51af18",
+      "pushReceipt": "initial-push exit0, stderr bfc133f24..ee823caf9 HEAD -> v4.5.0",
+      "remoteReadbackReceipt": "initial-readback exit0; remoteHead ee823caf... 및 GitHub blob API5개 decoded byte/OID/size/SHA 일치 결과를 원stdout JSON으로 보존",
+      "independentlyChecked": "영수증7개에 내장된 stdout/stderr UTF-8 실제바이트 길이/SHA를 모두 검산했다. remote5행의 OID·크기·SHA를 검토자가 직접 git show/rev-parse로 얻은 로컬 보존원본과 대조했다.",
+      "observationBoundary": "검토자가 원격 API를 재호출하지 않았다. 원격 전송·원격 바이트 일치는 실제 메인 실행의 보존된 원출력 영수증에 근거하며, 현재원격 상태를 별도 재조회했다고 주장하지 않는다.",
+      "beforeDeletion": "readback 시작12:46:06.190243Z/경과5.078522791초 뒤 exact-ID 삭제 시작12:47:46.776829Z, scratch 삭제시각12:48:51.945047Z 순서로 기록돼 있다."
+    },
+    "cleanup": {
+      "status": "CONFIRMED_WITH_DIRECT_PATH_ABSENCE_AND_RECORDED_CONTAINER_RECEIPTS",
+      "ownedContainerId": "5c8fb25a560786a8e72cb4cf8626175b8cbfaa65a06647be519c4ddc78f8c51f",
+      "containerRemoval": "기존 stopped-state Running=false/Pid0/Exit137/OOMfalse 뒤 exact owned ID만 docker rm exit0. 해당 ID 필터 docker ps-a exit0/empty stdout 원출력을 확인했다.",
+      "containerDirectReinspectionByReviewer": false,
+      "imageRetained": "image-retained exit0 원stdout의 ce72c8a15363984da642e9964189957896812061c6af1d0ef67e87b38ad5a588가 기존rc58 ID와 같다. 재설치/삭제 근거 없음.",
+      "ownedScratch": {
+        "path": "/private/tmp/media-server-release66-jkxo0fnh",
+        "recordedUid": 501,
+        "recordedInode": 171282972,
+        "recordedRealpathOwnershipCheck": true,
+        "recordedDeletionAt": "2026-10-08T12:48:51.945047+00:00",
+        "reviewerDirectLexists": false,
+        "meaning": "검토자가 현재 경로의 부재를 os.path.lexists로 직접 확인했다. 삭제 전 소유권/inode/realpath 확인과 삭제 방식은 cleanup 영수증에 근거한다."
+      },
+      "noNewProductRun": "host server/browser/port 시작0 기록 유지. sleep infinity의 종료137과 컨테이너 객체회수를 제품 graceful-stop·복구/재시작 성공으로 승격하지 않는다.",
+      "sourceAssetsRetained": "현재 host binary/runtime archive를 직접 hash해 최초65/66 값과 일치. 모델/SDK/이미지를 검토자가 실행·수정·삭제하지 않았다."
+    },
+    "sourceAndApprovalBinding": {
+      "executionHeadUnchanged": "bfc133f24458957ba1d0773ae517333890617049",
+      "evidenceHeadAtReview": "ee823caf9cb0ba093679edf71a0289ba7d51af18",
+      "evidenceTreeAtReview": "e71e3e5ff54fe3ec05fb8232ae277aeb557b49bd",
+      "reviewed15CurrentShaMismatches": 0,
+      "productTestPolicyDiffSinceExecution": "src/include/scripts/test/CMakeLists.txt/VERSION/AGENTS.md/.codex/config.toml에서 bfc133→ee823 diff없음",
+      "hostBinarySha256": "29da6795c7a2983c533463cdbffd1d14820892c54321c6d9519833c01789c794",
+      "hostRuntimeArchiveSha256": "69fe350383c38c5f297c5ab23d512515a3200c3429da3833919ab0b343a727b1",
+      "producerApplications": 0,
+      "approvalMeaning": "최초 source 독립검토와 기존 승인 원장의 범위를 유지한다. 보존·정리 확인은 새로운 Linux runtime/120분 제품 합격이나 legacy 재승인이 아니다."
+    },
+    "privacy": {
+      "scope": "불변archive 기존 검토 범위와 새 validation finalization의 원출력 영수증/객체 OID/경로/해시/cleanup 상태",
+      "newMetadataPatternHits": {
+        "privateKeyHeaders": 0,
+        "credentialHeaders": 0,
+        "urlCredentialUserinfo": 0,
+        "credentialTokenAssignments": 0
+      },
+      "contentJudgment": "추가원출력은 Git branch/commit/blob metadata와 exact owned container ID/image ID이다. 검토 범위에서 secret/auth/session/raw source URL/제품 서버본문/미디어를 발견하지 않았다.",
+      "originalBytes": "archive stdout/stderr는 정제본으로 바뀌지 않았고 동일SHA를 유지한다. 새로운 evidence archive나 과거실행 복제 없이 필요한 원본을 Git에 보존했다.",
+      "limit": "한정된 패턴·내용 검토이며 포괄적인 비밀 부재 보증은 아니다. 최초 remote DNS 실패는 원캡처 파일 없이 기존 도구출력 메타데이터만 남는 한계가 유지된다."
+    },
+    "postArchiveRawReceiptBindings": [
+      {
+        "name": "preserve-commit",
+        "exit": 0,
+        "startedAt": "2026-10-08T12:44:50.439441+00:00",
+        "elapsedSeconds": 0.03345754090696573,
+        "stdoutSha256": "f1c28a37d7dd48d9d9692c5568190cec1b432adb5e8fae55f1a7a96708eae77d",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "embeddedRawBytesShaVerified": true
+      },
+      {
+        "name": "pre-push-remote",
+        "exit": 0,
+        "startedAt": "2026-10-08T12:45:14.770095+00:00",
+        "elapsedSeconds": 2.2739919159794226,
+        "stdoutSha256": "a62a88db28bd47288ae0a2831f8d84320336dfbe4aa5e636d59bb9e9c6b7fa78",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "embeddedRawBytesShaVerified": true
+      },
+      {
+        "name": "initial-push",
+        "exit": 0,
+        "startedAt": "2026-10-08T12:45:20.526357+00:00",
+        "elapsedSeconds": 3.9472355000907555,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrSha256": "880c76d1c978b976659208d8a109f592112a2a26a2fed49ced333a316b96bb99",
+        "embeddedRawBytesShaVerified": true
+      },
+      {
+        "name": "initial-readback",
+        "exit": 0,
+        "startedAt": "2026-10-08T12:46:06.190243+00:00",
+        "elapsedSeconds": 5.078522791038267,
+        "stdoutSha256": "ab35e94c30f77a5ea4febe8cd6e77601576d504eb349fa768a1633e538ef68f0",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "embeddedRawBytesShaVerified": true
+      },
+      {
+        "name": "linux-remove",
+        "exit": 0,
+        "startedAt": "2026-10-08T12:47:46.776829+00:00",
+        "elapsedSeconds": 1.1192464160267264,
+        "stdoutSha256": "5885509cd044bca80acded8613b1f768962ed8d4db53f4e2a64ab9e08952f746",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "embeddedRawBytesShaVerified": true
+      },
+      {
+        "name": "linux-absence",
+        "exit": 0,
+        "startedAt": "2026-10-08T12:47:51.094341+00:00",
+        "elapsedSeconds": 0.021162332966923714,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "embeddedRawBytesShaVerified": true
+      },
+      {
+        "name": "image-retained",
+        "exit": 0,
+        "startedAt": "2026-10-08T12:47:51.142022+00:00",
+        "elapsedSeconds": 0.03526308399159461,
+        "stdoutSha256": "74661204b29b7cfc16a1b8f64983fa3e1760f1bd2090ceafb20bef405fc9ffb8",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "embeddedRawBytesShaVerified": true
+      }
+    ],
+    "finalMetadata": {
+      "commit": "pending after this addendum",
+      "push": "pending after this addendum",
+      "meaning": "ee823의 근거 보존 일반push 성공과 아직 수행하지 않은 이부록/최종cleanup metadata commit·push를 구분한다. 메인이 후속 최종 결속을 수행한다."
+    },
+    "limitations": [
+      "원격 API·Docker 엔진을 검토자가 다시 조회하지 않았으며 해당 실제상태는 보존된 메인 원출력에 근거한다. 로컬 Git 바이트/현재소스/host binary hash/scratch 부재는 검토자가 직접 확인했다.",
+      "검사 컴파일 FAIL을 해소하지 않았고 필수 guard/store/A/120분과 자원·복구 runtime 관측은 계속 미실행이다.",
+      "최초판단 원본은 보존commit 경로와 hash로 유지된다. 이 파일의 후속부록을 포함한 최종metadata commit/push 성공은 아직 확인하지 않았다."
+    ]
   }
 }

@@ -181,14 +181,30 @@
   "cleanup": {
     "linuxStopCommandExit": 0,
     "linuxState": "exited Running=false Pid0 ExitCode137 OOMKilled=false; sleep infinity stopped after10s, not product graceful-stop evidence",
-    "linuxObject": "retained stopped until local/remote preservation",
+    "linuxObject": "removed by exact owned ID after local/remote byte preservation; filtered docker ps -a empty",
     "imageRetained": true,
     "hostServerStarts": 0,
     "hostPortReservations": 0,
     "browserStarts": 0,
     "QwenOllamaCalls": 0,
     "QwenOllamaUnloadGate": "not-run",
-    "ownedParent": "preserved until Git byte readback and remote preservation"
+    "ownedParent": {
+      "path": "/private/tmp/media-server-release66-jkxo0fnh",
+      "uid": 501,
+      "inode": 171282972,
+      "preservedCommit": "ee823caf9cb0ba093679edf71a0289ba7d51af18",
+      "remoteRequiredBlobs": 5,
+      "remoteByteReadback": "PASS",
+      "at": "2026-10-08T12:48:51.945047+00:00",
+      "method": "ownership/realpath/inode verified; shutil.rmtree does not follow child symlinks; only exact owned parent",
+      "hostServersStarted": 0,
+      "hostPortsReserved": 0,
+      "absent": true,
+      "commandExit": 0
+    },
+    "containerRemoveExit": 0,
+    "containerAbsent": true,
+    "localRemoteBeforeRemoval": true
   },
   "preservation": {
     "raw": "66-execution.tar.gz:commands/* separate original stdout/stderr and receipts",
@@ -225,7 +241,15 @@
     "finding": "R66-01: six GCC test-source layout diagnostics; test source change requires subsequent authorized work",
     "initialOriginalBytes": 28463,
     "initialOriginalSha256": "f86fabcac6376bbb70afbf728e2a6aaa12268c292d5bfdab98c030648c01bc6d",
-    "finalRemotePreservationCleanupReview": "pending",
+    "finalRemotePreservationCleanupReview": {
+      "status": "APPROVE_SCOPED preservation/cleanup record only",
+      "addendum": "66-independent-review.json:finalPreservationReadbackCleanupAddendum",
+      "finalReviewBytes": 40460,
+      "finalReviewSha256": "add284fdf6683ee2e49122c21b0e57f7295b67b240a6dfd881ee0e74e7ec6312",
+      "initialJudgmentBytesUnchanged": true,
+      "initialJudgmentCommit": "ee823caf9cb0ba093679edf71a0289ba7d51af18",
+      "limits": "reviewer independently checked local bytes/source/parent absence; remote and Docker rely on original executed receipts; new Linux runtime/120min remain not-run"
+    },
     "originalReviewedValidation": {
       "path": "66-review-input.json.gz",
       "uncompressedBytes": 9208,
@@ -244,6 +268,325 @@
     "whitespace": {
       "exit": 0,
       "raw": "66-execution.tar.gz:commands/whitespace.*"
+    }
+  },
+  "finalization": {
+    "evidenceCommit": "ee823caf9cb0ba093679edf71a0289ba7d51af18",
+    "remotePreservationReadback": {
+      "head": "ee823caf9cb0ba093679edf71a0289ba7d51af18",
+      "remoteHead": "ee823caf9cb0ba093679edf71a0289ba7d51af18",
+      "rows": [
+        {
+          "path": "docs/development-backlog.md",
+          "oid": "ef22c1596b581dc0abf264f21d680dcc2e91351d",
+          "bytes": 22291,
+          "sha256": "9bd73071cb1be64a7e9762ca2e557fa9ca4afe241466b49e1eb7d864b13f70c6",
+          "localGitBytesEqual": true,
+          "remoteGitBytesEqual": true,
+          "apiExit": 0
+        },
+        {
+          "path": "docs/release-artifacts/v4.5.0/66-execution.tar.gz",
+          "oid": "4779406538324a6ef84ce8ff73eee1b6dffc18fb",
+          "bytes": 118102,
+          "sha256": "9766d4e4101fd52be7a95c416b7d2fff70a3f8aac131d6b02777c3f1b58a3f4a",
+          "localGitBytesEqual": true,
+          "remoteGitBytesEqual": true,
+          "apiExit": 0
+        },
+        {
+          "path": "docs/release-artifacts/v4.5.0/66-independent-review.json",
+          "oid": "35d8f975d625e3af5f830f55519b7e06b951bd5d",
+          "bytes": 28463,
+          "sha256": "f86fabcac6376bbb70afbf728e2a6aaa12268c292d5bfdab98c030648c01bc6d",
+          "localGitBytesEqual": true,
+          "remoteGitBytesEqual": true,
+          "apiExit": 0
+        },
+        {
+          "path": "docs/release-artifacts/v4.5.0/66-review-input.json.gz",
+          "oid": "afbbfe6545967a003dff962b85f53e911d8bf3b0",
+          "bytes": 4338,
+          "sha256": "e9a4712c18b1e6533aeebf786b9119dc6c39cb77c7645ff334354b3ffc01ece9",
+          "localGitBytesEqual": true,
+          "remoteGitBytesEqual": true,
+          "apiExit": 0
+        },
+        {
+          "path": "docs/release-artifacts/v4.5.0/66-validation.json",
+          "oid": "f16e31c69a68ec1969c49a8e06f8d8a2dc0756ae",
+          "bytes": 11036,
+          "sha256": "8502c0be93310bf84e7477bff210e3c185f1194cec1be67d703eb6187c20c52b",
+          "localGitBytesEqual": true,
+          "remoteGitBytesEqual": true,
+          "apiExit": 0
+        }
+      ],
+      "requiredObjects": 5,
+      "result": "PASS",
+      "note": "raw GitHub blob bytes decoded and compared; file counts/raw blob sum are not push pack size"
+    },
+    "newObjectSizeInspection": {
+      "head": "ee823caf9cb0ba093679edf71a0289ba7d51af18",
+      "remoteBefore": "bfc133f24458957ba1d0773ae517333890617049",
+      "ancestor": true,
+      "objects": [
+        {
+          "oid": "ee823caf9cb0ba093679edf71a0289ba7d51af18",
+          "type": "commit",
+          "bytes": 710,
+          "path": null
+        },
+        {
+          "oid": "e71e3e5ff54fe3ec05fb8232ae277aeb557b49bd",
+          "type": "tree",
+          "bytes": 1029,
+          "path": ""
+        },
+        {
+          "oid": "3f12faeb5e5c2824a4303aa20efbd7a32c374595",
+          "type": "tree",
+          "bytes": 5713,
+          "path": "docs"
+        },
+        {
+          "oid": "ef22c1596b581dc0abf264f21d680dcc2e91351d",
+          "type": "blob",
+          "bytes": 22291,
+          "path": "docs/development-backlog.md"
+        },
+        {
+          "oid": "0df92e4cab931039aa5d9701a24606acee82e884",
+          "type": "tree",
+          "bytes": 198,
+          "path": "docs/release-artifacts"
+        },
+        {
+          "oid": "dbbbdcb603194d690acbc0c3b37d51e33f59d619",
+          "type": "tree",
+          "bytes": 37377,
+          "path": "docs/release-artifacts/v4.5.0"
+        },
+        {
+          "oid": "4779406538324a6ef84ce8ff73eee1b6dffc18fb",
+          "type": "blob",
+          "bytes": 118102,
+          "path": "docs/release-artifacts/v4.5.0/66-execution.tar.gz"
+        },
+        {
+          "oid": "35d8f975d625e3af5f830f55519b7e06b951bd5d",
+          "type": "blob",
+          "bytes": 28463,
+          "path": "docs/release-artifacts/v4.5.0/66-independent-review.json"
+        },
+        {
+          "oid": "afbbfe6545967a003dff962b85f53e911d8bf3b0",
+          "type": "blob",
+          "bytes": 4338,
+          "path": "docs/release-artifacts/v4.5.0/66-review-input.json.gz"
+        },
+        {
+          "oid": "f16e31c69a68ec1969c49a8e06f8d8a2dc0756ae",
+          "type": "blob",
+          "bytes": 11036,
+          "path": "docs/release-artifacts/v4.5.0/66-validation.json"
+        }
+      ],
+      "totalUncompressedBlobBytes": 184230,
+      "packSize": "not generated/not measured; raw blob sum is not push pack size"
+    },
+    "postArchiveCommands": [
+      {
+        "name": "preserve-commit",
+        "argv": [
+          "git",
+          "commit",
+          "-m",
+          "docs(v4.5.0): preserve Linux verifier compilation blocker",
+          "-m",
+          "Fix execution provenance at bfc133f24458957ba1d0773ae517333890617049. Reused rc58 arm64 image; GStreamer/ONNX/SigLIP2 ON product build passes. Required observation smoke fails at six GCC misleading-indentation diagnostics before seed/recovery/readback. Preserve raw failure and independent result review; A consumers and new mixed120 remain not-run. No product/test/approval change or warning relaxation."
+        ],
+        "cwd": "/Users/dhseo/Workspace/mediaServer",
+        "uid": 501,
+        "startedAt": "2026-10-08T12:44:50.439441+00:00",
+        "pid": 30880,
+        "exit": 0,
+        "elapsedSeconds": 0.03345754090696573,
+        "stdout": {
+          "bytes": 403,
+          "sha256": "f1c28a37d7dd48d9d9692c5568190cec1b432adb5e8fae55f1a7a96708eae77d",
+          "rawUtf8": "[v4.5.0 ee823caf9] docs(v4.5.0): preserve Linux verifier compilation blocker\n 5 files changed, 832 insertions(+)\n create mode 100644 docs/release-artifacts/v4.5.0/66-execution.tar.gz\n create mode 100644 docs/release-artifacts/v4.5.0/66-independent-review.json\n create mode 100644 docs/release-artifacts/v4.5.0/66-review-input.json.gz\n create mode 100644 docs/release-artifacts/v4.5.0/66-validation.json\n"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "rawUtf8": ""
+        }
+      },
+      {
+        "name": "pre-push-remote",
+        "argv": [
+          "git",
+          "ls-remote",
+          "origin",
+          "refs/heads/v4.5.0"
+        ],
+        "cwd": "/Users/dhseo/Workspace/mediaServer",
+        "uid": 501,
+        "startedAt": "2026-10-08T12:45:14.770095+00:00",
+        "pid": 30911,
+        "exit": 0,
+        "elapsedSeconds": 2.2739919159794226,
+        "stdout": {
+          "bytes": 59,
+          "sha256": "a62a88db28bd47288ae0a2831f8d84320336dfbe4aa5e636d59bb9e9c6b7fa78",
+          "rawUtf8": "bfc133f24458957ba1d0773ae517333890617049\trefs/heads/v4.5.0\n"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "rawUtf8": ""
+        }
+      },
+      {
+        "name": "initial-push",
+        "argv": [
+          "git",
+          "push",
+          "origin",
+          "HEAD:refs/heads/v4.5.0"
+        ],
+        "cwd": "/Users/dhseo/Workspace/mediaServer",
+        "uid": 501,
+        "startedAt": "2026-10-08T12:45:20.526357+00:00",
+        "pid": 30942,
+        "exit": 0,
+        "elapsedSeconds": 3.9472355000907555,
+        "stdout": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "rawUtf8": ""
+        },
+        "stderr": {
+          "bytes": 78,
+          "sha256": "880c76d1c978b976659208d8a109f592112a2a26a2fed49ced333a316b96bb99",
+          "rawUtf8": "To github.com:dhseo90/MediaServer.git\n   bfc133f24..ee823caf9  HEAD -> v4.5.0\n"
+        }
+      },
+      {
+        "name": "initial-readback",
+        "argv": [
+          "python3",
+          "/private/tmp/media-server-release66-jkxo0fnh/remote-readback.py"
+        ],
+        "cwd": "/Users/dhseo/Workspace/mediaServer",
+        "uid": 501,
+        "startedAt": "2026-10-08T12:46:06.190243+00:00",
+        "pid": 30976,
+        "exit": 0,
+        "elapsedSeconds": 5.078522791038267,
+        "stdout": {
+          "bytes": 1647,
+          "sha256": "ab35e94c30f77a5ea4febe8cd6e77601576d504eb349fa768a1633e538ef68f0",
+          "rawUtf8": "{\"head\": \"ee823caf9cb0ba093679edf71a0289ba7d51af18\", \"remoteHead\": \"ee823caf9cb0ba093679edf71a0289ba7d51af18\", \"rows\": [{\"path\": \"docs/development-backlog.md\", \"oid\": \"ef22c1596b581dc0abf264f21d680dcc2e91351d\", \"bytes\": 22291, \"sha256\": \"9bd73071cb1be64a7e9762ca2e557fa9ca4afe241466b49e1eb7d864b13f70c6\", \"localGitBytesEqual\": true, \"remoteGitBytesEqual\": true, \"apiExit\": 0}, {\"path\": \"docs/release-artifacts/v4.5.0/66-execution.tar.gz\", \"oid\": \"4779406538324a6ef84ce8ff73eee1b6dffc18fb\", \"bytes\": 118102, \"sha256\": \"9766d4e4101fd52be7a95c416b7d2fff70a3f8aac131d6b02777c3f1b58a3f4a\", \"localGitBytesEqual\": true, \"remoteGitBytesEqual\": true, \"apiExit\": 0}, {\"path\": \"docs/release-artifacts/v4.5.0/66-independent-review.json\", \"oid\": \"35d8f975d625e3af5f830f55519b7e06b951bd5d\", \"bytes\": 28463, \"sha256\": \"f86fabcac6376bbb70afbf728e2a6aaa12268c292d5bfdab98c030648c01bc6d\", \"localGitBytesEqual\": true, \"remoteGitBytesEqual\": true, \"apiExit\": 0}, {\"path\": \"docs/release-artifacts/v4.5.0/66-review-input.json.gz\", \"oid\": \"afbbfe6545967a003dff962b85f53e911d8bf3b0\", \"bytes\": 4338, \"sha256\": \"e9a4712c18b1e6533aeebf786b9119dc6c39cb77c7645ff334354b3ffc01ece9\", \"localGitBytesEqual\": true, \"remoteGitBytesEqual\": true, \"apiExit\": 0}, {\"path\": \"docs/release-artifacts/v4.5.0/66-validation.json\", \"oid\": \"f16e31c69a68ec1969c49a8e06f8d8a2dc0756ae\", \"bytes\": 11036, \"sha256\": \"8502c0be93310bf84e7477bff210e3c185f1194cec1be67d703eb6187c20c52b\", \"localGitBytesEqual\": true, \"remoteGitBytesEqual\": true, \"apiExit\": 0}], \"requiredObjects\": 5, \"result\": \"PASS\", \"note\": \"raw GitHub blob bytes decoded and compared; file counts/raw blob sum are not push pack size\"}\n"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "rawUtf8": ""
+        }
+      },
+      {
+        "name": "linux-remove",
+        "argv": [
+          "docker",
+          "rm",
+          "5c8fb25a560786a8e72cb4cf8626175b8cbfaa65a06647be519c4ddc78f8c51f"
+        ],
+        "cwd": "/Users/dhseo/Workspace/mediaServer",
+        "uid": 501,
+        "startedAt": "2026-10-08T12:47:46.776829+00:00",
+        "pid": 31031,
+        "exit": 0,
+        "elapsedSeconds": 1.1192464160267264,
+        "stdout": {
+          "bytes": 65,
+          "sha256": "5885509cd044bca80acded8613b1f768962ed8d4db53f4e2a64ab9e08952f746",
+          "rawUtf8": "5c8fb25a560786a8e72cb4cf8626175b8cbfaa65a06647be519c4ddc78f8c51f\n"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "rawUtf8": ""
+        }
+      },
+      {
+        "name": "linux-absence",
+        "argv": [
+          "docker",
+          "ps",
+          "-a",
+          "--filter",
+          "id=5c8fb25a560786a8e72cb4cf8626175b8cbfaa65a06647be519c4ddc78f8c51f",
+          "--format",
+          "{{.ID}}"
+        ],
+        "cwd": "/Users/dhseo/Workspace/mediaServer",
+        "uid": 501,
+        "startedAt": "2026-10-08T12:47:51.094341+00:00",
+        "pid": 31042,
+        "exit": 0,
+        "elapsedSeconds": 0.021162332966923714,
+        "stdout": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "rawUtf8": ""
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "rawUtf8": ""
+        }
+      },
+      {
+        "name": "image-retained",
+        "argv": [
+          "docker",
+          "image",
+          "inspect",
+          "mediaserver-v450-verify:rc58-arm64",
+          "--format",
+          "{{.Id}}"
+        ],
+        "cwd": "/Users/dhseo/Workspace/mediaServer",
+        "uid": 501,
+        "startedAt": "2026-10-08T12:47:51.142022+00:00",
+        "pid": 31043,
+        "exit": 0,
+        "elapsedSeconds": 0.03526308399159461,
+        "stdout": {
+          "bytes": 72,
+          "sha256": "74661204b29b7cfc16a1b8f64983fa3e1760f1bd2090ceafb20bef405fc9ffb8",
+          "rawUtf8": "sha256:ce72c8a15363984da642e9964189957896812061c6af1d0ef67e87b38ad5a588\n"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "rawUtf8": ""
+        }
+      }
+    ],
+    "rawMeaning": "archive 확정 이후 Git/cleanup 각 명령의 필요한 stdout/stderr UTF-8 원문을 JSON으로 보존. archive57members는 변경하지 않음.",
+    "finalMetadataCommit": "containing commit; evidence/cleanup metadata only, not new execution source; ordinary push and actual remote SHA checked after commit",
+    "finalSourceCheck": {
+      "reviewedSourceFiles": 15,
+      "mismatches": 0,
+      "productTestApprovalChanges": 0,
+      "newArchiveOrCodeAfterReview": false,
+      "permittedDiff": [
+        "docs/development-backlog.md",
+        "docs/release-artifacts/v4.5.0/66-*"
+      ]
     }
   }
 }
