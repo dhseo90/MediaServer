@@ -1,0 +1,1168 @@
+{
+  "schema": "media-server.v450-limited-validation.v1",
+  "sequence": 68,
+  "status": "PARTIAL-linux-PASS-mixed120-FAIL",
+  "completion": "쓰기 거부 실행 권한 정합·Linux 필수 회귀·변경분 독립 검토 완료; 혼합120분1회 FAIL로 미완료",
+  "recordedAt": "2026-10-08T15:00:25.920647+00:00",
+  "base": "965ee054b40ccb8c61f3c2f0b76e3cb8f08cc07b",
+  "requestedSettings": {
+    "main": "gpt-6.1-sol/high",
+    "independent": "gpt-6-astra/high",
+    "mainActualRuntimeModel": null,
+    "mainActualRuntimeEffort": null,
+    "independentActualRuntimeModel": null,
+    "independentActualRuntimeEffort": null,
+    "reason": "tool does not expose applied model/effort/snapshot; requested values do not prove actual runtime",
+    "productQwenOllamaCalls": 0
+  },
+  "source": {
+    "implementationCommit": "d56808abc67f34fc4d7c12f176085c7b9e948403",
+    "implementationTree": "53068d32dd8b8b8e0449d9f1dc7492d2617d2421",
+    "productImplementation": "0334b7449822c0e5eefcb677d792f055330365f2",
+    "LinuxExecution": "entry base + inputs/source.diff;1642-file source snapshot and3file committed byte binding verified",
+    "files": [
+      {
+        "path": "scripts/internal/va_review_smoke.cpp",
+        "sha256": "992d43b0edc954414eff4ea44f38ddcb52580a2d5d87e402dde91dbcf47527df",
+        "commitByteMatch": true
+      },
+      {
+        "path": "scripts/internal/verify_va_review_bound_record.py",
+        "sha256": "2998d9b42bdb467f4c6eb1f4f5194c4233c343760dd1226becf5e249ecd34dda",
+        "commitByteMatch": true
+      },
+      {
+        "path": "docs/project-feature-test-inventory.md",
+        "sha256": "a58b6e27fe475d063d367d15dddd47dd971f063705c55ac1638e7dbfadfc5a0e",
+        "commitByteMatch": true
+      }
+    ],
+    "diffSha256": "0a6763e02af35a78a88405df962d5aed397ec02926e7af734ef1b1c606241b19",
+    "LinuxSourceFiles": 1642,
+    "LinuxSourceMismatches": [],
+    "productEdits": 0,
+    "publicPolicyOrAssertionLimitChanges": 0,
+    "mixedHarnessEdits": 0,
+    "hostProductRebuilt": false,
+    "sourceDuringMixedUnchanged": true,
+    "evidenceCommitIsExecutionSource": false
+  },
+  "permissionContrasts": {
+    "root": {
+      "state": [
+        {
+          "phase": "0700",
+          "uid": 0,
+          "euid": 0,
+          "gid": 0,
+          "egid": 0,
+          "directory": "/private/tmp/media-server-linux68-root/media-server-bound-review-rrrizytw/legacy/unwritable",
+          "owner": 0,
+          "mode": 448,
+          "device": 53,
+          "inode": 217022,
+          "linuxIdentity": "Uid:\t0\t0\t0\t0\nGid:\t0\t0\t0\t0\nCapEff:\t00000000a80425fb\n"
+        },
+        {
+          "phase": "0500",
+          "uid": 0,
+          "euid": 0,
+          "gid": 0,
+          "egid": 0,
+          "directory": "/private/tmp/media-server-linux68-root/media-server-bound-review-rrrizytw/legacy/unwritable",
+          "owner": 0,
+          "mode": 320,
+          "device": 53,
+          "inode": 217022,
+          "linuxIdentity": "Uid:\t0\t0\t0\t0\nGid:\t0\t0\t0\t0\nCapEff:\t00000000a80425fb\n"
+        },
+        {
+          "phase": "before-Publish",
+          "uid": 0,
+          "euid": 0,
+          "gid": 0,
+          "egid": 0,
+          "directory": "/private/tmp/media-server-linux68-root/media-server-bound-review-rrrizytw/legacy/unwritable",
+          "owner": 0,
+          "mode": 320,
+          "device": 53,
+          "inode": 217022,
+          "linuxIdentity": "Uid:\t0\t0\t0\t0\nGid:\t0\t0\t0\t0\nCapEff:\t00000000a80425fb\n"
+        }
+      ],
+      "probe": [
+        {
+          "phase": "0700",
+          "created": true,
+          "errno": 0
+        },
+        {
+          "phase": "0500",
+          "created": true,
+          "errno": 0
+        }
+      ],
+      "publish": [
+        {
+          "diagnosticOnly": true,
+          "published": true,
+          "error": "",
+          "returnedId": "vr-f72d4f4bf0b8550e6c87277f17b0bf794327b44a7a04857710bbcae73423e948"
+        }
+      ],
+      "files": [
+        {
+          "pending": false,
+          "filesBefore": [
+            ".writer-lock-v1"
+          ],
+          "filesAfter": [
+            ".writer-lock-v1",
+            "vr-f72d4f4bf0b8550e6c87277f17b0bf794327b44a7a04857710bbcae73423e948.review"
+          ],
+          "filesUnchanged": false
+        }
+      ],
+      "fixtureBinarySha256": "f97b11dfb7dbd09cec6681d026bb75eb3945b638f079474d52beccf84f73b177",
+      "attempts": 1,
+      "formalRegressionPass": false,
+      "commandReceipt": "68-execution.tar.gz:commands/root-contrast.json"
+    },
+    "unprivileged": {
+      "state": [
+        {
+          "phase": "0700",
+          "uid": 10001,
+          "euid": 10001,
+          "gid": 10001,
+          "egid": 10001,
+          "directory": "/private/tmp/media-server-linux68-user/media-server-bound-review-7u24x88v/legacy/unwritable",
+          "owner": 10001,
+          "mode": 448,
+          "device": 53,
+          "inode": 217027,
+          "linuxIdentity": "Uid:\t10001\t10001\t10001\t10001\nGid:\t10001\t10001\t10001\t10001\nCapEff:\t0000000000000000\n"
+        },
+        {
+          "phase": "0500",
+          "uid": 10001,
+          "euid": 10001,
+          "gid": 10001,
+          "egid": 10001,
+          "directory": "/private/tmp/media-server-linux68-user/media-server-bound-review-7u24x88v/legacy/unwritable",
+          "owner": 10001,
+          "mode": 320,
+          "device": 53,
+          "inode": 217027,
+          "linuxIdentity": "Uid:\t10001\t10001\t10001\t10001\nGid:\t10001\t10001\t10001\t10001\nCapEff:\t0000000000000000\n"
+        },
+        {
+          "phase": "before-Publish",
+          "uid": 10001,
+          "euid": 10001,
+          "gid": 10001,
+          "egid": 10001,
+          "directory": "/private/tmp/media-server-linux68-user/media-server-bound-review-7u24x88v/legacy/unwritable",
+          "owner": 10001,
+          "mode": 320,
+          "device": 53,
+          "inode": 217027,
+          "linuxIdentity": "Uid:\t10001\t10001\t10001\t10001\nGid:\t10001\t10001\t10001\t10001\nCapEff:\t0000000000000000\n"
+        }
+      ],
+      "probe": [
+        {
+          "phase": "0700",
+          "created": true,
+          "errno": 0
+        },
+        {
+          "phase": "0500",
+          "created": false,
+          "errno": 13
+        }
+      ],
+      "publish": [
+        {
+          "diagnosticOnly": true,
+          "published": false,
+          "error": "review-write-failed",
+          "returnedId": "unchanged"
+        }
+      ],
+      "files": [
+        {
+          "pending": false,
+          "filesBefore": [
+            ".writer-lock-v1"
+          ],
+          "filesAfter": [
+            ".writer-lock-v1"
+          ],
+          "filesUnchanged": true
+        }
+      ],
+      "fixtureBinarySha256": "f97b11dfb7dbd09cec6681d026bb75eb3945b638f079474d52beccf84f73b177",
+      "attempts": 1,
+      "formalRegressionPass": false,
+      "commandReceipt": "68-execution.tar.gz:commands/unprivileged-contrast.json"
+    },
+    "sameFilesystemDevice": 53,
+    "bothContextMode0700Create": true,
+    "root0500Create": true,
+    "nonroot0500Create": false,
+    "nonrootProbeErrno": 13,
+    "effect": "UID0/CapEff bypasses0500 new-file denial; UID10001/zeroCapEff on owned directory has actualEACCES and Publish false/exactreview-write-failed. New contrast demonstrates permission effect, not unique historical67 cause.",
+    "formalPrerequisite": "0700 actualcreate succeeds;0500 actualcreate EACCES; otherwise nonzero preparation failure, no skip/root PASS. Original ID/unpublished/pending/hash/error checks retained; existing RLIMIT tests retained.",
+    "historical67": {
+      "originalPublishBool": null,
+      "originalPublishError": null,
+      "failedFixtureFileState": null,
+      "uniqueRootCause": "unconfirmed; missing original observations not reconstructed"
+    }
+  },
+  "Linux": {
+    "image": "mediaserver-v450-verify:rc58-arm64",
+    "imageId": "sha256:ce72c8a15363984da642e9964189957896812061c6af1d0ef67e87b38ad5a588",
+    "containerId": "eb5f43204e54a83079b900d5d733d61b64a22cfcc2900b22640fecbed157fb3e",
+    "architecture": "aarch64",
+    "OS": "Debian forky/sid",
+    "compiler": "GNU16.2.0",
+    "compilerOptions": "C++17 -Wall -Wextra -Werror unchanged",
+    "gstreamer": "1.28.7",
+    "onnxRuntime": "official CPU1.23.2 /opt/onnxruntime-linux-aarch64-1.23.2",
+    "sentencePiece": "0.2.0 static /opt/rc58-sentencepiece",
+    "buildFeatures": {
+      "GSTREAMER": "ON",
+      "ONNXRUNTIME": "ON",
+      "SIGLIP2": "ON"
+    },
+    "budgets": {
+      "CPU": 2,
+      "memoryBytes": 6442450944,
+      "swapTotalBytes": 6442450944,
+      "pids": 256,
+      "network": "none"
+    },
+    "newInstallations": 0,
+    "productBuild": {
+      "exit": 0,
+      "elapsedSeconds": 108.67549279204104,
+      "binarySha256": "5f779e0b5dce14ec8439a6acdddda66967df9b1d4a7a3220fd80a8da8bfc1496",
+      "runtimeArchiveSha256": "8fe303e8d656ab59402a1016d9c29c6b5b89135a92c59e94dc5589313f93a5f1",
+      "matches67ProductBytes": true
+    },
+    "regularExecutionContext": {
+      "actualUID": 10001,
+      "EUID": 10001,
+      "GID": 10001,
+      "EGID": 10001,
+      "FSUID": 10001,
+      "CapEff": "0000000000000000",
+      "ownedWritableTMPDIR": "/private/tmp/media-server-linux68-user",
+      "ownedHOME": "/work/home",
+      "hostSourceWritableMount": false,
+      "SDKOrHostChown": false
+    },
+    "preparationFailures": {
+      "firstWrapperExit": 1,
+      "stage": "after legacy58 PASS, before core child",
+      "error": "source snapshot omitted existing 37-request-freeze.json",
+      "sourcePath": "docs/release-artifacts/v4.5.0/37-request-freeze.json",
+      "bytes": 48142,
+      "sha256": "c540932427ca1f33d87b2ea30f95fc237788bc6961a36347906a26882303bece",
+      "correction": "copy exact tracked source fixture; no source/expected/option change",
+      "retestReason": "same wrapper was incomplete due owned snapshot preparation omission",
+      "copyFailure": {
+        "exit": 1,
+        "cause": "destination directory absent"
+      },
+      "unexpectedDuplicateWrapper": {
+        "name": "linux-A-bound-ready",
+        "exit": 1,
+        "reason": "main dispatched before inspecting prior copy exit; same missing fixture failure",
+        "formalPass": false
+      },
+      "confirmedPreparation": {
+        "mkdirExit": 0,
+        "copyExit": 0,
+        "hashReadbackExit": 0
+      }
+    },
+    "initialHelperLookupError": {
+      "command": "create owned root and read previous capture helper",
+      "exit": 1,
+      "error": "KeyError: inputs/capture.py absent",
+      "actualMember": "capture.py",
+      "correction": "read exact existing member; no runtime or test performed"
+    },
+    "boundWrapper": {
+      "attempts": 3,
+      "firstTwo": {
+        "exit": 1,
+        "classification": "same owned source snapshot preparation omission; second was dispatched before checking copy failure, main error, not expectedRED/notPASS"
+      },
+      "complete": {
+        "exit": 0,
+        "elapsedSeconds": 3.0071784160099924,
+        "boundSeed": 93,
+        "boundFreshRead": 17,
+        "legacy": 58,
+        "core": 168,
+        "allChildrenExit": 0,
+        "signals": null,
+        "fixtureFinallyCleanup": "owned root removed",
+        "boundSeedPassOutputLines": 94,
+        "countMeaning": "actual final assertion summary93; fork duplicates one output line"
+      }
+    },
+    "confirmed": {
+      "exit": 0,
+      "elapsedSeconds": 3.211235750000924,
+      "seed": 18,
+      "native": 63,
+      "freshRead": 2,
+      "freshReadOriginalCatalogMediaPackagesRemoved": true,
+      "allChildrenExit": 0,
+      "signals": null,
+      "ownedFixtureCleanup": true
+    },
+    "K07Reused": "67 observation237/recover2/readback9 at prior UID/environment only; no rerun. New bound/confirmed consumers executed under actualUID10001.",
+    "stop": {
+      "name": "linux-stopped-state",
+      "argv": [
+        "docker",
+        "inspect",
+        "mediaserver-release68-linux",
+        "--format",
+        "{{json .State}}"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "startedAt": "2026-10-08T14:35:28.570600+00:00",
+      "pid": 36085,
+      "exit": 0,
+      "elapsedSeconds": 0.02195437508635223,
+      "stdout": {
+        "bytes": 226,
+        "sha256": "fdf40923a08952d3298dbb3d3aed6f7be0508ef63a9d5dc3530eaf14f6fe2e75"
+      },
+      "stderr": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "containerRunning": false,
+    "containerPID": 0,
+    "PID1Exit137Meaning": "docker stop sleep infinity; not product crash or graceful recovery test",
+    "resourcesMeaning": "cgroup counters include build/cache; not product RSS/footprint; raw final sample preserved"
+  },
+  "approvalImpact": {
+    "legacyRows": 986,
+    "fullItemsEqual": true,
+    "candidateDigest": "137543c6332a73f9a77599bfaca732bd1f54b263adee078fe5d3f8c275775906",
+    "candidateSha256": "5c6281009cc9bd804ff79538ce88ff13e4dc4af051001348095119d32540d6df",
+    "migrationExit": 0,
+    "producerApplications": 0,
+    "directProofId": "V450-S01",
+    "consumers": [
+      "V450-K05",
+      "V450-K08",
+      "V450-K09",
+      "V450-A02"
+    ],
+    "productSourceUnchanged": true
+  },
+  "independentReview": {
+    "reviewer": "/root/independent_release68",
+    "requested": "gpt-6-astra/high",
+    "actualExposedModelEffort": null,
+    "separateFromImplementationAndExecution": true,
+    "sourceCommit": "d56808abc67f34fc4d7c12f176085c7b9e948403",
+    "record": "68-independent-review.json",
+    "codeAndLinux": "approved; exact3file commit/diff binding confirmed before mixed",
+    "mixed": "FAIL/incomplete; no release approval",
+    "producerApplications": 0,
+    "originalJsonSha256BeforeCleanupAddendum": "1961b560d869d7d5b3efb3c70bda9d0942426a3612abb58bc387751e7371ada0",
+    "preservation": "APPROVE_SELECTED_FAILURE_PRESERVATION; no blocking preservation findings; actual raw/sanitized/package/PNG/source contrast read"
+  },
+  "mixed120": {
+    "attempts": 1,
+    "prepareAttempts": 0,
+    "preparation65Reused": "same host product/runtime/model/tokenizer bytes verified; no ceremonial30s rerun",
+    "hostMacOS": "27.0.1 arm64",
+    "hostCoreParserMux": "1.28.1 exact approved combination",
+    "hostBinarySha256": "29da6795c7a2983c533463cdbffd1d14820892c54321c6d9519833c01789c794",
+    "source": {
+      "head": "d56808abc67f34fc4d7c12f176085c7b9e948403",
+      "tree": "53068d32dd8b8b8e0449d9f1dc7492d2617d2421",
+      "sourceSha256": "336c0a37c37e0293c4c36f6b9abd0fd4f5b54de8c79d678bacfa93f434f9683d",
+      "binarySha256": "29da6795c7a2983c533463cdbffd1d14820892c54321c6d9519833c01789c794"
+    },
+    "sourceEnd": {
+      "head": "d56808abc67f34fc4d7c12f176085c7b9e948403",
+      "tree": "53068d32dd8b8b8e0449d9f1dc7492d2617d2421",
+      "sourceSha256": "336c0a37c37e0293c4c36f6b9abd0fd4f5b54de8c79d678bacfa93f434f9683d",
+      "binarySha256": "29da6795c7a2983c533463cdbffd1d14820892c54321c6d9519833c01789c794"
+    },
+    "wrapperSha256": "e80cbf338dda800a3f55d0043526da2def1a707f040ab564c9ed90e8d25e7362",
+    "observationTargetSeconds": 7200,
+    "overallBudgetSeconds": 7380,
+    "actualExecutionElapsedSeconds": 374.842370999977,
+    "totalWithFinalBindingSeconds": 375.21988416591194,
+    "actualSampleSpanSeconds": 360.33307687499996,
+    "verifiedDurationMs": null,
+    "longrunObservationCompleted": false,
+    "exit": 1,
+    "timeout": false,
+    "load": "unchanged2recordingchannels/4searchclients/A60s max120 inflight1",
+    "firstFailure": {
+      "expected": "A evidence POST201",
+      "observedStatus": 503,
+      "httpError": "evidence-create-failed",
+      "route": "/ops/api/recordings/search/a-record-evidence",
+      "AOpportunitySlot": 6,
+      "elapsedAtOpportunityMs": 361397.875959,
+      "serverStage": "frame",
+      "first": "visual-frame-unavailable",
+      "builder": "visual-frame-unavailable",
+      "published": 0,
+      "checked": 0,
+      "current": 0,
+      "captureRevision": 1414,
+      "checkRevision": 0,
+      "rawDiagnostic": "68-execution.tar.gz:mixed/server-evidence-extract.log",
+      "underlyingCause": "unconfirmed; frame diagnostic does not establish guard rejection",
+      "retries": 0,
+      "newProductFixes": 0
+    },
+    "functionProgress": {
+      "evidenceCycles": 24,
+      "searchSuccess": 100,
+      "searchSuccessByClient": [
+        25,
+        25,
+        25,
+        25
+      ],
+      "evidenceCreated": 24,
+      "complete": 23,
+      "partial": 1,
+      "busy": 24,
+      "visualEvidenceCreated": 24,
+      "retainedChecks": 48,
+      "deletedSourceObserved": true,
+      "ACompleted": 6,
+      "AOpportunities": 7,
+      "failedBeforeAdmission": 1,
+      "middleLateWindows": "not-run; no120minutePASS"
+    },
+    "resources": {
+      "status": "observed",
+      "resourceTrendPass": false,
+      "reviewRequired": true,
+      "sampleCount": 73,
+      "groups": [
+        {
+          "pid": 36689,
+          "startIdentity": "macos:1791470791:621037",
+          "sampleCount": 73,
+          "first": {
+            "phaseAt": 8419.994,
+            "sampledAt": 1791470797074,
+            "rssBytes": 3167666176,
+            "threadCount": 37,
+            "fdCount": 30,
+            "mutationCount": 6
+          },
+          "last": {
+            "phaseAt": 368753.070875,
+            "sampledAt": 1791471157409,
+            "rssBytes": 1787854848,
+            "threadCount": 43,
+            "fdCount": 27,
+            "mutationCount": 1410
+          },
+          "max": {
+            "rssBytes": 3191898112,
+            "threadCount": 43,
+            "fdCount": 32
+          },
+          "delta": {
+            "rssBytes": -1379811328,
+            "threadCount": 6,
+            "fdCount": -3,
+            "mutationCount": 1404
+          },
+          "elapsedMs": 360333.07687499997,
+          "maxGapMs": 5018.684416999997,
+          "warmupMs": 300000,
+          "postWarmup": {
+            "status": "observed",
+            "sampleCount": 13,
+            "delta": {
+              "rssBytes": 1458176,
+              "threadCount": 0,
+              "fdCount": 2,
+              "mutationCount": 236
+            },
+            "elapsedMs": 60058.70449999999,
+            "rssMiBPerMinute": 1.3892657308317398
+          }
+        }
+      ]
+    },
+    "cpu": {
+      "maxPercent": 298.8
+    },
+    "footprintState": "not-measured",
+    "currentPID": 36689,
+    "sourceStorageAndSearchIdentity": "actual synthetic observations projected before serverstart, current live snapshot/A worker; no detector/physical identity validation",
+    "postObservation": {
+      "cancelPermissionRevocation": "not-run",
+      "independentClosedCopyRecovery": "not-run",
+      "restartStoredReadback": "not-run",
+      "reactivation": "not-run"
+    },
+    "cleanup": {
+      "processesClosed": true,
+      "udpClosed": true,
+      "processGroupAbsent": true,
+      "registeredGroupsAbsent": true,
+      "forcedTermination": "not-used",
+      "HTTP_RTSP": "actual process cleanup receipt closed49855/49856"
+    },
+    "resourceTrendPass": false,
+    "reviewRequired": true,
+    "uiFulltestPass": false
+  },
+  "commands": [
+    {
+      "name": "candidate",
+      "exit": 0,
+      "elapsedSeconds": 22.969778083031997,
+      "receipt": "68-execution.tar.gz:commands/candidate.json",
+      "stdout": {
+        "bytes": 198,
+        "sha256": "84acb3a068bfeed8eed50e65f79d7bd5788fb541ffe320c81aeb6ee7a9d9cc34"
+      },
+      "stderr": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "comments",
+      "exit": 0,
+      "elapsedSeconds": 0.5596312920097262,
+      "receipt": "68-execution.tar.gz:commands/comments.json",
+      "stdout": {
+        "bytes": 97,
+        "sha256": "ccdd167443707ccca3776da5c8d0cfc283307cae8a01b13a91a78249fb698c6f"
+      },
+      "stderr": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "docs-links",
+      "exit": 0,
+      "elapsedSeconds": 0.36438258294947445,
+      "receipt": "68-execution.tar.gz:commands/docs-links.json",
+      "stdout": {
+        "bytes": 186,
+        "sha256": "559394874fbde2585413455e32e492a6c047400ca5238723fa4632042553a2a0"
+      },
+      "stderr": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "host-preflight",
+      "exit": 0,
+      "elapsedSeconds": 0.6850052499212325,
+      "receipt": "68-execution.tar.gz:commands/host-preflight.json",
+      "stdout": {
+        "bytes": 1731,
+        "sha256": "029f4a28b99fd7cb481cff7ca626c2ba282b978a75cb61d5f3269dd03300c974"
+      },
+      "stderr": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "host-runtime",
+      "exit": 0,
+      "elapsedSeconds": 1.7445257919607684,
+      "receipt": "68-execution.tar.gz:commands/host-runtime.json",
+      "stdout": {
+        "bytes": 6037,
+        "sha256": "ce9f7cc7dc1868bb210eb0696dfa58c879d719eb9b1abdb3aa9730f068f42a19"
+      },
+      "stderr": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "linux-A-bound-complete",
+      "exit": 0,
+      "elapsedSeconds": 3.0071784160099924,
+      "receipt": "68-execution.tar.gz:commands/linux-A-bound-complete.json",
+      "stdout": {
+        "bytes": 31468,
+        "sha256": "9577356b5b9a8fee20a4e08f8e66d1546eae9847aae8367541db1f90aadf4d92"
+      },
+      "stderr": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "linux-A-bound-ready",
+      "exit": 1,
+      "elapsedSeconds": 3.0268979580141604,
+      "receipt": "68-execution.tar.gz:commands/linux-A-bound-ready.json",
+      "stdout": {
+        "bytes": 16901,
+        "sha256": "9b2433d4eb7e144b30d96bc288df6f05e312f70666337699c782481fce5a0e0d"
+      },
+      "stderr": {
+        "bytes": 484,
+        "sha256": "d5fdad8da51a1d99c22b20fae7f83504b271cadbce43db4d0f0bf4a8645b16ef"
+      }
+    },
+    {
+      "name": "linux-A-bound",
+      "exit": 1,
+      "elapsedSeconds": 3.050465499982238,
+      "receipt": "68-execution.tar.gz:commands/linux-A-bound.json",
+      "stdout": {
+        "bytes": 16903,
+        "sha256": "23354bc089fbb3f22d068dfb7414e2a50050ea5a77a75af616b341748257bd37"
+      },
+      "stderr": {
+        "bytes": 484,
+        "sha256": "d5fdad8da51a1d99c22b20fae7f83504b271cadbce43db4d0f0bf4a8645b16ef"
+      }
+    },
+    {
+      "name": "linux-A-confirmed",
+      "exit": 0,
+      "elapsedSeconds": 3.211235750000924,
+      "receipt": "68-execution.tar.gz:commands/linux-A-confirmed.json",
+      "stdout": {
+        "bytes": 15431,
+        "sha256": "e1e72ad33fc60a4b14f3e9bfec8def6d1abce0fca3c89a1159749dbd562ffaf9"
+      },
+      "stderr": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "linux-build",
+      "exit": 0,
+      "elapsedSeconds": 108.67549279204104,
+      "receipt": "68-execution.tar.gz:commands/linux-build.json",
+      "stdout": {
+        "bytes": 18992,
+        "sha256": "b35ffce08168e4e637e392f6279eaff3752794abc402a15c47daed5404a67bba"
+      },
+      "stderr": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "linux-configure",
+      "exit": 0,
+      "elapsedSeconds": 0.45491212501656264,
+      "receipt": "68-execution.tar.gz:commands/linux-configure.json",
+      "stdout": {
+        "bytes": 1329,
+        "sha256": "fa5c8f28446d2251251b876ca01f8f4a96f885c370f329ab8c888b141dfc9f47"
+      },
+      "stderr": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "linux-copy-core-fixture-ready",
+      "exit": 0,
+      "elapsedSeconds": 0.0256504169665277,
+      "receipt": "68-execution.tar.gz:commands/linux-copy-core-fixture-ready.json",
+      "stdout": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "linux-copy-core-fixture",
+      "exit": 1,
+      "elapsedSeconds": 0.031814874964766204,
+      "receipt": "68-execution.tar.gz:commands/linux-copy-core-fixture.json",
+      "stdout": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "bytes": 134,
+        "sha256": "e6a738c0b2e1d485ec9de8310274755d8e107b4b923e46d4a79d987c052d006e"
+      }
+    },
+    {
+      "name": "linux-copy-test",
+      "exit": 0,
+      "elapsedSeconds": 0.029873250052332878,
+      "receipt": "68-execution.tar.gz:commands/linux-copy-test.json",
+      "stdout": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "linux-copy-wrapper",
+      "exit": 0,
+      "elapsedSeconds": 0.027936500031501055,
+      "receipt": "68-execution.tar.gz:commands/linux-copy-wrapper.json",
+      "stdout": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "linux-core-fixture-check",
+      "exit": 0,
+      "elapsedSeconds": 0.05875600001309067,
+      "receipt": "68-execution.tar.gz:commands/linux-core-fixture-check.json",
+      "stdout": {
+        "bytes": 71,
+        "sha256": "f046320ba8e21be807efa565f5c91be43639e8349ef6f2fd0c356e4a018f3414"
+      },
+      "stderr": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "linux-create",
+      "exit": 0,
+      "elapsedSeconds": 1.1377643749583513,
+      "receipt": "68-execution.tar.gz:commands/linux-create.json",
+      "stdout": {
+        "bytes": 65,
+        "sha256": "6751fac5258513bb4ac818b912df6464e4d2a8896fec5e5b6321be69e087dbe3"
+      },
+      "stderr": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "linux-final-source",
+      "exit": 0,
+      "elapsedSeconds": 0.16121958405710757,
+      "receipt": "68-execution.tar.gz:commands/linux-final-source.json",
+      "stdout": {
+        "bytes": 6209,
+        "sha256": "a6f1a9c4c468549b00d2455377ec230faf0756984e85c6be0d18f300baafc35b"
+      },
+      "stderr": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "linux-image",
+      "exit": 0,
+      "elapsedSeconds": 0.021737208007834852,
+      "receipt": "68-execution.tar.gz:commands/linux-image.json",
+      "stdout": {
+        "bytes": 84,
+        "sha256": "3f903c4751631c2d40bd8a48c0a421f825333742edea8012c936af2374e9d1d7"
+      },
+      "stderr": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "linux-prepare-core-directory",
+      "exit": 0,
+      "elapsedSeconds": 0.0461750419344753,
+      "receipt": "68-execution.tar.gz:commands/linux-prepare-core-directory.json",
+      "stdout": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "linux-start",
+      "exit": 0,
+      "elapsedSeconds": 0.09565587493125349,
+      "receipt": "68-execution.tar.gz:commands/linux-start.json",
+      "stdout": {
+        "bytes": 28,
+        "sha256": "db9bb9170ebaac9c2764ab37c5e8750627f4a1170030b6251a5c12a34ff2451c"
+      },
+      "stderr": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "linux-stop",
+      "exit": 0,
+      "elapsedSeconds": 10.061615958926268,
+      "receipt": "68-execution.tar.gz:commands/linux-stop.json",
+      "stdout": {
+        "bytes": 83,
+        "sha256": "eb3c2ec26b5d3726f0f381191e6ef28efb72ad7accda7814e5bcabec848db6bb"
+      },
+      "stderr": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "linux-stopped-state",
+      "exit": 0,
+      "elapsedSeconds": 0.02195437508635223,
+      "receipt": "68-execution.tar.gz:commands/linux-stopped-state.json",
+      "stdout": {
+        "bytes": 226,
+        "sha256": "fdf40923a08952d3298dbb3d3aed6f7be0508ef63a9d5dc3530eaf14f6fe2e75"
+      },
+      "stderr": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "migration",
+      "exit": 0,
+      "elapsedSeconds": 0.41485466598533094,
+      "receipt": "68-execution.tar.gz:commands/migration.json",
+      "stdout": {
+        "bytes": 502,
+        "sha256": "04c1d9e11a67bbdc1243cbda3cb747903dae5883201e6e588fe713f9e05bc379"
+      },
+      "stderr": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "mixed120",
+      "exit": 1,
+      "elapsedSeconds": 375.54109770804644,
+      "receipt": "68-execution.tar.gz:commands/mixed120.json",
+      "stdout": {
+        "bytes": 1832,
+        "sha256": "6dfa5f1c69934eebd0e5cad5421af9258296de9defc4efdcb67e932e90511e09"
+      },
+      "stderr": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "root-contrast",
+      "exit": 0,
+      "elapsedSeconds": 3.154316333006136,
+      "receipt": "68-execution.tar.gz:commands/root-contrast.json",
+      "stdout": {
+        "bytes": 5199,
+        "sha256": "b5c3d244dc506d9f545990521c2ed48c510757ef34bbe27f21e41a7245bd6647"
+      },
+      "stderr": {
+        "bytes": 76,
+        "sha256": "f017de3c853e96b4903d2c64a4a9bd4fae3ab1b2bafbfa6c2214c1bee4d7e506"
+      }
+    },
+    {
+      "name": "unprivileged-contrast",
+      "exit": 0,
+      "elapsedSeconds": 3.021437415969558,
+      "receipt": "68-execution.tar.gz:commands/unprivileged-contrast.json",
+      "stdout": {
+        "bytes": 5241,
+        "sha256": "776152588bb430abf59366afc80a6a1fe4e77d98068a8ba06c739d6de6227c04"
+      },
+      "stderr": {
+        "bytes": 76,
+        "sha256": "f017de3c853e96b4903d2c64a4a9bd4fae3ab1b2bafbfa6c2214c1bee4d7e506"
+      }
+    },
+    {
+      "name": "v450-registration",
+      "exit": 0,
+      "elapsedSeconds": 1.84317045903299,
+      "receipt": "68-execution.tar.gz:commands/v450-registration.json",
+      "stdout": {
+        "bytes": 8594,
+        "sha256": "a9174164450f959e769e73067f275fcb9dd4969ae9bc5183f587d4728f779146"
+      },
+      "stderr": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "whitespace",
+      "exit": 0,
+      "elapsedSeconds": 0.016640499932691455,
+      "receipt": "68-execution.tar.gz:commands/whitespace.json",
+      "stdout": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    }
+  ],
+  "preservation": {
+    "archive": "docs/release-artifacts/v4.5.0/68-execution.tar.gz",
+    "bytes": 251406,
+    "sha256": "0a9ee8c8b9f67e7c3612fb7e2092a5fbf2f5b7ca0cd12e5b0e73e10c9da9458c",
+    "members": 136,
+    "sourceEntryCount": 135,
+    "sourceByteMismatches": 0,
+    "redaction": {
+      "originalPrivatePath": "mixed-120/media-server-current-observer-6Os63s/server-1.private.log",
+      "originalBytes": 111507,
+      "originalSha256": "7638c4751a91e9342c3293a93ba09062d2dad6d24f81e46482cb7f7fc7bc79b7",
+      "sanitizedBytes": 111233,
+      "sanitizedSha256": "2374afc68855a7bfe619107d863a90f183e2b9751e47d47b579086bc75804a80",
+      "transform": "8 source URI lines and4 unnecessary source/path/route setting lines replaced by numbered placeholders; all other original byte lines preserved; not full original evidence",
+      "removed": [
+        {
+          "line": 1,
+          "offset": 0,
+          "bytes": 91,
+          "sha256": "8a241ffa588a3811ae5d33e3e1e5030c2d02bd82816ed4b0905119e207289583",
+          "reason": "source URI or unnecessary source/path/route setting omitted"
+        },
+        {
+          "line": 3,
+          "offset": 112,
+          "bytes": 37,
+          "sha256": "d519b3859d64b8b4881859b21489769c1ea5c426a9f84fe7546703d30bb60545",
+          "reason": "source URI or unnecessary source/path/route setting omitted"
+        },
+        {
+          "line": 4,
+          "offset": 149,
+          "bytes": 37,
+          "sha256": "a8333ac00287473bceb3cf93284300073260d1fc19960c4134c594b4b3ef2fa2",
+          "reason": "source URI or unnecessary source/path/route setting omitted"
+        },
+        {
+          "line": 5,
+          "offset": 186,
+          "bytes": 43,
+          "sha256": "ea6d79940f7fd7d38b1b17f5bf26d5c90b1b6046fa54e6ef40d2111d25750cf2",
+          "reason": "source URI or unnecessary source/path/route setting omitted"
+        },
+        {
+          "line": 6,
+          "offset": 229,
+          "bytes": 52,
+          "sha256": "4ddfd2f36954c748bf44a6774265c02fba407b41d3273f1cc48555aaeb3408b1",
+          "reason": "source URI or unnecessary source/path/route setting omitted"
+        },
+        {
+          "line": 7,
+          "offset": 281,
+          "bytes": 131,
+          "sha256": "a614983a9fc66d96dd7b29865cc2463487b40a6941882178b46a9376bf42eb63",
+          "reason": "source URI or unnecessary source/path/route setting omitted"
+        },
+        {
+          "line": 8,
+          "offset": 412,
+          "bytes": 68,
+          "sha256": "498f2034d2e35732be7fda64a741948afd302c1d25461b225f215d99f5a6ac9e",
+          "reason": "source URI or unnecessary source/path/route setting omitted"
+        },
+        {
+          "line": 11,
+          "offset": 521,
+          "bytes": 22,
+          "sha256": "c38983965fe64afe8755f109a2be2077afda97aaa98ac10a28f978a3eea10b22",
+          "reason": "source URI or unnecessary source/path/route setting omitted"
+        },
+        {
+          "line": 605,
+          "offset": 111222,
+          "bytes": 37,
+          "sha256": "d519b3859d64b8b4881859b21489769c1ea5c426a9f84fe7546703d30bb60545",
+          "reason": "source URI or unnecessary source/path/route setting omitted"
+        },
+        {
+          "line": 606,
+          "offset": 111259,
+          "bytes": 45,
+          "sha256": "99a35c95541dfd4e34f039357bb05c81a4bcb7635418cb9f7cd17071aba0977e",
+          "reason": "source URI or unnecessary source/path/route setting omitted"
+        },
+        {
+          "line": 607,
+          "offset": 111304,
+          "bytes": 48,
+          "sha256": "6b4d2d05478dec19e7db00a42328ba77ab7032e41f3168e53e19901e1348c861",
+          "reason": "source URI or unnecessary source/path/route setting omitted"
+        },
+        {
+          "line": 609,
+          "offset": 111403,
+          "bytes": 68,
+          "sha256": "498f2034d2e35732be7fda64a741948afd302c1d25461b225f215d99f5a6ac9e",
+          "reason": "source URI or unnecessary source/path/route setting omitted"
+        }
+      ],
+      "evidenceExtract": [
+        {
+          "line": 535,
+          "offset": 99970,
+          "bytes": 236,
+          "sha256": "06565b52ed7dbca1f43d03d7bc2fd0d47a170cb4209687625a3f7f049011a3eb"
+        }
+      ],
+      "rawPrivateLogCommitted": false
+    },
+    "oldArchiveCopies": 0,
+    "precommitPrivacyCorrection": "Uncommitted pending archive first excluded8 URI lines; independent review required4 unnecessary source/path/route setting lines also excluded. Corrected archive and unique byte-index verified before commit; prior pending copy is private only, never Git/pushed.",
+    "fixtureProvenance": "docs/sample-fixture-provenance.md exact synthetic source/28161B SHA and six package derivation added after run; no runtime/test/expectation change"
+  },
+  "priorEvidence": {
+    "59Linux": "original source/environment/profile scope; no rerun",
+    "61Acceptance": "72cc7643d681b75228b80fd646921965ecacba75 actual source; no rerun",
+    "63UI": "originalsource/envscope; no rerun",
+    "65": "completed product/directreview scope preserved; newmixed failure independent",
+    "64_66_67": "FAIL/unknown/raw judgments unchanged"
+  },
+  "cleanup": {
+    "temporaryRoot": "/private/tmp/media-server-release68-89ooe93r",
+    "rootOwnership": {
+      "path": "/private/tmp/media-server-release68-89ooe93r",
+      "uid": 501,
+      "inode": 171295835,
+      "device": 16777232,
+      "base": "965ee054b40ccb8c61f3c2f0b76e3cb8f08cc07b"
+    },
+    "LinuxStopped": true,
+    "containerRemoved": false,
+    "temporaryRootRemoved": false,
+    "pending": "selected originals localGit+remote readback then exact owned removal",
+    "approvedImageSDKmodelsRetained": true,
+    "QwenOllamaCalls": 0,
+    "QwenUnloadGate": "not-run",
+    "postRunAbsenceCheck": {
+      "ownedProductPID": 36689,
+      "psExit": 1,
+      "productAbsent": true,
+      "ports": [
+        {
+          "port": 49855,
+          "connectCode": 61,
+          "currentlyClosed": true
+        },
+        {
+          "port": 49856,
+          "connectCode": 61,
+          "currentlyClosed": true
+        }
+      ],
+      "cleanupBlockedFiles": 0,
+      "rootKeptForByteReview": true
+    }
+  },
+  "remaining": [
+    "frame visual-frame-unavailable requires separately authorized scoped diagnosis/fix; no unique cause yet",
+    "new mixed120 functional/recovery/resource requirements incomplete; no automatic rerun",
+    "final evidence integration and explicitly authorized completed-record cleanup",
+    "PR/CI/main merge/signed tag/Release separate approvals"
+  ],
+  "postArchivePreservationCommands": [
+    {
+      "receipt": {
+        "name": "preservation-links",
+        "argv": [
+          "./server.sh",
+          "verify-docs-links"
+        ],
+        "cwd": "/Users/dhseo/Workspace/mediaServer",
+        "uid": 501,
+        "startedAt": "2026-10-08T15:01:33.014000+00:00",
+        "pid": 38146,
+        "exit": 0,
+        "elapsedSeconds": 0.40894287498667836,
+        "stdout": {
+          "bytes": 186,
+          "sha256": "6dd673c63a32efd4c067ba647f1304c6aa5719e921b263d6bc0693ac9ed4afb6"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      "rawUtf8": {
+        "stdout": "\n== Docs link verification summary ==\n- markdown files: 305\n- local links: 9694\n- local images: 14\n- local anchors: 431\n- indexed docs: 93\n- index coverage exclusions: 195\n- failures: 0\n",
+        "stderr": ""
+      },
+      "byteRepresentation": "exact UTF-8 reencoding of captured original bytes"
+    },
+    {
+      "receipt": {
+        "name": "provenance-links",
+        "argv": [
+          "./server.sh",
+          "verify-docs-links"
+        ],
+        "cwd": "/Users/dhseo/Workspace/mediaServer",
+        "uid": 501,
+        "startedAt": "2026-10-08T15:03:19.416060+00:00",
+        "pid": 38246,
+        "exit": 0,
+        "elapsedSeconds": 0.3912587920203805,
+        "stdout": {
+          "bytes": 186,
+          "sha256": "6dd673c63a32efd4c067ba647f1304c6aa5719e921b263d6bc0693ac9ed4afb6"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      "rawUtf8": {
+        "stdout": "\n== Docs link verification summary ==\n- markdown files: 305\n- local links: 9694\n- local images: 14\n- local anchors: 431\n- indexed docs: 93\n- index coverage exclusions: 195\n- failures: 0\n",
+        "stderr": ""
+      },
+      "byteRepresentation": "exact UTF-8 reencoding of captured original bytes"
+    }
+  ]
+}

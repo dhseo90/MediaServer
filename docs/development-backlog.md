@@ -127,6 +127,13 @@ A 결속 record seed/readback도 통과했으나, 이어진 legacy 저장의 쓰
 실패했다. 실행 UID0과 `chmod 0500`의 전제 영향은 별도 확인이 필요하며 최초 Publish
 반환값/오류는 미수집이다. confirmed/core 후속과 혼합120분은 미실행으로 유지한다.
 
+[68 권한 대조·Linux 필수 회귀](release-artifacts/v4.5.0/68-validation.json)는 실제 UID10001/우회 capability 없음과 소유 root에서
+쓰기 EACCES·Publish 오류·미게시를 확인했고 bound/readback/legacy/core·confirmed/fresh read를 통과했다.
+UID0 대조는 0500에서도 생성·게시가 가능했지만67의 미수집 반환값을 복원한 것은 아니다.
+고정 소스의 새 혼합120분1회는 약6분 뒤 A 증거 생성의 `visual-frame-unavailable`/503으로 실패했다.
+앞선 A6건 완료와 정상 종료·포트 정리는 확인했으나7200초·취소/권한 회수·복구/재시작·자원 안정성은 미충족이다.
+하위 원인은 미확정이며 이번에 제품 수정·장시간 재실행은 하지 않았다.
+
 이 목록은 현재 잔여와 완료 조건이며 모델 평가·제품 구현·장시간·외부 공개의 실행 승인을
 새로 부여하지 않는다. ClaimSpec 자유질문 해석·C 영상 사실/시퀀스 검토와 공개 연결은
 **버전 미배정·미완료**다. 설계48의 계약과49~51의 품질/진단 이력을 보존하고

@@ -20,6 +20,7 @@
 | `test/fixtures/onvif_credential_store_policy_decision.json` | ONVIF persistent credential store 후속 gate 결정 검증 | secret/captured trace 없는 합성 JSON fixture | 공개 가능 |
 | `test/fixtures/onvif_field_smoke_artifact_sample/` | ONVIF 현장 smoke 산출물 redaction layout | 실제 장비/credential 없는 합성 sample bundle | 공개 가능 |
 | `test/fixtures/runtime_dashboard_longrun_evidence_sample/` | Runtime Dashboard longrun evidence template shape 검증 | 실제 longrun 실행 증거가 아닌 sample-only 합성 fixture | 공개 가능 |
+| `docs/release-artifacts/v4.5.0/68-execution.tar.gz`의 `mixed/selected/input/a-seed.mp4` 및 `mixed/selected/evidence-packages/*.evp` 내부 PNG | 68 혼합 실행 최초 실패와 완료 A6건의 제한 원자료 보존 | `ConfirmedSeed` → `recording_media_test_fixture.h`의 `Encode(30,false,false,160,90,30,30)`가 `videotestsrc pattern=ball`로 생성한 영상. MP4 28,161bytes·SHA-256 `3d2135fbf45804087aa7c2d451c92bbd29755e1cac1e487604ee43f7fbd5989d`; PNG는 해당 영상에서 실제 추출. 각 package의 원본 hash/bytes는 archive `byte-index.json`에 결속 | 운영/고객/장비 영상·credential 없는 합성 자료만 제한 보존. detector 정확도·영상 사실 검증 또는 공개 릴리즈 자산으로 사용하지 않음 |
 
 ## 공개 제외 대상
 
