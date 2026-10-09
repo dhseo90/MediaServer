@@ -1,9 +1,0 @@
-{
-  "command": [
-    "git",
-    "diff",
-    "--check"
-  ],
-  "exit": 0,
-  "source": "42-source.json"
-}

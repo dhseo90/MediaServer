@@ -1,8 +1,0 @@
-{
-  "command": [
-    "python3",
-    "scripts/internal/verify_va_review_confirmed.py",
-    "--http"
-  ],
-  "exit": 0
-}

@@ -1,1 +1,0 @@
-{"command": ["cmake", "--build", "build-gst-onnx", "--target", "media_server", "-j4"], "exit": 0, "rawSha256": "6b0d799f09a529ff3ebf5ad7849a1da1214d6370510d1dd95dd0a72bb8c8e477"}

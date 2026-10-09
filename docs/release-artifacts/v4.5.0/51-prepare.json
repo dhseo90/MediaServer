@@ -1,9 +1,0 @@
-{
-  "command": [
-    "python3",
-    "docs/release-artifacts/v4.5.0/51-layout.py",
-    "--prepare"
-  ],
-  "exit": 0,
-  "rawSha256": "27929c7e347a71e7c1025299b9bd0211f7a7bf33acda8d8b858a93002fd73c66"
-}

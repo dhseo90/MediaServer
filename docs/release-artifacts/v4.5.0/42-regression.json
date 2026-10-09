@@ -1,8 +1,0 @@
-{
-  "command": [
-    "python3",
-    "scripts/internal/verify_va_review_bound_record.py"
-  ],
-  "exit": 0,
-  "source": "42-source.json"
-}

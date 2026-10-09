@@ -1,9 +1,0 @@
-{
-  "command": [
-    "./server.sh",
-    "verify-docs-links"
-  ],
-  "exit": 0,
-  "seconds": 0.4419059590436518,
-  "rawSha256": "90a39ad6bf20bb7e46c6b646a7cf1f09fc907447232ab30a43f847d758d798ed"
-}

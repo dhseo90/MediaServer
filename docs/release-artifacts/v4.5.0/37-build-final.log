@@ -1,3 +1,0 @@
-[  0%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/va_review_core.cpp.o
-[  1%] Linking CXX static library libmedia_server_runtime.a
-[100%] Built target media_server_runtime

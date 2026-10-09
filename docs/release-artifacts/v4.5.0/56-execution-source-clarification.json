@@ -1,7 +1,0 @@
-{
-  "finalHTTP": "confirmed-http-3-source.json individually compared to frozen tracked product/scripts inputs: no differences; current runtime built by build-final",
-  "offlineFinal": "product script and two test files identical to frozen source",
-  "boundCoreAndObservations": "executed before final UI-only permission revision edit; exercised recording/core/store/projector/package sources and wrappers unchanged versus frozen commit. This is direct component evidence reuse, not a rerun of whole frozen binary.",
-  "static": "static-plan checker and sources unchanged; source graph rechecked after measured metadata correction",
-  "originalFailureOutput": "focused-preparation-failures refers to conversation tool raw output only, not reconstructed shell bytes"
-}

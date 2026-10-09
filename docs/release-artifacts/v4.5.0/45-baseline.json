@@ -1,8 +1,0 @@
-{
-  "baseCommit": "4f91bdf9d4078f5521f5e6bb5cf8938748965235",
-  "homebrewPath": "/opt/homebrew/bin/ollama",
-  "homebrewResolved": "/opt/homebrew/Cellar/ollama/0.21.0_1/libexec/ollama",
-  "homebrewSha256": "c0fb4941281d83725b8e02ce98b7e079fa9f1d599b47409d6fd3d6f88f4bbc38",
-  "existingModelManifestSha256": "0533d74300e4f9bc367d675d4e64ffd073d50ff16a2b4096cc2e8a1cf8c96319",
-  "agentsSha256": "647c508aa5e855784a8f8c711643cb3488c682736540df4be54262a5cf1420ba"
-}

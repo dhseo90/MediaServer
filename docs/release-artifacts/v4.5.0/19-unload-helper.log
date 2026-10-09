@@ -1,7 +1,0 @@
-[pass] empty
-[pass] delayed
-[pass] never
-[pass] late-response
-[pass] query-error
-[pass] wrapper-exhausted
-[summary] 6 helper cases; no actual model execution
