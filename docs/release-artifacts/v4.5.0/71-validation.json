@@ -223,12 +223,98 @@
     "no safe product behavior fix proven; new120 requires explicit authorization and unresolved decoder risk decision"
   ],
   "cleanup": {
-    "ownedContainer": "removed after successful direct tests; receipts preserved",
-    "temporaryRoot": "pending remote byte preservation",
-    "modelsRetained": true,
-    "qwenCalls": 0,
+    "recordedAt": "2026-10-09T01:05:27.978993+00:00",
+    "root": "/private/tmp/media-server-release71-8yv1nei9",
+    "uid": 501,
+    "rootDevice": 16777232,
+    "rootInode": 171453228,
+    "ownedReceiptPidsAbsent": [
+      63620,
+      63648,
+      63781,
+      63880,
+      63960,
+      64057,
+      64082,
+      64092,
+      64104,
+      64123,
+      64137,
+      64153,
+      64160,
+      64166,
+      64207,
+      64244,
+      64255,
+      64330,
+      64344,
+      64346,
+      64347,
+      64382,
+      64389,
+      64393,
+      64404,
+      64450,
+      64464,
+      64468,
+      64477,
+      64520,
+      64526,
+      64529,
+      64533,
+      64534,
+      64866,
+      64869,
+      64885,
+      64936,
+      64960,
+      64981,
+      64985,
+      65055,
+      65070,
+      65071,
+      65150,
+      65201,
+      65286,
+      65293,
+      65307
+    ],
+    "containerAbsent": true,
+    "retainedImage": "sha256:ce72c8a15363984da642e9964189957896812061c6af1d0ef67e87b38ad5a588",
+    "ports": "no server/listener ports allocated by these direct file tests",
+    "QwenCalls": 0,
     "unloadGate": "not-run",
-    "productServerStarted": false
+    "remoteByteReadback": {
+      "head": "9ea2a4de81db07d30c74e2d5c5904482402d081d",
+      "remote": "9ea2a4de81db07d30c74e2d5c5904482402d081d",
+      "at": "2026-10-09T01:04:47.513115+00:00",
+      "results": [
+        {
+          "path": "docs/release-artifacts/v4.5.0/71-execution.tar.gz",
+          "bytes": 167271,
+          "sha256": "ac4269947142661d944509d4dc8a546d30849e6029cc49a65fcbd4f225d5c83f",
+          "gitBlob": "b8c05a7a1ac1870979c32d4a0125d9f1f2dba5e0",
+          "exact": true
+        },
+        {
+          "path": "docs/release-artifacts/v4.5.0/71-independent-review.json",
+          "bytes": 32409,
+          "sha256": "90a5fbe2e0c6d8eb40dfb1146cecff4ababfff65412c50ebc02ad5102de9ea5b",
+          "gitBlob": "3d84dbb26cef1a6c15df7538d8a9b0103d44b15a",
+          "exact": true
+        },
+        {
+          "path": "docs/release-artifacts/v4.5.0/71-validation.json",
+          "bytes": 18244,
+          "sha256": "4a1c648301fdd101df92e9d16507cdbd7ab86100a6344c006fe617595f95c7d5",
+          "gitBlob": "3adf97fc49cbd2bf08e663e6baafbcbc1cf4dcd1",
+          "exact": true
+        }
+      ]
+    },
+    "symlinkRule": "unlink cache symlinks without traversing targets",
+    "executedHelper": "from pathlib import Path\nimport json,hashlib,subprocess,os,shutil,datetime\nr=Path(__file__).parent;expected=Path('/private/tmp/media-server-release71-8yv1nei9');assert r==expected and r.resolve()==r and r.stat().st_uid==os.getuid()\nassert json.loads((r/'ownership.json').read_text())=={'task':71,'root':str(r),'base':'cb520558135c284157f9d7e50b3b738909d79321'}\nremote=json.loads((r/'remote-readback.json').read_text());assert remote['remote']==subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip()\nfor row in remote['results']:\n b=subprocess.check_output(['git','show',remote['head']+':'+row['path']]);assert hashlib.sha256(b).hexdigest()==row['sha256']\npids=sorted({json.loads(f.read_text())['pid'] for f in (r/'commands').glob('*.json')});absent=[]\nfor pid in pids:\n try:os.kill(pid,0)\n except ProcessLookupError:absent.append(pid)\n else:raise RuntimeError('owned receipt PID still present; inspect rather than delete')\nq=subprocess.check_output(['docker','ps','-a','--filter','name=^/mediaserver-release71-linux$','--format','{{.ID}}'],text=True);assert not q.strip()\nimage=subprocess.check_output(['docker','image','inspect','mediaserver-v450-verify:rc58-arm64','--format','{{.Id}}'],text=True).strip();assert image=='sha256:ce72c8a15363984da642e9964189957896812061c6af1d0ef67e87b38ad5a588'\nmeta={'recordedAt':datetime.datetime.now(datetime.timezone.utc).isoformat(),'root':str(r),'uid':os.getuid(),'rootDevice':r.stat().st_dev,'rootInode':r.stat().st_ino,'ownedReceiptPidsAbsent':absent,'containerAbsent':True,'retainedImage':image,'ports':'no server/listener ports allocated by these direct file tests','QwenCalls':0,'unloadGate':'not-run','remoteByteReadback':remote,'symlinkRule':'unlink cache symlinks without traversing targets','executedHelper':Path(__file__).read_text()}\nshutil.rmtree(r);meta['temporaryRootAbsent']=not r.exists();assert meta['temporaryRootAbsent']\np=Path('docs/release-artifacts/v4.5.0/71-validation.json');d=json.loads(p.read_text());d['cleanup']=meta;d['preservationCommit']=remote['head'];d['localRemotePreservation']='three required artifacts byte-equal through GitHub API at preservation commit; closeout evidence commit follows';p.write_text(json.dumps(d,ensure_ascii=False,indent=2)+'\\n');print(json.dumps({k:v for k,v in meta.items() if k not in ['executedHelper','remoteByteReadback']},indent=2))\n",
+    "temporaryRootAbsent": true
   },
   "evidence": {
     "path": "71-execution.tar.gz",
@@ -495,5 +581,7 @@
       "receipt": "71-execution.tar.gz:commands/whitespace.json"
     }
   ],
-  "new120Resume": "not authorized in this request; preserve actual EOS/decoder output loss and obtain next bounded diagnosis or proven safe fix scope before claiming recovery"
+  "new120Resume": "not authorized in this request; preserve actual EOS/decoder output loss and obtain next bounded diagnosis or proven safe fix scope before claiming recovery",
+  "preservationCommit": "9ea2a4de81db07d30c74e2d5c5904482402d081d",
+  "localRemotePreservation": "three required artifacts byte-equal through GitHub API at preservation commit; closeout evidence commit follows"
 }
