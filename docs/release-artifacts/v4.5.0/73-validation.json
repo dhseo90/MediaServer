@@ -1,0 +1,804 @@
+{
+  "task": 73,
+  "status": "short-integration-PASS-preservation-cleanup-pending",
+  "recordedAt": "2026-10-09T04:02:06.205197+00:00",
+  "base": "3a7af408e45cf728772d0b8673ff023865b38fd8",
+  "source": {
+    "task": 73,
+    "base": "3a7af408e45cf728772d0b8673ff023865b38fd8",
+    "recordedAt": "2026-10-09T03:46:28.204970+00:00",
+    "changedFiles": [
+      {
+        "path": "docs/project-feature-test-inventory.md",
+        "sha256": "ea3d8b3543b80af208a88535d240ac28a98ad0021b619c2ea612c483d883a10e"
+      },
+      {
+        "path": "scripts/internal/recording_longrun_progress.mjs",
+        "sha256": "59b8f9a5bcb8e088dac339ac509c420e0478b0d4fd4c30d4b57898e69b2b3886"
+      },
+      {
+        "path": "scripts/internal/recording_longrun_progress.test.mjs",
+        "sha256": "c7e195fc60d9a6e81b10b607bd1b615845f9ba9dfecc0cf4b6220dfed4c28986"
+      },
+      {
+        "path": "scripts/internal/v450_recording_a_mixed.mjs",
+        "sha256": "7da9d5e5bae88cf40c8acb024e88d348136abb8d180bc7c531fabb08dd132095"
+      }
+    ],
+    "diffSha256": "1f6f38ced4959350a385ceb541a566075efe161823109373af29becf4841c3bd",
+    "productCandidate": "9257ed8b2044f9e8def4dd9984abea8c022fae1b",
+    "binarySha256": "e6cef05b0a6371bfc28fbb459001edf5a3465c97de5c15fb19d6de037505fdcc",
+    "runtimeSha256": "b79e8fbf6589c379ef9f6cb001f1667b393faf6110d2065356a350f0a6dc5179",
+    "generationMode": "bounded",
+    "expectedMode": "bounded",
+    "observationSeconds": 600,
+    "wholeDeadlineSeconds": 780,
+    "maxMixedAttempts": 1,
+    "load": {
+      "channels": 2,
+      "searchClients": 4,
+      "searchEvidenceSeconds": 15,
+      "sampleSeconds": 5,
+      "maxSampleGapSeconds": 15,
+      "aOpportunitySeconds": 60,
+      "aMaximum": 10,
+      "aInflight": 1
+    },
+    "limits": {
+      "logCapBytes": 4194304,
+      "rssCapBytes": 4294967296,
+      "rootCapBytes": 469762048,
+      "decodeBudgetMs": 5000,
+      "sampleToleranceNs": 1
+    },
+    "notRunInMode": [
+      "controls cancellation/permission-revocation",
+      "copy recovery",
+      "restart/reactivation",
+      "120minutes"
+    ],
+    "requestedMain": "gpt-6.1-sol/high",
+    "actualMainModel": null,
+    "actualMainEffort": null,
+    "prior72": "source, comparison100+100 and direct product regressions reused; old full-trace FAIL retained",
+    "sourceCommit": "8a5354b7a37961e26e24fd1d03aa55c30ceec2b5",
+    "sourceTree": "2c93e43cc9da1f8ad060c5d689d15fc88a3a6cc4"
+  },
+  "implementation": "shared bounded mode for actual600/120 child environment and final trace parser; before-spawn mismatch rejection; no product C++ or binary rebuild",
+  "model": {
+    "mainRequested": "gpt-6.1-sol/high",
+    "mainActualModel": null,
+    "mainActualEffort": null,
+    "reviewRequestedAndToolAccepted": "gpt-6-astra/high",
+    "reviewActualModel": null,
+    "reviewActualEffort": null,
+    "reviewer": "/root/independent_release73",
+    "independentImplementationAndExecution": true
+  },
+  "direct": {
+    "expectedRed": {
+      "passed": 56,
+      "failed": 2,
+      "meaning": "actual600 child generation/final summary still full"
+    },
+    "preparationFailures": {
+      "expectedRed": {
+        "command": [
+          "node",
+          "scripts/internal/recording_longrun_progress.test.mjs"
+        ],
+        "passed": 56,
+        "failed": 2,
+        "cause": "existing600 full generation and full summary; red stdout/stderr preserved"
+      },
+      "testFixturePreparation": {
+        "firstGreen": {
+          "passed": 61,
+          "failed": 3,
+          "cause": "actual extracted launch logging needed duration in VM context; added actual duration declaration, no product assertion weakened"
+        },
+        "fixedGreen": {
+          "passed": 64,
+          "failed": 0
+        }
+      },
+      "wrongStaticCommand": {
+        "command": [
+          "./server.sh",
+          "verify-comments"
+        ],
+        "exit": 1,
+        "reason": "unsupported command; raw usage preserved; correct existing verify-code-comments PASS"
+      },
+      "syntax": "node --check three changed scripts and git diff --check PASS"
+    },
+    "finalContracts": 64,
+    "aLoadContracts": 5,
+    "launcherContracts": 7,
+    "syntax": "PASS",
+    "comments": "PASS",
+    "links": "PASS",
+    "diffWhitespace": "PASS",
+    "actualConnection": "extract and execute current environment/launch/final-summary statements with real child environment readback; full/off/missing/bounded-vs-full mutations rejected",
+    "reusedProductBoundedReservation": "72 Automatic2/SoftwareOnly1 plus failed-return independent reservation regressions retained, not rerun"
+  },
+  "mixed": {
+    "attempts": 1,
+    "execution": {
+      "command": [
+        "bash",
+        "/Users/dhseo/Workspace/mediaServer/scripts/internal/verify_v450_recording_a_mixed.sh",
+        "--frame-diagnostic"
+      ],
+      "startedAt": "2026-10-09T03:47:15.110663+00:00",
+      "status": "PASS",
+      "source": {
+        "head": "8a5354b7a37961e26e24fd1d03aa55c30ceec2b5",
+        "tree": "2c93e43cc9da1f8ad060c5d689d15fc88a3a6cc4",
+        "sourceSha256": "d86b8ecc594c6e51f4c472cfe1dfc85b0136739cc1b7ae898729213114641db5",
+        "binarySha256": "e6cef05b0a6371bfc28fbb459001edf5a3465c97de5c15fb19d6de037505fdcc"
+      },
+      "timeoutSeconds": 780,
+      "observationSeconds": 600,
+      "wrapperSha256": "c3eb4b050a614bc4e0b7b5ece436c36cd3f4128e473851956d01af1ab6b26bc5",
+      "resourceTrendPass": false,
+      "reviewRequired": true,
+      "uiFulltestPass": false,
+      "processGroup": 72895,
+      "childExit": 0,
+      "exit": 0,
+      "executionElapsedSeconds": 613.6738342919853,
+      "elapsedSeconds": 613.6742599999998,
+      "timedOut": false,
+      "interruptedSignals": [],
+      "residualGroupAfterCommand": false,
+      "cleanupSignals": [],
+      "processGroupAbsent": true,
+      "cleanupErrors": [],
+      "cleanupOnlySeconds": 5.58304600417614e-06,
+      "registeredGroupsAbsent": true,
+      "residualRegisteredGroups": false,
+      "registeredGroupSignals": [],
+      "registeredGroupCleanupSeconds": 0.00040129199624061584,
+      "finishedAt": "2026-10-09T03:57:28.982859+00:00",
+      "sourceEnd": {
+        "head": "8a5354b7a37961e26e24fd1d03aa55c30ceec2b5",
+        "tree": "2c93e43cc9da1f8ad060c5d689d15fc88a3a6cc4",
+        "sourceSha256": "d86b8ecc594c6e51f4c472cfe1dfc85b0136739cc1b7ae898729213114641db5",
+        "binarySha256": "e6cef05b0a6371bfc28fbb459001edf5a3465c97de5c15fb19d6de037505fdcc"
+      },
+      "totalWithFinalBindingSeconds": 613.8825215419056,
+      "rootDisposition": "preserved-for-byte-review-and-owned-cleanup"
+    },
+    "mode": "v450-frame-diagnostic",
+    "status": "PASS",
+    "passed": 2238,
+    "failed": 0,
+    "verifiedDurationMs": 600191.5725840001,
+    "phase": {
+      "elapsedMs": 600191.5725840001,
+      "channels": {
+        "9101": {
+          "finalized": 299,
+          "deleted": 292,
+          "lastAt": 607839.273667,
+          "order": "598",
+          "store": "dd07c597e1ed45a1848b120cbc317f3ceea5b2858a83dd8ae194a4be8ddd2012",
+          "knownMappings": 213,
+          "unknownMappings": 10152
+        },
+        "9201": {
+          "finalized": 299,
+          "deleted": 292,
+          "lastAt": 607839.273667,
+          "order": "599",
+          "store": "dd07c597e1ed45a1848b120cbc317f3ceea5b2858a83dd8ae194a4be8ddd2012",
+          "knownMappings": 229,
+          "unknownMappings": 9934
+        }
+      },
+      "records": 598,
+      "logicalBytes": 356584
+    },
+    "samePidSamples": 72935,
+    "evidence": {
+      "windows": [
+        {
+          "structured": 260,
+          "visual": 520,
+          "evidence": 13,
+          "visualEvidence": 13
+        },
+        {
+          "structured": 260,
+          "visual": 520,
+          "evidence": 13,
+          "visualEvidence": 13
+        },
+        {
+          "structured": 260,
+          "visual": 520,
+          "evidence": 13,
+          "visualEvidence": 13
+        }
+      ],
+      "cycles": 39,
+      "searchSuccess": 160,
+      "searchUnavailable": 0,
+      "searchSuccessByClient": [
+        40,
+        40,
+        40,
+        40
+      ],
+      "createComplete": 39,
+      "createPartial": 0,
+      "createSuccess": 39,
+      "createBusy": 39,
+      "retainedChecks": 78,
+      "deletedSourceObserved": true,
+      "visualCreated": 39,
+      "visualExpired": 0
+    },
+    "searchMaxLatencyMs": 767.5100409999723,
+    "aCompleted": 10,
+    "aSource": "synthetic AnalysisObservationProjector before server start; current live catalog snapshot selection and A worker each admission",
+    "detectorEvaluated": false,
+    "aControls": {},
+    "normalExit": {
+      "schema": "recording-process-cleanup-v1",
+      "attemptCount": 1,
+      "pid": 72935,
+      "exitCode": 0,
+      "signalCode": null,
+      "exitedObserved": true,
+      "stopCode": "complete",
+      "forcedTermination": "not-used",
+      "normalExitPass": true,
+      "normalShutdownPass": true,
+      "archiveSafe": true,
+      "ports": [
+        {
+          "kind": "http",
+          "port": 49403,
+          "status": "pass",
+          "code": "closed",
+          "closed": true
+        },
+        {
+          "kind": "rtsp",
+          "port": 49404,
+          "status": "pass",
+          "code": "closed",
+          "closed": true
+        }
+      ]
+    },
+    "processesClosed": true,
+    "udpClosed": true,
+    "seed": {
+      "bytes": 28161,
+      "sha256": "1bb17409812ba07b5cb9179c0f3ca53e299338582bbc1214a9eeeee0e897cc20",
+      "selectedBindings": "archive selected-bindings.json; actual new generated seed, not historical MP4 same-byte replay"
+    },
+    "frameDiagnosticPass": true,
+    "longrunObservationCompleted": false,
+    "traceSettings": {
+      "pid": 72935,
+      "generatedMode": "bounded",
+      "expectedMode": "bounded",
+      "observationMs": 600000
+    },
+    "collection": {
+      "pid": 72935,
+      "bytes": 189248,
+      "capturedBytes": 189248,
+      "sha256": "99a28c9472abdf90e5a00f798377fa178d2ada1a3ecc9dca74f9d26702873212",
+      "overflow": false,
+      "captureError": null,
+      "categories": [
+        {
+          "code": "file evidence unavailable",
+          "count": 0
+        },
+        {
+          "code": "storageBlocked",
+          "count": 0
+        },
+        {
+          "code": "shutdown",
+          "count": 0
+        },
+        {
+          "code": "ERROR",
+          "count": 0
+        },
+        {
+          "code": "WARNING",
+          "count": 0
+        }
+      ],
+      "rawBodyPublished": false,
+      "privateCaptureDisposition": "eligible-for-wrapper-cleanup"
+    },
+    "capBytes": 4194304,
+    "representativeTraces": [
+      {
+        "mode": "bounded",
+        "succeeded": true,
+        "policy": "automatic",
+        "pid": 72935,
+        "target": 0,
+        "bytes": 28161,
+        "budgetMs": 5000,
+        "offsetBefore": 0,
+        "offsetAfter": 0,
+        "lastPts": 0,
+        "lastStream": 0,
+        "droppedEvents": 0,
+        "droppedFactories": 0,
+        "factories": [
+          "appsrc:app:1.28.1",
+          "decodebin:playback:1.28.1",
+          "typefind:coreelements:1.28.1",
+          "videoconvert:videoconvertscale:1.28.1",
+          "appsink:app:1.28.1",
+          "qtdemux:isomp4:1.28.1",
+          "multiqueue:coreelements:1.28.1",
+          "h264parse:videoparsersbad:1.28.1",
+          "capsfilter:coreelements:1.28.1",
+          "vtdec_hw:applemedia:1.28.1"
+        ],
+        "truncation": null,
+        "probeFailures": 0
+      },
+      {
+        "mode": "bounded",
+        "succeeded": true,
+        "policy": "software-only",
+        "pid": 72935,
+        "target": 966666667,
+        "bytes": 28161,
+        "budgetMs": 5000,
+        "offsetBefore": 0,
+        "offsetAfter": 0,
+        "lastPts": 966666666,
+        "lastStream": 966666666,
+        "droppedEvents": 0,
+        "droppedFactories": 0,
+        "factories": [
+          "appsrc:app:1.28.1",
+          "decodebin:playback:1.28.1",
+          "typefind:coreelements:1.28.1",
+          "videoconvert:videoconvertscale:1.28.1",
+          "appsink:app:1.28.1",
+          "qtdemux:isomp4:1.28.1",
+          "multiqueue:coreelements:1.28.1",
+          "h264parse:videoparsersbad:1.28.1",
+          "capsfilter:coreelements:1.28.1",
+          "avdec_h264:libav:1.28.1"
+        ],
+        "truncation": null,
+        "probeFailures": 0
+      },
+      {
+        "mode": "bounded",
+        "succeeded": true,
+        "policy": "automatic",
+        "pid": 72935,
+        "target": 0,
+        "bytes": 34724,
+        "budgetMs": 5000,
+        "offsetBefore": 0,
+        "offsetAfter": 0,
+        "lastPts": 0,
+        "lastStream": 0,
+        "droppedEvents": 0,
+        "droppedFactories": 0,
+        "factories": [
+          "appsrc:app:1.28.1",
+          "decodebin:playback:1.28.1",
+          "typefind:coreelements:1.28.1",
+          "videoconvert:videoconvertscale:1.28.1",
+          "appsink:app:1.28.1",
+          "qtdemux:isomp4:1.28.1",
+          "multiqueue:coreelements:1.28.1",
+          "h264parse:videoparsersbad:1.28.1",
+          "capsfilter:coreelements:1.28.1",
+          "vtdec_hw:applemedia:1.28.1"
+        ],
+        "truncation": null,
+        "probeFailures": 0
+      }
+    ],
+    "traceMeaning": "3 successful representative traces, not total calls or per-call factory census; complete raw capture and separate failure-return reservation retained",
+    "notRunInThisMode": [
+      "controls cancellation/permission-revocation",
+      "copy recovery",
+      "restart/reactivation",
+      "120minutes"
+    ]
+  },
+  "resources": {
+    "samples": {
+      "status": "observed",
+      "resourceTrendPass": false,
+      "reviewRequired": true,
+      "sampleCount": 121,
+      "groups": [
+        {
+          "pid": 72935,
+          "startIdentity": "macos:1791517642:663783",
+          "sampleCount": 121,
+          "first": {
+            "phaseAt": 8057.426417,
+            "sampledAt": 1791517648218,
+            "rssBytes": 3167879168,
+            "threadCount": 37,
+            "fdCount": 30,
+            "mutationCount": 6
+          },
+          "last": {
+            "phaseAt": 607839.273667,
+            "sampledAt": 1791518248004,
+            "rssBytes": 1831813120,
+            "threadCount": 41,
+            "fdCount": 32,
+            "mutationCount": 2370
+          },
+          "max": {
+            "rssBytes": 3209216000,
+            "threadCount": 41,
+            "fdCount": 35
+          },
+          "delta": {
+            "rssBytes": -1336066048,
+            "threadCount": 4,
+            "fdCount": 2,
+            "mutationCount": 2364
+          },
+          "elapsedMs": 599781.84725,
+          "maxGapMs": 5005.345208999992,
+          "warmupMs": 300000,
+          "postWarmup": {
+            "status": "observed",
+            "sampleCount": 61,
+            "delta": {
+              "rssBytes": 10452992,
+              "threadCount": 0,
+              "fdCount": 7,
+              "mutationCount": 1192
+            },
+            "elapsedMs": 299617.658584,
+            "rssMiBPerMinute": 1.996294219862583
+          }
+        }
+      ]
+    },
+    "maxLogicalRootBytes": 44390601,
+    "rootCapBytes": 469762048,
+    "rssCapBytes": 4294967296,
+    "cpu": {
+      "maxPercent": 322.1
+    },
+    "footprint": "not-measured",
+    "resourceTrendPass": false,
+    "reviewRequired": true,
+    "meaning": "sampled observed maxima, not hard instantaneous peak enforcement; no long-term stability/no-leak approval"
+  },
+  "prior72": {
+    "candidate": "9257ed8b2044f9e8def4dd9984abea8c022fae1b",
+    "comparison100Plus100": "reused only; zero new calls",
+    "productDirectRegression": "reused same source/runtime/binary; no full rebuild/rerun",
+    "initialFullTraceFail": "preserved unchanged, uncaptured suffix not reconstructed",
+    "releaseAdopted": false,
+    "newStage": "short integration satisfied; independent review permits this development candidate for separately authorized future120; final release adoption still pending"
+  },
+  "approval": {
+    "candidateSha256": "5c6281009cc9bd804ff79538ce88ff13e4dc4af051001348095119d32540d6df",
+    "migrationSha256": "8f82d794d0530721dcb9002a7ddba9f354f46c7f27a48a961161ef340d9cad84",
+    "candidateDigest": "137543c6332a73f9a77599bfaca732bd1f54b263adee078fe5d3f8c275775906",
+    "strictCarryEligible": 986,
+    "independentRequiredLegacy": 0,
+    "producerApplications": 0,
+    "reason": "same existing legacy candidate; new software-policy candidate short integration reviewed separately, not automatically release-approved",
+    "rawCommands": "commands/candidate.* and commands/migration.*; large unchanged manifests not duplicated"
+  },
+  "independentReview": {
+    "file": "73-independent-review.json",
+    "shortIntegrationBlockers": [],
+    "openProductFindings": [],
+    "decision": {
+      "shortIntegrationSatisfied": true,
+      "R72V1": "task73의 단1회600초 실행에서 bounded 설정과 전체 수집 성공으로 해당 수집 준비 blocker 해소. task72 원래 실행의 FAIL은 유지한다.",
+      "developmentCandidate": "현재 후보는 별도 승인된 후속120분 검증의 개발 후보로 사용할 수 있다.",
+      "releaseAdoption": "미수행·보류",
+      "newPolicyApprovalApplied": false,
+      "producerApplications": 0,
+      "new120ExecutionAuthorizedByReview": false,
+      "overallTaskCleanupComplete": false,
+      "historical70And71": "FAIL 및 근본 원인 미확정 유지. 이번 성공으로 과거 실패 원인을 확정하거나 소급 PASS로 바꾸지 않는다."
+    },
+    "pending": "remote byte readback and owned root absence",
+    "preservation": "87 files readback and sanitization independently verified"
+  },
+  "evidence": {
+    "path": "docs/release-artifacts/v4.5.0/73-execution.tar.gz",
+    "bytes": 217735,
+    "sha256": "25ffba5e807a89a1a19d93b5aa3e48dd8ffaa14c19ab79fe313431f6a0f7ca40",
+    "members": 87,
+    "uncompressedBytes": 1726496,
+    "maxMemberBytes": 998706,
+    "byteReadback": true,
+    "selectedResults": 10,
+    "privacy": {
+      "originalPath": "short-mixed/media-server-current-observer-SBP1lW/server-1.private.log",
+      "originalBytes": 189248,
+      "originalSha256": "99a28c9472abdf90e5a00f798377fa178d2ada1a3ecc9dca74f9d26702873212",
+      "preservedBytes": 188743,
+      "preservedSha256": "b1f039f9017a5ac962e5975843918f75be04e4f951f33d823ca577611d3d4d9a",
+      "sameBytes": false,
+      "transform": "diagnostic-prefix lines without URI retained; other boot/config/source lines replaced by numbered markers",
+      "redactions": [
+        {
+          "line": 1,
+          "offset": 0,
+          "bytes": 91,
+          "sha256": "8a241ffa588a3811ae5d33e3e1e5030c2d02bd82816ed4b0905119e207289583"
+        },
+        {
+          "line": 2,
+          "offset": 91,
+          "bytes": 21,
+          "sha256": "cfa85e35a8f6d9496fdaad4b3fb1c6e774e9e5300099fbd6f68147e10ad554db"
+        },
+        {
+          "line": 3,
+          "offset": 112,
+          "bytes": 37,
+          "sha256": "a728e3331bd7bba10cf2f54b1d55e96a76273c604c5509e89448f24b82f437a1"
+        },
+        {
+          "line": 4,
+          "offset": 149,
+          "bytes": 37,
+          "sha256": "61de4846b9d2742db94891381c648fa852b6397ed690095e3d0a848bcb6d5620"
+        },
+        {
+          "line": 5,
+          "offset": 186,
+          "bytes": 43,
+          "sha256": "335986dc327db32e710608c5f9f575f9d65f3bb1ad767fb49fd6c8c0c8faf53d"
+        },
+        {
+          "line": 6,
+          "offset": 229,
+          "bytes": 52,
+          "sha256": "4ddfd2f36954c748bf44a6774265c02fba407b41d3273f1cc48555aaeb3408b1"
+        },
+        {
+          "line": 7,
+          "offset": 281,
+          "bytes": 133,
+          "sha256": "854748b70d9a1868179d07c46c77b9ba16216726b13b1008ad5f9ee0fbb67c97"
+        },
+        {
+          "line": 8,
+          "offset": 414,
+          "bytes": 68,
+          "sha256": "963bc781a4e98d9af6efa508ae49ec479fc3a5f9751269272ca528cd16c28af8"
+        },
+        {
+          "line": 9,
+          "offset": 482,
+          "bytes": 13,
+          "sha256": "aa3b77c9fdfabe7be7424173a1f347599fd047446c8638b19b56a27101587eb2"
+        },
+        {
+          "line": 10,
+          "offset": 495,
+          "bytes": 28,
+          "sha256": "abfda1af23d1e13ea889332d73d3050a1e86d378d65af5dff7395195e4dcef48"
+        },
+        {
+          "line": 11,
+          "offset": 523,
+          "bytes": 22,
+          "sha256": "c38983965fe64afe8755f109a2be2077afda97aaa98ac10a28f978a3eea10b22"
+        },
+        {
+          "line": 12,
+          "offset": 545,
+          "bytes": 81,
+          "sha256": "27eee12e9582918c036c9bfd14e292cc4bad61fb423fa64a6d0df981aabccea0"
+        },
+        {
+          "line": 13,
+          "offset": 626,
+          "bytes": 47,
+          "sha256": "8b3c5f3b5b6087b84a94dc1b4c4e812884a16996ecd62558ab7e0bb4382ed29e"
+        },
+        {
+          "line": 14,
+          "offset": 673,
+          "bytes": 47,
+          "sha256": "8b3c5f3b5b6087b84a94dc1b4c4e812884a16996ecd62558ab7e0bb4382ed29e"
+        },
+        {
+          "line": 15,
+          "offset": 720,
+          "bytes": 47,
+          "sha256": "8b3c5f3b5b6087b84a94dc1b4c4e812884a16996ecd62558ab7e0bb4382ed29e"
+        },
+        {
+          "line": 16,
+          "offset": 767,
+          "bytes": 47,
+          "sha256": "8b3c5f3b5b6087b84a94dc1b4c4e812884a16996ecd62558ab7e0bb4382ed29e"
+        },
+        {
+          "line": 17,
+          "offset": 814,
+          "bytes": 47,
+          "sha256": "8b3c5f3b5b6087b84a94dc1b4c4e812884a16996ecd62558ab7e0bb4382ed29e"
+        },
+        {
+          "line": 18,
+          "offset": 861,
+          "bytes": 47,
+          "sha256": "8b3c5f3b5b6087b84a94dc1b4c4e812884a16996ecd62558ab7e0bb4382ed29e"
+        },
+        {
+          "line": 19,
+          "offset": 908,
+          "bytes": 47,
+          "sha256": "8b3c5f3b5b6087b84a94dc1b4c4e812884a16996ecd62558ab7e0bb4382ed29e"
+        },
+        {
+          "line": 20,
+          "offset": 955,
+          "bytes": 47,
+          "sha256": "8b3c5f3b5b6087b84a94dc1b4c4e812884a16996ecd62558ab7e0bb4382ed29e"
+        },
+        {
+          "line": 21,
+          "offset": 1002,
+          "bytes": 47,
+          "sha256": "8b3c5f3b5b6087b84a94dc1b4c4e812884a16996ecd62558ab7e0bb4382ed29e"
+        },
+        {
+          "line": 928,
+          "offset": 188742,
+          "bytes": 154,
+          "sha256": "5050b319bd47a5a89b1181476acb30b2d178ebb55b68131d32cac8c40d22e6a8"
+        },
+        {
+          "line": 929,
+          "offset": 188896,
+          "bytes": 35,
+          "sha256": "da7224dd4ca005baa4d96e4287d3fac29e05f612c47bac77407dc5d2f43f233e"
+        },
+        {
+          "line": 930,
+          "offset": 188931,
+          "bytes": 32,
+          "sha256": "be6d57e68cfeb2c5fdb3cf05a8c898efea434ff0d477b7109ddeae0416266ecf"
+        },
+        {
+          "line": 931,
+          "offset": 188963,
+          "bytes": 37,
+          "sha256": "a728e3331bd7bba10cf2f54b1d55e96a76273c604c5509e89448f24b82f437a1"
+        },
+        {
+          "line": 932,
+          "offset": 189000,
+          "bytes": 45,
+          "sha256": "d2d987de2bd4f214a3e415156ee1221fcf6404530dc2503ff56cc6f3ec6a463f"
+        },
+        {
+          "line": 933,
+          "offset": 189045,
+          "bytes": 48,
+          "sha256": "12e998823555ba152e2d9f813a2beb5c47e26e03200539906233526df4e09c10"
+        },
+        {
+          "line": 934,
+          "offset": 189093,
+          "bytes": 51,
+          "sha256": "f3fd88065a116b0f26f1f8d1abfadad281a85ad52b51780b247af0c38047570d"
+        },
+        {
+          "line": 935,
+          "offset": 189144,
+          "bytes": 68,
+          "sha256": "963bc781a4e98d9af6efa508ae49ec479fc3a5f9751269272ca528cd16c28af8"
+        },
+        {
+          "line": 936,
+          "offset": 189212,
+          "bytes": 36,
+          "sha256": "8d03595ff123515700d4c0d6aa841cfc21d29546be68eabf680b867ce16dd9f6"
+        }
+      ],
+      "credentialsAndAuthStores": "not included"
+    }
+  },
+  "privacyScan": "no actual bearer/passwordHash/tokenHash/credential-bearing source URL patterns in selected archive; private settings replaced by numbered markers, original hashes retained",
+  "cleanup": {
+    "preRemovalReceipt": {
+      "recordedAt": "2026-10-09T04:00:51.311072+00:00",
+      "rootAbsent": false,
+      "processes": {
+        "pid-72895": "absent",
+        "group-72895": "absent",
+        "pid-72935": "absent",
+        "group-72935": "absent"
+      },
+      "ports": {
+        "49403": {
+          "connectionCode": 1
+        },
+        "49404": {
+          "connectionCode": 1
+        }
+      },
+      "udpClosedSource": "actual report.udpClosed=true; owned registered groups absent",
+      "sandboxSocketProbe": "code1 permission denied; not used as closed-port evidence",
+      "portsEscalated": {
+        "49403": {
+          "connectionCode": 61,
+          "connectionRefused": true
+        },
+        "49404": {
+          "connectionCode": 61,
+          "connectionRefused": true
+        }
+      },
+      "escalatedProbeAt": "2026-10-09T04:01:02.810775+00:00"
+    },
+    "root": "/private/tmp/media-server-release73-9y2a17vq",
+    "rootAbsent": false,
+    "remaining": "local/remote artifact bytes and owned root removal",
+    "QwenOllamaCalls": 0,
+    "unloadGate": "not-run",
+    "existingImagesModelsSdkRetained": true
+  },
+  "priorEvidence": {
+    "59Linux": "original source/environment scope retained, not rerun",
+    "61Acceptance": "72cc7643d681b75228b80fd646921965ecacba75 original scope retained, not current software-policy acceptance",
+    "63UI": "original scope retained, not rerun",
+    "65Guard": "unchanged",
+    "68to72Failures": "preserved; historical decoder root cause unknown"
+  },
+  "remaining": [
+    "separately authorized120 mixed with cancel/revoke/copy recovery/restart/reactivation",
+    "long-term resource judgment and existing catalog operating limits",
+    "new-policy final release adoption and necessary binding",
+    "final evidence integration/record cleanup/PR CI merge signed tag Release"
+  ],
+  "notRun": [
+    "120minutes",
+    "formal acceptance",
+    "fullUI",
+    "Qwen/Ollama",
+    "additional short run",
+    "producer reapplication"
+  ],
+  "commits": {
+    "implementation": "8a5354b7a37961e26e24fd1d03aa55c30ceec2b5",
+    "productCandidate": "9257ed8b2044f9e8def4dd9984abea8c022fae1b",
+    "evidence": "this subsequent evidence-only commit; run source stays fixed"
+  },
+  "noAutomaticNextRun": true,
+  "remoteBeforePush": "3a7af408e45cf728772d0b8673ff023865b38fd8",
+  "finalStatic": {
+    "recordedAt": "2026-10-09T04:02:58.734346+00:00",
+    "jsonParse": "PASS",
+    "archiveReadback": "PASS",
+    "runSourceHashUnchanged": "PASS",
+    "productSourcesBinaryRuntimeSameAs72": "PASS",
+    "gitDiffCheck": "PASS",
+    "notRuntimeRetest": true
+  }
+}
