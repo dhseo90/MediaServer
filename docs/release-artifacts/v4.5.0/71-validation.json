@@ -1,0 +1,499 @@
+{
+  "task": 71,
+  "recordedAt": "2026-10-09T01:00:36.350679+00:00",
+  "status": "EOS 경계 제한 진단 완료, 동작 수정 미채택",
+  "base": "cb520558135c284157f9d7e50b3b738909d79321",
+  "requestedModel": {
+    "main": "gpt-6-astra/high",
+    "independent": "gpt-6-astra/high"
+  },
+  "actualRuntimeModel": {
+    "main": null,
+    "mainEffort": null,
+    "reviewer": "see independent review; request is not runtime attestation"
+  },
+  "source": {
+    "base": "cb520558135c284157f9d7e50b3b738909d79321",
+    "files": {
+      "docs/project-feature-test-inventory.md": "44dbeb8bba9ec655a0013f3ea7fadbd73ac05954c119e69c34a86aa4f828c80a",
+      "scripts/internal/recording_longrun_progress.mjs": "c615e97bd158c2f0d81cc5e1cd3f26561c6c6cd2d9eea9a1b2b8c2f6ad19e172",
+      "scripts/internal/recording_longrun_progress.test.mjs": "2f48b9644ed6366b8809e394f41aeaf7bbe9757f829439edf68045c641aff08b",
+      "scripts/internal/visual_frame_decoder_smoke.cpp": "7a0d75d5ef5f94d8531c33759d570c69e5718ac3d3eefcec12c7cc78ef0f19f0",
+      "src/recording/visual_frame_decoder.cpp": "a653e44dba03806f28cbc9bb2402ed7f444c079805ab8283fc5e64b888606231"
+    },
+    "diffSha256": "1b92dca37e123f974020d9a1396d5943dfcc85612317aa3c199a8ecccc5d12f6",
+    "candidateDigest": "137543c6332a73f9a77599bfaca732bd1f54b263adee078fe5d3f8c275775906",
+    "cppUnchangedSinceFirstFreeze": true,
+    "finalParentTests": "commands/trace-parent-final-summary.json",
+    "firstFindingRed": "commands/review-probe-red.json",
+    "green": "commands/review-probe-green.json",
+    "codeCommit": "e5c8cff4e77b097d847da0cd626f13190450eb79",
+    "codeTree": "22b9bd34be1f8690840daaaae8d1f4c1c5dcc4ed",
+    "executionBinding": "host/Linux C++ and decoder smoke match reviewed hashes; final parent JS delta separately tested56. Linux source manifest predates parent-only correction and does not claim to execute that JS."
+  },
+  "input": {
+    "archive": "70-execution.tar.gz",
+    "archiveSha256": "8bb542ab7400341557d94c32283afe3fd7091540fd6cd1a9ca1291ec4f64249e",
+    "bytes": 28161,
+    "sha256": "51574640bd6e851078347ba66376463a1c74f455efd5b123e528bd7899132091",
+    "targetNs": 966666667,
+    "budgetMs": 5000,
+    "originalPtsNs": 7966666666,
+    "sampleOrdinal": 30,
+    "targetVsNative": "binding native PTS2900/timescale3000 edit0; requested target is966666667, actual exact sample966666666 within1ns",
+    "historical70": "vtdec_hw:applemedia:1.28.1, samples0, elapsed30234us, eos-no-target. No original edge trace."
+  },
+  "result": {
+    "historical70": "sample0 30234us eos-no-target; no edge trace then. Cannot identify actual70 EOS origin or infer decoder output0. Original preserved.",
+    "newBoundary": {
+      "baseline": {
+        "exit": 1,
+        "samples": 29,
+        "factory": "vtdec_hw:applemedia:1.28.1"
+      },
+      "instrumentedFirst": {
+        "exit": 0,
+        "samples": 30
+      },
+      "bounded": {
+        "plannedMax": 8,
+        "executed": 5,
+        "success": 4,
+        "failure": 1,
+        "stopAtFirstFailure": true,
+        "remainingNotRun": [
+          6,
+          7,
+          8
+        ],
+        "wrapperFailure": "check=True propagates failing capture; receipts retained, aggregate read back separately"
+      },
+      "failure5": {
+        "seekSeq": 143,
+        "decoderIn": 30,
+        "decoderOut": 29,
+        "appsinkIn": 29,
+        "render": 29,
+        "pulledSamples": 29,
+        "emptyPulls": 1,
+        "stateAtEos": "pipeline/appsink SUCCESS PLAYING no pending; queue0/in29/out29",
+        "actualEos": "same observed seq143 at decoder in/out and appsink in, plus appsink EOS callback",
+        "classification": "count loss at decoder input/output, not not-started pseudoEOS and not downstream appsink pull loss in this observation",
+        "limits": "pad entry counts are not hardware accepted/completed frame counts; internal drop reason unknown, not proof of vtdec bug nor proof historical70 is identical"
+      }
+    },
+    "sequential": {
+      "calls": 1,
+      "exit": 0,
+      "samples": 30,
+      "exactPresentationNs": 966666666,
+      "rgbMatchesHistorical": true,
+      "onlyChange": "skip PAUSED/flushing seek block in standalone copied test decoder; default factory unchanged; 5s and exact target retained",
+      "notAdopted": true,
+      "causality": "seek/flush path contribution possible; single observation does not isolate internal race or justify retry/fallback"
+    },
+    "officialSources": "upstream/sources.json; gstappsink.c1672-1715/start1013/stop1037/event1100/flush990/pull2485; gstbasesink.c60-85,vtdec.c888-930/1627-1700",
+    "noSafeBehaviorFix": "No evidence product incorrectly treats this actual EOS; do not ignore real EOS or adopt sequential fallback. Hardware/plugin internal behavior remains unconfirmed.",
+    "directRegressions": "commands host/linux-decoder,trace-modes,host-package-prepared,host-readback,host-visual-source; original host-package preparation failure retained",
+    "longrun": {
+      "calls": 0,
+      "notAuthorized": true
+    },
+    "QwenOllamaCalls": 0,
+    "approval": "candidate/migration unchanged legacy986 eligible; new V430 decoder delta independently reviewed; no ritual producer"
+  },
+  "direct": {
+    "hostDecoder": {
+      "exit": 0,
+      "assertions": 43232
+    },
+    "linuxDecoder": {
+      "exit": 0,
+      "assertions": 43232,
+      "uid": 10001,
+      "image": "sha256:ce72c8a15363984da642e9964189957896812061c6af1d0ef67e87b38ad5a588",
+      "core": "1.28.7",
+      "arch": "aarch64",
+      "scope": "direct decoder/build, no full Linux validation"
+    },
+    "traceModes": [
+      {
+        "mode": "off",
+        "exit": 0,
+        "answer": "PASS trace probe rgb=407035c91418094d5f112d1dcf278453e47d4e08c3b1c6b66e2b63ef36557998 failure=visual-frame-unavailable offset=37",
+        "traceCount": 0,
+        "stdoutSha256": "9d553c99d61230660e72682f7303b2945af5d374145c7681b282def6172751ed",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "mode": "full",
+        "exit": 0,
+        "answer": "PASS trace probe rgb=407035c91418094d5f112d1dcf278453e47d4e08c3b1c6b66e2b63ef36557998 failure=visual-frame-unavailable offset=37",
+        "traceCount": 26,
+        "stdoutSha256": "9d553c99d61230660e72682f7303b2945af5d374145c7681b282def6172751ed",
+        "stderrSha256": "cc76bf4bb945003e44617ea5c49241425ce047a1af4c1bab38fea62648e110f9"
+      },
+      {
+        "mode": "bounded",
+        "exit": 0,
+        "answer": "PASS trace probe rgb=407035c91418094d5f112d1dcf278453e47d4e08c3b1c6b66e2b63ef36557998 failure=visual-frame-unavailable offset=37",
+        "traceCount": 4,
+        "stdoutSha256": "9d553c99d61230660e72682f7303b2945af5d374145c7681b282def6172751ed",
+        "stderrSha256": "6eeeccd67089ce16796c89781b881a5d6c850b5f4fbce5f0b267b792d4982094"
+      },
+      {
+        "mode": "invalid",
+        "exit": 0,
+        "answer": "PASS trace probe rgb=407035c91418094d5f112d1dcf278453e47d4e08c3b1c6b66e2b63ef36557998 failure=visual-frame-unavailable offset=37",
+        "traceCount": 0,
+        "stdoutSha256": "9d553c99d61230660e72682f7303b2945af5d374145c7681b282def6172751ed",
+        "stderrSha256": "a51b1388ebb47adac18656f8fc9cc455f6c70c8fc621d028c672a92ae7007dee"
+      },
+      {
+        "mode": "write-failed",
+        "exit": 0,
+        "answer": "PASS trace probe rgb=407035c91418094d5f112d1dcf278453e47d4e08c3b1c6b66e2b63ef36557998 failure=visual-frame-unavailable offset=37",
+        "traceCount": 0,
+        "stdoutSha256": "3d3e664a5a4d8fe0fe053d549f2c6091f4a7ac26ffe9b3c64561570003a4d79f",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    ],
+    "parentContract": {
+      "initial": 54,
+      "final": 56,
+      "failures": 0,
+      "reviewFinding": "explicit probe failure previously captured; RED1 to GREEN0, parent incomplete propagation only"
+    },
+    "hostVisualSource": {
+      "exit": 0,
+      "assertions": 76
+    },
+    "linuxVisualSource": {
+      "exit": 0,
+      "assertions": 76
+    },
+    "package": "host-package-prepared and host-readback exit0; exact70selected journal replay and actual extractor+builder. First host-package preparation FAIL preserved; no decoder ran then. Not historicalgeneration6 restoration.",
+    "shortMixedIntegration": "not-run: no behavior fix adopted; no mixed execution requested"
+  },
+  "approval": {
+    "digest": "137543c6332a73f9a77599bfaca732bd1f54b263adee078fe5d3f8c275775906",
+    "sha256": "5c6281009cc9bd804ff79538ce88ff13e4dc4af051001348095119d32540d6df",
+    "semanticJsonEqualsTrackedFixture": true,
+    "initialAndFinalCandidateBytesEqual": true,
+    "trackedFixture": "test/fixtures/v390_review4_feature_semantic_source_audit.json",
+    "trackedFixtureSha256": "87dedc1042e7919a6276d4dd1692f3e9d5af6fcf5f1a0ce4e88f8a9a1a93b978",
+    "summary": {
+      "rows": 986,
+      "resolvedCandidates": 986,
+      "discoveredCandidates": 0,
+      "unresolvedCandidates": 0,
+      "fileScopeRoles": 0
+    },
+    "migration": "commands/migration.json",
+    "producerApplied": false,
+    "reason": "same candidate; new decoder/diagnostic delta independently reviewed separately"
+  },
+  "sourceEvidenceReuse": {
+    "59": "original Linux scope remains, current direct Linux decoder delta separate",
+    "61": "72cc7643d681b75228b80fd646921965ecacba75 acceptance retained only at original source",
+    "63": "original UI scope retained, no UI execution",
+    "65": "publication guard unchanged",
+    "68": "FAIL cause unconfirmed; original nonroot Linux evidence retained",
+    "69": "diagnostic checkpoint retained, not behavior fix",
+    "70": "mixed120 FAIL unchanged; historical sample0 not reproduced by this29sample case"
+  },
+  "notRun": [
+    "mixed120",
+    "general30/120",
+    "formal acceptance",
+    "UI",
+    "Qwen/Ollama",
+    "other decoder selection",
+    "post-fix mixed integration",
+    "release procedures"
+  ],
+  "limits": [
+    "decoder input/output pad counts do not prove hardware completion/drop reason",
+    "snapshot reads are sequential, not an atomic pipeline state snapshot",
+    "phase tracks request seek dispatch, not an assertion that all seqnums match across all elements",
+    "first/last timing and count per fixed slot are aggregates, not every event timeline",
+    "trace adds timing cost; initial uninstrumented baseline vs instrumented run are not deterministic A/B",
+    "sequential test is one standalone copy and not a product fallback",
+    "70sample0 cause and68 cause remain unconfirmed",
+    "no safe product behavior fix proven; new120 requires explicit authorization and unresolved decoder risk decision"
+  ],
+  "cleanup": {
+    "ownedContainer": "removed after successful direct tests; receipts preserved",
+    "temporaryRoot": "pending remote byte preservation",
+    "modelsRetained": true,
+    "qwenCalls": 0,
+    "unloadGate": "not-run",
+    "productServerStarted": false
+  },
+  "evidence": {
+    "path": "71-execution.tar.gz",
+    "bytes": 167271,
+    "sha256": "ac4269947142661d944509d4dc8a546d30849e6029cc49a65fcbd4f225d5c83f",
+    "members": 196,
+    "memberReadback": true,
+    "maxMemberBytes": 222679
+  },
+  "independentReview": {
+    "path": "71-independent-review.json",
+    "sha256": "90a5fbe2e0c6d8eb40dfb1146cecff4ababfff65412c50ebc02ad5102de9ea5b",
+    "status": "approved-for-limited-diagnostic-adoption",
+    "openFindings": 0,
+    "resolvedFinding": "R71-1",
+    "provenanceAddendum": "71-execution.tar.gz:review-provenance-addendum.json",
+    "initialJudgment": "71-execution.tar.gz:independent-review-before-final.json",
+    "scope": "AI source/original-output review only; no behavior recovery or longrun approval"
+  },
+  "commands": [
+    {
+      "name": "baseline-host",
+      "exit": 1,
+      "receipt": "71-execution.tar.gz:commands/baseline-host.json"
+    },
+    {
+      "name": "bounded-1",
+      "exit": 0,
+      "receipt": "71-execution.tar.gz:commands/bounded-1.json"
+    },
+    {
+      "name": "bounded-2",
+      "exit": 0,
+      "receipt": "71-execution.tar.gz:commands/bounded-2.json"
+    },
+    {
+      "name": "bounded-3",
+      "exit": 0,
+      "receipt": "71-execution.tar.gz:commands/bounded-3.json"
+    },
+    {
+      "name": "bounded-4",
+      "exit": 0,
+      "receipt": "71-execution.tar.gz:commands/bounded-4.json"
+    },
+    {
+      "name": "bounded-5",
+      "exit": 1,
+      "receipt": "71-execution.tar.gz:commands/bounded-5.json"
+    },
+    {
+      "name": "build-edges-final",
+      "exit": 0,
+      "receipt": "71-execution.tar.gz:commands/build-edges-final.json"
+    },
+    {
+      "name": "build-edges",
+      "exit": 0,
+      "receipt": "71-execution.tar.gz:commands/build-edges.json"
+    },
+    {
+      "name": "candidate-final",
+      "exit": 0,
+      "receipt": "71-execution.tar.gz:commands/candidate-final.json"
+    },
+    {
+      "name": "candidate",
+      "exit": 0,
+      "receipt": "71-execution.tar.gz:commands/candidate.json"
+    },
+    {
+      "name": "comments-final",
+      "exit": 0,
+      "receipt": "71-execution.tar.gz:commands/comments-final.json"
+    },
+    {
+      "name": "comments",
+      "exit": 0,
+      "receipt": "71-execution.tar.gz:commands/comments.json"
+    },
+    {
+      "name": "compile-baseline",
+      "exit": 0,
+      "receipt": "71-execution.tar.gz:commands/compile-baseline.json"
+    },
+    {
+      "name": "compile-edges",
+      "exit": 0,
+      "receipt": "71-execution.tar.gz:commands/compile-edges.json"
+    },
+    {
+      "name": "compile-package",
+      "exit": 0,
+      "receipt": "71-execution.tar.gz:commands/compile-package.json"
+    },
+    {
+      "name": "compile-readback",
+      "exit": 0,
+      "receipt": "71-execution.tar.gz:commands/compile-readback.json"
+    },
+    {
+      "name": "compile-sequential",
+      "exit": 0,
+      "receipt": "71-execution.tar.gz:commands/compile-sequential.json"
+    },
+    {
+      "name": "compile-smoke-final",
+      "exit": 0,
+      "receipt": "71-execution.tar.gz:commands/compile-smoke-final.json"
+    },
+    {
+      "name": "compile-smoke",
+      "exit": 0,
+      "receipt": "71-execution.tar.gz:commands/compile-smoke.json"
+    },
+    {
+      "name": "compile-source",
+      "exit": 0,
+      "receipt": "71-execution.tar.gz:commands/compile-source.json"
+    },
+    {
+      "name": "docs-links",
+      "exit": 0,
+      "receipt": "71-execution.tar.gz:commands/docs-links.json"
+    },
+    {
+      "name": "edges-host",
+      "exit": 0,
+      "receipt": "71-execution.tar.gz:commands/edges-host.json"
+    },
+    {
+      "name": "host-decoder",
+      "exit": 0,
+      "receipt": "71-execution.tar.gz:commands/host-decoder.json"
+    },
+    {
+      "name": "host-package-prepared",
+      "exit": 0,
+      "receipt": "71-execution.tar.gz:commands/host-package-prepared.json"
+    },
+    {
+      "name": "host-package",
+      "exit": 1,
+      "receipt": "71-execution.tar.gz:commands/host-package.json"
+    },
+    {
+      "name": "host-readback",
+      "exit": 0,
+      "receipt": "71-execution.tar.gz:commands/host-readback.json"
+    },
+    {
+      "name": "host-runtime",
+      "exit": 0,
+      "receipt": "71-execution.tar.gz:commands/host-runtime.json"
+    },
+    {
+      "name": "host-visual-source",
+      "exit": 0,
+      "receipt": "71-execution.tar.gz:commands/host-visual-source.json"
+    },
+    {
+      "name": "linux-build",
+      "exit": 0,
+      "receipt": "71-execution.tar.gz:commands/linux-build.json"
+    },
+    {
+      "name": "linux-compile-decoder",
+      "exit": 0,
+      "receipt": "71-execution.tar.gz:commands/linux-compile-decoder.json"
+    },
+    {
+      "name": "linux-compile-source",
+      "exit": 0,
+      "receipt": "71-execution.tar.gz:commands/linux-compile-source.json"
+    },
+    {
+      "name": "linux-configure",
+      "exit": 0,
+      "receipt": "71-execution.tar.gz:commands/linux-configure.json"
+    },
+    {
+      "name": "linux-create",
+      "exit": 0,
+      "receipt": "71-execution.tar.gz:commands/linux-create.json"
+    },
+    {
+      "name": "linux-decoder",
+      "exit": 0,
+      "receipt": "71-execution.tar.gz:commands/linux-decoder.json"
+    },
+    {
+      "name": "linux-identity",
+      "exit": 0,
+      "receipt": "71-execution.tar.gz:commands/linux-identity.json"
+    },
+    {
+      "name": "linux-remove",
+      "exit": 0,
+      "receipt": "71-execution.tar.gz:commands/linux-remove.json"
+    },
+    {
+      "name": "linux-source",
+      "exit": 0,
+      "receipt": "71-execution.tar.gz:commands/linux-source.json"
+    },
+    {
+      "name": "linux-start",
+      "exit": 0,
+      "receipt": "71-execution.tar.gz:commands/linux-start.json"
+    },
+    {
+      "name": "linux-stop",
+      "exit": 0,
+      "receipt": "71-execution.tar.gz:commands/linux-stop.json"
+    },
+    {
+      "name": "migration",
+      "exit": 0,
+      "receipt": "71-execution.tar.gz:commands/migration.json"
+    },
+    {
+      "name": "review-probe-green",
+      "exit": 0,
+      "receipt": "71-execution.tar.gz:commands/review-probe-green.json"
+    },
+    {
+      "name": "review-probe-red",
+      "exit": 1,
+      "receipt": "71-execution.tar.gz:commands/review-probe-red.json"
+    },
+    {
+      "name": "sequential-host",
+      "exit": 0,
+      "receipt": "71-execution.tar.gz:commands/sequential-host.json"
+    },
+    {
+      "name": "trace-modes",
+      "exit": 0,
+      "receipt": "71-execution.tar.gz:commands/trace-modes.json"
+    },
+    {
+      "name": "trace-parent-contract",
+      "exit": 0,
+      "receipt": "71-execution.tar.gz:commands/trace-parent-contract.json"
+    },
+    {
+      "name": "trace-parent-final-summary",
+      "exit": 0,
+      "receipt": "71-execution.tar.gz:commands/trace-parent-final-summary.json"
+    },
+    {
+      "name": "trace-parent-final",
+      "exit": 0,
+      "receipt": "71-execution.tar.gz:commands/trace-parent-final.json"
+    },
+    {
+      "name": "whitespace-final",
+      "exit": 0,
+      "receipt": "71-execution.tar.gz:commands/whitespace-final.json"
+    },
+    {
+      "name": "whitespace",
+      "exit": 0,
+      "receipt": "71-execution.tar.gz:commands/whitespace.json"
+    }
+  ],
+  "new120Resume": "not authorized in this request; preserve actual EOS/decoder output loss and obtain next bounded diagnosis or proven safe fix scope before claiming recovery"
+}

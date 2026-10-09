@@ -1,0 +1,810 @@
+{
+  "schema": "media-server.v450-independent-scoped-review.v1",
+  "sequence": 71,
+  "recordedAt": "2026-10-09T01:00:17.919335+00:00",
+  "reviewer": {
+    "task": "/root/independent_release71",
+    "requestedModel": "gpt-6-astra",
+    "requestedReasoning": "high",
+    "actualRuntimeModel": null,
+    "actualRuntimeReasoning": null,
+    "independentOfImplementationAndExecution": true,
+    "productOrTestExecutions": 0,
+    "subdelegations": 0,
+    "kind": "independent AI source and original-output review, not human approval or new execution PASS"
+  },
+  "base": "cb520558135c284157f9d7e50b3b738909d79321",
+  "reviewedDiffSha256": "1b92dca37e123f974020d9a1396d5943dfcc85612317aa3c199a8ecccc5d12f6",
+  "frozenFilesMatch": true,
+  "reviewedSources": [
+    {
+      "path": "src/recording/visual_frame_decoder.cpp",
+      "sha256": "a653e44dba03806f28cbc9bb2402ed7f444c079805ab8283fc5e64b888606231"
+    },
+    {
+      "path": "scripts/internal/visual_frame_decoder_smoke.cpp",
+      "sha256": "7a0d75d5ef5f94d8531c33759d570c69e5718ac3d3eefcec12c7cc78ef0f19f0"
+    },
+    {
+      "path": "docs/project-feature-test-inventory.md",
+      "sha256": "44dbeb8bba9ec655a0013f3ea7fadbd73ac05954c119e69c34a86aa4f828c80a"
+    },
+    {
+      "path": "include/recording/visual_frame_decoder.h",
+      "sha256": "49bbd58d8a9ca458a1408045450523a0bb678d24b9138129bf143eb89d0a8095"
+    },
+    {
+      "path": "src/recording/evidence_frame_extractor.cpp",
+      "sha256": "867db47861bc15a242d12512b501c5d3cd90460eb85304d4d5fa337f1d0e69b8"
+    },
+    {
+      "path": "src/recording/recording_visual_source.cpp",
+      "sha256": "d33f201cdcf9ca58d9c67d5c13ce39cccad344fa47151d50b2c33128d3ccecea"
+    },
+    {
+      "path": "scripts/internal/recording_longrun_progress.mjs",
+      "sha256": "c615e97bd158c2f0d81cc5e1cd3f26561c6c6cd2d9eea9a1b2b8c2f6ad19e172"
+    },
+    {
+      "path": "scripts/internal/v450_recording_a_mixed.mjs",
+      "sha256": "ebff56c2719d54cc1de957775bbfcebe880344023b9ff86b25a465ab3eae9ea6"
+    },
+    {
+      "path": "scripts/internal/recording_visual_source_smoke.cpp",
+      "sha256": "7198fcfe19187d1d519dcb9a1421c027dce577ec232680627cf148348538f839"
+    },
+    {
+      "path": "scripts/internal/recording_longrun_progress.test.mjs",
+      "sha256": "2f48b9644ed6366b8809e394f41aeaf7bbe9757f829439edf68045c641aff08b"
+    }
+  ],
+  "status": "approved-for-limited-diagnostic-adoption",
+  "diagnosticAdoption": "승인 가능: R71-1의 수집 누락 전파를 보완했으며, 검토한 최종 변경분에서 남은 차단 결함을 발견하지 못함. EOS 동작 수정·제품 복구·장시간 재개·출시 승인은 아님.",
+  "longrunApproved": false,
+  "findings": [
+    {
+      "id": "R71-1",
+      "priority": "P2",
+      "status": "resolved-in-final-candidate",
+      "file": "src/recording/visual_frame_decoder.cpp",
+      "line": 67,
+      "consumerFile": "scripts/internal/recording_longrun_progress.mjs",
+      "consumerLine": 153,
+      "trigger": "A diagnostic pad cannot be attached, so a new trace reports edges.probeFailures > 0 while existing top-level droppedEvents/droppedFactories are zero.",
+      "observation": "The new producer explicitly records missing probes, but frameTraceSummary checks only the old dropped counters and never reads edges.probeFailures. It therefore returns captured for this known missing boundary.",
+      "impact": "A future caller of the existing bounded/full collection helper can report complete diagnostic collection although the requested decoder/appsink boundary was not observed. Current task71 failure5 has probeFailures=0 and three probes, so its boundary analysis is not invalidated.",
+      "requestedChange": "Propagate explicit new probe collection failure to incomplete in the existing parent summary, preserving compatibility and legitimate pre-pipeline early refusals; add a focused existing-helper case. Do not modify decode decisions or run long tests.",
+      "evidenceType": "static producer-consumer code trace; reviewer did not execute a synthetic test",
+      "resolution": {
+        "code": "Provided edges are structurally checked; explicit probeFailures now adds edge-probe-failed and incomplete. Legacy traces without edges and legitimate pre-pipeline early refusals remain readable.",
+        "red": {
+          "command": "commands/review-probe-red.json",
+          "exit": 1,
+          "observedStatus": "captured"
+        },
+        "green": {
+          "command": "commands/review-probe-green.json",
+          "exit": 0,
+          "observedStatus": "incomplete"
+        },
+        "regression": {
+          "command": "commands/trace-parent-final-summary.json",
+          "exit": 0,
+          "passed": 56,
+          "failed": 0
+        },
+        "interimPreserved": "commands/trace-parent-final had summary54 before two additional cases; main moved summary/exit to end and reran once, preserving both raw outputs.",
+        "reviewerExecutedTest": false
+      }
+    }
+  ],
+  "historicalInput": {
+    "archive": "docs/release-artifacts/v4.5.0/70-execution.tar.gz",
+    "mp4Member": "mixed/selected/input/a-seed.mp4",
+    "bytes": 28161,
+    "sha256": "51574640bd6e851078347ba66376463a1c74f455efd5b123e528bd7899132091",
+    "exactArchiveBytesMatch": true,
+    "bindingMember": "mixed-binding.json",
+    "bindingExactBytesMatch": true,
+    "activeJournalMember": "mixed/selected/recordings/active-1.jsonl",
+    "activeJournalExactBytesMatch": true,
+    "failureMember": "mixed/server-1.sanitized.log",
+    "localFailureRecordEqualsArchiveFailure": true,
+    "targetNs": 966666667,
+    "historicalSampleCount": 0,
+    "historicalElapsedUs": 30234,
+    "historicalCause": "unconfirmed; sample0 is application Copy/pull count, not decoder output0; eos-no-target alone did not prove event origin"
+  },
+  "newObservation": {
+    "baseline": {
+      "exit": 1,
+      "samples": 29
+    },
+    "instrumentedFirst": {
+      "exit": 0,
+      "samples": 30
+    },
+    "bounded": {
+      "frozenMaximumCalls": 8,
+      "executed": 5,
+      "success": 4,
+      "failure": 1,
+      "stoppedAtFirstFailure": true,
+      "notRun": [
+        6,
+        7,
+        8
+      ],
+      "normalAggregateMissing": "check=True propagated failure; later receipt readback recorded this without rerun"
+    },
+    "failure5": {
+      "exit": 1,
+      "seekSeq": 143,
+      "decoderIn": 30,
+      "decoderOut": 29,
+      "appsinkIn": 29,
+      "render": 29,
+      "sampleCount": 29,
+      "pullCalls": 30,
+      "emptyPullCalls": 1,
+      "actualEOSAtThreeProbedBoundaries": true,
+      "eosCallback": true,
+      "pipelineAndSinkAtExit": "SUCCESS, PLAYING, VOID_PENDING",
+      "queueAtExit": 0,
+      "sinkIn": 29,
+      "sinkOut": 29,
+      "probesAttached": 3,
+      "probeFailures": 0,
+      "conclusion": "Current observed count difference is first visible between decoder input/output pads. The completed PLAYING state, real EOS and empty queue reject not-started pseudoEOS and downstream appsink-pull loss for this observation."
+    },
+    "sequential": {
+      "calls": 1,
+      "exit": 0,
+      "samples": 30,
+      "presentationNs": 966666666,
+      "productAdopted": false,
+      "inference": "The successful one-variable test is consistent with seek/flush involvement, but does not isolate an upstream/hardware fault or establish recovery."
+    }
+  },
+  "codeAssessment": {
+    "callbacks": "Probes return GST_PAD_PROBE_OK; appsink callbacks return GST_FLOW_OK and do not pull/drop/reorder data. Bus sync handler returns GST_BUS_PASS and does not steal error messages. No new context mutex acquisition or blocking wait was added to streaming callbacks.",
+    "lifetime": "Trace owns fixed arrays and callback user data. Pipeline is transitioned to NULL and released before trace destruction; state snapshots occur before cleanup, whose phase is separate. New print reads happen after existing pipeline teardown. No newly introduced lifetime/lock defect was found in the reviewed path.",
+    "boundedSpace": "Fixed phase/edge/kind slots prevent early buffers from consuming later EOS slots. Count/first/last aggregate fields are intentionally not per-buffer dumps. Existing first3-success/all-returned-failure policy and parent4MiB cap remain.",
+    "behavior": "No change to factory/rank selection, PAUSED-seek-PLAYING control, real EOS refusal, Copy exact1ns, maximum5000ms, caller pread/FD offset, output-on-success, cancellation, file invariants or public errors. No retry/fallback or unconditional extra get_state wait was adopted.",
+    "official1281": "Reviewed provided official1.28.1 appsink start/stop/flush/is_eos/pull and callback source, basesink preroll/EOS semantics, and vtdec flush/drain source; source hashes match sources.json. ASYNC is not inherently failure; PAUSED completion can follow EOS. Missing post-seek wait alone does not establish a product bug; waiting without pull may interact with preroll/backpressure.",
+    "consumers": "EvidenceFrameExtractor preserves held media, exact SourceSeek sample, remaining upper deadline and failure propagation. RecordingVisualSource preserves source proof/hold and passes cancellation into the common decoder. Source tests exercise real writer/Resolve/decode, not model Encode or full search benchmark."
+  },
+  "observedRegressions": {
+    "macOSBuildExit": 0,
+    "linuxBuildExit": 0,
+    "macOSDecoderChecks": 43232,
+    "linuxDecoderChecks": 43232,
+    "traceModes": {
+      "off": 0,
+      "full": 26,
+      "bounded": 4,
+      "invalid": 0,
+      "writeFailed": 0,
+      "identicalProductAnswer": true,
+      "boundedSuccesses": 3,
+      "boundedLateFailure": 1
+    },
+    "parentTraceContract": {
+      "exit": 0,
+      "cases": 54,
+      "scope": "existing cap/write/collection contracts; does not cover R71-1",
+      "final": {
+        "exit": 0,
+        "cases": 56,
+        "scope": "includes explicit probe failure and malformed provided edges; legacy54 retained"
+      }
+    },
+    "packageFirst": {
+      "exit": 1,
+      "stage": "missing original hit before decoder invocation",
+      "decoderCalls": 0,
+      "preserved": true
+    },
+    "packagePrepared": {
+      "exit": 0,
+      "actualExtractorCalls": 1,
+      "actualBuilderCalls": 1,
+      "separateReadbackExit": 0,
+      "newOwnedReplay": "active-1 bytes supplied as helper-required journal.jsonl; not complete historical generation6 restoration"
+    },
+    "visualSource": {
+      "macOSExit": 0,
+      "linuxExit": 0,
+      "checksEach": 76,
+      "realRepresentativeDecodesEach": 3,
+      "modelCalls": 0
+    },
+    "environments": {
+      "macOS": "host headless default registry, observed vtdec_hw:applemedia:1.28.1",
+      "linux": "existing nonprivileged uid/gid10001 container, GStreamer1.28.7; not a reproduction of macOS hardware behavior"
+    },
+    "legacyApproval": {
+      "candidateRows": 986,
+      "migrationExit": 0,
+      "carryForwardEligible": 986,
+      "producerApplied": false,
+      "meaning": "legacy unchanged candidate does not approve new decoder delta",
+      "finalCandidateByteIdentical": true
+    }
+  },
+  "limitations": [
+    "Diagnostic callbacks and snapshots may change scheduling; off/full/bounded equality is the observed deterministic fixture result, not a proof of zero timing impact.",
+    "Phase is dispatch-time grouping, not a perfect seek-generation identity; initial ASYNC_DONE and seek-related completion must be distinguished using timings and observed seqnums, without assuming all bus seqnums equal seek seqnum.",
+    "Pipeline/appsink state and queue properties are sequential zero-timeout reads, not one atomic snapshot.",
+    "Pad counts aggregate all detected Video Decoder instances and represent pad-entry buffers, not hardware accepted/completed frames. The failure used one decoder instance.",
+    "Only first metadata plus count/last-time is retained per slot; repeated event details and most later appsrc seek-data offsets are not a complete timeline. Existing droppedEvents/droppedFactories explicitly mark truncated old event details.",
+    "No internal VideoToolbox rejection/drop reason is observed; do not assert a vtdec bug or identical cause to70.",
+    "No new product/server/model execution by reviewer; no30/120-minute, formal acceptance, full UI or resource-stability evidence from this review."
+  ],
+  "longrunResumeConditions": [
+    "R71-1 collection-completeness correction is resolved in the reviewed final source; preserve its counterexample and exact final source binding.",
+    "Keep70 mixed120 FAIL and new29-sample failures. Obtain a specifically approved next scope after this limited diagnostic conclusion; current request explicitly excludes new longruns.",
+    "Before any claimed recovery, establish a safe behavior defect/fix with matching counterexample and relevant direct regression, or explicitly agree to a further bounded upstream diagnosis while preserving unresolved status. A single sequential or exact decode success is insufficient.",
+    "Freeze approved source/runtime/input, first-failure-stop conditions, existing1ns/5s/log budgets and owned-resource cleanup for any future approved execution."
+  ],
+  "cleanupAndPublication": {
+    "linuxStopExit": 0,
+    "linuxRemoveExit": 0,
+    "finalRootCleanup": "pending main preservation/cleanup; reviewer retains own report in owned temporary root",
+    "commitPushRemoteArchive": "not performed or approved as completed by this review"
+  },
+  "readOriginalEvidence": [
+    {
+      "path": "commands/baseline-host.json",
+      "sha256": "3add931f35e0f76e1f7067e01c85364e8d2a0cfcb792fd111a6841108237c0d8",
+      "bytes": 685
+    },
+    {
+      "path": "commands/baseline-host.stdout",
+      "sha256": "29400f64e132cfc6dacf86b9ea160fddc73aa1d67c62729219041a9db96f7447",
+      "bytes": 157
+    },
+    {
+      "path": "commands/baseline-host.stderr",
+      "sha256": "4fa3c6dc82ff0a2ad8b632f4c4134585f1d41f1d366327aba93b5f3605e92908",
+      "bytes": 3012
+    },
+    {
+      "path": "commands/edges-host.json",
+      "sha256": "d3c1a4fd587d6dfe7520554cf1f4c19beed954944970f96333d59ad22250dc38",
+      "bytes": 680
+    },
+    {
+      "path": "commands/edges-host.stdout",
+      "sha256": "d5306099663c030b1c39ed2a892cbec6186a36c392b9ead515f17f8e11e32096",
+      "bytes": 217
+    },
+    {
+      "path": "commands/edges-host.stderr",
+      "sha256": "daf19b30213abd54cdf962fd497dbd52b00f4b8519e3a7c0109fd34c6ae3f454",
+      "bytes": 7077
+    },
+    {
+      "path": "commands/bounded-1.json",
+      "sha256": "0eac4a43d41c49a0a9322b069799c6349e9d3caffd619b38d0b289a59deadfbc",
+      "bytes": 679
+    },
+    {
+      "path": "commands/bounded-1.stdout",
+      "sha256": "d5306099663c030b1c39ed2a892cbec6186a36c392b9ead515f17f8e11e32096",
+      "bytes": 217
+    },
+    {
+      "path": "commands/bounded-1.stderr",
+      "sha256": "505aa38329ea1998ac7e65a542eacf9f6725f17030836c3af3be7f09cb999f8b",
+      "bytes": 7015
+    },
+    {
+      "path": "commands/bounded-2.json",
+      "sha256": "670620c5cae4e40b26a85eaafd5129abcab5b53ae8cc3c78bfc7f3edd90d5198",
+      "bytes": 680
+    },
+    {
+      "path": "commands/bounded-2.stdout",
+      "sha256": "d5306099663c030b1c39ed2a892cbec6186a36c392b9ead515f17f8e11e32096",
+      "bytes": 217
+    },
+    {
+      "path": "commands/bounded-2.stderr",
+      "sha256": "cc68016f718bf500e331bb3fbb481ae384108315fb3c9bec0b882948550ccdf8",
+      "bytes": 7015
+    },
+    {
+      "path": "commands/bounded-3.json",
+      "sha256": "9b685d605b01c1530f60f751e2a2f232d1edc3ba41c28b9c3e7dac8edefd2a0b",
+      "bytes": 679
+    },
+    {
+      "path": "commands/bounded-3.stdout",
+      "sha256": "d5306099663c030b1c39ed2a892cbec6186a36c392b9ead515f17f8e11e32096",
+      "bytes": 217
+    },
+    {
+      "path": "commands/bounded-3.stderr",
+      "sha256": "6f4445ee673a872457ac2435816e339da24fb4aa45cd7cc61f6abc03e5fd1177",
+      "bytes": 7015
+    },
+    {
+      "path": "commands/bounded-4.json",
+      "sha256": "4acb7daef784b982ba2f740d2230ae2f7f90f4572d212fad95f1ecccbeabd8b7",
+      "bytes": 679
+    },
+    {
+      "path": "commands/bounded-4.stdout",
+      "sha256": "d5306099663c030b1c39ed2a892cbec6186a36c392b9ead515f17f8e11e32096",
+      "bytes": 217
+    },
+    {
+      "path": "commands/bounded-4.stderr",
+      "sha256": "73d3677cba4e5e64ebcad837ca056b240e49534289220283f622692247480951",
+      "bytes": 7015
+    },
+    {
+      "path": "commands/bounded-5.json",
+      "sha256": "bae75550ae599404173189b737e7eb12fd961d4febb88b5682c609d42ec48c3e",
+      "bytes": 679
+    },
+    {
+      "path": "commands/bounded-5.stdout",
+      "sha256": "29400f64e132cfc6dacf86b9ea160fddc73aa1d67c62729219041a9db96f7447",
+      "bytes": 157
+    },
+    {
+      "path": "commands/bounded-5.stderr",
+      "sha256": "3db0c6e22d7e13f82b195b2a41919efbaf3df5a832b0844d1fe09ecd65643b29",
+      "bytes": 7243
+    },
+    {
+      "path": "commands/sequential-host.json",
+      "sha256": "5be6f6ade8b851b4eddf69986ab2e9eec515bf2d48b6745fc522e00dd07f77a1",
+      "bytes": 690
+    },
+    {
+      "path": "commands/sequential-host.stdout",
+      "sha256": "d5306099663c030b1c39ed2a892cbec6186a36c392b9ead515f17f8e11e32096",
+      "bytes": 217
+    },
+    {
+      "path": "commands/sequential-host.stderr",
+      "sha256": "8e332e9dd6513b7b238d8adb8b56ec80f636305b14a7259c5d86a356f3a92252",
+      "bytes": 4615
+    },
+    {
+      "path": "commands/host-decoder.json",
+      "sha256": "5ed4ed6107266881b78528fa4756f98981778e1759ae28b9d542e0e954b82446",
+      "bytes": 660
+    },
+    {
+      "path": "commands/host-decoder.stdout",
+      "sha256": "acd17b3413c0f56915968c6c2c6b2ec4c0fcc8816e2c61ab7533fa9fcb2a7a2c",
+      "bytes": 31
+    },
+    {
+      "path": "commands/host-decoder.stderr",
+      "sha256": "c35ccb223b9e6c0e5d0e1a2af59c4b2bc727c5941679cb47aac5075506765687",
+      "bytes": 39739
+    },
+    {
+      "path": "commands/linux-decoder.json",
+      "sha256": "4f36362c92cfeae864696f5c35689c3837f9fee0cfa8d667f2e7c6526351b6bc",
+      "bytes": 953
+    },
+    {
+      "path": "commands/linux-decoder.stdout",
+      "sha256": "acd17b3413c0f56915968c6c2c6b2ec4c0fcc8816e2c61ab7533fa9fcb2a7a2c",
+      "bytes": 31
+    },
+    {
+      "path": "commands/linux-decoder.stderr",
+      "sha256": "29d4c9a419aab7b3da6e505b9b088001c3da59cf6a3dba0b4c0bc893c6b8b6ed",
+      "bytes": 39222
+    },
+    {
+      "path": "commands/trace-modes.json",
+      "sha256": "52e272b02949af92fa4d8ba0cf0d9eeb463a02a281876addd5c898bd0ee169a8",
+      "bytes": 536
+    },
+    {
+      "path": "commands/trace-modes.stdout",
+      "sha256": "dcfefa2ab3471bcacfac0d6e95cf8b075d33f2d6f6c1abc43ec31cbf3d957973",
+      "bytes": 1947
+    },
+    {
+      "path": "commands/trace-modes.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "commands/host-package.json",
+      "sha256": "ff2e57d4f1f67003fe34b029fba6a79fe9973b7654d648de313c076659db56fb",
+      "bytes": 671
+    },
+    {
+      "path": "commands/host-package.stdout",
+      "sha256": "ebac15e65d5aa03c4cf5a065d0014bc8de47de9bf328916d661a0d3394efc94a",
+      "bytes": 77
+    },
+    {
+      "path": "commands/host-package.stderr",
+      "sha256": "111dd77ab086dfb2da890839be675058a7de854308ff9dc07e1e3f86a6f8c525",
+      "bytes": 23
+    },
+    {
+      "path": "commands/host-package-prepared.json",
+      "sha256": "53224951b04610c5106939f45db9819aa3f5306b513521ec3405c045344281ae",
+      "bytes": 694
+    },
+    {
+      "path": "commands/host-package-prepared.stdout",
+      "sha256": "9219d794ee4e5940ea2bebb47e02a12f05f1bd4fa71c27c397d5ee70a06b5c41",
+      "bytes": 469
+    },
+    {
+      "path": "commands/host-package-prepared.stderr",
+      "sha256": "27f46bf9ce22f611efc3cc86b3627521184f94b2e101a13ca86ae519443ab896",
+      "bytes": 13995
+    },
+    {
+      "path": "commands/host-readback.json",
+      "sha256": "db4ab25411e0a8e9d3c744fbf933e0e83cf303ead9c21e545e883ca4a47f03dc",
+      "bytes": 611
+    },
+    {
+      "path": "commands/host-readback.stdout",
+      "sha256": "31a7955c0a1e0397336176542b2f53640693572f0360cc254061205839ee2727",
+      "bytes": 171
+    },
+    {
+      "path": "commands/host-readback.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "commands/host-visual-source.json",
+      "sha256": "33e1270e1d4645098d330baf3c18b22b18fef668fec45db1118ecb09fae20abf",
+      "bytes": 670
+    },
+    {
+      "path": "commands/host-visual-source.stdout",
+      "sha256": "7e469941a70d264d52468bdc67afeb251cc306eb1a8cb444fa7b932e6016d3a6",
+      "bytes": 39
+    },
+    {
+      "path": "commands/host-visual-source.stderr",
+      "sha256": "7405cd17fa1243770523cab547d1d75b9d184fe8b425974b0ac0e63ce1cea85f",
+      "bytes": 10948
+    },
+    {
+      "path": "commands/linux-source.json",
+      "sha256": "5d27ca8c326c814fb5f70278a4d7598eabf7b0b1220b2c851f30f9101a1db11b",
+      "bytes": 957
+    },
+    {
+      "path": "commands/linux-source.stdout",
+      "sha256": "7e469941a70d264d52468bdc67afeb251cc306eb1a8cb444fa7b932e6016d3a6",
+      "bytes": 39
+    },
+    {
+      "path": "commands/linux-source.stderr",
+      "sha256": "dd39c98319e48788294af421b64f112966cf6b51fe22367e995bbd3b664ed457",
+      "bytes": 11717
+    },
+    {
+      "path": "commands/linux-identity.json",
+      "sha256": "d0d1d7d332d190c3df086a355ef120d8e3f7562b873ed44980db2ee8a783dccf",
+      "bytes": 789
+    },
+    {
+      "path": "commands/linux-identity.stdout",
+      "sha256": "a0b105ba19602c84e71c4acbf3956af4b4b719bc6d6655ade5378de9c85e8b7b",
+      "bytes": 477
+    },
+    {
+      "path": "commands/linux-identity.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "commands/candidate.json",
+      "sha256": "4cb424947e3bf1cc1c1853ef66f476bef09b22603071b8d9a281c4e73a2a5a6e",
+      "bytes": 638
+    },
+    {
+      "path": "commands/candidate.stdout",
+      "sha256": "bbf1b77e3d8a40177b072cf5cab51c587b96424b739a5015b8c5a6e90ac1d65d",
+      "bytes": 190
+    },
+    {
+      "path": "commands/candidate.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "commands/migration.json",
+      "sha256": "0c487ec72be8c00ebc9f63f423f629a8e9864d8657170490aa0964c8331c6424",
+      "bytes": 797
+    },
+    {
+      "path": "commands/migration.stdout",
+      "sha256": "2171beaa5af06915d6367980761bdf8c588ead72418cb69e925f5c89587d3d5f",
+      "bytes": 502
+    },
+    {
+      "path": "commands/migration.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "commands/build-edges-final.json",
+      "sha256": "a5a89c49890a9afb72bd69fad0ce37e62ecb1d1f922d62de2f68dfbebf89a7e7",
+      "bytes": 525
+    },
+    {
+      "path": "commands/build-edges-final.stdout",
+      "sha256": "d3cee0af35971f934e592e54975bd78a96238a05036b1475f635beddab2292af",
+      "bytes": 281
+    },
+    {
+      "path": "commands/build-edges-final.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "commands/linux-build.json",
+      "sha256": "9076898a366406762af9dcb262001f06e875ff2d09df9ad4ea892c647d5c0cbf",
+      "bytes": 761
+    },
+    {
+      "path": "commands/linux-build.stdout",
+      "sha256": "b35ffce08168e4e637e392f6279eaff3752794abc402a15c47daed5404a67bba",
+      "bytes": 18992
+    },
+    {
+      "path": "commands/linux-build.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "commands/linux-compile-decoder.json",
+      "sha256": "0436a9f423bd7b81bc3e88bdd06fddcc998c6a3a51ccf18c8fbc122a09ae0be1",
+      "bytes": 848
+    },
+    {
+      "path": "commands/linux-compile-decoder.stdout",
+      "sha256": "025daf5618b5e4a76c5d8c9edbf3df7a3a63ffe97b98f3a9f1eb95b6ee72939d",
+      "bytes": 1759
+    },
+    {
+      "path": "commands/linux-compile-decoder.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "commands/linux-compile-source.json",
+      "sha256": "c917d1f8951dd9d4d521291dc914fbf7fc31468e99911fb1d8eb744d6dcfe452",
+      "bytes": 858
+    },
+    {
+      "path": "commands/linux-compile-source.stdout",
+      "sha256": "69f3a440f30601aa439eb5996e7ab30d75fe050337fa1aa3ed6f336809405ebd",
+      "bytes": 1770
+    },
+    {
+      "path": "commands/linux-compile-source.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "commands/trace-parent-contract.json",
+      "sha256": "4312d914fa99f784e7ab0f20e1837230c48d08acf3d84aa9cce0ecda34ea513f",
+      "bytes": 543
+    },
+    {
+      "path": "commands/trace-parent-contract.stdout",
+      "sha256": "e0b47d780270315239c8442d9d4e73abb9289de2038bdb48f5963f5010c1ecbc",
+      "bytes": 2450
+    },
+    {
+      "path": "commands/trace-parent-contract.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "commands/host-runtime.json",
+      "sha256": "2c330e935a96c7022da3d5d6163980685e7902072f69526823c22e0aed05f661",
+      "bytes": 548
+    },
+    {
+      "path": "commands/host-runtime.stdout",
+      "sha256": "db7a785adfbaca168ff2454d67f346c663ec748fc34cf614a150c2cfb640bb14",
+      "bytes": 9007
+    },
+    {
+      "path": "commands/host-runtime.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "commands/linux-stop.json",
+      "sha256": "829756a327e518f89473983a343519249ea9230ad2fecf93f92e7202546a784d",
+      "bytes": 542
+    },
+    {
+      "path": "commands/linux-stop.stdout",
+      "sha256": "fec072b7f47dbfc3965671acbbf9f1325581a34cb5ed2996f81ff9e5883212d2",
+      "bytes": 83
+    },
+    {
+      "path": "commands/linux-stop.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "commands/linux-remove.json",
+      "sha256": "898a1f44bad6495a3b6d4af3467130cd20ae245917848105ace9c2b339e7bfcf",
+      "bytes": 519
+    },
+    {
+      "path": "commands/linux-remove.stdout",
+      "sha256": "3fdc5762bbf77d81e5fcfc23ee8a955ec37b1463c2dd1d28471ab06c8fe6ca9d",
+      "bytes": 28
+    },
+    {
+      "path": "commands/linux-remove.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "commands/review-probe-red.json",
+      "sha256": "78c43a2f6c3f899f48793f1b2ce6dfac0c196c9f251b2965cb5a8dde38644ce4",
+      "bytes": 550
+    },
+    {
+      "path": "commands/review-probe-red.stdout",
+      "sha256": "c84587e6329f711ff8c94c105721ac212907ead4170930dc3c8920f250e60130",
+      "bytes": 106
+    },
+    {
+      "path": "commands/review-probe-red.stderr",
+      "sha256": "13a8a889190fcae0fbc32240b8378094427214dd5a3cef84f77760368eae0a9e",
+      "bytes": 695
+    },
+    {
+      "path": "commands/review-probe-green.json",
+      "sha256": "8af8aa5f05568492a1534a51478f50c2415835fb9a5f7c501b3678a8c2ffe437",
+      "bytes": 550
+    },
+    {
+      "path": "commands/review-probe-green.stdout",
+      "sha256": "80ce4830b563fa2901ea99dcd8bccbc3c7f89783b8dfd6cc76b764ee28e7b192",
+      "bytes": 127
+    },
+    {
+      "path": "commands/review-probe-green.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "commands/trace-parent-final.json",
+      "sha256": "f817645b1f7f72148eb4989564cfe23d8ed7efce69cda6d4b188671afff22fe2",
+      "bytes": 540
+    },
+    {
+      "path": "commands/trace-parent-final.stdout",
+      "sha256": "143821f72d7aa8d7153106f24e7176c30f396d866c0d4aaa107b362993cc9744",
+      "bytes": 2574
+    },
+    {
+      "path": "commands/trace-parent-final.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "commands/trace-parent-final-summary.json",
+      "sha256": "14106dbdbcfc0ab66d0cb708b2f37d792927af2fea94325c4cdc560536ee1399",
+      "bytes": 548
+    },
+    {
+      "path": "commands/trace-parent-final-summary.stdout",
+      "sha256": "d4e6843e9a7abe2f801999fdc9cc1982c4ba18b9202e38fca6d780000109009f",
+      "bytes": 2574
+    },
+    {
+      "path": "commands/trace-parent-final-summary.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "commands/candidate-final.json",
+      "sha256": "84c17e574997ebafc2178581bf1a6b1b0e37da9334891581b97abab56ed70c5b",
+      "bytes": 650
+    },
+    {
+      "path": "commands/candidate-final.stdout",
+      "sha256": "fccb1c300d0ae82fe9c9022ddc5df4e14e5a027697fc19a628a5773b596e1ce3",
+      "bytes": 196
+    },
+    {
+      "path": "commands/candidate-final.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "review-final-freeze.json",
+      "sha256": "b1ea35b8d32e4a881536128facd05c882f21500931b850715008ea6f49add129",
+      "bytes": 1057
+    },
+    {
+      "path": "review-final.diff",
+      "sha256": "1b92dca37e123f974020d9a1396d5943dfcc85612317aa3c199a8ecccc5d12f6",
+      "bytes": 25848
+    },
+    {
+      "path": "candidate-readback.json",
+      "sha256": "18633a6af2c6ca0d8caff1403fcac94369849ededc706f3d4bd8bdc4bba31d12",
+      "bytes": 750
+    },
+    {
+      "path": "edge-rejection.mjs",
+      "sha256": "e86b022492cbe933f9ce0a91a97c80965962d6c010a43388f4372f6483ebd089",
+      "bytes": 627
+    }
+  ],
+  "initialReview": {
+    "status": "changes-requested-for-collection-completeness-only",
+    "diffSha256": "8aa64d1b39b91ba75a03ad3e409b4c90b14c429db081915e2fdaac229b02cbc6",
+    "sourceHashes": [
+      {
+        "path": "src/recording/visual_frame_decoder.cpp",
+        "sha256": "a653e44dba03806f28cbc9bb2402ed7f444c079805ab8283fc5e64b888606231"
+      },
+      {
+        "path": "scripts/internal/visual_frame_decoder_smoke.cpp",
+        "sha256": "7a0d75d5ef5f94d8531c33759d570c69e5718ac3d3eefcec12c7cc78ef0f19f0"
+      },
+      {
+        "path": "docs/project-feature-test-inventory.md",
+        "sha256": "44dbeb8bba9ec655a0013f3ea7fadbd73ac05954c119e69c34a86aa4f828c80a"
+      },
+      {
+        "path": "include/recording/visual_frame_decoder.h",
+        "sha256": "49bbd58d8a9ca458a1408045450523a0bb678d24b9138129bf143eb89d0a8095"
+      },
+      {
+        "path": "src/recording/evidence_frame_extractor.cpp",
+        "sha256": "867db47861bc15a242d12512b501c5d3cd90460eb85304d4d5fa337f1d0e69b8"
+      },
+      {
+        "path": "src/recording/recording_visual_source.cpp",
+        "sha256": "d33f201cdcf9ca58d9c67d5c13ce39cccad344fa47151d50b2c33128d3ccecea"
+      },
+      {
+        "path": "scripts/internal/recording_longrun_progress.mjs",
+        "sha256": "c615e97bd158c2f0d81cc5e1cd3f26561c6c6cd2d9eea9a1b2b8c2f6ad19e172"
+      },
+      {
+        "path": "scripts/internal/v450_recording_a_mixed.mjs",
+        "sha256": "ebff56c2719d54cc1de957775bbfcebe880344023b9ff86b25a465ab3eae9ea6"
+      },
+      {
+        "path": "scripts/internal/recording_visual_source_smoke.cpp",
+        "sha256": "7198fcfe19187d1d519dcb9a1421c027dce577ec232680627cf148348538f839"
+      }
+    ],
+    "openFinding": "R71-1"
+  },
+  "finalFreeze": "review-final-freeze.json",
+  "openFindings": [],
+  "finalConclusions": [
+    "EOS 경계 제한 진단 완료, 동작 수정 미채택이라는 결론에 동의함.",
+    "70의 실제 MP4·binding·journal·실패 원출력과 이번 입력의 동일성을 읽기 전용 바이트/hash 대조로 확인함.",
+    "현재 실패의 최초 관측 계수 차이는 decoder 입력30/출력29이며, 실제 EOS와 비어 있는 PLAYING appsink를 확인함. 내부 하드웨어 수락/완료 계수나 upstream 결함 확정으로 해석하지 않음.",
+    "진단 callback·고정 공간·FD/취소/시각 계약과 두 소비자 직접 회귀를 검토했고, 발견한 수집 상태 전달 누락1건은 원본 RED를 보존한 최소 수정으로 해결됨.",
+    "70 mixed120 FAIL과 새29-sample 실패는 유지. 단회 성공은 복구가 아니며 다음 장시간 실행에는 별도 명시 승인과 미해결 원인에 대한 재판정이 필요함."
+  ]
+}
