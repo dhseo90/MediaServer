@@ -701,9 +701,42 @@
     "registeredGroupsAbsent": true,
     "ownedLinuxContainerRemoved": true,
     "rc58ImageRetained": true,
-    "temporaryRoot": "preserved pending Git/remote byte verification",
+    "temporaryRoot": "absent after local Git and remote byte verification",
     "QwenOllamaCalls": 0,
-    "QwenUnloadGate": "not-run"
+    "QwenUnloadGate": "not-run",
+    "finalOwnedCleanup": {
+      "recordedAt": "2026-10-09T00:20:19.084051+00:00",
+      "ownershipMatched": true,
+      "root": "/private/tmp/media-server-release70-no2ho92l",
+      "rootDevice": 16777232,
+      "rootInode": 171377626,
+      "uid": 501,
+      "preservationCommit": "fe839678792d0d185842484b3d0b23212a0f73fc",
+      "remoteSelectedBytesConfirmed": true,
+      "absentPids": [
+        55090,
+        55095,
+        55137
+      ],
+      "ports": [
+        {
+          "port": 58219,
+          "closed": true
+        },
+        {
+          "port": 58220,
+          "closed": true
+        }
+      ],
+      "ownedContainerAbsent": true,
+      "retainedImageId": "sha256:ce72c8a15363984da642e9964189957896812061c6af1d0ef67e87b38ad5a588",
+      "symlinkCount": 831,
+      "semantics": "remove exact owned root; unlink cache symlinks without traversing targets",
+      "QwenUnloadGate": "not-run",
+      "temporaryRootAbsent": true
+    },
+    "executedHelper": "from pathlib import Path\nimport json,os,socket,subprocess,shutil,hashlib,datetime\nc=Path(__file__).parent;r=Path('/private/tmp/media-server-release70-no2ho92l');owner=json.loads((r/'ownership.json').read_text());assert owner=={'task':70,'root':str(r),'base':'6b57b023670407ceb1fe5d8bbd9ff08ff866bc1a'}\nassert r.resolve()==r and r.stat().st_uid==os.getuid();remote=json.loads((c/'remote-readback.json').read_text());head=(c/'preservation-commit.txt').read_text().strip();assert remote['head']==head\np='docs/release-artifacts/v4.5.0/70-execution.tar.gz';b=Path(p).read_bytes();assert subprocess.check_output(['git','show',head+':'+p])==b;assert hashlib.sha256(b).hexdigest()==remote['results'][0]['sha256']\npids=[55090,55095,55137];absent=[]\nfor pid in pids:\n try:os.kill(pid,0)\n except ProcessLookupError:absent.append(pid)\n else:raise RuntimeError('previous owned pid still exists; do not delete')\nports=[]\nfor port in [58219,58220]:\n with socket.socket() as s:s.settimeout(.5);closed=s.connect_ex(('127.0.0.1',port))!=0\n assert closed;ports.append({'port':port,'closed':True})\nq=subprocess.run(['docker','ps','-a','--filter','name=^/mediaserver-release70-linux$','--format','{{.ID}}'],capture_output=True,text=True);assert q.returncode==0 and not q.stdout.strip()\nimage=subprocess.check_output(['docker','image','inspect','mediaserver-v450-verify:rc58-arm64','--format','{{.Id}}'],text=True).strip();assert image=='sha256:ce72c8a15363984da642e9964189957896812061c6af1d0ef67e87b38ad5a588'\nx={'recordedAt':datetime.datetime.now(datetime.timezone.utc).isoformat(),'ownershipMatched':True,'root':str(r),'rootDevice':r.stat().st_dev,'rootInode':r.stat().st_ino,'uid':os.getuid(),'preservationCommit':head,'remoteSelectedBytesConfirmed':True,'absentPids':absent,'ports':ports,'ownedContainerAbsent':True,'retainedImageId':image,'symlinkCount':sum(p.is_symlink() for p in r.rglob('*')),'semantics':'remove exact owned root; unlink cache symlinks without traversing targets','QwenUnloadGate':'not-run'}\nshutil.rmtree(r);x['temporaryRootAbsent']=not r.exists();assert x['temporaryRootAbsent'];(c/'cleanup.json').write_text(json.dumps(x,indent=2)+'\\n');print(json.dumps(x,indent=2))\n",
+    "executedHelperSha256": "21d28da390347bfc85130d7e4f8be73acbdb3992bd067127095647813dc22ecb"
   },
   "postprocessingPreparationFailure": {
     "receipt": "70-execution.tar.gz:commands/run-analysis.json",
@@ -1006,7 +1039,40 @@
   },
   "independentReview": {
     "path": "70-independent-review.json",
-    "sha256": "e02999e3201851fd854efd273afad34ed7ee84a68a13043f6b19048eab6f2d78",
-    "result": "delta approved; actual120 FAIL preserved; local selected byte/privacy review confirmed; remote/temporary cleanup pending"
+    "sha256": "bafecc3e060a8eabbc4a2f9e37452317cf60d7b5116466e45d1fd99d7ca78c61",
+    "result": "delta approved; actual120 FAIL preserved; selected byte/privacy, preservation-commit remote bytes and owned cleanup independently confirmed"
+  },
+  "remotePreservation": {
+    "head": "fe839678792d0d185842484b3d0b23212a0f73fc",
+    "remote": "fe839678792d0d185842484b3d0b23212a0f73fc",
+    "results": [
+      {
+        "path": "docs/release-artifacts/v4.5.0/70-execution.tar.gz",
+        "blob": "0a15b28df9cc763a2349f4e1b935f35dcd9b6f12",
+        "bytes": 685137,
+        "sha256": "8bb542ab7400341557d94c32283afe3fd7091540fd6cd1a9ca1291ec4f64249e",
+        "localGitWorktreeRemoteByteEqual": true
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/70-validation.json",
+        "blob": "2b272b7ca9bf1847622cac9b3b52cc5d1a86963e",
+        "bytes": 32506,
+        "sha256": "8d7c1d9b4f4c9be534a94a8cd114e4ba861dc39fe5ed51d9e57c41efb0aaf64b",
+        "localGitWorktreeRemoteByteEqual": true
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/70-independent-review.json",
+        "blob": "c4828fbdcbf4836192df438f1aece127be69f71a",
+        "bytes": 23851,
+        "sha256": "e02999e3201851fd854efd273afad34ed7ee84a68a13043f6b19048eab6f2d78",
+        "localGitWorktreeRemoteByteEqual": true
+      }
+    ],
+    "scope": "fe839678792d0d185842484b3d0b23212a0f73fc preservation snapshot; later closeout evidence is separately pushed and checked"
+  },
+  "commits": {
+    "implementation": "37077c5786312bc690a2ca23e2d64958f3768e5e",
+    "preservation": "fe839678792d0d185842484b3d0b23212a0f73fc",
+    "closeout": "following evidence-only commit; not new execution source"
   }
 }

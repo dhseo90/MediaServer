@@ -706,5 +706,101 @@
       "Remote archive byte identity/readback evidence",
       "Final owned-root cleanup and absence evidence"
     ]
+  },
+  "closeoutAddendum": {
+    "status": "preservation-and-owned-run-root-cleanup-confirmed",
+    "scope": "Final remote preservation and cleanup review only; all prior findings, FAIL verdicts and historical pending fields above are retained. This addendum resolves the earlier preservation/cleanup pending items for the identified snapshot.",
+    "reviewedFiles": [
+      "remote-readback.py",
+      "remote-readback.json",
+      "cleanup.py",
+      "cleanup.json",
+      "ownership.json",
+      "preservation-commit.txt"
+    ],
+    "preservation": {
+      "commit": "fe839678792d0d185842484b3d0b23212a0f73fc",
+      "remoteBranch": "refs/heads/v4.5.0",
+      "remoteCommitMatchesLocalRecordedCommit": true,
+      "remoteBlobByteEqualityReceipt": [
+        {
+          "path": "docs/release-artifacts/v4.5.0/70-execution.tar.gz",
+          "blob": "0a15b28df9cc763a2349f4e1b935f35dcd9b6f12",
+          "bytes": 685137,
+          "sha256": "8bb542ab7400341557d94c32283afe3fd7091540fd6cd1a9ca1291ec4f64249e",
+          "localGitWorktreeRemoteByteEqual": true
+        },
+        {
+          "path": "docs/release-artifacts/v4.5.0/70-validation.json",
+          "blob": "2b272b7ca9bf1847622cac9b3b52cc5d1a86963e",
+          "bytes": 32506,
+          "sha256": "8d7c1d9b4f4c9be534a94a8cd114e4ba861dc39fe5ed51d9e57c41efb0aaf64b",
+          "localGitWorktreeRemoteByteEqual": true
+        },
+        {
+          "path": "docs/release-artifacts/v4.5.0/70-independent-review.json",
+          "blob": "c4828fbdcbf4836192df438f1aece127be69f71a",
+          "bytes": 23851,
+          "sha256": "e02999e3201851fd854efd273afad34ed7ee84a68a13043f6b19048eab6f2d78",
+          "localGitWorktreeRemoteByteEqual": true
+        }
+      ],
+      "committedSnapshotThreeLocalGitBlobHashesIndependentlyMatchedReceipt": true,
+      "reviewCopyInitialSha256": "e02999e3201851fd854efd273afad34ed7ee84a68a13043f6b19048eab6f2d78",
+      "method": "Reviewed helper that compares worktree bytes, exact local Git blob bytes and GitHub blob API base64-decoded bytes after remote branch HEAD equality. No new remote query was performed by reviewer.",
+      "scopeLimit": "Receipt covers fe839678792d0d185842484b3d0b23212a0f73fc snapshot. The current 70-validation.json was subsequently updated to 37085 bytes/SHA256 0738e2346cc521cdd9041037db5ef1588569ed0192a682c3d7f25a2d33b2e898 and this addendum is also new; this receipt does not prove those later bytes were remotely preserved."
+    },
+    "cleanup": {
+      "recordedAt": "2026-10-09T00:20:19.084051+00:00",
+      "ownershipMatched": true,
+      "root": "/private/tmp/media-server-release70-no2ho92l",
+      "rootDevice": 16777232,
+      "rootInode": 171377626,
+      "uid": 501,
+      "preservationCommit": "fe839678792d0d185842484b3d0b23212a0f73fc",
+      "remoteSelectedBytesConfirmed": true,
+      "absentPids": [
+        55090,
+        55095,
+        55137
+      ],
+      "ports": [
+        {
+          "port": 58219,
+          "closed": true
+        },
+        {
+          "port": 58220,
+          "closed": true
+        }
+      ],
+      "ownedContainerAbsent": true,
+      "retainedImageId": "sha256:ce72c8a15363984da642e9964189957896812061c6af1d0ef67e87b38ad5a588",
+      "symlinkCount": 831,
+      "semantics": "remove exact owned root; unlink cache symlinks without traversing targets",
+      "QwenUnloadGate": "not-run",
+      "temporaryRootAbsent": true
+    },
+    "cleanupAssessment": {
+      "ownershipExactRootMatched": true,
+      "priorPidsAbsentPerCleanupReceipt": true,
+      "twoPortsClosedPerCleanupReceipt": true,
+      "ownedContainerAbsentPerCleanupReceipt": true,
+      "rc58ImageRetainedPerCleanupReceipt": true,
+      "symlinkTargetsNotTraversedByRmtree": true,
+      "originalRunRootReadOnlyAbsenceObservedByReviewer": true,
+      "reviewCloseoutDirectoryIntentionallyRetained": true,
+      "qwenUnloadGateExecuted": false
+    },
+    "productVerdictUnchanged": {
+      "mixed120": "FAIL after partial observation",
+      "remainingObservationAndLifecycleRecovery": "not-run",
+      "rootCause": "unconfirmed",
+      "retryApproval": false,
+      "resourceTrendPass": false,
+      "uiFulltestPass": false,
+      "releaseReady": false
+    },
+    "reviewerActions": "Read existing receipts/helpers and local Git snapshot bytes; wrote only this copied independent-review.json. No tests, remote query, product change or cleanup action executed by reviewer."
   }
 }
