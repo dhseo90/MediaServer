@@ -1,6 +1,6 @@
 {
   "task": 73,
-  "status": "short-integration-PASS-preservation-cleanup-pending",
+  "status": "bounded-short-integration-PASS",
   "recordedAt": "2026-10-09T04:02:06.205197+00:00",
   "base": "3a7af408e45cf728772d0b8673ff023865b38fd8",
   "source": {
@@ -519,8 +519,10 @@
       "overallTaskCleanupComplete": false,
       "historical70And71": "FAIL 및 근본 원인 미확정 유지. 이번 성공으로 과거 실패 원인을 확정하거나 소급 PASS로 바꾸지 않는다."
     },
-    "pending": "remote byte readback and owned root absence",
-    "preservation": "87 files readback and sanitization independently verified"
+    "pending": null,
+    "preservation": "87 files readback and sanitization independently verified",
+    "closeout": "actual fixed Git artifact/source readback and owned root/process absence independently verified",
+    "fileSha256": "adaa5d02df5df1f06cc1d449ff7cd90f80951774404673bdc380a200bf1a20f9"
   },
   "evidence": {
     "path": "docs/release-artifacts/v4.5.0/73-execution.tar.gz",
@@ -758,11 +760,15 @@
       "escalatedProbeAt": "2026-10-09T04:01:02.810775+00:00"
     },
     "root": "/private/tmp/media-server-release73-9y2a17vq",
-    "rootAbsent": false,
-    "remaining": "local/remote artifact bytes and owned root removal",
+    "rootAbsent": true,
+    "remaining": null,
     "QwenOllamaCalls": 0,
     "unloadGate": "not-run",
-    "existingImagesModelsSdkRetained": true
+    "existingImagesModelsSdkRetained": true,
+    "method": "exact ownership marker + local/remote Git byte receipts + owned PID/group absence; remove only task73 root, symlinks not followed",
+    "preRemovalReceiptMeaning": "kept original rootAbsent=false and sandbox socket denial; later escalated connection-refused evidence separate",
+    "removedAt": "2026-10-09T04:05:23.589205+00:00",
+    "overallOwnedCleanupComplete": true
   },
   "priorEvidence": {
     "59Linux": "original source/environment scope retained, not rerun",
@@ -788,17 +794,48 @@
   "commits": {
     "implementation": "8a5354b7a37961e26e24fd1d03aa55c30ceec2b5",
     "productCandidate": "9257ed8b2044f9e8def4dd9984abea8c022fae1b",
-    "evidence": "this subsequent evidence-only commit; run source stays fixed"
+    "evidence": "3be28b2dca234d244ab1c0952a6fbd2d2be9792f",
+    "closure": "this evidence-only closeout commit; execution/source remains8a5354b7a37961e26e24fd1d03aa55c30ceec2b5"
   },
   "noAutomaticNextRun": true,
   "remoteBeforePush": "3a7af408e45cf728772d0b8673ff023865b38fd8",
   "finalStatic": {
-    "recordedAt": "2026-10-09T04:02:58.734346+00:00",
+    "recordedAt": "2026-10-09T04:06:41.085930+00:00",
     "jsonParse": "PASS",
     "archiveReadback": "PASS",
     "runSourceHashUnchanged": "PASS",
     "productSourcesBinaryRuntimeSameAs72": "PASS",
     "gitDiffCheck": "PASS",
-    "notRuntimeRetest": true
-  }
+    "notRuntimeRetest": true,
+    "finalArchiveMembers": 87,
+    "sourceAndArchiveUnchanged": "PASS"
+  },
+  "remotePreservation": {
+    "commit": "3be28b2dca234d244ab1c0952a6fbd2d2be9792f",
+    "artifacts": [
+      {
+        "path": "docs/release-artifacts/v4.5.0/73-execution.tar.gz",
+        "bytes": 217735,
+        "sha256": "25ffba5e807a89a1a19d93b5aa3e48dd8ffaa14c19ab79fe313431f6a0f7ca40",
+        "gitBlob": "6cf3e99f7313a8d75b1bd4e5dabbeb74a8f89a99"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/73-validation.json",
+        "bytes": 26736,
+        "sha256": "fa17f819a9bf5948c2935e8bc6d5874eb649b664e35969f9e1e3042b699a45e0",
+        "gitBlob": "90ab9041b1e08c5230bbbe650f0b1e96e68b30d8"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/73-independent-review.json",
+        "bytes": 35174,
+        "sha256": "ed11a5e86296a94b2787b5dbd408378383be36d0c4478f9f6d3e7d007ca2985b",
+        "gitBlob": "1a3f8cf576232c1635ba0336708ed4232c30652b"
+      }
+    ],
+    "localGitByteReadback": true,
+    "actualRemote": "3be28b2dca234d244ab1c0952a6fbd2d2be9792f",
+    "checkedAt": "2026-10-09T04:04:46.214853+00:00",
+    "remoteByteReadback": true
+  },
+  "completion": "bounded 진단 연결·소프트웨어 증거 후보의 600초 혼합 검증 완료"
 }

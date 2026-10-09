@@ -755,7 +755,7 @@
   },
   "originalSourceReviewSha256": "79b1267ac14e9c6513b0477ed176c136bda4cb4b27de0414f40b3596c35745d9",
   "originalExecutionReviewSha256": "6c8ade59282b7a233bc5b6a4a166e595a16832faa8e41d7aeba651ba78c2486f",
-  "pending": "remote exact-byte preservation and owned root removal",
+  "pending": null,
   "notHumanApproval": true,
   "preservationAddendum": {
     "task": 73,
@@ -862,5 +862,124 @@
     },
     "decisionUnchanged": "단기 통합 충족/후속120 개발후보 사용 가능. 최종출시승인·120실행승인을 부여하지 않는다. 이전 source/final 검토는 해당 시점의pending상태 그대로 보존."
   },
-  "originalPreservationAddendumSha256": "5f5673232cc6f82483298077437a01037ae0da65fc8e1f3aa231fd2b284c02c9"
+  "originalPreservationAddendumSha256": "5f5673232cc6f82483298077437a01037ae0da65fc8e1f3aa231fd2b284c02c9",
+  "closeoutAddendum": {
+    "task": 73,
+    "stage": "independent-final-preservation-cleanup-addendum",
+    "recordedAt": "2026-10-09T04:06:16.449401+00:00",
+    "requestedAndToolAcceptedModel": "gpt-6-astra",
+    "requestedAndToolAcceptedEffort": "high",
+    "actualRuntimeModel": null,
+    "actualRuntimeEffort": null,
+    "scope": "고정Git바이트·기존 원격조회 receipt·실제 소유root/PID/group부재만 확인. 제품/모델/검사/원격조회 재실행 및 repo파일수정 없음.",
+    "status": "sanitized-evidence-preserved-and-owned-root-cleanup-confirmed; short-integration-satisfied; release-adoption-held",
+    "remotePreservation": {
+      "commit": "3be28b2dca234d244ab1c0952a6fbd2d2be9792f",
+      "receipt": {
+        "commit": "3be28b2dca234d244ab1c0952a6fbd2d2be9792f",
+        "artifacts": [
+          {
+            "path": "docs/release-artifacts/v4.5.0/73-execution.tar.gz",
+            "bytes": 217735,
+            "sha256": "25ffba5e807a89a1a19d93b5aa3e48dd8ffaa14c19ab79fe313431f6a0f7ca40",
+            "gitBlob": "6cf3e99f7313a8d75b1bd4e5dabbeb74a8f89a99"
+          },
+          {
+            "path": "docs/release-artifacts/v4.5.0/73-validation.json",
+            "bytes": 26736,
+            "sha256": "fa17f819a9bf5948c2935e8bc6d5874eb649b664e35969f9e1e3042b699a45e0",
+            "gitBlob": "90ab9041b1e08c5230bbbe650f0b1e96e68b30d8"
+          },
+          {
+            "path": "docs/release-artifacts/v4.5.0/73-independent-review.json",
+            "bytes": 35174,
+            "sha256": "ed11a5e86296a94b2787b5dbd408378383be36d0c4478f9f6d3e7d007ca2985b",
+            "gitBlob": "1a3f8cf576232c1635ba0336708ed4232c30652b"
+          }
+        ],
+        "localGitByteReadback": true,
+        "actualRemote": "3be28b2dca234d244ab1c0952a6fbd2d2be9792f",
+        "checkedAt": "2026-10-09T04:04:46.214853+00:00",
+        "remoteByteReadback": true
+      },
+      "independentLocalByteComparison": [
+        {
+          "path": "docs/release-artifacts/v4.5.0/73-execution.tar.gz",
+          "bytes": 217735,
+          "sha256": "25ffba5e807a89a1a19d93b5aa3e48dd8ffaa14c19ab79fe313431f6a0f7ca40",
+          "gitBlob": "6cf3e99f7313a8d75b1bd4e5dabbeb74a8f89a99",
+          "receiptMatchesFrozenGitBytes": true
+        },
+        {
+          "path": "docs/release-artifacts/v4.5.0/73-validation.json",
+          "bytes": 26736,
+          "sha256": "fa17f819a9bf5948c2935e8bc6d5874eb649b664e35969f9e1e3042b699a45e0",
+          "gitBlob": "90ab9041b1e08c5230bbbe650f0b1e96e68b30d8",
+          "receiptMatchesFrozenGitBytes": true
+        },
+        {
+          "path": "docs/release-artifacts/v4.5.0/73-independent-review.json",
+          "bytes": 35174,
+          "sha256": "ed11a5e86296a94b2787b5dbd408378383be36d0c4478f9f6d3e7d007ca2985b",
+          "gitBlob": "1a3f8cf576232c1635ba0336708ed4232c30652b",
+          "receiptMatchesFrozenGitBytes": true
+        }
+      ],
+      "reviewBoundary": "메인이 ls-remote 및 GitHub git/blob 실제원격바이트를 조회했다는 receipt를 읽고 동일고정commit의 Git객체 bytes/SHA/blob을 독립 대조했다. 검토자는 새원격조회하지 않았다. 이closeout추가기록의 후속commit/push 완료를 주장하지 않는다."
+    },
+    "frozenArchive": {
+      "path": "docs/release-artifacts/v4.5.0/73-execution.tar.gz",
+      "bytes": 217735,
+      "sha256": "25ffba5e807a89a1a19d93b5aa3e48dd8ffaa14c19ab79fe313431f6a0f7ca40",
+      "unchangedFromPreservationReview": true,
+      "sourceReviewSha256": "79b1267ac14e9c6513b0477ed176c136bda4cb4b27de0414f40b3596c35745d9",
+      "finalReviewSha256": "6c8ade59282b7a233bc5b6a4a166e595a16832faa8e41d7aeba651ba78c2486f",
+      "nestedSourceFinalOriginalUnchanged": true,
+      "preservationAddendumOriginalSha256": "5f5673232cc6f82483298077437a01037ae0da65fc8e1f3aa231fd2b284c02c9"
+    },
+    "validation": {
+      "currentReviewedSha256": "1f78c40509628c901ca4ddcdaf240ac79e3ac8a30d12d90b5ed742c59f51c192",
+      "frozenGitSha256": "fa17f819a9bf5948c2935e8bc6d5874eb649b664e35969f9e1e3042b699a45e0",
+      "changedTopLevelKeysSincePreservation": [
+        "remotePreservation",
+        "status",
+        "commits",
+        "completion",
+        "independentReview",
+        "cleanup"
+      ],
+      "judgment": "이전rootAbsent=false/권한거부code1 원문을 유지하고 별도removedAt/rootAbsent=true 및 원격readback receipt를 추가한 상태다. 단기통합·120미실행·resourceTrendPass=false·출시채택보류 판단은 유지된다."
+    },
+    "cleanup": {
+      "root": "/private/tmp/media-server-release73-9y2a17vq",
+      "actualRootAbsentAtReview": true,
+      "actualSymlinkAbsentAtReview": true,
+      "recordedRemovedAt": "2026-10-09T04:05:23.589205+00:00",
+      "originalPreRemovalRootAbsent": false,
+      "currentPostRemovalRootAbsent": true,
+      "independentPidAndGroupObservation": {
+        "pid-72895": "absent",
+        "group-72895": "absent",
+        "pid-72935": "absent",
+        "group-72935": "absent"
+      },
+      "ports": "보존된 정상종료receipt의 HTTP49403/RTSP49404 closed와 별도기록 connectionRefused61 및 UDP finally/report를 유지. 새bind/접속 probe를 하지 않았다.",
+      "ownedCleanupCompleteForRecordedScope": true,
+      "existingImagesModelsSdk": "메인정리receipt의 유지기록. 검토자가 해당도구를 새실행하지 않음."
+    },
+    "decisionUnchanged": {
+      "shortIntegrationSatisfied": true,
+      "developmentCandidate": "별도승인된 후속120분 검증의 후보로 사용가능",
+      "new120Executed": false,
+      "newPolicyReleaseApprovalApplied": false,
+      "producerApplications": 0,
+      "releaseAdoption": "보류",
+      "historicalTask72": "원래full수집FAIL 유지",
+      "historicalTask70And71": "FAIL/근본원인미확정 유지"
+    },
+    "openFindings": [],
+    "remainingEvidenceAction": "현재validation 및 closeout addendum의 후속근거commit/일반push 완료는 주작업이 확인해야 한다."
+  },
+  "originalCloseoutAddendumSha256": "ec5dc6e628947f9e618590cbe9f75d2f6b67a7a8c05177406b10f8fb1212a054",
+  "completionBoundary": "short integration/result preservation/owned execution root cleanup satisfied; no120 or final policy/release approval"
 }
