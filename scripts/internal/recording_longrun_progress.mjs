@@ -141,6 +141,10 @@ export function captureBoundedProcessLog(app,chunk,write,stop){
     app.overflow=true;app.captureError='decoder-trace-collection';stop();
   }
 }
+// 혼합 실행의 시간 모드와 진단 모드는 별개다. 제품 시작 전 생성/판정 불일치를 거부한다.
+export function assertMixedFrameTraceMode(env,expected){
+  if(expected!=='bounded'||env.MEDIA_SERVER_VERIFY_FRAME_TRACE!==expected)throw Error('mixed-frame-trace-mode');
+}
 // 실제 반환 실패와 성공 중 후보 element 관측을 구분한다. 없거나 잘린 진단은 적격 수집이 아니다.
 export function frameTraceSummary(text,mode,required=true){
   const result={status:'captured',mode,required,records:0,successes:0,failures:0,issues:[]};

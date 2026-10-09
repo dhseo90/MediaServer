@@ -11,7 +11,7 @@ import {spawn,spawnSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
 import {CurrentRecordingObserver,CurrentLongrunProgress,CurrentObservationBudget,summarizeCurrentSamples,closedJournalComplete,disabledChannelsExact,measureCurrentRootStable,summarizeFixtureGeneration,freezeCurrentWorkspace,measureCurrentWorkspace,workspaceBounds,runCurrentRecovery} from "./recording_current_observer.mjs";
 import {collectProcess} from "./recording_foundation_observer.mjs";
-import {parseLongrunArgs,sampleContinuity,nextRecordingSettings,mediaAbsent,assertSampleStep,summarizeAvailableSamples,slowTraceSummary,nextSampleDelay,frameTraceSummary,captureBoundedProcessLog,processLogCaptureComplete} from "./recording_longrun_progress.mjs";
+import {parseLongrunArgs,sampleContinuity,nextRecordingSettings,mediaAbsent,assertSampleStep,summarizeAvailableSamples,slowTraceSummary,nextSampleDelay,frameTraceSummary,captureBoundedProcessLog,processLogCaptureComplete,assertMixedFrameTraceMode} from "./recording_longrun_progress.mjs";
 import {measuredHttpResponse} from "./recording_current_app_helpers.mjs";
 import {reservePort,stopServer,assertPortClosed,bootstrapRecordingUiAuth,createUiAuthPasswords} from "./verify_v410_recording_ui_contract.mjs";
 import {createProcessCleanup} from "./recording_process_cleanup.mjs";
@@ -21,6 +21,7 @@ import {removeDiagnosticRoot} from "./recording_failure_capture.mjs";
 const repo=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');
 const root=process.argv[2],args=process.argv.slice(3),short=args.length===1&&args[0]==='--app-observe';
 const diagnose=args.length===1&&args[0]==='--frame-diagnostic';
+const frameTraceMode='bounded';
 const duration=short?30000:diagnose?600000:parseLongrunArgs(args);
 const artifacts=createReviewTestArtifacts(repo);
 let aLoad=null,auth=null,seedInfo=null;const passwords=createUiAuthPasswords();
@@ -56,7 +57,7 @@ function environment(http,rtsp,stun){const env={PATH:process.env.PATH,HOME:proce
     ANALYSIS_EVENT_STORAGE_ENABLED:0,ANALYSIS_EVENT_STORAGE_PATH:path.join(root,'events/events.jsonl'),ANALYSIS_EVENT_POST_ENABLED:0,
     ANALYSIS_EVENT_CLIP_HOOK_ENABLED:0,ANALYSIS_EVENT_CLIP_DIR:path.join(root,'events/clips'),ANALYSIS_EVENT_SNAPSHOT_HOOK_ENABLED:0,ANALYSIS_EVENT_SNAPSHOT_DIR:path.join(root,'events/snapshots'),
     VA_REVIEW_ENABLED:1,VA_REVIEW_LOCAL_ENDPOINT:'http://127.0.0.1:1',VISUAL_SEARCH_ENABLED:1,VISUAL_SEARCH_MODEL_DIRECTORY:path.join(repo,'models/v430-siglip2'),VISUAL_SEARCH_SCAN_SECONDS:1,VISUAL_SEARCH_SAMPLE_SECONDS:1,EVIDENCE_ENABLED:1,RECORDING_ENABLED:1,RECORDING_STORAGE_ROOT:path.join(root,'recordings'),RECORDING_SEGMENT_DURATION_SECONDS:2,RECORDING_RESERVED_FREE_BYTES:0,RECORDING_RETENTION_INTERVAL_MS:1000,
-    VERIFY_FRAME_TRACE:diagnose?1:'bounded',VERIFY_RECORDING_LATENCY_TRACE:1,VERIFY_RECORDING_LATENCY_SLOW_ONLY:1,
+    VERIFY_FRAME_TRACE:frameTraceMode,VERIFY_RECORDING_LATENCY_TRACE:1,VERIFY_RECORDING_LATENCY_SLOW_ONLY:1,
     GST_CACHE_DIR:path.join(root,'gst-cache'),GST_PLUGIN_PROFILE:'headless',WEBRTC_STUN_SERVER:`stun://127.0.0.1:${stun}`,WEBRTC_TURN_SERVER:''};
   for(const [k,v] of Object.entries(values))env['MEDIA_SERVER_'+k]=String(v);return env;
 }
@@ -116,7 +117,9 @@ async function evidenceLoad(app){
  mixed.cycles++;console.log('[mixed-cycle-progress] '+JSON.stringify({elapsedMs:observationStart===null?null:performance.now()-observationStart,searchClients:mixed.searchSuccessByClient,evidenceCreated:mixed.createSuccess,visualCreated:mixed.visualCreated}));await verifySavedEvidence(app);console.log('[evidence-load] '+JSON.stringify({cycles:mixed.cycles,searchSuccess:mixed.searchSuccess,createSuccess:mixed.createSuccess,createBusy:mixed.createBusy,retainedChecks:mixed.retainedChecks,deletedSourceObserved:mixed.deletedSourceObserved}));
 }
 async function launch(stun,requiresFrameTrace=true){const http=await reservePort(),rtsp=await reservePort();ports.push(http,rtsp);
-  const child=spawn(path.join(repo,'server.sh'),['foreground'],{cwd:repo,env:environment(http,rtsp,stun),stdio:['ignore','pipe','pipe']});
+  const childEnv=environment(http,rtsp,stun);assertMixedFrameTraceMode(childEnv,frameTraceMode);
+  const child=spawn(path.join(repo,'server.sh'),['foreground'],{cwd:repo,env:childEnv,stdio:['ignore','pipe','pipe']});
+  console.log('[decoder-trace-settings] '+JSON.stringify({pid:child.pid,generatedMode:childEnv.MEDIA_SERVER_VERIFY_FRAME_TRACE,expectedMode:frameTraceMode,observationMs:duration}));
   const log=path.join(root,`server-${processes.length+1}.private.log`),logFd=fs.openSync(log,'wx',0o600);
   const app={child,http,rtsp,base:`http://127.0.0.1:${http}`,bytes:0,log,logFd,requiresFrameTrace};processes.push(app);
   app.cleanup=createProcessCleanup({child,ports:[{kind:'http',port:http},{kind:'rtsp',port:rtsp}],stopServer,assertPortClosed});
@@ -275,14 +278,14 @@ finally{
     const blocked=fs.existsSync(path.join(root,'cleanup-blocked'));
     console.log('[server-diagnostic] '+JSON.stringify({pid:app.child.pid,bytes:app.bytes,capturedBytes:Buffer.byteLength(text),sha256:fileHash(app.log),overflow:!!app.overflow,captureError:app.captureError??null,categories,rawBodyPublished:false,privateCaptureDisposition:blocked?'preserved-with-owned-root':'eligible-for-wrapper-cleanup'}));
     if(!processLogCaptureComplete(app,Buffer.byteLength(text))){failed++;console.log('[fail] process-log-collection');}
-    const frameTrace=frameTraceSummary(text,diagnose?'full':'bounded',app.requiresFrameTrace);console.log('[frame-trace-summary] '+JSON.stringify(frameTrace));
+    const frameTrace=frameTraceSummary(text,frameTraceMode,app.requiresFrameTrace);console.log('[frame-trace-summary] '+JSON.stringify(frameTrace));
     if(frameTrace.status!=='captured'&&!(frameTrace.status==='not-observed'&&!app.requiresFrameTrace)){failed++;console.log('[fail] frame-trace-incomplete');}
     const slow=slowTraceSummary(text,app.result?.normalShutdownPass===true);console.log('[server-slow-diagnostic] '+JSON.stringify(slow));
     if(slow.status!=='captured'){failed++;console.log('[fail] slow-diagnostic-unavailable');}
   }catch{failed++;console.log('[fail] server-diagnostic-capture');}}
   try{if(observer)await observer.closeAsync();}catch{failed++;try{fs.writeFileSync(path.join(root,'cleanup-blocked'),'observer transport cleanup unresolved\n',{mode:0o600});}catch{}}if(udp)try{await new Promise(r=>udp.close(r));udpClosed=true;}catch{failed++;}else udpClosed=true;
   if(!udpClosed||processes.some(p=>!p.result?.archiveSafe)){fs.writeFileSync(path.join(root,'cleanup-blocked'),'process or port safety unresolved\n',{mode:0o600});failed++;}
-  const final={mode:short?'v450-mixed-preparation':diagnose?'v450-frame-diagnostic':'v450-recording-search-evidence-A-mixed-120',passed,failed,elapsedMs:Math.round(performance.now()-start),verifiedDurationMs:phaseResult?.elapsedMs??null,
+  const final={decoderTraceMode:frameTraceMode,mode:short?'v450-mixed-preparation':diagnose?'v450-frame-diagnostic':'v450-recording-search-evidence-A-mixed-120',passed,failed,elapsedMs:Math.round(performance.now()-start),verifiedDurationMs:phaseResult?.elapsedMs??null,
     longrunObservationCompleted:!short&&!diagnose&&failed===0&&!!phaseResult,shortPreparationPass:short&&failed===0,frameDiagnosticPass:diagnose&&failed===0&&!!phaseResult,resourceTrendPass:false,reviewRequired:true,uiFulltestPass:false,
     evidenceLoad:mixed,aLoad:aLoad?.report()??null,phase:phaseResult??null,resources:summary??null,processCount:processes.length,processesClosed:processes.every(p=>p.result?.normalShutdownPass),udpClosed,
     footprintState:'not-measured',cpu:{maxPercent:samples.length?Math.max(...samples.map(s=>s.cpuPercent)):null},tokenStart:null,tokenEnd:null,tokenConsumed:null,tokenSource:'전용 집계 없음'};artifacts.checkpoint({...final,status:failed?'FAIL':'PASS',exit:failed?1:0});console.log(JSON.stringify(final));process.exitCode=failed?1:0;

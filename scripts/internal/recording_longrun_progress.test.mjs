@@ -1,10 +1,12 @@
 // 파일 용도: 장시간 관측 진행·표본 연속성·삭제 확인 계약 검사.
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import path from 'node:path';
+import vm from 'node:vm';
 import {spawnSync} from 'node:child_process';
-import {parseLongrunArgs, LongrunProgress, sampleContinuity,nextRecordingSettings,mediaAbsent,frameTraceSummary,captureBoundedProcessLog,processLogCaptureComplete} from './recording_longrun_progress.mjs';
+import {parseLongrunArgs, LongrunProgress, sampleContinuity,nextRecordingSettings,mediaAbsent,frameTraceSummary,captureBoundedProcessLog,processLogCaptureComplete,assertMixedFrameTraceMode} from './recording_longrun_progress.mjs';
 let passed=0,failed=0; const start=Date.now();
-function check(name,fn){try{fn();passed++;console.log(`[pass] ${name}`);}catch{failed++;console.log(`[fail] ${name}`);}}
+function check(name,fn){try{fn();passed++;console.log(`[pass] ${name}`);}catch(error){failed++;console.log(`[fail] ${name}: ${error.message}`);}}
 check('explicit 120 minutes accepted',()=>assert.equal(parseLongrunArgs(['--duration-minutes','120']),7200000));
 for(const args of [[],['120'],['--duration-minutes','30'],['--duration-minutes','120','extra'],['--unknown','120']])
   check(`invalid CLI ${JSON.stringify(args)}`,()=>assert.throws(()=>parseLongrunArgs(args)));
@@ -100,5 +102,57 @@ check('edge probe failure reaches parent incomplete collection',()=>{
 });
 check('malformed provided edge collection cannot be captured',()=>{
   for(const edges of [null,{}, {probeFailures:-1}])assert.equal(frameTraceSummary(trace({...diagnostic,edges}),'bounded').status,'incomplete');
+});
+// 실제 실행기의 환경/launch/종료 요약을 실행한다. 제품 서버는 명시적인 Node 자식 대역이다.
+const mixedSource=fs.readFileSync(new URL('./v450_recording_a_mixed.mjs',import.meta.url),'utf8');
+function mixedBoundary(source=mixedSource,diagnose=true){
+  const context=vm.createContext({path,process,repo:'/owned-repo',root:'/owned-run',diagnose,
+    http:61001,rtsp:61002,stun:61003,frameTraceSummary,assertMixedFrameTraceMode,parseLongrunArgs,
+    short:false,args:diagnose?['--frame-diagnostic']:['--duration-minutes','120'],console:{log(){}}});
+  const declaration=(source.match(/^const frameTraceMode=.*;$/m)?.[0]??'')+'\n'+source.match(/^const duration=.*;$/m)[0];
+  const first=source.indexOf('function environment('),last=source.indexOf('async function request(',first);
+  assert(first>=0&&last>first);vm.runInContext(declaration+'\n'+source.slice(first,last),context);
+  const launchStart=source.indexOf('  const childEnv=',source.indexOf('async function launch('));
+  const childStart=source.indexOf('  const child=spawn(',source.indexOf('async function launch('));
+  const end=source.indexOf('  const log=',childStart);assert(childStart>=0&&end>childStart);
+  return {context,launch:source.slice(launchStart>=0?launchStart:childStart,end),
+    summary:source.match(/const frameTrace=frameTraceSummary\([^;]+;/)?.[0]};
+}
+function childMode(boundary){
+  let called=0;boundary.context.spawn=(command,args,options)=>{
+    called++;assert.equal(command,'/owned-repo/server.sh');assert.equal(args.join(','),'foreground');
+    const child=spawnSync(process.execPath,['-e','process.stdout.write(JSON.stringify({trace:process.env.MEDIA_SERVER_VERIFY_FRAME_TRACE}))'],
+      {...options,stdio:undefined,cwd:process.cwd(),encoding:'utf8',timeout:3000});
+    assert.equal(child.status,0);return JSON.parse(child.stdout);
+  };
+  vm.runInContext(boundary.launch+'\nglobalThis.childResult=child;',boundary.context);
+  assert.equal(called,1);return boundary.context.childResult.trace;
+}
+check('R72-V1 actual600 child environment receives bounded',()=>{const b=mixedBoundary();assert.equal(vm.runInContext('duration',b.context),600000);assert.equal(childMode(b),'bounded');});
+check('R72-V1 actual600 final summary expects the child bounded mode',()=>{
+  const b=mixedBoundary();b.context.text=trace(diagnostic);b.context.app={requiresFrameTrace:true};
+  assert(b.summary);vm.runInContext(b.summary+'\nglobalThis.summaryResult=frameTrace;',b.context);
+  assert.equal(b.context.summaryResult.mode,'bounded');assert.equal(b.context.summaryResult.status,'captured');
+});
+for(const value of ['1','0','undefined'])check(`mixed generated ${value} rejected before child spawn`,()=>{
+  const changed=mixedSource.replace('VERIFY_FRAME_TRACE:frameTraceMode',`VERIFY_FRAME_TRACE:${value}`);
+  assert.notEqual(changed,mixedSource);const b=mixedBoundary(changed);let called=0;b.context.spawn=()=>{called++;};
+  assert.throws(()=>vm.runInContext(b.launch,b.context),/mixed-frame-trace-mode/);assert.equal(called,0);
+});
+check('mixed full generation and full expectation rejected before spawn',()=>{
+  const changed=mixedSource.replace("const frameTraceMode='bounded';","const frameTraceMode='full';");
+  assert.notEqual(changed,mixedSource);const b=mixedBoundary(changed);let called=0;b.context.spawn=()=>{called++;};
+  assert.throws(()=>vm.runInContext(b.launch,b.context),/mixed-frame-trace-mode/);assert.equal(called,0);
+});
+check('mixed bounded generation with full summary mutation rejected',()=>{
+  const changed=mixedSource.replace('frameTraceSummary(text,frameTraceMode,','frameTraceSummary(text,\'full\',');
+  assert.notEqual(changed,mixedSource);const b=mixedBoundary(changed);assert.equal(childMode(b),'bounded');
+  b.context.text=trace(diagnostic);b.context.app={requiresFrameTrace:true};
+  vm.runInContext(b.summary+'\nglobalThis.summaryResult=frameTrace;',b.context);assert.equal(b.context.summaryResult.status,'incomplete');
+});
+check('mixed120 keeps actual bounded child and final expectation',()=>{
+  const b=mixedBoundary(mixedSource,false);assert.equal(vm.runInContext('duration',b.context),7200000);assert.equal(childMode(b),'bounded');
+  b.context.text=trace(diagnostic);b.context.app={requiresFrameTrace:true};
+  vm.runInContext(b.summary+'\nglobalThis.summaryResult=frameTrace;',b.context);assert.equal(b.context.summaryResult.status,'captured');
 });
 console.log(`[summary] passed=${passed} failed=${failed} elapsedMs=${Date.now()-start}`);process.exitCode=failed?1:0;
