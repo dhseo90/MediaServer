@@ -294,3 +294,65 @@ git show 982a815f263e525799a0e45b9bbe18f2b97ebe9e:docs/release-artifacts/v4.3.0/
 `5bf633244c5c9fe111efc15052be3d633c522d71`의 `development/final-static-1/`에 보존하고
 Git 바이트 대조 후 제거했다. `result.json`의 working diff hash가 대상 정리 트리를 특정한다.
 이후 이력 색인 연결만 보완했으며 최종 PR/main의 required CI를 별도로 확인한다.
+
+## v4.5.0 후보 검증과 종료 기록
+
+현재 판단·운영 제한·미승인 결정은 [릴리즈 노트](../release-notes-v4.5.0.md#검증과-배포-경계)에 둔다.
+종료 상세의 보존 기준은 원격 `v4.5.0`에서 확인한
+`d6cb44fca4fb057a2e931f008ee71d7bbf015b99`다. 아래 경로 접두사는
+`docs/release-artifacts/v4.5.0/`이며, 같은 보존 트리에서 각 기록이 참조하는 원자료도 조회한다.
+
+| 범위 | 원래 경로·조회 대상 |
+| --- | --- |
+| 개발·미채택 모델·검색 마감 | `development-results.md`, `52-validation.json`, `53-validation.json`; 38/43/45/49 품질 FAIL·47 미채택·50/51 진단 원문 |
+| 실행 경계·검토/결속 | `54-resume-validation.json`, `55-independent-review.json`, `56-validation.json`과 당시 candidate/migration/원본 판단 |
+| Linux 파일 증거·직접 검증 | `59-validation.json`, `59-independent-review.json`; 57/58 BLOCKED·FAIL과 66/67/68의 준비/권한 대조도 그대로 보존 |
+| 공통 acceptance·필수 보완 UI | `61-validation.json`, `61-execution.tar.gz`, `63-validation.json`, `63-independent-review.json`; 59/60 FAIL·62 seed FAIL은 후속 PASS로 수정하지 않음 |
+| 선택자료 guard와 Linux 변경분 | `65-validation.json`, `65-independent-review.json`, `67-validation.json`, `68-validation.json` 및 각 execution archive |
+| SoftwareOnly 직접 검증·bounded 통합 | `72-validation.json`, `72-independent-review.json`, `73-validation.json`, `73-independent-review.json`; 72 full-trace 수집 FAIL 보존 |
+| 혼합120분·수명·수집 | `74-validation.json`, `74-independent-review.json`, `74-execution.tar.gz`; 실제 source `6a03cece468957f845f858fcddacfe5fe977faf1`, tree `8a96e7262eeba2afd39c893449f6024ab02ab6f6` |
+| 최초 decoder 실패·원인 분리 | `68-validation.json`, `70-validation.json`, `71-validation.json`과 해당 MP4/binding/실패 진단; 내부 원인 미확정 유지 |
+
+74 archive SHA-256은 `c94bd51374018003c4f8cee5dc4b19dd8e0d92287f42b02db6b5c87fd1ad823f`다.
+제품 binary `e6cef05b0a6371bfc28fbb459001edf5a3465c97de5c15fb19d6de037505fdcc`와
+runtime `b79e8fbf6589c379ef9f6cb001f1667b393faf6110d2065356a350f0a6dc5179`는 72/73과 같았다.
+각 source/environment의 실행 범위를 연결하며 최신 HEAD 전체 실행으로 재표시하지 않는다.
+원본·gzip/tar의 무손실 member·privacy 정제본·선택 발췌·hash-only/미수집은 각 원문의 provenance로
+구분한다. 특히 74의 복구 receipt와 실행 assertion은 유효하나 native stdout 전체는 보존되지 않았다.
+존재하지 않는 원출력을 복원하거나 과거 root cause를 새 PASS로 확정하지 않는다.
+
+### 현재 입력 보호와 삭제 범위
+
+종료 상세 778개, 저장 표현 기준151,416,563바이트를 별도 정리 커밋의 정확한 삭제 diff로
+식별한다. 삭제 전 789파일/718고유 blob의 로컬 파일·Git blob 전체 바이트를 대조하고,
+원격 보존 subtree `dd69dc4dd906566cfe92bd25295afd857c39e10b`의 각 path/blob/size와 일치함을
+확인했다. 이는 모든 archive를 다시 해제하거나 원격 모든 blob을 새로 다운로드한 검사가 아니다.
+기존 유효한 실행별 remote-byte receipt와 Git 객체 결속을 재사용했다.
+현재 Git 이력 용량을 줄이거나 같은 원본을 docs/archive로 재복사하는 작업도 아니다.
+
+현재 트리에는 다음11개(396,397바이트)를 보호한다.
+
+- `34-contract-text.log`: 현행 contract replay 출처.
+- `35-evaluation-freeze.json`, `35-text-uncertain.log`, `36-request-freeze.json`: 명시 원인 분리 검사 입력.
+- `37-request-freeze.json`: core/bound-record 회귀의 이전 관측 요청 입력.
+- `38-request-freeze.json`, `43-request-freeze.json`, `47-request-freeze.json`, `49-request-freeze.json`: 명시 observer/question/rephrase/visual 회귀의 freeze·byte 대조 입력.
+- `46-offline-3.log.gz`: 실제 renderer 초안의 오프라인 회귀 입력.
+- `58-linux.Dockerfile`: 재사용 rc58 Linux 의존성 환경 recipe.
+
+과거 43~53 실행 코드 사본은 당시 종료 원자료로 보존 이력에 남기며, 현행 scripts의 실행기·fixture·
+승인 원장·producer 입력은 삭제하지 않는다. 기본 launcher가 새로 만드는 출력과 종료 실행의
+기존 출력 입력을 구분한다. 현재 source-only/모델·SDK·사용자 저장소는 변경하지 않는다.
+새 마감 독립 판단은 문서 마감 커밋의 `75-independent-review.json` 원본에 보존하고,
+그 임시 상세도 후속 정리 커밋에서 제거한다. 정확한 commit과 bytes는 정리 커밋 본문에 둔다.
+보존/삭제 커밋은 후속 main 병합에서도 squash하지 않고 유지해야 한다.
+
+```sh
+git show d6cb44fca4fb057a2e931f008ee71d7bbf015b99:docs/release-artifacts/v4.5.0/74-validation.json
+git show d6cb44fca4fb057a2e931f008ee71d7bbf015b99:docs/release-artifacts/v4.5.0/61-validation.json
+git show d6cb44fca4fb057a2e931f008ee71d7bbf015b99:docs/release-artifacts/v4.5.0/72-independent-review.json
+git log --all -- docs/release-artifacts/v4.5.0/75-independent-review.json
+```
+
+shallow/source archive에서 과거 commit 조회가 불가능하면 전체 Git 이력을 별도로 확보한다.
+일반 빌드·현행 검사에 종료 기록을 복원할 필요는 없다. 기록 정리는 운영위험 수용·
+최종 출시 채택·PR/CI·병합·서명 태그·Release/Latest 확인의 수행을 뜻하지 않는다.

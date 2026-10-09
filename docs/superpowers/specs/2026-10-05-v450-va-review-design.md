@@ -128,7 +128,7 @@ hash이며 schema를 포함한다. 합성 평가에서 별도 schema hash와 전
   Ollama `/api/chat`, 1차 모델은 `qwen3-vl:8b-instruct-q4_K_M`이다. 4B Instruct Q4는
   낮은 사양의 명시적 대안이며 자동 전환하지 않는다. 30B와 별도 약관 모델은 이번 기준에서 제외한다.
   사용자 승인으로 전용 `models/v450-ollama`에 weight를 준비했다. digest와 실제 품질 결과는
-  [개발 실행 결과](../../release-artifacts/v4.5.0/development-results.md)에서 구분한다.
+  [개발 실행 결과](https://github.com/dhseo90/MediaServer/blob/d6cb44fca4fb057a2e931f008ee71d7bbf015b99/docs/release-artifacts/v4.5.0/development-results.md)에서 구분한다.
 - Gemini 전용 구현·설정·UI·저장 검증·성공 테스트는 제거 완료했다.
   미배포 기능이므로 Gemini 호환 reader/migration은 만들지 않는다. 실제 외부 호출은 하지 않았으며
   과거 실행 결과를 소급 변경하지 않는다. Ollama 외 provider 요청은 전송 전에 거부한다.
@@ -197,8 +197,8 @@ VARuleLens 코드·prompt·schema를 사용하지 않는다. 특허 상세를 �
 ## 원인 분리 조사와 구조 변경 제안 (36, 미구현)
 
 이번 결론은 제품 변경 승인이 아니다. 원응답 재현·고정 A/B 비교의 세부 관측은
-[36 조사 결과](../../release-artifacts/v4.5.0/36-diagnosis.json), 실행 출처/정리는
-[개발 기록](../../release-artifacts/v4.5.0/development-results.md)에 둔다.
+[36 조사 결과](https://github.com/dhseo90/MediaServer/blob/d6cb44fca4fb057a2e931f008ee71d7bbf015b99/docs/release-artifacts/v4.5.0/36-diagnosis.json), 실행 출처/정리는
+[개발 기록](https://github.com/dhseo90/MediaServer/blob/d6cb44fca4fb057a2e931f008ee71d7bbf015b99/docs/release-artifacts/v4.5.0/development-results.md)에 둔다.
 제품 provider/input/output/record·API·UI는 `b9520c7f3` 그대로다.
 
 ### 확정된 구조 문제와 검증 경계
@@ -381,7 +381,7 @@ A/B 모두 맞은 정상 사례가 기존 결함을 없애지 않으며, two-lef
 위37 절의 한 항목을 유지하며, 관측 요구 미충족이면 공개 연결을 보류한다. 새 질문 생성·추적기를
 이번 범위에 추가하지 않는다.
 
-38 실행 결과와 잔여 관측 차단은 [개발 기록의 38절](../../release-artifacts/v4.5.0/development-results.md)에 둔다.
+38 실행 결과와 잔여 관측 차단은 [개발 기록의 38절](https://github.com/dhseo90/MediaServer/blob/d6cb44fca4fb057a2e931f008ee71d7bbf015b99/docs/release-artifacts/v4.5.0/development-results.md)에 둔다.
 공식 상대 표현 채택만으로 좌표/물리적 동일성 품질이 충족되지 않았으며 이번 후보의 추가 호출은 종료했다.
 
 
@@ -531,7 +531,7 @@ VLM에는 실제 프레임의 시각적 의미와 서버가 확정한 부족 근
 실제 projector/catalog/package/reader/core에 통과시킨다. 새 프로세스의 catalog 복구 후 테스트 소유
 원본/catalog 디렉터리를 제거하고 또 다른 프로세스에서 package만 재조회한다. 독립 기대 중심은
 (40,45)/(120,45), 우측 지지/좌측 반증이다. 실제 detector 추론·VLM·운영 DB/영상 검사가 아니다.
-실행 결과는 [개발 기록](../../release-artifacts/v4.5.0/development-results.md)의 40 항목에만 집계한다.
+실행 결과는 [개발 기록](https://github.com/dhseo90/MediaServer/blob/d6cb44fca4fb057a2e931f008ee71d7bbf015b99/docs/release-artifacts/v4.5.0/development-results.md)의 40 항목에만 집계한다.
 
 다음 공개 연결에는 **A 기록 일관성과 B/C 독립 영상 검증을 구분할 최소 input/result/record 표현 버전**을
 먼저 확정해야 한다. 이 결정에는 지원 관계·부족/미지원 표현과 기존 전체 출력 예산이 포함된다.
@@ -618,7 +618,7 @@ VLM에는 실제 프레임의 시각적 의미와 서버가 확정한 부족 근
 
 [V450-K09/A02/U02](../../project-feature-test-inventory.md)의 모의 VA·실제 저장/HTTP/변경 브라우저 검사가
 대상이다. 모델 호출·설치·품질 재평가는0회이며 UI 풀테스트·장시간·릴리즈 검증의 대체가 아니다.
-명령별 결과와 최초 실패는 [개발 기록](../../release-artifacts/v4.5.0/development-results.md)에 연결한다.
+명령별 결과와 최초 실패는 [개발 기록](https://github.com/dhseo90/MediaServer/blob/d6cb44fca4fb057a2e931f008ee71d7bbf015b99/docs/release-artifacts/v4.5.0/development-results.md)에 연결한다.
 
 ## 43: 확정 gap의 한국어 자료 요청 표현 (내부 전용)
 
@@ -712,7 +712,7 @@ episode/sample 기록 연결을 구분한다. 관측 부재를 비가시성으�
 |38 /43·45 /47 후보 |38 정밀 좌표·동일성 및43·45 질문 표현은 미충족 종료.47은 의미 보존9/9이나 편집 품질·실익 미충족으로 미채택. 재실행·공개 연결은 필수 아님 |
 | 남은 제품 기능 | 자유질문의 미확정 명세 초안, 실제 PNG의 C 시각 관측, 각각 통과 후 확인·출처·저장/API/UI 연결. 최종 수명/혼합 부하/OS/릴리즈 검증은 별도 |
 
-실행 상세는 [개발 기록](../../release-artifacts/v4.5.0/development-results.md)에 유지한다.
+실행 상세는 [개발 기록](https://github.com/dhseo90/MediaServer/blob/d6cb44fca4fb057a2e931f008ee71d7bbf015b99/docs/release-artifacts/v4.5.0/development-results.md)에 유지한다.
 43~47 결과를 새 영상 품질·전체 완료로 승계하지 않는다. 추가 detector/tracker/Re-ID·외부 공급자·범용 의미 엔진은 없다.
 
 ### A. 자유질문 해석 초안
@@ -810,7 +810,7 @@ C의 S/C는 보존 PNG에 대한 **모델 관측을 전제로 한 서버 계산*
   runtime은 `models/v450-question-eval/ollama-v0.35.1/ollama`, 모델 root는
   `models/v450-question-eval/models`다. 바이너리 SHA는
   `5f0e245e8369a66b7b24654c51c8ec95f3eab9a1e263f6e95e20d2d4374b8e26`이며
-  [45](../../release-artifacts/v4.5.0/45-evaluation-freeze.json)·[47 freeze](../../release-artifacts/v4.5.0/47-evaluation-freeze.json)를 참조한다.
+  [45](https://github.com/dhseo90/MediaServer/blob/d6cb44fca4fb057a2e931f008ee71d7bbf015b99/docs/release-artifacts/v4.5.0/45-evaluation-freeze.json)·[47 freeze](https://github.com/dhseo90/MediaServer/blob/d6cb44fca4fb057a2e931f008ee71d7bbf015b99/docs/release-artifacts/v4.5.0/47-evaluation-freeze.json)를 참조한다.
   2026-10-06 읽기 전용 확인에서 바이너리/로컬 manifest hash가 일치했다. 모델 blob 전수 해시나 실행은 하지 않았다.
   공식 [Ollama library](https://ollama.com/library/qwen3.5:9b)의 GGUF Q4_K_M과
   [Qwen model card](https://huggingface.co/Qwen/Qwen3.5-9B)는 vision을 명시한다. tag의 다른 backend 자산과
@@ -929,8 +929,8 @@ A package/draft/execute/list/get 모두에 영향을 준다. 전역 off는 A와 
 문서의 역사 표기가 실행기 gate 면제를 구현한 것은 아니다. 새 mode/fixture와 최종 acceptance 소비자 연결은
 후속 구현에서 정확한 분기와 필수 ID를 대조한다. 과거 expected hash·승인 필드·실패 전파는 변경하지 않는다.
 
-과거 [coverage FAIL](../../release-artifacts/v4.5.0/08-feature-coverage.log)은 **현행 해소 확인 필요**다.
-이번 source의 coverage를 실행하지 않았으므로 지금도 동일FAIL 또는 이미PASS라고 단정하지 않는다.
+과거 [coverage FAIL](https://github.com/dhseo90/MediaServer/blob/d6cb44fca4fb057a2e931f008ee71d7bbf015b99/docs/release-artifacts/v4.5.0/08-feature-coverage.log)은 당시 미해소였던 역사 근거다.
+현재 결속·검증 상태는 [현행 릴리즈 노트](../../release-notes-v4.5.0.md#검증과-배포-경계)를 따른다.
 최종 독립 검토·결속은 코드 고정 뒤 영향 범위에 적용한다. Q01/N03의 일반120분 필요성은 유지하며
 녹화 전용120분은 별도 변경 영향이 있을 때만 판단한다. 자동으로 두120분을 실행하지 않는다.
 VERSION/CMake·release metadata·최종 노트, 기록 보존/정리, PR/CI·main·서명/공개는 후속 마감이다.
@@ -951,9 +951,9 @@ V2 대상은 정답 색을 누출하지 않는 '상자'로 표현하며 두 회�
 최초 V3/V4 가림 그림은 회색 본체로 읽힐 여지가 있어 모델 호출 전에 거부·보존했다.
 현재 입력은 넓은 전경 판자와 표식 창을 사용한다. 기대값/사례/합격선 변경이나 호출 후 수정은 아니다.
 실제6요청은 [고정 입력](../../release-artifacts/v4.5.0/49-request-freeze.json)과
-[평가 source](../../release-artifacts/v4.5.0/49-evaluation-freeze.json)에 결속했다.
-[원응답](../../release-artifacts/v4.5.0/49-local.log.gz)과
-[축별 결과](../../release-artifacts/v4.5.0/49-evaluation.json)를 보존하며 **품질 미충족으로 후보를 종료**한다.
+[평가 source](https://github.com/dhseo90/MediaServer/blob/d6cb44fca4fb057a2e931f008ee71d7bbf015b99/docs/release-artifacts/v4.5.0/49-evaluation-freeze.json)에 결속했다.
+[원응답](https://github.com/dhseo90/MediaServer/blob/d6cb44fca4fb057a2e931f008ee71d7bbf015b99/docs/release-artifacts/v4.5.0/49-local.log.gz)과
+[축별 결과](https://github.com/dhseo90/MediaServer/blob/d6cb44fca4fb057a2e931f008ee71d7bbf015b99/docs/release-artifacts/v4.5.0/49-evaluation.json)를 보존하며 **품질 미충족으로 후보를 종료**한다.
 정상 종료·JSON·슬롯 coverage는6/6이지만 엄격한 typed 수용과 필수 관측 의미는 V1만1/6이다.
 V2 대상 모호성, V3/V4 가려진 색 단정·anchor 누락, V5 가림/부재 혼동,
 V6 다른 프레임의 대상 귀속 및 잘못된 조합이 남았다. 일부 노출 색상·표식 인식 성공은 별도로 기록했다.
@@ -977,7 +977,7 @@ v4.5.0의 우선 목표는 **한국어·영어 장면 설명과 명시적인 카
 
 추가 개발은 (1) 묵시적 질의 절단 차단·적용 조건 표시, (2) 색인 범위·갱신 상태·기존 검색 화면 연결,
 (3) 출시 기능 경계·관련 품질/호환 검증 마감 순서다.52번 구현에서는 (1)만 수행했고
-[직접 검증](../../release-artifacts/v4.5.0/52-validation.json)에 결과를 보존했다. 묶음2 구현은 아래 후속 절에서 구분한다.
+[직접 검증](https://github.com/dhseo90/MediaServer/blob/d6cb44fca4fb057a2e931f008ee71d7bbf015b99/docs/release-artifacts/v4.5.0/52-validation.json)에 결과를 보존했다. 묶음2 구현은 아래 후속 절에서 구분한다.
 (3)에는 미충족 모델의 **신규 Submit 제한과 과거 조회 보존**이 필수로 남는다.
 A·과거 조회를 함께 막는 전역 off나 기능 삭제를 대안으로 삼지 않는다.
 
@@ -1048,7 +1048,7 @@ Ops의 명시 복사 버튼은 양쪽에 존재하는 카메라와 유효한31�
 무효화한다. 상태 refresh는 검색 당시 색인 설명·결과를 유지하고 현재 상태만 갱신한다.
 
 검사 정의는 [V450-R01~03](../../project-feature-test-inventory.md#v450-검색-범위·갱신-상태·조건-연결),
-실제 실행과 미실행은 [53 검증](../../release-artifacts/v4.5.0/53-validation.json)에 둔다.
+실제 실행과 미실행은 [53 검증](https://github.com/dhseo90/MediaServer/blob/d6cb44fca4fb057a2e931f008ee71d7bbf015b99/docs/release-artifacts/v4.5.0/53-validation.json)에 둔다.
 53 완료 시 남았던 묶음3의 신규 모델 Submit 제한·중복 ID/검사 소비자는54에서 이어진다. 독립 승인·최종 장시간/UI/출시 gate는 별도 잔여다.
 
 
@@ -1062,7 +1062,7 @@ A 확인/실행 및 과거 결과 조회는 유지한다. List capability와 화
 
 직접 native448 및 명령 연결 검사는 통과했다. 실제 HTTP 재검증의 늦은 응답 대역이 예외로 종료되어
 정리 재개 승인을 요청했다. **묶음3 완료가 아니다.** 최초 실패·실행 source와 미실행 범위는
-[54 체크포인트](../../release-artifacts/v4.5.0/54-validation.json)에 둔다. 기존52·53 완료를 변경하지 않는다.
+[54 체크포인트](https://github.com/dhseo90/MediaServer/blob/d6cb44fca4fb057a2e931f008ee71d7bbf015b99/docs/release-artifacts/v4.5.0/54-validation.json)에 둔다. 기존52·53 완료를 변경하지 않는다.
 
 ### 54 후속: 출시 경계와 직접 검증 마감
 
@@ -1077,7 +1077,7 @@ A·자료 안내·접수 거부를 출시 검사에 연결하고, 기본 native�
 
 늦은 응답 fixture는 완료 후 route를 해제하고 callback 예외를 상위 정리에 전달하도록 수정했다.
 HTTP 실행의 소유 root·포트·PID는 시작 시 기록한다. 앞선 실패 기록은 보존하며 후속 검증·source·
-인계 범위는 [54 재개 검증](../../release-artifacts/v4.5.0/54-resume-validation.json)에 둔다.
+인계 범위는 [54 재개 검증](https://github.com/dhseo90/MediaServer/blob/d6cb44fca4fb057a2e931f008ee71d7bbf015b99/docs/release-artifacts/v4.5.0/54-resume-validation.json)에 둔다.
 이번 범위 밖의 독립 검토/승인 적용, 전체 UI·30분·120분·릴리즈는 미실행이다.
 
 ## 55. 검토 입력 정합과 독립 판단 — 승인 결속 미완료
@@ -1089,8 +1089,8 @@ source tree에서 누적 변경을 고정하여 신규 AI 검토자에게 검토
 **A 진행 조회/과거 결과 열람 경합(U02)**과 **현재 필수 회귀의 출시 소비자 누락(E03)**이 남았다.
 K05/K07/K08의 현재 출시 검사 연결도 보류이므로 producer를 실행하지 않았다.
 
-[55 입력·판단·정적 결과](../../release-artifacts/v4.5.0/55-validation.json)와
-[독립 검토 원본](../../release-artifacts/v4.5.0/55-independent-review.json)에 정확한 범위와
+[55 입력·판단·정적 결과](https://github.com/dhseo90/MediaServer/blob/d6cb44fca4fb057a2e931f008ee71d7bbf015b99/docs/release-artifacts/v4.5.0/55-validation.json)와
+[독립 검토 원본](https://github.com/dhseo90/MediaServer/blob/d6cb44fca4fb057a2e931f008ee71d7bbf015b99/docs/release-artifacts/v4.5.0/55-independent-review.json)에 정확한 범위와
 수정 조건을 보존한다. 기존52~54 완료 및 과거 실행 사실은 유지하며 이번에는 제품 수정이나
 새 제품/모델 실행을 하지 않았다. 두 지적의 수정·영향 검증과 변경 source 재검토가 승인 결속의
 선행 조건이다. 전체 UI·장시간·지원 OS·릴리즈 완료를 뜻하지 않는다.
@@ -1110,7 +1110,7 @@ UI 수명 검사를 연결한다. 기존 K08 wrapper가 실행하는 `--core-onl
 재귀 실행하지 않는다. 미배정5개·역사 실험8개는 출시 필수 승인으로 승격하지 않는다.
 
 두 지적의 RED와 수정 후 직접 회귀, 독립 변경분 판단·producer/readback 결과는
-[56 검증](../../release-artifacts/v4.5.0/56-validation.json)에 보존했다. 검토 source는
+[56 검증](https://github.com/dhseo90/MediaServer/blob/d6cb44fca4fb057a2e931f008ee71d7bbf015b99/docs/release-artifacts/v4.5.0/56-validation.json)에 보존했다. 검토 source는
 `6d91b2f9155073cd2a51f940cf35fa3333b8f44b`이며 현재 V450 필수28개는 승인 가능,
 기존986개는 독립 재결속300개·엄격 승계686개로 적용했다. 결속 오류0·후속 반례15개 PASS다.
 55 원판단과 locator 정합은 보존·재사용한다. 실제 HTTP의 보류된 완료 응답 회수와 제어된
@@ -1138,7 +1138,7 @@ FE09는 실제 생성 profile, 혼합/개발 버전 거부,5파일 별도 프로
 profile만 바꿔도 유효해지지 않는다. 채택·승인 결속과 후속 acceptance는 새 검증 결과를
 따르며,56의 승인을 새 제품 소스에 자동 부여하지 않는다.
 
-[59 실행·독립 판단](../../release-artifacts/v4.5.0/59-validation.json)에서 위 정확한 조합의
+[59 실행·독립 판단](https://github.com/dhseo90/MediaServer/blob/d6cb44fca4fb057a2e931f008ee71d7bbf015b99/docs/release-artifacts/v4.5.0/59-validation.json)에서 위 정확한 조합의
 제한 지원을 승인했다. 실제5파일/372sample의 두 환경 검증·독립 native 표·readback과
 seek/영상 검색이 통과했다. 호스트 정식 acceptance1회는 문서 UI 자산 기준 버전 불일치로
 FAIL이며 후속30분/UI/120분은 미실행이다. 제한 프로파일 지원과 전체 출시 검증을 구분한다.

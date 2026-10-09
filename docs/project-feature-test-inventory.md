@@ -4700,7 +4700,7 @@ K03 추가 비용 조건: `V420_COST_VARIED=1`은 관측의 원본 표본 10개�
 
 ## V450 검색 입력 마감
 
-설계52의 첫 묶음에 사용한 실행 전 정의다. [52의 실제 결과](release-artifacts/v4.5.0/52-validation.json)는
+설계52의 첫 묶음에 사용한 실행 전 정의다. [52의 실제 결과](https://github.com/dhseo90/MediaServer/blob/d6cb44fca4fb057a2e931f008ee71d7bbf015b99/docs/release-artifacts/v4.5.0/52-validation.json)는
 별도 보존하며 이번 문서 개정의 제품 실행 결과로 승계하지 않는다. 아래 표 자체는 PASS 기록이 아니다.
 52 검색 입력의 중복 S01은 현행 `V450-T01`로 이동했다. 먼저 존재한 저장 `V450-S01`은 유지한다.
 52 보존 원문에서 S01은 당시 검색 입력 의미이며 현재 저장 검사의 승인 근거로 재사용하지 않는다.

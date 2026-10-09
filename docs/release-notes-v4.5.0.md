@@ -37,28 +37,57 @@ v4.6~v4.9의 합의된 범위는 [로드맵](v410-v49-recording-search-roadmap.m
 
 녹화 누적 이력에 따라 catalog/catalog view 등의 메모리가 증가하는 기존 운영 한계가 남아 있다.
 [메모리 운영 한계](development-backlog.md#녹화-누적-이력의-메모리-운영-한계)를 유지하며
-검색/A 단기 PASS나 기존 v4.4.0 장시간 결과를 무제한 운용·누수 없음으로 확대하지 않는다.
+아래 검증의 기능·수명 PASS를 무제한 운용·누수 없음으로 확대하지 않는다.
+
+macOS의 새 증거 PNG 추출은 처음부터 **SoftwareOnly 후보**를 사용한다. 색인·실시간과 Linux
+기본 Automatic 정책은 변경하지 않았다. 과거 package bytes/hash의 읽기는 유지하며,
+환경 간 재디코딩 RGB의 보편적인 byte 동일성은 보장하지 않는다. 이 정책은 하드웨어 decoder의
+근본 원인 수정으로 설명하지 않으며, 최종 채택과 소유자의 운영위험 수용은 별도 결정이다.
 
 ## 검증과 배포 경계
 
-56번까지 macOS에서 수행한 해당 경로의 직접 검사와 독립 검토·승인 결속은 유효 범위에서
-유지한다. 이 후보의 정식 안정화·일반30분·전체 UI 적격성·필요한 일반120분과 Linux 단기 검증은
-별도의 실제 실행 결과로 판정하며, 후보 준비만으로 새 최종 PASS를 선언하지 않는다.
-기존 부분 브라우저 검사는 전체 UI 적격 증거가 아니다.
+현재 제품 src/include는 `9257ed8b2044f9e8def4dd9984abea8c022fae1b` 후보와 같고,
+혼합 실행기는 73에서 고정한 `8a5354b7a37961e26e24fd1d03aa55c30ceec2b5` 이후 불변이다.
+다음은 기존 실행을 실제 범위에 연결한 근거이며, 최신 HEAD 전체를 한 번에 실행한 결과가 아니다.
+원본은 [보존 이력](history/README.md#v450-후보-검증과-종료-기록)의 고정 commit/path에서 조회한다.
 
-이번 후보 준비에서는 버전/metadata·문서 링크·주석·스크립트 분류·정적 coverage를 통과했다.
-기존 격리 Linux sid/arm64 이미지의 ONNX 개발 헤더와 SentencePiece가 준비되지 않아
-제품 빌드 전 중단했다. 정식 acceptance는 0회이며 안정화·일반30분·전체 UI·일반120분과
-추가 UI는 이번 실행에서 미실행이다. [57 준비·차단 기록](release-artifacts/v4.5.0/57-validation.json)에
-정확한 환경·최초 오류·미실행·정리를 남긴다.
+| 근거 | 실제 source·환경과 재사용 범위 |
+| --- | --- |
+| 56 독립 검토·결속 | 검토 `6d91b2f9155073cd2a51f940cf35fa3333b8f44b`; 필수28개 판단·legacy986 결속. 이후 신규 정책의 자동 승인이 아님 |
+| 59 Linux | 검토 `9d27479dd69eb27f9d2deaf86b76d8290dcea482`; Debian forky/sid arm64·rc58, 정확한 GStreamer1.28.7 core/parser/mux profile의 생성·이전자료 읽기·독립 readback·seek·실제 영상 검색·A/transport/decoder 단기 검증. 다른 배포판·x86_64/GPU·배포 실환경은 미검증 |
+| 61 공통 acceptance | 실제 `72cc7643d681b75228b80fd646921965ecacba75`; macOS에서 기능 gate48개·일반30분·canonical424개와 Policy v4 적격성·일반120분·최종 무결성 PASS. 이후 guard/decoder 정책의 전체 acceptance를 새로 실행한 것으로 확대하지 않음 |
+| 63 필수 보완 UI | `ec5bdfb1e5d1422f3832b213ad1dafb164219b6f`와 원본의 pre-commit source+diff/fixture 결속; 유효한 61/62 근거와 새 모델409/이력·만료/비활성·dark clip 등의 독립 적격성 PASS. canonical 개수에 합산하지 않음 |
+| 65 선택 자료 guard | 제품 `0334b7449822c0e5eefcb677d792f055330365f2`; 결정적 무효화 반례·유한 선택자료 재검증/원자 게시·독립 저장 재조회·짧은 녹화/검색/A 통합과 독립 변경분 검토 PASS |
+| 67·68 및 69~72 Linux 변경분 | rc58 arm64/GCC, GStreamer/ONNX/SigLIP2 ON. 관측 seed/recovery/readback, 비특권 UID10001의 bound/legacy/core/confirmed/fresh-read 및 이후 decoder 직접 소비자 회귀. 정확한 snapshot+diff와 각 원출력 범위에서만 적용 |
+| 72 후보 직접 검증 | `9257ed8b2044f9e8def4dd9984abea8c022fae1b`; SoftwareOnly/Automatic 제한 비교·macOS/Linux 직접 소비자·package/readback과 독립 검토. 최초 full-trace 수집 FAIL·당시 채택 보류는 보존 |
+| 73·74 통합 | 73 실제 `8a5354b7a37961e26e24fd1d03aa55c30ceec2b5`의 bounded 연결·600초 PASS. 74 실제 `6a03cece468957f845f858fcddacfe5fe977faf1`, tree `8a96e7262eeba2afd39c893449f6024ab02ab6f6`에서 같은 바이너리/runtime으로 혼합120분과 후속 수명·복구 PASS |
 
-지원 플랫폼은 macOS/Linux다. 기존 격리 Linux 컨테이너의 빌드·단기 검사는 로컬 검증 환경이며
-컨테이너 배포·원격 GPU·외부 서비스 실환경 검증을 뜻하지 않는다. Ollama 연결/인증의 확인된
-범위는 기존 로컬 검사에 한정되며 이번 릴리즈 검사에서는 Qwen/Ollama 생성을 실행하지 않는다.
-현재 검색·미디어 검사에 필요한 기존 SigLIP2·YOLO 추론과는 구분한다.
+74의 본 관측은7201.527초, 전체7298.316초다. 본 A120건과 재활성화 A1건, 취소·미게시,
+권한 회수401·저장소 불변, 독립 복구3회·재시작·재활성화·정상 종료를 확인했다.
+1440개 자원 표본과 bounded 로그 수신/저장 bytes가 결속됐으며 관측 예산 위반은0이다.
+대표 Automatic/SoftwareOnly 표본은 전체 호출의 전수 factory 관측이 아니다.
+복구 receipt와 실제 assertion 범위는 유지하며 보존되지 않은 native stdout 전체를 복원하지 않는다.
+
+기능·수명·수집의 현재 필수 근거는 **충족**이고, 확인된 기술 blocker는 없다.
+직접 검증·단기·장시간 근거에 따라 **명시된 운영 제한 아래 SoftwareOnly 후보의 기술적 채택을 권고**한다.
+소유자의 운영위험 수용은 **not-granted**, 최종 출시 채택은 **not-performed**다.
+이번 문서 마감과 AI 검토를 사용자 결정이나 공개 승인으로 해석하지 않는다.
+
+74 RSS 최대3209412608바이트, 후warmup 증가122486784바이트·약1.015892MiB/min은
+해당 실행의 측정값이다. `resourceTrendPass=false`, `reviewRequired=true`는 유지한다.
+세부 할당 귀속·physical footprint·순간 peak·무누수는 미확인이고 일/주 단위 외삽이나
+안전 운영시간을 제시하지 않는다. 2채널·120분은 검증 부하이며 공식 지원 상한이 아니다.
+파일 quota는 Catalog/Journal 누적 이력 RAM을 제한하지 않으며 재시작으로 이력이 정리된다고
+보장하지 않는다. RSS 전부를 누수 또는 할당기 잔존이라고 단정하지 않는다.
+
+57 환경 BLOCKED, 59/60 acceptance FAIL, 62 K09 최초 FAIL, 64/68/70 장시간 FAIL,
+70/71의 내부 원인 미확정과 72 수집 FAIL은 과거 원본에 유지한다. 새 PASS로 소급 변경하지 않는다.
+Qwen/Ollama 생성·미채택 모델 품질 실험·외부 서비스/원격 GPU 실환경은 이번 근거에 포함되지 않는다.
+실제 승인된 SigLIP2·YOLO 추론과 구분한다. 현재 모델 신규 Submit409·과거 조회·A 계약을 유지한다.
 
 배포는 Apache-2.0 **source-only**다. 모델 가중치·미디어 런타임·컨테이너 이미지를 배포하지 않는다.
-기본 비활성 설정, 권한·채널 scope와 기존 v1/내부 v2/확인 v3 데이터의 호환 의미를 유지한다.
-사용법은 [설정 참조](config-reference.md#recording-env)와 [UI 가이드](ui-guide.md),
-검증 원본은 [56 검증](release-artifacts/v4.5.0/56-validation.json)을 따른다.
-최종 검증·기록 정리·PR/CI·병합·서명 태그·Release는 각각의 실제 상태로 구분한다.
+source-only도 운영위험 판단을 면제하지 않는다. 사용법은 [설정 참조](config-reference.md#recording-env)와
+[UI 가이드](ui-guide.md), 공개 순서는 [릴리즈 정책](release-policy.md)을 따른다.
+종료 기록은 원격 Git 원본 확인 후 별도 정리하며 보존/삭제 이력을 squash하지 않는다.
+운영 제한 수용·최종 출시 채택·PR/required CI·main 병합·서명 태그·Release/Latest 확인은 미수행이다.
+공개 metadata의 기존 관측 시각은 이번에 갱신하지 않았다.
