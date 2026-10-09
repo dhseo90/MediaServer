@@ -90,4 +90,15 @@ check('split diagnostic write failure marker stops capture without dropping prod
 check('readback without decode is explicitly not observed; required decode missing still fails',()=>{assert.equal(frameTraceSummary('','bounded',false).status,'not-observed');assert.equal(frameTraceSummary('','bounded',true).status,'incomplete');assert.equal(frameTraceSummary('[visual-frame] trace-output-failed','bounded',false).status,'incomplete');});
 check('late capture error survives successful child exit and previously valid trace',()=>{assert(processLogCaptureComplete({bytes:1},1));for(const a of [{bytes:1,overflow:true},{bytes:1,captureError:'write-failed'},{bytes:2},{bytes:4194305}])assert.equal(processLogCaptureComplete({...a,childExit:0},1),false);});
 if(passed+failed!==54)failed++;
+
+// 전이 probe의 명시 실패를 정상 수집으로 승격하지 않는다. 기존 보존 trace의 읽기는 유지한다.
+check('edge probe failure reaches parent incomplete collection',()=>{
+  const edges={decoderInstances:1,probesAttached:3,probeFailures:0,pulls:1,emptyPulls:0,marks:[],states:[]};
+  assert.equal(frameTraceSummary(trace({...diagnostic,edges}),'bounded').status,'captured');
+  const result=frameTraceSummary(trace({...diagnostic,edges:{...edges,probeFailures:1}}),'bounded');
+  assert.equal(result.status,'incomplete');assert(result.issues.includes('edge-probe-failed'));
+});
+check('malformed provided edge collection cannot be captured',()=>{
+  for(const edges of [null,{}, {probeFailures:-1}])assert.equal(frameTraceSummary(trace({...diagnostic,edges}),'bounded').status,'incomplete');
+});
 console.log(`[summary] passed=${passed} failed=${failed} elapsedMs=${Date.now()-start}`);process.exitCode=failed?1:0;

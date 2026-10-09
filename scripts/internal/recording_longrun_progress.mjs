@@ -151,6 +151,12 @@ export function frameTraceSummary(text,mode,required=true){
         !['target','fd','bytes','budgetMs','requestStartNs','pid','samples','offsetBefore','offsetAfter','droppedEvents','droppedFactories'].every(k=>Number.isFinite(r[k]))||typeof r.first!=='string'||typeof r.error!=='string')throw Error();
       result.records++;if(r.succeeded)result.successes++;else result.failures++;
       if(r.droppedEvents||r.droppedFactories)result.issues.push('detail-truncated');
+      // 이전 보존 trace에는 edges가 없다. 새 전이 계측을 제공한 기록의 실패/손상은 수집 완료가 아니다.
+      if(Object.hasOwn(r,'edges')){
+        const e=r.edges;
+        if(!e||!['decoderInstances','probesAttached','probeFailures','pulls','emptyPulls'].every(k=>Number.isSafeInteger(e[k])&&e[k]>=0)||!Array.isArray(e.marks)||!Array.isArray(e.states))throw Error();
+        if(e.probeFailures)result.issues.push('edge-probe-failed');
+      }
     }catch{result.issues.push('invalid-or-write-failed-record');}
   }
   if(!result.records){if(required)result.issues.push('missing');else result.status='not-observed';}

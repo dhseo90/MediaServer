@@ -12,6 +12,7 @@
 #include <cmath>
 #if MEDIA_SERVER_USE_GSTREAMER
 #include <gst/gst.h>
+#include <gst/app/gstappsink.h>
 #endif
 namespace {
 int checks=0;
@@ -21,6 +22,11 @@ int main(int argc,char**argv){int fd=-1;try{
     if(argc!=2&&(argc!=3||std::strcmp(argv[2],"--trace-probe")))return 2;
 #if MEDIA_SERVER_USE_GSTREAMER
     gst_init(nullptr,nullptr);
+    // 실제 appsink API의 미시작 true와 PAUSED 전이중 false를 구분한다. 제품 EOS 원인 재현은 아니다.
+    GstElement* bare=gst_element_factory_make("appsink",nullptr);Check(bare!=nullptr,"standalone appsink");
+    Check(gst_app_sink_is_eos(GST_APP_SINK(bare)),"not-started reports EOS without an event");
+    Check(gst_element_set_state(bare,GST_STATE_PAUSED)!=GST_STATE_CHANGE_FAILURE&&!gst_app_sink_is_eos(GST_APP_SINK(bare)),"started pending preroll is not EOS");
+    gst_element_set_state(bare,GST_STATE_NULL);Check(gst_app_sink_is_eos(GST_APP_SINK(bare)),"stopped reports EOS");gst_object_unref(bare);
     const std::string launch="videotestsrc num-buffers=100 pattern=red ! video/x-raw,width=160,height=90,framerate=25/1 ! videoconvert ! x264enc tune=zerolatency ! h264parse ! mp4mux ! filesink name=output";
     GError* pipeline_error=nullptr;GstElement* pipeline=gst_parse_launch(launch.c_str(),&pipeline_error);
     Check(pipeline&&!pipeline_error,"fixture pipeline");
