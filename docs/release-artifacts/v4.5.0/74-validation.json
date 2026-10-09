@@ -406,9 +406,10 @@
     "productFindings": [],
     "resourceTrend": "not approved; fixed limits retained",
     "finalReleaseAdoption": "not performed",
-    "preservationAndOwnedRootCleanup": "pending addenda",
+    "preservationAndOwnedRootCleanup": "independent PASS, original addenda and byte hashes preserved",
     "preservation": "independent byte/privacy review completed",
-    "preservationOriginalSha256": "d590feab9bd8b17d29fc11d0bcbf03c08df4a599a9c86c0ad9612a37d918988f"
+    "preservationOriginalSha256": "d590feab9bd8b17d29fc11d0bcbf03c08df4a599a9c86c0ad9612a37d918988f",
+    "closeoutOriginalSha256": "f09daca95cc61c1ca8e0a423043603311e37bd17f6c6d2d52641c589963b79eb"
   },
   "approval": {
     "producerApplications": 0,
@@ -445,10 +446,71 @@
     "processesClosed": true,
     "udpClosed": true,
     "hostPidGroupPortAbsenceReceipt": "archive precleanup.json",
-    "ownedRootDisposed": false,
-    "remoteBytePreservation": "pending",
+    "ownedRootDisposed": true,
+    "remoteBytePreservation": "PASS; first evidence commit exact GitHub blob bytes",
     "QwenOllamaCalls": 0,
-    "unloadGate": "not-run"
+    "unloadGate": "not-run",
+    "disposalReceipt": {
+      "task": 74,
+      "recordedAt": "2026-10-09T10:11:10.684959+00:00",
+      "ownedRoot": "/private/tmp/media-server-release74-rbm6t8bo",
+      "rootAbsent": true,
+      "processes": {
+        "pid-99721": "absent",
+        "group-99721": "absent",
+        "pid-81074": "absent",
+        "group-81074": "absent",
+        "pid-99765": "absent",
+        "group-99765": "absent",
+        "pid-99829": "absent",
+        "group-99829": "absent",
+        "pid-99704": "absent",
+        "group-99704": "absent",
+        "pid-81113": "absent",
+        "group-81113": "absent",
+        "pid-99770": "absent",
+        "group-99770": "absent"
+      },
+      "ownershipMarkerVerified": true,
+      "remoteOriginalBytesVerifiedBeforeDisposal": {
+        "recordedAt": "2026-10-09T10:10:01.033552+00:00",
+        "localHead": "f1f5142929bb614fc162f33ae9d40157afb9d58a",
+        "actualRemoteHead": "f1f5142929bb614fc162f33ae9d40157afb9d58a",
+        "tree": "f2dc6abf830ea6212cf7539f03f3fbe3c92d8b51",
+        "remoteCommitTreeReadback": true,
+        "files": [
+          {
+            "path": "docs/release-artifacts/v4.5.0/74-execution.tar.gz",
+            "gitBlob": "49c0979292b609c281a2ff967fdb42962074935b",
+            "bytes": 2092017,
+            "sha256": "c94bd51374018003c4f8cee5dc4b19dd8e0d92287f42b02db6b5c87fd1ad823f",
+            "remoteExactByteReadback": true
+          },
+          {
+            "path": "docs/release-artifacts/v4.5.0/74-independent-review.json",
+            "gitBlob": "961febd411424fea640a2ac0fe8108a69ef991da",
+            "bytes": 57874,
+            "sha256": "341f0f7961311845d3bcb8b4c53791c7615beaa001e7733dbac0b08ea8e37089",
+            "remoteExactByteReadback": true
+          },
+          {
+            "path": "docs/release-artifacts/v4.5.0/74-validation.json",
+            "gitBlob": "0527e5ca8d96fb102a2d217d87efa06bc785f058",
+            "bytes": 17358,
+            "sha256": "13578ef43d4a5183d1cc1ce95378a18467eaafa320ba04ac424c08dfe83e9706",
+            "remoteExactByteReadback": true
+          }
+        ],
+        "normalPush": true,
+        "noCredentialsPublished": true
+      },
+      "symlinkPolicy": "shutil.rmtree unlinks owned cache symlinks; target libraries/models were not removed",
+      "kept": "existing models/SDK/Linux image/product build",
+      "QwenOllamaCalls": 0,
+      "unloadGate": "not-run"
+    },
+    "independentRootPidGroupAbsence": true,
+    "allOwnedRuntimeResourcesReclaimed": true
   },
   "priorEvidence": {
     "59Linux": "original source/environment scope retained; not rerun",
@@ -480,13 +542,53 @@
     "authorized release-record tree cleanup after preservation",
     "PR/requiredCI/mainmerge/signedtag/Release under separate authorization"
   ],
-  "completion": "functional/lifetime/capture complete; independent preservation and root cleanup pending",
+  "completion": "소프트웨어 증거 후보의 혼합120분·후속 수명/복구 검증 완료 — 기능/수명/수집 조건 충족; 자원 안정성·최종 출시 채택 승인 미수행",
   "noAutomaticNextRun": true,
   "remoteBeforePush": "6a03cece468957f845f858fcddacfe5fe977faf1",
   "finalStatic": {
     "JSONReadback": "PASS",
     "archiveAllMembersByteReadback": "PASS",
     "independentPrivacyReadback": "PASS",
-    "gitDiffCheck": "PASS; staged check follows"
+    "gitDiffCheck": "PASS; staged check follows",
+    "stagedGitDiffCheck": "PASS",
+    "productTestSourceUnchangedFromRun": true,
+    "evidenceOnlyCloseout": true
+  },
+  "remotePreservation": {
+    "recordedAt": "2026-10-09T10:10:01.033552+00:00",
+    "localHead": "f1f5142929bb614fc162f33ae9d40157afb9d58a",
+    "actualRemoteHead": "f1f5142929bb614fc162f33ae9d40157afb9d58a",
+    "tree": "f2dc6abf830ea6212cf7539f03f3fbe3c92d8b51",
+    "remoteCommitTreeReadback": true,
+    "files": [
+      {
+        "path": "docs/release-artifacts/v4.5.0/74-execution.tar.gz",
+        "gitBlob": "49c0979292b609c281a2ff967fdb42962074935b",
+        "bytes": 2092017,
+        "sha256": "c94bd51374018003c4f8cee5dc4b19dd8e0d92287f42b02db6b5c87fd1ad823f",
+        "remoteExactByteReadback": true
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/74-independent-review.json",
+        "gitBlob": "961febd411424fea640a2ac0fe8108a69ef991da",
+        "bytes": 57874,
+        "sha256": "341f0f7961311845d3bcb8b4c53791c7615beaa001e7733dbac0b08ea8e37089",
+        "remoteExactByteReadback": true
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/74-validation.json",
+        "gitBlob": "0527e5ca8d96fb102a2d217d87efa06bc785f058",
+        "bytes": 17358,
+        "sha256": "13578ef43d4a5183d1cc1ce95378a18467eaafa320ba04ac424c08dfe83e9706",
+        "remoteExactByteReadback": true
+      }
+    ],
+    "normalPush": true,
+    "noCredentialsPublished": true
+  },
+  "commits": {
+    "executionSource": "6a03cece468957f845f858fcddacfe5fe977faf1",
+    "evidencePreservation": "f1f5142929bb614fc162f33ae9d40157afb9d58a",
+    "closeout": "subsequent evidence-only commit; final SHA reported after push"
   }
 }

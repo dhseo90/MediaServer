@@ -1542,11 +1542,160 @@
     },
     "openPreservationFindings": []
   },
-  "closeoutAddendum": null,
+  "closeoutAddendum": {
+    "task": 74,
+    "stage": "independent-closeout-addendum",
+    "recordedAt": "2026-10-09T10:12:25.989145+00:00",
+    "requestedAndToolAcceptedModel": "gpt-6-astra",
+    "requestedAndToolAcceptedEffort": "high",
+    "actualRuntimeModel": null,
+    "actualRuntimeEffort": null,
+    "scope": "고정 Git 증거와 원격 readback 영수증, 소유root/프로세스 실제 부재만 읽기 검토했다. 제품/검사/모델/서버/원격조회 재실행, repo 수정, 기존 원검토·보존 addendum 변경 없음.",
+    "status": "evidence-preserved-and-owned-cleanup-confirmed; functional-lifetime-capture-evidence-approved; resource-trend-and-release-adoption-not-approved",
+    "remotePreservation": {
+      "commit": "f1f5142929bb614fc162f33ae9d40157afb9d58a",
+      "tree": "f2dc6abf830ea6212cf7539f03f3fbe3c92d8b51",
+      "receipt": {
+        "recordedAt": "2026-10-09T10:10:01.033552+00:00",
+        "localHead": "f1f5142929bb614fc162f33ae9d40157afb9d58a",
+        "actualRemoteHead": "f1f5142929bb614fc162f33ae9d40157afb9d58a",
+        "tree": "f2dc6abf830ea6212cf7539f03f3fbe3c92d8b51",
+        "remoteCommitTreeReadback": true,
+        "files": [
+          {
+            "path": "docs/release-artifacts/v4.5.0/74-execution.tar.gz",
+            "gitBlob": "49c0979292b609c281a2ff967fdb42962074935b",
+            "bytes": 2092017,
+            "sha256": "c94bd51374018003c4f8cee5dc4b19dd8e0d92287f42b02db6b5c87fd1ad823f",
+            "remoteExactByteReadback": true
+          },
+          {
+            "path": "docs/release-artifacts/v4.5.0/74-independent-review.json",
+            "gitBlob": "961febd411424fea640a2ac0fe8108a69ef991da",
+            "bytes": 57874,
+            "sha256": "341f0f7961311845d3bcb8b4c53791c7615beaa001e7733dbac0b08ea8e37089",
+            "remoteExactByteReadback": true
+          },
+          {
+            "path": "docs/release-artifacts/v4.5.0/74-validation.json",
+            "gitBlob": "0527e5ca8d96fb102a2d217d87efa06bc785f058",
+            "bytes": 17358,
+            "sha256": "13578ef43d4a5183d1cc1ce95378a18467eaafa320ba04ac424c08dfe83e9706",
+            "remoteExactByteReadback": true
+          }
+        ],
+        "normalPush": true,
+        "noCredentialsPublished": true
+      },
+      "independentFrozenGitReadback": [
+        {
+          "path": "docs/release-artifacts/v4.5.0/74-execution.tar.gz",
+          "gitBlob": "49c0979292b609c281a2ff967fdb42962074935b",
+          "bytes": 2092017,
+          "sha256": "c94bd51374018003c4f8cee5dc4b19dd8e0d92287f42b02db6b5c87fd1ad823f",
+          "remoteExactByteReadback": true,
+          "independentlyMatchesFrozenGitBytes": true
+        },
+        {
+          "path": "docs/release-artifacts/v4.5.0/74-independent-review.json",
+          "gitBlob": "961febd411424fea640a2ac0fe8108a69ef991da",
+          "bytes": 57874,
+          "sha256": "341f0f7961311845d3bcb8b4c53791c7615beaa001e7733dbac0b08ea8e37089",
+          "remoteExactByteReadback": true,
+          "independentlyMatchesFrozenGitBytes": true
+        },
+        {
+          "path": "docs/release-artifacts/v4.5.0/74-validation.json",
+          "gitBlob": "0527e5ca8d96fb102a2d217d87efa06bc785f058",
+          "bytes": 17358,
+          "sha256": "13578ef43d4a5183d1cc1ce95378a18467eaafa320ba04ac424c08dfe83e9706",
+          "remoteExactByteReadback": true,
+          "independentlyMatchesFrozenGitBytes": true
+        }
+      ],
+      "cleanupReceiptReferencesExactSameRemoteRecord": true,
+      "reviewBoundary": "메인이 수행한 실제 remote HEAD 및 GitHub commit/tree/blob 조회 영수증과 동일 고정 Git 객체 bytes/hash/blob을 독립 대조했다. 검토자가 별도 원격 요청을 다시 하지 않았으며 이 추가기록을 포함한 다음 evidence-only commit/push 완료는 주장하지 않는다."
+    },
+    "originalReviews": {
+      "executionReview": {
+        "sha256": "35258d2439e647a31f01434895dbd13cd4d69461470d47579019b41d37af5df5",
+        "bytes": 45262,
+        "exactOriginalSerialization": true
+      },
+      "preservationAddendum": {
+        "sha256": "d590feab9bd8b17d29fc11d0bcbf03c08df4a599a9c86c0ad9612a37d918988f",
+        "bytes": 8969,
+        "exactOriginalSerialization": true
+      }
+    },
+    "archive": {
+      "path": "docs/release-artifacts/v4.5.0/74-execution.tar.gz",
+      "bytes": 2092017,
+      "sha256": "c94bd51374018003c4f8cee5dc4b19dd8e0d92287f42b02db6b5c87fd1ad823f",
+      "unchangedFromIndependentPreservationReview": true,
+      "archivedExecutionReviewExactOriginal": true
+    },
+    "validation": {
+      "currentReviewedSha256": "90162f9fa2cd697501765ac3d8057b18c5fb316f3c0ce3c1bc7533d7919d80cd",
+      "frozenRemoteEditionSha256": "13578ef43d4a5183d1cc1ce95378a18467eaafa320ba04ac424c08dfe83e9706",
+      "changedTopLevelKeys": [
+        "remotePreservation",
+        "completion",
+        "independentReview",
+        "commits",
+        "cleanup",
+        "finalStatic"
+      ],
+      "judgment": "현재closeout 편집과 첫 원격판본을 구분했다. 최초 실행 source 6a03cece/tree8a96e726 및 제품후보9257ed8b를 새 증거커밋으로 재표시하지 않는다. 기능·수명 완료와 resourceTrendPass=false, footprint 미측정, 기존 Catalog 운영한계, 최종 정책/릴리즈 채택 미수행을 유지한다."
+    },
+    "cleanup": {
+      "receiptPath": "/private/tmp/mediaserver-74-cleanup.json",
+      "receiptSha256": "d8de79b38e59338323fe04a64898a21d137bbabacecd224f74ac93e2ac67ecc8",
+      "recordedRemovedAt": "2026-10-09T10:11:10.684959+00:00",
+      "root": "/private/tmp/media-server-release74-rbm6t8bo",
+      "rootActuallyAbsent": true,
+      "symlinkActuallyAbsent": true,
+      "independentPidAndGroupObservation": {
+        "pid-81074": "absent",
+        "group-81074": "absent",
+        "pid-81113": "absent",
+        "group-81113": "absent",
+        "pid-99721": "absent",
+        "group-99721": "absent",
+        "pid-99770": "absent",
+        "group-99770": "absent",
+        "pid-99704": "absent",
+        "group-99704": "absent",
+        "pid-99765": "absent",
+        "group-99765": "absent",
+        "pid-99829": "absent",
+        "group-99829": "absent"
+      },
+      "originalPrecleanupRootAbsent": false,
+      "provenance": "원래 precleanup.rootAbsent=false 관측을 보존하고 삭제 후 현재 부재를 별도 기록했다. 원격 원본바이트 확인 시각10:10:01은 제거영수증10:11:10보다 앞선다.",
+      "symlinkPolicy": "shutil.rmtree unlinks owned cache symlinks; target libraries/models were not removed",
+      "remainingRuntimeArtifacts": "기존 모델/SDK/Linux image/제품build 유지는 메인 정리 영수증 기준. 검토자는 보존목표 외부라이브러리의 전수 재검사나 새 실행을 하지 않았다.",
+      "portEvidence": "원검토의 3개 정상종료 receipt와 호스트6포트 connection-refused61 및 UDP close 증거를 재사용한다. 추가 포트 접속/bind를 하지 않았다.",
+      "ownedCleanupCompleteForRecordedScope": true
+    },
+    "decisionUnchanged": {
+      "functionalLifetimeCapture": "approve — 요청된 고정후보의 단1회120분 증거 충족",
+      "resourceTrendPass": false,
+      "reviewRequired": true,
+      "footprint": "not-measured",
+      "knownCatalogOperatingLimits": "유지. 무기한 운용/누수없음 승인 아님.",
+      "finalNewPolicyReleaseAdoption": "미수행",
+      "producerAppliedByReviewer": false,
+      "historical70And71": "FAIL 및 원인 미확정 유지",
+      "historical72": "원래 full 수집 FAIL 유지"
+    },
+    "openCloseoutFindings": [],
+    "remainingAction": "이 addendum과 현재 validation 수정의 후속 evidence-only commit/일반push·readback은 메인 작업이 별도 확인해야 한다."
+  },
   "notHumanApproval": true,
-  "pending": [
-    "remote byte readback and owned root disposal"
-  ],
+  "pending": [],
   "completionBoundary": "new fixed macOS software-evidence candidate mixed120 functional/lifetime/capture; resourceTrendPass=false, no release/public approval",
-  "originalPreservationAddendumSha256": "d590feab9bd8b17d29fc11d0bcbf03c08df4a599a9c86c0ad9612a37d918988f"
+  "originalPreservationAddendumSha256": "d590feab9bd8b17d29fc11d0bcbf03c08df4a599a9c86c0ad9612a37d918988f",
+  "originalCloseoutAddendumSha256": "f09daca95cc61c1ca8e0a423043603311e37bd17f6c6d2d52641c589963b79eb",
+  "nextEvidenceOnlyPushVerifiedBy": "main after final commit; not a new independent product/source approval"
 }
