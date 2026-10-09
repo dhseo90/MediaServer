@@ -401,5 +401,79 @@
       }
     },
     "acceptanceDecisionUnchanged": "R72-V1 혼합수집 blocker 유지. 정제보존 적합이 제품채택·혼합PASS 또는 릴리즈 준비완료를 뜻하지 않는다."
+  },
+  "closeoutAddendum": {
+    "recordedAt": "2026-10-09T02:06:18.936634+00:00",
+    "scope": "최종 원격보존 receipt와 고정Git바이트, 소유root 실제부재만 확인. 제품·모델·검사 재실행/전체재검토 없음.",
+    "status": "sanitized-evidence-preserved-and-owned-root-cleanup-confirmed; product-adoption-held",
+    "remotePreservation": {
+      "commit": "09880d44e0f8c872d35b7dd88f92e0a9ce7f22f9",
+      "receipt": {
+        "checkedAt": "2026-10-09T02:04:05.462128+00:00",
+        "commit": "09880d44e0f8c872d35b7dd88f92e0a9ce7f22f9",
+        "actualRemote": "09880d44e0f8c872d35b7dd88f92e0a9ce7f22f9",
+        "artifacts": [
+          {
+            "path": "docs/release-artifacts/v4.5.0/72-execution.tar.gz",
+            "bytes": 546949,
+            "sha256": "76a25e9ffa997d4b5c26577713422f590a3c71dc157f09c9c05495acbe10c41a",
+            "gitBlob": "44b11360c1587cbe7c0df6fdfb64c19c0e7f43be"
+          },
+          {
+            "path": "docs/release-artifacts/v4.5.0/72-independent-review.json",
+            "bytes": 18548,
+            "sha256": "a69c3ad3b21476bfde470f53f282530306e9dd0d04beb2e9274de5868a4e62b7",
+            "gitBlob": "8887eaf1256b713d31c611579944d2b9c8e41dc2"
+          },
+          {
+            "path": "docs/release-artifacts/v4.5.0/72-validation.json",
+            "bytes": 22497,
+            "sha256": "31d5de78f59740a06ad7909a51c07959bafe75c1fdf33de4b48ad3dfcdadf4ea",
+            "gitBlob": "3e8ee5b6e87bfed76a70f2511b40905486dabf7d"
+          }
+        ],
+        "remoteByteReadback": true
+      },
+      "independentLocalByteComparison": [
+        {
+          "path": "docs/release-artifacts/v4.5.0/72-execution.tar.gz",
+          "bytes": 546949,
+          "sha256": "76a25e9ffa997d4b5c26577713422f590a3c71dc157f09c9c05495acbe10c41a",
+          "receiptMatchesFrozenGitBytes": true
+        },
+        {
+          "path": "docs/release-artifacts/v4.5.0/72-independent-review.json",
+          "bytes": 18548,
+          "sha256": "a69c3ad3b21476bfde470f53f282530306e9dd0d04beb2e9274de5868a4e62b7",
+          "receiptMatchesFrozenGitBytes": true
+        },
+        {
+          "path": "docs/release-artifacts/v4.5.0/72-validation.json",
+          "bytes": 22497,
+          "sha256": "31d5de78f59740a06ad7909a51c07959bafe75c1fdf33de4b48ad3dfcdadf4ea",
+          "receiptMatchesFrozenGitBytes": true
+        }
+      ],
+      "reviewBoundary": "메인이 GitHub contents API에서 실제 원격바이트를 읽었다는 receipt를 확인하고 같은 고정commit의 Git blob/bytes/SHA를 독립 대조했다. 검토자가 원격 API 요청을 별도 재실행하지 않았다. 이 추가기록의 후속커밋/푸시 완료는 주장하지 않는다."
+    },
+    "validationReviewedSha256": "b370607129d812df1ad0ce84ecb0b2cbfd5f16278994da00c6e0b94bf9f6e701",
+    "rootCleanup": {
+      "path": "/private/tmp/media-server-release72-_yo80e2o",
+      "actualAbsentAtReview": true,
+      "symlinkAbsentAtReview": true,
+      "recordedRemovedAt": "2026-10-09T02:04:26.605496+00:00",
+      "historicalClosureReceiptRootAbsent": false,
+      "currentCleanupRootAbsent": true,
+      "provenanceCorrection": "삭제전02:02:10 closureChecks.rootAbsent를false로 유지하고 삭제후02:04:26 cleanup.rootAbsent=true를 별도관측으로 기록하도록 정정된 것을 확인했다. 원본closure receipt의 과거판정은 보존한다.",
+      "processContainerAndPorts": "앞서 확인한 PID/group부재와 소유container 제거receipt/기존image 유지 및 HTTP/RTSP closed·UDP close 증거를 재사용한다. 이 추가검토에서 새로운 제품실행·포트bind·container 변경은 없다.",
+      "ownedCleanupCompleteForRecordedScope": true
+    },
+    "frozenArchiveUnchanged": {
+      "bytes": 546949,
+      "sha256": "76a25e9ffa997d4b5c26577713422f590a3c71dc157f09c9c05495acbe10c41a",
+      "initialReviewSha256": "adefe7df50004e4b8f92599901a53412a4866a8fcb2ae5374edf6bc3308729e2",
+      "finalReviewSha256": "2852f227b9870bf3120d92cd26b596c4736b757ae53a1a43066e0ab59a27b202"
+    },
+    "decisionUnchanged": "혼합수집FAIL/R72-V1·후보checkpoint·제품채택보류를 유지한다. 증거보존과 소유자료정리 완료는 제품채택 또는 릴리즈 PASS가 아니다."
   }
 }

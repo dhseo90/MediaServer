@@ -482,8 +482,9 @@
       "R72-V1"
     ],
     "decision": "candidate checkpoint only; release adoption held",
-    "fileSha256": "a69c3ad3b21476bfde470f53f282530306e9dd0d04beb2e9274de5868a4e62b7",
-    "preservationAddendum": "local-sanitized-preservation-suitable; 228 archive files read back; root/remote pending"
+    "fileSha256": "8b48a759b2e5635466e4e497b21ee9377669853a6b0fd13aed52c65333ef20a3",
+    "preservationAddendum": "local-sanitized-preservation-suitable; 228 archive files read back; original pending states resolved only by later closeout addendum",
+    "closeoutAddendum": "owned cleanup and fixed remote evidence receipt independently checked; earlier pending observations retained; release adoption still held"
   },
   "evidence": {
     "path": "docs/release-artifacts/v4.5.0/72-execution.tar.gz",
@@ -519,8 +520,8 @@
     "processesClosed": true,
     "portsClosed": true,
     "linuxContainerRemoved": true,
-    "rootAbsent": false,
-    "remaining": "owned temporary root after local/remote byte preservation",
+    "rootAbsent": true,
+    "remaining": null,
     "existingImageAndModelsRetained": true,
     "QwenOllamaCalls": 0,
     "unloadGate": "not-run",
@@ -536,7 +537,12 @@
       "imageRetained": "sha256:ce72c8a15363984da642e9964189957896812061c6af1d0ef67e87b38ad5a588",
       "ports": "original normal-exit receipt HTTP63628/RTSP63629 closed and report UDP closed",
       "rootAbsent": false
-    }
+    },
+    "root": "/private/tmp/media-server-release72-_yo80e2o",
+    "removedAt": "2026-10-09T02:04:26.605496+00:00",
+    "overallOwnedCleanupComplete": true,
+    "method": "ownership marker + local/remote exact-byte receipt + owned PID/group absence before removing only task72 root; symlinks not followed",
+    "closureChecksMeaning": "pre-removal read-only receipt; rootAbsent=false at02:02, followed by separate actual removal/absence observation in cleanup.rootAbsent/removedAt"
   },
   "priorEvidence": {
     "59Linux": "original source/environment only; new common C++ delta tested separately",
@@ -562,5 +568,44 @@
   ],
   "noAutomaticNextRun": true,
   "preservationPreparation": "first selection included pre-seeded IDs mentioned in run.log; failed before archive creation; corrected selection to actual report.aLoad.completed seven results; no product/run changes",
-  "remoteBeforePush": "a3dbad466347b3f6bf89cfd4bf8e4b6b2df794ab"
+  "remoteBeforePush": "a3dbad466347b3f6bf89cfd4bf8e4b6b2df794ab",
+  "remotePreservation": {
+    "checkedAt": "2026-10-09T02:04:05.462128+00:00",
+    "commit": "09880d44e0f8c872d35b7dd88f92e0a9ce7f22f9",
+    "actualRemote": "09880d44e0f8c872d35b7dd88f92e0a9ce7f22f9",
+    "artifacts": [
+      {
+        "path": "docs/release-artifacts/v4.5.0/72-execution.tar.gz",
+        "bytes": 546949,
+        "sha256": "76a25e9ffa997d4b5c26577713422f590a3c71dc157f09c9c05495acbe10c41a",
+        "gitBlob": "44b11360c1587cbe7c0df6fdfb64c19c0e7f43be"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/72-independent-review.json",
+        "bytes": 18548,
+        "sha256": "a69c3ad3b21476bfde470f53f282530306e9dd0d04beb2e9274de5868a4e62b7",
+        "gitBlob": "8887eaf1256b713d31c611579944d2b9c8e41dc2"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/72-validation.json",
+        "bytes": 22497,
+        "sha256": "31d5de78f59740a06ad7909a51c07959bafe75c1fdf33de4b48ad3dfcdadf4ea",
+        "gitBlob": "3e8ee5b6e87bfed76a70f2511b40905486dabf7d"
+      }
+    ],
+    "remoteByteReadback": true
+  },
+  "commits": {
+    "candidate": "9257ed8b2044f9e8def4dd9984abea8c022fae1b",
+    "evidence": "09880d44e0f8c872d35b7dd88f92e0a9ce7f22f9",
+    "closure": "this subsequent evidence-only commit; execution/source not relabeled"
+  },
+  "finalStatic": {
+    "recordedAt": "2026-10-09T02:06:45.150974+00:00",
+    "jsonParse": "PASS",
+    "archiveReadback": "PASS",
+    "sourceAndArchiveUnchanged": "PASS",
+    "gitDiffCheck": "PASS",
+    "notRuntimeRetest": true
+  }
 }
