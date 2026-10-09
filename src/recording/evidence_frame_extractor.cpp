@@ -113,8 +113,14 @@ bool EvidenceFrameExtractor::ExtractMedia(const std::string& channel, const std:
     const auto remaining = std::chrono::duration_cast<std::chrono::milliseconds>(deadline - std::chrono::steady_clock::now()).count();
     if (remaining <= 0 || expired()) return Fail(error, "evidence-timeout");
     VisualRgbFrame decoded;
+    // macOS 증거 요청은 처음부터 software-only다. 색인/실시간 경로의 기본 선택은 유지한다.
+#ifdef __APPLE__
+    constexpr auto policy=VisualDecodePolicy::SoftwareOnly;
+#else
+    constexpr auto policy=VisualDecodePolicy::Automatic;
+#endif
     if (!DecodeVisualFrame(media->fd(), media->size_bytes(), static_cast<std::int64_t>(target), &decoded,
-        error, expired, static_cast<std::uint32_t>(std::min<std::int64_t>(5000, remaining)))) return false;
+        error, expired, static_cast<std::uint32_t>(std::min<std::int64_t>(5000, remaining)), policy)) return false;
     EvidenceFrameV1 result;
     result.segment_id = id; result.media_sha256 = expected; result.sample_sha256 = selected->sample_sha256;
     result.source_generation = binding->source_generation; result.generation_order = binding->generation_order;

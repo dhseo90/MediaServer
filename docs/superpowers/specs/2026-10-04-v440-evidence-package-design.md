@@ -92,3 +92,12 @@ V440-01~05와 PR #77 리뷰 수정을 구현했다. 기능별 단기·장시간�
 [릴리즈 노트](../../release-notes-v4.4.0.md)를 따른다. 실행 결과·최초 실패·source/환경·cleanup은
 [Git 보존 위치](../../history/README.md#v440-증거-패키지와-검색-수정)에서 조회한다.
 구현·검증과 GitHub 공개 상태는 구분한다.
+
+### 72 제한 후보: macOS 증거 프레임의 decoder 선택
+
+macOS `EvidenceFrameExtractor`는 decodebin 인스턴스의 `force-sw-decoders`를
+요청 시작 전에 설정·확인한다. 준비 실패는 정제 오류로 거부하며 하드웨어 재시도는 없다.
+색인/대표 PNG 검증과 Linux의 기본 자동 선택은 유지한다. 파일 증거 profile은 mux 출처이며
+decoder 식별자가 아니다. 기존 패키지는 재작성하지 않고 현재 RGB/PNG 실제 hash를 보존한다.
+이 후보의 실제 채택·검증 범위는 v4.5.0 72 기록에 따르며 70/71 실패 원인 해결이나
+새 120분 검증을 의미하지 않는다.

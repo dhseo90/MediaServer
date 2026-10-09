@@ -78,6 +78,7 @@ struct DecodeEdges {
 struct DecodeTrace {
     struct Event {const char* kind{nullptr};std::int64_t a{0},b{0},c{0},d{0};char text[160]{};};
     DecodeEdges edges;bool enabled,bounded{false},invalid_setting{false},succeeded{false};int fd;std::uint64_t bytes;std::int64_t target;std::uint32_t budget;
+    VisualDecodePolicy policy{VisualDecodePolicy::Automatic};
     std::string* error;Clock::time_point started{Clock::now()};
     std::array<Event,32> events{};std::array<Event,16> factories{};
     std::atomic<unsigned> event_count{0},factory_count{0},needs{0},seeks{0},pads{0},samples{0};
@@ -120,8 +121,11 @@ struct DecodeTrace {
         auto* factory=gst_element_get_factory(element);if(factory)t.Add("factory-removed",0,0,0,0,gst_plugin_feature_get_name(GST_PLUGIN_FEATURE(factory)));
     }
     // 성공 표본과 실패 기록의 예산을 분리한다. callback 밖에서만 출력하며 실패는 표본 제한을 적용하지 않는다.
-    static bool SuccessSample(){static std::atomic<unsigned> count{0};unsigned n=count.load();
-        while(n<3){if(count.compare_exchange_weak(n,n+1))return true;}return false;}
+    bool SuccessSample()const{
+        // 총 세 표본 중 하나를 증거 정책에 예약해 초기 색인 호출이 모두 소모하지 않게 한다.
+        static std::array<std::atomic<unsigned>,2> counts{};const bool software=policy==VisualDecodePolicy::SoftwareOnly;
+        auto& count=counts[software?1:0];const unsigned limit=software?1:2;unsigned n=count.load();
+        while(n<limit){if(count.compare_exchange_weak(n,n+1))return true;}return false;}
     static void OutputFailure(const char* marker){
         // stderr 자체가 실패한 경우 stdout의 별도 수집 경로에 상태만 남긴다. decoder 반환값은 바꾸지 않는다.
         if(std::fputs(marker,stderr)<0||std::fflush(stderr)!=0){std::fputs(marker,stdout);std::fflush(stdout);}
@@ -130,6 +134,7 @@ struct DecodeTrace {
       if(!enabled||(bounded&&succeeded&&!SuccessSample()))return;try{
         struct stat after{};const bool valid=::fstat(fd,&after)==0;
         std::ostringstream o;o<<"[visual-frame] {\"mode\":\""<<(bounded?"bounded":"full")<<"\",\"succeeded\":"<<(succeeded?"true":"false")<<",\"target\":"<<target<<",\"fd\":"<<fd<<",\"bytes\":"<<bytes<<",\"budgetMs\":"<<budget
+          <<",\"policy\":\""<<(policy==VisualDecodePolicy::SoftwareOnly?"software-only":"automatic")<<"\""
           <<",\"requestStartNs\":"<<std::chrono::duration_cast<std::chrono::nanoseconds>(started.time_since_epoch()).count()<<",\"pid\":"<<::getpid()<<",\"elapsedUs\":"<<std::chrono::duration_cast<std::chrono::microseconds>(Clock::now()-started).count()
           <<",\"offsetBefore\":"<<offset_before<<",\"offsetAfter\":"<<::lseek(fd,0,SEEK_CUR)<<",\"beforeValid\":"<<before_valid<<",\"afterValid\":"<<valid
           <<",\"devBefore\":"<<before.st_dev<<",\"inoBefore\":"<<before.st_ino<<",\"sizeBefore\":"<<before.st_size
@@ -213,10 +218,10 @@ bool Copy(GstSample* sample,std::int64_t target,VisualRgbFrame* out,DecodeTrace&
 #endif
 }
 bool DecodeVisualFrame(int fd,std::uint64_t bytes,std::int64_t target,VisualRgbFrame* output,
-    std::string* error,const std::function<bool()>& cancelled,std::uint32_t budget_ms){
-    if(fd<0||!output||!bytes||bytes>512ULL*1024*1024||target<0||!budget_ms||budget_ms>5000)return Fail(error,"visual-frame-invalid-request");
+    std::string* error,const std::function<bool()>& cancelled,std::uint32_t budget_ms,VisualDecodePolicy policy){
+    if((policy!=VisualDecodePolicy::Automatic&&policy!=VisualDecodePolicy::SoftwareOnly)||fd<0||!output||!bytes||bytes>512ULL*1024*1024||target<0||!budget_ms||budget_ms>5000)return Fail(error,"visual-frame-invalid-request");
 #if MEDIA_SERVER_USE_GSTREAMER
-    DecodeTrace trace(fd,bytes,target,budget_ms,error);
+    DecodeTrace trace(fd,bytes,target,budget_ms,error);trace.policy=policy;
     struct stat before{};if(::fstat(fd,&before)!=0||!S_ISREG(before.st_mode)||before.st_size<0||std::uint64_t(before.st_size)!=bytes)return Fail(error,"visual-frame-invalid-file");
     const auto deadline=Clock::now()+std::chrono::milliseconds(budget_ms);
     if(cancelled&&cancelled())return Fail(error,"visual-cancelled");
@@ -225,6 +230,15 @@ bool DecodeVisualFrame(int fd,std::uint64_t bytes,std::int64_t target,VisualRgbF
     GstElement* decode=gst_element_factory_make("decodebin",nullptr);GstElement* convert=gst_element_factory_make("videoconvert",nullptr);
     GstElement* sink=gst_element_factory_make("appsink",nullptr);
     if(!pipeline||!src||!decode||!convert||!sink){for(auto* p:{pipeline,src,decode,convert,sink})if(p)gst_object_unref(p);return Fail(error,"visual-frame-runtime-unavailable");}
+    // 인스턴스 생성 시에만 제한한다. 자동 선택 호출자와 전역 registry/rank는 바꾸지 않는다.
+    if(policy==VisualDecodePolicy::SoftwareOnly){
+        auto* property=g_object_class_find_property(G_OBJECT_GET_CLASS(decode),"force-sw-decoders");
+        gboolean selected=FALSE;
+        if(property&&G_PARAM_SPEC_VALUE_TYPE(property)==G_TYPE_BOOLEAN&&(property->flags&G_PARAM_WRITABLE)&&(property->flags&G_PARAM_READABLE)){
+            g_object_set(decode,"force-sw-decoders",TRUE,nullptr);g_object_get(decode,"force-sw-decoders",&selected,nullptr);
+        }
+        if(!selected){for(auto* p:{pipeline,src,decode,convert,sink})gst_object_unref(p);return Fail(error,"visual-frame-software-policy-unavailable");}
+    }
     Context context{fd,bytes,0,deadline,cancelled,pipeline,convert,trace,{}};
     GstBus* trace_bus=nullptr;if(trace.enabled){trace_bus=gst_element_get_bus(pipeline);gst_bus_set_sync_handler(trace_bus,DecodeTrace::Bus,&trace,nullptr);g_signal_connect(pipeline,"deep-element-added",G_CALLBACK(DecodeTrace::Element),&trace);g_signal_connect(pipeline,"deep-element-removed",G_CALLBACK(DecodeTrace::Removed),&trace);}
     const auto set_state=[&](GstState value){const auto state=gst_element_set_state(pipeline,value);trace.Add("set-state",value,state);if(state==GST_STATE_CHANGE_FAILURE&&!trace.closing)trace.First("state-change");return state;};

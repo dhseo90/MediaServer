@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 namespace recording {
+enum class VisualDecodePolicy { Automatic, SoftwareOnly };
 struct VisualRgbFrame {
     int width{0},height{0};
     std::int64_t presentation_ns{0};
@@ -15,5 +16,5 @@ struct VisualRgbFrame {
 // 정확한 sample 시작(정수 나눗셈 반올림 차이1ns 이내)만 허용하며 근처 frame으로 대체하지 않는다.
 bool DecodeVisualFrame(int fd,std::uint64_t bytes,std::int64_t presentation_ns,
     VisualRgbFrame* output,std::string* error,const std::function<bool()>& cancelled={},
-    std::uint32_t budget_ms=5000);
+    std::uint32_t budget_ms=5000,VisualDecodePolicy policy=VisualDecodePolicy::Automatic);
 } // namespace recording
