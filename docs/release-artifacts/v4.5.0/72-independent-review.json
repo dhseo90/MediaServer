@@ -1,0 +1,405 @@
+{
+  "task": 72,
+  "stage": "independent-final-evidence-review",
+  "recordedAt": "2026-10-09T01:56:23.868657+00:00",
+  "requestedModel": "gpt-6-astra",
+  "requestedEffort": "high",
+  "actualRuntimeModel": null,
+  "actualRuntimeEffort": null,
+  "independence": "별도 검토자는 제품 구현/검사/혼합 실행에 참여하지 않았다. 보존 파일·원출력·소스 읽기와 hash/구조 재계산, 종료PID/group의 read-only 부재 확인만 수행했다. initial/final review JSON 외 파일을 수정하지 않았다.",
+  "status": "candidate-checkpoint-only; mixed-collection-failed; product-adoption-held",
+  "decision": {
+    "candidateImplementation": "이전 독립 source/직접 검사 검토에서 새 decoder 구현 결함을 발견하지 않았다는 판단 유지",
+    "mixedAcceptance": "FAIL — 허용된 단1회600초 관측의 수집상한 초과로 완료조건 미충족",
+    "checkpoint": "실패와 한계를 포함한 개발 후보 checkpoint 보존은 가능하나 성공/채택/릴리즈 완료로 명명하지 않는다. Git 작업권한의 독립 부여는 아니다.",
+    "releaseAdoption": "보류",
+    "newRunAuthorizedByThisReview": false,
+    "rootCause70And71": "미확정·기존 FAIL 그대로 유지"
+  },
+  "initialReview": {
+    "path": "review72-initial.json",
+    "sha256": "adefe7df50004e4b8f92599901a53412a4866a8fcb2ae5374edf6bc3308729e2",
+    "unchanged": true,
+    "covered": "macOS EvidenceFrameExtractor만 software-only, default/index/Linux automatic, 취소/보호FD/5초·1ns, 독립red/VFR, 비교100+100, package현재hash·과거bytes, injection한계, direct Linux 및 준비실패 이력"
+  },
+  "sourceBinding": {
+    "start": {
+      "head": "a3dbad466347b3f6bf89cfd4bf8e4b6b2df794ab",
+      "tree": "f5bb247a7e7a7867024c57c6c26ca1d0b29bb279",
+      "sourceSha256": "5e0d58b24c66858e0fa48a07aaddf9a347deec0ee69a3b8962471de660ac47fa",
+      "binarySha256": "e6cef05b0a6371bfc28fbb459001edf5a3465c97de5c15fb19d6de037505fdcc"
+    },
+    "end": {
+      "head": "a3dbad466347b3f6bf89cfd4bf8e4b6b2df794ab",
+      "tree": "f5bb247a7e7a7867024c57c6c26ca1d0b29bb279",
+      "sourceSha256": "5e0d58b24c66858e0fa48a07aaddf9a347deec0ee69a3b8962471de660ac47fa",
+      "binarySha256": "e6cef05b0a6371bfc28fbb459001edf5a3465c97de5c15fb19d6de037505fdcc"
+    },
+    "equal": true,
+    "executionFreeze": "execution-source.json",
+    "reviewedDiffSha256": "e45ee07afa8640eb374e8e83572952f44dc179c08e1f397ea554ba52bccd3f60",
+    "currentReviewedFilesMatch": true
+  },
+  "execution": {
+    "command": [
+      "bash",
+      "/Users/dhseo/Workspace/mediaServer/scripts/internal/verify_v450_recording_a_mixed.sh",
+      "--frame-diagnostic"
+    ],
+    "startedAt": "2026-10-09T01:46:36.268769+00:00",
+    "finishedAt": "2026-10-09T01:53:06.076478+00:00",
+    "observationSeconds": 600,
+    "timeoutSeconds": 780,
+    "executionElapsedSeconds": 389.4563532919856,
+    "elapsedSeconds": 389.45763979200274,
+    "totalWithFinalBindingSeconds": 389.744489582954,
+    "exit": 1,
+    "childExit": 1,
+    "timedOut": false,
+    "interruptedSignals": []
+  },
+  "acceptanceBlockers": [
+    {
+      "id": "R72-V1",
+      "kind": "validation-preparation-and-collection",
+      "priority": 2,
+      "location": "scripts/internal/v450_recording_a_mixed.mjs:59; scripts/internal/recording_longrun_progress.mjs:136",
+      "condition": "--frame-diagnostic가 VERIFY_FRAME_TRACE=1(full)을 고정하고 실제 녹화/색인/증거 부하의 모든 성공trace를 수집하면 기존4MiB cap을 초과한다. 새 bounded의 Automatic2/SoftwareOnly1 예약은 이번 full 실행에는 적용되지 않는다.",
+      "observed": {
+        "receivedBytes": 4208444,
+        "capturedBytes": 4190782,
+        "capBytes": 4194304,
+        "captureError": "byte-cap",
+        "capturedSha256": "85f18d0e53e6936eb1bc22b9254ccfdca52e072c0128b9194944d96068a36bc3",
+        "stdoutFailures": [
+          "[fail] current observation: observer-collector-unavailable",
+          "[fail] process-log-collection",
+          "[fail] slow-diagnostic-unavailable"
+        ]
+      },
+      "impact": "수집실패로 프로세스 중단. observer 사용불가 및 종료 slow 진단 누락을 동반하며 600초·후속phase/복구 증거가 없다. software 정책을 혼합 통과/채택완료로 승격할 수 없다.",
+      "expectedBasis": "동일4MiB cap·수집완전성·실패전파와 허용된600초1회 완료조건. assertion통과1398개나 보존prefix성공800개로 실패를 대체할 수 없다.",
+      "disposition": "기존 wrapper의 full 선택을 사전 검토에서 놓친 준비 부족. cap 확대/실행중 설정 교체/추가 재실행 없이 이번 FAIL을 보존. 다음 실행이나 도구 수정은 별도 범위·승인 판단 필요. decoder 제품코드 결함으로 단정하지 않는다."
+    }
+  ],
+  "openProductFindings": [],
+  "captureInterpretation": {
+    "recordedCompleteLines": 800,
+    "recordedSuccesses": 800,
+    "recordedFailures": 0,
+    "policyBreakdown": [
+      {
+        "policy": "automatic",
+        "records": 732,
+        "successes": 732,
+        "failures": 0,
+        "factoryObservations": {
+          "vtdec_hw:applemedia:1.28.1": 732
+        },
+        "traceModes": {
+          "full": 732
+        },
+        "maxElapsedUs": 95998,
+        "allRecordedNullDone": true
+      },
+      {
+        "policy": "software-only",
+        "records": 68,
+        "successes": 68,
+        "failures": 0,
+        "factoryObservations": {
+          "avdec_h264:libav:1.28.1": 68
+        },
+        "traceModes": {
+          "full": 68
+        },
+        "maxElapsedUs": 60398,
+        "allRecordedNullDone": true
+      }
+    ],
+    "coverage": "4MiB cap이 저장 전 넘친 chunk를 버렸으므로 보존된 prefix에 대한 판정만 가능. frameTraceSummary.status=captured는 이 prefix의 파싱 결과이며 전체 processLogCaptureComplete 실패를 상쇄하지 않는다. 실제 원본 전체 무실패·retry없음의 동적 전수증거로 쓰지 않는다.",
+    "failureCausality": "최초 완료조건 실패의 직접 근거는 byte-cap 수집중단이다. observer-collector-unavailable의 각 내부 경합까지 재현하지 않았으며 제품 decoder 실패 재현으로 해석하지 않는다."
+  },
+  "partialObservedWork": {
+    "cycles": 24,
+    "searchSuccess": 100,
+    "searchByClient": [
+      25,
+      25,
+      25,
+      25
+    ],
+    "structuredEvidenceCreated": 24,
+    "visualEvidenceCreated": 24,
+    "aAdmittedFromRaw": 7,
+    "aCompletedFromRaw": 7,
+    "detectorEvaluated": false,
+    "lastChannelProgress": {
+      "9101": {
+        "finalized": 184,
+        "deleted": 177,
+        "lastAt": 379321.190292,
+        "order": "368",
+        "store": "ddcff584b685bbd44ceb9909d87bc05d77c36ee594ac5e17352d1c6dabde235c",
+        "knownMappings": 133,
+        "unknownMappings": 7908
+      },
+      "9201": {
+        "finalized": 184,
+        "deleted": 177,
+        "lastAt": 379321.190292,
+        "order": "369",
+        "store": "ddcff584b685bbd44ceb9909d87bc05d77c36ee594ac5e17352d1c6dabde235c",
+        "knownMappings": 114,
+        "unknownMappings": 7526
+      }
+    },
+    "scope": "실행된 prefix의 관측. 나머지 예정 부하/후속복구/전체관측은 미완료."
+  },
+  "resourcesRecomputedFromRaw": {
+    "sampleCount": 75,
+    "observedSpanMs": 370282.214875,
+    "lastProgressElapsedMs": 370506.821458,
+    "maxGapMs": 5005.986541000002,
+    "max": {
+      "rssBytes": 3163799552,
+      "threadCount": 42,
+      "fdCount": 34,
+      "cpuPercent": 304.7
+    },
+    "first": {
+      "phaseAt": 9038.975417,
+      "rssBytes": 3121463296,
+      "threadCount": 37,
+      "fdCount": 30
+    },
+    "last": {
+      "phaseAt": 379321.190292,
+      "rssBytes": 1681735680,
+      "threadCount": 42,
+      "fdCount": 30
+    },
+    "footprintMeasured": false,
+    "resourceTrendPass": false,
+    "limits": "75개 관측 표본만의 집계다. 전체600초 완료/순간 peak/장시간누수 또는 안정성 PASS를 의미하지 않는다. post-warmup70초15표본의 RSS기울기는 장기결론 근거가 아니다."
+  },
+  "completion": {
+    "passed": 1398,
+    "failed": 3,
+    "elapsedMs": 384339,
+    "verifiedDurationMs": null,
+    "longrunObservationCompleted": false,
+    "shortPreparationPass": false,
+    "frameDiagnosticPass": false,
+    "resourceTrendPass": false,
+    "uiFulltestPass": false,
+    "phase": null,
+    "status": "FAIL",
+    "exit": 1
+  },
+  "cleanup": {
+    "productReceipt": [
+      {
+        "schema": "recording-process-cleanup-v1",
+        "attemptCount": 1,
+        "pid": 67713,
+        "exitCode": 0,
+        "signalCode": null,
+        "exitedObserved": true,
+        "stopCode": "complete",
+        "forcedTermination": "not-used",
+        "normalExitPass": true,
+        "normalShutdownPass": true,
+        "archiveSafe": true,
+        "ports": [
+          {
+            "kind": "http",
+            "port": 63628,
+            "status": "pass",
+            "code": "closed",
+            "closed": true
+          },
+          {
+            "kind": "rtsp",
+            "port": 63629,
+            "status": "pass",
+            "code": "closed",
+            "closed": true
+          }
+        ]
+      }
+    ],
+    "reportProcessesClosed": true,
+    "reportUdpClosed": true,
+    "wrapperProcessGroupAbsent": true,
+    "registeredGroupsAbsent": true,
+    "registeredRecoveryGroupLedgerEmpty": true,
+    "independentReadOnlyObservation": "검토 시 PID 및 process group 67674와67713이 모두 ESRCH로 부재. receipt에서 HTTP63628/RTSP63629 closed, normalShutdownPass=true, forcedTermination=not-used. UDP는 report 및 finally close 경로의 증거이며 검토자가 별도 bind 재검사는 하지 않았다.",
+    "temporaryRootAbsent": false,
+    "artifactSanitizationAndPreservation": "진행 전/검토 미완료. 원본private로그는 읽기만 했고 Git용 정제본은 아직 검토하지 않았다. 정제본을 같은바이트 원본으로 표현하면 안 된다.",
+    "overallCleanupComplete": false,
+    "remaining": "증거 정제·보존 바이트 대조 및 소유root/container 정리 최종 기록. 실행 프로세스 종료와 임시 파일 삭제 완료를 구분한다."
+  },
+  "visualReviewLimits": "초기 current-evidence.png와 package bytes/hash는 시각·구조 검토했다. 이번 혼합 실행의 모든 PNG를 시각 전수 검토하거나 실제 제품 UI를 실행하지 않았다.",
+  "notRunOrNotCompleted": [
+    "600초 관측 완료",
+    "중단 후 후속복구 phase",
+    "새30분/120분",
+    "실제 UI 풀테스트",
+    "Qwen/Ollama 호출",
+    "추가 혼합재실행",
+    "추가 제품/도구 수정 및 검증",
+    "producer 재적용",
+    "출시 채택/릴리즈"
+  ],
+  "reviewedArtifacts": [
+    {
+      "path": "short-mixed/execution.json",
+      "bytes": 1751,
+      "sha256": "90344bf593e176cf2a19a52d1dbadcc05f074287d9ae8b386a8b72555f1be49b",
+      "privateRaw": false
+    },
+    {
+      "path": "short-mixed/run.log",
+      "bytes": 628043,
+      "sha256": "68046f3ab9e1ff779376428105463d04a0f701b39d6248feb962e754b6bca621",
+      "privateRaw": false
+    },
+    {
+      "path": "short-mixed/artifacts/report.json",
+      "bytes": 34732,
+      "sha256": "c6ee78b17d32e1bcf809e6b614444507d749d2347f90e0ab81f5da08b2d43165",
+      "privateRaw": false
+    },
+    {
+      "path": "short-mixed/artifacts/started.json",
+      "bytes": 214,
+      "sha256": "394b570ceb27d9685db0afb2619667743df8ef709617463a6680b0fb85bfd880",
+      "privateRaw": false
+    },
+    {
+      "path": "short-mixed/owned-recovery-groups.jsonl",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "privateRaw": false
+    },
+    {
+      "path": "short-mixed/media-server-current-observer-Ocx0pF/server-1.private.log",
+      "bytes": 4190782,
+      "sha256": "85f18d0e53e6936eb1bc22b9254ccfdca52e072c0128b9194944d96068a36bc3",
+      "privateRaw": true
+    },
+    {
+      "path": "execution-source.json",
+      "bytes": 1615,
+      "sha256": "0f0afb0378b2d7b797a1c9c5a2e5f6aa6d07a3fdbea61c3368c5a89e91ff46f3",
+      "privateRaw": false
+    },
+    {
+      "path": "execution-source.diff",
+      "bytes": 27332,
+      "sha256": "e45ee07afa8640eb374e8e83572952f44dc179c08e1f397ea554ba52bccd3f60",
+      "privateRaw": false
+    },
+    {
+      "path": "review72-initial.json",
+      "bytes": 32729,
+      "sha256": "adefe7df50004e4b8f92599901a53412a4866a8fcb2ae5374edf6bc3308729e2",
+      "privateRaw": false
+    },
+    {
+      "path": "scripts/internal/v450_recording_a_mixed.mjs",
+      "bytes": 42250,
+      "sha256": "ebff56c2719d54cc1de957775bbfcebe880344023b9ff86b25a465ab3eae9ea6",
+      "privateRaw": false
+    },
+    {
+      "path": "scripts/internal/recording_longrun_progress.mjs",
+      "bytes": 11767,
+      "sha256": "c615e97bd158c2f0d81cc5e1cd3f26561c6c6cd2d9eea9a1b2b8c2f6ad19e172",
+      "privateRaw": false
+    }
+  ],
+  "preservationAddendum": {
+    "recordedAt": "2026-10-09T02:02:37.666507+00:00",
+    "scope": "정제보존 적합성과 validation 참조·과장·누락만 추가검토. 제품/모델/검사 실행과 코드수정 없음. archive에 고정된 initial/final은 변경하지 않음.",
+    "status": "local-sanitized-preservation-suitable; remote-preservation-and-root-cleanup-pending",
+    "archive": {
+      "path": "docs/release-artifacts/v4.5.0/72-execution.tar.gz",
+      "bytes": 546949,
+      "sha256": "76a25e9ffa997d4b5c26577713422f590a3c71dc157f09c9c05495acbe10c41a",
+      "fileMembers": 228,
+      "manifestEntries": 227,
+      "unlistedMember": "archive-manifest.json itself",
+      "allManifestSizeAndSha256Match": true,
+      "allExistingSamePathOriginalBytesMatch": true,
+      "frozenFinalReviewSha256": "2852f227b9870bf3120d92cd26b596c4736b757ae53a1a43066e0ab59a27b202",
+      "privacyJsonSha256": "724d3f8d65c6e635ce16e233ecfa5e420123a62f3cbf1aff69708d5a06f34626",
+      "manifestSha256": "322b0917311851ed6ed5c4670de4ca013a4ab5e7869a583c22f2d51988f6272a"
+    },
+    "sanitization": {
+      "originalBytes": 4190782,
+      "originalSha256": "85f18d0e53e6936eb1bc22b9254ccfdca52e072c0128b9194944d96068a36bc3",
+      "preservedBytes": 4190459,
+      "preservedSha256": "5d450ac1a1bdc5b9252da74377ed40f9122fec20277cf065d5f75b116ea28d90",
+      "originalAndPreservedLineCount": 1346,
+      "redactedLines": 21,
+      "unchangedLines": 1325,
+      "verification": "각 삭제줄의 원본offset/bytes/SHA와 번호표식을 대조. 나머지 모든 줄을 실제 원본과 직접 byte 비교하여 일치. 원본·정제본이 같다는 주장 없음.",
+      "decodeRecordsPreserved": 800,
+      "failureEvidencePreserved": "수집cap/실패3개/실행중단/source start/end/최초준비실패·재확인은 해당 원출력 그대로 보존. 포착하지 못한 꼬리는 생성하지 않았다.",
+      "privacyScope": "정제 서버로그에 URI·Argon hash·Bearer 실제값 패턴 없음. archive 전체에 실제 Argon hash/Bearer credential/private key 패턴 및 users/sessions/tokens/invites 저장 파일 없음. 패턴검사는 모든 종류의 비밀 부재의 수학적 보장은 아님. 소유 synthetic 결과와 source/fixture 자료 경계로 판정.",
+      "rawPrivateLogArchived": false,
+      "originalDeletionReadiness": "해당 정제변환에서 필수 진단/실패 증거 유실을 발견하지 않았다. 이 판정은 기존 승인된 보존·정리 범위의 원본삭제 전 정제적합 판단이며 임의 삭제 권한을 새로 부여하지 않는다."
+    },
+    "selectedOutputs": {
+      "reviewCount": 7,
+      "packageCount": 7,
+      "all14MatchOwnedOriginalBytes": true,
+      "reviewIdsExactlyMatchCompletedASchedule": true,
+      "preseededResultsExcluded": true,
+      "index": "mixed-selected/index.json"
+    },
+    "references": {
+      "candidateCommit": "9257ed8b2044f9e8def4dd9984abea8c022fae1b",
+      "commitChangedFilesExactlyReviewedSix": true,
+      "allSixCommitHashesMatchExecutionFreeze": true,
+      "historical70InputAnd71Package": "기존 archive/member 원본대조를 유지. 중복 원본이72archive에 없다는 historical-reference를 실제 보존위치로 해석.",
+      "legacyCandidate": "approval-reference는986행동일성의 근거만 보존하며 신규policy승인으로 승격하지 않는다.",
+      "initialFinalReviewBytesUnchanged": true
+    },
+    "validation": {
+      "path": "docs/release-artifacts/v4.5.0/72-validation.json",
+      "reviewedSha256": "2a472c1a174de9c01eeeee893a1fcec5707dfec9865cfdb73452a0ea0c4135d9",
+      "judgment": "후보checkpoint/혼합FAIL/제품채택보류, 원인미확정70/71, prefix제약/자원·시각검토한계/미실행이 유지되어 과장된PASS주장을 발견하지 않았다.",
+      "correctedCount": "host-confirmed 원출력 summary18/64/2와 direct.host의 seed18 정정 일치. 원출력 변경 없음.",
+      "openDocumentationFindings": []
+    },
+    "cleanup": {
+      "linuxStopAndRemoveReceipts": "archive commands/linux-stop.json 및 linux-remove.json exit0/stdout·stderr를 읽어 제거기록 확인",
+      "rootAbsent": false,
+      "remoteBytePreservationVerifiedByReviewer": false,
+      "overallCleanupComplete": false,
+      "pending": "원격 Git 보존 바이트/대상commit 확인 및 승인된 소유root 정리 후 실제부재 기록. 본 추가검토 시 원본 root는 유지 중.",
+      "closureReceipt": {
+        "path": "closure-checks.json",
+        "sha256": "298e7c41c116d79fe411d5e853b1a70b8ebb314637e2c51aab27c12b6f7b8b13",
+        "record": {
+          "recordedAt": "2026-10-09T02:02:10.263039+00:00",
+          "processes": {
+            "pid-67674": "absent",
+            "group-67674": "absent",
+            "pid-67713": "absent",
+            "group-67713": "absent"
+          },
+          "containerAbsent": true,
+          "imageRetained": "sha256:ce72c8a15363984da642e9964189957896812061c6af1d0ef67e87b38ad5a588",
+          "ports": "original normal-exit receipt HTTP63628/RTSP63629 closed and report UDP closed",
+          "rootAbsent": false
+        },
+        "reviewBasis": "메인 제공 읽기전용 상태관측 receipt 내용과 앞선 직접 PID/group부재 관측을 대조. 검토자가 docker명령을 새로 실행하지 않았고 원격/root부재는 미확인."
+      }
+    },
+    "acceptanceDecisionUnchanged": "R72-V1 혼합수집 blocker 유지. 정제보존 적합이 제품채택·혼합PASS 또는 릴리즈 준비완료를 뜻하지 않는다."
+  }
+}

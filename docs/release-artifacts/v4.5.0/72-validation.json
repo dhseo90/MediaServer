@@ -1,0 +1,566 @@
+{
+  "task": 72,
+  "recordedAt": "2026-10-09T02:00:44.908058+00:00",
+  "status": "BLOCKED-mixed-log-collection; development-candidate-checkpoint; release-adoption-held",
+  "completion": "소프트웨어 디코딩 정책 비교 완료, 제품 채택 보류",
+  "base": "a3dbad466347b3f6bf89cfd4bf8e4b6b2df794ab",
+  "models": {
+    "requestedMain": "gpt-6-astra/high",
+    "actualMainModel": null,
+    "actualMainEffort": null,
+    "reviewAgent": "independent_release72",
+    "requestedAndToolAcceptedReview": "gpt-6-astra/high",
+    "actualReviewerRuntimeModel": null,
+    "actualReviewerRuntimeEffort": null,
+    "meaning": "tool request accepted is distinct from independently verified runtime settings"
+  },
+  "source": {
+    "candidateCommit": "9257ed8b2044f9e8def4dd9984abea8c022fae1b",
+    "candidateTree": "094ca8f9110ca97e59f5ee7d2de54d7f475b6d61",
+    "execution": {
+      "base": "a3dbad466347b3f6bf89cfd4bf8e4b6b2df794ab",
+      "diffSha256": "e45ee07afa8640eb374e8e83572952f44dc179c08e1f397ea554ba52bccd3f60",
+      "files": [
+        {
+          "path": "docs/project-feature-test-inventory.md",
+          "sha256": "039355cdfd61747347493c37e7f96f50adcb93fd664db03eb5434c15937b3aa7"
+        },
+        {
+          "path": "docs/superpowers/specs/2026-10-04-v440-evidence-package-design.md",
+          "sha256": "84fa013d6199c73e7d8935e62fe0c69414b857b1679ceadd8d4209ec941bb58c"
+        },
+        {
+          "path": "include/recording/visual_frame_decoder.h",
+          "sha256": "a29ef54ba515d0a87f9ac868b63191dd8f321edef7a089784a50aa785d7d3bfd"
+        },
+        {
+          "path": "scripts/internal/visual_frame_decoder_smoke.cpp",
+          "sha256": "d0e005b372a55e3a662aab41c401ebd068dfe0fca7b693757b0e894485c4b7e7"
+        },
+        {
+          "path": "src/recording/evidence_frame_extractor.cpp",
+          "sha256": "574014bb371a064dd7678eb24417cda20e72f30b5b780d86ec9a3905ec7158f8"
+        },
+        {
+          "path": "src/recording/visual_frame_decoder.cpp",
+          "sha256": "5c647b0a563005489859cb8c7d98093b97e163896c1fe1c265f8734664937080"
+        }
+      ],
+      "binarySha256": "e6cef05b0a6371bfc28fbb459001edf5a3465c97de5c15fb19d6de037505fdcc",
+      "runtimeSha256": "b79e8fbf6589c379ef9f6cb001f1667b393faf6110d2065356a350f0a6dc5179",
+      "shortMixedMaxAttempts": 1,
+      "observationSeconds": 600,
+      "wrapperDeadlineSeconds": 780,
+      "load": "existing two channels/four search clients/A60 seconds; no edits during execution",
+      "newPolicy": "macOS EvidenceFrameExtractor SoftwareOnly; index/snapshot/default Automatic",
+      "models": "existing SigLIP2 only; Qwen/Ollama0"
+    },
+    "binding": "actual run used base+dirty diff; subsequent checkpoint contains those exact six files, not a new run"
+  },
+  "policy": {
+    "macOS": "EvidenceFrameExtractor::ExtractMedia chooses SoftwareOnly before state/seek; decodebin force-sw-decoders verified boolean readable/writable + readback",
+    "unchanged": [
+      "default common decoder Automatic",
+      "RecordingVisualSource index/embedding/cache",
+      "snapshot verification",
+      "Linux Automatic",
+      "live RTSP/WebRTC/writer",
+      "seek/sample selection/1ns/5s/cancel/FD/output/65 guard/store/profile/auth"
+    ],
+    "noRetryOrGlobalRankChange": true,
+    "releaseAdopted": false,
+    "developmentConnectionPresent": true,
+    "scope": "new A/general/scene evidence PNG through existing extractor; native missing policy rejected, public error sanitized to evidence-internal-error; no public decoder choice"
+  },
+  "comparison": {
+    "freeze": {
+      "base": "a3dbad466347b3f6bf89cfd4bf8e4b6b2df794ab",
+      "source": "a653e44dba03806f28cbc9bb2402ed7f444c079805ab8283fc5e64b888606231",
+      "comparisonSource": "6bbc705963d79ed87de2f6104202e979cc0b4dd36bed822889d0150a661794e8",
+      "harness": "3b18f712db4f674e7ceb2a9b13c4228e59be5c7d39de465518238c3c0605dbc3",
+      "input": "51574640bd6e851078347ba66376463a1c74f455efd5b123e528bd7899132091",
+      "inputBytes": 28161,
+      "targetNs": 966666667,
+      "order": [
+        "auto",
+        "software"
+      ],
+      "maxCallsPerCondition": 100,
+      "stopPerCondition": "first decoder failure, wrong exact time/shape or FD offset change",
+      "bundleSeconds": 600,
+      "perDecodeMs": 5000,
+      "concurrency": 1,
+      "trace": "full; identical both conditions; all attempts retained",
+      "onlyControlDifference": "g_object_set(decode,force-sw-decoders,TRUE) before state transitions; symbol renamed to link both sources",
+      "rgb": "current content correctness required; past RGB equality recorded but not universal acceptance; detailed direct independent red oracle required before adoption",
+      "resources": "per-call CPU cumulative maxRSS/post-call thread and FD count, not instantaneous peak enforcement",
+      "productConnection": "not performed; comparison-only copy"
+    },
+    "summary": {
+      "auto": {
+        "calls": 100,
+        "success": 100,
+        "rgb": [
+          "8a2ee77d31ada2e2f6f8175655987a9fb30e4d95f44d8b506850a59318c0a1f5"
+        ],
+        "medianUs": 13390.0,
+        "maxUs": 110311,
+        "cpuUs": 880552,
+        "maxRssBytes": 59588608,
+        "threads": [
+          12
+        ],
+        "fds": [
+          4
+        ],
+        "factories": [
+          "appsink:app:1.28.1",
+          "appsrc:app:1.28.1",
+          "capsfilter:coreelements:1.28.1",
+          "decodebin:playback:1.28.1",
+          "h264parse:videoparsersbad:1.28.1",
+          "multiqueue:coreelements:1.28.1",
+          "qtdemux:isomp4:1.28.1",
+          "typefind:coreelements:1.28.1",
+          "videoconvert:videoconvertscale:1.28.1",
+          "vtdec_hw:applemedia:1.28.1"
+        ],
+        "rawBytes": 699583
+      },
+      "software": {
+        "calls": 100,
+        "success": 100,
+        "rgb": [
+          "d56d2ff4d3d5a29493d995bd83915cc2d98bb53f5e0756fa6ebff792d93e4aa2"
+        ],
+        "medianUs": 4230.5,
+        "maxUs": 61216,
+        "cpuUs": 605773,
+        "maxRssBytes": 68632576,
+        "threads": [
+          6
+        ],
+        "fds": [
+          4
+        ],
+        "factories": [
+          "appsink:app:1.28.1",
+          "appsrc:app:1.28.1",
+          "avdec_h264:libav:1.28.1",
+          "capsfilter:coreelements:1.28.1",
+          "decodebin:playback:1.28.1",
+          "h264parse:videoparsersbad:1.28.1",
+          "multiqueue:coreelements:1.28.1",
+          "qtdemux:isomp4:1.28.1",
+          "typefind:coreelements:1.28.1",
+          "videoconvert:videoconvertscale:1.28.1"
+        ],
+        "rawBytes": 697922
+      }
+    },
+    "rgb": {
+      "width": 160,
+      "height": 90,
+      "historicalRgb": "8a2ee77d31ada2e2f6f8175655987a9fb30e4d95f44d8b506850a59318c0a1f5",
+      "currentRgb": "d56d2ff4d3d5a29493d995bd83915cc2d98bb53f5e0756fa6ebff792d93e4aa2",
+      "unequalComponents": 29108,
+      "maxComponentDifference": 5,
+      "meanAbsoluteComponentDifference": 0.731087962962963,
+      "judgment": "descriptive only, not a newly invented tolerance gate; independent solid-red RGB oracle and exact selected time are separate",
+      "currentVisualInspection": "actual decoded package PNG opened: black background and white ball, no visible corrupt geometry; historical view follows",
+      "historicalVisualInspection": "original71 PNG payload opened directly: same black background/white ball geometry, no visible misplaced content; byte difference remains descriptive, no invented tolerance gate"
+    },
+    "limits": "one file,160x90, fixed order separate processes, post-call metrics; not general performance/reliability. Auto did not reproduce past failure; historical70/71 FAIL/root cause unknown retained"
+  },
+  "direct": {
+    "host": [
+      "default decoder86439 PASS",
+      "software decoder86439 PASS",
+      "visual source76 PASS",
+      "evidence1028 PASS",
+      "confirmed seed18 + native64 + fresh-process v3 read2 PASS",
+      "actual package generation and separate-process readback PASS",
+      "old package same bytes read PASS after private permission preparation fix",
+      "trace off/full/bounded results identical within each policy",
+      "actual late missing-target failure retained",
+      "parent collector56 PASS"
+    ],
+    "vfr": "actual mux sample starts0/40/120ms, final STTS duration40ms; requested upstream70ms was not preserved and is not claimed. Existing exact time/red-pixel oracle unchanged.",
+    "injectedNegative": "missing-property and no-eligible-decoder cases use explicit private test-source injection, not real uninstall; unchanged output/FD and no fallback observed",
+    "linux": {
+      "image": "mediaserver-v450-verify:rc58-arm64",
+      "imageId": "sha256:ce72c8a15363984da642e9964189957896812061c6af1d0ef67e87b38ad5a588",
+      "uid": "10001:10001",
+      "GStreamer": "1.28.7",
+      "ONNX": "1.23.2",
+      "SentencePiece": "0.2.0",
+      "features": "GStreamer/ONNX/SigLIP2 ON",
+      "productBuild": "PASS",
+      "decoderAutomatic": 86439,
+      "visualSource": 76,
+      "scope": "common C++ compile/default caller regression only, not all Linux qualification"
+    },
+    "preparationFailures": [
+      {
+        "receipt": "commands/linux-compile-decoder.json",
+        "reason": "GCC misleading indentation in added VFR test; newline-only fix, unchanged assertions",
+        "recheck": "commands/linux-compile-decoder-fixed.json + linux-decoder.json PASS"
+      },
+      {
+        "receipt": "commands/old-package-readback.json",
+        "reason": "copied old package/root 0644/0755 violates private store contract",
+        "recheck": "same bytes in fresh0600/0700 root readback PASS; old-package-preparation.json"
+      }
+    ],
+    "static": "comments and links PASS before mixed; final byte/diff checks recorded at closure",
+    "raw": "72-execution.tar.gz commands/*; all attempts retained"
+  },
+  "mixed": {
+    "status": "BLOCKED-capture-budget",
+    "mixedAttempts": 1,
+    "execution": {
+      "command": [
+        "bash",
+        "/Users/dhseo/Workspace/mediaServer/scripts/internal/verify_v450_recording_a_mixed.sh",
+        "--frame-diagnostic"
+      ],
+      "startedAt": "2026-10-09T01:46:36.268769+00:00",
+      "status": "FAIL",
+      "source": {
+        "head": "a3dbad466347b3f6bf89cfd4bf8e4b6b2df794ab",
+        "tree": "f5bb247a7e7a7867024c57c6c26ca1d0b29bb279",
+        "sourceSha256": "5e0d58b24c66858e0fa48a07aaddf9a347deec0ee69a3b8962471de660ac47fa",
+        "binarySha256": "e6cef05b0a6371bfc28fbb459001edf5a3465c97de5c15fb19d6de037505fdcc"
+      },
+      "timeoutSeconds": 780,
+      "observationSeconds": 600,
+      "wrapperSha256": "c3eb4b050a614bc4e0b7b5ece436c36cd3f4128e473851956d01af1ab6b26bc5",
+      "resourceTrendPass": false,
+      "reviewRequired": true,
+      "uiFulltestPass": false,
+      "processGroup": 67674,
+      "childExit": 1,
+      "exit": 1,
+      "executionElapsedSeconds": 389.4563532919856,
+      "elapsedSeconds": 389.45763979200274,
+      "timedOut": false,
+      "interruptedSignals": [],
+      "residualGroupAfterCommand": false,
+      "cleanupSignals": [],
+      "processGroupAbsent": true,
+      "cleanupErrors": [],
+      "cleanupOnlySeconds": 1.0833959095180035e-05,
+      "registeredGroupsAbsent": true,
+      "residualRegisteredGroups": false,
+      "registeredGroupSignals": [],
+      "registeredGroupCleanupSeconds": 0.0012348330346867442,
+      "finishedAt": "2026-10-09T01:53:06.076478+00:00",
+      "sourceEnd": {
+        "head": "a3dbad466347b3f6bf89cfd4bf8e4b6b2df794ab",
+        "tree": "f5bb247a7e7a7867024c57c6c26ca1d0b29bb279",
+        "sourceSha256": "5e0d58b24c66858e0fa48a07aaddf9a347deec0ee69a3b8962471de660ac47fa",
+        "binarySha256": "e6cef05b0a6371bfc28fbb459001edf5a3465c97de5c15fb19d6de037505fdcc"
+      },
+      "totalWithFinalBindingSeconds": 389.744489582954,
+      "rootDisposition": "preserved-for-byte-review-and-owned-cleanup"
+    },
+    "summary": {
+      "elapsedMs": 384339,
+      "verifiedDurationMs": null,
+      "longrunObservationCompleted": false,
+      "frameDiagnosticPass": false,
+      "resourceTrendPass": false,
+      "reviewRequired": true,
+      "passed": 1398,
+      "failed": 3,
+      "processCount": 1,
+      "processesClosed": true,
+      "udpClosed": true,
+      "resources": {
+        "status": "observed",
+        "resourceTrendPass": false,
+        "reviewRequired": true,
+        "sampleCount": 75,
+        "groups": [
+          {
+            "pid": 67713,
+            "startIdentity": "macos:1791510404:384706",
+            "sampleCount": 75,
+            "first": {
+              "phaseAt": 9038.975417,
+              "sampledAt": 1791510410702,
+              "rssBytes": 3121463296,
+              "threadCount": 37,
+              "fdCount": 30,
+              "mutationCount": 6
+            },
+            "last": {
+              "phaseAt": 379321.190292,
+              "sampledAt": 1791510780988,
+              "rssBytes": 1681735680,
+              "threadCount": 42,
+              "fdCount": 30,
+              "mutationCount": 1450
+            },
+            "max": {
+              "rssBytes": 3163799552,
+              "threadCount": 42,
+              "fdCount": 34
+            },
+            "delta": {
+              "rssBytes": -1439727616,
+              "threadCount": 5,
+              "fdCount": 0,
+              "mutationCount": 1444
+            },
+            "elapsedMs": 370282.214875,
+            "maxGapMs": 5005.986541000002,
+            "warmupMs": 300000,
+            "postWarmup": {
+              "status": "observed",
+              "sampleCount": 15,
+              "delta": {
+                "rssBytes": 1310720,
+                "threadCount": 0,
+                "fdCount": 4,
+                "mutationCount": 279
+              },
+              "elapsedMs": 70060.49837500002,
+              "rssMiBPerMinute": 1.0705033755049986
+            }
+          }
+        ]
+      },
+      "cpu": {
+        "maxPercent": 304.7
+      }
+    },
+    "firstFailure": "private process capture exceeds 4194304 byte cap; collected original prefix4190782 bytes, emitted4208444; collector becomes unavailable",
+    "errors": [
+      "[fail] current observation: observer-collector-unavailable",
+      "[fail] process-log-collection",
+      "[fail] slow-diagnostic-unavailable"
+    ],
+    "capture": {
+      "pid": 67713,
+      "bytes": 4208444,
+      "capturedBytes": 4190782,
+      "sha256": "85f18d0e53e6936eb1bc22b9254ccfdca52e072c0128b9194944d96068a36bc3",
+      "overflow": true,
+      "captureError": "byte-cap",
+      "categories": [
+        {
+          "code": "file evidence unavailable",
+          "count": 0
+        },
+        {
+          "code": "storageBlocked",
+          "count": 0
+        },
+        {
+          "code": "shutdown",
+          "count": 0
+        },
+        {
+          "code": "ERROR",
+          "count": 0
+        },
+        {
+          "code": "WARNING",
+          "count": 0
+        }
+      ],
+      "rawBodyPublished": false,
+      "privateCaptureDisposition": "eligible-for-wrapper-cleanup"
+    },
+    "decodedPrefix": {
+      "automatic": {
+        "records": 732,
+        "successes": 732,
+        "failures": 0,
+        "decoderFactories": [
+          "vtdec_hw:applemedia:1.28.1"
+        ]
+      },
+      "software-only": {
+        "records": 68,
+        "successes": 68,
+        "failures": 0,
+        "decoderFactories": [
+          "avdec_h264:libav:1.28.1"
+        ]
+      }
+    },
+    "invalidTraceLines": [],
+    "noWholeRunNoFailureClaim": "uncaptured suffix exists; 800 recorded successful decodes are only a prefix, not full execution integrity",
+    "progress": {
+      "cycles": 24,
+      "searchSuccess": 100,
+      "searchByClient": [
+        25,
+        25,
+        25,
+        25
+      ],
+      "structuredEvidenceComplete": 24,
+      "visualEvidenceComplete": 24,
+      "retainedChecks": 48,
+      "deletedSourceObserved": true,
+      "aCompleted": 7,
+      "aControlResults": {},
+      "lastCycle": {
+        "elapsedMs": 361404.364833,
+        "searchClients": [
+          25,
+          25,
+          25,
+          25
+        ],
+        "evidenceCreated": 24,
+        "visualCreated": 24
+      },
+      "lastRecordingProgress": {
+        "elapsedMs": 370506.821458,
+        "channels": {
+          "9101": {
+            "finalized": 184,
+            "deleted": 177,
+            "lastAt": 379321.190292,
+            "order": "368",
+            "store": "ddcff584b685bbd44ceb9909d87bc05d77c36ee594ac5e17352d1c6dabde235c",
+            "knownMappings": 133,
+            "unknownMappings": 7908
+          },
+          "9201": {
+            "finalized": 184,
+            "deleted": 177,
+            "lastAt": 379321.190292,
+            "order": "369",
+            "store": "ddcff584b685bbd44ceb9909d87bc05d77c36ee594ac5e17352d1c6dabde235c",
+            "knownMappings": 114,
+            "unknownMappings": 7526
+          }
+        },
+        "records": 368,
+        "logicalBytes": 219406
+      }
+    },
+    "maxLogicalRootBytes": 43117611,
+    "notRun": [
+      "remaining600-second observation",
+      "controlled cancel/revocation lifecycle after observation",
+      "closed-journal independent copy recovery",
+      "restart/reactivation"
+    ],
+    "productAdoption": "withheld; development candidate checkpoint only, not release acceptance",
+    "sourceChangesAfterFailure": false,
+    "budgetChangesOrRetries": 0,
+    "historical70and71": "FAIL preserved; hardware internal reason unknown",
+    "nextCondition": "separate authorization for correcting short helper full trace selection to a bounded collection policy and one renewed short integration; no automatic retry or120"
+  },
+  "failureResponsibility": "short --frame-diagnostic still selected full tracing; pre-run preparation missed its growth against4MiB cap. Existing bounded reservation was directly tested but not active in this run. No cap increase, mutation during run, retry or extra execution.",
+  "approval": {
+    "candidateDigest": "137543c6332a73f9a77599bfaca732bd1f54b263adee078fe5d3f8c275775906",
+    "strictCarryEligible": 986,
+    "independentRequiredLegacy": 0,
+    "producerApplications": 0,
+    "reason": "legacy candidate unchanged; this does not approve new behavior. Separate independent review found no new implementation defect but retained integration blocker R72-V1. No release adoption binding applied.",
+    "directDefinitions": [
+      "V430-I01-DECODE",
+      "V440-F01"
+    ],
+    "downstreamScope": "existing evidence package creation/readback/immutability + confirmed A package consumers; no new feature IDs or entire legacy re-review"
+  },
+  "independentReview": {
+    "file": "72-independent-review.json",
+    "initialArchiveMember": "review72-initial.json",
+    "finalArchiveMember": "review72-final.json",
+    "reviewedImplementation": true,
+    "executedTestsByReviewer": false,
+    "newProductFindings": 0,
+    "integrationBlockers": [
+      "R72-V1"
+    ],
+    "decision": "candidate checkpoint only; release adoption held",
+    "fileSha256": "a69c3ad3b21476bfde470f53f282530306e9dd0d04beb2e9274de5868a4e62b7",
+    "preservationAddendum": "local-sanitized-preservation-suitable; 228 archive files read back; root/remote pending"
+  },
+  "evidence": {
+    "path": "docs/release-artifacts/v4.5.0/72-execution.tar.gz",
+    "bytes": 546949,
+    "sha256": "76a25e9ffa997d4b5c26577713422f590a3c71dc157f09c9c05495acbe10c41a",
+    "members": 228,
+    "uncompressedBytes": 7518661,
+    "byteReadback": true,
+    "maxMemberBytes": 4190459,
+    "privacyHits": [],
+    "selectedResults": 7,
+    "privacy": {
+      "originalPath": "short-mixed/media-server-current-observer-Ocx0pF/server-1.private.log",
+      "originalBytes": 4190782,
+      "originalSha256": "85f18d0e53e6936eb1bc22b9254ccfdca52e072c0128b9194944d96068a36bc3",
+      "preservedBytes": 4190459,
+      "preservedSha256": "5d450ac1a1bdc5b9252da74377ed40f9122fec20277cf065d5f75b116ea28d90",
+      "transform": "retain diagnostic-prefix lines without URI; replace other boot/config/source lines by numbered markers",
+      "sameBytes": false,
+      "uncapturedTail": "not available; not reconstructed",
+      "credentialsAndAuthStores": "not included"
+    },
+    "finalByteChecks": {
+      "checkedAt": "2026-10-09T02:03:23.548136+00:00",
+      "archiveMembers": 228,
+      "manifestEntries": 227,
+      "allReadbackHashesMatch": true,
+      "jsonParse": true,
+      "diffCheck": true
+    }
+  },
+  "cleanup": {
+    "processesClosed": true,
+    "portsClosed": true,
+    "linuxContainerRemoved": true,
+    "rootAbsent": false,
+    "remaining": "owned temporary root after local/remote byte preservation",
+    "existingImageAndModelsRetained": true,
+    "QwenOllamaCalls": 0,
+    "unloadGate": "not-run",
+    "closureChecks": {
+      "recordedAt": "2026-10-09T02:02:10.263039+00:00",
+      "processes": {
+        "pid-67674": "absent",
+        "group-67674": "absent",
+        "pid-67713": "absent",
+        "group-67713": "absent"
+      },
+      "containerAbsent": true,
+      "imageRetained": "sha256:ce72c8a15363984da642e9964189957896812061c6af1d0ef67e87b38ad5a588",
+      "ports": "original normal-exit receipt HTTP63628/RTSP63629 closed and report UDP closed",
+      "rootAbsent": false
+    }
+  },
+  "priorEvidence": {
+    "59Linux": "original source/environment only; new common C++ delta tested separately",
+    "61Acceptance": "72cc7643d681b75228b80fd646921965ecacba75 original scope; not rerun/current-candidate acceptance",
+    "63UI": "original scope; not rerun",
+    "65Guard": "semantics unchanged",
+    "68Linux": "retained original scope",
+    "69to71": "direct/diagnostic scope retained;70/71 failure not rewritten"
+  },
+  "remaining": [
+    "correct short-helper diagnostic selection in separately approved scope, preserving budgets, then renewed short integration authorization",
+    "mixed120 still required separately after short integration conditions; no automatic run",
+    "release adoption/necessary new-policy approval remains held",
+    "final evidence integration/record cleanup/PR CI merge signed tag Release remain separate"
+  ],
+  "notRun": [
+    "new120",
+    "acceptance",
+    "fullUI",
+    "Qwen/Ollama",
+    "post-observation cancel/revoke/copy recovery/restart/reactivation",
+    "additional short retry"
+  ],
+  "noAutomaticNextRun": true,
+  "preservationPreparation": "first selection included pre-seeded IDs mentioned in run.log; failed before archive creation; corrected selection to actual report.aLoad.completed seven results; no product/run changes",
+  "remoteBeforePush": "a3dbad466347b3f6bf89cfd4bf8e4b6b2df794ab"
+}
