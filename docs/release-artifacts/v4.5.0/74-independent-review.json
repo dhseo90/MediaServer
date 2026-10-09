@@ -1,0 +1,1552 @@
+{
+  "task": 74,
+  "executionReview": {
+    "task": 74,
+    "stage": "independent-result-review",
+    "recordedAt": "2026-10-09T10:04:40.695779+00:00",
+    "requestedAndToolAcceptedModel": "gpt-6-astra",
+    "requestedAndToolAcceptedEffort": "high",
+    "actualRuntimeModel": null,
+    "actualRuntimeEffort": null,
+    "modelBoundary": "task73에서 도구 수락된 별도검토자 설정 재사용. 실제 런타임 모델/effort가 독립 노출되지 않아 확인값으로 주장하지 않는다.",
+    "independence": {
+      "implementedProduct": false,
+      "executedRuntimeTests": false,
+      "executedModelsOrServers": false,
+      "wroteExecutionEvidence": false,
+      "spawnedSubagents": false,
+      "producerApplicationsByReviewer": 0,
+      "onlyOutput": "review74-final.json",
+      "method": "기존 소스/원출력/receipt/저장파일을 읽고 hash·집계를 독립 계산했다. PID/group 및 복구사본 부재를 읽기전용 확인했다. 제품/검사/원격 재실행 없음."
+    },
+    "status": "approve-current-functional-lifetime-capture-evidence; resource-trend-not-approved; final-release-adoption-not-performed",
+    "scopeDecisions": [
+      {
+        "scope": "고정macOS 후보의 이번1회7200초 기능·수명·수집 조건",
+        "decision": "approve",
+        "basis": "실제시간/세구간2채널4검색/A120·취소·권한철회·독립복구·재기동·재활성화·수집완전성·정상종료 원출력 및 저장바이트 대조 충족",
+        "blockingFindings": []
+      },
+      {
+        "scope": "software-only evidence 개발후보의 요청된 혼합 실행 증거",
+        "decision": "approve",
+        "basis": "task72직접계약 및task73단기 증거의 기존범위 위에 이번120분 실제증거 충족. 새제품소스변경 없음."
+      },
+      {
+        "scope": "무기한운영/누수없음/장기자원승인",
+        "decision": "insufficient",
+        "basis": "resourceTrendPass=false 유지. 후warmup RSS 증가 약1.016MiB/min 관측, footprint 미측정 및누적Catalog 운영한계 유지."
+      },
+      {
+        "scope": "최종새정책/출시채택·공개승인",
+        "decision": "insufficient",
+        "basis": "이AI 결과검토는 사람의승인/producer결속/전체릴리즈gate/배포작업이 아니다. 최종승인·공개채택은 미수행."
+      }
+    ],
+    "sourceBinding": {
+      "source": {
+        "head": "6a03cece468957f845f858fcddacfe5fe977faf1",
+        "tree": "8a96e7262eeba2afd39c893449f6024ab02ab6f6",
+        "sourceSha256": "d86b8ecc594c6e51f4c472cfe1dfc85b0136739cc1b7ae898729213114641db5",
+        "binarySha256": "e6cef05b0a6371bfc28fbb459001edf5a3465c97de5c15fb19d6de037505fdcc"
+      },
+      "sourceEnd": {
+        "head": "6a03cece468957f845f858fcddacfe5fe977faf1",
+        "tree": "8a96e7262eeba2afd39c893449f6024ab02ab6f6",
+        "sourceSha256": "d86b8ecc594c6e51f4c472cfe1dfc85b0136739cc1b7ae898729213114641db5",
+        "binarySha256": "e6cef05b0a6371bfc28fbb459001edf5a3465c97de5c15fb19d6de037505fdcc"
+      },
+      "equal": true,
+      "currentHead": "6a03cece468957f845f858fcddacfe5fe977faf1",
+      "currentTree": "8a96e7262eeba2afd39c893449f6024ab02ab6f6",
+      "workingTreeCleanAtReview": true,
+      "productCandidate": "9257ed8b2044f9e8def4dd9984abea8c022fae1b",
+      "srcIncludeDiffFromProductCandidateEmpty": true,
+      "currentBinarySha256": "e6cef05b0a6371bfc28fbb459001edf5a3465c97de5c15fb19d6de037505fdcc",
+      "currentRuntimeSha256": "b79e8fbf6589c379ef9f6cb001f1667b393faf6110d2065356a350f0a6dc5179",
+      "sameProductAndRunnerScopeAs72And73": true,
+      "noRepeatedLegacy986ReviewOrProducer": true
+    },
+    "execution": {
+      "command": [
+        "bash",
+        "/Users/dhseo/Workspace/mediaServer/scripts/internal/verify_v450_recording_a_mixed.sh",
+        "--duration-minutes",
+        "120"
+      ],
+      "startedAt": "2026-10-09T07:57:14.439886+00:00",
+      "status": "PASS",
+      "source": {
+        "head": "6a03cece468957f845f858fcddacfe5fe977faf1",
+        "tree": "8a96e7262eeba2afd39c893449f6024ab02ab6f6",
+        "sourceSha256": "d86b8ecc594c6e51f4c472cfe1dfc85b0136739cc1b7ae898729213114641db5",
+        "binarySha256": "e6cef05b0a6371bfc28fbb459001edf5a3465c97de5c15fb19d6de037505fdcc"
+      },
+      "timeoutSeconds": 7380,
+      "observationSeconds": 7200,
+      "wrapperSha256": "c3eb4b050a614bc4e0b7b5ece436c36cd3f4128e473851956d01af1ab6b26bc5",
+      "resourceTrendPass": false,
+      "reviewRequired": true,
+      "uiFulltestPass": false,
+      "processGroup": 81074,
+      "childExit": 0,
+      "exit": 0,
+      "executionElapsedSeconds": 7297.886675041984,
+      "elapsedSeconds": 7297.887001291965,
+      "timedOut": false,
+      "interruptedSignals": [],
+      "residualGroupAfterCommand": false,
+      "cleanupSignals": [],
+      "processGroupAbsent": true,
+      "cleanupErrors": [],
+      "cleanupOnlySeconds": 9.999959729611874e-06,
+      "registeredGroupsAbsent": true,
+      "residualRegisteredGroups": false,
+      "registeredGroupSignals": [],
+      "registeredGroupCleanupSeconds": 0.00028745795134454966,
+      "finishedAt": "2026-10-09T09:58:52.551115+00:00",
+      "sourceEnd": {
+        "head": "6a03cece468957f845f858fcddacfe5fe977faf1",
+        "tree": "8a96e7262eeba2afd39c893449f6024ab02ab6f6",
+        "sourceSha256": "d86b8ecc594c6e51f4c472cfe1dfc85b0136739cc1b7ae898729213114641db5",
+        "binarySha256": "e6cef05b0a6371bfc28fbb459001edf5a3465c97de5c15fb19d6de037505fdcc"
+      },
+      "totalWithFinalBindingSeconds": 7298.316257457947,
+      "rootDisposition": "preserved-for-byte-review-and-owned-cleanup"
+    },
+    "completion": {
+      "mode": "v450-recording-search-evidence-A-mixed-120",
+      "passed": 27347,
+      "failed": 0,
+      "elapsedMs": 7293611,
+      "verifiedDurationMs": 7201526.533875,
+      "longrunObservationCompleted": true,
+      "frameDiagnosticPass": false,
+      "resourceTrendPass": false,
+      "reviewRequired": true,
+      "uiFulltestPass": false,
+      "processCount": 3,
+      "processesClosed": true,
+      "udpClosed": true,
+      "footprintState": "not-measured",
+      "status": "PASS",
+      "exit": 0
+    },
+    "mainObservation": {
+      "durationMs": 7201526.533875,
+      "recomputedObservationStartMs": 7654.111042,
+      "sampleCount": 1440,
+      "singlePidAndIdentity": true,
+      "rawSampleSpanMs": 7199431.400875,
+      "maxGapMs": 5010.064249999821,
+      "beginCoverageMs": 571.3944579999988,
+      "endCoverageMs": 1523.7385419998318,
+      "phase": {
+        "elapsedMs": 7201526.533875,
+        "channels": {
+          "9101": {
+            "finalized": 3594,
+            "deleted": 3587,
+            "lastAt": 7207656.906375,
+            "order": "7205",
+            "store": "d55ce3b51dada2751f515c021485f7399fbc22b2a8a1fe2ea6960d9895191955",
+            "knownMappings": 2631,
+            "unknownMappings": 136964
+          },
+          "9201": {
+            "finalized": 3594,
+            "deleted": 3587,
+            "lastAt": 7207656.906375,
+            "order": "7204",
+            "store": "d55ce3b51dada2751f515c021485f7399fbc22b2a8a1fe2ea6960d9895191955",
+            "knownMappings": 2446,
+            "unknownMappings": 141880
+          }
+        },
+        "records": 7188,
+        "logicalBytes": 4293773
+      },
+      "mainMixedCycleWindows": [
+        159,
+        160,
+        160
+      ],
+      "mainEvidenceWindows": [
+        {
+          "structured": 3180,
+          "visual": 6340,
+          "evidence": 159,
+          "visualEvidence": 159
+        },
+        {
+          "structured": 3200,
+          "visual": 6340,
+          "evidence": 160,
+          "visualEvidence": 160
+        },
+        {
+          "structured": 3200,
+          "visual": 6300,
+          "evidence": 160,
+          "visualEvidence": 158
+        }
+      ],
+      "mainLastCycle": {
+        "elapsedMs": 7188975.5428329995,
+        "searchClients": [
+          479,
+          480,
+          476,
+          475
+        ],
+        "evidenceCreated": 479,
+        "visualCreated": 477
+      },
+      "postReactivationAdditionalCycles": 1,
+      "meaning": "본관측479회생성cycle, 재활성화1회로전체480회. 본관측 검색성공1910·general479·visual477과 실행전체합계1914·480·478을 구분한다."
+    },
+    "mixedWorkWholeExecution": {
+      "cycles": 480,
+      "searchSuccess": 1914,
+      "searchUnavailable": 10,
+      "searchSuccessByClient": [
+        480,
+        481,
+        477,
+        476
+      ],
+      "createComplete": 475,
+      "createPartial": 5,
+      "createSuccess": 480,
+      "createBusy": 480,
+      "retainedChecks": 962,
+      "deletedSourceObserved": true,
+      "visualCreated": 478,
+      "visualExpired": 2,
+      "searchLatencyMs": {
+        "count": 1914,
+        "p95": 745.4644999999873,
+        "max": 1671.7800829997286
+      },
+      "allowedOutcomes": "검색Unavailable10, 증거busy480, 명시partial5, visual source expired2를 숨기지 않는다. 기존상태/error allowlist와 partial참조이유 assertion을 통과한 허용경계이며 실패를성공건수로 합산하지 않는다.",
+      "successfulEvidenceCountsAreNotRequestCounts": true
+    },
+    "aLifecycle": {
+      "mainScheduleRows": 120,
+      "allSlots0Through119Completed": true,
+      "mainRawAdmitted": 120,
+      "mainRawCompleted": 120,
+      "completionWindows": [
+        40,
+        40,
+        40
+      ],
+      "sequentialNonoverlap": true,
+      "allRawCompletionRowsEqualReport": true,
+      "freshPackagesPreparedIncludingControlsAndReactivation": 123,
+      "submittedIncludingCancelled": 122,
+      "storedNewResultsIncludingReactivation": 121,
+      "independentlyReadAll121StoredResults": {
+        "schema": "media-server.va-review-record.v3",
+        "verdictSequence": "supported,contradicted,insufficient",
+        "allConfirmedAtPositive": true,
+        "allPackageAndReviewContentAddressHashesMatch": true,
+        "all121PackagesDistinctAndCompleteSingleFrame": true,
+        "all121ReviewIdsDistinct": true,
+        "questionsState": "not-generated",
+        "modelQuality": "not-evaluated"
+      },
+      "seed": {
+        "bytes": 28161,
+        "sha256": "d406d85ecdbb6293a9327ba56a586a597539ebc8eaf0bcba6cc2a482b5ab2eae",
+        "sampleOrdinal": 30,
+        "presentationNs": 966666666,
+        "traceRequestTargetNs": 966666667,
+        "meaning": "현재synthetic seed. 과거70 고정파일 동일바이트 재현 아님. actual detector나Qwen/Ollama 모델품질 검증 아님."
+      },
+      "initialStoreRecords": 3,
+      "finalStoreRecords": 124,
+      "finalStoreBytes": 716714,
+      "controls": {
+        "cancel": {
+          "httpStatus": 200,
+          "state": "cancelled",
+          "reviewId": ""
+        },
+        "revoke": {
+          "status": 401,
+          "unchangedStore": true
+        },
+        "restart": {
+          "allLocalBytesUnchanged": true,
+          "independentHttpReadbackCount": 3,
+          "transientExpired": true
+        }
+      },
+      "controlEvidence": "cancel-race 실제cancelled/HTTP200/reviewId빈값 및 inventory불변 assertion. 권한철회 후execute401와 inventory불변. 시작후취소된모든경합이나승인된실행후중간권한철회 조합의 전수검증으로 확대하지 않는다.",
+      "reactivation": "새PID99770에서새package/confirm/execute/worker/result1개완료, 최초reviewId와별개. 양채널 finalized진전도 별도assertion.",
+      "restartReadback": "첫/중간/마지막A결과3개를새서버HTTP로다시읽어 resultHash/guidance exact비교. transient confirm410. 저장바이트245개를재기동시검사했고최종247개를검토자가직접크기/hash대조.",
+      "all247ListedImmutableFilesMatchCurrentBytes": true
+    },
+    "recoveryAndRestart": {
+      "copies": [
+        {
+          "path": "mixed-120/receipts/o28-current-snapshot-5fc4a081-5f2f-44c9-87b2-ba00af9ec253.json",
+          "bytes": 488605,
+          "sha256": "e0db1446317c831a0ce71a5473c1b5839a32e2d6e986b4d8f8db746ce97043a8",
+          "child": {
+            "status": 0,
+            "signal": null,
+            "errorCode": null,
+            "failureCode": null,
+            "elapsedMs": 9992,
+            "outputBytes": 1769,
+            "lastOpenedPhase": "catalog-destruct",
+            "lastCompletedPhase": "destruct",
+            "traceStatus": "complete",
+            "traceLoss": false,
+            "rawOutputPublished": false
+          },
+          "sourceTree": {
+            "bytes": 153792287,
+            "count": 1425,
+            "sha256": "6f22f33d93548071323d91a72f4e10d51f5c4215d329db43e99de13a82e03003"
+          },
+          "copyTreeExactlyEqualsSourceTree": true,
+          "originalUnchanged": true,
+          "manifestUnchanged": true,
+          "groupClosed": true,
+          "phaseTraceComplete": true,
+          "itemBytesSumMatches": true,
+          "sourceManifest": [
+            {
+              "name": "catalog-source",
+              "bytes": 298138,
+              "sha256": "a5a99d00ccc8a614105096eb700178b605fc90210f95c9d7981900bd045c7d8d"
+            },
+            {
+              "name": "catalog-instrumented",
+              "bytes": 299024,
+              "sha256": "11f8530fadf5c8ece26bf4a46ffd2d53f9cf57d225ca3917839083a54608b0be"
+            },
+            {
+              "name": "runtime-archive",
+              "bytes": 92639872,
+              "sha256": "b79e8fbf6589c379ef9f6cb001f1667b393faf6110d2065356a350f0a6dc5179"
+            },
+            {
+              "name": "native-source",
+              "bytes": 14487,
+              "sha256": "062157ec3124faf6c921020bd3e55b5a1cd83b3f26a5bb22e8a053598be5b2db"
+            },
+            {
+              "name": "trace-header",
+              "bytes": 3599,
+              "sha256": "495ba7970a6ed1eba837c1fc26817e299bc36c1238778dacd203647acb6b3fc7"
+            },
+            {
+              "name": "generation-observation",
+              "bytes": 22430,
+              "sha256": "7206bcd27d6b7c5b6432661360537fbc9a075a07362cf4efad2a741c5258bb42"
+            },
+            {
+              "name": "native-binary",
+              "bytes": 10145576,
+              "sha256": "0ae1736b293956eb04e240cb03fd6e7dca7275b9fb1dcffe716ec5b59d837640"
+            }
+          ]
+        },
+        {
+          "path": "mixed-120/receipts/o28-current-snapshot-7e53ddad-ad71-41b9-a804-a4207d44f967.json",
+          "bytes": 492039,
+          "sha256": "d656a8f092b91abe983455c145155c4004e26416020884cc744aebd4cd1f42bc",
+          "child": {
+            "status": 0,
+            "signal": null,
+            "errorCode": null,
+            "failureCode": null,
+            "elapsedMs": 9993,
+            "outputBytes": 1769,
+            "lastOpenedPhase": "catalog-destruct",
+            "lastCompletedPhase": "destruct",
+            "traceStatus": "complete",
+            "traceLoss": false,
+            "rawOutputPublished": false
+          },
+          "sourceTree": {
+            "bytes": 154046813,
+            "count": 1435,
+            "sha256": "ccb32fd12377b1c2e9e0adfbfb45f3a0bddbaca8b85637d09e6abc80a08d6b4a"
+          },
+          "copyTreeExactlyEqualsSourceTree": true,
+          "originalUnchanged": true,
+          "manifestUnchanged": true,
+          "groupClosed": true,
+          "phaseTraceComplete": true,
+          "itemBytesSumMatches": true,
+          "sourceManifest": [
+            {
+              "name": "catalog-source",
+              "bytes": 298138,
+              "sha256": "a5a99d00ccc8a614105096eb700178b605fc90210f95c9d7981900bd045c7d8d"
+            },
+            {
+              "name": "catalog-instrumented",
+              "bytes": 299024,
+              "sha256": "11f8530fadf5c8ece26bf4a46ffd2d53f9cf57d225ca3917839083a54608b0be"
+            },
+            {
+              "name": "runtime-archive",
+              "bytes": 92639872,
+              "sha256": "b79e8fbf6589c379ef9f6cb001f1667b393faf6110d2065356a350f0a6dc5179"
+            },
+            {
+              "name": "native-source",
+              "bytes": 14487,
+              "sha256": "062157ec3124faf6c921020bd3e55b5a1cd83b3f26a5bb22e8a053598be5b2db"
+            },
+            {
+              "name": "trace-header",
+              "bytes": 3599,
+              "sha256": "495ba7970a6ed1eba837c1fc26817e299bc36c1238778dacd203647acb6b3fc7"
+            },
+            {
+              "name": "generation-observation",
+              "bytes": 22430,
+              "sha256": "7206bcd27d6b7c5b6432661360537fbc9a075a07362cf4efad2a741c5258bb42"
+            },
+            {
+              "name": "native-binary",
+              "bytes": 10145576,
+              "sha256": "0ae1736b293956eb04e240cb03fd6e7dca7275b9fb1dcffe716ec5b59d837640"
+            }
+          ]
+        },
+        {
+          "path": "mixed-120/receipts/o28-current-snapshot-a310eda0-bd1f-47c8-a64b-c102eef5037d.json",
+          "bytes": 488603,
+          "sha256": "b2a4f9ac93856af6842af389e7a77a25666328ae82709ef3d6c4333c44e039b7",
+          "child": {
+            "status": 0,
+            "signal": null,
+            "errorCode": null,
+            "failureCode": null,
+            "elapsedMs": 9959,
+            "outputBytes": 1769,
+            "lastOpenedPhase": "catalog-destruct",
+            "lastCompletedPhase": "destruct",
+            "traceStatus": "complete",
+            "traceLoss": false,
+            "rawOutputPublished": false
+          },
+          "sourceTree": {
+            "bytes": 153778737,
+            "count": 1425,
+            "sha256": "39f92ab7b1b251cd57ffa499568befe5cd60419b446c163661e9eb8d3078e02b"
+          },
+          "copyTreeExactlyEqualsSourceTree": true,
+          "originalUnchanged": true,
+          "manifestUnchanged": true,
+          "groupClosed": true,
+          "phaseTraceComplete": true,
+          "itemBytesSumMatches": true,
+          "sourceManifest": [
+            {
+              "name": "catalog-source",
+              "bytes": 298138,
+              "sha256": "a5a99d00ccc8a614105096eb700178b605fc90210f95c9d7981900bd045c7d8d"
+            },
+            {
+              "name": "catalog-instrumented",
+              "bytes": 299024,
+              "sha256": "11f8530fadf5c8ece26bf4a46ffd2d53f9cf57d225ca3917839083a54608b0be"
+            },
+            {
+              "name": "runtime-archive",
+              "bytes": 92639872,
+              "sha256": "b79e8fbf6589c379ef9f6cb001f1667b393faf6110d2065356a350f0a6dc5179"
+            },
+            {
+              "name": "native-source",
+              "bytes": 14487,
+              "sha256": "062157ec3124faf6c921020bd3e55b5a1cd83b3f26a5bb22e8a053598be5b2db"
+            },
+            {
+              "name": "trace-header",
+              "bytes": 3599,
+              "sha256": "495ba7970a6ed1eba837c1fc26817e299bc36c1238778dacd203647acb6b3fc7"
+            },
+            {
+              "name": "generation-observation",
+              "bytes": 22430,
+              "sha256": "7206bcd27d6b7c5b6432661360537fbc9a075a07362cf4efad2a741c5258bb42"
+            },
+            {
+              "name": "native-binary",
+              "bytes": 10145576,
+              "sha256": "0ae1736b293956eb04e240cb03fd6e7dca7275b9fb1dcffe716ec5b59d837640"
+            }
+          ]
+        }
+      ],
+      "copyMonitor": [
+        {
+          "failure": null,
+          "samples": 98,
+          "intervalMs": 100,
+          "maxGapMs": 102.99633299931884,
+          "elapsedMs": 9945.974207999185,
+          "continuousEnforcement": false,
+          "peakCopyBytes": 170687729,
+          "peakCombinedBytes": 366468403,
+          "combinedCapBytes": 950187434
+        },
+        {
+          "failure": null,
+          "samples": 98,
+          "intervalMs": 100,
+          "maxGapMs": 102.88770899921656,
+          "elapsedMs": 9979.238541999832,
+          "continuousEnforcement": false,
+          "peakCopyBytes": 177103519,
+          "peakCombinedBytes": 373437412,
+          "combinedCapBytes": 950187434
+        },
+        {
+          "failure": null,
+          "samples": 98,
+          "intervalMs": 100,
+          "maxGapMs": 102.76766700018197,
+          "elapsedMs": 9979.78249999974,
+          "continuousEnforcement": false,
+          "peakCopyBytes": 177752029,
+          "peakCombinedBytes": 374895817,
+          "combinedCapBytes": 950187434
+        }
+      ],
+      "closedJournalPasses": {
+        "first": true,
+        "final": true
+      },
+      "sourceTreeMeaning": "각복구는모든서버정상종료뒤별도소유copy에서native catalog/journal복구. source/copy tree가각시점에서일치하고복구후원본전체바이트불변확인. 재기동전후전체파일tree가동일하다는주장은아님; runtime cache파일은변할수있음.",
+      "nativeResultBoundary": "child exit0 및complete phase trace와 live/deleted 조건·before/after catalog digest exact assertion 원출력을읽었다. native stdout JSON전체는별도보존되지않아 개별available/deleted/digest값을추정기록하지않는다.",
+      "readOnlyRestartChannels": [
+        {
+          "expectedIds": [
+            "1",
+            "9101",
+            "9201"
+          ],
+          "channels": [
+            {
+              "id": "1",
+              "enabled": false,
+              "active": false
+            },
+            {
+              "id": "9101",
+              "enabled": false,
+              "active": false
+            },
+            {
+              "id": "9201",
+              "enabled": false,
+              "active": false
+            }
+          ]
+        }
+      ],
+      "physicalUsageOracle": [
+        {
+          "channelId": "9101",
+          "aliveBytes": "261966",
+          "historicalBytes": "123509936",
+          "deleted": 3587,
+          "apiContinuousBytes": 261966,
+          "apiEventBytes": 0,
+          "physicalFilesChecked": true
+        },
+        {
+          "channelId": "9201",
+          "aliveBytes": "267675",
+          "historicalBytes": "123549585",
+          "deleted": 3587,
+          "apiContinuousBytes": 267675,
+          "apiEventBytes": 0,
+          "physicalFilesChecked": true
+        }
+      ],
+      "savedGeneralAndVisualAfterRestart": "원본deleted 상태에서일반/visual 두저장증거의manifest·PNG hash 유지 확인. A와별도경로.",
+      "finalEntireRecordingsTreeIndependentlyCompared": {
+        "files": 1426,
+        "entriesIncludingDirectories": 1435,
+        "bytes": 154046813,
+        "allPathHashSizeAndContentHashMatchFinalReceipt": true,
+        "symlinksObserved": 0
+      },
+      "copiesActuallyAbsentAtReview": true
+    },
+    "diagnosticCapture": {
+      "settings": [
+        {
+          "pid": 81113,
+          "generatedMode": "bounded",
+          "expectedMode": "bounded",
+          "observationMs": 7200000
+        },
+        {
+          "pid": 99721,
+          "generatedMode": "bounded",
+          "expectedMode": "bounded",
+          "observationMs": 7200000
+        },
+        {
+          "pid": 99770,
+          "generatedMode": "bounded",
+          "expectedMode": "bounded",
+          "observationMs": 7200000
+        }
+      ],
+      "processes": [
+        {
+          "serverIndex": 1,
+          "log": {
+            "path": "mixed-120/media-server-current-observer-yTvczQ/server-1.private.log",
+            "bytes": 829185,
+            "sha256": "abbf10d6a4591d4ac856898e95315db9da0e959896834f4ca2643e6eb260130f"
+          },
+          "receipt": {
+            "pid": 81113,
+            "bytes": 829185,
+            "capturedBytes": 829185,
+            "sha256": "abbf10d6a4591d4ac856898e95315db9da0e959896834f4ca2643e6eb260130f",
+            "overflow": false,
+            "captureError": null,
+            "categories": [
+              {
+                "code": "file evidence unavailable",
+                "count": 0
+              },
+              {
+                "code": "storageBlocked",
+                "count": 0
+              },
+              {
+                "code": "shutdown",
+                "count": 0
+              },
+              {
+                "code": "ERROR",
+                "count": 0
+              },
+              {
+                "code": "WARNING",
+                "count": 0
+              }
+            ],
+            "rawBodyPublished": false,
+            "privateCaptureDisposition": "eligible-for-wrapper-cleanup"
+          },
+          "actualBytesAndShaMatchReceipt": true,
+          "summary": {
+            "status": "captured",
+            "mode": "bounded",
+            "required": true,
+            "records": 3,
+            "successes": 3,
+            "failures": 0,
+            "issues": []
+          },
+          "representatives": [
+            {
+              "mode": "bounded",
+              "policy": "automatic",
+              "succeeded": true,
+              "pid": 81113,
+              "target": 0,
+              "lastStream": 0,
+              "samples": 1,
+              "bytes": 28161,
+              "budgetMs": 5000,
+              "elapsedUs": 76897,
+              "offsetBefore": 0,
+              "offsetAfter": 0,
+              "nullDone": 1,
+              "droppedEvents": 0,
+              "droppedFactories": 0,
+              "probeFailures": 0,
+              "decoderFactories": [
+                "vtdec_hw:applemedia:1.28.1"
+              ]
+            },
+            {
+              "mode": "bounded",
+              "policy": "software-only",
+              "succeeded": true,
+              "pid": 81113,
+              "target": 966666667,
+              "lastStream": 966666666,
+              "samples": 30,
+              "bytes": 28161,
+              "budgetMs": 5000,
+              "elapsedUs": 53080,
+              "offsetBefore": 0,
+              "offsetAfter": 0,
+              "nullDone": 1,
+              "droppedEvents": 0,
+              "droppedFactories": 0,
+              "probeFailures": 0,
+              "decoderFactories": [
+                "avdec_h264:libav:1.28.1"
+              ]
+            },
+            {
+              "mode": "bounded",
+              "policy": "automatic",
+              "succeeded": true,
+              "pid": 81113,
+              "target": 0,
+              "lastStream": 0,
+              "samples": 1,
+              "bytes": 34724,
+              "budgetMs": 5000,
+              "elapsedUs": 7430,
+              "offsetBefore": 0,
+              "offsetAfter": 0,
+              "nullDone": 1,
+              "droppedEvents": 0,
+              "droppedFactories": 0,
+              "probeFailures": 0,
+              "decoderFactories": [
+                "vtdec_hw:applemedia:1.28.1"
+              ]
+            }
+          ]
+        },
+        {
+          "serverIndex": 2,
+          "log": {
+            "path": "mixed-120/media-server-current-observer-yTvczQ/server-2.private.log",
+            "bytes": 11980,
+            "sha256": "9fbd42158dcee3058d9aa2b162b52791d8fec1a3cf700b81dc4db8673348d9e3"
+          },
+          "receipt": {
+            "pid": 99721,
+            "bytes": 11980,
+            "capturedBytes": 11980,
+            "sha256": "9fbd42158dcee3058d9aa2b162b52791d8fec1a3cf700b81dc4db8673348d9e3",
+            "overflow": false,
+            "captureError": null,
+            "categories": [
+              {
+                "code": "file evidence unavailable",
+                "count": 0
+              },
+              {
+                "code": "storageBlocked",
+                "count": 0
+              },
+              {
+                "code": "shutdown",
+                "count": 0
+              },
+              {
+                "code": "ERROR",
+                "count": 0
+              },
+              {
+                "code": "WARNING",
+                "count": 0
+              }
+            ],
+            "rawBodyPublished": false,
+            "privateCaptureDisposition": "eligible-for-wrapper-cleanup"
+          },
+          "actualBytesAndShaMatchReceipt": true,
+          "summary": {
+            "status": "captured",
+            "mode": "bounded",
+            "required": false,
+            "records": 2,
+            "successes": 2,
+            "failures": 0,
+            "issues": []
+          },
+          "representatives": [
+            {
+              "mode": "bounded",
+              "policy": "automatic",
+              "succeeded": true,
+              "pid": 99721,
+              "target": 0,
+              "lastStream": 0,
+              "samples": 1,
+              "bytes": 21482,
+              "budgetMs": 5000,
+              "elapsedUs": 86716,
+              "offsetBefore": 0,
+              "offsetAfter": 0,
+              "nullDone": 1,
+              "droppedEvents": 0,
+              "droppedFactories": 0,
+              "probeFailures": 0,
+              "decoderFactories": [
+                "vtdec_hw:applemedia:1.28.1"
+              ]
+            },
+            {
+              "mode": "bounded",
+              "policy": "automatic",
+              "succeeded": true,
+              "pid": 99721,
+              "target": 1000000000,
+              "lastStream": 1000000000,
+              "samples": 1,
+              "bytes": 21482,
+              "budgetMs": 5000,
+              "elapsedUs": 7255,
+              "offsetBefore": 0,
+              "offsetAfter": 0,
+              "nullDone": 1,
+              "droppedEvents": 0,
+              "droppedFactories": 0,
+              "probeFailures": 0,
+              "decoderFactories": [
+                "vtdec_hw:applemedia:1.28.1"
+              ]
+            }
+          ]
+        },
+        {
+          "serverIndex": 3,
+          "log": {
+            "path": "mixed-120/media-server-current-observer-yTvczQ/server-3.private.log",
+            "bytes": 24151,
+            "sha256": "efbbc6c857c6372239062bcd2933743f09aee06feb4dbbee4012d432bf4e0eaf"
+          },
+          "receipt": {
+            "pid": 99770,
+            "bytes": 24151,
+            "capturedBytes": 24151,
+            "sha256": "efbbc6c857c6372239062bcd2933743f09aee06feb4dbbee4012d432bf4e0eaf",
+            "overflow": false,
+            "captureError": null,
+            "categories": [
+              {
+                "code": "file evidence unavailable",
+                "count": 0
+              },
+              {
+                "code": "storageBlocked",
+                "count": 0
+              },
+              {
+                "code": "shutdown",
+                "count": 0
+              },
+              {
+                "code": "ERROR",
+                "count": 0
+              },
+              {
+                "code": "WARNING",
+                "count": 0
+              }
+            ],
+            "rawBodyPublished": false,
+            "privateCaptureDisposition": "eligible-for-wrapper-cleanup"
+          },
+          "actualBytesAndShaMatchReceipt": true,
+          "summary": {
+            "status": "captured",
+            "mode": "bounded",
+            "required": true,
+            "records": 3,
+            "successes": 3,
+            "failures": 0,
+            "issues": []
+          },
+          "representatives": [
+            {
+              "mode": "bounded",
+              "policy": "software-only",
+              "succeeded": true,
+              "pid": 99770,
+              "target": 1000000000,
+              "lastStream": 1000000000,
+              "samples": 1,
+              "bytes": 34078,
+              "budgetMs": 5000,
+              "elapsedUs": 47129,
+              "offsetBefore": 0,
+              "offsetAfter": 0,
+              "nullDone": 1,
+              "droppedEvents": 0,
+              "droppedFactories": 0,
+              "probeFailures": 0,
+              "decoderFactories": [
+                "avdec_h264:libav:1.28.1"
+              ]
+            },
+            {
+              "mode": "bounded",
+              "policy": "automatic",
+              "succeeded": true,
+              "pid": 99770,
+              "target": 0,
+              "lastStream": 0,
+              "samples": 1,
+              "bytes": 34724,
+              "budgetMs": 5000,
+              "elapsedUs": 6451,
+              "offsetBefore": 0,
+              "offsetAfter": 0,
+              "nullDone": 1,
+              "droppedEvents": 0,
+              "droppedFactories": 0,
+              "probeFailures": 0,
+              "decoderFactories": [
+                "vtdec_hw:applemedia:1.28.1"
+              ]
+            },
+            {
+              "mode": "bounded",
+              "policy": "automatic",
+              "succeeded": true,
+              "pid": 99770,
+              "target": 1000000000,
+              "lastStream": 1000000000,
+              "samples": 1,
+              "bytes": 34724,
+              "budgetMs": 5000,
+              "elapsedUs": 6718,
+              "offsetBefore": 0,
+              "offsetAfter": 0,
+              "nullDone": 1,
+              "droppedEvents": 0,
+              "droppedFactories": 0,
+              "probeFailures": 0,
+              "decoderFactories": [
+                "vtdec_hw:applemedia:1.28.1"
+              ]
+            }
+          ]
+        }
+      ],
+      "meaning": "프로세스1/3은Automatic2 vtdec_hw+SoftwareOnly1 avdec_h264, readback프로세스2는Automatic2만관측이며requiresFrameTrace=false였다. bounded대표성공8건은모든호출factory전수자료가아니다. 실패반환은기존별도기록예약,8건전부성공/절단0/probe실패0/NULL완료. 원시로그전체수집완료와실제실패trace없음확인.",
+      "allReceivedEqualsStoredAndReadback": true,
+      "perProcessCapBytes": 4194304,
+      "captureErrors": 0,
+      "traceOutputFailedOrConfigInvalidMarkers": 0,
+      "slowDiagnostic": [
+        {
+          "status": "captured",
+          "seen": 35344,
+          "retained": 64,
+          "completedSpansOnly": true
+        },
+        {
+          "status": "captured",
+          "seen": 1,
+          "retained": 1,
+          "completedSpansOnly": true
+        },
+        {
+          "status": "captured",
+          "seen": 20,
+          "retained": 20,
+          "completedSpansOnly": true
+        }
+      ],
+      "rawFailLines": 0
+    },
+    "resources": {
+      "resourceTrendPass": false,
+      "reviewRequired": true,
+      "footprintState": "not-measured",
+      "observedMax": {
+        "rssBytes": 3209412608,
+        "threadCount": 43,
+        "fdCount": 35,
+        "cpuPercent": 317.6,
+        "combinedLogicalIds": 64680,
+        "combinedLogicalBytes": 9349588
+      },
+      "postWarmup": {
+        "status": "observed",
+        "sampleCount": 1380,
+        "delta": {
+          "rssBytes": 122486784,
+          "threadCount": -1,
+          "fdCount": 2,
+          "mutationCount": 27567
+        },
+        "elapsedMs": 6899108.980375,
+        "rssMiBPerMinute": 1.0158920550373796
+      },
+      "lastSample": {
+        "rssBytes": 1848508416,
+        "threadCount": 40,
+        "fdCount": 32,
+        "mutationCount": 28746,
+        "rotations": 88,
+        "partialBytes": 0
+      },
+      "maxVariableRootBytes": 186977655,
+      "fixedBytes": 10663338,
+      "variableCapBytes": 469762048,
+      "maxCombinedDuringCopyBytes": 374895817,
+      "combinedCapBytes": 950187434,
+      "sampledBudgetViolations": 0,
+      "samplingLimits": "RSS약5초표본,복구copy약100ms논리파일표본이며하드순간peak강제보장아님. 원시보고서continuousEnforcement=false 유지.",
+      "knownOperatingLimits": "Catalog/Journal mutation identity/order와retired receipt/source이력이미디어삭제/off/checkpoint로모두지워지지않는다. 파일quota는이력RAM상한아님. 후warmupRSS122486784bytes증가(약1.015892MiB/min)는관측이며누수원인확정·안정성무한보장아님.",
+      "policyReferences": [
+        "docs/development-backlog.md:218",
+        "docs/release-notes-v4.5.0.md:38"
+      ]
+    },
+    "cleanup": {
+      "threeProductReceipts": [
+        {
+          "schema": "recording-process-cleanup-v1",
+          "attemptCount": 1,
+          "pid": 81113,
+          "exitCode": 0,
+          "signalCode": null,
+          "exitedObserved": true,
+          "stopCode": "complete",
+          "forcedTermination": "not-used",
+          "normalExitPass": true,
+          "normalShutdownPass": true,
+          "archiveSafe": true,
+          "ports": [
+            {
+              "kind": "http",
+              "port": 53257,
+              "status": "pass",
+              "code": "closed",
+              "closed": true
+            },
+            {
+              "kind": "rtsp",
+              "port": 53258,
+              "status": "pass",
+              "code": "closed",
+              "closed": true
+            }
+          ]
+        },
+        {
+          "schema": "recording-process-cleanup-v1",
+          "attemptCount": 1,
+          "pid": 99721,
+          "exitCode": 0,
+          "signalCode": null,
+          "exitedObserved": true,
+          "stopCode": "complete",
+          "forcedTermination": "not-used",
+          "normalExitPass": true,
+          "normalShutdownPass": true,
+          "archiveSafe": true,
+          "ports": [
+            {
+              "kind": "http",
+              "port": 63689,
+              "status": "pass",
+              "code": "closed",
+              "closed": true
+            },
+            {
+              "kind": "rtsp",
+              "port": 63690,
+              "status": "pass",
+              "code": "closed",
+              "closed": true
+            }
+          ]
+        },
+        {
+          "schema": "recording-process-cleanup-v1",
+          "attemptCount": 1,
+          "pid": 99770,
+          "exitCode": 0,
+          "signalCode": null,
+          "exitedObserved": true,
+          "stopCode": "complete",
+          "forcedTermination": "not-used",
+          "normalExitPass": true,
+          "normalShutdownPass": true,
+          "archiveSafe": true,
+          "ports": [
+            {
+              "kind": "http",
+              "port": 63821,
+              "status": "pass",
+              "code": "closed",
+              "closed": true
+            },
+            {
+              "kind": "rtsp",
+              "port": 63822,
+              "status": "pass",
+              "code": "closed",
+              "closed": true
+            }
+          ]
+        }
+      ],
+      "udpClosedReported": true,
+      "wrapperAndRegisteredGroupsAbsent": true,
+      "recoveryLedger": [
+        "{\"event\":\"started\",\"pid\":99704}",
+        "{\"event\":\"closed\",\"pid\":99704}",
+        "{\"event\":\"started\",\"pid\":99765}",
+        "{\"event\":\"closed\",\"pid\":99765}",
+        "{\"event\":\"started\",\"pid\":99829}",
+        "{\"event\":\"closed\",\"pid\":99829}"
+      ],
+      "independentReadOnlyPidAndGroupObservation": {
+        "pid-81074": "absent",
+        "group-81074": "absent",
+        "pid-81113": "absent",
+        "group-81113": "absent",
+        "pid-99721": "absent",
+        "group-99721": "absent",
+        "pid-99770": "absent",
+        "group-99770": "absent",
+        "pid-99704": "absent",
+        "group-99704": "absent",
+        "pid-99765": "absent",
+        "group-99765": "absent",
+        "pid-99829": "absent",
+        "group-99829": "absent"
+      },
+      "portBoundary": "각정상종료receipt의HTTP/RTSP closed=true와UDP finally/report를대조했다. 검토자가포트bind/접속을다시실행하지않았다.",
+      "copyRootsAbsent": true,
+      "mainOwnedRootStillPresent": true,
+      "overallOwnedCleanupComplete": false,
+      "pending": "필수정제증거보존·Git바이트확인·승인된main owned root삭제/실제부재 추가확인. 제품프로세스정상종료와임시자료삭제완료를구분한다.",
+      "mainProvidedHostPortReceipt": {
+        "recordedAt": "2026-10-09T10:01:26.662334+00:00",
+        "rootAbsent": false,
+        "processes": {
+          "pid-81074": "absent",
+          "group-81074": "absent",
+          "pid-81113": "absent",
+          "group-81113": "absent",
+          "pid-99721": "absent",
+          "group-99721": "absent",
+          "pid-99770": "absent",
+          "group-99770": "absent"
+        },
+        "ports": {
+          "53257": {
+            "connectionCode": 61,
+            "connectionRefused": true
+          },
+          "53258": {
+            "connectionCode": 61,
+            "connectionRefused": true
+          },
+          "63689": {
+            "connectionCode": 61,
+            "connectionRefused": true
+          },
+          "63690": {
+            "connectionCode": 61,
+            "connectionRefused": true
+          },
+          "63821": {
+            "connectionCode": 61,
+            "connectionRefused": true
+          },
+          "63822": {
+            "connectionCode": 61,
+            "connectionRefused": true
+          }
+        },
+        "cleanupRecords": [
+          {
+            "schema": "recording-process-cleanup-v1",
+            "attemptCount": 1,
+            "pid": 81113,
+            "exitCode": 0,
+            "signalCode": null,
+            "exitedObserved": true,
+            "stopCode": "complete",
+            "forcedTermination": "not-used",
+            "normalExitPass": true,
+            "normalShutdownPass": true,
+            "archiveSafe": true,
+            "ports": [
+              {
+                "kind": "http",
+                "port": 53257,
+                "status": "pass",
+                "code": "closed",
+                "closed": true
+              },
+              {
+                "kind": "rtsp",
+                "port": 53258,
+                "status": "pass",
+                "code": "closed",
+                "closed": true
+              }
+            ]
+          },
+          {
+            "schema": "recording-process-cleanup-v1",
+            "attemptCount": 1,
+            "pid": 99721,
+            "exitCode": 0,
+            "signalCode": null,
+            "exitedObserved": true,
+            "stopCode": "complete",
+            "forcedTermination": "not-used",
+            "normalExitPass": true,
+            "normalShutdownPass": true,
+            "archiveSafe": true,
+            "ports": [
+              {
+                "kind": "http",
+                "port": 63689,
+                "status": "pass",
+                "code": "closed",
+                "closed": true
+              },
+              {
+                "kind": "rtsp",
+                "port": 63690,
+                "status": "pass",
+                "code": "closed",
+                "closed": true
+              }
+            ]
+          },
+          {
+            "schema": "recording-process-cleanup-v1",
+            "attemptCount": 1,
+            "pid": 99770,
+            "exitCode": 0,
+            "signalCode": null,
+            "exitedObserved": true,
+            "stopCode": "complete",
+            "forcedTermination": "not-used",
+            "normalExitPass": true,
+            "normalShutdownPass": true,
+            "archiveSafe": true,
+            "ports": [
+              {
+                "kind": "http",
+                "port": 63821,
+                "status": "pass",
+                "code": "closed",
+                "closed": true
+              },
+              {
+                "kind": "rtsp",
+                "port": 63822,
+                "status": "pass",
+                "code": "closed",
+                "closed": true
+              }
+            ]
+          }
+        ]
+      },
+      "hostPortReceiptInterpretation": "메인의 실제 호스트 관측 영수증에서 HTTP/RTSP 6개 포트의 connectionRefused=61을 확인했다. 검토자는 새 포트 접속을 실행하지 않았다. 앞서 직접 확인한 PID/group 부재와 일치한다."
+    },
+    "priorEvidence": {
+      "task72": "같은제품소스/binary/runtime의direct host/Linux/comparison100+100을기존범위로유지하며재실행하지않음. task72 full captureFAIL 유지.",
+      "task73": "같은runner의600초/contract64·A5·launcher7 및독립검토를기존범위로유지.",
+      "task70And71": "FAIL 및근본원인미확정유지. 이번성공으로실패원인이나hardware불안정을입증하지않음.",
+      "legacy986": "변경없는baseline을재생성하거나producer재적용하지않음."
+    },
+    "notPerformedByThisReview": [
+      "제품/테스트/모델실행",
+      "실제UI조작/시각전수검수",
+      "Qwen/Ollama호출",
+      "신규소스구현검토전면재수행",
+      "원격조회/producer/출시승인",
+      "증거삭제/commit/push"
+    ],
+    "reviewLimitations": [
+      "원시HTTP응답전체를보존하지않는지점은실제assertion원출력과고정소스및최종저장파일을함께평가했다. 없는응답본문이나native stdout을복원하지않았다.",
+      "현재저장패키지바이트/hash및manifest는대조했으나모든PNG를시각검수하지않았다.",
+      "최종저장tree는직접대조했고이전두복구시점바이트불변은고정receipt/원출력근거다."
+    ],
+    "openProductFindings": [],
+    "functionalLifetimeCaptureBlockers": [],
+    "reviewedRawArtifacts": [
+      {
+        "path": "prepare.json",
+        "bytes": 6142,
+        "sha256": "3a7b06be370cf47fc0a08e65a385a675d2f44261d12c31fd59a552b497634bc1"
+      },
+      {
+        "path": "mixed-120/execution.json",
+        "bytes": 1764,
+        "sha256": "05dcf9fa3fcb59c9965f531f38b8e0f955a06e5e2130f6745a1e6a19bd05eb0f"
+      },
+      {
+        "path": "mixed-120/run.log",
+        "bytes": 12109192,
+        "sha256": "f824e7926241b214bee144b0c98e82c1225e93ad8f7a81e42a7da0fdb573d80d"
+      },
+      {
+        "path": "mixed-120/artifacts/report.json",
+        "bytes": 553044,
+        "sha256": "5a3fa314d5ae03ac68c4299bfe96da00b27738c0bafeb6a72c51846f14fefdc5"
+      },
+      {
+        "path": "mixed-120/artifacts/started.json",
+        "bytes": 210,
+        "sha256": "ee8c9576ab0efa65d77390c25f23761f98e2634b72fe4bdbd4dacc90569d0935"
+      },
+      {
+        "path": "mixed-120/owned-recovery-groups.jsonl",
+        "bytes": 189,
+        "sha256": "18ec47b5be997ebabddfa18188e5d967261fb5007d94a21ef18236f0397e2577"
+      },
+      {
+        "path": "mixed-120/receipts/o28-current-snapshot-a310eda0-bd1f-47c8-a64b-c102eef5037d.json",
+        "bytes": 488603,
+        "sha256": "b2a4f9ac93856af6842af389e7a77a25666328ae82709ef3d6c4333c44e039b7"
+      },
+      {
+        "path": "mixed-120/receipts/o28-current-snapshot-5fc4a081-5f2f-44c9-87b2-ba00af9ec253.json",
+        "bytes": 488605,
+        "sha256": "e0db1446317c831a0ce71a5473c1b5839a32e2d6e986b4d8f8db746ce97043a8"
+      },
+      {
+        "path": "mixed-120/receipts/o28-current-snapshot-7e53ddad-ad71-41b9-a804-a4207d44f967.json",
+        "bytes": 492039,
+        "sha256": "d656a8f092b91abe983455c145155c4004e26416020884cc744aebd4cd1f42bc"
+      },
+      {
+        "path": "mixed-120/media-server-current-observer-yTvczQ/server-1.private.log",
+        "bytes": 829185,
+        "sha256": "abbf10d6a4591d4ac856898e95315db9da0e959896834f4ca2643e6eb260130f"
+      },
+      {
+        "path": "mixed-120/media-server-current-observer-yTvczQ/server-2.private.log",
+        "bytes": 11980,
+        "sha256": "9fbd42158dcee3058d9aa2b162b52791d8fec1a3cf700b81dc4db8673348d9e3"
+      },
+      {
+        "path": "mixed-120/media-server-current-observer-yTvczQ/server-3.private.log",
+        "bytes": 24151,
+        "sha256": "efbbc6c857c6372239062bcd2933743f09aee06feb4dbbee4012d432bf4e0eaf"
+      },
+      {
+        "path": "precleanup.json",
+        "bytes": 2877,
+        "sha256": "7fe5719feeaf0f76783926688a3a7fba37c230ff6da6330fa9df31fd3e9f933a"
+      }
+    ],
+    "otherDirectReads": {
+      "storedARecords": 121,
+      "correspondingPackages": 121,
+      "immutableManifestFiles": 247,
+      "finalRecordingTreeFiles": 1426,
+      "sourceFiles": [
+        "scripts/internal/v450_recording_a_mixed.mjs",
+        "scripts/internal/v450_recording_a_load.mjs",
+        "scripts/internal/recording_archive_diagnostic_profile.mjs",
+        "scripts/internal/recording_current_observer_native.cpp"
+      ],
+      "policy": "기존AGENTS/release-policy의검증·보존·승인경계를유지하며task74에필요한현행운영한계만추가읽음."
+    }
+  },
+  "originalExecutionReviewSha256": "35258d2439e647a31f01434895dbd13cd4d69461470d47579019b41d37af5df5",
+  "preservationAddendum": {
+    "task": 74,
+    "stage": "independent-preservation-addendum",
+    "recordedAt": "2026-10-09T10:08:13.400487+00:00",
+    "requestedAndToolAcceptedModel": "gpt-6-astra",
+    "requestedAndToolAcceptedEffort": "high",
+    "actualRuntimeModel": null,
+    "actualRuntimeEffort": null,
+    "scope": "보존 archive의 실제 바이트·manifest·원본/정제 변환·선택 산출물의 출처를 추가 검토했다. 기존 review74-final.json은 수정하지 않았으며 제품/테스트/모델 실행·소스 수정·원격 조회·하위 위임을 하지 않았다.",
+    "status": "local-sanitized-preservation-suitable; remote-byte-preservation-and-owned-root-cleanup-pending",
+    "archive": {
+      "path": "docs/release-artifacts/v4.5.0/74-execution.tar.gz",
+      "bytes": 2092017,
+      "sha256": "c94bd51374018003c4f8cee5dc4b19dd8e0d92287f42b02db6b5c87fd1ad823f",
+      "members": 278,
+      "allRegularFiles": true,
+      "uncompressedBytes": 17087438,
+      "maxMemberBytes": 12109192,
+      "manifestEntries": 277,
+      "allManifestSizesAndHashesMatch": true,
+      "unlistedMember": "archive-manifest.json itself",
+      "samePathOriginalFilesCompared": 17,
+      "allSamePathOriginalBytesMatch": true,
+      "originalReviewSha256": "35258d2439e647a31f01434895dbd13cd4d69461470d47579019b41d37af5df5",
+      "originalReviewBytesUnchanged": true
+    },
+    "rawEvidence": {
+      "runLog": {
+        "bytes": 12109192,
+        "sha256": "f824e7926241b214bee144b0c98e82c1225e93ad8f7a81e42a7da0fdb573d80d",
+        "sameAsOwnedOriginal": true
+      },
+      "receipts": "실제 3개 recovery receipt, prepare/execution/report, 시작기록·recovery group ledger·precleanup 및 seed 원출력이 원본과 같은 바이트로 보존됐다.",
+      "priorLimitRetained": "native stdout 전체와 HTTP 응답 본문을 원래 저장하지 않은 지점은 새로 복원하지 않았다. 원검토의 assertion/고정소스/최종파일 대조 한계를 유지한다.",
+      "noPrivateOriginalLogArchived": true
+    },
+    "logSanitization": [
+      {
+        "originalPath": "media-server-current-observer-yTvczQ/server-1.private.log",
+        "originalBytes": 829185,
+        "originalSha256": "abbf10d6a4591d4ac856898e95315db9da0e959896834f4ca2643e6eb260130f",
+        "preservedPath": "mixed-120/server-1.sanitized.log",
+        "preservedBytes": 828775,
+        "preservedSha256": "7c9aa0ef79ad6421b5c8174da0d19763e621099499b10e72be979154eb8a01a0",
+        "sameBytes": false,
+        "originalAndPreservedLines": 4194,
+        "redactedLines": 30,
+        "unchangedLines": 4164,
+        "allOriginalOffsetsLengthsAndHashesMatch": true,
+        "allNumberedReplacementMarkersMatch": true,
+        "allUnredactedLinesByteIdentical": true,
+        "traceRecords": 3
+      },
+      {
+        "originalPath": "media-server-current-observer-yTvczQ/server-2.private.log",
+        "originalBytes": 11980,
+        "originalSha256": "9fbd42158dcee3058d9aa2b162b52791d8fec1a3cf700b81dc4db8673348d9e3",
+        "preservedPath": "mixed-120/server-2.sanitized.log",
+        "preservedBytes": 11569,
+        "preservedSha256": "11531887fa6045914d7411d1288d71c5525139ba0d24bdcd30b5c3074112bf2d",
+        "sameBytes": false,
+        "originalAndPreservedLines": 35,
+        "redactedLines": 30,
+        "unchangedLines": 5,
+        "allOriginalOffsetsLengthsAndHashesMatch": true,
+        "allNumberedReplacementMarkersMatch": true,
+        "allUnredactedLinesByteIdentical": true,
+        "traceRecords": 2
+      },
+      {
+        "originalPath": "media-server-current-observer-yTvczQ/server-3.private.log",
+        "originalBytes": 24151,
+        "originalSha256": "efbbc6c857c6372239062bcd2933743f09aee06feb4dbbee4012d432bf4e0eaf",
+        "preservedPath": "mixed-120/server-3.sanitized.log",
+        "preservedBytes": 23732,
+        "preservedSha256": "d558b101a00f560ea604ccf825a41e5171a83f47271fbc0c98e471576ad58476",
+        "sameBytes": false,
+        "originalAndPreservedLines": 72,
+        "redactedLines": 30,
+        "unchangedLines": 42,
+        "allOriginalOffsetsLengthsAndHashesMatch": true,
+        "allNumberedReplacementMarkersMatch": true,
+        "allUnredactedLinesByteIdentical": true,
+        "traceRecords": 3
+      }
+    ],
+    "sanitizationJudgment": "세 로그 각각 원본 설정 30줄의 offset/길이/hash와 번호 marker를 대조했다. 그 외 4211줄은 원본과 byte-identical이며 bounded 대표 trace 8건과 slow 진단이 유지된다. 원본과 정제본의 bytes/hash는 명확히 다르게 기록돼 있다. 필수 실패·진단 증거를 지운 흔적을 발견하지 않았다.",
+    "independentPrivacyScan": {
+      "scannedAll278MemberBytes": true,
+      "patterns": [
+        "실제 Argon hash",
+        "Bearer credential 값",
+        "private key PEM",
+        "credential-bearing HTTP/RTSP URI",
+        "passwordHash/tokenHash/passwordHistory의 실제 값"
+      ],
+      "findings": [],
+      "sanitizedLogSourceUriHits": 0,
+      "excludedArtifactClasses": [
+        "auth users/sessions/tokens/invites stores",
+        "원본 private 설정 로그",
+        "runtime binary/archive",
+        "ONNX model binaries",
+        "catalog/journal bulk copy"
+      ],
+      "boundary": "패턴 검사는 모든 비밀 부재의 수학적 보장이 아니다. 소유 synthetic 입력/출력, 실제 원본 정제관계 및 archive 구성까지 함께 검토한 판정이다. privacy-scan.json의276개는 그 파일 자신/manifest 추가 전 기록이며 이번 검토는 최종278개 모두를 읽었다."
+    },
+    "selectedResults": {
+      "immutableFilesListedByReport": 247,
+      "all247SizesHashesAndOwnedOriginalBytesMatch": true,
+      "selectedFileCount": 249,
+      "evidencePackages": 125,
+      "reviewRecords": 124,
+      "all249MatchOwnedOriginalBytes": true,
+      "newCompletedAResults": 121,
+      "newCompletedABindingsMatchActualReportRows": true,
+      "all121PackageFramesMatchBindingAndActualSeedHash": true,
+      "initialSeedReviewRecords": 3,
+      "initialSeedRecordsNotCountedAsNewResults": true,
+      "controlPreparedPackagesWithoutPublishedResults": 2,
+      "retainedGeneralAndVisualPackages": 2,
+      "selectionMeaning": "report의 immutable 목록247개는 새 A 결과121개/대응package121개, 초기record3개, cancel/revoke 준비package2개를 보존한다. 여기에 원본삭제 후 재조회한 일반·visual package2개를 포함해249개다. 이 보존 선택이 전체 생성package를 전수보존했다는 뜻은 아니다.",
+      "bindingPath": "selected-bindings.json"
+    },
+    "syntheticInputs": {
+      "files": [
+        {
+          "path": "input/a-seed.mp4",
+          "bytes": 28161,
+          "sha256": "d406d85ecdbb6293a9327ba56a586a597539ebc8eaf0bcba6cc2a482b5ab2eae",
+          "sameAsOwnedOriginal": true
+        },
+        {
+          "path": "input/retention-9101.mp4",
+          "bytes": 67929,
+          "sha256": "e615a38667ecb36bd1f7f3e3577ef560b2a28c98ef2f6dccbd056657d402753e",
+          "sameAsOwnedOriginal": true
+        },
+        {
+          "path": "input/retention-9201.mp4",
+          "bytes": 67929,
+          "sha256": "e615a38667ecb36bd1f7f3e3577ef560b2a28c98ef2f6dccbd056657d402753e",
+          "sameAsOwnedOriginal": true
+        }
+      ],
+      "provenance": "현재 실행에서 생성한 A seed와2채널 retention synthetic 입력이다. 보존70 MP4 동일바이트 재현/운영영상으로 주장하지 않는다.",
+      "aSeedSha256": "d406d85ecdbb6293a9327ba56a586a597539ebc8eaf0bcba6cc2a482b5ab2eae"
+    },
+    "representativeTraces": {
+      "count": 8,
+      "countsPerProcess": [
+        3,
+        2,
+        3
+      ],
+      "projectedFieldsMatchActualSanitizedAndOriginalTrace": true,
+      "notAllCalls": true,
+      "scope": "프로세스별 Automatic 최대2/SoftwareOnly 최대1 대표성공 예약. readback 프로세스2는Automatic2만 관측. 모든 호출 factory 전수증거로 확대하지 않는다."
+    },
+    "decisionUnchanged": {
+      "functionalLifetimeCapture": "approve — 현재 고정후보의 요청된120분 실행 증거 충족",
+      "resourceTrendPass": false,
+      "reviewRequired": true,
+      "footprint": "미측정",
+      "observedPostWarmupRssMiBPerMinute": 1.0158920550373796,
+      "knownCatalogOperatingLimits": "유지. 무제한/누수없음 승인 아님.",
+      "finalReleaseAdoption": "미수행·별도 승인 판단",
+      "producerApplied": false,
+      "historical70And71": "FAIL 및 원인 미확정 유지",
+      "historical72": "원래 full 수집 FAIL 유지"
+    },
+    "cleanup": {
+      "ownedRoot": "/private/tmp/media-server-release74-rbm6t8bo",
+      "rootPresentAtReview": true,
+      "rootSymlink": false,
+      "remoteBytePreservationVerifiedByReviewer": false,
+      "overallOwnedCleanupComplete": false,
+      "remaining": "원격 고정 Git 바이트 대조를 마친 뒤 승인된 소유root 정리와 실제부재를 별도 확인해야 한다. 이전 프로세스·포트·복구사본 정리 판정은 원검토 범위를 유지한다.",
+      "originalDeletionReadiness": "현재 정제보존은 원본 삭제 전에 필요한 증거를 유지한다. 이 판정 자체는 원격보존 완료나 새 삭제권한을 부여하지 않는다."
+    },
+    "openPreservationFindings": []
+  },
+  "closeoutAddendum": null,
+  "notHumanApproval": true,
+  "pending": [
+    "remote byte readback and owned root disposal"
+  ],
+  "completionBoundary": "new fixed macOS software-evidence candidate mixed120 functional/lifetime/capture; resourceTrendPass=false, no release/public approval",
+  "originalPreservationAddendumSha256": "d590feab9bd8b17d29fc11d0bcbf03c08df4a599a9c86c0ad9612a37d918988f"
+}
