@@ -96,8 +96,11 @@ source-only도 운영위험 판단을 면제하지 않는다. 사용법은 [설�
 77의 미채택 통합/최초 실패는 [당시 원본](release-artifacts/v4.5.0/77-validation.json)에 유지한다.
 78은 파생 scratch의 자원·접근·명시적 마감을 보완하고 실제 Journal의 역사 identity 조회를
 비상주 경로에 연결한다. 원본 journal/shard/archive의 형식·권위·허용량은 유지한다.
-[제품 연결·회귀·통제 비교](release-artifacts/v4.5.0/78-validation.json)는 전체 메모리 P0 완료나
-장시간 검증을 뜻하지 않는다. Catalog/order와 Open/checkpoint의 전체 작업 메모리,
-요청·보존 수명 및 수정 후보의 최종 혼합 검증은 출시 전 잔여다.
+[78 제품 연결](release-artifacts/v4.5.0/78-validation.json)을 유지하며,
+[79 통합 체크포인트](release-artifacts/v4.5.0/79-validation.json)는 정상 generation의
+order/archive·accepted/retired/source 비상주 조회와 Open/checkpoint 스트리밍을 연결한다.
+legacy full snapshot의 선적재·완료 job summary 상주·진행/지연 검증은 남아 있으므로
+저장 기반 전체 통제나 메모리 P0 완료를 뜻하지 않는다. 요청·보존 수명과 수정 후보의
+최종 혼합 검증까지 출시 전 잔여이며 이번 장시간 실행은 없다.
 소유자는 미해결 메모리 증가의 위험 수용에 동의하지 않았다. 최종 출시 채택·PR/required CI·main 병합·서명 태그·Release/Latest 확인은 보류·미수행이다.
 공개 metadata의 기존 관측 시각은 이번에 갱신하지 않았다.

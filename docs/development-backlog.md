@@ -29,12 +29,14 @@
 2026-10-10 사용자 요구로 **메모리 증가 원인·상주 수명·상한 검증을 출시 전 P0**로 추가했다.
 76의 통제 순환에서는 활성 미디어 0개에서도 과거 identity·order·retired/source가 누적됐다.
 76의 검증 사본 해제와 77의 미채택 실험/실패는 각각 원본에 유지한다.
-78은 원본과 분리한 익명 scratch, 고정 슬롯 재사용, 명시적 마감을 실제 Journal의
-과거 identity/최초 ordinal 조회·checkpoint 전환·재Open에 연결한다.
-정상 Journal의 역사 identity map/행 vector를 제거했지만, Catalog/order/retired/source,
-archive 목록과 Open/checkpoint의 전체 DTO·정렬·직렬화는 여전히 O(전체 이력)이다.
-요청/보존 수명과 최종 혼합 검증까지 같은 v4.5.0 P0로 남긴다.
-현재 범위와 회귀·비교·독립 판단은 [78 제품 연결 근거](release-artifacts/v4.5.0/78-validation.json)에 둔다.
+78의 익명 scratch·고정 슬롯·명시적 마감과 historical identity 제품 연결은 유지한다.
+79는 Journal order/archive, Catalog accepted/order/retired/source의 정상 generation 조회를
+디스크 경계에 연결하고 shard/snapshot/active 입력 및 checkpoint 출력을 스트리밍으로 바꾼다.
+그러나 legacy full snapshot은 전체 projection을 먼저 적재하며 완료 job summary·일부
+Catalog 집합도 상주한다. 따라서 저장 기반 전체 통제는 아직 미완료다. checkpoint 비용 증가와
+동시 검색/녹화 지연·잠금 시간을 확인할 근거도 남아 있다. B 요청 수명·C 보존 결과 비용 및
+최종 혼합 검증은 같은 v4.5.0 P0다. 실제 완료 범위·최초 실패·비교는
+[79 통합 체크포인트](release-artifacts/v4.5.0/79-validation.json)에 둔다.
 소유자는 미해결 메모리 증가를 운영 제한으로 수용하지 않았다. 사용자 위험 수용과 최종 출시
 채택은 **not-granted / not-performed**이며 공개 절차는 보류한다. 75의 과거 판단은 소급 수정하지 않는다.
 

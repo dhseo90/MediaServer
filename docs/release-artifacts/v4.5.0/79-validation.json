@@ -1,0 +1,479 @@
+{
+  "schema": "media-server.v450-memory79-validation.v1",
+  "status": "PARTIAL_STORAGE_INTEGRATION_MEMORY_P0_BLOCKED",
+  "base": "4ce97da9c13d45a0f89687784278d6378048f416",
+  "models": {
+    "main": {
+      "requestedModel": "gpt-6-astra",
+      "requestedEffort": "high",
+      "toolAccepted": null,
+      "runtimeModel": null,
+      "runtimeEffort": null
+    },
+    "independent": {
+      "agent": "/root/independent_memory77",
+      "requestedModel": "gpt-6-astra",
+      "requestedEffort": "high",
+      "toolAcceptedModel": "gpt-6-astra",
+      "toolAcceptedEffort": "high",
+      "runtimeModel": null,
+      "runtimeEffort": null,
+      "implementationOrExecutionParticipation": false
+    }
+  },
+  "implemented": [
+    "78 identity/scratch/Finish retained",
+    "Journal historical order namespaces and archive descriptors disk indexed",
+    "Catalog accepted/order/retired/source normal generation consumers use authenticated history with contiguous visibility ordinal",
+    "streaming shard/snapshot/active original validation; full source hash and final binding retained",
+    "checkpoint identity rows and snapshot disk-sorted chunks streamed to transaction writer",
+    "public invalid ID absence separated from authenticated index corruption",
+    "consumer refusal/exception separated from scratch corruption; partial write and Close failure propagation"
+  ],
+  "remainingBlocking": [
+    "legacy full snapshot loads segment/state/path/tombstone projection before compaction",
+    "completed derived job summary/source-output ID vectors/links stay resident",
+    "current observation/reference/accepted-reference collections and explicit full-result DTO APIs stay resident; retained data lifetime not yet bounded",
+    "checkpoint repeats history scans; Catalog preparation and Journal clone/validation still lock-bound; concurrent recording/search latency and lock timings not measured",
+    "whole-phase RAM/disk peak and byte accounting across all active readers not fully established",
+    "B fixed-history request lifetime, C retained A/evidence cost and final mixed validation not run"
+  ],
+  "normalActiveBoundary": "active.rows and active identity are bounded by existing active admission; not historical N; no claim of zero active memory",
+  "executions": {
+    "journal-boundary-final": {
+      "command": [
+        "bash",
+        "scripts/internal/verify_recording_generation_checkpoint.sh",
+        "all"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 57.69279304193333,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 29047,
+      "sha256": "7ca26b31ed771926bfbbe66e78b4ca0136244afd20d450d5c1f60400b3f32866"
+    },
+    "history-product-consumer-exception": {
+      "command": [
+        "bash",
+        "scripts/internal/verify_recording_generation_checkpoint.sh",
+        "history-product"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 60.04556108394172,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 20039,
+      "sha256": "8f8d4c25ca89929d90acedd274fc20e2b050a2795db46dec093b0e0707bee463"
+    },
+    "mac-consumers-nonresident": {
+      "command": [
+        "bash",
+        "scripts/internal/verify_recording_generation_consumers.sh"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 52.882658916991204,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 24552,
+      "sha256": "da4fc531e029a3b464aaaadf618385769356f71182625bce896b71dda5554385"
+    },
+    "mac-runtime-reviewed": {
+      "command": [
+        "cmake",
+        "--build",
+        "build-gst-onnx",
+        "--target",
+        "media_server",
+        "-j1"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 4.754046416957863,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 502,
+      "sha256": "5fc55cdba0785972df591ac9883fdc2e1d850452c7fafb471838983788220823"
+    },
+    "active-stream": {
+      "command": [
+        "bash",
+        "scripts/internal/verify_recording_generation_active.sh"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 4.78328870900441,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 1485,
+      "sha256": "27b8fd2dc9d5149af9ace4d7564369884b0d792a2d692d2f955f06d11c7b0519"
+    },
+    "evidence-observations-final": {
+      "command": [
+        "bash",
+        "scripts/internal/verify_evidence_package.sh",
+        "--observations"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 5.993822667049244,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 14584,
+      "sha256": "6095b0cbf2177bd64f8f9bcde2a0363a3f38517ff9758af305095f76ef828757"
+    },
+    "confirmed-a-final": {
+      "command": [
+        "python3",
+        "scripts/internal/verify_va_review_confirmed.py"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 3.320913042058237,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 16604,
+      "sha256": "7b517ba0a2ddbe8461e61129895e7bd765d625bedb18936a850b502ad4ef827b"
+    },
+    "linux-corrected": {
+      "command": [
+        "docker",
+        "start",
+        "-a",
+        "mediaserver-memory79-final-qostwy57"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 250.77487399999518,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 301,
+      "sha256": "8f3d3879dc1e02e6586dcac0ecbdded50ab9febd129ea36cab1f9d000a3dab8f"
+    },
+    "static-docs-links": {
+      "command": [
+        "node",
+        "scripts/internal/verify_docs_links.mjs"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 0.4196625839686021,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 186,
+      "sha256": "38cde17384ee9db1175418fa4508198dcbcf9592256b0831addbcc61248ebf04"
+    },
+    "static-script-inventory": {
+      "command": [
+        "node",
+        "scripts/internal/verify_script_inventory.mjs"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 28.457555957953446,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 941,
+      "sha256": "92e692a3173f517ac5430005d1cf361195ac0dad7e505a2ffaddc893da6cdecf"
+    },
+    "static-inventory": {
+      "command": [
+        "node",
+        "scripts/internal/verify_project_feature_test_inventory.mjs"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 48.28167920804117,
+      "exit": 1,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 210322,
+      "sha256": "57d871ab07e8b2248b9fed2fefc169f2e89492e6fa811cbc921b84d7a0b6bad8"
+    }
+  },
+  "memoryComparison": {
+    "before": {
+      "side": "before",
+      "command": [
+        "bash",
+        "/private/tmp/media-server-memory79-qostwy57/before/run.sh"
+      ],
+      "uid": 501,
+      "exit": 0,
+      "reason": null,
+      "elapsedSeconds": 52.29442475002725,
+      "bytes": 9124,
+      "sha256": "4ca06d7be3fe2c312d7e5af68b8ee8ca52624f2e787ce4cba2611cf0c264e1e9"
+    },
+    "after": {
+      "side": "after",
+      "command": [
+        "bash",
+        "/private/tmp/media-server-memory79-qostwy57/after/run.sh"
+      ],
+      "uid": 501,
+      "exit": 0,
+      "reason": null,
+      "elapsedSeconds": 165.88718641595915,
+      "bytes": 9325,
+      "sha256": "17efefc680df4e0fe390f151c5895baae022e2569009101283fc6d66211c4036"
+    },
+    "beforeSource": "4ce97da9c13d45a0f89687784278d6378048f416",
+    "afterSourceMap": "source-final-before-measure.json",
+    "afterSourceMapTiming": "captured during immutable execution despite filename; generated probe contains matching Journal plus memory observer",
+    "sourceReuse": "later timeline consumer/consumer-exception fixes are not invoked by this circulation workload; GCC change is statement layout only. New binary is not claimed to have rerun this measurement.",
+    "inputs": "same 60-frame160x90/30 encoder and generated per-store/time fixture, not whole MP4 identity",
+    "scope": "warmup32,128/512/2048 actual Reserve/FinalizeBound/Delete/Checkpoint; active media0; 3x1s idle, Finish/reOpen/readback",
+    "limits": {
+      "seconds": 180,
+      "logBytes": 4194304,
+      "rssBytes": 4294967296,
+      "rootPlusScratchBytes": 469762048
+    },
+    "beforeIdle2048": {
+      "mallocLive": 12117280,
+      "rss": 96911360,
+      "footprint": 50807576,
+      "fd": 7
+    },
+    "afterIdle2048": {
+      "mallocLive": 3896480,
+      "rss": 64765952,
+      "footprint": 14680808,
+      "fd": 10
+    },
+    "afterScratch": {
+      "currentBytes": 89195008,
+      "observedConcurrentPeak": 156749824,
+      "observedAllocatedPeak": 156811264,
+      "rootBytesAt2048": 36928457
+    },
+    "limitsOfObservation": [
+      "endpoint malloc/RSS/footprint and process cumulative high-water; not instantaneous phase peaks",
+      "one fresh before and one after; no repeated stability estimate",
+      "no concurrent search latency or exact Journal lock time",
+      "74 RSS growth is not attributed in full to these histories"
+    ],
+    "beforeCpuBoundary": "During the first few seconds a separate compiler could overlap; not an isolated CPU benchmark.",
+    "inputManifest": "media-inputs.json (different full MP4 SHA256, mdat compared separately)",
+    "originalFileManifest": "comparison-file-manifests.json"
+  },
+  "firstFailures": [
+    "stream-first deadlock SIGTERM preserved with patch; Journal reentry removed",
+    "initial compile errors preserved, not expected RED",
+    "catalog-integrated-first and storage-stream-all B03-C04 serialization count regressions fixed without changing assertion",
+    "invalid-id-red-built public invalid ID poison reproduced, corrected",
+    "mac-consumers-final deleted timeline missing; connected authenticated retired lookup",
+    "mac-consumers-connected RetiredOnly old resident-map representation assumption; preserved semantic receipt/detail oracle and required empty resident copies",
+    "Linux first GCC misleading-indentation two errors; statements separated, Werror retained",
+    "static-inventory: new MEM79 definition inventorySha256 drift preserved; existing producer applied and inventory readback passed; only inventorySha256 changed,986 items unchanged"
+  ],
+  "independentReview": {
+    "path": "79-independent-review.json",
+    "decision": "ACCEPTABLE_PARTIAL_STORAGE_INTEGRATION_WHOLE_P0_BLOCKED",
+    "fullCompletion": false,
+    "sha256": "84a35a3bb4ba41cf0bcac863dfa1224ee15f2b8c134e9eaa916bb10bb28473ed",
+    "producerReadbackAddendum": "confirmed 51 producer,18 inventory,9 coverage PASS; does not grant whole completion"
+  },
+  "approvalBinding": {
+    "candidateItems": 986,
+    "candidateDigest": "137543c6332a73f9a77599bfaca732bd1f54b263adee078fe5d3f8c275775906",
+    "newProductApproval": "separate independent partial-scope review; not inferred from unchanged986",
+    "producer": {
+      "command": [
+        "node",
+        "scripts/internal/verify_v390_review4_feature_semantic_source_audit.mjs",
+        "--apply-approved-manifest"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 89.98636049998458,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 12812,
+      "sha256": "d044f8ac77f4e3e0a7ee0672c9d63381151b9f522393a0aa536f910913ef258f"
+    },
+    "semanticDiff": {
+      "changedTopLevelKeys": [
+        "inventorySha256"
+      ],
+      "beforeInventory": "937bc1208d11be31f25d8d939fb97bd92c9c875950ee4a782e1889f3c5fca761",
+      "afterInventory": "556d8b13261503a310ab3100dd08821698a3179382b4ce498f74f5377bea4ace",
+      "itemsEqual": true,
+      "candidateSha256": "5c6281009cc9bd804ff79538ce88ff13e4dc4af051001348095119d32540d6df"
+    },
+    "inventoryReadback": {
+      "command": [
+        "node",
+        "scripts/internal/verify_project_feature_test_inventory.mjs"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 42.63798179093283,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 210255,
+      "sha256": "4670513193842f03ec9ea567062efe9d2dd303d621716a5cb95876d48b1dc1cd"
+    },
+    "coverageReadback": {
+      "command": [
+        "node",
+        "scripts/internal/verify_feature_inventory_coverage.mjs"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 83.03693625004962,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 604,
+      "sha256": "f3dd9d2ec3cd35ce7a806a391b6918dddd2c2377ca3039afa624f484985f9bce"
+    }
+  },
+  "cleanup": "PENDING owned root/container cleanup after evidence preservation",
+  "notRun": [
+    "120 minutes",
+    "acceptance",
+    "UI",
+    "B/C memory validation",
+    "model generation",
+    "unload gate"
+  ],
+  "release": "BLOCKED; owner risk acceptance not-granted; final release adoption not-performed",
+  "linux": {
+    "image": "mediaserver-v450-verify:rc58-arm64",
+    "imageId": "sha256:ce72c8a15363984da642e9964189957896812061c6af1d0ef67e87b38ad5a588",
+    "uid": 10001,
+    "network": "none",
+    "capabilities": "ALL dropped",
+    "scope": "whole4config checkpoint/history-product/consumers,active ON/OFF and full Gst/ONNX/SigLIP2 product build",
+    "logFiles": {
+      "active.log": {
+        "bytes": 1436,
+        "sha256": "8510a9c68e76d76e2613a1b9a54d37f9bf7a786dfb30338a73e7c63053ebc5d7"
+      },
+      "consumers.log": {
+        "bytes": 24516,
+        "sha256": "6239ddde557c1996ce878f8259061ba3b1b262ac8b0e780e16efa0bfe05804c9"
+      },
+      "CMakeCache.txt": {
+        "bytes": 31648,
+        "sha256": "09d0694ad0cf396563affd0c5c0817322bced683559d9cb4992e5d892c672ab2"
+      },
+      "history-product.log": {
+        "bytes": 20003,
+        "sha256": "c59a101a47096b69ab648c90bcb84341246723371f466a8c232f07b3c12f3dc6"
+      },
+      "checkpoint.log": {
+        "bytes": 29011,
+        "sha256": "3a037c3897fb302b0d04a2477576cead08e149eceb921178661aab2a5dea373f"
+      },
+      "build.log": {
+        "bytes": 19980,
+        "sha256": "b04927d042dc3cb939c78f398ba4cef7fd31ae7c4fa0d8c9422dd80c4153cf4f"
+      }
+    },
+    "sdk": "existing official ONNX1.23.2 and SentencePiece0.2.0 prefixes; no installs"
+  },
+  "finalSourceBinding": "final-source-binding.json",
+  "finalMacBinarySha256": "53bc4d1ff6fba914ea0fd19ec16033afaa178b183f1ad9b235d6fb03a3015ef4",
+  "finalMacRuntimeSha256": "2877401ad3e788e91975ed50eadfd1c1d92a332ce70f27eb9ec841ff56d3631b",
+  "historicalEvidenceReuse": {
+    "78": "identity index/scratch/admission/Finish protections retained, changes tested separately",
+    "59/61/63/65/68/72/73/74": "historical execution source/environment evidence retained; not a complete execution of new79 source",
+    "74RssAttribution": "not attributed wholly to historical storage memory"
+  },
+  "closureBoundary": "안전한 부분 통합 체크포인트. legacy 전체 적재와 완료 job/current retained 집합, 반복 checkpoint I/O·진행/잠금 지연·전체 peak는 미완료. 본 요청의 전체 구조적 완료가 아니며 출시 보류를 유지한다.",
+  "implementationCommit": "45ea2518d3b75f30a0f5899e7ea408f99205984f",
+  "implementationTree": "d7d4998dd892578b33a61a0fbf096034a126e8c3",
+  "preservation": {
+    "archive": "79-execution.tar.gz",
+    "bytes": 30800306,
+    "sha256": "ffd170be34a1d9f125a3fe849b234b505321575b9cfdfcab326df1a23c13957a",
+    "memberCount": 244,
+    "rawMemberBytes": 61478145,
+    "memberHashReadback": "PASS; archive-selection.json",
+    "excluded": [
+      "old78 archive/reference",
+      "duplicate candidate986 JSON",
+      "full private container inspect",
+      "builds, binaries, derived SQLite projection, plugin cache",
+      "edit helpers"
+    ],
+    "privateMaterials": "none selected; full Docker inspect excluded",
+    "measurementSourceLimit": "measurement map captured during unchanged execution; only instrumented Journal and probe source are complete snapshots, other files have hash maps plus adopted diff; final timeline/helper corrections not remeasured"
+  },
+  "staticChecks": {
+    "static-docs-links": {
+      "command": [
+        "node",
+        "scripts/internal/verify_docs_links.mjs"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 0.4196625839686021,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 186,
+      "sha256": "38cde17384ee9db1175418fa4508198dcbcf9592256b0831addbcc61248ebf04"
+    },
+    "static-script-inventory": {
+      "command": [
+        "node",
+        "scripts/internal/verify_script_inventory.mjs"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 28.457555957953446,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 941,
+      "sha256": "92e692a3173f517ac5430005d1cf361195ac0dad7e505a2ffaddc893da6cdecf"
+    },
+    "static-readback": {
+      "command": [
+        "node",
+        "scripts/internal/verify_project_feature_test_inventory.mjs"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 42.63798179093283,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 210255,
+      "sha256": "4670513193842f03ec9ea567062efe9d2dd303d621716a5cb95876d48b1dc1cd"
+    },
+    "static-coverage-readback": {
+      "command": [
+        "node",
+        "scripts/internal/verify_feature_inventory_coverage.mjs"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 83.03693625004962,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 604,
+      "sha256": "f3dd9d2ec3cd35ce7a806a391b6918dddd2c2377ca3039afa624f484985f9bce"
+    }
+  }
+}

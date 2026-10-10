@@ -1,0 +1,343 @@
+{
+  "schema": "media-server.memory79-independent-review.v1",
+  "reviewer": "/root/independent_memory77",
+  "base": "4ce97da9c13d45a0f89687784278d6378048f416",
+  "decision": "ACCEPTABLE_PARTIAL_STORAGE_INTEGRATION_WHOLE_P0_BLOCKED",
+  "partialImplementationAdoptionPermitted": true,
+  "wholeStorageCompletionPermitted": false,
+  "wholeTaskClosureConfirmed": false,
+  "memoryP0": "BLOCKED",
+  "releaseApproval": false,
+  "summaryKo": "이번 한정된 Journal order/archive 및 Catalog accepted/order/retired/source 연결과 streaming Open/checkpoint 변경에서 미해결 소스 안전 blocker를 발견하지 못했다. 확인한 focused 회귀 범위에서 부분 통합으로 채택 가능하다. 전체 저장 기반 전환·메모리 P0 완료나 성능 개선, 릴리즈, cleanup 및 승인 기록 정합 완료를 승인하는 판단은 아니다.",
+  "independence": {
+    "requestedModel": "gpt-6-astra",
+    "requestedEffort": "high",
+    "toolAcceptedModelReportedByParent": "gpt-6-astra",
+    "toolAcceptedEffortReportedByParent": "high",
+    "runtimeModel": null,
+    "runtimeEffort": null,
+    "implementedProductOrTests": false,
+    "executedProductOrTests": false,
+    "delegated": false,
+    "method": "실제 변경 diff와 신규 파일, 관련 소비자, 원출력 및 측정/소스 hash를 읽기 검토했다. 소스/로그 hash와 JSON row 대조는 수행했으며 이 독립 리뷰 파일 외에는 수정하지 않았다."
+  },
+  "sourceBinding": {
+    "artifact": "final-source-binding.json",
+    "entriesCompared": 23,
+    "mismatches": [],
+    "files": {
+      "include/recording/recording_catalog.h": "3cef9964a25fe7886fcf51ca6d0275505332470f5b4ab62a6afd694f4677c603",
+      "include/recording/recording_catalog_generation_projection.h": "b5f2f00061c30c91c47d83fa18d47fb77b3b23b65d28ce168ab4cb9d07cc9022",
+      "include/recording/recording_catalog_snapshot.h": "d6a0106ce7fd13ad8717c4a1861713b11133450889b19acb7e68123f5e97227b",
+      "include/recording/recording_generation_manifest.h": "c9151c71d9316d24dc0d17e1ea1f9354b82509d2d049bb76fb49e83fd063d212",
+      "include/recording/recording_generation_transaction.h": "b95515ee7bab66889ed26620282c9097aa29eb315223110f25e58e0701381955",
+      "include/recording/recording_identity_shard.h": "777effcdd9d07310d67b2e76da35583ade9bcf193977322abc8b07008dd1e291",
+      "include/recording/recording_journal.h": "65307301e838024a1c36e1c096b9771bb9fdbb7c979ad02f8da9f0c4edc96f63",
+      "scripts/internal/recording_generation_active_smoke.cpp": "2aaeedca8814be96cdc5d6207a0abb4025df6ea9c4a6db39e7dbd841c74a9026",
+      "scripts/internal/recording_generation_checkpoint_smoke.cpp": "208bad77f56743ff598e5c13d37258fcfab2cb2d353b1a0cc4ed0283e945a4d7",
+      "scripts/internal/recording_generation_consumers_smoke.cpp": "dd5bf0f7eeff1036e21bb9d571e507136d876a367bac5294f049b3227f1b435c",
+      "scripts/internal/verify_recording_generation_checkpoint.sh": "8b62144473f5748e30e3cc7e455ecd8dc4593b70bcd79bf850402ac835e1c09c",
+      "src/recording/recording_catalog.cpp": "e69a07324bc280661c47ce1f7ba5680c4f8ec5f9f1a15c6def1b6f561e5aad37",
+      "src/recording/recording_catalog_generation_projection.cpp": "5382641ea29b86c793eb6d09f1223a49cee64fca0a8a448c4c2c16221a4829c2",
+      "src/recording/recording_catalog_history.h": "366728e5be7e7917288c2c5800f2e0077d423a26f9cdb9c514449b6e36a2dfb6",
+      "src/recording/recording_catalog_snapshot.cpp": "2c6418d5d3838f181f7616fd3df8b7edd040a350a11e27df41d629ed8657b317",
+      "src/recording/recording_catalog_snapshot_export.cpp": "14abeeb38799133d17e62de50a7b338153e891ad5476d9047a36a135a25d3b99",
+      "src/recording/recording_generation_active.cpp": "6c509674c49f53005369fe96875fc9e6fa718107ff35d4aed0464af69be7db7c",
+      "src/recording/recording_generation_manifest.cpp": "39ba2f232c75420d4be5910a95e876d93fbecf71e806b2023537fcc5cf9a400c",
+      "src/recording/recording_generation_transaction.cpp": "44f3f4870edbff49d62753aacf0467ae0e3385a6d46e3a6da3601141de8d7365",
+      "src/recording/recording_history_index.h": "c472489d2dce01db5824c1c5fc715f33f4a6855e71cf53ed9cd3b2be1905b9ea",
+      "src/recording/recording_identity_shard.cpp": "706a06d7cb152e941caaa0fb9a45f9f6cdb2a4c219e73b81afef2b77171e5f9e",
+      "src/recording/recording_journal.cpp": "aaa4fe031641608fc3b759b71e897d111f4886d3fcd6f7194d8b74aec6bb7802",
+      "src/recording/recording_timeline_projection.cpp": "74161211b2f43a3c15f414fdc05ae0bc4db6a35c20a94b3fc2f4030c454b7fce"
+    },
+    "measurementSourceArtifact": "source-final-before-measure.json",
+    "measurementTimingCaveat": "명칭과 달리 실행 중 변경 없는 소스를 캡처한 자료다. 실행 전 freeze로 주장하지 않는다.",
+    "measurementReuseBoundary": "측정 뒤 timeline 연결 및 HistoryRows consumer-exception 분리가 추가됐다. 해당 circulation probe는 timeline을 호출하지 않고 성공 callback을 사용한다. Catalog/Journal GCC 보완은 문장 분리다. 최종 binary로 측정을 다시 수행했다고 주장하지 않는다."
+  },
+  "codeConclusions": [
+    "기존 원본 형식/권위와 source admission을 유지하며 SQLite OFF에서 새 DB 설치를 요구하지 않는다. authenticated process-private anonymous scratch를 공통 historical 조회에 연결했다.",
+    "Catalog visible ordinal은 snapshot cut-1에서 시작하고 active retry/최초 적용을 연속 검사한다. 실패한 적용 뒤 owner poison으로 후속 성공 publication을 막는다.",
+    "정상 historical order/accepted/retired/source 소비자를 disk 조회에 연결했다. 삭제 timeline 두 소비자도 연결됐고 원문 재획득, 삭제 lifecycle, channel/retention 필터와 출력 대응을 유지한다.",
+    "HistoryRows Put의 부분 chunk overwrite 후 할당 예외는 sticky failure로 처리한다. mutex로 Get/Put/Healthy/Finish를 동기화하고 callback 중 잠금을 해제한다. consumer 예외는 index traversal 바깥에서 재throw하여 정상 결과 admission 거부를 저장소 손상으로 바꾸지 않는다.",
+    "Catalog Get 및 Journal FindGenerationFirst에서 원본 문법상 존재 불가능한 invalid ID는 정상 absence이며 index 손상은 fail closed로 구분한다.",
+    "identity/snapshot/active 원문을 streaming 검증하고 전체 hash와 최종 파일/root binding을 유지한다. active.rows는 기존 admission 아래 계속 상주한다.",
+    "checkpoint shard.rows/identity_bytes와 전체 snapshot rows/string 추가 복사를 제거했다. Prepare/Publish cursor는 원문 row hash, 물리 범위, ordinal, 현재 epoch/manifest/FD binding을 검사하고 게시 identity size/hash를 준비 descriptor와 대조한다.",
+    "transaction producer 실패는 원문 prefix의 inode/size/hash가 확인되는 경우에만 기존 cleanup 영수증에 등록한다. 불확실 write/hash는 보존한다. scratch 명시 Finish/cleanup 실패 poison 경계를 유지한다."
+  ],
+  "resolvedFindings": [
+    {
+      "issue": "HistoryRows 일부 overwrite 뒤 wrapper 할당 예외가 mixed value를 노출할 수 있음",
+      "status": "RESOLVED",
+      "evidence": [
+        "history-product-consumer-exception.log",
+        "linux-final-output/history-product.log"
+      ]
+    },
+    {
+      "issue": "Catalog 및 Journal public invalid ID가 전체 authenticated history를 poison함",
+      "status": "RESOLVED",
+      "evidence": [
+        "journal-boundary-final.log",
+        "history-product-consumer-exception.log",
+        "linux-final-output/history-product.log"
+      ]
+    },
+    {
+      "issue": "retired timeline 직접 resident-map 소비자 누락",
+      "status": "RESOLVED",
+      "evidence": [
+        "mac-consumers-nonresident.log",
+        "linux-final-output/consumers.log"
+      ]
+    },
+    {
+      "issue": "timeline consumer admission exception이 underlying index를 poison함",
+      "status": "RESOLVED",
+      "evidence": [
+        "history-product-consumer-exception.log",
+        "linux-final-output/history-product.log"
+      ],
+      "boundary": "직접 helper 반례는 원래 consumer 예외 메시지·Healthy·후속 Get 성공을 검사한다. 모든 timeline 결과 상한 조합을 새로 실행했다는 뜻은 아니다."
+    }
+  ],
+  "unresolvedSafetyBlockersWithinReviewedPartialScope": [],
+  "executionEvidence": {
+    "logs": {
+      "journal-boundary-final.log": {
+        "bytes": 29047,
+        "sha256": "7ca26b31ed771926bfbbe66e78b4ca0136244afd20d450d5c1f60400b3f32866"
+      },
+      "history-product-consumer-exception.log": {
+        "bytes": 20039,
+        "sha256": "8f8d4c25ca89929d90acedd274fc20e2b050a2795db46dec093b0e0707bee463"
+      },
+      "mac-consumers-nonresident.log": {
+        "bytes": 24552,
+        "sha256": "da4fc531e029a3b464aaaadf618385769356f71182625bce896b71dda5554385"
+      },
+      "active-stream.log": {
+        "bytes": 1485,
+        "sha256": "27b8fd2dc9d5149af9ace4d7564369884b0d792a2d692d2f955f06d11c7b0519"
+      },
+      "evidence-observations-final.log": {
+        "bytes": 14584,
+        "sha256": "6095b0cbf2177bd64f8f9bcde2a0363a3f38517ff9758af305095f76ef828757"
+      },
+      "confirmed-a-final.log": {
+        "bytes": 16604,
+        "sha256": "7b517ba0a2ddbe8461e61129895e7bd765d625bedb18936a850b502ad4ef827b"
+      },
+      "mac-runtime-reviewed.log": {
+        "bytes": 502,
+        "sha256": "5fc55cdba0785972df591ac9883fdc2e1d850452c7fafb471838983788220823"
+      },
+      "linux-final-output/checkpoint.log": {
+        "bytes": 29011,
+        "sha256": "3a037c3897fb302b0d04a2477576cead08e149eceb921178661aab2a5dea373f"
+      },
+      "linux-final-output/history-product.log": {
+        "bytes": 20003,
+        "sha256": "c59a101a47096b69ab648c90bcb84341246723371f466a8c232f07b3c12f3dc6"
+      },
+      "linux-final-output/active.log": {
+        "bytes": 1436,
+        "sha256": "8510a9c68e76d76e2613a1b9a54d37f9bf7a786dfb30338a73e7c63053ebc5d7"
+      },
+      "linux-final-output/consumers.log": {
+        "bytes": 24516,
+        "sha256": "6239ddde557c1996ce878f8259061ba3b1b262ac8b0e780e16efa0bfe05804c9"
+      },
+      "linux-final-output/build.log": {
+        "bytes": 19980,
+        "sha256": "b04927d042dc3cb939c78f398ba4cef7fd31ae7c4fa0d8c9422dd80c4153cf4f"
+      }
+    },
+    "macMatrix": "checkpoint all 및 최신 history-product/consumers는 crypto1/sqlite1/backend1, crypto1/sqlite0/backend1, crypto0/sqlite1/backend1, crypto1/sqlite1/backend0을 포함한다. latest helper/consumer 수정은 뒤 focused run으로 확인한다.",
+    "linuxMatrix": "동일 네 구성 checkpoint/history-product/consumers 및 active/build 로그와 set-e runner 종료0을 확인했다.",
+    "productBuilds": [
+      "mac-runtime-reviewed.log",
+      "linux-final-output/build.log"
+    ],
+    "auxiliary": "evidence observations 및 confirmed-a 원출력/exit0 확인. confirmed-a summary는 18/64/2 pass와 각 fail0이다. 모델 호출0과 detector inference0은 해당 검사 scope에 한정한다.",
+    "firstFailuresPreserved": [
+      "catalog-integrated-first serialization cost regression",
+      "storage-stream-all serialization cost regression",
+      "invalid-id-red-built public input poison",
+      "mac-consumers-final deleted timeline missing",
+      "mac-consumers-connected resident representation assertion",
+      "linux-first-output/checkpoint.log GCC misleading-indentation errors"
+    ],
+    "oracleChange": "RetiredOnly는 receipt 의미상 존재와 삭제 상세5종 부재를 유지하며, nonresident 경로에서는 두 old map이 비어 있음을 요구한다. timeline 직접 의미 assertion은 변경하지 않았다.",
+    "linuxRuntime": {
+      "receipt": "container-runtime-receipt.json",
+      "user": "10001:10001",
+      "networkMode": "none",
+      "capDrop": [
+        "ALL"
+      ],
+      "securityOpt": [
+        "no-new-privileges"
+      ],
+      "mountsReadOnly": true,
+      "imageDigest": "sha256:ce72c8a15363984da642e9964189957896812061c6af1d0ef67e87b38ad5a588",
+      "finalContainerExited": true,
+      "finalExitCode": 0,
+      "initialExitCode": 1,
+      "receiptBoundary": "원출력에 기록된 제한 inspect receipt를 읽었다. reviewer가 Docker를 직접 실행하거나 inspect하지 않았다. rc58 명칭의 근거와 실제 image digest를 구분한다."
+    }
+  },
+  "measurement": {
+    "beforeSource": "4ce97da9c13d45a0f89687784278d6378048f416",
+    "beforeSeconds": 52.29442475002725,
+    "afterSeconds": 165.88718641595915,
+    "beforeExit": 0,
+    "afterExit": 0,
+    "deadlineSeconds": 180,
+    "rawLogHashBytesAndEverySummaryMemoryRowMatched": true,
+    "workload": "32 warmup, 128/512/2048 누적 Reserve/FinalizeBound/RequestDeletion/CompleteDeletion/checkpoint, 역사 retry/conflict/readback, 3x1초 idle, 명시 Finish/reOpen/Finish. active media0.",
+    "media": "같은 60frame 160x90/30 생성 절차와 mdat54491B payloadSHA972b57583c6a21e658a28a9834be01d61f378d4b31f9979b71067d9893b1a3fc. MP4 전체 hash는 moov 차이로 다르다. media-inputs.json을 읽었으며 전체 파일 byte-identical을 주장하지 않는다.",
+    "idle2048": {
+      "before": {
+        "mallocLive": 12117280,
+        "rss": 96911360,
+        "footprint": 50807576,
+        "fd": 7
+      },
+      "after": {
+        "mallocLive": 3896480,
+        "rss": 64765952,
+        "footprint": 14680808,
+        "fd": 10
+      }
+    },
+    "afterReopened": {
+      "mallocLive": 3896368,
+      "rss": 64798720,
+      "fd": 10
+    },
+    "afterBothFinishFd": 3,
+    "scratch": {
+      "afterCurrentLogicalBytes": 89195008,
+      "observedConcurrentLogicalPeak": 156749824,
+      "observedConcurrentAllocatedPeak": 156811264,
+      "rootBytesAt2048": 36928457,
+      "instantaneousWholeWorkspacePeakVerified": false
+    },
+    "residentObservations": "2048/active0에서 Catalog mutation/order/retired/source/accepted map0, Journal resident identity0; total historical identity8192는 disk에 남고 삭제/retry/reOpen readback PASS. done-job나 모든 Catalog current collection을 측정한 부하는 아니다.",
+    "interpretation": "해당 부하의 idle retained memory 감소는 확인된다. 총 elapsed는 약3.17배 증가했으므로 성능 개선으로 주장할 수 없다.",
+    "limitations": [
+      "각 side 한 번이며 반복 안정성 추정이 아니다.",
+      "단계 endpoint malloc/RSS/footprint와 process cumulative RSS high-water이며 순간 단계 allocation peak가 아니다.",
+      "초기 wrapper 컴파일 활동과 겹친 구간이 있어 isolated CPU benchmark가 아니다.",
+      "최종 timeline/consumer-exception 수정 후 새 binary로 재측정하지 않았다.",
+      "concurrent recording/search latency 및 exact Journal lock hold time은 미측정이다.",
+      "scratch peak counter는 제한된 계측 경계의 관측값이며 모든 active reader와 전체 workspace의 순간 peak 증명이 아니다."
+    ]
+  },
+  "remainingWholeStorageAndP0Blockers": [
+    {
+      "location": "src/recording/recording_catalog_generation_projection.cpp:396-405,465",
+      "boundary": "legacy full snapshot은 segment/state/path/tombstone 등을 전체 projection에 적재한 뒤 CompactLegacyRetired로 축약한다. Open peak는 legacy 행 수에 비례한다. 축약 뒤 retired source summary 잔류 제거는 반영됐다."
+    },
+    {
+      "location": "src/recording/recording_catalog_generation_projection.cpp:435; src/recording/recording_catalog.cpp:472-479,530",
+      "boundary": "completed derived_jobs summary, source/output ID vectors, mutation links는 완료 job 수에 비례하여 상주한다. resident payload 해제만으로 bounded 전체 job history가 되지 않는다."
+    },
+    {
+      "location": "src/recording/recording_catalog.cpp current event/observation/reference collections",
+      "boundary": "event/observation/consumer-reference/referenced-observation/accepted-reference 현재 집합의 retained 수명과 상한은 이번 변경으로 bounded되지 않았다."
+    },
+    {
+      "location": "src/recording/recording_generation_active.cpp:157; public full-result DTO APIs",
+      "boundary": "active.rows/active identity는 기존 active admission 아래 상주하고 명시 전체 결과 API는 결과 크기만큼 materialize한다. historical N 제거와 구분한다."
+    },
+    {
+      "location": "src/recording/recording_catalog_snapshot_export.cpp:94,118,182,211,229",
+      "boundary": "count/spool의 두 export마다 first/orders/accepted 전체 visit가 있어 checkpoint당 최소6회 first-history 순회다. ordinal→identity lookup과 ordinary행마다 authority I/O가 더해진다. Catalog 준비와 Journal clone/검증 잠금 지연은 해소 입증되지 않았다."
+    },
+    {
+      "boundary": "전체 단계 RAM/disk peak, 동시 reader 계상, B fixed-history request lifetime, C retained A/evidence cost 및 최종 혼합 검증 미완료."
+    }
+  ],
+  "approvalAndClosure": {
+    "candidateItems": 986,
+    "candidateDigest": "137543c6332a73f9a77599bfaca732bd1f54b263adee078fe5d3f8c275775906",
+    "candidateIsNewProductApproval": false,
+    "inventoryInitialFailure": "static-inventory.log의 inventorySha256 drift 1건과 exit1을 확인했다. 79 정의 변경의 기록 정합 문제이며 과거78 수정 완료로 소급 표시하지 않는다.",
+    "producerApplyAndReadback": "PENDING",
+    "preservationArchive": "PENDING",
+    "ownedRootCleanup": "PENDING",
+    "containerRemoval": "PENDING; receipt의 exited는 제거 완료가 아니다.",
+    "push": "PENDING",
+    "newLongDurationTests": 0,
+    "releaseApproval": false
+  },
+  "producerReadbackAddendum": {
+    "scope": "기존 guarded producer 적용과 후속 정적 정합만 확인. 위 부분 통합 판정과 과거 pending 상태는 소급 변경하지 않는다.",
+    "decision": "MANIFEST_INVENTORY_ALIGNMENT_VERIFIED",
+    "comparisonBaseCommit": "45ea2518d3b75f30a0f5899e7ea408f99205984f",
+    "semanticChangedPaths": [
+      "$.inventorySha256"
+    ],
+    "inventorySha256": "556d8b13261503a310ab3100dd08821698a3179382b4ce498f74f5377bea4ace",
+    "actualInventorySha256": "556d8b13261503a310ab3100dd08821698a3179382b4ce498f74f5377bea4ace",
+    "itemsUnchanged": true,
+    "itemCount": 986,
+    "approvalEnvelopeUnchanged": true,
+    "allOtherTopLevelValuesUnchanged": true,
+    "evidence": {
+      "approval-apply": {
+        "command": [
+          "node",
+          "scripts/internal/verify_v390_review4_feature_semantic_source_audit.mjs",
+          "--apply-approved-manifest"
+        ],
+        "exit": 0,
+        "bytes": 12812,
+        "sha256": "d044f8ac77f4e3e0a7ee0672c9d63381151b9f522393a0aa536f910913ef258f",
+        "receiptBytesAndHashMatched": true
+      },
+      "static-readback": {
+        "command": [
+          "node",
+          "scripts/internal/verify_project_feature_test_inventory.mjs"
+        ],
+        "exit": 0,
+        "bytes": 210255,
+        "sha256": "4670513193842f03ec9ea567062efe9d2dd303d621716a5cb95876d48b1dc1cd",
+        "receiptBytesAndHashMatched": true
+      },
+      "static-coverage-readback": {
+        "command": [
+          "node",
+          "scripts/internal/verify_feature_inventory_coverage.mjs"
+        ],
+        "exit": 0,
+        "bytes": 604,
+        "sha256": "f3dd9d2ec3cd35ce7a806a391b6918dddd2c2377ca3039afa624f484985f9bce",
+        "receiptBytesAndHashMatched": true
+      }
+    },
+    "results": {
+      "producer": {
+        "pass": 51,
+        "fail": 0
+      },
+      "inventory": {
+        "featureRows": 986,
+        "pass": 18,
+        "fail": 0
+      },
+      "coverage": {
+        "covered": 986,
+        "missing": 0,
+        "pass": 9,
+        "fail": 0
+      }
+    },
+    "interpretation": "79 테스트 정의 문서 변경에 따른 inventory hash drift의 정적 정합을 확인했다. 새로운 제품 승인 원장/승인자를 만들었다는 뜻이 아니며 과거78 완료로 대체하지 않는다. 기능 실행·전체 저장 전환·P0 완료나 릴리즈를 추가 승인하지 않는다.",
+    "wholeP0": "BLOCKED",
+    "archiveCleanupPush": "PENDING / NOT REVIEWED",
+    "reviewerRanProductOrTests": false
+  }
+}
