@@ -751,12 +751,40 @@
     }
   },
   "cleanup": {
-    "status": "pending owned root and two containers preservation/absence checks",
+    "status": "PASS owned resources absent; images/models/SDK/user stores retained",
     "qwenOllamaCalls": 0,
     "unloadGate": "not-run",
     "processCheck": {
       "matches": [],
       "scope": "owned root executable references; no listener server/browser was launched by this task"
+    },
+    "containers": [
+      {
+        "id": "ba3c027a2ededb3eaf16cc216fb86a4fa586b862c90b290cad365411e18b4b49",
+        "absent": true,
+        "exit": 1,
+        "stderr": "error: no such object: ba3c027a2ededb3eaf16cc216fb86a4fa586b862c90b290cad365411e18b4b49"
+      },
+      {
+        "id": "1ea5f089f3ca7dea36251cc14b924f7b3de7b4d429cf866a0d231cb0de85e521",
+        "absent": true,
+        "exit": 1,
+        "stderr": "error: no such object: 1ea5f089f3ca7dea36251cc14b924f7b3de7b4d429cf866a0d231cb0de85e521"
+      }
+    ],
+    "preservedImage": "sha256:ce72c8a15363984da642e9964189957896812061c6af1d0ef67e87b38ad5a588",
+    "rootOwnership": {
+      "path": "/private/tmp/media-server-memory80-c3k0b_ra",
+      "uid": 501,
+      "dev": 16777232,
+      "ino": 172001030,
+      "base": "78e91e14cb1513cee80bfe60fb2d407132977f9e"
+    },
+    "rootRemoval": {
+      "absent": true,
+      "files": 5618,
+      "logicalBytes": 839731886,
+      "scope": "exact owned root only; required originals already Git-preserved and read back"
     }
   },
   "notRun": [
@@ -896,6 +924,37 @@
     "memberCount": 720,
     "rawMemberBytes": 94124204,
     "memberHashReadback": "PASS",
-    "scope": "new original logs, instrumentation and synthetic source fixture components only; previous archives and binaries/models excluded; derived SQLite/leases excluded, not a complete runnable recovery copy"
+    "scope": "new original logs, instrumentation and synthetic source fixture components only; previous archives and binaries/models excluded; derived SQLite/leases excluded, not a complete runnable recovery copy",
+    "gitReadback": {
+      "commit": "d989cc52adefe0d385905b291faee37372fcd1f2",
+      "path": "docs/release-artifacts/v4.5.0/80-execution.tar.gz",
+      "bytes": 34201236,
+      "sha256": "8226bd5853b22e8d79a83ad8b20d5ef32adf5fa890289b140c974c33760d4939",
+      "memberHashReadback": "PASS",
+      "members": 720
+    },
+    "gitObjects": {
+      "rangeBase": "78e91e14cb1513cee80bfe60fb2d407132977f9e",
+      "blobs": 19,
+      "uncompressedNewBlobBytes": 55240815,
+      "largest": [
+        {
+          "oid": "d649b30f3e25a543d73f267da14bc6c98b86eb2a",
+          "path": "docs/release-artifacts/v4.5.0/80-execution.tar.gz",
+          "bytes": 34201236
+        },
+        {
+          "oid": "d6f9cfae55182f91dba3ec8dfeaf53c83fa509ad",
+          "path": "test/fixtures/project_feature_implementation_evidence.json",
+          "bytes": 19079080
+        },
+        {
+          "oid": "7fdf4e078459f29ac74ee6d14b2e87219acc9ae1",
+          "path": "docs/project-feature-test-inventory.md",
+          "bytes": 982677
+        }
+      ],
+      "notPushPackEstimate": true
+    }
   }
 }
