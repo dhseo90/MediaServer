@@ -4934,3 +4934,10 @@ MEM84-R04: 최대 허용 cold 행(16MiB+1)의 실제 chunk 저장/읽기와 기�
 - MEM85-METADATA: transaction 실제 receipt 읽기 전에 raw와 parser/DTO를 같은 owner에 예약하며 copy/move/포화/손상 rollback·원래 canonical bytes를 검증한다. 순수 codec의 caller 외부 입력과 제품 transaction의 소유 경계를 구분한다.
 - MEM85-D: MEM84-D10 실제 shared model/page/cold/A/K 소유를 재사용하고 변경된 큰 행/소비자 경계만 추가 검증한다. 포화·원본 불변·실제 해제·재개·Finish·재Open을 유지한다.
 - MEM85-REGRESSION: macOS/비특권 Linux의 관련 구성·Werror 및 최종8writer/4client/10000관측/720packet/24파일의90초 병행, p95≤2000ms/max≤5000ms·정상Finish. unavailable 포함. 최종candidate 독립판단/producer/readback은 실행PASS와 별도다.
+
+### MEM86 — 큰 자료 소비·실제 송신 timeout·검토 결속 (내부, UI 비대상)
+
+- MEM86-C1: 기존 원본의 실제 admission/Open/복구/소비 경로를 구분하고, 큰 필드의 lossless bounded 소비·동일 bytes/hash·작은 eager 의미를 검증한다. 작은 주입 RAM 예산과640MiB/700MiB 정적 사례를 구분하며 원본 변경/손상/취소/reader/예약 rollback을 보호한다.
+- MEM86-HTTP: 실제 인증 recording route/TCP의 제한된 send 시작·반환·errno·마지막 진행과 worker/응답 종료를 관측한다. 기존 per-send5초·85의12초 실패를 유지하고, 고정12초 준비+고정12초 관측에서 실제 음수 EAGAIN/EWOULDBLOCK과 ≥4.5초 무진척 syscall·worker 종료를 별도로 검증한다. 진척으로 창을 연장하지 않는다. 정상/slow/reset/Stop/403/503·별도 reader의 마지막 소유를 검증한다.
+- MEM86-PROOF (`scripts/internal/review4_proof_context_refresh.mjs`, `node --test scripts/internal/verify_review4_proof_context_refresh.test.mjs`): 독립 검토 결정과 정확한 source/ID/context에 결박된 proof 갱신은 변경 source·잘못된ID·미검토/모호 locator를 거부한다. 생성은 승인 판단과 분리하며 최종 producer/readback/inventory/coverage를 확인한다.
+- MEM86-REGRESSION: 변경 영향의 macOS/비특권Linux 구성·Werror 및8writer/4client/10000관측/720packet/24파일·90초·p95≤2000ms/max≤5000ms·정상Finish.85 B1024/실제TTL C16은 draft/job 영향 없으면 재사용하고120분/UI는 미실행한다.

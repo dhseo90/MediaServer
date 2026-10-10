@@ -435,7 +435,7 @@ void VerifyEventLinking(const std::filesystem::path& root) {
         throw std::runtime_error(
             "event clip 비동기 파생 timeout: status=" +
             std::to_string(link.has_value() ? static_cast<int>(link->status) : -1) +
-            " reason=" + (link.has_value() ? link->completeness_reason : "missing"));
+            " reason=" + (link.has_value() ? link->completeness_reason.small() : "missing"));
     }
     const auto ready = bridge.TryResolve(analysis_result, event, options);
     Expect(ready.handled && ready.derived_clip_ready && ready.completeness == "complete",
@@ -483,7 +483,7 @@ void VerifyEventLinking(const std::filesystem::path& root) {
         throw std::runtime_error(
             "완료 뒤 확장된 동일 event 범위 재파생 timeout: status=" +
             std::to_string(link.has_value() ? static_cast<int>(link->status) : -1) +
-            " reason=" + (link.has_value() ? link->completeness_reason : "missing") +
+            " reason=" + (link.has_value() ? link->completeness_reason.small() : "missing") +
             " range=" + (link.has_value() && link->requested_range.has_value()
                               ? std::to_string(link->requested_range->start_ms) + "-" +
                                     std::to_string(link->requested_range->end_ms)
@@ -563,7 +563,7 @@ void VerifyEventLinking(const std::filesystem::path& root) {
         throw std::runtime_error(
             "anchor 없는 event 후행 segment 복구 timeout: status=" +
             std::to_string(link.has_value() ? static_cast<int>(link->status) : -1) +
-            " reason=" + (link.has_value() ? link->completeness_reason : "missing"));
+            " reason=" + (link.has_value() ? link->completeness_reason.small() : "missing"));
     }
 
     EventRecord mapped = MakePtsEvent("evt-mapped-without-anchor", "cam-a");

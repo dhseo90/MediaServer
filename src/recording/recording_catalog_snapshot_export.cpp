@@ -169,8 +169,8 @@ bool RecordingCatalog::ExportGenerationValuesLocked(const std::string& store,
                 found->order.sequence != segment.order_sequence)
                 return Fail(error,"snapshot finalized order mismatch");
         }
-        const auto add = [&](const char* kind,const std::string& key,std::string bytes) {
-            RecordingCatalogSnapshotRow row{kind,key,std::move(bytes)};
+        const auto add = [&](const char* kind,const std::string& key,std::string bytes,std::shared_ptr<const RecordingTextSource> reason={}) {
+            RecordingCatalogSnapshotRow row{kind,key,std::move(bytes),std::move(reason)};
             if(visitor){if(!visitor(row,error))throw std::runtime_error("snapshot row consumer failed");}
             else result.rows.push_back(std::move(row));
         };
@@ -190,7 +190,11 @@ bool RecordingCatalog::ExportGenerationValuesLocked(const std::string& store,
         },error))return false;
         for (const auto& v : media_relpaths_) add("media-path",v.first,Quote(v.second));
         for (const auto& v : deletion_reasons_) add("deletion-reason",v.first,Quote(v.second));
-        for (const auto& v : event_links_) add("event-link",v.first,SerializeEventRecordingLinkV1(v.second));
+        for (const auto& v : event_links_) {
+            if(v.second.completeness_reason.lazy()){auto compact=v.second;compact.completeness_reason=std::string("x");
+                add("event-link",v.first,SerializeEventRecordingLinkV1(compact),v.second.completeness_reason.source());}
+            else add("event-link",v.first,SerializeEventRecordingLinkV1(v.second));
+        }
         for (const auto& v : observations_) add("observation-v1",v.first,SerializeAnalysisObservationV1(v.second));
         for (const auto& v : observations_v2_) add("observation-v2",v.first,SerializeAnalysisObservationV2(v.second));
         for (const auto& v : consumer_references_) add("consumer-reference",v.first,SerializeRecordingConsumerReferenceV1(v.second));
@@ -311,7 +315,9 @@ bool RecordingCatalog::CaptureGenerationSnapshotViewLocked(GenerationSnapshotVie
                 raw+=value;bytes+=value.size();++seen;return true;
             },detail)||!emit()||seen!=chunks||bytes!=total||emitted!=row_count)return Fail(detail,"fixed snapshot row coverage mismatch");
             for(const std::string kind:{"segment-v1","segment-v2","state-v2","tombstone-v1","tombstone-v2","media-path","deletion-reason","retired-v2","source-binding","derived-job","event-link","observation-v1","observation-v2","consumer-reference","referenced-observation","derived-reference-accepted"})
-                if(!cold->Visit(kind,[&](const auto& id,const auto& value,std::string* e){return visit({kind,id,value},e);},detail))return false;
+                if(kind=="event-link"){
+                    if(!cold->VisitOwned(kind,[&](const auto& id,RecordingColdRow& value,std::string* e){return visit({kind,id,value.bytes,value.event_reason},e);},detail))return false;
+                }else if(!cold->Visit(kind,[&](const auto& id,const auto& value,std::string* e){return visit({kind,id,value},e);},detail))return false;
             return true;
         };
         output->bytes=rows->usage().file_bytes+cold->Bytes();output->allocated=rows->usage().allocated_bytes+cold->Bytes(true);
@@ -397,16 +403,25 @@ bool RecordingCatalog::PrepareGenerationSnapshotStreamLocked(const RecordingIden
 #if defined(MEDIA_SERVER_RECORDING_GENERATION_TESTING)
             ++snapshot_spool_serializations;
 #endif
-            std::string bytes;if(!SerializeRecordingCatalogSnapshotRow(row,&bytes,detail))return false;
-            if(bytes.size()>kRecordingCatalogSnapshotMaxBytes-total)return Fail(detail,"snapshot stream admission exceeded");
-            const auto added=bytes.size()/RecordingHistoryIndex::kValueBytes+(bytes.size()%RecordingHistoryIndex::kValueBytes!=0);
-            if(added>UINT64_MAX-chunks||!sorted->ReserveRows(chunks+added,detail))return false;
-            for(std::size_t offset=0,part=0;offset<bytes.size();offset+=RecordingHistoryIndex::kValueBytes,++part){
-                const auto digits=std::to_string(part);
+            std::string pending;std::uint64_t part=0,row_bytes=0;
+            const auto flush=[&](){
+                if(pending.empty())return true;
+                if(!sorted->ReserveRows(chunks+1,detail))return false;
+                const auto digits=std::to_string(part++);
                 const auto key=row.kind+std::string(1,'\0')+row.key+std::string(1,'\0')+std::string(20-digits.size(),'0')+digits;
-                if(!sorted->Put(key,bytes.substr(offset,RecordingHistoryIndex::kValueBytes),false,detail))return false;
-            }
-            total+=bytes.size();chunks+=added;return true;
+                if(!sorted->Put(key,pending,false,detail))return false;
+                ++chunks;pending.clear();return true;
+            };
+            if(!VisitRecordingCatalogSnapshotRow(row,[&](std::string_view bytes,std::string*){
+                if(bytes.size()>kRecordingCatalogSnapshotMaxBytes-total-row_bytes)return false;
+                row_bytes+=bytes.size();
+                while(!bytes.empty()){
+                    const auto n=std::min<std::size_t>(RecordingHistoryIndex::kValueBytes-pending.size(),bytes.size());
+                    pending.append(bytes.data(),n);bytes.remove_prefix(n);
+                    if(pending.size()==RecordingHistoryIndex::kValueBytes&&!flush())return false;
+                }return true;
+            },detail)||!flush())return false;
+            total+=row_bytes;return true;
         };
         if(!(frozen?ExportFrozenGenerationValues(chain,generation,cut,*frozen,&header,spool,error):
             ExportGenerationValuesLocked(chain.store_id,chain,generation,cut,&header,error,spool))||sorted->usage().rows!=chunks||

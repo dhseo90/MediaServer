@@ -19,6 +19,7 @@ namespace recording {
 struct RecordingColdRow {
     SearchModelResidency::Reservation memory;
     std::string bytes;
+    std::shared_ptr<const RecordingTextSource> event_reason{};
 };
 inline std::size_t RecordingColdWorkspaceBytes(std::size_t bytes,const std::string& ={}) {
     // Authenticated raw read and fixed index/shape work. Parser/DTO admission is
@@ -54,6 +55,7 @@ public:
     virtual bool NextOwned(const std::string&,const std::string&,std::string*,RecordingColdRow*,bool*,std::string*)=0;
     virtual std::shared_ptr<SearchModelResidency> MemoryOwner()const=0;
     virtual bool Put(const std::string&,const std::string&,const std::string&,std::string*)=0;
+    virtual bool PutEventLink(const std::string&,const EventRecordingLinkV1&,std::string*)=0;
     virtual bool Next(const std::string&,const std::string&,std::string*,std::string*,bool*,std::string*)=0;
     virtual bool VisitOwned(const std::string&,const std::function<bool(const std::string&,RecordingColdRow&,std::string*)>&,std::string*)=0;
     virtual bool Visit(const std::string&,const std::function<bool(const std::string&,const std::string&,std::string*)>&,std::string*)=0;
@@ -124,7 +126,10 @@ public:
     }
     void Set(const std::string& id,T value) {
         if(!store_){ram_[id]=std::move(value);return;}
-        std::string error;if(!store_->Put(kind_,id,Serialize(value),&error))throw RecordingRetainedReadError(error);
+        std::string error;bool ok=false;
+        if constexpr(std::is_same_v<T,EventRecordingLinkV1>)ok=store_->PutEventLink(id,value,&error);
+        else ok=store_->Put(kind_,id,Serialize(value),&error);
+        if(!ok)throw RecordingRetainedReadError(error);
     }
     T at(const std::string& id)const {static_assert(!std::is_same_v<T,std::string>,"retain the text iterator while comparing or transferring its storage");const auto row=find(id);if(row==end())throw std::out_of_range("retained row absent");return row->second;}
     std::size_t erase(const std::string& id) {
@@ -142,6 +147,7 @@ private:
         auto shaped=std::move(*ticket);auto* work=&shaped;
         T parsed;std::string error;
         if(!Parse(value.bytes,&parsed,&error)||Serialize(parsed)!=value.bytes)throw RecordingRetainedReadError("retained row canonical/domain mismatch: "+error);
+        if constexpr(std::is_same_v<T,EventRecordingLinkV1>){if(value.event_reason)parsed.completeness_reason.Bind(std::move(value.event_reason));}
         // The pair allocation/key is retained with the shared row. Deep-copyable DTOs
         // carry a separate charge so at() and downstream result copies retain it.
         std::size_t row_bytes=0;

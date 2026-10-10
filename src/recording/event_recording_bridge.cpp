@@ -255,7 +255,7 @@ EventSourceLease HeldSourceLeaseForLink(const RetentionSnapshot& snapshot,
     return lease;
 }
 
-bool IsTerminalReleaseStage(const std::string& reason) {
+bool IsTerminalReleaseStage(const RecordingLazyText& reason) {
     return reason == "event-terminal-release-recovery-pending" ||
            reason == "event-terminal-output-release-pending" ||
            reason == "event-terminal-source-release-pending" ||
@@ -263,7 +263,7 @@ bool IsTerminalReleaseStage(const std::string& reason) {
            reason == "event-terminal-complete-commit-pending";
 }
 
-bool IsResourceRecoveryStage(const std::string& reason) {
+bool IsResourceRecoveryStage(const RecordingLazyText& reason) {
     return IsTerminalReleaseStage(reason) ||
            reason == "event-catalog-finalize-recovery-pending" ||
            reason == "event-marker-cleanup-recovery-pending" ||

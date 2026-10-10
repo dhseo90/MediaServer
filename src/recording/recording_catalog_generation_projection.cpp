@@ -448,7 +448,10 @@ static bool BuildProjection(const std::filesystem::path& root,
             else if(row.kind=="segment-v2")ok=Decode(row,&p.segments_v2,ParseRecordingSegmentV2,SerializeRecordingSegmentV2,&RecordingSegmentV2::segment_id,error);
             else if(row.kind=="state-v2")ok=Decode(row,&p.states_v2,ParseRecordingSegmentStateV2,SerializeRecordingSegmentStateV2,&RecordingSegmentStateV2::segment_id,error);
             else if(row.kind=="tombstone-v1")ok=Decode(row,&p.tombstones,ParseRecordingTombstoneV1,SerializeRecordingTombstoneV1,&RecordingTombstoneV1::segment_id,error);
-            else if(row.kind=="event-link")ok=Decode(row,&p.event_links,ParseEventRecordingLinkV1,SerializeEventRecordingLinkV1,&EventRecordingLinkV1::link_id,error);
+            else if(row.kind=="event-link"){
+                EventRecordingLinkV1 value;ok=ParseEventRecordingLinkV1(row.value_json,&value,error)&&SerializeEventRecordingLinkV1(value)==row.value_json&&value.link_id==row.key;
+                if(ok){if(row.event_reason)value.completeness_reason.Bind(row.event_reason);ok=p.event_links.emplace(row.key,std::move(value)).second;}
+            }
             else if(row.kind=="observation-v1")ok=Decode(row,&p.observations,ParseAnalysisObservationV1,SerializeAnalysisObservationV1,&AnalysisObservationV1::observation_id,error);
             else if(row.kind=="observation-v2")ok=Decode(row,&p.observations_v2,ParseAnalysisObservationV2,SerializeAnalysisObservationV2,&AnalysisObservationV2::observation_id,error);
             else if(row.kind=="consumer-reference")ok=Decode(row,&p.consumer_references,ParseRecordingConsumerReferenceV1,SerializeRecordingConsumerReferenceV1,&RecordingConsumerReferenceV1::reference_id,error);

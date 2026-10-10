@@ -85,7 +85,9 @@ void NeedData(GstAppSrc* source,guint length,gpointer value) {
     std::size_t done=0;
     while(done<size&&!c.budget.Stop()) {
         const auto got=::pread(c.fd,map.data+done,size-done,static_cast<off_t>(c.offset+done));
-        if(got<0&&errno==EINTR)continue;if(got<=0)break;done+=static_cast<std::size_t>(got);
+        if(got<0&&errno==EINTR)continue;
+        if(got<=0)break;
+        done+=static_cast<std::size_t>(got);
     }
     gst_buffer_unmap(buffer,&map);
     if(done!=size){gst_buffer_unref(buffer);c.failed=true;gst_app_src_end_of_stream(source);return;}
@@ -95,7 +97,9 @@ void NeedData(GstAppSrc* source,guint length,gpointer value) {
 }
 gboolean SeekData(GstAppSrc*,guint64 offset,gpointer value) {
     auto& c=*static_cast<ReadContext*>(value);std::lock_guard lock(c.mu);
-    if(offset>c.size)return FALSE;c.offset=offset;return TRUE;
+    if(offset>c.size)return FALSE;
+    c.offset=offset;
+    return TRUE;
 }
 struct Pipeline {
     GstElement* pipeline{nullptr};GstElement* source{nullptr};GstElement* sink{nullptr};GstBus* bus{nullptr};
@@ -334,7 +338,9 @@ DerivedRemuxResult DeriveRecordingH264Remux(const DerivedRemuxRequest& request) 
                 const RecordingMediaDescriptor descriptor{source.segment.container,source.segment.video_codecs,source.segment.size_bytes,source.segment.checksum_sha256,source.segment.retention_class};
                 budget.Check();
                 const auto remaining=std::chrono::duration_cast<std::chrono::milliseconds>(budget.deadline-Clock::now());
-                Require(InspectRecordingPhysicalMediaFd(source.source_fd,descriptor,{std::min(remaining,std::chrono::milliseconds(5000))}).state==MediaInspectionState::Healthy,"source-integrity-failed");
+                MediaInspectionOptions inspection;
+                inspection.budget=std::min(remaining,std::chrono::milliseconds(5000));
+                Require(InspectRecordingPhysicalMediaFd(source.source_fd,descriptor,inspection).state==MediaInspectionState::Healthy,"source-integrity-failed");
                 budget.Check();auto full=ReadAus(source.source_fd,source.segment.size_bytes,false,budget);
                 Require(source.binding.index_complete&&full.size()==source.binding.samples.size(),"source-binding-incomplete");
                 output.source_origin_ns=Ns(source.segment.media_start_pts,source.segment);

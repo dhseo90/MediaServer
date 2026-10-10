@@ -3,7 +3,7 @@
 # B 명시 opt-in 세대 회전 focused. 실서버/운영 자료에 접근하지 않는다.
 set -euo pipefail
 task_case="${1:-all}"
-[[ "$task_case" == history-large || "$task_case" == all || "$task_case" == concurrency || "$task_case" == residency || "$task_case" == history-product || "$task_case" == history-index || "$task_case" == scale || "$task_case" == scale-baseline || "$task_case" == scale-load || "$task_case" == scale-visual ]] || exit 2
+[[ "$task_case" == lazy-reason || "$task_case" == history-large || "$task_case" == all || "$task_case" == concurrency || "$task_case" == residency || "$task_case" == history-product || "$task_case" == history-index || "$task_case" == scale || "$task_case" == scale-baseline || "$task_case" == scale-load || "$task_case" == scale-visual ]] || exit 2
 task_script="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 task_repo="$(cd "$task_script/../.." && pwd)"
 task_parent="$(cd "${TMPDIR:-/tmp}" && pwd -P)"
@@ -111,7 +111,7 @@ PYLOAD
   continue
  fi
  task_args=("$task_root/fixtures-$task_crypto-$task_sqlite-$task_backend")
- if [[ "$task_case" == history-large || "$task_case" == concurrency || "$task_case" == residency || "$task_case" == history-index || "$task_case" == history-product ]]; then task_args+=("$task_case"); fi
+ if [[ "$task_case" == lazy-reason || "$task_case" == history-large || "$task_case" == concurrency || "$task_case" == residency || "$task_case" == history-index || "$task_case" == history-product ]]; then task_args+=("$task_case"); fi
  "$task_root/checkpoint-$task_crypto-$task_sqlite-$task_backend" "${task_args[@]}"
 done
 date -u '+[end] %Y-%m-%dT%H:%M:%SZ'

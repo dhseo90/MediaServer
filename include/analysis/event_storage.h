@@ -2,6 +2,7 @@
 // 동작 요약: 외부 이벤트 출력 형식은 바꾸지 않고 내부 기록만 JSON Lines로 비동기 저장한다.
 // 동작 요약: DB 의존성 없이 파일 저장소와 bounded queue 기반 dispatcher를 제공한다.
 #pragma once
+#include "recording/recording_lazy_text.h"
 
 #include <cstddef>
 #include <cstdint>
@@ -79,7 +80,7 @@ struct EventRecordingBridgeResult {
     std::string clip_path;
     std::string link_id;
     std::string completeness;
-    std::string error;
+    recording::RecordingLazyText error;
     // 새 경로 소유 또는 소유권 미확인 시 legacy 억제. 접수 성공 뜻이 아니며 공개 직렬화하지 않는다.
     bool derived_job_managed{false};
 };

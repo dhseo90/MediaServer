@@ -8053,13 +8053,21 @@ bool AttachWebRtcAnalysisOverlay(
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 35657 function
 bool SendAll(int fd, const std::string& data) {
+    return SendAllObserved(fd,data,nullptr);
+}
+
+bool SendAllObserved(int fd, const std::string& data, RecordingSendObservation* observation) {
     std::size_t sent = 0;
     while (sent < data.size()) {
         int flags = 0;
 #ifdef MSG_NOSIGNAL
         flags |= MSG_NOSIGNAL;
 #endif
-        const ssize_t bytes = send(fd, data.data() + sent, data.size() - sent, flags);
+        const auto requested=data.size()-sent;
+        if(observation)observation->Record(requested,0,0,true);
+        const ssize_t bytes = send(fd, data.data() + sent, requested, flags);
+        const int send_error=bytes<0?errno:0;
+        if(observation)observation->Record(requested,bytes,send_error,false);
         if (bytes <= 0) {
             return false;
         }

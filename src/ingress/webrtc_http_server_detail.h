@@ -7984,6 +7984,7 @@ bool AttachWebRtcAnalysisOverlay(
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 35657 prototype
 bool SendAll(int fd, const std::string& data);
+bool SendAllObserved(int fd, const std::string& data, RecordingSendObservation* observation);
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 35673 prototype
 void SuppressSocketSigPipe(int fd);

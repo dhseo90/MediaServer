@@ -3,6 +3,7 @@
 #pragma once
 #include "domain/observation_coordinates.h"
 #include "recording/recording_memory_reservation.h"
+#include "recording/recording_lazy_text.h"
 
 #include <cstdint>
 #include <optional>
@@ -204,7 +205,7 @@ struct EventRecordingLinkV1Fields {
     std::optional<UtcRangeV1> derived_actual_range;
     std::string derivation_mode;
     std::string time_basis;
-    std::string completeness_reason;
+    RecordingLazyText completeness_reason;
     std::vector<UtcRangeV1> missing_ranges;
     EventRecordingLinkStatus status{EventRecordingLinkStatus::Pending};
     std::int64_t created_at_ms{0};
@@ -212,6 +213,9 @@ struct EventRecordingLinkV1Fields {
 };
 using EventRecordingLinkV1 = RecordingMemoryValue<EventRecordingLinkV1Fields>;
 
+bool VisitEventRecordingLinkV1(const EventRecordingLinkV1&,const RecordingTextSink&,std::string*);
+bool SerializeEventRecordingLinkOwned(const EventRecordingLinkV1&,const std::shared_ptr<SearchModelResidency>&,
+    std::size_t,RecordingOwnedText*,std::string*);
 // Allocation-free shape census precedes parser/vector allocation. This budget is
 // specific to EventRecordingLinkV1, including validation coverage and serializer.
 std::size_t RecordingEventLinkWorkspaceBytes(const std::string& json);

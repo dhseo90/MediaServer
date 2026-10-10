@@ -1,6 +1,7 @@
 // 파일 용도: 검증된 Catalog 완료 행의 비영속·비상주 값 조회를 제공한다.
 #pragma once
 #include "recording_history_index.h"
+#include "recording_event_reason_stream.h"
 #include "recording/recording_retained_rows.h"
 #include "recording/recording_catalog_snapshot.h"
 #include <charconv>
@@ -67,12 +68,19 @@ public:
         std::uint64_t bytes=0,capacity=0;bool exists=false;
         if(!Meta(kind,id,&bytes,&capacity,&exists,error))return false;
         if(!exists||!bytes){*found=false;return true;}
-        auto charge=MemoryOwner()->ReserveOwned(RecordingColdWorkspaceBytes(bytes,kind));
-        if(!charge)throw RecordingResourceUnavailable();
-        RecordingColdRow row;row.memory=std::move(*charge);
-        if(!ReadValue(kind,id,bytes,exists,&row.bytes,found,error))return false;
+        RecordingColdRow row;
+        if(kind=="event-link"&&bytes>=65536){
+            RecordingEventReasonSplitter split(1,index_.resources());
+            if(!ReadChunks(kind,id,bytes,[&](std::string_view chunk,std::string* e){return split.Append(chunk,e);},error)||!split.Finish(error))return false;
+            row.bytes=std::move(split.compact);row.memory=split.TakeMemory();row.event_reason=split.reason();*found=true;
+        }else{
+            auto charge=MemoryOwner()->ReserveOwned(RecordingColdWorkspaceBytes(bytes,kind));
+            if(!charge)throw RecordingResourceUnavailable();
+            row.memory=std::move(*charge);
+            if(!ReadValue(kind,id,bytes,exists,&row.bytes,found,error))return false;
+        }
         // Length and authenticated chunks were read under the same mutation lock.
-        output->bytes.swap(row.bytes);output->memory.swap(row.memory);return true;
+        output->bytes.swap(row.bytes);output->memory.swap(row.memory);output->event_reason.swap(row.event_reason);return true;
 #else
         (void)kind;(void)id;(void)output;(void)found;return Fail(error,"catalog history unsupported");
 #endif
@@ -160,11 +168,64 @@ public:
         (void)kind;(void)id;(void)value;return Fail(error,"catalog history unsupported");
 #endif
     }
+    bool PutEventLink(const std::string& id,const EventRecordingLinkV1& value,std::string* error) override {
+        if(!value.completeness_reason.lazy())return Put("event-link",id,SerializeEventRecordingLinkV1(value),error);
+        std::lock_guard<std::recursive_mutex> lock(mu_);
+#if MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
+        std::uint64_t old=0,capacity=0;bool exists=false;
+        if(!healthy_||!ValidateOpaqueId(id,error)||!Meta("event-link",id,&old,&capacity,&exists,error))return false;
+        auto compact=value;compact.completeness_reason=std::string("x");
+        const auto small=SerializeEventRecordingLinkV1(compact);
+        const auto encoded=value.completeness_reason.source()->encoded_size();
+        if(encoded>kRecordingCatalogSnapshotMaxBytes||small.size()-1>kRecordingCatalogSnapshotMaxBytes-encoded)return Fail(error,"catalog history row invalid");
+        const auto expected=small.size()-1+encoded;
+        const auto chunks=expected/RecordingHistoryIndex::kValueBytes+(expected%RecordingHistoryIndex::kValueBytes!=0);
+        const auto added=(exists?0:1)+(chunks>capacity?chunks-capacity:0);
+        if(added>UINT64_MAX-index_.usage().rows||index_.usage().rows+added>slot_limit_)return Fail(error,"catalog history capacity failed");
+        if(!index_.ReserveRows(index_.usage().rows+added,error))return false;
+        std::unique_ptr<EVP_MD_CTX,decltype(&EVP_MD_CTX_free)> written(EVP_MD_CTX_new(),EVP_MD_CTX_free),readback(EVP_MD_CTX_new(),EVP_MD_CTX_free);
+        if(!written||!readback||EVP_DigestInit_ex(written.get(),EVP_sha256(),nullptr)!=1||EVP_DigestInit_ex(readback.get(),EVP_sha256(),nullptr)!=1)return false;
+        std::size_t bytes=0,part=0;std::string pending;
+        const bool ok=VisitEventRecordingLinkV1(value,[&](std::string_view chunk,std::string* e){
+            if(chunk.size()>expected-bytes||EVP_DigestUpdate(written.get(),chunk.data(),chunk.size())!=1)return false;
+            bytes+=chunk.size();
+            while(!chunk.empty()){
+                const auto n=std::min<std::size_t>(RecordingHistoryIndex::kValueBytes-pending.size(),chunk.size());
+                pending.append(chunk.data(),n);chunk.remove_prefix(n);
+                if(pending.size()==RecordingHistoryIndex::kValueBytes){
+                    if(!index_.Put(Key("event-link",id,"v",part++),pending,true,e))return false;
+                    pending.clear();
+                }
+            }return true;
+        },error);
+        if(!ok||bytes!=expected)return Fail(error,"event reason streamed write failed");
+        if(!pending.empty()){
+            if(!index_.Put(Key("event-link",id,"v",part++),pending,true,error))return false;
+        }
+        if(!index_.Put(Key("event-link",id,"m",0),std::to_string(bytes)+"/"+std::to_string(std::max<std::uint64_t>(capacity,part)),true,error))return false;
+        if(!ReadChunks("event-link",id,bytes,[&](std::string_view chunk,std::string*){return EVP_DigestUpdate(readback.get(),chunk.data(),chunk.size())==1;},error))return false;
+        std::array<unsigned char,32> a{},b{};unsigned an=0,bn=0;
+        if(EVP_DigestFinal_ex(written.get(),a.data(),&an)!=1||EVP_DigestFinal_ex(readback.get(),b.data(),&bn)!=1||an!=32||bn!=32||a!=b)return Fail(error,"event reason streamed readback mismatch");
+        if(!old)++counts_[Kind("event-link")-1];
+        return true;
+#else
+        (void)id;(void)value;return Fail(error,"catalog history unsupported");
+#endif
+    }
     using OwnedVisitor=std::function<bool(const std::string&,RecordingColdRow&,std::string*)>;
     bool Visit(const std::string& kind,const Visitor& visitor,std::string* error) override {
         return VisitImpl(kind,visitor,nullptr,error);
     }
     bool VisitOwned(const std::string& kind,const OwnedVisitor& visitor,std::string* error) override {
+        if(kind=="event-link"){
+            std::string after;
+            for(;;){std::string id;RecordingColdRow row;bool found=false;
+                if(!NextOwned(kind,after,&id,&row,&found,error))return false;
+                if(!found)return true;
+                if(!visitor(id,row,error))return false;
+                after=std::move(id);
+            }
+        }
         return VisitImpl(kind,{},&visitor,error);
     }
     bool VisitImpl(const std::string& kind,const Visitor& visitor,const OwnedVisitor* owned,std::string* error) {
@@ -291,6 +352,14 @@ private:
         if(status==RecordingHistoryIndex::Lookup::Error)return Fail(error,"catalog history metadata lookup failed");
         *exists=status==RecordingHistoryIndex::Lookup::Found;if(!*exists)return true;
         return ParseMeta(text,bytes,capacity,error);
+    }
+    bool ReadChunks(const std::string& kind,const std::string& id,std::uint64_t bytes,const RecordingTextSink& sink,std::string* error){
+        for(std::uint64_t offset=0,part=0;offset<bytes;++part){
+            std::string block;const auto n=std::min<std::uint64_t>(RecordingHistoryIndex::kValueBytes,bytes-offset);
+            if(index_.Get(Key(kind,id,"v",part),&block,error)!=RecordingHistoryIndex::Lookup::Found||block.size()!=n)return Fail(error,"catalog history chunk/coverage invalid");
+            if(!sink(block,error))return false;
+            offset+=n;
+        }return true;
     }
     bool ReadValue(const std::string& kind,const std::string& id,std::uint64_t bytes,bool exists,
         std::string* value,bool* found,std::string* error) {

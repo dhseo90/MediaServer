@@ -3,10 +3,12 @@
 #include "recording/recording_cutover_candidate.h"
 #include "recording/recording_cutover_stage_writer.h"
 #include "recording/recording_generation_transaction.h"
+#include "recording_catalog_history.h"
 #include <algorithm>
 #include <limits>
 #if MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
 #include <sys/stat.h>
+#include <openssl/evp.h>
 #endif
 namespace recording {
 namespace {
@@ -67,6 +69,7 @@ bool RecordingCatalog::RecoverManagedCutover(const RecordingCutoverCandidateLimi
 #if MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND && MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
     std::lock_guard lock(mu_);
     if(opened_||!options_.enable_v2_storage||!receipt_admission)return Fail(error,"cutover recovery catalog state/admission rejected");
+    RecordingScratchResidency::Scope resources(journal_.ScratchOwner());
     std::filesystem::path root;RecordingGenerationTransaction transaction;
     if(!journal_.ManagedCutoverRoot(&root,error)||!transaction.Load(root,receipt_admission,error))return false;
     const auto& receipt=transaction.Receipt();
@@ -100,19 +103,70 @@ bool RecordingCatalog::RecoverManagedCutover(const RecordingCutoverCandidateLimi
     if(!transaction.ValidateRecoveryOriginal(error,&complete))return false;
     if(!complete)return (checkpoint||transaction.RestoreMarker(error))&&transaction.Cleanup(false,error);
     if(!transaction.Promote(error))return false;
-    std::string bytes;RecordingCatalogSnapshot snapshot;
-    if(!ReadVerifiedRecordingGenerationImmutable(root,receipt.target.snapshot,limits.snapshot_bytes,&bytes,error)||!ParseRecordingCatalogSnapshot(bytes,limits.snapshot_bytes,&snapshot,error))return false;
+    // Compare the independently replayed domain to the original candidate without
+    // materializing its rows. The authenticated index holds only canonical row
+    // digests/lengths; the descriptor SHA still covers every original source byte.
     RecordingIdentityChainResult chain;
-    const RecordingIdentityShardLoader loader=[&](const auto& file,std::uint64_t admission,std::string* data,std::string* detail){return ReadVerifiedRecordingGenerationImmutable(root,file,admission,data,detail);};
-    if(!ValidateRecordingIdentityShardChain(snapshot.identity_head,loader,limits.chain,&chain,error))return false;
-    for(const auto& reservation:chain.order_history.reservations)scratch->mutation_ids_.erase(reservation.order.request_id);
-    RecordingCatalogSnapshot expected;std::string canonical,observed;
-    if(!scratch->ExportGenerationValuesLocked(receipt.target.store_id,chain,receipt.target.generation,receipt.target.cut_ordinal,&expected,error)||
-       !SerializeRecordingCatalogSnapshot(expected,&canonical,error)||!SerializeRecordingCatalogSnapshot(snapshot,&observed,error)||canonical!=observed)
-        return Fail(error,"cutover recovery source/snapshot domain mismatch");
     RecordingCatalogGenerationProjection projection;
-    if(!BuildRecordingCatalogGenerationProjection(root,receipt.target,chain,snapshot,limits.cold_row_bytes,&projection,error)||
-       !transaction.ValidateRecoveryOriginal(error)||(!checkpoint&&!transaction.RestoreMarker(error))||!transaction.Cleanup(false,error))return false;
+    RecordingHistoryIndex expected_rows;
+    bool verified=false;
+    try { verified=[&]() {
+        RecordingCatalogSnapshot snapshot;
+        if(!VisitRecordingCatalogSnapshot(root,receipt.target.snapshot,limits.snapshot_bytes,&snapshot,{},error)||
+           !ValidateRecordingIdentityShardChainStream(root,snapshot.identity_head,limits.chain,&chain,error,{},
+                [](const RecordingGenerationFile&,std::string*){return true;})||
+           !VisitRecordingIdentityFirst(chain,[&](const auto& entry,std::string*){
+                if(entry.first_row.type==RecordingMutationType::RecordingOrderReserved)
+                    scratch->mutation_ids_.erase(entry.mutation_id);
+                return true;
+            },error)||
+           !expected_rows.Create(std::filesystem::canonical(std::filesystem::temp_directory_path()).string(),
+                RecordingHistoryIndex::BytesForRows(0),error,journal_.ScratchOwner()))return false;
+        const auto fingerprint=[](const RecordingCatalogSnapshotRow& row,std::string* result,std::string* detail) {
+            std::unique_ptr<EVP_MD_CTX,decltype(&EVP_MD_CTX_free)> digest(EVP_MD_CTX_new(),EVP_MD_CTX_free);
+            std::uint64_t size=0;unsigned char hash[32];unsigned length=0;
+            if(!digest||EVP_DigestInit_ex(digest.get(),EVP_sha256(),nullptr)!=1||
+               !VisitRecordingCatalogSnapshotRow(row,[&](std::string_view part,std::string*){
+                    if(part.size()>kRecordingCatalogSnapshotMaxBytes-size)return false;
+                    size+=part.size();return EVP_DigestUpdate(digest.get(),part.data(),part.size())==1;
+                },detail)||EVP_DigestFinal_ex(digest.get(),hash,&length)!=1||length!=sizeof(hash))
+                return Fail(detail,"cutover recovery row digest failed");
+            result->assign(reinterpret_cast<const char*>(hash),sizeof(hash));
+            *result+=std::to_string(size);return true;
+        };
+        RecordingCatalogSnapshot expected;
+        if(!scratch->ExportGenerationValuesLocked(receipt.target.store_id,chain,receipt.target.generation,
+                receipt.target.cut_ordinal,&expected,error,[&](const auto& row,std::string* detail){
+                    std::string value;
+                    return fingerprint(row,&value,detail)&&expected_rows.ReserveRows(expected_rows.usage().rows+1,detail)&&
+                        expected_rows.Put(row.kind+std::string(1,'\0')+row.key,value,false,detail);
+                }))return false;
+        std::uint64_t matched=0;
+        RecordingCatalogSnapshot observed;
+        if(!VisitRecordingCatalogSnapshot(root,receipt.target.snapshot,limits.snapshot_bytes,&observed,
+                [&](const auto& row,std::string* detail){
+                    std::string actual,wanted;
+                    if(!fingerprint(row,&actual,detail)||
+                       expected_rows.Get(row.kind+std::string(1,'\0')+row.key,&wanted,detail)!=RecordingHistoryIndex::Lookup::Found||actual!=wanted)
+                        return Fail(detail,"cutover recovery source/snapshot domain mismatch");
+                    ++matched;return true;
+                },error))return false;
+        std::string canonical,actual;
+        if(matched!=expected_rows.usage().rows||!SerializeRecordingCatalogSnapshotHeader(expected,&canonical,error)||
+           !SerializeRecordingCatalogSnapshotHeader(observed,&actual,error)||canonical!=actual)
+            return Fail(error,"cutover recovery source/snapshot domain mismatch");
+        return BuildRecordingCatalogGenerationProjectionStream(root,receipt.target,chain,observed,
+            limits.snapshot_bytes,limits.cold_row_bytes,&projection,error,true);
+    }(); }catch(...){Fail(error,"cutover recovery verification resource failure");}
+    // Close each temporary owner explicitly before any recovery cleanup can report
+    // success. Projection shares the chain handle and does not own the live Journal.
+    const auto close=[&](bool ok,const std::string& detail){if(!ok){verified=false;if(error){if(!error->empty())*error+="; ";*error+=detail;}}};
+    std::string cleanup;
+    close(expected_rows.Close(&cleanup),cleanup);
+    if(projection.completed_history){cleanup.clear();close(projection.completed_history->Finish(&cleanup),cleanup);}
+    if(chain.history){cleanup.clear();close(CloseRecordingIdentityHistory(chain.history,&cleanup),cleanup);}
+    if(!verified||!journal_.ScratchOwner()->ReaderCleanupHealthy()||!transaction.ValidateRecoveryOriginal(error)||
+       (!checkpoint&&!transaction.RestoreMarker(error))||!transaction.Cleanup(false,error))return false;
     if(error)error->clear();
     return true;
 #else

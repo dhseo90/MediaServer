@@ -20639,8 +20639,8 @@
           "file": "src/ingress/webrtc_http_server_detail.h",
           "symbol": "PrepareVlmProfileDocumentLocked",
           "anchor": "bool contains_forbidden_field = false;",
-          "line": 1024,
-          "contextSha256": "a1aad6c2077f8af49259537f90ebcda3588927a923f34d8a94bc2d9ea9ad78d8"
+          "line": 1026,
+          "contextSha256": "c204e119b2231565d81a3bc62b5d6f17623c8d83eb6aadd0733c1854512bbefa"
         },
         "action": {
           "file": "src/ingress/webrtc_http_server_detail.h",
@@ -20678,14 +20678,14 @@
           "kind": "function-containment",
           "witness": "The owner role flows to the dispatch role inside the actual feature implementation.",
           "source": "src/ingress/webrtc_http_server_detail.h:1015",
-          "target": "src/ingress/webrtc_http_server_detail.h:1024"
+          "target": "src/ingress/webrtc_http_server_detail.h:1026"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "assignment-def-use",
           "witness": "The dispatch role flows to the action role inside the actual feature implementation.",
-          "source": "src/ingress/webrtc_http_server_detail.h:1024",
+          "source": "src/ingress/webrtc_http_server_detail.h:1026",
           "target": "src/ingress/webrtc_http_server_detail.h:1033"
         },
         {

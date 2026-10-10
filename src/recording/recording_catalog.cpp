@@ -698,7 +698,27 @@ bool RecordingCatalog::PrepareGenerationSqliteLocked(const std::shared_ptr<Recor
     CURRENT_ROWS(tombstones_v2_,"tombstone-v2",SerializeRecordingTombstoneV2);
     if(!VisitRetiredLocked([&](const auto& id,const auto& receipt,std::string* detail){std::string value;
         return SerializeRecordingRetiredV2Receipt(receipt,&value,detail)&&row("retired-v2",id,value);},error))return false;
-    CURRENT_ROWS(event_links_,"event-link",SerializeEventRecordingLinkV1);
+    for(const auto& p:event_links_){
+        if(!p.second.completeness_reason.lazy()){if(!row("event-link",p.first,SerializeEventRecordingLinkV1(p.second)))return false;continue;}
+        auto compact=p.second;compact.completeness_reason=std::string("x");
+        const auto compact_json=SerializeEventRecordingLinkV1(compact);
+        const auto length=compact_json.size()-1+p.second.completeness_reason.source()->encoded_size();
+        if(length>static_cast<std::size_t>(std::numeric_limits<int>::max()))return Fail(error,"event cache length invalid");
+        sqlite3_stmt* statement=nullptr;
+        if(sqlite3_prepare_v2(db,"INSERT INTO b_current VALUES('event-link',?,zeroblob(?))",-1,&statement,nullptr)!=SQLITE_OK)return false;
+        sqlite3_bind_text(statement,1,p.first.data(),static_cast<int>(p.first.size()),SQLITE_TRANSIENT);
+        sqlite3_bind_int64(statement,2,static_cast<sqlite3_int64>(length));
+        const bool inserted=sqlite3_step(statement)==SQLITE_DONE;sqlite3_finalize(statement);if(!inserted)return false;
+        sqlite3_blob* blob=nullptr;
+        if(sqlite3_blob_open(db,"main","b_current","value_json",sqlite3_last_insert_rowid(db),1,&blob)!=SQLITE_OK)return false;
+        std::size_t offset=0;
+        const bool streamed=VisitEventRecordingLinkV1(p.second,[&](std::string_view chunk,std::string*){
+            if(chunk.size()>length-offset||sqlite3_blob_write(blob,chunk.data(),static_cast<int>(chunk.size()),static_cast<int>(offset))!=SQLITE_OK)return false;
+            offset+=chunk.size();return true;
+        },error);
+        const bool closed=sqlite3_blob_close(blob)==SQLITE_OK;
+        if(!streamed||!closed||offset!=length)return Fail(error,"event cache stream failed");
+    }
     CURRENT_ROWS(observations_,"observation-v1",SerializeAnalysisObservationV1);
     CURRENT_ROWS(observations_v2_,"observation-v2",SerializeAnalysisObservationV2);
     CURRENT_ROWS(consumer_references_,"consumer-reference",SerializeRecordingConsumerReferenceV1);
@@ -2236,7 +2256,7 @@ bool RecordingCatalog::ProjectGenerationDeltaLocked(const GenerationDelta& delta
             return ok?true:Fail(error,sqlite3_errmsg(db));
         };
         for(const auto& key:delta) {
-            const auto& kind=key.first;const auto& id=key.second;std::string value;bool present=false;
+            const auto& kind=key.first;const auto& id=key.second;RecordingOwnedText event_bytes;std::string value;bool present=false;
 #define DELTA_VALUE(map,serializer) do {const auto i=map.find(id);if(i!=map.end()){present=true;value=serializer(i->second);}}while(false)
             if(kind=="segment-v1")DELTA_VALUE(segments_,SerializeRecordingSegmentV1);
             else if(kind=="segment-v2")DELTA_VALUE(segments_v2_,SerializeRecordingSegmentV2);
@@ -2244,7 +2264,13 @@ bool RecordingCatalog::ProjectGenerationDeltaLocked(const GenerationDelta& delta
             else if(kind=="tombstone-v1")DELTA_VALUE(tombstones_,SerializeRecordingTombstoneV1);
             else if(kind=="tombstone-v2")DELTA_VALUE(tombstones_v2_,SerializeRecordingTombstoneV2);
             else if(kind=="retired-v2") {const auto i=RetiredLocked(id);if(i){present=SerializeRecordingRetiredV2Receipt(*i,&value,error);if(!present)return fail();}}
-            else if(kind=="event-link")DELTA_VALUE(event_links_,SerializeEventRecordingLinkV1);
+            else if(kind=="event-link"){
+                const auto i=event_links_.find(id);if(i!=event_links_.end()){
+                    present=true;
+                    if(!SerializeEventRecordingLinkOwned(i->second,search_residency_,kRecordingCatalogSnapshotMaxBytes,&event_bytes,error))return fail();
+                    value=std::move(event_bytes.text);
+                }
+            }
             else if(kind=="observation-v1")DELTA_VALUE(observations_,SerializeAnalysisObservationV1);
             else if(kind=="observation-v2")DELTA_VALUE(observations_v2_,SerializeAnalysisObservationV2);
             else if(kind=="consumer-reference")DELTA_VALUE(consumer_references_,SerializeRecordingConsumerReferenceV1);
@@ -2266,6 +2292,11 @@ bool RecordingCatalog::ProjectGenerationDeltaLocked(const GenerationDelta& delta
             else {Fail(error,"B delta 알 수 없는 kind");return fail();}
 #undef DELTA_VALUE
             if(present&&value.empty()){Fail(error,"B delta 직렬화 실패");return fail();}
+            std::optional<SearchModelResidency::Reservation> event_sql_work;
+            if(kind=="event-link"&&present){
+                event_sql_work=search_residency_->ReserveOwned(2*value.size()+128);
+                if(!event_sql_work)throw RecordingResourceUnavailable();
+            }
             if(kind=="source-binding"||kind=="derived-job"||kind=="hold") {
                 const char* upsert=kind=="source-binding"?"INSERT INTO b_source_summary VALUES(?,?) ON CONFLICT(id) DO UPDATE SET summary_json=excluded.summary_json":
                     kind=="derived-job"?"INSERT INTO b_job_summary VALUES(?,?) ON CONFLICT(id) DO UPDATE SET summary_json=excluded.summary_json":
@@ -3236,7 +3267,7 @@ bool RecordingCatalog::ValidateEventLinkReferencesLocked(
     return true;
 }
 
-bool RecordingCatalog::PutEventLink(const EventRecordingLinkV1& link, std::string* error) {
+bool RecordingCatalog::PutEventLink(const EventRecordingLinkV1& link, std::string* error) try {
     recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__);
     if (!ValidateEventRecordingLinkV1(link, error)) return false;
     for (const auto& [existing_link_id, existing] : event_links_) {
@@ -3248,9 +3279,14 @@ bool RecordingCatalog::PutEventLink(const EventRecordingLinkV1& link, std::strin
     RecordingMutationV1 mutation;
     mutation.mutation_type = RecordingMutationType::EventLinkCreated;
     mutation.entity_id = link.link_id;
-    mutation.payload_json = "{\"link\":" + SerializeEventRecordingLinkV1(link) + "}";
+    RecordingOwnedText encoded;
+    if(!SerializeEventRecordingLinkOwned(link,search_residency_,kRecordingCatalogSnapshotMaxBytes,&encoded,error))return false;
+    // The envelope and serializer reservation coexist through durable append/apply.
+    auto envelope=search_residency_->ReserveOwned(encoded.text.size()+75);
+    if(!envelope)throw RecordingResourceUnavailable();
+    mutation.payload_json = "{\"link\":" + encoded.text + "}";
     return AppendAndApplyLocked(std::move(mutation), error);
-}
+} catch(const RecordingResourceUnavailable& failure) {return Fail(error,failure.what());}
 
 bool RecordingCatalog::PutObservation(const AnalysisObservationV1& observation, std::string* error) {
     recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__);
@@ -3376,8 +3412,11 @@ bool RecordingCatalog::EvidenceDependenciesLocked(const EvidenceSnapshot& snapsh
         for(const auto& [id,link]:event_links_){
             if(std::chrono::steady_clock::now()>=snapshot.deadline)return Fail(error,"evidence-timeout");
         if(++scanned>65536)return Fail(error,"evidence-observation-scan-limit");
-            if(std::find(snapshot.events.begin(),snapshot.events.end(),link.event_id)!=snapshot.events.end()&&
-                !add("event/"+id,SerializeEventRecordingLinkV1(link)))return Fail(error,"evidence-observation-snapshot-limit");
+            if(std::find(snapshot.events.begin(),snapshot.events.end(),link.event_id)!=snapshot.events.end()){
+                RecordingOwnedText encoded;
+                if(!SerializeEventRecordingLinkOwned(link,search_residency_,256*1024,&encoded,error)||
+                    !add("event/"+id,encoded.text))return Fail(error,"evidence-observation-snapshot-limit");
+            }
         }
     }
     std::sort(output->begin(),output->end());return true;

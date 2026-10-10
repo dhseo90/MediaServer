@@ -18636,8 +18636,8 @@
           "file": "src/ingress/webrtc_http_server_detail.h",
           "symbol": "ValidateVlmPrivacyGuardContract",
           "anchor": "{\"credentialMaterialStored\",",
-          "line": 1411,
-          "contextSha256": "438a299de7d86f1ee9fa9f0474595a12aa22a7caf7d476b440877b1455c329e2"
+          "line": 1413,
+          "contextSha256": "069164adf1b725b4d91061fe31d0d2ed56fb871d82f668a2fcd86ea5586c7fc1"
         },
         "readback": {
           "file": "scripts/internal/verify_v230_vlm_opt_in_operational_evidence.mjs",
@@ -18677,14 +18677,14 @@
           "kind": "function-containment",
           "witness": "SAFE-035 action-state",
           "source": "src/ingress/webrtc_http_server_detail.h:1365",
-          "target": "src/ingress/webrtc_http_server_detail.h:1411"
+          "target": "src/ingress/webrtc_http_server_detail.h:1413"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "runtime-readback",
           "witness": "SAFE-035 state-readback",
-          "source": "src/ingress/webrtc_http_server_detail.h:1411",
+          "source": "src/ingress/webrtc_http_server_detail.h:1413",
           "target": "scripts/internal/verify_v230_vlm_opt_in_operational_evidence.mjs:122"
         },
         {

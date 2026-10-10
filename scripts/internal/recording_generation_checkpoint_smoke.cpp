@@ -1338,6 +1338,204 @@ void LargeOwnedRows(const std::filesystem::path&){
 
 }
 
+std::string ReasonHash(const std::function<bool(const RecordingTextSink&)>& produce) {
+    auto* context=EVP_MD_CTX_new();Need(context&&EVP_DigestInit_ex(context,EVP_sha256(),nullptr)==1);
+    Need(produce([&](std::string_view bytes,std::string*){return EVP_DigestUpdate(context,bytes.data(),bytes.size())==1;}));
+    unsigned char digest[32];unsigned n=0;Need(EVP_DigestFinal_ex(context,digest,&n)==1&&n==32);EVP_MD_CTX_free(context);
+    const char* hex="0123456789abcdef";std::string result;for(auto c:digest){result+=hex[c>>4];result+=hex[c&15];}return result;
+}
+void LazyEventReason(const std::filesystem::path& root) {
+    Actual(root);
+    RecordingCatalogSnapshot snapshot;
+    Need(ParseRecordingCatalogSnapshot(Read(root/"snapshot-2.jsonl"),1024*1024,&snapshot,&error));
+    EventRecordingLinkV1 link;link.link_id="lazy-link";link.event_id="lazy-event";link.source_id="source";link.channel_id="channel";
+    link.time_basis="utc-ms";link.created_at_ms=link.updated_at_ms=1;link.requested_range=UtcRangeV1{0,1};link.completeness_reason=std::string("x");
+    snapshot.rows.push_back({"event-link",link.link_id,SerializeEventRecordingLinkV1(link)});
+    std::sort(snapshot.rows.begin(),snapshot.rows.end(),[](const auto& a,const auto& b){return std::tie(a.kind,a.key)<std::tie(b.kind,b.key);});
+    const std::string raw_prefix=std::string(2047,'a')+"\\n"+"\xE2\x98\x83"+"\\b\\f\\u0001";
+    const std::string raw_block=raw_prefix+std::string(4096-raw_prefix.size(),'z');
+    const std::string decoded_block=std::string(2047,'a')+"\n"+"\xE2\x98\x83"+std::string("\b\f\1")+std::string(4096-raw_prefix.size(),'z');
+    constexpr std::size_t repeats=4096;
+    std::uint64_t original_size=0;std::ofstream output(root/"snapshot-2.jsonl",std::ios::binary|std::ios::trunc);
+    const auto original_hash=ReasonHash([&](const RecordingTextSink& hash){
+        const auto emit=[&](std::string_view bytes){output.write(bytes.data(),bytes.size());original_size+=bytes.size();return bool(output)&&hash(bytes,&error);};
+        std::string header;Need(SerializeRecordingCatalogSnapshotHeader(snapshot,&header,&error));if(!emit(header))return false;
+        for(const auto& row:snapshot.rows){std::string bytes;Need(SerializeRecordingCatalogSnapshotRow(row,&bytes,&error));
+            if(row.kind!="event-link"){if(!emit(bytes))return false;continue;}
+            const std::string marker="\"completeness_reason\":\"x\"";const auto at=bytes.find(marker)+marker.size()-2;
+            if(!emit(std::string_view(bytes).substr(0,at)))return false;
+            for(std::size_t i=0;i<repeats;++i)if(!emit(raw_block))return false;
+            if(!emit(std::string_view(bytes).substr(at+1)))return false;
+        }return true;
+    });output.close();Need(bool(output));
+    auto manifest=Manifest(root);manifest.snapshot.size=original_size;manifest.snapshot.sha256=original_hash;
+    std::string bytes;Need(SerializeRecordingGenerationManifest(manifest,&bytes,&error));Write(root/"recording-generation.json",bytes);
+    const auto expected_hash=ReasonHash([&](const RecordingTextSink& sink){for(std::size_t i=0;i<repeats;++i)if(!sink(decoded_block,&error))return false;return true;});
+    auto memory=std::make_shared<SearchModelResidency>(8*1024*1024);
+    auto resources=RecordingScratchResidency::Discover(std::filesystem::canonical(std::filesystem::temp_directory_path()).string(),memory);
+    auto options=Options(root);options.memory=memory;options.scratch=resources;options.generation_limits.snapshot_bytes=32*1024*1024;
+    std::optional<EventRecordingLinkV1> held;
+    {
+        RecordingJournal journal(options);Need(journal.Open(&error));RecordingCatalog catalog(journal,CO(root));Need(catalog.Open(&error));
+        held=catalog.FindEventLinkByEventId("lazy-event");
+        Check("MEM86-C1-OPEN",held&&held->completeness_reason.lazy()&&held->completeness_reason.size()==decoded_block.size()*repeats&&memory->peak()<=memory->limit(),
+            "actual generation Open and selected typed query preserve reason larger than injected 8MiB owner");
+        std::size_t delivered=0,max_chunk=0;
+        const auto actual=ReasonHash([&](const RecordingTextSink& sink){return held->completeness_reason.Visit([&](std::string_view part,std::string* e){delivered+=part.size();max_chunk=std::max(max_chunk,part.size());return sink(part,e);},&error);});
+        Check("MEM86-C1-STREAM",actual==expected_hash&&delivered==decoded_block.size()*repeats&&max_chunk<=2048,
+            "full decoded bytes/hash exact across UTF8/escape chunk boundaries with bounded reader");
+        unsigned calls=0;Check("MEM86-C1-CANCEL",!held->completeness_reason.Visit([&](std::string_view,std::string*){return ++calls<3;},&error)&&calls==3,
+            "consumer cancellation stops finite traversal without invalidating owned content");
+        auto copy=*held;const auto before=memory->used();auto moved=std::move(copy);
+        Check("MEM86-C1-OWNERS",memory->used()==before&&moved.completeness_reason.source()==held->completeness_reason.source(),"copied typed owner retains one immutable reason backing; move transfers charge");
+        RecordingOrderReservationV1 reserved;Need(catalog.ReserveRecordingOrder("store","lazy-checkpoint","lazy-unused-segment","channel",&reserved,&error));
+        Need(catalog.Checkpoint(&error));
+        Check("MEM86-C1-CHECKPOINT",Manifest(root).generation==3,"checkpoint streamed exact large reason through fixed view and candidate validation");
+        Need(journal.Finish(&error));
+    }
+    Check("MEM86-C1-OWNERS",resources->usage().file_descriptors>0&&memory->used()>0,"reader backing remains owned after Journal Finish");
+    {
+        RecordingJournal reopened(options);Need(reopened.Open(&error));RecordingCatalog restored(reopened,CO(root));Need(restored.Open(&error));
+        auto selected=restored.FindEventLinkByEventId("lazy-event");Need(bool(selected));
+        Check("MEM86-C1-REOPEN",ReasonHash([&](const RecordingTextSink& sink){return selected->completeness_reason.Visit(sink,&error);})==expected_hash,
+            "reOpen selected reader reproduces full canonical reason while previous reader remains alive");
+        Need(reopened.Finish(&error));
+    }
+    const auto before_recovery=Manifest(root);
+    const auto child=::fork();Need(child>=0);
+    if(child==0){
+        auto child_memory=std::make_shared<SearchModelResidency>(8*1024*1024);
+        auto child_options=Options(root);child_options.memory=child_memory;
+        child_options.scratch=RecordingScratchResidency::Discover(std::filesystem::canonical(std::filesystem::temp_directory_path()).string(),child_memory);
+        child_options.generation_limits.snapshot_bytes=32*1024*1024;
+        RecordingJournal journal(child_options);RecordingCatalog catalog(journal,CO(root));std::string detail;
+        RecordingOrderReservationV1 reserved;
+        if(!journal.Open(&detail)||!catalog.Open(&detail)||
+           !catalog.ReserveRecordingOrder("store","lazy-prepared","lazy-prepared-segment","channel",&reserved,&detail))::_exit(70);
+        RecordingGenerationTransactionProbe::Hook([](const char* point){
+            if(std::string_view(point)=="receipt-directory-synced")::_exit(73);
+        });
+        (void)catalog.Checkpoint(&detail);::_exit(72);
+    }
+    int child_status=0;Need(::waitpid(child,&child_status,0)==child);
+    Check("MEM86-C1-PREPARED",WIFEXITED(child_status)&&WEXITSTATUS(child_status)==73,
+        "large reason checkpoint stops after durable PREPARED receipt");
+    {
+        RecordingJournal journal(options);RecordingCatalog catalog(journal,CO(root,false));
+        RecordingCutoverCandidateLimits limits;limits.chain={8*1024*1024,10000,10000};
+        limits.snapshot_bytes=32*1024*1024;limits.cold_row_bytes=17*1024*1024;
+        Need(RecordingGenerationTransactionProbe::Recover(catalog,limits,&error));
+        Need(journal.Finish(&error));
+    }
+    {
+        RecordingJournal journal(options);Need(journal.Open(&error));RecordingCatalog catalog(journal,CO(root));Need(catalog.Open(&error));
+        auto selected=catalog.FindEventLinkByEventId("lazy-event");Need(bool(selected));std::uint64_t observed_size=0;
+        const auto digest=ReasonHash([&](const RecordingTextSink& sink){return selected->completeness_reason.Visit([&](std::string_view part,std::string* e){observed_size+=part.size();return sink(part,e);},&error);});
+        const auto after_recovery=Manifest(root);
+        Check("MEM86-C1-PREPARED",digest==expected_hash&&observed_size==decoded_block.size()*repeats&&
+            after_recovery.generation==before_recovery.generation&&after_recovery.snapshot.sha256==before_recovery.snapshot.sha256&&
+            after_recovery.snapshot.size==before_recovery.snapshot.size&&memory->peak()<=memory->limit(),
+            "actual PREPARED recovery and reOpen preserve full reason bytes/hash and original snapshot within shared 8MiB owner");
+        Need(journal.Finish(&error));
+    }
+    Check("MEM86-C1-ORIGINAL",ReasonHash([&](const RecordingTextSink& sink){return held->completeness_reason.source()->Visit(sink,true,&error);})==
+        ReasonHash([&](const RecordingTextSink& sink){for(std::size_t i=0;i<repeats;++i)if(!sink(raw_block,&error))return false;return true;}),
+        "original canonical reason bytes retained by owned reader after predecessor snapshot cleanup");
+    recording::RecordingHistoryIndex::probe_fault=6;
+    Check("MEM86-C1-CORRUPT",!held->completeness_reason.Visit([](std::string_view,std::string*){return true;},&error),"authenticated backing corruption refuses reader before success");
+    recording::RecordingHistoryIndex::probe_fault=0;
+    Need(held->completeness_reason.Finish(&error));held.reset();
+    std::cout<<"[lazy-reason] encodedBytes="<<raw_block.size()*repeats<<" decodedBytes="<<decoded_block.size()*repeats<<" injectedLimit="<<memory->limit()<<" peak="<<memory->peak()<<" expectedHash="<<expected_hash<<std::endl;
+    Check("MEM86-C1-FINISH",memory->used()==0&&resources->usage().file_descriptors==0&&resources->usage().disk_bytes==0,"last reader destruction releases actual anonymous backing FD/disk and RAM reservations");
+}
+
+void LazyReasonMutation(const std::filesystem::path& root) {
+    Actual(root);
+    auto memory=std::make_shared<SearchModelResidency>(8*1024*1024);
+    auto options=Options(root);options.memory=memory;
+    options.scratch=RecordingScratchResidency::Discover(std::filesystem::canonical(std::filesystem::temp_directory_path()).string(),memory);
+    const std::string reason(70000,'r');
+    const auto expected=ReasonHash([&](const RecordingTextSink& sink){return sink(reason,&error);});
+    {
+        RecordingJournal journal(options);Need(journal.Open(&error));RecordingCatalog catalog(journal,CO(root));Need(catalog.Open(&error));
+        EventRecordingLinkV1 link;link.link_id="mutation-link";link.event_id="mutation-event";link.source_id="source";link.channel_id="channel";
+        link.time_basis="utc-ms";link.created_at_ms=link.updated_at_ms=1;link.requested_range=UtcRangeV1{0,1};link.completeness_reason=reason;
+        Need(catalog.PutEventLink(link,&error));
+        auto cold=catalog.FindEventLinkByEventId(link.event_id);Need(bool(cold));
+        Check("MEM86-C1-MUTATION",cold->completeness_reason.lazy()&&
+            ReasonHash([&](const RecordingTextSink& sink){return cold->completeness_reason.Visit(sink,&error);})==expected,
+            "normal 70KiB Put streams through SQL delta and returns exact lazy cold value");
+        Need(catalog.PutEventLink(*cold,&error));Need(catalog.Checkpoint(&error));Need(journal.Finish(&error));
+    }
+    {
+        RecordingJournal journal(options);Need(journal.Open(&error));RecordingCatalog catalog(journal,CO(root));Need(catalog.Open(&error));
+        auto cold=catalog.FindEventLinkByEventId("mutation-event");Need(bool(cold));
+        Check("MEM86-C1-MUTATION",ReasonHash([&](const RecordingTextSink& sink){return cold->completeness_reason.Visit(sink,&error);})==expected,
+            "same cold Put retry and checkpoint reOpen preserve all reason bytes");
+        Need(journal.Finish(&error));
+    }
+    Check("MEM86-C1-MUTATION",memory->used()==0&&options.scratch->usage().file_descriptors==0&&options.scratch->usage().disk_bytes==0,
+        "mutation/checkpoint owners release all reservations");
+}
+
+void LazyReasonErrors(const std::filesystem::path& root) {
+    std::filesystem::create_directories(root);
+    auto memory=std::make_shared<SearchModelResidency>(8*1024*1024);
+    auto resources=RecordingScratchResidency::Discover(std::filesystem::canonical(std::filesystem::temp_directory_path()).string(),memory);
+    {
+        RecordingLazyText small(std::string("eager-value"));RecordingOwnedText owned;
+        Need(small.ReadOwned(&owned,memory,&error));const auto before=memory->used();
+        {auto copy=owned;auto moved=std::move(copy);Check("MEM86-C1-EAGER",moved.text=="eager-value"&&memory->used()>before,"ordinary owned eager copy reserves and move transfers bytes");}
+        auto saturation=memory->ReserveOwned(memory->limit()-memory->used());Need(bool(saturation));bool rejected=false;
+        try{auto copy=owned;(void)copy;}catch(const RecordingResourceUnavailable&){rejected=true;}
+        Check("MEM86-C1-EAGER",rejected&&owned.text=="eager-value","saturated eager copy rollback preserves original");
+    }
+    {
+        auto source=std::make_shared<RecordingEventReason>();Need(source->Create(resources,&error));
+        for(unsigned i=0;i<70000;++i)Need(source->Append('a',&error));
+        Need(source->Seal(&error));
+        RecordingLazyText value;value.Bind(source);source.reset();std::size_t read=0;
+        Need(value.Visit([&](std::string_view part,std::string*){value.clear();read+=part.size();return memory->used()>0;},&error));
+        Check("MEM86-C1-READER",read==70000&&memory->used()==0&&resources->usage().file_descriptors==0,
+            "in-flight reader retains backing when callback releases last DTO then returns all ownership");
+    }
+    EventRecordingLinkV1 link;link.link_id="error-link";link.event_id="event";link.source_id=link.channel_id="channel";
+    link.requested_range=UtcRangeV1{0,1};link.created_at_ms=link.updated_at_ms=1;link.time_basis="utc-ms";link.completeness_reason=std::string("x");
+    const auto json=SerializeEventRecordingLinkV1(link);const auto token=json.find("\"completeness_reason\":\"x\"");Need(token!=std::string::npos);
+    const auto start=token+std::string("\"completeness_reason\":\"").size();
+    const auto parse=[&](const std::string& raw){RecordingEventReasonSplitter splitter(1,resources);EventRecordingLinkV1 result;
+        for(std::size_t offset=0;offset<raw.size();offset+=2047)if(!splitter.Append(std::string_view(raw).substr(offset,2047),&error))return false;
+        return splitter.Finish(&error)&&ParseEventRecordingLinkV1(splitter.compact,&result,&error)&&SerializeEventRecordingLinkV1(result)==splitter.compact;};
+    for(const std::string& damage:std::vector<std::string>{"\\uD800","\\u0008","\\u000c","\\q",std::string(1,'\1')}){
+        auto bad=json;bad.replace(start,1,std::string(70000,'a')+damage);
+        Check("MEM86-C1-INVALID",!parse(bad),"large reason surrogate/escape/control corruption rejected across chunk boundaries");
+    }
+    auto duplicate=json;duplicate.insert(1,"\"completeness_reason\":\"first\",");
+    Check("MEM86-C1-INVALID",!parse(duplicate),"duplicate canonical key remains rejected");
+    Check("MEM86-C1-INVALID",!parse(json.substr(0,start)+std::string(70000,'a')+"\\"),"truncated final string rejected");
+    {
+        auto source=std::make_shared<RecordingEventReason>();Need(source->Create(resources,&error));
+        for(unsigned i=0;i<70000;++i)Need(source->Append('a',&error));
+        Need(source->Seal(&error));
+        RecordingLazyText first;first.Bind(source);source.reset();RecordingLazyText second=first;
+        Need(first.Finish(&error));Check("MEM86-C1-FINISH",second.lazy()&&resources->usage().file_descriptors==1,"first Finish retains backing for other reader");
+        bool callback_rejected=false;auto active_source=second.source();
+        Need(second.Visit([&](std::string_view,std::string*){callback_rejected=!active_source->Finish(&error);return true;},&error));
+        active_source.reset();
+        Check("MEM86-C1-FINISH",callback_rejected&&second.lazy(),"reentrant Finish refuses close while reader traversal is active");
+        RecordingHistoryIndex::probe_fault=4;
+        const bool closed=second.Finish(&error);RecordingHistoryIndex::probe_fault=0;
+        Check("MEM86-C1-FINISH-ERROR",!closed&&!second.Finish(&error)&&!resources->ReaderCleanupHealthy()&&resources->usage().file_descriptors==0,
+            "uncertain Close latches failure; repeated Finish refuses success without retrying released FD");
+        second.clear();
+    }
+    auto options=Options(root);options.memory=memory;options.scratch=resources;RecordingJournal observer(options);
+    Check("MEM86-C1-FINISH-ERROR",!observer.Finish(&error)&&error.find("event reader cleanup failed")!=std::string::npos,
+        "Journal Finish observes shared owner reader Close failure even after reader destruction");
+    Check("MEM86-C1-FINISH-ERROR",memory->used()==0&&resources->usage().file_descriptors==0&&resources->usage().disk_bytes==0,
+        "synthetic Close failure preserves failure receipt and releases actual resources");
+}
+
 RecordingCatalog* crash_catalog=nullptr;
 std::string crash_point;
 void AppendAtCut() {
@@ -1380,11 +1578,12 @@ void CheckpointSuffixRecovery(const std::filesystem::path& base) {
 #endif
 int main(int argc,char** argv) {
     if(argc!=2&&argc!=3)return 2;
-    if(argc==3&&std::string(argv[2])!="history-large"&&std::string(argv[2])!="concurrency"&&std::string(argv[2])!="history-product"&&std::string(argv[2])!="history-index"&&std::string(argv[2])!="residency"&&std::string(argv[2])!="scale-1000"&&std::string(argv[2])!="scale-100000"&&std::string(argv[2])!="scale-baseline-1000"&&std::string(argv[2])!="scale-baseline-100000")return 2;
+    if(argc==3&&std::string(argv[2])!="lazy-reason"&&std::string(argv[2])!="history-large"&&std::string(argv[2])!="concurrency"&&std::string(argv[2])!="history-product"&&std::string(argv[2])!="history-index"&&std::string(argv[2])!="residency"&&std::string(argv[2])!="scale-1000"&&std::string(argv[2])!="scale-100000"&&std::string(argv[2])!="scale-baseline-1000"&&std::string(argv[2])!="scale-baseline-100000")return 2;
     try {
         const std::filesystem::path root(argv[1]);std::filesystem::create_directories(root);
 #if MEDIA_SERVER_USE_OPENSSL && MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND
         if(argc==3&&std::string(argv[2]).rfind("scale-",0)==0){IdentityScale(root/"scale",std::stoull(std::string(argv[2]).substr(std::string(argv[2]).find_last_of('-')+1)),std::string(argv[2]).find("baseline")!=std::string::npos);return failures?1:0;}
+        if(argc==3&&std::string(argv[2])=="lazy-reason"){LazyEventReason(root/"lazy-reason");LazyReasonMutation(root/"lazy-mutation");LazyReasonErrors(root/"lazy-errors");return failures?1:0;}
         if(argc==3&&std::string(argv[2])=="history-large"){LargeOwnedRows(root);return failures?1:0;}
         if(argc==3&&std::string(argv[2])=="history-index"){HistoryIndex(root/"history-index");return failures?1:0;}
         if(argc==3&&std::string(argv[2])=="history-product"){HistoryProduct(root/"history-product");CatalogConsumerQuota(root/"consumer-quota");return failures?1:0;}

@@ -49,6 +49,13 @@ fi
   "${ROOT_DIR}/src/recording/event_clip_deriver.cpp" \
   "${ROOT_DIR}/src/recording/recording_journal.cpp" \
   "${ROOT_DIR}/src/recording/recording_catalog.cpp" \
+  "${ROOT_DIR}/src/recording/recording_catalog_snapshot.cpp" \
+  "${ROOT_DIR}/src/recording/recording_identity_shard.cpp" \
+  "${ROOT_DIR}/src/recording/recording_order_history_snapshot.cpp" \
+  "${ROOT_DIR}/src/recording/recording_generation_files.cpp" \
+  "${ROOT_DIR}/src/recording/recording_generation_manifest.cpp" \
+  "${ROOT_DIR}/src/recording/recording_generation_cold_mutation.cpp" \
+  "${ROOT_DIR}/src/recording/recording_generation_active.cpp" \
  "${ROOT_DIR}/src/recording/recording_finalize_recovery.cpp" "${ROOT_DIR}/src/recording/recording_finalize_ticket.cpp" "${ROOT_DIR}/src/recording/recording_file_evidence.cpp" \
  "${ROOT_DIR}/src/recording/recording_media_inspector.cpp" \
   "${ROOT_DIR}/src/recording/retention_coordinator.cpp" \

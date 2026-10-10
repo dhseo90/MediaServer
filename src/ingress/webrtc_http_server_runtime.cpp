@@ -5243,7 +5243,8 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                     const HttpRequest* request_for_headers =
                         request_opt.has_value() ? &request_opt.value() : nullptr;
                     const std::string encoded = BuildHttpResponse(response, request_for_headers);
-                    const bool sent = SendAll(client_fd, encoded);
+                    const auto observation=recording_gate->SendObservation();
+                    const bool sent = SendAllObserved(client_fd, encoded, observation.get());
                     site_diagnostic.Emit(SiteOperationsRequestDiagnostic::Phase::SendEnd, sent);
                 }
                 // Drain is the recording transport's lifetime boundary. Release the

@@ -60,6 +60,7 @@ struct RecordingCatalogSnapshotRow {
     // strict JSON 값의 raw bytes다. 내부 공백/escape/필드 순서를 정규화하지 않는다.
     // domain canonical 동등성·내부 ID·cross-map 검증은 import 책임이다.
     std::string value_json;
+    std::shared_ptr<const RecordingTextSource> event_reason{};
 };
 struct RecordingCatalogSnapshot {
     std::string store_id;
@@ -74,6 +75,7 @@ bool VisitRecordingCatalogSnapshot(const std::filesystem::path&,const RecordingG
 bool SerializeRecordingCatalogSnapshotHeader(const RecordingCatalogSnapshot&,std::string*,std::string*);
 bool ParseRecordingCatalogSnapshotRow(const std::string&,RecordingCatalogSnapshotRow*,std::string*);
 bool SerializeRecordingCatalogSnapshotRow(const RecordingCatalogSnapshotRow&,std::string*,std::string*);
+bool VisitRecordingCatalogSnapshotRow(const RecordingCatalogSnapshotRow&,const RecordingTextSink&,std::string*);
 bool RecordingSnapshotRequiresAcceptedState(RecordingMutationType);
 inline constexpr std::uint64_t kRecordingCatalogSnapshotMaxBytes = 1024ULL * 1024 * 1024;
 // 행은 (kind,key) 사전순이다. 정렬을 자동 보정하지 않으며 마지막 LF가 필수다.

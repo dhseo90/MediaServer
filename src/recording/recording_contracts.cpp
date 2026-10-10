@@ -1212,12 +1212,46 @@ std::string SerializeEventRecordingLinkV1(const EventRecordingLinkV1& value) {
         output << ",\"stream_epoch_id\":" << Quote(value.stream_epoch_id);
     }
     if (!value.completeness_reason.empty()) {
-        output << ",\"completeness_reason\":" << Quote(value.completeness_reason);
+        output << ",\"completeness_reason\":" << Quote(value.completeness_reason.small());
     }
     output << ",\"status\":" << Quote(LinkStatusString(value.status))
            << ",\"created_at_ms\":" << value.created_at_ms
            << ",\"updated_at_ms\":" << value.updated_at_ms << '}';
     return output.str();
+}
+
+bool VisitEventRecordingLinkV1(const EventRecordingLinkV1& value,const RecordingTextSink& sink,std::string* error) {
+    if(!value.completeness_reason.lazy())return sink(SerializeEventRecordingLinkV1(value),error);
+    const auto source=value.completeness_reason.source();
+    auto compact=value;compact.completeness_reason=std::string("x");
+    const auto bytes=SerializeEventRecordingLinkV1(compact);
+    const std::string marker="\"completeness_reason\":\"x\"";
+    const auto at=bytes.find(marker);
+    if(at==std::string::npos)return Fail(error,"lazy event reason marker absent");
+    const auto begin=at+marker.size()-2;
+    return sink(std::string_view(bytes).substr(0,begin),error)&&
+        source->Visit(sink,true,error)&&sink(std::string_view(bytes).substr(begin+1),error);
+}
+
+// Existing bounded eager consumers retain their serialized bytes' reservation.
+// Large Open/checkpoint readers use Visit directly and never enter this adapter.
+bool SerializeEventRecordingLinkOwned(const EventRecordingLinkV1& value,
+    const std::shared_ptr<SearchModelResidency>& owner,std::size_t limit,
+    RecordingOwnedText* output,std::string* error) {
+    if(!owner||!output)return Fail(error,"event serialization owner missing");
+    RecordingOwnedText result;
+    if(!VisitEventRecordingLinkV1(value,[&](std::string_view part,std::string* detail){
+        if(part.size()>limit-result.text.size())return Fail(detail,"event serialization result limit");
+        const auto required=result.text.size()+part.size();
+        if(required>result.text.capacity()){
+            const auto wanted=std::max(required,std::min(limit,result.text.capacity()*2+4096));
+            if(wanted>std::numeric_limits<std::size_t>::max()-65)throw RecordingResourceUnavailable();
+            auto reservation=owner->ReserveOwned(wanted+65);if(!reservation)throw RecordingResourceUnavailable();
+            result.text.reserve(wanted);result.memory.swap(*reservation);
+        }
+        result.text.append(part);return true;
+    },error))return false;
+    *output=std::move(result);return true;
 }
 
 namespace {
@@ -1298,7 +1332,7 @@ std::size_t RecordingEventLinkRetainedBytes(const EventRecordingLinkV1& value) {
     std::size_t bytes=sizeof(value)+64;
     auto string=[&](const std::string& s){bytes+=s.capacity()+1+32;};
     string(value.schema);string(value.link_id);string(value.event_id);string(value.source_id);string(value.channel_id);
-    string(value.stream_epoch_id);string(value.derivation_mode);string(value.time_basis);string(value.completeness_reason);
+    string(value.stream_epoch_id);string(value.derivation_mode);string(value.time_basis);bytes+=value.completeness_reason.capacity()+1+32;
     if(value.derived_segment_id)string(*value.derived_segment_id);
     if(value.fallback_evidence_id)string(*value.fallback_evidence_id);
     if(value.fallback_media_locator)string(*value.fallback_media_locator);

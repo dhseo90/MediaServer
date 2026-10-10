@@ -2,6 +2,7 @@
 #include "recording/recording_catalog_snapshot.h"
 #include "recording/recording_contracts.h"
 #include "domain/strict_json.h"
+#include "recording_event_reason_stream.h"
 #include <algorithm>
 #include <charconv>
 #include <filesystem>
@@ -405,44 +406,64 @@ bool VisitRecordingCatalogSnapshot(const std::filesystem::path& root,const Recor
     std::uint64_t admission,RecordingCatalogSnapshot* output,const RecordingCatalogSnapshotRowVisitor& visitor,std::string* error){
     if(!output||!admission||file.size>admission||file.size>kRecordingCatalogSnapshotMaxBytes||!file.size)
         return Fail(error,"snapshot stream admission invalid");
-    RecordingCatalogSnapshot header;std::string pending,previous_kind,previous_key;bool first=true,has_previous=false;
+#if MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
+    RecordingCatalogSnapshot header;std::string previous_kind,previous_key;bool first=true,has_previous=false;
+    auto split=std::make_unique<RecordingEventReasonSplitter>(2);
     const auto chunks=[&](std::string_view bytes,std::string* detail){
         while(!bytes.empty()){
             const auto newline=bytes.find('\n');const auto n=newline==std::string_view::npos?bytes.size():newline+1;
-            if(n>kRecordingCatalogSnapshotMaxBytes-pending.size())return Fail(detail,"snapshot row admission exceeded");
-            pending.append(bytes.data(),n);bytes.remove_prefix(n);
+            if(!split->Append(bytes.substr(0,n),detail))return false;
+            bytes.remove_prefix(n);
             if(newline==std::string_view::npos)continue;
-            if(first){if(!ParseHeader(pending,&header,detail))return false;first=false;}
+            if(!split->Finish(detail))return false;
+            if(first){if(split->reason()||!ParseHeader(split->compact,&header,detail))return false;first=false;}
             else {
+                auto workspace=split->memory()->ReserveOwned(ingress::StrictJsonWorkspaceBytes(split->compact,8,0,true));
+                if(!workspace)throw RecordingResourceUnavailable();
                 RecordingCatalogSnapshotRow row;
-                if(!ParseRow(pending,&row,detail)||(has_previous&&std::tie(previous_kind,previous_key)>=std::tie(row.kind,row.key)))
+                if(!ParseRow(split->compact,&row,detail)||(has_previous&&std::tie(previous_kind,previous_key)>=std::tie(row.kind,row.key)))
                     return Fail(detail,"snapshot stream row noncanonical/duplicate/unsorted");
+                row.event_reason=split->reason();
+                if(row.event_reason&&row.kind!="event-link")return Fail(detail,"lazy reason outside event link");
                 previous_kind=row.kind;previous_key=row.key;has_previous=true;
                 if(visitor&&!visitor(row,detail))return false;
             }
-            pending.clear();
+            split=std::make_unique<RecordingEventReasonSplitter>(2);
         }
         return true;
     };
     if(!VisitVerifiedRecordingGenerationImmutable(root,file,admission,chunks,error))return false;
-    if(first||!pending.empty())return Fail(error,"snapshot stream incomplete header/row");
+    if(first||!split->compact.empty())return Fail(error,"snapshot stream incomplete header/row");
     *output=std::move(header);return true;
+#else
+    (void)root;(void)visitor;return Fail(error,"snapshot stream unsupported");
+#endif
 }
+
 bool SerializeRecordingCatalogSnapshotHeader(const RecordingCatalogSnapshot& value,std::string* output,std::string* error){
     if(!output||!HeaderValid(value,error))return Fail(error,"snapshot output/header invalid");
     *output=HeaderJson(value);return true;
 }
 bool ParseRecordingCatalogSnapshotRow(const std::string& bytes,RecordingCatalogSnapshotRow* row,std::string* error){return row&&ParseRow(bytes,row,error);}
 bool SerializeRecordingCatalogSnapshotRow(const RecordingCatalogSnapshotRow& row,std::string* output,std::string* error){
-    if(!output||!RowValid(row,error))return false;
+    if(!output||row.event_reason||!RowValid(row,error))return false;
     *output=RowJson(row);return true;
+}
+bool VisitRecordingCatalogSnapshotRow(const RecordingCatalogSnapshotRow& row,const RecordingTextSink& sink,std::string* error){
+    if(!row.event_reason){std::string bytes;return SerializeRecordingCatalogSnapshotRow(row,&bytes,error)&&sink(bytes,error);}
+    if(row.kind!="event-link"||!RowValid(row,error))return Fail(error,"lazy snapshot row invalid");
+    EventRecordingLinkV1 value;
+    if(!ParseEventRecordingLinkV1(row.value_json,&value,error)||SerializeEventRecordingLinkV1(value)!=row.value_json||value.link_id!=row.key)return false;
+    value.completeness_reason.Bind(row.event_reason);
+    return sink("{\"kind\":\"event-link\",\"key\":"+Quote(row.key)+",\"value\":",error)&&
+        VisitEventRecordingLinkV1(value,sink,error)&&sink("}\n",error);
 }
 bool RecordingSnapshotRequiresAcceptedState(RecordingMutationType type){return RequiresAcceptedState(type);}
 bool SerializeRecordingCatalogSnapshot(const RecordingCatalogSnapshot& value, std::string* output, std::string* error) {
     if (!output || !HeaderValid(value, error)) return Fail(error, "snapshot output/header invalid");
     std::string bytes = HeaderJson(value);
     for (std::size_t i = 0; i < value.rows.size(); ++i) {
-        if ((i && !Less(value.rows[i - 1], value.rows[i])) || !RowValid(value.rows[i], error))
+        if (value.rows[i].event_reason || (i && !Less(value.rows[i - 1], value.rows[i])) || !RowValid(value.rows[i], error))
             return Fail(error, "snapshot row invalid/duplicate/unsorted");
         const auto row = RowJson(value.rows[i]);
         if (row.size() > kRecordingCatalogSnapshotMaxBytes - bytes.size())

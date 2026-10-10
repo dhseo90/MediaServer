@@ -1161,6 +1161,7 @@ bool RecordingJournal::Finish(std::string* error) {
     if(managed_fd_>=0){const int fd=managed_fd_;managed_fd_=-1;if(::close(fd)){ok=false;detail+="; journal close failure";}}
     if(lease_fd_>=0){const int fd=lease_fd_;lease_fd_=-1;if(::close(fd)){ok=false;detail+="; lease close failure";}}
 #endif
+    if(scratch_&&!scratch_->ReaderCleanupHealthy()){ok=false;detail+="; event reader cleanup failed";}
     opened_=false;poisoned_=true;
     if(!ok&&error)*error=detail;
     return ok;

@@ -66,7 +66,8 @@ std::string OwnedManifest(const std::filesystem::path& path){
     while(in){in.read(buffer.data(),buffer.size());const auto count=in.gcount();
         if(value.size()+static_cast<std::size_t>(count)>1024*1024)throw std::runtime_error("checkpoint-manifest-cap");
         value.append(buffer.data(),static_cast<std::size_t>(count));}
-    if(!in.eof())throw std::runtime_error("checkpoint-manifest-read");return value;
+    if(!in.eof())throw std::runtime_error("checkpoint-manifest-read");
+    return value;
 }
 struct Joined {
     std::vector<std::thread>& threads;std::atomic<bool>& stop;
@@ -83,14 +84,16 @@ int main(int argc,char** argv){
         const auto root=argc==3&&!checkpoint_overlap?base:base/"product";
         runtime_owner=std::make_unique<recording::RecordingRuntimeStorage>(root);auto& runtime=*runtime_owner;std::string error;
         progress.Begin(0,LoadPhase::Open);
-        if(!runtime.Open(&error))throw std::runtime_error(error);progress.End(0);
+        if(!runtime.Open(&error))throw std::runtime_error(error);
+        progress.End(0);
         progress.Begin(0,LoadPhase::Encode);
         auto input=Encode(90,false,false,160,90,30,30);Shift(input,7000000000ULL);progress.End(0);progress.Begin(0,LoadPhase::WriterStart);
         std::vector<std::unique_ptr<recording::GStreamerSegmentWriter>> writers;
         std::vector<std::string> channels;std::string channel_query;
         for(int i=0;i<8;++i){
             const auto channel="load-channel-"+std::to_string(i);channels.push_back(channel);
-            if(i)channel_query+=',';channel_query+=channel;
+            if(i)channel_query+=',';
+            channel_query+=channel;
             auto writer=std::make_unique<recording::GStreamerSegmentWriter>(runtime.WriterOptions(1000));
             if(!writer->Start(channel,"unused",input.descriptor,[](auto,auto,auto*){return false;},&error))throw std::runtime_error(error);
             writers.push_back(std::move(writer));
@@ -105,7 +108,8 @@ int main(int argc,char** argv){
         recording::RecordingReadService reader(runtime.catalog());
         ingress::RecordingApplicationService app(reader,runtime.catalog(),true,{});
         std::unordered_map<std::string,std::string> query{{"channelIds",channel_query},{"startTimeMs","1789200000000"},{"endTimeMs","1789200004000"}};
-        if(app.Search(query,"warmup","scope",[](const auto&){return true;}).status!=200)throw std::runtime_error("load-warmup");progress.End(0);
+        if(app.Search(query,"warmup","scope",[](const auto&){return true;}).status!=200)throw std::runtime_error("load-warmup");
+        progress.End(0);
         std::atomic<unsigned> packets{0},finished{0};std::atomic<bool> stop{false};
         std::array<std::exception_ptr,13> errors{};
         std::atomic<unsigned> checkpoint_phase{0};std::array<std::array<unsigned,3>,4> completed_phase{};
@@ -125,7 +129,8 @@ int main(int argc,char** argv){
                 phase_max[client][phase]=std::max(phase_max[client][phase],elapsed[client].back());
                 if(result.status==200)++ready[client];else if(result.status==503){++unavailable[client];if(first_failure[client].empty())first_failure[client]=result.body;}else throw std::runtime_error("load-search-status");
                 progress.Progress(1+client,elapsed[client].size());
-                if(packets>before)++progressed[client];std::this_thread::sleep_for(std::chrono::milliseconds(5));
+                if(packets>before)++progressed[client];
+                std::this_thread::sleep_for(std::chrono::milliseconds(5));
             }while(!stop&&finished<8);progress.End(1+client);}catch(const std::exception& e){progress.Failure(1+client,e.what());errors[client]=std::current_exception();stop=true;}catch(...){progress.Failure(1+client,"unknown");errors[client]=std::current_exception();stop=true;}
         });
         progress.End(0);
@@ -144,7 +149,8 @@ int main(int argc,char** argv){
                 if(!runtime.catalog().Checkpoint(&detail))throw std::runtime_error("checkpoint-overlap:"+detail);
                 checkpoint_ms=std::chrono::duration<double,std::milli>(std::chrono::steady_clock::now()-started).count();
                 checkpoint_phase=2;checkpoint_end=packets.load();checkpoint_published=OwnedManifest(root/"recording-generation.json")!=prior;
-                if(!checkpoint_published)throw std::runtime_error("checkpoint-overlap-no-publication");progress.Progress(13,checkpoint_end);progress.End(13);
+                if(!checkpoint_published)throw std::runtime_error("checkpoint-overlap-no-publication");
+                progress.Progress(13,checkpoint_end);progress.End(13);
             }catch(const std::exception& e){progress.Failure(13,e.what());errors[12]=std::current_exception();stop=true;}catch(...){progress.Failure(13,"unknown");errors[12]=std::current_exception();stop=true;}
         });
         progress.Begin(0,LoadPhase::Join);for(auto& thread:threads)thread.join();progress.End(0);
@@ -168,7 +174,8 @@ int main(int argc,char** argv){
         const auto final=app.Search(query,"load-final","scope",[](const auto&){return true;});
         if(total!=24||final.status!=200||Field(Json(final.body),"knownCount")!="24")throw std::runtime_error("load-final-result");
         progress.End(0);progress.Begin(0,LoadPhase::Finish);
-        if(!runtime.Finish(&error))throw std::runtime_error("load-finish:"+error);progress.End(0);
+        if(!runtime.Finish(&error))throw std::runtime_error("load-finish:"+error);
+        progress.End(0);
         if(progress.output_failed)throw std::runtime_error("load-progress-output-failed");
         struct rusage usage{};if(getrusage(RUSAGE_SELF,&usage))throw std::runtime_error("load-rss");
         const std::uint64_t rss=static_cast<std::uint64_t>(usage.ru_maxrss)

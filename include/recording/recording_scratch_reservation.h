@@ -117,6 +117,8 @@ public:
     Usage usage()const{std::lock_guard<std::mutex> lock(mu_);return used_;}
     Usage peak()const{std::lock_guard<std::mutex> lock(mu_);return peak_;}
     Usage limits()const{return limits_;}
+    void ReportReaderCleanupFailure(){std::lock_guard<std::mutex> lock(mu_);reader_cleanup_failed_=true;}
+    bool ReaderCleanupHealthy()const{std::lock_guard<std::mutex> lock(mu_);return !reader_cleanup_failed_;}
     std::uint64_t preserved_fds()const{std::lock_guard<std::mutex> lock(mu_);return preserved_fds_;}
     std::uint64_t preserved_disk_bytes()const{std::lock_guard<std::mutex> lock(mu_);return preserved_disk_;}
     std::uint64_t device()const{return device_;}
@@ -161,6 +163,7 @@ private:
     void PeakLocked(){peak_.disk_bytes=std::max(peak_.disk_bytes,used_.disk_bytes);peak_.file_descriptors=std::max(peak_.file_descriptors,used_.file_descriptors);peak_.ram_bytes=std::max(peak_.ram_bytes,used_.ram_bytes);}
     const Usage limits_;std::shared_ptr<SearchModelResidency> ram_;
     std::uint64_t preserved_fds_{0};
+    bool reader_cleanup_failed_{false};
     struct DiskDomain {std::uint64_t device{0},block{1},limit{0},used{0};};
     std::array<DiskDomain,2> domains_{};std::size_t domain_count_{1};std::uint64_t preserved_disk_{0};
     const std::uint64_t device_;mutable std::mutex mu_;Usage used_{},peak_{};
