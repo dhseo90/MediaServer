@@ -709,6 +709,111 @@
           "sha256": "a45e2e0a823eaa546471fb4909b086e334d15f51a4843ab927285387ca0f49db"
         }
       }
+    },
+    {
+      "kind": "local_archive_preservation",
+      "priorReviewSha256": "c46a8e7eb35b4b2a494adc6037620dcd5aa470bd3d1df19611a1ae00dc55b783",
+      "decisionUnchanged": true,
+      "supersedesPendingOnly": [
+        "archivePreservation_local"
+      ],
+      "commit": "17fbd17c032463fb10c0362d6c6133dfca2882b5",
+      "path": "docs/release-artifacts/v4.5.0/81-execution.tar.gz",
+      "blob": "be5101bfbbe1de3ea44b183d3395791169a893cf",
+      "bytes": 1374244,
+      "sha256": "ce6b146f6e6fa6e323b08f144e0d3b4bc68ab690426663e0e99757ac9dbf7d49",
+      "gitShowBytesMatchWorktree": true,
+      "selectedOriginalMembers": 232,
+      "archiveMembersIncludingSelectionReceipt": 233,
+      "selectedMemberSizeAndHashMismatches": [],
+      "archiveMembersComparedToActualOwnedRoot": 233,
+      "ownedRootByteMismatches": 0,
+      "receipts": {
+        "git-preservation.json": {
+          "bytes": 301,
+          "sha256": "cb7aaafeee2420b94400a88c17d09879c3b5f0c4f6838f7a995a7fae76add0c5"
+        },
+        "archive-receipt.json": {
+          "bytes": 368,
+          "sha256": "94a13f3858490087e58ff3c0f4ee89d35a07373151a8f95a14b0c50657ab6be4"
+        },
+        "preservation-selection.json": {
+          "bytes": 37318,
+          "sha256": "4b1d881038f893e116b732f02a5f72033a22dce01ec918924603dd2482776066"
+        }
+      },
+      "qualification": "git show에서 실제 archive 전체 바이트를 읽어 SHA/크기를 확인하고, archive 233 member 모두 현재 소유 root의 원본 바이트와 직접 대조했다. 232개 선택 원본과 selection receipt 1개를 구분한다. 로컬 commit 보존이며 원격 보존·정리 완료를 주장하지 않는다. 과거 pending은 삭제하지 않고 후속 확인을 추가한다.",
+      "stillPending": [
+        "소유 root/container 정리 및 부재 확인",
+        "원격 push 및 실제 원격 보존 확인"
+      ],
+      "unchangedOutcome": "부분 채택 가능; 사용자 병행 goal p95 FAIL; 전체 P0 BLOCKED; 출시 미승인"
+    },
+    {
+      "kind": "local_cleanup_closure",
+      "priorReviewSha256": "8d7b85850004dd528683dceedf18ae43a97acc7d796310e81c36fc413a7c8968",
+      "decisionUnchanged": true,
+      "validationReadbackSha256": "69ef15c81c3918d4b571b6cbcf7e47be490778596f2d8a3e3405f47a6d7c707c",
+      "cleanupReceipt": {
+        "status": "PASS",
+        "checkedAt": "2026-10-10T08:31:14.268555+00:00",
+        "ownedRoot": {
+          "path": "/private/tmp/media-server-memory81-3pivevrd",
+          "uid": 501,
+          "dev": 16777232,
+          "ino": 172067478,
+          "base": "92be23d35b4acfca810550e6c073a173a2c9a7f1"
+        },
+        "rootRemoval": "removed exact uid/dev/ino-verified owned root after Git byte readback; absence verified",
+        "containerId": "5c70363ab813f28362569949174382a975703584a8f4d08cf9d588d09bdf9171",
+        "containerBeforeRemoval": "exited, running=false, UID 10001:10001",
+        "containerRemovalExit": 0,
+        "ownedProcessMatchesBeforeRemoval": 0,
+        "processObservation": "host ps after sandbox denied ps; no owned executable/path matches",
+        "serverPorts": "no listening product server/browser was started; in-process native load fixture",
+        "preservedBeforeRemoval": {
+          "commit": "17fbd17c032463fb10c0362d6c6133dfca2882b5",
+          "path": "docs/release-artifacts/v4.5.0/81-execution.tar.gz",
+          "blob": "be5101bfbbe1de3ea44b183d3395791169a893cf",
+          "bytes": 1374244,
+          "sha256": "ce6b146f6e6fa6e323b08f144e0d3b4bc68ab690426663e0e99757ac9dbf7d49",
+          "verifiedMembers": 232
+        },
+        "retained": "existing model/SDK/runtime/Linux images and user stores; no historical record deletion"
+      },
+      "localPreservationReceipt": {
+        "commit": "17fbd17c032463fb10c0362d6c6133dfca2882b5",
+        "path": "docs/release-artifacts/v4.5.0/81-execution.tar.gz",
+        "blob": "be5101bfbbe1de3ea44b183d3395791169a893cf",
+        "bytes": 1374244,
+        "sha256": "ce6b146f6e6fa6e323b08f144e0d3b4bc68ab690426663e0e99757ac9dbf7d49",
+        "verifiedMembers": 232
+      },
+      "independentRootAbsence": {
+        "path": "/private/tmp/media-server-memory81-3pivevrd",
+        "lexists": false
+      },
+      "containerAbsence": {
+        "exactId": "5c70363ab813f28362569949174382a975703584a8f4d08cf9d588d09bdf9171",
+        "mainReportedExactIdPsResult": "no result after removal",
+        "reviewerDirectRead": "docker ps -a --no-trunc --filter id=<exact ID> --format ID/Status attempted; exit1 permission denied connecting to Docker socket",
+        "qualification": "직접 컨테이너 부재 재확인은 환경 권한으로 완료하지 못했다. 메인의 명시 제거 exit0와 exact-ID 부재 확인 전달을 근거로 기록하며 독립 직접 관측으로 바꾸지 않는다."
+      },
+      "preRemovalProcesses": {
+        "mainReceiptMatches": 0,
+        "independentlyRepeated": false
+      },
+      "preservationBeforeCleanup": "직전 독립 addendum에서 Git archive 바이트 및 233 member의 원본 대조 완료를 직접 확인했다. 이번 root 부재로 당시 보존 근거를 소급 대체하지 않는다.",
+      "localCheckpointClosure": "로컬 보존과 root 정리는 확인. 컨테이너 정리는 메인 receipt 기반이며 직접 재확인 한계를 명시. 기술적 부분 채택 판단을 막는 새 제품 결함 없음.",
+      "remotePush": "NOT_RUN_AT_REQUEST",
+      "unchangedOutcome": {
+        "partialSourceAdoptionAcceptable": true,
+        "userGoal": "FAIL_P95",
+        "p95Ms": 3098.09,
+        "memoryP0": "BLOCKED",
+        "wholeTaskComplete": false,
+        "releaseApproved": false
+      }
     }
   ]
 }

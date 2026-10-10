@@ -368,8 +368,31 @@
     "PR/CI/merge/tag/Release"
   ],
   "cleanup": {
-    "status": "pending exact owned cleanup after Git preservation",
-    "linux": "exited0, nonroot; raw logs copied before owned container removal"
+    "status": "PASS",
+    "checkedAt": "2026-10-10T08:31:14.268555+00:00",
+    "ownedRoot": {
+      "path": "/private/tmp/media-server-memory81-3pivevrd",
+      "uid": 501,
+      "dev": 16777232,
+      "ino": 172067478,
+      "base": "92be23d35b4acfca810550e6c073a173a2c9a7f1"
+    },
+    "rootRemoval": "removed exact uid/dev/ino-verified owned root after Git byte readback; absence verified",
+    "containerId": "5c70363ab813f28362569949174382a975703584a8f4d08cf9d588d09bdf9171",
+    "containerBeforeRemoval": "exited, running=false, UID 10001:10001",
+    "containerRemovalExit": 0,
+    "ownedProcessMatchesBeforeRemoval": 0,
+    "processObservation": "host ps after sandbox denied ps; no owned executable/path matches",
+    "serverPorts": "no listening product server/browser was started; in-process native load fixture",
+    "preservedBeforeRemoval": {
+      "commit": "17fbd17c032463fb10c0362d6c6133dfca2882b5",
+      "path": "docs/release-artifacts/v4.5.0/81-execution.tar.gz",
+      "blob": "be5101bfbbe1de3ea44b183d3395791169a893cf",
+      "bytes": 1374244,
+      "sha256": "ce6b146f6e6fa6e323b08f144e0d3b4bc68ab690426663e0e99757ac9dbf7d49",
+      "verifiedMembers": 232
+    },
+    "retained": "existing model/SDK/runtime/Linux images and user stores; no historical record deletion"
   },
   "linux": "Existing image ce72c8a...,uid10001,networknone,capdropALL,no-new-privileges; checkpoint4configs/history-product/active/consumers and full product build PASS. linux-output stores raw Werror results; no installs.",
   "approvalBinding": {
@@ -482,5 +505,13 @@
     "rawBytes": 8356182,
     "allMemberReadback": true,
     "representation": "raw selected new executions and synthetic input; no inferred log reconstruction or prior archive duplication"
+  },
+  "localPreservation": {
+    "commit": "17fbd17c032463fb10c0362d6c6133dfca2882b5",
+    "path": "docs/release-artifacts/v4.5.0/81-execution.tar.gz",
+    "blob": "be5101bfbbe1de3ea44b183d3395791169a893cf",
+    "bytes": 1374244,
+    "sha256": "ce6b146f6e6fa6e323b08f144e0d3b4bc68ab690426663e0e99757ac9dbf7d49",
+    "verifiedMembers": 232
   }
 }
