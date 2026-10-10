@@ -386,11 +386,11 @@ bool RecordingCatalog::EraseRetiredLocked(const std::string& id,std::string* err
     if(!completed_history_){retired_v2_.erase(id);retired_v2_links_.erase(id);return true;}
     return completed_history_->Put("retired-v2",id,{},error);
 }
-bool RecordingCatalog::VisitRetiredLocked(const std::function<bool(const std::string&,const RecordingRetiredV2Receipt&,std::string*)>& visitor,std::string* error)const {
+bool RecordingCatalog::VisitRetiredLocked(const std::function<bool(const std::string&,const RecordingRetiredV2Receipt&,std::string*)>& visitor,std::string* error,bool event_candidates_only)const {
     if(!completed_history_){for(const auto& item:retired_v2_)if(!visitor(item.first,item.second,error))return false;return true;}
-    return completed_history_->Visit("retired-v2",[&](const std::string& id,const std::string& bytes,std::string* detail){
+    return completed_history_->VisitRetired([&](const std::string& id,const std::string& bytes,std::string* detail){
         RecordingRetiredV2Receipt value;return ParseRecordingRetiredV2Receipt(bytes,&value,detail)&&value.segment_id==id&&visitor(id,value,detail);
-    },error);
+    },event_candidates_only,error);
 }
 std::optional<RecordingCatalog::SourceBindingEntry> RecordingCatalog::SourceEntryLocked(const std::string& id)const {
     const auto live=source_bindings_.find(id);if(live!=source_bindings_.end())return live->second;

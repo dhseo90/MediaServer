@@ -35,6 +35,36 @@ std::string Quote(const std::string& value) {
     }
     return result + '"';
 }
+// Two complete ordinal-ordered cursors commit to the exact fields previously compared
+// per ID. Private to one locked export; never persisted or reused across a cut/owner.
+class AppliedPrefixDigest {
+public:
+#if MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
+    AppliedPrefixDigest():context_(EVP_MD_CTX_new(),EVP_MD_CTX_free) {
+        if(!context_||EVP_DigestInit_ex(context_.get(),EVP_sha256(),nullptr)!=1)throw std::runtime_error("prefix digest init");
+    }
+    void Add(const RecordingIdentityFirstAcceptance& first) {
+        const auto& r=first.first_row;
+        for(const auto& value:{first.mutation_id,std::to_string(first.first_global_ordinal),RecordingMutationTypeName(r.type),
+            r.entity_id,std::to_string(r.occurred_at_ms),r.identity,r.reservation?std::string("1"):std::string("0")})Field(value);
+        if(r.reservation){const auto& o=*r.reservation;for(const auto& value:{o.schema,o.store_id,o.request_id,o.segment_id,o.channel_id,std::to_string(o.sequence)})Field(value);}
+    }
+    void Field(const std::string& value) {
+            std::array<unsigned char,8> size{};auto n=static_cast<std::uint64_t>(value.size());
+            for(unsigned i=0;i<8;++i){size[i]=n&255;n>>=8;}
+            if(EVP_DigestUpdate(context_.get(),size.data(),size.size())!=1||
+               EVP_DigestUpdate(context_.get(),value.data(),value.size())!=1)throw std::runtime_error("prefix digest update");
+    }
+    std::array<unsigned char,32> Finish(){std::array<unsigned char,32> result{};unsigned size=0;
+        if(EVP_DigestFinal_ex(context_.get(),result.data(),&size)!=1||size!=result.size())throw std::runtime_error("prefix digest finish");
+        return result;}
+private:
+    std::unique_ptr<EVP_MD_CTX,decltype(&EVP_MD_CTX_free)> context_;
+#else
+    void Add(const RecordingIdentityFirstAcceptance&){throw std::runtime_error("prefix digest unsupported");}
+    std::array<unsigned char,32> Finish(){throw std::runtime_error("prefix digest unsupported");}
+#endif
+};
 bool SameOrder(const RecordingOrderReservationV1& a, const RecordingOrderReservationV1& b) {
     return std::tie(a.schema,a.store_id,a.request_id,a.segment_id,a.channel_id,a.sequence) ==
            std::tie(b.schema,b.store_id,b.request_id,b.segment_id,b.channel_id,b.sequence);
@@ -99,11 +129,12 @@ bool RecordingCatalog::ExportGenerationValuesLocked(const std::string& store,
         // Product cross-checks the sealed candidate against the current applied prefix in one
         // Journal cursor below. DTO/oracle callers retain their independent map checks.
         const bool applied_cursor=completed_history_&&chain.history;
+        AppliedPrefixDigest candidate_digest,current_digest;
         if(!VisitRecordingIdentityFirst(chain,[&](const auto& entry,std::string*){
             if(entry.mutation_id!=entry.first_row.mutation_id||entry.first_global_ordinal!=entry.first_row.global_ordinal||
                entry.first_global_ordinal>=cut||!entry.occurrences||entry.occurrences>chain.physical_rows-physical)
                 return Fail(error,"snapshot first identity mismatch");
-            physical+=entry.occurrences;++first_count;
+            physical+=entry.occurrences;++first_count;if(applied_cursor)candidate_digest.Add(entry);
             if(RecordingSnapshotRequiresAcceptedState(entry.first_row.type))++required_accepted;
             if(entry.first_row.type==RecordingMutationType::RecordingOrderReserved){
                 const auto found=applied_cursor&&entry.first_row.reservation?
@@ -193,18 +224,11 @@ bool RecordingCatalog::ExportGenerationValuesLocked(const std::string& store,
             std::size_t visible_count=0;
             if(!journal_.VisitGenerationFirst([&](const auto& current,std::string* detail){
                 if(!generation_visible_ordinal_||current.first_global_ordinal>*generation_visible_ordinal_)return true;
-                const auto candidate=first(current.mutation_id);
-                if(!candidate||candidate->first_global_ordinal!=current.first_global_ordinal||
-                   candidate->first_row.type!=current.first_row.type||candidate->first_row.entity_id!=current.first_row.entity_id||
-                   candidate->first_row.occurred_at_ms!=current.first_row.occurred_at_ms||candidate->first_row.identity!=current.first_row.identity||
-                   candidate->first_row.reservation.has_value()!=current.first_row.reservation.has_value()||
-                   (current.first_row.reservation&&!SameOrder(*candidate->first_row.reservation,*current.first_row.reservation)))
-                    return Fail(detail,"snapshot candidate/applied prefix mismatch");
-                ++visible_count;
-                return !RecordingSnapshotRequiresAcceptedState(current.first_row.type)||accepted(*candidate,detail);
+                current_digest.Add(current);++visible_count;
+                return !RecordingSnapshotRequiresAcceptedState(current.first_row.type)||accepted(current,detail);
             },error))return false;
             // A missing candidate or an extra candidate cannot become a successful absent lookup.
-            if(visible_count!=first_count)return Fail(error,"snapshot candidate/applied coverage mismatch");
+            if(visible_count!=first_count||current_digest.Finish()!=candidate_digest.Finish())return Fail(error,"snapshot candidate/applied coverage mismatch");
         }else if(completed_history_){if(!VisitAcceptedLocked(accepted,error))return false;}
         else for(const auto& item:accepted_segment_state_mutations_){
             const auto found=first(item.first);
@@ -235,7 +259,7 @@ bool RecordingCatalog::PrepareGenerationSnapshotStreamLocked(const RecordingIden
         // Reserve derived storage for the actual admitted row chunks, not snapshot_bytes.
         // ReserveRows checks overflow/free space; it neither preallocates nor changes source admission.
         if(!sorted->Create(std::filesystem::canonical(std::filesystem::temp_directory_path()).string(),
-            RecordingHistoryIndex::BytesForRows(0),error))return false;
+            RecordingHistoryIndex::BytesForRows(0),error)||!sorted->BeginBufferedBuild(error))return false;
         const auto spool=[&](const RecordingCatalogSnapshotRow& row,std::string* detail){
 #if defined(MEDIA_SERVER_RECORDING_GENERATION_TESTING)
             ++snapshot_spool_serializations;
@@ -251,7 +275,8 @@ bool RecordingCatalog::PrepareGenerationSnapshotStreamLocked(const RecordingIden
             }
             total+=bytes.size();chunks+=added;return true;
         };
-        if(!ExportGenerationValuesLocked(chain.store_id,chain,generation,cut,&header,error,spool)||sorted->usage().rows!=chunks)
+        if(!ExportGenerationValuesLocked(chain.store_id,chain,generation,cut,&header,error,spool)||sorted->usage().rows!=chunks||
+           !sorted->SealBufferedBuild(error))
             return Fail(error,"snapshot stream coverage mismatch");
         std::string prefix;if(!SerializeRecordingCatalogSnapshotHeader(header,&prefix,error)||prefix.size()>kRecordingCatalogSnapshotMaxBytes-total)return false;
         output->produce=[sorted,prefix,total](const RecordingGenerationByteSink& sink,std::string* detail){

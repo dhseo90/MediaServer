@@ -53,6 +53,13 @@ public:
         try {
         if(!healthy_||!Kind(kind)||!ValidateOpaqueId(id,error)||value.size()>kRecordingCatalogSnapshotMaxBytes)
             return Fail(error,"catalog history row invalid");
+        // A process-owned exclusion proof, not an ID cache: only rows admitted through Put
+        // contribute. Deletion never restores the proof; uncertain input stays conservative.
+        if(kind=="retired-v2"&&!value.empty()) {
+            RecordingRetiredV2Receipt receipt;std::string detail;
+            if(!ParseRecordingRetiredV2Receipt(value,&receipt,&detail)||receipt.segment_id!=id||
+               receipt.retention_class!=RecordingRetentionClass::Continuous)retired_continuous_only_=false;
+        }
         std::uint64_t old_bytes=0,capacity=0;bool exists=false;
         if(!Meta(kind,id,&old_bytes,&capacity,&exists,error))return false;
         const auto chunks=value.size()/RecordingHistoryIndex::kValueBytes+(value.size()%RecordingHistoryIndex::kValueBytes!=0);
@@ -80,7 +87,7 @@ public:
 #if MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
         if(!healthy_||!Kind(kind)||!visitor)return Fail(error,"catalog history visitor invalid");
         const auto prefix=kind+"/";std::uint64_t seen=0;std::exception_ptr consumer_exception;
-        const bool ok=index_.Visit([&](const std::string& key,const std::string&,std::string* detail){
+        const bool ok=index_.VisitRange(prefix,kind+"0",[&](const std::string& key,const std::string&,std::string* detail){
             if(key.rfind(prefix,0)!=0||key.size()<prefix.size()+2||key.compare(key.size()-2,2,"/m")!=0)return true;
             const auto id=key.substr(prefix.size(),key.size()-prefix.size()-2);std::string value;bool found=false;
             if(!Get(kind,id,&value,&found,detail))return false;
@@ -97,6 +104,11 @@ public:
 #else
         (void)kind;(void)visitor;return Fail(error,"catalog history unsupported");
 #endif
+    }
+    bool VisitRetired(const Visitor& visitor,bool event_candidates_only,std::string* error) {
+        {std::lock_guard<std::recursive_mutex> lock(mu_);
+         if(event_candidates_only&&retired_continuous_only_)return Healthy(error);}
+        return Visit("retired-v2",visitor,error);
     }
     std::uint64_t Count(const std::string& kind)const{std::lock_guard<std::recursive_mutex> lock(mu_);return Kind(kind)?counts_[Kind(kind)-1]:0;}
     std::uint64_t Bytes(bool allocated=false)const {
@@ -127,7 +139,7 @@ private:
     static unsigned Kind(const std::string& kind){return kind=="retired-v2"?1:kind=="source-binding"?2:kind=="derived-job"?3:kind=="job-output"?4:kind=="job-reference"?5:kind=="segment-v2"?6:kind=="state-v2"?7:kind=="tombstone-v2"?8:kind=="media-path"?9:kind=="deletion-reason"?10:0;}
     bool Fail(std::string* error,const char* message){healthy_=false;if(error&&error->empty())*error=message;return false;}
     mutable std::recursive_mutex mu_;
-    bool healthy_{true};std::array<std::uint64_t,10> counts_{};
+    bool healthy_{true},retired_continuous_only_{true};std::array<std::uint64_t,10> counts_{};
 #if MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
     RecordingHistoryIndex index_;
     std::uint64_t slot_limit_{UINT64_MAX};

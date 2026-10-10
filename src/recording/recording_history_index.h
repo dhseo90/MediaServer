@@ -10,6 +10,7 @@
 #include <filesystem>
 #include <functional>
 #include <limits>
+#include <memory>
 #include <stdexcept>
 #include <string>
 #include <utility>
@@ -22,7 +23,7 @@
 
 namespace recording {
 // 공개 저장 형식/원본 권위가 아니다. caller는 원본 검증 완료 전 이 객체를 게시하지 않는다.
-// caller가 동기화한다. callback은 재진입/수정을 금지한다. 값은 호출자가 소유하며 캐시는 없다.
+// caller가 동기화한다. callback은 재진입/수정을 금지한다. 값은 호출자가 소유한다. 비공개 출력 build만 160KiB 이하 node buffer를 가진다.
 // 프로세스 root hash가 빈 child까지 결박한다. 파일만 복사/재개방해 신뢰를 복원하지 않는다.
 // 실패한 쓰기는 객체를 poison한다. 원본 append 후 실패라면 caller owner도 poison해야 한다.
 class RecordingHistoryIndex final {
@@ -91,7 +92,7 @@ public:
     // Caller serializes source mutation. The process trust root is copied, never read from the header.
     bool CopyFrom(RecordingHistoryIndex& source,std::string* error) {
         try {
-            Check();if(this==&source||rows_||root_.offset||size_!=kNodeBytes)
+            Check();if(build_||source.build_||this==&source||rows_||root_.offset||size_!=kNodeBytes)
                 throw Failure("history clone destination not empty");
             if(!source.Healthy(error))return false;
             if(source.size_>budget_)throw Failure("history clone capacity insufficient");
@@ -119,9 +120,21 @@ public:
             budget_=wanted;return true;
         }catch(const std::exception& e){return Fail(error,e.what());}
     }
+    // Only a private empty build may defer node overwrites. No original/history reader uses it.
+    bool BeginBufferedBuild(std::string* error) {
+        try {Check();if(rows_||root_.offset||build_||visiting_)throw Failure("history buffered build requires empty private index");
+            build_=std::make_unique<BuildBuffer>();return true;
+        }catch(const std::exception& e){return Fail(error,e.what());}
+    }
+    bool SealBufferedBuild(std::string* error) {
+        try {Check();if(!build_)throw Failure("history buffered build missing");
+            for(auto& entry:build_->entries)Flush(entry);
+            build_.reset();return Healthy(error);
+        }catch(const std::exception& e){return Fail(error,e.what());}
+    }
     Lookup Get(const std::string& key,std::string* output,std::string* error) {
         try {
-            Check();Key(key);if(!output)throw Failure("history index output missing");
+            Check();Key(key);if(build_)throw Failure("history lookup before build seal");if(!output)throw Failure("history index output missing");
             Ref ref=root_;std::string lower,upper;
             for(std::size_t depth=0;ref.offset;++depth) {
                 if(depth>=kDepth)throw Failure("history index depth invalid");
@@ -136,7 +149,7 @@ public:
     // overwrite=falseは同じkeyも拒否。retry同等性は上位の原本契約で判定する。
     bool Put(const std::string& key,const std::string& value,bool overwrite,std::string* error) {
         try {
-            Check();if(visiting_)throw Failure("history mutation during visit");Key(key);if(value.size()>kValueBytes)throw Failure("history index row admission");
+            Check();if(visiting_||(build_&&overwrite))throw Failure("history mutation during visit/buffered overwrite");Key(key);if(value.size()>kValueBytes)throw Failure("history index row admission");
             bool inserted=false;
             root_=Insert(root_,key,value,overwrite,0,{}, {},&inserted);
             if(inserted)++rows_;
@@ -146,7 +159,7 @@ public:
     }
     bool Visit(const Visitor& visitor,std::string* error) {
         try {
-            Check();if(!visitor)throw Failure("history index visitor missing");
+            Check();if(build_||!visitor)throw Failure("history index visitor missing/unsealed build");
             struct VisitGuard { bool& flag; ~VisitGuard(){flag=false;} } guard{visiting_};
             if(visiting_)throw Failure("history recursive visit");
             visiting_=true;
@@ -157,13 +170,24 @@ public:
             return true;
         }catch(const std::exception& e){return Fail(error,e.what());}
     }
+    // Authenticated half-open range: visited boundary nodes prove pruned subtrees are outside.
+    // Caller retains its independently maintained namespace coverage count.
+    bool VisitRange(const std::string& begin,const std::string& end,const Visitor& visitor,std::string* error) {
+        try {
+            Check();Key(begin);Key(end);if(build_||begin>=end||!visitor||visiting_)throw Failure("history range invalid");
+            struct Guard {bool& flag;~Guard(){flag=false;}} guard{visiting_};visiting_=true;
+            if(!WalkRange(root_,{}, {},0,begin,end,visitor,error))return false;
+            Check();if(error)error->clear();return true;
+        }catch(const std::exception& e){return Fail(error,e.what());}
+    }
     bool Healthy(std::string* error) {
-        try{Check();if(root_.offset)(void)Read(root_);return true;}
+        try{Check();if(build_)throw Failure("history health before build seal");if(root_.offset)(void)Read(root_);return true;}
         catch(const std::exception& e){return Fail(error,e.what());}
     }
-    Usage usage()const{struct stat st{};const bool valid=fd_>=0&&!fstat(fd_,&st);return {rows_,size_,reads_,writes_,0,valid?static_cast<std::uint64_t>(st.st_blocks)*512:0};}
+    Usage usage()const{struct stat st{};const bool valid=fd_>=0&&!fstat(fd_,&st);return {rows_,size_,reads_,writes_,build_?sizeof(BuildBuffer):0,valid?static_cast<std::uint64_t>(st.st_blocks)*512:0};}
     const std::string& owned_name()const{return name_;}
     bool Close(std::string* error) {
+        build_.reset(); // unpublished private build is discarded on failure, never flushed into authority
         bool ok=true;
         if(fd_>=0) {
             if(!anonymous_) {
@@ -195,6 +219,28 @@ public:
 private:
     using Hash=std::array<unsigned char,32>;
     struct Ref {std::uint64_t offset{0};Hash hash{};};
+    struct BuildEntry {std::uint64_t offset{0},use{0};Hash original{},current{};std::array<unsigned char,kNodeBytes> bytes{};bool dirty{false};};
+    struct BuildBuffer {std::array<BuildEntry,256> entries{};std::uint64_t clock{0};};
+    static_assert(sizeof(BuildBuffer)<=160*1024,"bounded checkpoint node writer");
+    std::unique_ptr<BuildBuffer> build_;
+    void Flush(BuildEntry& entry) {
+        if(!entry.offset)return;
+        std::array<unsigned char,kNodeBytes> actual{};ReadBytes(entry.offset,actual.data(),actual.size());
+        if(Digest(actual.data(),actual.size())!=entry.original)throw Failure("history buffered original node changed");
+        if(entry.dirty)WriteBytes(entry.offset,entry.bytes.data(),entry.bytes.size());
+        entry={};
+    }
+    BuildEntry& Buffered(const Ref& ref) {
+        const auto first=((ref.offset/kNodeBytes)%64)*4;auto* selected=&build_->entries[first];
+        for(std::size_t i=first;i<first+4;++i){auto& entry=build_->entries[i];
+            if(entry.offset==ref.offset){entry.use=++build_->clock;return entry;}
+            if(!entry.offset||entry.use<selected->use)selected=&entry;
+        }
+        Flush(*selected);ReadBytes(ref.offset,selected->bytes.data(),selected->bytes.size());
+        selected->original=Digest(selected->bytes.data(),selected->bytes.size());selected->current=selected->original;
+        if(selected->original!=ref.hash)throw Failure("history buffered node hash mismatch");
+        selected->offset=ref.offset;selected->use=++build_->clock;return *selected;
+    }
     struct Node {Ref left,right;std::uint64_t value_offset{0},value_size{0},height{1};Hash value_hash{};std::string key;};
     struct Failure:std::runtime_error{using std::runtime_error::runtime_error;};
     int fd_{-1},directory_fd_{-1};pid_t pid_{0};struct stat binding_{};std::string name_;
@@ -240,8 +286,10 @@ private:
     std::uint64_t Append(const void* bytes,std::size_t count){const auto offset=size_;WriteBytes(offset,bytes,count);size_+=count;return offset;}
     Node Read(const Ref& ref) {
         if(!ref.offset||ref.offset<kNodeBytes)throw Failure("history index node offset");
-        std::array<unsigned char,kNodeBytes> bytes{};ReadBytes(ref.offset,bytes.data(),bytes.size());++reads_;
-        if(Digest(bytes.data(),bytes.size())!=ref.hash)throw Failure("history index node hash mismatch");
+        std::array<unsigned char,kNodeBytes> bytes{};
+        if(build_){const auto& entry=Buffered(ref);if(entry.current!=ref.hash)throw Failure("history buffered node hash mismatch");bytes=entry.bytes;}
+        else {ReadBytes(ref.offset,bytes.data(),bytes.size());if(Digest(bytes.data(),bytes.size())!=ref.hash)throw Failure("history index node hash mismatch");}
+        ++reads_;
         Node n;n.left.offset=Number(bytes.data());n.right.offset=Number(bytes.data()+8);
         n.value_offset=Number(bytes.data()+16);n.value_size=Number(bytes.data()+24);n.height=Number(bytes.data()+32);
         const auto key_size=Number(bytes.data()+40);
@@ -253,14 +301,19 @@ private:
         if((!n.left.offset&&n.left.hash!=Hash{})||(!n.right.offset&&n.right.hash!=Hash{}))throw Failure("history index null proof");
         n.key.assign(reinterpret_cast<const char*>(bytes.data()+144),static_cast<std::size_t>(key_size));return n;
     }
-    Ref Save(const Node& n,std::uint64_t offset) {
+    Ref Save(const Node& n,Ref prior) {
+        auto offset=prior.offset;
         std::array<unsigned char,kNodeBytes> bytes{};
         Set(bytes.data(),n.left.offset);Set(bytes.data()+8,n.right.offset);Set(bytes.data()+16,n.value_offset);
         Set(bytes.data()+24,n.value_size);Set(bytes.data()+32,n.height);Set(bytes.data()+40,n.key.size());
         std::copy(n.left.hash.begin(),n.left.hash.end(),bytes.data()+48);std::copy(n.right.hash.begin(),n.right.hash.end(),bytes.data()+80);
         std::copy(n.value_hash.begin(),n.value_hash.end(),bytes.data()+112);std::copy(n.key.begin(),n.key.end(),bytes.data()+144);
-        if(offset)WriteBytes(offset,bytes.data(),bytes.size());else offset=Append(bytes.data(),bytes.size());
-        ++writes_;return {offset,Digest(bytes.data(),bytes.size())};
+        const auto hash=Digest(bytes.data(),bytes.size());
+        if(offset){
+            if(build_){auto& entry=Buffered(prior);if(entry.current!=prior.hash)throw Failure("history buffered write predecessor mismatch");entry.bytes=bytes;entry.current=hash;entry.dirty=true;}
+            else WriteBytes(offset,bytes.data(),bytes.size());
+        }else offset=Append(bytes.data(),bytes.size());
+        ++writes_;return {offset,hash};
     }
     std::string Value(const Node& n)const {
         std::string value(static_cast<std::size_t>(n.value_size),'\0');ReadBytes(n.value_offset,value.data(),value.size());
@@ -269,11 +322,11 @@ private:
     }
     std::uint64_t Height(const Ref& ref){return ref.offset?Read(ref).height:0;}
     void Height(Node* node){node->height=1+std::max(Height(node->left),Height(node->right));}
-    Ref Left(Node x,std::uint64_t offset) {
-        auto y=Read(x.right);const auto next=x.right.offset;x.right=y.left;Height(&x);y.left=Save(x,offset);Height(&y);return Save(y,next);
+    Ref Left(Node x,Ref prior) {
+        auto y=Read(x.right);const auto next=x.right;x.right=y.left;Height(&x);y.left=Save(x,prior);Height(&y);return Save(y,next);
     }
-    Ref Right(Node y,std::uint64_t offset) {
-        auto x=Read(y.left);const auto next=y.left.offset;y.left=x.right;Height(&y);x.right=Save(y,offset);Height(&x);return Save(x,next);
+    Ref Right(Node y,Ref prior) {
+        auto x=Read(y.left);const auto next=y.left;y.left=x.right;Height(&y);x.right=Save(y,prior);Height(&x);return Save(x,next);
     }
     Ref Insert(Ref ref,const std::string& key,const std::string& value,bool overwrite,std::size_t depth,
                const std::string& lower,const std::string& upper,bool* inserted) {
@@ -287,10 +340,20 @@ private:
             WriteBytes(n.value_offset,value.data(),value.size());n.value_size=value.size();n.value_hash=Digest(value.data(),value.size());
         }else if(key<n.key)n.left=Insert(n.left,key,value,overwrite,depth+1,lower,n.key,inserted);
         else n.right=Insert(n.right,key,value,overwrite,depth+1,n.key,upper,inserted);
-        Height(&n);const auto balance=static_cast<int>(Height(n.left))-static_cast<int>(Height(n.right));
-        if(balance>1){auto child=Read(n.left);if(Height(child.left)<Height(child.right))n.left=Left(child,n.left.offset);return Right(n,ref.offset);}
-        if(balance< -1){auto child=Read(n.right);if(Height(child.right)<Height(child.left))n.right=Right(child,n.right.offset);return Left(n,ref.offset);}
-        return Save(n,ref.offset);
+        const auto left_height=Height(n.left),right_height=Height(n.right);n.height=1+std::max(left_height,right_height);
+        const auto balance=static_cast<int>(left_height)-static_cast<int>(right_height);
+        if(balance>1){auto child=Read(n.left);if(Height(child.left)<Height(child.right))n.left=Left(child,n.left);return Right(n,ref);}
+        if(balance< -1){auto child=Read(n.right);if(Height(child.right)<Height(child.left))n.right=Right(child,n.right);return Left(n,ref);}
+        return Save(n,ref);
+    }
+    bool WalkRange(Ref ref,const std::string& lower,const std::string& upper,std::size_t depth,
+                   const std::string& begin,const std::string& end,const Visitor& visitor,std::string* error) {
+        if(!ref.offset)return true;
+        if(depth>=kDepth)throw Failure("history range depth");
+        const auto node=Read(ref);Order(node.key,lower,upper);
+        if(node.key>begin&&!WalkRange(node.left,lower,node.key,depth+1,begin,end,visitor,error))return false;
+        if(node.key>=begin&&node.key<end){const auto value=Value(node);if(!visitor(node.key,value,error))return false;}
+        return node.key>=end||WalkRange(node.right,node.key,upper,depth+1,begin,end,visitor,error);
     }
     bool Walk(Ref ref,const std::string& lower,const std::string& upper,std::size_t depth,const Visitor& visitor,
               std::uint64_t* seen,std::string* error) {

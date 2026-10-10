@@ -266,7 +266,7 @@ bool RecordingCatalog::SnapshotTimelineWithContext(const RecordingTimelineQuery&
             auto row=Base(segment,RecordingLifecycle::Deleted);row.item_id="orphan-event:"+Key(id);
             row.completeness="unknown";row.unavailable_reason="output-binding-unavailable";collector.Add(std::move(row));
             return true;
-        },error))throw std::runtime_error("timeline-retired-history-unavailable");
+        },error,event_candidates_only))throw std::runtime_error("timeline-retired-history-unavailable");
         if(!VisitJobsLocked([&](const auto& job_id,const auto& entry,std::string*){if(!entry)throw std::runtime_error("timeline-job-unavailable");if(entry.channel!=query.channel_id)return true;
             DerivedJobHandle owned;if(!AcquireJobForReadLocked(job_id,&owned,context,error)||!owned)throw std::runtime_error("timeline-job-unavailable");const auto& job=*owned;
             if(!job.ready||job.ready->outputs.empty()){collector.Reference(job.intent.reference,&job);return true;}

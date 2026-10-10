@@ -284,6 +284,23 @@ void StreamBoundary(const std::filesystem::path& root){
           "canonical stream bytes match DTO oracle including prefix keys and multi-chunk rows");
     Check("MEM80-G01",snapshot_export_calls==1&&snapshot_spool_serializations==dto.rows.size(),
           "one validated export and one spool serialization per original row; byte oracle unchanged");
+    // A freshly built candidate index is not an assertion that its applied prefix matches Catalog.
+    for(const std::string mode:{"identity","time","missing","order"}){
+        auto altered=chain.first_acceptances;
+        if(mode=="identity")altered.front().first_row.identity=std::string(64,'a');
+        if(mode=="time")++altered.front().first_row.occurred_at_ms;
+        if(mode=="missing")altered.pop_back();
+        if(mode=="order"){
+            auto found=std::find_if(altered.begin(),altered.end(),[](const auto& v){return v.first_row.reservation.has_value();});
+            Need(found!=altered.end());found->first_row.reservation->channel_id="other-channel";
+        }
+        auto candidate=chain;candidate.first_acceptances.clear();
+        Need(BuildRecordingIdentityHistory(root,altered,0,&candidate.history,&error));
+        std::string rejected;
+        Check("MEM81-G01",!RecordingGenerationAppendProbe::Stream(catalog,candidate,manifest.generation,manifest.cut_ordinal,&rejected,&error)&&rejected.empty(),
+              ("candidate prefix mismatch fails before output: "+mode).c_str());
+        Need(CloseRecordingIdentityHistory(candidate.history,&error));
+    }
     auto invalid=chain;invalid.order_history.reservations.clear();RecordingCatalogSnapshot unchanged;unchanged.store_id="sentinel";
     Check("MEM79-G01",!RecordingGenerationAppendProbe::Values(catalog,"store",invalid,manifest.generation,manifest.cut_ordinal,&unchanged,&error)&&unchanged.store_id=="sentinel",
           "DTO reservation first acceptance cannot omit reverse order entry");
@@ -615,6 +632,46 @@ void HistoryProduct(const std::filesystem::path& root) {
     }
     {Index cap;Need(cap.Create(root.string(),Index::BytesForRows(1),&error));Need(cap.Put("one","value",false,&error));
      Check("MEM78-J01",!cap.Put("two","value",false,&error)&&!cap.Healthy(&error),"exact disk bound fails as resource error, not Absent");Need(cap.Close(&error));}
+    {Index ranged;Need(ranged.Create(root.string(),Index::BytesForRows(6),&error));
+     for(const auto& key:{"a/0","b/0","b/1","b/9","c/0","z/0"})Need(ranged.Put(key,key,false,&error));
+     std::vector<std::string> seen;
+     Need(ranged.VisitRange("b/","b0",[&](const auto& key,const auto& value,std::string*){seen.push_back(key);return key==value;},&error));
+     Check("MEM81-G01",seen==std::vector<std::string>({"b/0","b/1","b/9"}),"authenticated half-open namespace visits exact ordered members");
+     unsigned empty=0;Need(ranged.VisitRange("d/","d0",[&](const auto&,const auto&,std::string*){++empty;return true;},&error));
+     Check("MEM81-G01",empty==0,"range absence follows authenticated boundaries");
+     Need(ranged.Close(&error));}
+    {Index bad;Need(bad.Create(root.string(),Index::BytesForRows(1),&error));Need(bad.Put("b/0","value",false,&error));
+     const char x='x';Need(::pwrite(bad.ProbeFd(),&x,1,512+2048)==1);
+     Check("MEM81-G01",!bad.VisitRange("d/","d0",[](const auto&,const auto&,std::string*){return true;},&error),"corrupt range miss path remains fail closed");Need(bad.Close(&error));}
+    {Index buffered;Need(buffered.Create(root.string(),Index::BytesForRows(2048),&error));Need(buffered.BeginBufferedBuild(&error));
+     for(unsigned i=0;i<2048;++i)Need(buffered.Put("row/"+std::to_string(i),"value/"+std::to_string(i),false,&error));
+     Check("MEM81-G01",buffered.usage().cache_bytes>0&&buffered.usage().cache_bytes<=160*1024,"private spool writer stays within fixed node-buffer bytes beyond eviction boundary");
+     Need(buffered.SealBufferedBuild(&error));
+     for(unsigned i=0;i<2048;++i)Need(buffered.Get("row/"+std::to_string(i),&value,&error)==Index::Lookup::Found&&value=="value/"+std::to_string(i));
+     Check("MEM81-G01",buffered.usage().cache_bytes==0,"sealed spool has no retained writer buffer; all values survive eviction/rotation");Need(buffered.Close(&error));}
+    for(int mode=0;mode<4;++mode){Index bad;Need(bad.Create(root.string(),Index::BytesForRows(8),&error));Need(bad.BeginBufferedBuild(&error));
+     for(unsigned i=0;i<8;++i)Need(bad.Put("key/"+std::to_string(i),"value",false,&error));
+     if(mode==0)Check("MEM81-G01",bad.Get("key/0",&value,&error)==Index::Lookup::Error,"unsealed private build cannot supply normal lookup authority");
+     if(mode==1){const char x='x';Need(::pwrite(bad.ProbeFd(),&x,1,512+2048)==1);Check("MEM81-G01",!bad.SealBufferedBuild(&error),"seal detects original node modification even while node is buffered");}
+     if(mode==2){Index::probe_fault=3;Check("MEM81-G01",!bad.SealBufferedBuild(&error),"seal partial write remains explicit failure");Index::probe_fault=0;}
+     if(mode==3){Index copy;Need(copy.Create(root.string(),Index::BytesForRows(8),&error));Check("MEM81-G01",!copy.CopyFrom(bad,&error),"unsealed buffered source cannot be cloned as a complete index");Need(copy.Close(&error));}
+     Need(bad.Close(&error));Check("MEM81-G01",std::filesystem::is_empty(root),"aborted or failed private build closes anonymous scratch");}
+    {RecordingCatalogHistoryRows rows;Need(rows.Create(&error));
+     RecordingRetiredV2Receipt receipt;receipt.segment_id="plain";receipt.store_id="store";receipt.source_id="source";receipt.channel_id="channel";
+     receipt.order_request_id="order";receipt.order_sequence=1;receipt.media_epoch_id="epoch";receipt.tombstone_id="tomb";
+     receipt.media_start_pts=0;receipt.media_end_pts=20;receipt.time_base_num=1;receipt.time_base_den=1000;
+     receipt.retention_class=RecordingRetentionClass::Continuous;receipt.deleted_at_ms=20;receipt.deletion_reason="continuous-capacity";
+     receipt.prior_relative_path="channel/plain.mp4";receipt.deletion_mutation_id="deleted";
+     receipt.segment_sha256=std::string(64,'a');receipt.tombstone_sha256=std::string(64,'b');
+     std::string bytes;Need(SerializeRecordingRetiredV2Receipt(receipt,&bytes,&error));Need(rows.Put("retired-v2","plain",bytes,&error));
+     unsigned seen=0;const auto visit=[&](const auto&,const auto&,std::string*){++seen;return true;};
+     Need(rows.VisitRetired(visit,true,&error));Check("MEM81-G01",seen==0,"event-only projection excludes verified all-continuous receipts without cold scan");
+     Need(rows.VisitRetired(visit,false,&error));Check("MEM81-G01",seen==1,"normal timeline still reads continuous deleted receipt");
+     receipt.segment_id="event";receipt.retention_class=RecordingRetentionClass::Event;receipt.deletion_reason="event-age";
+     Need(SerializeRecordingRetiredV2Receipt(receipt,&bytes,&error));Need(rows.Put("retired-v2","event",bytes,&error));seen=0;
+     Need(rows.VisitRetired(visit,true,&error));Check("MEM81-G01",seen==2,"event arrival invalidates conservative exclusion before query");
+     Need(rows.Put("retired-v2","event",{},&error));seen=0;Need(rows.VisitRetired(visit,true,&error));
+     Check("MEM81-G01",seen==1,"deletion never recreates exclusion proof from missing cached rows");Need(rows.Finish(&error));}
     {Index source,target;Need(source.Create(root.string(),Index::BytesForRows(3),&error));
      Need(source.Put("original","value",false,&error));Need(target.Create(root.string(),Index::BytesForRows(4),&error));
      Need(target.CopyFrom(source,&error));Need(target.Put("new","new-value",false,&error));

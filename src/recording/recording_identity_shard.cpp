@@ -572,18 +572,40 @@ public:
 };
 #if MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
 namespace {
+// Process-local authenticated scratch only. Original JSON parsing/validation is unchanged.
+// Fixed field framing avoids reparsing the same nested JSON on every cold checkpoint lookup.
 std::string FirstBytes(const RecordingIdentityFirstAcceptance& first) {
-    return "{\"occurrences\":"+std::to_string(first.occurrences)+",\"row\":"+RowJson(first.first_row)+
-        ",\"archive\":"+FileJson(first.first_archive)+"}";
+    const auto& row=first.first_row;const auto& archive=first.first_archive;
+    std::string out="F1";
+    for(const auto& field:{std::to_string(first.occurrences),row.mutation_id,RecordingMutationTypeName(row.type),
+        row.entity_id,std::to_string(row.occurred_at_ms),std::to_string(row.global_ordinal),row.identity,
+        std::to_string(row.archive_slot),std::to_string(row.offset),std::to_string(row.length),row.raw_sha256,
+        row.reservation?OrderJson(*row.reservation):std::string{},archive.name,std::to_string(archive.size),archive.sha256}) {
+        if(field.size()>RecordingHistoryIndex::kValueBytes)throw std::runtime_error("history field admission");
+        out.push_back(static_cast<char>(field.size()&255));out.push_back(static_cast<char>(field.size()>>8));out+=field;
+    }
+    return out;
 }
 bool FirstValue(const std::string& bytes,RecordingIdentityFirstAcceptance* output,std::string* error) {
-    Document doc;RecordingIdentityFirstAcceptance first;
-    if(!ingress::ParseStrictJsonObjectDocument(bytes,&doc,error)||doc.members.size()!=3||
-       !Number(doc,"occurrences",&first.occurrences)||!first.occurrences)return Fail(error,"history first fields");
-    const auto row=ingress::StrictJsonObjectField(doc,"row"),archive=ingress::StrictJsonObjectField(doc,"archive");
-    if(!row||!archive||!ParseRow(*row,&first.first_row,error)||!ParseFile(*archive,&first.first_archive,error))return false;
-    first.mutation_id=first.first_row.mutation_id;first.first_global_ordinal=first.first_row.global_ordinal;
-    if(FirstBytes(first)!=bytes)return Fail(error,"history first noncanonical");
+    if(bytes.size()>RecordingHistoryIndex::kValueBytes||bytes.compare(0,2,"F1"))return Fail(error,"history scratch framing");
+    std::array<std::string,15> fields;std::size_t at=2;
+    for(auto& field:fields){
+        if(at>bytes.size()||bytes.size()-at<2)return Fail(error,"history scratch short field");
+        const auto size=static_cast<unsigned char>(bytes[at])+(static_cast<unsigned char>(bytes[at+1])<<8);at+=2;
+        if(static_cast<std::size_t>(size)>bytes.size()-at)return Fail(error,"history scratch field bounds");
+        field=bytes.substr(at,static_cast<std::size_t>(size));at+=size;
+    }
+    RecordingIdentityFirstAcceptance first;auto& row=first.first_row;auto& archive=first.first_archive;
+    if(at!=bytes.size()||!Integer(fields[0],&first.occurrences)||!first.occurrences||
+       !Integer(fields[4],&row.occurred_at_ms)||!Integer(fields[5],&row.global_ordinal)||
+       !Integer(fields[7],&row.archive_slot)||!Integer(fields[8],&row.offset)||!Integer(fields[9],&row.length)||
+       !Integer(fields[13],&archive.size))return Fail(error,"history scratch numeric fields");
+    row.mutation_id=std::move(fields[1]);row.type=ParseRecordingMutationType(fields[2]);row.entity_id=std::move(fields[3]);
+    row.identity=std::move(fields[6]);row.raw_sha256=std::move(fields[10]);
+    if(!fields[11].empty()){RecordingOrderReservationV1 order;if(!ParseRecordingOrderReservationV1(fields[11],&order,error))return false;row.reservation=std::move(order);}
+    archive.name=std::move(fields[12]);archive.sha256=std::move(fields[14]);
+    first.mutation_id=row.mutation_id;first.first_global_ordinal=row.global_ordinal;
+    if(!Descriptor(archive)||FirstBytes(first)!=bytes)return Fail(error,"history scratch noncanonical");
     *output=std::move(first);return true;
 }
 std::string OrdinalKey(std::uint64_t ordinal) {
@@ -592,15 +614,17 @@ std::string OrdinalKey(std::uint64_t ordinal) {
 bool PutFirst(RecordingIdentityHistory& history,const RecordingIdentityFirstAcceptance& first,bool overwrite,std::string* error) {
     if(first.mutation_id!=first.first_row.mutation_id||first.first_global_ordinal!=first.first_row.global_ordinal||!first.occurrences)
         return Fail(error,"history first identity invalid");
-    if(!history.index.Put("i/"+first.mutation_id,FirstBytes(first),overwrite,error))return false;
-    if(!overwrite){if(!history.index.Put(OrdinalKey(first.first_global_ordinal),first.mutation_id,false,error))return false;++history.count;}
+    const auto bytes=FirstBytes(first);
+    if(!history.index.Put("i/"+first.mutation_id,bytes,overwrite,error)||
+       !history.index.Put(OrdinalKey(first.first_global_ordinal),bytes,overwrite,error))return false;
+    if(!overwrite)++history.count;
     return true;
 }
 bool CheckFirst(RecordingIdentityHistory& history,const RecordingIdentityFirstAcceptance& first,std::string* error) {
-    std::string value,id;
+    std::string value,ordinal_value;
     if(history.index.Get("i/"+first.mutation_id,&value,error)!=RecordingHistoryIndex::Lookup::Found||
        value!=FirstBytes(first)||
-       history.index.Get(OrdinalKey(first.first_global_ordinal),&id,error)!=RecordingHistoryIndex::Lookup::Found||id!=first.mutation_id)
+       history.index.Get(OrdinalKey(first.first_global_ordinal),&ordinal_value,error)!=RecordingHistoryIndex::Lookup::Found||ordinal_value!=value)
         return Fail(error,"history incomplete identity/ordinal coverage");
     return true;
 }
@@ -668,12 +692,12 @@ bool VisitRecordingIdentityHistory(const RecordingIdentityHistoryHandle& history
 #if MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
     if(!history||!history->complete||!visitor)return Fail(error,"history visitor incomplete/missing");
     std::size_t count=0;
-    const bool ok=history->index.Visit([&](const auto& key,const auto& value,std::string* err){
+    const bool ok=history->index.VisitRange("o/","o0",[&](const auto& key,const auto& value,std::string* err){
         if(key.rfind("o/",0)!=0)return true;
-        std::optional<RecordingIdentityFirstAcceptance> first;
-        if(!FindRecordingIdentityHistory(history,value,&first,err)||!first||OrdinalKey(first->first_global_ordinal)!=key)
+        RecordingIdentityFirstAcceptance first;
+        if(!FirstValue(value,&first,err)||OrdinalKey(first.first_global_ordinal)!=key)
             return Fail(err,"history ordinal identity mismatch");
-        ++count;return visitor(*first,err);
+        ++count;return visitor(first,err);
     },error);
     if(!ok)return false;
     if(count!=history->count)return Fail(error,"history traversal coverage mismatch");

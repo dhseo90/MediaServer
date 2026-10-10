@@ -4849,3 +4849,12 @@ Open→조회/append→checkpoint→Finish→재Open 경로와 기존 transactio
 완료 job cold 조회·reader 보호·부분 실패/Finish·재Open 의미를 확인한다. 짧은 녹화/검색
 병행은 실제 checkpoint와 겹쳐 기존 응답/진행 예산을 확인하며 단독 fixture deadline과 구분한다.
 상한 완화·전체 이력 RAM fallback은 금지한다. B/C 전체 수명과 최종 혼합120분은 별도 잔여다.
+
+### MEM81-G01 — checkpoint 병행 진행·응답·정상 종료
+
+80 최종 제품을 기준으로 Open/encode/writer Start/관측 준비/warmup/검색/packet/checkpoint/
+Stop/join/최종 readback/Finish를 유한한 단계·thread 원자 상태로 관측한다. 기존2048 순환
+이력,8writer·4client·10000관측·720packet·24파일,90초·p95≤2000ms·최대≤5000ms 및
+기존 공간/메모리/로그 보호를 유지한다. 고정 cut·후속 append·reader·실패 미게시·재Open을
+직접 회귀로 확인하며 준비와 병행/종료 결과를 분리한다. UI 없는 내부 안정화 경계다.
+전체이력 RAM fallback·원본 검증 생략은 금지하며, B/C·120분·출시 승인을 대신하지 않는다.

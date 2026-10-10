@@ -595,7 +595,7 @@ private:
     std::optional<RecordingRetiredV2Receipt> RetiredLocked(const std::string&) const;
     bool StoreRetiredLocked(const RecordingRetiredV2Receipt&,const RecordingMutationLink&,std::string*);
     bool EraseRetiredLocked(const std::string&,std::string*);
-    bool VisitRetiredLocked(const std::function<bool(const std::string&,const RecordingRetiredV2Receipt&,std::string*)>&,std::string*) const;
+    bool VisitRetiredLocked(const std::function<bool(const std::string&,const RecordingRetiredV2Receipt&,std::string*)>&,std::string*,bool event_candidates_only=false) const;
     std::unordered_set<std::string> mutation_ids_;
     // 이 두 상태 mutation은 메모리가 실제 수용한 최초 envelope만 SQL로 재생한다.
     std::unordered_map<std::string, RecordingMutationLink> accepted_segment_state_mutations_;
