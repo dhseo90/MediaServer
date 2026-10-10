@@ -928,10 +928,23 @@
   },
   "independentReview": "78-independent-review.json",
   "cleanup": {
-    "status": "owned containers removed and wrapper fixture cleanup verified; archive then owned parent cleanup pending",
+    "status": "PASS: owned parent removed after Git byte readback; owned containers already removed",
     "wrapperFixtures": "all successful final wrapper logs have removed=true",
     "originalModelsSdkImages": "unchanged",
-    "containers": "container-cleanup.log:7 owned stopped containers removed; follow-up name filter empty"
+    "containers": "container-cleanup.log:7 owned stopped containers removed; follow-up name filter empty",
+    "parentRoot": {
+      "path": "/private/tmp/media-server-memory78-j4nkjfzz",
+      "identityChecked": true,
+      "removed": true,
+      "absentAfter": true,
+      "files": 1746,
+      "directories": 118,
+      "symlinksUnlinkedWithoutFollowing": 554,
+      "logicalRegularBytes": 597951538,
+      "activeProcessMatchesBefore": 0,
+      "protectedTargets": "host plugin symlink targets, existing models/SDK/image/user storage untouched"
+    },
+    "ports": "No product HTTP/media server was launched; no task listening ports were allocated"
   },
   "preservation": {
     "archive": "78-execution.tar.gz",
@@ -940,7 +953,9 @@
     "members": 117,
     "memberReadback": "all included members bytes/SHA256 verified",
     "originalBytes": true,
-    "status": "archive verified; Git preservation pending"
+    "status": "local Git archive and every member byte-readback verified before cleanup; remote pending",
+    "commit": "db7cd7b6328dade96e2e1f460d4e4c34af661579",
+    "gitBlob": "0c3f5bb30752a916257dbccb2cd63ebb76d39b37"
   },
   "static": {
     "registration": {
@@ -970,5 +985,14 @@
     "commit": "2c63e322ac5377451a11d3c2a613f3963af99fb5",
     "tree": "9bc866ea8c12bab3445f1f2adf27d39668d440e8",
     "executionSource": "archive source-freeze.json and per-run boundaries"
+  },
+  "gitBeforePush": {
+    "actualRemoteSha": "12a47d81caf9152c3ab62ab741c113a2e3ccc4d0",
+    "remoteIsLocalAncestor": true,
+    "normalPushPlanned": true,
+    "newBlobCountAtEvidenceCommit": 20,
+    "logicalNewBlobBytesAtEvidenceCommit": 22201205,
+    "largestBlobBytes": 19079080,
+    "pushPackBytes": "not measured"
   }
 }

@@ -138,5 +138,48 @@
     "pending": ["coverage-after 실행 완료 판정", "archive/git byte 보존", "소유 임시 root 제거와 부재 확인"],
     "runtimeModel": null,
     "runtimeEffort": null
+  },
+  "localClosureReadbackAddendum": {
+    "decision": "PASS_LOCAL_PRESERVATION_AND_CLOSURE_MEMORY_P0_BLOCKED",
+    "productCommit": "2c63e322ac5377451a11d3c2a613f3963af99fb5",
+    "evidenceCommit": "db7cd7b6328dade96e2e1f460d4e4c34af661579",
+    "method": "기존 자료와 Git blob을 읽고 hash/byte를 대조했다. 제품 또는 검사를 재실행하지 않았다. 과거 pending 시점의 본문 및 archive 안의 원래 독립 검토는 그대로 보존한다.",
+    "supersedesPendingItems": ["coverage-after 실행 완료 판정", "archive/git byte 보존", "소유 임시 root 제거와 부재 확인"],
+    "archive": {
+      "path": "docs/release-artifacts/v4.5.0/78-execution.tar.gz",
+      "bytes": 1293927,
+      "sha256": "77431287e61290095f1cd6ef7e358bdadc4d4c0c50d67dc2710d6c405a4e68b8",
+      "gitShowBytesEqualCurrentArchive": true,
+      "members": 117,
+      "receipt": "archive-members.json",
+      "receiptOriginalEntries": 116,
+      "receiptMemberSetExact": true,
+      "memberSizeOrSha256Mismatches": [],
+      "originalReviewEqualBeforeThisAddendum": true,
+      "sourceFreezeEntriesMatchProductCommit": true,
+      "boundary": "현재 모든 member를 receipt의 길이/hash와 대조했다. 삭제 전 temp 원본과의 대조 및 소유권 검사는 메인의 보존·cleanup receipt에 근거한다. archive의 제외 항목은 모델/SDK/binary/cache/media fixture store 등이며 전체 workspace 보존으로 주장하지 않는다."
+    },
+    "coverage": {
+      "source": "78-execution.tar.gz:coverage-after.log",
+      "featureRows": 986,
+      "covered": 986,
+      "missing": 0,
+      "pass": 9,
+      "fail": 0,
+      "boundary": "inventory/coverage 및 manifest 정합 결과이며 새 제품 동작·실제 UI·장시간 검증을 뜻하지 않는다."
+    },
+    "cleanup": {
+      "root": "/private/tmp/media-server-memory78-j4nkjfzz",
+      "directLexistsAfter": false,
+      "parentReceipt": "78-validation.json cleanup.parentRoot의 identityChecked/removed/absentAfter 및 activeProcessMatchesBefore0을 읽었다.",
+      "containers": "archive의 container-final-state.log 및 container-cleanup.log에 보존된 7개 종료·제거 근거를 재조회했다. 이번 검토에서 Docker 명령은 실행하지 않았다.",
+      "wrapperFixtures": "앞선 독립 검토에서 각 최종 wrapper의 removed=true 확인을 유지한다."
+    },
+    "journalIntegrationDecision": "PASS 유지",
+    "memoryP0": "BLOCKED",
+    "releaseApproval": false,
+    "remotePreservation": "PENDING; 메인의 일반 push 및 원격 확인은 이번 읽기 판정 범위 밖이다.",
+    "runtimeModel": null,
+    "runtimeEffort": null
   }
 }
