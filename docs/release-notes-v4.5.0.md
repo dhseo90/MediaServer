@@ -104,7 +104,10 @@ source-only도 운영위험 판단을 면제하지 않는다. 사용법은 [설�
 90초 안의 종료와 기존 비상주 경계를 확인했으나, checkpoint 병행 검색 p95가 기준을 넘어
 FAIL이다. [82 검증](release-artifacts/v4.5.0/82-validation.json)은 고정 cut과 후속 내구 쓰기를
 분리한 checkpoint에서 실제 녹화·검색 병행 지연과 정상 종료를 충족한다. 과거 FAIL은 유지하며,
-전체 메모리 P0·관측/reference/legacy·총 reader 예산·B/C·최종 혼합 검증은 계속 미완료다.
+[83 부분 구현](release-artifacts/v4.5.0/83-validation.json)은 보존 행·축약 불가능 legacy의 cold 소비,
+검색 모델 소유 수명의 논리 예약과 queued A 취소 입력 해제를 연결하고 B/C를 별도 실행했다.
+전체 메모리 P0는 계속 미완료다. 검색 모델 밖의 반환 자료·reader·세대/scratch 합산 admission,
+대규모 잔여 집합과 동시 세대 검증·최종 혼합 검증은 출시 전 차단으로 유지한다.
 새 checkpoint의 nonempty active receipt는 현재 구현에서 검증·복구하며, 구버전 binary의
 새 checkpoint 읽기까지 보장하지 않는다. 기존 원본·package/record 형식과 hash 의미는 유지한다.
 기존 74의 기능·수명·수집 PASS는 당시 소스의 근거이며 새 메모리 변경의 통합 PASS를 대신하지 않는다.

@@ -1,0 +1,549 @@
+{
+  "schema": "media-server.independent-review.v1",
+  "task": 83,
+  "reviewer": "independent_memory77",
+  "language": "ko",
+  "reviewMethod": {
+    "independentFromImplementation": true,
+    "sourceAndEvidenceReadOnly": true,
+    "productOrTestCommandsExecuted": false,
+    "implementationOrTestsAuthored": false,
+    "subdelegation": false,
+    "authorizedWrite": "docs/release-artifacts/v4.5.0/83-independent-review.json",
+    "scope": "82 baseline 이후 83 제품/fixture 변경분의 누적 읽기 검토와 명시한 기존 원출력 readback. 이 JSON만 작성하며 제품·검사를 실행하지 않았다."
+  },
+  "model": {
+    "requested": "gpt-6-astra",
+    "requestedEffort": "high",
+    "toolAcceptance": "기존 별도 검토자 수락값 재사용이라는 메인 인계를 유지한다. 이번 검토에서 새 모델 설정 도구 호출 없음.",
+    "actualRuntimeModel": null,
+    "actualRuntimeEffort": null,
+    "runtimeStatus": "미노출·미확인"
+  },
+  "decision": {
+    "limitedTechnicalAdoption": "ACCEPTABLE_IN_REVIEWED_SCOPE_PENDING_FINAL_EXECUTION_BINDING_AND_CLEANUP",
+    "newSourceSafetyBlockersFound": [],
+    "whole83": "INCOMPLETE",
+    "memoryP0": "BLOCKED",
+    "releaseApproved": false,
+    "finalAdoptionApproved": false,
+    "taskClosure": "PENDING",
+    "meaning": "retained cold adapter, query 준비 범위, 검색 모델 소유 예약 및 queued 취소 입력 해제의 한정 코드 채택은 가능하다. 공개 evidence GET 예외 blocker는 수정/직접 RED→GREEN으로 해소했다. 전체 합산 admission·large legacy·D 및 최종 mac/Linux 회귀/결속/보존/정리 잔여를 완료로 승인하지 않는다."
+  },
+  "source": {
+    "baseCommit": "50a344180516734b06b71618791b2f66ecd47743",
+    "adoptionFreeze": "adoption83-freeze.json",
+    "adoptionFreezeSha256": "6078b112dff34977c8cf6a1c5e5ae76284672d4530b74f4db192aa969ca4c97a",
+    "adoptionFreezeFileCount": 27,
+    "readSourceSha256": {
+      "include/recording/recording_catalog.h": "6ce00c6a1ea2ab0425523f82a9ef4b3c1a13763804bd37b301b06e4af52c0c47",
+      "include/recording/recording_catalog_generation_projection.h": "6b8931a88816002ccb1f75208093e872a65f4ec1da07b74161c4f3128526be4f",
+      "include/recording/recording_retained_rows.h": "0c2ee7536894e0eef30537325d448ab93183e298c5deef2f13bbe83ac1f1372b",
+      "include/recording/recording_search_model.h": "7f428dc15ca9bfac75d32a75e534cd8c4f59503299c6565eb15bebe5bae79411",
+      "include/recording/recording_search_reader.h": "53fb5e2aa2724f803f30e8d1e104e82154eeb2283148f9be27a674cf830dda33",
+      "include/recording/va_review_service.h": "91e77767d33b5d5c5b3324f3ce5713721ded96cbddfe52711e081146be097b59",
+      "scripts/internal/evidence_package_smoke.cpp": "8882ffe2569252be7c77714ad5f7271930a4d06d23225ef7948962472cc979d3",
+      "scripts/internal/recording_catalog_generation_projection_smoke.cpp": "f9637853680ca956f6e576f992b6a7ff9d1fb8df41ed68cb24ba2415c6c2314c",
+      "scripts/internal/recording_generation_checkpoint_smoke.cpp": "c1aacecf3493b926f2c3c20a80615a3cdcc62ad8b51d71527ddcd351261739ba",
+      "scripts/internal/recording_retained_lifetime_smoke.cpp": "1a5e9b64b8a1b57f609a444354b6adbe1618101c0a03407ea176eff6eefe8701",
+      "scripts/internal/recording_search_source_smoke.cpp": "6fc14ab50bef19185b20dc65cf51fe914249d27fcbfa578e752be96fb39c351c",
+      "src/ingress/evidence_application_service.cpp": "5830e271a4bc468ab530dc72eb0f8fa873bb682589c25fc224436c7a02867a57",
+      "src/ingress/recording_application_service.cpp": "6012732d1583aa085b663e106c20612e8b033c361d7b6eab8bad62b0f1b981d6",
+      "src/ingress/recording_search_application_service.cpp": "851e1a571d614750d8a330a1c3ee98fde558ea1b3a6d69cb3fd5fcd4ddf0a32c",
+      "src/recording/event_recording_bridge.cpp": "9d02dff1fcf0e36c6753dd872ee35ec776fa5ac26170ab361576f569855fff94",
+      "src/recording/recording_catalog.cpp": "883a855ac3ca728395d3475b6c1f3d1c6c184f6c92ee62f6d2c4cd911abbcb2b",
+      "src/recording/recording_catalog_cutover_candidate.cpp": "0974693be1d36b89a8f7c6c8e822c75320b269920497170cb0f05bfa3f2be95f",
+      "src/recording/recording_catalog_generation_projection.cpp": "56727b08ae49a87de918a0e29d454ed11f3f015dd0e91b53cc6fa4d613d003dd",
+      "src/recording/recording_catalog_history.h": "65701b3ded92e7c7626fc38c31013acd628eccfe425a91778e6edbe763fb90eb",
+      "src/recording/recording_catalog_snapshot_export.cpp": "c42071050c390c2258e5f6e1ce092b10fbe8c1321da1adda57aa16d849e879c0",
+      "src/recording/recording_read_service.cpp": "e7a327eabbada66b282828dd2c341e87010a29b4de0fcceca316bd89197b9cee",
+      "src/recording/recording_search_model.cpp": "c0adad93bc370d98f159500d5856e7b1556eae3a8921161fababa19179a25833",
+      "src/recording/recording_search_reader.cpp": "b0fabb4b32193de90a50f18265ccb2337da4b31831a49f9056c143ee512cdd04",
+      "src/recording/recording_search_source.cpp": "781aef5c8fee3c5d831d0cfd6dafc106f6942e3af4461ea7934c881c9f8f9035",
+      "src/recording/va_review_service.cpp": "12e92fff1dbdaf03af18f663949b087baf03f667660e701585b72040db890f04"
+    },
+    "readback": "직전 adoption readback은 27파일 모두 일치했다. 이번 현재 읽기에서 제품/fixture 중 checkpoint smoke만 C06 prerequisite 보완으로 변경됨. 문서는 메인 작성 중이며 이 판정에 최종 문서 결속을 주장하지 않는다.",
+    "currentProductFixtureDifferencesFromAdoption": [
+      "scripts/internal/recording_generation_checkpoint_smoke.cpp"
+    ],
+    "performanceEvidenceDelta": "final83 측정 후 adoption 제품 변경은 EvidenceApplicationService::Get의 cold-error catch뿐이다. 해당 직접 GET은 병행 검색과 B/C AnalysisGet 경로에서 호출하지 않는다. 그 뒤 C06 변경은 fixture prerequisite만이며 제품 변경이 아니다. 최종 실행 source binding은 후속 receipt 대기."
+  },
+  "sourceJudgments": [
+    {
+      "location": "include/recording/recording_retained_rows.h; src/recording/recording_catalog_history.h",
+      "judgment": "cold iterator는 현재 행을 shared value로 소유한다. overwrite/Finish 뒤 이미 반환된 행 수명은 유지하되 adapter 소유자보다 iterator 자체가 오래 살아도 된다는 API 보장은 아니다. Get/Next/ForEach의 내부 손상은 정상 absent와 구분된 RecordingRetainedReadError이며 불완전 순회를 성공으로 바꾸지 않는다."
+    },
+    {
+      "location": "src/recording/recording_catalog_history.h:107-151",
+      "judgment": "bulk Visit는 인증된 metadata/chunk를 직접 사용한다. canonical part key, unique key, 범위/개수/길이 검사가 decimal lexicographic 순서를 offset으로 복원하고 overwrite tail을 현재 값에서 제외한다. consumer 거절/예외는 하부 손상과 구분한다. 마지막 callback은 하부 VisitRange guard 종료 후 호출되므로 모든 callback의 mutation/reentrancy 차단을 보장한다고 주장하지 않는다. 현재 실제 소비자에서 같은 history를 변경하는 해당 경로는 발견하지 못했다."
+    },
+    {
+      "location": "src/recording/recording_catalog.cpp; src/recording/recording_catalog_generation_projection.cpp",
+      "judgment": "segment/state/tombstone/path/reason과 observation/reference/event/accepted cold 소비를 projection·Catalog·K clone까지 대조했다. ResolveObservationV2Locked와 SQLite live_segment/live_relative의 iterator 밖 포인터 수명 문제는 optional 값 소유로 수정됐다. noncompact golden 의미 검증을 생략하거나 삭제 상태를 live source summary로 승격하지 않는다. 대규모 legacy 자원 상한까지 입증한 것은 아니다."
+    },
+    {
+      "location": "src/ingress/recording_search_application_service.cpp; src/recording/recording_search_source.cpp; src/recording/recording_search_reader.cpp",
+      "judgment": "recording-only 준비는 QueryImpl과 같은 여섯 metadata predicate가 모두 비었을 때만 사용한다. recordings source identity로 모드를 구분하고 PlaybackCandidates도 같은 모드를 캡처한다. 기본 reader API는 observation 포함을 유지한다. 현재 권한·source revision·실제 파일 검증을 제거한 변경을 확인하지 못했다."
+    },
+    {
+      "location": "include/recording/recording_search_model.h:52-79; src/recording/recording_search_model.cpp; src/recording/recording_search_reader.cpp",
+      "judgment": "Catalog별 640MiB 논리 예약은 모델의 마지막 shared owner까지 유지된다. make_shared Lease 구성 실패의 예약 rollback과 모델 복사 금지, source/delta/enrichment/playback 작업 예약을 확인했다. 640 산식은 pool128+current64+이전 caller4×64+직렬 준비192라는 한정 모델이며 제품 전체 RAM 또는 임의 동시 client 수 보장이 아니다."
+    },
+    {
+      "location": "src/recording/va_review_service.cpp:124-138",
+      "judgment": "queued 취소는 worker queue 선택과 같은 mutex 아래 queue 제거 후 confirmed/question을 해제한다. 실행 중 입력은 worker 종료 경계까지 유지한다. 인증/owner/idempotency/상태 summary를 제거하지 않았다. 완료 작업 metadata의 잔류는 별도로 남는다."
+    },
+    {
+      "location": "src/ingress/evidence_application_service.cpp:90-114",
+      "judgment": "발견했던 공개 GET 예외 전파 blocker는 RecordingRetainedReadError만 잡아 503 evidence-unavailable로 변환한다. 패키지 권한403 우선과 독립 보존 원문은 유지한다. 모든 Catalog API의 임의 예외를 전수 안전화했다는 의미는 아니다."
+    }
+  ],
+  "resolvedFindings": [
+    {
+      "finding": "retained iterator 행을 벗어난 포인터 수명",
+      "status": "SOURCE_FIX_REVIEWED",
+      "resolution": "ResolveObservationV2Locked 및 SQLite projection에서 optional 값으로 소유"
+    },
+    {
+      "finding": "recording-only 모델의 PlaybackCandidates가 observation 포함 source와 비교",
+      "status": "SOURCE_FIX_REVIEWED",
+      "resolution": "기존 모델의 recordings prefix에 맞춰 CaptureSearchSource 모드 결속"
+    },
+    {
+      "finding": "공개 Evidence GET의 cold 예외가 detached HTTP thread 밖으로 전파",
+      "status": "DIRECT_RED_TO_GREEN_REVIEWED",
+      "resolution": "해당 retained 오류를 503으로 변환. RED after1027에서 catalog history unavailable, GREEN 1031 checks exit0."
+    }
+  ],
+  "C06Followup": {
+    "status": "SOURCE_PREREQUISITE_CORRECTION_ACCEPTABLE_FINAL_RUN_PENDING",
+    "firstFailure": "Linux 첫 checkpoint-concurrency exit1의 MEM82-C06 FAIL 보존. cold 이전 후 Actual fixture의 sequential capture 행이 없어 probe_fault=6의 rows_ 조건이 false였다.",
+    "change": "기존 Active(InputValue()) 원본으로 활성 Intent job을 구성하고 FindDerivedJob 상태를 확인한다. Capture의 derived_jobs_ 경로가 실제 순차 행을 생성한다. 기존 fault hook/거부/manifest와 active exact bytes/Finish/reOpen assertion 유지.",
+    "limit": "checkpoint 반례 자체는 정확한 error 문자열까지 특정하지 않는다. 직접 history-product C06의 늦은 root 오류 반례와 함께 판단한다. 새 mac/Linux PASS는 아직 직접 확인하지 않음."
+  },
+  "executionEvidence": {
+    "root": "/private/tmp/media-server-memory83-jko62xts",
+    "rawReadback": {
+      "evidence-cold-red": {
+        "receiptExit": 1,
+        "elapsedSeconds": 4.559783666045405,
+        "bytes": 32261,
+        "sha256": "5b5cc7c3cceff94f3e7ec592cfb22b02aab68832ccee49625b604a26fca3f918",
+        "receiptHashMatches": true
+      },
+      "evidence-cold-green": {
+        "receiptExit": 0,
+        "elapsedSeconds": 4.498479582951404,
+        "bytes": 31924,
+        "sha256": "977708326aa6e25bfea31797cd4c451a65ca48392fc52a389dbfa2fbcf013c4a",
+        "receiptHashMatches": true
+      },
+      "bc-final-before": {
+        "receiptExit": 1,
+        "elapsedSeconds": 9.369346667081118,
+        "bytes": 31224,
+        "sha256": "598a7aaa4442db5c405b060c9cdef4e3636b82737abb5c100c2faf2abaa3f1f0",
+        "receiptHashMatches": true
+      },
+      "bc-final-after": {
+        "receiptExit": 0,
+        "elapsedSeconds": 9.386467417003587,
+        "bytes": 31268,
+        "sha256": "80ca5f38ed6a28b199670cc973547866dbb04de306cbfe616d5a451fc9fa3878",
+        "receiptHashMatches": true
+      },
+      "retained-final83": {
+        "receiptExit": 0,
+        "elapsedSeconds": 84.14787979098037,
+        "bytes": 6420,
+        "sha256": "6f1a7aac24a7388dc6770e9bb93769fcfa8735b849a18d3785210240475838b6",
+        "receiptHashMatches": true
+      },
+      "overlap-final83": {
+        "receiptExit": 0,
+        "elapsedSeconds": 35.13460741599556,
+        "bytes": 292376,
+        "sha256": "6196389adcd83cc712e4a1a9a3a304b6bb5d5bf5420b5236a91198ccdf211c91",
+        "receiptHashMatches": true
+      },
+      "linux-first-output/checkpoint-concurrency": {
+        "receiptExit": 1,
+        "elapsedSeconds": 63.42792640500001,
+        "bytes": 8056,
+        "sha256": "3310bd45518f8fd6f2b43b84c19b42511d1ba0edaef55a84906cc26303c5217b",
+        "receiptHashMatches": true
+      }
+    },
+    "scope": "원출력의 의미 있는 PASS/FAIL/관측값과 fixture 호출 경계를 읽고 raw 길이/hash를 대조했다. 새로운 제품 실행이 아니다. 최종 mac/Linux suite 전체는 pending."
+  },
+  "finiteOverlap": {
+    "result": "PASS_OBSERVED_SINGLE_RUN",
+    "elapsedSeconds": 35.13460741599556,
+    "deadlineSeconds": 90,
+    "history": 2048,
+    "writers": 8,
+    "clients": 4,
+    "observations": 10000,
+    "packets": 720,
+    "healthyFiles": 24,
+    "samples": 51,
+    "ready": 50,
+    "unavailable": 1,
+    "unavailableIncluded": true,
+    "p95Ms": 606.398,
+    "maxMs": 770.058,
+    "checkpointMs": 1378.02,
+    "checkpointPackets": [
+      162,
+      720
+    ],
+    "checkpointPublished": true,
+    "completedDuringCheckpointPerClient": [
+      1,
+      3,
+      2,
+      2
+    ],
+    "completedAfterCheckpointPerClient": [
+      1,
+      0,
+      0,
+      0
+    ],
+    "normalFinish": true,
+    "rssHighWaterBytes": 70975488,
+    "limit": "기존 종료 조건의 90초 이내 유한 실행이다. 90초 지속 부하 또는 무실패 검색은 아니다. 별도 final status200/known24를 latency 표본에 합치지 않는다. 초기 83 후보 p95 실패를 소급 PASS로 바꾸지 않는다."
+  },
+  "retainedMeasurement": {
+    "result": "PASS_OBSERVED_SINGLE_CURRENT_RUN",
+    "elapsedSeconds": 84.14787979098037,
+    "sizes": [
+      32,
+      128,
+      512,
+      2048
+    ],
+    "idle2048": {
+      "mallocLive": 3994160,
+      "rss": 64126976,
+      "footprint": 14893824,
+      "fdCount": 10
+    },
+    "releasedAgain": {
+      "mallocLive": 3671824,
+      "fdCount": 3
+    },
+    "reopen": "history-readback=pass",
+    "limit": "journalDetailObserved=false이므로 출력의 Catalog 요약 0을 Journal 상세/전체 resident 메모리 0의 전수 관측으로 확대하지 않는다. 이 원문만으로 최종 전후 A 비교·동시 scratch 전체 peak를 판정하지 않는다."
+  },
+  "BCComparison": {
+    "B": {
+      "iterations": 32,
+      "beforeExit": 1,
+      "beforeFailureMeaning": "등록된 confirmed owner 사전 RED; 컴파일/준비 실패가 아님. C 관측을 별도로 끝낸 뒤 B 판정 실패를 반환함.",
+      "afterExit": 0,
+      "confirmedOwnersBefore": 33,
+      "confirmedOwnersAfter": 1,
+      "afterRunningStoppedOwners": 0,
+      "storedBytesBeforeFixed": 199054,
+      "storedBytesAfterFixed": 199060,
+      "afterHeapStart": 4499280,
+      "afterHeapReleased32": 4533200,
+      "afterHeapGrowth": 33920,
+      "limit": "각 run 안 영속량 불변을 확인했다. 서로 다른 run 전체 원본은 byte-identical이 아니다. queued confirmed 입력 해제는 입증하지만 jobs metadata까지 불변/무상주 또는 모든 요청 누수 제거를 입증하지 않는다."
+    },
+    "C": {
+      "newArtifacts": 8,
+      "actualWorkerStoredAndRead": true,
+      "storedBytesBeforeFinal": 525894,
+      "storedBytesAfterFinal": 525900,
+      "persistentIncreaseEach": 326840,
+      "afterHeapFinalIdle": 4549344,
+      "limit": "실제 신규 evidence/A 비용이며 no model calls. 1/4/8 및 idle 표본은 순간 peak가 아니다. UUID/time 6B 차이의 전체 원문 동일성은 주장하지 않는다."
+    }
+  },
+  "unresolved": [
+    {
+      "boundary": "공통 owner admission",
+      "status": "BLOCKED_INCOMPLETE",
+      "detail": "640MiB는 검색 모델/고정 작업 논리 예약만 연결한다. cold 반환 행의 원문·파싱 DTO, batch pending·capture DTO, evidence/A 완료 JSON, reader FD 및 generation/scratch의 전체 동시 수명이 공통 admission에 결속되지 않았다."
+    },
+    {
+      "boundary": "checkpoint 동시 scratch",
+      "status": "INCOMPLETE",
+      "detail": "현재 live cold history + K clone + sequential capture + canonical spool + Journal candidate/retired index의 중첩 수명·논리/할당 bytes와 FD를 한 owner가 합산 거부하지 않는다. 명시 Finish·관측 카운터는 admission과 다르다."
+    },
+    {
+      "boundary": "large noncompact legacy",
+      "status": "INCOMPLETE",
+      "detail": "원본 golden/의미·cold 연결은 검토했지만 큰 비축약 legacy와 최대 유효 행/반환 DTO에서 정상 admission·전체 메모리 예산을 충족한다는 최종 직접 증거는 미확인. 원래 행 상한을 임의 축소할 수 없다."
+    },
+    {
+      "boundary": "D 전체 수명/포화/재개",
+      "status": "PARTIAL",
+      "detail": "검색 모델의 소유 예약·외부 page 수명·거부/마지막 해제 직접 fixture 범위와 전체 runtime reader/evidence/A/scratch의 포화·재개는 다르다. 후자는 미완료이며 작은 검색 owner 시험으로 대체하지 않는다."
+    },
+    {
+      "boundary": "원인 귀속과 무누수",
+      "status": "NOT_CLAIMED",
+      "detail": "74의 증가 원인 전체를 이번 입력 소유 하나로 귀속하지 않으며 전체 무누수/무증가를 주장하지 않는다. RSS·heap·footprint와 영속 신규 데이터 증가를 구분한다."
+    }
+  ],
+  "pending": {
+    "finalMacExecution": "PENDING",
+    "finalLinuxExecution": "PENDING_C06_CORRECTED_RUN",
+    "finalSourceAndProducerBinding": "PENDING",
+    "archiveAndGitPreservation": "PENDING",
+    "ownedCleanup": "PENDING",
+    "remotePreservation": "PENDING"
+  },
+  "approvalBoundary": "기존 approval candidate/986 항목의 동일성은 새 83 제품 변경의 자동 승인이 아니다. 본 판단은 검토한 부분 코드 안전성에 한정하며 최종 채택/전체83/P0/출시 승인이 아니다.",
+  "addenda": [
+    {
+      "kind": "final-mac-and-producer-binding-readback",
+      "scope": "새 제품/검사 실행 없이 완료된 mac 원출력, 정적 producer/readback, 현행 source와 문서만 확인. 초기 판정과 pending 기록은 소급 삭제하지 않는다.",
+      "executionEvidence": {
+        "final-mac-concurrency": {
+          "exit": 0,
+          "elapsedSeconds": 193.80233029194642,
+          "bytes": 11533,
+          "sha256": "6c370a4c3b8562d5186bb1265d0a9c4b2d0953f3581c4c1b0a35e8a579c43682",
+          "receiptHashMatches": true
+        },
+        "final-mac-history": {
+          "exit": 0,
+          "elapsedSeconds": 66.71776362496894,
+          "bytes": 26870,
+          "sha256": "b21dd8e736334a367574f406d3579732bb374863cfbeb2c139c258c7103b068b",
+          "receiptHashMatches": true
+        },
+        "final-mac-transaction": {
+          "exit": 0,
+          "elapsedSeconds": 59.215224875020795,
+          "bytes": 18285,
+          "sha256": "546afc011ba59f103ae2ad87ebe3c45ebbc37ee6380bccac69c756b46be34388",
+          "receiptHashMatches": true
+        },
+        "final-mac-active": {
+          "exit": 0,
+          "elapsedSeconds": 5.504649707931094,
+          "bytes": 1485,
+          "sha256": "886beabf371544643d2b83d21e0bafd62f4377b221e04610cbefab8ef1fd10ef",
+          "receiptHashMatches": true
+        },
+        "final-mac-consumers": {
+          "exit": 0,
+          "elapsedSeconds": 80.72059745900333,
+          "bytes": 41158,
+          "sha256": "02c25b816cfde51085448b4fdc60b5209770ef8c952f63953318bf56e1bf9301",
+          "receiptHashMatches": true
+        },
+        "producer83": {
+          "exit": 0,
+          "elapsedSeconds": 101.81148274999578,
+          "bytes": 12812,
+          "sha256": "d044f8ac77f4e3e0a7ee0672c9d63381151b9f522393a0aa536f910913ef258f",
+          "receiptHashMatches": true
+        },
+        "inventory83-readback": {
+          "exit": 0,
+          "elapsedSeconds": 65.43162454199046,
+          "bytes": 210255,
+          "sha256": "4670513193842f03ec9ea567062efe9d2dd303d621716a5cb95876d48b1dc1cd",
+          "receiptHashMatches": true
+        },
+        "coverage83-readback": {
+          "exit": 0,
+          "elapsedSeconds": 112.88571716600563,
+          "bytes": 604,
+          "sha256": "f3dd9d2ec3cd35ce7a806a391b6918dddd2c2377ca3039afa624f484985f9bce",
+          "receiptHashMatches": true
+        },
+        "implementation83-readback": {
+          "exit": 0,
+          "elapsedSeconds": 75.95437295897864,
+          "bytes": 1141,
+          "sha256": "f004e8a145e0b287322992e5f2f9c356c12a495834505e9ea79a414fd1f6b6f7",
+          "receiptHashMatches": true
+        }
+      },
+      "macJudgment": {
+        "result": "PASS_IN_LISTED_SUITE_SCOPE",
+        "C06": "crypto ON의 SQLite ON/OFF 양쪽에서 실제 sequential 손상 checkpoint 거부/원본 불변 PASS 확인. history-product의 소비 후 late root 거부, decimal chunk/overwrite/empty/prefix-ID/consumer 예외/held row/fixed clone 반례 PASS 확인.",
+        "configBoundary": "concurrency/history의 crypto ON SQLite ON/OFF와 crypto OFF/backend OFF 네 설정 결과를 구분. 비지원 설정은 generation 지원 PASS가 아니라 기존 fail-closed/V1 계약 PASS.",
+        "remaining": "현재 addendum에 열거한 mac suite를 확인했으며 전체 acceptance/UI/장시간 또는 모든 조합 완전성 증명이 아니다."
+      },
+      "sourceBinding": {
+        "freeze": "final-product-test-freeze.json",
+        "freezeSha256": "0ac38465caa6ae79f053d8b97a999ba45423fc8cb7e1357eafe5aafeb41b2748",
+        "fileCount": 25,
+        "currentMismatches": [],
+        "receipt": "final-product-test-readback.json",
+        "receiptCount": 25,
+        "readback": "25개 현재 제품/fixture 바이트를 직접 해시 대조해 mismatch0 확인. 변경된 C06 prerequisite fixture 포함. 기존 성능 실행 바이트와 최종 GET catch/fixture 변화의 영향 분리는 이전 판단 유지."
+      },
+      "producerBinding": {
+        "changedTopLevelKeys": [
+          "inventorySha256"
+        ],
+        "itemsEqual": true,
+        "items": 986,
+        "currentInventorySha256": "f7a978f091548d2fdc828738b1ff686673a2583481de1b1569f67d9503c1fd13",
+        "manifestInventorySha256": "f7a978f091548d2fdc828738b1ff686673a2583481de1b1569f67d9503c1fd13",
+        "producerPass": 51,
+        "producerFail": 0,
+        "inventoryPass": 18,
+        "inventoryFail": 0,
+        "coveragePass": 9,
+        "coverageFail": 0,
+        "implementationValidationErrors": 0,
+        "implementationExecutionEvidenceStatus": "not-execution-evidence",
+        "meaning": "실제 HEAD manifest와 현재 manifest의 JSON 의미 차이를 읽기 대조. inventorySha256 한 필드만 변경, 986 items 동일. 새83 제품 승인/실제 UI 또는 전체83/P0 완료 근거로 사용하지 않는다."
+      },
+      "documentation": {
+        "readSha256": {
+          "docs/release-artifacts/v4.5.0/83-validation.json": "0207b540d55406208e63cf7cc9d86d109b04139d67f737f40de147d32565a154",
+          "docs/development-backlog.md": "d97fae2f66b2648b53aa62f9ed94d5aef026f5542fd81b358a759f9b607dbe8b",
+          "docs/release-notes-v4.5.0.md": "122d2a21ad085fdbb0d281d48983d92c7d7eb67f027f081ba91eb8a4615472d3"
+        },
+        "judgment": "검토한 현행 83 관련 표현은 부분 구현/한정 근거와 전체 P0 차단을 구분한다. 640MiB가 전체 RAM admission이 아니며 large reference/noncompact legacy·D·evidence/A·현재/K/후보 scratch·최종 혼합 잔여를 명시한다. 최종 채택/위험수용/출시 또는 전체 무누수 완료의 과장 표현을 확인하지 못했다. validation은 이후 실행/마감 receipt를 받을 초안 상태다."
+      },
+      "updatedScopeStatus": {
+        "limitedTechnicalAdoption": "ACCEPTABLE_IN_REVIEWED_SCOPE_PENDING_LINUX_AND_CLOSURE",
+        "newSourceSafetyBlockersFound": [],
+        "whole83": "INCOMPLETE",
+        "memoryP0": "BLOCKED",
+        "releaseApproved": false,
+        "finalAdoptionApproved": false,
+        "finalMacListedSuites": "PASS_READBACK",
+        "finalLinuxExecution": "PENDING_BUILD_NATIVE_AND_FINAL_RECEIPT",
+        "producerAndInventoryBinding": "READBACK_CONFIRMED",
+        "archiveAndGitPreservation": "PENDING",
+        "ownedCleanup": "PENDING",
+        "remotePreservation": "PENDING"
+      },
+      "model": "요청 gpt-6-astra/high; 기존 tool 수락 인계와 실제 런타임 미노출·미확인 구분 유지. 새 설정 호출 없음."
+    },
+    {
+      "kind": "final-linux-technical-readback",
+      "scope": "기존 Linux 실행 원출력·수집 receipt·컴파일 대상에서 보존한 소스 바이트를 읽기 확인. 검사/빌드/컨테이너 실행 또는 제품 수정 없음.",
+      "rawReadback": {
+        "linux83-final": {
+          "exit": 0,
+          "elapsedSeconds": 473.38381320796907,
+          "bytes": 2001,
+          "sha256": "a49152dc4a4b4222f60922d13b961b2a90ff3a875b841e9ff91ecda5b0d8a21f",
+          "receiptHashMatches": true
+        },
+        "linux-first-output/checkpoint-all": {
+          "exit": 0,
+          "elapsedSeconds": 81.235029371,
+          "bytes": 29819,
+          "sha256": "0cdde645ce1dc52b86c12364b0344587daa46211d2ec886835eb9125c641c855",
+          "receiptHashMatches": true
+        },
+        "linux-final-output/checkpoint-concurrency": {
+          "exit": 0,
+          "elapsedSeconds": 167.10598003399997,
+          "bytes": 11497,
+          "sha256": "629f2a33b7eed4350029150ebd0d2066ae5006896418adc746ddfe5e11e0d002",
+          "receiptHashMatches": true
+        },
+        "linux-final-output/checkpoint-history-product": {
+          "exit": 0,
+          "elapsedSeconds": 82.94403774599994,
+          "bytes": 26847,
+          "sha256": "ce1486aa6f6265fd9e307acc337053a38d7193d256ba7863b408490db4571171",
+          "receiptHashMatches": true
+        },
+        "linux-final-output/transaction": {
+          "exit": 0,
+          "elapsedSeconds": 50.63577623200001,
+          "bytes": 17925,
+          "sha256": "f8eb777f5bcf6539991bfcbdcab5677531fab5db4f8455ab2dc7a49738bcebcf",
+          "receiptHashMatches": true
+        },
+        "linux-final-output/active": {
+          "exit": 0,
+          "elapsedSeconds": 4.883224751999933,
+          "bytes": 1436,
+          "sha256": "b2fb9901c3f47b14e832da2199db1364fed4c4300f506862ff60dc3f0b1e9e94",
+          "receiptHashMatches": true
+        },
+        "linux-final-output/consumers": {
+          "exit": 0,
+          "elapsedSeconds": 99.17803712800003,
+          "bytes": 41122,
+          "sha256": "e1725d4163a098fe1fcfb6c2fa8aee462ccdb1c8e5d1533589baa8f6094f40dc",
+          "receiptHashMatches": true
+        },
+        "linux-final-output/build": {
+          "exit": 0,
+          "elapsedSeconds": 44.25052864500003,
+          "bytes": 18992,
+          "sha256": "9873444477309944eb06f16c3afb92d0d1811af153383567274ad1ace455fd59",
+          "receiptHashMatches": true
+        }
+      },
+      "nativeReadback": {
+        "evidence_package_smoke": {
+          "bytes": 31072,
+          "sha256": "0458c630ac63214d9f4a2141d7b34977753d467f915f02f2367d8442ba3ac589",
+          "allCommandsExit0Marker": true
+        },
+        "va_review_smoke": {
+          "bytes": 6298,
+          "sha256": "3bc6313a102bbf605b9dc0f149f4321021cbcf0c75544afda04f2b52de534e7a",
+          "allCommandsExit0Marker": true
+        },
+        "recording_search_source_smoke": {
+          "bytes": 2136,
+          "sha256": "c2e759fe9f2ffcd3b8aec0276a2868449f6b33176239d7ddbe33321978aaaa34",
+          "allCommandsExit0Marker": true
+        },
+        "recording_retained_lifetime_smoke": {
+          "bytes": 32176,
+          "sha256": "4eaec6fb4c1b0be5cc27a3383e17e7a01137d77a9f0240fcc2fc031ab46e4fa1",
+          "allCommandsExit0Marker": true
+        }
+      },
+      "sourceBinding": {
+        "copiedSourceDirectory": "linux-adopted-source",
+        "receipt": "linux-source-readback.json",
+        "fileCount": 25,
+        "copiedSourceMismatches": [],
+        "currentSourceMismatches": [],
+        "meaning": "보존된 실제 컴파일 대상 사본25개를 final-product-test-freeze와 직접 해시 대조. source-readback의 true 주장만 사용한 것이 아니다."
+      },
+      "environment": {
+        "observed": "원출력 uid10001/gid10001, Linux aarch64, GCC16.2.0, GStreamer1.28.7, OpenSSL3.6.5, SQLite3.53.4",
+        "launchReceipt": "기존 image sha256:ce72c8a15363984da642e9964189957896812061c6af1d0ef67e87b38ad5a588; network none; cap-drop ALL; no-new-privileges; source/helpers readonly mount. Docker inspect를 새로 실행하지 않았음.",
+        "scope": "run script와 native compile/command 목록에서 별도 설치나 모델 호출 경로를 확인하지 못했다. no-model B/C·원래 VA seed/confirmed 실행과 실제 LLM 검증은 구분한다."
+      },
+      "judgments": {
+        "checkpoint": "최초 checkpoint-all PASS는 C06 fixture 보완 전 실행으로 유지한다. 보완 후 최종 concurrency에서 SQLite ON/OFF C06 거부/원본 불변 PASS, history-product의 직접 늦은 root/행 수명 반례 PASS 및 네 구성 경계 확인. 최초 Linux C06 FAIL은 그대로 보존한다.",
+        "regression": "transaction/active/consumers exit0와 제품 media_server/runtime 빌드100%를 확인했다.",
+        "publicEvidence": "evidence1031 checks PASS; 실제 runtime Finish 이후 deny403/permit503 경계 확인.",
+        "VA": "원래 seed→confirmed-seed→confirmed-checks→confirmed-read 네 명령과 각 summary9/18/66/2 PASS 확인. 새로운 영상/LLM 판단 품질 증거가 아니다.",
+        "search": "48 PASS/0 FAIL. shared reader 중복 청구 없음, 초과 거부/output 불변, pool expiry 뒤 page 예약 유지 및 마지막 release 반례, query-mode/playback/old reader/재Open 확인.",
+        "BC": "Linux B confirmed owner1 및 실행 종료후 해제 판정 PASS. B32 영속199016B 불변이나 heap5425152→5458624B(33472B 증가). C8 영속525856B까지 증가, C idle heap5569904B. Linux footprint unavailable이며 표본을 순간 peak/전체 무누수로 해석하지 않는다.",
+        "validation": "현재83-validation의 Linux final/native/source 환경 범위와 직접 읽은 원문이 일치한다. Linux remainingWork 빈 값은 wrapper work 목록에 한정하며 전체 root/container cleanup 완료가 아니다."
+      },
+      "status": {
+        "limitedTechnicalAdoption": "ACCEPTABLE_IN_REVIEWED_SCOPE_PENDING_PRESERVATION_AND_CLEANUP",
+        "newSourceSafetyBlockersFound": [],
+        "listedMacLinuxRegression": "PASS_READBACK",
+        "whole83": "INCOMPLETE",
+        "memoryP0": "BLOCKED",
+        "aggregateAdmission": "INCOMPLETE",
+        "largeLegacyAndWholeD": "INCOMPLETE",
+        "releaseApproved": false,
+        "finalAdoptionApproved": false,
+        "archiveAndGitPreservation": "PENDING",
+        "ownedCleanup": "PENDING",
+        "remotePreservation": "PENDING"
+      },
+      "model": "요청 Astra/high와 기존 도구 수락 인계 유지. 실제 런타임 model/effort 미노출·미확인."
+    }
+  ]
+}

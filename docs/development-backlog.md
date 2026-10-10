@@ -42,8 +42,15 @@ before는 관측 준비 중 종료됐고 after도 최종 checkpoint/검색 지�
 준비 중 내구 append를 최종 F의 active suffix로 보존하며, 결정적 latch·중단/재Open과 실제
 90초 병행 기준을 통과했다. [82 검증](release-artifacts/v4.5.0/82-validation.json)에 최종 소스,
 실패→보완, 원출력과 독립 판단을 연결한다. 이 결과는 전체 메모리 P0 완료가 아니다.
-관측/reference 보존 집합 상주, 축약 불가능 legacy, 모든 동시 reader·단계별 peak 합산,
-B/C 전체 수명과 최종 혼합 검증은 같은 v4.5.0 출시 전 P0로 남는다.
+83은 generation의 보존 observation/reference/event/accepted와 축약 불가능 legacy 행을
+원본에 결박된 cold 조회로 연결하고, 검색 모델의 최종 shared owner까지 논리 byte 예약을 유지한다.
+고정 자료량의 B32 요청/취소/만료와 C8 실제 증거/A 보존을 분리해 실행했으며,
+queued A 취소 후 남던 confirmed 입력 사본을 해제했다. [83 한정 근거](release-artifacts/v4.5.0/83-validation.json)에
+실제 변경·측정·실패와 독립 판단을 둔다. 현재 검색 모델 예약은 전체 RAM admission이 아니다.
+증거/A capture·반환 DTO·JSON, cold 행 parser/reader와 현재/K/후보/suffix scratch의 합산 예약,
+대규모 reference·축약 불가능 legacy 및 동시 세대 D의 전체 검증은 미완료다.
+B의 기존 job summary/idempotency 보유는 건수 한도가 있으나 전체 byte 수렴 검증을 대신하지 않는다.
+이 잔여와 최종 혼합 검증은 같은 v4.5.0 출시 전 P0이며 이번에 120분은 실행하지 않는다.
 소유자는 미해결 메모리 증가를 운영 제한으로 수용하지 않았다. 사용자 위험 수용과 최종 출시
 채택은 **not-granted / not-performed**이며 공개 절차는 보류한다. 75의 과거 판단은 소급 수정하지 않는다.
 

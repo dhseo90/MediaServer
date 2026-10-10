@@ -1,0 +1,1515 @@
+{
+  "schema": "media-server.validation.v1",
+  "task": 83,
+  "status": "PARTIAL_IMPLEMENTATION_VERIFIED_TOTAL_ADMISSION_INCOMPLETE",
+  "memoryP0": "BLOCKED",
+  "releaseApproved": false,
+  "model": {
+    "mainRequested": "gpt-6-astra",
+    "mainRequestedEffort": "high",
+    "mainToolAcceptance": null,
+    "mainRuntimeModel": null,
+    "mainRuntimeEffort": null,
+    "projectConfig": "gpt-6.1-sol/high/default is a file default, not runtime evidence",
+    "independentReviewer": "independent_memory77",
+    "independentRequested": "gpt-6-astra/high",
+    "runtimeMeaning": "미노출·미확인. 별도 구현 비참여 검토자와 같은 작성자의 역할 변경을 구분"
+  },
+  "source": {
+    "entryHead": "50a344180516734b06b71618791b2f66ecd47743",
+    "entryRemote": "50a344180516734b06b71618791b2f66ecd47743",
+    "entryWorkingTree": "clean",
+    "product82": "0976bdea30086ff9a052b4d49646b0abada3e213",
+    "finalFreeze": {
+      "base": "50a344180516734b06b71618791b2f66ecd47743",
+      "files": {
+        "include/recording/recording_catalog.h": "6ce00c6a1ea2ab0425523f82a9ef4b3c1a13763804bd37b301b06e4af52c0c47",
+        "include/recording/recording_catalog_generation_projection.h": "6b8931a88816002ccb1f75208093e872a65f4ec1da07b74161c4f3128526be4f",
+        "include/recording/recording_retained_rows.h": "0c2ee7536894e0eef30537325d448ab93183e298c5deef2f13bbe83ac1f1372b",
+        "include/recording/recording_search_model.h": "7f428dc15ca9bfac75d32a75e534cd8c4f59503299c6565eb15bebe5bae79411",
+        "include/recording/recording_search_reader.h": "53fb5e2aa2724f803f30e8d1e104e82154eeb2283148f9be27a674cf830dda33",
+        "include/recording/va_review_service.h": "91e77767d33b5d5c5b3324f3ce5713721ded96cbddfe52711e081146be097b59",
+        "scripts/internal/evidence_package_smoke.cpp": "8882ffe2569252be7c77714ad5f7271930a4d06d23225ef7948962472cc979d3",
+        "scripts/internal/recording_catalog_generation_projection_smoke.cpp": "f9637853680ca956f6e576f992b6a7ff9d1fb8df41ed68cb24ba2415c6c2314c",
+        "scripts/internal/recording_generation_checkpoint_smoke.cpp": "c1aacecf3493b926f2c3c20a80615a3cdcc62ad8b51d71527ddcd351261739ba",
+        "scripts/internal/recording_retained_lifetime_smoke.cpp": "1a5e9b64b8a1b57f609a444354b6adbe1618101c0a03407ea176eff6eefe8701",
+        "scripts/internal/recording_search_source_smoke.cpp": "6fc14ab50bef19185b20dc65cf51fe914249d27fcbfa578e752be96fb39c351c",
+        "src/ingress/evidence_application_service.cpp": "5830e271a4bc468ab530dc72eb0f8fa873bb682589c25fc224436c7a02867a57",
+        "src/ingress/recording_application_service.cpp": "6012732d1583aa085b663e106c20612e8b033c361d7b6eab8bad62b0f1b981d6",
+        "src/ingress/recording_search_application_service.cpp": "851e1a571d614750d8a330a1c3ee98fde558ea1b3a6d69cb3fd5fcd4ddf0a32c",
+        "src/recording/event_recording_bridge.cpp": "9d02dff1fcf0e36c6753dd872ee35ec776fa5ac26170ab361576f569855fff94",
+        "src/recording/recording_catalog.cpp": "883a855ac3ca728395d3475b6c1f3d1c6c184f6c92ee62f6d2c4cd911abbcb2b",
+        "src/recording/recording_catalog_cutover_candidate.cpp": "0974693be1d36b89a8f7c6c8e822c75320b269920497170cb0f05bfa3f2be95f",
+        "src/recording/recording_catalog_generation_projection.cpp": "56727b08ae49a87de918a0e29d454ed11f3f015dd0e91b53cc6fa4d613d003dd",
+        "src/recording/recording_catalog_history.h": "65701b3ded92e7c7626fc38c31013acd628eccfe425a91778e6edbe763fb90eb",
+        "src/recording/recording_catalog_snapshot_export.cpp": "c42071050c390c2258e5f6e1ce092b10fbe8c1321da1adda57aa16d849e879c0",
+        "src/recording/recording_read_service.cpp": "e7a327eabbada66b282828dd2c341e87010a29b4de0fcceca316bd89197b9cee",
+        "src/recording/recording_search_model.cpp": "c0adad93bc370d98f159500d5856e7b1556eae3a8921161fababa19179a25833",
+        "src/recording/recording_search_reader.cpp": "b0fabb4b32193de90a50f18265ccb2337da4b31831a49f9056c143ee512cdd04",
+        "src/recording/recording_search_source.cpp": "781aef5c8fee3c5d831d0cfd6dafc106f6942e3af4461ea7934c881c9f8f9035",
+        "src/recording/va_review_service.cpp": "12e92fff1dbdaf03af18f663949b087baf03f667660e701585b72040db890f04"
+      },
+      "runtime": "16fd1b4c1bc11f62aa6190779ce0f495adfb4111181beb2c23bb4f7583f6e97b",
+      "productBinary": "876f7a89ac52479f265d1452dbe92f434e95bf9486d264702ccc008197cbf5b6",
+      "performanceReuse": "final83-freeze differs only EvidenceApplicationService::Get cold exception boundary and C06/evidence regression fixtures; none called by retained/overlap/B-C native measurements; those executed binary hashes remain their original bindings"
+    },
+    "performanceFreeze": {
+      "head": "50a344180516734b06b71618791b2f66ecd47743",
+      "source": {
+        "docs/project-feature-test-inventory.md": "6b9fd0e8a78644526282b66742ece0c03571680078f3c3173b2fdb824f0ef2a3",
+        "docs/superpowers/specs/2026-09-19-recording-catalog-cost-contract.md": "7da9652d325df9a08ad1daca7d04f2172d687620003431fc9e290ab046ce4f2d",
+        "include/recording/recording_catalog.h": "6ce00c6a1ea2ab0425523f82a9ef4b3c1a13763804bd37b301b06e4af52c0c47",
+        "include/recording/recording_catalog_generation_projection.h": "6b8931a88816002ccb1f75208093e872a65f4ec1da07b74161c4f3128526be4f",
+        "include/recording/recording_retained_rows.h": "0c2ee7536894e0eef30537325d448ab93183e298c5deef2f13bbe83ac1f1372b",
+        "include/recording/recording_search_model.h": "7f428dc15ca9bfac75d32a75e534cd8c4f59503299c6565eb15bebe5bae79411",
+        "include/recording/recording_search_reader.h": "53fb5e2aa2724f803f30e8d1e104e82154eeb2283148f9be27a674cf830dda33",
+        "include/recording/va_review_service.h": "91e77767d33b5d5c5b3324f3ce5713721ded96cbddfe52711e081146be097b59",
+        "scripts/internal/recording_catalog_generation_projection_smoke.cpp": "f9637853680ca956f6e576f992b6a7ff9d1fb8df41ed68cb24ba2415c6c2314c",
+        "scripts/internal/recording_generation_checkpoint_smoke.cpp": "a536326f857fce7a71578af740b191d724f68ae43b6669c2698837ac52965341",
+        "scripts/internal/recording_retained_lifetime_smoke.cpp": "1a5e9b64b8a1b57f609a444354b6adbe1618101c0a03407ea176eff6eefe8701",
+        "scripts/internal/recording_search_source_smoke.cpp": "6fc14ab50bef19185b20dc65cf51fe914249d27fcbfa578e752be96fb39c351c",
+        "src/ingress/recording_application_service.cpp": "6012732d1583aa085b663e106c20612e8b033c361d7b6eab8bad62b0f1b981d6",
+        "src/ingress/recording_search_application_service.cpp": "851e1a571d614750d8a330a1c3ee98fde558ea1b3a6d69cb3fd5fcd4ddf0a32c",
+        "src/recording/event_recording_bridge.cpp": "9d02dff1fcf0e36c6753dd872ee35ec776fa5ac26170ab361576f569855fff94",
+        "src/recording/recording_catalog.cpp": "883a855ac3ca728395d3475b6c1f3d1c6c184f6c92ee62f6d2c4cd911abbcb2b",
+        "src/recording/recording_catalog_cutover_candidate.cpp": "0974693be1d36b89a8f7c6c8e822c75320b269920497170cb0f05bfa3f2be95f",
+        "src/recording/recording_catalog_generation_projection.cpp": "56727b08ae49a87de918a0e29d454ed11f3f015dd0e91b53cc6fa4d613d003dd",
+        "src/recording/recording_catalog_history.h": "65701b3ded92e7c7626fc38c31013acd628eccfe425a91778e6edbe763fb90eb",
+        "src/recording/recording_catalog_snapshot_export.cpp": "c42071050c390c2258e5f6e1ce092b10fbe8c1321da1adda57aa16d849e879c0",
+        "src/recording/recording_read_service.cpp": "e7a327eabbada66b282828dd2c341e87010a29b4de0fcceca316bd89197b9cee",
+        "src/recording/recording_search_model.cpp": "c0adad93bc370d98f159500d5856e7b1556eae3a8921161fababa19179a25833",
+        "src/recording/recording_search_reader.cpp": "b0fabb4b32193de90a50f18265ccb2337da4b31831a49f9056c143ee512cdd04",
+        "src/recording/recording_search_source.cpp": "781aef5c8fee3c5d831d0cfd6dafc106f6942e3af4461ea7934c881c9f8f9035",
+        "src/recording/va_review_service.cpp": "12e92fff1dbdaf03af18f663949b087baf03f667660e701585b72040db890f04"
+      },
+      "runtime": "a081d1ba6175c11c1dacb9c026e9204e6716c8e7ebb0393309d00ea6c6499a27"
+    },
+    "beforeRuntime": {
+      "head": "50a344180516734b06b71618791b2f66ecd47743",
+      "archiveSha256": "f5d5aed0fc208dd182bca7fc29f7a2650a31fce2902e8b9c55706d8b31de2e1a",
+      "bytes": 94670224
+    },
+    "BCBeforeBinding": {
+      "command": [
+        "c++",
+        "-std=c++17",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-pthread",
+        "-I/private/tmp/media-server-memory83-jko62xts/before-source/include",
+        "-DMEDIA_SERVER_USE_OPENSSL=1",
+        "-DMEDIA_SERVER_USE_SQLITE3=1",
+        "-DMEDIA_SERVER_USE_GSTREAMER=1",
+        "-DMEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND=1",
+        "-I/opt/homebrew/Cellar/openssl@3/3.6.2/include",
+        "-I/opt/homebrew/Cellar/gstreamer/1.28.1/include/gstreamer-1.0",
+        "-I/opt/homebrew/Cellar/glib/2.86.4/include",
+        "-I/Library/Developer/CommandLineTools/SDKs/MacOSX26.sdk/usr/include/ffi",
+        "-I/opt/homebrew/Cellar/glib/2.86.4/include/glib-2.0",
+        "-I/opt/homebrew/Cellar/glib/2.86.4/lib/glib-2.0/include",
+        "-I/opt/homebrew/opt/gettext/include",
+        "-I/opt/homebrew/Cellar/pcre2/10.47_1/include",
+        "/Users/dhseo/Workspace/mediaServer/scripts/internal/recording_retained_lifetime_smoke.cpp",
+        "/private/tmp/media-server-memory83-jko62xts/before-runtime.a",
+        "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libz.tbd",
+        "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstrtspserver-1.0.dylib",
+        "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstapp-1.0.dylib",
+        "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstwebrtc-1.0.dylib",
+        "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstsdp-1.0.dylib",
+        "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstpbutils-1.0.dylib",
+        "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstaudio-1.0.dylib",
+        "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstvideo-1.0.dylib",
+        "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstbase-1.0.dylib",
+        "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstreamer-1.0.dylib",
+        "/opt/homebrew/Cellar/pango/1.57.0_2/lib/libpangocairo-1.0.dylib",
+        "/opt/homebrew/Cellar/pango/1.57.0_2/lib/libpango-1.0.dylib",
+        "/opt/homebrew/Cellar/cairo/1.18.4/lib/libcairo.dylib",
+        "/opt/homebrew/Cellar/harfbuzz/13.1.1/lib/libharfbuzz.dylib",
+        "/opt/homebrew/Cellar/glib/2.86.4/lib/libgobject-2.0.dylib",
+        "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libsqlite3.tbd",
+        "/opt/homebrew/Cellar/libsodium/1.0.21/lib/libsodium.dylib",
+        "/opt/homebrew/Cellar/openssl@3/3.6.2/lib/libssl.dylib",
+        "/opt/homebrew/Cellar/openssl@3/3.6.2/lib/libcrypto.dylib",
+        "/opt/homebrew/lib/libonnxruntime.dylib",
+        "/Users/dhseo/Workspace/mediaServer/third_party/v430-embedding/sentencepiece/lib/libsentencepiece.a",
+        "/opt/homebrew/Cellar/glib/2.86.4/lib/libglib-2.0.dylib",
+        "/opt/homebrew/opt/gettext/lib/libintl.dylib",
+        "-o",
+        "/private/tmp/media-server-memory83-jko62xts/before-bc"
+      ],
+      "archive": "f5d5aed0fc208dd182bca7fc29f7a2650a31fce2902e8b9c55706d8b31de2e1a",
+      "binary": "7f72d1f56ccc4706592c87deabfae27ebd1e03973606b02e926020397b83b444",
+      "fixture": "1a5e9b64b8a1b57f609a444354b6adbe1618101c0a03407ea176eff6eefe8701"
+    },
+    "BCAfterBinding": {
+      "command": [
+        "c++",
+        "-std=c++17",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-pthread",
+        "-I/Users/dhseo/Workspace/mediaServer/include",
+        "-DMEDIA_SERVER_USE_OPENSSL=1",
+        "-DMEDIA_SERVER_USE_SQLITE3=1",
+        "-DMEDIA_SERVER_USE_GSTREAMER=1",
+        "-DMEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND=1",
+        "-I/opt/homebrew/Cellar/openssl@3/3.6.2/include",
+        "-I/opt/homebrew/Cellar/gstreamer/1.28.1/include/gstreamer-1.0",
+        "-I/opt/homebrew/Cellar/glib/2.86.4/include",
+        "-I/Library/Developer/CommandLineTools/SDKs/MacOSX26.sdk/usr/include/ffi",
+        "-I/opt/homebrew/Cellar/glib/2.86.4/include/glib-2.0",
+        "-I/opt/homebrew/Cellar/glib/2.86.4/lib/glib-2.0/include",
+        "-I/opt/homebrew/opt/gettext/include",
+        "-I/opt/homebrew/Cellar/pcre2/10.47_1/include",
+        "/Users/dhseo/Workspace/mediaServer/scripts/internal/recording_retained_lifetime_smoke.cpp",
+        "/Users/dhseo/Workspace/mediaServer/build-gst-onnx/libmedia_server_runtime.a",
+        "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libz.tbd",
+        "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstrtspserver-1.0.dylib",
+        "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstapp-1.0.dylib",
+        "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstwebrtc-1.0.dylib",
+        "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstsdp-1.0.dylib",
+        "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstpbutils-1.0.dylib",
+        "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstaudio-1.0.dylib",
+        "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstvideo-1.0.dylib",
+        "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstbase-1.0.dylib",
+        "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstreamer-1.0.dylib",
+        "/opt/homebrew/Cellar/pango/1.57.0_2/lib/libpangocairo-1.0.dylib",
+        "/opt/homebrew/Cellar/pango/1.57.0_2/lib/libpango-1.0.dylib",
+        "/opt/homebrew/Cellar/cairo/1.18.4/lib/libcairo.dylib",
+        "/opt/homebrew/Cellar/harfbuzz/13.1.1/lib/libharfbuzz.dylib",
+        "/opt/homebrew/Cellar/glib/2.86.4/lib/libgobject-2.0.dylib",
+        "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libsqlite3.tbd",
+        "/opt/homebrew/Cellar/libsodium/1.0.21/lib/libsodium.dylib",
+        "/opt/homebrew/Cellar/openssl@3/3.6.2/lib/libssl.dylib",
+        "/opt/homebrew/Cellar/openssl@3/3.6.2/lib/libcrypto.dylib",
+        "/opt/homebrew/lib/libonnxruntime.dylib",
+        "/Users/dhseo/Workspace/mediaServer/third_party/v430-embedding/sentencepiece/lib/libsentencepiece.a",
+        "/opt/homebrew/Cellar/glib/2.86.4/lib/libglib-2.0.dylib",
+        "/opt/homebrew/opt/gettext/lib/libintl.dylib",
+        "-o",
+        "/private/tmp/media-server-memory83-jko62xts/after-bc"
+      ],
+      "archive": "a081d1ba6175c11c1dacb9c026e9204e6716c8e7ebb0393309d00ea6c6499a27",
+      "binary": "d3bb94b88fc8718bfd3763b11b3583dbf837f38d7e150f3138c446a18fefd77f",
+      "fixture": "1a5e9b64b8a1b57f609a444354b6adbe1618101c0a03407ea176eff6eefe8701"
+    },
+    "sourceMeaning": "실행은 base+고정 patch/untracked source의 작업 트리. 이후 commit을 당시 실행 HEAD로 쓰지 않음. Get cold 오류 처리와 C06 fixture 보완은 performance 뒤 변경이며 해당 호출을 거치지 않는 A/B/C/overlap의 실행 hash를 유지. 수정된 Get 반례 및 최종 관련 제품 회귀는 별도 수행.",
+    "implementationCommit": "15a619b03bcd188b9c9545f9d9d98f8eb7e51693",
+    "implementationTree": "a32b57aaaf97c06bba191ff493130daf9ec44a72"
+  },
+  "implemented": [
+    "generation observation v1/v2, consumer/reference observation, event link, accepted set 및 noncompact legacy segment/state/tombstone/path/reason의 verified cold row 소비; 원본/canonical/cross-map 검증 유지",
+    "SQLite projection 및 legacy observation resolve의 iterator 수명 포인터를 독립 owned 값으로 보완",
+    "기존 recording/metadata Query 의미와 같은 source capture 범위; 관측 없는 검색에 unused observation DTO를 물질화하지 않음; metadata 필터 및 원본10000개 유지",
+    "Catalog별 검색 모델 logical lease 640MiB; 마지막 shared reader까지 예약, 작업 공간 별도 예약, 기존 model64/snapshot128 불변",
+    "queued A Cancel에서 confirmed/question 해제; 실행 중 입력 및 기존 summary/idempotency 유지",
+    "cold read 오류는 공개 조회에서 fail-closed. Evidence Get은 기존403 우선, 허용 호출의 cold 오류503; 실제 Finish 반례 RED/GREEN"
+  ],
+  "budget": {
+    "searchLogicalBytes": 671088640,
+    "formulaMiB": {
+      "snapshotPool": 128,
+      "currentModel": 64,
+      "fourHeldOldModels": 256,
+      "serializedPreparation": 192
+    },
+    "notGlobalRequestLimit": true,
+    "existingLimitsUnchanged": [
+      "model64MiB",
+      "snapshot128MiB",
+      "4GiB profile RSS",
+      "original source/scratch admission",
+      "overlap90s p95<=2000ms max<=5000ms",
+      "logs4MiB"
+    ],
+    "limits": "검색 model/logical workspace만 예약. 실제 allocator/node/string 전체량, cold parser/DTO, evidence/A, 전체 generation/scratch aggregate는 미포함. 예산 대기·truncate·RAM fallback 없음."
+  },
+  "A": {
+    "protocol": "128/512/2048 실제 Reserve/FinalizeBound/Delete/Checkpoint + 각1 retained observationV2, 활성media0; 같은 fixture와 endpoint 계측. large reference/legacy 전수 부하 아님. before83는82 runtime이며74값을before로 사용하지 않음.",
+    "before": {
+      "command": [
+        "bash",
+        "/private/tmp/media-server-memory83-jko62xts/before-retained-run.sh"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 77.64992808399256,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 6424,
+      "sha256": "f5dfff4a795f455f080ba7b326da94cb3e992a1995d3068e670152f102eb287b"
+    },
+    "after": {
+      "command": [
+        "bash",
+        "/private/tmp/media-server-memory83-jko62xts/final-retained-run.sh"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 84.14787979098037,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 6420,
+      "sha256": "6f1a7aac24a7388dc6770e9bb93769fcfa8735b849a18d3785210240475838b6"
+    },
+    "beforeSamples": [
+      {
+        "stage": "start",
+        "history": 0,
+        "rss": 39387136,
+        "footprint": 9831144,
+        "mallocLive": 3080288,
+        "mallocReserved": 20971520,
+        "mallocBlocks": 24978,
+        "rssHighWater": 39370752,
+        "fdCount": 3,
+        "elapsedMs": 0.157375
+      },
+      {
+        "stage": "before-checkpoint",
+        "history": 32,
+        "rss": 55214080,
+        "footprint": 16876288,
+        "mallocLive": 5160416,
+        "mallocReserved": 41943040,
+        "mallocBlocks": 33509,
+        "rssHighWater": 55214080,
+        "fdCount": 10,
+        "elapsedMs": 639.671,
+        "catalogMutations": 0,
+        "catalogOrders": 0,
+        "retired": 0,
+        "sourceEntries": 0,
+        "activeSegments": 0,
+        "acceptedOrdinals": 0,
+        "journalDetailObserved": false
+      },
+      {
+        "stage": "after-checkpoint",
+        "history": 32,
+        "rss": 55312384,
+        "footprint": 16941824,
+        "mallocLive": 3903776,
+        "mallocReserved": 41943040,
+        "mallocBlocks": 32645,
+        "rssHighWater": 55312384,
+        "fdCount": 10,
+        "elapsedMs": 698.384,
+        "catalogMutations": 0,
+        "catalogOrders": 0,
+        "retired": 0,
+        "sourceEntries": 0,
+        "activeSegments": 0,
+        "acceptedOrdinals": 0,
+        "journalDetailObserved": false
+      },
+      {
+        "stage": "before-checkpoint",
+        "history": 128,
+        "rss": 58195968,
+        "footprint": 19464960,
+        "mallocLive": 4324896,
+        "mallocReserved": 46137344,
+        "mallocBlocks": 33256,
+        "rssHighWater": 58195968,
+        "fdCount": 10,
+        "elapsedMs": 2698.48,
+        "catalogMutations": 0,
+        "catalogOrders": 0,
+        "retired": 0,
+        "sourceEntries": 0,
+        "activeSegments": 0,
+        "acceptedOrdinals": 0,
+        "journalDetailObserved": false
+      },
+      {
+        "stage": "after-checkpoint",
+        "history": 128,
+        "rss": 58195968,
+        "footprint": 19464960,
+        "mallocLive": 4005088,
+        "mallocReserved": 46137344,
+        "mallocBlocks": 33022,
+        "rssHighWater": 58195968,
+        "fdCount": 10,
+        "elapsedMs": 2794.49,
+        "catalogMutations": 0,
+        "catalogOrders": 0,
+        "retired": 0,
+        "sourceEntries": 0,
+        "activeSegments": 0,
+        "acceptedOrdinals": 0,
+        "journalDetailObserved": false
+      },
+      {
+        "stage": "before-checkpoint",
+        "history": 512,
+        "rss": 60358656,
+        "footprint": 20153088,
+        "mallocLive": 5675888,
+        "mallocReserved": 54525952,
+        "mallocBlocks": 35417,
+        "rssHighWater": 60358656,
+        "fdCount": 10,
+        "elapsedMs": 12079.7,
+        "catalogMutations": 0,
+        "catalogOrders": 0,
+        "retired": 0,
+        "sourceEntries": 0,
+        "activeSegments": 0,
+        "acceptedOrdinals": 0,
+        "journalDetailObserved": false
+      },
+      {
+        "stage": "after-checkpoint",
+        "history": 512,
+        "rss": 60358656,
+        "footprint": 20153088,
+        "mallocLive": 4412336,
+        "mallocReserved": 54525952,
+        "mallocBlocks": 34535,
+        "rssHighWater": 60358656,
+        "fdCount": 10,
+        "elapsedMs": 12580.3,
+        "catalogMutations": 0,
+        "catalogOrders": 0,
+        "retired": 0,
+        "sourceEntries": 0,
+        "activeSegments": 0,
+        "acceptedOrdinals": 0,
+        "journalDetailObserved": false
+      },
+      {
+        "stage": "before-checkpoint",
+        "history": 2048,
+        "rss": 68026368,
+        "footprint": 17416984,
+        "mallocLive": 7612832,
+        "mallocReserved": 58720256,
+        "mallocBlocks": 41687,
+        "rssHighWater": 68026368,
+        "fdCount": 10,
+        "elapsedMs": 62297.9,
+        "catalogMutations": 0,
+        "catalogOrders": 0,
+        "retired": 0,
+        "sourceEntries": 0,
+        "activeSegments": 0,
+        "acceptedOrdinals": 0,
+        "journalDetailObserved": false
+      },
+      {
+        "stage": "after-checkpoint",
+        "history": 2048,
+        "rss": 68026368,
+        "footprint": 17416984,
+        "mallocLive": 6045664,
+        "mallocReserved": 58720256,
+        "mallocBlocks": 40589,
+        "rssHighWater": 68026368,
+        "fdCount": 10,
+        "elapsedMs": 63933.8,
+        "catalogMutations": 0,
+        "catalogOrders": 0,
+        "retired": 0,
+        "sourceEntries": 0,
+        "activeSegments": 0,
+        "acceptedOrdinals": 0,
+        "journalDetailObserved": false
+      },
+      {
+        "stage": "idle",
+        "history": 2048,
+        "rss": 68026368,
+        "footprint": 17416984,
+        "mallocLive": 6024880,
+        "mallocReserved": 58720256,
+        "mallocBlocks": 40436,
+        "rssHighWater": 68026368,
+        "fdCount": 10,
+        "elapsedMs": 64944.5,
+        "catalogMutations": 0,
+        "catalogOrders": 0,
+        "retired": 0,
+        "sourceEntries": 0,
+        "activeSegments": 0,
+        "acceptedOrdinals": 0,
+        "journalDetailObserved": false
+      },
+      {
+        "stage": "idle",
+        "history": 2048,
+        "rss": 68026368,
+        "footprint": 17416984,
+        "mallocLive": 6024880,
+        "mallocReserved": 58720256,
+        "mallocBlocks": 40436,
+        "rssHighWater": 68026368,
+        "fdCount": 10,
+        "elapsedMs": 65949.8,
+        "catalogMutations": 0,
+        "catalogOrders": 0,
+        "retired": 0,
+        "sourceEntries": 0,
+        "activeSegments": 0,
+        "acceptedOrdinals": 0,
+        "journalDetailObserved": false
+      },
+      {
+        "stage": "idle",
+        "history": 2048,
+        "rss": 68026368,
+        "footprint": 17416984,
+        "mallocLive": 6024880,
+        "mallocReserved": 58720256,
+        "mallocBlocks": 40436,
+        "rssHighWater": 68026368,
+        "fdCount": 10,
+        "elapsedMs": 66955.4,
+        "catalogMutations": 0,
+        "catalogOrders": 0,
+        "retired": 0,
+        "sourceEntries": 0,
+        "activeSegments": 0,
+        "acceptedOrdinals": 0,
+        "journalDetailObserved": false
+      },
+      {
+        "stage": "released",
+        "history": 2048,
+        "rss": 60030976,
+        "footprint": 17400576,
+        "mallocLive": 3675984,
+        "mallocReserved": 58720256,
+        "mallocBlocks": 32079,
+        "rssHighWater": 68026368,
+        "fdCount": 3,
+        "elapsedMs": 66964.1
+      },
+      {
+        "stage": "reopened",
+        "history": 2048,
+        "rss": 69926912,
+        "footprint": 18842392,
+        "mallocLive": 6020656,
+        "mallocReserved": 58720256,
+        "mallocBlocks": 40426,
+        "rssHighWater": 69926912,
+        "fdCount": 10,
+        "elapsedMs": 75706.2,
+        "catalogMutations": 0,
+        "catalogOrders": 0,
+        "retired": 0,
+        "sourceEntries": 0,
+        "activeSegments": 0,
+        "acceptedOrdinals": 0,
+        "journalDetailObserved": false
+      },
+      {
+        "stage": "released-again",
+        "history": 2048,
+        "rss": 61931520,
+        "footprint": 18825984,
+        "mallocLive": 3675984,
+        "mallocReserved": 58720256,
+        "mallocBlocks": 32079,
+        "rssHighWater": 69926912,
+        "fdCount": 3,
+        "elapsedMs": 75714.9
+      }
+    ],
+    "afterSamples": [
+      {
+        "stage": "start",
+        "history": 0,
+        "rss": 36651008,
+        "footprint": 7094968,
+        "mallocLive": 3080160,
+        "mallocReserved": 20971520,
+        "mallocBlocks": 24977,
+        "rssHighWater": 37994496,
+        "fdCount": 3,
+        "elapsedMs": 0.168542
+      },
+      {
+        "stage": "before-checkpoint",
+        "history": 32,
+        "rss": 53100544,
+        "footprint": 14713552,
+        "mallocLive": 5125600,
+        "mallocReserved": 33554432,
+        "mallocBlocks": 33410,
+        "rssHighWater": 53100544,
+        "fdCount": 10,
+        "elapsedMs": 765.005,
+        "catalogMutations": 0,
+        "catalogOrders": 0,
+        "retired": 0,
+        "sourceEntries": 0,
+        "activeSegments": 0,
+        "acceptedOrdinals": 0,
+        "journalDetailObserved": false
+      },
+      {
+        "stage": "after-checkpoint",
+        "history": 32,
+        "rss": 53329920,
+        "footprint": 14910160,
+        "mallocLive": 3868960,
+        "mallocReserved": 33554432,
+        "mallocBlocks": 32546,
+        "rssHighWater": 53329920,
+        "fdCount": 10,
+        "elapsedMs": 821.043,
+        "catalogMutations": 0,
+        "catalogOrders": 0,
+        "retired": 0,
+        "sourceEntries": 0,
+        "activeSegments": 0,
+        "acceptedOrdinals": 0,
+        "journalDetailObserved": false
+      },
+      {
+        "stage": "before-checkpoint",
+        "history": 128,
+        "rss": 56147968,
+        "footprint": 17367760,
+        "mallocLive": 4194976,
+        "mallocReserved": 37748736,
+        "mallocBlocks": 32869,
+        "rssHighWater": 56147968,
+        "fdCount": 10,
+        "elapsedMs": 3204.97,
+        "catalogMutations": 0,
+        "catalogOrders": 0,
+        "retired": 0,
+        "sourceEntries": 0,
+        "activeSegments": 0,
+        "acceptedOrdinals": 0,
+        "journalDetailObserved": false
+      },
+      {
+        "stage": "after-checkpoint",
+        "history": 128,
+        "rss": 56147968,
+        "footprint": 17367760,
+        "mallocLive": 3875168,
+        "mallocReserved": 37748736,
+        "mallocBlocks": 32635,
+        "rssHighWater": 56147968,
+        "fdCount": 10,
+        "elapsedMs": 3292.63,
+        "catalogMutations": 0,
+        "catalogOrders": 0,
+        "retired": 0,
+        "sourceEntries": 0,
+        "activeSegments": 0,
+        "acceptedOrdinals": 0,
+        "journalDetailObserved": false
+      },
+      {
+        "stage": "before-checkpoint",
+        "history": 512,
+        "rss": 57851904,
+        "footprint": 17613544,
+        "mallocLive": 5165808,
+        "mallocReserved": 46137344,
+        "mallocBlocks": 33878,
+        "rssHighWater": 57851904,
+        "fdCount": 10,
+        "elapsedMs": 13833.7,
+        "catalogMutations": 0,
+        "catalogOrders": 0,
+        "retired": 0,
+        "sourceEntries": 0,
+        "activeSegments": 0,
+        "acceptedOrdinals": 0,
+        "journalDetailObserved": false
+      },
+      {
+        "stage": "after-checkpoint",
+        "history": 512,
+        "rss": 57851904,
+        "footprint": 17613544,
+        "mallocLive": 3902256,
+        "mallocReserved": 46137344,
+        "mallocBlocks": 32996,
+        "rssHighWater": 57851904,
+        "fdCount": 10,
+        "elapsedMs": 14199,
+        "catalogMutations": 0,
+        "catalogOrders": 0,
+        "retired": 0,
+        "sourceEntries": 0,
+        "activeSegments": 0,
+        "acceptedOrdinals": 0,
+        "journalDetailObserved": false
+      },
+      {
+        "stage": "before-checkpoint",
+        "history": 2048,
+        "rss": 64126976,
+        "footprint": 14893824,
+        "mallocLive": 5582112,
+        "mallocReserved": 46137344,
+        "mallocBlocks": 35540,
+        "rssHighWater": 64126976,
+        "fdCount": 10,
+        "elapsedMs": 69208.2,
+        "catalogMutations": 0,
+        "catalogOrders": 0,
+        "retired": 0,
+        "sourceEntries": 0,
+        "activeSegments": 0,
+        "acceptedOrdinals": 0,
+        "journalDetailObserved": false
+      },
+      {
+        "stage": "after-checkpoint",
+        "history": 2048,
+        "rss": 64126976,
+        "footprint": 14893824,
+        "mallocLive": 4014944,
+        "mallocReserved": 46137344,
+        "mallocBlocks": 34442,
+        "rssHighWater": 64126976,
+        "fdCount": 10,
+        "elapsedMs": 70750,
+        "catalogMutations": 0,
+        "catalogOrders": 0,
+        "retired": 0,
+        "sourceEntries": 0,
+        "activeSegments": 0,
+        "acceptedOrdinals": 0,
+        "journalDetailObserved": false
+      },
+      {
+        "stage": "idle",
+        "history": 2048,
+        "rss": 64126976,
+        "footprint": 14893824,
+        "mallocLive": 3994160,
+        "mallocReserved": 46137344,
+        "mallocBlocks": 34289,
+        "rssHighWater": 64126976,
+        "fdCount": 10,
+        "elapsedMs": 71760.7,
+        "catalogMutations": 0,
+        "catalogOrders": 0,
+        "retired": 0,
+        "sourceEntries": 0,
+        "activeSegments": 0,
+        "acceptedOrdinals": 0,
+        "journalDetailObserved": false
+      },
+      {
+        "stage": "idle",
+        "history": 2048,
+        "rss": 64126976,
+        "footprint": 14893824,
+        "mallocLive": 3994160,
+        "mallocReserved": 46137344,
+        "mallocBlocks": 34289,
+        "rssHighWater": 64126976,
+        "fdCount": 10,
+        "elapsedMs": 72766.5,
+        "catalogMutations": 0,
+        "catalogOrders": 0,
+        "retired": 0,
+        "sourceEntries": 0,
+        "activeSegments": 0,
+        "acceptedOrdinals": 0,
+        "journalDetailObserved": false
+      },
+      {
+        "stage": "idle",
+        "history": 2048,
+        "rss": 64126976,
+        "footprint": 14893824,
+        "mallocLive": 3994160,
+        "mallocReserved": 46137344,
+        "mallocBlocks": 34289,
+        "rssHighWater": 64126976,
+        "fdCount": 10,
+        "elapsedMs": 73768.9,
+        "catalogMutations": 0,
+        "catalogOrders": 0,
+        "retired": 0,
+        "sourceEntries": 0,
+        "activeSegments": 0,
+        "acceptedOrdinals": 0,
+        "journalDetailObserved": false
+      },
+      {
+        "stage": "released",
+        "history": 2048,
+        "rss": 56131584,
+        "footprint": 14582504,
+        "mallocLive": 3671824,
+        "mallocReserved": 46137344,
+        "mallocBlocks": 32078,
+        "rssHighWater": 64126976,
+        "fdCount": 3,
+        "elapsedMs": 73774.3
+      },
+      {
+        "stage": "reopened",
+        "history": 2048,
+        "rss": 64159744,
+        "footprint": 14631680,
+        "mallocLive": 3990000,
+        "mallocReserved": 46137344,
+        "mallocBlocks": 34283,
+        "rssHighWater": 64159744,
+        "fdCount": 10,
+        "elapsedMs": 83285.2,
+        "catalogMutations": 0,
+        "catalogOrders": 0,
+        "retired": 0,
+        "sourceEntries": 0,
+        "activeSegments": 0,
+        "acceptedOrdinals": 0,
+        "journalDetailObserved": false
+      },
+      {
+        "stage": "released-again",
+        "history": 2048,
+        "rss": 56164352,
+        "footprint": 14615272,
+        "mallocLive": 3671824,
+        "mallocReserved": 46137344,
+        "mallocBlocks": 32078,
+        "rssHighWater": 64159744,
+        "fdCount": 3,
+        "elapsedMs": 83294.5
+      }
+    ],
+    "reopen2048": {
+      "beforeLiveMalloc": 6020656,
+      "afterLiveMalloc": 3990000,
+      "beforeRss": 69926912,
+      "afterRss": 64159744
+    },
+    "limits": "logical history와 resident_size 구분. malloc/RSS/footprint는 endpoint. rssHighWater는 누적값, 단계별 순간peak 아님. journalDetailObserved=false. 익명 scratch 모든 세대의 aggregate admission은 미구현. 작은 noncompact golden의 의미/byte 검증은 별도 직접 회귀."
+  },
+  "BC": {
+    "protocol": "동일 fixture. A warmup1개 보존 후 B32 search+snapshot/cursor+manualclock expiry6min+기존 evidence/materials/A read+queued cancel. worker 실제 권한callback에서1개 고정. B매회 durable bytes 동일. idle1초×3. C실제Builder+확인+Execute+Completed+AnalysisGet8개, 기존 파일 삭제0.",
+    "before": {
+      "command": [
+        "bash",
+        "/private/tmp/media-server-memory83-jko62xts/bc-final-before.sh"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 9.369346667081118,
+      "exit": 1,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 31224,
+      "sha256": "598a7aaa4442db5c405b060c9cdef4e3636b82737abb5c100c2faf2abaa3f1f0"
+    },
+    "after": {
+      "command": [
+        "bash",
+        "/private/tmp/media-server-memory83-jko62xts/bc-final-after.sh"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 9.386467417003587,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 31268,
+      "sha256": "80ca5f38ed6a28b199670cc973547866dbb04de306cbfe616d5a451fc9fa3878"
+    },
+    "expectedRed": "before queued confirmed owner33 vs 기대1, C독립 검증 후 마지막 assertion exit1. 빌드/준비 실패와 구분. after1→Stop후0.",
+    "B": {
+      "beforePersistentBytes": 199054,
+      "afterPersistentBytes": 199060,
+      "beforeLiveIncrease": 54400,
+      "afterLiveIncrease": 33920,
+      "beforeConfirmedOwners": 33,
+      "afterConfirmedOwners": 1,
+      "afterStopConfirmedOwners": 0
+    },
+    "C": {
+      "newPublishedEach": 8,
+      "durableGrowthEachBytes": 326840,
+      "beforeTotalPersistentBytes": 525894,
+      "afterTotalPersistentBytes": 525900,
+      "beforeIdleLiveMalloc": 4574064,
+      "afterIdleLiveMalloc": 4549344
+    },
+    "limits": "총6바이트 차이는 독립 생성ID/시각 직렬화이며 byte-identical입력 아님. B종료 summary/idempotency의 기존64job 정책은 남음. B/C로 모든 OS바이트/heap 수렴·전체 byte admission을 주장하지 않음. fixture수정 전 초기B결과와 이번cancel/expiry강화결과 별도."
+  },
+  "D": {
+    "searchOwnerDirect": {
+      "command": [
+        "/private/tmp/media-server-memory83-jko62xts/owner83-overlap",
+        "/private/tmp/media-server-memory83-jko62xts/owner83-direct"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 1.8356702079763636,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 2007,
+      "sha256": "5959903b2736c57bd4f72945e0da0bd3d2c4e14d1a3c129399d795de6a0d760a"
+    },
+    "observed": "작은 시험 예산에서 모델/oldreader/만료 snapshot의 마지막 소유 해제·초과거부·output불변·재개 확인",
+    "notRun": "전체 current/K/candidate/suffix 및 evidence/A/반환DTO의 공통 admission 미구현으로 총세대 D 미충족"
+  },
+  "overlap": {
+    "final": {
+      "command": [
+        "bash",
+        "/private/tmp/media-server-memory83-jko62xts/overlap-final83.sh"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 35.13460741599556,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 292376,
+      "sha256": "6196389adcd83cc712e4a1a9a3a304b6bb5d5bf5420b5236a91198ccdf211c91"
+    },
+    "conditions": {
+      "writers": 8,
+      "clients": 4,
+      "observations": 10000,
+      "packets": 720,
+      "files": 24,
+      "deadlineSeconds": 90,
+      "p95LimitMs": 2000,
+      "maxLimitMs": 5000
+    },
+    "result": {
+      "requests": 51,
+      "ready": 50,
+      "unavailable": 1,
+      "latencyIncludesAllRequests": true,
+      "p95Ms": 606.398,
+      "maxMs": 770.058,
+      "progressingRequests": 49,
+      "checkpointMs": 1378.02,
+      "packetsBeforeCheckpoint": 162,
+      "packetsAfterCheckpoint": 720,
+      "completedDuringPerClient": [
+        1,
+        3,
+        2,
+        2
+      ],
+      "published": true,
+      "healthyFiles": 24,
+      "finish": true,
+      "peakRss": 70975488
+    },
+    "meaning": "기존 unavailable 오류 조건과 모든 지연표본 유지. 성공/실패 요청을 제외해 latency를 낮추지 않음. 이전 중간3회 p95 FAIL 유지. 단일 고정 후보 finite 실행;120분 아님"
+  },
+  "mac": {
+    "public-cold-build": {
+      "command": [
+        "cmake",
+        "--build",
+        "build-gst-onnx",
+        "-j",
+        "4"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 1.6396400830708444,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 287,
+      "sha256": "ecc6a3d203e85ea6ed9a3d1c48c4577d11ed0acb99cc9a47ca0c91e206339cef"
+    },
+    "legacy-cold-full": {
+      "command": [
+        "bash",
+        "scripts/internal/verify_recording_generation_checkpoint.sh",
+        "all"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 62.9229466249235,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 29855,
+      "sha256": "bb5fa96658778063c903ff3ecdba06d2f1d98f8f38b1af769231829ee982cec1"
+    },
+    "legacy-projection-direct": {
+      "command": [
+        "bash",
+        "scripts/internal/verify_recording_catalog_generation_projection.sh"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 12.043388332938775,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 4734,
+      "sha256": "b0935e1b75ad6a54fdb88c293ca23d66cec3fa7ca892fe322ae79389bb51d80a"
+    },
+    "final-mac-history": {
+      "command": [
+        "bash",
+        "scripts/internal/verify_recording_generation_checkpoint.sh",
+        "history-product"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 66.71776362496894,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 26870,
+      "sha256": "b21dd8e736334a367574f406d3579732bb374863cfbeb2c139c258c7103b068b"
+    },
+    "final-mac-concurrency": {
+      "command": [
+        "bash",
+        "scripts/internal/verify_recording_generation_checkpoint.sh",
+        "concurrency"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 193.80233029194642,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 11533,
+      "sha256": "6c370a4c3b8562d5186bb1265d0a9c4b2d0953f3581c4c1b0a35e8a579c43682"
+    },
+    "final-mac-transaction": {
+      "command": [
+        "bash",
+        "scripts/internal/verify_recording_generation_transaction.sh"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 59.215224875020795,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 18285,
+      "sha256": "546afc011ba59f103ae2ad87ebe3c45ebbc37ee6380bccac69c756b46be34388"
+    },
+    "final-mac-active": {
+      "command": [
+        "bash",
+        "scripts/internal/verify_recording_generation_active.sh"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 5.504649707931094,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 1485,
+      "sha256": "886beabf371544643d2b83d21e0bafd62f4377b221e04610cbefab8ef1fd10ef"
+    },
+    "final-mac-consumers": {
+      "command": [
+        "bash",
+        "scripts/internal/verify_recording_generation_consumers.sh"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 80.72059745900333,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 41158,
+      "sha256": "02c25b816cfde51085448b4fdc60b5209770ef8c952f63953318bf56e1bf9301"
+    },
+    "evidence-cold-red": {
+      "command": [
+        "bash",
+        "scripts/internal/verify_evidence_package.sh"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 4.559783666045405,
+      "exit": 1,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 32261,
+      "sha256": "5b5cc7c3cceff94f3e7ec592cfb22b02aab68832ccee49625b604a26fca3f918"
+    },
+    "evidence-cold-green": {
+      "command": [
+        "bash",
+        "scripts/internal/verify_evidence_package.sh"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 4.498479582951404,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 31924,
+      "sha256": "977708326aa6e25bfea31797cd4c451a65ca48392fc52a389dbfa2fbcf013c4a"
+    },
+    "search-owner-direct": {
+      "command": [
+        "/private/tmp/media-server-memory83-jko62xts/owner83-overlap",
+        "/private/tmp/media-server-memory83-jko62xts/owner83-direct"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 1.8356702079763636,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 2007,
+      "sha256": "5959903b2736c57bd4f72945e0da0bd3d2c4e14d1a3c129399d795de6a0d760a"
+    }
+  },
+  "linux": {
+    "first": {
+      "command": [
+        "docker",
+        "start",
+        "-a",
+        "media-server-memory83-linux"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 145.11462991707958,
+      "exit": 1,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 666,
+      "sha256": "40923b47dd2e438d3eed788a0d85ac87b89e8d6cc629b0e23e5ce726a805f02f"
+    },
+    "final": {
+      "command": [
+        "docker",
+        "run",
+        "--name",
+        "media-server-memory83-linux-final",
+        "--network",
+        "none",
+        "--user",
+        "10001:10001",
+        "--cap-drop",
+        "ALL",
+        "--security-opt",
+        "no-new-privileges",
+        "-v",
+        "/Users/dhseo/Workspace/mediaServer:/source:ro",
+        "-v",
+        "/private/tmp/media-server-memory83-jko62xts:/helpers:ro",
+        "sha256:ce72c8a15363984da642e9964189957896812061c6af1d0ef67e87b38ad5a588",
+        "bash",
+        "/helpers/linux-run83-final.sh"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 473.38381320796907,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 2001,
+      "sha256": "a49152dc4a4b4222f60922d13b961b2a90ff3a875b841e9ff91ecda5b0d8a21f"
+    },
+    "environment": "기존 rc58 image sha256:ce72c8a15363984da642e9964189957896812061c6af1d0ef67e87b38ad5a588, uid10001,networknone,capdropALL,no-new-privileges,readonlysource. 모델/SDK/OS설치0",
+    "firstC06": "cold 전환 후 sequential capture0이라 probe_fault6 미실행. 최초FAIL보존, 기존Active(InputValue)로실제activejob을만들어손상대상존재확인. 기존 checkpoint거부/원본bytes/재Open oracle유지. 제품 손상FAIL을완화한것아님",
+    "linux-first-output": {
+      "checkpoint-concurrency.json": {
+        "command": [
+          "bash",
+          "scripts/internal/verify_recording_generation_checkpoint.sh",
+          "concurrency"
+        ],
+        "cwd": "/tmp/media-server-memory83/repo",
+        "uid": 10001,
+        "elapsedSeconds": 63.42792640500001,
+        "exit": 1,
+        "signal": null,
+        "collectionFailure": null,
+        "bytes": 8056,
+        "sha256": "3310bd45518f8fd6f2b43b84c19b42511d1ba0edaef55a84906cc26303c5217b"
+      },
+      "checkpoint-all.json": {
+        "command": [
+          "bash",
+          "scripts/internal/verify_recording_generation_checkpoint.sh",
+          "all"
+        ],
+        "cwd": "/tmp/media-server-memory83/repo",
+        "uid": 10001,
+        "elapsedSeconds": 81.235029371,
+        "exit": 0,
+        "signal": null,
+        "collectionFailure": null,
+        "bytes": 29819,
+        "sha256": "0cdde645ce1dc52b86c12364b0344587daa46211d2ec886835eb9125c641c855"
+      }
+    },
+    "linux-final-output": {
+      "transaction.json": {
+        "command": [
+          "bash",
+          "scripts/internal/verify_recording_generation_transaction.sh"
+        ],
+        "cwd": "/tmp/media-server-memory83/repo",
+        "uid": 10001,
+        "elapsedSeconds": 50.63577623200001,
+        "exit": 0,
+        "signal": null,
+        "collectionFailure": null,
+        "bytes": 17925,
+        "sha256": "f8eb777f5bcf6539991bfcbdcab5677531fab5db4f8455ab2dc7a49738bcebcf"
+      },
+      "consumers.json": {
+        "command": [
+          "bash",
+          "scripts/internal/verify_recording_generation_consumers.sh"
+        ],
+        "cwd": "/tmp/media-server-memory83/repo",
+        "uid": 10001,
+        "elapsedSeconds": 99.17803712800003,
+        "exit": 0,
+        "signal": null,
+        "collectionFailure": null,
+        "bytes": 41122,
+        "sha256": "e1725d4163a098fe1fcfb6c2fa8aee462ccdb1c8e5d1533589baa8f6094f40dc"
+      },
+      "checkpoint-concurrency.json": {
+        "command": [
+          "bash",
+          "scripts/internal/verify_recording_generation_checkpoint.sh",
+          "concurrency"
+        ],
+        "cwd": "/tmp/media-server-memory83/repo",
+        "uid": 10001,
+        "elapsedSeconds": 167.10598003399997,
+        "exit": 0,
+        "signal": null,
+        "collectionFailure": null,
+        "bytes": 11497,
+        "sha256": "629f2a33b7eed4350029150ebd0d2066ae5006896418adc746ddfe5e11e0d002"
+      },
+      "active.json": {
+        "command": [
+          "bash",
+          "scripts/internal/verify_recording_generation_active.sh"
+        ],
+        "cwd": "/tmp/media-server-memory83/repo",
+        "uid": 10001,
+        "elapsedSeconds": 4.883224751999933,
+        "exit": 0,
+        "signal": null,
+        "collectionFailure": null,
+        "bytes": 1436,
+        "sha256": "b2fb9901c3f47b14e832da2199db1364fed4c4300f506862ff60dc3f0b1e9e94"
+      },
+      "checkpoint-history-product.json": {
+        "command": [
+          "bash",
+          "scripts/internal/verify_recording_generation_checkpoint.sh",
+          "history-product"
+        ],
+        "cwd": "/tmp/media-server-memory83/repo",
+        "uid": 10001,
+        "elapsedSeconds": 82.94403774599994,
+        "exit": 0,
+        "signal": null,
+        "collectionFailure": null,
+        "bytes": 26847,
+        "sha256": "ce1486aa6f6265fd9e307acc337053a38d7193d256ba7863b408490db4571171"
+      },
+      "build.json": {
+        "command": [
+          "cmake",
+          "--build",
+          "../build",
+          "-j2"
+        ],
+        "cwd": "/tmp/media-server-memory83/repo",
+        "uid": 10001,
+        "elapsedSeconds": 44.25052864500003,
+        "exit": 0,
+        "signal": null,
+        "collectionFailure": null,
+        "bytes": 18992,
+        "sha256": "9873444477309944eb06f16c3afb92d0d1811af153383567274ad1ace455fd59"
+      }
+    },
+    "native": {
+      "evidence_package_smoke.log": {
+        "bytes": 31072,
+        "sha256": "0458c630ac63214d9f4a2141d7b34977753d467f915f02f2367d8442ba3ac589",
+        "complete": true
+      },
+      "recording_retained_lifetime_smoke.log": {
+        "bytes": 32176,
+        "sha256": "4eaec6fb4c1b0be5cc27a3383e17e7a01137d77a9f0240fcc2fc031ab46e4fa1",
+        "complete": true
+      },
+      "recording_search_source_smoke.log": {
+        "bytes": 2136,
+        "sha256": "c2e759fe9f2ffcd3b8aec0276a2868449f6b33176239d7ddbe33321978aaaa34",
+        "complete": true
+      },
+      "va_review_smoke.log": {
+        "bytes": 6298,
+        "sha256": "3bc6313a102bbf605b9dc0f149f4321021cbcf0c75544afda04f2b52de534e7a",
+        "complete": true
+      }
+    },
+    "binaries": "64bf36a86099f5af689faadb642a528bc1bdd737295b530196448653ab63af87  ../build/media_server\nad0025c9fadbd19b77d55349ac8dc48d4f4bd01b57091cfe8a62f47e326b3411  ../build/libmedia_server_runtime.a\n",
+    "environmentReadback": "uid=10001 gid=10001 groups=10001\nLinux 7.0.14-linuxkit aarch64\ng++ (Debian 16.2.0-3) 16.2.0\nCopyright (C) 2026 Free Software Foundation, Inc.\nThis is free software; see the source for copying conditions.  There is NO\nwarranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n\n1.28.7\n3.6.5\n3.53.4\n",
+    "remainingWork": "",
+    "sourceReadback": {
+      "changedProductAndTestFiles": 25,
+      "mismatches": 0,
+      "receipt": "linux-source-readback.json"
+    }
+  },
+  "failures": {
+    "compilePreparation": [
+      "cold-compile-first: missing override Werror",
+      "legacy-cold-product-first: invalid Set expression",
+      "search-cost-compile: focused diagnostic build syntax",
+      "search-owner-build: owner member placed in wrong declaration",
+      "bc-before-01: fixture query/binding preparation"
+    ],
+    "productOrOracle": [
+      "overlap-after83/stream/bulk: p95 actualFAIL, preserved source-phase distinction",
+      "bc-lifetime-before/bc-final-before: predeclared queued input retention RED",
+      "evidence-cold-red: actual cold exception escaped, fixed narrow catch",
+      "linux83 first C06: invalid empty-capture injection premise, fixed fixture"
+    ],
+    "receiptPreservation": "원문/명령/exit/sha는 archive의 개별 json/log. 과거82 archive 복제하지 않음. 일부 중간 untracked header의 과거바이트는 별도보존되지 않아 hash+patch만으로 전체재현 주장하지 않음. 최종 header/fixture바이트는 new-source에 보존."
+  },
+  "existingEvidence": "59/61/63·65·68Linux·72~74·78~82는 각 실제 source/environment/범위에서 유지. 최신 후보 전체 acceptance/UI 실행으로 재표시하지 않음.82 K/F 고정view·suffix내구성·Finish의 영향 회귀 별도 수행. 구버전의 nonempty-active checkpoint 역방향 읽기 보장 없음.",
+  "remaining": [
+    "cold 반환 행/parser/iterator와 SearchSourceBatch.pending·명시 결과 vector/JSON의 실제 동시 byte reservation이 검색 model owner에 결속되지 않음",
+    "EvidencePackageFile FD/manifest, confirmed 실행 입력/복사, A draft/result 반환·완료 metadata의 aggregate admission 미구현; remembered_jobs 건수만으로 byte수렴 선언불가",
+    "live/K/candidate/historyclone/sequentialcapture/spool/suffix/이전reader scratch의 공통 RAM·디스크 admission 미구현",
+    "A큰규모는obsV2만. large reference/noncompact legacy 전후peak·총동시세대D는미충족; endpoint를순간peak로해석불가",
+    "전역 정상 공개요청동시량과640MiB 모델산식의 충분성은 미확정;4client는시험부하이며제품전역상한이아님",
+    "직접범위완료후에도 위구현상차단해소와최종혼합검증필요;위험수용/다음버전이월/출시로대체불가"
+  ],
+  "notRun": [
+    "120분",
+    "전체 acceptance",
+    "전체 UI",
+    "Qwen/Ollama (0 calls); unload gate not-run",
+    "PR/CI/merge/tag/Release",
+    "owner risk acceptance/final release adoption"
+  ],
+  "independentReview": "83-independent-review.json",
+  "approval": {
+    "producer": {
+      "command": [
+        "node",
+        "scripts/internal/verify_v390_review4_feature_semantic_source_audit.mjs",
+        "--apply-approved-manifest"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 101.81148274999578,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 12812,
+      "sha256": "d044f8ac77f4e3e0a7ee0672c9d63381151b9f522393a0aa536f910913ef258f"
+    },
+    "manifestReadback": {
+      "changedTopLevelKeys": [
+        "inventorySha256"
+      ],
+      "itemsEqual": true,
+      "items": 986,
+      "beforeInventory": "3a75b4977bc0a8889520240251d004631a87e399e993d2b82370766879ae102f",
+      "afterInventory": "f7a978f091548d2fdc828738b1ff686673a2583481de1b1569f67d9503c1fd13",
+      "actualInventorySha256": "f7a978f091548d2fdc828738b1ff686673a2583481de1b1569f67d9503c1fd13"
+    },
+    "meaning": "기존986 mapping의 inventory 결속. 새83 제품 승인은 별도 독립 판단이며 총예산/P0 승인 아님"
+  },
+  "staticChecks": {
+    "static83-evidence-index": {
+      "command": [
+        "node",
+        "scripts/internal/verify_release_evidence_index.mjs"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 0.20991283399052918,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 254,
+      "sha256": "7c905aca1898f76312a7ee31fa5931a96f32816cd58fbf8e094b4632a375d938"
+    },
+    "static83-metadata": {
+      "command": [
+        "node",
+        "scripts/internal/verify_release_metadata_consistency.mjs"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 0.2084767089691013,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 454,
+      "sha256": "9cda5bb492e62ffb69865b146136bb2ffb4da8344c235a64796e278e1be23ffe"
+    },
+    "static83-public-assets": {
+      "command": [
+        "node",
+        "scripts/internal/verify_v290_public_docs_assets_refresh.mjs"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 0.4182631659787148,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 839,
+      "sha256": "936f2b9ca23430cfc4b07117e9f617b59d6286ba709fe3e098055a7c179a9d50"
+    },
+    "implementation83-readback": {
+      "command": [
+        "node",
+        "scripts/internal/verify_feature_implementation_evidence.mjs"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 75.95437295897864,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 1141,
+      "sha256": "f004e8a145e0b287322992e5f2f9c356c12a495834505e9ea79a414fd1f6b6f7"
+    },
+    "coverage83-readback": {
+      "command": [
+        "node",
+        "scripts/internal/verify_feature_inventory_coverage.mjs"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 112.88571716600563,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 604,
+      "sha256": "f3dd9d2ec3cd35ce7a806a391b6918dddd2c2377ca3039afa624f484985f9bce"
+    },
+    "static83-ui-assets": {
+      "command": [
+        "node",
+        "scripts/internal/verify_docs_ui_assets.mjs"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 0.21129479189403355,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 636,
+      "sha256": "7e6c81ec200fc79044bcc5844c39f52cbdb0b1a401d58e0f40fa35f882f535c2"
+    },
+    "inventory83-readback": {
+      "command": [
+        "node",
+        "scripts/internal/verify_project_feature_test_inventory.mjs"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 65.43162454199046,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 210255,
+      "sha256": "4670513193842f03ec9ea567062efe9d2dd303d621716a5cb95876d48b1dc1cd"
+    },
+    "static83-docs-links": {
+      "command": [
+        "node",
+        "scripts/internal/verify_docs_links.mjs"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 0.81903820799198,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 186,
+      "sha256": "78d683d12a33bf156ffc4289bf74ae3f4a9b3c55c244bed2a84942dd5fc1d9b8"
+    },
+    "static83-scripts": {
+      "command": [
+        "node",
+        "scripts/internal/verify_script_inventory.mjs"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 34.01047787501011,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 941,
+      "sha256": "92e692a3173f517ac5430005d1cf361195ac0dad7e505a2ffaddc893da6cdecf"
+    },
+    "static83-scripts-final": {
+      "command": [
+        "node",
+        "scripts/internal/verify_script_inventory.mjs"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 37.27517545898445,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 941,
+      "sha256": "92e692a3173f517ac5430005d1cf361195ac0dad7e505a2ffaddc893da6cdecf"
+    },
+    "diff83-final": {
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 0.20695424999576062,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "preservation": {
+    "path": "docs/release-artifacts/v4.5.0/83-execution.tar.gz",
+    "bytes": 1099972,
+    "sha256": "8206296ea504510947ef7d04f3a3ed44882d06d13f2c21f64cf368109fb7bd00",
+    "exactOriginalMembers": 363,
+    "archiveMembers": 364,
+    "uncompressedOriginalBytes": 5660431,
+    "maxMemberBytes": 323165,
+    "verifiedEveryMember": true,
+    "localGit": "pending",
+    "remote": "pending"
+  },
+  "closure": {
+    "status": "pending"
+  }
+}
