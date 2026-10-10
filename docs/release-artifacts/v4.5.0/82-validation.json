@@ -1,0 +1,953 @@
+{
+  "schema": "media-server.validation.v1",
+  "task": 82,
+  "status": "TECHNICAL_EXECUTION_AND_REVIEW_PASS_PENDING_GIT_PRESERVATION_CLEANUP",
+  "memoryP0": "BLOCKED",
+  "releaseApproved": false,
+  "requestedScope": "고정 cut·후속 쓰기 보존 기반 checkpoint 잠금 분리와 실제 병행 지연/정상 종료",
+  "model": {
+    "mainRequested": "gpt-6-astra",
+    "effortRequested": "high",
+    "mainToolAcceptance": null,
+    "mainRuntimeModel": null,
+    "mainRuntimeEffort": null,
+    "independentReviewer": "independent_memory77",
+    "independentRequested": "gpt-6-astra/high",
+    "independentRuntime": "not exposed; 별도 검토자의 직접 판단 원문 참조"
+  },
+  "source": {
+    "baseCommit": "b88461e7cee8cfa771ef7ec1e5e30d57212da6a8",
+    "baseTree": "45de81d4f84c9e37ffba397ae412be268ba197e5",
+    "frozenPatchSha256": "dd401461a9ab461121b19a970d17f7d3695b1ddbcb6ab720d87148e50d014016",
+    "exactSnapshot": "82-execution.tar.gz:final-measure-freeze.json + final-measure-source.patch",
+    "postrun": "82-execution.tar.gz:source-postrun.json",
+    "macProductSha256": "bbcd5b2f8d2b19b7ff874f165ed20221022fa87b5eff741d0a2094e18c95475c",
+    "macRuntimeSha256": "f5d5aed0fc208dd182bca7fc29f7a2650a31fce2902e8b9c55706d8b31de2e1a",
+    "overlapBinarySha256": "c977deb1ca82965372bc00551f299a7545ccc13e0124cb44f44b482638dbd633",
+    "comparisonBinarySha256": "92811cdd22760ac7da205e0f12356698c70fff2a5733e4b232ad0e3d7527d9d4",
+    "linuxProductSha256": "4f8b491376e43aed46c881ceab86e34a128d8308a13ed550d8c547eaf516b05d",
+    "linuxRuntimeSha256": "a86a32dc1a4fceab5d9702a17f8cb1d1858020cab5235190c6d8acc2e531f0ef",
+    "productSourceUnchangedAfterMeasurement": true,
+    "adoptionCommit": "0976bdea30086ff9a052b4d49646b0abada3e213",
+    "adoptionTree": "5aec5dcec36dbbf1bd8e6595331b9cbb6dd85d5f",
+    "adoptionMeaning": "Executed snapshot is base+frozen patch, not this later review/binding commit. Product and test hashes match the frozen execution."
+  },
+  "protocol": {
+    "K": "exclusive physical ordinal at verified fixed capture; not first-acceptance ordinal or byte offset",
+    "F": "final accepted physical end while publication lock held",
+    "privateView": "fsynced immutable K-prefix + independent anonymous historical scratch + sequential bounded row/chunk capture; no full Catalog RAM copy",
+    "outsideLocks": "fixed view cross-validation, canonical sort/spool, snapshot serialization/staging",
+    "suffix": "actual durable append on original active during preparation; final prefix rehash and verified [K,F) bytes copied to nonempty active; snapshot K/current Catalog F",
+    "publication": "original fsync/receipt/PUBLISH_INTENT/manifest/poison; no source truncation or whole revision retry",
+    "automatic": "one candidate, automatic reentry coalesces within original active admission; current hold/locator/path/job-output/owner epoch revalidated after unlock",
+    "compatibility": "existing journal/shard/snapshot/package/record bytes and old input read maintained; older binaries assuming empty checkpoint active are not promised to recover new nonempty receipt"
+  },
+  "deterministic": {
+    "C01": "held preparation: real search and durable Reserve each within 250ms before latch release; second checkpoint busy; child reopen exact retry/collision",
+    "C02": "K suffix survives child exit73 at prepared/published; premanifest intent-durable remains existing fail-closed with original suffix preserved, not automatic recovery PASS",
+    "C03": "actual 1MiB auto rotation, concurrently acquired hold rejects destructive original mutation; Finish revokes private publication",
+    "C04": "V2 delete/observation/reserve suffix; snapshot K/current F; old/new links and owned reader; fork reopen exact; derived owner ABA rejected",
+    "C05": "locator corrupt/dangling deleted path/bound path symlink/prepared output collision reject original publication while preserving durable concurrent mutation",
+    "C06": "1024 sequential rows then late trusted root mismatch; private checkpoint partial output rejected, original manifest/active unchanged, explicit Finish/reopen"
+  },
+  "macRegressions": {
+    "final-checkpoint-all": {
+      "command": [
+        "bash",
+        "scripts/internal/verify_recording_generation_checkpoint.sh",
+        "all"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 85.49121437501162,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 29855,
+      "sha256": "52d52511220df6ce013f014488833fa9ef83fe134dfe7c45e34d71ff33ed8f28"
+    },
+    "final-concurrency-2": {
+      "command": [
+        "bash",
+        "scripts/internal/verify_recording_generation_checkpoint.sh",
+        "concurrency"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 176.83942895790096,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 11533,
+      "sha256": "e607e1c0e1c48b4f972eb403e13e988f291ac273311c24e42cb502e8fe099d44"
+    },
+    "final-history-product": {
+      "command": [
+        "bash",
+        "scripts/internal/verify_recording_generation_checkpoint.sh",
+        "history-product"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 59.45567170903087,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 25347,
+      "sha256": "c265cc570a54a33d7e78fae88ad746f4e3c7a510fd2b3cefe493d55f4a2a6eb2"
+    },
+    "final2-transaction": {
+      "command": [
+        "bash",
+        "scripts/internal/verify_recording_generation_transaction.sh"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 47.26889229088556,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 18285,
+      "sha256": "1de5778f9ffb00d3e6aebe2467ca2a871f74c1642beb3f93bd0b9d14ea93bb05"
+    },
+    "final2-active": {
+      "command": [
+        "bash",
+        "scripts/internal/verify_recording_generation_active.sh"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 6.102478250046261,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 1485,
+      "sha256": "fcfb49a7840b2a9f8016ba8d7201b88593357879c31ba64b7a366743954fe86d"
+    },
+    "final4-consumers": {
+      "command": [
+        "bash",
+        "scripts/internal/verify_recording_generation_consumers.sh"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 58.134653624962084,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 41158,
+      "sha256": "467ac1ebbcd86843cd11a97f36ac3ac0d8c77e56a580b6c745b793d798eaa832"
+    },
+    "final-request-proof-2": {
+      "command": [
+        "bash",
+        "scripts/internal/verify_recording_generation_request_proof.sh"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 71.31225037493277,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 12333,
+      "sha256": "bffd9fde230eefe7935a12603e7fcdf25307ab822c464c33e51f3a349869e051"
+    },
+    "latency-contract-final": {
+      "command": [
+        "node",
+        "--test",
+        "scripts/internal/recording_latency_trace.test.mjs"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 1.2243076669983566,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 2170,
+      "sha256": "0362597cdded79051b460a0be89e178eac60de2c75ae1068fa9ffc1a6615cd5f"
+    },
+    "final-evidence-2": {
+      "command": [
+        "bash",
+        "scripts/internal/verify_evidence_package.sh"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 4.547563500003889,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 31703,
+      "sha256": "dadfddc614584f8cf6f229c223f74ece6bbecaf6885da934102a3931e0321668"
+    },
+    "final-application-evidence": {
+      "command": [
+        "bash",
+        "scripts/internal/verify_recording_application_evidence.sh"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 1.8364632909651846,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 989,
+      "sha256": "5c7dd069142c3439a3059e98c4e7455e303a5ecf51da7465556d2f483f9e9f11"
+    },
+    "final-va": {
+      "command": [
+        "bash",
+        "/private/tmp/media-server-memory82-0mp1dntj/final-va.sh"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 4.365861875005066,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 3986,
+      "sha256": "b03b0e516a967450160e7e91bdcf094ab9ec90bf9e048fa5bf32f169adc6272c"
+    },
+    "after4-measure": {
+      "command": [
+        "bash",
+        "/private/tmp/media-server-memory82-0mp1dntj/after4-measure/run.sh"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 63.0443160419818,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 27596,
+      "sha256": "43f56124139805ec176b1936585964665b9ac162f945c69cf55b39e06ffae36a"
+    },
+    "final-overlap82": {
+      "command": [
+        "bash",
+        "/private/tmp/media-server-memory82-0mp1dntj/final-overlap82.sh"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 55.307984499959275,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 283818,
+      "sha256": "3ada66ddfda965856d31662372f3e967f2e931488933c4e9042236e755640c53"
+    }
+  },
+  "linux": {
+    "image": "sha256:ce72c8a15363984da642e9964189957896812061c6af1d0ef67e87b38ad5a588",
+    "uid": 10001,
+    "compiler": "GCC16.2.0 -Wall -Wextra -Werror",
+    "gst": "1.28.7 existing image/profile",
+    "configurationMatrix": "generation/crypto/SQLite existing four configurations; unsupported boundaries preserved",
+    "raw": {
+      "checkpointAllConcurrencyHistory": "linux-second/",
+      "transactionActive": "linux-third/",
+      "consumersRequestProofProductEvidenceA": "linux-final-output/"
+    },
+    "nativeReceipt": {
+      "command": [
+        "docker",
+        "start",
+        "-a",
+        "media-server-memory82-linux-completion2"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 7.649143084068783,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 37,
+      "sha256": "a3c0a6caa4476965853a4e715ad7834d08538780d7f27e1fc2a2fc714718bfe5"
+    },
+    "scope": "product build + generation/transaction/recovery/actual search consumers/evidence PNG/confirmed A seed→checks→read; no model generation/install"
+  },
+  "overlap": {
+    "runsPerFrozenCandidate": 1,
+    "finalAttempts": 1,
+    "earlierChangedCandidateFailures": [
+      "final-overlap.json",
+      "candidate2-overlap.json"
+    ],
+    "receipt": {
+      "command": [
+        "bash",
+        "/private/tmp/media-server-memory82-0mp1dntj/final-overlap82.sh"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 55.307984499959275,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 283818,
+      "sha256": "3ada66ddfda965856d31662372f3e967f2e931488933c4e9042236e755640c53"
+    },
+    "history": 2048,
+    "writers": 8,
+    "clients": 4,
+    "observations": 10000,
+    "packets": 720,
+    "healthyFinalFiles": 24,
+    "deadlineSeconds": 90,
+    "p95LimitMs": 2000,
+    "maxLimitMs": 5000,
+    "p95Ms": 1284.95,
+    "maximumMs": 1607.84,
+    "samples": 51,
+    "ready": 50,
+    "unavailable": 1,
+    "unavailableIncludedInLatency": true,
+    "progressingSearches": 47,
+    "checkpointWallMs": 3366.75,
+    "checkpointPackets": [
+      160,
+      720
+    ],
+    "checkpointPublished": true,
+    "completedBeforePerClient": [
+      12,
+      12,
+      11,
+      11
+    ],
+    "completedDuringPerClient": [
+      1,
+      1,
+      1,
+      2
+    ],
+    "completedAfterPerClient": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "afterLimit": "existing client stop condition kept; post-writer and final requests separately status200/known24; no faster added samples",
+    "writerStops": 8,
+    "normalFinish": true,
+    "heapLiveBytes": 22775808,
+    "heapReservedBytes": 85819392,
+    "rssHighWaterBytes": 122535936,
+    "stageWall": [
+      {
+        "phase": "open",
+        "elapsedUs": 7330582
+      },
+      {
+        "phase": "encode",
+        "elapsedUs": 24641
+      },
+      {
+        "phase": "writer-start",
+        "elapsedUs": 2420
+      },
+      {
+        "phase": "observations",
+        "elapsedUs": 42115794
+      },
+      {
+        "phase": "warmup",
+        "elapsedUs": 149648
+      },
+      {
+        "phase": "clients-start",
+        "elapsedUs": 34
+      },
+      {
+        "phase": "thread-join",
+        "elapsedUs": 3476278
+      },
+      {
+        "phase": "final-validation",
+        "elapsedUs": 1383107
+      },
+      {
+        "phase": "finish",
+        "elapsedUs": 2973
+      }
+    ],
+    "manualCheckpointTimingMs": {
+      "journalFixedCapture": 243.522208,
+      "catalogFixedCapture": 513.904292,
+      "initialCatalogLockHold": 757.647584,
+      "outsidePrepare": 2542.399666,
+      "publicationTransition": 59.68575,
+      "finalCatalogLockHold": 66.612042
+    },
+    "timingLimits": "wall time, overlapping intervals not additive CPU; retained slow representatives, not every call"
+  },
+  "memoryComparison": {
+    "before": "adopted81 b88461e7 product + same bounded diagnostic instrumentation; not74 reference",
+    "after": "final frozen82 product/runtime with identical measurement helper; separate ordinary archive overlap",
+    "runsPerSide": 1,
+    "sizes": [
+      128,
+      512,
+      2048
+    ],
+    "activeMedia": 0,
+    "idle": "three actual1s intervals, same PID",
+    "measurements": {
+      "before": {
+        "128": {
+          "checkpointWallMs": 87.6,
+          "after": {
+            "stage": "after-checkpoint",
+            "history": 128,
+            "rss": 57917440,
+            "footprint": 19251944,
+            "mallocLive": 3873680,
+            "mallocReserved": 50331648,
+            "mallocBlocks": 32638,
+            "rssHighWater": 57917440,
+            "fdCount": 10,
+            "elapsedMs": 2524.2,
+            "catalogMutations": 0,
+            "catalogOrders": 0,
+            "retired": 0,
+            "sourceEntries": 0,
+            "activeSegments": 0,
+            "acceptedOrdinals": 0,
+            "journalIdentities": 512,
+            "journalResidentIdentities": 0,
+            "chainRows": 0,
+            "chainRowCapacity": 0,
+            "chainOrderCopies": 0,
+            "journalOrders": 0,
+            "activeRows": 0,
+            "activePayloadCapacity": 0,
+            "scratchBytes": 5580288,
+            "scratchAllocated": 6877184,
+            "scratchPeakConcurrent": 9795584,
+            "scratchPeakAllocated": 11100160
+          }
+        },
+        "512": {
+          "checkpointWallMs": 369.8,
+          "after": {
+            "stage": "after-checkpoint",
+            "history": 512,
+            "rss": 59588608,
+            "footprint": 19546856,
+            "mallocLive": 3899232,
+            "mallocReserved": 54525952,
+            "mallocBlocks": 32975,
+            "rssHighWater": 59588608,
+            "fdCount": 10,
+            "elapsedMs": 10801.9,
+            "catalogMutations": 0,
+            "catalogOrders": 0,
+            "retired": 0,
+            "sourceEntries": 0,
+            "activeSegments": 0,
+            "acceptedOrdinals": 0,
+            "journalIdentities": 2048,
+            "journalResidentIdentities": 0,
+            "chainRows": 0,
+            "chainRowCapacity": 0,
+            "chainOrderCopies": 0,
+            "journalOrders": 0,
+            "activeRows": 0,
+            "activePayloadCapacity": 0,
+            "scratchBytes": 22304768,
+            "scratchAllocated": 23146496,
+            "scratchPeakConcurrent": 39189504,
+            "scratchPeakAllocated": 40038400
+          }
+        },
+        "2048": {
+          "checkpointWallMs": 1630.1,
+          "after": {
+            "stage": "after-checkpoint",
+            "history": 2048,
+            "rss": 65241088,
+            "footprint": 14500584,
+            "mallocLive": 4005184,
+            "mallocReserved": 54525952,
+            "mallocBlocks": 34324,
+            "rssHighWater": 65241088,
+            "fdCount": 10,
+            "elapsedMs": 56825.3,
+            "catalogMutations": 0,
+            "catalogOrders": 0,
+            "retired": 0,
+            "sourceEntries": 0,
+            "activeSegments": 0,
+            "acceptedOrdinals": 0,
+            "journalIdentities": 8192,
+            "journalResidentIdentities": 0,
+            "chainRows": 0,
+            "chainRowCapacity": 0,
+            "chainOrderCopies": 0,
+            "journalOrders": 0,
+            "activeRows": 0,
+            "activePayloadCapacity": 0,
+            "scratchBytes": 89195008,
+            "scratchAllocated": 89247744,
+            "scratchPeakConcurrent": 156749824,
+            "scratchPeakAllocated": 157380608
+          }
+        },
+        "releasedAgain": {
+          "stage": "released-again",
+          "history": 2048,
+          "rss": 57868288,
+          "footprint": 14533352,
+          "mallocLive": 3675312,
+          "mallocReserved": 54525952,
+          "mallocBlocks": 32074,
+          "rssHighWater": 65323008,
+          "fdCount": 3,
+          "elapsedMs": 67261.1
+        },
+        "reopened": {
+          "stage": "reopened",
+          "history": 2048,
+          "rss": 65323008,
+          "footprint": 14533352,
+          "mallocLive": 3983104,
+          "mallocReserved": 54525952,
+          "mallocBlocks": 34151,
+          "rssHighWater": 65323008,
+          "fdCount": 10,
+          "elapsedMs": 67253.1,
+          "catalogMutations": 0,
+          "catalogOrders": 0,
+          "retired": 0,
+          "sourceEntries": 0,
+          "activeSegments": 0,
+          "acceptedOrdinals": 0,
+          "journalIdentities": 8192,
+          "journalResidentIdentities": 0,
+          "chainRows": 0,
+          "chainRowCapacity": 0,
+          "chainOrderCopies": 0,
+          "journalOrders": 0,
+          "activeRows": 0,
+          "activePayloadCapacity": 0,
+          "scratchBytes": 89195008,
+          "scratchAllocated": 91643904,
+          "scratchPeakConcurrent": 89272832,
+          "scratchPeakAllocated": 91725824
+        }
+      },
+      "after4": {
+        "128": {
+          "checkpointWallMs": 69.11,
+          "after": {
+            "stage": "after-checkpoint",
+            "history": 128,
+            "rss": 56410112,
+            "footprint": 17662696,
+            "mallocLive": 3871104,
+            "mallocReserved": 46137344,
+            "mallocBlocks": 32651,
+            "rssHighWater": 56410112,
+            "fdCount": 10,
+            "elapsedMs": 2425.44,
+            "catalogMutations": 0,
+            "catalogOrders": 0,
+            "retired": 0,
+            "sourceEntries": 0,
+            "activeSegments": 0,
+            "acceptedOrdinals": 0,
+            "journalIdentities": 512,
+            "journalResidentIdentities": 0,
+            "chainRows": 0,
+            "chainRowCapacity": 0,
+            "chainOrderCopies": 0,
+            "journalOrders": 0,
+            "activeRows": 0,
+            "activePayloadCapacity": 0,
+            "scratchBytes": 5580288,
+            "scratchAllocated": 6914048,
+            "scratchPeakConcurrent": 11107328,
+            "scratchPeakAllocated": 12455936
+          }
+        },
+        "512": {
+          "checkpointWallMs": 286.6,
+          "after": {
+            "stage": "after-checkpoint",
+            "history": 512,
+            "rss": 57982976,
+            "footprint": 17859304,
+            "mallocLive": 3896656,
+            "mallocReserved": 50331648,
+            "mallocBlocks": 32988,
+            "rssHighWater": 57982976,
+            "fdCount": 10,
+            "elapsedMs": 10359,
+            "catalogMutations": 0,
+            "catalogOrders": 0,
+            "retired": 0,
+            "sourceEntries": 0,
+            "activeSegments": 0,
+            "acceptedOrdinals": 0,
+            "journalIdentities": 2048,
+            "journalResidentIdentities": 0,
+            "chainRows": 0,
+            "chainRowCapacity": 0,
+            "chainOrderCopies": 0,
+            "journalOrders": 0,
+            "activeRows": 0,
+            "activePayloadCapacity": 0,
+            "scratchBytes": 22304768,
+            "scratchAllocated": 23183360,
+            "scratchPeakConcurrent": 44433408,
+            "scratchPeakAllocated": 45326336
+          }
+        },
+        "2048": {
+          "checkpointWallMs": 1278.7,
+          "after": {
+            "stage": "after-checkpoint",
+            "history": 2048,
+            "rss": 63668224,
+            "footprint": 17761000,
+            "mallocLive": 4002704,
+            "mallocReserved": 50331648,
+            "mallocBlocks": 34339,
+            "rssHighWater": 63668224,
+            "fdCount": 10,
+            "elapsedMs": 51856,
+            "catalogMutations": 0,
+            "catalogOrders": 0,
+            "retired": 0,
+            "sourceEntries": 0,
+            "activeSegments": 0,
+            "acceptedOrdinals": 0,
+            "journalIdentities": 8192,
+            "journalResidentIdentities": 0,
+            "chainRows": 0,
+            "chainRowCapacity": 0,
+            "chainOrderCopies": 0,
+            "journalOrders": 0,
+            "activeRows": 0,
+            "activePayloadCapacity": 0,
+            "scratchBytes": 89195008,
+            "scratchAllocated": 89284608,
+            "scratchPeakConcurrent": 177722368,
+            "scratchPeakAllocated": 178184192
+          }
+        },
+        "releasedAgain": {
+          "stage": "released-again",
+          "history": 2048,
+          "rss": 56262656,
+          "footprint": 17711848,
+          "mallocLive": 3671504,
+          "mallocReserved": 50331648,
+          "mallocBlocks": 32079,
+          "rssHighWater": 63717376,
+          "fdCount": 3,
+          "elapsedMs": 62311.5
+        },
+        "reopened": {
+          "stage": "reopened",
+          "history": 2048,
+          "rss": 63717376,
+          "footprint": 17711848,
+          "mallocLive": 3979952,
+          "mallocReserved": 50331648,
+          "mallocBlocks": 34158,
+          "rssHighWater": 63717376,
+          "fdCount": 10,
+          "elapsedMs": 62306.5,
+          "catalogMutations": 0,
+          "catalogOrders": 0,
+          "retired": 0,
+          "sourceEntries": 0,
+          "activeSegments": 0,
+          "acceptedOrdinals": 0,
+          "journalIdentities": 8192,
+          "journalResidentIdentities": 0,
+          "chainRows": 0,
+          "chainRowCapacity": 0,
+          "chainOrderCopies": 0,
+          "journalOrders": 0,
+          "activeRows": 0,
+          "activePayloadCapacity": 0,
+          "scratchBytes": 89195008,
+          "scratchAllocated": 90693632,
+          "scratchPeakConcurrent": 89272832,
+          "scratchPeakAllocated": 90775552
+        }
+      }
+    },
+    "interpretation": "historical identity/order/chain full RAM copies remain absent. active delta remains bounded by original admission. New private snapshot raises concurrent scratch; RSS reduction is not whole P0 resolution. footprint/live heap/RSS differ; endpoint and cumulative highwater do not establish all instantaneous peaks",
+    "scratchFormula": "existing512 +2560*chunks; current/clone/candidate/spool accounted; original source admission not reused as scratch cap",
+    "limits": [
+      "retained observation/reference remains O(retained data)",
+      "noncompact legacy and explicit result DTO callers",
+      "aggregate simultaneous reader/phase peak assurance",
+      "B fixed-history request lifetime and C preserved-results cost separation",
+      "final mixed validation not-run"
+    ]
+  },
+  "collection": {
+    "processLogCap": 4194304,
+    "finalLogBytes": 283818,
+    "collectorFailure": null,
+    "latencyParse": "final-latency-parsed.json complete64 retained rows; actual SlowOnly10ms, parser metadata default1ms not run threshold",
+    "slowSeen": 113,
+    "slowRetained": 64,
+    "completeLockCount": 11989,
+    "completeSpanCount": 10904,
+    "counterOverflow": false,
+    "allRequestSamplesAccounted": true
+  },
+  "failurePreservation": {
+    "prior81": "unchanged prior source/raw; original p95 FAIL not rewritten",
+    "current": "all command receipts/raw in archive; compilation/preparation fails distinguished from expectedRED and performanceFAIL",
+    "connections": [
+      "private request-proof helper bypassed existing public exception boundary; test now accepts rejection only with authority=false and lease=false. Public-first media new proof not claimed",
+      "old archive read counter filters existing evidence-1-0; new prefix verification is not claimed zero I/O",
+      "retired corruption injection now follows current prefix and parses compressed deletion row against fixed tomb",
+      "GCC indentation warnings fixed without changing control flow or warning flags"
+    ],
+    "lateRoot": "initial no-active fixture no-op preserved; corrected real Reserve prerequisite",
+    "notInferred": "80 missing stop state is not reconstructed; historical decoder failures not reclassified"
+  },
+  "approval": {
+    "legacyCandidateDigest": "137543c6332a73f9a77599bfaca732bd1f54b263adee078fe5d3f8c275775906",
+    "legacyRows": 986,
+    "meaning": "same legacy approved mapping; new82 product changes separately independently reviewed",
+    "producer": {
+      "command": [
+        "node",
+        "scripts/internal/verify_v390_review4_feature_semantic_source_audit.mjs",
+        "--apply-approved-manifest"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 95.62750066595618,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 12812,
+      "sha256": "d044f8ac77f4e3e0a7ee0672c9d63381151b9f522393a0aa536f910913ef258f"
+    },
+    "producerFirstFailure": {
+      "command": [
+        "node",
+        "scripts/internal/verify_v390_review4_feature_semantic_source_audit.mjs",
+        "--apply-approved-manifest"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 90.09922524995636,
+      "exit": -15,
+      "signal": 15,
+      "collectionFailure": "wrapper deadline",
+      "bytes": 12716,
+      "sha256": "46e606c64d0451c3e1af63e013a680d9be8b94560264da4f0c15b87fe713ba11"
+    },
+    "preparationCorrection": {
+      "failure": "producer-final: collection deadline 90s, no manifest write",
+      "cause": "This task incorrectly reused the product overlap 90s envelope for an approval-management tool. 81-validation approvalBinding.producer shows the same tool successfully took 91.8228232919937s. No product or verifier failure was observed; audit pass51/fail0 preceded apply.",
+      "correction": "Administrative producer gets a fixed 180s collection envelope before one corrected invocation; product overlap remains 90s, all test criteria unchanged; no approval/verifier source edited.",
+      "priorEvidence": "docs/release-artifacts/v4.5.0/81-validation.json#approvalBinding.producer",
+      "retryCount": 1
+    },
+    "manifestReadback": {
+      "changedTopLevelKeys": [
+        "inventorySha256"
+      ],
+      "itemsEqual": true,
+      "items": 986,
+      "beforeInventory": "6d3dd39102d1d5d57d3313c3f7cd702588b957e0002df1fbe7e1705f0a357305",
+      "afterInventory": "3a75b4977bc0a8889520240251d004631a87e399e993d2b82370766879ae102f"
+    },
+    "firstReadbackFailure": {
+      "command": [
+        "node",
+        "scripts/internal/verify_project_feature_test_inventory.mjs"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 43.39676683302969,
+      "exit": 1,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 210322,
+      "sha256": "57d871ab07e8b2248b9fed2fefc169f2e89492e6fa811cbc921b84d7a0b6bad8"
+    },
+    "readbackOrderCorrection": {
+      "first": "static-inventory",
+      "preparationError": "Readback started before producer-corrected wrote final manifest; it loaded stale inventorySha256. Product code unchanged.",
+      "correction": "Run dependent readback only after producer exit0 and manifest-readback inventory hash verified. Preserve initial failure."
+    }
+  },
+  "independentReview": "82-independent-review.json",
+  "preservation": {
+    "archive": "82-execution.tar.gz",
+    "git": "pending",
+    "cleanup": "pending after byte preservation",
+    "archiveBytes": 6411771,
+    "archiveSha256": "7b4d19e12677c0027aaeff511c1021c9c1e44c781b6e79e31bdeea3f2799b7a8",
+    "verifiedMembers": 364,
+    "scope": "Current82 raw logs/receipts/frozen source and instrumented copies. No binary/model/media or previous archive duplication; unchanged copied headers reused by exact Git/frozen source hash.",
+    "originalVsSanitized": "Selected synthetic task-owned raw text, not reconstructed or rewritten logs. Missing prior states remain unobserved."
+  },
+  "notRun": [
+    "120min",
+    "general acceptance",
+    "full UI",
+    "model comparison",
+    "Qwen/Ollama",
+    "Qwen unload gate",
+    "PR/CI/merge/tag/Release"
+  ],
+  "existingEvidence": "59/61/63/65/68/72–74 remain source/environment scoped historical evidence, not rerun at current head",
+  "remaining": "memoryP0 and release hold; no risk acceptance, no v4.6 deferral",
+  "staticChecks": {
+    "static-docs-links": {
+      "command": [
+        "node",
+        "scripts/internal/verify_docs_links.mjs"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 0.41368316602893174,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 186,
+      "sha256": "92d1c479a764674f5806f5f1fdc9e50c6a93620b1650cf284f8d55e9d3caa56e"
+    },
+    "static-metadata": {
+      "command": [
+        "node",
+        "scripts/internal/verify_release_metadata_consistency.mjs"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 0.21160725003574044,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 454,
+      "sha256": "9cda5bb492e62ffb69865b146136bb2ffb4da8344c235a64796e278e1be23ffe"
+    },
+    "static-ui-assets": {
+      "command": [
+        "node",
+        "scripts/internal/verify_docs_ui_assets.mjs"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 0.20961662498302758,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 636,
+      "sha256": "7e6c81ec200fc79044bcc5844c39f52cbdb0b1a401d58e0f40fa35f882f535c2"
+    },
+    "static-public-assets": {
+      "command": [
+        "node",
+        "scripts/internal/verify_v290_public_docs_assets_refresh.mjs"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 0.21138691599480808,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 839,
+      "sha256": "936f2b9ca23430cfc4b07117e9f617b59d6286ba709fe3e098055a7c179a9d50"
+    },
+    "static-scripts": {
+      "command": [
+        "node",
+        "scripts/internal/verify_script_inventory.mjs"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 26.992196375038475,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 941,
+      "sha256": "92e692a3173f517ac5430005d1cf361195ac0dad7e505a2ffaddc893da6cdecf"
+    },
+    "static-evidence-index": {
+      "command": [
+        "node",
+        "scripts/internal/verify_release_evidence_index.mjs"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 0.21168950002174824,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 254,
+      "sha256": "7c905aca1898f76312a7ee31fa5931a96f32816cd58fbf8e094b4632a375d938"
+    },
+    "inventory-readback-final": {
+      "command": [
+        "node",
+        "scripts/internal/verify_project_feature_test_inventory.mjs"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 47.86926604202017,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 210255,
+      "sha256": "4670513193842f03ec9ea567062efe9d2dd303d621716a5cb95876d48b1dc1cd"
+    },
+    "coverage-readback-final": {
+      "command": [
+        "node",
+        "scripts/internal/verify_feature_inventory_coverage.mjs"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 90.69061679090373,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 604,
+      "sha256": "f3dd9d2ec3cd35ce7a806a391b6918dddd2c2377ca3039afa624f484985f9bce"
+    },
+    "implementation-readback-final": {
+      "command": [
+        "node",
+        "scripts/internal/verify_feature_implementation_evidence.mjs"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 58.6350729590049,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 1141,
+      "sha256": "f004e8a145e0b287322992e5f2f9c356c12a495834505e9ea79a414fd1f6b6f7"
+    },
+    "final-diff-check": {
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 0.21164366602897644,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  }
+}

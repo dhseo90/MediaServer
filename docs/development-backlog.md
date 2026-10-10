@@ -37,13 +37,13 @@
 같은 2048 순환 fixture에서 checkpoint 비용은 감소했으나, 기존 이력 저장소에 10,000개
 관측을 추가하는 녹화·검색 병행 검증은 before/after 모두 90초 deadline으로 종료됐다.
 before는 관측 준비 중 종료됐고 after도 최종 checkpoint/검색 지연 결과가 없어, 같은 동시 구간의 비교는 성립하지 않았다.
-81은 단계별 관측과 한정된 namespace 조회·이력 표현·단일 prefix 대조·유한 spool writer를 보완했다.
-최종 병행 실행은 51.58초에 checkpoint 게시·writer Stop·실패 경로 Finish까지 도달했지만,
-검색 p95 3098.09ms가 기존 2000ms 기준을 넘어 **FAIL**이다. 긴 Catalog 잠금 안의
-snapshot 검증·spool 준비가 남아 병행 응답/전체 저장 기반 마감은 미충족이다.
-source/reference 보존 집합 상주, 전체 reader·단계별 peak 합산, B/C 및 최종 혼합 검증도
-같은 v4.5.0 P0다. [80 원본](release-artifacts/v4.5.0/80-validation.json)은 유지하며,
-새 변경·실패·최종 비교는 [81 부분 검증](release-artifacts/v4.5.0/81-validation.json)에 둔다.
+81의 단계별 관측·한정 최적화와 p95 FAIL은 [당시 원본](release-artifacts/v4.5.0/81-validation.json)에 유지한다.
+82는 고정 cut K의 private view를 준비하고 검증·정렬·직렬화를 공유 쓰기 잠금 밖으로 분리했다.
+준비 중 내구 append를 최종 F의 active suffix로 보존하며, 결정적 latch·중단/재Open과 실제
+90초 병행 기준을 통과했다. [82 검증](release-artifacts/v4.5.0/82-validation.json)에 최종 소스,
+실패→보완, 원출력과 독립 판단을 연결한다. 이 결과는 전체 메모리 P0 완료가 아니다.
+관측/reference 보존 집합 상주, 축약 불가능 legacy, 모든 동시 reader·단계별 peak 합산,
+B/C 전체 수명과 최종 혼합 검증은 같은 v4.5.0 출시 전 P0로 남는다.
 소유자는 미해결 메모리 증가를 운영 제한으로 수용하지 않았다. 사용자 위험 수용과 최종 출시
 채택은 **not-granted / not-performed**이며 공개 절차는 보류한다. 75의 과거 판단은 소급 수정하지 않는다.
 
