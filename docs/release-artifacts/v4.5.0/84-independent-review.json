@@ -428,6 +428,70 @@
         "HTTP 실제 지연 송신/종료 및 전체 자원 참여 범위",
         "B/C 전체 수렴"
       ]
+    },
+    {
+      "kind": "local_preservation_and_cleanup_readback",
+      "reviewedAtUtc": "2026-10-10 14:23:38 UTC",
+      "timestampSource": "clock.curr_time",
+      "scope": "아카이브/Git 바이트 및 정리 기록의 한정 마감 검토. 제품·검사 실행 또는 기술 차단 재판정 없음.",
+      "implementationCommit": "723a18a564bb72f1a264e35cf35117bcf849c0a2",
+      "observedHead": "7950e82a25e55f468b2fd72576a330820e48053e",
+      "archive": {
+        "path": "docs/release-artifacts/v4.5.0/84-execution.tar.gz",
+        "bytes": 1791518,
+        "sha256": "de30e9792ded37a673958603ed77cfdea72d0cd80853e6235543973a144eb414",
+        "gitBytesEqualWorkingTree": true,
+        "totalMembers": 446,
+        "selectedMembersReadAndHashed": 445,
+        "selectedOriginalBytes": 13526891,
+        "manifest": "preservation-members.json",
+        "manifestSha256": "ae9d9e3a8031ada6349c5de8b5f39100976e05dc7b10ee234698af429794d9d0",
+        "mismatchCount": 0,
+        "mismatches": [],
+        "scope": "Git 객체에서 445개 선택 member 전체 바이트를 manifest hash/length와 독립 대조했다. 삭제된 root 원본과 지금 새로 대조한 것은 아니며 삭제 전 원본 대조는 메인 receipt에 의존한다. 원문 로그/fixture/hash 기록 보존 확인은 새 제품 PASS가 아니다."
+      },
+      "cleanup": {
+        "validationSha256AtRead": "1e182195650b682b162c532d1f0b87dca5f11eabffbbc03db82ccf714ee291f0",
+        "receipt": {
+          "state": "OWNED_ROOT_AND_CONTAINERS_REMOVED_LOCAL_GIT_BYTES_VERIFIED_REMOTE_PENDING",
+          "QwenOllamaCalls": 0,
+          "unloadGate": "not-run",
+          "root": "/private/tmp/media-server-memory84-s55fhw2h",
+          "rootAbsent": true,
+          "openHandlesBeforeRemoval": 0,
+          "removedFiles": 1356,
+          "unlinkedSymlinks": 277,
+          "removedRegularBytes": 493119248,
+          "removedContainers": [
+            "media-server-memory84-linux",
+            "media-server-memory84-linux-aggregate"
+          ],
+          "retained": "existing models, SDK/plugin targets, Linux image and VM; no task server/browser/port remains"
+        },
+        "root": "/private/tmp/media-server-memory84-s55fhw2h",
+        "rootAbsenceIndependentlyObserved": true,
+        "lsofAndOwnershipRemoval": "lsof exit1/no output, UID 확인 및 symlink 대상 미추적 제거는 메인 기록으로 확인; 삭제 절차를 독립 실행하거나 삭제 전 소유권을 재관측하지 않음",
+        "containerAndImageIndependentQuery": "read-only docker ps/image inspect 시도는 docker.sock permission denied로 확인 불가. 두 컨테이너 제거 및 기존 image 유지 판단은 validation/메인 receipt 범위에 한정한다.",
+        "directDockerQuerySucceeded": false,
+        "noEscalationOrMutation": true
+      },
+      "decision": {
+        "localArchivePreservation": "independently_verified_git_bytes_and_selected_member_hashes",
+        "ownedRootAbsent": "independently_observed",
+        "otherCleanup": "recorded_by_main_with_direct_docker_verification_unavailable",
+        "wholeTask84Complete": false,
+        "memoryP0Complete": false,
+        "releaseApproved": false,
+        "maximumAdmissionAndTransportBlockers": "unchanged",
+        "candidateApproval": "NOT_APPROVED_NOT_APPLIED",
+        "remotePreservation": "pending_not_pushed",
+        "runtimeModelAndEffort": "unconfirmed"
+      },
+      "pending": [
+        "remote push and remote byte readback",
+        "기존 최대 admission/32R·8R/HTTP 실제 송신/전체 자원 및 B·C 차단",
+        "신규 candidate 독립 승인 및 producer/readback"
+      ]
     }
   ]
 }

@@ -602,9 +602,20 @@
   "independentReview": "84-independent-review.json",
   "archive": "84-execution.tar.gz",
   "cleanup": {
-    "state": "RAW_SELECTED_ARCHIVE_READBACK_OK_PENDING_REMOTE_AND_OWNED_ROOT_CLEANUP",
+    "state": "OWNED_ROOT_AND_CONTAINERS_REMOVED_LOCAL_GIT_BYTES_VERIFIED_REMOTE_PENDING",
     "QwenOllamaCalls": 0,
-    "unloadGate": "not-run"
+    "unloadGate": "not-run",
+    "root": "/private/tmp/media-server-memory84-s55fhw2h",
+    "rootAbsent": true,
+    "openHandlesBeforeRemoval": 0,
+    "removedFiles": 1356,
+    "unlinkedSymlinks": 277,
+    "removedRegularBytes": 493119248,
+    "removedContainers": [
+      "media-server-memory84-linux",
+      "media-server-memory84-linux-aggregate"
+    ],
+    "retained": "existing models, SDK/plugin targets, Linux image and VM; no task server/browser/port remains"
   },
   "notRun": [
     "120min",
@@ -623,7 +634,14 @@
     "memberCount": 446,
     "originalMemberBytes": 13526891,
     "readbackAllSelectedMembers": true,
-    "independentReviewSha256": "6cb5e09d680c25374aef7d15b7739e6c8e66de173badcc95c896875c75efdeec"
+    "independentReviewSha256": "2bf41ef5d039269326b590abb97b9c916ed6b24c10e8558914f88fdb20a62a72",
+    "localGitReadback": {
+      "commit": "7950e82a25e55f468b2fd72576a330820e48053e",
+      "path": "docs/release-artifacts/v4.5.0/84-execution.tar.gz",
+      "bytes": 1791518,
+      "sha256": "de30e9792ded37a673958603ed77cfdea72d0cd80853e6235543973a144eb414",
+      "memberHashesVerified": 445
+    }
   },
   "static": "links/script inventory/release metadata/diff check PASS; project inventory FAIL1 due new inventory/trust binding. Approval not synthesized."
 }
