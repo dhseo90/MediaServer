@@ -345,7 +345,46 @@
       "sha256": "f3dd9d2ec3cd35ce7a806a391b6918dddd2c2377ca3039afa624f484985f9bce"
     }
   },
-  "cleanup": "PENDING owned root/container cleanup after evidence preservation",
+  "cleanup": {
+    "containers": [
+      {
+        "id": "4f4a2e1e6d011f7cc3cf235bba4a2056d62a586e21fcdd3d93cdfe6660a010ce",
+        "absent": true,
+        "exit": 1,
+        "stderr": "error: no such object: 4f4a2e1e6d011f7cc3cf235bba4a2056d62a586e21fcdd3d93cdfe6660a010ce"
+      },
+      {
+        "id": "fff9ccfdc8a726c225bba138b79ab794eae0e9075466d9fc50b03feb1b65f4a1",
+        "absent": true,
+        "exit": 1,
+        "stderr": "error: no such object: fff9ccfdc8a726c225bba138b79ab794eae0e9075466d9fc50b03feb1b65f4a1"
+      }
+    ],
+    "firstCleanupObservation": {
+      "action": "post-rm inspect absence check",
+      "failure": "AssertionError at line12: expected No such object; Docker returned lowercase error: no such object",
+      "effect": "first container removed; second remained exited; read-only check confirmed before completing exact second removal"
+    },
+    "sandboxPs": "operation not permitted; host read-only check used",
+    "preservedImage": "sha256:ce72c8a15363984da642e9964189957896812061c6af1d0ef67e87b38ad5a588",
+    "ownedExecutableMatches": [],
+    "ports": "No server/listener launched by this task; native wrappers/probes completed.",
+    "rootOwnership": {
+      "path": "/private/tmp/media-server-memory79-qostwy57",
+      "uid": 501,
+      "dev": 16777232,
+      "ino": 171933563,
+      "base": "4ce97da9c13d45a0f89687784278d6378048f416"
+    },
+    "rootRemoval": {
+      "absent": true,
+      "files": 2034,
+      "logicalBytes": 300261081,
+      "scope": "exact owned root only; required source/log/media evidence already committed and read back"
+    },
+    "qwenOllamaCalls": 0,
+    "unloadGate": "not-run"
+  },
   "notRun": [
     "120 minutes",
     "acceptance",
@@ -416,7 +455,15 @@
       "edit helpers"
     ],
     "privateMaterials": "none selected; full Docker inspect excluded",
-    "measurementSourceLimit": "measurement map captured during unchanged execution; only instrumented Journal and probe source are complete snapshots, other files have hash maps plus adopted diff; final timeline/helper corrections not remeasured"
+    "measurementSourceLimit": "measurement map captured during unchanged execution; only instrumented Journal and probe source are complete snapshots, other files have hash maps plus adopted diff; final timeline/helper corrections not remeasured",
+    "gitReadback": {
+      "commit": "49a41b1e5f562e6234d27da5fdaf0931e28bcab1",
+      "path": "docs/release-artifacts/v4.5.0/79-execution.tar.gz",
+      "bytes": 30800306,
+      "sha256": "ffd170be34a1d9f125a3fe849b234b505321575b9cfdfcab326df1a23c13957a",
+      "memberHashReadback": "PASS",
+      "memberCount": 244
+    }
   },
   "staticChecks": {
     "static-docs-links": {
