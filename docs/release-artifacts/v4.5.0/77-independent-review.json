@@ -1,0 +1,66 @@
+{
+  "reviewKind": "read-only source, evidence and existing-manifest-application boundary review",
+  "baseCommit": "b144e300b06a84e99b1660242c6a944470662d55",
+  "reviewerRuntimeModel": null,
+  "reviewerRuntimeEffort": null,
+  "reviewerActions": {
+    "productFilesModified": false,
+    "testsExecuted": false,
+    "manifestApplied": false,
+    "onlyWrittenArtifact": "/private/tmp/media-server-memory77-qd9yrbdi/independent-review.json"
+  },
+  "decision": {
+    "productIntegrationApproved": false,
+    "memoryP0": "BLOCKED",
+    "experimentalSeparation": "confirmed for current src/include diff and explicit direct-test dispatch",
+    "existingManifestApplication": "acceptable guarded maintenance path; actual execution and resulting diff not reviewed"
+  },
+  "observed": {
+    "head": "b144e300b06a84e99b1660242c6a944470662d55",
+    "srcAndIncludeDiffAgainstHead": "empty",
+    "experimentalHeader": "scripts/internal/recording_history_index_experiment.h",
+    "experimentalHeaderSha256": "b790d286986e9862625dd33fcfe807a641d3e23a1dff92ad59830feb8bb0d4a4",
+    "smokeSha256": "d0430a3c465a55609f8ce92c2efbcf5568dbc247db7bb9fef23271c1724e5397",
+    "headerAndSmokeMatchIsolatedLog": true,
+    "unadoptedPatchSha256": "b59d11ae81433be89e0aca7423d8d69b4f81762681b53d652f4451a3be2640b1",
+    "unadoptedPatchMatchesBindingFile": true,
+    "untrackedOriginalHeaderPreserved": true,
+    "candidateLogAndExistingApprovalDigest": "137543c6332a73f9a77599bfaca732bd1f54b263adee078fe5d3f8c275775906",
+    "candidateLogItemCount": 986
+  },
+  "evidence": [
+    {
+      "path": "isolated-history-index.log",
+      "observedResult": "PASS lines and normal end/cleanup marker",
+      "scope": "Darwin arm64: crypto=1/backend=1 with SQLite ON and OFF executes MEM77-X01; crypto OFF and backend OFF execute B03-C06 unsupported-generation/v1 checks",
+      "directIndexCases": "2048 reverse inserts, all hits, absent output preservation, sorted traversal, overwrite, normal close removal, node/value tamper, truncation, duplicate, disk budget and persistent poison",
+      "cleanup": "wrapper reports owned fixture removed=true",
+      "exitCode": "parent reports 0; raw log contains no explicit exit field"
+    },
+    {
+      "path": "linux-index.log",
+      "observedResult": "MEM77-X01 PASS lines",
+      "scope": "Linux aarch64 g++ 16.2.0 UID/GID 10001; standalone probe reuses HistoryIndex direct function",
+      "wholeProductRegression": false,
+      "exitCode": "parent reports 0; raw log contains no explicit exit field",
+      "outerContainerAndWorkspaceCleanup": "not independently verified"
+    }
+  ],
+  "manifestApplicationReview": {
+    "entrypoint": "scripts/internal/verify_v390_review4_feature_semantic_source_audit.mjs --apply-approved-manifest",
+    "guard": "all audit checks must pass before apply; existing approval envelope, exact 986 coverage/order, candidate and source-flow digests, current source trust bindings and semantic proofs are revalidated",
+    "approvalLedgerOrReviewerCreated": false,
+    "importantLimit": "apply regenerates semantic items as well as inventorySha256; it is not a hash-only setter",
+    "requiredReadback": "inspect the resulting diff for unchanged existing approvals/source-flow meaning and no promotion of MEM77-X01 or memory P0; any audit failure must remain blocking",
+    "notAnApprovalOf": ["experimental index integration", "77 implementation completion", "memory P0", "long-running validation", "release"]
+  },
+  "remainingBlockers": [
+    "Unadopted integration reuses snapshot_bytes as derived disk budget, narrowing previously valid input admission.",
+    "Experimental Create still requires directory ownership by current UID and write access; source-root compatibility is unresolved for product adoption.",
+    "Experimental destructor still discards Close failure; crash orphan and cleanup failure propagation are unresolved.",
+    "Product Open/projection/scratch and checkpoint snapshot still materialize historical data; Catalog/order/retired/source O(N) state remains.",
+    "Direct index cases do not establish full build/recovery/publication atomicity, original-authority completeness, end-to-end bounded RAM/RSS, or all required consumer regressions.",
+    "The direct traversal assertion checks ordered output and reported cache_bytes=0; it is not measured peak-RSS evidence."
+  ],
+  "preservationLimit": "Unadopted integration and original header are currently preserved locally under the supplied temporary work root; remote or durable Git preservation was not verified."
+}

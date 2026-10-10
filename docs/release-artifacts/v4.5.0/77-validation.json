@@ -1,0 +1,306 @@
+{
+  "schema": "media-server.v450-memory77-validation.v1",
+  "status": "PARTIAL_EXPERIMENT_NOT_ADOPTED_MEMORY_P0_BLOCKED",
+  "base": "b144e300b06a84e99b1660242c6a944470662d55",
+  "productSource": "76 product unchanged; src/include equal base",
+  "models": {
+    "main": {
+      "requestedModel": "gpt-6-astra",
+      "requestedEffort": "high",
+      "toolAccepted": null,
+      "runtimeModel": null,
+      "runtimeEffort": null
+    },
+    "independent": {
+      "agent": "/root/independent_memory77",
+      "requestedModel": "gpt-6-astra",
+      "requestedEffort": "high",
+      "toolAcceptedModel": "gpt-6-astra",
+      "toolAcceptedEffort": "high",
+      "runtimeModel": null,
+      "runtimeEffort": null
+    }
+  },
+  "implementation": {
+    "experiment": "authenticated disk AVL; process root hash, 512-byte nodes, 256-byte key, depth96, cache0; explicit direct-test only",
+    "adoption": false,
+    "productChangesRetained": 0,
+    "unadoptedIntegration": "77-execution.tar.gz:unadopted-journal-integration.patch plus unadopted-history-index.h",
+    "reason": "snapshot_bytes reused as derived disk budget changes valid admission; source-root write/UID requirement and cleanup error propagation unresolved; other O(N) owners unchanged",
+    "authority": "Existing manifest/shard/archive/active bytes remain authoritative; experimental hash root does not prove source rebuild completeness"
+  },
+  "executions": {
+    "initialIndex": {
+      "exit": 0,
+      "log": "history-index-first.log",
+      "status": "development experiment; not final frozen source"
+    },
+    "partialJournalResidency": {
+      "exit": 0,
+      "log": "journal-first.log",
+      "status": "unadopted intermediate integration; not memory comparison"
+    },
+    "partialJournalAll": {
+      "exit": 1,
+      "log": "checkpoint-all-first.log",
+      "firstFailure": "backend=0 compilation: RecordingJournalGenerationState has no chain at Healthy call",
+      "subsequent": "guard edited then unadopted integration preserved; no successful post-guard full integration rerun claimed"
+    },
+    "isolatedMac": {
+      "exit": 0,
+      "log": "isolated-history-index.log",
+      "scope": "MEM77-X01 with crypto/backend ON, SQLite ON/OFF; other2 configs B03-C06 unsupported/v1 checks",
+      "source": "isolated-source-freeze.json",
+      "indexPassLines": 30
+    },
+    "isolatedLinux": {
+      "exit": 0,
+      "log": "linux-index.log",
+      "image": "mediaserver-v450-verify:rc58-arm64",
+      "imageId": "sha256:ce72c8a15363984da642e9964189957896812061c6af1d0ef67e87b38ad5a588",
+      "uid": 10001,
+      "network": "none",
+      "capabilities": "ALL dropped",
+      "readOnlyRoot": true,
+      "noNewPrivileges": true,
+      "scope": "standalone exact HistoryIndex function extracted from final smoke into preserved probe; not whole product build/regression",
+      "indexPassLines": 15
+    }
+  },
+  "notRun": [
+    "128/512/2048 before-after memory comparison",
+    "heap/RSS/footprint/latency improvement measurement",
+    "bounded Open/checkpoint implementation verification",
+    "B fixed-history request lifecycle",
+    "C retained evidence/A cost separation",
+    "product macOS/Linux new candidate regression",
+    "mixed120"
+  ],
+  "remainingON": [
+    "Journal identities/chain.first_acceptances and order in adopted product",
+    "Catalog mutation/accepted-state/ordinal/order/retired/source maps",
+    "Open whole snapshot/chain/projection/scratch",
+    "checkpoint chain/orders/rows/sort/serialized string",
+    "archive descriptors/name sets"
+  ],
+  "acceptanceGate": "No integrated history control, memory comparison or complete review: 120min not authorized by prerequisites",
+  "priorEvidence": "76 partial fix and measurements retained; 59/61/63/65/68/72-74 remain at original sources/environments, not rerun",
+  "approval": {
+    "candidateComparison": "77-execution.tar.gz:candidate-comparison.json",
+    "newProductApproval": false,
+    "migrationProducer": "not-run; no new independently approved product candidate",
+    "existingManifestApply": {
+      "command": "node scripts/internal/verify_v390_review4_feature_semantic_source_audit.mjs --apply-approved-manifest",
+      "exit": 0,
+      "changedTopKeys": [
+        "inventorySha256"
+      ],
+      "oldInventorySha256": "92e99fedba53f34a2630ce0fea6fd8aec1c3122353029374ed9f185ed93fdbb3",
+      "newInventorySha256": "f81ff79fc04e6bc2b26dec5ef8b05280c7c9e1cd39f4f8dfd67c3417f5bde3ef",
+      "currentInventorySha256": "f81ff79fc04e6bc2b26dec5ef8b05280c7c9e1cd39f4f8dfd67c3417f5bde3ef",
+      "itemsUnchanged": true,
+      "candidateDigest": "137543c6332a73f9a77599bfaca732bd1f54b263adee078fe5d3f8c275775906",
+      "approvalLedgerUnchanged": true,
+      "serialization": "existing writer compact JSON replaces pretty layout; no manual hash edits",
+      "newProductApproval": false
+    },
+    "inventory76Residual": "resolved: existing guarded apply exit0, independent semantic readback, coverage9PASS/0FAIL"
+  },
+  "independentReview": "77-independent-review.json",
+  "memoryP0": "BLOCKED",
+  "ownerRiskAcceptance": "not-granted",
+  "releaseAdoption": "not-performed",
+  "qwenOllamaCalls": 0,
+  "unloadGate": "not-run",
+  "cleanup": {
+    "ownedMacFixtures": "all3 initial wrapper logs and isolated wrapper log report removed=true",
+    "ownedLinuxContainer": "docker ps -a filter mediaserver-memory77-index returned no entries",
+    "ownedLinuxOutput": "removed after archive member byte verification",
+    "modelsSdkImages": "unchanged",
+    "productServersStarted": 0,
+    "portsOpened": 0,
+    "temporaryRoot": "/private/tmp/media-server-memory77-qd9yrbdi",
+    "temporaryRootRemoved": true,
+    "pointerRemoved": true
+  },
+  "checkpointCommit": "b968c3a7918decfe56b51cfdd5efec50bacb300d",
+  "static": {
+    "registration": {
+      "exit": 0
+    },
+    "scriptInventoryStaged": {
+      "exit": 0
+    },
+    "coverageBefore": {
+      "exit": 1,
+      "reason": "inventorySha256 drift retained"
+    },
+    "coverageAfter": {
+      "exit": 0
+    },
+    "docsLinks": {
+      "exit": 0
+    },
+    "diffCheck": {
+      "exit": 0
+    }
+  },
+  "preservation": {
+    "archive": "77-execution.tar.gz",
+    "bytes": 986240,
+    "sha256": "fcac37426a3aa0cdf4f417299845593427aceb020c745533ec2294a2975a61ff",
+    "members": [
+      {
+        "path": "apply-approved-manifest.log",
+        "bytes": 12812,
+        "sha256": "d044f8ac77f4e3e0a7ee0672c9d63381151b9f522393a0aa536f910913ef258f"
+      },
+      {
+        "path": "candidate-comparison.json",
+        "bytes": 418,
+        "sha256": "cef4ff48e3ca06ad909140eb8d11d90301fcf2fadeb9e92905374828a72b4285"
+      },
+      {
+        "path": "candidate.json",
+        "bytes": 7709050,
+        "sha256": "5c6281009cc9bd804ff79538ce88ff13e4dc4af051001348095119d32540d6df"
+      },
+      {
+        "path": "candidate.log",
+        "bytes": 189,
+        "sha256": "248fb386602eb6d17d10ba2047b60d9c3e3fb98cc77d2c9c68ef7c0d3e7863b5"
+      },
+      {
+        "path": "checkpoint-all-first.log",
+        "bytes": 20705,
+        "sha256": "6e691ce3f3b3d23f08e8d14cccd631f82bf43b9479172f795b14f7321162b472"
+      },
+      {
+        "path": "cleanup-after.json",
+        "bytes": 304,
+        "sha256": "8d4858e0092573bb92ecd278b5d3204654a180382ab7804e8f6b3be3424bfa6d"
+      },
+      {
+        "path": "cleanup-before.json",
+        "bytes": 511,
+        "sha256": "21a9b0702b2f8860287dcdfc617cb6e6eda0cb4df2ef9001047e7e5f6be4ad27"
+      },
+      {
+        "path": "coverage-after.log",
+        "bytes": 604,
+        "sha256": "f3dd9d2ec3cd35ce7a806a391b6918dddd2c2377ca3039afa624f484985f9bce"
+      },
+      {
+        "path": "coverage-before.log",
+        "bytes": 671,
+        "sha256": "0fa7a7f4fbb474633bc8276dc6123c760f07b9c1907244a9e9f251445dfe2c7a"
+      },
+      {
+        "path": "diff-check.log",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "docs-links.log",
+        "bytes": 186,
+        "sha256": "89655c1ae2e02b7152650178966544cd9a928b9e286ebe789bb67ab239613851"
+      },
+      {
+        "path": "entry.json",
+        "bytes": 295,
+        "sha256": "4981bac3c39321e3b15ed84b948cc9229e4471117bf3b9935e5b13dc8e0e71dc"
+      },
+      {
+        "path": "execution-exits.json",
+        "bytes": 441,
+        "sha256": "df0a96c0be05e20d50cca5ce32c6a385874c806e0f91247033c6840c68ab6906"
+      },
+      {
+        "path": "history-index-first.log",
+        "bytes": 6807,
+        "sha256": "43f87ba3e119d77edad152f5c33df03b883702e715e9ec64e388d72de2a6b35a"
+      },
+      {
+        "path": "independent-readback.json",
+        "bytes": 3902,
+        "sha256": "e99ffdf86abd745f4611ed9fcc0ebc221b0ecb36dc5864b34cccdfe104b8b6b8"
+      },
+      {
+        "path": "independent-review.json",
+        "bytes": 4535,
+        "sha256": "2d02b222c5f67f4991a09083e1497038a17aec849d665709f120cdd432a2f69a"
+      },
+      {
+        "path": "isolated-history-index.log",
+        "bytes": 6957,
+        "sha256": "fc2e8fcae116c7dcf713d9aae17b43528bbf90b06ea94c0a671271c2a2aa6b7a"
+      },
+      {
+        "path": "isolated-source-freeze.json",
+        "bytes": 964,
+        "sha256": "4eaa555a9f3e86838404b9d3da98664eee20bb18ab620f4ac5f0eeddaf8afa68"
+      },
+      {
+        "path": "journal-first.log",
+        "bytes": 9825,
+        "sha256": "d82e847c331bbce53820aa68b605cc4bf16ae084e7afd214f584d773b829a6b4"
+      },
+      {
+        "path": "linux-index-probe.cpp",
+        "bytes": 3228,
+        "sha256": "3ef2a27478b0428b7c25145f5085f72e1bdb1d22c63f3f6d4bc9135c6287e420"
+      },
+      {
+        "path": "linux-index.log",
+        "bytes": 918,
+        "sha256": "69559243a1c9f9aa452e0005f6eae42406d96e191c50b9181b01e6ce85ba7d02"
+      },
+      {
+        "path": "manifest-readback.json",
+        "bytes": 740,
+        "sha256": "8baa70e1fb234a5003342b581a3091bb72d1909031eab27d8fcca3364dc1a849"
+      },
+      {
+        "path": "registration.log",
+        "bytes": 8857,
+        "sha256": "4dac13e095b117f3f147527ee7d9d282cdbc435e122c03638f2408ce155c3865"
+      },
+      {
+        "path": "script-inventory-staged.log",
+        "bytes": 941,
+        "sha256": "92e692a3173f517ac5430005d1cf361195ac0dad7e505a2ffaddc893da6cdecf"
+      },
+      {
+        "path": "script-inventory.log",
+        "bytes": 941,
+        "sha256": "92e692a3173f517ac5430005d1cf361195ac0dad7e505a2ffaddc893da6cdecf"
+      },
+      {
+        "path": "unadopted-binding.json",
+        "bytes": 535,
+        "sha256": "ad6c7aab3ad6d6b7b5016ec21a99eff0c0846c5bad772dc6a0a72842b1b66566"
+      },
+      {
+        "path": "unadopted-history-index.h",
+        "bytes": 14036,
+        "sha256": "3e3fd9650280b6d19e77a2629e1966e912ca20ded4b5162945a6770d3fa33ee0"
+      },
+      {
+        "path": "unadopted-journal-integration.patch",
+        "bytes": 28240,
+        "sha256": "b59d11ae81433be89e0aca7423d8d69b4f81762681b53d652f4451a3be2640b1"
+      }
+    ],
+    "memberByteReadback": true,
+    "sourceFreezeMismatches": []
+  },
+  "independentReadback": "77-execution.tar.gz:independent-readback.json",
+  "independentFinalReadback": {
+    "source": "/root/independent_memory77 final tool message after reading final validation/archive",
+    "verdict": "보존 체크포인트의 잔여 차단 없음; 제품 통합/전체 구현 미승인, memory P0 BLOCKED",
+    "coverage": "9 PASS/0 FAIL and actual exit records read",
+    "archive": "28 members, byte comparison/source mismatch0/cleanup receipts read",
+    "newLongrunExecutions": 0,
+    "notClaimed": "reviewer independently executed tests or observed runtime cleanup live"
+  }
+}
