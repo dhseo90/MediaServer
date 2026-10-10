@@ -401,6 +401,42 @@ bool ParseRecordingRetiredV2Receipt(const std::string& bytes,RecordingRetiredV2R
     *output=std::move(value);if(error)error->clear();return true;
 }
 
+bool VisitRecordingCatalogSnapshot(const std::filesystem::path& root,const RecordingGenerationFile& file,
+    std::uint64_t admission,RecordingCatalogSnapshot* output,const RecordingCatalogSnapshotRowVisitor& visitor,std::string* error){
+    if(!output||!admission||file.size>admission||file.size>kRecordingCatalogSnapshotMaxBytes||!file.size)
+        return Fail(error,"snapshot stream admission invalid");
+    RecordingCatalogSnapshot header;std::string pending,previous_kind,previous_key;bool first=true,has_previous=false;
+    const auto chunks=[&](std::string_view bytes,std::string* detail){
+        while(!bytes.empty()){
+            const auto newline=bytes.find('\n');const auto n=newline==std::string_view::npos?bytes.size():newline+1;
+            if(n>kRecordingCatalogSnapshotMaxBytes-pending.size())return Fail(detail,"snapshot row admission exceeded");
+            pending.append(bytes.data(),n);bytes.remove_prefix(n);
+            if(newline==std::string_view::npos)continue;
+            if(first){if(!ParseHeader(pending,&header,detail))return false;first=false;}
+            else {
+                RecordingCatalogSnapshotRow row;
+                if(!ParseRow(pending,&row,detail)||(has_previous&&std::tie(previous_kind,previous_key)>=std::tie(row.kind,row.key)))
+                    return Fail(detail,"snapshot stream row noncanonical/duplicate/unsorted");
+                previous_kind=row.kind;previous_key=row.key;has_previous=true;
+                if(visitor&&!visitor(row,detail))return false;
+            }
+            pending.clear();
+        }
+        return true;
+    };
+    if(!VisitVerifiedRecordingGenerationImmutable(root,file,admission,chunks,error))return false;
+    if(first||!pending.empty())return Fail(error,"snapshot stream incomplete header/row");
+    *output=std::move(header);return true;
+}
+bool SerializeRecordingCatalogSnapshotHeader(const RecordingCatalogSnapshot& value,std::string* output,std::string* error){
+    if(!output||!HeaderValid(value,error))return Fail(error,"snapshot output/header invalid");
+    *output=HeaderJson(value);return true;
+}
+bool SerializeRecordingCatalogSnapshotRow(const RecordingCatalogSnapshotRow& row,std::string* output,std::string* error){
+    if(!output||!RowValid(row,error))return false;
+    *output=RowJson(row);return true;
+}
+bool RecordingSnapshotRequiresAcceptedState(RecordingMutationType type){return RequiresAcceptedState(type);}
 bool SerializeRecordingCatalogSnapshot(const RecordingCatalogSnapshot& value, std::string* output, std::string* error) {
     if (!output || !HeaderValid(value, error)) return Fail(error, "snapshot output/header invalid");
     std::string bytes = HeaderJson(value);
@@ -458,12 +494,14 @@ bool ValidateRecordingCatalogSnapshotAcceptedStates(const RecordingCatalogSnapsh
     if ((chain.physical_rows == 0) != !chain.maximum_global_ordinal.has_value() ||
         (chain.maximum_global_ordinal && *chain.maximum_global_ordinal >= value.cut_ordinal))
         return Fail(error, "snapshot identity physical ordinal/cut mismatch");
-    std::map<std::string, const RecordingIdentityFirstAcceptance*> first;
-    std::size_t required = 0;
-    for (const auto& entry : chain.first_acceptances) {
-        if (!first.emplace(entry.mutation_id, &entry).second) return Fail(error, "chain first ID duplicate");
-        if (RequiresAcceptedState(entry.first_row.type)) ++required;
-    }
+    std::map<std::string,const RecordingIdentityFirstAcceptance*> dto_first;
+    if(!chain.history)for(const auto& entry:chain.first_acceptances)
+        if(!dto_first.emplace(entry.mutation_id,&entry).second)return Fail(error,"chain first ID duplicate");
+    std::size_t required=0;
+    if(!VisitRecordingIdentityFirst(chain,[&](const auto& entry,std::string*){
+        if(RequiresAcceptedState(entry.first_row.type))++required;
+        return true;
+    },error))return false;
     for (const auto& row : value.rows) {
         if (row.kind != "accepted-state") continue;
         Document document;
@@ -472,10 +510,12 @@ bool ValidateRecordingCatalogSnapshotAcceptedStates(const RecordingCatalogSnapsh
             !Number(document, "globalOrdinal", &ordinal)) return Fail(error, "accepted-state fields invalid");
         const auto id = ingress::StrictJsonStringField(document, "mutationId");
         const auto type = ingress::StrictJsonStringField(document, "type");
-        const auto found = first.find(row.key);
-        if (!id || !type || *id != row.key || found == first.end() || ordinal >= value.cut_ordinal)
+        std::optional<RecordingIdentityFirstAcceptance> found;
+        if(chain.history){if(!FindRecordingIdentityFirst(chain,row.key,&found,error))return false;}
+        else {const auto entry=dto_first.find(row.key);if(entry!=dto_first.end())found=*entry->second;}
+        if (!id || !type || *id != row.key || !found || ordinal >= value.cut_ordinal)
             return Fail(error, "accepted-state ID/cut mismatch");
-        const auto& entry = *found->second;
+        const auto& entry = *found;
         if (!RequiresAcceptedState(entry.first_row.type) ||
             entry.mutation_id != entry.first_row.mutation_id || !entry.occurrences ||
             ordinal != entry.first_global_ordinal || ordinal != entry.first_row.global_ordinal ||

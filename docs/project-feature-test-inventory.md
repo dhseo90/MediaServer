@@ -4830,3 +4830,13 @@ node/value 변조·절단·중복·시험 disk 예산 초과의 오류/poison과
 검증한다. 손상된 hit/miss와 불완전 구축은 Absent가 아닌 오류여야 한다. 정상 조회의 역사
 identity 복사본 제거만 이번 경계이며 Catalog/Open/checkpoint 전체 RAM·P0 완료는 별도다.
 단기 검증과 128/512/2048 비교만 수행하며 장시간/acceptance/UI 실행은 이 항목에 포함하지 않는다.
+
+### MEM79-G01 — 완료 이력 및 generation 스트리밍 소비 경계
+
+내부 기능이며 UI action은 없다. `verify_recording_generation_checkpoint.sh all`의 실제
+Open→조회/append→checkpoint→Finish→재Open 경로와 기존 transaction/projection 회귀를
+사용한다. 정상 입력의 기존 bytes/hash, 과거 ID·order 충돌·삭제 후 재등장 거부, 손상/부분
+입력·쓰기/Close 실패의 미게시·정리를 확인한다. 메모리는 78을 새 before로 실행한
+128/512/2048 순환 비교에서 논리 이력과 상주 항목, scratch 및 중첩 작업량을 분리한다.
+정상/Open/checkpoint의 O(전체 이력) RAM이 남으면 이 기능의 구조적 완료는 미충족이다.
+안정화 직접 범위이며 일반30분/120분·UI 증거를 대신하지 않는다. 이번120분은 미실행한다.

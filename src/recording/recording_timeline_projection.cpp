@@ -260,16 +260,17 @@ bool RecordingCatalog::SnapshotTimelineWithContext(const RecordingTimelineQuery&
         }
         // 삭제 이력도 기존 공개 timeline 구성원이다. 영수증을 가짜 segment로 투영하지 않고
         // 한 건씩 검증된 원문을 재획득해 기존 mapping/ID/미배치 판정을 그대로 사용한다.
-        for(const auto& entry:retired_v2_){const auto& receipt=entry.second;if(receipt.channel_id!=query.channel_id)continue;
+        if(!VisitRetiredLocked([&](const std::string& id,const RecordingRetiredV2Receipt& receipt,std::string*){if(receipt.channel_id!=query.channel_id)return true;
             // 이벤트는 아래의 현재 job/output 경로에서 원본 바인딩까지 strict 검증한다.
             // 검색이 소비하지 않는 continuous 삭제 이력의 재획득/행 생성만 생략한다.
-            if(event_candidates_only&&receipt.retention_class==RecordingRetentionClass::Continuous)continue;
-            if(receipt.retention_class!=RecordingRetentionClass::Continuous&&owned_outputs.count(entry.first))continue;
-            RecordingSegmentV2 segment;if(!AcquireOriginalV2Locked(entry.first,&segment,error))throw std::runtime_error("timeline-retired-unavailable");
-            if(segment.retention_class==RecordingRetentionClass::Continuous){collector.Source(segment,RecordingLifecycle::Deleted);continue;}
-            auto row=Base(segment,RecordingLifecycle::Deleted);row.item_id="orphan-event:"+Key(entry.first);
+            if(event_candidates_only&&receipt.retention_class==RecordingRetentionClass::Continuous)return true;
+            if(receipt.retention_class!=RecordingRetentionClass::Continuous&&owned_outputs.count(id))return true;
+            RecordingSegmentV2 segment;if(!AcquireOriginalV2Locked(id,&segment,error))throw std::runtime_error("timeline-retired-unavailable");
+            if(segment.retention_class==RecordingRetentionClass::Continuous){collector.Source(segment,RecordingLifecycle::Deleted);return true;}
+            auto row=Base(segment,RecordingLifecycle::Deleted);row.item_id="orphan-event:"+Key(id);
             row.completeness="unknown";row.unavailable_reason="output-binding-unavailable";collector.Add(std::move(row));
-        }
+            return true;
+        },error))throw std::runtime_error("timeline-retired-history-unavailable");
         for(const auto& entry:derived_jobs_){if(!entry.second)throw std::runtime_error("timeline-job-unavailable");if(entry.second.channel!=query.channel_id)continue;
             DerivedJobHandle owned;if(!AcquireJobForReadLocked(entry.first,&owned,context,error)||!owned)throw std::runtime_error("timeline-job-unavailable");const auto& job=*owned;
             if(!job.ready||job.ready->outputs.empty()){collector.Reference(job.intent.reference,&job);continue;}
@@ -277,7 +278,7 @@ bool RecordingCatalog::SnapshotTimelineWithContext(const RecordingTimelineQuery&
                 if(i>=job.intent.sources.size())throw std::runtime_error("timeline-job-invalid");
                 const auto& output=job.ready->outputs[i].segment;const auto current=segments_v2_.find(output.segment_id);
                 bool same=current!=segments_v2_.end()&&SerializeRecordingSegmentV2(current->second)==SerializeRecordingSegmentV2(output);
-                if(retired_v2_.count(output.segment_id)) {
+                if(RetiredLocked(output.segment_id)) {
                     RecordingSegmentV2 original;if(!AcquireOriginalV2Locked(output.segment_id,&original,error))throw std::runtime_error("timeline-retired-output-unavailable");
                     same=SerializeRecordingSegmentV2(original)==SerializeRecordingSegmentV2(output);
                 }

@@ -3,6 +3,7 @@
 #include "recording/recording_journal.h"
 
 #include <cerrno>
+#include <charconv>
 #include <algorithm>
 #include <cstring>
 #include <fstream>
@@ -18,6 +19,7 @@
 
 #include "domain/strict_json.h"
 #include "recording/recording_contracts.h"
+#include "recording/recording_order_history_snapshot.h"
 #include "recording_checkpoint_validation.h"
 #ifndef MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND
 #define MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND 0
@@ -27,6 +29,8 @@
 #include "recording/recording_generation_cold_mutation.h"
 #include "recording/recording_generation_recovery_session.h"
 #include "recording/recording_catalog_generation_projection.h"
+#include "recording_history_index.h"
+#include "recording_catalog_history.h"
 #include "recording/recording_generation_files.h"
 #include "recording/recording_cutover_input.h"
 #include "recording/recording_generation_transaction.h"
@@ -552,29 +556,167 @@ bool DerivedCommittedSegments(const std::string& json,std::vector<RecordingSegme
     }
     return append(raw.substr(start,raw.size()-start-1))&&!segments->empty();
 }
+#if MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND && MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
+class GenerationArchiveIndex {
+    RecordingHistoryIndex index_;
+    static std::string Value(const RecordingGenerationFile& f){return std::to_string(f.size)+"\n"+f.sha256;}
+public:
+    bool Build(const std::vector<RecordingGenerationFile>& files,std::string* error){
+        if(!index_.Create(std::filesystem::canonical(std::filesystem::temp_directory_path()).string(),RecordingHistoryIndex::BytesForRows(files.size()),error))return false;
+        for(const auto& file:files)if(!index_.Put(file.name,Value(file),false,error))return false;
+        for(const auto& file:files){std::string value;if(index_.Get(file.name,&value,error)!=RecordingHistoryIndex::Lookup::Found||value!=Value(file))return Fail(error,"archive source coverage mismatch");}
+        return index_.usage().rows==files.size()||Fail(error,"archive source count mismatch");
+    }
+    bool Clone(GenerationArchiveIndex& source,std::size_t additional,std::string* error){
+        if(!index_.Create(std::filesystem::canonical(std::filesystem::temp_directory_path()).string(),RecordingHistoryIndex::BytesForRows(source.Size()+additional),error))return false;
+        return index_.CopyFrom(source.index_,error);
+    }
+    bool Add(const RecordingGenerationFile& file,std::size_t limit,std::string* error){
+        std::string value;const auto found=index_.Get(file.name,&value,error);
+        if(found==RecordingHistoryIndex::Lookup::Error)return false;
+        if(found!=RecordingHistoryIndex::Lookup::Absent||Size()>=limit)return Fail(error,"B checkpoint archive admission/collision rejected");
+        const auto prior=Size();
+        if(!index_.ReserveRows(prior+1,error)||!index_.Put(file.name,Value(file),false,error))return false;
+        return index_.Get(file.name,&value,error)==RecordingHistoryIndex::Lookup::Found&&value==Value(file)&&Size()==prior+1;
+
+    }
+    std::uint64_t Size()const{return index_.usage().rows;}
+    std::uint64_t Bytes(bool physical=false)const {const auto u=index_.usage();return physical?u.allocated_bytes:u.file_bytes;}
+    bool Healthy(std::string* error){return index_.Healthy(error);}
+    bool Finish(std::string* error){return index_.Close(error);}
+};
+#endif
 struct OrderHistoryIndex {
     std::unordered_map<std::string, RecordingOrderReservationV1> requests;
     std::unordered_map<std::string, std::int64_t> request_times;
     std::unordered_set<std::string> segments, ordinary_ids, legacy_segments;
     std::string bound_store;
     std::int64_t maximum = 0;
+#if MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND && MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
+    std::unique_ptr<RecordingHistoryIndex> disk;
+#endif
+    bool Lookup(const std::string& id,std::optional<RecordingOrderHistoryReservation>* value,std::string* error) const {
+        (void)error;
+#if MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND && MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
+        if(disk){
+            std::string bytes;const auto found=disk->Get("r/"+id,&bytes,error);
+            if(found==RecordingHistoryIndex::Lookup::Error)return false;
+            value->reset();if(found==RecordingHistoryIndex::Lookup::Absent)return true;
+            const auto end=bytes.find('\n');if(end==std::string::npos)return Fail(error,"order scratch time missing");
+            std::int64_t time=0;const auto parsed=std::from_chars(bytes.data(),bytes.data()+end,time);
+            RecordingOrderReservationV1 order;
+            if(parsed.ec!=std::errc{}||parsed.ptr!=bytes.data()+end||!ParseRecordingOrderReservationV1(bytes.substr(end+1),&order,error)||order.request_id!=id)
+                return Fail(error,"order scratch value invalid");
+            *value=RecordingOrderHistoryReservation{std::move(order),time};return true;
+        }
+#endif
+        const auto found=requests.find(id);value->reset();
+        if(found!=requests.end())*value=RecordingOrderHistoryReservation{found->second,request_times.at(id)};
+        return true;
+    }
+    bool Contains(const std::string& prefix,const std::string& id,const std::unordered_set<std::string>& memory,bool* found,std::string* error) const {
+#if MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND && MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
+        if(disk){std::string value;const auto result=disk->Get(prefix+id,&value,error);
+            if(result==RecordingHistoryIndex::Lookup::Error)return false;
+            *found=result==RecordingHistoryIndex::Lookup::Found;
+            return !*found||value=="1"||Fail(error,"order scratch set value invalid");}
+#else
+        (void)prefix;(void)error;
+#endif
+        *found=memory.count(id);return true;
+    }
+    bool InsertSet(const std::string& prefix,const std::string& id,std::unordered_set<std::string>& memory,std::string* error){
+#if MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND && MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
+        if(disk){bool found=false;if(!Contains(prefix,id,memory,&found,error))return false;
+            if(found)return true;
+            if(!disk->ReserveRows(disk->usage().rows+1,error)||!disk->Put(prefix+id,"1",false,error))return false;
+            return Contains(prefix,id,memory,&found,error)&&found;
+}
+#else
+        (void)prefix;(void)error;
+#endif
+        memory.insert(id);return true;
+    }
+    bool InsertOrder(const RecordingOrderReservationV1& value,std::int64_t time,std::string* error){
+        (void)error;
+#if MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND && MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
+        if(disk){
+            // All five IDs use the existing <=128-byte escape-free grammar; this DTO is < 1KiB.
+            const auto bytes=std::to_string(time)+"\n{\"schema\":\"media-server.recording-order.v1\",\"storeId\":\""+value.store_id+
+                "\",\"requestId\":\""+value.request_id+"\",\"segmentId\":\""+value.segment_id+"\",\"channelId\":\""+value.channel_id+
+                "\",\"sequence\":"+std::to_string(value.sequence)+"}";
+            return disk->ReserveRows(disk->usage().rows+1,error)&&disk->Put("r/"+value.request_id,bytes,false,error);
+        }
+#endif
+        requests.emplace(value.request_id,value);request_times.emplace(value.request_id,time);return true;
+    }
+    bool EnableDisk(std::string* error){
+#if MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND && MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
+        if(disk)return Fail(error,"order scratch already initialized");
+        disk=std::make_unique<RecordingHistoryIndex>();
+        const auto rows=requests.size()+segments.size()+ordinary_ids.size()+legacy_segments.size();
+        if(!disk->Create(std::filesystem::canonical(std::filesystem::temp_directory_path()).string(),RecordingHistoryIndex::BytesForRows(rows),error))return false;
+        for(const auto& entry:requests)if(!InsertOrder(entry.second,request_times.at(entry.first),error))return false;
+        for(const auto& id:segments)if(!disk->Put("s/"+id,"1",false,error))return false;
+        for(const auto& id:ordinary_ids)if(!disk->Put("o/"+id,"1",false,error))return false;
+        for(const auto& id:legacy_segments)if(!disk->Put("l/"+id,"1",false,error))return false;
+        for(const auto& entry:requests){std::optional<RecordingOrderHistoryReservation> value;
+            if(!Lookup(entry.first,&value,error)||!value||std::tie(value->order.schema,value->order.store_id,value->order.request_id,value->order.segment_id,value->order.channel_id,value->order.sequence)!=std::tie(entry.second.schema,entry.second.store_id,entry.second.request_id,entry.second.segment_id,entry.second.channel_id,entry.second.sequence)||value->occurred_at_ms!=request_times.at(entry.first))return Fail(error,"order scratch rebuild coverage mismatch");}
+        const auto verify=[&](const char* prefix,const auto& source){
+            for(const auto& key:source){bool found=false;if(!Contains(prefix,key,source,&found,error)||!found)return false;}return true;
+        };
+        if(!verify("s/",segments)||!verify("o/",ordinary_ids)||!verify("l/",legacy_segments)||disk->usage().rows!=rows)
+            return Fail(error,"order scratch row/namespace coverage mismatch");
+        decltype(requests){}.swap(requests);decltype(request_times){}.swap(request_times);
+        decltype(segments){}.swap(segments);decltype(ordinary_ids){}.swap(ordinary_ids);decltype(legacy_segments){}.swap(legacy_segments);
+        return true;
+#else
+        return Fail(error,"order scratch unsupported");
+#endif
+    }
+    std::uint64_t Bytes(bool allocated=false) const {
+#if MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND && MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
+        if(disk){const auto value=disk->usage();return allocated?value.allocated_bytes:value.file_bytes;}
+#else
+        (void)allocated;
+#endif
+        return 0;
+    }
+    bool Finish(std::string* error){
+#if MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND && MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
+        return !disk||disk->Close(error);
+#else
+        (void)error;return true;
+#endif
+    }
+    bool Healthy(std::string* error)const {
+#if MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND && MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
+        return !disk||disk->Healthy(error);
+#else
+        (void)error;return true;
+#endif
+    }
     // 검증과 작은 변경분 적용은 동일 분기를 공유한다. 검증 실패까지 인덱스는 불변이다.
     // apply=false는 읽기만 수행하며 성공 증명을 외부에 보관하지 않는다.
     bool Consume(const RecordingMutationV1& mutation, std::string* error, bool apply=true) {
         if (mutation.mutation_type != RecordingMutationType::RecordingOrderReserved) {
-            if (requests.count(mutation.mutation_id)) return Fail(error, "recording order mutation ID 충돌");
+            std::optional<RecordingOrderHistoryReservation> original;
+            if(!Lookup(mutation.mutation_id,&original,error))return false;
+            if (original) return Fail(error, "recording order mutation ID 충돌");
             if(mutation.mutation_type==RecordingMutationType::DerivedJobCommitted) {
                 std::vector<RecordingSegmentV2> outputs;
                 if(!DerivedCommittedSegments(mutation.payload_json,&outputs,error))return false;
                 std::unordered_set<std::string> output_ids;
                 for(const auto& s:outputs) {
-                    const auto order=requests.find(s.order_request_id);
-                    if(!output_ids.insert(s.segment_id).second||order==requests.end()||order->second.segment_id!=s.segment_id||
-                       order->second.store_id!=s.store_id||order->second.channel_id!=s.channel_id||order->second.sequence!=s.order_sequence)
+                    std::optional<RecordingOrderHistoryReservation> order;
+                    if(!Lookup(s.order_request_id,&order,error))return false;
+                    if(!output_ids.insert(s.segment_id).second||!order||order->order.segment_id!=s.segment_id||
+                       order->order.store_id!=s.store_id||order->order.channel_id!=s.channel_id||order->order.sequence!=s.order_sequence)
                         return Fail(error,"derived 중첩 output 예약 결박 거부");
                 }
             }
-            if (apply) ordinary_ids.insert(mutation.mutation_id);
+            if (apply&&!InsertSet("o/",mutation.mutation_id,ordinary_ids,error))return false;
+            bool reserved=false;if(!Contains("s/",mutation.entity_id,segments,&reserved,error))return false;
             if (apply && (mutation.mutation_type == RecordingMutationType::SegmentFinalized ||
                  mutation.mutation_type == RecordingMutationType::SegmentV2Finalized ||
                  mutation.mutation_type == RecordingMutationType::SegmentV2BoundFinalized ||
@@ -583,33 +725,34 @@ struct OrderHistoryIndex {
                  mutation.mutation_type == RecordingMutationType::CorruptionDetected ||
                  mutation.mutation_type == RecordingMutationType::DeletionRequested ||
                  mutation.mutation_type == RecordingMutationType::DeletionCompleted) &&
-                !segments.count(mutation.entity_id)) legacy_segments.insert(mutation.entity_id);
+                !reserved&&!InsertSet("l/",mutation.entity_id,legacy_segments,error))return false;
             return true;
         }
         RecordingOrderReservationV1 order;
         if (!ParseRecordingOrderReservationV1(mutation.payload_json, &order, error)) return false;
-        if (ordinary_ids.count(order.request_id) || legacy_segments.count(order.segment_id))
+        bool ordinary=false,legacy=false,reserved=false;
+        if(!Contains("o/",order.request_id,ordinary_ids,&ordinary,error)||!Contains("l/",order.segment_id,legacy_segments,&legacy,error)||
+           !Contains("s/",order.segment_id,segments,&reserved,error))return false;
+        if (ordinary || legacy)
             return Fail(error, "recording order 기존 ID 소급/재사용 거부");
         if (!bound_store.empty() && bound_store != order.store_id)
             return Fail(error, "recording order store 충돌");
-        const auto previous = requests.find(order.request_id);
-        if (previous != requests.end()) {
-            const auto& old = previous->second;
+        std::optional<RecordingOrderHistoryReservation> previous;
+        if(!Lookup(order.request_id,&previous,error))return false;
+        if (previous.has_value()) {
+            const auto& old = previous->order;
             if (old.store_id != order.store_id || old.segment_id != order.segment_id ||
                 old.channel_id != order.channel_id || old.sequence != order.sequence ||
-                request_times.at(order.request_id) != mutation.occurred_at_ms)
+                previous->occurred_at_ms != mutation.occurred_at_ms)
                 return Fail(error, "recording order 동일 요청 기록 충돌");
             return true;
         }
-        if (segments.count(order.segment_id) || order.sequence <= maximum)
+        if (reserved || order.sequence <= maximum)
             return Fail(error, "recording order segment/발급 순서 충돌");
         if(!apply)return true;
         bound_store = order.store_id;
         maximum = order.sequence;
-        segments.insert(order.segment_id);
-        request_times.emplace(order.request_id, mutation.occurred_at_ms);
-        const auto order_request_id = order.request_id;
-        requests.emplace(order_request_id, std::move(order));
+        if(!InsertSet("s/",order.segment_id,segments,error)||!InsertOrder(order,mutation.occurred_at_ms,error))return false;
         return true;
     }
 };
@@ -674,21 +817,43 @@ struct RecordingJournalGenerationState {
     RecordingIdentityChainResult chain;
     std::uint64_t scratch_peak_bytes{0},scratch_peak_allocated{0};
     RecordingCatalogGenerationProjection projection;
+    std::shared_ptr<RecordingCatalogHistoryRows> completed_history;
     // snapshot 이후 active를 소비한 Journal 전용 인덱스. Catalog 상태 전이 증명이 아니다.
     OrderHistoryIndex order;
     // active만 합성 identity를 캐시한다. historical은 검증된 chain의 최초 행에서 복원한다.
     // 필수 ID/최초 ordinal/entity/time/digest와 cold 위치는 그대로 보존한다.
     using Identity=GenerationIdentityIndex::Identity;
     GenerationIdentityIndex identities;
-    std::unordered_set<std::string> archive_names;
+#if MEDIA_SERVER_USE_OPENSSL
+    std::shared_ptr<GenerationArchiveIndex> archives;
+#endif
     std::shared_ptr<const char> link_epoch;
     bool recovery_started{false};
     std::shared_ptr<const char> recovery_epoch;
-    std::vector<std::pair<std::string,struct stat>> bindings;
     std::string manifest_bytes;
     struct stat manifest_binding{},active_binding{};
 #endif
 };
+void RecordingJournal::AccountGenerationScratchLocked(const std::shared_ptr<RecordingIdentityHistory>& candidate,
+    std::uint64_t bytes,std::uint64_t allocated) {
+#if MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND && !defined(_WIN32)
+    if(!generation_state_)return;
+    auto& state=*generation_state_;
+    const auto total=[&](bool physical){
+        auto value=RecordingIdentityHistoryBytes(state.chain.history,physical)+state.order.Bytes(physical);
+#if MEDIA_SERVER_USE_OPENSSL
+        if(state.archives)value+=state.archives->Bytes(physical);
+        if(state.completed_history)value+=state.completed_history->Bytes(physical);
+#endif
+        if(candidate!=state.chain.history)value+=RecordingIdentityHistoryBytes(candidate,physical);
+        return value+(physical?allocated:bytes);
+    };
+    state.scratch_peak_bytes=std::max(state.scratch_peak_bytes,total(false));
+    state.scratch_peak_allocated=std::max(state.scratch_peak_allocated,total(true));
+#else
+    (void)candidate;(void)bytes;(void)allocated;
+#endif
+}
 #if defined(MEDIA_SERVER_RECORDING_GENERATION_TESTING)
 void RecordingJournal::ProbeGenerationIdentityStorage(std::size_t* count,
     std::size_t* historical_bytes,std::size_t* active_bytes,std::size_t* order_copy_count) const {
@@ -722,15 +887,27 @@ struct RecordingJournal::ColdReadProof {
 struct RecordingGenerationCheckpointPlan::State {
 #if !defined(_WIN32)
     std::shared_ptr<const char> epoch;
-    std::string predecessor,identity_bytes;
+    std::string predecessor;
+    RecordingGenerationByteProducer identity_producer;
     struct stat active_binding{};
     GenerationIdentityIndex identities;
-    std::unordered_set<std::string> archives;
+#if MEDIA_SERVER_USE_OPENSSL
+    std::shared_ptr<GenerationArchiveIndex> archives;
+#endif
 #endif
 };
 RecordingGenerationCheckpointPlan::RecordingGenerationCheckpointPlan()=default;
 RecordingGenerationCheckpointPlan::~RecordingGenerationCheckpointPlan(){try{Finish(nullptr);}catch(...){}}
-bool RecordingGenerationCheckpointPlan::Finish(std::string* error){return CloseRecordingIdentityHistory(chain.history,error);}
+bool RecordingGenerationCheckpointPlan::Finish(std::string* error){
+    bool ok=CloseRecordingIdentityHistory(chain.history,error);
+#if MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
+    std::string detail;if(state&&state->archives&&!state->archives->Finish(&detail)){if(error)*error+="; archive cleanup: "+detail;ok=false;}
+#endif
+#if !defined(_WIN32)
+    if(state)state->identity_producer={};
+#endif
+    return ok;
+}
 #endif
 class RecordingJournalRecordRef {
     friend class RecordingJournal;
@@ -936,7 +1113,14 @@ bool RecordingJournal::Finish(std::string* error) {
     std::lock_guard lock(mu_);
     bool ok=true;std::string detail;
 #if MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND && !defined(_WIN32)
-    if(generation_state_&&!CloseRecordingIdentityHistory(generation_state_->chain.history,&detail))ok=false;
+    if(generation_state_){
+        if(!CloseRecordingIdentityHistory(generation_state_->chain.history,&detail))ok=false;
+#if MEDIA_SERVER_USE_OPENSSL
+        std::string catalog_error;if(generation_state_->completed_history&&!generation_state_->completed_history->Finish(&catalog_error)){detail+="; catalog cleanup: "+catalog_error;ok=false;}
+        std::string archive_error;if(generation_state_->archives&&!generation_state_->archives->Finish(&archive_error)){detail+="; archive cleanup: "+archive_error;ok=false;}
+#endif
+        std::string order_error;if(!generation_state_->order.Finish(&order_error)){ok=false;detail+="; order cleanup: "+order_error;}
+    }
 #endif
 #if !defined(_WIN32)
     if(managed_fd_>=0){const int fd=managed_fd_;managed_fd_=-1;if(::close(fd)){ok=false;detail+="; journal close failure";}}
@@ -966,16 +1150,31 @@ bool GenerationStatSame(const struct stat& a,const struct stat& b) {
 bool ValidateGenerationActiveIndex(RecordingJournalGenerationState* state,std::string* error) {
     // chain과 X projection이 이미 검증한 전체 tuple·최초 시각·namespace를 복원한다.
     // 과거 mutation 원문을 합성하거나 replay하지 않는다.
-    const auto& history=state->chain.order_history;
     auto& order=state->order;
-    order.bound_store=history.bound_store;order.maximum=history.maximum;
-    order.ordinary_ids.insert(history.ordinary_ids.begin(),history.ordinary_ids.end());
-    order.legacy_segments.insert(history.legacy_segments.begin(),history.legacy_segments.end());
-    for(const auto& entry:history.reservations) {
-        order.requests.emplace(entry.order.request_id,entry.order);
-        order.request_times.emplace(entry.order.request_id,entry.occurred_at_ms);
-        order.segments.insert(entry.order.segment_id);
-    }
+    if(!order.EnableDisk(error))return false;
+    if(!VisitRecordingIdentityFirst(state->chain,[&](const RecordingIdentityFirstAcceptance& first,std::string* detail){
+        const auto& row=first.first_row;
+        if(row.reservation){
+            order.bound_store=row.reservation->store_id;order.maximum=row.reservation->sequence;
+            if(!order.InsertSet("s/",row.entity_id,order.segments,detail)||!order.InsertOrder(*row.reservation,row.occurred_at_ms,detail))return false;
+            std::optional<RecordingOrderHistoryReservation> found;
+            return order.Lookup(row.mutation_id,&found,detail)&&found&&found->occurred_at_ms==row.occurred_at_ms&&
+                std::tie(found->order.store_id,found->order.request_id,found->order.segment_id,found->order.channel_id,found->order.sequence)==
+                std::tie(row.reservation->store_id,row.reservation->request_id,row.reservation->segment_id,row.reservation->channel_id,row.reservation->sequence);
+        }
+        if(!order.InsertSet("o/",row.mutation_id,order.ordinary_ids,detail))return false;
+        bool reserved=false;if(!order.Contains("s/",row.entity_id,order.segments,&reserved,detail))return false;
+        switch(row.type){
+            case RecordingMutationType::SegmentFinalized:case RecordingMutationType::SegmentV2Finalized:
+            case RecordingMutationType::SegmentV2BoundFinalized:case RecordingMutationType::SegmentV2State:
+            case RecordingMutationType::SegmentV2Deleted:case RecordingMutationType::CorruptionDetected:
+            case RecordingMutationType::DeletionRequested:case RecordingMutationType::DeletionCompleted:
+                if(!reserved&&!order.InsertSet("l/",row.entity_id,order.legacy_segments,detail))return false;
+                break;
+            default:break;
+        }
+        return true;
+    },error))return false;
     state->identities.SetHistory(state->chain.history);
     const auto cut=state->active.manifest.cut_ordinal;
     for(std::size_t i=0;i<state->active.rows.size();++i) {
@@ -1022,6 +1221,7 @@ bool RecordingJournal::OpenGenerationReadOnlyLocked(const std::string& store,std
        !limits.identity_archives||!limits.cold_row_bytes)return Fail(error,"B read-only admission 미설정");
     if(!managed_store_id_.empty()&&managed_store_id_!=store)return Fail(error,"B store ID 충돌");
     std::unique_ptr<RecordingJournalGenerationState> state;
+    RecordingHistoryIndex bindings;
     const bool success=[&](){
     try {
         OwnedFd parent(OpenParent(io_path_,false));struct stat p{},l{},m{};
@@ -1031,30 +1231,32 @@ bool RecordingJournal::OpenGenerationReadOnlyLocked(const std::string& store,std
            !Same(parent.value,kManagedLease,lease.value,l)||!ExactFile(parent.value,kManagedFormat,GenerationFormat(store),&m))
             return Fail(error,"B 독점 lease/marker 거부");
         state=std::make_unique<RecordingJournalGenerationState>();
-        const auto bind=[&](const std::string& name){struct stat s{};
-            if(!GenerationStat(parent.value,name,&s))return false;
-            state->bindings.emplace_back(name,s);return true;};
+        if(!bindings.Create(std::filesystem::canonical(std::filesystem::temp_directory_path()).string(),RecordingHistoryIndex::BytesForRows(0),error))return false;
+        const auto bind=[&](const std::string& name){struct stat status{};std::string observed;
+            if(!GenerationStat(parent.value,name,&status))return false;
+            const std::string bytes(reinterpret_cast<const char*>(&status),sizeof(status));
+            if(!bindings.ReserveRows(bindings.usage().rows+1,error)||!bindings.Put(name,bytes,false,error)||
+               bindings.Get(name,&observed,error)!=RecordingHistoryIndex::Lookup::Found||observed!=bytes)return false;
+            if(name==kGenerationManifest)state->manifest_binding=status;
+            return true;
+        };
         if(!bind(kGenerationManifest)||!bind(kManagedFormat))return Fail(error,"B header binding 거부");
         RecordingGenerationReadResult manifest;
         if(!ReadRecordingGenerationManifestForOpen(managed_root_,&manifest,error)||manifest.manifest.store_id!=store)return Fail(error,"B manifest/store 거부");
         if(!SerializeRecordingGenerationManifest(manifest.manifest,&state->manifest_bytes,error)||
            !bind(manifest.manifest.snapshot.name)||!bind(manifest.manifest.active.name))return Fail(error,"B component binding 거부");
-        std::string bytes;RecordingCatalogSnapshot snapshot;
-        if(!ReadVerifiedRecordingGenerationImmutable(managed_root_,manifest.manifest.snapshot,limits.snapshot_bytes,&bytes,error)||
-           !ParseRecordingCatalogSnapshot(bytes,limits.snapshot_bytes,&snapshot,error))return false;
-        const RecordingIdentityShardLoader loader=[&](const RecordingGenerationFile& descriptor,std::uint64_t admission,std::string* output,std::string* detail){
-            if(!bind(descriptor.name))return Fail(detail,"B identity binding 거부");
-            if(!ReadVerifiedRecordingGenerationImmutable(managed_root_,descriptor,admission,output,detail))return false;
-            RecordingIdentityShard shard;if(!ParseRecordingIdentityShard(*output,&shard,detail))return false;
-            for(const auto& file:shard.archives)state->archive_names.insert(file.name);
-            return true;
-        };
-        if(!ValidateRecordingIdentityShardChain(snapshot.identity_head,loader,
-              {limits.identity_shard_bytes,limits.identity_unique_ids,limits.identity_archives},&state->chain,error)||
-           !BuildRecordingCatalogGenerationProjection(managed_root_,manifest.manifest,state->chain,snapshot,
-              limits.cold_row_bytes,&state->projection,error,true)||
-           !BuildRecordingIdentityHistory(managed_root_,state->chain.first_acceptances,0,&state->chain.history,error)||
-           !ValidateRecordingIdentityHistoryCoverage(state->chain.history,state->chain.physical_rows,error)||
+        RecordingCatalogSnapshot snapshot;
+        if(!VisitRecordingCatalogSnapshot(managed_root_,manifest.manifest.snapshot,limits.snapshot_bytes,&snapshot,{},error))return false;
+        state->archives=std::make_shared<GenerationArchiveIndex>();
+        if(!state->archives->Build({},error))return false;
+        if(!ValidateRecordingIdentityShardChainStream(managed_root_,snapshot.identity_head,
+              {limits.identity_shard_bytes,limits.identity_unique_ids,limits.identity_archives},&state->chain,error,
+              [&](const RecordingGenerationFile& descriptor,std::string* detail){return bind(descriptor.name)||Fail(detail,"B identity binding 거부");},
+              [&](const RecordingGenerationFile& archive,std::string* detail){return state->archives->Add(archive,limits.identity_archives,detail);}))return false;
+        const bool projected=BuildRecordingCatalogGenerationProjectionStream(managed_root_,manifest.manifest,state->chain,snapshot,
+              limits.snapshot_bytes,limits.cold_row_bytes,&state->projection,error,true);
+        state->completed_history=state->projection.completed_history;
+        if(!projected||!ValidateRecordingIdentityHistoryCoverage(state->chain.history,state->chain.physical_rows,error)||
            !ReadRecordingGenerationActive(managed_root_,limits.active_bytes,&state->active,error)||
            !ValidateGenerationActiveIndex(state.get(),error))return false;
         std::string observed;
@@ -1062,15 +1264,18 @@ bool RecordingJournal::OpenGenerationReadOnlyLocked(const std::string& store,std
             return Fail(error,"B manifest 검증 도중 변경");
         OwnedFd active(::openat(parent.value,manifest.manifest.active.name.c_str(),O_RDONLY|O_NOFOLLOW|O_CLOEXEC|O_NONBLOCK));struct stat a{};
         if(active.value<0||!Regular(active.value,&a)||!Same(parent.value,manifest.manifest.active.name,active.value,a))return Fail(error,"B active FD 거부");
-        for(const auto& binding:state->bindings){struct stat current{};
-            if(!GenerationStat(parent.value,binding.first,&current)||!GenerationStatSame(binding.second,current))return Fail(error,"B 읽기 중 구성 교체");}
-        state->manifest_binding=state->bindings.front().second;state->active_binding=a;
+        if(!bindings.Visit([&](const std::string& name,const std::string& bytes,std::string* detail){struct stat current{},saved{};
+            if(bytes.size()!=sizeof(saved))return Fail(detail,"B binding scratch value");
+            std::memcpy(&saved,bytes.data(),sizeof(saved));
+            return (GenerationStat(parent.value,name,&current)&&GenerationStatSame(saved,current))||Fail(detail,"B 읽기 중 구성 교체");
+        },error))return false;
+        state->active_binding=a;
         state->active_path=managed_root_/manifest.manifest.active.name;
-        state->bindings.clear();
         // 검증 사본의 수명은 여기까지다. 주문 인덱스와 복구 projection은
         // 각자의 값을 소유하며 다음 checkpoint는 주문 인덱스에서 다시 구성한다.
-        state->scratch_peak_bytes=RecordingIdentityHistoryBytes(state->chain.history);
-        state->scratch_peak_allocated=RecordingIdentityHistoryBytes(state->chain.history,true);
+        state->scratch_peak_bytes=std::max(RecordingIdentityHistoryBytes(state->chain.history)+state->order.Bytes()+(state->completed_history?state->completed_history->Bytes():0),state->chain.stream_scratch_peak_bytes)+state->archives->Bytes()+bindings.usage().file_bytes;
+        state->scratch_peak_allocated=std::max(RecordingIdentityHistoryBytes(state->chain.history,true)+state->order.Bytes(true)+(state->completed_history?state->completed_history->Bytes(true):0),state->chain.stream_scratch_peak_allocated)+state->archives->Bytes(true)+bindings.usage().allocated_bytes;
+        if(!bindings.Close(error))return false;
         state->chain.order_history={};
         std::vector<RecordingIdentityFirstAcceptance>{}.swap(state->chain.first_acceptances);
         // active envelope와 ID/예약 인덱스만 검증됐다. Catalog 의미 적용/조회/쓰기는 금지한다.
@@ -1090,8 +1295,12 @@ bool RecordingJournal::OpenGenerationReadOnlyLocked(const std::string& store,std
         return Fail(error,"B read-only 준비/자원 실패");
     }
     }();
-    if(!success&&state){std::string cleanup;
-        if(!CloseRecordingIdentityHistory(state->chain.history,&cleanup)&&error)*error+="; cleanup: "+cleanup;}
+    if(!success){std::string cleanup;if(!bindings.Close(&cleanup)&&error)*error+="; binding cleanup: "+cleanup;}
+    if(!success&&state){std::string order_cleanup;if(!state->order.Finish(&order_cleanup)&&error)*error+="; order cleanup: "+order_cleanup;
+        std::string cleanup;
+        if(!CloseRecordingIdentityHistory(state->chain.history,&cleanup)&&error)*error+="; cleanup: "+cleanup;
+        if(state->archives&&!state->archives->Finish(&cleanup)&&error)*error+="; archive cleanup: "+cleanup;
+        if(state->completed_history&&!state->completed_history->Finish(&cleanup)&&error)*error+="; catalog cleanup: "+cleanup;}
     return success;
 #else
     (void)store;return Fail(error,"B read-only backend/crypto unsupported");
@@ -1140,8 +1349,9 @@ bool RecordingJournal::CheckManagedFdStateLocked(std::string* error) const {
     if(!managed_)return true;
 #if !defined(_WIN32)
     if(generation_state_){
-#if MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND
-        if(!poisoned_&&GenerationBindingLocked()&&RecordingIdentityHistoryHealthy(generation_state_->chain.history,error))return true;
+#if MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND && MEDIA_SERVER_USE_OPENSSL
+        if(!poisoned_&&GenerationBindingLocked()&&RecordingIdentityHistoryHealthy(generation_state_->chain.history,error)&&generation_state_->order.Healthy(error)&&generation_state_->archives&&generation_state_->archives->Healthy(error)&&
+           (!generation_state_->completed_history||generation_state_->completed_history->Healthy(error)))return true;
 #endif
         poisoned_=true;return Fail(error,"B read-only binding 변경: 재open 필요");
     }
@@ -1164,9 +1374,10 @@ bool RecordingJournal::ManagedOrderMatches(const RecordingOrderReservationV1& or
 #if MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND && !defined(_WIN32)
     if(generation_state_) {
         if(!CheckManagedStateLocked(error))return false;
-        const auto found=generation_state_->order.requests.find(order.request_id);
-        if(found==generation_state_->order.requests.end())return Fail(error,"B 예약 없음");
-        const auto& old=found->second;
+        std::optional<RecordingOrderHistoryReservation> found;
+        if(!generation_state_->order.Lookup(order.request_id,&found,error)){poisoned_=true;return false;}
+        if(!found)return Fail(error,"B 예약 없음");
+        const auto& old=found->order;
         return (old.store_id==order.store_id&&old.segment_id==order.segment_id&&old.channel_id==order.channel_id&&old.sequence==order.sequence)||Fail(error,"B 예약 tuple 불일치");
     }
 #endif
@@ -1679,6 +1890,76 @@ bool RecordingJournal::AttachGenerationCatalog(const void* owner,const std::file
     catalog_owner_=owner;return true;
 #else
     (void)owner;(void)media;(void)sqlite;(void)enable_v2;return Fail(error,"B 읽기 attachment unsupported");
+#endif
+}
+#if MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND && MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
+namespace {
+bool GenerationFirstMetadata(const RecordingJournalGenerationState& state,const std::string& id,
+    const GenerationIdentityIndex::Identity& indexed,RecordingIdentityFirstAcceptance* output,std::string* error) {
+    if(indexed.historical){if(!indexed.first)return Fail(error,"B first historical value missing");*output=*indexed.first;return true;}
+    const auto& active=state.active.rows.at(indexed.slot);const auto& mutation=active.mutation;
+    if(mutation.mutation_id!=id)return Fail(error,"B first active identity mismatch");
+    RecordingIdentityFirstAcceptance result;result.mutation_id=id;result.first_global_ordinal=active.global_ordinal;result.occurrences=1;
+    auto& row=result.first_row;row.mutation_id=id;row.type=mutation.mutation_type;row.entity_id=mutation.entity_id;
+    row.occurred_at_ms=mutation.occurred_at_ms;row.global_ordinal=active.global_ordinal;
+    // Reuse the digest verified at append/Open; metadata lookup must not reserialize the envelope.
+    const auto prefix=MutationIdentityKey(mutation.entity_id,mutation.occurred_at_ms,{});
+    if(indexed.digest.size()!=prefix.size()+64||indexed.digest.compare(0,prefix.size(),prefix)!=0)
+        return Fail(error,"B first active digest binding mismatch");
+    row.identity=indexed.digest.substr(prefix.size());
+    row.offset=active.offset;row.length=active.length;row.raw_sha256=active.raw_sha256;
+    if(mutation.mutation_type==RecordingMutationType::RecordingOrderReserved){RecordingOrderReservationV1 order;
+        if(!ParseRecordingOrderReservationV1(mutation.payload_json,&order,error))return false;
+        row.reservation=std::move(order);
+    }
+    // active_file records Open's prefix; it is deliberately not offered as a sealed
+    // archive capability after append. Only metadata and the original link API escape.
+    *output=std::move(result);return true;
+}
+}
+#endif
+bool RecordingJournal::FindGenerationFirst(const std::string& id,
+    std::optional<RecordingIdentityFirstAcceptance>* output,std::string* error) const {
+#if MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND && MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
+    if(owner_pid_!=::getpid()||!output)return Fail(error,"B first output/PID rejected");
+    std::lock_guard lock(mu_);
+    if(!generation_state_||!CheckManagedStateLocked(error))return false;
+    // An invalid public key cannot exist in the admitted original namespace. Do not
+    // pass it to the authenticated index and poison valid storage on user input.
+    if(!ValidateOpaqueId(id,nullptr)){output->reset();if(error)error->clear();return true;}
+    try {
+        const auto& state=*generation_state_;const auto found=state.identities.find(id);
+        if(found==state.identities.end()){output->reset();if(error)error->clear();return true;}
+        RecordingIdentityFirstAcceptance value;
+        if(!GenerationFirstMetadata(state,id,found->second,&value,error)){poisoned_=true;return false;}
+        *output=std::move(value);if(error)error->clear();return true;
+    }catch(...){poisoned_=true;return Fail(error,"B first lookup resource/history failure");}
+#else
+    (void)id;(void)output;return Fail(error,"B first unsupported");
+#endif
+}
+bool RecordingJournal::VisitGenerationFirst(
+    const std::function<bool(const RecordingIdentityFirstAcceptance&,std::string*)>& visit,std::string* error) const {
+#if MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND && MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
+    if(owner_pid_!=::getpid()||!visit)return Fail(error,"B first visitor/PID rejected");
+    std::lock_guard lock(mu_);
+    if(!generation_state_||!CheckManagedStateLocked(error))return false;
+    try {
+        const auto& state=*generation_state_;
+        if(!VisitRecordingIdentityHistory(state.chain.history,visit,error))return false;
+        for(std::size_t slot=0;slot<state.active.rows.size();++slot){
+            const auto& id=state.active.rows[slot].mutation.mutation_id;const auto found=state.identities.find(id);
+            if(found==state.identities.end()){poisoned_=true;return Fail(error,"B first active coverage missing");}
+            if(found->second.historical||found->second.slot!=slot)continue;
+            RecordingIdentityFirstAcceptance value;
+            if(!GenerationFirstMetadata(state,id,found->second,&value,error)){poisoned_=true;return false;}
+            if(!visit(value,error))return false;
+        }
+        if(error)error->clear();
+        return true;
+    }catch(...){poisoned_=true;return Fail(error,"B first cursor resource/history failure");}
+#else
+    (void)visit;return Fail(error,"B first unsupported");
 #endif
 }
 bool RecordingJournal::VisitGenerationIdentities(const std::shared_ptr<RecordingGenerationRecoverySession>& session,
@@ -2533,58 +2814,111 @@ bool RecordingJournal::PrepareGenerationCheckpoint(const void* owner,
         plan=std::shared_ptr<RecordingGenerationCheckpointPlan>(new RecordingGenerationCheckpointPlan);
         plan->state=std::make_unique<RecordingGenerationCheckpointPlan::State>();
         auto& pending=*plan->state;pending.epoch=current.recovery_epoch;pending.predecessor=current.manifest_bytes;
-        pending.active_binding=current.active_binding;pending.archives=current.archive_names;
+        pending.active_binding=current.active_binding;
+        pending.archives=std::make_shared<GenerationArchiveIndex>();
+        if(!current.archives||!pending.archives->Clone(*current.archives,1,error))return false;
         plan->generation=manifest.generation+1;plan->cut=manifest.cut_ordinal+current.active.rows.size();plan->chain=current.chain;plan->chain.history.reset();
-        RecordingIdentityShard shard;shard.store_id=managed_store_id_;shard.generation=plan->generation;shard.previous=current.chain.head;
         std::unique_ptr<EVP_MD_CTX,decltype(&EVP_MD_CTX_free)> hash(EVP_MD_CTX_new(),EVP_MD_CTX_free);
         if(!hash||EVP_DigestInit_ex(hash.get(),EVP_sha256(),nullptr)!=1)return Fail(error,"B checkpoint digest 초기화 실패");
         std::uint64_t offset=0;
         for(const auto& active:current.active.rows) {
-            if(active.offset!=offset||active.length>generation_limits_.cold_row_bytes)return Fail(error,"B checkpoint physical range/admission 거부");
+            if(active.offset!=offset||!active.length||active.length>generation_limits_.cold_row_bytes||
+               active.offset>static_cast<std::uint64_t>(current.active_binding.st_size)||
+               active.length>static_cast<std::uint64_t>(current.active_binding.st_size)-active.offset)
+                return Fail(error,"B checkpoint physical range/admission 거부");
             std::string raw(static_cast<std::size_t>(active.length),'\0');
-            if(raw.empty()||!ReadAt(managed_fd_,active.offset,&raw)||RawHash(raw)!=active.raw_sha256||raw.back()!='\n'||
+            if(!ReadAt(managed_fd_,active.offset,&raw)||RawHash(raw)!=active.raw_sha256||raw.back()!='\n'||
                EVP_DigestUpdate(hash.get(),raw.data(),raw.size())!=1){poisoned_=true;return Fail(error,"B checkpoint active 원문 손상");}
-            offset+=active.length;const auto& m=active.mutation;
-            RecordingIdentityRow row;row.mutation_id=m.mutation_id;row.type=m.mutation_type;row.entity_id=m.entity_id;
-            row.occurred_at_ms=m.occurred_at_ms;row.global_ordinal=active.global_ordinal;row.identity=EnvelopeIdentity(m);
-            row.offset=active.offset;row.length=active.length;row.raw_sha256=active.raw_sha256;
-            if(m.mutation_type==RecordingMutationType::RecordingOrderReserved){RecordingOrderReservationV1 order;
-                if(!ParseRecordingOrderReservationV1(m.payload_json,&order,error))return false;
-                row.reservation=std::move(order);}
-            shard.rows.push_back(std::move(row));
+            offset+=active.length;
         }
         if(offset!=static_cast<std::uint64_t>(current.active_binding.st_size)||!CheckManagedStateLocked(error))return Fail(error,"B checkpoint active 최종 결박 실패");
         unsigned char digest[32];unsigned length=0;std::string sha;
         if(EVP_DigestFinal_ex(hash.get(),digest,&length)!=1||length!=32)return Fail(error,"B checkpoint digest 실패");
         constexpr char hex[]="0123456789abcdef";for(auto byte:digest){sha+=hex[byte>>4];sha+=hex[byte&15];}
         const RecordingGenerationFile archive{manifest.active.name,offset,sha};
-        if(!shard.rows.empty()){
-            if(!pending.archives.insert(archive.name).second||pending.archives.size()>generation_limits_.identity_archives)return Fail(error,"B checkpoint archive admission 거부");
-            shard.archives.push_back(archive);
-        }
-        if(!SerializeRecordingIdentityShard(shard,&pending.identity_bytes,error)||pending.identity_bytes.size()>generation_limits_.identity_shard_bytes)return Fail(error,"B checkpoint shard admission 거부");
-        plan->chain.head={"identity-"+std::to_string(plan->generation)+".jsonl",pending.identity_bytes.size(),RawHash(pending.identity_bytes)};
-        if(plan->chain.shards==UINT64_MAX||shard.rows.size()>UINT64_MAX-plan->chain.physical_rows)return Fail(error,"B checkpoint count overflow");
-        ++plan->chain.shards;plan->chain.physical_rows+=shard.rows.size();
-        for(const auto& file:shard.archives)plan->chain.archive_files.push_back(file);
-        std::sort(plan->chain.archive_files.begin(),plan->chain.archive_files.end(),[](const auto& a,const auto& b){return a.name<b.name;});
-        if(!CloneRecordingIdentityHistory(current.chain.history,managed_root_,shard.rows.size(),&plan->chain.history,error))return false;
-        for(const auto& row:shard.rows) {
-            const auto& archive=shard.archives.at(row.archive_slot);
-            if(!AppendRecordingIdentityHistory(plan->chain.history,row,archive,error))return false;
-            plan->chain.maximum_global_ordinal=row.global_ordinal;
-        }
-        if(!ValidateRecordingIdentityHistoryCoverage(plan->chain.history,plan->chain.physical_rows,error))return false;
-        current.scratch_peak_bytes=std::max(current.scratch_peak_bytes,RecordingIdentityHistoryBytes(current.chain.history)+RecordingIdentityHistoryBytes(plan->chain.history));
-        current.scratch_peak_allocated=std::max(current.scratch_peak_allocated,RecordingIdentityHistoryBytes(current.chain.history,true)+RecordingIdentityHistoryBytes(plan->chain.history,true));
-        // 기존 snapshot exporter와의 임시 경계. streaming export 전까지 전체 DTO는 남는다.
-        if(!VisitRecordingIdentityHistory(plan->chain.history,[&](const auto& first,std::string*){
-            plan->chain.first_acceptances.push_back(first);return true;
-        },error))return false;
-        auto& orders=plan->chain.order_history;orders={};orders.bound_store=current.order.bound_store;orders.maximum=current.order.maximum;
-        for(const auto& item:current.order.requests)orders.reservations.push_back({item.second,current.order.request_times.at(item.first)});
-        orders.ordinary_ids.assign(current.order.ordinary_ids.begin(),current.order.ordinary_ids.end());
-        orders.legacy_segments.assign(current.order.legacy_segments.begin(),current.order.legacy_segments.end());
+        if(!pending.archives->Add(archive,generation_limits_.identity_archives,error))return false;
+        const auto count=current.active.rows.size();
+        if(plan->chain.shards==UINT64_MAX||count>UINT64_MAX-plan->chain.physical_rows)return Fail(error,"B checkpoint count overflow");
+        ++plan->chain.shards;plan->chain.physical_rows+=count;
+        if(!CloneRecordingIdentityHistory(current.chain.history,managed_root_,count,&plan->chain.history,error))return false;
+        // 이 cursor는 Prepare와 Publish의 Journal 잠금 안에서만 호출한다. 상시 active
+        // 값과 원본 FD를 다시 결박하며 단일 raw/row/canonical token 이상을 복제하지 않는다.
+        const auto emit=[this,archive,count,generation=plan->generation,previous=current.chain.head,
+            epoch=current.recovery_epoch,predecessor=current.manifest_bytes,binding=current.active_binding]
+            (const RecordingGenerationByteSink& sink,const RecordingIdentityHistoryHandle& history,std::string* detail) {
+            if(!sink||!generation_state_||!CheckManagedStateLocked(detail))return false;
+            auto& state=*generation_state_;
+            if(state.recovery_epoch!=epoch||state.manifest_bytes!=predecessor||
+               !GenerationStatSame(state.active_binding,binding)||state.active.rows.size()!=count)
+                return Fail(detail,"B identity cursor/current 결박 실패");
+            RecordingIdentityShard metadata;metadata.store_id=managed_store_id_;metadata.generation=generation;
+            metadata.previous=previous;metadata.archives.push_back(archive);
+            std::string prefix;
+            if(!SerializeRecordingIdentityShard(metadata,&prefix,detail)||prefix.size()<3||prefix.compare(prefix.size()-3,3,"]}\n")!=0)
+                return Fail(detail,"B identity cursor header 실패");
+            prefix.resize(prefix.size()-3);
+            std::uint64_t bytes=0,physical_end=0;std::size_t slot=0;
+            const auto write=[&](std::string_view value) {
+                if(bytes>generation_limits_.identity_shard_bytes||value.size()>generation_limits_.identity_shard_bytes-bytes)
+                    return Fail(detail,"B checkpoint shard admission 거부");
+                if(!sink(value,detail))return false;
+                bytes+=value.size();return true;
+            };
+            if(!write(prefix))return false;
+            for(const auto& active:state.active.rows) {
+                if(active.offset!=physical_end||!active.length||active.length>generation_limits_.cold_row_bytes||
+                   active.offset>archive.size||active.length>archive.size-active.offset||
+                   slot>UINT64_MAX-state.active.manifest.cut_ordinal||
+                   active.global_ordinal!=state.active.manifest.cut_ordinal+slot||
+                   (state.chain.maximum_global_ordinal&&active.global_ordinal<=*state.chain.maximum_global_ordinal))
+                    return Fail(detail,"B identity cursor physical/ordinal 범위 거부");
+                std::string raw(static_cast<std::size_t>(active.length),'\0');
+                if(!ReadAt(managed_fd_,active.offset,&raw)||raw.back()!='\n'||RawHash(raw)!=active.raw_sha256){
+                    poisoned_=true;return Fail(detail,"B identity cursor active 원문 손상");}
+                const auto& m=active.mutation;
+                if(!state.order.Consume(m,detail,false))return false;
+                RecordingIdentityRow row;row.mutation_id=m.mutation_id;row.type=m.mutation_type;row.entity_id=m.entity_id;
+                row.occurred_at_ms=m.occurred_at_ms;row.global_ordinal=active.global_ordinal;
+                if(history)row.identity=EnvelopeIdentity(m); // Prepare verifies the exact envelope once.
+                else {
+                    const auto key=GenerationIdentityKey(state,state.identities.at(m.mutation_id));
+                    const auto prefix=MutationIdentityKey(m.entity_id,m.occurred_at_ms,{});
+                    if(key.size()!=prefix.size()+64||key.compare(0,prefix.size(),prefix)!=0)
+                        return Fail(detail,"B identity cursor digest binding mismatch");
+                    row.identity=key.substr(prefix.size());
+                }
+                row.offset=active.offset;row.length=active.length;row.raw_sha256=active.raw_sha256;
+                if(m.mutation_type==RecordingMutationType::RecordingOrderReserved){RecordingOrderReservationV1 order;
+                    if(!ParseRecordingOrderReservationV1(m.payload_json,&order,detail))return false;
+                    row.reservation=std::move(order);}
+                std::string token;
+                if(!SerializeRecordingIdentityCheckpointRow(metadata,row,&token,detail)||
+                   (history&&!AppendRecordingIdentityHistory(history,row,archive,detail))||
+                   (slot&&!write(","))||!write(token))return false;
+                physical_end+=active.length;++slot;
+            }
+            if(physical_end!=archive.size||slot!=count)return Fail(detail,"B identity cursor coverage 불일치");
+            return write("]}\n")&&CheckManagedStateLocked(detail);
+        };
+        if(EVP_DigestInit_ex(hash.get(),EVP_sha256(),nullptr)!=1)return Fail(error,"B identity digest 초기화 실패");
+        std::uint64_t identity_size=0;
+        const RecordingGenerationByteSink digest_sink=[&](std::string_view bytes,std::string* detail){
+            if(bytes.size()>UINT64_MAX-identity_size||EVP_DigestUpdate(hash.get(),bytes.data(),bytes.size())!=1)
+                return Fail(detail,"B identity digest 갱신 실패");
+            identity_size+=bytes.size();return true;
+        };
+        if(!emit(digest_sink,plan->chain.history,error)||
+           !ValidateRecordingIdentityHistoryCoverage(plan->chain.history,plan->chain.physical_rows,error))return false;
+        sha.clear();length=0;
+        if(EVP_DigestFinal_ex(hash.get(),digest,&length)!=1||length!=32)return Fail(error,"B identity digest 마감 실패");
+        for(auto byte:digest){sha+=hex[byte>>4];sha+=hex[byte&15];}
+        plan->chain.head={"identity-"+std::to_string(plan->generation)+".jsonl",identity_size,sha};
+        plan->chain.maximum_global_ordinal=current.active.rows.back().global_ordinal;
+        pending.identity_producer=[emit](const RecordingGenerationByteSink& sink,std::string* detail){return emit(sink,{},detail);};
+        plan->chain.checkpoint_archive_bytes=pending.archives->Bytes();
+        plan->chain.checkpoint_archive_allocated=pending.archives->Bytes(true);
+        AccountGenerationScratchLocked(plan->chain.history,plan->chain.checkpoint_archive_bytes,plan->chain.checkpoint_archive_allocated);
+        // Product consumers visit the sealed history directly; never rematerialize all first/order DTOs.
         pending.identities.SetHistory(plan->chain.history);
         *output=std::move(plan);if(error)error->clear();return true;
     }catch(...){return Fail(error,"B checkpoint prepare 자원 실패");}
@@ -2596,7 +2930,7 @@ bool RecordingJournal::PrepareGenerationCheckpoint(const void* owner,
 #endif
 }
 bool RecordingJournal::PublishGenerationCheckpoint(const void* owner,const std::shared_ptr<RecordingGenerationCheckpointPlan>& plan,
-    const std::string& snapshot,const std::function<bool(std::uint64_t,std::uint64_t)>& sql,std::string* error) {
+    const RecordingGenerationByteProducer& snapshot,const std::function<bool(std::uint64_t,std::uint64_t)>& sql,std::string* error) {
 #if MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND && MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
     if(owner_pid_!=::getpid())return Fail(error,"B checkpoint PID 거부");
     std::lock_guard lock(mu_);bool publishing=false;
@@ -2618,7 +2952,7 @@ bool RecordingJournal::PublishGenerationCheckpoint(const void* owner,const std::
     try {
       success=[&]() {
         if(!CheckManagedStateLocked(error)||pending.epoch!=current.recovery_epoch||pending.predecessor!=current.manifest_bytes||
-           !GenerationStatSame(pending.active_binding,current.active_binding)||snapshot.size()>generation_limits_.snapshot_bytes||
+           !GenerationStatSame(pending.active_binding,current.active_binding)||!snapshot||
            !SafeGenerationCacheFiles(managed_root_,error))return Fail(error,"B checkpoint plan/current 결박 실패");
         const auto canonical_root=current.active_path.parent_path();
         OwnedFd preflight_root(OpenParent(current.active_path,false));
@@ -2628,8 +2962,11 @@ bool RecordingJournal::PublishGenerationCheckpoint(const void* owner,const std::
         }
         if(!transaction.Create(canonical_root,error))return false;
         RecordingGenerationOwnedFile staged_identity,staged_snapshot,staged_active;
-        if(!transaction.WriteComponent("identity-"+std::to_string(plan->generation)+".jsonl",pending.identity_bytes,&staged_identity,error)||
-           !transaction.WriteComponent("snapshot-"+std::to_string(plan->generation)+".jsonl",snapshot,&staged_snapshot,error)||
+        if(!transaction.WriteComponentStream("identity-"+std::to_string(plan->generation)+".jsonl",generation_limits_.identity_shard_bytes,
+               pending.identity_producer,&staged_identity,error))return false;
+        if(staged_identity.file.size!=plan->chain.head.size||staged_identity.file.sha256!=plan->chain.head.sha256)
+            return Fail(error,"B checkpoint streamed identity descriptor 불일치");
+        if(!transaction.WriteComponentStream("snapshot-"+std::to_string(plan->generation)+".jsonl",generation_limits_.snapshot_bytes,snapshot,&staged_snapshot,error)||
            !transaction.WriteComponent("active-"+std::to_string(plan->generation)+".jsonl","",&staged_active,error))return false;
         identity={staged_identity.file.name,true,true,staged_identity.device,staged_identity.inode,staged_identity.file.size};
         files.manifest.store_id=managed_store_id_;files.manifest.generation=plan->generation;files.manifest.cut_ordinal=plan->cut;
@@ -2685,7 +3022,7 @@ bool RecordingJournal::PublishGenerationCheckpoint(const void* owner,const std::
         struct stat manifest_stat{};
         if(!GenerationStat(root.value,kGenerationManifest,&manifest_stat)){poisoned_=true;return Fail(error,"B checkpoint 게시 후 stat 실패");}
         // 모든 가변 크기 값과 FD는 게시 전에 준비됐다. 원래 owner epoch와 주문 인덱스는 유지한다.
-        std::swap(current.chain,plan->chain);current.identities.swap(pending.identities);current.archive_names.swap(pending.archives);
+        std::swap(current.chain,plan->chain);current.identities.swap(pending.identities);current.archives.swap(pending.archives);
         std::swap(current.active,active);current.active_path.swap(path);current.manifest_bytes.swap(bytes);
         current.active_binding=next_stat;current.manifest_binding=manifest_stat;
         ::close(managed_fd_);managed_fd_=fd.value;fd.value=-1;device_=next_stat.st_dev;inode_=next_stat.st_ino;
@@ -2935,12 +3272,13 @@ bool RecordingJournal::ReserveGeneration(const void* owner,const std::string& st
        ManagedTransactionPendingLocked()||!CheckManagedStateLocked(error)||store!=managed_store_id_||!ValidateOpaqueId(request,error)||
        !ValidateOpaqueId(segment,error)||!ValidateRecordingReferenceId(channel,error))return Fail(error,"B 예약 owner/store/ID 거부");
     auto& index=generation_state_->order;
-    const auto found=index.requests.find(request);
-    if(found!=index.requests.end()&&(found->second.segment_id!=segment||found->second.channel_id!=channel))return Fail(error,"B 예약 retry tuple 충돌");
-    if(found==index.requests.end()&&index.maximum==std::numeric_limits<std::int64_t>::max())return Fail(error,"B 예약 sequence 고갈");
-    RecordingOrderReservationV1 order=found==index.requests.end()?RecordingOrderReservationV1{"media-server.recording-order.v1",store,request,segment,channel,index.maximum+1}:found->second;
+    std::optional<RecordingOrderHistoryReservation> found;
+    if(!index.Lookup(request,&found,error)){poisoned_=true;return false;}
+    if(found&&(found->order.segment_id!=segment||found->order.channel_id!=channel))return Fail(error,"B 예약 retry tuple 충돌");
+    if(!found&&index.maximum==std::numeric_limits<std::int64_t>::max())return Fail(error,"B 예약 sequence 고갈");
+    RecordingOrderReservationV1 order=!found?RecordingOrderReservationV1{"media-server.recording-order.v1",store,request,segment,channel,index.maximum+1}:found->order;
     RecordingMutationV1 m;m.mutation_id=request;m.entity_id=segment;m.mutation_type=RecordingMutationType::RecordingOrderReserved;
-    m.occurred_at_ms=found==index.requests.end()?std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count():index.request_times.at(request);
+    m.occurred_at_ms=!found?std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count():found->occurred_at_ms;
     m.payload_json="{\"schema\":\"media-server.recording-order.v1\",\"storeId\":\""+Escape(store)+"\",\"requestId\":\""+Escape(request)+
         "\",\"segmentId\":\""+Escape(segment)+"\",\"channelId\":\""+Escape(channel)+"\",\"sequence\":"+std::to_string(order.sequence)+"}";
     if(rotation){if(!GenerationRotationNeededLocked(m,rotation,error))return false;if(*rotation)return true;}

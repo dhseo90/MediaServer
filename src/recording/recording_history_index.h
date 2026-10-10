@@ -107,6 +107,18 @@ public:
             return Healthy(error);
         }catch(const std::exception& e){return Fail(error,e.what());}
     }
+    // Explicit caller admission for a growing derived namespace; no implicit Put fallback.
+    bool ReserveRows(std::uint64_t rows,std::string* error) {
+        try {
+            Check();const auto wanted=BytesForRows(rows);
+            if(!wanted)throw Failure("history scratch capacity overflow");
+            if(wanted<=budget_)return true;
+            struct statvfs space{};const auto additional=wanted-size_;
+            if(fstatvfs(fd_,&space)||!space.f_frsize||additional/space.f_frsize+(additional%space.f_frsize!=0)>space.f_bavail)
+                throw Failure("history scratch available space insufficient (not reserved)");
+            budget_=wanted;return true;
+        }catch(const std::exception& e){return Fail(error,e.what());}
+    }
     Lookup Get(const std::string& key,std::string* output,std::string* error) {
         try {
             Check();Key(key);if(!output)throw Failure("history index output missing");

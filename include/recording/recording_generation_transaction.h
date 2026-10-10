@@ -35,6 +35,8 @@ class RecordingGenerationTransaction {
     bool Describe(bool staged,const std::string&,RecordingGenerationOwnedFile*,std::string*) const;
     bool WriteReplacementMarker(const std::string&,RecordingGenerationOwnedFile*,std::string*);
     bool WriteComponent(const std::string& name,const std::string& bytes,RecordingGenerationOwnedFile*,std::string*);
+    bool WriteComponentStream(const std::string&,std::uint64_t,const RecordingGenerationByteProducer&,
+        RecordingGenerationOwnedFile*,std::string*);
     bool RestoreMarker(std::string*);
     bool Cleanup(bool committed,std::string*);
     bool CleanupUnprepared(std::string*);

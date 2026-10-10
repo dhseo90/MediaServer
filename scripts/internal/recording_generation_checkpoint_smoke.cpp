@@ -11,6 +11,7 @@ bool RecoverCheckpointTransaction(const std::filesystem::path&);
 #include "recording/recording_generation_transaction.h"
 #include "recording/recording_cutover_candidate.h"
 #include "recording_generation_observation.h"
+#include "recording_catalog_history.h"
 #include <sys/resource.h>
 #include <chrono>
 #ifdef __APPLE__
@@ -25,10 +26,42 @@ struct RecordingGenerationResidencyProbe {
     }
 };
 struct RecordingGenerationTransactionProbe {
+    static void StreamFailures(const std::filesystem::path& base) {
+        for(const std::string mode:{"empty","prefix","exception","admission","large-option"}){
+            const auto root=base/mode;std::filesystem::create_directories(root);
+            RecordingGenerationTransaction tx;Need(tx.Create(root,&error));const auto stage=tx.StagePath();
+            RecordingGenerationOwnedFile out;
+            const auto producer=[&](const RecordingGenerationByteSink& sink,std::string* detail){
+                if(mode=="empty"){*detail="first producer error";return false;}
+                if(!sink("exact-prefix",detail))return false;
+                if(mode=="large-option")return true;
+                if(mode=="exception")throw std::runtime_error("injected producer exception");
+                if(mode=="admission")return sink("excess",detail);
+                *detail="first producer error";return false;
+            };
+            const bool written=tx.WriteComponentStream("snapshot-3.jsonl",mode=="large-option"?2ULL*1024*1024*1024:12,producer,&out,&error);
+            Check("MEM79-G01",written==(mode=="large-option"),"stream producer return and original larger admission option preserved");
+            if(mode=="prefix"||mode=="empty")Check("MEM79-G01",error=="first producer error","first producer error preserved");
+            Check("MEM79-G01",tx.CleanupUnprepared(&error)&&!std::filesystem::exists(stage),"verified partial prefix cleanup preserves original authority");
+        }
+    }
     static void Hook(void(*hook)(const char*)){RecordingGenerationTransaction::fault_hook_=hook;}
     static bool Recover(RecordingCatalog& catalog,const RecordingCutoverCandidateLimits& limits,std::string* error){return catalog.RecoverManagedCutover(limits,8U*1024U*1024U,error);}
 };
 struct RecordingGenerationAppendProbe {
+    static bool First(const RecordingJournal& journal,const std::string& id,std::optional<RecordingIdentityFirstAcceptance>* value,std::string* error){
+        return journal.FindGenerationFirst(id,value,error);
+    }
+    static bool Firsts(const RecordingJournal& journal,const RecordingIdentityFirstVisitor& visitor,std::string* error){
+        return journal.VisitGenerationFirst(visitor,error);
+    }
+    static bool Stream(const RecordingCatalog& c,const RecordingIdentityChainResult& chain,std::uint64_t generation,
+        std::uint64_t cut,std::string* bytes,std::string* error){
+        RecordingCatalog::GenerationSnapshotStream stream;
+        bool ok=c.PrepareGenerationSnapshotStreamLocked(chain,generation,cut,&stream,error);
+        if(ok)ok=stream.produce([&](std::string_view part,std::string*){bytes->append(part);return true;},error);
+        std::string cleanup;if(stream.finish&&!stream.finish(&cleanup)){*error+="; cleanup: "+cleanup;ok=false;}return ok;
+    }
     static bool Values(const RecordingCatalog& c,const std::string& store,const RecordingIdentityChainResult& chain,
         std::uint64_t generation,std::uint64_t cut,RecordingCatalogSnapshot* out,std::string* error) {
         return c.ExportGenerationValuesLocked(store,chain,generation,cut,out,error);
@@ -91,6 +124,14 @@ void IdentityResidency(const std::filesystem::path& root) {
     for(int iteration=0;iteration<2;++iteration) {
         RecordingJournal journal(Options(root));Need(journal.Open(&error));
         RecordingCatalog catalog(journal,CO(root));Need(catalog.Open(&error));
+        for(const std::string& invalid:{std::string{},std::string(129,'x'),std::string("bad/id")})
+            Check("MEM79-G01",catalog.SegmentLifecycleV2(invalid)==RecordingLifecycle::Unknown&&!catalog.IsDeletedSegmentId(invalid)&&journal.HasManagedLease(),
+                "invalid public ID stays absent without poisoning authenticated history or Journal owner");
+        for(const std::string& invalid:{std::string{},std::string(129,'x'),std::string(300,'x'),std::string("bad/id")}) {
+            std::optional<RecordingIdentityFirstAcceptance> invalid_first;
+            Check("MEM79-G01",RecordingGenerationAppendProbe::First(journal,invalid,&invalid_first,&error)&&!invalid_first&&journal.HasManagedLease(),
+                  "invalid direct first-acceptance key stays absent without poisoning Journal");
+        }
         measure(journal,iteration?"reopen":"open",false);
         RecordingMutationLink link;RecordingMutationHandle record;
         Need(Links::Link(journal,"historical",&link));Need(Links::Get(journal,link,&record));
@@ -102,7 +143,25 @@ void IdentityResidency(const std::filesystem::path& root) {
         Need(catalog.ReserveRecordingOrder("store",request,segment,"channel",&reservation,&error));
         const auto expected=reservation;
         measure(journal,"append",true);
+        std::optional<RecordingIdentityFirstAcceptance> metadata;
+        Need(RecordingGenerationAppendProbe::First(journal,request,&metadata,&error));
+        Check("MEM79-G01",metadata&&metadata->first_row.reservation&&metadata->first_row.reservation->sequence==expected.sequence&&
+            metadata->first_archive.name.empty(),"active first metadata is exact without presenting a sealed archive authority");
+        const auto accepted_ordinal=metadata->first_global_ordinal;
+        std::optional<std::uint64_t> previous_ordinal;std::size_t seen=0;
+        Need(RecordingGenerationAppendProbe::Firsts(journal,[&](const auto& item,std::string*){
+            if(previous_ordinal&&item.first_global_ordinal<=*previous_ordinal)return false;
+            previous_ordinal=item.first_global_ordinal;if(item.mutation_id==request)++seen;return true;
+        },&error));
+        Check("MEM79-G01",seen==1,"first visitor emits historical and active identities once in ordinal order");
+        Need(RecordingGenerationAppendProbe::First(journal,"missing-first",&metadata,&error));
+        Check("MEM79-G01",!metadata,"authenticated typed first lookup returns explicit absence");
+
         Need(catalog.Checkpoint(&error));measure(journal,"checkpoint",false);
+        Need(RecordingGenerationAppendProbe::First(journal,request,&metadata,&error));
+        Check("MEM79-G01",metadata&&metadata->first_global_ordinal==accepted_ordinal&&!metadata->first_archive.name.empty(),
+            "typed first coordinate survives checkpoint and becomes sealed history");
+
         Check("V430-R01",catalog.ReserveRecordingOrder("store",request,segment,"channel",&reservation,&error)&&
               std::tie(reservation.schema,reservation.store_id,reservation.request_id,reservation.segment_id,reservation.channel_id,reservation.sequence)==
               std::tie(expected.schema,expected.store_id,expected.request_id,expected.segment_id,expected.channel_id,expected.sequence),
@@ -186,6 +245,93 @@ void ExportValueBoundary(const std::filesystem::path& root) {
         SerializeRecordingCatalogSnapshot(values,&b,&error)&&a==b,"explicit-store private values retain exact snapshot bytes");
     Check("B04-S07",!RecordingGenerationAppendProbe::Values(*scratch,"different",chain,manifest.generation,manifest.cut_ordinal,&sentinel,&error)&&
         sentinel.store_id=="unchanged","explicit store must match validated chain");
+}
+void StreamBoundary(const std::filesystem::path& root){
+    auto input=AllRows();
+    const auto original=input.snapshot.rows;
+    for(const auto& row:original)if(row.kind=="observation-v1"){
+        AnalysisObservationV1 value;Need(ParseAnalysisObservationV1(row.value_json,&value,&error));
+        for(const std::string id:{"obs-","obs."}){value.observation_id=id;input.Row("observation-v1",id,SerializeAnalysisObservationV1(value));}
+    }
+    Install(std::move(input),root);
+    const auto manifest=Manifest(root);RecordingCatalogSnapshot expected;
+    Need(ParseRecordingCatalogSnapshot(Read(root/manifest.snapshot.name),8*1024*1024,&expected,&error));
+    RecordingIdentityChainResult chain;Need(ValidateRecordingIdentityShardChain(expected.identity_head,[&](const auto& d,auto limit,auto* bytes,auto* detail){
+        return ReadVerifiedRecordingGenerationImmutable(root,d,limit,bytes,detail);
+    },{8*1024*1024,1000,1000},&chain,&error));
+    RecordingIdentityChainResult stream_chain;
+    Need(ValidateRecordingIdentityShardChainStream(root,expected.identity_head,{8*1024*1024,1000,1000},&stream_chain,&error));
+    std::size_t first_count=0;bool equal=true;
+    Need(VisitRecordingIdentityFirst(stream_chain,[&](const auto& value,std::string*){
+        const auto& original=chain.first_acceptances.at(first_count++);
+        equal=equal&&value.mutation_id==original.mutation_id&&value.first_global_ordinal==original.first_global_ordinal&&
+            value.occurrences==original.occurrences&&value.first_archive.name==original.first_archive.name&&
+            value.first_row.offset==original.first_row.offset&&value.first_row.length==original.first_row.length;
+        return true;
+    },&error));
+
+    Check("MEM79-G01",equal&&first_count==chain.first_acceptances.size()&&stream_chain.first_acceptances.empty()&&
+        stream_chain.order_history.maximum==chain.order_history.maximum&&stream_chain.order_history.reservations.empty()&&
+        stream_chain.physical_rows==chain.physical_rows,
+        "stream chain cursor matches DTO first acceptance, ordinal, physical coverage and order oracle without first vector");
+    Need(CloseRecordingIdentityHistory(stream_chain.history,&error));
+    RecordingJournal journal(Options(root));Need(journal.Open(&error));RecordingCatalog catalog(journal,CO(root));Need(catalog.Open(&error));
+    RecordingCatalogSnapshot dto;Need(catalog.ExportGenerationSnapshot(chain,manifest.generation,manifest.cut_ordinal,&dto,&error));
+    std::string oracle,streamed;Need(SerializeRecordingCatalogSnapshot(dto,&oracle,&error));
+    Check("MEM79-G01",RecordingGenerationAppendProbe::Stream(catalog,chain,manifest.generation,manifest.cut_ordinal,&streamed,&error)&&oracle==streamed,
+          "canonical stream bytes match DTO oracle including prefix keys and multi-chunk rows");
+    auto invalid=chain;invalid.order_history.reservations.clear();RecordingCatalogSnapshot unchanged;unchanged.store_id="sentinel";
+    Check("MEM79-G01",!RecordingGenerationAppendProbe::Values(catalog,"store",invalid,manifest.generation,manifest.cut_ordinal,&unchanged,&error)&&unchanged.store_id=="sentinel",
+          "DTO reservation first acceptance cannot omit reverse order entry");
+    invalid=chain;
+    const auto ordinary=std::find_if(invalid.first_acceptances.begin(),invalid.first_acceptances.end(),[](const auto& entry){return entry.first_row.type!=RecordingMutationType::RecordingOrderReserved;});
+    Need(ordinary!=invalid.first_acceptances.end());invalid.first_acceptances.push_back(*ordinary);
+    Check("MEM79-G01",!ValidateRecordingCatalogSnapshotAcceptedStates(dto,invalid,&error),"duplicate ordinary DTO identity rejected");
+    invalid=chain;invalid.maximum_global_ordinal=manifest.cut_ordinal;streamed.clear();
+    Check("MEM79-G01",!RecordingGenerationAppendProbe::Stream(catalog,invalid,manifest.generation,manifest.cut_ordinal,&streamed,&error)&&streamed.empty(),
+          "stream refuses invalid physical maximum before publication");
+}
+void StreamIdentityBoundaries(const std::filesystem::path& base) {
+    const auto replace=[](std::string* bytes,const std::string& from,const std::string& to){
+        const auto at=bytes->find(from);Need(at!=std::string::npos);bytes->replace(at,from.size(),to);
+    };
+    for(const std::string mode:{"truncated","escaped-id","large-id","ordinal-overlap","identity-conflict","duplicate-archive","missing-rows","hash-binding"}) {
+        const auto root=base/mode;Actual(root,2);
+        auto bytes=Read(root/"identity-2.jsonl");
+        if(mode=="truncated")bytes.pop_back();
+        else if(mode=="escaped-id")replace(&bytes,"historical","\\u0068istorical");
+        else if(mode=="large-id")replace(&bytes,"historical",std::string(2049,'x'));
+        else if(mode=="ordinal-overlap")replace(&bytes,"\"globalOrdinal\":8","\"globalOrdinal\":7");
+        else if(mode=="identity-conflict")replace(&bytes,"\"entityId\":\"segment\"","\"entityId\":\"different\"");
+        else if(mode=="duplicate-archive") {
+            const auto begin=bytes.find("\"archives\":[")+12;const auto end=bytes.find('}',begin)+1;
+            Need(begin>=12&&end>begin);bytes.insert(end,","+bytes.substr(begin,end-begin));
+        } else if(mode=="missing-rows")replace(&bytes,"\"rows\":","\"wrong\":");
+        else bytes[bytes.size()/2]^=1;
+        Write(root/"identity-2.jsonl",bytes);
+        if(mode!="hash-binding") {
+            RecordingCatalogSnapshot snapshot;Need(ParseRecordingCatalogSnapshot(Read(root/"snapshot-2.jsonl"),1024*1024,&snapshot,&error));
+            snapshot.identity_head.size=bytes.size();snapshot.identity_head.sha256=Hash(bytes);SaveSnapshot(root,snapshot);
+        }
+        const auto original=Original(root);RecordingJournal journal(Options(root));
+        Check("MEM79-G01",!journal.Open(&error)&&!error.empty()&&Original(root)==original,
+            ("stream product Open rejects "+mode+" and preserves originals").c_str());
+        Need(journal.Finish(&error));
+    }
+    // Existing opaque IDs are escape-free and <=128 bytes. Canonical schemas, enums,
+    // numeric widths and archive names bound every valid row below the 2048-byte slot.
+    const auto root=base/"maximum-token";std::filesystem::create_directories(root);
+    RecordingIdentityShard shard;shard.store_id=std::string(128,'s');shard.generation=1;
+    shard.archives.push_back({"active-1.jsonl",UINT64_MAX,std::string(64,'f')});
+    RecordingIdentityRow row;row.mutation_id=std::string(128,'m');row.entity_id=std::string(128,'e');
+    row.type=RecordingMutationType::RecordingOrderReserved;row.occurred_at_ms=INT64_MIN;row.global_ordinal=UINT64_MAX;
+    row.identity=row.raw_sha256=std::string(64,'f');row.offset=UINT64_MAX-1;row.length=1;
+    row.reservation=RecordingOrderReservationV1{"media-server.recording-order.v1",shard.store_id,row.mutation_id,row.entity_id,std::string(128,'c'),INT64_MAX};
+    shard.rows.push_back(row);std::string bytes;Need(SerializeRecordingIdentityShard(shard,&bytes,&error));Write(root/"identity-1.jsonl",bytes);
+    RecordingIdentityChainResult chain;
+    Check("MEM79-G01",ValidateRecordingIdentityShardChainStream(root,{"identity-1.jsonl",bytes.size(),Hash(bytes)},{1024*1024,10,10},&chain,&error),
+          "maximum valid canonical identity widths keep original admission under bounded token parsing");
+    Need(CloseRecordingIdentityHistory(chain.history,&error));
 }
 void Rotation(const std::filesystem::path& root) {
     Actual(root);const auto original=Read(root/"evidence-1-0.jsonl");
@@ -470,6 +616,50 @@ void HistoryProduct(const std::filesystem::path& root) {
      Need(target.CopyFrom(source,&error));Need(target.Put("new","new-value",false,&error));
      Check("MEM78-J01",source.Get("new",&value,&error)==Index::Lookup::Absent&&target.Get("original",&value,&error)==Index::Lookup::Found&&value=="value","bounded FD clone preserves source miss and exact inherited value");
      Need(target.Close(&error));Need(source.Close(&error));}
+    {
+        RecordingCatalogHistoryRows rows;Need(rows.Create(&error));
+        std::string observed;bool found=false;
+        for(const std::size_t size:{std::size_t(1),std::size_t(2048),std::size_t(2049),std::size_t(6145)}){
+            const std::string value(size,static_cast<char>('a'+size%20));
+            Need(rows.Put("source-binding","chunk-source",value,&error));
+            Check("MEM79-G01",rows.Get("source-binding","chunk-source",&observed,&found,&error)&&found&&observed==value,
+                "completed metadata roundtrip preserves values spanning fixed 2048-byte chunks");
+        }
+        const auto allocated=rows.Bytes();
+        for(int repeat=0;repeat<12;++repeat)Need(rows.Put("source-binding","chunk-source",std::string(repeat%2?6145:1,'z'),&error));
+        Check("MEM79-G01",rows.Bytes()==allocated&&rows.Count("source-binding")==1,
+            "completed metadata overwrite reuses allocated chunk capacity without logical duplicate rows");
+        Need(rows.Put("source-binding","chunk-source-","prefix-neighbor",&error));
+        std::size_t seen=0;Need(rows.Visit("source-binding",[&](const std::string&,const std::string&,std::string*){++seen;return true;},&error));
+        Check("MEM79-G01",seen==2,"completed metadata visitor covers prefix-neighbor IDs once");
+        bool consumer_threw=false;
+        try { rows.Visit("source-binding",[](const std::string&,const std::string&,std::string*)->bool{throw std::runtime_error("consumer-limit");},&error); }
+        catch(const std::runtime_error& exception){consumer_threw=std::string(exception.what())=="consumer-limit";}
+        Check("MEM79-G01",consumer_threw&&rows.Healthy(&error)&&rows.Get("source-binding","chunk-source-",&observed,&found,&error)&&found&&observed=="prefix-neighbor",
+              "consumer admission exception propagates without poisoning original authenticated history");
+        Need(rows.Put("source-binding","chunk-source","",&error));
+        Check("MEM79-G01",rows.Get("source-binding","chunk-source",&observed,&found,&error)&&!found&&rows.Count("source-binding")==1,
+            "completed metadata erasure retains authenticated absence and active namespace count");
+        Need(rows.Finish(&error));
+    }
+    {
+        RecordingCatalogHistoryRows rows;Need(rows.Create(&error));Need(rows.Put("retired-v2","receipt","original",&error));
+        Index::probe_fault=3;const bool written=rows.Put("retired-v2","receipt",std::string(4097,'x'),&error);Index::probe_fault=0;
+        bool found=true;std::string value;
+        Check("MEM79-G01",!written&&!rows.Get("retired-v2","missing",&value,&found,&error),
+            "partial completed metadata chunk write poisons missing and present lookup");
+        Need(rows.Finish(&error));
+    }
+    {
+        RecordingCatalogHistoryRows rows;Need(rows.Create(&error));Need(rows.Put("retired-v2","exception",std::string(4097,'a'),&error));
+        RecordingCatalogHistoryRows::probe_throw_after_chunk=true;
+        const bool written=rows.Put("retired-v2","exception",std::string(4097,'b'),&error);
+        RecordingCatalogHistoryRows::probe_throw_after_chunk=false;
+        bool found=false;std::string value;
+        Check("MEM79-G01",!written&&!rows.Healthy(&error)&&!rows.Get("retired-v2","exception",&value,&found,&error),
+            "allocation exception after first overwritten chunk poisons wrapper instead of exposing mixed old/new value");
+        Need(rows.Finish(&error));
+    }
     // Real Journal Open uses the source validator and rejects omitted and incorrect ordinal index rows.
     for(int fault:{1,2}){const auto store=root/("source-"+std::to_string(fault));Actual(store);
         ProbeRecordingIdentityHistoryFault(fault);RecordingJournal j(Options(store));
@@ -518,7 +708,7 @@ int main(int argc,char** argv) {
         if(argc==3&&std::string(argv[2])=="history-product"){HistoryProduct(root/"history-product");return failures?1:0;}
         IdentityResidency(root/"identity-residency");
         if(argc==3)return failures?1:0;
-        ExportValueBoundary(root/"export-values");Rotation(root/"rotate");ObserverRace(root/"observer-race");Failures(root/"failures");Cost(root/"cost");Admission(root/"admission");Threshold(root/"threshold");Limits(root/"limits");Jobs(root/"jobs");SQL_CHECKPOINT_CASES::Run(root);
+        ExportValueBoundary(root/"export-values");StreamBoundary(root/"stream");StreamIdentityBoundaries(root/"stream-identity");RecordingGenerationTransactionProbe::StreamFailures(root/"stream-failures");Rotation(root/"rotate");ObserverRace(root/"observer-race");Failures(root/"failures");Cost(root/"cost");Admission(root/"admission");Threshold(root/"threshold");Limits(root/"limits");Jobs(root/"jobs");SQL_CHECKPOINT_CASES::Run(root);
 #else
         Write(root/".recording-store-format",Marker());RecordingJournal journal(Options(root));
         Check("B03-C06",!journal.Open(&error),"unsupported B remains closed");

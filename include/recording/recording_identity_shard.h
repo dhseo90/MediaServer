@@ -70,7 +70,15 @@ struct RecordingIdentityChainResult {
     std::vector<RecordingIdentityFirstAcceptance> first_acceptances;
     RecordingIdentityHistoryHandle history; // 제품의 검증된 first 조회. DTO fixture는 위 vector를 사용한다.
     RecordingOrderHistorySnapshot order_history;
+    std::uint64_t stream_scratch_peak_bytes{0},stream_scratch_peak_allocated{0};
+    // Checkpoint 후보 archive와 snapshot spool의 겹치는 수명 회계. 원본 계약 필드가 아니다.
+    std::uint64_t checkpoint_archive_bytes{0},checkpoint_archive_allocated{0};
 };
+// 제품은 history cursor를 소비한다. vector fallback은 작은 값 DTO/oracle 호환용이다.
+bool VisitRecordingIdentityFirst(const RecordingIdentityChainResult&,
+    const RecordingIdentityFirstVisitor&,std::string*);
+bool FindRecordingIdentityFirst(const RecordingIdentityChainResult&,const std::string&,
+    std::optional<RecordingIdentityFirstAcceptance>*,std::string*);
 struct RecordingIdentityChainLimits {
     std::uint64_t max_shard_bytes{0};
     std::size_t max_unique_ids{0}, max_archives{0};
@@ -81,6 +89,12 @@ using RecordingIdentityShardLoader = std::function<bool(const RecordingGeneratio
     std::uint64_t byte_limit, std::string* bytes, std::string* error)>;
 bool SerializeRecordingIdentityShard(const RecordingIdentityShard&, std::string*, std::string* error);
 bool ParseRecordingIdentityShard(const std::string&, RecordingIdentityShard*, std::string* error);
+// Journal checkpoint의 검증된 cursor용 단일 행 codec이다. metadata는 rows가 비고,
+// previous와 archive 하나를 가져야 한다. 기존 shard Validate의 행/locator/tuple 검증과
+// canonical bytes를 그대로 적용한다. 행 사이 ordinal/offset, ID 충돌 및 주문 권위는
+// Journal의 원본 FD 재검증·history Append·order Consume으로 별도 확인해야 한다.
+bool SerializeRecordingIdentityCheckpointRow(const RecordingIdentityShard& metadata,
+    const RecordingIdentityRow&,std::string*,std::string* error);
 // 엄격 parser가 만든 불변 값만 보관한다. 파일/세대/체인 권위는 아니며 호출마다 원문을
 // SHA로 다시 확인한다. 예산 초과는 캐시하지 않을 뿐 정상 입력을 거부하지 않는다.
 // 단일 호출자 소유이며 기본 제품 경로는 이 선택적 캐시를 사용하지 않는다.
@@ -108,6 +122,12 @@ private:
 bool ValidateRecordingIdentityShardChain(const RecordingGenerationFile& head,
     const RecordingIdentityShardLoader&, const RecordingIdentityChainLimits&,
     RecordingIdentityChainResult*, std::string* error, RecordingIdentityShardParseCache* cache = nullptr);
+// 제품 Open용 원본 스트림 검증. 단일 canonical token과 익명 disk namespace로 chain을
+// 순서대로 소비한다. output의 first_acceptances는 비며 history가 최초 수용을 소유한다.
+bool ValidateRecordingIdentityShardChainStream(const std::filesystem::path&,const RecordingGenerationFile&,
+    const RecordingIdentityChainLimits&,RecordingIdentityChainResult*,std::string*,
+    const std::function<bool(const RecordingGenerationFile&,std::string*)>& binding = {},
+    const std::function<bool(const RecordingGenerationFile&,std::string*)>& archive_sink = {});
 // 완전 검증한 immutable chain에 바로 다음 게시 shard 하나를 연결한다. previous/head가 정확히
 // 이어지지 않으면 거부하며 caller는 전체 chain 검증으로 복귀해야 한다.
 bool ValidateRecordingIdentityShardChainExtension(const RecordingIdentityChainResult& base,

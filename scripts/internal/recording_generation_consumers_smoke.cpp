@@ -17,7 +17,8 @@ struct RecordingGenerationConsumersProbe {
     static bool Guard(RecordingJournal& j,const void* owner){return j.CommitGenerationProtection(owner,[]{return true;},&error);}
     static bool Probe(const RecordingJournal& j,bool* pending){return j.ProbeManagedRuntime(pending,&error);}
     static bool ValidateDerivedSources(const RecordingCatalog& c,const DerivedJobIntentV1& job){return c.ValidateDerivedJobSourcesLocked(job,&error);}
-    static bool RetiredOnly(const RecordingCatalog& c,const std::string& id){return c.retired_v2_.count(id)==1&&c.retired_v2_links_.count(id)==1&&
+    static bool RetiredOnly(const RecordingCatalog& c,const std::string& id){return c.RetiredLocked(id).has_value()&&
+        (c.completed_history_?(c.retired_v2_.empty()&&c.retired_v2_links_.empty()):(c.retired_v2_.count(id)==1&&c.retired_v2_links_.count(id)==1))&&
         !c.segments_v2_.count(id)&&!c.tombstones_v2_.count(id)&&!c.states_v2_.count(id)&&!c.media_relpaths_.count(id)&&!c.deletion_reasons_.count(id);}
 };
 }

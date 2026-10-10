@@ -70,7 +70,7 @@ bool Verify(int dir,const RecordingGenerationOwnedFile& expected,unsigned links=
     return Read(dir,alias?alias:expected.file.name,&actual,links)&&actual.device==expected.device&&actual.inode==expected.inode&&actual.file.size==expected.file.size&&actual.file.sha256==expected.file.sha256;
 }
 bool Missing(int dir,const char* name){struct stat status{};return ::fstatat(dir,name,&status,AT_SYMLINK_NOFOLLOW)!=0&&errno==ENOENT;}
-bool Write(int fd,const std::string& bytes){std::size_t offset=0;while(offset<bytes.size()){ssize_t n;do{n=::write(fd,bytes.data()+offset,bytes.size()-offset);}while(n<0&&errno==EINTR);if(n<=0)return false;offset+=static_cast<std::size_t>(n);}return true;}
+bool Write(int fd,std::string_view bytes){std::size_t offset=0;while(offset<bytes.size()){ssize_t n;do{n=::write(fd,bytes.data()+offset,bytes.size()-offset);}while(n<0&&errno==EINTR);if(n<=0)return false;offset+=static_cast<std::size_t>(n);}return true;}
 bool Empty(int fd){Fd copy;copy.n=::dup(fd);if(copy.n<0)return false;DIR* dir=::fdopendir(copy.n);if(!dir)return false;copy.n=-1;bool empty=true;errno=0;while(const auto* e=::readdir(dir)){const std::string name=e->d_name;if(name!="."&&name!=".."){empty=false;break;}}if(errno)empty=false;::closedir(dir);return empty;}
 #endif
 }
@@ -180,17 +180,46 @@ bool RecordingGenerationTransaction::WriteReplacementMarker(const std::string& b
     return WriteComponent(".recording-marker-v2",bytes,output,error);
 }
 bool RecordingGenerationTransaction::WriteComponent(const std::string& name,const std::string& bytes,RecordingGenerationOwnedFile* output,std::string* error){
+    return WriteComponentStream(name,1024ULL*1024*1024,[&](const RecordingGenerationByteSink& sink,std::string* detail){return sink(bytes,detail);},output,error);
+}
+bool RecordingGenerationTransaction::WriteComponentStream(const std::string& name,std::uint64_t admission,
+    const RecordingGenerationByteProducer& produce,RecordingGenerationOwnedFile* output,std::string* error){
 #if MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
-    auto& s=*state_;if(!output||s.prepared||!s.Bound()||!Name(name)||bytes.size()>1024ULL*1024*1024)return Fail(error,"transaction component preparation invalid");
-    unsigned char digest[32];unsigned size=0;
-    if(EVP_Digest(bytes.data(),bytes.size(),digest,&size,EVP_sha256(),nullptr)!=1||size!=32)return Fail(error,"transaction component digest failed");
+    auto& s=*state_;
+    if(!output||!produce||!admission||s.prepared||!s.Bound()||!Name(name))return Fail(error,"transaction component preparation invalid");
+    admission=std::min<std::uint64_t>(admission,1024ULL*1024*1024);
+    std::unique_ptr<EVP_MD_CTX,decltype(&EVP_MD_CTX_free)> hash(EVP_MD_CTX_new(),EVP_MD_CTX_free);
+    if(!hash||EVP_DigestInit_ex(hash.get(),EVP_sha256(),nullptr)!=1)return Fail(error,"transaction component digest failed");
     Fd fd;fd.n=::openat(s.stage.n,name.c_str(),O_WRONLY|O_CREAT|O_EXCL|O_NOFOLLOW|O_CLOEXEC,0600);struct stat created{};
-    if(fd.n<0||::fstat(fd.n,&created)!=0||!S_ISREG(created.st_mode)||created.st_nlink!=1||!Write(fd.n,bytes)||::fsync(fd.n)!=0||::fsync(s.stage.n)!=0)return Fail(error,"transaction component write/fsync failed; preserved");
+    if(fd.n<0||::fstat(fd.n,&created)!=0||!S_ISREG(created.st_mode)||created.st_nlink!=1)return Fail(error,"transaction component create failed; preserved");
+    std::uint64_t total=0;bool failed=false,uncertain_write=false;
+    const RecordingGenerationByteSink sink=[&](std::string_view bytes,std::string* detail){
+        if(failed||bytes.size()>admission-total){failed=true;return Fail(detail,"transaction component stream admission exceeded");}
+        if(!Write(fd.n,bytes)||EVP_DigestUpdate(hash.get(),bytes.data(),bytes.size())!=1){
+            failed=true;uncertain_write=true;return Fail(detail,"transaction component stream write/hash failed; preserved");
+        }
+        total+=bytes.size();return true;
+    };
+    bool produced=false;
+    try{produced=produce(sink,error);}catch(...){Fail(error,"transaction component producer exception");}
+    const std::string first=error?*error:std::string{};
+    unsigned char digest[32];unsigned size=0;
+    if(uncertain_write||EVP_DigestFinal_ex(hash.get(),digest,&size)!=1||size!=32)return false;
     RecordingGenerationOwnedFile actual;
-    if(!Describe(true,name,&actual,error)||actual.device!=static_cast<std::uint64_t>(created.st_dev)||actual.inode!=static_cast<std::uint64_t>(created.st_ino)||actual.file.size!=bytes.size()||actual.file.sha256!=Hex(digest,size))return Fail(error,"transaction created component changed");
-    s.live_files.push_back(actual);*output=std::move(actual);s.Hit("component-prepared");return true;
+    std::string observed;
+    if(!Describe(true,name,&actual,&observed)||actual.device!=static_cast<std::uint64_t>(created.st_dev)||
+       actual.inode!=static_cast<std::uint64_t>(created.st_ino)||actual.file.size!=total||actual.file.sha256!=Hex(digest,size)){
+        if(error)*error=(first.empty()?"transaction created component changed":first)+"; partial preparation binding uncertain";
+        return false;
+    }
+    // A failed producer may have emitted a verified prefix (including zero bytes). Register only
+    // that exact prefix for the existing identity/hash checked cleanup; unknown partial writes stay preserved.
+    s.live_files.push_back(actual);
+    if(!produced||failed){if(error)*error=first.empty()?"transaction component producer failed":first;return false;}
+    if(::fsync(fd.n)!=0||::fsync(s.stage.n)!=0)return Fail(error,"transaction component write/fsync failed; preserved");
+    *output=std::move(actual);s.Hit("component-prepared");return true;
 #else
-    (void)name;(void)bytes;(void)output;return Fail(error,"transaction crypto/POSIX unsupported");
+    (void)name;(void)admission;(void)produce;(void)output;return Fail(error,"transaction crypto/POSIX unsupported");
 #endif
 }
 bool RecordingGenerationTransaction::CleanupUnprepared(std::string* error){

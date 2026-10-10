@@ -99,6 +99,7 @@ struct RecordingOriginalResult {
     std::vector<RecordingOriginalCandidate> exact, unknown;
 };
 
+class RecordingCatalogHistoryRows;
 class RecordingCatalog final : public RecordingStorePort {
     friend class RecordingRuntimeStorage;
 #if MEDIA_SERVER_RECORDING_GENERATION_TESTING
@@ -305,6 +306,9 @@ private:
     };
     using SourceBindingPool = std::unordered_map<std::string, SourceBindingEntry>;
     static SourceBindingHandle FindSourceBindingOwned(const SourceBindingPool& pool,const std::string& id);
+    std::optional<SourceBindingEntry> SourceEntryLocked(const std::string&) const;
+    bool StoreSourceEntryLocked(SourceBindingEntry,std::string*);
+    bool VisitSourcesLocked(const std::function<bool(const std::string&,const SourceBindingEntry&,std::string*)>&,std::string*) const;
     SourceBindingHandle FindSourceBindingOwnedLocked(const std::string& id) const;
     bool AcquireSourceBindingOwnedLocked(const std::string& id,SourceBindingHandle* out,std::string* error) const;
     friend class RecordingSearchReader;
@@ -482,7 +486,14 @@ private:
     bool ExportGenerationSnapshotLocked(const RecordingIdentityChainResult&,std::uint64_t,std::uint64_t,RecordingCatalogSnapshot*,std::string*) const;
     // 전환 scratch용 값 생성기다. 공개 export의 owner/lease 검사를 우회하는 API가 아니다.
     bool ExportGenerationValuesLocked(const std::string& store,const RecordingIdentityChainResult&,
-        std::uint64_t,std::uint64_t,RecordingCatalogSnapshot*,std::string*) const;
+        std::uint64_t,std::uint64_t,RecordingCatalogSnapshot*,std::string*,
+        const RecordingCatalogSnapshotRowVisitor& visitor={}) const;
+    struct GenerationSnapshotStream {
+        RecordingGenerationByteProducer produce;
+        std::function<bool(std::string*)> finish;
+    };
+    bool PrepareGenerationSnapshotStreamLocked(const RecordingIdentityChainResult&,std::uint64_t,std::uint64_t,
+        GenerationSnapshotStream*,std::string*) const;
     bool PoisonGenerationLocked(std::string* error);
 #if MEDIA_SERVER_RECORDING_GENERATION_TESTING
     static thread_local int generation_apply_fault_;
@@ -569,6 +580,18 @@ private:
     mutable std::atomic<std::uint64_t> checkpoint_status_success_generation_{0};
     mutable std::mutex checkpoint_status_wait_mu_;
     mutable std::condition_variable checkpoint_status_wait_cv_;
+    std::shared_ptr<RecordingCatalogHistoryRows> completed_history_;
+    std::optional<std::uint64_t> generation_visible_ordinal_;
+    std::optional<RecordingIdentityFirstAcceptance> VisibleFirstLocked(const std::string&) const;
+    bool MutationSeenLocked(const std::string&) const;
+    bool AcceptedLinkLocked(const std::string&,RecordingMutationLink*,std::uint64_t* = nullptr) const;
+    std::optional<RecordingOrderReservationV1> OrderLocked(const std::string&) const;
+    bool VisitAcceptedLocked(const RecordingIdentityFirstVisitor&,std::string*) const;
+    bool VisitOrdersLocked(const std::function<bool(const RecordingOrderReservationV1&,std::string*)>&,std::string*) const;
+    std::optional<RecordingRetiredV2Receipt> RetiredLocked(const std::string&) const;
+    bool StoreRetiredLocked(const RecordingRetiredV2Receipt&,const RecordingMutationLink&,std::string*);
+    bool EraseRetiredLocked(const std::string&,std::string*);
+    bool VisitRetiredLocked(const std::function<bool(const std::string&,const RecordingRetiredV2Receipt&,std::string*)>&,std::string*) const;
     std::unordered_set<std::string> mutation_ids_;
     // 이 두 상태 mutation은 메모리가 실제 수용한 최초 envelope만 SQL로 재생한다.
     std::unordered_map<std::string, RecordingMutationLink> accepted_segment_state_mutations_;

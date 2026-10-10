@@ -2,6 +2,8 @@
 #include "recording/recording_catalog_generation_projection.h"
 #include "recording/recording_generation_cold_mutation.h"
 #include "domain/strict_json.h"
+#include "recording_catalog_history.h"
+#include <stdexcept>
 #include <algorithm>
 #include <limits>
 #include <tuple>
@@ -59,8 +61,37 @@ bool JobType(DerivedJobState state,RecordingMutationType type) {
         case DerivedJobState::Failed:return type==RecordingMutationType::DerivedJobFailed;
     }return false;
 }
+std::optional<RecordingOrderReservationV1> Order(const RecordingCatalogGenerationProjection& p,const std::string& id) {
+    if(!p.nonresident_history){const auto it=p.orders.find(id);return it==p.orders.end()?std::nullopt:std::optional<RecordingOrderReservationV1>(it->second);}
+    std::optional<RecordingIdentityFirstAcceptance> first;std::string error;
+    if(!FindRecordingIdentityHistory(p.identity_history,id,&first,&error))throw std::runtime_error(error);
+    return first?first->first_row.reservation:std::nullopt;
+}
+std::optional<RecordingGenerationRetiredV2Projection> Retired(const RecordingCatalogGenerationProjection& p,const std::string& id) {
+    if(!p.nonresident_history){const auto it=p.retired_v2.find(id);return it==p.retired_v2.end()?std::nullopt:std::optional<RecordingGenerationRetiredV2Projection>(it->second);}
+    std::string value,error;bool found=false;
+    if(!p.completed_history->Get("retired-v2",id,&value,&found,&error))throw std::runtime_error(error);
+    if(!found)return {};
+    RecordingRetiredV2Receipt receipt;std::optional<RecordingIdentityFirstAcceptance> first;
+    if(!ParseRecordingRetiredV2Receipt(value,&receipt,&error)||!FindRecordingIdentityHistory(p.identity_history,receipt.deletion_mutation_id,&first,&error)||!first)
+        throw std::runtime_error("projection retired history invalid");
+    return RecordingGenerationRetiredV2Projection{std::move(receipt),*first};
+}
+template<class Visitor> bool EachRetired(const RecordingCatalogGenerationProjection& p,const Visitor& visitor,std::string* error) {
+    if(!p.nonresident_history){for(const auto& item:p.retired_v2)if(!visitor(item))return false;return true;}
+    return p.completed_history->Visit("retired-v2",[&](const std::string& id,const std::string&,std::string*){
+        const auto value=Retired(p,id);return value&&visitor(std::make_pair(id,*value));
+    },error);
+}
+template<class Visitor> bool EachSource(const RecordingCatalogGenerationProjection& p,const Visitor& visitor,std::string* error) {
+    if(!p.nonresident_history){for(const auto& item:p.source_bindings)if(!visitor(item.first,item.second.summary))return false;return true;}
+    return p.completed_history->Visit("source-binding",[&](const std::string& id,const std::string& bytes,std::string* detail){
+        RecordingCatalogSourceSummary value;if(!ParseRecordingCatalogSourceSummary(bytes,&value,detail)||value.id!=id)return false;
+        return visitor(id,value);
+    },error);
+}
 RecordingLifecycle Lifecycle(const RecordingCatalogGenerationProjection& p,const std::string& id) {
-    if(p.tombstones_v2.count(id)||p.retired_v2.count(id))return RecordingLifecycle::Deleted;
+    if(p.tombstones_v2.count(id)||Retired(p,id).has_value())return RecordingLifecycle::Deleted;
     const auto state=p.states_v2.find(id);
     return state==p.states_v2.end()?RecordingLifecycle::Finalized:state->second.lifecycle;
 }
@@ -82,39 +113,37 @@ bool ReceiptFromTombstone(const RecordingTombstoneV2& tombstone,const std::strin
     return BuildRecordingRetiredV2Receipt(tombstone,path,origin.mutation_id,output,error);
 }
 bool CompactLegacyRetired(RecordingCatalogGenerationProjection& p,
-    const std::map<std::string,const RecordingIdentityFirstAcceptance*>& first,std::string* error) {
-    std::map<std::string,const RecordingIdentityFirstAcceptance*> first_deleted;
-    std::set<std::string> compacted;
-    for(const auto& item:first)if(item.second->first_row.type==RecordingMutationType::SegmentV2Deleted) {
-        const auto prior=first_deleted.find(item.second->first_row.entity_id);
-        if(prior==first_deleted.end()||item.second->first_global_ordinal<prior->second->first_global_ordinal)
-            first_deleted[item.second->first_row.entity_id]=item.second;
-    }
-    for(const auto& item:p.tombstones_v2) {
-        const auto& id=item.first;const auto segment=p.segments_v2.find(id);const auto state=p.states_v2.find(id);
+    const RecordingIdentityChainResult& chain,std::string* error) {
+    // Ordinal cursor is oldest first. Erasing after the first accepted deletion avoids
+    // a second all-history identity/deletion map and preserves the original selection.
+    const auto consume=[&](const RecordingIdentityFirstAcceptance& origin,std::string* detail) {
+        if(origin.first_row.type!=RecordingMutationType::SegmentV2Deleted)return true;
+        const auto& id=origin.first_row.entity_id;const auto tomb=p.tombstones_v2.find(id);
+        if(tomb==p.tombstones_v2.end())return true;
+        const auto segment=p.segments_v2.find(id);const auto state=p.states_v2.find(id);
         const auto path=p.media_paths.find(id);const auto reason=p.deletion_reasons.find(id);
-        const auto found=first_deleted.find(id);const auto origin=found==first_deleted.end()?nullptr:found->second;
-        // 이전 full projection이 허용하던 V1 tombstone 공존·경로/사유 부재 또는 삭제 identity 부재는
-        // receipt 최소 증거를 만들 수 없다. 첫 CrossMaps 검증을 통과한 full 값은 그대로 유지한다.
         if(segment==p.segments_v2.end()||state==p.states_v2.end()||path==p.media_paths.end()||reason==p.deletion_reasons.end()||
-           state->second.lifecycle!=RecordingLifecycle::DeletionPending||state->second.reason!=item.second.deletion_reason||
-           reason->second!=item.second.deletion_reason||SerializeRecordingSegmentV2(segment->second)!=SerializeRecordingSegmentV2(item.second.segment)||
-           !origin)continue;
+           state->second.lifecycle!=RecordingLifecycle::DeletionPending||state->second.reason!=tomb->second.deletion_reason||
+           reason->second!=tomb->second.deletion_reason||SerializeRecordingSegmentV2(segment->second)!=SerializeRecordingSegmentV2(tomb->second.segment))return true;
         RecordingRetiredV2Receipt receipt;
-        if(!ReceiptFromTombstone(item.second,path->second,*origin,&receipt,error)||
-           !p.retired_v2.emplace(id,RecordingGenerationRetiredV2Projection{std::move(receipt),*origin}).second)
-            return Fail(error,"projection retired legacy receipt collision");
-        compacted.insert(id);
-    }
-    for(const auto& id:compacted) {
+        if(!ReceiptFromTombstone(tomb->second,path->second,origin,&receipt,detail)||Retired(p,id))
+            return Fail(detail,"projection retired legacy receipt collision");
+        if(p.nonresident_history){std::string bytes;if(!SerializeRecordingRetiredV2Receipt(receipt,&bytes,detail)||!p.completed_history->Put("retired-v2",id,bytes,detail))return false;}
+        else p.retired_v2.emplace(id,RecordingGenerationRetiredV2Projection{std::move(receipt),origin});
         p.segments_v2.erase(id);p.states_v2.erase(id);p.media_paths.erase(id);p.deletion_reasons.erase(id);p.tombstones_v2.erase(id);
-    }
+        return true;
+    };
+    if(chain.history)return VisitRecordingIdentityFirst(chain,consume,error);
+    std::vector<const RecordingIdentityFirstAcceptance*> ordered;
+    for(const auto& item:chain.first_acceptances)ordered.push_back(&item);
+    std::sort(ordered.begin(),ordered.end(),[](auto a,auto b){return a->first_global_ordinal<b->first_global_ordinal;});
+    for(const auto* item:ordered)if(!consume(*item,error))return false;
     return true;
 }
 bool CrossMaps(RecordingCatalogGenerationProjection& p,std::string* error) {
     for(const auto& pair:p.segments) {
         const auto& v=pair.second;
-        if(p.segments_v2.count(pair.first)||p.tombstones_v2.count(pair.first)||p.retired_v2.count(pair.first))
+        if(p.segments_v2.count(pair.first)||p.tombstones_v2.count(pair.first)||Retired(p,pair.first).has_value())
             return Fail(error,"projection V1/V2/order namespace collision");
         const bool tombstone=p.tombstones.count(pair.first);
         if((v.lifecycle==RecordingLifecycle::Deleted&&!tombstone)||
@@ -128,9 +157,9 @@ bool CrossMaps(RecordingCatalogGenerationProjection& p,std::string* error) {
         if(p.media_paths.count(pair.first))return Fail(error,"projection tombstone path mismatch");
     }
     for(const auto& pair:p.segments_v2) {
-        const auto& v=pair.second;const auto order=p.orders.find(v.order_request_id);
-        if(v.store_id!=p.manifest.store_id||order==p.orders.end()||order->second.segment_id!=pair.first||
-            order->second.channel_id!=v.channel_id||order->second.sequence!=v.order_sequence||
+        const auto& v=pair.second;const auto order=Order(p,v.order_request_id);
+        if(v.store_id!=p.manifest.store_id||!order||order->segment_id!=pair.first||
+            order->channel_id!=v.channel_id||order->sequence!=v.order_sequence||
             (!p.media_paths.count(pair.first)&&!p.tombstones.count(pair.first)))
             return Fail(error,"projection V2 reservation/path mismatch");
     }
@@ -145,15 +174,16 @@ bool CrossMaps(RecordingCatalogGenerationProjection& p,std::string* error) {
             SerializeRecordingSegmentV2(segment->second)!=SerializeRecordingSegmentV2(pair.second.segment))
             return Fail(error,"projection V2 tombstone transition mismatch");
     }
-    for(const auto& pair:p.retired_v2) {
-        const auto& v=pair.second.receipt;const auto order=p.orders.find(v.order_request_id);
+    if(!EachRetired(p,[&](const auto& pair) {
+        const auto& v=pair.second.receipt;const auto order=Order(p,v.order_request_id);
         if(pair.first!=v.segment_id||v.store_id!=p.manifest.store_id||p.segments_v2.count(pair.first)||p.tombstones_v2.count(pair.first)||
            p.states_v2.count(pair.first)||p.media_paths.count(pair.first)||p.deletion_reasons.count(pair.first)||
-           order==p.orders.end()||order->second.segment_id!=pair.first||order->second.channel_id!=v.channel_id||
-           order->second.sequence!=v.order_sequence||pair.second.origin.mutation_id!=v.deletion_mutation_id||
+           !order||order->segment_id!=pair.first||order->channel_id!=v.channel_id||
+           order->sequence!=v.order_sequence||pair.second.origin.mutation_id!=v.deletion_mutation_id||
            pair.second.origin.first_row.type!=RecordingMutationType::SegmentV2Deleted||pair.second.origin.first_row.entity_id!=pair.first)
             return Fail(error,"projection retired V2 receipt/order/provenance mismatch");
-    }
+        return true;
+    },error))return false;
     for(const auto& pair:p.media_paths)if(!IsSafeMediaRelpath(pair.second)||
         (!p.segments.count(pair.first)&&!p.segments_v2.count(pair.first)))return Fail(error,"projection orphan/unsafe media path");
     for(const auto& pair:p.deletion_reasons) {
@@ -162,13 +192,14 @@ bool CrossMaps(RecordingCatalogGenerationProjection& p,std::string* error) {
         else if(v2==p.states_v2.end()||v2->second.lifecycle!=RecordingLifecycle::DeletionPending||v2->second.reason!=pair.second)
             return Fail(error,"projection orphan V2 deletion reason");
     }
-    for(const auto& pair:p.source_bindings) {
-        const auto segment=p.segments_v2.find(pair.first);const auto retired=p.retired_v2.find(pair.first);const auto& s=pair.second.summary;
-        if((segment==p.segments_v2.end()&&retired==p.retired_v2.end())||
-           (segment!=p.segments_v2.end()&&(s.source!=segment->second.source_id||s.channel!=segment->second.channel_id))||
-           (retired!=p.retired_v2.end()&&(s.source!=retired->second.receipt.source_id||s.channel!=retired->second.receipt.channel_id)))
+    if(!EachSource(p,[&](const std::string& id,const RecordingCatalogSourceSummary& value) {
+        const auto segment=p.segments_v2.find(id);const auto retired=Retired(p,id);const auto& source=value;
+        if((segment==p.segments_v2.end()&&!retired)||
+           (segment!=p.segments_v2.end()&&(source.source!=segment->second.source_id||source.channel!=segment->second.channel_id))||
+           (retired&&(source.source!=retired->receipt.source_id||source.channel!=retired->receipt.channel_id)))
             return Fail(error,"projection source summary namespace mismatch");
-    }
+        return true;
+    },error))return false;
     for(const auto& id:p.derived_accepted_references) {
         const auto reference=p.consumer_references.find(id);
         if(reference==p.consumer_references.end()||reference->second.kind!="event")return Fail(error,"projection accepted reference missing");
@@ -291,9 +322,9 @@ bool ActiveDetails(const std::filesystem::path& root,std::uint64_t admission,
             }
         }
         if(job.ready)for(const auto& output:job.ready->outputs) {
-            const auto& segment=output.segment;const auto order=p.orders.find(segment.order_request_id);
-            if(order==p.orders.end()||order->second.store_id!=segment.store_id||order->second.segment_id!=segment.segment_id||
-                order->second.channel_id!=segment.channel_id||order->second.sequence!=segment.order_sequence)
+            const auto& segment=output.segment;const auto order=Order(p,segment.order_request_id);
+            if(!order||order->store_id!=segment.store_id||order->segment_id!=segment.segment_id||
+                order->channel_id!=segment.channel_id||order->sequence!=segment.order_sequence)
                 return Fail(error,"projection ready output order mismatch");
         }
         p.active_jobs.emplace(pair.first,std::move(job));
@@ -302,46 +333,67 @@ bool ActiveDetails(const std::filesystem::path& root,std::uint64_t admission,
 }
 #endif
 }
-bool BuildRecordingCatalogGenerationProjection(const std::filesystem::path& root,
+static bool BuildProjection(const std::filesystem::path& root,
     const RecordingGenerationManifest& manifest,const RecordingIdentityChainResult& chain,
     const RecordingCatalogSnapshot& snapshot,std::uint64_t admission,
-    RecordingCatalogGenerationProjection* output,std::string* error,bool enable_retired_v2) {
+    RecordingCatalogGenerationProjection* output,std::string* error,bool enable_retired_v2,std::uint64_t stream_admission) {
 #if MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
     try {
         std::string bytes,manifest_bytes;
-        if(!output||!SerializeRecordingGenerationManifest(manifest,&manifest_bytes,error)||
-            !ValidateRecordingCatalogSnapshotManifest(snapshot,manifest,error)||
+        if(!output||!SerializeRecordingGenerationManifest(manifest,&manifest_bytes,error)||chain.store_id!=manifest.store_id||!chain.shards)
+            return Fail(error,"projection manifest/chain binding invalid");
+        if(stream_admission){
+            if(!SerializeRecordingCatalogSnapshotHeader(snapshot,&bytes,error)||snapshot.store_id!=manifest.store_id||
+               snapshot.generation!=manifest.generation||snapshot.cut_ordinal!=manifest.cut_ordinal||
+               snapshot.identity_head.name!=chain.head.name||snapshot.identity_head.size!=chain.head.size||snapshot.identity_head.sha256!=chain.head.sha256||
+               (chain.physical_rows==0)!=!chain.maximum_global_ordinal.has_value()||
+               (chain.maximum_global_ordinal&&*chain.maximum_global_ordinal>=snapshot.cut_ordinal))
+                return Fail(error,"projection streaming header/chain invalid");
+        }else if(!ValidateRecordingCatalogSnapshotManifest(snapshot,manifest,error)||
             !SerializeRecordingCatalogSnapshot(snapshot,&bytes,error)||Hash(bytes)!=manifest.snapshot.sha256||
-            !ValidateRecordingCatalogSnapshotAcceptedStates(snapshot,chain,error)||chain.store_id!=manifest.store_id||!chain.shards)
-            return Fail(error,"projection manifest/snapshot/chain binding invalid");
+            !ValidateRecordingCatalogSnapshotAcceptedStates(snapshot,chain,error))return Fail(error,"projection snapshot binding invalid");
         RecordingCatalogGenerationProjection p;p.manifest=manifest;p.order_history=chain.order_history;
-        if(!SerializeRecordingOrderHistorySnapshot(chain.order_history,&bytes,error)||
+        p.nonresident_history=stream_admission!=0;p.identity_history=chain.history;
+        if(p.nonresident_history){p.completed_history=std::make_shared<RecordingCatalogHistoryRows>();output->completed_history=p.completed_history;
+            if(!p.completed_history->Create(error))return false;}
+        if((!chain.history&&!SerializeRecordingOrderHistorySnapshot(chain.order_history,&bytes,error))||
             (!chain.order_history.bound_store.empty()&&chain.order_history.bound_store!=manifest.store_id))return Fail(error,"projection order history invalid");
-        std::map<std::string,const RecordingIdentityFirstAcceptance*> first;std::uint64_t physical=0;
-        for(const auto& entry:chain.first_acceptances) {
-            if(!entry.occurrences||entry.occurrences>chain.physical_rows-physical||entry.mutation_id!=entry.first_row.mutation_id||
-                entry.first_global_ordinal!=entry.first_row.global_ordinal||entry.first_global_ordinal>=manifest.cut_ordinal||
-                !first.emplace(entry.mutation_id,&entry).second)return Fail(error,"projection first acceptance invalid");
+        const auto first=[&](const std::string& id) {
+            std::optional<RecordingIdentityFirstAcceptance> value;
+            if(!FindRecordingIdentityFirst(chain,id,&value,error))throw std::runtime_error("projection first lookup");
+            return value;
+        };
+        std::uint64_t physical=0;std::set<std::string> dto_ids;
+        if(!VisitRecordingIdentityFirst(chain,[&](const auto& entry,std::string* detail) {
+            if(!entry.occurrences||physical>chain.physical_rows||entry.occurrences>chain.physical_rows-physical||
+                entry.mutation_id!=entry.first_row.mutation_id||entry.first_global_ordinal!=entry.first_row.global_ordinal||
+                entry.first_global_ordinal>=manifest.cut_ordinal)return Fail(detail,"projection first acceptance invalid");
+            if(!chain.history&&!dto_ids.insert(entry.mutation_id).second)return Fail(detail,"projection duplicate first identity");
             physical+=entry.occurrences;
-            // Catalog의 accepted ID 집합은 Journal 예약 ID를 포함하지 않는다.
-            if(entry.first_row.type!=RecordingMutationType::RecordingOrderReserved)
-                p.mutation_ids.insert(entry.mutation_id);
-        }
+            if(entry.first_row.type!=RecordingMutationType::RecordingOrderReserved){if(!p.nonresident_history)p.mutation_ids.insert(entry.mutation_id);}
+            else {
+                if(!entry.first_row.reservation)return Fail(detail,"projection missing reservation tuple");
+                if(chain.history&&!p.nonresident_history)p.orders.emplace(entry.mutation_id,*entry.first_row.reservation);
+            }
+            if(entry.first_row.type!=RecordingMutationType::RecordingOrderReserved&&entry.first_row.reservation)
+                return Fail(detail,"projection nonreservation tuple");
+            return true;
+        },error))return false;
         if(physical!=chain.physical_rows)return Fail(error,"projection physical identity count mismatch");
         for(const auto& entry:chain.order_history.reservations) {
-            const auto found=first.find(entry.order.request_id);
-            if(found==first.end()||found->second->first_row.type!=RecordingMutationType::RecordingOrderReserved||
-                !found->second->first_row.reservation||!SameOrder(entry.order,*found->second->first_row.reservation)||
-                entry.occurred_at_ms!=found->second->first_row.occurred_at_ms||entry.order.segment_id!=found->second->first_row.entity_id)
+            const auto found=first(entry.order.request_id);
+            if(!found||found->first_row.type!=RecordingMutationType::RecordingOrderReserved||
+                !found->first_row.reservation||!SameOrder(entry.order,*found->first_row.reservation)||
+                entry.occurred_at_ms!=found->first_row.occurred_at_ms||entry.order.segment_id!=found->first_row.entity_id)
                 return Fail(error,"projection reservation first binding mismatch");
             p.orders.emplace(entry.order.request_id,entry.order);
         }
-        for(const auto& item:first) {
-            const auto& row=item.second->first_row;
-            if(row.type==RecordingMutationType::RecordingOrderReserved) {if(!p.orders.count(item.first))return Fail(error,"projection missing reservation");}
-            else if(row.reservation)return Fail(error,"projection nonreservation tuple");
-        }
-        for(const auto& row:snapshot.rows) {
+        if(!VisitRecordingIdentityFirst(chain,[&](const auto& entry,std::string* detail) {
+            return entry.first_row.type!=RecordingMutationType::RecordingOrderReserved||Order(p,entry.mutation_id).has_value()||
+                Fail(detail,"projection missing reservation");
+        },error))return false;
+        std::size_t accepted_count=0;
+        const auto consume=[&](const RecordingCatalogSnapshotRow& row,std::string*) {
             bool ok=false;
             if(row.kind=="segment-v1")ok=Decode(row,&p.segments,ParseRecordingSegmentV1,SerializeRecordingSegmentV1,&RecordingSegmentV1::segment_id,error);
             else if(row.kind=="segment-v2")ok=Decode(row,&p.segments_v2,ParseRecordingSegmentV2,SerializeRecordingSegmentV2,&RecordingSegmentV2::segment_id,error);
@@ -356,10 +408,11 @@ bool BuildRecordingCatalogGenerationProjection(const std::filesystem::path& root
                 if(ok)p.tombstones_v2.emplace(row.key,std::move(value));
             } else if(row.kind=="retired-v2") {
                 RecordingRetiredV2Receipt value;ok=ParseRecordingRetiredV2Receipt(row.value_json,&value,error)&&value.segment_id==row.key;
-                const auto found=first.find(value.deletion_mutation_id);
-                ok=ok&&enable_retired_v2&&found!=first.end()&&found->second->first_row.type==RecordingMutationType::SegmentV2Deleted&&
-                    found->second->first_row.entity_id==row.key;
-                if(ok)p.retired_v2.emplace(row.key,RecordingGenerationRetiredV2Projection{std::move(value),*found->second});
+                const auto found=first(value.deletion_mutation_id);
+                ok=ok&&enable_retired_v2&&found.has_value()&&found->first_row.type==RecordingMutationType::SegmentV2Deleted&&
+                    found->first_row.entity_id==row.key;
+                if(ok){if(p.nonresident_history)ok=p.completed_history->Put("retired-v2",row.key,row.value_json,error);
+                    else p.retired_v2.emplace(row.key,RecordingGenerationRetiredV2Projection{std::move(value),*found});}
             } else if(row.kind=="referenced-observation") {
                 ReferencedObservationV1 value;ok=ParseReferencedObservationV1(row.value_json,&value,error)&&SerializeReferencedObservationV1(value)==row.value_json&&value.observation.observation_id==row.key;
                 if(ok)p.referenced_observations.emplace(row.key,std::move(value));
@@ -372,33 +425,64 @@ bool BuildRecordingCatalogGenerationProjection(const std::filesystem::path& root
             } else if(row.kind=="derived-reference-accepted") {ok=row.value_json=="true";if(ok)p.derived_accepted_references.insert(row.key);}
             else if(row.kind=="source-binding") {
                 RecordingCatalogSourceSummary value;ok=ParseRecordingCatalogSourceSummary(row.value_json,&value,error)&&value.id==row.key;
-                const auto found=first.find(value.latest_mutation_id);
-                ok=ok&&found!=first.end()&&found->second->first_row.type==RecordingMutationType::SegmentV2BoundFinalized&&found->second->first_row.entity_id==row.key;
-                if(ok)p.source_bindings.emplace(row.key,RecordingGenerationSourceProjection{std::move(value),*found->second});
+                const auto found=first(value.latest_mutation_id);
+                ok=ok&&found.has_value()&&found->first_row.type==RecordingMutationType::SegmentV2BoundFinalized&&found->first_row.entity_id==row.key;
+                if(ok){if(p.nonresident_history)ok=p.completed_history->Put("source-binding",row.key,row.value_json,error);
+                    if(ok&&(!p.nonresident_history||p.segments_v2.count(row.key)))p.source_bindings.emplace(row.key,RecordingGenerationSourceProjection{std::move(value),*found});}
             } else if(row.kind=="derived-job") {
                 RecordingCatalogJobSummary value;ok=ParseRecordingCatalogJobSummary(row.value_json,&value,error)&&value.id==row.key;
-                const auto found=first.find(value.latest_mutation_id);
-                ok=ok&&found!=first.end()&&JobType(value.state,found->second->first_row.type)&&found->second->first_row.entity_id==row.key;
-                if(ok)p.derived_jobs.emplace(row.key,RecordingGenerationJobProjection{std::move(value),*found->second});
+                const auto found=first(value.latest_mutation_id);
+                ok=ok&&found.has_value()&&JobType(value.state,found->first_row.type)&&found->first_row.entity_id==row.key;
+                if(ok)p.derived_jobs.emplace(row.key,RecordingGenerationJobProjection{std::move(value),*found});
             } else if(row.kind=="accepted-state") {
-                const auto found=first.find(row.key);
-                if(found!=first.end()) {
-                    const auto& entry=*found->second;
+                const auto found=first(row.key);
+                if(found.has_value()) {
+                    const auto& entry=*found;
                     ok=row.value_json=="{\"mutationId\":"+Quote(row.key)+",\"globalOrdinal\":"+std::to_string(entry.first_global_ordinal)+",\"type\":"+Quote(RecordingMutationTypeName(entry.first_row.type))+"}";
-                    if(ok)p.accepted_states.emplace(row.key,entry);
+                    ok=ok&&RecordingSnapshotRequiresAcceptedState(entry.first_row.type);
+                    if(ok){++accepted_count;if(!p.nonresident_history)p.accepted_states.emplace(row.key,entry);}
                 }
             }
             if(!ok)return Fail(error,"projection row domain/key/provenance invalid");
-        }
+            return true;
+        };
+        if(stream_admission){
+            RecordingCatalogSnapshot observed;
+            if(!VisitRecordingCatalogSnapshot(root,manifest.snapshot,stream_admission,&observed,consume,error))return false;
+            std::string a,b;if(!SerializeRecordingCatalogSnapshotHeader(observed,&a,error)||!SerializeRecordingCatalogSnapshotHeader(snapshot,&b,error)||a!=b)
+                return Fail(error,"projection streaming header changed");
+            std::size_t expected=0;
+            if(!VisitRecordingIdentityFirst(chain,[&](const auto& entry,std::string*) {
+                if(RecordingSnapshotRequiresAcceptedState(entry.first_row.type))++expected;
+                return true;
+            },error))return false;
+            if(expected!=accepted_count)return Fail(error,"projection streaming accepted-state coverage mismatch");
+            for(const auto& entry:p.accepted_states)if(!RecordingSnapshotRequiresAcceptedState(entry.second.first_row.type))
+                return Fail(error,"projection streaming accepted-state type mismatch");
+        }else for(const auto& row:snapshot.rows)if(!consume(row,error))return false;
         // 구형 full 행은 기존 cross-map으로 먼저 전부 검증한다. 축약 대상만 내린 뒤 receipt 계약을
         // 다시 대조하여 기존 transition 검증을 우회하지 않는다.
-        if(!CrossMaps(p,error)||(enable_retired_v2&&(!CompactLegacyRetired(p,first,error)||!CrossMaps(p,error)))||
-           !ActiveDetails(root,admission,p,error))return false;
+        if(!CrossMaps(p,error)||(enable_retired_v2&&(!CompactLegacyRetired(p,chain,error)||!CrossMaps(p,error))))return false;
+        if(p.nonresident_history)for(auto it=p.source_bindings.begin();it!=p.source_bindings.end();){
+            if(!p.segments_v2.count(it->first))it=p.source_bindings.erase(it);else ++it;
+        }
+        if(!ActiveDetails(root,admission,p,error))return false;
         *output=std::move(p);if(error)error->clear();return true;
     }catch(...){return Fail(error,"projection allocation/domain failure");}
 #else
-    (void)root;(void)manifest;(void)chain;(void)snapshot;(void)admission;(void)output;(void)enable_retired_v2;
+    (void)root;(void)manifest;(void)chain;(void)snapshot;(void)admission;(void)output;(void)enable_retired_v2;(void)stream_admission;
     return Fail(error,"projection unsupported: POSIX/OpenSSL required");
 #endif
+}
+bool BuildRecordingCatalogGenerationProjection(const std::filesystem::path& root,
+    const RecordingGenerationManifest& manifest,const RecordingIdentityChainResult& chain,const RecordingCatalogSnapshot& snapshot,
+    std::uint64_t admission,RecordingCatalogGenerationProjection* output,std::string* error,bool retired){
+    return BuildProjection(root,manifest,chain,snapshot,admission,output,error,retired,0);
+}
+bool BuildRecordingCatalogGenerationProjectionStream(const std::filesystem::path& root,
+    const RecordingGenerationManifest& manifest,const RecordingIdentityChainResult& chain,const RecordingCatalogSnapshot& header,
+    std::uint64_t snapshot_admission,std::uint64_t admission,RecordingCatalogGenerationProjection* output,std::string* error,bool retired){
+    if(!snapshot_admission)return Fail(error,"projection streaming admission missing");
+    return BuildProjection(root,manifest,chain,header,admission,output,error,retired,snapshot_admission);
 }
 } // namespace recording

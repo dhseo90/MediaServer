@@ -20,7 +20,11 @@ struct RecordingGenerationRetiredV2Projection {
     RecordingIdentityFirstAcceptance origin;
 };
 // 이동 소비 가능한 scratch 값이다. Catalog attachment/FD/런타임 lease/cache는 포함하지 않는다.
+class RecordingCatalogHistoryRows;
 struct RecordingCatalogGenerationProjection {
+    std::shared_ptr<RecordingCatalogHistoryRows> completed_history;
+    bool nonresident_history{false};
+    RecordingIdentityHistoryHandle identity_history;
     RecordingGenerationManifest manifest;
     std::map<std::string,RecordingSegmentV1> segments;
     std::map<std::string,RecordingSegmentV2> segments_v2;
@@ -51,6 +55,10 @@ struct RecordingCatalogGenerationProjection {
 // cold admission은 각 물리 행 bytes 상한이며 총 RSS 상한이 아니다. 호출마다 관련 archive
 // 전체 SHA IO가 필요하다. 비활성 원문/과거 전이를 재검증한 결과로 취급하면 안 된다.
 // active 적용·SQLite·게시·cutover·B Open은 하지 않는다. 실패/crypto-off output 불변.
+bool BuildRecordingCatalogGenerationProjectionStream(const std::filesystem::path&,
+    const RecordingGenerationManifest&,const RecordingIdentityChainResult&,const RecordingCatalogSnapshot& header,
+    std::uint64_t snapshot_admission,std::uint64_t cold_byte_admission,
+    RecordingCatalogGenerationProjection*,std::string*,bool enable_retired_v2=false);
 bool BuildRecordingCatalogGenerationProjection(const std::filesystem::path& root,
     const RecordingGenerationManifest&,const RecordingIdentityChainResult&,
     const RecordingCatalogSnapshot&,std::uint64_t cold_byte_admission,

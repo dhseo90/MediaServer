@@ -122,30 +122,47 @@ bool ReadRecordingGenerationActive(const std::filesystem::path& root,std::uint64
         if(!ReadRecordingGenerationManifestForOpen(root,&verified,error)||
             !SerializeRecordingGenerationManifest(verified.manifest,&canonical,error)||canonical!=manifest_bytes)
             return Fail(error,"active verified manifest changed");
-        std::string bytes;
-        if(!ReadBytes(active.value,size,&bytes)||Hash(bytes.data(),static_cast<std::size_t>(manifest.active.size))!=manifest.active.sha256)
-            return Fail(error,"active read/prefix hash mismatch");
-        if(manifest.active.size&&bytes[static_cast<std::size_t>(manifest.active.size)-1]!='\n')
-            return Fail(error,"active prefix is not a complete row boundary");
         RecordingGenerationActiveReadResult result;result.manifest=manifest;
-        result.active_file={manifest.active.name,size,Hash(bytes.data(),bytes.size())};
-        if(result.active_file.sha256.empty())return Fail(error,"active digest failure");
-        std::size_t offset=0;
-        while(offset<bytes.size()) {
-            const auto end=bytes.find('\n',offset);
-            if(end==std::string::npos||end==offset)return Fail(error,"active incomplete/empty row");
-            RecordingGenerationActiveRow row;
-            const auto line=bytes.substr(offset,end-offset);
-            if(!ParseRecordingMutationV1(line,&row.mutation,error)||
-               (row.mutation.physical_json.empty()?SerializeRecordingMutationV1(row.mutation):row.mutation.physical_json)!=line)
-                return Fail(error,"active noncanonical/invalid envelope");
-            if(result.rows.size()>std::numeric_limits<std::uint64_t>::max()-manifest.cut_ordinal)
-                return Fail(error,"active ordinal overflow");
-            row.global_ordinal=manifest.cut_ordinal+result.rows.size();
-            row.offset=offset;row.length=end-offset+1;row.raw_sha256=Hash(bytes.data()+offset,static_cast<std::size_t>(row.length));
-            if(row.raw_sha256.empty())return Fail(error,"active row digest failure");
-            result.rows.push_back(std::move(row));offset=end+1;
+        using Digest=std::unique_ptr<EVP_MD_CTX,decltype(&EVP_MD_CTX_free)>;
+        Digest whole(EVP_MD_CTX_new(),EVP_MD_CTX_free),prefix(EVP_MD_CTX_new(),EVP_MD_CTX_free);
+        if(!whole||!prefix||EVP_DigestInit_ex(whole.get(),EVP_sha256(),nullptr)!=1||
+           EVP_DigestInit_ex(prefix.get(),EVP_sha256(),nullptr)!=1)return Fail(error,"active digest initialization failure");
+        const auto finish=[](EVP_MD_CTX* ctx){
+            unsigned char digest[32];unsigned length=0;std::string value;
+            if(EVP_DigestFinal_ex(ctx,digest,&length)!=1||length!=32)return value;
+            constexpr char hex[]="0123456789abcdef";
+            for(const auto byte:digest){value+=hex[byte>>4];value+=hex[byte&15];}return value;
+        };
+        std::array<char,65536> buffer{};std::string line;std::uint64_t offset=0,row_offset=0;
+        bool prefix_boundary=manifest.active.size==0;
+        while(offset<size){
+            const auto wanted=static_cast<std::size_t>(std::min<std::uint64_t>(buffer.size(),size-offset));
+            ssize_t received;do{received=::pread(active.value,buffer.data(),wanted,static_cast<off_t>(offset));}while(received<0&&errno==EINTR);
+            if(received<=0)return Fail(error,"active short read");
+            const auto count=static_cast<std::size_t>(received);
+            if(EVP_DigestUpdate(whole.get(),buffer.data(),count)!=1)return Fail(error,"active digest update failure");
+            if(offset<manifest.active.size){const auto n=static_cast<std::size_t>(std::min<std::uint64_t>(count,manifest.active.size-offset));
+                if(EVP_DigestUpdate(prefix.get(),buffer.data(),n)!=1)return Fail(error,"active prefix digest update failure");
+                if(offset+n==manifest.active.size)prefix_boundary=buffer[n-1]=='\n';}
+            for(std::size_t i=0;i<count;++i){
+                line+=buffer[i];if(buffer[i]!='\n')continue;
+                if(line.size()==1)return Fail(error,"active incomplete/empty row");
+                RecordingGenerationActiveRow row;row.offset=row_offset;row.length=line.size();row.raw_sha256=Hash(line.data(),line.size());
+                line.pop_back();
+                if(row.raw_sha256.empty()||!ParseRecordingMutationV1(line,&row.mutation,error)||
+                   (row.mutation.physical_json.empty()?SerializeRecordingMutationV1(row.mutation):row.mutation.physical_json)!=line)
+                    return Fail(error,"active noncanonical/invalid envelope");
+                if(result.rows.size()>std::numeric_limits<std::uint64_t>::max()-manifest.cut_ordinal)return Fail(error,"active ordinal overflow");
+                row.global_ordinal=manifest.cut_ordinal+result.rows.size();row_offset+=row.length;
+                result.rows.push_back(std::move(row));line.clear();
+            }
+            offset+=count;
         }
+        if(!line.empty())return Fail(error,"active incomplete/empty row");
+        if(!prefix_boundary)return Fail(error,"active prefix is not a complete row boundary");
+        if(finish(prefix.get())!=manifest.active.sha256)return Fail(error,"active read/prefix hash mismatch");
+        result.active_file={manifest.active.name,size,finish(whole.get())};
+        if(result.active_file.sha256.empty())return Fail(error,"active digest failure");
 #if defined(MEDIA_SERVER_RECORDING_GENERATION_TESTING)
         const auto hook=before_binding;before_binding=nullptr;if(hook)hook();
 #endif

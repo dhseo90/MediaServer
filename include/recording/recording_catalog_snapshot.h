@@ -59,6 +59,12 @@ struct RecordingCatalogSnapshot {
     RecordingGenerationFile identity_head;
     std::vector<RecordingCatalogSnapshotRow> rows;
 };
+using RecordingCatalogSnapshotRowVisitor=std::function<bool(const RecordingCatalogSnapshotRow&,std::string*)>;
+bool VisitRecordingCatalogSnapshot(const std::filesystem::path&,const RecordingGenerationFile&,std::uint64_t,
+    RecordingCatalogSnapshot*,const RecordingCatalogSnapshotRowVisitor&,std::string*);
+bool SerializeRecordingCatalogSnapshotHeader(const RecordingCatalogSnapshot&,std::string*,std::string*);
+bool SerializeRecordingCatalogSnapshotRow(const RecordingCatalogSnapshotRow&,std::string*,std::string*);
+bool RecordingSnapshotRequiresAcceptedState(RecordingMutationType);
 inline constexpr std::uint64_t kRecordingCatalogSnapshotMaxBytes = 1024ULL * 1024 * 1024;
 // 행은 (kind,key) 사전순이다. 정렬을 자동 보정하지 않으며 마지막 LF가 필수다.
 // 실패하면 caller output을 변경하지 않는다. 파일 IO·제품 Open/Append/Checkpoint 연결 없음.

@@ -947,3 +947,49 @@ node/value 및 ordinal/identity 대응을 검증한다. 이 복제 버퍼와96�
 반환 문자열은 유한하지만, 상위 snapshot exporter의 전체 DTO는 아직 비상주화하지 않았다.
 진행 중 link는 원본 검증을 다시 수행하는 identity/ordinal 값이며 scratch FD를 외부 reader에
 노출하지 않는다. 이전 세대 scratch는 원자 전환 뒤 plan의 명시적 Finish로 회수한다.
+
+### 완료 이력과 Open/checkpoint의 소비 경계 (79)
+
+78의 원본 권위·익명 FD·명시적 Finish·원본 admission을 유지한다. 목표는 Journal
+order/archive와 Catalog 완료 이력의 상주 사본, Open의 전체 검증 사본, checkpoint의
+identity/order DTO·rows·전체 문자열을 같은 검증 완료 세대 조회로 연결해 제거하는 것이다.
+활성 자료와 실제 reader의 소유는 별도이며 디스크의 논리 행 수를 RAM 행 수로 계상하지 않는다.
+
+구현 전 비교 기준은 78 제품을 before로 한 warmup32 및128/512/2048 순환 fixture다.
+4GiB RSS·448MiB root+scratch·4MiB 로그·180초 직접 비교 예산을 유지한다. 원본 형식과
+작은 fixture의 직렬화 bytes/hash, retry/충돌·삭제·권한·원자 게시·복구는 불변이다.
+상한을 결과에 맞춰 높이지 않는다. 정상/Open/checkpoint의 전체 이력 RAM 사본이 남으면
+해당 경계는 미완료다. endpoint와 누적 high-water는 단계별 순간 peak 증명이 아니다.
+새 스트리밍 소비자는 단일 행의 기존 admission을 유지하고 전체 파일을 문자열로 모으지 않는다.
+검증 중 후보는 비공개이며 실패/Close 오류는 원래 오류와 함께 회수한다. 현재 API의 값 반환
+oracle과 실제 제품 경로를 분리하고, 후자가 oracle을 호출해 전체 적재하지 않게 한다.
+
+79의 현재 연결은 정상 generation 경로에 한정한다. Journal order의 request/time·segment·
+ordinary/legacy namespace와 archive descriptor는 익명 인덱스에 보존하고 최대 order만 상주한다.
+Catalog accepted-state는 검증된 최초 ordinal과 연속 적용 watermark로 판정한다. retired/source
+summary는 2048바이트 청크와 길이/할당 metadata로 나누어 기존 단일 행 admission을 유지한다.
+한 행 반환과 실제 활성 reader의 소유는 디스크 이력 수와 별도다. 인덱스의 `size()`는 논리 행 수다.
+
+Open은 원본 SHA와 최종 FD/path binding을 검증하며 64KiB 입력과 한 canonical 행으로 읽는다.
+shard/archive 순회·coverage는 디스크 namespace에 두고 검증 완료 전 후보를 공개하지 않는다.
+checkpoint는 한 identity 행씩 준비/쓰기하며 snapshot은 디스크 key 순서의 청크로 출력한다.
+생산한 바이트와 실제 쓰기/hash를 결박하고 원문 재검증·PUBLISH_INTENT·fsync·Finish를 유지한다.
+소비자 거절/결과 admission 예외는 index 손상과 구분하며 실제 I/O/coverage 실패는 fail-closed다.
+
+scratch 값의 개별 최대2048바이트·node512바이트·key256바이트·탐색96단계는 78과 같다.
+order DTO는 기존 ID grammar128바이트와 고정 schema/숫자에 맞고 archive descriptor는 기존
+파일명/크기/hash만 저장한다. Catalog 큰 행은 자르지 않고 청크 수에 비례한 디스크 공간을 쓴다.
+새 namespace도 `512 + 2560 * rows` 파일 표현 비용을 사용하며 count가 다른 인덱스들을
+합산한다. 기존 원본 admission을 이 비용으로 대체하지 않는다. 현재/후보 identity, order,
+archive, 완료 행, 출력 정렬 scratch의 동시 논리/할당량을 관측한다. 전 단계 순간 disk/RAM
+peak 강제 보호가 입증된 것은 아니며 endpoint·누적 high-water와 구분한다.
+
+남은 경계: 구형 full snapshot의 segment/state/path/tombstone projection은 축약 전에 전체
+적재한다. 기존에 수용한 path/reason 없는 자료를 임의 retired 형식으로 바꾸지 않았다.
+완료 derived job summary·ID 벡터·link 및 현재 observation/reference 집합은 상주한다.
+active.rows는 전체 과거가 아니라 기존 active admission 범위의 현재 suffix다. 명시적 DTO
+export/전체 조회 API는 여전히 전체 반환값을 만든다. 제품 checkpoint는 해당 DTO 경로를 쓰지 않는다.
+checkpoint 정렬 준비는 Catalog 잠금 아래, Journal 준비/clone은 Journal 잠금 아래 남고,
+count/spool 두 번의 export가 각 검증 순회를 반복한다. 기존 byte/hash 검증을 제거해 비용을
+숨기지 않으며 잠금/동시 검색 지연은 별도 미충족이다. 현재 작업은 이 잔여를 해결한 것으로
+채택하거나 저장 기반 전체 완료로 표시하지 않는다.

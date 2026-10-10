@@ -5,6 +5,8 @@
 #include <map>
 #include <set>
 #include <tuple>
+#include <stdexcept>
+#include "recording_history_index.h"
 
 namespace recording {
 namespace {
@@ -56,7 +58,7 @@ bool RecordingCatalog::ExportGenerationSnapshotLocked(const RecordingIdentityCha
 }
 bool RecordingCatalog::ExportGenerationValuesLocked(const std::string& store,
     const RecordingIdentityChainResult& chain,std::uint64_t generation,std::uint64_t cut,
-    RecordingCatalogSnapshot* output,std::string* error) const {
+    RecordingCatalogSnapshot* output,std::string* error,const RecordingCatalogSnapshotRowVisitor& visitor) const {
     try {
         if (!output || !ValidateOpaqueId(store,error)) return Fail(error,"snapshot value store/output invalid");
         RecordingCatalogSnapshot result;
@@ -66,66 +68,84 @@ bool RecordingCatalog::ExportGenerationValuesLocked(const std::string& store,
             (!chain.order_history.bound_store.empty() && chain.order_history.bound_store != result.store_id))
             return Fail(error,"snapshot chain store mismatch");
         std::string validated;
-        if (!SerializeRecordingOrderHistorySnapshot(chain.order_history,&validated,error)) return false;
-        std::map<std::string,const RecordingIdentityFirstAcceptance*> first;
-        std::map<std::string,const RecordingOrderHistoryReservation*> orders;
-        for (const auto& order : chain.order_history.reservations) orders.emplace(order.order.request_id,&order);
-        std::uint64_t physical = 0;
-        for (const auto& entry : chain.first_acceptances) {
-            if (!first.emplace(entry.mutation_id,&entry).second || entry.mutation_id != entry.first_row.mutation_id ||
-                entry.first_global_ordinal != entry.first_row.global_ordinal || entry.first_global_ordinal >= cut ||
-                !entry.occurrences || entry.occurrences > chain.physical_rows - physical)
-                return Fail(error,"snapshot first identity mismatch");
-            physical += entry.occurrences;
-            if (entry.first_row.type == RecordingMutationType::RecordingOrderReserved) {
-                const auto found = orders.find(entry.mutation_id);
-                if (!entry.first_row.reservation || found == orders.end() ||
-                    !SameOrder(*entry.first_row.reservation,found->second->order) ||
-                    entry.first_row.entity_id != found->second->order.segment_id ||
-                    entry.first_row.occurred_at_ms != found->second->occurred_at_ms)
-                    return Fail(error,"snapshot reservation identity mismatch");
-            } else if (!mutation_ids_.count(entry.mutation_id) || entry.first_row.reservation) {
-                return Fail(error,"snapshot ordinary identity missing");
-            }
+        if(!chain.history&&!SerializeRecordingOrderHistorySnapshot(chain.order_history,&validated,error))return false;
+        std::map<std::string,const RecordingIdentityFirstAcceptance*> dto_first;
+        std::map<std::string,const RecordingOrderHistoryReservation*> dto_orders;
+        if(!chain.history){
+            for(const auto& entry:chain.first_acceptances)
+                if(!dto_first.emplace(entry.mutation_id,&entry).second)return Fail(error,"snapshot first identity duplicate");
+            for(const auto& item:chain.order_history.reservations)dto_orders.emplace(item.order.request_id,&item);
         }
-        if (physical != chain.physical_rows) return Fail(error,"snapshot physical count mismatch");
-        for (const auto& id : mutation_ids_) if (!first.count(id)) return Fail(error,"snapshot catalog ID missing");
-        for (const auto& item : orders) {
-            const auto found = first.find(item.first);
-            if (found == first.end() || found->second->first_row.type != RecordingMutationType::RecordingOrderReserved)
+        const auto first=[&](const std::string& id){
+            std::optional<RecordingIdentityFirstAcceptance> value;
+            if(!chain.history){const auto found=dto_first.find(id);if(found!=dto_first.end())value=*found->second;return value;}
+            if(!FindRecordingIdentityFirst(chain,id,&value,error))throw std::runtime_error("snapshot first lookup failed");
+            return value;
+        };
+        const auto order=[&](const std::string& id)->std::optional<RecordingOrderHistoryReservation>{
+            const auto value=first(id);
+            if(!value||value->first_row.type!=RecordingMutationType::RecordingOrderReserved||!value->first_row.reservation)return {};
+            return RecordingOrderHistoryReservation{*value->first_row.reservation,value->first_row.occurred_at_ms};
+        };
+        if((chain.physical_rows==0)!=!chain.maximum_global_ordinal.has_value()||
+           (chain.maximum_global_ordinal&&*chain.maximum_global_ordinal>=cut))return Fail(error,"snapshot identity physical ordinal/cut mismatch");
+        std::uint64_t physical=0;std::size_t required_accepted=0;
+        if(!VisitRecordingIdentityFirst(chain,[&](const auto& entry,std::string*){
+            if(entry.mutation_id!=entry.first_row.mutation_id||entry.first_global_ordinal!=entry.first_row.global_ordinal||
+               entry.first_global_ordinal>=cut||!entry.occurrences||entry.occurrences>chain.physical_rows-physical)
+                return Fail(error,"snapshot first identity mismatch");
+            physical+=entry.occurrences;
+            if(RecordingSnapshotRequiresAcceptedState(entry.first_row.type))++required_accepted;
+            if(entry.first_row.type==RecordingMutationType::RecordingOrderReserved){
+                const auto found=order(entry.mutation_id);
+                if(!found||entry.first_row.entity_id!=found->order.segment_id)return Fail(error,"snapshot reservation identity mismatch");
+                if(!chain.history){const auto original=dto_orders.find(entry.mutation_id);
+                    if(original==dto_orders.end()||!SameOrder(found->order,original->second->order)||
+                       found->occurred_at_ms!=original->second->occurred_at_ms)return Fail(error,"snapshot reservation identity mismatch");}
+
+            }else if(!MutationSeenLocked(entry.mutation_id)||entry.first_row.reservation)
+                return Fail(error,"snapshot ordinary identity missing");
+            return true;
+        },error))return false;
+        if(physical!=chain.physical_rows)return Fail(error,"snapshot physical count mismatch");
+        for(const auto& id:mutation_ids_)if(!first(id))return Fail(error,"snapshot catalog ID missing");
+        // DTO callers retain exact order-history cross checks; product history was sealed by Journal.
+        if(!chain.history)for(const auto& item:chain.order_history.reservations){
+            const auto found=order(item.order.request_id);
+            if(!found||!SameOrder(found->order,item.order)||found->occurred_at_ms!=item.occurred_at_ms)
                 return Fail(error,"snapshot reservation first ID missing");
         }
-        for (const auto& item : orders_v2_) {
-            const auto found = orders.find(item.first);
-            if (found == orders.end() || !SameOrder(item.second,found->second->order))
-                return Fail(error,"snapshot catalog order mismatch");
-        }
+        if(!VisitOrdersLocked([&](const RecordingOrderReservationV1& value,std::string*) {
+            const auto found=order(value.request_id);
+            return (found&&SameOrder(value,found->order))||Fail(error,"snapshot catalog order mismatch");
+        },error))return false;
         for (const auto& item : segments_v2_) {
             const auto& segment = item.second;
-            const auto found = orders.find(segment.order_request_id);
-            if (found == orders.end() || segment.store_id != result.store_id ||
-                found->second->order.segment_id != item.first || found->second->order.channel_id != segment.channel_id ||
-                found->second->order.sequence != segment.order_sequence)
+            const auto found = order(segment.order_request_id);
+            if (!found || segment.store_id != result.store_id ||
+                found->order.segment_id != item.first || found->order.channel_id != segment.channel_id ||
+                found->order.sequence != segment.order_sequence)
                 return Fail(error,"snapshot finalized order mismatch");
         }
         const auto add = [&](const char* kind,const std::string& key,std::string bytes) {
-            result.rows.push_back({kind,key,std::move(bytes)});
+            RecordingCatalogSnapshotRow row{kind,key,std::move(bytes)};
+            if(visitor){if(!visitor(row,error))throw std::runtime_error("snapshot row consumer failed");}
+            else result.rows.push_back(std::move(row));
         };
         for (const auto& v : segments_) add("segment-v1",v.first,SerializeRecordingSegmentV1(v.second));
         for (const auto& v : segments_v2_) add("segment-v2",v.first,SerializeRecordingSegmentV2(v.second));
         for (const auto& v : states_v2_) add("state-v2",v.first,SerializeRecordingSegmentStateV2(v.second));
         for (const auto& v : tombstones_) add("tombstone-v1",v.first,SerializeRecordingTombstoneV1(v.second));
         for (const auto& v : tombstones_v2_) add("tombstone-v2",v.first,SerializeRecordingTombstoneV2(v.second));
-        for (const auto& v : retired_v2_) {
-            const auto origin=first.find(v.second.deletion_mutation_id);
-            const auto order=orders.find(v.second.order_request_id);
-            if(origin==first.end()||origin->second->first_row.type!=RecordingMutationType::SegmentV2Deleted||
-               origin->second->first_row.entity_id!=v.first||retired_v2_links_.find(v.first)==retired_v2_links_.end()||
-               order==orders.end()||v.second.store_id!=result.store_id||order->second->order.segment_id!=v.first||
-               order->second->order.channel_id!=v.second.channel_id||order->second->order.sequence!=v.second.order_sequence||
-               !SerializeRecordingRetiredV2Receipt(v.second,&validated,error))return Fail(error,"snapshot retired V2 provenance mismatch");
-            add("retired-v2",v.first,validated);
-        }
+        if(!VisitRetiredLocked([&](const std::string& id,const RecordingRetiredV2Receipt& value,std::string*) {
+            const auto origin=first(value.deletion_mutation_id);const auto reserved=order(value.order_request_id);
+            if(!origin||origin->first_row.type!=RecordingMutationType::SegmentV2Deleted||origin->first_row.entity_id!=id||
+               (!completed_history_&&retired_v2_links_.find(id)==retired_v2_links_.end())||
+               !reserved||value.store_id!=result.store_id||reserved->order.segment_id!=id||
+               reserved->order.channel_id!=value.channel_id||reserved->order.sequence!=value.order_sequence||
+               !SerializeRecordingRetiredV2Receipt(value,&validated,error))return Fail(error,"snapshot retired V2 provenance mismatch");
+            add("retired-v2",id,validated);return true;
+        },error))return false;
         for (const auto& v : media_relpaths_) add("media-path",v.first,Quote(v.second));
         for (const auto& v : deletion_reasons_) add("deletion-reason",v.first,Quote(v.second));
         for (const auto& v : event_links_) add("event-link",v.first,SerializeEventRecordingLinkV1(v.second));
@@ -134,38 +154,94 @@ bool RecordingCatalog::ExportGenerationValuesLocked(const std::string& store,
         for (const auto& v : consumer_references_) add("consumer-reference",v.first,SerializeRecordingConsumerReferenceV1(v.second));
         for (const auto& v : referenced_observations_) add("referenced-observation",v.first,SerializeReferencedObservationV1(v.second));
         for (const auto& id : derived_accepted_references_) add("derived-reference-accepted",id,"true");
-        for (const auto& item : source_bindings_) {
-            const auto& v = item.second; const auto found = first.find(v.latest_mutation_id);
-            if (item.first != v.id || found == first.end() || found->second->first_row.entity_id != v.id ||
-                found->second->first_row.type != RecordingMutationType::SegmentV2BoundFinalized)
+        if(!VisitSourcesLocked([&](const std::string& id,const SourceBindingEntry& v,std::string*) {
+            const auto found=first(v.latest_mutation_id);
+            if(id!=v.id||!found||found->first_row.entity_id!=v.id||found->first_row.type!=RecordingMutationType::SegmentV2BoundFinalized)
                 return Fail(error,"snapshot source provenance mismatch");
             RecordingCatalogSourceSummary summary{v.id,v.channel,v.source,v.generation,v.track,v.order,v.sample_count,v.latest_mutation_id};
-            if (!SerializeRecordingCatalogSourceSummary(summary,&validated,error)) return false;
-            add("source-binding",item.first,validated);
-        }
+            if(!SerializeRecordingCatalogSourceSummary(summary,&validated,error))return false;
+            add("source-binding",id,validated);return true;
+        },error))return false;
         for (const auto& item : derived_jobs_) {
-            const auto& v = item.second; const auto found = first.find(v.latest_mutation_id);
-            if (item.first != v.id || found == first.end() || found->second->first_row.entity_id != v.id ||
-                !JobType(found->second->first_row.type)) return Fail(error,"snapshot job provenance mismatch");
+            const auto& v = item.second; const auto found = first(v.latest_mutation_id);
+            if (item.first != v.id || !found || found->first_row.entity_id != v.id ||
+                !JobType(found->first_row.type)) return Fail(error,"snapshot job provenance mismatch");
             RecordingCatalogJobSummary summary{v.id,v.channel,v.reference,v.state,v.files,v.reserved_bytes,v.output_ids,v.source_ids,v.latest_mutation_id};
             if (!SerializeRecordingCatalogJobSummary(summary,&validated,error)) return false;
             add("derived-job",item.first,validated);
         }
-        // chain은 이미 검증된 입력이다. 이 대조는 cold 링크 원문의 type/ordinal 검증이 아니다.
-        for (const auto& item : accepted_segment_state_mutations_) {
-            const auto found = first.find(item.first);
-            if (found == first.end() || !mutation_ids_.count(item.first)) return Fail(error,"snapshot accepted ID missing");
-            const auto& entry = *found->second;
-            add("accepted-state",item.first,"{\"mutationId\":"+Quote(item.first)+",\"globalOrdinal\":"+
+        // Catalog's applied prefix, not all Journal-parsed active rows, supplies accepted state.
+        const auto accepted=[&](const RecordingIdentityFirstAcceptance& entry,std::string*) {
+            if(!RecordingSnapshotRequiresAcceptedState(entry.first_row.type)||!required_accepted||entry.first_global_ordinal>=cut)
+                return Fail(error,"snapshot accepted type/count mismatch");
+            --required_accepted;
+            add("accepted-state",entry.mutation_id,"{\"mutationId\":"+Quote(entry.mutation_id)+",\"globalOrdinal\":"+
                 std::to_string(entry.first_global_ordinal)+",\"type\":"+Quote(RecordingMutationTypeName(entry.first_row.type))+"}");
+            return true;
+        };
+        if(completed_history_){if(!VisitAcceptedLocked(accepted,error))return false;}
+        else for(const auto& item:accepted_segment_state_mutations_){
+            const auto found=first(item.first);
+            if(!found||!mutation_ids_.count(item.first))return Fail(error,"snapshot accepted ID missing");
+            if(!accepted(*found,error))return false;
         }
+        if(required_accepted)return Fail(error,"snapshot accepted-state first identity missing");
         std::sort(result.rows.begin(),result.rows.end(),[](const auto& a,const auto& b) {
             return std::tie(a.kind,a.key) < std::tie(b.kind,b.key);
         });
-        if (!ValidateRecordingCatalogSnapshotAcceptedStates(result,chain,error)) return false;
+        if (!visitor&&!ValidateRecordingCatalogSnapshotAcceptedStates(result,chain,error)) return false;
         *output = std::move(result);
         if (error) error->clear();
         return true;
-    } catch (...) { return Fail(error,"snapshot export allocation/serialization failure"); }
+    } catch (...) { if(error&&error->empty())*error="snapshot export allocation/serialization failure";return false; }
+}
+// Two bounded visits under the caller's Catalog lock. Scratch keys provide canonical kind/key/chunk order.
+// Only one canonical row and one fixed index value are live; no rows vector or whole snapshot string.
+bool RecordingCatalog::PrepareGenerationSnapshotStreamLocked(const RecordingIdentityChainResult& chain,
+    std::uint64_t generation,std::uint64_t cut,GenerationSnapshotStream* output,std::string* error) const {
+#if MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
+    if(!opened_||!derived_job_state_authoritative_||!journal_.managed_||!output)return Fail(error,"snapshot stream authority unavailable");
+    auto sorted=std::make_shared<RecordingHistoryIndex>();
+    output->finish=[sorted](std::string* detail){return sorted->Close(detail);};
+    bool ok=false;
+    try {ok=[&](){
+        RecordingCatalogSnapshot header;std::uint64_t chunks=0,total=0;
+        const auto count=[&](const RecordingCatalogSnapshotRow& row,std::string* detail){
+            std::string bytes;if(!SerializeRecordingCatalogSnapshotRow(row,&bytes,detail))return false;
+            if(bytes.size()>kRecordingCatalogSnapshotMaxBytes-total)return Fail(detail,"snapshot stream admission exceeded");
+            total+=bytes.size();chunks+=bytes.size()/RecordingHistoryIndex::kValueBytes+(bytes.size()%RecordingHistoryIndex::kValueBytes!=0);return true;
+        };
+        if(!ExportGenerationValuesLocked(chain.store_id,chain,generation,cut,&header,error,count))return false;
+        std::string prefix;if(!SerializeRecordingCatalogSnapshotHeader(header,&prefix,error)||prefix.size()>kRecordingCatalogSnapshotMaxBytes-total)return false;
+        const auto budget=RecordingHistoryIndex::BytesForRows(chunks);
+        if(!budget||!sorted->Create(std::filesystem::canonical(std::filesystem::temp_directory_path()).string(),budget,error))return false;
+        std::uint64_t stored=0;
+        const auto spool=[&](const RecordingCatalogSnapshotRow& row,std::string* detail){
+            std::string bytes;if(!SerializeRecordingCatalogSnapshotRow(row,&bytes,detail))return false;
+            for(std::size_t offset=0,part=0;offset<bytes.size();offset+=RecordingHistoryIndex::kValueBytes,++part){
+                const auto digits=std::to_string(part);
+                const auto key=row.kind+std::string(1,'\0')+row.key+std::string(1,'\0')+std::string(20-digits.size(),'0')+digits;
+                if(!sorted->Put(key,bytes.substr(offset,RecordingHistoryIndex::kValueBytes),false,detail))return false;
+            }
+            stored+=bytes.size();return true;
+        };
+        if(!ExportGenerationValuesLocked(chain.store_id,chain,generation,cut,&header,error,spool)||stored!=total||sorted->usage().rows!=chunks)return Fail(error,"snapshot stream coverage mismatch");
+        output->produce=[sorted,prefix,total](const RecordingGenerationByteSink& sink,std::string* detail){
+            if(!sink||!sink(prefix,detail))return false;
+            std::uint64_t emitted=0;
+            if(!sorted->Visit([&](const std::string&,const std::string& value,std::string* row_error){
+                if(value.size()>total-emitted)return Fail(row_error,"snapshot stream output overflow");
+                emitted+=value.size();return sink(value,row_error);
+            },detail))return false;
+            return emitted==total||Fail(detail,"snapshot stream final size mismatch");
+        };
+        return true;
+    }();}catch(...){Fail(error,"snapshot stream resource failure");}
+    const auto usage=sorted->usage();
+    {std::lock_guard lock(journal_.mu_);journal_.AccountGenerationScratchLocked(chain.history,usage.file_bytes+chain.checkpoint_archive_bytes,usage.allocated_bytes+chain.checkpoint_archive_allocated);}
+    return ok;
+#else
+    (void)chain;(void)generation;(void)cut;(void)output;return Fail(error,"snapshot stream unsupported");
+#endif
 }
 } // namespace recording

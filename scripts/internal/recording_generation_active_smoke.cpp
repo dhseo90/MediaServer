@@ -87,6 +87,15 @@ int main(int argc,char** argv) {
         std::string error;
 #if MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
         const auto one=Line("one"),two=Line("two"),bytes=one+two;
+        {
+            std::string many;for(unsigned i=0;i<1000;++i)many+=one;
+            const auto chunked=root/"chunked";Manifest(chunked,many,333*one.size());
+            RecordingGenerationActiveReadResult streamed;
+            bool exact=ReadRecordingGenerationActive(chunked,many.size(),&streamed,&error)&&streamed.rows.size()==1000&&streamed.active_file.sha256==Hash(many);
+            for(std::size_t i=0;exact&&i<streamed.rows.size();++i)
+                exact=streamed.rows[i].offset==i*one.size()&&streamed.rows[i].length==one.size()&&streamed.rows[i].raw_sha256==Hash(one)&&streamed.rows[i].global_ordinal==10+i;
+            Check(1,exact,"64KiB chunk boundaries preserve prefix/full digest, physical retry rows and exact locators");
+        }
         const auto valid=root/"valid";Manifest(valid,bytes,one.size());
         const auto manifest_before=Read(valid/"recording-generation.json");
         RecordingGenerationActiveReadResult result;

@@ -421,13 +421,13 @@ bool ReadVerifiedRecordingGenerationImmutable(const std::filesystem::path& root,
 static bool ReadVerifiedGenerationRange(const std::filesystem::path& root,
     const RecordingGenerationFile& descriptor,std::uint64_t offset,std::uint64_t length,
     std::uint64_t result_admission,bool sealed_active,std::uint64_t current_generation,
-    std::string* output,std::string* error) {
+    std::string* output,std::string* error,const RecordingGenerationByteSink& visitor={}) {
     if(!Supported(error))return false;
 #if !defined(_WIN32) && MEDIA_SERVER_USE_OPENSSL
  #if defined(MEDIA_SERVER_RECORDING_GENERATION_TESTING)
     if(sealed_active||descriptor.name.rfind("evidence-",0)==0)++archive_reads;
  #endif
-    if(!output||length>result_admission||descriptor.size>kFileLimit||offset>descriptor.size||
+    if((!output&&!visitor)||length>result_admission||descriptor.size>kFileLimit||offset>descriptor.size||
        length>descriptor.size-offset||length>std::numeric_limits<std::size_t>::max()||
        descriptor.size>static_cast<std::uint64_t>(std::numeric_limits<off_t>::max())||
        !Hex(descriptor.sha256)||(sealed_active ?
@@ -441,7 +441,7 @@ static bool ReadVerifiedGenerationRange(const std::filesystem::path& root,
         if(file.n<0||!Regular(file.n,&before)||static_cast<std::uint64_t>(before.st_size)!=descriptor.size||
            !Same(dir.n,descriptor.name.c_str(),file.n,before)||!RootSame(root,dir.n))
             return Fail(error,"immutable file binding/size invalid");
-        std::string bytes(static_cast<std::size_t>(length),'\0');
+        std::string bytes;if(output)bytes.resize(static_cast<std::size_t>(length),'\0');
         std::array<char,65536> block{};
         std::unique_ptr<EVP_MD_CTX,decltype(&EVP_MD_CTX_free)> digest(EVP_MD_CTX_new(),EVP_MD_CTX_free);
         if(!digest||EVP_DigestInit_ex(digest.get(),EVP_sha256(),nullptr)!=1)return Fail(error,"immutable digest initialization failed");
@@ -455,7 +455,8 @@ static bool ReadVerifiedGenerationRange(const std::filesystem::path& root,
                 return Fail(error,"immutable read/digest failed");
             const auto next=position+static_cast<std::uint64_t>(count);
             const auto first=std::max(position,offset),last=std::min(next,end);
-            if(first<last)std::copy_n(block.data()+static_cast<std::size_t>(first-position),
+            if(visitor&&!visitor(std::string_view(block.data(),static_cast<std::size_t>(count)),error))return false;
+            if(output&&first<last)std::copy_n(block.data()+static_cast<std::size_t>(first-position),
                 static_cast<std::size_t>(last-first),bytes.data()+static_cast<std::size_t>(first-offset));
             position=next;
         }
@@ -480,15 +481,20 @@ static bool ReadVerifiedGenerationRange(const std::filesystem::path& root,
             before.st_ctim.tv_sec==after.st_ctim.tv_sec&&before.st_ctim.tv_nsec==after.st_ctim.tv_nsec;
 #endif
         if(!unchanged)return Fail(error,"immutable content changed during read");
-        *output=std::move(bytes);
+        if(output)*output=std::move(bytes);
         if(error)error->clear();
         return true;
     } catch(...) {return Fail(error,"immutable read resource failure");}
 #else
     (void)root;(void)descriptor;(void)offset;(void)length;(void)result_admission;
-    (void)sealed_active;(void)current_generation;(void)output;
+    (void)sealed_active;(void)current_generation;(void)output;(void)visitor;
     return false;
 #endif
+}
+bool VisitVerifiedRecordingGenerationImmutable(const std::filesystem::path& root,const RecordingGenerationFile& descriptor,
+    std::uint64_t admission,const RecordingGenerationByteSink& visitor,std::string* error){
+    if(!visitor||!admission||descriptor.size>admission)return Fail(error,"immutable stream admission invalid");
+    return ReadVerifiedGenerationRange(root,descriptor,0,descriptor.size,admission,false,0,nullptr,error,visitor);
 }
 bool ReadVerifiedRecordingGenerationImmutableRange(const std::filesystem::path& root,
     const RecordingGenerationFile& descriptor,std::uint64_t offset,std::uint64_t length,

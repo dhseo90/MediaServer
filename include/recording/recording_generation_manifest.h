@@ -1,5 +1,7 @@
 // 파일 용도: 독립 녹화 세대 저장 형식의 manifest와 파일 메타데이터를 선언한다.
 #pragma once
+#include <functional>
+#include <string_view>
 // B 저장 형식의 독립 준비 도구. 기존 recording journal과 자동 연결하지 않는다.
 #include <cstdint>
 #include <filesystem>
@@ -7,6 +9,10 @@
 #include <vector>
 
 namespace recording {
+// 내부 component 생산자는 caller가 보호한 동일 snapshot을 유한 청크로 전달한다.
+using RecordingGenerationByteSink=std::function<bool(std::string_view,std::string*)>;
+using RecordingGenerationByteProducer=std::function<bool(const RecordingGenerationByteSink&,std::string*)>;
+
 struct RecordingGenerationFile {
     std::string name;
     std::uint64_t size{0};
@@ -63,6 +69,9 @@ bool ReadRecordingGenerationManifestForOpen(const std::filesystem::path& root,
 // snapshot/identity/evidence 불변 파일의 bytes를 독립 검증해 읽는다. active는 허용하지 않는다.
 // 호출자는 immutable 조건과 managed lease를 유지해야 한다. 파일 쓰기/삭제/제품 Open 연결 없음.
 // descriptor 1GiB 상한과 caller admission을 읽기 전에 적용하며 실패 output은 불변이다.
+// Callback receives bounded chunks into an unpublished candidate. Only true seals the full hash/binding.
+bool VisitVerifiedRecordingGenerationImmutable(const std::filesystem::path&,const RecordingGenerationFile&,
+    std::uint64_t,const RecordingGenerationByteSink&,std::string*);
 bool ReadVerifiedRecordingGenerationImmutable(const std::filesystem::path& root,
     const RecordingGenerationFile&, std::uint64_t byte_admission, std::string* output, std::string* error);
 // 전체 파일 SHA를 64KiB 블록으로 검증하되 요청 구간만 보관한다. 비용은 파일 전체 읽기이며

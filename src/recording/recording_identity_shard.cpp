@@ -346,6 +346,16 @@ bool SerializeRecordingIdentityShard(const RecordingIdentityShard& shard, std::s
     if (error) error->clear();
     return true;
 }
+bool SerializeRecordingIdentityCheckpointRow(const RecordingIdentityShard& metadata,
+    const RecordingIdentityRow& row,std::string* output,std::string* error) {
+    if(!output||!metadata.rows.empty()||!metadata.previous||metadata.archives.size()!=1)
+        return Fail(error,"checkpoint row metadata invalid");
+    // 한 행만 복사한다. 기존 전체 shard validator의 같은 필드 조건을 공유하며,
+    // 전체 history 검증을 이 bounded 행 검증으로 대체하지 않는다.
+    RecordingIdentityShard single=metadata;single.rows.push_back(row);
+    if(!Validate(single,error))return false;
+    *output=RowJson(row);if(error)error->clear();return true;
+}
 bool ParseRecordingIdentityShard(const std::string& raw, RecordingIdentityShard* output, std::string* error) {
     if (!output) return Fail(error, "identity shard output missing");
     Document document;
@@ -729,4 +739,228 @@ std::uint64_t RecordingIdentityHistoryBytes(const RecordingIdentityHistoryHandle
 #endif
 }
 std::size_t RecordingIdentityHistorySize(const RecordingIdentityHistoryHandle& history){return history?history->count:0;}
+bool VisitRecordingIdentityFirst(const RecordingIdentityChainResult& chain,
+    const RecordingIdentityFirstVisitor& visitor,std::string* error) {
+    if(chain.history)return VisitRecordingIdentityHistory(chain.history,visitor,error);
+    for(const auto& first:chain.first_acceptances)if(!visitor(first,error))return false;
+    return true;
+}
+bool FindRecordingIdentityFirst(const RecordingIdentityChainResult& chain,const std::string& id,
+    std::optional<RecordingIdentityFirstAcceptance>* output,std::string* error) {
+    if(!output)return Fail(error,"first lookup output missing");
+    if(chain.history)return FindRecordingIdentityHistory(chain.history,id,output,error);
+    output->reset();
+    for(const auto& first:chain.first_acceptances)if(first.mutation_id==id){
+        if(*output)return Fail(error,"first DTO duplicate identity");
+        *output=first;
+    }
+    return true;
+}
+#if MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND && MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
+namespace {
+// The original canonical JSON object has two arrays on one line. Decode one bounded
+// object at a time; whole-array StrictJson parsing would recreate the full shard.
+class IdentityStreamParser {
+public:
+    RecordingIdentityShard header;
+    std::function<bool(std::uint64_t,const RecordingGenerationFile&,std::string*)> archive;
+    std::function<bool(const RecordingIdentityRow&,std::string*)> row;
+    bool Feed(std::string_view bytes,std::string* error) {
+        for(char c:bytes) {
+            if(stage_==0) {
+                token_+=c;
+                if(token_.size()>2048)return Fail(error,"identity stream header admission");
+                constexpr std::string_view marker=",\"archives\":[";
+                if(token_.size()>=marker.size()&&token_.compare(token_.size()-marker.size(),marker.size(),marker)==0) {
+                    if(!ParseRecordingIdentityShard(token_+"],\"rows\":[]}\n",&header,error))return false;
+                    token_.clear();stage_=1;need_item_=false;
+                }
+                continue;
+            }
+            if(stage_==2||stage_==4) {
+                const std::string_view expected=stage_==2?",\"rows\":[":"}\n";
+                if(position_>=expected.size()||c!=expected[position_++])return Fail(error,"identity stream separator");
+                if(position_==expected.size()){stage_=stage_==2?3:5;position_=0;need_item_=false;}
+                continue;
+            }
+            if(stage_==5)return Fail(error,"identity stream trailing bytes");
+            if(token_.empty()) {
+                if(c==']'&&!need_item_){stage_=stage_==1?2:4;position_=0;continue;}
+                if(c!='{')return Fail(error,"identity stream array item");
+                token_="{";depth_=1;quoted_=escaped_=false;continue;
+            }
+            if(depth_==0) {
+                if(c==','){token_.clear();need_item_=true;continue;}
+                if(c==']'){token_.clear();stage_=stage_==1?2:4;position_=0;continue;}
+                return Fail(error,"identity stream item separator");
+            }
+            token_+=c;
+            if(token_.size()>2048)return Fail(error,"identity stream row admission");
+            if(quoted_){if(escaped_)escaped_=false;else if(c=='\\')escaped_=true;else if(c=='"')quoted_=false;}
+            else if(c=='"')quoted_=true;
+            else if(c=='{'||c=='[')++depth_;
+            else if(c=='}'||c==']')--depth_;
+            if(depth_)continue;
+            if(stage_==1) {
+                RecordingGenerationFile file;std::uint64_t generation=0;
+                if(!ParseFile(token_,&file,error)||FileJson(file)!=token_||!ArchiveGeneration(file.name,&generation)||generation>header.generation)
+                    return Fail(error,"identity stream archive invalid");
+                if(archive&&!archive(archive_count_,file,error))return false;
+                if(archive_count_==UINT64_MAX)return Fail(error,"identity stream archive overflow");
+                ++archive_count_;
+            } else {
+                RecordingIdentityRow value;
+                if(!ParseRow(token_,&value,error)||RowJson(value)!=token_||!ValidateOpaqueId(value.mutation_id,error)||
+                   !ValidateOpaqueId(value.entity_id,error)||RecordingMutationTypeName(value.type)=="unknown"||
+                   !Hex(value.identity)||!Hex(value.raw_sha256)||!value.length||value.archive_slot>=archive_count_||
+                   (ordinal_&&value.global_ordinal<=*ordinal_))return Fail(error,"identity stream row fields/order invalid");
+                if(value.type==RecordingMutationType::RecordingOrderReserved) {
+                    if(!value.reservation||value.reservation->store_id!=header.store_id||value.reservation->request_id!=value.mutation_id||
+                       value.reservation->segment_id!=value.entity_id)return Fail(error,"identity stream reservation binding");
+                } else if(value.reservation)return Fail(error,"identity stream nonreservation tuple");
+                ordinal_=value.global_ordinal;
+                if(row&&!row(value,error))return false;
+            }
+            need_item_=false;
+        }
+        return true;
+    }
+    bool Done(std::string* error)const{return stage_==5||Fail(error,"identity stream truncated");}
+private:
+    int stage_{0},depth_{0};std::size_t position_{0};std::uint64_t archive_count_{0};
+    bool quoted_{false},escaped_{false},need_item_{false};std::string token_;
+    std::optional<std::uint64_t> ordinal_;
+};
+bool StreamShard(const std::filesystem::path& root,const RecordingGenerationFile& file,std::uint64_t admission,
+    IdentityStreamParser& parser,std::string* error) {
+    return VisitVerifiedRecordingGenerationImmutable(root,file,admission,[&](std::string_view part,std::string* detail){
+        return parser.Feed(part,detail);
+    },error)&&parser.Done(error);
+}
+}
+#endif
+bool ValidateRecordingIdentityShardChainStream(const std::filesystem::path& root,const RecordingGenerationFile& head,
+    const RecordingIdentityChainLimits& limits,RecordingIdentityChainResult* output,std::string* error,
+    const std::function<bool(const RecordingGenerationFile&,std::string*)>& binding,
+    const std::function<bool(const RecordingGenerationFile&,std::string*)>& archive_sink) {
+#if MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND && MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
+    if(!output||!limits.max_shard_bytes||!limits.max_unique_ids||!limits.max_archives)
+        return Fail(error,"identity stream admission missing");
+    RecordingHistoryIndex descriptors,working;
+    RecordingIdentityChainResult result;result.head=head;
+    const auto cleanup=[&](bool success){
+        std::string detail;
+        if(!descriptors.Close(&detail)){success=false;if(error)*error+="; descriptors cleanup: "+detail;}
+        if(!working.Close(&detail)){success=false;if(error)*error+="; working cleanup: "+detail;}
+        if(!success) {
+            if(!CloseRecordingIdentityHistory(result.history,&detail)){if(error)*error+="; history cleanup: "+detail;output->history=result.history;}
+            return false;
+        }
+        *output=std::move(result);return true;
+    };
+    const auto run=[&](){
+        if(!descriptors.Create(ScratchDirectory(),RecordingHistoryIndex::BytesForRows(0),error)||
+           !working.Create(ScratchDirectory(),RecordingHistoryIndex::BytesForRows(0),error)||
+           !BuildRecordingIdentityHistory(root,{},0,&result.history,error))return false;
+        auto descriptor=head;std::optional<std::uint64_t> newer;
+        for(;;) {
+            std::uint64_t generation=0;
+            if(!Descriptor(descriptor)||!NamedGeneration(descriptor.name,"identity-",&generation)||!descriptor.size||
+               descriptor.size>limits.max_shard_bytes||(newer&&generation>=*newer))return Fail(error,"identity stream chain descriptor/order");
+            if(binding&&!binding(descriptor,error))return false;
+            IdentityStreamParser parser;
+            if(!StreamShard(root,descriptor,limits.max_shard_bytes,parser,error)||parser.header.generation!=generation||
+               (!result.store_id.empty()&&result.store_id!=parser.header.store_id))return Fail(error,"identity stream chain store/generation");
+            result.store_id=parser.header.store_id;
+            const auto key=OrdinalKey(generation),value=FileJson(descriptor);std::string readback;
+            if(!descriptors.ReserveRows(descriptors.usage().rows+1,error)||!descriptors.Put(key,value,false,error)||
+               descriptors.Get(key,&readback,error)!=RecordingHistoryIndex::Lookup::Found||readback!=value)return false;
+            if(result.shards==UINT64_MAX)return Fail(error,"identity stream shard count overflow");
+            ++result.shards;if(!parser.header.previous)break;
+            newer=generation;descriptor=*parser.header.previous;
+        }
+        const auto put=[&](const std::string& key,const std::string& value){std::string readback;
+            return working.ReserveRows(working.usage().rows+1,error)&&working.Put(key,value,true,error)&&
+                working.Get(key,&readback,error)==RecordingHistoryIndex::Lookup::Found&&readback==value;};
+        const auto get=[&](const std::string& key,std::string* value,bool* found){
+            const auto status=working.Get(key,value,error);*found=status==RecordingHistoryIndex::Lookup::Found;
+            return status!=RecordingHistoryIndex::Lookup::Error;};
+        std::uint64_t archive_count=0,physical=0;std::optional<RecordingGenerationFile> previous;
+        if(!descriptors.Visit([&](const std::string&,const std::string& encoded,std::string* detail){
+            RecordingGenerationFile file;if(!ParseFile(encoded,&file,detail))return false;
+            IdentityStreamParser parser;
+            parser.archive=[&](std::uint64_t slot,const RecordingGenerationFile& archive,std::string*){
+                std::string value;bool found=false;
+                if(!get("a/"+archive.name,&value,&found))return false;
+                if(found&&value!=FileJson(archive))return Fail(error,"identity stream archive descriptor conflict");
+                if(!found){if(archive_count>=limits.max_archives)return Fail(error,"identity stream archive admission");
+                    ++archive_count;if(!put("a/"+archive.name,FileJson(archive)))return false;}
+                const auto local="n/"+file.name+"/"+archive.name;
+                if(!get(local,&value,&found)||found)return Fail(error,"identity stream duplicate shard archive");
+                return put(local,"1")&&put("s/"+file.name+"/"+std::to_string(slot),FileJson(archive));
+            };
+            parser.row=[&](const RecordingIdentityRow& row,std::string*){
+                if(result.maximum_global_ordinal&&row.global_ordinal<=*result.maximum_global_ordinal)
+                    return Fail(error,"identity stream chain ordinal overlap");
+                std::string value;bool found=false;RecordingGenerationFile archive;
+                if(!get("s/"+file.name+"/"+std::to_string(row.archive_slot),&value,&found)||!found||!ParseFile(value,&archive,error))return false;
+                if(row.offset>archive.size||row.length>archive.size-row.offset)return Fail(error,"identity stream locator bounds");
+                if(!get("e/"+archive.name,&value,&found))return false;
+                std::uint64_t end=0;if(found&&(!Integer(value,&end)||row.offset<end))return Fail(error,"identity stream archive rows overlap");
+                if(!put("e/"+archive.name,std::to_string(row.offset+row.length)))return false;
+                std::optional<RecordingIdentityFirstAcceptance> first;
+                if(!FindRecordingIdentityHistory(result.history,row.mutation_id,&first,error))return false;
+                if(!first) {
+                    if(RecordingIdentityHistorySize(result.history)>=limits.max_unique_ids)return Fail(error,"identity stream ID admission");
+                    if(!result.history->index.ReserveRows(result.history->index.usage().rows+2,error))return false;
+                    if(row.reservation) {
+                        bool reserved=false,legacy=false;
+                        if(!get("r/"+row.entity_id,&value,&reserved)||!get("l/"+row.entity_id,&value,&legacy))return false;
+                        if(reserved||legacy||row.reservation->sequence<=result.order_history.maximum)return Fail(error,"identity stream order collision/sequence");
+                        if(!put("r/"+row.entity_id,"1"))return false;
+                        result.order_history.bound_store=row.reservation->store_id;result.order_history.maximum=row.reservation->sequence;
+
+                    } else {
+
+                        if(SegmentEffect(row.type)) {
+                            bool reserved=false,legacy=false;
+                            if(!get("r/"+row.entity_id,&value,&reserved)||!get("l/"+row.entity_id,&value,&legacy))return false;
+                            if(!reserved&&!legacy){if(!put("l/"+row.entity_id,"1"))return false;}
+                        }
+                    }
+                }
+#if defined(MEDIA_SERVER_RECORDING_GENERATION_TESTING)
+                if(history_build_fault!=1)
+#endif
+                if(!AppendRecordingIdentityHistory(result.history,row,archive,error))return false;
+#if defined(MEDIA_SERVER_RECORDING_GENERATION_TESTING)
+                if(history_build_fault==2&&!result.history->index.Put(OrdinalKey(row.global_ordinal),"wrong-first-id",true,error))return false;
+#endif
+                if(physical==UINT64_MAX)return Fail(error,"identity stream physical overflow");
+                ++physical;result.maximum_global_ordinal=row.global_ordinal;return true;
+            };
+            if(!StreamShard(root,file,limits.max_shard_bytes,parser,detail)||parser.header.store_id!=result.store_id||
+               parser.header.previous.has_value()!=previous.has_value()||
+               (previous&&FileJson(*parser.header.previous)!=FileJson(*previous)))return Fail(detail,"identity stream forward chain binding");
+            previous=file;return true;
+        },error))return false;
+        result.physical_rows=physical;
+        if(!ValidateRecordingIdentityHistoryCoverage(result.history,physical,error)||
+           !VisitRecordingIdentityHistory(result.history,[](const auto&,std::string*){return true;},error))return false;
+        if(!working.Visit([&](const std::string& key,const std::string& value,std::string* detail){
+            if(key.rfind("a/",0)!=0)return true;
+            RecordingGenerationFile archive;if(!ParseFile(value,&archive,detail)||key!="a/"+archive.name)return false;
+            if(archive_sink)return archive_sink(archive,detail);
+            result.archive_files.push_back(std::move(archive));return true;
+        },error)||(!archive_sink&&result.archive_files.size()!=archive_count))return Fail(error,"identity stream archive coverage");
+        const auto d=descriptors.usage(),w=working.usage();
+        result.stream_scratch_peak_bytes=d.file_bytes+w.file_bytes+RecordingIdentityHistoryBytes(result.history);
+        result.stream_scratch_peak_allocated=d.allocated_bytes+w.allocated_bytes+RecordingIdentityHistoryBytes(result.history,true);
+        return true;
+    };
+    try{return cleanup(run());}catch(...){Fail(error,"identity stream resource failure");return cleanup(false);}
+#else
+    (void)root;(void)head;(void)limits;(void)output;(void)binding;(void)archive_sink;return Fail(error,"identity stream unsupported");
+#endif
+}
 } // namespace recording

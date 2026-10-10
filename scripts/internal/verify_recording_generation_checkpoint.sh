@@ -43,7 +43,7 @@ date -u '+[start] %Y-%m-%dT%H:%M:%SZ'
 uname -srm
 "${CXX:-c++}" --version | head -1
 shasum -a 256 "${task_sources[@]}" include/recording/recording_catalog.h include/recording/recording_journal.h include/recording/recording_generation_recovery_session.h \
- src/recording/recording_history_index.h scripts/internal/recording_history_index_experiment.h scripts/internal/recording_generation_checkpoint_sql_cases.inc include/recording/recording_generation_manifest.h include/recording/recording_generation_files.h \
+ src/recording/recording_history_index.h src/recording/recording_catalog_history.h scripts/internal/recording_history_index_experiment.h scripts/internal/recording_generation_checkpoint_sql_cases.inc include/recording/recording_generation_manifest.h include/recording/recording_generation_files.h \
  scripts/internal/recording_catalog_generation_scratch_smoke.cpp scripts/internal/recording_catalog_generation_projection_smoke.cpp scripts/internal/recording_journal_generation_readonly_smoke.cpp "$task_script/verify_recording_generation_checkpoint.sh"
 task_configs=('1 1 1' '1 0 1' '0 1 1' '1 1 0')
 if [[ "$task_case" == scale* ]]; then task_configs=('1 1 1'); fi
