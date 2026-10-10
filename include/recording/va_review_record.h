@@ -8,13 +8,14 @@ struct VaReviewOutput {
     std::vector<VaReviewClaim> supports, questions, contradictions, unclear;
     std::optional<double> confidence;
 };
-struct VaReviewRecord {
+struct VaReviewRecordFields {
     VaReviewInput input;
     VaReviewOutput output;
     std::string revision_id, provider, model, model_revision, prompt_sha256, adapter_version;
     std::int64_t created_at_ms{0};
     int latency_ms{0};
 };
+using VaReviewRecord=RecordingMemoryValue<VaReviewRecordFields>;
 bool ValidateVaReviewOutput(const VaReviewOutput&, std::size_t frames, std::string* error);
 bool ParseVaReviewOutput(const std::string&, std::size_t frames, VaReviewOutput*, std::string* error);
 std::string SerializeVaReviewOutput(const VaReviewOutput&);

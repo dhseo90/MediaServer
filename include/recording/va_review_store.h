@@ -1,16 +1,17 @@
 // 파일 용도: 원본 패키지와 독립된 검토 record의 불변 게시·검증 읽기.
 #pragma once
-#include "recording/va_review_record.h"
+#include "recording/va_review_confirmed_record.h"
 namespace recording {
-struct VaReviewRecordV2;
-struct VaReviewRecordV3;
 class VaReviewStore {
 public:
     struct Limits {
         std::size_t records{512}, record_bytes{128*1024};
         std::uint64_t bytes{64ULL*1024*1024}, reserve_bytes{256ULL*1024*1024};
     };
-    VaReviewStore(std::filesystem::path directory,Limits limits):directory_(std::move(directory)),limits_(limits){}
+    VaReviewStore(std::filesystem::path directory,Limits limits,
+        std::shared_ptr<SearchModelResidency> memory=std::make_shared<SearchModelResidency>())
+        :memory_(std::move(memory)),directory_(std::move(directory)),limits_(limits){}
+    const std::shared_ptr<SearchModelResidency>& MemoryOwner()const{return memory_;}
     bool Recover(std::string* error) const;
     bool Publish(const VaReviewRecord&,std::string* id,std::string* error,
         const std::function<bool()>& cancelled={}) const;
@@ -27,6 +28,7 @@ public:
 private:
     bool PublishBytes(const std::string& json,int version,std::string* id,std::string* error,
         const std::function<bool()>& cancelled) const;
+    std::shared_ptr<SearchModelResidency> memory_;
     std::filesystem::path directory_;Limits limits_;
 };
 } // namespace recording

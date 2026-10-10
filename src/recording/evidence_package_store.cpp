@@ -227,8 +227,19 @@ std::shared_ptr<EvidencePackageFile> EvidencePackageStore::Open(const std::strin
         if (!Transfer(file.value,header.data(),header.size(),0,false,cancelled) || !std::equal(magic.begin(),magic.end(),header.begin())) { Fail(error,"evidence-file-invalid"); return {}; }
         const auto length=Length(header.data()+8);
         if (!length || length>1024*1024 || length>std::uint64_t(before.st_size)-16) { Fail(error,"evidence-file-invalid"); return {}; }
+        auto raw_work=memory_->ReserveOwned(512+2*std::size_t(length));
+        if(!raw_work){Fail(error,"evidence-store-unavailable");return {};}
         std::string text(std::size_t(length),'\0'); EvidencePackageV1 manifest;
-        if (!Transfer(file.value,text.data(),text.size(),16,false,cancelled) || !ParseEvidencePackage(text,&manifest,error)) return {};
+        if (!Transfer(file.value,text.data(),text.size(),16,false,cancelled)) return {};
+        // Rejecting unknown nested fields still allocate parser path prefixes.
+        // Scan depth without allocation before admitting the parser, as for records.
+        std::size_t depth=0,maximum=0;bool quoted=false,escape=false;
+        for(const char c:text){if(quoted){if(escape)escape=false;else if(c=='\\')escape=true;else if(c=='"')quoted=false;continue;}
+            if(c=='"')quoted=true;else if(c=='{'||c=='['){++depth;maximum=std::max(maximum,depth);if(maximum>=130)break;}
+            else if((c=='}'||c==']')&&depth)--depth;}
+        auto work=memory_->ReserveOwned(64*1024+(128+2*maximum)*std::size_t(length));
+        if(!work){Fail(error,"evidence-store-unavailable");return {};}
+        if(!ParseEvidencePackage(text,&manifest,error))return {};
         std::uint64_t offset=16+length;
         for (const auto& asset:manifest.assets) {
             if (asset.size_bytes>std::uint64_t(before.st_size)-offset) { Fail(error,"evidence-file-invalid"); return {}; }
@@ -242,6 +253,7 @@ std::shared_ptr<EvidencePackageFile> EvidencePackageStore::Open(const std::strin
         if (!SafeFile(file.value,&after) || before.st_size!=after.st_size || !SameTimes(before,after)) { Fail(error,"evidence-file-changed"); return {}; }
         auto result=std::shared_ptr<EvidencePackageFile>(new EvidencePackageFile);
         result->fd_=file.value; file.value=-1; result->payload_offset_=16+length; result->manifest_=std::move(manifest);
+        BindEvidencePackageMemory(result->manifest_,*work,std::size_t(length));
         if(error)error->clear(); return result;
     } catch (...) { Fail(error,"evidence-store-unavailable"); return {}; }
 #else

@@ -3,13 +3,23 @@
 #pragma once
 
 #include <string>
+#include "recording/recording_memory_reservation.h"
 
 namespace ingress {
 
 struct ApplicationServiceResult {
+    recording::SearchModelResidency::Reservation memory;
     int status{200};
     std::string status_text{"OK"};
     std::string body;
+    ApplicationServiceResult()=default;
+    ApplicationServiceResult(int code,std::string text,std::string payload,
+        recording::SearchModelResidency::Reservation charge={}):memory(std::move(charge)),status(code),status_text(std::move(text)),body(std::move(payload)){}
+    ApplicationServiceResult(const ApplicationServiceResult&)=default;
+    ApplicationServiceResult(ApplicationServiceResult&&) noexcept=default;
+    ApplicationServiceResult& operator=(ApplicationServiceResult other) noexcept {
+        memory.swap(other.memory);std::swap(status,other.status);status_text.swap(other.status_text);body.swap(other.body);return *this;
+    }
 };
 
 }  // namespace ingress

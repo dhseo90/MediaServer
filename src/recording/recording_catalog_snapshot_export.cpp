@@ -248,6 +248,7 @@ bool RecordingCatalog::ExportGenerationValuesLocked(const std::string& store,
 }
 bool RecordingCatalog::CaptureGenerationSnapshotViewLocked(GenerationSnapshotView* output,std::string* error) const {
 #if MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
+    RecordingScratchResidency::Scope resources(journal_.ScratchOwner());
     if(!output||!completed_history_||!opened_||!CanWriteLocked(error))return Fail(error,"snapshot fixed view authority unavailable");
     auto cold=std::make_shared<RecordingCatalogHistoryRows>();
     auto rows=std::make_shared<RecordingHistoryIndex>();
@@ -381,6 +382,7 @@ bool RecordingCatalog::ExportFrozenGenerationValues(const RecordingIdentityChain
 bool RecordingCatalog::PrepareGenerationSnapshotStreamLocked(const RecordingIdentityChainResult& chain,
     std::uint64_t generation,std::uint64_t cut,GenerationSnapshotStream* output,std::string* error,const GenerationSnapshotView* frozen) const {
 #if MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
+    RecordingScratchResidency::Scope resources(journal_.ScratchOwner());
     if(!output||(!frozen&&(!opened_||!derived_job_state_authoritative_||!journal_.managed_)))return Fail(error,"snapshot stream authority unavailable");
     auto sorted=std::make_shared<RecordingHistoryIndex>();
     output->finish=[sorted](std::string* detail){return sorted->Close(detail);};

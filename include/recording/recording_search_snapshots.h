@@ -14,10 +14,17 @@ struct SearchSnapshotLimits {
     std::chrono::milliseconds lifetime{std::chrono::minutes(5)};
 };
 struct RecordingSearchPage {
+    SearchModelResidency::Reservation memory;
     std::shared_ptr<const RecordingSearchModel> model;
     std::vector<std::size_t> positions;
     std::size_t known_count{0}, unplaced_count{0};
     std::string snapshot_id, next_cursor;
+    RecordingSearchPage()=default;
+    RecordingSearchPage(const RecordingSearchPage&)=default;
+    RecordingSearchPage(RecordingSearchPage&&) noexcept=default;
+    RecordingSearchPage& operator=(RecordingSearchPage other) noexcept {
+        memory.swap(other.memory);std::swap(model,other.model);std::swap(positions,other.positions);std::swap(known_count,other.known_count);std::swap(unplaced_count,other.unplaced_count);std::swap(snapshot_id,other.snapshot_id);std::swap(next_cursor,other.next_cursor);return *this;
+    }
 };
 class RecordingSearchSnapshots {
 public:

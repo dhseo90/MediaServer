@@ -25,14 +25,15 @@ RecordingRuntimeStorage::RecordingRuntimeStorage(std::filesystem::path root)
     :root_(std::move(root)) {
     (void)ResetOwner(nullptr);
 }
-bool RecordingRuntimeStorage::ResetOwner(std::string* error){
+bool RecordingRuntimeStorage::ResetOwner(std::string* error)try{
     // Catalog destructor가 Journal attachment를 해제한 다음에만 Journal lease를 닫는다.
     catalog_.reset();if(journal_&&!journal_->Finish(error))return false;
+    if(journal_)scratch_=journal_->ScratchOwner();
     journal_.reset();
-    journal_=std::make_unique<RecordingJournal>(RecordingJournal::ManagedOptions{root_,{},RuntimeLimits()});
+    journal_=std::make_unique<RecordingJournal>(RecordingJournal::ManagedOptions{root_,{},RuntimeLimits(),memory_,scratch_});
     catalog_=std::make_unique<RecordingCatalog>(*journal_,RuntimeCatalogOptions(root_));
     return true;
-}
+}catch(const RecordingResourceUnavailable& e){if(error)*error=e.what();return false;}
 bool RecordingRuntimeStorage::Finish(std::string* error){opened_=false;return !journal_||journal_->Finish(error);}
 bool RecordingRuntimeStorage::Open(std::string* error){
     // 시작 구성 전용이다. 실패한/복구한 owner를 외부 생산자에 재사용하지 않는다.

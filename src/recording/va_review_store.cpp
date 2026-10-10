@@ -9,6 +9,7 @@
 #include <sys/stat.h>
 #include <sys/statvfs.h>
 #include <unistd.h>
+#include <limits>
 
 namespace recording {
 namespace {
@@ -18,6 +19,77 @@ constexpr const char* magic3="MSVAR03\n";
 constexpr const char* pending=".pending-review-v1";
 struct Fd {int n{-1};~Fd(){if(n>=0)::close(n);}};
 bool Fail(std::string* e,const char* s){if(e)*e=s;return false;}
+std::size_t Charge(std::size_t bytes,std::size_t factor,std::size_t fixed=0) {
+    if(bytes>(std::numeric_limits<std::size_t>::max()-fixed)/factor)throw RecordingResourceUnavailable();
+    return fixed+factor*bytes;
+}
+std::size_t JsonDepth(const std::string& bytes) {
+    std::size_t depth=0,maximum=0;bool quoted=false,escaped=false;
+    for(const char c:bytes){
+        if(quoted){if(escaped)escaped=false;else if(c=='\\')escaped=true;else if(c=='"')quoted=false;continue;}
+        if(c=='"')quoted=true;
+        else if(c=='{'||c=='['){++depth;maximum=std::max(maximum,depth);if(maximum>=130)return 130;}
+        else if((c=='}'||c==']')&&depth)--depth;
+    }
+    return maximum;
+}
+// Strict JSON bounds nesting at 128 but constructs the rejecting child path too.
+// 2*depth covers simultaneously retained path string capacities. The other 128
+// bytes/input byte cover member-vector growth, both key sets, nested codec docs,
+// canonical strings and typed validation/replay. This is a conservative reservation
+// for these codecs, not an allocator/RSS measurement. Sequential codec stages reuse it.
+std::size_t ParseWorkspace(const std::string& bytes){return Charge(bytes.size(),128+2*JsonDepth(bytes),64*1024);}
+struct OwnedCost {
+    std::size_t bytes;
+    void Add(std::size_t amount){if(amount>std::numeric_limits<std::size_t>::max()-bytes)throw RecordingResourceUnavailable();bytes+=amount;}
+    void String(const std::string& value){Add(Charge(value.capacity(),1,65));}
+    template<class T> void Vector(const std::vector<T>& value){Add(Charge(value.capacity(),sizeof(T),64));}
+};
+void BindRecord(VaReviewRecord& value,SearchModelResidency::Reservation& work) {
+    OwnedCost own{sizeof(VaReviewRecord)-sizeof(VaReviewInput)};
+    for(const auto* text:{&value.revision_id,&value.provider,&value.model,&value.model_revision,&value.prompt_sha256,&value.adapter_version})own.String(*text);
+    for(const auto* claims:{&value.output.supports,&value.output.questions,&value.output.contradictions,&value.output.unclear}){
+        own.Vector(*claims);for(const auto& claim:*claims){own.String(claim.text);own.Vector(claim.frame_indices);}}
+    value.memory=work.Split(own.bytes);
+    auto& input=value.input;OwnedCost input_cost{sizeof(VaReviewInput)-sizeof(EvidencePackageV1)};
+    for(const auto* text:{&input.package_id,&input.manifest_sha256,&input.question})input_cost.String(*text);
+    input_cost.Vector(input.asset_indices);input_cost.Vector(input.pngs);
+    for(const auto& png:input.pngs)input_cost.Vector(png);
+    input.memory=work.Split(input_cost.bytes);
+    BindEvidencePackageMemory(input.manifest,work,SerializeEvidencePackage(input.manifest).size());
+}
+void BindRecord(VaReviewRecordV2& value,SearchModelResidency::Reservation& work) {
+    OwnedCost own{sizeof(VaReviewRecordV2)-sizeof(EvidencePackageV1)};
+    auto& binding=value.binding;
+    for(const auto* text:{&binding.target_id,&binding.package_id,&binding.manifest_sha256,&binding.analysis_namespace,&binding.analysis_track_id,
+                         &value.spec_sha256,&value.observation_sha256,&value.policy_sha256})own.String(*text);
+    own.Vector(binding.engine_episodes);own.Vector(value.claims);own.Vector(value.decisions);
+    for(const auto& claim:value.claims){
+        for(const auto* text:{&claim.id,&claim.target_id,&claim.target_description,&claim.comparison_target_id,&claim.coordinates})own.String(*text);
+        own.Vector(claim.scope);
+    }
+    for(const auto& decision:value.decisions){
+        own.String(decision.claim_id);own.Vector(decision.evidence_frames);own.Vector(decision.gaps);
+        for(const auto& gap:decision.gaps){own.String(gap.target_id);own.Vector(gap.frames);}
+    }
+    value.memory=work.Split(own.bytes);
+    BindEvidencePackageMemory(value.evidence,work,SerializeEvidencePackage(value.evidence).size());
+}
+void BindRecord(VaReviewRecordV3& value,SearchModelResidency::Reservation& work) {
+    OwnedCost own{sizeof(VaReviewRecordV3)-sizeof(VaReviewRecordV2)};
+    for(const auto* text:{&value.confirmation.principal,&value.confirmation.question,&value.confirmation.revision,&value.confirmation.spec_sha256,&value.confirmation_sha256})own.String(*text);
+    value.memory=work.Split(own.bytes);BindRecord(value.analysis,work);
+}
+bool SameRead(const struct stat& before,const struct stat& after){
+    if(before.st_dev!=after.st_dev||before.st_ino!=after.st_ino||before.st_size!=after.st_size||before.st_nlink!=after.st_nlink)return false;
+#ifdef __APPLE__
+    return before.st_mtimespec.tv_sec==after.st_mtimespec.tv_sec&&before.st_mtimespec.tv_nsec==after.st_mtimespec.tv_nsec&&
+        before.st_ctimespec.tv_sec==after.st_ctimespec.tv_sec&&before.st_ctimespec.tv_nsec==after.st_ctimespec.tv_nsec;
+#else
+    return before.st_mtim.tv_sec==after.st_mtim.tv_sec&&before.st_mtim.tv_nsec==after.st_mtim.tv_nsec&&
+        before.st_ctim.tv_sec==after.st_ctim.tv_sec&&before.st_ctim.tv_nsec==after.st_ctim.tv_nsec;
+#endif
+}
 bool Safe(int fd,struct stat* result,bool one_link=true) {
     struct stat st{};
     if(fd<0||::fstat(fd,&st)||!S_ISREG(st.st_mode)||st.st_uid!=::geteuid()||(st.st_mode&0077)||
@@ -47,17 +119,22 @@ int Directory(std::filesystem::path path,bool create) {
     struct stat st{};if(::fstat(fd.n,&st)||st.st_uid!=::geteuid()||(st.st_mode&0077))return -1;
     int result=fd.n;fd.n=-1;return result;
 }
-bool Contents(int fd,std::size_t cap,std::string* output,bool one_link=true) {
+bool Contents(int fd,std::size_t cap,std::string* output,const std::shared_ptr<SearchModelResidency>& memory,
+    SearchModelResidency::Reservation* ownership,bool one_link=true) {
     struct stat st{};if(!Safe(fd,&st,one_link)||std::uint64_t(st.st_size)>cap)return false;
+    if(!memory)throw RecordingResourceUnavailable();
+    auto charge=memory->ReserveOwned(Charge(static_cast<std::size_t>(st.st_size),2,512));
+    if(!charge)throw RecordingResourceUnavailable();
     std::string bytes(std::size_t(st.st_size),'\0');std::size_t done=0;
     while(done<bytes.size()) {
         const auto n=::pread(fd,bytes.data()+done,bytes.size()-done,static_cast<off_t>(done));
         if(n<0&&errno==EINTR)continue;if(n<=0)return false;done+=std::size_t(n);
     }
-    struct stat after{};if(!Safe(fd,&after,one_link)||st.st_size!=after.st_size)return false;
-    *output=std::move(bytes);return true;
+    struct stat after{};if(!Safe(fd,&after,one_link)||!SameRead(st,after))return false;
+    *ownership=std::move(*charge);*output=std::move(bytes);return true;
 }
 bool Inventory(int dir,const VaReviewStore::Limits& limits,std::vector<std::string>* out,std::uint64_t* bytes) {
+    if(limits.record_bytes>SIZE_MAX-8)return false;
     Fd copy{::openat(dir,".",O_RDONLY|O_DIRECTORY|O_CLOEXEC)};if(copy.n<0)return false;
     DIR* entries=::fdopendir(copy.n);if(!entries)return false;copy.n=-1;
     bool ok=true;std::vector<std::string> ids;std::uint64_t total=0;errno=0;
@@ -74,11 +151,12 @@ bool Inventory(int dir,const VaReviewStore::Limits& limits,std::vector<std::stri
     if(errno)ok=false;::closedir(entries);if(!ok)return false;
     std::sort(ids.begin(),ids.end());*out=std::move(ids);*bytes=total;return true;
 }
-bool RecoverPending(int dir,const VaReviewStore::Limits& limits,std::string* error) {
+bool RecoverPending(int dir,const VaReviewStore::Limits& limits,const std::shared_ptr<SearchModelResidency>& memory,std::string* error) {
     Fd fd{::openat(dir,pending,O_RDONLY|O_NONBLOCK|O_NOFOLLOW|O_CLOEXEC)};
     if(fd.n<0)return errno==ENOENT?true:Fail(error,"review-pending-invalid");
-    struct stat st{};std::string bytes;
-    if(!Safe(fd.n,&st,false)||(st.st_nlink!=1&&st.st_nlink!=2)||!Contents(fd.n,limits.record_bytes+8,&bytes,false)||
+    SearchModelResidency::Reservation work;struct stat st{};std::string bytes;
+    if(limits.record_bytes>SIZE_MAX-8)throw RecordingResourceUnavailable();
+    if(!Safe(fd.n,&st,false)||(st.st_nlink!=1&&st.st_nlink!=2)||!Contents(fd.n,limits.record_bytes+8,&bytes,memory,&work,false)||
        (bytes.substr(0,std::min<std::size_t>(8,bytes.size()))!=std::string(magic).substr(0,std::min<std::size_t>(8,bytes.size()))&&
         bytes.substr(0,std::min<std::size_t>(8,bytes.size()))!=std::string(magic2).substr(0,std::min<std::size_t>(8,bytes.size()))&&
         bytes.substr(0,std::min<std::size_t>(8,bytes.size()))!=std::string(magic3).substr(0,std::min<std::size_t>(8,bytes.size()))))
@@ -96,75 +174,89 @@ int Lock(int dir) {
 }
 // mode=0은 복구/목록의 모든 지원 버전 검증, 1/2/3은 해당 typed reader만 허용한다.
 bool ReadAt(int dir,const std::string& id,const VaReviewStore::Limits& limits,int mode,
-    VaReviewRecord* out,VaReviewRecordV2* out2,VaReviewRecordV3* out3,int* version,std::string* error) {
+    VaReviewRecord* out,VaReviewRecordV2* out2,VaReviewRecordV3* out3,int* version,
+    const std::shared_ptr<SearchModelResidency>& memory,std::string* error) {
+    SearchModelResidency::Reservation raw_work;
     Fd fd{::openat(dir,(id+".review").c_str(),O_RDONLY|O_NONBLOCK|O_NOFOLLOW|O_CLOEXEC)};std::string bytes;
-    if(!Contents(fd.n,limits.record_bytes+8,&bytes)||bytes.size()<8||
+    if(limits.record_bytes>SIZE_MAX-8)throw RecordingResourceUnavailable();
+    if(!Contents(fd.n,limits.record_bytes+8,&bytes,memory,&raw_work)||bytes.size()<8||
        "vr-"+EvidenceSha256(bytes.data(),bytes.size())!=id)return Fail(error,"review-record-unavailable");
     const int found=bytes.substr(0,8)==magic?1:bytes.substr(0,8)==magic2?2:bytes.substr(0,8)==magic3?3:0;
     if(!found||(mode&&mode!=found))return Fail(error,"review-record-unavailable");
+    auto work=memory->ReserveOwned(ParseWorkspace(bytes));if(!work)throw RecordingResourceUnavailable();
     VaReviewRecord v1;VaReviewRecordV2 v2;VaReviewRecordV3 v3;
     if(found==1?!ParseVaReviewRecord(bytes.substr(8),&v1,error):found==2?!ParseVaReviewRecordV2(bytes.substr(8),&v2,error):!ParseVaReviewRecordV3(bytes.substr(8),&v3,error))return false;
+    if(out)BindRecord(v1,*work);if(out2)BindRecord(v2,*work);if(out3)BindRecord(v3,*work);
     if(version)*version=found;if(out)*out=std::move(v1);if(out2)*out2=std::move(v2);if(out3)*out3=std::move(v3);return true;
 }
 }
 bool VaReviewStore::ValidId(const std::string& id){return id.size()==67&&id.rfind("vr-",0)==0&&EvidenceIsSha256(id.substr(3));}
-bool VaReviewStore::Recover(std::string* error) const {
+bool VaReviewStore::Recover(std::string* error) const try {
     Fd dir{Directory(directory_,true)};if(dir.n<0)return Fail(error,"review-store-unavailable");
     Fd lock{Lock(dir.n)};if(lock.n<0)return Fail(error,"review-store-busy");
-    if(!RecoverPending(dir.n,limits_,error))return false;
+    if(!RecoverPending(dir.n,limits_,memory_,error))return false;
     std::vector<std::string> ids;std::uint64_t bytes=0;
     if(!Inventory(dir.n,limits_,&ids,&bytes))return Fail(error,"review-store-invalid");
-    for(const auto& id:ids)if(!ReadAt(dir.n,id,limits_,0,nullptr,nullptr,nullptr,nullptr,error))return false;
+    for(const auto& id:ids)if(!ReadAt(dir.n,id,limits_,0,nullptr,nullptr,nullptr,nullptr,memory_,error))return false;
     if(error)error->clear();return true;
-}
-bool VaReviewStore::Read(const std::string& id,VaReviewRecord* out,std::string* error) const {
+} catch(const RecordingResourceUnavailable&) { return Fail(error,"review-capacity"); }
+catch(const std::bad_alloc&) { return Fail(error,"review-capacity"); }
+bool VaReviewStore::Read(const std::string& id,VaReviewRecord* out,std::string* error) const try {
     if(!out||!ValidId(id))return Fail(error,"review-invalid-id");
     Fd dir{Directory(directory_,false)};if(dir.n<0)return Fail(error,"review-store-unavailable");
-    return ReadAt(dir.n,id,limits_,1,out,nullptr,nullptr,nullptr,error);
-}
-bool VaReviewStore::List(std::vector<std::string>* out,std::string* error) const {
+    return ReadAt(dir.n,id,limits_,1,out,nullptr,nullptr,nullptr,memory_,error);
+} catch(const RecordingResourceUnavailable&) { return Fail(error,"review-capacity"); }
+catch(const std::bad_alloc&) { return Fail(error,"review-capacity"); }
+bool VaReviewStore::List(std::vector<std::string>* out,std::string* error) const try {
     if(!out)return Fail(error,"review-invalid-query");
     Fd dir{Directory(directory_,false)};std::uint64_t bytes=0;
     std::vector<std::string> ids,visible;
     if(dir.n<0||!Inventory(dir.n,limits_,&ids,&bytes))return Fail(error,"review-store-unavailable");
     for(const auto& id:ids){int version=0;
-        if(!ReadAt(dir.n,id,limits_,0,nullptr,nullptr,nullptr,&version,error))return false;
+        if(!ReadAt(dir.n,id,limits_,0,nullptr,nullptr,nullptr,&version,memory_,error))return false;
         if(version==1)visible.push_back(id);}
     *out=std::move(visible);if(error)error->clear();return true;
-}
-bool VaReviewStore::ReadV2(const std::string& id,VaReviewRecordV2* out,std::string* error) const {
+} catch(const RecordingResourceUnavailable&) { return Fail(error,"review-capacity"); }
+catch(const std::bad_alloc&) { return Fail(error,"review-capacity"); }
+bool VaReviewStore::ReadV2(const std::string& id,VaReviewRecordV2* out,std::string* error) const try {
     if(!out||!ValidId(id))return Fail(error,"review-invalid-id");
     Fd dir{Directory(directory_,false)};if(dir.n<0)return Fail(error,"review-store-unavailable");
-    return ReadAt(dir.n,id,limits_,2,nullptr,out,nullptr,nullptr,error);
-}
+    return ReadAt(dir.n,id,limits_,2,nullptr,out,nullptr,nullptr,memory_,error);
+} catch(const RecordingResourceUnavailable&) { return Fail(error,"review-capacity"); }
+catch(const std::bad_alloc&) { return Fail(error,"review-capacity"); }
 bool VaReviewStore::PublishV2(const VaReviewRecordV2& record,std::string* id,std::string* error,
-    const std::function<bool()>& cancelled) const {
+    const std::function<bool()>& cancelled) const try {
     if(!id||!ValidateVaReviewRecordV2(record,error))return false;
     return PublishBytes(SerializeVaReviewRecordV2(record),2,id,error,cancelled);
-}
+} catch(const RecordingResourceUnavailable&) { return Fail(error,"review-capacity"); }
+catch(const std::bad_alloc&) { return Fail(error,"review-capacity"); }
 bool VaReviewStore::Publish(const VaReviewRecord& record,std::string* id,std::string* error,
-    const std::function<bool()>& cancelled) const {
+    const std::function<bool()>& cancelled) const try {
     if(!id||!ValidateVaReviewRecord(record,error))return false;
     return PublishBytes(SerializeVaReviewRecord(record),1,id,error,cancelled);
-}
-bool VaReviewStore::ReadV3(const std::string& id,VaReviewRecordV3* out,std::string* error) const {
+} catch(const RecordingResourceUnavailable&) { return Fail(error,"review-capacity"); }
+catch(const std::bad_alloc&) { return Fail(error,"review-capacity"); }
+bool VaReviewStore::ReadV3(const std::string& id,VaReviewRecordV3* out,std::string* error) const try {
     if(!out||!ValidId(id))return Fail(error,"review-invalid-id");
     Fd dir{Directory(directory_,false)};if(dir.n<0)return Fail(error,"review-store-unavailable");
-    return ReadAt(dir.n,id,limits_,3,nullptr,nullptr,out,nullptr,error);
-}
-bool VaReviewStore::ListConfirmed(std::vector<std::string>* out,std::string* error) const {
+    return ReadAt(dir.n,id,limits_,3,nullptr,nullptr,out,nullptr,memory_,error);
+} catch(const RecordingResourceUnavailable&) { return Fail(error,"review-capacity"); }
+catch(const std::bad_alloc&) { return Fail(error,"review-capacity"); }
+bool VaReviewStore::ListConfirmed(std::vector<std::string>* out,std::string* error) const try {
     if(!out)return Fail(error,"review-invalid-query");Fd dir{Directory(directory_,false)};
     std::vector<std::string> ids,result;std::uint64_t bytes=0;
     if(dir.n<0||!Inventory(dir.n,limits_,&ids,&bytes))return Fail(error,"review-store-unavailable");
-    for(const auto& id:ids){int version=0;if(!ReadAt(dir.n,id,limits_,0,nullptr,nullptr,nullptr,&version,error))return false;
+    for(const auto& id:ids){int version=0;if(!ReadAt(dir.n,id,limits_,0,nullptr,nullptr,nullptr,&version,memory_,error))return false;
         if(version==3)result.push_back(id);}
     *out=std::move(result);if(error)error->clear();return true;
-}
-bool VaReviewStore::PublishV3(const VaReviewRecordV3& v,std::string* id,std::string* error,const std::function<bool()>& cancelled) const {
+} catch(const RecordingResourceUnavailable&) { return Fail(error,"review-capacity"); }
+catch(const std::bad_alloc&) { return Fail(error,"review-capacity"); }
+bool VaReviewStore::PublishV3(const VaReviewRecordV3& v,std::string* id,std::string* error,const std::function<bool()>& cancelled) const try {
     if(!id||!ValidateVaReviewRecordV3(v,error))return false;return PublishBytes(SerializeVaReviewRecordV3(v),3,id,error,cancelled);
-}
+} catch(const RecordingResourceUnavailable&) { return Fail(error,"review-capacity"); }
+catch(const std::bad_alloc&) { return Fail(error,"review-capacity"); }
 bool VaReviewStore::PublishBytes(const std::string& json,int version,std::string* id,std::string* error,
-    const std::function<bool()>& cancelled) const {
+    const std::function<bool()>& cancelled) const try {
     if(cancelled&&cancelled())return Fail(error,"review-cancelled");
     if(json.size()>limits_.record_bytes)return Fail(error,"review-record-too-large");
     const std::string bytes=std::string(version==3?magic3:version==2?magic2:magic)+json;
@@ -173,11 +265,11 @@ bool VaReviewStore::PublishBytes(const std::string& json,int version,std::string
     const auto result="vr-"+digest;
     Fd dir{Directory(directory_,true)};if(dir.n<0)return Fail(error,"review-store-unavailable");
     Fd lock{Lock(dir.n)};if(lock.n<0)return Fail(error,"review-store-busy");
-    if(!RecoverPending(dir.n,limits_,error))return false;
+    if(!RecoverPending(dir.n,limits_,memory_,error))return false;
     std::vector<std::string> ids;std::uint64_t total=0;
     if(!Inventory(dir.n,limits_,&ids,&total))return Fail(error,"review-store-invalid");
     if(std::find(ids.begin(),ids.end(),result)!=ids.end()) {
-        if(!ReadAt(dir.n,result,limits_,0,nullptr,nullptr,nullptr,nullptr,error))return false;
+        if(!ReadAt(dir.n,result,limits_,0,nullptr,nullptr,nullptr,nullptr,memory_,error))return false;
         *id=result;if(error)error->clear();return true;
     }
     if(ids.size()>=limits_.records||total>limits_.bytes||bytes.size()>limits_.bytes-total)
@@ -206,5 +298,6 @@ bool VaReviewStore::PublishBytes(const std::string& json,int version,std::string
     }
     if(::fsync(dir.n)||::unlinkat(dir.n,pending,0)||::fsync(dir.n))return Fail(error,"review-publication-uncertain");
     *id=result;if(error)error->clear();return true;
-}
+} catch(const RecordingResourceUnavailable&) { return Fail(error,"review-capacity"); }
+catch(const std::bad_alloc&) { return Fail(error,"review-capacity"); }
 } // namespace recording

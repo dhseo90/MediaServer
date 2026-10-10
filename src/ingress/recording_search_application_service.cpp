@@ -9,6 +9,7 @@
 #include <map>
 #include <set>
 #include <sstream>
+#include <string_view>
 namespace ingress {
 struct RecordingApplicationService::SearchState {
     std::shared_ptr<const recording::RecordingSearchModel> source;
@@ -56,9 +57,32 @@ bool Parse(const Query& raw,bool seek,recording::RecordingSearchQuery* out){
 bool Authorized(const recording::RecordingSearchQuery& q,const RecordingApplicationService::ChannelAuthorizer& authorize){
     return authorize&&std::all_of(q.channels.begin(),q.channels.end(),[&](const auto& c){return authorize(c);});
 }
-std::string Decimal(const std::optional<std::int64_t>& value){return value?Quote(std::to_string(*value)):"null";}
-std::string List(const std::vector<std::string>& values){std::string out="[";for(const auto& value:values){if(out.size()>1)out+=',';out+=Quote(value);}return out+']';}
-void Add(std::string& out,const std::string& value){constexpr std::size_t cap=4*1024*1024;if(value.size()>cap||out.size()>cap-value.size())throw std::length_error("search-response-limit");out+=value;}
+// One admitted output buffer. Quoting/list emission does not first construct an
+// unbounded field or item temporary and then check the 4MiB response boundary.
+class SearchJson {
+    static constexpr std::size_t cap=4*1024*1024;
+    std::string value_;
+public:
+    SearchJson(){value_.reserve(cap);}
+    SearchJson& Raw(std::string_view text){
+        if(text.size()>cap-value_.size())throw std::length_error("search-response-limit");
+        value_.append(text.data(),text.size());return *this;
+    }
+    SearchJson& Text(const std::string& text){
+        static constexpr char hex[]="0123456789abcdef";Raw("\"");
+        for(unsigned char c:text){
+            if(c=='"'||c=='\\'){const char escaped[]{'\\',static_cast<char>(c)};Raw({escaped,2});}
+            else if(c<32){const char escaped[]{'\\','u','0','0',hex[c>>4],hex[c&15]};Raw({escaped,6});}
+            else {const char plain=static_cast<char>(c);Raw({&plain,1});}
+        }
+        return Raw("\"");
+    }
+    SearchJson& List(const std::vector<std::string>& values){
+        Raw("[");bool first=true;for(const auto& value:values){if(!first)Raw(",");first=false;Text(value);}return Raw("]");
+    }
+    SearchJson& Decimal(const std::optional<std::int64_t>& value){return value?Text(std::to_string(*value)):Raw("null");}
+    std::string Take()&&{return std::move(value_);}
+};
 std::string Url(const std::string& id){return recording::ValidateOpaqueId(id,nullptr)?"/ops/api/recordings/media/"+id:"";}
 }
 ApplicationServiceResult RecordingApplicationService::Search(const Query& raw,const std::string& principal,
@@ -98,38 +122,50 @@ ApplicationServiceResult RecordingApplicationService::Search(const Query& raw,co
             }
             if(!prepared)return Failure(error);
         }
+        // Existing 4MiB JSON admission: original body + growth/field temporary +
+        // wire body coexist. Reserve before serialization; move to transport owner.
+        auto response_memory=catalog_.SearchResidency()->ReserveOwned(4ULL*4*1024*1024);
+        if(!response_memory)return Failure("search-capacity-exceeded");
         std::map<std::string,bool> availability;
         const auto available=[&](const std::string& channel,const std::string& id){
             if(id.empty()||Url(id).empty())return false;const auto key=std::to_string(channel.size())+":"+channel+id;
             auto it=availability.find(key);if(it!=availability.end())return it->second;
             const bool ok=bool(reader_.ResolveMedia(channel,id));availability.emplace(key,ok);return ok;
         };
-        std::string json="{\"schema\":\"media-server.recording-search.v1\",\"snapshotId\":"+Quote(page.snapshot_id)+
-            ",\"nextCursor\":"+(page.next_cursor.empty()?"null":Quote(page.next_cursor))+",\"knownCount\":"+std::to_string(page.known_count)+
-            ",\"unplacedCount\":"+std::to_string(page.unplaced_count)+",\"items\":[";
+        SearchJson json;
+        json.Raw("{\"schema\":\"media-server.recording-search.v1\",\"snapshotId\":").Text(page.snapshot_id)
+            .Raw(",\"nextCursor\":");
+        if(page.next_cursor.empty())json.Raw("null");else json.Text(page.next_cursor);
+        json.Raw(",\"knownCount\":").Raw(std::to_string(page.known_count))
+            .Raw(",\"unplacedCount\":").Raw(std::to_string(page.unplaced_count)).Raw(",\"items\":[");
         bool first=true;
         for(const auto position:page.positions){const auto& d=page.model->documents()[position];
             std::string target=d.playback_segment_id.empty()?d.segment_id:d.playback_segment_id;
             bool playable=available(d.channel_id,target);const bool preferred=target!=d.segment_id;
             if(!playable&&preferred&&available(d.channel_id,d.segment_id)){target=d.segment_id;playable=true;}
             const bool event=target!=d.segment_id;
-            if(!first)Add(json,",");first=false;
-            Add(json,"{\"id\":"+Quote(d.id)+",\"channelId\":"+Quote(d.channel_id)+",\"kind\":"+Quote(d.kind==recording::SearchDocumentKind::Observation?"observation":"recording")+
-                ",\"segmentId\":"+Quote(d.segment_id)+",\"observationId\":"+Quote(d.observation_id)+",\"startTimeNs\":"+Decimal(d.start_ns)+",\"endTimeNs\":"+Decimal(d.end_ns)+
-                ",\"timeProvenance\":"+Quote(d.time_provenance)+",\"uncertaintyNs\":"+Decimal(d.uncertainty_ns)+",\"object\":"+Quote(d.object)+",\"track\":"+Quote(d.track_id)+
-                ",\"eventIds\":"+List(d.event_ids)+",\"zoneIds\":"+List(d.zone_ids)+",\"ruleIds\":"+List(d.rule_ids)+",\"playable\":"+(playable?"true":"false")+
-                ",\"playbackUrl\":"+Quote(playable?Url(target):"")+",\"preferredEventId\":"+Quote(event?d.playback_event_id:"")+
-                ",\"selectionReason\":"+Quote(event?"event-priority":preferred?"original-fallback":"original")+
-                ",\"unavailableReason\":"+Quote(playable?"":target.empty()?"unresolved-original":catalog_.IsDeletedSegmentId(target)?"deleted":"media-unavailable")+"}");
+            if(!first)json.Raw(",");first=false;
+            json.Raw("{\"id\":").Text(d.id).Raw(",\"channelId\":").Text(d.channel_id)
+                .Raw(",\"kind\":").Text(d.kind==recording::SearchDocumentKind::Observation?"observation":"recording")
+                .Raw(",\"segmentId\":").Text(d.segment_id).Raw(",\"observationId\":").Text(d.observation_id)
+                .Raw(",\"startTimeNs\":").Decimal(d.start_ns).Raw(",\"endTimeNs\":").Decimal(d.end_ns)
+                .Raw(",\"timeProvenance\":").Text(d.time_provenance).Raw(",\"uncertaintyNs\":").Decimal(d.uncertainty_ns)
+                .Raw(",\"object\":").Text(d.object).Raw(",\"track\":").Text(d.track_id)
+                .Raw(",\"eventIds\":").List(d.event_ids).Raw(",\"zoneIds\":").List(d.zone_ids).Raw(",\"ruleIds\":").List(d.rule_ids)
+                .Raw(",\"playable\":").Raw(playable?"true":"false").Raw(",\"playbackUrl\":").Text(playable?Url(target):"")
+                .Raw(",\"preferredEventId\":").Text(event?d.playback_event_id:"")
+                .Raw(",\"selectionReason\":").Text(event?"event-priority":preferred?"original-fallback":"original")
+                .Raw(",\"unavailableReason\":").Text(playable?"":target.empty()?"unresolved-original":catalog_.IsDeletedSegmentId(target)?"deleted":"media-unavailable").Raw("}");
         }
-        Add(json,"],\"appliedQuery\":{\"channelIds\":"+List(query.channels)+",\"startTimeMs\":"+std::to_string(query.start_time_ms)+
-            ",\"endTimeMs\":"+std::to_string(query.end_time_ms)+",\"limit\":"+std::to_string(query.limit)+
-            ",\"includeUnplaced\":"+(query.include_unplaced?"true":"false")+",\"object\":"+List(query.objects)+
-            ",\"track\":"+List(query.tracks)+",\"event\":"+List(query.events)+",\"zone\":"+List(query.zones)+
-            ",\"rule\":"+List(query.rules)+",\"behaviour\":"+List(query.behaviours)+"},\"searchBasis\":{\"kind\":\"structured-query-snapshot\","
-            "\"snapshotId\":"+Quote(page.snapshot_id)+",\"statisticsScope\":\"query-matches\"}}");
+        json.Raw("],\"appliedQuery\":{\"channelIds\":").List(query.channels)
+            .Raw(",\"startTimeMs\":").Raw(std::to_string(query.start_time_ms)).Raw(",\"endTimeMs\":").Raw(std::to_string(query.end_time_ms))
+            .Raw(",\"limit\":").Raw(std::to_string(query.limit)).Raw(",\"includeUnplaced\":").Raw(query.include_unplaced?"true":"false")
+            .Raw(",\"object\":").List(query.objects).Raw(",\"track\":").List(query.tracks).Raw(",\"event\":").List(query.events)
+            .Raw(",\"zone\":").List(query.zones).Raw(",\"rule\":").List(query.rules).Raw(",\"behaviour\":").List(query.behaviours)
+            .Raw("},\"searchBasis\":{\"kind\":\"structured-query-snapshot\",\"snapshotId\":").Text(page.snapshot_id)
+            .Raw(",\"statisticsScope\":\"query-matches\"}}");
         if(!Authorized(query,authorize))return Error(403,"recording-channel-forbidden");
-        return {200,"OK",std::move(json)};
+        return {200,"OK",std::move(json).Take(),std::move(*response_memory)};
     }catch(const std::exception&){return Error(503,"recording-search-unavailable");}
 }
 ApplicationServiceResult RecordingApplicationService::SearchSeek(const Query& raw,const std::string& principal,

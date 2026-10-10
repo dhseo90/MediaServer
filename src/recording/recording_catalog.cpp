@@ -18,6 +18,7 @@
 #include <chrono>
 #include <cstring>
 #include <fstream>
+#include <iostream>
 #include <limits>
 #include <sstream>
 #include <stdexcept>
@@ -324,7 +325,7 @@ void BindText(sqlite3_stmt* statement, int index, const std::string& value) {
 }  // namespace
 
 RecordingCatalog::RecordingCatalog(RecordingJournal& journal, Options options)
-    : journal_(journal), options_(std::move(options)) {}
+    : search_residency_(journal.MemoryOwner()), journal_(journal), options_(std::move(options)) {}
 #if MEDIA_SERVER_RECORDING_GENERATION_TESTING
 std::function<void(sqlite3*)> RecordingCatalog::generation_sqlite_open_hook_;
 #endif
@@ -368,11 +369,11 @@ bool RecordingCatalog::VisitOrdersLocked(const std::function<bool(const Recordin
 }
 std::optional<RecordingRetiredV2Receipt> RecordingCatalog::RetiredLocked(const std::string& id) const {
     if(!completed_history_){const auto i=retired_v2_.find(id);return i==retired_v2_.end()?std::nullopt:std::optional<RecordingRetiredV2Receipt>(i->second);}
-    std::string bytes,error;bool found=false;
-    if(!completed_history_->Get("retired-v2",id,&bytes,&found,&error)){derived_job_state_authoritative_=false;throw CatalogHistoryError(error);}
+    RecordingColdRow owned;const auto& bytes=owned.bytes;std::string error;bool found=false;
+    if(!completed_history_->GetOwned("retired-v2",id,&owned,&found,&error)){derived_job_state_authoritative_=false;throw CatalogHistoryError(error);}
     if(!found)return {};
     RecordingRetiredV2Receipt value;if(!ParseRecordingRetiredV2Receipt(bytes,&value,&error)||value.segment_id!=id){derived_job_state_authoritative_=false;throw CatalogHistoryError("retired history domain mismatch");}
-    return value;
+    BindRecordingRowMemory(value,owned.memory,bytes.size());return value;
 }
 bool RecordingCatalog::StoreRetiredLocked(const RecordingRetiredV2Receipt& value,const RecordingMutationLink& link,std::string* error) {
     if(!completed_history_){if(!retired_v2_.emplace(value.segment_id,value).second)return false;retired_v2_links_[value.segment_id]=link;return true;}
@@ -392,19 +393,21 @@ bool RecordingCatalog::VisitRetiredLocked(const std::function<bool(const std::st
 std::optional<RecordingCatalog::SourceBindingEntry> RecordingCatalog::SourceEntryLocked(const std::string& id)const {
     const auto live=source_bindings_.find(id);if(live!=source_bindings_.end())return live->second;
     if(!completed_history_)return {};
-    std::string bytes,error;bool found=false;if(!completed_history_->Get("source-binding",id,&bytes,&found,&error)){derived_job_state_authoritative_=false;throw CatalogHistoryError(error);}
+    RecordingColdRow owned;const auto& bytes=owned.bytes;std::string error;bool found=false;if(!completed_history_->GetOwned("source-binding",id,&owned,&found,&error)){derived_job_state_authoritative_=false;throw CatalogHistoryError(error);}
     if(!found)return {};
     RecordingCatalogSourceSummary value;SourceBindingEntry entry;
     if(!ParseRecordingCatalogSourceSummary(bytes,&value,&error)||value.id!=id||!journal_.MakeGenerationMutationLink(value.latest_mutation_id,&entry.mutation,&error)){
         derived_job_state_authoritative_=false;throw CatalogHistoryError("source history domain/link unavailable");}
     entry.id=value.id;entry.channel=value.channel;entry.source=value.source;entry.generation=value.generation;entry.track=value.track;
-    entry.order=value.order;entry.sample_count=value.sample_count;entry.latest_mutation_id=value.latest_mutation_id;return entry;
+    entry.order=value.order;entry.sample_count=value.sample_count;entry.latest_mutation_id=value.latest_mutation_id;entry.memory=owned.memory.Split(sizeof(entry)+512+8*bytes.size());return entry;
 }
 bool RecordingCatalog::StoreSourceEntryLocked(SourceBindingEntry value,std::string* error){
     if(completed_history_){std::string bytes;
         if(!SerializeRecordingCatalogSourceSummary({value.id,value.channel,value.source,value.generation,value.track,value.order,value.sample_count,value.latest_mutation_id},&bytes,error)||
            !completed_history_->Put("source-binding",value.id,bytes,error))return false;}
-    source_bindings_[value.id]=std::move(value);return true;
+    // Resolve the key before by-value assignment moves value.id.
+    auto& destination=source_bindings_[value.id];
+    destination=std::move(value);return true;
 }
 bool RecordingCatalog::VisitSourcesLocked(const std::function<bool(const std::string&,const SourceBindingEntry&,std::string*)>& visitor,std::string* error) const {
     if(!completed_history_){for(const auto& item:source_bindings_)if(!visitor(item.first,item.second,error))return false;return true;}
@@ -415,8 +418,8 @@ bool RecordingCatalog::VisitSourcesLocked(const std::function<bool(const std::st
 std::optional<RecordingCatalog::DerivedJobEntry> RecordingCatalog::JobEntryLocked(const std::string& id) const {
     const auto live=derived_jobs_.find(id);if(live!=derived_jobs_.end())return live->second;
     if(!completed_history_)return {};
-    std::string bytes,error;bool found=false;
-    if(!completed_history_->Get("derived-job",id,&bytes,&found,&error)){derived_job_state_authoritative_=false;throw CatalogHistoryError(error);}
+    RecordingColdRow owned;const auto& bytes=owned.bytes;std::string error;bool found=false;
+    if(!completed_history_->GetOwned("derived-job",id,&owned,&found,&error)){derived_job_state_authoritative_=false;throw CatalogHistoryError(error);}
     if(!found)return {};
     RecordingCatalogJobSummary value;DerivedJobEntry entry;
     if(!ParseRecordingCatalogJobSummary(bytes,&value,&error)||value.id!=id||
@@ -426,7 +429,7 @@ std::optional<RecordingCatalog::DerivedJobEntry> RecordingCatalog::JobEntryLocke
     entry.id=std::move(value.id);entry.channel=std::move(value.channel);entry.reference=std::move(value.reference);
     entry.state=value.state;entry.files=value.files;entry.reserved_bytes=value.reserved_bytes;
     entry.output_ids=std::move(value.output_ids);entry.source_ids=std::move(value.source_ids);entry.latest_mutation_id=std::move(value.latest_mutation_id);
-    return entry;
+    entry.memory=owned.memory.Split(sizeof(entry)+512+8*bytes.size());return entry;
 }
 bool RecordingCatalog::EvictCompletedJobLocked(const std::string& id,std::string* error) {
     const auto found=derived_jobs_.find(id);
@@ -845,6 +848,7 @@ bool RecordingCatalog::UpdateDerivedJob(const void* owner,const DerivedJobRecord
     }
     return true;
 } catch(const CatalogHistoryError& failure) { return Fail(error,failure.what()); }
+  catch(const RecordingResourceUnavailable& failure) { return Fail(error,failure.what()); }
 
 bool RecordingCatalog::Checkpoint(std::string* error) {
     recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__);
@@ -944,6 +948,7 @@ bool RecordingCatalog::FindEventDerivedJobIds(const std::string& channel,const s
     },error))return false;
     std::sort(ids.begin(),ids.end());*result=std::move(ids);if(error)error->clear();return true;
 } catch(const CatalogHistoryError& failure) { return Fail(error,failure.what()); }
+  catch(const RecordingResourceUnavailable& failure) { return Fail(error,failure.what()); }
 bool RecordingCatalog::SnapshotDerivedJobs(std::vector<DerivedJobRecordV1>* result,std::string* error) const try {
     recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__);
     if(result)result->clear();
@@ -953,6 +958,7 @@ bool RecordingCatalog::SnapshotDerivedJobs(std::vector<DerivedJobRecordV1>* resu
     if(error)error->clear();
     return true;
 } catch(const CatalogHistoryError& failure) { return Fail(error,failure.what()); }
+  catch(const RecordingResourceUnavailable& failure) { return Fail(error,failure.what()); }
 bool RecordingCatalog::SnapshotActiveDerivedJobs(std::size_t limit,std::vector<DerivedJobRecordV1>* result,bool* more,std::string* error) const {
     recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__);
     if(result)result->clear();
@@ -1002,6 +1008,7 @@ bool RecordingCatalog::ValidateDerivedJobSourcesLocked(const DerivedJobIntentV1&
     }
     return true;
 } catch(const CatalogHistoryError& failure) { return Fail(error,failure.what()); }
+  catch(const RecordingResourceUnavailable& failure) { return Fail(error,failure.what()); }
 bool RecordingCatalog::PreparedDerivedMatchesLocked(const RecordingMutationV1& mutation,const PreparedDerivedMutation& prepared,bool applied,std::string* error) const {
     const auto expected=applied?PreparedDerivedMutation::Phase::Applied:PreparedDerivedMutation::Phase::Validated;
     if(prepared.owner!=this||prepared.phase!=expected||prepared.type!=mutation.mutation_type||
@@ -1187,6 +1194,7 @@ bool RecordingCatalog::ApplyDerivedJobMutationLocked(const RecordingMutationV1& 
     }
     derived_jobs_.insert_or_assign(mutation.entity_id,std::move(published_entry));return true;
 } catch(const CatalogHistoryError& failure) { return Fail(error,failure.what()); }
+  catch(const RecordingResourceUnavailable& failure) { return Fail(error,failure.what()); }
 bool RecordingCatalog::BeginDerivedJobIntent(const DerivedJobIntentV1& value,bool* inserted,std::string* error) try {
     recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__);if(inserted)*inserted=false;
     if(!opened_||!journal_.managed_||!derived_job_state_authoritative_||!CanWriteLocked(error)||!ValidateDerivedJobIntent(value,error))return false;
@@ -1208,6 +1216,7 @@ bool RecordingCatalog::BeginDerivedJobIntent(const DerivedJobIntentV1& value,boo
     if(inserted)*inserted=true;
     return true;
 } catch(const CatalogHistoryError& failure) { return Fail(error,failure.what()); }
+  catch(const RecordingResourceUnavailable& failure) { return Fail(error,failure.what()); }
 bool RecordingCatalog::FailDerivedJobAfterCleanup(const std::string& id,const std::string& attempt,
     const std::string& reason,std::int64_t cleaned,std::string* error) {
     recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__);
@@ -1660,6 +1669,7 @@ bool RecordingCatalog::ValidateMutationLocked(const RecordingMutationV1& mutatio
     // 기존 획득 계약을 따른다. typed 값/ID/revision/hold/SQL/원장에는 쓰지 않는다.
     return ApplyMutationLocked(parsed,false,error,nullptr,{},nullptr,nullptr,nullptr,{},nullptr,false);
 } catch(const CatalogHistoryError& failure) { return Fail(error,failure.what()); }
+  catch(const RecordingResourceUnavailable& failure) { return Fail(error,failure.what()); }
 void RecordingCatalog::NoteSearchMutationLocked(const RecordingMutationV1& mutation) noexcept {
     // 순서 예약은 ID/sequence만 확정한다. 파일·locator·재생 후보는 생기지 않으며
     // 이어지는 실제 finalized/state mutation이 검색의 resolution을 무효화한다.
@@ -2045,6 +2055,7 @@ bool RecordingCatalog::ApplyMutationLocked(const RecordingMutationV1& mutation,
     }
     return ok;
 } catch(const CatalogHistoryError& failure) { return Fail(error,failure.what()); }
+  catch(const RecordingResourceUnavailable& failure) { return Fail(error,failure.what()); }
 
 #if MEDIA_SERVER_RECORDING_GENERATION_TESTING
 thread_local int RecordingCatalog::generation_apply_fault_=0;
@@ -2163,7 +2174,8 @@ bool RecordingCatalog::AppendGenerationLocked(RecordingMutationV1 mutation,std::
         if(!EvictCompletedJobLocked(mutation.entity_id,error))return PoisonGenerationLocked(error);
         if(error)error->clear();
         return true;
-    }catch(...){Fail(error,"B durable 후 적용/투영 예외");return PoisonGenerationLocked(error);}
+    }catch(const std::exception& exception){std::cerr<<"[recording] durable apply exception: "<<std::string(exception.what()).substr(0,256)<<'\n';Fail(error,"B durable 후 적용/투영 예외");return PoisonGenerationLocked(error);}
+    catch(...){Fail(error,"B durable 후 적용/투영 예외");return PoisonGenerationLocked(error);}
 #else
     (void)mutation;(void)prepared;(void)acquire_hold;return Fail(error,"B append unsupported");
 #endif
@@ -2379,6 +2391,7 @@ bool RecordingCatalog::ValidateV2Locked(const RecordingSegmentV2& v,const std::s
     }
     return true;
 } catch(const CatalogHistoryError& failure) { return Fail(error,failure.what()); }
+  catch(const RecordingResourceUnavailable& failure) { return Fail(error,failure.what()); }
 
 bool RecordingCatalog::ValidateManagedCandidateLocked(const RecordingSegmentV2& v,const std::string& relative,std::string* error) const {
     RecordingOrderReservationV1 order;order.store_id=v.store_id;order.request_id=v.order_request_id;
@@ -2514,6 +2527,7 @@ bool RecordingCatalog::AcquireOriginalV2Locked(const std::string& id,RecordingSe
     RecordingTombstoneV2 tomb;if(!AcquireRetiredV2Locked(id,&tomb,error))return false;
     *out=std::move(tomb.segment);return true;
 } catch(const CatalogHistoryError& failure) { return Fail(error,failure.what()); }
+  catch(const RecordingResourceUnavailable& failure) { return Fail(error,failure.what()); }
 bool RecordingCatalog::AcquireSourceBindingOwnedLocked(const std::string& id,SourceBindingHandle* out,std::string* error) const {
     if(out)out->reset();
     const auto failed=[&](){derived_job_state_authoritative_=false;return Fail(error,"source binding 상세 재획득 거부");};
@@ -2755,6 +2769,7 @@ bool RecordingCatalog::ResolveOriginalSample(const std::string& channel,const st
     if(error)error->clear();
     return true;
 } catch(const CatalogHistoryError& failure) { return Fail(error,failure.what()); }
+  catch(const RecordingResourceUnavailable& failure) { return Fail(error,failure.what()); }
 bool RecordingCatalog::ValidateFinalizeRecoveryV2(const RecordingSegmentV2& v,const std::string& media_path,std::string* error) const try {
     recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__);
     if(!opened_)return Fail(error,"V2 catalog 미open");
@@ -2767,6 +2782,7 @@ bool RecordingCatalog::ValidateFinalizeRecoveryV2(const RecordingSegmentV2& v,co
     const auto replay=journal_.Replay();
     return PreflightV2Locked(replay,error,&v,relative);
 } catch(const CatalogHistoryError& failure) { return Fail(error,failure.what()); }
+  catch(const RecordingResourceUnavailable& failure) { return Fail(error,failure.what()); }
 
 bool RecordingCatalog::FinalizeSegmentV2(const RecordingSegmentV2& v,const std::string& media_path,std::string* error) {
     if(!ValidateFinalizeRecoveryV2(v,media_path,error))return false;
@@ -2923,6 +2939,7 @@ bool RecordingCatalog::CompleteDeletionV2(const RecordingTombstoneV2& tombstone,
     mutation.entity_id=id;mutation.payload_json=payload;
     return AppendAndApplyLocked(std::move(mutation),error);
 } catch(const CatalogHistoryError& failure) { return Fail(error,failure.what()); }
+  catch(const RecordingResourceUnavailable& failure) { return Fail(error,failure.what()); }
 
 bool RecordingCatalog::SnapshotLocationsV2(const std::string& channel, RecordingLocationCatalogSnapshot* result, std::string* error) const try {
     if(result)*result={};
@@ -2948,6 +2965,7 @@ bool RecordingCatalog::SnapshotLocationsV2(const std::string& channel, Recording
     std::sort(snapshot.deleted_segment_ids.begin(),snapshot.deleted_segment_ids.end());
     *result=std::move(snapshot);if(error)error->clear();return true;
 } catch(const CatalogHistoryError& failure) { return Fail(error,failure.what()); }
+  catch(const RecordingResourceUnavailable& failure) { return Fail(error,failure.what()); }
 
 bool RecordingCatalog::RecoverFinalizedSegmentV2(const RecordingSegmentV2& v,const std::string& path,bool* inserted,std::string* error) {
     if(inserted)*inserted=false;
@@ -3005,6 +3023,7 @@ bool RecordingCatalog::MarkSegmentCorrupt(const std::string& segment_id,
     mutation.payload_json = "{\"reason\":\"" + reason + "\"}";
     return AppendAndApplyLocked(std::move(mutation), error);
 } catch(const CatalogHistoryError& failure) { return Fail(error,failure.what()); }
+  catch(const RecordingResourceUnavailable& failure) { return Fail(error,failure.what()); }
 
 bool RecordingCatalog::FinalizeSegmentWithHold(const RecordingSegmentV1& segment,
                                                const std::string& media_path,
@@ -3151,6 +3170,7 @@ bool RecordingCatalog::FinalizeSegmentLocked(const RecordingSegmentV1& segment,
     if (error != nullptr) error->clear();
     return true;
 } catch(const CatalogHistoryError& failure) { return Fail(error,failure.what()); }
+  catch(const RecordingResourceUnavailable& failure) { return Fail(error,failure.what()); }
 
 bool RecordingCatalog::ValidateEventLinkReferencesLocked(
     const EventRecordingLinkV1& link,
@@ -3263,6 +3283,7 @@ bool RecordingCatalog::RequestDeletion(const std::string& segment_id,
     mutation.payload_json = "{\"reason\":\"" + Escape(reason) + "\"}";
     return AppendAndApplyLocked(std::move(mutation), error);
 } catch(const CatalogHistoryError& failure) { return Fail(error,failure.what()); }
+  catch(const RecordingResourceUnavailable& failure) { return Fail(error,failure.what()); }
 
 bool RecordingCatalog::PutReferencedObservation(const AnalysisObservationV2& observation, const RecordingConsumerReferenceV1& reference, std::string* error) try {
     recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__);
@@ -3281,6 +3302,7 @@ bool RecordingCatalog::PutReferencedObservation(const AnalysisObservationV2& obs
     mutation.entity_id=observation.observation_id;mutation.payload_json=SerializeReferencedObservationV1(pair);
     return AppendAndApplyLocked(std::move(mutation),error);
 } catch(const CatalogHistoryError& failure) { return Fail(error,failure.what()); }
+  catch(const RecordingResourceUnavailable& failure) { return Fail(error,failure.what()); }
 bool RecordingCatalog::EvidenceRowsLocked(const EvidenceSnapshot& snapshot,
     std::vector<ReferencedObservationV1>* output,std::vector<std::string>* encoded,std::string* error) const try {
     std::size_t scanned=0,bytes=0;
@@ -3298,6 +3320,7 @@ bool RecordingCatalog::EvidenceRowsLocked(const EvidenceSnapshot& snapshot,
     }
     std::sort(encoded->begin(),encoded->end());return true;
 } catch(const CatalogHistoryError& failure) { return Fail(error,failure.what()); }
+  catch(const RecordingResourceUnavailable& failure) { return Fail(error,failure.what()); }
 bool RecordingCatalog::EvidenceDependenciesLocked(const EvidenceSnapshot& snapshot,
     std::vector<std::string>* output,std::string* error) const try {
     std::size_t bytes=0,scanned=0;
@@ -3335,6 +3358,7 @@ bool RecordingCatalog::EvidenceDependenciesLocked(const EvidenceSnapshot& snapsh
     }
     std::sort(output->begin(),output->end());return true;
 } catch(const CatalogHistoryError& failure) { return Fail(error,failure.what()); }
+  catch(const RecordingResourceUnavailable& failure) { return Fail(error,failure.what()); }
 bool RecordingCatalog::CaptureEvidenceObservations(const SearchDocument& hit,
     std::vector<ReferencedObservationV1>* output,EvidenceSnapshot* snapshot,std::string* error,
     std::chrono::steady_clock::time_point deadline) const {
@@ -3398,6 +3422,7 @@ bool RecordingCatalog::PutConsumerReference(const RecordingConsumerReferenceV1& 
     mutation.payload_json="{\"reference\":"+SerializeRecordingConsumerReferenceV1(reference)+"}";
     return AppendAndApplyLocked(std::move(mutation),error);
 } catch(const CatalogHistoryError& failure) { return Fail(error,failure.what()); }
+  catch(const RecordingResourceUnavailable& failure) { return Fail(error,failure.what()); }
 bool RecordingCatalog::AcceptDerivedReference(const RecordingConsumerReferenceV1& reference, std::string* error) try {
     recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__);
     if(!opened_||!options_.enable_v2_storage||!CanWriteLocked(error)||
@@ -3421,6 +3446,7 @@ bool RecordingCatalog::AcceptDerivedReference(const RecordingConsumerReferenceV1
     }
     return true;
 } catch(const CatalogHistoryError& failure) { return Fail(error,failure.what()); }
+  catch(const RecordingResourceUnavailable& failure) { return Fail(error,failure.what()); }
 bool RecordingCatalog::IsDerivedReferenceAccepted(const std::string& id, bool* accepted, std::string* error) const {
     recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__);
     if(accepted)*accepted=false;
@@ -3530,6 +3556,7 @@ bool RecordingCatalog::RefreshDerivedWaitLeaseForIntent(const DerivedJobIntentV1
     if(ids.size()>8)return Fail(error,"derived wait lease source cap");
     found->second.source_ids.swap(ids);if(error)error->clear();return true;
 } catch(const CatalogHistoryError& failure) { return Fail(error,failure.what()); }
+  catch(const RecordingResourceUnavailable& failure) { return Fail(error,failure.what()); }
 bool RecordingCatalog::DerivedSourceRelevant(const RecordingConsumerReferenceV1& reference,
     const RecordingSegmentV2& segment,const SourceBindingEntry* metadata) {
     if(segment.source_id!=reference.source_id||segment.channel_id!=reference.channel_id||segment.retention_class!=RecordingRetentionClass::Continuous)return false;
@@ -3679,6 +3706,7 @@ bool RecordingCatalog::PrepareDerivedSourceSnapshot(const RecordingConsumerRefer
     });
     *revision=captured;return true;
 } catch(const CatalogHistoryError& failure) { return Fail(error,failure.what()); }
+  catch(const RecordingResourceUnavailable& failure) { return Fail(error,failure.what()); }
 bool RecordingCatalog::FinishDerivedSourceSnapshotLocked(const RecordingConsumerReferenceV1& reference,
     std::vector<RecordingDerivedSourceSnapshotEntry>* result,const std::optional<std::uint64_t>& revision,std::string* error) const {
     if(!revision||!source_snapshot_revision_valid_||source_snapshot_revision_!=*revision)
@@ -3736,6 +3764,7 @@ bool RecordingCatalog::SnapshotDerivedSourcesLocked(const RecordingConsumerRefer
     if(error)error->clear();
     return true;
 } catch(const CatalogHistoryError& failure) { return Fail(error,failure.what()); }
+  catch(const RecordingResourceUnavailable& failure) { return Fail(error,failure.what()); }
 bool RecordingCatalog::QueryDerivedReferenceResult(const std::string& id,
     RecordingDerivedReferenceResult* result,std::string* error) const try {
     recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__);
@@ -3774,6 +3803,7 @@ bool RecordingCatalog::QueryDerivedReferenceResult(const std::string& id,
     if(error)error->clear();
     return true;
 } catch(const CatalogHistoryError& failure) { return Fail(error,failure.what()); }
+  catch(const RecordingResourceUnavailable& failure) { return Fail(error,failure.what()); }
 bool RecordingCatalog::LookupConsumerReference(const std::string& id,
     std::optional<RecordingConsumerReferenceV1>* output,std::string* error) const try {
     recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__);
@@ -3877,6 +3907,7 @@ bool RecordingCatalog::PutObservationV2(AnalysisObservationV2 observation, std::
     mutation.payload_json = "{\"observation\":" + SerializeAnalysisObservationV2(observation) + "}";
     return AppendAndApplyLocked(std::move(mutation), error);
 } catch(const CatalogHistoryError& failure) { return Fail(error,failure.what()); }
+  catch(const RecordingResourceUnavailable& failure) { return Fail(error,failure.what()); }
 
 std::vector<AnalysisObservationV2> RecordingCatalog::QueryObservationsV2(const std::string& channel_id) const {
     recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__);
@@ -4280,6 +4311,7 @@ bool RecordingCatalog::AdjustHoldCountLocked(const std::string& segment_id,std::
     if (error != nullptr) error->clear();
     return true;
 } catch(const CatalogHistoryError& failure) { return Fail(error,failure.what()); }
+  catch(const RecordingResourceUnavailable& failure) { return Fail(error,failure.what()); }
 
 RecordingOrphanReport RecordingCatalog::InspectOrphans() const {
     recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__);

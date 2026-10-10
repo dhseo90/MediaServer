@@ -40,9 +40,9 @@ std::string Quote(const std::string& value) {
         default:if(c<32){result+="\\u00";result+=hex[c>>4];result+=hex[c&15];}else result+=static_cast<char>(c);}}
     return result+'"';
 }
-template<class T,class Map> bool Decode(const RecordingCatalogSnapshotRow& row,Map* map,
+template<class T,class Map,class KeyOwner> bool Decode(const RecordingCatalogSnapshotRow& row,Map* map,
     bool(*parse)(const std::string&,T*,std::string*),std::string(*serialize)(const T&),
-    std::string T::*id,std::string* error) {
+    std::string KeyOwner::*id,std::string* error) {
     T value;
     if(!parse(row.value_json,&value,error)||serialize(value)!=row.value_json||value.*id!=row.key)
         return Fail(error,"projection domain canonical/key mismatch");

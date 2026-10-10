@@ -4904,3 +4904,23 @@ MEM83-R03 보완 반례: 동일 B32에서 먼저 실제 A 1개를 warmup 게시�
 MEM83-R02 검색 owner 직접 범위: Catalog별 640MiB(snapshot128+current64+이전 caller 4×64+직렬 준비192)의 논리 reservation을 모델 최종 shared owner 및 준비 작업 수명에 결속한다. 기존 model64/snapshot128 admission 불변. 작은 시험 예산에서 old reader 보유·초과거부·output불변·최종해제·재개를 검사한다. 이는 evidence/A/세대/scratch 전체 합산 완료를 의미하지 않는다.
 
 MEM83-R01 공개 소비자 반례: 실제 패키지를 보존하고 runtime Finish로 cold 원본 조회를 종료한 뒤 증거 상세 GET은 권한 거부403을 우선하며 허용된 호출은503을 반환해야 한다. 예외 전파·deleted/missing200은 거부한다. `verify-evidence-package`의 native 경로이며 새 UI/서버를 실행하지 않는다.
+
+### MEM84-R01 — 실제 반환 소유와 합산 admission (내부, UI 비대상)
+
+83의 cold 전환과 B32/C8은 유효한 한정 근거다. 이번 조건은 반환 전에 예약하고 최종 소유 해제까지 유지하는 것이다.
+`verify-recording-search-lifetime`의 MEM84-U01~U10은 복사 전 거부, move/split, 마지막 shared 해제, overflow와 동시 reserve/release를 확인한다.
+실제 검색 batch·matches·page·JSON/HTTP 송신의 예약 이동과 데이터/권한/순서 불변을 영향 검사로 확인한다.
+이 단위 검사는 cold/evidence/A/K 전체가 동시에 포화되는 D 또는 B/C 전체 수렴의 대체가 아니다.
+최종 병행 조건은 기존 8 writer/4 client/10000 observation/720 packet/24 file, 90초, p95 2000ms/max5000ms를 유지한다.
+
+MEM84-R02의 `recording_retained_lifetime_smoke <owned-root> --bounded-batches`는 B=64회×4배치(총256), 배치마다 실제1초 idle, 기존 remembered_jobs64를 넘은 terminal 제거·활성 입력 보존·고정 영속 bytes를 확인한다. 종료 후 기존1초×3표본을 유지한다. C=실제 신규 package/A16건, 1/4/8/16에서 보존 bytes와 heap/RSS/footprint를 분리한다. 같은83/새후보 바이너리·같은 fixture로각1회 비교하며 UUID/time의별도원본차이를 동일바이트로 주장하지 않는다. 83의32/8원본은변경하지 않는다.
+
+MEM84-D02~D07 (내부): 실제 HistoryIndex live/clone/sequential 및 Journal Open→checkpoint→Finish→재Open이 같은 주입 owner를 사용한다. 생성/확장 전에 RAM·disk·FD 합산 거부, 부분 예약 rollback, 마지막 공유 소유 후 해제/동일 생성 재개, Close 오류와 실제 FD 회수, 8thread×8 생성의 합산 초과 없음, 기존 원본 readback 불변을 확인한다. 이 직접 범위만으로 cold/evidence/K/suffix 전체 D를 충족한 것으로 판정하지 않는다.
+
+MEM84-R03 (내부): cold 실제 GetOwned/NextOwned는 인증된 metadata 길이와 chunk를 같은 잠금 범위에서 처리하고, 읽기 전에 기존 shared RAM domain을 예약한다. 반환 iterator 공유, DTO 깊은 복사/move, 마지막 소유 해제, 예산 거부의 non-poison 및 재개를 검사한다. workspace 논리 예약은 64KiB+32×원문, 반환 DTO는 sizeof+512+8×원문(중첩 observation/reference는 각각 별도)이며 전체 malloc/allocator의 정확한 바이트 측정값은 아니다. 이 수식의 최대 유효 입력 및 parser 비용 적격성은 별도 측정/검토 대상이고 작은 행 PASS로 대체하지 않는다.
+
+MEM84-D08/D09: 실제 anonymous live index와 transaction candidate writer에 같은 작은 시험 disk/FD/RAM owner를 연결한다. prefix 쓰기 후 합산 거부, live Close 후 재개, 알려진 파일의 cleanup 실패 charge 보존과 실제 FD 회수를 검사한다. 원본 admission이나 제품 한도는 바꾸지 않는다.
+
+MEM84-D10: `recording_retained_lifetime_smoke <owned-root> --combined-d`에서 기존 ConfirmedSeed/Open 뒤 실제 model/page, cold observation DTO, A package 응답, 고정 K capture를 동시에 보유한다. 응답 깊은 복사로 기존 shared owner를 포화시키고 실제 요청 503·알려진 권한403·원본 불변을 확인한다. 응답 소비자 해제 뒤 같은 요청 재개, 이전 K/page/row를 유지한 checkpoint와 이전 자료 조회, 명시 Finish·최종 RAM/disk/FD 반환·재Open/package hash를 확인한다. capture는 제품의 기존 내부 함수를 제한된 검사 접근으로 호출하고 private 자료를 직접 주입하지 않는다. 새120분/서버/UI는 실행하지 않는다.
+
+MEM84-R04: 최대 허용 cold 행(16MiB+1)의 실제 chunk 저장/읽기와 기존 legacy event의 큰 overlap 배열을 각각 확인한다. 최대 raw 읽기와 typed parser 최대 적격성은 별개로 보고한다. RAM 예약 거부를 손상으로 poison하지 않고 consumer 보유/해제와 canonical 의미를 확인한다. 표본 RSS/heap은 모든 순간 peak의 증명이 아니다.

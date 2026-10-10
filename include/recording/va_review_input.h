@@ -3,13 +3,14 @@
 #include "recording/evidence_package_store.h"
 
 namespace recording {
-struct VaReviewInput {
+struct VaReviewInputFields {
     std::string package_id, manifest_sha256, question;
     EvidencePackageV1 manifest;
     std::vector<std::size_t> asset_indices;
     // 실행 중에만 보유하며 입력 metadata나 검토 결과에 직렬화하지 않는다.
     std::vector<std::vector<std::uint8_t>> pngs;
 };
+using VaReviewInput=RecordingMemoryValue<VaReviewInputFields>;
 constexpr std::size_t kVaReviewInputBytes = 12ULL * 1024 * 1024;
 bool VaReviewText(const std::string&, std::size_t limit = 512);
 bool LoadVaReviewInput(const EvidencePackageStore&, const std::string& id,

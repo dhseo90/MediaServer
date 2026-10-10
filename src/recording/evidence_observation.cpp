@@ -42,7 +42,9 @@ bool PopulateEvidenceObservations(EvidencePackageV1* p,const std::vector<Referen
     if(!p||p->schema!="media-server.evidence-package.v2"||rows.size()>256)return Fail(error,"evidence-observation-input");
     auto next=*p;next.observation_snapshots.clear();
     for(std::size_t i=0;i<next.frames.size();++i) {
-        EvidenceObservationSnapshotV2 s;s.frame_index=i;s.png_sha256=next.frames[i].png_sha256;
+        EvidenceObservationSnapshotV2 s;
+        if(next.memory.bytes())s.memory=next.memory.Split(sizeof(EvidenceObservationSnapshotV2)+1024+4*sizeof(ReferencedObservationV1));
+        s.frame_index=i;s.png_sha256=next.frames[i].png_sha256;
         for(const auto& row:rows) {
             if(!ValidateReferencedObservationV1(row,nullptr))return Fail(error,"evidence-observation-corrupt");
             const auto& o=row.observation;const auto& r=row.reference;const auto pts=next.frames[i].pts_ns;

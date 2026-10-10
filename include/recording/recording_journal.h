@@ -1,6 +1,8 @@
 // 파일 요약: 녹화 상태 변경의 append-only JSONL 원장 계약을 선언한다.
 // 동작 요약: mutation envelope 직렬화, fsync append, 손상 허용 replay 결과를 제공한다.
 #pragma once
+#include "recording/recording_memory_reservation.h"
+#include "recording/recording_scratch_reservation.h"
 
 #include <cstdint>
 #include "recording/recording_generation_manifest.h"
@@ -125,12 +127,14 @@ public:
         std::uint64_t snapshot_bytes{0},active_bytes{0},identity_shard_bytes{0},cold_row_bytes{0};
         std::size_t identity_unique_ids{0},identity_archives{0};
     };
-    struct ManagedOptions { std::filesystem::path root; std::string store_id; GenerationReadLimits generation_limits{}; };
+    struct ManagedOptions { std::filesystem::path root; std::string store_id; GenerationReadLimits generation_limits{}; std::shared_ptr<SearchModelResidency> memory{}; std::shared_ptr<RecordingScratchResidency> scratch{}; };
     explicit RecordingJournal(std::filesystem::path path);
     explicit RecordingJournal(ManagedOptions options);
     ~RecordingJournal();
     // 생산자가 중지된 뒤 호출한다. 오류는 소유자가 회수하고 destructor는 최후 정리만 한다.
     bool Finish(std::string* error);
+    const std::shared_ptr<SearchModelResidency>& MemoryOwner()const{return memory_;}
+    const std::shared_ptr<RecordingScratchResidency>& ScratchOwner()const;
     bool HasManagedLease() const;
     std::string ManagedStoreId() const;
     bool Open(std::string* error);
@@ -142,6 +146,9 @@ public:
     const std::filesystem::path& path() const;
 
 private:
+    std::shared_ptr<SearchModelResidency> memory_{std::make_shared<SearchModelResidency>()};
+    mutable std::shared_ptr<RecordingScratchResidency> scratch_;
+    mutable std::once_flag scratch_once_;
     friend class RecordingCatalog;
     friend class RecordingRuntimeStorage;
 #if defined(MEDIA_SERVER_RECORDING_GENERATION_TESTING)

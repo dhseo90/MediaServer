@@ -77,13 +77,22 @@ void RecordingSearchSnapshots::Expire(Clock::time_point now){
     }
 }
 bool RecordingSearchSnapshots::Page(const Entry& entry,std::size_t offset,RecordingSearchPage* output,std::string* error) const {
-    RecordingSearchPage page;page.model=entry.model;page.snapshot_id=entry.id;
+    RecordingSearchPage page;
+    if(entry.model->residency()) {
+        const auto count=std::min(entry.limit,entry.matches.positions.size()-offset);
+        if(count>(SIZE_MAX-1024)/(2*sizeof(std::size_t)))return Fail(error,"search-capacity-exceeded");
+        auto charge=entry.model->residency()->ReserveOwned(1024+count*2*sizeof(std::size_t));
+        if(!charge)return Fail(error,"search-capacity-exceeded");
+        page.memory=std::move(*charge);
+    }
+    page.model=entry.model;page.snapshot_id=entry.id;
     page.known_count=entry.matches.known_count;page.unplaced_count=entry.matches.unplaced_count;
     const auto end=offset+std::min(entry.limit,entry.matches.positions.size()-offset);
     page.positions.assign(entry.matches.positions.begin()+offset,entry.matches.positions.begin()+end);
     if(end<entry.matches.positions.size()){
         const auto body="v1."+entry.id+"."+std::to_string(end);std::string mac;
-        if(!Mac(body,&mac))return Fail(error,"search-crypto-unavailable");page.next_cursor=body+"."+mac;
+        if(!Mac(body,&mac))return Fail(error,"search-crypto-unavailable");
+        page.next_cursor=body+"."+mac;
     }
     *output=std::move(page);if(error)error->clear();return true;
 }

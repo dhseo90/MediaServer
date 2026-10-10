@@ -711,6 +711,9 @@ bool CloneRecordingIdentityHistory(const RecordingIdentityHistoryHandle& source,
     if(!output)return Fail(error,"history clone output missing");
     RecordingIdentityHistoryHandle target;
     if(!source||budget>UINT64_MAX-source->count)return Fail(error,"history clone capacity overflow");
+#if MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
+    RecordingScratchResidency::Scope resources(source->index.resources());
+#endif
     if(!BuildRecordingIdentityHistory(root,{},budget+source->count,&target,error)){*output=std::move(target);return false;}
 #if MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
     if(!RecordingIdentityHistoryHealthy(source,error)||!target->index.CopyFrom(source->index,error))return FinishFailure(target,error,output);

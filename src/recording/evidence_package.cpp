@@ -64,6 +64,17 @@ std::string EvidenceJsonQuote(const std::string& value) {
     }
     return out + '"';
 }
+void BindEvidencePackageMemory(EvidencePackageV1& value,SearchModelResidency::Reservation& work,std::size_t bytes) {
+    // Split the already admitted parser workspace. Nested independently copyable
+    // values retain their own charge when taken out of the parent manifest.
+    value.memory=work.Split(sizeof(EvidencePackageV1)+512+8*bytes);
+    for(auto& frame:value.frames)frame.memory=work.Split(sizeof(EvidenceFrameV1)+8192+frame.png.capacity());
+    for(auto& snapshot:value.observation_snapshots){
+        snapshot.memory=work.Split(sizeof(EvidenceObservationSnapshotV2)+1024+
+            snapshot.candidates.capacity()*sizeof(ReferencedObservationV1));
+        for(auto& row:snapshot.candidates)BindRecordingRowMemory(row,work,SerializeReferencedObservationV1(row).size());
+    }
+}
 bool ValidateEvidencePackage(const EvidencePackageV1& v, std::string* error) {
     if ((v.schema != "media-server.evidence-package.v1" && v.schema != "media-server.evidence-package.v2") || !Id(v.channel_id) || !Small(v.hit_id, false) ||
         (v.query_kind != "structured" && v.query_kind != "visual") || v.created_at_ms <= 0 ||

@@ -84,8 +84,6 @@ bool RecordingSearchReader::Refresh(const std::vector<std::string>& channels,
     std::shared_ptr<const RecordingSearchModel>* output, std::string* error, SearchModelLimits limits, bool include_observations) const {
     if (!output) {if(error)*error="search-invalid-output";return false;}
     if(!limits.residency)limits.residency=catalog_.SearchResidency();
-    auto workspace=limits.residency->Reserve(limits.max_bytes);
-    if(!workspace){if(error)*error="search-capacity-exceeded";return false;}
     SearchSourceBatch batch;
     if (!catalog_.CaptureSearchSource(channels, previous.get(), &batch, error, limits, include_observations)) return false;
     // 준비 순서만 동일 원본 표본별로 묶는다. 출력 위치와 검색 정렬은 바꾸지 않는다.
@@ -345,11 +343,13 @@ bool RecordingSearchReader::WithPlayback(const RecordingSearchModel& model,const
             if(value%den||value/den<0||value/den>std::numeric_limits<std::int64_t>::max())return {};
             return static_cast<std::int64_t>(value/den);
         };
+        SearchModelResidency::Reservation positions_memory;
         std::vector<std::size_t> positions;
         const bool metadata=!query.objects.empty()||!query.tracks.empty()||!query.events.empty()||
             !query.zones.empty()||!query.rules.empty()||!query.behaviours.empty();
         if(metadata) {
             RecordingSearchMatches matches;if(!model.Query(query,&matches,error))return false;
+            positions_memory=std::move(matches.memory);
             positions=std::move(matches.positions);
         } else for(std::size_t i=0;i<model.documents().size();++i)
             if(model.documents()[i].kind==SearchDocumentKind::Recording)positions.push_back(i);

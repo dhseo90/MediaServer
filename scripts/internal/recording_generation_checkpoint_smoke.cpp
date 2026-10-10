@@ -36,6 +36,41 @@ struct RecordingGenerationTransactionProbe {
 
 
     static void StreamFailures(const std::filesystem::path& base) {
+#if MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
+        {
+            using Index=RecordingHistoryIndex;using Budget=RecordingScratchResidency;
+            const auto root=base/"aggregate";std::filesystem::create_directories(root);
+            auto memory=std::make_shared<SearchModelResidency>(4*1024*1024);
+            auto resources=std::make_shared<Budget>(Budget::Usage{548,8,memory->limit()},memory);
+            {
+                Budget::Scope scope(resources);Index live;Need(live.Create(root.string(),512,&error));
+                RecordingGenerationTransaction transaction;Need(transaction.Create(root,&error));RecordingGenerationOwnedFile result;
+                const bool written=transaction.WriteComponentStream("partial",1024,[&](const auto& sink,std::string* detail){
+                    return sink(std::string(20,'a'),detail)&&sink(std::string(20,'b'),detail);
+                },&result,&error);
+                RecordingGenerationOwnedFile prefix;const auto refusal=error;
+                Need(transaction.Describe(true,"partial",&prefix,&error));
+                Check("MEM84-D08",!written&&refusal=="recording-resource-unavailable"&&prefix.file.size==20&&resources->usage().disk_bytes==533,
+                    "actual anonymous live index and candidate writer share aggregate disk; refused suffix has only verified first prefix");
+                Need(live.Close(&error));Need(transaction.WriteComponent("resumed",std::string(40,'c'),&result,&error));
+                Check("MEM84-D08",result.file.size==40&&resources->usage().disk_bytes==61,
+                    "same candidate owner resumes after actual live index Close without increasing budget");
+                Need(transaction.CleanupUnprepared(&error));
+                Check("MEM84-D08",resources->usage().disk_bytes==0&&resources->usage().file_descriptors==6,
+                    "verified candidate deletion returns disk while live transaction directory FDs stay charged");
+            }
+            Check("MEM84-D08",resources->usage().disk_bytes==0&&resources->usage().file_descriptors==0&&memory->used()==0,
+                "transaction destruction closes its actual directory FDs then returns working reservations");
+            {
+                Budget::Scope scope(resources);RecordingGenerationTransaction transaction;Need(transaction.Create(root,&error));
+                RecordingGenerationOwnedFile result;Need(transaction.WriteComponent("preserved",std::string(20,'p'),&result,&error));
+                Write(transaction.StagePath()/"foreign","unknown");
+                Check("MEM84-D09",!transaction.CleanupUnprepared(&error),"unknown stage entry blocks cleanup rather than deleting unowned data");
+            }
+            Check("MEM84-D09",resources->usage().disk_bytes==21&&resources->preserved_disk_bytes()==21&&resources->usage().file_descriptors==0,
+                "failed cleanup preserves known candidate and directory charge after transaction object destruction");
+        }
+#endif
         for(const std::string mode:{"empty","prefix","exception","admission","large-option"}){
             const auto root=base/mode;std::filesystem::create_directories(root);
             RecordingGenerationTransaction tx;Need(tx.Create(root,&error));const auto stage=tx.StagePath();
@@ -133,6 +168,9 @@ void IdentityResidency(const std::filesystem::path& root) {
     for(int iteration=0;iteration<2;++iteration) {
         RecordingJournal journal(Options(root));Need(journal.Open(&error));
         RecordingCatalog catalog(journal,CO(root));Need(catalog.Open(&error));
+        const auto scratch=journal.ScratchOwner();const auto open_scratch=scratch->usage();
+        Check("MEM84-D07",open_scratch.disk_bytes>0&&open_scratch.file_descriptors>=4&&open_scratch.ram_bytes>0,
+            "actual Journal Open identity order archive and Catalog scratch share storage owner");
         for(const std::string& invalid:{std::string{},std::string(129,'x'),std::string("bad/id")})
             Check("MEM79-G01",catalog.SegmentLifecycleV2(invalid)==RecordingLifecycle::Unknown&&!catalog.IsDeletedSegmentId(invalid)&&journal.HasManagedLease(),
                 "invalid public ID stays absent without poisoning authenticated history or Journal owner");
@@ -167,6 +205,9 @@ void IdentityResidency(const std::filesystem::path& root) {
         Check("MEM79-G01",!metadata,"authenticated typed first lookup returns explicit absence");
 
         Need(catalog.Checkpoint(&error));measure(journal,"checkpoint",false);
+        Check("MEM84-D07",scratch->usage().disk_bytes>0&&scratch->peak().disk_bytes>open_scratch.disk_bytes&&
+            scratch->peak().file_descriptors>open_scratch.file_descriptors,
+            "actual checkpoint clone candidate and capture overlap is admitted by the same owner");
         Need(RecordingGenerationAppendProbe::First(journal,request,&metadata,&error));
         Check("MEM79-G01",metadata&&metadata->first_global_ordinal==accepted_ordinal&&!metadata->first_archive.name.empty(),
             "typed first coordinate survives checkpoint and becomes sealed history");
@@ -180,6 +221,9 @@ void IdentityResidency(const std::filesystem::path& root) {
         Need(Links::Get(journal,link,&record));
         Check("V430-R01",SerializeRecordingMutationV1(*record)+"\n"==original&&Read(root/"evidence-1-0.jsonl")==original,
               "rotation preserves historical link and sealed original bytes");
+        Need(journal.Finish(&error));
+        Check("MEM84-D07",scratch->usage().disk_bytes==0&&scratch->usage().file_descriptors==0&&scratch->usage().ram_bytes==0,
+            "actual Journal Finish releases its admitted scratch and next iteration reopens original values");
     }
 }
 // 8채널의 미사용 예약 이력만 증가시킨다. 미디어/삭제/혼합 부하는 별도 fixture다.
@@ -611,6 +655,56 @@ void HistoryProduct(const std::filesystem::path& root) {
     using Index=recording::RecordingHistoryIndex;
     std::filesystem::create_directories(root);
     std::string error,value;
+    { // Actual live/clone/sequential index owners, not synthetic Reserve-only tickets.
+      using Budget=recording::RecordingScratchResidency;
+      const auto bytes=Index::BytesForRows(4);
+      auto ram=std::make_shared<recording::SearchModelResidency>(16*1024*1024);
+      auto budget=std::make_shared<Budget>(Budget::Usage{3*bytes,4,ram->limit()},ram);
+      auto live=std::make_shared<Index>();
+      Need(live->Create(root.string(),bytes,&error,budget));Need(live->Put("live","retained",false,&error));
+      auto clone=std::make_shared<Index>();Need(clone->Create(root.string(),bytes,&error,live->resources()));
+      Need(clone->CopyFrom(*live,&error));
+      Index sequence;{Budget::Scope scope(budget);Need(sequence.Create(root.string(),bytes,&error));}
+      Need(sequence.BeginSequentialBuild(&error));Need(sequence.Put("k","capture",false,&error));Need(sequence.SealSequentialBuild(&error));
+      Index rejected;const auto held=budget->usage();
+      Check("MEM84-D02",!rejected.Create(root.string(),bytes,&error,budget)&&error=="recording-resource-unavailable"&&
+          budget->usage().disk_bytes==held.disk_bytes&&ram->used()==held.ram_bytes,
+          "live clone and sequential capture consume one owner; fourth scratch denied before file creation with rollback");
+      Check("MEM84-D03",!live->ReserveRows(5,&error)&&error=="recording-resource-unavailable"&&
+          live->Get("live",&value,&error)==Index::Lookup::Found&&value=="retained"&&live->Healthy(&error),
+          "aggregate growth denial preserves existing index health and original value");
+      auto reader=clone;clone.reset();
+      Check("MEM84-D02",budget->usage().disk_bytes==3*bytes&&reader->Get("live",&value,&error)==Index::Lookup::Found,
+          "last actual shared scratch owner retains charge and readable clone");
+      reader.reset();Index resumed;Need(resumed.Create(root.string(),bytes,&error,budget));
+      Check("MEM84-D02",budget->usage().disk_bytes==3*bytes&&budget->usage().file_descriptors==3,
+          "last clone owner destruction releases resources and identical request resumes");
+      Need(resumed.Close(&error));Need(sequence.Close(&error));Need(live->Close(&error));
+      Check("MEM84-D02",budget->usage().disk_bytes==0&&budget->usage().file_descriptors==0&&ram->used()==0&&std::filesystem::is_empty(root),
+          "explicit Close reclaims all anonymous files FD and RAM reservations");
+      auto fd_budget=std::make_shared<Budget>(Budget::Usage{bytes,0,ram->limit()},ram);
+      Index partial;Check("MEM84-D04",!partial.Create(root.string(),bytes,&error,fd_budget)&&ram->used()==0&&
+          fd_budget->usage().disk_bytes==0&&fd_budget->usage().file_descriptors==0,
+          "RAM acquisition rolls back when the same request fails FD admission");
+      Index uncertain;Need(uncertain.Create(root.string(),bytes,&error,budget));const int fd=uncertain.ProbeFd();
+      Index::probe_fault=4;const bool closed=uncertain.Close(&error);Index::probe_fault=0;
+      Check("MEM84-D05",!closed&&!uncertain.Close(&error)&&::fcntl(fd,F_GETFD)==-1&&errno==EBADF&&
+          budget->usage().disk_bytes==0&&budget->usage().file_descriptors==0&&ram->used()==0,
+          "injected Close uncertainty remains failed but actually closed FD and its reservation are not retained or double returned");
+      std::atomic<unsigned> successes{0},bad{0};std::vector<std::thread> callers;
+      for(unsigned i=0;i<8;++i)callers.emplace_back([&,i](){
+          for(unsigned n=0;n<8;++n){Index item;std::string detail;
+              if(item.Create(root.string(),bytes,&detail,budget)){
+                  if(!item.Put("thread",std::to_string(i),false,&detail)||!item.Close(&detail))++bad;
+                  else ++successes;
+              }else if(detail!="recording-resource-unavailable")++bad;
+          }
+      });
+      for(auto& caller:callers)caller.join();
+      Check("MEM84-D06",successes>0&&bad==0&&budget->peak().disk_bytes<=3*bytes&&budget->peak().file_descriptors<=4&&
+          budget->usage().disk_bytes==0&&budget->usage().file_descriptors==0&&ram->used()==0,
+          "concurrent real index Create Close never exceeds shared admission and releases exactly once");
+    }
     Index index;Need(index.Create(root.string(),Index::BytesForRows(8),&error));
     struct stat st{};Need(::fstat(index.ProbeFd(),&st)==0);
     Check("MEM78-J01",st.st_nlink==0&&!std::filesystem::exists(root/index.owned_name()),"scratch anonymous while FD remains owned; original nlink rules unchanged");
@@ -701,6 +795,20 @@ void HistoryProduct(const std::filesystem::path& root) {
      o.selection_reasons={"track-start"};o.locator_reason="missing-provenance";
      const std::set<std::string> expected={"prefix","prefix-","prefix.0","prefix0","prefix_","z"};
      for(const auto& id:expected){o.observation_id=id;cold.Set(id,o);}
+     {auto budget=rows->MemoryOwner();const auto base=budget->used();
+      auto first=cold.find("prefix");const auto charged=budget->used();
+      Check("MEM84-R03",charged>base&&first->second.memory.bytes()>0,"cold read returns a charged DTO and shared row");
+      auto same=first;Check("MEM84-R03",budget->used()==charged,"iterator shares one immutable row without duplicate charge");
+      auto copy=first->second;const auto copied=budget->used();
+      Check("MEM84-R03",copied==charged+copy.memory.bytes(),"deep DTO copy reserves separately before storage copy");
+      auto moved=std::move(copy);Check("MEM84-R03",budget->used()==copied&&copy.memory.bytes()==0,"DTO move transfers ownership");
+      first=cold.end();Check("MEM84-R03",budget->used()==copied,"one shared reader release cannot return live row charge");
+      same=cold.end();Check("MEM84-R03",budget->used()==base+moved.memory.bytes(),"last reader returns pair and original DTO charge");
+      moved=AnalysisObservationV2{};Check("MEM84-R03",budget->used()==base,"final independent DTO destruction returns charge");
+      auto full=budget->ReserveOwned(budget->limit()-budget->used());Need(bool(full));bool rejected=false;
+      try{(void)cold.find("prefix");}catch(const RecordingResourceUnavailable&){rejected=true;}
+      Check("MEM84-R03",rejected&&rows->Healthy(&error),"cold budget denial does not poison authenticated history");
+      full.reset();Check("MEM84-R03",cold.find("prefix")->second.observation_id=="prefix","same cold request resumes after actual owner release");}
      std::set<std::string> observed;for(const auto& row:cold)observed.insert(row.first);
      Check("MEM83-R01",observed==expected&&cold.resident_size()==0&&cold.size()==expected.size(),"cold cursor covers prefix IDs without resident key list");
      std::set<std::string> streamed;Need(cold.ForEach([&](const auto& row){streamed.insert(row.observation_id);return true;}));
@@ -1052,6 +1160,27 @@ void CheckpointStop(const std::filesystem::path& root) {
         "Finish during private preparation revokes publication and explicitly reclaims candidate");
 }
 
+void LargeOwnedRows(const std::filesystem::path&){
+    auto rows=std::make_shared<RecordingCatalogHistoryRows>();Need(rows->Create(&error));
+    const auto memory=rows->MemoryOwner();
+    {const std::string raw(16*1024*1024+1,'x');Need(rows->Put("media-path","max-raw",raw,&error));
+     RecordingColdRow value;bool found=false;Need(rows->GetOwned("media-path","max-raw",&value,&found,&error));
+     Check("MEM84-R04",found&&value.bytes==raw&&value.memory.bytes()>raw.size(),"actual maximum original cold raw allowance read with pre-reserved workspace");}
+    EventRecordingLinkV1 event;event.link_id="large-event";event.event_id="event";event.source_id="source";event.channel_id="channel";
+    event.time_basis="utc-ms";event.created_at_ms=1;event.updated_at_ms=1;event.requested_range=UtcRangeV1{0,150000};
+    for(int i=0;i<150000;++i)event.ordered_overlaps.push_back({"segment-"+std::to_string(i),{i,i+1}});
+    Need(ValidateEventRecordingLinkV1(event,&error));
+    const auto raw=SerializeEventRecordingLinkV1(event);const auto expected=event.ordered_overlaps.size();event={};
+    Need(rows->Put("event-link","large-event",raw,&error));
+    RecordingRetainedRows<EventRecordingLinkV1,ParseEventRecordingLinkV1,SerializeEventRecordingLinkV1> cold;cold.Bind(rows,"event-link");
+    {auto value=cold.find("large-event");Check("MEM84-R04",value!=cold.end()&&value->second.ordered_overlaps.size()==expected&&SerializeEventRecordingLinkV1(value->second)==raw,
+        "large legacy overlap array keeps canonical bytes and charged returned DTO");
+     auto copied=value->second;Check("MEM84-R04",copied.memory.bytes()>0,"large legacy independent consumer stays charged");}
+    Need(cold.ForEach([&](const auto& value){return value.ordered_overlaps.size()==expected;}));
+    std::cout<<"[large-cold] rawBytes="<<raw.size()<<" overlaps="<<expected<<" reservedPeak="<<memory->peak()<<" live="<<memory->used()<<std::endl;
+    Need(rows->Finish(&error));Check("MEM84-R04",memory->used()==0,"large row readers and scratch release after Finish");
+}
+
 RecordingCatalog* crash_catalog=nullptr;
 std::string crash_point;
 void AppendAtCut() {
@@ -1094,11 +1223,12 @@ void CheckpointSuffixRecovery(const std::filesystem::path& base) {
 #endif
 int main(int argc,char** argv) {
     if(argc!=2&&argc!=3)return 2;
-    if(argc==3&&std::string(argv[2])!="concurrency"&&std::string(argv[2])!="history-product"&&std::string(argv[2])!="history-index"&&std::string(argv[2])!="residency"&&std::string(argv[2])!="scale-1000"&&std::string(argv[2])!="scale-100000"&&std::string(argv[2])!="scale-baseline-1000"&&std::string(argv[2])!="scale-baseline-100000")return 2;
+    if(argc==3&&std::string(argv[2])!="history-large"&&std::string(argv[2])!="concurrency"&&std::string(argv[2])!="history-product"&&std::string(argv[2])!="history-index"&&std::string(argv[2])!="residency"&&std::string(argv[2])!="scale-1000"&&std::string(argv[2])!="scale-100000"&&std::string(argv[2])!="scale-baseline-1000"&&std::string(argv[2])!="scale-baseline-100000")return 2;
     try {
         const std::filesystem::path root(argv[1]);std::filesystem::create_directories(root);
 #if MEDIA_SERVER_USE_OPENSSL && MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND
         if(argc==3&&std::string(argv[2]).rfind("scale-",0)==0){IdentityScale(root/"scale",std::stoull(std::string(argv[2]).substr(std::string(argv[2]).find_last_of('-')+1)),std::string(argv[2]).find("baseline")!=std::string::npos);return failures?1:0;}
+        if(argc==3&&std::string(argv[2])=="history-large"){LargeOwnedRows(root);return failures?1:0;}
         if(argc==3&&std::string(argv[2])=="history-index"){HistoryIndex(root/"history-index");return failures?1:0;}
         if(argc==3&&std::string(argv[2])=="history-product"){HistoryProduct(root/"history-product");return failures?1:0;}
         if(argc==3&&std::string(argv[2])=="concurrency"){CheckpointConcurrentCut(root/"concurrency");CheckpointCaptureFailure(root/"capture-failure");CheckpointMixedSuffix(root/"mixed-suffix");CheckpointServiceRevoke(root/"service-revoke");CheckpointAdmissionRaces(root/"admission-races");CheckpointSuffixRecovery(root/"suffix-recovery");CheckpointAutoProtection(root/"auto-protection");CheckpointStop(root/"stop");return failures?1:0;}

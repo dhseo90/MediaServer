@@ -507,6 +507,7 @@ std::unique_ptr<ResolvedRecordingMedia> RecordingReadService::ResolveMediaWithCo
     media->size_bytes_ = segment->size_bytes;
     return media;
 } catch(const recording::RecordingRetainedReadError&){return {};}
+  catch(const recording::RecordingResourceUnavailable&){return {};}
 
 std::uint64_t RecordingReadService::TracePreparationStarted() noexcept {return completion::Now();}
 void RecordingReadService::TracePreparationCompleted(const char* reference,std::uint64_t started,

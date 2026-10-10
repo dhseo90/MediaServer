@@ -1081,3 +1081,21 @@ B32의 입력 소유 해제와 C8의 실제 파일 보존은 이 수명만 검�
 요청/보존 수명 직접 fixture는 `scripts/internal/recording_retained_lifetime_smoke.cpp`이며
 기존 runtime archive에 연결하는 native 검사다. 실행 source·compile/link 인자·소유 root는
 83 실행 기록의 binding에 둔다. 제품 서버나 전체 UI의 대체 gate는 아니다.
+
+### 합산 소유 예약의 부분 연결과 최대 입력 차단
+
+84의 RAM domain은 기존640MiB를 공유한다. cold 원문 읽기 전 workspace를 확보하고 parser와
+canonical 비교 뒤 반환 DTO에 분할하며, 깊은 복사는 별도 예약, move는 같은 예약을 이전한다.
+검색 응답과 evidence/A 응답은 HTTP 응답 객체로 예약을 옮겨 송신 수명까지 유지한다.
+연결된 anonymous Index와 transaction writer는 동일 owner에서 RAM·디스크·FD를 별도로
+예약하며 일부 실패를 rollback한다. FD가 불확실하게 닫히거나 cleanup이 실패하면 비용을
+회수했다고 주장하지 않는다. filesystem 여유 기반 scratch 보호는 전체 프로세스의 공간 상한이나
+모든 순간의 물리 할당 보장이 아니며 다른 참여자의 비용 누락을 해결했다는 선언이 아니다.
+
+현재 cold workspace의 `65536+32×raw`와 반환 DTO의 `sizeof+512+8×raw`는 보수적 논리
+예약식이며 실제 heap 바이트와 동일하지 않다. 특히 최대 원본과 모든 parser 타입에 대한
+충분성·정상 입력 적격성은 미완료다. owner640MiB에서 raw>20,969,472이면 단독 행도 거부되므로
+기존 유효한 큰 legacy 행의 읽기를 보장하지 못한다. 이 경계는 구현 blocker로 유지한다.
+큰 행을 위한 유한 parser/반환 경계와 타입별 비용 검증 없이 전 범위 채택하지 않는다.
+기존 원본을 삭제하거나 admission을 낮추거나 RAM 예산을 늘리는 것으로 해소하지 않는다.
+실제 D와 B/C·병행·플랫폼 결과는84 실행 기록 한 곳에서 한정 범위를 판정한다.

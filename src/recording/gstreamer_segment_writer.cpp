@@ -524,6 +524,7 @@ private:
             ready.final_relative=final_path.lexically_relative(options.storage_root);
             if(!WriteFinalizeReadyTicket(options.storage_root,ready,&error) ||
                !CommitFinalizeReadyV2(*options.managed_catalog,options.storage_root,ready,&error)) {
+                std::cerr<<"[recording] bound finalize failed: "<<error.substr(0,256)<<'\n';
                 BlockForRecoveryLocked();return;
             }
             ReleaseReservationLocked(current_v2.size_bytes);segment_open=false;return;

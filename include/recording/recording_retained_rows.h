@@ -9,14 +9,31 @@
 #include <string>
 #include <utility>
 #include "domain/strict_json.h"
+#include "recording/recording_memory_reservation.h"
+#include <limits>
 
 namespace recording {
+// Raw/parser/canonical workspace is held until Decode finishes. The typed result
+// takes its own portion before publication; its copies acquire another ticket.
+struct RecordingColdRow {
+    SearchModelResidency::Reservation memory;
+    std::string bytes;
+};
+inline std::size_t RecordingColdWorkspaceBytes(std::size_t bytes) {
+    constexpr std::size_t fixed=64*1024;
+    if(bytes>(std::numeric_limits<std::size_t>::max()-fixed)/32)throw RecordingResourceUnavailable();
+    return fixed+32*bytes;
+}
 class RecordingRetainedRowStore {
 public:
     virtual ~RecordingRetainedRowStore()=default;
     virtual bool Get(const std::string&,const std::string&,std::string*,bool*,std::string*)=0;
+    virtual bool GetOwned(const std::string&,const std::string&,RecordingColdRow*,bool*,std::string*)=0;
+    virtual bool NextOwned(const std::string&,const std::string&,std::string*,RecordingColdRow*,bool*,std::string*)=0;
+    virtual std::shared_ptr<SearchModelResidency> MemoryOwner()const=0;
     virtual bool Put(const std::string&,const std::string&,const std::string&,std::string*)=0;
     virtual bool Next(const std::string&,const std::string&,std::string*,std::string*,bool*,std::string*)=0;
+    virtual bool VisitOwned(const std::string&,const std::function<bool(const std::string&,RecordingColdRow&,std::string*)>&,std::string*)=0;
     virtual bool Visit(const std::string&,const std::function<bool(const std::string&,const std::string&,std::string*)>&,std::string*)=0;
     virtual std::uint64_t Count(const std::string&)const=0;
 };
@@ -64,15 +81,16 @@ public:
     const_iterator end()const{return store_?const_iterator(this,std::shared_ptr<const Pair>{}):const_iterator(this,ram_.end());}
     const_iterator find(const std::string& id)const {
         if(!store_)return const_iterator(this,ram_.find(id));
-        std::string value,error;bool found=false;
-        if(!store_->Get(kind_,id,&value,&found,&error))throw RecordingRetainedReadError(error);
-        return found?Decode(id,value):end();
+        RecordingColdRow value;std::string error;bool found=false;
+        if(!store_->GetOwned(kind_,id,&value,&found,&error))throw RecordingRetainedReadError(error);
+        return found?Decode(id,std::move(value)):end();
     }
     template<class F> bool ForEach(F&& visitor)const {
         if(!store_){for(const auto& row:ram_)if(!visitor(row.second))return false;return true;}
         bool refused=false;std::string error;
-        const bool ok=store_->Visit(kind_,[&](const auto& id,const auto& bytes,std::string*){
-            const auto row=Decode(id,bytes);if(!visitor(row->second)){refused=true;return false;}return true;
+        const bool ok=store_->VisitOwned(kind_,[&](const auto& id,RecordingColdRow& bytes,std::string*){
+            const auto row=Decode(id,std::move(bytes));
+            if(!visitor(row->second)){refused=true;return false;}return true;
         },&error);
         if(!ok&&!refused)throw RecordingRetainedReadError(error);
         return ok;
@@ -95,15 +113,25 @@ public:
     void clear(){ram_.clear();store_.reset();kind_.clear();}
     void swap(RecordingRetainedRows& other)noexcept{ram_.swap(other.ram_);store_.swap(other.store_);kind_.swap(other.kind_);}
 private:
-    const_iterator Decode(const std::string& id,const std::string& value)const {
+    const_iterator Decode(const std::string& id,RecordingColdRow value)const {
         T parsed;std::string error;
-        if(!Parse(value,&parsed,&error)||Serialize(parsed)!=value)throw RecordingRetainedReadError("retained row canonical/domain mismatch: "+error);
-        return const_iterator(this,std::make_shared<const Pair>(id,std::move(parsed)));
+        if(!Parse(value.bytes,&parsed,&error)||Serialize(parsed)!=value.bytes)throw RecordingRetainedReadError("retained row canonical/domain mismatch: "+error);
+        // The pair allocation/key is retained with the shared row. Deep-copyable DTOs
+        // carry a separate charge so at() and downstream result copies retain it.
+        const auto row_bytes=sizeof(T)+512+8*value.bytes.size();
+        BindRecordingRowMemory(parsed,value.memory,value.bytes.size());
+        struct OwnedPair { SearchModelResidency::Reservation memory;Pair row;
+            OwnedPair(SearchModelResidency::Reservation charge,const std::string& key,T result)
+                :memory(std::move(charge)),row(key,std::move(result)){} };
+        const auto pair_bytes=sizeof(OwnedPair)+id.size()+1+(std::is_base_of_v<RecordingMemoryCharge,T>?0:row_bytes);
+        auto owner=std::make_shared<OwnedPair>(value.memory.Split(pair_bytes),id,std::move(parsed));
+        const Pair* row=&owner->row;
+        return const_iterator(this,std::shared_ptr<const Pair>(std::move(owner),row));
     }
     const_iterator Next(const std::string& after)const {
-        std::string id,value,error;bool found=false;
-        if(!store_->Next(kind_,after,&id,&value,&found,&error))throw RecordingRetainedReadError(error);
-        return found?Decode(id,value):end();
+        std::string id,error;RecordingColdRow value;bool found=false;
+        if(!store_->NextOwned(kind_,after,&id,&value,&found,&error))throw RecordingRetainedReadError(error);
+        return found?Decode(id,std::move(value)):end();
     }
     Map ram_;
     std::shared_ptr<RecordingRetainedRowStore> store_;

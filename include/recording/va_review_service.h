@@ -48,6 +48,7 @@ public:
 private:
     friend struct VaReviewServiceResidencyProbe; // native ownership regression; no runtime hook
     struct Task {
+        SearchModelResidency::Reservation memory;
         VaReviewJob job;
         std::optional<ConfirmedAnalysisRequest> confirmed;
         std::string question,provider,key;

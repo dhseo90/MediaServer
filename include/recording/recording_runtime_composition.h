@@ -16,6 +16,8 @@ public:
     GStreamerSegmentWriter::Options WriterOptions(std::int64_t segment_ms);
 private:
     bool ResetOwner(std::string* error);
+    std::shared_ptr<SearchModelResidency> memory_{std::make_shared<SearchModelResidency>()};
+    std::shared_ptr<RecordingScratchResidency> scratch_;
     std::filesystem::path root_;
     std::unique_ptr<RecordingJournal> journal_;
     std::unique_ptr<RecordingCatalog> catalog_;

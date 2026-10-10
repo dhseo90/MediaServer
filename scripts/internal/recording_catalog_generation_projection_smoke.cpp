@@ -288,7 +288,7 @@ int main(int argc,char** argv) {
         bad_receipt.Seal({});B11Check(Rejected(bad_receipt,root,1024*1024,true),"receipt deletion origin must be first accepted deleted mutation");
         all.Seal(root);Need(all.Build(root,&output));
         Check(2,output.pending_hold_counts["legacy"]==1&&output.pending_hold_counts[derived.segment_id]==1,"pending terminal source/output hold reconstructed");
-        bad=all;for(auto& row:bad.snapshot.rows)if(row.kind=="state-v2")row.value_json=SerializeRecordingSegmentStateV2({"media-server.recording-segment-state.v2",removed.segment_id,RecordingLifecycle::Corrupt,"checksum-mismatch"});
+        bad=all;for(auto& row:bad.snapshot.rows)if(row.kind=="state-v2")row.value_json=([&]{RecordingSegmentStateV2 state;state.segment_id=removed.segment_id;state.lifecycle=RecordingLifecycle::Corrupt;state.reason="checksum-mismatch";return SerializeRecordingSegmentStateV2(state);}());
         bad.Seal({});Check(2,Rejected(bad,root),"tombstone requires matching deletion transition");
         bad=all;for(auto& row:bad.snapshot.rows)if(row.kind=="segment-v1"&&row.key=="legacy"){auto changed=s;changed.lifecycle=RecordingLifecycle::Corrupt;row.value_json=SerializeRecordingSegmentV1(changed);}
         bad.Seal({});Check(2,Rejected(bad,root),"pending hold rejects nonfinal source");

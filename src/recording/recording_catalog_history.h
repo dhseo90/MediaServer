@@ -30,7 +30,7 @@ public:
         std::scoped_lock lock(mu_,source.mu_);
 #if MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
         if(!source.healthy_||!index_.Create(std::filesystem::canonical(std::filesystem::temp_directory_path()).string(),
-            RecordingHistoryIndex::BytesForRows(source.index_.usage().rows),error)||!index_.CopyFrom(source.index_,error))return false;
+            RecordingHistoryIndex::BytesForRows(source.index_.usage().rows),error,source.index_.resources())||!index_.CopyFrom(source.index_,error))return false;
         counts_=source.counts_;retired_continuous_only_=source.retired_continuous_only_;slot_limit_=source.slot_limit_;return true;
 #else
         (void)error;return false;
@@ -42,12 +42,62 @@ public:
         if(!healthy_||!value||!found)return Fail(error,"catalog history unavailable");
         // An external ID outside the original grammar cannot name a stored row.
         // This is input rejection, not a corruption of the authenticated index.
-        if(Kind(kind)&&!ValidateOpaqueId(id,nullptr)){*found=false;value->clear();if(error)error->clear();return true;}
+        if(Kind(kind)&&!ValidateOpaqueId(id,nullptr)){*found=false;value->clear();if(error)error->clear();
+        return true;}
         std::uint64_t bytes=0,capacity=0;bool exists=false;
         if(!Meta(kind,id,&bytes,&capacity,&exists,error))return false;
         return ReadValue(kind,id,bytes,exists,value,found,error);
 #else
         (void)kind;(void)id;(void)value;(void)found;return Fail(error,"catalog history unsupported");
+#endif
+    }
+    std::shared_ptr<SearchModelResidency> MemoryOwner()const override {
+#if MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
+        std::lock_guard<std::recursive_mutex> lock(mu_);
+        return index_.resources()->memory();
+#else
+        throw RecordingResourceUnavailable();
+#endif
+    }
+    bool GetOwned(const std::string& kind,const std::string& id,RecordingColdRow* output,bool* found,std::string* error) override {
+        std::lock_guard<std::recursive_mutex> lock(mu_);
+#if MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
+        if(!healthy_||!output||!found)return Fail(error,"catalog history owned read invalid");
+        if(Kind(kind)&&!ValidateOpaqueId(id,nullptr)){*found=false;return true;}
+        std::uint64_t bytes=0,capacity=0;bool exists=false;
+        if(!Meta(kind,id,&bytes,&capacity,&exists,error))return false;
+        if(!exists||!bytes){*found=false;return true;}
+        auto charge=MemoryOwner()->ReserveOwned(RecordingColdWorkspaceBytes(bytes));
+        if(!charge)throw RecordingResourceUnavailable();
+        RecordingColdRow row;row.memory=std::move(*charge);
+        if(!ReadValue(kind,id,bytes,exists,&row.bytes,found,error))return false;
+        // Length and authenticated chunks were read under the same mutation lock.
+        output->bytes.swap(row.bytes);output->memory.swap(row.memory);return true;
+#else
+        (void)kind;(void)id;(void)output;(void)found;return Fail(error,"catalog history unsupported");
+#endif
+    }
+    bool NextOwned(const std::string& kind,const std::string& after,std::string* id,RecordingColdRow* value,bool* found,std::string* error) override {
+        std::lock_guard<std::recursive_mutex> lock(mu_);
+#if MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
+        if(!healthy_||!Kind(kind)||!id||!value||!found)return Fail(error,"catalog history cursor invalid");
+        *found=false;const auto prefix=kind+"/";
+        const auto lower=after.empty()?prefix:prefix+after+"/m"+std::string(1,'\0');
+        bool stopped=false;std::exception_ptr consumer;
+        const bool ok=index_.VisitRange(lower,kind+"0",[&](const std::string& key,const std::string&,std::string* detail){
+            if(key.size()<prefix.size()+2||key.compare(key.size()-2,2,"/m")!=0)return true;
+            const auto candidate=key.substr(prefix.size(),key.size()-prefix.size()-2);
+            try {if(!GetOwned(kind,candidate,value,found,detail))return false;}
+            catch(...){consumer=std::current_exception();return false;}
+            if(!*found)return true;
+            *id=candidate;stopped=true;return false;
+        },error);
+        if(consumer)std::rethrow_exception(consumer);
+        if(!ok&&!stopped)return false;
+        if(error)error->clear();
+        return true;
+#else
+        (void)kind;(void)after;(void)id;(void)value;(void)found;return Fail(error,"catalog history unsupported");
 #endif
     }
     bool Next(const std::string& kind,const std::string& after,std::string* id,std::string* value,bool* found,std::string* error) override {
@@ -88,7 +138,11 @@ public:
         if(!Meta(kind,id,&old_bytes,&capacity,&exists,error))return false;
         const auto chunks=value.size()/RecordingHistoryIndex::kValueBytes+(value.size()%RecordingHistoryIndex::kValueBytes!=0);
         const auto added=(exists?0:1)+(chunks>capacity?chunks-capacity:0);
-        if(added>UINT64_MAX-index_.usage().rows||index_.usage().rows+added>slot_limit_||!index_.ReserveRows(index_.usage().rows+added,error))return Fail(error,"catalog history capacity failed");
+        if(added>UINT64_MAX-index_.usage().rows||index_.usage().rows+added>slot_limit_)return Fail(error,"catalog history capacity failed");
+        if(!index_.ReserveRows(index_.usage().rows+added,error)){
+            if(error&&*error=="recording-resource-unavailable")return false; // no chunk or metadata changed
+            return Fail(error,"catalog history capacity failed");
+        }
         for(std::size_t offset=0,part=0;offset<value.size();offset+=RecordingHistoryIndex::kValueBytes,++part) {
             if(!index_.Put(Key(kind,id,"v",part),value.substr(offset,RecordingHistoryIndex::kValueBytes),true,error))return Fail(error,"catalog history value write failed");
 #if defined(MEDIA_SERVER_RECORDING_GENERATION_TESTING)
@@ -106,11 +160,19 @@ public:
         (void)kind;(void)id;(void)value;return Fail(error,"catalog history unsupported");
 #endif
     }
+    using OwnedVisitor=std::function<bool(const std::string&,RecordingColdRow&,std::string*)>;
     bool Visit(const std::string& kind,const Visitor& visitor,std::string* error) override {
+        return VisitImpl(kind,visitor,nullptr,error);
+    }
+    bool VisitOwned(const std::string& kind,const OwnedVisitor& visitor,std::string* error) override {
+        return VisitImpl(kind,{},&visitor,error);
+    }
+    bool VisitImpl(const std::string& kind,const Visitor& visitor,const OwnedVisitor* owned,std::string* error) {
         std::unique_lock<std::recursive_mutex> lock(mu_);
 #if MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
-        if(!healthy_||!Kind(kind)||!visitor)return Fail(error,"catalog history visitor invalid");
+        if(!healthy_||!Kind(kind)||(!visitor&&!owned))return Fail(error,"catalog history visitor invalid");
         const auto prefix=kind+"/";std::uint64_t seen=0;std::exception_ptr consumer_exception;
+        SearchModelResidency::Reservation raw_memory;
         std::string current,value;std::uint64_t bytes=0,capacity=0,parts=0;bool have_meta=false;
         // The authenticated in-order cursor delivers metadata before its chunk keys.
         // Consume those same verified chunks instead of re-seeking every chunk from root.
@@ -122,7 +184,10 @@ public:
             if(parts!=required)return Fail(detail,"catalog history streaming chunk coverage invalid");
             if(!bytes)return true;
             ++seen;lock.unlock();bool accepted=false;
-            try { accepted=visitor(current,value,detail); } catch (...) { consumer_exception=std::current_exception(); }
+            try {
+                if(owned){RecordingColdRow row{std::move(raw_memory),std::move(value)};accepted=(*owned)(current,row,detail);}
+                else accepted=visitor(current,value,detail);
+            } catch (...) { consumer_exception=std::current_exception(); }
             lock.lock();return healthy_&&accepted;
         };
         const bool ok=index_.VisitRange(prefix,kind+"0",[&](const std::string& key,const std::string& chunk,std::string* detail){
@@ -133,7 +198,11 @@ public:
             if(suffix=="m") {
                 if(!flush(detail))return false;
                 if(!ParseMeta(chunk,&bytes,&capacity,detail))return false;
-                current=id;parts=0;have_meta=true;value.assign(static_cast<std::size_t>(bytes),'\0');return true;
+                auto ticket=MemoryOwner()->ReserveOwned(RecordingColdWorkspaceBytes(bytes));
+                if(!ticket){consumer_exception=std::make_exception_ptr(RecordingResourceUnavailable());return false;}
+                std::string replacement(static_cast<std::size_t>(bytes),'\0');
+                value.swap(replacement);raw_memory.swap(*ticket);
+                current=id;parts=0;have_meta=true;return true;
             }
             if(!have_meta||current!=id||suffix.size()<2||suffix[0]!='v')return Fail(detail,"catalog history streaming metadata missing");
             std::uint64_t part=0;const auto parsed=std::from_chars(suffix.data()+1,suffix.data()+suffix.size(),part);
@@ -150,7 +219,7 @@ public:
         if(!completed)return false; // consumer refusal is not evidence of index corruption
         return (healthy_&&seen==counts_[Kind(kind)-1])||Fail(error,"catalog history visitor/coverage failed");
 #else
-        (void)kind;(void)visitor;return Fail(error,"catalog history unsupported");
+        (void)kind;(void)visitor;(void)owned;return Fail(error,"catalog history unsupported");
 #endif
     }
     bool VisitRetired(const Visitor& visitor,bool event_candidates_only,std::string* error) {

@@ -135,6 +135,12 @@ bool RecordingSearchModel::QueryImpl(const RecordingSearchQuery& input, Recordin
     };
     try {
         RecordingSearchMatches result;
+        if(residency_) {
+            if(documents_.size()>(SIZE_MAX-sizeof(result))/(2*sizeof(std::size_t)))return Fail(error,"search-capacity-exceeded");
+            auto charge=residency_->ReserveOwned(sizeof(result)+2*sizeof(std::size_t)*documents_.size());
+            if(!charge)return Fail(error,"search-capacity-exceeded");
+            result.memory=std::move(*charge);
+        }
         const auto start=q.start_time_ms*1000000,end=q.end_time_ms*1000000;
         for (const auto& channel:q.channels) for (const auto position:Channel(channel)) {
             const auto& d=documents_[position];

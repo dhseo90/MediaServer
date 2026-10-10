@@ -1,6 +1,8 @@
 // 파일 용도: V420-C01~03 불변 페이지, 질의/권한 결박, 만료·축출·재시작 경계.
 #include "recording/recording_search_snapshots.h"
 #include <iostream>
+#include "ingress/application_service_result.h"
+#include <array>
 #include <thread>
 using namespace recording;
 namespace {
@@ -11,6 +13,30 @@ SearchDocument Doc(std::string id,std::string channel,int ms){SearchDocument d;d
 [[maybe_unused]] std::vector<std::string> Ids(const RecordingSearchPage& p){std::vector<std::string> r;for(auto i:p.positions)r.push_back(p.model->documents()[i].id);return r;}
 }
 int main(){
+    {
+        SearchModelResidency owner(1000);
+        auto token=owner.ReserveOwned(600);
+        Check(bool(token)&&owner.used()==600,"MEM84-U01 reserve before body allocation");
+        ingress::ApplicationServiceResult value{200,"OK",std::string(100,'x'),std::move(*token)};
+        bool refused=false;try{auto copy=value;(void)copy;}catch(const RecordingResourceUnavailable&){refused=true;}
+        Check(refused&&owner.used()==600&&value.body.size()==100,"MEM84-U02 deep copy denied before storage copy; original retained");
+        auto moved=std::move(value);
+        Check(owner.used()==600&&value.memory.bytes()==0&&moved.memory.bytes()==600,"MEM84-U03 move transfers charge");
+        auto part=moved.memory.Split(200);
+        Check(owner.used()==600&&part.bytes()==200&&moved.memory.bytes()==400,"MEM84-U04 split preserves total");
+        moved={};Check(owner.used()==200,"MEM84-U05 actual body destruction releases its share");
+        part={};Check(owner.used()==0&&!owner.ReserveOwned(SIZE_MAX),"MEM84-U06 overflow refusal leaves owner unchanged");
+        auto small=owner.ReserveOwned(200);ingress::ApplicationServiceResult a{200,"OK","small",std::move(*small)};
+        auto b=a;Check(owner.used()==400,"MEM84-U07 deep copies reserve independently");
+        auto shared=std::make_shared<ingress::ApplicationServiceResult>(std::move(b));auto last=shared;
+        shared.reset();Check(owner.used()==400,"MEM84-U08 shared alias does not charge twice or release early");
+        last.reset();a={};Check(owner.used()==0,"MEM84-U09 last shared owner releases reservation");
+        std::array<std::thread,4> threads;std::atomic<bool> valid{true};
+        for(auto& thread:threads)thread=std::thread([&]{for(unsigned i=0;i<1000;++i){auto held=owner.ReserveOwned(400);if(owner.used()>owner.limit())valid=false;}});
+        for(auto& thread:threads)thread.join();
+        Check(valid&&owner.used()==0&&owner.peak()<=owner.limit(),"MEM84-U10 concurrent reserve/release never exceeds bound");
+    }
+
     std::string error;std::shared_ptr<const RecordingSearchModel> model;
     auto u=Doc("unknown","one",0);u.start_ns.reset();u.end_ns.reset();
     Check(RecordingSearchModel::Build({Doc("b","one",1000),Doc("a","one",1000),Doc("c","two",1000),
@@ -54,7 +80,8 @@ int main(){
     Check(!pool.Resume(cursor,q,"bob","scope-1",&page,&error,now)&&page.snapshot_id==held.snapshot_id,"other principal rejected atomically");
     Check(!pool.Resume(cursor,q,"alice","scope-2",&page,&error,now),"scope change rejected");
     for(int mode=0;mode<4;++mode){auto changed=q;if(mode==0)changed.limit=1;if(mode==1)changed.end_time_ms=2001;
-        if(mode==2)changed.include_unplaced=false;if(mode==3)changed.objects={"person"};
+        if(mode==2)changed.include_unplaced=false;
+        if(mode==3)changed.objects={"person"};
         Check(!pool.Resume(cursor,changed,"alice","scope-1",&page,&error,now),"query change rejected");}
     auto tampered=cursor;tampered.back()=tampered.back()=='a'?'b':'a';
     Check(!pool.Resume(tampered,q,"alice","scope-1",&page,&error,now)&&error=="search-invalid-cursor","tampered MAC rejected");

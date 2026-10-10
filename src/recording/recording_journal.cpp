@@ -568,7 +568,7 @@ public:
         return index_.usage().rows==files.size()||Fail(error,"archive source count mismatch");
     }
     bool Clone(GenerationArchiveIndex& source,std::size_t additional,std::string* error){
-        if(!index_.Create(std::filesystem::canonical(std::filesystem::temp_directory_path()).string(),RecordingHistoryIndex::BytesForRows(source.Size()+additional),error))return false;
+        if(!index_.Create(std::filesystem::canonical(std::filesystem::temp_directory_path()).string(),RecordingHistoryIndex::BytesForRows(source.Size()+additional),error,source.index_.resources()))return false;
         return index_.CopyFrom(source.index_,error);
     }
     bool Add(const RecordingGenerationFile& file,std::size_t limit,std::string* error){
@@ -1116,8 +1116,15 @@ struct RecordingJournal::ManagedCutoverRecoveryState {
 };
 RecordingJournal::RecordingJournal(std::filesystem::path path) : path_(std::move(path)) {}
 RecordingJournal::RecordingJournal(ManagedOptions options)
-    : generation_limits_(options.generation_limits),managed_(true),managed_root_(std::move(options.root)),managed_store_id_(std::move(options.store_id)),
+    : memory_(options.memory?std::move(options.memory):std::make_shared<SearchModelResidency>()),scratch_(std::move(options.scratch)),generation_limits_(options.generation_limits),managed_(true),managed_root_(std::move(options.root)),managed_store_id_(std::move(options.store_id)),
       path_(managed_root_/"recording-v2-mutations.jsonl") {}
+const std::shared_ptr<RecordingScratchResidency>& RecordingJournal::ScratchOwner()const {
+#if MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
+    std::call_once(scratch_once_,[&](){if(!scratch_)scratch_=RecordingScratchResidency::Discover(
+        std::filesystem::canonical(std::filesystem::temp_directory_path()).string(),memory_);});
+#endif
+    return scratch_;
+}
 RecordingJournal::~RecordingJournal() {try{Finish(nullptr);}catch(...){}}
 bool RecordingJournal::Finish(std::string* error) {
     std::lock_guard lock(mu_);
@@ -1224,7 +1231,8 @@ bool RecordingJournal::GenerationBindingLocked() const {
     return false;
 #endif
 }
-bool RecordingJournal::OpenGenerationReadOnlyLocked(const std::string& store,std::string* error) {
+bool RecordingJournal::OpenGenerationReadOnlyLocked(const std::string& store,std::string* error) try {
+    RecordingScratchResidency::Scope scratch_scope(ScratchOwner());
 #if MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND && MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
     const auto& limits=generation_limits_;
     if(!limits.snapshot_bytes||!limits.active_bytes||!limits.identity_shard_bytes||!limits.identity_unique_ids||
@@ -1315,7 +1323,7 @@ bool RecordingJournal::OpenGenerationReadOnlyLocked(const std::string& store,std
 #else
     (void)store;return Fail(error,"B read-only backend/crypto unsupported");
 #endif
-}
+} catch(const RecordingResourceUnavailable& e) { return Fail(error,e.what()); }
 bool RecordingJournal::LoadManagedStateLocked(std::string* error) {
 #if !defined(_WIN32)
     auto state=std::make_unique<ManagedJournalState>();struct stat status{};
@@ -1550,7 +1558,8 @@ bool ParseRecordingOrderReservationV1(const std::string& json, RecordingOrderRes
 }
 bool RecordingJournal::ReserveRecordingOrder(const std::string& store_id, const std::string& request_id,
     const std::string& segment_id, const std::string& channel_id,
-    RecordingOrderReservationV1* result, std::string* error) {
+    RecordingOrderReservationV1* result, std::string* error) try {
+    RecordingScratchResidency::Scope scratch_scope(ScratchOwner());
 #if !defined(_WIN32)
     if(managed_&&owner_pid_!=::getpid())return Fail(error,"managed fork/미open 사용 거부");
 #endif
@@ -1652,9 +1661,10 @@ bool RecordingJournal::ReserveRecordingOrder(const std::string& store_id, const 
 #else
     return Fail(error, "recording order 배타 잠금 미지원");
 #endif
-}
+} catch(const RecordingResourceUnavailable& e) { return Fail(error,e.what()); }
 
-bool RecordingJournal::Open(std::string* error) {
+bool RecordingJournal::Open(std::string* error) try {
+    RecordingScratchResidency::Scope scratch_scope(ScratchOwner());
 #if !defined(_WIN32)
     if(managed_&&owner_pid_!=0&&owner_pid_!=::getpid())return Fail(error,"managed fork 사용 거부");
 #endif
@@ -1689,7 +1699,7 @@ bool RecordingJournal::Open(std::string* error) {
     opened_ = true;
     if (error != nullptr) error->clear();
     return true;
-}
+} catch(const RecordingResourceUnavailable& e) { return Fail(error,e.what()); }
 
 bool RecordingJournal::Append(const RecordingMutationV1& mutation, std::string* error) {
     return AppendOwned(mutation, nullptr, error);
@@ -2340,7 +2350,8 @@ bool RecordingJournal::CheckpointSnapshotMatchesLocked(const void* owner,const R
         snapshot->revision==managed_state_->revision&&snapshot->records.size()==managed_state_->records.size();
 }
 bool RecordingJournal::PrepareCheckpoint(const void* owner,RecordingMutationHandles* candidate,std::string* error,
-    const RecordingCheckpointReadSnapshotHandle& snapshot) const {
+    const RecordingCheckpointReadSnapshotHandle& snapshot) const try {
+    RecordingScratchResidency::Scope scratch_scope(ScratchOwner());
 #if !defined(_WIN32)
     if(managed_&&owner_pid_!=::getpid())return Fail(error,"managed fork 거부");
 #endif
@@ -2350,7 +2361,7 @@ bool RecordingJournal::PrepareCheckpoint(const void* owner,RecordingMutationHand
     RecordingMutationHandles original;
     if(!AcquireCheckpointRecordsLocked(&original,error,true))return false;
     return CompactRecords(original,candidate,error);
-}
+} catch(const RecordingResourceUnavailable& e) { return Fail(error,e.what()); }
 void RecordingJournal::InvalidateAutomaticCheckpointNoop(const void* owner) {
 #if !defined(_WIN32)
     if(managed_&&owner_pid_!=::getpid())return;
@@ -2440,7 +2451,8 @@ bool RecordingJournal::CheckpointPending() const {
 #endif
 }
 bool RecordingJournal::CommitCheckpoint(const void* owner,const RecordingMutationHandles& candidate,bool recover_only,std::string* error,
-    const RecordingCheckpointReadSnapshotHandle& snapshot) {
+    const RecordingCheckpointReadSnapshotHandle& snapshot) try {
+    RecordingScratchResidency::Scope scratch_scope(ScratchOwner());
 #if !defined(_WIN32)
     if(managed_&&owner_pid_!=::getpid())return Fail(error,"managed fork 거부");
 #endif
@@ -2514,7 +2526,7 @@ bool RecordingJournal::CommitCheckpoint(const void* owner,const RecordingMutatio
 #else
     (void)candidate;(void)recover_only;return Fail(error,"checkpoint unsupported");
 #endif
-}
+} catch(const RecordingResourceUnavailable& e) { return Fail(error,e.what()); }
 
 bool RecordingJournal::AttachCatalog(const void* owner, const std::filesystem::path& media,
                                      const std::filesystem::path& sqlite, bool enable_v2, std::string* error) {
@@ -2568,7 +2580,8 @@ bool RecordingJournal::ManagedCutoverRoot(std::filesystem::path* output,std::str
 #endif
 }
 bool RecordingJournal::BeginManagedCutoverRecovery(const void* owner,RecordingGenerationTransaction& transaction,
-    const std::filesystem::path& media,const std::filesystem::path& sqlite,std::string* error) {
+    const std::filesystem::path& media,const std::filesystem::path& sqlite,std::string* error) try {
+    RecordingScratchResidency::Scope scratch_scope(ScratchOwner());
 #if MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND && MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
     std::lock_guard lock(mu_);
     if(!owner||!managed_||opened_||cutover_owner_retired_||catalog_owner_||!SafePath(path_,&io_path_))return Fail(error,"cutover recovery owner state rejected");
@@ -2603,7 +2616,7 @@ bool RecordingJournal::BeginManagedCutoverRecovery(const void* owner,RecordingGe
 #else
     (void)owner;(void)transaction;(void)media;(void)sqlite;return Fail(error,"cutover recovery unsupported");
 #endif
-}
+} catch(const RecordingResourceUnavailable& e) { return Fail(error,e.what()); }
 void RecordingJournal::EndManagedCutoverRecovery(){
 #if !defined(_WIN32)
     std::lock_guard lock(mu_);if(!cutover_recovery_)return;
@@ -2614,7 +2627,8 @@ void RecordingJournal::EndManagedCutoverRecovery(){
 #endif
 }
 bool RecordingJournal::PublishManagedCutover(const void* owner,const RecordingCutoverInputSummary& source,
-    RecordingGenerationTransaction& transaction,const RecordingGenerationReceipt& receipt,std::string* error) {
+    RecordingGenerationTransaction& transaction,const RecordingGenerationReceipt& receipt,std::string* error) try {
+    RecordingScratchResidency::Scope scratch_scope(ScratchOwner());
 #if MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND && MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
     if(owner_pid_!=::getpid())return Fail(error,"cutover publication PID rejected");
     std::lock_guard lock(mu_);
@@ -2646,10 +2660,11 @@ bool RecordingJournal::PublishManagedCutover(const void* owner,const RecordingCu
 #else
     (void)owner;(void)source;(void)transaction;(void)receipt;return Fail(error,"cutover publication unsupported");
 #endif
-}
+} catch(const RecordingResourceUnavailable& e) { return Fail(error,e.what()); }
 bool RecordingJournal::VisitManagedCutoverInput(const void* owner,
     const std::function<bool(const RecordingCutoverInputRow&,const RecordingJournalOwnedViewHandle&,std::string*)>& visitor,
-    RecordingCutoverInputSummary* summary,std::string* error) {
+    RecordingCutoverInputSummary* summary,std::string* error) try {
+    RecordingScratchResidency::Scope scratch_scope(ScratchOwner());
 #if MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND && MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
     if(owner_pid_!=::getpid())return Fail(error,"cutover visit fork 거부");
     OwnedFd source(-1);
@@ -2745,8 +2760,9 @@ bool RecordingJournal::VisitManagedCutoverInput(const void* owner,
     (void)owner;(void)visitor;(void)summary;
     return Fail(error,"cutover visit backend/crypto/POSIX 미지원");
 #endif
-}
-bool RecordingJournal::ValidatePreappend(const void* owner,const RecordingMutationV1& mutation,std::string* error) {
+} catch(const RecordingResourceUnavailable& e) { return Fail(error,e.what()); }
+bool RecordingJournal::ValidatePreappend(const void* owner,const RecordingMutationV1& mutation,std::string* error) try {
+    RecordingScratchResidency::Scope scratch_scope(ScratchOwner());
     std::lock_guard lock(mu_);
     if(!opened_||!CheckManagedStateLocked(error))return Fail(error,"preappend journal 권위 거부");
     if(!managed_)return true; // 기존 비관리 ID/domain 의미는 Catalog Apply에서 판단한다.
@@ -2773,7 +2789,7 @@ bool RecordingJournal::ValidatePreappend(const void* owner,const RecordingMutati
     const auto old=managed_state_->identities.find(mutation.mutation_id);
     if(old!=managed_state_->identities.end()&&old->second!=identity)return Fail(error,"preappend mutation ID 충돌");
     return managed_state_->order.Consume(mutation,error,false);
-}
+} catch(const RecordingResourceUnavailable& e) { return Fail(error,e.what()); }
 
 #if defined(MEDIA_SERVER_RECORDING_GENERATION_TESTING)
 bool RecordingJournal::ProbeOrderValidation(const std::vector<RecordingMutationV1>& history,
@@ -2808,7 +2824,8 @@ thread_local int RecordingJournal::generation_write_fault_=0;
 thread_local void (*RecordingJournal::generation_cleanup_before_unlink_)()=nullptr;
 #endif
 bool RecordingJournal::PrepareGenerationCheckpoint(const void* owner,
-    std::shared_ptr<RecordingGenerationCheckpointPlan>* output,std::string* error) {
+    std::shared_ptr<RecordingGenerationCheckpointPlan>* output,std::string* error) try {
+    RecordingScratchResidency::Scope scratch_scope(ScratchOwner());
 #if MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND && MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
     if(owner_pid_!=::getpid()||!output)return Fail(error,"B checkpoint PID/output 거부");
     std::lock_guard lock(mu_);
@@ -2953,7 +2970,7 @@ bool RecordingJournal::PrepareGenerationCheckpoint(const void* owner,
 #else
     (void)owner;(void)output;return Fail(error,"B checkpoint unsupported");
 #endif
-}
+} catch(const RecordingResourceUnavailable& e) { return Fail(error,e.what()); }
 bool RecordingJournal::ValidateCheckpointRecoverySuffix(const RecordingGenerationManifest& target,std::string* error) const {
 #if MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND && MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
     std::lock_guard lock(mu_);
@@ -2986,7 +3003,8 @@ bool RecordingJournal::ValidateCheckpointRecoverySuffix(const RecordingGeneratio
 #endif
 }
 bool RecordingJournal::StageGenerationCheckpoint(const std::shared_ptr<RecordingGenerationCheckpointPlan>& plan,
-    const RecordingGenerationByteProducer& snapshot,std::string* error) {
+    const RecordingGenerationByteProducer& snapshot,std::string* error) try {
+    RecordingScratchResidency::Scope scratch_scope(ScratchOwner());
 #if MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND && MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
     // Exactly one private plan owner; no live Journal data is read outside mu_.
     if(!plan||!plan->state||plan->consumed||!plan->state->transaction||!snapshot)return Fail(error,"B private snapshot stage unavailable");
@@ -2995,9 +3013,10 @@ bool RecordingJournal::StageGenerationCheckpoint(const std::shared_ptr<Recording
 #else
     (void)plan;(void)snapshot;return Fail(error,"B private snapshot unsupported");
 #endif
-}
+} catch(const RecordingResourceUnavailable& e) { return Fail(error,e.what()); }
 bool RecordingJournal::PublishGenerationCheckpoint(const void* owner,const std::shared_ptr<RecordingGenerationCheckpointPlan>& plan,
-    const RecordingGenerationByteProducer& snapshot,const std::function<bool(std::uint64_t,std::uint64_t)>& sql,std::string* error) {
+    const RecordingGenerationByteProducer& snapshot,const std::function<bool(std::uint64_t,std::uint64_t)>& sql,std::string* error) try {
+    RecordingScratchResidency::Scope scratch_scope(ScratchOwner());
 #if MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND && MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
     if(owner_pid_!=::getpid())return Fail(error,"B checkpoint PID 거부");
     std::lock_guard lock(mu_);bool publishing=false;
@@ -3145,7 +3164,7 @@ bool RecordingJournal::PublishGenerationCheckpoint(const void* owner,const std::
 #else
     (void)owner;(void)plan;(void)snapshot;(void)sql;return Fail(error,"B checkpoint unsupported");
 #endif
-}
+} catch(const RecordingResourceUnavailable& e) { return Fail(error,e.what()); }
 bool RecordingJournal::ValidateGenerationCheckpointCommitLocked(std::string* error) const {
 #if MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND && !defined(_WIN32)
     return CheckManagedStateLocked(error)&&SafeGenerationCacheFiles(managed_root_,error);
@@ -3390,7 +3409,8 @@ bool RecordingJournal::ReserveGeneration(const void* owner,const std::string& st
 }
 
 bool RecordingJournal::AppendOwned(const RecordingMutationV1& mutation, const void* owner, std::string* error,
-                                   RecordingMutationHandle* appended,RecordingJournalOwnedViewHandle* view) {
+                                   RecordingMutationHandle* appended,RecordingJournalOwnedViewHandle* view) try {
+    RecordingScratchResidency::Scope scratch_scope(ScratchOwner());
     // 입력이 *appended를 빌린 경우에도 결과 초기화가 입력의 마지막 소유자를 제거하지 않는다.
     const RecordingMutationHandle input_lifetime=appended?*appended:RecordingMutationHandle{};
     if(appended)appended->reset();
@@ -3462,7 +3482,7 @@ bool RecordingJournal::AppendOwned(const RecordingMutationV1& mutation, const vo
     if(appended)*appended=owned;
     if(prepared_view){prepared_view->ref=managed_state_->refs.back();*view=std::move(prepared_view);}
     return true;
-}
+} catch(const RecordingResourceUnavailable& e) { return Fail(error,e.what()); }
 
 RecordingJournalReplayResult RecordingJournal::Replay() const {
 #if !defined(_WIN32)

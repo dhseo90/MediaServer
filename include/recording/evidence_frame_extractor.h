@@ -5,7 +5,7 @@
 #include <functional>
 
 namespace recording {
-struct EvidenceFrameV1 {
+struct EvidenceFrameV1Fields {
     std::string segment_id, media_sha256, sample_sha256, rgb_sha256, png_sha256;
     std::string source_generation, media_epoch_id, track_id;
     std::uint64_t generation_order{0}, sample_ordinal{0};
@@ -18,6 +18,7 @@ struct EvidenceFrameV1 {
     int width{0}, height{0};
     std::vector<std::uint8_t> png;
 };
+using EvidenceFrameV1=RecordingMemoryValue<EvidenceFrameV1Fields>;
 std::string EvidenceSha256(const void* bytes, std::size_t size);
 bool EvidenceIsSha256(const std::string&);
 class EvidenceFrameExtractor {

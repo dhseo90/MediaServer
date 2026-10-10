@@ -59,7 +59,8 @@ recording::RecordingSegmentV2 CloneSource(Store& store,recording::RecordingSegme
     source.mappings={{"media-server.recording-utc-mapping.v1",id+"-mapping",source.media_start_pts,source.media_end_pts,
         "source-capture",1789200000000000000LL,1789200000100000000LL,0,""}};
     const auto path=store.root/(source.channel_id+"/"+id+".mp4");std::filesystem::copy_file(old->first/old->second,path);
-    if(!store.catalog.FinalizeSegmentV2(source,path.string(),&error))throw std::runtime_error(error);return source;
+    if(!store.catalog.FinalizeSegmentV2(source,path.string(),&error))throw std::runtime_error(error);
+    return source;
 }
 recording::DerivedJobIntentV1 PrepareMedia(Store& store,bool partial,int mapping_mode=0) {
     auto input=Encode(30,false,false);Shift(input,7000000000ULL);
@@ -70,7 +71,8 @@ recording::DerivedJobIntentV1 PrepareMedia(Store& store,bool partial,int mapping
     options.managed_journal=&written.journal;options.managed_catalog=&written.catalog;options.managed_store_id="probe-store";
     recording::GStreamerSegmentWriter writer(options);std::string error;
     if(!writer.Start("probe-channel","unused",input.descriptor,[](auto,auto,auto*){return false;},&error))throw std::runtime_error(error);
-    for(const auto& packet:input.packets)writer.Push(packet,0);writer.Stop();
+    for(const auto& packet:input.packets)writer.Push(packet,0);
+    writer.Stop();
     if(mapping_mode)for(auto source:written.Segments()){
         const auto binding=*written.catalog.FindSourceBinding(source.segment_id);
         const auto location=*written.catalog.FindSegmentMediaLocation(source.segment_id);
@@ -100,13 +102,15 @@ recording::DerivedJobIntentV1 PrepareMedia(Store& store,bool partial,int mapping
 }
 
 int main(int argc,char** argv){
-    if(argc!=2)return 2;gst_init(nullptr,nullptr);Store store(std::filesystem::path(argv[1])/"store");
+    if(argc!=2)return 2;
+    gst_init(nullptr,nullptr);Store store(std::filesystem::path(argv[1])/"store");
     auto input=Encode(18,false,false);Shift(input,0);
     recording::GStreamerSegmentWriter::Options options(store.root,1000);
     options.managed_journal=&store.journal;options.managed_catalog=&store.catalog;options.managed_store_id="probe-store";
     recording::GStreamerSegmentWriter writer(options);std::string error;
     if(!writer.Start("probe-channel","unused",input.descriptor,[](auto,auto,auto*){return false;},&error))throw std::runtime_error(error);
-    for(const auto& packet:input.packets)writer.Push(packet,0);writer.Stop();
+    for(const auto& packet:input.packets)writer.Push(packet,0);
+    writer.Stop();
     recording::RecordingReadService reader(store.catalog);
     ingress::RecordingApplicationService app(reader,store.catalog,true,{});
     const auto response=app.Timeline({{"channelId","probe-channel"},{"startTimeMs","1789200000000"},{"endTimeMs","1789200002000"}},[](const auto&){return true;});
@@ -156,7 +160,8 @@ int main(int argc,char** argv){
                     stage==recording::DerivedJobProgress::ReadyDurable?"D3B-05 Ready 출력 시간과 재생불가 분리":"D3B-05 Committed 출력 시간과 재생불가 분리");
             }
         }});
-        if(!service.Run(intent.job_id).complete)throw std::runtime_error("service complete");run();
+        if(!service.Run(intent.job_id).complete)throw std::runtime_error("service complete");
+        run();
         std::vector<recording::RecordingTimelineItem> events;
         for(const auto& row:timeline.items)if(row.kind=="event")events.push_back(row);
         check(events.size()==2&&events[0].segment_id!=events[1].segment_id&&events[0].playable&&events[1].playable,"D3B-05 실제 검증된 파생2출력 시간/파일 독립");
@@ -190,7 +195,8 @@ int main(int argc,char** argv){
         std::optional<recording::DerivedJobRecordV1> job;jobs.catalog.FindDerivedJob(intent.job_id,&job,&error);
         const auto deleted=job->ready->outputs.back().segment;recording::RecordingTombstoneV2 tomb;
         tomb.tombstone_id="output-deleted";tomb.segment=deleted;tomb.deletion_reason="event-capacity";tomb.deleted_at_ms=20;
-        if(!jobs.catalog.RequestDeletion(deleted.segment_id,tomb.deletion_reason,&error)||!std::filesystem::remove(jobs.root/intent.outputs.back().final_relpath)||!jobs.catalog.CompleteDeletionV2(tomb,&error))throw std::runtime_error(error);run();
+        if(!jobs.catalog.RequestDeletion(deleted.segment_id,tomb.deletion_reason,&error)||!std::filesystem::remove(jobs.root/intent.outputs.back().final_relpath)||!jobs.catalog.CompleteDeletionV2(tomb,&error))throw std::runtime_error(error);
+        run();
         const auto row=std::find_if(timeline.items.begin(),timeline.items.end(),[&](const auto& item){return item.segment_id==deleted.segment_id;});
         check(row!=timeline.items.end()&&row->job_state=="complete"&&row->catalog_state=="deleted"&&!row->playable,"D3B-08 실제 tombstone 출력 deleted 보존");
         for(const auto& source:intent.sources){const auto location=jobs.catalog.FindSegmentMediaLocation(source.segment.segment_id);

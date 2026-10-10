@@ -763,8 +763,9 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             const auto authorize_channel = [&](const std::string& channel) {
                                 return auth::RequireScope(principal_result.principal, "source:read:" + channel);
                             };
-                            const auto api_response = [](const ApplicationServiceResult& result) {
-                                auto response = JsonResponse(result.status, result.status_text, result.body);
+                            const auto api_response = [](ApplicationServiceResult result) {
+                                HttpResponse response{result.status,std::move(result.status_text),"application/json; charset=utf-8",{},std::move(result.body)};
+                                response.memory=std::move(result.memory);
                                 response.headers["Cache-Control"] = "no-store";
                                 response.headers["X-Content-Type-Options"] = "nosniff";
                                 return response;

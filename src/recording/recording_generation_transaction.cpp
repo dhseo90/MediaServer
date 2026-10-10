@@ -1,8 +1,10 @@
 // 파일 용도: 녹화 세대 transaction의 stage 생성·상태 전이 로직을 구현한다.
 #include "recording/recording_generation_transaction.h"
+#include "recording/recording_scratch_reservation.h"
 #include <algorithm>
 #include <cerrno>
 #include <set>
+#include <list>
 #if MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
 #include <openssl/evp.h>
 #include <openssl/rand.h>
@@ -77,9 +79,30 @@ bool Empty(int fd){Fd copy;copy.n=::dup(fd);if(copy.n<0)return false;DIR* dir=::
 struct RecordingGenerationTransaction::State {
     std::filesystem::path root_path,stage_path;RecordingGenerationReceipt receipt;
 #if MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
+    std::shared_ptr<RecordingScratchResidency> resources;
+    std::size_t disk_domain{0};
+    RecordingScratchResidency::Reservation working,stage_disk,receipt_disk,receipt_temp_disk;
+    struct PendingDisk { RecordingScratchResidency::Reservation reservation; };
+    std::list<PendingDisk> pending_disk;
+    bool cleaned=false;
     Fd root,stage;struct stat root_stat{},stage_stat{};RecordingGenerationOwnedFile receipt_file;bool prepared=false,loaded=false;unsigned receipt_links=1;
     std::vector<RecordingGenerationOwnedFile> live_files;
     bool stage_created=false;
+    ~State(){
+        if(!cleaned){if(stage_created)stage_disk.PreserveDisk();receipt_disk.PreserveDisk();receipt_temp_disk.PreserveDisk();for(auto& item:pending_disk)item.reservation.PreserveDisk();}
+        // Fd members are destroyed before their earlier-declared working ticket.
+    }
+    bool BindResources(const std::filesystem::path& path,std::string* error){
+        if(resources)return true;
+        auto owner=RecordingScratchResidency::Current();
+        if(!owner)owner=RecordingScratchResidency::Default(std::filesystem::canonical(std::filesystem::temp_directory_path()).string());
+        const auto domain=owner->DomainForDirectory(path.string());
+        // Two persistent directory FDs, bounded Directory traversal (two), writer
+        // and validation reader. Read hashes a single 64KiB block at a time.
+        auto ticket=owner->Reserve({0,6,2*65536+sizeof(State)},domain);
+        if(!ticket)return Fail(error,"recording-resource-unavailable");
+        working=std::move(*ticket);resources=std::move(owner);disk_domain=domain;return true;
+    }
     void Hit(const char* point) const{
 #if defined(MEDIA_SERVER_RECORDING_GENERATION_TESTING)
         if(RecordingGenerationTransaction::fault_hook_)RecordingGenerationTransaction::fault_hook_(point);
@@ -103,7 +126,10 @@ struct RecordingGenerationTransaction::State {
     }
     bool Save(const RecordingGenerationReceipt& value,bool initial,std::string* error){
         std::string bytes;if(!SerializeRecordingGenerationReceipt(value,&bytes,error)||!Bound()||(initial?!Missing(root.n,kReceipt):!ReceiptBound()))return Fail(error,"transaction receipt binding/collision rejected");
-        Fd fd;fd.n=::openat(root.n,kTemp,O_WRONLY|O_CREAT|O_EXCL|O_NOFOLLOW|O_CLOEXEC,0600);if(fd.n<0)return Fail(error,"transaction receipt temp collision");Hit("receipt-created");
+        auto next=resources->Reserve({resources->DiskCharge(bytes.size(),disk_domain),0,0},disk_domain);
+        if(!next)return Fail(error,"recording-resource-unavailable");
+        Fd fd;fd.n=::openat(root.n,kTemp,O_WRONLY|O_CREAT|O_EXCL|O_NOFOLLOW|O_CLOEXEC,0600);if(fd.n<0)return Fail(error,"transaction receipt temp collision");
+        receipt_temp_disk=std::move(*next);Hit("receipt-created");
         if(!Write(fd.n,bytes))return Fail(error,"transaction receipt write failed");
         Hit("receipt-written");
         if(::fsync(fd.n)!=0)return Fail(error,"transaction receipt file fsync failed");
@@ -118,7 +144,7 @@ struct RecordingGenerationTransaction::State {
         Hit("receipt-renamed");if(::fsync(root.n)!=0)return Fail(error,"transaction receipt directory durability uncertain");Hit("receipt-directory-synced");
         RecordingGenerationOwnedFile saved;
         if(!Bound()||!Read(root.n,kReceipt,&saved)||saved.device!=static_cast<std::uint64_t>(a.st_dev)||saved.inode!=static_cast<std::uint64_t>(a.st_ino))return Fail(error,"transaction receipt postpublish binding rejected");
-        receipt=value;receipt_file=std::move(saved);prepared=true;receipt_links=1;return true;
+        receipt=value;receipt_file=std::move(saved);prepared=true;receipt_links=1;receipt_disk=std::move(receipt_temp_disk);return true;
     }
 #endif
 };
@@ -133,9 +159,13 @@ void RecordingGenerationTransaction::FaultPoint(const char* point) const{
 }
 const std::filesystem::path& RecordingGenerationTransaction::StagePath() const{return state_->stage_path;}
 const RecordingGenerationReceipt& RecordingGenerationTransaction::Receipt() const{return state_->receipt;}
-bool RecordingGenerationTransaction::Create(const std::filesystem::path& root,std::string* error){
+bool RecordingGenerationTransaction::Create(const std::filesystem::path& root,std::string* error)try{
 #if MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
-    auto& s=*state_;if(s.root.n>=0)return Fail(error,"transaction already initialized");s.root_path=root;s.root.n=Directory(root);
+    auto& s=*state_;if(s.root.n>=0)return Fail(error,"transaction already initialized");
+    if(!s.BindResources(root,error))return false;
+    auto directory=s.resources->Reserve({s.resources->DiskCharge(1,s.disk_domain),0,0},s.disk_domain);
+    if(!directory)return Fail(error,"recording-resource-unavailable");
+    s.stage_disk=std::move(*directory);s.root_path=root;s.root.n=Directory(root);
     if(s.root.n<0||::fstat(s.root.n,&s.root_stat)!=0||!Missing(s.root.n,kReceipt)||!Missing(s.root.n,kTemp))return Fail(error,"transaction root/receipt unavailable");
     unsigned char nonce[16];if(RAND_bytes(nonce,sizeof(nonce))!=1)return Fail(error,"transaction nonce unavailable");
     const auto name=".recording-generation-prepare-"+Hex(nonce,sizeof(nonce));s.stage_path=root/name;
@@ -148,10 +178,12 @@ bool RecordingGenerationTransaction::Create(const std::filesystem::path& root,st
 #else
     (void)root;return Fail(error,"transaction crypto/POSIX unsupported");
 #endif
-}
-bool RecordingGenerationTransaction::Load(const std::filesystem::path& root,std::uint64_t admission,std::string* error){
+}catch(const RecordingResourceUnavailable& e){return Fail(error,e.what());}
+bool RecordingGenerationTransaction::Load(const std::filesystem::path& root,std::uint64_t admission,std::string* error)try{
 #if MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
-    auto& s=*state_;if(s.root.n>=0||!admission)return Fail(error,"transaction load state/admission invalid");s.root_path=root;s.root.n=Directory(root);std::string bytes;
+    auto& s=*state_;if(s.root.n>=0||!admission)return Fail(error,"transaction load state/admission invalid");
+    if(!s.BindResources(root,error))return false;
+    s.root_path=root;s.root.n=Directory(root);std::string bytes;
     if(s.root.n<0||::fstat(s.root.n,&s.root_stat)!=0)return Fail(error,"transaction receipt root rejected");
     if(!Read(s.root.n,kReceipt,&s.receipt_file,1,&bytes,admission)){
         if(!Read(s.root.n,kReceipt,&s.receipt_file,2,&bytes,admission)||!Verify(s.root.n,s.receipt_file,2,kTemp))return Fail(error,"transaction receipt alias rejected");
@@ -165,7 +197,7 @@ bool RecordingGenerationTransaction::Load(const std::filesystem::path& root,std:
 #else
     (void)root;(void)admission;return Fail(error,"transaction crypto/POSIX unsupported");
 #endif
-}
+}catch(const RecordingResourceUnavailable& e){return Fail(error,e.what());}
 bool RecordingGenerationTransaction::Describe(bool staged,const std::string& name,RecordingGenerationOwnedFile* output,std::string* error) const{
 #if MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
     if(!output||!state_->Bound()||!Read(staged?state_->stage.n:state_->root.n,name,output))return Fail(error,"transaction descriptor read rejected");
@@ -183,11 +215,14 @@ bool RecordingGenerationTransaction::WriteComponent(const std::string& name,cons
     return WriteComponentStream(name,1024ULL*1024*1024,[&](const RecordingGenerationByteSink& sink,std::string* detail){return sink(bytes,detail);},output,error);
 }
 bool RecordingGenerationTransaction::WriteComponentStream(const std::string& name,std::uint64_t admission,
-    const RecordingGenerationByteProducer& produce,RecordingGenerationOwnedFile* output,std::string* error){
+    const RecordingGenerationByteProducer& produce,RecordingGenerationOwnedFile* output,std::string* error)try{
 #if MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
     auto& s=*state_;
     if(!output||!produce||!admission||s.prepared||!s.Bound()||!Name(name))return Fail(error,"transaction component preparation invalid");
     admission=std::min<std::uint64_t>(admission,1024ULL*1024*1024);
+    auto disk=s.resources->Reserve({0,0,4*sizeof(RecordingGenerationOwnedFile)+4*name.size()+sizeof(State::PendingDisk)},s.disk_domain);
+    if(!disk)return Fail(error,"recording-resource-unavailable");
+    s.pending_disk.push_back({std::move(*disk)});auto& charge=s.pending_disk.back().reservation;
     std::unique_ptr<EVP_MD_CTX,decltype(&EVP_MD_CTX_free)> hash(EVP_MD_CTX_new(),EVP_MD_CTX_free);
     if(!hash||EVP_DigestInit_ex(hash.get(),EVP_sha256(),nullptr)!=1)return Fail(error,"transaction component digest failed");
     Fd fd;fd.n=::openat(s.stage.n,name.c_str(),O_WRONLY|O_CREAT|O_EXCL|O_NOFOLLOW|O_CLOEXEC,0600);struct stat created{};
@@ -195,6 +230,7 @@ bool RecordingGenerationTransaction::WriteComponentStream(const std::string& nam
     std::uint64_t total=0;bool failed=false,uncertain_write=false;
     const RecordingGenerationByteSink sink=[&](std::string_view bytes,std::string* detail){
         if(failed||bytes.size()>admission-total){failed=true;return Fail(detail,"transaction component stream admission exceeded");}
+        if(!charge.GrowDisk(s.resources->DiskCharge(total+bytes.size(),s.disk_domain))){failed=true;return Fail(detail,"recording-resource-unavailable");}
         if(!Write(fd.n,bytes)||EVP_DigestUpdate(hash.get(),bytes.data(),bytes.size())!=1){
             failed=true;uncertain_write=true;return Fail(detail,"transaction component stream write/hash failed; preserved");
         }
@@ -221,7 +257,7 @@ bool RecordingGenerationTransaction::WriteComponentStream(const std::string& nam
 #else
     (void)name;(void)admission;(void)produce;(void)output;return Fail(error,"transaction crypto/POSIX unsupported");
 #endif
-}
+}catch(const RecordingResourceUnavailable& e){return Fail(error,e.what());}
 bool RecordingGenerationTransaction::CleanupUnprepared(std::string* error){
 #if MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
     auto& s=*state_;
@@ -245,6 +281,9 @@ bool RecordingGenerationTransaction::CleanupUnprepared(std::string* error){
         if(!s.Bound()||::fstatat(s.stage.n,file.file.name.c_str(),&after,AT_SYMLINK_NOFOLLOW)!=0||!Same(before,after)||::unlinkat(s.stage.n,file.file.name.c_str(),0)!=0)return Fail(error,"transaction live cleanup final binding changed");
     }
     if(::fsync(s.stage.n)!=0||!Empty(s.stage.n)||!s.Bound()||::unlinkat(s.root.n,s.stage_path.filename().c_str(),AT_REMOVEDIR)!=0||::fsync(s.root.n)!=0)return Fail(error,"transaction live cleanup durability uncertain");
+    for(auto& item:s.pending_disk)item.reservation.ReleaseDisk();
+    // Metadata tickets remain beside the still-owned live_files/receipt values.
+    s.cleaned=true;s.stage_disk={};s.receipt_disk={};s.receipt_temp_disk={};
     if(error)error->clear();
     return true;
 #else
@@ -412,6 +451,9 @@ bool RecordingGenerationTransaction::Cleanup(bool committed,std::string* error){
     if(::unlinkat(s.root.n,kReceipt,0)!=0||::fsync(s.root.n)!=0)return Fail(error,"transaction receipt cleanup durability uncertain");
     s.Hit("receipt-cleaned");
     if(!s.Bound()||::unlinkat(s.root.n,s.stage_path.filename().c_str(),AT_REMOVEDIR)!=0||::fsync(s.root.n)!=0)return Fail(error,"transaction empty stage cleanup uncertain");
+    if(committed)for(auto& item:s.pending_disk)item.reservation.PromoteToOriginal();
+    else for(auto& item:s.pending_disk)item.reservation.ReleaseDisk();
+    s.cleaned=true;s.stage_disk={};s.receipt_disk={};s.receipt_temp_disk={};
     s.prepared=false;if(error)error->clear();return true;
 #else
     (void)committed;return Fail(error,"transaction crypto/POSIX unsupported");

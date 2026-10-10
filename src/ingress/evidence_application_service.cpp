@@ -29,12 +29,14 @@ std::string Summary(const std::string& id,const recording::EvidencePackageV1& v)
 }
 EvidenceApplicationService::EvidenceApplicationService(recording::RecordingCatalog& catalog,
     recording::RecordingReadService& reader,bool enabled,const std::filesystem::path& directory,std::uint64_t reserve)
-    :enabled_(enabled),catalog_(catalog),store_(directory,Limits(reserve)),builder_(catalog,reader,store_){
+    :enabled_(enabled),catalog_(catalog),store_(directory,Limits(reserve),catalog.SearchResidency()),builder_(catalog,reader,store_){
     if(enabled_){std::string error;ready_=store_.Recover(&error);}
 }
 ApplicationServiceResult EvidenceApplicationService::Create(const recording::SearchDocument& hit,
     const std::string& kind,const std::string& expected,const Authorize& authorize,bool observations){
     if(!authorize||!authorize(hit.channel_id))return Error(403,"recording-channel-forbidden");
+    auto response_memory=catalog_.SearchResidency()->ReserveOwned(8*1024*1024);
+    if(!response_memory)return Error(503,"evidence-store-unavailable");
     if(!enabled_||stopped_)return Error(503,"evidence-disabled");
     if(!ready_)return Error(503,"evidence-store-unavailable");
     if(creating_.exchange(true))return Error(503,"evidence-busy");
@@ -56,7 +58,7 @@ ApplicationServiceResult EvidenceApplicationService::Create(const recording::Sea
             return Error(503,code);
         }
         if(!authorize(hit.channel_id))return Error(403,"recording-channel-forbidden");
-        return {201,"Created",Summary(id,manifest)};
+        return {201,"Created",Summary(id,manifest),std::move(*response_memory)};
     }catch(...){diagnostic.Note("application","evidence-exception",true);recording::TraceEvidenceFailure(diagnostic,"evidence-create-failed");return Error(503,"evidence-create-failed");}
 }
 ApplicationServiceResult EvidenceApplicationService::List(const Query& query,const Authorize& authorize){
@@ -65,6 +67,8 @@ ApplicationServiceResult EvidenceApplicationService::List(const Query& query,con
         (query.count("after")&&!recording::EvidencePackageStore::ValidId(Value(query,"after"))))return Error(400,"evidence-invalid-query");
     const auto channel=Value(query,"channelId");
     if(!authorize||!authorize(channel))return Error(403,"recording-channel-forbidden");
+    auto response_memory=catalog_.SearchResidency()->ReserveOwned(8*1024*1024);
+    if(!response_memory)return Error(503,"evidence-store-unavailable");
     if(!enabled_||stopped_)return Error(503,"evidence-disabled");
     if(!ready_)return Error(503,"evidence-store-unavailable");
     Reading flight(reading_);if(!flight.admitted)return Error(503,"evidence-busy");
@@ -84,7 +88,7 @@ ApplicationServiceResult EvidenceApplicationService::List(const Query& query,con
         }
         if(cancelled())return Error(503,"evidence-busy");
         json+="],\"nextAfter\":"+(more?EvidenceJsonQuote(last):"null")+"}";
-        return {200,"OK",std::move(json)};
+        return {200,"OK",std::move(json),std::move(*response_memory)};
     }catch(...){return Error(503,"evidence-store-unavailable");}
 }
 ApplicationServiceResult EvidenceApplicationService::Get(const std::string& id,const Authorize& authorize) try {
@@ -97,6 +101,8 @@ ApplicationServiceResult EvidenceApplicationService::Get(const std::string& id,c
     if(!file)return Error(error=="evidence-not-found"?404:503,"evidence-unavailable");
     const auto& manifest=file->manifest();
     if(!authorize||!authorize(manifest.channel_id))return Error(403,"recording-channel-forbidden");
+    auto response_memory=catalog_.SearchResidency()->ReserveOwned(8*1024*1024);
+    if(!response_memory)return Error(503,"evidence-store-unavailable");
     if(manifest.schema!="media-server.evidence-package.v1")return Error(404,"evidence-unavailable");
     std::string current="[";bool comma=false;
     for(const auto& r:manifest.references)if(r.kind=="recording"||r.kind=="clip"){
@@ -108,7 +114,9 @@ ApplicationServiceResult EvidenceApplicationService::Get(const std::string& id,c
         current+="{\"kind\":"+EvidenceJsonQuote(r.kind)+",\"id\":"+EvidenceJsonQuote(r.id)+",\"state\":"+EvidenceJsonQuote(state)+"}";
     }
     current+=']';
-    return {200,"OK","{\"id\":"+EvidenceJsonQuote(id)+",\"manifest\":"+recording::SerializeEvidencePackage(manifest)+",\"currentSources\":"+current+"}"};
+    return {200,"OK","{\"id\":"+EvidenceJsonQuote(id)+",\"manifest\":"+recording::SerializeEvidencePackage(manifest)+",\"currentSources\":"+current+"}",std::move(*response_memory)};
+} catch(const recording::RecordingResourceUnavailable&) {
+    return Error(503,"evidence-store-unavailable");
 } catch(const recording::RecordingRetainedReadError&) {
     return Error(503,"evidence-unavailable");
 }

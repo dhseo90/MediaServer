@@ -11,7 +11,8 @@ public:
     VaReviewApplicationService(const std::filesystem::path& root, bool enabled,
         recording::VaReviewProviderOptions provider, std::uint64_t reserve,
         recording::VaReviewService::Infer infer={},
-        std::chrono::milliseconds confirmation_ttl=std::chrono::minutes(5));
+        std::chrono::milliseconds confirmation_ttl=std::chrono::minutes(5),
+        std::shared_ptr<recording::SearchModelResidency> memory=std::make_shared<recording::SearchModelResidency>());
     ApplicationServiceResult Submit(const std::string& body,const std::string& owner,Authorize);
     ApplicationServiceResult List(const std::string& package_id,const Authorize&,bool can_execute);
     ApplicationServiceResult Get(const std::string& id,const Authorize&);
@@ -35,6 +36,7 @@ private:
         bool confirmed{false};
         std::size_t bytes{};
     };
+    std::shared_ptr<recording::SearchModelResidency> memory_;
     std::mutex drafts_mutex_;
     std::unordered_map<std::string,Draft> drafts_;
     std::chrono::milliseconds confirmation_ttl_;

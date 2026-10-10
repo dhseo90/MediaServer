@@ -100,12 +100,16 @@ static void ReaderBudget() {
     rejected.reset();a.reset();Check(owner->used()==3*charge&&held->documents().size()==1,"MEM83 caller holds old model after source replacement");
     held.reset();Check(owner->used()==2*charge&&RecordingSearchModel::Build(docs,"budget",4,&a,&error,limits),"MEM83 final reader release permits fresh work");
     {RecordingSearchSnapshots pool;RecordingSearchQuery q;q.channels={"channel"};q.start_time_ms=0;q.end_time_ms=3;RecordingSearchPage page;
-     const auto now=RecordingSearchSnapshots::Clock::now();Check(pool.Begin(a,q,"owner","scope",&page,&error,now),"MEM83 budgeted model enters snapshot");
+     const auto now=RecordingSearchSnapshots::Clock::now();
+     Check(!pool.Begin(a,q,"owner","scope",&page,&error,now)&&!page.model&&owner->used()==3*charge,
+         "MEM84 full shared owner rejects snapshot work before positions allocation");
+     b.reset();c.reset();Check(owner->used()==charge,"MEM84 release actual models before snapshot resume");
+     Check(pool.Begin(a,q,"owner","scope",&page,&error,now),"MEM84 released budget admits snapshot and page");
+     const auto page_bytes=page.memory.bytes();Check(page_bytes>0&&owner->used()>charge+page_bytes,"MEM84 snapshot matches and page separately charged");
      a.reset();std::shared_ptr<const RecordingSearchModel> expired;std::size_t pos=0;
-     Check(!pool.ResolveHit(page.snapshot_id,d.id,q,"owner","scope",&expired,&pos,&error,now+std::chrono::minutes(6))&&error=="search-snapshot-expired"&&owner->used()==3*charge,"MEM83 pool expiry does not release caller-owned model charge");
+     Check(!pool.ResolveHit(page.snapshot_id,d.id,q,"owner","scope",&expired,&pos,&error,now+std::chrono::minutes(6))&&error=="search-snapshot-expired"&&owner->used()==charge+page_bytes,"MEM84 expiry releases matches but retains caller model and page");
     }
-    Check(owner->used()==2*charge,"MEM83 page last release returns model reservation");
-    b.reset();c.reset();Check(owner->used()==0&&owner->peak()==3*charge,"MEM83 all model owners released; finite high water");
+    Check(owner->used()==0&&owner->peak()==3*charge,"MEM84 final page/model release; finite high water");
 }
 int main(int argc,char**argv) {
     if(argc!=2)return 2;

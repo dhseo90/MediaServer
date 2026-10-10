@@ -66,6 +66,10 @@ bool RecordingCatalog::CaptureSearchSource(const std::vector<std::string>& chann
             recovery_report_.projection_error_count || recovery_report_.corrupt_line_count)
             return Fail(error, "search-source-unavailable");
         SearchSourceBatch batch;
+        if(!limits.residency)limits.residency=SearchResidency();
+        auto charge=limits.residency->ReserveOwned(limits.max_bytes);
+        if(!charge)return Fail(error,"search-capacity-exceeded");
+        batch.memory=std::move(*charge);
         batch.catalog_instance = search_instance_;batch.resolution_revision = search_resolution_revision_;
         batch.delta.source_instance = SearchSourceIdentity(search_instance_, channels);
         if(!include_observations)batch.delta.source_instance="recordings:"+batch.delta.source_instance;

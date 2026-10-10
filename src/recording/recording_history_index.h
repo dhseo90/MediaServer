@@ -1,5 +1,6 @@
 // 파일 용도: 원본에서 재구축하는 비영속 녹화 이력 조회의 유한 디스크 인덱스다.
 #pragma once
+#include "recording/recording_scratch_reservation.h"
 #include <algorithm>
 #include <cerrno>
 #include <array>
@@ -40,14 +41,23 @@ public:
     RecordingHistoryIndex& operator=(const RecordingHistoryIndex&)=delete;
     RecordingHistoryIndex()=default;
     ~RecordingHistoryIndex(){try{Close(nullptr);}catch(...){}}
-    bool Create(const std::string& directory,std::uint64_t disk_budget,std::string* error) {
+    bool Create(const std::string& directory,std::uint64_t disk_budget,std::string* error,
+                std::shared_ptr<RecordingScratchResidency> resources={}) {
         try {
             if(fd_>=0||directory_fd_>=0||disk_budget<kNodeBytes||disk_budget>static_cast<std::uint64_t>(INT64_MAX))
                 throw Failure("history index create/budget invalid");
+            resources_=resources?std::move(resources):RecordingScratchResidency::Current();
+            if(!resources_)resources_=RecordingScratchResidency::Default(directory);
+            // Reserve before opening either FD or growing the anonymous file. Work
+            // allowance covers the bounded depth/node/key/value buffers for this index.
+            auto ticket=resources_->Reserve({resources_->DiskCharge(disk_budget),2,kWorkingBytes});
+            if(!ticket)throw RecordingResourceUnavailable();
+            reservation_=std::move(*ticket);
             directory_fd_=open(directory.c_str(),O_RDONLY|O_DIRECTORY|O_NOFOLLOW|O_CLOEXEC);
             struct stat dir{};
             if(directory_fd_<0||fstat(directory_fd_,&dir)||!S_ISDIR(dir.st_mode)||
-               !((dir.st_uid==getuid()&&(dir.st_mode&0022)==0)||(dir.st_uid==0&&(dir.st_mode&S_ISVTX))))
+               !((dir.st_uid==getuid()&&(dir.st_mode&0022)==0)||(dir.st_uid==0&&(dir.st_mode&S_ISVTX)))||
+               (resources_->device()&&resources_->device()!=static_cast<std::uint64_t>(dir.st_dev)))
                 throw Failure("history scratch directory capability invalid");
             struct statvfs space{};
             if(fstatvfs(directory_fd_,&space)||!space.f_frsize||
@@ -74,6 +84,7 @@ public:
             anonymous_=true;
             const int directory_fd=directory_fd_;directory_fd_=-1;
             bool directory_closed=close(directory_fd)==0;
+            reservation_.ReleaseFd();
 #if defined(MEDIA_SERVER_RECORDING_GENERATION_TESTING)
             if(probe_fault==5)directory_closed=false; // actual FD released; preserve uncertain close receipt
 #endif
@@ -96,6 +107,8 @@ public:
                 throw Failure("history clone destination not empty");
             if(!source.Healthy(error))return false;
             if(source.size_>budget_)throw Failure("history clone capacity insufficient");
+            auto buffer=resources_->Reserve({0,0,65536});
+            if(!buffer)throw RecordingResourceUnavailable();
             std::array<unsigned char,65536> block{};
             for(std::uint64_t offset=0;offset<source.size_;){
                 const auto count=static_cast<std::size_t>(std::min<std::uint64_t>(block.size(),source.size_-offset));
@@ -106,7 +119,8 @@ public:
             size_=source.size_;rows_=source.rows_;root_=source.root_;
             // Descendant paths/values remain authenticated by Get/Visit; fstat is not a content proof.
             return Healthy(error);
-        }catch(const std::exception& e){return Fail(error,e.what());}
+        }catch(const RecordingResourceUnavailable& e){if(error)*error=e.what();return false;}
+        catch(const std::exception& e){return Fail(error,e.what());}
     }
     // Explicit caller admission for a growing derived namespace; no implicit Put fallback.
     bool ReserveRows(std::uint64_t rows,std::string* error) {
@@ -115,10 +129,13 @@ public:
             if(!wanted)throw Failure("history scratch capacity overflow");
             if(wanted<=budget_)return true;
             struct statvfs space{};const auto additional=wanted-size_;
-            if(fstatvfs(fd_,&space)||!space.f_frsize||additional/space.f_frsize+(additional%space.f_frsize!=0)>space.f_bavail)
-                throw Failure("history scratch available space insufficient (not reserved)");
+            if(fstatvfs(fd_,&space)||!space.f_frsize)throw Failure("history scratch space lookup failed");
+            if(additional/space.f_frsize+(additional%space.f_frsize!=0)>space.f_bavail)
+                throw RecordingResourceUnavailable();
+            if(!reservation_.GrowDisk(resources_->DiskCharge(wanted)))throw RecordingResourceUnavailable();
             budget_=wanted;return true;
-        }catch(const std::exception& e){return Fail(error,e.what());}
+        }catch(const RecordingResourceUnavailable& e){if(error)*error=e.what();return false;}
+        catch(const std::exception& e){return Fail(error,e.what());}
     }
     // Only a private empty build may defer node overwrites. No original/history reader uses it.
     // Fixed checkpoint capture only: ordered append, authenticated complete traversal, no lookup.
@@ -133,13 +150,16 @@ public:
     }
     bool BeginBufferedBuild(std::string* error) {
         try {Check();if(sequential_||rows_||root_.offset||build_||visiting_)throw Failure("history buffered build requires empty private index");
-            build_=std::make_unique<BuildBuffer>();return true;
-        }catch(const std::exception& e){return Fail(error,e.what());}
+            auto ticket=resources_->Reserve({0,0,sizeof(BuildBuffer)});
+            if(!ticket)throw RecordingResourceUnavailable();
+            auto build=std::make_unique<BuildBuffer>();build_reservation_=std::move(*ticket);build_=std::move(build);return true;
+        }catch(const RecordingResourceUnavailable& e){if(error)*error=e.what();return false;}
+        catch(const std::exception& e){return Fail(error,e.what());}
     }
     bool SealBufferedBuild(std::string* error) {
         try {Check();if(!build_)throw Failure("history buffered build missing");
             for(auto& entry:build_->entries)Flush(entry);
-            build_.reset();return Healthy(error);
+            build_.reset();build_reservation_={};return Healthy(error);
         }catch(const std::exception& e){return Fail(error,e.what());}
     }
     Lookup Get(const std::string& key,std::string* output,std::string* error) {
@@ -203,8 +223,9 @@ public:
     }
     Usage usage()const{struct stat st{};const bool valid=fd_>=0&&!fstat(fd_,&st);return {rows_,size_,reads_,writes_,build_?sizeof(BuildBuffer):0,valid?static_cast<std::uint64_t>(st.st_blocks)*512:0};}
     const std::string& owned_name()const{return name_;}
+    const std::shared_ptr<RecordingScratchResidency>& resources()const{return resources_;}
     bool Close(std::string* error) {
-        build_.reset(); // unpublished private build is discarded on failure, never flushed into authority
+        build_.reset();build_reservation_={}; // unpublished private build is discarded on failure, never flushed into authority
         bool ok=true;
         if(fd_>=0) {
             if(!anonymous_) {
@@ -213,16 +234,18 @@ public:
                    !fstatat(directory_fd_,name_.c_str(),&actual,AT_SYMLINK_NOFOLLOW)&&
                    actual.st_dev==opened.st_dev&&actual.st_ino==opened.st_ino&&
                    S_ISREG(actual.st_mode)&&actual.st_uid==getuid()&&actual.st_nlink==1) {
-                    if(unlinkat(directory_fd_,name_.c_str(),0))ok=false;
-                }else ok=false;
+                    if(unlinkat(directory_fd_,name_.c_str(),0)){ok=false;reservation_.PreserveDisk();}
+                }else {ok=false;reservation_.PreserveDisk();}
             }
             // close EINTR may already have released the descriptor. Never retry its number.
-            const int fd=fd_;fd_=-1;if(close(fd))ok=false;
+            const int fd=fd_;fd_=-1;if(close(fd)){ok=false;reservation_.PreserveDisk();reservation_.PreserveFd();}
 #if defined(MEDIA_SERVER_RECORDING_GENERATION_TESTING)
             if(probe_fault==4)ok=false; // descriptor was released; report uncertainty, never retry its number
 #endif
         }
-        if(directory_fd_>=0){const int fd=directory_fd_;directory_fd_=-1;if(close(fd))ok=false;}
+        if(directory_fd_>=0){const int fd=directory_fd_;directory_fd_=-1;if(close(fd)){ok=false;reservation_.PreserveFd();}}
+        std::string{}.swap(sequence_key_);std::string{}.swap(name_);
+        reservation_={};
         poisoned_=true;
         if(!ok)close_failed_=true;
         if(close_failed_&&error)*error="history scratch cleanup ownership/unlink/close failure";
@@ -234,6 +257,9 @@ public:
     inline static thread_local int probe_fault=0;
 #endif
 private:
+    static constexpr std::size_t kWorkingBytes=kDepth*(4*kNodeBytes+4*kKeyBytes)+kValueBytes+kKeyBytes;
+    std::shared_ptr<RecordingScratchResidency> resources_;
+    RecordingScratchResidency::Reservation reservation_,build_reservation_;
     using Hash=std::array<unsigned char,32>;
     struct Ref {std::uint64_t offset{0};Hash hash{};};
     struct BuildEntry {std::uint64_t offset{0},use{0};Hash original{},current{};std::array<unsigned char,kNodeBytes> bytes{};bool dirty{false};};

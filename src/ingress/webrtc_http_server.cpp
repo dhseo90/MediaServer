@@ -1535,19 +1535,22 @@ HttpResponse CorsPreflightResponse(const HttpRequest& request) {
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 2847 function
 std::string BuildHttpResponse(const HttpResponse& response, const HttpRequest* request) {
-    HttpResponse response_for_wire = response;
+    // Only headers need CORS normalization. Copying the body duplicated a complete
+    // application result before serialization. The response owner lives through SendAll.
+    HttpResponse response_for_wire{response.status,response.status_text,response.content_type,response.headers,{}};
     AddCorsHeadersForRequest(request, &response_for_wire);
     std::ostringstream out;
     out << "HTTP/1.1 " << response_for_wire.status << " " << response_for_wire.status_text << "\r\n";
     out << "Content-Type: " << response_for_wire.content_type << "\r\n";
-    out << "Content-Length: " << response_for_wire.body.size() << "\r\n";
+    out << "Content-Length: " << response.body.size() << "\r\n";
     out << "Connection: close\r\n";
     for (const auto& [key, value] : response_for_wire.headers) {
         out << key << ": " << value << "\r\n";
     }
     out << "\r\n";
-    out << response_for_wire.body;
-    return out.str();
+    auto encoded=out.str();
+    encoded.append(response.body);
+    return encoded;
 }
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 2863 function

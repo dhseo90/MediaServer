@@ -1631,11 +1631,21 @@ struct HttpRequest {
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 2721 type
 struct HttpResponse {
+    recording::SearchModelResidency::Reservation memory;
     int status{200};
     std::string status_text{"OK"};
     std::string content_type{"text/plain; charset=utf-8"};
     std::unordered_map<std::string, std::string> headers;
     std::string body;
+    HttpResponse()=default;
+    HttpResponse(int code,std::string text,std::string type,std::unordered_map<std::string,std::string> fields,std::string payload)
+        :status(code),status_text(std::move(text)),content_type(std::move(type)),headers(std::move(fields)),body(std::move(payload)){}
+    HttpResponse(const HttpResponse&)=default;
+    HttpResponse(HttpResponse&&) noexcept=default;
+    HttpResponse& operator=(HttpResponse other) noexcept {
+        memory.swap(other.memory);std::swap(status,other.status);status_text.swap(other.status_text);
+        content_type.swap(other.content_type);headers.swap(other.headers);body.swap(other.body);return *this;
+    }
 };
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 2732 constant

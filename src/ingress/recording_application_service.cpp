@@ -246,4 +246,5 @@ std::unique_ptr<recording::ResolvedRecordingMedia> RecordingApplicationService::
     if (!channel || !authorize(*channel)) return {};
     return reader_.ResolveMedia(*channel, opaque_id);
 } catch(const recording::RecordingRetainedReadError&){return {};}
+  catch(const recording::RecordingResourceUnavailable&){return {};}
 }  // namespace ingress

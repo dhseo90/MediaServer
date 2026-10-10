@@ -9,7 +9,7 @@ struct ReviewTargetBindingV2 {
     // 패키지 후보가 실제 보존한 episode의 정렬된 집합. 빈 값은 동일성 확인을 뜻하지 않는다.
     std::vector<std::int64_t> engine_episodes;
 };
-struct VaReviewRecordV2 {
+struct VaReviewRecordV2Fields {
     ReviewTargetBindingV2 binding;
     std::vector<ReviewClaimSpec> claims;
     // PNG/assets/검색 결과 전체가 아닌 판정 입력 사본: source/channel/store/epoch, frames, observations만 직렬화.
@@ -18,6 +18,7 @@ struct VaReviewRecordV2 {
     std::string spec_sha256, observation_sha256, policy_sha256;
     std::int64_t created_at_ms{};
 };
+using VaReviewRecordV2=RecordingMemoryValue<VaReviewRecordV2Fields>;
 constexpr std::size_t kVaReviewRecordV2Bytes=128*1024;
 std::string SerializeVaReviewRecordV2(const VaReviewRecordV2&);
 bool ParseVaReviewRecordV2(const std::string&,VaReviewRecordV2*,std::string*);

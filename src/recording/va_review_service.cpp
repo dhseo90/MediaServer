@@ -74,14 +74,32 @@ bool VaReviewService::Submit(const std::string& id,const std::string& question,c
         if(old==order_.end())return Fail(error,"review-queue-full");
         jobs_.erase(*old);order_.erase(old);
     }
-    auto task=std::make_shared<Task>();task->question=question;task->provider=provider;task->key=key;
+    auto charge=evidence_.MemoryOwner()->ReserveOwned(4096);
+    if(!charge)return Fail(error,"review-capacity");
+    auto task=std::make_shared<Task>();task->memory=std::move(*charge);task->question=question;task->provider=provider;task->key=key;
     task->authorize=std::move(authorize);task->queued=Clock::now();
     task->job={"vj-"+epoch_+"-"+std::to_string(++next_),id,channel,owner,"queued","",""};
     jobs_.emplace(task->job.id,task);order_.push_back(task->job.id);queue_.push_back(task);
     *output=task->job;wake_.notify_one();if(error)error->clear();return true;
 }
 bool VaReviewService::SubmitConfirmed(const ConfirmedAnalysisRequest& input,const std::string& owner,Authorize authorize,
-    VaReviewJob* output,std::string* error) {
+    VaReviewJob* output,std::string* error) try {
+    // Count the supplied value without allocating or copying it. This also covers
+    // native callers: the HTTP draft limit is not an admission for this API.
+    std::size_t input_bytes=sizeof(ConfirmedAnalysisRequest)+1024;
+    const auto add=[&](std::size_t count,std::size_t width=1){
+        if(count>(SearchModelResidency::kDefaultBytes-input_bytes)/width)throw RecordingResourceUnavailable();
+        input_bytes+=count*width;
+    };
+    for(const auto* text:{&input.binding.target_id,&input.binding.package_id,&input.binding.manifest_sha256,
+        &input.binding.analysis_namespace,&input.binding.analysis_track_id,&input.confirmation.principal,
+        &input.confirmation.question,&input.confirmation.revision,&input.confirmation.spec_sha256})add(text->size()+64);
+    add(input.binding.engine_episodes.size(),sizeof(std::int64_t));add(input.claims.size(),sizeof(ReviewClaimSpec));
+    for(const auto& claim:input.claims){for(const auto* text:{&claim.id,&claim.target_id,&claim.target_description,&claim.comparison_target_id,&claim.coordinates})add(text->size()+64);
+        add(claim.scope.size(),sizeof(std::size_t));}
+    if(input_bytes>(SearchModelResidency::kDefaultBytes-65536)/8)return Fail(error,"review-capacity");
+    auto preparation=evidence_.MemoryOwner()->ReserveOwned(65536+8*input_bytes);
+    if(!preparation)return Fail(error,"review-capacity");
     if(!output||!ValidateReviewConfirmation(input.confirmation,error)||owner!=input.confirmation.principal||
         input.confirmation.spec_sha256!=AnalysisReviewSpecDigest(input.binding,input.claims))return Fail(error,"review-invalid-confirmation");
     if(!options_.enabled||stopped_)return Fail(error,"review-disabled");if(!ready_)return Fail(error,"review-store-unavailable");
@@ -102,11 +120,15 @@ bool VaReviewService::SubmitConfirmed(const ConfirmedAnalysisRequest& input,cons
     if(queue_.size()>=options_.queue_size)return Fail(error,"review-queue-full");
     while(jobs_.size()>=options_.remembered_jobs){const auto old=std::find_if(order_.begin(),order_.end(),[&](const auto& id){return !Active(jobs_.at(id)->job);});
         if(old==order_.end())return Fail(error,"review-queue-full");jobs_.erase(*old);order_.erase(old);}
-    auto task=std::make_shared<Task>();task->confirmed=input;task->key=key;task->authorize=std::move(authorize);task->queued=Clock::now();
+    auto charge=evidence_.MemoryOwner()->ReserveOwned(4096);
+    if(!charge)return Fail(error,"review-capacity");
+
+    auto task=std::make_shared<Task>();task->memory=std::move(*charge);task->confirmed=input;
+    if(!task->confirmed->memory.bytes())task->confirmed->memory=preparation->Split(input_bytes);task->key=key;task->authorize=std::move(authorize);task->queued=Clock::now();
     task->job={"vj-"+epoch_+"-"+std::to_string(++next_),input.binding.package_id,channel,owner,"queued","","","A"};
     jobs_.emplace(task->job.id,task);order_.push_back(task->job.id);queue_.push_back(task);*output=task->job;wake_.notify_one();
     if(error)error->clear();return true;
-}
+} catch(const RecordingResourceUnavailable&) {return Fail(error,"review-capacity");}
 bool VaReviewService::Get(const std::string& id,const Authorize& authorize,VaReviewJob* output,std::string* error) const {
     if(!output||!ValidJobId(id))return Fail(error,"review-invalid-id");
     VaReviewJob result;
@@ -153,6 +175,8 @@ void VaReviewService::Execute(const std::shared_ptr<Task>& task) {
     };
     try {
         if(task->confirmed){
+            auto work=evidence_.MemoryOwner()->ReserveOwned(8*1024*1024);
+            if(!work){fail("review-capacity");return;}
             const auto request=*task->confirmed;VaReviewRecordV3 record;std::string error,id;
             if(interrupted()||!BuildAnalysisReviewRecord(evidence_,request.binding,request.claims,ReviewWallTimeMs(),authorize,
                 &record.analysis,&error,interrupted)||interrupted()){fail(error);return;}

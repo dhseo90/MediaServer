@@ -1,6 +1,7 @@
 // 파일 용도: 녹화 검색의 재구축 가능한 불변 read model. 저장·미디어 실행에 의존하지 않는다.
 #pragma once
 
+#include "recording/recording_memory_reservation.h"
 #include <cstddef>
 #include <atomic>
 #include <cstdint>
@@ -49,29 +50,6 @@ struct SearchDocument {
     std::string unavailable_reason;
 };
 
-// One Catalog search owner. Reservations follow the final model/shared reader, not
-// the snapshot-pool entry. Work reservations never wait while holding product locks.
-class SearchModelResidency {
-    struct State {const std::size_t limit;std::atomic<std::size_t> used{0},peak{0};explicit State(std::size_t n):limit(n){}};
-    struct Lease {std::shared_ptr<State> state;std::size_t bytes;Lease(std::shared_ptr<State> s,std::size_t n):state(std::move(s)),bytes(n){} ~Lease(){state->used.fetch_sub(bytes);}};
-    std::shared_ptr<State> state_;
-public:
-    static constexpr std::size_t kDefaultBytes=640ULL*1024*1024;
-    explicit SearchModelResidency(std::size_t bytes=kDefaultBytes):state_(std::make_shared<State>(bytes)){}
-    std::shared_ptr<void> Reserve(std::size_t bytes) {
-        auto used=state_->used.load();
-        do {if(used>state_->limit||bytes>state_->limit-used)return {};}
-        while(!state_->used.compare_exchange_weak(used,used+bytes));
-        try {
-            auto lease=std::make_shared<Lease>(state_,bytes);
-            auto peak=state_->peak.load();while(peak<used+bytes&&!state_->peak.compare_exchange_weak(peak,used+bytes)){}
-            return lease;
-        } catch (...) {state_->used.fetch_sub(bytes);return {};}
-    }
-    std::size_t used()const{return state_->used.load();}
-    std::size_t peak()const{return state_->peak.load();}
-    std::size_t limit()const{return state_->limit;}
-};
 struct SearchModelLimits {
     std::size_t max_documents, max_bytes;
     std::shared_ptr<SearchModelResidency> residency;
@@ -98,9 +76,16 @@ struct RecordingSearchQuery {
 };
 bool NormalizeSearchQuery(const RecordingSearchQuery&, RecordingSearchQuery*, std::string* error);
 struct RecordingSearchMatches {
+    SearchModelResidency::Reservation memory;
     // 불변 모델 documents()의 위치다. 정렬 순서를 유지하고 관측을 합치지 않는다.
     std::vector<std::size_t> positions;
     std::size_t known_count{0}, unplaced_count{0};
+    RecordingSearchMatches()=default;
+    RecordingSearchMatches(const RecordingSearchMatches&)=default;
+    RecordingSearchMatches(RecordingSearchMatches&&) noexcept=default;
+    RecordingSearchMatches& operator=(RecordingSearchMatches other) noexcept {
+        memory.swap(other.memory);std::swap(positions,other.positions);std::swap(known_count,other.known_count);std::swap(unplaced_count,other.unplaced_count);return *this;
+    }
 };
 
 // 원본 snapshot의 일관성과 event 연결 검증은 adapter 책임이다. 이 모델은 파일 재생 증명이 아니다.

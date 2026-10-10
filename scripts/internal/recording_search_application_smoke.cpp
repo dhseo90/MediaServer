@@ -4,7 +4,8 @@
 #undef main
 #include <set>
 int main(int argc,char** argv){
-    if(argc!=2)return 2;gst_init(nullptr,nullptr);
+    if(argc!=2)return 2;
+    gst_init(nullptr,nullptr);
     int pass=0,fail=0;auto check=[&](bool ok,const char* name){std::cout<<(ok?"[pass] ":"[fail] ")<<name<<'\n';ok?++pass:++fail;};
     try {
         Store store(std::filesystem::weakly_canonical(argv[1])/"store");
@@ -19,6 +20,23 @@ int main(int argc,char** argv){
         auto request=[&](const Query& q){return app.Search(q,"operator-a","scope-a",auth);};
         auto first=request(base);if(first.status!=200)throw std::runtime_error(first.body);
         check(first.body.find("\"appliedQuery\":{")!=std::string::npos&&first.body.find("\"statisticsScope\":\"query-matches\"")!=std::string::npos&&first.body.find("\"startTimeMs\":1789200000000")!=std::string::npos,"additive applied query and snapshot statistics scope");
+        {
+            const auto owner=store.catalog.SearchResidency();
+            check(first.memory.bytes()>0,"MEM84 application response retains actual shared owner");
+            std::vector<ingress::ApplicationServiceResult> held;
+            const auto response_bytes=first.memory.bytes();
+            while(held.size()<64&&owner->limit()-owner->used()>=response_bytes)held.push_back(first);
+            const auto saturated=owner->used();bool rejected_copy=false;
+            try {auto extra=first;(void)extra;}catch(const recording::RecordingResourceUnavailable&){rejected_copy=true;}
+            check(rejected_copy&&owner->used()==saturated,"MEM84 response deep copy refuses before bytes and rolls back");
+            const auto denied=request(base);
+            check(denied.status==503&&owner->used()==saturated,"MEM84 actual search refuses while response consumers hold shared budget");
+            check(app.Search(base,"operator-a","scope-a",[](const auto&){return false;}).status==403,
+                "MEM84 budget saturation does not change authorization refusal");
+            held.clear();
+            check(owner->used()<saturated&&request(base).status==200,"MEM84 final response consumers release and actual search resumes");
+            std::cout<<"[search-owner] saturated="<<saturated<<" responseBytes="<<response_bytes<<" resumed="<<owner->used()<<std::endl;
+        }
         auto json=Json(first.body);const auto snapshot=Field(json,"snapshotId");
         std::set<std::string> ids;std::vector<JsonObject> all;Query page=base;std::string cursor;
         for(int n=0;n<20;++n){auto response=request(page);if(response.status!=200)throw std::runtime_error(response.body);

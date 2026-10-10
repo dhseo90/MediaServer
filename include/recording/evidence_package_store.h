@@ -16,9 +16,13 @@ struct EvidenceFailure {
 };
 const char* EvidenceErrorCode(const std::string&) noexcept;
 void TraceEvidenceFailure(const EvidenceFailure&,const char* public_code) noexcept;
-struct EvidencePayload {
+struct EvidencePayloadFields {
     std::vector<std::uint8_t> bytes;
     std::shared_ptr<ResolvedRecordingMedia> media;
+};
+struct EvidencePayload : RecordingMemoryValue<EvidencePayloadFields> {
+    EvidencePayload()=default;
+    EvidencePayload(std::vector<std::uint8_t> data,std::shared_ptr<ResolvedRecordingMedia> source){bytes=std::move(data);media=std::move(source);}
 };
 class EvidencePackageFile {
 public:
@@ -42,8 +46,10 @@ public:
         std::uint64_t reserved_free_bytes{256ULL*1024*1024};
         std::size_t max_packages{4096};
     };
-    EvidencePackageStore(std::filesystem::path directory, Limits limits)
-        : directory_(std::move(directory)), limits_(limits) {}
+    EvidencePackageStore(std::filesystem::path directory, Limits limits,
+        std::shared_ptr<SearchModelResidency> memory=std::make_shared<SearchModelResidency>())
+        : memory_(std::move(memory)),directory_(std::move(directory)), limits_(limits) {}
+    const std::shared_ptr<SearchModelResidency>& MemoryOwner()const{return memory_;}
     bool Recover(std::string* error) const;
     bool Publish(const EvidencePackageV1&, const std::vector<EvidencePayload>&,
         std::string* id, std::string* error, const std::function<bool()>& cancelled = {},
@@ -54,6 +60,7 @@ public:
     bool ListIds(std::vector<std::string>*, std::string* error) const;
     static bool ValidId(const std::string&);
 private:
+    std::shared_ptr<SearchModelResidency> memory_;
     std::filesystem::path directory_;
     Limits limits_;
 };

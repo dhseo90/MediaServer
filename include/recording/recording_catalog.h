@@ -103,6 +103,7 @@ struct RecordingOriginalResult {
 class RecordingCatalogHistoryRows;
 class RecordingCatalog final : public RecordingStorePort {
     friend class RecordingRuntimeStorage;
+    friend struct RecordingAggregateResourceProbe;
 #if MEDIA_SERVER_RECORDING_GENERATION_TESTING
     friend struct RecordingCatalogGenerationScratchProbe;
     friend struct RecordingGenerationPreappendProbe;
@@ -297,6 +298,7 @@ private:
         struct RecordingCutoverInputSummary*,std::string*);
     using SourceBindingHandle = std::shared_ptr<const RecordingSourceBindingV1>;
     struct SourceBindingEntry {
+        SearchModelResidency::Reservation memory;
         std::string id,channel,source,generation,track,latest_mutation_id;
         std::uint64_t order{0};
         std::size_t sample_count{0};
@@ -304,6 +306,9 @@ private:
         mutable std::weak_ptr<const RecordingSourceBindingV1> weak;
         SourceBindingHandle resident;
         SourceBindingEntry()=default;
+        SourceBindingEntry(const SourceBindingEntry&)=default;
+        SourceBindingEntry(SourceBindingEntry&&)noexcept=default;
+        SourceBindingEntry& operator=(SourceBindingEntry value)noexcept {memory.swap(value.memory);using std::swap;swap(id,value.id);swap(channel,value.channel);swap(source,value.source);swap(generation,value.generation);swap(track,value.track);swap(latest_mutation_id,value.latest_mutation_id);swap(order,value.order);swap(sample_count,value.sample_count);swap(mutation,value.mutation);swap(weak,value.weak);swap(resident,value.resident);return *this;}
         SourceBindingEntry(SourceBindingHandle value,RecordingMutationLink link={},std::string latest={});
         SourceBindingHandle WarmOwned() const {return resident?resident:weak.lock();}
         SourceBindingHandle ResidentOwned() const {return resident;}
@@ -333,6 +338,7 @@ private:
         const RecordingMutationHandle&,SourceBindingHandle*,std::string*);
     using DerivedJobHandle = std::shared_ptr<const DerivedJobRecordV1>;
     struct DerivedJobEntry {
+        SearchModelResidency::Reservation memory;
         std::string id,channel,reference,latest_mutation_id;
         DerivedJobState state{DerivedJobState::Intent};
         std::size_t files{0};
@@ -342,6 +348,9 @@ private:
         mutable std::weak_ptr<const DerivedJobRecordV1> weak;
         DerivedJobHandle resident;
         DerivedJobEntry()=default;
+        DerivedJobEntry(const DerivedJobEntry&)=default;
+        DerivedJobEntry(DerivedJobEntry&&)noexcept=default;
+        DerivedJobEntry& operator=(DerivedJobEntry value)noexcept {memory.swap(value.memory);using std::swap;swap(id,value.id);swap(channel,value.channel);swap(reference,value.reference);swap(latest_mutation_id,value.latest_mutation_id);swap(state,value.state);swap(files,value.files);swap(reserved_bytes,value.reserved_bytes);swap(output_ids,value.output_ids);swap(source_ids,value.source_ids);swap(mutation,value.mutation);swap(weak,value.weak);swap(resident,value.resident);return *this;}
         DerivedJobEntry(DerivedJobHandle value,RecordingMutationLink link={},std::string latest={});
         DerivedJobHandle WarmOwned() const {return resident?resident:weak.lock();}
         DerivedJobHandle ResidentOwned() const {return resident;}
@@ -577,7 +586,7 @@ private:
     void ResolveObservationV2Locked(AnalysisObservationV2* observation) const;
     void NoteSearchMutationLocked(const RecordingMutationV1&) noexcept;
 
-    std::shared_ptr<SearchModelResidency> search_residency_{std::make_shared<SearchModelResidency>()};
+    std::shared_ptr<SearchModelResidency> search_residency_;
     RecordingJournal& journal_;
     Options options_;
     mutable std::mutex mu_;

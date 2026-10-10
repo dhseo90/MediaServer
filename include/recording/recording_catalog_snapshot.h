@@ -19,7 +19,7 @@ struct RecordingCatalogJobSummary {
 };
 // 삭제 완료 V2의 hot projection 영수증이다. 원본 segment/tombstone 전문은 identity가 결박한
 // cold mutation에서 호출 단위로 재획득하며, 이 값만으로 재생 또는 상세 의미를 복원하지 않는다.
-struct RecordingRetiredV2Receipt {
+struct RecordingRetiredV2ReceiptFields {
     std::string segment_id, store_id, source_id, channel_id, order_request_id, media_epoch_id, tombstone_id;
     std::int64_t order_sequence{0};
     std::int64_t media_start_pts{0};
@@ -34,6 +34,7 @@ struct RecordingRetiredV2Receipt {
     bool utc_exclusion_safe{false};
     std::optional<std::int64_t> utc_min_ns, utc_max_ns;
 };
+using RecordingRetiredV2Receipt=RecordingMemoryValue<RecordingRetiredV2ReceiptFields>;
 // 고정 필드 순서의 canonical JSON object(LF 없음). 배열의 의미 있는 순서는 보존한다.
 // 기존 domain 값 상한만 검사하며 원문 locator/참조/상태 전이 또는 제품 import를 검증하지 않는다.
 // crypto-off도 동일하게 동작하고 실패 시 caller output은 불변이다.

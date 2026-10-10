@@ -12,13 +12,14 @@ struct EvidenceAssetV1 {
     std::string name, content_type, sha256;
     std::uint64_t size_bytes{0};
 };
-struct EvidenceObservationSnapshotV2 {
+struct EvidenceObservationSnapshotV2Fields {
     std::size_t frame_index{};
     std::string png_sha256, state, reason;
     // candidate 값 자체를 보존한다. ID/hash만으로 catalog를 다시 읽지 않는다.
     std::vector<ReferencedObservationV1> candidates;
 };
-struct EvidencePackageV1 {
+using EvidenceObservationSnapshotV2=RecordingMemoryValue<EvidenceObservationSnapshotV2Fields>;
+struct EvidencePackageV1Fields {
     std::string schema{"media-server.evidence-package.v1"};
     std::string channel_id, hit_id, query_kind, observation_id, track_id, analysis_namespace;
     std::string store_id, media_epoch_id;
@@ -34,6 +35,8 @@ struct EvidencePackageV1 {
     std::string observation_source_id;
     std::vector<EvidenceObservationSnapshotV2> observation_snapshots;
 };
+using EvidencePackageV1=RecordingMemoryValue<EvidencePackageV1Fields>;
+void BindEvidencePackageMemory(EvidencePackageV1&, SearchModelResidency::Reservation&, std::size_t raw_bytes);
 bool ValidateEvidencePackage(const EvidencePackageV1&, std::string* error);
 std::string SerializeEvidencePackage(const EvidencePackageV1&);
 bool ParseEvidencePackage(const std::string&, EvidencePackageV1*, std::string* error);

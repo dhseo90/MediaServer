@@ -75,7 +75,9 @@ bool LoadVaReviewInput(const EvidencePackageStore& store, const std::string& id,
     if(cancelled && cancelled()) return Fail(error,"review-cancelled");
     const auto file=store.Open(id,error,cancelled);
     if(!file) return false;
-    VaReviewInput value; value.package_id=id; value.question=question; value.manifest=file->manifest();
+    auto work=store.MemoryOwner()->ReserveOwned(kVaReviewInputBytes+1024*1024);
+    if(!work)return Fail(error,"review-capacity");
+    VaReviewInput value;value.memory=std::move(*work); value.package_id=id; value.question=question; value.manifest=file->manifest();
     if(!authorize || !authorize(value.manifest.channel_id)) return Fail(error,"review-forbidden");
     const auto json=SerializeEvidencePackage(value.manifest);
     value.manifest_sha256=EvidenceSha256(json.data(),json.size());

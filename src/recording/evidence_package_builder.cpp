@@ -173,6 +173,10 @@ bool EvidencePackageBuilder::CreateImpl(bool observations,const SearchDocument& 
         return Fail(error,"evidence-invalid-request");
     const auto expired=[&]{return std::chrono::steady_clock::now()>=deadline||(cancelled&&cancelled());};
     if(expired())return Fail(error,"evidence-timeout");
+    // Existing manifest admission is 1MiB, at most 8 frames and 64KiB of
+    // observations. Reserve non-pixel construction/serialization before copying.
+    auto package_memory=catalog_.SearchResidency()->ReserveOwned(8*1024*1024);
+    if(!package_memory)return Fail(error,"evidence-resource-unavailable");
     auto hit=input;
     stage="clip-selection";
     if(kind=="visual"&&!SelectVisualClip(catalog_,&hit,expected,error,expired))return false;
@@ -181,7 +185,7 @@ bool EvidencePackageBuilder::CreateImpl(bool observations,const SearchDocument& 
     if(observations&&!catalog_.CaptureEvidenceObservations(hit,&observation_rows,&observation_snapshot,error,deadline))return false;
     if(observations)trace.captured_revision=observation_snapshot.captured_revision();
     stage="source";
-    EvidencePackageV1 package;package.channel_id=hit.channel_id;package.hit_id=hit.id;package.query_kind=kind;
+    EvidencePackageV1 package;package.memory=std::move(*package_memory);package.channel_id=hit.channel_id;package.hit_id=hit.id;package.query_kind=kind;
     package.observation_id=hit.observation_id;package.track_id=hit.track_id;package.analysis_namespace=hit.analysis_namespace;
     package.store_id=hit.store_id;package.media_epoch_id=hit.media_epoch_id;
     if(observations){package.schema="media-server.evidence-package.v2";package.observation_source_id=hit.source_id;}
@@ -237,7 +241,7 @@ bool EvidencePackageBuilder::CreateImpl(bool observations,const SearchDocument& 
                     if(kind=="visual"){package.time_provenance=frame.time_provenance;package.uncertainty_ns=frame.uncertainty_ns;}
                     package.assets.push_back({"asset-"+std::to_string(index),"image/png",frame.png_sha256,frame.png.size()});
                     package.references.push_back({"frame",hit.segment_id+":"+std::to_string(pts),"preserved","exact-source-sample",frame.png_sha256,index});
-                    EvidencePayload payload;payload.bytes=std::move(frame.png);payloads.push_back(std::move(payload));package.frames.push_back(std::move(frame));
+                    EvidencePayload payload;payload.memory=frame.memory.Split(frame.png.capacity());payload.bytes=std::move(frame.png);payloads.push_back(std::move(payload));package.frames.push_back(std::move(frame));
                 }
             }
         }

@@ -112,6 +112,12 @@ bool EvidenceFrameExtractor::ExtractMedia(const std::string& channel, const std:
     if (target < 0 || target > INT64_MAX) return Fail(error, "evidence-invalid-frame");
     const auto remaining = std::chrono::duration_cast<std::chrono::milliseconds>(deadline - std::chrono::steady_clock::now()).count();
     if (remaining <= 0 || expired()) return Fail(error, "evidence-timeout");
+    // Existing decoder geometry and zlib compressBound determine four simultaneously
+    // live image buffers (RGB, filtered rows, compressed IDAT, final PNG).
+    constexpr std::size_t raw_max=(4096ULL*3+1)*2160;
+    const auto image_budget=4096ULL*2160*3+raw_max+3*compressBound(raw_max)+64*1024;
+    auto image_memory=catalog_.SearchResidency()->ReserveOwned(image_budget);
+    if(!image_memory)return Fail(error,"evidence-resource-unavailable");
     VisualRgbFrame decoded;
     // macOS 증거 요청은 처음부터 software-only다. 색인/실시간 경로의 기본 선택은 유지한다.
 #ifdef __APPLE__
@@ -132,6 +138,7 @@ bool EvidenceFrameExtractor::ExtractMedia(const std::string& channel, const std:
     result.png_sha256 = EvidenceSha256(result.png.data(), result.png.size()); Time(*segment, &result);
     if (!EvidenceIsSha256(result.rgb_sha256) || !EvidenceIsSha256(result.png_sha256)) return Fail(error, "evidence-crypto-unavailable");
     if (expired()) return Fail(error, "evidence-timeout");
+    result.memory=image_memory->Split(result.png.capacity()+sizeof(result)+8192);
     *output = std::move(result); if (error) error->clear(); return true;
 }
 bool EvidenceFrameExtractor::Extract(const std::string& channel, const FrameLocatorV1& locator,
