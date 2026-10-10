@@ -1,4 +1,4 @@
-// 파일 용도: 파일 I/O 없이 카탈로그의 일관된 검색 snapshot/관측 변화분을 내보낸다.
+// 파일 용도: 카탈로그의 검증된 resident/cold 행에서 일관된 검색 snapshot/관측 변화분을 내보낸다.
 #include "recording/recording_catalog.h"
 #include <algorithm>
 #include <limits>
@@ -56,7 +56,7 @@ bool RecordingCatalog::ValidateSearchSource(const SearchSourceBatch& batch, std:
 }
 
 bool RecordingCatalog::CaptureSearchSource(const std::vector<std::string>& channels,
-    const RecordingSearchModel* previous, SearchSourceBatch* result, std::string* error, SearchModelLimits limits) const {
+    const RecordingSearchModel* previous, SearchSourceBatch* result, std::string* error, SearchModelLimits limits, bool include_observations) const {
     if (!result || channels.empty() || channels.size() > 32) return Fail(error, "search-invalid-channels");
     for (const auto& channel : channels)
         if (!ValidateRecordingReferenceId(channel, nullptr)) return Fail(error, "search-invalid-channels");
@@ -68,6 +68,7 @@ bool RecordingCatalog::CaptureSearchSource(const std::vector<std::string>& chann
         SearchSourceBatch batch;
         batch.catalog_instance = search_instance_;batch.resolution_revision = search_resolution_revision_;
         batch.delta.source_instance = SearchSourceIdentity(search_instance_, channels);
+        if(!include_observations)batch.delta.source_instance="recordings:"+batch.delta.source_instance;
         batch.delta.revision = source_snapshot_revision_;
         batch.delta.previous_revision = previous ? previous->revision() : 0;
         batch.rebuild = !previous || previous->source_instance() != batch.delta.source_instance ||
@@ -142,10 +143,9 @@ bool RecordingCatalog::CaptureSearchSource(const std::vector<std::string>& chann
                 if (s.mappings.empty()) {if(!segment(nullptr))return Fail(error,"search-capacity-exceeded");}
                 else for(const auto& mapping:s.mappings)if(!segment(&mapping))return Fail(error,"search-capacity-exceeded");
             }
-            for(const auto& [id,o]:observations_){(void)id;if(!v1(o))return Fail(error,"search-capacity-exceeded");}
-            for(const auto& [id,o]:observations_v2_){(void)id;if(!v2(o))return Fail(error,"search-capacity-exceeded");}
-            for(const auto& [id,o]:referenced_observations_){(void)id;if(!referenced(o))return Fail(error,"search-capacity-exceeded");}
-        } else {
+            if(include_observations&&(!observations_.ForEach(v1)||!observations_v2_.ForEach(v2)||!referenced_observations_.ForEach(referenced)))
+                return Fail(error,"search-capacity-exceeded");
+        } else if(include_observations) {
             std::set<std::pair<RecordingMutationType,std::string>> changed;
             for(const auto& change:search_changes_)if(change.revision>previous->revision())changed.emplace(change.type,change.id);
             for(const auto& [type,id]:changed) {
@@ -158,7 +158,8 @@ bool RecordingCatalog::CaptureSearchSource(const std::vector<std::string>& chann
             }
         }
         *result=std::move(batch);if(error)error->clear();return true;
-    } catch(const std::bad_alloc&) {return Fail(error,"search-capacity-exceeded");}
+    } catch(const RecordingRetainedReadError&) {return Fail(error,"search-source-unavailable");}
+      catch(const std::bad_alloc&) {return Fail(error,"search-capacity-exceeded");}
       catch(const std::length_error&) {return Fail(error,"search-capacity-exceeded");}
 }
 } // namespace recording

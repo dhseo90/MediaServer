@@ -684,6 +684,41 @@ void HistoryProduct(const std::filesystem::path& root) {
         Need(seq.Close(&error));Check("MEM82-C06",std::filesystem::is_empty(root),"sequential capture closes anonymous scratch on every result");
     }
     {RecordingCatalogHistoryRows rows;Need(rows.Create(&error));
+     const std::string large(Index::kValueBytes*13+7,'x');Need(rows.Put("media-path","many",large,&error));
+     std::string actual;Need(rows.Visit("media-path",[&](const auto& id,const auto& value,std::string*){actual=value;return id=="many";},&error));
+     Check("MEM83-R01",actual==large,"streaming decimal chunk order reconstructs exact large value");
+     Need(rows.Put("media-path","many","short",&error));actual.clear();
+     Need(rows.Visit("media-path",[&](const auto&,const auto& value,std::string*){actual=value;return true;},&error));
+     Check("MEM83-R01",actual=="short","streaming overwrite ignores authenticated reserved tail");
+     Need(rows.Put("media-path","many",{},&error));unsigned visits=0;
+     Need(rows.Visit("media-path",[&](const auto&,const auto&,std::string*){++visits;return true;},&error));
+     Check("MEM83-R01",visits==0,"empty current value does not expose old reserved chunks");Need(rows.Finish(&error));}
+    {auto rows=std::make_shared<RecordingCatalogHistoryRows>();Need(rows->Create(&error));
+     RecordingRetainedRows<AnalysisObservationV2,ParseAnalysisObservationV2,SerializeAnalysisObservationV2> cold;
+     cold.Bind(rows,"observation-v2");
+     AnalysisObservationV2 o;o.source_id="source";o.channel_id="channel";o.analysis_namespace="tap";
+     o.track_id="track";o.class_label="person";o.confidence=.8;o.bbox={0,0,.5,.5};
+     o.selection_reasons={"track-start"};o.locator_reason="missing-provenance";
+     const std::set<std::string> expected={"prefix","prefix-","prefix.0","prefix0","prefix_","z"};
+     for(const auto& id:expected){o.observation_id=id;cold.Set(id,o);}
+     std::set<std::string> observed;for(const auto& row:cold)observed.insert(row.first);
+     Check("MEM83-R01",observed==expected&&cold.resident_size()==0&&cold.size()==expected.size(),"cold cursor covers prefix IDs without resident key list");
+     std::set<std::string> streamed;Need(cold.ForEach([&](const auto& row){streamed.insert(row.observation_id);return true;}));
+     Check("MEM83-R01",streamed==expected,"single authenticated traversal retains full row coverage");
+     Check("MEM83-R01",!cold.ForEach([](const auto&){return false;})&&rows->Healthy(&error),"consumer refusal does not poison retained store");
+     bool consumer_threw=false;try{cold.ForEach([](const auto&)->bool{throw std::runtime_error("consumer");});}catch(const std::runtime_error&){consumer_threw=true;}
+     Check("MEM83-R01",consumer_threw&&rows->Healthy(&error),"consumer exception preserves authority and traversal cleanup");
+     RecordingRetainedAcceptedSet accepted;accepted.Bind(rows);accepted.insert("prefix");accepted.insert("prefix-");
+     Check("MEM83-R01",accepted.size()==2&&accepted.resident_size()==0&&accepted.count("prefix")&&!accepted.count("missing"),"accepted ID namespace cold exact presence/absence");
+     auto held=cold.find("prefix");o.observation_id="prefix";o.confidence=.4;cold.Set("prefix",o);
+     Check("MEM83-R01",held->second.confidence==.8&&cold.find("prefix")->second.confidence==.4,"reader owns immutable row across overwrite");
+     auto fixed=std::make_shared<RecordingCatalogHistoryRows>();Need(fixed->CloneFrom(*rows,&error));
+     RecordingRetainedRows<AnalysisObservationV2,ParseAnalysisObservationV2,SerializeAnalysisObservationV2> prior;prior.Bind(fixed,"observation-v2");
+     o.confidence=.2;cold.Set("prefix",o);
+     Check("MEM83-R01",prior.find("prefix")->second.confidence==.4&&cold.find("prefix")->second.confidence==.2,"fixed K cold clone is independent of live updates");
+     Need(rows->Finish(&error));bool threw=false;try{(void)cold.find("missing");}catch(const RecordingRetainedReadError&){threw=true;}
+     Check("MEM83-R01",threw&&held->second.confidence==.8,"closed history fails explicitly while returned row remains owned");Need(fixed->Finish(&error));}
+    {RecordingCatalogHistoryRows rows;Need(rows.Create(&error));
      RecordingRetiredV2Receipt receipt;receipt.segment_id="plain";receipt.store_id="store";receipt.source_id="source";receipt.channel_id="channel";
      receipt.order_request_id="order";receipt.order_sequence=1;receipt.media_epoch_id="epoch";receipt.tombstone_id="tomb";
      receipt.media_start_pts=0;receipt.media_end_pts=20;receipt.time_base_num=1;receipt.time_base_den=1000;
@@ -966,7 +1001,11 @@ void CheckpointAdmissionRaces(const std::filesystem::path& base) {
 }
 
 void CheckpointCaptureFailure(const std::filesystem::path& root) {
-    Actual(root);RecordingJournal j(Options(root));Need(j.Open(&error));RecordingCatalog c(j,CO(root));Need(c.Open(&error));
+    // Retained segments are cold now. Keep a real active job so the sequential
+    // capture contains a row and the late root-corruption probe is exercised.
+    const auto input=InputValue();Install(Active(input),root);
+    RecordingJournal j(Options(root));Need(j.Open(&error));RecordingCatalog c(j,CO(root));Need(c.Open(&error));
+    std::optional<DerivedJobRecordV1> job;Need(c.FindDerivedJob(input.job.intent.job_id,&job,&error)&&job&&job->state==input.job.state);
     RecordingOrderReservationV1 reserved;Need(c.ReserveRecordingOrder("store","capture-trigger","capture-trigger","channel",&reserved,&error));
     const auto manifest=Read(root/"recording-generation.json");const auto active=Read(root/Manifest(root).active.name);
     RecordingGenerationTransactionProbe::CheckpointHook([]{recording::RecordingHistoryIndex::probe_fault=6;});

@@ -1,5 +1,6 @@
 // 파일 용도: V420-L01/L02 원장과 검색 스냅샷 연결의 단기 통합 검사.
 #include "recording/recording_search_reader.h"
+#include "recording/recording_search_snapshots.h"
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -82,8 +83,33 @@ static void V2(const std::filesystem::path& root) {
         Check(search.Refresh({"v2"},model,&model,&error)&&Bytes(journal.path())==before,"v2-read-journal-unchanged");
     }
 }
+static void ReaderBudget() {
+    SearchDocument d;d.id="budget-document";d.channel_id="channel";d.segment_id="segment";d.start_ns=1000000;d.end_ns=2000000;
+    std::vector<SearchDocument> docs{d};std::string error;std::shared_ptr<const RecordingSearchModel> probe;
+    Check(RecordingSearchModel::Build(docs,"budget",1,&probe,&error),"MEM83 budget fixture admission");
+    const auto charge=probe->accounted_bytes();probe.reset();
+    // Test-only three-model envelope, not a product support limit.
+    auto owner=std::make_shared<SearchModelResidency>(3*charge);
+    SearchModelLimits limits{100000,64*1024*1024,owner};
+    std::shared_ptr<const RecordingSearchModel> a,b,c;
+    Check(RecordingSearchModel::Build(docs,"budget",1,&a,&error,limits)&&
+        RecordingSearchModel::Build(docs,"budget",2,&b,&error,limits)&&
+        RecordingSearchModel::Build(docs,"budget",3,&c,&error,limits)&&owner->used()==3*charge,"MEM83 three simultaneous model owners charged");
+    auto held=a;Check(owner->used()==3*charge,"MEM83 shared readers do not double charge");
+    auto rejected=c;Check(!RecordingSearchModel::Build(docs,"budget",4,&rejected,&error,limits)&&error=="search-capacity-exceeded"&&rejected==c,"MEM83 full owner budget rejects before allocation and preserves output");
+    rejected.reset();a.reset();Check(owner->used()==3*charge&&held->documents().size()==1,"MEM83 caller holds old model after source replacement");
+    held.reset();Check(owner->used()==2*charge&&RecordingSearchModel::Build(docs,"budget",4,&a,&error,limits),"MEM83 final reader release permits fresh work");
+    {RecordingSearchSnapshots pool;RecordingSearchQuery q;q.channels={"channel"};q.start_time_ms=0;q.end_time_ms=3;RecordingSearchPage page;
+     const auto now=RecordingSearchSnapshots::Clock::now();Check(pool.Begin(a,q,"owner","scope",&page,&error,now),"MEM83 budgeted model enters snapshot");
+     a.reset();std::shared_ptr<const RecordingSearchModel> expired;std::size_t pos=0;
+     Check(!pool.ResolveHit(page.snapshot_id,d.id,q,"owner","scope",&expired,&pos,&error,now+std::chrono::minutes(6))&&error=="search-snapshot-expired"&&owner->used()==3*charge,"MEM83 pool expiry does not release caller-owned model charge");
+    }
+    Check(owner->used()==2*charge,"MEM83 page last release returns model reservation");
+    b.reset();c.reset();Check(owner->used()==0&&owner->peak()==3*charge,"MEM83 all model owners released; finite high water");
+}
 int main(int argc,char**argv) {
     if(argc!=2)return 2;
+    ReaderBudget();
     // macOS 임시 디렉터리 별칭(/var)을 실제 경로로 정규화한다. 원본 삭제의 no-follow 검사는 유지한다.
     const auto root=std::filesystem::weakly_canonical(argv[1]);
     std::filesystem::create_directories(root/"media");
@@ -105,6 +131,15 @@ int main(int argc,char**argv) {
         Check(catalog.PutObservationV2(observation,&error),"unknown-observation-put");
         Check(search.Refresh({"channel-one"},model,&model,&error)&&model->documents().size()==2&&
             !model->Find("o2:7:obs-one")->start_ns,"unknown-is-not-inferred");
+        {std::shared_ptr<const RecordingSearchModel> only_recordings,all_again;
+         Check(search.Refresh({"channel-one"},model,&only_recordings,&error,{},false)&&only_recordings->documents().size()==1&&
+             only_recordings->Find("s1:11:segment-one")&&!only_recordings->Find("o2:7:obs-one"),"MEM83 recording-only source does not load unused observation rows");
+         RecordingSearchQuery query;query.channels={"channel-one"};query.start_time_ms=0;query.end_time_ms=10000;query.include_unplaced=true;
+         std::shared_ptr<const RecordingSearchModel> playback;
+         Check(search.WithPlayback(*only_recordings,query,&playback,&error)&&playback->documents().size()==1,
+             "MEM83 recording-only playback guard preserves source mode");
+         Check(search.Refresh({"channel-one"},only_recordings,&all_again,&error)&&all_again->documents().size()==2&&
+             all_again->Find("o2:7:obs-one")&&model->documents().size()==2,"MEM83 query-kind switch rebuilds complete observation source and preserves old reader");}
         observation=catalog.ResolveObservationV2(observation);
         Check(observation.frame_locator&&catalog.PutObservationV2(observation,&error),"stored-locator-put");
         SearchSourceBatch batch;

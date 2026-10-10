@@ -18,7 +18,7 @@ public:
     bool Refresh(const std::vector<std::string>& channels,
                  const std::shared_ptr<const RecordingSearchModel>& previous,
                  std::shared_ptr<const RecordingSearchModel>* output,
-                 std::string* error, SearchModelLimits limits = {}) const;
+                 std::string* error, SearchModelLimits limits = {}, bool include_observations = true) const;
     bool WithPlayback(const RecordingSearchModel&, const RecordingSearchQuery&,
         std::shared_ptr<const RecordingSearchModel>*, std::string* error, SearchModelLimits limits = {}) const;
     bool DerivedSeek(const std::string& channel, const std::string& job,

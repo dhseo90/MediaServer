@@ -271,19 +271,19 @@ bool RecordingCatalog::CaptureGenerationSnapshotViewLocked(GenerationSnapshotVie
         chunks+=added;total+=bytes.size();++row_count;
     };
     try {
-        for(const auto& v:segments_)add("segment-v1",v.first,SerializeRecordingSegmentV1(v.second));
-        for(const auto& v:segments_v2_)add("segment-v2",v.first,SerializeRecordingSegmentV2(v.second));
-        for(const auto& v:states_v2_)add("state-v2",v.first,SerializeRecordingSegmentStateV2(v.second));
-        for(const auto& v:tombstones_)add("tombstone-v1",v.first,SerializeRecordingTombstoneV1(v.second));
-        for(const auto& v:tombstones_v2_)add("tombstone-v2",v.first,SerializeRecordingTombstoneV2(v.second));
-        for(const auto& v:media_relpaths_)add("media-path",v.first,Quote(v.second));
-        for(const auto& v:deletion_reasons_)add("deletion-reason",v.first,Quote(v.second));
-        for(const auto& v:event_links_)add("event-link",v.first,SerializeEventRecordingLinkV1(v.second));
-        for(const auto& v:observations_)add("observation-v1",v.first,SerializeAnalysisObservationV1(v.second));
-        for(const auto& v:observations_v2_)add("observation-v2",v.first,SerializeAnalysisObservationV2(v.second));
-        for(const auto& v:consumer_references_)add("consumer-reference",v.first,SerializeRecordingConsumerReferenceV1(v.second));
-        for(const auto& v:referenced_observations_)add("referenced-observation",v.first,SerializeReferencedObservationV1(v.second));
-        for(const auto& id:derived_accepted_references_)add("derived-reference-accepted",id,"true");
+        if(!segments_.cold())for(const auto& v:segments_)add("segment-v1",v.first,SerializeRecordingSegmentV1(v.second));
+        if(!segments_v2_.cold())for(const auto& v:segments_v2_)add("segment-v2",v.first,SerializeRecordingSegmentV2(v.second));
+        if(!states_v2_.cold())for(const auto& v:states_v2_)add("state-v2",v.first,SerializeRecordingSegmentStateV2(v.second));
+        if(!tombstones_.cold())for(const auto& v:tombstones_)add("tombstone-v1",v.first,SerializeRecordingTombstoneV1(v.second));
+        if(!tombstones_v2_.cold())for(const auto& v:tombstones_v2_)add("tombstone-v2",v.first,SerializeRecordingTombstoneV2(v.second));
+        if(!media_relpaths_.cold())for(const auto& v:media_relpaths_)add("media-path",v.first,Quote(v.second));
+        if(!deletion_reasons_.cold())for(const auto& v:deletion_reasons_)add("deletion-reason",v.first,Quote(v.second));
+        if(!event_links_.cold())for(const auto& v:event_links_)add("event-link",v.first,SerializeEventRecordingLinkV1(v.second));
+        if(!observations_.cold())for(const auto& v:observations_)add("observation-v1",v.first,SerializeAnalysisObservationV1(v.second));
+        if(!observations_v2_.cold())for(const auto& v:observations_v2_)add("observation-v2",v.first,SerializeAnalysisObservationV2(v.second));
+        if(!consumer_references_.cold())for(const auto& v:consumer_references_)add("consumer-reference",v.first,SerializeRecordingConsumerReferenceV1(v.second));
+        if(!referenced_observations_.cold())for(const auto& v:referenced_observations_)add("referenced-observation",v.first,SerializeReferencedObservationV1(v.second));
+        if(!derived_accepted_references_.cold())for(const auto& id:derived_accepted_references_)add("derived-reference-accepted",id,"true");
         for(const auto& item:derived_jobs_){const auto& v=item.second;std::string bytes;
             if(!SerializeRecordingCatalogJobSummary({v.id,v.channel,v.reference,v.state,v.files,v.reserved_bytes,v.output_ids,v.source_ids,v.latest_mutation_id},&bytes,error))return false;
             add("derived-job",item.first,std::move(bytes));}
@@ -309,7 +309,7 @@ bool RecordingCatalog::CaptureGenerationSnapshotViewLocked(GenerationSnapshotVie
                 if(value.size()>kRecordingCatalogSnapshotMaxBytes-raw.size()||value.size()>total-bytes)return false;
                 raw+=value;bytes+=value.size();++seen;return true;
             },detail)||!emit()||seen!=chunks||bytes!=total||emitted!=row_count)return Fail(detail,"fixed snapshot row coverage mismatch");
-            for(const std::string kind:{"retired-v2","source-binding","derived-job"})
+            for(const std::string kind:{"segment-v1","segment-v2","state-v2","tombstone-v1","tombstone-v2","media-path","deletion-reason","retired-v2","source-binding","derived-job","event-link","observation-v1","observation-v2","consumer-reference","referenced-observation","derived-reference-accepted"})
                 if(!cold->Visit(kind,[&](const auto& id,const auto& value,std::string* e){return visit({kind,id,value},e);},detail))return false;
             return true;
         };

@@ -1043,3 +1043,41 @@ identity 및 reader의 동시 비용은 모두 기존 예산/회계에 포함한
 기존160KiB buffer, 복제 history와 prefix/suffix를 별도로 계상한다. 개별 cache가0이라는 이유로
 전체 RAM이나 익명 FD의 디스크 비용이0인 것은 아니다. 고정 capture와 최종 전환 잠금은 남으며,
 관측된 endpoint/high-water와 모든 동시 reader/순간 peak의 보장은 구분한다.
+
+### 83 보존 자료와 reader 수명 연결 (한정 구현·총예산 미완료)
+
+원본 권위는 검증된 generation snapshot/identity/active 원장이다. observation v1/v2,
+consumer/reference observation, event link는 기존 비영속 authenticated history의 별도 namespace로
+표현하고 RAM 전체 key 목록 없이 한 행 cursor로 읽는다. Open의 비공개 projection부터
+Catalog 쓰기/병합·검색 source capture·증거 guard·export까지 같은 조회 경계를 사용한다.
+checkpoint K에는 기존 독립 cold clone을 전달하고 live F와 공유 가변 인덱스로 대신하지 않는다.
+파생 손상은 부재가 아니며 원본 admission과 행 canonical/연결 검증을 유지한다.
+
+이 단계는 합산 예산 완료 선언이 아니다. 64MiB 검색 model·128MiB snapshot·기존 요청/증거
+예산은 각각의 계약이며 512MiB 개발 fixture 목표를 새 전역 운영 admission으로 바꾸지 않는다.
+반환 후 외부 reader가 살아 있는 비용, 한 행 최대 원본 admission과 parser/반환 DTO 비용,
+현재/고정/후보 scratch 동시량을 포함한 예약은 실제 소유 handle에서 해제되어야 한다.
+B 고정 보존량 요청과 C 새 영속 결과는 MEM83-R03의 사전 조건으로 별도 측정한다.
+
+검색 모델은 Catalog별 공유 reservation owner를 사용한다. 모델의 마지막 shared owner가
+사라질 때만 예약을 반환하며 cache 제거나 함수 return을 해제로 간주하지 않는다. 기존
+model 64MiB·snapshot pool 128MiB를 유지한다. 640MiB 논리 예산은 pool128 + current64 +
+기존 4개 caller의 이전 model256 + 직렬 준비192를 포함한 한정 산식이다. 준비 중 예산 대기는
+없으며 초과를 명시적으로 거부한다. 4는 이 검증의 동시 부하이고 전체 공개 요청 수 상한이 아니다.
+추가 SearchState/reader까지 정상 요청 admission이 충분하다는 보장은 이 산식에 포함되지 않는다.
+
+`RecordingRetainedRows`는 generation에서 전체 key map을 만들지 않고 하나의 canonical 행을
+반환한다. 반환 iterator/행은 container 변경·종료 전에 사용해야 하며 독립 값이 필요한 소비자는
+값을 소유한다. SQLite projection과 legacy 관측 resolve의 임시 iterator 포인터는 owned 값으로
+바꾼다. 명시적 전체 결과 API는 결과를 잘라내지 않으며 그 vector/JSON 및 evidence/A capture의
+합산 byte 예약은 아직 없다. 행 parser·현재/K/후보 scratch·suffix·반환 결과를 모두 연결하기 전에는
+전체 동시 메모리 admission 완료로 판정하지 않는다. 개별 scratch/원본 한도와 Finish는 유지한다.
+
+Queued A 작업은 큐에서 제거한 뒤 confirmed 입력과 question을 해제한다. 실행 중 작업의
+입력은 worker 종료까지 유지하며 summary/idempotency는 기존 remembered_jobs 정책에 남는다.
+B32의 입력 소유 해제와 C8의 실제 파일 보존은 이 수명만 검증하며 모든 반복의 heap 수렴이나
+전체 결과 byte 상한을 보장하지 않는다. 실행 수치와 최초 실패는 83 실행 기록 한 곳에 둔다.
+
+요청/보존 수명 직접 fixture는 `scripts/internal/recording_retained_lifetime_smoke.cpp`이며
+기존 runtime archive에 연결하는 native 검사다. 실행 source·compile/link 인자·소유 root는
+83 실행 기록의 binding에 둔다. 제품 서버나 전체 UI의 대체 gate는 아니다.

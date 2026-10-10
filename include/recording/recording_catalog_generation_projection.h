@@ -1,6 +1,7 @@
 // 파일 용도: 세대 카탈로그 snapshot을 이동 가능한 scratch projection으로 표현한다.
 #pragma once
 #include "recording/recording_catalog_snapshot.h"
+#include "recording/recording_retained_rows.h"
 #include <map>
 #include <set>
 
@@ -28,19 +29,20 @@ struct RecordingCatalogGenerationProjection {
     std::uint64_t scratch_peak_bytes{0},scratch_peak_allocated{0};
     RecordingIdentityHistoryHandle identity_history;
     RecordingGenerationManifest manifest;
-    std::map<std::string,RecordingSegmentV1> segments;
-    std::map<std::string,RecordingSegmentV2> segments_v2;
-    std::map<std::string,RecordingSegmentStateV2> states_v2;
-    std::map<std::string,RecordingTombstoneV1> tombstones;
-    std::map<std::string,RecordingTombstoneV2> tombstones_v2;
+    RecordingRetainedRows<RecordingSegmentV1,ParseRecordingSegmentV1,SerializeRecordingSegmentV1> segments;
+    RecordingRetainedRows<RecordingSegmentV2,ParseRecordingSegmentV2,SerializeRecordingSegmentV2> segments_v2;
+    RecordingRetainedRows<RecordingSegmentStateV2,ParseRecordingSegmentStateV2,SerializeRecordingSegmentStateV2> states_v2;
+    RecordingRetainedRows<RecordingTombstoneV1,ParseRecordingTombstoneV1,SerializeRecordingTombstoneV1> tombstones;
+    RecordingRetainedRows<RecordingTombstoneV2,ParseRecordingTombstoneV2,SerializeRecordingTombstoneV2> tombstones_v2;
     std::map<std::string,RecordingGenerationRetiredV2Projection> retired_v2;
-    std::map<std::string,std::string> media_paths,deletion_reasons;
-    std::map<std::string,EventRecordingLinkV1> event_links;
-    std::map<std::string,AnalysisObservationV1> observations;
-    std::map<std::string,AnalysisObservationV2> observations_v2;
-    std::map<std::string,RecordingConsumerReferenceV1> consumer_references;
-    std::map<std::string,ReferencedObservationV1> referenced_observations;
-    std::set<std::string> derived_accepted_references,mutation_ids;
+    RecordingRetainedTextRows media_paths,deletion_reasons;
+    RecordingRetainedRows<EventRecordingLinkV1,ParseEventRecordingLinkV1,SerializeEventRecordingLinkV1> event_links;
+    RecordingRetainedRows<AnalysisObservationV1,ParseAnalysisObservationV1,SerializeAnalysisObservationV1> observations;
+    RecordingRetainedRows<AnalysisObservationV2,ParseAnalysisObservationV2,SerializeAnalysisObservationV2> observations_v2;
+    RecordingRetainedRows<RecordingConsumerReferenceV1,ParseRecordingConsumerReferenceV1,SerializeRecordingConsumerReferenceV1> consumer_references;
+    RecordingRetainedRows<ReferencedObservationV1,ParseReferencedObservationV1,SerializeReferencedObservationV1> referenced_observations;
+    RecordingRetainedAcceptedSet derived_accepted_references;
+    std::set<std::string> mutation_ids;
     std::map<std::string,RecordingGenerationSourceProjection> source_bindings;
     std::map<std::string,RecordingGenerationJobProjection> derived_jobs;
     std::map<std::string,RecordingIdentityFirstAcceptance> accepted_states;

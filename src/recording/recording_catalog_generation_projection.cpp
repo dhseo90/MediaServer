@@ -40,7 +40,7 @@ std::string Quote(const std::string& value) {
         default:if(c<32){result+="\\u00";result+=hex[c>>4];result+=hex[c&15];}else result+=static_cast<char>(c);}}
     return result+'"';
 }
-template<class T> bool Decode(const RecordingCatalogSnapshotRow& row,std::map<std::string,T>* map,
+template<class T,class Map> bool Decode(const RecordingCatalogSnapshotRow& row,Map* map,
     bool(*parse)(const std::string&,T*,std::string*),std::string(*serialize)(const T&),
     std::string T::*id,std::string* error) {
     T value;
@@ -355,7 +355,21 @@ static bool BuildProjection(const std::filesystem::path& root,
         RecordingCatalogGenerationProjection p;p.manifest=manifest;p.order_history=chain.order_history;
         p.nonresident_history=stream_admission!=0;p.identity_history=chain.history;
         if(p.nonresident_history){p.completed_history=std::make_shared<RecordingCatalogHistoryRows>();output->completed_history=p.completed_history;
-            if(!p.completed_history->Create(error))return false;}
+            if(!p.completed_history->Create(error))return false;
+            p.segments.Bind(p.completed_history,"segment-v1");
+            p.segments_v2.Bind(p.completed_history,"segment-v2");
+            p.states_v2.Bind(p.completed_history,"state-v2");
+            p.tombstones.Bind(p.completed_history,"tombstone-v1");
+            p.tombstones_v2.Bind(p.completed_history,"tombstone-v2");
+            p.media_paths.Bind(p.completed_history,"media-path");
+            p.deletion_reasons.Bind(p.completed_history,"deletion-reason");
+            p.event_links.Bind(p.completed_history,"event-link");
+            p.derived_accepted_references.Bind(p.completed_history);
+            p.observations.Bind(p.completed_history,"observation-v1");
+            p.observations_v2.Bind(p.completed_history,"observation-v2");
+            p.consumer_references.Bind(p.completed_history,"consumer-reference");
+            p.referenced_observations.Bind(p.completed_history,"referenced-observation");
+        }
         if((!chain.history&&!SerializeRecordingOrderHistorySnapshot(chain.order_history,&bytes,error))||
             (!chain.order_history.bound_store.empty()&&chain.order_history.bound_store!=manifest.store_id))return Fail(error,"projection order history invalid");
         const auto first=[&](const std::string& id) {
@@ -534,7 +548,7 @@ static bool BuildProjection(const std::filesystem::path& root,
             if(!legacy.Finish(error))return false;
             // Source rows precede completion of the join; materialize only surviving active sources.
             if(!p.completed_history->Visit("source-binding",[&](const auto& id,const auto& bytes,std::string* detail){
-                if(!p.segments_v2.count(id))return true;
+                if(!p.segments_v2.count(id)||Lifecycle(p,id)==RecordingLifecycle::Deleted)return true;
                 RecordingCatalogSourceSummary value;if(!ParseRecordingCatalogSourceSummary(bytes,&value,detail))return false;
                 const auto origin=first(value.latest_mutation_id);if(!origin)return false;
                 p.source_bindings.emplace(id,RecordingGenerationSourceProjection{std::move(value),*origin});return true;
@@ -542,7 +556,7 @@ static bool BuildProjection(const std::filesystem::path& root,
             if(!CrossMaps(p,error))return false;
         } else if(!CrossMaps(p,error)||(enable_retired_v2&&(!CompactLegacyRetired(p,chain,error)||!CrossMaps(p,error))))return false;
         if(p.nonresident_history)for(auto it=p.source_bindings.begin();it!=p.source_bindings.end();){
-            if(!p.segments_v2.count(it->first))it=p.source_bindings.erase(it);else ++it;
+            if(!p.segments_v2.count(it->first)||Lifecycle(p,it->first)==RecordingLifecycle::Deleted)it=p.source_bindings.erase(it);else ++it;
         }
         if(!ActiveDetails(root,admission,p,error))return false;
         *output=std::move(p);if(error)error->clear();return true;

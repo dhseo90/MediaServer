@@ -210,7 +210,7 @@ bool RecordingCatalog::PrepareManagedCutoverCandidate(const RecordingCutoverFres
             !same(scratch.consumer_references_,p.consumer_references,SerializeRecordingConsumerReferenceV1)||!same(scratch.referenced_observations_,p.referenced_observations,SerializeReferencedObservationV1)||
             !same(scratch.media_relpaths_,p.media_paths,[](const auto& value){return value;})||!same(scratch.deletion_reasons_,p.deletion_reasons,[](const auto& value){return value;})||
             std::set<std::string>(scratch.mutation_ids_.begin(),scratch.mutation_ids_.end())!=p.mutation_ids||
-            std::set<std::string>(scratch.derived_accepted_references_.begin(),scratch.derived_accepted_references_.end())!=p.derived_accepted_references)
+            std::set<std::string>(scratch.derived_accepted_references_.begin(),scratch.derived_accepted_references_.end())!=std::set<std::string>(p.derived_accepted_references.begin(),p.derived_accepted_references.end()))
             return Fail(error,"cutover typed current values differ");
         if(scratch.orders_v2_.size()!=p.orders.size()||scratch.accepted_generation_ordinals_.size()!=p.accepted_states.size()||
            scratch.source_bindings_.size()!=p.source_bindings.size()||scratch.derived_jobs_.size()!=p.derived_jobs.size())return Fail(error,"cutover provenance counts differ");

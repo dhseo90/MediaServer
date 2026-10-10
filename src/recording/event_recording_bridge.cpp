@@ -349,9 +349,11 @@ analysis::EventRecordingBridgeResult CatalogEventRecordingBridge::TryResolve(
         if(identity.empty()||token.empty())return {true,false,{},{},{},"reference-invalid"};
         reference.reference_id="event-reference-"+token;
         reference.created_at_ms=options_.now_ms();
-        for(const auto& previous:catalog_.QueryConsumerReferences(reference.channel_id,"event",reference.owner_id))
-            if(previous.reference_id==reference.reference_id){reference.created_at_ms=previous.created_at_ms;break;}
-        std::string error;
+        std::string error;std::optional<RecordingConsumerReferenceV1> previous;
+        if(!catalog_.LookupConsumerReference(reference.reference_id,&previous,&error))
+            return {true,false,{},reference.reference_id,"unknown","reference-ownership-query-failed",true};
+        if(previous&&previous->channel_id==reference.channel_id&&previous->kind=="event"&&previous->owner_id==reference.owner_id)
+            reference.created_at_ms=previous->created_at_ms;
         RecordingDerivedReferenceResult existing;
         if(!catalog_.QueryDerivedReferenceResult(reference.reference_id,&existing,&error))
             return {true,false,{},reference.reference_id,"unknown","reference-ownership-query-failed",true};

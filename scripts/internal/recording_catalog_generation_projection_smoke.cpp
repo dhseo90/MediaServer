@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <array>
 #include <fstream>
+#include "../../src/recording/recording_catalog_history.h"
 #include <iostream>
 #include <stdexcept>
 #if MEDIA_SERVER_USE_OPENSSL
@@ -260,6 +261,21 @@ int main(int argc,char** argv) {
         preserve_legacy.Row("tombstone-v1",compatibility_tomb.segment_id,SerializeRecordingTombstoneV1(compatibility_tomb));preserve_legacy.Seal(root);
         B11Check(preserve_legacy.Build(root,&output,1024*1024,true)&&output.tombstones_v2.count(removed.segment_id)==1&&
             !output.retired_v2.count(removed.segment_id),"path or reason incomplete legacy full stays uncompressed");
+        { // Same original legacy rows, separate streaming consumer; no invented receipt.
+            auto cold_chain=preserve_legacy.chain;
+            Need(BuildRecordingIdentityHistory(root,cold_chain.first_acceptances,0,&cold_chain.history,&error));
+            std::string original;Need(SerializeRecordingCatalogSnapshot(preserve_legacy.snapshot,&original,&error));
+            Write(root/preserve_legacy.manifest.snapshot.name,original);
+            auto header=preserve_legacy.snapshot;header.rows.clear();RecordingCatalogGenerationProjection cold;
+            Need(BuildRecordingCatalogGenerationProjectionStream(root,preserve_legacy.manifest,cold_chain,header,1024*1024,1024*1024,&cold,&error,true));
+            B11Check(cold.segments_v2.cold()&&cold.segments_v2.resident_size()==0&&cold.tombstones_v2.resident_size()==0&&
+                cold.tombstones.resident_size()==0&&cold.tombstones_v2.count(removed.segment_id)&&
+                SerializeRecordingTombstoneV2(cold.tombstones_v2.at(removed.segment_id))==SerializeRecordingTombstoneV2(output.tombstones_v2.at(removed.segment_id))&&
+                !cold.source_bindings.count(removed.segment_id),"MEM83 noncompact legacy cold row preserves exact fields without deleted source summary");
+            const auto retained=cold.tombstones_v2.find(removed.segment_id);
+            Need(cold.completed_history->Finish(&error));Need(CloseRecordingIdentityHistory(cold_chain.history,&error));
+            B11Check(retained->second.segment.segment_id==removed.segment_id,"MEM83 acquired legacy value owns its lifetime past scratch Finish");
+        }
         auto origin_missing=all;origin_missing.snapshot.rows.erase(std::remove_if(origin_missing.snapshot.rows.begin(),origin_missing.snapshot.rows.end(),[](const auto& row) {
             return row.kind=="accepted-state"&&(row.key=="deleted-retired"||row.key=="deleted-retired-retry");}),origin_missing.snapshot.rows.end());
         origin_missing.chain.first_acceptances.erase(std::remove_if(origin_missing.chain.first_acceptances.begin(),origin_missing.chain.first_acceptances.end(),[](const auto& entry) {

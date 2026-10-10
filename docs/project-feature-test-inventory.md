@@ -4886,3 +4886,21 @@ Stop/join/최종 readback/Finish를 유한한 단계·thread 원자 상태로 �
 MEM82-C01 지연 수집 연결은 `node --test scripts/internal/recording_latency_trace.test.mjs`로 owning lock의 실제 release/reacquire, 잠금 밖 단계11~13과 범위 밖 enum 거부를 확인한다. 비용 복사본도 이 owner를 유지하며 분리 잠금 비용은 기존 latency trace로 측정한다.
 
 - `MEM82-C06`: 고정 view 전용 순차 scratch는 기존 고정 슬롯/소유권/Close를 사용하며 duplicate·미봉인·node/value 변조·부분 쓰기·consumer 거부를 미게시 실패로 처리한다. 완전한 순회와 마지막 process root 대조 전의 부분 출력은 후보 scratch만이며 정상 lookup authority가 아니다. `verify-recording-generation-checkpoint history-product`와 C01~C05 제품 경로로 확인한다.
+
+### MEM83-R01 — 보존 행 cold 소비와 실제 소유 수명
+
+- 내부 기능으로 UI/장시간 비대상. `verify-recording-generation-checkpoint`의 실제 Open/쓰기/병합/checkpoint/재Open과 기존 검색·증거·A 소비자를 사용한다.
+- 관측 v1/v2·consumer/referenced observation·event의 RAM 전체 사본 없이 원본 검증 완료 history를 조회한다. miss와 손상은 구분하고 invalid ID, 동일 ID 병합/충돌, prefix ID 순회, 부분 쓰기, consumer 거부와 Finish를 보호한다.
+- 고정 K는 cold history의 독립 복제본을 사용하고 F suffix는 현재 history에 반영한다. 82의 `concurrency`와 MEM81-G01의 원래 90초/8 writer/4 client/10000관측/720 packet/24파일·p95≤2000ms·최대≤5000ms를 유지한다.
+- MEM83-R02는 반환 handle까지 예산이 이동하고 마지막 reader 해제 때 반환되는 합산 admission을 검증한다. 중복 shared owner 청구·조용한 결과 잘림·예산 대기 중 공유 잠금은 허용하지 않는다.
+- MEM83-R03은 82 최종 소스와 새 소스를 같은 조건으로 비교한다. A=128/512/2048 보존 행·legacy, B=고정 원본/보존량에서 32회 요청과 해제 뒤 1초 간격 3회 idle, C=새 증거/A 1/4/8개 실제 게시 후 비용, D=이전 reader 보유·상한/거부·해제/재개. 각각 source/binary·실제 영속 증가·RAM/scratch·FD·측정 한계를 분리하며 미실행은 PASS가 아니다.
+
+MEM83-R01 검색 준비 범위는 기존 Query의 recording/metadata 구분과 같아야 한다. 관측 필터 없는 요청은 recording-only source identity를 사용하고, object/track/event/zone/rule/behaviour 요청은 관측을 포함한다. 같은 채널에서 범위를 바꿔도 이전 source를 잘못 재사용하지 않으며 이전 reader는 불변이다. 실제 병행 조건·관측 원본 수는 줄이지 않는다.
+
+- MEM83-R04 (내부, UI 비대상): generation Open의 축약 불가능 legacy segment/state/tombstone/path/reason을 동일 원문 cold 행으로 읽고 cross-map 검증·동일 조회·checkpoint·재Open을 유지한다. 원문 golden을 변환하지 않고 완료 자료의 resident_size=0을 확인한다. active 값의 읽기 비용은 기존 병행 90초/p95 2초/max 5초 기준을 그대로 적용한다.
+
+MEM83-R03 보완 반례: 동일 B32에서 먼저 실제 A 1개를 warmup 게시하고 이후 그 결과만 조회한다. worker 권한 callback의 두 번째 진입을 고정해 실행 1개와 queued/cancel 32개를 만들고, 미게시·기존 summary 유지·취소 입력 소유 해제를 확인한다. 취소 입력 retained count는 수정 전 33, 수정 후 1(활성 작업만)을 기대하는 사전 RED다. 실제 snapshot 5분 만료 계약은 수동 시계 +6분으로 행사하며 caller page의 소유는 별도로 남긴다. 이 시계는 제품 TTL 변경이 아니다.
+
+MEM83-R02 검색 owner 직접 범위: Catalog별 640MiB(snapshot128+current64+이전 caller 4×64+직렬 준비192)의 논리 reservation을 모델 최종 shared owner 및 준비 작업 수명에 결속한다. 기존 model64/snapshot128 admission 불변. 작은 시험 예산에서 old reader 보유·초과거부·output불변·최종해제·재개를 검사한다. 이는 evidence/A/세대/scratch 전체 합산 완료를 의미하지 않는다.
+
+MEM83-R01 공개 소비자 반례: 실제 패키지를 보존하고 runtime Finish로 cold 원본 조회를 종료한 뒤 증거 상세 GET은 권한 거부403을 우선하며 허용된 호출은503을 반환해야 한다. 예외 전파·deleted/missing200은 거부한다. `verify-evidence-package`의 native 경로이며 새 UI/서버를 실행하지 않는다.

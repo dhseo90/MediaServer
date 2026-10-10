@@ -189,7 +189,10 @@ bool RecordingSearchModel::Build(const std::vector<SearchDocument>& documents,
         if (!Account(d, &bytes, limits.max_bytes)) return Fail(error, "search-capacity-exceeded");
     }
     try {
+        auto lease=limits.residency?limits.residency->Reserve(bytes):std::shared_ptr<void>{};
+        if(limits.residency&&!lease)return Fail(error,"search-capacity-exceeded");
         auto model = std::make_shared<RecordingSearchModel>();
+        model->residency_=limits.residency;model->residency_lease_=std::move(lease);
         model->source_instance_ = source_instance;
         model->revision_ = revision;
         model->accounted_bytes_ = bytes;
@@ -232,7 +235,10 @@ bool RecordingSearchModel::ApplyDelta(const RecordingSearchModel& base, const Se
         return Fail(error, "search-delta-rebuild-required");
     if (delta.upserts.size() > limits.max_documents || delta.removed_ids.size() > limits.max_documents)
         return Fail(error, "search-capacity-exceeded");
+    if(!limits.residency)limits.residency=base.residency_;
     try {
+        auto workspace=limits.residency?limits.residency->Reserve(limits.max_bytes):std::shared_ptr<void>{};
+        if(limits.residency&&!workspace)return Fail(error,"search-capacity-exceeded");
         std::unordered_set<std::string> changed;
         std::size_t change_bytes = 0;
         for (const auto& id : delta.removed_ids) {
@@ -256,7 +262,7 @@ bool RecordingSearchModel::ApplyDelta(const RecordingSearchModel& base, const Se
         for (const auto& d : base.documents_) if (!changed.count(d.id)) merged.push_back(d);
         merged.insert(merged.end(), delta.upserts.begin(), delta.upserts.end());
         return Build(merged, delta.source_instance, delta.revision, output, error,
-                     {limits.max_documents, limits.max_bytes - change_bytes});
+                     {limits.max_documents, limits.max_bytes - change_bytes,limits.residency});
     } catch (const std::bad_alloc&) {
         return Fail(error, "search-capacity-exceeded");
     } catch (const std::length_error&) {

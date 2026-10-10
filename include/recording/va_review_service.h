@@ -46,6 +46,7 @@ public:
     bool ready() const {return ready_;}
     static bool ValidJobId(const std::string&);
 private:
+    friend struct VaReviewServiceResidencyProbe; // native ownership regression; no runtime hook
     struct Task {
         VaReviewJob job;
         std::optional<ConfirmedAnalysisRequest> confirmed;

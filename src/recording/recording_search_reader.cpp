@@ -81,10 +81,13 @@ void Locate(SearchDocument& d, const ConsumerReferenceResolution& resolution) {
 
 bool RecordingSearchReader::Refresh(const std::vector<std::string>& channels,
     const std::shared_ptr<const RecordingSearchModel>& previous,
-    std::shared_ptr<const RecordingSearchModel>* output, std::string* error, SearchModelLimits limits) const {
+    std::shared_ptr<const RecordingSearchModel>* output, std::string* error, SearchModelLimits limits, bool include_observations) const {
     if (!output) {if(error)*error="search-invalid-output";return false;}
+    if(!limits.residency)limits.residency=catalog_.SearchResidency();
+    auto workspace=limits.residency->Reserve(limits.max_bytes);
+    if(!workspace){if(error)*error="search-capacity-exceeded";return false;}
     SearchSourceBatch batch;
-    if (!catalog_.CaptureSearchSource(channels, previous.get(), &batch, error, limits)) return false;
+    if (!catalog_.CaptureSearchSource(channels, previous.get(), &batch, error, limits, include_observations)) return false;
     // 준비 순서만 동일 원본 표본별로 묶는다. 출력 위치와 검색 정렬은 바꾸지 않는다.
     // 단일 entry만 유지하며 요청 간 재사용하지 않는다. 아래 revision 재검증은 그대로 수행한다.
     using OriginalKey=std::tuple<std::string,std::string,std::string,std::uint64_t,std::string,std::uint64_t,std::uint64_t>;
@@ -121,7 +124,10 @@ bool RecordingSearchReader::WithEventFacts(const RecordingSearchModel& source,
     std::shared_ptr<const RecordingSearchModel>* output, std::string* error, SearchModelLimits limits,
     const RecordingSearchQuery* query) {
     if (!output) {if(error)*error="search-invalid-output";return false;}
+    if(!limits.residency)limits.residency=source.residency();
     try {
+        auto workspace=limits.residency?limits.residency->Reserve(limits.max_bytes):std::shared_ptr<void>{};
+        if(limits.residency&&!workspace){if(error)*error="search-capacity-exceeded";return false;}
         RecordingSearchMatches candidates;
         if(query) {
             if(!source.BehaviourCandidates(*query,&candidates,error))return false;
@@ -170,7 +176,7 @@ bool RecordingSearchReader::PlaybackCandidates(const RecordingSearchModel& model
     if(!output){if(error)*error="search-invalid-output";return false;}
     RecordingSearchQuery query;if(!NormalizeSearchQuery(input,&query,error))return false;
     SearchSourceBatch guard;
-    if(!catalog_.CaptureSearchSource(query.channels,&model,&guard,error))return false;
+    if(!catalog_.CaptureSearchSource(query.channels,&model,&guard,error,{},model.source_instance().rfind("recordings:",0)!=0))return false;
     if(guard.rebuild){if(error)*error="search-source-changed";return false;}
     try {
         std::vector<SearchPlaybackCandidate> candidates;
@@ -324,6 +330,9 @@ bool RecordingSearchReader::DerivedSeek(const std::string& channel,const std::st
 bool RecordingSearchReader::WithPlayback(const RecordingSearchModel& model,const RecordingSearchQuery& query,
     std::shared_ptr<const RecordingSearchModel>* output,std::string* error,SearchModelLimits limits) const {
     if(!output){if(error)*error="search-invalid-output";return false;}
+    if(!limits.residency)limits.residency=model.residency()?model.residency():catalog_.SearchResidency();
+    auto workspace=limits.residency->Reserve(limits.max_bytes);
+    if(!workspace){if(error)*error="search-capacity-exceeded";return false;}
     std::vector<SearchPlaybackCandidate> candidates;if(!PlaybackCandidates(model,query,&candidates,error))return false;
     try {
         std::vector<SearchDocument> documents;std::set<std::string> replaced_outputs;std::size_t bytes=0;

@@ -87,7 +87,7 @@ ApplicationServiceResult EvidenceApplicationService::List(const Query& query,con
         return {200,"OK",std::move(json)};
     }catch(...){return Error(503,"evidence-store-unavailable");}
 }
-ApplicationServiceResult EvidenceApplicationService::Get(const std::string& id,const Authorize& authorize){
+ApplicationServiceResult EvidenceApplicationService::Get(const std::string& id,const Authorize& authorize) try {
     if(!recording::EvidencePackageStore::ValidId(id))return Error(400,"evidence-invalid-id");
     if(!enabled_||stopped_)return Error(503,"evidence-disabled");
     if(!ready_)return Error(503,"evidence-store-unavailable");
@@ -109,6 +109,8 @@ ApplicationServiceResult EvidenceApplicationService::Get(const std::string& id,c
     }
     current+=']';
     return {200,"OK","{\"id\":"+EvidenceJsonQuote(id)+",\"manifest\":"+recording::SerializeEvidencePackage(manifest)+",\"currentSources\":"+current+"}"};
+} catch(const recording::RecordingRetainedReadError&) {
+    return Error(503,"evidence-unavailable");
 }
 std::shared_ptr<recording::EvidencePackageFile> EvidenceApplicationService::Asset(const std::string& id,
     std::size_t index,const Authorize& authorize,int* status,bool observations){

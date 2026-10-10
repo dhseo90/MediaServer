@@ -19,6 +19,7 @@
 
 #include "recording/recording_journal.h"
 #include "recording/recording_catalog_snapshot.h"
+#include "recording/recording_retained_rows.h"
 #include "recording/recording_store_port.h"
 #include "recording/retention_coordinator.h"
 #include "recording/recording_timeline.h"
@@ -110,6 +111,7 @@ class RecordingCatalog final : public RecordingStorePort {
     friend struct RecordingGenerationRequestProofProbe;
 #endif
 public:
+    const std::shared_ptr<SearchModelResidency>& SearchResidency()const{return search_residency_;}
     struct Options {
         std::filesystem::path sqlite_path;
         std::filesystem::path media_root;
@@ -142,7 +144,7 @@ public:
                              RecordingLocationCatalogSnapshot* result, std::string* error) const;
     bool CaptureSearchSource(const std::vector<std::string>& channels,
         const RecordingSearchModel* previous, SearchSourceBatch* result, std::string* error,
-        SearchModelLimits limits = {}) const;
+        SearchModelLimits limits = {}, bool include_observations = true) const;
     bool ValidateSearchSource(const SearchSourceBatch&, std::string* error) const;
     bool ValidateManagedWriterBinding(const RecordingJournal& journal,
                                      const std::filesystem::path& root,
@@ -261,6 +263,9 @@ public:
     std::vector<ReferencedObservationV1> QueryReferencedObservations(const std::string& channel) const;
     std::vector<RecordingConsumerReferenceV1> QueryConsumerReferences(
         const std::string& channel, const std::string& kind, const std::string& owner) const;
+    // Exact internal lookup. Unavailable/corrupt history is not a successful absence.
+    bool LookupConsumerReference(const std::string& id,
+        std::optional<RecordingConsumerReferenceV1>*,std::string*) const;
     // 파일 검출/삭제가 아닌 known segment의 내부 durable 상태 전이.
     bool MarkSegmentCorrupt(const std::string& segment_id,
                             const std::string& reason,
@@ -572,6 +577,7 @@ private:
     void ResolveObservationV2Locked(AnalysisObservationV2* observation) const;
     void NoteSearchMutationLocked(const RecordingMutationV1&) noexcept;
 
+    std::shared_ptr<SearchModelResidency> search_residency_{std::make_shared<SearchModelResidency>()};
     RecordingJournal& journal_;
     Options options_;
     mutable std::mutex mu_;
@@ -617,32 +623,32 @@ private:
     std::unordered_set<std::size_t> accepted_segment_state_replay_ordinals_;
     // B 후보의 영속 최초 좌표. v1 dense replay ordinal과 혼용하지 않는다.
     std::unordered_map<std::string,std::uint64_t> accepted_generation_ordinals_;
-    std::unordered_map<std::string, RecordingSegmentV1> segments_;
-    std::unordered_map<std::string, RecordingSegmentV2> segments_v2_;
+    RecordingRetainedRows<RecordingSegmentV1,ParseRecordingSegmentV1,SerializeRecordingSegmentV1> segments_;
+    RecordingRetainedRows<RecordingSegmentV2,ParseRecordingSegmentV2,SerializeRecordingSegmentV2> segments_v2_;
     SourceBindingPool source_bindings_;
     DerivedJobPool derived_jobs_;
     // 검증된 완료 작업의 선택적 후보만 보관한다. 영속 데이터의 권위나 resident를 대신하지 않는다.
     mutable JobReadContext timeline_read_candidates_;
-    std::unordered_set<std::string> derived_accepted_references_;
-    std::unordered_map<std::string, RecordingSegmentStateV2> states_v2_;
-    std::unordered_map<std::string, RecordingTombstoneV2> tombstones_v2_;
+    RecordingRetainedAcceptedSet derived_accepted_references_;
+    RecordingRetainedRows<RecordingSegmentStateV2,ParseRecordingSegmentStateV2,SerializeRecordingSegmentStateV2> states_v2_;
+    RecordingRetainedRows<RecordingTombstoneV2,ParseRecordingTombstoneV2,SerializeRecordingTombstoneV2> tombstones_v2_;
     // 삭제 완료 V2의 현재 상태 최소 영수증과 최초 삭제 원문 cold link다. 전문은 current map에
     // 보관하지 않으며, 소비 시마다 link를 재획득해 canonical hash와 함께 검증한다.
     std::unordered_map<std::string, RecordingRetiredV2Receipt> retired_v2_;
     std::unordered_map<std::string, RecordingMutationLink> retired_v2_links_;
     std::unordered_map<std::string, RecordingOrderReservationV1> orders_v2_;
-    std::unordered_map<std::string, std::string> media_relpaths_;
+    RecordingRetainedTextRows media_relpaths_;
     std::unordered_map<std::string, std::uint64_t> hold_counts_;
     struct DerivedWaitLease {std::string reference_json;std::unordered_set<std::string> source_ids;};
     std::unordered_map<std::uint64_t,DerivedWaitLease> derived_wait_leases_;
     std::uint64_t next_derived_wait_lease_{0};
-    std::unordered_map<std::string, std::string> deletion_reasons_;
-    std::unordered_map<std::string, EventRecordingLinkV1> event_links_;
-    std::unordered_map<std::string, AnalysisObservationV1> observations_;
-    std::unordered_map<std::string, AnalysisObservationV2> observations_v2_;
-    std::unordered_map<std::string, RecordingConsumerReferenceV1> consumer_references_;
-    std::unordered_map<std::string, ReferencedObservationV1> referenced_observations_;
-    std::unordered_map<std::string, RecordingTombstoneV1> tombstones_;
+    RecordingRetainedTextRows deletion_reasons_;
+    RecordingRetainedRows<EventRecordingLinkV1,ParseEventRecordingLinkV1,SerializeEventRecordingLinkV1> event_links_;
+    RecordingRetainedRows<AnalysisObservationV1,ParseAnalysisObservationV1,SerializeAnalysisObservationV1> observations_;
+    RecordingRetainedRows<AnalysisObservationV2,ParseAnalysisObservationV2,SerializeAnalysisObservationV2> observations_v2_;
+    RecordingRetainedRows<RecordingConsumerReferenceV1,ParseRecordingConsumerReferenceV1,SerializeRecordingConsumerReferenceV1> consumer_references_;
+    RecordingRetainedRows<ReferencedObservationV1,ParseReferencedObservationV1,SerializeReferencedObservationV1> referenced_observations_;
+    RecordingRetainedRows<RecordingTombstoneV1,ParseRecordingTombstoneV1,SerializeRecordingTombstoneV1> tombstones_;
     sqlite3* sqlite_db_{nullptr};
     sqlite3* generation_sqlite_db_{nullptr};
 #if MEDIA_SERVER_RECORDING_GENERATION_TESTING

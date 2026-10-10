@@ -386,7 +386,7 @@ std::unique_ptr<ResolvedRecordingMedia> RecordingReadService::ResolveMedia(
     return ResolveMediaWithContext(channel_id,segment_id,nullptr,std::move(options));
 }
 std::unique_ptr<ResolvedRecordingMedia> RecordingReadService::ResolveMediaWithContext(
-    const std::string& channel_id,const std::string& segment_id,RecordingCatalog::JobReadContext* context, MediaInspectionOptions options) const {
+    const std::string& channel_id,const std::string& segment_id,RecordingCatalog::JobReadContext* context, MediaInspectionOptions options) const try {
     if(std::chrono::steady_clock::now()>=options.deadline||(options.cancelled&&options.cancelled()))return {};
     if (!ValidateOpaqueId(segment_id, nullptr)) return {};
     // 삭제 ID는 어떤 fallback/파생 경로로도 재생 가능해질 수 없다. 누적 삭제 이력에서
@@ -506,7 +506,7 @@ std::unique_ptr<ResolvedRecordingMedia> RecordingReadService::ResolveMediaWithCo
     else return {};
     media->size_bytes_ = segment->size_bytes;
     return media;
-}
+} catch(const recording::RecordingRetainedReadError&){return {};}
 
 std::uint64_t RecordingReadService::TracePreparationStarted() noexcept {return completion::Now();}
 void RecordingReadService::TracePreparationCompleted(const char* reference,std::uint64_t started,

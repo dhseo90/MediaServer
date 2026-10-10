@@ -79,9 +79,11 @@ ApplicationServiceResult RecordingApplicationService::Search(const Query& raw,co
             std::lock_guard<std::mutex> lock(search_mutex_);recording::RecordingSearchReader search(catalog_,reader_);
             // 여러 채널의 확정이 준비 구간과 겹칠 수 있다. 원본 변경만 유한하게 재시도하며
             // 각 시도의 동일한 revision/재생 검증을 통과한 모델만 한 번 게시한다.
+            const bool observations=!query.objects.empty()||!query.tracks.empty()||!query.events.empty()||
+                !query.zones.empty()||!query.rules.empty()||!query.behaviours.empty();
             bool prepared=false;
             for(unsigned attempt=0;attempt<3;++attempt){
-                if(!search.Refresh(query.channels,state->source,&state->source,&error)){
+                if(!search.Refresh(query.channels,state->source,&state->source,&error,{},observations)){
                     if(error=="search-source-changed")continue;
                     return Failure(error);
                 }

@@ -314,6 +314,9 @@ int main(int argc,char** argv){try{
     const char byte='!';Check(::pwrite(corrupt,&byte,1,20)==1,"corruption injected");::close(corrupt);
     Check(!store.Open(partial_id,&error),"corrupt manifest never treated as missing-success");
     Check(service.Get(partial_id,permit).status==503&&!service.Asset(partial_id,0,permit,&status)&&status==503,"corruption is service failure, not ordinary missing 404");
+    Check(runtime.Finish(&error),"MEM83 original owner Finish before retained public consumer");
+    Check(service.Get(package_id,deny).status==403,"MEM83 authorization still precedes cold source access");
+    Check(service.Get(package_id,permit).status==503,"MEM83 closed cold source is public unavailable, not exception/deleted/missing success");
     service.Stop();Check(service.Get(package_id,permit).status==503,"service shutdown rejects requests");
     struct rusage usage{};Check(::getrusage(RUSAGE_SELF,&usage)==0,"resource measured");std::uint64_t rss=usage.ru_maxrss;
 #ifndef __APPLE__

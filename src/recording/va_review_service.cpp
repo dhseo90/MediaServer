@@ -127,6 +127,8 @@ bool VaReviewService::Cancel(const std::string& id,const std::string& owner,bool
     if(task->job.state=="queued") {
         queue_.erase(std::remove(queue_.begin(),queue_.end(),task),queue_.end());
         task->job.state="cancelled";task->job.error="review-cancelled";task->authorize={};
+        // Removed from queue under the same mutex: no worker can still consume these inputs.
+        task->question.clear();task->confirmed.reset();
     }
     if(Active(task->job))task->cancelled=true;
     wake_.notify_one();if(error)error->clear();return true;

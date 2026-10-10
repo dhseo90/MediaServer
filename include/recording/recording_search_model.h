@@ -2,6 +2,7 @@
 #pragma once
 
 #include <cstddef>
+#include <atomic>
 #include <cstdint>
 #include <memory>
 #include <optional>
@@ -48,9 +49,34 @@ struct SearchDocument {
     std::string unavailable_reason;
 };
 
+// One Catalog search owner. Reservations follow the final model/shared reader, not
+// the snapshot-pool entry. Work reservations never wait while holding product locks.
+class SearchModelResidency {
+    struct State {const std::size_t limit;std::atomic<std::size_t> used{0},peak{0};explicit State(std::size_t n):limit(n){}};
+    struct Lease {std::shared_ptr<State> state;std::size_t bytes;Lease(std::shared_ptr<State> s,std::size_t n):state(std::move(s)),bytes(n){} ~Lease(){state->used.fetch_sub(bytes);}};
+    std::shared_ptr<State> state_;
+public:
+    static constexpr std::size_t kDefaultBytes=640ULL*1024*1024;
+    explicit SearchModelResidency(std::size_t bytes=kDefaultBytes):state_(std::make_shared<State>(bytes)){}
+    std::shared_ptr<void> Reserve(std::size_t bytes) {
+        auto used=state_->used.load();
+        do {if(used>state_->limit||bytes>state_->limit-used)return {};}
+        while(!state_->used.compare_exchange_weak(used,used+bytes));
+        try {
+            auto lease=std::make_shared<Lease>(state_,bytes);
+            auto peak=state_->peak.load();while(peak<used+bytes&&!state_->peak.compare_exchange_weak(peak,used+bytes)){}
+            return lease;
+        } catch (...) {state_->used.fetch_sub(bytes);return {};}
+    }
+    std::size_t used()const{return state_->used.load();}
+    std::size_t peak()const{return state_->peak.load();}
+    std::size_t limit()const{return state_->limit;}
+};
 struct SearchModelLimits {
-    std::size_t max_documents{100000};
-    std::size_t max_bytes{64 * 1024 * 1024};
+    std::size_t max_documents, max_bytes;
+    std::shared_ptr<SearchModelResidency> residency;
+    SearchModelLimits(std::size_t documents=100000,std::size_t bytes=64*1024*1024,
+        std::shared_ptr<SearchModelResidency> owner={}):max_documents(documents),max_bytes(bytes),residency(std::move(owner)){}
 };
 // snapshot adapter가 복사 전에 같은 논리 admission을 적용한다. 미디어 건강도 검사는 아니다.
 bool AccountSearchDocument(const SearchDocument&, std::size_t* bytes, std::size_t limit);
@@ -80,6 +106,9 @@ struct RecordingSearchMatches {
 // 원본 snapshot의 일관성과 event 연결 검증은 adapter 책임이다. 이 모델은 파일 재생 증명이 아니다.
 class RecordingSearchModel {
 public:
+    RecordingSearchModel()=default;
+    RecordingSearchModel(const RecordingSearchModel&)=delete;
+    RecordingSearchModel& operator=(const RecordingSearchModel&)=delete;
     static bool Build(const std::vector<SearchDocument>& documents,
                       const std::string& source_instance, std::uint64_t revision,
                       std::shared_ptr<const RecordingSearchModel>* output,
@@ -100,8 +129,11 @@ public:
     const std::string& source_instance() const { return source_instance_; }
     std::uint64_t revision() const { return revision_; }
     std::size_t accounted_bytes() const { return accounted_bytes_; }
+    const std::shared_ptr<SearchModelResidency>& residency()const{return residency_;}
 
 private:
+    std::shared_ptr<SearchModelResidency> residency_;
+    std::shared_ptr<void> residency_lease_;
     bool QueryImpl(const RecordingSearchQuery&, RecordingSearchMatches*, std::string*, bool skip_behaviour) const;
     std::string source_instance_;
     std::uint64_t revision_{0};

@@ -222,7 +222,7 @@ ApplicationServiceResult RecordingApplicationService::Timeline(
 }
 
 std::unique_ptr<recording::ResolvedRecordingMedia> RecordingApplicationService::Media(
-    const std::string& opaque_id, const ChannelAuthorizer& authorize) const {
+    const std::string& opaque_id, const ChannelAuthorizer& authorize) const try {
     if (!authorize || !recording::ValidateOpaqueId(opaque_id, nullptr)) return {};
     const auto segment = catalog_.FindSegmentById(opaque_id);
     const auto segment_v2 = catalog_.FindSegmentV2ById(opaque_id);
@@ -245,5 +245,5 @@ std::unique_ptr<recording::ResolvedRecordingMedia> RecordingApplicationService::
     }
     if (!channel || !authorize(*channel)) return {};
     return reader_.ResolveMedia(*channel, opaque_id);
-}
+} catch(const recording::RecordingRetainedReadError&){return {};}
 }  // namespace ingress

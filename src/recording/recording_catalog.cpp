@@ -42,10 +42,7 @@
 namespace recording {
 namespace {
 
-class CatalogHistoryError final : public std::runtime_error {
-public:
-    using std::runtime_error::runtime_error;
-};
+using CatalogHistoryError = RecordingRetainedReadError;
 
 bool IsDerivedJobMutation(RecordingMutationType type) {
     return type==RecordingMutationType::DerivedJobIntent||type==RecordingMutationType::DerivedJobFiles||
@@ -489,9 +486,9 @@ bool RecordingCatalog::BuildGenerationScratchLocked(std::unique_ptr<RecordingCat
         if(!scratch->completed_history_) {Fail(error,"B completed history 없음");return failed();}
         if(p.manifest.cut_ordinal)scratch->generation_visible_ordinal_=p.manifest.cut_ordinal-1;
         const auto transfer=[](auto& from,auto& to){for(auto& item:from)to.emplace(item.first,std::move(item.second));from.clear();};
-        transfer(p.segments,scratch->segments_);transfer(p.segments_v2,scratch->segments_v2_);
-        transfer(p.states_v2,scratch->states_v2_);transfer(p.tombstones,scratch->tombstones_);
-        transfer(p.tombstones_v2,scratch->tombstones_v2_);transfer(p.media_paths,scratch->media_relpaths_);
+        p.segments.swap(scratch->segments_);p.segments_v2.swap(scratch->segments_v2_);
+        p.states_v2.swap(scratch->states_v2_);p.tombstones.swap(scratch->tombstones_);
+        p.tombstones_v2.swap(scratch->tombstones_v2_);p.media_paths.swap(scratch->media_relpaths_);
         for(auto& item:p.retired_v2) {
             RecordingMutationLink link;
             if(!journal_.MakeGenerationMutationLink(item.second.receipt.deletion_mutation_id,&link,error))return failed();
@@ -499,12 +496,12 @@ bool RecordingCatalog::BuildGenerationScratchLocked(std::unique_ptr<RecordingCat
             scratch->retired_v2_links_.emplace(item.first,std::move(link));
         }
         p.retired_v2.clear();
-        transfer(p.deletion_reasons,scratch->deletion_reasons_);transfer(p.event_links,scratch->event_links_);
-        transfer(p.observations,scratch->observations_);transfer(p.observations_v2,scratch->observations_v2_);
-        transfer(p.consumer_references,scratch->consumer_references_);transfer(p.referenced_observations,scratch->referenced_observations_);
+        p.deletion_reasons.swap(scratch->deletion_reasons_);p.event_links.swap(scratch->event_links_);
+        p.observations.swap(scratch->observations_);p.observations_v2.swap(scratch->observations_v2_);
+        p.consumer_references.swap(scratch->consumer_references_);p.referenced_observations.swap(scratch->referenced_observations_);
         transfer(p.orders,scratch->orders_v2_);
         scratch->mutation_ids_.insert(p.mutation_ids.begin(),p.mutation_ids.end());
-        scratch->derived_accepted_references_.insert(p.derived_accepted_references.begin(),p.derived_accepted_references.end());
+        p.derived_accepted_references.swap(scratch->derived_accepted_references_);
         for(const auto& item:p.accepted_states) {
             RecordingMutationLink link;if(!journal_.MakeGenerationMutationLink(item.first,&link,error))return failed();
             scratch->accepted_segment_state_mutations_.emplace(item.first,std::move(link));
@@ -778,6 +775,10 @@ bool RecordingCatalog::CanWriteLocked(std::string* error) const {
 }
 bool RecordingCatalog::CanReadLocked(std::string* error) const {
     if(!derived_job_state_authoritative_)return Fail(error,"derived job 원장 불확실: 재open 필요");
+    if(completed_history_&&!completed_history_->Healthy(error)){
+        derived_job_state_authoritative_=false;journal_.PoisonGeneration(this);
+        return Fail(error,"catalog retained history unavailable: reopen required");
+    }
     if(journal_.managed_&&(!opened_||!journal_.OwnsCatalog(this)))return Fail(error,"managed catalog write 소유권 거부");
     return true;
 }
@@ -1102,7 +1103,7 @@ bool RecordingCatalog::ApplyDerivedJobMutationLocked(const RecordingMutationV1& 
         DerivedJobEntry published(prepared->record,link?*link:RecordingMutationLink{},mutation.mutation_id);
         prepared->phase=PreparedDerivedMutation::Phase::Consumed;
         if(mutation.mutation_type==RecordingMutationType::DerivedJobCommitted)for(std::size_t i=0;i<record.ready->outputs.size();++i){
-            const auto& s=record.ready->outputs[i].segment;segments_v2_.emplace(s.segment_id,s);media_relpaths_[s.segment_id]=record.intent.outputs[i].final_relpath;
+            const auto& s=record.ready->outputs[i].segment;segments_v2_.emplace(s.segment_id,s);media_relpaths_.Set(s.segment_id,record.intent.outputs[i].final_relpath);
         }
         auto& destination=derived_jobs_.find(mutation.entity_id)->second;destination=std::move(published);
         prepared->applied=std::move(prepared->record);prepared->phase=PreparedDerivedMutation::Phase::Applied;
@@ -1181,7 +1182,7 @@ bool RecordingCatalog::ApplyDerivedJobMutationLocked(const RecordingMutationV1& 
         for(std::size_t i=0;i<published->ready->outputs.size();++i) {
             const auto& s=published->ready->outputs[i].segment;
             segments_v2_.emplace(s.segment_id,s);
-            media_relpaths_[s.segment_id]=published->intent.outputs[i].final_relpath;
+            media_relpaths_.Set(s.segment_id,published->intent.outputs[i].final_relpath);
         }
     }
     derived_jobs_.insert_or_assign(mutation.entity_id,std::move(published_entry));return true;
@@ -1771,7 +1772,7 @@ bool RecordingCatalog::ApplyMutationLocked(const RecordingMutationV1& mutation,
                pair.observation.observation_id==mutation.entity_id;
             const auto old=referenced_observations_.find(mutation.entity_id);
             if(ok&&old!=referenced_observations_.end())ok=MergeReferenced(old->second,&pair,error);
-            if(ok&&apply){referenced_observations_[mutation.entity_id]=std::move(pair);touch("referenced-observation",mutation.entity_id);}
+            if(ok&&apply){referenced_observations_.Set(mutation.entity_id,std::move(pair));touch("referenced-observation",mutation.entity_id);}
             break;
         }
         case RecordingMutationType::DerivedReferenceAccepted:
@@ -1825,8 +1826,8 @@ bool RecordingCatalog::ApplyMutationLocked(const RecordingMutationV1& mutation,
                     }
                     // 동일 identity는 재등록하지 않아 Corrupt/DeletionPending을 되살리지 않는다.
                 } else if(apply) {
-                    segments_[segment.segment_id] = segment;
-                    media_relpaths_[segment.segment_id] = *relpath;
+                    segments_.Set(segment.segment_id,segment);
+                    media_relpaths_.Set(segment.segment_id,*relpath);
                     touch("segment-v1",segment.segment_id);touch("media-path",segment.segment_id);
                 }
             }
@@ -1850,7 +1851,7 @@ bool RecordingCatalog::ApplyMutationLocked(const RecordingMutationV1& mutation,
                 }
             }
             if (ok) ok = ValidateEventLinkReferencesLocked(link, error);
-            if (ok&&apply){event_links_[link.link_id] = link;touch("event-link",link.link_id);}
+            if (ok&&apply){event_links_.Set(link.link_id,link);touch("event-link",link.link_id);}
             break;
         }
         case RecordingMutationType::ObservationPut: {
@@ -1860,7 +1861,7 @@ bool RecordingCatalog::ApplyMutationLocked(const RecordingMutationV1& mutation,
             if (ok && segments_.find(observation.frame_locator.segment_id) == segments_.end()) {
                 ok = Fail(error, "observation segment foreign key 위반");
             }
-            if (ok&&apply){observations_[observation.observation_id] = observation;touch("observation-v1",observation.observation_id);}
+            if (ok&&apply){observations_.Set(observation.observation_id,observation);touch("observation-v1",observation.observation_id);}
             break;
         }
         case RecordingMutationType::ObservationV2Put: {
@@ -1872,7 +1873,7 @@ bool RecordingCatalog::ApplyMutationLocked(const RecordingMutationV1& mutation,
             const auto previous = observations_v2_.find(observation.observation_id);
             if (ok && previous != observations_v2_.end())
                 ok = MergeObservation(previous->second, &observation, error);
-            if (ok&&apply){const auto id=observation.observation_id;observations_v2_[id] = std::move(observation);touch("observation-v2",id);}
+            if (ok&&apply){const auto id=observation.observation_id;observations_v2_.Set(id,std::move(observation));touch("observation-v2",id);}
             break;
         }
         case RecordingMutationType::DeletionRequested: {
@@ -1880,9 +1881,8 @@ bool RecordingCatalog::ApplyMutationLocked(const RecordingMutationV1& mutation,
             const auto reason = StringField(mutation.payload_json, "reason");
             ok = it != segments_.end();
             if (ok&&apply) {
-                it->second.lifecycle = RecordingLifecycle::DeletionPending;
-                deletion_reasons_[mutation.entity_id] =
-                    reason.value_or("manual-corrupt-cleanup");
+                auto changed=it->second;changed.lifecycle=RecordingLifecycle::DeletionPending;segments_.Set(mutation.entity_id,std::move(changed));
+                deletion_reasons_.Set(mutation.entity_id,reason.value_or("manual-corrupt-cleanup"));
                 touch("segment-v1",mutation.entity_id);touch("deletion-reason",mutation.entity_id);
             }
             else if(!ok) Fail(error, "삭제 요청 segment가 없음");
@@ -1902,13 +1902,13 @@ bool RecordingCatalog::ApplyMutationLocked(const RecordingMutationV1& mutation,
                     const auto& id=tombstone.segment_id;
                     RecordingSegmentStateV2 state;state.segment_id=id;state.lifecycle=RecordingLifecycle::DeletionPending;
                     state.reason=restored.deletion_reason;
-                    segments_v2_[id]=restored.segment;states_v2_[id]=std::move(state);tombstones_v2_[id]=std::move(restored);
+                    segments_v2_.Set(id,restored.segment);states_v2_.Set(id,std::move(state));tombstones_v2_.Set(id,std::move(restored));
                     if(!EraseRetiredLocked(id,error))return false;
                     touch("retired-v2",id);touch("segment-v2",id);touch("state-v2",id);touch("tombstone-v2",id);
                 }
-                tombstones_[tombstone.segment_id] = tombstone;
+                tombstones_.Set(tombstone.segment_id,tombstone);
                 const auto it = segments_.find(tombstone.segment_id);
-                if (it != segments_.end()) it->second.lifecycle = RecordingLifecycle::Deleted;
+                if (it != segments_.end()) {auto changed=it->second;changed.lifecycle=RecordingLifecycle::Deleted;segments_.Set(tombstone.segment_id,std::move(changed));}
                 media_relpaths_.erase(tombstone.segment_id);
                 hold_counts_.erase(tombstone.segment_id);
                 deletion_reasons_.erase(tombstone.segment_id);
@@ -1925,7 +1925,7 @@ bool RecordingCatalog::ApplyMutationLocked(const RecordingMutationV1& mutation,
                  it != segments_.end();
             if (!ok) Fail(error, "corruption known entity/reason 오류");
             else if (apply&&it->second.lifecycle == RecordingLifecycle::Finalized) {
-                it->second.lifecycle = RecordingLifecycle::Corrupt;touch("segment-v1",mutation.entity_id);
+                auto changed=it->second;changed.lifecycle=RecordingLifecycle::Corrupt;segments_.Set(mutation.entity_id,std::move(changed));touch("segment-v1",mutation.entity_id);
             }
             // 이미 Corrupt와 삭제 pending/completed 상태는 단조적으로 보존한다.
             break;
@@ -1972,7 +1972,7 @@ bool RecordingCatalog::ApplyMutationLocked(const RecordingMutationV1& mutation,
                     shared_binding.reset();
                 if(!shared_binding)shared_binding=std::make_shared<const RecordingSourceBindingV1>(std::move(binding));
             }
-            if (ok&&apply) {segments_v2_.emplace(v.segment_id,v);media_relpaths_[v.segment_id]=*relative;
+            if (ok&&apply) {segments_v2_.emplace(v.segment_id,v);media_relpaths_.Set(v.segment_id,*relative);
                 touch("segment-v2",v.segment_id);touch("media-path",v.segment_id);
                 if(bound){ok=StoreSourceEntryLocked(SourceBindingEntry(std::move(shared_binding),accepted_link,mutation.mutation_id),error);touch("source-binding",v.segment_id);}}
             break;
@@ -1989,9 +1989,9 @@ bool RecordingCatalog::ApplyMutationLocked(const RecordingMutationV1& mutation,
                 ok=old!=RecordingLifecycle::Deleted && (same || old==RecordingLifecycle::Finalized ||
                     (old==RecordingLifecycle::Corrupt && state.lifecycle==RecordingLifecycle::DeletionPending &&
                      state.reason=="manual-corrupt-cleanup"));
-                if(ok&&apply) {states_v2_[state.segment_id]=state;
+                if(ok&&apply) {states_v2_.Set(state.segment_id,state);
                     touch("state-v2",state.segment_id);
-                    if(state.lifecycle==RecordingLifecycle::DeletionPending){deletion_reasons_[state.segment_id]=state.reason;touch("deletion-reason",state.segment_id);}}
+                    if(state.lifecycle==RecordingLifecycle::DeletionPending){deletion_reasons_.Set(state.segment_id,state.reason);touch("deletion-reason",state.segment_id);}}
             }
             if(!ok)Fail(error,"V2 상태 전이 거부");
             break;
@@ -2010,7 +2010,7 @@ bool RecordingCatalog::ApplyMutationLocked(const RecordingMutationV1& mutation,
             } else if(ok) {
                 ok=segment!=segments_v2_.end() && EffectiveLifecycleV2Locked(mutation.entity_id)==RecordingLifecycle::DeletionPending &&
                    SerializeRecordingSegmentV2(segment->second)==SerializeRecordingSegmentV2(tombstone.segment) &&
-                   (apply?deletion_reasons_[mutation.entity_id]:
+                   (apply?(deletion_reasons_.count(mutation.entity_id)?deletion_reasons_.at(mutation.entity_id):std::string{}):
                     (deletion_reasons_.count(mutation.entity_id)?deletion_reasons_.at(mutation.entity_id):std::string{}))==tombstone.deletion_reason;
                 if(ok&&apply) {
                     if(generation_backend_||generation_row) {
@@ -2020,7 +2020,7 @@ bool RecordingCatalog::ApplyMutationLocked(const RecordingMutationV1& mutation,
                         else {if(completed_history_)source_bindings_.erase(mutation.entity_id);segments_v2_.erase(mutation.entity_id);states_v2_.erase(mutation.entity_id);
                             media_relpaths_.erase(mutation.entity_id);deletion_reasons_.erase(mutation.entity_id);touch("retired-v2",mutation.entity_id);
                             touch("segment-v2",mutation.entity_id);touch("state-v2",mutation.entity_id);touch("media-path",mutation.entity_id);touch("deletion-reason",mutation.entity_id);}
-                    } else {tombstones_v2_[mutation.entity_id]=tombstone;touch("tombstone-v2",mutation.entity_id);}
+                    } else {tombstones_v2_.Set(mutation.entity_id,tombstone);touch("tombstone-v2",mutation.entity_id);}
                     hold_counts_.erase(mutation.entity_id);touch("hold",mutation.entity_id);
                 }
             }
@@ -2917,7 +2917,7 @@ bool RecordingCatalog::CompleteDeletionV2(const RecordingTombstoneV2& tombstone,
     const auto segment=segments_v2_.find(id);
     if(payload.empty()||segment==segments_v2_.end()||EffectiveLifecycleV2Locked(id)!=RecordingLifecycle::DeletionPending||
        SerializeRecordingSegmentV2(segment->second)!=SerializeRecordingSegmentV2(tombstone.segment)||
-       deletion_reasons_[id]!=tombstone.deletion_reason||hold_counts_.count(id)||DerivedJobProtectsLocked(id))return Fail(error,"V2 삭제 완료 상태 불일치");
+       (deletion_reasons_.count(id)?deletion_reasons_.at(id):std::string{})!=tombstone.deletion_reason||hold_counts_.count(id)||DerivedJobProtectsLocked(id))return Fail(error,"V2 삭제 완료 상태 불일치");
     if(!RegisteredMediaAbsentLocked(id,error))return false;
     RecordingMutationV1 mutation;mutation.mutation_type=RecordingMutationType::SegmentV2Deleted;
     mutation.entity_id=id;mutation.payload_json=payload;
@@ -3230,7 +3230,7 @@ bool RecordingCatalog::RequestDeletion(const std::string& segment_id,
         const auto payload=SerializeRecordingSegmentStateV2(state);
         const auto effective=EffectiveLifecycleV2Locked(segment_id);
         if(payload.empty()||v2->second.pinned||hold_counts_.count(segment_id)||DerivedJobProtectsLocked(segment_id))return Fail(error,"V2 삭제 보호/사유 거부");
-        if(effective==RecordingLifecycle::DeletionPending)return deletion_reasons_[segment_id]==reason;
+        if(effective==RecordingLifecycle::DeletionPending)return (deletion_reasons_.count(segment_id)?deletion_reasons_.at(segment_id):std::string{})==reason;
         if(effective!=RecordingLifecycle::Finalized &&
            !(effective==RecordingLifecycle::Corrupt&&reason=="manual-corrupt-cleanup"))return Fail(error,"V2 삭제 전이 거부");
         RecordingMutationV1 mutation;mutation.mutation_type=RecordingMutationType::SegmentV2State;
@@ -3264,7 +3264,7 @@ bool RecordingCatalog::RequestDeletion(const std::string& segment_id,
     return AppendAndApplyLocked(std::move(mutation), error);
 } catch(const CatalogHistoryError& failure) { return Fail(error,failure.what()); }
 
-bool RecordingCatalog::PutReferencedObservation(const AnalysisObservationV2& observation, const RecordingConsumerReferenceV1& reference, std::string* error) {
+bool RecordingCatalog::PutReferencedObservation(const AnalysisObservationV2& observation, const RecordingConsumerReferenceV1& reference, std::string* error) try {
     recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__);
     ReferencedObservationV1 pair;pair.observation=observation;pair.reference=reference;
     if(observation.coordinates)pair.schema="media-server.referenced-observation.v2";
@@ -3280,9 +3280,9 @@ bool RecordingCatalog::PutReferencedObservation(const AnalysisObservationV2& obs
     RecordingMutationV1 mutation;mutation.mutation_type=RecordingMutationType::ReferencedObservationPut;
     mutation.entity_id=observation.observation_id;mutation.payload_json=SerializeReferencedObservationV1(pair);
     return AppendAndApplyLocked(std::move(mutation),error);
-}
+} catch(const CatalogHistoryError& failure) { return Fail(error,failure.what()); }
 bool RecordingCatalog::EvidenceRowsLocked(const EvidenceSnapshot& snapshot,
-    std::vector<ReferencedObservationV1>* output,std::vector<std::string>* encoded,std::string* error) const {
+    std::vector<ReferencedObservationV1>* output,std::vector<std::string>* encoded,std::string* error) const try {
     std::size_t scanned=0,bytes=0;
     for(const auto& [id,p]:referenced_observations_) {
         (void)id;
@@ -3297,7 +3297,7 @@ bool RecordingCatalog::EvidenceRowsLocked(const EvidenceSnapshot& snapshot,
         encoded->push_back(std::move(text));if(output)output->push_back(p);
     }
     std::sort(encoded->begin(),encoded->end());return true;
-}
+} catch(const CatalogHistoryError& failure) { return Fail(error,failure.what()); }
 bool RecordingCatalog::EvidenceDependenciesLocked(const EvidenceSnapshot& snapshot,
     std::vector<std::string>* output,std::string* error) const try {
     std::size_t bytes=0,scanned=0;
@@ -3383,7 +3383,7 @@ std::vector<ReferencedObservationV1> RecordingCatalog::QueryReferencedObservatio
     return result;
 }
 
-bool RecordingCatalog::PutConsumerReference(const RecordingConsumerReferenceV1& reference, std::string* error) {
+bool RecordingCatalog::PutConsumerReference(const RecordingConsumerReferenceV1& reference, std::string* error) try {
     recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__);
     if(!opened_||!options_.enable_v2_storage||!CanWriteLocked(error)||!ValidateRecordingConsumerReferenceV1(reference,error))
         return Fail(error,"consumer reference 저장 상태/입력 거부");
@@ -3397,8 +3397,8 @@ bool RecordingCatalog::PutConsumerReference(const RecordingConsumerReferenceV1& 
     mutation.entity_id=reference.reference_id;
     mutation.payload_json="{\"reference\":"+SerializeRecordingConsumerReferenceV1(reference)+"}";
     return AppendAndApplyLocked(std::move(mutation),error);
-}
-bool RecordingCatalog::AcceptDerivedReference(const RecordingConsumerReferenceV1& reference, std::string* error) {
+} catch(const CatalogHistoryError& failure) { return Fail(error,failure.what()); }
+bool RecordingCatalog::AcceptDerivedReference(const RecordingConsumerReferenceV1& reference, std::string* error) try {
     recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__);
     if(!opened_||!options_.enable_v2_storage||!CanWriteLocked(error)||
        !ValidateRecordingConsumerReferenceV1(reference,error)||reference.kind!="event")
@@ -3420,7 +3420,7 @@ bool RecordingCatalog::AcceptDerivedReference(const RecordingConsumerReferenceV1
         return false;
     }
     return true;
-}
+} catch(const CatalogHistoryError& failure) { return Fail(error,failure.what()); }
 bool RecordingCatalog::IsDerivedReferenceAccepted(const std::string& id, bool* accepted, std::string* error) const {
     recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__);
     if(accepted)*accepted=false;
@@ -3774,6 +3774,17 @@ bool RecordingCatalog::QueryDerivedReferenceResult(const std::string& id,
     if(error)error->clear();
     return true;
 } catch(const CatalogHistoryError& failure) { return Fail(error,failure.what()); }
+bool RecordingCatalog::LookupConsumerReference(const std::string& id,
+    std::optional<RecordingConsumerReferenceV1>* output,std::string* error) const try {
+    recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__);
+    if(!output||!opened_||!options_.enable_v2_storage||!ValidateOpaqueId(id,error)||!CanReadLocked(error))
+        return Fail(error,"consumer reference lookup unavailable");
+    const auto found=consumer_references_.find(id);
+    std::optional<RecordingConsumerReferenceV1> result;
+    if(found!=consumer_references_.end())result=found->second;
+    *output=std::move(result);if(error)error->clear();return true;
+} catch(const CatalogHistoryError& failure){return Fail(error,failure.what());}
+
 std::vector<RecordingConsumerReferenceV1> RecordingCatalog::QueryConsumerReferences(
     const std::string& channel, const std::string& kind, const std::string& owner) const {
     recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__);
@@ -3799,7 +3810,7 @@ void RecordingCatalog::ResolveObservationV2Locked(AnalysisObservationV2* o) cons
         o->locator_reason = "deleted";
         return;
     }
-    const RecordingSegmentV1* selected = nullptr;
+    std::optional<RecordingSegmentV1> selected;
     for (const auto& pair : segments_) {
         const auto& s = pair.second;
         if (s.channel_id != o->channel_id || s.source_id != o->source_id ||
@@ -3808,7 +3819,7 @@ void RecordingCatalog::ResolveObservationV2Locked(AnalysisObservationV2* o) cons
             s.end.time_base_num != 1 || s.end.time_base_den != 1000000000 ||
             o->pts < s.start.pts || o->pts >= s.end.pts) continue;
         if (selected) { o->locator_reason = "ambiguous-epoch"; return; }
-        selected = &s;
+        selected = s;
     }
     if (!selected) { o->locator_reason = "gap"; return; }
     const auto& s = *selected;
@@ -3847,7 +3858,7 @@ AnalysisObservationV2 RecordingCatalog::ResolveObservationV2(AnalysisObservation
     return observation;
 }
 
-bool RecordingCatalog::PutObservationV2(AnalysisObservationV2 observation, std::string* error) {
+bool RecordingCatalog::PutObservationV2(AnalysisObservationV2 observation, std::string* error) try {
     // 검증과 segment lifecycle 확인 및 journal append를 동일 catalog lock 아래 수행한다.
     recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__);
     AnalysisObservationV2 checked;
@@ -3865,7 +3876,7 @@ bool RecordingCatalog::PutObservationV2(AnalysisObservationV2 observation, std::
     mutation.entity_id = observation.observation_id;
     mutation.payload_json = "{\"observation\":" + SerializeAnalysisObservationV2(observation) + "}";
     return AppendAndApplyLocked(std::move(mutation), error);
-}
+} catch(const CatalogHistoryError& failure) { return Fail(error,failure.what()); }
 
 std::vector<AnalysisObservationV2> RecordingCatalog::QueryObservationsV2(const std::string& channel_id) const {
     recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__);
@@ -4515,8 +4526,8 @@ bool RecordingCatalog::ProjectMutationSqliteInTransactionLocked(const RecordingM
         const auto* recovery=RecoveryContentLocked(mutation);
         const bool recovered=recovery&&recovery->binding&&mutation.mutation_type==RecordingMutationType::SegmentV2BoundFinalized;
         SourceBindingHandle live_binding;
-        const RecordingSegmentV2* live_segment=nullptr;
-        const std::string* live_relative=nullptr;
+        std::optional<RecordingSegmentV2> live_segment;
+        std::optional<std::string> live_relative;
         if(!recovered&&view&&mutation.mutation_type==RecordingMutationType::SegmentV2BoundFinalized){
             const auto binding=source_bindings_.find(mutation.entity_id);
             const auto segment=segments_v2_.find(mutation.entity_id);
@@ -4528,7 +4539,7 @@ bool RecordingCatalog::ProjectMutationSqliteInTransactionLocked(const RecordingM
                 }
                 if(exact_view){
                     live_binding=binding->second.WarmOwned();
-                    if(live_binding){live_segment=&segment->second;live_relative=&relative->second;}
+                    if(live_binding){live_segment=segment->second;live_relative=relative->second;}
                 }
             }
         }
