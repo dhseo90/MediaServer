@@ -30,6 +30,7 @@ public:
     bool IsRunning() const;
 
 private:
+    friend struct RecordingHttpOwnershipProbe;
     struct Impl;
 
     WebRtcMediaApplicationService& media_sessions_;

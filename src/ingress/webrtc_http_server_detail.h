@@ -1024,7 +1024,7 @@ private:
             return std::nullopt;
         }
         bool contains_forbidden_field = false;
-        for (const std::string& field :
+        for (const std::string field :
              {"apiKey", "credential", "providerCredential", "prompt", "rawPrompt",
               "rawResponse", "sourceUrl", "sourceLocator", "imageData", "frameBytes"}) {
             if (profile_document.ContainsKey(field)) {
@@ -1121,7 +1121,7 @@ private:
             return std::nullopt;
         }
         bool client_declared_result_fields = false;
-        for (const std::string& field :
+        for (const std::string field :
              {"status", "source", "workflowSchema", "sourceReportSchema", "caseIds", "dimensions", "score", "provenance"}) {
             if (evaluation_document.HasTopLevelField(field)) {
                 client_declared_result_fields = true;
@@ -1201,7 +1201,7 @@ private:
             SetRegistryError(error_message, "VLM profile contractInvariants JSON is invalid: " + parse_error);
             return std::nullopt;
         }
-        for (const std::string& field :
+        for (const std::string field :
              {"runtimeVlmCallPerformed",
               "sidecarStored",
               "cloudProviderApiCalled",
@@ -1343,7 +1343,7 @@ private:
             SetRegistryError(error_message, "VLM runtimeContract sideEffects JSON is invalid: " + parse_error);
             return false;
         }
-        for (const std::string& field :
+        for (const std::string field :
              {"runtimeVlmCallPerformed",
               "cloudProviderApiCalled",
               "modelArtifactDownloaded",
@@ -1409,7 +1409,7 @@ private:
             SetRegistryError(error_message, "VLM privacyGuard redaction JSON is invalid: " + parse_error);
             return false;
         }
-        for (const std::string& field :
+        for (const std::string field :
              {"credentialMaterialStored",
               "promptStored",
               "rawProviderResponseStored",

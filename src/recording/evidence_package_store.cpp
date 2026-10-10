@@ -60,7 +60,14 @@ namespace {
 constexpr std::array<unsigned char,8> magic{{'M','S','E','V','P','0','1','\n'}};
 constexpr const char* pending = ".pending-evp-v1";
 bool Fail(std::string* error, const char* code) { if (error) *error = code; return false; }
-struct Fd { int value{-1}; ~Fd() { if (value >= 0) ::close(value); } };
+struct Fd {
+    int value{-1};
+    RecordingScratchResidency::Reservation* descriptor{nullptr};
+    bool Close(){if(value<0)return true;const int fd=value;value=-1;
+        if(::close(fd)){if(descriptor)descriptor->PreserveFd();return false;}
+        if(descriptor)descriptor->ReleaseFd();return true;}
+    ~Fd(){(void)Close();}
+};
 bool SafeFile(int fd, struct stat* output, bool single_link = true) {
     struct stat st{};
     if (fd < 0 || ::fstat(fd,&st) || !S_ISREG(st.st_mode) || st.st_uid != ::geteuid() ||
@@ -181,7 +188,9 @@ bool RecoverPending(int directory,std::uint64_t limit,std::string* error,const s
 }
 #endif
 } // namespace
-EvidencePackageFile::~EvidencePackageFile() { if (fd_>=0) ::close(fd_); }
+EvidencePackageFile::~EvidencePackageFile() {
+    if (fd_>=0) {if(::close(fd_)) descriptor_.PreserveFd(); else descriptor_.ReleaseFd();}
+}
 std::uint64_t EvidencePackageFile::AssetOffset(std::size_t index) const {
     std::uint64_t offset=payload_offset_;
     for (std::size_t i=0;i<index && i<manifest_.assets.size();++i) offset+=manifest_.assets[i].size_bytes;
@@ -217,9 +226,15 @@ std::shared_ptr<EvidencePackageFile> EvidencePackageStore::Open(const std::strin
 #if MEDIA_SERVER_USE_OPENSSL
     try {
         if (!ValidId(id)) { Fail(error,"evidence-invalid-id"); return {}; }
-        Fd directory{Directory(directory_,false)};
+        // Managed readers share the Journal's aggregate FD owner. Standalone
+        // compatibility callers use the existing process fallback, never per-reader limits.
+        auto resources=resources_?resources_:RecordingScratchResidency::Default(std::filesystem::temp_directory_path().string());
+        auto descriptor=resources->Reserve({0,1,0});
+        auto directory_descriptor=resources->Reserve({0,1,0});
+        if(!descriptor||!directory_descriptor){Fail(error,"evidence-store-unavailable");return {};}
+        Fd directory{Directory(directory_,false),&*directory_descriptor};
         if (directory.value<0) { Fail(error,"evidence-store-unavailable"); return {}; }
-        Fd file{::openat(directory.value,(id+".evp").c_str(),O_RDONLY|O_NOFOLLOW|O_CLOEXEC|O_NONBLOCK)};
+        Fd file{::openat(directory.value,(id+".evp").c_str(),O_RDONLY|O_NOFOLLOW|O_CLOEXEC|O_NONBLOCK),&*descriptor};
         if (file.value<0 && errno==ENOENT) { Fail(error,"evidence-not-found"); return {}; }
         struct stat before{};
         if (!SafeFile(file.value,&before) || before.st_size<16 || std::uint64_t(before.st_size)>limits_.package_bytes) { Fail(error,"evidence-file-unavailable"); return {}; }
@@ -231,13 +246,7 @@ std::shared_ptr<EvidencePackageFile> EvidencePackageStore::Open(const std::strin
         if(!raw_work){Fail(error,"evidence-store-unavailable");return {};}
         std::string text(std::size_t(length),'\0'); EvidencePackageV1 manifest;
         if (!Transfer(file.value,text.data(),text.size(),16,false,cancelled)) return {};
-        // Rejecting unknown nested fields still allocate parser path prefixes.
-        // Scan depth without allocation before admitting the parser, as for records.
-        std::size_t depth=0,maximum=0;bool quoted=false,escape=false;
-        for(const char c:text){if(quoted){if(escape)escape=false;else if(c=='\\')escape=true;else if(c=='"')quoted=false;continue;}
-            if(c=='"')quoted=true;else if(c=='{'||c=='['){++depth;maximum=std::max(maximum,depth);if(maximum>=130)break;}
-            else if((c=='}'||c==']')&&depth)--depth;}
-        auto work=memory_->ReserveOwned(64*1024+(128+2*maximum)*std::size_t(length));
+        auto work=memory_->ReserveOwned(EvidencePackageWorkspaceBytes(text));
         if(!work){Fail(error,"evidence-store-unavailable");return {};}
         if(!ParseEvidencePackage(text,&manifest,error))return {};
         std::uint64_t offset=16+length;
@@ -251,8 +260,9 @@ std::shared_ptr<EvidencePackageFile> EvidencePackageStore::Open(const std::strin
         if (offset!=std::uint64_t(before.st_size) || !HashRange(file.value,0,offset,&actual,cancelled) || id!="ep-"+actual) { Fail(error,"evidence-checksum-mismatch"); return {}; }
         struct stat after{};
         if (!SafeFile(file.value,&after) || before.st_size!=after.st_size || !SameTimes(before,after)) { Fail(error,"evidence-file-changed"); return {}; }
+        if(!directory.Close()){Fail(error,"evidence-store-unavailable");return {};}
         auto result=std::shared_ptr<EvidencePackageFile>(new EvidencePackageFile);
-        result->fd_=file.value; file.value=-1; result->payload_offset_=16+length; result->manifest_=std::move(manifest);
+        result->descriptor_=std::move(*descriptor);result->fd_=file.value; file.value=-1; result->payload_offset_=16+length; result->manifest_=std::move(manifest);
         BindEvidencePackageMemory(result->manifest_,*work,std::size_t(length));
         if(error)error->clear(); return result;
     } catch (...) { Fail(error,"evidence-store-unavailable"); return {}; }

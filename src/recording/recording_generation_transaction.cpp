@@ -48,13 +48,22 @@ bool Same(const struct stat& a,const struct stat& b){
 #endif
 }
 std::string Hex(const unsigned char* bytes,std::size_t size){std::string text;constexpr char digits[]="0123456789abcdef";for(std::size_t i=0;i<size;++i){text+=digits[bytes[i]>>4];text+=digits[bytes[i]&15];}return text;}
-bool Read(int dir,const std::string& name,RecordingGenerationOwnedFile* out,unsigned links=1,std::string* bytes=nullptr,std::uint64_t admission=0){
+bool Read(int dir,const std::string& name,RecordingGenerationOwnedFile* out,unsigned links=1,std::string* bytes=nullptr,std::uint64_t admission=0,SearchModelResidency::Reservation* raw_charge=nullptr){
     if(!Name(name))return false;
     Fd fd;fd.n=::openat(dir,name.c_str(),O_RDONLY|O_NOFOLLOW|O_CLOEXEC|O_NONBLOCK);struct stat before{},after{},named{};
     if(fd.n<0||::fstat(fd.n,&before)!=0||!S_ISREG(before.st_mode)||before.st_nlink!=links||before.st_size<0||(bytes&&static_cast<std::uint64_t>(before.st_size)>admission))return false;
     std::unique_ptr<EVP_MD_CTX,decltype(&EVP_MD_CTX_free)> hash(EVP_MD_CTX_new(),EVP_MD_CTX_free);
     if(!hash||EVP_DigestInit_ex(hash.get(),EVP_sha256(),nullptr)!=1)return false;
+    SearchModelResidency::Reservation ticket;
+    if(bytes){
+        const auto& owner=RecordingScratchResidency::Current();
+        if(!owner||!raw_charge||static_cast<std::uint64_t>(before.st_size)>SIZE_MAX-65)return false;
+        auto reserved=owner->memory()->ReserveOwned(static_cast<std::size_t>(before.st_size)+65);
+        if(!reserved)throw RecordingResourceUnavailable();
+        ticket=std::move(*reserved);
+    }
     char block[65536];std::uint64_t offset=0;std::string value;
+    if(bytes)value.reserve(static_cast<std::size_t>(before.st_size));
     while(offset<static_cast<std::uint64_t>(before.st_size)){
         ssize_t n;do{n=::pread(fd.n,block,std::min<std::uint64_t>(sizeof(block),before.st_size-offset),static_cast<off_t>(offset));}while(n<0&&errno==EINTR);
         if(n<=0||EVP_DigestUpdate(hash.get(),block,static_cast<std::size_t>(n))!=1)return false;
@@ -64,7 +73,7 @@ bool Read(int dir,const std::string& name,RecordingGenerationOwnedFile* out,unsi
     unsigned char digest[32];unsigned size=0;
     if(EVP_DigestFinal_ex(hash.get(),digest,&size)!=1||size!=32||::fstat(fd.n,&after)!=0||!Same(before,after)||::fstatat(dir,name.c_str(),&named,AT_SYMLINK_NOFOLLOW)!=0||!S_ISREG(named.st_mode)||!Same(after,named))return false;
     if(out)*out={{name,static_cast<std::uint64_t>(before.st_size),Hex(digest,size)},static_cast<std::uint64_t>(before.st_dev),static_cast<std::uint64_t>(before.st_ino)};
-    if(bytes)*bytes=std::move(value);
+    if(bytes){*bytes=std::move(value);*raw_charge=std::move(ticket);}
     return true;
 }
 bool Verify(int dir,const RecordingGenerationOwnedFile& expected,unsigned links=1,const char* alias=nullptr){
@@ -125,6 +134,21 @@ struct RecordingGenerationTransaction::State {
         receipt_links=1;return ReceiptBound()||Fail(error,"transaction receipt normalized binding changed");
     }
     bool Save(const RecordingGenerationReceipt& value,bool initial,std::string* error){
+        RecordingScratchResidency::Scope scope(resources);
+        const auto bound=RecordingGenerationReceiptSerializationBytes(value);
+        if(bound>(SIZE_MAX-65536)/4)return Fail(error,"recording-resource-unavailable");
+        // Four output capacities cover growth/concatenation plus the target and
+        // predecessor codec strings; inode validation nodes are bounded bycreated.
+        auto encoded=resources->Reserve({0,0,4*bound+65536},disk_domain);
+        if(!encoded)return Fail(error,"recording-resource-unavailable");
+        SearchModelResidency::Reservation copy_charge;
+        if(!value.memory.bytes()){
+            auto ticket=resources->memory()->ReserveOwned(RecordingGenerationReceiptMemoryBytes(value));
+            if(!ticket)return Fail(error,"recording-resource-unavailable");
+            copy_charge=std::move(*ticket);
+        }
+        RecordingGenerationReceipt next_value=value;
+        if(copy_charge.bytes())next_value.memory=std::move(copy_charge);
         std::string bytes;if(!SerializeRecordingGenerationReceipt(value,&bytes,error)||!Bound()||(initial?!Missing(root.n,kReceipt):!ReceiptBound()))return Fail(error,"transaction receipt binding/collision rejected");
         auto next=resources->Reserve({resources->DiskCharge(bytes.size(),disk_domain),0,0},disk_domain);
         if(!next)return Fail(error,"recording-resource-unavailable");
@@ -144,7 +168,7 @@ struct RecordingGenerationTransaction::State {
         Hit("receipt-renamed");if(::fsync(root.n)!=0)return Fail(error,"transaction receipt directory durability uncertain");Hit("receipt-directory-synced");
         RecordingGenerationOwnedFile saved;
         if(!Bound()||!Read(root.n,kReceipt,&saved)||saved.device!=static_cast<std::uint64_t>(a.st_dev)||saved.inode!=static_cast<std::uint64_t>(a.st_ino))return Fail(error,"transaction receipt postpublish binding rejected");
-        receipt=value;receipt_file=std::move(saved);prepared=true;receipt_links=1;receipt_disk=std::move(receipt_temp_disk);return true;
+        receipt=std::move(next_value);receipt_file=std::move(saved);prepared=true;receipt_links=1;receipt_disk=std::move(receipt_temp_disk);return true;
     }
 #endif
 };
@@ -183,10 +207,12 @@ bool RecordingGenerationTransaction::Load(const std::filesystem::path& root,std:
 #if MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
     auto& s=*state_;if(s.root.n>=0||!admission)return Fail(error,"transaction load state/admission invalid");
     if(!s.BindResources(root,error))return false;
+    RecordingScratchResidency::Scope scope(s.resources);
+    SearchModelResidency::Reservation raw_charge;
     s.root_path=root;s.root.n=Directory(root);std::string bytes;
     if(s.root.n<0||::fstat(s.root.n,&s.root_stat)!=0)return Fail(error,"transaction receipt root rejected");
-    if(!Read(s.root.n,kReceipt,&s.receipt_file,1,&bytes,admission)){
-        if(!Read(s.root.n,kReceipt,&s.receipt_file,2,&bytes,admission)||!Verify(s.root.n,s.receipt_file,2,kTemp))return Fail(error,"transaction receipt alias rejected");
+    if(!Read(s.root.n,kReceipt,&s.receipt_file,1,&bytes,admission,&raw_charge)){
+        if(!Read(s.root.n,kReceipt,&s.receipt_file,2,&bytes,admission,&raw_charge)||!Verify(s.root.n,s.receipt_file,2,kTemp))return Fail(error,"transaction receipt alias rejected");
         s.receipt_links=2;
     }
     if(!ParseRecordingGenerationReceipt(bytes,admission,&s.receipt,error))return false;
@@ -290,7 +316,7 @@ bool RecordingGenerationTransaction::CleanupUnprepared(std::string* error){
     return Fail(error,"transaction crypto/POSIX unsupported");
 #endif
 }
-bool RecordingGenerationTransaction::Prepare(const RecordingGenerationReceipt& value,std::string* error){
+bool RecordingGenerationTransaction::Prepare(const RecordingGenerationReceipt& value,std::string* error)try{
 #if MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
     auto& s=*state_;if(s.prepared||!s.Bound()||value.phase!=RecordingGenerationPhase::Prepared||value.stage_name!=s.stage_path.filename()||value.root_device!=static_cast<std::uint64_t>(s.root_stat.st_dev)||value.root_inode!=static_cast<std::uint64_t>(s.root_stat.st_ino)||value.stage_device!=static_cast<std::uint64_t>(s.stage_stat.st_dev)||value.stage_inode!=static_cast<std::uint64_t>(s.stage_stat.st_ino)||!Verify(s.root.n,value.marker)||!Verify(s.root.n,value.source))return Fail(error,"transaction original/stage proof mismatch");
     if(value.replacement_marker&&!Verify(s.stage.n,*value.replacement_marker))return Fail(error,"transaction replacement marker mismatch");
@@ -301,7 +327,7 @@ bool RecordingGenerationTransaction::Prepare(const RecordingGenerationReceipt& v
 #else
     (void)value;return Fail(error,"transaction crypto/POSIX unsupported");
 #endif
-}
+}catch(const RecordingResourceUnavailable& e){return Fail(error,e.what());}
 bool RecordingGenerationTransaction::Promote(std::string* error){
 #if MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
     auto& s=*state_;if(!s.ReceiptBound()||s.receipt.phase!=RecordingGenerationPhase::Prepared||!s.NormalizeReceipt(error))return Fail(error,"transaction promotion authority rejected");
@@ -338,13 +364,13 @@ bool RecordingGenerationTransaction::ReplaceMarker(std::string* error){
     return Fail(error,"transaction crypto/POSIX unsupported");
 #endif
 }
-bool RecordingGenerationTransaction::PublishIntent(std::string* error){
+bool RecordingGenerationTransaction::PublishIntent(std::string* error)try{
 #if MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
     auto next=state_->receipt;if(!Revalidate(error)||next.phase!=RecordingGenerationPhase::Prepared)return false;next.phase=RecordingGenerationPhase::PublishIntent;return state_->Save(next,false,error);
 #else
     return Fail(error,"transaction crypto/POSIX unsupported");
 #endif
-}
+}catch(const RecordingResourceUnavailable& e){return Fail(error,e.what());}
 bool RecordingGenerationTransaction::Revalidate(std::string* error) const{
 #if MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
     const auto& s=*state_;if(!s.ReceiptBound())return Fail(error,"transaction receipt authority changed");
@@ -403,12 +429,18 @@ bool RecordingGenerationTransaction::ValidateRecoveryOriginal(std::string* error
     return Fail(error,"transaction crypto/POSIX unsupported");
 #endif
 }
-bool RecordingGenerationTransaction::Cleanup(bool committed,std::string* error){
+bool RecordingGenerationTransaction::Cleanup(bool committed,std::string* error)try{
 #if MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
     auto& s=*state_;if(!s.ReceiptBound()||!Verify(s.root.n,s.receipt.source))return Fail(error,"transaction cleanup receipt/source changed");
     if(committed){
+        RecordingScratchResidency::Scope scope(s.resources);
+        const auto bound=RecordingGenerationReceiptSerializationBytes(s.receipt);
+        if(bound>(SIZE_MAX-65536)/4)return Fail(error,"recording-resource-unavailable");
+        auto encoded=s.resources->memory()->ReserveOwned(4*bound+65536);
+        if(!encoded)return Fail(error,"recording-resource-unavailable");
+        SearchModelResidency::Reservation raw_charge;
         std::string expected,actual;RecordingGenerationOwnedFile manifest;
-        if(!SerializeRecordingGenerationManifest(s.receipt.target,&expected,error)||!Read(s.root.n,"recording-generation.json",&manifest,1,&actual,65536)||actual!=expected||!Revalidate(error))return Fail(error,"transaction committed cleanup authority rejected");
+        if(!SerializeRecordingGenerationManifest(s.receipt.target,&expected,error)||!Read(s.root.n,"recording-generation.json",&manifest,1,&actual,65536,&raw_charge)||actual!=expected||!Revalidate(error))return Fail(error,"transaction committed cleanup authority rejected");
         if(s.receipt.predecessor_snapshot){
             const auto& file=*s.receipt.predecessor_snapshot;
             const auto* name=file.file.name.c_str();
@@ -458,5 +490,5 @@ bool RecordingGenerationTransaction::Cleanup(bool committed,std::string* error){
 #else
     (void)committed;return Fail(error,"transaction crypto/POSIX unsupported");
 #endif
-}
+}catch(const RecordingResourceUnavailable& e){return Fail(error,e.what());}
 } // namespace recording

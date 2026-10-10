@@ -1,6 +1,7 @@
 // 파일 용도: 원본과 분리된 evidence-hold 패키지의 원자 게시·검증 읽기.
 #pragma once
 #include "recording/evidence_package.h"
+#include "recording/recording_scratch_reservation.h"
 #include <filesystem>
 #include <memory>
 
@@ -35,6 +36,7 @@ public:
 private:
     friend class EvidencePackageStore;
     EvidencePackageFile() = default;
+    RecordingScratchResidency::Reservation descriptor_;
     int fd_{-1};
     std::uint64_t payload_offset_{0};
     EvidencePackageV1 manifest_;
@@ -47,8 +49,9 @@ public:
         std::size_t max_packages{4096};
     };
     EvidencePackageStore(std::filesystem::path directory, Limits limits,
-        std::shared_ptr<SearchModelResidency> memory=std::make_shared<SearchModelResidency>())
-        : memory_(std::move(memory)),directory_(std::move(directory)), limits_(limits) {}
+        std::shared_ptr<SearchModelResidency> memory=std::make_shared<SearchModelResidency>(),
+        std::shared_ptr<RecordingScratchResidency> resources={})
+        : memory_(std::move(memory)),resources_(std::move(resources)),directory_(std::move(directory)), limits_(limits) {}
     const std::shared_ptr<SearchModelResidency>& MemoryOwner()const{return memory_;}
     bool Recover(std::string* error) const;
     bool Publish(const EvidencePackageV1&, const std::vector<EvidencePayload>&,
@@ -61,6 +64,7 @@ public:
     static bool ValidId(const std::string&);
 private:
     std::shared_ptr<SearchModelResidency> memory_;
+    std::shared_ptr<RecordingScratchResidency> resources_;
     std::filesystem::path directory_;
     Limits limits_;
 };

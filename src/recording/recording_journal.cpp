@@ -774,6 +774,7 @@ struct RecordingJournalRecordLocation {
 // dense_slot만 메모리 vector의 인덱스다. global_ordinal은 영속 논리 좌표이며
 // gap/uint64 경계를 가질 수 있어 인덱스로 사용하지 않는다. v1 생성 시 둘은 동일하다.
 struct RecordingGenerationMutationRef {
+    SearchModelResidency::Reservation memory;
     std::shared_ptr<const char> epoch;
     std::string mutation_id,identity;
     std::uint64_t ordinal{0};
@@ -1008,6 +1009,23 @@ std::string GenerationIdentityKey(const RecordingJournalGenerationState& state,
     const auto& row=identity.first.value().first_row;
     return MutationIdentityKey(row.entity_id,row.occurred_at_ms,row.identity);
 }
+#if MEDIA_SERVER_USE_OPENSSL
+std::shared_ptr<RecordingGenerationMutationRef> MakeOwnedGenerationRef(
+    const RecordingJournalGenerationState& state,const RecordingJournalGenerationState::Identity& identity,
+    const std::string& id,const std::shared_ptr<SearchModelResidency>& owner) {
+    // Identity concatenation: two uint64 decimal fields, three separators and
+    // validated source entity/digest. Reserve before string/combined-block creation.
+    const auto key_bytes=identity.historical?identity.first.value().first_row.entity_id.size()+identity.first.value().first_row.identity.size()+43:identity.digest.size();
+    if(id.size()>SIZE_MAX-key_bytes||id.size()+key_bytes>(SIZE_MAX-sizeof(RecordingGenerationMutationRef)-256)/2)
+        throw RecordingResourceUnavailable();
+    auto ticket=owner->ReserveOwned(sizeof(RecordingGenerationMutationRef)+256+2*(id.size()+key_bytes));
+    if(!ticket)throw RecordingResourceUnavailable();
+    auto ref=std::make_shared<RecordingGenerationMutationRef>();ref->memory=std::move(*ticket);
+    ref->epoch=state.link_epoch;ref->mutation_id=id;ref->identity=GenerationIdentityKey(state,identity);
+    ref->ordinal=identity.historical?identity.first.value().first_global_ordinal:state.active.rows.at(identity.slot).global_ordinal;
+    return ref;
+}
+#endif
 #endif
 RecordingJournalRecordLocationHandle MakeLocation(const std::shared_ptr<const char>& generation,
     std::size_t ordinal,std::uint64_t offset,std::string_view raw,const RecordingMutationHandle& record,
@@ -1794,13 +1812,11 @@ bool RecordingJournal::MakeGenerationMutationLink(const std::string& id,Recordin
         const auto found=state.identities.find(id);
         if(found==state.identities.end())return Fail(error,"B link ID 없음");
         if(!state.link_epoch)state.link_epoch=std::make_shared<const char>(0);
-        auto ref=std::make_shared<RecordingGenerationMutationRef>();
-        ref->epoch=state.link_epoch;ref->mutation_id=id;ref->identity=GenerationIdentityKey(state,found->second);
-        ref->ordinal=found->second.historical?found->second.first.value().first_global_ordinal:
-            state.active.rows.at(found->second.slot).global_ordinal;
+        auto ref=MakeOwnedGenerationRef(state,found->second,id,memory_);
         RecordingMutationLink result;result.generation_ref_=std::move(ref);
         *output=std::move(result);if(error)error->clear();return true;
-    }catch(...){poisoned_=true;return Fail(error,"B link 자원/이력 실패");}
+    }catch(const RecordingResourceUnavailable& e){return Fail(error,e.what());}
+    catch(...){poisoned_=true;return Fail(error,"B link 자원/이력 실패");}
 #else
     (void)id;(void)output;return Fail(error,"B link unsupported");
 #endif
@@ -1839,12 +1855,11 @@ bool RecordingJournal::ReadGenerationRecovery(const std::shared_ptr<RecordingGen
         auto result=std::shared_ptr<RecordingGenerationRecoveryRow>(new RecordingGenerationRecoveryRow);
         result->mutation=row.mutation;result->retry=seen;result->global_ordinal=row.global_ordinal;
         if(!state.link_epoch)state.link_epoch=std::make_shared<const char>(0);
-        auto ref=std::make_shared<RecordingGenerationMutationRef>();ref->epoch=state.link_epoch;
-        ref->mutation_id=row.mutation.mutation_id;ref->identity=GenerationIdentityKey(state,first);
-        ref->ordinal=first.historical?first.first.value().first_global_ordinal:state.active.rows.at(first.slot).global_ordinal;
+        auto ref=MakeOwnedGenerationRef(state,first,row.mutation.mutation_id,memory_);
         result->link.generation_ref_=std::move(ref);
         *out=std::move(result);++session->next;return true;
-    }catch(...){poisoned_=true;return Fail(error,"B 복원 active 자원/색인 실패");}
+    }catch(const RecordingResourceUnavailable& e){return Fail(error,e.what());}
+    catch(...){poisoned_=true;return Fail(error,"B 복원 active 자원/색인 실패");}
 #else
     (void)session;(void)out;return Fail(error,"B 복원 unsupported");
 #endif

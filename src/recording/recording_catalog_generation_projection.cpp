@@ -69,12 +69,15 @@ std::optional<RecordingOrderReservationV1> Order(const RecordingCatalogGeneratio
 }
 std::optional<RecordingGenerationRetiredV2Projection> Retired(const RecordingCatalogGenerationProjection& p,const std::string& id) {
     if(!p.nonresident_history){const auto it=p.retired_v2.find(id);return it==p.retired_v2.end()?std::nullopt:std::optional<RecordingGenerationRetiredV2Projection>(it->second);}
-    std::string value,error;bool found=false;
-    if(!p.completed_history->Get("retired-v2",id,&value,&found,&error))throw std::runtime_error(error);
+    RecordingColdRow owned;const auto& value=owned.bytes;std::string error;bool found=false;
+    if(!p.completed_history->GetOwned("retired-v2",id,&owned,&found,&error))throw std::runtime_error(error);
     if(!found)return {};
+    auto work=p.completed_history->MemoryOwner()->ReserveOwned(ingress::StrictJsonWorkspaceBytes(value,7,0,true));
+    if(!work)throw RecordingResourceUnavailable();
     RecordingRetiredV2Receipt receipt;std::optional<RecordingIdentityFirstAcceptance> first;
     if(!ParseRecordingRetiredV2Receipt(value,&receipt,&error)||!FindRecordingIdentityHistory(p.identity_history,receipt.deletion_mutation_id,&first,&error)||!first)
         throw std::runtime_error("projection retired history invalid");
+    BindRecordingRowMemory(receipt,*work,value.size());
     return RecordingGenerationRetiredV2Projection{std::move(receipt),*first};
 }
 template<class Visitor> bool EachRetired(const RecordingCatalogGenerationProjection& p,const Visitor& visitor,std::string* error) {

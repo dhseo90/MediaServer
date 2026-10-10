@@ -12,7 +12,8 @@ public:
         recording::VaReviewProviderOptions provider, std::uint64_t reserve,
         recording::VaReviewService::Infer infer={},
         std::chrono::milliseconds confirmation_ttl=std::chrono::minutes(5),
-        std::shared_ptr<recording::SearchModelResidency> memory=std::make_shared<recording::SearchModelResidency>());
+        std::shared_ptr<recording::SearchModelResidency> memory=std::make_shared<recording::SearchModelResidency>(),
+        std::shared_ptr<recording::RecordingScratchResidency> resources={});
     ApplicationServiceResult Submit(const std::string& body,const std::string& owner,Authorize);
     ApplicationServiceResult List(const std::string& package_id,const Authorize&,bool can_execute);
     ApplicationServiceResult Get(const std::string& id,const Authorize&);
@@ -29,6 +30,7 @@ public:
     ApplicationServiceResult AnalysisJob(const std::string& id,const std::string& owner,bool admin,bool write,const Authorize&,bool cancel);
     void Stop(){stopped_=true;service_.Stop();}
 private:
+    friend struct VaReviewApplicationResidencyProbe;
     struct Draft {
         recording::ConfirmedAnalysisRequest input;
         std::string id,channel,job_id;

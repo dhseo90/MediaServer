@@ -1,6 +1,7 @@
 // 파일 용도: owner/nofollow/용량/원자성 경계 안에서 검토 결과를 보존한다.
 #include "recording/va_review_store.h"
 #include "recording/va_review_confirmed_record.h"
+#include "domain/strict_json.h"
 #include <algorithm>
 #include <cerrno>
 #include <dirent.h>
@@ -23,22 +24,16 @@ std::size_t Charge(std::size_t bytes,std::size_t factor,std::size_t fixed=0) {
     if(bytes>(std::numeric_limits<std::size_t>::max()-fixed)/factor)throw RecordingResourceUnavailable();
     return fixed+factor*bytes;
 }
-std::size_t JsonDepth(const std::string& bytes) {
-    std::size_t depth=0,maximum=0;bool quoted=false,escaped=false;
-    for(const char c:bytes){
-        if(quoted){if(escaped)escaped=false;else if(c=='\\')escaped=true;else if(c=='"')quoted=false;continue;}
-        if(c=='"')quoted=true;
-        else if(c=='{'||c=='['){++depth;maximum=std::max(maximum,depth);if(maximum>=130)return 130;}
-        else if((c=='}'||c==']')&&depth)--depth;
-    }
-    return maximum;
-}
-// Strict JSON bounds nesting at 128 but constructs the rejecting child path too.
-// 2*depth covers simultaneously retained path string capacities. The other 128
-// bytes/input byte cover member-vector growth, both key sets, nested codec docs,
-// canonical strings and typed validation/replay. This is a conservative reservation
-// for these codecs, not an allocator/RSS measurement. Sequential codec stages reuse it.
-std::size_t ParseWorkspace(const std::string& bytes){return Charge(bytes.size(),128+2*JsonDepth(bytes),64*1024);}
+std::size_t ParseWorkspace(const std::string& bytes) try {
+    // v3 -> v2 -> evidence -> snapshot -> referenced observation, plus v1 input/
+    // output or v2 evaluator replay. Fourteen owning raw/serialization layers;
+    // record validators retain a second typed replay while comparing decisions.
+    const auto element=std::max({sizeof(ReferencedObservationV1),sizeof(ReviewClaimSpec),
+        sizeof(VaReviewClaim),sizeof(EvidenceFrameV1),sizeof(EvidenceObservationSnapshotV2)});
+    const auto one=ingress::StrictJsonWorkspaceBytes(std::string_view(bytes).substr(8),14,element,true);
+    if(one>std::numeric_limits<std::size_t>::max()/2)throw RecordingResourceUnavailable();
+    return one*2;
+} catch(const std::overflow_error&) {throw RecordingResourceUnavailable();}
 struct OwnedCost {
     std::size_t bytes;
     void Add(std::size_t amount){if(amount>std::numeric_limits<std::size_t>::max()-bytes)throw RecordingResourceUnavailable();bytes+=amount;}
@@ -56,7 +51,7 @@ void BindRecord(VaReviewRecord& value,SearchModelResidency::Reservation& work) {
     input_cost.Vector(input.asset_indices);input_cost.Vector(input.pngs);
     for(const auto& png:input.pngs)input_cost.Vector(png);
     input.memory=work.Split(input_cost.bytes);
-    BindEvidencePackageMemory(input.manifest,work,SerializeEvidencePackage(input.manifest).size());
+    BindEvidencePackageMemory(input.manifest,work,0);
 }
 void BindRecord(VaReviewRecordV2& value,SearchModelResidency::Reservation& work) {
     OwnedCost own{sizeof(VaReviewRecordV2)-sizeof(EvidencePackageV1)};
@@ -73,7 +68,7 @@ void BindRecord(VaReviewRecordV2& value,SearchModelResidency::Reservation& work)
         for(const auto& gap:decision.gaps){own.String(gap.target_id);own.Vector(gap.frames);}
     }
     value.memory=work.Split(own.bytes);
-    BindEvidencePackageMemory(value.evidence,work,SerializeEvidencePackage(value.evidence).size());
+    BindEvidencePackageMemory(value.evidence,work,0);
 }
 void BindRecord(VaReviewRecordV3& value,SearchModelResidency::Reservation& work) {
     OwnedCost own{sizeof(VaReviewRecordV3)-sizeof(VaReviewRecordV2)};

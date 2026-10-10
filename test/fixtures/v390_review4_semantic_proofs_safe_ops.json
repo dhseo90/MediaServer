@@ -21976,7 +21976,7 @@
           "file": "src/ingress/webrtc_http_server.cpp",
           "symbol": "AppendClientSafeFollowUpDigestJson",
           "anchor": "<< \"\\\"rawEvidenceIncluded\\\":false,\"",
-          "line": 3198,
+          "line": 3201,
           "contextSha256": "1bdb845581afedced1b4f2251598a2379c3622f23efd8731a2150250902fbe01"
         },
         "readback": {
@@ -22017,14 +22017,14 @@
           "kind": "function-containment",
           "witness": "SAFE-069 action-state",
           "source": "src/ingress/webrtc_http_server.cpp:3191",
-          "target": "src/ingress/webrtc_http_server.cpp:3198"
+          "target": "src/ingress/webrtc_http_server.cpp:3201"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "runtime-readback",
           "witness": "SAFE-069 state-readback",
-          "source": "src/ingress/webrtc_http_server.cpp:3198",
+          "source": "src/ingress/webrtc_http_server.cpp:3201",
           "target": "scripts/internal/verify_auth_workflow.sh:1130"
         },
         {

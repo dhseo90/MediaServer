@@ -4924,3 +4924,13 @@ MEM84-D08/D09: 실제 anonymous live index와 transaction candidate writer에 �
 MEM84-D10: `recording_retained_lifetime_smoke <owned-root> --combined-d`에서 기존 ConfirmedSeed/Open 뒤 실제 model/page, cold observation DTO, A package 응답, 고정 K capture를 동시에 보유한다. 응답 깊은 복사로 기존 shared owner를 포화시키고 실제 요청 503·알려진 권한403·원본 불변을 확인한다. 응답 소비자 해제 뒤 같은 요청 재개, 이전 K/page/row를 유지한 checkpoint와 이전 자료 조회, 명시 Finish·최종 RAM/disk/FD 반환·재Open/package hash를 확인한다. capture는 제품의 기존 내부 함수를 제한된 검사 접근으로 호출하고 private 자료를 직접 주입하지 않는다. 새120분/서버/UI는 실행하지 않는다.
 
 MEM84-R04: 최대 허용 cold 행(16MiB+1)의 실제 chunk 저장/읽기와 기존 legacy event의 큰 overlap 배열을 각각 확인한다. 최대 raw 읽기와 typed parser 최대 적격성은 별개로 보고한다. RAM 예약 거부를 손상으로 poison하지 않고 consumer 보유/해제와 canonical 의미를 확인한다. 표본 RSS/heap은 모든 순간 peak의 증명이 아니다.
+
+### MEM85 — 84 이후 admission·송신·반복 수명 보완 (내부, UI 비대상)
+
+- MEM85-COLD-LEGACY-ADMISSION: 원래 유효한 20,969,472바이트 초과 legacy를 원본 검증하고 before 거부/owner 사용량을 보존한다. 새 typed/streaming 경계는 원본 허용량·canonical·반환 의미를 유지한다. 최대 physical raw와 재구성 typed 최대는 별도다.
+- MEM85-COLD-STRUCTURE/ROLLBACK/OWNERS: dense 배열·escape·수치 경계, 중복 키/타입/escape/숫자 거부, output 불변·예약 rollback, 마지막 shared 소유·deep copy·move·포화 후 재개를 검증한다. 근거 없는 배율 교체·새 입력 상한은 금지한다.
+- MEM85-HTTP (`scripts/internal/recording_http_owner_smoke.cpp`): 실제 서버의 기존 정상 recording route와 TCP에서 body/encoded 중첩 소유, 부분 송신·송신 대기·peer reset·기존 timeout·Stop·정제 capacity/권한 오류를 확인한다. 사용자 공간 송신 작업 종료 뒤 해제하며 커널 큐/상대 처리 완료와 구분한다.
+- MEM85-BC: 같은 PID B64×16=1024회, 매 배치1초 idle 및 종료1초×3표본. 기존 remembered_jobs/영속량을 유지하고 count/capacity/예약/heap 추세를 분리한다. C는 실제 신규16건; 기존 draft64/256KiB 포화 거부·미게시·권한/revision 보존 확인 후 실제5분 TTL이 지난 정상 정리/재개로 끝낸다. C 전용480초 수집 구간이며 요청별 timeout·제품 TTL·병행90초는 불변이다. 결과/원본 삭제·앱 재생성은 금지한다.
+- MEM85-METADATA: transaction 실제 receipt 읽기 전에 raw와 parser/DTO를 같은 owner에 예약하며 copy/move/포화/손상 rollback·원래 canonical bytes를 검증한다. 순수 codec의 caller 외부 입력과 제품 transaction의 소유 경계를 구분한다.
+- MEM85-D: MEM84-D10 실제 shared model/page/cold/A/K 소유를 재사용하고 변경된 큰 행/소비자 경계만 추가 검증한다. 포화·원본 불변·실제 해제·재개·Finish·재Open을 유지한다.
+- MEM85-REGRESSION: macOS/비특권 Linux의 관련 구성·Werror 및 최종8writer/4client/10000관측/720packet/24파일의90초 병행, p95≤2000ms/max≤5000ms·정상Finish. unavailable 포함. 최종candidate 독립판단/producer/readback은 실행PASS와 별도다.

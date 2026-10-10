@@ -420,9 +420,9 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                          site_request_diagnostic_enabled, accepted_at] {
                 struct ActiveConnectionGuard {
                     std::atomic<int>& active_connections;
-                    ~ActiveConnectionGuard() {
-                        active_connections.fetch_sub(1);
-                    }
+                    bool finished{false};
+                    void Finish() {if(!finished){active_connections.fetch_sub(1);finished=true;}}
+                    ~ActiveConnectionGuard() {Finish();}
                 } active_connection_guard{impl_->active_http_connections};
 
                 SetHttpSocketTimeouts(client_fd);
@@ -5246,6 +5246,13 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                     const bool sent = SendAll(client_fd, encoded);
                     site_diagnostic.Emit(SiteOperationsRequestDiagnostic::Phase::SendEnd, sent);
                 }
+                // Drain is the recording transport's lifetime boundary. Release the
+                // body after the encoded send buffer has gone, before notifying Drain.
+                // Removing Flight still precedes close, so shutdown cannot target a
+                // reused descriptor. Other retained readers own independent tickets.
+                response = HttpResponse{};
+                // No Impl access may remain after the recording drain notification.
+                active_connection_guard.Finish();
                 recording_flight.reset();
                 close(client_fd);
             }).detach();

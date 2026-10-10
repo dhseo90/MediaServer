@@ -113,6 +113,7 @@ class RecordingCatalog final : public RecordingStorePort {
 #endif
 public:
     const std::shared_ptr<SearchModelResidency>& SearchResidency()const{return search_residency_;}
+    const std::shared_ptr<RecordingScratchResidency>& ScratchResidency()const{return journal_.ScratchOwner();}
     struct Options {
         std::filesystem::path sqlite_path;
         std::filesystem::path media_root;

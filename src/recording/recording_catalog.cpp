@@ -347,7 +347,7 @@ bool RecordingCatalog::AcceptedLinkLocked(const std::string& id,RecordingMutatio
         if(ordinal){const auto i=accepted_generation_ordinals_.find(id);if(i==accepted_generation_ordinals_.end())return false;*ordinal=i->second;}return true;}
     const auto first=VisibleFirstLocked(id);if(!first||!RecordingSnapshotRequiresAcceptedState(first->first_row.type))return false;
     if(ordinal)*ordinal=first->first_global_ordinal;
-    if(out){std::string error;if(!journal_.MakeGenerationMutationLink(id,out,&error)){derived_job_state_authoritative_=false;throw CatalogHistoryError(error);}}
+    if(out){std::string error;if(!journal_.MakeGenerationMutationLink(id,out,&error)){if(error=="recording-resource-unavailable")throw RecordingResourceUnavailable();derived_job_state_authoritative_=false;throw CatalogHistoryError(error);}}
     return true;
 }
 std::optional<RecordingOrderReservationV1> RecordingCatalog::OrderLocked(const std::string& id) const {
@@ -372,8 +372,10 @@ std::optional<RecordingRetiredV2Receipt> RecordingCatalog::RetiredLocked(const s
     RecordingColdRow owned;const auto& bytes=owned.bytes;std::string error;bool found=false;
     if(!completed_history_->GetOwned("retired-v2",id,&owned,&found,&error)){derived_job_state_authoritative_=false;throw CatalogHistoryError(error);}
     if(!found)return {};
+    auto work=completed_history_->MemoryOwner()->ReserveOwned(ingress::StrictJsonWorkspaceBytes(bytes,7,sizeof(std::string),true));
+    if(!work)throw RecordingResourceUnavailable();
     RecordingRetiredV2Receipt value;if(!ParseRecordingRetiredV2Receipt(bytes,&value,&error)||value.segment_id!=id){derived_job_state_authoritative_=false;throw CatalogHistoryError("retired history domain mismatch");}
-    BindRecordingRowMemory(value,owned.memory,bytes.size());return value;
+    BindRecordingRowMemory(value,*work,bytes.size());return value;
 }
 bool RecordingCatalog::StoreRetiredLocked(const RecordingRetiredV2Receipt& value,const RecordingMutationLink& link,std::string* error) {
     if(!completed_history_){if(!retired_v2_.emplace(value.segment_id,value).second)return false;retired_v2_links_[value.segment_id]=link;return true;}
@@ -395,11 +397,16 @@ std::optional<RecordingCatalog::SourceBindingEntry> RecordingCatalog::SourceEntr
     if(!completed_history_)return {};
     RecordingColdRow owned;const auto& bytes=owned.bytes;std::string error;bool found=false;if(!completed_history_->GetOwned("source-binding",id,&owned,&found,&error)){derived_job_state_authoritative_=false;throw CatalogHistoryError(error);}
     if(!found)return {};
+    auto work=completed_history_->MemoryOwner()->ReserveOwned(ingress::StrictJsonWorkspaceBytes(bytes,7,sizeof(std::string),true));
+    if(!work)throw RecordingResourceUnavailable();
     RecordingCatalogSourceSummary value;SourceBindingEntry entry;
     if(!ParseRecordingCatalogSourceSummary(bytes,&value,&error)||value.id!=id||!journal_.MakeGenerationMutationLink(value.latest_mutation_id,&entry.mutation,&error)){
+        if(error=="recording-resource-unavailable")throw RecordingResourceUnavailable();
         derived_job_state_authoritative_=false;throw CatalogHistoryError("source history domain/link unavailable");}
     entry.id=value.id;entry.channel=value.channel;entry.source=value.source;entry.generation=value.generation;entry.track=value.track;
-    entry.order=value.order;entry.sample_count=value.sample_count;entry.latest_mutation_id=value.latest_mutation_id;entry.memory=owned.memory.Split(sizeof(entry)+512+8*bytes.size());return entry;
+    entry.order=value.order;entry.sample_count=value.sample_count;entry.latest_mutation_id=value.latest_mutation_id;std::size_t retained=sizeof(entry)+64;
+    for(const auto* text:{&entry.id,&entry.channel,&entry.source,&entry.generation,&entry.track,&entry.latest_mutation_id})retained+=text->capacity()+33;
+    entry.memory=work->Split(retained);return entry;
 }
 bool RecordingCatalog::StoreSourceEntryLocked(SourceBindingEntry value,std::string* error){
     if(completed_history_){std::string bytes;
@@ -421,15 +428,21 @@ std::optional<RecordingCatalog::DerivedJobEntry> RecordingCatalog::JobEntryLocke
     RecordingColdRow owned;const auto& bytes=owned.bytes;std::string error;bool found=false;
     if(!completed_history_->GetOwned("derived-job",id,&owned,&found,&error)){derived_job_state_authoritative_=false;throw CatalogHistoryError(error);}
     if(!found)return {};
+    auto work=completed_history_->MemoryOwner()->ReserveOwned(ingress::StrictJsonWorkspaceBytes(bytes,7,sizeof(std::string),true));
+    if(!work)throw RecordingResourceUnavailable();
     RecordingCatalogJobSummary value;DerivedJobEntry entry;
     if(!ParseRecordingCatalogJobSummary(bytes,&value,&error)||value.id!=id||
        (value.state!=DerivedJobState::Complete&&value.state!=DerivedJobState::Failed)||
        !journal_.MakeGenerationMutationLink(value.latest_mutation_id,&entry.mutation,&error)){
+        if(error=="recording-resource-unavailable")throw RecordingResourceUnavailable();
         derived_job_state_authoritative_=false;throw CatalogHistoryError("job history domain/link unavailable");}
     entry.id=std::move(value.id);entry.channel=std::move(value.channel);entry.reference=std::move(value.reference);
     entry.state=value.state;entry.files=value.files;entry.reserved_bytes=value.reserved_bytes;
     entry.output_ids=std::move(value.output_ids);entry.source_ids=std::move(value.source_ids);entry.latest_mutation_id=std::move(value.latest_mutation_id);
-    entry.memory=owned.memory.Split(sizeof(entry)+512+8*bytes.size());return entry;
+    std::size_t retained=sizeof(entry)+64;
+    for(const auto* text:{&entry.id,&entry.channel,&entry.reference,&entry.latest_mutation_id})retained+=text->capacity()+33;
+    for(const auto* ids:{&entry.output_ids,&entry.source_ids}){retained+=ids->capacity()*sizeof(std::string)+32;for(const auto& text:*ids)retained+=text.capacity()+33;}
+    entry.memory=work->Split(retained);return entry;
 }
 bool RecordingCatalog::EvictCompletedJobLocked(const std::string& id,std::string* error) {
     const auto found=derived_jobs_.find(id);
@@ -2018,10 +2031,10 @@ bool RecordingCatalog::ApplyMutationLocked(const RecordingMutationV1& mutation,
             } else if(ok && old!=tombstones_v2_.end()) {
                 ok=SerializeRecordingTombstoneV2(old->second)==SerializeRecordingTombstoneV2(tombstone);
             } else if(ok) {
+                const auto reason=deletion_reasons_.find(mutation.entity_id);
                 ok=segment!=segments_v2_.end() && EffectiveLifecycleV2Locked(mutation.entity_id)==RecordingLifecycle::DeletionPending &&
                    SerializeRecordingSegmentV2(segment->second)==SerializeRecordingSegmentV2(tombstone.segment) &&
-                   (apply?(deletion_reasons_.count(mutation.entity_id)?deletion_reasons_.at(mutation.entity_id):std::string{}):
-                    (deletion_reasons_.count(mutation.entity_id)?deletion_reasons_.at(mutation.entity_id):std::string{}))==tombstone.deletion_reason;
+                   (reason==deletion_reasons_.end()?tombstone.deletion_reason.empty():reason->second==tombstone.deletion_reason);
                 if(ok&&apply) {
                     if(generation_backend_||generation_row) {
                         const auto path=media_relpaths_.find(mutation.entity_id);RecordingRetiredV2Receipt receipt;
@@ -2511,13 +2524,15 @@ bool RecordingCatalog::MaterializeSourceBinding(const SourceBindingEntry& entry,
     *out=std::make_shared<const RecordingSourceBindingV1>(std::move(binding));return true;
 }
 bool RecordingCatalog::AcquireRetiredV2Locked(const std::string& id,RecordingTombstoneV2* out,std::string* error) const {
+    std::string local_error;if(!error)error=&local_error;error->clear();
     try {
         const auto receipt=RetiredLocked(id);RecordingMutationLink link;RecordingMutationHandle mutation;
         if(!receipt){derived_job_state_authoritative_=false;return Fail(error,"retired receipt 없음");}
-        if(completed_history_){if(!journal_.MakeGenerationMutationLink(receipt->deletion_mutation_id,&link,error)){derived_job_state_authoritative_=false;return false;}}
+        if(completed_history_){if(!journal_.MakeGenerationMutationLink(receipt->deletion_mutation_id,&link,error)){if(error&&*error=="recording-resource-unavailable")throw RecordingResourceUnavailable();derived_job_state_authoritative_=false;return false;}}
         else {const auto found=retired_v2_links_.find(id);if(found==retired_v2_links_.end())return false;link=found->second;}
         if(journal_.AcquireMutationLink(link,&mutation,error)&&MaterializeRetiredV2(*receipt,mutation,out,error))return true;
-    }catch(...){}
+        if(*error=="recording-resource-unavailable")return false;
+    }catch(const RecordingResourceUnavailable&){return Fail(error,"recording-resource-unavailable");}catch(...){}
     derived_job_state_authoritative_=false;return Fail(error,"retired V2 상세 재획득 거부");
 }
 bool RecordingCatalog::AcquireOriginalV2Locked(const std::string& id,RecordingSegmentV2* out,std::string* error) const try {
@@ -2529,8 +2544,9 @@ bool RecordingCatalog::AcquireOriginalV2Locked(const std::string& id,RecordingSe
 } catch(const CatalogHistoryError& failure) { return Fail(error,failure.what()); }
   catch(const RecordingResourceUnavailable& failure) { return Fail(error,failure.what()); }
 bool RecordingCatalog::AcquireSourceBindingOwnedLocked(const std::string& id,SourceBindingHandle* out,std::string* error) const {
+    std::string local_error;if(!error)error=&local_error;error->clear();
     if(out)out->reset();
-    const auto failed=[&](){derived_job_state_authoritative_=false;return Fail(error,"source binding 상세 재획득 거부");};
+    const auto failed=[&](){if(*error=="recording-resource-unavailable")return false;derived_job_state_authoritative_=false;return Fail(error,"source binding 상세 재획득 거부");};
     try {
         if(!out)return failed();
         const auto found=SourceEntryLocked(id);if(!found)return true;
@@ -2543,16 +2559,18 @@ bool RecordingCatalog::AcquireSourceBindingOwnedLocked(const std::string& id,Sou
         if(!AcquireOriginalV2Locked(id,&original,error)||!MaterializeSourceBinding(entry,original,mutation,out,error))return failed();
         // 삭제/현재 미디어 상태가 아니라, 원장에 저장한 불변 원본 결박을 검증한다.
         entry.weak=*out;return true;
-    }catch(...){if(out)out->reset();return failed();}
+    }catch(const RecordingResourceUnavailable&){if(out)out->reset();return Fail(error,"recording-resource-unavailable");}
+    catch(...){if(out)out->reset();return failed();}
 }
 bool RecordingCatalog::AcquireDerivedJobOwnedLocked(const std::string& id,DerivedJobHandle* out,std::string* error) const {
     return AcquireDerivedJobOwnedWithEnvelopeLocked(id,out,nullptr,error);
 }
 bool RecordingCatalog::AcquireDerivedJobOwnedWithEnvelopeLocked(const std::string& id,DerivedJobHandle* out,RecordingMutationHandle* envelope,std::string* error,
     std::shared_ptr<RecordingJournal::ColdReadProof>* proof) const {
+    std::string local_error;if(!error)error=&local_error;error->clear();
     if(out)out->reset();
     if(envelope)envelope->reset();
-    const auto failed=[&](){derived_job_state_authoritative_=false;return Fail(error,"derived job 상세 재획득 거부");};
+    const auto failed=[&](){if(*error=="recording-resource-unavailable")return false;derived_job_state_authoritative_=false;return Fail(error,"derived job 상세 재획득 거부");};
     try {
         if(!out)return failed();
         const auto found=JobEntryLocked(id);if(!found)return true;
@@ -2579,7 +2597,8 @@ bool RecordingCatalog::AcquireDerivedJobOwnedWithEnvelopeLocked(const std::strin
         *out=std::make_shared<const DerivedJobRecordV1>(std::move(record));
         const auto live=derived_jobs_.find(id);if(live!=derived_jobs_.end())live->second.weak=*out;
         if(envelope){*envelope=std::move(mutation);}return true;
-    }catch(...){if(out)out->reset();return failed();}
+    }catch(const RecordingResourceUnavailable&){if(out)out->reset();return Fail(error,"recording-resource-unavailable");}
+    catch(...){if(out)out->reset();return failed();}
 }
 bool RecordingCatalog::JobReadCurrentLocked(const DerivedJobEntry& entry,const DerivedJobRecordV1& record) const {
     if(!entry||record.intent.job_id!=entry.id||record.intent.reference.channel_id!=entry.channel||
@@ -2594,6 +2613,8 @@ bool RecordingCatalog::JobReadCurrentLocked(const DerivedJobEntry& entry,const D
     return true;
 }
 bool RecordingCatalog::AcquireJobForReadLocked(const std::string& id,DerivedJobHandle* out,JobReadContext* context,std::string* error,bool* strict_content) const {
+    std::string local_error;if(!error)error=&local_error;
+    error->clear();
     if(strict_content)*strict_content=false;
     if(!context)return AcquireDerivedJobOwnedLocked(id,out,error);
     if(out)out->reset();
@@ -2618,7 +2639,9 @@ bool RecordingCatalog::AcquireJobForReadLocked(const std::string& id,DerivedJobH
         try {if(journal_.OwnsCatalog(this)&&
             (proof_budget?journal_.AcquireMutationLinkForRead(this,entry.mutation,&proof,envelope,error):journal_.AcquireMutationLink(entry.mutation,envelope,error))&&*envelope&&
             (*envelope)->mutation_id==entry.latest_mutation_id)return true;}
+        catch(const RecordingResourceUnavailable&){envelope->reset();out->reset();return Fail(error,"recording-resource-unavailable");}
         catch(...){}
+        if(*error=="recording-resource-unavailable"){envelope->reset();out->reset();return false;}
         envelope->reset();out->reset();derived_job_state_authoritative_=false;
         return Fail(error,"derived job 상세 재획득 거부");
     };
@@ -2931,9 +2954,10 @@ bool RecordingCatalog::CompleteDeletionV2(const RecordingTombstoneV2& tombstone,
         return true;
     }
     const auto segment=segments_v2_.find(id);
+    const auto reason=deletion_reasons_.find(id);
     if(payload.empty()||segment==segments_v2_.end()||EffectiveLifecycleV2Locked(id)!=RecordingLifecycle::DeletionPending||
        SerializeRecordingSegmentV2(segment->second)!=SerializeRecordingSegmentV2(tombstone.segment)||
-       (deletion_reasons_.count(id)?deletion_reasons_.at(id):std::string{})!=tombstone.deletion_reason||hold_counts_.count(id)||DerivedJobProtectsLocked(id))return Fail(error,"V2 삭제 완료 상태 불일치");
+       (reason==deletion_reasons_.end()?!tombstone.deletion_reason.empty():reason->second!=tombstone.deletion_reason)||hold_counts_.count(id)||DerivedJobProtectsLocked(id))return Fail(error,"V2 삭제 완료 상태 불일치");
     if(!RegisteredMediaAbsentLocked(id,error))return false;
     RecordingMutationV1 mutation;mutation.mutation_type=RecordingMutationType::SegmentV2Deleted;
     mutation.entity_id=id;mutation.payload_json=payload;
@@ -3250,7 +3274,7 @@ bool RecordingCatalog::RequestDeletion(const std::string& segment_id,
         const auto payload=SerializeRecordingSegmentStateV2(state);
         const auto effective=EffectiveLifecycleV2Locked(segment_id);
         if(payload.empty()||v2->second.pinned||hold_counts_.count(segment_id)||DerivedJobProtectsLocked(segment_id))return Fail(error,"V2 삭제 보호/사유 거부");
-        if(effective==RecordingLifecycle::DeletionPending)return (deletion_reasons_.count(segment_id)?deletion_reasons_.at(segment_id):std::string{})==reason;
+        if(effective==RecordingLifecycle::DeletionPending){const auto prior=deletion_reasons_.find(segment_id);return prior==deletion_reasons_.end()?reason.empty():prior->second==reason;}
         if(effective!=RecordingLifecycle::Finalized &&
            !(effective==RecordingLifecycle::Corrupt&&reason=="manual-corrupt-cleanup"))return Fail(error,"V2 삭제 전이 거부");
         RecordingMutationV1 mutation;mutation.mutation_type=RecordingMutationType::SegmentV2State;
@@ -3750,7 +3774,8 @@ bool RecordingCatalog::SnapshotDerivedSourcesLocked(const RecordingConsumerRefer
         RecordingSegmentV2 segment;SourceBindingHandle binding;
         if(!AcquireOriginalV2Locked(id,&segment,error)){result->clear();return false;}
         if(!DerivedSourceRelevant(reference,segment,binding_metadata))return true;
-        if(!AcquireSourceBindingOwnedLocked(id,&binding,error)||(binding_metadata&&!binding)||
+        if(!AcquireSourceBindingOwnedLocked(id,&binding,error)){result->clear();return false;}
+        if((binding_metadata&&!binding)||
            (binding&&!ValidateRecordingSourceBindingForSegment(*binding,segment,error))){derived_job_state_authoritative_=false;result->clear();return false;}
         if(result->size()==256){result->clear();return Fail(error,"derived source relevant snapshot cap exceeded");}
         RecordingDerivedSourceSnapshotEntry entry;entry.segment=std::move(segment);if(binding)entry.binding=*binding;

@@ -33,6 +33,45 @@ struct RecordingGenerationTransactionProbe {
     static bool Bind(RecordingCatalog& c,const void* owner){return c.BindDerivedService(owner);}
     static void Unbind(RecordingCatalog& c,const void* owner){c.UnbindDerivedService(owner);}
     static bool Update(RecordingCatalog& c,const void* owner,const DerivedJobRecordV1& job,std::string* e){return c.UpdateDerivedJob(owner,job,e);}
+    // Exercise the real Catalog consumers without replacing Journal results or
+    // editing its original files. These probes hold the same Catalog mutex as callers.
+    static bool ConsumerAuthority(RecordingCatalog& c) {
+        std::lock_guard<std::mutex> lock(c.mu_);std::string detail;
+        return c.opened_&&c.generation_backend_&&c.derived_job_state_authoritative_&&c.CanReadLocked(&detail);
+    }
+    static bool ConsumerCold(RecordingCatalog& c,const std::string& kind,const std::string& id) {
+        std::lock_guard<std::mutex> lock(c.mu_);
+        return c.completed_history_&&(kind!="source-binding"||!c.source_bindings_.count(id))&&
+            (kind!="derived-job"||!c.derived_jobs_.count(id));
+    }
+    static std::size_t ConsumerHeadroom(RecordingCatalog& c,const std::string& kind,const std::string& id) {
+        std::lock_guard<std::mutex> lock(c.mu_);RecordingColdRow raw;bool found=false;std::string detail;
+        Need(c.completed_history_&&c.completed_history_->GetOwned(kind,id,&raw,&found,&detail)&&found);
+        // Leave enough for the authenticated raw row and typed parser, but no room
+        // for MakeGenerationMutationLink's independent shared ref allocation.
+        return raw.memory.bytes()+ingress::StrictJsonWorkspaceBytes(raw.bytes,7,sizeof(std::string),true);
+    }
+    static bool ReadConsumer(RecordingCatalog& c,const std::string& kind,const std::string& id,
+        std::string* value,std::string* detail) {
+        std::lock_guard<std::mutex> lock(c.mu_);
+        if(kind=="accepted") {
+            RecordingMutationLink link;std::uint64_t ordinal=0;
+            if(!c.AcceptedLinkLocked(id,&link,&ordinal))return false;
+            *value=id+":"+std::to_string(ordinal);return link.IsWeakLink();
+        }
+        if(kind=="source-binding") {
+            RecordingCatalog::SourceBindingHandle row;if(!c.AcquireSourceBindingOwnedLocked(id,&row,detail)||!row)return false;
+            *value=SerializeRecordingSourceBindingV1(*row);return true;
+        }
+        if(kind=="derived-job") {
+            RecordingCatalog::DerivedJobHandle row;if(!c.AcquireDerivedJobOwnedLocked(id,&row,detail)||!row)return false;
+            *value=SerializeDerivedJobRecord(*row);return row->state==DerivedJobState::Failed;
+        }
+        RecordingTombstoneV2 tombstone;
+        if(!c.AcquireRetiredV2Locked(id,&tombstone,detail))return false;
+        *value=SerializeRecordingTombstoneV2(tombstone);return true;
+    }
+
 
 
     static void StreamFailures(const std::filesystem::path& base) {
@@ -180,6 +219,18 @@ void IdentityResidency(const std::filesystem::path& root) {
                   "invalid direct first-acceptance key stays absent without poisoning Journal");
         }
         measure(journal,iteration?"reopen":"open",false);
+        if(iteration==0) {
+            RecordingMutationLink warm;Need(Links::Link(journal,"historical",&warm));warm={};
+            const auto memory=journal.MemoryOwner();const auto base=memory->used();
+            RecordingMutationLink first;Need(Links::Link(journal,"historical",&first));const auto live=memory->used();
+            auto shared=first;Check("MEM85-COLD-OWNERS",live>base&&memory->used()==live,"generation link shares one admitted immutable ref");
+            first={};Check("MEM85-COLD-OWNERS",memory->used()==live,"one link cannot release another reader ref");
+            shared={};Check("MEM85-COLD-OWNERS",memory->used()==base,"last generation ref releases its own allocation charge");
+            auto saturated=memory->ReserveOwned(memory->limit()-base);Need(bool(saturated));
+            Check("MEM85-COLD-ROLLBACK",!Links::Link(journal,"historical",&first)&&journal.HasManagedLease(),"generation ref admission failure leaves Journal healthy");
+            saturated.reset();Need(Links::Link(journal,"historical",&first));first={};
+            Check("MEM85-COLD-OWNERS",memory->used()==base,"generation ref resumes after actual capacity release");
+        }
         RecordingMutationLink link;RecordingMutationHandle record;
         Need(Links::Link(journal,"historical",&link));Need(Links::Get(journal,link,&record));
         Check("V430-R01",SerializeRecordingMutationV1(*record)+"\n"==original,
@@ -990,6 +1041,65 @@ AnalysisObservationV2 CutObservation() {
     o.analysis_namespace="tap";o.track_id="track";o.class_label="person";o.confidence=.8;
     o.bbox={0,0,.5,.5};o.selection_reasons={"track-start"};o.locator_reason="missing-provenance";return o;
 }
+void CatalogConsumerQuota(const std::filesystem::path& root) {
+    auto input=InputValue();Install(Active(input),root);
+    RecordingJournal journal(Options(root));Need(journal.Open(&error));
+    RecordingCatalog catalog(journal,CO(root));Need(catalog.Open(&error));
+    // Reach cold terminal state through actual service and deletion transitions.
+    int service=0;Need(RecordingGenerationTransactionProbe::Bind(catalog,&service));
+    auto failed=input.job;failed.state=DerivedJobState::Failed;failed.failure_reason="owned-cleanup";failed.cleaned_at_ms=30;
+    const bool updated=RecordingGenerationTransactionProbe::Update(catalog,&service,failed,&error);
+    RecordingGenerationTransactionProbe::Unbind(catalog,&service);Need(updated);
+    RecordingTombstoneV2 tombstone;tombstone.tombstone_id="quota-tomb";tombstone.segment=input.source.segment;
+    tombstone.deletion_reason="continuous-age";tombstone.deleted_at_ms=30;
+    Need(catalog.RequestDeletion("segment",tombstone.deletion_reason,&error));
+    Need(catalog.CompleteDeletionV2(tombstone,&error));
+    const auto memory=journal.MemoryOwner();
+    const auto manifest=Read(root/"recording-generation.json");
+    const auto active=Read(root/Manifest(root).active.name);
+    const std::array<std::pair<std::string,std::string>,4> cases={{{"accepted","bound"},
+        {"source-binding","segment"},{"derived-job",input.job.intent.job_id},{"retired-v2","segment"}}};
+    for(const auto& test:cases) {
+        const auto& kind=test.first;const auto& id=test.second;
+        Need(RecordingGenerationTransactionProbe::ConsumerCold(catalog,kind,id));
+        std::string expected,observed,detail;
+        Need(RecordingGenerationTransactionProbe::ReadConsumer(catalog,kind,id,&expected,&detail));
+        Need(RecordingGenerationTransactionProbe::ConsumerAuthority(catalog));
+        const auto base=memory->used();
+        const auto headroom=(kind=="source-binding"||kind=="derived-job")?
+            RecordingGenerationTransactionProbe::ConsumerHeadroom(catalog,kind,id):0;
+        Need(memory->used()==base&&headroom<memory->limit()-base);
+        auto occupied=memory->ReserveOwned(memory->limit()-base-headroom);Need(bool(occupied));
+        const auto held=memory->used();bool rejected=false;
+        try {rejected=!RecordingGenerationTransactionProbe::ReadConsumer(catalog,kind,id,&observed,&detail)&&
+            detail=="recording-resource-unavailable";}
+        catch(const RecordingResourceUnavailable&){rejected=true;}
+        bool rejected_without_error=false;
+        try{rejected_without_error=!RecordingGenerationTransactionProbe::ReadConsumer(catalog,kind,id,&observed,nullptr);}
+        catch(const RecordingResourceUnavailable&){rejected_without_error=true;}
+        const bool authority=RecordingGenerationTransactionProbe::ConsumerAuthority(catalog);
+        const bool rolled_back=memory->used()==held;
+        occupied.reset();
+        Check("MEM85-COLD-ROLLBACK",rejected&&rejected_without_error&&authority&&rolled_back&&memory->used()==base,
+            (kind+" Catalog quota refusal preserves authority and rolls back transient reservations").c_str());
+        detail.clear();observed.clear();
+        const bool resumed=RecordingGenerationTransactionProbe::ReadConsumer(catalog,kind,id,&observed,&detail);
+        Check("MEM85-COLD-ROLLBACK",resumed&&observed==expected&&memory->used()==base&&
+            RecordingGenerationTransactionProbe::ConsumerAuthority(catalog)&&journal.HasManagedLease(),
+            (kind+" same Catalog consumer resumes exact value after capacity release").c_str());
+        if(kind=="retired-v2")Check("MEM85-COLD-ROLLBACK",observed==SerializeRecordingTombstoneV2(tombstone),
+            "retired receipt-stage quota retry restores the original complete tombstone");
+        std::cout<<"[consumer-quota] kind="<<kind<<" base="<<base<<" headroom="<<headroom
+            <<" denied="<<rejected<<" authority="<<authority<<" resumed="<<resumed<<'\n';
+    }
+    std::optional<DerivedJobRecordV1> readback;
+    Check("MEM85-COLD-ROLLBACK",catalog.FindDerivedJob(input.job.intent.job_id,&readback,&error)&&readback&&
+        SerializeDerivedJobRecord(*readback)==SerializeDerivedJobRecord(failed)&&catalog.IsDeletedSegmentId("segment")&&
+        Read(root/"recording-generation.json")==manifest&&Read(root/Manifest(root).active.name)==active,
+        "public readback and immutable original files remain intact after all consumer quota failures");
+    Need(journal.Finish(&error));
+}
+
 void CheckpointMixedSuffix(const std::filesystem::path& root) {
     CutSourceFixture(root);
     {RecordingJournal j(Options(root));Need(j.Open(&error));RecordingCatalog c(j,CO(root));Need(c.Open(&error));
@@ -1167,18 +1277,65 @@ void LargeOwnedRows(const std::filesystem::path&){
      RecordingColdRow value;bool found=false;Need(rows->GetOwned("media-path","max-raw",&value,&found,&error));
      Check("MEM84-R04",found&&value.bytes==raw&&value.memory.bytes()>raw.size(),"actual maximum original cold raw allowance read with pre-reserved workspace");}
     EventRecordingLinkV1 event;event.link_id="large-event";event.event_id="event";event.source_id="source";event.channel_id="channel";
-    event.time_basis="utc-ms";event.created_at_ms=1;event.updated_at_ms=1;event.requested_range=UtcRangeV1{0,150000};
-    for(int i=0;i<150000;++i)event.ordered_overlaps.push_back({"segment-"+std::to_string(i),{i,i+1}});
+    event.time_basis="utc-ms";event.created_at_ms=1;event.updated_at_ms=1;event.requested_range=UtcRangeV1{0,300000};
+    for(int i=0;i<300000;++i)event.ordered_overlaps.push_back({"segment-"+std::to_string(i),{i,i+1}});
     Need(ValidateEventRecordingLinkV1(event,&error));
     const auto raw=SerializeEventRecordingLinkV1(event);const auto expected=event.ordered_overlaps.size();event={};
+    {EventRecordingLinkV1 original;Need(ParseEventRecordingLinkV1(raw,&original,&error));
+     Check("MEM85-COLD-LEGACY-ADMISSION",SerializeEventRecordingLinkV1(original)==raw&&raw.size()>20969472,
+        "original parser accepts canonical legacy row above prior 32R rejection threshold");}
     Need(rows->Put("event-link","large-event",raw,&error));
+    std::cout<<"[large-cold-before-read] rawBytes="<<raw.size()<<" overlaps="<<expected<<" otherOwnerBytes="<<memory->used()
+      <<" oldWorkspaceBytes="<<(65536+32*raw.size())<<" limit="<<memory->limit()<<std::endl;
     RecordingRetainedRows<EventRecordingLinkV1,ParseEventRecordingLinkV1,SerializeEventRecordingLinkV1> cold;cold.Bind(rows,"event-link");
     {auto value=cold.find("large-event");Check("MEM84-R04",value!=cold.end()&&value->second.ordered_overlaps.size()==expected&&SerializeEventRecordingLinkV1(value->second)==raw,
         "large legacy overlap array keeps canonical bytes and charged returned DTO");
      auto copied=value->second;Check("MEM84-R04",copied.memory.bytes()>0,"large legacy independent consumer stays charged");}
+    {auto first=cold.find("large-event");const auto held=memory->used();auto shared=first;
+     Check("MEM85-COLD-OWNERS",memory->used()==held,"iterator shares one immutable typed row charge");
+     {auto copied=first->second;const auto copy_live=memory->used();auto moved=std::move(copied);
+      Check("MEM85-COLD-OWNERS",copy_live>held&&memory->used()==copy_live&&moved.ordered_overlaps.size()==expected,
+        "deep copy acquires before copying and move transfers without another charge");}
+     Check("MEM85-COLD-OWNERS",memory->used()==held,"deep copy charge released after fields");
+     auto saturation=memory->ReserveOwned(memory->limit()-memory->used());Need(bool(saturation));bool denied=false;
+     try{auto copy=first->second;(void)copy;}catch(const RecordingResourceUnavailable&){denied=true;}
+     Check("MEM85-COLD-ROLLBACK",denied&&first->second.ordered_overlaps.size()==expected,"saturated copy preserves live source");}
+    {EventRecordingLinkV1 small;small.link_id="small";small.event_id="event";small.source_id="source";small.channel_id="channel";
+     small.requested_range=UtcRangeV1{0,2};small.ordered_overlaps={{"s",{0,1}}};small.missing_ranges={{1,2}};
+     small.status=EventRecordingLinkStatus::Partial;small.time_basis="utc-ms";small.created_at_ms=1;small.updated_at_ms=2;
+     small.completeness_reason="quote \" slash \\ newline\n unicode \xE2\x98\x83";
+     const auto canonical=SerializeEventRecordingLinkV1(small);EventRecordingLinkV1 output;
+     Need(ParseEventRecordingLinkV1(canonical,&output,&error));
+     Check("MEM85-COLD-STRUCTURE",SerializeEventRecordingLinkV1(output)==canonical,"partial coverage, escaped text and UTF-8 roundtrip");
+     std::vector<std::string> invalid;
+     auto replace=[&](const std::string& from,const std::string& to){auto bytes=canonical;const auto at=bytes.find(from);Need(at!=std::string::npos);bytes.replace(at,from.size(),to);invalid.push_back(bytes);};
+     replace("\"schema\":","\"link_id\":\"duplicate\",\"schema\":");
+     replace("\"ordered_overlaps\":[","\"ordered_overlaps\":{\"wrong\":[");
+     replace("\"start_ms\":0","\"start_ms\":01");
+     replace("quote ","\\uD800");
+     replace("\"start_ms\":0","\"start_ms\":9223372036854775808");
+     for(const auto& bytes:invalid){const bool rejected=!ParseEventRecordingLinkV1(bytes,&output,&error);
+       Check("MEM85-COLD-ROLLBACK",rejected&&SerializeEventRecordingLinkV1(output)==canonical,"duplicate/type/escape/number invalid input leaves output unchanged");}}
     Need(cold.ForEach([&](const auto& value){return value.ordered_overlaps.size()==expected;}));
     std::cout<<"[large-cold] rawBytes="<<raw.size()<<" overlaps="<<expected<<" reservedPeak="<<memory->peak()<<" live="<<memory->used()<<std::endl;
     Need(rows->Finish(&error));Check("MEM84-R04",memory->used()==0,"large row readers and scratch release after Finish");
+    {auto wide_rows=std::make_shared<RecordingCatalogHistoryRows>();Need(wide_rows->Create(&error));
+     const auto owner=wide_rows->MemoryOwner();EventRecordingLinkV1 wide;
+     wide.link_id="wide-event";wide.event_id="event";wide.source_id="source";wide.channel_id="channel";
+     wide.time_basis="utc-ms";wide.created_at_ms=1;wide.updated_at_ms=1;wide.requested_range=UtcRangeV1{0,300000};
+     wide.ordered_overlaps.reserve(300000);
+     for(int i=0;i<300000;++i){const auto id=std::to_string(i);wide.ordered_overlaps.push_back({id+std::string(128-id.size(),'s'),{i,i+1}});}
+     Need(ValidateEventRecordingLinkV1(wide,&error));const auto bytes=SerializeEventRecordingLinkV1(wide);wide={};
+     EventRecordingLinkV1 original;Need(ParseEventRecordingLinkV1(bytes,&original,&error));
+     Need(SerializeEventRecordingLinkV1(original)==bytes);original={};
+     Need(wide_rows->Put("event-link","wide-event",bytes,&error));
+     RecordingRetainedRows<EventRecordingLinkV1,ParseEventRecordingLinkV1,SerializeEventRecordingLinkV1> wide_cold;wide_cold.Bind(wide_rows,"event-link");
+     {auto row=wide_cold.find("wide-event");Check("MEM85-COLD-STRUCTURE",row->second.ordered_overlaps.size()==300000&&
+       row->second.ordered_overlaps.front().segment_id.size()==128&&SerializeEventRecordingLinkV1(row->second)==bytes,
+       "maximum opaque ID width and 300k overlaps retain exact canonical bytes under unchanged budget");
+      std::cout<<"[wide-cold] rawBytes="<<bytes.size()<<" typedBytes="<<row->second.memory.bytes()<<" ownerLive="<<owner->used()<<" ownerPeak="<<owner->peak()<<std::endl;}
+     Need(wide_rows->Finish(&error));Check("MEM85-COLD-OWNERS",owner->used()==0,"wide row final reader and anonymous index released");}
+
 }
 
 RecordingCatalog* crash_catalog=nullptr;
@@ -1230,11 +1387,11 @@ int main(int argc,char** argv) {
         if(argc==3&&std::string(argv[2]).rfind("scale-",0)==0){IdentityScale(root/"scale",std::stoull(std::string(argv[2]).substr(std::string(argv[2]).find_last_of('-')+1)),std::string(argv[2]).find("baseline")!=std::string::npos);return failures?1:0;}
         if(argc==3&&std::string(argv[2])=="history-large"){LargeOwnedRows(root);return failures?1:0;}
         if(argc==3&&std::string(argv[2])=="history-index"){HistoryIndex(root/"history-index");return failures?1:0;}
-        if(argc==3&&std::string(argv[2])=="history-product"){HistoryProduct(root/"history-product");return failures?1:0;}
+        if(argc==3&&std::string(argv[2])=="history-product"){HistoryProduct(root/"history-product");CatalogConsumerQuota(root/"consumer-quota");return failures?1:0;}
         if(argc==3&&std::string(argv[2])=="concurrency"){CheckpointConcurrentCut(root/"concurrency");CheckpointCaptureFailure(root/"capture-failure");CheckpointMixedSuffix(root/"mixed-suffix");CheckpointServiceRevoke(root/"service-revoke");CheckpointAdmissionRaces(root/"admission-races");CheckpointSuffixRecovery(root/"suffix-recovery");CheckpointAutoProtection(root/"auto-protection");CheckpointStop(root/"stop");return failures?1:0;}
         IdentityResidency(root/"identity-residency");
         if(argc==3)return failures?1:0;
-        ExportValueBoundary(root/"export-values");StreamBoundary(root/"stream");StreamIdentityBoundaries(root/"stream-identity");RecordingGenerationTransactionProbe::StreamFailures(root/"stream-failures");Rotation(root/"rotate");ObserverRace(root/"observer-race");Failures(root/"failures");Cost(root/"cost");Admission(root/"admission");Threshold(root/"threshold");Limits(root/"limits");Jobs(root/"jobs");SQL_CHECKPOINT_CASES::Run(root);
+        CatalogConsumerQuota(root/"consumer-quota");ExportValueBoundary(root/"export-values");StreamBoundary(root/"stream");StreamIdentityBoundaries(root/"stream-identity");RecordingGenerationTransactionProbe::StreamFailures(root/"stream-failures");Rotation(root/"rotate");ObserverRace(root/"observer-race");Failures(root/"failures");Cost(root/"cost");Admission(root/"admission");Threshold(root/"threshold");Limits(root/"limits");Jobs(root/"jobs");SQL_CHECKPOINT_CASES::Run(root);
 #else
         Write(root/".recording-store-format",Marker());RecordingJournal journal(Options(root));
         Check("B03-C06",!journal.Open(&error),"unsupported B remains closed");

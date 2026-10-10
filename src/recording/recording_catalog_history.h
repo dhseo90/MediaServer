@@ -67,7 +67,7 @@ public:
         std::uint64_t bytes=0,capacity=0;bool exists=false;
         if(!Meta(kind,id,&bytes,&capacity,&exists,error))return false;
         if(!exists||!bytes){*found=false;return true;}
-        auto charge=MemoryOwner()->ReserveOwned(RecordingColdWorkspaceBytes(bytes));
+        auto charge=MemoryOwner()->ReserveOwned(RecordingColdWorkspaceBytes(bytes,kind));
         if(!charge)throw RecordingResourceUnavailable();
         RecordingColdRow row;row.memory=std::move(*charge);
         if(!ReadValue(kind,id,bytes,exists,&row.bytes,found,error))return false;
@@ -186,7 +186,13 @@ public:
             ++seen;lock.unlock();bool accepted=false;
             try {
                 if(owned){RecordingColdRow row{std::move(raw_memory),std::move(value)};accepted=(*owned)(current,row,detail);}
-                else accepted=visitor(current,value,detail);
+                else {
+                    // Plain visitors include snapshot export and summary parsing.
+                    // Their raw row is still charged separately until callback return.
+                    auto work=MemoryOwner()->ReserveOwned(VisitorWorkspace(kind,value));
+                    if(!work)throw RecordingResourceUnavailable();
+                    accepted=visitor(current,value,detail);
+                }
             } catch (...) { consumer_exception=std::current_exception(); }
             lock.lock();return healthy_&&accepted;
         };
@@ -198,7 +204,7 @@ public:
             if(suffix=="m") {
                 if(!flush(detail))return false;
                 if(!ParseMeta(chunk,&bytes,&capacity,detail))return false;
-                auto ticket=MemoryOwner()->ReserveOwned(RecordingColdWorkspaceBytes(bytes));
+                auto ticket=MemoryOwner()->ReserveOwned(RecordingColdWorkspaceBytes(bytes,kind));
                 if(!ticket){consumer_exception=std::make_exception_ptr(RecordingResourceUnavailable());return false;}
                 std::string replacement(static_cast<std::size_t>(bytes),'\0');
                 value.swap(replacement);raw_memory.swap(*ticket);
@@ -253,6 +259,22 @@ public:
 #endif
     }
 private:
+    static std::size_t VisitorWorkspace(const std::string& kind,const std::string& value) {
+        if(kind=="event-link")return RecordingColdDecodeWorkspaceBytes<EventRecordingLinkV1>(value);
+        if(kind=="segment-v1")return RecordingColdDecodeWorkspaceBytes<RecordingSegmentV1>(value);
+        if(kind=="segment-v2")return RecordingColdDecodeWorkspaceBytes<RecordingSegmentV2>(value);
+        if(kind=="tombstone-v1")return RecordingColdDecodeWorkspaceBytes<RecordingTombstoneV1>(value);
+        if(kind=="tombstone-v2")return RecordingColdDecodeWorkspaceBytes<RecordingTombstoneV2>(value);
+        if(kind=="state-v2")return RecordingColdDecodeWorkspaceBytes<RecordingSegmentStateV2>(value);
+        if(kind=="observation-v1")return RecordingColdDecodeWorkspaceBytes<AnalysisObservationV1>(value);
+        if(kind=="observation-v2")return RecordingColdDecodeWorkspaceBytes<AnalysisObservationV2>(value);
+        if(kind=="referenced-observation")return RecordingColdDecodeWorkspaceBytes<ReferencedObservationV1>(value);
+        if(kind=="consumer-reference")return RecordingColdDecodeWorkspaceBytes<RecordingConsumerReferenceV1>(value);
+        if(kind=="media-path"||kind=="deletion-reason")return RecordingColdDecodeWorkspaceBytes<std::string>(value);
+        // Retired/source/job summaries have fixed scalar fields and at most two
+        // bounded string lists. They use the indexed strict document codec.
+        return ingress::StrictJsonWorkspaceBytes(value,7,sizeof(std::string),true);
+    }
     static unsigned Kind(const std::string& kind){return kind=="retired-v2"?1:kind=="source-binding"?2:kind=="derived-job"?3:kind=="job-output"?4:kind=="job-reference"?5:kind=="segment-v2"?6:kind=="state-v2"?7:kind=="tombstone-v2"?8:kind=="media-path"?9:kind=="deletion-reason"?10:kind=="observation-v1"?11:kind=="observation-v2"?12:kind=="consumer-reference"?13:kind=="referenced-observation"?14:kind=="event-link"?15:kind=="derived-reference-accepted"?16:kind=="segment-v1"?17:kind=="tombstone-v1"?18:0;}
     bool Fail(std::string* error,const char* message){healthy_=false;if(error&&error->empty())*error=message;return false;}
     mutable std::recursive_mutex mu_;

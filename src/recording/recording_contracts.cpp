@@ -71,7 +71,7 @@ std::string Quote(const std::string& value) {
 
 bool ParseDocument(const std::string& json, Document* document, std::string* error) {
     std::string detail;
-    if (!ingress::ParseStrictJsonObjectDocument(json, document, &detail)) {
+    if (!ingress::ParseStrictJsonObjectDocumentWithoutKeyIndex(json, document, &detail)) {
         return Fail(error, "JSON object 오류: " + detail);
     }
     return true;
@@ -217,6 +217,26 @@ bool SplitArray(const std::string& raw, std::vector<std::string>* items, std::st
     const std::string tail = raw.substr(start, raw.size() - start - 1);
     if (tail.find_first_not_of(" \t\r\n") != std::string::npos) items->push_back(tail);
     return true;
+}
+
+// The strict parser has already validated this array. Borrow one element at a
+// time; count first so typed vectors never grow through duplicate capacities.
+template<class Visitor>
+bool VisitArrayViews(std::string_view raw, Visitor&& visit) {
+    std::size_t start=1; int depth=0; bool quoted=false, escaped=false;
+    for(std::size_t pos=1;pos+1<raw.size();++pos) {
+        const char c=raw[pos];
+        if(quoted){if(escaped)escaped=false;else if(c=='\\')escaped=true;else if(c=='"')quoted=false;continue;}
+        if(c=='"')quoted=true;
+        else if(c=='{'||c=='[')++depth;
+        else if(c=='}'||c==']')--depth;
+        else if(c==','&&depth==0){if(!visit(raw.substr(start,pos-start)))return false;start=pos+1;}
+    }
+    const auto tail=raw.substr(start,raw.size()-start-1);
+    return tail.find_first_not_of(" \t\r\n")==std::string_view::npos||visit(tail);
+}
+std::size_t ArrayViewCount(std::string_view raw) {
+    std::size_t count=0;VisitArrayViews(raw,[&](std::string_view){++count;return true;});return count;
 }
 
 bool ParseStringArray(const Document& document,
@@ -1200,13 +1220,101 @@ std::string SerializeEventRecordingLinkV1(const EventRecordingLinkV1& value) {
     return output.str();
 }
 
+namespace {
+// capacity includes allocator rounding used by the supported standard libraries;
+// fixed per-allocation bookkeeping is counted even for in-object SSO storage.
+std::size_t Storage(const std::string& v){return v.capacity()+1+32;}
+std::size_t Storage(const FrameLocatorV1&);
+std::size_t Storage(const RecordingUtcMappingV1&);
+std::size_t Storage(const RecordingConsumerOriginalV1&);
+std::size_t Storage(const RecordingConsumerRequestV1&);
+std::size_t Storage(const analysis::ObservationCoordinatesV1&);
+template<class T> std::size_t Storage(const std::optional<T>& v){return v?Storage(*v):0;}
+template<class T> std::size_t Storage(const std::vector<T>& v) {
+    std::size_t n=v.capacity()*sizeof(T)+32;for(const auto& item:v)n+=Storage(item);return n;
+}
+template<class... T> std::size_t Storages(const T&... v){return (std::size_t{0}+...+Storage(v));}
+std::size_t Storage(const FrameLocatorV1& v){return Storages(v.schema,v.segment_id);}
+std::size_t Storage(const RecordingUtcMappingV1& v){return Storages(v.schema,v.mapping_id,v.provenance,v.reason);}
+std::size_t Storage(const RecordingConsumerOriginalV1& v){return Storages(v.source_generation,v.track_id);}
+std::size_t Storage(const RecordingConsumerRequestV1& v){return Storage(v.time_basis);}
+std::size_t Storage(const analysis::ObservationCoordinatesV1& v){return Storages(v.schema,v.producer,v.value_kind,v.units,v.frame_mapping,v.policy,v.resize);}
+}
+std::size_t RecordingRetainedBytes(const RecordingSegmentV1& v) {
+    return sizeof(v)+64+Storages(v.schema,v.segment_id,v.source_id,v.channel_id,v.stream_epoch_id,v.container,v.video_codecs,v.audio_codecs,v.audio_omitted_reason,v.checksum_sha256);
+}
+std::size_t RecordingRetainedBytes(const RecordingSegmentV2& v) {
+    return sizeof(v)+64+Storages(v.schema,v.segment_id,v.source_id,v.channel_id,v.store_id,v.order_request_id,v.media_epoch_id,v.container,v.video_codecs,v.audio_codecs,v.audio_omitted_reason,v.checksum_sha256,v.mappings);
+}
+std::size_t RecordingRetainedBytes(const RecordingSegmentStateV2& v) {
+    return sizeof(v)+64+Storages(v.schema,v.segment_id,v.reason);
+}
+std::size_t RecordingRetainedBytes(const RecordingTombstoneV1& v) {
+    return sizeof(v)+64+Storages(v.schema,v.tombstone_id,v.segment_id,v.source_id,v.channel_id,v.checksum_sha256,v.deletion_reason);
+}
+std::size_t RecordingRetainedBytes(const AnalysisObservationV1& v) {
+    return sizeof(v)+64+Storages(v.schema,v.observation_id,v.source_id,v.channel_id,v.frame_locator,v.track_id,v.class_label,v.zone_ids,v.line_ids,v.rule_ids,v.scenario_ids,v.event_ids,v.selection_reason);
+}
+std::size_t RecordingRetainedBytes(const AnalysisObservationV2& v) {
+    return sizeof(v)+64+Storages(v.coordinates,v.schema,v.observation_id,v.source_id,v.channel_id,v.analysis_namespace,v.stream_epoch_id,v.frame_locator,v.locator_reason,v.track_id,v.class_label,v.selection_reasons,v.event_ids,v.zone_ids,v.line_ids,v.rule_ids,v.scenario_ids,v.ended_reason);
+}
+std::size_t RecordingRetainedBytes(const RecordingConsumerReferenceV1& v) {
+    return sizeof(v)+64+Storages(v.schema,v.reference_id,v.kind,v.owner_id,v.source_id,v.channel_id,v.analysis_namespace,v.analysis_track_id,v.association_quality,v.original,v.request);
+}
+std::size_t RecordingRetainedBytes(const ReferencedObservationV1& v) {
+    return sizeof(v)+64+Storages(v.schema);
+}
+std::size_t RecordingRetainedBytes(const RecordingTombstoneV2& v) {
+    return sizeof(v)+64+Storages(v.schema,v.tombstone_id,v.deletion_reason);
+}
+
+std::size_t RecordingEventLinkWorkspaceBytes(const std::string& json) {
+    const auto s=ingress::InspectStrictJsonStorageShape(json);
+    auto add=[](std::size_t& total,std::size_t count,std::size_t size) {
+        if(size&&count>(std::numeric_limits<std::size_t>::max()-total)/size)throw RecordingResourceUnavailable();
+        total+=count*size;
+    };
+    // Exact-reserve overlap/range arrays; each array element is at most one
+    // SegmentOverlap. Only value strings become DTO storage (repeated keys do not).
+    std::size_t typed=sizeof(EventRecordingLinkV1)+64*1024;
+    add(typed,s.array_elements,sizeof(SegmentOverlapV1));
+    add(typed,s.value_string_bytes,2);add(typed,s.value_strings,32);
+    std::size_t parser=0;
+    add(parser,s.top_members,2*sizeof(Member));
+    add(parser,s.max_live_keys,128+2*sizeof(Member));
+    add(parser,s.max_live_key_bytes,2*s.max_depth+4);
+    add(parser,s.top_string_bytes,3);add(parser,s.top_object_bytes,2);
+    // One borrowed array element is copied/reparsed at a time. Main strict scan
+    // also decodes at most one noncaptured string at once.
+    add(parser,s.max_array_element_bytes,6);add(parser,s.largest_string_bytes,2);
+    add(parser,s.array_elements,sizeof(UtcRangeV1)); // Complete/Partial coverage
+    std::size_t canonical=0;
+    add(canonical,json.size()+1024,3); // stream old/new capacity and final string
+    add(canonical,s.largest_string_bytes,4); // Quote/Escape temporaries
+    add(typed,std::max(parser,canonical),1); // phases do not coexist
+    return typed;
+}
+std::size_t RecordingEventLinkRetainedBytes(const EventRecordingLinkV1& value) {
+    std::size_t bytes=sizeof(value)+64;
+    auto string=[&](const std::string& s){bytes+=s.capacity()+1+32;};
+    string(value.schema);string(value.link_id);string(value.event_id);string(value.source_id);string(value.channel_id);
+    string(value.stream_epoch_id);string(value.derivation_mode);string(value.time_basis);string(value.completeness_reason);
+    if(value.derived_segment_id)string(*value.derived_segment_id);
+    if(value.fallback_evidence_id)string(*value.fallback_evidence_id);
+    if(value.fallback_media_locator)string(*value.fallback_media_locator);
+    bytes+=value.ordered_overlaps.capacity()*sizeof(SegmentOverlapV1)+value.missing_ranges.capacity()*sizeof(UtcRangeV1)+64;
+    for(const auto& overlap:value.ordered_overlaps)string(overlap.segment_id);
+    return bytes;
+}
+
 bool ParseEventRecordingLinkV1(const std::string& json,
-                               EventRecordingLinkV1* value,
+                               EventRecordingLinkV1* output,
                                std::string* error) {
-    if (value == nullptr) return Fail(error, "event link output이 null");
+    if (output == nullptr) return Fail(error, "event link output이 null");
+    EventRecordingLinkV1 parsed;auto* value=&parsed;
     Document document;
     std::string status;
-    if (!ParseDocument(json, &document, error) ||
+    if (!ingress::ParseStrictJsonObjectDocumentArrayViews(json, &document, error) ||
         !RequiredString(document, "schema", &value->schema, error) ||
         !RequiredString(document, "link_id", &value->link_id, error) ||
         !RequiredString(document, "event_id", &value->event_id, error) ||
@@ -1308,35 +1416,33 @@ bool ParseEventRecordingLinkV1(const std::string& json,
     const Member* overlaps = RequiredMember(document, "ordered_overlaps", Type::Array, error);
     const Member* missing = RequiredMember(document, "missing_ranges", Type::Array, error);
     if (overlaps == nullptr || missing == nullptr) return false;
-    std::vector<std::string> items;
-    if (!SplitArray(overlaps->raw, &items, error)) return false;
-    value->ordered_overlaps.clear();
+    value->ordered_overlaps.reserve(ArrayViewCount(overlaps->array_view));
     std::int64_t previous_start = std::numeric_limits<std::int64_t>::min();
-    for (const auto& item : items) {
+    if (!VisitArrayViews(overlaps->array_view,[&](std::string_view item) {
         Document overlap_document;
         SegmentOverlapV1 overlap;
         std::string overlap_range;
-        if (!ParseDocument(item, &overlap_document, error) ||
+        if (!ParseDocument(std::string(item), &overlap_document, error) ||
             !RequiredString(overlap_document, "segment_id", &overlap.segment_id, error) ||
             !RequiredObject(overlap_document, "range", &overlap_range, error) ||
             !ValidateOpaqueId(overlap.segment_id, error) ||
             !ParseRange(overlap_range, &overlap.range, error)) return false;
         if (overlap.range.start_ms < previous_start) return Fail(error, "ordered overlap 순서 오류");
         previous_start = overlap.range.start_ms;
-        value->ordered_overlaps.push_back(std::move(overlap));
-    }
-    if (!SplitArray(missing->raw, &items, error)) return false;
-    value->missing_ranges.clear();
-    for (const auto& item : items) {
+        value->ordered_overlaps.push_back(std::move(overlap));return true;
+    })) return false;
+    value->missing_ranges.reserve(ArrayViewCount(missing->array_view));
+    if (!VisitArrayViews(missing->array_view,[&](std::string_view item) {
         UtcRangeV1 range;
-        if (!ParseRange(item, &range, error)) return false;
-        value->missing_ranges.push_back(range);
-    }
+        if (!ParseRange(std::string(item), &range, error)) return false;
+        value->missing_ranges.push_back(range);return true;
+    })) return false;
     value->status = ParseLinkStatus(status);
     if (value->schema != "media-server.event-recording-link.v1") {
         return Fail(error, "event recording link schema 불일치");
     }
-    return ValidateEventRecordingLinkV1(*value, error);
+    if (!ValidateEventRecordingLinkV1(*value, error)) return false;
+    *output=std::move(parsed);return true;
 }
 
 std::string SerializeAnalysisObservationV1(const AnalysisObservationV1& value) {

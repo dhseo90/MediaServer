@@ -1,6 +1,7 @@
 // 파일 용도: 원본을 대체하지 않는 불변 증거 패키지의 versioned 값 계약.
 #pragma once
 #include "recording/evidence_frame_extractor.h"
+#include <string_view>
 
 namespace recording {
 struct EvidenceReferenceV1 {
@@ -36,6 +37,7 @@ struct EvidencePackageV1Fields {
     std::vector<EvidenceObservationSnapshotV2> observation_snapshots;
 };
 using EvidencePackageV1=RecordingMemoryValue<EvidencePackageV1Fields>;
+std::size_t EvidencePackageWorkspaceBytes(std::string_view json);
 void BindEvidencePackageMemory(EvidencePackageV1&, SearchModelResidency::Reservation&, std::size_t raw_bytes);
 bool ValidateEvidencePackage(const EvidencePackageV1&, std::string* error);
 std::string SerializeEvidencePackage(const EvidencePackageV1&);

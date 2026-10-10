@@ -212,6 +212,15 @@ struct EventRecordingLinkV1Fields {
 };
 using EventRecordingLinkV1 = RecordingMemoryValue<EventRecordingLinkV1Fields>;
 
+// Allocation-free shape census precedes parser/vector allocation. This budget is
+// specific to EventRecordingLinkV1, including validation coverage and serializer.
+std::size_t RecordingEventLinkWorkspaceBytes(const std::string& json);
+std::size_t RecordingEventLinkRetainedBytes(const EventRecordingLinkV1& value);
+inline void BindRecordingRowMemory(EventRecordingLinkV1& value,
+                                   SearchModelResidency::Reservation& work,std::size_t) {
+    value.memory=work.Split(RecordingEventLinkRetainedBytes(value));
+}
+
 struct NormalizedBoundingBoxV1 {
     double x{0.0};
     double y{0.0};
@@ -342,13 +351,45 @@ bool ParseRecordingTombstoneV1(const std::string& json,
                                RecordingTombstoneV1* value,
                                std::string* error);
 
+// Retained heap storage follows actual container capacities. Each nested charged
+// DTO receives its own ticket so copies of that member retain their ownership.
+std::size_t RecordingRetainedBytes(const RecordingSegmentV1& value);
+std::size_t RecordingRetainedBytes(const RecordingSegmentV2& value);
+std::size_t RecordingRetainedBytes(const RecordingSegmentStateV2& value);
+std::size_t RecordingRetainedBytes(const RecordingTombstoneV1& value);
+std::size_t RecordingRetainedBytes(const AnalysisObservationV1& value);
+std::size_t RecordingRetainedBytes(const AnalysisObservationV2& value);
+std::size_t RecordingRetainedBytes(const RecordingConsumerReferenceV1& value);
+std::size_t RecordingRetainedBytes(const ReferencedObservationV1& value);
+std::size_t RecordingRetainedBytes(const RecordingTombstoneV2& value);
+inline void BindRecordingRowMemory(RecordingSegmentV1& value,SearchModelResidency::Reservation& work,std::size_t) {
+    value.memory=work.Split(RecordingRetainedBytes(value));
+}
+inline void BindRecordingRowMemory(RecordingSegmentV2& value,SearchModelResidency::Reservation& work,std::size_t) {
+    value.memory=work.Split(RecordingRetainedBytes(value));
+}
+inline void BindRecordingRowMemory(RecordingSegmentStateV2& value,SearchModelResidency::Reservation& work,std::size_t) {
+    value.memory=work.Split(RecordingRetainedBytes(value));
+}
+inline void BindRecordingRowMemory(RecordingTombstoneV1& value,SearchModelResidency::Reservation& work,std::size_t) {
+    value.memory=work.Split(RecordingRetainedBytes(value));
+}
+inline void BindRecordingRowMemory(AnalysisObservationV1& value,SearchModelResidency::Reservation& work,std::size_t) {
+    value.memory=work.Split(RecordingRetainedBytes(value));
+}
+inline void BindRecordingRowMemory(AnalysisObservationV2& value,SearchModelResidency::Reservation& work,std::size_t) {
+    value.memory=work.Split(RecordingRetainedBytes(value));
+}
+inline void BindRecordingRowMemory(RecordingConsumerReferenceV1& value,SearchModelResidency::Reservation& work,std::size_t) {
+    value.memory=work.Split(RecordingRetainedBytes(value));
+}
 inline void BindRecordingRowMemory(ReferencedObservationV1& value,SearchModelResidency::Reservation& work,std::size_t bytes) {
-    value.memory=work.Split(sizeof(value)+512);
+    value.memory=work.Split(RecordingRetainedBytes(value));
     BindRecordingRowMemory(value.observation,work,bytes);
     BindRecordingRowMemory(value.reference,work,bytes);
 }
 inline void BindRecordingRowMemory(RecordingTombstoneV2& value,SearchModelResidency::Reservation& work,std::size_t bytes) {
-    value.memory=work.Split(sizeof(value)+512+8*bytes);
+    value.memory=work.Split(RecordingRetainedBytes(value));
     BindRecordingRowMemory(value.segment,work,bytes);
 }
 }  // namespace recording

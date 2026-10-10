@@ -35,6 +35,14 @@ struct RecordingRetiredV2ReceiptFields {
     std::optional<std::int64_t> utc_min_ns, utc_max_ns;
 };
 using RecordingRetiredV2Receipt=RecordingMemoryValue<RecordingRetiredV2ReceiptFields>;
+inline void BindRecordingRowMemory(RecordingRetiredV2Receipt& value,SearchModelResidency::Reservation& work,std::size_t) {
+    std::size_t bytes=sizeof(value)+64;
+    for(const auto* s:{&value.segment_id,&value.store_id,&value.source_id,&value.channel_id,&value.order_request_id,
+        &value.media_epoch_id,&value.tombstone_id,&value.deletion_reason,&value.prior_relative_path,
+        &value.deletion_mutation_id,&value.segment_sha256,&value.tombstone_sha256})bytes+=s->capacity()+1+32;
+    value.memory=work.Split(bytes);
+}
+
 // 고정 필드 순서의 canonical JSON object(LF 없음). 배열의 의미 있는 순서는 보존한다.
 // 기존 domain 값 상한만 검사하며 원문 locator/참조/상태 전이 또는 제품 import를 검증하지 않는다.
 // crypto-off도 동일하게 동작하고 실패 시 caller output은 불변이다.

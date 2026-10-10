@@ -36,6 +36,16 @@ struct VaReviewServiceResidencyProbe {
     }
 };
 }
+namespace ingress {
+struct VaReviewApplicationResidencyProbe {
+    static std::int64_t Drafts(VaReviewApplicationService& app){
+        std::lock_guard lock(app.drafts_mutex_);std::size_t bytes=0;std::int64_t latest=0;
+        for(const auto& item:app.drafts_){bytes+=item.second.bytes;latest=std::max(latest,item.second.expires_at_ms);}
+        std::cout<<"[draft-owners] count="<<app.drafts_.size()<<" logicalBytes="<<bytes<<" latestExpiryMs="<<latest<<std::endl;
+        return latest;
+    }
+};
+}
 namespace {
 std::string CompleteA(ingress::VaReviewApplicationService& app,const std::string& package,const std::string& target) {
     auto draft=app.AnalysisDraft(DraftBody(package,target),"session:alice",PermitA);Check(draft.status==201,"MEM83 actual A draft");
@@ -65,8 +75,10 @@ void Sample(const char* phase,unsigned count,const std::filesystem::path& root){
 void CombinedOwnership(const std::filesystem::path& root){
     ConfirmedSeed(root);std::string error;
     const auto id=Field(BoundLoad(root/"confirmed-seed.json"),"packageId");
+    std::shared_ptr<SearchModelResidency> owner;std::shared_ptr<RecordingScratchResidency> scratch;
+    {
     RecordingRuntimeStorage runtime(root);Check(runtime.Open(&error),"MEM84-D10 Open actual seeded generation");
-    auto owner=runtime.catalog().SearchResidency();auto scratch=RecordingAggregateResourceProbe::Scratch(runtime.catalog());
+    owner=runtime.catalog().SearchResidency();scratch=RecordingAggregateResourceProbe::Scratch(runtime.catalog());
     {
         RecordingReadService media(runtime.catalog());RecordingSearchReader search(runtime.catalog(),media);
         std::shared_ptr<const RecordingSearchModel> model;Check(search.Refresh({"1"},{},&model,&error),"MEM84-D10 actual model");
@@ -75,8 +87,16 @@ void CombinedOwnership(const std::filesystem::path& root){
         Check(snapshots.Begin(model,query,"session:alice","scope-1",&page,&error),"MEM84-D10 actual held page");
         auto rows=runtime.catalog().QueryReferencedObservations("1");Check(!rows.empty()&&rows.front().memory.bytes()>0,"MEM84-D10 actual cold returned rows");
         const auto infer=[](const auto&,const auto&,auto,const auto&,auto*,auto*){throw std::runtime_error("unexpected inference");return false;};
-        ingress::VaReviewApplicationService app(root,true,{},0,infer,std::chrono::minutes(5),owner);
+        ingress::VaReviewApplicationService app(root,true,{},0,infer,std::chrono::minutes(5),owner,scratch);
         auto response=app.AnalysisPackage(id,PermitA,true);Check(response.status==200&&response.memory.bytes()>0,"MEM84-D10 actual A response owner");
+        EvidencePackageStore direct(root/"evidence-packages",{},owner,scratch);
+        const auto prior_fds=scratch->usage().file_descriptors;
+        auto retained_file=direct.Open(id,&error);Check(retained_file&&scratch->usage().file_descriptors==prior_fds+1,"MEM85-FD actual evidence reader participates in Journal aggregate FD owner");
+        auto same_file=retained_file;retained_file.reset();Check(scratch->usage().file_descriptors==prior_fds+1,"MEM85-FD shared file retains one FD charge");
+        {auto all=scratch->Reserve({0,scratch->limits().file_descriptors-scratch->usage().file_descriptors,0});Check(bool(all),"MEM85-FD explicit aggregate saturation");
+         Check(!direct.Open(id,&error)&&same_file->fd()>=0,"MEM85-FD refused new reader preserves existing reader");}
+        {auto resumed=direct.Open(id,&error);Check(bool(resumed),"MEM85-FD release admits exact same package reader");}
+        same_file.reset();Check(scratch->usage().file_descriptors==prior_fds,"MEM85-FD final reader returns FD charge");
         RecordingAggregateResourceProbe::View view;
         Check(RecordingAggregateResourceProbe::Capture(runtime.catalog(),&view,&error),"MEM84-D10 actual K clone/capture held");
         const auto k=scratch->usage();Check(k.disk_bytes>0&&k.file_descriptors>0,"MEM84-D10 live/K anonymous scratch charged");
@@ -93,21 +113,24 @@ void CombinedOwnership(const std::filesystem::path& root){
         Check(view.finish(&error),"MEM84-D10 explicit K Finish");view={};app.Stop();
     }
     Check(runtime.Finish(&error),"MEM84-D10 runtime Finish");
+    std::cout<<"[finish-live-owner] RAM="<<owner->used()<<" disk="<<scratch->usage().disk_bytes<<" FD="<<scratch->usage().file_descriptors<<std::endl;
+    Check(scratch->usage().disk_bytes==0&&scratch->usage().file_descriptors==0,"MEM85 Finish closes scratch; live Catalog metadata remains charged until destruction");
+    }
     Check(owner->used()==0&&scratch->usage().disk_bytes==0&&scratch->usage().file_descriptors==0,"MEM84-D10 final actual owners return RAM/scratch/FD");
     RecordingRuntimeStorage reopened(root);
     Check(reopened.Open(&error),"MEM84-D10 reOpen original source with fresh runtime owner");
-    EvidencePackageStore packages(root/"evidence-packages",{},reopened.catalog().SearchResidency());
+    EvidencePackageStore packages(root/"evidence-packages",{},reopened.catalog().SearchResidency(),reopened.catalog().ScratchResidency());
     {const auto file=packages.Open(id,&error);Check(bool(file),"MEM84-D10 original package hash/readback preserved");}
     Check(reopened.Finish(&error),"MEM84-D10 final Finish");
 }
-void RetainedLifetime(const std::filesystem::path& root,bool batches){
+void RetainedLifetime(const std::filesystem::path& root,bool batches,bool lifecycle85=false){
     ConfirmedSeed(root);std::string error;
     const auto seed=BoundLoad(root/"confirmed-seed.json"),package=Field(seed,"packageId");
     RecordingRuntimeStorage runtime(root);Check(runtime.Open(&error),"MEM83 reopen source");
     RecordingReadService media(runtime.catalog());RecordingSearchReader reader(runtime.catalog(),media);
-    EvidencePackageStore packages(root/"evidence-packages",{},runtime.catalog().SearchResidency());VaReviewStore records(root/"va-reviews",{},runtime.catalog().SearchResidency());
+    EvidencePackageStore packages(root/"evidence-packages",{},runtime.catalog().SearchResidency(),runtime.catalog().ScratchResidency());VaReviewStore records(root/"va-reviews",{},runtime.catalog().SearchResidency());
     const auto infer=[](const auto&,const auto&,auto,const auto&,auto*,auto*){throw std::runtime_error("unexpected inference");return false;};
-    ingress::VaReviewApplicationService app(root,true,{},0,infer,std::chrono::minutes(5),runtime.catalog().SearchResidency());
+    ingress::VaReviewApplicationService app(root,true,{},0,infer,std::chrono::minutes(5),runtime.catalog().SearchResidency(),runtime.catalog().ScratchResidency());
     const auto detail=app.AnalysisPackage(package,PermitA,true);Check(detail.status==200,"MEM83 selected real evidence");
     const auto target=Field(detail.body,"targetKey");
     std::shared_ptr<const RecordingSearchModel> warm;Check(reader.Refresh({"1"},{},&warm,&error),"MEM83 search warmup");
@@ -125,7 +148,7 @@ void RetainedLifetime(const std::filesystem::path& root,bool batches){
     {std::unique_lock lock(mutex);Check(cv.wait_for(lock,std::chrono::seconds(2),[&]{return entered;}),"MEM83 B worker held before publication");}
     const auto fixed=StoredBytes(root);Sample("B-start",0,root);
     std::string first_cancelled;
-    const unsigned repetitions=batches?256:32;
+    const unsigned repetitions=lifecycle85?1024:batches?256:32;
     for(unsigned i=0;i<repetitions;++i){
         {std::shared_ptr<const RecordingSearchModel> model;Check(reader.Refresh({"1"},{},&model,&error),"MEM83 B real search");
          RecordingSearchSnapshots snapshots;RecordingSearchPage page;Check(snapshots.Begin(model,query,"session:alice","scope-1",&page,&error),"MEM83 B snapshot");Check(!page.positions.empty(),"MEM83 B nonempty search");
@@ -163,17 +186,46 @@ void RetainedLifetime(const std::filesystem::path& root,bool batches){
     Check(StoredBytes(root)==fixed,"MEM83 B no record publication across cancellations");
     EvidencePackageBuilder builder(runtime.catalog(),media,packages);Sample("C-start",0,root);
     const unsigned retained=batches?16:8;
+    bool quota_observed=false;std::vector<std::string> new_records;
+    std::string previous_draft,previous_action,previous_job;
+    const auto c_deadline=VaReviewService::Clock::now()+std::chrono::seconds(360);
     try { for(unsigned i=0;i<retained;++i){
         {EvidencePackageV1 p;std::string id;const bool created=builder.CreateWithObservations(selected,"structured","",&id,&p,&error,VaReviewService::Clock::now()+std::chrono::seconds(20));
          Check(created,"MEM83 C new package: "+error);Check(p.frames.size()==8,"MEM83 C eight selected frames");const auto choice=app.AnalysisPackage(id,PermitA,true);Check(choice.status==200,"MEM83 C selected package");
-         auto draft=app.AnalysisDraft(DraftBody(id,Field(choice.body,"targetKey")),"session:alice",PermitA);Check(draft.status==201,"MEM83 C draft status="+std::to_string(draft.status)+" body="+draft.body);
+         const auto draft_body=DraftBody(id,Field(choice.body,"targetKey"));
+         const auto bytes_before_draft=StoredBytes(root);const auto memory_before_draft=runtime.catalog().SearchResidency()->used();
+         auto draft=app.AnalysisDraft(draft_body,"session:alice",PermitA);
+         if(lifecycle85&&draft.status==503&&Field(draft.body,"error")=="review-draft-capacity"){
+             Check(!quota_observed,"MEM85 C one planned quota boundary");quota_observed=true;
+             Check(StoredBytes(root)==bytes_before_draft&&runtime.catalog().SearchResidency()->used()==memory_before_draft,"MEM85 C quota has no publication or retained temporary reservation");
+             Check(!previous_draft.empty(),"MEM85 C prior confirmed revision exists");
+             {const auto retry=app.AnalysisAction(previous_draft,"execute",previous_action,"session:alice",PermitA);
+              Check(retry.status==202&&Field(retry.body,"id")==previous_job,"MEM85 C existing execution idempotency before expiry");}
+             Check(app.AnalysisAction(previous_draft,"execute",previous_action,"session:other",PermitA).status==403,"MEM85 C quota preserves principal");
+             for(const auto& rid:new_records)Check(app.AnalysisGet(rid,PermitA).status==200,"MEM85 C prior results survive quota");
+             const auto expiry=ingress::VaReviewApplicationResidencyProbe::Drafts(app);
+             const auto wait_start=VaReviewService::Clock::now();unsigned waits=0;
+             while(ReviewWallTimeMs()<=expiry){
+                 Check(VaReviewService::Clock::now()<c_deadline,"MEM85 C planned TTL observation deadline");
+                 std::this_thread::sleep_for(std::chrono::seconds(1));
+                 if(++waits%30==0)std::cout<<"[C-real-expiry-wait] seconds="<<waits<<" owner="<<runtime.catalog().SearchResidency()->used()<<std::endl;
+             }
+             std::cout<<"[C-real-expiry] elapsedSeconds="<<std::chrono::duration<double>(VaReviewService::Clock::now()-wait_start).count()<<" systemClockUnchanged=true"<<std::endl;
+             Check(app.AnalysisAction(previous_draft,"execute",previous_action,"session:alice",PermitA).status==410,"MEM85 C actual original TTL expiry");
+             draft=app.AnalysisDraft(draft_body,"session:alice",PermitA);
+             Check(draft.status==201,"MEM85 C same request resumes via product expired-draft cleanup");
+             ingress::VaReviewApplicationResidencyProbe::Drafts(app);
+         }
+         Check(draft.status==201,"MEM83 C draft status="+std::to_string(draft.status)+" body="+draft.body);
          const auto did=Field(draft.body,"id"),action="{\"revision\":"+EvidenceJsonQuote(Field(draft.body,"revision"))+"}";
          Check(app.AnalysisAction(did,"confirm",action,"session:alice",PermitA).status==200,"MEM83 C confirm");
          auto submitted=app.AnalysisAction(did,"execute",action,"session:alice",PermitA);Check(submitted.status==202,"MEM83 C submitted");
          const auto jid=Field(submitted.body,"id");const auto deadline=VaReviewService::Clock::now()+std::chrono::seconds(5);
          std::string state,rid;do{auto job=app.AnalysisJob(jid,"session:alice",false,true,PermitA,false);Check(job.status==200,"MEM83 C job read");state=Field(job.body,"state");
              if(state=="completed"){rid=Field(job.body,"reviewId");break;}std::this_thread::sleep_for(std::chrono::milliseconds(5));}while(VaReviewService::Clock::now()<deadline);
-         Check(state=="completed"&&app.AnalysisGet(rid,PermitA).status==200,"MEM83 C actual worker stored/read record");}
+         Check(state=="completed"&&app.AnalysisGet(rid,PermitA).status==200,"MEM83 C actual worker stored/read record");
+         new_records.push_back(rid);previous_draft=did;previous_action=action;previous_job=jid;}
+        if(lifecycle85)ingress::VaReviewApplicationResidencyProbe::Drafts(app);
         if(i==0||i==3||i==7||i==15)Sample("C-release",i+1,root);
     }
     } catch (...) {
@@ -182,8 +234,11 @@ void RetainedLifetime(const std::filesystem::path& root,bool batches){
         std::cerr<<"[failure-cleanup] app-stopped=true runtime-finish="<<finished<<" detail="<<error<<std::endl;
         std::rethrow_exception(first);
     }
+    if(lifecycle85){Check(quota_observed&&new_records.size()==16,"MEM85 C quota and distinct16 completed records");
+        for(const auto& rid:new_records)Check(app.AnalysisGet(rid,PermitA).status==200,"MEM85 C final preserved result readback");
+        std::cout<<"[C-complete] newRecords="<<new_records.size()<<" storedBytes="<<StoredBytes(root)<<" owner="<<runtime.catalog().SearchResidency()->used()<<std::endl;}
     app.Stop();Check(runtime.Finish(&error),"MEM83 normal Finish");for(unsigned i=0;i<3;++i){std::this_thread::sleep_for(std::chrono::seconds(1));Sample("C-idle",i+1,root);}
     Check(released_inputs,"MEM83 B cancelled task input released; only active input was retained");
 }
 }
-int main(int argc,char** argv){try{if(argc!=2&&!(argc==3&&(std::string(argv[2])=="--bounded-batches"||std::string(argv[2])=="--combined-d")))return 2;gst_init(nullptr,nullptr);if(argc==3&&std::string(argv[2])=="--combined-d")CombinedOwnership(argv[1]);else RetainedLifetime(argv[1],argc==3);std::cout<<"[scope] B fixed retained bytes, C actual evidence/A; no model calls; samples not instant peaks"<<std::endl;return 0;}catch(const std::exception& e){std::cerr<<"[failure] "<<e.what()<<std::endl;return 1;}}
+int main(int argc,char** argv){try{if(argc!=2&&!(argc==3&&(std::string(argv[2])=="--bounded-batches"||std::string(argv[2])=="--combined-d"||std::string(argv[2])=="--lifecycle85")))return 2;gst_init(nullptr,nullptr);if(argc==3&&std::string(argv[2])=="--combined-d")CombinedOwnership(argv[1]);else RetainedLifetime(argv[1],argc==3,argc==3&&std::string(argv[2])=="--lifecycle85");std::cout<<"[scope] B fixed retained bytes, C actual evidence/A; no model calls; samples not instant peaks"<<std::endl;return 0;}catch(const std::exception& e){std::cerr<<"[failure] "<<e.what()<<std::endl;return 1;}}

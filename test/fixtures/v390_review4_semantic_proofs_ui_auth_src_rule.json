@@ -19547,7 +19547,7 @@
           "file": "src/ingress/webrtc_http_server.cpp",
           "symbol": "ClientViewEventsJson",
           "anchor": "AppendClientSafeSourceStatusDigestJson(source_status_digest_out, source_status_digest);",
-          "line": 3437,
+          "line": 3440,
           "contextSha256": "0541a15e5e9a5343fa93a6ae7b1273e21c9ebddfb4fadcd33c04fb3983f6b9ed"
         },
         "action": {
@@ -19586,14 +19586,14 @@
           "kind": "function-containment",
           "witness": "client view events producer appends scoped source status digest",
           "source": "src/ingress/webrtc_http_server.cpp:3427",
-          "target": "src/ingress/webrtc_http_server.cpp:3437"
+          "target": "src/ingress/webrtc_http_server.cpp:3440"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "direct-callsite",
           "witness": "events producer directly calls digest serializer",
-          "source": "src/ingress/webrtc_http_server.cpp:3437",
+          "source": "src/ingress/webrtc_http_server.cpp:3440",
           "target": "src/ingress/webrtc_http_server.cpp:2438"
         },
         {

@@ -39,9 +39,9 @@ std::string JobJson(const recording::VaReviewJob& job,bool can_cancel){
 }
 }
 VaReviewApplicationService::VaReviewApplicationService(const std::filesystem::path& root,bool enabled,
-    recording::VaReviewProviderOptions provider,std::uint64_t reserve,recording::VaReviewService::Infer infer,std::chrono::milliseconds confirmation_ttl,std::shared_ptr<recording::SearchModelResidency> memory)
+    recording::VaReviewProviderOptions provider,std::uint64_t reserve,recording::VaReviewService::Infer infer,std::chrono::milliseconds confirmation_ttl,std::shared_ptr<recording::SearchModelResidency> memory,std::shared_ptr<recording::RecordingScratchResidency> resources)
     :memory_(std::move(memory)),confirmation_ttl_(confirmation_ttl),enabled_(enabled),
-     evidence_(root/"evidence-packages",{},memory_),records_(root/"va-reviews",Limits(reserve),memory_),
+     evidence_(root/"evidence-packages",{},memory_,std::move(resources)),records_(root/"va-reviews",Limits(reserve),memory_),
      service_(evidence_,records_,Options(enabled),infer?std::move(infer):recording::MakeVaReviewProvider(std::move(provider))){
     if(confirmation_ttl_.count()<=0||confirmation_ttl_>std::chrono::minutes(5))enabled_=false;
     std::random_device random;std::string entropy;for(unsigned i=0;i<8;++i)entropy+=std::to_string(random())+":";

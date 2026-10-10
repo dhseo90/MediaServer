@@ -29,7 +29,7 @@ std::string Summary(const std::string& id,const recording::EvidencePackageV1& v)
 }
 EvidenceApplicationService::EvidenceApplicationService(recording::RecordingCatalog& catalog,
     recording::RecordingReadService& reader,bool enabled,const std::filesystem::path& directory,std::uint64_t reserve)
-    :enabled_(enabled),catalog_(catalog),store_(directory,Limits(reserve),catalog.SearchResidency()),builder_(catalog,reader,store_){
+    :enabled_(enabled),catalog_(catalog),store_(directory,Limits(reserve),catalog.SearchResidency(),catalog.ScratchResidency()),builder_(catalog,reader,store_){
     if(enabled_){std::string error;ready_=store_.Recover(&error);}
 }
 ApplicationServiceResult EvidenceApplicationService::Create(const recording::SearchDocument& hit,

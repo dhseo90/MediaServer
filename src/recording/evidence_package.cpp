@@ -6,13 +6,14 @@
 #include <charconv>
 #include <set>
 #include <sstream>
+#include <limits>
 
 namespace recording {
 namespace {
 using Doc = ingress::StrictJsonObjectDocument;
 using Type = ingress::StrictJsonType;
 bool Fail(std::string* error) { if (error) *error = "evidence-invalid-manifest"; return false; }
-bool Parse(const std::string& text, Doc* d) { return ingress::ParseStrictJsonObjectDocument(text, d, nullptr); }
+bool Parse(const std::string& text, Doc* d) { return ingress::ParseStrictJsonObjectDocumentWithoutKeyIndex(text, d, nullptr); }
 bool Text(const Doc& d, const char* key, std::string* out) {
     const auto* v = d.Find(key); if (!v || v->type != Type::String) return false; *out = v->string_value; return true;
 }
@@ -64,15 +65,46 @@ std::string EvidenceJsonQuote(const std::string& value) {
     }
     return out + '"';
 }
-void BindEvidencePackageMemory(EvidencePackageV1& value,SearchModelResidency::Reservation& work,std::size_t bytes) {
-    // Split the already admitted parser workspace. Nested independently copyable
-    // values retain their own charge when taken out of the parent manifest.
-    value.memory=work.Split(sizeof(EvidencePackageV1)+512+8*bytes);
-    for(auto& frame:value.frames)frame.memory=work.Split(sizeof(EvidenceFrameV1)+8192+frame.png.capacity());
-    for(auto& snapshot:value.observation_snapshots){
-        snapshot.memory=work.Split(sizeof(EvidenceObservationSnapshotV2)+1024+
-            snapshot.candidates.capacity()*sizeof(ReferencedObservationV1));
-        for(auto& row:snapshot.candidates)BindRecordingRowMemory(row,work,SerializeReferencedObservationV1(row).size());
+std::size_t EvidencePackageWorkspaceBytes(std::string_view json) {
+    // manifest -> snapshot -> referenced observation -> observation/locator/time:
+    // eight owning raw/captured/array layers, plus canonical replay's three buffers.
+    // The largest supported array object is the nested referenced observation.
+    const auto element=std::max({sizeof(EvidenceReferenceV1),sizeof(EvidenceAssetV1),
+        sizeof(EvidenceFrameV1),sizeof(EvidenceObservationSnapshotV2),sizeof(ReferencedObservationV1)});
+    return ingress::StrictJsonWorkspaceBytes(json,11,element,false);
+}
+void BindEvidencePackageMemory(EvidencePackageV1& value,SearchModelResidency::Reservation& work,std::size_t) {
+    struct Cost {
+        std::size_t bytes;
+        void Add(std::size_t n){if(n>std::numeric_limits<std::size_t>::max()-bytes)throw RecordingResourceUnavailable();bytes+=n;}
+        void Text(const std::string& s){Add(s.capacity()+1+32);}
+        void Slots(std::size_t n,std::size_t size){if(n>std::numeric_limits<std::size_t>::max()/size)throw RecordingResourceUnavailable();Add(n*size+32);}
+    };
+    Cost own{sizeof(value)+64};
+    for(const auto* text:{&value.schema,&value.channel_id,&value.hit_id,&value.query_kind,&value.observation_id,
+        &value.track_id,&value.analysis_namespace,&value.store_id,&value.media_epoch_id,&value.time_provenance,
+        &value.status,&value.retention,&value.selection_policy,&value.observation_source_id})own.Text(*text);
+    own.Slots(value.event_ids.capacity(),sizeof(std::string));for(const auto& text:value.event_ids)own.Text(text);
+    own.Slots(value.references.capacity(),sizeof(EvidenceReferenceV1));
+    for(const auto& r:value.references)for(const auto* text:{&r.kind,&r.id,&r.state,&r.reason,&r.sha256,&r.derivation_id})own.Text(*text);
+    own.Slots(value.assets.capacity(),sizeof(EvidenceAssetV1));
+    for(const auto& a:value.assets)for(const auto* text:{&a.name,&a.content_type,&a.sha256})own.Text(*text);
+    own.Slots(value.frames.capacity(),sizeof(EvidenceFrameV1));
+    own.Slots(value.observation_snapshots.capacity(),sizeof(EvidenceObservationSnapshotV2));
+    value.memory=work.Split(own.bytes);
+    for(auto& frame:value.frames) {
+        Cost frame_cost{sizeof(frame)+64};
+        for(const auto* text:{&frame.segment_id,&frame.media_sha256,&frame.sample_sha256,&frame.rgb_sha256,&frame.png_sha256,
+            &frame.source_generation,&frame.media_epoch_id,&frame.track_id,&frame.time_provenance})frame_cost.Text(*text);
+        if(frame.locator){frame_cost.Text(frame.locator->schema);frame_cost.Text(frame.locator->segment_id);}
+        frame_cost.Slots(frame.png.capacity(),sizeof(std::uint8_t));frame.memory=work.Split(frame_cost.bytes);
+    }
+    for(auto& snapshot:value.observation_snapshots) {
+        Cost snapshot_cost{sizeof(snapshot)+64};
+        for(const auto* text:{&snapshot.png_sha256,&snapshot.state,&snapshot.reason})snapshot_cost.Text(*text);
+        snapshot_cost.Slots(snapshot.candidates.capacity(),sizeof(ReferencedObservationV1));
+        snapshot.memory=work.Split(snapshot_cost.bytes);
+        for(auto& row:snapshot.candidates)BindRecordingRowMemory(row,work,0);
     }
 }
 bool ValidateEvidencePackage(const EvidencePackageV1& v, std::string* error) {

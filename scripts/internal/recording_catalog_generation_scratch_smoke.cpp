@@ -52,7 +52,7 @@ struct RecordingCatalogGenerationScratchProbe {
             t->second.checksum_sha256==checksum&&!c.media_relpaths_.count("legacy");
     }
     static bool PendingDeleted(const RecordingCatalog& c){return c.segments_.at("legacy").lifecycle==RecordingLifecycle::DeletionPending&&
-        c.tombstones_.count("legacy")&&!c.media_relpaths_.count("legacy")&&c.deletion_reasons_.at("legacy")=="continuous-age";}
+        c.tombstones_.count("legacy")&&!c.media_relpaths_.count("legacy")&&c.deletion_reasons_.find("legacy")!=c.deletion_reasons_.end()&&c.deletion_reasons_.find("legacy")->second=="continuous-age";}
     static bool V2LegacyDeleted(const RecordingCatalog& c){return c.segments_v2_.count("segment")&&c.tombstones_.count("segment")&&!c.media_relpaths_.count("segment");}
     static bool ExpectedAcceptance(const RecordingCatalog& c,const std::string& mode,const std::string& output) {
         if(mode=="v1-tomb-on-v2"||mode=="job-source-tomb"||mode=="v2-deleted-tomb")return V2LegacyDeleted(c)&&

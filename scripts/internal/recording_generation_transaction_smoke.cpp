@@ -8,6 +8,7 @@
 #include <sys/wait.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include "recording/recording_scratch_reservation.h"
 namespace recording {
 struct RecordingGenerationTransactionProbe {
     static bool Publish(RecordingCatalog& catalog,const RecordingCutoverCandidateLimits& limits,std::string* error) {
@@ -72,8 +73,27 @@ void RollbackCrash(const std::filesystem::path& root,const std::string& point){
     T(2,Recover(root),"rollback cleanup restart "+point);RecordingJournal j(JO(root));
     T(2,j.Open(&error)&&Originals(root)==original,"rollback repeated strict reopen/source "+point);
 }
+void ReceiptOwnership(const std::filesystem::path& root){
+    const auto raw=Read(root/".recording-generation-transaction.json");
+    auto memory=std::make_shared<SearchModelResidency>(4*1024*1024);
+    auto resources=std::make_shared<RecordingScratchResidency>(RecordingScratchResidency::Usage{1024*1024,32,4*1024*1024},memory);
+    {
+        RecordingScratchResidency::Scope scope(resources);RecordingGenerationReceipt value;
+        T(7,ParseRecordingGenerationReceipt(raw,8*1024*1024,&value,&error)&&value.memory.bytes()>0,"receipt parser charges actual DTO before returning");
+        const auto held=memory->used();
+        {auto copy=value;T(7,memory->used()==2*held,"receipt deep copy reserves separately");auto moved=std::move(copy);T(7,memory->used()==2*held&&moved.memory.bytes()==held,"receipt move transfers ownership");}
+        T(7,memory->used()==held,"receipt copied values release after storage");
+        std::string canonical;T(7,SerializeRecordingGenerationReceipt(value,&canonical,&error)&&canonical==raw,"receipt original bytes unchanged");
+        const auto original_stage=value.stage_name;
+        T(7,!ParseRecordingGenerationReceipt("{\"schema\":0,\"schema\":1}",1024,&value,&error)&&value.stage_name==original_stage&&memory->used()==held,"receipt duplicate rejection rollback output unchanged");
+        auto full=memory->ReserveOwned(memory->limit()-held);
+        T(7,bool(full)&&!ParseRecordingGenerationReceipt(raw,8*1024*1024,&value,&error)&&value.stage_name==original_stage,"receipt parser saturation before allocation");
+    }
+    T(7,memory->used()==0,"receipt final owner released");
+}
 void Tamper(const std::filesystem::path& root,unsigned variant){
     Init(root);StopAt(root,variant==2?"component-linked":"marker-synced");auto r=Receipt(root);
+    if(variant==0)ReceiptOwnership(root);
     if(variant==0){auto raw=Read(root/"recording-v2-mutations.jsonl");raw[0]='x';Write(root/"recording-v2-mutations.jsonl",raw);}
     if(variant==1){const auto marker=Read(root/".recording-store-format");std::filesystem::rename(root/".recording-store-format",root/"foreign-marker-original");Write(root/".recording-store-format",marker);}
     if(variant==2){const auto name=r.created.front().file.name;Need(::link((root/name).c_str(),(root/"foreign-third-link").c_str())==0);}

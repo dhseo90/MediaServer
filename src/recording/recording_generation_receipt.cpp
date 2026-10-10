@@ -1,6 +1,7 @@
 // 파일 용도: 녹화 세대 작업 receipt의 생성·직렬화·검증 로직을 구현한다.
 #include "recording/recording_generation_receipt.h"
 #include "domain/strict_json.h"
+#include "recording/recording_scratch_reservation.h"
 #include <algorithm>
 #include <charconv>
 #include <limits>
@@ -68,7 +69,7 @@ std::string OwnedJson(const RecordingGenerationOwnedFile& f) {
 }
 bool ParseOwned(const std::string& raw,RecordingGenerationOwnedFile* out,std::string* error) {
     ingress::StrictJsonObjectDocument d;
-    if(!ingress::ParseStrictJsonObjectDocument(raw,&d,error)||d.members.size()!=5)return false;
+    if(!ingress::ParseStrictJsonObjectDocumentWithoutKeyIndex(raw,&d,error)||d.members.size()!=5)return false;
     const auto name=ingress::StrictJsonStringField(d,"name"),hash=ingress::StrictJsonStringField(d,"sha256");
     if(!name||!hash||!Number(d,"size",&out->file.size)||!Number(d,"device",&out->device)||
        !Number(d,"inode",&out->inode))return false;
@@ -182,6 +183,31 @@ bool Valid(const RecordingGenerationReceipt& r,std::string* target,std::string* 
     return true;
 }
 } // namespace
+namespace {
+struct ReceiptCost {
+    std::size_t value=0;
+    void Add(std::size_t n){if(n>SIZE_MAX-value)throw RecordingResourceUnavailable();value+=n;}
+    void Times(std::size_t n,std::size_t size){if(n&&size>SIZE_MAX/n)throw RecordingResourceUnavailable();Add(n*size);}
+    void Text(const std::string& s){Add(s.capacity());Add(65);}
+    void File(const RecordingGenerationFile& f){Text(f.name);Text(f.sha256);}
+    void Manifest(const RecordingGenerationManifest& m){Text(m.store_id);File(m.snapshot);File(m.active);Times(m.evidence.capacity(),sizeof(RecordingGenerationFile));for(const auto& f:m.evidence)File(f);}
+};
+}
+std::size_t RecordingGenerationReceiptMemoryBytes(const RecordingGenerationReceipt& r){
+    ReceiptCost c;c.Add(sizeof(r));c.Text(r.stage_name);c.File(r.marker.file);c.File(r.source.file);
+    for(const auto* p:{&r.replacement_marker,&r.predecessor_file,&r.predecessor_snapshot})if(*p)c.File((*p)->file);
+    if(r.predecessor)c.Manifest(*r.predecessor);
+    c.Manifest(r.target);c.Times(r.created.capacity(),sizeof(RecordingGenerationOwnedFile));for(const auto& f:r.created)c.File(f.file);
+    return c.value;
+}
+std::size_t RecordingGenerationReceiptSerializationBytes(const RecordingGenerationReceipt& r){
+    // JSON descriptors have two unescaped validated strings, five labels and
+    // three uint64 decimal fields (at most20 characters each). Manifest codecs
+    // retain their existing64KiB admission; both previous/target may coexist.
+    ReceiptCost c;c.Add(2*65536+4096);c.Text(r.stage_name);
+    for(const auto& f:r.created){c.Add(256);c.Text(f.file.name);c.Text(f.file.sha256);}
+    return c.value;
+}
 bool SerializeRecordingGenerationReceipt(const RecordingGenerationReceipt& r,std::string* out,std::string* error) {
     if(!out)return Fail(error,"generation receipt output absent");
     std::string target,previous;
@@ -206,10 +232,16 @@ bool SerializeRecordingGenerationReceipt(const RecordingGenerationReceipt& r,std
     return true;
 }
 bool ParseRecordingGenerationReceipt(const std::string& bytes,std::uint64_t admission,
-    RecordingGenerationReceipt* out,std::string* error) {
+    RecordingGenerationReceipt* out,std::string* error) try {
     if(!out||!admission||bytes.size()>admission)return Fail(error,"generation receipt admission/output invalid");
+    SearchModelResidency::Reservation workspace;
+    if(const auto& owner=RecordingScratchResidency::Current()){
+        auto reserved=owner->memory()->ReserveOwned(ingress::StrictJsonWorkspaceBytes(bytes,12,sizeof(RecordingGenerationOwnedFile),false));
+        if(!reserved)return Fail(error,"recording-resource-unavailable");
+        workspace=std::move(*reserved);
+    }
     ingress::StrictJsonObjectDocument d;RecordingGenerationReceipt r;
-    if(!ingress::ParseStrictJsonObjectDocument(bytes,&d,error)||(d.members.size()!=15&&d.members.size()!=16)||
+    if(!ingress::ParseStrictJsonObjectDocumentWithoutKeyIndex(bytes,&d,error)||(d.members.size()!=15&&d.members.size()!=16)||
        ingress::StrictJsonStringField(d,"schema")!="media-server.recording-generation-transaction.v1")
         return Fail(error,"generation receipt schema invalid");
     const auto operation=ingress::StrictJsonStringField(d,"operation"),phase=ingress::StrictJsonStringField(d,"phase");
@@ -256,8 +288,11 @@ bool ParseRecordingGenerationReceipt(const std::string& bytes,std::uint64_t admi
     std::string canonical;
     if(!SerializeRecordingGenerationReceipt(r,&canonical,error)||canonical!=bytes)
         return Fail(error,"generation receipt noncanonical/invalid");
+    if(workspace.bytes())r.memory=workspace.Split(RecordingGenerationReceiptMemoryBytes(r));
     *out=std::move(r);
     if(error)error->clear();
     return true;
-}
+}catch(const RecordingResourceUnavailable& e){return Fail(error,e.what());}
+ catch(const std::overflow_error&){return Fail(error,"recording-resource-unavailable");}
+ catch(const std::exception&){return Fail(error,"generation receipt invalid");}
 }

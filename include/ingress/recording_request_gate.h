@@ -26,6 +26,8 @@ public:
     std::unique_ptr<Flight> Begin(int socket_fd) {
         std::lock_guard lock(mu_);
         if (!accepting_) return {};
+        if (test_send_buffer_bytes_ > 0 && ::setsockopt(socket_fd, SOL_SOCKET, SO_SNDBUF,
+            &test_send_buffer_bytes_, sizeof(test_send_buffer_bytes_))) return {};
         auto flight = std::unique_ptr<Flight>(new Flight(shared_from_this()));
         flights_.emplace(flight.get(), socket_fd);
         return flight;
@@ -42,9 +44,12 @@ public:
     }
     bool Cancelled() const { std::lock_guard lock(mu_); return !accepting_; }
 private:
+    friend struct RecordingHttpOwnershipProbe;
     mutable std::mutex mu_;
     std::condition_variable drained_;
     bool accepting_{true};
+    // Private native-test seam; zero in every production owner, no HTTP/config control.
+    int test_send_buffer_bytes_{0};
     std::unordered_map<Flight*, int> flights_;
 };
 }  // namespace ingress

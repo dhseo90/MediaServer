@@ -10,6 +10,7 @@
 #include <utility>
 #include "domain/strict_json.h"
 #include "recording/recording_memory_reservation.h"
+#include "recording/recording_contracts.h"
 #include <limits>
 
 namespace recording {
@@ -19,10 +20,31 @@ struct RecordingColdRow {
     SearchModelResidency::Reservation memory;
     std::string bytes;
 };
-inline std::size_t RecordingColdWorkspaceBytes(std::size_t bytes) {
+inline std::size_t RecordingColdWorkspaceBytes(std::size_t bytes,const std::string& ={}) {
+    // Authenticated raw read and fixed index/shape work. Parser/DTO admission is
+    // separate and happens after the allocation-free census, before parsing.
     constexpr std::size_t fixed=64*1024;
-    if(bytes>(std::numeric_limits<std::size_t>::max()-fixed)/32)throw RecordingResourceUnavailable();
-    return fixed+32*bytes;
+    if(bytes>std::numeric_limits<std::size_t>::max()-fixed-1)throw RecordingResourceUnavailable();
+    return fixed+bytes+1;
+}
+template<class T> std::size_t RecordingColdDecodeWorkspaceBytes(const std::string& json) {
+    if constexpr(std::is_same_v<T,EventRecordingLinkV1>)return RecordingEventLinkWorkspaceBytes(json);
+    std::size_t element=0,raw_copies=0;
+    // Maximum simultaneous owning JSON documents/subobject strings in the actual
+    // parser call graph. SplitArray slots and typed slots are counted separately.
+    if constexpr(std::is_same_v<T,EventRecordingLinkV1>)return RecordingEventLinkWorkspaceBytes(json);
+    else if constexpr(std::is_same_v<T,bool>)return 64*1024;
+    else if constexpr(std::is_same_v<T,std::string>){raw_copies=2;}
+    else if constexpr(std::is_same_v<T,RecordingSegmentStateV2>||std::is_same_v<T,RecordingTombstoneV1>){raw_copies=2;}
+    else if constexpr(std::is_same_v<T,RecordingSegmentV1>){raw_copies=4;element=sizeof(std::string);}
+    else if constexpr(std::is_same_v<T,RecordingSegmentV2>){raw_copies=4;element=sizeof(RecordingUtcMappingV1);}
+    else if constexpr(std::is_same_v<T,RecordingConsumerReferenceV1>){raw_copies=4;}
+    else if constexpr(std::is_same_v<T,AnalysisObservationV1>||std::is_same_v<T,AnalysisObservationV2>){raw_copies=6;element=sizeof(std::string);}
+    else if constexpr(std::is_same_v<T,RecordingTombstoneV2>){raw_copies=6;element=sizeof(RecordingUtcMappingV1);}
+    else if constexpr(std::is_same_v<T,ReferencedObservationV1>){raw_copies=8;element=sizeof(std::string);}
+    else {static_assert(!std::is_same_v<T,T>,"cold DTO requires an explicit parser storage model");}
+    // Three canonical owners: stream growth buffer, old growth buffer and return.
+    return sizeof(T)+ingress::StrictJsonWorkspaceBytes(json,raw_copies+3,element,false);
 }
 class RecordingRetainedRowStore {
 public:
@@ -104,7 +126,7 @@ public:
         if(!store_){ram_[id]=std::move(value);return;}
         std::string error;if(!store_->Put(kind_,id,Serialize(value),&error))throw RecordingRetainedReadError(error);
     }
-    T at(const std::string& id)const {const auto row=find(id);if(row==end())throw std::out_of_range("retained row absent");return row->second;}
+    T at(const std::string& id)const {static_assert(!std::is_same_v<T,std::string>,"retain the text iterator while comparing or transferring its storage");const auto row=find(id);if(row==end())throw std::out_of_range("retained row absent");return row->second;}
     std::size_t erase(const std::string& id) {
         if(!store_)return ram_.erase(id);
         if(!count(id))return 0;
@@ -114,17 +136,22 @@ public:
     void swap(RecordingRetainedRows& other)noexcept{ram_.swap(other.ram_);store_.swap(other.store_);kind_.swap(other.kind_);}
 private:
     const_iterator Decode(const std::string& id,RecordingColdRow value)const {
+        const auto bytes=RecordingColdDecodeWorkspaceBytes<T>(value.bytes);
+        auto ticket=store_->MemoryOwner()->ReserveOwned(bytes);
+        if(!ticket)throw RecordingResourceUnavailable();
+        auto shaped=std::move(*ticket);auto* work=&shaped;
         T parsed;std::string error;
         if(!Parse(value.bytes,&parsed,&error)||Serialize(parsed)!=value.bytes)throw RecordingRetainedReadError("retained row canonical/domain mismatch: "+error);
         // The pair allocation/key is retained with the shared row. Deep-copyable DTOs
         // carry a separate charge so at() and downstream result copies retain it.
-        const auto row_bytes=sizeof(T)+512+8*value.bytes.size();
-        BindRecordingRowMemory(parsed,value.memory,value.bytes.size());
+        std::size_t row_bytes=0;
+        if constexpr(std::is_same_v<T,std::string>)row_bytes=parsed.capacity()+1+32;
+        BindRecordingRowMemory(parsed,*work,value.bytes.size());
         struct OwnedPair { SearchModelResidency::Reservation memory;Pair row;
             OwnedPair(SearchModelResidency::Reservation charge,const std::string& key,T result)
                 :memory(std::move(charge)),row(key,std::move(result)){} };
         const auto pair_bytes=sizeof(OwnedPair)+id.size()+1+(std::is_base_of_v<RecordingMemoryCharge,T>?0:row_bytes);
-        auto owner=std::make_shared<OwnedPair>(value.memory.Split(pair_bytes),id,std::move(parsed));
+        auto owner=std::make_shared<OwnedPair>(work->Split(pair_bytes),id,std::move(parsed));
         const Pair* row=&owner->row;
         return const_iterator(this,std::shared_ptr<const Pair>(std::move(owner),row));
     }

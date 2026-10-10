@@ -468,7 +468,7 @@ int RunMediaServerApplication(int argc, char** argv) {
         if(const char* token=std::getenv("MEDIA_SERVER_VA_REVIEW_BEARER_TOKEN"))review_provider.bearer_token=token;
     }
     ingress::VaReviewApplicationService va_reviews(recording_root,review_provider.enabled,review_provider,
-        config.recording_reserved_free_bytes,{},std::chrono::minutes(5),recording_catalog.SearchResidency());
+        config.recording_reserved_free_bytes,{},std::chrono::minutes(5),recording_catalog.SearchResidency(),recording_catalog.ScratchResidency());
     ingress::VisualSearchApplicationService::Options visual_options;
     visual_options.enabled = config.visual_search_enabled;
     visual_options.model_directory = config.visual_search_model_directory;

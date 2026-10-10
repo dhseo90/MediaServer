@@ -130,9 +130,9 @@ template<class Check> void Negatives(Store& store,const recording::DerivedJobInt
         auto result=media(context);check(rejection("source",!result),"LP22-R07 changed current source segment rejects stale content");segment=saved;catalog.derived_job_state_authoritative_=true;
     }
     {
-        Context context;prime(context);auto& path=catalog.media_relpaths_.at(intent.outputs[0].output_id);const auto saved=path;path="wrong.mp4";
+        Context context;prime(context);const auto saved=catalog.media_relpaths_.find(intent.outputs[0].output_id);catalog.media_relpaths_.Set(intent.outputs[0].output_id,"wrong.mp4");
         auto result=media(context);auto strict=reader.ResolveMedia("probe-channel",intent.outputs[0].output_id);
-        check(!result&&!strict&&clean_holds(),"LP22-R07 changed output path preserves strict rejection");path=saved;
+        check(!result&&!strict&&clean_holds(),"LP22-R07 changed output path preserves strict rejection");catalog.media_relpaths_.Set(intent.outputs[0].output_id,saved->second);
     }
     {
         Context context;prime(context);catalog.derived_jobs_.emplace("duplicate-owner",catalog.derived_jobs_.at(intent.job_id));
