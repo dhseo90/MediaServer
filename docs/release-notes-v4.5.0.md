@@ -46,7 +46,9 @@ macOS의 새 증거 PNG 추출은 처음부터 **SoftwareOnly 후보**를 사용
 
 ## 검증과 배포 경계
 
-현재 제품 src/include는 `9257ed8b2044f9e8def4dd9984abea8c022fae1b` 후보와 같고,
+75 마감 당시 제품 src/include는 `9257ed8b2044f9e8def4dd9984abea8c022fae1b` 후보와 같았다.
+현재는 메모리 P0의 Journal 검증 사본 수명을 보완했다. 이는 전체 누적 이력의 상주 상한
+해결이 아니며 [76 부분 수정·미충족](release-artifacts/v4.5.0/76-validation.json)을 별도로 판정한다.
 혼합 실행기는 73에서 고정한 `8a5354b7a37961e26e24fd1d03aa55c30ceec2b5` 이후 불변이다.
 다음은 기존 실행을 실제 범위에 연결한 근거이며, 최신 HEAD 전체를 한 번에 실행한 결과가 아니다.
 원본은 [보존 이력](history/README.md#v450-후보-검증과-종료-기록)의 고정 commit/path에서 조회한다.
@@ -68,8 +70,10 @@ macOS의 새 증거 PNG 추출은 처음부터 **SoftwareOnly 후보**를 사용
 대표 Automatic/SoftwareOnly 표본은 전체 호출의 전수 factory 관측이 아니다.
 복구 receipt와 실제 assertion 범위는 유지하며 보존되지 않은 native stdout 전체를 복원하지 않는다.
 
-기능·수명·수집의 현재 필수 근거는 **충족**이고, 확인된 기술 blocker는 없다.
-직접 검증·단기·장시간 근거에 따라 **명시된 운영 제한 아래 SoftwareOnly 후보의 기술적 채택을 권고**한다.
+기존 기능·수명·수집 근거는 당시 범위에서 **충족**이다. 2026-10-10 사용자 요구에 따라
+**메모리 증가의 주요 소유자 확인·불필요한 잔존 제거·상주 수명/byte 상한 구현과 검증을
+v4.5.0 출시 전 P0**로 추가했다. 현재 메모리 blocker는 미해결이며 운영 제한 수용으로
+대신 마감하지 않는다. 75 당시의 조건부 기술 권고·독립 판단은 역사 원본에 유지한다.
 소유자의 운영위험 수용은 **not-granted**, 최종 출시 채택은 **not-performed**다.
 이번 문서 마감과 AI 검토를 사용자 결정이나 공개 승인으로 해석하지 않는다.
 
@@ -89,5 +93,5 @@ Qwen/Ollama 생성·미채택 모델 품질 실험·외부 서비스/원격 GPU 
 source-only도 운영위험 판단을 면제하지 않는다. 사용법은 [설정 참조](config-reference.md#recording-env)와
 [UI 가이드](ui-guide.md), 공개 순서는 [릴리즈 정책](release-policy.md)을 따른다.
 종료 기록은 원격 Git 원본 확인 후 별도 정리하며 보존/삭제 이력을 squash하지 않는다.
-운영 제한 수용·최종 출시 채택·PR/required CI·main 병합·서명 태그·Release/Latest 확인은 미수행이다.
+소유자는 미해결 메모리 증가의 위험 수용에 동의하지 않았다. 최종 출시 채택·PR/required CI·main 병합·서명 태그·Release/Latest 확인은 보류·미수행이다.
 공개 metadata의 기존 관측 시각은 이번에 갱신하지 않았다.
