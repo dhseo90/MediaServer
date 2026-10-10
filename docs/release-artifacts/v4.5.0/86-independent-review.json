@@ -1,0 +1,426 @@
+{
+  "schema": "media-server.memory86.independent-final-review.v1",
+  "task": "memory86 C1/C2/C3",
+  "reviewer": "independent_memory86",
+  "reviewedAt": "2026-10-10T18:17:19Z",
+  "model": {
+    "requested": "gpt-6-astra",
+    "requestedReasoningEffort": "high",
+    "toolOverrideAcceptance": "부모 인계에서 수락 전달",
+    "actualRuntimeModel": "unconfirmed",
+    "actualRuntimeReasoningEffort": "unconfirmed"
+  },
+  "reviewMethod": {
+    "independentFromImplementation": true,
+    "implementationOrTestsAuthored": false,
+    "productOrTestCommandsExecuted": false,
+    "subdelegation": false,
+    "reportOnlyWrite": "/private/tmp/media-server-memory86-occmd_8c/independent-review-draft.json"
+  },
+  "decision": {
+    "status": "C1_C2_C3_TECHNICALLY_APPROVED_PRESERVATION_CLEANUP_GIT_PENDING",
+    "C1Approved": true,
+    "C2Approved": true,
+    "C3ScopedSourceFlowApprovedAndApplied": true,
+    "candidateDigest": "799ba1fc6aef0144952b907a9476255e6d6383bebc616be1436ac23f85b17035",
+    "memoryP0Complete": false,
+    "releaseApproved": false,
+    "confirmedRemainingProductBlockersInReviewedChanges": [],
+    "overallTaskComplete": false
+  },
+  "boundReviews": {
+    "independent-review-draft.json": {
+      "sha256": "6115a5e59260c4c64be4ca54fc47497a15a8030ea54b5e7fd0d7e6f5c48f1366",
+      "role": "C1/C2 source/receipts/failure provenance; final numbers superseded below"
+    },
+    "independent-scoped-decisions.json": {
+      "sha256": "5fa7c21bcb83df2b0dbfab6be99aa3bea76d19d3d60ac61e13c16a87b99dc336",
+      "role": "304 independent delta decisions bound to immutable pre-application package"
+    },
+    "review-package.json": {
+      "sha256": "fcf43c8339a825d8eefb52514bfa49007df643acc18d2883b0c2fedda70c33f2",
+      "role": "pre-application source snapshot binding"
+    },
+    "proof-context-independent-decision04.json": {
+      "sha256": "d1cd4c0e109f82925601771cb39740db984cf496b05c6939472322a733d610c7",
+      "role": "only two locator context replacements"
+    },
+    "candidate-final.json.data": {
+      "sha256": "246a3fadff3c41f8b012219bd6f87cf3c2a3c319a57bb7eebba07ec1584d021d",
+      "role": "final source candidate"
+    },
+    "migration-evidence.json": {
+      "sha256": "647df389300834a88bc85bef8c82601e876bc877078baac1d3b4376a1b7e0285",
+      "role": "strict carry migration"
+    }
+  },
+  "C1Judgment": {
+    "status": "APPROVED_WITH_STATED_STRUCTURAL_AND_EXECUTED_LIMITS",
+    "actualApplication": "검증된 snapshot 원문→event completeness_reason canonical splitter→인증 익명 scratch→cold DTO shared reader→bounded Visit; checkpoint/frozen export/SQL 초기 cache/실제 PREPARED 복구도 streaming; 허용되는 작은 값의 Put/SQL delta/evidence 소비자는 예약된 eager adapter 사용",
+    "representative": "16MiB encoded reason를 8MiB 주입 owner에서 Open·선택·전체 hash·checkpoint·재Open·PREPARED 복구. 기존 300000 overlap 및 configuration matrix 원출력 PASS",
+    "authorityAndLifetime": "descriptor 전체 hash/identity 검증 후 private projection 게시; 공유 reader는 predecessor cleanup 및 Journal Finish 이후 자기 backing을 유지, 마지막 reader 해제 뒤 RAM/disk/FD=0. source/offset/hash/canonical/permission 관련 기존 직접 회귀와 새로운 tail/lifetime/escape 회귀를 함께 사용. 모든 fault를 큰 reason로 별도 재실행했다고 주장하지 않음",
+    "maximumContract": "700MiB는 정적 contract 사례, 실제 실행하지 않음. snapshot 1GiB admission 및 공통640MiB owner를 올리지 않고 reason 길이에 비례한 RAM materialization을 필수 Open/복구/조회 경로에서 제거했다. 거대한 값의 단일 eager std::string 생성 성공을 보장하지 않음",
+    "earlierFindings": "R86-C1-ESCAPE/DELTA/RECOVERY/READER 수정 확인. lazy01-03은 비canonical fixture로 원본 호환 PASS 무효 사실 유지."
+  },
+  "C2Judgment": {
+    "status": "APPROVED_PER_SEND_CONTRACT_AND_ACTUAL_OWNERSHIP_TERMINATION",
+    "contract": "기존 blocking accepted FD의 SO_SNDTIMEO=5초 per-send. 전체 응답 deadline 없음. send<=0이면 재시도 없이 false; 양수 부분 송신은 남은 bytes를 다음 send로 넘김. 관측 instrumentation은 test-only 고정64건, production retry/timeout 정책 불변.",
+    "originalFailure": "http-diagnostic86 exit1을 유지. 첫 POLLOUT=false 뒤 원래12초 창에서 327680,3056 양수 진행이 있었고 세 번째 send 진행중이라 worker 종료 미확인. 이를 무한 hang이나 5초 전체 deadline 위반으로 해석하지 않음.",
+    "newCase": "사전 고정 12초 준비 + 12초 관측. 최종 mac-http-final02에서 세 번째 send=-1 errno35, no-progress syscall 5.00083초, request elapsed15.5716초, workerActive0. 아래 macFinalActual이 최종 측정이며 초안 newCase의15.6795/5.00149는 중간 실행이다.",
+    "ownership": "normal/slow/reset/timeout/Stop-race 및 별도Stop 각각 종료 후 transport 예약16,777,216 bytes 반환, 독립 response reader 유지. response/encoded 파괴 뒤 active connection 해제 및 flight 제거; Close의 shutdown과 flight 제거가 같은 mutex에 있어 재사용 FD를 뒤늦게 취소하지 않음. 최종 모든 shared cache RAM=0나 OS thread join·원격 애플리케이션 처리 완료를 이 HTTP 로그로 주장하지 않음.",
+    "scope": "인증된 실제 recording HTTP route, 3,438,288-byte body, 정상/slow/reset/Stop 및403/503. kernel 송신큐는 user-space 예약 대상과 구분. 새120분/UI/provider 실행 없음.",
+    "linuxActual": {
+      "uid": 10001,
+      "positiveSendBytes": 5500,
+      "terminalSend": -1,
+      "errno": 11,
+      "noProgressSyscallSeconds": 5.12027,
+      "requestElapsedSeconds": 10.7211,
+      "completedDuringPreparationWindow": true,
+      "releasedTransportReservationBytes": 16777216,
+      "slowCompletedSeconds": 8.76188,
+      "slowPositivePartialBytes": 1992500,
+      "slowRemainderBytes": 1445956,
+      "normalResetStopRaceSeparateStop403503": "PASS; 원출력 대조함"
+    },
+    "macFinalActual": {
+      "positiveSendBytes": [
+        327680,
+        3056
+      ],
+      "terminalSend": -1,
+      "errno": 35,
+      "noProgressSyscallSeconds": 5.00083,
+      "requestElapsedSeconds": 15.5716,
+      "workerActive": 0,
+      "releasedTransportReservationBytes": 16777216,
+      "allNativeCases": "normal/slow/reset/timeout/Stop-race/separateStop/403/503 PASS"
+    }
+  },
+  "C3Judgment": {
+    "status": "APPROVED_AND_PRODUCER_READBACK_CONFIRMED",
+    "independentlyReviewedChangedIds": 304,
+    "strictCarryForward": 682,
+    "whole986NewSemanticReview": false,
+    "directChecks": "prior 80 role sources matched72cc7643d bytes; 1,824 current roles matched actual anchors/context/blob/body; all304 feature/requirement/oracle/verifier/semantic edge fields unchanged; changed body boundaries and callers reviewed as297 runtime plus7 VLM; 3,789 tree blobs matched bound tree; strict carry682 mismatch0.",
+    "producer": "existing migration-aware producer exit0, atomic audit/approval/manifest/native replacements; applied audit items exactly equal reviewed candidate items, approval ledger counts/bindings equal independent decision and review-package bytes.",
+    "executionBoundary": "manifest executionEvidenceStatus=not-execution-evidence; native424-case definition is not actual UI fulltest or eligibility evidence.",
+    "appliedFiles": {
+      "test/fixtures/v390_review4_feature_semantic_source_audit.json": {
+        "sha256": "dcf55468f65e51e320255a2333a75eed2bd9f7ebd82f58464961d84c7aeda7fc",
+        "bytes": 10406023
+      },
+      "test/fixtures/v390_review4_feature_semantic_source_approvals.json": {
+        "sha256": "715d37498318b036086abaf1204f0752882239b9e4a5bf1b69828fbd2fa97abd",
+        "bytes": 1820877
+      },
+      "test/fixtures/project_feature_implementation_evidence.json": {
+        "sha256": "9adaaa87f479623faf495332aef7a013e285a130b0f3a1979a2eef3c22901072",
+        "bytes": 26354089
+      },
+      "test/fixtures/v390_ui_native_exact_cases.json": {
+        "sha256": "0c683827c613de8a4bee1639205178ec7c52339d96ce138d356b5378381142fb",
+        "bytes": 14007819
+      }
+    }
+  },
+  "finalExecutedEvidence": {
+    "mac": {
+      "mac-runtime-build04": {
+        "exit": 0,
+        "elapsedSeconds": 4.991331166937016,
+        "verifiedLogSha256": "e7779e84082af610936cfe7f1e07aae9a09c7e9c189a0d5d925a86c165817dbd"
+      },
+      "mac-lazy-build-final": {
+        "exit": 0,
+        "elapsedSeconds": 16.45317100000102,
+        "verifiedLogSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "mac-lazy-final": {
+        "exit": 0,
+        "elapsedSeconds": 18.11641904199496,
+        "verifiedLogSha256": "0179c282fe7802bcf76aa6fc88a50584cb1773b558c5bcd4b812bf00376e7d4b"
+      },
+      "mac-http-final02": {
+        "exit": 0,
+        "elapsedSeconds": 19.918906541075557,
+        "verifiedLogSha256": "d0996992ccb68d6f2aba8bea97317c01da3365a7cd5615eb51a983e9ca9a7470"
+      },
+      "mac-http-stop02": {
+        "exit": 0,
+        "elapsedSeconds": 2.0895829170476645,
+        "verifiedLogSha256": "f3a053433ec74ae22bcd6c13d91dc4ab41e0042f3984cb850b49acd395b0643f"
+      },
+      "mac-d-final02": {
+        "exit": 0,
+        "elapsedSeconds": 1.0327897500246763,
+        "verifiedLogSha256": "1f445343d8be65e054e624476a756d7a5aba6cbfa67ebc9a01451b974a1c4a82"
+      },
+      "mac-overlap-final02": {
+        "exit": 0,
+        "elapsedSeconds": 34.921853333944455,
+        "verifiedLogSha256": "81cde98deb4a2328add311751a643e42a64469aad34c55e793f2b4203eb33389"
+      }
+    },
+    "linux": {
+      "build.json": {
+        "exit": 0,
+        "uid": 10001,
+        "elapsedSeconds": 44.14403235299994,
+        "verifiedLogSha256": "b35ffce08168e4e637e392f6279eaff3752794abc402a15c47daed5404a67bba"
+      },
+      "event-bridge.json": {
+        "exit": 0,
+        "uid": 10001,
+        "elapsedSeconds": 18.90635629999997,
+        "verifiedLogSha256": "387ce64f04fb08cd6c79938614dada24c3ffad2709a589d97f835596750ef9ce"
+      },
+      "http-stop.json": {
+        "exit": 0,
+        "uid": 10001,
+        "elapsedSeconds": 2.678302584999983,
+        "verifiedLogSha256": "3eb69fafa475c9a87eb7b5ce749d5066bc7e0c5e28d6082d0cff6757fb3241fc"
+      },
+      "recording-http-owner-smoke.json": {
+        "exit": 0,
+        "uid": 10001,
+        "elapsedSeconds": 22.48194280200005,
+        "verifiedLogSha256": "f19818a80ebab26173ebe932ae8166c15d84894e0ed4ceab7956b2574ca644eb"
+      },
+      "recording-retained-lifetime-smoke.json": {
+        "exit": 0,
+        "uid": 10001,
+        "elapsedSeconds": 0.40342137499999353,
+        "verifiedLogSha256": "ea88b8da9cf6dbb2a836ca090fec07844b7cf3cf8f3b3514dfe94eee31f06c3a"
+      },
+      "recording-search-application-smoke.json": {
+        "exit": 0,
+        "uid": 10001,
+        "elapsedSeconds": 0.8119225010000264,
+        "verifiedLogSha256": "e8ff39d5f586efa4197e5a1cbea9dd322be06b3bf146de6f8d3ed07cf341c9eb"
+      },
+      "recording-search-runtime-load-smoke.json": {
+        "exit": 0,
+        "uid": 10001,
+        "elapsedSeconds": 27.926863929000092,
+        "verifiedLogSha256": "63b8a433956855825bbd41475c18264643926110adc508bfa41d3de0a4c2b39a"
+      },
+      "recording-search-source-smoke.json": {
+        "exit": 0,
+        "uid": 10001,
+        "elapsedSeconds": 1.6349012089999633,
+        "verifiedLogSha256": "9139c4261344e80bd065883b8acc26614dd513ed79d126be916abcd4c6112fe1"
+      },
+      "search-owner.json": {
+        "exit": 0,
+        "uid": 10001,
+        "elapsedSeconds": 2.053337542999998,
+        "verifiedLogSha256": "675eccefa616e8887be512e5ce3984a9068ff389a9a52c68bdd43320b6d08733"
+      }
+    },
+    "macBinaryBindings": {
+      "final-http": {
+        "binary": "6e4ed4d74aa2e92fc2817f56a42bdf69dd1b7331065ae337b691d01ae80bb623",
+        "archive": "417c095bd7dd6af011de20c4833abbaa61d3bc84ad94dc68dc89b4e9924b2d3e"
+      },
+      "final-bc": {
+        "binary": "6aaf12d6f562d95f6496dcc11888342a4cc405fe9bbc9ceb5aee61abca5d9983",
+        "archive": "417c095bd7dd6af011de20c4833abbaa61d3bc84ad94dc68dc89b4e9924b2d3e"
+      }
+    },
+    "source07": {
+      "filesChecked": 1453,
+      "byteMismatches": [],
+      "freezeSha256": "84717e77ffa631a04bc9c9a351b1aa8fe0261fd17501fc9fb04303ef95eab8bb",
+      "scope": "해시 전수 대조이며1453개전문검토 주장이 아님"
+    }
+  },
+  "finalLimitedConcurrency": {
+    "mac": {
+      "elapsedSeconds": 34.921853333944455,
+      "writers": 8,
+      "clients": 4,
+      "observations": 10000,
+      "packets": 720,
+      "finalFiles": 24,
+      "samples": 55,
+      "ready": 55,
+      "unavailable": 0,
+      "p95Ms": 629.869,
+      "maxMs": 688.944,
+      "finish": "explicit successful",
+      "meaning": "90초 상한의 유한 작업 완료,90초 지속운행아님"
+    },
+    "linux": {
+      "elapsedSeconds": 27.926863929000092,
+      "writers": 8,
+      "clients": 4,
+      "observations": 10000,
+      "packets": 720,
+      "files": 24,
+      "samples": 62,
+      "ready": 62,
+      "unavailable": 0,
+      "p95Ms": 443.868,
+      "maxMs": 633.33,
+      "finish": "explicit successful",
+      "meaning": "90초 상한의 기존 유한 작업 완료.90초 지속운행은 아님."
+    },
+    "interpretation": "Both finite workload completion under90s upper bound; not90s sustained run or long-duration validation."
+  },
+  "supersededInterimMeasurements": {
+    "draftFields": [
+      "C2Judgment.newCase old15.6795/5.00149",
+      "limitedConcurrency top-level mac34.731784959090874 p95660.743 max675.081"
+    ],
+    "finalMeasurementAuthority": [
+      "mac-http-final02",
+      "mac-http-stop02",
+      "mac-d-final02",
+      "mac-overlap-final02"
+    ],
+    "originalInterimLogsPreserved": true
+  },
+  "reuse85": {
+    "B1024": "완료된 한정 안정 구간 근거 재사용. 이번 변경은draft/job 수명변경이 아니며 초기8192/33920byte 미귀속값을0으로 만들었다고 주장하지 않음.",
+    "C16": "동일PID/store 실제TTL 보존·재조회 기존근거 재사용.5분 검사를 새로실행했다고 하지 않음.",
+    "D": "현재 변경 영향의 actual combined owner 회귀를 mac/Linux에서 새 실행, last reader RAM/disk/FD 반환 및 원본 재Open 확인."
+  },
+  "failureProvenance": {
+    "linuxRun04": "collector의 name.replace(hyphen,empty).isalnum 검사가 underscore label을 Popen 이전 거부. 원출력 exit1 보존. helper에서 label만 hyphen화하고 새 root05 사용, 이미 성공한 compile을 재사용하여 재실행. logcap4MiB/deadline/실패전파/제품binary 변경으로 PASS를 만들지 않았다.",
+    "linuxRun05": "exit0 원출력과 개별native receipt 대조.",
+    "compileFailures": "event bridge remux 및 overlap GCC misleading-indentation 최초실패 보존, 직접 비교한 문장간 줄바꿈 수정뒤 컴파일. runtime제품06→07은 동일, overlap fixture만07."
+  },
+  "resolvedFindings": [
+    {
+      "id": "R86-C1-ESCAPE",
+      "sourceReview": "기존 Escape와 canonical b/f·비canonical u0008/u000c 거부를 일치시켰다. decoded stream에도 b/f를 복원한다.",
+      "evidence": "c1/lazy-04.log"
+    },
+    {
+      "id": "R86-C1-DELTA",
+      "sourceReview": "generation delta의 cold lazy value를 owned serializer로 읽고 SQL 복사 작업 예약을 유지한다. PutEventLink와 EvidenceDependenciesLocked도 bounded owned adapter를 사용한다.",
+      "evidence": "c1/lazy-04.log: 70KiB Put, cold retry, checkpoint reOpen"
+    },
+    {
+      "id": "R86-C1-RECOVERY",
+      "sourceReview": "PREPARED 복구의 target/expected 행을 순차 SHA256+길이로 비교하고 header와 row coverage를 대조한다. 단일 eager snapshot materialization을 제거하고 explicit temporary owner Close를 확인한 후 cleanup한다. eager snapshot serializer는 lazy row를 거부한다.",
+      "evidence": "c1/lazy-04.log: crash after PREPARED receipt, Recover, reOpen and original snapshot identity"
+    },
+    {
+      "id": "R86-C1-READER",
+      "sourceReview": "RecordingLazyText::Visit와 VisitEventRecordingLinkV1이 shared source를 지역 strong reference로 보유하여 callback의 DTO 해제와 독립적인 traversal 수명을 유지한다.",
+      "evidence": "c1/lazy-04.log: callback clears final DTO, reentrant Finish rejection, final resources zero"
+    }
+  ],
+  "producerAndStaticReceipts": {
+    "producer-final": {
+      "receiptSha256": "25513d080ef4e7efb2c439f497ba843a8793ec0f58c037e08f98a71e879f3eca",
+      "logSha256": "d2967c2173ccad4b0fbcf73b46a40f59a44fa845e700e303ec8cd6ea583d81e9",
+      "exit": 0,
+      "elapsedSeconds": 78.8863574579591,
+      "command": [
+        "node",
+        "scripts/internal/produce_v390_review4_migration_aware_approvals.mjs",
+        "--write-ledger",
+        "--prior-audit",
+        "/private/tmp/media-server-memory86-occmd_8c/prior-audit.json",
+        "--prior-approvals",
+        "/private/tmp/media-server-memory86-occmd_8c/prior-approvals.json",
+        "--migration-evidence",
+        "/private/tmp/media-server-memory86-occmd_8c/migration-evidence.json",
+        "--decisions",
+        "/private/tmp/media-server-memory86-occmd_8c/independent-scoped-decisions.json",
+        "--review-package",
+        "/private/tmp/media-server-memory86-occmd_8c/review-package.json"
+      ]
+    },
+    "static-verify-v390-review4-feature-semantic-source-audit": {
+      "receiptSha256": "f6901378ff902e13d3cab4825a1d3c016bd1702b47d20c0e890eb3501ab5f797",
+      "logSha256": "46e606c64d0451c3e1af63e013a680d9be8b94560264da4f0c15b87fe713ba11",
+      "exit": 0,
+      "elapsedSeconds": 32.6994129170198,
+      "command": [
+        "./server.sh",
+        "verify-v390-review4-feature-semantic-source-audit"
+      ]
+    },
+    "static-verify-v390-review4-feature-semantic-source-approvals": {
+      "receiptSha256": "f4d760b638f6b5091cf40f6fd191dec4acee793ed69adb640bd0db9b2c56cada",
+      "logSha256": "4d26ed3ae3655b5b6289b5a78ac18f3b1b29b01910295fd950d796071fc4e147",
+      "exit": 0,
+      "elapsedSeconds": 20.550932542071678,
+      "command": [
+        "./server.sh",
+        "verify-v390-review4-feature-semantic-source-approvals"
+      ]
+    },
+    "static-verify-project-inventory": {
+      "receiptSha256": "6533ac14359cb8b6e0c2e88bfafa486d294d9226a16e0c66e6a1ae42197d28a7",
+      "logSha256": "4670513193842f03ec9ea567062efe9d2dd303d621716a5cb95876d48b1dc1cd",
+      "exit": 0,
+      "elapsedSeconds": 41.49856358394027,
+      "command": [
+        "./server.sh",
+        "verify-project-inventory"
+      ]
+    },
+    "static-verify-feature-inventory-coverage": {
+      "receiptSha256": "1ea29c750977617a0e222fb26979eaecd222e0a97385a7245a7f9f82d4026580",
+      "logSha256": "f3dd9d2ec3cd35ce7a806a391b6918dddd2c2377ca3039afa624f484985f9bce",
+      "exit": 0,
+      "elapsedSeconds": 81.94078141695354,
+      "command": [
+        "./server.sh",
+        "verify-feature-inventory-coverage"
+      ]
+    },
+    "static-verify-feature-implementation-evidence": {
+      "receiptSha256": "1e54afbba9a829b5fe98d5db884257a6c754e915c96bda5ea47dc6edf08cd359",
+      "logSha256": "f004e8a145e0b287322992e5f2f9c356c12a495834505e9ea79a414fd1f6b6f7",
+      "exit": 0,
+      "elapsedSeconds": 50.48886516597122,
+      "command": [
+        "./server.sh",
+        "verify-feature-implementation-evidence"
+      ]
+    },
+    "static-verify-script-inventory": {
+      "receiptSha256": "df6e1d353e6f7bb64cd2c865380a2eb9122f86d767e206396f4b09c7d5b29864",
+      "logSha256": "92e692a3173f517ac5430005d1cf361195ac0dad7e505a2ffaddc893da6cdecf",
+      "exit": 0,
+      "elapsedSeconds": 26.799903583945706,
+      "command": [
+        "./server.sh",
+        "verify-script-inventory"
+      ]
+    }
+  },
+  "limits": [
+    "700MiB is structural/static contract analysis only; no actual700MiB allocation/run. Executed large reason representative is16MiB encoded with8MiB owner.640MiB shared budget unchanged.",
+    "Prior85 B1024 completed bounded interval and C16 same PID/store TTL evidence reused, not rerun in86. Initial8192/33920-byte unattributed values not represented as zero.",
+    "Original85 failures and86 first failures remain failures; lazy01-03 canonical compatibility claims remain invalidated.",
+    "No new120min,30min,actual UI fulltest,provider/media rollout or release approval. Memory P0 and release remain held.",
+    "Reviewer performed read-only source/evidence review and authored temp review artifacts; no implementation/test/producer execution or subdelegation."
+  ],
+  "pending": [
+    "Minimal evidence preservation and byte readback",
+    "Owned temporary/process/port/container cleanup and post-cleanup absence verification",
+    "Evidence/cleanup commit boundaries and resulting hashes; implementation commit read back below",
+    "Remote permission/scope and pushed commit readback"
+  ],
+  "cleanupReadAtThisStage": {
+    "receipt": "cleanup-before-preservation.json",
+    "sha256": "1ed5007943d064f396ba72c9b4588eba02a40cd28ea17c668577e41efba6d3c9",
+    "finding": "No owned process rows or listed listeners;3 owned containers exited. Temporary-root removal and final container absence remain pending.",
+    "inventorySha256": "14736f05fa6f114e58f5e40ce53e5b952341dc60b24393e1a940fd4917f7e523",
+    "symlinkBoundary": "277 SDK cache symlinks are link entries only; external installed SDK targets must be preserved."
+  },
+  "finalFollowUpRequired": true,
+  "implementationCommitReadback": {
+    "commit": "e9cd0ca5f8bc0b08ada0e4dbc409bb742c583696",
+    "tree": "aa31fa8e2ebb82def0fab88dbccc8758bc91e1ab",
+    "appliedFourFixtureBytesMatch": true,
+    "remotePushVerified": false
+  }
+}

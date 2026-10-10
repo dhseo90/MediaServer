@@ -1,0 +1,356 @@
+{
+  "schema": "media-server.validation.v1",
+  "task": 86,
+  "status": "C1_C2_C3_VERIFIED_PRESERVATION_PENDING",
+  "wholeTaskComplete": false,
+  "memoryP0": "BLOCKED_PENDING_FINAL_MIXED_VALIDATION",
+  "releaseApproved": false,
+  "model": {
+    "mainRequested": "gpt-6-astra/high",
+    "mainToolAccepted": null,
+    "mainRuntimeModel": null,
+    "mainRuntimeEffort": null,
+    "implementationToolAccepted": "gpt-6-astra/high",
+    "implementationRuntime": null,
+    "independentRequested": "gpt-6-astra/high",
+    "independentToolAccepted": "gpt-6-astra/high",
+    "independentRuntime": null,
+    "independentAgent": "independent_memory86; separate; no implementation/test authoring/execution"
+  },
+  "source": {
+    "entryHead": "738e1d20c16cfabf594b5adc288e391528c6f0db",
+    "entryRemote": "738e1d20c16cfabf594b5adc288e391528c6f0db",
+    "entryWorktree": "clean",
+    "implementationCommit": "e9cd0ca5f8bc0b08ada0e4dbc409bb742c583696",
+    "implementationTree": "aa31fa8e2ebb82def0fab88dbccc8758bc91e1ab",
+    "freeze": "86-execution.tar.gz:source-freeze-07.json",
+    "diff": "86-execution.tar.gz:source-freeze-07.patch",
+    "binding": "Execution used exact precommit source+diff, not a future HEAD. Earlier matrix receipts retain their own freeze. Source02→07 includes documented literal/format and link preparation fixes; final mac native source07, Linux product06 and overlap07; independent review confirms equivalent formatting-only reuse.",
+    "finalMacBinaries": {
+      "source": "source-freeze-07.json",
+      "files": {
+        "build-gst-onnx/media_server": {
+          "sha256": "dc1e81d1504961eb7ee914a5def3262c7356926669c07a5abfe59e5cee60af71",
+          "bytes": 36064544
+        },
+        "build-gst-onnx/libmedia_server_runtime.a": {
+          "sha256": "417c095bd7dd6af011de20c4833abbaa61d3bc84ad94dc68dc89b4e9924b2d3e",
+          "bytes": 103577464
+        }
+      },
+      "sourceDrift": []
+    },
+    "linuxBinaries": "afde9464fab3904bf355be2d263d755d40047173c5963f81876162f893bf7f7c  ../build/media_server\nef0c13c72c552903dafd4bcc9f75c449fbdd7b60b68b4ae3fac61244d07c7c41  ../build/libmedia_server_runtime.a\n",
+    "sourceFilesVerified": 1453,
+    "sourceMismatches": 0
+  },
+  "C1": {
+    "status": "PASS_BOUNDED_CONSUMPTION_WITH_STATED_EXECUTION_SCOPE",
+    "authority": "Original snapshot/manifest/generation and full descriptor hash validated before private projection publication. Original persistent JSON fields/canonical bytes and recovery semantics retained.",
+    "implementation": "Large completeness_reason is lossless shared RecordingLazyText backed by authenticated 2048-byte anonymous scratch chunks on the SAME aggregate owner. Managed Open/projection, retained cold lookup, typed query, frozen checkpoint export, initial SQL blob population and PREPARED recovery consume bounded streams. Small admissible Put/SQL delta/evidence consumers use charged owned adapters.",
+    "ownership": "Local strong source survives callback DTO release; held reader preserves backing across checkpoint/predecessor cleanup/Journal Finish; last reader returns RAM/disk/FD. Sticky cleanup uncertainty and explicit Finish remain failures.",
+    "executed": {
+      "encodedReasonBytes": 16777216,
+      "decodedReasonBytes": 16744448,
+      "injectedOwnerLimitBytes": 8388608,
+      "logicalOwnerPeakBytes": 3869250,
+      "maxCallbackBytes": 2048,
+      "decodedSha256": "5b0d517a30edbc82c62daa01a5b17f536f0bb4360dc2a350b9513d33a388ff79",
+      "receipt": "mac-lazy-final.json",
+      "actual700MiBRun": false,
+      "legacyOverlapCount": 300000,
+      "legacyFormsBytes": [
+        22467062,
+        56778171
+      ]
+    },
+    "maximumContract": "700MiB remains STATIC contract analysis, not executed input or operational failure. Snapshot1GiB and aggregate640MiB limits unchanged. No promise of a700MiB eager std::string below640MiB; lossless streaming removes that mandatory representation from managed product consumers. Unmanaged standalone oracle eager API is distinct from RuntimeStorage managed path.",
+    "limits": "Charged logical owner peak is not instantaneous live heap/RSS. Actual fault/permission/offset/hash tests combine new representative and valid existing direct cases; not every fault re-executed at700MiB."
+  },
+  "C2": {
+    "status": "PASS_ACTUAL_PER_SEND_TIMEOUT_AND_OWNERSHIP_TERMINATION",
+    "contract": "Blocking accepted FD SO_SNDTIMEO5s, positive partial send continues; send<=0 returns false with no automatic retry. No existing whole-response5s deadline. Fixed64-event test-only diagnostic, overflow failure; no payload/credentials.",
+    "firstFailure": "85 mac/Linux12s observation FAIL remains. New http-diagnostic86 exit1 preserves original premise: positive327680/3056 then thirdsend pending at12s; not proof of infinite hang. No reconstruction of85 missing syscalls.",
+    "replacement": "Distinct plan fixed BEFORE run: finite12s preparation plus12s observation,45s outer limit. Window never moved by progress; socket5s unchanged. Linux finished during preparation.",
+    "mac": {
+      "positiveSendBytes": [
+        327680,
+        3056
+      ],
+      "lastSend": -1,
+      "errno": 35,
+      "noProgressSendSeconds": 5.00083,
+      "wholeRequestSeconds": 15.5716,
+      "workerActiveAfter": 0,
+      "transportReservationReturnedBytes": 16777216
+    },
+    "linux": {
+      "positiveSendBytes": 5500,
+      "lastSend": -1,
+      "errno": 11,
+      "noProgressSendSeconds": 5.12027,
+      "wholeRequestSeconds": 10.7211,
+      "slowResponseSeconds": 8.76188,
+      "workerActiveAfter": 0,
+      "transportReservationReturnedBytes": 16777216
+    },
+    "otherActualCases": "normal large authenticated route, slow, reset, Stop/completion race, separate blocked Stop,403/503; independent reader retains its reservation until its last release. User-space ownership is distinct from kernel queue and recipient processing.",
+    "productBehavior": "No timeout/deadline/retry policy change needed or made; actual no-progress returns and existing worker/body release terminate."
+  },
+  "C3": {
+    "status": "PASS",
+    "candidateDigest": "799ba1fc6aef0144952b907a9476255e6d6383bebc616be1436ac23f85b17035",
+    "resolved": 986,
+    "strictCarryForward": 682,
+    "independentlyReviewed": 304,
+    "independentDecisionsSha256": "5fa7c21bcb83df2b0dbfab6be99aa3bea76d19d3d60ac61e13c16a87b99dc336",
+    "reviewPackageSha256": "fcf43c8339a825d8eefb52514bfa49007df643acc18d2883b0c2fedda70c33f2",
+    "producerReceipt": "86-execution.tar.gz:producer-final.json",
+    "producerExit": 0,
+    "atomicReadbackFailures": 0,
+    "proof": "LAB-051/SAFE-035 exact current locator/context regenerated only after separate source/candidate/ID-bound independent decision. New minimal prepare/apply tool rejects ambiguous/stale/unreviewed input;9direct cases PASS. No manually authored approvalhash.",
+    "boundary": "986 reviewed-source closure is not new UI/acceptance execution nor automatic approval of new memory product code; that has separate independent C1/C2 judgment."
+  },
+  "finalOverlap": {
+    "fixedLimits": {
+      "writers": 8,
+      "clients": 4,
+      "observations": 10000,
+      "packets": 720,
+      "files": 24,
+      "deadlineSeconds": 90,
+      "p95MaxMs": 2000,
+      "maximumMs": 5000
+    },
+    "mac": {
+      "elapsedSeconds": 34.921853333944455,
+      "samples": 55,
+      "ready": 55,
+      "unavailable": 0,
+      "p95Ms": 629.869,
+      "maximumMs": 688.944,
+      "rssHighWaterBytes": 71254016,
+      "heapUsedBytes": 13869488,
+      "heapReservedBytes": 71417856,
+      "files": 24,
+      "Finish": "PASS"
+    },
+    "linux": {
+      "elapsedSeconds": 27.926863929000092,
+      "samples": 62,
+      "ready": 62,
+      "unavailable": 0,
+      "p95Ms": 443.868,
+      "maximumMs": 633.33,
+      "rssHighWaterBytes": 119791616,
+      "files": 24,
+      "Finish": "PASS"
+    },
+    "scope": "Actual checkpoint publication while writers progress and per-client completion during checkpoint.90s is deadline, not observation duration. Final file/search validation retained; no separate after-checkpoint latency phase asserted where samplecount0."
+  },
+  "regression": {
+    "macOS": "Final runtime/product build; lazy/history-large fourconfiguration matrices; checkpoint all/concurrency; event144; search owner; final lazy,HTTP,blockedStop,D,overlap. Exact earlier source and equivalent formatting reuse in independent review.",
+    "linux": "Existing ce72c8a15363984da642e9964189957896812061c6af1d0ef67e87b38ad5a588 image,arm64,GCC16.2,GStreamer1.28.7,ONNX1.23.2;uid10001 nonroot,networknone,capdropALL,no-new-privileges. Product/runtime build, configuration matrices, event144/searchowner/source50/application19,actual HTTP/D/overlap/Stop. No installation.",
+    "D": "Mac aggregate charged peak665303020 and Linux665360031 <671088640. Explicit Finish leaves living Catalog metadata676/692 RAMbytes with disk/FD0; final destructor RAM/disk/FD0. Existing package hash survives reopen.",
+    "firstFailures": "86-execution.tar.gz:first-integration-findings.json preserves compile/preparation/consumer findings and exact failure→fix→rerun. lazy01-03 noncanonical-fixture compatibility PASS INVALIDATED; later canonical b/f and negative u0008/u000c correct.",
+    "reuse": "85 B1024 finite late plateau and actual TTL C16 samePID/store retained; draft/job lifecycle unchanged. Initial8192/33920 unclassified bytes not converted to0 or new blocker.82K/F,83cold/queued cancellation,84aggregateowner retained within exact influence.59/61/63/65/68Linux/72-74 are historical source-specific evidence, not current full rerun."
+  },
+  "staticChecks": {
+    "static-verify-v390-review4-feature-semantic-source-audit": {
+      "command": [
+        "./server.sh",
+        "verify-v390-review4-feature-semantic-source-audit"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 32.6994129170198,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 12716,
+      "sha256": "46e606c64d0451c3e1af63e013a680d9be8b94560264da4f0c15b87fe713ba11"
+    },
+    "static-verify-v390-review4-feature-semantic-source-approvals": {
+      "command": [
+        "./server.sh",
+        "verify-v390-review4-feature-semantic-source-approvals"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 20.550932542071678,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 255,
+      "sha256": "4d26ed3ae3655b5b6289b5a78ac18f3b1b29b01910295fd950d796071fc4e147"
+    },
+    "static-verify-feature-implementation-evidence": {
+      "command": [
+        "./server.sh",
+        "verify-feature-implementation-evidence"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 50.48886516597122,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 1141,
+      "sha256": "f004e8a145e0b287322992e5f2f9c356c12a495834505e9ea79a414fd1f6b6f7"
+    },
+    "static-diff-check": {
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 0.20951241604052484,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "static-verify-release-metadata": {
+      "command": [
+        "./server.sh",
+        "verify-release-metadata"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 0.21168645902071148,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 454,
+      "sha256": "9cda5bb492e62ffb69865b146136bb2ffb4da8344c235a64796e278e1be23ffe"
+    },
+    "static-verify-script-inventory": {
+      "command": [
+        "./server.sh",
+        "verify-script-inventory"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 26.799903583945706,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 941,
+      "sha256": "92e692a3173f517ac5430005d1cf361195ac0dad7e505a2ffaddc893da6cdecf"
+    },
+    "static-verify-docs-links": {
+      "command": [
+        "./server.sh",
+        "verify-docs-links"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 0.4146059169434011,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 186,
+      "sha256": "b3163a7b3387e2bf0a4a101504ee9f327c45e17a015e371f728f3ba21b5c3e2c"
+    },
+    "static-verify-release-evidence-index": {
+      "command": [
+        "./server.sh",
+        "verify-release-evidence-index"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 0.21203749999403954,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 254,
+      "sha256": "7c905aca1898f76312a7ee31fa5931a96f32816cd58fbf8e094b4632a375d938"
+    },
+    "static-verify-feature-inventory-coverage": {
+      "command": [
+        "./server.sh",
+        "verify-feature-inventory-coverage"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 81.94078141695354,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 604,
+      "sha256": "f3dd9d2ec3cd35ce7a806a391b6918dddd2c2377ca3039afa624f484985f9bce"
+    },
+    "static-verify-project-inventory": {
+      "command": [
+        "./server.sh",
+        "verify-project-inventory"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 41.49856358394027,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 210255,
+      "sha256": "4670513193842f03ec9ea567062efe9d2dd303d621716a5cb95876d48b1dc1cd"
+    }
+  },
+  "independentReview": "86-independent-review.json",
+  "preservation": {
+    "archive": "86-execution.tar.gz",
+    "state": "archive-created-all-selected-bytes-readback-verified",
+    "originals": "Selected task-owned original bytes and exact post-checkpoint generation3 fixture; deleted prior snapshot2 is not reconstructed. No oldarchive duplication, runtime/model binaries/authstores excluded.",
+    "receipt": {
+      "path": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/86-execution.tar.gz",
+      "bytes": 2385062,
+      "sha256": "2300739b3e1dbc55027724ed12c8de3ea2716a0b2f2f0b469d79dc82083763e9",
+      "originalMembers": 314,
+      "totalOriginalBytes": 30307138,
+      "allMembersReadbackVerified": true,
+      "largestOriginalBytes": 16778765
+    }
+  },
+  "cleanup": {
+    "state": "pending-final-owned-files",
+    "beforePreservation": {
+      "ownedProcessRows": [],
+      "ownedPortListeners": [],
+      "portList": [
+        34971,
+        42051,
+        59871,
+        59895,
+        60747,
+        60758,
+        61172,
+        61182
+      ],
+      "containers": [
+        "/media-server-memory86 exited 1",
+        "/media-server-memory86b exited 1",
+        "/media-server-memory86c exited 0"
+      ],
+      "inspectionErrors": ""
+    },
+    "policy": "Remove only owned stopped containers and root after Git bytes preservation; unlink SDK-cache symlinks themselves, never targets. Keep built product/runtime,models,SDK,image."
+  },
+  "remaining": {
+    "currentC1C2C3ProductBlockers": [],
+    "nextFinalMixedCandidateReady": "conditional on completed preservation/cleanup closure",
+    "finalMixed120": "NOT_RUN_THIS_REQUEST; next explicit request",
+    "memoryP0": "not complete until final mixed memory/function/lifecycle/collection judgment",
+    "ownerRiskAcceptance": "not-granted",
+    "finalReleaseAdoption": "not-performed",
+    "PR_CI_merge_tag_Release": "not-performed"
+  },
+  "prohibitedExecution": {
+    "mixed120": 0,
+    "fullAcceptance": 0,
+    "fullUI": 0,
+    "QwenOllamaCalls": 0,
+    "QwenOllamaUnloadGate": "not-run"
+  }
+}

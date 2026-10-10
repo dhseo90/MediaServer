@@ -51,15 +51,15 @@ queued A 취소 후 남던 confirmed 입력 사본을 해제했다. [83 한정 �
 [85 부분 보완](release-artifacts/v4.5.0/85-validation.json)은 구조별 parser 작업 예약·배열 view와
 metadata/반환/FD 소유를 연결했다. 300,000개 overlap의 두 유효 legacy 형태는 기존 과도한 예약
 거부를 해소했으며, B1024·실제 draft 만료 후 C16·D·90초 병행 기준을 통과했다.
-다음 차단은 남는다. typed 결과 자체가 640MiB를 넘을 수 있는 기존 입력 계약(예: 길이 제한 없는
-700MiB completeness_reason)은 최대 admission과 충돌한다. 이는 정적 계약 대조이며 해당 크기의
-실행 PASS가 아니다. 실제 HTTP 부분 송신·reset·Stop은 확인했지만 macOS/Linux 모두 기존
-송신 timeout의 연결작업 완료를 12초 관측 안에 확인하지 못했다. 추가 동일 반복은 하지 않았다.
-새 candidate는 984/986 해석이며 GCC 경고 보완에 따른 LAB-051·SAFE-035의 실제 문맥 재결속이
-미해결이다. 기존 도구의 producer 선행 조건을 충족하지 않아 새 승인 적용·readback은 미실행이다.
-수작업 hash 변경으로 우회하지 않는다. B 후반 heap은 한정 반복에서 안정된 범위를 보였지만
-초반 8,192바이트 변동의 세부 귀속은 미분류이며 전체 프로세스/모든 입력의 자원 회계 보장이 아니다.
-이 차단과 수정 후보의 최종 혼합 검증은 같은 v4.5.0 출시 전 P0다. 85에는120분을 실행하지 않았다.
+[86 검증](release-artifacts/v4.5.0/86-validation.json)은 큰 설명문의 원본 보존과 내부 전체 문자열
+반환을 분리하고, 실제 Open·복구·조회·checkpoint 소비자를 같은 owner의 유한 chunk reader로
+연결했다. 16MiB 필드를 8MiB 주입 예산에서 검증했으며, 700MiB는 여전히 정적 계약 사례다.
+실제 HTTP의 5초 per-send timeout과 전체 응답시간을 구분해 timeout·worker 종료·예약 반환을
+확인했다. 85의 12초 관측 FAIL은 유지한다. 최종 source의 독립 판단 뒤 proof 문맥과 candidate,
+producer/readback·inventory·coverage를 정합화했다. B1024·실제 TTL C16은 유효 범위에서 재사용하고
+D·macOS/Linux 병행 검사는 새 최종 소스로 확인했다. 초기 8,192/33,920바이트의 미분류 관측을
+완전 귀속이나 0바이트로 바꾸지 않는다. 이번 세 직접 차단 이후의 잔여는 수정 후보의 최종 혼합
+검증이며, 전체 메모리 P0와 출시 보류는 유지한다. 86에서는 새 120분을 실행하지 않았다.
 소유자는 미해결 메모리 증가를 운영 제한으로 수용하지 않았다. 사용자 위험 수용과 최종 출시
 채택은 **not-granted / not-performed**이며 공개 절차는 보류한다. 75의 과거 판단은 소급 수정하지 않는다.
 
