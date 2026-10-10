@@ -1,0 +1,513 @@
+{
+  "schema": "media-server.memory80-independent-review.v1",
+  "reviewer": "/root/independent_memory77",
+  "base": "78e91e14cb1513cee80bfe60fb2d407132977f9e",
+  "decision": "ACCEPTABLE_PARTIAL_IMPLEMENTATION_WHOLE_80_AND_MEMORY_P0_BLOCKED",
+  "partialImplementationAdoptionPermitted": true,
+  "whole80CompletionPermitted": false,
+  "wholeStorageCompletionPermitted": false,
+  "memoryP0": "BLOCKED",
+  "releaseApproval": false,
+  "wholeTaskClosureConfirmed": false,
+  "summaryKo": "단일 snapshot export, legacy 완료 5행의 disk join, terminal job summary/ID 목록의 cold 연결은 읽은 변경분과 직접 회귀 범위에서 부분 채택 가능하다. 미해결 원본 권위·무결성·권한·원자성 소스 blocker를 발견하지 못했다. 병행 부하 deadline 실패와 전체 reader/보존 자료/잠금 및 순간 peak의 미충족 때문에 전체80·저장 기반·메모리 P0 완료는 승인하지 않는다.",
+  "independence": {
+    "requestedModel": "gpt-6-astra",
+    "requestedEffort": "high",
+    "toolAcceptedModelReportedByParent": "gpt-6-astra",
+    "toolAcceptedEffortReportedByParent": "high",
+    "runtimeModel": null,
+    "runtimeEffort": null,
+    "implementedProductOrTests": false,
+    "executedProductOrTests": false,
+    "delegated": false,
+    "method": "현재 실제 diff·소비자·원출력·receipt를 읽고 source/log/file hash와 JSON 표본을 대조했다. 전체 source-freeze hash 대조는 전체 파일의 전문 소스 리뷰를 뜻하지 않는다. 이 독립 JSON만 작성했다."
+  },
+  "sourceBinding": {
+    "filesReadAndCurrentSha256": {
+      "include/recording/recording_catalog.h": "4a53ccbcfd0c9438535116860e344c7d988e921cf06ec9e0aeb81a7046bc83a2",
+      "include/recording/recording_catalog_generation_projection.h": "89e59380c0da0ff0f1621215f4e17ad3775cd85d22a7a5a9fe496ec785a65ef6",
+      "src/recording/recording_catalog.cpp": "2c7e5ef70ec42c0c2acfcd44c31a313dba7f7faf5aa804a2eac54dd3688972c0",
+      "src/recording/recording_catalog_generation_projection.cpp": "86d7ba83299a100cf4b0316d5b49071277c7649b97eb3a2b915435a9809f1da7",
+      "src/recording/recording_catalog_history.h": "3ac07f36bfa1b06b963bdbf0e3a4b1f635e850849e23d6fbc25c75d812c04eb2",
+      "src/recording/recording_catalog_snapshot_export.cpp": "13d8427eb9ceade24f4f6a8e0eb3fa814386a7a94de7f1cfc491a9a6a78a6c80",
+      "src/recording/recording_journal.cpp": "c3c67b4f674d860d097c91da7bf3579157eaac8b757710f07a0a8b30f5bedb82",
+      "src/recording/recording_timeline_projection.cpp": "da90fcb5b600061b9473a08d36e02dc3f1ac3b72bb479800ed1f053b3db64183",
+      "src/recording/recording_history_index.h": "c472489d2dce01db5824c1c5fc715f33f4a6855e71cf53ed9cd3b2be1905b9ea",
+      "src/recording/recording_catalog_snapshot.cpp": "2c6418d5d3838f181f7616fd3df8b7edd040a350a11e27df41d629ed8657b317",
+      "scripts/internal/recording_generation_checkpoint_smoke.cpp": "256af9c2570bc0e484474dc79c930f3a35cae4a6e2c10e4b7047b2ace335672c",
+      "scripts/internal/recording_generation_consumers_smoke.cpp": "caff02538fc05df346c9478cf4aff3be2b65700f37c8b1edf6d84d57f9c68806",
+      "scripts/internal/recording_search_runtime_load_smoke.cpp": "9f68f72a56f70976b9654e5c0c5ef4163f048f99a312431d7fa64bc0d77ecd24"
+    },
+    "freezeArtifact": "source-freeze.json",
+    "freezeEntriesHashCompared": 1644,
+    "freezeDifferences": [
+      "src/recording/recording_catalog.cpp"
+    ],
+    "explainedDifference": "source-freeze-addendum.json의 같은 줄 if 중괄호 보완. 현 코드에서 envelope 대입과 return 의미 유지 확인.",
+    "binaryReadback": "gcc-format-binary-comparison와 instrumented-format-byte-proof의 after hash를 실제 파일과 대조했다. 제품 실행파일/Catalog object 및 instrumented Catalog object/측정 probe는 기록된 before와 동일하다. libmedia_server_runtime.a 전체 hash는 다르며 동일하다고 판단하지 않는다.",
+    "measurementReuse": "같은 byte의 측정 실행파일 근거를 재사용한다. 최종 source로 새 측정을 실행했다고 주장하지 않는다."
+  },
+  "sourceSafetyBlockersFound": [],
+  "codeConclusions": [
+    "candidate first의 physical coverage와 현재 적용 prefix의 ID/ordinal/type/entity/time/identity/reservation을 대조하고 first count·accepted 잔량으로 양방향 누락을 검사한다. DTO 경로의 별도 order 검증은 유지된다.",
+    "한 번의 검증 export에서 row를 canonical serialize하여 순서화 scratch에 넣는다. byte/chunk/row coverage, 기존 transaction hash 및 publish 경계가 유지된다. 원본 admission을 늘리지 않는다.",
+    "legacy 5행은 기존 형식 그대로 파싱해 scratch에 보관한다. 삭제 origin의 oldest-first 선택 및 CrossMaps의 관련 조건을 통과한 완전한 결합만 retired receipt로 바꾸고 잔여 행은 기존 CrossMaps로 검사한다. 삭제 권위나 필드가 부족한 기존 허용 자료는 강제 변환하지 않는다.",
+    "Complete/Failed job은 summary와 source/output 목록을 완료 history에 보관하고 상주 map에서 제거한다. lookup/전체 결과/SQL/export/timeline/reference/media 소유자/immutable retry 소비자가 cold helper에 연결되어 있다. 실제 상세는 Journal 원문과 summary/state/source를 다시 대조하며 caller reader 소유권을 유지한다.",
+    "새 mutation ID의 동일 terminal payload는 기존 동일성 검증을 거쳐 최초 job 상태와 latest source link를 유지한다. strict transition 실패를 신규 job으로 취급하지 않는다. active job 보호는 상주 map을 계속 사용한다.",
+    "HistoryRows namespace는 기존 opaque ID 및 chunk bounds를 유지한다. Put 실패는 sticky fail closed이며 terminal evict 실패는 durable append 이후 owner poison 또는 recovery 실패로 전파된다. 기존 anonymous FD/fixed-slot overwrite/명시 Finish를 유지한다.",
+    "LegacyFinish는 별도 cleanup 문자열을 써 최초 오류를 보존한다. legacy+completed 파일의 동시 크기를 Close 전에 기록하고 Journal Open 합산에 반영해 이번 관측 누락을 수정했다. 모든 reader/단계의 aggregate peak 보장과는 다르다."
+  ],
+  "resolvedReviewFindings": [
+    {
+      "location": "src/recording/recording_catalog_generation_projection.cpp:399",
+      "finding": "성공 Close가 최초 stream/domain 오류를 지움",
+      "resolution": "별도 cleanup 문자열 사용; 실패 시 기존 오류에 추가",
+      "readOnlyConfirmed": true
+    },
+    {
+      "location": "src/recording/recording_journal.cpp:1276",
+      "finding": "Open peak에 legacy join과 completed history의 동시 파일량 누락",
+      "resolution": "projection의 동시 scratch bytes/allocated 관측을 Open max에 반영",
+      "readOnlyConfirmed": true
+    }
+  ],
+  "directRegressionEvidence": {
+    "mac": {
+      "checkpointAll": {
+        "exit": 0,
+        "configs": 4,
+        "passLines": 281
+      },
+      "historyProduct": {
+        "exit": 0,
+        "configs": 4,
+        "passLines": 165
+      },
+      "consumers": {
+        "artifact": "mac-consumers-domain.log",
+        "exit": 0,
+        "configs": 4,
+        "passLines": 444
+      },
+      "productBuild": {
+        "exit": 0
+      },
+      "evidenceObservations": {
+        "exit": 0,
+        "modelCalls": 0
+      },
+      "confirmed": {
+        "exit": 0,
+        "summaryPassCounts": [
+          18,
+          64,
+          2
+        ],
+        "summaryFailCounts": [
+          0,
+          0,
+          0
+        ],
+        "modelCalls": 0
+      }
+    },
+    "linux": {
+      "execution": "linux-corrected.json",
+      "exit": 0,
+      "elapsedSeconds": 239.22274441702757,
+      "checkpointPassLines": 281,
+      "historyProductPassLines": 165,
+      "activePassLines": 4,
+      "consumersPassLines": 444,
+      "matrixConfigs": 4,
+      "fullProductBuild": true,
+      "cmakeGstreamerOn": true,
+      "cmakeOnnxOn": true,
+      "cmakeSiglip2On": true,
+      "logManifestMismatchCount": 0,
+      "containerReceipt": {
+        "uid": "10001:10001",
+        "network": "none",
+        "capDrop": [
+          "ALL"
+        ],
+        "securityOpt": [
+          "no-new-privileges"
+        ],
+        "image": "sha256:ce72c8a15363984da642e9964189957896812061c6af1d0ef67e87b38ad5a588",
+        "initialExit": 1,
+        "correctedExit": 0,
+        "running": false,
+        "removed": "not-yet-confirmed"
+      }
+    },
+    "meaning": "PASS line counts는 실제 출력 행 수이며 고유 기능 개수와 동일하지 않다. 기존 canonical byte oracle, terminal reader/retry/checkpoint/reOpen, legacy state/reason/path/source/order 반례를 확인했다. 본 검토자가 실행한 결과가 아니다."
+  },
+  "preservedFailures": [
+    "mac-consumers-initial exit1: deleted source에 finalized-only FindSourceBinding 성공을 요구한 신규 oracle 오류. 기존 SnapshotDerivedSources deleted+binding 계약으로 수정.",
+    "mac-consumers-corrected exit2: invalid reason 직렬화로 fixture 단계 실패. 유효 continuous-capacity와 continuous-age의 관계 불일치 반례로 수정. 두 원출력 보존.",
+    "linux-final exit1: GCC -Werror=misleading-indentation. 경고 비활성화 없이 같은 줄 중괄호 수정; linux-corrected 최종 성공.",
+    "before/after overlap은 모두 unchanged90초 deadline/SIGTERM이며 성공으로 재분류하지 않는다."
+  ],
+  "measurement": {
+    "artifact": "comparison.json",
+    "runs": {
+      "before": {
+        "exit": 0,
+        "elapsedSeconds": 168.5647857079748,
+        "checkpoint2048Seconds": 9.22431025,
+        "idle2048": {
+          "mallocLive": 3982784,
+          "rss": 65175552,
+          "footprint": 14762776,
+          "fdCount": 10,
+          "scratchBytes": 89195008,
+          "scratchAllocated": 89239552,
+          "scratchPeakConcurrent": 156749824,
+          "scratchPeakAllocated": 156803072
+        },
+        "releasedAgainFdCount": 3,
+        "memoryRowsCompared": 15,
+        "costRowsCompared": 459,
+        "rawRowsExactlyEqual": true
+      },
+      "after": {
+        "exit": 0,
+        "elapsedSeconds": 101.58910237497184,
+        "checkpoint2048Seconds": 3.720221,
+        "idle2048": {
+          "mallocLive": 3982736,
+          "rss": 64782336,
+          "footprint": 14648088,
+          "fdCount": 10,
+          "scratchBytes": 89195008,
+          "scratchAllocated": 89284608,
+          "scratchPeakConcurrent": 156749824,
+          "scratchPeakAllocated": 157810688
+        },
+        "releasedAgainFdCount": 3,
+        "memoryRowsCompared": 15,
+        "costRowsCompared": 420,
+        "rawRowsExactlyEqual": true
+      }
+    },
+    "limits": [
+      "before→after 한 번씩이며 통계적 분포/일반 성능 보장은 아니다.",
+      "phase inclusive/exclusive는 wall time이다. CPU time으로 해석하지 않는다.",
+      "기본 allocator endpoint, RSS/footprint 및 누적 high-water이며 전 allocator/순간 phase heap peak가 아니다.",
+      "순환 fixture의 active media0과 소규모 terminal regression은 모든 retained job/reference·B/C 수명을 대표하지 않는다.",
+      "원본 생성 절차가 같은 비교다. 별도 원본 byte-identical 미디어 검증을 이번 독립 판정에서 주장하지 않는다.",
+      "단일 checkpoint 감소는 확인되지만 잠금 밖 준비·전체 동시 자원 admission을 구현한 것은 아니다."
+    ]
+  },
+  "overlap": {
+    "result": "FAIL_WRAPPER_DEADLINE_BOTH",
+    "deadlineSeconds": 90,
+    "beforeSeconds": 90.10779120808002,
+    "afterSeconds": 90.15926599991508,
+    "exitBoth": -15,
+    "signalBoth": 15,
+    "p95Ms": null,
+    "maximumMs": null,
+    "normalFinishObserved": false,
+    "checkpointOverlapFinalMarkerObserved": false,
+    "before": {
+      "stdoutBytes": 0,
+      "persistedObservationIds": 6594,
+      "idRange": "0..6593",
+      "loadChannelMp4Files": 0,
+      "reach": "10,000 observation 준비 완료 전 종료. concurrent search/Push thread 도달 증거 없음."
+    },
+    "after": {
+      "stdoutBytes": 13598,
+      "persistedObservationIds": 10000,
+      "idRange": "0..9999",
+      "loadChannelMp4Files": 24,
+      "reach": "관측/미디어 진행은 확인되지만 final marker와 전체 응답/정상종료는 미확인."
+    },
+    "ownedFileReadback": {
+      "manifest": "overlap-files.json",
+      "beforeFilesCompared": 74,
+      "afterFilesCompared": 106,
+      "mismatches": []
+    },
+    "interpretation": "동일 목표 workload 시도이며 완료된 동일 동시 구간 비교가 아니다. timeout의 내부 원인은 확정하지 않는다. 이번 변경이 timeout을 해결했거나 도입했다고 단정하지 않는다."
+  },
+  "wholeScopeBlockers": [
+    "Catalog checkpoint 준비 및 Journal clone/검증이 여전히 잠금 안에 있고 정상 cold job 소비자 일부는 전체 history를 순회한다. p95/max/진행 budget 미입증.",
+    "retained observations/event links/consumer references/accepted references는 O(보존량) RAM이다.",
+    "삭제 authority 또는 필드 부족으로 축약할 수 없는 기존 허용 legacy 자료, active suffix, 현재 작업과 명시적 전체 반환 DTO가 남는다.",
+    "모든 reader/세대/동시 scratch의 aggregate byte admission과 전 단계 순간 RAM/disk peak 미입증.",
+    "B 고정 이력 요청 수명/C 보존 결과 비용/최종 혼합120분 및 acceptance/UI/릴리즈 미실행."
+  ],
+  "closure": {
+    "producerInventoryAlignment": "pending; 기존986 승인은 새 제품 변경 승인이 아님",
+    "archivePreservation": "pending",
+    "ownedRootCleanup": "pending",
+    "containerRemoval": "pending",
+    "push": "not-reviewed",
+    "riskAcceptance": "not-granted",
+    "new120MinuteExecution": false
+  },
+  "evidenceReadback": {
+    "comparison.json": {
+      "bytes": 262713,
+      "sha256": "b196a4b68aa46170206343c145877c92afc6eacafd321126c6e618fc6c45ab7d"
+    },
+    "comparison-plan.json": {
+      "bytes": 1004,
+      "sha256": "5ff0aaf8bebcc7b85d6fcf4f6747545e1c7aed64a12c3b2b509a64cb38462bf9"
+    },
+    "source-freeze.json": {
+      "bytes": 209538,
+      "sha256": "a37863d8ee1f4c24769f0ddcf40e824b2acd217d6447d404bcfa55386beb65e0"
+    },
+    "source-freeze-addendum.json": {
+      "bytes": 683,
+      "sha256": "f681fe1f32e7cd6e600074bb2cd68045b47fab40c66faaa00ec08b2e904ad973"
+    },
+    "gcc-format-binary-comparison.json": {
+      "bytes": 806,
+      "sha256": "880639f70ccab3c31cf2b7e05118fdfc237fd3802330bd3058525d34915d0505"
+    },
+    "instrumented-format-byte-proof.json": {
+      "bytes": 543,
+      "sha256": "26752d8d5e59d77b7c07038f61b275e619651964dcb64183216f8a03124b6b35"
+    },
+    "before-measure.json": {
+      "bytes": 365,
+      "sha256": "3391af176d1f076f19935ed383f79ad1ea9433e9626f4e0c184c7f57d635d3a8"
+    },
+    "before-measure.log": {
+      "bytes": 99229,
+      "sha256": "2e1cc603ed3c293d8b36a9801eb09fb4e52951755d8fab347e4e28cfbbe8ece0"
+    },
+    "after-measure.json": {
+      "bytes": 365,
+      "sha256": "da8ab5bfafb072a38d92b08691ec2f9cb1d17163acdaf1710376d05525e1c6d2"
+    },
+    "after-measure.log": {
+      "bytes": 88223,
+      "sha256": "6ae87f57909a1a62b87a4af897bacdf66cc0e3568599acc7ee147f313b452213"
+    },
+    "before-overlap.json": {
+      "bytes": 371,
+      "sha256": "e17d6343300df514bca5166ac6be55faa55c19703312f6770b59b6bbe9b7c66d"
+    },
+    "before-overlap.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "after-overlap.json": {
+      "bytes": 374,
+      "sha256": "4f39e625331cbd3eddf5cc9a685a48da3b3ab027f4efee199900ea64d48a16c2"
+    },
+    "after-overlap.log": {
+      "bytes": 13598,
+      "sha256": "08ba2933956218645fd0d601d2cd8a2508fdc3fe5d00d0d826c61e2878d006aa"
+    },
+    "overlap-files.json": {
+      "bytes": 33428,
+      "sha256": "a832114077657b305ab3ccacc399effc7261b7d4bbbc6bcee3aa45c43056b016"
+    },
+    "overlap-plan.json": {
+      "bytes": 716,
+      "sha256": "1997a27c89718564d1298dbc2ea791951f707164aa3315692f9f5db1a9faf361"
+    },
+    "mac-checkpoint-final.json": {
+      "bytes": 369,
+      "sha256": "64636e5f412c82416ec3c98b070c39e6bae9109f597da65da3057b64400f9bf6"
+    },
+    "mac-checkpoint-final.log": {
+      "bytes": 29255,
+      "sha256": "05540adc723a6f8955f1a3ef4ee1c38360834aa32f1fb4cbf344a75e8764a717"
+    },
+    "mac-consumers-domain.json": {
+      "bytes": 357,
+      "sha256": "8c62dc20514d68a7f213e2732fd7def59ff1377dfcfd05892271c544702ee3d2"
+    },
+    "mac-consumers-domain.log": {
+      "bytes": 41158,
+      "sha256": "2a6ef934ade111b9eff46b4847ffd79b3166272cb4621ff96459a0af26663d59"
+    },
+    "mac-consumers-initial.json": {
+      "bytes": 358,
+      "sha256": "1b2b97fa2f4840159dd4e7773a16b3d6d556bf8336e4aac336ca3a11870c93e9"
+    },
+    "mac-consumers-initial.log": {
+      "bytes": 12230,
+      "sha256": "9c1ef80b1534f982199b49ebc200cc391eaad971876795ace0d8db1e0f92d726"
+    },
+    "mac-consumers-corrected.json": {
+      "bytes": 357,
+      "sha256": "8c32bada8f6d2206489070d6cc9600e0739c51b7128c0d6b680e33d53f76faef"
+    },
+    "mac-consumers-corrected.log": {
+      "bytes": 12310,
+      "sha256": "aa488a721b825b5ad81ba709865683a57475842248b3963d812fec1a0fc4b12a"
+    },
+    "history-final.json": {
+      "bytes": 382,
+      "sha256": "ba78e0b9d407f1817cd2ee4b1c070e5629f5f7b3ad7ed5d05440bf569c0540d4"
+    },
+    "history-final.log": {
+      "bytes": 20039,
+      "sha256": "19f40273340da5e6a3730d22cf407276e94c183c58a6d5705723b3b17e2d0cf3"
+    },
+    "evidence-final.json": {
+      "bytes": 365,
+      "sha256": "5be3afb6dded6624ca5b593457f74d97d045de349a517d8bc7850f4eceeeec62"
+    },
+    "evidence-final.log": {
+      "bytes": 14584,
+      "sha256": "f50cc6b3d0b32126c76b22a66fdc6988d4ac9ce1c821bedb739b2ab0d760f854"
+    },
+    "confirmed-final.json": {
+      "bytes": 350,
+      "sha256": "ad7a8c473b036a0e115a231f85ea6f7adf4702c82d0603ed9181aab564e9164d"
+    },
+    "confirmed-final.log": {
+      "bytes": 16604,
+      "sha256": "26e58cd85262a58fb55b0151d7530c7c43039c44426941fd266bae25ae132a9c"
+    },
+    "mac-runtime-final.json": {
+      "bytes": 377,
+      "sha256": "8db3165480d79a886f2fc3e2bb9f0d69b106f6ddda81aa917c321b72d3e9f0b9"
+    },
+    "mac-runtime-final.log": {
+      "bytes": 5811,
+      "sha256": "c57e3efbeea4c9e5deca5d08c49cb0569dfd196fde4b79d8bb5b2c15dd36b73a"
+    },
+    "linux-final.json": {
+      "bytes": 350,
+      "sha256": "32729b91bb701d3cb54b8fac852898f039775462d44eb5e4805dad0d571df95c"
+    },
+    "linux-final.log": {
+      "bytes": 112,
+      "sha256": "e60cecfad66c6bcef8ca511738aedade5eaf2ae7fa3897eb133feddd7f17fa66"
+    },
+    "linux-corrected.json": {
+      "bytes": 356,
+      "sha256": "21d547df605a2d0c97d3a8e9cebf703317284ea272dc0be06264ba9a4f2a0986"
+    },
+    "linux-corrected.log": {
+      "bytes": 301,
+      "sha256": "1738d2a6389a51880c3d19877cccee7b79880b9120d50357667289d66a0095b8"
+    },
+    "linux-output-first/checkpoint.log": {
+      "bytes": 5868,
+      "sha256": "ff91560161bc6732231d53d601026d63e775db984428f765ed16b83b61bdf7e8"
+    },
+    "linux-output-final/checkpoint.log": {
+      "bytes": 29219,
+      "sha256": "b2e6e02a2e4f7661dfdc0ea7c2314ebf307b0bab9322b7137b75d16186bf33da"
+    },
+    "linux-output-final/history-product.log": {
+      "bytes": 20003,
+      "sha256": "1eac601d6ce2a7e6957047b2d752ab9f3fbadfe138d8398950ba364e59598483"
+    },
+    "linux-output-final/active.log": {
+      "bytes": 1436,
+      "sha256": "927f2d2dcb29294a6375941ca9b09320a21e61513e479025a0411394fe5710c4"
+    },
+    "linux-output-final/consumers.log": {
+      "bytes": 41122,
+      "sha256": "14d1825e6fe5cb9a86b30443895bd5114e63aad106318d5f1aff1c23ba8fea88"
+    },
+    "linux-output-final/build.log": {
+      "bytes": 19980,
+      "sha256": "0c10f2f11ad99b77fe292491658ffbaeb0d56577d0d1a30dfd2ffc44bfe13e96"
+    },
+    "linux-output-final/CMakeCache.txt": {
+      "bytes": 31648,
+      "sha256": "9d58d718170cb4c8bb92abad847e07a88414ac933c7da8f189157f85b8f6f20e"
+    },
+    "linux-log-manifest.json": {
+      "bytes": 1008,
+      "sha256": "e75e47446d2a9f8689be98b4659f2ba260fcc49513d6508ba6a58060b00d4fad"
+    },
+    "container-runtime-receipt.txt": {
+      "bytes": 698,
+      "sha256": "64e99f19dcb7a95c70258e73ac9f895782025d5b3dadafc1b0d1aa2ef030eea8"
+    }
+  },
+  "producerReadbackAddendum": {
+    "scope": "기존 producer 적용 뒤 실제 canonical manifest와 정적 readback의 결속만 확인. 기존 부분 채택·전체80/P0 BLOCKED 판정은 유지한다.",
+    "producer": {
+      "command": "node scripts/internal/verify_v390_review4_feature_semantic_source_audit.mjs --apply-approved-manifest",
+      "exit": 0,
+      "pass": 51,
+      "fail": 0
+    },
+    "inventoryReadback": {
+      "exit": 0,
+      "pass": 18,
+      "fail": 0,
+      "featureRows": 986
+    },
+    "coverageReadback": {
+      "exit": 0,
+      "pass": 9,
+      "fail": 0,
+      "featureRows": 986,
+      "covered": 986,
+      "missing": 0
+    },
+    "actualManifestComparison": {
+      "path": "test/fixtures/project_feature_implementation_evidence.json",
+      "baseline": "HEAD at readback",
+      "changedTopLevelKeys": [
+        "inventorySha256"
+      ],
+      "allOtherJsonValuesEqual": true,
+      "itemsCount": 986,
+      "itemsEqual": true,
+      "approvalEnvelopeUnchanged": true,
+      "beforeInventorySha256": "556d8b13261503a310ab3100dd08821698a3179382b4ce498f74f5377bea4ace",
+      "afterInventorySha256": "b0d15e7f9cdf7777619981904689f5cfb7f5fb512d40fb88154f5eb92f9d9ccb",
+      "actualInventoryHashMatches": true,
+      "actualManifestSha256": "64bb28e763a89ab52657fca8a2949657427165d81b650b2da5b4f73f5d3a868b",
+      "finalSourceBindingMatches": true
+    },
+    "logReadback": "producer/inventory/coverage log 실제 byte수와 SHA가 실행 JSON과 모두 일치한다. 검토자가 해당 명령을 실행한 것은 아니다.",
+    "alignmentStatus": "VERIFIED_INVENTORY_HASH_ALIGNMENT_ONLY",
+    "newProductApprovalFrom986": false,
+    "priorDecisionChanged": false,
+    "memoryP0": "BLOCKED",
+    "archiveCleanupPush": "pending/unreviewed; 원래 pending 필드는 소급 삭제하지 않는다.",
+    "evidence": {
+      "producer.json": {
+        "bytes": 403,
+        "sha256": "a38de1e1222c496bf9c5b61a78acdd055ab0a4931e310a8c8127775fdc1dfe97"
+      },
+      "producer.log": {
+        "bytes": 12812,
+        "sha256": "d044f8ac77f4e3e0a7ee0672c9d63381151b9f522393a0aa536f910913ef258f"
+      },
+      "producer-diff.json": {
+        "bytes": 416,
+        "sha256": "ac01c1c081af634c6f4208a9e8727e4e19a33e829c97812ed93e1d9e84f998db"
+      },
+      "inventory-readback.json": {
+        "bytes": 360,
+        "sha256": "52a23c999ddf98716578607a390eb61b993c360c9ff5762cc55255d19a32ba29"
+      },
+      "inventory-readback.log": {
+        "bytes": 210255,
+        "sha256": "4670513193842f03ec9ea567062efe9d2dd303d621716a5cb95876d48b1dc1cd"
+      },
+      "coverage-readback.json": {
+        "bytes": 352,
+        "sha256": "a96900d4e5e4ef0e9dd4996aadc851f746167d882127a0eb02142cd7c641370d"
+      },
+      "coverage-readback.log": {
+        "bytes": 604,
+        "sha256": "f3dd9d2ec3cd35ce7a806a391b6918dddd2c2377ca3039afa624f484985f9bce"
+      },
+      "final-source-binding.json": {
+        "bytes": 2042,
+        "sha256": "01a57e671a202ce515ea00b8cf821427a255b7cba90667bf10832d3f5c2c3f78"
+      }
+    }
+  }
+}

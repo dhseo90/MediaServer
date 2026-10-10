@@ -32,11 +32,14 @@
 78의 익명 scratch·고정 슬롯·명시적 마감과 historical identity 제품 연결은 유지한다.
 79는 Journal order/archive, Catalog accepted/order/retired/source의 정상 generation 조회를
 디스크 경계에 연결하고 shard/snapshot/active 입력 및 checkpoint 출력을 스트리밍으로 바꾼다.
-그러나 legacy full snapshot은 전체 projection을 먼저 적재하며 완료 job summary·일부
-Catalog 집합도 상주한다. 따라서 저장 기반 전체 통제는 아직 미완료다. checkpoint 비용 증가와
-동시 검색/녹화 지연·잠금 시간을 확인할 근거도 남아 있다. B 요청 수명·C 보존 결과 비용 및
-최종 혼합 검증은 같은 v4.5.0 P0다. 실제 완료 범위·최초 실패·비교는
-[79 통합 체크포인트](release-artifacts/v4.5.0/79-validation.json)에 둔다.
+80은 checkpoint의 count/spool 중복 export와 반복 적용 이력 조회를 합치고, 구형 full snapshot의
+완료 5행 join 및 완료 job summary·ID 목록을 익명 scratch/cold 조회로 연결했다.
+같은 2048 순환 fixture에서 checkpoint 비용은 감소했으나, 기존 이력 저장소에 10,000개
+관측을 추가하는 녹화·검색 병행 검증은 before/after 모두 90초 deadline으로 종료됐다.
+before는 관측 준비 중 종료됐고 after도 최종 checkpoint/검색 지연 결과가 없어, 같은 동시 구간의 비교는 성립하지 않았다.
+따라서 병행 응답/정상 종료와 전체 저장 기반 마감은 **미충족**이다. source/reference 등의
+보존 집합 상주, 전체 reader·단계별 peak 합산, B/C 및 최종 혼합 검증도 같은 v4.5.0 P0다.
+실제 변경·최초 실패·최종 비교는 [80 부분 검증](release-artifacts/v4.5.0/80-validation.json)에 둔다.
 소유자는 미해결 메모리 증가를 운영 제한으로 수용하지 않았다. 사용자 위험 수용과 최종 출시
 채택은 **not-granted / not-performed**이며 공개 절차는 보류한다. 75의 과거 판단은 소급 수정하지 않는다.
 
