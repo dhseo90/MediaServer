@@ -252,7 +252,8 @@ bool RecordingCatalog::SnapshotTimelineWithContext(const RecordingTimelineQuery&
         }
         for(const auto& entry:segments_v2_){const auto& segment=entry.second;if(segment.channel_id!=query.channel_id)continue;
             if(segment.retention_class==RecordingRetentionClass::Continuous){
-                if(!event_candidates_only)collector.Source(segment,EffectiveLifecycleV2Locked(entry.first));continue;
+                if(!event_candidates_only)collector.Source(segment,EffectiveLifecycleV2Locked(entry.first));
+                continue;
             }
             if(!owned_outputs.count(entry.first)){auto row=Base(segment,EffectiveLifecycleV2Locked(entry.first));row.item_id="orphan-event:"+Key(entry.first);
                 row.completeness="unknown";row.unavailable_reason="output-binding-unavailable";collector.Add(std::move(row));}
@@ -297,7 +298,8 @@ bool RecordingCatalog::SnapshotTimelineWithContext(const RecordingTimelineQuery&
            context->entries.size()<=8&&context->charge<=context->budget){
             try {timeline_read_candidates_=*context;}catch(...){}
         }
-        if(error)error->clear();return true;
+        if(error)error->clear();
+        return true;
     }catch(const std::exception&){*result={};if(error)*error="timeline-projection-unavailable";return false;}
 }
 } // namespace recording

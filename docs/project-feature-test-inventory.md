@@ -391,6 +391,7 @@ V440-PR77-02/06·V440-S01/R01의 120분 판정은 변경된 실제 경로에서 
 | V430-EMBED-PIXEL | C++ RGB→Pillow11.3 bilinear: 1280×720/641×479/224×224/23×17/1×1/1×257/257×1/224×17/17×224/7×511/511×7, checker·gradient·border impulse와 stride padding 11. resized uint8 exact, FP32 NCHW abs≤1e-6 | `prepare_v430_siglip2.py adapter-verify` | 혼합 부하 후속 | 메모리 신호 판정 | 내부 |
 | V430-EMBED-LOAD | 고정 가중치/threads1에서 private compile 진단으로 token/image/text read→hash→ORT ctor→buffer해제→최초infer의 currentRSS/peak/UTCms 관측. fd 대안은 O_EXCL0600 생성·즉시unlink·1MiB stream copy/size/SHA검증 후 같은 self-contained bytes를 `/dev/fd`(Linux `/proc/self/fd`)로 로드. close/unlink/shortwrite/digest/error 정리, 원본불변, memory loader로 묵시fallback 금지. parity 기존동일·peak≤4GiB·작업공간≤8GiB | `prepare_v430_siglip2.py adapter-verify`와 소유 진단 실행 | 임베딩 혼합 후속 | 메모리 수명 후속 | 내부 |
 | V430-EMBED-ADAPTER | 실제 4 frame·10 text 공급자↔C++ L2 maxabs≤1e-4/cosine≥.99999, finite768/norm오차≤1e-5. 토큰64개 exact. 빈/Unicode공백/invalidUTF8 text·nullRGB·비양수 크기·짧은 stride·span overflow·dimension16385/span256MiB+1/text16385bytes·missing/corrupt model·shape/type mismatch 거부, 경로/내용 비노출. 허용 경계 dimension16384×1/text16384bytes/span정확256MiB(1×2,stride=256MiB−3)는 finite768. span=(height−1)×stride+width×3. 실제 asset buffer의 고정 크기/SHA256 확인 후 같은 bytes로 SP/ORT 로드. 같은 크기 다른 tokenizer/ONNX 및 shortfile 거부, 기존 source 변경 없음. disabled 빌드는 ORT/SP 없이 명확한 거부 | `prepare_v430_siglip2.py adapter-verify`, owned negative fixture | 혼합 부하 후속 | 메모리 신호 판정 | 내부 |
+| V450-M01 | Journal 검증/체크포인트용 예약 사본은 Open·append·checkpoint·reopen 이후 상주하지 않음. 최초/중간/마지막 예약 tuple·충돌·cold link·원본 hash와 실패 복구 의미 유지. 전체 이력의 비상주화 완료와 구분 | `verify_recording_generation_checkpoint.sh residency` 및 `all`; 76 고정 조건의 실제 generation 128/512/2048 확정·삭제 비교 | 별도 원인 분리 | 메모리 P0 선행 조건 충족 후만 | 비대상: 내부 |
 | V430-R01 | historical identity 상주 중복; 기존 entity/time/digest 문자열과 조회 결과 동일, checkpoint/reopen 뒤 중복 digest 문자열 0바이트, active identity 유지 | `verify_recording_generation_checkpoint.sh residency` 및 기존 append/checkpoint/cold-link 회귀 | 향후 녹화 병행 | 이력 수명 영향으로 필요성 판정 | 비대상: 내부 |
 | V430-R02 | 활성 자료 고정·누적 identity 증가; 필수 ID/receipt 보존, 반복 삭제·off·재시작/재구축의 논리/RSS 분리 | 규모·소유 측정 | 향후 순환 | 필요성 판정 | 비대상: 내부 |
 | V430-R02-SCALE | 1,000→100,000 고유 미사용 예약·8채널 ID·활성 미디어 0개 고정. SQLite off/on Open, 최초/중간/마지막 ID·sequence·channel tuple 동일, 충돌 거부, no-op checkpoint·원문 hash 유지, historical duplicate 0, peak RSS≤4GiB. R01 이전 f6d5cf83 Journal+읽기 전용 probe 기준과 같은 fixture 비교(기준 duplicate>0/현행0). macOS 전체 malloc zones used/reserved 별도 관측. 디스크 크기·native heap·소유 논리량은 구분하며 전체 혼합 부하 대체 아님 | `verify_recording_generation_checkpoint.sh scale` / `scale-baseline` | 후속 | 후속 | 내부 |
@@ -4754,9 +4755,10 @@ transport/decoder/취소/저장/실패 전파를 실행한다. 테스트 전용 
 
 ### V450 출시 필수 회귀의 역방향 결속 (56)
 
-55의 분류를 유지한다. 아래 현행 분류에서 출시 필수 집합을 읽으며 명령 목록에서 역산하지 않는다.
+55의 기존 분류를 유지하고 Journal 사본 수명 회귀 M01을 안전/호환 범위에 추가한다.
+아래 현행 분류에서 출시 필수 집합을 읽으며 명령 목록에서 역산하지 않는다.
 <!-- v450-current-product: K05 K07 K08 K09 K11 A02 U02 A03 U03 T01 S02 S03 R01 R02 R03 E01 E02 E03 -->
-<!-- v450-safety-compat: I01 C01 S01 Q01 A01 U01 G01 N01 N02 N03 -->
+<!-- v450-safety-compat: M01 I01 C01 S01 Q01 A01 U01 G01 N01 N02 N03 -->
 <!-- v450-unassigned: K13 K14 K15 A04 U04 -->
 <!-- v450-historical-experiment: K01 K02 K03 K04 K06 K10 K12 L01 -->
 

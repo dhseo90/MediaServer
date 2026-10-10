@@ -29,13 +29,15 @@ int OpenDirectory(const std::filesystem::path& path){
     for(const auto& part:path.relative_path()){
         const auto name=part.string();if(name.empty()||name=="."||name=="..")return -1;
         const int next=::openat(current.value,name.c_str(),O_RDONLY|O_DIRECTORY|O_NOFOLLOW|O_CLOEXEC);
-        if(next<0)return -1;::close(current.value);current.value=next;
+        if(next<0)return -1;
+        ::close(current.value);current.value=next;
     }
     const int result=current.value;current.value=-1;return result;
 }
 bool Empty(int fd){Fd copy;copy.value=::dup(fd);if(copy.value<0)return false;DIR* directory=::fdopendir(copy.value);if(!directory)return false;copy.value=-1;
     bool empty=true;errno=0;while(const auto* entry=::readdir(directory)){const std::string name=entry->d_name;if(name!="."&&name!=".."){empty=false;break;}}
-    if(errno)empty=false;::closedir(directory);return empty;
+    if(errno)empty=false;
+    ::closedir(directory);return empty;
 }
 bool Write(int fd,const std::string& bytes){
 #if MEDIA_SERVER_RECORDING_GENERATION_TESTING
@@ -96,7 +98,9 @@ struct RecordingCutoverStageWriter::State {
             if(!hash||EVP_DigestInit_ex(hash.get(),EVP_sha256(),nullptr)!=1)return Fail(error,"stage hash init failed");
             char buffer[65536];std::uint64_t pos=0;
             while(pos<archive_bytes){const auto n=::pread(archive.value,buffer,std::min<std::uint64_t>(sizeof(buffer),archive_bytes-pos),static_cast<off_t>(pos));
-                if(n<0&&errno==EINTR)continue;if(n<=0||EVP_DigestUpdate(hash.get(),buffer,static_cast<std::size_t>(n))!=1)return Fail(error,"stage hash read failed");pos+=static_cast<std::uint64_t>(n);}
+                if(n<0&&errno==EINTR)continue;
+                if(n<=0||EVP_DigestUpdate(hash.get(),buffer,static_cast<std::size_t>(n))!=1)return Fail(error,"stage hash read failed");
+                pos+=static_cast<std::uint64_t>(n);}
             unsigned char digest[32];unsigned length=0;if(EVP_DigestFinal_ex(hash.get(),digest,&length)!=1||length!=32)return Fail(error,"stage hash final failed");
             std::string hex;const char* digits="0123456789abcdef";for(auto c:digest){hex+=digits[c>>4];hex+=digits[c&15];}
             unsigned char intended[32];unsigned intended_size=0;
@@ -120,7 +124,8 @@ bool RecordingCutoverStageWriter::Open(const RecordingCutoverFreshStage& stage,c
         limits.archive_target_bytes>8U*1024U*1024U||limits.archive_target_rows>4096||!limits.chain.max_shard_bytes||!limits.chain.max_unique_ids||!limits.chain.max_archives||!limits.snapshot_bytes||!limits.cold_row_bytes)
         return Fail(error,"stage options/report invalid");
     s.stage=stage;s.store=store;s.limits=limits;s.report=report;s.root.value=OpenDirectory(stage.path);
-    if(s.root.value<0||!s.Bound(error)||!Empty(s.root.value))return Fail(error,"stage must be fresh bound directory");return true;
+    if(s.root.value<0||!s.Bound(error)||!Empty(s.root.value))return Fail(error,"stage must be fresh bound directory");
+    return true;
 #else
     (void)stage;(void)store;(void)limits;(void)report;return Fail(error,"stage crypto/POSIX unsupported");
 #endif

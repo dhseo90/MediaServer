@@ -10,7 +10,7 @@ test('V450-E03 R55-F2 current required IDs have executed dedicated scopes',()=>{
   const result=validateV450ReleaseRegistration(root);
   assert.deepEqual(current.filter(id=>!result.linkedIds.includes(id)),[],'missing mandatory dedicated regression');
 });
-for(const id of ['V450-K05','V450-K07','V450-K08','V450-U02','V450-E03']){
+for(const id of ['V450-K05','V450-K07','V450-K08','V450-U02','V450-E03','V450-M01']){
   test('V450-E03 rejects omitted dedicated command '+id,()=>{
     const plan=v450ReleaseCommands().filter(c=>!c.featureIds.includes(id));
     assert.throws(()=>validateV450ReleaseRegistration(root,inventory,plan),/missing mandatory scope/);
@@ -20,7 +20,7 @@ for(const id of ['V450-K05','V450-K07','V450-K08','V450-U02','V450-E03']){
     assert.throws(()=>validateV450ReleaseRegistration(root,inventory,plan),/missing dedicated command\/options/);
   });
 }
-for(const [id,option] of [['V450-K07','--observations'],['V450-U02','--http'],['V450-E03','--v450-plan-only']])test('V450-E03 rejects missing '+option,()=>{
+for(const [id,option] of [['V450-M01','residency'],['V450-K07','--observations'],['V450-U02','--http'],['V450-E03','--v450-plan-only']])test('V450-E03 rejects missing '+option,()=>{
   const plan=v450ReleaseCommands();plan.find(c=>c.featureIds.includes(id)).args.pop();
   assert.throws(()=>validateV450ReleaseRegistration(root,inventory,plan),new RegExp('missing dedicated command/options '+id));
 });

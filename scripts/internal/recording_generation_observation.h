@@ -64,8 +64,10 @@ class SessionCache {
         for(const auto& accepted:value.first_acceptances){charge(sizeof(accepted));add(accepted.mutation_id);add(accepted.first_row.mutation_id);add(accepted.first_row.entity_id);add(accepted.first_row.identity);add(accepted.first_row.raw_sha256);add(accepted.first_archive.name);add(accepted.first_archive.sha256);
             if(accepted.first_row.reservation){const auto& order=*accepted.first_row.reservation;add(order.schema);add(order.store_id);add(order.request_id);add(order.segment_id);add(order.channel_id);}}
         add(value.order_history.bound_store);for(const auto& entry:value.order_history.reservations){charge(sizeof(entry));add(entry.order.schema);add(entry.order.store_id);add(entry.order.request_id);add(entry.order.segment_id);add(entry.order.channel_id);}
-        for(const auto& id:value.order_history.ordinary_ids)add(id);for(const auto& id:value.order_history.legacy_segments)add(id);
-        for(const auto& binding:bindings)add(binding.first);return exceeded?cap+1:bytes;
+        for(const auto& id:value.order_history.ordinary_ids)add(id);
+        for(const auto& id:value.order_history.legacy_segments)add(id);
+        for(const auto& binding:bindings)add(binding.first);
+        return exceeded?cap+1:bytes;
     }
 public:
     // 현재 shard parse 4MiB와 검증된 chain proof 최대24MiB를 분리한다. inode/snapshot은 실제 이름·binding만 계상한다.
@@ -195,7 +197,8 @@ inline std::string Observe(const std::filesystem::path& root,std::size_t seen,
             std::vector<std::pair<std::string,struct stat>> bindings;
             const auto loader=[&](const RecordingGenerationFile& d,std::uint64_t limit,std::string* out,std::string*){Need(d.size<=limit);struct stat bound{};
                 if(d.name==identity_head.name){Need(d.size==identity_head.size&&d.sha256==identity_head.sha256);*out=head_bytes;bound=head_stat;}
-                else *out=files.Verified(d,&bound);bindings.emplace_back(d.name,bound);return true;};
+                else *out=files.Verified(d,&bound);
+                bindings.emplace_back(d.name,bound);return true;};
             Need(ValidateRecordingIdentityShardChain(identity_head,loader,limits,&immutable_chain,&error,cache?&cache->identities:nullptr));
             const auto stored=cache?cache->StoreChain(immutable_chain,std::move(bindings)):nullptr;base=stored?stored:&immutable_chain;
         }
@@ -213,7 +216,8 @@ inline std::string Observe(const std::filesystem::path& root,std::size_t seen,
             const auto raw=archive.substr(r.offset,r.length);Need(raw.back()=='\n'&&raw.find('\n')==raw.size()-1&&Digest(raw)==r.raw_sha256);RecordingMutationV1 m;
             Need(ParseRecordingMutationV1(raw.substr(0,raw.size()-1),&m,&error)&&m.mutation_id==r.mutation_id&&m.entity_id==r.entity_id&&m.mutation_type==r.type&&m.occurred_at_ms==r.occurred_at_ms&&Identity(m)==r.identity);
             Need((m.physical_json.empty()?SerializeRecordingMutationV1(m):m.physical_json)==raw.substr(0,raw.size()-1));
-            if(i!=seen)out<<',';out<<normalize(raw.substr(0,raw.size()-1));
+            if(i!=seen)out<<',';
+            out<<normalize(raw.substr(0,raw.size()-1));
         }
         out<<"],\"backlog\":"<<(end<all.size()?"true":"false")<<",\"partialBytes\":"<<partial<<",\"consumedOffset\":"<<complete<<",\"readBytes\":"<<files.bytes;
         if(cache){const auto micros=[](auto from,auto to){return std::chrono::duration_cast<std::chrono::microseconds>(to-from).count();};

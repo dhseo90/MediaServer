@@ -34,7 +34,8 @@ bool RecordingCatalog::PublishManagedCutover(const RecordingCutoverCandidateLimi
     if(!transaction.Describe(false,".recording-store-format",&receipt.marker,error)||!transaction.Describe(false,"recording-v2-mutations.jsonl",&receipt.source,error))return false;
     RecordingGenerationOwnedFile replacement;
     const auto marker="{\"format\":\"media-server.managed-recording-store.v2\",\"storeId\":\""+receipt.target.store_id+"\",\"manifest\":\"recording-generation.json\"}\n";
-    if(!transaction.WriteReplacementMarker(marker,&replacement,error))return false;receipt.replacement_marker=std::move(replacement);
+    if(!transaction.WriteReplacementMarker(marker,&replacement,error))return false;
+    receipt.replacement_marker=std::move(replacement);
     // 후보가 검증한 head에서 다시 읽은 descriptor만 사용한다. 변경된 stage의 새 SHA를
     // 권위로 채택하지 않으며 archive 전수 읽기는 최초 호환 전환에만 허용된다.
     std::map<std::string,RecordingGenerationFile> expected;
@@ -79,7 +80,8 @@ bool RecordingCatalog::RecoverManagedCutover(const RecordingCutoverCandidateLimi
             if(!ReadRecordingGenerationManifestForOpen(root,&current,error)||!SerializeRecordingGenerationManifest(current.manifest,&actual,error)||
                !SerializeRecordingGenerationManifest(receipt.target,&expected,error)||actual!=expected||!transaction.Revalidate(error))return Fail(error,"publish intent has no exact target; preserved");
         }else if(!transaction.ValidateRecoveryOriginal(error))return false;
-        if(!journal_.Open(error))return false;end.generation=true;
+        if(!journal_.Open(error))return false;
+        end.generation=true;
         auto recovery_options=options_;
         recovery_options.prefer_sqlite=false;
         recovery_options.enable_generation_writes=false;
@@ -108,7 +110,8 @@ bool RecordingCatalog::RecoverManagedCutover(const RecordingCutoverCandidateLimi
     RecordingCatalogGenerationProjection projection;
     if(!BuildRecordingCatalogGenerationProjection(root,receipt.target,chain,snapshot,limits.cold_row_bytes,&projection,error)||
        !transaction.ValidateRecoveryOriginal(error)||(!checkpoint&&!transaction.RestoreMarker(error))||!transaction.Cleanup(false,error))return false;
-    if(error)error->clear();return true;
+    if(error)error->clear();
+    return true;
 #else
     (void)limits;(void)receipt_admission;return Fail(error,"cutover recovery unsupported");
 #endif
@@ -209,7 +212,8 @@ bool RecordingCatalog::PrepareManagedCutoverCandidate(const RecordingCutoverFres
         if(scratch.orders_v2_.size()!=p.orders.size()||scratch.accepted_generation_ordinals_.size()!=p.accepted_states.size()||
            scratch.source_bindings_.size()!=p.source_bindings.size()||scratch.derived_jobs_.size()!=p.derived_jobs.size())return Fail(error,"cutover provenance counts differ");
         for(const auto& item:scratch.orders_v2_){const auto found=p.orders.find(item.first);const auto& a=item.second;
-            if(found==p.orders.end())return false;const auto& b=found->second;
+            if(found==p.orders.end())return false;
+            const auto& b=found->second;
             if(a.schema!=b.schema||a.store_id!=b.store_id||a.request_id!=b.request_id||a.segment_id!=b.segment_id||a.channel_id!=b.channel_id||a.sequence!=b.sequence)return Fail(error,"cutover order tuple differs");}
         for(const auto& item:scratch.accepted_generation_ordinals_){const auto found=p.accepted_states.find(item.first);if(found==p.accepted_states.end()||found->second.first_global_ordinal!=item.second)return Fail(error,"cutover accepted ordinal differs");}
         for(const auto& item:scratch.source_bindings_){const auto found=p.source_bindings.find(item.first);if(found==p.source_bindings.end())return false;const auto& a=item.second;const auto& b=found->second.summary;
@@ -219,7 +223,8 @@ bool RecordingCatalog::PrepareManagedCutoverCandidate(const RecordingCutoverFres
         // OpenLocked 없이 영속 terminal 관계에서만 pending hold를 독립 재도출한다.
         std::map<std::string,std::uint64_t> holds;
         const auto hold=[&](const std::string& id,RecordingRetentionClass retention){const auto found=scratch.segments_.find(id);
-            if(found==scratch.segments_.end()||found->second.lifecycle!=RecordingLifecycle::Finalized||found->second.retention_class!=retention||holds[id]>=static_cast<std::uint64_t>(std::numeric_limits<std::int64_t>::max()))return false;++holds[id];return true;};
+            if(found==scratch.segments_.end()||found->second.lifecycle!=RecordingLifecycle::Finalized||found->second.retention_class!=retention||holds[id]>=static_cast<std::uint64_t>(std::numeric_limits<std::int64_t>::max()))return false;
+            ++holds[id];return true;};
         for(const auto& pair:scratch.event_links_){const auto& link=pair.second;if(link.status!=EventRecordingLinkStatus::Pending||!link.derived_segment_id)continue;
             const auto segment=scratch.segments_.find(*link.derived_segment_id);
             if(segment==scratch.segments_.end()||segment->second.lifecycle!=RecordingLifecycle::Finalized||segment->second.retention_class!=RecordingRetentionClass::Event)continue;

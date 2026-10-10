@@ -20,8 +20,8 @@ bool RecoverCheckpointTransaction(const std::filesystem::path&);
 namespace recording {
 struct RecordingGenerationResidencyProbe {
     static void Read(const RecordingJournal& journal,std::size_t* count,
-        std::size_t* historical,std::size_t* active) {
-        journal.ProbeGenerationIdentityStorage(count,historical,active);
+        std::size_t* historical,std::size_t* active,std::size_t* order_copies=nullptr) {
+        journal.ProbeGenerationIdentityStorage(count,historical,active,order_copies);
     }
 };
 struct RecordingGenerationTransactionProbe {
@@ -80,8 +80,9 @@ void IdentityResidency(const std::filesystem::path& root) {
     Actual(root);
     const auto original=Read(root/"evidence-1-0.jsonl");
     const auto measure=[&](RecordingJournal& journal,const char* phase,bool has_active) {
-        std::size_t count=0,historical=0,active=0;
-        RecordingGenerationResidencyProbe::Read(journal,&count,&historical,&active);
+        std::size_t count=0,historical=0,active=0,order_copies=0;
+        RecordingGenerationResidencyProbe::Read(journal,&count,&historical,&active,&order_copies);
+        Check("V450-M01",order_copies==0,"consumed checkpoint reservation copy released after open/append/checkpoint/reopen");
         std::cout<<"[identity-residency] phase="<<phase<<" count="<<count
                  <<" historicalDuplicateBytes="<<historical<<" activeCachedBytes="<<active<<'\n';
         Check("V430-R01",count>0&&historical==0&&(has_active?active>0:active==0),

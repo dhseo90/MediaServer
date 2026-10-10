@@ -454,7 +454,8 @@ std::string PhysicalRecordingMutation(const RecordingMutationV1& value) {
 #if defined(MEDIA_SERVER_RECORDING_GENERATION_TESTING)
 static thread_local std::uint64_t mutation_parse_count=0,mutation_serialize_count=0;
 void RecordingMutationCodecCountsForTest(std::uint64_t* parses,std::uint64_t* serializes,bool reset) {
-    if(parses)*parses=mutation_parse_count;if(serializes)*serializes=mutation_serialize_count;
+    if(parses)*parses=mutation_parse_count;
+    if(serializes)*serializes=mutation_serialize_count;
     if(reset){mutation_parse_count=0;mutation_serialize_count=0;}
 }
 #endif
@@ -658,12 +659,14 @@ struct RecordingJournalGenerationState {
 };
 #if defined(MEDIA_SERVER_RECORDING_GENERATION_TESTING)
 void RecordingJournal::ProbeGenerationIdentityStorage(std::size_t* count,
-    std::size_t* historical_bytes,std::size_t* active_bytes) const {
+    std::size_t* historical_bytes,std::size_t* active_bytes,std::size_t* order_copy_count) const {
     std::lock_guard lock(mu_);
     *count=0;*historical_bytes=0;*active_bytes=0;
+    if(order_copy_count)*order_copy_count=0;
 #if MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND && !defined(_WIN32)
     if(!generation_state_)return;
     *count=generation_state_->identities.size();
+    if(order_copy_count)*order_copy_count=generation_state_->chain.order_history.reservations.size();
     for(const auto& entry:generation_state_->identities)
         (entry.second.historical?*historical_bytes:*active_bytes)+=entry.second.digest.size();
 #endif
@@ -1020,6 +1023,9 @@ bool RecordingJournal::OpenGenerationReadOnlyLocked(const std::string& store,std
         state->manifest_binding=state->bindings.front().second;state->active_binding=a;
         state->active_path=managed_root_/manifest.manifest.active.name;
         state->bindings.clear();
+        // 검증 사본의 수명은 여기까지다. 주문 인덱스와 복구 projection은
+        // 각자의 값을 소유하며 다음 checkpoint는 주문 인덱스에서 다시 구성한다.
+        state->chain.order_history={};
         // active envelope와 ID/예약 인덱스만 검증됐다. Catalog 의미 적용/조회/쓰기는 금지한다.
         managed_store_id_=store;managed_fd_=active.value;active.value=-1;lease_fd_=lease.value;lease.value=-1;
         owner_pid_=::getpid();device_=a.st_dev;inode_=a.st_ino;parent_device_=p.st_dev;parent_inode_=p.st_ino;
@@ -1028,9 +1034,11 @@ bool RecordingJournal::OpenGenerationReadOnlyLocked(const std::string& store,std
             ::close(managed_fd_);::close(lease_fd_);managed_fd_=lease_fd_=-1;opened_=false;generation_state_.reset();
             return Fail(error,"B 최종 root/FD 결박 실패");
         }
-        if(error)error->clear();return true;
+        if(error)error->clear();
+        return true;
     }catch(...){
-        if(managed_fd_>=0)::close(managed_fd_);if(lease_fd_>=0)::close(lease_fd_);
+        if(managed_fd_>=0)::close(managed_fd_);
+        if(lease_fd_>=0)::close(lease_fd_);
         managed_fd_=lease_fd_=-1;opened_=false;generation_state_.reset();
         return Fail(error,"B read-only 준비/자원 실패");
     }
@@ -1567,7 +1575,8 @@ bool RecordingJournal::FinishGenerationRecovery(const std::shared_ptr<RecordingG
     if(!success||session->next!=session->count||!CheckManagedStateLocked(error)) {
         poisoned_=true;generation_state_->link_epoch.reset();return Fail(error,"B 복원 실패: 새 Journal strict Open 필요");
     }
-    if(error)error->clear();return true;
+    if(error)error->clear();
+    return true;
 #else
     (void)session;(void)success;return Fail(error,"B 복원 unsupported");
 #endif
@@ -2247,7 +2256,8 @@ bool RecordingJournal::BeginManagedCutoverRecovery(const void* owner,RecordingGe
         ::close(managed_fd_);::close(lease_fd_);managed_fd_=lease_fd_=-1;opened_=false;poisoned_=true;cutover_owner_retired_=true;
         catalog_owner_=nullptr;catalog_attachment_.reset();cutover_recovery_.reset();managed_state_.reset();return false;
     }
-    if(error)error->clear();return true;
+    if(error)error->clear();
+    return true;
 #else
     (void)owner;(void)transaction;(void)media;(void)sqlite;return Fail(error,"cutover recovery unsupported");
 #endif
@@ -2383,7 +2393,8 @@ bool RecordingJournal::VisitManagedCutoverInput(const void* owner,
             if(candidate.rows!=managed_state_->refs.size()){poisoned_=true;return Fail(error,"cutover 전체 행 개수 불일치");}
             *summary=std::move(candidate);
         }
-        if(error)error->clear();return true;
+        if(error)error->clear();
+        return true;
     }catch(...){
         std::lock_guard lock(mu_);if(guard.active)authority();
         return Fail(error,"cutover visit 자원/callback 예외");
@@ -2483,7 +2494,8 @@ bool RecordingJournal::PrepareGenerationCheckpoint(const void* owner,
             row.occurred_at_ms=m.occurred_at_ms;row.global_ordinal=active.global_ordinal;row.identity=EnvelopeIdentity(m);
             row.offset=active.offset;row.length=active.length;row.raw_sha256=active.raw_sha256;
             if(m.mutation_type==RecordingMutationType::RecordingOrderReserved){RecordingOrderReservationV1 order;
-                if(!ParseRecordingOrderReservationV1(m.payload_json,&order,error))return false;row.reservation=std::move(order);}
+                if(!ParseRecordingOrderReservationV1(m.payload_json,&order,error))return false;
+                row.reservation=std::move(order);}
             shard.rows.push_back(std::move(row));
         }
         if(offset!=static_cast<std::uint64_t>(current.active_binding.st_size)||!CheckManagedStateLocked(error))return Fail(error,"B checkpoint active 최종 결박 실패");
@@ -2620,7 +2632,11 @@ bool RecordingJournal::PublishGenerationCheckpoint(const void* owner,const std::
         if(!CheckManagedStateLocked(error)||!SafeGenerationCacheFiles(managed_root_,error)||!sql(plan->generation,plan->cut)){
             poisoned_=true;current.link_epoch.reset();return Fail(error,"B checkpoint 게시 후 SQL/권위 실패: 새 owner 필요");}
         if(!transaction.Cleanup(true,error)){poisoned_=true;current.link_epoch.reset();return false;}
-        if(error)error->clear();return true;
+        // snapshot 검증/게시가 끝난 후보의 예약 사본을 상시 보유하지 않는다.
+        // 정확한 재시도/충돌 검사는 그대로 current.order가 담당한다.
+        current.chain.order_history={};
+        if(error)error->clear();
+        return true;
       }();
     }catch(...){if(publishing){poisoned_=true;current.link_epoch.reset();}Fail(error,"B checkpoint 자원/게시 실패");}
     if(!success&&!publishing&&!cleanup()) {

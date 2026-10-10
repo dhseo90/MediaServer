@@ -523,7 +523,8 @@ bool ValidateRecordingIdentityShardChainExtension(const RecordingIdentityChainRe
     if (result.shards == std::numeric_limits<std::uint64_t>::max())
         return Fail(error, "identity extension shard count overflow");
     ++result.shards; result.head = head; *output = std::move(result);
-    if (error) error->clear(); return true;
+    if (error) error->clear();
+    return true;
 #endif
 }
 bool ValidateRecordingIdentityActiveExtension(const RecordingIdentityChainResult& base,

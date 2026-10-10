@@ -131,7 +131,8 @@ ActualCut CaptureActual(RecordingJournal& journal,RecordingCatalog& catalog) {
     const RecordingGenerationFile head{"identity-2.jsonl",result.identity.size(),Hash(result.identity)};
     RecordingIdentityChainResult chain;
     Need(ValidateRecordingIdentityShardChain(head,[&](const RecordingGenerationFile& d,std::uint64_t limit,std::string* bytes,std::string*){
-        if(d.name!=head.name||result.identity.size()>limit)return false;*bytes=result.identity;return true;
+        if(d.name!=head.name||result.identity.size()>limit)return false;
+        *bytes=result.identity;return true;
     },{1024*1024,100,100},&chain,&error));
     Need(catalog.ExportGenerationSnapshot(chain,2,replay.mutations.size(),&result.snapshot,&error));return result;
 }

@@ -11,6 +11,7 @@ export function v450ReleaseCommands(){
   return [
     {id:'v450-search',file:'python3',args:['scripts/internal/verify_v450_search.py'],featureIds:['V450-T01','V450-S02','V450-S03','V450-R01','V450-R02','V450-R03'],owner:'ingress/recording',proof:'scripts/internal/visual_search_application_smoke.cpp',action:'--scope-only'},
     {id:'v450-evidence',file:'bash',args:['scripts/internal/verify_evidence_package.sh'],featureIds:[],owner:'recording',proof:'scripts/internal/evidence_package_smoke.cpp',action:'main'},
+    {id:'v450-journal-residency',file:'bash',args:['scripts/internal/verify_recording_generation_checkpoint.sh','residency'],featureIds:['V450-M01'],owner:'recording',proof:'scripts/internal/recording_generation_checkpoint_smoke.cpp',action:'IdentityResidency'},
     {id:'v450-search-lifetime',file:'bash',args:['scripts/internal/verify_recording_search_lifetime.sh'],featureIds:[],owner:'recording',proof:'scripts/internal/recording_search_cursor_smoke.cpp',action:'main'},
     {id:'v450-review-release',file:'bash',args:['scripts/internal/verify_va_review.sh'],featureIds:['V450-E01','V450-I01','V450-C01','V450-S01','V450-Q01','V450-G01','V450-N01','V450-N02','V450-N03'],owner:'ingress/recording',proof:'scripts/internal/va_review_smoke.cpp',action:'ReleaseAdmissionChecks'},
     {id:'v450-A-confirmed',file:'python3',args:['scripts/internal/verify_va_review_confirmed.py'],featureIds:['V450-K09','V450-A02'],owner:'ingress/recording',proof:'scripts/internal/va_review_confirmed_checks.h',action:'ConfirmedChecks'},
@@ -49,6 +50,7 @@ export function validateV450ReleaseRegistration(root,inventory=fs.readFileSync(p
   // 필수 전용 실행 계약은 전달된 계획에서 역산하지 않는다. K08의 기존 core 전체 호출을 K05에 재사용한다.
   for(const [ids,file,args] of [
     [['V450-K05','V450-K08'],'python3',['scripts/internal/verify_va_review_bound_record.py']],
+    [['V450-M01'],'bash',['scripts/internal/verify_recording_generation_checkpoint.sh','residency']],
     [['V450-K07'],'bash',['scripts/internal/verify_evidence_package.sh','--observations']],
     [['V450-U02'],'python3',['scripts/internal/verify_va_review_confirmed.py','--http']],
     [['V450-E03'],'node',['scripts/internal/verify_v390_test_acceptance_bundle_contract.mjs','--v450-plan-only']],

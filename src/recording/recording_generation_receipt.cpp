@@ -233,7 +233,9 @@ bool ParseRecordingGenerationReceipt(const std::string& bytes,std::uint64_t admi
             return Fail(error,"generation receipt predecessor invalid");
         r.predecessor=std::move(p);
     }
-    for(const auto& pair:{std::make_pair("replacementMarker",&r.replacement_marker),std::make_pair("predecessorFile",&r.predecessor_file)}) {
+    const std::pair<const char*,std::optional<RecordingGenerationOwnedFile>*> descriptors[]{
+        {"replacementMarker",&r.replacement_marker},{"predecessorFile",&r.predecessor_file}};
+    for(const auto& pair:descriptors) {
         const auto* m=d.Find(pair.first);
         if(!m)return Fail(error,"generation receipt metadata descriptor absent");
         if(m->type!=ingress::StrictJsonType::Null) {

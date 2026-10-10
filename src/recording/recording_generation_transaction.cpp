@@ -32,7 +32,8 @@ int Directory(const std::filesystem::path& path){
     for(const auto& part:path.relative_path()){
         const auto name=part.string();if(!Name(name))return -1;
         const int next=::openat(fd.n,name.c_str(),O_RDONLY|O_DIRECTORY|O_NOFOLLOW|O_CLOEXEC);
-        if(next<0)return -1;::close(fd.n);fd.n=next;
+        if(next<0)return -1;
+        ::close(fd.n);fd.n=next;
     }
     const int result=fd.n;fd.n=-1;return result;
 }
@@ -46,7 +47,8 @@ bool Same(const struct stat& a,const struct stat& b){
 }
 std::string Hex(const unsigned char* bytes,std::size_t size){std::string text;constexpr char digits[]="0123456789abcdef";for(std::size_t i=0;i<size;++i){text+=digits[bytes[i]>>4];text+=digits[bytes[i]&15];}return text;}
 bool Read(int dir,const std::string& name,RecordingGenerationOwnedFile* out,unsigned links=1,std::string* bytes=nullptr,std::uint64_t admission=0){
-    if(!Name(name))return false;Fd fd;fd.n=::openat(dir,name.c_str(),O_RDONLY|O_NOFOLLOW|O_CLOEXEC|O_NONBLOCK);struct stat before{},after{},named{};
+    if(!Name(name))return false;
+    Fd fd;fd.n=::openat(dir,name.c_str(),O_RDONLY|O_NOFOLLOW|O_CLOEXEC|O_NONBLOCK);struct stat before{},after{},named{};
     if(fd.n<0||::fstat(fd.n,&before)!=0||!S_ISREG(before.st_mode)||before.st_nlink!=links||before.st_size<0||(bytes&&static_cast<std::uint64_t>(before.st_size)>admission))return false;
     std::unique_ptr<EVP_MD_CTX,decltype(&EVP_MD_CTX_free)> hash(EVP_MD_CTX_new(),EVP_MD_CTX_free);
     if(!hash||EVP_DigestInit_ex(hash.get(),EVP_sha256(),nullptr)!=1)return false;
@@ -54,12 +56,14 @@ bool Read(int dir,const std::string& name,RecordingGenerationOwnedFile* out,unsi
     while(offset<static_cast<std::uint64_t>(before.st_size)){
         ssize_t n;do{n=::pread(fd.n,block,std::min<std::uint64_t>(sizeof(block),before.st_size-offset),static_cast<off_t>(offset));}while(n<0&&errno==EINTR);
         if(n<=0||EVP_DigestUpdate(hash.get(),block,static_cast<std::size_t>(n))!=1)return false;
-        if(bytes)value.append(block,static_cast<std::size_t>(n));offset+=static_cast<std::uint64_t>(n);
+        if(bytes)value.append(block,static_cast<std::size_t>(n));
+        offset+=static_cast<std::uint64_t>(n);
     }
     unsigned char digest[32];unsigned size=0;
     if(EVP_DigestFinal_ex(hash.get(),digest,&size)!=1||size!=32||::fstat(fd.n,&after)!=0||!Same(before,after)||::fstatat(dir,name.c_str(),&named,AT_SYMLINK_NOFOLLOW)!=0||!S_ISREG(named.st_mode)||!Same(after,named))return false;
     if(out)*out={{name,static_cast<std::uint64_t>(before.st_size),Hex(digest,size)},static_cast<std::uint64_t>(before.st_dev),static_cast<std::uint64_t>(before.st_ino)};
-    if(bytes)*bytes=std::move(value);return true;
+    if(bytes)*bytes=std::move(value);
+    return true;
 }
 bool Verify(int dir,const RecordingGenerationOwnedFile& expected,unsigned links=1,const char* alias=nullptr){
     RecordingGenerationOwnedFile actual;
@@ -100,12 +104,15 @@ struct RecordingGenerationTransaction::State {
     bool Save(const RecordingGenerationReceipt& value,bool initial,std::string* error){
         std::string bytes;if(!SerializeRecordingGenerationReceipt(value,&bytes,error)||!Bound()||(initial?!Missing(root.n,kReceipt):!ReceiptBound()))return Fail(error,"transaction receipt binding/collision rejected");
         Fd fd;fd.n=::openat(root.n,kTemp,O_WRONLY|O_CREAT|O_EXCL|O_NOFOLLOW|O_CLOEXEC,0600);if(fd.n<0)return Fail(error,"transaction receipt temp collision");Hit("receipt-created");
-        if(!Write(fd.n,bytes))return Fail(error,"transaction receipt write failed");Hit("receipt-written");
-        if(::fsync(fd.n)!=0)return Fail(error,"transaction receipt file fsync failed");Hit("receipt-file-synced");
+        if(!Write(fd.n,bytes))return Fail(error,"transaction receipt write failed");
+        Hit("receipt-written");
+        if(::fsync(fd.n)!=0)return Fail(error,"transaction receipt file fsync failed");
+        Hit("receipt-file-synced");
         struct stat a{},b{};
         if(!Bound()||::fstat(fd.n,&a)!=0||a.st_nlink!=1||::fstatat(root.n,kTemp,&b,AT_SYMLINK_NOFOLLOW)!=0||!Same(a,b)||(initial?!Missing(root.n,kReceipt):!ReceiptBound()))return Fail(error,"transaction receipt final binding rejected");
         if(initial){
-            if(::linkat(root.n,kTemp,root.n,kReceipt,0)!=0)return Fail(error,"transaction receipt no-overwrite failed");Hit("receipt-linked");
+            if(::linkat(root.n,kTemp,root.n,kReceipt,0)!=0)return Fail(error,"transaction receipt no-overwrite failed");
+            Hit("receipt-linked");
             if(::fsync(root.n)!=0||::unlinkat(root.n,kTemp,0)!=0)return Fail(error,"transaction receipt link durability uncertain");
         }else if(::renameat(root.n,kTemp,root.n,kReceipt)!=0)return Fail(error,"transaction receipt phase rename failed");
         Hit("receipt-renamed");if(::fsync(root.n)!=0)return Fail(error,"transaction receipt directory durability uncertain");Hit("receipt-directory-synced");
@@ -132,10 +139,12 @@ bool RecordingGenerationTransaction::Create(const std::filesystem::path& root,st
     if(s.root.n<0||::fstat(s.root.n,&s.root_stat)!=0||!Missing(s.root.n,kReceipt)||!Missing(s.root.n,kTemp))return Fail(error,"transaction root/receipt unavailable");
     unsigned char nonce[16];if(RAND_bytes(nonce,sizeof(nonce))!=1)return Fail(error,"transaction nonce unavailable");
     const auto name=".recording-generation-prepare-"+Hex(nonce,sizeof(nonce));s.stage_path=root/name;
-    if(::mkdirat(s.root.n,name.c_str(),0700)!=0)return Fail(error,"transaction stage create failed");s.stage_created=true;s.Hit("stage-created");
+    if(::mkdirat(s.root.n,name.c_str(),0700)!=0)return Fail(error,"transaction stage create failed");
+    s.stage_created=true;s.Hit("stage-created");
     s.stage.n=::openat(s.root.n,name.c_str(),O_RDONLY|O_DIRECTORY|O_NOFOLLOW|O_CLOEXEC);
     if(s.stage.n<0||::fstat(s.stage.n,&s.stage_stat)!=0||!s.Bound()||::fsync(s.stage.n)!=0||::fsync(s.root.n)!=0)return Fail(error,"transaction stage binding/fsync failed; preserved");
-    if(error)error->clear();return true;
+    if(error)error->clear();
+    return true;
 #else
     (void)root;return Fail(error,"transaction crypto/POSIX unsupported");
 #endif
@@ -159,7 +168,9 @@ bool RecordingGenerationTransaction::Load(const std::filesystem::path& root,std:
 }
 bool RecordingGenerationTransaction::Describe(bool staged,const std::string& name,RecordingGenerationOwnedFile* output,std::string* error) const{
 #if MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
-    if(!output||!state_->Bound()||!Read(staged?state_->stage.n:state_->root.n,name,output))return Fail(error,"transaction descriptor read rejected");if(error)error->clear();return true;
+    if(!output||!state_->Bound()||!Read(staged?state_->stage.n:state_->root.n,name,output))return Fail(error,"transaction descriptor read rejected");
+    if(error)error->clear();
+    return true;
 #else
     (void)staged;(void)name;(void)output;return Fail(error,"transaction crypto/POSIX unsupported");
 #endif
@@ -195,7 +206,8 @@ bool RecordingGenerationTransaction::CleanupUnprepared(std::string* error){
     DIR* dir=::fdopendir(copy.n);if(!dir)return Fail(error,"transaction cleanup directory read failed");copy.n=-1;
     bool known=true;errno=0;
     while(const auto* entry=::readdir(dir)){const std::string name=entry->d_name;if(name!="."&&name!=".."&&!names.erase(name)){known=false;break;}}
-    if(errno||!names.empty())known=false;::closedir(dir);
+    if(errno||!names.empty())known=false;
+    ::closedir(dir);
     if(!known)return Fail(error,"transaction unknown live preparation preserved");
     for(const auto& file:s.live_files){
         struct stat before{},after{};
@@ -204,7 +216,8 @@ bool RecordingGenerationTransaction::CleanupUnprepared(std::string* error){
         if(!s.Bound()||::fstatat(s.stage.n,file.file.name.c_str(),&after,AT_SYMLINK_NOFOLLOW)!=0||!Same(before,after)||::unlinkat(s.stage.n,file.file.name.c_str(),0)!=0)return Fail(error,"transaction live cleanup final binding changed");
     }
     if(::fsync(s.stage.n)!=0||!Empty(s.stage.n)||!s.Bound()||::unlinkat(s.root.n,s.stage_path.filename().c_str(),AT_REMOVEDIR)!=0||::fsync(s.root.n)!=0)return Fail(error,"transaction live cleanup durability uncertain");
-    if(error)error->clear();return true;
+    if(error)error->clear();
+    return true;
 #else
     return Fail(error,"transaction crypto/POSIX unsupported");
 #endif
@@ -215,7 +228,8 @@ bool RecordingGenerationTransaction::Prepare(const RecordingGenerationReceipt& v
     if(value.replacement_marker&&!Verify(s.stage.n,*value.replacement_marker))return Fail(error,"transaction replacement marker mismatch");
     if(value.predecessor_file&&!Verify(s.root.n,*value.predecessor_file))return Fail(error,"transaction predecessor mismatch");
     if(value.predecessor_snapshot&&!Verify(s.root.n,*value.predecessor_snapshot))return Fail(error,"transaction predecessor snapshot mismatch");
-    for(const auto& file:value.created)if(!Verify(s.stage.n,file)||!Missing(s.root.n,file.file.name.c_str()))return Fail(error,"transaction component/collision rejected");return s.Save(value,true,error);
+    for(const auto& file:value.created)if(!Verify(s.stage.n,file)||!Missing(s.root.n,file.file.name.c_str()))return Fail(error,"transaction component/collision rejected");
+    return s.Save(value,true,error);
 #else
     (void)value;return Fail(error,"transaction crypto/POSIX unsupported");
 #endif
@@ -230,9 +244,12 @@ bool RecordingGenerationTransaction::Promote(std::string* error){
         if(!from){if(!to||!Verify(s.root.n,file))return Fail(error,"transaction promoted file missing/foreign");continue;}
         if(to){if(a.st_dev!=b.st_dev||a.st_ino!=b.st_ino||!Verify(s.stage.n,file,2)||!Verify(s.root.n,file,2))return Fail(error,"transaction two-link ownership rejected");}
         else {if(!Verify(s.stage.n,file)||::linkat(s.stage.n,name,s.root.n,name,0)!=0)return Fail(error,"transaction no-overwrite promotion rejected");s.Hit("component-linked");}
-        if(::fsync(s.root.n)!=0)return Fail(error,"transaction promoted root fsync failed");s.Hit("component-root-synced");
-        if(!s.ReceiptBound()||!Verify(s.stage.n,file,2)||!Verify(s.root.n,file,2)||::unlinkat(s.stage.n,name,0)!=0)return Fail(error,"transaction stage unlink rejected");s.Hit("component-unlinked");
-        if(::fsync(s.stage.n)!=0)return Fail(error,"transaction stage directory fsync failed");s.Hit("component-stage-synced");if(!Verify(s.root.n,file))return Fail(error,"transaction final component binding rejected");
+        if(::fsync(s.root.n)!=0)return Fail(error,"transaction promoted root fsync failed");
+        s.Hit("component-root-synced");
+        if(!s.ReceiptBound()||!Verify(s.stage.n,file,2)||!Verify(s.root.n,file,2)||::unlinkat(s.stage.n,name,0)!=0)return Fail(error,"transaction stage unlink rejected");
+        s.Hit("component-unlinked");
+        if(::fsync(s.stage.n)!=0)return Fail(error,"transaction stage directory fsync failed");
+        s.Hit("component-stage-synced");if(!Verify(s.root.n,file))return Fail(error,"transaction final component binding rejected");
     }if(error)error->clear();return true;
 #else
     return Fail(error,"transaction crypto/POSIX unsupported");
@@ -241,10 +258,14 @@ bool RecordingGenerationTransaction::Promote(std::string* error){
 bool RecordingGenerationTransaction::ReplaceMarker(std::string* error){
 #if MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
     auto& s=*state_;if(!s.ReceiptBound()||s.receipt.phase!=RecordingGenerationPhase::Prepared||!s.receipt.replacement_marker||!Verify(s.root.n,s.receipt.marker)||!Verify(s.stage.n,*s.receipt.replacement_marker))return Fail(error,"transaction marker predecessor rejected");
-    if(::linkat(s.root.n,kMarker,s.stage.n,kBackup,0)!=0)return Fail(error,"transaction original marker backup collision");s.Hit("marker-backup-linked");
-    if(::fsync(s.root.n)!=0||::fsync(s.stage.n)!=0||!Verify(s.root.n,s.receipt.marker,2)||!Verify(s.stage.n,s.receipt.marker,2,kBackup))return Fail(error,"transaction original marker backup uncertain");s.Hit("marker-backup-synced");
-    if(!s.ReceiptBound()||!Verify(s.stage.n,*s.receipt.replacement_marker)||::renameat(s.stage.n,s.receipt.replacement_marker->file.name.c_str(),s.root.n,kMarker)!=0)return Fail(error,"transaction marker rename failed");s.Hit("marker-renamed");
-    if(::fsync(s.root.n)!=0||::fsync(s.stage.n)!=0||!Verify(s.root.n,*s.receipt.replacement_marker,1,kMarker))return Fail(error,"transaction marker durability uncertain");s.Hit("marker-synced");return true;
+    if(::linkat(s.root.n,kMarker,s.stage.n,kBackup,0)!=0)return Fail(error,"transaction original marker backup collision");
+    s.Hit("marker-backup-linked");
+    if(::fsync(s.root.n)!=0||::fsync(s.stage.n)!=0||!Verify(s.root.n,s.receipt.marker,2)||!Verify(s.stage.n,s.receipt.marker,2,kBackup))return Fail(error,"transaction original marker backup uncertain");
+    s.Hit("marker-backup-synced");
+    if(!s.ReceiptBound()||!Verify(s.stage.n,*s.receipt.replacement_marker)||::renameat(s.stage.n,s.receipt.replacement_marker->file.name.c_str(),s.root.n,kMarker)!=0)return Fail(error,"transaction marker rename failed");
+    s.Hit("marker-renamed");
+    if(::fsync(s.root.n)!=0||::fsync(s.stage.n)!=0||!Verify(s.root.n,*s.receipt.replacement_marker,1,kMarker))return Fail(error,"transaction marker durability uncertain");
+    s.Hit("marker-synced");return true;
 #else
     return Fail(error,"transaction crypto/POSIX unsupported");
 #endif
@@ -261,7 +282,9 @@ bool RecordingGenerationTransaction::Revalidate(std::string* error) const{
     const auto& s=*state_;if(!s.ReceiptBound())return Fail(error,"transaction receipt authority changed");
     for(const auto& file:s.receipt.created)if(!Verify(s.root.n,file))return Fail(error,"transaction published component changed");
     const auto& marker=s.receipt.replacement_marker?*s.receipt.replacement_marker:s.receipt.marker;
-    if(!Verify(s.root.n,marker,1,kMarker))return Fail(error,"transaction published marker changed");if(error)error->clear();return true;
+    if(!Verify(s.root.n,marker,1,kMarker))return Fail(error,"transaction published marker changed");
+    if(error)error->clear();
+    return true;
 #else
     return Fail(error,"transaction crypto/POSIX unsupported");
 #endif
@@ -277,7 +300,8 @@ bool RecordingGenerationTransaction::RestoreMarker(std::string* error){
         if(!s.receipt.replacement_marker||!Verify(s.root.n,*s.receipt.replacement_marker,1,kMarker)||!Verify(s.stage.n,s.receipt.marker,1,kBackup)||!s.ReceiptBound()||::renameat(s.stage.n,kBackup,s.root.n,kMarker)!=0)return Fail(error,"transaction marker rollback ownership rejected");
     }
     s.Hit("marker-restored");
-    if(::fsync(s.root.n)!=0||::fsync(s.stage.n)!=0||!Verify(s.root.n,s.receipt.marker))return Fail(error,"transaction rollback marker durability uncertain");s.Hit("marker-restore-synced");return true;
+    if(::fsync(s.root.n)!=0||::fsync(s.stage.n)!=0||!Verify(s.root.n,s.receipt.marker))return Fail(error,"transaction rollback marker durability uncertain");
+    s.Hit("marker-restore-synced");return true;
 #else
     return Fail(error,"transaction crypto/POSIX unsupported");
 #endif
@@ -303,7 +327,9 @@ bool RecordingGenerationTransaction::ValidateRecoveryOriginal(std::string* error
         if(original&&Missing(s.stage.n,name)&&Missing(s.root.n,name)){all=false;continue;}
         if(!staged&&!linked&&!promoted)return Fail(error,"transaction recovery component ownership rejected");
     }
-    if(complete)*complete=all;if(error)error->clear();return true;
+    if(complete)*complete=all;
+    if(error)error->clear();
+    return true;
 #else
     (void)complete;
     return Fail(error,"transaction crypto/POSIX unsupported");
@@ -354,7 +380,8 @@ bool RecordingGenerationTransaction::Cleanup(bool committed,std::string* error){
        (!Verify(s.stage.n,*s.receipt.replacement_marker)||::unlinkat(s.stage.n,s.receipt.replacement_marker->file.name.c_str(),0)!=0))return Fail(error,"transaction replacement cleanup rejected");
     if(::fsync(s.stage.n)!=0||!Empty(s.stage.n)||!Missing(s.root.n,kTemp)||!s.ReceiptBound())return Fail(error,"transaction cleanup stage not proven empty");
     // 영수증이 없는 빈 stage 잔여물은 소유 추정으로 다음 실행에서 지우지 않는다.
-    if(::unlinkat(s.root.n,kReceipt,0)!=0||::fsync(s.root.n)!=0)return Fail(error,"transaction receipt cleanup durability uncertain");s.Hit("receipt-cleaned");
+    if(::unlinkat(s.root.n,kReceipt,0)!=0||::fsync(s.root.n)!=0)return Fail(error,"transaction receipt cleanup durability uncertain");
+    s.Hit("receipt-cleaned");
     if(!s.Bound()||::unlinkat(s.root.n,s.stage_path.filename().c_str(),AT_REMOVEDIR)!=0||::fsync(s.root.n)!=0)return Fail(error,"transaction empty stage cleanup uncertain");
     s.prepared=false;if(error)error->clear();return true;
 #else

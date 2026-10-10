@@ -48,7 +48,8 @@ std::shared_ptr<const DecodedIntervalSnapshot> DecodedIntervalCollector::Snapsho
     for(const auto& f:frames_)if(f.decoded_sequence>=minimum_sequence&&f.decoded_sequence<=maximum_sequence)out->frames.push_back(f);
     out->incomplete=incomplete_&&discarded_sequence_>=minimum_sequence;
     out->incomplete_reason=out->incomplete?"decoded-interval-cap":"";
-    if(out->incomplete)out->discarded_end_ns=discarded_end_ns_;return out;
+    if(out->incomplete)out->discarded_end_ns=discarded_end_ns_;
+    return out;
 }
 }
 namespace recording {
@@ -66,7 +67,8 @@ bool SourceValid(const DerivedSourceEvidence& s,const RecordingConsumerReference
     return s.available_for_selection&&s.segment.source_id==r.source_id&&s.segment.channel_id==r.channel_id&&ValidateRecordingSegmentV2(s.segment,nullptr);
 }
 bool Bound(const DerivedSourceEvidence& source,const analysis::OriginalSampleIdentity& o) {
-    if(!source.binding)return false;const auto& b=*source.binding;
+    if(!source.binding)return false;
+    const auto& b=*source.binding;
     if(b.source_generation!=o.source_generation||b.generation_order!=o.generation_order||b.track_id!=o.track_id)return false;
     const auto it=std::lower_bound(b.samples.begin(),b.samples.end(),o.ordinal,[](const auto& s,std::uint64_t ordinal){return s.ordinal<ordinal;});
     return it!=b.samples.end()&&it->ordinal==o.ordinal&&it->pts_ns==o.pts_ns;
@@ -80,7 +82,8 @@ void Sort(std::vector<std::int64_t>& values) {
 DerivedSelectionCandidate Candidate(const DerivedSourceEvidence& source,std::int64_t a,std::int64_t b,
                                     const analysis::OriginalSampleIdentity* o=nullptr) {
     DerivedSelectionCandidate c;c.segment=source.segment;c.media_start_pts=a;c.media_end_pts=b;
-    if(o)c.original=RecordingConsumerOriginalV1{o->source_generation,o->generation_order,o->ordinal,o->track_id,o->pts_ns};return c;
+    if(o)c.original=RecordingConsumerOriginalV1{o->source_generation,o->generation_order,o->ordinal,o->track_id,o->pts_ns};
+    return c;
 }
 bool Media(const RecordingConsumerReferenceV1& r,const analysis::DecodedIntervalSnapshot& evidence,
            const std::vector<DerivedSourceEvidence>& sources,DerivedRecordingSelection& out) {
@@ -292,7 +295,8 @@ bool Utc(const RecordingConsumerReferenceV1& r,const std::vector<DerivedSourceEv
 bool SelectDerivedRecording(const RecordingConsumerReferenceV1& reference,
     const analysis::DecodedIntervalSnapshot& evidence,const std::vector<DerivedSourceEvidence>& sources,
     const RecordingRangeResult* utc_range,DerivedRecordingSelection* output,std::string* error,bool prefer_native) {
-    if(output)*output={};const auto fail=[&](const char* message){if(error)*error=message;return false;};
+    if(output)*output={};
+    const auto fail=[&](const char* message){if(error)*error=message;return false;};
     if(!output||!ValidateRecordingConsumerReferenceV1(reference,error)||!reference.request)return fail("invalid-derived-request");
     if(evidence.frames.size()>4096||sources.size()>256||(utc_range&&(utc_range->slices.size()>4096||utc_range->unplaced.size()>4096)))
         return fail("derived-selection-input-cap");

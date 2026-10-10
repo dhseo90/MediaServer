@@ -524,7 +524,8 @@ bool RecordingReadService::QuerySearchTimeline(const std::string& channel,std::i
     RecordingTimelineResult result;
     if(!QueryTimelineImpl({channel,start,end,0,100000,false},&result,error,100000))return false;
     if(result.items.size()!=result.total||result.unplaced_items.size()!=result.unplaced_total) {
-        if(error)*error="search-playback-projection-incomplete";return false;
+        if(error)*error="search-playback-projection-incomplete";
+        return false;
     }
     *output=std::move(result);return true;
 }
@@ -534,7 +535,8 @@ bool RecordingReadService::QuerySearchEventTimeline(const std::string& channel,s
     RecordingTimelineResult result;
     if(!QueryTimelineImpl({channel,start,end,0,100000,false},&result,error,100000,true))return false;
     if(result.items.size()!=result.total||result.unplaced_items.size()!=result.unplaced_total) {
-        if(error)*error="search-playback-projection-incomplete";return false;
+        if(error)*error="search-playback-projection-incomplete";
+        return false;
     }
     *output=std::move(result);return true;
 }
@@ -723,7 +725,8 @@ bool RecordingReadService::FinishTimelineWithContext(const RecordingTimelineQuer
         for(std::size_t i=0;i<count;++i)page.push_back(std::move(result->items[begin+i]));
         result->items=std::move(page);
         completion::Emit(completion::Event::Page,phase_started,completion::Now(),{},{},result->items.size(),query.offset,query.limit);
-        if(error)error->clear();return true;
+        if(error)error->clear();
+        return true;
     }catch(const std::exception&){*result={};if(error)*error="timeline-projection-unavailable";return false;}
 }
 }  // namespace recording

@@ -179,7 +179,8 @@ bool PrepareRecordingGenerationIdentityFile(const std::filesystem::path& root,st
     if(file.value<0||!WriteAll(file.value,bytes.data(),bytes.size())||
        !FinishFile(directory.value,file.value,report,bytes.size())||!RootSame(root,directory.value)||!Sync(directory.value))
         return Fail(error,"identity preparation failed; owned output preserved");
-    if(error)error->clear();return true;
+    if(error)error->clear();
+    return true;
 #else
     (void)root;return Fail(error,"identity preparation crypto unsupported");
 #endif

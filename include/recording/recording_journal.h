@@ -146,7 +146,7 @@ private:
     friend struct RecordingCutoverSessionProbe;
     friend struct RecordingGenerationResidencyProbe;
     void ProbeGenerationIdentityStorage(std::size_t* count, std::size_t* historical_bytes,
-                                       std::size_t* active_bytes) const;
+                                       std::size_t* active_bytes, std::size_t* order_copy_count = nullptr) const;
     static thread_local int generation_write_fault_;
     static thread_local void (*generation_cleanup_before_unlink_)();
     static bool ProbeOrderValidation(const std::vector<RecordingMutationV1>& history,

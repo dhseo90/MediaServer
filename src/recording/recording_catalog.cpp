@@ -478,7 +478,8 @@ bool RecordingCatalog::OpenGenerationLocked(std::string* error) {
         };
         const auto publish=[&]() noexcept {PublishGenerationMapsLocked(*scratch);};
         if(!journal_.PublishGenerationCatalog(session,this,commit,publish,error))return failed();
-        if(error)error->clear();return true;
+        if(error)error->clear();
+        return true;
     }catch(...){Fail(error,"B catalog Open 자원 실패");return failed();}
 #else
     return Fail(error,"B catalog Open unsupported");
@@ -494,8 +495,10 @@ bool RecordingCatalog::PrepareGenerationSqliteLocked(const std::shared_ptr<Recor
     flags|=SQLITE_OPEN_NOFOLLOW;
 #endif
     if(sqlite3_open_v2(path.c_str(),&generation_sqlite_db_,flags,nullptr)!=SQLITE_OK) {
-        if(generation_sqlite_db_)sqlite3_close(generation_sqlite_db_);generation_sqlite_db_=nullptr;
-        if(error)error->clear();return true; // Open 자체 불가만 메모리 fallback이다.
+        if(generation_sqlite_db_)sqlite3_close(generation_sqlite_db_);
+        generation_sqlite_db_=nullptr;
+        if(error)error->clear();
+        return true; // Open 자체 불가만 메모리 fallback이다.
     }
     auto* db=generation_sqlite_db_;
 #if MEDIA_SERVER_RECORDING_GENERATION_TESTING
@@ -1907,7 +1910,8 @@ bool RecordingCatalog::AppendGenerationLocked(RecordingMutationV1 mutation,std::
             source_bindings_.at(mutation.entity_id).resident.reset();
         if(!ProjectGenerationDeltaLocked(delta,*row,error))return PoisonGenerationLocked(error);
         if(prepared)prepared->phase=PreparedDerivedMutation::Phase::Consumed;
-        if(error)error->clear();return true;
+        if(error)error->clear();
+        return true;
     }catch(...){Fail(error,"B durable 후 적용/투영 예외");return PoisonGenerationLocked(error);}
 #else
     (void)mutation;(void)prepared;(void)acquire_hold;return Fail(error,"B append unsupported");
@@ -3095,7 +3099,9 @@ bool RecordingCatalog::CaptureEvidenceObservations(const SearchDocument& hit,
 bool RecordingCatalog::GuardEvidenceSnapshot(const EvidenceSnapshot& snapshot,const std::function<bool()>& action,
     std::uint64_t* captured,std::uint64_t* checked,bool* current,std::string* error) const {
     recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__);
-    if(captured)*captured=snapshot.revision;if(checked)*checked=source_snapshot_revision_;if(current)*current=false;
+    if(captured)*captured=snapshot.revision;
+    if(checked)*checked=source_snapshot_revision_;
+    if(current)*current=false;
     if(!opened_||!options_.enable_v2_storage||!source_snapshot_revision_valid_||!snapshot.instance||
         snapshot.instance!=search_instance_||!CanReadLocked(nullptr))return Fail(error,"evidence-source-changed");
     std::vector<std::string> rows,dependencies;
