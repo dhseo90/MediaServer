@@ -24,6 +24,8 @@ class RecordingCatalogHistoryRows;
 struct RecordingCatalogGenerationProjection {
     std::shared_ptr<RecordingCatalogHistoryRows> completed_history;
     bool nonresident_history{false};
+    // Simultaneously live projection scratch, including the old full-row join.
+    std::uint64_t scratch_peak_bytes{0},scratch_peak_allocated{0};
     RecordingIdentityHistoryHandle identity_history;
     RecordingGenerationManifest manifest;
     std::map<std::string,RecordingSegmentV1> segments;

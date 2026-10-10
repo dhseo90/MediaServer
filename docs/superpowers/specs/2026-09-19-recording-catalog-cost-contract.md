@@ -984,12 +984,30 @@ order DTO는 기존 ID grammar128바이트와 고정 schema/숫자에 맞고 arc
 archive, 완료 행, 출력 정렬 scratch의 동시 논리/할당량을 관측한다. 전 단계 순간 disk/RAM
 peak 강제 보호가 입증된 것은 아니며 endpoint·누적 high-water와 구분한다.
 
-남은 경계: 구형 full snapshot의 segment/state/path/tombstone projection은 축약 전에 전체
-적재한다. 기존에 수용한 path/reason 없는 자료를 임의 retired 형식으로 바꾸지 않았다.
-완료 derived job summary·ID 벡터·link 및 현재 observation/reference 집합은 상주한다.
-active.rows는 전체 과거가 아니라 기존 active admission 범위의 현재 suffix다. 명시적 DTO
-export/전체 조회 API는 여전히 전체 반환값을 만든다. 제품 checkpoint는 해당 DTO 경로를 쓰지 않는다.
-checkpoint 정렬 준비는 Catalog 잠금 아래, Journal 준비/clone은 Journal 잠금 아래 남고,
-count/spool 두 번의 export가 각 검증 순회를 반복한다. 기존 byte/hash 검증을 제거해 비용을
-숨기지 않으며 잠금/동시 검색 지연은 별도 미충족이다. 현재 작업은 이 잔여를 해결한 것으로
-채택하거나 저장 기반 전체 완료로 표시하지 않는다.
+### 중복 준비와 완료 자료 수명 (80)
+
+snapshot은 같은 Catalog 잠금/고정 cut 안에서 한 번 검증하며 정렬 scratch와 row/chunk/byte
+개수를 함께 만든다. 후보 first의 물리 coverage와 현재 적용 prefix의 ordinal/type/entity/time/
+identity/reservation을 대조하고 양방향 개수·accepted 잔량을 검사한다. 이 증명은 호출 밖에
+저장하지 않는다. 다른 generation/cut에 재사용하는 checked flag나 원본 검증 생략은 없다.
+출력의 기존 canonical bytes·transaction hash·원자 게시·Finish는 유지한다.
+
+구형 full snapshot의 V2 segment/state/tombstone/path/reason은 익명 scratch에서 join한 뒤
+최초 삭제 identity·기존 CrossMaps 관계를 만족하는 완료 행만 receipt화한다. 활성 행과 기존에
+수용한 path/reason/삭제 권위 부족 예외는 원래 의미로 남긴다. join과 completed history가
+동시에 존재하는 논리/할당 bytes를 닫기 전에 계상한다. source snapshot admission으로부터
+최소32바이트 canonical row의 metadata/2048바이트 chunk 수 상한을 계산하며, 원본 byte 한도를
+그대로 scratch 한도로 쓰지 않는다. 최초 실패와 Close 오류는 별도로 보존한다.
+
+완료/실패 derived job의 summary·source/output 목록·link는 cold 조회한다. 현재 작업은 상주하며
+reader는 immutable 원문을 필요한 동안 소유한다. timeline의 전체 output/reference 복제 set은
+정확한 membership 조회로 대체한다. 기존 명시적 전체 결과 API는 그대로이며 그 반환 DTO는
+호출자 비용이다. cold 상세 해제·재획득·terminal retry·checkpoint/reOpen을 직접 검사한다.
+
+남은 경계: 관측/reference/accepted-reference/event link의 보존 자료는 O(보존량) RAM에 남는다.
+명시적 전체 결과 및 receipt로 전환할 근거가 없는 기존 허용 legacy 자료도 별도다.
+모든 동시 reader/세대의 총 byte admission과 모든 단계의 순간 RAM/scratch peak는 입증되지 않았다.
+checkpoint 준비와 Journal clone/검증은 여전히 잠금 안이며 정상 전체 snapshot 출력은 O(이력)의
+디스크 I/O다. 완료 job 조회 소비자 일부도 전체 cold history를 순회한다. 이것을 유한 cache만으로
+상수 시간/전체 자원 상한이 확보된 것으로 표시하지 않는다. 녹화·검색 병행 deadline 실패와
+B/C 전체 수명·최종 혼합 검증은 출시 전 잔여이며 상세 결과는 버전별 실행 자료에 둔다.

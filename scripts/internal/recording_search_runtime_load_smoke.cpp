@@ -7,21 +7,31 @@
 #include <atomic>
 #include <thread>
 #include <sys/resource.h>
+#include <fstream>
 #ifdef __APPLE__
 #include <malloc/malloc.h>
 #include <mach/mach.h>
 #endif
 namespace {
+std::string OwnedManifest(const std::filesystem::path& path){
+    std::ifstream in(path,std::ios::binary);if(!in)throw std::runtime_error("checkpoint-manifest-open");
+    std::string value;std::array<char,4096> buffer{};
+    while(in){in.read(buffer.data(),buffer.size());const auto count=in.gcount();
+        if(value.size()+static_cast<std::size_t>(count)>1024*1024)throw std::runtime_error("checkpoint-manifest-cap");
+        value.append(buffer.data(),static_cast<std::size_t>(count));}
+    if(!in.eof())throw std::runtime_error("checkpoint-manifest-read");return value;
+}
 struct Joined {
     std::vector<std::thread>& threads;std::atomic<bool>& stop;
     ~Joined(){stop=true;for(auto& thread:threads)if(thread.joinable())thread.join();}
 };
 }
 int main(int argc,char** argv){
-    if(argc!=2&&(argc!=3||std::string(argv[2])!="existing"))return 2;gst_init(nullptr,nullptr);
+    if(argc!=2&&(argc!=3||(std::string(argv[2])!="existing"&&std::string(argv[2])!="checkpoint")))return 2;
+    const bool checkpoint_overlap=argc==3&&std::string(argv[2])=="checkpoint";gst_init(nullptr,nullptr);
     try {
         const auto base=std::filesystem::weakly_canonical(argv[1]);
-        const auto root=argc==3?base:base/"product";
+        const auto root=argc==3&&!checkpoint_overlap?base:base/"product";
         recording::RecordingRuntimeStorage runtime(root);std::string error;
         if(!runtime.Open(&error))throw std::runtime_error(error);
         auto input=Encode(90,false,false,160,90,30,30);Shift(input,7000000000ULL);
@@ -43,7 +53,8 @@ int main(int argc,char** argv){
         std::unordered_map<std::string,std::string> query{{"channelIds",channel_query},{"startTimeMs","1789200000000"},{"endTimeMs","1789200004000"}};
         if(app.Search(query,"warmup","scope",[](const auto&){return true;}).status!=200)throw std::runtime_error("load-warmup");
         std::atomic<unsigned> packets{0},finished{0};std::atomic<bool> stop{false};
-        std::array<std::exception_ptr,12> errors{};
+        std::array<std::exception_ptr,13> errors{};
+        double checkpoint_ms=0;unsigned checkpoint_begin=0,checkpoint_end=0;bool checkpoint_published=false;
         std::array<std::vector<double>,4> elapsed;
         std::array<unsigned,4> ready{},unavailable{},progressed{};
         std::array<std::string,4> first_failure;
@@ -61,7 +72,20 @@ int main(int argc,char** argv){
             try{for(const auto& packet:input.packets){if(stop)break;writers[channel]->Push(packet,0);++packets;std::this_thread::sleep_for(std::chrono::milliseconds(4));}
                 writers[channel]->Stop();}catch(...){errors[4+channel]=std::current_exception();stop=true;}++finished;
         });
+        if(checkpoint_overlap)threads.emplace_back([&]{
+            try {
+                while(!stop&&packets<160&&finished<8)std::this_thread::yield();
+                if(stop||finished==8)throw std::runtime_error("checkpoint-overlap-not-reached");
+                const auto prior=OwnedManifest(root/"recording-generation.json");checkpoint_begin=packets.load();
+                const auto started=std::chrono::steady_clock::now();std::string detail;
+                if(!runtime.catalog().Checkpoint(&detail))throw std::runtime_error("checkpoint-overlap:"+detail);
+                checkpoint_ms=std::chrono::duration<double,std::milli>(std::chrono::steady_clock::now()-started).count();
+                checkpoint_end=packets.load();checkpoint_published=OwnedManifest(root/"recording-generation.json")!=prior;
+                if(!checkpoint_published)throw std::runtime_error("checkpoint-overlap-no-publication");
+            }catch(...){errors[12]=std::current_exception();stop=true;}
+        });
         for(auto& thread:threads)thread.join();
+        if(checkpoint_overlap)std::cout<<"[checkpoint-overlap] milliseconds="<<checkpoint_ms<<" startPackets="<<checkpoint_begin<<" endPackets="<<checkpoint_end<<" published="<<checkpoint_published<<'\n';
         for(const auto& failure:errors)if(failure)std::rethrow_exception(failure);
         for(std::size_t client=0;client<4;++client)std::cout<<"[runtime-client] id="<<client<<" requests="<<elapsed[client].size()<<" ready="<<ready[client]<<" unavailable="<<unavailable[client]<<" firstFailure="<<first_failure[client]<<" maxMs="<<(elapsed[client].empty()?0:*std::max_element(elapsed[client].begin(),elapsed[client].end()))<<std::endl;
         const auto diagnostic=app.Search(query,"after-writer-off","scope",[](const auto&){return true;});
@@ -78,6 +102,7 @@ int main(int argc,char** argv){
             for(const auto& segment:snapshot.segments){if(!reader.ResolveMedia(channel,segment.segment_id))throw std::runtime_error("load-media-health");++total;}}
         const auto final=app.Search(query,"load-final","scope",[](const auto&){return true;});
         if(total!=24||final.status!=200||Field(Json(final.body),"knownCount")!="24")throw std::runtime_error("load-final-result");
+        if(!runtime.Finish(&error))throw std::runtime_error("load-finish:"+error);
         struct rusage usage{};if(getrusage(RUSAGE_SELF,&usage))throw std::runtime_error("load-rss");
         const std::uint64_t rss=static_cast<std::uint64_t>(usage.ru_maxrss)
 #ifndef __APPLE__

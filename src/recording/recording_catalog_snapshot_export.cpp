@@ -9,6 +9,9 @@
 #include "recording_history_index.h"
 
 namespace recording {
+#if defined(MEDIA_SERVER_RECORDING_GENERATION_TESTING)
+thread_local std::uint64_t snapshot_export_calls=0,snapshot_spool_serializations=0;
+#endif
 namespace {
 bool Fail(std::string* error, const char* message) {
     if (error) *error = message;
@@ -60,6 +63,9 @@ bool RecordingCatalog::ExportGenerationValuesLocked(const std::string& store,
     const RecordingIdentityChainResult& chain,std::uint64_t generation,std::uint64_t cut,
     RecordingCatalogSnapshot* output,std::string* error,const RecordingCatalogSnapshotRowVisitor& visitor) const {
     try {
+#if defined(MEDIA_SERVER_RECORDING_GENERATION_TESTING)
+        ++snapshot_export_calls;
+#endif
         if (!output || !ValidateOpaqueId(store,error)) return Fail(error,"snapshot value store/output invalid");
         RecordingCatalogSnapshot result;
         result.store_id = store; result.generation = generation;
@@ -89,21 +95,25 @@ bool RecordingCatalog::ExportGenerationValuesLocked(const std::string& store,
         };
         if((chain.physical_rows==0)!=!chain.maximum_global_ordinal.has_value()||
            (chain.maximum_global_ordinal&&*chain.maximum_global_ordinal>=cut))return Fail(error,"snapshot identity physical ordinal/cut mismatch");
-        std::uint64_t physical=0;std::size_t required_accepted=0;
+        std::uint64_t physical=0;std::size_t required_accepted=0,first_count=0;
+        // Product cross-checks the sealed candidate against the current applied prefix in one
+        // Journal cursor below. DTO/oracle callers retain their independent map checks.
+        const bool applied_cursor=completed_history_&&chain.history;
         if(!VisitRecordingIdentityFirst(chain,[&](const auto& entry,std::string*){
             if(entry.mutation_id!=entry.first_row.mutation_id||entry.first_global_ordinal!=entry.first_row.global_ordinal||
                entry.first_global_ordinal>=cut||!entry.occurrences||entry.occurrences>chain.physical_rows-physical)
                 return Fail(error,"snapshot first identity mismatch");
-            physical+=entry.occurrences;
+            physical+=entry.occurrences;++first_count;
             if(RecordingSnapshotRequiresAcceptedState(entry.first_row.type))++required_accepted;
             if(entry.first_row.type==RecordingMutationType::RecordingOrderReserved){
-                const auto found=order(entry.mutation_id);
+                const auto found=applied_cursor&&entry.first_row.reservation?
+                    std::optional<RecordingOrderHistoryReservation>({*entry.first_row.reservation,entry.first_row.occurred_at_ms}):order(entry.mutation_id);
                 if(!found||entry.first_row.entity_id!=found->order.segment_id)return Fail(error,"snapshot reservation identity mismatch");
                 if(!chain.history){const auto original=dto_orders.find(entry.mutation_id);
                     if(original==dto_orders.end()||!SameOrder(found->order,original->second->order)||
                        found->occurred_at_ms!=original->second->occurred_at_ms)return Fail(error,"snapshot reservation identity mismatch");}
 
-            }else if(!MutationSeenLocked(entry.mutation_id)||entry.first_row.reservation)
+            }else if((!applied_cursor&&!MutationSeenLocked(entry.mutation_id))||entry.first_row.reservation)
                 return Fail(error,"snapshot ordinary identity missing");
             return true;
         },error))return false;
@@ -115,7 +125,7 @@ bool RecordingCatalog::ExportGenerationValuesLocked(const std::string& store,
             if(!found||!SameOrder(found->order,item.order)||found->occurred_at_ms!=item.occurred_at_ms)
                 return Fail(error,"snapshot reservation first ID missing");
         }
-        if(!VisitOrdersLocked([&](const RecordingOrderReservationV1& value,std::string*) {
+        if(!applied_cursor&&!VisitOrdersLocked([&](const RecordingOrderReservationV1& value,std::string*) {
             const auto found=order(value.request_id);
             return (found&&SameOrder(value,found->order))||Fail(error,"snapshot catalog order mismatch");
         },error))return false;
@@ -162,14 +172,14 @@ bool RecordingCatalog::ExportGenerationValuesLocked(const std::string& store,
             if(!SerializeRecordingCatalogSourceSummary(summary,&validated,error))return false;
             add("source-binding",id,validated);return true;
         },error))return false;
-        for (const auto& item : derived_jobs_) {
-            const auto& v = item.second; const auto found = first(v.latest_mutation_id);
-            if (item.first != v.id || !found || found->first_row.entity_id != v.id ||
+        if(!VisitJobsLocked([&](const std::string& id,const DerivedJobEntry& v,std::string*) {
+            const auto found = first(v.latest_mutation_id);
+            if (id != v.id || !found || found->first_row.entity_id != v.id ||
                 !JobType(found->first_row.type)) return Fail(error,"snapshot job provenance mismatch");
             RecordingCatalogJobSummary summary{v.id,v.channel,v.reference,v.state,v.files,v.reserved_bytes,v.output_ids,v.source_ids,v.latest_mutation_id};
             if (!SerializeRecordingCatalogJobSummary(summary,&validated,error)) return false;
-            add("derived-job",item.first,validated);
-        }
+            add("derived-job",id,validated);return true;
+        },error))return false;
         // Catalog's applied prefix, not all Journal-parsed active rows, supplies accepted state.
         const auto accepted=[&](const RecordingIdentityFirstAcceptance& entry,std::string*) {
             if(!RecordingSnapshotRequiresAcceptedState(entry.first_row.type)||!required_accepted||entry.first_global_ordinal>=cut)
@@ -179,7 +189,23 @@ bool RecordingCatalog::ExportGenerationValuesLocked(const std::string& store,
                 std::to_string(entry.first_global_ordinal)+",\"type\":"+Quote(RecordingMutationTypeName(entry.first_row.type))+"}");
             return true;
         };
-        if(completed_history_){if(!VisitAcceptedLocked(accepted,error))return false;}
+        if(applied_cursor){
+            std::size_t visible_count=0;
+            if(!journal_.VisitGenerationFirst([&](const auto& current,std::string* detail){
+                if(!generation_visible_ordinal_||current.first_global_ordinal>*generation_visible_ordinal_)return true;
+                const auto candidate=first(current.mutation_id);
+                if(!candidate||candidate->first_global_ordinal!=current.first_global_ordinal||
+                   candidate->first_row.type!=current.first_row.type||candidate->first_row.entity_id!=current.first_row.entity_id||
+                   candidate->first_row.occurred_at_ms!=current.first_row.occurred_at_ms||candidate->first_row.identity!=current.first_row.identity||
+                   candidate->first_row.reservation.has_value()!=current.first_row.reservation.has_value()||
+                   (current.first_row.reservation&&!SameOrder(*candidate->first_row.reservation,*current.first_row.reservation)))
+                    return Fail(detail,"snapshot candidate/applied prefix mismatch");
+                ++visible_count;
+                return !RecordingSnapshotRequiresAcceptedState(current.first_row.type)||accepted(*candidate,detail);
+            },error))return false;
+            // A missing candidate or an extra candidate cannot become a successful absent lookup.
+            if(visible_count!=first_count)return Fail(error,"snapshot candidate/applied coverage mismatch");
+        }else if(completed_history_){if(!VisitAcceptedLocked(accepted,error))return false;}
         else for(const auto& item:accepted_segment_state_mutations_){
             const auto found=first(item.first);
             if(!found||!mutation_ids_.count(item.first))return Fail(error,"snapshot accepted ID missing");
@@ -195,7 +221,7 @@ bool RecordingCatalog::ExportGenerationValuesLocked(const std::string& store,
         return true;
     } catch (...) { if(error&&error->empty())*error="snapshot export allocation/serialization failure";return false; }
 }
-// Two bounded visits under the caller's Catalog lock. Scratch keys provide canonical kind/key/chunk order.
+// One validated export under the caller's Catalog lock. Scratch keys provide canonical kind/key/chunk order.
 // Only one canonical row and one fixed index value are live; no rows vector or whole snapshot string.
 bool RecordingCatalog::PrepareGenerationSnapshotStreamLocked(const RecordingIdentityChainResult& chain,
     std::uint64_t generation,std::uint64_t cut,GenerationSnapshotStream* output,std::string* error) const {
@@ -206,26 +232,28 @@ bool RecordingCatalog::PrepareGenerationSnapshotStreamLocked(const RecordingIden
     bool ok=false;
     try {ok=[&](){
         RecordingCatalogSnapshot header;std::uint64_t chunks=0,total=0;
-        const auto count=[&](const RecordingCatalogSnapshotRow& row,std::string* detail){
+        // Reserve derived storage for the actual admitted row chunks, not snapshot_bytes.
+        // ReserveRows checks overflow/free space; it neither preallocates nor changes source admission.
+        if(!sorted->Create(std::filesystem::canonical(std::filesystem::temp_directory_path()).string(),
+            RecordingHistoryIndex::BytesForRows(0),error))return false;
+        const auto spool=[&](const RecordingCatalogSnapshotRow& row,std::string* detail){
+#if defined(MEDIA_SERVER_RECORDING_GENERATION_TESTING)
+            ++snapshot_spool_serializations;
+#endif
             std::string bytes;if(!SerializeRecordingCatalogSnapshotRow(row,&bytes,detail))return false;
             if(bytes.size()>kRecordingCatalogSnapshotMaxBytes-total)return Fail(detail,"snapshot stream admission exceeded");
-            total+=bytes.size();chunks+=bytes.size()/RecordingHistoryIndex::kValueBytes+(bytes.size()%RecordingHistoryIndex::kValueBytes!=0);return true;
-        };
-        if(!ExportGenerationValuesLocked(chain.store_id,chain,generation,cut,&header,error,count))return false;
-        std::string prefix;if(!SerializeRecordingCatalogSnapshotHeader(header,&prefix,error)||prefix.size()>kRecordingCatalogSnapshotMaxBytes-total)return false;
-        const auto budget=RecordingHistoryIndex::BytesForRows(chunks);
-        if(!budget||!sorted->Create(std::filesystem::canonical(std::filesystem::temp_directory_path()).string(),budget,error))return false;
-        std::uint64_t stored=0;
-        const auto spool=[&](const RecordingCatalogSnapshotRow& row,std::string* detail){
-            std::string bytes;if(!SerializeRecordingCatalogSnapshotRow(row,&bytes,detail))return false;
+            const auto added=bytes.size()/RecordingHistoryIndex::kValueBytes+(bytes.size()%RecordingHistoryIndex::kValueBytes!=0);
+            if(added>UINT64_MAX-chunks||!sorted->ReserveRows(chunks+added,detail))return false;
             for(std::size_t offset=0,part=0;offset<bytes.size();offset+=RecordingHistoryIndex::kValueBytes,++part){
                 const auto digits=std::to_string(part);
                 const auto key=row.kind+std::string(1,'\0')+row.key+std::string(1,'\0')+std::string(20-digits.size(),'0')+digits;
                 if(!sorted->Put(key,bytes.substr(offset,RecordingHistoryIndex::kValueBytes),false,detail))return false;
             }
-            stored+=bytes.size();return true;
+            total+=bytes.size();chunks+=added;return true;
         };
-        if(!ExportGenerationValuesLocked(chain.store_id,chain,generation,cut,&header,error,spool)||stored!=total||sorted->usage().rows!=chunks)return Fail(error,"snapshot stream coverage mismatch");
+        if(!ExportGenerationValuesLocked(chain.store_id,chain,generation,cut,&header,error,spool)||sorted->usage().rows!=chunks)
+            return Fail(error,"snapshot stream coverage mismatch");
+        std::string prefix;if(!SerializeRecordingCatalogSnapshotHeader(header,&prefix,error)||prefix.size()>kRecordingCatalogSnapshotMaxBytes-total)return false;
         output->produce=[sorted,prefix,total](const RecordingGenerationByteSink& sink,std::string* detail){
             if(!sink||!sink(prefix,detail))return false;
             std::uint64_t emitted=0;

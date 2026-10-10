@@ -4840,3 +4840,12 @@ Open→조회/append→checkpoint→Finish→재Open 경로와 기존 transactio
 128/512/2048 순환 비교에서 논리 이력과 상주 항목, scratch 및 중첩 작업량을 분리한다.
 정상/Open/checkpoint의 O(전체 이력) RAM이 남으면 이 기능의 구조적 완료는 미충족이다.
 안정화 직접 범위이며 일반30분/120분·UI 증거를 대신하지 않는다. 이번120분은 미실행한다.
+
+### MEM80-G01 — checkpoint 반복 비용 및 완료 자료 수명
+
+내부 저장 경계이며 UI action은 없다. 79 최종 채택 소스를 before로 사용하고 고정한
+128/512/2048 순환 fixture의 메모리·단계/잠금 비용을 새 최종 소스와 비교한다.
+기존 checkpoint/history-product/consumer 회귀에서 원본·최초 ordinal·namespace·구형 snapshot·
+완료 job cold 조회·reader 보호·부분 실패/Finish·재Open 의미를 확인한다. 짧은 녹화/검색
+병행은 실제 checkpoint와 겹쳐 기존 응답/진행 예산을 확인하며 단독 fixture deadline과 구분한다.
+상한 완화·전체 이력 RAM fallback은 금지한다. B/C 전체 수명과 최종 혼합120분은 별도 잔여다.

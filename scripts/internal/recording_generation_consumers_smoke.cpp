@@ -7,10 +7,21 @@
 #include <sqlite3.h>
 #endif
 #include "recording/recording_read_service.h"
+#include "../../src/recording/recording_catalog_history.h"
 #include <sys/wait.h>
 #include <unistd.h>
 namespace recording {
 struct RecordingGenerationConsumersProbe {
+    using JobHandle=std::shared_ptr<const DerivedJobRecordV1>;
+    static std::size_t ResidentJobs(const RecordingCatalog& c){return c.derived_jobs_.size();}
+    static std::uint64_t ColdJobs(const RecordingCatalog& c){return c.completed_history_?c.completed_history_->Count("derived-job"):0;}
+    static JobHandle Job(const RecordingCatalog& c,const std::string& id){JobHandle value;return c.AcquireDerivedJobOwnedLocked(id,&value,&error)?value:JobHandle{};}
+    static bool AppendJob(RecordingCatalog& c,const DerivedJobRecordV1& job,const std::string& mutation_id){
+        RecordingMutationV1 mutation;mutation.mutation_id=mutation_id;mutation.entity_id=job.intent.job_id;
+        mutation.mutation_type=job.state==DerivedJobState::Complete?RecordingMutationType::DerivedJobComplete:RecordingMutationType::DerivedJobFailed;
+        mutation.occurred_at_ms=40;mutation.payload_json=SerializeDerivedJobRecord(job);
+        return c.AppendAndApplyLocked(std::move(mutation),&error);
+    }
     static auto Holds(const RecordingCatalog& c){return c.hold_counts_;}
     static void Hold(RecordingCatalog& c,std::uint64_t count){c.hold_counts_["legacy"]=count;}
     static sqlite3* Db(RecordingCatalog& c){return c.generation_sqlite_db_;}
@@ -197,6 +208,110 @@ void RetiredReference(const std::filesystem::path& root,bool sql,bool complete=f
         }
     }
 }
+// Terminal state is reached through the same durable Catalog append/apply path used by
+// the job service. The old reader deliberately outlives the resident-entry eviction.
+void TerminalJobHistory(const std::filesystem::path& root,bool complete,bool sql){
+    auto input=complete?ReadyInput():InputValue();
+    if(complete)input.job.state=DerivedJobState::Committed;
+    auto f=Active(input);
+    if(complete){
+        const auto& output=input.job.ready->outputs.front().segment;
+        f.Row("segment-v2",output.segment_id,SerializeRecordingSegmentV2(output));
+        f.Row("media-path",output.segment_id,"\""+input.job.intent.outputs.front().final_relpath+"\"");
+    }
+    Install(f,root);
+    auto terminal=input.job;terminal.state=complete?DerivedJobState::Complete:DerivedJobState::Failed;
+    terminal.cleaned_at_ms=30;if(!complete)terminal.failure_reason="owned-test-cleanup";
+    const auto expected=SerializeDerivedJobRecord(terminal);Need(!expected.empty());
+    std::string snapshot_after_checkpoint;
+    for(unsigned phase=0;phase<3;++phase){
+        RecordingJournal journal(Options(root));Need(journal.Open(&error));RecordingCatalog c(journal,ConsumerOptions(root,true,sql));Need(c.Open(&error));
+        if(phase==0){
+            auto prior=ConsumerProbe::Job(c,input.job.intent.job_id);
+            Check("MEM80-G01",prior&&ConsumerProbe::ResidentJobs(c)==1&&ConsumerProbe::ColdJobs(c)==0,
+                "active job owns one resident summary before terminal transition");if(failures)return;
+            const auto prior_bytes=SerializeDerivedJobRecord(*prior);
+            Check("MEM80-G01",ConsumerProbe::AppendJob(c,terminal,"terminal-first")&&ConsumerProbe::ResidentJobs(c)==0&&ConsumerProbe::ColdJobs(c)==1&&
+                SerializeDerivedJobRecord(*prior)==prior_bytes&&prior->state==input.job.state,
+                "terminal append evicts summary and vectors while the active reader keeps immutable prior data");if(failures)return;
+        }
+        Check("MEM80-G01",ConsumerProbe::ResidentJobs(c)==0&&ConsumerProbe::ColdJobs(c)==1,
+            "live, active-log reopen and checkpoint reopen keep terminal summary nonresident");if(failures)return;
+        auto held=ConsumerProbe::Job(c,terminal.intent.job_id);
+        Check("MEM80-G01",held&&SerializeDerivedJobRecord(*held)==expected&&ConsumerProbe::ResidentJobs(c)==0,
+            "terminal cold lookup returns exact record without repopulating summary map");if(failures)return;
+        if(phase==0){
+            const auto before=Read(root/"active-2.jsonl");
+            Check("MEM80-G01",ConsumerProbe::AppendJob(c,terminal,"terminal-same-payload-new-id")&&Read(root/"active-2.jsonl")!=before&&
+                ConsumerProbe::ResidentJobs(c)==0&&ConsumerProbe::ColdJobs(c)==1&&SerializeDerivedJobRecord(*held)==expected&&journal.HasManagedLease(),
+                "same terminal payload with a new mutation ID preserves one cold job and reader authority");if(failures)return;
+            const auto retried=Read(root/"active-2.jsonl");
+            Check("MEM80-G01",ConsumerProbe::AppendJob(c,terminal,"terminal-same-payload-new-id")&&Read(root/"active-2.jsonl")==retried,
+                "exact mutation retry appends no second physical record");if(failures)return;
+        }
+        std::weak_ptr<const DerivedJobRecordV1> released=held;held.reset();
+        Check("MEM80-G01",released.expired(),"caller release frees cold payload; history retains no strong payload cache");
+        held=ConsumerProbe::Job(c,terminal.intent.job_id);
+        std::optional<DerivedJobRecordV1> value;std::vector<DerivedJobRecordV1> all,active;bool more=true;RecordingDerivedReferenceResult reference;
+        Check("MEM80-G01",held&&SerializeDerivedJobRecord(*held)==expected&&c.FindDerivedJob(terminal.intent.job_id,&value,&error)&&value&&
+            SerializeDerivedJobRecord(*value)==expected&&c.SnapshotDerivedJobs(&all,&error)&&all.size()==1&&SerializeDerivedJobRecord(all.front())==expected&&
+            c.SnapshotActiveDerivedJobs(8,&active,&more,&error)&&active.empty()&&!more&&
+            c.QueryDerivedReferenceResult("reference",&reference,&error)&&reference.jobs.size()==1&&SerializeDerivedJobRecord(reference.jobs.front().job)==expected&&
+            ConsumerProbe::ResidentJobs(c)==0&&ConsumerProbe::ColdJobs(c)==1,
+            "reacquisition, explicit full result, active-only result and reference consumers preserve terminal semantics");if(failures)return;
+        if(phase==1){
+            const auto manifest_before=Read(root/"recording-generation.json");
+            Check("MEM80-G01",c.Checkpoint(&error)&&Read(root/"recording-generation.json")!=manifest_before&&
+                SerializeDerivedJobRecord(*held)==expected&&ConsumerProbe::ResidentJobs(c)==0&&ConsumerProbe::ColdJobs(c)==1,
+                "actual checkpoint publishes terminal summary while the cold reader remains valid");if(failures)return;
+            RecordingGenerationManifest manifest;Need(ParseRecordingGenerationManifest(Read(root/"recording-generation.json"),&manifest,&error));
+            snapshot_after_checkpoint=Read(root/manifest.snapshot.name);
+            Check("MEM80-G01",snapshot_after_checkpoint.find("\"kind\":\"derived-job\"")!=std::string::npos,
+                "checkpoint full output includes nonresident terminal job row");
+        }else if(phase==2){
+            RecordingGenerationManifest manifest;Need(ParseRecordingGenerationManifest(Read(root/"recording-generation.json"),&manifest,&error));
+            Check("MEM80-G01",Read(root/manifest.snapshot.name)==snapshot_after_checkpoint,
+                "independent checkpoint reopen leaves original snapshot bytes unchanged");
+        }
+    }
+}
+// This fixture deliberately writes the old full-format rows. The product Journal/Catalog
+// Open is the consumer; the small all-DTO projection helper is never used here.
+void LegacyFullProjection(const std::filesystem::path& root,const std::string& variant){
+    const auto input=InputValue();auto f=Active(input);
+    f.snapshot.rows.erase(std::remove_if(f.snapshot.rows.begin(),f.snapshot.rows.end(),[](const auto& row){return row.kind=="derived-job"||(row.kind=="accepted-state"&&row.key=="job-mutation");}),f.snapshot.rows.end());
+    f.chain.first_acceptances.pop_back();f.chain.maximum_global_ordinal=1;f.chain.physical_rows=2;
+    f.archive.resize(f.chain.first_acceptances.back().first_row.offset+f.chain.first_acceptances.back().first_row.length);
+    RecordingSegmentStateV2 state;state.segment_id="segment";state.lifecycle=RecordingLifecycle::DeletionPending;state.reason="continuous-age";
+    RecordingTombstoneV2 tomb;tomb.tombstone_id="legacy-full-tomb";tomb.segment=input.source.segment;tomb.deletion_reason=state.reason;tomb.deleted_at_ms=30;
+    f.Add(RecordingMutationType::SegmentV2State,"legacy-state","segment",SerializeRecordingSegmentStateV2(state));
+    f.Add(RecordingMutationType::SegmentV2Deleted,"legacy-delete","segment",SerializeRecordingTombstoneV2(tomb));
+    f.Row("state-v2","segment",SerializeRecordingSegmentStateV2(state));f.Row("deletion-reason","segment","\"continuous-age\"");
+    f.Row("tombstone-v2","segment",SerializeRecordingTombstoneV2(tomb));
+    for(auto& row:f.snapshot.rows){
+        if(variant=="state"&&row.kind=="state-v2"){auto wrong=state;wrong.reason="continuous-capacity";row.value_json=SerializeRecordingSegmentStateV2(wrong);}
+        if(variant=="reason"&&row.kind=="deletion-reason")row.value_json="\"continuous-capacity\"";
+        if(variant=="path"&&row.kind=="media-path")row.value_json="\"../outside.mp4\"";
+        if(variant=="source"&&row.kind=="source-binding"){
+            RecordingCatalogSourceSummary wrong;Need(ParseRecordingCatalogSourceSummary(row.value_json,&wrong,&error));wrong.source="other-source";
+            Need(SerializeRecordingCatalogSourceSummary(wrong,&row.value_json,&error));
+        }
+        if(variant=="order"&&row.kind=="segment-v2"){auto wrong=input.source.segment;wrong.order_sequence=2;row.value_json=SerializeRecordingSegmentV2(wrong);}
+    }
+    Install(f,root);const auto snapshot=Read(root/"snapshot-2.jsonl"),archive=Read(root/"evidence-1-0.jsonl");
+    Need(snapshot.find("\"kind\":\"retired-v2\"")==std::string::npos&&snapshot.find("\"kind\":\"tombstone-v2\"")!=std::string::npos);
+    RecordingJournal journal(Options(root));RecordingCatalog c(journal,ConsumerOptions(root));
+    const bool opened=journal.Open(&error)&&c.Open(&error);
+    if(variant=="valid"){
+        std::vector<RecordingDerivedSourceSnapshotEntry> selected;
+        Check("MEM80-G01",opened&&ConsumerProbe::RetiredOnly(c,"segment")&&!c.FindSourceBinding("segment")&&
+            c.SnapshotDerivedSources(input.job.intent.reference,&selected,&error)&&selected.size()==1&&selected[0].deleted&&selected[0].binding&&
+            SerializeRecordingSegmentV2(selected[0].segment)==SerializeRecordingSegmentV2(input.source.segment),
+            "old full snapshot cold retirement preserves deleted-source selection and refuses finalized-only binding API");
+    }else Check("MEM80-G01",!opened,("old full snapshot rejects cross-map counterexample: "+variant).c_str());
+    Check("MEM80-G01",Read(root/"snapshot-2.jsonl")==snapshot&&Read(root/"evidence-1-0.jsonl")==archive,
+        "old-format positive/negative Open preserves snapshot and archive source bytes");
+}
 #if MEDIA_SERVER_USE_SQLITE3
 void CommitAuthority(const std::filesystem::path& root){Setup(root);RecordingJournal j(Options(root));Need(j.Open(&error));RecordingCatalog c(j,ConsumerOptions(root));Need(c.Open(&error));Need(c.FinalizeSegment(ProjectionV1(),(root/"channel/legacy.mp4").string(),&error));
     auto* db=ConsumerProbe::Db(c);Need(db!=nullptr);const auto counts=ConsumerProbe::Holds(c);const auto before=Read(root/"active-2.jsonl");const auto sql_before=Scalar(db,"SELECT count(*) FROM b_hold");
@@ -227,6 +342,10 @@ int main(int argc,char** argv){
     try {
         const std::filesystem::path base=argv[1];std::filesystem::create_directories(base);ProbeCases(base);
 #if MEDIA_SERVER_USE_OPENSSL && MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND
+        for(bool complete:{false,true})for(bool sql:{false,true}){
+            TerminalJobHistory(base/(std::string(complete?"terminal-complete-":"terminal-failed-")+(sql?"sql":"fallback")),complete,sql);if(failures)return 1;
+        }
+        for(const auto* variant:{"valid","state","reason","path","source","order"}){LegacyFullProjection(base/(std::string("legacy-full-")+variant),variant);if(failures)return 1;}
         RetiredReference(base/"retired-sql",true);if(failures)return 1;
         RetiredReference(base/"retired-fallback",false);if(failures)return 1;
         RetiredReference(base/"retired-complete",true,true);if(failures)return 1;

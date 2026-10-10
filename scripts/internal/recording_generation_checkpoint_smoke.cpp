@@ -19,6 +19,7 @@ bool RecoverCheckpointTransaction(const std::filesystem::path&);
 #include <mach/mach.h>
 #endif
 namespace recording {
+extern thread_local std::uint64_t snapshot_export_calls,snapshot_spool_serializations;
 struct RecordingGenerationResidencyProbe {
     static void Read(const RecordingJournal& journal,std::size_t* count,
         std::size_t* historical,std::size_t* active,std::size_t* order_copies=nullptr) {
@@ -278,8 +279,11 @@ void StreamBoundary(const std::filesystem::path& root){
     RecordingJournal journal(Options(root));Need(journal.Open(&error));RecordingCatalog catalog(journal,CO(root));Need(catalog.Open(&error));
     RecordingCatalogSnapshot dto;Need(catalog.ExportGenerationSnapshot(chain,manifest.generation,manifest.cut_ordinal,&dto,&error));
     std::string oracle,streamed;Need(SerializeRecordingCatalogSnapshot(dto,&oracle,&error));
+    snapshot_export_calls=0;snapshot_spool_serializations=0;
     Check("MEM79-G01",RecordingGenerationAppendProbe::Stream(catalog,chain,manifest.generation,manifest.cut_ordinal,&streamed,&error)&&oracle==streamed,
           "canonical stream bytes match DTO oracle including prefix keys and multi-chunk rows");
+    Check("MEM80-G01",snapshot_export_calls==1&&snapshot_spool_serializations==dto.rows.size(),
+          "one validated export and one spool serialization per original row; byte oracle unchanged");
     auto invalid=chain;invalid.order_history.reservations.clear();RecordingCatalogSnapshot unchanged;unchanged.store_id="sentinel";
     Check("MEM79-G01",!RecordingGenerationAppendProbe::Values(catalog,"store",invalid,manifest.generation,manifest.cut_ordinal,&unchanged,&error)&&unchanged.store_id=="sentinel",
           "DTO reservation first acceptance cannot omit reverse order entry");

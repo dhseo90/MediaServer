@@ -244,18 +244,14 @@ bool RecordingCatalog::SnapshotTimelineWithContext(const RecordingTimelineQuery&
         Collector collector(query);
         // 출력/참조 소유권은 이 catalog snapshot 안에서 한 번만 색인한다.
         // 세그먼트마다 모든 작업을 재탐색하면 누적 원본·이벤트가 같은 잠금을 오래 점유한다.
-        std::unordered_set<std::string> owned_outputs,owned_references;
-        for(const auto& entry:derived_jobs_){
-            if(!entry.second)throw std::runtime_error("timeline-job-unavailable");
-            owned_references.insert(entry.second.reference);
-            for(const auto& id:entry.second.output_ids)owned_outputs.insert(id);
-        }
+        // Terminal ownership is authenticated scratch; only active job ownership remains resident.
+        // Querying membership avoids an O(all completed outputs/references) request-local set.
         for(const auto& entry:segments_v2_){const auto& segment=entry.second;if(segment.channel_id!=query.channel_id)continue;
             if(segment.retention_class==RecordingRetentionClass::Continuous){
                 if(!event_candidates_only)collector.Source(segment,EffectiveLifecycleV2Locked(entry.first));
                 continue;
             }
-            if(!owned_outputs.count(entry.first)){auto row=Base(segment,EffectiveLifecycleV2Locked(entry.first));row.item_id="orphan-event:"+Key(entry.first);
+            if(!JobOwnsLocked("job-output",entry.first)){auto row=Base(segment,EffectiveLifecycleV2Locked(entry.first));row.item_id="orphan-event:"+Key(entry.first);
                 row.completeness="unknown";row.unavailable_reason="output-binding-unavailable";collector.Add(std::move(row));}
         }
         // 삭제 이력도 기존 공개 timeline 구성원이다. 영수증을 가짜 segment로 투영하지 않고
@@ -264,16 +260,16 @@ bool RecordingCatalog::SnapshotTimelineWithContext(const RecordingTimelineQuery&
             // 이벤트는 아래의 현재 job/output 경로에서 원본 바인딩까지 strict 검증한다.
             // 검색이 소비하지 않는 continuous 삭제 이력의 재획득/행 생성만 생략한다.
             if(event_candidates_only&&receipt.retention_class==RecordingRetentionClass::Continuous)return true;
-            if(receipt.retention_class!=RecordingRetentionClass::Continuous&&owned_outputs.count(id))return true;
+            if(receipt.retention_class!=RecordingRetentionClass::Continuous&&JobOwnsLocked("job-output",id))return true;
             RecordingSegmentV2 segment;if(!AcquireOriginalV2Locked(id,&segment,error))throw std::runtime_error("timeline-retired-unavailable");
             if(segment.retention_class==RecordingRetentionClass::Continuous){collector.Source(segment,RecordingLifecycle::Deleted);return true;}
             auto row=Base(segment,RecordingLifecycle::Deleted);row.item_id="orphan-event:"+Key(id);
             row.completeness="unknown";row.unavailable_reason="output-binding-unavailable";collector.Add(std::move(row));
             return true;
         },error))throw std::runtime_error("timeline-retired-history-unavailable");
-        for(const auto& entry:derived_jobs_){if(!entry.second)throw std::runtime_error("timeline-job-unavailable");if(entry.second.channel!=query.channel_id)continue;
-            DerivedJobHandle owned;if(!AcquireJobForReadLocked(entry.first,&owned,context,error)||!owned)throw std::runtime_error("timeline-job-unavailable");const auto& job=*owned;
-            if(!job.ready||job.ready->outputs.empty()){collector.Reference(job.intent.reference,&job);continue;}
+        if(!VisitJobsLocked([&](const auto& job_id,const auto& entry,std::string*){if(!entry)throw std::runtime_error("timeline-job-unavailable");if(entry.channel!=query.channel_id)return true;
+            DerivedJobHandle owned;if(!AcquireJobForReadLocked(job_id,&owned,context,error)||!owned)throw std::runtime_error("timeline-job-unavailable");const auto& job=*owned;
+            if(!job.ready||job.ready->outputs.empty()){collector.Reference(job.intent.reference,&job);return true;}
             for(std::size_t i=0;i<job.ready->outputs.size();++i){
                 if(i>=job.intent.sources.size())throw std::runtime_error("timeline-job-invalid");
                 const auto& output=job.ready->outputs[i].segment;const auto current=segments_v2_.find(output.segment_id);
@@ -286,10 +282,11 @@ bool RecordingCatalog::SnapshotTimelineWithContext(const RecordingTimelineQuery&
                     RecordingLifecycle::Deleted:EffectiveLifecycleV2Locked(output.segment_id);
                 collector.Output(job,i,state,same);
             }
-        }
+            return true;
+        },error))throw std::runtime_error("timeline-job-history-unavailable");
         for(const auto& id:derived_accepted_references_){const auto ref=consumer_references_.find(id);
             if(ref==consumer_references_.end()||ref->second.channel_id!=query.channel_id)continue;
-            if(!owned_references.count(id))collector.Reference(ref->second,nullptr);
+            if(!JobOwnsLocked("job-reference",id))collector.Reference(ref->second,nullptr);
         }
         collector.Finish(result);
         // 후보가 복사·할당되지 않아도 응답은 영향받지 않는다. 각 재사용은 AcquireJobForReadLocked의

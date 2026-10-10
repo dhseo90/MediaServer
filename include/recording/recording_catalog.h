@@ -344,6 +344,10 @@ private:
         explicit operator bool() const {return !id.empty();}
     };
     using DerivedJobPool = std::unordered_map<std::string, DerivedJobEntry>;
+    std::optional<DerivedJobEntry> JobEntryLocked(const std::string&) const;
+    bool EvictCompletedJobLocked(const std::string&,std::string*);
+    bool VisitJobsLocked(const std::function<bool(const std::string&,const DerivedJobEntry&,std::string*)>&,std::string*) const;
+    bool JobOwnsLocked(const std::string& kind,const std::string& id) const;
     // QueryTimeline 호출 안의 확정 증명이다. 이전 호출 후보는 별도 bounded 보관하되
     // 현재 원장 envelope·얇은 상태를 다시 대조하기 전에는 증명으로 쓰지 않는다.
     struct JobReadContext {

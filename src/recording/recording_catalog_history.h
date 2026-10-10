@@ -15,13 +15,14 @@ public:
     inline static thread_local bool probe_throw_after_chunk=false;
 #endif
     using Visitor=std::function<bool(const std::string&,const std::string&,std::string*)>;
-    bool Create(std::string* error) {
+    bool Create(std::string* error,std::uint64_t slot_limit=UINT64_MAX) {
         std::lock_guard<std::recursive_mutex> lock(mu_);
 #if MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
+        slot_limit_=slot_limit;
         return index_.Create(std::filesystem::canonical(std::filesystem::temp_directory_path()).string(),
             RecordingHistoryIndex::BytesForRows(0),error);
 #else
-        return Fail(error,"catalog history unsupported");
+        (void)slot_limit;return Fail(error,"catalog history unsupported");
 #endif
     }
     bool Get(const std::string& kind,const std::string& id,std::string* value,bool* found,std::string* error) {
@@ -56,7 +57,7 @@ public:
         if(!Meta(kind,id,&old_bytes,&capacity,&exists,error))return false;
         const auto chunks=value.size()/RecordingHistoryIndex::kValueBytes+(value.size()%RecordingHistoryIndex::kValueBytes!=0);
         const auto added=(exists?0:1)+(chunks>capacity?chunks-capacity:0);
-        if(added>UINT64_MAX-index_.usage().rows||!index_.ReserveRows(index_.usage().rows+added,error))return Fail(error,"catalog history capacity failed");
+        if(added>UINT64_MAX-index_.usage().rows||index_.usage().rows+added>slot_limit_||!index_.ReserveRows(index_.usage().rows+added,error))return Fail(error,"catalog history capacity failed");
         for(std::size_t offset=0,part=0;offset<value.size();offset+=RecordingHistoryIndex::kValueBytes,++part) {
             if(!index_.Put(Key(kind,id,"v",part),value.substr(offset,RecordingHistoryIndex::kValueBytes),true,error))return Fail(error,"catalog history value write failed");
 #if defined(MEDIA_SERVER_RECORDING_GENERATION_TESTING)
@@ -123,12 +124,13 @@ public:
 #endif
     }
 private:
-    static unsigned Kind(const std::string& kind){return kind=="retired-v2"?1:kind=="source-binding"?2:kind=="derived-job"?3:0;}
+    static unsigned Kind(const std::string& kind){return kind=="retired-v2"?1:kind=="source-binding"?2:kind=="derived-job"?3:kind=="job-output"?4:kind=="job-reference"?5:kind=="segment-v2"?6:kind=="state-v2"?7:kind=="tombstone-v2"?8:kind=="media-path"?9:kind=="deletion-reason"?10:0;}
     bool Fail(std::string* error,const char* message){healthy_=false;if(error&&error->empty())*error=message;return false;}
     mutable std::recursive_mutex mu_;
-    bool healthy_{true};std::array<std::uint64_t,3> counts_{};
+    bool healthy_{true};std::array<std::uint64_t,10> counts_{};
 #if MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
     RecordingHistoryIndex index_;
+    std::uint64_t slot_limit_{UINT64_MAX};
     static std::string Key(const std::string& kind,const std::string& id,const char* category,std::uint64_t part){
         return kind+"/"+id+"/"+category+(category[0]=='v'?std::to_string(part):std::string{});
     }

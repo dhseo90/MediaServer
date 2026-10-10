@@ -392,9 +392,41 @@ static bool BuildProjection(const std::filesystem::path& root,
             return entry.first_row.type!=RecordingMutationType::RecordingOrderReserved||Order(p,entry.mutation_id).has_value()||
                 Fail(detail,"projection missing reservation");
         },error))return false;
+        // Keep original full-format rows in a separate authenticated join scratch until all
+        // fields have arrived. Never discard a row based on its position in the stream.
+        RecordingCatalogHistoryRows legacy;
+        bool staging=p.nonresident_history&&enable_retired_v2;
+        struct LegacyFinish {
+            RecordingCatalogHistoryRows& rows;RecordingCatalogGenerationProjection& projection;
+            RecordingCatalogGenerationProjection* output;std::string* error;bool active;
+            void Observe() {
+                projection.scratch_peak_bytes=rows.Bytes()+projection.completed_history->Bytes();
+                projection.scratch_peak_allocated=rows.Bytes(true)+projection.completed_history->Bytes(true);
+                output->scratch_peak_bytes=projection.scratch_peak_bytes;
+                output->scratch_peak_allocated=projection.scratch_peak_allocated;
+            }
+            ~LegacyFinish(){if(active){Observe();std::string cleanup;if(!rows.Finish(&cleanup)&&error){
+                if(!error->empty())*error+="; cleanup: ";
+                *error+=cleanup;
+            }}}
+        } legacy_finish{legacy,p,output,error,staging};
+        // Every canonical snapshot row consumes at least 32 bytes. Metadata needs one
+        // slot and ceil(value_bytes/chunk) payload slots; this is a representation bound,
+        // not a reuse of the source-byte admission as a disk-byte budget.
+        const auto legacy_slots=stream_admission/32*2+stream_admission/RecordingHistoryIndex::kValueBytes+1;
+        if(staging&&!legacy.Create(error,legacy_slots))return false;
+        const auto legacy_kind=[](const std::string& kind){return kind=="segment-v2"||kind=="state-v2"||kind=="tombstone-v2"||kind=="media-path"||kind=="deletion-reason";};
         std::size_t accepted_count=0;
         const auto consume=[&](const RecordingCatalogSnapshotRow& row,std::string*) {
             bool ok=false;
+            if(staging&&legacy_kind(row.kind)) {
+                if(row.kind=="segment-v2") {RecordingSegmentV2 v;ok=ParseRecordingSegmentV2(row.value_json,&v,error)&&SerializeRecordingSegmentV2(v)==row.value_json&&v.segment_id==row.key;}
+                else if(row.kind=="state-v2") {RecordingSegmentStateV2 v;ok=ParseRecordingSegmentStateV2(row.value_json,&v,error)&&SerializeRecordingSegmentStateV2(v)==row.value_json&&v.segment_id==row.key;}
+                else if(row.kind=="tombstone-v2") {RecordingTombstoneV2 v;ok=ParseRecordingTombstoneV2(row.value_json,&v,error)&&SerializeRecordingTombstoneV2(v)==row.value_json&&v.segment.segment_id==row.key;}
+                else {ingress::StrictJsonObjectDocument v;if(ingress::ParseStrictJsonObjectDocument("{\"value\":"+row.value_json+"}",&v,error)){
+                    const auto text=ingress::StrictJsonStringField(v,"value");ok=text&&Quote(*text)==row.value_json;}}
+                return (ok&&legacy.Put(row.kind,row.key,row.value_json,error))||Fail(error,"projection legacy row invalid");
+            }
             if(row.kind=="segment-v1")ok=Decode(row,&p.segments,ParseRecordingSegmentV1,SerializeRecordingSegmentV1,&RecordingSegmentV1::segment_id,error);
             else if(row.kind=="segment-v2")ok=Decode(row,&p.segments_v2,ParseRecordingSegmentV2,SerializeRecordingSegmentV2,&RecordingSegmentV2::segment_id,error);
             else if(row.kind=="state-v2")ok=Decode(row,&p.states_v2,ParseRecordingSegmentStateV2,SerializeRecordingSegmentStateV2,&RecordingSegmentStateV2::segment_id,error);
@@ -433,7 +465,10 @@ static bool BuildProjection(const std::filesystem::path& root,
                 RecordingCatalogJobSummary value;ok=ParseRecordingCatalogJobSummary(row.value_json,&value,error)&&value.id==row.key;
                 const auto found=first(value.latest_mutation_id);
                 ok=ok&&found.has_value()&&JobType(value.state,found->first_row.type)&&found->first_row.entity_id==row.key;
-                if(ok)p.derived_jobs.emplace(row.key,RecordingGenerationJobProjection{std::move(value),*found});
+                if(ok&&p.nonresident_history&&(value.state==DerivedJobState::Complete||value.state==DerivedJobState::Failed)) {
+                    ok=p.completed_history->Put("derived-job",row.key,row.value_json,error)&&p.completed_history->Put("job-reference",value.reference,"true",error);
+                    for(const auto& id:value.output_ids)if(ok)ok=p.completed_history->Put("job-output",id,"true",error);
+                } else if(ok)p.derived_jobs.emplace(row.key,RecordingGenerationJobProjection{std::move(value),*found});
             } else if(row.kind=="accepted-state") {
                 const auto found=first(row.key);
                 if(found.has_value()) {
@@ -460,9 +495,52 @@ static bool BuildProjection(const std::filesystem::path& root,
             for(const auto& entry:p.accepted_states)if(!RecordingSnapshotRequiresAcceptedState(entry.second.first_row.type))
                 return Fail(error,"projection streaming accepted-state type mismatch");
         }else for(const auto& row:snapshot.rows)if(!consume(row,error))return false;
-        // 구형 full 행은 기존 cross-map으로 먼저 전부 검증한다. 축약 대상만 내린 뒤 receipt 계약을
-        // 다시 대조하여 기존 transition 검증을 우회하지 않는다.
-        if(!CrossMaps(p,error)||(enable_retired_v2&&(!CompactLegacyRetired(p,chain,error)||!CrossMaps(p,error))))return false;
+        if(staging) {
+            // Oldest-first identity selection is identical to CompactLegacyRetired. The
+            // five-way join checks the original CrossMaps predicates before conversion.
+            if(!VisitRecordingIdentityFirst(chain,[&](const auto& origin,std::string* detail){
+                if(origin.first_row.type!=RecordingMutationType::SegmentV2Deleted)return true;
+                const auto& id=origin.first_row.entity_id;
+                std::string segment_bytes,state_bytes,tomb_bytes,path_bytes,reason_bytes;bool segment_found=false,state_found=false,tomb_found=false,path_found=false,reason_found=false;
+                if(!legacy.Get("tombstone-v2",id,&tomb_bytes,&tomb_found,detail))return false;
+                if(!tomb_found)return true;
+                if(!legacy.Get("segment-v2",id,&segment_bytes,&segment_found,detail)||!legacy.Get("state-v2",id,&state_bytes,&state_found,detail)||
+                   !legacy.Get("media-path",id,&path_bytes,&path_found,detail)||!legacy.Get("deletion-reason",id,&reason_bytes,&reason_found,detail))return false;
+                if(!segment_found||!state_found||!path_found||!reason_found)return true;
+                RecordingSegmentV2 segment;RecordingSegmentStateV2 state;RecordingTombstoneV2 tomb;
+                ingress::StrictJsonObjectDocument path_object,reason_object;
+                if(!ParseRecordingSegmentV2(segment_bytes,&segment,detail)||!ParseRecordingSegmentStateV2(state_bytes,&state,detail)||
+                   !ParseRecordingTombstoneV2(tomb_bytes,&tomb,detail)||
+                   !ingress::ParseStrictJsonObjectDocument("{\"value\":"+path_bytes+"}",&path_object,detail)||
+                   !ingress::ParseStrictJsonObjectDocument("{\"value\":"+reason_bytes+"}",&reason_object,detail))return false;
+                const auto path=ingress::StrictJsonStringField(path_object,"value"),reason=ingress::StrictJsonStringField(reason_object,"value");
+                const auto order=Order(p,segment.order_request_id);
+                if(!path||!reason||!IsSafeMediaRelpath(*path)||p.segments.count(id)||p.tombstones.count(id)||Retired(p,id)||
+                   segment.store_id!=p.manifest.store_id||!order||order->segment_id!=id||order->channel_id!=segment.channel_id||order->sequence!=segment.order_sequence||
+                   state.lifecycle!=RecordingLifecycle::DeletionPending||state.reason!=tomb.deletion_reason||*reason!=tomb.deletion_reason||
+                   segment_bytes!=SerializeRecordingSegmentV2(tomb.segment))return Fail(detail,"projection legacy cross-map mismatch");
+                RecordingRetiredV2Receipt receipt;std::string receipt_bytes;
+                if(!ReceiptFromTombstone(tomb,*path,origin,&receipt,detail)||!SerializeRecordingRetiredV2Receipt(receipt,&receipt_bytes,detail)||
+                   !p.completed_history->Put("retired-v2",id,receipt_bytes,detail))return false;
+                for(const auto* kind:{"segment-v2","state-v2","tombstone-v2","media-path","deletion-reason"})
+                    if(!legacy.Put(kind,id,{},detail))return false;
+                return true;
+            },error))return false;
+            staging=false;
+            for(const auto* kind:{"segment-v2","state-v2","tombstone-v2","media-path","deletion-reason"})
+                if(!legacy.Visit(kind,[&](const auto& id,const auto& bytes,std::string* detail){return consume(RecordingCatalogSnapshotRow{kind,id,bytes},detail);},error))return false;
+            legacy_finish.Observe();
+            legacy_finish.active=false;
+            if(!legacy.Finish(error))return false;
+            // Source rows precede completion of the join; materialize only surviving active sources.
+            if(!p.completed_history->Visit("source-binding",[&](const auto& id,const auto& bytes,std::string* detail){
+                if(!p.segments_v2.count(id))return true;
+                RecordingCatalogSourceSummary value;if(!ParseRecordingCatalogSourceSummary(bytes,&value,detail))return false;
+                const auto origin=first(value.latest_mutation_id);if(!origin)return false;
+                p.source_bindings.emplace(id,RecordingGenerationSourceProjection{std::move(value),*origin});return true;
+            },error))return false;
+            if(!CrossMaps(p,error))return false;
+        } else if(!CrossMaps(p,error)||(enable_retired_v2&&(!CompactLegacyRetired(p,chain,error)||!CrossMaps(p,error))))return false;
         if(p.nonresident_history)for(auto it=p.source_bindings.begin();it!=p.source_bindings.end();){
             if(!p.segments_v2.count(it->first))it=p.source_bindings.erase(it);else ++it;
         }

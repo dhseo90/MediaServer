@@ -1273,8 +1273,8 @@ bool RecordingJournal::OpenGenerationReadOnlyLocked(const std::string& store,std
         state->active_path=managed_root_/manifest.manifest.active.name;
         // 검증 사본의 수명은 여기까지다. 주문 인덱스와 복구 projection은
         // 각자의 값을 소유하며 다음 checkpoint는 주문 인덱스에서 다시 구성한다.
-        state->scratch_peak_bytes=std::max(RecordingIdentityHistoryBytes(state->chain.history)+state->order.Bytes()+(state->completed_history?state->completed_history->Bytes():0),state->chain.stream_scratch_peak_bytes)+state->archives->Bytes()+bindings.usage().file_bytes;
-        state->scratch_peak_allocated=std::max(RecordingIdentityHistoryBytes(state->chain.history,true)+state->order.Bytes(true)+(state->completed_history?state->completed_history->Bytes(true):0),state->chain.stream_scratch_peak_allocated)+state->archives->Bytes(true)+bindings.usage().allocated_bytes;
+        state->scratch_peak_bytes=std::max(RecordingIdentityHistoryBytes(state->chain.history)+state->order.Bytes()+std::max(state->projection.scratch_peak_bytes,(state->completed_history?state->completed_history->Bytes():0)),state->chain.stream_scratch_peak_bytes)+state->archives->Bytes()+bindings.usage().file_bytes;
+        state->scratch_peak_allocated=std::max(RecordingIdentityHistoryBytes(state->chain.history,true)+state->order.Bytes(true)+std::max(state->projection.scratch_peak_allocated,(state->completed_history?state->completed_history->Bytes(true):0)),state->chain.stream_scratch_peak_allocated)+state->archives->Bytes(true)+bindings.usage().allocated_bytes;
         if(!bindings.Close(error))return false;
         state->chain.order_history={};
         std::vector<RecordingIdentityFirstAcceptance>{}.swap(state->chain.first_acceptances);
