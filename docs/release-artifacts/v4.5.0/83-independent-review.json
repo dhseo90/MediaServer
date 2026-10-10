@@ -544,6 +544,109 @@
         "remotePreservation": "PENDING"
       },
       "model": "요청 Astra/high와 기존 도구 수락 인계 유지. 실제 런타임 model/effort 미노출·미확인."
+    },
+    {
+      "kind": "local-git-preservation-before-cleanup",
+      "scope": "Git show로 반환된 archive 바이트와 member를 읽고 소유 root 원본과 대조했다. 제품/검사/정리 실행 없이 검토 JSON만 갱신.",
+      "productCommit": "15a619b03bcd188b9c9545f9d9d98f8eb7e51693",
+      "evidenceCommit": "1172a5e7bc808d069818e98c6239203c9a148f71",
+      "archive": {
+        "path": "docs/release-artifacts/v4.5.0/83-execution.tar.gz",
+        "blob": "5986d33a01d50bf12390a855f2aa2b5ea0c091dc",
+        "bytes": 1099972,
+        "sha256": "8206296ea504510947ef7d04f3a3ed44882d06d13f2c21f64cf368109fb7bd00",
+        "workingTreeBytesEqualGit": true,
+        "members": 364,
+        "listedOriginalMembers": 363,
+        "receiptMembers": 1,
+        "receiptSha256": "b3f6bd50b9be30ad4952098d2dd35d4400368ded838c0b367db25766e6e344b3",
+        "memberReceiptAndRootByteMismatches": [],
+        "productCommitFrozenFileMatches": 25
+      },
+      "preservationScope": {
+        "included": "363개 원본 member와 archive-members receipt1. 원출력/JSON/patch/계측코드/새 source와 B/C의 작은 합성 보존 자료. 각 member가 현재 root 원본과 정확히 일치함.",
+        "media": "B/C synthetic MP4 각28161B 두 개 및 작은 EVP/review 원문. 대규모 순환/병행 store 또는 모든 중간 실행 환경을 보존한 archive가 아님.",
+        "excluded": "existing82 archive, runtime/binaries/models, copied header trees, large cyclic/overlap media/stores. Measurement source/hash and outputs kept.",
+        "limits": "최종 freeze25개는 제품 commit에서 직접 읽어 hash 일치를 확인했다. 일부 중간 untracked 과거 header 미보존이라는 기존 validation 제한은 유지한다. 원본363개 보존을 제외된 binary/model/모든 중간 source 재현성으로 확대하지 않는다."
+      },
+      "state": {
+        "localPreservation": "CONFIRMED_READBACK",
+        "limitedTechnicalAdoption": "ACCEPTABLE_IN_REVIEWED_SCOPE_PENDING_CLEANUP",
+        "whole83": "INCOMPLETE",
+        "memoryP0": "BLOCKED",
+        "releaseApproved": false,
+        "finalAdoptionApproved": false,
+        "ownedRootExists": true,
+        "ownedCleanup": "PENDING",
+        "processAndContainerState": "메인이 종료 상태라고 전달. 이번 보존 검토에서 직접 ps/docker 상태를 재조회하지 않음.",
+        "remotePreservation": "PENDING"
+      },
+      "meaning": "이 기록은 로컬 제품/증거 바이트 보존 확인이며 삭제 실행 또는 원격 push 승인·완료 기록이 아니다. 합산 admission/large legacy/전체D 등의 기존 기술 잔여는 변경 없음."
+    },
+    {
+      "kind": "local-closure-after-owned-cleanup",
+      "scope": "현재 validation의 보존/정리 receipt를 읽고 exact root의 lstat 존재 여부를 확인. 새 제품/검사/정리/컨테이너 실행 없음. 초기 pending 판단은 보존하고 이 후속 확인만 추가한다.",
+      "validationSha256AtRead": "e2bb5d1fa43ebf81fbcf39c0de23803d6bf2870e68eb3325324f6f45ffe81fe8",
+      "directObservation": {
+        "root": "/private/tmp/media-server-memory83-jko62xts",
+        "rootLexists": false,
+        "meaning": "동일 경로의 파일·디렉터리·dangling symlink 모두 부재. 이번 검토자가 직접 확인한 정리 후 상태다."
+      },
+      "cleanupReceiptReadback": {
+        "source": "83-validation.json closure",
+        "containerIds": [
+          "c9f93d8a5012aaf775c5246b3850cbef1767ccabc7e7210d99fbe7be4cd689d3",
+          "2d3c69a4af2c76951420183c88379690ddc6efc0fda69707bb511c4e84a865dd"
+        ],
+        "preCleanupStates": [
+          {
+            "id": "c9f93d8a5012aaf775c5246b3850cbef1767ccabc7e7210d99fbe7be4cd689d3",
+            "state": "exited",
+            "exit": 1,
+            "user": "10001:10001",
+            "image": "sha256:ce72c8a15363984da642e9964189957896812061c6af1d0ef67e87b38ad5a588"
+          },
+          {
+            "id": "2d3c69a4af2c76951420183c88379690ddc6efc0fda69707bb511c4e84a865dd",
+            "state": "exited",
+            "exit": 0,
+            "user": "10001:10001",
+            "image": "sha256:ce72c8a15363984da642e9964189957896812061c6af1d0ef67e87b38ad5a588"
+          }
+        ],
+        "containersAbsentReported": true,
+        "preparedImageRetainedReported": "sha256:ce72c8a15363984da642e9964189957896812061c6af1d0ef67e87b38ad5a588",
+        "ownedExecutableProcessesReported": [],
+        "rootCleanup": {
+          "path": "/private/tmp/media-server-memory83-jko62xts",
+          "verifiedUid": 501,
+          "verifiedDevice": 16777232,
+          "verifiedInode": 172432192,
+          "method": "exact owned root, nofollow bottom-up unlink/rmdir after independent Git bytes readback",
+          "absent": true,
+          "files": 3070,
+          "directories": 265,
+          "symlinks": 1110,
+          "logicalFileBytes": 1196691829
+        },
+        "authorityLimit": "exact 두 종료 컨테이너의 삭제/부재와 image 유지, 삭제 전 UID/device/inode·프로세스 상태는 메인이 기록한 receipt를 확인한 범위다. 검토자가 docker/ps 또는 이미 삭제된 root의 사전 inode를 다시 확인했다고 주장하지 않는다. nofollow 방식이므로 symlink1110개는 외부 대상 삭제가 아닌 링크 제거로 기록돼 있다."
+      },
+      "preservation": "이전 addendum에서 독립적으로 확인한 Git archive363 원본+receipt1 및 제품25파일 결속 뒤 cleanup됐다는 현재 receipt와 일치. 원본이 없는 상태에서 증거를 재구성하지 않았다.",
+      "decision": {
+        "localPartialCheckpointClosure": "CONFIRMED_WITH_REPORTED_CONTAINER_CLEANUP_AND_DIRECT_ROOT_ABSENCE",
+        "limitedTechnicalAdoption": "ACCEPTABLE_IN_REVIEWED_SCOPE",
+        "localGitPreservation": "CONFIRMED_PRE_CLEANUP_READBACK",
+        "ownedRootCleanup": "CONFIRMED_DIRECT_ABSENCE",
+        "containerCleanup": "RECEIPT_REVIEWED_NOT_INDEPENDENTLY_REQUERIED",
+        "whole83": "INCOMPLETE",
+        "memoryP0": "BLOCKED",
+        "aggregateAdmissionLargeLegacyWholeD": "INCOMPLETE",
+        "releaseApproved": false,
+        "finalAdoptionApproved": false,
+        "remotePreservation": "PENDING_NOT_PUSHED_AT_REVIEW"
+      },
+      "meaning": "한정 변경/근거의 로컬 보존·정리 마감이다. 83 전체 산출물/P0/출시 완료나 74 원인 전체 귀속·무누수 승인이 아니다. 원격 보존은 메인의 이후 실제 push/readback 대상으로 남긴다.",
+      "model": "요청 Astra/high; 기존 tool 수락 인계와 실제 runtime 미노출·미확인 구분 유지."
     }
   ]
 }

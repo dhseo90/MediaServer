@@ -1506,10 +1506,84 @@
     "uncompressedOriginalBytes": 5660431,
     "maxMemberBytes": 323165,
     "verifiedEveryMember": true,
-    "localGit": "pending",
+    "localGit": {
+      "commit": "1172a5e7bc808d069818e98c6239203c9a148f71",
+      "path": "docs/release-artifacts/v4.5.0/83-execution.tar.gz",
+      "blob": "5986d33a01d50bf12390a855f2aa2b5ea0c091dc",
+      "bytes": 1099972,
+      "sha256": "8206296ea504510947ef7d04f3a3ed44882d06d13f2c21f64cf368109fb7bd00",
+      "verifiedOriginalMembers": 363,
+      "mismatches": []
+    },
     "remote": "pending"
   },
   "closure": {
-    "status": "pending"
+    "status": "local preservation and owned cleanup complete; remote pending",
+    "containersPreCleanup": [
+      {
+        "id": "c9f93d8a5012aaf775c5246b3850cbef1767ccabc7e7210d99fbe7be4cd689d3",
+        "name": "/media-server-memory83-linux",
+        "state": "exited",
+        "exit": 1,
+        "image": "sha256:ce72c8a15363984da642e9964189957896812061c6af1d0ef67e87b38ad5a588",
+        "user": "10001:10001",
+        "mounts": [
+          {
+            "source": "/private/tmp/media-server-memory83-jko62xts",
+            "destination": "/helpers",
+            "rw": false
+          },
+          {
+            "source": "/Users/dhseo/Workspace/mediaServer",
+            "destination": "/source",
+            "rw": false
+          }
+        ]
+      },
+      {
+        "id": "2d3c69a4af2c76951420183c88379690ddc6efc0fda69707bb511c4e84a865dd",
+        "name": "/media-server-memory83-linux-final",
+        "state": "exited",
+        "exit": 0,
+        "image": "sha256:ce72c8a15363984da642e9964189957896812061c6af1d0ef67e87b38ad5a588",
+        "user": "10001:10001",
+        "mounts": [
+          {
+            "source": "/private/tmp/media-server-memory83-jko62xts",
+            "destination": "/helpers",
+            "rw": false
+          },
+          {
+            "source": "/Users/dhseo/Workspace/mediaServer",
+            "destination": "/source",
+            "rw": false
+          }
+        ]
+      }
+    ],
+    "processPreCleanup": {
+      "ownedExecutableProcesses": []
+    },
+    "noServersBrowsersPorts": "Only native tests/build processes, no application listener/browser launched by this task",
+    "qwenOllamaCalls": 0,
+    "unloadGate": "not-run",
+    "containersRemoved": [
+      "c9f93d8a5012aaf775c5246b3850cbef1767ccabc7e7210d99fbe7be4cd689d3",
+      "2d3c69a4af2c76951420183c88379690ddc6efc0fda69707bb511c4e84a865dd"
+    ],
+    "containersAbsent": true,
+    "preparedImageRetained": "sha256:ce72c8a15363984da642e9964189957896812061c6af1d0ef67e87b38ad5a588",
+    "rootCleanup": {
+      "path": "/private/tmp/media-server-memory83-jko62xts",
+      "verifiedUid": 501,
+      "verifiedDevice": 16777232,
+      "verifiedInode": 172432192,
+      "method": "exact owned root, nofollow bottom-up unlink/rmdir after independent Git bytes readback",
+      "absent": true,
+      "files": 3070,
+      "directories": 265,
+      "symlinks": 1110,
+      "logicalFileBytes": 1196691829
+    }
   }
 }
