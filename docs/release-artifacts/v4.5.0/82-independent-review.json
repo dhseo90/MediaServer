@@ -478,5 +478,180 @@
     "ownedRootAndContainerCleanup": "PENDING",
     "remotePreservation": "PENDING",
     "meaning": "최종 receipt 후 별도 addendum 필요. 현재 기술 한정 채택 가능 판단을 전체 작업 마감 완료로 쓰지 않는다."
-  }
+  },
+  "addenda": [
+    {
+      "type": "local-binding-preservation-cleanup-readback",
+      "reviewMethod": "읽기 전용 git show/원출력 및 hash/JSON 대조. 새 제품·검사 실행, 구현, 하위 위임 없음. 본인 검토 JSON에만 추가.",
+      "decision": {
+        "localTechnicalAndRecordClosure": "CONFIRMED_WITH_EXISTING_SCOPE_LIMITS",
+        "finite82OverlapGoal": "PASS 유지",
+        "memoryP0": "BLOCKED 유지",
+        "releaseApproved": false,
+        "remotePreservation": "PENDING_NOT_PUSHED",
+        "meaning": "82의 한정 기술 판단·관리 결속·로컬 원본 보존·소유 cleanup 마감 범위를 확인했다. 전체 P0/출시 승인 또는 원격 보존 완료가 아니다. 이전 pending 기록은 당시 상태로 남긴다."
+      },
+      "commits": {
+        "implementation": "0976bdea30086ff9a052b4d49646b0abada3e213",
+        "localEvidencePreservation": "57e3b061714fa9a416009a43b0508ab9c5ba1a91"
+      },
+      "binding": {
+        "rawEvidence": {
+          "producer-final": {
+            "exit": -15,
+            "elapsedSeconds": 90.09922524995636,
+            "bytes": 12716,
+            "sha256": "46e606c64d0451c3e1af63e013a680d9be8b94560264da4f0c15b87fe713ba11",
+            "receiptHashMatches": true
+          },
+          "producer-corrected": {
+            "exit": 0,
+            "elapsedSeconds": 95.62750066595618,
+            "bytes": 12812,
+            "sha256": "d044f8ac77f4e3e0a7ee0672c9d63381151b9f522393a0aa536f910913ef258f",
+            "receiptHashMatches": true
+          },
+          "static-inventory": {
+            "exit": 1,
+            "elapsedSeconds": 43.39676683302969,
+            "bytes": 210322,
+            "sha256": "57d871ab07e8b2248b9fed2fefc169f2e89492e6fa811cbc921b84d7a0b6bad8",
+            "receiptHashMatches": true
+          },
+          "inventory-readback-final": {
+            "exit": 0,
+            "elapsedSeconds": 47.86926604202017,
+            "bytes": 210255,
+            "sha256": "4670513193842f03ec9ea567062efe9d2dd303d621716a5cb95876d48b1dc1cd",
+            "receiptHashMatches": true
+          },
+          "coverage-readback-final": {
+            "exit": 0,
+            "elapsedSeconds": 90.69061679090373,
+            "bytes": 604,
+            "sha256": "f3dd9d2ec3cd35ce7a806a391b6918dddd2c2377ca3039afa624f484985f9bce",
+            "receiptHashMatches": true
+          },
+          "implementation-readback-final": {
+            "exit": 0,
+            "elapsedSeconds": 58.6350729590049,
+            "bytes": 1141,
+            "sha256": "f004e8a145e0b287322992e5f2f9c356c12a495834505e9ea79a414fd1f6b6f7",
+            "receiptHashMatches": true
+          }
+        },
+        "producer": "corrected 51 PASS/0 FAIL. 첫 producer-final은 51/0 출력이 있어도 프로세스 exit -15로 완료 인정하지 않음. 관리 수집 한도 준비 보완 뒤 95.6275초 exit0으로 확인; 제품 90초 병행 기준은 불변.",
+        "inventory": "최종 18 PASS/0 FAIL",
+        "coverage": "최종 9 PASS/0 FAIL,986 covered/missing0",
+        "implementation": "validationErrors0/review4GlobalErrors0/negativeFixtures15/15; 원출력의 not-execution-evidence 의미 유지",
+        "firstReadbackFailure": {
+          "first": "static-inventory",
+          "preparationError": "Readback started before producer-corrected wrote final manifest; it loaded stale inventorySha256. Product code unchanged.",
+          "correction": "Run dependent readback only after producer exit0 and manifest-readback inventory hash verified. Preserve initial failure."
+        },
+        "manifestIndependentComparison": {
+          "changedTopLevelKeys": [
+            "inventorySha256"
+          ],
+          "itemsEqual": true,
+          "items": 986,
+          "currentInventoryHashMatches": true
+        },
+        "manifestReceipt": {
+          "changedTopLevelKeys": [
+            "inventorySha256"
+          ],
+          "itemsEqual": true,
+          "items": 986,
+          "beforeInventory": "6d3dd39102d1d5d57d3313c3f7cd702588b957e0002df1fbe7e1705f0a357305",
+          "afterInventory": "3a75b4977bc0a8889520240251d004631a87e399e993d2b82370766879ae102f"
+        },
+        "approvalLimit": "986개의 기존 승인 mapping 동일성과 inventory 결속을 확인했다. 새82 제품 승인은 기존 producer가 자동 부여하는 것이 아니며 본 독립 변경분 검토의 한정 판단과 분리한다."
+      },
+      "preservation": {
+        "git": {
+          "commit": "57e3b061714fa9a416009a43b0508ab9c5ba1a91",
+          "path": "docs/release-artifacts/v4.5.0/82-execution.tar.gz",
+          "blob": "8d2c6a9a0a37e45a8c5e7acd4d877a05590c9af1",
+          "bytes": 6411771,
+          "sha256": "7b4d19e12677c0027aaeff511c1021c9c1e44c781b6e79e31bdeea3f2799b7a8",
+          "verifiedMembers": 364
+        },
+        "independentGitReadback": {
+          "bytes": 6411771,
+          "sha256": "7b4d19e12677c0027aaeff511c1021c9c1e44c781b6e79e31bdeea3f2799b7a8",
+          "blob": "8d2c6a9a0a37e45a8c5e7acd4d877a05590c9af1",
+          "worktreeArchiveBytesEqual": true,
+          "archiveMembers": 364,
+          "receiptListedOriginalMembers": 363,
+          "additionalMember": "archive-members.json",
+          "mismatches": []
+        },
+        "preCleanupDirectComparison": "이전 읽기 확인에서 archive364개 member 전부 당시 소유 root 원본 bytes와 일치했고 missing0이었다. 이번에는 Git blob에서 363개 원본 member를 내부 receipt와 전부 대조했고 추가 receipt 자체를 포함한 총364개 존재를 확인했다.",
+        "reusedHeaders": "reused-source-bytes1402개: 이전 직접 readback에서 현행 source와 다른 before4개는 base Git bytes와 정확히 일치, 나머지는 현행 source bytes와 일치. 중복 header를 새 실행 증거로 재생성하지 않음."
+      },
+      "cleanup": {
+        "mainReceipt": {
+          "containers": [
+            {
+              "id": "a6bb10aaa8f42fd287b3febabfba3d6b857947a19d93c95009ba8530f188e655",
+              "name": "/media-server-memory82-linux",
+              "priorState": "exited",
+              "exit": 1
+            },
+            {
+              "id": "f7ec4d170b347d378b83ef769f5f1031be6c6ac688c9a201a5eaccd4196efc92",
+              "name": "/media-server-memory82-linux-final",
+              "priorState": "exited",
+              "exit": 1
+            },
+            {
+              "id": "1b65e6ddb59ccbcca83000c0b5a27ee5d053680c02f48552141318b34f3dced5",
+              "name": "/media-server-memory82-linux-consumers",
+              "priorState": "exited",
+              "exit": 1
+            },
+            {
+              "id": "b84c5fa605868dfecf761a34f9016b6206036ec6ecd2678a6b9b4bda5577dd55",
+              "name": "/media-server-memory82-linux-completion",
+              "priorState": "exited",
+              "exit": 2
+            },
+            {
+              "id": "dfdeacec67be2219eb111eb51c31c11f3082ea00b97500d0225cf25b1784a324",
+              "name": "/media-server-memory82-linux-completion2",
+              "priorState": "exited",
+              "exit": 0
+            }
+          ],
+          "containersAbsent": true,
+          "preparedImageRetained": true,
+          "root": {
+            "path": "/private/tmp/media-server-memory82-0mp1dntj",
+            "originalUid": 501,
+            "originalDev": 16777232,
+            "originalInode": 172170118,
+            "absent": true,
+            "filesRemoved": 5016,
+            "logicalFileBytes": 1586685748,
+            "directoriesRemoved": 244,
+            "symlinksUnlinkedWithoutFollowing": 1664,
+            "method": "exact ownership/inode verified; bottom-up unlink/rmdir without following symlinks after Git byte readback; models/SDK/runtime/build artifacts outside owned root untouched"
+          },
+          "serversBrowsersPorts": "No service/browser listener launched by this task; native fixtures and compiler children exited as receipts record",
+          "qwenOllamaCalls": 0,
+          "unloadGate": "not-run",
+          "ownedExecutableProcessMatches": [],
+          "processCheck": "ps executable/path check after all recorded children exited; application git diff/readback processes excluded"
+        },
+        "independentRootAbsence": {
+          "path": "/private/tmp/media-server-memory82-0mp1dntj",
+          "lexists": false
+        },
+        "verificationLimits": "root 부재는 본 검토자가 직접 lstat 의미의 lexists로 확인. 5개 exact owned 컨테이너 제거/부재·기존 image 보존과 삭제 전 UID/dev/inode 및 nofollow 제거 수치는 메인 cleanup receipt를 읽은 범위이며 docker 상태를 별도로 재실행하지 않았다."
+      },
+      "runtimeModel": "실제 모델/effort 미노출·미확인 유지",
+      "remaining": "aggregate readers/global byte peak·retained observation/reference·noncompact legacy/result DTO·B/C·출시 gate 기존 잔여 유지. 원격 push/blob readback은 메인 후속 receipt 대상."
+    }
+  ]
 }

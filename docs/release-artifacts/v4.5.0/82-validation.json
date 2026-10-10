@@ -1,7 +1,7 @@
 {
   "schema": "media-server.validation.v1",
   "task": 82,
-  "status": "TECHNICAL_EXECUTION_AND_REVIEW_PASS_PENDING_GIT_PRESERVATION_CLEANUP",
+  "status": "LIMITED_CHECKPOINT_CONCURRENCY_VERIFICATION_COMPLETE",
   "memoryP0": "BLOCKED",
   "releaseApproved": false,
   "requestedScope": "고정 cut·후속 쓰기 보존 기반 checkpoint 잠금 분리와 실제 병행 지연/정상 종료",
@@ -788,13 +788,84 @@
   "independentReview": "82-independent-review.json",
   "preservation": {
     "archive": "82-execution.tar.gz",
-    "git": "pending",
-    "cleanup": "pending after byte preservation",
+    "git": {
+      "commit": "57e3b061714fa9a416009a43b0508ab9c5ba1a91",
+      "path": "docs/release-artifacts/v4.5.0/82-execution.tar.gz",
+      "blob": "8d2c6a9a0a37e45a8c5e7acd4d877a05590c9af1",
+      "bytes": 6411771,
+      "sha256": "7b4d19e12677c0027aaeff511c1021c9c1e44c781b6e79e31bdeea3f2799b7a8",
+      "verifiedMembers": 364
+    },
+    "cleanup": {
+      "containers": [
+        {
+          "id": "a6bb10aaa8f42fd287b3febabfba3d6b857947a19d93c95009ba8530f188e655",
+          "name": "/media-server-memory82-linux",
+          "priorState": "exited",
+          "exit": 1
+        },
+        {
+          "id": "f7ec4d170b347d378b83ef769f5f1031be6c6ac688c9a201a5eaccd4196efc92",
+          "name": "/media-server-memory82-linux-final",
+          "priorState": "exited",
+          "exit": 1
+        },
+        {
+          "id": "1b65e6ddb59ccbcca83000c0b5a27ee5d053680c02f48552141318b34f3dced5",
+          "name": "/media-server-memory82-linux-consumers",
+          "priorState": "exited",
+          "exit": 1
+        },
+        {
+          "id": "b84c5fa605868dfecf761a34f9016b6206036ec6ecd2678a6b9b4bda5577dd55",
+          "name": "/media-server-memory82-linux-completion",
+          "priorState": "exited",
+          "exit": 2
+        },
+        {
+          "id": "dfdeacec67be2219eb111eb51c31c11f3082ea00b97500d0225cf25b1784a324",
+          "name": "/media-server-memory82-linux-completion2",
+          "priorState": "exited",
+          "exit": 0
+        }
+      ],
+      "containersAbsent": true,
+      "preparedImageRetained": true,
+      "root": {
+        "path": "/private/tmp/media-server-memory82-0mp1dntj",
+        "originalUid": 501,
+        "originalDev": 16777232,
+        "originalInode": 172170118,
+        "absent": true,
+        "filesRemoved": 5016,
+        "logicalFileBytes": 1586685748,
+        "directoriesRemoved": 244,
+        "symlinksUnlinkedWithoutFollowing": 1664,
+        "method": "exact ownership/inode verified; bottom-up unlink/rmdir without following symlinks after Git byte readback; models/SDK/runtime/build artifacts outside owned root untouched"
+      },
+      "serversBrowsersPorts": "No service/browser listener launched by this task; native fixtures and compiler children exited as receipts record",
+      "qwenOllamaCalls": 0,
+      "unloadGate": "not-run",
+      "ownedExecutableProcessMatches": [],
+      "processCheck": "ps executable/path check after all recorded children exited; application git diff/readback processes excluded"
+    },
     "archiveBytes": 6411771,
     "archiveSha256": "7b4d19e12677c0027aaeff511c1021c9c1e44c781b6e79e31bdeea3f2799b7a8",
     "verifiedMembers": 364,
     "scope": "Current82 raw logs/receipts/frozen source and instrumented copies. No binary/model/media or previous archive duplication; unchanged copied headers reused by exact Git/frozen source hash.",
-    "originalVsSanitized": "Selected synthetic task-owned raw text, not reconstructed or rewritten logs. Missing prior states remain unobserved."
+    "originalVsSanitized": "Selected synthetic task-owned raw text, not reconstructed or rewritten logs. Missing prior states remain unobserved.",
+    "newGitObjectPreflight": {
+      "base": "b88461e7cee8cfa771ef7ec1e5e30d57212da6a8",
+      "through": "57e3b061714fa9a416009a43b0508ab9c5ba1a91",
+      "blobCount": 34,
+      "uncompressedBlobBytes": 27729329,
+      "largest": {
+        "oid": "129d855b61b775560eec26d1a2fe9dd020634316",
+        "bytes": 19079080,
+        "path": "test/fixtures/project_feature_implementation_evidence.json"
+      },
+      "meaning": "Git object sizes, not push pack size; closure JSON only remains to commit"
+    }
   },
   "notRun": [
     "120min",
@@ -949,5 +1020,13 @@
       "bytes": 0,
       "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
     }
+  },
+  "closure": {
+    "independent": "82-independent-review.json; final local closure addendum",
+    "independentReviewSha256": "7eadf1398f7221c40589b36c143ef79352af014bea9ca8de4e5b75ea77bab478",
+    "localPreservationAndCleanup": "PASS",
+    "remotePreservation": "pending authorized ordinary push after this closure commit; actual result reported with remote SHA",
+    "memoryP0": "BLOCKED",
+    "release": "not-approved/not-performed"
   }
 }
