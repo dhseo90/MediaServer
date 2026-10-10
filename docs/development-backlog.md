@@ -29,7 +29,10 @@
 2026-10-10 사용자 요구로 **메모리 증가 원인·상주 수명·상한 검증을 출시 전 P0**로 추가했다.
 76의 통제 순환에서는 활성 미디어 0개에서도 Journal/Catalog의 과거 identity·order·retired/source
 인덱스가 누적됐다. 검증이 끝난 주문 사본의 해제만 보완했으며, 전체 이력 상주량의 byte 상한과
-비상주 조회는 아직 미구현이다. [부분 수정·측정 근거](release-artifacts/v4.5.0/76-validation.json)를 따른다.
+비상주 조회는 아직 미구현이다. [76 부분 수정·측정](release-artifacts/v4.5.0/76-validation.json)을 유지한다.
+77의 디스크 identity 조회 실험은 직접 반례를 통과했으나 제품 연결은 채택하지 않았다.
+파생 disk 예산·원본 root 접근·cleanup 실패 전파가 미해결이고 Catalog/order/retired/source와
+Open/checkpoint의 O(전체 이력) 적재가 남는다. [77 미채택 구현·차단 근거](release-artifacts/v4.5.0/77-validation.json)를 따른다.
 소유자는 미해결 메모리 증가를 운영 제한으로 수용하지 않았다. 사용자 위험 수용과 최종 출시
 채택은 **not-granted / not-performed**이며 공개 절차는 보류한다. 75의 과거 판단은 소급 수정하지 않는다.
 

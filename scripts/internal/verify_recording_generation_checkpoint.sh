@@ -3,7 +3,7 @@
 # B 명시 opt-in 세대 회전 focused. 실서버/운영 자료에 접근하지 않는다.
 set -euo pipefail
 task_case="${1:-all}"
-[[ "$task_case" == all || "$task_case" == residency || "$task_case" == scale || "$task_case" == scale-baseline || "$task_case" == scale-load || "$task_case" == scale-visual ]] || exit 2
+[[ "$task_case" == all || "$task_case" == residency || "$task_case" == history-index || "$task_case" == scale || "$task_case" == scale-baseline || "$task_case" == scale-load || "$task_case" == scale-visual ]] || exit 2
 task_script="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 task_repo="$(cd "$task_script/../.." && pwd)"
 task_parent="$(cd "${TMPDIR:-/tmp}" && pwd -P)"
@@ -43,7 +43,7 @@ date -u '+[start] %Y-%m-%dT%H:%M:%SZ'
 uname -srm
 "${CXX:-c++}" --version | head -1
 shasum -a 256 "${task_sources[@]}" include/recording/recording_catalog.h include/recording/recording_journal.h include/recording/recording_generation_recovery_session.h \
- scripts/internal/recording_generation_checkpoint_sql_cases.inc include/recording/recording_generation_manifest.h include/recording/recording_generation_files.h \
+ scripts/internal/recording_history_index_experiment.h scripts/internal/recording_generation_checkpoint_sql_cases.inc include/recording/recording_generation_manifest.h include/recording/recording_generation_files.h \
  scripts/internal/recording_catalog_generation_scratch_smoke.cpp scripts/internal/recording_catalog_generation_projection_smoke.cpp scripts/internal/recording_journal_generation_readonly_smoke.cpp "$task_script/verify_recording_generation_checkpoint.sh"
 task_configs=('1 1 1' '1 0 1' '0 1 1' '1 1 0')
 if [[ "$task_case" == scale* ]]; then task_configs=('1 1 1'); fi
@@ -111,7 +111,7 @@ PYLOAD
   continue
  fi
  task_args=("$task_root/fixtures-$task_crypto-$task_sqlite-$task_backend")
- if [[ "$task_case" == residency ]]; then task_args+=(residency); fi
+ if [[ "$task_case" == residency || "$task_case" == history-index ]]; then task_args+=("$task_case"); fi
  "$task_root/checkpoint-$task_crypto-$task_sqlite-$task_backend" "${task_args[@]}"
 done
 date -u '+[end] %Y-%m-%dT%H:%M:%SZ'

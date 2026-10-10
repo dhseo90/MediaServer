@@ -93,5 +93,9 @@ Qwen/Ollama 생성·미채택 모델 품질 실험·외부 서비스/원격 GPU 
 source-only도 운영위험 판단을 면제하지 않는다. 사용법은 [설정 참조](config-reference.md#recording-env)와
 [UI 가이드](ui-guide.md), 공개 순서는 [릴리즈 정책](release-policy.md)을 따른다.
 종료 기록은 원격 Git 원본 확인 후 별도 정리하며 보존/삭제 이력을 squash하지 않는다.
+77의 비상주 identity 조회 통합은 저장 admission·scratch 접근/정리 계약이 충족되지 않아
+채택하지 않았다. 현재 제품은76 부분 수정 상태이고, 정상/Open/checkpoint의 전체 이력 RAM
+통제와 요청·보존 수명 검증은 계속 P0다. [미채택 구현과 직접 반례](release-artifacts/v4.5.0/77-validation.json)는
+출시 후보 개선이나 장시간 검증 PASS가 아니다.
 소유자는 미해결 메모리 증가의 위험 수용에 동의하지 않았다. 최종 출시 채택·PR/required CI·main 병합·서명 태그·Release/Latest 확인은 보류·미수행이다.
 공개 metadata의 기존 관측 시각은 이번에 갱신하지 않았다.

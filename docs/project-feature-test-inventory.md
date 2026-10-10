@@ -4811,3 +4811,12 @@ catalog/builder/store를 사용한다. 캡처 후 무관 채널 확정·삭제�
 공개 정제 오류를 분리한다. 게시 검증과 link는 같은 잠금 안에 있어야 한다. v1/v2·별도 프로세스
 readback·미게시/pending 정리를 유지한다. 단기 안정화이며 UI/30분/120분 재실행을 뜻하지 않는다.
 짧은 통합은 위64의 `--prepare`(30초 관측/총180초, 2녹화·4검색·A 최대1기회)를 재사용한다.
+
+### MEM77-X01 · 미채택 비상주 이력 인덱스 개발 반례
+
+`bash scripts/internal/verify_recording_generation_checkpoint.sh history-index`의 `HistoryIndex`를
+명시 호출한다. 역순 2,048개 key의 정확한 조회·순서 순회, absent 출력 보존, overwrite,
+node/value 변조·절단·중복·시험 disk 예산 초과의 오류/poison과 명시 Close 정리를 검사한다.
+제품 경로·기본 suite·출시 실행 계획에 연결하지 않은 미채택 실험이다. `MEM77-X01`은
+새 출시 기능 ID가 아니며, v4.5.0 메모리 P0의 정상/Open/checkpoint 통합 완료를 뜻하지 않는다.
+원본 완전성·저장 admission·동시성·전체 cleanup·메모리 비교는 별도 미충족이다.

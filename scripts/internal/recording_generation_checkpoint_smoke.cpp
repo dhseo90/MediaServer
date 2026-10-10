@@ -392,13 +392,52 @@ void Jobs(const std::filesystem::path& base) {
 }
 }
 #endif
+#include "recording_history_index_experiment.h"
+#if MEDIA_SERVER_USE_OPENSSL && MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND
+void HistoryIndex(const std::filesystem::path& root) {
+    using Index=recording::RecordingHistoryIndex;
+    std::filesystem::create_directories(root);
+    std::string error,value;
+    Index index;Need(index.Create(root.string(),16*1024*1024,&error));
+    // 외부 독립 기대값: 삽입 역순과 조회/순회 정순은 의도적으로 다르다.
+    for(int i=2047;i>=0;--i)Need(index.Put("id-"+std::to_string(10000+i),"value-"+std::to_string(i),false,&error));
+    bool all=true;
+    for(int i=0;i<2048;++i)all=all&&index.Get("id-"+std::to_string(10000+i),&value,&error)==Index::Lookup::Found&&value=="value-"+std::to_string(i);
+    Check("MEM77-X01",all,"disk tree reads every reversed-insert historical key");
+    value="unchanged";
+    Check("MEM77-X01",index.Get("id-absent",&value,&error)==Index::Lookup::Absent&&value=="unchanged","certified absent preserves output");
+    std::size_t expected=0;
+    Need(index.Visit([&](const auto& key,const auto& data,std::string*){return key=="id-"+std::to_string(10000+expected)&&data=="value-"+std::to_string(expected++);},&error));
+    Check("MEM77-X01",expected==2048&&index.usage().cache_bytes==0,"bounded traversal is ordered without retained rows");
+    Need(index.Put("id-11024","changed",true,&error));
+    Check("MEM77-X01",index.Get("id-11024",&value,&error)==Index::Lookup::Found&&value=="changed","overwrite updates authenticated ancestors");
+    const auto name=index.owned_name();Need(index.Close(&error));
+    Check("MEM77-X01",!std::filesystem::exists(root/name),"exact owned scratch cleanup");
+    for(const std::string fault:{"missing-node","value","truncate","duplicate","budget"}) {
+        Index bad;Need(bad.Create(root.string(),fault=="budget"?1050:16384,&error));
+        Need(bad.Put("key","payload",false,&error));
+        if(fault=="duplicate"||fault=="budget") {
+            Check("MEM77-X01",!bad.Put(fault=="duplicate"?"key":"key2","payload",false,&error),"duplicate/disk budget poisons unpublished index");
+        }else {
+            const auto path=root/bad.owned_name();
+            if(fault=="truncate")std::filesystem::resize_file(path,512);
+            else {std::fstream f(path,std::ios::in|std::ios::out|std::ios::binary);f.seekp(fault=="value"?512:519);f.put('x');f.flush();}
+            // 노드 변조는 absent 경로도 거부하며 value 변조는 hit 내용을 검증한다.
+            Check("MEM77-X01",bad.Get(fault=="value"?"key":"absent",&value,&error)==Index::Lookup::Error,"tampered node/value/truncation is error, never absent");
+        }
+        Check("MEM77-X01",bad.Get("absent",&value,&error)==Index::Lookup::Error,"poison remains fail-closed");
+        Need(bad.Close(&error));
+    }
+}
+#endif
 int main(int argc,char** argv) {
     if(argc!=2&&argc!=3)return 2;
-    if(argc==3&&std::string(argv[2])!="residency"&&std::string(argv[2])!="scale-1000"&&std::string(argv[2])!="scale-100000"&&std::string(argv[2])!="scale-baseline-1000"&&std::string(argv[2])!="scale-baseline-100000")return 2;
+    if(argc==3&&std::string(argv[2])!="history-index"&&std::string(argv[2])!="residency"&&std::string(argv[2])!="scale-1000"&&std::string(argv[2])!="scale-100000"&&std::string(argv[2])!="scale-baseline-1000"&&std::string(argv[2])!="scale-baseline-100000")return 2;
     try {
         const std::filesystem::path root(argv[1]);std::filesystem::create_directories(root);
 #if MEDIA_SERVER_USE_OPENSSL && MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND
         if(argc==3&&std::string(argv[2]).rfind("scale-",0)==0){IdentityScale(root/"scale",std::stoull(std::string(argv[2]).substr(std::string(argv[2]).find_last_of('-')+1)),std::string(argv[2]).find("baseline")!=std::string::npos);return failures?1:0;}
+        if(argc==3&&std::string(argv[2])=="history-index"){HistoryIndex(root/"history-index");return failures?1:0;}
         IdentityResidency(root/"identity-residency");
         if(argc==3)return failures?1:0;
         ExportValueBoundary(root/"export-values");Rotation(root/"rotate");ObserverRace(root/"observer-race");Failures(root/"failures");Cost(root/"cost");Admission(root/"admission");Threshold(root/"threshold");Limits(root/"limits");Jobs(root/"jobs");SQL_CHECKPOINT_CASES::Run(root);

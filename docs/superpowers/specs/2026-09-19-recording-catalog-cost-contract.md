@@ -874,3 +874,35 @@ B10의 120분 실패·원본 metadata는 보존하며, 새 120분/UI 실행·푸
 
 실행 순서/비교 축은 [구현계획의 LP17](../plans/2026-09-02-v410-recording-foundation-implementation-plan.md#lp17-판정-기준-비교-설계-저장-계약)에서만 관리한다.
 이번 계약 문서 검토는 위 반례를 실행한 증거가 아니다.
+
+## 77 · 비상주 이력 조회/streaming 구현 경계 (개발 중)
+
+원본 권위는 기존 managed manifest·identity shard·archive·active 원문이다. 파생 조회는
+재개방 시 원본 검증으로 재구축하며, 재구축 파일만으로 권위를 복원하지 않는다. SQLite 선택
+빌드 계약을 유지하기 위해 OpenSSL이 있는 generation B 내부의 소유 scratch 파일을 사용한다.
+원본을 재작성하거나 파생 파일을 공개 형식으로 승격하지 않는다. 전체 검증 완료 전에는
+조회 인덱스를 게시하지 않는다. namespace별 key는 최초 identity/ordinal, 주문 충돌/maximum,
+accepted-state, retired/source 조회를 구분하며 active append coverage와 manifest 세대를 함께
+결박해야 한다. 정상 checkpoint에서도 기존 mutation link 수명은 유지한다.
+
+미채택 시험 구현은 `scripts/internal/recording_history_index_experiment.h`의 디스크 AVL 조회다.
+Journal 연결 실험은 보존 후 채택하지 않았으며 현재 제품 src/include는 76과 같다.
+호출 시 root hash에서 검증한다. 노드의 key, 위치/길이,
+child offset/hash와 null을 함께 인증해 손상된 인덱스의 miss를 정상 absent로 바꾸지 않는다.
+원본 전수 소비·순서/중복 검증은 별도로 필요하며 root hash가 이를 대신하지 않는다.
+캐시는 0바이트로 시작한다. 노드는512바이트, key256바이트(namespace+기존128바이트ID),
+최대96단계 stack, 값은 시험에서16MiB+1로 제한한다. 기존 snapshot admission 전체와의 동등성은 미검증이다. 순회 값은 callback
+호출 동안만 소유한다. 전체 index 파일을 기존 workspace 잔여에 계상해야 한다. 이 연결은 **미구현**이다.
+시험의 명시 disk 예산은 제품 snapshot admission과 별개이며 운영 경계로 채택하지 않았다. heap/RSS·커널 file cache와 disk bytes는 별도로 계측한다.
+96단계는 AVL의 uint64 개수 범위에서 도달 가능한 높이를 충분히 포함해야 하며, 이를
+입증하기 전 일반 저장량 지원 상한으로 사용하지 않는다.
+
+완료 기준은 정상 조회뿐 아니라 Open의 전체 chain/projection/scratch, checkpoint의 전체
+chain·rows·정렬/문자열 사본을 같은 유한 경계로 연결하는 것이다. 중간 구현의 직접 PASS는
+이 통합이나 메모리 P0 완료가 아니다. 구현 전후128/512/2048 실제 확정·삭제 fixture,
+동일 활성량과 실제 idle 관측, 요청 수명/보존 결과 분리를 통과해야 장시간으로 진행한다.
+
+현재 통합 차단: snapshot_bytes를 scratch 디스크 한도로 재사용하면 기존 수용 범위를
+줄일 수 있다. 원본 root의 쓰기·UID 조건과 destructor의 정리 실패 전파도 기존 계약을
+보장하지 않는다. 따라서 해당 통합 패치는 실행 증거에만 보존한다. 정상 Journal/Catalog,
+Open/projection/scratch 및 checkpoint rows/정렬/직렬화의 O(전체 이력)은 아직 남는다.
