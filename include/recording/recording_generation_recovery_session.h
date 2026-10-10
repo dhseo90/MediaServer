@@ -15,6 +15,7 @@ class RecordingGenerationCheckpointPlan {
     bool consumed{false};
 public:
     ~RecordingGenerationCheckpointPlan();
+    bool Finish(std::string* error);
 };
 class RecordingGenerationRecoveryRow {
     friend class RecordingJournal;

@@ -2,6 +2,7 @@
 #include "recording/recording_identity_shard.h"
 #include "recording/recording_contracts.h"
 #include "domain/strict_json.h"
+#include "recording_history_index.h"
 #include <algorithm>
 #include <charconv>
 #include <limits>
@@ -545,4 +546,187 @@ bool ValidateRecordingIdentityActiveExtension(const RecordingIdentityChainResult
     return MergeValidatedExtension(base, validation.archives, validation.rows, limits, output, error);
 #endif
 }
+
+#if defined(MEDIA_SERVER_RECORDING_GENERATION_TESTING)
+namespace {thread_local int history_build_fault=0;}
+void ProbeRecordingIdentityHistoryFault(int fault){history_build_fault=fault;}
+#endif
+class RecordingIdentityHistory {
+public:
+#if MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
+    RecordingHistoryIndex index;
+#endif
+    std::size_t count{0};
+    std::uint64_t physical{0};
+    bool complete{false};
+};
+#if MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
+namespace {
+std::string FirstBytes(const RecordingIdentityFirstAcceptance& first) {
+    return "{\"occurrences\":"+std::to_string(first.occurrences)+",\"row\":"+RowJson(first.first_row)+
+        ",\"archive\":"+FileJson(first.first_archive)+"}";
+}
+bool FirstValue(const std::string& bytes,RecordingIdentityFirstAcceptance* output,std::string* error) {
+    Document doc;RecordingIdentityFirstAcceptance first;
+    if(!ingress::ParseStrictJsonObjectDocument(bytes,&doc,error)||doc.members.size()!=3||
+       !Number(doc,"occurrences",&first.occurrences)||!first.occurrences)return Fail(error,"history first fields");
+    const auto row=ingress::StrictJsonObjectField(doc,"row"),archive=ingress::StrictJsonObjectField(doc,"archive");
+    if(!row||!archive||!ParseRow(*row,&first.first_row,error)||!ParseFile(*archive,&first.first_archive,error))return false;
+    first.mutation_id=first.first_row.mutation_id;first.first_global_ordinal=first.first_row.global_ordinal;
+    if(FirstBytes(first)!=bytes)return Fail(error,"history first noncanonical");
+    *output=std::move(first);return true;
+}
+std::string OrdinalKey(std::uint64_t ordinal) {
+    const auto digits=std::to_string(ordinal);return "o/"+std::string(20-digits.size(),'0')+digits;
+}
+bool PutFirst(RecordingIdentityHistory& history,const RecordingIdentityFirstAcceptance& first,bool overwrite,std::string* error) {
+    if(first.mutation_id!=first.first_row.mutation_id||first.first_global_ordinal!=first.first_row.global_ordinal||!first.occurrences)
+        return Fail(error,"history first identity invalid");
+    if(!history.index.Put("i/"+first.mutation_id,FirstBytes(first),overwrite,error))return false;
+    if(!overwrite){if(!history.index.Put(OrdinalKey(first.first_global_ordinal),first.mutation_id,false,error))return false;++history.count;}
+    return true;
+}
+bool CheckFirst(RecordingIdentityHistory& history,const RecordingIdentityFirstAcceptance& first,std::string* error) {
+    std::string value,id;
+    if(history.index.Get("i/"+first.mutation_id,&value,error)!=RecordingHistoryIndex::Lookup::Found||
+       value!=FirstBytes(first)||
+       history.index.Get(OrdinalKey(first.first_global_ordinal),&id,error)!=RecordingHistoryIndex::Lookup::Found||id!=first.mutation_id)
+        return Fail(error,"history incomplete identity/ordinal coverage");
+    return true;
+}
+std::string ScratchDirectory() {
+    // This is a separate capability. Create validates the opened directory; source root is never used.
+    return std::filesystem::canonical(std::filesystem::temp_directory_path()).string();
+}
+bool FinishFailure(const RecordingIdentityHistoryHandle& history,std::string* error,RecordingIdentityHistoryHandle* receipt) {
+    std::string cleanup;
+    if(history&&!history->index.Close(&cleanup)){if(receipt)*receipt=history;if(error)*error+="; cleanup: "+cleanup;}
+    return false;
+}
+}
+#endif
+bool BuildRecordingIdentityHistory(const std::filesystem::path& root,const std::vector<RecordingIdentityFirstAcceptance>& first,
+    std::uint64_t budget,RecordingIdentityHistoryHandle* output,std::string* error) {
+#if MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
+    if(!output)return Fail(error,"history output missing");
+    (void)root;
+    auto history=std::make_shared<RecordingIdentityHistory>();
+    try {
+        if(budget>UINT64_MAX-first.size())return Fail(error,"history row capacity overflow");
+        const auto count=static_cast<std::uint64_t>(first.size())+budget;
+        if(count>UINT64_MAX/2)return Fail(error,"history row capacity overflow");
+        const auto bytes=RecordingHistoryIndex::BytesForRows(2*count);
+        if(!bytes)return Fail(error,"history scratch size overflow");
+        if(!history->index.Create(ScratchDirectory(),bytes,error))return FinishFailure(history,error,output);
+        for(const auto& entry:first){
+#if defined(MEDIA_SERVER_RECORDING_GENERATION_TESTING)
+            if(history_build_fault==1&&&entry==&first.back())continue;
+#endif
+            if(!PutFirst(*history,entry,false,error))return FinishFailure(history,error,output);
+#if defined(MEDIA_SERVER_RECORDING_GENERATION_TESTING)
+            if(history_build_fault==2&&!history->index.Put(OrdinalKey(entry.first_global_ordinal),"wrong-first-id",true,error))return FinishFailure(history,error,output);
+#endif
+        }
+        // Both namespaces are compared to the already validated original, before negative lookup publication.
+        for(const auto& entry:first){
+            if(!CheckFirst(*history,entry,error)||entry.occurrences>UINT64_MAX-history->physical)
+                return FinishFailure(history,error,output);
+            history->physical+=entry.occurrences;
+        }
+        if(history->index.usage().rows!=2*first.size())return FinishFailure(history,error,output);
+        history->complete=true;*output=std::move(history);if(error)error->clear();return true;
+    }catch(...){Fail(error,"history construction resource failure");return FinishFailure(history,error,output);}
+#else
+    (void)root;(void)first;(void)budget;(void)output;return Fail(error,"history unsupported");
+#endif
+}
+bool FindRecordingIdentityHistory(const RecordingIdentityHistoryHandle& history,const std::string& id,
+    std::optional<RecordingIdentityFirstAcceptance>* output,std::string* error) {
+#if MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
+    if(!history||!history->complete||!output)return Fail(error,"history lookup incomplete/missing");
+    std::string bytes;const auto found=history->index.Get("i/"+id,&bytes,error);
+    if(found==RecordingHistoryIndex::Lookup::Error)return false;
+    if(found==RecordingHistoryIndex::Lookup::Absent){output->reset();return true;}
+    RecordingIdentityFirstAcceptance first;
+    if(!FirstValue(bytes,&first,error)||first.mutation_id!=id)return Fail(error,"history lookup identity mismatch");
+    *output=std::move(first);return true;
+#else
+    (void)history;(void)id;(void)output;return Fail(error,"history unsupported");
+#endif
+}
+bool VisitRecordingIdentityHistory(const RecordingIdentityHistoryHandle& history,const RecordingIdentityFirstVisitor& visitor,std::string* error) {
+#if MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
+    if(!history||!history->complete||!visitor)return Fail(error,"history visitor incomplete/missing");
+    std::size_t count=0;
+    const bool ok=history->index.Visit([&](const auto& key,const auto& value,std::string* err){
+        if(key.rfind("o/",0)!=0)return true;
+        std::optional<RecordingIdentityFirstAcceptance> first;
+        if(!FindRecordingIdentityHistory(history,value,&first,err)||!first||OrdinalKey(first->first_global_ordinal)!=key)
+            return Fail(err,"history ordinal identity mismatch");
+        ++count;return visitor(*first,err);
+    },error);
+    if(!ok)return false;
+    if(count!=history->count)return Fail(error,"history traversal coverage mismatch");
+    return true;
+#else
+    (void)history;(void)visitor;return Fail(error,"history unsupported");
+#endif
+}
+bool CloneRecordingIdentityHistory(const RecordingIdentityHistoryHandle& source,const std::filesystem::path& root,
+    std::uint64_t budget,RecordingIdentityHistoryHandle* output,std::string* error) {
+    if(!output)return Fail(error,"history clone output missing");
+    RecordingIdentityHistoryHandle target;
+    if(!source||budget>UINT64_MAX-source->count)return Fail(error,"history clone capacity overflow");
+    if(!BuildRecordingIdentityHistory(root,{},budget+source->count,&target,error)){*output=std::move(target);return false;}
+#if MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
+    if(!RecordingIdentityHistoryHealthy(source,error)||!target->index.CopyFrom(source->index,error))return FinishFailure(target,error,output);
+    target->count=source->count;target->physical=source->physical;target->complete=source->complete;
+    *output=std::move(target);return true;
+#else
+    (void)source;(void)output;return false;
+#endif
+}
+bool AppendRecordingIdentityHistory(const RecordingIdentityHistoryHandle& history,const RecordingIdentityRow& row,
+    const RecordingGenerationFile& archive,std::string* error) {
+#if MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
+    std::optional<RecordingIdentityFirstAcceptance> first;
+    if(!FindRecordingIdentityHistory(history,row.mutation_id,&first,error))return false;
+    if(first){if(!SameIdentity(first->first_row,row)||first->occurrences==UINT64_MAX)return Fail(error,"history repeated identity conflict");
+        ++first->occurrences;
+    }else first=RecordingIdentityFirstAcceptance{row.mutation_id,row.global_ordinal,1,row,archive};
+    history->complete=false;
+    if(history->physical==UINT64_MAX||!PutFirst(*history,*first,first->occurrences>1,error)||!CheckFirst(*history,*first,error))return false;
+    ++history->physical;history->complete=true;return true;
+#else
+    (void)history;(void)row;(void)archive;return Fail(error,"history unsupported");
+#endif
+}
+bool RecordingIdentityHistoryHealthy(const RecordingIdentityHistoryHandle& history,std::string* error) {
+#if MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
+    return history&&history->complete&&history->index.Healthy(error)&&history->index.usage().rows==2*history->count;
+#else
+    (void)history;return Fail(error,"history unsupported");
+#endif
+}
+bool CloseRecordingIdentityHistory(const RecordingIdentityHistoryHandle& history,std::string* error) {
+#if MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
+    if(!history)return true;
+    history->complete=false;return history->index.Close(error);
+#else
+    (void)history;(void)error;return true;
+#endif
+}
+bool ValidateRecordingIdentityHistoryCoverage(const RecordingIdentityHistoryHandle& history,std::uint64_t physical,std::string* error) {
+    if(!RecordingIdentityHistoryHealthy(history,error)||history->physical!=physical)return Fail(error,"history original coverage mismatch");
+    return true;
+}
+std::uint64_t RecordingIdentityHistoryBytes(const RecordingIdentityHistoryHandle& history,bool allocated) {
+#if MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
+    if(!history)return 0;
+    const auto usage=history->index.usage();return allocated?usage.allocated_bytes:usage.file_bytes;
+#else
+    (void)history;(void)allocated;return 0;
+#endif
+}
+std::size_t RecordingIdentityHistorySize(const RecordingIdentityHistoryHandle& history){return history?history->count:0;}
 } // namespace recording

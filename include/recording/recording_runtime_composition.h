@@ -10,11 +10,12 @@ class RecordingRuntimeStorage {
 public:
     explicit RecordingRuntimeStorage(std::filesystem::path root);
     bool Open(std::string* error);
+    bool Finish(std::string* error);
     RecordingJournal& journal(){return *journal_;}
     RecordingCatalog& catalog(){return *catalog_;}
     GStreamerSegmentWriter::Options WriterOptions(std::int64_t segment_ms);
 private:
-    void ResetOwner();
+    bool ResetOwner(std::string* error);
     std::filesystem::path root_;
     std::unique_ptr<RecordingJournal> journal_;
     std::unique_ptr<RecordingCatalog> catalog_;

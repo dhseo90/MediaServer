@@ -902,7 +902,48 @@ chain·rows·정렬/문자열 사본을 같은 유한 경계로 연결하는 것
 이 통합이나 메모리 P0 완료가 아니다. 구현 전후128/512/2048 실제 확정·삭제 fixture,
 동일 활성량과 실제 idle 관측, 요청 수명/보존 결과 분리를 통과해야 장시간으로 진행한다.
 
-현재 통합 차단: snapshot_bytes를 scratch 디스크 한도로 재사용하면 기존 수용 범위를
+77 당시 통합 차단: snapshot_bytes를 scratch 디스크 한도로 재사용하면 기존 수용 범위를
 줄일 수 있다. 원본 root의 쓰기·UID 조건과 destructor의 정리 실패 전파도 기존 계약을
 보장하지 않는다. 따라서 해당 통합 패치는 실행 증거에만 보존한다. 정상 Journal/Catalog,
 Open/projection/scratch 및 checkpoint rows/정렬/직렬화의 O(전체 이력)은 아직 남는다.
+
+### Journal 이력 조회의 첫 제품 연결 (78)
+
+원본 권위는 기존 manifest/shard/archive와 검증된 active suffix다. 비영속 scratch의
+프로세스 내 hash root는 재개방 권위가 아니며 Open마다 기존 원본 검증으로 재구축한다.
+원본 수용 한도(snapshot/active/shard/cold row)는 변경하지 않는다. 역사 identity와
+최초 ordinal의 두 namespace만 파생 조회로 옮긴다. order·Catalog·archive descriptor와
+Open/checkpoint의 전체 DTO는 아직 O(전체 이력)이며 메모리 P0는 미해결이다.
+
+scratch는 원본 root와 별도로 검증한 임시 디렉터리에서 배타 생성한 뒤 즉시 unlink한다.
+원본 nlink=1 계약과 scratch nlink=0 계약을 구분한다. FD 크기 및 st_blocks를 계상하며
+디렉터리에서 보이지 않는다고 비용을 0으로 보지 않는다. tmpfs 실행은 디스크 비상주
+증거로 사용할 수 없다. 가용 공간 사전 확인은 예약이 아니며 ENOSPC는 조회 오류다.
+
+수정 전 고정 경계: key 256바이트, node 512바이트, value 슬롯 2048바이트, stack 최대96,
+cache 0바이트. mutation ID 최대128과 최초 수용 DTO의 제한된 필드만 저장하고 16MiB 원문은
+저장하지 않는다. identity당 두 행의 최대 scratch는 `512 + 5120 * N`이다. overwrite는
+기존 슬롯을 사용한다. checkpoint는 기존 N과 새 N+active 후보가 동시에 생존하므로
+두 파일 합계를 포함한다. 원본 snapshot_bytes를 scratch 한도로 사용하지 않는다.
+각 조회 반환값과 진행 중 호출자의 소유는 cache와 별도로 계상한다.
+
+검증 기준은 기존 128/512/2048 실제 확정·삭제 fixture(활성0, warmup32)를 새 before/after로
+수행한다. 4GiB RSS·448MiB root+scratch·4MiB 로그·180초를 유지한다. 조회/동일 재시도/
+충돌/삭제 후 재등장 금지·checkpoint·재Open을 함께 검증한다. 정상 historical identity
+map/vector가 비고 scratch가 위 식 안에 있어야 한다. 전체 RSS의 P0 완료를 주장하지 않는다.
+Open/checkpoint peak와 Catalog/order 잔여는 별도 측정한다. 유휴는 모든 동기 작업 종료 후
+같은 PID에서 1초 간격 3회 관측한다. 원본 bytes/hash 및 실패/정리 계약은 그대로 유지한다.
+
+78의 슬롯 상한은 최대 ID 128바이트(escape 없는 기존 grammar), 고정 reservation 필드,
+64자리 digest, uint64 숫자/세대 파일명으로 산정한다. 최대 폭 DTO 반례는 1531바이트이며
+타입 이름을 64바이트로 과대 계산해도 1572바이트다. 16MiB cold 원문은 슬롯에 넣지 않는다.
+key는 identity prefix를 합쳐 최대130바이트, ordinal은22바이트다. signed 파일 offset 내
+최대 행수의 AVL 높이는96 미만이다. 표현 overflow/실제 디스크 부족은 명시적 자원 실패이며
+원본 admission이나 정상 부재로 재분류하지 않는다.
+
+checkpoint의 인덱스 복제는 동일 Journal 잠금에서 별도 FD로64KiB씩 수행한다. 프로세스의
+검증 root만 승계하고 파일 header에서 신뢰를 복원하지 않는다. 게시 전 기존 전체 Visit가
+node/value 및 ordinal/identity 대응을 검증한다. 이 복제 버퍼와96단계 탐색, 최대2048바이트
+반환 문자열은 유한하지만, 상위 snapshot exporter의 전체 DTO는 아직 비상주화하지 않았다.
+진행 중 link는 원본 검증을 다시 수행하는 identity/ordinal 값이며 scratch FD를 외부 reader에
+노출하지 않는다. 이전 세대 scratch는 원자 전환 뒤 plan의 명시적 Finish로 회수한다.

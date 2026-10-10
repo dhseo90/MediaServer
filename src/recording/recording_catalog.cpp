@@ -708,6 +708,8 @@ bool RecordingCatalog::CheckpointGenerationLocked(std::string* error) {
     std::shared_ptr<RecordingGenerationCheckpointPlan> plan;
     if(!journal_.PrepareGenerationCheckpoint(this,&plan,error))return false;
     if(!plan)return true;
+    bool ok=false;
+    try {ok=[&](){
     RecordingCatalogSnapshot snapshot;std::string bytes;
     if(!ExportGenerationSnapshotLocked(plan->chain,plan->generation,plan->cut,&snapshot,error)||
        !SerializeRecordingCatalogSnapshot(snapshot,&bytes,error))return false;
@@ -730,7 +732,10 @@ bool RecordingCatalog::CheckpointGenerationLocked(std::string* error) {
         (void)generation;(void)cut;return true;
 #endif
     };
-    const bool ok=journal_.PublishGenerationCheckpoint(this,plan,bytes,sql,error);
+    return journal_.PublishGenerationCheckpoint(this,plan,bytes,sql,error);
+    }();}catch(...){Fail(error,"B checkpoint serialization/resource exception");}
+    // Before publication this is the candidate; after the swap this is the retired scratch.
+    std::string cleanup;if(!plan->Finish(&cleanup)){journal_.PoisonGeneration(this);if(error)*error+="; checkpoint scratch cleanup: "+cleanup;ok=false;}
     if(!ok&&!journal_.OwnsCatalog(this))derived_job_state_authoritative_=false;
     return ok;
 #else

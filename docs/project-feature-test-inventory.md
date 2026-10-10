@@ -4820,3 +4820,13 @@ node/value 변조·절단·중복·시험 disk 예산 초과의 오류/poison과
 제품 경로·기본 suite·출시 실행 계획에 연결하지 않은 미채택 실험이다. `MEM77-X01`은
 새 출시 기능 ID가 아니며, v4.5.0 메모리 P0의 정상/Open/checkpoint 통합 완료를 뜻하지 않는다.
 원본 완전성·저장 admission·동시성·전체 cleanup·메모리 비교는 별도 미충족이다.
+
+### MEM78-J01 · Journal 비영속 이력 조회 제품 연결
+
+내부 기능으로 UI action은 없다. `verify_recording_generation_checkpoint.sh`의 기존 전체
+세대/crypto/SQLite 행렬과 `history-product` 직접 분기가 대상이다. 원본 검증 후 두 namespace
+완전성, 과거 ID/최초 ordinal/정상 재시도와 충돌, active append/checkpoint/cold link/재Open,
+원본 접근과 scratch 소유권 분리, 반복 overwrite 고정 공간, 명시 Finish·실패 poison·정리를
+검증한다. 손상된 hit/miss와 불완전 구축은 Absent가 아닌 오류여야 한다. 정상 조회의 역사
+identity 복사본 제거만 이번 경계이며 Catalog/Open/checkpoint 전체 RAM·P0 완료는 별도다.
+단기 검증과 128/512/2048 비교만 수행하며 장시간/acceptance/UI 실행은 이 항목에 포함하지 않는다.

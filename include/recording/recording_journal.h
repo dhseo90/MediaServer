@@ -125,6 +125,8 @@ public:
     explicit RecordingJournal(std::filesystem::path path);
     explicit RecordingJournal(ManagedOptions options);
     ~RecordingJournal();
+    // 생산자가 중지된 뒤 호출한다. 오류는 소유자가 회수하고 destructor는 최후 정리만 한다.
+    bool Finish(std::string* error);
     bool HasManagedLease() const;
     std::string ManagedStoreId() const;
     bool Open(std::string* error);

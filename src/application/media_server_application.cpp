@@ -332,6 +332,11 @@ int RunMediaServerApplication(int argc, char** argv) {
         std::cerr << "recording catalog open failed: " << recording_error << "\n";
         return 1;
     }
+    const auto finish_recording_storage=[&](){
+        std::string detail;
+        if(recording_storage.Finish(&detail))return true;
+        std::cerr << "recording shutdown: " << detail << '\n';return false;
+    };
     auto& recording_journal=recording_storage.journal();
     auto& recording_catalog=recording_storage.catalog();
     recording::RetentionCoordinator::Options retention_options;
@@ -363,7 +368,7 @@ int RunMediaServerApplication(int argc, char** argv) {
             recording_root, recovery_now_ms, &startup_recovery, &recording_error)) {
         // 외부 URL이나 파일 경로를 노출하지 않는 고정 단계 진단.
         std::cerr << "recording startup recovery failed: stage=" << startup_recovery.failed_stage << "\n";
-        return 1;
+        (void)finish_recording_storage();return 1;
     }
     std::cout << "recording startup recovery complete: deleted=" << startup_recovery.deletions_completed
               << " recovered=" << startup_recovery.ready.recovered
@@ -559,7 +564,7 @@ int RunMediaServerApplication(int argc, char** argv) {
         if(event_recording_bridge)event_recording_bridge->StopAndDrain();
         analysis::SetEventRecordingBridge(nullptr);
         stop_observations();
-        return 1;
+        (void)finish_recording_storage();return 1;
     }
 
     std::string server_error;
@@ -573,7 +578,7 @@ int RunMediaServerApplication(int argc, char** argv) {
         analysis::StopEventStorage();
         analysis::SetEventRecordingBridge(nullptr);
         stop_observations();
-        return 1;
+        (void)finish_recording_storage();return 1;
     }
 
     std::string http_error;
@@ -588,7 +593,7 @@ int RunMediaServerApplication(int argc, char** argv) {
         analysis::StopEventStorage();
         analysis::SetEventRecordingBridge(nullptr);
         stop_observations();
-        return 1;
+        (void)finish_recording_storage();return 1;
     }
 
     std::cout << "gstreamer rtsp server started: yes\n";
@@ -622,6 +627,7 @@ int RunMediaServerApplication(int argc, char** argv) {
     analysis::SetEventRecordingBridge(nullptr);
     stop_observations();
     session_manager.SetAuxiliaryStreamRuntimeProvider({});
+    if(!finish_recording_storage())return 1;
     return 0;
 }
 

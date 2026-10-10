@@ -392,10 +392,13 @@ void Jobs(const std::filesystem::path& base) {
 }
 }
 #endif
+#define recording recording_experiment
 #include "recording_history_index_experiment.h"
+#undef recording
+#include "recording_history_index.h"
 #if MEDIA_SERVER_USE_OPENSSL && MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND
 void HistoryIndex(const std::filesystem::path& root) {
-    using Index=recording::RecordingHistoryIndex;
+    using Index=recording_experiment::RecordingHistoryIndex;
     std::filesystem::create_directories(root);
     std::string error,value;
     Index index;Need(index.Create(root.string(),16*1024*1024,&error));
@@ -429,15 +432,90 @@ void HistoryIndex(const std::filesystem::path& root) {
         Need(bad.Close(&error));
     }
 }
+void HistoryProduct(const std::filesystem::path& root) {
+    using Index=recording::RecordingHistoryIndex;
+    std::filesystem::create_directories(root);
+    std::string error,value;
+    Index index;Need(index.Create(root.string(),Index::BytesForRows(8),&error));
+    struct stat st{};Need(::fstat(index.ProbeFd(),&st)==0);
+    Check("MEM78-J01",st.st_nlink==0&&!std::filesystem::exists(root/index.owned_name()),"scratch anonymous while FD remains owned; original nlink rules unchanged");
+    Need(index.Put("key","original",false,&error));const auto bytes=index.usage().file_bytes;
+    for(int i=0;i<2048;++i)Need(index.Put("key",std::string(i%2048,'a'),true,&error));
+    Check("MEM78-J01",index.usage().file_bytes==bytes&&index.usage().allocated_bytes>0,"2048 overwrites reuse one fixed slot; anonymous disk is measured");
+    Check("MEM78-J01",index.Get("key",&value,&error)==Index::Lookup::Found&&value==std::string(2047,'a'),"cold lookup after repeated overwrite is exact");
+    Need(index.Close(&error));Check("MEM78-J01",index.Close(&error),"explicit finish idempotent");
+    for(int fault:{1,2,3,4}){
+        Index bad;Index::probe_fault=fault;
+        if(fault<=2)Check("MEM78-J01",!bad.Create(root.string(),Index::BytesForRows(2),&error)&&!error.empty(),"post-open/unlink injected failure is propagated and owned file removed");
+        else {
+            Index::probe_fault=0;Need(bad.Create(root.string(),Index::BytesForRows(2),&error));Need(bad.Put("key","value",false,&error));Index::probe_fault=fault;
+            if(fault==3){Check("MEM78-J01",!bad.Put("key","new",true,&error)&&bad.Get("absent",&value,&error)==Index::Lookup::Error,"partial write poisons both hit and miss");Index::probe_fault=0;Need(bad.Close(&error));}
+            else {Check("MEM78-J01",!bad.Close(&error)&&!bad.Close(&error),"close uncertainty persists without retrying released descriptor");}
+        }
+        Index::probe_fault=0;
+        Check("MEM78-J01",std::filesystem::is_empty(root),"create/failure finish leaves no named scratch");
+    }
+    {Index bad;Index::probe_fault=5;
+     Check("MEM78-J01",!bad.Create(root.string(),Index::BytesForRows(1),&error)&&error.find("cleanup:")!=std::string::npos&&!bad.Close(&error),"Create directory close uncertainty remains sticky through owner finish");
+     Index::probe_fault=0;Check("MEM78-J01",std::filesystem::is_empty(root),"directory close uncertainty leaves no named scratch");}
+    for(const bool hit:{false,true}){
+        Index bad;Need(bad.Create(root.string(),Index::BytesForRows(1),&error));Need(bad.Put("key","value",false,&error));
+        const char x='x';Need(::pwrite(bad.ProbeFd(),&x,1,hit?512:512+2048)==1);
+        Check("MEM78-J01",bad.Get(hit?"key":"absent",&value,&error)==Index::Lookup::Error,"corrupt hit value or miss path fails closed");Need(bad.Close(&error));
+    }
+    {Index cap;Need(cap.Create(root.string(),Index::BytesForRows(1),&error));Need(cap.Put("one","value",false,&error));
+     Check("MEM78-J01",!cap.Put("two","value",false,&error)&&!cap.Healthy(&error),"exact disk bound fails as resource error, not Absent");Need(cap.Close(&error));}
+    {Index source,target;Need(source.Create(root.string(),Index::BytesForRows(3),&error));
+     Need(source.Put("original","value",false,&error));Need(target.Create(root.string(),Index::BytesForRows(4),&error));
+     Need(target.CopyFrom(source,&error));Need(target.Put("new","new-value",false,&error));
+     Check("MEM78-J01",source.Get("new",&value,&error)==Index::Lookup::Absent&&target.Get("original",&value,&error)==Index::Lookup::Found&&value=="value","bounded FD clone preserves source miss and exact inherited value");
+     Need(target.Close(&error));Need(source.Close(&error));}
+    // Real Journal Open uses the source validator and rejects omitted and incorrect ordinal index rows.
+    for(int fault:{1,2}){const auto store=root/("source-"+std::to_string(fault));Actual(store);
+        ProbeRecordingIdentityHistoryFault(fault);RecordingJournal j(Options(store));
+        Check("MEM78-J01",!j.Open(&error),"original-complete seal rejects rebuild omission/wrong ordinal in product Open");
+        ProbeRecordingIdentityHistoryFault(0);Need(j.Finish(&error));
+        RecordingJournal reopened(Options(store));Check("MEM78-J01",reopened.Open(&error),"fresh owner rebuilds from unchanged originals after incomplete candidate");Need(reopened.Finish(&error));
+    }
+
+    {const auto source=root/"source-readonly";Actual(source);
+     {RecordingJournal j(Options(source));Need(j.Open(&error));Need(j.Finish(&error));}
+     Need(::chmod(source.c_str(),0500)==0);
+     RecordingJournal j(Options(source));const bool opened=j.Open(&error);
+     Need(::chmod(source.c_str(),0700)==0);
+     Check("MEM78-J01",opened,"Journal original root needs no new scratch write permission");Need(j.Finish(&error));}
+    {const auto crash=root/"crash";std::filesystem::create_directory(crash);
+     const pid_t child=::fork();Need(child>=0);
+     if(!child){Index abandoned;if(!abandoned.Create(crash.string(),Index::BytesForRows(1),&error))::_exit(2);
+       if(!abandoned.Put("key","value",false,&error))::_exit(3);
+       ::_exit(0);}
+     int status=0;Need(::waitpid(child,&status,0)==child);
+     Check("MEM78-J01",WIFEXITED(status)&&WEXITSTATUS(status)==0&&std::filesystem::is_empty(crash),"process exit without destructors leaves no named scratch");}
+    {RecordingIdentityFirstAcceptance first;
+     first.mutation_id=std::string(128,'m');first.first_global_ordinal=UINT64_MAX;first.occurrences=1;
+     auto& row=first.first_row;row.mutation_id=first.mutation_id;row.global_ordinal=UINT64_MAX;
+     row.type=RecordingMutationType::RecordingOrderReserved;row.entity_id=std::string(128,'e');row.occurred_at_ms=INT64_MIN;
+     row.identity=std::string(64,'a');row.raw_sha256=std::string(64,'b');row.archive_slot=UINT64_MAX;row.offset=UINT64_MAX;row.length=UINT64_MAX;
+     RecordingOrderReservationV1 order;order.store_id=std::string(128,'s');order.request_id=row.mutation_id;order.segment_id=row.entity_id;order.channel_id=std::string(128,'c');order.sequence=INT64_MAX;row.reservation=order;
+     first.first_archive={"evidence-18446744073709551615-18446744073709551615.jsonl",UINT64_MAX,std::string(64,'c')};
+     RecordingIdentityHistoryHandle history;
+     Check("MEM78-J01",BuildRecordingIdentityHistory({}, {first},0,&history,&error),"maximum-width accepted DTO fields fit fixed slot independently of 16MiB cold payload");
+     std::optional<RecordingIdentityFirstAcceptance> read;
+     Check("MEM78-J01",FindRecordingIdentityHistory(history,first.mutation_id,&read,&error)&&read&&read->first_row.reservation->channel_id==order.channel_id,"maximum-width DTO roundtrip exact");
+     Check("MEM78-J01",!ValidateRecordingIdentityHistoryCoverage(history,2,&error),"omitted active physical coverage rejected");Need(CloseRecordingIdentityHistory(history,&error));}
+    IdentityResidency(root/"product-transition");
+}
+
 #endif
 int main(int argc,char** argv) {
     if(argc!=2&&argc!=3)return 2;
-    if(argc==3&&std::string(argv[2])!="history-index"&&std::string(argv[2])!="residency"&&std::string(argv[2])!="scale-1000"&&std::string(argv[2])!="scale-100000"&&std::string(argv[2])!="scale-baseline-1000"&&std::string(argv[2])!="scale-baseline-100000")return 2;
+    if(argc==3&&std::string(argv[2])!="history-product"&&std::string(argv[2])!="history-index"&&std::string(argv[2])!="residency"&&std::string(argv[2])!="scale-1000"&&std::string(argv[2])!="scale-100000"&&std::string(argv[2])!="scale-baseline-1000"&&std::string(argv[2])!="scale-baseline-100000")return 2;
     try {
         const std::filesystem::path root(argv[1]);std::filesystem::create_directories(root);
 #if MEDIA_SERVER_USE_OPENSSL && MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND
         if(argc==3&&std::string(argv[2]).rfind("scale-",0)==0){IdentityScale(root/"scale",std::stoull(std::string(argv[2]).substr(std::string(argv[2]).find_last_of('-')+1)),std::string(argv[2]).find("baseline")!=std::string::npos);return failures?1:0;}
         if(argc==3&&std::string(argv[2])=="history-index"){HistoryIndex(root/"history-index");return failures?1:0;}
+        if(argc==3&&std::string(argv[2])=="history-product"){HistoryProduct(root/"history-product");return failures?1:0;}
         IdentityResidency(root/"identity-residency");
         if(argc==3)return failures?1:0;
         ExportValueBoundary(root/"export-values");Rotation(root/"rotate");ObserverRace(root/"observer-race");Failures(root/"failures");Cost(root/"cost");Admission(root/"admission");Threshold(root/"threshold");Limits(root/"limits");Jobs(root/"jobs");SQL_CHECKPOINT_CASES::Run(root);

@@ -23,14 +23,17 @@ RecordingCatalog::Options RuntimeCatalogOptions(const std::filesystem::path& roo
 }
 RecordingRuntimeStorage::RecordingRuntimeStorage(std::filesystem::path root)
     :root_(std::move(root)) {
-    ResetOwner();
+    (void)ResetOwner(nullptr);
 }
-void RecordingRuntimeStorage::ResetOwner(){
+bool RecordingRuntimeStorage::ResetOwner(std::string* error){
     // Catalog destructor가 Journal attachment를 해제한 다음에만 Journal lease를 닫는다.
-    catalog_.reset();journal_.reset();
+    catalog_.reset();if(journal_&&!journal_->Finish(error))return false;
+    journal_.reset();
     journal_=std::make_unique<RecordingJournal>(RecordingJournal::ManagedOptions{root_,{},RuntimeLimits()});
     catalog_=std::make_unique<RecordingCatalog>(*journal_,RuntimeCatalogOptions(root_));
+    return true;
 }
+bool RecordingRuntimeStorage::Finish(std::string* error){opened_=false;return !journal_||journal_->Finish(error);}
 bool RecordingRuntimeStorage::Open(std::string* error){
     // 시작 구성 전용이다. 실패한/복구한 owner를 외부 생산자에 재사용하지 않는다.
     if(open_attempted_){
@@ -39,6 +42,7 @@ bool RecordingRuntimeStorage::Open(std::string* error){
         return false;
     }
     open_attempted_=true;
+    const bool success=[&](){
 #if MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND && MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
     RecordingCutoverCandidateLimits limits;
     limits.chain={kComponentBytes,kCountRange,kCountRange};
@@ -47,12 +51,12 @@ bool RecordingRuntimeStorage::Open(std::string* error){
     if(!journal_->ProbeManagedRuntime(&pending,error))return false;
     if(pending){
         if(!catalog_->RecoverManagedCutover(limits,kComponentBytes,error))return false;
-        ResetOwner();
+        if(!ResetOwner(error))return false;
     }
     if(!journal_->Open(error))return false;
     if(!journal_->generation_state_){
         if(!catalog_->PublishManagedCutover(limits,error))return false;
-        ResetOwner();
+        if(!ResetOwner(error))return false;
         if(!journal_->Open(error))return false;
     }
     // managed Open이 검증한 같은 root의 정규 표현을 내부 소비자에도 사용한다.
@@ -65,6 +69,9 @@ bool RecordingRuntimeStorage::Open(std::string* error){
     if(!journal_->Open(error)||!catalog_->Open(error))return false;
 #endif
     opened_=true;if(error)error->clear();return true;
+    }();
+    if(!success){std::string cleanup;if(!Finish(&cleanup)&&error)*error+="; cleanup: "+cleanup;}
+    return success;
 }
 GStreamerSegmentWriter::Options RecordingRuntimeStorage::WriterOptions(std::int64_t segment_ms) {
     GStreamerSegmentWriter::Options options{root_,segment_ms};

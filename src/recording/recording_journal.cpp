@@ -635,19 +635,51 @@ struct RecordingGenerationMutationRef {
     std::string mutation_id,identity;
     std::uint64_t ordinal{0};
 };
+#if MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND && !defined(_WIN32)
+// active만 RAM에 보관한다. historical miss는 검증된 디스크 root의 부정 조회다.
+class GenerationIdentityIndex {
+public:
+    struct Identity {std::string digest;bool historical;std::size_t slot;std::optional<RecordingIdentityFirstAcceptance> first{};};
+    struct Iterator {
+        std::optional<std::pair<std::string,Identity>> value;
+        const auto* operator->()const{return &*value;}
+        bool operator==(const Iterator& b)const{return !value&&!b.value;}
+        bool operator!=(const Iterator& b)const{return !(*this==b);}
+    };
+    Iterator end()const{return {};}
+    Iterator find(const std::string& id)const {
+        const auto active=active_.find(id);if(active!=active_.end())return {std::make_pair(id,active->second)};
+        if(!history_)return {};
+        std::optional<RecordingIdentityFirstAcceptance> first;std::string error;
+        if(!FindRecordingIdentityHistory(history_,id,&first,&error))throw std::runtime_error(error);
+        if(!first)return {};
+        return {std::make_pair(id,Identity{{},true,0,std::move(first)})};
+    }
+    Identity at(const std::string& id)const {auto found=find(id);if(found==end())throw std::out_of_range("generation identity missing");return found->second;}
+    void emplace(const std::string& id,Identity value){if(find(id)==end())active_.emplace(id,std::move(value));}
+    std::size_t size()const{return RecordingIdentityHistorySize(history_)+active_.size();}
+    void SetHistory(RecordingIdentityHistoryHandle history){history_=std::move(history);decltype(active_){}.swap(active_);}
+    void swap(GenerationIdentityIndex& b){history_.swap(b.history_);active_.swap(b.active_);}
+    const auto& resident()const{return active_;}
+private:
+    RecordingIdentityHistoryHandle history_;
+    std::unordered_map<std::string,Identity> active_;
+};
+#endif
 struct RecordingJournalGenerationState {
 #if MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND && !defined(_WIN32)
     const void* write_owner{nullptr};
     std::filesystem::path active_path;
     RecordingGenerationActiveReadResult active;
     RecordingIdentityChainResult chain;
+    std::uint64_t scratch_peak_bytes{0},scratch_peak_allocated{0};
     RecordingCatalogGenerationProjection projection;
     // snapshot 이후 active를 소비한 Journal 전용 인덱스. Catalog 상태 전이 증명이 아니다.
     OrderHistoryIndex order;
     // active만 합성 identity를 캐시한다. historical은 검증된 chain의 최초 행에서 복원한다.
     // 필수 ID/최초 ordinal/entity/time/digest와 cold 위치는 그대로 보존한다.
-    struct Identity { std::string digest; bool historical; std::size_t slot; };
-    std::unordered_map<std::string,Identity> identities;
+    using Identity=GenerationIdentityIndex::Identity;
+    GenerationIdentityIndex identities;
     std::unordered_set<std::string> archive_names;
     std::shared_ptr<const char> link_epoch;
     bool recovery_started{false};
@@ -667,7 +699,7 @@ void RecordingJournal::ProbeGenerationIdentityStorage(std::size_t* count,
     if(!generation_state_)return;
     *count=generation_state_->identities.size();
     if(order_copy_count)*order_copy_count=generation_state_->chain.order_history.reservations.size();
-    for(const auto& entry:generation_state_->identities)
+    for(const auto& entry:generation_state_->identities.resident())
         (entry.second.historical?*historical_bytes:*active_bytes)+=entry.second.digest.size();
 #endif
 }
@@ -692,12 +724,13 @@ struct RecordingGenerationCheckpointPlan::State {
     std::shared_ptr<const char> epoch;
     std::string predecessor,identity_bytes;
     struct stat active_binding{};
-    std::unordered_map<std::string,RecordingJournalGenerationState::Identity> identities;
+    GenerationIdentityIndex identities;
     std::unordered_set<std::string> archives;
 #endif
 };
 RecordingGenerationCheckpointPlan::RecordingGenerationCheckpointPlan()=default;
-RecordingGenerationCheckpointPlan::~RecordingGenerationCheckpointPlan()=default;
+RecordingGenerationCheckpointPlan::~RecordingGenerationCheckpointPlan(){try{Finish(nullptr);}catch(...){}}
+bool RecordingGenerationCheckpointPlan::Finish(std::string* error){return CloseRecordingIdentityHistory(chain.history,error);}
 #endif
 class RecordingJournalRecordRef {
     friend class RecordingJournal;
@@ -784,7 +817,8 @@ std::string MutationIdentityKey(const std::string& entity,std::int64_t occurred,
 std::string GenerationIdentityKey(const RecordingJournalGenerationState& state,
     const RecordingJournalGenerationState::Identity& identity) {
     if(!identity.historical)return identity.digest;
-    const auto& row=state.chain.first_acceptances.at(identity.slot).first_row;
+    (void)state;
+    const auto& row=identity.first.value().first_row;
     return MutationIdentityKey(row.entity_id,row.occurred_at_ms,row.identity);
 }
 #endif
@@ -897,11 +931,20 @@ RecordingJournal::RecordingJournal(std::filesystem::path path) : path_(std::move
 RecordingJournal::RecordingJournal(ManagedOptions options)
     : generation_limits_(options.generation_limits),managed_(true),managed_root_(std::move(options.root)),managed_store_id_(std::move(options.store_id)),
       path_(managed_root_/"recording-v2-mutations.jsonl") {}
-RecordingJournal::~RecordingJournal() {
-#if !defined(_WIN32)
-    if(managed_fd_>=0)::close(managed_fd_);
-    if(lease_fd_>=0)::close(lease_fd_);
+RecordingJournal::~RecordingJournal() {try{Finish(nullptr);}catch(...){}}
+bool RecordingJournal::Finish(std::string* error) {
+    std::lock_guard lock(mu_);
+    bool ok=true;std::string detail;
+#if MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND && !defined(_WIN32)
+    if(generation_state_&&!CloseRecordingIdentityHistory(generation_state_->chain.history,&detail))ok=false;
 #endif
+#if !defined(_WIN32)
+    if(managed_fd_>=0){const int fd=managed_fd_;managed_fd_=-1;if(::close(fd)){ok=false;detail+="; journal close failure";}}
+    if(lease_fd_>=0){const int fd=lease_fd_;lease_fd_=-1;if(::close(fd)){ok=false;detail+="; lease close failure";}}
+#endif
+    opened_=false;poisoned_=true;
+    if(!ok&&error)*error=detail;
+    return ok;
 }
 #if MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND && !defined(_WIN32)
 namespace {
@@ -933,10 +976,7 @@ bool ValidateGenerationActiveIndex(RecordingJournalGenerationState* state,std::s
         order.request_times.emplace(entry.order.request_id,entry.occurred_at_ms);
         order.segments.insert(entry.order.segment_id);
     }
-    for(std::size_t i=0;i<state->chain.first_acceptances.size();++i) {
-        const auto& first=state->chain.first_acceptances[i];
-        state->identities.emplace(first.mutation_id,RecordingJournalGenerationState::Identity{{},true,i});
-    }
+    state->identities.SetHistory(state->chain.history);
     const auto cut=state->active.manifest.cut_ordinal;
     for(std::size_t i=0;i<state->active.rows.size();++i) {
         const auto& row=state->active.rows[i];const auto& mutation=row.mutation;
@@ -981,6 +1021,8 @@ bool RecordingJournal::OpenGenerationReadOnlyLocked(const std::string& store,std
     if(!limits.snapshot_bytes||!limits.active_bytes||!limits.identity_shard_bytes||!limits.identity_unique_ids||
        !limits.identity_archives||!limits.cold_row_bytes)return Fail(error,"B read-only admission 미설정");
     if(!managed_store_id_.empty()&&managed_store_id_!=store)return Fail(error,"B store ID 충돌");
+    std::unique_ptr<RecordingJournalGenerationState> state;
+    const bool success=[&](){
     try {
         OwnedFd parent(OpenParent(io_path_,false));struct stat p{},l{},m{};
         if(parent.value<0||::fstat(parent.value,&p)!=0||Present(parent.value,kManagedInit))return Fail(error,"B root/init 충돌");
@@ -988,7 +1030,7 @@ bool RecordingJournal::OpenGenerationReadOnlyLocked(const std::string& store,std
         if(lease.value<0||!Regular(lease.value,&l)||l.st_size||!Lock(lease.value,LOCK_EX|LOCK_NB)||
            !Same(parent.value,kManagedLease,lease.value,l)||!ExactFile(parent.value,kManagedFormat,GenerationFormat(store),&m))
             return Fail(error,"B 독점 lease/marker 거부");
-        auto state=std::make_unique<RecordingJournalGenerationState>();
+        state=std::make_unique<RecordingJournalGenerationState>();
         const auto bind=[&](const std::string& name){struct stat s{};
             if(!GenerationStat(parent.value,name,&s))return false;
             state->bindings.emplace_back(name,s);return true;};
@@ -1011,6 +1053,8 @@ bool RecordingJournal::OpenGenerationReadOnlyLocked(const std::string& store,std
               {limits.identity_shard_bytes,limits.identity_unique_ids,limits.identity_archives},&state->chain,error)||
            !BuildRecordingCatalogGenerationProjection(managed_root_,manifest.manifest,state->chain,snapshot,
               limits.cold_row_bytes,&state->projection,error,true)||
+           !BuildRecordingIdentityHistory(managed_root_,state->chain.first_acceptances,0,&state->chain.history,error)||
+           !ValidateRecordingIdentityHistoryCoverage(state->chain.history,state->chain.physical_rows,error)||
            !ReadRecordingGenerationActive(managed_root_,limits.active_bytes,&state->active,error)||
            !ValidateGenerationActiveIndex(state.get(),error))return false;
         std::string observed;
@@ -1025,13 +1069,16 @@ bool RecordingJournal::OpenGenerationReadOnlyLocked(const std::string& store,std
         state->bindings.clear();
         // 검증 사본의 수명은 여기까지다. 주문 인덱스와 복구 projection은
         // 각자의 값을 소유하며 다음 checkpoint는 주문 인덱스에서 다시 구성한다.
+        state->scratch_peak_bytes=RecordingIdentityHistoryBytes(state->chain.history);
+        state->scratch_peak_allocated=RecordingIdentityHistoryBytes(state->chain.history,true);
         state->chain.order_history={};
+        std::vector<RecordingIdentityFirstAcceptance>{}.swap(state->chain.first_acceptances);
         // active envelope와 ID/예약 인덱스만 검증됐다. Catalog 의미 적용/조회/쓰기는 금지한다.
         managed_store_id_=store;managed_fd_=active.value;active.value=-1;lease_fd_=lease.value;lease.value=-1;
         owner_pid_=::getpid();device_=a.st_dev;inode_=a.st_ino;parent_device_=p.st_dev;parent_inode_=p.st_ino;
         lease_inode_=l.st_ino;marker_inode_=m.st_ino;generation_state_=std::move(state);opened_=true;poisoned_=false;
         if(!GenerationBindingLocked()){
-            ::close(managed_fd_);::close(lease_fd_);managed_fd_=lease_fd_=-1;opened_=false;generation_state_.reset();
+            ::close(managed_fd_);::close(lease_fd_);managed_fd_=lease_fd_=-1;opened_=false;if(generation_state_)state=std::move(generation_state_);
             return Fail(error,"B 최종 root/FD 결박 실패");
         }
         if(error)error->clear();
@@ -1039,9 +1086,13 @@ bool RecordingJournal::OpenGenerationReadOnlyLocked(const std::string& store,std
     }catch(...){
         if(managed_fd_>=0)::close(managed_fd_);
         if(lease_fd_>=0)::close(lease_fd_);
-        managed_fd_=lease_fd_=-1;opened_=false;generation_state_.reset();
+        managed_fd_=lease_fd_=-1;opened_=false;if(generation_state_)state=std::move(generation_state_);
         return Fail(error,"B read-only 준비/자원 실패");
     }
+    }();
+    if(!success&&state){std::string cleanup;
+        if(!CloseRecordingIdentityHistory(state->chain.history,&cleanup)&&error)*error+="; cleanup: "+cleanup;}
+    return success;
 #else
     (void)store;return Fail(error,"B read-only backend/crypto unsupported");
 #endif
@@ -1089,7 +1140,9 @@ bool RecordingJournal::CheckManagedFdStateLocked(std::string* error) const {
     if(!managed_)return true;
 #if !defined(_WIN32)
     if(generation_state_){
-        if(!poisoned_&&GenerationBindingLocked())return true;
+#if MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND
+        if(!poisoned_&&GenerationBindingLocked()&&RecordingIdentityHistoryHealthy(generation_state_->chain.history,error))return true;
+#endif
         poisoned_=true;return Fail(error,"B read-only binding 변경: 재open 필요");
     }
     struct stat status{};
@@ -1506,17 +1559,17 @@ bool RecordingJournal::MakeGenerationMutationLink(const std::string& id,Recordin
     std::lock_guard lock(mu_);
     if(!generation_state_||!CheckManagedStateLocked(error))return Fail(error,"B link 세대 권한 거부");
     auto& state=*generation_state_;
-    const auto found=state.identities.find(id);
-    if(found==state.identities.end())return Fail(error,"B link ID 없음");
     try {
+        const auto found=state.identities.find(id);
+        if(found==state.identities.end())return Fail(error,"B link ID 없음");
         if(!state.link_epoch)state.link_epoch=std::make_shared<const char>(0);
         auto ref=std::make_shared<RecordingGenerationMutationRef>();
         ref->epoch=state.link_epoch;ref->mutation_id=id;ref->identity=GenerationIdentityKey(state,found->second);
-        ref->ordinal=found->second.historical?state.chain.first_acceptances.at(found->second.slot).first_global_ordinal:
+        ref->ordinal=found->second.historical?found->second.first.value().first_global_ordinal:
             state.active.rows.at(found->second.slot).global_ordinal;
         RecordingMutationLink result;result.generation_ref_=std::move(ref);
         *output=std::move(result);if(error)error->clear();return true;
-    }catch(...){return Fail(error,"B link 자원 실패");}
+    }catch(...){poisoned_=true;return Fail(error,"B link 자원/이력 실패");}
 #else
     (void)id;(void)output;return Fail(error,"B link unsupported");
 #endif
@@ -1557,7 +1610,7 @@ bool RecordingJournal::ReadGenerationRecovery(const std::shared_ptr<RecordingGen
         if(!state.link_epoch)state.link_epoch=std::make_shared<const char>(0);
         auto ref=std::make_shared<RecordingGenerationMutationRef>();ref->epoch=state.link_epoch;
         ref->mutation_id=row.mutation.mutation_id;ref->identity=GenerationIdentityKey(state,first);
-        ref->ordinal=first.historical?state.chain.first_acceptances.at(first.slot).first_global_ordinal:state.active.rows.at(first.slot).global_ordinal;
+        ref->ordinal=first.historical?first.first.value().first_global_ordinal:state.active.rows.at(first.slot).global_ordinal;
         result->link.generation_ref_=std::move(ref);
         *out=std::move(result);++session->next;return true;
     }catch(...){poisoned_=true;return Fail(error,"B 복원 active 자원/색인 실패");}
@@ -1636,15 +1689,14 @@ bool RecordingJournal::VisitGenerationIdentities(const std::shared_ptr<Recording
     if(!session||session->ended||!generation_state_||session->epoch!=generation_state_->recovery_epoch||!CheckManagedStateLocked(error))
         return Fail(error,"B identity 세션 거부");
     const auto& state=*generation_state_;
-    for(const auto& pair:state.identities) {
-        const auto& first=pair.second;
-        if(first.historical) {
-            const auto& row=state.chain.first_acceptances.at(first.slot).first_row;
-            if(!visit(pair.first,row.type,row.entity_id,row.occurred_at_ms,row.global_ordinal,GenerationIdentityKey(state,first)))return false;
-        }else {
-            const auto& row=state.active.rows.at(first.slot);const auto& m=row.mutation;
-            if(!visit(pair.first,m.mutation_type,m.entity_id,m.occurred_at_ms,row.global_ordinal,first.digest))return false;
-        }
+    if(!VisitRecordingIdentityHistory(state.chain.history,[&](const auto& accepted,std::string*){
+        const auto& row=accepted.first_row;
+        return visit(accepted.mutation_id,row.type,row.entity_id,row.occurred_at_ms,row.global_ordinal,
+            MutationIdentityKey(row.entity_id,row.occurred_at_ms,row.identity));
+    },error))return false;
+    for(const auto& pair:state.identities.resident()) {
+        const auto& first=pair.second;const auto& row=state.active.rows.at(first.slot);const auto& m=row.mutation;
+        if(!visit(pair.first,m.mutation_type,m.entity_id,m.occurred_at_ms,row.global_ordinal,first.digest))return false;
     }
     return true;
 #else
@@ -1704,10 +1756,9 @@ bool RecordingJournal::AcquireMutationLinkWithProof(const RecordingMutationLink&
                 if(saved.active&&location.historical)proof->reset();
             }
             if(location.historical) {
-                if(location.slot>=state.chain.first_acceptances.size()||
-                   state.chain.first_acceptances[location.slot].first_global_ordinal!=ref.ordinal)
+                if(!location.first||location.first->first_global_ordinal!=ref.ordinal)
                     return Fail(error,"B link 과거 좌표 거부");
-                const auto& accepted=state.chain.first_acceptances[location.slot];
+                const auto& accepted=*location.first;
                 const auto& row=accepted.first_row;const auto& archive=accepted.first_archive;
                 OwnedFd parent(OpenParent(io_path_,false));
                 const auto bound=[&](const ColdReadProof& p){
@@ -1758,7 +1809,7 @@ bool RecordingJournal::AcquireMutationLinkWithProof(const RecordingMutationLink&
                     }catch(...){prepared.reset();} // 선택적 증명 할당/FD 실패는 기존 strict 경로로 처리한다.
                 }
                 if(!ReadVerifiedRecordingIdentityMutation(managed_root_,state.active.manifest,
-                    state.chain.first_acceptances[location.slot],generation_limits_.cold_row_bytes,&value,error)) {
+                    accepted,generation_limits_.cold_row_bytes,&value,error)) {
                     poisoned_=true;return false;
                 }
                 if(prepared&&!bound(*prepared)){poisoned_=true;return Fail(error,"B read proof initial file changed");}
@@ -2419,10 +2470,12 @@ bool RecordingJournal::ValidatePreappend(const void* owner,const RecordingMutati
     const auto identity=MutationIdentityKey(mutation.entity_id,mutation.occurred_at_ms,digest);
 #if MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND && !defined(_WIN32)
     if(generation_state_) {
+      try {
         const auto old=generation_state_->identities.find(mutation.mutation_id);
         if(old!=generation_state_->identities.end()&&GenerationIdentityKey(*generation_state_,old->second)!=identity)
             return Fail(error,"preappend B mutation ID 충돌");
         return generation_state_->order.Consume(mutation,error,false);
+      }catch(...){poisoned_=true;return Fail(error,"preappend history index failure");}
     }
 #endif
     if(!managed_state_||managed_state_->checkpoint_pending)return Fail(error,"preappend checkpoint 복구 필요");
@@ -2470,16 +2523,18 @@ bool RecordingJournal::PrepareGenerationCheckpoint(const void* owner,
     std::lock_guard lock(mu_);
     if(!owner||owner!=catalog_owner_||!generation_state_||generation_state_->write_owner!=owner||ManagedTransactionPendingLocked()||!CheckManagedStateLocked(error))return false;
     auto& current=*generation_state_;
+    std::shared_ptr<RecordingGenerationCheckpointPlan> plan;
+    const bool success=[&](){
     try {
         if(current.active.rows.empty()){output->reset();if(error)error->clear();return true;}
         const auto& manifest=current.active.manifest;
         if(manifest.generation==UINT64_MAX||current.active.rows.size()>UINT64_MAX-manifest.cut_ordinal||
            static_cast<std::uint64_t>(current.active_binding.st_size)>1024ULL*1024*1024||!Sync(managed_fd_))return Fail(error,"B checkpoint generation/cut/size/fsync 거부");
-        auto plan=std::shared_ptr<RecordingGenerationCheckpointPlan>(new RecordingGenerationCheckpointPlan);
+        plan=std::shared_ptr<RecordingGenerationCheckpointPlan>(new RecordingGenerationCheckpointPlan);
         plan->state=std::make_unique<RecordingGenerationCheckpointPlan::State>();
         auto& pending=*plan->state;pending.epoch=current.recovery_epoch;pending.predecessor=current.manifest_bytes;
         pending.active_binding=current.active_binding;pending.archives=current.archive_names;
-        plan->generation=manifest.generation+1;plan->cut=manifest.cut_ordinal+current.active.rows.size();plan->chain=current.chain;
+        plan->generation=manifest.generation+1;plan->cut=manifest.cut_ordinal+current.active.rows.size();plan->chain=current.chain;plan->chain.history.reset();
         RecordingIdentityShard shard;shard.store_id=managed_store_id_;shard.generation=plan->generation;shard.previous=current.chain.head;
         std::unique_ptr<EVP_MD_CTX,decltype(&EVP_MD_CTX_free)> hash(EVP_MD_CTX_new(),EVP_MD_CTX_free);
         if(!hash||EVP_DigestInit_ex(hash.get(),EVP_sha256(),nullptr)!=1)return Fail(error,"B checkpoint digest 초기화 실패");
@@ -2513,24 +2568,29 @@ bool RecordingJournal::PrepareGenerationCheckpoint(const void* owner,
         ++plan->chain.shards;plan->chain.physical_rows+=shard.rows.size();
         for(const auto& file:shard.archives)plan->chain.archive_files.push_back(file);
         std::sort(plan->chain.archive_files.begin(),plan->chain.archive_files.end(),[](const auto& a,const auto& b){return a.name<b.name;});
-        std::unordered_map<std::string,std::size_t> first;
-        for(std::size_t i=0;i<plan->chain.first_acceptances.size();++i)first.emplace(plan->chain.first_acceptances[i].mutation_id,i);
-        for(const auto& row:shard.rows){const auto found=first.find(row.mutation_id);
-            if(found!=first.end()){auto& accepted=plan->chain.first_acceptances[found->second];if(accepted.occurrences==UINT64_MAX)return Fail(error,"B checkpoint multiplicity overflow");++accepted.occurrences;}
-            else {first.emplace(row.mutation_id,plan->chain.first_acceptances.size());RecordingIdentityFirstAcceptance accepted;
-                accepted.mutation_id=row.mutation_id;accepted.first_global_ordinal=row.global_ordinal;accepted.occurrences=1;accepted.first_row=row;accepted.first_archive=archive;
-                plan->chain.first_acceptances.push_back(std::move(accepted));}
+        if(!CloneRecordingIdentityHistory(current.chain.history,managed_root_,shard.rows.size(),&plan->chain.history,error))return false;
+        for(const auto& row:shard.rows) {
+            const auto& archive=shard.archives.at(row.archive_slot);
+            if(!AppendRecordingIdentityHistory(plan->chain.history,row,archive,error))return false;
             plan->chain.maximum_global_ordinal=row.global_ordinal;
         }
+        if(!ValidateRecordingIdentityHistoryCoverage(plan->chain.history,plan->chain.physical_rows,error))return false;
+        current.scratch_peak_bytes=std::max(current.scratch_peak_bytes,RecordingIdentityHistoryBytes(current.chain.history)+RecordingIdentityHistoryBytes(plan->chain.history));
+        current.scratch_peak_allocated=std::max(current.scratch_peak_allocated,RecordingIdentityHistoryBytes(current.chain.history,true)+RecordingIdentityHistoryBytes(plan->chain.history,true));
+        // 기존 snapshot exporter와의 임시 경계. streaming export 전까지 전체 DTO는 남는다.
+        if(!VisitRecordingIdentityHistory(plan->chain.history,[&](const auto& first,std::string*){
+            plan->chain.first_acceptances.push_back(first);return true;
+        },error))return false;
         auto& orders=plan->chain.order_history;orders={};orders.bound_store=current.order.bound_store;orders.maximum=current.order.maximum;
         for(const auto& item:current.order.requests)orders.reservations.push_back({item.second,current.order.request_times.at(item.first)});
         orders.ordinary_ids.assign(current.order.ordinary_ids.begin(),current.order.ordinary_ids.end());
         orders.legacy_segments.assign(current.order.legacy_segments.begin(),current.order.legacy_segments.end());
-        for(std::size_t i=0;i<plan->chain.first_acceptances.size();++i){const auto& accepted=plan->chain.first_acceptances[i];
-            (void)current.identities.at(accepted.mutation_id);
-            pending.identities.emplace(accepted.mutation_id,RecordingJournalGenerationState::Identity{{},true,i});}
+        pending.identities.SetHistory(plan->chain.history);
         *output=std::move(plan);if(error)error->clear();return true;
     }catch(...){return Fail(error,"B checkpoint prepare 자원 실패");}
+    }();
+    if(!success&&plan){std::string cleanup;if(!plan->Finish(&cleanup)){poisoned_=true;if(error)*error+="; cleanup: "+cleanup;}}
+    return success;
 #else
     (void)owner;(void)output;return Fail(error,"B checkpoint unsupported");
 #endif
@@ -2635,6 +2695,7 @@ bool RecordingJournal::PublishGenerationCheckpoint(const void* owner,const std::
         // snapshot 검증/게시가 끝난 후보의 예약 사본을 상시 보유하지 않는다.
         // 정확한 재시도/충돌 검사는 그대로 current.order가 담당한다.
         current.chain.order_history={};
+        std::vector<RecordingIdentityFirstAcceptance>{}.swap(current.chain.first_acceptances);
         if(error)error->clear();
         return true;
       }();
@@ -2801,7 +2862,7 @@ bool RecordingJournal::AppendGenerationLocked(const void* owner,const RecordingM
         const auto cut=state.active.manifest.cut_ordinal;
         if(!retry&&(state.identities.size()>=generation_limits_.identity_unique_ids||slot>=std::numeric_limits<std::uint64_t>::max()-cut))
             return Fail(error,"B ID admission/ordinal 고갈");
-        const auto ordinal=retry?(historical?state.chain.first_acceptances.at(slot).first_global_ordinal:state.active.rows.at(slot).global_ordinal):cut+slot;
+        const auto ordinal=retry?(historical?prior->second.first.value().first_global_ordinal:state.active.rows.at(slot).global_ordinal):cut+slot;
         // append-only 세대 원장은 뒤의 삭제 전이에서 앞 bound 행을 다시 쓸 수 없다.
         // 지원하는 큰 영상 상세는 처음부터 기존 가역 wrapper로만 물리 압축하되,
         // identity·projection·반환값은 검증된 논리 envelope를 계속 사용한다.

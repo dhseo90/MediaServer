@@ -36,6 +36,27 @@ struct RecordingIdentityFirstAcceptance {
     // first_row.archive_slot은 shard-local이므로 체인 결과에서는 확정 descriptor를 함께 반환한다.
     RecordingGenerationFile first_archive;
 };
+// 원본 검증으로 채운 process-local 파생 조회. 영속 원본/재개방 권위가 아니다.
+class RecordingIdentityHistory;
+using RecordingIdentityHistoryHandle=std::shared_ptr<RecordingIdentityHistory>;
+using RecordingIdentityFirstVisitor=std::function<bool(const RecordingIdentityFirstAcceptance&,std::string*)>;
+bool BuildRecordingIdentityHistory(const std::filesystem::path&,const std::vector<RecordingIdentityFirstAcceptance>&,
+    std::uint64_t additional_rows,RecordingIdentityHistoryHandle*,std::string*);
+bool CloneRecordingIdentityHistory(const RecordingIdentityHistoryHandle&,const std::filesystem::path&,
+    std::uint64_t additional_rows,RecordingIdentityHistoryHandle*,std::string*);
+bool FindRecordingIdentityHistory(const RecordingIdentityHistoryHandle&,const std::string&,
+    std::optional<RecordingIdentityFirstAcceptance>*,std::string*);
+bool VisitRecordingIdentityHistory(const RecordingIdentityHistoryHandle&,const RecordingIdentityFirstVisitor&,std::string*);
+bool AppendRecordingIdentityHistory(const RecordingIdentityHistoryHandle&,const RecordingIdentityRow&,
+    const RecordingGenerationFile&,std::string*);
+bool RecordingIdentityHistoryHealthy(const RecordingIdentityHistoryHandle&,std::string*);
+#if defined(MEDIA_SERVER_RECORDING_GENERATION_TESTING)
+void ProbeRecordingIdentityHistoryFault(int);
+#endif
+bool CloseRecordingIdentityHistory(const RecordingIdentityHistoryHandle&,std::string*);
+bool ValidateRecordingIdentityHistoryCoverage(const RecordingIdentityHistoryHandle&,std::uint64_t,std::string*);
+std::uint64_t RecordingIdentityHistoryBytes(const RecordingIdentityHistoryHandle&,bool allocated=false);
+std::size_t RecordingIdentityHistorySize(const RecordingIdentityHistoryHandle&);
 struct RecordingIdentityChainResult {
     // 모든 shard에서 동일함을 확인한 store ID. 예약 행이 없는 chain에서도 비지 않는다.
     std::string store_id;
@@ -47,6 +68,7 @@ struct RecordingIdentityChainResult {
     // chain 검증에서 수용한 archive descriptor 전수다. 증분 검증 시 이름·내용 충돌을 다시 확인한다.
     std::vector<RecordingGenerationFile> archive_files;
     std::vector<RecordingIdentityFirstAcceptance> first_acceptances;
+    RecordingIdentityHistoryHandle history; // 제품의 검증된 first 조회. DTO fixture는 위 vector를 사용한다.
     RecordingOrderHistorySnapshot order_history;
 };
 struct RecordingIdentityChainLimits {

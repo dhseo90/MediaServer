@@ -27,12 +27,14 @@
 
 기존 기능·수명·수집 검증과 종료 기록 정리는 당시 소스·환경에서 완료된 사실로 유지한다.
 2026-10-10 사용자 요구로 **메모리 증가 원인·상주 수명·상한 검증을 출시 전 P0**로 추가했다.
-76의 통제 순환에서는 활성 미디어 0개에서도 Journal/Catalog의 과거 identity·order·retired/source
-인덱스가 누적됐다. 검증이 끝난 주문 사본의 해제만 보완했으며, 전체 이력 상주량의 byte 상한과
-비상주 조회는 아직 미구현이다. [76 부분 수정·측정](release-artifacts/v4.5.0/76-validation.json)을 유지한다.
-77의 디스크 identity 조회 실험은 직접 반례를 통과했으나 제품 연결은 채택하지 않았다.
-파생 disk 예산·원본 root 접근·cleanup 실패 전파가 미해결이고 Catalog/order/retired/source와
-Open/checkpoint의 O(전체 이력) 적재가 남는다. [77 미채택 구현·차단 근거](release-artifacts/v4.5.0/77-validation.json)를 따른다.
+76의 통제 순환에서는 활성 미디어 0개에서도 과거 identity·order·retired/source가 누적됐다.
+76의 검증 사본 해제와 77의 미채택 실험/실패는 각각 원본에 유지한다.
+78은 원본과 분리한 익명 scratch, 고정 슬롯 재사용, 명시적 마감을 실제 Journal의
+과거 identity/최초 ordinal 조회·checkpoint 전환·재Open에 연결한다.
+정상 Journal의 역사 identity map/행 vector를 제거했지만, Catalog/order/retired/source,
+archive 목록과 Open/checkpoint의 전체 DTO·정렬·직렬화는 여전히 O(전체 이력)이다.
+요청/보존 수명과 최종 혼합 검증까지 같은 v4.5.0 P0로 남긴다.
+현재 범위와 회귀·비교·독립 판단은 [78 제품 연결 근거](release-artifacts/v4.5.0/78-validation.json)에 둔다.
 소유자는 미해결 메모리 증가를 운영 제한으로 수용하지 않았다. 사용자 위험 수용과 최종 출시
 채택은 **not-granted / not-performed**이며 공개 절차는 보류한다. 75의 과거 판단은 소급 수정하지 않는다.
 
