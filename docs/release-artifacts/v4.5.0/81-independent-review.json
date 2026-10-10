@@ -1,0 +1,714 @@
+{
+  "schema": "media-server.independent-review.v1",
+  "task": 81,
+  "base": "92be23d35b4acfca810550e6c073a173a2c9a7f1",
+  "decision": "ACCEPTABLE_PARTIAL_OPTIMIZATION_USER_81_GOAL_AND_MEMORY_P0_BLOCKED",
+  "partialSourceAdoptionAcceptable": true,
+  "wholeTaskComplete": false,
+  "memoryP0": "BLOCKED",
+  "releaseApproved": false,
+  "reviewer": {
+    "role": "별도 독립 변경분 검토자",
+    "requestedModel": "gpt-6-astra",
+    "requestedEffort": "high",
+    "toolAcceptance": "이전 도구 수락 기록은 부모 전달 이력으로 유지; 이번 검토에서 새 런타임 설정 확인 없음",
+    "actualRuntimeModel": null,
+    "actualRuntimeEffort": null,
+    "implementationParticipation": false,
+    "testAuthorship": false,
+    "testExecution": false,
+    "subdelegation": false,
+    "writeScope": "이 독립 검토 JSON만 작성"
+  },
+  "sourceBinding": {
+    "verifiedFrozenFiles": 153,
+    "mismatches": [],
+    "frozenFilesAreNotAllSemanticallyReviewed": true,
+    "finalPatchEqualsWorkingTreeDiff": false,
+    "semanticallyReviewedFiles": {
+      "src/recording/recording_identity_shard.cpp": "2e6dc03c316f142826b78215e1f209bf0a1dafe0a719761a56b423cbcb378134",
+      "src/recording/recording_history_index.h": "06f8307fe2e929c9ad23d2d369db36f0da72c82fcb0ee4bf9bdb7c24d671e6dc",
+      "src/recording/recording_catalog_snapshot_export.cpp": "0f5464eb0fc1ec68b836b512a2e2c1b2e30a220516754dffbd48b025e7a77965",
+      "src/recording/recording_catalog_history.h": "96295af8845a809098d7c07b0c270a0f680049c936ed068bb26755de2ba4a719",
+      "src/recording/recording_catalog.cpp": "f877465dbf660c41d2bb66cc65c6676e054160a8b9ae3b7827397d94b0fd4422",
+      "src/recording/recording_timeline_projection.cpp": "3f0e892a9e38d95abbe720c3cf8051e79c00a4f9c65298b18565c2ad6ed183fb",
+      "src/recording/recording_journal.cpp": "c3c67b4f674d860d097c91da7bf3579157eaac8b757710f07a0a8b30f5bedb82",
+      "include/recording/recording_catalog.h": "9dd87651be0e8267b1f251bd6ed006d3554b9af60f3116caab8f616f0d16f7d6",
+      "scripts/internal/recording_generation_checkpoint_smoke.cpp": "c49fc239564178e83dcef51e31f29d93b6b63dfeeaef679cb4f50c47ebd950a0",
+      "scripts/internal/recording_search_runtime_load_smoke.cpp": "a34520d5c393c02d4b983b7215019571e9310c805ecaa461dcd9dea753a764ba"
+    },
+    "digestContextReuseAdopted": false
+  },
+  "sourceSafety": {
+    "newBlockingFindings": [],
+    "basis": [
+      "원본 JSON/shard/manifest 형식과 원문 hash 검증은 유지된다. F1은 원본에서 다시 만드는 익명 scratch의 내부 값이다.",
+      "ID/ordinal 두 namespace에 같은 F1을 기록하고 검증된 행과 대조한다. 반복 occurrence 변경 중 complete=false를 유지하고 실패한 부분 갱신을 정상 권위로 공개하지 않는다.",
+      "ordinal 범위 순회는 root 경로와 경계 및 각 사용 value hash를 검증하고 독립 count를 대조한다. 최초 ordinal 순서와 applied prefix의 count 및 길이 구분 digest가 기존 ID/type/entity/time/identity/reservation 비교를 보존한다.",
+      "비공개 spool build의 고정 256-node buffer는 160KiB 이하이다. disk 최초 load와 eviction/seal에서 original hash를 확인하고 current hash는 process-owned bytes의 마지막 Save 결과다. unsealed lookup/clone을 거부하고 실패 Close는 버퍼를 버린다.",
+      "continuous-only 요약은 검증해 넣은 receipt로만 형성되고 event/불확실 입력 후 false가 되며 삭제로 true가 복구되지 않는다. 일반 timeline과 이벤트 존재 시 기존 순회를 유지한다.",
+      "consumer callback 전 digest가 완료되고 CatalogHistoryRows의 exception_ptr 경계는 consumer 예외를 하부 손상과 구분한다. 사용자 권한·현재 source 접근 판단을 제거하는 변경은 발견하지 않았다."
+    ],
+    "limits": [
+      "ordinal 순회는 ID namespace의 모든 value를 재검사하지 않는다. 최초 양방향 원본 대조와 process root에 의존하며 이후 ID value 손상은 해당 조회에서 검출된다.",
+      "SealBufferedBuild 단독은 모든 노드·value의 검증이 아니다. 게시 전 실제 spool Visit와 전체 count/출력 크기 검사가 계속 필요하다.",
+      "160KiB는 private node buffer의 상한이며 row 문자열·stack·reader·모든 동시 scratch/RAM의 합계 상한이 아니다."
+    ]
+  },
+  "macEvidence": {
+    "checkpoint": {
+      "exit": 0,
+      "configurations": 4,
+      "elapsedSeconds": 56.81284687505104,
+      "prefixCounterexamples": [
+        "identity",
+        "time",
+        "missing",
+        "order"
+      ],
+      "counterexampleConfigurations": "crypto ON backend ON, SQLite ON/OFF",
+      "qualification": "missing은 physical coverage 검사에서도 거부될 수 있어 digest 단독 반례로 주장하지 않음"
+    },
+    "historyProduct": {
+      "receipt": "candidate3-history.json",
+      "exit": 0,
+      "configurations": 4,
+      "scope": "range hit/negative/corrupt miss; 2048 buffered rows/eviction/rotation; unsealed denial; seal corruption/partial write; conservative retired exclusion"
+    },
+    "active": {
+      "exit": 0,
+      "observedPassCases": 4
+    },
+    "consumers": {
+      "exit": 0,
+      "configurations": 4,
+      "observedPassLines": 444
+    },
+    "receiptRawBytesAndHashesVerified": true
+  },
+  "finalOverlap": {
+    "receipt": "final-overlap.json",
+    "exit": 1,
+    "elapsedSeconds": 51.5789782499196,
+    "status": "FAIL_P95",
+    "samples": 52,
+    "ready": 51,
+    "unavailable": 1,
+    "p95Ms": 3098.09,
+    "p95LimitMs": 2000,
+    "maxMs": 3638.05,
+    "maxLimitMs": 5000,
+    "progressingSearches": 51,
+    "checkpointMs": 2709.84,
+    "checkpointPackets": [
+      165,
+      240
+    ],
+    "checkpointPublished": true,
+    "writerStopCompletions": 8,
+    "packetsPerWriter": 90,
+    "completedSearchesDuringCheckpoint": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "writerOffSearch": {
+      "status": 200,
+      "knownCount": 24
+    },
+    "failureCleanupFinish": true,
+    "normalPathSuccess": false,
+    "notRunAfterLatencyFailure": [
+      "각 파일 ResolveMedia와 location snapshot의 24개 health 검사",
+      "최종 load-final 검색 oracle",
+      "정상 성공 경로 Finish와 heap/RSS/4GiB assertions",
+      "pass=true 최종 결과"
+    ],
+    "qualification": "knownCount=24와 실패 후 Finish는 latency assertion 뒤의 전체 24파일 health 및 정상 성공 완료를 대신하지 않는다."
+  },
+  "costObservation": {
+    "receipt": "cost3-checkpoint.json",
+    "exit": 0,
+    "catalogLockHoldNs": 2453367917,
+    "snapshotPrepareNs": 2292664709,
+    "checkpointPublishNs": 123149625,
+    "qualification": "단독 계측용 build이다. inclusive scope를 중복 합산하지 않는다. 기존 Catalog 잠금 안의 전체 준비가 유지되므로 동시 검색 지연 상한은 해결되지 않았다."
+  },
+  "memoryComparison": {
+    "beforeSeconds": 98.67686400003731,
+    "afterSeconds": 67.45269008306786,
+    "beforeExit": 0,
+    "afterExit": 0,
+    "rawSampleCounts": [
+      15,
+      15
+    ],
+    "comparisonSamplesExactlyMatchRaw": true,
+    "sameProbeAndTimerSourceBytes": true,
+    "afterCheckpoint2048": {
+      "stage": "after-checkpoint",
+      "history": 2048,
+      "rss": 65110016,
+      "footprint": 15041280,
+      "mallocLive": 4010320,
+      "mallocReserved": 50331648,
+      "mallocBlocks": 34372,
+      "rssHighWater": 65110016,
+      "fdCount": 10,
+      "elapsedMs": 55258.6,
+      "catalogMutations": 0,
+      "catalogOrders": 0,
+      "retired": 0,
+      "sourceEntries": 0,
+      "activeSegments": 0,
+      "acceptedOrdinals": 0,
+      "journalIdentities": 8192,
+      "journalResidentIdentities": 0,
+      "chainRows": 0,
+      "chainRowCapacity": 0,
+      "chainOrderCopies": 0,
+      "journalOrders": 0,
+      "activeRows": 0,
+      "activePayloadCapacity": 0,
+      "scratchBytes": 89195008,
+      "scratchAllocated": 89276416,
+      "scratchPeakConcurrent": 156749824,
+      "scratchPeakAllocated": 157499392
+    },
+    "beforeCheckpoint2048": {
+      "stage": "after-checkpoint",
+      "history": 2048,
+      "rss": 64897024,
+      "footprint": 15434496,
+      "mallocLive": 4010960,
+      "mallocReserved": 37748736,
+      "mallocBlocks": 34374,
+      "rssHighWater": 64897024,
+      "fdCount": 10,
+      "elapsedMs": 80452.5,
+      "catalogMutations": 0,
+      "catalogOrders": 0,
+      "retired": 0,
+      "sourceEntries": 0,
+      "activeSegments": 0,
+      "acceptedOrdinals": 0,
+      "journalIdentities": 8192,
+      "journalResidentIdentities": 0,
+      "chainRows": 0,
+      "chainRowCapacity": 0,
+      "chainOrderCopies": 0,
+      "journalOrders": 0,
+      "activeRows": 0,
+      "activePayloadCapacity": 0,
+      "scratchBytes": 89195008,
+      "scratchAllocated": 89280512,
+      "scratchPeakConcurrent": 156749824,
+      "scratchPeakAllocated": 157384704
+    },
+    "fdLifecycle": "both: open/checkpoint 10 -> released 3 -> reopened 10 -> released-again 3",
+    "qualification": "독립 유한 부하의 default malloc-zone/task_vm_info endpoint 표본이다. 이력 128/512/2048의 historical resident counters 0은 해당 표본에서 확인했다. active media 0이며 retained observations/jobs/readers를 대표하지 않는다. 누적 ru_maxrss·알려진 scratch peak를 전체 순간 workspace/reader/할당 peak로 해석하지 않는다. comparison.input은 비어 있어 입력 바이트 동일성의 추가 주장은 하지 않는다. 반복 통계나 모든 부하 성능 보장이 아니다."
+  },
+  "remainingBlockers": [
+    {
+      "scope": "사용자81",
+      "status": "FAIL",
+      "detail": "최종 p95 3098.09ms > 2000ms. 제한 90초 내 프로세스 종료와 max<=5초만으로 전체 성공 아님."
+    },
+    {
+      "scope": "동시성",
+      "status": "UNRESOLVED",
+      "detail": "기존 Catalog lock 정책 유지. 준비 중 검색 완료 0이고 결정적 준비중 동시성 또는 active suffix의 새 구현/증거 없음."
+    },
+    {
+      "scope": "전체 저장/RAM 예산",
+      "status": "UNPROVEN",
+      "detail": "전체 reader byte admission, retained observation/reference, legacy 예외 상주, 모든 동시 scratch/global 순간 peak의 제한 입증이 남음."
+    },
+    {
+      "scope": "B/C",
+      "status": "NOT_RUN",
+      "detail": "이번 짧은 focused/부하 근거로 별도 B/C 영역을 대체하지 않음."
+    },
+    {
+      "scope": "120분/출시",
+      "status": "NOT_RUN_NOT_APPROVED",
+      "detail": "120분 수행하지 않음. 전체 P0 및 출시 승인 없음."
+    }
+  ],
+  "pending": {
+    "linuxFinal": "NOT_REVIEWED_RUNNING_AT_REQUEST",
+    "producerAndInventoryReadback": "NOT_REVIEWED",
+    "ownedRootCleanup": "PENDING",
+    "archivePreservation": "PENDING",
+    "commitPush": "NOT_REVIEWED"
+  },
+  "evidenceRoot": "/private/tmp/media-server-memory81-3pivevrd",
+  "evidence": {
+    "final-freeze.json": {
+      "bytes": 18435,
+      "sha256": "089f28242ce1b3bfbf5f1998d97608d455cee117bcfccdb68716756726b064e6"
+    },
+    "final-source.patch": {
+      "bytes": 62806,
+      "sha256": "aca7e218ba0cd3cf1d80f04ef5b7cc7de53fb298bb3c2b3230c87d8c1515a64d"
+    },
+    "source-readback.json": {
+      "bytes": 32,
+      "sha256": "f3e4753eb9d51e19f4a86af1650ec976542fb2837ab54d5bc64a1c7f2822fc9e"
+    },
+    "candidate3-overlap.json": {
+      "bytes": 366,
+      "sha256": "b2e507aecf457ae649f7711af03ec84769a2cd22fbbafc253e2e9b05703d48d5"
+    },
+    "candidate3-overlap.log": {
+      "bytes": 293806,
+      "sha256": "966f52c42a393539f329d8d4a897cc851dec4a21432f6bfa8d999ef128ae316a"
+    },
+    "cost3-checkpoint.json": {
+      "bytes": 408,
+      "sha256": "078dfe95abe63a027e66410cc7757770a9f91d646871fb1aeb417dedcd5e06ae"
+    },
+    "cost3-checkpoint.log": {
+      "bytes": 5207,
+      "sha256": "5a8159fa904d7b61adfce3d7e5ccc14afad52553935482f9bc82d4b1ceea4782"
+    },
+    "candidate3-history.json": {
+      "bytes": 381,
+      "sha256": "3eb5f9899d0341b244418cfb6f52540384301cee15870592115e39d6c8ce2059"
+    },
+    "candidate3-history.log": {
+      "bytes": 22641,
+      "sha256": "d07e8d19fbcd90760421b47ad8ad2f0ee3be98e154ab24ce6acb3fbc8c2de5a4"
+    },
+    "final-checkpoint.json": {
+      "bytes": 369,
+      "sha256": "6b9686045f3f4bfe816c2ea488881d0fa5605c332eea9b16659e97df2515b424"
+    },
+    "final-checkpoint.log": {
+      "bytes": 29807,
+      "sha256": "0d1a3e64ed68d77619c52949b483e6a5ebd468a58b30ddb064ebd37b5893852e"
+    },
+    "final-overlap.json": {
+      "bytes": 360,
+      "sha256": "cd29415ea1fa8f453ad98b5a79aba0b74743808896c67bd4432b410f982b7f7a"
+    },
+    "final-overlap.log": {
+      "bytes": 294199,
+      "sha256": "76135b16b740ff68e615de0095f6bb2e0e31ecb93dfc444bd3c70debd6c8b1be"
+    },
+    "final-active.json": {
+      "bytes": 353,
+      "sha256": "efdaba39f9cd2abcd920dfce7fb5367b14447a34278ea9c146da868f85052015"
+    },
+    "final-active.log": {
+      "bytes": 1485,
+      "sha256": "8c7709e995836d45041a04d03ccbd0f7f3f80df384343dbc1d11dbd60218373f"
+    },
+    "final-consumers.json": {
+      "bytes": 357,
+      "sha256": "cc49ebf9e43f3bce80600c804d49d7787a778c9bd5f7b8b6dfd2394525d4a4e3"
+    },
+    "final-consumers.log": {
+      "bytes": 41158,
+      "sha256": "736792007380114208514d49abd508a9869f8c2e0410557911fc87cab6d1d039"
+    },
+    "before-seed-corrected.json": {
+      "bytes": 363,
+      "sha256": "f8d6b705d269a961196ed74dbe18ce9ab8f7ba2de635a670e80f017a373e4b38"
+    },
+    "before-seed-corrected.log": {
+      "bytes": 88200,
+      "sha256": "798ac00af8adc55047b47ed72f141db406355e7f974d075f1dcf4acff59b79f1"
+    },
+    "after-measure.json": {
+      "bytes": 364,
+      "sha256": "3e666211f435dff64ae01fa5a38a07b79da5a40a43b7abe477a97a68c05a12b7"
+    },
+    "after-measure.log": {
+      "bytes": 81593,
+      "sha256": "11791c1c2c7e3c38267300adbfbf69d4a86ff38c9da299e05e92d80744e6767d"
+    },
+    "comparison.json": {
+      "bytes": 24541,
+      "sha256": "36425039e5e2108f7b3e3cc4a07e73ba079f59da89abcfb8855f072498a77030"
+    },
+    "final-overlap.sh": {
+      "bytes": 794,
+      "sha256": "f35b3adbfc20cd19b1fe3426bc47de70d7b1afe82f6fbddb5ae61dd8572494b1"
+    },
+    "seed-build/run81.sh": {
+      "bytes": 629,
+      "sha256": "2893ec09baccbb710408341d53d0af2af5dd1b0808aa225aa0060c1be39fd509"
+    },
+    "after-measure/run.sh": {
+      "bytes": 686,
+      "sha256": "2fe4e8b8d02389549bf7429ad889e44195c818df95bee525ce3b51d2e5dcbe5f"
+    }
+  },
+  "addenda": [
+    {
+      "kind": "linux_and_input_readback",
+      "supersedesPendingOnly": [
+        "linuxFinal"
+      ],
+      "priorReviewSha256": "0fbf12c8f8a09dcbe243949775e31310108f59604cfcf79e0c148338e6e491fe",
+      "decisionUnchanged": true,
+      "newSafetyBlockers": [],
+      "linux": {
+        "receipt": "linux-final.json",
+        "exit": 0,
+        "elapsedSeconds": 241.8999170419993,
+        "rawReceiptHashAndBytesMatched": true,
+        "containerState": "exited",
+        "containerExitCode": 0,
+        "uid": "10001:10001",
+        "network": "none",
+        "capDrop": [
+          "ALL"
+        ],
+        "securityOpt": [
+          "no-new-privileges"
+        ],
+        "imageId": "sha256:ce72c8a15363984da642e9964189957896812061c6af1d0ef67e87b38ad5a588",
+        "compiler": "g++ Debian 16.2.0-3",
+        "checkpoint": {
+          "configurations": 4,
+          "passLines": 289,
+          "failLines": 0
+        },
+        "historyProduct": {
+          "configurations": 4,
+          "passLines": 199,
+          "failLines": 0
+        },
+        "active": {
+          "passLines": 4,
+          "failLines": 0
+        },
+        "consumers": {
+          "configurations": 4,
+          "passLines": 444,
+          "failLines": 0
+        },
+        "wrapperWerror": "실제 wrapper 컴파일 명령에서 -Wall -Wextra -Werror 유지 확인",
+        "fullProductBuild": "완료 marker 및 상위 set -e script exit0 확인; GStreamer/ONNXRuntime/SigLIP2 ON CMakeCache 확인",
+        "scopeLimit": "Linux focused wrapper와 full build 결과이며 Linux 병행 p95 목표나 전체 예산 PASS가 아니다. container exited는 container 제거 완료를 뜻하지 않는다."
+      },
+      "macReadback": {
+        "finalActiveRawVerified": true,
+        "finalConsumersRawVerified": true,
+        "unchangedFromInitialReview": true
+      },
+      "source": {
+        "filesCompared": 153,
+        "mismatches": [],
+        "unadoptedEvpContextReuseInProduct": false,
+        "basis": "현행 history index hash가 이전 candidate3/final-freeze와 같고 Digest는 기존 EVP_Digest 호출이다."
+      },
+      "inputBinding": {
+        "actualMp4AndSelectedCopiesMatchReceipt": true,
+        "mp4Inputs": {
+          "seed80": {
+            "path": "seed80/template/probe-channel/ecaace2d-1086-4877-9c46-e6406ffa4b23.mp4",
+            "bytes": 55626,
+            "sha256": "59777ba2e0bdcc09e1336ef7b9892b1931a83da3a226b8b4c5900543a86234b2"
+          },
+          "after-data": {
+            "path": "after-data/template/probe-channel/9ec9d5d3-4c09-49e3-a6eb-8023943c4305.mp4",
+            "bytes": 55626,
+            "sha256": "9583d806609d5d85785e78a9d1778190a01fd34c3629ff76d0c9902caeee1522"
+          }
+        },
+        "mp4ByteIdentical": false,
+        "qualification": "두 MP4는 각 55,626바이트이나 전체 SHA가 다르다. 이 addendum은 media payload 동일성을 분석하거나 추정하지 않는다. 새 자료는 기존 comparison.input의 빈 값을 소급 교체하지 않고 별도 결속한다.",
+        "failedStoreStates": [
+          {
+            "fixture": "before-load",
+            "listedFiles": 99,
+            "listedBytes": 63949157,
+            "listedMp4Files": 24,
+            "actualByteHashMismatches": []
+          },
+          {
+            "fixture": "candidate1-load",
+            "listedFiles": 99,
+            "listedBytes": 63949197,
+            "listedMp4Files": 24,
+            "actualByteHashMismatches": []
+          },
+          {
+            "fixture": "candidate2-load",
+            "listedFiles": 99,
+            "listedBytes": 63953952,
+            "listedMp4Files": 24,
+            "actualByteHashMismatches": []
+          },
+          {
+            "fixture": "candidate3-load",
+            "listedFiles": 99,
+            "listedBytes": 63949773,
+            "listedMp4Files": 24,
+            "actualByteHashMismatches": []
+          },
+          {
+            "fixture": "final-load",
+            "listedFiles": 99,
+            "listedBytes": 63949819,
+            "listedMp4Files": 24,
+            "actualByteHashMismatches": []
+          }
+        ],
+        "stateQualification": "목록에 있는 실제 파일 바이트/hash를 대조했다. 각 실패 fixture에 24 MP4가 존재함은 확인하나 최종 overlap에서 미실행된 ResolveMedia/health oracle을 PASS로 바꾸지 않는다."
+      },
+      "unchangedOutcome": {
+        "p95Ms": 3098.09,
+        "p95LimitMs": 2000,
+        "overlap": "FAIL",
+        "wholeTaskComplete": false,
+        "memoryP0": "BLOCKED",
+        "partialSourceAdoptionAcceptable": true,
+        "releaseApproved": false
+      },
+      "stillPending": [
+        "producer 종료와 guarded inventory readback",
+        "소유 root/container 정리",
+        "archive 보존",
+        "commit/push 확인"
+      ],
+      "evidence": {
+        "linux-final.json": {
+          "bytes": 350,
+          "sha256": "667a4036817bc84d717dd6889998e52b1c6e6eb92ea39ed91a794bc2be5f95e1"
+        },
+        "linux-final.log": {
+          "bytes": 301,
+          "sha256": "00a41dedbab8f90235f9a8f3d2e62e9085f9d0801f6b4147b15846b7a389e714"
+        },
+        "linux-state.txt": {
+          "bytes": 348,
+          "sha256": "edb58fa7f1388ee2ab44c932636ff956a3b59425648f7f2da575954e8245a665"
+        },
+        "linux-run.sh": {
+          "bytes": 1363,
+          "sha256": "931de150b37e0e418ad712ad7c884ef2f7b2d573a5ceaee40fe913bca7333bb0"
+        },
+        "linux-output/checkpoint.log": {
+          "bytes": 29771,
+          "sha256": "9f5f30cba9c031f98023d5f727539d2ba2e0a5984907feebe489021d7720fe22"
+        },
+        "linux-output/history-product.log": {
+          "bytes": 22605,
+          "sha256": "60e9bad2e6eb636d9500a15a63691f973e0f66d848840e59d6c29e7292b450f2"
+        },
+        "linux-output/active.log": {
+          "bytes": 1436,
+          "sha256": "2f091d9429d52bcfbd7ebc339806a2859dcac9bfaba6bbcadc95a7a118384fcc"
+        },
+        "linux-output/consumers.log": {
+          "bytes": 41122,
+          "sha256": "1f278824c3c67c17186b3ed1475ac00216329e1be1811cfb4625f1d326954cb7"
+        },
+        "linux-output/build.log": {
+          "bytes": 19980,
+          "sha256": "9cea66d7d6aed8331836e0146f89171dfb8adbdd44d37491f4797470c54ca6a3"
+        },
+        "linux-output/CMakeCache.txt": {
+          "bytes": 31648,
+          "sha256": "793869c35bdda9b69dc46b21e61dec529a9cc47d5a39fd8a829cd04479b5deee"
+        },
+        "input-binding.json": {
+          "bytes": 422,
+          "sha256": "900214d6e7e800442209e3adb2c8614fec150aefa3ee34a68876d580b7adf250"
+        },
+        "selected-input/after-data.mp4": {
+          "bytes": 55626,
+          "sha256": "9583d806609d5d85785e78a9d1778190a01fd34c3629ff76d0c9902caeee1522"
+        },
+        "selected-input/before-load-files.json": {
+          "bytes": 15118,
+          "sha256": "498d5efd3d3617e9f38fd237696bbec562d23a81e80d7a0ec7dc49e39f64b7a0"
+        },
+        "selected-input/before-load-manifest.json": {
+          "bytes": 402,
+          "sha256": "3797bd27e63f04f893f2302ea5879dbe397025ff8e53bebcea187d03b4c02533"
+        },
+        "selected-input/candidate1-load-files.json": {
+          "bytes": 15118,
+          "sha256": "f0614424b3671559b850292ab70e94ab46d899aaf5e7cb27f136f3e593f86a65"
+        },
+        "selected-input/candidate1-load-manifest.json": {
+          "bytes": 402,
+          "sha256": "4306d461d761717cb11bef7cb56f0a8e26a086348a1853f31935f2bc39c97ca2"
+        },
+        "selected-input/candidate2-load-files.json": {
+          "bytes": 15118,
+          "sha256": "ccd7fd931d4773dd121b4fd811f9180533b76e9fd4f2127b1de47d7f6b38c653"
+        },
+        "selected-input/candidate2-load-manifest.json": {
+          "bytes": 402,
+          "sha256": "7f2d8a6807a19c779412f5853d0cb602c752459e479f33e6a51cb79052631c5a"
+        },
+        "selected-input/candidate3-load-files.json": {
+          "bytes": 15118,
+          "sha256": "b7c0b0474fef28456f615608924910f3781451909d938683c0e68b97a4bc1c55"
+        },
+        "selected-input/candidate3-load-manifest.json": {
+          "bytes": 402,
+          "sha256": "606b5d21f51449a664daf8ba73c29332a8ff32751ea4dd23bdb002a0e4f579a9"
+        },
+        "selected-input/final-load-files.json": {
+          "bytes": 15118,
+          "sha256": "abadba3a5ea35f6a1254fdfceef9b0ef4169340f8c71abfba2c7b46806f70973"
+        },
+        "selected-input/final-load-manifest.json": {
+          "bytes": 402,
+          "sha256": "a55b9afcb01461eb7d13d2b03dfe2bca3aadb0db4fff1dc87d7581b0a1f0f512"
+        },
+        "selected-input/seed80.mp4": {
+          "bytes": 55626,
+          "sha256": "59777ba2e0bdcc09e1336ef7b9892b1931a83da3a226b8b4c5900543a86234b2"
+        }
+      }
+    },
+    {
+      "kind": "producer_and_static_readback",
+      "priorReviewSha256": "e1d19fb66557f414e3ee96c48bdc7bbe71b8da3d24819825826abf3c11485439",
+      "decisionUnchanged": true,
+      "supersedesPendingOnly": [
+        "producerAndInventoryReadback"
+      ],
+      "results": {
+        "producer": {
+          "exit": 0,
+          "elapsedSeconds": 91.8228232919937,
+          "bytes": 12812,
+          "sha256": "d044f8ac77f4e3e0a7ee0672c9d63381151b9f522393a0aa536f910913ef258f"
+        },
+        "inventory-readback": {
+          "exit": 0,
+          "elapsedSeconds": 47.242695790948346,
+          "bytes": 210255,
+          "sha256": "4670513193842f03ec9ea567062efe9d2dd303d621716a5cb95876d48b1dc1cd"
+        },
+        "coverage-readback": {
+          "exit": 0,
+          "elapsedSeconds": 87.78388250002172,
+          "bytes": 604,
+          "sha256": "f3dd9d2ec3cd35ce7a806a391b6918dddd2c2377ca3039afa624f484985f9bce"
+        },
+        "script-inventory": {
+          "exit": 0,
+          "elapsedSeconds": 26.61450674990192,
+          "bytes": 941,
+          "sha256": "92e692a3173f517ac5430005d1cf361195ac0dad7e505a2ffaddc893da6cdecf"
+        },
+        "docs-links": {
+          "exit": 0,
+          "elapsedSeconds": 0.42003220797050744,
+          "bytes": 186,
+          "sha256": "f00384a6cbec4007033694f6d1c5b548aa0b47e456948d4fa184f4f63ea905fb"
+        },
+        "diff-check": {
+          "exit": 0,
+          "elapsedSeconds": 0.2117125840159133,
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      "summary": {
+        "producerPass": 51,
+        "producerFail": 0,
+        "inventoryPass": 18,
+        "inventoryFail": 0,
+        "coveragePass": 9,
+        "coverageFail": 0,
+        "coverageRows": 986,
+        "covered": 986,
+        "missing": 0,
+        "scriptInventoryPass": 13,
+        "scriptInventoryFail": 0,
+        "docsLinkFailures": 0,
+        "diffCheckExit": 0
+      },
+      "actualManifestComparison": {
+        "changedTopLevelKeys": [
+          "inventorySha256"
+        ],
+        "items": 986,
+        "itemsEqual": true,
+        "approvalEnvelopeEqual": true,
+        "beforeInventory": "b0d15e7f9cdf7777619981904689f5cfb7f5fb512d40fb88154f5eb92f9d9ccb",
+        "afterInventory": "6d3dd39102d1d5d57d3313c3f7cd702588b957e0002df1fbe7e1705f0a357305",
+        "actualInventorySha256": "6d3dd39102d1d5d57d3313c3f7cd702588b957e0002df1fbe7e1705f0a357305",
+        "actualManifestSha256": "aab2e332b00e6b3200b3e946a1ebd3306e0ecbb0df2444b0494b0f5e8f069560",
+        "manifestDiffReceiptMatchesActual": true
+      },
+      "source153HashMismatches": 0,
+      "qualification": "기존 guarded producer의 inventory 결속만 확인했다. 동일 986 candidate/승인 envelope는 81 제품 변경의 자동 승인이나 병행 목표 PASS가 아니다. 독립 부분 채택 가능 판단과 p95 3098.09ms FAIL, 전체 P0 BLOCKED, 출시 미승인 상태를 그대로 유지한다. 과거 pending 기록을 삭제하지 않고 이 addendum으로 후속 확인 범위만 추가한다.",
+      "stillPending": [
+        "archive 실제 바이트 보존",
+        "소유 root/container 정리와 부재 확인",
+        "commit/push 확인"
+      ],
+      "evidence": {
+        "producer.json": {
+          "bytes": 402,
+          "sha256": "98ae1ec03e3d9a019d57c18b21bc49619c6b9ee7ecdc050228f78475ca0e2831"
+        },
+        "producer.log": {
+          "bytes": 12812,
+          "sha256": "d044f8ac77f4e3e0a7ee0672c9d63381151b9f522393a0aa536f910913ef258f"
+        },
+        "inventory-readback.json": {
+          "bytes": 360,
+          "sha256": "bf5d3145efa6b83fa04c8d0cc9382fd6dedb642233c23d0f8656fc8629e3854e"
+        },
+        "inventory-readback.log": {
+          "bytes": 210255,
+          "sha256": "4670513193842f03ec9ea567062efe9d2dd303d621716a5cb95876d48b1dc1cd"
+        },
+        "coverage-readback.json": {
+          "bytes": 352,
+          "sha256": "308f7d1e870d0917f8ac2d8b4efd0aeba2a1fb1fd59265084348f7f313835446"
+        },
+        "coverage-readback.log": {
+          "bytes": 604,
+          "sha256": "f3dd9d2ec3cd35ce7a806a391b6918dddd2c2377ca3039afa624f484985f9bce"
+        },
+        "script-inventory.json": {
+          "bytes": 342,
+          "sha256": "9eb8bce308741eceb1c7576b479e3fa829903e83931bea4b8d01b000e54967ba"
+        },
+        "script-inventory.log": {
+          "bytes": 941,
+          "sha256": "92e692a3173f517ac5430005d1cf361195ac0dad7e505a2ffaddc893da6cdecf"
+        },
+        "docs-links.json": {
+          "bytes": 338,
+          "sha256": "92409ea9101b554f83438d2cb867a65eef2ea0798e2bfefd664d88064bfb0dff"
+        },
+        "docs-links.log": {
+          "bytes": 186,
+          "sha256": "f00384a6cbec4007033694f6d1c5b548aa0b47e456948d4fa184f4f63ea905fb"
+        },
+        "diff-check.json": {
+          "bytes": 315,
+          "sha256": "c72a9b7f81a54e01f797d97ebee96dda7bc3dbb8d8934dbb8e9e2a283570e7cc"
+        },
+        "diff-check.log": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "manifest-before.json": {
+          "bytes": 19079080,
+          "sha256": "64bb28e763a89ab52657fca8a2949657427165d81b650b2da5b4f73f5d3a868b"
+        },
+        "manifest-diff.json": {
+          "bytes": 271,
+          "sha256": "a45e2e0a823eaa546471fb4909b086e334d15f51a4843ab927285387ca0f49db"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,486 @@
+{
+  "schema": "media-server.memory81-validation.v1",
+  "status": "PARTIAL_IMPLEMENTATION_SEARCH_P95_FAIL",
+  "memoryP0": "BLOCKED",
+  "release": "BLOCKED",
+  "ownerRiskAcceptance": "not-granted",
+  "base": "92be23d35b4acfca810550e6c073a173a2c9a7f1",
+  "models": {
+    "mainRequested": "gpt-6-astra/high",
+    "mainToolAccepted": null,
+    "mainRuntime": null,
+    "independentRequested": "gpt-6-astra/high",
+    "independentToolAccepted": "reused independent_memory77; prior parent tool accepted gpt-6-astra/high",
+    "independentRuntime": null
+  },
+  "completion": false,
+  "scope": {
+    "implemented": [
+      "fixed phase/atomic thread progress before timeout; first failure and explicit failure Finish",
+      "authenticated half-open namespace traversal; conservative continuous-retired exclusion only for event candidates",
+      "bounded private spool node writer <=160KiB; initial node hash verified, eviction/seal rechecks disk predecessor; unsealed reads/clones rejected",
+      "internal F1 identity representation and ordinal payload in existing 2048-byte slots; canonical original formats unchanged",
+      "one-call complete ordinal prefix SHA256 digest comparison of all original identity/order fields plus counts; no retained/global checked flag"
+    ],
+    "remaining": [
+      "Catalog mutex remains held during checkpoint validation/spool; final p95 fails",
+      "no immutable out-of-lock prepare or active suffix protocol introduced; no new deterministic during-prepare concurrency seam completed",
+      "retained observations/references, noncompactable legacy, aggregate concurrent readers/global transient peak",
+      "B fixed-history request lifetime, C retained-result costs and final mixed validation remain v4.5.0 P0"
+    ]
+  },
+  "authority": "Original files/manifest/source coverage, row hashes, original admission, fsync/publish/poison/Finish unchanged. Anonymous scratch is derived. Ordinal cursor authenticates its stored payload; it no longer separately rereads the ID-namespace value for each ordinal. Initial and append dual-slot readback plus complete-state/root binding retained; later ID corruption is rejected by that ID lookup.",
+  "historical80": "Both overlap runs remain FAIL; absent phase logs are not reconstructed. New before diagnostic identifies preparation and later checkpoint/query waiting in that new run only. No historical deadlock/root-cause certainty.",
+  "source": {
+    "freeze": "final-freeze.json",
+    "patch": "final-source.patch",
+    "readback": "source-readback.json",
+    "runtimeSha256": "ccb4aca964dc09fd8840138f80f18081d4145e535b4976be004ae3d8e4853139",
+    "productSha256": "03246e2cf16df72b988eda2afd2a04f083f24ef46f259459fd36f4f5dcd13026",
+    "finalProduct": "candidate3 unchanged; final fixture only prints latency aggregate before original assertion; adopted commit later is preservation, not retroactive execution source",
+    "implementationCommit": "e7d0134c1c8083b5049b4808f5f3cb1cb1e1ffe8",
+    "implementationTree": "4090efc1bdf3629c6a174cc7d9f8748332922380",
+    "executionIdentity": "base + preserved frozen patch/file hashes + actual product/runtime hashes; implementation commit created after execution"
+  },
+  "overlap": {
+    "conditions": {
+      "history": 2048,
+      "writers": 8,
+      "searchClients": 4,
+      "observations": 10000,
+      "packets": 720,
+      "files": 24,
+      "p95Ms": 2000,
+      "maxMs": 5000,
+      "deadlineSeconds": 90,
+      "logBytes": 4194304,
+      "rssBytes": 4294967296,
+      "heapBytes": 536870912
+    },
+    "runs": [
+      {
+        "name": "before-overlap",
+        "command": [
+          "bash",
+          "/private/tmp/media-server-memory81-3pivevrd/before-overlap.sh"
+        ],
+        "cwd": "/Users/dhseo/Workspace/mediaServer",
+        "uid": 501,
+        "elapsedSeconds": 90.13713079201989,
+        "exit": -15,
+        "signal": 15,
+        "collectionFailure": "wrapper deadline",
+        "bytes": 35209,
+        "sha256": "f1efe88a092f20ef49012abef877008b90656089d77e547226c483d3a9b64a97"
+      },
+      {
+        "name": "candidate1-overlap",
+        "command": [
+          "bash",
+          "/private/tmp/media-server-memory81-3pivevrd/candidate1-overlap.sh"
+        ],
+        "cwd": "/Users/dhseo/Workspace/mediaServer",
+        "uid": 501,
+        "elapsedSeconds": 72.22633929201402,
+        "exit": 1,
+        "signal": null,
+        "collectionFailure": null,
+        "bytes": 53170,
+        "sha256": "19713cc9780d21d5e7b07717555378465c00822a0e44dddbb4269eec3065c0e4"
+      },
+      {
+        "name": "candidate2-overlap",
+        "command": [
+          "bash",
+          "/private/tmp/media-server-memory81-3pivevrd/candidate2-overlap.sh"
+        ],
+        "cwd": "/Users/dhseo/Workspace/mediaServer",
+        "uid": 501,
+        "elapsedSeconds": 60.56212066707667,
+        "exit": 1,
+        "signal": null,
+        "collectionFailure": null,
+        "bytes": 294869,
+        "sha256": "3961ddd02d5d8ee65415c3b00bdde72909cfe1005209cb5448b929bf664023aa"
+      },
+      {
+        "name": "candidate3-overlap",
+        "command": [
+          "bash",
+          "/private/tmp/media-server-memory81-3pivevrd/candidate3-overlap.sh"
+        ],
+        "cwd": "/Users/dhseo/Workspace/mediaServer",
+        "uid": 501,
+        "elapsedSeconds": 51.79848158394452,
+        "exit": 1,
+        "signal": null,
+        "collectionFailure": null,
+        "bytes": 293806,
+        "sha256": "966f52c42a393539f329d8d4a897cc851dec4a21432f6bfa8d999ef128ae316a"
+      },
+      {
+        "name": "final-overlap",
+        "command": [
+          "bash",
+          "/private/tmp/media-server-memory81-3pivevrd/final-overlap.sh"
+        ],
+        "cwd": "/Users/dhseo/Workspace/mediaServer",
+        "uid": 501,
+        "elapsedSeconds": 51.5789782499196,
+        "exit": 1,
+        "signal": null,
+        "collectionFailure": null,
+        "bytes": 294199,
+        "sha256": "76135b16b740ff68e615de0095f6bb2e0e31ecb93dfc444bd3c70debd6c8b1be"
+      }
+    ],
+    "final": {
+      "p95Ms": 3098.09,
+      "maxMs": 3638.05,
+      "samples": 52,
+      "ready": 51,
+      "unavailable": 1,
+      "progressingSearches": 51,
+      "checkpointMs": 2709.84,
+      "checkpointStartPackets": 165,
+      "checkpointEndPackets": 240,
+      "published": true,
+      "writerStops": 8,
+      "failureFinish": true,
+      "latencyPass": false,
+      "normalSuccessPath": false,
+      "subsequentNotRun": [
+        "per-file media health/final24 assertion",
+        "normal-success-path heap/RSS assertions"
+      ],
+      "knownCountAfterStop": 24,
+      "completedDuringCheckpointPerClient": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    "phases": [
+      "[load-stage] thread=0 phase=open event=end us=7251003 elapsedUs=7241042 completed=0",
+      "[load-stage] thread=0 phase=encode event=end us=7273540 elapsedUs=22529 completed=0",
+      "[load-stage] thread=0 phase=writer-start event=end us=7275914 elapsedUs=2363 completed=0",
+      "[load-stage] thread=0 phase=observations event=end us=46960294 elapsedUs=39684375 completed=10000",
+      "[load-stage] thread=0 phase=warmup event=end us=47108147 elapsedUs=147846 completed=10000",
+      "[load-stage] thread=0 phase=clients-start event=end us=47108186 elapsedUs=34 completed=10000",
+      "[load-stage] thread=13 phase=checkpoint-request event=end us=49940950 elapsedUs=2709953 completed=240",
+      "[load-stage] thread=7 phase=packets event=end us=50378616 elapsedUs=3270400 completed=90",
+      "[load-stage] thread=7 phase=writer-stop event=end us=50392185 elapsedUs=13562 completed=90",
+      "[load-stage] thread=10 phase=packets event=end us=50412435 elapsedUs=3304206 completed=90",
+      "[load-stage] thread=9 phase=packets event=end us=50414196 elapsedUs=3305968 completed=90",
+      "[load-stage] thread=5 phase=packets event=end us=50414525 elapsedUs=3306322 completed=90",
+      "[load-stage] thread=8 phase=packets event=end us=50424009 elapsedUs=3315788 completed=90",
+      "[load-stage] thread=6 phase=packets event=end us=50424908 elapsedUs=3316701 completed=90",
+      "[load-stage] thread=11 phase=packets event=end us=50426244 elapsedUs=3318008 completed=90",
+      "[load-stage] thread=10 phase=writer-stop event=end us=50426884 elapsedUs=14443 completed=90",
+      "[load-stage] thread=9 phase=writer-stop event=end us=50435109 elapsedUs=20908 completed=90",
+      "[load-stage] thread=12 phase=packets event=end us=50439269 elapsedUs=3331030 completed=90",
+      "[load-stage] thread=5 phase=writer-stop event=end us=50442503 elapsedUs=27973 completed=90",
+      "[load-stage] thread=6 phase=writer-stop event=end us=50493197 elapsedUs=68284 completed=90",
+      "[load-stage] thread=11 phase=writer-stop event=end us=50500089 elapsedUs=73820 completed=90",
+      "[load-stage] thread=8 phase=writer-stop event=end us=50506657 elapsedUs=82643 completed=90",
+      "[load-stage] thread=12 phase=writer-stop event=end us=50513070 elapsedUs=73796 completed=90",
+      "[load-stage] thread=2 phase=search event=end us=50596852 elapsedUs=3359830 completed=13",
+      "[load-stage] thread=1 phase=search event=end us=50878817 elapsedUs=3645557 completed=13",
+      "[load-stage] thread=3 phase=search event=end us=50897846 elapsedUs=563342 completed=13",
+      "[load-stage] thread=4 phase=search event=end us=50908252 elapsedUs=577301 completed=13",
+      "[load-stage] thread=0 phase=thread-join event=end us=50908357 elapsedUs=3800115 completed=10000",
+      "[load-stage] thread=0 phase=finish event=end us=50969573 elapsedUs=1671 completed=10000"
+    ],
+    "interpretation": "90-second boundary reached final latency assertion and explicit failure cleanup; not PASS. Samples include unavailable responses. Packet delivery is not equivalent to finalized file readiness."
+  },
+  "cost": {
+    "closedStoreDiagnostic": "cost3-checkpoint.json/log; separate from overlap and same instrumentation only",
+    "catalogHoldMs": 2453.367917,
+    "snapshotPrepareMs": 2292.664709,
+    "cloneMs": 13.700084,
+    "publishMs": 123.149625,
+    "limitation": "nested inclusive durations must not be summed; one fixed closed-store checkpoint not request p95",
+    "unadopted": "EVP context reuse cost4 2430.493958ms versus cost3 2453.367917ms, insufficient material progress; source preserved unadopted-digest-context.h; no overlap on this unadopted change"
+  },
+  "memory": {
+    "comparison": "comparison.json",
+    "before": {
+      "command": [
+        "bash",
+        "/private/tmp/media-server-memory81-3pivevrd/seed-build/run81.sh"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 98.67686400003731,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 88200,
+      "sha256": "798ac00af8adc55047b47ed72f141db406355e7f974d075f1dcf4acff59b79f1"
+    },
+    "after": {
+      "command": [
+        "bash",
+        "/private/tmp/media-server-memory81-3pivevrd/after-measure/run.sh"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 67.45269008306786,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 81593,
+      "sha256": "11791c1c2c7e3c38267300adbfbf69d4a86ff38c9da299e05e92d80744e6767d"
+    },
+    "history": [
+      128,
+      512,
+      2048
+    ],
+    "activeMedia": 0,
+    "after2048": {
+      "liveMalloc": 4010320,
+      "rss": 65110016,
+      "footprint": 15041280,
+      "scratchLogical": 89195008,
+      "scratchConcurrentLogicalPeak": 156749824,
+      "historicalResident": 0
+    },
+    "before2048": {
+      "liveMalloc": 4010960,
+      "rss": 64897024,
+      "footprint": 15434496,
+      "scratchLogical": 89195008,
+      "scratchConcurrentLogicalPeak": 156749824,
+      "historicalResident": 0
+    },
+    "limitation": "default malloc-zone/task_vm_info endpoints and cumulative ru_maxrss, not all-zone instantaneous phase peak. Private spool fixed buffer bound is not whole-process bound. Allocator reserved differs. No claim all RSS classified or global P0 resolved."
+  },
+  "regressions": {
+    "final-checkpoint": {
+      "command": [
+        "bash",
+        "scripts/internal/verify_recording_generation_checkpoint.sh",
+        "all"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 56.81284687505104,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 29807,
+      "sha256": "0d1a3e64ed68d77619c52949b483e6a5ebd468a58b30ddb064ebd37b5893852e"
+    },
+    "candidate3-history": {
+      "command": [
+        "bash",
+        "scripts/internal/verify_recording_generation_checkpoint.sh",
+        "history-product"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 54.97302033309825,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 22641,
+      "sha256": "d07e8d19fbcd90760421b47ad8ad2f0ee3be98e154ab24ce6acb3fbc8c2de5a4"
+    },
+    "final-active": {
+      "command": [
+        "bash",
+        "scripts/internal/verify_recording_generation_active.sh"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 4.966643042047508,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 1485,
+      "sha256": "8c7709e995836d45041a04d03ccbd0f7f3f80df384343dbc1d11dbd60218373f"
+    },
+    "final-consumers": {
+      "command": [
+        "bash",
+        "scripts/internal/verify_recording_generation_consumers.sh"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 56.27170370903332,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 41158,
+      "sha256": "736792007380114208514d49abd508a9869f8c2e0410557911fc87cab6d1d039"
+    },
+    "linux-final": {
+      "command": [
+        "docker",
+        "start",
+        "-a",
+        "media-server-memory81-linux"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 241.8999170419993,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 301,
+      "sha256": "00a41dedbab8f90235f9a8f3d2e62e9085f9d0801f6b4147b15846b7a389e714"
+    },
+    "mac-product-build": {
+      "command": [
+        "cmake",
+        "--build",
+        "build-gst-onnx",
+        "--target",
+        "media_server",
+        "-j2"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 3.9468132499605417,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 727,
+      "sha256": "97f8573ccefa67e05ad1ea438d2cbd222050a61b2e93f5e0cdb1ca0365e1f35e"
+    }
+  },
+  "failuresPreserved": [
+    "before load compile missing compile_commands; actual flags.make reused",
+    "before seed stale selected Gst cache; new owned cache from installed environment, no plugin install/rank changes",
+    "candidate3 compile missing order serializer; exact framed fields fixed",
+    "before90 timeout and all candidate/final p95 failures",
+    "unadopted limited hash-context cost experiment"
+  ],
+  "independentReview": "81-independent-review.json",
+  "reuse": "78-80 nonresident source/scratch/Finish boundaries retained; 59/61/63/65/68/72-74 retain original source/environment facts, not reissued for current source.",
+  "notRun": [
+    "120-minute mixed",
+    "general acceptance",
+    "full UI",
+    "Qwen/Ollama (calls0); unload gate not-run",
+    "PR/CI/merge/tag/Release"
+  ],
+  "cleanup": {
+    "status": "pending exact owned cleanup after Git preservation",
+    "linux": "exited0, nonroot; raw logs copied before owned container removal"
+  },
+  "linux": "Existing image ce72c8a...,uid10001,networknone,capdropALL,no-new-privileges; checkpoint4configs/history-product/active/consumers and full product build PASS. linux-output stores raw Werror results; no installs.",
+  "approvalBinding": {
+    "producer": {
+      "command": [
+        "node",
+        "scripts/internal/verify_v390_review4_feature_semantic_source_audit.mjs",
+        "--apply-approved-manifest"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 91.8228232919937,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 12812,
+      "sha256": "d044f8ac77f4e3e0a7ee0672c9d63381151b9f522393a0aa536f910913ef258f"
+    },
+    "manifestDiff": {
+      "changedTopLevelKeys": [
+        "inventorySha256"
+      ],
+      "itemsEqual": true,
+      "beforeInventory": "b0d15e7f9cdf7777619981904689f5cfb7f5fb512d40fb88154f5eb92f9d9ccb",
+      "afterInventory": "6d3dd39102d1d5d57d3313c3f7cd702588b957e0002df1fbe7e1705f0a357305",
+      "items": 986
+    },
+    "interpretation": "986 legacy source flows unchanged; separate independent partial81 decision is required and does not approve performance/P0.",
+    "inventory-readback": {
+      "command": [
+        "node",
+        "scripts/internal/verify_project_feature_test_inventory.mjs"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 47.242695790948346,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 210255,
+      "sha256": "4670513193842f03ec9ea567062efe9d2dd303d621716a5cb95876d48b1dc1cd"
+    },
+    "coverage-readback": {
+      "command": [
+        "node",
+        "scripts/internal/verify_feature_inventory_coverage.mjs"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 87.78388250002172,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 604,
+      "sha256": "f3dd9d2ec3cd35ce7a806a391b6918dddd2c2377ca3039afa624f484985f9bce"
+    }
+  },
+  "static": {
+    "docs-links": {
+      "command": [
+        "node",
+        "scripts/internal/verify_docs_links.mjs"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 0.42003220797050744,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 186,
+      "sha256": "f00384a6cbec4007033694f6d1c5b548aa0b47e456948d4fa184f4f63ea905fb"
+    },
+    "script-inventory": {
+      "command": [
+        "node",
+        "scripts/internal/verify_script_inventory.mjs"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 26.61450674990192,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 941,
+      "sha256": "92e692a3173f517ac5430005d1cf361195ac0dad7e505a2ffaddc893da6cdecf"
+    },
+    "diff-check": {
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 0.2117125840159133,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "inputBinding": "input-binding.json and selected-input/*: original synthetic seed bytes, store-specific manifests and actual file hashes; same size is not inferred equal bytes",
+  "stopBoundary": "Final original load p95 FAIL. Safe partial product changes preserved; long checkpoint lock remains. No out-of-lock/cut-suffix implementation or new deterministic concurrency pass claimed. No further same-condition success hunting or 120-minute substitution.",
+  "archive": {
+    "path": "docs/release-artifacts/v4.5.0/81-execution.tar.gz",
+    "bytes": 1374244,
+    "sha256": "ce6b146f6e6fa6e323b08f144e0d3b4bc68ab690426663e0e99757ac9dbf7d49",
+    "members": 233,
+    "rawBytes": 8356182,
+    "allMemberReadback": true,
+    "representation": "raw selected new executions and synthetic input; no inferred log reconstruction or prior archive duplication"
+  }
+}

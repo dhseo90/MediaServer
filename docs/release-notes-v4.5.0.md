@@ -100,7 +100,9 @@ source-only도 운영위험 판단을 면제하지 않는다. 사용법은 [설�
 [79 통합 체크포인트](release-artifacts/v4.5.0/79-validation.json)의 정상 generation 비상주/streaming
 경계는 유지한다. [80 부분 검증](release-artifacts/v4.5.0/80-validation.json)은 중복 checkpoint
 순회·구형 완료 행 join·완료 job 상주를 보완했지만, 녹화/검색 병행 검증의 deadline 실패와
-전체 reader·보존 집합의 메모리 잔여가 있다. 저장 기반 전체 마감이나 메모리 P0 완료가 아니다.
+전체 reader·보존 집합의 메모리 잔여가 있다. [81 부분 검증](release-artifacts/v4.5.0/81-validation.json)은
+90초 안의 종료와 기존 비상주 경계를 확인했으나, checkpoint 병행 검색 p95가 기준을 넘어
+FAIL이다. 저장 기반 전체 마감이나 메모리 P0 완료가 아니다.
 기존 74의 기능·수명·수집 PASS는 당시 소스의 근거이며 새 메모리 변경의 통합 PASS를 대신하지 않는다.
 소유자는 미해결 메모리 증가의 위험 수용에 동의하지 않았다. 최종 출시 채택·PR/required CI·main 병합·서명 태그·Release/Latest 확인은 보류·미수행이다.
 공개 metadata의 기존 관측 시각은 이번에 갱신하지 않았다.
