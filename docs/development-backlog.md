@@ -47,10 +47,16 @@ before는 관측 준비 중 종료됐고 after도 최종 checkpoint/검색 지�
 고정 자료량의 B32 요청/취소/만료와 C8 실제 증거/A 보존을 분리해 실행했으며,
 queued A 취소 후 남던 confirmed 입력 사본을 해제했다. [83 한정 근거](release-artifacts/v4.5.0/83-validation.json)에
 실제 변경·측정·실패와 독립 판단을 둔다. 현재 검색 모델 예약은 전체 RAM admission이 아니다.
-증거/A capture·반환 DTO·JSON, cold 행 parser/reader와 현재/K/후보/suffix scratch의 합산 예약,
-대규모 reference·축약 불가능 legacy 및 동시 세대 D의 전체 검증은 미완료다.
-B의 기존 job summary/idempotency 보유는 건수 한도가 있으나 전체 byte 수렴 검증을 대신하지 않는다.
-이 잔여와 최종 혼합 검증은 같은 v4.5.0 출시 전 P0이며 이번에 120분은 실행하지 않는다.
+84는 검색·cold 반환 DTO·A/evidence 응답과 연결된 Index/transaction의 RAM·scratch·FD를
+같은 owner에 예약하고 실제 마지막 소유자까지 이전하는 부분 구현이다.
+[84 근거](release-artifacts/v4.5.0/84-validation.json)의 합산 D와 최종 병행 검사는 통과했지만,
+**최대 유효 legacy 행의 admission 보존은 차단**이다. `64KiB+32×raw` 작업 예약은 다른 소유가
+없어도 20,969,472바이트 초과 행을 거부하며 기존 legacy 입력에는 같은 상한이 없다.
+행 타입별 parser/반환 비용의 입증과 큰 행의 유한 작업 읽기 연결이 필요하다. 한도를 올리거나
+원본 허용량을 낮추지 않는다. HTTP 실제 지연 송신/종료와 전체 scratch 참여 범위도 미검증이다.
+B256의 기존 job64·고정 영속량·예약량은 유지됐으나 배치 간 live heap 8,192바이트는 미분류다.
+C는 실제 신규14건 후 기존 draft quota에서15번째 요청이 거부돼 C16·최종 idle은 미충족이다.
+이 잔여와 수정 후보의 최종 혼합 검증은 같은 v4.5.0 출시 전 P0다. 84에는120분을 실행하지 않았다.
 소유자는 미해결 메모리 증가를 운영 제한으로 수용하지 않았다. 사용자 위험 수용과 최종 출시
 채택은 **not-granted / not-performed**이며 공개 절차는 보류한다. 75의 과거 판단은 소급 수정하지 않는다.
 

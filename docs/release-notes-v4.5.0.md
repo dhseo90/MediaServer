@@ -106,8 +106,10 @@ FAIL이다. [82 검증](release-artifacts/v4.5.0/82-validation.json)은 고정 c
 분리한 checkpoint에서 실제 녹화·검색 병행 지연과 정상 종료를 충족한다. 과거 FAIL은 유지하며,
 [83 부분 구현](release-artifacts/v4.5.0/83-validation.json)은 보존 행·축약 불가능 legacy의 cold 소비,
 검색 모델 소유 수명의 논리 예약과 queued A 취소 입력 해제를 연결하고 B/C를 별도 실행했다.
-전체 메모리 P0는 계속 미완료다. 검색 모델 밖의 반환 자료·reader·세대/scratch 합산 admission,
-대규모 잔여 집합과 동시 세대 검증·최종 혼합 검증은 출시 전 차단으로 유지한다.
+[84 부분 연결](release-artifacts/v4.5.0/84-validation.json)은 실제 소유 예약·동시 D와 병행 지연을
+검증했지만, 최대 유효 legacy 행의 admission 보존과 B/C 전체 수렴은 미충족이다.
+정확한 잔여는 [현행 backlog](development-backlog.md#v450-잔여-개발과-릴리즈-순서)를 따른다.
+전체 메모리 P0와 수정 후보의 최종 혼합 검증은 출시 전 차단으로 유지한다.
 새 checkpoint의 nonempty active receipt는 현재 구현에서 검증·복구하며, 구버전 binary의
 새 checkpoint 읽기까지 보장하지 않는다. 기존 원본·package/record 형식과 hash 의미는 유지한다.
 기존 74의 기능·수명·수집 PASS는 당시 소스의 근거이며 새 메모리 변경의 통합 PASS를 대신하지 않는다.

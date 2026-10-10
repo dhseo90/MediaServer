@@ -1,0 +1,629 @@
+{
+  "schema": "media-server.validation.v1",
+  "task": 84,
+  "status": "PARTIAL_PRODUCT_OWNER_INTEGRATION_MAX_ADMISSION_BLOCKED",
+  "memoryP0": "BLOCKED",
+  "releaseApproved": false,
+  "wholeTaskComplete": false,
+  "model": {
+    "mainRequested": "gpt-6-astra/high",
+    "mainToolAccepted": null,
+    "mainRuntimeModel": null,
+    "mainRuntimeEffort": null,
+    "implementationAgentRequested": "gpt-6-astra/high",
+    "implementationAgentToolAccepted": "gpt-6-astra/high",
+    "implementationAgentRuntime": null,
+    "independent": "independent_memory77; separate read-only reviewer; requested Astra/high; actual runtime unexposed"
+  },
+  "source": {
+    "entryHead": "ef3db907a0820f5eb52bd0ee295fd4141df7384c",
+    "entryRemote": "ef3db907a0820f5eb52bd0ee295fd4141df7384c",
+    "entryWorktree": "clean",
+    "beforeRuntimeSha256": "16fd1b4c1bc11f62aa6190779ce0f495adfb4111181beb2c23bb4f7583f6e97b",
+    "finalProductFreeze": "84-execution.tar.gz:aggregate-final-freeze.json",
+    "runtimeSha256": "f429cdb9e506dd5206f49e772741fb328ef64aaf567c191e4ca2e63b96de66ca",
+    "binarySha256": "e4ed43813206d342b1d6c3ad5b0791b9c08a5125fed92cb63a251591281da51e",
+    "laterChanges": "Linux fixture control statement newlines only in public_timeline/search_application; product/overlap/BC/D unchanged. Documentation and final records are not product execution source.",
+    "implementationCommit": "723a18a564bb72f1a264e35cf35117bcf849c0a2",
+    "implementationTree": "a14e8c0292d4156e98540e2cdf4f6673763122b6",
+    "executionBinding": "Pre-commit frozen source+diff, not a run performed after commit. Product source matches implementation commit; final Linux-only fixture newlines did not affect earlier product/overlap/D execution."
+  },
+  "reused": "82 K/F durability/concurrency and 83 retained cold/model lifetime/queued cancellation remain prior scope; historical B32/C8 are limited executions, not not-run.",
+  "implementation": {
+    "ram": "Existing Catalog/runtime 640MiB shared logical domain; not global RSS ceiling. Reserve before read/parse/copy, split/move into returned values; deep copies reacquire; shared owner charged once. Typed maximum sufficient bound incomplete.",
+    "cold": "GetOwned/NextOwned lock metadata length with read; raw/parser/canonical workspace; typed row plus nested reservations; exception rollback. Plain retained text and metadata/transaction DTO coverage incomplete.",
+    "http": "Application result reservation moves into HttpResponse, retained through encoded response and SendAll; slow network/disconnect not directly exercised.",
+    "evidenceA": "Frame PNG/decode workspace, evidence/record parser envelopes, nested records, A task and responses wired to Catalog owner. Error capacity503/auth before known-channel capacity. Existing draft TTL/count/bytes unchanged.",
+    "scratch": "HistoryIndex/live/K and transaction candidate/suffix associated owner pre-reserves RAM, disk, FD; partial rollback, reuse slots, explicit Finish. Initial filesystem/RLIMIT available capacity is not process-wide physical enforcement. Uncertain close/cleanup preserves charge.",
+    "fixedConnectionError": "By-value SourceBindingEntry assignment moved value.id before source_bindings_[value.id] lookup; resolve destination first then move. Original durable append/poison remains."
+  },
+  "combinedD": {
+    "status": "PASS",
+    "receipt": "combined-d-final.json",
+    "seconds": 1.230454875039868,
+    "source": "aggregate-final-freeze.json",
+    "saturatedLogicalBytes": 664561341,
+    "peakLogicalBytes": 667065309,
+    "heldKScratchBytes": 106496,
+    "heldScratchFDs": 6,
+    "coldRows": 2,
+    "snapshotRows": 5,
+    "verified": [
+      "actual model/page + referenced cold DTO + A response + K held",
+      "actual request503 and known scope403/no publication",
+      "deep response owner release and same request resumes",
+      "checkpoint candidate/suffix while old K/page/rows live",
+      "old K read and explicit Finish",
+      "final RAM/disk/FD zero",
+      "fresh RuntimeStorage reOpen and package readback"
+    ],
+    "limits": "Not all HTTP socket lifetimes or process-global resources; does not make C16 or max legacy admission PASS."
+  },
+  "BC": {
+    "plan": "64x4 B requests with1s batch idle and3x1s final idle; C16 new results. Before83 and after have UUID/time differences, not equal input bytes.",
+    "before": "bc-before logs/binding in archive; B passed; C14 then15th draft503, exit1. Historical74 not controlled before.",
+    "afterReceipt": "aggregate-bc.json",
+    "overall": "FAIL",
+    "B": {
+      "completed": 256,
+      "persistentBytes": 199070,
+      "jobs": 64,
+      "order": 64,
+      "queue": 0,
+      "buckets": 97,
+      "stringCapacity": 25344,
+      "reservationPerReleasedBatch": 18605453,
+      "heapAtBatch64": 4567424,
+      "heapAtBatch256": 4575616,
+      "deltaUnclassified": 8192,
+      "finalIdleHeap": 4574304,
+      "meaning": "Metadata count and logical tickets bounded in these4batches, continued live heap plateau not proven. 83+33920 not declared leak."
+    },
+    "C": {
+      "completed": 14,
+      "failedOpportunity": 15,
+      "error": "503 review-draft-capacity; existing256KiB draft budget",
+      "C8StoredBytes": 525910,
+      "C8LiveHeap": 4592448,
+      "C8RSS": 81575936,
+      "C8Footprint": 36537136,
+      "finalIdle": "not-run after failure",
+      "cleanup": "app.Stop and runtime.Finish returned success; no preservation deleted to flatten graph"
+    }
+  },
+  "large": {
+    "receipt": "large-cold-matrix.json",
+    "status": "LIMITED_PASS",
+    "rawReadBytes": 16777217,
+    "legacyCanonicalBytes": 11067062,
+    "overlaps": 150000,
+    "logicalPeak": 537233696,
+    "meaning": "Actual maximum physical raw cold row and large typed legacy; not maximum snapshot/typed admission, no instantaneous heap peak proof."
+  },
+  "overlap": {
+    "status": "PASS",
+    "receipt": "overlap-aggregate.json",
+    "seconds": 60.44338708301075,
+    "writers": 8,
+    "clients": 4,
+    "observations": 10000,
+    "packets": 720,
+    "files": 24,
+    "requests": 52,
+    "ready": 51,
+    "unavailable": 1,
+    "p95Ms": 820.289,
+    "maxMs": 1109.97,
+    "progressingSearches": 50,
+    "peakRssBytes": 70221824,
+    "limits": "Existing90s/p95<=2000/max<=5000; unavailable included. Normal Stop/join/Finish. Sample/high-water is not all instantaneous peaks."
+  },
+  "platform": {
+    "macOS": "product build, search owner/source/application, cold/history matrix and large, actual D, B/C, overlap (individual receipts)",
+    "Linux": "Existing image ce72c8a... uid10001/netnone/capdrop. Product build and four checkpoint concurrency configurations passed. Source owner passed. Application Werror first failed on misleading indentation then newlines-only retry passed. history-product matrix passed. No installation; first fail retained."
+  },
+  "firstFailures": [
+    "before BC compile nonexistent field corrected",
+    "Linux first search Werror then corrected",
+    "cold crypto-OFF fixture guards corrected",
+    "durable finalize source key exception corrected",
+    "D empty query range/wrong observation API/fresh runtime requirement corrected",
+    "C14/15 quota FAIL retained before and after; not reclassified"
+  ],
+  "approvalBinding": {
+    "candidateDigest": "8609f269554b8c2d603769aaf26b1a0d435e1464599d9bce658632aa9b258cdd",
+    "priorDigest": "137543c6332a73f9a77599bfaca732bd1f54b263adee078fe5d3f8c275775906",
+    "rows": 986,
+    "strictCarryEligible": 685,
+    "independentRequired": 301,
+    "status": "NOT_APPLIED_NEW_CANDIDATE",
+    "reason": "New HTTP/source binding changes require scoped independent migration decisions. Current maximum-row blocker prevents claiming this candidate approved. Existing83 ledger untouched; no handwritten hash or self approval.",
+    "impact": "migration-report84.json/migration-evidence84.json",
+    "totalChangedItems": 338
+  },
+  "blockers": [
+    {
+      "id": "R84-B1",
+      "path": "include/recording/recording_retained_rows.h:RecordingColdWorkspaceBytes",
+      "condition": "raw>20969472 bytes rejected by65536+32R under640MiB even otherwise idle; legacy ordered_overlaps has no corresponding count cap",
+      "required": "Preserve valid large legacy original admission through bounded typed parser/canonical/return work and prove per-type budget; do not enlarge quota or shrink original admission."
+    },
+    {
+      "id": "R84-B2",
+      "condition": "32R workspace/8R typed value bounds not proven for all original-valid forms; plain text/metadata and all transaction DTO owners incomplete"
+    },
+    {
+      "id": "R84-B3",
+      "condition": "HTTP slow send/cancel/disconnect and every scratch participant not direct-tested; current domain not process-global physical bound"
+    },
+    {
+      "id": "R84-B4",
+      "condition": "B released-batch heap8192 unclassified; C16/final idle blocked by existing draft quota, no full convergence claim"
+    },
+    {
+      "id": "R84-B5",
+      "condition": "New candidate scoped approvals/producer/readback pending; not an83 re-opened issue"
+    }
+  ],
+  "executionReceipts": {
+    "overlap-final-run": {
+      "elapsedSeconds": 59.61135554197244,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 289001,
+      "sha256": "3a78a9723083d378a51779f34e3e555e4cdbd3268188933fed52bb26c7f498ab"
+    },
+    "cold-owned-matrix": {
+      "elapsedSeconds": 47.00377358298283,
+      "exit": 1,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 32864,
+      "sha256": "1589f002954642019e8fed7128ebf8bd7720773d0f106618d7b02625627d9cb0"
+    },
+    "seed-build": {
+      "elapsedSeconds": 1.436884707887657,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "search-application-build": {
+      "elapsedSeconds": 1.2302534589543939,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "diagnostic-bc-build": {
+      "elapsedSeconds": 2.0463856250280514,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 2291,
+      "sha256": "23ba8c6843d781f89c2b1071ed2463db042fcced22e6bc088a24c623cceafbc4"
+    },
+    "range-fixture": {
+      "elapsedSeconds": 1.8416625420795754,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 2291,
+      "sha256": "23ba8c6843d781f89c2b1071ed2463db042fcced22e6bc088a24c623cceafbc4"
+    },
+    "evidence-owner-build": {
+      "elapsedSeconds": 17.501600167015567,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 8204,
+      "sha256": "17856f48b9798eab22e5a453edf292e194b7ec20d3d87209b613ddd5138a039a"
+    },
+    "combined-d-first": {
+      "elapsedSeconds": 0.8222232499392703,
+      "exit": 1,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 169,
+      "sha256": "745d9629085d0e0afcd9031aa8575d262ba42c00f43966acc7db4b9e50c3c46a"
+    },
+    "search-owner-final": {
+      "elapsedSeconds": 2.656635457999073,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 3893,
+      "sha256": "75ca090dfb3868203a2c8450cf9ee81b46a0942982cafb2699737c8dee85002a"
+    },
+    "binding-impact": {
+      "elapsedSeconds": 0.614960249979049,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 3216,
+      "sha256": "9dfb9ecca3513b84423a44310344f07544bf45a8863751c5832b98441ea8fa39"
+    },
+    "aggregate-overlap-build": {
+      "elapsedSeconds": 1.230249666958116,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "linux-history-product": {
+      "elapsedSeconds": 82.11904558399692,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 339,
+      "sha256": "73791889e5e7bc6c935559c02c5ad711dfe99112413807ecd886dc67c78c63ef"
+    },
+    "finalize-exception-build": {
+      "elapsedSeconds": 2.86180662503466,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 278,
+      "sha256": "0bc3b01c848d7f54235dd4246dc5da15df535b1358118d157dc292df628877ac"
+    },
+    "bc-before-batches": {
+      "elapsedSeconds": 19.81983383395709,
+      "exit": 1,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 154824,
+      "sha256": "3af064d8cd89893d00da02087b4ad5a66589bd3820fb7e50cb5e60afb1c378cd"
+    },
+    "linux-aggregate": {
+      "elapsedSeconds": 195.43778062507045,
+      "exit": 1,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 9435,
+      "sha256": "759c91bed77b5fab14fc6d8328f26d0c5d141710ddb6aee0dc8bf85e3a72c011"
+    },
+    "source-owner-run": {
+      "elapsedSeconds": 1.846251458977349,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 2159,
+      "sha256": "9139c4261344e80bd065883b8acc26614dd513ed79d126be916abcd4c6112fe1"
+    },
+    "cold-dto-build-first": {
+      "elapsedSeconds": 25.93735983397346,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 8088,
+      "sha256": "19377fa58d7635a84a74c0eb27717ed08a8ead3bc5651a8401f86b371e8a5b2e"
+    },
+    "bc-before-build-fixed": {
+      "elapsedSeconds": 1.8458812080789357,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 2300,
+      "sha256": "c18f8214676a590e8978772e5284e9ffb07647c1368451f542c2f1ed1061612d"
+    },
+    "combined-d-key-fixed": {
+      "elapsedSeconds": 1.4310904999729246,
+      "exit": 1,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 1282,
+      "sha256": "bd4d5bae0e046a394debcae279e3e70185f0a43593df4041a18deb3b9ab5ac45"
+    },
+    "finalize-diagnostic-build": {
+      "elapsedSeconds": 1.8331578330835328,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 508,
+      "sha256": "9e7ded4d98564575e5352974a30611de2d067dfc1756ed5b7f4fb50bbce9829e"
+    },
+    "product-build-first": {
+      "elapsedSeconds": 23.469625415978953,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 7013,
+      "sha256": "8190d17578b6823ebeff0ea6aecda2ec96882b0568ddaf4ff96a57867761b603"
+    },
+    "combined-d-referenced": {
+      "elapsedSeconds": 1.2298045000061393,
+      "exit": 1,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 2136,
+      "sha256": "d2cce4be7528f0b81d1b0cad61de5fed6bb76ce28ece635c34280b308ab1dc32"
+    },
+    "linux-native-resume": {
+      "elapsedSeconds": 2.6516762090614066,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 37,
+      "sha256": "26d2c58a80eea81e866e7ea965f548877788e5ddfa838dd05672c3973bd898c4"
+    },
+    "source-owner-build": {
+      "elapsedSeconds": 0.8180377500830218,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cold-final-matrix": {
+      "elapsedSeconds": 62.876971125020646,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 30885,
+      "sha256": "3d13fa8986331c657cff9bc98c8fca8c72c2aee76cb15f5859ac685528814b79"
+    },
+    "source-key-fixture": {
+      "elapsedSeconds": 2.044744999962859,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 2291,
+      "sha256": "23ba8c6843d781f89c2b1071ed2463db042fcced22e6bc088a24c623cceafbc4"
+    },
+    "search-application-owner": {
+      "elapsedSeconds": 1.6370528329862282,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 1329,
+      "sha256": "d4bd47b7fd03656d6ab030e8f13234357b0f72fe6cfed9fbed3e360a8a64f308"
+    },
+    "overlap-aggregate": {
+      "elapsedSeconds": 60.44338708301075,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 303877,
+      "sha256": "94c63c86f2f7d9432a2122bdf5f46351da9138c0f5dbadb613a85e5443b4776a"
+    },
+    "product-build-json": {
+      "elapsedSeconds": 1.8408363329945132,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 402,
+      "sha256": "a2e02ed74e049e869e8a461397712b241de28b6ccedb922128a3e3315f3b9d64"
+    },
+    "source-candidate": {
+      "elapsedSeconds": 25.308296332950704,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 191,
+      "sha256": "b9d40cf676884ee7ddacb0997ef384bcd69b7e96610b033affa8f46e8255ffbf"
+    },
+    "large-cold-matrix": {
+      "elapsedSeconds": 72.10564854205586,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 6301,
+      "sha256": "86762b0f7ccc714397413c8e6bf8e314be193ef3eef01d13a3728bc4fc9696ab"
+    },
+    "aggregate-bc-build": {
+      "elapsedSeconds": 1.8451938329963014,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 2291,
+      "sha256": "23ba8c6843d781f89c2b1071ed2463db042fcced22e6bc088a24c623cceafbc4"
+    },
+    "seed-final-run": {
+      "elapsedSeconds": 83.3451632920187,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 6418,
+      "sha256": "d7fa155f637666a4f9aae98405acb414907d6e18dd50a386e19036e86197577d"
+    },
+    "bc-before-build": {
+      "elapsedSeconds": 1.2261283750412986,
+      "exit": 1,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 5841,
+      "sha256": "8d70c61ac140ec413478a12f90f2a94eb35ba9a1ba8fca2b48c4190485189c6b"
+    },
+    "bc-after-build": {
+      "elapsedSeconds": 2.045501000015065,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 2291,
+      "sha256": "23ba8c6843d781f89c2b1071ed2463db042fcced22e6bc088a24c623cceafbc4"
+    },
+    "overlap-after-build": {
+      "elapsedSeconds": 1.224850625032559,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cold-owned-build": {
+      "elapsedSeconds": 16.496922750025988,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 8204,
+      "sha256": "5cbdf5cfc0ee430dca46057c739f379f47300222e9b73c61e6fbc60ca498a2bf"
+    },
+    "finalize-exception-fixture": {
+      "elapsedSeconds": 1.8466816250002012,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 2291,
+      "sha256": "23ba8c6843d781f89c2b1071ed2463db042fcced22e6bc088a24c623cceafbc4"
+    },
+    "bc-after-batches": {
+      "elapsedSeconds": 18.359526582993567,
+      "exit": 1,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 155155,
+      "sha256": "f489a949873c1c6d6d4e7b621e3e06c357b4da7f924ffa7b9438af8177a3a64e"
+    },
+    "referenced-fixture": {
+      "elapsedSeconds": 2.0516661669826135,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 2291,
+      "sha256": "23ba8c6843d781f89c2b1071ed2463db042fcced22e6bc088a24c623cceafbc4"
+    },
+    "combined-d-diagnostic": {
+      "elapsedSeconds": 0.8199487499659881,
+      "exit": 1,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 239,
+      "sha256": "6ee8dd7f8eeb1d71ab6cb61dfe07fe30dec63d031eaf4c0f94f991fcdf7d1876"
+    },
+    "combined-d-final": {
+      "elapsedSeconds": 1.230454875039868,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 2341,
+      "sha256": "61455c83cce4a29ca820b4926c3eb22c773b9dade1928c5d54e0a4f112f7a9a0"
+    },
+    "linux-final": {
+      "elapsedSeconds": 3.053072915994562,
+      "exit": 1,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 319,
+      "sha256": "2023c9cda553cef291f1a98d8b2bd00f8bb15020ad5dc43477e0f41887d0730f"
+    },
+    "aggregate-build": {
+      "elapsedSeconds": 14.699567834031768,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 6597,
+      "sha256": "c5875adea97908632439724f61cd0ec7997ff42494dc47e482804e55c77b59e2"
+    },
+    "search-owner-first": {
+      "elapsedSeconds": 2.86055470793508,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 3893,
+      "sha256": "59fbb8a4aaab47c4754272677218b3e2e2e243795951b8c008c00ac946c014ab"
+    },
+    "source-key-build": {
+      "elapsedSeconds": 2.859241708065383,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 278,
+      "sha256": "0bc3b01c848d7f54235dd4246dc5da15df535b1358118d157dc292df628877ac"
+    },
+    "combined-final-fixture": {
+      "elapsedSeconds": 1.846666874946095,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 2291,
+      "sha256": "23ba8c6843d781f89c2b1071ed2463db042fcced22e6bc088a24c623cceafbc4"
+    },
+    "combined-d-range-fixed": {
+      "elapsedSeconds": 1.226431249990128,
+      "exit": 1,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 1325,
+      "sha256": "15ef81cd8791c430a66881ff876a73ddc20544904005b26362631dc3ab3364d3"
+    },
+    "combined-d-exception": {
+      "elapsedSeconds": 0.8192791249603033,
+      "exit": 1,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 309,
+      "sha256": "0aa196bb821f72564c210499d492d341feb33b1d7d0dd20f5dde2945a6666ef9"
+    },
+    "aggregate-bc": {
+      "elapsedSeconds": 18.590114083955996,
+      "exit": 1,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 155277,
+      "sha256": "51b1fc31364cdfb3d1f161570e3b14d1deba5fae511c32f16160ccd71196ded9"
+    },
+    "static-metadata": {
+      "elapsedSeconds": 0.21191449998877943,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 454,
+      "sha256": "9cda5bb492e62ffb69865b146136bb2ffb4da8344c235a64796e278e1be23ffe"
+    },
+    "static-docs-links": {
+      "elapsedSeconds": 0.4118510000407696,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 186,
+      "sha256": "e1250264aff39b28bfa67aa20d3c103e1f84e1ce7c0a567d28f5156f26c6e8ef"
+    },
+    "static-project-inventory": {
+      "elapsedSeconds": 44.91935733309947,
+      "exit": 1,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 210574,
+      "sha256": "df5cb3141ce098181a6d12be45063d7a6052c76678835ff6deafcd89d3b18456"
+    },
+    "static-script-inventory": {
+      "elapsedSeconds": 27.55405812500976,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 941,
+      "sha256": "92e692a3173f517ac5430005d1cf361195ac0dad7e505a2ffaddc893da6cdecf"
+    }
+  },
+  "independentReview": "84-independent-review.json",
+  "archive": "84-execution.tar.gz",
+  "cleanup": {
+    "state": "RAW_SELECTED_ARCHIVE_READBACK_OK_PENDING_REMOTE_AND_OWNED_ROOT_CLEANUP",
+    "QwenOllamaCalls": 0,
+    "unloadGate": "not-run"
+  },
+  "notRun": [
+    "120min",
+    "acceptance",
+    "UI",
+    "PR",
+    "CI initiation",
+    "merge",
+    "tag",
+    "Release",
+    "risk acceptance"
+  ],
+  "preservation": {
+    "archiveBytes": 1791518,
+    "archiveSha256": "de30e9792ded37a673958603ed77cfdea72d0cd80853e6235543973a144eb414",
+    "memberCount": 446,
+    "originalMemberBytes": 13526891,
+    "readbackAllSelectedMembers": true,
+    "independentReviewSha256": "6cb5e09d680c25374aef7d15b7739e6c8e66de173badcc95c896875c75efdeec"
+  },
+  "static": "links/script inventory/release metadata/diff check PASS; project inventory FAIL1 due new inventory/trust binding. Approval not synthesized."
+}
