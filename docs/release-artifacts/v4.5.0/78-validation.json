@@ -1,0 +1,974 @@
+{
+  "schema": "media-server.v450-memory78-validation.v1",
+  "status": "JOURNAL_INTEGRATION_VERIFIED_MEMORY_P0_BLOCKED",
+  "base": "12a47d81caf9152c3ab62ab741c113a2e3ccc4d0",
+  "models": {
+    "main": {
+      "requestedModel": "gpt-6-astra",
+      "requestedEffort": "high",
+      "toolAccepted": null,
+      "runtimeModel": null,
+      "runtimeEffort": null
+    },
+    "independent": {
+      "agent": "/root/independent_memory77",
+      "requestedModel": "gpt-6-astra",
+      "requestedEffort": "high",
+      "toolAcceptedModel": "gpt-6-astra",
+      "toolAcceptedEffort": "high",
+      "runtimeModel": null,
+      "runtimeEffort": null,
+      "participatedInImplementationTestsOrExecution": false
+    }
+  },
+  "implementation": {
+    "authority": "unchanged manifest/shard/archive/active source validation; scratch cannot reopen trust from header",
+    "normalResidentRemoval": [
+      "Journal historical identity unordered_map",
+      "chain.first_acceptances vector after source validation/publication"
+    ],
+    "scratch": "separate verified temporary capability, exclusive0600 creation, immediate unlink, FD identity+nlink0, explicit sticky Close with no retry of uncertain descriptor",
+    "budgets": {
+      "originalAdmission": "unchanged snapshot/active/shard/cold-row/identity/archive limits",
+      "valueBytes": 2048,
+      "maxDtoProofBytes": 1531,
+      "keyBytes": 256,
+      "nodeBytes": 512,
+      "depth": 96,
+      "cacheBytes": 0,
+      "copyBufferBytes": 65536,
+      "diskFormula": "512+5120*N unique historical identities; checkpoint old N plus new N+accepted active upper bound, sum both files",
+      "overwrite": "fixed slot reused; 2048 repeated writes constant file length",
+      "memoryBoundary": "fixed index lookup/stack/value; caller return and full snapshot export are separate; not a bound on entire product memory"
+    },
+    "completeness": "full original validator first, both identity+ordinal rows matched and physical occurrences sealed; active validated before publication; authenticated miss path; checkpoint coverage plus full Visit before atomic publish",
+    "publication": "original append/lease/authority and selected source guards unchanged; candidate failure never causes a RAM fallback",
+    "explicitFinishOwners": [
+      "checkpoint Catalog caller including exception exits",
+      "RuntimeStorage reset and Open failure",
+      "application normal shutdown and post-Open failure exits"
+    ]
+  },
+  "executions": {
+    "macWholeCheckpoint": {
+      "command": "bash scripts/internal/verify_recording_generation_checkpoint.sh all",
+      "log": "checkpoint-copy.log",
+      "exit": 0,
+      "scope": "4 crypto/SQLite/generation configurations; final normal-path implementation, prior to directory-close uncertainty-only fix",
+      "bytes": 20731,
+      "sha256": "e9a3a3ec7a3e56ea3cc9e1c3bc4f83e90a67c100da1bec9c220321cb23aba037"
+    },
+    "macFinalHistory": {
+      "command": "bash scripts/internal/verify_recording_generation_checkpoint.sh history-product",
+      "log": "history-product-reviewed.log",
+      "exit": 0,
+      "scope": "final code; two enabled and two unsupported/v1 configurations; product Journal transition plus anonymous index fault cases",
+      "bytes": 13961,
+      "sha256": "29d2b7d9cb98c1a56a086ec3e3b1bd176ca38ee4c8243c71739d49856ec48839"
+    },
+    "linuxWholeCheckpoint": {
+      "command": "bash scripts/internal/verify_recording_generation_checkpoint.sh all; bash scripts/internal/verify_recording_generation_checkpoint.sh history-product",
+      "log": "linux-final.log",
+      "exit": 0,
+      "scope": "whole product wrapper 4-config, before final close-uncertainty fix",
+      "bytes": 34251,
+      "sha256": "4d87ffa4f5bb82d88b15c7ce7af2b7744b1723d9439bc052461256ff1f0a6f45"
+    },
+    "linuxFinalHistory": {
+      "command": "bash scripts/internal/verify_recording_generation_checkpoint.sh history-product",
+      "log": "linux-reviewed.log",
+      "exit": 0,
+      "scope": "final code, full four-configuration wrapper; UID10001, network none, caps dropped, overlay scratch",
+      "bytes": 13915,
+      "sha256": "adc3a01503204cde6c92617c78c3ed9f8690c3cc2b890d83ee0a1112d6fe8eb6"
+    },
+    "macConsumers": {
+      "command": "bash scripts/internal/verify_recording_generation_consumers.sh",
+      "log": "consumers.log",
+      "exit": 0,
+      "bytes": 24552,
+      "sha256": "c02f783fe2331a7099b46e1440b877ae5a6f6c68ad286748eb0b491ab2d33f0b"
+    },
+    "macEvidence": {
+      "command": "bash scripts/internal/verify_evidence_package.sh --observations",
+      "log": "evidence-observations.log",
+      "exit": 0,
+      "bytes": 14584,
+      "sha256": "f0b7c30096450117224d6192405548d4deddb710a6d64eb0bab5491f34f7b227"
+    },
+    "macConfirmedA": {
+      "command": "python3 scripts/internal/verify_va_review_confirmed.py",
+      "log": "confirmed.log",
+      "exit": 0,
+      "scope": "native confirmed/seed/fresh read; not HTTP or UI",
+      "bytes": 16627,
+      "sha256": "d74c2c6ce6f73bdb04f1a860755b5673ed56db8f0c15eeaa2a7d80afcf2d2d25"
+    },
+    "macProductBuild": {
+      "command": "cmake --build build-gst-onnx -j2",
+      "log": "product-build-reviewed.log",
+      "exit": 0,
+      "bytes": 285,
+      "sha256": "17befdd8eeff8a09151e6a01ac651633b03c73d75a57383cf24c483d4ca31218"
+    },
+    "linuxProductBuild": {
+      "command": "existing rc58 image: cmake GStreamer/ONNX/SigLIP2 ON, official existing SDK prefixes; cmake --build -j2",
+      "log": "linux-build-reviewed.log",
+      "exit": 0,
+      "bytes": 657,
+      "sha256": "4bb6e315edb63d611e09ceebd8836d45bf3c7d6e4e6ad11dc05e13a63c724655"
+    },
+    "foreignUid": {
+      "command": "preserved foreign-probe.cpp + existing Linux runtime, -Wall -Wextra -Werror; UID10001 against source UID501 directory0555, read-only data and existing writable empty leases",
+      "log": "foreign-linux-leases.log",
+      "exit": 0,
+      "readback": "foreign-stream-readback.json",
+      "bytes": 207,
+      "sha256": "9cd7b0c604ba5dab5a8644917cff9ef59106fb7443d036b0faf4e1793860a72f"
+    }
+  },
+  "memoryComparison": {
+    "before": {
+      "result": {
+        "side": "before",
+        "command": [
+          "bash",
+          "/private/tmp/media-server-memory78-j4nkjfzz/before/run-final.sh"
+        ],
+        "uid": 501,
+        "exit": 0,
+        "reason": null,
+        "elapsedSeconds": 40.284655041992664,
+        "bytes": 7828,
+        "sha256": "359f84b9544f779af478f986da4a9fcc55786216ee4cf410afc77af44ff74536"
+      },
+      "scales": [
+        {
+          "history": 128,
+          "beforeCheckpoint": {
+            "stage": "before-checkpoint",
+            "history": 128,
+            "rss": 57540608,
+            "footprint": 19350248,
+            "mallocLive": 4744480,
+            "mallocReserved": 41943040,
+            "mallocBlocks": 39554,
+            "rssHighWater": 57540608,
+            "fdCount": 6,
+            "elapsedMs": 1928.83,
+            "catalogMutations": 512,
+            "catalogOrders": 128,
+            "retired": 128,
+            "sourceEntries": 128,
+            "activeSegments": 0,
+            "acceptedOrdinals": 384,
+            "journalIdentities": 512,
+            "chainRows": 502,
+            "chainRowCapacity": 512,
+            "chainOrderCopies": 0,
+            "journalOrders": 128,
+            "activeRows": 10,
+            "activePayloadCapacity": 37406
+          },
+          "afterCheckpoint": {
+            "stage": "after-checkpoint",
+            "history": 128,
+            "rss": 57835520,
+            "footprint": 19645160,
+            "mallocLive": 4869328,
+            "mallocReserved": 41943040,
+            "mallocBlocks": 39544,
+            "rssHighWater": 57835520,
+            "fdCount": 6,
+            "elapsedMs": 1955.58,
+            "catalogMutations": 512,
+            "catalogOrders": 128,
+            "retired": 128,
+            "sourceEntries": 128,
+            "activeSegments": 0,
+            "acceptedOrdinals": 384,
+            "journalIdentities": 512,
+            "chainRows": 512,
+            "chainRowCapacity": 1004,
+            "chainOrderCopies": 0,
+            "journalOrders": 128,
+            "activeRows": 0,
+            "activePayloadCapacity": 0
+          },
+          "checkpointMs": 26.75,
+          "rootBytes": 2601552,
+          "observedRootPlusScratchPeakSum": 2601552
+        },
+        {
+          "history": 512,
+          "beforeCheckpoint": {
+            "stage": "before-checkpoint",
+            "history": 512,
+            "rss": 66224128,
+            "footprint": 26657512,
+            "mallocLive": 8107760,
+            "mallocReserved": 41943040,
+            "mallocBlocks": 60661,
+            "rssHighWater": 66224128,
+            "fdCount": 6,
+            "elapsedMs": 7686.69,
+            "catalogMutations": 2048,
+            "catalogOrders": 512,
+            "retired": 512,
+            "sourceEntries": 512,
+            "activeSegments": 0,
+            "acceptedOrdinals": 1536,
+            "journalIdentities": 2048,
+            "chainRows": 2014,
+            "chainRowCapacity": 3276,
+            "chainOrderCopies": 0,
+            "journalOrders": 512,
+            "activeRows": 34,
+            "activePayloadCapacity": 145670
+          },
+          "afterCheckpoint": {
+            "stage": "after-checkpoint",
+            "history": 512,
+            "rss": 66928640,
+            "footprint": 27362024,
+            "mallocLive": 8105712,
+            "mallocReserved": 41943040,
+            "mallocBlocks": 60627,
+            "rssHighWater": 66928640,
+            "fdCount": 6,
+            "elapsedMs": 7776.37,
+            "catalogMutations": 2048,
+            "catalogOrders": 512,
+            "retired": 512,
+            "sourceEntries": 512,
+            "activeSegments": 0,
+            "acceptedOrdinals": 1536,
+            "journalIdentities": 2048,
+            "chainRows": 2048,
+            "chainRowCapacity": 4028,
+            "chainOrderCopies": 0,
+            "journalOrders": 512,
+            "activeRows": 0,
+            "activePayloadCapacity": 0
+          },
+          "checkpointMs": 89.68000000000029,
+          "rootBytes": 9449307,
+          "observedRootPlusScratchPeakSum": 9449307
+        },
+        {
+          "history": 2048,
+          "beforeCheckpoint": {
+            "stage": "before-checkpoint",
+            "history": 2048,
+            "rss": 124485632,
+            "footprint": 78758728,
+            "mallocLive": 21932528,
+            "mallocReserved": 64749568,
+            "mallocBlocks": 145084,
+            "rssHighWater": 124485632,
+            "fdCount": 6,
+            "elapsedMs": 33412.2,
+            "catalogMutations": 8192,
+            "catalogOrders": 2048,
+            "retired": 2048,
+            "sourceEntries": 2048,
+            "activeSegments": 0,
+            "acceptedOrdinals": 6144,
+            "journalIdentities": 8192,
+            "chainRows": 8062,
+            "chainRowCapacity": 15372,
+            "chainOrderCopies": 0,
+            "journalOrders": 2048,
+            "activeRows": 130,
+            "activePayloadCapacity": 579246
+          },
+          "afterCheckpoint": {
+            "stage": "after-checkpoint",
+            "history": 2048,
+            "rss": 128008192,
+            "footprint": 82281288,
+            "mallocLive": 21324528,
+            "mallocReserved": 65273856,
+            "mallocBlocks": 144954,
+            "rssHighWater": 128008192,
+            "fdCount": 6,
+            "elapsedMs": 33762.6,
+            "catalogMutations": 8192,
+            "catalogOrders": 2048,
+            "retired": 2048,
+            "sourceEntries": 2048,
+            "activeSegments": 0,
+            "acceptedOrdinals": 6144,
+            "journalIdentities": 8192,
+            "chainRows": 8192,
+            "chainRowCapacity": 16124,
+            "chainOrderCopies": 0,
+            "journalOrders": 2048,
+            "activeRows": 0,
+            "activePayloadCapacity": 0
+          },
+          "checkpointMs": 350.40000000000146,
+          "rootBytes": 36937548,
+          "observedRootPlusScratchPeakSum": 36937548
+        }
+      ],
+      "idle": [
+        {
+          "stage": "idle",
+          "history": 2048,
+          "rss": 128008192,
+          "footprint": 82281288,
+          "mallocLive": 21303824,
+          "mallocReserved": 65273856,
+          "mallocBlocks": 144803,
+          "rssHighWater": 128008192,
+          "fdCount": 6,
+          "elapsedMs": 34778.1,
+          "catalogMutations": 8192,
+          "catalogOrders": 2048,
+          "retired": 2048,
+          "sourceEntries": 2048,
+          "activeSegments": 0,
+          "acceptedOrdinals": 6144,
+          "journalIdentities": 8192,
+          "chainRows": 8192,
+          "chainRowCapacity": 16124,
+          "chainOrderCopies": 0,
+          "journalOrders": 2048,
+          "activeRows": 0,
+          "activePayloadCapacity": 0
+        },
+        {
+          "stage": "idle",
+          "history": 2048,
+          "rss": 128008192,
+          "footprint": 82281288,
+          "mallocLive": 21303824,
+          "mallocReserved": 65273856,
+          "mallocBlocks": 144803,
+          "rssHighWater": 128008192,
+          "fdCount": 6,
+          "elapsedMs": 35781.1,
+          "catalogMutations": 8192,
+          "catalogOrders": 2048,
+          "retired": 2048,
+          "sourceEntries": 2048,
+          "activeSegments": 0,
+          "acceptedOrdinals": 6144,
+          "journalIdentities": 8192,
+          "chainRows": 8192,
+          "chainRowCapacity": 16124,
+          "chainOrderCopies": 0,
+          "journalOrders": 2048,
+          "activeRows": 0,
+          "activePayloadCapacity": 0
+        },
+        {
+          "stage": "idle",
+          "history": 2048,
+          "rss": 128008192,
+          "footprint": 82281288,
+          "mallocLive": 21303824,
+          "mallocReserved": 65273856,
+          "mallocBlocks": 144803,
+          "rssHighWater": 128008192,
+          "fdCount": 6,
+          "elapsedMs": 36789.7,
+          "catalogMutations": 8192,
+          "catalogOrders": 2048,
+          "retired": 2048,
+          "sourceEntries": 2048,
+          "activeSegments": 0,
+          "acceptedOrdinals": 6144,
+          "journalIdentities": 8192,
+          "chainRows": 8192,
+          "chainRowCapacity": 16124,
+          "chainOrderCopies": 0,
+          "journalOrders": 2048,
+          "activeRows": 0,
+          "activePayloadCapacity": 0
+        }
+      ],
+      "reopened": {
+        "stage": "reopened",
+        "history": 2048,
+        "rss": 117948416,
+        "footprint": 44663624,
+        "mallocLive": 17751728,
+        "mallocReserved": 70205440,
+        "mallocBlocks": 148892,
+        "rssHighWater": 128008192,
+        "fdCount": 6,
+        "elapsedMs": 39501,
+        "catalogMutations": 6144,
+        "catalogOrders": 2048,
+        "retired": 2048,
+        "sourceEntries": 2048,
+        "activeSegments": 0,
+        "acceptedOrdinals": 6144,
+        "journalIdentities": 8192,
+        "chainRows": 8192,
+        "chainRowCapacity": 8192,
+        "chainOrderCopies": 0,
+        "journalOrders": 2048,
+        "activeRows": 0,
+        "activePayloadCapacity": 0
+      },
+      "released": {
+        "stage": "released-again",
+        "history": 2048,
+        "rss": 110493696,
+        "footprint": 44663624,
+        "mallocLive": 3586464,
+        "mallocReserved": 67108864,
+        "mallocBlocks": 32077,
+        "rssHighWater": 128008192,
+        "fdCount": 3,
+        "elapsedMs": 39503.4
+      },
+      "rssHighWaterMax": 128008192,
+      "peakBoundary": "process cumulative getrusage high-water at phase boundaries; not exact per-phase live-heap/footprint peak"
+    },
+    "after": {
+      "result": {
+        "side": "after",
+        "command": [
+          "bash",
+          "/private/tmp/media-server-memory78-j4nkjfzz/after/run-peak.sh"
+        ],
+        "uid": 501,
+        "exit": 0,
+        "reason": null,
+        "elapsedSeconds": 51.67390620801598,
+        "bytes": 9118,
+        "sha256": "d5e08481a66a73b4a626f71b9e8cec397854ef7c4ce0d4633652b0f18f164d30"
+      },
+      "scales": [
+        {
+          "history": 128,
+          "beforeCheckpoint": {
+            "stage": "before-checkpoint",
+            "history": 128,
+            "rss": 57769984,
+            "footprint": 19464936,
+            "mallocLive": 4374192,
+            "mallocReserved": 46137344,
+            "mallocBlocks": 37295,
+            "rssHighWater": 57769984,
+            "fdCount": 7,
+            "elapsedMs": 2058.02,
+            "catalogMutations": 512,
+            "catalogOrders": 128,
+            "retired": 128,
+            "sourceEntries": 128,
+            "activeSegments": 0,
+            "acceptedOrdinals": 384,
+            "journalIdentities": 512,
+            "chainRows": 0,
+            "chainRowCapacity": 0,
+            "chainOrderCopies": 0,
+            "journalOrders": 128,
+            "activeRows": 10,
+            "activePayloadCapacity": 37406,
+            "scratchBytes": 2570752,
+            "scratchAllocated": 2572288,
+            "scratchPeakConcurrent": 3226624,
+            "scratchPeakAllocated": 3231744
+          },
+          "afterCheckpoint": {
+            "stage": "after-checkpoint",
+            "history": 128,
+            "rss": 57835520,
+            "footprint": 19530472,
+            "mallocLive": 4294656,
+            "mallocReserved": 46137344,
+            "mallocBlocks": 37240,
+            "rssHighWater": 57835520,
+            "fdCount": 7,
+            "elapsedMs": 2117.7,
+            "catalogMutations": 512,
+            "catalogOrders": 128,
+            "retired": 128,
+            "sourceEntries": 128,
+            "activeSegments": 0,
+            "acceptedOrdinals": 384,
+            "journalIdentities": 512,
+            "chainRows": 0,
+            "chainRowCapacity": 0,
+            "chainOrderCopies": 0,
+            "journalOrders": 128,
+            "activeRows": 0,
+            "activePayloadCapacity": 0,
+            "scratchBytes": 2621952,
+            "scratchAllocated": 2625536,
+            "scratchPeakConcurrent": 5192704,
+            "scratchPeakAllocated": 5197824
+          },
+          "checkpointMs": 59.679999999999836,
+          "rootBytes": 2601390,
+          "observedRootPlusScratchPeakSum": 7799214
+        },
+        {
+          "history": 512,
+          "beforeCheckpoint": {
+            "stage": "before-checkpoint",
+            "history": 512,
+            "rss": 64946176,
+            "footprint": 25264872,
+            "mallocLive": 6163968,
+            "mallocReserved": 46137344,
+            "mallocBlocks": 51598,
+            "rssHighWater": 64946176,
+            "fdCount": 7,
+            "elapsedMs": 8659.4,
+            "catalogMutations": 2048,
+            "catalogOrders": 512,
+            "retired": 512,
+            "sourceEntries": 512,
+            "activeSegments": 0,
+            "acceptedOrdinals": 1536,
+            "journalIdentities": 2048,
+            "chainRows": 0,
+            "chainRowCapacity": 0,
+            "chainOrderCopies": 0,
+            "journalOrders": 512,
+            "activeRows": 34,
+            "activePayloadCapacity": 145670,
+            "scratchBytes": 10312192,
+            "scratchAllocated": 10313728,
+            "scratchPeakConcurrent": 18699264,
+            "scratchPeakAllocated": 18702336
+          },
+          "afterCheckpoint": {
+            "stage": "after-checkpoint",
+            "history": 512,
+            "rss": 65011712,
+            "footprint": 25330408,
+            "mallocLive": 5856800,
+            "mallocReserved": 46137344,
+            "mallocBlocks": 51411,
+            "rssHighWater": 65011712,
+            "fdCount": 7,
+            "elapsedMs": 8880.56,
+            "catalogMutations": 2048,
+            "catalogOrders": 512,
+            "retired": 512,
+            "sourceEntries": 512,
+            "activeSegments": 0,
+            "acceptedOrdinals": 1536,
+            "journalIdentities": 2048,
+            "chainRows": 0,
+            "chainRowCapacity": 0,
+            "chainOrderCopies": 0,
+            "journalOrders": 512,
+            "activeRows": 0,
+            "activePayloadCapacity": 0,
+            "scratchBytes": 10486272,
+            "scratchAllocated": 10489856,
+            "scratchPeakConcurrent": 20798464,
+            "scratchPeakAllocated": 20803584
+          },
+          "checkpointMs": 221.15999999999985,
+          "rootBytes": 9447930,
+          "observedRootPlusScratchPeakSum": 30251514
+        },
+        {
+          "history": 2048,
+          "beforeCheckpoint": {
+            "stage": "before-checkpoint",
+            "history": 2048,
+            "rss": 95010816,
+            "footprint": 49513192,
+            "mallocLive": 13350912,
+            "mallocReserved": 62914560,
+            "mallocBlocks": 108805,
+            "rssHighWater": 95010816,
+            "fdCount": 7,
+            "elapsedMs": 41585.8,
+            "catalogMutations": 8192,
+            "catalogOrders": 2048,
+            "retired": 2048,
+            "sourceEntries": 2048,
+            "activeSegments": 0,
+            "acceptedOrdinals": 6144,
+            "journalIdentities": 8192,
+            "chainRows": 0,
+            "chainRowCapacity": 0,
+            "chainOrderCopies": 0,
+            "journalOrders": 2048,
+            "activeRows": 130,
+            "activePayloadCapacity": 579246,
+            "scratchBytes": 41277952,
+            "scratchAllocated": 41279488,
+            "scratchPeakConcurrent": 80630784,
+            "scratchPeakAllocated": 80633856
+          },
+          "afterCheckpoint": {
+            "stage": "after-checkpoint",
+            "history": 2048,
+            "rss": 95158272,
+            "footprint": 49660648,
+            "mallocLive": 12132896,
+            "mallocReserved": 62914560,
+            "mallocBlocks": 108090,
+            "rssHighWater": 95158272,
+            "fdCount": 7,
+            "elapsedMs": 42480.2,
+            "catalogMutations": 8192,
+            "catalogOrders": 2048,
+            "retired": 2048,
+            "sourceEntries": 2048,
+            "activeSegments": 0,
+            "acceptedOrdinals": 6144,
+            "journalIdentities": 8192,
+            "chainRows": 0,
+            "chainRowCapacity": 0,
+            "chainOrderCopies": 0,
+            "journalOrders": 2048,
+            "activeRows": 0,
+            "activePayloadCapacity": 0,
+            "scratchBytes": 41943552,
+            "scratchAllocated": 41947136,
+            "scratchPeakConcurrent": 83221504,
+            "scratchPeakAllocated": 83226624
+          },
+          "checkpointMs": 894.3999999999942,
+          "rootBytes": 36932170,
+          "observedRootPlusScratchPeakSum": 120158794
+        }
+      ],
+      "idle": [
+        {
+          "stage": "idle",
+          "history": 2048,
+          "rss": 95158272,
+          "footprint": 49660648,
+          "mallocLive": 12112192,
+          "mallocReserved": 62914560,
+          "mallocBlocks": 107939,
+          "rssHighWater": 95158272,
+          "fdCount": 7,
+          "elapsedMs": 43493.8,
+          "catalogMutations": 8192,
+          "catalogOrders": 2048,
+          "retired": 2048,
+          "sourceEntries": 2048,
+          "activeSegments": 0,
+          "acceptedOrdinals": 6144,
+          "journalIdentities": 8192,
+          "chainRows": 0,
+          "chainRowCapacity": 0,
+          "chainOrderCopies": 0,
+          "journalOrders": 2048,
+          "activeRows": 0,
+          "activePayloadCapacity": 0,
+          "scratchBytes": 41943552,
+          "scratchAllocated": 41947136,
+          "scratchPeakConcurrent": 83221504,
+          "scratchPeakAllocated": 83226624
+        },
+        {
+          "stage": "idle",
+          "history": 2048,
+          "rss": 95158272,
+          "footprint": 49660648,
+          "mallocLive": 12112192,
+          "mallocReserved": 62914560,
+          "mallocBlocks": 107939,
+          "rssHighWater": 95158272,
+          "fdCount": 7,
+          "elapsedMs": 44504.9,
+          "catalogMutations": 8192,
+          "catalogOrders": 2048,
+          "retired": 2048,
+          "sourceEntries": 2048,
+          "activeSegments": 0,
+          "acceptedOrdinals": 6144,
+          "journalIdentities": 8192,
+          "chainRows": 0,
+          "chainRowCapacity": 0,
+          "chainOrderCopies": 0,
+          "journalOrders": 2048,
+          "activeRows": 0,
+          "activePayloadCapacity": 0,
+          "scratchBytes": 41943552,
+          "scratchAllocated": 41947136,
+          "scratchPeakConcurrent": 83221504,
+          "scratchPeakAllocated": 83226624
+        },
+        {
+          "stage": "idle",
+          "history": 2048,
+          "rss": 95158272,
+          "footprint": 49660648,
+          "mallocLive": 12112192,
+          "mallocReserved": 62914560,
+          "mallocBlocks": 107939,
+          "rssHighWater": 95158272,
+          "fdCount": 7,
+          "elapsedMs": 45510.2,
+          "catalogMutations": 8192,
+          "catalogOrders": 2048,
+          "retired": 2048,
+          "sourceEntries": 2048,
+          "activeSegments": 0,
+          "acceptedOrdinals": 6144,
+          "journalIdentities": 8192,
+          "chainRows": 0,
+          "chainRowCapacity": 0,
+          "chainOrderCopies": 0,
+          "journalOrders": 2048,
+          "activeRows": 0,
+          "activePayloadCapacity": 0,
+          "scratchBytes": 41943552,
+          "scratchAllocated": 41947136,
+          "scratchPeakConcurrent": 83221504,
+          "scratchPeakAllocated": 83226624
+        }
+      ],
+      "reopened": {
+        "stage": "reopened",
+        "history": 2048,
+        "rss": 98811904,
+        "footprint": 27689752,
+        "mallocLive": 11771360,
+        "mallocReserved": 79691776,
+        "mallocBlocks": 112028,
+        "rssHighWater": 115097600,
+        "fdCount": 7,
+        "elapsedMs": 50999.8,
+        "catalogMutations": 6144,
+        "catalogOrders": 2048,
+        "retired": 2048,
+        "sourceEntries": 2048,
+        "activeSegments": 0,
+        "acceptedOrdinals": 6144,
+        "journalIdentities": 8192,
+        "chainRows": 0,
+        "chainRowCapacity": 0,
+        "chainOrderCopies": 0,
+        "journalOrders": 2048,
+        "activeRows": 0,
+        "activePayloadCapacity": 0,
+        "scratchBytes": 41943552,
+        "scratchAllocated": 42594304,
+        "scratchPeakConcurrent": 41943552,
+        "scratchPeakAllocated": 42594304
+      },
+      "released": {
+        "stage": "released-again",
+        "history": 2048,
+        "rss": 91357184,
+        "footprint": 27689752,
+        "mallocLive": 3585376,
+        "mallocReserved": 79691776,
+        "mallocBlocks": 32077,
+        "rssHighWater": 115097600,
+        "fdCount": 3,
+        "elapsedMs": 51005
+      },
+      "rssHighWaterMax": 115097600,
+      "peakBoundary": "process cumulative getrusage high-water at phase boundaries; not exact per-phase live-heap/footprint peak"
+    },
+    "limits": {
+      "rss": 4294967296,
+      "rootPlusScratch": 469762048,
+      "log": 4194304,
+      "deadlineSeconds": 180
+    },
+    "interpretation": {
+      "baseline": "base12a47d81 complete runtime rebuilt in isolated source; observer replaces only same-source Journal for private read-only counters",
+      "after": "final product runtime; same native fixture and sample method",
+      "fixedActiveMedia": 0,
+      "normalWork": "actual Reserve/FinalizeBound/Delete/Checkpoint, warmup32,128/512/2048",
+      "liveHeapIncludes": "product plus finite native fixture, fixed GStreamer runtime and measurement buffers; not per-owner allocated bytes",
+      "unclassified": "allocator reserved/resident gap and fine-grained allocation attribution",
+      "remainingON": [
+        "Catalog mutations/accepted/order/retired/source",
+        "Journal order and archive descriptors/names",
+        "Open full chain/projection/scratch",
+        "checkpoint first DTO/order/snapshot/sort/serialization"
+      ],
+      "memoryP0": "BLOCKED",
+      "afterEarlierRun": "after-controlled valid memory/run result lacks added FD/high-water/elapsed sample fields; after-peak adds those without product change",
+      "workspaceObservation": "checkpoint-after root size plus measured concurrent anonymous scratch allocation; not exact instantaneous total workspace peak",
+      "inputEquality": "same fixed Encode/Record parameters and generated source; independent run UUID/store/time/MP4 hashes differ, not byte-identical containers"
+    },
+    "mediaInputs": {
+      "before": [
+        {
+          "path": "template/probe-channel/b78a8aed-c0b9-4239-a535-306ba4f43e3b.mp4",
+          "bytes": 55626,
+          "sha256": "5213b05ecd2daae1c8eab01ec7858667c5c88b42e5a5448d0a28363743377bd6",
+          "topLevelBoxes": [
+            {
+              "type": "ftyp",
+              "bytes": 32,
+              "payloadSha256": "7b6abd44ac2f426dccadbf0f3fbebda73d8cb9fbb38b69d247255eb1b8f6c9d3"
+            },
+            {
+              "type": "free",
+              "bytes": 8,
+              "payloadSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            },
+            {
+              "type": "mdat",
+              "bytes": 54491,
+              "payloadSha256": "972b57583c6a21e658a28a9834be01d61f378d4b31f9979b71067d9893b1a3fc"
+            },
+            {
+              "type": "moov",
+              "bytes": 1095,
+              "payloadSha256": "2b58c45572bb55387dd0ef1f3433e727c65753aeda123815b00b0231f21b543f"
+            }
+          ]
+        }
+      ],
+      "after": [
+        {
+          "path": "template/probe-channel/51c40c00-cd84-456b-abb8-d59602691f5b.mp4",
+          "bytes": 55626,
+          "sha256": "af8fce524ccfc5ebee3c8538410e7675f034f24fb529828b033938bbdcd962f4",
+          "topLevelBoxes": [
+            {
+              "type": "ftyp",
+              "bytes": 32,
+              "payloadSha256": "7b6abd44ac2f426dccadbf0f3fbebda73d8cb9fbb38b69d247255eb1b8f6c9d3"
+            },
+            {
+              "type": "free",
+              "bytes": 8,
+              "payloadSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            },
+            {
+              "type": "mdat",
+              "bytes": 54491,
+              "payloadSha256": "972b57583c6a21e658a28a9834be01d61f378d4b31f9979b71067d9893b1a3fc"
+            },
+            {
+              "type": "moov",
+              "bytes": 1095,
+              "payloadSha256": "33356955b5c2f9273be48686badf3d7db9c45b6c5f6f162454231079e81fe209"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "sourceFreeze": "78-execution.tar.gz:source-freeze.json",
+  "firstFailures": [
+    {
+      "log": "linux-matrix-first.log",
+      "kind": "new test GCC -Werror misleading indentation; fixed newline; complete matrix rerun passed"
+    },
+    {
+      "log": "history-product-first.log",
+      "kind": "new wrapper argument accepted but not forwarded; dispatch corrected and actual branch rerun"
+    },
+    {
+      "logs": [
+        "before-build.log",
+        "before.log",
+        "before-build-final.log",
+        "before-final.log"
+      ],
+      "kind": "comparison preparation: missing diagnostic include, mixed ABI/duplicate symbols and SIGSEGV; invalid measurements; resolved with complete isolated baseline build"
+    },
+    {
+      "logs": [
+        "foreign-linux.log",
+        "foreign-linux-fixed.log",
+        "foreign-linux-owned.log"
+      ],
+      "kind": "probe preparation: missing -lz, UID-distinction precondition on bind mount, existing generation lease access; corrected exact fixture/link preparation, final actual source UID501/runtime10001 pass"
+    },
+    {
+      "kind": "independent code finding: early directory close uncertainty not sticky",
+      "fix": "close_failed_ before throw; fault5 direct Create/Close regression, owner receipt propagation code review"
+    }
+  ],
+  "notRun": [
+    "mixed120 (excluded)",
+    "acceptance/fullUI",
+    "Catalog nonresident implementation",
+    "bounded complete Open/checkpoint work-memory",
+    "fixed-history request lifecycle B",
+    "retained A/evidence cost separation C"
+  ],
+  "remainingON": [
+    "Journal order requests/request times/segments/ordinary/legacy sets",
+    "chain archive descriptors/names",
+    "Catalog mutation/accepted ordinal/order/retired/source",
+    "Open original chain/full snapshot/projection/scratch",
+    "checkpoint chain/order/first DTO/snapshot rows/sort/serialized strings"
+  ],
+  "priorEvidence": "76 partial fix,77 unadopted patch/failures unchanged;59/61/63/65/68/72-74 retained at their sources/environments, not reissued for current full product",
+  "memoryP0": "BLOCKED",
+  "ownerRiskAcceptance": "not-granted",
+  "releaseAdoption": "not-performed",
+  "qwenOllamaCalls": 0,
+  "aiInferenceThisTask": 0,
+  "unloadGate": "not-run",
+  "approval": {
+    "candidateDigest": "137543c6332a73f9a77599bfaca732bd1f54b263adee078fe5d3f8c275775906",
+    "items": 986,
+    "newProductApproval": "78 independent review PASS for narrow Journal integration; not whole memory P0 or release",
+    "inventory77Residual": "already resolved; not carried forward",
+    "producer": {
+      "command": "node scripts/internal/verify_v390_review4_feature_semantic_source_audit.mjs --apply-approved-manifest",
+      "exit": 0,
+      "readback": "78-execution.tar.gz:manifest-readback.json",
+      "changedFields": [
+        "inventorySha256"
+      ],
+      "legacyItemsAndApprovalsUnchanged": true,
+      "candidateUnchanged": true,
+      "newProductDecision": "78-independent-review.json"
+    }
+  },
+  "independentReview": "78-independent-review.json",
+  "cleanup": {
+    "status": "owned containers removed and wrapper fixture cleanup verified; archive then owned parent cleanup pending",
+    "wrapperFixtures": "all successful final wrapper logs have removed=true",
+    "originalModelsSdkImages": "unchanged",
+    "containers": "container-cleanup.log:7 owned stopped containers removed; follow-up name filter empty"
+  },
+  "preservation": {
+    "archive": "78-execution.tar.gz",
+    "bytes": 1293927,
+    "sha256": "77431287e61290095f1cd6ef7e358bdadc4d4c0c50d67dc2710d6c405a4e68b8",
+    "members": 117,
+    "memberReadback": "all included members bytes/SHA256 verified",
+    "originalBytes": true,
+    "status": "archive verified; Git preservation pending"
+  },
+  "static": {
+    "registration": {
+      "exit": 0
+    },
+    "scriptInventoryStaged": {
+      "exit": 0
+    },
+    "docsLinks": {
+      "exit": 0
+    },
+    "coverageBefore": {
+      "exit": 1,
+      "reason": "new MEM78 inventorySha256 drift; legacy77 discrepancy was already resolved"
+    },
+    "diffCheck": {
+      "exit": 0
+    },
+    "coverageAfter": {
+      "exit": 0,
+      "pass": 9,
+      "fail": 0,
+      "log": "78-execution.tar.gz:coverage-after.log"
+    }
+  },
+  "implementationCommit": {
+    "commit": "2c63e322ac5377451a11d3c2a613f3963af99fb5",
+    "tree": "9bc866ea8c12bab3445f1f2adf27d39668d440e8",
+    "executionSource": "archive source-freeze.json and per-run boundaries"
+  }
+}
