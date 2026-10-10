@@ -1,0 +1,31 @@
+{
+  "root": "/private/tmp/media-server-memory85-c6xh2hns",
+  "uid": 501,
+  "remainingOwnedProcesses": [],
+  "portsConnectResult": {
+    "57794": 61,
+    "57829": 61,
+    "58016": 61,
+    "58064": 61,
+    "58177": 61,
+    "58229": 61,
+    "58542": 61
+  },
+  "container": {
+    "id": "d65394d05bf0f0057911ae8e0fb8a7c59e72fd17d58d3d968721bc304715569c",
+    "name": "/media-server-memory85-linux",
+    "running": false,
+    "user": "10001:10001",
+    "removed": true,
+    "absenceVerified": true
+  },
+  "archiveVerified": true,
+  "allRunChildrenExited": "receipts/logs confirm; no observer or product left running",
+  "result": "PASS_OWNED_RESOURCES_REMOVED",
+  "cleanupVerificationNote": "docker rm exit0; initial inspect error-text assertion was inconclusive; independent docker container ls -a exact-name query returned no entries.",
+  "rootRemoved": true,
+  "pointerRemoved": true,
+  "postCleanupOwnedProcesses": [],
+  "verifiedAt": "2026-10-10T16:22:00.681360+00:00",
+  "preserved": "Committed-source build outputs, model/SDK/Linux image and user stores retained; required selected raw artifacts preserved in85-execution.tar.gz."
+}

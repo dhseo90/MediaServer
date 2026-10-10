@@ -47,16 +47,19 @@ before는 관측 준비 중 종료됐고 after도 최종 checkpoint/검색 지�
 고정 자료량의 B32 요청/취소/만료와 C8 실제 증거/A 보존을 분리해 실행했으며,
 queued A 취소 후 남던 confirmed 입력 사본을 해제했다. [83 한정 근거](release-artifacts/v4.5.0/83-validation.json)에
 실제 변경·측정·실패와 독립 판단을 둔다. 현재 검색 모델 예약은 전체 RAM admission이 아니다.
-84는 검색·cold 반환 DTO·A/evidence 응답과 연결된 Index/transaction의 RAM·scratch·FD를
-같은 owner에 예약하고 실제 마지막 소유자까지 이전하는 부분 구현이다.
-[84 근거](release-artifacts/v4.5.0/84-validation.json)의 합산 D와 최종 병행 검사는 통과했지만,
-**최대 유효 legacy 행의 admission 보존은 차단**이다. `64KiB+32×raw` 작업 예약은 다른 소유가
-없어도 20,969,472바이트 초과 행을 거부하며 기존 legacy 입력에는 같은 상한이 없다.
-행 타입별 parser/반환 비용의 입증과 큰 행의 유한 작업 읽기 연결이 필요하다. 한도를 올리거나
-원본 허용량을 낮추지 않는다. HTTP 실제 지연 송신/종료와 전체 scratch 참여 범위도 미검증이다.
-B256의 기존 job64·고정 영속량·예약량은 유지됐으나 배치 간 live heap 8,192바이트는 미분류다.
-C는 실제 신규14건 후 기존 draft quota에서15번째 요청이 거부돼 C16·최종 idle은 미충족이다.
-이 잔여와 수정 후보의 최종 혼합 검증은 같은 v4.5.0 출시 전 P0다. 84에는120분을 실행하지 않았다.
+84의 합산 owner·D/병행 PASS와 C14 이후 draft quota FAIL은 [당시 원본](release-artifacts/v4.5.0/84-validation.json)에 유지한다.
+[85 부분 보완](release-artifacts/v4.5.0/85-validation.json)은 구조별 parser 작업 예약·배열 view와
+metadata/반환/FD 소유를 연결했다. 300,000개 overlap의 두 유효 legacy 형태는 기존 과도한 예약
+거부를 해소했으며, B1024·실제 draft 만료 후 C16·D·90초 병행 기준을 통과했다.
+다음 차단은 남는다. typed 결과 자체가 640MiB를 넘을 수 있는 기존 입력 계약(예: 길이 제한 없는
+700MiB completeness_reason)은 최대 admission과 충돌한다. 이는 정적 계약 대조이며 해당 크기의
+실행 PASS가 아니다. 실제 HTTP 부분 송신·reset·Stop은 확인했지만 macOS/Linux 모두 기존
+송신 timeout의 연결작업 완료를 12초 관측 안에 확인하지 못했다. 추가 동일 반복은 하지 않았다.
+새 candidate는 984/986 해석이며 GCC 경고 보완에 따른 LAB-051·SAFE-035의 실제 문맥 재결속이
+미해결이다. 기존 도구의 producer 선행 조건을 충족하지 않아 새 승인 적용·readback은 미실행이다.
+수작업 hash 변경으로 우회하지 않는다. B 후반 heap은 한정 반복에서 안정된 범위를 보였지만
+초반 8,192바이트 변동의 세부 귀속은 미분류이며 전체 프로세스/모든 입력의 자원 회계 보장이 아니다.
+이 차단과 수정 후보의 최종 혼합 검증은 같은 v4.5.0 출시 전 P0다. 85에는120분을 실행하지 않았다.
 소유자는 미해결 메모리 증가를 운영 제한으로 수용하지 않았다. 사용자 위험 수용과 최종 출시
 채택은 **not-granted / not-performed**이며 공개 절차는 보류한다. 75의 과거 판단은 소급 수정하지 않는다.
 

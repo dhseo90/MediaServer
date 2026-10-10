@@ -107,7 +107,9 @@ FAIL이다. [82 검증](release-artifacts/v4.5.0/82-validation.json)은 고정 c
 [83 부분 구현](release-artifacts/v4.5.0/83-validation.json)은 보존 행·축약 불가능 legacy의 cold 소비,
 검색 모델 소유 수명의 논리 예약과 queued A 취소 입력 해제를 연결하고 B/C를 별도 실행했다.
 [84 부분 연결](release-artifacts/v4.5.0/84-validation.json)은 실제 소유 예약·동시 D와 병행 지연을
-검증했지만, 최대 유효 legacy 행의 admission 보존과 B/C 전체 수렴은 미충족이다.
+검증했으나 당시 최대 입력과 B/C의 한계가 남았다. [85 보완](release-artifacts/v4.5.0/85-validation.json)은
+큰 legacy 대표형·B1024·실제 만료 후 C16·D/병행을 검증했다. 최대 typed 입력의 예산 충돌,
+HTTP timeout 완료 관측과 새 candidate 결속은 미해결이며 전체 메모리 P0 완료가 아니다.
 정확한 잔여는 [현행 backlog](development-backlog.md#v450-잔여-개발과-릴리즈-순서)를 따른다.
 전체 메모리 P0와 수정 후보의 최종 혼합 검증은 출시 전 차단으로 유지한다.
 새 checkpoint의 nonempty active receipt는 현재 구현에서 검증·복구하며, 구버전 binary의

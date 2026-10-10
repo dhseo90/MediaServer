@@ -1,0 +1,506 @@
+{
+  "schema": "media-server.independent-review.v1",
+  "task": 85,
+  "reviewer": "independent_memory85",
+  "language": "ko",
+  "reviewedAtUtc": "2026-10-10 16:12:35 UTC",
+  "timestampSource": "clock.curr_time",
+  "reviewMethod": {
+    "independentFromImplementation": true,
+    "sourceAndEvidenceReadOnly": true,
+    "productOrTestCommandsExecuted": false,
+    "implementationOrTestsAuthored": false,
+    "subdelegation": false,
+    "authorizedWrite": "docs/release-artifacts/v4.5.0/85-independent-review.json",
+    "scope": "변경 소스·관련 소비자·계약 및 아래 원출력을 읽고 판단했다. 파일 해시 전체 대조와 선택한 변경 경로의 전문 리뷰를 구분한다. 보고서 작성 이외의 파일 수정이나 제품/검사 실행은 하지 않았다."
+  },
+  "model": {
+    "requested": "gpt-6-astra",
+    "requestedReasoningEffort": "high",
+    "toolOverrideAcceptance": "부모 인계에서 수락됐다고 전달됨; 이 검토에서 실제 런타임 적용은 확인할 수 없음",
+    "actualRuntimeModel": "unconfirmed",
+    "actualRuntimeReasoningEffort": "unconfirmed"
+  },
+  "decision": {
+    "status": "PARTIAL",
+    "limitedAdoption": "reviewed_changes_and_bounded_executions_only",
+    "wholeTask85Complete": false,
+    "memoryP0Complete": false,
+    "releaseApproved": false,
+    "maximumOriginalAdmissionApproved": false,
+    "wholeAggregateBudgetApproved": false,
+    "currentCandidateApproved": false,
+    "summary": "대표 cold 행의 과도 예약 개선, 관련 DTO/FD/참조 소유 수명, B1024/C16 및 macOS/Linux D와 finite overlap은 한정 인정한다. 최대 유효 typed 입력과 640 MiB 계약 충돌, 두 플랫폼 HTTP timeout 종료 미확인/FAIL, 최종 candidate 2개 미결속으로 전체 완료·릴리즈·현재 원장 승인을 거부한다."
+  },
+  "source": {
+    "baseline": "22b598ad91da518e21660bd107f65e587e7d4418",
+    "freeze": "source-freeze-4.json",
+    "checkedFiles": 1437,
+    "currentByteMismatches": [],
+    "checkedBinaries": [
+      "build-gst-onnx/media_server",
+      "build-gst-onnx/libmedia_server_runtime.a",
+      "/private/tmp/media-server-memory85-c6xh2hns/after-bc",
+      "/private/tmp/media-server-memory85-c6xh2hns/after-overlap"
+    ],
+    "currentBinaryMismatches": [],
+    "postExecutionReadback": "source-post-execution.json",
+    "scope": "freeze4 및 실제 원출력에 결박한다. 후속 문서/이 검토 파일은 제품 실행 소스가 아니다. 1437개 파일 해시 일치는 1437개 전문 검토를 뜻하지 않는다.",
+    "directlyReadSourcePaths": [
+      "include/domain/strict_json.h",
+      "src/domain/strict_json.cpp",
+      "include/recording/recording_retained_rows.h",
+      "include/recording/recording_contracts.h",
+      "src/recording/recording_contracts.cpp",
+      "src/recording/recording_catalog.cpp",
+      "src/recording/recording_catalog_history.h",
+      "src/recording/recording_catalog_generation_projection.cpp",
+      "src/recording/recording_journal.cpp",
+      "src/recording/recording_generation_receipt.cpp",
+      "src/recording/recording_generation_transaction.cpp",
+      "src/recording/evidence_package.cpp",
+      "src/recording/evidence_package_store.cpp",
+      "src/recording/va_review_store.cpp",
+      "src/ingress/evidence_application_service.cpp",
+      "src/ingress/va_review_application_service.cpp",
+      "src/application/media_server_application.cpp",
+      "src/ingress/webrtc_http_server_runtime.cpp",
+      "src/ingress/webrtc_http_server.cpp",
+      "src/ingress/webrtc_http_server_detail.h",
+      "src/recording/recording_runtime_composition.cpp",
+      "scripts/internal/recording_retained_lifetime_smoke.cpp",
+      "scripts/internal/recording_search_runtime_load_smoke.cpp",
+      "scripts/internal/verify_v390_review4_feature_semantic_source_audit.mjs",
+      "scripts/internal/verify_v390_review4_semantic_migration_contract.mjs",
+      "scripts/internal/feature_semantic_review4_apply.mjs"
+    ]
+  },
+  "resolvedFindings": [
+    {
+      "id": "catalog-normal-resource-refusal",
+      "status": "source_resolved",
+      "locations": [
+        "src/recording/recording_catalog.cpp:2526",
+        "src/recording/recording_catalog.cpp:2546",
+        "src/recording/recording_catalog.cpp:2568",
+        "src/recording/recording_catalog.cpp:2638",
+        "src/recording/recording_catalog.cpp:3778"
+      ],
+      "finding": "GenerationMutationRef의 정상 자원 거부를 Catalog 권위 상실로 바꾸던 경로를 Resource 전용 전파, null 오류 포인터의 로컬 오류 보관, retired 소비자와 cached read 분리로 보완했다. 원본/형식/참조 불일치의 기존 fail-closed 처리는 유지한다."
+    },
+    {
+      "id": "evidence-reader-fd-owner",
+      "status": "source_and_bounded_fixture_resolved",
+      "locations": [
+        "include/recording/evidence_package_store.h",
+        "src/recording/evidence_package_store.cpp"
+      ],
+      "finding": "실제 Evidence/VA 서비스가 Catalog→Journal ScratchResidency를 전달한다. Open의 directory/file FD를 열기 전에 예약하고 reader의 마지막 shared 소유까지 file FD ticket을 보존한다. close 불확실성은 PreserveFd로 남는다. Publish/Recover를 포함한 모든 프로세스 FD의 완전한 계상을 주장하지 않는다."
+    },
+    {
+      "id": "finish-vs-last-owner",
+      "status": "two_phase_lifetime_verified",
+      "finding": "RuntimeStorage::Finish는 journal.Finish만 호출하며 Catalog/Journal 객체를 파괴하지 않는다. Finish 직후 disk/FD0과 살아 있는 RAM을 관측하고 runtime 소멸 후 동일 owner의 RAM/disk/FD0을 검사하는 구분은 마지막 소유 검증이다. 조기 ticket 해제나 최종0 검사 삭제로 통과시키지 않았다."
+    }
+  ],
+  "B1": {
+    "status": "REPRESENTATIVE_PASS_MAXIMUM_CONTRACT_BLOCKED",
+    "evidence": "linux-lifetime-final/history-large.log",
+    "representatives": [
+      {
+        "overlaps": 300000,
+        "rawBytes": 22467062,
+        "legacyOldWorkspaceBytes": 719011520,
+        "unchangedOwnerLimitBytes": 671088640,
+        "result": "PASS"
+      },
+      {
+        "overlaps": 300000,
+        "opaqueIdWidth": 128,
+        "rawBytes": 56778171,
+        "typedChargeBytes": 62701205,
+        "ownerLiveBytes": 62999112,
+        "result": "PASS"
+      }
+    ],
+    "verified": [
+      "canonical 동일성",
+      "shared iterator의 단일 소유",
+      "deep copy 선예약 및 move 이전",
+      "포화 copy 원본 보존",
+      "partial coverage/escape/UTF-8",
+      "duplicate/type/escape/number 거부 시 caller output 보존"
+    ],
+    "peakCaveat": "로그의 671088640 peak는 명시적 quota saturation을 포함하므로 자연 부하의 순간 물리 heap peak로 해석하지 않는다.",
+    "maximumConflict": {
+      "classification": "static_unexecuted_typed_contract_witness",
+      "field": "EventRecordingLinkV1.completeness_reason",
+      "valueBytes": 734003200,
+      "ownerLimitBytes": 671088640,
+      "excessBytes": 62914560,
+      "reason": "기존 typed validator는 completeness_reason 길이를 제한하지 않는다. 짧은 유효 ID, Pending, requested_range [0,1], 빈 overlap/missing 배열과 유효 시각의 ASCII 700 MiB reason은 segment 참조를 요구하지 않으며 canonical 행은 1 GiB 이내다. 문자열 데이터만 640 MiB를 넘는다. unmanaged legacy Append 경로 및 snapshot raw-object 형식과 대조한 정적 충돌 예이고 실제 700 MiB 생성·저장·복구를 실행한 결과가 아니다.",
+      "locations": [
+        "src/recording/recording_contracts.cpp:1040",
+        "src/recording/recording_contracts.cpp:1214",
+        "src/recording/recording_catalog.cpp:3195",
+        "src/recording/recording_journal.cpp:3426",
+        "src/recording/recording_catalog_snapshot.cpp:112"
+      ]
+    },
+    "limit": "대표 두 형태 통과는 모든 기존 유효 입력의 admission 보존이나 전체 최대 PASS가 아니다. 결과 자체 비용과 raw/parser/canonical 동시 중간 비용을 분리해야 한다."
+  },
+  "B2": {
+    "status": "RELATED_BOUNDARIES_LIMITED_ADOPTION",
+    "reviewed": "비할당 shape census 후 parser/typed 예약, 실제 string/vector capacity의 retained charge, nested DTO split, shared/deep-copy/move 수명, Catalog summary/projection/ref, evidence/record, generation receipt/transaction의 예약과 반환 경계를 검토했다. 확인한 변경 경로에서 미해소 원본 권위·권한·rollback blocker를 추가 발견하지 않았다.",
+    "limitations": [
+      "640 MiB는 연결된 논리 RAM 도메인이고 전역 RSS ceiling이 아니다.",
+      "관련 소비자와 실험된 수명 경계의 확인이며 모든 입력 형태/모든 할당/전체 프로세스 RAM·disk·FD 완전성 승인이 아니다.",
+      "큰 일반 typed 형태의 최대 충분 상한은 B1 충돌과 별도로 전체 입증되지 않았다."
+    ]
+  },
+  "B3": {
+    "status": "PARTIAL_TIMEOUT_FAIL",
+    "passedScope": [
+      "유효한 대형 실제 검색 HTTP route의 slow read/403/503/reset",
+      "실제 수신 bytes와 socket not-writable 중 body/encoded charge 유지",
+      "전송 종료 후 다른 독립 reader의 charge 유지",
+      "macOS/Linux 별도 Stop drain"
+    ],
+    "macTimeout": {
+      "evidence": "http85-mss.log",
+      "result": "FAIL",
+      "observationSeconds": 12
+    },
+    "linuxTimeout": {
+      "evidence": "linux-lifetime-final/recording_http_owner_smoke-fixed.log",
+      "result": "FAIL",
+      "observationSeconds": 12
+    },
+    "timeoutMeaning": "기존 per-send 5초 설정에서 12초 안 worker 완료 assertion이 실패했다. 무한 hang이나 모든 OS에서 동일 종료 시점을 증명한 것은 아니다. 반복 실패를 Stop 통과로 대체하지 않는다. 제품 timeout은 변경하지 않았다.",
+    "stop": [
+      {
+        "platform": "macOS",
+        "receipt": "http-stop.json",
+        "exit": 0,
+        "elapsedSeconds": 3.2557425829581916
+      },
+      {
+        "platform": "Linux",
+        "receipt": "linux-complete/http-stop-only.json",
+        "exit": 0,
+        "elapsedSeconds": 2.8470373760001166
+      }
+    ],
+    "limitations": "kernel queue는 user-space 예약에 합산하지 않는다. 작은 176721 B 응답이 kernel에 전부 들어간 초기 실험은 terminal timeout 증거가 아니다."
+  },
+  "B4": {
+    "status": "FINITE_B1024_AND_REAL_TTL_C16_COMPLETE",
+    "receipt": "lifecycle85.json",
+    "exit": 0,
+    "elapsedSeconds": 356.72399112500716,
+    "B": {
+      "requests": 1024,
+      "storedBytes": 199062,
+      "logicalUsedBytes": 18405686,
+      "jobs": 64,
+      "order": 64,
+      "queued": 0,
+      "mapBuckets": 97,
+      "heapB64": 4567280,
+      "heapB256": 4575472,
+      "heapB384Through960": 4574160,
+      "heapB1024AndThreeIdle": 4574992,
+      "finalDeltaFromB64": 7712,
+      "metadataStringCapacityBeforeLast": 25344,
+      "metadataStringCapacityLast": 26592,
+      "assessment": "후반 유한 실행에서 plateau를 관측했다. B256의 +8192 B 뒤 계속 증가하지 않는다. 남은 +7712 B 전체를 allocator/cache로 귀속하는 직접 증거는 없으며 장시간 누수 부재의 증명은 아니다.",
+      "clockBoundary": "B snapshot expiry는 Clock 인자를 앞으로 전달한 격리 검사이며 C 실제 wall-clock TTL 대기와 구분한다."
+    },
+    "C": {
+      "distinctNewRecords": 16,
+      "storedBytes": 852742,
+      "actualExpiryWaitSeconds": 300.214,
+      "heapThreeIdle": 4594624,
+      "verified": [
+        "기존 quota의 실제503 거부",
+        "quota 거부가 새 게시/임시 예약을 남기지 않음",
+        "동일 주체의 기존 execute202 idempotency",
+        "다른 주체403",
+        "기존 결과 readback 보존",
+        "실제 만료 뒤410",
+        "동일 draft 요청이201로 재개",
+        "distinct16개 실제 완료/저장 및16개 최종 readback"
+      ],
+      "limit": "한 PID 내 정해진 수의 결과 누적과 실제 만료를 확인했다. 모델 호출/120분/무한 반복 검증은 아니다."
+    }
+  },
+  "combinedD": {
+    "status": "PASS_LIMITED",
+    "macOS": {
+      "receipt": "combined-d85.json",
+      "exit": 0,
+      "elapsedSeconds": 0.818077459000051,
+      "finishLiveRamBytes": 676,
+      "finishDiskBytes": 0,
+      "finishFDs": 0,
+      "afterRuntimeDestruction": "same owner RAM/disk/FD all zero assertion PASS"
+    },
+    "Linux": {
+      "log": "linux-lifetime-final/recording_retained_lifetime_smoke-fixed.log",
+      "exitFromRawLog": 0,
+      "finishLiveRamBytes": 692,
+      "finishDiskBytes": 0,
+      "finishFDs": 0,
+      "afterRuntimeDestruction": "same owner RAM/disk/FD all zero assertion PASS"
+    },
+    "verified": [
+      "actual model/page/cold row/A response/K 동시 소유",
+      "503 무게시 및 알려진 scope403 우선",
+      "real response 소비자 해제 후 같은 요청 재개",
+      "이전 K/page/row가 살아 있는 checkpoint와 원본 readback",
+      "evidence FD shared reader/saturation/retry/last close",
+      "fresh runtime reOpen과 원본 package hash/readback"
+    ],
+    "firstFailure": "linux-final/recording_retained_lifetime_smoke.log의 최초 복합0 assertion FAIL 보존. 개별 값이 없으므로 정확한 최초 실패 항목/원인은 미확인이다. 후속692 B 관측으로 소급 단정하지 않는다."
+  },
+  "finiteOverlap": {
+    "status": "PASS_WITHIN_FIXED_BOUNDARY",
+    "receipt": "overlap85.json",
+    "exit": 0,
+    "elapsedSeconds": 35.13419541704934,
+    "writers": 8,
+    "clients": 4,
+    "observations": 10000,
+    "packets": 720,
+    "files": 24,
+    "requests": 50,
+    "ready": 50,
+    "unavailable": 0,
+    "p95Ms": 796.293,
+    "maxMs": 989.276,
+    "progressingSearches": 47,
+    "peakRssBytes": 72138752,
+    "checkpointMs": 1444.59,
+    "checkpointStartPackets": 160,
+    "checkpointEndPackets": 720,
+    "checkpointPublished": true,
+    "finalFinish": "원로그 phase=finish begin/end와 source의 Finish 실패 전파를 확인",
+    "scope": "50개 전체 요청의 unavailable0 포함, 기존 p95<=2000/max<=5000과 유한 종료 기준. 30분/120분이나 전체 UI PASS로 승격하지 않는다."
+  },
+  "B5": {
+    "status": "BLOCKED_CURRENT_PROOF_CONTEXT",
+    "currentCandidate": "candidate-header-final.json",
+    "currentCandidateDigest": "ee38379002959b1361f1fffda46ed608b2429cf94a800fa36fc95031cf01f623",
+    "rows": 986,
+    "resolved": 984,
+    "unresolved": [
+      {
+        "id": "LAB-051",
+        "role": "dispatch",
+        "reason": "detail.h loop 변경으로 실제 3줄 context 변경"
+      },
+      {
+        "id": "SAFE-035",
+        "role": "state",
+        "reason": "detail.h loop 변경으로 실제 3줄 context 변경"
+      }
+    ],
+    "previousLimitedReview": {
+      "candidate": "candidate-rebound.json",
+      "digest": "eefc35fe154baf1eca9d0221dc97a3b390b69aa0c2e7a1b458adbbad410a39cf",
+      "carryForward": 689,
+      "independentReview": 297,
+      "boundary": "당시 정확한 source-flow의 한정 의미 보존 검토이며 최종 현재 candidate 승인이나 실행 PASS가 아니다."
+    },
+    "headerImpact": [
+      "LAB-051",
+      "SAFE-025",
+      "SAFE-027",
+      "SAFE-028",
+      "SAFE-029",
+      "SAFE-035",
+      "OPS-173"
+    ],
+    "meaning": "literal별 임시 const std::string 참조를 같은 수명의 const std::string 값으로 명시한5곳은 값/거부/출력 의미를 유지한다. 하지만 source/body/context 결박은 변경됐다.",
+    "producerExecuted": false,
+    "approvalDecisionArtifactWritten": false,
+    "toolConstraint": "현재 기존 도구에서 외부 reviewed proof의 실제 변경된 context를 재생성하는 지원 진입점을 찾지 못했다. 수작업 hash 변경·새 판정기 금지 조건을 우회하지 않는다. resolved986 필요 조건을 낮추거나 중간297개 검토를 현재 승인으로 복사할 수 없다."
+  },
+  "firstFailurePolicy": "최초 cold 구조/rollback 실패, HTTP 준비 및 timeout 실패, Linux native build/loader 실패, transaction Cleanup 회귀와 최초D 실패를 후속 통과로 덮지 않는다. 이 보고서의 증거 목록은 전체 실행 원장 대체가 아니며 직접 읽은 주요 원출력을 식별한다.",
+  "approvalBoundary": {
+    "memoryP0": "BLOCKED",
+    "release": "HOLD",
+    "no120Maintained": true,
+    "noProductApprovalFromLedgerMigration": true,
+    "notPerformedByReviewer": [
+      "제품/검사 실행",
+      "구현/검사 작성",
+      "재위임",
+      "stage/commit/push",
+      "candidate approval/producer 실행"
+    ],
+    "notApproved": [
+      "모든 기존 유효 최대 입력",
+      "전체 프로세스 자원 완전 계상",
+      "HTTP timeout 종료",
+      "최종986 source-flow 원장",
+      "30분/120분/실제 UI/릴리즈"
+    ]
+  },
+  "archive": {
+    "plannedArtifact": "docs/release-artifacts/v4.5.0/85-execution.tar.gz",
+    "memberConvention": "아래 evidence의 member는 현재 임시 root 상대경로",
+    "status": "selected_review_evidence_archive_readback_verified",
+    "originalRoot": "/private/tmp/media-server-memory85-c6xh2hns",
+    "note": "실제 tar.gz에서 독립 검토가 인용한27개 member를 직접 읽어 기존 원출력의 길이/SHA256과 대조했고 모두 일치했다. 전체 tar는 원본327개+preservation manifest1개=328개다. 전체327개 내용 전문 검토나 임시경로/프로세스 cleanup 완료를 뜻하지 않는다. 원판정 PARTIAL과 현재candidate미승인은 그대로다.",
+    "verifiedAtUtc": "2026-10-10 16:18:24 UTC",
+    "timestampSource": "clock.curr_time",
+    "artifact": "docs/release-artifacts/v4.5.0/85-execution.tar.gz",
+    "compressedBytes": 2985440,
+    "sha256": "1904b57f3ee5fcfe0172fceada04d63ce98c2bec44cf795cce211f107c329eb4",
+    "originalManifestEntries": 327,
+    "originalManifestBytes": 21508811,
+    "totalArchiveMembers": 328,
+    "totalMemberBytesIncludingManifest": 21565484,
+    "preservationManifestBytes": 56673,
+    "reviewEvidenceMembersChecked": 27,
+    "reviewEvidenceMismatches": []
+  },
+  "evidence": [
+    {
+      "member": "source-freeze-4.json",
+      "bytes": 182229,
+      "sha256": "2328527eec095036ce9002e1df33283ab8b2498a02aa187bc8b15ef2db5bc8be"
+    },
+    {
+      "member": "source-post-execution.json",
+      "bytes": 77,
+      "sha256": "93f81f468c6917b32326476496aec1cbfe5cf261a70a02aa39f1aab81888b9ba"
+    },
+    {
+      "member": "cold/before-large.json",
+      "bytes": 377,
+      "sha256": "32fe137eaffee45366ad74f156c17c1baef113a18f7d72c1ccc236eec4d8d3d9"
+    },
+    {
+      "member": "cold/before-large.log",
+      "bytes": 5446,
+      "sha256": "9bf8e250a7facd78be378fdff250bdbd12d9ef32b57a61f23fd78c7193947ea7"
+    },
+    {
+      "member": "cold/after-large-first.json",
+      "bytes": 379,
+      "sha256": "7f3afa4cbc2a1a53eb806dcc042a85d0835a4e8db045246a66ce2b9013a0a350"
+    },
+    {
+      "member": "cold/after-large-first.log",
+      "bytes": 6659,
+      "sha256": "6c929f81202d53e99a908b3cac3fb304166d315ffc3825f4d7642cd0694d8313"
+    },
+    {
+      "member": "linux-lifetime-final/history-large.json",
+      "bytes": 378,
+      "sha256": "3662e7c5e1ba50a5159ed5749ae6cf0d759eb978860b1e41d23c61d63a36c8b1"
+    },
+    {
+      "member": "linux-lifetime-final/history-large.log",
+      "bytes": 8971,
+      "sha256": "7562d3cbcbef741a0041ab5cb3fc9481d8ab83724a3ba3e65500500a79e009f4"
+    },
+    {
+      "member": "lifecycle85.json",
+      "bytes": 360,
+      "sha256": "0829f609dab36561078b39148ff394b859fd4a306a0dcbbad8ab0fbae50986e5"
+    },
+    {
+      "member": "lifecycle85.log",
+      "bytes": 576199,
+      "sha256": "dbe2d2d2952f647c77576c4660d6e80f2ed03e560950c5732850f49b36c88570"
+    },
+    {
+      "member": "combined-d85.json",
+      "bytes": 356,
+      "sha256": "f87ef2c043400ad1da3460f81691c1ac6a1e7ff75ab0fd416382d2e3f9a3bd01"
+    },
+    {
+      "member": "combined-d85.log",
+      "bytes": 2816,
+      "sha256": "3525e98019a65f15d6d39e3a8d35cbe5a689ffa862901effaee6310319b8baad"
+    },
+    {
+      "member": "linux-final/recording_retained_lifetime_smoke.log",
+      "bytes": 2938,
+      "sha256": "b609a1c047b470e0f9ef0e733effb40de160c060f9367b95522c84871b129949"
+    },
+    {
+      "member": "linux-lifetime-final/recording_retained_lifetime_smoke-fixed.log",
+      "bytes": 3321,
+      "sha256": "f799e63061693ad25b88d382718b3866b6b5bf676c295d000c35c345d1786862"
+    },
+    {
+      "member": "http85-mss.json",
+      "bytes": 357,
+      "sha256": "76a6263556a4f1b4c7fd05416093926682d8db82f23b0110bf53a5c787b53c77"
+    },
+    {
+      "member": "http85-mss.log",
+      "bytes": 2334,
+      "sha256": "58c11c9eae5bb9ae8c19c27a9e9b6e90ddae65a91da392808d35a1bc5068634e"
+    },
+    {
+      "member": "http-stop.json",
+      "bytes": 356,
+      "sha256": "6f8e370d00d914294e98e7c9ac118141122b124df4e0c9087e4b303cb072f4d5"
+    },
+    {
+      "member": "http-stop.log",
+      "bytes": 1126,
+      "sha256": "37b6f28923796c9f0ef765e2eb7085d1152e40096e4980cd1a718a46d9f927a8"
+    },
+    {
+      "member": "linux-lifetime-final/recording_http_owner_smoke-fixed.log",
+      "bytes": 3078,
+      "sha256": "4ad34614ef4da6a47eeeca8ccb1c7518a971e6806d3f9f005e861e6f1a4bb954"
+    },
+    {
+      "member": "linux-complete/http-stop-only.json",
+      "bytes": 408,
+      "sha256": "9402eecd034d9c7eaac86edc4a5d72e32b2686c627d5c6837bc5369c766d5478"
+    },
+    {
+      "member": "linux-complete/http-stop-only.log",
+      "bytes": 1702,
+      "sha256": "641462b4a582d6f84f8b85c7710fa4427c2956cfe1d90e6e9d852027a84bbe74"
+    },
+    {
+      "member": "overlap85.json",
+      "bytes": 357,
+      "sha256": "bdf56fec06d63c1e852f85e5cd3a017fb3c45d98997de839e6c73742bd5ccf9d"
+    },
+    {
+      "member": "overlap85.log",
+      "bytes": 302175,
+      "sha256": "857b071bfe66089400bab7af802c24ff258c3adb6f89612abead7b85210c722d"
+    },
+    {
+      "member": "candidate-rebound.json",
+      "bytes": 7709058,
+      "sha256": "494f9b08227e671e5aa4f88403f1637e72c84eef86659c688420c40b80f2f1fd"
+    },
+    {
+      "member": "migration-final-report.json",
+      "bytes": 511118,
+      "sha256": "2e293d97839e1fa5bd017648e162bc0370695e91e7dffd0675cdaad56d5f61a3"
+    },
+    {
+      "member": "migration-final-evidence.json",
+      "bytes": 370249,
+      "sha256": "863d749d77fe86148c5c5c5deaa2d6bb285435dbdd0aa32de8cbce64ffb15988"
+    },
+    {
+      "member": "candidate-header-final.json",
+      "bytes": 7694194,
+      "sha256": "60451d03f32280e8103d97ff988eac55f252cd91c4411c5fc92280f481eb2243"
+    }
+  ]
+}

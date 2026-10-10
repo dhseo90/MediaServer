@@ -1,0 +1,560 @@
+{
+  "schema": "media-server.validation.v1",
+  "task": 85,
+  "status": "PARTIAL_ADMISSION_TRANSPORT_LIFETIME_IMPLEMENTATION",
+  "wholeTaskComplete": false,
+  "memoryP0": "BLOCKED",
+  "releaseApproved": false,
+  "model": {
+    "mainRequested": "gpt-6-astra/high",
+    "mainToolAccepted": null,
+    "mainRuntimeModel": null,
+    "mainRuntimeEffort": null,
+    "implementationAgentRequested": "gpt-6-astra/high",
+    "implementationToolAccepted": "gpt-6-astra/high",
+    "implementationRuntime": null,
+    "independentRequested": "gpt-6-astra/high",
+    "independentToolAccepted": "gpt-6-astra/high",
+    "independentRuntime": null,
+    "independentAgent": "independent_memory85; separate, no implementation/test authoring/execution"
+  },
+  "source": {
+    "entryHead": "22b598ad91da518e21660bd107f65e587e7d4418",
+    "entryRemote": "22b598ad91da518e21660bd107f65e587e7d4418",
+    "entryWorktree": "clean",
+    "freeze": "85-execution.tar.gz:source-freeze-4.json",
+    "sourceDiff": "85-execution.tar.gz:source-freeze-4.patch",
+    "postExecution": "85-execution.tar.gz:source-post-execution.json",
+    "verifiedFiles": 1437,
+    "mismatches": 0,
+    "binaries": {
+      "build-gst-onnx/media_server": "027395b2d9d9de8922cded952424376bd0610f027ac677073ecb8ef0b9fd0d6d",
+      "build-gst-onnx/libmedia_server_runtime.a": "846400196f8d684ab0bbe0eb9385728b63f174525b88ea4994cb6ae6c42763b7",
+      "/private/tmp/media-server-memory85-c6xh2hns/after-bc": "e19de0b2e47c2d4cc41e392636c6f7c11e3e29ebcb1b5f2512bc0d0c839556b0",
+      "/private/tmp/media-server-memory85-c6xh2hns/after-overlap": "f2030cbe206f7abaaf94c161c680dc787fb9dd1c2a59a051c78264018340c51c"
+    },
+    "executionBinding": "Pre-commit exact source+diff; later documentation/review/commit are not an execution at their future HEAD. HTTP mac failure/Stop and early wrappers precede five equivalent GCC literal-loop declarations; final Linux native and mac B/C/D/overlap use freeze4. Exact earlier receipts/freezes retained.",
+    "implementationCommit": "6469a5f0ad9948bbe388c2f509b9f12e58c1126c",
+    "implementationTree": "084911c0f535d3041d621d9d43552e524be50609"
+  },
+  "reused": "82 K/F and83 cold/queued cancellation,84 aggregate ownership and prior D/overlap remain their original limited scope. 59/61/63 and72-74 are not represented as current full execution. No120/acceptance/UI/model comparison.",
+  "implementation": {
+    "parser": "Fixed-stack structural census before reservation; existing strict grammar/duplicate/type/escape/numeric/depth checks remain. Array views and sequential typed construction avoid all-array parser copies; type-specific capacities and simultaneous canonical workspace replace uniform32R. No new JSON engine or lower input admission.",
+    "owners": "Cold typed/source/job/retired metadata; generation mutation references; transaction receipt raw/parser/copy; package/record parsing; real server evidence/A share Catalog RAM+scratch owners; evidence file FD reservation retained through last shared close. Logical charged bounds are not all malloc/RSS/allocator/OS costs.",
+    "failure": "ResourceUnavailable on cold/cached acquisition returns resource error without authority poison; actual corruption remains fail-closed. Committed-cleanup manifest raw read has same reservation and preserves original transaction cleanup checks.",
+    "http": "Response storage remains charged through BuildHttpResponse/SendAll; encoded local destroyed then body released before active connection and recording flight drain notification. Flight removal still precedes close; no detached owner early destruction. Private test-only socket buffer seam, default zero; product five-second socket timeout unchanged.",
+    "Finish": "Runtime Finish closes Journal scratch/FD; Catalog objects can remain alive. New metadata charge remains until actual owner destruction. Fixture now separately checks Finish disk/FD0 and final destructed owner RAM/disk/FD0; no premature ticket return."
+  },
+  "blockers": {
+    "R84-B1": {
+      "status": "PARTIAL",
+      "before": "cold/before-large.json exit2: actual original-valid22,467,062B canonical /300000overlaps; other logical297216B; old workspace719011520B >671088640B. Source plus fixture patch, not historical74 RSS comparator.",
+      "after": "history-large-crypto-fixed and Linux history-large:300000 overlaps narrow22,467,062B and128char ID wide56,778,171B PASS; canonical/structure/copy/move/shared/rollback. Peak671088640 includes deliberate saturation, not ordinary live peak.",
+      "remaining": "Static contract conflict: PendingEventLink completeness_reason has no length cap; 700MiB=734003200B typed string alone exceeds640MiB by62914560B while canonical can fit1GiB input. This concrete maximum-contract analysis was NOT executed at700MiB. No truncation or budget increase; representative PASS is not universal max PASS."
+    },
+    "R84-B2": {
+      "status": "LIMITED_IMPLEMENTED_AND_VERIFIED",
+      "scope": "Listed parser/DTO/transaction/reference/file reader owners, direct mac/Linux protection and aggregate D. Not application-global allocator/FD completeness or every maximum input shape. Pure standalone codecs without injected domain remain caller-owned.",
+      "D": "Bothmac/Linux Finish succeed; RAM676/692B respectively while Catalog lives, disk0 FD0; actualruntime destruction returns all3to0. FirstLinuxD compound assertion FAIL retained, exact initial component not retrospectively reconstructed."
+    },
+    "R84-B3": {
+      "status": "BLOCKED_TIMEOUT_COMPLETION",
+      "passed": "Actual authenticated normal TCP recording search >3MiB body; accepted send buffer and5s timeout getsockopt, partial client bytes and server POLLOUT=false; slow complete, reset, small503/403, independentconsumer retained; separate Stop mac/Linux PASS.",
+      "failed": "macOS http85-filter/http85-mss and Linux fixed run: worker did not complete within12s observation. Failure retained; no timeout increase/product send strategy change. Per-send timeout differs from whole response deadline; exact blocked syscall/partial progression not measured. No all-transport PASS.",
+      "scope": "macOS Stop uses prior equivalent-header source; Linux final compile has five equivalent const-string loop fixes. No kernel queue or peer application completion ownership claim."
+    },
+    "R84-B4": {
+      "status": "PASS_BOUNDED_OBSERVATION",
+      "B": {
+        "iterations": 1024,
+        "batches": 16,
+        "batchSize": 64,
+        "samePid": true,
+        "storedBytes": 199062,
+        "jobs": 64,
+        "order": 64,
+        "queued": 0,
+        "mapBuckets": 97,
+        "logicalUsed": 18405686,
+        "heap64": 4567280,
+        "heap256": 4575472,
+        "heap384Through960": 4574160,
+        "heap1024AndThreeIdle": 4574992,
+        "endVs64": 7712,
+        "limits": "Original8192B fluctuation reproduced; no monotonic unbounded growth within16batches. Detailed allocation attribution remains unclassified; terminal metadata string capacity changes at final batch, not all bytes assigned to allocator. Snapshot expiry uses existing Clock argument+6min; does not represent real6min."
+      },
+      "C": {
+        "newDistinctResults": 16,
+        "storedStartBytes": 199062,
+        "storedFinalBytes": 852742,
+        "actualExpiryWaitSeconds": 300.214,
+        "quota": "existing64/256KiB; observed count15/258675B then refused next draft; no record publication/temp reservation retained",
+        "preserved": "Prior202 job idempotency, prior principal/revision, otherprincipal403, prior results; original expiry410, same request201 after actual product cleanup; final16 readback",
+        "samePidAndStore": true,
+        "clockChanged": false,
+        "deletedResults": 0,
+        "restartedApp": false,
+        "idleSamples": 3,
+        "idleHeap": 4594624,
+        "idleRSS": 79937536,
+        "idleFootprint": 28132144,
+        "logicalAtCComplete": 10076848,
+        "limits": "Endpoint/idle observations; not instantaneous peak or every workload convergence."
+      }
+    },
+    "R84-B5": {
+      "status": "BLOCKED_SOURCE_PROOF_CONTEXT",
+      "currentCandidate": "ee38379002959b1361f1fffda46ed608b2429cf94a800fa36fc95031cf01f623",
+      "resolved": 984,
+      "unresolved": [
+        "LAB-051",
+        "SAFE-035"
+      ],
+      "earlierOnly": "candidate-rebound had986resolved/0unresolved and689carry/297independent; separate reviewer inspected297limited legacy source flow. Later5GCC loop declarations change2context hashes and7enclosing bodies; intermediate result is not current approval.",
+      "producer": "not-run; resolved986 precondition unmet. Existing tools relocate unchanged unique contexts but no supported reviewed-proof regeneration entry was found. No manual context/approval hash write; approvals/producer/manifest left unchanged.",
+      "readback": "new approval readback not-run; static approval/coverage failures separately recorded."
+    }
+  },
+  "overlap": {
+    "status": "PASS",
+    "receipt": "overlap85.json",
+    "seconds": 35.13419541704934,
+    "writers": 8,
+    "clients": 4,
+    "observations": 10000,
+    "packets": 720,
+    "files": 24,
+    "requests": 50,
+    "ready": 50,
+    "unavailable": 0,
+    "p95Ms": 796.293,
+    "maxMs": 989.276,
+    "progressingSearches": 47,
+    "peakRssBytes": 72138752,
+    "checkpointMs": 1444.59,
+    "startPackets": 160,
+    "endPackets": 720,
+    "published": true,
+    "finish": "normal; file-health and complete final assertions in raw log",
+    "limits": "90s/p952000/max5000 unchanged; sampled/cumulativeRSS not instantaneous component peak; no120."
+  },
+  "directReceipts": {
+    "history-large-crypto-fixed": {
+      "command": [
+        "bash",
+        "scripts/internal/verify_recording_generation_checkpoint.sh",
+        "history-large"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 123.33611274999566,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 8999,
+      "sha256": "e0f49056962fd4bf727b24b9de4a4b6b3f4dbff5161b8b47dd89b0c01b1c3fff"
+    },
+    "history-product-cleanup-fixed": {
+      "command": [
+        "bash",
+        "scripts/internal/verify_recording_generation_checkpoint.sh",
+        "history-product"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 66.33819354197476,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 34539,
+      "sha256": "63391ecb5f7590cdafad8f712291c354daaa839403e036cb8863e8ed30263bbd"
+    },
+    "transaction-final": {
+      "command": [
+        "bash",
+        "scripts/internal/verify_recording_generation_transaction.sh"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 47.71593258297071,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 18707,
+      "sha256": "34c0a53131ece5aef0216fa37a1f6c24548913c8a0eae6361a94c556c15d3cb5"
+    },
+    "concurrency-final": {
+      "command": [
+        "bash",
+        "scripts/internal/verify_recording_generation_checkpoint.sh",
+        "concurrency"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 191.2093561249785,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 11525,
+      "sha256": "5d1d6eda2ea01b8508afd2dffd4b766ab31da22701e2e8709a3278201f4bf96b"
+    },
+    "search-owner-final": {
+      "command": [
+        "bash",
+        "scripts/internal/verify_recording_search_lifetime.sh"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 2.8565196249401197,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 3885,
+      "sha256": "f04845214743ac23992eecebafcd870c2274bd18198097e92343aa2e352ffce0"
+    },
+    "mac-build-header-fixed": {
+      "command": [
+        "cmake",
+        "--build",
+        "build-gst-onnx",
+        "-j",
+        "4"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 4.894889916991815,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 728,
+      "sha256": "71eb74476c401c3cd43723a42b53b279e597ff2733f6ccc25af1fb3167e4ff03"
+    },
+    "native-lifetime-fixed": {
+      "command": [
+        "python3",
+        "/private/tmp/media-server-memory85-c6xh2hns/build-bc.py",
+        "after"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 1.8400963329477236,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 2291,
+      "sha256": "42f85b4092e6c41bc27996bcbeb4ebc04131d10163530410656e25f640b30882"
+    },
+    "lifecycle85": {
+      "command": [
+        "bash",
+        "/private/tmp/media-server-memory85-c6xh2hns/lifecycle85.sh"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 356.72399112500716,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 576199,
+      "sha256": "dbe2d2d2952f647c77576c4660d6e80f2ed03e560950c5732850f49b36c88570"
+    },
+    "combined-d85": {
+      "command": [
+        "bash",
+        "/private/tmp/media-server-memory85-c6xh2hns/combined-d.sh"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 0.818077459000051,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 2816,
+      "sha256": "3525e98019a65f15d6d39e3a8d35cbe5a689ffa862901effaee6310319b8baad"
+    },
+    "overlap85": {
+      "command": [
+        "bash",
+        "/private/tmp/media-server-memory85-c6xh2hns/overlap85.sh"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 35.13419541704934,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 302175,
+      "sha256": "857b071bfe66089400bab7af802c24ff258c3adb6f89612abead7b85210c722d"
+    },
+    "http-stop": {
+      "command": [
+        "bash",
+        "/private/tmp/media-server-memory85-c6xh2hns/http-stop.sh"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 3.2557425829581916,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 1126,
+      "sha256": "37b6f28923796c9f0ef765e2eb7085d1152e40096e4980cd1a718a46d9f927a8"
+    },
+    "http85-filter": {
+      "command": [
+        "bash",
+        "/private/tmp/media-server-memory85-c6xh2hns/http85-filter.sh"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 14.895122332964092,
+      "exit": 1,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 2079,
+      "sha256": "9205280a750eb9f190b21c46f2ee7486840a6a7738edda38c2a42849e401cab9"
+    },
+    "http85-mss": {
+      "command": [
+        "bash",
+        "/private/tmp/media-server-memory85-c6xh2hns/http85-mss.sh"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 14.894535082974471,
+      "exit": 1,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 2334,
+      "sha256": "58c11c9eae5bb9ae8c19c27a9e9b6e90ddae65a91da392808d35a1bc5068634e"
+    }
+  },
+  "linux": {
+    "image": "sha256:ce72c8a15363984da642e9964189957896812061c6af1d0ef67e87b38ad5a588",
+    "uid": 10001,
+    "network": "none",
+    "environment": "existingGCC16.2/GStreamer1.28.7/ONNX1.23.2",
+    "raw": "linux-complete/",
+    "passes": [
+      "transaction-fixed",
+      "history-large",
+      "history-product",
+      "search-owner",
+      "checkpoint-concurrency",
+      "build",
+      "build-header-fixed",
+      "recording_search_source_smoke",
+      "recording_search_application_smoke",
+      "D fixed",
+      "http-stop-only"
+    ],
+    "matrix": "Existinggeneration/crypto/SQLite supported/unsupported matrix in wrapper outputs; Werror retained. HTTP compile initial literal-reference warnings fixed with identicalconststring values. Missing ONNX LD_LIBRARY_PATH firstnativeexit127 then existingpath provided; noinstall.",
+    "overall": "FAIL_HTTP_TIMEOUT_WITH_OTHER_LISTED_PASSES",
+    "collectorLimitation": "native resume helper continued independent D after HTTP failure and returned0 with a misleading final footer; actual child exit1 is explicit in log. This top-level footer is not a suite PASS. Per-test results and overallFAIL retained; no same-binary retry to repair a receipt."
+  },
+  "firstFailures": [
+    {
+      "receipt": "history-large-consumer-fixed.json",
+      "exit": 1,
+      "collectionFailure": null
+    },
+    {
+      "receipt": "history-large-final.json",
+      "exit": 1,
+      "collectionFailure": null
+    },
+    {
+      "receipt": "history-product-final.json",
+      "exit": 2,
+      "collectionFailure": null
+    },
+    {
+      "receipt": "http-before.json",
+      "exit": -6,
+      "collectionFailure": null
+    },
+    {
+      "receipt": "http85-accepted.json",
+      "exit": 1,
+      "collectionFailure": null
+    },
+    {
+      "receipt": "http85-filter.json",
+      "exit": 1,
+      "collectionFailure": null
+    },
+    {
+      "receipt": "http85-host.json",
+      "exit": 1,
+      "collectionFailure": null
+    },
+    {
+      "receipt": "http85-large.json",
+      "exit": 1,
+      "collectionFailure": null
+    },
+    {
+      "receipt": "http85-mss.json",
+      "exit": 1,
+      "collectionFailure": null
+    },
+    {
+      "receipt": "http85-observe.json",
+      "exit": 1,
+      "collectionFailure": null
+    },
+    {
+      "receipt": "http85-referenced.json",
+      "exit": 1,
+      "collectionFailure": null
+    },
+    {
+      "receipt": "http85-unplaced.json",
+      "exit": 1,
+      "collectionFailure": null
+    },
+    {
+      "receipt": "http85.json",
+      "exit": 1,
+      "collectionFailure": null
+    },
+    {
+      "receipt": "mac-build-first.json",
+      "exit": 2,
+      "collectionFailure": null
+    },
+    {
+      "receipt": "native-build-final.json",
+      "exit": 1,
+      "collectionFailure": null
+    }
+  ],
+  "preservation": {
+    "archive": "85-execution.tar.gz",
+    "manifest": "85-execution.tar.gz:preservation-manifest.json",
+    "past": "84 archive/PASS/FAIL unchanged; prior artifacts not duplicated",
+    "C": "All lifecycle85 owned evidence/records preserved, generated fixture data not operating data",
+    "source": "Current changed source and exact freeze/diff; no binaries/model/SDK",
+    "independentReviewSha256": "6a0ff8137d21be55fd72bf34f3a19817bfde76e52600fee3cf5eaa1c25597743",
+    "readback": {
+      "archive": "docs/release-artifacts/v4.5.0/85-execution.tar.gz",
+      "bytes": 2985440,
+      "sha256": "1904b57f3ee5fcfe0172fceada04d63ce98c2bec44cf795cce211f107c329eb4",
+      "originalBytes": 21508811,
+      "allMembersReadback": true,
+      "reviewMembersVerified": 27,
+      "originalMembers": 327,
+      "totalArchiveMembers": 328,
+      "totalArchiveBytesUncompressed": 21565484
+    }
+  },
+  "independentReview": "85-independent-review.json",
+  "cleanup": {
+    "status": "PASS_OWNED_RESOURCES_REMOVED",
+    "receipt": "85-cleanup.json",
+    "limitations": "Recorded owned ports refused connections before cleanup; no claim of unrelated system resources."
+  },
+  "notRun": [
+    "120min",
+    "acceptance",
+    "UI",
+    "model-comparison",
+    "Qwen/Ollama",
+    "Qwen unload gate",
+    "PR",
+    "CI initiation",
+    "merge",
+    "tag",
+    "Release"
+  ],
+  "ownerRiskAcceptance": "not-granted",
+  "finalReleaseAdoption": "not-performed",
+  "static": {
+    "static-script85": {
+      "command": [
+        "./server.sh",
+        "verify-script-inventory"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 28.17587612499483,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 941,
+      "sha256": "92e692a3173f517ac5430005d1cf361195ac0dad7e505a2ffaddc893da6cdecf"
+    },
+    "static-project85": {
+      "command": [
+        "./server.sh",
+        "verify-project-inventory"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 50.226419042097405,
+      "exit": 1,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 210574,
+      "sha256": "df5cb3141ce098181a6d12be45063d7a6052c76678835ff6deafcd89d3b18456"
+    },
+    "static-docs85": {
+      "command": [
+        "./server.sh",
+        "verify-docs-links"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 0.6159441670170054,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 186,
+      "sha256": "5638347daa079d267919ae424aa8f764d0cfff204bbb084c4e147e0d194f3252"
+    },
+    "static-metadata85": {
+      "command": [
+        "./server.sh",
+        "verify-release-metadata"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 0.20759545802138746,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 454,
+      "sha256": "9cda5bb492e62ffb69865b146136bb2ffb4da8344c235a64796e278e1be23ffe"
+    },
+    "static-evidence85": {
+      "command": [
+        "./server.sh",
+        "verify-release-evidence-index"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 0.41283558402210474,
+      "exit": 0,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 254,
+      "sha256": "7c905aca1898f76312a7ee31fa5931a96f32816cd58fbf8e094b4632a375d938"
+    },
+    "static-coverage85": {
+      "command": [
+        "./server.sh",
+        "verify-feature-inventory-coverage"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "uid": 501,
+      "elapsedSeconds": 91.8209100420354,
+      "exit": 1,
+      "signal": null,
+      "collectionFailure": null,
+      "bytes": 923,
+      "sha256": "ce70d7f0c2bf6ddfea776e46760d4968d38ec3a189a57d182d7a0d4287bcabc5"
+    },
+    "diffCheck": "PASS",
+    "failureMeaning": "project inventory/coverage fail current inventorySha256 and source trust binding drift; no producer bypass. New MEM85 definitions registered before execution."
+  }
+}
