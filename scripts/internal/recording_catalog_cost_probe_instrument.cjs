@@ -6,7 +6,7 @@ if(!repo||!out||!/^media-server-catalog-cost\.[A-Za-z0-9]+$/.test(path.basename(
 const hash=s=>crypto.createHash('sha256').update(s).digest('hex');
 let count=0;
 function replace(s,from,to){if(s.split(from).length!==2)throw Error('exact insertion mismatch: '+from);++count;return s.replace(from,to);}
-function fn(s,name,label,expected=1){const escaped=name.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');const r=new RegExp('^(?:inline )?(?:bool|std::string|std::vector<std::string>|RecordingJournalReplayResult)\\s+'+escaped+'\\([^;{}]*\\)\\s*(?:const\\s*)?\\{','gm');const matches=[...s.matchAll(r)];if(matches.length!==expected)throw Error('function insertion mismatch '+name+' '+matches.length);for(const m of matches.reverse()){++count;s=s.slice(0,m.index+m[0].length)+' fc::Scope fc_scope("'+label+'");'+s.slice(m.index+m[0].length);}return s;}
+function fn(s,name,label,expected=1){const escaped=name.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');const r=new RegExp('^(?:inline )?(?:bool|std::string|std::vector<std::string>|RecordingJournalReplayResult)\\s+'+escaped+'\\([^;{}]*\\)\\s*(?:const\\s*)?(?:try\\s*)?\\{','gm');const matches=[...s.matchAll(r)];if(matches.length!==expected)throw Error('function insertion mismatch '+name+' '+matches.length);for(const m of matches.reverse()){++count;s=s.slice(0,m.index+m[0].length)+' fc::Scope fc_scope("'+label+'");'+s.slice(m.index+m[0].length);}return s;}
 for(const file of ['recording_catalog.cpp','recording_journal.cpp','recording_contracts.cpp','recording_checkpoint_validation.h']){
  const original=fs.readFileSync(path.join(repo,'src/recording',file),'utf8');let s=original;
  if(file==='recording_catalog.cpp'){
@@ -20,7 +20,7 @@ for(const file of ['recording_catalog.cpp','recording_journal.cpp','recording_co
   if((legacyCount>0)===(tracedCount>0)||legacyCount+tracedCount<10)throw Error('catalog lock insertions');
   if(process.env.MEDIA_SERVER_VERIFY_RECORDING_LATENCY_TRACE==='1')throw Error('cost probe requires latency trace disabled');
   const lock=tracedCount?traced:legacy,n=legacyCount+tracedCount;
-  s=s.split(lock).join('std::unique_lock<std::mutex> lock(mu_,std::defer_lock);fc::Measure("catalog.lock.wait",[&]{lock.lock();});fc::Scope fc_hold("catalog.lock.hold");');count+=n;
+  if(tracedCount){console.log('[instrument] lock ownership preserved; cost lock wait/hold unobserved, use recording latency trace for split ownership');}else{s=s.split(lock).join('std::unique_lock<std::mutex> lock(mu_,std::defer_lock);fc::Measure("catalog.lock.wait",[&]{lock.lock();});fc::Scope fc_hold("catalog.lock.hold");');}count+=n;
  }
  if(file==='recording_journal.cpp'){
   for(const name of ['SerializeRecordingMutationV1','ParseRecordingMutationV1','EnvelopeIdentity','IndexRecord','CompactRecords','JournalBytes'])s=fn(s,name,'journal.'+name);

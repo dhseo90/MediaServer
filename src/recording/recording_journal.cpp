@@ -889,6 +889,11 @@ struct RecordingGenerationCheckpointPlan::State {
     std::shared_ptr<const char> epoch;
     std::string predecessor;
     RecordingGenerationByteProducer identity_producer;
+    std::unique_ptr<RecordingGenerationTransaction> transaction;
+    RecordingGenerationOwnedFile staged_prefix,staged_identity,staged_snapshot;
+    std::size_t prefix_rows=0;
+    bool transaction_prepared=false,transaction_completed=false;
+
     struct stat active_binding{};
     GenerationIdentityIndex identities;
 #if MEDIA_SERVER_USE_OPENSSL
@@ -904,7 +909,12 @@ bool RecordingGenerationCheckpointPlan::Finish(std::string* error){
     std::string detail;if(state&&state->archives&&!state->archives->Finish(&detail)){if(error)*error+="; archive cleanup: "+detail;ok=false;}
 #endif
 #if !defined(_WIN32)
-    if(state)state->identity_producer={};
+    if(state){state->identity_producer={};
+        if(state->transaction&&!state->transaction_completed&&!state->transaction_prepared){std::string detail;
+            if(!state->transaction->CleanupUnprepared(&detail)){if(error)*error+="; checkpoint stage cleanup: "+detail;ok=false;}
+            else state->transaction_completed=true;
+        }
+    }
 #endif
     return ok;
 }
@@ -2835,7 +2845,18 @@ bool RecordingJournal::PrepareGenerationCheckpoint(const void* owner,
         unsigned char digest[32];unsigned length=0;std::string sha;
         if(EVP_DigestFinal_ex(hash.get(),digest,&length)!=1||length!=32)return Fail(error,"B checkpoint digest 실패");
         constexpr char hex[]="0123456789abcdef";for(auto byte:digest){sha+=hex[byte>>4];sha+=hex[byte&15];}
-        const RecordingGenerationFile archive{manifest.active.name,offset,sha};
+        const RecordingGenerationFile archive{"evidence-"+std::to_string(plan->generation)+"-0.jsonl",offset,sha};
+        pending.prefix_rows=current.active.rows.size();pending.transaction=std::unique_ptr<RecordingGenerationTransaction>(new RecordingGenerationTransaction);
+        if(!pending.transaction->Create(current.active_path.parent_path(),error)||
+           !pending.transaction->WriteComponentStream(archive.name,generation_limits_.active_bytes,
+            [this,offset](const RecordingGenerationByteSink& sink,std::string* detail){
+                std::string block(65536,'\0');for(std::uint64_t at=0;at<offset;){
+                    block.resize(static_cast<std::size_t>(std::min<std::uint64_t>(65536,offset-at)));
+                    if(!ReadAt(managed_fd_,at,&block)||!sink(block,detail))return false;
+                    at+=block.size();
+                }return CheckManagedStateLocked(detail);
+            },&pending.staged_prefix,error)||pending.staged_prefix.file.size!=archive.size||pending.staged_prefix.file.sha256!=archive.sha256)
+            return Fail(error,"B fixed prefix copy binding failed");
         if(!pending.archives->Add(archive,generation_limits_.identity_archives,error))return false;
         const auto count=current.active.rows.size();
         if(plan->chain.shards==UINT64_MAX||count>UINT64_MAX-plan->chain.physical_rows)return Fail(error,"B checkpoint count overflow");
@@ -2915,6 +2936,10 @@ bool RecordingJournal::PrepareGenerationCheckpoint(const void* owner,
         plan->chain.head={"identity-"+std::to_string(plan->generation)+".jsonl",identity_size,sha};
         plan->chain.maximum_global_ordinal=current.active.rows.back().global_ordinal;
         pending.identity_producer=[emit](const RecordingGenerationByteSink& sink,std::string* detail){return emit(sink,{},detail);};
+        if(!pending.transaction->WriteComponentStream(plan->chain.head.name,generation_limits_.identity_shard_bytes,
+            pending.identity_producer,&pending.staged_identity,error)||pending.staged_identity.file.size!=plan->chain.head.size||
+            pending.staged_identity.file.sha256!=plan->chain.head.sha256)return Fail(error,"B fixed identity copy binding failed");
+        pending.identity_producer={};
         plan->chain.checkpoint_archive_bytes=pending.archives->Bytes();
         plan->chain.checkpoint_archive_allocated=pending.archives->Bytes(true);
         AccountGenerationScratchLocked(plan->chain.history,plan->chain.checkpoint_archive_bytes,plan->chain.checkpoint_archive_allocated);
@@ -2929,6 +2954,48 @@ bool RecordingJournal::PrepareGenerationCheckpoint(const void* owner,
     (void)owner;(void)output;return Fail(error,"B checkpoint unsupported");
 #endif
 }
+bool RecordingJournal::ValidateCheckpointRecoverySuffix(const RecordingGenerationManifest& target,std::string* error) const {
+#if MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND && MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
+    std::lock_guard lock(mu_);
+    if(!generation_state_||!CheckManagedStateLocked(error))return false;
+    const auto& state=*generation_state_;const auto old_cut=state.active.manifest.cut_ordinal;
+    if(target.cut_ordinal<old_cut||target.cut_ordinal-old_cut>state.active.rows.size())return Fail(error,"checkpoint recovery suffix cut invalid");
+    // Historical empty-active checkpoints keep their original recovery path.
+    if(target.evidence.empty())return target.active.size==0&&target.cut_ordinal-old_cut==state.active.rows.size();
+    if(target.evidence.size()!=1||target.evidence.front().name!="evidence-"+std::to_string(target.generation)+"-0.jsonl")
+        return Fail(error,"checkpoint recovery prefix descriptor invalid");
+    const auto count=static_cast<std::size_t>(target.cut_ordinal-old_cut);
+    const auto split=count<state.active.rows.size()?state.active.rows[count].offset:static_cast<std::uint64_t>(state.active_binding.st_size);
+    if(target.evidence.front().size!=split||target.active.size!=static_cast<std::uint64_t>(state.active_binding.st_size)-split)
+        return Fail(error,"checkpoint recovery prefix/suffix coverage mismatch");
+    const auto verify=[&](std::uint64_t offset,const RecordingGenerationFile& expected){
+        std::unique_ptr<EVP_MD_CTX,decltype(&EVP_MD_CTX_free)> hash(EVP_MD_CTX_new(),EVP_MD_CTX_free);
+        if(!hash||EVP_DigestInit_ex(hash.get(),EVP_sha256(),nullptr)!=1)return false;
+        std::string block(65536,'\0');std::uint64_t done=0;
+        while(done<expected.size){block.resize(static_cast<std::size_t>(std::min<std::uint64_t>(65536,expected.size-done)));
+            if(!ReadAt(managed_fd_,offset+done,&block)||EVP_DigestUpdate(hash.get(),block.data(),block.size())!=1)return false;
+            done+=block.size();}
+        unsigned char bytes[32];unsigned n=0;std::string sha;constexpr char hex[]="0123456789abcdef";
+        if(EVP_DigestFinal_ex(hash.get(),bytes,&n)!=1||n!=32)return false;
+        for(auto byte:bytes){sha+=hex[byte>>4];sha+=hex[byte&15];}return sha==expected.sha256;
+    };
+    return (verify(0,target.evidence.front())&&verify(split,target.active)&&CheckManagedStateLocked(error))||
+        Fail(error,"checkpoint recovery source split hash mismatch");
+#else
+    (void)target;return Fail(error,"checkpoint recovery suffix unsupported");
+#endif
+}
+bool RecordingJournal::StageGenerationCheckpoint(const std::shared_ptr<RecordingGenerationCheckpointPlan>& plan,
+    const RecordingGenerationByteProducer& snapshot,std::string* error) {
+#if MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND && MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
+    // Exactly one private plan owner; no live Journal data is read outside mu_.
+    if(!plan||!plan->state||plan->consumed||!plan->state->transaction||!snapshot)return Fail(error,"B private snapshot stage unavailable");
+    return plan->state->transaction->WriteComponentStream("snapshot-"+std::to_string(plan->generation)+".jsonl",
+        generation_limits_.snapshot_bytes,snapshot,&plan->state->staged_snapshot,error);
+#else
+    (void)plan;(void)snapshot;return Fail(error,"B private snapshot unsupported");
+#endif
+}
 bool RecordingJournal::PublishGenerationCheckpoint(const void* owner,const std::shared_ptr<RecordingGenerationCheckpointPlan>& plan,
     const RecordingGenerationByteProducer& snapshot,const std::function<bool(std::uint64_t,std::uint64_t)>& sql,std::string* error) {
 #if MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND && MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
@@ -2940,8 +3007,8 @@ bool RecordingJournal::PublishGenerationCheckpoint(const void* owner,const std::
     RecordingGenerationPreparation files;
     RecordingGenerationPublication authority;
     std::string bytes;
-    RecordingGenerationTransaction transaction;
-    bool transaction_prepared=false;
+    auto& transaction=*pending.transaction;
+    bool& transaction_prepared=pending.transaction_prepared;
     // 재기동의 무영수증 stage는 보존한다. 현재 owner만 메모리 생성 목록을
     // 재검증해 회수하며, PUBLISH_INTENT 뒤에는 자동 rollback하지 않는다.
     const auto cleanup=[&]() noexcept {
@@ -2952,7 +3019,8 @@ bool RecordingJournal::PublishGenerationCheckpoint(const void* owner,const std::
     try {
       success=[&]() {
         if(!CheckManagedStateLocked(error)||pending.epoch!=current.recovery_epoch||pending.predecessor!=current.manifest_bytes||
-           !GenerationStatSame(pending.active_binding,current.active_binding)||!snapshot||
+           pending.active_binding.st_dev!=current.active_binding.st_dev||pending.active_binding.st_ino!=current.active_binding.st_ino||
+           pending.active_binding.st_size>current.active_binding.st_size||pending.prefix_rows>current.active.rows.size()||!snapshot||
            !SafeGenerationCacheFiles(managed_root_,error))return Fail(error,"B checkpoint plan/current 결박 실패");
         const auto canonical_root=current.active_path.parent_path();
         OwnedFd preflight_root(OpenParent(current.active_path,false));
@@ -2960,18 +3028,47 @@ bool RecordingJournal::PublishGenerationCheckpoint(const void* owner,const std::
         for(const auto& name:{"active-"+std::to_string(plan->generation)+".jsonl",std::string(".recording-generation.stage")}){
             if(preflight_root.value<0||::fstatat(preflight_root.value,name.c_str(),&collision,AT_SYMLINK_NOFOLLOW)==0||errno!=ENOENT)return Fail(error,"B checkpoint preparation collision preserved");
         }
-        if(!transaction.Create(canonical_root,error))return false;
-        RecordingGenerationOwnedFile staged_identity,staged_snapshot,staged_active;
-        if(!transaction.WriteComponentStream("identity-"+std::to_string(plan->generation)+".jsonl",generation_limits_.identity_shard_bytes,
-               pending.identity_producer,&staged_identity,error))return false;
-        if(staged_identity.file.size!=plan->chain.head.size||staged_identity.file.sha256!=plan->chain.head.sha256)
-            return Fail(error,"B checkpoint streamed identity descriptor 불일치");
-        if(!transaction.WriteComponentStream("snapshot-"+std::to_string(plan->generation)+".jsonl",generation_limits_.snapshot_bytes,snapshot,&staged_snapshot,error)||
-           !transaction.WriteComponent("active-"+std::to_string(plan->generation)+".jsonl","",&staged_active,error))return false;
+        // Revalidate K's bytes against the immutable prefix descriptor. F is held by both owner locks.
+        std::unique_ptr<EVP_MD_CTX,decltype(&EVP_MD_CTX_free)> prefix_hash(EVP_MD_CTX_new(),EVP_MD_CTX_free);
+        if(!prefix_hash||EVP_DigestInit_ex(prefix_hash.get(),EVP_sha256(),nullptr)!=1)return false;
+        std::uint64_t prefix_end=0;
+        for(std::size_t i=0;i<pending.prefix_rows;++i){const auto& row=current.active.rows[i];
+            std::string raw(static_cast<std::size_t>(row.length),'\0');
+            if(row.offset!=prefix_end||row.global_ordinal!=current.active.manifest.cut_ordinal+i||
+               !ReadAt(managed_fd_,row.offset,&raw)||RawHash(raw)!=row.raw_sha256||EVP_DigestUpdate(prefix_hash.get(),raw.data(),raw.size())!=1)
+                return Fail(error,"B checkpoint prefix changed during prepare");
+            prefix_end+=row.length;
+        }
+        unsigned char digest[32];unsigned length=0;std::string prefix_sha;constexpr char hex[]="0123456789abcdef";
+        if(EVP_DigestFinal_ex(prefix_hash.get(),digest,&length)!=1||length!=32)return false;
+        for(auto byte:digest){prefix_sha+=hex[byte>>4];prefix_sha+=hex[byte&15];}
+        if(prefix_end!=pending.staged_prefix.file.size||prefix_sha!=pending.staged_prefix.file.sha256)
+            return Fail(error,"B checkpoint K prefix hash mismatch");
+        RecordingGenerationActiveReadResult active;
+        RecordingGenerationOwnedFile staged_active;
+        const auto suffix=[&](const RecordingGenerationByteSink& sink,std::string* detail){
+            std::uint64_t offset=prefix_end;
+            for(std::size_t i=pending.prefix_rows;i<current.active.rows.size();++i){const auto& row=current.active.rows[i];
+                if(row.offset!=offset||row.global_ordinal!=plan->cut+(i-pending.prefix_rows)||!row.length||row.length>generation_limits_.cold_row_bytes)
+                    return Fail(detail,"B checkpoint suffix range/ordinal mismatch");
+                std::string raw(static_cast<std::size_t>(row.length),'\0');
+                if(!ReadAt(managed_fd_,offset,&raw)||RawHash(raw)!=row.raw_sha256||!sink(raw,detail))return false;
+                auto moved=row;moved.offset-=prefix_end;
+                const auto prior=current.identities.find(row.mutation.mutation_id);
+                if(prior==current.identities.end()||prior->second.historical||prior->second.slot!=i)
+                    return Fail(detail,"B checkpoint suffix first identity mismatch");
+                pending.identities.emplace(row.mutation.mutation_id,{GenerationIdentityKey(current,prior->second),false,active.rows.size()});
+                active.rows.push_back(std::move(moved));offset+=row.length;
+            }
+            return offset==static_cast<std::uint64_t>(current.active_binding.st_size)||Fail(detail,"B checkpoint suffix F coverage mismatch");
+        };
+        if(!transaction.WriteComponentStream("active-"+std::to_string(plan->generation)+".jsonl",generation_limits_.active_bytes,suffix,&staged_active,error))return false;
+        const auto& staged_identity=pending.staged_identity;const auto& staged_snapshot=pending.staged_snapshot;
         identity={staged_identity.file.name,true,true,staged_identity.device,staged_identity.inode,staged_identity.file.size};
         files.manifest.store_id=managed_store_id_;files.manifest.generation=plan->generation;files.manifest.cut_ordinal=plan->cut;
         files.manifest.snapshot=staged_snapshot.file;files.manifest.active=staged_active.file;
-        for(const auto* file:{&staged_snapshot,&staged_active})files.files.push_back({file->file.name,true,true,file->device,file->inode,file->file.size});
+        files.manifest.evidence.push_back(pending.staged_prefix.file);
+        for(const RecordingGenerationOwnedFile* file:std::initializer_list<const RecordingGenerationOwnedFile*>{&staged_snapshot,&staged_active,&pending.staged_prefix})files.files.push_back({file->file.name,true,true,file->device,file->inode,file->file.size});
         RecordingGenerationReceipt receipt;receipt.operation=RecordingGenerationOperation::Checkpoint;
         receipt.predecessor=current.active.manifest;receipt.target=files.manifest;
         struct stat r{},stage{};
@@ -2995,7 +3092,8 @@ bool RecordingJournal::PublishGenerationCheckpoint(const void* owner,const std::
         receipt.created.push_back(created);
         for(const auto& file:files.files){
             if(!transaction.Describe(true,file.name,&created,error)||created.device!=file.device||created.inode!=file.inode||created.file.size!=file.size)return Fail(error,"B transaction file ownership changed");
-            const auto& expected=file.name==files.manifest.snapshot.name?files.manifest.snapshot:files.manifest.active;
+            const auto& expected=file.name==files.manifest.snapshot.name?files.manifest.snapshot:
+                file.name==files.manifest.active.name?files.manifest.active:pending.staged_prefix.file;
             if(created.file.sha256!=expected.sha256)return Fail(error,"B transaction file digest changed");
             receipt.created.push_back(created);
         }
@@ -3003,12 +3101,12 @@ bool RecordingJournal::PublishGenerationCheckpoint(const void* owner,const std::
         if(!CheckManagedStateLocked(error)||!transaction.Prepare(receipt,error))return false;
         transaction_prepared=true;
         if(!transaction.Promote(error))return false;
-        RecordingGenerationActiveReadResult active;active.manifest=files.manifest;active.active_file=files.manifest.active;
+        active.manifest=files.manifest;active.active_file=files.manifest.active;
         auto path=canonical_root/files.manifest.active.name;
         if(!SerializeRecordingGenerationManifest(files.manifest,&bytes,error))return false;
         OwnedFd root(OpenParent(current.active_path,false));struct stat root_stat{},next_stat{};
         OwnedFd fd(root.value<0?-1: ::openat(root.value,files.manifest.active.name.c_str(),O_RDONLY|O_NOFOLLOW|O_CLOEXEC|O_NONBLOCK));
-        if(root.value<0||::fstat(root.value,&root_stat)!=0||fd.value<0||!Regular(fd.value,&next_stat)||next_stat.st_size||
+        if(root.value<0||::fstat(root.value,&root_stat)!=0||fd.value<0||!Regular(fd.value,&next_stat)||static_cast<std::uint64_t>(next_stat.st_size)!=files.manifest.active.size||
            !Same(root.value,files.manifest.active.name,fd.value,next_stat)||!CheckManagedStateLocked(error))return Fail(error,"B checkpoint 새 FD 결박 실패");
         authority.predecessor=pending.predecessor;authority.identity=plan->chain.head;
         authority.root_device=root_stat.st_dev;authority.root_inode=root_stat.st_ino;
@@ -3029,6 +3127,7 @@ bool RecordingJournal::PublishGenerationCheckpoint(const void* owner,const std::
         if(!CheckManagedStateLocked(error)||!SafeGenerationCacheFiles(managed_root_,error)||!sql(plan->generation,plan->cut)){
             poisoned_=true;current.link_epoch.reset();return Fail(error,"B checkpoint 게시 후 SQL/권위 실패: 새 owner 필요");}
         if(!transaction.Cleanup(true,error)){poisoned_=true;current.link_epoch.reset();return false;}
+        pending.transaction_completed=true;
         // snapshot 검증/게시가 끝난 후보의 예약 사본을 상시 보유하지 않는다.
         // 정확한 재시도/충돌 검사는 그대로 current.order가 담당한다.
         current.chain.order_history={};
@@ -3040,6 +3139,7 @@ bool RecordingJournal::PublishGenerationCheckpoint(const void* owner,const std::
     if(!success&&!publishing&&!cleanup()) {
         poisoned_=true;current.link_epoch.reset();return Fail(error,"B checkpoint 소유 준비물 회수 실패: 보존 후 새 owner 필요");
     }
+    if(!success&&!publishing&&!ManagedTransactionPendingLocked())pending.transaction_completed=true;
     if(!success&&(publishing||ManagedTransactionPendingLocked())){poisoned_=true;current.link_epoch.reset();}
     return success;
 #else

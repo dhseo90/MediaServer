@@ -162,10 +162,11 @@ bool Lock(int root,Fd& lock) {
 }
 #if defined(MEDIA_SERVER_RECORDING_GENERATION_TESTING)
 thread_local std::uint64_t archive_reads=0;
+thread_local std::string archive_read_filter;
 #endif
 bool Verify(int root,const RecordingGenerationFile& f,bool durable,bool prefix=false,std::uint64_t* tail=nullptr){
 #if defined(MEDIA_SERVER_RECORDING_GENERATION_TESTING)
-    if(f.name.rfind("evidence-",0)==0)++archive_reads;
+    if(f.name.rfind("evidence-",0)==0&&(archive_read_filter.empty()||archive_read_filter==f.name))++archive_reads;
 #endif
     Fd fd(::openat(root,f.name.c_str(),O_RDONLY|O_NOFOLLOW|O_CLOEXEC|O_NONBLOCK));struct stat s{};
     if(fd.n<0||!Regular(fd.n,&s))return false;
@@ -333,7 +334,7 @@ static RecordingGenerationPublishResult PublishManifest(const std::filesystem::p
            previous.generation>=m.generation||previous.cut_ordinal>m.cut_ordinal)
             return reject("manifest prior generation/store/cut invalid");
     } else if(predecessor||errno!=ENOENT)return reject("manifest prior stat failed");
-    if(identity&&(!m.evidence.empty()||identity->name!="identity-"+std::to_string(m.generation)+".jsonl"||!Verify(dir.n,*identity,true)))return reject("checkpoint new identity invalid");
+    if(identity&&(identity->name!="identity-"+std::to_string(m.generation)+".jsonl"||!Verify(dir.n,*identity,true)))return reject("checkpoint new identity invalid");
     if(!VerifyAll(dir.n,m,true)||!RootSame(root,dir.n))return reject("manifest components invalid");
     Fd stage(::openat(dir.n,kStage,O_WRONLY|O_CREAT|O_EXCL|O_NOFOLLOW|O_CLOEXEC,0600));
     if(stage.n<0)return reject("manifest pending stage preserved");
@@ -425,7 +426,7 @@ static bool ReadVerifiedGenerationRange(const std::filesystem::path& root,
     if(!Supported(error))return false;
 #if !defined(_WIN32) && MEDIA_SERVER_USE_OPENSSL
  #if defined(MEDIA_SERVER_RECORDING_GENERATION_TESTING)
-    if(sealed_active||descriptor.name.rfind("evidence-",0)==0)++archive_reads;
+    if((sealed_active||descriptor.name.rfind("evidence-",0)==0)&&(archive_read_filter.empty()||archive_read_filter==descriptor.name))++archive_reads;
  #endif
     if((!output&&!visitor)||length>result_admission||descriptor.size>kFileLimit||offset>descriptor.size||
        length>descriptor.size-offset||length>std::numeric_limits<std::size_t>::max()||
@@ -516,11 +517,11 @@ void RecordingGenerationCheckpointBeforeBindingForTest(void (*hook)()){
     (void)hook;
 #endif
 }
-std::uint64_t RecordingGenerationArchiveReadsForTest(bool reset){
+std::uint64_t RecordingGenerationArchiveReadsForTest(bool reset,const std::string& only_name){
 #if !defined(_WIN32) && MEDIA_SERVER_USE_OPENSSL
-    const auto value=archive_reads;if(reset)archive_reads=0;return value;
+    const auto value=archive_reads;if(reset){archive_reads=0;archive_read_filter=only_name;}return value;
 #else
-    (void)reset;return 0;
+    (void)reset;(void)only_name;return 0;
 #endif
 }
 void RecordingGenerationImmutableBeforeBindingForTest(void (*hook)()){

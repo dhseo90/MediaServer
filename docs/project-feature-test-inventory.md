@@ -4858,3 +4858,31 @@ Stop/join/최종 readback/Finish를 유한한 단계·thread 원자 상태로 �
 기존 공간/메모리/로그 보호를 유지한다. 고정 cut·후속 append·reader·실패 미게시·재Open을
 직접 회귀로 확인하며 준비와 병행/종료 결과를 분리한다. UI 없는 내부 안정화 경계다.
 전체이력 RAM fallback·원본 검증 생략은 금지하며, B/C·120분·출시 승인을 대신하지 않는다.
+
+### MEM82-C01 — 고정 cut과 후속 내구 쓰기의 checkpoint 동시성
+
+내부 기능, UI 없음. 기존 generation checkpoint wrapper의 `concurrency`는 고정 cut 확보 뒤
+테스트 전용 latch로 준비를 보류하고 실제 QuerySegments/ReserveRecordingOrder가 각각 유한
+250ms 대기 내 완료되는지 검사한다. 실패해도 latch 해제·join·Finish 후 독립 자식 reOpen으로
+최초/후속 예약의 순서와 retry를 대조한다. 수정 전 기대 RED는 `searchBeforeRelease=false`와
+`durableAppendBeforeRelease=false`이며 컴파일·준비 실패는 RED가 아니다.
+기존 MEM81-G01 실제 90초/8 writer/4 client/10000 관측/720 packet/24파일/p95≤2000ms/최대≤5000ms
+조건은 별도 필수다. 동일 바이너리 성공 탐색 반복은 하지 않으며 변경 영향이 있는 검사만 재실행한다.
+
+- `MEM82-C02`: 고정 K 이후 정상 예약 append를 실제 fsync한 뒤 `receipt-directory-synced`,
+  `intent-durable`, `manifest-published`에서 별도 프로세스를 중단한다. PREPARED와 게시 완료는
+  재Open에서 정확한 두 예약/순서를 복원한다. manifest 전 PUBLISH_INTENT는 기존 계약대로
+  fail-closed이며 원본 suffix를 보존한다. 자동 rollback 성공으로 판정하지 않는다.
+- `MEM82-C03`: `concurrency` fixture의 동시 두 번째 checkpoint 거부, 자동 rotation 중
+  신규 hold 획득 후 보호 변경 거부, private 준비 중 Finish에 따른 미게시/정리를 확인한다.
+  자동 rotation fixture는 기존 1MiB 회전 문턱을 통과하도록 원본 허용 범위 안의
+  active 2MiB/identity 10,000/shard 8MiB를 사용한다. 제품 상한 변경이 아니다.
+  C02/C03 최초 탐색 출력은 정의 등록 전 진단이며 적격 회귀는 등록 후 최종 실행이다.
+
+- `MEM82-C04`: 고정 K 준비 중 V2 삭제·관측·예약의 내구 suffix, K snapshot/F 현재 상태, 이전/후속 link와 reader, 별도 재Open; 자동 rotation 중 같은 derived owner 철회/재Bind는 이전 호출을 미게시 거부한다. `verify-recording-generation-checkpoint concurrency`의 macOS/Linux 구성에서 직접 확인하며 UI/장시간을 대체하지 않는다.
+
+- `MEM82-C05`: 자동 rotation의 고정 K 보류 중 locator 대상 corruption, 삭제 이름의 dangling symlink, bound finalize 경로의 내부 symlink, prepared job output ID 선점은 원래 호출을 미게시 거부하고 정상 동시 변경을 보존한다. `verify-recording-generation-checkpoint concurrency`; 기존 원본/권한/90초 부하 기준은 불변이다.
+
+MEM82-C01 지연 수집 연결은 `node --test scripts/internal/recording_latency_trace.test.mjs`로 owning lock의 실제 release/reacquire, 잠금 밖 단계11~13과 범위 밖 enum 거부를 확인한다. 비용 복사본도 이 owner를 유지하며 분리 잠금 비용은 기존 latency trace로 측정한다.
+
+- `MEM82-C06`: 고정 view 전용 순차 scratch는 기존 고정 슬롯/소유권/Close를 사용하며 duplicate·미봉인·node/value 변조·부분 쓰기·consumer 거부를 미게시 실패로 처리한다. 완전한 순회와 마지막 process root 대조 전의 부분 출력은 후보 scratch만이며 정상 lookup authority가 아니다. `verify-recording-generation-checkpoint history-product`와 C01~C05 제품 경로로 확인한다.

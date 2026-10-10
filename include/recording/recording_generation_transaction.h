@@ -9,6 +9,7 @@ namespace recording {
 // 실패/소멸 시 파일을 자동 삭제하지 않는다. 재기동 복구도 별도 검증 후 명시 수행한다.
 class RecordingGenerationTransaction {
     friend class RecordingJournal;
+    friend class RecordingGenerationCheckpointPlan;
     friend class RecordingCatalog;
 #if defined(MEDIA_SERVER_RECORDING_GENERATION_TESTING)
     friend struct RecordingGenerationTransactionProbe;

@@ -86,7 +86,10 @@ bool RecordingCatalog::RecoverManagedCutover(const RecordingCutoverCandidateLimi
         recovery_options.prefer_sqlite=false;
         recovery_options.enable_generation_writes=false;
         RecordingCatalog recovery(journal_,recovery_options);
-        if(!recovery.BuildGenerationScratch(&scratch,error))return false;
+        if(checkpoint&&!committed){
+            if(!journal_.ValidateCheckpointRecoverySuffix(receipt.target,error)||
+               !recovery.BuildGenerationScratchLocked(&scratch,nullptr,error,receipt.target.cut_ordinal))return false;
+        }else if(!recovery.BuildGenerationScratch(&scratch,error))return false;
         if(committed)return transaction.Cleanup(true,error);
     }else {
         if(!journal_.BeginManagedCutoverRecovery(this,transaction,options_.media_root,options_.sqlite_path,error))return false;

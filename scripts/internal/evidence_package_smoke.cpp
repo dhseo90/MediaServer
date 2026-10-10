@@ -25,7 +25,9 @@ auto Deadline(){return Clock::now()+std::chrono::seconds(30);}
 std::vector<unsigned char> Read(int fd,std::uint64_t offset,std::size_t n){
     std::vector<unsigned char> data(n);std::size_t done=0;
     while(done<n){const auto got=::pread(fd,data.data()+done,n-done,static_cast<off_t>(offset+done));
-        if(got<0&&errno==EINTR)continue;if(got<=0)throw std::runtime_error("asset-read");done+=std::size_t(got);}
+        if(got<0&&errno==EINTR)continue;
+        if(got<=0)throw std::runtime_error("asset-read");
+        done+=std::size_t(got);}
     return data;
 }
 std::uint32_t Be(const unsigned char* p){return std::uint32_t(p[0])<<24|std::uint32_t(p[1])<<16|std::uint32_t(p[2])<<8|p[3];}
@@ -42,7 +44,8 @@ std::vector<unsigned char> PngRgb(const std::vector<unsigned char>& png,int widt
             png[p+12]==8&&png[p+13]==2&&png[p+14]==0&&png[p+15]==0&&png[p+16]==0,"PNG RGB8 geometry");header=true;}
         else if(type=="IDAT")compressed.insert(compressed.end(),png.begin()+p+4,png.begin()+p+4+n);
         else if(type=="IEND"){Check(n==0&&p+8==png.size(),"PNG exact end");end=true;}
-        else throw std::runtime_error("unexpected PNG chunk");p+=n+8;
+        else throw std::runtime_error("unexpected PNG chunk");
+        p+=n+8;
     }
     Check(header&&end,"PNG required chunks");uLongf size=(std::size_t(width)*3+1)*height;std::vector<unsigned char> raw(size),rgb;
     Check(uncompress(raw.data(),&size,compressed.data(),compressed.size())==Z_OK&&size==raw.size(),"PNG lossless inflate");
@@ -58,7 +61,8 @@ void Save(const std::filesystem::path& path,const std::string& bytes){
 }
 }
 int main(int argc,char** argv){try{
-    if(argc!=2&&argc!=3)return 2;gst_init(nullptr,nullptr);
+    if(argc!=2&&argc!=3)return 2;
+    gst_init(nullptr,nullptr);
     const bool seed=argc==3&&std::string(argv[2])=="--seed";
     const auto root=std::filesystem::canonical(argv[1]);std::string error;
     recording::RecordingRuntimeStorage runtime(root/"recordings");Check(runtime.Open(&error),"V440 source storage open: "+error);
@@ -68,7 +72,8 @@ int main(int argc,char** argv){try{
     for(auto& packet:input.packets)packet.track_id=source_track;
     recording::GStreamerSegmentWriter writer(runtime.WriterOptions(1000));
     Check(writer.Start("1","unused",input.descriptor,[](auto,auto,auto*){return false;},&error),"writer start");
-    for(const auto& packet:input.packets)writer.Push(packet,0);writer.Stop();
+    for(const auto& packet:input.packets)writer.Push(packet,0);
+    writer.Stop();
     const auto ids=runtime.catalog().FinalizedSegmentIdsForStartup();Check(ids.size()==1,"exact one original recording");
     const auto segment=*runtime.catalog().FindSegmentV2ById(ids.front());const auto binding=*runtime.catalog().FindSourceBinding(ids.front());
     recording::RecordingReadService reader(runtime.catalog());recording::RecordingSearchReader search(runtime.catalog(),reader);

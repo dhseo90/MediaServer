@@ -11,7 +11,13 @@ struct RecordingGenerationRequestProofProbe {
     using Context=RecordingCatalog::JobReadContext;
     static bool Job(RecordingCatalog& c,const std::string& id,Context* context){
         std::lock_guard lock(c.mu_);RecordingCatalog::DerivedJobHandle job;
-        return c.AcquireJobForReadLocked(id,&job,context,&error)&&job&&job->state==DerivedJobState::Complete;
+        try {return c.AcquireJobForReadLocked(id,&job,context,&error)&&job&&job->state==DerivedJobState::Complete;}
+        catch(const std::exception&) {
+            // This private probe bypasses the public MediaV2EligibleLocked exception boundary.
+            // A cold authority failure is rejection only when both authority and lease are lost.
+            if(c.derived_job_state_authoritative_||c.journal_.HasManagedLease())throw;
+            return false;
+        }
     }
     static std::size_t Proofs(const Context& context){return context.proofs.size();}
     static void Foreign(Context& target,const Context& source,RecordingCatalog& c){target=source;target.owner=&c;target.proofs=source.proofs;}

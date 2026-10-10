@@ -109,6 +109,7 @@ int main(int argc,char** argv){
         std::atomic<unsigned> packets{0},finished{0};std::atomic<bool> stop{false};
         std::array<std::exception_ptr,13> errors{};
         std::atomic<unsigned> checkpoint_phase{0};std::array<std::array<unsigned,3>,4> completed_phase{};
+        std::array<std::array<double,3>,4> phase_max{};
         double checkpoint_ms=0;unsigned checkpoint_begin=0,checkpoint_end=0;bool checkpoint_published=false;
         std::array<std::vector<double>,4> elapsed;
         std::array<unsigned,4> ready{},unavailable{},progressed{};
@@ -119,8 +120,9 @@ int main(int argc,char** argv){
         for(std::size_t client=0;client<4;++client)threads.emplace_back([&,client]{
             try{progress.Begin(1+client,LoadPhase::Search);do{progress.states[1+client].begin=progress.Now();const auto start=std::chrono::steady_clock::now();const auto before=packets.load();
                 const auto result=app.Search(query,"load-client-"+std::to_string(client),"scope",[](const auto&){return true;});
-                ++completed_phase[client][checkpoint_phase.load()];
+                const auto phase=checkpoint_phase.load();++completed_phase[client][phase];
                 elapsed[client].push_back(std::chrono::duration<double,std::milli>(std::chrono::steady_clock::now()-start).count());
+                phase_max[client][phase]=std::max(phase_max[client][phase],elapsed[client].back());
                 if(result.status==200)++ready[client];else if(result.status==503){++unavailable[client];if(first_failure[client].empty())first_failure[client]=result.body;}else throw std::runtime_error("load-search-status");
                 progress.Progress(1+client,elapsed[client].size());
                 if(packets>before)++progressed[client];std::this_thread::sleep_for(std::chrono::milliseconds(5));
@@ -149,7 +151,7 @@ int main(int argc,char** argv){
         progress.Begin(0,LoadPhase::FinalValidation);
         if(checkpoint_overlap)std::cout<<"[checkpoint-overlap] milliseconds="<<checkpoint_ms<<" startPackets="<<checkpoint_begin<<" endPackets="<<checkpoint_end<<" published="<<checkpoint_published<<'\n';
         for(const auto& failure:errors)if(failure)std::rethrow_exception(failure);
-        for(std::size_t client=0;client<4;++client)std::cout<<"[runtime-client] id="<<client<<" requests="<<elapsed[client].size()<<" ready="<<ready[client]<<" unavailable="<<unavailable[client]<<" completedBeforeCheckpoint="<<completed_phase[client][0]<<" completedDuringCheckpoint="<<completed_phase[client][1]<<" completedAfterCheckpoint="<<completed_phase[client][2]<<" firstFailure="<<first_failure[client]<<" maxMs="<<(elapsed[client].empty()?0:*std::max_element(elapsed[client].begin(),elapsed[client].end()))<<std::endl;
+        for(std::size_t client=0;client<4;++client)std::cout<<"[runtime-client] id="<<client<<" requests="<<elapsed[client].size()<<" ready="<<ready[client]<<" unavailable="<<unavailable[client]<<" completedBeforeCheckpoint="<<completed_phase[client][0]<<" completedDuringCheckpoint="<<completed_phase[client][1]<<" completedAfterCheckpoint="<<completed_phase[client][2]<<" beforeMaxMs="<<phase_max[client][0]<<" duringMaxMs="<<phase_max[client][1]<<" afterMaxMs="<<phase_max[client][2]<<" firstFailure="<<first_failure[client]<<" maxMs="<<(elapsed[client].empty()?0:*std::max_element(elapsed[client].begin(),elapsed[client].end()))<<std::endl;
         const auto diagnostic=app.Search(query,"after-writer-off","scope",[](const auto&){return true;});
         std::cout<<"[runtime-off] status="<<diagnostic.status<<" knownCount="<<(diagnostic.status==200?Field(Json(diagnostic.body),"knownCount"):diagnostic.body)<<std::endl;
         if(packets!=720||finished!=8)throw std::runtime_error("load-packet-progress");

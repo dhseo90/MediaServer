@@ -93,7 +93,7 @@ void RecordingGenerationFailNextDirectorySyncForTest();
 // 실제 파일 읽기 후 최종 결박 검사 직전의 일회성 fixture hook이다.
 void RecordingGenerationImmutableBeforeBindingForTest(void (*hook)());
 void RecordingGenerationCheckpointBeforeBindingForTest(void (*hook)());
-std::uint64_t RecordingGenerationArchiveReadsForTest(bool reset=false);
+std::uint64_t RecordingGenerationArchiveReadsForTest(bool reset=false,const std::string& only_name={});
 #endif
 // DurabilityUncertain은 rename 후 directory fsync 또는 재결박 실패다.
 // 호출자는 쓰기를 차단하고 재open해야 하며 이전 manifest 보존을 가정하지 않는다.

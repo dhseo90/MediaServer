@@ -14,6 +14,8 @@ bool RecoverCheckpointTransaction(const std::filesystem::path&);
 #include "recording_catalog_history.h"
 #include <sys/resource.h>
 #include <chrono>
+#include <future>
+#include <condition_variable>
 #ifdef __APPLE__
 #include <malloc/malloc.h>
 #include <mach/mach.h>
@@ -27,6 +29,12 @@ struct RecordingGenerationResidencyProbe {
     }
 };
 struct RecordingGenerationTransactionProbe {
+    static void CheckpointHook(void (*hook)()) { RecordingCatalog::generation_checkpoint_prepared_hook_=hook; }
+    static bool Bind(RecordingCatalog& c,const void* owner){return c.BindDerivedService(owner);}
+    static void Unbind(RecordingCatalog& c,const void* owner){c.UnbindDerivedService(owner);}
+    static bool Update(RecordingCatalog& c,const void* owner,const DerivedJobRecordV1& job,std::string* e){return c.UpdateDerivedJob(owner,job,e);}
+
+
     static void StreamFailures(const std::filesystem::path& base) {
         for(const std::string mode:{"empty","prefix","exception","admission","large-option"}){
             const auto root=base/mode;std::filesystem::create_directories(root);
@@ -401,7 +409,7 @@ void AlterIdentity(){auto bytes=Read(hook_root/"identity-3.jsonl");bytes[bytes.s
 unsigned preparation_count=0;
 std::filesystem::path owned_stage;
 void AlterOwnedSnapshot(const char* point){
-    if(std::string(point)=="component-prepared"&&++preparation_count==2){
+    if(std::string(point)=="component-prepared"&&++preparation_count==3){
         for(const auto& item:std::filesystem::directory_iterator(hook_root))if(item.path().filename().string().rfind(".recording-generation-prepare-",0)==0)owned_stage=item.path();
         throw std::runtime_error("fixture stops owned preparation");
     }
@@ -449,10 +457,10 @@ void Cost(const std::filesystem::path& base) {
         const auto root=base/std::to_string(copies);Actual(root,copies,true);const auto archive=Read(root/"evidence-2-0.jsonl");
         auto options=Options(root);options.generation_limits.identity_shard_bytes=8*1024*1024;
         RecordingJournal j(options);Need(j.Open(&error));RecordingCatalog c(j,CO(root));Need(c.Open(&error));Need(c.MarkSegmentCorrupt("segment","missing-media",&error));
-        RecordingGenerationArchiveReadsForTest(true);RecordingMutationCodecCountsForTest(nullptr,nullptr,true);
+        RecordingGenerationArchiveReadsForTest(true,"evidence-2-0.jsonl");RecordingMutationCodecCountsForTest(nullptr,nullptr,true);
         Need(c.Checkpoint(&error));std::uint64_t parses=0,serializes=0;RecordingMutationCodecCountsForTest(&parses,&serializes);
         const auto reads=RecordingGenerationArchiveReadsForTest();
-        std::cout<<"[cost] history_bytes="<<archive.size()<<" archive_reads="<<reads<<" envelope_parses="<<parses<<" envelope_serializes="<<serializes<<'\n';
+        std::cout<<"[cost] history_bytes="<<archive.size()<<" predecessor_archive_reads="<<reads<<" envelope_parses="<<parses<<" envelope_serializes="<<serializes<<'\n';
         Check("B03-C04",reads==0&&parses==0&&serializes==1&&(copies==1||serializes==prior_serializes)&&Read(root/"evidence-2-0.jsonl")==archive,"fixed current and delta avoid predecessor evidence read parse and serialization as complete history grows");prior_serializes=serializes;
     }
 }
@@ -656,6 +664,25 @@ void HistoryProduct(const std::filesystem::path& root) {
      if(mode==2){Index::probe_fault=3;Check("MEM81-G01",!bad.SealBufferedBuild(&error),"seal partial write remains explicit failure");Index::probe_fault=0;}
      if(mode==3){Index copy;Need(copy.Create(root.string(),Index::BytesForRows(8),&error));Check("MEM81-G01",!copy.CopyFrom(bad,&error),"unsealed buffered source cannot be cloned as a complete index");Need(copy.Close(&error));}
      Need(bad.Close(&error));Check("MEM81-G01",std::filesystem::is_empty(root),"aborted or failed private build closes anonymous scratch");}
+    for(const std::string mode:{"valid","unsealed","value","node","root","duplicate","partial","consumer"}) {
+        Index seq;Need(seq.Create(root.string(),Index::BytesForRows(1024),&error));Need(seq.BeginSequentialBuild(&error));
+        for(unsigned i=0;i<1024;++i){const auto n=std::to_string(i);Need(seq.Put(std::string(8-n.size(),'0')+n,"value/"+n,false,&error));}
+        if(mode=="unsealed")Check("MEM82-C06",!seq.Visit([](const auto&,const auto&,std::string*){return true;},&error),"private unsealed sequential capture cannot be consumed");
+        else if(mode=="duplicate")Check("MEM82-C06",!seq.Put("00001023","again",false,&error),"sequential capture duplicate/order rejected");
+        else if(mode=="partial"){Index::probe_fault=3;Check("MEM82-C06",!seq.ReserveRows(1025,&error)||!seq.Put("00001024","partial",false,&error),"partial sequential append remains failed/unpublished");Index::probe_fault=0;}
+        else {
+            Need(seq.SealSequentialBuild(&error));
+            if(mode=="value"||mode=="node"){const char x='x';Need(::pwrite(seq.ProbeFd(),&x,1,512+(mode=="node"?2048:0))==1);}
+            if(mode=="root")Index::probe_fault=6;
+            unsigned count=0;const bool visited=seq.Visit([&](const auto& key,const auto& value,std::string*){
+                const auto n=std::to_string(count++);return mode!="consumer"&&key==std::string(8-n.size(),'0')+n&&value=="value/"+n;},&error);
+            Check("MEM82-C06",mode=="valid"?(visited&&count==1024&&seq.usage().file_bytes==Index::BytesForRows(1024)&&seq.usage().cache_bytes==0):!visited,
+                "fixed-slot sequence full chain/value/root/consumer validation with bounded RAM");
+            if(mode=="root")Check("MEM82-C06",count==1024&&error.find("root mismatch")!=std::string::npos,"late trusted-root failure rejects all previously consumed private rows");
+            Index::probe_fault=0;
+        }
+        Need(seq.Close(&error));Check("MEM82-C06",std::filesystem::is_empty(root),"sequential capture closes anonymous scratch on every result");
+    }
     {RecordingCatalogHistoryRows rows;Need(rows.Create(&error));
      RecordingRetiredV2Receipt receipt;receipt.segment_id="plain";receipt.store_id="store";receipt.source_id="source";receipt.channel_id="channel";
      receipt.order_request_id="order";receipt.order_sequence=1;receipt.media_epoch_id="epoch";receipt.tombstone_id="tomb";
@@ -758,15 +785,284 @@ void HistoryProduct(const std::filesystem::path& root) {
 }
 
 #endif
+#if MEDIA_SERVER_USE_OPENSSL && MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND
+namespace {
+std::mutex cut_probe_mu;
+std::condition_variable cut_probe_cv;
+bool cut_probe_entered=false,cut_probe_release=false;
+void HoldCheckpointCut() {
+    std::unique_lock<std::mutex> lock(cut_probe_mu);
+    cut_probe_entered=true;cut_probe_cv.notify_all();
+    cut_probe_cv.wait(lock,[]{return cut_probe_release;});
+}
+void CheckpointConcurrentCut(const std::filesystem::path& root) {
+    Actual(root);
+    {RecordingJournal journal(Options(root));Need(journal.Open(&error));
+     RecordingCatalog catalog(journal,CO(root));Need(catalog.Open(&error));
+     RecordingOrderReservationV1 first;Need(catalog.ReserveRecordingOrder("store","cut-before","segment-before","channel",&first,&error));
+     cut_probe_entered=false;cut_probe_release=false;
+     std::string cp_error,append_error;bool cp_ok=false,append_ok=false;
+     std::thread checkpoint([&]{RecordingGenerationTransactionProbe::CheckpointHook(HoldCheckpointCut);
+         cp_ok=catalog.Checkpoint(&cp_error);RecordingGenerationTransactionProbe::CheckpointHook(nullptr);});
+     bool entered=false;
+     {std::unique_lock<std::mutex> lock(cut_probe_mu);entered=cut_probe_cv.wait_for(lock,std::chrono::seconds(3),[]{return cut_probe_entered;});}
+     auto search=std::async(std::launch::async,[&]{return catalog.QuerySegments("channel",0,INT64_MAX);});
+     RecordingOrderReservationV1 suffix;
+     auto append=std::async(std::launch::async,[&]{append_ok=catalog.ReserveRecordingOrder("store","cut-after","segment-after","channel",&suffix,&append_error);});
+     const bool searched=search.wait_for(std::chrono::milliseconds(250))==std::future_status::ready;
+     const bool appended=append.wait_for(std::chrono::milliseconds(250))==std::future_status::ready;
+     auto another=std::async(std::launch::async,[&]{std::string e;return catalog.Checkpoint(&e);});
+     const bool another_ready=another.wait_for(std::chrono::milliseconds(250))==std::future_status::ready;
+     // Always release before assertions/joins, including the expected pre-fix RED.
+     {std::lock_guard<std::mutex> lock(cut_probe_mu);cut_probe_release=true;}cut_probe_cv.notify_all();
+     checkpoint.join();const auto search_result=search.get();(void)search_result;append.get();
+     Check("MEM82-C03",another_ready&&!another.get(),"second manual checkpoint is rejected while one private candidate is held");
+     std::cout<<"[cut-concurrency] entered="<<entered<<" searchBeforeRelease="<<searched
+              <<" durableAppendBeforeRelease="<<appended<<" checkpoint="<<cp_ok<<" append="<<append_ok
+              <<" cpError="<<cp_error<<" appendError="<<append_error<<std::endl;
+     Check("MEM82-C01",entered&&searched&&appended&&append_ok&&cp_ok,"search and durable suffix complete while fixed-cut preparation is held");
+     if(append_ok){RecordingOrderReservationV1 retry;Need(catalog.ReserveRecordingOrder("store","cut-after","segment-after","channel",&retry,&error));
+         Check("MEM82-C01",retry.sequence==suffix.sequence&&suffix.sequence==first.sequence+1,"after-cut retry retains one reservation and exact next order");}
+     Need(journal.Finish(&error));}
+    const pid_t child=::fork();Need(child>=0);
+    if(child==0){RecordingJournal j(Options(root));std::string e;RecordingOrderReservationV1 a,b;
+        bool ok=j.Open(&e);{RecordingCatalog c(j,CO(root));ok=ok&&c.Open(&e)&&
+            c.ReserveRecordingOrder("store","cut-before","segment-before","channel",&a,&e)&&
+            c.ReserveRecordingOrder("store","cut-after","segment-after","channel",&b,&e)&&b.sequence==a.sequence+1;}
+        ok=j.Finish(&e)&&ok;::_exit(ok?0:1);}
+    int status=0;Need(::waitpid(child,&status,0)==child);
+    Check("MEM82-C01",WIFEXITED(status)&&WEXITSTATUS(status)==0,"independent process reOpen preserves before/after durable order without duplication");
+}
+// Same real bound-source fixture, without an active derived job pinning deletion.
+void CutSourceFixture(const std::filesystem::path& root) {
+    auto input=InputValue();auto f=Active(input);
+    f.snapshot.rows.erase(std::remove_if(f.snapshot.rows.begin(),f.snapshot.rows.end(),[](const auto& r){
+        return r.kind=="derived-job"||(r.kind=="accepted-state"&&r.key=="job-mutation");}),f.snapshot.rows.end());
+    f.chain.first_acceptances.pop_back();f.chain.maximum_global_ordinal=1;f.chain.physical_rows=2;
+    f.archive.resize(f.chain.first_acceptances.back().first_row.offset+f.chain.first_acceptances.back().first_row.length);
+    Install(f,root);
+}
+AnalysisObservationV2 CutObservation() {
+    AnalysisObservationV2 o;o.observation_id="cut-observation";o.source_id="source";o.channel_id="channel";
+    o.analysis_namespace="tap";o.track_id="track";o.class_label="person";o.confidence=.8;
+    o.bbox={0,0,.5,.5};o.selection_reasons={"track-start"};o.locator_reason="missing-provenance";return o;
+}
+void CheckpointMixedSuffix(const std::filesystem::path& root) {
+    CutSourceFixture(root);
+    {RecordingJournal j(Options(root));Need(j.Open(&error));RecordingCatalog c(j,CO(root));Need(c.Open(&error));
+     RecordingOrderReservationV1 before;Need(c.ReserveRecordingOrder("store","mixed-before","mixed-before-segment","channel",&before,&error));
+     RecordingMutationLink old_link;RecordingMutationHandle old_handle;Need(Links::Link(j,"mixed-before",&old_link));Need(Links::Get(j,old_link,&old_handle));
+     const auto old_raw=SerializeRecordingMutationV1(*old_handle);
+     cut_probe_entered=false;cut_probe_release=false;bool cp=false;std::string cp_error;
+     std::thread checkpoint([&]{RecordingGenerationTransactionProbe::CheckpointHook(HoldCheckpointCut);cp=c.Checkpoint(&cp_error);RecordingGenerationTransactionProbe::CheckpointHook(nullptr);});
+     bool entered;{std::unique_lock<std::mutex> lock(cut_probe_mu);entered=cut_probe_cv.wait_for(lock,std::chrono::seconds(3),[]{return cut_probe_entered;});}
+     RecordingMutationLink new_link;RecordingMutationHandle new_handle;std::string new_raw;
+     auto suffix=std::async(std::launch::async,[&]{std::string e;RecordingOrderReservationV1 after;
+         if(!c.PutObservationV2(CutObservation(),&e)||!c.ReserveRecordingOrder("store","mixed-after","mixed-after-segment","channel",&after,&e))return false;
+         if(!Links::Link(j,"mixed-after",&new_link)||!Links::Get(j,new_link,&new_handle))return false;
+         new_raw=SerializeRecordingMutationV1(*new_handle);
+         RecordingTombstoneV2 tomb;tomb.tombstone_id="cut-tomb";tomb.segment=InputValue().source.segment;tomb.deletion_reason="continuous-age";tomb.deleted_at_ms=30;
+         return c.RequestDeletion("segment",tomb.deletion_reason,&e)&&c.CompleteDeletionV2(tomb,&e)&&c.IsDeletedSegmentId("segment")&&c.QueryObservationsV2("channel").size()==1;
+     });
+     const bool ready=suffix.wait_for(std::chrono::milliseconds(500))==std::future_status::ready;
+     {std::lock_guard<std::mutex> lock(cut_probe_mu);cut_probe_release=true;}cut_probe_cv.notify_all();checkpoint.join();const bool changed=suffix.get();
+     Check("MEM82-C04",entered&&ready&&changed&&cp,"held cut permits durable observation and V2 retirement with current query state");
+     RecordingMutationHandle a,b;Check("MEM82-C04",Links::Get(j,old_link,&a)&&Links::Get(j,new_link,&b)&&
+        SerializeRecordingMutationV1(*a)==old_raw&&SerializeRecordingMutationV1(*b)==new_raw&&SerializeRecordingMutationV1(*old_handle)==old_raw,
+        "pre-cut and suffix links plus owned old reader remain exact after publication");
+     auto snapshot=Read(root/Manifest(root).snapshot.name);
+     Check("MEM82-C04",snapshot.find("cut-observation")==std::string::npos&&snapshot.find("cut-tomb")==std::string::npos&&
+        c.IsDeletedSegmentId("segment")&&c.QueryObservationsV2("channel").size()==1,"snapshot stays K while current state retains F deletion and observation");
+     Need(j.Finish(&error));}
+    const auto child=::fork();Need(child>=0);if(child==0){std::string e;RecordingJournal j(Options(root));bool ok=j.Open(&e);
+        {RecordingCatalog c(j,CO(root));ok=ok&&c.Open(&e)&&c.IsDeletedSegmentId("segment")&&c.QueryObservationsV2("channel").size()==1;
+         RecordingOrderReservationV1 a,b;ok=ok&&c.ReserveRecordingOrder("store","mixed-before","mixed-before-segment","channel",&a,&e)&&
+            c.ReserveRecordingOrder("store","mixed-after","mixed-after-segment","channel",&b,&e)&&b.sequence==a.sequence+1;}
+        ok=j.Finish(&e)&&ok;::_exit(ok?0:1);}
+    int status=0;Need(::waitpid(child,&status,0)==child);Check("MEM82-C04",WIFEXITED(status)&&WEXITSTATUS(status)==0,"separate process restores mixed suffix once and keeps retired source deleted");
+}
+void FillRotation(RecordingCatalog& c,const std::filesystem::path& root) {
+    RecordingOrderReservationV1 order;unsigned n=0;
+    while(std::filesystem::file_size(root/Manifest(root).active.name)<1024*1024){
+        const auto id="rotation-fill-"+std::to_string(n++);Need(c.ReserveRecordingOrder("store",id,id,"channel",&order,&error));Need(n<10000);}
+}
+void CheckpointServiceRevoke(const std::filesystem::path& root) {
+    auto input=InputValue();Install(Active(input),root);auto options=Options(root);options.generation_limits.identity_unique_ids=10000;
+    options.generation_limits.active_bytes=2*1024*1024;options.generation_limits.identity_shard_bytes=8*1024*1024;
+    RecordingJournal j(options);Need(j.Open(&error));RecordingCatalog c(j,CO(root));Need(c.Open(&error));FillRotation(c,root);
+    int owner=0;Need(RecordingGenerationTransactionProbe::Bind(c,&owner));auto failed=input.job;failed.state=DerivedJobState::Failed;failed.failure_reason="owned-cleanup";failed.cleaned_at_ms=30;
+    cut_probe_entered=false;cut_probe_release=false;bool accepted=false;std::string detail;
+    std::thread worker([&]{RecordingGenerationTransactionProbe::CheckpointHook(HoldCheckpointCut);accepted=RecordingGenerationTransactionProbe::Update(c,&owner,failed,&detail);RecordingGenerationTransactionProbe::CheckpointHook(nullptr);});
+    bool entered;{std::unique_lock<std::mutex> lock(cut_probe_mu);entered=cut_probe_cv.wait_for(lock,std::chrono::seconds(3),[]{return cut_probe_entered;});}
+    auto revoke=std::async(std::launch::async,[&]{RecordingGenerationTransactionProbe::Unbind(c,&owner);return RecordingGenerationTransactionProbe::Bind(c,&owner);});
+    const bool ready=revoke.wait_for(std::chrono::milliseconds(250))==std::future_status::ready;
+    {std::lock_guard<std::mutex> lock(cut_probe_mu);cut_probe_release=true;}cut_probe_cv.notify_all();worker.join();const bool rebound=revoke.get();
+    std::optional<DerivedJobRecordV1> prior;Check("MEM82-C04",entered&&ready&&rebound&&!accepted&&c.FindDerivedJob(input.job.intent.job_id,&prior,&error)&&prior&&
+        SerializeDerivedJobRecord(*prior)==SerializeDerivedJobRecord(input.job)&&Read(root/Manifest(root).active.name).find("owned-cleanup")==std::string::npos,
+        "same-owner revoke/rebind invalidates pending auto-rotation update without publishing rejected job");
+    RecordingGenerationTransactionProbe::Unbind(c,&owner);Need(j.Finish(&error));
+}
+
+void AutoRace(const std::function<bool(std::string*)>& mutation,const std::function<bool()>& concurrent,
+    const std::function<bool()>& state) {
+    cut_probe_entered=false;cut_probe_release=false;bool accepted=false;std::string detail;
+    std::thread worker([&]{RecordingGenerationTransactionProbe::CheckpointHook(HoldCheckpointCut);accepted=mutation(&detail);RecordingGenerationTransactionProbe::CheckpointHook(nullptr);});
+    bool entered;{std::unique_lock<std::mutex> lock(cut_probe_mu);entered=cut_probe_cv.wait_for(lock,std::chrono::seconds(3),[]{return cut_probe_entered;});}
+    auto change=std::async(std::launch::async,concurrent);
+    const bool ready=change.wait_for(std::chrono::milliseconds(500))==std::future_status::ready;
+    {std::lock_guard<std::mutex> lock(cut_probe_mu);cut_probe_release=true;}cut_probe_cv.notify_all();worker.join();const bool changed=change.get();
+    std::cout<<"[auto-race] entered="<<entered<<" concurrentReady="<<ready<<" changed="<<changed<<" rejected="<<!accepted<<" error="<<detail<<std::endl;
+    Check("MEM82-C05",entered&&ready&&changed&&!accepted&&state(),"runtime admission rechecked after actual unlocked rotation; concurrent state preserved");
+}
+void CheckpointAdmissionRaces(const std::filesystem::path& base) {
+    for(const std::string mode:{"locator","delete-symlink","bound-symlink","output-id"}) {
+        const auto root=base/mode;std::cout<<"[auto-race-case] "<<mode<<std::endl;
+        if(mode=="locator")Actual(root);else if(mode=="output-id")Install(Active(ReadyInput()),root);else CutSourceFixture(root);
+        auto options=Options(root);options.generation_limits.identity_unique_ids=10000;options.generation_limits.active_bytes=2*1024*1024;options.generation_limits.identity_shard_bytes=8*1024*1024;
+        RecordingJournal j(options);Need(j.Open(&error));RecordingCatalog c(j,CO(root));Need(c.Open(&error));
+        std::filesystem::create_directories(root/"channel");
+        if(mode=="locator") {
+            Write(root/"channel/file.mp4",std::string("0000ftyp0000",12));auto o=CutObservation();o.stream_epoch_id="epoch";o.pts=500000000;o.first_seen_pts=o.pts;o.last_seen_pts=o.pts;o=c.ResolveObservationV2(o);Need(o.frame_locator.has_value());FillRotation(c,root);
+            AutoRace([&](std::string* e){return c.PutObservationV2(o,e);},[&]{std::string e;return c.MarkSegmentCorrupt("segment","missing-media",&e);},
+                [&]{return c.QueryObservationsV2("channel").empty()&&c.FindSegmentById("segment")->lifecycle==RecordingLifecycle::Corrupt&&Read(root/Manifest(root).active.name).find("cut-observation")==std::string::npos;});
+        }else if(mode=="delete-symlink") {
+            RecordingTombstoneV2 tomb;tomb.tombstone_id="reject-symlink-tomb";tomb.segment=InputValue().source.segment;tomb.deletion_reason="continuous-age";tomb.deleted_at_ms=30;
+            Need(c.RequestDeletion("segment",tomb.deletion_reason,&error));FillRotation(c,root);
+            AutoRace([&](std::string* e){return c.CompleteDeletionV2(tomb,e);},[&]{return ::symlink("missing",(root/"channel/source.mp4").c_str())==0;},
+                [&]{return !c.IsDeletedSegmentId("segment")&&c.SegmentLifecycleV2("segment")==RecordingLifecycle::DeletionPending&&Read(root/Manifest(root).active.name).find("reject-symlink-tomb")==std::string::npos;});
+            Need(std::filesystem::remove(root/"channel/source.mp4"));
+        }else if(mode=="bound-symlink") {
+            auto input=InputValue();auto segment=input.source.segment;auto binding=*input.source.binding;RecordingOrderReservationV1 order;
+            Need(c.ReserveRecordingOrder("store","new-bound-order","new-bound","channel",&order,&error));
+            segment.segment_id="new-bound";segment.order_request_id=order.request_id;segment.order_sequence=order.sequence;binding.segment_id=segment.segment_id;
+            Write(root/"channel/new.mp4",std::string(12,'x'));Write(root/"channel/target.mp4",std::string(12,'y'));FillRotation(c,root);
+            AutoRace([&](std::string* e){return c.FinalizeBoundSegmentV2(segment,binding,(root/"channel/new.mp4").string(),e);},
+                [&]{return std::filesystem::remove(root/"channel/new.mp4")&&::symlink("target.mp4",(root/"channel/new.mp4").c_str())==0;},
+                [&]{return !c.FindSegmentV2ById("new-bound")&&Read(root/Manifest(root).active.name).find("segment_v2_bound_finalized")==std::string::npos;});
+            Need(std::filesystem::remove(root/"channel/new.mp4"));
+        }else {
+            auto input=ReadyInput();auto committed=input.job;committed.state=DerivedJobState::Committed;
+            const auto segment=input.job.ready->outputs.front().segment;const auto path=root/input.job.intent.outputs.front().final_relpath;
+            std::filesystem::create_directories(path.parent_path());Write(path,std::string(12,'x'));int owner=0;Need(RecordingGenerationTransactionProbe::Bind(c,&owner));FillRotation(c,root);
+            AutoRace([&](std::string* e){return RecordingGenerationTransactionProbe::Update(c,&owner,committed,e);},
+                [&]{std::string e;return c.FinalizeSegmentV2(segment,path.string(),&e);},[&]{std::optional<DerivedJobRecordV1> prior;
+                    const auto actual=c.FindSegmentV2ById(segment.segment_id);const auto location=c.FindSegmentMediaLocation(segment.segment_id);
+                    return c.FindDerivedJob(input.job.intent.job_id,&prior,&error)&&prior&&SerializeDerivedJobRecord(*prior)==SerializeDerivedJobRecord(input.job)&&
+                        actual&&SerializeRecordingSegmentV2(*actual)==SerializeRecordingSegmentV2(segment)&&location&&location->first/location->second==path&&
+                        Read(root/Manifest(root).active.name).find("derived_job_committed")==std::string::npos;});
+            RecordingGenerationTransactionProbe::Unbind(c,&owner);
+        }
+        Need(j.Finish(&error));
+        if(mode=="output-id") {
+            RecordingJournal reopened(options);Need(reopened.Open(&error));RecordingCatalog restored(reopened,CO(root));Need(restored.Open(&error));
+            const auto input=ReadyInput();const auto expected=input.job.ready->outputs.front().segment;
+            std::optional<DerivedJobRecordV1> job;const auto actual=restored.FindSegmentV2ById(expected.segment_id);const auto location=restored.FindSegmentMediaLocation(expected.segment_id);
+            Check("MEM82-C05",restored.FindDerivedJob(input.job.intent.job_id,&job,&error)&&job&&SerializeDerivedJobRecord(*job)==SerializeDerivedJobRecord(input.job)&&
+                actual&&SerializeRecordingSegmentV2(*actual)==SerializeRecordingSegmentV2(expected)&&location&&location->first/location->second==root/input.job.intent.outputs.front().final_relpath,
+                "output-ID conflict preserves exact durable segment/path and prior Ready job after reOpen");
+            Need(reopened.Finish(&error));
+        }
+    }
+}
+
+void CheckpointCaptureFailure(const std::filesystem::path& root) {
+    Actual(root);RecordingJournal j(Options(root));Need(j.Open(&error));RecordingCatalog c(j,CO(root));Need(c.Open(&error));
+    RecordingOrderReservationV1 reserved;Need(c.ReserveRecordingOrder("store","capture-trigger","capture-trigger","channel",&reserved,&error));
+    const auto manifest=Read(root/"recording-generation.json");const auto active=Read(root/Manifest(root).active.name);
+    RecordingGenerationTransactionProbe::CheckpointHook([]{recording::RecordingHistoryIndex::probe_fault=6;});
+    const bool accepted=c.Checkpoint(&error);RecordingGenerationTransactionProbe::CheckpointHook(nullptr);recording::RecordingHistoryIndex::probe_fault=0;
+    Check("MEM82-C06",!accepted&&Read(root/"recording-generation.json")==manifest&&Read(root/Manifest(root).active.name)==active,
+        "late capture root corruption aborts private consumed output before stage/publication; original remains exact");
+    Need(j.Finish(&error));RecordingJournal reopened(Options(root));Need(reopened.Open(&error));RecordingCatalog restored(reopened,CO(root));Need(restored.Open(&error));Need(reopened.Finish(&error));
+}
+
+void CheckpointAutoProtection(const std::filesystem::path& root) {
+    Actual(root);auto options=Options(root);options.generation_limits.identity_unique_ids=10000;options.generation_limits.active_bytes=2*1024*1024;options.generation_limits.identity_shard_bytes=8*1024*1024;
+    RecordingJournal j(options);Need(j.Open(&error));RecordingCatalog c(j,CO(root));Need(c.Open(&error));
+    RecordingOrderReservationV1 order;unsigned n=0;
+    while(std::filesystem::file_size(root/Manifest(root).active.name)<1024*1024) {
+        const auto id="auto-fill-"+std::to_string(n++);Need(c.ReserveRecordingOrder("store",id,id,"channel",&order,&error));
+        Need(n<10000);
+    }
+    cut_probe_entered=false;cut_probe_release=false;bool changed=false;std::string detail;
+    std::thread mutation([&]{RecordingGenerationTransactionProbe::CheckpointHook(HoldCheckpointCut);
+        changed=c.MarkSegmentCorrupt("segment","missing-media",&detail);RecordingGenerationTransactionProbe::CheckpointHook(nullptr);});
+    bool entered=false;{std::unique_lock<std::mutex> lock(cut_probe_mu);entered=cut_probe_cv.wait_for(lock,std::chrono::seconds(3),[]{return cut_probe_entered;});}
+    auto request=std::async(std::launch::async,[&]{std::string e;return c.AdjustHoldCount("segment",1,&e);});
+    const bool ready=request.wait_for(std::chrono::milliseconds(250))==std::future_status::ready;
+    {std::lock_guard<std::mutex> lock(cut_probe_mu);cut_probe_release=true;}cut_probe_cv.notify_all();mutation.join();
+    const bool held=request.get();
+    Check("MEM82-C03",entered&&ready&&held&&!changed&&c.FindSegmentById("segment")->lifecycle==RecordingLifecycle::Finalized,
+        "automatic rotation unlocks and revalidates new playback hold before destructive mutation");
+    Need(c.AdjustHoldCount("segment",-1,&error));Need(j.Finish(&error));
+}
+void CheckpointStop(const std::filesystem::path& root) {
+    Actual(root);RecordingJournal j(Options(root));Need(j.Open(&error));RecordingCatalog c(j,CO(root));Need(c.Open(&error));
+    RecordingOrderReservationV1 order;Need(c.ReserveRecordingOrder("store","stop-before","stop-segment","channel",&order,&error));
+    const auto manifest=Read(root/"recording-generation.json");cut_probe_entered=false;cut_probe_release=false;
+    bool checkpoint=false;std::string detail;
+    std::thread worker([&]{RecordingGenerationTransactionProbe::CheckpointHook(HoldCheckpointCut);
+        checkpoint=c.Checkpoint(&detail);RecordingGenerationTransactionProbe::CheckpointHook(nullptr);});
+    bool entered=false;{std::unique_lock<std::mutex> lock(cut_probe_mu);entered=cut_probe_cv.wait_for(lock,std::chrono::seconds(3),[]{return cut_probe_entered;});}
+    auto finish=std::async(std::launch::async,[&]{std::string e;return j.Finish(&e);});
+    const bool ready=finish.wait_for(std::chrono::milliseconds(250))==std::future_status::ready;
+    {std::lock_guard<std::mutex> lock(cut_probe_mu);cut_probe_release=true;}cut_probe_cv.notify_all();worker.join();
+    const bool stopped=finish.get();
+    bool stage=false;for(const auto& p:std::filesystem::directory_iterator(root))if(p.path().filename().string().find(".recording-generation-prepare-")==0)stage=true;
+    Check("MEM82-C03",entered&&ready&&stopped&&!checkpoint&&!stage&&Read(root/"recording-generation.json")==manifest,
+        "Finish during private preparation revokes publication and explicitly reclaims candidate");
+}
+
+RecordingCatalog* crash_catalog=nullptr;
+std::string crash_point;
+void AppendAtCut() {
+    RecordingOrderReservationV1 order;std::string detail;
+    if(!crash_catalog->ReserveRecordingOrder("store","crash-after","crash-segment-after","channel",&order,&detail))::_exit(71);
+}
+void CrashCheckpoint(const char* point){if(crash_point==point)::_exit(73);}
+void CheckpointSuffixRecovery(const std::filesystem::path& base) {
+    for(const std::string point:{"receipt-directory-synced","intent-durable","manifest-published"}) {
+        const auto root=base/point;Actual(root);const auto child=::fork();Need(child>=0);
+        if(child==0){RecordingJournal j(Options(root));std::string detail;bool ok=j.Open(&detail);
+            RecordingCatalog c(j,CO(root));RecordingOrderReservationV1 before;
+            ok=ok&&c.Open(&detail)&&c.ReserveRecordingOrder("store","crash-before","crash-segment-before","channel",&before,&detail);
+            if(!ok)::_exit(70);
+            crash_catalog=&c;crash_point=point;
+            RecordingGenerationTransactionProbe::CheckpointHook(AppendAtCut);RecordingGenerationTransactionProbe::Hook(CrashCheckpoint);
+            (void)c.Checkpoint(&detail);::_exit(72);
+        }
+        int status=0;Need(::waitpid(child,&status,0)==child);
+        Check("MEM82-C02",WIFEXITED(status)&&WEXITSTATUS(status)==73,"suffix checkpoint reaches exact injected crash point");
+        const auto original_active=Read(root/"active-2.jsonl");
+        const bool recovered=RecoverCheckpointTransaction(root);
+        if(point=="intent-durable") {
+            // Existing transaction contract never rolls back uncertain PUBLISH_INTENT.
+            Check("MEM82-C02",!recovered&&error=="publish intent has no exact target; preserved"&&
+                Read(root/"active-2.jsonl")==original_active&&original_active.find("crash-after")!=std::string::npos,
+                "pre-manifest intent fails closed and preserves successful durable suffix, no invented recovery");
+            continue;
+        }
+        Check("MEM82-C02",recovered,"prepared/intent/published recovery validates fixed prefix and durable suffix");
+        if(recovered){RecordingJournal j(Options(root));Need(j.Open(&error));RecordingCatalog c(j,CO(root));Need(c.Open(&error));
+            RecordingOrderReservationV1 a,b;Need(c.ReserveRecordingOrder("store","crash-before","crash-segment-before","channel",&a,&error));
+            Need(c.ReserveRecordingOrder("store","crash-after","crash-segment-after","channel",&b,&error));
+            Check("MEM82-C02",b.sequence==a.sequence+1,"successful append before crash is neither lost nor duplicated");
+            Need(j.Finish(&error));}
+    }
+}
+
+}
+#endif
 int main(int argc,char** argv) {
     if(argc!=2&&argc!=3)return 2;
-    if(argc==3&&std::string(argv[2])!="history-product"&&std::string(argv[2])!="history-index"&&std::string(argv[2])!="residency"&&std::string(argv[2])!="scale-1000"&&std::string(argv[2])!="scale-100000"&&std::string(argv[2])!="scale-baseline-1000"&&std::string(argv[2])!="scale-baseline-100000")return 2;
+    if(argc==3&&std::string(argv[2])!="concurrency"&&std::string(argv[2])!="history-product"&&std::string(argv[2])!="history-index"&&std::string(argv[2])!="residency"&&std::string(argv[2])!="scale-1000"&&std::string(argv[2])!="scale-100000"&&std::string(argv[2])!="scale-baseline-1000"&&std::string(argv[2])!="scale-baseline-100000")return 2;
     try {
         const std::filesystem::path root(argv[1]);std::filesystem::create_directories(root);
 #if MEDIA_SERVER_USE_OPENSSL && MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND
         if(argc==3&&std::string(argv[2]).rfind("scale-",0)==0){IdentityScale(root/"scale",std::stoull(std::string(argv[2]).substr(std::string(argv[2]).find_last_of('-')+1)),std::string(argv[2]).find("baseline")!=std::string::npos);return failures?1:0;}
         if(argc==3&&std::string(argv[2])=="history-index"){HistoryIndex(root/"history-index");return failures?1:0;}
         if(argc==3&&std::string(argv[2])=="history-product"){HistoryProduct(root/"history-product");return failures?1:0;}
+        if(argc==3&&std::string(argv[2])=="concurrency"){CheckpointConcurrentCut(root/"concurrency");CheckpointCaptureFailure(root/"capture-failure");CheckpointMixedSuffix(root/"mixed-suffix");CheckpointServiceRevoke(root/"service-revoke");CheckpointAdmissionRaces(root/"admission-races");CheckpointSuffixRecovery(root/"suffix-recovery");CheckpointAutoProtection(root/"auto-protection");CheckpointStop(root/"stop");return failures?1:0;}
         IdentityResidency(root/"identity-residency");
         if(argc==3)return failures?1:0;
         ExportValueBoundary(root/"export-values");StreamBoundary(root/"stream");StreamIdentityBoundaries(root/"stream-identity");RecordingGenerationTransactionProbe::StreamFailures(root/"stream-failures");Rotation(root/"rotate");ObserverRace(root/"observer-race");Failures(root/"failures");Cost(root/"cost");Admission(root/"admission");Threshold(root/"threshold");Limits(root/"limits");Jobs(root/"jobs");SQL_CHECKPOINT_CASES::Run(root);

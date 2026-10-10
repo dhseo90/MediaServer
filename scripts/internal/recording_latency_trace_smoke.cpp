@@ -14,6 +14,14 @@ int main(int argc,char** argv){
    for(int i=0;i<20000;++i){L::Row row;row.o=1;row.s=5;row.l=1;row.m=1;row.b=row.a=10;row.e=20;L::Append(row,true);L::Flush();}
    for(unsigned i=1;i<=80;++i){L::Row row;row.o=1;row.s=5;row.l=i;row.m=1;row.b=row.a=i;row.e=i+10000000;L::Append(row,true);L::Flush();}
   }
+ }else if(mode=="cut-lock"){
+  {L::Lock lock(mutex,L::Source::Test,__LINE__,true);assert(L::Lock::Owner(mutex)==&lock);
+   {L::Scope capture(L::Operation::FixedCapture,L::Source::Test,__LINE__,true);}
+   {L::Lock::Unlocked unlocked(lock);assert(!L::Lock::Owner(mutex));
+    std::thread append([&]{L::Lock other_owner(mutex,L::Source::Test,__LINE__,true);assert(L::Lock::Owner(mutex)==&other_owner);});append.join();
+    L::Scope prepare(L::Operation::SnapshotPrepare,L::Source::Test,__LINE__,true);}
+   assert(L::Lock::Owner(mutex)==&lock);L::Scope transition(L::Operation::Transition,L::Source::Test,__LINE__,true);}
+  assert(!L::Lock::Owner(mutex));
  }else if(mode=="aggregate"){
   if(L::Enabled()){L::Row row;row.o=1;row.s=5;row.l=1;row.m=1;row.b=10;row.a=20;row.e=30;L::Append(row);row.b=40;row.a=45;row.e=75;L::Append(row);}
  }else if(mode=="contention"){

@@ -119,7 +119,8 @@ bool Valid(const RecordingGenerationReceipt& r,std::string* target,std::string* 
     const auto marker=Marker(r.target.store_id,r.operation==RecordingGenerationOperation::Checkpoint);
     if(r.marker.file.size!=marker.size()||r.marker.file.sha256!=Hash(marker))
         return Fail(error,"generation receipt marker/store bytes mismatch");
-    if(r.target.active.size||r.target.active.sha256!=kEmptySha||!r.target.snapshot.size)
+    if((r.operation==RecordingGenerationOperation::Cutover&&(r.target.active.size||r.target.active.sha256!=kEmptySha))||
+       (!r.target.active.size&&r.target.active.sha256!=kEmptySha)||!r.target.snapshot.size)
         return Fail(error,"generation receipt target components invalid");
     if(r.operation==RecordingGenerationOperation::Cutover) {
         if(r.predecessor||r.predecessor_file||r.predecessor_snapshot||!r.replacement_marker||r.source.file.name!="recording-v2-mutations.jsonl")

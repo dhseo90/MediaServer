@@ -92,7 +92,7 @@ public:
     // Caller serializes source mutation. The process trust root is copied, never read from the header.
     bool CopyFrom(RecordingHistoryIndex& source,std::string* error) {
         try {
-            Check();if(build_||source.build_||this==&source||rows_||root_.offset||size_!=kNodeBytes)
+            Check();if(sequential_||source.sequential_||build_||source.build_||this==&source||rows_||root_.offset||size_!=kNodeBytes)
                 throw Failure("history clone destination not empty");
             if(!source.Healthy(error))return false;
             if(source.size_>budget_)throw Failure("history clone capacity insufficient");
@@ -121,8 +121,18 @@ public:
         }catch(const std::exception& e){return Fail(error,e.what());}
     }
     // Only a private empty build may defer node overwrites. No original/history reader uses it.
+    // Fixed checkpoint capture only: ordered append, authenticated complete traversal, no lookup.
+    // Reuses the anonymous FD, fixed slots, admission and explicit Close. Never a history authority.
+    bool BeginSequentialBuild(std::string* error) {
+        try {Check();if(rows_||root_.offset||build_||visiting_||sequential_)throw Failure("sequential capture requires empty private index");
+            sequential_=true;return true;}catch(const std::exception& e){return Fail(error,e.what());}
+    }
+    bool SealSequentialBuild(std::string* error) {
+        try {Check();if(!sequential_||sequential_sealed_||size_!=BytesForRows(rows_))throw Failure("sequential capture seal mismatch");
+            sequential_sealed_=true;return Healthy(error);}catch(const std::exception& e){return Fail(error,e.what());}
+    }
     bool BeginBufferedBuild(std::string* error) {
-        try {Check();if(rows_||root_.offset||build_||visiting_)throw Failure("history buffered build requires empty private index");
+        try {Check();if(sequential_||rows_||root_.offset||build_||visiting_)throw Failure("history buffered build requires empty private index");
             build_=std::make_unique<BuildBuffer>();return true;
         }catch(const std::exception& e){return Fail(error,e.what());}
     }
@@ -134,7 +144,7 @@ public:
     }
     Lookup Get(const std::string& key,std::string* output,std::string* error) {
         try {
-            Check();Key(key);if(build_)throw Failure("history lookup before build seal");if(!output)throw Failure("history index output missing");
+            Check();Key(key);if(sequential_||build_)throw Failure("history lookup before build seal/sequential capture");if(!output)throw Failure("history index output missing");
             Ref ref=root_;std::string lower,upper;
             for(std::size_t depth=0;ref.offset;++depth) {
                 if(depth>=kDepth)throw Failure("history index depth invalid");
@@ -150,6 +160,12 @@ public:
     bool Put(const std::string& key,const std::string& value,bool overwrite,std::string* error) {
         try {
             Check();if(visiting_||(build_&&overwrite))throw Failure("history mutation during visit/buffered overwrite");Key(key);if(value.size()>kValueBytes)throw Failure("history index row admission");
+            if(sequential_) {
+                if(overwrite||sequential_sealed_||(!sequence_key_.empty()&&key<=sequence_key_))throw Failure("sequential capture mutation/order invalid");
+                Node node;node.key=key;node.left=root_;node.value_size=value.size();node.value_hash=Digest(value.data(),value.size());
+                std::array<unsigned char,kValueBytes> slot{};std::copy(value.begin(),value.end(),slot.begin());
+                node.value_offset=Append(slot.data(),slot.size());root_=Save(node,{});++rows_;sequence_key_=key;return true;
+            }
             bool inserted=false;
             root_=Insert(root_,key,value,overwrite,0,{}, {},&inserted);
             if(inserted)++rows_;
@@ -159,10 +175,11 @@ public:
     }
     bool Visit(const Visitor& visitor,std::string* error) {
         try {
-            Check();if(build_||!visitor)throw Failure("history index visitor missing/unsealed build");
+            Check();if(build_||(sequential_&&!sequential_sealed_)||!visitor)throw Failure("history index visitor missing/unsealed build");
             struct VisitGuard { bool& flag; ~VisitGuard(){flag=false;} } guard{visiting_};
             if(visiting_)throw Failure("history recursive visit");
             visiting_=true;
+            if(sequential_)return WalkSequence(visitor,error);
             std::uint64_t seen=0;
             if(!Walk(root_,{}, {},0,visitor,&seen,error))return false;
             if(seen!=rows_)throw Failure("history index traversal count mismatch");
@@ -174,14 +191,14 @@ public:
     // Caller retains its independently maintained namespace coverage count.
     bool VisitRange(const std::string& begin,const std::string& end,const Visitor& visitor,std::string* error) {
         try {
-            Check();Key(begin);Key(end);if(build_||begin>=end||!visitor||visiting_)throw Failure("history range invalid");
+            Check();Key(begin);Key(end);if(sequential_||build_||begin>=end||!visitor||visiting_)throw Failure("history range invalid");
             struct Guard {bool& flag;~Guard(){flag=false;}} guard{visiting_};visiting_=true;
             if(!WalkRange(root_,{}, {},0,begin,end,visitor,error))return false;
             Check();if(error)error->clear();return true;
         }catch(const std::exception& e){return Fail(error,e.what());}
     }
     bool Healthy(std::string* error) {
-        try{Check();if(build_)throw Failure("history health before build seal");if(root_.offset)(void)Read(root_);return true;}
+        try{Check();if(build_||(sequential_&&!sequential_sealed_))throw Failure("history health before build seal");if(root_.offset)(void)Read(root_);return true;}
         catch(const std::exception& e){return Fail(error,e.what());}
     }
     Usage usage()const{struct stat st{};const bool valid=fd_>=0&&!fstat(fd_,&st);return {rows_,size_,reads_,writes_,build_?sizeof(BuildBuffer):0,valid?static_cast<std::uint64_t>(st.st_blocks)*512:0};}
@@ -223,6 +240,7 @@ private:
     struct BuildBuffer {std::array<BuildEntry,256> entries{};std::uint64_t clock{0};};
     static_assert(sizeof(BuildBuffer)<=160*1024,"bounded checkpoint node writer");
     std::unique_ptr<BuildBuffer> build_;
+    bool sequential_=false,sequential_sealed_=false;std::string sequence_key_;
     void Flush(BuildEntry& entry) {
         if(!entry.offset)return;
         std::array<unsigned char,kNodeBytes> actual{};ReadBytes(entry.offset,actual.data(),actual.size());
@@ -345,6 +363,26 @@ private:
         if(balance>1){auto child=Read(n.left);if(Height(child.left)<Height(child.right))n.left=Left(child,n.left);return Right(n,ref);}
         if(balance< -1){auto child=Read(n.right);if(Height(child.right)<Height(child.left))n.right=Right(child,n.right);return Left(n,ref);}
         return Save(n,ref);
+    }
+    bool WalkSequence(const Visitor& visitor,std::string* error) {
+        if(size_!=BytesForRows(rows_))throw Failure("sequential capture size/count mismatch");
+        #if defined(MEDIA_SERVER_RECORDING_GENERATION_TESTING)
+        if(probe_fault==6&&rows_) {const unsigned char altered=1;
+            if(::pwrite(fd_,&altered,1,static_cast<off_t>(kNodeBytes+(rows_-1)*(kValueBytes+kNodeBytes)+kValueBytes+500))!=1)
+                throw Failure("sequential test corruption write failed");}
+#endif
+        Ref prior;std::string key;
+        for(std::uint64_t i=0;i<rows_;++i) {
+            const auto start=kNodeBytes+i*(kValueBytes+kNodeBytes);std::array<unsigned char,kNodeBytes> bytes{};
+            ReadBytes(start+kValueBytes,bytes.data(),bytes.size());const Ref ref{start+kValueBytes,Digest(bytes.data(),bytes.size())};
+            const auto node=Read(ref);
+            if(node.left.offset!=prior.offset||node.left.hash!=prior.hash||node.right.offset||node.right.hash!=Hash{}||
+               node.height!=1||node.value_offset!=start||(!key.empty()&&node.key<=key))throw Failure("sequential capture chain/order mismatch");
+            const auto value=Value(node);if(!visitor(node.key,value,error))return false;prior=ref;key=node.key;
+        }
+        // Consumer is private and unpublished until this final process-root check succeeds.
+        if(prior.offset!=root_.offset||prior.hash!=root_.hash||key!=sequence_key_)throw Failure("sequential capture root mismatch");
+        Check();if(error)error->clear();return true;
     }
     bool WalkRange(Ref ref,const std::string& lower,const std::string& upper,std::size_t depth,
                    const std::string& begin,const std::string& end,const Visitor& visitor,std::string* error) {

@@ -432,6 +432,7 @@ bool SerializeRecordingCatalogSnapshotHeader(const RecordingCatalogSnapshot& val
     if(!output||!HeaderValid(value,error))return Fail(error,"snapshot output/header invalid");
     *output=HeaderJson(value);return true;
 }
+bool ParseRecordingCatalogSnapshotRow(const std::string& bytes,RecordingCatalogSnapshotRow* row,std::string* error){return row&&ParseRow(bytes,row,error);}
 bool SerializeRecordingCatalogSnapshotRow(const RecordingCatalogSnapshotRow& row,std::string* output,std::string* error){
     if(!output||!RowValid(row,error))return false;
     *output=RowJson(row);return true;

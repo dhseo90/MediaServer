@@ -12,7 +12,7 @@
 
 namespace recording::latency {
 enum class Source : unsigned { Catalog=1, Projection=2, Read=3, Application=4, Test=5 };
-enum class Operation : unsigned { Lock=1, Timeline=2, Query=3, Finish=4, Serialize=5, Checkpoint=6, Append=7, ApplyJob=8, Sqlite=9, ValidateSources=10 };
+enum class Operation : unsigned { Lock=1, Timeline=2, Query=3, Finish=4, Serialize=5, Checkpoint=6, Append=7, ApplyJob=8, Sqlite=9, ValidateSources=10, FixedCapture=11, SnapshotPrepare=12, Transition=13 };
 inline bool Enabled() noexcept {static const bool enabled=[] {const char* p=std::getenv("MEDIA_SERVER_VERIFY_RECORDING_LATENCY_TRACE");return p&&std::strcmp(p,"1")==0;}();return enabled;}
 inline bool SlowOnly() noexcept {static const bool enabled=[] {const char* p=std::getenv("MEDIA_SERVER_VERIFY_RECORDING_LATENCY_SLOW_ONLY");return p&&std::strcmp(p,"1")==0;}();return enabled;}
 inline std::uint64_t Now() noexcept {static const auto epoch=std::chrono::steady_clock::now();return static_cast<std::uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now()-epoch).count());}
@@ -97,15 +97,38 @@ inline void Append(Row row,bool always=false) noexcept {
 inline void FlushFast() noexcept {for(auto& row:local.fast)if(row.n){if(local.used<local.rows.size())local.rows[local.used++]=row;else local.loss=true;row={};}local.fast_events=0;Flush();}
 class Lock {
     std::mutex& mutex_;bool enabled_;Row row_;std::uint64_t previous_=0;
-public:
-    Lock(std::mutex& mutex,Source source,unsigned line,bool always=false):mutex_(mutex),enabled_(Enabled()),always_(always){
-        if(enabled_){row_.o=1;row_.s=static_cast<unsigned>(source);row_.l=line;row_.m=MutexId(&mutex);row_.b=Now();}
-        mutex_.lock();
+    bool owned_=false,always_;Lock* enclosing_=nullptr;
+    inline static thread_local Lock* current_=nullptr;
+    void Acquire() {
+        if(enabled_){row_.b=Now();row_.e=0;}
+        mutex_.lock();owned_=true;
         if(enabled_){row_.a=Now();previous_=local.mutex;local.mutex=row_.m;++local.depth;}
     }
-    ~Lock() noexcept {if(enabled_)row_.e=Now();mutex_.unlock();if(enabled_){--local.depth;local.mutex=previous_;Append(row_,always_);if(!local.request&&local.fast_events>=256)FlushFast();else Flush();}}
+    void Release() noexcept {
+        if(!owned_)return;
+        if(enabled_)row_.e=Now();
+        mutex_.unlock();owned_=false;
+        if(enabled_){--local.depth;local.mutex=previous_;Append(row_,always_);if(!local.request&&local.fast_events>=256)FlushFast();else Flush();}
+    }
+public:
+    Lock(std::mutex& mutex,Source source,unsigned line,bool always=false):mutex_(mutex),enabled_(Enabled()),always_(always){
+        if(enabled_){row_.o=1;row_.s=static_cast<unsigned>(source);row_.l=line;row_.m=MutexId(&mutex);}
+        Acquire();enclosing_=current_;current_=this;
+    }
+    ~Lock() noexcept {Release();current_=enclosing_;}
+    // The owning RAII object performs both operations. No raw unlock behind a lock_guard.
+    class Unlocked {
+        Lock& lock_;
+    public:
+        explicit Unlocked(Lock& lock):lock_(lock){lock_.Release();}
+        ~Unlocked(){lock_.Acquire();}
+        Unlocked(const Unlocked&)=delete;Unlocked& operator=(const Unlocked&)=delete;
+    };
+    static Lock* Owner(std::mutex& mutex) noexcept {
+        for(auto* p=current_;p;p=p->enclosing_)if(&p->mutex_==&mutex&&p->owned_)return p;
+        return nullptr;
+    }
     Lock(const Lock&)=delete;Lock& operator=(const Lock&)=delete;
-private:bool always_;
 };
 class Scope {
     bool enabled_,always_,request_;Row row_;unsigned previous_=0;

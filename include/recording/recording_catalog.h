@@ -390,6 +390,7 @@ private:
     bool BindDerivedService(const void* owner);
     void UnbindDerivedService(const void* owner);
     bool UpdateDerivedJob(const void* owner,const DerivedJobRecordV1&,std::string* error);
+    std::uint64_t derived_service_epoch_=0;
     const void* derived_service_owner_{nullptr};
     bool BindRetentionOwner(const RetentionCoordinator* owner);
     void UnbindRetentionOwner(const RetentionCoordinator* owner);
@@ -476,7 +477,8 @@ private:
     RecordingLifecycle EffectiveLifecycleV2Locked(const std::string& id) const;
     bool OpenLocked(std::string* error);
     bool BuildGenerationScratch(std::unique_ptr<RecordingCatalog>* output,std::string* error);
-    bool BuildGenerationScratchLocked(std::unique_ptr<RecordingCatalog>*,std::shared_ptr<RecordingGenerationRecoverySession>*,std::string*);
+    bool BuildGenerationScratchLocked(std::unique_ptr<RecordingCatalog>*,std::shared_ptr<RecordingGenerationRecoverySession>*,std::string*,
+        std::optional<std::uint64_t> recovery_cut=std::nullopt);
     bool OpenGenerationLocked(std::string*);
     bool PrepareGenerationSqliteLocked(const std::shared_ptr<RecordingGenerationRecoverySession>&,std::string*);
     bool UpdateGenerationHoldsLocked(const std::vector<std::pair<std::string,std::uint64_t>>&,std::string*);
@@ -484,6 +486,8 @@ private:
     bool CanReadLocked(std::string* error) const;
     bool CanWriteLocked(std::string* error) const;
     using GenerationDelta=std::set<std::pair<std::string,std::string>>;
+    bool RegisteredMediaAbsentLocked(const std::string&,std::string*) const;
+    bool RevalidateRotatedMutationLocked(const RecordingMutationV1&,std::string*);
     bool AppendGenerationLocked(RecordingMutationV1,std::string*,PreparedDerivedMutation*,bool acquire_hold=false);
     bool ProjectGenerationDeltaLocked(const GenerationDelta&,const RecordingGenerationRecoveryRow&,std::string*);
     bool CheckpointGenerationLocked(std::string*);
@@ -492,15 +496,25 @@ private:
     bool ExportGenerationValuesLocked(const std::string& store,const RecordingIdentityChainResult&,
         std::uint64_t,std::uint64_t,RecordingCatalogSnapshot*,std::string*,
         const RecordingCatalogSnapshotRowVisitor& visitor={}) const;
+    struct GenerationSnapshotView {
+        std::function<bool(const RecordingCatalogSnapshotRowVisitor&,std::string*)> visit;
+        std::function<bool(std::string*)> finish;
+        std::array<unsigned char,32> applied_digest{};
+        std::uint64_t applied_count=0,bytes=0,allocated=0;
+    };
+    bool CaptureGenerationSnapshotViewLocked(GenerationSnapshotView*,std::string*) const;
+    bool ExportFrozenGenerationValues(const RecordingIdentityChainResult&,std::uint64_t,std::uint64_t,
+        const GenerationSnapshotView&,RecordingCatalogSnapshot*,const RecordingCatalogSnapshotRowVisitor&,std::string*) const;
     struct GenerationSnapshotStream {
         RecordingGenerationByteProducer produce;
         std::function<bool(std::string*)> finish;
     };
     bool PrepareGenerationSnapshotStreamLocked(const RecordingIdentityChainResult&,std::uint64_t,std::uint64_t,
-        GenerationSnapshotStream*,std::string*) const;
+        GenerationSnapshotStream*,std::string*,const GenerationSnapshotView* frozen=nullptr) const;
     bool PoisonGenerationLocked(std::string* error);
 #if MEDIA_SERVER_RECORDING_GENERATION_TESTING
     static thread_local int generation_apply_fault_;
+    static thread_local void (*generation_checkpoint_prepared_hook_)();
 #endif
     struct CheckpointProjectionCache {
         RecordingMutationLinks prefix;
@@ -564,6 +578,7 @@ private:
     bool opened_{false};
     bool generation_read_only_{false};
     bool generation_backend_{false};
+    bool generation_checkpoint_in_progress_{false};
     // 첫 Open 전체 성공만 자동 no-op의 기원이다. 실패한 같은 인스턴스는 strict로 남긴다.
     bool automatic_noop_open_attempted_{false},automatic_noop_eligible_{false};
     // 적용 실패/예외도 포함한다. 포화 후에는 잠금 밖 조회를 다시 허용하지 않는다.

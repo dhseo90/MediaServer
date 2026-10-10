@@ -7,7 +7,7 @@ const uint=x=>Number.isSafeInteger(x)&&x>=0;
 export function validateLatencyRow(v){
   if(!v||typeof v!=='object'||Array.isArray(v)||Object.keys(v).length!==keys.length||!keys.every(k=>Object.hasOwn(v,k)&&uint(v[k])))throw Error('latency-schema');
   if(v.k===3){if(v.n!==1||keys.some(k=>!['k','n'].includes(k)&&v[k]!==0))throw Error('latency-drop');return v;}
-  if(v.k>2||v.o<1||v.o>10||v.s>5||v.l>100000||v.m>128||!v.t||v.t>65536||v.r>100000||v.b>v.a||v.a>v.e||!v.n||v.n>100000000||v.x>v.w||v.y>v.h)throw Error('latency-range');
+  if(v.k>2||v.o<1||v.o>13||v.s>5||v.l>100000||v.m>128||!v.t||v.t>65536||v.r>100000||v.b>v.a||v.a>v.e||!v.n||v.n>100000000||v.x>v.w||v.y>v.h)throw Error('latency-range');
   if(v.k===2){if(v.s!==0||v.l!==0)throw Error('latency-aggregate');}
   else if(!v.s||!v.l||v.n!==1||v.w!==v.a-v.b||v.h!==v.e-v.a||v.x!==v.w||v.y!==v.h||(v.k===0&&(v.o!==1||!v.m))||(v.k===1&&v.o===1))throw Error('latency-span');
   return v;

@@ -25,6 +25,16 @@ public:
         (void)slot_limit;return Fail(error,"catalog history unsupported");
 #endif
     }
+    bool CloneFrom(RecordingCatalogHistoryRows& source,std::string* error) {
+        std::scoped_lock lock(mu_,source.mu_);
+#if MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
+        if(!source.healthy_||!index_.Create(std::filesystem::canonical(std::filesystem::temp_directory_path()).string(),
+            RecordingHistoryIndex::BytesForRows(source.index_.usage().rows),error)||!index_.CopyFrom(source.index_,error))return false;
+        counts_=source.counts_;retired_continuous_only_=source.retired_continuous_only_;slot_limit_=source.slot_limit_;return true;
+#else
+        (void)error;return false;
+#endif
+    }
     bool Get(const std::string& kind,const std::string& id,std::string* value,bool* found,std::string* error) {
         std::lock_guard<std::recursive_mutex> lock(mu_);
 #if MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)

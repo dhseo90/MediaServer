@@ -202,8 +202,21 @@ void RetiredReference(const std::filesystem::path& root,bool sql,bool complete=f
 #endif
         if(phase==1)Need(c.Checkpoint(&error));
         if(phase==2){
-            const auto file=root/(complete?"active-2.jsonl":"evidence-1-0.jsonl");
-            auto raw=Read(file);raw[raw.size()/2]^=1;Write(file,raw);
+            // Checkpoint freezes the deletion in its verified prefix; old active is no longer its authority.
+            RecordingGenerationManifest current;Need(ParseRecordingGenerationManifest(Read(root/"recording-generation.json"),&current,&error));
+            Need(!complete||current.evidence.size()==1);
+            const auto file=root/(complete?current.evidence.front().name:"evidence-1-0.jsonl");
+            auto raw=Read(file);Need(!raw.empty());
+            if(complete){
+                bool deletion=false;std::istringstream rows(raw);std::string row;
+                while(std::getline(rows,row)){RecordingMutationV1 value;Need(ParseRecordingMutationV1(row,&value,&error));
+                    if(value.mutation_type==RecordingMutationType::SegmentV2Deleted&&value.entity_id=="segment"){
+                        RecordingTombstoneV2 decoded;Need(ParseRecordingTombstoneV2(value.payload_json,&decoded,&error));
+                        deletion=SerializeRecordingTombstoneV2(decoded)==SerializeRecordingTombstoneV2(tomb);
+                    }}
+                Need(deletion);
+            }
+            raw[raw.size()/2]^=1;Write(file,raw);
             selected.clear();Check("B11-P02",!c.SnapshotDerivedSources(input.job.intent.reference,&selected,&error)&&selected.empty()&&!journal.HasManagedLease(),"retired binding archive corruption refused after prior successful selection");
         }
     }

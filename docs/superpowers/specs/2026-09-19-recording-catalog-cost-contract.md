@@ -1007,7 +1007,39 @@ reader는 immutable 원문을 필요한 동안 소유한다. timeline의 전체 
 남은 경계: 관측/reference/accepted-reference/event link의 보존 자료는 O(보존량) RAM에 남는다.
 명시적 전체 결과 및 receipt로 전환할 근거가 없는 기존 허용 legacy 자료도 별도다.
 모든 동시 reader/세대의 총 byte admission과 모든 단계의 순간 RAM/scratch peak는 입증되지 않았다.
-checkpoint 준비와 Journal clone/검증은 여전히 잠금 안이며 정상 전체 snapshot 출력은 O(이력)의
+80 당시 checkpoint 준비와 Journal clone/검증은 잠금 안이며 정상 전체 snapshot 출력은 O(이력)의
 디스크 I/O다. 완료 job 조회 소비자 일부도 전체 cold history를 순회한다. 이것을 유한 cache만으로
 상수 시간/전체 자원 상한이 확보된 것으로 표시하지 않는다. 녹화·검색 병행 deadline 실패와
 B/C 전체 수명·최종 혼합 검증은 출시 전 잔여이며 상세 결과는 버전별 실행 자료에 둔다.
+
+### 고정 cut과 후속 내구 append (82 구현 계약)
+
+K는 기존 manifest cut에 그때 검증된 active 물리 행 수를 더한 exclusive ordinal이다.
+최초 수용 ordinal·재시도와 파일 offset을 K와 혼동하지 않는다. Catalog 잠금 아래서 Journal의
+K prefix를 기존 evidence 파일 형식의 불변 사본에 결박하고, 완료 history는 별도 익명 FD로
+복제하며 활성 snapshot 행은 유한 row/청크로 디스크에 포착한다. 전체 Catalog RAM 복사는 없다.
+검증·정렬 spool은 이 고정 자료만 사용해 Catalog/Journal 쓰기 잠금 밖에서 진행한다.
+
+준비 중 새 쓰기는 원래 active에 기존 append/fsync 후 응답한다. 최종 잠금에서 F를 확정하고
+K 이전 prefix 원문과 [K,F) 행/hash/ordinal을 검증하며 suffix를 새 active로 내구 복사한다.
+snapshot은 K, 현재 Catalog는 F를 유지한다. 기존 receipt의 field로 prefix evidence와 nonempty
+active를 기록한다. 빈 active만 허용하던 내부 검증/소비자도 함께 바꾸며 과거 형식은 계속 읽는다.
+PUBLISH_INTENT 전에는 이전 manifest+기존 active가 권위이고, 이후 불확실성은 기존 poison/복구
+절차를 따른다. 옛 active를 자르거나 교체하지 않는다. 기존 프로그램의 새 nonempty receipt
+복구 제한을 새 바이트 형식의 backward-read 보장으로 확대하지 않는다.
+
+후보는 Catalog당 하나만 허용한다. 준비 중 자동 rotation 재진입은 새 후보를 만들지 않고 기존
+active admission 안에서 정상 append한다. final 전환은 유한 active 범위를 한 번 처리하며
+revision 변경마다 무한 재시도하지 않는다. 읽기 자료·prefix/suffix·출력 spool·이전/현재/후보
+identity 및 reader의 동시 비용은 모두 기존 예산/회계에 포함한다. 원본 admission은 변경하지 않는다.
+첫 latch 반례는250ms 내 검색과 내구 예약 완료, 안전한 해제/join과 독립 자식 재Open이다.
+실제 병행은 기존90초/p95 2000ms/최대5000ms 및 부하를 그대로 사용하며 소스별1회로 고정한다.
+
+82의 고정 활성 행 capture는 기존 익명 scratch에서 순차 key/고정 slot으로 한 번 기록한다.
+일반 history lookup/정렬 인덱스의 AVL·hash·입력 admission은 유지한다. capture는 정상 lookup에
+사용하지 않으며 봉인 뒤에도 모든 행·이전 node 연결·마지막 process root·count/bytes 대조를
+마쳐야 출력 후보를 채택한다. 마지막 실패까지의 부분 consumer 출력은 비공개 spool에서 폐기한다.
+표현 비용은 `512 + 2560 * chunkCount`이며 row parser/반환 문자열과 canonical spool의
+기존160KiB buffer, 복제 history와 prefix/suffix를 별도로 계상한다. 개별 cache가0이라는 이유로
+전체 RAM이나 익명 FD의 디스크 비용이0인 것은 아니다. 고정 capture와 최종 전환 잠금은 남으며,
+관측된 endpoint/high-water와 모든 동시 reader/순간 peak의 보장은 구분한다.

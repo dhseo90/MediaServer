@@ -186,6 +186,8 @@ private:
     bool PrepareGenerationCheckpoint(const void* owner,std::shared_ptr<RecordingGenerationCheckpointPlan>*,std::string* error);
     // Caller holds Journal lock; include candidate and anonymous snapshot spool in concurrent usage.
     void AccountGenerationScratchLocked(const std::shared_ptr<RecordingIdentityHistory>&,std::uint64_t,std::uint64_t);
+    bool ValidateCheckpointRecoverySuffix(const RecordingGenerationManifest&,std::string*) const;
+    bool StageGenerationCheckpoint(const std::shared_ptr<RecordingGenerationCheckpointPlan>&,const RecordingGenerationByteProducer&,std::string*);
     bool PublishGenerationCheckpoint(const void* owner,const std::shared_ptr<RecordingGenerationCheckpointPlan>&,
         const RecordingGenerationByteProducer& snapshot,const std::function<bool(std::uint64_t,std::uint64_t)>& sql,std::string* error);
     bool GenerationRotationNeeded(const void* owner,const RecordingMutationV1&,bool*,std::string* error);

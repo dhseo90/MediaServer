@@ -63,6 +63,7 @@ using RecordingCatalogSnapshotRowVisitor=std::function<bool(const RecordingCatal
 bool VisitRecordingCatalogSnapshot(const std::filesystem::path&,const RecordingGenerationFile&,std::uint64_t,
     RecordingCatalogSnapshot*,const RecordingCatalogSnapshotRowVisitor&,std::string*);
 bool SerializeRecordingCatalogSnapshotHeader(const RecordingCatalogSnapshot&,std::string*,std::string*);
+bool ParseRecordingCatalogSnapshotRow(const std::string&,RecordingCatalogSnapshotRow*,std::string*);
 bool SerializeRecordingCatalogSnapshotRow(const RecordingCatalogSnapshotRow&,std::string*,std::string*);
 bool RecordingSnapshotRequiresAcceptedState(RecordingMutationType);
 inline constexpr std::uint64_t kRecordingCatalogSnapshotMaxBytes = 1024ULL * 1024 * 1024;

@@ -36,7 +36,7 @@ test('LP13-T02 실제 동일 mutex 경합·다른 mutex·unlock 후 sink',()=>{c
 for(const [mode,requests] of [['load600',600],['load1800',1800]])test(`LP13-T03 ${requests} poll·15fastlocks/poll·5400worker 합성 예산`,()=>{const {raw,result}=run(mode);assert.equal(result.status,'complete');const client=trace.createLatencyTraceCollector();client.append(raw);assert.equal(client.finish(requests).status,'complete');const total=result.rows.filter(r=>r.o===1).reduce((n,r)=>n+r.n,0);assert.equal(total,requests*16+5400);assert(result.rows.length<=16384);assert(Buffer.byteLength(raw)<2*1024*1024);console.log('[load] '+JSON.stringify({requests,locks:total,rows:result.rows.length,bytes:Buffer.byteLength(raw),sha256:crypto.createHash('sha256').update(raw).digest('hex')}));});
 for(const mode of ['tls-cap','cap'])test(`LP13-T03 ${mode} 손실 명시`,()=>{const {result}=run(mode);assert.equal(result.status,'incomplete');assert.equal(result.code,'latency-dropped');assert(result.rows.some(r=>r.k===3));});
 test('LP13-T04 split·safe부분보존·순번누락',()=>{const c=trace.createLatencyTraceCollector(),text=line(row());c.append(text.slice(0,7));c.append(text.slice(7));assert.equal(c.finish().acceptedCount,1);assert.equal(c.finish(1).code,'latency-request-missing');const d=trace.createLatencyTraceCollector();d.append(text+line({...row(),raw:'secret-canary'}));assert.equal(d.finish().code,'latency-invalid');assert.deepEqual(d.finish().rows,[row()]);assert(!JSON.stringify(d.finish()).includes('canary'));const file=path.join(root,'safe.json');trace.preserveLatencyEvidence(file,d.finish());assert.equal(fs.statSync(file).mode&0o777,0o600);assert.throws(()=>trace.preserveLatencyEvidence(file,d.finish()));assert.deepEqual(JSON.parse(fs.readFileSync(file)).rows,[row()]);});
-for(const mode of ['enum','numeric','time','count','linecap','incomplete'])test(`LP13-T04 ${mode} 거부`,()=>{const c=trace.createLatencyTraceCollector(),v=row();if(mode==='enum')v.o=11;if(mode==='numeric')v.b=Infinity;if(mode==='time')v.e=9;if(mode==='count')v.n=2;c.append(mode==='linecap'?'[recording-latency] '+ 'x'.repeat(600)+'\n':mode==='incomplete'?line(v).slice(0,-1):line(v));assert.equal(c.finish().status,'incomplete');});
+for(const mode of ['enum','numeric','time','count','linecap','incomplete'])test(`LP13-T04 ${mode} 거부`,()=>{const c=trace.createLatencyTraceCollector(),v=row();if(mode==='enum')v.o=14;if(mode==='numeric')v.b=Infinity;if(mode==='time')v.e=9;if(mode==='count')v.n=2;c.append(mode==='linecap'?'[recording-latency] '+ 'x'.repeat(600)+'\n':mode==='incomplete'?line(v).slice(0,-1):line(v));assert.equal(c.finish().status,'incomplete');});
 test('LP13-T05 cost instrumentation 신규wrapper 단일치환·trace중복거부',()=>{
   const output=fs.mkdtempSync(path.join(root,'media-server-catalog-cost.'));
   const env={PATH:process.env.PATH,MEDIA_SERVER_VERIFY_RECORDING_LATENCY_TRACE:'0'};
@@ -47,15 +47,17 @@ test('LP13-T05 cost instrumentation 신규wrapper 단일치환·trace중복거�
   const r=spawnSync(process.execPath,[path.join(repo,'scripts/internal/recording_catalog_cost_probe_instrument.cjs'),repo,output],{env,encoding:'utf8',timeout:10000});assert.equal(r.status,0,r.stderr);
   const instrumented=fs.readFileSync(path.join(output,'recording_catalog.cpp'),'utf8');
   const journal=fs.readFileSync(path.join(output,'recording_journal.cpp'),'utf8');
-  const wait='fc::Measure("catalog.lock.wait",[&]{lock.lock();});',hold='fc::Scope fc_hold("catalog.lock.hold");';
-  const pair='std::unique_lock<std::mutex> lock(mu_,std::defer_lock);'+wait+hold;
-  const exact=text=>{assert.equal(occurrences(text,'recording::latency::Lock lock('),0);assert.equal(occurrences(text,pair),n);assert.equal(occurrences(text,'catalog.lock.wait'),n);assert.equal(occurrences(text,'catalog.lock.hold'),n);};
+
+  const pair=wrapper;
+  const exact=text=>{assert.equal(occurrences(text,'recording::latency::Lock lock('),n);assert.equal(occurrences(text,pair),n);assert.equal(occurrences(text,'catalog.lock.wait'),0);assert.equal(occurrences(text,'catalog.lock.hold'),0);};
   exact(instrumented);
   assert.throws(()=>exact(instrumented.replace(pair,'')));
   assert.throws(()=>exact(instrumented.replace(pair,pair+pair)));
-  assert.throws(()=>exact(instrumented.replace(hold,'')));
+  assert.match(r.stdout,/lock ownership preserved/);
   for(const scope of ['catalog.OpenLocked','catalog.ReadCatalogReplay','catalog.PreflightV2Locked','catalog.RebuildSqliteLocked','catalog.ReleaseInactiveDetailsLocked'])assert(instrumented.includes('fc_scope("'+scope+'")'));
   for(const scope of ['journal.Open','journal.OpenManagedLocked','journal.LoadManagedStateLocked'])assert(journal.includes('fc_scope("'+scope+'")'));
-  console.log('[wrapper-pairs] '+JSON.stringify({input:n,pairs:occurrences(instrumented,pair),wait:occurrences(instrumented,wait),hold:occurrences(instrumented,hold),remaining:0}));
+  console.log('[wrapper-pairs] '+JSON.stringify({input:n,pairs:occurrences(instrumented,pair),lockTiming:"unobserved-cost-copy; use split latency trace",remaining:n}));
   const duplicate=spawnSync(process.execPath,[path.join(repo,'scripts/internal/recording_catalog_cost_probe_instrument.cjs'),repo,output],{env:{...env,MEDIA_SERVER_VERIFY_RECORDING_LATENCY_TRACE:'1'},encoding:'utf8',timeout:10000});assert.equal(duplicate.status,1);assert.match(duplicate.stderr,/requires latency trace disabled/);
 });
+
+test('MEM82-C01 actual owned release/reacquire and new phase IDs',()=>{const {result}=run('cut-lock');assert.equal(result.status,'complete');for(const op of [11,12,13])assert(result.rows.some(r=>r.o===op));const prepare=result.rows.find(r=>r.o===12);assert.equal(prepare.m,0);assert(result.rows.filter(r=>r.k===0).length>=3);});

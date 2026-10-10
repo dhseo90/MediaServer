@@ -470,7 +470,7 @@ bool RecordingCatalog::BuildGenerationScratch(std::unique_ptr<RecordingCatalog>*
     return BuildGenerationScratchLocked(output,nullptr,error);
 }
 bool RecordingCatalog::BuildGenerationScratchLocked(std::unique_ptr<RecordingCatalog>* output,
-    std::shared_ptr<RecordingGenerationRecoverySession>* deferred,std::string* error) {
+    std::shared_ptr<RecordingGenerationRecoverySession>* deferred,std::string* error,std::optional<std::uint64_t> recovery_cut) {
 #if MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND && MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
     if(!output||opened_||!options_.enable_v2_storage)return Fail(error,"B scratch 시작 조건 거부");
     std::shared_ptr<RecordingGenerationRecoverySession> session;
@@ -479,6 +479,12 @@ bool RecordingCatalog::BuildGenerationScratchLocked(std::unique_ptr<RecordingCat
     const auto failed=[&](){journal_.FinishGenerationRecovery(session,false,nullptr);return false;};
     try {
         auto scratch=std::make_unique<RecordingCatalog>(journal_,options_);auto& p=session->projection;
+        // Only unpublished PREPARED recovery requests a prefix. It cannot publish a live Catalog.
+        if(recovery_cut){
+            if(deferred||options_.enable_generation_writes||*recovery_cut<p.manifest.cut_ordinal||
+               *recovery_cut-p.manifest.cut_ordinal>session->count){Fail(error,"checkpoint recovery cut unavailable");return failed();}
+            session->count=static_cast<std::size_t>(*recovery_cut-p.manifest.cut_ordinal);
+        }
         scratch->completed_history_=p.completed_history;
         if(!scratch->completed_history_) {Fail(error,"B completed history 없음");return failed();}
         if(p.manifest.cut_ordinal)scratch->generation_visible_ordinal_=p.manifest.cut_ordinal-1;
@@ -578,7 +584,7 @@ bool RecordingCatalog::BuildGenerationScratchLocked(std::unique_ptr<RecordingCat
         *output=std::move(scratch);return true;
     }catch(...){Fail(error,"B scratch 자원 실패");return failed();}
 #else
-    (void)output;(void)deferred;return Fail(error,"B scratch unsupported");
+    (void)output;(void)deferred;(void)recovery_cut;return Fail(error,"B scratch unsupported");
 #endif
 }
 
@@ -795,11 +801,12 @@ bool RecordingCatalog::IsRetentionOwner(const RetentionCoordinator* owner) const
 
 bool RecordingCatalog::BindDerivedService(const void* owner) {
     recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__);
-    if(!owner||derived_service_owner_)return false;
+    if(!owner||derived_service_owner_||derived_service_epoch_==UINT64_MAX)return false;
+    ++derived_service_epoch_;
     derived_service_owner_=owner;return true;
 }
 void RecordingCatalog::UnbindDerivedService(const void* owner) {
-    recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__);if(derived_service_owner_==owner)derived_service_owner_=nullptr;
+    recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__);if(derived_service_owner_==owner){derived_service_owner_=nullptr;if(derived_service_epoch_!=UINT64_MAX)++derived_service_epoch_;}
 }
 bool RecordingCatalog::UpdateDerivedJob(const void* owner,const DerivedJobRecordV1& record,std::string* error) try {
     recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__);
@@ -841,19 +848,37 @@ bool RecordingCatalog::UpdateDerivedJob(const void* owner,const DerivedJobRecord
 bool RecordingCatalog::Checkpoint(std::string* error) {
     recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__);
     if(!opened_||!CanWriteLocked(error)){checkpoint_cache_.reset();return false;}
-    if(generation_backend_)return CheckpointGenerationLocked(error);
+    if(generation_backend_){if(generation_checkpoint_in_progress_)return Fail(error,"B checkpoint already in progress");return CheckpointGenerationLocked(error);}
     return CheckpointLocked(false,error);
 }
 
 bool RecordingCatalog::CheckpointGenerationLocked(std::string* error) {
 #if MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND && MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
     if(!generation_backend_||!CanWriteLocked(error))return false;
+    if(generation_checkpoint_in_progress_)return true; // automatic rotation coalesces; append keeps its original admission
+    auto* owner_lock=recording::latency::Lock::Owner(mu_);
+    if(!owner_lock)return Fail(error,"B checkpoint owning lock unavailable");
+    generation_checkpoint_in_progress_=true;
+    struct ProgressEnd {bool& flag;~ProgressEnd(){flag=false;}} progress{generation_checkpoint_in_progress_};
     std::shared_ptr<RecordingGenerationCheckpointPlan> plan;
-    if(!journal_.PrepareGenerationCheckpoint(this,&plan,error))return false;
+    {recording::latency::Scope phase(recording::latency::Operation::FixedCapture,recording::latency::Source::Catalog,__LINE__);
+    if(!journal_.PrepareGenerationCheckpoint(this,&plan,error))return false;}
     if(!plan)return true;
-    bool ok=false;GenerationSnapshotStream snapshot;
+    bool ok=false;GenerationSnapshotStream snapshot;GenerationSnapshotView fixed;
     try {ok=[&](){
-    if(!PrepareGenerationSnapshotStreamLocked(plan->chain,plan->generation,plan->cut,&snapshot,error))return false;
+    {recording::latency::Scope phase(recording::latency::Operation::FixedCapture,recording::latency::Source::Catalog,__LINE__);
+    if(!CaptureGenerationSnapshotViewLocked(&fixed,error))return false;}
+    bool prepared=false;
+    {
+        recording::latency::Lock::Unlocked release(*owner_lock);
+#if MEDIA_SERVER_RECORDING_GENERATION_TESTING
+        if(generation_checkpoint_prepared_hook_)generation_checkpoint_prepared_hook_();
+#endif
+        recording::latency::Scope phase(recording::latency::Operation::SnapshotPrepare,recording::latency::Source::Catalog,__LINE__);
+        prepared=PrepareGenerationSnapshotStreamLocked(plan->chain,plan->generation,plan->cut,&snapshot,error,&fixed)&&
+            journal_.StageGenerationCheckpoint(plan,snapshot.produce,error);
+    }
+    if(!prepared||!CanWriteLocked(error))return false;
     const auto sql=[&](std::uint64_t generation,std::uint64_t cut) {
 #if MEDIA_SERVER_USE_SQLITE3
         auto* db=generation_sqlite_db_;if(!db)return true;
@@ -873,10 +898,14 @@ bool RecordingCatalog::CheckpointGenerationLocked(std::string* error) {
         (void)generation;(void)cut;return true;
 #endif
     };
+    recording::latency::Scope phase(recording::latency::Operation::Transition,recording::latency::Source::Catalog,__LINE__);
     return journal_.PublishGenerationCheckpoint(this,plan,snapshot.produce,sql,error);
     }();}catch(...){Fail(error,"B checkpoint serialization/resource exception");}
     if(snapshot.finish){std::string detail;if(!snapshot.finish(&detail)){
         journal_.PoisonGeneration(this);if(error)*error+="; snapshot scratch cleanup: "+detail;ok=false;
+    }}
+    if(fixed.finish){std::string detail;if(!fixed.finish(&detail)){
+        journal_.PoisonGeneration(this);if(error)*error+="; fixed view cleanup: "+detail;ok=false;
     }}
     // Before publication this is the candidate; after the swap this is the retired scratch.
     std::string cleanup;if(!plan->Finish(&cleanup)){journal_.PoisonGeneration(this);if(error)*error+="; checkpoint scratch cleanup: "+cleanup;ok=false;}
@@ -2019,17 +2048,73 @@ bool RecordingCatalog::ApplyMutationLocked(const RecordingMutationV1& mutation,
 
 #if MEDIA_SERVER_RECORDING_GENERATION_TESTING
 thread_local int RecordingCatalog::generation_apply_fault_=0;
+thread_local void (*RecordingCatalog::generation_checkpoint_prepared_hook_)()=nullptr;
 #endif
 bool RecordingCatalog::PoisonGenerationLocked(std::string* error) {
     derived_job_state_authoritative_=false;journal_.PoisonGeneration(this);
     if(error&&error->empty())*error="B durable 이후 실패: 새 owner strict Open 필요";
     return false;
 }
+// Auto rotation can release the Catalog lock. Runtime-only admission must be
+// checked again; replay intentionally retains its historical application rules.
+bool RecordingCatalog::RevalidateRotatedMutationLocked(const RecordingMutationV1& m,std::string* error) {
+    if(!CanWriteLocked(error))return false;
+    const auto protected_id=[&](bool pin){
+        const auto hold=hold_counts_.find(m.entity_id);
+        if(hold!=hold_counts_.end()&&hold->second)return true;
+        const auto v1=segments_.find(m.entity_id);const auto v2=segments_v2_.find(m.entity_id);
+        if(pin&&((v1!=segments_.end()&&v1->second.pinned)||(v2!=segments_v2_.end()&&v2->second.pinned)))return true;
+        if(DerivedJobProtectsLocked(m.entity_id))return true;
+        for(const auto& item:event_links_){const auto& link=item.second;
+            if(link.status==EventRecordingLinkStatus::Pending&&(link.derived_segment_id==m.entity_id||
+               std::any_of(link.ordered_overlaps.begin(),link.ordered_overlaps.end(),[&](const auto& v){return v.segment_id==m.entity_id;})))return true;
+        }return false;
+    };
+    if(m.mutation_type==RecordingMutationType::DeletionRequested||m.mutation_type==RecordingMutationType::CorruptionDetected){
+        const auto v=segments_.find(m.entity_id);
+        if(v==segments_.end()||v->second.lifecycle!=RecordingLifecycle::Finalized||
+           protected_id(m.mutation_type==RecordingMutationType::DeletionRequested))return Fail(error,"rotated V1 lifecycle/protection changed");
+    }
+    if(m.mutation_type==RecordingMutationType::SegmentV2State&&protected_id(true))return Fail(error,"rotated V2 protection changed");
+    if(m.mutation_type==RecordingMutationType::ObservationV2Put){
+        const auto json=ObjectField(m.payload_json,"observation");AnalysisObservationV2 original;
+        if(!json||!ParseAnalysisObservationV2(*json,&original,error))return false;
+        if(original.frame_locator){auto now=original;ResolveObservationV2Locked(&now);
+            if(!now.frame_locator||SerializeFrameLocatorV1(*now.frame_locator)!=SerializeFrameLocatorV1(*original.frame_locator))
+                return Fail(error,"rotated observation locator changed");}
+    }
+    if(m.mutation_type==RecordingMutationType::SegmentFinalized||m.mutation_type==RecordingMutationType::SegmentV2Finalized||
+       m.mutation_type==RecordingMutationType::SegmentV2BoundFinalized){
+        const auto relative=StringField(m.payload_json,"mediaRelpath");std::filesystem::path contained;std::error_code ec;
+        if(!relative||!ResolveContainedMediaPath(options_.media_root,*relative,&contained)||
+           !std::filesystem::is_regular_file(contained,ec)||ec)return Fail(error,"rotated finalized media changed");
+        if(m.mutation_type==RecordingMutationType::SegmentV2BoundFinalized){
+            std::filesystem::path path;
+            for(const auto& part:std::filesystem::absolute(options_.media_root/ *relative)) {
+                path/=part;const auto status=std::filesystem::symlink_status(path,ec);
+                if(ec||std::filesystem::is_symlink(status))return Fail(error,"rotated bound symlink/path changed");
+            }
+            if(std::filesystem::hard_link_count(contained,ec)!=1||ec)return Fail(error,"rotated bound file identity changed");
+        }
+    }
+    if(m.mutation_type==RecordingMutationType::SegmentV2Deleted){
+        if(protected_id(true))return Fail(error,"rotated deletion protection changed");
+        if(!RegisteredMediaAbsentLocked(m.entity_id,error))return false;
+    }
+    return true;
+}
 bool RecordingCatalog::AppendGenerationLocked(RecordingMutationV1 mutation,std::string* error,PreparedDerivedMutation* prepared,bool acquire_hold) {
 #if MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND && MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
     if(!CanWriteLocked(error)||!generation_backend_)return false;
     mutation.mutation_id=mutation.mutation_id.empty()?NextMutationId():mutation.mutation_id;
     mutation.occurred_at_ms=mutation.occurred_at_ms?mutation.occurred_at_ms:NowMs();
+    bool rotate=false;if(!journal_.GenerationRotationNeeded(this,mutation,&rotate,error))return false;
+    const auto service_epoch=derived_service_epoch_;
+    const bool released=rotate&&!generation_checkpoint_in_progress_;
+    if(rotate&&!CheckpointGenerationLocked(error))return false;
+    if(released&&((IsDerivedJobMutation(mutation.mutation_type)&&service_epoch!=derived_service_epoch_)||
+       !RevalidateRotatedMutationLocked(mutation,error)))return Fail(error,"B rotated mutation current protection changed");
+    if(released&&prepared&&!ApplyDerivedJobMutationLocked(mutation,error,false,nullptr))return false;
     if(!ValidateMutationLocked(mutation,error,prepared))return false;
     std::uint64_t held=0;
     if(acquire_hold){
@@ -2039,8 +2124,6 @@ bool RecordingCatalog::AppendGenerationLocked(RecordingMutationV1 mutation,std::
         if(held>=static_cast<std::uint64_t>(std::numeric_limits<std::int64_t>::max()))return Fail(error,"B finalize hold overflow");
         if(segments_.count(mutation.entity_id)||segments_v2_.count(mutation.entity_id))return Fail(error,"B finalize hold requires new segment");
     }
-    bool rotate=false;if(!journal_.GenerationRotationNeeded(this,mutation,&rotate,error))return false;
-    if(rotate&&!CheckpointGenerationLocked(error))return false;
     std::shared_ptr<const RecordingGenerationRecoveryRow> row;
     if(!journal_.AppendGeneration(this,mutation,&row,error)) {
         if(!journal_.OwnsCatalog(this))derived_job_state_authoritative_=false;
@@ -2783,27 +2866,7 @@ bool RecordingCatalog::ValidateMediaWithContext(const RecordingSegmentV2& segmen
 RecordingLifecycle RecordingCatalog::SegmentLifecycleV2(const std::string& id) const try {
     recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__);return EffectiveLifecycleV2Locked(id);
 } catch(const CatalogHistoryError&) { return RecordingLifecycle::Unknown; }
-bool RecordingCatalog::CompleteDeletionV2(const RecordingTombstoneV2& tombstone,std::string* error) try {
-    recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__);
-    if(!opened_||!CanWriteLocked(error))return false;
-    const auto payload=SerializeRecordingTombstoneV2(tombstone);
-    const auto& id=tombstone.segment.segment_id;
-    if(RetiredLocked(id).has_value()) {
-        RecordingTombstoneV2 prior;
-        if(payload.empty()||!AcquireRetiredV2Locked(id,&prior,error)||SerializeRecordingTombstoneV2(prior)!=payload)return Fail(error,"V2 tombstone 재시도 충돌");
-        if(error)error->clear();
-        return true;
-    }
-    const auto prior=tombstones_v2_.find(id);
-    if(prior!=tombstones_v2_.end()) {
-        if(payload.empty()||SerializeRecordingTombstoneV2(prior->second)!=payload)return Fail(error,"V2 tombstone 재시도 충돌");
-        if(error)error->clear();
-        return true;
-    }
-    const auto segment=segments_v2_.find(id);
-    if(payload.empty()||segment==segments_v2_.end()||EffectiveLifecycleV2Locked(id)!=RecordingLifecycle::DeletionPending||
-       SerializeRecordingSegmentV2(segment->second)!=SerializeRecordingSegmentV2(tombstone.segment)||
-       deletion_reasons_[id]!=tombstone.deletion_reason||hold_counts_.count(id)||DerivedJobProtectsLocked(id))return Fail(error,"V2 삭제 완료 상태 불일치");
+bool RecordingCatalog::RegisteredMediaAbsentLocked(const std::string& id,std::string* error) const {
     const auto path=media_relpaths_.find(id);
     if(path==media_relpaths_.end()||!IsSafeMediaRelpath(path->second))return Fail(error,"V2 삭제 경로 없음");
 #if defined(__APPLE__) || defined(__linux__)
@@ -2832,6 +2895,30 @@ bool RecordingCatalog::CompleteDeletionV2(const RecordingTombstoneV2& tombstone,
 #else
     return Fail(error,"V2 안전 삭제 미지원");
 #endif
+    return true;
+}
+bool RecordingCatalog::CompleteDeletionV2(const RecordingTombstoneV2& tombstone,std::string* error) try {
+    recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__);
+    if(!opened_||!CanWriteLocked(error))return false;
+    const auto payload=SerializeRecordingTombstoneV2(tombstone);
+    const auto& id=tombstone.segment.segment_id;
+    if(RetiredLocked(id).has_value()) {
+        RecordingTombstoneV2 prior;
+        if(payload.empty()||!AcquireRetiredV2Locked(id,&prior,error)||SerializeRecordingTombstoneV2(prior)!=payload)return Fail(error,"V2 tombstone 재시도 충돌");
+        if(error)error->clear();
+        return true;
+    }
+    const auto prior=tombstones_v2_.find(id);
+    if(prior!=tombstones_v2_.end()) {
+        if(payload.empty()||SerializeRecordingTombstoneV2(prior->second)!=payload)return Fail(error,"V2 tombstone 재시도 충돌");
+        if(error)error->clear();
+        return true;
+    }
+    const auto segment=segments_v2_.find(id);
+    if(payload.empty()||segment==segments_v2_.end()||EffectiveLifecycleV2Locked(id)!=RecordingLifecycle::DeletionPending||
+       SerializeRecordingSegmentV2(segment->second)!=SerializeRecordingSegmentV2(tombstone.segment)||
+       deletion_reasons_[id]!=tombstone.deletion_reason||hold_counts_.count(id)||DerivedJobProtectsLocked(id))return Fail(error,"V2 삭제 완료 상태 불일치");
+    if(!RegisteredMediaAbsentLocked(id,error))return false;
     RecordingMutationV1 mutation;mutation.mutation_type=RecordingMutationType::SegmentV2Deleted;
     mutation.entity_id=id;mutation.payload_json=payload;
     return AppendAndApplyLocked(std::move(mutation),error);
