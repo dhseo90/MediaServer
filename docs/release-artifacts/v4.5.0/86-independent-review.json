@@ -422,5 +422,85 @@
     "tree": "aa31fa8e2ebb82def0fab88dbccc8758bc91e1ab",
     "appliedFourFixtureBytesMatch": true,
     "remotePushVerified": false
+  },
+  "closureAddendum": {
+    "schema": "media-server.memory86.independent-closure-addendum.v1",
+    "reviewer": "independent_memory86",
+    "reviewedAt": "2026-10-10T18:20:10Z",
+    "preservedOriginalReviewSha256": "7c6c771416b163f41b75d45f459d29b7faee3a4cc2869111bb6141f563a53c41",
+    "originalReviewUnchanged": true,
+    "decision": {
+      "C1C2C3LocalTechnicalClosure": true,
+      "nextFinalMixedCandidateReady": true,
+      "nextFinalMixedExecutionAuthorizedByThisReview": false,
+      "memoryP0Complete": false,
+      "releaseApproved": false,
+      "wholeRequestedWorkflowComplete": false,
+      "remotePushVerified": false
+    },
+    "preservation": {
+      "commit": "d163b1bede8b31abcfac7504627dba94178b5cc5",
+      "archiveBlob": "e5182e9f9cd8b6b597d0b83fbc778aae11e846e4",
+      "archiveSha256": "2300739b3e1dbc55027724ed12c8de3ea2716a0b2f2f0b469d79dc82083763e9",
+      "archiveBytes": 2385062,
+      "gitBlobEqualsWorkingFile": true,
+      "originalMembersRead": 314,
+      "originalBytesRead": 30307138,
+      "originalMemberHashMismatches": [],
+      "totalTarMembers": 315,
+      "additionalTarMember": "preservation.json (manifest; not counted as original execution member)",
+      "priorAuditApproval": "Duplicate copies excluded; prior-bindings.json identifies actual bytes at entryHEAD. Independent prior review readback retained in original decision.",
+      "limits": "Selected original task evidence only; no restored deleted snapshot2, no model/runtime binaries or auth stores. Generation3 checkpoint fixture is identified as such."
+    },
+    "cleanup": {
+      "status": "PASS",
+      "receiptSha256": "bb0e8ffb698ad6917e35f2585e45384aa9e578e2f7bf0b7ae3c790ce54f6ac25",
+      "receiptMatchesValidationFinalReceipt": true,
+      "rootAbsenceDirectlyObserved": true,
+      "stoppedOwnedContainerRemovals": 3,
+      "removedSdkSymlinkEntries": 277,
+      "cleanupScriptReviewedFromArchive": true,
+      "scriptBoundary": "Verifies committed archive before deletion; checks each entry owner via lstat and unlinks symlinks without following SDK targets. Owned stopped containers are removed by inspected immutable IDs.",
+      "receiptObserved": "No owned process rows, no listed port listeners, no owned container names; retained existing image. lsof exit1 with no stdout/stderr is an empty result, not an ignored inspection error.",
+      "observationLimit": "Root absence checked directly by reviewer; process/port/container/image outcomes reviewed from collected receipt and cleanup script, not independently re-executed."
+    },
+    "currentDocumentation": "86-validation preserves C1/C2/C3 final evidence,700MiB static-only,85 B1024/C16 reuse,original FAIL provenance,source07/final02 figures and pending final mixed validation. Backlog/release notes keep memoryP0/release hold. No source or test execution was performed by reviewer.",
+    "remaining": [
+      "Commit this cleanup/closure evidence and verify resulting bytes",
+      "Complete authorized remote push and independently verify remote target; still pending at this review",
+      "Final mixed validation requires next explicit user instruction; not run or approved for execution by this addendum",
+      "Memory P0 completion and final release adoption remain separate pending judgments"
+    ],
+    "supersedesPriorPendingOnly": [
+      "Minimal evidence preservation and byte readback",
+      "Owned temporary/process/port/container cleanup and post-cleanup absence verification"
+    ],
+    "provenance": "Adds closure-only review to the prior original judgment. Historical values, statuses, tests and independent source-flow approval artifact remain unchanged.",
+    "remotePreservationFollowUp": {
+      "reviewer": "independent_memory86",
+      "reviewedAt": "2026-10-10T18:21:07Z",
+      "priorClosureReviewSha256": "5ae0306f98c0ffef2e54e2abdcb46a44ad039c206adca0f56efceea078df9f61",
+      "previousPendingIsHistorical": true,
+      "remotePreservationComplete": true,
+      "pushReceiptSha256": "223156e8482d78b14e3419273f3cc6ff62724292ad36e34d29518be811a5eaba",
+      "remoteBlobReceiptSha256": "8e80362422c75decd67f9123e7aed05d01477318546fa13140f5e4b1242e09e3",
+      "receiptsEqualValidationCopies": true,
+      "remotePreservationCommit": "d163b1bede8b31abcfac7504627dba94178b5cc5",
+      "remoteArchiveBlob": "e5182e9f9cd8b6b597d0b83fbc778aae11e846e4",
+      "remoteArchiveBytes": 2385062,
+      "remoteArchiveSha256": "2300739b3e1dbc55027724ed12c8de3ea2716a0b2f2f0b469d79dc82083763e9",
+      "remoteBytesMatchLocalPreservedArchive": true,
+      "evidenceBoundary": "Reviewed actual push/ls-remote and remote Git blob-byte receipts supplied by main; reviewer did not run push or fetch. This completes preservation through d163b1b; it does not claim remote publication of this addendum.",
+      "completionMeaning": "86-validation wholeTaskComplete=true is accepted only with its explicit C1/C2/C3 completionScope. Memory P0, final mixed120 execution and release completion remain excluded; pending final evidence commit/push is tracked separately.",
+      "finalCleanupAndReviewCommit": {
+        "performedAtThisReview": false,
+        "pushPerformedAtThisReview": false,
+        "remoteHeadVerifiedAtThisReview": false,
+        "requiredFollowUp": "Normal commit/push of closure records and actual remote HEAD readback. No future commit or push is approved as already performed."
+      },
+      "memoryP0Complete": false,
+      "releaseApproved": false,
+      "nextFinalMixedExecutionAuthorizedByThisReview": false
+    }
   }
 }

@@ -1,8 +1,8 @@
 {
   "schema": "media-server.validation.v1",
   "task": 86,
-  "status": "C1_C2_C3_VERIFIED_PRESERVATION_PENDING",
-  "wholeTaskComplete": false,
+  "status": "C1_C2_C3_COMPLETE",
+  "wholeTaskComplete": true,
   "memoryP0": "BLOCKED_PENDING_FINAL_MIXED_VALIDATION",
   "releaseApproved": false,
   "model": {
@@ -301,7 +301,7 @@
   "independentReview": "86-independent-review.json",
   "preservation": {
     "archive": "86-execution.tar.gz",
-    "state": "archive-created-all-selected-bytes-readback-verified",
+    "state": "local-and-remote-Git-bytes-verified",
     "originals": "Selected task-owned original bytes and exact post-checkpoint generation3 fixture; deleted prior snapshot2 is not reconstructed. No oldarchive duplication, runtime/model binaries/authstores excluded.",
     "receipt": {
       "path": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/86-execution.tar.gz",
@@ -311,10 +311,12 @@
       "totalOriginalBytes": 30307138,
       "allMembersReadbackVerified": true,
       "largestOriginalBytes": 16778765
-    }
+    },
+    "commit": "d163b1bede8b31abcfac7504627dba94178b5cc5",
+    "archiveBlob": "e5182e9f9cd8b6b597d0b83fbc778aae11e846e4"
   },
   "cleanup": {
-    "state": "pending-final-owned-files",
+    "state": "PASS",
     "beforePreservation": {
       "ownedProcessRows": [],
       "ownedPortListeners": [],
@@ -335,16 +337,61 @@
       ],
       "inspectionErrors": ""
     },
-    "policy": "Remove only owned stopped containers and root after Git bytes preservation; unlink SDK-cache symlinks themselves, never targets. Keep built product/runtime,models,SDK,image."
+    "policy": "Remove only owned stopped containers and root after Git bytes preservation; unlink SDK-cache symlinks themselves, never targets. Keep built product/runtime,models,SDK,image.",
+    "finalReceipt": {
+      "preservationCommit": "d163b1bede8b31abcfac7504627dba94178b5cc5",
+      "archiveSha256": "2300739b3e1dbc55027724ed12c8de3ea2716a0b2f2f0b469d79dc82083763e9",
+      "containers": [
+        {
+          "name": "media-server-memory86",
+          "id": "b21aaff9059180dd08b2f0ed66c30654a7eda634e2b9b4365c72d441536c5ed2",
+          "wasRunning": false,
+          "exit": 0,
+          "output": "b21aaff9059180dd08b2f0ed66c30654a7eda634e2b9b4365c72d441536c5ed2",
+          "error": ""
+        },
+        {
+          "name": "media-server-memory86b",
+          "id": "293bf3f29d690a74874d13d854342f4d8f4da29985e29f95f8069fc6adce13e2",
+          "wasRunning": false,
+          "exit": 0,
+          "output": "293bf3f29d690a74874d13d854342f4d8f4da29985e29f95f8069fc6adce13e2",
+          "error": ""
+        },
+        {
+          "name": "media-server-memory86c",
+          "id": "96e0a0b5b319dde82a7c019bb9063ade1a573e6a39e51338c72622f345904c76",
+          "wasRunning": false,
+          "exit": 0,
+          "output": "96e0a0b5b319dde82a7c019bb9063ade1a573e6a39e51338c72622f345904c76",
+          "error": ""
+        }
+      ],
+      "root": "/private/tmp/media-server-memory86-occmd_8c",
+      "removedFiles": 619,
+      "removedDirectories": 85,
+      "removedSymlinks": 277,
+      "removedRegularBytes": 466116923,
+      "errors": [],
+      "rootAbsent": true,
+      "remainingOwnedProcessRows": [],
+      "portInspectionExit": 1,
+      "portListeners": [],
+      "portInspectionError": "",
+      "containerNamesRemaining": [],
+      "existingImagePreserved": true,
+      "status": "PASS"
+    }
   },
   "remaining": {
     "currentC1C2C3ProductBlockers": [],
-    "nextFinalMixedCandidateReady": "conditional on completed preservation/cleanup closure",
+    "nextFinalMixedCandidateReady": true,
     "finalMixed120": "NOT_RUN_THIS_REQUEST; next explicit request",
     "memoryP0": "not complete until final mixed memory/function/lifecycle/collection judgment",
     "ownerRiskAcceptance": "not-granted",
     "finalReleaseAdoption": "not-performed",
-    "PR_CI_merge_tag_Release": "not-performed"
+    "PR_CI_merge_tag_Release": "not-performed",
+    "nextFinalMixedExecutionAuthority": "next explicit user request only; no execution in86"
   },
   "prohibitedExecution": {
     "mixed120": 0,
@@ -352,5 +399,36 @@
     "fullUI": 0,
     "QwenOllamaCalls": 0,
     "QwenOllamaUnloadGate": "not-run"
-  }
+  },
+  "remotePreservation": {
+    "state": "PASS",
+    "pushReceipt": {
+      "target": "d163b1bede8b31abcfac7504627dba94178b5cc5",
+      "remoteBefore": "738e1d20c16cfabf594b5adc288e391528c6f0db",
+      "remoteAfter": "d163b1bede8b31abcfac7504627dba94178b5cc5",
+      "command": [
+        "git",
+        "push",
+        "origin",
+        "HEAD:refs/heads/v4.5.0"
+      ],
+      "performed": true,
+      "exit": 0,
+      "stdout": "",
+      "stderr": "To github.com:dhseo90/MediaServer.git\n   738e1d20c..d163b1bed  HEAD -> v4.5.0\n",
+      "elapsedSeconds": 11.352619647979736
+    },
+    "archiveReadback": {
+      "repository": "dhseo90/MediaServer",
+      "api": "git/blobs/e5182e9f9cd8b6b597d0b83fbc778aae11e846e4",
+      "blobOid": "e5182e9f9cd8b6b597d0b83fbc778aae11e846e4",
+      "remoteBytes": 2385062,
+      "sha256": "2300739b3e1dbc55027724ed12c8de3ea2716a0b2f2f0b469d79dc82083763e9",
+      "localBytesEqual": true,
+      "preservationRef": "d163b1bede8b31abcfac7504627dba94178b5cc5",
+      "meaning": "Actual remote Git blob bytes, not merely local tracking ref or archive listing."
+    },
+    "closureCommit": "This final cleanup/readback addendum is committed and normally pushed separately; exact final HEAD and actual remote equality are checked in final report."
+  },
+  "completionScope": "최대 입력의 bounded 소비·HTTP timeout 수명·최종 candidate 결속 마감. 메모리P0/최종혼합120/출시완료는 제외."
 }
