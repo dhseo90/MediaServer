@@ -1,0 +1,63 @@
+{
+  "task": 95,
+  "at": "2026-10-11T16:00:43.699503+00:00",
+  "evidenceCommit": "beb54b748c10f433e51fd194d4d61fbded680e7f",
+  "archivePath": "docs/release-artifacts/v4.5.0/95-execution.tar.gz",
+  "archiveBytes": 50296507,
+  "archiveSha256": "f7db8bedca542d5ecd9f8eed03074897f13aa9f15309124d51adb2ba2c5d8e44",
+  "gitByteReadbackBeforeRemoval": "PASS",
+  "ownedRoot": "/private/tmp/media-server-state95-ybui5esu",
+  "identity": {
+    "dev": 16777232,
+    "ino": 173200548,
+    "uid": 501
+  },
+  "removedEntries": 4259,
+  "logicalRegularBytes": 339588414,
+  "symlinksUnlinkedWithoutFollowing": 1670,
+  "ownedFifoNegativeFixtureRemoved": 1,
+  "rootAbsent": true,
+  "processes": "launcher groups absent plus postrun host ps observed only inspection commands; normal server exit0",
+  "ports": "server receipt HTTP58383/RTSP58384 closed, UDP closed",
+  "Linux": [
+    {
+      "name": "media-server-state95-linux",
+      "id": "62d89a007cc32d198873632fb7bdc76d06573df0c49919af158ced948d149654",
+      "exit": 1,
+      "removed": true,
+      "imageRetained": true
+    },
+    {
+      "name": "media-server-state95-linux-final",
+      "id": "0c1b4c0ee6bb8668cbe864c3404baff34b72829a4dda0ae4f868c4e97616636d",
+      "exit": 0,
+      "removed": true,
+      "imageRetained": true
+    }
+  ],
+  "privateBackup": {
+    "path": "/private/tmp/media-server-private-config95-8jt_7yjn",
+    "retained": true,
+    "mode": "0700",
+    "remoteUploaded": false
+  },
+  "configs": [
+    {
+      "name": ".media_server.sources.json",
+      "bytes": 2644,
+      "sha256": "94ee516c8b600116987f39812c1a9d873f49977dcd48bcb1e125db6e56cc8ae8",
+      "unchangedAfterAuthorizedCleanup": true
+    },
+    {
+      "name": ".media_server.views.json",
+      "bytes": 1385,
+      "sha256": "b89b1199446d7911213b239d41bd9eed6008c91b895a896da89ed071a570d7cd",
+      "unchangedAfterAuthorizedCleanup": true
+    }
+  ],
+  "historical94Root": "retained separately for incident audit; original94archive remains, no bulk historical cleanup",
+  "modelsSDKImages": "unchanged",
+  "remotePreservation": "pending ordinary push; local Git bytes confirmed",
+  "QwenOllamaCalls": 0,
+  "unloadGate": "not-run"
+}

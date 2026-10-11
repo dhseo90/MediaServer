@@ -109,7 +109,8 @@
     "derived-job fixture destruction order failure exit245; original child signal not preserved; scope fix then24PASS",
     "wrapper missing snapshot then identity-shard link sources; corrected full118PASS",
     "Linux existing misleading-indentation Werror; split statements then fullPASS",
-    "inventorySha256 drift before single reviewed producer application"
+    "inventorySha256 drift before single reviewed producer application",
+    "packaging self-selection hash mismatch rejected incomplete archive; excluded recursive manifest and verified all674 finalmembers; receipt retained"
   ],
   "binding": {
     "scriptsTrackedPass": 13,
@@ -337,8 +338,9 @@
   "cleanup": {
     "runtime": "normal exit0, no forced signal, ports/groups absent",
     "Linux": "owned containers removed; existing image preserved",
-    "evidenceRoot": "preserved pending Git byte readback and exact owned cleanup; final receipt follows",
-    "privateBackup": "retained"
+    "evidenceRoot": "removed after all archive member and committed Git byte readback; exact receipt 95-cleanup.json",
+    "privateBackup": "retained",
+    "receipt": "95-cleanup.json"
   },
   "notPerformed": [
     "new120",
