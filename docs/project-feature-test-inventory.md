@@ -4941,3 +4941,11 @@ MEM84-R04: 최대 허용 cold 행(16MiB+1)의 실제 chunk 저장/읽기와 기�
 - MEM86-HTTP: 실제 인증 recording route/TCP의 제한된 send 시작·반환·errno·마지막 진행과 worker/응답 종료를 관측한다. 기존 per-send5초·85의12초 실패를 유지하고, 고정12초 준비+고정12초 관측에서 실제 음수 EAGAIN/EWOULDBLOCK과 ≥4.5초 무진척 syscall·worker 종료를 별도로 검증한다. 진척으로 창을 연장하지 않는다. 정상/slow/reset/Stop/403/503·별도 reader의 마지막 소유를 검증한다.
 - MEM86-PROOF (`scripts/internal/review4_proof_context_refresh.mjs`, `node --test scripts/internal/verify_review4_proof_context_refresh.test.mjs`): 독립 검토 결정과 정확한 source/ID/context에 결박된 proof 갱신은 변경 source·잘못된ID·미검토/모호 locator를 거부한다. 생성은 승인 판단과 분리하며 최종 producer/readback/inventory/coverage를 확인한다.
 - MEM86-REGRESSION: 변경 영향의 macOS/비특권Linux 구성·Werror 및8writer/4client/10000관측/720packet/24파일·90초·p95≤2000ms/max≤5000ms·정상Finish.85 B1024/실제TTL C16은 draft/job 영향 없으면 재사용하고120분/UI는 미실행한다.
+
+### MEM87 — 최종 혼합의 실제 owner 관측 연결
+
+- 내부 진단 opt-in만 사용하며 공개 route/control은 추가하지 않는다. 실제 application 공통 RAM/scratch owner를 시작·주기·Finish 전후·storage 파괴 뒤 읽는다.
+- 정상: 기존640MiB/디스크/FD 한도, 본7200초·전체7380초·기존 부하 불변. 익명 파일은 외부 PID의 dev/inode로 중복 제거해 named root와 구분한다.
+- 오류/경계: off·잘못된 설정·짧은 쓰기·누락·절단·한도 위반·source 불일치·최종 수집 실패를 거부한다. counter는 RSS/live heap이나 전체 원자 snapshot이 아니다.
+- focused: `recording_resource_trace_smoke.cpp`, `recording_resource_trace.test.mjs`, 기존 `recording_process_metrics.test.mjs`; 실제 연결은 기존 혼합 launcher의 `--prepare`, 최종 검증은 승인된 `--120` 최대1회.
+- 안정화는 변경분 관측 계약,120분은 실제 혼합·수명/복구;30분/UI는 새 실행 대상이 아니다. 실행 결과와 P0 판단은 버전/run 원본에 별도 보존한다.

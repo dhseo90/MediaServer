@@ -462,11 +462,11 @@ export function measureCurrentWorkspace(root,baseline,copy=null){
 // spawnSync와 달리 실제 자식 실행 중 감시한다. 100ms 주기이며 표본 사이 순간 최고치는 보장하지 않는다.
 export async function runCurrentRecovery({command,args,env,observe,onGroup=null,timeoutMs=15000,outputCap=16384,intervalMs=100}){
   need(timeoutMs>0&&timeoutMs<=15000&&outputCap>0&&outputCap<=16384&&intervalMs>0&&intervalMs<=100,'recovery-monitor-options');
-  observe();const began=performance.now(),child=spawn(command,args,{env,stdio:['ignore','pipe','pipe'],detached:true});
-  let stdout='',stderr='',bytes=0,failure=null,error=null,force=null,last=began,maxGapMs=0,samples=0,peak=null;
+  observe({pid:null,running:false});const began=performance.now(),child=spawn(command,args,{env,stdio:['ignore','pipe','pipe'],detached:true});
+  let running=true,stdout='',stderr='',bytes=0,failure=null,error=null,force=null,last=began,maxGapMs=0,samples=0,peak=null;
   const signal=sig=>{if(child.pid)try{process.kill(-child.pid,sig);}catch(e){if(e.code!=='ESRCH')failure??='recovery-group-signal';}};
   const stop=why=>{failure??=why;signal('SIGTERM');if(!force)force=setTimeout(()=>signal('SIGKILL'),1000);};
-  const sample=()=>{const now=performance.now();maxGapMs=Math.max(maxGapMs,now-last);last=now;try{const v=observe();samples++;if(v&&(!peak||v.combinedBytes>peak.combinedBytes))peak=v;}catch(e){stop(e.message);}};
+  const sample=()=>{const now=performance.now();maxGapMs=Math.max(maxGapMs,now-last);last=now;try{const v=observe({pid:child.pid,running});samples++;if(v&&(!peak||v.combinedBytes>peak.combinedBytes))peak=v;}catch(e){stop(e.message);}};
   const collect=(chunk,isError)=>{const remaining=Math.max(0,outputCap-bytes);bytes+=chunk.length;const text=chunk.subarray(0,remaining).toString();if(isError)stderr+=text;else stdout+=text;if(bytes>outputCap)stop('recovery-output-cap');};
   child.stdout.on('data',b=>collect(b,false));child.stderr.on('data',b=>collect(b,true));child.on('error',e=>{error=e;failure??='recovery-spawn';});
   const abort=()=>stop('recovery-cancelled');process.once('SIGTERM',abort);process.once('SIGINT',abort);
@@ -474,7 +474,7 @@ export async function runCurrentRecovery({command,args,env,observe,onGroup=null,
   // 외부 총시간 제한이 있는 호출만 실제 별도 그룹의 소유권을 상위 실행기에 등록한다.
   if(onGroup&&child.pid)try{onGroup({event:'started',pid:child.pid});}catch{stop('recovery-group-registration');}
   const ended=await new Promise(resolve=>child.once('close',(status,signal)=>resolve({status,signal})));
-  clearInterval(poll);clearTimeout(timer);sample();
+  running=false;clearInterval(poll);clearTimeout(timer);sample();
   let groupClosed=!child.pid;
   for(let i=0;child.pid&&i<20;i++){try{process.kill(-child.pid,0);}catch(e){groupClosed=e.code==='ESRCH';break;}stop('recovery-child-remains');if(i>=10)signal('SIGKILL');await new Promise(r=>setTimeout(r,100));}
   clearTimeout(force);process.removeListener('SIGTERM',abort);process.removeListener('SIGINT',abort);

@@ -4,6 +4,7 @@
 #include "recording/recording_catalog.h"
 #include "recording/recording_read_service.h"
 #include "recording/recording_runtime_composition.h"
+#include "recording/recording_resource_trace.h"
 #include "domain/strict_json.h"
 #include "recording_media_test_fixture.h"
 #include "recording_archive_phase_trace.h"
@@ -96,6 +97,7 @@ int main(int argc,char** argv){try{
     if(argc==3&&std::string(argv[1])=="--snapshot"){
       const std::filesystem::path root(argv[2]);Require(root.filename()=="recordings"&&std::filesystem::canonical(root)==root&&
         root.parent_path().filename().string().rfind("media-server-current-observer-",0)==0&&std::filesystem::exists(root/".recording-store-format"),"snapshot-input-invalid");
+      recording::RecordingResourceTrace resource_trace;
       auto journal_owner=std::make_unique<recording::RecordingJournal>(recording::RecordingJournal::ManagedOptions{root,{},
         {448ULL*1024*1024,448ULL*1024*1024,448ULL*1024*1024,16ULL*1024*1024+1,100000,4096}});auto& journal=*journal_owner;
       std::unique_ptr<recording::RecordingCatalog> catalog_owner;auto teardown=archive_phase::OnExit([&]{archive_phase::Scope scope(archive_phase::Phase::Destruct);catalog_owner.reset();journal_owner.reset();});
@@ -103,6 +105,7 @@ int main(int argc,char** argv){try{
       catalog_owner=std::make_unique<recording::RecordingCatalog>(journal,options);auto& catalog=*catalog_owner;std::string error;
       Require(archive_phase::Call(archive_phase::Phase::JournalOpen,[&]{return journal.Open(&error);}),"journal-open");
       Require(archive_phase::Call(archive_phase::Phase::CatalogOpen,[&]{return catalog.Open(&error);}),"catalog-open");
+      Require(resource_trace.Bind(catalog.SearchResidency(),catalog.ScratchResidency()),"resource-trace-open");
       const auto report=catalog.recovery_report();Require(report.corrupt_line_count==0&&report.projection_error_count==0&&report.writer_cleanup_error_count==0,"recovery-errors");
       recording::RecordingReadService reader(catalog);std::vector<std::string> evidence;std::size_t deleted=0,available=0;
       std::vector<std::pair<std::string,recording::RecordingLocationCatalogSnapshot>> snapshots;
@@ -115,6 +118,9 @@ int main(int argc,char** argv){try{
         for(const auto& id:snapshot.deleted_segment_ids){Require(catalog.IsDeletedSegmentId(id),"deleted-state-missing");Require(!reader.ResolveMedia(channel,id),"deleted-media-visible");++deleted;evidence.push_back(Hash(id)+"deleted");}
       }}
       std::string digest;{archive_phase::Scope digest_scope(archive_phase::Phase::Digest);std::sort(evidence.begin(),evidence.end());std::string joined;for(const auto& e:evidence)joined+=e+'\n';digest=Hash(joined);}
+      Require(resource_trace.Emit("before-Finish"),"resource-trace-before-finish");
+      const bool finished=journal.Finish(&error);const bool traced=resource_trace.Emit("after-Finish");
+      Require(finished,"journal-finish");Require(traced,"resource-trace-after-finish");
       {archive_phase::Scope output_scope(archive_phase::Phase::Output);std::cout<<"{\"digest\":"<<Quote(digest)<<",\"segments\":"<<evidence.size()<<",\"deleted\":"<<deleted<<",\"available\":"<<available<<",\"catalogRecovered\":true}"<<'\n';std::cout.flush();Require(bool(std::cout),"output");}return 0;
     }
     if(argc==3&&(std::string(argv[1])=="--fixture"||std::string(argv[1])=="--generation-media-fixture"||

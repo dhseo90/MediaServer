@@ -12,6 +12,7 @@
 #include <stdexcept>
 #include <string>
 #include <vector>
+#include <sys/stat.h>
 #include <unistd.h>
 #ifdef __APPLE__
 #include <libproc.h>
@@ -61,7 +62,10 @@ bool CompleteFdRead(int bytes, std::size_t capacity, std::size_t entry) {
     return bytes > 0 && entry > 0 && static_cast<std::size_t>(bytes) < capacity &&
         static_cast<std::size_t>(bytes) % entry == 0;
 }
-struct Sample { std::string start; std::uint64_t rss{0}, threads{0}, fds{0}; };
+struct Sample { std::string start; std::uint64_t rss{0}, threads{0}, fds{0};
+    bool anonymousMeasured{false},footprintMeasured{false};
+    std::uint64_t anonymousBytes{0},anonymousAllocated{0},anonymousFiles{0},footprint{0};
+};
 #ifdef __APPLE__
 std::string Identity(int pid) {
     proc_bsdinfo value{};
@@ -97,6 +101,36 @@ Sample Collect(int pid) {
         if (static_cast<std::size_t>(read) % sizeof(proc_fdinfo) != 0) throw std::runtime_error("fd-read-incomplete");
         if (CompleteFdRead(read, capacity, sizeof(proc_fdinfo))) {
             sample.fds = read / sizeof(proc_fdinfo);
+            sample.anonymousBytes=sample.anonymousAllocated=sample.anonymousFiles=0;
+            bool raced=false;
+            // Each regular unlinked inode is counted once; these bytes are absent from root traversal.
+            std::vector<std::pair<std::uint64_t,std::uint64_t>> seen;
+            seen.reserve(static_cast<std::size_t>(sample.fds));
+            for(std::size_t i=0;i<sample.fds;++i){
+                if(entries[i].proc_fdtype!=PROX_FDTYPE_VNODE)continue;
+                vnode_fdinfo node{};errno=0;
+                if(proc_pidfdinfo(pid,entries[i].proc_fd,PROC_PIDFDVNODEINFO,&node,sizeof(node))!=sizeof(node)) {
+                    // A listed FD may close/reuse before inspection. Restart the complete
+                    // bounded observation; never treat an unread descriptor as zero bytes.
+                    if(errno==EBADF||errno==ENOENT){raced=true;break;}
+                    throw std::runtime_error(IoError("anonymous-fd-read-incomplete"));
+                }
+                const auto& st=node.pvi.vi_stat;
+                if(!S_ISREG(st.vst_mode)||st.vst_nlink!=0)continue;
+                if(st.vst_size<0||st.vst_blocks<0)throw std::runtime_error("anonymous-fd-size-invalid");
+                const auto key=std::make_pair(static_cast<std::uint64_t>(st.vst_dev),static_cast<std::uint64_t>(st.vst_ino));
+                if(std::find(seen.begin(),seen.end(),key)!=seen.end())continue;
+                if(static_cast<std::uint64_t>(st.vst_size)>std::numeric_limits<std::uint64_t>::max()-sample.anonymousBytes||
+                   static_cast<std::uint64_t>(st.vst_blocks)>(std::numeric_limits<std::uint64_t>::max()-sample.anonymousAllocated)/512)
+                    throw std::runtime_error("anonymous-fd-size-overflow");
+                seen.push_back(key);++sample.anonymousFiles;
+                sample.anonymousBytes+=static_cast<std::uint64_t>(st.vst_size);
+                sample.anonymousAllocated+=static_cast<std::uint64_t>(st.vst_blocks)*512;
+            }
+            if(raced)continue;
+            sample.anonymousMeasured=true;
+            rusage_info_v2 usage{};
+            if(proc_pid_rusage(pid,RUSAGE_INFO_V2,reinterpret_cast<rusage_info_t*>(&usage))==0){sample.footprintMeasured=true;sample.footprint=usage.ri_phys_footprint;}
             complete = true;
             break;
         }
@@ -171,6 +205,10 @@ int main(int argc, char** argv) {
         << ",\"rssBytes\":" << (valid ? std::to_string(sample.rss) : "null")
         << ",\"threadCount\":" << (valid ? std::to_string(sample.threads) : "null")
         << ",\"fdCount\":" << (valid ? std::to_string(sample.fds) : "null")
+        << ",\"anonymousFileBytes\":" << (valid&&sample.anonymousMeasured?std::to_string(sample.anonymousBytes):"null")
+        << ",\"anonymousAllocatedBytes\":" << (valid&&sample.anonymousMeasured?std::to_string(sample.anonymousAllocated):"null")
+        << ",\"anonymousFiles\":" << (valid&&sample.anonymousMeasured?std::to_string(sample.anonymousFiles):"null")
+        << ",\"footprintBytes\":" << (valid&&sample.footprintMeasured?std::to_string(sample.footprint):"null")
         << ",\"sampledAt\":" << now << ",\"valid\":" << (valid ? "true" : "false")
         << ",\"error\":" << (valid ? "null" : "\"" + error + "\"") << "}\n";
     return valid ? 0 : 1;

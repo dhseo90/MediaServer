@@ -62,6 +62,15 @@ try {
     check(released.exit === 0 && released.value.startIdentity === baseline.value.startIdentity, 'PM02 released identity preserved');
     check(released.value.fdCount === baseline.value.fdCount, 'PM02 released FDs return baseline');
     check(released.value.threadCount === baseline.value.threadCount, 'PM02 released threads return baseline');
+    if(process.platform==='darwin'){
+      child.stdin.write('anonymous\n');if(await line()!=='anonymous')throw Error('anonymous fixture failed');
+      const anon=sample(child.pid);console.log(`[sample] anonymous ${JSON.stringify(anon.value)}`);
+      check(anon.exit===0&&anon.value.anonymousFiles===1&&anon.value.anonymousFileBytes===8192&&anon.value.anonymousAllocatedBytes>=8192,'PM06 unlinked inode actual bytes');
+      check(anon.value.fdCount===baseline.value.fdCount+3,'PM06 three duplicate FDs counted once as inode');
+      child.stdin.write('release\n');if(await line()!=='released')throw Error('anonymous release failed');
+      const closedAnon=sample(child.pid);
+      check(closedAnon.exit===0&&closedAnon.value.anonymousFiles===0&&closedAnon.value.anonymousFileBytes===0&&closedAnon.value.anonymousAllocatedBytes===0&&closedAnon.value.fdCount===baseline.value.fdCount,'PM06 anonymous last FD released');
+    }
     for (const [label,args] of [['missing',[]],['zero',['0']],['negative',['-1']],['text',['abc']],['partial',['12x']],['range',['2147483648']],['extra',['1','2']]]) {
       const result=sample(args);
       check(result.exit !== 0 && result.value.valid === false && result.value.error === 'invalid-pid' &&

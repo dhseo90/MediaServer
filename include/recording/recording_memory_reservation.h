@@ -14,11 +14,11 @@ public: RecordingResourceUnavailable():std::runtime_error("recording-resource-un
 class SearchModelResidency {
     struct State {
         const std::size_t limit;
-        std::atomic<std::size_t> used{0},peak{0};
+        std::atomic<std::size_t> used{0},peak{0},rejected{0};
         explicit State(std::size_t n):limit(n){}
         bool Acquire(std::size_t bytes) noexcept {
             auto n=used.load();
-            do {if(n>limit||bytes>limit-n)return false;}
+            do {if(n>limit||bytes>limit-n){rejected.fetch_add(1);return false;}}
             while(!used.compare_exchange_weak(n,n+bytes));
             auto top=peak.load();while(top<n+bytes&&!peak.compare_exchange_weak(top,n+bytes)){}
             return true;
@@ -63,6 +63,7 @@ public:
     std::size_t used()const{return state_->used.load();}
     std::size_t peak()const{return state_->peak.load();}
     std::size_t limit()const{return state_->limit;}
+    std::size_t rejected()const{return state_->rejected.load();}
 };
 // The charge base is initialized before Fields and destroyed after it. No JSON
 // field is added. Deep copy acquires a separate ticket before copying storage.

@@ -82,6 +82,13 @@ int main(int argc, char** argv) {
             for (std::size_t i = 0; i < size; i += 4096) bytes[i] = static_cast<unsigned char>((i / 4096) % 251 + 1);
             while (ready.load() != 3) std::this_thread::yield();
             std::cout << "grown" << std::endl;
+        } else if (command == "anonymous") {
+            char name[]="metrics-anonymous-XXXXXX";const int fd=mkstemp(name);
+            if(fd<0){clear();return 2;}fds.push_back(fd);
+            const std::string payload(8192,'x');
+            if(unlink(name)!=0||write(fd,payload.data(),payload.size())!=static_cast<ssize_t>(payload.size())){clear();return 2;}
+            for(int i=0;i<2;++i){const int copy=dup(fd);if(copy<0){clear();return 2;}fds.push_back(copy);}
+            std::cout<<"anonymous"<<std::endl;
         } else if (command == "release") {
             clear();
             std::cout << "released" << std::endl;

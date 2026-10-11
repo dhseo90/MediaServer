@@ -1,3 +1,4 @@
+#include "recording/recording_resource_trace.h"
 // 파일 요약: MediaServer 프로세스의 composition root 구현이다.
 // 동작 요약: 설정, registry/session, RTSP/HTTP 서버를 조립하고 기존 시작·정리 순서를 보존한다.
 
@@ -326,15 +327,22 @@ int RunMediaServerApplication(int argc, char** argv) {
     core::SessionManager session_manager(registry, resource_guard);
 
     const std::filesystem::path recording_root(config.recording_storage_root);
+    recording::RecordingResourceTrace recording_resource_trace; // destroyed after storage and all its consumers
     recording::RecordingRuntimeStorage recording_storage(recording_root);
     std::string recording_error;
     if (!recording_storage.Open(&recording_error)) {
         std::cerr << "recording catalog open failed: " << recording_error << "\n";
         return 1;
     }
+    if(!recording_resource_trace.Bind(recording_storage.catalog().SearchResidency(),recording_storage.catalog().ScratchResidency())) {
+        std::cerr << "recording resource trace setup failed\n";return 1;
+    }
     const auto finish_recording_storage=[&](){
         std::string detail;
-        if(recording_storage.Finish(&detail))return true;
+        const bool before=recording_resource_trace.Emit("before-Finish");
+        const bool finished=recording_storage.Finish(&detail);
+        const bool after=recording_resource_trace.Emit("after-Finish");
+        if(finished)return before&&after;
         std::cerr << "recording shutdown: " << detail << '\n';return false;
     };
     auto& recording_journal=recording_storage.journal();
@@ -611,7 +619,9 @@ int RunMediaServerApplication(int argc, char** argv) {
     std::signal(SIGTERM, HandleSignal);
 
     // signal handler에서는 플래그만 바꾸고 실제 Stop은 main thread에서 순서대로 수행한다.
+    bool recording_resource_trace_ok=true;
     while (g_running.load()) {
+        if(!recording_resource_trace.Poll()){recording_resource_trace_ok=false;break;}
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }
 
@@ -627,7 +637,7 @@ int RunMediaServerApplication(int argc, char** argv) {
     analysis::SetEventRecordingBridge(nullptr);
     stop_observations();
     session_manager.SetAuxiliaryStreamRuntimeProvider({});
-    if(!finish_recording_storage())return 1;
+    if(!finish_recording_storage()||!recording_resource_trace_ok)return 1;
     return 0;
 }
 
