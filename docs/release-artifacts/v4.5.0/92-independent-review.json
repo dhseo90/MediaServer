@@ -425,5 +425,490 @@
     "sameSelectedHolderWindows": true,
     "repeatOnFailure": false,
     "approvalMeaning": "이미 사용자 승인된 실행 범위 확인이며 새 권한 부여 또는 미래 PASS 판단이 아니다."
+  },
+  "finalResultAddendum": {
+    "reviewedAt": "2026-10-11T11:43:28.579Z",
+    "priorReportSha256": "8d70ab7f17832f88c68013d724570d7b09a6518648484b32e49d63bde7a444d3",
+    "scope": "실행에 참여하지 않은 같은 독립 reviewer의 최종600 원문·소스·결속 readback. 기존 preflight 본문은 당시 사실로 유지한다.",
+    "decision": {
+      "finite600": "PASS_OBSERVED_ONE_AUTHORIZED_FINAL_RUN",
+      "changeAdoption": "SUPPORTED_IN_REVIEWED_SCOPE",
+      "technical92Goal": "최소 순회 비용 개선 및 고정600 원래 지연/진행/명시마감 gate의 관측상 통과. 증거 Git/remote 보존·소유root cleanup은 아직 미완료.",
+      "newExecutionAuthority": false,
+      "memoryP0": "BLOCKED_PENDING_REQUIRED_LONGRUN_AND_FOLLOWUP",
+      "releaseReady": false,
+      "120ResumeMeaning": "이번 유한600 성공을 기록할 수 있으나 검토자가 새120 실행권한을 부여하지 않는다. 별도 지시·준비·필수후속 실행 없이120/P0 완료로 승격하지 않는다."
+    },
+    "source": {
+      "execution": {
+        "head": "9704b6492fcc1f8e28546c01f7cb5c3b5223c52a",
+        "tree": "bd860c23f594092fa2345a0a5e805c4ac034d9b1",
+        "sourceSha256": "4bd89c2dc97570f00e6e721e351186f46322ca6a263a08a4bba6c160e406bfd6",
+        "binarySha256": "b3a9e64a229e44c3cbb1be515115be5e6c2253fe5b3dc68ccac81d6fea4513df"
+      },
+      "executionEnd": {
+        "head": "9704b6492fcc1f8e28546c01f7cb5c3b5223c52a",
+        "tree": "bd860c23f594092fa2345a0a5e805c4ac034d9b1",
+        "sourceSha256": "4bd89c2dc97570f00e6e721e351186f46322ca6a263a08a4bba6c160e406bfd6",
+        "binarySha256": "b3a9e64a229e44c3cbb1be515115be5e6c2253fe5b3dc68ccac81d6fea4513df"
+      },
+      "startEndEqual": true,
+      "runtimeSha256": "101d4bb7b23479caeaf4d6abaafbcd4aef18cf41754c82fd6d2174c7f3e0947f",
+      "preflightChangedFilesRehashedMismatchCount": 0,
+      "codeCommitContainsReviewedBytes": true,
+      "currentWholeTreeCleanClaim": false,
+      "laterEvidenceCommitIsNotExecutionSource": true
+    },
+    "completedPreflightConditions": {
+      "existingApprovalApply": {
+        "exit": 0,
+        "pass": 51,
+        "fail": 0,
+        "logByteHashMatchesReceipt": true,
+        "meaning": "기존986 승인 재사용 적용이며 새92 행동 승인 발급이 아님"
+      },
+      "coverage": {
+        "exit": 0,
+        "pass": 9,
+        "fail": 0,
+        "featureRows": 986,
+        "covered": 986,
+        "missing": 0,
+        "correction": "전달된14가 아니라 실제 summary9를 사용",
+        "logByteHashMatchesReceipt": true
+      },
+      "manifestSemanticDelta": [
+        "inventorySha256"
+      ],
+      "formatting": "producer 출력값 그대로 indent2로 복원; reviewer는 entry/current JSON을 비교해 inventorySha256만 차이 확인",
+      "sourceCommit": "9704b6492fcc1f8e28546c01f7cb5c3b5223c52a"
+    },
+    "execution": {
+      "count": 1,
+      "mode": "existing --frame-diagnostic final600",
+      "exit": 0,
+      "passed": 2237,
+      "failed": 0,
+      "verifiedDurationMs": 600180.910959,
+      "executionElapsedSeconds": 614.8505011249799,
+      "totalWithFinalBindingSeconds": 615.2332219169475,
+      "frameDiagnosticPass": true,
+      "longrunObservationCompleted": false,
+      "resourceTrendPass": false,
+      "reviewRequired": true,
+      "uiFulltestPass": false
+    },
+    "originalLatencyGate": {
+      "successfulPopulation": 159,
+      "p95Ms": 1971.3032919999678,
+      "maxMs": 2738.58933399996,
+      "p95LimitMs": 2000,
+      "maxLimitMs": 5000,
+      "p95MarginMs": 28.69670800003223,
+      "method": "원래 report.evidenceLoad.searchLatencyMs 성공 배열 그대로 ceil(n*.95)-1; A/보조 HTTP를 추가하지 않음",
+      "unavailable": 1,
+      "successByClient": [
+        40,
+        40,
+        40,
+        39
+      ],
+      "comparisonLimit": "진단p952071.285125→최종1971.303292로 원래 기준 통과. margin약28.7ms로 작고 max는2490.502458→2738.589334로 높다. 단조개선/상시성능보장/전체지연원인해소를 주장하지 않는다."
+    },
+    "mixedWork": {
+      "aCompleted": 10,
+      "aRawCompletedRows": 10,
+      "cycles": 39,
+      "earlyMiddleLate": [
+        {
+          "structured": 260,
+          "visual": 520,
+          "evidence": 13,
+          "visualEvidence": 13
+        },
+        {
+          "structured": 260,
+          "visual": 520,
+          "evidence": 13,
+          "visualEvidence": 13
+        },
+        {
+          "structured": 260,
+          "visual": 492,
+          "evidence": 13,
+          "visualEvidence": 12
+        }
+      ],
+      "evidenceComplete": 37,
+      "evidencePartial": 2,
+      "evidenceCreated": 39,
+      "visualEvidenceCreated": 38,
+      "retainedChecks": 78,
+      "deletedSourceObserved": true,
+      "phase": {
+        "elapsedMs": 600180.910959,
+        "channels": {
+          "9101": {
+            "finalized": 299,
+            "deleted": 292,
+            "lastAt": 608915.153167,
+            "order": "601",
+            "store": "20a8367d38f4e9517386e7f37707e9a1f9d0282154278a26879fadcb03f4e256",
+            "knownMappings": 194,
+            "unknownMappings": 11794
+          },
+          "9201": {
+            "finalized": 299,
+            "deleted": 292,
+            "lastAt": 608915.153167,
+            "order": "600",
+            "store": "20a8367d38f4e9517386e7f37707e9a1f9d0282154278a26879fadcb03f4e256",
+            "knownMappings": 214,
+            "unknownMappings": 11416
+          }
+        },
+        "records": 598,
+        "logicalBytes": 356600
+      },
+      "phaseLimit": "finalized299/deleted292 각 채널은 마지막 관측까지의 진행 prefix. shutdown 이후 전체tail 최종누적수로 확대하지 않는다."
+    },
+    "explicitCompletion": {
+      "rawAssertions": [
+        "V440 successful search latency",
+        "LP26-O04 sample coverage",
+        "LP26-O05 setting 9101 false",
+        "LP26-O05 setting 9201 false",
+        "LP26-O02 closed journal no partial tail"
+      ],
+      "verifiedInRunLog": true,
+      "sourceOrder": "지연 gate→최종sample/continuity→phase result→명시2채널settings false→stop→drain/closedJournalComplete를 코드와 대조했다. finally 종료만으로 명시 마감을 대체하지 않았다.",
+      "normalShutdown": {
+        "schema": "recording-process-cleanup-v1",
+        "attemptCount": 1,
+        "pid": 66759,
+        "exitCode": 0,
+        "signalCode": null,
+        "exitedObserved": true,
+        "stopCode": "complete",
+        "forcedTermination": "not-used",
+        "normalExitPass": true,
+        "normalShutdownPass": true,
+        "archiveSafe": true,
+        "ports": [
+          {
+            "kind": "http",
+            "port": 64770,
+            "status": "pass",
+            "code": "closed",
+            "closed": true
+          },
+          {
+            "kind": "rtsp",
+            "port": 64771,
+            "status": "pass",
+            "code": "closed",
+            "closed": true
+          }
+        ]
+      },
+      "processGroupAbsent": true,
+      "registeredGroupsAbsent": true,
+      "udpClosed": true,
+      "ownedDiskRootsRemoved": "pending-preservation-first"
+    },
+    "collection": {
+      "sampleCount": 121,
+      "onePidStartIdentity": true,
+      "maxSampleGapMs": 5009.155542,
+      "observedChildPidMax": 0,
+      "visualRequestCount": 80,
+      "visualIdsExactly1Through80": true,
+      "visualCompletion": {
+        "started": 80,
+        "completed": 80
+      },
+      "visualNon200": [
+        {
+          "id": 80,
+          "status": 503,
+          "code": "visual-search-unavailable"
+        }
+      ],
+      "structuredTerminalFailures": 0,
+      "holder": {
+        "status": "captured",
+        "count": 1358,
+        "rawRowsEndEqualCollector": true,
+        "mutexIds": [
+          1
+        ],
+        "loss": false,
+        "inflight": 0
+      },
+      "boundedDecoder": {
+        "rawRows": 3,
+        "policies": [
+          "automatic",
+          "software-only",
+          "automatic"
+        ],
+        "successes": 3,
+        "droppedEvents": 0,
+        "droppedFactories": 0,
+        "meaning": "대표 automatic/software-only/automatic bounded3표본의 실제 결과; 전체decoder호출 전수근거 아님"
+      }
+    },
+    "selectedHolderComparison": {
+      "finalWindows": [
+        {
+          "selectedRequest": 7,
+          "beginNs": 50752501709,
+          "retentionCompleteCalls": 13,
+          "retentionCompleteHeldMs": 252.156625,
+          "visitedCandidates": 206,
+          "visualWaitMs": 1401.768422,
+          "coveredMs": 1335.896625,
+          "retentionOverlapMs": 502.843874,
+          "unclassifiedMs": 65.871797
+        },
+        {
+          "selectedRequest": 41,
+          "beginNs": 306346267625,
+          "retentionCompleteCalls": 5,
+          "retentionCompleteHeldMs": 113.229376,
+          "visitedCandidates": 75,
+          "visualWaitMs": 1176.072748,
+          "coveredMs": 1077.526373,
+          "retentionOverlapMs": 225.162793,
+          "unclassifiedMs": 98.546375
+        },
+        {
+          "selectedRequest": 77,
+          "beginNs": 576597415917,
+          "retentionCompleteCalls": 5,
+          "retentionCompleteHeldMs": 151.421709,
+          "visitedCandidates": 75,
+          "visualWaitMs": 1230.36733,
+          "coveredMs": 1049.419704,
+          "retentionOverlapMs": 301.242876,
+          "unclassifiedMs": 180.947626
+        }
+      ],
+      "independentRecalculationMatches": true,
+      "boundary": "같은 프로세스/같은mutex 실제a..e와 visual b..a 교차만 귀속. 동시 요청별 중복 기여를 포함한 대기합계이며 window를 연 요청 하나의 지연이 아니다. counts는 완전포함 보유구간만 사용. 서로 다른 실행의 mutex 번호2와1은 식별자 재할당으로 동일번호를 요구하지 않는다.",
+      "nonMonotonic": "초반 retention held171.262→252.157ms 증가, 중반140.690→113.229ms 및후반205.942→151.422ms 감소. 후반 retention 겹침410.710→301.243ms 감소하지만 전체 시각wait896.011→1230.367ms, 미분류1.438→180.948ms는 증가했다.",
+      "causalLimit": "실제 holder를 특정하고 통제된 짧은fixture에서 동일16후보의 논리 node 감소를 입증했다. 혼합 실행의 p95변화 전체를 순회 변경에 단독 인과 귀속하거나 모든 대기 제거로 주장하지 않는다. seed/문서/스케줄/OS cache 차이가 있다."
+    },
+    "resources": {
+      "sampleSummary": {
+        "status": "observed",
+        "resourceTrendPass": false,
+        "reviewRequired": true,
+        "sampleCount": 121,
+        "groups": [
+          {
+            "pid": 66759,
+            "startIdentity": "macos:1791718197:540465",
+            "sampleCount": 121,
+            "first": {
+              "phaseAt": 9142.138167,
+              "sampledAt": 1791718203900,
+              "rssBytes": 3170795520,
+              "threadCount": 37,
+              "fdCount": 34,
+              "mutationCount": 6
+            },
+            "last": {
+              "phaseAt": 608915.153167,
+              "sampledAt": 1791718803675,
+              "rssBytes": 1970012160,
+              "threadCount": 40,
+              "fdCount": 35,
+              "mutationCount": 2372
+            },
+            "max": {
+              "rssBytes": 3213803520,
+              "threadCount": 42,
+              "fdCount": 40
+            },
+            "delta": {
+              "rssBytes": -1200783360,
+              "threadCount": 3,
+              "fdCount": 1,
+              "mutationCount": 2366
+            },
+            "elapsedMs": 599773.015,
+            "maxGapMs": 5009.155542,
+            "warmupMs": 300000,
+            "postWarmup": {
+              "status": "observed",
+              "sampleCount": 61,
+              "delta": {
+                "rssBytes": 3162112,
+                "threadCount": -1,
+                "fdCount": 1,
+                "mutationCount": 1201
+              },
+              "elapsedMs": 299515.34075000003,
+              "rssMiBPerMinute": 0.6041009437009947
+            }
+          }
+        ]
+      },
+      "sharedOwner": {
+        "status": "captured",
+        "count": 124,
+        "final": {
+          "pid": 66759,
+          "seq": 123,
+          "phase": "after-storage-destruction",
+          "elapsedMs": 605679,
+          "ram": 0,
+          "ramPeak": 164977597,
+          "ramLimit": 671088640,
+          "ramRejected": 0,
+          "scratchDisk": 0,
+          "scratchDiskPeak": 89108480,
+          "scratchDiskLimit": 154130403328,
+          "scratchFd": 0,
+          "scratchFdPeak": 16,
+          "scratchFdLimit": 1048572,
+          "scratchRam": 0,
+          "preservedDisk": 0,
+          "preservedFd": 0,
+          "readerCleanupHealthy": true
+        },
+        "scope": "actual shared product owner; logical charges, not total heap or RSS; sequential counter reads"
+      },
+      "meaning": "종료후 logicalRAM/disk/FD0 및 readerCleanupHealthy는 관측범위 owner 수명 근거다. RSS/footprint 전체나 장시간 무누수 증명이 아니다. 후warmupRSS+3162112B/0.60410094MiB분 및FD+1 관측을 유지하고 resourceTrendPass=false/reviewRequired=true로 둔다."
+    },
+    "notRun": [
+      "새120분",
+      "600 mode에 없는 controls/전체복구·restart·reactivation",
+      "실제 UI fulltest",
+      "별도 acceptance/Qwen/Ollama"
+    ],
+    "pendingClosure": [
+      "최종 문서 정합",
+      "선정 원출력·정제 mapping·Git archive 실제 byte readback",
+      "소유root/pointer/container/port cleanup 확인",
+      "일반push 및 실제 remote byte/ref 확인"
+    ],
+    "historicalLimitsRetained": [
+      "91 최초 Linux 전체archive 소실은 복원하지 않음",
+      "92 최초legacy비용fixture INVALID 및mac준비/LinuxGCC 최초실패 유지",
+      "89~91 내부원인 소급확정하지 않음",
+      "기존 K/F·B/C·C1/C2/C3 직접근거는 해당 범위만 유지"
+    ],
+    "evidenceBindings": {
+      "final600/execution.json": {
+        "bytes": 1749,
+        "sha256": "7a2a9dc6bfd8abfdc30c8bebc0276ae2d4c16bd46c4446ceaeb768408d83e836"
+      },
+      "final600/artifacts/report.json": {
+        "bytes": 50668,
+        "sha256": "2c392a5badf920c1ce16c705e4c6e1abeff3f45ee123444f13336783397fcdcf"
+      },
+      "final600/run.log": {
+        "bytes": 1227203,
+        "sha256": "8d5d9a6487927f4bd84bdecdc70927eb8d92630bd84c04be747a231cb61d25eb"
+      },
+      "final600/media-server-current-observer-lFyvnQ/server-1.private.log": {
+        "bytes": 472279,
+        "sha256": "248333fd270c4596bd428e657e895b2ff7dd77894982697fc88af3ab23c39d7d"
+      },
+      "final600/media-server-current-observer-lFyvnQ/catalog-holders-66759.json": {
+        "bytes": 212894,
+        "sha256": "7bbb58c8df8ccf99bf247ecdd848c8bd2785537f0150b8267736f3bff7d92969"
+      },
+      "evidence/final-freeze.json": {
+        "bytes": 382,
+        "sha256": "be97d387e150089adb8e6eee7b0108c92b53c421c6bd8ca3fe181b0bf906bbbd"
+      },
+      "evidence/final600-plan.json": {
+        "bytes": 896,
+        "sha256": "7caee459fbb690e960788302dd80c4604e4ec4ab37d4542a8382c92618d91868"
+      },
+      "evidence/final600-analysis.json": {
+        "bytes": 6083,
+        "sha256": "fbd264d1223b12d4790fd9aeabc33415e4e408fbffb11c08a6d1c6318ef96378"
+      },
+      "approval-apply.json": {
+        "bytes": 403,
+        "sha256": "6bf842096ac7d8904dfac8174d05a7e26e88aa342d1e9866208a36b4ba05333f"
+      },
+      "approval-apply.log": {
+        "bytes": 12812,
+        "sha256": "d044f8ac77f4e3e0a7ee0672c9d63381151b9f522393a0aa536f910913ef258f"
+      },
+      "coverage-final.json": {
+        "bytes": 352,
+        "sha256": "2d273be3bd5192523e10d47fbc75466dca1c5489747dabbd4678a356a0454c7e"
+      },
+      "coverage-final.log": {
+        "bytes": 604,
+        "sha256": "f3dd9d2ec3cd35ce7a806a391b6918dddd2c2377ca3039afa624f484985f9bce"
+      },
+      "evidence/producer-format.json": {
+        "bytes": 365,
+        "sha256": "4b3685423466e831cd0d6fd43d01bca75c8b90f670702878293b19ce70e5232f"
+      }
+    },
+    "draftDocumentReadback": {
+      "status": "NO_OVERCLAIM_OR_UNIT_BLOCKER_FOUND_IN_READ_DRAFT",
+      "scope": "92-validation 초안 및 backlog92추가문단의 실행수치·이전FAIL·작은여유/최대증가·일부창악화·resourceTrend/P0/120/보존pending을 대조. 최종보존/cleanup/remote 결과는 아직 검토하지 않았다.",
+      "sourceSha256": {
+        "docs/release-artifacts/v4.5.0/92-validation.json": "799dddced86f34f2237457294a401bbed70f5eddf7d0403f4983efe5d7a7deab",
+        "docs/development-backlog.md": "f8926d6e16f701f2c6517b3733754476fb5385b8d2b5cc4ca8ac4fafbdf7d496"
+      },
+      "note": "validation remaining의 독립결과검토 pending은 본 addendum 수령 후 갱신할 수 있다."
+    }
+  },
+  "preservationAddendum": {
+    "reviewedAt": "2026-10-11T11:46:01.077Z",
+    "priorReportSha256": "40a7034fb1b939627b2bd555f15826e828ded5621d6b6f53734a798ca91d2e24",
+    "scope": "새92 archive만 읽고 실제선정 원본과 archive member bytes/hash 대조. 제품/검사/추가실행에 참여하지 않음. 과거archive 전수 재조회하지 않음.",
+    "decision": "LOCAL_ARCHIVE_SELECTED_BYTE_PRESERVATION_CONFIRMED",
+    "archive": {
+      "path": "docs/release-artifacts/v4.5.0/92-execution.tar.gz",
+      "bytes": 23834238,
+      "sha256": "47fa90f0bd4b3369cbc2904e9cc212ef7666d90b249ccb5283625d8c99ac8c89",
+      "regularFileMembers": 521,
+      "payloadMembers": 520,
+      "manifestMembers": 1,
+      "manifestSha256": "090f3d3ec9a5b95259e7b4d015a75709e005940e810c96c2d68dbf366a961fee",
+      "savedPayloadBytes": 42547081,
+      "originalSelectedBytes": 42547245,
+      "allArchivePayloadHashAndByteMismatchCount": 0,
+      "originalSourceMissingCountAtRead": 0,
+      "originalSourceHashAndByteMismatchCount": 0,
+      "unlistedArchiveMemberCount": 0,
+      "nonFileMembers": 0
+    },
+    "privacyMapping": {
+      "transformedFiles": [
+        "diagnostic600/server/server-1.sanitized.log",
+        "final600/server/server-1.sanitized.log"
+      ],
+      "urlReplacementsEach": 8,
+      "exactTransformationReadback": true,
+      "originalAndSavedHashDistinctAndRecorded": true,
+      "structuredHolderRequestResourceFrameLinesUnchanged": true,
+      "excluded": "auth/session state, models/SDK/runtime/test binaries, derivedSQLite, prior91 archive, duplicate986 candidate 및 전체Linux transporttar는 제외. Linux 선정 원문과 receipt는 유지.",
+      "narrowScan": "선정 JSON/JSONL/log/stdout/stderr의 credential-like field/Bearer 및 URL token 검토에서 해당 pattern0. 파일명에 authstate/model/SDK directory 없음. 패턴 검사를 모든 비밀의 부재 증명으로 확대하지 않는다."
+    },
+    "requiredEvidence": "진단/최종600 execution·report·run 및 정제server/holder, 입력·녹화원장, direct비교before2/after와 최초legacy무효원문·fixture, collector 최초실패,mac V2준비실패,Linux 첫GCC원문과후속PASS,freeze/binding/static helper/원문을 포함한다. 전체Linux transporttar 제외는 selected필수원문 손실로 취급하지 않으며 원래archive hash/receipt는 참조로 남는다.",
+    "reportPlacement": "독립보고서는 별도 tracked92-independent-review.json이며 archive내 중복report를 요구하지 않는다. 본 addendum 이후 archive수정 없는 경우 이결속이 유효하다.",
+    "limitsRetained": [
+      "최종600 PASS·작은p95여유·max상승 및선택창 한계 불변",
+      "resourceTrendPassfalse/120·P0·출시보류 불변",
+      "91 첫Linux fullarchive 소실 한계 불변, 원시로그 추정복원없음"
+    ],
+    "notYetConfirmedByThisAddendum": [
+      "이archive의 Git보존commit 실제blob 재조회",
+      "ownedroot 정리 및 부재",
+      "일반push·원격ref/blob byte확인"
+    ],
+    "meaning": "로컬 archive의 실제 바이트 보존 확인이며 Git/remote/cleanup 완료 판정은 후속receipt로만 갱신한다."
   }
 }
