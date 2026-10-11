@@ -1,0 +1,475 @@
+{
+  "schema": "media-server.validation.v1",
+  "task": 88,
+  "status": "PREPARATION_PASS_TECHNICAL_REVIEW_AND_LOCAL_PRESERVATION_COMPLETE",
+  "wholeTaskComplete": true,
+  "memoryP0": "FINAL_MIXED_VALIDATION_PENDING",
+  "releaseApproved": false,
+  "model": {
+    "mainRequested": "gpt-6-astra/high",
+    "mainToolAccepted": null,
+    "mainRuntimeModel": null,
+    "mainRuntimeEffort": null,
+    "independentRequested": "gpt-6-astra/high",
+    "independentToolAccepted": "Prior explicit override accepted for separate independent_memory86; reused",
+    "independentRuntimeModel": null,
+    "independentRuntimeEffort": null
+  },
+  "source": {
+    "entryHead": "d64eb6828ca007232bf1199e3dfbc695962954af",
+    "entryRemote": "d64eb6828ca007232bf1199e3dfbc695962954af",
+    "entryWorktree": "clean",
+    "actualPrepare": {
+      "head": "d64eb6828ca007232bf1199e3dfbc695962954af",
+      "tree": "0a90e151d3c878e2123724bda7ac87430ab75658",
+      "sourceSha256": "9dde4b116a01e307d7fafa3554e96f9a01cbb446ab92c2628d5f8d9937683a8d",
+      "binarySha256": "4781712d46ebc4a6541f48b8b558e1b7dc66a385c7f9718537af2cf3ef337a2b"
+    },
+    "sourceEndIdentical": true,
+    "reconstruction": "Entry commit plus structured-diagnostic.patch and freeze; actual run used dirty exact snapshot, not future implementation commit. Launcher tree is entry tree, sourceSha256 binds source content. No source edits during execution.",
+    "finalFormatting": {
+      "before": {
+        "build-gst-onnx/CMakeFiles/media_server_runtime.dir/src/ingress/visual_search_application_service.cpp.o": "25061bd9fbdd29e8b631d352ccbfcf08f16200c63d94864fba964a3491e4a7a4",
+        "build-gst-onnx/libmedia_server_runtime.a": "0b4723799863d89550bbda75d005aaa5c6dfb0ca023b4a342d29f52c03adb0d4",
+        "build-gst-onnx/media_server": "4781712d46ebc4a6541f48b8b558e1b7dc66a385c7f9718537af2cf3ef337a2b"
+      },
+      "after": {
+        "build-gst-onnx/CMakeFiles/media_server_runtime.dir/src/ingress/visual_search_application_service.cpp.o": "25061bd9fbdd29e8b631d352ccbfcf08f16200c63d94864fba964a3491e4a7a4",
+        "build-gst-onnx/libmedia_server_runtime.a": "ce5866c69ad7c1a75845c576b0581a44c2016063c329f5c31272fe5e59231be3",
+        "build-gst-onnx/media_server": "4781712d46ebc4a6541f48b8b558e1b7dc66a385c7f9718537af2cf3ef337a2b"
+      },
+      "equal": {
+        "build-gst-onnx/CMakeFiles/media_server_runtime.dir/src/ingress/visual_search_application_service.cpp.o": true,
+        "build-gst-onnx/libmedia_server_runtime.a": false,
+        "build-gst-onnx/media_server": true
+      },
+      "onlyProductChangeSincePassedPrepare": "seven statement boundaries split across lines; token sequence unchanged; no semantic change"
+    },
+    "reuse": "86 C1/C2/C3;85 B1024/TTL C16;78-84 cold/streaming/scratch/Finish/K-F/aggregate owner/D within original source/environment. No reissue of59/61/63/65/72-74 as current HEAD tests.",
+    "implementationCommit": "5a73c455633f956259d21b7d7807f851b200c65c",
+    "implementationTree": "ceb0e79300daeea299d550df7b3baa3162dc916b",
+    "codeCommit": "5a73c455633f956259d21b7d7807f851b200c65c"
+  },
+  "cause": {
+    "historical87": "prepare01 route unknown; prepare02 two visual requests5001/5005ms before headers. Original internal cause not retroactively determined. Per-send socket5s is separate from client whole-request5s.",
+    "newMeasurement": "Refined original concurrent load reproduced client5s timeout; server handler5606.713ms, current-source candidate3911.370ms, final verification/JSON773.452ms, text lock430.349ms, actual text Run42.878ms, send0.021ms. Catalog binding154 calls totaled3606.854ms versus cold-link actual read161.388ms; original latency identifies lock wait. Nested totals are not additive elapsed time.",
+    "scope": "Current source verification repetition and Catalog contention are proven in new run. Not a hardware decoder/ONNX/root-cause claim for87. No session/mutex sharing/thread/model/sample/scan/deadline change.",
+    "unobserved": "accept-to-parse duration not instrumented; synthetic A observations not detector/physical-video truth; short samples not longterm leak attribution."
+  },
+  "changes": [
+    "Second retention read uses current authority/reservations without regenerating discarded candidate list; provider full snapshot and per-deletion current validation remain.",
+    "Same Catalog critical-section row iterator reused for presence/lifecycle/eligibility/serialization; no cross-request cache, old strong reference, full-history RAM or altered owner budget.",
+    "Original prevalidate/open/fstat/postvalidate retained; postvalidation and source-binding read combined under one Catalog cut. Prepared FileEvidence, same-file/current bytes and exact seek remain.",
+    "Redundant eligible IsDeleted omitted only on successful current Resolve; failure still distinguishes deleted source.",
+    "Opt-in bounded fixed numeric phase diagnostics and strict collector fail closed for loss/missing/duplicate/overflow/write errors. Structured diagnostic marks existing source-changed retry without changing3attempt contract or503 allowlist."
+  ],
+  "diagnostic": {
+    "mode": "prepare only; MEDIA_SERVER_VERIFY_VISUAL_LATENCY_TRACE=1 reconstructed by actual runner environment",
+    "bound": "max4096 events,each<256B,under1MiB; original4MiB wholeprocess log; strict start/end/thread/parent pairing and no loss",
+    "normalAndDecoder": "Existing bounded decoder mode remains. Representative decoder samples are not full call count.",
+    "timingImpact": "Opt-in diagnostic I/O may influence latency; measured before/after original load uses instrumentation. Final original run itself is the demonstrated scope."
+  },
+  "execution": {
+    "newPrepareRuns": 6,
+    "mixed120Runs": 0,
+    "firstFailures": [
+      {
+        "run": "diagnostic-before",
+        "status": "FAIL",
+        "failure": [
+          "[fail] current observation: V440 successful search latency"
+        ],
+        "passes": 102,
+        "failed": 1
+      },
+      {
+        "run": "diagnostic-refined",
+        "status": "FAIL",
+        "failure": [
+          "[fail] current observation: http-header-timeout"
+        ],
+        "passes": 55,
+        "failed": 1
+      },
+      {
+        "run": "prepare-reservations",
+        "status": "FAIL",
+        "failure": [
+          "[fail] current observation: V440 actual mixed work occurred"
+        ],
+        "passes": 127,
+        "failed": 1
+      },
+      {
+        "run": "prepare-combined",
+        "status": "FAIL",
+        "failure": [
+          "[fail] current observation: V440 successful search latency"
+        ],
+        "passes": 102,
+        "failed": 1
+      },
+      {
+        "run": "prepare-rowreuse",
+        "status": "FAIL",
+        "failure": [
+          "[fail] current observation: redacted-error"
+        ],
+        "passes": 110,
+        "failed": 1
+      }
+    ],
+    "runReason": "Initial diagnostic; refined owner boundary diagnostic; three cumulative proven cost fixes A/B/C; final one diagnostic-source change to distinguish newly observed structured503. No unchanged-binary success loop or auto retry.",
+    "intermediate503": "prepare-rowreuse main30.180s/latency PASS but subsequent cancel preparation structuredGET503. Internal reason absent and remains unconfirmed. Final changed diagnostic observed two source-change attempts followed by existing successful retry; no retroactive attribution or product recovery claim.",
+    "final": {
+      "command": "python3 scripts/internal/run_v450_recording_a_mixed.py --prepare <new owned absolute run root>",
+      "observedSeconds": 30.141227082999997,
+      "driverElapsedSeconds": 59.908,
+      "launcherElapsedSeconds": 64.7149600830162,
+      "totalWithBindingSeconds": 65.09622120799031,
+      "passed": 249,
+      "failed": 0,
+      "exit": 0,
+      "wholeBudgetSeconds": 180,
+      "originalChannels": [
+        "9101",
+        "9201"
+      ],
+      "clients": "2visual+2structured, original15s opportunities,ball threshold=-1 limit20, scan/sample1s,no extra warmup",
+      "mainSearchSamples": 8,
+      "mainP95Ms": 1989.4849589999976,
+      "mainMaxMs": 1989.4849589999976,
+      "allIncludingReactivationSamples": 12,
+      "allIncludingReactivationP95Ms": 2187.668792000004,
+      "allIncludingReactivationMaxMs": 2187.668792000004,
+      "latencyMeaning": "Original <=2000ms p95 gate applied main observation8 samples before controls; reactivation4 added later not reclassified/removed. All12 succeeded within original wholeHTTP5s. No claim all12p95<=2s.",
+      "searchSuccess": 12,
+      "searchUnavailable": 0,
+      "visualResults": 80,
+      "actualIndexStateProgress": [
+        {
+          "cycle": 0,
+          "state": "ready",
+          "error": "",
+          "channels": [
+            {
+              "channelId": "1",
+              "indexedFrames": 1
+            },
+            {
+              "channelId": "9101",
+              "indexedFrames": 0
+            },
+            {
+              "channelId": "9201",
+              "indexedFrames": 0
+            }
+          ]
+        },
+        {
+          "cycle": 0,
+          "state": "indexing",
+          "error": "",
+          "channels": [
+            {
+              "channelId": "1",
+              "indexedFrames": 1
+            },
+            {
+              "channelId": "9101",
+              "indexedFrames": 12
+            },
+            {
+              "channelId": "9201",
+              "indexedFrames": 12
+            }
+          ]
+        },
+        {
+          "cycle": 1,
+          "state": "indexing",
+          "error": "",
+          "channels": [
+            {
+              "channelId": "1",
+              "indexedFrames": 1
+            },
+            {
+              "channelId": "9101",
+              "indexedFrames": 16
+            },
+            {
+              "channelId": "9201",
+              "indexedFrames": 17
+            }
+          ]
+        }
+      ],
+      "recording": {
+        "9101": {
+          "finalized": 14,
+          "deleted": 7,
+          "lastAt": 37888.773375,
+          "order": "30",
+          "store": "22b67f3d269f9110bd8fcae7e02f5b053dc544e7fc260b5f7bacbe388fe00db3",
+          "knownMappings": 10,
+          "unknownMappings": 592
+        },
+        "9201": {
+          "finalized": 14,
+          "deleted": 6,
+          "lastAt": 37888.773375,
+          "order": "29",
+          "store": "22b67f3d269f9110bd8fcae7e02f5b053dc544e7fc260b5f7bacbe388fe00db3",
+          "knownMappings": 11,
+          "unknownMappings": 568
+        }
+      },
+      "evidenceComplete": 2,
+      "evidencePartial": 0,
+      "aMainComplete": 1,
+      "aReactivationComplete": 1,
+      "aControls": {
+        "cancel": {
+          "httpStatus": 200,
+          "state": "cancelled",
+          "reviewId": ""
+        },
+        "revoke": {
+          "status": 401,
+          "unchangedStore": true
+        },
+        "restart": {
+          "allLocalBytesUnchanged": true,
+          "independentHttpReadbackCount": 1,
+          "transientExpired": true
+        }
+      },
+      "processCount": 3,
+      "processesClosed": true,
+      "udpClosed": true,
+      "registeredGroupsAbsent": true
+    }
+  },
+  "regressions": {
+    "deterministic": "Promise-controlled other thread modifies owned source file after request preparation; ResolvePrepared rejects with output unchanged; restore/release/join even on failure. Reservation-only authority/result equality direct case. Existing cold/read/cache/FD/8MiB/oversize retained. Not fake inference substitute.",
+    "macOS": [
+      "Final product build",
+      "Actual SigLIP2 token/vector parity and application single-query/scope/previous-index behavior; worker and collector contracts",
+      "Final-format request media cache and file mutation",
+      "Retention/search source/application",
+      "Four crypto/SQLite/generation request-proof configs"
+    ],
+    "linux": {
+      "image": "ce72c8a15363984da642e9964189957896812061c6af1d0ef67e87b38ad5a588",
+      "uid": 10001,
+      "network": "none",
+      "isolation": "readonly source/root; existing image; owned executable tmpfs;4GiB/2CPU, no install",
+      "passed": [
+        "Final product build",
+        "Retention/source/application/SigLIP2 query",
+        "Worker and visual application",
+        "Final source request cache/actual file mutation",
+        "Four crypto/SQLite/generation request-proof configs"
+      ],
+      "firstFailures": "GCC misleading-indentation Werror in old one-line fixtures and application; newline-only repair; retained original errors. Two successful tests had detailed tmpfs logs unavailable after owner container exit; receipts/console only retained, not reconstructed. Repeated only those tests for raw preservation; first repeat spawn failed due missing exec mount, fixed owned tmpfs exec without altering source permission contracts. Final raw collection exits0 and preserves all logs.",
+      "actualFinalFiles": [
+        "linux-preserved-final/build.log",
+        "linux-exec-corrected/cache-run.log",
+        "linux-exec-corrected/request-proof.log"
+      ],
+      "productBinarySha256": "9e4f8e21dc40e51b1fbf6a42e8dd08b2b0c4ffe0c62a75325dcd15e31bc2b5a5",
+      "runtimeArchiveSha256": "ff2790d7289bc119f50b4434d3ed778382b5760eef9299285c52969f5716e20b"
+    },
+    "notRun": [
+      "120min",
+      "acceptance",
+      "fullUI",
+      "full86 B/C/D",
+      "model installation/Qwen/Ollama"
+    ],
+    "singleSearchScope": "Existing actual SigLIP2 application direct single-query/scope fixture; not a separate standalone HTTP performance run. Original concurrent HTTP prepare is separate."
+  },
+  "resources": {
+    "currentReport": {
+      "status": "observed",
+      "resourceTrendPass": false,
+      "reviewRequired": true,
+      "sampleCount": 7,
+      "groups": [
+        {
+          "pid": 40625,
+          "startIdentity": "macos:1791696663:363894",
+          "sampleCount": 7,
+          "first": {
+            "phaseAt": 7946.471625,
+            "sampledAt": 1791696668981,
+            "rssBytes": 3169910784,
+            "threadCount": 36,
+            "fdCount": 34,
+            "mutationCount": 6
+          },
+          "last": {
+            "phaseAt": 37888.773375,
+            "sampledAt": 1791696698924,
+            "rssBytes": 1699954688,
+            "threadCount": 40,
+            "fdCount": 34,
+            "mutationCount": 89
+          },
+          "max": {
+            "rssBytes": 3212443648,
+            "threadCount": 40,
+            "fdCount": 34
+          },
+          "delta": {
+            "rssBytes": -1469956096,
+            "threadCount": 4,
+            "fdCount": 0,
+            "mutationCount": 83
+          },
+          "elapsedMs": 29942.30175,
+          "maxGapMs": 5009.272917000002,
+          "warmupMs": 300000,
+          "postWarmup": {
+            "status": "insufficient",
+            "sampleCount": 0,
+            "delta": null,
+            "elapsedMs": null,
+            "rssMiBPerMinute": null
+          }
+        }
+      ]
+    },
+    "interpretation": "resourceTrendPass=false/reviewRequired=true maintained. Sample max RSS3212443648,7 samples/30s; warmup insufficient; no trend/no-leak/P0 closure. Owner RAM/scratch/FD final release0 in all3processes; no new session/cache/RGB queue.",
+    "processOwnerLogs": [
+      {
+        "file": "prepare-structured-diagnostic/media-server-current-observer-duhZrR/server-1.private.log",
+        "bytes": 330080,
+        "sha256": "c559ef67c0afea6b9db7ecb574deb0feb6df37639bd36431d3b635bbb042098a",
+        "resourceRows": 11,
+        "last": {
+          "pid": 40625,
+          "seq": 10,
+          "phase": "after-storage-destruction",
+          "elapsedMs": 36510,
+          "ram": 0,
+          "ramPeak": 155457652,
+          "ramLimit": 671088640,
+          "ramRejected": 0,
+          "scratchDisk": 0,
+          "scratchDiskPeak": 1556480,
+          "scratchDiskLimit": 155718012928,
+          "scratchFd": 0,
+          "scratchFdPeak": 7,
+          "scratchFdLimit": 1048572,
+          "scratchRam": 0,
+          "preservedDisk": 0,
+          "preservedFd": 0,
+          "readerCleanupHealthy": true
+        }
+      },
+      {
+        "file": "prepare-structured-diagnostic/media-server-current-observer-duhZrR/server-2.private.log",
+        "bytes": 34772,
+        "sha256": "a291f34574dd177c8b0562d8ee525c24acfd45b6610f6617fb7c9d0234f9bfcf",
+        "resourceRows": 4,
+        "last": {
+          "pid": 40792,
+          "seq": 3,
+          "phase": "after-storage-destruction",
+          "elapsedMs": 5061,
+          "ram": 0,
+          "ramPeak": 10021256,
+          "ramLimit": 671088640,
+          "ramRejected": 0,
+          "scratchDisk": 0,
+          "scratchDiskPeak": 1556480,
+          "scratchDiskLimit": 155722444800,
+          "scratchFd": 0,
+          "scratchFdPeak": 6,
+          "scratchFdLimit": 1048572,
+          "scratchRam": 0,
+          "preservedDisk": 0,
+          "preservedFd": 0,
+          "readerCleanupHealthy": true
+        }
+      },
+      {
+        "file": "prepare-structured-diagnostic/media-server-current-observer-duhZrR/server-3.private.log",
+        "bytes": 211640,
+        "sha256": "7d819d99ee62569e3a8a3fa30ed35634bbc70dc79c8491bde02a26b450412a41",
+        "resourceRows": 5,
+        "last": {
+          "pid": 40846,
+          "seq": 4,
+          "phase": "after-storage-destruction",
+          "elapsedMs": 10137,
+          "ram": 0,
+          "ramPeak": 155578650,
+          "ramLimit": 671088640,
+          "ramRejected": 0,
+          "scratchDisk": 0,
+          "scratchDiskPeak": 1765376,
+          "scratchDiskLimit": 155722375168,
+          "scratchFd": 0,
+          "scratchFdPeak": 7,
+          "scratchFdLimit": 1048572,
+          "scratchRam": 0,
+          "preservedDisk": 0,
+          "preservedFd": 0,
+          "readerCleanupHealthy": true
+        }
+      }
+    ]
+  },
+  "binding": {
+    "status": "PASS existing producer and built-in readback",
+    "candidateDigest": "8977e9b6ac618c7e0233823f6acb6ab1fcf7461206ee5d8b2a4149a643519e3a",
+    "strictCarryForward": 689,
+    "independentChanged": 297,
+    "proof": "Four independently reviewed context refresh roles applied via existing tool;6ambiguous same-context authored line relocations independently verified against unchanged41-line windows, hashes unchanged. Not generic resolver relaxation or self approval.",
+    "firstProducerFailure": "ReviewedAt UTC microseconds+offset syntax rejected by existing canonical millisecond-Z parser; no ledger changes. Original independent artifact preserved; reviewer supplies equivalent canonical date representation separately.",
+    "producerReceipt": "producer-canonical.json",
+    "independentDecision": "independent-scoped-decisions-canonical.json",
+    "readback": {
+      "approvals": 0,
+      "implementationEvidence": 0
+    }
+  },
+  "independentReview": "88-independent-review.json",
+  "preservation": {
+    "archive": "88-execution.tar.gz",
+    "status": "PASS final selected archive byte readback; remote verified after commit",
+    "past87": "Original failed reports unchanged; prior archive not duplicated",
+    "privacy": "Runtime HTTP(S)/RTSP(S) URLs only sanitized with raw/preserved bytes/hash receipt. Credentials state excluded. Missing tmpfs logs not reconstructed.",
+    "bytes": 5785318,
+    "sha256": "07f3e0f640048aad707eb2a735616a0bbb29a5cf69fb55b221d002962303be38",
+    "payloadFiles": 431,
+    "payloadBytes": 32788978,
+    "tarMembers": 432,
+    "allMemberBytesVerified": true,
+    "sanitizedFiles": 8
+  },
+  "cleanup": {
+    "status": "PASS:3 final product processes and owned groups/ports closed; all task containers absent;13 owned execution roots absent. Parent evidence-only staging retained until remote byte readback, then removed.",
+    "modelsSdkImages": "unchanged",
+    "qwenOllamaCalls": 0,
+    "unloadGate": "not-run",
+    "receipt": "owned-work-cleanup.json"
+  },
+  "remaining": [
+    "Final mixed120 is the next existing planned gate, not executed or newly authorized here.",
+    "Memory P0 and release hold continue; no new arbitrary completed-scope blockers.",
+    "No owner risk acceptance,PR,CI,merge,tag,Release."
+  ],
+  "statics": {
+    "scriptInventory": 0,
+    "docsLinks": 0,
+    "releaseMetadata": 0,
+    "diffCheck": 0,
+    "coverage": 0
+  },
+  "completionBoundary": "This task technical/preparation/local evidence scope complete; Git push and actual remote SHA/bytes are reported after this evidence commit. Not120/P0/release completion.",
+  "independentScope": "Separate reviewer accepted product/preparation,297rebinding,producer/static/local byte preservation/owned execution cleanup. Final repack rechecked separately; remote push remains subsequent action."
+}
