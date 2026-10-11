@@ -1,0 +1,290 @@
+{
+  "schema": "media-server.v450.validation.v1",
+  "task": 96,
+  "status": "SPACE_REPRESENTATION_AND_FAILURE_OPERANDS_DIRECT_PASS_CUMULATIVE_FAIL",
+  "memoryP0": "unresolved",
+  "release": "held",
+  "ownerRiskAcceptance": "not-granted",
+  "model": {
+    "requestedMain": "gpt-6-astra/high",
+    "mainToolAccepted": "not-exposed",
+    "mainRuntime": "not-exposed",
+    "independent": {
+      "requested": "gpt-6-astra/high",
+      "toolAccepted": "prior existing reviewer acceptance record; followup exposes no new settings",
+      "runtime": "not-exposed"
+    }
+  },
+  "baseline": "6cf72320b44129baf84a5838a3d7af4be2385ea9",
+  "implementation": {
+    "head": "bb4bf67ecdae67b4a8d82e9ea66621091699db64",
+    "tree": "c61b9084fb7e22bdaf553dd80cb334c7f495da77",
+    "sourceSha256": "4c5e64041ff4d18c61244c223b0603c8746a392a3cac03457693fa6c2cfcd979",
+    "binarySha256": "cdeae15e38f9c2d1490efa064ee741dd5d18e51d6f2e3c29d5acd7721cd39e26"
+  },
+  "runtimeSha256": "73817f73b281c9120e41360593f5c45c42fff51d6cc28082444563611fc4b036",
+  "changes": {
+    "product": "small regular-tree values<=112B stored in existing authenticated512B node padding instead of additional2048B slot; first growth allocates old slot once; overwrites reuse it; external/sequential paths unchanged",
+    "admission": "original2560B-per-row worst-case admission, copy allowance, resource limits and value/key maximum unchanged; no quota/cap/F change",
+    "collector": "same guard inputs/time/PID/category/anonymous max/copy/product owner captured before throw in exclusive preallocated32768B slot; primary and collection failures separate; integer overflow/missing/replace fail closed",
+    "limitations": "ordinary file scan and anonymous FD read are sequential; no dedup/min policy or instantaneous maximum claim; diagnostic FD collector error classification only, original retry/budget retained"
+  },
+  "prior95": {
+    "status": "FAIL preserved",
+    "495vs494": "sample pushed beforeworkspace guard, current-observation printed afterguard; failingpoint not output. New capture fixes boundary prospectively.",
+    "exactFailedAnonymousAndOwners": "not-preserved; not reconstructed",
+    "partialP95": 2298.581,
+    "configRestore": "only proved91/93 removed in95; full preincident restoration unknown; privatebackup excluded; configs untouched96"
+  },
+  "comparison": {
+    "sourceBefore": "6cf72320b44129baf84a5838a3d7af4be2385ea9",
+    "sourceAfter": "bb4bf67ecdae67b4a8d82e9ea66621091699db64 product files; final-source.json",
+    "fixture": "same public Reserve/FinalizeBound/Delete/Checkpoint generation path;128/512/2048;new stores/times, not byte-identical95",
+    "measurement": "one final controlled before/after, no compilation overlap; native live malloc/RSS/footprint/FD plus external200ms samples. Observer/oracle not productPID. Step endpoints and sampled highwaters not all instantaneous peaks.",
+    "anonymousStableLogicalBefore": [
+      8201728,
+      32790528,
+      131138048
+    ],
+    "anonymousStableLogicalAfter": [
+      5049856,
+      20191232,
+      80755200
+    ],
+    "history2048": {
+      "anonymousAllocatedBefore": 131948544,
+      "anonymousAllocatedAfter": 80822272,
+      "reservedDiskBoth": 131149824,
+      "reservedPeakBoth": 265400320,
+      "mallocLiveBefore": 4162400,
+      "mallocLiveAfter": 4162320,
+      "rssBefore": 65519616,
+      "rssAfter": 65667072,
+      "checkpointMsBefore": 1229.1,
+      "checkpointMsAfter": 1213.7,
+      "sampledAnonymousAllocatedPeakBefore": 260120576,
+      "sampledAnonymousAllocatedPeakAfter": 176758784,
+      "finishAnonymousBytes": 0,
+      "finishFD": 3
+    },
+    "interpretation": "proven avoidable fixed-slot representation cost; no general RAM reduction or95 exact failure attribution; no unneeded-reader release claimed",
+    "sources": [
+      "before-final.log",
+      "after-final.log",
+      "before-final-metrics.jsonl",
+      "after-final-metrics.jsonl",
+      "comparison-build-commands.json"
+    ]
+  },
+  "capacity": {
+    "histories": 3072,
+    "elapsedSeconds": 107.95691195805557,
+    "samples": 519,
+    "sameSampleSequentialBytes": 368907191,
+    "margin448MiB": 100854857,
+    "reservedPeak": 398278656,
+    "finishAnonymous": 0,
+    "scope": "short scale plus actual prepare justified conditional45 once, not universal worst-case fit; details feasibility.json",
+    "firstAttempt": "collector fd-list-saturated FAIL preserved; diagnostic classification added, one predeclared same-condition diagnostic runPASS; original ambiguity not retroresolved"
+  },
+  "tests": {
+    "macOS": [
+      "product build",
+      "generation/checkpoint supported/closed4configuration wrapper",
+      "K/F checkpoint concurrency4configuration wrapper",
+      "workspace28/0",
+      "HTTP/workspace node10/0",
+      "metrics47/0",
+      "foundation34/0",
+      "longrun-progress",
+      "resource-trace",
+      "scriptinventory13/0"
+    ],
+    "linux": {
+      "uid": 10001,
+      "network": "none",
+      "existingImage": "sha256:ce72c8a15363984da642e9964189957896812061c6af1d0ef67e87b38ad5a588",
+      "checks": [
+        "product build",
+        "generation checkpoint4configurations",
+        "workspace",
+        "metrics44/0",
+        "foundation34/0",
+        "workspace/HTTP10/0"
+      ],
+      "environment": "existing SDK/GStreamer/ONNX; no installs;95 isolation helpers; Werror kept"
+    },
+    "firstFailures": [
+      "workspace-contract-1: new reserved files needed fixture cleanup; corrected",
+      "shell sourced zsh environment underbash:bad substitution; corrected shell",
+      "new foundation test quote syntax: caught before execution and corrected; no standalone raw log retained",
+      "workspace-status-final:sandbox listenEPERM; authorized host runPASS",
+      "capacity: FD observation ambiguity; retained and narrowed diagnostic only"
+    ],
+    "prepare": {
+      "runs": 1,
+      "mode": "prepare",
+      "passed": 250,
+      "failed": 0,
+      "observationMs": 30153.729,
+      "source": "prepare-final/execution.json (source+diff); product unchanged from cumulative; later collector-error classification directly tested",
+      "notSubstituteForCumulativeRecovery": true
+    }
+  },
+  "cumulative": {
+    "runs": 1,
+    "mode": "--state-diagnostic",
+    "requestedObservationSeconds": 2700,
+    "totalBudgetSeconds": 2880,
+    "executionSeconds": 1856.94569141604,
+    "sampleSpanSeconds": 1841.5465848329998,
+    "verifiedDurationMs": null,
+    "status": "FAIL",
+    "passed": 6870,
+    "failed": 1,
+    "firstFailure": {
+      "assertion": "LP26-O05 active9101",
+      "actual": "enabled=true,active=true,storageBlocked=true",
+      "rawBytes": 908,
+      "rawSha256": "f757433fadc163f6eea7d380df700abc362d5e78b32a11f0f14c3f1484ff0c59",
+      "collectionErrors": [],
+      "quotaEvidence": {
+        "actualPlusWrite": 67402036,
+        "quota": 67371008,
+        "excessBytes": 31028,
+        "protected": 1,
+        "reservations": 67104204,
+        "physicalFree": 155637772288,
+        "required": 67108864,
+        "relation": "nearby product trace seq40/42; source quotaOk=false; not same-time workspace measurement or identification of protected segment; later recovery not retroPASS"
+      }
+    },
+    "space": {
+      "workspaceFailure": false,
+      "pairedSamples": 369,
+      "maxSequentialVariableAndAnonymous": 257849715,
+      "marginTo448MiB": 211912333,
+      "fixedBytes": 13618605,
+      "copyDuringMain": 0,
+      "limits": "not atomic/whole45/120 guarantee; no95backfill"
+    },
+    "partialSearch": {
+      "population": "existing successful-search population only;503 separately counted, unchanged policy; not final gate",
+      "samples": 483,
+      "p95": 2364.0449999999255,
+      "maximum": 3159.215208000038,
+      "p95Limit": 2000,
+      "maximumLimit": 5000,
+      "success": 483,
+      "unavailable": 9,
+      "byClient": [
+        120,
+        123,
+        119,
+        121
+      ],
+      "finalGate": "not-run"
+    },
+    "aCompleted": 31,
+    "resources": {
+      "status": "observed",
+      "resourceTrendPass": false,
+      "reviewRequired": true,
+      "sampleCount": 369,
+      "groups": [
+        {
+          "pid": 11714,
+          "startIdentity": "macos:1791757090:646630",
+          "sampleCount": 369,
+          "first": {
+            "phaseAt": 7992.681459,
+            "sampledAt": 1791757096088,
+            "rssBytes": 3171106816,
+            "threadCount": 37,
+            "fdCount": 34,
+            "mutationCount": 6
+          },
+          "last": {
+            "phaseAt": 1849539.266292,
+            "sampledAt": 1791758937648,
+            "rssBytes": 1737605120,
+            "threadCount": 41,
+            "fdCount": 33,
+            "mutationCount": 7335
+          },
+          "max": {
+            "rssBytes": 3213361152,
+            "threadCount": 43,
+            "fdCount": 41
+          },
+          "delta": {
+            "rssBytes": -1433501696,
+            "threadCount": 4,
+            "fdCount": -1,
+            "mutationCount": 7329
+          },
+          "elapsedMs": 1841546.5848329999,
+          "maxGapMs": 5008.6281660000095,
+          "warmupMs": 300000,
+          "postWarmup": {
+            "status": "observed",
+            "sampleCount": 309,
+            "delta": {
+              "rssBytes": 13565952,
+              "threadCount": 0,
+              "fdCount": -2,
+              "mutationCount": 6165
+            },
+            "elapsedMs": 1541288.172708,
+            "rssMiBPerMinute": 0.5036371612689083
+          }
+        }
+      ]
+    },
+    "normalShutdown": {
+      "processesClosed": true,
+      "udpClosed": true
+    },
+    "subsequentLifecycleRecovery": "not-run; no retry or120",
+    "diagnostics": "bounded; process log683450B received/stored/hash match; resource/state traces complete; owner0 final not evidence that during-run space never problematic"
+  },
+  "budgetDecision": {
+    "45": "conditional feasibility supported; actual run interrupted byquota before41min; full45 fit/progress not demonstrated",
+    "120": "not-established/not-run",
+    "unavoidable448Conflict": "not-proven; no budget expansion proposal asserted",
+    "remaining": "protected-victim quota transition and partial search p95 require separate targeted resolution; do not reclassify failure or lowerload/raisecaps"
+  },
+  "binding": {
+    "producer": "existing --apply-approved-manifest PASS51/0 after independent review",
+    "inventory": "PASS18/0",
+    "coverage": "PASS9/0;986covered/0missing",
+    "candidate": "items/trustBindings/digest identical; new product behavior separately reviewed",
+    "manifest": "inventorySha256 only semantic change; generated/readback; no manualapproval/hash",
+    "candidateDigest": "8977e9b6ac618c7e0233823f6acb6ab1fcf7461206ee5d8b2a4149a643519e3a"
+  },
+  "preservation": {
+    "archive": "96-execution.tar.gz",
+    "sha256": "686363e5475eaec9e52e8c7c5448eb506c11107ab84a8e39d1133231241c1408",
+    "bytes": 1678073,
+    "membersReceipt": "preservation.json",
+    "scope": "134 selected files;88 original/46 sanitized; exact hashes/transforms inreceipt; no95duplicate/auth/privatebackup/model/media bulk",
+    "failureSource": "current generation subset and post-stop recording-file hashes; not full store recovery archive or failuretime snapshot"
+  },
+  "independentReview": "96-independent-review.json",
+  "cleanup": {
+    "processGroupsAbsent": true,
+    "portsClosed": true,
+    "temporaryRoots": "pending byte verification then owned-only cleanup",
+    "private95backup": "untouched/excluded",
+    "modelsSDKImages": "retained"
+  },
+  "qwenOllamaCalls": 0,
+  "unloadGate": "not-run",
+  "excluded": [
+    "new120",
+    "fullacceptance/UI",
+    "riskacceptance",
+    "PR/CI/merge/tag/Release"
+  ],
+  "remote": "pending ordinary push"
+}

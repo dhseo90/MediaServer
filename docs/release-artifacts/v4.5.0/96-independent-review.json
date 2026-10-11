@@ -1,0 +1,64 @@
+{
+  "schema": "media-server.v450.independent-review.v1",
+  "task": 96,
+  "reviewer": "/root/independent_memory86",
+  "independence": "separate reviewer; read-only; did not implement, author tests, or run tests; no delegation",
+  "model": {
+    "requested": "gpt-6-astra/high",
+    "toolAccepted": "prior existing reviewer acceptance record; followup exposes no new settings",
+    "runtime": "not-exposed"
+  },
+  "reviewedImplementation": "bb4bf67ecdae67b4a8d82e9ea66621091699db64",
+  "preflight": {
+    "blockingFindings": [],
+    "scope": [
+      "exact workspace operands and independent collection failure",
+      "inline112 authenticated node storage; original admission/external slots/overwrite unchanged",
+      "final12file source/binary/runtime binding",
+      "macOS/Linux regressions",
+      "3072 capacity plus prepare supports conditional single45 attempt, not guaranteed outcome",
+      "candidate items/trustBindings/digest equivalence; new behavior independently reviewed"
+    ]
+  },
+  "result": {
+    "status": "LIMITED_CHANGE_ACCEPTED_CUMULATIVE_FAIL",
+    "blockingFindingsForHonestPreservation": [],
+    "findings": [
+      "Actual HTTP200 body has9101 enabled/active true and storageBlocked true;908B hash matches diagnostic; no collection error.",
+      "Adjacent product seq40/42 records actual remaining bytes plus expected write67402036 > quota67371008 by31028B; protected1/deleted0/refreshOk1; physical space sufficient. Later recovery does not undo failure.",
+      "369 corresponding sample sums peak257849715B; non-atomic samples, not instantaneous peak or45min guarantee. Workspace rejection operands proven by direct tests, no actual workspace rejection in cumulative.",
+      "Partial successful-search483 p95=2364.045ms/max3159.215ms; unavailable9 separate; final gate not-run. A31 completed.",
+      "Normal shutdown, group absence, HTTP/RTSP closure, final ownerRAM/disk/FD0, server log683450 received/stored bytes and hash confirmed.",
+      "Inline cost reduction/direct evidence maintained.45min PASS/lifecycle-recovery/memoryP0/release cannot be claimed.95 missing failure operands remain unknown."
+    ],
+    "remainingPreservationChecks": "archive readback, owned temporary cleanup and remote preservation verified separately in validation cleanup/addendum"
+  },
+  "reviewedEvidence": [
+    "cumulative/execution.json",
+    "cumulative/run.log",
+    "cumulative/artifacts/recording-status-369.private.json",
+    "cumulative/artifacts/recording-status-369.diagnostic.json",
+    "cumulative/media-server-current-observer-worFkU/server-1.private.log",
+    "result-analysis.json",
+    "final-source.json",
+    "before-final.log",
+    "after-final.log",
+    "capacity-diagnostic-result.json",
+    "feasibility.json",
+    "linux96/",
+    "linux96-diagnostics/"
+  ],
+  "ownerRiskAcceptance": "not-granted",
+  "releaseAdoption": "not-performed",
+  "preservationReview": {
+    "blockingFindings": [],
+    "archiveBytes": 1678073,
+    "archiveSha256": "686363e5475eaec9e52e8c7c5448eb506c11107ab84a8e39d1133231241c1408",
+    "memberBytesChecked": 134,
+    "original": 88,
+    "sanitized": 46,
+    "mismatches": 0,
+    "scope": "independent raw/archive readback; credentials/private95backup excluded; currentgeneration subset not whole recovery snapshot; documents consistently distinguish directPASS/cumulativeFAIL/partialp95/remainingP0",
+    "remaining": "Git remote bytes and owned cleanup"
+  }
+}
