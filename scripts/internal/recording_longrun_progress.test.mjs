@@ -1,3 +1,4 @@
+import {visualPhaseSummary} from './recording_longrun_progress.mjs';
 // 파일 용도: 장시간 관측 진행·표본 연속성·삭제 확인 계약 검사.
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -154,5 +155,15 @@ check('mixed120 keeps actual bounded child and final expectation',()=>{
   const b=mixedBoundary(mixedSource,false);assert.equal(vm.runInContext('duration',b.context),7200000);assert.equal(childMode(b),'bounded');
   b.context.text=trace(diagnostic);b.context.app={requiresFrameTrace:true};
   vm.runInContext(b.summary+'\nglobalThis.summaryResult=frameTrace;',b.context);assert.equal(b.context.summaryResult.status,'captured');
+});
+check('MEM88 phase collection rejects missing/loss/late or broken pairs',()=>{
+  const row=(v)=>'[visual-phase] '+JSON.stringify(v)+'\n';
+  const begin={id:1,parent:0,thread:1,phase:'visual-search',end:false,ns:10};
+  const end={...begin,end:true,ns:20};const complete=row(begin)+row(end);
+  assert.equal(visualPhaseSummary(complete).status,'captured');
+  assert.equal(visualPhaseSummary('').status,'incomplete');
+  assert.equal(visualPhaseSummary('',false).status,'not-observed');
+  for(const raw of [row(begin),row(end),complete+'[visual-phase-loss] cap\n',complete+'[visual-phase-loss] write\n',row(begin)+row({...end,thread:2}),complete+complete])assert.equal(visualPhaseSummary(raw).status,'incomplete');
+  assert.equal(visualPhaseSummary(complete).phases['visual-search'].totalNs,10);
 });
 console.log(`[summary] passed=${passed} failed=${failed} elapsedMs=${Date.now()-start}`);process.exitCode=failed?1:0;

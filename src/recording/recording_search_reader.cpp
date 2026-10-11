@@ -1,3 +1,4 @@
+#include "recording/recording_latency_trace.h"
 // 파일 용도: 원본 참조와 검색의 UTC/PTS를 결합한다. 검색 결과를 파일 재생 증명으로 사용하지 않는다.
 #include "recording/recording_search_reader.h"
 #include <limits>
@@ -253,19 +254,19 @@ std::unique_ptr<RecordingSearchReader::PreparedSource> RecordingSearchReader::Pr
     auto proof=std::make_unique<PreparedSource::Impl>();proof->catalog=&catalog_;
     if(!catalog_.AcquireMediaV2(channel,id,&proof->segment,&proof->location,error))return {};
     struct Release {RecordingCatalog& catalog;const std::string& id;~Release(){catalog.AdjustHoldCount(id,-1,nullptr);}} release{catalog_,id};
-    const auto binding=catalog_.ReadSourceBinding(id,&proof->context,error);
+    latency::VisualPhase first_binding("prepare-binding");
+    const auto binding=catalog_.ReadSourceBinding(id,&proof->context,error);first_binding.End();
     if(!binding||!binding->file_evidence||!ValidateRecordingSourceBindingForSegment(*binding,proof->segment,error))return fail("seek-unavailable-file-evidence");
     MediaInspectionOptions options;options.deadline=deadline;options.cancelled=cancelled;
-    proof->media=reader_.ResolveMedia(channel,id,std::move(options));
+    {latency::VisualPhase phase("prepare-media-inspect");proof->media=reader_.ResolveMedia(channel,id,std::move(options));}
     if(!proof->media)return fail(expired()?"seek-cancelled":"seek-unavailable-media");
     struct stat after{};
     if(::fstat(proof->media->fd(),&proof->verified)!=0||
         !VerifyRecordingFileEvidenceFd(proof->media->fd(),*binding,error,expired)||
         ::fstat(proof->media->fd(),&after)!=0||!SameFileState(proof->verified,after))return fail(expired()?"seek-cancelled":"seek-unavailable-file-evidence");
     proof->binding=binding;
-    const auto current=catalog_.ReadSourceBinding(id,&proof->context,error);
-    if(!current||current!=proof->binding||
-        !reader_.RevalidateHeldMediaV2(*proof->media,proof->segment,proof->location))return fail("seek-unavailable-source-changed");
+    const auto current=reader_.RevalidatePreparedMedia(*proof->media,proof->segment,proof->location,&proof->context,error);
+    if(!current||current!=proof->binding)return fail("seek-unavailable-source-changed");
     if(expired())return fail("seek-cancelled");
     if(error)error->clear();return std::unique_ptr<PreparedSource>(new PreparedSource(std::move(proof)));
 }
@@ -280,9 +281,10 @@ bool RecordingSearchReader::SourceSeekPrepared(const PreparedSource& prepared,st
     if(scaled%den||scaled/den>std::numeric_limits<std::int64_t>::max())return fail("seek-unavailable-unrepresentable-time");
     const auto& proof=*prepared.impl_;
     if(proof.catalog!=&catalog_)return fail("seek-unavailable-source-changed");
-    const auto binding=catalog_.ReadSourceBinding(proof.segment.segment_id,&proof.context,error);struct stat current{};
+    latency::VisualPhase media_phase("seek-current-source-media");
+    const auto binding=reader_.RevalidatePreparedMedia(*proof.media,proof.segment,proof.location,&proof.context,error);
+    struct stat current{};
     if(!binding||!binding->file_evidence||binding!=proof.binding||
-        !reader_.RevalidateHeldMediaV2(*proof.media,proof.segment,proof.location)||
         ::fstat(proof.media->fd(),&current)!=0||!SameFileState(proof.verified,current))return fail("seek-unavailable-source-changed");
     return NativeSeek(*binding->file_evidence,static_cast<std::int64_t>(scaled/den),output,error,expired);
 }

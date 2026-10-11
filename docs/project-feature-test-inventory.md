@@ -4949,3 +4949,9 @@ MEM84-R04: 최대 허용 cold 행(16MiB+1)의 실제 chunk 저장/읽기와 기�
 - 오류/경계: off·잘못된 설정·짧은 쓰기·누락·절단·한도 위반·source 불일치·최종 수집 실패를 거부한다. counter는 RSS/live heap이나 전체 원자 snapshot이 아니다.
 - focused: `recording_resource_trace_smoke.cpp`, `recording_resource_trace.test.mjs`, 기존 `recording_process_metrics.test.mjs`; 실제 연결은 기존 혼합 launcher의 `--prepare`, 최종 검증은 승인된 `--120` 최대1회.
 - 안정화는 변경분 관측 계약,120분은 실제 혼합·수명/복구;30분/UI는 새 실행 대상이 아니다. 실행 결과와 P0 판단은 버전/run 원본에 별도 보존한다.
+
+### MEM88 — 장면 검색과 배경 색인의 응답 예산 (내부/API, UI 비대상)
+
+- 원래 준비의 2장면/2구조화 검색·2채널·30초/180초·5초 요청·기존 p95/최대 기준을 유지한다. 제한 단계 진단은 공유 잠금·파일 준비/decoder·encoder mutex/추론·현재 원본 검증·응답을 구분하며 원문/credential을 출력하지 않는다.
+- 확인된 Catalog cold 중복 조회만 줄이며, 같은 잠금의 현재 행 재사용·예약 전용 조회와 기존 현재 원본/권한·Stop/실패 수명을 검증한다. 고정 promise 순서의 파일 변경→준비 읽기 거부→원복 반례와 실제 SigLIP2 준비를 구분한다. 구조화 검색의 기존 원본 변경 재검증과 재시도 소진은 제한 phase로 구분하며 오류 허용 목록은 바꾸지 않는다. 소유/메모리 한도·모델/전처리/vector·scan/sample·결과 의미·decoder·시간 상한은 변경하지 않는다.
+- 직접 영향 macOS/비특권 Linux 회귀와 실제 준비를 연결한다. 새120분/전체UI/기존 B/C/D 전체 반복은 실행하지 않는다.

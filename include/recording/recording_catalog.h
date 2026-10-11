@@ -187,6 +187,8 @@ public:
     bool ValidateStatusSnapshot(const RecordingCatalogStatusSnapshot& snapshot) const;
     RecordingOrphanReport InspectOrphans() const;
     recording::RetentionSnapshot RetentionSnapshot() const;
+    // 내구 예약만 재확인하는 내부 소비자: 후보 파일/삭제 계획을 다시 만들지 않는다.
+    recording::RetentionSnapshot RetentionReservations() const;
     // startup 내부 전용: 경로 유효성과 무관하게 모든 Finalized metadata의 잠금 snapshot.
     std::vector<RecordingSegmentV1> FinalizedSegmentsForStartup() const;
     std::vector<std::string> FinalizedSegmentIdsForStartup() const;
@@ -397,6 +399,9 @@ private:
     bool AcquireMediaWithContext(const std::string&,const std::string&,RecordingSegmentV2*,
         std::pair<std::filesystem::path,std::filesystem::path>*,std::string*,JobReadContext*);
     bool ValidateMediaWithContext(const RecordingSegmentV2&,const std::pair<std::filesystem::path,std::filesystem::path>&,JobReadContext*) const;
+    bool ValidateMediaLocked(const RecordingSegmentV2&,const std::pair<std::filesystem::path,std::filesystem::path>&,JobReadContext*) const;
+    SourceBindingHandle ReadSourceBindingLocked(const std::string&,SourceBindingReadContext*,std::string*) const;
+    SourceBindingHandle ReadSourceBindingForMedia(const RecordingSegmentV2&,const std::pair<std::filesystem::path,std::filesystem::path>&,SourceBindingReadContext*,std::string*) const;
     friend class RecordingReadService;
     bool ReleaseInactiveDetailsLocked(const std::string* changed,std::string* error);
     static DerivedJobHandle ShareValidatedJob(DerivedJobRecordV1 record,const DerivedJobPool* pool);
@@ -421,7 +426,7 @@ private:
         std::vector<RecordingDerivedSourceSnapshotEntry>*,std::optional<std::uint64_t>*,std::string*) const;
     bool FinishDerivedSourceSnapshotLocked(const RecordingConsumerReferenceV1&,
         std::vector<RecordingDerivedSourceSnapshotEntry>*,const std::optional<std::uint64_t>&,std::string*) const;
-    bool MediaV2EligibleLocked(const std::string& channel,const std::string& id,JobReadContext* context=nullptr) const;
+    bool MediaV2EligibleLocked(const std::string& channel,const std::string& id,JobReadContext* context=nullptr,const RecordingSegmentV2* current=nullptr) const;
     bool AdjustHoldCountLocked(const std::string& id,std::int64_t delta,std::string* error);
     bool ValidateDerivedJobSourcesLocked(const DerivedJobIntentV1&,std::string*) const;
     // UpdateDerivedJob의 동일 mutex 호출 안에서만 사용한다. replay/외부 입력에는 전달하지 않는다.
@@ -489,7 +494,7 @@ private:
     const RecoveryContentContext::Entry* RecoveryContentLocked(const RecordingMutationV1&) const;
     void RememberRecoveryContentLocked(const RecordingMutationV1&) noexcept;
     bool ApplyDerivedJobMutationLocked(const RecordingMutationV1&,std::string*,bool apply=true,PreparedDerivedMutation* prepared=nullptr,const DerivedJobPool* job_pool=nullptr,const DerivedJobContentProof* proof=nullptr,const RecordingMutationLink* link=nullptr);
-    RecordingLifecycle EffectiveLifecycleV2Locked(const std::string& id) const;
+    RecordingLifecycle EffectiveLifecycleV2Locked(const std::string& id,bool present_in_current_cut=false) const;
     bool OpenLocked(std::string* error);
     bool BuildGenerationScratch(std::unique_ptr<RecordingCatalog>* output,std::string* error);
     bool BuildGenerationScratchLocked(std::unique_ptr<RecordingCatalog>*,std::shared_ptr<RecordingGenerationRecoverySession>*,std::string*,
@@ -539,6 +544,7 @@ private:
     bool CheckpointLocked(bool recover_only, std::string* error,const DerivedJobContentProof* proof=nullptr);
     bool BuildStatusSnapshotLocked(RecordingCatalogStatusSnapshot* result, std::string* error) const;
     struct RetentionSnapshot RetentionSnapshotLocked() const;
+    struct RetentionSnapshot RetentionReservationsLocked() const;
     struct CheckpointStatusGuard {
         RecordingCatalog& catalog;
         bool active{false},success{false};

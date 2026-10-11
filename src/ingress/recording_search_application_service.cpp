@@ -1,5 +1,6 @@
 // 파일 용도: 인증 이후 녹화 검색·스냅샷 재생 요청의 값 파싱과 공개 응답.
 #include "ingress/recording_application_service.h"
+#include "recording/recording_latency_trace.h"
 #include "recording/recording_search_reader.h"
 #include "recording/recording_search_snapshots.h"
 #include <algorithm>
@@ -26,6 +27,7 @@ ApplicationServiceResult Error(int status,const std::string& reason){
     return {status,status==400?"Bad Request":status==403?"Forbidden":status==410?"Gone":"Service Unavailable","{\"error\":"+Quote(reason)+"}"};
 }
 ApplicationServiceResult Failure(const std::string& error){
+    recording::latency::VisualPhase phase(error=="search-source-changed"?"structured-failure-source-changed":error=="search-capacity-exceeded"?"structured-failure-capacity":"structured-failure-other");
     if(error=="search-snapshot-expired"||error=="search-hit-unavailable")return Error(410,error);
     if(error=="search-cursor-binding-mismatch")return Error(403,error);
     if(error=="search-invalid-cursor"||error=="search-invalid-query"||error=="search-invalid-behaviour")return Error(400,error);
@@ -108,19 +110,19 @@ ApplicationServiceResult RecordingApplicationService::Search(const Query& raw,co
             bool prepared=false;
             for(unsigned attempt=0;attempt<3;++attempt){
                 if(!search.Refresh(query.channels,state->source,&state->source,&error,{},observations)){
-                    if(error=="search-source-changed")continue;
+                    if(error=="search-source-changed"){recording::latency::VisualPhase phase("structured-source-changed");continue;}
                     return Failure(error);
                 }
                 auto model=state->source;
                 if(!query.behaviours.empty()&&!recording::RecordingSearchReader::WithEventFacts(*model,&model,&error,{},&query))return Failure(error);
                 if(!search.WithPlayback(*model,query,&model,&error)){
-                    if(error=="search-source-changed")continue;
+                    if(error=="search-source-changed"){recording::latency::VisualPhase phase("structured-source-changed");continue;}
                     return Failure(error);
                 }
                 if(!state->snapshots.Begin(model,query,principal,scope,&page,&error))return Failure(error);
                 prepared=true;break;
             }
-            if(!prepared)return Failure(error);
+            if(!prepared){recording::latency::VisualPhase phase("structured-retries-exhausted");return Failure(error);}
         }
         // Existing 4MiB JSON admission: original body + growth/field temporary +
         // wire body coexist. Reserve before serialization; move to transport owner.

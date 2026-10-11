@@ -144,6 +144,33 @@ public:
     ~Scope() noexcept {if(!enabled_)return;row_.e=Now();Append(row_,always_);if(request_){FlushFast();local.request=previous_;}else Flush();}
     Scope(const Scope&)=delete;Scope& operator=(const Scope&)=delete;
 };
+// Visual diagnosis emits bounded start/end records immediately, including a still-running phase.
+// Fixed literal names only; no query, path, token or media content. Same process steady clock.
+class VisualPhase {
+    inline static std::atomic<unsigned> sequence_{0},lines_{0};
+    inline static std::atomic<bool> failed_{false};
+    inline static thread_local unsigned current_{0};
+    const char* name_;unsigned id_=0,parent_=0;bool active_=false;
+    void Emit(bool end) noexcept {
+        const auto n=lines_.fetch_add(1);
+        if(n>=4096){if(!failed_.exchange(true))std::fputs("[visual-phase-loss] cap\n",stderr);return;}
+        char row[256];const int size=std::snprintf(row,sizeof(row),
+            "[visual-phase] {\"id\":%u,\"parent\":%u,\"thread\":%u,\"phase\":\"%s\",\"end\":%s,\"ns\":%llu}\n",
+            id_,parent_,local.thread,name_,end?"true":"false",(unsigned long long)Now());
+        if(size<=0||size>=int(sizeof(row))||std::fwrite(row,1,std::size_t(size),stderr)!=std::size_t(size)){
+            failed_=true;std::fputs("[visual-phase-loss] write\n",stderr);
+        }
+    }
+public:
+    static bool Enabled() noexcept {static const bool yes=[] {const char* p=std::getenv("MEDIA_SERVER_VERIFY_VISUAL_LATENCY_TRACE");return p&&std::strcmp(p,"1")==0;}();return yes;}
+    explicit VisualPhase(const char* name,bool selected=true) noexcept:name_(name){
+        if(!(active_=selected&&Enabled()))return;
+        id_=++sequence_;parent_=current_;current_=id_;Emit(false);
+    }
+    void End() noexcept {if(active_){Emit(true);current_=parent_;active_=false;}}
+    ~VisualPhase(){End();}
+    VisualPhase(const VisualPhase&)=delete;VisualPhase& operator=(const VisualPhase&)=delete;
+};
 inline void FinishThread() noexcept {if(Enabled())FlushFast();}
 inline Local::~Local(){if(Enabled())FlushFast();}
 } // namespace recording::latency

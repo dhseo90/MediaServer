@@ -1,3 +1,4 @@
+#include "recording/recording_latency_trace.h"
 // 파일 용도: 현재 channel 권한·원본 검증 뒤 local text→video 검색과 재생을 연결한다.
 #include "ingress/visual_search_application_service.h"
 #include "ingress/evidence_application_service.h"
@@ -78,7 +79,8 @@ std::string ChannelsSummary(const recording::VisualIndexReadView& view,const std
     return out+"]";
 }
 std::string Publication(const recording::VisualIndexReadView& view,const std::string& channels){
-    if(!view.index||!view.publication)return "null";const auto& p=*view.publication;
+    if(!view.index||!view.publication)return "null";
+    const auto& p=*view.publication;
     return "{\"instanceId\":"+Quote(p.instance_id)+",\"generation\":"+(p.generation?std::to_string(*p.generation):"null")+
         ",\"identityScope\":\"worker-instance\",\"origin\":"+Quote(p.origin)+",\"publishedAtMs\":"+Stamp(p.published_at_ms)+
         ",\"metadataReason\":"+Quote(p.origin=="cache"?"cache-publication-history-not-stored":"live-publication")+
@@ -116,7 +118,7 @@ private:
         Prepared* proof=nullptr;
         if(found!=entries_.end()){found->second.used=++sequence_;proof=found->second.proof.get();++reused_;}
         else {
-            temporary=source_.Prepare(doc,error,cancelled_,deadline_);if(!temporary)return nullptr;++prepared_;
+            recording::latency::VisualPhase phase("source-prepare");temporary=source_.Prepare(doc,error,cancelled_,deadline_);if(!temporary)return nullptr;++prepared_;
             const auto cost=temporary->retained_bytes();
             if(cost<=capacity){
                 while(!entries_.empty()&&(entries_.size()>=fd_capacity||bytes_>capacity-cost)){
@@ -133,8 +135,10 @@ public:
     bool Resolve(const recording::VisualSearchDocument& doc,recording::SearchSeekTarget* target,
         std::shared_ptr<const recording::ResolvedRecordingMedia>* hold,std::string* error){
         std::unique_ptr<Prepared> temporary;const auto* proof=Acquire(doc,temporary,error);if(!proof)return false;
+        recording::latency::VisualPhase phase("source-resolve");
         if(!source_.ResolvePrepared(doc,*proof,target,error,cancelled_,deadline_))return false;
-        if(hold)*hold=proof->Hold();return true;
+        if(hold)*hold=proof->Hold();
+        return true;
     }
     bool Encode(recording::VisualSearchDocument* doc,analysis::Siglip2Encoder& encoder,std::string* error){
         if(!doc->event_id.empty())return source_.Encode(doc,encoder,error,cancelled_);
@@ -163,7 +167,8 @@ bool EventFacts(bool enabled,const std::vector<std::string>& channels,
             if(!inserted.second&&inserted.first->second!=fact.stream_epoch_id)return false;
         }
     }
-    for(const auto& entry:epochs)facts->push_back({entry.first.first,entry.first.second,entry.second});return true;
+    for(const auto& entry:epochs)facts->push_back({entry.first.first,entry.first.second,entry.second});
+    return true;
 }
 bool CurrentEvent(const recording::VisualSearchDocument& doc,const std::vector<recording::VisualSnapshotEvent>& events,
     const recording::RecordingVisualSource& source){
@@ -173,7 +178,8 @@ bool CurrentEvent(const recording::VisualSearchDocument& doc,const std::vector<r
         return std::make_pair(event.event_id,event.channel_id)<value;});
     if(it==events.end()||it->event_id!=doc.event_id||it->channel_id!=doc.channel_id)return false;
     std::string error;const bool current=source.SnapshotMatchesEvent(doc,it->stream_epoch_id,&error);
-    if(!error.empty())throw std::runtime_error("visual-snapshot-unavailable");return current;
+    if(!error.empty())throw std::runtime_error("visual-snapshot-unavailable");
+    return current;
 }
 std::string Playback(const recording::VisualSearchDocument& doc,const recording::SearchSeekTarget& seek){
     std::ostringstream out;out.imbue(std::locale::classic());out<<std::setprecision(17)
@@ -204,9 +210,12 @@ VisualSearchApplicationService::VisualSearchApplicationService(recording::Record
         }),recording::VisualIndexWorker::EncodeFactory([this]{
             auto media=std::make_shared<RequestMedia>(source_,[this]{return stopped_.load();},std::chrono::steady_clock::time_point::max(),"visual-index-build");
             return [this,media](auto* doc,const auto& cancelled,std::string* error){
+                recording::latency::VisualPhase wait("image-inference-wait");
                 std::unique_lock<std::timed_mutex> lock(inference_,std::defer_lock);
                 while(!lock.try_lock_for(std::chrono::milliseconds(25)))if(cancelled())return false;
-                if(cancelled())return false;return media->Encode(doc,*encoder_,error);
+                wait.End();recording::latency::VisualPhase hold("image-inference-held");
+                if(cancelled())return false;
+                return media->Encode(doc,*encoder_,error);
             };
         }),std::chrono::seconds(options_.scan_seconds));
     worker_->Start();
@@ -233,6 +242,7 @@ ApplicationServiceResult VisualSearchApplicationService::Status(const Authorize&
     }catch(const std::exception&){return Error(503,"visual-search-unavailable");}
 }
 ApplicationServiceResult VisualSearchApplicationService::Search(const Query& raw,const Authorize& authorize){
+    recording::latency::VisualPhase request_phase("visual-search");
     try{
         recording::VisualSearchQuery query;if(!Parse(raw,&query))return Error(400,"visual-invalid-query");
         for(const auto& channel:query.channels)if(!authorize||!authorize(channel))return Error(403,"recording-channel-forbidden");
@@ -245,8 +255,10 @@ ApplicationServiceResult VisualSearchApplicationService::Search(const Query& raw
         const auto deadline=std::chrono::steady_clock::now()+std::chrono::seconds(5);
         const auto expired=[&]{return stopped_||std::chrono::steady_clock::now()>=deadline;};
         analysis::Siglip2Encoder::TextInputInfo text;
-        {std::unique_lock<std::timed_mutex> lock(inference_,std::defer_lock);
+        {recording::latency::VisualPhase wait("text-inference-wait");
+            std::unique_lock<std::timed_mutex> lock(inference_,std::defer_lock);
             if(!lock.try_lock_until(std::min(deadline,std::chrono::steady_clock::now()+std::chrono::seconds(2))))return Error(503,"visual-search-busy");
+            wait.End();recording::latency::VisualPhase hold("text-inference-held");
             try{
                 text=encoder_->InspectText(Get(raw,"text"));
                 if(!text.within_limit)return Error(400,"visual-text-token-limit");
@@ -261,14 +273,16 @@ ApplicationServiceResult VisualSearchApplicationService::Search(const Query& raw
             if(stopped_||std::chrono::steady_clock::now()>=deadline)throw std::runtime_error("budget");
             if(!authorize(doc.channel_id)||!CurrentEvent(doc,events,source_))return false;
             recording::SearchSeekTarget seek;
-            if(source_.IsDeleted(doc))return false;
+            // Resolve already verifies current lifecycle; only classify a rejected source as deleted.
             if(!media_cache.Resolve(doc,&seek,nullptr,&error)){
                 if(!expired()&&source_.IsDeleted(doc))return false;
                 throw std::runtime_error("visual-source-unavailable");
             }
-            if(expired())throw std::runtime_error("budget");return true;
+            if(expired())throw std::runtime_error("budget");
+            return true;
         };
-        if(!index->Search(query,eligible,&hits,&error))return Error(503,"visual-search-unavailable");
+        {recording::latency::VisualPhase phase("index-search-current-sources");
+        if(!index->Search(query,eligible,&hits,&error))return Error(503,"visual-search-unavailable");}
         if(expired())return Error(503,"visual-search-busy");
         std::ostringstream out;out.imbue(std::locale::classic());out<<std::setprecision(17)<<"{\"kind\":\"visual-frame\",\"scoreMeaning\":\"similarity-not-evidence\",\"appliedQuery\":{\"text\":"
             <<Quote(text.original_text)<<",\"encoderText\":"<<Quote(text.encoder_text)<<",\"bodyTokens\":"<<text.body_tokens
@@ -277,13 +291,15 @@ ApplicationServiceResult VisualSearchApplicationService::Search(const Query& raw
         out<<"],\"startTimeMs\":"<<(query.start_utc_ns?std::to_string(*query.start_utc_ns/1000000):"null")
             <<",\"endTimeMs\":"<<(query.end_utc_ns?std::to_string(*query.end_utc_ns/1000000):"null")
             <<",\"threshold\":"<<query.threshold<<",\"limit\":"<<query.top_k<<"},\"items\":[";
+        recording::latency::VisualPhase final_phase("final-source-json");
         std::vector<std::shared_ptr<const recording::ResolvedRecordingMedia>> response_holds;response_holds.reserve(hits.size());
         bool comma=false;for(const auto& hit:hits){const auto& d=index->documents()[hit.document_index];
             if(stopped_||std::chrono::steady_clock::now()>=deadline)return Error(503,"visual-search-busy");
             recording::SearchSeekTarget seek;std::shared_ptr<const recording::ResolvedRecordingMedia> media;
             if(!authorize(d.channel_id)||!media_cache.Resolve(d,&seek,&media,&error))return Error(503,"visual-source-changed");
             response_holds.push_back(std::move(media));
-            if(comma)out<<',';comma=true;out<<"{\"id\":"<<Quote(d.id)<<",\"kind\":"<<Quote(d.event_id.empty()?"representative-frame":"event-snapshot")<<",\"channelId\":"<<Quote(d.channel_id)<<",\"score\":"<<hit.score<<",\"timeNs\":"<<(d.utc_ns?Quote(std::to_string(*d.utc_ns)):"null")<<','<<Playback(d,seek)<<'}';}
+            if(comma)out<<',';
+            comma=true;out<<"{\"id\":"<<Quote(d.id)<<",\"kind\":"<<Quote(d.event_id.empty()?"representative-frame":"event-snapshot")<<",\"channelId\":"<<Quote(d.channel_id)<<",\"score\":"<<hit.score<<",\"timeNs\":"<<(d.utc_ns?Quote(std::to_string(*d.utc_ns)):"null")<<','<<Playback(d,seek)<<'}';}
         if(expired())return Error(503,"visual-search-busy");
         const auto summaries=ChannelsSummary(view,query.channels,expired);
         for(const auto& channel:query.channels)if(!authorize(channel))return Error(403,"recording-channel-forbidden");

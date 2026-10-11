@@ -15,7 +15,8 @@ VisualSearchDocument Row(std::string id){return {std::move(id),"camera","segment
 }
 int main(int argc,char**argv){
     try{
-        if(argc!=2)return 2;std::filesystem::create_directory(argv[1]);::chmod(argv[1],0700);
+        if(argc!=2)return 2;
+        std::filesystem::create_directory(argv[1]);::chmod(argv[1],0700);
         std::atomic<int> mode{0},encodes{0},sources{0},active{0},maximum{0};
         const auto source=[&](auto* docs,const auto& cancelled,std::string* error){
             ++sources;if(cancelled())return false;

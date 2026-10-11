@@ -172,3 +172,36 @@ export function frameTraceSummary(text,mode,required=true){
 export function processLogCaptureComplete(app,capturedBytes){
   return !app.overflow&&!app.captureError&&app.bytes===capturedBytes&&app.bytes<=4*1024*1024;
 }
+
+// 요청 본문 없이 고정 크기 phase 쌍만 검증한다. captured는 수집 상태이며 제품 PASS가 아니다.
+export function visualPhaseSummary(text,required=true) {
+  const pending=new Map(),closed=new Set(),phases={};let rows=0;
+  try {
+    if(Buffer.byteLength(text)>4*1024*1024)throw Error('log-cap');
+    for(const line of text.split('\n')) {
+      if(line.startsWith('[visual-phase-loss]'))throw Error('loss');
+      if(!line.startsWith('[visual-phase]'))continue;
+      if(++rows>4096||Buffer.byteLength(line)>=256||!line.startsWith('[visual-phase] '))throw Error('row-cap');
+      const v=JSON.parse(line.slice(15));
+      if(Object.keys(v).sort().join(',')!=='end,id,ns,parent,phase,thread'||
+         ![v.id,v.thread].every(x=>Number.isSafeInteger(x)&&x>0)||
+         ![v.parent,v.ns].every(x=>Number.isSafeInteger(x)&&x>=0)||
+         typeof v.end!=='boolean'||typeof v.phase!=='string'||!/^[-a-z]{1,64}$/.test(v.phase))throw Error('row');
+      if(!v.end){
+        if(pending.has(v.id)||closed.has(v.id))throw Error('duplicate');
+        if(v.parent&&(!pending.has(v.parent)||pending.get(v.parent).thread!==v.thread))throw Error('parent');
+        pending.set(v.id,v);
+      } else {
+        const start=pending.get(v.id);
+        if(!start||start.thread!==v.thread||start.parent!==v.parent||start.phase!==v.phase||v.ns<start.ns)throw Error('pair');
+        for(const child of pending.values())if(child.parent===v.id)throw Error('open-child');
+        pending.delete(v.id);closed.add(v.id);
+        const p=phases[v.phase]??={count:0,totalNs:0,maxNs:0};const ns=v.ns-start.ns;
+        p.count++;p.totalNs+=ns;p.maxNs=Math.max(p.maxNs,ns);
+      }
+    }
+    if(pending.size)throw Error('unfinished');
+    if(required&&!rows)throw Error('missing');
+    return {status:rows?'captured':'not-observed',rows,phases,overlappingPhasesNotAdditive:true};
+  } catch(e) {return {status:'incomplete',reason:e.message,rows,open:pending.size,phases,overlappingPhasesNotAdditive:true};}
+}

@@ -2737,19 +2737,36 @@ bool RecordingCatalog::ReleaseInactiveDetailsLocked(const std::string* changed,s
 }
 RecordingCatalog::SourceBindingHandle RecordingCatalog::ReadSourceBinding(const std::string& id,
     SourceBindingReadContext* context,std::string* error) const try {
+    recording::latency::VisualPhase total_phase("catalog-source-binding");
     recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__);
+    return ReadSourceBindingLocked(id,context,error);
+} catch(const CatalogHistoryError& failure) { Fail(error,failure.what());return {}; }
+RecordingCatalog::SourceBindingHandle RecordingCatalog::ReadSourceBindingForMedia(const RecordingSegmentV2& segment,
+    const std::pair<std::filesystem::path,std::filesystem::path>& location,SourceBindingReadContext* context,std::string* error) const try {
+    recording::latency::VisualPhase phase("catalog-source-and-media");
+    recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__);
+    // 같은 현재 cut에서 기존 두 검증을 모두 수행한다. 파일 I/O는 잠금 밖에 유지한다.
+    if(!ValidateMediaLocked(segment,location,nullptr))return {};
+    return ReadSourceBindingLocked(segment.segment_id,context,error);
+} catch(const CatalogHistoryError& failure) { Fail(error,failure.what());return {}; }
+RecordingCatalog::SourceBindingHandle RecordingCatalog::ReadSourceBindingLocked(const std::string& id,
+    SourceBindingReadContext* context,std::string* error) const try {
     if(!context||(context->owner&&context->owner!=this)||!opened_||!derived_job_state_authoritative_||
-       (generation_backend_&&!CanReadLocked(error))||EffectiveLifecycleV2Locked(id)!=RecordingLifecycle::Finalized)return {};
-    const auto found=SourceEntryLocked(id);const auto original=segments_v2_.find(id);
-    if(!found||!*found||original==segments_v2_.end())return {};
+       (generation_backend_&&!CanReadLocked(error)))return {};
+    const auto original=segments_v2_.find(id);
+    if(original==segments_v2_.end()||EffectiveLifecycleV2Locked(id,true)!=RecordingLifecycle::Finalized)return {};
+    const auto found=SourceEntryLocked(id);
+    if(!found||!*found)return {};
     const auto& entry=*found;
     const auto failed=[&]()->SourceBindingHandle{derived_job_state_authoritative_=false;Fail(error,"source binding 상세 재획득 거부");return {};};
     bool materialized=false;
     try {
         RecordingMutationHandle envelope;
+        recording::latency::VisualPhase link_phase("binding-cold-link");
         if(!journal_.OwnsCatalog(this)||!journal_.AcquireMutationLinkForRead(this,entry.mutation,&context->cold,&envelope,error)||
            !envelope||envelope->mutation_id!=entry.latest_mutation_id||envelope->entity_id!=id||
            envelope->mutation_type!=RecordingMutationType::SegmentV2BoundFinalized)return failed();
+        link_phase.End();
         const auto segment_json=SerializeRecordingSegmentV2(original->second);
         if(context->binding&&context->envelope&&context->binding->segment_id==id&&context->segment_json==segment_json){
             const auto& a=*envelope;const auto& b=*context->envelope;
@@ -2872,19 +2889,20 @@ std::optional<RecordingSegmentV2> RecordingCatalog::FindSegmentV2ById(const std:
     if(tombstones_.count(id)||tombstones_v2_.count(id)||found==segments_v2_.end())return std::nullopt;
     return found->second;
 }
-RecordingLifecycle RecordingCatalog::EffectiveLifecycleV2Locked(const std::string& id) const {
+RecordingLifecycle RecordingCatalog::EffectiveLifecycleV2Locked(const std::string& id,bool present_in_current_cut) const {
     if(RetiredLocked(id).has_value())return RecordingLifecycle::Deleted;
-    if(!segments_v2_.count(id))return RecordingLifecycle::Unknown;
+    if(!present_in_current_cut&&!segments_v2_.count(id))return RecordingLifecycle::Unknown;
     if(tombstones_.count(id)||tombstones_v2_.count(id))return RecordingLifecycle::Deleted;
     const auto state=states_v2_.find(id);
     return state==states_v2_.end()?RecordingLifecycle::Finalized:state->second.lifecycle;
 }
-bool RecordingCatalog::MediaV2EligibleLocked(const std::string& channel,const std::string& id,JobReadContext* context) const try {
-    const auto found=segments_v2_.find(id);
-    if(!opened_||!derived_job_state_authoritative_||(generation_backend_&&!CanReadLocked(nullptr))||segments_.count(id)||found==segments_v2_.end()||
-       found->second.channel_id!=channel||EffectiveLifecycleV2Locked(id)!=RecordingLifecycle::Finalized)return false;
+bool RecordingCatalog::MediaV2EligibleLocked(const std::string& channel,const std::string& id,JobReadContext* context,const RecordingSegmentV2* current) const try {
+    const auto found=current?segments_v2_.end():segments_v2_.find(id);
+    if(!current&&found!=segments_v2_.end())current=&found->second;
+    if(!opened_||!derived_job_state_authoritative_||(generation_backend_&&!CanReadLocked(nullptr))||segments_.count(id)||!current||
+       current->channel_id!=channel||current->segment_id!=id||EffectiveLifecycleV2Locked(id,true)!=RecordingLifecycle::Finalized)return false;
     for(const auto& entry:event_links_)if(entry.second.derived_segment_id==id||entry.second.fallback_evidence_id==id)return false;
-    const auto& segment=found->second;
+    const auto& segment=*current;
     if(segment.retention_class==RecordingRetentionClass::Continuous)return true;
     if(segment.retention_class!=RecordingRetentionClass::Event)return false;
     DerivedJobHandle owner;
@@ -2928,10 +2946,16 @@ bool RecordingCatalog::ValidateMediaV2(const RecordingSegmentV2& segment,
 bool RecordingCatalog::ValidateMediaWithContext(const RecordingSegmentV2& segment,
     const std::pair<std::filesystem::path,std::filesystem::path>& location,JobReadContext* context) const {
     recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__);
-    if(!MediaV2EligibleLocked(segment.channel_id,segment.segment_id,context))return false;
+    return ValidateMediaLocked(segment,location,context);
+}
+bool RecordingCatalog::ValidateMediaLocked(const RecordingSegmentV2& segment,
+    const std::pair<std::filesystem::path,std::filesystem::path>& location,JobReadContext* context) const {
+    const auto current=segments_v2_.find(segment.segment_id);
+    // 이 mutex 구간에서 한 번 읽은 원본 행만 재사용한다. 호출 간 cache가 아니다.
+    if(current==segments_v2_.end()||!MediaV2EligibleLocked(segment.channel_id,segment.segment_id,context,&current->second))return false;
     const auto path=media_relpaths_.find(segment.segment_id);
     return path!=media_relpaths_.end()&&location.first==options_.media_root&&location.second==path->second&&
-        SerializeRecordingSegmentV2(segment)==SerializeRecordingSegmentV2(segments_v2_.at(segment.segment_id));
+        SerializeRecordingSegmentV2(segment)==SerializeRecordingSegmentV2(current->second);
 }
 RecordingLifecycle RecordingCatalog::SegmentLifecycleV2(const std::string& id) const try {
     recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__);return EffectiveLifecycleV2Locked(id);
@@ -4042,13 +4066,24 @@ std::vector<std::string> RecordingCatalog::FinalizedSegmentIdsForStartup() const
     return result;
 } catch(const CatalogHistoryError&) { return {}; }
 
-RetentionSnapshot RecordingCatalog::RetentionSnapshotLocked() const try {
+RetentionSnapshot RecordingCatalog::RetentionReservationsLocked() const try {
     struct RetentionSnapshot snapshot;
     snapshot.authoritative=opened_&&derived_job_state_authoritative_&&CanReadLocked(nullptr);
     if(!snapshot.authoritative)snapshot.error="catalog reservation snapshot 미확인";
     for(const auto& [id,job]:derived_jobs_){if(!job){snapshot.authoritative=false;snapshot.error="derived null reservation";snapshot.durable_reservations.clear();return snapshot;}if(job.Active())snapshot.durable_reservations.push_back({id,job.channel,job.reserved_bytes});}
+    return snapshot;
+} catch(const CatalogHistoryError& failure) { struct RetentionSnapshot failed;failed.authoritative=false;failed.error=failure.what();return failed; }
+
+RetentionSnapshot RecordingCatalog::RetentionReservations() const {
+    recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__);
+    return RetentionReservationsLocked();
+}
+
+RetentionSnapshot RecordingCatalog::RetentionSnapshotLocked() const try {
+    auto snapshot=RetentionReservationsLocked();
+    if(!snapshot.authoritative)return snapshot;
     for(const auto& [id,v]:segments_v2_) {
-        const auto lifecycle=EffectiveLifecycleV2Locked(id);
+        const auto lifecycle=EffectiveLifecycleV2Locked(id,true);
         const auto path=media_relpaths_.find(id);
         if(lifecycle==RecordingLifecycle::Deleted||path==media_relpaths_.end())continue;
         RetentionCandidate candidate;candidate.segment_v2=v;candidate.effective_lifecycle=lifecycle;
@@ -4330,7 +4365,7 @@ bool RecordingCatalog::AdjustHoldCountLocked(const std::string& segment_id,std::
     if(!CanReadLocked(error))return false;
     const auto segment = segments_.find(segment_id);
     const bool v2=segments_v2_.count(segment_id)!=0;
-    if ((v2&&EffectiveLifecycleV2Locked(segment_id)!=RecordingLifecycle::Finalized)||
+    if ((v2&&EffectiveLifecycleV2Locked(segment_id,true)!=RecordingLifecycle::Finalized)||
         (!v2&&(segment == segments_.end() || segment->second.lifecycle != RecordingLifecycle::Finalized))) {
         return Fail(error, "hold 대상 finalized segment가 없음");
     }

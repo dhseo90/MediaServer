@@ -29,7 +29,8 @@ void Ready(Service& service,const Service::Authorize& authorize,unsigned seconds
 }
 }
 int main(int argc,char** argv){try{
-    if(argc!=3&&!(argc==4&&(std::string(argv[3])=="--query-only"||std::string(argv[3])=="--scope-only")))return 2;gst_init(nullptr,nullptr);const auto root=std::filesystem::weakly_canonical(argv[1]);
+    if(argc!=3&&!(argc==4&&(std::string(argv[3])=="--query-only"||std::string(argv[3])=="--scope-only")))return 2;
+    gst_init(nullptr,nullptr);const auto root=std::filesystem::weakly_canonical(argv[1]);
     recording::RecordingRuntimeStorage runtime(root);std::string error;Check(runtime.Open(&error),"storage open");
     const bool scope_only=argc==4&&std::string(argv[3])=="--scope-only";
     auto input=Encode(90,false,false,160,90,30,30);Shift(input,7000000000ULL);
@@ -38,7 +39,8 @@ int main(int argc,char** argv){try{
     for(const auto& channel:{"visible","hidden"}){
         recording::GStreamerSegmentWriter writer(runtime.WriterOptions(1000));
         Check(writer.Start(channel,"unused",input.descriptor,[](auto,auto,auto*){return false;},&error),"writer start");
-        for(const auto& p:input.packets)writer.Push(p,0);writer.Stop();
+        for(const auto& p:input.packets)writer.Push(p,0);
+        writer.Stop();
     }
     recording::RecordingReadService reader(runtime.catalog());
     const Service::Authorize authorized=[](const auto& channel){return channel=="visible";};
@@ -137,7 +139,8 @@ int main(int argc,char** argv){try{
             latencies.push_back(std::chrono::duration<double,std::milli>(std::chrono::steady_clock::now()-begin).count());}
         return latencies;
     }));
-    while(prepared!=4)std::this_thread::yield();start=true;std::vector<double> latencies;
+    while(prepared!=4)std::this_thread::yield();
+    start=true;std::vector<double> latencies;
     for(auto& task:searches){auto samples=task.get();latencies.insert(latencies.end(),samples.begin(),samples.end());}
     std::sort(latencies.begin(),latencies.end());Check(latencies.size()==24&&latencies[22]<=2000&&latencies.back()<=5000,"four concurrent search latency budget");
     std::cout<<"[four-searches] successes="<<latencies.size()<<" p95Ms="<<latencies[22]<<" maxMs="<<latencies.back()<<"\n";
@@ -167,7 +170,8 @@ int main(int argc,char** argv){try{
         auto input200=Encode(6300,false,false,160,90,30,30);Shift(input200,7000000000ULL);
         recording::GStreamerSegmentWriter long_writer(large.WriterOptions(105000));
         Check(long_writer.Start("visible","unused",input200.descriptor,[](auto,auto,auto*){return false;},&error),"large original writer");
-        for(const auto& packet:input200.packets)long_writer.Push(packet,0);long_writer.Stop();
+        for(const auto& packet:input200.packets)long_writer.Push(packet,0);
+        long_writer.Stop();
         recording::RecordingReadService large_reader(large.catalog());recording::RecordingVisualSource large_source(large.catalog(),large_reader);
         std::vector<recording::VisualSearchDocument> expected;std::map<std::string,recording::VisualSourceCoverage> coverage;
         Check(large_source.Collect({"visible"},1,&expected,&coverage,&error)&&expected.size()==210,"independent 210 original frame candidates");

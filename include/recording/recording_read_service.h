@@ -37,6 +37,9 @@ bool ResolveUtcRangeFromSnapshot(const RecordingLocationCatalogSnapshot&,std::in
 
 class RecordingReadService {
 public:
+    RecordingCatalog::SourceBindingHandle RevalidatePreparedMedia(const ResolvedRecordingMedia&,
+        const RecordingSegmentV2&,const std::pair<std::filesystem::path,std::filesystem::path>&,
+        RecordingCatalog::SourceBindingReadContext*,std::string*) const;
     explicit RecordingReadService(RecordingCatalog& catalog,
                                   std::filesystem::path event_root = {})
         : catalog_(catalog), event_root_(std::move(event_root)) {}

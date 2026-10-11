@@ -816,8 +816,8 @@
           "file": "src/ingress/webrtc_http_server_runtime.cpp",
           "symbol": "WebRtcHttpServer::Start",
           "anchor": "response = [&]() -> HttpResponse {",
-          "line": 447,
-          "contextSha256": "944f25eb477429412e1eeeb314445f43332721c24a7d9bbc97d0f34b8af6b3c5"
+          "line": 452,
+          "contextSha256": "5ec0a74c151591c0f07c661d845882a3606689dcf874537f8ad787314ae1597e"
         },
         "state": {
           "file": "src/ingress/webrtc_http_server_runtime.cpp",
@@ -856,14 +856,14 @@
           "kind": "function-containment",
           "witness": "logout destroys server auth session",
           "source": "src/ingress/webrtc_http_server_runtime.cpp:418",
-          "target": "src/ingress/webrtc_http_server_runtime.cpp:447"
+          "target": "src/ingress/webrtc_http_server_runtime.cpp:452"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "function-containment",
           "witness": "logout redirect branch invokes destroy_auth_session",
-          "source": "src/ingress/webrtc_http_server_runtime.cpp:447",
+          "source": "src/ingress/webrtc_http_server_runtime.cpp:452",
           "target": "src/ingress/webrtc_http_server_runtime.cpp:1174"
         },
         {
@@ -2090,8 +2090,8 @@
           "file": "src/ingress/webrtc_http_server_runtime.cpp",
           "symbol": "request-dispatch-lambda",
           "anchor": "response = [&]() -> HttpResponse {",
-          "line": 447,
-          "contextSha256": "944f25eb477429412e1eeeb314445f43332721c24a7d9bbc97d0f34b8af6b3c5"
+          "line": 452,
+          "contextSha256": "5ec0a74c151591c0f07c661d845882a3606689dcf874537f8ad787314ae1597e"
         },
         "state": {
           "file": "src/ingress/webrtc_http_server_runtime.cpp",
@@ -2130,14 +2130,14 @@
           "kind": "function-containment",
           "witness": "the accepted-client thread contains the HTTP request dispatch lambda",
           "source": "src/ingress/webrtc_http_server_runtime.cpp:418",
-          "target": "src/ingress/webrtc_http_server_runtime.cpp:447"
+          "target": "src/ingress/webrtc_http_server_runtime.cpp:452"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "function-containment",
           "witness": "the request dispatch lambda falls through unmatched product routes to the explicit 404 response",
-          "source": "src/ingress/webrtc_http_server_runtime.cpp:447",
+          "source": "src/ingress/webrtc_http_server_runtime.cpp:452",
           "target": "src/ingress/webrtc_http_server_runtime.cpp:5054"
         },
         {
@@ -14484,8 +14484,8 @@
           "file": "src/ingress/webrtc_http_server_runtime.cpp",
           "symbol": "WebRtcHttpServer::Start",
           "anchor": "response = [&]() -> HttpResponse {",
-          "line": 447,
-          "contextSha256": "944f25eb477429412e1eeeb314445f43332721c24a7d9bbc97d0f34b8af6b3c5"
+          "line": 452,
+          "contextSha256": "5ec0a74c151591c0f07c661d845882a3606689dcf874537f8ad787314ae1597e"
         },
         "dispatch": {
           "file": "src/ingress/webrtc_http_server_runtime.cpp",
@@ -14529,7 +14529,7 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "owner state return require_scope_principal(\"source:write\" reaches executable dispatch",
-          "source": "src/ingress/webrtc_http_server_runtime.cpp:447",
+          "source": "src/ingress/webrtc_http_server_runtime.cpp:452",
           "target": "src/ingress/webrtc_http_server_runtime.cpp:858"
         },
         {
@@ -15676,8 +15676,8 @@
           "file": "src/ingress/webrtc_http_server_runtime.cpp",
           "symbol": "WebRtcHttpServer::Start",
           "anchor": "response = [&]() -> HttpResponse {",
-          "line": 447,
-          "contextSha256": "944f25eb477429412e1eeeb314445f43332721c24a7d9bbc97d0f34b8af6b3c5"
+          "line": 452,
+          "contextSha256": "5ec0a74c151591c0f07c661d845882a3606689dcf874537f8ad787314ae1597e"
         },
         "dispatch": {
           "file": "src/ingress/webrtc_http_server_runtime.cpp",
@@ -15721,7 +15721,7 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "owner state return JsonResponse(403 reaches executable dispatch",
-          "source": "src/ingress/webrtc_http_server_runtime.cpp:447",
+          "source": "src/ingress/webrtc_http_server_runtime.cpp:452",
           "target": "src/ingress/webrtc_http_server_runtime.cpp:818"
         },
         {
@@ -21585,7 +21585,10 @@
     },
     {
       "id": "SRC-059",
-      "sharedContract": {"id":"media-server.actual-contract.cross-site-safe-apply-readiness","facet":"safety-invariant"},
+      "sharedContract": {
+        "id": "media-server.actual-contract.cross-site-safe-apply-readiness",
+        "facet": "safety-invariant"
+      },
       "featureContractSha256": "79a7ba6a2f2deb18712583f5a1139a6f48f63a84cb5677f37cc35a0b8dd28716",
       "status": "source-resolved-reviewed-proof",
       "evidenceMode": "static-production-contract",

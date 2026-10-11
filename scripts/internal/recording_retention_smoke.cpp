@@ -493,6 +493,10 @@ int main(int argc, char** argv) {
     Expect(catalog.FinalizeSegment(stored, media_path.string(), &error),
            "통합 segment finalize: " + error);
     const auto catalog_snapshot = catalog.RetentionSnapshot();
+    const auto reservations_only=catalog.RetentionReservations();
+    Expect(reservations_only.authoritative&&reservations_only.candidates.empty()&&
+           reservations_only.durable_reservations.size()==catalog_snapshot.durable_reservations.size()&&
+           !catalog_snapshot.candidates.empty(),"MEM88 내구 예약 재확인은 후보를 재구성하지 않음");
     recording::RetentionPlanRequest catalog_request;
     catalog_request.channel_id = "channel-1";
     catalog_request.policy = Policy(1, 100);

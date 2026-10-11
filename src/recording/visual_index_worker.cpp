@@ -1,3 +1,4 @@
+#include "recording/recording_latency_trace.h"
 // 파일 용도: 준비 실패에서 이전 완성 색인을 보존하고 한 개 작업만 재개하는 worker.
 #include "recording/visual_index_worker.h"
 #include <algorithm>
@@ -64,6 +65,7 @@ VisualIndexReadView VisualIndexWorker::ReadView()const{
     std::lock_guard lock(mutex_);return {current_,publication_,status_};
 }
 bool VisualIndexWorker::Rebuild(const Cancelled& cancelled,std::string* error){
+    latency::VisualPhase rebuild("index-rebuild");
     std::shared_ptr<const VisualSearchIndex> base;
     {std::unique_lock lock(mutex_);
         // 오래된 질의가 이전 세대를 보유하면 세 번째 색인 할당을 시작하지 않는다.
@@ -72,7 +74,7 @@ bool VisualIndexWorker::Rebuild(const Cancelled& cancelled,std::string* error){
         status_.attempt_state="running";status_.attempt_started_ms=NowMs();status_.attempt_finished_ms.reset();status_.error.clear();}
     std::vector<VisualSearchDocument> docs;
     std::optional<std::map<std::string,VisualSourceCoverage>> coverage;
-    if(!source_(&docs,&coverage,cancelled,error))return false;
+    {latency::VisualPhase collect("index-collect");if(!source_(&docs,&coverage,cancelled,error))return false;}
     if(coverage&&coverage->size()>32)return Fail(error,"visual-index-capacity");
     if(coverage)for(const auto& entry:*coverage)if(entry.first.empty()||entry.first.size()>1024)return Fail(error,"visual-index-capacity");
     if(cancelled())return Fail(error,"visual-cancelled");
@@ -112,7 +114,7 @@ bool VisualIndexWorker::Rebuild(const Cancelled& cancelled,std::string* error){
     std::shared_ptr<const VisualSearchIndex> complete;
     if(!VisualSearchIndex::Build(VisualEmbeddingContract::Siglip2(),std::move(docs),&complete,error,limits_))return false;
     if(cancelled())return Fail(error,"visual-cancelled");
-    if(!store_.Save(*complete,error))return false;
+    {latency::VisualPhase save("index-save");if(!store_.Save(*complete,error))return false;}
     // Stop 뒤 cache는 완성본일 수 있지만 종료 중 새 메모리 게시를 하지 않는다.
     if(cancelled())return Fail(error,"visual-cancelled");
     auto publication=std::make_shared<VisualIndexPublication>();publication->instance_id=instance_id_;publication->origin="rebuild";

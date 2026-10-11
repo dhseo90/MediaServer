@@ -421,7 +421,7 @@ RetentionSnapshot RetentionCoordinator::ReadSnapshot() const {
         if(!snapshot.authoritative)return snapshot;
         // catalog의 내구 예약은 임시 provider map이나 누락된 복사본으로 대체하지 않는다.
         if(const auto* catalog=dynamic_cast<const RecordingCatalog*>(&store_)) {
-            const auto durable=catalog->RetentionSnapshot();
+            const auto durable=catalog->RetentionReservations();
             if(!durable.authoritative)return durable;
             snapshot.durable_reservations=durable.durable_reservations;
         }

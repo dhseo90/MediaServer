@@ -1,3 +1,4 @@
+#include "recording/recording_latency_trace.h"
 // 파일 용도: file evidence 기반 주기 sample 선택과 현재 원본에서의 실제 임베딩.
 #include "recording/recording_visual_source.h"
 #include "recording/visual_frame_decoder.h"
@@ -149,7 +150,9 @@ bool RecordingVisualSource::Encode(VisualSearchDocument* doc,analysis::Siglip2En
     const long double ns=static_cast<long double>(seek.seconds)*1000000000;
     if(!std::isfinite(ns)||ns<0||ns>=std::ldexp(1.0L,63))return Fail(error,"visual-invalid-frame-reference");
     VisualRgbFrame frame;
+    latency::VisualPhase decode("image-decode");
     if(!DecodeVisualFrame(original->fd(),original->size_bytes(),std::llround(ns),&frame,error,cancelled))return false;
+    decode.End();
     if(cancelled&&cancelled())return Fail(error,"visual-cancelled");
     doc->embedding=encoder.EncodeRgb(frame.rgb.data(),frame.width,frame.height,std::size_t(frame.width)*3);
     if(error)error->clear();return true;

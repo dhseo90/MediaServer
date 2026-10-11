@@ -4,6 +4,7 @@
 #include "recording/recording_runtime_composition.h"
 #include "visual_request_media_cache_under_test.cpp"
 #include <fstream>
+#include <future>
 #include <fcntl.h>
 #include <unistd.h>
 namespace {
@@ -27,7 +28,8 @@ void Seed(recording::RecordingRuntimeStorage& runtime,int frames,int key,int dur
     auto input=Encode(frames,false,false,160,90,30,key);Shift(input,7000000000ULL);std::string error;
     recording::GStreamerSegmentWriter writer(runtime.WriterOptions(duration));
     CacheCheck(writer.Start("cache-channel","unused",input.descriptor,[](auto,auto,auto*){return false;},&error),"owned source writer");
-    for(const auto& packet:input.packets)writer.Push(packet,0);writer.Stop();
+    for(const auto& packet:input.packets)writer.Push(packet,0);
+    writer.Stop();
 }
 void Resolve(Cache& cache,const Document& doc,Hold* hold=nullptr){
     recording::SearchSeekTarget target;std::string error;
@@ -37,12 +39,25 @@ void Limits(const Cache& cache){std::size_t sum=0;for(const auto& entry:cache.en
     CacheCheck(cache.bytes_==sum&&cache.bytes_<=8U*1024*1024&&cache.entries_.size()<=200,"actual cache entry and byte accounting bounded");}
 }
 int main(int argc,char** argv){try{
-    if(argc!=2)return 2;gst_init(nullptr,nullptr);const std::filesystem::path root(argv[1]);std::string error;
+    if(argc!=2)return 2;
+    gst_init(nullptr,nullptr);const std::filesystem::path root(argv[1]);std::string error;
     {
         recording::RecordingRuntimeStorage runtime(root/"byte-limit");CacheCheck(runtime.Open(&error),"byte-limit store");Seed(runtime,9450,30,105000);
         const auto docs=Documents(runtime);CacheCheck(docs.size()==3,"three 3150-sample files");
         recording::RecordingReadService reader(runtime.catalog());recording::RecordingVisualSource source(runtime.catalog(),reader);Hold response;
         const int baseline=Descriptors();
+        // 결정적 순서: 준비된 reader를 유지한 채 다른 thread의 동일 파일 변경을 완료시킨다.
+        {auto proof=source.Prepare(docs[0],&error,{},End());CacheCheck(bool(proof),"MEM88 prepared current source");
+            const auto location=*runtime.catalog().FindSegmentMediaLocation(docs[0].segment_id);
+            const auto file=location.first/location.second;
+            std::promise<void> allow,changed,restore;auto start=allow.get_future();auto done=changed.get_future();auto resume=restore.get_future();
+            auto mutation=std::async(std::launch::async,[&]{start.wait();std::fstream bytes(file,std::ios::binary|std::ios::in|std::ios::out);char saved=0;bytes.read(&saved,1);bytes.seekp(0);bytes.put(char(saved^1));bytes.flush();changed.set_value();resume.wait();bytes.seekp(0);bytes.put(saved);bytes.flush();return bool(bytes);});
+            allow.set_value();done.wait();recording::SearchSeekTarget target;target.seconds=42;
+            bool rejected=false;try{rejected=!source.ResolvePrepared(docs[0],*proof,&target,&error,{},End());}
+            catch(...){restore.set_value();mutation.get();throw;}
+            restore.set_value();const bool restored=mutation.get();
+            CacheCheck(restored&&rejected&&target.seconds==42,"MEM88 held reader rejects concurrent same-file modification without publishing target");
+        }
         {
             Cache cache(source,{},End());Resolve(cache,docs[0],&response);Resolve(cache,docs[1]);Resolve(cache,docs[2]);Limits(cache);
             CacheCheck(cache.entries_.size()==2&&cache.prepared_==3&&!cache.entries_.count(Key{docs[0].channel_id,docs[0].segment_id}),"8MiB actual LRU eviction occurs");

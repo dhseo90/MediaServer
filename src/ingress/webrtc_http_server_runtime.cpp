@@ -1,3 +1,4 @@
+#include "recording/recording_latency_trace.h"
 // 파일 요약: WebRTC HTTP 서버의 공개 runtime lifecycle과 registry 검증 구현이다.
 #include "webrtc_http_server_detail.h"
 #include "site_operations_request_diagnostic.h"
@@ -428,6 +429,8 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                 SetHttpSocketTimeouts(client_fd);
                 HttpResponse response;
                 auto request_opt = ReadHttpRequest(client_fd, &response);
+                const bool visual_request=request_opt&&request_opt->method=="GET"&&request_opt->path=="/ops/api/recordings/visual-search";
+                recording::latency::VisualPhase visual_http("http-parsed-through-send",visual_request);
                 SiteOperationsRequestDiagnostic site_diagnostic(
                     site_request_diagnostic_enabled,
                     request_opt ? std::string_view(request_opt->method) : std::string_view{},
@@ -445,6 +448,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                 } else {
                     const HttpRequest& request = *request_opt;
                     site_diagnostic.Emit(SiteOperationsRequestDiagnostic::Phase::HandlerBegin);
+                    recording::latency::VisualPhase visual_handler("http-auth-handler",visual_request);
                     response = [&]() -> HttpResponse {
                         if (recording_request && !recording_flight)
                             return JsonResponse(503, "Service Unavailable", "{\"error\":\"recording shutdown\"}");
@@ -5235,6 +5239,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
 
                         return HttpResponse{404, "Not Found", "text/plain; charset=utf-8", {}, "not found"};
                     }();
+                    visual_handler.End();
                     site_diagnostic.Emit(SiteOperationsRequestDiagnostic::Phase::HandlerEnd);
                 }
 
@@ -5244,6 +5249,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                         request_opt.has_value() ? &request_opt.value() : nullptr;
                     const std::string encoded = BuildHttpResponse(response, request_for_headers);
                     const auto observation=recording_gate->SendObservation();
+                    recording::latency::VisualPhase visual_send("http-send",visual_request);
                     const bool sent = SendAllObserved(client_fd, encoded, observation.get());
                     site_diagnostic.Emit(SiteOperationsRequestDiagnostic::Phase::SendEnd, sent);
                 }

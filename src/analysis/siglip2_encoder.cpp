@@ -1,3 +1,4 @@
+#include "recording/recording_latency_trace.h"
 // 파일 요약: SigLIP2 전처리·토큰화·CPU ONNX 추론. 미사용 빌드는 명확한 disabled 오류이다.
 #include "analysis/siglip2_encoder.h"
 
@@ -500,7 +501,9 @@ Siglip2Encoder& Siglip2Encoder::operator=(Siglip2Encoder&&) noexcept = default;
 std::array<std::int64_t, Siglip2Encoder::kTextLength> Siglip2Encoder::TokenizeText(const std::string& value) {
 #if MEDIA_SERVER_USE_SIGLIP2
     if (!impl_) throw std::runtime_error("SigLIP2 encoder is not initialized");
-    const std::lock_guard<std::mutex> guard(impl_->mutex);
+    recording::latency::VisualPhase wait("encoder-mutex-wait");
+    const std::lock_guard<std::mutex> guard(impl_->mutex);wait.End();
+    recording::latency::VisualPhase hold("encoder-mutex-held");
     return impl_->Tokens(value).ids;
 #else
     (void)value;
@@ -511,11 +514,15 @@ std::array<std::int64_t, Siglip2Encoder::kTextLength> Siglip2Encoder::TokenizeTe
 std::vector<float> Siglip2Encoder::EncodeText(const std::string& value) {
 #if MEDIA_SERVER_USE_SIGLIP2
     if (!impl_) throw std::runtime_error("SigLIP2 encoder is not initialized");
-    const std::lock_guard<std::mutex> guard(impl_->mutex);
-    auto ids = impl_->Tokens(value).ids;
+    recording::latency::VisualPhase wait("encoder-mutex-wait");
+    const std::lock_guard<std::mutex> guard(impl_->mutex);wait.End();
+    recording::latency::VisualPhase hold("encoder-mutex-held");
+    recording::latency::VisualPhase tokens("text-tokens");
+    auto ids = impl_->Tokens(value).ids;tokens.End();
     const std::array<std::int64_t, 2> shape{1, 64};
     const auto memory = Ort::MemoryInfo::CreateCpu(OrtArenaAllocator, OrtMemTypeDefault);
     auto input = Ort::Value::CreateTensor<std::int64_t>(memory, ids.data(), ids.size(), shape.data(), shape.size());
+    recording::latency::VisualPhase run("text-session-run");
     return Impl::Infer(*impl_->text, "input_ids", input);
 #else
     (void)value;
@@ -526,7 +533,9 @@ std::vector<float> Siglip2Encoder::EncodeText(const std::string& value) {
 Siglip2Encoder::TextInputInfo Siglip2Encoder::InspectText(const std::string& value) {
 #if MEDIA_SERVER_USE_SIGLIP2
     if (!impl_) throw std::runtime_error("SigLIP2 encoder is not initialized");
-    const std::lock_guard<std::mutex> guard(impl_->mutex);
+    recording::latency::VisualPhase wait("encoder-mutex-wait");
+    const std::lock_guard<std::mutex> guard(impl_->mutex);wait.End();
+    recording::latency::VisualPhase hold("encoder-mutex-held");
     return impl_->Tokens(value).info;
 #else
     (void)value;
@@ -537,11 +546,15 @@ Siglip2Encoder::TextInputInfo Siglip2Encoder::InspectText(const std::string& val
 std::vector<float> Siglip2Encoder::EncodeRgb(const std::uint8_t* rgb, int width, int height, std::size_t stride) {
 #if MEDIA_SERVER_USE_SIGLIP2
     if (!impl_) throw std::runtime_error("SigLIP2 encoder is not initialized");
-    const std::lock_guard<std::mutex> guard(impl_->mutex);
-    auto pixels = PreprocessRgb(rgb, width, height, stride);
+    recording::latency::VisualPhase wait("encoder-mutex-wait");
+    const std::lock_guard<std::mutex> guard(impl_->mutex);wait.End();
+    recording::latency::VisualPhase hold("encoder-mutex-held");
+    recording::latency::VisualPhase preprocess("image-preprocess");
+    auto pixels = PreprocessRgb(rgb, width, height, stride);preprocess.End();
     const std::array<std::int64_t, 4> shape{1, 3, 224, 224};
     const auto memory = Ort::MemoryInfo::CreateCpu(OrtArenaAllocator, OrtMemTypeDefault);
     auto input = Ort::Value::CreateTensor<float>(memory, pixels.data(), pixels.size(), shape.data(), shape.size());
+    recording::latency::VisualPhase run("image-session-run");
     return Impl::Infer(*impl_->image, "pixel_values", input);
 #else
     (void)rgb; (void)width; (void)height; (void)stride;
