@@ -1,0 +1,164 @@
+{
+  "schema": "media-server.v450.validation.v1",
+  "task": 94,
+  "status": "PARTIAL_BLOCKED_ISOLATION",
+  "memoryP0": "unresolved",
+  "release": "held",
+  "ownerRiskAcceptance": "not-granted",
+  "model": {
+    "requestedMain": {
+      "model": "gpt-6-astra",
+      "effort": "high"
+    },
+    "mainRuntime": "not-exposed",
+    "independentRequested": {
+      "model": "gpt-6-astra",
+      "effort": "high"
+    },
+    "independentToolAccepted": "gpt-6-astra/high (existing reviewer)",
+    "independentRuntime": "not-exposed"
+  },
+  "baseline": "1988d55b56d09c1c40d9fb15bfd5e61a37e4e0b1",
+  "diagnosticSource": "df4aa5a6eecfda313b3ca46eea46b52cf49b0bb8",
+  "diagnosticTree": "27088d32175adf1517808cb3f8ee8a23daeda1a3",
+  "diagnostic": {
+    "executions": 1,
+    "authorizedMaximumSeconds": 2700,
+    "lastObservedSeconds": 2107.996293083,
+    "launcherElapsedSeconds": 2124.0325847909553,
+    "exit": 1,
+    "firstFailure": "LP26-O05 active 9101: exactlyOne/enabled/active true, notStorageBlocked false",
+    "sameResponse": {
+      "status": 200,
+      "bytes": 908,
+      "sha256": "b3d1de397fee230ddd1ef617d98b165795311704fcda51adf8cc9a243ac18670",
+      "requestId": 422,
+      "receivedLatencyMs": 226.05875
+    },
+    "stateTrace": {
+      "capturedEvents": 51,
+      "collectionIssues": 0,
+      "serverReceivedAndStoredBytes": 791820,
+      "processLogCapBytes": 4194304
+    },
+    "ACompleted": 35,
+    "search": {
+      "successfulSamples": 556,
+      "unavailable": 8,
+      "partialP95Ms": 2363.6025000000373,
+      "partialMaxMs": 3841.4217919998337,
+      "finalGate": "not-run"
+    },
+    "subsequentControlsRecoveryRestart": "not-run-after-failure",
+    "processCleanup": "launcher confirms groups absent; normal finally server stop"
+  },
+  "causalBoundary": {
+    "newRun": "Deletion protection/reason denial propagated to continuous admission; exact pin/hold/job vs invalid-reason branch not identifiable from that trace. No active=false evidence.",
+    "deterministic": "Actual catalog: fixed Plan then hold acquired; old code fails immediately and skips remaining eligible victim although actual capacity after safe other deletion can satisfy write. RED preserved.",
+    "past93": "same body was never preserved; not reconstructed, exact cause remains unconfirmed",
+    "search": "93 partial p95 2242.620ms and new partial p95 remain separate performance residuals"
+  },
+  "unreviewedFix": {
+    "status": "working tree only; exact patch in archive; not release candidate",
+    "behavior": "typed pre-mutation protection only; preserve held file, other selected deletions, re-read actual bytes/free/durable reservations before continuous admission; strict public Apply and hard errors remain",
+    "direct": "macOS V2 28 PASS, retention57 PASS; checkpoint first crypto/sqlite/backend 1/1/1 partial success including typed rotation protection; full suite interrupted",
+    "firstCompileFailure": "two unrelated private declarations mistakenly received optional parameter; original log preserved and corrected build PASS",
+    "writerFailure": "110 PASS/8 FAIL due default registry usage/duplicate source; not a product regression PASS",
+    "correctedCumulativeRun": "not-run",
+    "LinuxAndFinalReview": "not-run"
+  },
+  "stop": {
+    "reason": "AGENTS.md section 4 isolation-breach stop; explicit user instruction required before resuming",
+    "observedAt": "2026-10-11T14:29:45.640503+00:00",
+    "helper": "native.py omitted MEDIA_SERVER_SOURCE_REGISTRY and MEDIA_SERVER_PUBLISHED_VIEWS for recording_segment_writer_smoke",
+    "defaultSourceFile": {
+      "path": "/Users/dhseo/Workspace/mediaServer/.media_server.sources.json",
+      "bytes": 3473,
+      "sha256": "ce8d3170c3c98251936448cb4f126b2ff54fa1b6a492ddf1719a72be0c6b3b00",
+      "modifiedAt": "2026-10-11T13:28:59.033681+00:00"
+    },
+    "sourceIds": [
+      "1",
+      "2",
+      "3",
+      "4",
+      "5",
+      "91",
+      "93"
+    ],
+    "testIds": [
+      "91",
+      "93"
+    ],
+    "beforeBytes": "not-preserved; exact prior values and all earlier task writes not established",
+    "defaultViews": "pre-existing file unchanged mtime observed; no before hash available",
+    "action": "No default config restoration/deletion; product changes and all originals retained. No more implementation/tests/delegation. Owned checkpoint process group 87457 terminated with SIGTERM; wrapper exit -15, cleanup receipt retained.",
+    "scope": "The earlier native helper executions also lack these overrides; their writer isolation claim is not qualified. Isolated mixed45 had explicit own state paths and is separate.",
+    "notRun": [
+      "corrected candidate cumulative run",
+      "corrected candidate Linux",
+      "final independent fix/result approval",
+      "new product producer/readback"
+    ]
+  },
+  "priorEvidence": "92 retention/600 and historical memory scopes maintained; preflight writer isolation qualification withdrawn, original preflight review not edited",
+  "approvalBinding": "df4aa diagnostic inventory producer/readback completed with unchanged legacy986 digest; later product/inventory delta is not bound/approved",
+  "preservation": {
+    "archive": "94-execution.tar.gz",
+    "bytes": 43414297,
+    "sha256": "8f78c3b4a9e527eba2a7f5c9e7210681f3554d8e23137a16e786bca6dc204a66",
+    "originalFiles": 603,
+    "uncompressedBytes": 86232592,
+    "byteReadback": "all selected member hashes match",
+    "unreviewedPatch": "94-execution.tar.gz:unreviewed-retention-fix.patch",
+    "originalPrivacy": "Selected task-generated recording/store and diagnostic data only; user default configuration and isolated auth users excluded; no SDK/models or product binaries."
+  },
+  "cleanup": {
+    "checkpoint": "owned group SIGTERM, wrapper cleanup original directory removed",
+    "mixed": "owned groups absent per launcher",
+    "root": "retained for isolation audit/resume; not deleted",
+    "containers": [
+      {
+        "name": "media-server-state94-linux",
+        "id": "04a67641b4a6c965f26448b29439c8bc5dd6f1eed172c58ad7e65cf3dd80fcb6",
+        "state": "exited",
+        "exitCode": 126,
+        "removed": true
+      },
+      {
+        "name": "media-server-state94-linux-2",
+        "id": "4ef623fd8ebe486dc4e1c5b32a3a24ebf50627d7fed6d98cace414e9e5045698",
+        "state": "exited",
+        "exitCode": 1,
+        "removed": true
+      },
+      {
+        "name": "media-server-state94-linux-3",
+        "id": "70e36c34da0a351326835a4d7280ab49003be2380c9a0ffb670053f40479ceef",
+        "state": "exited",
+        "exitCode": 0,
+        "removed": true
+      }
+    ],
+    "defaultSource": "not restored/deleted; prior bytes unavailable",
+    "checkpointProcessGroupAbsent": true
+  },
+  "notPerformed": [
+    "new120",
+    "acceptance",
+    "fullUI",
+    "Qwen/Ollama",
+    "unload gate",
+    "PR",
+    "merge",
+    "tag",
+    "Release"
+  ],
+  "remaining": [
+    "isolation incident resolution and explicit resumption instruction",
+    "minimal fix final review/macOS+Linux/binding",
+    "at most one approved fixed candidate cumulative run if still necessary",
+    "separate search latency",
+    "memory P0/final mixed and release hold"
+  ]
+}

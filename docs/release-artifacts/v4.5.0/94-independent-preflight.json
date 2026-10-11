@@ -1,0 +1,671 @@
+{
+  "schema": "media-server-independent-preflight-v1",
+  "task": 94,
+  "reviewedAt": "2026-10-11T13:34:30.451Z",
+  "reviewer": "independent_memory86",
+  "implementationAuthor": "root",
+  "model": {
+    "requested": "gpt-6-astra",
+    "effortRequested": "high",
+    "priorToolAccepted": "gpt-6-astra/high",
+    "actualRuntimeModel": "unexposed/unconfirmed",
+    "actualRuntimeEffort": "unexposed/unconfirmed"
+  },
+  "independence": {
+    "implementation": false,
+    "testAuthoring": false,
+    "productTestExecution": false,
+    "subdelegation": false,
+    "activity": "소스/기존 원출력/선정archive 읽기와 hash 대조, 이 preflight만 작성"
+  },
+  "decision": {
+    "sourceDiagnosticBlockerFound": false,
+    "diagnosticEntry": "CONDITIONAL_PENDING_LINUX_AND_BINDING_FREEZE",
+    "productCause93": "UNCONFIRMED",
+    "productBehaviorFixApproved": false,
+    "newExecutionAuthority": false,
+    "memoryP0": "BLOCKED",
+    "releaseReady": false,
+    "meaning": "동일응답 선보존·bounded 상태진단·유한45분 모드의 현재 소스에서 추가 차단 결함을 확인하지 못했다. 남은 Linux managed-writer fixture와 기존 결속/readback, 최종source 고정 뒤 사용자승인 범위의 한 번2700초 원인진단에 사용 가능한 관측 변경이다. 재현/PASS/원인해소를 예측하지 않으며 기존120 또는출시 승인으로 확대하지 않는다."
+  },
+  "sourceBinding": {
+    "entry": "1988d55b56d09c1c40d9fb15bfd5e61a37e4e0b1",
+    "reviewedTrackedPatchSha256": "6142db7aee0a851f995b27b939cb2f828d94629cf512dbd0cb3ff75be24c386b",
+    "trackedPatchBytes": 55169,
+    "fileHashes": {
+      "docs/project-feature-test-inventory.md": {
+        "bytes": 1002460,
+        "sha256": "ec355f139748411711fa2ccf2dce98f8c9d4503861744a49ad05573f9eb19dc2"
+      },
+      "scripts/internal/recording_current_app_helpers.mjs": {
+        "bytes": 22269,
+        "sha256": "e06f2d929f8b0e2cd7a6144084be86528c1aae795fcf4c018fa22c08a2a3d0c2"
+      },
+      "scripts/internal/recording_current_http_diagnostics.test.mjs": {
+        "bytes": 9287,
+        "sha256": "7e315e3172239358cb378a83238185557dd79474781dda4d545c787f17ec589b"
+      },
+      "scripts/internal/recording_current_longrun_diagnostics.test.mjs": {
+        "bytes": 7196,
+        "sha256": "71a149bd792038334c5e9da093e9ce039c47809bb7ea3811ac8ea8f680177ab1"
+      },
+      "scripts/internal/recording_longrun_progress.test.mjs": {
+        "bytes": 20159,
+        "sha256": "98f79e6b29cfa44382ef1a8822ae86a409796bee6e234d55c456705866d0c8f9"
+      },
+      "scripts/internal/recording_managed_writer_smoke.cpp": {
+        "bytes": 45200,
+        "sha256": "bb85c10602e3779363279944d44417be40181fe15abd45a44886900b3ccee5a3"
+      },
+      "scripts/internal/run_v450_recording_a_mixed.py": {
+        "bytes": 11685,
+        "sha256": "0b48328744d5197d39adb15d8154c6955c54dddd9c5f77cb5c04d94c44576806"
+      },
+      "scripts/internal/v450_recording_a_load.mjs": {
+        "bytes": 11540,
+        "sha256": "8f9a26f276d27679146b5bf0a933e7db51dc518b536593e7bbfca24e7ec30653"
+      },
+      "scripts/internal/v450_recording_a_mixed.mjs": {
+        "bytes": 49172,
+        "sha256": "15e765eb7c4c04ffb65aeb9dd738e77c9f71024e1bde95052df9ae88ed7b25ec"
+      },
+      "scripts/internal/verify_v450_recording_a_mixed.sh": {
+        "bytes": 4458,
+        "sha256": "f501443700fc27e11d4a7603c099fd58d54a6fc9dc5cf288f1b86daf8dc7aed0"
+      },
+      "src/recording/gstreamer_segment_writer.cpp": {
+        "bytes": 32781,
+        "sha256": "8a152326f52880bb15edc877deeb890a7a8360356e2d4c7c3d2cf9cbff963758"
+      },
+      "src/recording/recording_session_service.cpp": {
+        "bytes": 9731,
+        "sha256": "16ab12f28a2dde5244134a0e8d6bf98a93352c275ef17e221edfbf91f286ea3b"
+      },
+      "src/recording/retention_coordinator.cpp": {
+        "bytes": 53120,
+        "sha256": "d5e20d824119ba3b3a119a2d8b1f74ae0468f5a4f262ec90ae7b2af84a885981"
+      },
+      "include/recording/recording_state_trace.h": {
+        "bytes": 2145,
+        "sha256": "03dec6930006e1ee681a6185888a9f16a1528ae6f2a6fad2cfbcc47f77057258"
+      }
+    },
+    "state": "진행중 working-tree 후보를 검토한 시점결속. 미래commit/후속fixture bytes를 승인한 것이 아님."
+  },
+  "judgments": [
+    {
+      "boundary": "same response/truthiness",
+      "finding": "measuredHttpResponse가 받은 동일 bytes를 한 번 파싱해 hash/shape/matchCount/조건별 존재·형·값을 기록한 뒤 caller가 실패한다. 두번째GET 없음. boolean coercion은 원래결합식과 같고 missing/null/false·duplicate·null-array 및 JSON파싱 실패를 구분한다. raw는최초실패만,최근정상요약8개. 전체원문은 실패수신 bytes이며 임의정상화하지 않는다."
+    },
+    {
+      "boundary": "storage/error preservation",
+      "finding": "실패raw+16KiB 여유와summary 쓰기전 admit가 기존 workspace 측정+최근관측 anonymous max를 포함한다. directory dev/inode 확인과 wx/0600/fsync를 양쪽 쓰기마다 수행한다. admission/쓰기오류는 collectionErrors에 남고 원상태 실패를 덮지 않는다. 공간 측정은원자스냅샷/순간피크보장이 아니며 기존관측범위이다."
+    },
+    {
+      "boundary": "state collector",
+      "finding": "opt-in128events,고정길이 사유,probe/end/count/seq/writeError 및 부모parser 불일치 FAIL. fprintf/flush 실패가endwriteError나행누락/count/probe/end 불일치로 검출된다. cap초과행 역시 invalid/count로실패. 수집없음을0/정상으로채우지 않는다. 상태/권한/예약/삭제 판정에 사용하지 않는다."
+    },
+    {
+      "boundary": "writer/retention safety",
+      "finding": "기존 session 생성/start/Stop와 retention admission 거부·회복 지점에 관측만 추가. cleanup-marker/unlink/truncate 최초오류를 추가해 예약잔존이라는뒤증상과구분가능하다. 반환값·실제unlink/truncate/ReleaseReservation 조건·보호hold/pin/quota와 media게시 경계는 유지된다. Trace경로의 메시지는잘린정제사유로서 전체오류/모든원인전수기록으로주장하지않는다."
+    },
+    {
+      "boundary": "mode and budgets",
+      "finding": "state2700/total2880,2channel/4client/15s/A60s최대45,기존2000p95/5000max 유지. if(!diagnose||stateDiagnose)로 원래120의F+448MiB/F+896MiB계산을쓴다. holder opt-in 및후처리는 diagnose&&!stateDiagnose로일치. stateDiagnosticPass와frameDiagnosticPass를구분하고 longrunObservationCompleted=false. 성공경로는disable/stop/closedjournal까지이며120의controls/recovery/restart는진단에서제외된별도범위이다."
+    },
+    {
+      "boundary": "causal limits",
+      "finding": "SourceRegistry snapshot→session active→retention status는 순차조회이며 원자snapshot이아니다. finally Stop의전이를이전원인으로귀속하지않는다. 새동일body가어느conjunct인지확인해도93미보존body가복원된것이아니다. 93의556부분p952242.620ms는별도잔여로유지."
+    }
+  ],
+  "boundedCapacity": {
+    "visualPlanned": 360,
+    "visualBoundaryConservative": 362,
+    "visualPerPidCap": 1024,
+    "resourceWholeBudgetApprox": 580,
+    "resourcePerPidCap": 1600,
+    "stateEventCap": 128,
+    "stateParentRowCapCharacters": 1024,
+    "processLogCapBytes": 4194304,
+    "interpretation": "형식과고정호출범위의수용가능성검토. 전체log가반드시cap이하라는보장아님;cap/loss는기존FAIL유지."
+  },
+  "directEvidence": {
+    "javascript": {
+      "receipt": "contracts-attempt6.log",
+      "nodeTestsPassed": 20,
+      "nodeFailed": 0,
+      "internalLongrunAssertions": {
+        "passed": 66,
+        "failed": 0
+      },
+      "scope": "helper실제HTTP 정상/오류/shape·write/admission반례,probe/end수집,실제mixed request 함수추출 자식→부모 최초실패보고(누락/activefalse/badJSON3case),실제분기VM평가 포함. 제품서버45분실행아님."
+    },
+    "macBuild": "build-attempt2.log product/runtime100%완료",
+    "macNative": {
+      "recording_managed_writer_smoke-run.log": {
+        "binding": {
+          "bytes": 36606,
+          "sha256": "586683cb08259e582d3f4944a585904de42a3a7ed83ad0ab41a7a8ff4a98cf7e"
+        },
+        "result": "[summary] pass=46 fail=0"
+      },
+      "recording_retention_smoke-run.log": {
+        "binding": {
+          "bytes": 4850,
+          "sha256": "909253ec38c3f5bb6b65bc8def0084c59f42c3296ec46dcd36325f3fa1c2a7da"
+        },
+        "result": "[verify-v410-recording-retention] pass=57 fail=0"
+      },
+      "recording_retention_v2_smoke-run.log": {
+        "binding": {
+          "bytes": 1685,
+          "sha256": "426d9d2bdb9aa7f9817c31780d3545d7f9b3f6318d1e756d0272e8c9b56e996f"
+        },
+        "result": "[summary] pass=22 fail=0"
+      },
+      "recording_segment_writer_smoke-run.log": {
+        "binding": {
+          "bytes": 8238,
+          "sha256": "7f2a589cf90eacb2d0ab87003b239d39a20d3490ace58ea94c9857a7b405957e"
+        },
+        "result": "[verify-v410-recording-recorder] pass=118 fail=0"
+      }
+    },
+    "linux": {
+      "linux94-output.tar.gz": {
+        "selectedReadback": {
+          "./container-exit.txt": {
+            "bytes": 4,
+            "sha256": "703d2c10fa601276a4dd96193faed68902a642a44eb5b01b40d6fc8499e12822",
+            "tail": [
+              "126"
+            ]
+          },
+          "./native/recording_retention_smoke-run.log": {
+            "bytes": 101,
+            "sha256": "2fba9ad039e9347b6d4a8079663b98597e4efd603cd8e859cd131d0712b79692",
+            "tail": [
+              "native: line 1: /tmp/media-server-state94/output/native/recording_retention_smoke: Permission denied"
+            ]
+          },
+          "./native-console.log": {
+            "bytes": 111,
+            "sha256": "b9a720a9518125032f36b9956a58e983e959b67cb5503080887733de7dc174bb",
+            "tail": [
+              "recording_retention_smoke run 126 0.0017730830000033393"
+            ]
+          },
+          "./build.json": {
+            "bytes": 328,
+            "sha256": "a4df5907513d57253f4d1fc256a711b7daa7a3122756ec8bb2cea9e57223a233",
+            "tail": [
+              "}"
+            ]
+          },
+          "./environment.log": {
+            "bytes": 314,
+            "sha256": "a9ad89e58a5f3204e26d11bea849dcc79072632a1a64723e6afed3b3c4f04914",
+            "tail": [
+              "3.53.4"
+            ]
+          }
+        }
+      },
+      "linux94-output-2.tar.gz": {
+        "selectedReadback": {
+          "./container-exit.txt": {
+            "bytes": 2,
+            "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865",
+            "tail": [
+              "1"
+            ]
+          },
+          "./native/recording_managed_writer_smoke-compile.log": {
+            "bytes": 5406,
+            "sha256": "8ace0e867a7d701edcf04955649e8488dc4a1dd14f70aa66dd060076f523c640",
+            "tail": [
+              "cc1plus: all warnings being treated as errors"
+            ]
+          },
+          "./native/recording_segment_writer_smoke-run.log": {
+            "bytes": 8238,
+            "sha256": "c1f5625951cf747552fd980ffeb58db4de1362ddfe85ad9fc65cb829d40a0bd8",
+            "tail": [
+              "[verify-v410-recording-recorder] pass=118 fail=0"
+            ]
+          },
+          "./native/recording_retention_v2_smoke-run.log": {
+            "bytes": 1761,
+            "sha256": "74dc257dea02cae1a22b92eb1979ae1ffb5b58aa6d94876911a4e4cef8c775f9",
+            "tail": [
+              "[summary] pass=22 fail=0"
+            ]
+          },
+          "./native/recording_retention_smoke-run.log": {
+            "bytes": 4818,
+            "sha256": "ce3de1ce03df54e994d9a06ffb5a9792c5f3b68bd135eec10c9ca7800de5e1bf",
+            "tail": [
+              "[verify-v410-recording-retention] pass=57 fail=0"
+            ]
+          },
+          "./native-console.log": {
+            "bytes": 395,
+            "sha256": "5d51faf40adde72bf46076817e5718b0068c6dc7572bdc6e28b09dc8e9ea5395",
+            "tail": [
+              "recording_managed_writer_smoke compile 1 0.8286364589999948"
+            ]
+          },
+          "./build.json": {
+            "bytes": 333,
+            "sha256": "5957b72c3112c0aa8659a6417d64f193684aa214d75f2a188bb1a8da6f52d80f",
+            "tail": [
+              "}"
+            ]
+          },
+          "./environment.log": {
+            "bytes": 314,
+            "sha256": "a9ad89e58a5f3204e26d11bea849dcc79072632a1a64723e6afed3b3c4f04914",
+            "tail": [
+              "3.53.4"
+            ]
+          }
+        }
+      }
+    },
+    "linuxStatus": "attempt1제품buildPASS/첫fixture noexec126. attempt2제품buildPASS,retention57/V222/segment118PASS,managedwriter fixtureGCC misleading-indentation compileFAIL,실행미도달. 해결및후속결과pending."
+  },
+  "firstFailures": {
+    "httpAttempt1": "persisted JSON은undefined value를생략하므로 directobject기대값과다른준비assertion. present/type는유지하고JSON표현비교로보완,원본보존.",
+    "contractsAttempt2": "기존snapshot wrapper문자열과현재공유helper계약위치가불일치한정적검사실패보존.15초/16KiB·원본불변·실제helper계약을제거하지않고현행소비자에연결.",
+    "contractsAttempt4": "loopback listen EPERM 준비권한실패보존. 제품의상태실패로재분류하지않음.",
+    "linuxAttempts": "noexec126과GCCfixturecompileFAIL은제품PASS로바꾸지않고각원문archive에보존."
+  },
+  "candidate": {
+    "digest": "8977e9b6ac618c7e0233823f6acb6ab1fcf7461206ee5d8b2a4149a643519e3a",
+    "summary": {
+      "rows": 986,
+      "resolvedCandidates": 986,
+      "discoveredCandidates": 0,
+      "unresolvedCandidates": 0,
+      "fileScopeRoles": 0
+    },
+    "meaning": "기존8977digest986 결과는legacy audit영향판단자료이며이번진단새동작의독립승인대체아님.기존approvedmanifest 적용/readback은아직확인전."
+  },
+  "pending": [
+    "Linux managed-writer fixture 컴파일/직접실행 잔여 및 변경이있으면정확한추가diff검토",
+    "기존candidate/items/trust 영향대조·필요inventory결속/apply/readback",
+    "최종소스·binary/runtime·진단plan 고정 및코드commit",
+    "승인된원인확인2700초 최대1회 원출력과최초실패/수집/cleanup 결과독립검토"
+  ],
+  "priorEvidence": "92 retention비용개선·600PASS 및78~93 각직접범위/실패 유지. 현재는관측연결만으로원인재현·제품수정완료를선언하지않는다.",
+  "evidenceBindings": {
+    "plan.json": {
+      "bytes": 899,
+      "sha256": "47da0c44df9946b81bc09b095cc46988a340e4180dcd6687150dc08a2ac4e0fc"
+    },
+    "contracts-attempt6.log": {
+      "bytes": 5243,
+      "sha256": "9130bc97c4cf5beac1ebf91c72d047cd7799aa899f7cb8c8d2834a61fd22d0b5"
+    },
+    "http-contract-attempt1.log": {
+      "bytes": 2119,
+      "sha256": "bf28979729ef2f795f792438c732d9b60f20fba4f4d8c51ff80e54972f0700c0"
+    },
+    "http-contract-attempt1-cause.json": {
+      "bytes": 232,
+      "sha256": "d8b35de65f57d1b30420c5d56ea50c2faa52153741c8cc1b991a7ff7f19ed0d5"
+    },
+    "contracts-attempt2.log": {
+      "bytes": 6615,
+      "sha256": "6597620dd1c4dd309bf85c4c0d6163066bb6987cfe75082c0fffa836e1e5532f"
+    },
+    "contracts-attempt3.log": {
+      "bytes": 5347,
+      "sha256": "735b6600c33b4a7664e60706797ea7b3422bc3ba14375738fea99e8fcca6498d"
+    },
+    "contracts-attempt4.log": {
+      "bytes": 5706,
+      "sha256": "c9fa47d6329719e6a5e7d5a03a6a74df9e74dfdd6b604e76832b2f6765f0971a"
+    },
+    "contracts-attempt5.log": {
+      "bytes": 5147,
+      "sha256": "33458967c0056a11f30677deb250f973f75a32ad5ec0da89b1a97cb4261930e3"
+    },
+    "build-attempt1.log": {
+      "bytes": 499,
+      "sha256": "6fa6835419e7f9e13da4dbd713f006f8412b4132bb3e9775525507bc39919e9a"
+    },
+    "build-attempt2.log": {
+      "bytes": 499,
+      "sha256": "1311e1cc6d806f32bbf4054a9f4047845a84cffb861521dfdb360b3925615e1d"
+    },
+    "native-macos-console.log": {
+      "bytes": 445,
+      "sha256": "8e675828f670c7f8bbe575f25ebfc7ba1c78734af82635c53464aea38474a909"
+    },
+    "linux94-result.json": {
+      "bytes": 43,
+      "sha256": "38a0352d8438abf5ddd326248ebbf87507576bc542d7d68c0ee391caa48adc2d"
+    },
+    "linux94-result-2.json": {
+      "bytes": 204,
+      "sha256": "7137aded64ff401c86b10ad366cd11db3459678ca44d5fe324e562fb67e7d059"
+    },
+    "linux94-output.tar.gz": {
+      "bytes": 1739113,
+      "sha256": "45bef7c86424104035af5ab4b2fe4b4213a44e42fcf3ea768bc4c57a300b4f22"
+    },
+    "linux94-output-2.tar.gz": {
+      "bytes": 6201268,
+      "sha256": "de968f867ab548ebead23f8a5b231154c629e22bfd7db3c6f30f5757d2bfeedd"
+    },
+    "candidate.json": {
+      "bytes": 7709058,
+      "sha256": "13402b9705f3b160348f6facdd5bf496d4a6fe761c9653db6f9fd7754b2a14f4"
+    }
+  },
+  "notPerformedByReviewer": [
+    "제품/검사 실행",
+    "코드/검사/승인파일 수정",
+    "producer 실행",
+    "commit/push",
+    "하위위임"
+  ],
+  "linuxAndBindingProgressAddendum": {
+    "reviewedAt": "2026-10-11T13:37:04.758Z",
+    "priorReportSha256": "ea2160d479f67fa86b7dfa41b5585655706949e3723aeb9ad5a2d87d2bf7d6a2",
+    "decision": {
+      "newSourceBlocker": false,
+      "diagnosticEntry": "CONDITIONAL_PENDING_COVERAGE_READBACK_AND_SOURCE_FREEZE",
+      "linuxAffectedRegression": "COMPLETE",
+      "cause93": "UNCONFIRMED",
+      "actual2700Run": "NOT_RUN",
+      "newExecutionAuthority": false
+    },
+    "linux": {
+      "attempt3Exit": 0,
+      "elapsedSeconds": 60.51066162495408,
+      "productBuildExit": 0,
+      "uid": 10001,
+      "retention": {
+        "pass": 57,
+        "fail": 0
+      },
+      "retentionV2": {
+        "pass": 22,
+        "fail": 0
+      },
+      "segmentWriter": {
+        "pass": 118,
+        "fail": 0
+      },
+      "managedWriter": {
+        "pass": 46,
+        "fail": 0
+      },
+      "basis": "linux-final-selected 실제build/native stdout와exit,completed.txt 읽기. attempt1noexec126/attempt2GCCcompileFAIL은원래archive에유지."
+    },
+    "fixtureDelta": {
+      "path": "scripts/internal/recording_managed_writer_smoke.cpp",
+      "current": {
+        "bytes": 45200,
+        "sha256": "bb85c10602e3779363279944d44417be40181fe15abd45a44886900b3ccee5a3"
+      },
+      "priorSha256": "9e033b2ec1d06279745e08491e200e9cee6a30ea96173adfa46cd1c047559b13",
+      "whitespaceRemovedBytesEqual": true,
+      "judgment": "6곳 연속for/if 뒤문장 줄분리만이며 diff에서제어범위·기대값·cleanup·decode oracle불변 확인. whitespace비교는이diff읽기를보조하며일반semantic등가증명으로주장하지않는다.",
+      "macManagedRecheck": {
+        "pass": 46,
+        "fail": 0,
+        "scope": "실제managed writer focused회귀; 새100회decoder비교아님."
+      }
+    },
+    "productSourcesUnchangedSincePreflight": {
+      "src/recording/gstreamer_segment_writer.cpp": true,
+      "src/recording/recording_session_service.cpp": true,
+      "src/recording/retention_coordinator.cpp": true,
+      "include/recording/recording_state_trace.h": true
+    },
+    "binaryAndModels": {
+      "receipt": {
+        "build-gst-onnx/media_server": {
+          "bytes": 36978304,
+          "sha256": "7ae9cd360866388dd2459b88c540e1d91ff125a4766852f33352780402045475"
+        },
+        "build-gst-onnx/libmedia_server_runtime.a": {
+          "bytes": 108107664,
+          "sha256": "f90b154cfbdb9032e2f27e6360c8e5bfa8af95f23954c755f85f992fca0cacde"
+        },
+        "models/v430-siglip2/onnx/image_encoder.onnx": {
+          "bytes": 371695117,
+          "sha256": "cca2e4fa86196ebcae3345f4795ccfa3c9910768aac8e2d1f90c43ff518e3cd3"
+        },
+        "models/v430-siglip2/onnx/text_encoder.onnx": {
+          "bytes": 1129352764,
+          "sha256": "b131191ed9673021885c18514d3fc08e04e8c40f603788d21ecb4448d5e9af57"
+        },
+        "models/v430-siglip2/upstream/tokenizer.model": {
+          "bytes": 4241003,
+          "sha256": "61a7b147390c64585d6c3543dd6fc636906c9af3865a5548f27f31aee1d4c8e2"
+        }
+      },
+      "scope": "새mac진단binary/runtime와기존93 image/text/tokenizer 모델bytes/hash receipt를읽음. 이전92binary와같다고주장하지않는다."
+    },
+    "binding": {
+      "applyExistingApproval": {
+        "exit": 0,
+        "pass": 51,
+        "fail": 0,
+        "elapsedSeconds": 101.86411041603424
+      },
+      "manifestChangedTopLevelFields": [
+        "inventorySha256"
+      ],
+      "itemsAndOtherFieldsUnchanged": true,
+      "currentInventoryHashMatchesFile": true,
+      "legacyCandidateDigest": "8977e9b6ac618c7e0233823f6acb6ab1fcf7461206ee5d8b2a4149a643519e3a",
+      "boundary": "986기존승인 재사용/기계inventory결속은별도 새진단소스판단대체아님.",
+      "firstCoverageReadback": "coverage.log에inventorySha256 drift FAIL 존재. 메인이producer완료전병행한순서오류라고설명했으며원문유지.현재실제inventory/manifesthash일치는독립확인했으나진행중coverage-readback 성공으로미리표시하지않음."
+    },
+    "remaining": [
+      "완결입력 coverage-readback 결과 확인",
+      "최종소스·binary/runtime/plan 결속과코드commit 고정",
+      "사용자승인 단일2700초진단 원출력/실패·수집·정리 후독립결과검토"
+    ],
+    "evidenceBindings": {
+      "linux94-result-3.json": {
+        "bytes": 165,
+        "sha256": "5ce682cd3da2108c409fbaa78d167c6afefaad9766bd3bf7fb66cb32b0d34fe7"
+      },
+      "linux-final-selected/build.json": {
+        "bytes": 333,
+        "sha256": "170e7d64ccde045a0628f4813dc2dbd8b9bc1c7e3b61c40bd2f31b23694c02a0"
+      },
+      "linux-final-selected/build.log": {
+        "bytes": 18992,
+        "sha256": "f029c33d17208dad302939d5c76293b4df165c1f89529dabf0e7d0a857ede39a"
+      },
+      "linux-final-selected/environment.log": {
+        "bytes": 314,
+        "sha256": "a9ad89e58a5f3204e26d11bea849dcc79072632a1a64723e6afed3b3c4f04914"
+      },
+      "linux-final-selected/native-console.log": {
+        "bytes": 450,
+        "sha256": "84201a619c1230a6c21601dbf2f61c0e692418238fbbf559077ee396b07f4513"
+      },
+      "linux-final-selected/completed.txt": {
+        "bytes": 35,
+        "sha256": "83b9ca80a623f6630f9920c53226a922eae66a928b65e3646f08cf1e81ee27e1"
+      },
+      "linux-final-selected/binaries.sha256": {
+        "bytes": 189,
+        "sha256": "dc6c8139e9280ffe9bef8e5926f9f7eece04f35e7cf670ed61c782e5f1b75e7e"
+      },
+      "native-macos-2-console.log": {
+        "bytes": 115,
+        "sha256": "7ba0b14620cd7c99bccb5a6fb4bf269c66d9a9ff75adc6129188479459c9fd67"
+      },
+      "approval-apply.json": {
+        "bytes": 404,
+        "sha256": "89a10985b78c2d3130356c4c2d7f1ad92f2e5a2531d78d5c2c2c18dcd34eedaa"
+      },
+      "approval-apply.log": {
+        "bytes": 12812,
+        "sha256": "d044f8ac77f4e3e0a7ee0672c9d63381151b9f522393a0aa536f910913ef258f"
+      },
+      "coverage.log": {
+        "bytes": 671,
+        "sha256": "0fa7a7f4fbb474633bc8276dc6123c760f07b9c1907244a9e9f251445dfe2c7a"
+      },
+      "binary-models.json": {
+        "bytes": 787,
+        "sha256": "5c01327906b43b35e9d7b58c2f77850d8daccbdd12f625d1e85c215d137866b9"
+      },
+      "linux-final-selected/native/recording_managed_writer_smoke-run.log": {
+        "bytes": 36606,
+        "sha256": "821815f273fada386d149c2f797248e706cf18cd17b5c77bf78a318eda1b0b50"
+      },
+      "linux-final-selected/native/recording_retention_smoke-run.log": {
+        "bytes": 4818,
+        "sha256": "59e4daf94ad84fe629845a59d10ba15048a7739102d4ead33aa78cca3e49bb18"
+      },
+      "linux-final-selected/native/recording_retention_v2_smoke-run.log": {
+        "bytes": 1761,
+        "sha256": "74dc257dea02cae1a22b92eb1979ae1ffb5b58aa6d94876911a4e4cef8c775f9"
+      },
+      "linux-final-selected/native/recording_segment_writer_smoke-run.log": {
+        "bytes": 8238,
+        "sha256": "9410b029a7f736b5a23e66b0d9ffe4c573cf5ea6fe1ed43be626836b5e129a4b"
+      },
+      "native-macos-2/recording_managed_writer_smoke-run.log": {
+        "bytes": 36606,
+        "sha256": "ce8bb5844e66372299924da27f160bf69642a7657fa1d274126271d91efc0fbe"
+      },
+      "producer-readback.json": {
+        "bytes": 441,
+        "sha256": "b6fba524ac3583fe6b8f160530633c849fa0ba63ec689310ab2308603c5d09c6"
+      }
+    }
+  },
+  "preconditionsCompletedAddendum": {
+    "reviewedAt": "2026-10-11T13:38:58.389Z",
+    "priorReportSha256": "271aa80cccd1f8d8fb3e80a490c935d2891b5882d579042188b6cceb0ec9cbcc",
+    "decision": "REVIEWED_PREFLIGHT_CONDITIONS_COMPLETE_FOR_EXISTING_AUTHORIZED_SINGLE_DIAGNOSTIC",
+    "boundary": "코드고정전조건의완료를원문/receipt로연결한다. 사용자승인된한번2700초진단이시작됐다는통보만받았으며실행·관측조작에참여하지않았다. 새실행권한/PASS/원인해소/P0/출시승인을부여하지않는다.",
+    "source": {
+      "head": "df4aa5a6eecfda313b3ca46eea46b52cf49b0bb8",
+      "tree": "27088d32175adf1517808cb3f8ee8a23daeda1a3",
+      "status": "",
+      "binaryModels": {
+        "build-gst-onnx/media_server": {
+          "bytes": 36978304,
+          "sha256": "7ae9cd360866388dd2459b88c540e1d91ff125a4766852f33352780402045475"
+        },
+        "build-gst-onnx/libmedia_server_runtime.a": {
+          "bytes": 108107664,
+          "sha256": "f90b154cfbdb9032e2f27e6360c8e5bfa8af95f23954c755f85f992fca0cacde"
+        },
+        "models/v430-siglip2/onnx/image_encoder.onnx": {
+          "bytes": 371695117,
+          "sha256": "cca2e4fa86196ebcae3345f4795ccfa3c9910768aac8e2d1f90c43ff518e3cd3"
+        },
+        "models/v430-siglip2/onnx/text_encoder.onnx": {
+          "bytes": 1129352764,
+          "sha256": "b131191ed9673021885c18514d3fc08e04e8c40f603788d21ecb4448d5e9af57"
+        },
+        "models/v430-siglip2/upstream/tokenizer.model": {
+          "bytes": 4241003,
+          "sha256": "61a7b147390c64585d6c3543dd6fc636906c9af3865a5548f27f31aee1d4c8e2"
+        }
+      },
+      "checks": {
+        "macOS": "57/22/118/46 PASS; managed final46 PASS",
+        "Linux": "build and57/22/118/46 PASS",
+        "contracts": "20 outer tests PASS; actual child request to parent failure proof",
+        "producer": "PASS51; candidate unchanged; only inventorySha256 changed",
+        "coverage": "PASS9/986 covered/missing0",
+        "scripts": "PASS13",
+        "independent": "independent-preflight.json conditional checks now completed; source bytes match review; no new source blocker"
+      }
+    },
+    "reviewedFileHashMatches": {
+      "docs/project-feature-test-inventory.md": true,
+      "scripts/internal/recording_current_app_helpers.mjs": true,
+      "scripts/internal/recording_current_http_diagnostics.test.mjs": true,
+      "scripts/internal/recording_current_longrun_diagnostics.test.mjs": true,
+      "scripts/internal/recording_longrun_progress.test.mjs": true,
+      "scripts/internal/recording_managed_writer_smoke.cpp": true,
+      "scripts/internal/run_v450_recording_a_mixed.py": true,
+      "scripts/internal/v450_recording_a_load.mjs": true,
+      "scripts/internal/v450_recording_a_mixed.mjs": true,
+      "scripts/internal/verify_v450_recording_a_mixed.sh": true,
+      "src/recording/gstreamer_segment_writer.cpp": true,
+      "src/recording/recording_session_service.cpp": true,
+      "src/recording/retention_coordinator.cpp": true,
+      "include/recording/recording_state_trace.h": true
+    },
+    "coverageReadback": {
+      "receipt": {
+        "command": [
+          "node",
+          "scripts/internal/verify_feature_inventory_coverage.mjs"
+        ],
+        "cwd": "/Users/dhseo/Workspace/mediaServer",
+        "uid": 501,
+        "elapsedSeconds": 84.59876391594298,
+        "exit": 0,
+        "signal": null,
+        "collectionFailure": null,
+        "bytes": 604,
+        "sha256": "f3dd9d2ec3cd35ce7a806a391b6918dddd2c2377ca3039afa624f484985f9bce"
+      },
+      "pass": 9,
+      "fail": 0,
+      "featureRows": 986,
+      "covered": 986,
+      "missing": 0,
+      "firstFailurePreserved": "최초coverage stale inventoryFAIL은순서오류원문으로유지,producer재실행없음"
+    },
+    "scriptInventory": {
+      "pass": 13,
+      "fail": 0,
+      "basis": "script-inventory.log의실제summary읽기"
+    },
+    "producerFormatReadback": {
+      "changedFields": [
+        "inventorySha256"
+      ],
+      "rawSha256": "e762b127242d0a86836b710a5d40b34d1e2e8ab0bb7ca3c2e40df818d948df0e",
+      "formattedSha256": "4bf872831314d2f4d957f9c1e8ca74f5ea898bcef7038075fef71750cb7ebd7d",
+      "semanticIdentity": true,
+      "initialCoverageFailure": "coverage launched before producer process completion; stale inventory read. Original logs retained; producer not repeated, coverage readback after completion."
+    },
+    "evidenceBindings": {
+      "freeze.json": {
+        "bytes": 1458,
+        "sha256": "4d31292a108641c9765bd1b6b4d2d6e4f5f61b36d222bba5480ed8ba32489d87"
+      },
+      "coverage-readback.json": {
+        "bytes": 352,
+        "sha256": "f8885b4e6ddd28bdf17c0c2a0fce73c5271a5603f26b220997880a73f1a32956"
+      },
+      "coverage-readback.log": {
+        "bytes": 604,
+        "sha256": "f3dd9d2ec3cd35ce7a806a391b6918dddd2c2377ca3039afa624f484985f9bce"
+      },
+      "script-inventory.log": {
+        "bytes": 941,
+        "sha256": "92e692a3173f517ac5430005d1cf361195ac0dad7e505a2ffaddc893da6cdecf"
+      },
+      "producer-readback.json": {
+        "bytes": 441,
+        "sha256": "b6fba524ac3583fe6b8f160530633c849fa0ba63ec689310ab2308603c5d09c6"
+      }
+    },
+    "remaining": [
+      "현재진행중단일2700초진단종료후고정원출력독립결과검토",
+      "실제원인확정수준·별도검색지연·수집·cleanup·보존판정"
+    ],
+    "historicalPending": "이전preflight및addendum의pending은당시관측으로그대로두고본후속완료를연결한다."
+  }
+}
