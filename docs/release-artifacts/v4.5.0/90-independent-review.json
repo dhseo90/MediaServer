@@ -1,0 +1,662 @@
+{
+  "schema": "task90-independent-result-v1",
+  "reviewedAt": "2026-10-11T09:14:28.843Z",
+  "reviewer": "independent_memory86",
+  "implementationAuthor": "root",
+  "independent": true,
+  "modelRequested": {
+    "model": "gpt-6-astra",
+    "effort": "high"
+  },
+  "priorToolAccepted": {
+    "model": "gpt-6-astra",
+    "effort": "high",
+    "basis": "기존 별도 reviewer 설정 수락 기록을 이어 사용"
+  },
+  "actualRuntimeModel": "unconfirmed; not exposed",
+  "actualRuntimeEffort": "unconfirmed; not exposed",
+  "reviewMethod": "기존 소스, 실행 원출력, checkpoint, 표본을 읽고 계산·hash 대조. 제품/검사 작성·수정·실행, producer 실행, 하위 위임 없음. 이 결과 파일만 작성.",
+  "source": {
+    "head": "b27d80c8c4bbb77cd91c4e2c4779f389fe98c622",
+    "tree": "f53f7a0b1fa65c57c390be1c7a76657e23fa6990",
+    "sourceSha256": "951d7c1308d5eb3cb4a3f4fe8693f0d2923e4653c922aa2e95c5b1cf3b2da087",
+    "binarySha256": "82e5b5caffe13a57d1d46370101672aa42684712865b1f70f699cd0560141066"
+  },
+  "sourceEnd": {
+    "head": "b27d80c8c4bbb77cd91c4e2c4779f389fe98c622",
+    "tree": "f53f7a0b1fa65c57c390be1c7a76657e23fa6990",
+    "sourceSha256": "951d7c1308d5eb3cb4a3f4fe8693f0d2923e4653c922aa2e95c5b1cf3b2da087",
+    "binarySha256": "82e5b5caffe13a57d1d46370101672aa42684712865b1f70f699cd0560141066"
+  },
+  "sourceBinding": {
+    "startEndEqual": true,
+    "currentHead": "b27d80c8c4bbb77cd91c4e2c4779f389fe98c622",
+    "currentWorkingTreeCleanAtRead": true,
+    "productFreezeFilesRead": 398,
+    "productFreezeMismatches": 0,
+    "runtimeSha256": "a303bdc14ad6f961e3ac3769bb90e07807dcc39c91d1f9c2681912f525d51df2",
+    "note": "실행 코드 commit과 후속 결과/문서 commit을 구분한다.",
+    "workingTreeObservationScope": "currentWorkingTreeCleanAtRead=true는 최초 결과 검토의 git status --short 빈 출력 관측만 뜻한다. 이후 메인이 backlog/90-validation 초안을 작성했으며 현재 전체 tree clean을 주장하지 않는다. 제품 398파일 freeze mismatch0 및 실행 시작/끝 source 동일과 별개다.",
+    "laterDocumentationWorkingTreeStatus": [
+      " M docs/development-backlog.md",
+      "?? docs/release-artifacts/v4.5.0/90-validation.json"
+    ]
+  },
+  "verdict": {
+    "mixed600": "FAIL",
+    "wholeTaskComplete": false,
+    "memoryP0": "BLOCKED",
+    "releaseComplete": false,
+    "newCodeReviewBlocker": false,
+    "productChangeScope": "독립 preflight의 채널별 bounded invalidation 및 진단 변경 채택 판단·관련 macOS/Linux 직접 회귀는 유지. 혼합 반복 통합 완료 주장은 불가.",
+    "currentBlockingEvidence": "기존 성공 검색 p95 <= 2000ms gate 미충족. 시각검색 지연 내부 원인은 이번 자료만으로 확정하지 않는다.",
+    "allowedNextAction": "승인된 단일 600초를 소진했으므로 새 구현/재실행 없이 실패 기록·필요 증거 보존·소유 정리·승인된 일반 push 마감. 추가 실행과 수정은 새 사용자 지시 필요."
+  },
+  "execution": {
+    "configuredObservationSeconds": 600,
+    "attemptCount": 1,
+    "status": "FAIL",
+    "exit": 1,
+    "childExit": 1,
+    "executionElapsedSeconds": 615.0056777090067,
+    "launcherElapsedSeconds": 615.0075657919515,
+    "reportedElapsedMs": 609812,
+    "timedOut": false,
+    "passedAssertions": 2221,
+    "failedAssertions": 1,
+    "firstFailure": "V440 successful search latency",
+    "rawVerifiedDurationMs": null,
+    "rawLongrunObservationCompleted": false,
+    "rawFrameDiagnosticPass": false,
+    "rawResourceTrendPass": false,
+    "mode": "v450-frame-diagnostic",
+    "notes": [
+      "configured 600초와 verifiedDurationMs를 같은 값으로 만들지 않는다.",
+      "latency check가 phaseResult 할당 및 최종 sample coverage 검사보다 먼저 실패했다.",
+      "diagnostic 600 모드는 120분 모드가 아니며 longrunObservationCompleted는 모드 조건상 PASS라도 120분 완료를 의미하지 않는다."
+    ]
+  },
+  "latency": {
+    "originalGatePopulation": "main mixed structured/visual successful search 157건. A helper 추가 구조화 GET 10건은 이 배열 밖이다.",
+    "count": 157,
+    "quantile": "nearest-rank ceil(n*0.95), zero-based index ceil(n*0.95)-1",
+    "quantileIndex": 149,
+    "p95Ms": 2482.999208000023,
+    "maxMs": 2933.660542000027,
+    "p95LimitMs": 2000,
+    "maxLimitMs": 5000,
+    "p95Pass": false,
+    "maxPass": true,
+    "independentRouteBreakdownFromRawTiming": [
+      {
+        "route": "/ops/api/recordings/search",
+        "statusCounts": {
+          "200": 90
+        },
+        "successfulCount": 90,
+        "ceilP95Ms": 862,
+        "maxMs": 1147
+      },
+      {
+        "route": "/ops/api/recordings/visual-search",
+        "statusCounts": {
+          "200": 77,
+          "503": 3
+        },
+        "successfulCount": 77,
+        "ceilP95Ms": 2712,
+        "maxMs": 2934
+      }
+    ],
+    "routeBreakdownLimit": "raw timing은 정수 ms 및 다른 모집단(구조화 80+ A10)을 쓰므로 기존 157개 gate를 대체·재정의하지 않는다.",
+    "visual503": {
+      "count": 3,
+      "classification": "기존 runner 허용 오류 범주로 분류된 시각검색 503",
+      "exactInternalReasons": "원출력에 응답 내부 원인별 값이 보존되지 않아 추정하지 않음",
+      "gateTreatment": "성공 검색 지연 157표본에는 포함하지 않으며 별도로 드러낸다."
+    },
+    "structuredTerminalFailure": {
+      "status": "captured",
+      "probes": 1,
+      "failures": [],
+      "issues": []
+    }
+  },
+  "actualWork": {
+    "cycles": 39,
+    "searchSuccessByClient": [
+      40,
+      40,
+      38,
+      39
+    ],
+    "windows": [
+      {
+        "structured": 260,
+        "visual": 520,
+        "evidence": 13,
+        "visualEvidence": 13
+      },
+      {
+        "structured": 260,
+        "visual": 500,
+        "evidence": 13,
+        "visualEvidence": 13
+      },
+      {
+        "structured": 260,
+        "visual": 446,
+        "evidence": 13,
+        "visualEvidence": 12
+      }
+    ],
+    "ordinaryEvidenceComplete": 31,
+    "ordinaryEvidencePartial": 8,
+    "visualResults": 1466,
+    "visualCreated": 38,
+    "aScheduled": 10,
+    "aCompleted": 10,
+    "allASlotsCompleted": true,
+    "uniqueASnapshotCount": 10,
+    "uniqueAPackageCount": 10,
+    "aSelectionRecords": 10,
+    "aAdmissionRecords": 10,
+    "aCompletedRecords": 10,
+    "initialReviewStoreFiles": 3,
+    "finalReviewStoreFiles": 13,
+    "initialReviewStoreBytes": 17576,
+    "finalReviewStoreBytes": 75356,
+    "aProvenance": "synthetic AnalysisObservationProjector before server start; current live catalog snapshot selection and A worker each admission",
+    "detectorEvaluated": false,
+    "lastDrainedPrefixChannels": {
+      "9101": {
+        "finalized": 297,
+        "deleted": 290,
+        "lastAt": 604709.921625,
+        "order": "601",
+        "store": "19c914b61efb31f24d3c2112131b72a90a44d7f862bbb58949a0e9822ab8b70e",
+        "knownMappings": 184,
+        "unknownMappings": 11874
+      },
+      "9201": {
+        "finalized": 297,
+        "deleted": 290,
+        "lastAt": 604709.921625,
+        "order": "600",
+        "store": "19c914b61efb31f24d3c2112131b72a90a44d7f862bbb58949a0e9822ab8b70e",
+        "knownMappings": 187,
+        "unknownMappings": 11592
+      }
+    },
+    "journalCoverage": "마지막 drain된 prefix만. 채널별 finalized297/deleted290을 전체 종료 tail 수치로 확대하지 않는다."
+  },
+  "resourceObservation": {
+    "summary": {
+      "status": "observed",
+      "resourceTrendPass": false,
+      "reviewRequired": true,
+      "sampleCount": 120,
+      "groups": [
+        {
+          "pid": 51791,
+          "startIdentity": "macos:1791708959:741394",
+          "sampleCount": 120,
+          "first": {
+            "phaseAt": 9178.453208,
+            "sampledAt": 1791708966082,
+            "rssBytes": 3127033856,
+            "threadCount": 37,
+            "fdCount": 34,
+            "mutationCount": 6
+          },
+          "last": {
+            "phaseAt": 604709.921625,
+            "sampledAt": 1791709561616,
+            "rssBytes": 1685618688,
+            "threadCount": 40,
+            "fdCount": 34,
+            "mutationCount": 2360
+          },
+          "max": {
+            "rssBytes": 3170402304,
+            "threadCount": 43,
+            "fdCount": 41
+          },
+          "delta": {
+            "rssBytes": -1441415168,
+            "threadCount": 3,
+            "fdCount": 0,
+            "mutationCount": 2354
+          },
+          "elapsedMs": 595531.4684169999,
+          "maxGapMs": 5009.820625000022,
+          "warmupMs": 300000,
+          "postWarmup": {
+            "status": "observed",
+            "sampleCount": 60,
+            "delta": {
+              "rssBytes": 2293760,
+              "threadCount": -1,
+              "fdCount": -2,
+              "mutationCount": 1186
+            },
+            "elapsedMs": 295274.25862499996,
+            "rssMiBPerMinute": 0.44450200505519943
+          }
+        }
+      ]
+    },
+    "sampleCount": 120,
+    "singlePidAndIdentity": true,
+    "externalMetrics": {
+      "footprintBytes": {
+        "first": 3125726376,
+        "last": 1673251072,
+        "max": 3164474656
+      },
+      "anonymousFileBytes": {
+        "first": 73728,
+        "last": 45275648,
+        "max": 45275648
+      },
+      "anonymousAllocatedBytes": {
+        "first": 81920,
+        "last": 46313472,
+        "max": 46313472
+      },
+      "anonymousFiles": {
+        "first": 4,
+        "last": 4,
+        "max": 4
+      }
+    },
+    "ownerTrace": {
+      "status": "captured",
+      "count": 124,
+      "final": {
+        "pid": 51791,
+        "seq": 123,
+        "phase": "after-storage-destruction",
+        "elapsedMs": 606087,
+        "ram": 0,
+        "ramPeak": 164800168,
+        "ramLimit": 671088640,
+        "ramRejected": 0,
+        "scratchDisk": 0,
+        "scratchDiskPeak": 89444352,
+        "scratchDiskLimit": 155083743232,
+        "scratchFd": 0,
+        "scratchFdPeak": 16,
+        "scratchFdLimit": 1048572,
+        "scratchRam": 0,
+        "preservedDisk": 0,
+        "preservedFd": 0,
+        "readerCleanupHealthy": true
+      },
+      "scope": "actual shared product owner; logical charges, not total heap or RSS; sequential counter reads"
+    },
+    "rootStorageMaxBytes": 56287061,
+    "rootStorageCapBytes": 469762048,
+    "rootStorageCapExceeded": false,
+    "limits": [
+      "120표본은 약595.53초 사이를 관측한 기존 cadence 자료이며 종료 coverage assertion PASS가 아니다.",
+      "post-warmup 60표본 약295.27초의 RSS 변화 +2293760B 및 0.444502MiB/min은 설명 통계다. 누수/수렴/120분 resourceTrend PASS로 판정하지 않는다.",
+      "shared owner RAM 640MiB와 종료 RAM/disk/FD 0은 논리 소유 reservation 범위다. 전체 RSS/footprint·익명 파일과 1:1 또는 같은 예산으로 해석하지 않는다.",
+      "새 고정 ring의 과거 직접 경계 증거를 이 혼합 지연 실패만으로 무효화하지 않는다."
+    ]
+  },
+  "collectionAndStop": {
+    "processCleanup": {
+      "schema": "recording-process-cleanup-v1",
+      "attemptCount": 1,
+      "pid": 51791,
+      "exitCode": 0,
+      "signalCode": null,
+      "exitedObserved": true,
+      "stopCode": "complete",
+      "forcedTermination": "not-used",
+      "normalExitPass": true,
+      "normalShutdownPass": true,
+      "archiveSafe": true,
+      "ports": [
+        {
+          "kind": "http",
+          "port": 58280,
+          "status": "pass",
+          "code": "closed",
+          "closed": true
+        },
+        {
+          "kind": "rtsp",
+          "port": 58281,
+          "status": "pass",
+          "code": "closed",
+          "closed": true
+        }
+      ]
+    },
+    "serverDiagnostic": {
+      "pid": 51791,
+      "bytes": 199531,
+      "capturedBytes": 199531,
+      "sha256": "e68ef609b1b5b39a3af48807e29a28927adcd828fecf553452659d8b279815b4",
+      "overflow": false,
+      "captureError": null,
+      "categories": [
+        {
+          "code": "file evidence unavailable",
+          "count": 0
+        },
+        {
+          "code": "storageBlocked",
+          "count": 0
+        },
+        {
+          "code": "shutdown",
+          "count": 0
+        },
+        {
+          "code": "ERROR",
+          "count": 0
+        },
+        {
+          "code": "WARNING",
+          "count": 0
+        }
+      ],
+      "rawBodyPublished": false,
+      "privateCaptureDisposition": "eligible-for-wrapper-cleanup"
+    },
+    "privateServerLogHashMatched": true,
+    "frameTrace": {
+      "status": "captured",
+      "mode": "bounded",
+      "required": true,
+      "records": 3,
+      "successes": 3,
+      "failures": 0,
+      "issues": []
+    },
+    "searchFailureCollection": {
+      "status": "captured",
+      "probes": 1,
+      "failures": [],
+      "issues": []
+    },
+    "slowDiagnostic": {
+      "status": "captured",
+      "seen": 15713,
+      "retained": 64,
+      "thresholdNs": 10000000,
+      "completedSpansOnly": true,
+      "rawBodyPublished": false,
+      "rowsInspected": 64,
+      "detailLocation": "mixed600/run.log [server-slow-diagnostic] (existing completed spans; not causal attribution)"
+    },
+    "processesClosed": true,
+    "udpClosed": true,
+    "processGroupAbsent": true,
+    "registeredGroupsAbsent": true,
+    "cleanupErrors": [],
+    "sourceUnchanged": true,
+    "ownedDataRootDisposition": "원본 검토 시 보존되어 있음. 최종 파일 보존/hash readback 및 삭제/부재는 아직 pending.",
+    "normalStopIsSeparate": "finally 정상 shutdown/exit/포트 종료와 owner release는 관측됨. 이것으로 실행되지 않은 명시 disable 또는 닫힌 journal assertion을 PASS로 하지 않는다.",
+    "representativeDecoderRecords": [
+      {
+        "policy": "automatic",
+        "succeeded": true,
+        "target": 0,
+        "lastPts": 0,
+        "factoryNames": [
+          "appsrc:app:1.28.1",
+          "decodebin:playback:1.28.1",
+          "typefind:coreelements:1.28.1",
+          "videoconvert:videoconvertscale:1.28.1",
+          "appsink:app:1.28.1",
+          "qtdemux:isomp4:1.28.1",
+          "multiqueue:coreelements:1.28.1",
+          "h264parse:videoparsersbad:1.28.1",
+          "capsfilter:coreelements:1.28.1",
+          "vtdec_hw:applemedia:1.28.1"
+        ]
+      },
+      {
+        "policy": "software-only",
+        "succeeded": true,
+        "target": 966666667,
+        "lastPts": 966666666,
+        "factoryNames": [
+          "appsrc:app:1.28.1",
+          "decodebin:playback:1.28.1",
+          "typefind:coreelements:1.28.1",
+          "videoconvert:videoconvertscale:1.28.1",
+          "appsink:app:1.28.1",
+          "qtdemux:isomp4:1.28.1",
+          "multiqueue:coreelements:1.28.1",
+          "h264parse:videoparsersbad:1.28.1",
+          "capsfilter:coreelements:1.28.1",
+          "avdec_h264:libav:1.28.1"
+        ]
+      },
+      {
+        "policy": "automatic",
+        "succeeded": true,
+        "target": 0,
+        "lastPts": 0,
+        "factoryNames": [
+          "appsrc:app:1.28.1",
+          "decodebin:playback:1.28.1",
+          "typefind:coreelements:1.28.1",
+          "videoconvert:videoconvertscale:1.28.1",
+          "appsink:app:1.28.1",
+          "qtdemux:isomp4:1.28.1",
+          "multiqueue:coreelements:1.28.1",
+          "h264parse:videoparsersbad:1.28.1",
+          "capsfilter:coreelements:1.28.1",
+          "vtdec_hw:applemedia:1.28.1"
+        ]
+      }
+    ],
+    "decoderScope": "Automatic 2 / SoftwareOnly 1 representative bounded successes. 전체 decode 호출·100+100 검증 또는 원인 확정으로 확대하지 않는다."
+  },
+  "notRun": {
+    "afterLatencyGate": [
+      "최종 추가 sample 및 sampleContinuity assertion",
+      "phaseResult 할당과 양쪽 channel progress assertion",
+      "명시 settings disable",
+      "닫힌 journal no-partial-tail assertion"
+    ],
+    "absentBy600Mode": [
+      "A controls 취소/권한 회수",
+      "복구/restart exact readback",
+      "재활성화 후속"
+    ],
+    "new120Attempts": 0,
+    "actualUiExecution": false
+  },
+  "causalLimits": [
+    "89 당시 503 내부 원인은 여전히 미확정이다. 이번 terminal structured failure 0건으로 과거 원인을 소급 확정하지 않는다.",
+    "새 직접 counterexample은 무관 채널 finalize/delete가 global invalidation을 일으키는 경로를 입증했고 scoped ring 수정 직접 회귀가 이를 검증했다.",
+    "현재600은 반복 A10 및 구조화 응답 성공을 입증하나 전체 p95 실패로 요청된 혼합 통합 완료는 아니다.",
+    "시각검색 raw 성공77건 p95 2712ms가 성능 실패 구간을 분리한다. 구체적인 catalog/worker/decoder 내부 병목을 새 실험 없이 단정하지 않는다."
+  ],
+  "priorEvidence": "78~89의 각 source·경계별 직접 증거, 85 B1024/C16, 86 C1/C2/C3, 88 준비 PASS를 해당 유효범위로 유지. 신규 600 FAIL을 과거 직접 범위의 재미완료 또는 새 전면 blocker로 확대하지 않는다. memory P0에 필요한 7200초/초중후/필수후속 근거는 여전히 미충족이다.",
+  "bindingReuse": "기존 independent-preflight bindingCompletionAddendum의 candidate/trust 986행 동일 및 기존 승인 적용/readback 유지. 이번 실행 결과가 새 producer/전체986 재검토를 요구하지 않는다.",
+  "evidenceBindings": [
+    {
+      "path": "evidence/independent-preflight.json",
+      "bytes": 14317,
+      "sha256": "e93b245d2e797895b0e65c6ecfeeedede63b7b9ec8516b0b522146c61de54fbb"
+    },
+    {
+      "path": "evidence/product-freeze.json",
+      "bytes": 46709,
+      "sha256": "59ce86124dc1fd98b41d56ea6b631c6515a33fd28e2746562f60bed6a1b2f969"
+    },
+    {
+      "path": "mixed600/execution.json",
+      "bytes": 1750,
+      "sha256": "e8d6defa624be216f7124a2c8dbf8d2cc02ea346ff3c5748c4c58ffb94d738e2"
+    },
+    {
+      "path": "mixed600/run.log",
+      "bytes": 1176403,
+      "sha256": "1fd841ebe23292617a45c3528fd3505b1880864dca3f36260fcb5473784f56d6"
+    },
+    {
+      "path": "mixed600/artifacts/report.json",
+      "bytes": 49933,
+      "sha256": "161d7930e20ec3d905e0bb4718597957757836ee874c6b509a815276d5242adb"
+    },
+    {
+      "path": "summary.json",
+      "bytes": 49816,
+      "sha256": "0eb6f1adc1868395eb8c6bb06b64ab6cf4f082100ae1eaf4f46a7f236cfb619d"
+    },
+    {
+      "path": "mixed600/media-server-current-observer-Ow3dT1/server-1.private.log",
+      "bytes": 199531,
+      "sha256": "e68ef609b1b5b39a3af48807e29a28927adcd828fecf553452659d8b279815b4"
+    },
+    {
+      "path": "evidence/run-analysis.json",
+      "bytes": 7431,
+      "sha256": "c0759a6fd3310e212495deab561992c0c729430cde7fac22c4b73c3e59e11ecd"
+    },
+    {
+      "path": "evidence/immutable-readback.json",
+      "bytes": 3692,
+      "sha256": "60794720a6ff6576ba6227b191675c8e62488ad38ac68326bb25c85c188ff72c"
+    },
+    {
+      "path": "evidence/cleanup-live-check.json",
+      "bytes": 353,
+      "sha256": "81f2945cca0f48e3b1b0a70b789985c400ff9b509cd36539f49f683e146d83ad"
+    }
+  ],
+  "pending": [
+    "최종 문서 수치·한계 정합 readback",
+    "선정 원출력/정제본 hash 관계 및 실제 archive byte preservation",
+    "소유 임시 root 정리·부재 확인",
+    "결과/문서 commit 및 일반 push의 실제 원격 byte/ref 확인"
+  ],
+  "documentReadback": {
+    "reviewedAt": "2026-10-11T09:15:04.822Z",
+    "validation": "docs/release-artifacts/v4.5.0/90-validation.json",
+    "validationSha256": "1dc1081ea7e15a3f9698a2c0fee94e1016f62fd07987042bba20a07392c557f4",
+    "backlog": "docs/development-backlog.md current task90 diff",
+    "status": "현재 초안의 FAIL/부분 채택/모집단 분리/미실행/P0 경계는 독립판단과 일치. 과대 완료·핵심 수치 오류 없음. 정적 검사·최종보존·삭제·원격은 미확인 상태로 유지.",
+    "immutableActualReadback": {
+      "files": 23,
+      "byteAndSha256Mismatches": [],
+      "scope": "3 initial reviews +10 current packages +10 current results; 기존 snapshot 값과 실제 파일 재대조"
+    },
+    "cleanupLiveReceipt": {
+      "ownedProcessMatches": [],
+      "ports": [
+        {
+          "port": 58280,
+          "connectable": false
+        },
+        {
+          "port": 58281,
+          "connectable": false
+        }
+      ],
+      "dockerQueryExit": 0,
+      "ownedContainerMatches": [],
+      "processScanScope": "owned root path only; wrapper process-group absence remains authoritative receipt",
+      "status": "PASS"
+    },
+    "parentRunAnalysis": "원본으로 독립 계산한 157표본 gate 및 90/77 HTTP 모집단 통계와 일치. 새 실행 없음."
+  },
+  "localCloseoutAddendum": {
+    "reviewedAt": "2026-10-11T09:17:57.374Z",
+    "reviewer": "independent_memory86",
+    "scope": "기존 본문과 그 당시 pending은 유지하고 현재 로컬 보존·정리·문서 상태만 추가한다. 제품/검사 실행 없음.",
+    "archiveReadback": {
+      "path": "docs/release-artifacts/v4.5.0/90-execution.tar.gz",
+      "bytes": 12772412,
+      "sha256": "eebc61944ca2afaac52f5002ad4124e2e3040dccfd2c5a4ed21cac461434832d",
+      "manifestPayloadFiles": 536,
+      "tarEntriesIncludingManifest": 537,
+      "duplicatePaths": 0,
+      "everyPayloadReadAndComparedWithSavedBytesAndManifestSha256": true,
+      "mismatches": 0,
+      "manifestBytesEqualSavedManifest": true,
+      "summaryAndPriorIndependentResultIncluded": true,
+      "bindingScope": "이 hash는 cleanup/addendum을 더 넣기 전 보존 archive다. 최종 repack의 미래 bytes를 미리 승인하지 않는다."
+    },
+    "redaction": {
+      "files": 1,
+      "transform": "local-url-redaction of server-1.private.log",
+      "originalBytes": 199531,
+      "originalSha256": "e68ef609b1b5b39a3af48807e29a28927adcd828fecf553452659d8b279815b4",
+      "retainedBytes": 199401,
+      "retainedSha256": "6c9c9a9c412c89aabad30dfb4c2de37a047358a21dbd7352deca92a63c8407e0",
+      "limit": "정제본은 원본과 다른 bytes. 원본 hash는 이전 직접 readback과 일치하고 현 정제본은 archive/manifest bytes로 확인했다. 삭제된 raw log를 복원했다고 하지 않는다."
+    },
+    "cleanup": {
+      "receiptStatus": "PASS",
+      "ownedRoots": 16,
+      "all16PathsDirectlyObservedAbsent": true,
+      "recordedOwnerUid": 501,
+      "cleanupErrors": [],
+      "symlinkBoundary": "receipt: 링크 entry만 unlink, 외부 target 미추적",
+      "modelsSdkImage": "receipt에 기존 대상 unchanged로 기록됨; 본 검토가 외부 전체 target을 독립 재해시한 것은 아님",
+      "remainingStaging": "선정 evidence staging은 최종 원격 readback까지 유지. 전체 임시 root 삭제 완료 주장은 하지 않는다."
+    },
+    "preparationFailure": "중복 manifest path assertion 최초 준비 실패와 emit-once 수정 기록 보존. 현 archive 모든536 payload에 중복·hash mismatch 없음. 제품 실패 또는 제품 재실행으로 바꾸지 않는다.",
+    "staticsReadback": [
+      {
+        "receipt": "docs-links-final.json",
+        "exit": 0,
+        "logBytesAndShaMatch": true,
+        "logSha256": "8259c002047d638112e7995140e41ea90ba1b2a9f8eee91d1a52e5b6acd98c6d"
+      },
+      {
+        "receipt": "static-metadata.json",
+        "exit": 0,
+        "logBytesAndShaMatch": true,
+        "logSha256": "9cda5bb492e62ffb69865b146136bb2ffb4da8344c235a64796e278e1be23ffe"
+      },
+      {
+        "receipt": "static-scripts.json",
+        "exit": 0,
+        "logBytesAndShaMatch": true,
+        "logSha256": "92e692a3173f517ac5430005d1cf361195ac0dad7e505a2ffaddc893da6cdecf"
+      },
+      {
+        "receipt": "static-coverage.json",
+        "exit": 0,
+        "logBytesAndShaMatch": true,
+        "logSha256": "f3dd9d2ec3cd35ce7a806a391b6918dddd2c2377ca3039afa624f484985f9bce"
+      }
+    ],
+    "gitDiffCheck": "현재 validation의 메인 PASS 기록을 읽음. 별도 원시 receipt 부재로 reviewer 독립 실행/검사 완료를 주장하지 않음.",
+    "documentVerdict": "현재 90-validation/backlog의 부분 구현 채택·단일600 FAIL·P0/출시보류·미실행·로컬정리/원격pending 경계가 일치한다. 새로운 과대완료/수치 blocker 없음.",
+    "technicalVerdictUnchanged": "단일600 성공검색 p95 실패, 89 원인 미확정, 현재 장면 검색 내부 지연 원인 미확정. A10완료와 직접 회귀·기존 증거 범위 유지. 전체 요청/P0/출시 완료 아님.",
+    "pending": [
+      "cleanup/addendum 포함 최종 repack의 실제 전수 member byte 검증",
+      "결과/문서 보존 commit 및 일반 push·실제 원격 ref/blob 대조",
+      "원격 확인 후 부모 evidence staging의 소유 정리"
+    ],
+    "evidenceBindings": [
+      {
+        "path": "evidence/cleanup-files.json",
+        "bytes": 3578,
+        "sha256": "727312868b6433bd74b4d625802fbb0477a3f00dd098e3cc3fc96b2ad7dfaddb"
+      },
+      {
+        "path": "evidence/preservation-first-failure.json",
+        "bytes": 371,
+        "sha256": "f7dc3569d538292e0fb3dcd890a738ad64db575ae0d77d00c0b3679bebc87883"
+      },
+      {
+        "path": "preserved/preservation.json",
+        "bytes": 256111,
+        "sha256": "5038372efe916a8b85199170e0c058e8349ba896392b8b3863af8650c2e2bc3f"
+      }
+    ]
+  }
+}

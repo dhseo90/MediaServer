@@ -1,0 +1,637 @@
+{
+  "schema": "v4.5.0-task90-validation-v1",
+  "status": "PARTIAL_IMPLEMENTATION_VERIFIED_MIXED600_FAIL",
+  "releaseBlocked": true,
+  "memoryP0Complete": false,
+  "models": {
+    "requestedMain": "gpt-6-astra/high",
+    "requestedIndependent": "gpt-6-astra/high",
+    "acceptedIndependent": "existing independent_memory86 reused; prior explicit override accepted per preflight",
+    "mainRuntime": null,
+    "mainEffort": null,
+    "independentRuntime": null,
+    "independentEffort": null
+  },
+  "entryHead": "35a88cb0796efc2b6dd0b0f9dad83c8e073918ad",
+  "implementationCommit": "b27d80c8c4bbb77cd91c4e2c4779f389fe98c622",
+  "executionSource": {
+    "head": "b27d80c8c4bbb77cd91c4e2c4779f389fe98c622",
+    "tree": "f53f7a0b1fa65c57c390be1c7a76657e23fa6990",
+    "sourceSha256": "951d7c1308d5eb3cb4a3f4fe8693f0d2923e4653c922aa2e95c5b1cf3b2da087",
+    "binarySha256": "82e5b5caffe13a57d1d46370101672aa42684712865b1f70f699cd0560141066"
+  },
+  "runtimeArchiveSha256": "a303bdc14ad6f961e3ac3769bb90e07807dcc39c91d1f9c2681912f525d51df2",
+  "sourceUnchanged": true,
+  "causeBoundary": {
+    "historical89": "두 번째 A 선택 검색503의 내부 분기는 당시 미보존되어 미확정. 원본FAIL 유지.",
+    "newDirectReproduction": "captured channel-one proof가 unrelated channel finalize/delete로 무효화됨을 기존 제품 API와 capture latch에서 입증. 이것을89 내부 원인의 소급 확정으로 쓰지 않는다.",
+    "newMixedFailure": "V440 successful search latency: p95 초과. 구조화 검색503/A 실패가 아님. 실제 장면 검색 지연의 내부 병목 원인은 이번 원출력만으로 확정하지 않음."
+  },
+  "implementation": {
+    "scope": "Search capture/currentness and terminal diagnostics; fixed3attempt/rebuild/reject semantics retained",
+    "changes": [
+      "SearchResidency에 선예약한 고정1024 invalidation ring; channel<=128byte. 선택 채널 변경은 재검증, 무관채널은 proof 유지. 누락prefix/revision/instance 불일치는 fail-closed 또는 rebuild.",
+      "V1 ObservationPut channel 이동과 V1 DeletionCompleted crossentity는 global structural invalidation. V2는 검증된 채널 사용.",
+      "PlaybackCandidates가 관련delta/rebuild를 거부하고 WithPlayback은 local model 완성 후 proof 최종검증.",
+      "terminal503만 고정3attempt/2048byte에 safe stage/reason·instance/revision·resource rejection 관측. 별도probe와 수집손실/잘못된행을 부모FAIL로 전파."
+    ],
+    "preserved": [
+      "원본/authority/current permission",
+      "snapshot/cursor membership",
+      "정확한 sample/seek",
+      "65 재검증·원자게시",
+      "bounded decoder policy",
+      "5초/3attempt/4MiB/640MiB 및 기존 공간 한도"
+    ],
+    "limitations": [
+      "resource rejection 카운터는 공유 owner 누계이며 해당요청 독점 수치가 아님",
+      "새 ring은 전체이력/채널별 무한map 아님",
+      "scope fixture의 unplaced 성공은 실제 A package의 대체가 아님"
+    ]
+  },
+  "direct": {
+    "macOS": {
+      "scope": {
+        "passed": 10,
+        "failed": 0
+      },
+      "source": 58,
+      "application": 19,
+      "generation": 20,
+      "playback": 27,
+      "seek": 9,
+      "derivedSeek": 10,
+      "requestProofConfigurations": [
+        "crypto/sqlite/backend=1/1/1",
+        "1/0/1",
+        "0/1/1",
+        "1/1/0"
+      ],
+      "status": "PASS"
+    },
+    "linux": {
+      "image": "sha256:ce72c8a15363984da642e9964189957896812061c6af1d0ef67e87b38ad5a588",
+      "uid": 10001,
+      "network": "none",
+      "newInstall": false,
+      "warnings": "-Wall -Wextra -Werror",
+      "productBuild": "PASS",
+      "scope": 10,
+      "source": 58,
+      "application": 19,
+      "generation": 20,
+      "playback": 27,
+      "seek": 9,
+      "derivedSeek": 10,
+      "requestProofConfigurations": 4,
+      "status": "PASS across preserved b/c/d executions; fixture-only Werror formatting repairs distinguished"
+    },
+    "deterministic": [
+      "capture後 actual writer finalize on unrelated channel: one capture/membership maintained",
+      "capture後 actual unrelated V2 delete: proof maintained",
+      "related observation injected on all3attempts: terminal503 exactly3; subsequent fresh request includes allnewobservations",
+      "authority revoked:403; restored normal request200",
+      "V1 channel move rebuild and crossentity tombstone invalidation",
+      "current source/playback/seek consumer regressions"
+    ],
+    "collector": "PASS existing capture/loss/overflow/short-write/late-close plus new search probe/malformed/loss contracts",
+    "firstFailures": [
+      "before expected unrelated finalize proof RED plus separate fixture channel reuse error",
+      "diagnostic resource destructor accidental compile error",
+      "V1 test field compile and missing selection_reason preparation error",
+      "playback helper selected obsolete active plus authoritative archive",
+      "Linux GCC misleading-indentation in shared reader test seam and playback/seek test fixture",
+      "pre-existing core binding stale3context refs; original import/contract failure preserved",
+      "0-independent-row migration writer refused coverage partition; no dummy approvals or relaxed verifier",
+      "preservation script duplicated derived run-analysis manifest path; first verification assertion preserved, selected once and all selected members verified"
+    ],
+    "notRepeated": [
+      "whole legacy behavior",
+      "B1024/C16",
+      "full UI",
+      "decoder100+100",
+      "acceptance",
+      "120min"
+    ]
+  },
+  "binding": {
+    "all986CandidateItemsAndTrustBindingsEqualPrior": true,
+    "candidateDigest": "8977e9b6ac618c7e0233823f6acb6ab1fcf7461206ee5d8b2a4149a643519e3a",
+    "newBehaviorReview": "separate independent preflight, not implied by986 equality",
+    "coreContext": "UI005 action/UI018 action/AUTH029 handler existing stale references; independent LP30-PF05 review followed by 2fixed core binding constants. Other285corecases unchanged.",
+    "existingApply": "verify-v390-review4-feature-semantic-source-audit --apply-approved-manifest PASS51; only inventorySha256 metadata changed",
+    "nativeReadback": "verify-v390-ui-native-exact-cases --update-manifest PASS; resulting native artifact unchanged",
+    "coreContract": 17,
+    "combinedContract": 3,
+    "nativeContract": 60,
+    "coverage": "PASS",
+    "producer": "No unnecessary fresh semantic approval producer; existing apply/readback only."
+  },
+  "mixed600": {
+    "attempts": 1,
+    "command": [
+      "python3",
+      "scripts/internal/run_v450_recording_a_mixed.py",
+      "--frame-diagnostic",
+      "/private/tmp/media-server-memory90-ktcjdkx4/mixed600"
+    ],
+    "status": "FAIL",
+    "exit": 1,
+    "timeout": false,
+    "observationBudgetSeconds": 600,
+    "totalBudgetSeconds": 780,
+    "executionElapsedSeconds": 615.0056777090067,
+    "totalWithFinalBindingSeconds": 615.2645035419846,
+    "elapsedSummaryMs": 609812,
+    "mainLoop": "600초 while boundary completed and latency gate reached; verifiedDuration/phase assignment did not execute. Do not report600PASS.",
+    "verifiedDurationMs": null,
+    "longrunObservationCompleted": false,
+    "passedAssertions": 2221,
+    "failedAssertions": 1,
+    "firstFailure": "V440 successful search latency",
+    "latency": {
+      "n": 157,
+      "p95Ms": 2482.999208000023,
+      "maxMs": 2933.660542000027,
+      "p95LimitMs": 2000,
+      "maxLimitMs": 5000,
+      "pass": false
+    },
+    "routeTimings": [
+      {
+        "route": "/ops/api/recordings/search",
+        "status": 200,
+        "n": 90,
+        "p95RoundedMs": 862,
+        "maxRoundedMs": 1147
+      },
+      {
+        "route": "/ops/api/recordings/visual-search",
+        "status": 200,
+        "n": 77,
+        "p95RoundedMs": 2712,
+        "maxRoundedMs": 2934
+      },
+      {
+        "route": "/ops/api/recordings/visual-search/status",
+        "status": 200,
+        "n": 40,
+        "p95RoundedMs": 1,
+        "maxRoundedMs": 2
+      },
+      {
+        "route": "/ops/api/recordings/search/a-record-evidence",
+        "status": 201,
+        "n": 10,
+        "p95RoundedMs": 352,
+        "maxRoundedMs": 352
+      },
+      {
+        "route": "/ops/api/recordings/visual-search/evidence",
+        "status": 201,
+        "n": 38,
+        "p95RoundedMs": 463,
+        "maxRoundedMs": 566
+      },
+      {
+        "route": "/ops/api/recordings/search/evidence",
+        "status": 503,
+        "n": 39,
+        "p95RoundedMs": 1,
+        "maxRoundedMs": 1
+      },
+      {
+        "route": "/ops/api/recordings/search/evidence",
+        "status": 201,
+        "n": 39,
+        "p95RoundedMs": 535,
+        "maxRoundedMs": 538
+      },
+      {
+        "route": "/ops/api/recordings/visual-search",
+        "status": 503,
+        "n": 3,
+        "p95RoundedMs": 2246,
+        "maxRoundedMs": 2246
+      }
+    ],
+    "routePopulationLimit": "HTTP route group includes A requests; separate population from157 gate samples. Visual successes are slow; internal cause remains unconfirmed.",
+    "A": {
+      "opportunities": 10,
+      "completed": 10,
+      "samePid": 51791,
+      "newSelectionPackageDraftAndResult": true,
+      "initialStore": {
+        "names": [
+          "vr-d5d5ab91dac18f2cff6fae9653fd14410ed8078e958c7054da97a31e4ec60803.review",
+          "vr-f167a5b7b2b459c5eed4804fd42ecd5cac1ff0b33905b1a55b33dc848ea6681e.review",
+          "vr-f72d4f4bf0b8550e6c87277f17b0bf794327b44a7a04857710bbcae73423e948.review"
+        ],
+        "bytes": 17576
+      },
+      "finalStore": {
+        "names": [
+          "vr-0a05df779d6423cc9d0bc9ea9701b0bf86c5129c856f6ecfd9af54b753f9c3dd.review",
+          "vr-30a7b479932c00d426506512947c18c378a2291234faaeaf17b06c8676db0304.review",
+          "vr-45ef461297880938e44709d5c40fe1cac70dfb86e95c619f06993bd846d3ff5e.review",
+          "vr-49ba0b7088e00c29365303566047e1a9d7c52534788a74316a14ecc9eca9bf28.review",
+          "vr-89d646b49c0c76f8fdc2e6320267b68cd034a1eb84181c8aad75560383faa73e.review",
+          "vr-9927f53cd779d32f0f3ee933d34ad5e1a672bafd10b55f3a71246ab968f01cc1.review",
+          "vr-ced339c95f1a1bd67eea4c74137016353f7f082f20b37c247ed06e8638fc002e.review",
+          "vr-d5d5ab91dac18f2cff6fae9653fd14410ed8078e958c7054da97a31e4ec60803.review",
+          "vr-e1d75aaab436d05fc8d9767ec5cbd5830b84da2e8766f93bddd6632d87fdaa1c.review",
+          "vr-e230811db0cc800e653efe69b5f45a04acebeb2cd5374ef1469a9b2beead8dc1.review",
+          "vr-ea6204f5d26031d20c958908ca06dc165d29432cf10347a00a80914560273043.review",
+          "vr-f167a5b7b2b459c5eed4804fd42ecd5cac1ff0b33905b1a55b33dc848ea6681e.review",
+          "vr-f72d4f4bf0b8550e6c87277f17b0bf794327b44a7a04857710bbcae73423e948.review"
+        ],
+        "bytes": 75356
+      },
+      "originalCompleteDetails": "archive mixed600/artifacts/report.json aLoad",
+      "detectorEvaluated": false
+    },
+    "work": {
+      "windows": [
+        {
+          "structured": 260,
+          "visual": 520,
+          "evidence": 13,
+          "visualEvidence": 13
+        },
+        {
+          "structured": 260,
+          "visual": 500,
+          "evidence": 13,
+          "visualEvidence": 13
+        },
+        {
+          "structured": 260,
+          "visual": 446,
+          "evidence": 13,
+          "visualEvidence": 12
+        }
+      ],
+      "cycles": 39,
+      "searchSuccess": 157,
+      "searchUnavailable": 3,
+      "searchSuccessByClient": [
+        40,
+        40,
+        38,
+        39
+      ],
+      "createComplete": 31,
+      "createPartial": 8,
+      "createSuccess": 39,
+      "createBusy": 39,
+      "retainedChecks": 78,
+      "deletedSourceObserved": true
+    },
+    "lastDrainedProgress": {
+      "elapsedMs": 595762.1901669999,
+      "channels": {
+        "9101": {
+          "finalized": 297,
+          "deleted": 290,
+          "lastAt": 604709.921625,
+          "order": "601",
+          "store": "19c914b61efb31f24d3c2112131b72a90a44d7f862bbb58949a0e9822ab8b70e",
+          "knownMappings": 184,
+          "unknownMappings": 11874
+        },
+        "9201": {
+          "finalized": 297,
+          "deleted": 290,
+          "lastAt": 604709.921625,
+          "order": "600",
+          "store": "19c914b61efb31f24d3c2112131b72a90a44d7f862bbb58949a0e9822ab8b70e",
+          "knownMappings": 187,
+          "unknownMappings": 11592
+        }
+      },
+      "records": 594,
+      "logicalBytes": 354251
+    },
+    "progressLimit": "prefix only; final unread journal tail excluded",
+    "notRunAfterFailure": [
+      "final sample coverage verdict",
+      "phaseResult assignment/verifiedDuration",
+      "explicit recording disable",
+      "planned closed journal assertion"
+    ],
+    "notRunInThisMode": [
+      "cancel/revoke controls",
+      "independent recovery",
+      "restart/reactivation"
+    ],
+    "new120": 0
+  },
+  "collection": {
+    "searchFailure": [
+      {
+        "status": "captured",
+        "probes": 1,
+        "failures": [],
+        "issues": []
+      }
+    ],
+    "decoder": [
+      {
+        "status": "captured",
+        "mode": "bounded",
+        "required": true,
+        "records": 3,
+        "successes": 3,
+        "failures": 0,
+        "issues": []
+      }
+    ],
+    "representativeFactories": [
+      {
+        "policy": "automatic",
+        "target": 0,
+        "lastPts": 0,
+        "succeeded": true,
+        "factories": [
+          "appsrc:app:1.28.1",
+          "decodebin:playback:1.28.1",
+          "typefind:coreelements:1.28.1",
+          "videoconvert:videoconvertscale:1.28.1",
+          "appsink:app:1.28.1",
+          "qtdemux:isomp4:1.28.1",
+          "multiqueue:coreelements:1.28.1",
+          "h264parse:videoparsersbad:1.28.1",
+          "capsfilter:coreelements:1.28.1",
+          "vtdec_hw:applemedia:1.28.1"
+        ]
+      },
+      {
+        "policy": "software-only",
+        "target": 966666667,
+        "lastPts": 966666666,
+        "succeeded": true,
+        "factories": [
+          "appsrc:app:1.28.1",
+          "decodebin:playback:1.28.1",
+          "typefind:coreelements:1.28.1",
+          "videoconvert:videoconvertscale:1.28.1",
+          "appsink:app:1.28.1",
+          "qtdemux:isomp4:1.28.1",
+          "multiqueue:coreelements:1.28.1",
+          "h264parse:videoparsersbad:1.28.1",
+          "capsfilter:coreelements:1.28.1",
+          "avdec_h264:libav:1.28.1"
+        ]
+      },
+      {
+        "policy": "automatic",
+        "target": 0,
+        "lastPts": 0,
+        "succeeded": true,
+        "factories": [
+          "appsrc:app:1.28.1",
+          "decodebin:playback:1.28.1",
+          "typefind:coreelements:1.28.1",
+          "videoconvert:videoconvertscale:1.28.1",
+          "appsink:app:1.28.1",
+          "qtdemux:isomp4:1.28.1",
+          "multiqueue:coreelements:1.28.1",
+          "h264parse:videoparsersbad:1.28.1",
+          "capsfilter:coreelements:1.28.1",
+          "vtdec_hw:applemedia:1.28.1"
+        ]
+      }
+    ],
+    "factoryLimit": "Automatic2/SoftwareOnly1 representative successes only, not all decoder invocations",
+    "server": [
+      {
+        "pid": 51791,
+        "bytes": 199531,
+        "capturedBytes": 199531,
+        "sha256": "e68ef609b1b5b39a3af48807e29a28927adcd828fecf553452659d8b279815b4",
+        "overflow": false,
+        "captureError": null,
+        "categories": [
+          {
+            "code": "file evidence unavailable",
+            "count": 0
+          },
+          {
+            "code": "storageBlocked",
+            "count": 0
+          },
+          {
+            "code": "shutdown",
+            "count": 0
+          },
+          {
+            "code": "ERROR",
+            "count": 0
+          },
+          {
+            "code": "WARNING",
+            "count": 0
+          }
+        ],
+        "rawBodyPublished": false,
+        "privateCaptureDisposition": "eligible-for-wrapper-cleanup"
+      }
+    ],
+    "logLimitBytes": 4194304,
+    "sourceUnchanged": true,
+    "seed": [
+      {
+        "path": "input/a-seed.mp4",
+        "bytes": 28161,
+        "sha256": "0d2be3209e163840d1d3e485a5b871f85792f4e83fa03e0f2587c0895a6225f3"
+      },
+      {
+        "path": "input/retention-9101.mp4",
+        "bytes": 67929,
+        "sha256": "a317881bed3d62e63b60a37ea4cd7ace461532938985bdf4fa1a6f78a21b41df"
+      },
+      {
+        "path": "input/retention-9201.mp4",
+        "bytes": 67929,
+        "sha256": "a317881bed3d62e63b60a37ea4cd7ace461532938985bdf4fa1a6f78a21b41df"
+      }
+    ]
+  },
+  "resources": {
+    "rawTrend": {
+      "status": "observed",
+      "resourceTrendPass": false,
+      "reviewRequired": true,
+      "sampleCount": 120,
+      "groups": [
+        {
+          "pid": 51791,
+          "startIdentity": "macos:1791708959:741394",
+          "sampleCount": 120,
+          "first": {
+            "phaseAt": 9178.453208,
+            "sampledAt": 1791708966082,
+            "rssBytes": 3127033856,
+            "threadCount": 37,
+            "fdCount": 34,
+            "mutationCount": 6
+          },
+          "last": {
+            "phaseAt": 604709.921625,
+            "sampledAt": 1791709561616,
+            "rssBytes": 1685618688,
+            "threadCount": 40,
+            "fdCount": 34,
+            "mutationCount": 2360
+          },
+          "max": {
+            "rssBytes": 3170402304,
+            "threadCount": 43,
+            "fdCount": 41
+          },
+          "delta": {
+            "rssBytes": -1441415168,
+            "threadCount": 3,
+            "fdCount": 0,
+            "mutationCount": 2354
+          },
+          "elapsedMs": 595531.4684169999,
+          "maxGapMs": 5009.820625000022,
+          "warmupMs": 300000,
+          "postWarmup": {
+            "status": "observed",
+            "sampleCount": 60,
+            "delta": {
+              "rssBytes": 2293760,
+              "threadCount": -1,
+              "fdCount": -2,
+              "mutationCount": 1186
+            },
+            "elapsedMs": 295274.25862499996,
+            "rssMiBPerMinute": 0.44450200505519943
+          }
+        }
+      ]
+    },
+    "physicalFootprintSampleMaximumBytes": 3164474656,
+    "physicalFootprintMethod": "proc-pid-rusage",
+    "productOwner": [
+      {
+        "status": "captured",
+        "count": 124,
+        "final": {
+          "pid": 51791,
+          "seq": 123,
+          "phase": "after-storage-destruction",
+          "elapsedMs": 606087,
+          "ram": 0,
+          "ramPeak": 164800168,
+          "ramLimit": 671088640,
+          "ramRejected": 0,
+          "scratchDisk": 0,
+          "scratchDiskPeak": 89444352,
+          "scratchDiskLimit": 155083743232,
+          "scratchFd": 0,
+          "scratchFdPeak": 16,
+          "scratchFdLimit": 1048572,
+          "scratchRam": 0,
+          "preservedDisk": 0,
+          "preservedFd": 0,
+          "readerCleanupHealthy": true
+        },
+        "scope": "actual shared product owner; logical charges, not total heap or RSS; sequential counter reads"
+      }
+    ],
+    "scope": "logical charged owner != live heap/RSS;120sample maxima != instantaneous peak. Short run cannot close memory P0.",
+    "resourceTrendPass": false,
+    "reviewRequired": true
+  },
+  "cleanup": {
+    "process": [
+      {
+        "schema": "recording-process-cleanup-v1",
+        "attemptCount": 1,
+        "pid": 51791,
+        "exitCode": 0,
+        "signalCode": null,
+        "exitedObserved": true,
+        "stopCode": "complete",
+        "forcedTermination": "not-used",
+        "normalExitPass": true,
+        "normalShutdownPass": true,
+        "archiveSafe": true,
+        "ports": [
+          {
+            "kind": "http",
+            "port": 58280,
+            "status": "pass",
+            "code": "closed",
+            "closed": true
+          },
+          {
+            "kind": "rtsp",
+            "port": 58281,
+            "status": "pass",
+            "code": "closed",
+            "closed": true
+          }
+        ]
+      }
+    ],
+    "udpClosed": true,
+    "wrapperGroupsAbsent": true,
+    "registeredGroupsAbsent": true,
+    "cleanupErrors": [],
+    "ownedTemporaryFiles": "PASS:16owned execution/fixture roots removed after archive byte verification; selected evidence staging retained until remote readback",
+    "qwenOllamaCalls": 0,
+    "unloadGate": "not-run",
+    "receipt": "archive evidence/cleanup-files.json",
+    "liveReadback": "archive evidence/cleanup-live-check.json"
+  },
+  "reuse": {
+    "kept": [
+      "88 scene preparation",
+      "86 C1/C2/C3",
+      "85 B1024/TTL C16 and valid memory ownership limits",
+      "59/61/63/65 and72~74 only their actual source/environment boundaries"
+    ],
+    "notClaimed": "latestHEAD whole acceptance/UI or historical89cause repair",
+    "pastRecordsUnchanged": true
+  },
+  "remaining": [
+    "단일600 실행의 성공검색p95 실패: 장면검색 지연 경계와 필요한 수정/영향 검증이 남음. 이번에 재실행·제품추가수정하지 않음.",
+    "89 내부 원인은 미확정. 새 unrelated invalidation 직접 원인과 분리.",
+    "현재600 통합FAIL이므로 최종120분 재개 준비 완료 아님. 메모리P0/출시보류 유지.",
+    "새120분·최종수명/복구·위험수용·PR/CI·병합·서명·Release 미수행."
+  ],
+  "preservation": {
+    "archive": "90-execution.tar.gz",
+    "manifestMember": "preservation.json",
+    "rawVsSanitized": "one server log local URL redaction; original and retained hashes/bytes per manifest. Auth user state/binaries/models excluded.",
+    "independent": "90-independent-review.json",
+    "remote": "normal push and exact remote blob readback are pending at this evidence commit; final report records outcome",
+    "immutableReadback": {
+      "files": 23,
+      "status": "PASS",
+      "receipt": "archive evidence/immutable-readback.json"
+    },
+    "archiveBytes": 12775636,
+    "archiveSha256": "3ed6e9fb2911567cae03acbe82ef7c84ccd7480bfef58e95a919dbcfa792f2d0",
+    "memberCount": 537,
+    "archiveReadback": "PASS:all selected member byte lengths and hashes; no unmanifested payloads"
+  },
+  "statics": {
+    "docsLinks": "PASS",
+    "gitDiffCheck": "PASS",
+    "scriptClassification": "PASS",
+    "releaseMetadata": "PASS",
+    "featureCoverage": "PASS",
+    "productFreezeFiles": 398,
+    "productFreezeMismatches": 0
+  },
+  "independent": {
+    "path": "90-independent-review.json",
+    "sha256": "e51f75853756b481b3538f1936fcc853bd599e76b02fe7de31bbbcc127d02951",
+    "verdict": "direct changes retained;600 latency FAIL;P0 and release BLOCKED"
+  }
+}
