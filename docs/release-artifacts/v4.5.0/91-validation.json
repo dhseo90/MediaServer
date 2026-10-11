@@ -704,12 +704,43 @@
     "sha256": "978f3ae10dd00e2147728b2a72c95e4b13a442e66c21eeadf467dfc4b726fd63",
     "members": 438,
     "selectedOriginalBytes": 26253011,
-    "byteReadback": "PASS"
+    "byteReadback": "PASS",
+    "receiptLimit": "Archive member evidence/preservation-readback.json is empty: stdout redirection created it before packing. It is not a completed receipt. All438 member bytes were separately read back from Git c30aa2ce by main and independent reviewer; cleanup.receipt and independent preservation addendum record those checks."
   },
   "cleanup": {
-    "processGroupsAndPorts": "PASS finally and launcher receipts",
-    "ownedFiles": "pending after local Git byte preservation; next addendum records actual result",
-    "modelsSDKLinuxImage": "retained"
+    "status": "PASS",
+    "receipt": {
+      "checkedAt": "2026-10-11T10:31:05.229444+00:00",
+      "preservationCommit": "c30aa2ce789b3dd4abb735fb127244ba11b54693",
+      "archivePath": "docs/release-artifacts/v4.5.0/91-execution.tar.gz",
+      "archiveBytes": 13389427,
+      "archiveSha256": "978f3ae10dd00e2147728b2a72c95e4b13a442e66c21eeadf467dfc4b726fd63",
+      "membersReadback": 438,
+      "ownedPaths": [
+        {
+          "path": "/private/tmp/media-server-memory91-0g_muxdk",
+          "uid": 501,
+          "inode": 172943047,
+          "bytes": 292865683,
+          "files": 2193,
+          "absentAfter": true
+        },
+        {
+          "path": "/private/tmp/media-server-memory91-preserved",
+          "uid": 501,
+          "inode": 172975220,
+          "bytes": 26449124,
+          "files": 439,
+          "absentAfter": true
+        }
+      ],
+      "processCheck": "host ps matches only inspection command/rg; no owned processes",
+      "container": "docker ps -a exact named filter returned empty, exit0",
+      "ports": "lsof TCP61788/61789 empty exit1; launcher receipts cover UDP/registered groups",
+      "modelsSDKLinuxImage": "untouched",
+      "pointerAbsent": true
+    },
+    "plannedDisableAndClosedJournal": "not-run after final latency FAIL; finally normal shutdown only"
   },
   "calls": {
     "QwenOllama": 0,

@@ -996,5 +996,103 @@
         "sha256": "14e3ea9584e405f20066d85c45956f3b04b4be615541137e8b78fef45ab3d85b"
       }
     ]
+  },
+  "preservationCleanupAddendum": {
+    "reviewedAt": "2026-10-11T10:32:29.676Z",
+    "reviewer": "independent_memory86",
+    "scope": "Git 보존 archive, 현재 문서와 완료 cleanup receipt 읽기/바이트 대조만. 제품/검사 재실행 없음. 기존 역사 판단과 pending을 소급 변경하지 않는다.",
+    "localGitPreservation": {
+      "commit": "c30aa2ce789b3dd4abb735fb127244ba11b54693",
+      "archivePath": "docs/release-artifacts/v4.5.0/91-execution.tar.gz",
+      "bytes": 13389427,
+      "sha256": "978f3ae10dd00e2147728b2a72c95e4b13a442e66c21eeadf467dfc4b726fd63",
+      "actualGitBlobEqualsCurrentFile": true,
+      "payloadEntries": 438,
+      "totalTarEntriesWithManifest": 439,
+      "duplicateMemberNames": 0,
+      "independentEveryPayloadByteAndSha256Readback": true,
+      "payloadMismatches": 0,
+      "untransformedOriginalHashMismatches": 0,
+      "selectedOriginalBytes": 26253011,
+      "retainedPayloadBytes": 26252191,
+      "manifestSha256": "ee8547d1c18dc220215de8b312153f9c12c598847f8ff05061e80a46a8d7614e",
+      "receiptLimit": "archive evidence/preservation-readback.json은 packing 당시 0B(empty SHA)다. 완료된 원시 readback receipt로 인정하지 않는다. 본 reviewer의 실제 Git blob438개 member 재조회와 별도cleanup receipt가 현재 readback 근거다. 최초 archive 생성 뒤 stdout 출력이 있었음을 삭제된 원본으로 추정 복원하지 않는다."
+    },
+    "privacyMapping": {
+      "sanitizedServerLogs": 10,
+      "transformation": "URL token 치환만; manifest가 원본/정제 bytes와SHA를 별도로 기록",
+      "originalAndSanitizedAreDifferentBytes": true,
+      "selectedAuthSessionStatePaths": 0,
+      "excluded": "auth/session state, models/runtime/tool binaries, derived SQLite, prior90 archive 및 중복986 candidate",
+      "finalServerLog": {
+        "member": "mixed600/server/server-1.sanitized.log",
+        "source": "mixed600/media-server-current-observer-vqTx5y/server-1.private.log",
+        "originalBytes": 246396,
+        "originalSha256": "15391f9435971de1f4abe23e762eeafd04710aa6c789d6454ded49ac49b8f08d",
+        "bytes": 246314,
+        "sha256": "d8ee2dae3b2afc8b641252dc625678c9a263ecbac41285307c66c6a2d4610917",
+        "transform": "replace URL tokens only; structured request/frame/resource JSON kept"
+      },
+      "finalOriginalShaMatchesPriorIndependentRead": true,
+      "finalStructuredRecordsRetained": {
+        "visualRequest": 80,
+        "visualRequestEnd": 1,
+        "visualFrame": 3
+      },
+      "limit": "선정 raw 원본의 기존 직접 관측과 manifest mapping을 결속한다. 삭제된 원본을 복원하거나 정제본과 동일 bytes라고 하지 않는다. 파일선정/내용검토 범위이며 무관한 외부 저장소 전체 privacy audit가 아니다."
+    },
+    "cleanup": {
+      "receipt": {
+        "checkedAt": "2026-10-11T10:31:05.229444+00:00",
+        "preservationCommit": "c30aa2ce789b3dd4abb735fb127244ba11b54693",
+        "archivePath": "docs/release-artifacts/v4.5.0/91-execution.tar.gz",
+        "archiveBytes": 13389427,
+        "archiveSha256": "978f3ae10dd00e2147728b2a72c95e4b13a442e66c21eeadf467dfc4b726fd63",
+        "membersReadback": 438,
+        "ownedPaths": [
+          {
+            "path": "/private/tmp/media-server-memory91-0g_muxdk",
+            "uid": 501,
+            "inode": 172943047,
+            "bytes": 292865683,
+            "files": 2193,
+            "absentAfter": true
+          },
+          {
+            "path": "/private/tmp/media-server-memory91-preserved",
+            "uid": 501,
+            "inode": 172975220,
+            "bytes": 26449124,
+            "files": 439,
+            "absentAfter": true
+          }
+        ],
+        "processCheck": "host ps matches only inspection command/rg; no owned processes",
+        "container": "docker ps -a exact named filter returned empty, exit0",
+        "ports": "lsof TCP61788/61789 empty exit1; launcher receipts cover UDP/registered groups",
+        "modelsSDKLinuxImage": "untouched",
+        "pointerAbsent": true
+      },
+      "receiptSha256": "77e33ce6eb4e3d25884f7a2c8acdec07f77700c985313931873c767196ff1981",
+      "bothRootAndStageDirectlyObservedAbsent": true,
+      "actualAbsencePaths": [
+        "/private/tmp/media-server-memory91-0g_muxdk",
+        "/private/tmp/media-server-memory91-preserved"
+      ],
+      "scope": "UID/inode 확인·프로세스/컨테이너/포트·모델SDKimage미변경은 메인 cleanup receipt의 관측. reviewer는 정확한두경로 부재를 별도로 읽기 확인했다. 역사 finally의 UDP/그룹 종료와 후속host 부재 확인을 구분한다.",
+      "plannedDisableAndClosedJournal": "최종latency FAIL뒤not-run 유지. cleanup으로 제품 gate PASS를 만들지 않는다."
+    },
+    "documentReadback": {
+      "validation": "docs/release-artifacts/v4.5.0/91-validation.json",
+      "backlog": "docs/development-backlog.md task91 paragraph",
+      "verdict": "부분 직접보완·단일600FAIL·158표본 p95·A10·80요약·필수종료단계미실행·120재개준비미충족·P0/출시보류가 독립판단과 일치한다. 추가 과대완료 또는 수치 blocker 없음.",
+      "historicalLimitation": "첫Linux noexec 실행의전체archive소실은 tool발췌만남은 상태로명시되며 후속PASS/Git보존으로 소급 복원하지 않는다."
+    },
+    "finalTechnicalDecision": "직접 최소 수정·bounded관측·관련회귀와 국소비용감소 근거는 채택 유지. 요청 전체는 최종600p95FAIL로 미완료, 최종120재개준비불충족, 메모리P0/출시보류. 이번 승인 내 새제품수정/재실행/120 없음.",
+    "pending": [
+      "이cleanup/addendum의 후속 문서commit 및 일반push",
+      "실제원격ref 및필요archive/validation/review blob byte 대조"
+    ],
+    "remotePreservationConfirmed": false
   }
 }
