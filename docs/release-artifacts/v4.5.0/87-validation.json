@@ -1,0 +1,543 @@
+{
+  "schema": "media-server.validation.v1",
+  "task": 87,
+  "status": "OBSERVATION_CONNECTED_PREPARATION_FAIL_MIXED120_NOT_RUN",
+  "wholeTaskComplete": false,
+  "memoryP0": "BLOCKED",
+  "releaseApproved": false,
+  "model": {
+    "mainRequested": "gpt-6-astra/high",
+    "mainToolAccepted": null,
+    "mainRuntimeModel": null,
+    "mainRuntimeEffort": null,
+    "independentRequested": "gpt-6-astra/high",
+    "independentToolAccepted": "Prior independent_memory86 explicit override accepted; reused separate reviewer",
+    "independentRuntimeModel": null,
+    "independentRuntimeEffort": null
+  },
+  "source": {
+    "entryHead": "b297e44e86df205d68d1199bdd1e4c011b979131",
+    "entryRemote": "b297e44e86df205d68d1199bdd1e4c011b979131",
+    "entryWorktree": "clean",
+    "observationCommit": "fac5eb14383e2ac18b257f312bb7662c507c204b",
+    "observationTree": "40f1c77fd860336892975072e6054dccfc0c4ce7",
+    "prepareSources": {
+      "prepare01": {
+        "launcherSourceBinding": {
+          "head": "b297e44e86df205d68d1199bdd1e4c011b979131",
+          "tree": "80d54e6f54baf69360ff1e88aa66df8cad1819a3",
+          "sourceSha256": "4331bf478d1249f4b7631d4c7860777aebdbed6e270e78659059169dcd891e31",
+          "binarySha256": "f77ef1576cc7f61259ca7fe0247e838403dd485d6f86d3204ab664fcc07c7dd9"
+        },
+        "sourceEndIdentical": true,
+        "snapshotReconstructionVerifiedByOriginalBinding": true,
+        "baseHead": "b297e44e86df205d68d1199bdd1e4c011b979131",
+        "delta": "source-snapshot",
+        "specialBeforeFile": "prepare01-mixed-source.mjs"
+      },
+      "prepare02": {
+        "launcherSourceBinding": {
+          "head": "b297e44e86df205d68d1199bdd1e4c011b979131",
+          "tree": "80d54e6f54baf69360ff1e88aa66df8cad1819a3",
+          "sourceSha256": "ab8bbf126b64575d6552e18b3e55b9f826bb98c9a2db6b1ab3047a8da83b5a61",
+          "binarySha256": "f77ef1576cc7f61259ca7fe0247e838403dd485d6f86d3204ab664fcc07c7dd9"
+        },
+        "sourceEndIdentical": true,
+        "snapshotReconstructionVerifiedByOriginalBinding": true,
+        "baseHead": "b297e44e86df205d68d1199bdd1e4c011b979131",
+        "delta": "source-snapshot",
+        "specialBeforeFile": null
+      }
+    },
+    "binaries": {
+      "build-gst-onnx/media_server": "f77ef1576cc7f61259ca7fe0247e838403dd485d6f86d3204ab664fcc07c7dd9",
+      "build-gst-onnx/libmedia_server_runtime.a": "6ed2b74fedd09c6294e41963517a2aafe178444ee5ba6ef5c33da806d94d4d54"
+    },
+    "binding": "Preparations ran entry HEAD plus preserved exact source delta; not the later observation commit. Start/end source matched. source-replay-binding.json verifies both input hashes. No product/runner edits during runs.",
+    "finalReadback": "All13 preserved changed source files and both product/runtime hashes still match preparation02. Existing manifest semantic diff is inventorySha256 only."
+  },
+  "reuse": {
+    "86": "C1/C2/C3 remain complete; source cold/lazy/HTTP/owner contracts reused; new opt-in observation separately reviewed.",
+    "78-84": "Nonresident history, streaming, scratch/Finish, K/F concurrency/durable suffix, aggregate owner/reader and D apply within prior source/environment boundaries.",
+    "85": "B1024 and actual TTL C16 remain bounded direct evidence; not repeated.",
+    "74": "Historical pre-memory-change longrun only, not controlled before sample or current execution.",
+    "59/61/63/65/68/72/73": "Prior Linux, acceptance, UI, guard, software decoder and bounded trace evidence remains historical source/environment scoped; no reissue at latest HEAD."
+  },
+  "observation": {
+    "scope": "Opt-in read-only actual common Catalog/Search RAM and Scratch owner; fixed 1024-byte records max1600 at5s plus lifecycle. External PID RSS/footprint and deduplicated unlinked regular-file logical/allocated bytes. Existing4MiB process log and workspace limits unchanged.",
+    "lifetime": "Finish releases scratch disk/FD while Catalog may legitimately retain RAM; final storage destruction separately observed.",
+    "limits": "Sequential counter/FD samples, not atomic or instantaneous physical peaks. Logical owner high-water is not whole live heap/RSS. Linux physical footprint/anonymous fields unavailable/null. No allocation attribution or warmup trend conclusion."
+  },
+  "preparation": {
+    "runs": 2,
+    "reasonForSecond": "One bounded diagnostic run after first timeout; existing5s measuredHttpResponse records route/header/body while preserving request/load/deadline. No product fix, automatic retry or further preparation. See preparation-failure-link.json and original outputs.",
+    "prepare01": {
+      "result": "FAIL",
+      "driverElapsedMs": 30485,
+      "observedSamples": 4,
+      "failure": "Timeout/abort during second parallel evidence search; route not captured and remains unknown.",
+      "normalServerExit": 0,
+      "processLogBytes": 35961,
+      "rssSampleMaxBytes": 3210477568,
+      "footprintSampleMaxBytes": 3162213664,
+      "ownerRamHighWaterBytes": 155234378,
+      "ownerAfterFinishRamBytes": 3719048
+    },
+    "prepare02": {
+      "result": "FAIL",
+      "driverElapsedMs": 29096,
+      "observedSamples": 4,
+      "failure": "Two /ops/api/recordings/visual-search GET requests exhausted the existing whole-request5000ms budget before response headers arrived:5001/5005ms,no status/headers/body; structured pair200 in244/294ms.",
+      "internalCause": "unconfirmed; not attributed to decoder, allocator, Catalog or new observation",
+      "normalServerExit": 0,
+      "processLogBytes": 36136,
+      "rssSampleMaxBytes": 3210706944,
+      "footprintSampleMaxBytes": 3162426656,
+      "ownerRamHighWaterBytes": 155470489,
+      "ownerAfterFinishRamBytes": 4022120
+    },
+    "both": "Each has actual A1 admitted/completed/stored/read back;4 product resource samples; final sample two channels each7 finalized/0 deleted. Eight owner trace records,0 rejection, after-Finish disk/FD0, after-last-storage RAM/disk/FD0. Bounded decoder representative3 success0failure; not total decoder requests. Logs complete; normal server exit and closed ports/groups. Roughly15s sampled warmup span is not600s/120min or continuous trend proof."
+  },
+  "mixed120": {
+    "attempts": 0,
+    "observationSeconds": 0,
+    "executionSource": null,
+    "status": "not-run-preparation-blocker",
+    "cancelPermissionRevokeRecoveryRestartReactivation": "not-run",
+    "resourceTrendPass": false,
+    "reviewRequired": true,
+    "note": "Original fixed fields retained in meaning; neither establishes a new leak nor satisfies memoryP0."
+  },
+  "recoveryObservationDirect": {
+    "scope": "Isolated copied closed prepare02 storage; observation wiring verification only, not mixed120 post-run recovery or cancelled/permission-revoked lifecycle PASS.",
+    "nativeExit": 0,
+    "groupClosed": true,
+    "durationMs": 1948.978333,
+    "physicalPidSamples": 19,
+    "monitorSamplesIncludingFinal": 20,
+    "maxMonitorGapMs": 104.21899999999997,
+    "anonymousPeakBytes": 1015808,
+    "combinedSourceCopyAnonymousPeakBytes": 5203502,
+    "sourceBytes": 1338875,
+    "sourceUnchangedRecorded": true,
+    "recordedSourceComparison": "Direct script snapshots the original before and after and asserts equal SHA; copied native process receives only owned copy.",
+    "ownerRows": 4,
+    "ownerAfterFinish": {
+      "ram": 381705,
+      "scratchDisk": 0,
+      "scratchFd": 0
+    },
+    "ownerAfterLastStorageDestruction": {
+      "ram": 0,
+      "scratchDisk": 0,
+      "scratchFd": 0
+    },
+    "ownerPeakRam": 2126646,
+    "ramRejected": 0,
+    "limits": "19 sequential external samples and logical high-water; not instantaneous physical peak. Stderr contains preserved GStreamer scanner warnings/critical and duplicate-class warnings; exit0/available16/deleted6/hash result is not a claim of warning-free media environment.",
+    "rawEvidence": {
+      "recovery-observation-direct.mjs": "d4a270cd370e31b6b2e92d16f15e2c6a21ce750160969d6c75ec94e0fa66ac94",
+      "recovery-observation-result.json": "fd3eb1da1ff851ff0ba64f623c7a2bb5b1bd8304aec65de594e35beff505c699",
+      "recovery-native.stdout": "b03d2f94fc7a55fac2efe155ef1774ba679e04e2f7722e7c072ea4d2d3118e98",
+      "recovery-native.stderr": "8b84bdfc7ddf70d86146cc3cad5afb9584c36af96beebaf2787425efd9b02091"
+    }
+  },
+  "verification": {
+    "trace-build": {
+      "command": [
+        "c++",
+        "-std=c++17",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-pthread",
+        "-Iinclude",
+        "scripts/internal/recording_resource_trace_smoke.cpp",
+        "-o",
+        "/private/tmp/media-server-memory87-4cw818or/resource-trace-smoke"
+      ],
+      "exit": 0,
+      "signal": null,
+      "elapsedSeconds": 0.4187474170466885,
+      "collectionFailure": null,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "receipt": "trace-build.json"
+    },
+    "trace-cpp": {
+      "command": [
+        "/private/tmp/media-server-memory87-4cw818or/resource-trace-smoke"
+      ],
+      "exit": 0,
+      "signal": null,
+      "elapsedSeconds": 0.4205229579238221,
+      "collectionFailure": null,
+      "bytes": 96,
+      "sha256": "a98fd25663e29f17d2556505f20bfff91cc8034194e19f87bc69e0ce65540ae0",
+      "receipt": "trace-cpp.json"
+    },
+    "trace-js": {
+      "command": [
+        "node",
+        "scripts/internal/recording_resource_trace.test.mjs"
+      ],
+      "exit": 0,
+      "signal": null,
+      "elapsedSeconds": 0.2126729169394821,
+      "collectionFailure": null,
+      "bytes": 103,
+      "sha256": "113fdb3218c4d12837e38421caa43ba454e279bd84de1e3376b3ca477e7f5900",
+      "receipt": "trace-js.json"
+    },
+    "metrics-contract": {
+      "command": [
+        "env",
+        "TMPDIR=/private/tmp/media-server-memory87-4cw818or",
+        "node",
+        "scripts/internal/recording_process_metrics.test.mjs"
+      ],
+      "exit": 0,
+      "signal": null,
+      "elapsedSeconds": 1.2474482079269364,
+      "collectionFailure": null,
+      "bytes": 2852,
+      "sha256": "0c4a6924080de7981aa1fb9823ce971099e6eb177ece6568d8bcf18cd384f148",
+      "receipt": "metrics-contract.json"
+    },
+    "metrics-contract02": {
+      "command": [
+        "node",
+        "scripts/internal/recording_process_metrics.test.mjs"
+      ],
+      "exit": 0,
+      "signal": null,
+      "elapsedSeconds": 1.249767959001474,
+      "collectionFailure": null,
+      "bytes": 3263,
+      "sha256": "c226294710292fb5342a0f20eaa39d2f14e996e4a215ddbda82ef021f7f43dac",
+      "receipt": "metrics-contract02.json"
+    },
+    "root-storage-contract": {
+      "command": [
+        "node",
+        "scripts/internal/recording_current_root_storage.test.mjs"
+      ],
+      "exit": 0,
+      "signal": null,
+      "elapsedSeconds": 0.6209013330517337,
+      "collectionFailure": null,
+      "bytes": 1868,
+      "sha256": "0dab899fced6ca48bcd9c9278e9801a0294952c9f03c100095d13da9fd2e7423",
+      "receipt": "root-storage-contract.json"
+    },
+    "runtime-build01": {
+      "command": [
+        "cmake",
+        "--build",
+        "build-gst-onnx",
+        "-j2"
+      ],
+      "exit": 0,
+      "signal": null,
+      "elapsedSeconds": 27.18184320803266,
+      "collectionFailure": null,
+      "bytes": 8837,
+      "sha256": "af3569dcb4691766fb55329aed0ad0cc8e3dc784cda909ee180775837882d28c",
+      "receipt": "runtime-build01.json"
+    },
+    "recovery-observation-direct": {
+      "command": [
+        "node",
+        "/private/tmp/media-server-memory87-4cw818or/recovery-observation-direct.mjs"
+      ],
+      "exit": 0,
+      "signal": null,
+      "elapsedSeconds": 2.2622400419786572,
+      "collectionFailure": null,
+      "bytes": 1086,
+      "sha256": "34a24c7b9b35ec8d0c26e913e5ac76c345fc89264ed6d62606e24daffab34faa",
+      "receipt": "recovery-observation-direct.json"
+    },
+    "linux-observation": {
+      "command": [
+        "docker",
+        "run",
+        "--rm",
+        "--name",
+        "media-server-memory87-observation",
+        "--network",
+        "none",
+        "--cap-drop",
+        "ALL",
+        "--security-opt",
+        "no-new-privileges",
+        "--user",
+        "10001:10001",
+        "--read-only",
+        "--tmpfs",
+        "/tmp:rw,exec,nosuid,size=128m",
+        "-v",
+        "/Users/dhseo/Workspace/mediaServer:/source:ro",
+        "ce72c8a15363984da642e9964189957896812061c6af1d0ef67e87b38ad5a588",
+        "sh",
+        "-c",
+        "id; g++ --version | head -1; g++ -std=c++17 -Wall -Wextra -Werror -pthread -I/source/include /source/scripts/internal/recording_resource_trace_smoke.cpp -o /tmp/resource-trace && /tmp/resource-trace && g++ -std=c++17 -Wall -Wextra -Werror -pthread /source/scripts/internal/recording_process_metrics.cpp -o /tmp/process-metrics && /tmp/process-metrics 1"
+      ],
+      "exit": 0,
+      "signal": null,
+      "elapsedSeconds": 1.850433916086331,
+      "collectionFailure": null,
+      "bytes": 395,
+      "sha256": "b3e2734540efa1be8ae307e97c46e7a7760b62abcbc4ba6807b24ccda7377e1f",
+      "receipt": "linux-observation.json"
+    },
+    "timing-helper-contract": {
+      "command": [
+        "node",
+        "scripts/internal/recording_current_app_helpers.test.mjs"
+      ],
+      "exit": 1,
+      "signal": null,
+      "elapsedSeconds": 0.21189816598780453,
+      "collectionFailure": null,
+      "bytes": 789,
+      "sha256": "a6320c3bec924cb162d6b4204b90ed9cf0436ff1c5f6e9df22da0fd231de01da",
+      "receipt": "timing-helper-contract.json"
+    },
+    "timing-helper-contract02": {
+      "command": [
+        "node",
+        "--test",
+        "scripts/internal/recording_current_http_diagnostics.test.mjs"
+      ],
+      "exit": 0,
+      "signal": null,
+      "elapsedSeconds": 0.20868908299598843,
+      "collectionFailure": null,
+      "bytes": 483,
+      "sha256": "9fc1dc97db7e1bca1f69a36284fc251e66a1c104e920066b14ca45c3bf98b10d",
+      "receipt": "timing-helper-contract02.json"
+    },
+    "longrun-contract": {
+      "command": [
+        "node",
+        "scripts/internal/recording_longrun_progress.test.mjs"
+      ],
+      "exit": 0,
+      "signal": null,
+      "elapsedSeconds": 0.21202395798172802,
+      "collectionFailure": null,
+      "bytes": 3075,
+      "sha256": "2f433349f45758999c9acd390a691f7829bafb750854747ebba0ad2095373e59",
+      "receipt": "longrun-contract.json"
+    },
+    "candidate87": {
+      "command": [
+        "node",
+        "scripts/internal/verify_v390_review4_feature_semantic_source_audit.mjs",
+        "--emit-candidate",
+        "/private/tmp/media-server-memory87-4cw818or/candidate87.data.json"
+      ],
+      "exit": 0,
+      "signal": null,
+      "elapsedSeconds": 21.617140125017613,
+      "collectionFailure": null,
+      "bytes": 196,
+      "sha256": "70f44254861c3ac628e3bf06007abd45e6afdb5b8238958c4b77c93d72efe89a",
+      "receipt": "candidate87.json"
+    },
+    "migration87": {
+      "command": [
+        "node",
+        "scripts/internal/verify_v390_review4_semantic_migration_contract.mjs",
+        "--baseline",
+        "/private/tmp/media-server-memory87-4cw818or/prior-audit.json",
+        "--fresh",
+        "/private/tmp/media-server-memory87-4cw818or/candidate87.data.json",
+        "--report",
+        "/private/tmp/media-server-memory87-4cw818or/migration-report.json",
+        "--write-evidence",
+        "/private/tmp/media-server-memory87-4cw818or/migration-evidence.json"
+      ],
+      "exit": 1,
+      "signal": null,
+      "elapsedSeconds": 0.613799958024174,
+      "collectionFailure": null,
+      "bytes": 1075,
+      "sha256": "b3043710f61a9436d9e4dfc8eca9bcfc9f1f844803a6900311a4febfef469c88",
+      "receipt": "migration87.json"
+    },
+    "apply-existing-approved-manifest": {
+      "command": [
+        "node",
+        "scripts/internal/verify_v390_review4_feature_semantic_source_audit.mjs",
+        "--apply-approved-manifest"
+      ],
+      "exit": 0,
+      "signal": null,
+      "elapsedSeconds": 89.52498920890503,
+      "collectionFailure": null,
+      "bytes": 12812,
+      "sha256": "d044f8ac77f4e3e0a7ee0672c9d63381151b9f522393a0aa536f910913ef258f",
+      "receipt": "apply-existing-approved-manifest.json"
+    },
+    "static-approvals": {
+      "command": [
+        "./server.sh",
+        "verify-v390-review4-feature-semantic-source-approvals"
+      ],
+      "exit": 0,
+      "signal": null,
+      "elapsedSeconds": 20.80548037495464,
+      "collectionFailure": null,
+      "bytes": 255,
+      "sha256": "4d26ed3ae3655b5b6289b5a78ac18f3b1b29b01910295fd950d796071fc4e147",
+      "receipt": "static-approvals.json"
+    },
+    "static-inventory": {
+      "command": [
+        "./server.sh",
+        "verify-project-inventory"
+      ],
+      "exit": 0,
+      "signal": null,
+      "elapsedSeconds": 41.84923970804084,
+      "collectionFailure": null,
+      "bytes": 210255,
+      "sha256": "4670513193842f03ec9ea567062efe9d2dd303d621716a5cb95876d48b1dc1cd",
+      "receipt": "static-inventory.json"
+    },
+    "static-coverage": {
+      "command": [
+        "./server.sh",
+        "verify-feature-inventory-coverage"
+      ],
+      "exit": 0,
+      "signal": null,
+      "elapsedSeconds": 82.6773564160103,
+      "collectionFailure": null,
+      "bytes": 604,
+      "sha256": "f3dd9d2ec3cd35ce7a806a391b6918dddd2c2377ca3039afa624f484985f9bce",
+      "receipt": "static-coverage.json"
+    },
+    "static-script": {
+      "command": [
+        "./server.sh",
+        "verify-script-inventory"
+      ],
+      "exit": 0,
+      "signal": null,
+      "elapsedSeconds": 26.722992582945153,
+      "collectionFailure": null,
+      "bytes": 941,
+      "sha256": "92e692a3173f517ac5430005d1cf361195ac0dad7e505a2ffaddc893da6cdecf",
+      "receipt": "static-script.json"
+    },
+    "docs-metadata": {
+      "command": [
+        "./server.sh",
+        "verify-release-metadata"
+      ],
+      "exit": 0,
+      "signal": null,
+      "elapsedSeconds": 0.2022215829929337,
+      "collectionFailure": null,
+      "bytes": 454,
+      "sha256": "9cda5bb492e62ffb69865b146136bb2ffb4da8344c235a64796e278e1be23ffe",
+      "receipt": "docs-metadata.json"
+    },
+    "docs-links": {
+      "command": [
+        "./server.sh",
+        "verify-docs-links"
+      ],
+      "exit": 0,
+      "signal": null,
+      "elapsedSeconds": 0.41366679093334824,
+      "collectionFailure": null,
+      "bytes": 186,
+      "sha256": "256dc863afd2d63870feee06f312e5d571e4c287b3070b57beea90b3300416b2",
+      "receipt": "docs-links.json"
+    },
+    "docs-evidence-index": {
+      "command": [
+        "./server.sh",
+        "verify-release-evidence-index"
+      ],
+      "exit": 0,
+      "signal": null,
+      "elapsedSeconds": 0.212004084023647,
+      "collectionFailure": null,
+      "bytes": 254,
+      "sha256": "7c905aca1898f76312a7ee31fa5931a96f32816cd58fbf8e094b4632a375d938",
+      "receipt": "docs-evidence-index.json"
+    }
+  },
+  "testFailures": {
+    "migration87": "exit1 tool applicability error: no unapproved IDs. No fixture mutation; preserved. Correct existing --apply-approved-manifest PASS, readbacks PASS. Not a product regression.",
+    "timing-helper-contract": "exit1 MODULE_NOT_FOUND from nonexistent test filename. Preserved; corrected actual existing recording_current_http_diagnostics.test.mjs PASS. Not RED/product failure."
+  },
+  "approvalBinding": {
+    "fresh": {
+      "rows": 986,
+      "resolvedCandidates": 986,
+      "discoveredCandidates": 0,
+      "unresolvedCandidates": 0,
+      "fileScopeRoles": 0
+    },
+    "candidateDigest": "799ba1fc6aef0144952b907a9476255e6d6383bebc616be1436ac23f85b17035",
+    "allItemsByteEquivalent": true,
+    "changedLegacyIds": [],
+    "newObservationReview": "independent_observation_review separate; no new product approval implied",
+    "migrationWriterFailure": "No changed IDs: --write-evidence explicitly requires unapprovedIds.length>0. No fixture mutated. Use existing --apply-approved-manifest only for inventory text digest after independent review.",
+    "sourceHead": "b297e44e86df205d68d1199bdd1e4c011b979131",
+    "closeout": {
+      "applyApprovedManifestExit": 0,
+      "readback": {
+        "static-approvals": 0,
+        "static-inventory": 0,
+        "static-coverage": 0,
+        "static-script": 0
+      },
+      "manifestChange": "Existing tool-generated inventorySha256 only; JSON formatting restored to existing style without semantic edits. No new approval granted."
+    }
+  },
+  "judgment": {
+    "observationCode": "independently acceptable",
+    "function": "preparation visual-search response boundary FAIL;120 absent",
+    "memory": "required longrun/progression/lifecycle not observed; no P0 completion; short final-owner release passes only limited scope",
+    "collection": "bounded logs/owner lifecycle captured in preparation and isolated recovery helper",
+    "blocker": "Existing mixed visual-search requests exhausted the5000ms whole-request budget before response headers arrived. Root cause and required final integration remain unresolved; scope excludes product timeout/storage/parser/decoder fix.",
+    "noNewRun": true
+  },
+  "preservation": {
+    "archive": "87-execution.tar.gz",
+    "manifest": "preservation.json",
+    "independent": "87-independent-review.json",
+    "policy": "Necessary non-sensitive raw recordings/input and exact source deltas. Paths/local source URLs redacted in logs with original/saved byte+hash mapping; auth/state/credentials, models/SDK/binaries excluded. No historical archive duplicated. Archive byte verification and cleanup receipt recorded at closeout.",
+    "archiveSha256": "e734d3fcb1e7101c8236557bc18bb3f7ee4ae920ad13a65c31158d55832b0bb3",
+    "archiveBytes": 1892860,
+    "verifiedPayloadFiles": 195,
+    "verifiedPayloadBytes": 4700525,
+    "archiveReadback": "All195 payload members matched preserved SHA and bytes; preservation manifest separately included. No missing/unlisted payload members.",
+    "privacyCheck": "Credential-value pattern scan: only field-name definitions in existing inventory source; no auth/state files included. Owned paths/URLs redacted in text as manifest describes."
+  },
+  "cleanup": {
+    "processesPorts": "Both launcher receipts confirm normal product exit and closed ports/groups; final OS check found no owned PID/group/container. Raw root awaits Git/remote byte verification before removal.",
+    "temporaryRoots": "preserved, pending archive/Git byte verification then owned-only cleanup",
+    "modelsSDKImages": "retained",
+    "qwenOllamaCalls": 0,
+    "unloadGate": "not-run"
+  },
+  "remaining": [
+    "Mixed preparation visual-search5s whole-request budget expiry before headers: root cause/minimum correction under separate product authority",
+    "Required fixed-candidate7200s plus mixed controls/recovery/restart/reactivation and memoryP0 judgment",
+    "Final owner adoption/publication remains not-granted; noPR/CI/merge/tag/Release"
+  ],
+  "independentReview": {
+    "path": "87-independent-review.json",
+    "sha256": "4e9a7feec164e422a8380aa3f7d0ad2098820475705c41cacd361ae2d450a830",
+    "judgment": "Observation changes and current source/binding/preservation documentation accepted; preparation visual-search deadline failure remains blocker;120=0/P0BLOCKED. Final Git/remote/cleanup main duty.",
+    "reviewer": "independent_memory86; no implementation, test authoring or execution"
+  }
+}

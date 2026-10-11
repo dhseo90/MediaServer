@@ -112,6 +112,8 @@ FAIL이다. [82 검증](release-artifacts/v4.5.0/82-validation.json)은 고정 c
 [86 검증](release-artifacts/v4.5.0/86-validation.json)은 큰 필드의 lossless bounded 소비·실제 HTTP
 per-send timeout 종료·최종 독립 candidate 결속을 마감했다. 700MiB는 정적 사례이며 당시 FAIL은
 보존한다. 수정 후보의 최종 혼합 검증은 미실행으로, 전체 메모리 P0 완료가 아니다.
+87의 최종 관측 연결 뒤 짧은 준비에서 장면 검색의 기존 5초 응답 기준을 충족하지 못해
+본120분은 시작하지 않았다. 실제 owner/정상 종료의 한정 관측을 메모리 P0 완료로 확대하지 않는다.
 정확한 잔여는 [현행 backlog](development-backlog.md#v450-잔여-개발과-릴리즈-순서)를 따른다.
 전체 메모리 P0와 수정 후보의 최종 혼합 검증은 출시 전 차단으로 유지한다.
 새 checkpoint의 nonempty active receipt는 현재 구현에서 검증·복구하며, 구버전 binary의
