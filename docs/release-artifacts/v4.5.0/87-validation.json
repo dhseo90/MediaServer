@@ -552,7 +552,7 @@
     }
   },
   "cleanup": {
-    "processesPorts": "Both launcher receipts confirm normal product exit and closed ports/groups; final OS check found no owned PID/group/container. Raw root awaits Git/remote byte verification before removal.",
+    "processesPorts": "Both launcher receipts confirm normal product exit and closed ports/groups; final OS check found no owned PID/group/container. Remote byte verification and subsequent owned-root removal completed as recorded below.",
     "temporaryRoots": "Owned task root and pointer removed after local Git and remote blob byte readback; all nested paths lstat UID501 verified; symlinks unlinked without following targets. No other roots touched.",
     "modelsSDKImages": "retained",
     "qwenOllamaCalls": 0,
