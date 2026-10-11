@@ -756,10 +756,26 @@ void HistoryProduct(const std::filesystem::path& root) {
           budget->usage().disk_bytes==0&&budget->usage().file_descriptors==0&&ram->used()==0,
           "concurrent real index Create Close never exceeds shared admission and releases exactly once");
     }
+    {Index packed;Need(packed.Create(root.string(),Index::BytesForRows(2),&error));
+     Need(packed.Put("a",std::string(Index::kInlineBytes,'x'),false,&error));
+     Check("MEM96-S01",packed.usage().file_bytes==2*Index::kNodeBytes,"small value in authenticated node; no separate padded value slot");
+     Need(packed.Put("b","",false,&error));const auto small=packed.usage().file_bytes;
+     for(int i=0;i<256;++i)Need(packed.Put("a",std::string(i%113,'x'),true,&error));
+     Check("MEM96-S01",packed.usage().file_bytes==small,"bounded small overwrite reuses node bytes");
+     Need(packed.Put("a",std::string(Index::kInlineBytes+1,'y'),true,&error));const auto grown=packed.usage().file_bytes;
+     for(int i=0;i<256;++i)Need(packed.Put("a",std::string(i%2?Index::kValueBytes:1,'z'),true,&error));
+     Check("MEM96-S01",grown==small+Index::kValueBytes&&packed.usage().file_bytes==grown&&grown<=Index::BytesForRows(2),"growth allocates once; later overwrite does not accumulate disk");
+     Check("MEM96-S01",packed.Get("a",&value,&error)==Index::Lookup::Found&&value==std::string(Index::kValueBytes,'z'),"maximum original value remains byte exact");
+     Index clone;Need(clone.Create(root.string(),Index::BytesForRows(2),&error));Need(clone.CopyFrom(packed,&error));Need(packed.Close(&error));
+     Check("MEM96-S01",clone.Get("b",&value,&error)==Index::Lookup::Found&&value.empty(),"clone retains empty inline value after original closes");Need(clone.Close(&error));
+     for(bool hit:{false,true}){Index bad;Need(bad.Create(root.string(),Index::BytesForRows(1),&error));Need(bad.Put("key","inline",false,&error));
+       const char changed='x';Need(::pwrite(bad.ProbeFd(),&changed,1,Index::kNodeBytes+144+Index::kKeyBytes)==1);
+       Check("MEM96-S01",bad.Get(hit?"key":"absent",&value,&error)==Index::Lookup::Error,"inline tampering rejects hit and negative path");Need(bad.Close(&error));}
+    }
     Index index;Need(index.Create(root.string(),Index::BytesForRows(8),&error));
     struct stat st{};Need(::fstat(index.ProbeFd(),&st)==0);
     Check("MEM78-J01",st.st_nlink==0&&!std::filesystem::exists(root/index.owned_name()),"scratch anonymous while FD remains owned; original nlink rules unchanged");
-    Need(index.Put("key","original",false,&error));const auto bytes=index.usage().file_bytes;
+    Need(index.Put("key",std::string(Index::kValueBytes,'a'),false,&error));const auto bytes=index.usage().file_bytes;
     for(int i=0;i<2048;++i)Need(index.Put("key",std::string(i%2048,'a'),true,&error));
     Check("MEM78-J01",index.usage().file_bytes==bytes&&index.usage().allocated_bytes>0,"2048 overwrites reuse one fixed slot; anonymous disk is measured");
     Check("MEM78-J01",index.Get("key",&value,&error)==Index::Lookup::Found&&value==std::string(2047,'a'),"cold lookup after repeated overwrite is exact");
@@ -768,7 +784,7 @@ void HistoryProduct(const std::filesystem::path& root) {
         Index bad;Index::probe_fault=fault;
         if(fault<=2)Check("MEM78-J01",!bad.Create(root.string(),Index::BytesForRows(2),&error)&&!error.empty(),"post-open/unlink injected failure is propagated and owned file removed");
         else {
-            Index::probe_fault=0;Need(bad.Create(root.string(),Index::BytesForRows(2),&error));Need(bad.Put("key","value",false,&error));Index::probe_fault=fault;
+            Index::probe_fault=0;Need(bad.Create(root.string(),Index::BytesForRows(2),&error));Need(bad.Put("key",std::string(Index::kInlineBytes+1,'v'),false,&error));Index::probe_fault=fault;
             if(fault==3){Check("MEM78-J01",!bad.Put("key","new",true,&error)&&bad.Get("absent",&value,&error)==Index::Lookup::Error,"partial write poisons both hit and miss");Index::probe_fault=0;Need(bad.Close(&error));}
             else {Check("MEM78-J01",!bad.Close(&error)&&!bad.Close(&error),"close uncertainty persists without retrying released descriptor");}
         }
@@ -779,7 +795,7 @@ void HistoryProduct(const std::filesystem::path& root) {
      Check("MEM78-J01",!bad.Create(root.string(),Index::BytesForRows(1),&error)&&error.find("cleanup:")!=std::string::npos&&!bad.Close(&error),"Create directory close uncertainty remains sticky through owner finish");
      Index::probe_fault=0;Check("MEM78-J01",std::filesystem::is_empty(root),"directory close uncertainty leaves no named scratch");}
     for(const bool hit:{false,true}){
-        Index bad;Need(bad.Create(root.string(),Index::BytesForRows(1),&error));Need(bad.Put("key","value",false,&error));
+        Index bad;Need(bad.Create(root.string(),Index::BytesForRows(1),&error));Need(bad.Put("key",std::string(Index::kInlineBytes+1,'v'),false,&error));
         const char x='x';Need(::pwrite(bad.ProbeFd(),&x,1,hit?512:512+2048)==1);
         Check("MEM78-J01",bad.Get(hit?"key":"absent",&value,&error)==Index::Lookup::Error,"corrupt hit value or miss path fails closed");Need(bad.Close(&error));
     }
@@ -793,7 +809,7 @@ void HistoryProduct(const std::filesystem::path& root) {
      unsigned empty=0;Need(ranged.VisitRange("d/","d0",[&](const auto&,const auto&,std::string*){++empty;return true;},&error));
      Check("MEM81-G01",empty==0,"range absence follows authenticated boundaries");
      Need(ranged.Close(&error));}
-    {Index bad;Need(bad.Create(root.string(),Index::BytesForRows(1),&error));Need(bad.Put("b/0","value",false,&error));
+    {Index bad;Need(bad.Create(root.string(),Index::BytesForRows(1),&error));Need(bad.Put("b/0",std::string(Index::kInlineBytes+1,'v'),false,&error));
      const char x='x';Need(::pwrite(bad.ProbeFd(),&x,1,512+2048)==1);
      Check("MEM81-G01",!bad.VisitRange("d/","d0",[](const auto&,const auto&,std::string*){return true;},&error),"corrupt range miss path remains fail closed");Need(bad.Close(&error));}
     {Index buffered;Need(buffered.Create(root.string(),Index::BytesForRows(2048),&error));Need(buffered.BeginBufferedBuild(&error));

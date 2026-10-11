@@ -31,6 +31,14 @@ try{
   await check('OBS02 total ID count bound',async()=>await assert.rejects(()=>observer('journal',undefined,{maxIds:2}).tick(8),/id-limit/));
   fs.writeFileSync(path.join(root,'unicode'),row('영상','segment_finalized','e'));
   await check('OBS02 UTF8 byte bound',async()=>await assert.rejects(()=>observer('unicode',undefined,{maxIdBytes:6}).tick(8),/id-limit/));
+  await check('LP26-O06 collector exit preserves bounded original diagnosis to reserved parent evidence',async()=>{
+    const file=path.join(root,'collector-fail.sh');fs.writeFileSync(file,"#!/bin/sh\nprintf '%s\\n' '{\"pid\":123,\"valid\":false,\"anonymousFileBytes\":null,\"error\":\"fd-observation-incomplete:capacity=0:closed=4\",\"secret\":\"not retained\"}'\nexit 1\n",{mode:0o700});
+    const {createWorkspaceFailureCapture}=await import('./recording_current_observer.mjs');
+    const out=path.join(root,'failure');fs.mkdirSync(out,{mode:0o700});const sink=createWorkspaceFailureCapture(out);
+    await assert.rejects(()=>collectProcess(file,123),error=>{sink.capture(error);return error.collectorDiagnostic.exitCode===1&&error.collectorDiagnostic.measurement.error.endsWith('closed=4')&&!Object.hasOwn(error.collectorDiagnostic.measurement,'secret');});
+    sink.close();const saved=JSON.parse(fs.readFileSync(path.join(out,'workspace-first-failure.json'),'utf8'));
+    assert.equal(saved.collectorDiagnostic.measurement.anonymousFileBytes,null);assert.equal(saved.primary,'observer-collector-unavailable');
+  });
   await check('OBS03 missing collector binary fails',async()=>await assert.rejects(()=>collectProcess(path.join(root,'missing-binary'),1),/collector-unavailable/));
   for(const [name,bad] of [['null',null],['invalid',{...metric(1),valid:false}],['wrongpid',metric(2)],['missingfd',{...metric(1),fdCount:null}],['rsszero',{...metric(1),rssBytes:0}]])
     await check(`OBS03 ${name} sample rejected`,async()=>await assert.rejects(()=>observer('journal',async()=>bad).tick(1),/incomplete/));

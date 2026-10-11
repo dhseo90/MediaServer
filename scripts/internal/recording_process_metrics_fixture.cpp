@@ -16,6 +16,9 @@ int Parsers() {
         std::cout << (ok ? "[pass] " : "[fail] ") << "PM04 " << name << std::endl;
         if (!ok) ++failures;
     };
+    check(FdExhaustionError(4,0)=="fd-observation-incomplete:capacity=4:closed=0", "capacity exhaustion distinct");
+    check(FdExhaustionError(0,4)=="fd-observation-incomplete:capacity=0:closed=4", "descriptor race exhaustion distinct");
+    check(FdExhaustionError(2,2)=="fd-observation-incomplete:capacity=2:closed=2", "mixed exhaustion distinct");
     check(ParsePid("123", pid) && pid == 123, "positive PID");
     check(!ParsePid("0", pid), "zero PID rejected");
     check(!ParsePid("-1", pid), "negative PID rejected");

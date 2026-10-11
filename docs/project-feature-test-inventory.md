@@ -1197,7 +1197,7 @@ LP27부터 아래 41개 qualified requirement ID를 고정한다. 기존 기능�
 | LP26-O03 | 영속 순서 진행 | ID/epoch/UTC 역행·unknown/삭제 | 비대상: 도구 자체검사 | 현행 관측 준비, 실행 별도 | 비대상: UI 없음 |
 | LP26-O04 | 시간/자원 관측 | duration/stall/PID/표본 반례 | 비대상: 도구 자체검사 | 현행 관측 준비, 실행 별도 | 비대상: UI 없음 |
 | LP26-O05 | 장시간 실행 연결 | 동일 status 응답 bytes/hash·필드 존재/형/조건을 assertion 전에 보존; 누락/중복/false/blocked·잘못된JSON·동시수집실패 반례. 진단45분은 원인 확인 전용, 단기/120분 구분·정리 | 비대상: 도구 자체검사 | 실제 실행 별도 | 비대상: UI 없음 | R95 검사 격리: `verify_recording_writer_isolation.py`가 실제 바이너리를 호출하며 `recording_native_isolation.py`와 `recording_writer_test_isolation.h`가 초기화 전 canonical 소유 경로·필수 변수·symlink/외부/직접 실행을 검사하고 가짜 HOME/CWD sentinel 불변 및 독립 root 정상 실행을 확인. R95-B01 `recording_derived_jobs_smoke.cpp`: 실제 job 보호를 typed Protected로 확인하고 terminal/마지막 reader 해제 뒤 Accepted·명시 Finish 확인. R94 직접 반례: 계획 뒤 실제 hold 획득 시 해당 파일·hold는 보존하고 다른 삭제의 실제 회수 뒤 quota/free/예약을 판정; 공간 부족·원본/authority/I/O 오류·일반 Apply 보호 거부는 유지.
-| LP26-O06 | 녹화 장시간 저장량 원인 구분 | 격리 root의 제품·입력·도구 비용 분리, 상한 직전/실패 측정, SQLite 페이지 관측, symlink·hardlink 거부와 비민감 출력 자체검사 | 비대상: 도구 자체검사 | 동일 120분의 측정 근거로 사용, 실행 별도 | 비대상: UI 없음 |
+| LP26-O06 | 녹화 장시간 저장량 원인 구분 | R96: 실제 workspaceBounds의 최초 피연산자·측정 시각·strict 경계/overflow·익명 합산·copy·PID/누락·동시 증거 쓰기 실패를 preallocated 부모 슬롯과 최종 요약에 보존. 일반/익명/예약 비원자 표본은 구분하며 기존 상한 유지.  격리 root의 제품·입력·도구 비용 분리, 상한 직전/실패 측정, SQLite 페이지 관측, symlink·hardlink 거부와 비민감 출력 자체검사 | 비대상: 도구 자체검사 | 동일 120분의 측정 근거로 사용, 실행 별도 | 비대상: UI 없음 |
 | LP26-R01 | 삭제된 bound 원본의 SQLite 중복 투영 회수 | 삭제 완료와 같은 SQL 전이에서 SQLite binding 행을 제거하고, JSONL·내부 상세 증거와 ID·재시도·복구 의미를 유지. SQLite/JSONL 재기동 및 checkpoint 반례 | 관련 저장 회귀·build | 기존 30분 영향 판정 필요 | 녹화 120분 재실행 대상 | 비대상: 내부 저장 |
 | LP26-R02 | 큰 녹화 원장 행의 가역 물리 압축 | append-only 세대 writer가 지원 bound/delete 논리 행을 먼저 검증하고 이득이 있을 때 기존 zlib wrapper로 저장. 논리 ID·순서·원본 증거·수용 상한과 plain 원장 호환, 정규 active/cold 복구·손상 거부 유지 | append·active/cold·checkpoint·consumer·손상·crypto-off 회귀·build | 저장 경로 변경분의 30분 영향 재판정 | 녹화 120분 전체 재실행 대상 | 비대상: 내부 저장 |
 | LP26-R03 | 삭제 영수증의 중복 투영 회수·가역 압축 | 원장 논리 tombstone을 유지하고 checkpoint 물리 행만 압축. SQLite에는 ID·사유·시각의 최소 영수증만 저장하며 재구축·중복/손상 거부 유지 | 삭제 전후 SQLite/원장 바이트·논리 동일성·재기동·손상·checkpoint 및 기존 보존 회귀 | 기존 30분 영향 판정 필요 | 녹화 120분 재실행 대상 | 비대상: 내부 저장 |
@@ -4964,3 +4964,12 @@ MEM84-R04: 최대 허용 cold 행(16MiB+1)의 실제 chunk 저장/읽기와 기�
 - 원래 준비의 2장면/2구조화 검색·2채널·30초/180초·5초 요청·기존 p95/최대 기준을 유지한다. 제한 단계 진단은 공유 잠금·파일 준비/decoder·encoder mutex/추론·현재 원본 검증·응답을 구분하며 원문/credential을 출력하지 않는다.
 - 확인된 Catalog cold 중복 조회만 줄이며, 같은 잠금의 현재 행 재사용·예약 전용 조회와 기존 현재 원본/권한·Stop/실패 수명을 검증한다. 고정 promise 순서의 파일 변경→준비 읽기 거부→원복 반례와 실제 SigLIP2 준비를 구분한다. 구조화 검색의 기존 원본 변경 재검증과 재시도 소진은 제한 phase로 구분하며 오류 허용 목록은 바꾸지 않는다. 소유/메모리 한도·모델/전처리/vector·scan/sample·결과 의미·decoder·시간 상한은 변경하지 않는다.
 - 직접 영향 macOS/비특권 Linux 회귀와 실제 준비를 연결한다. 새120분/전체UI/기존 B/C/D 전체 반복은 실행하지 않는다.
+
+### MEM96-S01 — 익명 이력 인덱스의 작은 value 표현
+
+내부 기능/UI 비대상. 기존 `history-product`에서 node의 미사용 112바이트를 사용하는
+작은 value·빈 value·최대 key/value·inline→외부 슬롯 전환·반복 overwrite·clone/reader
+수명·hit/miss 변조·부분 쓰기·Close를 검증한다. 원본 형식과 2048바이트 value admission,
+최악 크기 예약 및 순차 capture 형식은 유지한다. 현재 95 제품의 동일 순환 생성 절차
+128/512/2048과 수정 후보에서 익명 실제 bytes/예약/FD/live heap/RSS/시간을 별도 계상한다.
+측정은 실패 순간의 복원이 아니며, 최종 120분/P0 완료를 대신하지 않는다.

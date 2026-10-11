@@ -85,9 +85,9 @@ test('LP26-O05 actual mixed request child preserves first failure to parent repo
   const script=`import vm from 'node:vm';import http from 'node:http';import {once} from 'node:events';import {measuredHttpResponse,createRecordingStatusCapture} from ${JSON.stringify(new URL('./recording_current_app_helpers.mjs',import.meta.url).href)};
   let calls=0;const server=http.createServer((q,r)=>{calls++;r.end(${JSON.stringify(body)});});server.listen(0,'127.0.0.1');await once(server,'listening');
   const statusCapture=createRecordingStatusCapture(${JSON.stringify(dir)});
-  const c=vm.createContext({measuredHttpResponse,statusCapture,fetch,AbortSignal,performance,console,budget(){},check(ok,label){if(!ok)throw Error(label);}});
+  const c=vm.createContext({measuredHttpResponse,statusCapture,fetch,AbortSignal,performance,console,statusAdmissionMetrics:null,collector:'stub',collectProcess:async()=>({valid:true}),currentResourceTrace:()=>({}),workspaceFailure:{capture(){}},workspaceAnonymousBytes(){},budget(){},check(ok,label){if(!ok)throw Error(label);}});
   vm.runInContext(${JSON.stringify(source.slice(begin,end))},c);
-  c.app={base:'http://127.0.0.1:'+server.address().port};let error;
+  c.app={base:'http://127.0.0.1:'+server.address().port,child:{pid:123},resourceTrace:{receivedAt:0}};let error;
   try{await vm.runInContext("request(app,'GET','/ops/api/recordings/status',undefined,true)",c);}catch(e){error=e.message;}
   const report=vm.runInContext(${JSON.stringify('({'+finalField+'})')},c);
   console.log('[parent-report] '+JSON.stringify({...report,error,calls}));await new Promise(r=>server.close(r));process.exitCode=error?1:0;`;
@@ -98,6 +98,33 @@ test('LP26-O05 actual mixed request child preserves first failure to parent repo
    const report=JSON.parse(out.split('\n').find(l=>l.startsWith('[parent-report] ')).slice(16));
    assert.equal(report.calls,1);assert(report.error);assert.equal(report.recordingStatusFailure.passed,false);
    assert.equal(fs.readFileSync(path.join(dir,report.recordingStatusFailure.rawFile),'utf8'),body);
+  }finally{fs.rmSync(dir,{recursive:true});}
+ }
+});
+
+test('LP26-O06 mixed status keeps original judgment when fresh metrics fail or are incomplete',async()=>{
+ const {default:vm}=await import('node:vm');
+ const {workspaceAnonymousBytes}=await import('./recording_current_observer.mjs');
+ const source=fs.readFileSync(new URL('./v450_recording_a_mixed.mjs',import.meta.url),'utf8');
+ const begin=source.indexOf('async function request('),end=source.indexOf('const mixed=',begin);
+ for(const incomplete of [false,true])for(const active of [false,true]){
+  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'media-server-status-metrics-'));
+  const bytes=Buffer.from(JSON.stringify({channels:['9101','9201'].map(channelId=>({channelId,enabled:true,active,storageBlocked:!active}))}));
+  let clock=10;const failures=[];
+  const capture=createRecordingStatusCapture(dir,{admit:()=>{throw Error('workspace-process-measurement-invalid');},now:()=>clock});
+  const context=vm.createContext({measuredHttpResponse:async()=>({status:200,bytes}),statusCapture:capture,
+   performance:{now:()=>clock},console:{log(){}},budget(){},check(ok,label){if(!ok)throw Error(label);},
+   collector:'test',statusAdmissionMetrics:null,workspaceAnonymousBytes,
+   collectProcess:async()=>{clock=20;if(!incomplete)throw Error('collector-failed');return {valid:false,pid:123};},
+   currentResourceTrace:()=>({}),workspaceFailure:{capture:error=>failures.push(error.message)}});
+  context.app={child:{pid:123},resourceTrace:{receivedAt:5}};
+  vm.runInContext(source.slice(begin,end),context);
+  try{
+   await assert.rejects(vm.runInContext("request(app,'GET','/status',undefined,true)",context),active?(incomplete?/workspace-process-measurement-invalid/:/collector-failed/):/LP26-O05 active/);
+   assert.equal(failures.length,1);
+   if(!active){assert.equal(capture.failure().receivedAt,10);assert.equal(capture.failure().judgedAt,20);assert.equal(capture.failure().passed,false);assert.equal(capture.failure().collectionErrors.length,2);}
+   else assert.equal(capture.failure(),null);
+   assert.deepEqual(fs.readdirSync(dir),[]);
   }finally{fs.rmSync(dir,{recursive:true});}
  }
 });

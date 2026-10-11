@@ -31,6 +31,7 @@ namespace recording {
 class RecordingHistoryIndex final {
 public:
     static constexpr std::size_t kKeyBytes=256, kNodeBytes=512, kDepth=96;
+    static constexpr std::size_t kInlineBytes=kNodeBytes-144-kKeyBytes;
     static constexpr std::size_t kValueBytes=2048; // maximum canonical first-acceptance DTO; never a cold payload
     static constexpr std::uint64_t BytesForRows(std::uint64_t rows) {
         return rows>(INT64_MAX-kNodeBytes)/(kNodeBytes+kValueBytes)?0:kNodeBytes+rows*(kNodeBytes+kValueBytes);
@@ -107,7 +108,7 @@ public:
             Check();if(sequential_||source.sequential_||build_||source.build_||this==&source||rows_||root_.offset||size_!=kNodeBytes)
                 throw Failure("history clone destination not empty");
             if(!source.Healthy(error))return false;
-            if(source.size_>budget_)throw Failure("history clone capacity insufficient");
+            if(source.size_>budget_||BytesForRows(source.rows_)>budget_)throw Failure("history clone capacity insufficient");
             auto buffer=resources_->Reserve({0,0,65536});
             if(!buffer)throw RecordingResourceUnavailable();
             std::array<unsigned char,65536> block{};
@@ -286,7 +287,7 @@ private:
         if(selected->original!=ref.hash)throw Failure("history buffered node hash mismatch");
         selected->offset=ref.offset;selected->use=++build_->clock;return *selected;
     }
-    struct Node {Ref left,right;std::uint64_t value_offset{0},value_size{0},height{1};Hash value_hash{};std::string key;};
+    struct Node {Ref left,right;std::uint64_t value_offset{0},value_size{0},height{1};Hash value_hash{};std::string key;std::array<unsigned char,kInlineBytes> inline_value{};};
     struct Failure:std::runtime_error{using std::runtime_error::runtime_error;};
     int fd_{-1},directory_fd_{-1};pid_t pid_{0};struct stat binding_{};std::string name_;
     std::uint64_t budget_{0},size_{0},rows_{0},reads_{0},writes_{0};Ref root_;bool poisoned_{true},anonymous_{false},visiting_{false},close_failed_{false};
@@ -339,12 +340,14 @@ private:
         n.value_offset=Number(bytes.data()+16);n.value_size=Number(bytes.data()+24);n.height=Number(bytes.data()+32);
         const auto key_size=Number(bytes.data()+40);
         if(!key_size||key_size>kKeyBytes||!n.height||n.height>kDepth||n.value_size>kValueBytes||
-           n.value_offset<kNodeBytes||n.value_offset>size_||n.value_size>size_-n.value_offset)
+           (n.value_offset?(n.value_offset<kNodeBytes||n.value_offset>size_||n.value_size>size_-n.value_offset):n.value_size>kInlineBytes))
             throw Failure("history index node fields");
         std::copy_n(bytes.data()+48,32,n.left.hash.begin());std::copy_n(bytes.data()+80,32,n.right.hash.begin());
         std::copy_n(bytes.data()+112,32,n.value_hash.begin());
         if((!n.left.offset&&n.left.hash!=Hash{})||(!n.right.offset&&n.right.hash!=Hash{}))throw Failure("history index null proof");
-        n.key.assign(reinterpret_cast<const char*>(bytes.data()+144),static_cast<std::size_t>(key_size));return n;
+        n.key.assign(reinterpret_cast<const char*>(bytes.data()+144),static_cast<std::size_t>(key_size));
+        if(!n.value_offset)std::copy_n(bytes.data()+144+kKeyBytes,kInlineBytes,n.inline_value.begin());
+        return n;
     }
     Ref Save(const Node& n,Ref prior) {
         auto offset=prior.offset;
@@ -353,6 +356,7 @@ private:
         Set(bytes.data()+24,n.value_size);Set(bytes.data()+32,n.height);Set(bytes.data()+40,n.key.size());
         std::copy(n.left.hash.begin(),n.left.hash.end(),bytes.data()+48);std::copy(n.right.hash.begin(),n.right.hash.end(),bytes.data()+80);
         std::copy(n.value_hash.begin(),n.value_hash.end(),bytes.data()+112);std::copy(n.key.begin(),n.key.end(),bytes.data()+144);
+        if(!n.value_offset)std::copy(n.inline_value.begin(),n.inline_value.end(),bytes.data()+144+kKeyBytes);
         const auto hash=Digest(bytes.data(),bytes.size());
         if(offset){
             if(build_){auto& entry=Buffered(prior);if(entry.current!=prior.hash)throw Failure("history buffered write predecessor mismatch");entry.bytes=bytes;entry.current=hash;entry.dirty=true;}
@@ -361,7 +365,9 @@ private:
         ++writes_;return {offset,hash};
     }
     std::string Value(const Node& n)const {
-        std::string value(static_cast<std::size_t>(n.value_size),'\0');ReadBytes(n.value_offset,value.data(),value.size());
+        std::string value(static_cast<std::size_t>(n.value_size),'\0');
+        if(n.value_offset)ReadBytes(n.value_offset,value.data(),value.size());
+        else std::copy_n(n.inline_value.begin(),value.size(),value.begin());
         if(Digest(value.data(),value.size())!=n.value_hash)throw Failure("history index value hash mismatch");
         return value;
     }
@@ -378,11 +384,16 @@ private:
         if(depth>=kDepth)throw Failure("history index depth admission");
         Node n;
         if(ref.offset){n=Read(ref);Order(n.key,lower,upper);}
-        else {n.key=key;*inserted=true;}
+        else {if(rows_>=(budget_-kNodeBytes)/(kNodeBytes+kValueBytes))throw Failure("history index row budget");n.key=key;*inserted=true;}
         if(key==n.key) {
             if(ref.offset&&!overwrite)throw Failure("history index duplicate key");
-            if(!ref.offset){std::array<unsigned char,kValueBytes> slot{};n.value_offset=Append(slot.data(),slot.size());}
-            WriteBytes(n.value_offset,value.data(),value.size());n.value_size=value.size();n.value_hash=Digest(value.data(),value.size());
+            // Small metadata occupies existing authenticated node padding. A key that
+            // ever grows allocates one original maximum slot, reused forever.
+            // Admission still reserves the old worst case; no payload is truncated.
+            if(!n.value_offset&&value.size()>kInlineBytes){std::array<unsigned char,kValueBytes> slot{};n.value_offset=Append(slot.data(),slot.size());}
+            if(n.value_offset)WriteBytes(n.value_offset,value.data(),value.size());
+            else {n.inline_value.fill(0);std::copy(value.begin(),value.end(),n.inline_value.begin());}
+            n.value_size=value.size();n.value_hash=Digest(value.data(),value.size());
         }else if(key<n.key)n.left=Insert(n.left,key,value,overwrite,depth+1,lower,n.key,inserted);
         else n.right=Insert(n.right,key,value,overwrite,depth+1,n.key,upper,inserted);
         const auto left_height=Height(n.left),right_height=Height(n.right);n.height=1+std::max(left_height,right_height);

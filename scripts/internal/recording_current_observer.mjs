@@ -434,13 +434,72 @@ export function freezeCurrentWorkspace(root,{capBytes=CURRENT_ROOT_CAP_BYTES,inp
   need(files[0].dev!==files[1].dev||files[0].ino!==files[1].ino,'workspace-distinct-inputs');
   return Object.freeze({root,dev:st.dev,ino:st.ino,uid:st.uid,capBytes,fixedBytes:files.reduce((n,f)=>n+f.size,0),files:Object.freeze(files)});
 }
-export function workspaceBounds(totalBytes,fixedBytes,copyBytes,capBytes=CURRENT_ROOT_CAP_BYTES){
-  need([totalBytes,fixedBytes,copyBytes,capBytes].every(n=>Number.isSafeInteger(n)&&n>=0)&&capBytes>0&&totalBytes>=fixedBytes,'workspace-size-bound');
-  const variableBytes=totalBytes-fixedBytes;
-  need(variableBytes<capBytes&&totalBytes<fixedBytes+capBytes,'workspace-variable-cap');
-  need(copyBytes<capBytes,'workspace-copy-cap');
-  need(totalBytes+copyBytes<fixedBytes+2*capBytes,'workspace-combined-cap');
-  return {fixedBytes,variableBytes,copyBytes,totalBytes,combinedBytes:totalBytes+copyBytes,rootCapBytes:fixedBytes+capBytes,combinedCapBytes:fixedBytes+2*capBytes};
+let workspaceDecisionSerial=0;
+export function workspaceBounds(totalBytes,fixedBytes,copyBytes,capBytes=CURRENT_ROOT_CAP_BYTES,context=null){
+  const input={totalBytes,fixedBytes,copyBytes,capBytes},decisionId=++workspaceDecisionSerial;
+  const reject=(code,inequality,actual=null,limit=null)=>{
+    const error=Error(code);
+    error.workspaceDecision={schema:'recording-workspace-decision-v1',decisionId,input,context,
+      rejectedAt:performance.now(),code,inequality,actual,limit,
+      excessBytes:actual!==null&&limit!==null?actual-limit:null};
+    throw error;
+  };
+  if(![totalBytes,fixedBytes,copyBytes,capBytes].every(n=>Number.isSafeInteger(n)&&n>=0)||capBytes===0||totalBytes<fixedBytes)
+    reject('workspace-size-bound','safe nonnegative integers and total >= fixed');
+  const variableBytes=totalBytes-fixedBytes,rootCapBytes=fixedBytes+capBytes,
+    combinedBytes=totalBytes+copyBytes,combinedCapBytes=fixedBytes+2*capBytes;
+  if(![variableBytes,rootCapBytes,combinedBytes,combinedCapBytes].every(Number.isSafeInteger))
+    reject('workspace-size-bound','all arithmetic must remain safe integers');
+  if(variableBytes>=capBytes||totalBytes>=rootCapBytes)reject('workspace-variable-cap','variableBytes < capBytes',variableBytes,capBytes);
+  if(copyBytes>=capBytes)reject('workspace-copy-cap','copyBytes < capBytes',copyBytes,capBytes);
+  if(combinedBytes>=combinedCapBytes)reject('workspace-combined-cap','combinedBytes < fixedBytes + 2 * capBytes',combinedBytes,combinedCapBytes);
+  return {fixedBytes,variableBytes,copyBytes,totalBytes,combinedBytes,rootCapBytes,combinedCapBytes};
+}
+// One preallocated failure slot is part of variable workspace from startup. Never
+// remeasure after failure or replace the first failure with a smaller later value.
+export function createWorkspaceFailureCapture(directory,{write=fs.writeSync,sync=fs.fsyncSync}={}){
+  const capacity=32768,file=path.join(directory,'workspace-first-failure.json');
+  const fd=fs.openSync(file,fs.constants.O_RDWR|fs.constants.O_CREAT|fs.constants.O_EXCL|fs.constants.O_NOFOLLOW,0o600);
+  const binding=fs.fstatSync(fd),parent=fs.lstatSync(directory);
+  const identity=()=>{const opened=fs.fstatSync(fd),named=fs.lstatSync(file),currentParent=fs.lstatSync(directory);
+    if(!opened.isFile()||opened.nlink!==1||opened.dev!==binding.dev||opened.ino!==binding.ino||
+      named.isSymbolicLink()||named.dev!==binding.dev||named.ino!==binding.ino||
+      currentParent.isSymbolicLink()||currentParent.dev!==parent.dev||currentParent.ino!==parent.ino)
+      throw Error('workspace-evidence-identity');};
+  let first=null,collectionError=null,closed=false;
+  const put=value=>{identity();const bytes=Buffer.from(JSON.stringify(value));if(bytes.length>capacity)throw Error('workspace-evidence-cap');
+    const padded=Buffer.alloc(capacity,32);bytes.copy(padded);
+    if(write(fd,padded,0,padded.length,0)!==padded.length)throw Error('workspace-evidence-short-write');sync(fd);identity();};
+  try{put({schema:'recording-workspace-failure-v1',status:'reserved',capacityBytes:capacity});}
+  catch(e){fs.closeSync(fd);throw e;}
+  return {capture(error,context=null){
+    if(first)return first;
+    first={schema:'recording-workspace-failure-v1',status:'failed',primary:error.message,
+      decision:error.workspaceDecision??null,collectorDiagnostic:error.collectorDiagnostic??null,context,capturedAt:performance.now()};
+    try{put(first);}catch(e){collectionError=e.message;}
+    error.workspaceEvidence={preserved:collectionError===null,collectionError,primary:error.message};return first;
+  },summary(){return {status:first?'failed':'no-workspace-failure',primary:first?.primary??null,
+    decision:first?.decision??null,collectorDiagnostic:first?.collectorDiagnostic??null,context:first?.context??null,collectionError,capacityBytes:capacity};},close(){if(!closed){closed=true;try{identity();}catch(e){collectionError??=e.message;}try{fs.closeSync(fd);}catch(e){collectionError??=e.message;}if(collectionError)throw Error(collectionError);}}};
+}
+// Both sample and recovery use this exact admission path; product reservations
+// are observations, never subtracted from or added to actual file bytes.
+export function workspaceAnonymousBytes(metrics,expectedPid,expectedStart=null){
+  if(!metrics?.valid||metrics.pid!==expectedPid||!metrics.startIdentity||
+    (expectedStart!==null&&metrics.startIdentity!==expectedStart)||
+    ![metrics.anonymousFileBytes,metrics.anonymousAllocatedBytes].every(n=>Number.isSafeInteger(n)&&n>=0))
+    throw Error('workspace-process-measurement-invalid');
+  return Math.max(metrics.anonymousFileBytes,metrics.anonymousAllocatedBytes);
+}
+export function admitWorkspaceSnapshot({storage,baseline,metrics=null,expectedPid=null,expectedStart=null,additionalBytes=0,anonymousInCopy=false,context=null},capture){
+  const detail={...context,storage,metrics,additionalBytes,anonymousInCopy,
+    simultaneity:'sequential measurements; not an atomic peak; no deduplication inferred'};
+  try{
+    if(!Number.isSafeInteger(additionalBytes)||additionalBytes<0)throw Error('workspace-additional-size');
+    const anonymous=metrics?workspaceAnonymousBytes(metrics,expectedPid,expectedStart):0;
+    detail.anonymousUsedBytes=anonymous;
+    return workspaceBounds(storage.totalBytes+additionalBytes+(anonymousInCopy?0:anonymous),baseline.fixedBytes,
+      (storage.copyBytes??0)+(anonymousInCopy?anonymous:0),baseline.capBytes,detail);
+  }catch(error){capture.capture(error,detail);throw error;}
 }
 // 복제본은 symlink 예외 없이 모든 소유 임시 파일을 포함한다. 파일 목록은 외부에 출력하지 않는다.
 export function measureCurrentCopy(root,identity){
@@ -456,8 +515,9 @@ export function measureCurrentWorkspace(root,baseline,copy=null){
   need(root===baseline.root,'workspace-baseline-root');const st=fs.lstatSync(root);
   need(st.dev===baseline.dev&&st.ino===baseline.ino&&st.uid===baseline.uid&&!st.isSymbolicLink(),'workspace-root-changed');
   for(const f of baseline.files)need(JSON.stringify(fixedWorkspaceFile(root,f.name).identity)===JSON.stringify(Object.fromEntries(Object.keys(fixedIdentity(st)).map(k=>[k,f[k]]))),'workspace-fixed-changed');
-  const storage=measureCurrentRootStable(root),copyStorage=copy?measureCurrentCopy(copy.root,copy.identity):{bytes:0,entries:0};
-  return {...storage,...workspaceBounds(storage.totalBytes,baseline.fixedBytes,copyStorage.bytes,baseline.capBytes),copyEntries:copyStorage.entries,capBytes:baseline.fixedBytes+baseline.capBytes,capExceeded:false,workspacePolicy:'fixed-plus-variable-v1'};
+  const measurementStartedAt=performance.now(),storage=measureCurrentRootStable(root),copyStorage=copy?measureCurrentCopy(copy.root,copy.identity):{bytes:0,entries:0};
+  const measurementCompletedAt=performance.now(),context={kind:'root-and-copy',measurementStartedAt,measurementCompletedAt,categories:storage.categories,copyEntries:copyStorage.entries};
+  return {...storage,...workspaceBounds(storage.totalBytes,baseline.fixedBytes,copyStorage.bytes,baseline.capBytes,context),measurementStartedAt,measurementCompletedAt,copyEntries:copyStorage.entries,capBytes:baseline.fixedBytes+baseline.capBytes,capExceeded:false,workspacePolicy:'fixed-plus-variable-v1'};
 }
 // spawnSync와 달리 실제 자식 실행 중 감시한다. 100ms 주기이며 표본 사이 순간 최고치는 보장하지 않는다.
 export async function runCurrentRecovery({command,args,env,observe,onGroup=null,timeoutMs=15000,outputCap=16384,intervalMs=100}){

@@ -62,6 +62,9 @@ bool CompleteFdRead(int bytes, std::size_t capacity, std::size_t entry) {
     return bytes > 0 && entry > 0 && static_cast<std::size_t>(bytes) < capacity &&
         static_cast<std::size_t>(bytes) % entry == 0;
 }
+std::string FdExhaustionError(unsigned capacity, unsigned closed) {
+    return "fd-observation-incomplete:capacity=" + std::to_string(capacity) + ":closed=" + std::to_string(closed);
+}
 struct Sample { std::string start; std::uint64_t rss{0}, threads{0}, fds{0};
     bool anonymousMeasured{false},footprintMeasured{false};
     std::uint64_t anonymousBytes{0},anonymousAllocated{0},anonymousFiles{0},footprint{0};
@@ -86,6 +89,7 @@ Sample Collect(int pid) {
     sample.threads = info.pti_threadnum;
     constexpr std::size_t max_bytes = 8 * 1024 * 1024;
     bool complete = false;
+    unsigned capacity_retries=0, closed_retries=0;
     std::size_t minimum = 64 * sizeof(proc_fdinfo);
     for (int attempt = 0; attempt < 4; ++attempt) {
         errno = 0;
@@ -127,16 +131,16 @@ Sample Collect(int pid) {
                 sample.anonymousBytes+=static_cast<std::uint64_t>(st.vst_size);
                 sample.anonymousAllocated+=static_cast<std::uint64_t>(st.vst_blocks)*512;
             }
-            if(raced)continue;
+            if(raced){++closed_retries;continue;}
             sample.anonymousMeasured=true;
             rusage_info_v2 usage{};
             if(proc_pid_rusage(pid,RUSAGE_INFO_V2,reinterpret_cast<rusage_info_t*>(&usage))==0){sample.footprintMeasured=true;sample.footprint=usage.ri_phys_footprint;}
             complete = true;
             break;
         }
-        minimum = capacity * 2;
+        ++capacity_retries;minimum = capacity * 2;
     }
-    if (!complete) throw std::runtime_error("fd-list-saturated");
+    if (!complete) throw std::runtime_error(FdExhaustionError(capacity_retries,closed_retries));
     if (Identity(pid) != sample.start) throw std::runtime_error("process-identity-changed");
     return sample;
 }

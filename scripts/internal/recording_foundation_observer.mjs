@@ -10,7 +10,15 @@ export function observationCompleted({enabled,final,failed,error,processesClosed
 export function collectProcess(binary,pid) {
   return new Promise((resolve,reject)=>{
     execFile(binary,[String(pid)],{timeout:3000,killSignal:'SIGKILL',maxBuffer:16384,env:{PATH:process.env.PATH}},(error,stdout)=>{
-      if(error){reject(Error('observer-collector-unavailable'));return;}
+      if(error){
+        const failure=Error('observer-collector-unavailable');let measurement=null;
+        try{const parsed=JSON.parse(stdout);measurement=Object.fromEntries(Object.entries(parsed).filter(([key,value])=>
+          ['pid','startIdentity','rssBytes','threadCount','fdCount','anonymousFileBytes','anonymousAllocatedBytes','anonymousFiles','footprintBytes','sampledAt','valid','error'].includes(key)&&
+          (value===null||typeof value==='boolean'||Number.isSafeInteger(value)||(typeof value==='string'&&value.length<=160&&/^[a-zA-Z0-9:=-]+$/.test(value)))));}catch{}
+        failure.collectorDiagnostic={exitCode:Number.isInteger(error.code)?error.code:null,spawnCode:typeof error.code==='string'?error.code:null,
+          signal:error.signal??null,killed:!!error.killed,stdoutBytes:Buffer.byteLength(stdout),measurement};
+        reject(failure);return;
+      }
       try{resolve(JSON.parse(stdout));}catch{reject(Error('observer-collector-invalid-json'));}
     });
   });
