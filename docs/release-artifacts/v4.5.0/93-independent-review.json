@@ -449,8 +449,174 @@
     "remainingAtReview": [
       "선정archive의 실제 Git blob 보존 및 원격byte/hash readback",
       "보존확인 뒤 UID/inode 소유root·pointer 정리와 부재receipt",
-      "해당 마감receipt 및 최종문서 정적결과 연결; 마지막 기록commit/일반push 실제ref 확인"
+      "최종마감receipt/문서 연결과 마지막 기록commit·일반push 실제ref 확인"
     ],
-    "rootDisposition": "원본 ownedroot 현재 보존 중. 독립 읽기 완료; 정리 완료로 기록하지 않음."
+    "rootDisposition": "원본 ownedroot 현재 보존 중. 독립 읽기 완료; 정리 완료로 기록하지 않음.",
+    "subsequentStaticReceiptReadback": {
+      "reviewedAt": "2026-10-11T12:55:16.755Z",
+      "validationSha256": "bd96cc321040a731bdc7043724d9243ec02319a2b0b5d13048ead28052d90b67",
+      "recordedChecks": {
+        "checkedAt": "2026-10-11T12:53:32.816393+00:00",
+        "results": [
+          {
+            "command": [
+              "node",
+              "scripts/internal/verify_docs_links.mjs"
+            ],
+            "exit": 0,
+            "stdout": "\n== Docs link verification summary ==\n- markdown files: 302\n- local links: 9391\n- local images: 14\n- local anchors: 429\n- indexed docs: 93\n- index coverage exclusions: 192\n- failures: 0\n",
+            "stderr": ""
+          },
+          {
+            "command": [
+              "node",
+              "scripts/internal/verify_release_metadata_consistency.mjs"
+            ],
+            "exit": 0,
+            "stdout": "[pass] current release documents preserve version and publication boundaries\n[pass] historical v2.9 source-of-truth remains distinct from latest published v2.8\n[pass] default mode records published metadata verification as external gate\n\n== Release metadata consistency summary ==\n- current version: 4.5.0\n- current tag: v4.5.0\n- release target tag: v4.5.0\n- cut-prior published tag: v4.4.0\n- published metadata: external-not-checked\n- pass: 3\n- fail: 0\n",
+            "stderr": ""
+          },
+          {
+            "command": [
+              "git",
+              "diff",
+              "--check"
+            ],
+            "exit": 0,
+            "stdout": "",
+            "stderr": ""
+          }
+        ],
+        "jsonParse": "PASS",
+        "archiveMembersByteReadback": "467 payloads + manifest; PASS",
+        "unchangedSource": "git diff 9704b6492fcc1f8e28546c01f7cb5c3b5223c52a -- src include scripts config: empty"
+      },
+      "boundary": "메인이 실행한 정적 stdout/exit receipt를 읽었다. reviewer 검사 실행이 아니며 published metadata external-not-checked 유지. 대표decoder factory/target 보충은 앞서읽은3개원문 범위에 부합한다."
+    }
+  },
+  "preservationCleanupClosureAddendum": {
+    "reviewedAt": "2026-10-11T12:58:44.320Z",
+    "priorReportSha256": "ebdb5d323c1e3527475539c6f4442abe6ef68787465c46a1dd4a3748caccabdf",
+    "validationSha256": "0edc9715fc83c70739bbc1d93de09d504ab9d90897c22ea9964518ace888bc1a",
+    "scope": "기존 독립 원문을 유지한 좁은 Git/remote 보존 및 소유root 정리 마감 readback. 제품/검사 실행, 새원격전송, 하위위임 없음.",
+    "decision": {
+      "resultReview": "COMPLETE_FAIL_RECORDED",
+      "selectedEvidencePreservation": "COMPLETE_LOCAL_GIT_AND_RECORDED_REMOTE_BYTES",
+      "ownedExecutionCleanup": "COMPLETE_IN_RECORDED_OWNERSHIP_SCOPE",
+      "finalCloseoutCommitAndPush": "PENDING_AT_REVIEW",
+      "sole120": "FAIL",
+      "memoryP0": "BLOCKED_REQUIRED_LONGRUN_AND_FOLLOWUPS_INCOMPLETE",
+      "releaseReady": false,
+      "meaning": "93 실행결과의 독립 판단·선정증거 보존·소유실행자료 정리 검토는 마감 가능하다. 실제제품 기능 실패/P0 차단을 해소했다는 뜻이 아니다. 남은 행정 마감은 본후속기록 최종commit/일반push와 실제ref 확인이다."
+    },
+    "localGitReadback": {
+      "commit": "9b4a203571a01e895a5f410ca88892fea825d270",
+      "path": "docs/release-artifacts/v4.5.0/93-execution-02.tar.gz",
+      "blob": "77a9b5ef00e9d447c2da0991554c955dc78689d5",
+      "bytes": 40659045,
+      "sha256": "c5bb8ab0bd51607c738e0bb9df84ccb81e0085eb73a0572f868983ef2ff9723c",
+      "independentReviewerReadGitBlob": true,
+      "currentArchiveSameBytes": true,
+      "priorIndependentMemberReadback": "이전addendum에서467payload+manifest 및 선정원본 전체 byte/hash 불일치0. 이번Gitblob 전체hash가 동일하므로 같은선정bytes 보존을 연결한다."
+    },
+    "remotePreservation": {
+      "receipt": {
+        "preservationCommit": "9b4a203571a01e895a5f410ca88892fea825d270",
+        "archive": "docs/release-artifacts/v4.5.0/93-execution-02.tar.gz",
+        "bytes": 40659045,
+        "sha256": "c5bb8ab0bd51607c738e0bb9df84ccb81e0085eb73a0572f868983ef2ff9723c",
+        "localGitReadback": "PASS",
+        "newBlobCount": 5,
+        "newBlobTotalBytes": 40741745,
+        "largestNewBlob": 40659045,
+        "notActualPackSize": true,
+        "remoteHead": "9b4a203571a01e895a5f410ca88892fea825d270",
+        "remoteByteReadback": "PASS",
+        "remoteBytes": 40659045,
+        "remoteSha256": "c5bb8ab0bd51607c738e0bb9df84ccb81e0085eb73a0572f868983ef2ff9723c",
+        "checkedAt": "2026-10-11T12:55:52.635503+00:00",
+        "url": "https://raw.githubusercontent.com/dhseo90/MediaServer/9b4a203571a01e895a5f410ca88892fea825d270/docs/release-artifacts/v4.5.0/93-execution-02.tar.gz"
+      },
+      "reviewBoundary": "메인이 수행한 일반push/actualremote 및 고정commit raw URL 전체바이트 readback receipt를 읽었다. remote40659045B/SHA가 독립 재조회한 로컬Gitblob과 일치한다. reviewer가 새remote조회/전송을 수행한 것으로 주장하지 않는다.",
+      "preservationCommitRemoteConfirmedInReceipt": true,
+      "finalCloseoutCommitRemoteNotYetConfirmed": true
+    },
+    "cleanup": {
+      "receipt": {
+        "root": "/private/tmp/media-server-memory93-rplrmyqs",
+        "uid": 501,
+        "inode": 173067729,
+        "counts": {
+          "files": 483,
+          "directories": 26,
+          "symlinks": 277,
+          "logicalFileBytes": 112659311
+        },
+        "symlinkPolicy": "unlink only owned gst-cache symlinks; do not follow or remove external plugin targets",
+        "productPidAbsent": true,
+        "ownedProcessGroupAbsent": true,
+        "tcpPortsClosed": [
+          50008,
+          50009
+        ],
+        "sourceEvidencePreservedBeforeDeletion": true,
+        "status": "PASS",
+        "rootAbsent": true,
+        "pointerAbsent": true,
+        "externalPluginSamplesUnchanged": 2,
+        "completedAt": "2026-10-11T12:57:01.593636+00:00"
+      },
+      "independentlyObservedRootAbsent": true,
+      "reviewBoundary": "root 실제부재는 독립filesystem 읽기로 확인했다. UID501/inode173067729 확인·삭제순서·pointer/PID71617/PG71578 부재·TCP50008/50009닫힘·외부plugin2표본 inode불변은 main receipt를 읽어 연결했다.277개의 소유gst-cache symlink는 link만unlink한 범위이며 외부target전체전수검증 주장이 아니다.",
+      "preservationPrecedesDeletion": true,
+      "normalFinallyIsNotFollowupPass": true
+    },
+    "closureStaticReceipt": {
+      "checkedAt": "2026-10-11T12:57:48.178265+00:00",
+      "results": [
+        {
+          "command": [
+            "git",
+            "diff",
+            "--check"
+          ],
+          "exit": 0,
+          "stdout": "",
+          "stderr": ""
+        },
+        {
+          "command": [
+            "node",
+            "scripts/internal/verify_docs_links.mjs"
+          ],
+          "exit": 0,
+          "stdout": "\n== Docs link verification summary ==\n- markdown files: 302\n- local links: 9391\n- local images: 14\n- local anchors: 429\n- indexed docs: 93\n- index coverage exclusions: 192\n- failures: 0\n",
+          "stderr": ""
+        },
+        {
+          "command": [
+            "node",
+            "scripts/internal/verify_release_metadata_consistency.mjs"
+          ],
+          "exit": 0,
+          "stdout": "[pass] current release documents preserve version and publication boundaries\n[pass] historical v2.9 source-of-truth remains distinct from latest published v2.8\n[pass] default mode records published metadata verification as external gate\n\n== Release metadata consistency summary ==\n- current version: 4.5.0\n- current tag: v4.5.0\n- release target tag: v4.5.0\n- cut-prior published tag: v4.4.0\n- published metadata: external-not-checked\n- pass: 3\n- fail: 0\n",
+          "stderr": ""
+        }
+      ],
+      "reason": "final current docs and preservation/cleanup recording; no product/test changes"
+    },
+    "documentPrecision": "마지막 본 관측2132.012초는 마지막 표본의 진행값이며 정확한 failure wall-clock 시각과 동일하다고 주장하지 않는다. backlog의 이후 실패 표현은 이 한계를 더 정확히 반영한다.",
+    "unchangedLimits": [
+      "LP26-O05 active9101 결합식과 HTTP200 body미보존으로 정확conjunct/원인미확정",
+      "556부분 성공 p952242.619542ms는 최종gate 미도달과 구분",
+      "필수7200초·중후반·controls·복구·restart·재활성화 미실행",
+      "최종owner0·정상shutdown은 무누수/P0 PASS의 대체 아님",
+      "기존92완료와 이전 직접근거·과거실패/소실한계 유지",
+      "제품/검사/config 변경과 추가 제품실행 없음"
+    ],
+    "remainingAtReview": [
+      "본후속마감 기록 최종commit·일반push 및 실제원격ref 확인"
+    ],
+    "historicalPending": "앞선 본문/addendum의 pending은 해당시점 사실로 보존하며 본후속의 확인완료를 연결한다. 미래문서commit을 실행source로 소급하지 않는다."
   }
 }

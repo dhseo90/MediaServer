@@ -792,8 +792,32 @@
     "registeredGroupsAbsent": true,
     "processesClosed": true,
     "udpClosed": true,
-    "temporaryRoot": "preserved-pending-Git-and-remote-byte-readback",
-    "normalFinallyIsNotFollowupPass": true
+    "temporaryRoot": "removed-after-local-Git-and-remote-byte-readback",
+    "normalFinallyIsNotFollowupPass": true,
+    "ownedRootReceipt": {
+      "root": "/private/tmp/media-server-memory93-rplrmyqs",
+      "uid": 501,
+      "inode": 173067729,
+      "counts": {
+        "files": 483,
+        "directories": 26,
+        "symlinks": 277,
+        "logicalFileBytes": 112659311
+      },
+      "symlinkPolicy": "unlink only owned gst-cache symlinks; do not follow or remove external plugin targets",
+      "productPidAbsent": true,
+      "ownedProcessGroupAbsent": true,
+      "tcpPortsClosed": [
+        50008,
+        50009
+      ],
+      "sourceEvidencePreservedBeforeDeletion": true,
+      "status": "PASS",
+      "rootAbsent": true,
+      "pointerAbsent": true,
+      "externalPluginSamplesUnchanged": 2,
+      "completedAt": "2026-10-11T12:57:01.593636+00:00"
+    }
   },
   "preservation": {
     "archive": "docs/release-artifacts/v4.5.0/93-execution-02.tar.gz",
@@ -813,7 +837,24 @@
         "sha256": "4f3392d30663f6691793c94c8d89ec5e06bb5b842c0f1fb52c5ac3fb1628c307",
         "transform": "URL tokens only; trace/frame/resource/request bytes unchanged"
       }
-    ]
+    ],
+    "gitRemoteReadback": {
+      "preservationCommit": "9b4a203571a01e895a5f410ca88892fea825d270",
+      "archive": "docs/release-artifacts/v4.5.0/93-execution-02.tar.gz",
+      "bytes": 40659045,
+      "sha256": "c5bb8ab0bd51607c738e0bb9df84ccb81e0085eb73a0572f868983ef2ff9723c",
+      "localGitReadback": "PASS",
+      "newBlobCount": 5,
+      "newBlobTotalBytes": 40741745,
+      "largestNewBlob": 40659045,
+      "notActualPackSize": true,
+      "remoteHead": "9b4a203571a01e895a5f410ca88892fea825d270",
+      "remoteByteReadback": "PASS",
+      "remoteBytes": 40659045,
+      "remoteSha256": "c5bb8ab0bd51607c738e0bb9df84ccb81e0085eb73a0572f868983ef2ff9723c",
+      "checkedAt": "2026-10-11T12:55:52.635503+00:00",
+      "url": "https://raw.githubusercontent.com/dhseo90/MediaServer/9b4a203571a01e895a5f410ca88892fea825d270/docs/release-artifacts/v4.5.0/93-execution-02.tar.gz"
+    }
   },
   "preservationPreparationFailure": {
     "attempt": 1,
@@ -871,5 +912,39 @@
     "jsonParse": "PASS",
     "archiveMembersByteReadback": "467 payloads + manifest; PASS",
     "unchangedSource": "git diff 9704b6492fcc1f8e28546c01f7cb5c3b5223c52a -- src include scripts config: empty"
+  },
+  "closureStaticChecks": {
+    "checkedAt": "2026-10-11T12:57:48.178265+00:00",
+    "results": [
+      {
+        "command": [
+          "git",
+          "diff",
+          "--check"
+        ],
+        "exit": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "command": [
+          "node",
+          "scripts/internal/verify_docs_links.mjs"
+        ],
+        "exit": 0,
+        "stdout": "\n== Docs link verification summary ==\n- markdown files: 302\n- local links: 9391\n- local images: 14\n- local anchors: 429\n- indexed docs: 93\n- index coverage exclusions: 192\n- failures: 0\n",
+        "stderr": ""
+      },
+      {
+        "command": [
+          "node",
+          "scripts/internal/verify_release_metadata_consistency.mjs"
+        ],
+        "exit": 0,
+        "stdout": "[pass] current release documents preserve version and publication boundaries\n[pass] historical v2.9 source-of-truth remains distinct from latest published v2.8\n[pass] default mode records published metadata verification as external gate\n\n== Release metadata consistency summary ==\n- current version: 4.5.0\n- current tag: v4.5.0\n- release target tag: v4.5.0\n- cut-prior published tag: v4.4.0\n- published metadata: external-not-checked\n- pass: 3\n- fail: 0\n",
+        "stderr": ""
+      }
+    ],
+    "reason": "final current docs and preservation/cleanup recording; no product/test changes"
   }
 }
