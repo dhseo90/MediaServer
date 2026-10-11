@@ -268,15 +268,55 @@
     "bytes": 1678073,
     "membersReceipt": "preservation.json",
     "scope": "134 selected files;88 original/46 sanitized; exact hashes/transforms inreceipt; no95duplicate/auth/privatebackup/model/media bulk",
-    "failureSource": "current generation subset and post-stop recording-file hashes; not full store recovery archive or failuretime snapshot"
+    "failureSource": "current generation subset and post-stop recording-file hashes; not full store recovery archive or failuretime snapshot",
+    "gitCommit": "93e84fe7cad8da77b8f487750dd040bbc07eb2da",
+    "gitArchiveReadbackMembers": 134
   },
   "independentReview": "96-independent-review.json",
   "cleanup": {
     "processGroupsAbsent": true,
     "portsClosed": true,
-    "temporaryRoots": "pending byte verification then owned-only cleanup",
+    "temporaryRoots": "removed and absence verified",
     "private95backup": "untouched/excluded",
-    "modelsSDKImages": "retained"
+    "modelsSDKImages": "retained",
+    "receipt": {
+      "preservationCommit": "93e84fe7cad8da77b8f487750dd040bbc07eb2da",
+      "archiveSha256": "686363e5475eaec9e52e8c7c5448eb506c11107ab84a8e39d1133231241c1408",
+      "gitReadbackMembers": 134,
+      "cleanup": "complete",
+      "ownedRoot": "$RUN96",
+      "rootIdentity": {
+        "dev": 16777232,
+        "ino": 173320994,
+        "uid": 501
+      },
+      "removedEntries": 2392,
+      "logicalRegularBytesRemoved": 604933554,
+      "processRootMatches": [],
+      "portsClosed": [
+        51167,
+        51168
+      ],
+      "configsUnchanged": [
+        {
+          "name": ".media_server.sources.json",
+          "sha256": "94ee516c8b600116987f39812c1a9d873f49977dcd48bcb1e125db6e56cc8ae8",
+          "bytes": 2644
+        },
+        {
+          "name": ".media_server.views.json",
+          "sha256": "b89b1199446d7911213b239d41bd9eed6008c91b895a896da89ed071a570d7cd",
+          "bytes": 1385
+        }
+      ],
+      "private95backup": "retained;excluded",
+      "containersRemoved": [
+        "media-server-space96",
+        "media-server-space96-diagnostics"
+      ],
+      "imagesModelsSDK": "retained",
+      "preservationBeforeRemoval": true
+    }
   },
   "qwenOllamaCalls": 0,
   "unloadGate": "not-run",
@@ -286,5 +326,11 @@
     "riskacceptance",
     "PR/CI/merge/tag/Release"
   ],
-  "remote": "pending ordinary push"
+  "remote": "not yet pushed at evidence/cleanup commit; actual delivery SHA and byte readback reported after push",
+  "static": {
+    "diffCheck": "PASS",
+    "jsonLinksArchiveReceipt": "PASS135members/134receiptentries",
+    "fixedSource12files": "identical to execution freeze",
+    "configurationHashes": "entry unchanged; initial home-path verification command failed FileNotFound then corrected to actual repository paths, no write"
+  }
 }
