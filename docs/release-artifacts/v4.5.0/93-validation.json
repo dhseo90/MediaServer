@@ -1,0 +1,875 @@
+{
+  "schema": "media-server-release-validation-v1",
+  "task": 93,
+  "status": "FAIL",
+  "memoryP0": "BLOCKED_REQUIRED_FINAL_FUNCTIONAL_AND_LIFECYCLE_VALIDATION_INCOMPLETE",
+  "releaseHold": true,
+  "models": {
+    "main": {
+      "requested": "gpt-6-astra",
+      "effortRequested": "high",
+      "toolAcceptedOverride": null,
+      "runtimeModel": "not-exposed",
+      "runtimeEffort": "not-exposed"
+    },
+    "independent": {
+      "requested": "gpt-6-astra",
+      "effortRequested": "high",
+      "reviewer": "independent_memory86",
+      "priorToolAccepted": "gpt-6-astra/high",
+      "runtimeModel": "not-exposed",
+      "runtimeEffort": "not-exposed"
+    }
+  },
+  "scope": "92 완료와 기존 메모리 근거 유지. 제품/검사 변경 없이 승인된 새 혼합120분 정확히1회; 최초 미허용 실패 후 후속 중단.",
+  "source": {
+    "head": "11b78e5d8d353d9956bef37ec97efd0393a7c918",
+    "tree": "884c28d19720c4a990e5b69e1e5e3354601072f6",
+    "sourceSha256": "3a3415a3dc4a4a858ab84c7721709542ee7d8f112c8cf35c9c09d0099a02fd51",
+    "binarySha256": "b3a9e64a229e44c3cbb1be515115be5e6c2253fe5b3dc68ccac81d6fea4513df"
+  },
+  "treeUnchangedDuringExecution": true,
+  "binaryAndRuntime": {
+    "build-gst-onnx/media_server": {
+      "bytes": 36974880,
+      "sha256": "b3a9e64a229e44c3cbb1be515115be5e6c2253fe5b3dc68ccac81d6fea4513df"
+    },
+    "build-gst-onnx/libmedia_server_runtime.a": {
+      "bytes": 108055192,
+      "sha256": "101d4bb7b23479caeaf4d6abaafbcd4aef18cf41754c82fd6d2174c7f3e0947f"
+    }
+  },
+  "reuse": {
+    "source92": "9704b6492fcc1f8e28546c01f7cb5c3b5223c52a",
+    "productRunnerDiffSince92": "",
+    "productBuild": "existing matched binary/runtime reused; no product rebuild",
+    "priorEvidence": "59/61/63·65·68Linux·72~74와78~92는 각 source/환경/범위에서 유지.82 K/F·85 B/C·86 C1/C2/C3 및92 직접/600 PASS가 이번 장시간·후속 미실행을 대신하지 않음.",
+    "producer": "제품/검사/inventory/승인 입력 불변;92 독립 판단과 producer/readback 재사용, 의례적 재실행·수작업 hash 변경 없음"
+  },
+  "environment": {
+    "platform": "approved existing macOS host context",
+    "gstreamer": "1.28.1",
+    "openssl": "3.6.2",
+    "sqlite": "3.51.0",
+    "models": {
+      "models/v430-siglip2/onnx/image_encoder.onnx": {
+        "bytes": 371695117,
+        "sha256": "cca2e4fa86196ebcae3345f4795ccfa3c9910768aac8e2d1f90c43ff518e3cd3"
+      },
+      "models/v430-siglip2/onnx/text_encoder.onnx": {
+        "bytes": 1129352764,
+        "sha256": "b131191ed9673021885c18514d3fc08e04e8c40f603788d21ecb4448d5e9af57"
+      },
+      "models/v430-siglip2/upstream/tokenizer.model": {
+        "bytes": 4241003,
+        "sha256": "61a7b147390c64585d6c3543dd6fc636906c9af3865a5548f27f31aee1d4c8e2"
+      }
+    },
+    "isolation": "새 UID501 소유 root, synthetic inputs/recordings/account/ports; local-env/운영자료 유입 없음",
+    "limits": "기존7200/7380초·2채널·4검색client·15초 주기·A60초/최대120/동시1·4MiB process log·공간/자원 보호 유지"
+  },
+  "execution": {
+    "command": [
+      "bash",
+      "/Users/dhseo/Workspace/mediaServer/scripts/internal/verify_v450_recording_a_mixed.sh",
+      "--duration-minutes",
+      "120"
+    ],
+    "startedAt": "2026-10-11T12:07:05.506891+00:00",
+    "status": "FAIL",
+    "source": {
+      "head": "11b78e5d8d353d9956bef37ec97efd0393a7c918",
+      "tree": "884c28d19720c4a990e5b69e1e5e3354601072f6",
+      "sourceSha256": "3a3415a3dc4a4a858ab84c7721709542ee7d8f112c8cf35c9c09d0099a02fd51",
+      "binarySha256": "b3a9e64a229e44c3cbb1be515115be5e6c2253fe5b3dc68ccac81d6fea4513df"
+    },
+    "timeoutSeconds": 7380,
+    "observationSeconds": 7200,
+    "wrapperSha256": "c3eb4b050a614bc4e0b7b5ece436c36cd3f4128e473851956d01af1ab6b26bc5",
+    "resourceTrendPass": false,
+    "reviewRequired": true,
+    "uiFulltestPass": false,
+    "processGroup": 71578,
+    "childExit": 1,
+    "exit": 1,
+    "executionElapsedSeconds": 2146.3712031660834,
+    "elapsedSeconds": 2146.371966250008,
+    "timedOut": false,
+    "interruptedSignals": [],
+    "residualGroupAfterCommand": false,
+    "cleanupSignals": [],
+    "processGroupAbsent": true,
+    "cleanupErrors": [],
+    "cleanupOnlySeconds": 9.709037840366364e-06,
+    "registeredGroupsAbsent": true,
+    "residualRegisteredGroups": false,
+    "registeredGroupSignals": [],
+    "registeredGroupCleanupSeconds": 0.0007259580306708813,
+    "finishedAt": "2026-10-11T12:42:52.081099+00:00",
+    "sourceEnd": {
+      "head": "11b78e5d8d353d9956bef37ec97efd0393a7c918",
+      "tree": "884c28d19720c4a990e5b69e1e5e3354601072f6",
+      "sourceSha256": "3a3415a3dc4a4a858ab84c7721709542ee7d8f112c8cf35c9c09d0099a02fd51",
+      "binarySha256": "b3a9e64a229e44c3cbb1be515115be5e6c2253fe5b3dc68ccac81d6fea4513df"
+    },
+    "totalWithFinalBindingSeconds": 2146.722891499987,
+    "rootDisposition": "preserved-for-byte-review-and-owned-cleanup"
+  },
+  "launcherCommand": "python3 scripts/internal/run_v450_recording_a_mixed.py --120 /private/tmp/media-server-memory93-rplrmyqs/final120",
+  "attempts": {
+    "mixed120": 1,
+    "retries": 0,
+    "rehearsals": 0,
+    "extra600": 0
+  },
+  "firstFailure": {
+    "assertion": "LP26-O05 active 9101",
+    "condition": "c?.length===1 && c[0].enabled && c[0].active && !c[0].storageBlocked",
+    "expectation": "one enabled active nonblocked9101 channel throughout observation",
+    "observed": "boolean conjunction false after HTTP200 status response; response body not preserved",
+    "internalRootCause": "unconfirmed; cannot select missing/duplicate/disabled/inactive/storageBlocked from available bytes",
+    "lastMainObservationMs": 2132012.4452500003,
+    "failureLine": [
+      13802
+    ],
+    "noRetroactiveAttribution": "89-91 failure roots unchanged; no new memory leak claim"
+  },
+  "failureObservation": {
+    "precedingStatusHttp": 200,
+    "responseBytes": 908,
+    "totalMs": 79,
+    "responseBody": "not-preserved; do not reconstruct",
+    "scope": "9101 상태 결합식 false; 개별 conjunct/내부원인 미확정. timeout·decoder·memory 원인으로 추정하지 않음"
+  },
+  "partial": {
+    "checksPassed": 7888,
+    "checksFailed": 1,
+    "mainACompleted": 36,
+    "aSchedule": {
+      "completed": 36
+    },
+    "lastProgress": {
+      "elapsedMs": 2132012.4452500003,
+      "channels": {
+        "9101": {
+          "finalized": 1060,
+          "deleted": 1052,
+          "lastAt": 2140224.6285,
+          "order": "2145",
+          "store": "22f0f37eb86589ba706ed777853fe204b40f5690f9ebea6d705570ddb39189a1",
+          "knownMappings": 724,
+          "unknownMappings": 38666
+        },
+        "9201": {
+          "finalized": 1064,
+          "deleted": 1057,
+          "lastAt": 2140224.6285,
+          "order": "2146",
+          "store": "22f0f37eb86589ba706ed777853fe204b40f5690f9ebea6d705570ddb39189a1",
+          "knownMappings": 738,
+          "unknownMappings": 37790
+        }
+      },
+      "records": 2124,
+      "logicalBytes": 1268036
+    },
+    "windows": [
+      {
+        "structured": 2820,
+        "visual": 4334,
+        "evidence": 141,
+        "visualEvidence": 113
+      },
+      {
+        "structured": 0,
+        "visual": 0,
+        "evidence": 0,
+        "visualEvidence": 0
+      },
+      {
+        "structured": 0,
+        "visual": 0,
+        "evidence": 0,
+        "visualEvidence": 0
+      }
+    ],
+    "originalSuccessArray": {
+      "count": 556,
+      "p95Ms": 2242.6195420000004,
+      "maxMs": 2955.404333999846
+    },
+    "unavailable": 12,
+    "searchSuccessByClient": [
+      141,
+      141,
+      137,
+      137
+    ],
+    "generalEvidence": 141,
+    "generalComplete": 125,
+    "generalPartial": 16,
+    "visualEvidence": 113,
+    "visualExpired": 2,
+    "latencyGateReached": false,
+    "partialLatencyAssessment": "observed partial p95 exceeds existing2000ms, not executed gate or first failure"
+  },
+  "resources": {
+    "summary": {
+      "status": "observed",
+      "resourceTrendPass": false,
+      "reviewRequired": true,
+      "sampleCount": 427,
+      "groups": [
+        {
+          "pid": 71617,
+          "startIdentity": "macos:1791720433:698299",
+          "sampleCount": 427,
+          "first": {
+            "phaseAt": 8439.739334,
+            "sampledAt": 1791720439149,
+            "rssBytes": 3171139584,
+            "threadCount": 37,
+            "fdCount": 34,
+            "mutationCount": 6
+          },
+          "last": {
+            "phaseAt": 2140224.6285,
+            "sampledAt": 1791722570948,
+            "rssBytes": 1933918208,
+            "threadCount": 40,
+            "fdCount": 27,
+            "mutationCount": 8493
+          },
+          "max": {
+            "rssBytes": 3213524992,
+            "threadCount": 43,
+            "fdCount": 40
+          },
+          "delta": {
+            "rssBytes": -1237221376,
+            "threadCount": 3,
+            "fdCount": -7,
+            "mutationCount": 8487
+          },
+          "elapsedMs": 2131784.8891660003,
+          "maxGapMs": 5027.8407909998205,
+          "warmupMs": 300000,
+          "postWarmup": {
+            "status": "observed",
+            "sampleCount": 367,
+            "delta": {
+              "rssBytes": 12304384,
+              "threadCount": 0,
+              "fdCount": -7,
+              "mutationCount": 7323
+            },
+            "elapsedMs": 1831532.1219580001,
+            "rssMiBPerMinute": 0.38441176737174654
+          }
+        }
+      ]
+    },
+    "maxFootprintBytes": 3164884232,
+    "maxAnonymousLogicalBytes": 273691648,
+    "maxAnonymousAllocatedBytes": 277463040,
+    "maxObservedFD": 40,
+    "maxCpuPercent": 409.3,
+    "childProcessMax": 0,
+    "owner": [
+      {
+        "status": "captured",
+        "count": 428,
+        "final": {
+          "pid": 71617,
+          "seq": 427,
+          "phase": "after-storage-destruction",
+          "elapsedMs": 2137793,
+          "ram": 0,
+          "ramPeak": 165547988,
+          "ramLimit": 671088640,
+          "ramRejected": 0,
+          "scratchDisk": 0,
+          "scratchDiskPeak": 317251584,
+          "scratchDiskLimit": 155362095104,
+          "scratchFd": 0,
+          "scratchFdPeak": 17,
+          "scratchFdLimit": 1048572,
+          "scratchRam": 0,
+          "preservedDisk": 0,
+          "preservedFd": 0,
+          "readerCleanupHealthy": true
+        },
+        "scope": "actual shared product owner; logical charges, not total heap or RSS; sequential counter reads"
+      }
+    ],
+    "rootLast": {
+      "reason": "post-stop",
+      "final": true,
+      "elapsedMs": 2141290,
+      "journalMutationTypes": {
+        "segment_finalized": 0,
+        "event_link_created": 0,
+        "observation_put": 0,
+        "observation_v2_put": 0,
+        "deletion_requested": 0,
+        "deletion_completed": 0,
+        "corruption_detected": 0,
+        "recording_order_reserved": 2148,
+        "segment_v2_finalized": 0,
+        "segment_v2_bound_finalized": 2125,
+        "consumer_reference_put": 0,
+        "derived_reference_accepted": 0,
+        "referenced_observation_put": 2,
+        "derived_job_intent": 0,
+        "derived_job_files": 0,
+        "derived_job_ready": 0,
+        "derived_job_committed": 0,
+        "derived_job_complete": 0,
+        "derived_job_failed": 0,
+        "segment_v2_state": 2109,
+        "segment_v2_deleted": 2109
+      },
+      "journalMutationTypesCoverage": "drained-prefix-only; unread-or-partial-tail-excluded",
+      "totalBytes": 112195452,
+      "capBytes": 483338599,
+      "capExceeded": false,
+      "entries": 761,
+      "categories": {
+        "input": {
+          "bytes": 164019,
+          "files": 3
+        },
+        "media": {
+          "bytes": 537254,
+          "files": 17
+        },
+        "mediaPartial": {
+          "bytes": 0,
+          "files": 0
+        },
+        "journal": {
+          "bytes": 27358019,
+          "files": 28
+        },
+        "checkpoint": {
+          "bytes": 0,
+          "files": 0
+        },
+        "generationSnapshot": {
+          "bytes": 3961461,
+          "files": 1
+        },
+        "generationIdentity": {
+          "bytes": 3741621,
+          "files": 27
+        },
+        "generationEvidence": {
+          "bytes": 26351736,
+          "files": 26
+        },
+        "generationManifest": {
+          "bytes": 526,
+          "files": 1
+        },
+        "generationTransaction": {
+          "bytes": 0,
+          "files": 0
+        },
+        "sqlite": {
+          "bytes": 8024064,
+          "files": 1
+        },
+        "wal": {
+          "bytes": 0,
+          "files": 0
+        },
+        "sqliteAux": {
+          "bytes": 0,
+          "files": 0
+        },
+        "tmp": {
+          "bytes": 0,
+          "files": 0
+        },
+        "log": {
+          "bytes": 767714,
+          "files": 1
+        },
+        "state": {
+          "bytes": 5235,
+          "files": 3
+        },
+        "events": {
+          "bytes": 0,
+          "files": 0
+        },
+        "cache": {
+          "bytes": 3144069,
+          "files": 280
+        },
+        "tools": {
+          "bytes": 13102936,
+          "files": 2
+        },
+        "recordingsOther": {
+          "bytes": 1993050,
+          "files": 343
+        },
+        "other": {
+          "bytes": 19029643,
+          "files": 5
+        }
+      },
+      "ownership": {
+        "productRecording": {
+          "bytes": 71967731,
+          "files": 444
+        },
+        "fixtureInput": {
+          "bytes": 164019,
+          "files": 3
+        },
+        "observerTools": {
+          "bytes": 13102936,
+          "files": 2
+        },
+        "cache": {
+          "bytes": 3144069,
+          "files": 280
+        },
+        "temporary": {
+          "bytes": 0,
+          "files": 0
+        },
+        "runtimeSupport": {
+          "bytes": 772949,
+          "files": 4
+        },
+        "other": {
+          "bytes": 19029643,
+          "files": 5
+        }
+      },
+      "transientJournalMisses": 0,
+      "sqlitePages": {
+        "status": "observed",
+        "mainBytes": 8024064,
+        "walBytes": 0,
+        "pageSize": 4096,
+        "pageCount": 1959,
+        "freePageCount": 0,
+        "livePageCount": 1959,
+        "liveBytes": 8024064,
+        "freeBytes": 0
+      },
+      "measurement": "logical-file-bytes-nonatomic",
+      "rawPathsPublished": false,
+      "transientTreeRetries": 0,
+      "fixedBytes": 13576551,
+      "variableBytes": 98618901,
+      "copyBytes": 0,
+      "combinedBytes": 112195452,
+      "rootCapBytes": 483338599,
+      "combinedCapBytes": 953100647,
+      "copyEntries": 0,
+      "workspacePolicy": "fixed-plus-variable-v1",
+      "parentOutputBytes": 4014105
+    }
+  },
+  "resourceInterpretation": "표본의 RSS/footprint와 실제 owner logical charge를 구분. instantaneous peak/전체 할당 귀속/무누수 미확인. 후warmup+12304384B만으로 누수·장기 안정성 확정 불가. 기존resourceTrendPass=false/reviewRequired=true 유지.",
+  "collection": {
+    "server": [
+      {
+        "pid": 71617,
+        "bytes": 767714,
+        "capturedBytes": 767714,
+        "sha256": "26b2a9c2ad9e70eace3c0e19cdab8d80842615218e379e068a1d66afed37420d",
+        "overflow": false,
+        "captureError": null,
+        "categories": [
+          {
+            "code": "file evidence unavailable",
+            "count": 0
+          },
+          {
+            "code": "storageBlocked",
+            "count": 0
+          },
+          {
+            "code": "shutdown",
+            "count": 0
+          },
+          {
+            "code": "ERROR",
+            "count": 0
+          },
+          {
+            "code": "WARNING",
+            "count": 0
+          }
+        ],
+        "rawBodyPublished": false,
+        "privateCaptureDisposition": "eligible-for-wrapper-cleanup"
+      }
+    ],
+    "decoder": [
+      {
+        "status": "captured",
+        "mode": "bounded",
+        "required": true,
+        "records": 3,
+        "successes": 3,
+        "failures": 0,
+        "issues": []
+      }
+    ],
+    "visualCount": 284,
+    "visualStatuses": {
+      "200": 274,
+      "503": 10
+    },
+    "visualEnd": [
+      {
+        "started": 284,
+        "completed": 284
+      }
+    ],
+    "structured": [
+      {
+        "status": "captured",
+        "probes": 1,
+        "failures": [
+          {
+            "version": 1,
+            "status": 503,
+            "channels": 1,
+            "exception": "none",
+            "resourceRejectionsBefore": 0,
+            "resourceRejectionsAfter": 0,
+            "attempts": [
+              {
+                "stage": "validate-source",
+                "reason": "search-source-changed",
+                "instance": 1,
+                "currentInstance": 1,
+                "captured": 2848,
+                "current": 2849,
+                "documents": 256,
+                "references": 0,
+                "rebuild": true,
+                "authority": true
+              },
+              {
+                "stage": "validate-source",
+                "reason": "search-source-changed",
+                "instance": 1,
+                "currentInstance": 1,
+                "captured": 2851,
+                "current": 2852,
+                "documents": 0,
+                "references": 0,
+                "rebuild": false,
+                "authority": true
+              },
+              {
+                "stage": "validate-source",
+                "reason": "search-source-changed",
+                "instance": 1,
+                "currentInstance": 1,
+                "captured": 2852,
+                "current": 2853,
+                "documents": 281,
+                "references": 0,
+                "rebuild": true,
+                "authority": true
+              }
+            ]
+          },
+          {
+            "version": 1,
+            "status": 503,
+            "channels": 1,
+            "exception": "none",
+            "resourceRejectionsBefore": 0,
+            "resourceRejectionsAfter": 0,
+            "attempts": [
+              {
+                "stage": "validate-source",
+                "reason": "search-source-changed",
+                "instance": 1,
+                "currentInstance": 1,
+                "captured": 3929,
+                "current": 3930,
+                "documents": 0,
+                "references": 0,
+                "rebuild": false,
+                "authority": true
+              },
+              {
+                "stage": "validate-source",
+                "reason": "search-source-changed",
+                "instance": 1,
+                "currentInstance": 1,
+                "captured": 3932,
+                "current": 3933,
+                "documents": 0,
+                "references": 0,
+                "rebuild": false,
+                "authority": true
+              },
+              {
+                "stage": "validate-source",
+                "reason": "search-source-changed",
+                "instance": 1,
+                "currentInstance": 1,
+                "captured": 3933,
+                "current": 3935,
+                "documents": 294,
+                "references": 0,
+                "rebuild": true,
+                "authority": true
+              }
+            ]
+          }
+        ],
+        "issues": []
+      }
+    ],
+    "owner": [
+      {
+        "status": "captured",
+        "count": 428,
+        "final": {
+          "pid": 71617,
+          "seq": 427,
+          "phase": "after-storage-destruction",
+          "elapsedMs": 2137793,
+          "ram": 0,
+          "ramPeak": 165547988,
+          "ramLimit": 671088640,
+          "ramRejected": 0,
+          "scratchDisk": 0,
+          "scratchDiskPeak": 317251584,
+          "scratchDiskLimit": 155362095104,
+          "scratchFd": 0,
+          "scratchFdPeak": 17,
+          "scratchFdLimit": 1048572,
+          "scratchRam": 0,
+          "preservedDisk": 0,
+          "preservedFd": 0,
+          "readerCleanupHealthy": true
+        },
+        "scope": "actual shared product owner; logical charges, not total heap or RSS; sequential counter reads"
+      }
+    ],
+    "holder": "off as planned",
+    "visualPhases": "off as planned"
+  },
+  "diagnosticPolicy": {
+    "frame": "bounded Automatic success2/SoftwareOnly success1; failures independent",
+    "holder": 0,
+    "fullVisualPhases": 0,
+    "visualRequest": 1,
+    "searchFailure": 1,
+    "resource": 1,
+    "slowOnly": 1,
+    "sampleScope": "대표decoder3건은 모든 호출 수/factory 전수 관측이 아님",
+    "receivedStoredMatched": true,
+    "fullServerCapBytes": 4194304,
+    "parentRunLogBytes": 4207176,
+    "parentVsServerLog": "부모 assertion run.log와 개별 제품4MiB cap은 별개",
+    "actualRepresentativeFrames": [
+      {
+        "policy": "automatic",
+        "target": 0,
+        "bytes": 28161,
+        "firstPts": 0,
+        "lastPts": 0,
+        "lastStream": 0,
+        "offsetBefore": 0,
+        "offsetAfter": 0,
+        "succeeded": true,
+        "factories": [
+          "vtdec_hw:applemedia:1.28.1"
+        ]
+      },
+      {
+        "policy": "software-only",
+        "target": 966666667,
+        "bytes": 28161,
+        "firstPts": 0,
+        "lastPts": 966666666,
+        "lastStream": 966666666,
+        "offsetBefore": 0,
+        "offsetAfter": 0,
+        "succeeded": true,
+        "factories": [
+          "avdec_h264:libav:1.28.1"
+        ]
+      },
+      {
+        "policy": "automatic",
+        "target": 0,
+        "bytes": 34724,
+        "firstPts": 0,
+        "lastPts": 0,
+        "lastStream": 0,
+        "offsetBefore": 0,
+        "offsetAfter": 0,
+        "succeeded": true,
+        "factories": [
+          "vtdec_hw:applemedia:1.28.1"
+        ]
+      }
+    ]
+  },
+  "actualInputs": [
+    {
+      "path": "input/a-seed.mp4",
+      "bytes": 28161,
+      "sha256": "b4f018f9c15e5f7e820e04e75d08cc2cddec78c21b9fdc77db75b24b1f1b5882"
+    },
+    {
+      "path": "input/retention-9101.mp4",
+      "bytes": 67929,
+      "sha256": "131764e413a8b6222177949832c5900dbaffd9564a377b602dc92ce03a52db47"
+    },
+    {
+      "path": "input/retention-9201.mp4",
+      "bytes": 67929,
+      "sha256": "131764e413a8b6222177949832c5900dbaffd9564a377b602dc92ce03a52db47"
+    },
+    {
+      "path": "recordings/1/7983cac7-e7fe-4e50-91d9-a0fa4f179076.mp4",
+      "bytes": 28161,
+      "sha256": "b4f018f9c15e5f7e820e04e75d08cc2cddec78c21b9fdc77db75b24b1f1b5882"
+    }
+  ],
+  "shutdown": [
+    {
+      "schema": "recording-process-cleanup-v1",
+      "attemptCount": 1,
+      "pid": 71617,
+      "exitCode": 0,
+      "signalCode": null,
+      "exitedObserved": true,
+      "stopCode": "complete",
+      "forcedTermination": "not-used",
+      "normalExitPass": true,
+      "normalShutdownPass": true,
+      "archiveSafe": true,
+      "ports": [
+        {
+          "kind": "http",
+          "port": 50008,
+          "status": "pass",
+          "code": "closed",
+          "closed": true
+        },
+        {
+          "kind": "rtsp",
+          "port": 50009,
+          "status": "pass",
+          "code": "closed",
+          "closed": true
+        }
+      ]
+    }
+  ],
+  "notRun": [
+    "main7200completion",
+    "middle/late windows",
+    "final A finish assertion",
+    "original final latency gate",
+    "explicit disable",
+    "closed journal assertion",
+    "cancel/revoke controls",
+    "independent copy recovery",
+    "restart/readback/reactivation"
+  ],
+  "cleanup": {
+    "processGroupsAbsent": true,
+    "registeredGroupsAbsent": true,
+    "processesClosed": true,
+    "udpClosed": true,
+    "temporaryRoot": "preserved-pending-Git-and-remote-byte-readback",
+    "normalFinallyIsNotFollowupPass": true
+  },
+  "preservation": {
+    "archive": "docs/release-artifacts/v4.5.0/93-execution-02.tar.gz",
+    "bytes": 40659045,
+    "sha256": "c5bb8ab0bd51607c738e0bb9df84ccb81e0085eb73a0572f868983ef2ff9723c",
+    "members": 468,
+    "payloadBytes": 69611293,
+    "largestPayload": 4207176,
+    "byteReadback": "PASS",
+    "transforms": [
+      {
+        "member": "final120/server/server-1.sanitized.log",
+        "source": "final120/media-server-current-observer-ZMwkRY/server-1.private.log",
+        "originalBytes": 767714,
+        "originalSha256": "26b2a9c2ad9e70eace3c0e19cdab8d80842615218e379e068a1d66afed37420d",
+        "bytes": 767632,
+        "sha256": "4f3392d30663f6691793c94c8d89ec5e06bb5b842c0f1fb52c5ac3fb1628c307",
+        "transform": "URL tokens only; trace/frame/resource/request bytes unchanged"
+      }
+    ]
+  },
+  "preservationPreparationFailure": {
+    "attempt": 1,
+    "error": "AssertionError direct/preserve93.py: privacy scanner matched its own literal patterns",
+    "disposition": "최초 script/error receipt/incomplete archive를02 archive의direct/에 보존. 실제 증거 credential 검사 유지, Python source literal만 분리. 제품 실행 재시도 아님."
+  },
+  "independentReview": "93-independent-review.json",
+  "decision": {
+    "technicalBlocker": "LP26-O05 active9101에서 필수 혼합 기능 조건 FAIL; 7200초·초중후·후속 수명/복구 미충족",
+    "latencyConcern": "부분 원래 success population p95=2242.619542ms >2000ms. 최종 latency gate는 미실행이며 최초 실패와 구분.",
+    "memoryP0": "BLOCKED",
+    "riskAcceptance": "not-granted",
+    "finalReleaseAdoption": "not-performed",
+    "nextAction": "현재 승인 범위에서는 추가 원인 실험·제품 수정·재실행을 하지 않음. 정확한9101 상태/원인 확인과 부분검색지연 경계는 후속 판단 대상."
+  },
+  "excluded": {
+    "qwenOllamaCalls": 0,
+    "unloadGate": "not-run",
+    "siglip2Inference": "executed for approved actual scene search",
+    "newAcceptanceUi120Retry": false,
+    "prCiMergeTagRelease": false
+  },
+  "staticChecks": {
+    "checkedAt": "2026-10-11T12:53:32.816393+00:00",
+    "results": [
+      {
+        "command": [
+          "node",
+          "scripts/internal/verify_docs_links.mjs"
+        ],
+        "exit": 0,
+        "stdout": "\n== Docs link verification summary ==\n- markdown files: 302\n- local links: 9391\n- local images: 14\n- local anchors: 429\n- indexed docs: 93\n- index coverage exclusions: 192\n- failures: 0\n",
+        "stderr": ""
+      },
+      {
+        "command": [
+          "node",
+          "scripts/internal/verify_release_metadata_consistency.mjs"
+        ],
+        "exit": 0,
+        "stdout": "[pass] current release documents preserve version and publication boundaries\n[pass] historical v2.9 source-of-truth remains distinct from latest published v2.8\n[pass] default mode records published metadata verification as external gate\n\n== Release metadata consistency summary ==\n- current version: 4.5.0\n- current tag: v4.5.0\n- release target tag: v4.5.0\n- cut-prior published tag: v4.4.0\n- published metadata: external-not-checked\n- pass: 3\n- fail: 0\n",
+        "stderr": ""
+      },
+      {
+        "command": [
+          "git",
+          "diff",
+          "--check"
+        ],
+        "exit": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    ],
+    "jsonParse": "PASS",
+    "archiveMembersByteReadback": "467 payloads + manifest; PASS",
+    "unchangedSource": "git diff 9704b6492fcc1f8e28546c01f7cb5c3b5223c52a -- src include scripts config: empty"
+  }
+}
