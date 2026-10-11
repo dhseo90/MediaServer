@@ -1,6 +1,7 @@
 // 파일 용도: 인증 이후 녹화 검색·스냅샷 재생 요청의 값 파싱과 공개 응답.
 #include "ingress/recording_application_service.h"
 #include "recording/recording_latency_trace.h"
+#include "recording/recording_search_diagnostic.h"
 #include "recording/recording_search_reader.h"
 #include "recording/recording_search_snapshots.h"
 #include <algorithm>
@@ -24,9 +25,11 @@ std::string Quote(const std::string& value){
     for(unsigned char c:value){if(c=='"'||c=='\\'){out+='\\';out+=static_cast<char>(c);}else if(c<32){out+="\\u00";out+=hex[c>>4];out+=hex[c&15];}else out+=static_cast<char>(c);}return out+'"';
 }
 ApplicationServiceResult Error(int status,const std::string& reason){
+    if(recording::SearchDiagnostic::active)recording::SearchDiagnostic::active->status=status;
     return {status,status==400?"Bad Request":status==403?"Forbidden":status==410?"Gone":"Service Unavailable","{\"error\":"+Quote(reason)+"}"};
 }
 ApplicationServiceResult Failure(const std::string& error){
+    recording::SearchDiagnostic::Reason(error);
     recording::latency::VisualPhase phase(error=="search-source-changed"?"structured-failure-source-changed":error=="search-capacity-exceeded"?"structured-failure-capacity":"structured-failure-other");
     if(error=="search-snapshot-expired"||error=="search-hit-unavailable")return Error(410,error);
     if(error=="search-cursor-binding-mismatch")return Error(403,error);
@@ -89,7 +92,9 @@ std::string Url(const std::string& id){return recording::ValidateOpaqueId(id,nul
 }
 ApplicationServiceResult RecordingApplicationService::Search(const Query& raw,const std::string& principal,
     const std::string& scope,const ChannelAuthorizer& authorize) const {
+    recording::SearchDiagnostic diagnostic(catalog_.SearchResidency().get());
     try {
+        recording::SearchDiagnostic::Stage("parse");
         recording::RecordingSearchQuery query;if(!Parse(raw,false,&query))return Error(400,"invalid-recording-search-query");
         if(principal.empty()||scope.empty()||!Authorized(query,authorize))return Error(403,"recording-channel-forbidden");
         if(!enabled_)return Error(503,"recording-search-unavailable");
@@ -99,8 +104,9 @@ ApplicationServiceResult RecordingApplicationService::Search(const Query& raw,co
             if(!search_state_)search_state_=std::make_shared<SearchState>();
             state=search_state_;
         }
+        diagnostic.channels=static_cast<unsigned>(query.channels.size());
         recording::RecordingSearchPage page;std::string error;const auto cursor=Get(raw,"cursor");
-        if(!cursor.empty()) {if(!state->snapshots.Resume(cursor,query,principal,scope,&page,&error))return Failure(error);}
+        if(!cursor.empty()) {recording::SearchDiagnostic::Stage("snapshot-resume");if(!state->snapshots.Resume(cursor,query,principal,scope,&page,&error))return Failure(error);}
         else {
             std::lock_guard<std::mutex> lock(search_mutex_);recording::RecordingSearchReader search(catalog_,reader_);
             // 여러 채널의 확정이 준비 구간과 겹칠 수 있다. 원본 변경만 유한하게 재시도하며
@@ -109,16 +115,20 @@ ApplicationServiceResult RecordingApplicationService::Search(const Query& raw,co
                 !query.zones.empty()||!query.rules.empty()||!query.behaviours.empty();
             bool prepared=false;
             for(unsigned attempt=0;attempt<3;++attempt){
+                diagnostic.attempt=attempt;recording::SearchDiagnostic::Stage("refresh");
                 if(!search.Refresh(query.channels,state->source,&state->source,&error,{},observations)){
-                    if(error=="search-source-changed"){recording::latency::VisualPhase phase("structured-source-changed");continue;}
+                    if(error=="search-source-changed"){recording::SearchDiagnostic::Reason(error);recording::latency::VisualPhase phase("structured-source-changed");continue;}
                     return Failure(error);
                 }
                 auto model=state->source;
+                recording::SearchDiagnostic::Stage("event-facts");
                 if(!query.behaviours.empty()&&!recording::RecordingSearchReader::WithEventFacts(*model,&model,&error,{},&query))return Failure(error);
+                recording::SearchDiagnostic::Stage("with-playback");
                 if(!search.WithPlayback(*model,query,&model,&error)){
-                    if(error=="search-source-changed"){recording::latency::VisualPhase phase("structured-source-changed");continue;}
+                    if(error=="search-source-changed"){recording::SearchDiagnostic::Reason(error);recording::latency::VisualPhase phase("structured-source-changed");continue;}
                     return Failure(error);
                 }
+                recording::SearchDiagnostic::Stage("snapshot-begin");
                 if(!state->snapshots.Begin(model,query,principal,scope,&page,&error))return Failure(error);
                 prepared=true;break;
             }
@@ -126,6 +136,7 @@ ApplicationServiceResult RecordingApplicationService::Search(const Query& raw,co
         }
         // Existing 4MiB JSON admission: original body + growth/field temporary +
         // wire body coexist. Reserve before serialization; move to transport owner.
+        recording::SearchDiagnostic::Stage("currentness-json");
         auto response_memory=catalog_.SearchResidency()->ReserveOwned(4ULL*4*1024*1024);
         if(!response_memory)return Failure("search-capacity-exceeded");
         std::map<std::string,bool> availability;
@@ -167,8 +178,13 @@ ApplicationServiceResult RecordingApplicationService::Search(const Query& raw,co
             .Raw("},\"searchBasis\":{\"kind\":\"structured-query-snapshot\",\"snapshotId\":").Text(page.snapshot_id)
             .Raw(",\"statisticsScope\":\"query-matches\"}}");
         if(!Authorized(query,authorize))return Error(403,"recording-channel-forbidden");
+        diagnostic.status=200;
         return {200,"OK",std::move(json).Take(),std::move(*response_memory)};
-    }catch(const std::exception&){return Error(503,"recording-search-unavailable");}
+    }catch(const std::bad_alloc&){diagnostic.exception="bad-alloc";return Error(503,"recording-search-unavailable");}
+    catch(const std::length_error&){diagnostic.exception="length-error";return Error(503,"recording-search-unavailable");}
+    catch(const recording::RecordingRetainedReadError&){diagnostic.exception="retained-read";return Error(503,"recording-search-unavailable");}
+    catch(const recording::RecordingResourceUnavailable&){diagnostic.exception="resource";return Error(503,"recording-search-unavailable");}
+    catch(const std::exception&){diagnostic.exception="std-exception";return Error(503,"recording-search-unavailable");}
 }
 ApplicationServiceResult RecordingApplicationService::SearchSeek(const Query& raw,const std::string& principal,
     const std::string& scope,const ChannelAuthorizer& authorize) const {

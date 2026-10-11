@@ -6,7 +6,8 @@
 #include "recording_search_seek_smoke.cpp"
 #undef main
 int main(int argc,char**argv){
-    if(argc!=2)return 2;gst_init(nullptr,nullptr);int pass=0,fail=0;
+    if(argc!=2)return 2;
+    gst_init(nullptr,nullptr);int pass=0,fail=0;
     const auto check=[&](bool ok,const char* name){std::cout<<(ok?"[pass] ":"[fail] ")<<name<<'\n';ok?++pass:++fail;};
     try{
         Store store(std::filesystem::weakly_canonical(argv[1])/"derived");const auto intent=PrepareMedia(store,true);std::string error;

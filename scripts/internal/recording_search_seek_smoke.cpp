@@ -30,14 +30,16 @@ std::vector<Frame> Decode(const std::filesystem::path& path,std::optional<double
 }
 }
 int main(int argc,char**argv){
-    if(argc!=2)return 2;gst_init(nullptr,nullptr);int pass=0,fail=0;
+    if(argc!=2)return 2;
+    gst_init(nullptr,nullptr);int pass=0,fail=0;
     const auto check=[&](bool ok,const char* name){std::cout<<(ok?"[pass] ":"[fail] ")<<name<<'\n';ok?++pass:++fail;};
     try{
         Store store(std::filesystem::weakly_canonical(argv[1])/"source");auto input=Encode(12,false,false,160,90,30,250);Shift(input,7000000000ULL);
         recording::GStreamerSegmentWriter::Options options(store.root,10000);options.managed_journal=&store.journal;options.managed_catalog=&store.catalog;options.managed_store_id="probe-store";
         recording::GStreamerSegmentWriter writer(options);std::string error;
         if(!writer.Start("probe-channel","unused",input.descriptor,[](auto,auto,auto*){return false;},&error))throw std::runtime_error(error);
-        for(const auto& packet:input.packets)writer.Push(packet,0);writer.Stop();
+        for(const auto& packet:input.packets)writer.Push(packet,0);
+        writer.Stop();
         const auto segments=store.Segments();if(segments.size()!=1)throw std::runtime_error("source-count");const auto& segment=segments.front();
         const auto binding=store.catalog.FindSourceBinding(segment.segment_id);
         check(binding&&binding->file_evidence.has_value(),"30fps source has native file proof");if(!binding||!binding->file_evidence)return 1;
@@ -63,7 +65,8 @@ int main(int argc,char**argv){
         ten_options.managed_journal=&unsupported.journal;ten_options.managed_catalog=&unsupported.catalog;ten_options.managed_store_id="probe-store";
         recording::GStreamerSegmentWriter ten_writer(ten_options);
         if(!ten_writer.Start("probe-channel","unused",ten.descriptor,[](auto,auto,auto*){return false;},&error))throw std::runtime_error(error);
-        for(const auto& packet:ten.packets)ten_writer.Push(packet,0);ten_writer.Stop();
+        for(const auto& packet:ten.packets)ten_writer.Push(packet,0);
+        ten_writer.Stop();
         const auto ten_segments=unsupported.Segments();if(ten_segments.size()!=1)throw std::runtime_error("ten-fps-source-count");
         recording::RecordingReadService ten_read(unsupported.catalog);recording::RecordingSearchReader ten_search(unsupported.catalog,ten_read);
         check(!ten_search.SourceSeek("probe-channel",ten_segments.front().segment_id,ten.packets[5].pts,1,1000000000,&target,&error)&&

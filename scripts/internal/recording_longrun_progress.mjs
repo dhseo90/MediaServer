@@ -205,3 +205,32 @@ export function visualPhaseSummary(text,required=true) {
     return {status:rows?'captured':'not-observed',rows,phases,overlappingPhasesNotAdditive:true};
   } catch(e) {return {status:'incomplete',reason:e.message,rows,open:pending.size,phases,overlappingPhasesNotAdditive:true};}
 }
+
+// Terminal structured failures are independent of full performance phase tracing.
+export function searchFailureSummary(text,required=true) {
+  const issues=[],failures=[];let probes=0;
+  for(const line of text.split('\n')) {
+    if(!line.startsWith('[search-failure'))continue;
+    if(line.startsWith('[search-failure-loss]')){issues.push('loss');continue;}
+    try {
+      const isProbe=line.startsWith('[search-failure-probe] ');
+      const prefix=isProbe?'[search-failure-probe] ':'[search-failure] ';
+      if(!line.startsWith(prefix)||Buffer.byteLength(line)>2048)throw Error('line');
+      const row=JSON.parse(line.slice(prefix.length));
+      if(row.version!==1)throw Error('version');
+      if(isProbe){if(row.attempts!==3)throw Error('attempt-contract');probes++;continue;}
+      if(row.status!==503||!Number.isSafeInteger(row.channels)||row.channels<0||row.channels>32||
+        !Array.isArray(row.attempts)||row.attempts.length<1||row.attempts.length>3)throw Error('record');
+      for(const k of ['resourceRejectionsBefore','resourceRejectionsAfter'])if(!Number.isSafeInteger(row[k])||row[k]<0)throw Error('resource-numeric');
+      if(row.resourceRejectionsAfter<row.resourceRejectionsBefore)throw Error('resource-order');
+      for(const a of row.attempts) {
+        if(typeof a.stage!=='string'||!/^[-a-z]+$/.test(a.stage)||typeof a.reason!=='string'||!/^[-a-z]+$/.test(a.reason)||
+          typeof a.rebuild!=='boolean'||typeof a.authority!=='boolean')throw Error('attempt');
+        for(const k of ['instance','currentInstance','captured','current','documents','references'])if(!Number.isSafeInteger(a[k])||a[k]<0)throw Error('numeric');
+      }
+      failures.push(row);
+    }catch{issues.push('invalid-record');}
+  }
+  if(probes>1||(required&&probes!==1))issues.push('probe');
+  return {status:issues.length?'incomplete':probes?'captured':'not-observed',probes,failures,issues};
+}

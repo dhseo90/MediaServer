@@ -25,7 +25,7 @@ check("catalog covers every canonical UI/AUTH/SRC/RULE case in exact order", () 
     `core exact oracle prefix counts mismatch: ${JSON.stringify(result.prefixCounts)}`);
   assert(result.specializedCount === 13 && result.genericGet200ExistsOnlyCount === 0,
     "specialized/generic closure mismatch");
-  assert(result.coreBindingSha256 === "cd5a649a55c60d2b3b4278c1fbe7cf22a0da4ba956e98d140ae3428be0b85695",
+  assert(result.coreBindingSha256 === "f88e7c45367c8679d0a277cacead048dbab77f779e04c029854f1b8924a5d819",
     "independent canonical/source semantic binding digest drift");
 });
 

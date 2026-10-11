@@ -4597,7 +4597,16 @@ release gate에서 FAIL합니다. 네 테스트 영역 밖 분류도 거부합�
 
 ### V420-L01/L02 카탈로그 어댑터 focused 기대값
 
-`recording_search_source_smoke.cpp`: 닫힌 카탈로그·빈 채널 거부 시 출력 보존, 빈 정상 결과, 저장 locator의 UTC/PTS, locator 없는 관측의 unknown 유지, 동일 revision 포인터 재사용, 관측만 추가한 delta, 1,024개 변화 이력 초과 시 재구축, 채널 집합 변경 시 이전 채널 제거를 검사한다. 손상 변경은 진행 중 batch를 무효화하고 새 모델 상태에 반영하되 보관 모델은 유지한다. 추가 관측은 기존 batch의 원본 시간 해석을 무효화하지 않는다. 재개방은 새 source identity로 재구축하고 SQLite 사용/미사용 모두 같은 원장 결과를 낸다. 검색 전후 원장 바이트 일치를 확인한다. 이 검사는 실제 파일 재생이나 generation backend 전체 검증을 대체하지 않는다.
+R90 변경 범위: 실제 capture→재검증 사이의 다른 채널 확정/삭제는 선택 범위의 후보·부재·재생
+의존성을 바꾸지 않을 때 준비를 유지한다. 관련 신규 관측/원본 상태·authority 변경은 재준비/거부한다.
+유한 변경 추적의 coverage 유실은 성공/Absent가 아니며 rebuild 또는 거부다. `python3 scripts/internal/verify_recording_search_scope.py --output <새 소유 절대경로>`는
+`recording_search_scope_smoke.cpp`의 고정 latch를 실제 application/reader 경로에만 연결한다. 원본 변경,
+권한·cursor·resource 거부와 full phase off의 제한 실패 요약을 source/application 직접 검사에서 대조한다.
+현재 600초 통합은 2녹화/4검색·A60초 최대10회·기존 예산을 유지하며 실제 반복 A까지 별도 판정한다.
+120분/UI는 이 내부 변경의 직접 검사로 대체하지 않는다.
+
+
+`recording_search_source_smoke.cpp`: 닫힌 카탈로그·빈 채널 거부 시 출력 보존, 빈 정상 결과, 저장 locator의 UTC/PTS, locator 없는 관측의 unknown 유지, 동일 revision 포인터 재사용, 관측만 추가한 delta, 1,024개 변화 이력 초과 시 재구축, 채널 집합 변경 시 이전 채널 제거를 검사한다. 손상 변경은 진행 중 batch를 무효화하고 새 모델 상태에 반영하되 보관 모델은 유지한다. 관련 신규 관측은 시간 해석뿐 아니라 후보 멤버십을 바꾸므로 진행 중 batch를 무효화한다. 재개방은 새 source identity로 재구축하고 SQLite 사용/미사용 모두 같은 원장 결과를 낸다. 검색 전후 원장 바이트 일치를 확인한다. 이 검사는 실제 파일 재생이나 generation backend 전체 검증을 대체하지 않는다.
 
 V420-L02의 V2 경로는 겹치는 UTC mapping별 hit/PTS/uncertainty 보존, unknown UTC에서 미디어 축 유지, deletion-pending 반영, tombstone 후 모든 mapping 제거, SQLite 재개방에서 삭제 hit 부활 없음과 원장 바이트 불변을 독립 검사한다.
 

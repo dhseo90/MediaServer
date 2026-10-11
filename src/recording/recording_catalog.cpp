@@ -775,7 +775,7 @@ bool RecordingCatalog::Open(std::string* error) {
     static std::atomic<std::uint64_t> next_search_instance{1};
     search_instance_=next_search_instance.fetch_add(1);
     search_changes_.clear();search_rebuild_revision_=source_snapshot_revision_;
-    search_resolution_revision_=source_snapshot_revision_;
+    search_invalidations_.reset();
     const bool first_open=!automatic_noop_open_attempted_;
     automatic_noop_open_attempted_=true;automatic_noop_eligible_=false;
     if(journal_.generation_state_)return OpenGenerationLocked(error);
@@ -1703,19 +1703,22 @@ bool RecordingCatalog::ValidateMutationLocked(const RecordingMutationV1& mutatio
     return ApplyMutationLocked(parsed,false,error,nullptr,{},nullptr,nullptr,nullptr,{},nullptr,false);
 } catch(const CatalogHistoryError& failure) { return Fail(error,failure.what()); }
   catch(const RecordingResourceUnavailable& failure) { return Fail(error,failure.what()); }
-void RecordingCatalog::NoteSearchMutationLocked(const RecordingMutationV1& mutation) noexcept {
+void RecordingCatalog::NoteSearchMutationLocked(const RecordingMutationV1& mutation,const std::string& channel,bool structural) noexcept {
     // 순서 예약은 ID/sequence만 확정한다. 파일·locator·재생 후보는 생기지 않으며
     // 이어지는 실제 finalized/state mutation이 검색의 resolution을 무효화한다.
     if(mutation.mutation_type==RecordingMutationType::RecordingOrderReserved)return;
-    const bool observation = mutation.mutation_type == RecordingMutationType::ObservationPut ||
+    const bool observation = !structural && (mutation.mutation_type == RecordingMutationType::ObservationPut ||
         mutation.mutation_type == RecordingMutationType::ObservationV2Put ||
-        mutation.mutation_type == RecordingMutationType::ReferencedObservationPut;
-    if (!observation) {
-        search_resolution_revision_ = source_snapshot_revision_;
-        search_rebuild_revision_ = source_snapshot_revision_;
-        search_changes_.clear();
-        return;
+        mutation.mutation_type == RecordingMutationType::ReferencedObservationPut);
+    if(search_invalidations_) {
+        auto& log=*search_invalidations_;
+        auto& entry=log.entries[log.next];
+        if(log.count==log.entries.size())log.floor=entry.revision;else ++log.count;
+        entry={};entry.revision=source_snapshot_revision_;entry.structural=!observation;
+        if(channel.size()<=128)std::memcpy(entry.channel,channel.data(),channel.size());
+        log.next=(log.next+1)%log.entries.size();
     }
+    if (!observation) return;
     // 이 부가 index의 allocation 실패가 원본 녹화 쓰기를 실패시키면 안 된다.
     try {
         if (mutation.entity_id.size() > 512) {
@@ -1740,7 +1743,7 @@ bool RecordingCatalog::ApplyMutationLocked(const RecordingMutationV1& mutation,
     if(apply) {
     if(source_snapshot_revision_==std::numeric_limits<std::uint64_t>::max())source_snapshot_revision_valid_=false;
     else ++source_snapshot_revision_;
-    NoteSearchMutationLocked(mutation);
+
     }
     // 소유 주소는 검증 증명이 아니다. schema/enum을 포함한 원래 모든 필드를 확인한다.
     if(owned&&(owned->schema!=mutation.schema||owned->mutation_type!=mutation.mutation_type||
@@ -1787,6 +1790,7 @@ bool RecordingCatalog::ApplyMutationLocked(const RecordingMutationV1& mutation,
         return true;
     }
     bool ok = true;
+    std::string search_channel;bool search_structural=false;
     switch (mutation.mutation_type) {
         case RecordingMutationType::DerivedJobIntent:
         case RecordingMutationType::DerivedJobFiles:
@@ -1815,6 +1819,7 @@ bool RecordingCatalog::ApplyMutationLocked(const RecordingMutationV1& mutation,
                pair.observation.observation_id==mutation.entity_id;
             const auto old=referenced_observations_.find(mutation.entity_id);
             if(ok&&old!=referenced_observations_.end())ok=MergeReferenced(old->second,&pair,error);
+            if(ok)search_channel=pair.observation.channel_id;
             if(ok&&apply){referenced_observations_.Set(mutation.entity_id,std::move(pair));touch("referenced-observation",mutation.entity_id);}
             break;
         }
@@ -1827,6 +1832,7 @@ bool RecordingCatalog::ApplyMutationLocked(const RecordingMutationV1& mutation,
                ingress::ParseStrictJsonObjectDocument(mutation.payload_json,&payload,error)&&payload.members.size()==1&&
                json&&ParseRecordingConsumerReferenceV1(*json,&reference,error)&&reference.reference_id==mutation.entity_id;
             if(ok) {
+                search_channel=reference.channel_id;
                 const auto old=consumer_references_.find(reference.reference_id);
                 if(mutation.mutation_type==RecordingMutationType::DerivedReferenceAccepted) {
                     ok=old!=consumer_references_.end()&&reference.kind=="event"&&
@@ -1874,6 +1880,7 @@ bool RecordingCatalog::ApplyMutationLocked(const RecordingMutationV1& mutation,
                     touch("segment-v1",segment.segment_id);touch("media-path",segment.segment_id);
                 }
             }
+            if(ok)search_channel=segment.channel_id;
             break;
         }
         case RecordingMutationType::EventLinkReceipt:
@@ -1904,6 +1911,11 @@ bool RecordingCatalog::ApplyMutationLocked(const RecordingMutationV1& mutation,
             if (ok && segments_.find(observation.frame_locator.segment_id) == segments_.end()) {
                 ok = Fail(error, "observation segment foreign key 위반");
             }
+            if(ok) {
+                const auto prior=observations_.find(observation.observation_id);
+                search_structural=prior!=observations_.end()&&prior->second.channel_id!=observation.channel_id;
+                if(!search_structural)search_channel=observation.channel_id; // old+new membership: global rebuild
+            }
             if (ok&&apply){observations_.Set(observation.observation_id,observation);touch("observation-v1",observation.observation_id);}
             break;
         }
@@ -1916,6 +1928,7 @@ bool RecordingCatalog::ApplyMutationLocked(const RecordingMutationV1& mutation,
             const auto previous = observations_v2_.find(observation.observation_id);
             if (ok && previous != observations_v2_.end())
                 ok = MergeObservation(previous->second, &observation, error);
+            if(ok)search_channel=observation.channel_id;
             if (ok&&apply){const auto id=observation.observation_id;observations_v2_.Set(id,std::move(observation));touch("observation-v2",id);}
             break;
         }
@@ -1923,6 +1936,7 @@ bool RecordingCatalog::ApplyMutationLocked(const RecordingMutationV1& mutation,
             const auto it = segments_.find(mutation.entity_id);
             const auto reason = StringField(mutation.payload_json, "reason");
             ok = it != segments_.end();
+            if(ok)search_channel=it->second.channel_id;
             if (ok&&apply) {
                 auto changed=it->second;changed.lifecycle=RecordingLifecycle::DeletionPending;segments_.Set(mutation.entity_id,std::move(changed));
                 deletion_reasons_.Set(mutation.entity_id,reason.value_or("manual-corrupt-cleanup"));
@@ -1935,6 +1949,8 @@ bool RecordingCatalog::ApplyMutationLocked(const RecordingMutationV1& mutation,
             const auto tombstone_json = ObjectField(mutation.payload_json, "tombstone");
             RecordingTombstoneV1 tombstone;
             ok = tombstone_json && ParseRecordingTombstoneV1(*tombstone_json, &tombstone, error);
+            // Legacy tombstone channel is not an authority for the affected segment.
+            // Preserve its accepted cross-entity semantics with global structural invalidation.
             // 기존 V1 tombstone이 V2 삭제 뒤에 오는 이력도 수용해 왔다. 이 특수 경계는
             // full 공존 snapshot과 동일하게 복원하여 cut 위치로 호환 상태가 달라지지 않게 한다.
             RecordingTombstoneV2 restored;
@@ -1966,6 +1982,7 @@ bool RecordingCatalog::ApplyMutationLocked(const RecordingMutationV1& mutation,
             ok = reason && (*reason == "missing-media" || *reason == "checksum-mismatch" ||
                             *reason == "container-invalid" || *reason == "derived-media-missing") &&
                  it != segments_.end();
+            if(ok)search_channel=it->second.channel_id;
             if (!ok) Fail(error, "corruption known entity/reason 오류");
             else if (apply&&it->second.lifecycle == RecordingLifecycle::Finalized) {
                 auto changed=it->second;changed.lifecycle=RecordingLifecycle::Corrupt;segments_.Set(mutation.entity_id,std::move(changed));touch("segment-v1",mutation.entity_id);
@@ -2015,6 +2032,7 @@ bool RecordingCatalog::ApplyMutationLocked(const RecordingMutationV1& mutation,
                     shared_binding.reset();
                 if(!shared_binding)shared_binding=std::make_shared<const RecordingSourceBindingV1>(std::move(binding));
             }
+            if(ok)search_channel=v.channel_id;
             if (ok&&apply) {segments_v2_.emplace(v.segment_id,v);media_relpaths_.Set(v.segment_id,*relative);
                 touch("segment-v2",v.segment_id);touch("media-path",v.segment_id);
                 if(bound){ok=StoreSourceEntryLocked(SourceBindingEntry(std::move(shared_binding),accepted_link,mutation.mutation_id),error);touch("source-binding",v.segment_id);}}
@@ -2025,6 +2043,7 @@ bool RecordingCatalog::ApplyMutationLocked(const RecordingMutationV1& mutation,
             ok=ParseRecordingSegmentStateV2(mutation.payload_json,&state,error) &&
                state.segment_id==mutation.entity_id && segments_v2_.count(state.segment_id)&&!DerivedJobProtectsLocked(state.segment_id);
             if(ok) {
+                search_channel=segments_v2_.at(state.segment_id).channel_id;
                 const auto old=EffectiveLifecycleV2Locked(state.segment_id);
                 const auto previous=states_v2_.find(state.segment_id);
                 const bool same=previous!=states_v2_.end() &&
@@ -2043,6 +2062,7 @@ bool RecordingCatalog::ApplyMutationLocked(const RecordingMutationV1& mutation,
             RecordingTombstoneV2 tombstone;
             ok=ParseRecordingTombstoneV2(mutation.payload_json,&tombstone,error) &&
                tombstone.segment.segment_id==mutation.entity_id&&!DerivedJobProtectsLocked(mutation.entity_id);
+            if(ok)search_channel=tombstone.segment.channel_id;
             const auto segment=segments_v2_.find(mutation.entity_id);
             const auto old=tombstones_v2_.find(mutation.entity_id);
             if(ok&&RetiredLocked(mutation.entity_id).has_value()) {
@@ -2077,6 +2097,7 @@ bool RecordingCatalog::ApplyMutationLocked(const RecordingMutationV1& mutation,
     if (!apply)return ok;
     if (!ok) {if(!completed_history_)mutation_ids_.erase(mutation.mutation_id);}
     else {
+        NoteSearchMutationLocked(mutation,search_channel,search_structural);
         if (segment_state) {
             if(!completed_history_)accepted_segment_state_mutations_.emplace(mutation.mutation_id, std::move(accepted_link));
             touch("accepted-state",mutation.mutation_id);

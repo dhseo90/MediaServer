@@ -41,7 +41,8 @@ template<class S> void DeleteFixtureSegment(S& store,const recording::RecordingS
 }
 
 int main(int argc,char** argv){
-    if(argc!=2)return 2;gst_init(nullptr,nullptr);
+    if(argc!=2)return 2;
+    gst_init(nullptr,nullptr);
     int pass=0,fail=0;const auto check=[&](bool ok,const char* name){std::cout<<(ok?"[pass] ":"[fail] ")<<name<<'\n';ok?++pass:++fail;};
     try {
         Store store(std::filesystem::weakly_canonical(argv[1])/"store");
@@ -153,7 +154,7 @@ int main(int argc,char** argv){
             std::filesystem::path archive;std::size_t matches=0;
             for(const auto& entry:std::filesystem::recursive_directory_iterator(root)) {
                 const auto name=entry.path().filename().string();
-                if(!entry.is_regular_file()||(name.find("evidence-")!=0&&name.find("active-")!=0)||
+                if(!entry.is_regular_file()||name.find("evidence-")!=0||
                    entry.path()==runtime.journal().path()||entry.path().extension()!=".jsonl")continue;
                 std::ifstream in(entry.path(),std::ios::binary);std::string line;bool found=false,related=false;
                 // 결속·삭제 행은 기존 압축 물리 envelope를 사용할 수 있다.

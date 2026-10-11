@@ -591,7 +591,8 @@ private:
                                            std::string* error) const;
     void CloseSqliteLocked();
     void ResolveObservationV2Locked(AnalysisObservationV2* observation) const;
-    void NoteSearchMutationLocked(const RecordingMutationV1&) noexcept;
+    void NoteSearchMutationLocked(const RecordingMutationV1&, const std::string& channel, bool structural = false) noexcept;
+    bool SearchChangedLocked(const std::vector<std::string>&, std::uint64_t since, bool structural_only) const;
 
     std::shared_ptr<SearchModelResidency> search_residency_;
     RecordingJournal& journal_;
@@ -609,7 +610,17 @@ private:
     // 검색 변경 목록은 원장이 아니다. 유실/초과는 전체 snapshot 재구축으로 처리한다.
     struct SearchChange { std::uint64_t revision; RecordingMutationType type; std::string id; };
     std::deque<SearchChange> search_changes_;
-    std::uint64_t search_instance_{0}, search_rebuild_revision_{0}, search_resolution_revision_{0};
+    std::uint64_t search_instance_{0}, search_rebuild_revision_{0};
+    // Recent coverage, not a historical authority/cache. Fixed bytes independent of channel/history count.
+    // Empty channel is a conservative global dependency; a lost prefix requires rebuild/rejection.
+    struct SearchInvalidations {
+        SearchModelResidency::Reservation memory;
+        struct Entry { std::uint64_t revision=0; char channel[129]{}; bool structural=false; };
+        std::array<Entry,1024> entries{};
+        std::size_t next=0, count=0;
+        std::uint64_t floor=0;
+    };
+    mutable std::unique_ptr<SearchInvalidations> search_invalidations_;
     mutable bool derived_job_state_authoritative_{true};
     std::string catalog_mode_{"jsonl-fallback"};
     RecordingCatalogRecoveryReport recovery_report_;

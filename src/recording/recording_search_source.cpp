@@ -1,5 +1,6 @@
 // 파일 용도: 카탈로그의 검증된 resident/cold 행에서 일관된 검색 snapshot/관측 변화분을 내보낸다.
 #include "recording/recording_catalog.h"
+#include "recording/recording_search_diagnostic.h"
 #include <algorithm>
 #include <limits>
 #include <new>
@@ -46,10 +47,24 @@ std::string SearchSourceIdentity(std::uint64_t instance, std::vector<std::string
     return result;
 }
 
+bool RecordingCatalog::SearchChangedLocked(const std::vector<std::string>& channels,
+    std::uint64_t since,bool structural_only) const {
+    if(!search_invalidations_ || since<search_invalidations_->floor || since>source_snapshot_revision_)return true;
+    for(const auto& entry:search_invalidations_->entries) {
+        if(entry.revision<=since || (structural_only&&!entry.structural))continue;
+        if(!entry.channel[0] || std::find(channels.begin(),channels.end(),entry.channel)!=channels.end())return true;
+    }
+    return false;
+}
+
 bool RecordingCatalog::ValidateSearchSource(const SearchSourceBatch& batch, std::string* error) const {
     std::lock_guard<std::mutex> lock(mu_);
-    if (!opened_ || !CanReadLocked(error) || !source_snapshot_revision_valid_ ||
-        batch.catalog_instance != search_instance_ || batch.resolution_revision != search_resolution_revision_)
+    SearchDiagnostic::Stage("validate-source");
+    const bool readable=opened_&&CanReadLocked(error);
+    SearchDiagnostic::Source(batch.catalog_instance,batch.resolution_revision,source_snapshot_revision_,search_instance_,readable,batch.rebuild,batch.delta.upserts.size(),batch.pending.size());
+    if (!readable || !source_snapshot_revision_valid_ ||
+        batch.catalog_instance != search_instance_ || batch.channels.empty() ||
+        SearchChangedLocked(batch.channels,batch.resolution_revision,false))
         return Fail(error, "search-source-changed");
     if (error) error->clear();
     return true;
@@ -60,23 +75,31 @@ bool RecordingCatalog::CaptureSearchSource(const std::vector<std::string>& chann
     if (!result || channels.empty() || channels.size() > 32) return Fail(error, "search-invalid-channels");
     for (const auto& channel : channels)
         if (!ValidateRecordingReferenceId(channel, nullptr)) return Fail(error, "search-invalid-channels");
+    SearchDiagnostic::Stage("capture-source");
     try {
         std::lock_guard<std::mutex> lock(mu_);
         if (!opened_ || !CanReadLocked(error) || !source_snapshot_revision_valid_ || !search_instance_ ||
             recovery_report_.projection_error_count || recovery_report_.corrupt_line_count)
             return Fail(error, "search-source-unavailable");
-        SearchSourceBatch batch;
+        if(!search_invalidations_) {
+            auto reservation=SearchResidency()->ReserveOwned(sizeof(SearchInvalidations));
+            if(!reservation)return Fail(error,"search-capacity-exceeded");
+            auto log=std::make_unique<SearchInvalidations>();log->memory=std::move(*reservation);
+            log->floor=source_snapshot_revision_;search_invalidations_=std::move(log);
+        }
+        SearchSourceBatch batch;batch.channels=channels;
         if(!limits.residency)limits.residency=SearchResidency();
         auto charge=limits.residency->ReserveOwned(limits.max_bytes);
         if(!charge)return Fail(error,"search-capacity-exceeded");
         batch.memory=std::move(*charge);
-        batch.catalog_instance = search_instance_;batch.resolution_revision = search_resolution_revision_;
+        batch.catalog_instance = search_instance_;batch.resolution_revision = source_snapshot_revision_;
         batch.delta.source_instance = SearchSourceIdentity(search_instance_, channels);
         if(!include_observations)batch.delta.source_instance="recordings:"+batch.delta.source_instance;
         batch.delta.revision = source_snapshot_revision_;
         batch.delta.previous_revision = previous ? previous->revision() : 0;
         batch.rebuild = !previous || previous->source_instance() != batch.delta.source_instance ||
-            previous->revision() < search_rebuild_revision_ || previous->revision() > source_snapshot_revision_;
+            previous->revision() < search_rebuild_revision_ ||
+            SearchChangedLocked(channels,previous->revision(),true);
         const auto selected = [&](const std::string& channel) {
             return std::find(channels.begin(), channels.end(), channel) != channels.end();
         };
@@ -161,6 +184,7 @@ bool RecordingCatalog::CaptureSearchSource(const std::vector<std::string>& chann
                     if(it!=referenced_observations_.end()&&!referenced(it->second))return Fail(error,"search-capacity-exceeded");}
             }
         }
+        SearchDiagnostic::Source(batch.catalog_instance,batch.resolution_revision,source_snapshot_revision_,search_instance_,true,batch.rebuild,batch.delta.upserts.size(),batch.pending.size());
         *result=std::move(batch);if(error)error->clear();return true;
     } catch(const RecordingRetainedReadError&) {return Fail(error,"search-source-unavailable");}
       catch(const std::bad_alloc&) {return Fail(error,"search-capacity-exceeded");}

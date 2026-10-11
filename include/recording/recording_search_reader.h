@@ -53,7 +53,7 @@ public:
         const std::function<bool()>& cancelled = {},
         std::chrono::steady_clock::time_point deadline = std::chrono::steady_clock::time_point::max()) const;
     bool PlaybackCandidates(const RecordingSearchModel&, const RecordingSearchQuery&,
-        std::vector<SearchPlaybackCandidate>*, std::string* error) const;
+        std::vector<SearchPlaybackCandidate>*, std::string* error,SearchSourceBatch* proof = nullptr) const;
     // 새 검색마다 호출한다. 카탈로그 revision과 별개인 이벤트 사실을 재사용하지 않는다.
     static bool WithEventFacts(const RecordingSearchModel& source,
         std::shared_ptr<const RecordingSearchModel>* output, std::string* error,

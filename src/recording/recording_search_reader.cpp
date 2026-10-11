@@ -1,6 +1,7 @@
 #include "recording/recording_latency_trace.h"
 // 파일 용도: 원본 참조와 검색의 UTC/PTS를 결합한다. 검색 결과를 파일 재생 증명으로 사용하지 않는다.
 #include "recording/recording_search_reader.h"
+#include "recording/recording_search_diagnostic.h"
 #include <limits>
 #include <algorithm>
 #include <map>
@@ -18,14 +19,16 @@ bool NativeSeek(const RecordingFileEvidenceV1& evidence,std::int64_t ns,SearchSe
     const auto unavailable=[&](const char* reason){if(error)*error=reason;return false;};
     const RecordingFileSampleEvidenceV1* selected=nullptr;
     for(const auto& sample:evidence.samples)if(sample.original_pts_ns==ns){
-        if(selected)return unavailable("seek-unavailable-ambiguous-sample");selected=&sample;
+        if(selected)return unavailable("seek-unavailable-ambiguous-sample");
+        selected=&sample;
     }
     if(!selected)for(const auto& sample:evidence.samples){
         const __int128 position=(static_cast<__int128>(ns)-evidence.writer_origin_ns)*evidence.timescale;
         const __int128 start=static_cast<__int128>(sample.native_pts)*1000000000;
         const __int128 end=(static_cast<__int128>(sample.native_pts)+sample.native_duration)*1000000000;
         if(start<=position&&position<end){
-            if(selected)return unavailable("seek-unavailable-ambiguous-sample");selected=&sample;
+            if(selected)return unavailable("seek-unavailable-ambiguous-sample");
+        selected=&sample;
         }
     }
     if(!selected||selected->native_pts<evidence.edit_media_time)return unavailable("seek-unavailable-outside-file");
@@ -87,6 +90,9 @@ bool RecordingSearchReader::Refresh(const std::vector<std::string>& channels,
     if(!limits.residency)limits.residency=catalog_.SearchResidency();
     SearchSourceBatch batch;
     if (!catalog_.CaptureSearchSource(channels, previous.get(), &batch, error, limits, include_observations)) return false;
+#ifdef RECORDING_SEARCH_TESTING
+    if(search_after_capture_test)search_after_capture_test();
+#endif
     // 준비 순서만 동일 원본 표본별로 묶는다. 출력 위치와 검색 정렬은 바꾸지 않는다.
     // 단일 entry만 유지하며 요청 간 재사용하지 않는다. 아래 revision 재검증은 그대로 수행한다.
     using OriginalKey=std::tuple<std::string,std::string,std::string,std::uint64_t,std::string,std::uint64_t,std::uint64_t>;
@@ -99,6 +105,7 @@ bool RecordingSearchReader::Refresh(const std::vector<std::string>& channels,
     };
     std::sort(batch.pending.begin(),batch.pending.end(),[&](const auto& a,const auto& b){return originalKey(a)<originalKey(b);});
     std::optional<OriginalKey> last_original;ConsumerReferenceResolution resolution;
+    SearchDiagnostic::Stage("reference-resolution");
     for (const auto& pending : batch.pending) {
         const auto& ref=pending.reference;const auto key=originalKey(pending);
         if(!key||key!=last_original) {
@@ -112,6 +119,7 @@ bool RecordingSearchReader::Refresh(const std::vector<std::string>& channels,
         *output = previous;if(error)error->clear();return true;
     }
     std::shared_ptr<const RecordingSearchModel> next;
+    SearchDiagnostic::Stage(batch.rebuild?"model-build":"model-delta");
     const bool built = batch.rebuild ? RecordingSearchModel::Build(batch.delta.upserts,
         batch.delta.source_instance, batch.delta.revision, &next, error, limits) :
         RecordingSearchModel::ApplyDelta(*previous, batch.delta, &next, error, limits);
@@ -151,7 +159,8 @@ bool RecordingSearchReader::WithEventFacts(const RecordingSearchModel& source,
                     const auto& old=*inserted.first->second;
                     if(std::tie(old.channel_id,old.track_id,old.stream_epoch_id,old.event_type,old.scenario_name)!=
                        std::tie(fact.channel_id,fact.track_id,fact.stream_epoch_id,fact.event_type,fact.scenario_name)) {
-                        if(error)*error="search-event-evidence-conflict";return false;
+                        if(error)*error="search-event-evidence-conflict";
+                        return false;
                     }
                 }
             }
@@ -171,12 +180,13 @@ bool RecordingSearchReader::WithEventFacts(const RecordingSearchModel& source,
       catch(const std::length_error&) {if(error)*error="search-capacity-exceeded";return false;}
 }
 bool RecordingSearchReader::PlaybackCandidates(const RecordingSearchModel& model,const RecordingSearchQuery& input,
-    std::vector<SearchPlaybackCandidate>* output,std::string* error) const {
+    std::vector<SearchPlaybackCandidate>* output,std::string* error,SearchSourceBatch* proof) const {
     if(!output){if(error)*error="search-invalid-output";return false;}
     RecordingSearchQuery query;if(!NormalizeSearchQuery(input,&query,error))return false;
     SearchSourceBatch guard;
     if(!catalog_.CaptureSearchSource(query.channels,&model,&guard,error,{},model.source_instance().rfind("recordings:",0)!=0))return false;
-    if(guard.rebuild){if(error)*error="search-source-changed";return false;}
+    if(guard.rebuild||!guard.delta.upserts.empty()||!guard.delta.removed_ids.empty()){if(error)*error="search-source-changed";return false;}
+    SearchDiagnostic::Stage("playback-candidates");
     try {
         std::vector<SearchPlaybackCandidate> candidates;
         for(const auto& channel:query.channels) {
@@ -194,6 +204,7 @@ bool RecordingSearchReader::PlaybackCandidates(const RecordingSearchModel& model
             }
         }
         if(!catalog_.ValidateSearchSource(guard,error))return false;
+        if(proof)*proof=std::move(guard);
         *output=std::move(candidates);if(error)error->clear();return true;
     }catch(const std::bad_alloc&){if(error)*error="search-playback-candidate-capacity";return false;}
      catch(const std::length_error&){if(error)*error="search-playback-candidate-capacity";return false;}
@@ -237,7 +248,8 @@ bool RecordingSearchReader::PreparedSource::Matches(const std::string& channel,c
     return impl_->segment.channel_id==channel&&impl_->segment.segment_id==segment&&impl_->segment.checksum_sha256==sha;
 }
 bool RecordingSearchReader::PreparedSource::MatchesFrame(std::int64_t pts,const std::string& sha) const {
-    if(!impl_->binding||!impl_->binding->file_evidence)return false;unsigned found=0;
+    if(!impl_->binding||!impl_->binding->file_evidence)return false;
+    unsigned found=0;
     for(const auto& sample:impl_->binding->file_evidence->samples)if(sample.original_pts_ns==pts&&sample.sample_sha256==sha)++found;
     return found==1;
 }
@@ -268,7 +280,8 @@ std::unique_ptr<RecordingSearchReader::PreparedSource> RecordingSearchReader::Pr
     const auto current=reader_.RevalidatePreparedMedia(*proof->media,proof->segment,proof->location,&proof->context,error);
     if(!current||current!=proof->binding)return fail("seek-unavailable-source-changed");
     if(expired())return fail("seek-cancelled");
-    if(error)error->clear();return std::unique_ptr<PreparedSource>(new PreparedSource(std::move(proof)));
+    if(error)error->clear();
+    return std::unique_ptr<PreparedSource>(new PreparedSource(std::move(proof)));
 }
 bool RecordingSearchReader::SourceSeekPrepared(const PreparedSource& prepared,std::int64_t pts,std::int32_t num,
     std::int32_t den,SearchSeekTarget* output,std::string* error,const std::function<bool()>& cancelled,
@@ -299,7 +312,8 @@ bool RecordingSearchReader::DerivedSeek(const std::string& channel,const std::st
         return unavailable("seek-unavailable-derived-job");
     const DerivedJobReadyOutputV1* chosen=nullptr;
     for(const auto& candidate:job->ready->outputs)if(candidate.segment.segment_id==output_id){
-        if(chosen)return unavailable("seek-unavailable-ambiguous-output");chosen=&candidate;
+        if(chosen)return unavailable("seek-unavailable-ambiguous-output");
+        chosen=&candidate;
     }
     if(!chosen||chosen->source_index>=job->intent.sources.size()||chosen->segment.channel_id!=channel||
         chosen->segment.container!="mp4"||!chosen->provenance.verified_output)
@@ -310,11 +324,13 @@ bool RecordingSearchReader::DerivedSeek(const std::string& channel,const std::st
         return unavailable("seek-unavailable-original-mismatch");
     const DerivedRemuxAu* selected=nullptr;
     for(const auto& au:proof.access_units)if(au.original_pts_ns==original_ns){
-        if(selected)return unavailable("seek-unavailable-ambiguous-sample");selected=&au;
+        if(selected)return unavailable("seek-unavailable-ambiguous-sample");
+        selected=&au;
     }
     if(!selected)for(const auto& au:proof.access_units)if(au.original_pts_ns<=original_ns&&
         static_cast<__int128>(original_ns)<static_cast<__int128>(au.original_pts_ns)+au.file_duration_ns){
-        if(selected)return unavailable("seek-unavailable-ambiguous-sample");selected=&au;
+        if(selected)return unavailable("seek-unavailable-ambiguous-sample");
+        selected=&au;
     }
     if(!selected)return unavailable("seek-unavailable-outside-file");
     auto media=reader_.ResolveMedia(channel,output_id);if(!media)return unavailable("seek-unavailable-media");
@@ -333,7 +349,8 @@ bool RecordingSearchReader::WithPlayback(const RecordingSearchModel& model,const
     if(!limits.residency)limits.residency=model.residency()?model.residency():catalog_.SearchResidency();
     auto workspace=limits.residency->Reserve(limits.max_bytes);
     if(!workspace){if(error)*error="search-capacity-exceeded";return false;}
-    std::vector<SearchPlaybackCandidate> candidates;if(!PlaybackCandidates(model,query,&candidates,error))return false;
+    SearchSourceBatch proof;
+    std::vector<SearchPlaybackCandidate> candidates;if(!PlaybackCandidates(model,query,&candidates,error,&proof))return false;
     try {
         std::vector<SearchDocument> documents;std::set<std::string> replaced_outputs;std::size_t bytes=0;
         const auto add=[&](SearchDocument document){
@@ -341,7 +358,8 @@ bool RecordingSearchReader::WithPlayback(const RecordingSearchModel& model,const
             documents.push_back(std::move(document));return true;
         };
         const auto ns=[](std::int64_t pts,std::int32_t num,std::int32_t den)->std::optional<std::int64_t>{
-            if(num<=0||den<=0)return {};const __int128 value=static_cast<__int128>(pts)*num*1000000000;
+            if(num<=0||den<=0)return {};
+            const __int128 value=static_cast<__int128>(pts)*num*1000000000;
             if(value%den||value/den<0||value/den>std::numeric_limits<std::int64_t>::max())return {};
             return static_cast<std::int64_t>(value/den);
         };
@@ -388,7 +406,11 @@ bool RecordingSearchReader::WithPlayback(const RecordingSearchModel& model,const
         documents.erase(std::remove_if(documents.begin(),documents.end(),[&](const auto& document){
             return document.kind==SearchDocumentKind::Recording&&replaced_outputs.count(document.segment_id);
         }),documents.end());
-        return RecordingSearchModel::Build(documents,model.source_instance(),model.revision(),output,error,limits);
+        SearchDiagnostic::Stage("playback-model-build");
+        std::shared_ptr<const RecordingSearchModel> next;
+        if(!RecordingSearchModel::Build(documents,model.source_instance(),model.revision(),&next,error,limits)||
+           !catalog_.ValidateSearchSource(proof,error))return false;
+        *output=std::move(next);return true;
     }catch(const std::bad_alloc&){if(error)*error="search-capacity-exceeded";return false;}
      catch(const std::length_error&){if(error)*error="search-capacity-exceeded";return false;}
 }

@@ -131,6 +131,24 @@ int main(int argc,char**argv) {
         held=model;
         Check(!search.Refresh({},model,&model,&error)&&model==held,"invalid-channel-output-unchanged");
         Check(catalog.FinalizeSegment(Segment("segment-one"),file.string(),&error),"finalize");
+        SearchSourceBatch unrelated;
+        Check(catalog.CaptureSearchSource({"channel-one"},nullptr,&unrelated,&error),"R90 capture before unrelated finalization");
+        auto other=Segment("segment-other");other.channel_id="unrelated-channel";other.source_id="unrelated-channel";
+        const auto other_file=root/"media"/"other.mp4";std::filesystem::copy_file(file,other_file);
+        Check(catalog.FinalizeSegment(other,other_file.string(),&error),"R90 actual unrelated finalization");
+        Check(catalog.ValidateSearchSource(unrelated,&error),"R90 unrelated channel must preserve captured search");
+        AnalysisObservationV1 moving;moving.observation_id="moving-v1";moving.source_id="channel-one";
+        moving.channel_id="channel-one";moving.track_id="track";
+        moving.class_label="person";moving.confidence=.8;moving.bbox={.1,.2,.3,.4};
+        moving.frame_locator.segment_id="segment-one";moving.frame_locator.frame={1500,1500000000,1,1000000000};
+        moving.created_at_ms=1500;moving.selection_reason="track-start";
+        Check(catalog.PutObservation(moving,&error),"R90 V1 original channel fixture");
+        std::shared_ptr<const RecordingSearchModel> moving_model;
+        Check(search.Refresh({"channel-one"},{},&moving_model,&error)&&moving_model->Find("o1:9:moving-v1"),"R90 V1 original membership");
+        SearchSourceBatch moving_guard;Check(catalog.CaptureSearchSource({"channel-one"},moving_model.get(),&moving_guard,&error),"R90 V1 movement guard");
+        moving.channel_id="unrelated-channel";moving.source_id="unrelated-channel";moving.frame_locator.segment_id="segment-other";
+        Check(catalog.PutObservation(moving,&error)&&!catalog.ValidateSearchSource(moving_guard,&error),"R90 old channel rejects moved V1 candidate");
+        Check(search.Refresh({"channel-one"},moving_model,&moving_model,&error)&&!moving_model->Find("o1:9:moving-v1"),"R90 moved V1 removed by structural rebuild");
         auto observation=Observation();
         Check(catalog.PutObservationV2(observation,&error),"unknown-observation-put");
         Check(search.Refresh({"channel-one"},model,&model,&error)&&model->documents().size()==2&&
@@ -158,7 +176,7 @@ int main(int argc,char**argv) {
         Check(Bytes(root/"journal.jsonl")==before,"search-does-not-write-journal");
         Check(catalog.CaptureSearchSource({"channel-one"},model.get(),&batch,&error),"capture-before-observation");
         observation.observation_id="obs-two";
-        Check(catalog.PutObservationV2(observation,&error)&&catalog.ValidateSearchSource(batch,&error),"observation-keeps-resolution-valid");
+        Check(catalog.PutObservationV2(observation,&error)&&!catalog.ValidateSearchSource(batch,&error),"R90 new relevant observation invalidates captured membership");
         Check(search.Refresh({"channel-one"},model,&model,&error)&&model->documents().size()==3&&held->documents().size()==2,"new-model-held-snapshot-independent");
         auto limited=model;
         Check(!search.Refresh({"channel-one"},{},&limited,&error,{1,64*1024*1024})&&limited==model,"capacity-failure-output-unchanged");

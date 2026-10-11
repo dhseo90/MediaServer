@@ -5,7 +5,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
 import {spawnSync} from 'node:child_process';
-import {parseLongrunArgs, LongrunProgress, sampleContinuity,nextRecordingSettings,mediaAbsent,frameTraceSummary,captureBoundedProcessLog,processLogCaptureComplete,assertMixedFrameTraceMode} from './recording_longrun_progress.mjs';
+import {searchFailureSummary,parseLongrunArgs, LongrunProgress, sampleContinuity,nextRecordingSettings,mediaAbsent,frameTraceSummary,captureBoundedProcessLog,processLogCaptureComplete,assertMixedFrameTraceMode} from './recording_longrun_progress.mjs';
 let passed=0,failed=0; const start=Date.now();
 function check(name,fn){try{fn();passed++;console.log(`[pass] ${name}`);}catch(error){failed++;console.log(`[fail] ${name}: ${error.message}`);}}
 check('explicit 120 minutes accepted',()=>assert.equal(parseLongrunArgs(['--duration-minutes','120']),7200000));
@@ -167,3 +167,10 @@ check('MEM88 phase collection rejects missing/loss/late or broken pairs',()=>{
   assert.equal(visualPhaseSummary(complete).phases['visual-search'].totalNs,10);
 });
 console.log(`[summary] passed=${passed} failed=${failed} elapsedMs=${Date.now()-start}`);process.exitCode=failed?1:0;
+
+check('search terminal collector requires probe and rejects loss, partial, wrong attempts',()=>{
+ const probe='[search-failure-probe] {"version":1,"attempts":3}\n';
+ assert.equal(searchFailureSummary(probe).status,'captured');
+ for(const text of ['',probe+probe,probe+'[search-failure-loss]\n',probe+'[search-failure] {',probe+'[search-failure] {"version":1,"status":503,"channels":1,"attempts":[]}\n'])assert.equal(searchFailureSummary(text).status,'incomplete');
+ assert.equal(searchFailureSummary('',false).status,'not-observed');
+});
