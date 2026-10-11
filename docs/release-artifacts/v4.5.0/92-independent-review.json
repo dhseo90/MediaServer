@@ -910,5 +910,82 @@
       "일반push·원격ref/blob byte확인"
     ],
     "meaning": "로컬 archive의 실제 바이트 보존 확인이며 Git/remote/cleanup 완료 판정은 후속receipt로만 갱신한다."
+  },
+  "preservationCleanupClosureAddendum": {
+    "reviewedAt": "2026-10-11T11:49:42.930Z",
+    "priorReportSha256": "f5ea0e0301b5dac0f5c46cba85a47c21bd270bd40b265e63724237006ed5f04f",
+    "scope": "이전 독립 원문·판정을 유지한 좁은 보존/cleanup 마감 readback. 제품/검사 실행, 새원격전송 또는 다른파일 수정 없음.",
+    "validationBytesSha256": "9d8c652ed69a70deec2ebabc6d19d6b578c1711a3648f855465952a1fdabc550",
+    "decision": {
+      "task92TechnicalScope": "COMPLETE_OBSERVED_RETENTION_COST_IMPROVEMENT_AND_FINAL600_PASS",
+      "selectedEvidencePreservation": "LOCAL_GIT_AND_RECORDED_REMOTE_BYTE_READBACK_COMPLETE",
+      "ownedExecutionCleanup": "COMPLETE_IN_RECORDED_OWNERSHIP_SCOPE",
+      "finalCloseoutCommitAndPush": "PENDING_AT_REVIEW",
+      "memoryP0": "OPEN_RELEASE_HOLD",
+      "releaseReady": false,
+      "new120Authority": false,
+      "meaning": "검토한92 변경·직접회귀·최종600·선정증거 보존·소유실행root 정리 범위는 마감 가능하다. 마지막 마감기록 커밋/푸시는 아직 수행 전이며 이후메인 실제ref 재조회가 필요하다. 120/P0/출시/위험수용을 승인하지 않는다."
+    },
+    "localGitReadback": {
+      "commit": "cb79945d9096e6b4c373e34d43f187c1468e8b73",
+      "path": "docs/release-artifacts/v4.5.0/92-execution.tar.gz",
+      "bytes": 23834238,
+      "sha256": "47fa90f0bd4b3369cbc2904e9cc212ef7666d90b249ccb5283625d8c99ac8c89",
+      "independentReviewerReadGitBlob": true,
+      "currentArchiveSameBytes": true,
+      "independentlyReadVerifiedPayloads": 520,
+      "payloadByteHashMismatchCount": 0,
+      "manifestPlusPayloadMemberCount": 521
+    },
+    "remotePreservation": {
+      "receipt": {
+        "remoteHead": "cb79945d9096e6b4c373e34d43f187c1468e8b73",
+        "url": "https://raw.githubusercontent.com/dhseo90/MediaServer/cb79945d9096e6b4c373e34d43f187c1468e8b73/docs/release-artifacts/v4.5.0/92-execution.tar.gz",
+        "bytes": 23834238,
+        "sha256": "47fa90f0bd4b3369cbc2904e9cc212ef7666d90b249ccb5283625d8c99ac8c89",
+        "matchLocalGitBlob": true,
+        "method": "independent HTTPS raw commit/path streamed bytes; no copied archive",
+        "observedAt": "2026-10-11T11:47:39Z"
+      },
+      "reviewBasis": "메인이 수행한 일반push/actualremote 및 commit固定 raw HTTPS streaming readback의 validation receipt를 검토했다. 기록된bytes/SHA가 독립 재조회한 로컬Gitblob과 일치한다. reviewer가 새remote전송/조회한 결과로 가장하지 않는다.",
+      "preservationCommitRemoteConfirmedInReceipt": true,
+      "finalCloseoutCommitRemoteNotYetConfirmed": true
+    },
+    "cleanup": {
+      "receipt": {
+        "processesClosed": true,
+        "udpClosed": true,
+        "launcherGroupsAbsent": true,
+        "linuxContainers": "removed after verified archive bytes",
+        "ownedRoot": {
+          "root": "/private/tmp/media-server-memory92-06m54kx3",
+          "uid": 501,
+          "inode": 172978173,
+          "entries": 3546,
+          "logicalFileBytes": 326131557,
+          "policy": "exact entry-owned root; symlinks not followed; original bytes verified in Git and remote first",
+          "removed": true,
+          "pointerAbsent": true,
+          "completedAt": "2026-10-11T11:48:30Z"
+        },
+        "processCheck": {
+          "scope": "exact owned root references and diagnostic/final server pids; calling ancestry excluded",
+          "remaining": [],
+          "launcherReceipts": "diagnostic600/final600 execution processGroupAbsent & registeredGroupsAbsent",
+          "notAHostWideProcessClaim": true
+        }
+      },
+      "independentlyObservedOwnedRootAbsent": true,
+      "observationBoundary": "root 실제부재는 독립 파일시스템 읽기로 확인. UID/inode/no-follow 삭제순서·pointer부재·process/container부재는 메인의 cleanup receipt 및 이전 실제실행 launcher 종료 근거를 연결한다. 호스트 전체 프로세스 부재나 모델/SDK 내용의 새전수검증으로 확대하지 않는다.",
+      "ownershipAndOrder": "UID501/inode172978173인 정확한root를 Git/remote바이트 보존 뒤 제거했다는 receipt. symlink외부대상 미추적 삭제, 기존모델/SDK/image 유지 범위."
+    },
+    "unchangedLimits": [
+      "최종159성공 p951971.303292ms/max2738.589334ms와28.7ms margin; 단일600관측",
+      "최대지연·초기선택창비용증가 및전체인과귀속한계 유지",
+      "resourceTrendPass=false/reviewRequired=true;무누수/P0완료아님",
+      "새120/controls전체복구/UI/출시 미실행",
+      "91 최초Linux fullarchive 소실 및92 최초실패/무효fixture provenance 유지"
+    ],
+    "historicalPending": "원 preflight/결과/로컬보존 addendum의 pending은 당시관측으로 유지하며 본후속완료를 연결한다. 미래마감commit hash를 실행소스로 소급하지 않는다."
   }
 }

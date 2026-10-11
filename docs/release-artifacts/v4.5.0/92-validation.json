@@ -1,6 +1,6 @@
 {
   "schema": "v4.5.0-task92-validation-v1",
-  "status": "FINAL600_PASS_LOCAL_BYTES_VERIFIED_CLEANUP_REMOTE_PENDING",
+  "status": "CATALOG_CONTENTION_COST_AND_FINAL600_COMPLETE_MEMORY_P0_OPEN",
   "scope": "Catalog 경합 작업 원인 분리·retention 검증 순회 비용 보완·기존600초 통합",
   "memoryP0": "OPEN_RELEASE_HOLD",
   "model": {
@@ -918,14 +918,45 @@
     "bytes": 23834238,
     "sha256": "47fa90f0bd4b3369cbc2904e9cc212ef7666d90b249ccb5283625d8c99ac8c89",
     "members": 521,
-    "byteReadback": "PASS"
+    "byteReadback": "PASS",
+    "localGitReadback": {
+      "commit": "cb79945d9096e6b4c373e34d43f187c1468e8b73",
+      "path": "docs/release-artifacts/v4.5.0/92-execution.tar.gz",
+      "blob": "15e38f331bf2a4ff97b61baba9e9c9bef512d378",
+      "bytes": 23834238,
+      "sha256": "47fa90f0bd4b3369cbc2904e9cc212ef7666d90b249ccb5283625d8c99ac8c89",
+      "verifiedPayloads": 520,
+      "newBlobCount": 27,
+      "newUncompressedBlobBytes": 52307729,
+      "largestNewBlobBytes": 26350232,
+      "notActualPushPackSize": true
+    },
+    "remoteByteReadback": {
+      "remoteHead": "cb79945d9096e6b4c373e34d43f187c1468e8b73",
+      "url": "https://raw.githubusercontent.com/dhseo90/MediaServer/cb79945d9096e6b4c373e34d43f187c1468e8b73/docs/release-artifacts/v4.5.0/92-execution.tar.gz",
+      "bytes": 23834238,
+      "sha256": "47fa90f0bd4b3369cbc2904e9cc212ef7666d90b249ccb5283625d8c99ac8c89",
+      "matchLocalGitBlob": true,
+      "method": "independent HTTPS raw commit/path streamed bytes; no copied archive",
+      "observedAt": "2026-10-11T11:47:39Z"
+    }
   },
   "cleanup": {
     "processesClosed": true,
     "udpClosed": true,
     "launcherGroupsAbsent": true,
     "linuxContainers": "removed after verified archive bytes",
-    "ownedRoot": "pending preservation before deletion",
+    "ownedRoot": {
+      "root": "/private/tmp/media-server-memory92-06m54kx3",
+      "uid": 501,
+      "inode": 172978173,
+      "entries": 3546,
+      "logicalFileBytes": 326131557,
+      "policy": "exact entry-owned root; symlinks not followed; original bytes verified in Git and remote first",
+      "removed": true,
+      "pointerAbsent": true,
+      "completedAt": "2026-10-11T11:48:30Z"
+    },
     "processCheck": {
       "scope": "exact owned root references and diagnostic/final server pids; calling ancestry excluded",
       "remaining": [],
@@ -942,9 +973,24 @@
     "위험수용"
   ],
   "remaining": [
-    "검증 원본 Git/remote 보존·소유 실행root 정리 마감",
-    "기존 최종120분과 메모리P0 종합판정; 이번 자동진입금지",
-    "출시·위험수용·PR/CI·병합·서명·Release 별도 미수행"
+    "기존 최종120분 및 메모리P0 종합판정; 이번에 자동실행하지 않음",
+    "위험수용·최종채택·PR/CI·병합·서명·Release 미수행"
   ],
-  "independentResult": "92-independent-review.json finalResultAddendum: scoped600 integration PASS; no release/P0 approval"
+  "independentResult": "92-independent-review.json finalResultAddendum: scoped600 integration PASS; no release/P0 approval",
+  "finalStatic": {
+    "gitDiffCheck": {
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "exit": 0,
+      "output": ""
+    },
+    "jsonParse": "PASS",
+    "currentBacklogLink": "PASS",
+    "historicalFailRecords": "untouched",
+    "productAfterFinalRun": "no changes",
+    "producerRepeatedAfterResultDocs": false
+  }
 }
