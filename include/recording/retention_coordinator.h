@@ -90,6 +90,7 @@ struct RetentionApplyResult {
     std::uint64_t reclaimed_bytes{0};
     std::size_t deleted_count{0};
     std::string last_error;
+    std::size_t protected_count{0};
 };
 
 struct RetentionAdmissionResult {
@@ -182,6 +183,7 @@ private:
         std::string channel_id;
     };
 
+    RetentionApplyResult ApplyPlan(const RetentionPlan&,std::int64_t,bool defer_protection);
     RetentionApplyResult RecoverPendingForChannel(std::int64_t deleted_at_ms,
                                                    const std::string& channel_id);
     std::uint64_t OutstandingReservationsLocked() const;

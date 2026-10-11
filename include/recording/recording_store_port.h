@@ -10,6 +10,9 @@
 
 namespace recording {
 
+// Protected is a pre-mutation rejection, never an I/O or authority failure.
+enum class RecordingDeletionAdmission { Accepted, Protected, Failed };
+
 class RecordingStorePort {
 public:
     virtual ~RecordingStorePort() = default;
@@ -21,6 +24,11 @@ public:
     virtual bool RequestDeletion(const std::string& segment_id,
                                  const std::string& reason,
                                  std::string* error) = 0;
+    virtual RecordingDeletionAdmission RequestDeletionForAdmission(
+        const std::string& id, const std::string& reason, std::string* error) {
+        return RequestDeletion(id,reason,error) ? RecordingDeletionAdmission::Accepted
+                                               : RecordingDeletionAdmission::Failed;
+    }
     virtual bool CompleteDeletion(const RecordingTombstoneV1& tombstone, std::string* error) = 0;
     virtual bool CompleteDeletionV2(const RecordingTombstoneV2&, std::string* error) {
         if(error)*error="V2 deletion unsupported";

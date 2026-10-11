@@ -277,6 +277,7 @@ public:
     std::vector<AnalysisObservationV2> QueryObservationsV2(const std::string& channel_id) const;
     // 내부 검색 관측 전용. epoch 미확정이면 locator를 추정하지 않는다.
     AnalysisObservationV2 ResolveObservationV2(AnalysisObservationV2 observation) const;
+    RecordingDeletionAdmission RequestDeletionForAdmission(const std::string&,const std::string&,std::string*) override;
     bool RequestDeletion(const std::string& segment_id,
                          const std::string& reason,
                          std::string* error) override;
@@ -507,8 +508,9 @@ private:
     bool CanWriteLocked(std::string* error) const;
     using GenerationDelta=std::set<std::pair<std::string,std::string>>;
     bool RegisteredMediaAbsentLocked(const std::string&,std::string*) const;
-    bool RevalidateRotatedMutationLocked(const RecordingMutationV1&,std::string*);
-    bool AppendGenerationLocked(RecordingMutationV1,std::string*,PreparedDerivedMutation*,bool acquire_hold=false);
+    bool RequestDeletionImpl(const std::string&,const std::string&,std::string*,bool*);
+    bool RevalidateRotatedMutationLocked(const RecordingMutationV1&,std::string*,bool* deletion_protected=nullptr);
+    bool AppendGenerationLocked(RecordingMutationV1,std::string*,PreparedDerivedMutation*,bool acquire_hold=false,bool* deletion_protected=nullptr);
     bool ProjectGenerationDeltaLocked(const GenerationDelta&,const RecordingGenerationRecoveryRow&,std::string*);
     bool CheckpointGenerationLocked(std::string*);
     bool ExportGenerationSnapshotLocked(const RecordingIdentityChainResult&,std::uint64_t,std::uint64_t,RecordingCatalogSnapshot*,std::string*) const;
@@ -574,7 +576,7 @@ private:
                              bool apply = true,GenerationDelta* delta=nullptr);
     // 내구 쓰기를 열지 않는 내부 검증 경계. 성공 결과는 재사용 가능한 권위 토큰이 아니다.
     bool ValidateMutationLocked(const RecordingMutationV1& mutation, std::string* error,PreparedDerivedMutation* prepared=nullptr);
-    bool AppendAndApplyLocked(RecordingMutationV1 mutation, std::string* error,PreparedDerivedMutation* prepared=nullptr);
+    bool AppendAndApplyLocked(RecordingMutationV1 mutation, std::string* error,PreparedDerivedMutation* prepared=nullptr,bool* deletion_protected=nullptr);
     bool OpenSqliteLocked(std::string* error);
     bool InitializeSqliteSchemaLocked(std::string* error);
     bool RebuildSqliteLocked(std::string* error);

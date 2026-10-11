@@ -600,6 +600,10 @@ RetentionPlan RetentionCoordinator::Plan(const RetentionSnapshot& snapshot,
 
 RetentionApplyResult RetentionCoordinator::Apply(const RetentionPlan& plan,
                                                  std::int64_t deleted_at_ms) {
+    return ApplyPlan(plan,deleted_at_ms,false);
+}
+RetentionApplyResult RetentionCoordinator::ApplyPlan(const RetentionPlan& plan,
+    std::int64_t deleted_at_ms,bool defer_protection) {
     std::lock_guard apply_lock(apply_mu_);
     RetentionApplyResult result;
     if(!plan.snapshot_authoritative){result.ok=false;result.last_error="snapshot 미확인 삭제계획 거부";return result;}
@@ -620,7 +624,15 @@ RetentionApplyResult RetentionCoordinator::Apply(const RetentionPlan& plan,
                 result.ok=false;result.last_error="V2 등록 경로/파일 결박 거부";return result;
             }
         }
-        if (!store_.RequestDeletion(deletion.candidate.Id(), reason, &error)) {
+        const auto outcome=defer_protection
+            ?store_.RequestDeletionForAdmission(deletion.candidate.Id(),reason,&error)
+            :(store_.RequestDeletion(deletion.candidate.Id(),reason,&error)
+                ?RecordingDeletionAdmission::Accepted:RecordingDeletionAdmission::Failed);
+        if(outcome==RecordingDeletionAdmission::Protected) {
+            ++result.protected_count; // no pending, unlink, tombstone or reclaimed bytes
+            continue;
+        }
+        if (outcome!=RecordingDeletionAdmission::Accepted) {
             result.ok = false;
             result.last_error = error.empty() ? "삭제 요청 journal 기록 실패" : error;
             return result;
@@ -901,7 +913,7 @@ RetentionAdmissionResult RetentionCoordinator::AdmitContinuousWrite(
             }),
         admission_snapshot.candidates.end());
     const auto plan = Plan(admission_snapshot, request);
-    const auto applied = Apply(plan, now_ms);
+    const auto applied = ApplyPlan(plan, now_ms, true);
     std::uint64_t refreshed_physical_free = free_bytes;
     std::string refresh_error;
     bool refreshed = true;
@@ -909,12 +921,37 @@ RetentionAdmissionResult RetentionCoordinator::AdmitContinuousWrite(
         refreshed = free_space_provider_ &&
                     free_space_provider_(&refreshed_physical_free, &refresh_error);
     }
-    const std::uint64_t refreshed_free = refreshed_physical_free > inflight_bytes
-                                             ? refreshed_physical_free - inflight_bytes
+    bool quota_satisfied=plan.continuous_quota_satisfied;
+    std::uint64_t current_inflight=inflight_bytes;
+    if(applied.ok&&applied.protected_count) {
+        // A planned victim acquired protection before mutation. Projected reclaim is
+        // no longer evidence of capacity; charge every actual remaining byte.
+        const auto current=ReadSnapshot();
+        refreshed=refreshed&&current.authoritative;
+        if(!current.authoritative)refresh_error=current.error;
+        std::uint64_t charged=expected_segment_bytes;
+        for(const auto& candidate:current.candidates) {
+            if(candidate.Channel()==channel_id&&candidate.Class()==RecordingRetentionClass::Continuous&&
+               (candidate.Lifecycle()==RecordingLifecycle::Finalized||
+                candidate.Lifecycle()==RecordingLifecycle::DeletionPending||candidate.Lifecycle()==RecordingLifecycle::Corrupt))
+                charged=SaturatingAdd(charged,candidate.Size());
+        }
+        quota_satisfied=charged<=policy.continuous_max_bytes;
+        current_inflight=SaturatingAdd(OutstandingReservationsLocked(),DurableOutstanding(current));
+        if(refreshed)refreshed=free_space_provider_&&free_space_provider_(&refreshed_physical_free,&refresh_error);
+        TraceRecordingState(channel_id,"admission-protection-deferred",
+            "protected="+std::to_string(applied.protected_count)+
+            " deleted="+std::to_string(applied.deleted_count)+
+            " actualPlusWrite="+std::to_string(charged)+
+            " quota="+std::to_string(policy.continuous_max_bytes)+
+            " reservations="+std::to_string(current_inflight));
+    }
+    const std::uint64_t refreshed_free = refreshed_physical_free > current_inflight
+                                             ? refreshed_physical_free - current_inflight
                                              : 0;
     const std::uint64_t required_bytes = SaturatingAdd(
         options_.reserved_free_bytes, expected_segment_bytes);
-    const bool allowed = applied.ok && refreshed && plan.continuous_quota_satisfied &&
+    const bool allowed = applied.ok && refreshed && quota_satisfied &&
                          refreshed_free >= required_bytes;
     if (allowed) inflight_reservations_[channel_id] = {expected_segment_bytes, 0, channel_id};
     bool was_blocked = false;
@@ -934,6 +971,14 @@ RetentionAdmissionResult RetentionCoordinator::AdmitContinuousWrite(
                                                   : "삭제 가능한 segment로 disk reserve를 복구할 수 없음"));
     }
     if(!allowed||was_blocked)TraceRecordingState(channel_id,allowed?"admission-recovered":"admission-plan-rejected",allowed?"ok":ChannelStatus(channel_id).last_error);
+    if(!allowed)TraceRecordingState(channel_id,"admission-capacity",
+        "physicalFree="+std::to_string(refreshed_physical_free)+
+        " reservations="+std::to_string(current_inflight)+
+        " required="+std::to_string(required_bytes)+
+        " protected="+std::to_string(applied.protected_count)+
+        " deleted="+std::to_string(applied.deleted_count)+
+        " quotaOk="+std::to_string(quota_satisfied)+
+        " refreshOk="+std::to_string(refreshed));
     return {allowed, allowed && was_blocked, allowed ? expected_segment_bytes : 0,
             allowed ? std::string("ok") : ChannelStatus(channel_id).last_error};
 }

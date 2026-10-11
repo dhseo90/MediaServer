@@ -1,5 +1,6 @@
 // 파일 용도: v4.1.0 S02 Recorder subscriber와 segment writer의 핵심 계약을 검증한다.
 // 동작 요약: opt-in 설정, 독립 queue, keyframe 경계, epoch 전환, atomic finalize를 확인한다.
+#include "recording_writer_test_isolation.h"
 #include "core/recording_runtime_config_data.h"
 #include "core/shared_stream.h"
 #include "recording/gstreamer_segment_writer.h"
@@ -125,6 +126,7 @@ std::vector<media::Packet> EncodeFixture(media::CodecId codec, media::StreamDesc
 int main(int argc, char** argv) {
     if (argc != 2) return 2;
     const std::filesystem::path root(argv[1]);
+    if(!RecordingWriterTestIsolation(root)){std::cerr<<"[isolation] rejected before registry/config initialization\n";return 78;}
     core::RecordingRuntimeConfigData config;
     std::string error;
     Expect(core::ValidateRecordingRuntimeConfig(config, &error), "기본 녹화 설정 유효");

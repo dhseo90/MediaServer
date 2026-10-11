@@ -8,9 +8,52 @@ ROOT_DIR="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 BUILD_DIR="${MEDIA_SERVER_VERIFY_V410_RECORDING_RECORDER_BUILD_DIR:-/tmp/media_server_v410_recording_recorder-$$}"
 CXX_BIN="${CXX:-c++}"
 
-cleanup() { node -e 'const f=require("fs"),p=require("path"),r=process.argv[1];function size(x){const s=f.lstatSync(x);return s.isDirectory()?f.readdirSync(x).reduce((n,k)=>n+size(p.join(x,k)),0):s.size}const bytes=f.existsSync(r)?size(r):0;f.rmSync(r,{recursive:true,force:true});if(f.existsSync(r))process.exit(1);console.log(`[cleanup] path=${r} bytes=${bytes} removed=true`)' "$BUILD_DIR"; }
+# Reject an existing/aliased root before creating anything or arming cleanup.
+umask 077
+BUILD_DIR="$(python3 -B - "$SCRIPT_DIR" "$BUILD_DIR" <<'PYROOT'
+import os, pathlib, sys
+sys.path.insert(0, sys.argv[1])
+from recording_native_isolation import environment
+p = pathlib.Path(sys.argv[2])
+# /tmp is a platform alias; resolve only its existing parent, never an existing target.
+if not p.is_absolute() or p.exists() or p.is_symlink():
+    raise SystemExit('exclusive test root required')
+p = p.parent.resolve(strict=True) / p.name
+base = pathlib.Path('/tmp').resolve()
+if base not in p.parents or not p.relative_to(base).parts[0].startswith(('media-server-', 'media_server_')):
+    raise SystemExit('test namespace required')
+parent = p.parent
+while parent != base:
+    st = parent.lstat()
+    if not parent.is_dir() or st.st_uid != os.getuid() or st.st_mode & 0o022:
+        raise SystemExit('unsafe parent')
+    parent = parent.parent
+p.mkdir(mode=0o700)
+try:
+    environment(p)
+except Exception:
+    # Preserve preparation evidence; never recurse on an unvalidated root.
+    raise
+print(p)
+PYROOT
+)"
+TASK_ROOT_ID="$(python3 -B -c 'import os,sys,json;s=os.lstat(sys.argv[1]);print(json.dumps([s.st_dev,s.st_ino,s.st_uid]))' "$BUILD_DIR")"
+cleanup() {
+ local prior=$?
+ python3 -B - "$BUILD_DIR" "$TASK_ROOT_ID" <<'PYCLEAN'
+import os, pathlib, sys, json, shutil, stat
+p=pathlib.Path(sys.argv[1]);s=p.lstat()
+if not stat.S_ISDIR(s.st_mode) or p.resolve()!=p or [s.st_dev,s.st_ino,s.st_uid]!=json.loads(sys.argv[2]) or s.st_uid!=os.getuid():
+    raise SystemExit('cleanup identity mismatch')
+shutil.rmtree(p)
+if p.exists(): raise SystemExit('cleanup remains')
+print('[cleanup] owned writer root removed=true')
+PYCLEAN
+ local cleaned=$?
+ ((cleaned==0)) || return "$cleaned"
+ return "$prior"
+}
 trap cleanup EXIT
-mkdir -p "${BUILD_DIR}"
 
 GST_CFLAGS=()
 GST_LIBS=()
@@ -32,6 +75,8 @@ fi
   "${ROOT_DIR}/src/recording/recording_finalize_recovery.cpp" "${ROOT_DIR}/src/recording/recording_finalize_ticket.cpp" "${ROOT_DIR}/src/recording/recording_file_evidence.cpp" \
   "${ROOT_DIR}/src/recording/recording_media_inspector.cpp" \
   "${ROOT_DIR}/src/recording/recording_catalog.cpp" \
+  "${ROOT_DIR}/src/recording/recording_catalog_snapshot.cpp" \
+  "${ROOT_DIR}/src/recording/recording_identity_shard.cpp" \
   "${ROOT_DIR}/src/recording/recording_journal.cpp" \
   "${ROOT_DIR}/src/recording/retention_coordinator.cpp" \
   "${ROOT_DIR}/src/recording/recording_derived_job.cpp" "${ROOT_DIR}/src/recording/recording_derived_job_ready.cpp" "${ROOT_DIR}/src/recording/recording_contracts.cpp" \
@@ -40,9 +85,7 @@ fi
   "${GST_LIBS[@]}" -lz \
   -o "${BUILD_DIR}/recording_segment_writer_smoke"
 
-MEDIA_SERVER_SOURCE_REGISTRY="${BUILD_DIR}/sources.json" \
-MEDIA_SERVER_PUBLISHED_VIEWS="${BUILD_DIR}/views.json" \
-"${BUILD_DIR}/recording_segment_writer_smoke" "${BUILD_DIR}"
+python3 "${SCRIPT_DIR}/recording_native_isolation.py" "$BUILD_DIR" -- "${BUILD_DIR}/recording_segment_writer_smoke" "$BUILD_DIR"
 
 grep -q 'currentRecordingPolicy = source.recording' \
   "${ROOT_DIR}/src/ingress/product_ui_ops_sources_script.cpp"

@@ -225,6 +225,78 @@ int main(int argc,char** argv) {
         {std::fstream file(s.root/"unknown.mp4",std::ios::binary|std::ios::in|std::ios::out);file.put('X');}
         const auto changed=InspectRecordingPhysicalMediaFd(fd,Descriptor(unknown));const bool change_rejected=changed.state!=MediaInspectionState::Healthy&&::lseek(fd,0,SEEK_CUR)==7&&::fcntl(fd,F_GETFD)>=0;::close(fd);
         Check(inspected.state==MediaInspectionState::Healthy&&preserved&&change_rejected,"B21 borrowed fd inspection preserves caller ownership and detects file changes");
+        {
+            Store race(root/"admission-protection-race");
+            const auto protected_media=race.Add("planned-first");race.Add("planned-second");
+            std::size_t snapshots=0,unlinks=0;bool acquired=false;
+            RetentionCoordinator coordinator(race.catalog,[&]{
+                auto snapshot=race.catalog.RetentionSnapshot();
+                // RecoverPending, admission Plan, then Apply: acquire after the fixed Plan.
+                if(++snapshots==3){Require(race.catalog.AdjustHoldCount("planned-first",1,&race.error),race.error);acquired=true;}
+                return snapshot;
+            },[](auto* bytes,auto*){*bytes=100000000;return true;},[&](const auto& path,auto* error){
+                ++unlinks;return RemoveContainedMediaFile(race.root,path,error,{},true);
+            },{0,1,race.root});
+            RetentionPolicy policy;policy.continuous_max_bytes=protected_media.size_bytes*2;
+            policy.continuous_max_age_ms=1;policy.event_max_bytes=100000000;
+            Require(coordinator.UpdateChannelPolicy("channel",policy,&race.error),race.error);
+            const auto admitted=coordinator.AdmitContinuousWrite("channel",protected_media.size_bytes,10000);
+            Check(acquired&&admitted.allowed&&unlinks==1&&race.Hold("planned-first")==1&&
+                  race.catalog.SegmentLifecycleV2("planned-first")==RecordingLifecycle::Finalized&&
+                  std::filesystem::exists(race.root/"planned-first.mp4")&&race.catalog.IsDeletedSegmentId("planned-second"),
+                  "R94-B01 admission retains newly held victim and uses actual remaining capacity after other deletion");
+            if(!admitted.allowed)std::cout<<"[diagnostic] R94-B01 admission: "<<admitted.message<<'\n';
+            coordinator.CompleteContinuousWrite("channel",0);
+            Require(race.catalog.AdjustHoldCount("planned-first",-1,&race.error),race.error);
+        }
+        for(int failure_case:{0,1,2,3}) {
+            Store race(root/("admission-guard-"+std::to_string(failure_case)));
+            const auto first=race.Add("first");race.Add("second");
+            std::size_t snapshots=0,free_calls=0,unlinks=0;bool held=false;
+            RetentionCoordinator coordinator(race.catalog,[&]{
+                auto snapshot=race.catalog.RetentionSnapshot();++snapshots;
+                if(snapshots==3) {
+                    Require(race.catalog.AdjustHoldCount("first",1,&race.error),race.error);held=true;
+                    if(failure_case==0)Require(race.catalog.AdjustHoldCount("second",1,&race.error),race.error);
+                }
+                if(failure_case==3&&snapshots>=6){snapshot.authoritative=false;snapshot.error="injected-post-cleanup-authority";}
+                return snapshot;
+            },[&](auto* bytes,auto* error){
+                ++free_calls;*bytes=100000000;
+                if(failure_case==1&&free_calls>=2){*error="injected-refresh-free";return false;}return true;
+            },[&](const auto& path,auto* error){
+                ++unlinks;if(failure_case==2){*error="injected-unlink";return false;}
+                return RemoveContainedMediaFile(race.root,path,error,{},true);
+            },{0,1,race.root});
+            RetentionPolicy policy;policy.continuous_max_bytes=first.size_bytes*2;policy.continuous_max_age_ms=1;policy.event_max_bytes=100000000;
+            Require(coordinator.UpdateChannelPolicy("channel",policy,&race.error),race.error);
+            const auto denied=coordinator.AdmitContinuousWrite("channel",first.size_bytes,10000);
+            const bool failure_expected=failure_case==0?unlinks==0:
+                failure_case==1?denied.message=="injected-refresh-free":
+                failure_case==2?denied.message=="injected-unlink":denied.message=="injected-post-cleanup-authority";
+            Check(held&&!denied.allowed&&denied.reserved_bytes==0&&failure_expected&&
+                  race.Hold("first")==1&&std::filesystem::exists(race.root/"first.mp4")&&
+                  race.catalog.SegmentLifecycleV2("first")==RecordingLifecycle::Finalized,
+                  "R94-B02 protected quota shortage and free/unlink/authority failures remain hard admission failures");
+            if(!failure_expected)std::cout<<"[diagnostic] R94-B02 case="<<failure_case<<" message="<<denied.message<<'\n';
+            Require(race.catalog.AdjustHoldCount("first",-1,&race.error),race.error);
+            if(failure_case==0)Require(race.catalog.AdjustHoldCount("second",-1,&race.error),race.error);
+        }
+        {
+            Store typed(root/"admission-typed");typed.Add("pinned",false,true);typed.Add("held");
+            Require(typed.catalog.AdjustHoldCount("held",1,&typed.error),typed.error);
+            const auto pin=typed.catalog.RequestDeletionForAdmission("pinned","continuous-capacity",&typed.error);
+            const auto hold_result=typed.catalog.RequestDeletionForAdmission("held","continuous-capacity",&typed.error);
+            const auto bad_reason=typed.catalog.RequestDeletionForAdmission("held","invalid-reason",&typed.error);
+            const auto absent=typed.catalog.RequestDeletionForAdmission("absent","continuous-capacity",&typed.error);
+            Require(typed.catalog.AdjustHoldCount("held",-1,&typed.error),typed.error);
+            const auto released=typed.catalog.RequestDeletionForAdmission("held","continuous-capacity",&typed.error);
+            LegacyPort legacy;const auto legacy_failure=legacy.RequestDeletionForAdmission("x","continuous-capacity",&typed.error);
+            Check(pin==RecordingDeletionAdmission::Protected&&hold_result==RecordingDeletionAdmission::Protected&&
+                  bad_reason==RecordingDeletionAdmission::Failed&&absent==RecordingDeletionAdmission::Failed&&
+                  released==RecordingDeletionAdmission::Accepted&&legacy_failure==RecordingDeletionAdmission::Failed,
+                  "R94-B03 only actual pre-mutation protection is typed; bad reason absent and legacy failure stay failures");
+        }
         {std::ofstream metadata(root/"gst-off-segment.json");metadata<<SerializeRecordingSegmentV2(unknown);}
 #else
         {

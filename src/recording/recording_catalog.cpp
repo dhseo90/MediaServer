@@ -2122,7 +2122,7 @@ bool RecordingCatalog::PoisonGenerationLocked(std::string* error) {
 }
 // Auto rotation can release the Catalog lock. Runtime-only admission must be
 // checked again; replay intentionally retains its historical application rules.
-bool RecordingCatalog::RevalidateRotatedMutationLocked(const RecordingMutationV1& m,std::string* error) {
+bool RecordingCatalog::RevalidateRotatedMutationLocked(const RecordingMutationV1& m,std::string* error,bool* deletion_protected) {
     if(!CanWriteLocked(error))return false;
     const auto protected_id=[&](bool pin){
         const auto hold=hold_counts_.find(m.entity_id);
@@ -2137,10 +2137,16 @@ bool RecordingCatalog::RevalidateRotatedMutationLocked(const RecordingMutationV1
     };
     if(m.mutation_type==RecordingMutationType::DeletionRequested||m.mutation_type==RecordingMutationType::CorruptionDetected){
         const auto v=segments_.find(m.entity_id);
-        if(v==segments_.end()||v->second.lifecycle!=RecordingLifecycle::Finalized||
-           protected_id(m.mutation_type==RecordingMutationType::DeletionRequested))return Fail(error,"rotated V1 lifecycle/protection changed");
+        if(v==segments_.end()||v->second.lifecycle!=RecordingLifecycle::Finalized)return Fail(error,"rotated V1 lifecycle changed");
+        if(protected_id(m.mutation_type==RecordingMutationType::DeletionRequested)) {
+            if(deletion_protected)*deletion_protected=true;
+            return Fail(error,"rotated V1 protection changed");
+        }
     }
-    if(m.mutation_type==RecordingMutationType::SegmentV2State&&protected_id(true))return Fail(error,"rotated V2 protection changed");
+    if(m.mutation_type==RecordingMutationType::SegmentV2State&&protected_id(true)) {
+        if(deletion_protected)*deletion_protected=true;
+        return Fail(error,"rotated V2 protection changed");
+    }
     if(m.mutation_type==RecordingMutationType::ObservationV2Put){
         const auto json=ObjectField(m.payload_json,"observation");AnalysisObservationV2 original;
         if(!json||!ParseAnalysisObservationV2(*json,&original,error))return false;
@@ -2168,7 +2174,7 @@ bool RecordingCatalog::RevalidateRotatedMutationLocked(const RecordingMutationV1
     }
     return true;
 }
-bool RecordingCatalog::AppendGenerationLocked(RecordingMutationV1 mutation,std::string* error,PreparedDerivedMutation* prepared,bool acquire_hold) {
+bool RecordingCatalog::AppendGenerationLocked(RecordingMutationV1 mutation,std::string* error,PreparedDerivedMutation* prepared,bool acquire_hold,bool* deletion_protected) {
 #if MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND && MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
     if(!CanWriteLocked(error)||!generation_backend_)return false;
     mutation.mutation_id=mutation.mutation_id.empty()?NextMutationId():mutation.mutation_id;
@@ -2178,7 +2184,7 @@ bool RecordingCatalog::AppendGenerationLocked(RecordingMutationV1 mutation,std::
     const bool released=rotate&&!generation_checkpoint_in_progress_;
     if(rotate&&!CheckpointGenerationLocked(error))return false;
     if(released&&((IsDerivedJobMutation(mutation.mutation_type)&&service_epoch!=derived_service_epoch_)||
-       !RevalidateRotatedMutationLocked(mutation,error)))return Fail(error,"B rotated mutation current protection changed");
+       !RevalidateRotatedMutationLocked(mutation,error,deletion_protected)))return Fail(error,"B rotated mutation current protection changed");
     if(released&&prepared&&!ApplyDerivedJobMutationLocked(mutation,error,false,nullptr))return false;
     if(!ValidateMutationLocked(mutation,error,prepared))return false;
     std::uint64_t held=0;
@@ -2231,7 +2237,7 @@ bool RecordingCatalog::AppendGenerationLocked(RecordingMutationV1 mutation,std::
     }catch(const std::exception& exception){std::cerr<<"[recording] durable apply exception: "<<std::string(exception.what()).substr(0,256)<<'\n';Fail(error,"B durable 후 적용/투영 예외");return PoisonGenerationLocked(error);}
     catch(...){Fail(error,"B durable 후 적용/투영 예외");return PoisonGenerationLocked(error);}
 #else
-    (void)mutation;(void)prepared;(void)acquire_hold;return Fail(error,"B append unsupported");
+    (void)mutation;(void)prepared;(void)acquire_hold;(void)deletion_protected;return Fail(error,"B append unsupported");
 #endif
 }
 bool RecordingCatalog::ReserveRecordingOrder(const std::string& store,const std::string& request,
@@ -2338,10 +2344,10 @@ bool RecordingCatalog::ProjectGenerationDeltaLocked(const GenerationDelta& delta
 #endif
 }
 
-bool RecordingCatalog::AppendAndApplyLocked(RecordingMutationV1 mutation, std::string* error,PreparedDerivedMutation* prepared) {
+bool RecordingCatalog::AppendAndApplyLocked(RecordingMutationV1 mutation, std::string* error,PreparedDerivedMutation* prepared,bool* deletion_protected) {
     recording::latency::Scope latency_scope(recording::latency::Operation::Append,recording::latency::Source::Catalog,__LINE__,false);
     if(!CanWriteLocked(error))return false;
-    if(generation_backend_)return AppendGenerationLocked(std::move(mutation),error,prepared);
+    if(generation_backend_)return AppendGenerationLocked(std::move(mutation),error,prepared,false,deletion_protected);
     if(prepared&&!PreparedDerivedMatchesLocked(mutation,*prepared,false,error))return false;
     mutation.mutation_id = mutation.mutation_id.empty() ? NextMutationId() : mutation.mutation_id;
     mutation.occurred_at_ms = mutation.occurred_at_ms == 0 ? NowMs() : mutation.occurred_at_ms;
@@ -3347,24 +3353,39 @@ bool RecordingCatalog::PutObservation(const AnalysisObservationV1& observation, 
     return AppendAndApplyLocked(std::move(mutation), error);
 }
 
-bool RecordingCatalog::RequestDeletion(const std::string& segment_id,
+bool RecordingCatalog::RequestDeletion(const std::string& id,const std::string& reason,std::string* error) {
+    return RequestDeletionImpl(id,reason,error,nullptr);
+}
+RecordingDeletionAdmission RecordingCatalog::RequestDeletionForAdmission(
+    const std::string& id,const std::string& reason,std::string* error) {
+    bool protection=false;
+    if(RequestDeletionImpl(id,reason,error,&protection))return RecordingDeletionAdmission::Accepted;
+    return protection?RecordingDeletionAdmission::Protected:RecordingDeletionAdmission::Failed;
+}
+bool RecordingCatalog::RequestDeletionImpl(const std::string& segment_id,
                                        const std::string& reason,
-                                       std::string* error) try {
+                                       std::string* error,bool* deletion_protected) try {
     recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__,false,__func__);
+    if(!opened_||!CanWriteLocked(error))return false;
     const auto v2=segments_v2_.find(segment_id);
     if(v2!=segments_v2_.end()) {
-        if(!opened_||!CanWriteLocked(error))return false;
         RecordingSegmentStateV2 state;state.segment_id=segment_id;
         state.lifecycle=RecordingLifecycle::DeletionPending;state.reason=reason;
         const auto payload=SerializeRecordingSegmentStateV2(state);
         const auto effective=EffectiveLifecycleV2Locked(segment_id);
-        if(payload.empty()||v2->second.pinned||hold_counts_.count(segment_id)||DerivedJobProtectsLocked(segment_id))return Fail(error,"V2 삭제 보호/사유 거부");
+        if(payload.empty())return Fail(error,"V2 삭제 사유 거부");
+        if(effective!=RecordingLifecycle::Finalized&&effective!=RecordingLifecycle::DeletionPending&&
+           !(effective==RecordingLifecycle::Corrupt&&reason=="manual-corrupt-cleanup"))return Fail(error,"V2 삭제 전이 거부");
+        if(v2->second.pinned||hold_counts_.count(segment_id)||DerivedJobProtectsLocked(segment_id)) {
+            if(deletion_protected)*deletion_protected=true;
+            return Fail(error,"V2 삭제 보호 거부");
+        }
         if(effective==RecordingLifecycle::DeletionPending){const auto prior=deletion_reasons_.find(segment_id);return prior==deletion_reasons_.end()?reason.empty():prior->second==reason;}
         if(effective!=RecordingLifecycle::Finalized &&
            !(effective==RecordingLifecycle::Corrupt&&reason=="manual-corrupt-cleanup"))return Fail(error,"V2 삭제 전이 거부");
         RecordingMutationV1 mutation;mutation.mutation_type=RecordingMutationType::SegmentV2State;
         mutation.entity_id=segment_id;mutation.payload_json=payload;
-        return AppendAndApplyLocked(std::move(mutation),error);
+        return AppendAndApplyLocked(std::move(mutation),error,nullptr,deletion_protected);
     }
     const auto segment = segments_.find(segment_id);
     if (segment == segments_.end() ||
@@ -3373,6 +3394,7 @@ bool RecordingCatalog::RequestDeletion(const std::string& segment_id,
     }
     const auto hold = hold_counts_.find(segment_id);
     if (segment->second.pinned || (hold != hold_counts_.end() && hold->second > 0)) {
+        if(deletion_protected)*deletion_protected=true;
         return Fail(error, "pin 또는 hold가 있는 segment는 삭제 요청할 수 없음");
     }
     for (const auto& [_, link] : event_links_) {
@@ -3383,6 +3405,7 @@ bool RecordingCatalog::RequestDeletion(const std::string& segment_id,
             link.ordered_overlaps.begin(), link.ordered_overlaps.end(),
             [&](const auto& overlap) { return overlap.segment_id == segment_id; });
         if (is_output || is_source) {
+            if(deletion_protected)*deletion_protected=true;
             return Fail(error, "terminal 미완료 event link의 source/output은 삭제 요청할 수 없음");
         }
     }
@@ -3390,7 +3413,7 @@ bool RecordingCatalog::RequestDeletion(const std::string& segment_id,
     mutation.mutation_type = RecordingMutationType::DeletionRequested;
     mutation.entity_id = segment_id;
     mutation.payload_json = "{\"reason\":\"" + Escape(reason) + "\"}";
-    return AppendAndApplyLocked(std::move(mutation), error);
+    return AppendAndApplyLocked(std::move(mutation),error,nullptr,deletion_protected);
 } catch(const CatalogHistoryError& failure) { return Fail(error,failure.what()); }
   catch(const RecordingResourceUnavailable& failure) { return Fail(error,failure.what()); }
 

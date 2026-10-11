@@ -1233,7 +1233,7 @@ void CheckpointCaptureFailure(const std::filesystem::path& root) {
     Need(j.Finish(&error));RecordingJournal reopened(Options(root));Need(reopened.Open(&error));RecordingCatalog restored(reopened,CO(root));Need(restored.Open(&error));Need(reopened.Finish(&error));
 }
 
-void CheckpointAutoProtection(const std::filesystem::path& root) {
+void CheckpointAutoProtection(const std::filesystem::path& root,bool deletion=false) {
     Actual(root);auto options=Options(root);options.generation_limits.identity_unique_ids=10000;options.generation_limits.active_bytes=2*1024*1024;options.generation_limits.identity_shard_bytes=8*1024*1024;
     RecordingJournal j(options);Need(j.Open(&error));RecordingCatalog c(j,CO(root));Need(c.Open(&error));
     RecordingOrderReservationV1 order;unsigned n=0;
@@ -1242,8 +1242,11 @@ void CheckpointAutoProtection(const std::filesystem::path& root) {
         Need(n<10000);
     }
     cut_probe_entered=false;cut_probe_release=false;bool changed=false;std::string detail;
+    RecordingDeletionAdmission deletion_result=RecordingDeletionAdmission::Failed;
     std::thread mutation([&]{RecordingGenerationTransactionProbe::CheckpointHook(HoldCheckpointCut);
-        changed=c.MarkSegmentCorrupt("segment","missing-media",&detail);RecordingGenerationTransactionProbe::CheckpointHook(nullptr);});
+        if(deletion){deletion_result=c.RequestDeletionForAdmission("segment","continuous-capacity",&detail);changed=deletion_result==RecordingDeletionAdmission::Accepted;}
+        else changed=c.MarkSegmentCorrupt("segment","missing-media",&detail);
+        RecordingGenerationTransactionProbe::CheckpointHook(nullptr);});
     bool entered=false;{std::unique_lock<std::mutex> lock(cut_probe_mu);entered=cut_probe_cv.wait_for(lock,std::chrono::seconds(3),[]{return cut_probe_entered;});}
     auto request=std::async(std::launch::async,[&]{std::string e;return c.AdjustHoldCount("segment",1,&e);});
     const bool ready=request.wait_for(std::chrono::milliseconds(250))==std::future_status::ready;
@@ -1251,6 +1254,7 @@ void CheckpointAutoProtection(const std::filesystem::path& root) {
     const bool held=request.get();
     Check("MEM82-C03",entered&&ready&&held&&!changed&&c.FindSegmentById("segment")->lifecycle==RecordingLifecycle::Finalized,
         "automatic rotation unlocks and revalidates new playback hold before destructive mutation");
+    if(deletion)Check("R94-B04",deletion_result==RecordingDeletionAdmission::Protected,"automatic rotation protection is typed before any deletion append");
     Need(c.AdjustHoldCount("segment",-1,&error));Need(j.Finish(&error));
 }
 void CheckpointStop(const std::filesystem::path& root) {
@@ -1587,7 +1591,7 @@ int main(int argc,char** argv) {
         if(argc==3&&std::string(argv[2])=="history-large"){LargeOwnedRows(root);return failures?1:0;}
         if(argc==3&&std::string(argv[2])=="history-index"){HistoryIndex(root/"history-index");return failures?1:0;}
         if(argc==3&&std::string(argv[2])=="history-product"){HistoryProduct(root/"history-product");CatalogConsumerQuota(root/"consumer-quota");return failures?1:0;}
-        if(argc==3&&std::string(argv[2])=="concurrency"){CheckpointConcurrentCut(root/"concurrency");CheckpointCaptureFailure(root/"capture-failure");CheckpointMixedSuffix(root/"mixed-suffix");CheckpointServiceRevoke(root/"service-revoke");CheckpointAdmissionRaces(root/"admission-races");CheckpointSuffixRecovery(root/"suffix-recovery");CheckpointAutoProtection(root/"auto-protection");CheckpointStop(root/"stop");return failures?1:0;}
+        if(argc==3&&std::string(argv[2])=="concurrency"){CheckpointConcurrentCut(root/"concurrency");CheckpointCaptureFailure(root/"capture-failure");CheckpointMixedSuffix(root/"mixed-suffix");CheckpointServiceRevoke(root/"service-revoke");CheckpointAdmissionRaces(root/"admission-races");CheckpointSuffixRecovery(root/"suffix-recovery");CheckpointAutoProtection(root/"auto-protection");CheckpointAutoProtection(root/"auto-deletion-protection",true);CheckpointStop(root/"stop");return failures?1:0;}
         IdentityResidency(root/"identity-residency");
         if(argc==3)return failures?1:0;
         CatalogConsumerQuota(root/"consumer-quota");ExportValueBoundary(root/"export-values");StreamBoundary(root/"stream");StreamIdentityBoundaries(root/"stream-identity");RecordingGenerationTransactionProbe::StreamFailures(root/"stream-failures");Rotation(root/"rotate");ObserverRace(root/"observer-race");Failures(root/"failures");Cost(root/"cost");Admission(root/"admission");Threshold(root/"threshold");Limits(root/"limits");Jobs(root/"jobs");SQL_CHECKPOINT_CASES::Run(root);

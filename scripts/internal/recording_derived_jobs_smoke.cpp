@@ -49,7 +49,9 @@ std::string SqlJob(const std::filesystem::path& path) {
        sqlite3_prepare_v2(db,"SELECT payload_json FROM recording_derived_jobs",-1,&stmt,nullptr)==SQLITE_OK&&sqlite3_step(stmt)==SQLITE_ROW) {
         const auto* value=sqlite3_column_text(stmt,0);if(value)result=reinterpret_cast<const char*>(value);
     }
-    if(stmt)sqlite3_finalize(stmt);if(db)sqlite3_close(db);return result;
+    if(stmt)sqlite3_finalize(stmt);
+    if(db)sqlite3_close(db);
+    return result;
 }
 std::pair<int,int> Extended(const std::filesystem::path& root,const DerivedSourceEvidence& source,
                           const DerivedRecordingSelection& selection,const DerivedJobIntentV1& job) {
@@ -99,7 +101,8 @@ std::pair<int,int> Extended(const std::filesystem::path& root,const DerivedSourc
         if(!built)std::cout<<"[detail] J16 "<<error<<'\n';
     }
     {
-        Store s(root/"retry");s.Add(source);auto coordinator=s.Coordinator();Require(coordinator.UpdateChannelPolicy("channel",{100000,100000,100000,100000},&error),error);
+        Store s(root/"retry");s.Add(source);bool deletion=false;
+        {auto coordinator=s.Coordinator();Require(coordinator.UpdateChannelPolicy("channel",{100000,100000,100000,100000},&error),error);
         Require(coordinator.AdmitDerivedJob(*s.catalog,job,10).created,"첫 intent");const auto count=s.journal.Replay().mutations.size();
         const auto retry=coordinator.AdmitDerivedJob(*s.catalog,later,100);
         auto budget=later;budget.reserved_bytes=4097;auto path=later;path.outputs[0].final_relpath="other.ts";
@@ -111,7 +114,8 @@ std::pair<int,int> Extended(const std::filesystem::path& root,const DerivedSourc
         const bool held=s.catalog->AdjustHoldCount("segment",1,&error)&&s.Hold("segment")==2&&
             s.catalog->AdjustHoldCount("segment",-1,&error)&&s.Hold("segment")==1&&!s.catalog->AdjustHoldCount("segment",-1,&error);
         RecordingTombstoneV2 tomb;tomb.tombstone_id="tomb";tomb.segment=source.segment;tomb.deletion_reason="continuous-capacity";tomb.deleted_at_ms=20;
-        check(held&&!s.catalog->RequestDeletion("segment","continuous-capacity",&error)&&!s.catalog->MarkSegmentCorrupt("segment","checksum-mismatch",&error)&&
+        check(held&&s.catalog->RequestDeletionForAdmission("segment","continuous-capacity",&error)==RecordingDeletionAdmission::Protected&&
+              !s.catalog->RequestDeletion("segment","continuous-capacity",&error)&&!s.catalog->MarkSegmentCorrupt("segment","checksum-mismatch",&error)&&
               !s.catalog->CompleteDeletionV2(tomb,&error),"J06 generic hold 감소로 job 보호 해제 불가·직접 삭제/corrupt 차단");
         Require(s.catalog->AdjustHoldCount("segment",1,&error),error);
         const bool cleaned=!s.catalog->FailDerivedJobAfterCleanup(job.job_id,"wrong","fixture-no-files",5,&error)&&
@@ -121,6 +125,11 @@ std::pair<int,int> Extended(const std::filesystem::path& root,const DerivedSourc
             terminal.accepted&&!terminal.created&&terminal.job&&terminal.job->state==DerivedJobState::Failed&&
             s.catalog->FailDerivedJobAfterCleanup(job.job_id,job.attempt_id,"fixture-no-files",5,&error)&&s.journal.Replay().mutations.size()==end,
             "J14 cleanup Failed는 job 자원만 해제·wall 역행·terminal 자동 재시도 없음");
+        Require(s.catalog->AdjustHoldCount("segment",-1,&error),error);
+        deletion=s.catalog->RequestDeletionForAdmission("segment","continuous-capacity",&error)==RecordingDeletionAdmission::Accepted;
+        } // Coordinator releases its catalog owner before catalog/Journal Finish.
+        s.catalog.reset();
+        check(deletion&&s.journal.Finish(&error),"R95-B01 terminal job and last reader release permit deletion and explicit Finish");
     }
     bool live=true;
     for(const std::string mode:{"pending","corrupt","deleted","hash","binding"}) {
