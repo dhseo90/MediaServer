@@ -522,5 +522,479 @@
       "증거보존·소유정리·문서정합·일반push/원격bytes 확인"
     ],
     "historicalPending": "본문의 coverage 진행 중은 당시 관측으로 유지하고 이 addendum이 후속 완료를 연결한다."
+  },
+  "finalResultAddendum": {
+    "reviewedAt": "2026-10-11T10:25:36.882Z",
+    "reviewer": "independent_memory86",
+    "method": "실제 execution/report/run.log/private server log를 읽어 quantile·경로 분류·서버 비용 창·ID집합·파일hash를 독립 재계산. analyze91/run-analysis는 보조 대조. 제품/검사/producer 실행·수정 및 추가 위임 없음.",
+    "verdict": {
+      "final600": "FAIL",
+      "wholeTaskComplete": false,
+      "localImplementationAndDirectCostImprovement": "유효범위 유지",
+      "final120Ready": false,
+      "memoryP0Complete": false,
+      "releaseApproved": false,
+      "blockingCondition": "원래 mixed 성공검색 p95 2000ms gate 초과. 종료 gate 뒤 필수sample/coverage·명시disable·닫힌journal 단계도 미실행.",
+      "scope": "기술적 preflight 통과는 미래 통합 PASS 약속이 아니었다. 단일 최종600이 실패했으므로 요청한 장면 검색 병목 보완 및600 통합 검증 전체 완료를 주장하지 않는다.",
+      "nextActions": "이번 승인 범위에서는 추가 제품수정·동일600재시도·새120 없이 실패 및 부분결과 보존, 문서정합, 소유정리, 승인된 일반push 마감만 남음."
+    },
+    "execution": {
+      "source": {
+        "head": "bf1466156017e39e770d55bdf8a55ce968d873de",
+        "tree": "ad333beef4b4355b87622fd89ab8dfb961460ccd",
+        "sourceSha256": "79c26749ca5d6be425686e31981d9b73c0f8db7179fd5d60f1ad2b0f2211900b",
+        "binarySha256": "d3068b3cba990e2188484ade07f3bd0ca689bdcb6954c4ecc11d09b5a14ad8c2"
+      },
+      "sourceEnd": {
+        "head": "bf1466156017e39e770d55bdf8a55ce968d873de",
+        "tree": "ad333beef4b4355b87622fd89ab8dfb961460ccd",
+        "sourceSha256": "79c26749ca5d6be425686e31981d9b73c0f8db7179fd5d60f1ad2b0f2211900b",
+        "binarySha256": "d3068b3cba990e2188484ade07f3bd0ca689bdcb6954c4ecc11d09b5a14ad8c2"
+      },
+      "sourceStartEndEqual": true,
+      "productPreflightHashMismatches": 0,
+      "currentBinaryMatchesExecution": true,
+      "final600Attempts": 1,
+      "new120Attempts": 0,
+      "status": "FAIL",
+      "exit": 1,
+      "executionElapsedSeconds": 613.4302094999002,
+      "reportedElapsedMs": 608257,
+      "observationBudgetSeconds": 600,
+      "totalBudgetSeconds": 780,
+      "timedOut": false,
+      "passedAssertions": 2225,
+      "failedAssertions": 1,
+      "firstFailure": "V440 successful search latency",
+      "phase": null,
+      "verifiedDurationMs": null,
+      "longrunObservationCompleted": false,
+      "frameDiagnosticPass": false,
+      "resourceTrendPass": false
+    },
+    "originalLatencyGate": {
+      "population": "evidenceLoad.searchLatencyMs; main structured80+visual78 successful search. A helper structured10 제외.",
+      "count": 158,
+      "quantile": "ceil(n*0.95)-1 zero-based index",
+      "index": 150,
+      "p95Ms": 2187.933834000025,
+      "maxMs": 2468.5908750000526,
+      "p95LimitMs": 2000,
+      "maxLimitMs": 5000,
+      "p95Pass": false,
+      "maxPass": true,
+      "auxiliaryRouteTimings": [
+        {
+          "route": "/ops/api/recordings/search",
+          "statuses": {
+            "200": 90
+          },
+          "successfulRoundedP95Ms": 674,
+          "successfulRoundedMaxMs": 943
+        },
+        {
+          "route": "/ops/api/recordings/visual-search",
+          "statuses": {
+            "200": 78,
+            "503": 2
+          },
+          "successfulRoundedP95Ms": 2438,
+          "successfulRoundedMaxMs": 2469
+        }
+      ],
+      "populationLimit": "정수ms route분류의 structured90건에는 A10이 포함된다. 이 별도 모집단으로 원래158 gate를 대체하지 않는다.",
+      "visual503": [
+        {
+          "atMs": 1791713550066,
+          "client": 2,
+          "status": 503,
+          "elapsedMs": 996.7362499999981,
+          "code": "visual-search-unavailable"
+        },
+        {
+          "atMs": 1791713640249,
+          "client": 3,
+          "status": 503,
+          "elapsedMs": 1014.1804589999956,
+          "code": "visual-search-unavailable"
+        }
+      ],
+      "errorLimit": "2건의 정제된 실제 공개 code는 visual-search-unavailable이다. 이를 busy라고 바꾸지 않고 내부 예외/원문 검증 실패 원인은 요약만으로 더 좁히지 않는다."
+    },
+    "requestCostEvidence": {
+      "rawSummaryRows": 80,
+      "rawStatusCounts": {
+        "200": 78,
+        "503": 2
+      },
+      "idSetExactly1Through80": true,
+      "completion": {
+        "started": 80,
+        "completed": 80
+      },
+      "collectorStatus": "captured",
+      "lossRows": 0,
+      "parentCollectorRowsEqualRaw": true,
+      "windows": [
+        {
+          "serverRelativeStartWindowSeconds": [
+            0,
+            200
+          ],
+          "populatedSuccessfulRequests": 24,
+          "documentCounts": {
+            "29": 24
+          },
+          "meanMs": {
+            "elapsed": 1168.4735122083332,
+            "catalogWait": 673.072446875,
+            "catalogHeld": 380.6172498333333,
+            "textRun": 44.83981075,
+            "vectorScore": 0.061574583333333335,
+            "fileProof": 10.308263583333334
+          }
+        },
+        {
+          "serverRelativeStartWindowSeconds": [
+            200,
+            400
+          ],
+          "populatedSuccessfulRequests": 26,
+          "documentCounts": {
+            "29": 26
+          },
+          "meanMs": {
+            "elapsed": 1467.1544742307692,
+            "catalogWait": 850.0268010384616,
+            "catalogHeld": 454.5405855384616,
+            "textRun": 43.235637884615386,
+            "vectorScore": 0.0608205,
+            "fileProof": 10.174169461538462
+          }
+        },
+        {
+          "serverRelativeStartWindowSeconds": [
+            400,
+            600
+          ],
+          "populatedSuccessfulRequests": 26,
+          "documentCounts": {
+            "29": 24,
+            "30": 2
+          },
+          "meanMs": {
+            "elapsed": 2007.0431923461538,
+            "catalogWait": 1285.3373204615386,
+            "catalogHeld": 477.9548881153846,
+            "textRun": 42.5387965,
+            "vectorScore": 0.06149903846153846,
+            "fileProof": 10.121971115384616
+          }
+        }
+      ],
+      "interpretation": "populated 성공 요청에서 후반 Catalog 대기 누적 평균이 약673→850→1285ms로 증가하고 held는381→455→478ms다. text Run약43~45ms, vector score약0.06ms, file proof약10ms보다 source/catalog 비용이 지배적이다.",
+      "limits": [
+        "이 창은 동일 서버 monotonic의 최초 request 시작 기준이다. client clock과 직접 빼지 않는다.",
+        "inclusive 부모/자식 비용을 더하지 않고 다른 요청의 최대를 합쳐 가상 요청을 만들지 않는다.",
+        "개별 mutex 보유자/배경 작업별 인과 귀속은 미확정. 소유자의 특정 경로가 원인이라고 단정하지 않는다.",
+        "고정입력 RequestMedia의 직접 비용 감소를 지속혼합 병목 전체 해소로 확대하지 않는다.",
+        "90 당시 원출력의 미관측 내부 비용과89 실패 내부 원인은 소급 확정하지 않는다."
+      ]
+    },
+    "workAndPublication": {
+      "cycles": 39,
+      "searchSuccessByClient": [
+        40,
+        40,
+        39,
+        39
+      ],
+      "ordinaryEvidenceComplete": 37,
+      "ordinaryEvidencePartial": 2,
+      "ordinaryEvidenceSuccess": 39,
+      "ordinaryEvidenceBusy": 39,
+      "visualEvidenceCreated": 39,
+      "windows": [
+        {
+          "structured": 260,
+          "visual": 480,
+          "evidence": 13,
+          "visualEvidence": 13
+        },
+        {
+          "structured": 260,
+          "visual": 512,
+          "evidence": 13,
+          "visualEvidence": 13
+        },
+        {
+          "structured": 260,
+          "visual": 512,
+          "evidence": 13,
+          "visualEvidence": 13
+        }
+      ],
+      "retainedChecks": 78,
+      "deletedSourceObserved": true,
+      "aOpportunities": 10,
+      "aCompleted": 10,
+      "uniqueASnapshotCount": 10,
+      "uniqueAPackageCount": 10,
+      "immutableFileByteAndShaReadback": {
+        "files": 23,
+        "mismatches": 0
+      },
+      "aDetectorEvaluated": false,
+      "indexStatusSamples": {
+        "indexing": 27,
+        "ready": 12,
+        "degraded": 1
+      },
+      "lastDrainedPrefixPerRecordingChannel": {
+        "9101": {
+          "finalized": 297,
+          "deleted": 290
+        },
+        "9201": {
+          "finalized": 297,
+          "deleted": 290
+        }
+      },
+      "limits": "기존 색인/녹화/삭제·초중후 검색/증거 및 A 반복이 관측됐다. 최종drained prefix는 닫힌journal 전체tail검사 또는 Finish gate가 아니다."
+    },
+    "collection": {
+      "privateServerBytes": 246396,
+      "privateServerSha256": "15391f9435971de1f4abe23e762eeafd04710aa6c789d6454ded49ac49b8f08d",
+      "serverDiagnostic": {
+        "pid": 58917,
+        "bytes": 246396,
+        "capturedBytes": 246396,
+        "sha256": "15391f9435971de1f4abe23e762eeafd04710aa6c789d6454ded49ac49b8f08d",
+        "overflow": false,
+        "captureError": null,
+        "categories": [
+          {
+            "code": "file evidence unavailable",
+            "count": 0
+          },
+          {
+            "code": "storageBlocked",
+            "count": 0
+          },
+          {
+            "code": "shutdown",
+            "count": 0
+          },
+          {
+            "code": "ERROR",
+            "count": 0
+          },
+          {
+            "code": "WARNING",
+            "count": 0
+          }
+        ],
+        "rawBodyPublished": false,
+        "privateCaptureDisposition": "eligible-for-wrapper-cleanup"
+      },
+      "structuredTerminal": {
+        "status": "captured",
+        "probes": 1,
+        "failures": [],
+        "issues": []
+      },
+      "frameSummary": {
+        "status": "captured",
+        "mode": "bounded",
+        "required": true,
+        "records": 3,
+        "successes": 3,
+        "failures": 0,
+        "issues": []
+      },
+      "representativeFrames": [
+        {
+          "policy": "automatic",
+          "succeeded": true,
+          "target": 0,
+          "lastPts": 0,
+          "beforeValid": 1,
+          "afterValid": 1,
+          "nullDone": 1,
+          "droppedEvents": 0,
+          "droppedFactories": 0,
+          "decoderFactories": [
+            "vtdec_hw:applemedia:1.28.1"
+          ]
+        },
+        {
+          "policy": "software-only",
+          "succeeded": true,
+          "target": 966666667,
+          "lastPts": 966666666,
+          "beforeValid": 1,
+          "afterValid": 1,
+          "nullDone": 1,
+          "droppedEvents": 0,
+          "droppedFactories": 0,
+          "decoderFactories": [
+            "avdec_h264:libav:1.28.1"
+          ]
+        },
+        {
+          "policy": "automatic",
+          "succeeded": true,
+          "target": 0,
+          "lastPts": 0,
+          "beforeValid": 1,
+          "afterValid": 1,
+          "nullDone": 1,
+          "droppedEvents": 0,
+          "droppedFactories": 0,
+          "decoderFactories": [
+            "vtdec_hw:applemedia:1.28.1"
+          ]
+        }
+      ],
+      "decoderLimit": "Automatic2(vtdec_hw)/SoftwareOnly1(avdec_h264) 대표 bounded 성공만 확인. 모든decode호출 또는100+100 정책검사로 확대하지 않는다.",
+      "slowTail": {
+        "seen": 13242,
+        "retained": 64,
+        "scope": "종료 시 마지막 완료span64이며 전체 요청별 원인 대체 아님."
+      }
+    },
+    "resources": {
+      "sampleCount": 120,
+      "samePidAndStartIdentity": true,
+      "sampleSpanMs": 595496.1217080001,
+      "maxSampleGapMs": 5008.644083000021,
+      "rssSampleMaximumBytes": 3213262848,
+      "footprintSampleMaximumBytes": 3164753208,
+      "firstRssBytes": 3169763328,
+      "lastRssBytes": 1774239744,
+      "postWarmup": {
+        "status": "observed",
+        "sampleCount": 60,
+        "delta": {
+          "rssBytes": 3080192,
+          "threadCount": -1,
+          "fdCount": 9,
+          "mutationCount": 1183
+        },
+        "elapsedMs": 295266.87416700006,
+        "rssMiBPerMinute": 0.596917620702398
+      },
+      "ownerFinal": {
+        "pid": 58917,
+        "seq": 123,
+        "phase": "after-storage-destruction",
+        "elapsedMs": 605058,
+        "ram": 0,
+        "ramPeak": 164450880,
+        "ramLimit": 671088640,
+        "ramRejected": 0,
+        "scratchDisk": 0,
+        "scratchDiskPeak": 88055808,
+        "scratchDiskLimit": 155352305664,
+        "scratchFd": 0,
+        "scratchFdPeak": 16,
+        "scratchFdLimit": 1048572,
+        "scratchRam": 0,
+        "preservedDisk": 0,
+        "preservedFd": 0,
+        "readerCleanupHealthy": true
+      },
+      "maxObservedRootBytes": 56176574,
+      "limits": [
+        "약595.50초120표본 및postwarmup약295.27초60표본은 부분 자원관측이다. resourceTrendPass=false 유지.",
+        "논리shared owner RAM 640MiB 및종료RAM/disk/FD0은 전체RSS/heap/footprint와 다른 범위다.",
+        "RSS/FD endpoint 변화나 짧은 기울기로 누수/수렴/P0 완료를 단정하지 않는다."
+      ]
+    },
+    "notRun": {
+      "blockedAfterLatencyFailure": [
+        "최종 추가 sample 및 sampleContinuity assertion",
+        "phaseResult 할당/verifiedDuration 확정",
+        "명시 recording disable",
+        "닫힌journal no-partial-tail assertion"
+      ],
+      "excludedBy600Mode": [
+        "취소/권한회수 controls",
+        "독립복구 copy/restart",
+        "재활성화 후속"
+      ],
+      "new120": 0,
+      "actualUi": false
+    },
+    "finallyOnly": {
+      "processCleanup": {
+        "schema": "recording-process-cleanup-v1",
+        "attemptCount": 1,
+        "pid": 58917,
+        "exitCode": 0,
+        "signalCode": null,
+        "exitedObserved": true,
+        "stopCode": "complete",
+        "forcedTermination": "not-used",
+        "normalExitPass": true,
+        "normalShutdownPass": true,
+        "archiveSafe": true,
+        "ports": [
+          {
+            "kind": "http",
+            "port": 61788,
+            "status": "pass",
+            "code": "closed",
+            "closed": true
+          },
+          {
+            "kind": "rtsp",
+            "port": 61789,
+            "status": "pass",
+            "code": "closed",
+            "closed": true
+          }
+        ]
+      },
+      "udpClosed": true,
+      "wrapperProcessGroupAbsent": true,
+      "registeredGroupsAbsent": true,
+      "cleanupErrors": [],
+      "normalStopSeparateFromPlannedFinish": "finally의 정상 shutdown/exit와HTTP61788·RTSP61789종료,UDP/그룹부재는 확인했다. 명시disable·closedjournal assertion 미실행을 이 종료로 PASS 처리하지 않는다."
+    },
+    "preservationAndCleanup": "검토 당시 raw observer root 보존 중. 최종선정/정제 archive byte보존·소유 파일 정리·원격 확인은 pending이며 이후 addendum으로만 완료를 연결한다.",
+    "priorScopeRetained": "이번 실패로 90 scoped invalidation,86 C1/C2/C3,85 B1024/C16 및88 준비 등 완료된 직접 범위를 전면 미완료로 돌리지 않는다. 이번 실제 통합 지연과 필수종료 gate 미충족이 정확한 잔여다.",
+    "evidenceBindings": [
+      {
+        "path": "mixed600/execution.json",
+        "bytes": 1751,
+        "sha256": "e42a1a8f40cc78095d842fa692b1fca4ebdaf5de9daade9fb2c52e42c6e5848b"
+      },
+      {
+        "path": "mixed600/artifacts/report.json",
+        "bytes": 49983,
+        "sha256": "d1e7ec9012f80e46991651b0d14c16d59486251a43624df0264fc266d2934d03"
+      },
+      {
+        "path": "mixed600/run.log",
+        "bytes": 1217759,
+        "sha256": "85514604aceeaf3e0b9280f1f2123ec5babcd21418b9b79e6db558d261f43b0f"
+      },
+      {
+        "path": "mixed600/media-server-current-observer-vqTx5y/server-1.private.log",
+        "bytes": 246396,
+        "sha256": "15391f9435971de1f4abe23e762eeafd04710aa6c789d6454ded49ac49b8f08d"
+      },
+      {
+        "path": "evidence/run-analysis.json",
+        "bytes": 13787,
+        "sha256": "393c93d8399e43d378e7b6f124ef88fa3c3ef49495314fb634a8b445a59f94d9"
+      },
+      {
+        "path": "analyze91.py",
+        "bytes": 4960,
+        "sha256": "14e3ea9584e405f20066d85c45956f3b04b4be615541137e8b78fef45ab3d85b"
+      }
+    ]
   }
 }

@@ -1,0 +1,720 @@
+{
+  "schema": "task91-validation-v1",
+  "status": "PARTIAL_FIX_MIXED600_FAIL",
+  "completedScope": "same-cut source validation duplicate work reduction, bounded request cost collection and related direct regression",
+  "wholeTaskComplete": false,
+  "memoryP0": "BLOCKED",
+  "release": "HOLD",
+  "models": {
+    "requestedMain": "gpt-6-astra/high",
+    "requestedIndependent": "gpt-6-astra/high",
+    "mainRuntime": "unconfirmed; not exposed",
+    "reviewer": "independent_memory86; prior tool accepted Astra/high; actual runtime unexposed"
+  },
+  "entryHead": "7a70eb7346ff18a02bcba6cd217177cafd6083be",
+  "implementationCommit": "bf1466156017e39e770d55bdf8a55ce968d873de",
+  "executionSource": {
+    "head": "bf1466156017e39e770d55bdf8a55ce968d873de",
+    "tree": "ad333beef4b4355b87622fd89ab8dfb961460ccd",
+    "sourceSha256": "79c26749ca5d6be425686e31981d9b73c0f8db7179fd5d60f1ad2b0f2211900b",
+    "binarySha256": "d3068b3cba990e2188484ade07f3bd0ca689bdcb6954c4ecc11d09b5a14ad8c2"
+  },
+  "executionSourceEnd": {
+    "head": "bf1466156017e39e770d55bdf8a55ce968d873de",
+    "tree": "ad333beef4b4355b87622fd89ab8dfb961460ccd",
+    "sourceSha256": "79c26749ca5d6be425686e31981d9b73c0f8db7179fd5d60f1ad2b0f2211900b",
+    "binarySha256": "d3068b3cba990e2188484ade07f3bd0ca689bdcb6954c4ecc11d09b5a14ad8c2"
+  },
+  "runtimeArchiveSha256": "ed2507258dab3a09c19da81d30ad9a40d2f50d5fd10a2fca5d479e734cb55c78",
+  "priorEvidence": {
+    "90": "scoped invalidation/direct review/A10 retained; mixed p952482.999208 FAIL unchanged; old internal503 causes unpreserved",
+    "89": "cause remains unconfirmed",
+    "86": "C1/C2/C3 and previous memory ownership/bounds/B/C evidence retained in prior scope; no re-run",
+    "74": "historical source/environment result not current binary"
+  },
+  "changes": [
+    "Journal generation CheckManagedStateLocked removes duplicate same-call GenerationBinding check; existing CheckManagedFdState verifies current root/lease/manifest/active and derived indices.",
+    "Catalog private ReadSourceBindingLocked consumes exact segment validated under same held mutex; no proof crosses unlock/file I/O; all source/raw binding/current file checks retained.",
+    "Fixed request-local counters for inclusive source/score/model/lock stages, no query/path/token payload; max1024x3072B, <=2048Brequest state; 4MiB process cap unchanged.",
+    "Actual producer/parser end counts and dense IDs reject missing middle/tail rows, cap/write/partial failures. Full short trace and bounded decoder maintained.",
+    "Existing visual index fixture line breaks only for GCC Werror; expected score/rank unchanged."
+  ],
+  "costEvidence": {
+    "prior90": "evidence/prior90-analysis.json: early/mid/late/client populations; no internal spans retrospectively invented",
+    "shortDiagnosticRuns": {
+      "before30": "PASS; two populated requests1401/1416ms, docs25",
+      "firstAfter30": "PASS but cost worsened1739/1741ms; Journal-only change insufficient",
+      "finalAfter30": "PASS;1058/1064ms, docs29; static CPU overlapped startup/empty requests and may affect warmup; not controlled A/B",
+      "final600Count": 1
+    },
+    "fixedInput": {
+      "status": "PASS",
+      "originalComparison": "FAIL from complete diagnostic rows interleaved with buffered stdout. First narrow normalization omitted visual-request rows and also failed.",
+      "transformation": "Remove complete recording-* and visual-request* JSON rows with newline; concatenate original stdout fragments. Original logs retained unchanged.",
+      "targetCount": 138,
+      "identicalTargetsAndCache": true,
+      "inputUnchangedBoth": true,
+      "results": {
+        "before": [
+          {
+            "ms": 729.959417,
+            "catalogHeldMs": 671.615581,
+            "catalogCalls": 437,
+            "counters": [
+              23,
+              23,
+              0,
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "ms": 708.625375,
+            "catalogHeldMs": 668.410333,
+            "catalogCalls": 437,
+            "counters": [
+              23,
+              23,
+              0,
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "ms": 714.47625,
+            "catalogHeldMs": 673.612955,
+            "catalogCalls": 437,
+            "counters": [
+              23,
+              23,
+              0,
+              0,
+              0,
+              0
+            ]
+          }
+        ],
+        "after": [
+          {
+            "ms": 611.58875,
+            "catalogHeldMs": 555.333827,
+            "catalogCalls": 437,
+            "counters": [
+              23,
+              23,
+              0,
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "ms": 586.727,
+            "catalogHeldMs": 546.808824,
+            "catalogCalls": 437,
+            "counters": [
+              23,
+              23,
+              0,
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "ms": 588.77925,
+            "catalogHeldMs": 548.390756,
+            "catalogCalls": 437,
+            "counters": [
+              23,
+              23,
+              0,
+              0,
+              0,
+              0
+            ]
+          }
+        ]
+      },
+      "measurementLimits": [
+        "Before then after once with three requests each; OS cache/order influence not isolated.",
+        "Misspelled MEDIA_SERVER_VERIFY_RECORDING_SLOW_ONLY does not select slow-only; both used same full latency collection.",
+        "Actual source cost only, no model or HTTP benchmark; Catalog calls unchanged437, same-lock duplicate work reduced."
+      ]
+    },
+    "dominantBoundedFinal": [
+      {
+        "windowSeconds": [
+          0,
+          200
+        ],
+        "successfulRows": 26,
+        "populatedRows": 24,
+        "inclusiveDoNotAdd": true,
+        "costs": {
+          "request": {
+            "count": 24,
+            "p95Ms": 1640.975459,
+            "maxMs": 1646.592167,
+            "meanMs": 1168.4735122083332
+          },
+          "textRun": {
+            "count": 24,
+            "p95Ms": 48.351625,
+            "maxMs": 49.070875,
+            "meanMs": 44.83981075
+          },
+          "textWait": {
+            "count": 24,
+            "p95Ms": 184.549125,
+            "maxMs": 225.709917,
+            "meanMs": 45.666376750000005
+          },
+          "indexSources": {
+            "count": 24,
+            "p95Ms": 1290.067125,
+            "maxMs": 1328.654292,
+            "meanMs": 901.4244930833333
+          },
+          "eligible": {
+            "count": 24,
+            "p95Ms": 1289.943002,
+            "maxMs": 1328.54146,
+            "meanMs": 901.3001248333334
+          },
+          "fileProof": {
+            "count": 24,
+            "p95Ms": 11.374959,
+            "maxMs": 11.900541,
+            "meanMs": 10.308263583333334
+          },
+          "score": {
+            "count": 24,
+            "p95Ms": 0.066038,
+            "maxMs": 0.06771,
+            "meanMs": 0.06157458333333333
+          },
+          "catalogWait": {
+            "count": 24,
+            "p95Ms": 1078.747088,
+            "maxMs": 1131.431675,
+            "meanMs": 673.0724468750001
+          },
+          "catalogHeld": {
+            "count": 24,
+            "p95Ms": 495.325802,
+            "maxMs": 500.759493,
+            "meanMs": 380.61724983333335
+          }
+        },
+        "documentCounts": {
+          "29": 24
+        },
+        "catalogCalls": {
+          "283": 1,
+          "274": 9,
+          "246": 4,
+          "272": 4,
+          "242": 2,
+          "276": 2,
+          "270": 2
+        }
+      },
+      {
+        "windowSeconds": [
+          200,
+          400
+        ],
+        "successfulRows": 26,
+        "populatedRows": 26,
+        "inclusiveDoNotAdd": true,
+        "costs": {
+          "request": {
+            "count": 26,
+            "p95Ms": 1938.715625,
+            "maxMs": 1951.629666,
+            "meanMs": 1467.1544742307692
+          },
+          "textRun": {
+            "count": 26,
+            "p95Ms": 47.834333,
+            "maxMs": 47.841291,
+            "meanMs": 43.235637884615386
+          },
+          "textWait": {
+            "count": 26,
+            "p95Ms": 340.07975,
+            "maxMs": 375.720875,
+            "meanMs": 94.4205816153846
+          },
+          "indexSources": {
+            "count": 26,
+            "p95Ms": 1340.42125,
+            "maxMs": 1346.657334,
+            "meanMs": 1091.7198878461538
+          },
+          "eligible": {
+            "count": 26,
+            "p95Ms": 1340.301333,
+            "maxMs": 1346.521915,
+            "meanMs": 1091.595953346154
+          },
+          "fileProof": {
+            "count": 26,
+            "p95Ms": 11.094707,
+            "maxMs": 11.319208,
+            "meanMs": 10.174169461538462
+          },
+          "score": {
+            "count": 26,
+            "p95Ms": 0.064085,
+            "maxMs": 0.06454,
+            "meanMs": 0.060820500000000007
+          },
+          "catalogWait": {
+            "count": 26,
+            "p95Ms": 1052.967408,
+            "maxMs": 1091.180669,
+            "meanMs": 850.0268010384615
+          },
+          "catalogHeld": {
+            "count": 26,
+            "p95Ms": 514.624594,
+            "maxMs": 516.6835,
+            "meanMs": 454.5405855384615
+          }
+        },
+        "documentCounts": {
+          "29": 26
+        },
+        "catalogCalls": {
+          "274": 14,
+          "272": 8,
+          "208": 2,
+          "244": 2
+        }
+      },
+      {
+        "windowSeconds": [
+          400,
+          600
+        ],
+        "successfulRows": 26,
+        "populatedRows": 26,
+        "inclusiveDoNotAdd": true,
+        "costs": {
+          "request": {
+            "count": 26,
+            "p95Ms": 2440.33525,
+            "maxMs": 2467.4835,
+            "meanMs": 2007.0431923461538
+          },
+          "textRun": {
+            "count": 26,
+            "p95Ms": 48.140708,
+            "maxMs": 49.609458,
+            "meanMs": 42.5387965
+          },
+          "textWait": {
+            "count": 26,
+            "p95Ms": 409.012084,
+            "maxMs": 421.922667,
+            "meanMs": 175.90400480769233
+          },
+          "indexSources": {
+            "count": 26,
+            "p95Ms": 1897.487958,
+            "maxMs": 1920.48525,
+            "meanMs": 1351.4557901153846
+          },
+          "eligible": {
+            "count": 26,
+            "p95Ms": 1897.365081,
+            "maxMs": 1920.358628,
+            "meanMs": 1351.3287053461538
+          },
+          "fileProof": {
+            "count": 26,
+            "p95Ms": 12.080458,
+            "maxMs": 12.139501,
+            "meanMs": 10.121971115384614
+          },
+          "score": {
+            "count": 26,
+            "p95Ms": 0.066249,
+            "maxMs": 0.070459,
+            "meanMs": 0.061499038461538466
+          },
+          "catalogWait": {
+            "count": 26,
+            "p95Ms": 1815.009959,
+            "maxMs": 1857.520506,
+            "meanMs": 1285.3373204615384
+          },
+          "catalogHeld": {
+            "count": 26,
+            "p95Ms": 512.339299,
+            "maxMs": 515.837678,
+            "meanMs": 477.95488811538456
+          }
+        },
+        "documentCounts": {
+          "29": 24,
+          "30": 2
+        },
+        "catalogCalls": {
+          "270": 4,
+          "208": 2,
+          "242": 2,
+          "274": 4,
+          "289": 2,
+          "272": 4,
+          "276": 4,
+          "246": 4
+        }
+      }
+    ],
+    "interpretation": "Current-source eligibility and Catalog waits dominate; text Run about43ms, scoreabout.06ms,fileproofabout10ms. Same-lock reduction proven in controlled direct scope; later mixed wait still grows. Wait holder split and underlying per-holder I/O not measured; no final-cause claim for89/90.",
+    "measurementLimits": [
+      "Stages inclusive; not added together.",
+      "3 sequential requests per variant, same23files/138targets; OS-cache/order effect not eliminated.",
+      "Fixed-cost typo enabled full latency, same on both variants; not same as mixed slow-only.",
+      "No exact HTTP send/unwrapped syscall byte attribution or instantaneous memory peak."
+    ]
+  },
+  "directRegression": {
+    "macOS": {
+      "build": "existing GStreamer/ONNX/SigLIP2 CMake build PASS",
+      "seek": 9,
+      "playback": 27,
+      "index": 1665,
+      "requestProofConfigurations": [
+        "generation1 crypto1 SQLite1",
+        "generation1 crypto0 SQLite1",
+        "generation0 crypto1 SQLite1",
+        "generation1 crypto1 SQLite0"
+      ],
+      "cache": 448,
+      "actualModelIsolated": {
+        "checks": 96,
+        "elapsedSeconds": 43.216374249896035,
+        "concurrentSearches": 24,
+        "p95Ms": 192.345,
+        "maxMs": 192.897,
+        "peakRssBytes": 3227353088,
+        "scope": "real SigLIP2/direct service; not mixed HTTP gate"
+      },
+      "collector": 33
+    },
+    "Linux": {
+      "uid": 10001,
+      "network": "none",
+      "image": "sha256:ce72c8a15363984da642e9964189957896812061c6af1d0ef67e87b38ad5a588",
+      "status": "PASS",
+      "scope": "actual product build;seek9/playback27/index1665;4proof configurations;cache448;collector33",
+      "newInstalls": 0
+    },
+    "warnings": "existing build options unchanged; strict native/proof fixtures retain -Wall -Wextra -Werror; no warning suppression"
+  },
+  "firstFailures": [
+    "diagnostic first format-security compile error corrected; original build log retained",
+    "first fixed-cost stdout/stderr comparison failed because complete diagnostic rows split stdout; original logs retained and reversible diagnostic removal yields identical138target+3cost lines; no product rerun",
+    "Linux tmpfs noexec126: observed exact error/tool excerpt preserved; first archive accidentally overwritten during followup setup, full original unavailable and not reconstructed",
+    "Linux GCC fixture misleading-indentation: complete second archive selected original logs retained; line separation only; final regression PASS",
+    "static coverage started before existing apply finished: inventory drift FAIL retained; final coverage9/0 after apply",
+    "final mixed600 successful latency FAIL; no code change/retry afterwards"
+  ],
+  "binding": {
+    "candidateDigest": "8977e9b6ac618c7e0233823f6acb6ab1fcf7461206ee5d8b2a4149a643519e3a",
+    "986ItemsUnchanged": true,
+    "newBehaviorApproval": "separate independent preflight, not implied by986",
+    "existingApply": "PASS51; JSON semantic diff inventorySha256 only; existing formatting restored without hash edits",
+    "nativeDefinitionReadback": "424 manifest; no actualUI",
+    "coverage": "PASS9;986covered/missing0",
+    "scriptInventory": "PASS13",
+    "diffCheck": "PASS"
+  },
+  "mixed600": {
+    "attempts": 1,
+    "command": [
+      "python3",
+      "scripts/internal/run_v450_recording_a_mixed.py",
+      "--frame-diagnostic",
+      "/private/tmp/media-server-memory91-0g_muxdk/mixed600"
+    ],
+    "status": "FAIL",
+    "exit": 1,
+    "timedOut": false,
+    "budgetSeconds": 780,
+    "configuredObservationSeconds": 600,
+    "executionElapsedSeconds": 613.4302094999002,
+    "originalGate": {
+      "count": 158,
+      "p95Ms": 2187.933834000025,
+      "maxMs": 2468.5908750000526,
+      "p95LimitMs": 2000,
+      "maxLimitMs": 5000,
+      "population": "original evidenceLoad.searchLatencyMs; A extra queries excluded"
+    },
+    "routeAuxiliary": [
+      {
+        "route": "/ops/api/recordings/search",
+        "statuses": {
+          "200": 90
+        },
+        "successTimingRoundedMs": {
+          "count": 90,
+          "p95Ms": 674,
+          "maxMs": 943
+        }
+      },
+      {
+        "route": "/ops/api/recordings/visual-search",
+        "statuses": {
+          "200": 78,
+          "503": 2
+        },
+        "successTimingRoundedMs": {
+          "count": 78,
+          "p95Ms": 2438,
+          "maxMs": 2469
+        }
+      }
+    ],
+    "visualErrors": [
+      {
+        "atMs": 1791713550066,
+        "client": 2,
+        "status": 503,
+        "elapsedMs": 996.7362499999981,
+        "code": "visual-search-unavailable"
+      },
+      {
+        "atMs": 1791713640249,
+        "client": 3,
+        "status": 503,
+        "elapsedMs": 1014.1804589999956,
+        "code": "visual-search-unavailable"
+      }
+    ],
+    "A": {
+      "opportunities": 10,
+      "completed": 10,
+      "controls": {},
+      "detectorEvaluated": false
+    },
+    "evidence": {
+      "windows": [
+        {
+          "structured": 260,
+          "visual": 480,
+          "evidence": 13,
+          "visualEvidence": 13
+        },
+        {
+          "structured": 260,
+          "visual": 512,
+          "evidence": 13,
+          "visualEvidence": 13
+        },
+        {
+          "structured": 260,
+          "visual": 512,
+          "evidence": 13,
+          "visualEvidence": 13
+        }
+      ],
+      "cycles": 39,
+      "searchSuccess": 158,
+      "searchUnavailable": 2,
+      "searchSuccessByClient": [
+        40,
+        40,
+        39,
+        39
+      ],
+      "createComplete": 37,
+      "createPartial": 2,
+      "createSuccess": 39,
+      "createBusy": 39,
+      "retainedChecks": 78,
+      "deletedSourceObserved": true,
+      "visualResults": 1504,
+      "visualCreated": 39,
+      "visualExpired": 0
+    },
+    "rawVerifiedDurationMs": null,
+    "phaseResult": null,
+    "passedAssertions": 2225,
+    "failedAssertions": 1,
+    "notRun": [
+      "final successful-latency downstream sample/coverage assertion",
+      "explicit disable",
+      "closed-journal assertion",
+      "mode-excluded controls/copy recovery/restart/reactivation"
+    ],
+    "finally": "normal product shutdown/registered group+UDP closure; not explicit disable/closed-journal gate",
+    "processGroupAbsent": true,
+    "registeredGroupsAbsent": true
+  },
+  "collection": {
+    "requestRows": 80,
+    "requestCompletion": {
+      "started": 80,
+      "completed": 80
+    },
+    "loss": 0,
+    "mode": "bounded decoder; slow-only recording locks; fullVisualPhase off; boundedrequestsummary on",
+    "decoderRepresentatives": "Automatic2/SoftwareOnly1; not all decoder calls",
+    "receivedBytes": 246396,
+    "storedBytes": 246396,
+    "processLogCapBytes": 4194304,
+    "rawSha256": "15391f9435971de1f4abe23e762eeafd04710aa6c789d6454ded49ac49b8f08d",
+    "privateLogPreservation": "URL tokens redacted in selected server log; original and retained SHA/bytes are separate in preservation.json",
+    "scope": "captured describes collection only, not product PASS"
+  },
+  "resources": {
+    "samples": {
+      "count": 120,
+      "samePid": true,
+      "firstPhaseMs": 8156.267625,
+      "lastPhaseMs": 603652.389333,
+      "maxRssBytes": 3213262848,
+      "maxFootprintBytes": 3164753208,
+      "maxFd": 39,
+      "maxSampleGapMs": 5008.644083000021,
+      "lastProgress": {
+        "elapsedMs": 595736.1931670001,
+        "channels": {
+          "9101": {
+            "finalized": 297,
+            "deleted": 290,
+            "lastAt": 603652.389333,
+            "order": "595",
+            "store": "89f4409c4ca5b7a68a53988dc048144406ec1b64f0ad27b58dbce82493d26fd4",
+            "knownMappings": 199,
+            "unknownMappings": 10422
+          },
+          "9201": {
+            "finalized": 297,
+            "deleted": 290,
+            "lastAt": 603652.389333,
+            "order": "596",
+            "store": "89f4409c4ca5b7a68a53988dc048144406ec1b64f0ad27b58dbce82493d26fd4",
+            "knownMappings": 211,
+            "unknownMappings": 10048
+          }
+        },
+        "records": 594,
+        "logicalBytes": 354209
+      },
+      "lastOwner": {
+        "pid": 58917,
+        "seq": 119,
+        "phase": "sample",
+        "elapsedMs": 598944,
+        "ram": 10746319,
+        "ramPeak": 164450880,
+        "ramLimit": 671088640,
+        "ramRejected": 0,
+        "scratchDisk": 44249088,
+        "scratchDiskPeak": 88055808,
+        "scratchDiskLimit": 155352305664,
+        "scratchFd": 4,
+        "scratchFdPeak": 16,
+        "scratchFdLimit": 1048572,
+        "scratchRam": 1188864,
+        "preservedDisk": 0,
+        "preservedFd": 0,
+        "readerCleanupHealthy": true
+      }
+    },
+    "raw": {
+      "status": "observed",
+      "resourceTrendPass": false,
+      "reviewRequired": true,
+      "sampleCount": 120,
+      "groups": [
+        {
+          "pid": 58917,
+          "startIdentity": "macos:1791713528:462752",
+          "sampleCount": 120,
+          "first": {
+            "phaseAt": 8156.267625,
+            "sampledAt": 1791713533874,
+            "rssBytes": 3169763328,
+            "threadCount": 37,
+            "fdCount": 34,
+            "mutationCount": 6
+          },
+          "last": {
+            "phaseAt": 603652.389333,
+            "sampledAt": 1791714129374,
+            "rssBytes": 1774239744,
+            "threadCount": 40,
+            "fdCount": 34,
+            "mutationCount": 2355
+          },
+          "max": {
+            "rssBytes": 3213262848,
+            "threadCount": 42,
+            "fdCount": 39
+          },
+          "delta": {
+            "rssBytes": -1395523584,
+            "threadCount": 3,
+            "fdCount": 0,
+            "mutationCount": 2349
+          },
+          "elapsedMs": 595496.1217080001,
+          "maxGapMs": 5008.644083000021,
+          "warmupMs": 300000,
+          "postWarmup": {
+            "status": "observed",
+            "sampleCount": 60,
+            "delta": {
+              "rssBytes": 3080192,
+              "threadCount": -1,
+              "fdCount": 9,
+              "mutationCount": 1183
+            },
+            "elapsedMs": 295266.87416700006,
+            "rssMiBPerMinute": 0.596917620702398
+          }
+        }
+      ]
+    },
+    "maxObservedRootBytes": 56176574,
+    "resourceTrendPass": false,
+    "reviewRequired": true,
+    "memoryConclusion": "No whole P0 or no-leak conclusion; sample maxima not instantaneous peak"
+  },
+  "independentReview": "91-independent-review.json: preflight and finalResultAddendum",
+  "remaining": [
+    "Mixed latency p95 above2000ms; later current-source eligibility/Catalog contention remains. Exact counterpart holder work unassigned.",
+    "Finalsample/coverage, explicit disable, closed journal not executed after FAIL; finally shutdown is separate.",
+    "Final120 cannot resume based on this result; new scoped work/authorization needed.",
+    "MemoryP0 and release hold; no risk acceptance/PR/CI/merge/tag/Release."
+  ],
+  "preservation": {
+    "archive": "docs/release-artifacts/v4.5.0/91-execution.tar.gz",
+    "bytes": 13389427,
+    "sha256": "978f3ae10dd00e2147728b2a72c95e4b13a442e66c21eeadf467dfc4b726fd63",
+    "members": 438,
+    "selectedOriginalBytes": 26253011,
+    "byteReadback": "PASS"
+  },
+  "cleanup": {
+    "processGroupsAndPorts": "PASS finally and launcher receipts",
+    "ownedFiles": "pending after local Git byte preservation; next addendum records actual result",
+    "modelsSDKLinuxImage": "retained"
+  },
+  "calls": {
+    "QwenOllama": 0,
+    "unloadGate": "not-run",
+    "new120": 0,
+    "acceptanceUI": 0
+  }
+}
