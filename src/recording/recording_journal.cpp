@@ -1376,6 +1376,10 @@ bool RecordingJournal::LoadManagedStateLocked(std::string* error) {
 bool RecordingJournal::CheckManagedStateLocked(std::string* error) const {
     if(!managed_)return true;
 #if !defined(_WIN32)
+    // generation의 FD 검증은 GenerationBindingLocked와 모든 파생 index 검증을
+    // 함께 수행한다. 같은 mutex 호출에서 동일 원본/manifest를 앞서 한 번 더
+    // 읽지 않는다. 호출 간 proof/cache가 아니며 매 진입의 현재 검증은 유지한다.
+    if(generation_state_)return CheckManagedFdStateLocked(error);
     if(!ManagedBindingLocked()){poisoned_=true;return Fail(error,"managed 원장 변경/불확실 상태: 재open 필요");}
     return CheckManagedFdStateLocked(error);
 #else

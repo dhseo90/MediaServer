@@ -234,3 +234,28 @@ export function searchFailureSummary(text,required=true) {
   if(probes>1||(required&&probes!==1))issues.push('probe');
   return {status:issues.length?'incomplete':probes?'captured':'not-observed',probes,failures,issues};
 }
+
+// 고정 요청 요약. 중첩 단계의 누적값은 합산하지 않는다.
+export function visualRequestSummary(text,required=true) {
+ const rows=[];let probes=0,completion=null;const seen=new Set();
+ try {
+  if(Buffer.byteLength(text)>4*1024*1024)throw Error('log-cap');
+  for(const line of text.split('\n')) {
+   if(line.startsWith('[visual-request-loss]'))throw Error('loss');
+   if(line==='[visual-request-probe] 1'){probes++;continue;}
+   if(line.startsWith('[visual-request-end] ')){if(completion)throw Error('duplicate-completion');completion=JSON.parse(line.slice(21));continue;}
+   if(!line.startsWith('[visual-request]'))continue;
+   if(!line.startsWith('[visual-request] ')||Buffer.byteLength(line)>=3072||rows.length>=1024)throw Error('row-cap');
+   const v=JSON.parse(line.slice(17)),num=x=>Number.isSafeInteger(x)&&x>=0;
+   if(!num(v.id)||v.id===0||seen.has(v.id)||!num(v.startNs)||!num(v.elapsedNs)||!num(v.generation)||!num(v.documents)||
+     ![200,400,403,410,503].includes(v.status)||!/^[-a-z0-9]{1,79}$/.test(v.code)||
+     !Array.isArray(v.phases)||v.phases.length!==17||!v.phases.every(x=>Array.isArray(x)&&x.length===2&&x.every(num))||
+     !Array.isArray(v.counters)||v.counters.length!==6||!v.counters.every(num)||
+     !Array.isArray(v.locks)||v.locks.length!==5||!v.locks.every(x=>Array.isArray(x)&&x.length===3&&x.every(num)))throw Error('row');
+   seen.add(v.id);rows.push(v);
+  }
+  if(probes>1||(required&&probes!==1)||(required&&!rows.length))throw Error('missing-probe-or-requests');
+  if(rows.length){if(!completion||completion.started!==rows.length||completion.completed!==rows.length)throw Error('request-completeness');for(let id=1;id<=rows.length;++id)if(!seen.has(id))throw Error('request-gap');}
+  return {status:rows.length?'captured':'not-observed',probes,completion,rows,lockCountersRequireRecordingLatencyTrace:true,overlappingPhasesNotAdditive:true,unmeasured:['HTTP send','unwrapped syscalls/bytes','background per-request cost']};
+ }catch(e){return {status:'incomplete',reason:e.message,probes,rows};}
+}

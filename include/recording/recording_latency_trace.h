@@ -18,6 +18,50 @@ inline bool SlowOnly() noexcept {static const bool enabled=[] {const char* p=std
 inline std::uint64_t Now() noexcept {static const auto epoch=std::chrono::steady_clock::now();return static_cast<std::uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now()-epoch).count());}
 // k: 0=잠금 구간, 1=단계 구간, 2=빠른 집계, 3=진단 손실.
 struct Row {std::uint64_t k=0,o=0,s=0,l=0,m=0,t=0,r=0,b=0,a=0,e=0,n=0,w=0,h=0,x=0,y=0;};
+// 요청별 비용 요약: 고정 배열만 사용. 각 phase는 inclusive이며 부모/자식을 합산하지 않는다.
+// 단계 번호는 Names 순서, counters는 prepared/reused/evicted/eligible/scored/returned.
+class VisualRequestSummary {
+public:
+    inline static constexpr const char* Names[]={"visual-search","text-inference-wait","text-inference-held","encoder-mutex-wait","encoder-mutex-held","text-tokens","text-session-run","index-search-current-sources","source-prepare","source-resolve","prepare-binding","prepare-media-inspect","seek-current-source-media","final-source-json","vector-score","eligible","prepare-file-proof"};
+    inline static thread_local VisualRequestSummary* current=nullptr;
+private:
+    inline static std::atomic<unsigned> sequence{0},completed{0};
+    inline static std::atomic<bool> loss{false};
+    bool active_=false;unsigned id_=0,status_=503;char reason_[80]="exception";
+    std::uint64_t start_=0,generation_=0,documents_=0;
+    std::array<std::uint64_t,17> count_{},ns_{};
+    std::array<std::uint64_t,6> counters_{};
+    std::array<std::uint64_t,5> locks_{},wait_{},held_{};
+    static void Loss() noexcept {if(!loss.exchange(true)){const char* row="[visual-request-loss] collection\n";if(std::fputs(row,stderr)==EOF||std::fflush(stderr)!=0){std::fputs(row,stdout);std::fflush(stdout);}}}
+    struct Completion {
+        ~Completion() noexcept {if(std::fprintf(stderr,"[visual-request-end] {\"started\":%u,\"completed\":%u}\n",sequence.load(),completed.load())<0||std::fflush(stderr)!=0)Loss();}
+    };
+public:
+    static bool Enabled() noexcept {static const bool yes=[] {const char* p=std::getenv("MEDIA_SERVER_VERIFY_VISUAL_REQUEST_TRACE");return p&&std::strcmp(p,"1")==0;}();return yes;}
+    VisualRequestSummary() noexcept {
+        if(!Enabled())return;
+        static Completion completion;(void)completion;
+        id_=++sequence;if(id_==1){if(std::fputs("[visual-request-probe] 1\n",stderr)==EOF||std::fflush(stderr)!=0)Loss();}
+        if(id_>1024||current){Loss();return;}active_=true;start_=Now();current=this;
+    }
+    static void Result(unsigned status,const char* reason) noexcept {if(current){current->status_=status;const auto n=std::strlen(reason);bool safe=n<sizeof(current->reason_);for(std::size_t i=0;safe&&i<n;++i)safe=(reason[i]>='a'&&reason[i]<='z')||reason[i]=='-'||(reason[i]>='0'&&reason[i]<='9');std::snprintf(current->reason_,sizeof(current->reason_),"%s",safe?reason:"unknown-code");}}
+    static void Index(std::uint64_t generation,std::uint64_t docs) noexcept {if(current){current->generation_=generation;current->documents_=docs;}}
+    static void Count(unsigned counter,std::uint64_t n=1) noexcept {if(current&&counter<6)current->counters_[counter]+=n;}
+    static void Phase(const char* name,std::uint64_t elapsed) noexcept {if(!current)return;for(unsigned i=0;i<17;++i)if(std::strcmp(name,Names[i])==0){++current->count_[i];current->ns_[i]+=elapsed;return;}}
+    static void LockCost(const Row& r) noexcept {if(current&&r.k==0&&r.s>=1&&r.s<=5){const auto i=r.s-1;++current->locks_[i];current->wait_[i]+=r.w;current->held_[i]+=r.h;}}
+    ~VisualRequestSummary() noexcept {
+        if(!active_)return;
+        current=nullptr;char text[3072];std::size_t used=0;bool valid=true;
+        const auto add=[&](const char* format,auto... values){if(!valid)return;const int n=std::snprintf(text+used,sizeof(text)-used,format,values...);if(n<0||std::size_t(n)>=sizeof(text)-used){valid=false;return;}used+=std::size_t(n);};
+        // reason is a fixed application code, never exception.what/query/path.
+        add("[visual-request] {\"id\":%u,\"status\":%u,\"code\":\"%s\",\"startNs\":%llu,\"elapsedNs\":%llu,\"generation\":%llu,\"documents\":%llu,\"phases\":[",id_,status_,reason_,(unsigned long long)start_,(unsigned long long)(Now()-start_),(unsigned long long)generation_,(unsigned long long)documents_);
+        for(unsigned i=0;i<17;++i)add("%s[%llu,%llu]",i?",":"",(unsigned long long)count_[i],(unsigned long long)ns_[i]);
+        add("%s","],\"counters\":[");for(unsigned i=0;i<6;++i)add("%s%llu",i?",":"",(unsigned long long)counters_[i]);
+        add("%s","],\"locks\":[");for(unsigned i=0;i<5;++i)add("%s[%llu,%llu,%llu]",i?",":"",(unsigned long long)locks_[i],(unsigned long long)wait_[i],(unsigned long long)held_[i]);
+        add("%s","]}\n");if(!valid||std::fwrite(text,1,used,stderr)!=used||std::fflush(stderr)!=0)Loss();else ++completed;
+    }
+    VisualRequestSummary(const VisualRequestSummary&)=delete;VisualRequestSummary& operator=(const VisualRequestSummary&)=delete;
+};
 inline std::atomic<unsigned> next_thread{0},next_request{0},emitted{0};
 inline std::atomic<std::size_t> emitted_bytes{0};
 inline std::atomic<bool> loss_emitted{false};
@@ -84,6 +128,7 @@ inline void Flush() noexcept {
 }
 inline void Append(Row row,bool always=false) noexcept {
     row.t=local.thread;row.r=local.request;row.n=1;row.w=row.a-row.b;row.h=row.e-row.a;row.x=row.w;row.y=row.h;
+    VisualRequestSummary::LockCost(row);
     if(SlowOnly()){SlowTail().Add(row);return;}
     if(!always&&row.w<1000000&&row.h<1000000){
         for(auto& value:local.fast)if(value.n==0||(value.o==row.o&&value.m==row.m)){
@@ -150,7 +195,7 @@ class VisualPhase {
     inline static std::atomic<unsigned> sequence_{0},lines_{0};
     inline static std::atomic<bool> failed_{false};
     inline static thread_local unsigned current_{0};
-    const char* name_;unsigned id_=0,parent_=0;bool active_=false;
+    const char* name_;unsigned id_=0,parent_=0;bool active_=false;std::uint64_t summaryStart_=0;bool summary_=false;
     void Emit(bool end) noexcept {
         const auto n=lines_.fetch_add(1);
         if(n>=4096){if(!failed_.exchange(true))std::fputs("[visual-phase-loss] cap\n",stderr);return;}
@@ -163,11 +208,12 @@ class VisualPhase {
     }
 public:
     static bool Enabled() noexcept {static const bool yes=[] {const char* p=std::getenv("MEDIA_SERVER_VERIFY_VISUAL_LATENCY_TRACE");return p&&std::strcmp(p,"1")==0;}();return yes;}
-    explicit VisualPhase(const char* name,bool selected=true) noexcept:name_(name){
-        if(!(active_=selected&&Enabled()))return;
+    explicit VisualPhase(const char* name,bool selected=true,bool detailed=true) noexcept:name_(name){
+        summary_=selected&&VisualRequestSummary::current;if(summary_)summaryStart_=Now();
+        if(!(active_=selected&&detailed&&Enabled()))return;
         id_=++sequence_;parent_=current_;current_=id_;Emit(false);
     }
-    void End() noexcept {if(active_){Emit(true);current_=parent_;active_=false;}}
+    void End() noexcept {if(summary_){VisualRequestSummary::Phase(name_,Now()-summaryStart_);summary_=false;}if(active_){Emit(true);current_=parent_;active_=false;}}
     ~VisualPhase(){End();}
     VisualPhase(const VisualPhase&)=delete;VisualPhase& operator=(const VisualPhase&)=delete;
 };

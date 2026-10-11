@@ -19,7 +19,7 @@ std::string Quote(const std::string& value){
     for(unsigned char c:value){if(c=='"'||c=='\\'){s+='\\';s+=char(c);}else if(c<32){s+="\\u00";s+=hex[c>>4];s+=hex[c&15];}else s+=char(c);}return s+'"';
 }
 std::string Get(const Query& q,const char* key){const auto it=q.find(key);return it==q.end()?"":it->second;}
-ApplicationServiceResult Error(int status,const char* reason){return {status,status==400?"Bad Request":status==403?"Forbidden":status==410?"Gone":"Service Unavailable","{\"error\":"+Quote(reason)+"}"};}
+ApplicationServiceResult Error(int status,const char* reason){recording::latency::VisualRequestSummary::Result(status,reason);return {status,status==400?"Bad Request":status==403?"Forbidden":status==410?"Gone":"Service Unavailable","{\"error\":"+Quote(reason)+"}"};}
 bool Integer(const std::string& s,std::int64_t* value){if(s.empty())return false;const auto p=std::from_chars(s.data(),s.data()+s.size(),*value);return p.ec==std::errc{}&&p.ptr==s.data()+s.size()&&*value>=0;}
 bool Parse(const Query& raw,recording::VisualSearchQuery* q){
     const std::set<std::string> keys{"text","channelIds","limit","threshold","startTimeMs","endTimeMs"};
@@ -116,14 +116,14 @@ private:
         constexpr std::size_t capacity=8*1024*1024,fd_capacity=200;
         const Key key{doc.channel_id,doc.segment_id};auto found=entries_.find(key);
         Prepared* proof=nullptr;
-        if(found!=entries_.end()){found->second.used=++sequence_;proof=found->second.proof.get();++reused_;}
+        if(found!=entries_.end()){found->second.used=++sequence_;proof=found->second.proof.get();++reused_;recording::latency::VisualRequestSummary::Count(1);}
         else {
-            recording::latency::VisualPhase phase("source-prepare");temporary=source_.Prepare(doc,error,cancelled_,deadline_);if(!temporary)return nullptr;++prepared_;
+            recording::latency::VisualPhase phase("source-prepare");temporary=source_.Prepare(doc,error,cancelled_,deadline_);if(!temporary)return nullptr;++prepared_;recording::latency::VisualRequestSummary::Count(0);
             const auto cost=temporary->retained_bytes();
             if(cost<=capacity){
                 while(!entries_.empty()&&(entries_.size()>=fd_capacity||bytes_>capacity-cost)){
                     const auto oldest=std::min_element(entries_.begin(),entries_.end(),[](const auto& a,const auto& b){return a.second.used<b.second.used;});
-                    bytes_-=oldest->second.bytes;entries_.erase(oldest);
+                    bytes_-=oldest->second.bytes;entries_.erase(oldest);recording::latency::VisualRequestSummary::Count(2);
                 }
                 bytes_+=cost;peak_bytes_=std::max(peak_bytes_,bytes_);
                 found=entries_.emplace(key,Entry{std::move(temporary),cost,++sequence_}).first;proof=found->second.proof.get();
@@ -242,6 +242,7 @@ ApplicationServiceResult VisualSearchApplicationService::Status(const Authorize&
     }catch(const std::exception&){return Error(503,"visual-search-unavailable");}
 }
 ApplicationServiceResult VisualSearchApplicationService::Search(const Query& raw,const Authorize& authorize){
+    recording::latency::VisualRequestSummary request_summary;
     recording::latency::VisualPhase request_phase("visual-search");
     try{
         recording::VisualSearchQuery query;if(!Parse(raw,&query))return Error(400,"visual-invalid-query");
@@ -265,11 +266,13 @@ ApplicationServiceResult VisualSearchApplicationService::Search(const Query& raw
                 query.embedding=encoder_->EncodeText(text.original_text);
             }catch(const analysis::Siglip2Encoder::TextInputError& e){return Error(400,e.code());}}
         const auto view=worker_->ReadView();const auto index=view.index;if(!index)return Error(503,"visual-index-not-ready");
+        recording::latency::VisualRequestSummary::Index(view.publication&&view.publication->generation?*view.publication->generation:0,index->documents().size());
         std::vector<recording::VisualSnapshotEvent> events;
         if(!EventFacts(!options_.snapshot_directory.empty(),query.channels,&events,expired))return Error(503,"visual-source-unavailable");
         std::vector<recording::VisualSearchHit> hits;std::string error;
         RequestMedia media_cache(source_,expired,deadline);
         const auto eligible=[&](const auto& doc){
+            recording::latency::VisualPhase phase("eligible",true,false);recording::latency::VisualRequestSummary::Count(3);
             if(stopped_||std::chrono::steady_clock::now()>=deadline)throw std::runtime_error("budget");
             if(!authorize(doc.channel_id)||!CurrentEvent(doc,events,source_))return false;
             recording::SearchSeekTarget seek;
@@ -307,6 +310,7 @@ ApplicationServiceResult VisualSearchApplicationService::Search(const Query& raw
             <<",\"sampleSeconds\":"<<options_.sample_seconds<<",\"scanSeconds\":"<<options_.scan_seconds
             <<",\"returnedItems\":"<<hits.size()<<"}";
         if(expired())return Error(503,"visual-search-busy");
+        recording::latency::VisualRequestSummary::Count(5,hits.size());recording::latency::VisualRequestSummary::Result(200,"ok");
         return {200,"OK",out.str()};
     }catch(const std::exception&){return Error(503,"visual-search-unavailable");}
 }

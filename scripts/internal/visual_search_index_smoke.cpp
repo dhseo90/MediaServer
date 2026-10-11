@@ -56,8 +56,10 @@ int main() {
         Check(!VisualSearchIndex::Build(contract,{Doc("x"),Doc("y")},&index,&error,{1,100000})&&index==original,"count admission");
         for (int field=0;field<4;++field) {
             auto changed=contract;
-            if(field==0)changed.image_id+="new";if(field==1)changed.text_id+="new";
-            if(field==2)changed.space_id+="new";if(field==3)changed.dimensions=767;
+            if(field==0)changed.image_id+="new";
+            if(field==1)changed.text_id+="new";
+            if(field==2)changed.space_id+="new";
+            if(field==3)changed.dimensions=767;
             Check(!VisualSearchIndex::Build(changed,{Doc("x")},&index,&error)&&index==original,"foreign build contract");
             auto bad=q;bad.contract=changed;hits={{123,0.5}};
             Check(!index->Search(bad,Allow,&hits,&error)&&hits.size()==1&&hits[0].document_index==123,"foreign query contract preserves output");
@@ -79,10 +81,12 @@ int main() {
         std::normal_distribution<float> distribution(0,1);
         const auto Random=[&](){std::vector<float> v(768);long double squared=0;
             for(auto& x:v){x=distribution(generator);squared+=static_cast<long double>(x)*x;}
-            for(auto& x:v)x=static_cast<float>(x/std::sqrt(squared));return v;};
+            for(auto& x:v)x=static_cast<float>(x/std::sqrt(squared));
+            return v;};
         std::vector<VisualSearchDocument> docs;
         for(int i=0;i<1000;++i){auto row=Doc("row-"+std::to_string(i),Random());
-            if(i%3==0)row.channel_id="other"; if(i%5==0)row.utc_ns.reset();else row.utc_ns=i; docs.push_back(std::move(row));}
+            if(i%3==0)row.channel_id="other";
+            if(i%5==0)row.utc_ns.reset();else row.utc_ns=i; docs.push_back(std::move(row));}
         Check(VisualSearchIndex::Build(contract,std::move(docs),&index,&error),"random build");
         for(int trial=0;trial<20;++trial){q={contract,Random(),{"camera"},100,900,std::size_t(1+trial*9),trial%2 ? -.02 : .02};
             std::vector<std::pair<long double,std::string>> oracle;

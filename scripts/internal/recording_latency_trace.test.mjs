@@ -61,3 +61,10 @@ test('LP13-T05 cost instrumentation 신규wrapper 단일치환·trace중복거�
 });
 
 test('MEM82-C01 actual owned release/reacquire and new phase IDs',()=>{const {result}=run('cut-lock');assert.equal(result.status,'complete');for(const op of [11,12,13])assert(result.rows.some(r=>r.o===op));const prepare=result.rows.find(r=>r.o===12);assert.equal(prepare.m,0);assert(result.rows.filter(r=>r.k===0).length>=3);});
+
+// 실제 C++ 요청-local 생성 경로와 최종 parser의 연결. 가짜 summary는 실패 변형에만 사용.
+import {visualRequestSummary} from './recording_longrun_progress.mjs';
+function visualRun(mode,setting='1') {const r=spawnSync(binary,[mode],{encoding:'utf8',timeout:15000,maxBuffer:4*1024*1024,env:{PATH:process.env.PATH,MEDIA_SERVER_VERIFY_VISUAL_REQUEST_TRACE:setting}});assert.equal(r.status,0);return r.stdout+r.stderr;}
+test('V430-A01-APP request summary actual producer and late failure',()=>{const raw=visualRun('visual-summary'),v=visualRequestSummary(raw);assert.equal(v.status,'captured');assert.equal(v.rows.length,17);assert.equal(visualRequestSummary(raw.split('\n').filter(l=>!l.includes('\"id\":2,')).join('\n')).status,'incomplete');assert.equal(visualRequestSummary(raw.split('\n').filter(l=>!l.includes('\"id\":17,')).join('\n')).status,'incomplete');assert.equal(v.rows.at(-1).status,503);assert.equal(v.rows.at(-1).code,'visual-source-changed');assert(v.rows.every(r=>r.phases[0][0]===1&&r.counters[1]===3&&r.generation===7));assert.equal(visualRequestSummary(raw.replace('[visual-request-probe] 1','')).status,'incomplete');assert.equal(visualRequestSummary(raw.slice(0,-8)).status,'incomplete');assert.equal(visualRequestSummary(raw+raw.split('\n')[1]+'\n').status,'incomplete');});
+for(const mode of ['visual-cap','visual-write'])test('V430-A01-APP '+mode+' collection fails',()=>{assert.equal(visualRequestSummary(visualRun(mode)).status,'incomplete');});
+for(const setting of ['0','full','', '1 '])test('V430-A01-APP missing/invalid '+setting,()=>{assert.equal(visualRequestSummary(visualRun('visual-summary',setting)).status,'incomplete');});

@@ -272,11 +272,12 @@ std::unique_ptr<RecordingSearchReader::PreparedSource> RecordingSearchReader::Pr
     MediaInspectionOptions options;options.deadline=deadline;options.cancelled=cancelled;
     {latency::VisualPhase phase("prepare-media-inspect");proof->media=reader_.ResolveMedia(channel,id,std::move(options));}
     if(!proof->media)return fail(expired()?"seek-cancelled":"seek-unavailable-media");
+    latency::VisualPhase file_proof("prepare-file-proof");
     struct stat after{};
     if(::fstat(proof->media->fd(),&proof->verified)!=0||
         !VerifyRecordingFileEvidenceFd(proof->media->fd(),*binding,error,expired)||
         ::fstat(proof->media->fd(),&after)!=0||!SameFileState(proof->verified,after))return fail(expired()?"seek-cancelled":"seek-unavailable-file-evidence");
-    proof->binding=binding;
+    file_proof.End();proof->binding=binding;
     const auto current=reader_.RevalidatePreparedMedia(*proof->media,proof->segment,proof->location,&proof->context,error);
     if(!current||current!=proof->binding)return fail("seek-unavailable-source-changed");
     if(expired())return fail("seek-cancelled");

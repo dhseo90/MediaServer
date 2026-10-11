@@ -1,3 +1,4 @@
+#include "recording/recording_latency_trace.h"
 // 파일 용도: 유한 정규화 벡터 admission과 안정 ID 순서의 bounded exact top-k.
 #include "recording/visual_search_index.h"
 #include "analysis/siglip2_encoder.h"
@@ -99,9 +100,10 @@ bool VisualSearchIndex::Search(const VisualSearchQuery& q,
             const auto& d = documents_[i];
             if (std::find(q.channels.begin(), q.channels.end(), d.channel_id) == q.channels.end() ||
                 (q.start_utc_ns && (!d.utc_ns || *d.utc_ns < *q.start_utc_ns || *d.utc_ns >= *q.end_utc_ns))) continue;
+            latency::VisualPhase scoring("vector-score",true,false);latency::VisualRequestSummary::Count(4);
             double score = 0;
             for (std::size_t j = 0; j < contract_.dimensions; ++j) score += double(q.embedding[j]) * d.embedding[j];
-            score = std::clamp(score, -1.0, 1.0);
+            score = std::clamp(score, -1.0, 1.0);scoring.End();
             if (score < q.threshold) continue;
             const VisualSearchHit hit{i, score};
             // 원본 유효성에서 탈락한 상위 후보가 정상 후보의 자리를 차지하지 않는다.

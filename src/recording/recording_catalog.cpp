@@ -2768,14 +2768,18 @@ RecordingCatalog::SourceBindingHandle RecordingCatalog::ReadSourceBindingForMedi
     recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__);
     // 같은 현재 cut에서 기존 두 검증을 모두 수행한다. 파일 I/O는 잠금 밖에 유지한다.
     if(!ValidateMediaLocked(segment,location,nullptr))return {};
-    return ReadSourceBindingLocked(segment.segment_id,context,error);
+    return ReadSourceBindingLocked(segment.segment_id,context,error,&segment);
 } catch(const CatalogHistoryError& failure) { Fail(error,failure.what());return {}; }
 RecordingCatalog::SourceBindingHandle RecordingCatalog::ReadSourceBindingLocked(const std::string& id,
-    SourceBindingReadContext* context,std::string* error) const try {
+    SourceBindingReadContext* context,std::string* error,const RecordingSegmentV2* validated_media) const try {
     if(!context||(context->owner&&context->owner!=this)||!opened_||!derived_job_state_authoritative_||
-       (generation_backend_&&!CanReadLocked(error)))return {};
-    const auto original=segments_v2_.find(id);
-    if(original==segments_v2_.end()||EffectiveLifecycleV2Locked(id,true)!=RecordingLifecycle::Finalized)return {};
+       (!validated_media&&generation_backend_&&!CanReadLocked(error)))return {};
+    // private caller holds mu_ and ValidateMediaLocked just compared the exact
+    // current row/lifecycle/path. Keep that same-cut value rather than cold-read,
+    // parse and validate it again. Never reused across a lock or file-I/O boundary.
+    const auto original=validated_media?segments_v2_.end():segments_v2_.find(id);
+    if(!validated_media&&(original==segments_v2_.end()||EffectiveLifecycleV2Locked(id,true)!=RecordingLifecycle::Finalized))return {};
+    const auto& current=validated_media?*validated_media:original->second;
     const auto found=SourceEntryLocked(id);
     if(!found||!*found)return {};
     const auto& entry=*found;
@@ -2788,7 +2792,7 @@ RecordingCatalog::SourceBindingHandle RecordingCatalog::ReadSourceBindingLocked(
            !envelope||envelope->mutation_id!=entry.latest_mutation_id||envelope->entity_id!=id||
            envelope->mutation_type!=RecordingMutationType::SegmentV2BoundFinalized)return failed();
         link_phase.End();
-        const auto segment_json=SerializeRecordingSegmentV2(original->second);
+        const auto segment_json=SerializeRecordingSegmentV2(current);
         if(context->binding&&context->envelope&&context->binding->segment_id==id&&context->segment_json==segment_json){
             const auto& a=*envelope;const auto& b=*context->envelope;
             if(a.schema==b.schema&&a.mutation_id==b.mutation_id&&a.entity_id==b.entity_id&&
@@ -2798,7 +2802,7 @@ RecordingCatalog::SourceBindingHandle RecordingCatalog::ReadSourceBindingLocked(
             }
         }
         SourceBindingHandle parsed;
-        if(!MaterializeSourceBinding(entry,original->second,envelope,&parsed,error)||!parsed)return failed();
+        if(!MaterializeSourceBinding(entry,current,envelope,&parsed,error)||!parsed)return failed();
         materialized=true;
         // 공유 handle은 한 번만 세고, 실제 vector/string capacity와 envelope/cold 보관을 포함한다.
         std::size_t retained=sizeof(SourceBindingReadContext)+sizeof(RecordingSourceBindingV1)+2*sizeof(RecordingMutationV1)+

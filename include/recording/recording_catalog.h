@@ -400,7 +400,7 @@ private:
         std::pair<std::filesystem::path,std::filesystem::path>*,std::string*,JobReadContext*);
     bool ValidateMediaWithContext(const RecordingSegmentV2&,const std::pair<std::filesystem::path,std::filesystem::path>&,JobReadContext*) const;
     bool ValidateMediaLocked(const RecordingSegmentV2&,const std::pair<std::filesystem::path,std::filesystem::path>&,JobReadContext*) const;
-    SourceBindingHandle ReadSourceBindingLocked(const std::string&,SourceBindingReadContext*,std::string*) const;
+    SourceBindingHandle ReadSourceBindingLocked(const std::string&,SourceBindingReadContext*,std::string*,const RecordingSegmentV2* validated_media=nullptr) const;
     SourceBindingHandle ReadSourceBindingForMedia(const RecordingSegmentV2&,const std::pair<std::filesystem::path,std::filesystem::path>&,SourceBindingReadContext*,std::string*) const;
     friend class RecordingReadService;
     bool ReleaseInactiveDetailsLocked(const std::string* changed,std::string* error);

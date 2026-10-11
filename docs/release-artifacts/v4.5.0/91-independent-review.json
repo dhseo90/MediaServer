@@ -1,0 +1,526 @@
+{
+  "schema": "v4.5.0-task91-independent-review-v1",
+  "reviewedAt": "2026-10-11T10:10:59.238Z",
+  "reviewer": "independent_memory86",
+  "implementationAuthor": "root",
+  "independent": true,
+  "modelRequested": {
+    "model": "gpt-6-astra",
+    "effort": "high"
+  },
+  "priorToolAccepted": {
+    "model": "gpt-6-astra",
+    "effort": "high",
+    "basis": "기존 별도 reviewer 명시 override 수락 기록의 재사용"
+  },
+  "actualRuntimeModel": null,
+  "actualRuntimeEffort": null,
+  "runtimeConfirmation": "도구가 실제 런타임 모델/effort를 노출하지 않아 미확인. 요청·수락과 실제 적용 확인을 구분한다.",
+  "participation": "구현·fixture 작성·제품/검사/producer 실행 및 하위 위임 없음. 소스/원출력/기존 archive 읽기, 표본 계산과 hash 대조, 본 보고 파일 작성만 수행.",
+  "preflight": {
+    "status": "SCOPED_PRODUCT_REVIEW_PASS_FINAL_ENTRY_PENDING",
+    "productSafetyBlockers": [],
+    "fixedInputCostEvidence": "ACCEPTED_WITH_LIMITS",
+    "relatedMacLinuxEvidence": "PASS_IN_STATED_SCOPE",
+    "pendingBeforeFinalCandidate": [
+      "완결된 기존 approval apply 뒤 coverage-final의 결과 readback",
+      "최종 제품·fixture 및 결속 파일 커밋으로 후보 고정과 실제 실행 source/binary 연결"
+    ],
+    "final600RunsObserved": 0,
+    "entryAuthorization": "사용자가 이미 최대1회 승인한 최종600의 기술적 준비 검토이며 새 권한 부여가 아니다. pending 완료 전 진입 완료라고 하지 않는다.",
+    "future600PassPredicted": false,
+    "wholeTaskComplete": false,
+    "memoryP0Complete": false,
+    "releaseApproved": false
+  },
+  "sourceBinding": {
+    "entryHead": "7a70eb7346ff18a02bcba6cd217177cafd6083be",
+    "productPaths": {
+      "include/recording/recording_catalog.h": "a45977ff4bdc6a7e6312a48f80cfb750906d1e92b817b3dcce26edd60fca8ea8",
+      "include/recording/recording_latency_trace.h": "bec811180826c83b813a35c6cda4038bd37fd93afdb02b3975daa8a76a255c27",
+      "src/recording/recording_catalog.cpp": "38d760ae3e9f03a1fef37933cae6c048b6b4a8a2b59e61ffd693f409ddd44c3b",
+      "src/recording/recording_journal.cpp": "e150a11916f2df21928ed47f1ff8592ada4625c386a9e931616a2bb9e5a8589b",
+      "src/recording/recording_search_reader.cpp": "85875112ed09856259ff3ce55d95a26bedace09f7154a4fe809291e1d917a600",
+      "src/recording/visual_search_index.cpp": "74ca5183234ea6d43d64db05016dfaf52dc9e06175c4a7191a13b6886915b766",
+      "src/ingress/visual_search_application_service.cpp": "4e2fcd6482dc5c469569651a370ecb1fd1890b192769dfe1a6c2be248b31a330"
+    },
+    "productCurrentHashMismatches": [],
+    "productDiffEncoding": "git diff --no-ext-diff --binary -- <7 productPaths>; entry HEAD relative",
+    "productDiffSha256": "58b19d7f425c3c7ff722e0d18bb1cc417284c0d6a8dc7e119c7667a1892a360d",
+    "productDiffBytes": 21738,
+    "fixtureSha256": {
+      "scripts/internal/recording_latency_trace.test.mjs": "c2a520e6228fe2e4816a79629f8cb62420764cd473dc9999ca65e9edae41c68e",
+      "scripts/internal/recording_latency_trace_smoke.cpp": "b7d3353e9ff340182a8d3e76cac97ca6531b615f6e97f3809b039b48f97b9ba4",
+      "scripts/internal/recording_longrun_progress.mjs": "9962f8e78944eaaecc442fd4196b1be8aa3442c2b41d35aefb7fe22864f24e46",
+      "scripts/internal/recording_longrun_progress.test.mjs": "52f54aa15ac727f08309e1125dd6a80fea740b7d51d44006d95c6beb6ffb7902",
+      "scripts/internal/v450_recording_a_mixed.mjs": "4ab5acae418c52138a112a09411bb9af6dc3486b876e73d6add35f5701ee7410",
+      "scripts/internal/visual_search_index_smoke.cpp": "976f36accbfe1833bdfeca1a248b9af43239967989f0c79c910949ce14cc409e",
+      "scripts/internal/visual_search_application_smoke.cpp": "0d57f33de5622fe8a3350f33b9bc37b853506643c1c1453d367111a5d48d8436",
+      "scripts/internal/visual_request_media_cache_smoke.cpp": "bd2ed6e51bb37a764270419d977a4944c497727267cdce97577d737f62dd5a24",
+      "scripts/internal/verify_visual_request_media_cache.py": "84e2fe381cc092a1989f097ef32373078d1cb56f66b4e530665db7c9ce27dabc",
+      "scripts/internal/verify_recording_generation_request_proof.sh": "0eb877b2eab1620555fd0669c21eeed5674e18c3abc890725ec92a30e5b510e3",
+      "scripts/internal/recording_search_seek_smoke.cpp": "9c34044a5389ced2d3e8c8c17d314dc3c59c260a04f385ee1a217565b3560392",
+      "scripts/internal/recording_search_playback_smoke.cpp": "01adffec1bf4dd4b1156d7b83beb163d51d99c9129f0dd905907615f24318d5d"
+    },
+    "macBinarySha256": "d3068b3cba990e2188484ade07f3bd0ca689bdcb6954c4ecc11d09b5a14ad8c2",
+    "macRuntimeSha256": "ed2507258dab3a09c19da81d30ad9a40d2f50d5fd10a2fca5d479e734cb55c78",
+    "macApplicationFixtureBinarySha256": "8394e3a0b5461f8bcabb014a8cbbe66fe6639004ba10c4d0c2ebeeb7e3d30e12",
+    "note": "실행 시점의 dirty source snapshot을 보존한다. 후속 commit을 이미 끝난 실행의 source로 소급하지 않는다. 최종source commit self-reference 대신 실제 제품/fixture bytes를 결속한다."
+  },
+  "safetyReview": [
+    {
+      "change": "Journal generation same-call 중복 GenerationBinding 제거",
+      "conclusion": "CheckManagedStateLocked는 generation_state_일 때 CheckManagedFdStateLocked에 직접 진입한다. 그 함수가 opened/poisoned/pid/lease/active/marker/manifest를 GenerationBindingLocked로 매번 확인하고 identity history/order/archive/completed-history Healthy를 계속 검사한다. V1 경로는 기존대로이며 호출 간 cache를 추가하지 않는다.",
+      "limit": "generation binding 실패의 내부 detail 문자열은 generic managed에서 B binding으로 달라지나 현재 공개 응답/실패 전달 의미가 바뀌는 소비자는 발견하지 않았다."
+    },
+    {
+      "change": "Catalog same-mutex current segment 재사용",
+      "conclusion": "ReadSourceBindingForMedia가 mu_를 유지한 채 ValidateMediaLocked→MediaV2EligibleLocked에서 현재행·authority·retired/tombstone/lifecycle·경로 및 직렬화 동등성을 확인한 값만 private ReadSourceBindingLocked로 전달한다. 포인터를 저장하지 않는다. 일반 ReadSourceBinding 호출은 원래 검증 경로를 유지한다.",
+      "limits": "파일 접근 전/후 RevalidatePreparedMedia 검증, 현재 FD 대조, source mutation envelope 원문 재획득 및 MaterializeSourceBinding 내용 비교는 유지된다. 파일 I/O나 lock 경계를 넘긴 proof 재사용으로 해석하지 않는다."
+    },
+    {
+      "change": "검색 의미/소유 경계",
+      "conclusion": "score·threshold·stable tie-break·eligible top-k, 권한 및 최종 결과 재검증, 90 scoped invalidation/3attempt, retained media hold/FD 수명, cache 8MiB/200entry 및 shared budget은 변경되지 않는다. 전체이력 상주·새 모델/session·부하 축소 없음."
+    },
+    {
+      "change": "요청별 bounded summary",
+      "conclusion": "최대1024 요청,행3072B미만,고정 request storage<=2048B. 정제 reason/status와 단계별 count/time·cache 횟수·Catalog wait/held를 출력하며 공개 응답을 바꾸지 않는다. required process의 started/completed=rows 및 ID1..N 검사로 중간·마지막 완전행/전체행 누락을 거부한다. 기존4MiB로그 및 loss/불완전 실패 전파를 유지한다.",
+      "limits": [
+        "inclusive 부모/자식 시간은 더하지 않는다. HTTP 송신·개별 unwrapped syscall/bytes·배경 요청 귀속은 미관측이다.",
+        "prepared count는 고유 원본 수가 아니며 재준비를 포함한다. lock count는 RECORDING_LATENCY_TRACE 활성화 조건이 필요하다.",
+        "required=false이며 rows0인 optional process는 probe/end가 있어도 not-observed를 반환하는 좁은 미검출 한계가 남는다. 해당 두 번째 준비 서버는 본래 visual Search가 없고 최종600 main은 required=true이므로 현재 진입 blocker로 보지 않는다."
+      ]
+    }
+  ],
+  "costEvidence": {
+    "prior90": "기존600 p95 2482.999ms FAIL과 visual77 성공 별도p95약2712ms를 유지. 마지막64 slow span 또는 시간 겹침으로 전체 원인을 소급 확정하지 않는다. 89 내부 원인은 미확정.",
+    "before30": "같은 main 요청 docs25/gen11,238 Catalog lock; elapsed1401/1416ms,eligible967/986ms,wait722/708ms,held469/455ms로 source 적격성/원본 검증 비용이 텍스트Run약40ms보다 지배적임을 관측.",
+    "firstAfterJournalOnly": "1739/1741ms,held525/530ms로 개선 미입증/악화 사실을 유지한다. 이를 성공표에서 제외하거나 PASS로 바꾸지 않는다.",
+    "finalShortAfter": "준비 실행 PASS. populated1058/1064ms,held354/349ms는 감소 방향이나 docs25→29로 작업량이 다르고 startup/empty 요청에 coverage CPU가 겹쳤다. SIGTERM 후 populated batch였어도 warmup 간섭을 배제할 수 없어 통제 A/B가 아니다.",
+    "fixedInput": {
+      "method": "닫힌 before30 실제 원본23개,동일 첫 sample을3요청×2pass로 실제 RequestMedia에 전달. before는 entry Catalog/Journal2TU 원문+현재 동일 RequestMedia/계측/runtime, after는 현재 runtime. 실제 모델/HTTP/배경worker 수행은 제외.",
+      "baselineTwoTranslationUnitsByteIdenticalToEntry": true,
+      "inputAuthorityFilesHashed": 56,
+      "currentInputHashMismatches": 0,
+      "selectedTargetRows": 138,
+      "targetsAndThreeCacheAccountingRowsExactlyEqual": true,
+      "perRequest": {
+        "documents": 23,
+        "prepared": 23,
+        "reused": 23,
+        "evicted": 0,
+        "cacheBytes": 3326642,
+        "catalogLockCalls": 437
+      },
+      "beforeMs": [
+        729.959417,
+        708.625375,
+        714.47625
+      ],
+      "afterMs": [
+        611.58875,
+        586.727,
+        588.77925
+      ],
+      "beforeCatalogHeldMs": [
+        671.615581,
+        668.410333,
+        673.612955
+      ],
+      "afterCatalogHeldMs": [
+        555.333827,
+        546.808824,
+        548.390756
+      ],
+      "conclusion": "동일 lock 획득 수에서 잠금 내부 검증 비용 감소를 지지한다. 요청 횟수·정확한 target·cache/FD 경계를 줄여 얻은 결과가 아니다.",
+      "normalization": "buffered stdout TARGET 중간에 완전 diagnostic JSON행이 삽입돼 최초 비교 실패. 원본을 바꾸지 않고 완전 JSON span+newline만 제거해 stdout fragment를 연결한 독립 재대조에서138 TARGET+3COST 동일. 제품 재실행 없음.",
+      "limitations": [
+        "before→after 순차실행,소수표본으로 OS page/cache/열 상태 영향 분리 불가. 정확한 개선율/지속 혼합 p95 예측을 주장하지 않는다.",
+        "run-fixed-cost.py의 MEDIA_SERVER_VERIFY_RECORDING_SLOW_ONLY 오기로 실제 소비하는 ...RECORDING_LATENCY_SLOW_ONLY는 설정되지 않았다. 두 변형은 공통 full latency 출력 조건이며 mixed slow-only와 같다고 하지 않는다.",
+        "따라서 국소 비용 개선/동등 결과 증거이며 실제 SigLIP2 HTTP 및 최종600 gate를 대신하지 않는다."
+      ]
+    }
+  },
+  "directRegression": {
+    "macOS": {
+      "seek": {
+        "pass": 9,
+        "fail": 0
+      },
+      "playback": {
+        "pass": 27,
+        "fail": 0
+      },
+      "index": {
+        "checks": 1665,
+        "status": "PASS"
+      },
+      "cache": {
+        "checks": 448,
+        "status": "PASS",
+        "boundaries": "실제 native source/tamper·LRU eviction·8MiB 초과 proof·retention/FD/response hold"
+      },
+      "generationProof": {
+        "configurations": 4,
+        "exit": 0,
+        "elapsedSeconds": 74.52208220795728
+      },
+      "collector": "실제 C++ producer/parser32개 PASS; 중간/마지막 완전행 제거 거부 포함",
+      "actualSiglip2": {
+        "finalIsolated": true,
+        "assertions": 96,
+        "exit": 0,
+        "elapsedSeconds": 43.216374249896035,
+        "concurrentSuccessfulSearches": 24,
+        "p95Ms": 192.345,
+        "maxMs": 192.897,
+        "limit200Ms": [
+          841.661,
+          841.322,
+          849.655
+        ],
+        "peakRssBytes": 3227353088,
+        "scope": "실제 application+worker+SigLIP2 직접 경로. HTTP 지속혼합 성능 아님. earlier95 PASS 실행은 compile overlap으로 성능 근거 제외. final독립 실행 전 빌드/static 작업 종료는 메인 기록에 근거."
+      }
+    },
+    "linux": {
+      "uid": 10001,
+      "network": "none per retained launch configuration",
+      "selectedArchiveFilesByteMatched": 31,
+      "productBuild": "PASS",
+      "seek": 9,
+      "playback": 27,
+      "index": 1665,
+      "cache": 448,
+      "collectorTests": 33,
+      "generationProofConfigurations": 4,
+      "generationProofElapsedSeconds": 80.89012557800004,
+      "generationProofReceiptAndLogHashMatch": true,
+      "scope": "기존 image/compiler/SDK, 새 설치 없음. mac 실제모델 결과를 Linux 실제 모델 실행으로 대체 주장하지 않는다.",
+      "fixtureRepair": "visual_search_index_smoke.cpp GCC misleading-indentation 보완은 문장 개행만이며 기대값 불변."
+    }
+  },
+  "firstFailuresAndLimitations": [
+    "Linux 최초 noexec126: 제품 build/fixture compile 뒤 실행 불가. 첫 tar가 후속 redirection으로 덮어써 전체 최초 원출력 없음. tool-observed Permission denied 발췌만 존재하며 원본 복원/완전보존으로 주장하지 않는다.",
+    "Linux 두 번째 seek/playback PASS 뒤 기존 index fixture GCC misleading-indentation 실패는 별도 tar 원문 보존; 최종 PASS와 구분.",
+    "처음 static coverage를 approval apply 완료 전에 병행해 binding drift FAIL. 원출력 보존하고 완료 apply 뒤 coverage만 재확인 중.",
+    "최종short startup/empty와 CPU static 작업 중첩 실수 및 firstAfter 개선 미입증은 그대로 보존.",
+    "fixed input 원출력 interleaving 비교 실패와 최초 불완전 normalization 실패는 파생 parser 처리 오류로 구분하며 원본 유지."
+  ],
+  "binding": {
+    "candidateDigest": "8977e9b6ac618c7e0233823f6acb6ab1fcf7461206ee5d8b2a4149a643519e3a",
+    "rows": 986,
+    "allItemsEqualPriorAudit": true,
+    "meaning": "candidate986/digest동일은 기존 semantic approval 재사용 조건이며 이번 제품 동작을 승인하는 근거가 아니다. 새 변경 안전성과 비용은 이 독립 검토에서 별도로 판단했다.",
+    "existingApply": {
+      "exit": 0,
+      "checks": 51,
+      "elapsedSeconds": 99.04454529099166
+    },
+    "manifestActualDifference": "project_feature_implementation_evidence.json top-level inventorySha256만 달라지고 items 전체 동일",
+    "nativeManifest": "읽기 출력424 exact case,actualBrowserExecution not-run; 실제UI PASS 아님",
+    "coverageFinal": "진행 중/결과 미확인. 후속 addendum 전 PASS 아님",
+    "newSemanticProducer": "not run/not required for identical items; 임의 승인 hash/검사 우회 없음"
+  },
+  "receiptReadback": [
+    {
+      "name": "mac-model-isolated",
+      "exit": 0,
+      "logBytesAndHashMatch": true
+    },
+    {
+      "name": "mac-proof",
+      "exit": 0,
+      "logBytesAndHashMatch": true
+    },
+    {
+      "name": "binding-apply",
+      "exit": 0,
+      "logBytesAndHashMatch": true
+    }
+  ],
+  "evidenceRoot": "/private/tmp/media-server-memory91-0g_muxdk",
+  "evidenceBindings": [
+    {
+      "path": "evidence/plan.json",
+      "bytes": 2548,
+      "sha256": "a2fd368f7a6ba498f45a07e8503f168b3f09a8e8203443a613f2c4b29192530a"
+    },
+    {
+      "path": "evidence/product-final.json",
+      "bytes": 798,
+      "sha256": "2b826a9d5f3b4de02ae3909fc0beb44d3f89a474359e9605773f00b2253cada1"
+    },
+    {
+      "path": "evidence/static-interruption.json",
+      "bytes": 377,
+      "sha256": "e2426741e32b7dcb684206944cc135e02c87a238e61801a447486ea76e631c58"
+    },
+    {
+      "path": "evidence/concurrency-note.json",
+      "bytes": 221,
+      "sha256": "368f2ee6ee7d48d5a4dfdf4c1ade69f04b30238d61a6955b7201a10fa7b9fbb7"
+    },
+    {
+      "path": "evidence/linux-first-preparation.json",
+      "bytes": 708,
+      "sha256": "5ba423b7b0755b9f2d5c951b0b454e1a57a463b2cf7c2a5dcf147d6cd93783da"
+    },
+    {
+      "path": "before30/execution.json",
+      "bytes": 1743,
+      "sha256": "67e8f0e8c3812409fd8ad83aeffba9c720adf7e53744cc351c82f7839b3d0047"
+    },
+    {
+      "path": "before30/run.log",
+      "bytes": 180314,
+      "sha256": "6f1142c24b4fa48037b673864db580a943c7f90f6a45a40c3e5adc6cdece6eec"
+    },
+    {
+      "path": "after30/execution.json",
+      "bytes": 1744,
+      "sha256": "089a99d27d8b74eea90bb4a8eb8e8dfd2ad654c9d3abcede3886eea6517c6bc1"
+    },
+    {
+      "path": "after30/run.log",
+      "bytes": 180900,
+      "sha256": "b22bfd71ed6bd6aeda3b0ebf81b96edd4e39840a7e6d24ab7215aee3ef020317"
+    },
+    {
+      "path": "final-after30/execution.json",
+      "bytes": 1745,
+      "sha256": "fac6c10b03db558f6665007f31d26367654457dbeb4fc0af526ec91d33d46b3a"
+    },
+    {
+      "path": "final-after30/run.log",
+      "bytes": 180029,
+      "sha256": "2bc6eed8b5826f3fdfac851f2c83f2d2f15e12942e9bce00346564672ba7350d"
+    },
+    {
+      "path": "fixed-cost/comparison.json",
+      "bytes": 2194,
+      "sha256": "09e41a3314f03944e0de7e7df196076ba823cc21d72ec577ea8eb87afd6e5b60"
+    },
+    {
+      "path": "fixed-cost/before.log",
+      "bytes": 139198,
+      "sha256": "c5f2d4e3964c308acaca45b2b517e800c882f7eebd7add22a8b02f45246ad137"
+    },
+    {
+      "path": "fixed-cost/after.log",
+      "bytes": 128375,
+      "sha256": "1b0571837cf7105ac3ba8828f7d8bc56f96e53bbd26f313fa1f5585d0b2a21fc"
+    },
+    {
+      "path": "fixed-cost/result.json",
+      "bytes": 236,
+      "sha256": "e3ee6647ee1c45a1142b14b8a198d2f9074f90cdb19433239b3f08d211002d12"
+    },
+    {
+      "path": "fixed-cost/input-hashes.json",
+      "bytes": 7140,
+      "sha256": "8bd3e2ba8b76985380ae91dd5caca37e1d43aab2d824d8f73841d0c221085920"
+    },
+    {
+      "path": "fixed-cost/commands.json",
+      "bytes": 15529,
+      "sha256": "0d3f8a085999ef65a63caf49d0c27874ec7d1a92512a70bf6d2442a36d798041"
+    },
+    {
+      "path": "fixed-cost.cpp",
+      "bytes": 2498,
+      "sha256": "8039cc6ef3b862cd29c59e46078e430af1d5284cb822e274f73f077a16a05712"
+    },
+    {
+      "path": "build-fixed-cost.py",
+      "bytes": 2017,
+      "sha256": "e6cb33326b81196c14be1d9d512ced2e3f43739b133f3911fffd8036db8f487b"
+    },
+    {
+      "path": "run-fixed-cost.py",
+      "bytes": 1514,
+      "sha256": "7aeb8be00636fca2569845255cf44656c8a9b14492e0b0665596c232cfd3feda"
+    },
+    {
+      "path": "mac-model-isolated.json",
+      "bytes": 730,
+      "sha256": "77d47ab04ded6f4a9e300246217dd4ed4b9cd2117b7967181973ab02368182d1"
+    },
+    {
+      "path": "mac-model-isolated.log",
+      "bytes": 1677,
+      "sha256": "a120fc20eba791bdb9f4b14deb32bb51a0a154b530a2a8f368c04b4b220d3571"
+    },
+    {
+      "path": "cache.json",
+      "bytes": 6600,
+      "sha256": "e8d6bf5fa4dea611a3a8f44173eee5758e9638be213523d2771adaee88fc8f3d"
+    },
+    {
+      "path": "cache-run.log",
+      "bytes": 17221,
+      "sha256": "473043efa4a43a34755d073a9d8a23af4b6fa7fb88184170d9d651dde0a75735"
+    },
+    {
+      "path": "mac-proof.json",
+      "bytes": 361,
+      "sha256": "8b48ae30b5672e3d82307e4c90e0f74a187d4029b4f302f1bba6fb936648b201"
+    },
+    {
+      "path": "mac-proof.log",
+      "bytes": 12333,
+      "sha256": "dfbaece130f1ef238800143a3afb8517dcdc28d029f29cfd70931adddee85d21"
+    },
+    {
+      "path": "diagnostic-completion-contract.log",
+      "bytes": 2566,
+      "sha256": "29eda7094b11031a81b014a968d7c5fbe4eac944b25928ea4ef5462efd3254f3"
+    },
+    {
+      "path": "linux91.tar.gz",
+      "bytes": 5331131,
+      "sha256": "7a3b728b0d05ea28b3eb804d79795b65ffe5156c132297c360bdfeb2bbe74419"
+    },
+    {
+      "path": "linux91-second-gcc-fixture.tar.gz",
+      "bytes": 5232967,
+      "sha256": "598e6579a876b6141d6a8eabc79510496c87aa67f34a193f033c8c435f79a73b"
+    },
+    {
+      "path": "linux91-selected/request-proof.json",
+      "bytes": 360,
+      "sha256": "cd66f5768615f620e400443087e3b3e7dd8b85b94572a7f6ca7e00c33445b8e3"
+    },
+    {
+      "path": "linux91-selected/request-proof.log",
+      "bytes": 12297,
+      "sha256": "a571ab090977f12a37a7b41eb548774a65d351f71a4cd4d784ee0485ead36d2a"
+    },
+    {
+      "path": "linux91-selected/cache.json",
+      "bytes": 3952,
+      "sha256": "1fb31518802308cffc044778cd4d4ff1d066574f97f966465e7716bb92fd2245"
+    },
+    {
+      "path": "linux91-selected/cache-run.log",
+      "bytes": 17297,
+      "sha256": "c7827868cbdd393eb85b86ff4a7990bf8a70d69f4cab97e5fd4588cd2af04898"
+    },
+    {
+      "path": "linux91-selected/collector.log",
+      "bytes": 5845,
+      "sha256": "58b6e618cf3cd3d9f74ca890a028498f8976bff24fa52a8600d5e97734ccb0d8"
+    },
+    {
+      "path": "linux91-selected/environment.log",
+      "bytes": 314,
+      "sha256": "a9ad89e58a5f3204e26d11bea849dcc79072632a1a64723e6afed3b3c4f04914"
+    },
+    {
+      "path": "linux91-selected/binaries.sha256",
+      "bytes": 189,
+      "sha256": "cb8b6cae924843b4877439e7df72e2471ebedf6d850c044682a61f4e6985d2e2"
+    },
+    {
+      "path": "binding-apply.json",
+      "bytes": 403,
+      "sha256": "ca78f082556cd65ea6273448805191259365bdd7f3dcf2b46234e9e2d0ea9fd7"
+    },
+    {
+      "path": "binding-apply.log",
+      "bytes": 12812,
+      "sha256": "d044f8ac77f4e3e0a7ee0672c9d63381151b9f522393a0aa536f910913ef258f"
+    },
+    {
+      "path": "static.json",
+      "bytes": 354,
+      "sha256": "aa1644857aa09fb204a022d48f1729e1ca042e7fd63041e51f2bda1e735f6da5"
+    },
+    {
+      "path": "static.log",
+      "bytes": 6863,
+      "sha256": "a5c6dbdb9cba5cd3caeff2e006e06105c9722abd9a15ccec0e11dac559b3499d"
+    },
+    {
+      "path": "evidence/candidate.json",
+      "bytes": 7709058,
+      "sha256": "13402b9705f3b160348f6facdd5bf496d4a6fe761c9653db6f9fd7754b2a14f4"
+    },
+    {
+      "path": "mac-direct/visual_search_index_smoke-run.log",
+      "bytes": 67,
+      "sha256": "3bd639d4ba248b4917b211da2500b163d239f1bf8895411fb9ccb8e2aa852a0b"
+    },
+    {
+      "path": "mac-direct/recording_search_seek_smoke-run.log",
+      "bytes": 550,
+      "sha256": "39e7e2db3ba1422f0e97c586a61d229881fdec68303cdee8428499ac2bede3c2"
+    },
+    {
+      "path": "mac-direct/visual_search_application_smoke-run.log",
+      "bytes": 1676,
+      "sha256": "ea5fdfb12b5b3346b8ac8a0831dc9540a12af86ca7d8655777c1682fe897315c"
+    },
+    {
+      "path": "mac-direct/recording_search_playback_smoke-run.log",
+      "bytes": 2858,
+      "sha256": "2f08938a86ded0aa75c22222fe06a51badc5a8bd0942a741385fcbb54f9c41b9"
+    },
+    {
+      "path": "linux91-selected/native/visual_search_index_smoke-run.log",
+      "bytes": 67,
+      "sha256": "227d21209dc2a1d992255729afe3a408580239efbbf8e3ef2e874e32c2e680a8"
+    },
+    {
+      "path": "linux91-selected/native/recording_search_seek_smoke-run.log",
+      "bytes": 626,
+      "sha256": "1a7f8acf7c326ef1268f4edf586b088445d49466c0d0f883c36a1e837ec86408"
+    },
+    {
+      "path": "linux91-selected/native/recording_search_playback_smoke-run.log",
+      "bytes": 2858,
+      "sha256": "2f08938a86ded0aa75c22222fe06a51badc5a8bd0942a741385fcbb54f9c41b9"
+    }
+  ],
+  "remaining": [
+    "완료된 apply 뒤 coverage readback와 최종source commit/binary 결속",
+    "기존 승인된 단일600 최대1회 결과:원래 mixed 성공 배열p95<=2000/max<=5000,5초 요청,진행·표본연속성·명시 disable·닫힌 journal·정상Finish",
+    "새미허용실패 시 재실행/추가제품수정 없이 부분결과 보존 및 중단",
+    "증거선정/정제·archive 실제bytes readback·소유정리·일반push와실제원격 확인"
+  ],
+  "completionBoundary": "현재는 변경분 preflight다. 90 FAIL을 소급 PASS로 바꾸지 않으며 600의 미래 결과를 예측하지 않는다. 전체 메모리P0/출시는 보류,120분/UI/acceptance/PR/병합/tag/Release 미실행. 완료된90/86/85/88 직접 범위는 해당 source/소유 경계로 유지.",
+  "preflightCompletionAddendum": {
+    "reviewedAt": "2026-10-11T10:11:23.462Z",
+    "coverage": {
+      "exit": 0,
+      "elapsedSeconds": 84.8916210840689,
+      "pass": 9,
+      "fail": 0,
+      "covered": 986,
+      "missing": 0,
+      "logBytesAndSha256Match": true,
+      "sha256": "f3dd9d2ec3cd35ce7a806a391b6918dddd2c2377ca3039afa624f484985f9bce"
+    },
+    "scriptInventory": {
+      "pass": 13,
+      "fail": 0,
+      "logSha256": "92e692a3173f517ac5430005d1cf361195ac0dad7e505a2ffaddc893da6cdecf"
+    },
+    "nativeDefinitionReadback": "424 exact case 정의, actualBrowserExecution not-run",
+    "manifestDiff": "직접 git diff 재조회에서 inventorySha256 한 줄만 달라짐; 기존 indent2로 재직렬화된 전후 의미가 같음",
+    "productHashMismatches": [],
+    "status": "SCOPED_PREFLIGHT_COMPLETE_AWAITING_COMMITTED_EXECUTION_SOURCE",
+    "decision": "제품 변경 안전성·제한된 고정 입력 비용 개선·관련 macOS/Linux 회귀·필요 결속 readback에 추가 기술 blocker를 발견하지 않았다. 메인이 동일 제품/fixture bytes를 커밋하고 실제 source/binary를 결속하면 사용자가 이미 승인한 최종600 최대1회의 기술적 선행 검토는 충족된다.",
+    "notAuthorizationOrPassPrediction": true,
+    "final600RunsObserved": 0,
+    "wholeTaskComplete": false,
+    "memoryP0Complete": false,
+    "releaseApproved": false,
+    "pending": [
+      "후보 코드/fixture commit과 실제 실행 source/binary 대조",
+      "기존 최대1회600의 원래 gate 및명시disable/닫힌journal/Finish 결과",
+      "증거보존·소유정리·문서정합·일반push/원격bytes 확인"
+    ],
+    "historicalPending": "본문의 coverage 진행 중은 당시 관측으로 유지하고 이 addendum이 후속 완료를 연결한다."
+  }
+}
