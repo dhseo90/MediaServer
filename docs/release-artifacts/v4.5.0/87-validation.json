@@ -519,15 +519,68 @@
     "archiveBytes": 1892860,
     "verifiedPayloadFiles": 195,
     "verifiedPayloadBytes": 4700525,
-    "archiveReadback": "All195 payload members matched preserved SHA and bytes; preservation manifest separately included. No missing/unlisted payload members.",
-    "privacyCheck": "Credential-value pattern scan: only field-name definitions in existing inventory source; no auth/state files included. Owned paths/URLs redacted in text as manifest describes."
+    "archiveReadback": "All195 payload members matched preserved SHA and bytes; preservation manifest separately included. No missing/unlisted payload members. Raw owned roots subsequently removed after remote verification; archive remains byte-identical.",
+    "privacyCheck": "Credential-value pattern scan: only field-name definitions in existing inventory source; no auth/state files included. Owned paths/URLs redacted in text as manifest describes.",
+    "remoteReadbackBeforeCleanup": {
+      "checkedAt": "2026-10-11T04:08:50.414225+00:00",
+      "head": "b2350eea5ab72e3ebbd4d03a7479fc475a42ef2a",
+      "actualRemote": "b2350eea5ab72e3ebbd4d03a7479fc475a42ef2a",
+      "method": "GitHub git/blobs API byte readback by exact blob; ordinary push ref independently read with ls-remote",
+      "objects": [
+        {
+          "path": "docs/release-artifacts/v4.5.0/87-execution.tar.gz",
+          "blob": "5549ab8124b37664f11c78ac073629813a6a088a",
+          "bytes": 1892860,
+          "sha256": "e734d3fcb1e7101c8236557bc18bb3f7ee4ae920ad13a65c31158d55832b0bb3",
+          "remoteBytesMatchLocal": true
+        },
+        {
+          "path": "docs/release-artifacts/v4.5.0/87-independent-review.json",
+          "blob": "6332db5b64d29afe7cfd4369b1b111d9b8324282",
+          "bytes": 28466,
+          "sha256": "4e9a7feec164e422a8380aa3f7d0ad2098820475705c41cacd361ae2d450a830",
+          "remoteBytesMatchLocal": true
+        },
+        {
+          "path": "docs/release-artifacts/v4.5.0/87-validation.json",
+          "blob": "15e3103909f28f26821e2bfa1cfb43617c74df49",
+          "bytes": 23229,
+          "sha256": "afca70609e14bb31853966ddf3f5f5b5121faa75bb5bf11fac5c4fc5dde735a5",
+          "remoteBytesMatchLocal": true
+        }
+      ]
+    }
   },
   "cleanup": {
     "processesPorts": "Both launcher receipts confirm normal product exit and closed ports/groups; final OS check found no owned PID/group/container. Raw root awaits Git/remote byte verification before removal.",
-    "temporaryRoots": "preserved, pending archive/Git byte verification then owned-only cleanup",
+    "temporaryRoots": "Owned task root and pointer removed after local Git and remote blob byte readback; all nested paths lstat UID501 verified; symlinks unlinked without following targets. No other roots touched.",
     "modelsSDKImages": "retained",
     "qwenOllamaCalls": 0,
-    "unloadGate": "not-run"
+    "unloadGate": "not-run",
+    "status": "COMPLETE_OWNED_TEMP_AFTER_REMOTE_BYTE_VERIFICATION",
+    "completedAt": "2026-10-11T04:09:20.546473+00:00",
+    "removedEntries": 1133,
+    "removedRegularFileBytes": 100148414,
+    "rootAbsent": true,
+    "pointerAbsent": true,
+    "preflight": {
+      "checkedPidsOrGroups": [
+        34025,
+        34075,
+        34278,
+        34329
+      ],
+      "remaining": [],
+      "dockerQueryExit": 0,
+      "ownedContainers": [],
+      "launcherPortClosure": {
+        "prepare01": true,
+        "prepare02": true
+      },
+      "rootUid": 501,
+      "rootRealPath": "/private/tmp/media-server-memory87-4cw818or",
+      "safeCleanupAfterRemoteArchiveVerification": true
+    }
   },
   "remaining": [
     "Mixed preparation visual-search5s whole-request budget expiry before headers: root cause/minimum correction under separate product authority",
