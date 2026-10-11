@@ -1,0 +1,91 @@
+{
+  "schema": "media-server.v450.independent-review.v1",
+  "task": 95,
+  "reviewer": "/root/independent_memory86",
+  "independence": "no implementation, test authoring or execution; read-only code/raw evidence/receipt review",
+  "model": {
+    "requested": "gpt-6-astra/high",
+    "toolAccepted": "prior existing reviewer record gpt-6-astra/high; followup exposes no new setting",
+    "runtime": "not-exposed"
+  },
+  "source": {
+    "head": "b9869a108df8af24ef8a789f8c40bfbe71c97a8c",
+    "tree": "56fdd7483ebfe8013f0411fd62b7f10297554b7c",
+    "sourceSha256": "ab5356949f76d45c0a4cad97fe52405495be42aa9adad6de746a97afdca96ac0",
+    "binarySha256": "23b77e26b5e12bf38bb631a93782ac723a820e610a89d6a0536b5e8e7b34eef7"
+  },
+  "preflight": {
+    "task": 95,
+    "reviewer": "/root/independent_memory86",
+    "participation": "read-only; no implementation/test authoring/execution/delegation",
+    "requestedModel": "gpt-6-astra",
+    "requestedEffort": "high",
+    "toolAccepted": "gpt-6-astra/high inherited existing reviewer record; this followup does not expose override",
+    "runtimeModelEffort": "not-exposed",
+    "sourceHashes": "final-source.json",
+    "decision": "no product blocking defect found; final Linux, binding and freeze pending",
+    "findings": [
+      "proven source91/93 fixture create201; exact current normalized records and no views references; removal limited to records and separator; all other raw bytes retained",
+      "typed protection only pre-deletion mutation; strict public Apply and general errors preserved; current bytes/free/reservations recalculated",
+      "isolation before singleton; 12 actual binary cases including FIFO/directory kinds",
+      "wrapper exclusive root plus dev/ino/uid cleanup; original snapshot/identity linkage repaired",
+      "SIGKILL helper defect fixed and -9/-15 receipts read"
+    ],
+    "macEvidence": {
+      "retention": 57,
+      "retentionV2": 28,
+      "writer": 118,
+      "managedWriter": 46,
+      "derivedJobs": 24,
+      "checkpoint": "2 supported concurrency configurations plus 2 unsupported/legacy configurations"
+    },
+    "limits": [
+      "checkpoint auto-protection extra case is V1, not V2",
+      "pre-mutation means before deletion append; checkpoint may precede it",
+      "refreshOk=false capacity trace values are not confirmed actual values",
+      "config before incident unavailable; exact historical restoration unconfirmed",
+      "does not approve memoryP0/release or grant new execution authority"
+    ],
+    "finalLinuxReview": {
+      "decision": "no additional blocking regression/isolation finding; binding and freeze pending",
+      "uid": 10001,
+      "readbackMembers": 36,
+      "nativePassCounts": [
+        57,
+        28,
+        118,
+        46,
+        24
+      ],
+      "checkpoint": "2 supported concurrency plus 2 unsupported/legacy boundaries",
+      "writerWrapperPass": 118,
+      "signals": [
+        -9,
+        -15
+      ],
+      "source": "final-source.json",
+      "runtime": "not-exposed"
+    },
+    "helperSigkillAddendum": "SIGKILL/SIGSTOP handler registration skipped; macOS and Linux actual -9/-15 receipts, no output"
+  },
+  "resultDecision": "FAIL; no blocker to preserving partial failure evidence, not cumulative PASS or memory P0/release approval",
+  "confirmed": [
+    "source/tree/binary identical before/after run",
+    "first workspace-variable-cap; total2488.360356 seconds exit1 not timeout",
+    "495 summary samples vs494 emitted: failing anonymous scalar not preserved",
+    "494 status judgments PASS; A42 complete",
+    "25 protection/quota deferrals and24 recoveries, all quotaOk0 refreshOk1; repeated rejection does not imply one unrecovered interval",
+    "655 success latency samples ceil-p95 2298.580750ms exceeds2000; maximum3458.603209ms; final gate not-run",
+    "105 state events continuous; visual330/330 completion; bounded decoder3; server891100 bytes/hash matched",
+    "final owner RAM/disk/FD0, not universal leak proof",
+    "normal exit0 no forced signals, ports/process groups absent",
+    "explicit disable/closed-journal final assertions not-run"
+  ],
+  "remaining": [
+    "workspace cap failure and exact anonymous owner/bytes unpreserved",
+    "separate search latency residual",
+    "full requested cumulative duration not completed",
+    "new120/final memory P0/release held"
+  ],
+  "preservationReviewBoundary": "raw selection and result reviewed; final archive Git/remote bytes and filesystem cleanup verified by main in subsequent receipts"
+}

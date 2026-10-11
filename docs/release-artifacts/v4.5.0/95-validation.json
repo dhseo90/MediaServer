@@ -1,0 +1,354 @@
+{
+  "schema": "media-server.v450.validation.v1",
+  "task": 95,
+  "status": "ISOLATION_AND_FOCUSED_RETENTION_PASS_CUMULATIVE_FAIL",
+  "memoryP0": "unresolved",
+  "release": "held",
+  "ownerRiskAcceptance": "not-granted",
+  "model": {
+    "requestedMain": "gpt-6-astra/high",
+    "mainToolAccepted": "not-exposed",
+    "mainRuntime": "not-exposed",
+    "independent": {
+      "requested": "gpt-6-astra/high",
+      "toolAccepted": "prior existing reviewer record gpt-6-astra/high; followup exposes no new setting",
+      "runtime": "not-exposed"
+    }
+  },
+  "baseline": "b572010d86fa7c80c4d89d4226865b0bb208fd96",
+  "implementation": {
+    "head": "b9869a108df8af24ef8a789f8c40bfbe71c97a8c",
+    "tree": "56fdd7483ebfe8013f0411fd62b7f10297554b7c",
+    "sourceSha256": "ab5356949f76d45c0a4cad97fe52405495be42aa9adad6de746a97afdca96ac0",
+    "binarySha256": "23b77e26b5e12bf38bb631a93782ac723a820e610a89d6a0536b5e8e7b34eef7"
+  },
+  "runtimeSha256": "62a69c204b5fcad099819be6e422c1a145284d7209fe59f32ee2a642d2700e03",
+  "entryChanges": {
+    "files": 8,
+    "relationTo94Patch": "byte-identical retained unreviewed patch; no duplicate application",
+    "finalReviewedCommitFiles": 15,
+    "productChange": "typed pre-deletion-mutation protection; internal admission continues safe planned candidates and refreshes current bytes/free/durable reservations; public strict Apply and hard errors preserved",
+    "boundary": "automatic checkpoint may occur before typed protection, but no deletion mutation is appended for protected item"
+  },
+  "configuration": {
+    "classification": {
+      "91": "A proved create201 then exact fixture-normalized current record",
+      "93": "A proved create201 then exact fixture-normalized current record",
+      "otherFields": "C no before bytes; unchanged, no restoration claim"
+    },
+    "removedIds": [
+      "91",
+      "93"
+    ],
+    "viewsModified": false,
+    "beforeSha256": "ce8d3170c3c98251936448cb4f126b2ff54fa1b6a492ddf1719a72be0c6b3b00",
+    "afterSha256": "94ee516c8b600116987f39812c1a9d873f49977dcd48bcb1e125db6e56cc8ae8",
+    "bytesBefore": 3473,
+    "bytesAfter": 2644,
+    "retainedRowsAndOtherFieldsUnchanged": true,
+    "exactRestoration": false,
+    "applied": true
+  },
+  "privateBackup": {
+    "location": "/private/tmp/media-server-private-config95-8jt_7yjn",
+    "directoryMode": "0700",
+    "fileMode": "0600",
+    "kind": "postincident current-state backup, not pre94 original",
+    "remoteUpload": false,
+    "keptOutsideCleanup": true
+  },
+  "isolation": {
+    "helper": "scripts/internal/recording_native_isolation.py",
+    "binaryGuard": "scripts/internal/recording_writer_test_isolation.h before singleton/GStreamer initialization",
+    "directBinaryCases": 12,
+    "cases": "missing/source-only/views-only/relative/outside/symlink/default-name/directory/FIFO/cache-file/valid-one/valid-two",
+    "sentinels": "fake HOME/CWD bytes and existence unchanged; actual user configs hash-only checked",
+    "helperSignals": [
+      -9,
+      -15
+    ],
+    "past": "94 native helper isolation not qualified; isolated mixed runs not automatically invalidated"
+  },
+  "focused": {
+    "macOS": {
+      "runtimeBuild": "PASS",
+      "nativePassCounts": {
+        "retention": 57,
+        "retentionV2": 28,
+        "writer": 118,
+        "managedWriter": 46,
+        "derivedJobs": 24
+      },
+      "checkpoint": "4 configurations:2 supported concurrency plus2 unsupported/legacy boundaries",
+      "writerWrapper": 118
+    },
+    "Linux": {
+      "uid": 10001,
+      "image": "sha256:ce72c8a15363984da642e9964189957896812061c6af1d0ef67e87b38ad5a588",
+      "network": "none",
+      "runtimeBuild": "PASS",
+      "nativePassCounts": [
+        57,
+        28,
+        118,
+        46,
+        24
+      ],
+      "checkpoint": "same4 configurations",
+      "writerWrapper": 118,
+      "Werror": "maintained"
+    },
+    "limits": [
+      "checkpoint rotation protection added case is V1, not V2",
+      "94 writer110/8FAIL not reused as PASS"
+    ]
+  },
+  "firstFailuresPreserved": [
+    "zsh sourcing bash environment preparation error before binary",
+    "single unintended Python bytecode artifact outside parent run removed with exact ownership receipt; not user config access",
+    "derived-job fixture destruction order failure exit245; original child signal not preserved; scope fix then24PASS",
+    "wrapper missing snapshot then identity-shard link sources; corrected full118PASS",
+    "Linux existing misleading-indentation Werror; split statements then fullPASS",
+    "inventorySha256 drift before single reviewed producer application"
+  ],
+  "binding": {
+    "scriptsTrackedPass": 13,
+    "inventoryReadbackPass": 18,
+    "producerApplyPass": 51,
+    "coveragePass": 9,
+    "legacyCovered": 986,
+    "missing": 0,
+    "inventoryProducer": "applied once after review; raw/format semantic identity receipt retained",
+    "newProductApproval": "separate independent judgment, not legacy986 automatic approval"
+  },
+  "cumulative": {
+    "source": {
+      "head": "b9869a108df8af24ef8a789f8c40bfbe71c97a8c",
+      "tree": "56fdd7483ebfe8013f0411fd62b7f10297554b7c",
+      "sourceSha256": "ab5356949f76d45c0a4cad97fe52405495be42aa9adad6de746a97afdca96ac0",
+      "binarySha256": "23b77e26b5e12bf38bb631a93782ac723a820e610a89d6a0536b5e8e7b34eef7"
+    },
+    "runtimeSha256": "62a69c204b5fcad099819be6e422c1a145284d7209fe59f32ee2a642d2700e03",
+    "executions": 1,
+    "firstFailure": "workspace-variable-cap",
+    "exit": 1,
+    "timedOut": false,
+    "totalWithFinalBindingSeconds": 2488.3603560830234,
+    "emittedObservations": 494,
+    "summarySampleCount": 495,
+    "samplingLimit": "last point pushed before workspace guard; anonymous bytes of failing sample not emitted. No reconstructed scalar or root cause attribution. Last visible storage and anonymous sample are different observation instants.",
+    "search": {
+      "successfulSamples": 655,
+      "unavailable": 5,
+      "partialP95Ms": 2298.5807499999646,
+      "partialMaximumMs": 3458.603209000081,
+      "p95LimitMs": 2000,
+      "maximumLimitMs": 5000,
+      "finalGate": "not-run-after-space-failure",
+      "partialP95WithinLimit": false
+    },
+    "aCompleted": 42,
+    "evidence": {
+      "cycles": 164,
+      "searchSuccess": 655,
+      "searchUnavailable": 5,
+      "createComplete": 146,
+      "createPartial": 18,
+      "createSuccess": 164,
+      "createBusy": 164,
+      "retainedChecks": 328,
+      "deletedSourceObserved": true,
+      "visualResults": 4740,
+      "visualCreated": 123,
+      "visualExpired": 2
+    },
+    "stateTrace": {
+      "status": "captured",
+      "events": 105,
+      "phaseCounts": {
+        "session-created": 2,
+        "writer-started": 2,
+        "admission-protection-deferred": 25,
+        "admission-plan-rejected": 25,
+        "admission-capacity": 25,
+        "admission-recovered": 24,
+        "stop-channel": 2
+      },
+      "issues": [],
+      "recordingStatusFailure": null,
+      "interpretation": "actual capacity shortage remained blocked and recovered; absence of failing sampled HTTP status is not absence of transient admission blocking. Exact 93/94 historical protection branch remains unknown."
+    },
+    "decoder": {
+      "status": "captured",
+      "mode": "bounded",
+      "required": true,
+      "records": 3,
+      "successes": 3,
+      "failures": 0,
+      "issues": []
+    },
+    "serverCapture": {
+      "pid": 90729,
+      "bytes": 891100,
+      "capturedBytes": 891100,
+      "sha256": "d770426c8426f199a29203ca1a8689ed0445898414d552b71c4207f67c0b4cce",
+      "overflow": false,
+      "captureError": null,
+      "categories": [
+        {
+          "code": "file evidence unavailable",
+          "count": 0
+        },
+        {
+          "code": "storageBlocked",
+          "count": 0
+        },
+        {
+          "code": "shutdown",
+          "count": 0
+        },
+        {
+          "code": "ERROR",
+          "count": 0
+        },
+        {
+          "code": "WARNING",
+          "count": 0
+        }
+      ],
+      "rawBodyPublished": false,
+      "privateCaptureDisposition": "eligible-for-wrapper-cleanup"
+    },
+    "resources": {
+      "status": "observed",
+      "resourceTrendPass": false,
+      "reviewRequired": true,
+      "sampleCount": 495,
+      "groups": [
+        {
+          "pid": 90729,
+          "startIdentity": "macos:1791731378:821832",
+          "sampleCount": 495,
+          "first": {
+            "phaseAt": 8869.131666,
+            "sampledAt": 1791731385138,
+            "rssBytes": 2820046848,
+            "threadCount": 37,
+            "fdCount": 34,
+            "mutationCount": 6
+          },
+          "last": {
+            "phaseAt": 2481358.23375,
+            "sampledAt": 1791733857644,
+            "rssBytes": 1695088640,
+            "threadCount": 38,
+            "fdCount": 31,
+            "mutationCount": 9865
+          },
+          "max": {
+            "rssBytes": 2863759360,
+            "threadCount": 43,
+            "fdCount": 42
+          },
+          "delta": {
+            "rssBytes": -1124958208,
+            "threadCount": 1,
+            "fdCount": -3,
+            "mutationCount": 9859
+          },
+          "elapsedMs": 2472489.102084,
+          "maxGapMs": 5314.475582999876,
+          "warmupMs": 300000,
+          "postWarmup": {
+            "status": "observed",
+            "sampleCount": 435,
+            "delta": {
+              "rssBytes": 14467072,
+              "threadCount": -3,
+              "fdCount": -5,
+              "mutationCount": 8694
+            },
+            "elapsedMs": 2172229.227709,
+            "rssMiBPerMinute": 0.38108892442860404
+          }
+        }
+      ]
+    },
+    "sampledFootprintMax": 3164753208,
+    "cleanup": {
+      "schema": "recording-process-cleanup-v1",
+      "attemptCount": 1,
+      "pid": 90729,
+      "exitCode": 0,
+      "signalCode": null,
+      "exitedObserved": true,
+      "stopCode": "complete",
+      "forcedTermination": "not-used",
+      "normalExitPass": true,
+      "normalShutdownPass": true,
+      "archiveSafe": true,
+      "ports": [
+        {
+          "kind": "http",
+          "port": 58383,
+          "status": "pass",
+          "code": "closed",
+          "closed": true
+        },
+        {
+          "kind": "rtsp",
+          "port": 58384,
+          "status": "pass",
+          "code": "closed",
+          "closed": true
+        }
+      ]
+    },
+    "sourceUnchanged": true,
+    "notRun": [
+      "remaining observation duration",
+      "final latency/progress gate",
+      "controls",
+      "independent recovery",
+      "restart",
+      "reactivation",
+      "new120"
+    ],
+    "memoryP0": "unresolved",
+    "release": "held"
+  },
+  "limits": [
+    "last fully emitted observation around2467.7s, not45min completed",
+    "workspace failure exact anonymous bytes/owner allocation not emitted; no retrospective reconstruction",
+    "partial p95 uses original successful search population;5 unavailable remain separate existing measure, no late filters",
+    "no failing HTTP status sample does not mean zero transient blocked admission",
+    "resourceTrendPass false and reviewRequired true retained; no universal leak/stability conclusion",
+    "93 exact response/cause and94 exact protection branch remain unconfirmed"
+  ],
+  "preservation": {
+    "archive": "95-execution.tar.gz",
+    "bytes": 50296507,
+    "sha256": "f7db8bedca542d5ecd9f8eed03074897f13aa9f15309124d51adb2ba2c5d8e44",
+    "selectedFiles": 674,
+    "uncompressedBytes": 92569096,
+    "allMemberByteReadback": "PASS",
+    "rawVsDerived": "manifest marks result-analysis; raw run/report/server unchanged; private settings excluded"
+  },
+  "cleanup": {
+    "runtime": "normal exit0, no forced signal, ports/groups absent",
+    "Linux": "owned containers removed; existing image preserved",
+    "evidenceRoot": "preserved pending Git byte readback and exact owned cleanup; final receipt follows",
+    "privateBackup": "retained"
+  },
+  "notPerformed": [
+    "new120",
+    "fullacceptance",
+    "fullUI",
+    "Qwen/Ollama",
+    "unload gate",
+    "PR",
+    "merge",
+    "tag",
+    "Release"
+  ]
+}
