@@ -1,4 +1,5 @@
 #include "recording/recording_latency_trace.h"
+#include "recording/recording_state_trace.h"
 // 파일 요약: 등급별 녹화 순환 삭제와 disk reserve writer admission을 구현한다.
 // 동작 요약: oldest-first 계획 뒤 journal→pending→unlink→tombstone 순서로 공간을 회수한다.
 #include "recording/retention_coordinator.h"
@@ -836,6 +837,7 @@ RetentionAdmissionResult RetentionCoordinator::AdmitContinuousWrite(
         auto& status = statuses_[channel_id];
         status.storage_blocked = true;
         status.last_error = "이전 segment 정리 실패로 예약이 유지됨";
+        TraceRecordingState(channel_id,"admission-rejected",status.last_error);
         return {false, false, 0, status.last_error};
     }
     const auto recovered = RecoverPendingForChannel(now_ms, channel_id);
@@ -844,6 +846,7 @@ RetentionAdmissionResult RetentionCoordinator::AdmitContinuousWrite(
         auto& status = statuses_[channel_id];
         status.storage_blocked = true;
         status.last_error = recovered.last_error;
+        TraceRecordingState(channel_id,"pending-recovery-rejected",recovered.last_error);
         return {false, false, 0, recovered.last_error};
     }
     const auto observed = observed_segment_bytes_.find(channel_id);
@@ -859,6 +862,7 @@ RetentionAdmissionResult RetentionCoordinator::AdmitContinuousWrite(
         status.required_bytes = SaturatingAdd(options_.reserved_free_bytes,
                                               expected_segment_bytes);
         status.last_error = "예상 segment 용량이 continuous quota를 초과함";
+        TraceRecordingState(channel_id,"admission-rejected",status.last_error);
         return {false, false, 0, status.last_error};
     }
     std::uint64_t free_bytes = 0;
@@ -871,11 +875,12 @@ RetentionAdmissionResult RetentionCoordinator::AdmitContinuousWrite(
                                               expected_segment_bytes);
         status.free_bytes = 0;
         status.last_error = error.empty() ? "recording root 여유 공간 조회 실패" : error;
+        TraceRecordingState(channel_id,"admission-rejected",status.last_error);
         return {false, false, 0, status.last_error};
     }
 
     auto admission_snapshot=ReadSnapshot();
-    if(!admission_snapshot.authoritative)return {false,false,0,admission_snapshot.error};
+    if(!admission_snapshot.authoritative){TraceRecordingState(channel_id,"admission-snapshot-rejected",admission_snapshot.error);return {false,false,0,admission_snapshot.error};}
     const std::uint64_t inflight_bytes = SaturatingAdd(OutstandingReservationsLocked(),DurableOutstanding(admission_snapshot));
     const std::uint64_t effective_free =
         free_bytes > inflight_bytes ? free_bytes - inflight_bytes : 0;
@@ -928,6 +933,7 @@ RetentionAdmissionResult RetentionCoordinator::AdmitContinuousWrite(
                                                   ? refresh_error
                                                   : "삭제 가능한 segment로 disk reserve를 복구할 수 없음"));
     }
+    if(!allowed||was_blocked)TraceRecordingState(channel_id,allowed?"admission-recovered":"admission-plan-rejected",allowed?"ok":ChannelStatus(channel_id).last_error);
     return {allowed, allowed && was_blocked, allowed ? expected_segment_bytes : 0,
             allowed ? std::string("ok") : ChannelStatus(channel_id).last_error};
 }

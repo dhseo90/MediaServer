@@ -114,8 +114,10 @@ int Decode(const std::filesystem::path& path,std::vector<std::uint64_t>* timesta
     status.corrupted=observation.corrupted.load()!=0;status.invalid_pts=observation.invalid_pts.load()!=0;
     {std::lock_guard lock(observation.mu);status.bus_error=observation.error_count!=0;for(std::size_t i=0;i<std::min(observation.error_count,observation.errors.size());++i)std::cout<<"[writer-reference-error] domain="<<observation.errors[i].first<<" code="<<observation.errors[i].second<<'\n';for(std::size_t i=0;i<std::min(observation.warning_count,observation.warnings.size());++i)std::cout<<"[writer-reference-warning] domain="<<observation.warnings[i].first<<" code="<<observation.warnings[i].second<<'\n';}
     std::cout<<"[writer-reference] case="<<(diagnostic?diagnostic:"reference")<<" factory="<<selected<<" output_corrupt_applicable="<<h264<<" output_corrupt="<<(h264?static_cast<int>(output_corrupt):-1)<<" configured="<<status.configured<<" count="<<count<<" eos="<<status.eos<<" corrupt_boundary_bits="<<observation.corrupted.load()<<" invalid_pts_boundary_bits="<<observation.invalid_pts.load()<<" bus_errors="<<observation.error_count<<" bus_warnings="<<observation.warning_count<<" reason="<<writer_decode_oracle::Failure(status)<<'\n';
-    for(unsigned i=0;i<2;++i)if(pads[i]){if(probes[i])gst_pad_remove_probe(pads[i],probes[i]);gst_object_unref(pads[i]);}gst_object_unref(bus);if(decoder)gst_object_unref(decoder);if(sink)gst_object_unref(sink);gst_object_unref(pipe);
-    if(result)*result=status;return writer_decode_oracle::Accepted(status)?count:-1;
+    for(unsigned i=0;i<2;++i)if(pads[i]){if(probes[i])gst_pad_remove_probe(pads[i],probes[i]);gst_object_unref(pads[i]);}
+    gst_object_unref(bus);if(decoder)gst_object_unref(decoder);if(sink)gst_object_unref(sink);gst_object_unref(pipe);
+    if(result)*result=status;
+    return writer_decode_oracle::Accepted(status)?count:-1;
 }
 struct Store {
     std::filesystem::path root;
@@ -153,7 +155,8 @@ bool Run(Store& store,const Encoded& input,std::int64_t duration=2000,bool repea
     const bool snapshot=static_cast<bool>(writer.TimeSnapshot());writer.Stop();return !callback&&!snapshot;
 }
 bool HasUnknown(const std::vector<recording::RecordingSegmentV2>& segments) {
-    for(const auto& s:segments)for(const auto& m:s.mappings)if(m.provenance=="unknown")return true;return false;
+    for(const auto& s:segments)for(const auto& m:s.mappings)if(m.provenance=="unknown")return true;
+    return false;
 }
 int DecodeOracleTests(){
     using namespace writer_decode_oracle;
@@ -179,9 +182,11 @@ int DecoderComparison(const std::filesystem::path& root,bool only_bframes=false)
     const auto need=[](bool ok){if(!ok)throw std::runtime_error("decoder-comparison-prepare");};
     // 생성은 각 입력/저장소당 한 번만 수행한다. 이후 round에서는 이 네 파일만 읽는다.
     const auto h264=only_bframes?Encoded{}:Encode(true,60),bframes=Encode(true,30,true);
-    if(!only_bframes)writer_decode_diagnostics::InputRows("comparison_wr01",h264);writer_decode_diagnostics::InputRows("comparison_wr05",bframes);
+    if(!only_bframes)writer_decode_diagnostics::InputRows("comparison_wr01",h264);
+    writer_decode_diagnostics::InputRows("comparison_wr05",bframes);
     Store normal(root/"decoder-comparison-normal"),reordered(root/"decoder-comparison-bframes");
-    if(!only_bframes)need(Run(normal,h264));need(Run(reordered,bframes,100000));const auto normal_segments=normal.Segments(),reordered_segments=reordered.Segments();
+    if(!only_bframes)need(Run(normal,h264));
+    need(Run(reordered,bframes,100000));const auto normal_segments=normal.Segments(),reordered_segments=reordered.Segments();
     need((only_bframes||normal_segments.size()==3)&&reordered_segments.size()==1&&reordered_segments[0].media_start_pts==0&&HasUnknown(reordered_segments));
     need(!bframes.packets.empty()&&bframes.packets.front().observation&&bframes.packets.front().observation->pts_ns&&*bframes.packets.front().observation->pts_ns==200000000);
     struct FileCase {const char* label;std::filesystem::path path;int frames;std::uint64_t expected_first;writer_decode_diagnostics::FileFacts fixed;};
@@ -221,7 +226,8 @@ int main(int argc,char** argv) {
     if(argc==3&&(std::string(argv[2])=="--decoder-comparison"||std::string(argv[2])=="--decoder-comparison-bframes")){
         gst_init(nullptr,nullptr);try{return DecoderComparison(argv[1],std::string(argv[2])=="--decoder-comparison-bframes");}catch(...){std::cout<<"[decoder-comparison-summary] outcome=preparation-failure reason=fixed-comparison-error\n";return 2;}
     }
-    if(argc!=2)return 2;gst_init(nullptr,nullptr);const std::filesystem::path root(argv[1]);
+    if(argc!=2)return 2;
+    gst_init(nullptr,nullptr);const std::filesystem::path root(argv[1]);
     try {
         const auto h264=Encode(true),vp8=Encode(false);
         for(const auto& pair:std::vector<std::pair<std::string,const Encoded*>>{{"h264",&h264},{"vp8",&vp8}}) {

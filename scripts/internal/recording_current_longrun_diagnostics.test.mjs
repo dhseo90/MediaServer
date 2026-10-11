@@ -50,10 +50,12 @@ test('O28-D04 snapshot 진단이 판정 전 출력되고 최초 오류가 cleanu
 });
 test('O28-D05 snapshot의 기존 15초·16KiB 상한과 성공 검사 계약을 유지한다',()=>{
   const source=fs.readFileSync(new URL('./verify_recording_current_longrun.mjs',import.meta.url),'utf8'),start=source.indexOf('function snapshot()'),end=source.indexOf('\ntry{',start),body=source.slice(start,end);
-  assert(body.includes("timeout:15000,maxBuffer:16384"));assert(body.includes("catalogRecovered===true&&result.available>0&&result.deleted>0"));
+  assert(body.includes("timeoutMs:15000,maxBuffer:16384"));assert(body.includes("catalogRecovered===true&&result.available>0&&result.deleted>0"));
   assert(body.includes('after.sha256===sourceTree.sha256&&after.bytes===sourceTree.bytes&&after.count===sourceTree.count'));
   assert(body.includes("check(originalUnchanged,'LP26-O05 original journal bytes unchanged')"));assert(!body.includes("'recording-v2-mutations.jsonl'"));
-  assert(source.includes("MEDIA_SERVER_ARCHIVE_PHASE_TRACE:'1'"));assert(body.includes('validatedPhaseReceipt(r.stderr)'));assert(body.includes('detached:true'));assert(body.includes('process.kill(-r.pid,0)'));assert(!body.includes('console.log(r.stderr)'));
+  const helper=fs.readFileSync(new URL('./recording_current_observer.mjs',import.meta.url),'utf8');
+  assert(body.includes('await runCurrentRecovery('));assert(helper.includes('timeoutMs=15000,outputCap=16384'));
+  assert(source.includes("MEDIA_SERVER_ARCHIVE_PHASE_TRACE:'1'"));assert(body.includes('validatedPhaseReceipt(r.stderr)'));assert(helper.includes('detached:true'));assert(helper.includes('process.kill(-child.pid,0)'));assert(!body.includes('console.log(r.stderr)'));
 });
 test('B11-G03 삭제 미디어는 segment·event-link 조회 전에 fail-closed 한다',()=>{
   const source=fs.readFileSync(new URL('../../src/recording/recording_read_service.cpp',import.meta.url),'utf8');

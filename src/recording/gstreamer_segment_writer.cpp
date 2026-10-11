@@ -1,3 +1,4 @@
+#include "recording/recording_state_trace.h"
 #include "recording/recording_latency_trace.h"
 // 파일 요약: GStreamer appsrc/parser/muxer로 녹화 segment를 작성한다.
 // 동작 요약: partial 파일을 EOS까지 닫은 뒤 rename하고 finalized metadata를 callback한다.
@@ -573,8 +574,9 @@ private:
 
     bool ClearCleanupMarkerLocked() {
         std::string marker_error;
-        return RemoveContainedMediaFile(
-            options.storage_root, cleanup_marker_path, &marker_error);
+        const bool ok=RemoveContainedMediaFile(options.storage_root,cleanup_marker_path,&marker_error);
+        if(!ok)TraceRecordingState(channel_id,"cleanup-marker-failed",marker_error);
+        return ok;
     }
 
     void AbortSegmentFileLocked(const std::filesystem::path& path,
@@ -588,9 +590,10 @@ private:
             if (ClearCleanupMarkerLocked()) ReleaseReservationLocked(observed_bytes);
             return;
         }
+        TraceRecordingState(channel_id,"cleanup-unlink-failed",cleanup_error);
         if (TruncateContainedMediaFile(options.storage_root, path, &cleanup_error)) {
             if (ClearCleanupMarkerLocked()) ReleaseReservationLocked(observed_bytes);
-        }
+        } else TraceRecordingState(channel_id,"cleanup-truncate-failed",cleanup_error);
     }
 
     void ReleaseReservationLocked(std::uint64_t actual_segment_bytes) {

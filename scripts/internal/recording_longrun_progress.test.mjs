@@ -107,7 +107,7 @@ check('malformed provided edge collection cannot be captured',()=>{
 // 실제 실행기의 환경/launch/종료 요약을 실행한다. 제품 서버는 명시적인 Node 자식 대역이다.
 const mixedSource=fs.readFileSync(new URL('./v450_recording_a_mixed.mjs',import.meta.url),'utf8');
 function mixedBoundary(source=mixedSource,diagnose=true){
-  const context=vm.createContext({path,process,repo:'/owned-repo',root:'/owned-run',diagnose,
+  const context=vm.createContext({path,process,repo:'/owned-repo',root:'/owned-run',diagnose,stateDiagnose:false,
     http:61001,rtsp:61002,stun:61003,frameTraceSummary,assertMixedFrameTraceMode,parseLongrunArgs,
     short:false,args:diagnose?['--frame-diagnostic']:['--duration-minutes','120'],console:{log(){}}});
   const declaration=(source.match(/^const frameTraceMode=.*;$/m)?.[0]??'')+'\n'+source.match(/^const duration=.*;$/m)[0];
@@ -129,6 +129,7 @@ function childMode(boundary){
   vm.runInContext(boundary.launch+'\nglobalThis.childResult=child;',boundary.context);
   assert.equal(called,1);return boundary.context.childResult.trace;
 }
+check('state diagnostic2700 keeps bounded and holder off',()=>{const b=mixedBoundary();b.context.stateDiagnose=true;vm.runInContext(mixedSource.match(/^const duration=.*;$/m)[0].replace('const duration','globalThis.stateDuration'),b.context);assert.equal(b.context.stateDuration,2700000);assert.equal(childMode(b),'bounded');assert.equal(vm.runInContext('environment(1,2,3).MEDIA_SERVER_VERIFY_CATALOG_HOLDER_TRACE',b.context),'0');});
 check('R72-V1 actual600 child environment receives bounded',()=>{const b=mixedBoundary();assert.equal(vm.runInContext('duration',b.context),600000);assert.equal(childMode(b),'bounded');});
 check('R72-V1 actual600 final summary expects the child bounded mode',()=>{
   const b=mixedBoundary();b.context.text=trace(diagnostic);b.context.app={requiresFrameTrace:true};
@@ -174,3 +175,14 @@ check('search terminal collector requires probe and rejects loss, partial, wrong
  for(const text of ['',probe+probe,probe+'[search-failure-loss]\n',probe+'[search-failure] {',probe+'[search-failure] {"version":1,"status":503,"channels":1,"attempts":[]}\n'])assert.equal(searchFailureSummary(text).status,'incomplete');
  assert.equal(searchFailureSummary('',false).status,'not-observed');
 });
+
+check('state diagnostic preserves120 workspace accounting and excludes disabled holder collector',()=>{
+ const workspaceLine=mixedSource.split('\n').find(s=>s.includes('workspace=freezeCurrentWorkspace(root)'));
+ const holderLine=mixedSource.split('\n').find(s=>s.includes('const holders=catalogHolderSummary'));
+ for(const [diagnose,stateDiagnose,expected] of [[true,true,true],[true,false,false],[false,false,true]]){
+  let calls=0;const c=vm.createContext({diagnose,stateDiagnose,workspace:null,root:'/owned',console:{log(){}},freezeCurrentWorkspace(){calls++;return {};}});
+  vm.runInContext(workspaceLine,c);assert.equal(calls,Number(expected));
+ }
+ const c=vm.createContext({diagnose:true,stateDiagnose:true,catalogHolderSummary(){throw Error('disabled holder collector');}});vm.runInContext(holderLine,c);
+});
+if(failed)process.exitCode=1;

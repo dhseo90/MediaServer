@@ -1,3 +1,4 @@
+#include "recording/recording_state_trace.h"
 // 파일 요약: 녹화 채널을 SharedStream의 독립 Recorder subscriber에 연결한다.
 // 동작 요약: descriptor와 첫 keyframe이 준비된 뒤 writer를 시작하고 detach 순서를 고정한다.
 #include "recording/recording_session_service.h"
@@ -58,6 +59,7 @@ RecordingSessionService::StartResult RecordingSessionService::StartChannel(
             return {.ok = false, .message = "channel recorder가 이미 존재함"};
         }
         channels_.emplace(channel_id, state);
+        TraceRecordingState(channel_id,"session-created",stream_epoch_id);
     }
 
     state->handle = session_manager_.AcquireAuxiliaryStream(request);
@@ -125,10 +127,12 @@ void RecordingSessionService::OnPacket(const std::shared_ptr<ChannelState>& stat
                     return finalized;
                 },
                 &error)) {
+            TraceRecordingState(state->channel_id,"writer-start-failed",error);
             state->stopping = true;
             return;
         }
         state->writer_started = true;
+        TraceRecordingState(state->channel_id,"writer-started","ok");
     }
     state->writer->Push(packet, NowMs());
 }
@@ -149,6 +153,7 @@ bool RecordingSessionService::StopChannel(const std::string& channel_id) {
     {
         std::lock_guard lock(state->mu);
         state->stopping = true;
+        TraceRecordingState(channel_id,"stop-channel","requested");
     }
     state->handle.stream->RemoveSubscriber(state->subscriber_id);
     state->writer->Stop();
