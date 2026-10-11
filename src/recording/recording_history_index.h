@@ -1,6 +1,7 @@
 // 파일 용도: 원본에서 재구축하는 비영속 녹화 이력 조회의 유한 디스크 인덱스다.
 #pragma once
 #include "recording/recording_scratch_reservation.h"
+#include "recording/recording_latency_trace.h"
 #include <algorithm>
 #include <cerrno>
 #include <array>
@@ -333,7 +334,7 @@ private:
         std::array<unsigned char,kNodeBytes> bytes{};
         if(build_){const auto& entry=Buffered(ref);if(entry.current!=ref.hash)throw Failure("history buffered node hash mismatch");bytes=entry.bytes;}
         else {ReadBytes(ref.offset,bytes.data(),bytes.size());if(Digest(bytes.data(),bytes.size())!=ref.hash)throw Failure("history index node hash mismatch");}
-        ++reads_;
+        ++reads_;if(latency::HolderEnabled())++latency::history_node_reads;
         Node n;n.left.offset=Number(bytes.data());n.right.offset=Number(bytes.data()+8);
         n.value_offset=Number(bytes.data()+16);n.value_size=Number(bytes.data()+24);n.height=Number(bytes.data()+32);
         const auto key_size=Number(bytes.data()+40);

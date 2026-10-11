@@ -1,3 +1,4 @@
+#include "recording/recording_latency_trace.h"
 // 파일 용도: 기존 검색/녹화 의미를 보존하며 출처·대표 프레임·있을 때 clip을 독립 저장한다.
 #include "recording/evidence_package_builder.h"
 #include "recording/evidence_observation.h"
@@ -161,6 +162,7 @@ bool EvidencePackageBuilder::CreateWithObservations(const SearchDocument& hit,co
 bool EvidencePackageBuilder::CreateImpl(bool observations,const SearchDocument& input,const std::string& kind,
     const std::string& expected,std::string* id,EvidencePackageV1* output,std::string* error,
     std::chrono::steady_clock::time_point deadline,const std::function<bool()>& cancelled,EvidenceFailure* diagnostic)const{
+    recording::latency::WorkScope holder_work_scope(recording::latency::Work::Evidence);
     EvidenceFailure local;auto& trace=diagnostic?*diagnostic:local;
     const char* stage="request";
     struct Result {

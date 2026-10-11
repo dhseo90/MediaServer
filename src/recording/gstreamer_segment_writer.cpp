@@ -1,3 +1,4 @@
+#include "recording/recording_latency_trace.h"
 // 파일 요약: GStreamer appsrc/parser/muxer로 녹화 segment를 작성한다.
 // 동작 요약: partial 파일을 EOS까지 닫은 뒤 rename하고 finalized metadata를 callback한다.
 #include "recording/gstreamer_segment_writer.h"
@@ -684,10 +685,12 @@ bool GStreamerSegmentWriter::Start(const std::string& channel_id,
 }
 
 void GStreamerSegmentWriter::Push(const media::Packet& packet, std::int64_t observed_utc_ms) {
+    recording::latency::WorkScope holder_work_scope(recording::latency::Work::Writer);
     impl_->Push(packet, observed_utc_ms);
 }
 
-void GStreamerSegmentWriter::Stop() { impl_->Stop(); }
+void GStreamerSegmentWriter::Stop() {
+    recording::latency::WorkScope holder_work_scope(recording::latency::Work::Writer); impl_->Stop(); }
 
 std::shared_ptr<const RecordingTimeSnapshot> GStreamerSegmentWriter::TimeSnapshot() const {
     return impl_->TimeSnapshot();

@@ -1,3 +1,4 @@
+#include "recording/recording_latency_trace.h"
 // 파일 요약: 등급별 녹화 순환 삭제와 disk reserve writer admission을 구현한다.
 // 동작 요약: oldest-first 계획 뒤 journal→pending→unlink→tombstone 순서로 공간을 회수한다.
 #include "recording/retention_coordinator.h"
@@ -410,6 +411,7 @@ RetentionCoordinator::~RetentionCoordinator() {
 }
 
 RetentionSnapshot RetentionCoordinator::ReadSnapshot() const {
+    recording::latency::WorkScope holder_work_scope(recording::latency::Work::Retention);
     RetentionSnapshot snapshot;
     try {
         if (const auto* catalog = dynamic_cast<const RecordingCatalog*>(&store_);
@@ -766,6 +768,7 @@ void RetentionCoordinator::RemoveChannelPolicy(const std::string& channel_id) {
 }
 
 void RetentionCoordinator::RunPeriodic(std::int64_t now_ms) {
+    recording::latency::WorkScope holder_work_scope(recording::latency::Work::Retention);
     std::lock_guard admission_lock(admission_mu_);
     std::unordered_set<std::string> pending_channels;
     const auto initial=ReadSnapshot();

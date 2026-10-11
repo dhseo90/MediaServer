@@ -242,6 +242,7 @@ ApplicationServiceResult VisualSearchApplicationService::Status(const Authorize&
     }catch(const std::exception&){return Error(503,"visual-search-unavailable");}
 }
 ApplicationServiceResult VisualSearchApplicationService::Search(const Query& raw,const Authorize& authorize){
+    recording::latency::WorkScope holder_work_scope(recording::latency::Work::Visual);
     recording::latency::VisualRequestSummary request_summary;
     recording::latency::VisualPhase request_phase("visual-search");
     try{

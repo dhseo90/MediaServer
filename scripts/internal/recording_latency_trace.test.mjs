@@ -41,15 +41,16 @@ test('LP13-T05 cost instrumentation 신규wrapper 단일치환·trace중복거�
   const output=fs.mkdtempSync(path.join(root,'media-server-catalog-cost.'));
   const env={PATH:process.env.PATH,MEDIA_SERVER_VERIFY_RECORDING_LATENCY_TRACE:'0'};
   const source=fs.readFileSync(path.join(repo,'src/recording/recording_catalog.cpp'),'utf8');
-  const wrapper='recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__);';
+  const wrapper='recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__,false,__func__);';
+  const tryWrapper='recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__,std::try_to_lock,__func__);';assert.equal(source.split(tryWrapper).length-1,1);
   const occurrences=(text,literal)=>text.split(literal).length-1,n=occurrences(source,wrapper);
-  assert(n>0);assert.equal(occurrences(source,'recording::latency::Lock lock('),n);
+  assert(n>0);assert.equal(occurrences(source,'recording::latency::Lock lock('),n+1);
   const r=spawnSync(process.execPath,[path.join(repo,'scripts/internal/recording_catalog_cost_probe_instrument.cjs'),repo,output],{env,encoding:'utf8',timeout:10000});assert.equal(r.status,0,r.stderr);
   const instrumented=fs.readFileSync(path.join(output,'recording_catalog.cpp'),'utf8');
   const journal=fs.readFileSync(path.join(output,'recording_journal.cpp'),'utf8');
 
   const pair=wrapper;
-  const exact=text=>{assert.equal(occurrences(text,'recording::latency::Lock lock('),n);assert.equal(occurrences(text,pair),n);assert.equal(occurrences(text,'catalog.lock.wait'),0);assert.equal(occurrences(text,'catalog.lock.hold'),0);};
+  const exact=text=>{assert.equal(occurrences(text,'recording::latency::Lock lock('),n+1);assert.equal(occurrences(text,pair),n);assert.equal(occurrences(text,'catalog.lock.wait'),0);assert.equal(occurrences(text,'catalog.lock.hold'),0);};
   exact(instrumented);
   assert.throws(()=>exact(instrumented.replace(pair,'')));
   assert.throws(()=>exact(instrumented.replace(pair,pair+pair)));
@@ -68,3 +69,18 @@ function visualRun(mode,setting='1') {const r=spawnSync(binary,[mode],{encoding:
 test('V430-A01-APP request summary actual producer and late failure',()=>{const raw=visualRun('visual-summary'),v=visualRequestSummary(raw);assert.equal(v.status,'captured');assert.equal(v.rows.length,17);assert.equal(visualRequestSummary(raw.split('\n').filter(l=>!l.includes('\"id\":2,')).join('\n')).status,'incomplete');assert.equal(visualRequestSummary(raw.split('\n').filter(l=>!l.includes('\"id\":17,')).join('\n')).status,'incomplete');assert.equal(v.rows.at(-1).status,503);assert.equal(v.rows.at(-1).code,'visual-source-changed');assert(v.rows.every(r=>r.phases[0][0]===1&&r.counters[1]===3&&r.generation===7));assert.equal(visualRequestSummary(raw.replace('[visual-request-probe] 1','')).status,'incomplete');assert.equal(visualRequestSummary(raw.slice(0,-8)).status,'incomplete');assert.equal(visualRequestSummary(raw+raw.split('\n')[1]+'\n').status,'incomplete');});
 for(const mode of ['visual-cap','visual-write'])test('V430-A01-APP '+mode+' collection fails',()=>{assert.equal(visualRequestSummary(visualRun(mode)).status,'incomplete');});
 for(const setting of ['0','full','', '1 '])test('V430-A01-APP missing/invalid '+setting,()=>{assert.equal(visualRequestSummary(visualRun('visual-summary',setting)).status,'incomplete');});
+
+test('V430-A01-APP actual holder producer and complete sampled windows',()=>{
+ const r=spawnSync(binary,['holder'],{encoding:'utf8',timeout:15000,maxBuffer:4*1024*1024,env:{PATH:process.env.PATH,MEDIA_SERVER_VERIFY_RECORDING_LATENCY_TRACE:'1',MEDIA_SERVER_VERIFY_RECORDING_LATENCY_SLOW_ONLY:'1',MEDIA_SERVER_VERIFY_CATALOG_HOLDER_TRACE:'1',MEDIA_SERVER_VERIFY_VISUAL_REQUEST_TRACE:'1'}});
+ assert.equal(r.status,0,r.stderr);const raw=r.stdout+r.stderr,v=trace.catalogHolderSummary(raw);assert.equal(v.status,'captured',v.code);assert.equal(v.rows.length,6);assert(v.windows.every(w=>w.coveredNs>0&&w.unclassifiedNs>=0));assert.equal(trace.catalogHolderSummary(raw.replace(/^\[catalog-holder\].*\n/m,'')).status,'incomplete');assert.equal(trace.catalogHolderSummary(raw.replace(/^\[catalog-holder-end\].*\n/m,'')).status,'incomplete');assert.equal(trace.catalogHolderSummary(raw+raw.split('\n').find(l=>l.startsWith('[catalog-holder]'))+'\n').status,'incomplete');
+});
+test('V430-A01-APP changing holders, scheduling/unobserved gap and wrong mutex',()=>{
+ const rows=[{id:1,m:1,t:2,r:0,l:2,work:3,site:'retention',b:110,a:110,e:140,counts:[1,1,7,70]},{id:2,m:1,t:3,r:0,l:3,work:4,site:'index',b:140,a:150,e:180,counts:[1,1,2,20]},{id:3,m:1,t:1,r:7,l:1,work:1,site:'search',b:100,a:200,e:210,counts:[1,0,0,0]}];
+ const end={version:1,records:3,loss:false,inflight:0,endNs:6000000000,widthNs:1000000000,windows:[100,2000000000,4000000000]};
+ const format=(rs,e=end)=>rs.map(v=>'[catalog-holder] '+JSON.stringify(v)+'\n').join('')+'[catalog-holder-end] '+JSON.stringify(e)+'\n';
+ const v=trace.catalogHolderSummary(format(rows));assert.equal(v.status,'captured');assert.equal(v.windows[0].waitNs,100);assert.equal(v.windows[0].coveredNs,60);assert.equal(v.windows[0].unclassifiedNs,40);
+ const different=rows.map(x=>({...x}));different[1].m=2;assert.equal(trace.catalogHolderSummary(format(different)).windows[0].coveredNs,30);
+ const overlap=rows.map(x=>({...x}));overlap[1].a=130;overlap[1].b=120;assert.equal(trace.catalogHolderSummary(format(overlap)).code,'holder-overlap');
+ for(const change of [{version:2},{loss:true},{inflight:1},{records:2},{windows:[100,2000000000,0]}])assert.equal(trace.catalogHolderSummary(format(rows,{...end,...change})).status,'incomplete');
+ assert.equal(trace.catalogHolderSummary(format(rows)+'[catalog-holder-loss] write\n').status,'incomplete');
+});

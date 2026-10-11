@@ -1,0 +1,429 @@
+{
+  "schema": "media-server.task92.independent-review.v1",
+  "task": 92,
+  "reviewedAt": "2026-10-11T11:25:13.717Z",
+  "reviewer": "independent_memory86",
+  "implementationAuthor": "root",
+  "language": "ko",
+  "independence": {
+    "role": "별도 독립 변경분·증거 검토자",
+    "implementationParticipation": false,
+    "testAuthoringOrExecution": false,
+    "productExecution": false,
+    "producerExecution": false,
+    "subdelegation": false,
+    "method": "소스/diff 읽기, 기존 원출력 파싱·산술 대조, archive 실제 member/hash 대조, 본 보고 파일만 작성"
+  },
+  "model": {
+    "requestedModel": "gpt-6-astra",
+    "requestedEffort": "high",
+    "priorToolAcceptance": "이전 별도 reviewer 생성 시 도구 수락 기록 유지",
+    "actualRuntimeModel": "unconfirmed-not-exposed",
+    "actualRuntimeEffort": "unconfirmed-not-exposed",
+    "mainRuntimeModelEffort": "unconfirmed-not-exposed"
+  },
+  "decision": {
+    "codeReview": "NO_BLOCKING_DEFECT_FOUND_IN_REVIEWED_DELTA",
+    "directRegression": "PASS_IN_OBSERVED_SCOPES",
+    "final600Readiness": "CONDITIONAL_ON_EXISTING_APPROVAL_APPLY_READBACK_AND_CODE_FREEZE",
+    "final600Execution": "NOT_RUN_AT_THIS_REVIEW",
+    "meaning": "검토한 변경과 macOS/Linux 직접 근거에 새 차단 결함을 확인하지 못했다. 기존 승인 적용/재조회 및 검토된 제품 바이트의 코드 커밋·실행 결속을 마치면 사용자에게 이미 승인된 최종600 1회 진입에 기술적 반대 사유가 없다. 새 실행권한을 부여하거나 성공을 예측하는 판정이 아니다.",
+    "newExecutionAuthorization": false,
+    "memoryP0": "BLOCKED",
+    "releaseReady": false,
+    "new120Execution": "NOT_RUN_NOT_AUTHORIZED_BY_THIS_REVIEW"
+  },
+  "sourceBinding": {
+    "baseCommit": "b3aee1cbb6fadd189ac78d7eb1ba0048d27607ec",
+    "workingTreeWasDirty": true,
+    "currentWholeTreeCleanClaim": false,
+    "changedFileSha256": {
+      "docs/project-feature-test-inventory.md": "50bffff5f9c763455978b9e1087edcfc16acab989106c506452cd3efddf947f8",
+      "include/recording/recording_latency_trace.h": "a8e85b5682223eefae6d5669e3aa4f11abb89c2b3721c59a096dc9697ba1ec83",
+      "include/recording/recording_retained_rows.h": "b11a5307512aa171a90abf8e994ebd3151b8ec64e4cf48c5e033817b6060805f",
+      "scripts/internal/recording_catalog_cost_probe_instrument.cjs": "df5c21244079456cfba148bb495e1ea8b52dace97509360d5148c09e59cc0b44",
+      "scripts/internal/recording_latency_trace.mjs": "32203b15629d27924f273352bdbe66b3ab7e9fe137abd77a9bb3a5c34d3a8f0d",
+      "scripts/internal/recording_latency_trace.test.mjs": "f28b65a50495c1ab518f7efaad76ecdc3f350af415de3cdd96d4dbf131a4247c",
+      "scripts/internal/recording_latency_trace_smoke.cpp": "81d80eb08620fe6e6c4faf2ee1d0f64f015168475c257426917c138f55d51600",
+      "scripts/internal/recording_retention_cost_smoke.cpp": "47f4649b5b775a16b95c43125a2683370e98d000b79a5181687b809c7f277ce8",
+      "scripts/internal/recording_retention_v2_smoke.cpp": "f7ec8ac9fee213a6d85c94601c56d330fd28c9e58f1893a03ba4ed6f309f5a0b",
+      "scripts/internal/v450_recording_a_mixed.mjs": "c134d42cca593a85e638cdad4a50d11fe44c22b687abc94daf4c143f51406c8f",
+      "src/ingress/visual_search_application_service.cpp": "eeea13f1bfd585b6d34dce40f2b742d0e8256de6a7caa01e5e32b93f7ae05faa",
+      "src/recording/evidence_package_builder.cpp": "4c761b31926e36dcf86d35f2a4a6e8a472978e596e05d2e0885693a8847e7255",
+      "src/recording/gstreamer_segment_writer.cpp": "e8c2545238f2bb3d57819fb803dde5db849bd3e5836f1ac1ea2121c60426272c",
+      "src/recording/recording_catalog.cpp": "8ee28714a78c8772c8db8b3d9a174b229f83cbfa12799570398a3358e418d9cc",
+      "src/recording/recording_catalog_cutover_candidate.cpp": "82a446d3dcb0123631864447bf3f52d230a835570aa21265c0f555410680b98b",
+      "src/recording/recording_catalog_snapshot_export.cpp": "45513a883acf802db60f7a9e0c2325e591c0725b12944d29d13fea78ef7fe5aa",
+      "src/recording/recording_history_index.h": "bc687c3ea32d86dae1865e0055de2eea68af54a891da5984c8f7fcda51e66ac9",
+      "src/recording/recording_journal.cpp": "76abea54b1c0ff78c3397d23654474c142fe97c5b07830964475fc9125b35ad6",
+      "src/recording/recording_read_service.cpp": "4a5d5354c7f173ee2790fa0c907bb85adb575d455850f488a4c056e6924d04b9",
+      "src/recording/retention_coordinator.cpp": "1436a811a07f5beeafc12360b365d1c7ad01072e5627f94a321cc25c1f4213a5",
+      "src/recording/visual_index_worker.cpp": "9c4c418d18b761b8e59e9d9379ef04e253ffe2e3a328e3ebc3fe86d0a062503d"
+    },
+    "currentHashReadbackMismatchCount": 0,
+    "binarySha256": "b3a9e64a229e44c3cbb1be515115be5e6c2253fe5b3dc68ccac81d6fea4513df",
+    "runtimeSha256": "101d4bb7b23479caeaf4d6abaafbcd4aef18cf41754c82fd6d2174c7f3e0947f",
+    "binaryReadbackMatches": true,
+    "sourceFreezeReceiptSha256": "c62157b84e3e924628dc7e12fe0e59ecd60c365c507ca62655cba0e15617522c",
+    "futureCommitNotExecutionSourceYet": true
+  },
+  "sourceJudgments": [
+    {
+      "scope": "RetentionSnapshotLocked / RecordingRetainedRows::ForEachEntry",
+      "judgment": "같은 Catalog mu_ 안에서 V1/V2의 기존 후보 순회만 기존 VisitOwned 인증 cursor로 연결했다. lifecycle/retired/tombstone/path/hold/derived-job/deletion reason 검사는 유지된다. continue를 callback true로 옮긴 것이며 모든 callback 경로가 true라 소비자 중단을 부분 성공으로 숨기지 않는다. 호출 간 cache나 Catalog lock release를 추가하지 않았다."
+    },
+    {
+      "scope": "authority and coverage",
+      "judgment": "VisitImpl의 authenticated VisitRange, metadata/chunk 길이·순서·범위·coverage, 최종 seen==namespace count, Decode canonical/domain 검사를 유지한다. 차이를 완화하는 raw authority 대체나 오류 fallback은 없다. 순회 실패는 RecordingRetainedReadError로 전파돼 기존 CatalogHistoryError catch가 비권위 빈 snapshot을 반환한다."
+    },
+    {
+      "scope": "consumer exception and nested reads",
+      "judgment": "VisitImpl은 기존 계약대로 row-store recursive lock을 callback 동안 풀고 예외를 보관·재전파한다. 외부 Catalog mu_는 계속 소유한다. 이번 callback의 nested 조회는 Get/GetOwned이며 재귀 VisitRange가 아니다. derived_jobs_는 RAM unordered_map이라 index의 visiting guard와 충돌하지 않는다. 기존 ForEach는 ForEachEntry adapter로 같은 value-only 동작을 유지한다."
+    },
+    {
+      "scope": "resource lifetime",
+      "judgment": "Decode가 만든 charged shared Pair는 callback까지 유지되고 후보 DTO의 복사는 별도 reservation을 보유한다. stream은 전체 ID/value 목록을 RAM cache로 만들지 않는다. allocation/resource 예외를 성공으로 바꾸지 않는다. snapshot 자체 후보 보유량과 전체 작업 peak의 무제한 상한을 새로 입증한 것은 아니다."
+    },
+    {
+      "scope": "bounded diagnostics",
+      "judgment": "고정8192행·320B행·기존4MiB process 수집 제한, opt-in literal work/callsite와 b/a/e를 사용한다. event 발행과 output은 제품 mutex 해제 뒤이며 try-lock 최초 Holder 초기화도 잠금 전에 수행한다. try-lock/backoff 의미는 유지된다. cap/loss/누락/중복/같은mutex 보유겹침은 수집 실패로 전파한다. holder artifact는 wx 생성이다. 요청7/41/77 시작1초는 명시적 선택 표본이며 전체시간 표본이 아니다."
+    },
+    {
+      "scope": "GCC fixture adjustment",
+      "judgment": "recording_retention_v2_smoke.cpp SqlText의 if(finalize), if(close), return 사이 개행만 추가했다. 제어흐름·expectation·Werror 계약 불변이다."
+    }
+  ],
+  "diagnostic": {
+    "status": "FAIL_LATENCY_GATE",
+    "executionElapsedSeconds": 614.4581671248889,
+    "sourceStartEndSame": true,
+    "sourceSha256": "3092e8cfcb4a38a8cf55829cc8bb24f18258f462e4674e37bfdb56610d34b772",
+    "binarySha256": "48ba6a7499f99ebe44cc620aa4b86dd872fba997b3dcf31a18b9b9cfa4c6721c",
+    "holderRawAndJsonEqual": true,
+    "records": 1453,
+    "mutexIds": [
+      2
+    ],
+    "loss": false,
+    "inflight": 0,
+    "windows": [
+      {
+        "request": 7,
+        "retentionCalls": 13,
+        "retentionHeldMs": 171.261581,
+        "visitedCandidates": 207,
+        "visualWaitOverlapMs": 341.372036,
+        "allVisualWaitMs": 1324.176369,
+        "unclassifiedMs": 24.214296
+      },
+      {
+        "request": 41,
+        "retentionCalls": 5,
+        "retentionHeldMs": 140.689543,
+        "visitedCandidates": 80,
+        "visualWaitOverlapMs": 281.123628,
+        "allVisualWaitMs": 1245.722199,
+        "unclassifiedMs": 118.381291
+      },
+      {
+        "request": 77,
+        "retentionCalls": 5,
+        "retentionHeldMs": 205.942292,
+        "visitedCandidates": 75,
+        "visualWaitOverlapMs": 410.709917,
+        "allVisualWaitMs": 896.010712,
+        "unclassifiedMs": 1.438214
+      }
+    ],
+    "causalBoundary": "RetentionSnapshot 실제 같은 mutex 보유가 시각검색 대기를 막은 점은 직접 입증됐다. 창의 대기 합계는 모든 동시 r!=0 시각요청의 합이며 단일 선택 요청 지연이 아니다. 후보 수/call은 약16으로 유지되어 후보 증가로 설명할 수 없다. 후반 창의 retention 겹침은 전체 시각대기 약45.8%이며 유일 원인/전체600 귀속이 아니다. 경계 교차 구간 counts는 완전 포함 구간과 구분하며 미분류는 0비용으로 취급하지 않는다. Journal ReadAt 카운터는 history index I/O를 포함하지 않는다. 89~91 내부 원인을 소급 확정하지 않는다.",
+    "phase": null,
+    "verifiedDurationMs": null,
+    "longrunObservationCompleted": false,
+    "processesClosed": true,
+    "udpClosed": true,
+    "shutdownMeaning": "finally 정리 관측이며 실패 뒤 미실행된 최종 gate/명시 마감 assertion의 대체가 아니다.",
+    "originalSuccessfulSearchGate": {
+      "count": 157,
+      "p95Ms": 2071.2851249999367,
+      "maxMs": 2490.5024579999736,
+      "method": "원래 report.evidenceLoad.searchLatencyMs 성공 배열의 ceil(n*.95)-1. A/helper 요청을 추가하지 않음",
+      "p95LimitMs": 2000,
+      "maxLimitMs": 5000
+    },
+    "aCompletedRawCount": 10
+  },
+  "controlledComparison": {
+    "validBefore": "retention-before2-native/recording_retention_cost_smoke-run.log",
+    "validAfter": "retention-after-native/recording_retention_cost_smoke-run.log",
+    "assertionsEach": 1022,
+    "activeCandidates": 16,
+    "deletedHistory": [
+      0,
+      32,
+      128
+    ],
+    "rounds": "한 번 warmup 후5회/scale",
+    "beforeNodeReads": [
+      1025,
+      1722,
+      3204
+    ],
+    "afterNodeReads": [
+      744,
+      1122,
+      1569
+    ],
+    "beforeMedianUs": [
+      2690,
+      3403,
+      5049
+    ],
+    "afterMedianUs": [
+      2401,
+      2850,
+      3445
+    ],
+    "observedOwnedRamEach": 1217280,
+    "scope": "실제 RecordingRuntimeStorage generation Open/원본finalize/deletion/checkpoint/Finish/reopen 경로. 동일 생성 절차/입력 content이며 각 실행 안에서 기대한16개 ID·segment직렬화·lifecycle·path·hold와 재시작 membership을 확인했다.",
+    "limits": [
+      "서로 다른 store/opaque mutation을 쓰므로 before/after 전체 raw 원본 byte 동일 비교가 아니다.",
+      "nodeReads는 인증 노드의 논리적 읽기이며 물리 I/O/syscall 수가 아니다.",
+      "ownedRAM은 snapshot이 살아 있는 측정 시점 logical 값으로 과정 peak/RSS 불변을 입증하지 않는다.",
+      "before 후 after 순차실행으로 OS cache/thermal/order 영향은 남는다.",
+      "model/HTTP/concurrency가 없는 짧은 비교이며 혼합 p95를 대체하지 않는다.",
+      "단일 traversal도 삭제 metadata를 순회하므로 O(1) 또는 이력비용 완전 제거 주장을 하지 않는다.",
+      "새 fixture는 hold 반례를 직접 확인하지만 pin 조작은 포함하지 않는다. pin 등 기존 안전 근거는 영향 회귀 범위에서만 재사용한다."
+    ]
+  },
+  "regressionEvidence": {
+    "macOS": {
+      "seek": 9,
+      "playback": 27,
+      "visualIndex": 1665,
+      "retentionV1": 57,
+      "retentionV2": 22,
+      "actualModelApplication": {
+        "assertions": 93,
+        "concurrentSuccesses": 24,
+        "p95Ms": 187.832,
+        "maxMs": 194.686,
+        "peakRssBytes": 3233955840,
+        "scope": "실제 SigLIP2 application 직접 실행; 별도 HTTP 장시간/전체UI 근거 아님"
+      },
+      "requestProofConfigurations": 4,
+      "cache": 448,
+      "collectorTests": 35
+    },
+    "linux": {
+      "attempt1": "제품 build 완료 및 seek9/playback27/index1665/retention57 PASS 후 V2 fixture GCC 컴파일 FAIL",
+      "attempt2": "동일 제품 재빌드 및 남은 V2 22/proof4config/cache448/retention-cost1022/collector35 PASS; container exit0",
+      "uid": 10001,
+      "network": "none",
+      "image": "기존 지정 image",
+      "actualModelExecution": "not-run-on-linux",
+      "archiveReadback": {
+        "attempt1Members": 133,
+        "attempt2Members": 94,
+        "allMemberByteHashMismatchCount": 0
+      }
+    },
+    "static": {
+      "nativeMetadataDefinitions": 424,
+      "actualUIExecution": false,
+      "scriptInventoryPass": 13,
+      "semanticApprovalApplyReadback": "pending"
+    }
+  },
+  "firstFailuresPreserved": [
+    {
+      "scope": "cost fixture initial legacy Store",
+      "status": "INVALID_CAUSAL_EVIDENCE",
+      "detail": "exit0였으나 nodeReads/ownedRAM/scratch0. 최초 원문 보존; actual generation 및 positive node/scratch assertion을 갖춘 before2만 비용 근거로 사용."
+    },
+    {
+      "scope": "mac V2 preparation",
+      "status": "FAIL_SETUP_THEN_PASS",
+      "detail": "mac-native exit2, fixture pipeline start 오류. helper data root 준비 보완 뒤 mac-remaining에서 남은 V2+actualmodel만 수행."
+    },
+    {
+      "scope": "Linux V2 GCC",
+      "status": "FAIL_COMPILE_THEN_PASS",
+      "detail": "attempt1 tar 실제 원문 보존; misleading-indentation 한 문장 줄분리 뒤 attempt2 남은 범위 PASS."
+    },
+    {
+      "scope": "91 Linux first archive",
+      "status": "HISTORICAL_FULL_RAW_MISSING_LIMIT_RETAINED",
+      "detail": "91 첫 Linux 전체 archive 소실 한계를 소급 복원/해소하지 않는다."
+    }
+  ],
+  "priorEvidenceReuse": {
+    "task82KF": "entry 대비 CheckpointGenerationLocked 전체 구간 바이트 동일(SHA498ffbcae65c464216629f48e663d5229916adffd925a5ec119d8e4dcae5025c). snapshot/cutover에는 guard계측만 추가. K고정·잠금밖 준비·내구 suffix F게시 및 당시 유한 병행 근거를 해당 범위에서 유지한다. 92 신규 순회 및 최종 혼합 성공의 대체가 아니다.",
+    "other": "85 B1024/C16,86 C1/C2/C3,88 준비 및91 직접 개선은 기존 조건·한계 안에서 유지. 89/90/91 혼합 실패와120/P0/출시 잔여를 유지."
+  },
+  "candidateBinding": {
+    "rows": 986,
+    "resolved": 986,
+    "unresolved": 0,
+    "candidateDigest": "8977e9b6ac618c7e0233823f6acb6ab1fcf7461206ee5d8b2a4149a643519e3a",
+    "itemsEqualCurrentPriorAudit": true,
+    "meaning": "986 개수나 동일 digest는 새92 행동을 승인하지 않는다. 기존 승인 재사용/metadata 적용은 메인이 기존 도구로 수행하고 실제 readback을 별도 연결해야 한다.",
+    "newSemanticProducerIssuedByReviewer": false
+  },
+  "pending": [
+    "기존 승인 적용 및 영향 정적/결속 readback",
+    "검토된 제품 바이트를 코드 commit과 최종실행 source/binary에 결속",
+    "이미 사용자 승인된 최종600 1회와 실제 결과의 별도 독립 검토",
+    "선정 증거의 Git/remote byte 보존 및 소유 실행root cleanup",
+    "120분/P0/출시 완료는 이번 preflight로 해소하지 않음"
+  ],
+  "evidenceRootAtReview": "/private/tmp/media-server-memory92-06m54kx3",
+  "evidenceBindings": {
+    "evidence/preflight-source.json": {
+      "bytes": 2782,
+      "sha256": "c62157b84e3e924628dc7e12fe0e59ecd60c365c507ca62655cba0e15617522c"
+    },
+    "evidence/diagnostic-plan.json": {
+      "bytes": 1294,
+      "sha256": "dd87c9b7fc50b0b3809a81d954f95dc6a321821b0c871ada99d907c5ea7eaf44"
+    },
+    "diagnostic600/execution.json": {
+      "bytes": 1752,
+      "sha256": "e2b8aed83b40747f3202482e486ca6558b556de76d10a1f69c7950f169dbe2d8"
+    },
+    "diagnostic600/artifacts/report.json": {
+      "bytes": 49985,
+      "sha256": "17db75036d5398906ef88895af6b792a04a1522ef611406be21fbd2b5228d1c7"
+    },
+    "diagnostic600/run.log": {
+      "bytes": 1215583,
+      "sha256": "13e4bf471945be03d695b47651648551c07f33693155c2ad0bc324395c3a25bf"
+    },
+    "diagnostic600/media-server-current-observer-KgGFZi/server-1.private.log": {
+      "bytes": 483936,
+      "sha256": "1896cd3a52c8e8488e50cb4c86559db77b8e51101ba3c65d16d0a3a266b96b2a"
+    },
+    "diagnostic600/media-server-current-observer-KgGFZi/catalog-holders-62554.json": {
+      "bytes": 227668,
+      "sha256": "8f3b2da88725519086a828fcdfd721a23826a5502f58ae99ec7a5bd23230e09f"
+    },
+    "evidence/retention-comparison.json": {
+      "bytes": 2784,
+      "sha256": "56e071e98b08a673295ae5e8f323aeee87166097fd7cef0e6532a565fead739f"
+    },
+    "evidence/retention-first-preparation-invalid.json": {
+      "bytes": 333,
+      "sha256": "5da666087899e91d89c24acf291133ec8c0f1002aef68c9db76eb8a45f0bdc89"
+    },
+    "evidence/retention-valid-before-source.json": {
+      "bytes": 411,
+      "sha256": "9fea7d2b264ec8a1f830463b5b9a2d781a34923526b6a86ebd1a214001e92e06"
+    },
+    "evidence/retention-after-source.json": {
+      "bytes": 318,
+      "sha256": "9a9210dea3c0765cea8b40d1d64a3072077ea94ee611f31566a5b674fdd367f3"
+    },
+    "retention-before2-native/recording_retention_cost_smoke-run.log": {
+      "bytes": 37851,
+      "sha256": "9ee34a4c46b2176a414836044437cdb1310bc80cc13016a95d6890ba9ae77a4f"
+    },
+    "retention-after-native/recording_retention_cost_smoke-run.log": {
+      "bytes": 37846,
+      "sha256": "c4cf3c0d910b995eb970f54f879e816f832778c4d52af4c25c56a52af624de12"
+    },
+    "mac-native.json": {
+      "bytes": 632,
+      "sha256": "078a827d241fd557c18b896ec8e92045b0c72f461ea0c3eb230702c954fb1966"
+    },
+    "mac-native.log": {
+      "bytes": 549,
+      "sha256": "35f8928ca356ea91df78b3c9ee84e31762fa459773df728bb100cbb2212a17bd"
+    },
+    "mac-remaining.json": {
+      "bytes": 494,
+      "sha256": "21988ad67a7d9152f0f3f14a8ad5a21ee5b6f7b3195c4eb7ae033221a82d8f63"
+    },
+    "mac-remaining.log": {
+      "bytes": 228,
+      "sha256": "e5b31dcdefcd7ae68b42a1d9870524028251adb1bb137ff3407e74fbb36b72e0"
+    },
+    "mac-proof.json": {
+      "bytes": 360,
+      "sha256": "aee11fe388b1219e85f3c49a75bbac7eada2f5ef65d988fe79243cf7b3a56b00"
+    },
+    "mac-proof.log": {
+      "bytes": 12333,
+      "sha256": "b8b1b33e45e413414d45c4041b5236daa19641a9edf2ac656927fe12507ac84f"
+    },
+    "mac-cache.json": {
+      "bytes": 482,
+      "sha256": "eb97eff2ef8a599d753d3662315d4f5866f059e74a41f477dbf0380cfa6ecc5f"
+    },
+    "mac-cache-result-run.log": {
+      "bytes": 17221,
+      "sha256": "f6dca4a6fd11eec15aa076c13da0f2b1c9a5cae7a8d9a44ded25822b67205e6a"
+    },
+    "collector-final.json": {
+      "bytes": 422,
+      "sha256": "7a6807e6cbbdaab1220126479152d375adf036907cac6d3b9112ba7652ab030b"
+    },
+    "collector-final.log": {
+      "bytes": 6049,
+      "sha256": "0efaabd2eb27a7e16a1a5340571536f9789cf558168eba924f9dec66da39e18c"
+    },
+    "linux92-attempt1.json": {
+      "bytes": 29428,
+      "sha256": "54b177b7d37b56fba3bc93209b128a2a83c884fcb123e87b01f4452f9d845c93"
+    },
+    "linux92-attempt1.tar.gz": {
+      "bytes": 7082274,
+      "sha256": "ef54a477b255560ca7f2b71998d5ff7b62454b70b5d2f223cdae08a3fb3dc20d"
+    },
+    "linux92-attempt2.json": {
+      "bytes": 18960,
+      "sha256": "7d890821ca937ecf24ba1490fc9ff3a6a32e7fa9f071405bc509e87acb031799"
+    },
+    "linux92-attempt2.tar.gz": {
+      "bytes": 4609286,
+      "sha256": "4304aaab246585ab0d078ee12c0744b938cbbaef1ad23828b2e64aeb56e08e80"
+    },
+    "native-metadata.json": {
+      "bytes": 377,
+      "sha256": "87d079be3439e783c9634187fa7e20058d0cdc56835d33d6af7c7bc57b1ff067"
+    },
+    "native-metadata.log": {
+      "bytes": 323,
+      "sha256": "0e9739d57a52381aa7f4b93d202a02c491f463cfe9c4f314c1b0f7c9e46cc0ca"
+    },
+    "script-inventory.json": {
+      "bytes": 343,
+      "sha256": "ca1f7a3005344bc8ce2e60726738b01b87c79f21d0f86bbfb012393668c94016"
+    },
+    "script-inventory.log": {
+      "bytes": 941,
+      "sha256": "92e692a3173f517ac5430005d1cf361195ac0dad7e505a2ffaddc893da6cdecf"
+    },
+    "evidence/candidate.json": {
+      "bytes": 7709058,
+      "sha256": "13402b9705f3b160348f6facdd5bf496d4a6fe761c9653db6f9fd7754b2a14f4"
+    },
+    "evidence/final600-plan.json": {
+      "bytes": 896,
+      "sha256": "7caee459fbb690e960788302dd80c4604e4ec4ab37d4542a8382c92618d91868"
+    },
+    "evidence/diagnostic600-analysis.json": {
+      "bytes": 6408,
+      "sha256": "03ccb22f94bc032fd56caa408b8c39c023292364d585616fa13c71372028bda2"
+    }
+  },
+  "final600PlanReview": {
+    "path": "evidence/final600-plan.json",
+    "count": 1,
+    "observationSeconds": 600,
+    "totalSeconds": 780,
+    "originalGatesRetained": true,
+    "sourceFreezeAndNoEditsDuringRun": true,
+    "sameSelectedHolderWindows": true,
+    "repeatOnFailure": false,
+    "approvalMeaning": "이미 사용자 승인된 실행 범위 확인이며 새 권한 부여 또는 미래 PASS 판단이 아니다."
+  }
+}

@@ -109,15 +109,20 @@ public:
         if(!store_->GetOwned(kind_,id,&value,&found,&error))throw RecordingRetainedReadError(error);
         return found?Decode(id,std::move(value)):end();
     }
-    template<class F> bool ForEach(F&& visitor)const {
-        if(!store_){for(const auto& row:ram_)if(!visitor(row.second))return false;return true;}
+    // A single authenticated cursor; returned rows stay individually charged.
+    // Unlike repeated NextOwned, deleted metadata/chunks are not re-looked-up.
+    template<class F> bool ForEachEntry(F&& visitor)const {
+        if(!store_){for(const auto& row:ram_)if(!visitor(row.first,row.second))return false;return true;}
         bool refused=false;std::string error;
         const bool ok=store_->VisitOwned(kind_,[&](const auto& id,RecordingColdRow& bytes,std::string*){
             const auto row=Decode(id,std::move(bytes));
-            if(!visitor(row->second)){refused=true;return false;}return true;
+            if(!visitor(row->first,row->second)){refused=true;return false;}return true;
         },&error);
         if(!ok&&!refused)throw RecordingRetainedReadError(error);
         return ok;
+    }
+    template<class F> bool ForEach(F&& visitor)const {
+        return ForEachEntry([&](const auto&,const auto& value){return visitor(value);});
     }
     std::size_t count(const std::string& id)const{return find(id)!=end();}
     std::pair<const_iterator,bool> emplace(const std::string& id,T value) {

@@ -16,6 +16,42 @@ enum class Operation : unsigned { Lock=1, Timeline=2, Query=3, Finish=4, Seriali
 inline bool Enabled() noexcept {static const bool enabled=[] {const char* p=std::getenv("MEDIA_SERVER_VERIFY_RECORDING_LATENCY_TRACE");return p&&std::strcmp(p,"1")==0;}();return enabled;}
 inline bool SlowOnly() noexcept {static const bool enabled=[] {const char* p=std::getenv("MEDIA_SERVER_VERIFY_RECORDING_LATENCY_SLOW_ONLY");return p&&std::strcmp(p,"1")==0;}();return enabled;}
 inline std::uint64_t Now() noexcept {static const auto epoch=std::chrono::steady_clock::now();return static_cast<std::uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now()-epoch).count());}
+// Diagnostic-only selected windows. No allocation, output or diagnostic mutex under
+// the product lock. Completed intervals are published after unlock; never an owner guess.
+enum class Work : unsigned { Other=0, Visual=1, Structured=2, Retention=3, Index=4, Writer=5, Evidence=6 };
+inline thread_local Work holder_work=Work::Other;
+struct WorkScope {Work previous;explicit WorkScope(Work work):previous(holder_work){holder_work=work;}~WorkScope(){holder_work=previous;}};
+inline bool HolderEnabled() noexcept {static const bool yes=[] {const char* p=std::getenv("MEDIA_SERVER_VERIFY_CATALOG_HOLDER_TRACE");return p&&std::strcmp(p,"1")==0;}();return yes;}
+inline thread_local std::uint64_t history_node_reads=0; // opt-in logical authenticated node reads, not physical I/O
+inline thread_local std::array<std::uint64_t,4> holder_counts{}; // binding checks, cold link calls, visited rows, Journal ReadAt requested bytes
+inline void HolderCount(unsigned i,std::uint64_t n=1) noexcept {if(HolderEnabled()&&i<4)holder_counts[i]+=n;}
+struct HolderTrace {
+    struct Event {std::uint64_t b=0,a=0,e=0;std::array<std::uint64_t,4> counts{};const char* site=nullptr;unsigned m=0,t=0,r=0,line=0,work=0;};
+    struct Slot {Event event;std::atomic<bool> ready{false};};
+    std::array<Slot,8192> slots{};std::atomic<unsigned> count{0};
+    std::array<std::atomic<std::uint64_t>,3> windows{};
+    std::atomic<unsigned> inflight{0};std::atomic<bool> loss{false};
+    static constexpr unsigned Requests[3]={7,41,77};
+    static constexpr std::uint64_t Width=1000000000;
+    void Select(unsigned id,std::uint64_t ns) noexcept {for(unsigned i=0;i<3;++i)if(id==Requests[i])windows[i].store(ns,std::memory_order_release);}
+    void Add(const Event& e) noexcept {
+        bool selected=false;for(const auto& w:windows){const auto b=w.load(std::memory_order_acquire);if(b&&e.b<b+Width&&e.e>b)selected=true;}
+        if(!selected)return;
+        const auto i=count.fetch_add(1);if(i>=slots.size()){loss=true;return;}
+        slots[i].event=e;slots[i].ready.store(true,std::memory_order_release);
+    }
+    ~HolderTrace() noexcept {
+        bool good=!loss.load()&&inflight.load()==0;const unsigned total=count.load();
+        for(unsigned i=0;i<total&&i<slots.size();++i){
+            if(!slots[i].ready.load(std::memory_order_acquire)){good=false;continue;}
+            const auto& e=slots[i].event;char row[320];
+            const int n=std::snprintf(row,sizeof(row),"[catalog-holder] {\"id\":%u,\"m\":%u,\"t\":%u,\"r\":%u,\"l\":%u,\"work\":%u,\"site\":\"%s\",\"b\":%llu,\"a\":%llu,\"e\":%llu,\"counts\":[%llu,%llu,%llu,%llu]}\n",i+1,e.m,e.t,e.r,e.line,e.work,e.site?e.site:"unknown",(unsigned long long)e.b,(unsigned long long)e.a,(unsigned long long)e.e,(unsigned long long)e.counts[0],(unsigned long long)e.counts[1],(unsigned long long)e.counts[2],(unsigned long long)e.counts[3]);
+            if(n<=0||n>=int(sizeof(row))||std::fwrite(row,1,std::size_t(n),stderr)!=std::size_t(n))good=false;
+        }
+        if(std::fprintf(stderr,"[catalog-holder-end] {\"version\":1,\"records\":%u,\"loss\":%s,\"inflight\":%u,\"endNs\":%llu,\"widthNs\":%llu,\"windows\":[%llu,%llu,%llu]}\n",total,good?"false":"true",inflight.load(),(unsigned long long)Now(),(unsigned long long)Width,(unsigned long long)windows[0].load(),(unsigned long long)windows[1].load(),(unsigned long long)windows[2].load())<0||std::fflush(stderr)!=0){std::fputs("[catalog-holder-loss] write\n",stdout);std::fflush(stdout);}
+    }
+};
+inline HolderTrace& Holder() noexcept {static HolderTrace value;return value;}
 // k: 0=잠금 구간, 1=단계 구간, 2=빠른 집계, 3=진단 손실.
 struct Row {std::uint64_t k=0,o=0,s=0,l=0,m=0,t=0,r=0,b=0,a=0,e=0,n=0,w=0,h=0,x=0,y=0;};
 // 요청별 비용 요약: 고정 배열만 사용. 각 phase는 inclusive이며 부모/자식을 합산하지 않는다.
@@ -37,12 +73,13 @@ private:
         ~Completion() noexcept {if(std::fprintf(stderr,"[visual-request-end] {\"started\":%u,\"completed\":%u}\n",sequence.load(),completed.load())<0||std::fflush(stderr)!=0)Loss();}
     };
 public:
+    static unsigned CurrentId() noexcept {return current?current->id_:0;}
     static bool Enabled() noexcept {static const bool yes=[] {const char* p=std::getenv("MEDIA_SERVER_VERIFY_VISUAL_REQUEST_TRACE");return p&&std::strcmp(p,"1")==0;}();return yes;}
     VisualRequestSummary() noexcept {
         if(!Enabled())return;
         static Completion completion;(void)completion;
         id_=++sequence;if(id_==1){if(std::fputs("[visual-request-probe] 1\n",stderr)==EOF||std::fflush(stderr)!=0)Loss();}
-        if(id_>1024||current){Loss();return;}active_=true;start_=Now();current=this;
+        if(id_>1024||current){Loss();return;}active_=true;start_=Now();current=this;if(HolderEnabled())Holder().Select(id_,start_);
     }
     static void Result(unsigned status,const char* reason) noexcept {if(current){current->status_=status;const auto n=std::strlen(reason);bool safe=n<sizeof(current->reason_);for(std::size_t i=0;safe&&i<n;++i)safe=(reason[i]>='a'&&reason[i]<='z')||reason[i]=='-'||(reason[i]>='0'&&reason[i]<='9');std::snprintf(current->reason_,sizeof(current->reason_),"%s",safe?reason:"unknown-code");}}
     static void Index(std::uint64_t generation,std::uint64_t docs) noexcept {if(current){current->generation_=generation;current->documents_=docs;}}
@@ -143,23 +180,37 @@ inline void FlushFast() noexcept {for(auto& row:local.fast)if(row.n){if(local.us
 class Lock {
     std::mutex& mutex_;bool enabled_;Row row_;std::uint64_t previous_=0;
     bool owned_=false,always_;Lock* enclosing_=nullptr;
+    bool holder_=false;const char* site_=nullptr;HolderTrace::Event event_;std::array<std::uint64_t,4> begin_counts_{};
     inline static thread_local Lock* current_=nullptr;
     void Acquire() {
+        if(holder_)++Holder().inflight;
         if(enabled_){row_.b=Now();row_.e=0;}
         mutex_.lock();owned_=true;
         if(enabled_){row_.a=Now();previous_=local.mutex;local.mutex=row_.m;++local.depth;}
+        if(holder_){event_.b=row_.b;event_.a=row_.a;event_.m=row_.m;event_.t=local.thread;event_.r=VisualRequestSummary::CurrentId();event_.line=row_.l;event_.site=site_;event_.work=static_cast<unsigned>(holder_work);begin_counts_=holder_counts;}
     }
     void Release() noexcept {
         if(!owned_)return;
         if(enabled_)row_.e=Now();
+        if(holder_){event_.e=row_.e;for(unsigned i=0;i<4;++i)event_.counts[i]=holder_counts[i]-begin_counts_[i];}
         mutex_.unlock();owned_=false;
+        if(holder_){Holder().Add(event_);--Holder().inflight;}
         if(enabled_){--local.depth;local.mutex=previous_;Append(row_,always_);if(!local.request&&local.fast_events>=256)FlushFast();else Flush();}
     }
 public:
-    Lock(std::mutex& mutex,Source source,unsigned line,bool always=false):mutex_(mutex),enabled_(Enabled()),always_(always){
+    Lock(std::mutex& mutex,Source source,unsigned line,bool always=false,const char* site=nullptr):mutex_(mutex),enabled_(Enabled()),always_(always),holder_(Enabled()&&HolderEnabled()&&source==Source::Catalog),site_(site){
         if(enabled_){row_.o=1;row_.s=static_cast<unsigned>(source);row_.l=line;row_.m=MutexId(&mutex);}
         Acquire();enclosing_=current_;current_=this;
     }
+    Lock(std::mutex& mutex,Source source,unsigned line,std::try_to_lock_t,const char* site):mutex_(mutex),enabled_(Enabled()),always_(false),holder_(Enabled()&&HolderEnabled()&&source==Source::Catalog),site_(site){
+        if(enabled_){row_.o=1;row_.s=static_cast<unsigned>(source);row_.l=line;row_.m=MutexId(&mutex);row_.b=Now();}
+        if(holder_)(void)Holder(); // initialize bounded storage before acquiring the product mutex
+        owned_=mutex_.try_lock();
+        if(owned_){if(enabled_){row_.a=Now();previous_=local.mutex;local.mutex=row_.m;++local.depth;}
+            if(holder_){++Holder().inflight;event_.b=row_.b;event_.a=row_.a;event_.m=row_.m;event_.t=local.thread;event_.r=VisualRequestSummary::CurrentId();event_.line=line;event_.site=site_;event_.work=static_cast<unsigned>(holder_work);begin_counts_=holder_counts;}}
+        enclosing_=current_;current_=this;
+    }
+    bool owns_lock()const noexcept{return owned_;}
     ~Lock() noexcept {Release();current_=enclosing_;}
     // The owning RAII object performs both operations. No raw unlock behind a lock_guard.
     class Unlocked {

@@ -1,3 +1,4 @@
+#include "recording/recording_latency_trace.h"
 // 파일 용도: 관리형 녹화 카탈로그 cutover 후보의 준비·게시 coordinator를 구현한다.
 #include "recording/recording_catalog.h"
 #include "recording/recording_cutover_candidate.h"
@@ -20,14 +21,14 @@ bool RecordingCatalog::PublishManagedCutover(const RecordingCutoverCandidateLimi
     // Journal의 새 freeze에서 전체 원문/FD를 다시 확인하며, DTO를 외부에서 받지 않는다.
     RecordingGenerationTransaction transaction;
     std::filesystem::path canonical_root;
-    {std::lock_guard lock(mu_);if(opened_||!journal_.managed_||!options_.enable_v2_storage)return Fail(error,"cutover coordinator requires unopened managed catalog");
+    {recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__,false,__func__);if(opened_||!journal_.managed_||!options_.enable_v2_storage)return Fail(error,"cutover coordinator requires unopened managed catalog");
         std::lock_guard journal_lock(journal_.mu_);if(!journal_.CheckManagedStateLocked(error))return false;canonical_root=journal_.io_path_.parent_path();}
     if(!transaction.Create(canonical_root,error))return false;
     struct stat root{},stage{};
     if(::lstat(canonical_root.c_str(),&root)!=0||::lstat(transaction.StagePath().c_str(),&stage)!=0)return Fail(error,"cutover coordinator directory stat failed");
     RecordingCutoverCandidate candidate;RecordingCutoverCreatedFiles files;
     if(!PrepareManagedCutoverCandidate({transaction.StagePath(),static_cast<std::uint64_t>(stage.st_dev),static_cast<std::uint64_t>(stage.st_ino)},limits,&candidate,&files,error))return false;
-    std::lock_guard lock(mu_);
+    recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__,false,__func__);
     if(opened_||!journal_.AttachCatalog(this,options_.media_root,options_.sqlite_path,true,error))return false;
     struct Detach {RecordingJournal& journal;const void* owner;~Detach(){journal.DetachCatalog(owner);}} detach{journal_,this};
     RecordingGenerationReceipt receipt;receipt.root_device=root.st_dev;receipt.root_inode=root.st_ino;
@@ -67,7 +68,7 @@ bool RecordingCatalog::PublishManagedCutover(const RecordingCutoverCandidateLimi
 bool RecordingCatalog::RecoverManagedCutover(const RecordingCutoverCandidateLimits& limits,
     std::uint64_t receipt_admission,std::string* error) {
 #if MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND && MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
-    std::lock_guard lock(mu_);
+    recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__,false,__func__);
     if(opened_||!options_.enable_v2_storage||!receipt_admission)return Fail(error,"cutover recovery catalog state/admission rejected");
     RecordingScratchResidency::Scope resources(journal_.ScratchOwner());
     std::filesystem::path root;RecordingGenerationTransaction transaction;
@@ -230,7 +231,7 @@ bool RecordingCatalog::ReplayManagedCutoverScratch(RecordingCatalog& scratch,
 bool RecordingCatalog::PrepareManagedCutoverCandidate(const RecordingCutoverFreshStage& stage,
     const RecordingCutoverCandidateLimits& limits,RecordingCutoverCandidate* output,RecordingCutoverCreatedFiles* created,std::string* error) {
 #if MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND && MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
-    std::lock_guard lock(mu_);
+    recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__,false,__func__);
     if(!output||!created||!created->files.empty()||opened_||!options_.enable_v2_storage||!journal_.managed_)
         return Fail(error,"cutover candidate unopened managed options required");
     if(!journal_.AttachCatalog(this,options_.media_root,options_.sqlite_path,true,error))return false;

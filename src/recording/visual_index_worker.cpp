@@ -65,6 +65,7 @@ VisualIndexReadView VisualIndexWorker::ReadView()const{
     std::lock_guard lock(mutex_);return {current_,publication_,status_};
 }
 bool VisualIndexWorker::Rebuild(const Cancelled& cancelled,std::string* error){
+    recording::latency::WorkScope holder_work_scope(recording::latency::Work::Index);
     latency::VisualPhase rebuild("index-rebuild");
     std::shared_ptr<const VisualSearchIndex> base;
     {std::unique_lock lock(mutex_);

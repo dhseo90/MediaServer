@@ -1,3 +1,4 @@
+import {catalogHolderSummary} from './recording_latency_trace.mjs';
 import {resourceTraceCollector,collectResourceTrace,currentResourceTrace,finishResourceTrace} from './recording_resource_trace.mjs';
 // 파일 용도: 기존 혼합 실행기에 인증된 A 확인·저장 부하만 연결한 제한 관측. 짧은 준비 실행은 장시간/자원/UI PASS가 아니다.
 import {createReviewTestArtifacts} from './va_review_test_artifacts.mjs';
@@ -58,7 +59,7 @@ function environment(http,rtsp,stun){const env={PATH:process.env.PATH,HOME:proce
     ANALYSIS_EVENT_STORAGE_ENABLED:0,ANALYSIS_EVENT_STORAGE_PATH:path.join(root,'events/events.jsonl'),ANALYSIS_EVENT_POST_ENABLED:0,
     ANALYSIS_EVENT_CLIP_HOOK_ENABLED:0,ANALYSIS_EVENT_CLIP_DIR:path.join(root,'events/clips'),ANALYSIS_EVENT_SNAPSHOT_HOOK_ENABLED:0,ANALYSIS_EVENT_SNAPSHOT_DIR:path.join(root,'events/snapshots'),
     VA_REVIEW_ENABLED:1,VA_REVIEW_LOCAL_ENDPOINT:'http://127.0.0.1:1',VISUAL_SEARCH_ENABLED:1,VISUAL_SEARCH_MODEL_DIRECTORY:path.join(repo,'models/v430-siglip2'),VISUAL_SEARCH_SCAN_SECONDS:1,VISUAL_SEARCH_SAMPLE_SECONDS:1,EVIDENCE_ENABLED:1,RECORDING_ENABLED:1,RECORDING_STORAGE_ROOT:path.join(root,'recordings'),RECORDING_SEGMENT_DURATION_SECONDS:2,RECORDING_RESERVED_FREE_BYTES:0,RECORDING_RETENTION_INTERVAL_MS:1000,
-    VERIFY_VISUAL_REQUEST_TRACE:1,VERIFY_RECORDING_SEARCH_TRACE:1,VERIFY_VISUAL_LATENCY_TRACE:short?1:0,VERIFY_RECORDING_RESOURCE_TRACE:1,VERIFY_FRAME_TRACE:frameTraceMode,VERIFY_RECORDING_LATENCY_TRACE:1,VERIFY_RECORDING_LATENCY_SLOW_ONLY:1,
+    VERIFY_CATALOG_HOLDER_TRACE:diagnose?1:0,VERIFY_VISUAL_REQUEST_TRACE:1,VERIFY_RECORDING_SEARCH_TRACE:1,VERIFY_VISUAL_LATENCY_TRACE:short?1:0,VERIFY_RECORDING_RESOURCE_TRACE:1,VERIFY_FRAME_TRACE:frameTraceMode,VERIFY_RECORDING_LATENCY_TRACE:1,VERIFY_RECORDING_LATENCY_SLOW_ONLY:1,
     GST_CACHE_DIR:path.join(root,'gst-cache'),GST_PLUGIN_PROFILE:'headless',WEBRTC_STUN_SERVER:`stun://127.0.0.1:${stun}`,WEBRTC_TURN_SERVER:''};
   for(const [k,v] of Object.entries(values))env['MEDIA_SERVER_'+k]=String(v);return env;
 }
@@ -303,6 +304,7 @@ finally{
     console.log('[resource-trace-summary] '+JSON.stringify(finishResourceTrace(app.resourceTrace)));
     const searchFailure=searchFailureSummary(text,app.requiresFrameTrace);console.log('[search-failure-summary] '+JSON.stringify(searchFailure));
     if(searchFailure.status==='incomplete'){failed++;console.log('[fail] structured-failure-collection');}
+    if(diagnose){const holders=catalogHolderSummary(text,app.requiresFrameTrace);fs.writeFileSync(path.join(root,`catalog-holders-${app.child.pid}.json`),JSON.stringify(holders),{flag:'wx',mode:0o600});if(holders.status==='incomplete'){failed++;console.log('[fail] catalog-holder-collection '+holders.code);}}
     const requests=visualRequestSummary(text,app.requiresFrameTrace);console.log('[visual-request-summary] '+JSON.stringify(requests));if(requests.status==='incomplete'){failed++;console.log('[fail] visual-request-collection');}
     const frameTrace=frameTraceSummary(text,frameTraceMode,app.requiresFrameTrace);console.log('[frame-trace-summary] '+JSON.stringify(frameTrace));
     if(frameTrace.status!=='captured'&&!(frameTrace.status==='not-observed'&&!app.requiresFrameTrace)){failed++;console.log('[fail] frame-trace-incomplete');}

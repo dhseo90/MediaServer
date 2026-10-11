@@ -1,3 +1,4 @@
+#include "recording/recording_latency_trace.h"
 // 파일 요약: append-only 녹화 mutation JSONL 원장을 구현한다.
 // 동작 요약: 한 줄 append 후 fsync하고 마지막 truncate와 중간 손상을 분리해 replay한다.
 #include "recording/recording_journal.h"
@@ -98,6 +99,7 @@ bool WriteAll(int fd, const std::string& bytes) {
     return true;
 }
 bool ReadAt(int fd, off_t start, std::string* bytes) {
+    latency::HolderCount(3,bytes->size());
     std::size_t offset = 0;
     while (offset < bytes->size()) {
         const auto count = ::pread(fd, bytes->data() + offset, bytes->size() - offset,
@@ -1387,6 +1389,7 @@ bool RecordingJournal::CheckManagedStateLocked(std::string* error) const {
 #endif
 }
 bool RecordingJournal::CheckManagedFdStateLocked(std::string* error) const {
+    latency::HolderCount(0);
     if(!managed_)return true;
 #if !defined(_WIN32)
     if(generation_state_){
@@ -2051,6 +2054,7 @@ bool RecordingJournal::AcquireMutationLinkForRead(const void* owner,const Record
 }
 bool RecordingJournal::AcquireMutationLinkWithProof(const RecordingMutationLink& link,RecordingMutationHandle* record,
     std::string* error,const void* owner,std::shared_ptr<ColdReadProof>* proof) const {
+    latency::HolderCount(1);
 #if !MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND || !MEDIA_SERVER_USE_OPENSSL || defined(_WIN32)
     (void)owner;(void)proof;
 #endif

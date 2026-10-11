@@ -555,6 +555,7 @@ bool RecordingReadService::QuerySearchEventTimeline(const std::string& channel,s
 }
 bool RecordingReadService::QueryTimelineImpl(const RecordingTimelineQuery& query,
     RecordingTimelineResult* result,std::string* error,std::size_t max_limit,bool event_candidates_only) const {
+    recording::latency::WorkScope holder_work_scope(recording::latency::Work::Structured);
     recording::latency::Scope latency_scope(recording::latency::Operation::Query,recording::latency::Source::Read,__LINE__,true);
     if (!result) {
         if (error) *error = "timeline result is required";

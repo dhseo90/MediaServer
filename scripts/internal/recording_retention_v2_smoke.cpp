@@ -67,7 +67,9 @@ std::string SqlText(const std::filesystem::path& path,const char* sql){
        sqlite3_prepare_v2(db,sql,-1,&statement,nullptr)==SQLITE_OK&&sqlite3_step(statement)==SQLITE_ROW){
         const auto* value=sqlite3_column_text(statement,0);if(value)result=reinterpret_cast<const char*>(value);
     }
-    if(statement)sqlite3_finalize(statement);if(db)sqlite3_close(db);return result;
+    if(statement)sqlite3_finalize(statement);
+    if(db)sqlite3_close(db);
+    return result;
 }
 #endif
 }

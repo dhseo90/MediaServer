@@ -1,3 +1,4 @@
+#include "recording/recording_latency_trace.h"
 // 파일 용도: 녹화 카탈로그 snapshot의 export와 직렬화 로직을 구현한다.
 #include "recording/recording_catalog.h"
 #include "recording/recording_catalog_snapshot.h"
@@ -79,7 +80,7 @@ bool JobType(RecordingMutationType type) {
 
 bool RecordingCatalog::ExportGenerationSnapshot(const RecordingIdentityChainResult& chain,
     std::uint64_t generation, std::uint64_t cut, RecordingCatalogSnapshot* output, std::string* error) const {
-    std::lock_guard<std::mutex> lock(mu_);
+    recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__,false,__func__);
     return ExportGenerationSnapshotLocked(chain,generation,cut,output,error);
 }
 bool RecordingCatalog::ExportGenerationSnapshotLocked(const RecordingIdentityChainResult& chain,

@@ -10,7 +10,15 @@ namespace L=recording::latency;
 static void Sink(const char* text,std::size_t bytes) noexcept {if(L::local.depth)std::abort();(void)std::fwrite(text,1,bytes,stdout);}
 int main(int argc,char** argv){
  L::test_sink=Sink;const std::string mode=argc>1?argv[1]:"contention";std::mutex mutex,other;
- if(mode=="visual-summary"||mode=="visual-cap"||mode=="visual-write"){
+ if(mode=="holder"){
+  for(unsigned i=1;i<=77;++i){L::VisualRequestSummary request;L::VisualRequestSummary::Result(200,"ok");if(i==7||i==41||i==77){
+   std::mutex gate;std::condition_variable cv;bool ready=false;
+   std::thread worker([&]{L::WorkScope work(L::Work::Retention);L::Lock held(mutex,L::Source::Catalog,__LINE__,false,"retention");{std::lock_guard g(gate);ready=true;cv.notify_one();}std::this_thread::sleep_for(std::chrono::milliseconds(10));L::HolderCount(2,7);});
+   {std::unique_lock g(gate);cv.wait(g,[&]{return ready;});}
+   {L::WorkScope work(L::Work::Visual);L::Lock waiting(mutex,L::Source::Catalog,__LINE__,false,"visual");}
+   worker.join();std::this_thread::sleep_for(std::chrono::milliseconds(1010));
+  }}
+ }else if(mode=="visual-summary"||mode=="visual-cap"||mode=="visual-write"){
   static_assert(sizeof(L::VisualRequestSummary)<=2048);
   if(mode=="visual-write")::close(fileno(stderr));
   const unsigned count=mode=="visual-cap"?1025:17;
