@@ -1,0 +1,438 @@
+{
+  "schema": "media-server.validation.v1",
+  "task": 89,
+  "status": "MIXED120_FIRST_ATTEMPT_FAIL_A_STRUCTURED_SEARCH_503",
+  "wholeTaskComplete": false,
+  "memoryP0": "BLOCKED_FINAL_MIXED_REQUIRED",
+  "releaseApproved": false,
+  "recordedAt": "2026-10-11T06:49:01.725944+00:00",
+  "model": {
+    "mainRequested": "gpt-6-astra/high",
+    "mainToolAccepted": null,
+    "mainActualRuntimeModel": null,
+    "mainActualRuntimeEffort": null,
+    "independentRequested": "gpt-6-astra/high",
+    "independentToolAccepted": "prior explicit override accepted; separate independent_memory86 reused",
+    "independentActualRuntimeModel": null,
+    "independentActualRuntimeEffort": null
+  },
+  "source": {
+    "actual": {
+      "head": "ed81adb533284df29ca31e4096081f456869b913",
+      "tree": "617aa2aa2049bd254cd18a426149401d0c879f71",
+      "sourceSha256": "e5f6be71215b6269b416fd0b9da45b4a60b2f589c88a29f444c6d437f2117011",
+      "binarySha256": "4781712d46ebc4a6541f48b8b558e1b7dc66a385c7f9718537af2cf3ef337a2b"
+    },
+    "end": {
+      "head": "ed81adb533284df29ca31e4096081f456869b913",
+      "tree": "617aa2aa2049bd254cd18a426149401d0c879f71",
+      "sourceSha256": "e5f6be71215b6269b416fd0b9da45b4a60b2f589c88a29f444c6d437f2117011",
+      "binarySha256": "4781712d46ebc4a6541f48b8b558e1b7dc66a385c7f9718537af2cf3ef337a2b"
+    },
+    "unchanged": true,
+    "runtimeArchiveSha256": "ce5866c69ad7c1a75845c576b0581a44c2016063c329f5c31272fe5e59231be3",
+    "productImplementation": "5a73c455633f956259d21b7d7807f851b200c65c",
+    "entryRemote": "ed81adb533284df29ca31e4096081f456869b913",
+    "entryWorktree": "clean",
+    "sourceChanges": "none; no new build needed, only existing wrapper compiles owned native recovery/seed/metrics helpers against current archive",
+    "environment": "macOS27 arm64 UID501 host context; GStreamer1.28.1, OpenSSL3.6.2, SQLite3.51.0; original headless registry/profile and existing SigLIP2; fixture receipt binds actual plugin settings",
+    "previous88": "88 prepare was entry d64eb+preserved diff, not ed81 execution. Binary same; current runtime matches88final artifact, distinct from actual88prepare runtime hash."
+  },
+  "execution": {
+    "command": [
+      "python3",
+      "scripts/internal/run_v450_recording_a_mixed.py",
+      "--120",
+      "/private/tmp/media-server-memory89-rr3dorro/mixed120"
+    ],
+    "runs": 1,
+    "preparationRuns": 0,
+    "startedAt": "2026-10-11T06:43:33.721697+00:00",
+    "finishedAt": "2026-10-11T06:44:51.629005+00:00",
+    "exit": 1,
+    "childExit": 1,
+    "timedOut": false,
+    "wholeBudgetSeconds": 7380,
+    "requiredObservationSeconds": 7200,
+    "verifiedObservationSeconds": null,
+    "lastSampleProgressSeconds": 60.275182333,
+    "sampleSpanSeconds": 60.040250417,
+    "failureOpportunitySeconds": 61.992391583,
+    "driverSeconds": 72.552,
+    "launcherSeconds": 77.7155915000476,
+    "totalWithBindingSeconds": 77.9500784999691,
+    "passedAssertions": 232,
+    "failedAssertions": 1,
+    "meaning": "120 mode attempted once; stopped first unallowed failure. ~62s partial main is not120, no exact verified-duration end on failure. 232 partial assertions do not imply suite PASS."
+  },
+  "firstFailure": {
+    "phase": "main A slot1 prepare, before new package/draft/execute",
+    "commandSource": "v450_recording_a_load.mjs MixedALoad.prepare -> req GET structured search; expected200",
+    "request": {
+      "method": "GET",
+      "route": "/ops/api/recordings/search",
+      "query": {
+        "channelIds": "1",
+        "startTimeMs": "1789200000000",
+        "endTimeMs": "1789200001000",
+        "object": "synthetic-target",
+        "includeUnplaced": "true"
+      }
+    },
+    "actual": {
+      "route": "/ops/api/recordings/search",
+      "method": "GET",
+      "status": 503,
+      "elapsedMs": 678.5725419999944,
+      "bytes": 40,
+      "error": "recording-search-unavailable"
+    },
+    "slot": {
+      "slot": 1,
+      "state": "failed",
+      "elapsedMs": 61992.391583,
+      "error": "A HTTP GET /ops/api/recordings/search 200"
+    },
+    "internalReason": "unconfirmed: full VisualPhase off by existing120 contract; public503 maps multiple branches; no reconstruction",
+    "pastFailureRelationship": "no proven identity with87 or88 intermediate503",
+    "stageTimes": "slot opportunity at61.992s; request678.573ms; no exact whole observation end receipt on failure",
+    "durablePublication": "slot0 record exists; slot1 failed before a package/job admission; no new slot1 record claimed"
+  },
+  "partialProgress": {
+    "sampledProgressSeconds": 60.275182333,
+    "sampleSpanSeconds": 60.040250417,
+    "verifiedDurationMs": null,
+    "searchCount": 20,
+    "searchP95Ms": 1402.1546660000022,
+    "searchMaxMs": 1406.6520840000012,
+    "latencyGate": "descriptive partial statistics only; final7200s gate not reached",
+    "separateAGet503": 1,
+    "phaseProgress": {
+      "elapsedMs": 60275.182333,
+      "channels": {
+        "9101": {
+          "finalized": 30,
+          "deleted": 22,
+          "lastAt": 68933.911167,
+          "order": "60",
+          "store": "5093954ab1c2d3f31d36d47cd24e58648833b527e477594c5cb1f1c41cfc7cc7",
+          "knownMappings": 24,
+          "unknownMappings": 688
+        },
+        "9201": {
+          "finalized": 30,
+          "deleted": 22,
+          "lastAt": 68933.911167,
+          "order": "61",
+          "store": "5093954ab1c2d3f31d36d47cd24e58648833b527e477594c5cb1f1c41cfc7cc7",
+          "knownMappings": 24,
+          "unknownMappings": 746
+        }
+      },
+      "records": 60,
+      "logicalBytes": 35720
+    },
+    "evidence": {
+      "cycles": 4,
+      "searchSuccessByClient": [
+        5,
+        5,
+        5,
+        5
+      ],
+      "createComplete": 4,
+      "createPartial": 0,
+      "createBusy": 4,
+      "visualCreated": 4,
+      "retainedChecks": 8,
+      "visualResults": 160,
+      "windows": [
+        {
+          "structured": 80,
+          "visual": 160,
+          "evidence": 4,
+          "visualEvidence": 4
+        },
+        {
+          "structured": 0,
+          "visual": 0,
+          "evidence": 0,
+          "visualEvidence": 0
+        },
+        {
+          "structured": 0,
+          "visual": 0,
+          "evidence": 0,
+          "visualEvidence": 0
+        }
+      ]
+    },
+    "ACompleted": 1,
+    "reactivationRequests": 0
+  },
+  "diagnostics": {
+    "resourceTrace": "1",
+    "decoderMode": "bounded",
+    "visualPhase": "0 by existing120 environment;88prepare1",
+    "fullProcessLogCapBytes": 4194304,
+    "capturedProcessBytes": 49797,
+    "receivedBytes": 49797,
+    "overflow": false,
+    "captureError": null,
+    "frameSummary": [
+      {
+        "status": "captured",
+        "mode": "bounded",
+        "required": true,
+        "records": 3,
+        "successes": 3,
+        "failures": 0,
+        "issues": []
+      }
+    ],
+    "representatives": [
+      {
+        "policy": "automatic",
+        "target": 0,
+        "sampleFirstPts": 0,
+        "sampleLastPts": 0,
+        "bytes": 28161,
+        "succeeded": true,
+        "factories": [
+          "appsrc:app:1.28.1",
+          "decodebin:playback:1.28.1",
+          "typefind:coreelements:1.28.1",
+          "videoconvert:videoconvertscale:1.28.1",
+          "appsink:app:1.28.1",
+          "qtdemux:isomp4:1.28.1",
+          "multiqueue:coreelements:1.28.1",
+          "h264parse:videoparsersbad:1.28.1",
+          "capsfilter:coreelements:1.28.1",
+          "vtdec_hw:applemedia:1.28.1"
+        ]
+      },
+      {
+        "policy": "software-only",
+        "target": 966666667,
+        "sampleFirstPts": 0,
+        "sampleLastPts": 966666666,
+        "bytes": 28161,
+        "succeeded": true,
+        "factories": [
+          "appsrc:app:1.28.1",
+          "decodebin:playback:1.28.1",
+          "typefind:coreelements:1.28.1",
+          "videoconvert:videoconvertscale:1.28.1",
+          "appsink:app:1.28.1",
+          "qtdemux:isomp4:1.28.1",
+          "multiqueue:coreelements:1.28.1",
+          "h264parse:videoparsersbad:1.28.1",
+          "capsfilter:coreelements:1.28.1",
+          "avdec_h264:libav:1.28.1"
+        ]
+      },
+      {
+        "policy": "automatic",
+        "target": 0,
+        "sampleFirstPts": 0,
+        "sampleLastPts": 0,
+        "bytes": 34724,
+        "succeeded": true,
+        "factories": [
+          "appsrc:app:1.28.1",
+          "decodebin:playback:1.28.1",
+          "typefind:coreelements:1.28.1",
+          "videoconvert:videoconvertscale:1.28.1",
+          "appsink:app:1.28.1",
+          "qtdemux:isomp4:1.28.1",
+          "multiqueue:coreelements:1.28.1",
+          "h264parse:videoparsersbad:1.28.1",
+          "capsfilter:coreelements:1.28.1",
+          "vtdec_hw:applemedia:1.28.1"
+        ]
+      }
+    ],
+    "scope": "3 bounded success samples, not all decoder calls. Slow Catalog traces exist but do not identify structured503 internal branch. No substituted root cause."
+  },
+  "resources": {
+    "sampleCount": 13,
+    "rssMaxBytes": 3210231808,
+    "footprintMaxBytes": 3161951520,
+    "anonymousFileMaxBytes": 2851328,
+    "anonymousAllocatedMaxBytes": 3903488,
+    "fdMax": 38,
+    "sampledOwnerRamMaxBytes": 86616934,
+    "finalOwner": {
+      "pid": 44758,
+      "seq": 16,
+      "phase": "after-storage-destruction",
+      "elapsedMs": 68689,
+      "ram": 0,
+      "ramPeak": 158018968,
+      "ramLimit": 671088640,
+      "ramRejected": 0,
+      "scratchDisk": 0,
+      "scratchDiskPeak": 3039232,
+      "scratchDiskLimit": 155827281920,
+      "scratchFd": 0,
+      "scratchFdPeak": 7,
+      "scratchFdLimit": 1048572,
+      "scratchRam": 0,
+      "preservedDisk": 0,
+      "preservedFd": 0,
+      "readerCleanupHealthy": true
+    },
+    "storedResults": {
+      "initial": {
+        "names": [
+          "vr-d5d5ab91dac18f2cff6fae9653fd14410ed8078e958c7054da97a31e4ec60803.review",
+          "vr-dc843426a03804c5f1251f9905dcf86066023e226cb0e786697c5209fea9aabe.review",
+          "vr-f72d4f4bf0b8550e6c87277f17b0bf794327b44a7a04857710bbcae73423e948.review"
+        ],
+        "bytes": 17576
+      },
+      "final": {
+        "names": [
+          "vr-746a7b24a24abad77d71654b1470ac5da814096d9b3b6b3be3e61e5f27cda44f.review",
+          "vr-d5d5ab91dac18f2cff6fae9653fd14410ed8078e958c7054da97a31e4ec60803.review",
+          "vr-dc843426a03804c5f1251f9905dcf86066023e226cb0e786697c5209fea9aabe.review",
+          "vr-f72d4f4bf0b8550e6c87277f17b0bf794327b44a7a04857710bbcae73423e948.review"
+        ],
+        "bytes": 23354
+      }
+    },
+    "resourceTrendPass": false,
+    "reviewRequired": true,
+    "warmupSeconds": 300,
+    "postWarmupSamples": 0,
+    "limitations": "13samples/60s, warmup300s not reached; no steady growth attribution/convergence/no-leak or instantaneouspeak claim; same inode external dedup; owner logical !=RSS/footprint/observer combinedLogicalBytes",
+    "hardBudgetViolationObserved": false,
+    "memoryP0": "Required7200s, comparable sustained periods and post-longrun lifecycle absent; no leak/allocator attribution from these13samples. Last owner RAM/disk/FD0 is limited shutdown evidence."
+  },
+  "followup": {
+    "controls": "not-run",
+    "disable": "not-run",
+    "closedJournalAssertion": "not-run",
+    "independentRecovery": "not-run",
+    "restartReadback": "not-run",
+    "reactivation": "not-run",
+    "failureFinallyNormalShutdown": "PASS"
+  },
+  "judgment": {
+    "function": "FAIL A slot1 structured search required200 got503",
+    "lifecycle": "post120 not-run; failure shutdown and finalownerreleasePASS",
+    "resources": "bounded observed short rangePASS; required longrun trend/retained-state comparison missing",
+    "collection": "PASS for executed scope; detailed structured internal error not instrumented in120",
+    "memoryP0": "BLOCKED: final sustainedload and subsequent lifecycle evidence absent; current503 must be explained under separate product authority",
+    "release": "not-approved; no risk acceptance"
+  },
+  "reuse": {
+    "78to81": "historical cold identity/order/archive/Catalog,streaming,scratch/Finish and later refinements retained within original direct scope",
+    "82": "K/F durable suffix,atomic recovery,checkpoint concurrency retained",
+    "83to86": "aggregate ownership,D,B1024/TTL C16,bounded large original/HTTP termination/candidate binding retained",
+    "87": "resource/footprint/anonymous inode and last-owner observation code/direct results retained",
+    "88": "current-source repeated cold/lock cost improvement,actualSigLIP2prepare and mac/Linux regressions/independent review/producer retained",
+    "boundary": "No new code/fixture/policy changes; no full986/native/UI reissue. Legacy candidate equality is not new longrun PASS."
+  },
+  "approvalBinding": {
+    "reusedFrom88": true,
+    "candidateDigest": "8977e9b6ac618c7e0233823f6acb6ab1fcf7461206ee5d8b2a4149a643519e3a",
+    "newProducerRun": false,
+    "reason": "product/tests/approval inputs unchanged; only current result/docs updated"
+  },
+  "actualSeed": [
+    {
+      "path": "media-server-current-observer-ZwQH0Q/input/a-seed.mp4",
+      "bytes": 28161,
+      "sha256": "2b4cb44d5552cc3521a6aa6796a890639652018ced055abac9b42ae8e837fc88"
+    },
+    {
+      "path": "media-server-current-observer-ZwQH0Q/input/retention-9101.mp4",
+      "bytes": 67929,
+      "sha256": "f4320a8bf5d6bb3f88e373351eb4058a9114ba75cf42fc388bd501070f84c1cd"
+    },
+    {
+      "path": "media-server-current-observer-ZwQH0Q/input/retention-9201.mp4",
+      "bytes": 67929,
+      "sha256": "f4320a8bf5d6bb3f88e373351eb4058a9114ba75cf42fc388bd501070f84c1cd"
+    }
+  ],
+  "preservation": {
+    "archive": "89-execution.tar.gz",
+    "selected": "new run/seed/closed owned synthetic store and SQLite/visualcache/package/record bytes; selected input total164019B,stoppedstore2005722B. No weights/binaries/authusers/priorarchives. Source/helper hashes and actual manifest retained.",
+    "transform": "URL-only server log sanitization with original/preserved byte+hash mapping; remaining selected bytes raw",
+    "status": "Final archive actual member bytes verified locally; commit/remote result reported after Git closeout",
+    "path": "docs/release-artifacts/v4.5.0/89-execution.tar.gz",
+    "bytes": 1364354,
+    "sha256": "1dd7b4b48e4cccd482867e20ea8455393ec598c3e1c71b423efaf8858750d665",
+    "payloadFiles": 90,
+    "payloadBytes": 2931049,
+    "tarMembers": 91,
+    "allMemberBytesVerified": true,
+    "sanitizedFiles": 1
+  },
+  "independentReview": "89-independent-review.json",
+  "cleanup": {
+    "process": {
+      "schema": "recording-process-cleanup-v1",
+      "attemptCount": 1,
+      "pid": 44758,
+      "exitCode": 0,
+      "signalCode": null,
+      "exitedObserved": true,
+      "stopCode": "complete",
+      "forcedTermination": "not-used",
+      "normalExitPass": true,
+      "normalShutdownPass": true,
+      "archiveSafe": true,
+      "ports": [
+        {
+          "kind": "http",
+          "port": 56171,
+          "status": "pass",
+          "code": "closed",
+          "closed": true
+        },
+        {
+          "kind": "rtsp",
+          "port": 56172,
+          "status": "pass",
+          "code": "closed",
+          "closed": true
+        }
+      ]
+    },
+    "udpClosed": true,
+    "ownedGroupsAbsent": true,
+    "executionRoot": "owned observer root removed after raw/preserved/archive byte readback; owned-cleanup.json confirms absence. Parent evidence staging retained until remote verification.",
+    "modelsSdkImages": "unchanged",
+    "localEvidenceReadback": "PASS; independent local cleanup/static addendum included"
+  },
+  "notRun": [
+    "second120",
+    "newprepare/600s/acceptance/UI",
+    "post120cancel/revoke/recovery/restart/reactivation",
+    "new product changes/macLinux regressions",
+    "Qwen/Ollama"
+  ],
+  "qwenOllamaCalls": 0,
+  "siglip2ActualInference": true,
+  "unloadGate": "not-run",
+  "remaining": [
+    "A slot1 required structured search503: internal boundary unidentified; minimum next work is causal observation of this fixed query/currentness/exception path under separately authorized product work, without assuming88same cause.",
+    "Final mixed7200s and subsequent lifecycle/resources/P0 independent conclusion still required; no further run authorized this task.",
+    "Owner release adoption,PR/CI/merge/signed tag/Release not performed."
+  ],
+  "staticChecks": {
+    "docsLinks": 0,
+    "releaseMetadata": 0,
+    "diffCheck": 0,
+    "externalPublishedMetadata": "not-checked; historical observation timestamp unchanged"
+  },
+  "independentDecision": {
+    "mixed120": "FAIL",
+    "memoryP0": "BLOCKED",
+    "resultRecordingAcceptable": true,
+    "newBlanketBlockers": []
+  }
+}
