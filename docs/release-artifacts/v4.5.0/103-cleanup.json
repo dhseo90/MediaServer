@@ -1,0 +1,105 @@
+{
+  "schema": "r103-remote-and-owned-cleanup-v1",
+  "time": "2026-10-12T23:49:57.578716+00:00",
+  "evidenceCommit": "9904b24ae6a512135c675a8f4900d0280f09c5aa",
+  "remoteRef": "origin/v4.5.0",
+  "remoteObservation": "normal push accepted; ls-remote and fetched branch exactly match evidence commit; Git-addressed blob readback below",
+  "blobReadback": [
+    {
+      "path": "docs/release-artifacts/v4.5.0/103-validation.json",
+      "bytes": 19616,
+      "sha256": "c016090c41b751fd309c758a5de4e86645d124637149852b3476b9564636996c",
+      "blob": "e7d6fd7891dd1e5ed30fc2b5f38fc15b692988fd"
+    },
+    {
+      "path": "docs/release-artifacts/v4.5.0/103-independent-review.json",
+      "bytes": 9869,
+      "sha256": "3ab986b5152c0d103fe50f9c0fedff5282063a823a69ba2916170884cd53805d",
+      "blob": "d6baab2500764709251150c9eeb1e7a6c83f53f3"
+    },
+    {
+      "path": "docs/release-artifacts/v4.5.0/103-preservation-review.json",
+      "bytes": 3381,
+      "sha256": "e634f1b86bd1d062ecd24f6ec28faeb2fb27c196e582b08dab3bb459b1d805b7",
+      "blob": "014a50db437e1c271d29ae02cdb9e60cb3b1aeb0"
+    },
+    {
+      "path": "docs/release-artifacts/v4.5.0/103-execution.tar.gz",
+      "bytes": 23175135,
+      "sha256": "fe06d795b19d1e5615a195503a5265965b1a499aac0a62726ce7ea141bc82a0c",
+      "blob": "4c28ea3412b39d76fb379e8faf9af5f696fdaf31"
+    }
+  ],
+  "processChecks": [
+    {
+      "group": 77713,
+      "absent": true
+    },
+    {
+      "group": 77887,
+      "absent": true
+    },
+    {
+      "group": 81736,
+      "absent": true
+    },
+    {
+      "pid": 77761,
+      "absent": true
+    },
+    {
+      "pid": 77928,
+      "absent": true
+    },
+    {
+      "pid": 81775,
+      "absent": true
+    }
+  ],
+  "ports": [
+    {
+      "port": 59567,
+      "connectResult": 61,
+      "listenerAbsent": true
+    },
+    {
+      "port": 59568,
+      "connectResult": 61,
+      "listenerAbsent": true
+    },
+    {
+      "port": 59658,
+      "connectResult": 61,
+      "listenerAbsent": true
+    },
+    {
+      "port": 59659,
+      "connectResult": 61,
+      "listenerAbsent": true
+    },
+    {
+      "port": 61018,
+      "connectResult": 61,
+      "listenerAbsent": true
+    },
+    {
+      "port": 61019,
+      "connectResult": 61,
+      "listenerAbsent": true
+    }
+  ],
+  "removedRoot": "/private/tmp/media-server-r103-zn_0_lki",
+  "removedRegularFiles": 3823,
+  "removedLogicalBytes": 417347380,
+  "unlinkedOwnedSymlinksWithoutFollowing": 831,
+  "rootAbsent": true,
+  "extraOwnedFilesRemoved": [
+    "/private/tmp/media-server-r103-pointer",
+    "/private/tmp/media-server-r103-package-summary.json",
+    "/private/tmp/media-server-r103-git-readback.json"
+  ],
+  "private95BackupAndUserConfiguration": "not accessed or modified",
+  "modelsSdkImages": "retained",
+  "archiveScope": "Selected originals and explicitly sanitized logs retained;1191 repeated media files hash-only, not full store restoration",
+  "result": "cleanup PASS; integrated after900 FAIL remains;45/120 not-run;memoryP0 and release BLOCKED"
+}

@@ -485,11 +485,12 @@
   },
   "cleanup": {
     "product": "All3 attempts normal exit0 and owned groups/ports absent per original receipts",
-    "temporaryRoots": "pending removal after Git/remote byte verification; followup cleanup receipt will record actual outcome",
+    "temporaryRoots": "PASS: owned root removed after remote-bound Git byte readback; see103-cleanup.json",
     "userConfigurationAndPrivate95Backup": "not accessed/modified/archived/cleaned",
     "modelsSdkImages": "retained",
     "qwenOllamaCalls": 0,
-    "unloadGate": "not-run"
+    "unloadGate": "not-run",
+    "receipt": "103-cleanup.json"
   },
   "release": {
     "memoryP0": "BLOCKED",
