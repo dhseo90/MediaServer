@@ -1,0 +1,48 @@
+{
+  "task": 97,
+  "preservationReadback": {
+    "remoteHead": "ed98b4f835e8615a02866cc659947a37f6b826cc",
+    "method": "GitHub git blob API actual bytes at verified pushed commit path",
+    "objects": [
+      {
+        "path": "docs/release-artifacts/v4.5.0/97-execution.tar.gz",
+        "blob": "32677365f651815391904d6e9a5cc83e345d823f",
+        "bytes": 315533,
+        "sha256": "f815262e010b8d206fbc424aad4592f5738ae49d83735d905d3a3770f805a296",
+        "remoteBytesEqualGitAndWorking": true
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/97-preservation.json",
+        "blob": "2502d32115601fd005857b46d8350ade40ddb402",
+        "bytes": 33021,
+        "sha256": "b968d556832eb285ba28f31035b61cc1f4c27bb43f437f639f840c7e191766fe",
+        "remoteBytesEqualGitAndWorking": true
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/97-validation.json",
+        "blob": "2039f80d4b81e7166ec673fe7e2e4f4e23cb3152",
+        "bytes": 12365,
+        "sha256": "4c77609b26b63138b50762da0624cbbae1fa78b5b5e68a348ff19c3774dbaa86",
+        "remoteBytesEqualGitAndWorking": true
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/97-independent-review.json",
+        "blob": "790dbdd7e32c8011bf9fcf9430597f2d96ad12f4",
+        "bytes": 2660,
+        "sha256": "32cd59f41a18cec8940fdc62f4b60a96bcf6b049a0cacec42cab8beef175065a",
+        "remoteBytesEqualGitAndWorking": true
+      }
+    ]
+  },
+  "ownedCleanup": {
+    "root": "/private/tmp/media-server-retention97-0w90hup3",
+    "entries": 1576,
+    "fileAndSymlinkLogicalBytes": 122484873,
+    "openFilesBeforeCleanup": "lsof +D returned1 with no output; no matching named Docker containers",
+    "ports": "no server/listening port allocated by these native fixture checks",
+    "scope": "only exact ownedroot and matchingpointer; no user config/private backup/model/SDK/image targets",
+    "removed": true,
+    "pointerRemoved": true
+  },
+  "limits": "no cumulative600/45/120; P0/release held"
+}
