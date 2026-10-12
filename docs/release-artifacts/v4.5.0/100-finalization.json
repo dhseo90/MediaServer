@@ -66,8 +66,81 @@
     "newContainersCreated": false,
     "privateBackup": "excluded; not accessed"
   },
-  "localGitReadback": "pending",
-  "remoteReadback": "pending",
-  "ownedRootCleanup": "pending preserved Git bytes",
-  "implementationCommit": "none; product/test code unchanged"
+  "localGitReadback": {
+    "commit": "1d6ace2a93f8c771b128e063234103ed4636c8e0",
+    "files": [
+      {
+        "path": "docs/development-backlog.md",
+        "bytes": 24823,
+        "sha256": "43c3d096b233b809b82c7be9eaf882c0f28e4452f45f7ebdd06d69be7d874838",
+        "blob": "0435615e9885b04750e09fa740155303ef434a57"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/100-execution.tar.gz",
+        "bytes": 3924016,
+        "sha256": "523b5868718cce3c7d07d6d7849d60d5fe67f03b2340cd2c86af8d977c4802be",
+        "blob": "d55a45a1bfd53cb58ed8b47609c4f15ca37f69b9"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/100-finalization.json",
+        "bytes": 1738,
+        "sha256": "94b61cd1b55003dbe11a7f7a036b0c43727e52720792912d932741306d48efb3",
+        "blob": "ee94b3c0ecb9a0b77500c42f5fdffe98514c1585"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/100-independent-review.json",
+        "bytes": 14047,
+        "sha256": "7e673d36d72284fbd816fa035ce6cc78c0804132961b2ee346df4c0506cba2ff",
+        "blob": "8584f9deab616c2af8cb0378a37b079acfc8f54d"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/100-preservation.json",
+        "bytes": 644,
+        "sha256": "34068703a2f0c2b4b6772c3fd743d40d87d577c11154b18b19fc880c0be43aa2",
+        "blob": "e0365808bb6cec2715f58443b4a5f19399b8fb8a"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/100-validation.json",
+        "bytes": 17662,
+        "sha256": "6d1e7d3105353cec199a19e2553816ad36f87f5ec5adeb6936330200f80cc7f2",
+        "blob": "91334f4f7c646506fccbddf0fadfec56b1ad547b"
+      }
+    ],
+    "archiveManifestRecordsCompared": 178,
+    "allBytesEqual": true
+  },
+  "remoteReadback": {
+    "remoteSha": "1d6ace2a93f8c771b128e063234103ed4636c8e0",
+    "remoteMethod": "fresh remote bare partial clone; selected objects lazily fetched and compared byte-for-byte",
+    "allBytesEqual": true,
+    "temporaryRemoteCloneRemoved": true
+  },
+  "ownedRootCleanup": {
+    "checkedAtEpoch": 1791813426.943441,
+    "root": "/private/tmp/media-server-state100-hvcb1tza",
+    "preflightDev": 16777232,
+    "preflightInode": 173639927,
+    "uid": 501,
+    "sourceMappedOriginalsRehashedBeforeRemoval": 178,
+    "removedFilesOrLinks": 475,
+    "removedDirectoriesIncludingParent": 27,
+    "removedSymlinksWithoutFollowing": 277,
+    "rootAbsent": true,
+    "pointerAbsent": true,
+    "recordedPidAndGroupAbsent": true,
+    "ports49926and49927Absent": true,
+    "newContainersCreated": false,
+    "excluded": "user default config/private95backup/models/SDK/Linux images; external symlink targets not traversed or removed",
+    "method": "exact UID/device/inode checked owned tree; all checks before deletion; unlink files and rmdir directories bottom-up; no broad cleanup"
+  },
+  "implementationCommit": "none; product/test code unchanged",
+  "preservationCommit": "1d6ace2a93f8c771b128e063234103ed4636c8e0",
+  "closeoutStatic": {
+    "jsonParse": "PASS",
+    "diffCheck": "PASS",
+    "sourceTestsInventoryDelta": "none",
+    "archiveHashUnchanged": true,
+    "ownedRootAndPointerAbsent": true,
+    "finalCommitRemoteReadback": "to be checked after closeout commit/push; current verified preservation commit recorded above"
+  }
 }

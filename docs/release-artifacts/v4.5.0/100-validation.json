@@ -471,7 +471,7 @@
       "cleanupSignals": [],
       "rootDisposition": "preserved-for-byte-review-and-owned-cleanup"
     },
-    "ownedRootCleanup": "pending preservation"
+    "ownedRootCleanup": "complete;100-finalization.json after local/remote preservation"
   },
   "reusedEvidence": {
     "99": "preparation bundle remains complete: empty-root startup separately from actual generation cycle/recovery/space; not this run45min recovery or capacity",
@@ -492,7 +492,7 @@
     "analysisMember": "manifest.json maps analysis.json to content blob; derived read-only analysis",
     "originals": "178 mapped files; 168 raw and10 path-redacted; original/hash/transform preserved; product source files are after-stop state",
     "independentReview": "100-independent-review.json",
-    "finalization": "100-finalization.json (after commit/readback/cleanup)"
+    "finalization": "100-finalization.json"
   },
   "notRun": [
     "additional30/600 preparation",

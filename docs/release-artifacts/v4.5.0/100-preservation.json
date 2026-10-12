@@ -11,7 +11,16 @@
   "redactedFiles": 10,
   "allMembersByteReadbackPass": true,
   "manifestSha256": "b3297cea0895bf865ed0bc24a7cbe903b4fad8ca801644ef422d003578676593",
-  "localGitReadback": "pending evidence commit",
-  "remoteReadback": "pending push",
-  "cleanup": "pending verified preservation"
+  "localGitReadback": {
+    "commit": "1d6ace2a93f8c771b128e063234103ed4636c8e0",
+    "archiveManifestRecordsCompared": 178,
+    "allBytesEqual": true
+  },
+  "remoteReadback": {
+    "commit": "1d6ace2a93f8c771b128e063234103ed4636c8e0",
+    "method": "fresh remote bare partial clone; selected objects lazily fetched and compared byte-for-byte",
+    "files": 6,
+    "allBytesEqual": true
+  },
+  "cleanup": "confirmed in100-finalization.json after raw source rehash and local/remote Git preservation"
 }
