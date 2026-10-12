@@ -1,0 +1,463 @@
+{
+  "schema": "media-server-independent-review-v1",
+  "task": 102,
+  "reviewer": "independent_memory86",
+  "reviewedAt": "2026-10-12T22:00:27.328Z",
+  "status": "COLLECTOR_DELTA_ACCEPTED_45_PREFLIGHT_CONDITIONAL",
+  "model": {
+    "requested": "gpt-6-astra/high",
+    "toolAcceptance": "이전 별도 검토자 생성 수락 기록 재사용; 이번 followup의 별도 수락값은 미노출",
+    "actualRuntimeModel": "unconfirmed-not-exposed",
+    "actualRuntimeEffort": "unconfirmed-not-exposed"
+  },
+  "independence": {
+    "implementation": false,
+    "testAuthorship": false,
+    "productOrTestExecution": false,
+    "subdelegation": false,
+    "scope": "현재 diff와 원출력·hash 읽기 대조, 독립 보고서 한 파일 작성. 사용자 기본 설정·task95 비공개 백업 비접근."
+  },
+  "source": {
+    "entryHead": "fc2550a7dbc44606e206d0ad6c5295124d42d948",
+    "executionBinding": "entry HEAD + matrix-freeze.json exact worktree; 후속 commit을 실행 당시 HEAD로 소급하지 않음",
+    "freezeSha256": "3c32b796247bb9436e8827a73b7509ecba067c7d531fdeb811b53237c47769c0",
+    "files": {
+      "docs/project-feature-test-inventory.md": "3659cd8a90346ff6e3f107aa5e0fccfdb656bce2f6eb91e4996be8051a98a14d",
+      "scripts/internal/recording_current_observer.mjs": "e2c5dcdb11a831c7b13e2bb142366db2e6f2df65e85c37e347216c84e4768ed7",
+      "scripts/internal/recording_current_root_storage.test.mjs": "2ac21c9470d966a8ea63cf5b50ce6b68f577a2b4ab3e58de64c6a694148b298e",
+      "scripts/internal/recording_foundation_observer.mjs": "508c971558a73fa20fb4f6602abbbee754200e1421898d57b80321b0ca6c7d42",
+      "scripts/internal/recording_foundation_observer.test.mjs": "c2212d62c100114491a07de33870bf6e6edfa14182c77c857f9fad5f05f919af",
+      "scripts/internal/recording_process_metrics.cpp": "e778a18e6e5b16e9085123b5ee1fd3e2c3ee6401db870e6d523525f7f9356b9f",
+      "scripts/internal/recording_process_metrics.test.mjs": "628c3bfd7e6b2f8aefe061f3dbd61e823ae2b3ccf009493d80958199c8bf5d03",
+      "scripts/internal/recording_process_metrics_fixture.cpp": "00226f3c908d11705c201172f0569acbfde58873d615772252a3460da8c1eaf4",
+      "scripts/internal/recording_visual_contention_contract.py": "5033f900cb0d1875b1a3086788cf270cd8fd32161061317b9136fd987764e895",
+      "scripts/internal/recording_visual_contention_contract_test.py": "d0761eabb5f1f87a91667ab351af677f8ba3bde4b09b2d84ac0c7e8a6165f4de",
+      "scripts/internal/v450_recording_a_mixed.mjs": "cf8c4f0a924e722ed15b3762db8f7271085c68bee45c528e7f59b0356ae772c0",
+      "scripts/internal/recording_visual_contention_check.py": "15e7a1896c695d39a63078a8c749dc51d281245e46d9c2508373af697594fd8c",
+      "scripts/internal/recording_visual_contention_observer.mjs": "d393520daea6bda27c481a6f0b4952e4ad1f4b37de33a3dcbdccf3ba94dc5f14",
+      "scripts/internal/recording_visual_contention_smoke.cpp": "596350c9519de36a192651ad92a1cc1b6684fac195f1d2f0aa3b6163894e86ec"
+    },
+    "currentMismatches": [],
+    "binaries": {
+      "process-metrics": "ed9d85ad1f57fdd53277acd5a239d1e3b92774b86c9391fbadd1bcb18bd0c41c",
+      "contention": "8b8cbf4e09ea8648413baf34e03ed364c53376ccc1656caa694388e5bb4c35f0"
+    },
+    "runtimeSha256": "fb5d75efece9c0f1dcd76aeefe836f0f516369362119e8491ccdfc69000cd0e0",
+    "productAndFixture": "제품 src/include/runtime 및 contention fixture binary는 task101 최종과 동일. 변경 범위는 collector/부모/공간/검사 연결과 inventory."
+  },
+  "codeReview": {
+    "verdict": "검토한 변경에서 추가 blocking 결함을 특정하지 못함.",
+    "validity": "한 선택 round의 필요한 상세 조회가 모두 성공해야 유효하다. 실패 round의 비용/seen 목록은 다음 round로 이월하지 않는다. 직전 실패 FD가 새 목록에도 vnode일 때만 먼저 조회하고 다른 vnode도 전수 조회한다.",
+    "diagnostics": "즉시 errno·반환크기·FD/list type·시각과 최대4개 실패 기록을 보존한다. absent/type 전이는 진단일 뿐 이전 미관측 비용0/객체 동일성 근거가 아니다. Linux에 macOS 우선 슬롯 조회가 적용됐다고 주장하지 않는다.",
+    "accounting": "동일 round dev/inode 중복의 관측 logical/allocated 최대값을 overflow 검사 후 합산한다. 목록/중복 추적은8MiB 내 제한,4회와 부모3초 유지. 더 큰 FD 집합은 새 합산 메모리 계산에서 일찍 거부될 수 있지만 한도 완화가 아니다.",
+    "failurePropagation": "실패 원래 수치는 null이며 부모는 nonzero/timeout/불완전/잘못된 scope를 거부한다. 현재 공간 소비자도 complete 구조를 요구하고 최초 실패를 보존한다. 프로세스 부재의 정상 관측 종료와 native 정상 exit/Finish/최종 owner0는 별도 근거다."
+  },
+  "directEvidence": {
+    "macMetrics": {
+      "pass": 66,
+      "fail": 0
+    },
+    "linuxMetrics": {
+      "pass": 63,
+      "fail": 0,
+      "scope": "비특권 Linux 실제 FD/권한 및 공통 계상 경계; macOS 전용 우선조회 반례 제외"
+    },
+    "foundation": {
+      "pass": 40,
+      "fail": 0
+    },
+    "workspace": {
+      "pass": 28,
+      "fail": 0
+    },
+    "httpHost": {
+      "pass": 9,
+      "fail": 0
+    },
+    "syntheticGenerationParent": {
+      "pass": 22,
+      "fail": 0
+    },
+    "resourceParser": "PASS",
+    "provenance": "consumer-final.log 전체는 HTTP sandbox listen EPERM 등2FAIL을 포함한다. parent22 및 resource parser 부분 PASS와 구분하고 동일 HTTP 검사의 host9PASS를 후속 근거로 쓴다. 최초 fixture문자열/cleanup목록/GCC 경고 실패도 소급 PASS로 바꾸지 않는다."
+  },
+  "matrix": [
+    {
+      "label": "matrix-cycle-parallel",
+      "requests": 12,
+      "p95Ms": 824.73,
+      "maxMs": 824.73,
+      "samples": 356,
+      "roundDistribution": {
+        "1": 350,
+        "2": 4,
+        "3": 2
+      },
+      "failedRounds": 8,
+      "nativeExit": 0,
+      "monitorExit": 0,
+      "groupAbsent": true,
+      "receivedSavedActualBytesEqual": true,
+      "collectionError": null,
+      "finalOwner": {
+        "phase": "after-storage-destruction",
+        "ram": 0,
+        "scratchDisk": 0,
+        "scratchFd": 0,
+        "readerCleanupHealthy": true
+      },
+      "background": [
+        "[R101-background] completed=0 removed=0"
+      ],
+      "scope": "status/shape/order/seek metadata and trace/progress/owner gates; not exhaustive top-k or actual Seek execution"
+    },
+    {
+      "label": "matrix-cycle-single",
+      "requests": 3,
+      "p95Ms": 294.199,
+      "maxMs": 294.199,
+      "samples": 354,
+      "roundDistribution": {
+        "1": 347,
+        "2": 4,
+        "3": 2,
+        "4": 1
+      },
+      "failedRounds": 11,
+      "nativeExit": 0,
+      "monitorExit": 0,
+      "groupAbsent": true,
+      "receivedSavedActualBytesEqual": true,
+      "collectionError": null,
+      "finalOwner": {
+        "phase": "after-storage-destruction",
+        "ram": 0,
+        "scratchDisk": 0,
+        "scratchFd": 0,
+        "readerCleanupHealthy": true
+      },
+      "background": [
+        "[R101-background] completed=0 removed=0"
+      ],
+      "scope": "status/shape/order/seek metadata and trace/progress/owner gates; not exhaustive top-k or actual Seek execution"
+    },
+    {
+      "label": "matrix-4-single",
+      "requests": 3,
+      "p95Ms": 136.625,
+      "maxMs": 136.625,
+      "samples": 9,
+      "roundDistribution": {
+        "1": 8,
+        "2": 1
+      },
+      "failedRounds": 1,
+      "nativeExit": 0,
+      "monitorExit": 0,
+      "groupAbsent": true,
+      "receivedSavedActualBytesEqual": true,
+      "collectionError": null,
+      "finalOwner": {
+        "phase": "after-storage-destruction",
+        "ram": 0,
+        "scratchDisk": 0,
+        "scratchFd": 0,
+        "readerCleanupHealthy": true
+      },
+      "background": [
+        "[R101-background] completed=0 removed=0"
+      ],
+      "scope": "status/shape/order/seek metadata and trace/progress/owner gates; not exhaustive top-k or actual Seek execution"
+    },
+    {
+      "label": "matrix-4-parallel",
+      "requests": 12,
+      "p95Ms": 199.626,
+      "maxMs": 199.626,
+      "samples": 9,
+      "roundDistribution": {
+        "1": 9
+      },
+      "failedRounds": 0,
+      "nativeExit": 0,
+      "monitorExit": 0,
+      "groupAbsent": true,
+      "receivedSavedActualBytesEqual": true,
+      "collectionError": null,
+      "finalOwner": {
+        "phase": "after-storage-destruction",
+        "ram": 0,
+        "scratchDisk": 0,
+        "scratchFd": 0,
+        "readerCleanupHealthy": true
+      },
+      "background": [
+        "[R101-background] completed=0 removed=0"
+      ],
+      "scope": "status/shape/order/seek metadata and trace/progress/owner gates; not exhaustive top-k or actual Seek execution"
+    },
+    {
+      "label": "matrix-4-background",
+      "requests": 12,
+      "p95Ms": 287.884,
+      "maxMs": 287.884,
+      "samples": 14,
+      "roundDistribution": {
+        "1": 13,
+        "2": 1
+      },
+      "failedRounds": 1,
+      "nativeExit": 0,
+      "monitorExit": 0,
+      "groupAbsent": true,
+      "receivedSavedActualBytesEqual": true,
+      "collectionError": null,
+      "finalOwner": {
+        "phase": "after-storage-destruction",
+        "ram": 0,
+        "scratchDisk": 0,
+        "scratchFd": 0,
+        "readerCleanupHealthy": true
+      },
+      "background": [
+        "[R101-background] completed=6 removed=0"
+      ],
+      "scope": "status/shape/order/seek metadata and trace/progress/owner gates; not exhaustive top-k or actual Seek execution"
+    },
+    {
+      "label": "matrix-53-single",
+      "requests": 3,
+      "p95Ms": 281.921,
+      "maxMs": 281.921,
+      "samples": 33,
+      "roundDistribution": {
+        "1": 33
+      },
+      "failedRounds": 0,
+      "nativeExit": 0,
+      "monitorExit": 0,
+      "groupAbsent": true,
+      "receivedSavedActualBytesEqual": true,
+      "collectionError": null,
+      "finalOwner": {
+        "phase": "after-storage-destruction",
+        "ram": 0,
+        "scratchDisk": 0,
+        "scratchFd": 0,
+        "readerCleanupHealthy": true
+      },
+      "background": [
+        "[R101-background] completed=0 removed=0"
+      ],
+      "scope": "status/shape/order/seek metadata and trace/progress/owner gates; not exhaustive top-k or actual Seek execution"
+    },
+    {
+      "label": "matrix-53-parallel",
+      "requests": 12,
+      "p95Ms": 609.774,
+      "maxMs": 609.774,
+      "samples": 34,
+      "roundDistribution": {
+        "1": 34
+      },
+      "failedRounds": 0,
+      "nativeExit": 0,
+      "monitorExit": 0,
+      "groupAbsent": true,
+      "receivedSavedActualBytesEqual": true,
+      "collectionError": null,
+      "finalOwner": {
+        "phase": "after-storage-destruction",
+        "ram": 0,
+        "scratchDisk": 0,
+        "scratchFd": 0,
+        "readerCleanupHealthy": true
+      },
+      "background": [
+        "[R101-background] completed=0 removed=0"
+      ],
+      "scope": "status/shape/order/seek metadata and trace/progress/owner gates; not exhaustive top-k or actual Seek execution"
+    },
+    {
+      "label": "matrix-53-background",
+      "requests": 12,
+      "p95Ms": 516.504,
+      "maxMs": 516.504,
+      "samples": 39,
+      "roundDistribution": {
+        "1": 39
+      },
+      "failedRounds": 0,
+      "nativeExit": 0,
+      "monitorExit": 0,
+      "groupAbsent": true,
+      "receivedSavedActualBytesEqual": true,
+      "collectionError": null,
+      "finalOwner": {
+        "phase": "after-storage-destruction",
+        "ram": 0,
+        "scratchDisk": 0,
+        "scratchFd": 0,
+        "readerCleanupHealthy": true
+      },
+      "background": [
+        "[R101-background] completed=6 removed=0"
+      ],
+      "scope": "status/shape/order/seek metadata and trace/progress/owner gates; not exhaustive top-k or actual Seek execution"
+    }
+  ],
+  "matrixCrossChecks": {
+    "allSequencesContinuous": true,
+    "allSamplesCompleteSingleRound": true,
+    "allSourceIdentityAndTimeOrderConsistent": true,
+    "spaceOperandMismatches": 0,
+    "allNativeMonitorExitZero": true,
+    "allFinalOwnerZero": true,
+    "allReceivedSavedActualBytesMatch": true,
+    "cycleSingleFourthRound": "한 표본에서 최초+3재시도 중 4번째 round 완성. 4개 round 모두 실패해도 허용한다는 뜻이 아니다.",
+    "cycleParallelCorrection": "재관측 표본6개/실패 round8개/최대3round. 최초 부모 전달의4표본·3재시도 표현은 원문대로 정정했다.",
+    "cycleBackgroundReuse": "이번8조건에는 cycle/background가 없다. task101의 동일 제품 runtime 아래 당시 fixture SHA256 504784fad1fe0891488db0f86bbb1e5caf4549d9f77fae9b461cf6e2d94d0c42로 실행한 새 실제 게시·6write8delete PASS를 당시 source/fixture/collector provenance 범위에서 재사용한다. 후속 최종 fixture SHA256 596350c9519de36a192651ad92a1cc1b6684fac195f1d2f0aa3b6163894e86ec에는 publication oracle 판정 보완이 있으며, 그 최종 fixture의 cycle/background 실행은 미실행이다. 기존 ready generation2 원문의 후속 판정 readback을 최종 fixture 재실행이나 새 R102 collector 실행으로 표시하지 않는다."
+  },
+  "limits": [
+    "완전한 순차 round이지 원자 snapshot/순간 peak가 아니다. 목록 뒤 새 FD, 관측 사이 성장, mapping-only 파일을 전수 포괄하지 않는다.",
+    "같은 FD 번호/type은 객체 수명 동일성 증명이 아니다. 실패한 이전 객체의 종류/비용은 해당 진단만으로 복원하지 않는다.",
+    "기존 model constructor 준비8GiB 구간과 FD 종료 뒤 live448MiB를 구분한다. 모든 단계의 RSS4GiB/log4MiB는 유지하며 준비 익명 사본을 비용에서 제외했다고 주장하지 않는다.",
+    "실제 close 경합 일부를 다음 완성 round에서 수집한 근거이며 모든 향후 churn 성공을 보장하지 않는다. task101 closed=4 또는 task100 timeout의 정확한 과거 원인을 복원하지 않는다.",
+    "직접 응답 검사는 status/shape/order/seek metadata이며 exhaustive top-k·실제 Seek 자체는 기존 별도 소비자/불변 알고리즘 근거로 구분한다."
+  ],
+  "legacyBinding": {
+    "candidateComparedDirectly": true,
+    "wholeJsonEqualToStoredApprovalCandidate": true,
+    "items": 986,
+    "digest": "8977e9b6ac618c7e0233823f6acb6ab1fcf7461206ee5d8b2a4149a643519e3a",
+    "meaning": "기존 producer 재사용 조건의 근거. 신규 collector 독립 승인 대체 아님.",
+    "pending": "최종 inventory로 기존 producer 실제 적용 및 readback. 의미 변경이 inventorySha256만인지 확인하고 소스를 고정해야 한다."
+  },
+  "decision": {
+    "collectorDeltaAccepted": true,
+    "matrixEightConditionsAccepted": true,
+    "entry45": "CONDITIONALLY_ELIGIBLE_AFTER_FINAL_BINDING_AND_FREEZE",
+    "conditions": [
+      "기존 producer 실제 적용/readback 및 필요한 최종 정적 결과 완료",
+      "검토된 제품/collector/fixture/한도를 그대로 고정하고 실행 source/binary 결속 확인",
+      "기존 사용자 승인된 단일45분 범위·최초 실패 중단·재실행 금지 유지"
+    ],
+    "authorization": "검토는 새로운 실행 권한을 부여하지 않는다. 기존 사용자 승인 범위의 선행 적격 판단이다.",
+    "run45AttemptsObserved": 0,
+    "run45Result": "NOT_RUN",
+    "run120": "NOT_RUN",
+    "memoryP0Complete": false,
+    "releaseApproved": false
+  },
+  "remaining": [
+    "최종 producer/readback와 source 고정",
+    "허용된45분 단일 실행의 실제 결과 및 후속 판정",
+    "최종 원본/정제 보존·로컬/원격 바이트 재조회·소유 root cleanup"
+  ],
+  "evidenceBindings": {
+    "matrix-freeze.json": {
+      "bytes": 2879,
+      "sha256": "3c32b796247bb9436e8827a73b7509ecba067c7d531fdeb811b53237c47769c0"
+    },
+    "matrix-source.patch": {
+      "bytes": 50866,
+      "sha256": "b2a988b527e47767c62c4379202b4cbf6e9af50c93918f3072731e4610384db5"
+    },
+    "metrics-final.log": {
+      "bytes": 6222,
+      "sha256": "b9b5e8f315303ca68bfb18e1920e1585625d11611c0f144868f962f5cc4f5835"
+    },
+    "linux-metrics-second.log": {
+      "bytes": 5802,
+      "sha256": "a437086e406b7428d1a2386adb4e72d60b9908fe36f88cc117cfab6c5fa19780"
+    },
+    "foundation-second.log": {
+      "bytes": 2120,
+      "sha256": "300ad11ca180ad96177c446d20341ed6ac76de222dbcc6f32e08c1a2d323c8af"
+    },
+    "workspace-third.log": {
+      "bytes": 2444,
+      "sha256": "0bdafa0053aaaac7e0527af322a51ad21eaed4c0bce01adcddb4e783dd0318d6"
+    },
+    "http-host-final.log": {
+      "bytes": 883,
+      "sha256": "6077285d356032ae2ef92ac103f6a77d6fcd6a9465ec8287135ea4503d5c51f7"
+    },
+    "consumer-final.log": {
+      "bytes": 2787,
+      "sha256": "2b677a98d07413ccd99b43e130d03ee777eb9c66b3244a4639b75bea2310e4e9"
+    },
+    "final-candidate.json": {
+      "bytes": 7709058,
+      "sha256": "13402b9705f3b160348f6facdd5bf496d4a6fe761c9653db6f9fd7754b2a14f4"
+    },
+    "candidate-comparison.json": {
+      "bytes": 352,
+      "sha256": "544eede80f8b5404f87798c52f263ca6d7804429f67a3ae398e0e0b23fcb00b6"
+    },
+    "matrix-cycle-parallel/execution.json": {
+      "bytes": 1315,
+      "sha256": "eced2004d073c04a7e43b0a567ea1016f37f9b1aefafc740047dce6e27559336"
+    },
+    "matrix-cycle-parallel/output.log": {
+      "bytes": 1309200,
+      "sha256": "df839e7f2372526f6371f7f8684556608fb67a7c7e32c92b68859f2d237c4192"
+    },
+    "matrix-cycle-single/execution.json": {
+      "bytes": 1307,
+      "sha256": "4164779f939967aac2f85dd77fd412e02d0a6b149da7d88d29301ce0406d8fb5"
+    },
+    "matrix-cycle-single/output.log": {
+      "bytes": 1015341,
+      "sha256": "7bd82b164623c92f2e6c6098a371da8a6380a0cd4f1e30c2e1de4444e7dcbdbf"
+    },
+    "matrix-4-single/execution.json": {
+      "bytes": 1287,
+      "sha256": "6e25a326f4385b8b3d511e8088f0d09af31c9a574dc2c66fc6218ab4344cad88"
+    },
+    "matrix-4-single/output.log": {
+      "bytes": 161346,
+      "sha256": "f4493af5dbbfb37e83f9fca3f16a1f810eceb94afc88fb5abb052a2e21838d11"
+    },
+    "matrix-4-parallel/execution.json": {
+      "bytes": 1296,
+      "sha256": "55dbe3abf2f007309571924c84710b6a228aa7b78419e364592e0437b50fcb35"
+    },
+    "matrix-4-parallel/output.log": {
+      "bytes": 259697,
+      "sha256": "b266b2e407170bfc52cfdaef1c1d4da4283dafa7502229e5f74d1e197a9f888f"
+    },
+    "matrix-4-background/execution.json": {
+      "bytes": 1306,
+      "sha256": "e8b3e0eb8ced3d13faa940107da45f90561f5c3197171ec49843722e987fa8f3"
+    },
+    "matrix-4-background/output.log": {
+      "bytes": 300063,
+      "sha256": "6f3a3f26186f84a8b3c22e4162b0b2714b54c72779d51d4b97728e0c4b36e93c"
+    },
+    "matrix-53-single/execution.json": {
+      "bytes": 1292,
+      "sha256": "55220fe2feed4b967cbee5f8755bab4cbc917f7764bdff0ae8459fbdf754349e"
+    },
+    "matrix-53-single/output.log": {
+      "bytes": 339421,
+      "sha256": "196a536039cdf2e76098b995455f7e38930e69897b852c96295be8d7f5139668"
+    },
+    "matrix-53-parallel/execution.json": {
+      "bytes": 1301,
+      "sha256": "4881817f959c90a706df405b087c2fc1dcbb298e8c58936a6be40a9a4e502646"
+    },
+    "matrix-53-parallel/output.log": {
+      "bytes": 665997,
+      "sha256": "e237ff4a338af690f7593eb799ee3262e14987d2d55190c34401ded7add17630"
+    },
+    "matrix-53-background/execution.json": {
+      "bytes": 1309,
+      "sha256": "285e5193a45428155ded9de14e108e1aed5650af4148516d3bb857e2618fbf33"
+    },
+    "matrix-53-background/output.log": {
+      "bytes": 649079,
+      "sha256": "326892fb35b9011a4bd624a04b2883bb8f3cf1eebc1685ec1893750909069e4c"
+    }
+  }
+}

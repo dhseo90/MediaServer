@@ -18,7 +18,8 @@ def fixture():
     row('[catalog-holder]',{'id':1})
     row('[catalog-holder-end]',{'records':1,'loss':False,'inflight':0,'requests':[4,5,6],'windows':[1,2,3],'ends':[2,3,4]})
     row('[recording-resource]',dict(phase='after-storage-destruction',readerCleanupHealthy=True,**{k:0 for k in ('ram','scratchDisk','scratchFd','scratchRam','preservedDisk','preservedFd')}))
-    row('[R101-space]',{'phase':'model'});row('[R101-space]',{'phase':'live'})
+    metrics={'valid':True,'startIdentity':'linux:1','fdObservation':{'scope':'complete-round-sequential-v1','complete':True,'startIdentity':'linux:1','rounds':1}}
+    row('[R101-space]',{'phase':'model','metrics':metrics});row('[R101-space]',{'phase':'live','metrics':metrics})
     row('[R101-space-end]',{'samples':2,'endedObserved':True})
     records+=['[R101-space-ready]','[R101-space-phase] model','[R101-space-phase] live']
     return '\n'.join(records)+'\n'
@@ -43,6 +44,8 @@ class Contract(unittest.TestCase):
           'wrong-selection':original.replace('"requests": [4, 5, 6]','"requests": [1, 2, 3]'),
           'lost-trace':original.replace('"loss": false','"loss": true'),
           'live-owner':original.replace('"scratchDisk": 0','"scratchDisk": 1'),
+          'incomplete-observation':original.replace('"complete": true','"complete": false'),
+          'wrong-observation-scope':original.replace('complete-round-sequential-v1','assumed-zero'),
           'space-missing':original.replace('[R101-space-end]','[missing-end]'),
           'space-failure':original+'[R101-space-failure] collection\n',
           'phase-missing':original.replace('[R101-space-phase] live','[missing] live'),

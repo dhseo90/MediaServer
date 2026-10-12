@@ -80,6 +80,9 @@ try {
     process.stdout.write(parser.stdout);
     passed += (parser.stdout.match(/^\[pass\]/gm) || []).length;
     if (parser.status !== 0) throw Error('PM04 parser failed');
+    const transitions=spawnSync(path.join(root,'fixture'),['--transitions'],{cwd:root,encoding:'utf8',timeout:5000});
+    process.stdout.write(transitions.stdout);passed+=(transitions.stdout.match(/^\[pass\]/gm)||[]).length;
+    if(transitions.status!==0)throw Error('PM07 transition failed: '+transitions.stderr);
     child.stdin.end('quit\n');
     const until=Date.now()+5000;
     while (!closed && Date.now()<until) await new Promise(r=>setTimeout(r,20));

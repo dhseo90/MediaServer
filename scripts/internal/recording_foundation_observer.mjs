@@ -7,19 +7,38 @@ const types=['segment_finalized','event_link_created','observation_put','observa
 export function observationCompleted({enabled,final,failed,error,processesClosed}) {
   return enabled===true&&!!final&&failed===0&&!error&&processesClosed===true;
 }
+// R102 fixed diagnostic shape. Never retain arbitrary collector strings/payloads.
+export function fdObservation(value){
+  if(!value||value.scope!=='complete-round-sequential-v1'||typeof value.complete!=='boolean'||
+    !(value.startIdentity===null||/^(macos:\d+:\d+|linux:\d+)$/.test(value.startIdentity??''))||
+    !['startedAt','completedAt','roundStartedAt','roundCompletedAt','rounds','capacityRetries','closedRetries','detailCalls'].every(k=>Number.isSafeInteger(value[k])&&value[k]>=0)||
+    value.rounds>4||value.capacityRetries>4||value.closedRetries>4||!Array.isArray(value.failures)||value.failures.length>4)return null;
+  const failures=[];for(const f of value.failures){
+    if(!['fd','listedType','returned','errno','nextType','at'].every(k=>Number.isSafeInteger(f[k]))||f.fd<0||f.at<0)return null;
+    failures.push(Object.fromEntries(['fd','listedType','returned','errno','nextType','at'].map(k=>[k,f[k]])));
+  }
+  return {scope:value.scope,complete:value.complete,startIdentity:value.startIdentity,
+    ...Object.fromEntries(['startedAt','completedAt','roundStartedAt','roundCompletedAt','rounds','capacityRetries','closedRetries','detailCalls'].map(k=>[k,value[k]])),failures};
+}
+export function completeFdObservation(metrics){
+  const f=fdObservation(metrics?.fdObservation);
+  return !!f&&f.complete&&f.startIdentity===metrics.startIdentity&&f.rounds>=1&&f.startedAt>0&&
+    f.startedAt<=f.roundStartedAt&&f.roundStartedAt<=f.roundCompletedAt&&f.roundCompletedAt<=f.completedAt;
+}
 export function collectProcess(binary,pid) {
   return new Promise((resolve,reject)=>{
     execFile(binary,[String(pid)],{timeout:3000,killSignal:'SIGKILL',maxBuffer:16384,env:{PATH:process.env.PATH}},(error,stdout)=>{
-      if(error){
+      let parsed=null;try{parsed=JSON.parse(stdout);}catch{}
+      if(error||!parsed?.valid||!completeFdObservation(parsed)){
         const failure=Error('observer-collector-unavailable');let measurement=null;
-        try{const parsed=JSON.parse(stdout);measurement=Object.fromEntries(Object.entries(parsed).filter(([key,value])=>
+        try{if(!parsed)throw Error();measurement=Object.fromEntries(Object.entries(parsed).filter(([key,value])=>
           ['pid','startIdentity','rssBytes','threadCount','fdCount','anonymousFileBytes','anonymousAllocatedBytes','anonymousFiles','footprintBytes','sampledAt','valid','error'].includes(key)&&
-          (value===null||typeof value==='boolean'||Number.isSafeInteger(value)||(typeof value==='string'&&value.length<=160&&/^[a-zA-Z0-9:=-]+$/.test(value)))));}catch{}
-        failure.collectorDiagnostic={exitCode:Number.isInteger(error.code)?error.code:null,spawnCode:typeof error.code==='string'?error.code:null,
-          signal:error.signal??null,killed:!!error.killed,stdoutBytes:Buffer.byteLength(stdout),measurement};
+          (value===null||typeof value==='boolean'||Number.isSafeInteger(value)||(typeof value==='string'&&value.length<=160&&/^[a-zA-Z0-9:=-]+$/.test(value)))));if(fdObservation(parsed.fdObservation))measurement.fdObservation=fdObservation(parsed.fdObservation);}catch{}
+        failure.collectorDiagnostic={exitCode:Number.isInteger(error?.code)?error.code:null,spawnCode:typeof error?.code==='string'?error.code:null,
+          signal:error?.signal??null,killed:!!error?.killed,stdoutBytes:Buffer.byteLength(stdout),measurement};
         reject(failure);return;
       }
-      try{resolve(JSON.parse(stdout));}catch{reject(Error('observer-collector-invalid-json'));}
+      resolve(parsed);
     });
   });
 }

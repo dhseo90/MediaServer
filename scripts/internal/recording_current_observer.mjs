@@ -2,6 +2,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
+import {completeFdObservation} from './recording_foundation_observer.mjs';
 import {spawn,spawnSync} from 'node:child_process';
 import {RecordingJournalReader} from './recording_journal_reader.mjs';
 const need=(ok,code)=>{if(!ok)throw Error(code);};
@@ -495,7 +496,7 @@ export function createWorkspaceFailureCapture(directory,{write=fs.writeSync,sync
 // Both sample and recovery use this exact admission path; product reservations
 // are observations, never subtracted from or added to actual file bytes.
 export function workspaceAnonymousBytes(metrics,expectedPid,expectedStart=null){
-  if(!metrics?.valid||metrics.pid!==expectedPid||!metrics.startIdentity||
+  if(!metrics?.valid||!completeFdObservation(metrics)||metrics.pid!==expectedPid||!metrics.startIdentity||
     (expectedStart!==null&&metrics.startIdentity!==expectedStart)||
     ![metrics.anonymousFileBytes,metrics.anonymousAllocatedBytes].every(n=>Number.isSafeInteger(n)&&n>=0))
     throw Error('workspace-process-measurement-invalid');

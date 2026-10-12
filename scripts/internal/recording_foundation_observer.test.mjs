@@ -39,6 +39,24 @@ try{
     sink.close();const saved=JSON.parse(fs.readFileSync(path.join(out,'workspace-first-failure.json'),'utf8'));
     assert.equal(saved.collectorDiagnostic.measurement.anonymousFileBytes,null);assert.equal(saved.primary,'observer-collector-unavailable');
   });
+  const fdScope={scope:'complete-round-sequential-v1',complete:true,startIdentity:'macos:1:2',startedAt:1,completedAt:2,roundStartedAt:1,roundCompletedAt:2,rounds:1,capacityRetries:0,closedRetries:0,detailCalls:1,failures:[]};
+  for(const [name,change] of [['missing',undefined],['incomplete',{...fdScope,complete:false}],['identity',{...fdScope,startIdentity:'macos:2:3'}],['short-structure',{scope:fdScope.scope}],['wrong-scope',{...fdScope,scope:'atomic'}]]){
+    await check(`R102-F01 exit0 ${name} observation rejected`,async()=>{
+      const file=path.join(root,`collector-${name}.sh`),value={...metric(123),fdObservation:change};
+      fs.writeFileSync(file,`#!/bin/sh\nprintf '%s\\n' '${JSON.stringify(value)}'\n`,{mode:0o700});
+      await assert.rejects(()=>collectProcess(file,123),/observer-collector-unavailable/);
+    });
+  }
+  await check('R102-F01 exact failed-round diagnosis reaches reserved parent record',async()=>{
+    const diagnosis={...fdScope,complete:false,roundCompletedAt:0,rounds:4,closedRetries:4,failures:[{fd:200,listedType:1,returned:0,errno:9,nextType:6,at:2}]};
+    const file=path.join(root,'collector-scope-fail.sh'),value={pid:123,valid:false,error:'fd-observation-incomplete:capacity=0:closed=4',anonymousFileBytes:null,fdObservation:{...diagnosis,secret:'not retained'}};
+    fs.writeFileSync(file,`#!/bin/sh\nprintf '%s\\n' '${JSON.stringify(value)}'\nexit 1\n`,{mode:0o700});
+    const {createWorkspaceFailureCapture}=await import('./recording_current_observer.mjs');
+    const out=path.join(root,'scope-failure');fs.mkdirSync(out,{mode:0o700});const sink=createWorkspaceFailureCapture(out);
+    await assert.rejects(()=>collectProcess(file,123),error=>{sink.capture(error);return error.collectorDiagnostic.measurement.fdObservation.complete===false;});sink.close();
+    const saved=JSON.parse(fs.readFileSync(path.join(out,'workspace-first-failure.json'),'utf8'));
+    assert.deepEqual(saved.collectorDiagnostic.measurement.fdObservation,diagnosis);assert.equal(saved.primary,'observer-collector-unavailable');
+  });
   await check('OBS03 missing collector binary fails',async()=>await assert.rejects(()=>collectProcess(path.join(root,'missing-binary'),1),/collector-unavailable/));
   for(const [name,bad] of [['null',null],['invalid',{...metric(1),valid:false}],['wrongpid',metric(2)],['missingfd',{...metric(1),fdCount:null}],['rsszero',{...metric(1),rssBytes:0}]])
     await check(`OBS03 ${name} sample rejected`,async()=>await assert.rejects(()=>observer('journal',async()=>bad).tick(1),/incomplete/));

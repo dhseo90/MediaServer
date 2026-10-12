@@ -5026,3 +5026,10 @@ R97-A02는 미선택 대체 후보의 unlink/authority 하드 오류를 거부�
 - V450-MEM101-S05: retention이 활성화한 segment-v2 파싱 재사용은 기존640MiB owner 안의 최대16MiB cache다. 매 호출의 인증 raw 읽기·순회·coverage는 유지하며 정확한 현재 bytes가 같은 경우만 typed row를 공유한다. cache miss/퇴거/큰 row는 원래 cold decode, 부재·변조·Finish 뒤에는 cache fallback이 없다. 같은 ID 변경, 작은 시험 예산 퇴거, reader 보유, Finish 해제와 같은 크기 node 변조를 기존 request-proof에서 검증하고 최종 병행/자원 결과를 별도로 확인한다. 다른 namespace·예약·보호·실제 용량 재판정은 유지한다.
 
 - R101-C02: 배경 병행의 3개 요청 파동과 6개 확정 뒤, 기존 전체180/630초 안에서 실제 새 generation 게시를 확인한 후 Stop한다. 게시 완료 대기는 요청 지연 표본/추가 warmup이 아니다. 관측한 첫 degraded는 별도로 보존하고 기존 worker 주기의 실제 다음 완성 게시를 확인하며, 실패 attempt를 성공으로 바꾸지 않는다. stopped·누락·부모 deadline은 실패다. 최종 generation gate는 유지하고 이전의 조기 Stop 실행을 소급 PASS로 바꾸지 않는다.
+
+### R102-F01 — FD 전이 관측과 완전 round 수집
+
+- `recording_process_metrics.test.mjs` / `recording_process_metrics_fixture.cpp --transitions`: 별도 프로세스의 목록/상세 사이 close·pipe 재사용, duplicate inode 성장/truncate·마지막 close, 4회 불완전 거부를 동기화한다. 실제 OS와 파서/overflow 대역 검사를 구분한다.
+- `recording_process_metrics.cpp`: 성공은 한 round의 필요한 상세 전수 관측만 인정. 직전 실패 slot을 새 목록에도 vnode인 경우 먼저 읽되 나머지도 다시 읽는다. absent/type 전이는 실패 진단이며 미관측 비용0이나 과거 객체 동일성 증거가 아니다.4회·8MiB·부모3초 유지. 같은 round의 dev/inode 중복은 관측 최대 logical/allocated를 overflow 검증 후 합산한다.
+- `recording_foundation_observer.mjs` → `recording_current_observer.mjs`: 완전성/시각/고정 개수 오류 진단을 부모·동일 공간 피연산자까지 전달한다. 누락·권한·PID 변경·부분 반환/공간 초과는 실패. 순차 sample이며 순간peak/매핑-only 파일 전수 계상이 아니다.
+- 정상 제품·공간/p95/요청 한도 불변. 최종8조건은 수집/플랫폼/독립검토 후 각1회,45분은 전부 통과 뒤1회 조건부. UI/새120분 없음.

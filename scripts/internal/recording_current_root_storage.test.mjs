@@ -7,6 +7,7 @@ import {spawnSync} from 'node:child_process';
 import {CURRENT_ROOT_CAP_BYTES,measureCurrentRoot,measureCurrentRootStable,measureCurrentSqlitePages,statCurrentRunEntry,isTransientSqliteJournalMiss,freezeCurrentWorkspace,measureCurrentWorkspace,workspaceBounds,createWorkspaceFailureCapture,admitWorkspaceSnapshot,measureCurrentCopy,runCurrentRecovery} from './recording_current_observer.mjs';
 const root=fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(),'media-server-root-storage-test-')));
 fs.chmodSync(root,0o700);
+const fdObservation={scope:'complete-round-sequential-v1',complete:true,startIdentity:'linux:1',startedAt:1,completedAt:2,roundStartedAt:1,roundCompletedAt:2,rounds:1,capacityRetries:0,closedRetries:0,detailCalls:1,failures:[]};
 const start=performance.now();let passed=0,failed=0;
 const check=(title,run)=>{try{run();passed++;console.log('[pass] '+title);}catch(error){failed++;console.log('[fail] '+title);throw error;}};
 function write(name,bytes){const file=path.join(root,name);fs.mkdirSync(path.dirname(file),{recursive:true});fs.writeFileSync(file,Buffer.alloc(bytes));return file;}
@@ -14,9 +15,9 @@ try{
   check('LP26-O06 R96 exact operands survive first rejection and later smaller sample',()=>{
     const directory=path.join(root,'failure-slot');fs.mkdirSync(directory,{mode:0o700});
     const sink=createWorkspaceFailureCapture(directory),storage={totalBytes:80,copyBytes:0,parentOutputBytes:5,measurementStartedAt:1,measurementCompletedAt:2};
-    const metrics={valid:true,pid:12,startIdentity:'fixed',anonymousFileBytes:25,anonymousAllocatedBytes:30,measurementStartedAt:0,measurementCompletedAt:1};
+    const metrics={fdObservation,valid:true,pid:12,startIdentity:'linux:1',anonymousFileBytes:25,anonymousAllocatedBytes:30,measurementStartedAt:0,measurementCompletedAt:1};
     assert.equal(fs.statSync(path.join(directory,'workspace-first-failure.json')).size,32768);
-    let failure;try{admitWorkspaceSnapshot({storage,baseline:{fixedBytes:10,capBytes:100},metrics,expectedPid:12,expectedStart:'fixed',context:{sampleIndex:495}},sink);}catch(e){failure=e;}
+    let failure;try{admitWorkspaceSnapshot({storage,baseline:{fixedBytes:10,capBytes:100},metrics,expectedPid:12,expectedStart:'linux:1',context:{sampleIndex:495}},sink);}catch(e){failure=e;}
     assert.equal(failure.message,'workspace-variable-cap');assert.equal(failure.workspaceDecision.input.totalBytes,110);
     assert.equal(failure.workspaceDecision.excessBytes,0);assert.equal(failure.workspaceDecision.context.anonymousUsedBytes,30);
     assert.equal(failure.workspaceDecision.context.storage.measurementCompletedAt,2);
@@ -34,11 +35,13 @@ try{
   });
   check('LP26-O06 R96 missing/process replacement and copy anonymous rejected',()=>{
     for(const [name,metrics,copy,code] of [
-      ['missing',{valid:true,pid:12,startIdentity:'fixed'},false,'workspace-process-measurement-invalid'],
-      ['changed',{valid:true,pid:13,startIdentity:'other',anonymousFileBytes:0,anonymousAllocatedBytes:0},false,'workspace-process-measurement-invalid'],
-      ['copy',{valid:true,pid:12,startIdentity:'fixed',anonymousFileBytes:30,anonymousAllocatedBytes:40},true,'workspace-copy-cap']]){
+      ['incomplete',{fdObservation:{...fdObservation,complete:false},valid:true,pid:12,startIdentity:'linux:1',anonymousFileBytes:0,anonymousAllocatedBytes:0},false,'workspace-process-measurement-invalid'],
+      ['scope-missing',{valid:true,pid:12,startIdentity:'linux:1',anonymousFileBytes:0,anonymousAllocatedBytes:0},false,'workspace-process-measurement-invalid'],
+      ['missing',{fdObservation,valid:true,pid:12,startIdentity:'linux:1'},false,'workspace-process-measurement-invalid'],
+      ['changed',{fdObservation,valid:true,pid:13,startIdentity:'other',anonymousFileBytes:0,anonymousAllocatedBytes:0},false,'workspace-process-measurement-invalid'],
+      ['copy',{fdObservation,valid:true,pid:12,startIdentity:'linux:1',anonymousFileBytes:30,anonymousAllocatedBytes:40},true,'workspace-copy-cap']]){
       const d=path.join(root,name);fs.mkdirSync(d);const sink=createWorkspaceFailureCapture(d);
-      assert.throws(()=>admitWorkspaceSnapshot({storage:{totalBytes:20,copyBytes:60},baseline:{fixedBytes:10,capBytes:100},metrics,expectedPid:12,expectedStart:'fixed',anonymousInCopy:copy},sink),e=>e.message===code);
+      assert.throws(()=>admitWorkspaceSnapshot({storage:{totalBytes:20,copyBytes:60},baseline:{fixedBytes:10,capBytes:100},metrics,expectedPid:12,expectedStart:'linux:1',anonymousInCopy:copy},sink),e=>e.message===code);
       assert.equal(sink.summary().primary,code);sink.close();
     }
   });
@@ -70,10 +73,10 @@ try{
     const file=write('transition-owned',77),fd=fs.openSync(file,'r');const before=fs.fstatSync(fd);fs.unlinkSync(file);const after=fs.fstatSync(fd);
     assert.equal(before.ino,after.ino);assert.equal(before.dev,after.dev);assert.equal(after.nlink,0);
     const d=path.join(root,'transition');fs.mkdirSync(d);const sink=createWorkspaceFailureCapture(d);
-    assert.throws(()=>admitWorkspaceSnapshot({storage:{totalBytes:77,copyBytes:0},baseline:{fixedBytes:0,capBytes:150},metrics:{valid:true,pid:12,startIdentity:'fixed',anonymousFileBytes:77,anonymousAllocatedBytes:77},expectedPid:12,context:{namedAt:1,anonymousAt:2,sameInode:true}},sink),/workspace-variable-cap/);
+    assert.throws(()=>admitWorkspaceSnapshot({storage:{totalBytes:77,copyBytes:0},baseline:{fixedBytes:0,capBytes:150},metrics:{fdObservation,valid:true,pid:12,startIdentity:'linux:1',anonymousFileBytes:77,anonymousAllocatedBytes:77},expectedPid:12,context:{namedAt:1,anonymousAt:2,sameInode:true}},sink),/workspace-variable-cap/);
     assert.equal(sink.summary().decision.actual,154);assert.match(sink.summary().decision.context.simultaneity,/not an atomic peak/);sink.close();fs.closeSync(fd);
   });
-  for(const name of ['failure-slot','missing','changed','copy','failed-short','failed-sync','child-capture','transition']){fs.unlinkSync(path.join(root,name,'workspace-first-failure.json'));fs.rmdirSync(path.join(root,name));}
+  for(const name of ['failure-slot','incomplete','scope-missing','missing','changed','copy','failed-short','failed-sync','child-capture','transition']){fs.unlinkSync(path.join(root,name,'workspace-first-failure.json'));fs.rmdirSync(path.join(root,name));}
   check('B08-I02 SQLite 임시 journal의 목록화 뒤 ENOENT만 구분',()=>{
     const journal=write('recordings/recording-generation-catalog.sqlite3-journal',7);
     const miss=()=>{throw Object.assign(new Error('entry vanished'),{code:'ENOENT'});};

@@ -38,6 +38,10 @@ def validate_output(text, mode, scale):
     assert last[0]['readerCleanupHealthy'] and all(last[0][k]==0 for k in ('ram','scratchDisk','scratchFd','scratchRam','preservedDisk','preservedFd')),'owner cleanup'
     space=rows('[R101-space] ');ends=rows('[R101-space-end] ');assert space and len(ends)==1 and ends[0]['samples']==len(space) and ends[0]['endedObserved'],'resource collection'
     assert '[R101-space-phase] model' in text and '[R101-space-phase] live' in text and any(x['phase']=='model' for x in space) and any(x['phase']=='live' for x in space),'model/live admission'
+    for entry in space:
+        m=entry.get('metrics',{});f=m.get('fdObservation',{})
+        assert m.get('valid') is True and f.get('complete') is True and f.get('scope')=='complete-round-sequential-v1','resource completeness'
+        assert f.get('startIdentity')==m.get('startIdentity') and 1<=f.get('rounds',0)<=4,'resource identity/rounds'
     assert '[R101-space-ready]' in text and '[R101-space-failure]' not in text,'resource guard'
     assert '[visual-request-loss]' not in text and '[catalog-holder-loss]' not in text and '[R101-failure]' not in text,'collection/product failure'
     if mode=='background':
