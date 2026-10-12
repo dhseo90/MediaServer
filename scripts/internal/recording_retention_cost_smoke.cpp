@@ -4,10 +4,12 @@
 #undef main
 #include "recording/recording_latency_trace.h"
 #include <set>
+#include "recording_writer_test_isolation.h"
 #include "recording/recording_runtime_composition.h"
 
 int main(int argc,char** argv) try {
     if(argc!=2)return 2;
+    if(!RecordingWriterTestIsolation(std::filesystem::path(argv[1])))return 2;
     gst_init(nullptr,nullptr);const std::filesystem::path root=argv[1];
     auto input=Encode(12,false,false);const auto original=Record(root/"input",input).at(0);
     std::string error;std::map<std::string,std::string> expected;
@@ -32,6 +34,8 @@ int main(int argc,char** argv) try {
                 const auto snapshot=store.catalog().RetentionSnapshot();const auto elapsed=Us(begin);
                 const auto nodes=latency::history_node_reads;Check(nodes>0,"R92 observed history nodes");
                 Check(snapshot.authoritative&&snapshot.candidates.size()==16,"R92 exact active count");
+                std::vector<std::string> expected_ids;for(const auto& row:expected)expected_ids.push_back(row.first);
+                Check(store.catalog().FinalizedSegmentIdsForStartup()==expected_ids,"R101 startup list keeps active IDs and excludes growing retired history");
                 std::set<std::string> seen;
                 for(const auto& row:snapshot.candidates){
                     Check(row.segment_v2&&expected.at(row.segment_v2->segment_id)==SerializeRecordingSegmentV2(*row.segment_v2)&&
@@ -53,6 +57,14 @@ int main(int argc,char** argv) try {
             Check(store.catalog().CompleteDeletionV2(tomb,&error)&&store.catalog().IsDeletedSegmentId(o.segment.segment_id),"R92 exact durable deletion "+error);
             if(i==31||i==127)measure(i+1);
         }
+        const auto exact=store.catalog().RetentionSnapshot(RetentionSnapshotSelection::Candidate,"keep-0");
+        const auto no_pending=store.catalog().RetentionSnapshot(RetentionSnapshotSelection::Pending);
+        const auto gone=store.catalog().RetentionSnapshot(RetentionSnapshotSelection::Candidate,"gone-127");
+        const auto authority=store.catalog().RetentionSnapshot(RetentionSnapshotSelection::Authority);
+        Check(exact.authoritative&&exact.candidates.size()==1&&exact.candidates[0].Id()=="keep-0"&&
+            SerializeRecordingSegmentV2(*exact.candidates[0].segment_v2)==expected.at("keep-0")&&
+            no_pending.authoritative&&no_pending.candidates.empty()&&gone.authoritative&&gone.candidates.empty()&&
+            authority.authoritative&&authority.candidates.empty(),"R101 exact/pending/authority generation and retired exclusion");
         Check(store.catalog().AdjustHoldCount("keep-0",1,&error),"R92 hold");
         const auto held=store.catalog().RetentionSnapshot();
         const auto row=std::find_if(held.candidates.begin(),held.candidates.end(),[](const auto& r){return r.segment_v2&&r.segment_v2->segment_id=="keep-0";});

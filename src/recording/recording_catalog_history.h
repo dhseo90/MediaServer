@@ -15,6 +15,9 @@ class RecordingCatalogHistoryRows : public RecordingRetainedRowStore {
 public:
 #if defined(MEDIA_SERVER_RECORDING_GENERATION_TESTING)
     inline static thread_local bool probe_throw_after_chunk=false;
+#if MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
+    int ProbeIndexFd()const{return index_.ProbeFd();}
+#endif
 #endif
     using Visitor=std::function<bool(const std::string&,const std::string&,std::string*)>;
     bool Create(std::string* error,std::uint64_t slot_limit=UINT64_MAX) {
@@ -313,6 +316,7 @@ public:
     }
     bool Finish(std::string* error){
         std::lock_guard<std::recursive_mutex> lock(mu_);
+        CloseVerifiedSegmentDecodeCache();
 #if MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
         healthy_=false;return index_.Close(error);
 #else

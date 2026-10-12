@@ -1,6 +1,7 @@
 // 파일 용도: 제품 RequestMedia의 실제 용량/항목 eviction과 큰 증명의 uncached 경로를 검사한다.
 // wrapper는 제품 cpp에서 이 클래스의 관측 필드 접근만 공개한 소유 복사본을 생성한다.
 #include "recording_media_test_fixture.h"
+#include "recording_writer_test_isolation.h"
 #include "recording/recording_runtime_composition.h"
 #include "visual_request_media_cache_under_test.cpp"
 #include <fstream>
@@ -40,7 +41,8 @@ void Limits(const Cache& cache){std::size_t sum=0;for(const auto& entry:cache.en
 }
 int main(int argc,char** argv){try{
     if(argc!=2)return 2;
-    gst_init(nullptr,nullptr);const std::filesystem::path root(argv[1]);std::string error;
+    const std::filesystem::path root(argv[1]);if(!RecordingWriterTestIsolation(root))return 2;
+    gst_init(nullptr,nullptr);std::string error;
     {
         recording::RecordingRuntimeStorage runtime(root/"byte-limit");CacheCheck(runtime.Open(&error),"byte-limit store");Seed(runtime,9450,30,105000);
         const auto docs=Documents(runtime);CacheCheck(docs.size()==3,"three 3150-sample files");

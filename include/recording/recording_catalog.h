@@ -187,6 +187,7 @@ public:
     bool ValidateStatusSnapshot(const RecordingCatalogStatusSnapshot& snapshot) const;
     RecordingOrphanReport InspectOrphans() const;
     recording::RetentionSnapshot RetentionSnapshot() const;
+    recording::RetentionSnapshot RetentionSnapshot(RetentionSnapshotSelection,const std::string& id={}) const;
     // 내구 예약만 재확인하는 내부 소비자: 후보 파일/삭제 계획을 다시 만들지 않는다.
     recording::RetentionSnapshot RetentionReservations() const;
     // startup 내부 전용: 경로 유효성과 무관하게 모든 Finalized metadata의 잠금 snapshot.
@@ -328,6 +329,7 @@ private:
     friend class RecordingSearchReader;
     // 외부 DTO가 아닌 호출 범위 증명. 현재 원장 bytes를 재확인한 뒤 파싱 결과만 재사용한다.
     struct SourceBindingReadContext {
+        SearchModelResidency::Reservation memory;
         const RecordingCatalog* owner{nullptr};
         SourceBindingHandle binding;
         RecordingMutationHandle envelope;
@@ -339,7 +341,7 @@ private:
     bool AcquireRetiredV2Locked(const std::string&,RecordingTombstoneV2*,std::string*) const;
     bool AcquireOriginalV2Locked(const std::string&,RecordingSegmentV2*,std::string*) const;
     static bool MaterializeSourceBinding(const SourceBindingEntry&,const RecordingSegmentV2&,
-        const RecordingMutationHandle&,SourceBindingHandle*,std::string*);
+        const RecordingMutationHandle&,SourceBindingHandle*,std::string*,SearchModelResidency::Reservation* work=nullptr);
     using DerivedJobHandle = std::shared_ptr<const DerivedJobRecordV1>;
     struct DerivedJobEntry {
         SearchModelResidency::Reservation memory;
@@ -536,6 +538,7 @@ private:
     bool PoisonGenerationLocked(std::string* error);
 #if MEDIA_SERVER_RECORDING_GENERATION_TESTING
     static thread_local int generation_apply_fault_;
+    static thread_local std::function<void()> source_binding_unlocked_hook_;
     static thread_local void (*generation_checkpoint_prepared_hook_)();
 #endif
     struct CheckpointProjectionCache {
@@ -545,7 +548,8 @@ private:
     std::unique_ptr<CheckpointProjectionCache> checkpoint_cache_;
     bool CheckpointLocked(bool recover_only, std::string* error,const DerivedJobContentProof* proof=nullptr);
     bool BuildStatusSnapshotLocked(RecordingCatalogStatusSnapshot* result, std::string* error) const;
-    struct RetentionSnapshot RetentionSnapshotLocked() const;
+    struct RetentionSnapshot RetentionSnapshotLocked(RetentionSnapshotSelection selection=RetentionSnapshotSelection::All,
+                                                    const std::string& id={}) const;
     struct RetentionSnapshot RetentionReservationsLocked() const;
     struct CheckpointStatusGuard {
         RecordingCatalog& catalog;

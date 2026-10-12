@@ -29,24 +29,36 @@ struct HolderTrace {
     struct Event {std::uint64_t b=0,a=0,e=0;std::array<std::uint64_t,4> counts{};const char* site=nullptr;unsigned m=0,t=0,r=0,line=0,work=0;};
     struct Slot {Event event;std::atomic<bool> ready{false};};
     std::array<Slot,8192> slots{};std::atomic<unsigned> count{0};
-    std::array<std::atomic<std::uint64_t>,3> windows{};
+    std::array<std::atomic<std::uint64_t>,3> windows{}, ends{};
+    // R101 opt-in: three complete actual requests (1/2/3 or the late4/5/6).
+    // Default historical 7/41/77 one-second sampling remains unchanged.
+    const bool whole=[] {const char* p=std::getenv("MEDIA_SERVER_VERIFY_CATALOG_HOLDER_WHOLE_REQUESTS");return p&&(std::strcmp(p,"1")==0||std::strcmp(p,"late")==0);}();
+    const unsigned first=[] {const char* p=std::getenv("MEDIA_SERVER_VERIFY_CATALOG_HOLDER_WHOLE_REQUESTS");return p&&std::strcmp(p,"late")==0?4U:1U;}();
     std::atomic<unsigned> inflight{0};std::atomic<bool> loss{false};
     static constexpr unsigned Requests[3]={7,41,77};
     static constexpr std::uint64_t Width=1000000000;
-    void Select(unsigned id,std::uint64_t ns) noexcept {for(unsigned i=0;i<3;++i)if(id==Requests[i])windows[i].store(ns,std::memory_order_release);}
+    void Select(unsigned id,std::uint64_t ns) noexcept {for(unsigned i=0;i<3;++i)if(id==(whole?i+first:Requests[i]))windows[i].store(ns,std::memory_order_release);}
+    void Complete(unsigned id,std::uint64_t ns) noexcept {if(whole&&id>=first&&id<first+3)ends[id-first].store(ns,std::memory_order_release);}
     void Add(const Event& e) noexcept {
-        bool selected=false;for(const auto& w:windows){const auto b=w.load(std::memory_order_acquire);if(b&&e.b<b+Width&&e.e>b)selected=true;}
+        bool selected=false;for(unsigned i=0;i<3;++i){const auto b=windows[i].load(std::memory_order_acquire), end=ends[i].load(std::memory_order_acquire);if(b&&(!whole?e.b<b+Width:(!end||e.b<end))&&e.e>b)selected=true;}
         if(!selected)return;
         const auto i=count.fetch_add(1);if(i>=slots.size()){loss=true;return;}
         slots[i].event=e;slots[i].ready.store(true,std::memory_order_release);
     }
     ~HolderTrace() noexcept {
         bool good=!loss.load()&&inflight.load()==0;const unsigned total=count.load();
+        const char* setting=std::getenv("MEDIA_SERVER_VERIFY_CATALOG_HOLDER_WHOLE_REQUESTS");
+        if(setting&&std::strcmp(setting,"1")!=0&&std::strcmp(setting,"late")!=0)good=false;
+        if(whole)for(unsigned i=0;i<3;++i)if(!windows[i].load()||ends[i].load()<windows[i].load())good=false;
         for(unsigned i=0;i<total&&i<slots.size();++i){
             if(!slots[i].ready.load(std::memory_order_acquire)){good=false;continue;}
             const auto& e=slots[i].event;char row[320];
             const int n=std::snprintf(row,sizeof(row),"[catalog-holder] {\"id\":%u,\"m\":%u,\"t\":%u,\"r\":%u,\"l\":%u,\"work\":%u,\"site\":\"%s\",\"b\":%llu,\"a\":%llu,\"e\":%llu,\"counts\":[%llu,%llu,%llu,%llu]}\n",i+1,e.m,e.t,e.r,e.line,e.work,e.site?e.site:"unknown",(unsigned long long)e.b,(unsigned long long)e.a,(unsigned long long)e.e,(unsigned long long)e.counts[0],(unsigned long long)e.counts[1],(unsigned long long)e.counts[2],(unsigned long long)e.counts[3]);
             if(n<=0||n>=int(sizeof(row))||std::fwrite(row,1,std::size_t(n),stderr)!=std::size_t(n))good=false;
+        }
+        if(whole){
+            if(std::fprintf(stderr,"[catalog-holder-end] {\"version\":2,\"records\":%u,\"loss\":%s,\"inflight\":%u,\"endNs\":%llu,\"requests\":[%u,%u,%u],\"windows\":[%llu,%llu,%llu],\"ends\":[%llu,%llu,%llu]}\n",total,good?"false":"true",inflight.load(),(unsigned long long)Now(),first,first+1,first+2,(unsigned long long)windows[0].load(),(unsigned long long)windows[1].load(),(unsigned long long)windows[2].load(),(unsigned long long)ends[0].load(),(unsigned long long)ends[1].load(),(unsigned long long)ends[2].load())<0||std::fflush(stderr)!=0){std::fputs("[catalog-holder-loss] write\n",stdout);std::fflush(stdout);}
+            return;
         }
         if(std::fprintf(stderr,"[catalog-holder-end] {\"version\":1,\"records\":%u,\"loss\":%s,\"inflight\":%u,\"endNs\":%llu,\"widthNs\":%llu,\"windows\":[%llu,%llu,%llu]}\n",total,good?"false":"true",inflight.load(),(unsigned long long)Now(),(unsigned long long)Width,(unsigned long long)windows[0].load(),(unsigned long long)windows[1].load(),(unsigned long long)windows[2].load())<0||std::fflush(stderr)!=0){std::fputs("[catalog-holder-loss] write\n",stdout);std::fflush(stdout);}
     }
@@ -88,6 +100,7 @@ public:
     static void LockCost(const Row& r) noexcept {if(current&&r.k==0&&r.s>=1&&r.s<=5){const auto i=r.s-1;++current->locks_[i];current->wait_[i]+=r.w;current->held_[i]+=r.h;}}
     ~VisualRequestSummary() noexcept {
         if(!active_)return;
+        if(HolderEnabled())Holder().Complete(id_,Now());
         current=nullptr;char text[3072];std::size_t used=0;bool valid=true;
         const auto add=[&](const char* format,auto... values){if(!valid)return;const int n=std::snprintf(text+used,sizeof(text)-used,format,values...);if(n<0||std::size_t(n)>=sizeof(text)-used){valid=false;return;}used+=std::size_t(n);};
         // reason is a fixed application code, never exception.what/query/path.

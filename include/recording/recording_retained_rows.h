@@ -12,6 +12,7 @@
 #include "recording/recording_memory_reservation.h"
 #include "recording/recording_contracts.h"
 #include <limits>
+#include <mutex>
 
 namespace recording {
 // Raw/parser/canonical workspace is held until Decode finishes. The typed result
@@ -48,6 +49,18 @@ template<class T> std::size_t RecordingColdDecodeWorkspaceBytes(const std::strin
     return sizeof(T)+ingress::StrictJsonWorkspaceBytes(json,raw_copies+3,element,false);
 }
 class RecordingRetainedRowStore {
+    // Only parsed segment-v2 values are memoized. Every lookup still reads and
+    // authenticates the current raw row; this is never membership/cut authority.
+    struct DecodedSegment {
+        SearchModelResidency::Reservation memory;
+        std::string bytes;
+        std::shared_ptr<const void> row;
+        std::size_t charged=0;
+    };
+    mutable std::mutex decoded_mu_;
+    std::map<std::string,DecodedSegment> decoded_segments_;
+    std::size_t decoded_limit_=0,decoded_bytes_=0;
+    bool decoded_closed_=false;
 public:
     virtual ~RecordingRetainedRowStore()=default;
     virtual bool Get(const std::string&,const std::string&,std::string*,bool*,std::string*)=0;
@@ -60,6 +73,59 @@ public:
     virtual bool VisitOwned(const std::string&,const std::function<bool(const std::string&,RecordingColdRow&,std::string*)>&,std::string*)=0;
     virtual bool Visit(const std::string&,const std::function<bool(const std::string&,const std::string&,std::string*)>&,std::string*)=0;
     virtual std::uint64_t Count(const std::string&)const=0;
+    void EnableVerifiedSegmentDecodeCache() {
+        std::lock_guard lock(decoded_mu_);if(!decoded_closed_)decoded_limit_=16*1024*1024;
+    }
+    void ClearVerifiedSegmentDecodeCache() {
+        std::lock_guard lock(decoded_mu_);decoded_segments_.clear();decoded_bytes_=0;
+    }
+    void CloseVerifiedSegmentDecodeCache() {
+        std::lock_guard lock(decoded_mu_);decoded_closed_=true;decoded_limit_=0;
+        decoded_segments_.clear();decoded_bytes_=0;
+    }
+    std::shared_ptr<const void> VerifiedSegmentDecode(const std::string& id,const std::string& raw) {
+        std::lock_guard lock(decoded_mu_);const auto it=decoded_segments_.find(id);
+        if(it==decoded_segments_.end())return {};
+        if(it->second.bytes==raw)return it->second.row;
+        decoded_bytes_-=it->second.charged;decoded_segments_.erase(it);return {};
+    }
+    void ForgetVerifiedSegmentDecode(const std::string& id) {
+        std::lock_guard lock(decoded_mu_);const auto it=decoded_segments_.find(id);
+        if(it!=decoded_segments_.end()){decoded_bytes_-=it->second.charged;decoded_segments_.erase(it);}
+    }
+    void RememberVerifiedSegmentDecode(const std::string& id,std::string raw,
+        std::shared_ptr<const void> row,std::size_t row_bytes) {
+        // Obtain the owner before the cache mutex: Finish holds the store mutex
+        // while clearing this cache, so the opposite lock order is forbidden.
+        const auto owner=MemoryOwner();
+#if defined(MEDIA_SERVER_RECORDING_GENERATION_TESTING)
+        if(probe_before_remember){auto hook=probe_before_remember;hook();}
+#endif
+        std::lock_guard lock(decoded_mu_);
+        if(decoded_closed_)return;
+        const auto extra=sizeof(DecodedSegment)+128+2*(id.size()+1)+raw.capacity()+1;
+        if(row_bytes>decoded_limit_||extra>decoded_limit_-row_bytes)return;
+        const auto charged=extra+row_bytes;
+        if(const auto old=decoded_segments_.find(id);old!=decoded_segments_.end()){
+            decoded_bytes_-=old->second.charged;decoded_segments_.erase(old);
+        }
+        while(decoded_bytes_>decoded_limit_-charged&&!decoded_segments_.empty()){
+            const auto old=decoded_segments_.begin();decoded_bytes_-=old->second.charged;decoded_segments_.erase(old);
+        }
+        // Optional memoization shares the existing owner cap; it may reduce the
+        // remaining headroom, but never changes that cap or the cold row oracle.
+        const auto used=owner->used();if(used>owner->limit()||extra>owner->limit()-used)return;
+        auto memory=owner->ReserveOwned(extra);if(!memory)return;
+        try {
+            decoded_segments_.emplace(id,DecodedSegment{std::move(*memory),std::move(raw),std::move(row),charged});
+            decoded_bytes_+=charged;
+        } catch(const std::bad_alloc&) {} // the already verified caller row remains valid
+    }
+#if defined(MEDIA_SERVER_RECORDING_GENERATION_TESTING)
+    inline static thread_local std::function<void()> probe_before_remember;
+    void ProbeDecodedLimit(std::size_t limit){ClearVerifiedSegmentDecodeCache();std::lock_guard lock(decoded_mu_);decoded_limit_=limit;}
+    std::size_t ProbeDecodedBytes(){std::lock_guard lock(decoded_mu_);return decoded_bytes_;}
+#endif
 };
 class RecordingRetainedReadError : public std::runtime_error {
 public:using std::runtime_error::runtime_error;
@@ -135,17 +201,24 @@ public:
         if constexpr(std::is_same_v<T,EventRecordingLinkV1>)ok=store_->PutEventLink(id,value,&error);
         else ok=store_->Put(kind_,id,Serialize(value),&error);
         if(!ok)throw RecordingRetainedReadError(error);
+        if constexpr(std::is_same_v<T,RecordingSegmentV2>)if(kind_=="segment-v2")store_->ForgetVerifiedSegmentDecode(id);
     }
     T at(const std::string& id)const {static_assert(!std::is_same_v<T,std::string>,"retain the text iterator while comparing or transferring its storage");const auto row=find(id);if(row==end())throw std::out_of_range("retained row absent");return row->second;}
     std::size_t erase(const std::string& id) {
         if(!store_)return ram_.erase(id);
         if(!count(id))return 0;
-        std::string error;if(!store_->Put(kind_,id,{},&error))throw RecordingRetainedReadError(error);return 1;
+        std::string error;if(!store_->Put(kind_,id,{},&error))throw RecordingRetainedReadError(error);
+        if constexpr(std::is_same_v<T,RecordingSegmentV2>)if(kind_=="segment-v2")store_->ForgetVerifiedSegmentDecode(id);
+        return 1;
     }
     void clear(){ram_.clear();store_.reset();kind_.clear();}
     void swap(RecordingRetainedRows& other)noexcept{ram_.swap(other.ram_);store_.swap(other.store_);kind_.swap(other.kind_);}
 private:
     const_iterator Decode(const std::string& id,RecordingColdRow value)const {
+        if constexpr(std::is_same_v<T,RecordingSegmentV2>){
+            if(kind_=="segment-v2")if(auto prior=store_->VerifiedSegmentDecode(id,value.bytes))
+                return const_iterator(this,std::static_pointer_cast<const Pair>(std::move(prior)));
+        }
         const auto bytes=RecordingColdDecodeWorkspaceBytes<T>(value.bytes);
         auto ticket=store_->MemoryOwner()->ReserveOwned(bytes);
         if(!ticket)throw RecordingResourceUnavailable();
@@ -164,7 +237,11 @@ private:
         const auto pair_bytes=sizeof(OwnedPair)+id.size()+1+(std::is_base_of_v<RecordingMemoryCharge,T>?0:row_bytes);
         auto owner=std::make_shared<OwnedPair>(work->Split(pair_bytes),id,std::move(parsed));
         const Pair* row=&owner->row;
-        return const_iterator(this,std::shared_ptr<const Pair>(std::move(owner),row));
+        auto shared=std::shared_ptr<const Pair>(std::move(owner),row);
+        if constexpr(std::is_same_v<T,RecordingSegmentV2>){
+            if(kind_=="segment-v2")store_->RememberVerifiedSegmentDecode(id,std::move(value.bytes),shared,pair_bytes+shared->second.memory.bytes());
+        }
+        return const_iterator(this,std::move(shared));
     }
     const_iterator Next(const std::string& after)const {
         std::string id,error;RecordingColdRow value;bool found=false;

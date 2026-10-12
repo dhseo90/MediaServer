@@ -2113,6 +2113,7 @@ bool RecordingCatalog::ApplyMutationLocked(const RecordingMutationV1& mutation,
 
 #if MEDIA_SERVER_RECORDING_GENERATION_TESTING
 thread_local int RecordingCatalog::generation_apply_fault_=0;
+thread_local std::function<void()> RecordingCatalog::source_binding_unlocked_hook_;
 thread_local void (*RecordingCatalog::generation_checkpoint_prepared_hook_)()=nullptr;
 #endif
 bool RecordingCatalog::PoisonGenerationLocked(std::string* error) {
@@ -2564,7 +2565,7 @@ RecordingCatalog::DerivedJobEntry::DerivedJobEntry(DerivedJobHandle value,Record
     for(const auto& value:resident->intent.sources)source_ids.push_back(value.segment.segment_id);
 }
 bool RecordingCatalog::MaterializeSourceBinding(const SourceBindingEntry& entry,const RecordingSegmentV2& original,
-    const RecordingMutationHandle& mutation,SourceBindingHandle* out,std::string* error) {
+    const RecordingMutationHandle& mutation,SourceBindingHandle* out,std::string* error,SearchModelResidency::Reservation* work) {
     if(out)out->reset();
     if(!out||!mutation||mutation->mutation_id!=entry.latest_mutation_id||mutation->entity_id!=entry.id||mutation->mutation_type!=RecordingMutationType::SegmentV2BoundFinalized)
         return Fail(error,"source binding 상세 재획득 거부");
@@ -2579,6 +2580,7 @@ bool RecordingCatalog::MaterializeSourceBinding(const SourceBindingEntry& entry,
        binding.segment_id!=entry.id||binding.channel_id!=entry.channel||binding.source_id!=entry.source||
        binding.source_generation!=entry.generation||binding.generation_order!=entry.order||binding.track_id!=entry.track||binding.samples.size()!=entry.sample_count)
         return Fail(error,"source binding 상세 재획득 거부");
+    if(work)BindRecordingRowMemory(binding,*work,binding_json->size());
     *out=std::make_shared<const RecordingSourceBindingV1>(std::move(binding));return true;
 }
 bool RecordingCatalog::AcquireRetiredV2Locked(const std::string& id,RecordingTombstoneV2* out,std::string* error) const {
@@ -2774,10 +2776,13 @@ RecordingCatalog::SourceBindingHandle RecordingCatalog::ReadSourceBindingForMedi
     recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__,false,__func__);
     // 같은 현재 cut에서 기존 두 검증을 모두 수행한다. 파일 I/O는 잠금 밖에 유지한다.
     if(!ValidateMediaLocked(segment,location,nullptr))return {};
-    return ReadSourceBindingLocked(segment.segment_id,context,error,&segment);
+    auto binding=ReadSourceBindingLocked(segment.segment_id,context,error,&segment);
+    if(binding&&!ValidateMediaLocked(segment,location,nullptr))return {};
+    return binding;
 } catch(const CatalogHistoryError& failure) { Fail(error,failure.what());return {}; }
 RecordingCatalog::SourceBindingHandle RecordingCatalog::ReadSourceBindingLocked(const std::string& id,
     SourceBindingReadContext* context,std::string* error,const RecordingSegmentV2* validated_media) const try {
+    std::string local_error;if(!error)error=&local_error;error->clear();
     if(!context||(context->owner&&context->owner!=this)||!opened_||!derived_job_state_authoritative_||
        (!validated_media&&generation_backend_&&!CanReadLocked(error)))return {};
     // private caller holds mu_ and ValidateMediaLocked just compared the exact
@@ -2785,11 +2790,13 @@ RecordingCatalog::SourceBindingHandle RecordingCatalog::ReadSourceBindingLocked(
     // parse and validate it again. Never reused across a lock or file-I/O boundary.
     const auto original=validated_media?segments_v2_.end():segments_v2_.find(id);
     if(!validated_media&&(original==segments_v2_.end()||EffectiveLifecycleV2Locked(id,true)!=RecordingLifecycle::Finalized))return {};
-    const auto& current=validated_media?*validated_media:original->second;
+    const auto current=validated_media?*validated_media:original->second;
     const auto found=SourceEntryLocked(id);
     if(!found||!*found)return {};
     const auto& entry=*found;
-    const auto failed=[&]()->SourceBindingHandle{derived_job_state_authoritative_=false;Fail(error,"source binding 상세 재획득 거부");return {};};
+    const auto failed=[&]()->SourceBindingHandle{
+        if(*error=="recording-resource-unavailable"||*error=="B link 획득 자원 실패"){Fail(error,"recording-resource-unavailable");return {};}
+        derived_job_state_authoritative_=false;Fail(error,"source binding 상세 재획득 거부");return {};};
     bool materialized=false;
     try {
         RecordingMutationHandle envelope;
@@ -2807,35 +2814,73 @@ RecordingCatalog::SourceBindingHandle RecordingCatalog::ReadSourceBindingLocked(
                 return context->binding;
             }
         }
-        SourceBindingHandle parsed;
-        if(!MaterializeSourceBinding(entry,current,envelope,&parsed,error)||!parsed)return failed();
-        materialized=true;
-        // 공유 handle은 한 번만 세고, 실제 vector/string capacity와 envelope/cold 보관을 포함한다.
-        std::size_t retained=sizeof(SourceBindingReadContext)+sizeof(RecordingSourceBindingV1)+2*sizeof(RecordingMutationV1)+
-            parsed->samples.capacity()*sizeof(RecordingSourceSampleV1)+2*segment_json.capacity()+8192;
-        for(const auto* text:{&parsed->schema,&parsed->segment_id,&parsed->source_id,&parsed->channel_id,&parsed->store_id,
-            &parsed->media_epoch_id,&parsed->source_generation,&parsed->track_id,&parsed->incomplete_reason})retained+=text->capacity()+1;
-        if(parsed->file_evidence){const auto& evidence=*parsed->file_evidence;
-            retained+=evidence.profile.capacity()+evidence.file_sha256.capacity()+2+
-                evidence.samples.capacity()*sizeof(RecordingFileSampleEvidenceV1);
-            for(const auto& sample:evidence.samples)retained+=sample.vcl_sha256.capacity()+sample.sample_sha256.capacity()+2;
+        // The verified envelope and exact row are owned values, not references into
+        // mutable scratch. Only their expensive strict parsing/copy accounting is
+        // outside mu_; both current authority and original bytes are checked again.
+        auto* owner=recording::latency::Lock::Owner(mu_);
+        if(!owner)return failed();
+        // Existing owner limit also admits concurrent parser work, including
+        // nested strict-JSON objects, array growth and output/context ownership.
+        auto work=search_residency_->ReserveOwned(ingress::StrictJsonWorkspaceBytes(envelope->payload_json,16,
+            std::max({sizeof(RecordingSourceSampleV1),sizeof(RecordingFileSampleEvidenceV1),sizeof(RecordingSegmentV2)}),true));
+        if(!work){Fail(error,"recording-resource-unavailable");return {};}
+        SourceBindingReadContext next;bool parsed_ok=false;
+        {
+            recording::latency::Lock::Unlocked unlocked(*owner);
+#if MEDIA_SERVER_RECORDING_GENERATION_TESTING
+            const auto hook=source_binding_unlocked_hook_;if(hook)hook();
+#endif
+            SourceBindingHandle parsed;
+            parsed_ok=MaterializeSourceBinding(entry,current,envelope,&parsed,error,&*work)&&bool(parsed);
+            if(parsed_ok){
+                materialized=true;
+                std::size_t retained=sizeof(SourceBindingReadContext)+sizeof(RecordingSourceBindingV1)+2*sizeof(RecordingMutationV1)+
+                    parsed->samples.capacity()*sizeof(RecordingSourceSampleV1)+2*segment_json.capacity()+8192;
+                for(const auto* text:{&parsed->schema,&parsed->segment_id,&parsed->source_id,&parsed->channel_id,&parsed->store_id,
+                    &parsed->media_epoch_id,&parsed->source_generation,&parsed->track_id,&parsed->incomplete_reason})retained+=text->capacity()+1;
+                if(parsed->file_evidence){const auto& evidence=*parsed->file_evidence;
+                    retained+=evidence.profile.capacity()+evidence.file_sha256.capacity()+2+
+                        evidence.samples.capacity()*sizeof(RecordingFileSampleEvidenceV1);
+                    for(const auto& sample:evidence.samples)retained+=sample.vcl_sha256.capacity()+sample.sample_sha256.capacity()+2;
+                }
+                for(const auto* text:{&envelope->schema,&envelope->mutation_id,&envelope->entity_id,&envelope->payload_json,&envelope->physical_json})
+                    retained+=2*(text->capacity()+1);
+                next.memory=work->Split(sizeof(SourceBindingReadContext)+2*segment_json.capacity()+8192);
+                next.owner=this;next.binding=std::move(parsed);next.envelope=envelope;
+                next.segment_json=segment_json;next.retained_bytes=retained;next.cold=context->cold;
+            }
         }
-        for(const auto* text:{&envelope->schema,&envelope->mutation_id,&envelope->entity_id,&envelope->payload_json,&envelope->physical_json})
-            retained+=2*(text->capacity()+1);
-        SourceBindingReadContext next;next.owner=this;next.binding=std::move(parsed);next.envelope=std::move(envelope);
-        next.segment_json=segment_json;next.retained_bytes=retained;next.cold=context->cold;*context=std::move(next);
+        if(!parsed_ok)return failed();
+        if(!opened_||!derived_job_state_authoritative_||!CanReadLocked(error)||!journal_.OwnsCatalog(this))return {};
+        const auto now=segments_v2_.find(id);
+        if(now==segments_v2_.end()||EffectiveLifecycleV2Locked(id,true)!=RecordingLifecycle::Finalized||
+           SerializeRecordingSegmentV2(now->second)!=segment_json){Fail(error,"source binding current source changed");return {};}
+        const auto current_entry=SourceEntryLocked(id);
+        if(!current_entry||current_entry->latest_mutation_id!=entry.latest_mutation_id||current_entry->id!=entry.id||
+           current_entry->channel!=entry.channel||current_entry->source!=entry.source||current_entry->generation!=entry.generation||
+           current_entry->track!=entry.track||current_entry->order!=entry.order||current_entry->sample_count!=entry.sample_count){
+            Fail(error,"source binding current source changed");return {};}
+        RecordingMutationHandle verified;
+        if(!journal_.AcquireMutationLinkForRead(this,current_entry->mutation,&next.cold,&verified,error)||!verified)return failed();
+        const auto& a=*envelope;const auto& b=*verified;
+        if(a.schema!=b.schema||a.mutation_id!=b.mutation_id||a.entity_id!=b.entity_id||a.mutation_type!=b.mutation_type||
+           a.occurred_at_ms!=b.occurred_at_ms||a.payload_json!=b.payload_json)return failed();
+        next.envelope=std::move(verified);*context=std::move(next);
         if(error)error->clear();
         return context->binding;
-    }catch(...){
+    }catch(const RecordingResourceUnavailable&){Fail(error,"recording-resource-unavailable");return {};}
+    catch(const std::bad_alloc&){Fail(error,"recording-resource-unavailable");return {};}
+    catch(...){
         // 검증된 원장의 선택적 cache 산정/보관 실패는 catalog 전체의 권위 상실이 아니다.
         if(materialized){Fail(error,"source binding read cache capacity");return {};}return failed();
     }
 } catch(const CatalogHistoryError& failure) { Fail(error,failure.what());return {}; }
+  catch(const RecordingResourceUnavailable& failure) { Fail(error,failure.what());return {}; }
 std::optional<RecordingSourceBindingV1> RecordingCatalog::FindSourceBinding(const std::string& id) const try {
-    recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__,false,__func__);
-    if(!opened_||!derived_job_state_authoritative_||(generation_backend_&&!CanReadLocked(nullptr))||EffectiveLifecycleV2Locked(id)!=RecordingLifecycle::Finalized)return std::nullopt;
-    const auto found=FindSourceBindingOwnedLocked(id);
-    if(!opened_||!found||EffectiveLifecycleV2Locked(id)!=RecordingLifecycle::Finalized)return std::nullopt;
+    SourceBindingReadContext context;
+    const auto found=ReadSourceBinding(id,&context,nullptr);
+    if(!found)return std::nullopt;
+    // Value-return API copy belongs to the caller, outside the shared lock.
     return *found;
 } catch(const CatalogHistoryError&) { return std::nullopt; }
 bool RecordingCatalog::ResolveOriginalSample(const std::string& channel,const std::string& source,
@@ -4106,9 +4151,17 @@ std::vector<std::string> RecordingCatalog::FinalizedSegmentIdsForStartup() const
     std::vector<std::string> result;
     if(generation_backend_&&!CanReadLocked(nullptr))return result;
     for(const auto& [id,segment]:segments_)if(segment.lifecycle==RecordingLifecycle::Finalized)result.push_back(id);
+    // Same authenticated, locked cut as the row iterator. An existing row need
+    // not be fetched again to prove membership. Empty namespaces are complete
+    // current-cut facts, not cache misses; nonempty ones retain exact lookup.
+    const bool retired=completed_history_?completed_history_->Count("retired-v2")!=0:!retired_v2_.empty();
+    const bool tombstones=!tombstones_.empty(),v2_tombstones=!tombstones_v2_.empty(),states=!states_v2_.empty();
     for(const auto& [id,segment]:segments_v2_) {
         (void)segment;
-        if(EffectiveLifecycleV2Locked(id)==RecordingLifecycle::Finalized)result.push_back(id);
+        if((retired&&RetiredLocked(id).has_value())||(tombstones&&tombstones_.count(id))||
+           (v2_tombstones&&tombstones_v2_.count(id)))continue;
+        if(states){const auto state=states_v2_.find(id);if(state!=states_v2_.end()&&state->second.lifecycle!=RecordingLifecycle::Finalized)continue;}
+        result.push_back(id);
     }
     std::sort(result.begin(),result.end());
     return result;
@@ -4127,22 +4180,52 @@ RetentionSnapshot RecordingCatalog::RetentionReservations() const {
     return RetentionReservationsLocked();
 }
 
-RetentionSnapshot RecordingCatalog::RetentionSnapshotLocked() const try {
+RetentionSnapshot RecordingCatalog::RetentionSnapshotLocked(RetentionSnapshotSelection selection,const std::string& selected_id) const try {
     auto snapshot=RetentionReservationsLocked();
-    if(!snapshot.authoritative)return snapshot;
-    segments_v2_.ForEachEntry([&](const auto& id,const auto& v) {
+    if(!snapshot.authoritative||selection==RetentionSnapshotSelection::Authority)return snapshot;
+    if(completed_history_)completed_history_->EnableVerifiedSegmentDecodeCache();
+    // These cardinalities belong to the already authenticated current Catalog
+    // cut. mu_ stays held throughout this call; no append, retirement or index
+    // replacement can invalidate a namespace's emptiness between candidates.
+    // Nonempty namespaces still use the original exact cold lookup.
+    const bool has_retired=completed_history_?completed_history_->Count("retired-v2")!=0:!retired_v2_.empty();
+    const bool has_tombstones=!tombstones_.empty(),has_v2_tombstones=!tombstones_v2_.empty();
+    const bool has_states=!states_v2_.empty(),has_reasons=!deletion_reasons_.empty();
+    const auto lifecycle_in_cut=[&](const std::string& id){
+        if((has_retired&&RetiredLocked(id).has_value())||
+           (has_tombstones&&tombstones_.count(id))||(has_v2_tombstones&&tombstones_v2_.count(id)))
+            return RecordingLifecycle::Deleted;
+        if(has_states){const auto state=states_v2_.find(id);if(state!=states_v2_.end())return state->second.lifecycle;}
+        return RecordingLifecycle::Finalized;
+    };
+    const auto add_v2=[&](const auto& id,const auto& v) {
+        if(selection==RetentionSnapshotSelection::Channel&&v.channel_id!=selected_id)return true;
         recording::latency::HolderCount(2);
-        const auto lifecycle=EffectiveLifecycleV2Locked(id,true);
+        const auto lifecycle=lifecycle_in_cut(id);
         const auto path=media_relpaths_.find(id);
         if(lifecycle==RecordingLifecycle::Deleted||path==media_relpaths_.end())return true;
         RetentionCandidate candidate;candidate.segment_v2=v;candidate.effective_lifecycle=lifecycle;
         candidate.media_path=options_.media_root/std::filesystem::path(path->second);
         const auto hold=hold_counts_.find(id);candidate.hold_count=hold==hold_counts_.end()?0:hold->second;
         if(DerivedJobProtectsLocked(id)&&candidate.hold_count<std::numeric_limits<std::uint64_t>::max())++candidate.hold_count;
-        const auto reason=deletion_reasons_.find(id);if(reason!=deletion_reasons_.end())candidate.deletion_reason=reason->second;
+        if(has_reasons){const auto reason=deletion_reasons_.find(id);if(reason!=deletion_reasons_.end())candidate.deletion_reason=reason->second;}
         snapshot.candidates.push_back(std::move(candidate));return true;
-    });
-    segments_.ForEachEntry([&](const auto& segment_id,const auto& segment) {
+    };
+    if(selection==RetentionSnapshotSelection::Candidate){
+        const auto row=segments_v2_.find(selected_id);if(row!=segments_v2_.end())add_v2(row->first,row->second);
+    }else if(selection==RetentionSnapshotSelection::Pending){
+        // Every V2 pending transition is represented by states_v2_ in this same
+        // locked authoritative cut. Absence here is not a cache miss.
+        states_v2_.ForEachEntry([&](const auto& id,const auto& state){
+            if(state.lifecycle!=RecordingLifecycle::DeletionPending)return true;
+            const auto row=segments_v2_.find(id);
+            if(row==segments_v2_.end())throw CatalogHistoryError("pending segment missing");
+            return add_v2(row->first,row->second);
+        });
+    }else segments_v2_.ForEachEntry(add_v2);
+    const auto add_v1=[&](const auto& segment_id,const auto& segment) {
+        if(selection==RetentionSnapshotSelection::Channel&&segment.channel_id!=selected_id)return true;
+        if(selection==RetentionSnapshotSelection::Pending&&segment.lifecycle!=RecordingLifecycle::DeletionPending)return true;
         recording::latency::HolderCount(2);
         if (segment.lifecycle != RecordingLifecycle::Finalized &&
             segment.lifecycle != RecordingLifecycle::DeletionPending) {
@@ -4172,13 +4255,20 @@ RetentionSnapshot RecordingCatalog::RetentionSnapshotLocked() const try {
         const auto reason = deletion_reasons_.find(segment_id);
         if (reason != deletion_reasons_.end()) candidate.deletion_reason = reason->second;
         snapshot.candidates.push_back(std::move(candidate));return true;
-    });
+    };
+    if(selection==RetentionSnapshotSelection::Candidate){
+        const auto row=segments_.find(selected_id);if(row!=segments_.end())add_v1(row->first,row->second);
+    }else segments_.ForEachEntry(add_v1);
     return snapshot;
 } catch(const CatalogHistoryError& failure) { struct RetentionSnapshot failed;failed.authoritative=false;failed.error=failure.what();return failed; }
 
 RetentionSnapshot RecordingCatalog::RetentionSnapshot() const {
     recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__,false,__func__);
     return RetentionSnapshotLocked();
+}
+RetentionSnapshot RecordingCatalog::RetentionSnapshot(RetentionSnapshotSelection selection,const std::string& id) const {
+    recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__,false,__func__);
+    return RetentionSnapshotLocked(selection,id);
 }
 
 std::optional<EventRecordingLinkV1> RecordingCatalog::FindEventLinkByEventId(

@@ -352,7 +352,6 @@ int RunMediaServerApplication(int argc, char** argv) {
     retention_options.media_root = recording_root;
     recording::RetentionCoordinator recording_retention(
         recording_catalog,
-        [&recording_catalog] { return recording_catalog.RetentionSnapshot(); },
         [&recording_root](std::uint64_t* free_bytes, std::string* error) {
             std::error_code fs_error;
             const auto space = std::filesystem::space(recording_root, fs_error);

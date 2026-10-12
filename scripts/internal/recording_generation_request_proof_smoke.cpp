@@ -6,9 +6,13 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
+#include "../../src/recording/recording_catalog_history.h"
 namespace recording {
 struct RecordingGenerationRequestProofProbe {
     using Context=RecordingCatalog::JobReadContext;
+    static void SourceHook(std::function<void()> hook){RecordingCatalog::source_binding_unlocked_hook_=std::move(hook);}
+    static std::string Source(RecordingCatalog& c){RecordingCatalog::SourceBindingReadContext context;auto value=c.ReadSourceBinding("segment",&context,&error);return value?SerializeRecordingSourceBindingV1(*value):std::string{};}
+
     static bool Job(RecordingCatalog& c,const std::string& id,Context* context){
         std::lock_guard lock(c.mu_);RecordingCatalog::DerivedJobHandle job;
         try {return c.AcquireJobForReadLocked(id,&job,context,&error)&&job&&job->state==DerivedJobState::Complete;}
@@ -53,6 +57,87 @@ void CompleteFixture(const std::filesystem::path& root){
 RecordingCatalog::Options ReadOptions(const std::filesystem::path& root){RecordingCatalog::Options o(root/"recording-catalog.sqlite3",root,false);o.enable_v2_storage=true;return o;}
 #endif
 #if MEDIA_SERVER_USE_OPENSSL && MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND
+void VerifiedDecodeCases(){
+    using Rows=RecordingRetainedRows<RecordingSegmentV2,ParseRecordingSegmentV2,SerializeRecordingSegmentV2>;
+    auto store=std::make_shared<RecordingCatalogHistoryRows>();Need(store->Create(&error));
+    Rows rows;rows.Bind(store,"segment-v2");auto segment=CompleteInput().source.segment;
+    rows.Set(segment.segment_id,segment);const auto canonical=SerializeRecordingSegmentV2(segment);
+    const auto cold=rows.find(segment.segment_id);store->EnableVerifiedSegmentDecodeCache();
+    auto first=rows.find(segment.segment_id),hit=rows.find(segment.segment_id);
+    Check("V450-MEM101-S05",&*first==&*hit&&SerializeRecordingSegmentV2(hit->second)==canonical,
+          "new authenticated exact bytes reuse only parsed immutable segment");
+    const auto one=store->ProbeDecodedBytes();Need(one>0&&one<=16*1024*1024);
+    store->ProbeDecodedLimit(one); // fixed one-row test budget, not a production admission
+    first=rows.find(segment.segment_id);const auto held=&*first;
+    for(unsigned i=0;i<3;++i){auto next=segment;next.segment_id="cache-"+std::to_string(i);rows.Set(next.segment_id,next);(void)rows.find(next.segment_id);}
+    const auto again=rows.find(segment.segment_id);
+    Check("V450-MEM101-S05",store->ProbeDecodedBytes()<=one&&held!=&*again&&SerializeRecordingSegmentV2(first->second)==canonical,
+          "eviction keeps outstanding charged reader and exact cold reacquisition");
+    auto changed=segment;changed.pinned=!changed.pinned;Need(store->Put("segment-v2",segment.segment_id,SerializeRecordingSegmentV2(changed),&error));
+    Check("V450-MEM101-S05",rows.find(segment.segment_id)->second.pinned==changed.pinned,
+          "same ID changed authenticated bytes never returns old parsed row");
+    rows.erase(segment.segment_id);
+    Check("V450-MEM101-S05",rows.find(segment.segment_id)==rows.end(),"cache never supplies absent membership");
+    rows.Set(segment.segment_id,segment);(void)rows.find(segment.segment_id);
+    const auto used=store->MemoryOwner()->used();Need(store->Finish(&error));
+    Check("V450-MEM101-S05",store->ProbeDecodedBytes()==0&&store->MemoryOwner()->used()<used&&SerializeRecordingSegmentV2(first->second)==canonical,
+          "Finish releases cache while existing reader owns its charge");
+    bool denied=false;try{(void)rows.find(segment.segment_id);}catch(const RecordingRetainedReadError&){denied=true;}
+    Check("V450-MEM101-S05",denied,"finished store rejects even a formerly cached ID");
+    auto bad=std::make_shared<RecordingCatalogHistoryRows>();Need(bad->Create(&error));Rows damaged;damaged.Bind(bad,"segment-v2");
+    damaged.Set(segment.segment_id,segment);bad->EnableVerifiedSegmentDecodeCache();(void)damaged.find(segment.segment_id);
+    const int fd=bad->ProbeIndexFd();struct stat st{};Need(::fstat(fd,&st)==0&&st.st_size>512&&st.st_size<65536);
+    std::string bytes(static_cast<std::size_t>(st.st_size),'\0');Need(::pread(fd,bytes.data(),bytes.size(),0)==static_cast<ssize_t>(bytes.size()));
+    const auto at=bytes.find("segment-v2/");Need(at!=std::string::npos);const char altered='X';Need(::pwrite(fd,&altered,1,static_cast<off_t>(at))==1);
+    denied=false;try{(void)damaged.find(segment.segment_id);}catch(const RecordingRetainedReadError&){denied=true;}
+    Check("V450-MEM101-S05",denied,"same-size scratch node damage is checked before parsed cache hit");Need(bad->Finish(&error));
+    // Other outstanding readers above intentionally remain alive. Give this
+    // zero-after-last-reader assertion its own real resource owner.
+    auto closing_memory=std::make_shared<SearchModelResidency>();
+    auto closing_resources=RecordingScratchResidency::Discover(std::filesystem::canonical(std::filesystem::temp_directory_path()).string(),closing_memory);
+    RecordingScratchResidency::Scope closing_scope(closing_resources);
+    auto closing=std::make_shared<RecordingCatalogHistoryRows>();Need(closing->Create(&error));Rows concurrent;concurrent.Bind(closing,"segment-v2");
+    concurrent.Set(segment.segment_id,segment);closing->EnableVerifiedSegmentDecodeCache();
+    RecordingRetainedRowStore::probe_before_remember=[&]{RecordingRetainedRowStore::probe_before_remember={};Need(closing->Finish(&error));closing->EnableVerifiedSegmentDecodeCache();};
+    {const auto held_after_finish=concurrent.find(segment.segment_id);
+        Check("V450-MEM101-S05",closing->ProbeDecodedBytes()==0&&SerializeRecordingSegmentV2(held_after_finish->second)==canonical,
+              "Finish after raw acquire prevents later memoization while reader remains valid");}
+    Check("V450-MEM101-S05",closing->MemoryOwner()->used()==0,"last delayed reader releases charge without resurrecting closed cache");
+}
+void SourceReadCases(const std::filesystem::path& root){
+    for(const std::string mode:{"normal","append","checkpoint","delete","tamper","memory"}){
+        const auto path=root/mode;std::filesystem::create_directories(path);CompleteFixture(path);
+        RecordingJournal owner(Options(path));Need(owner.Open(&error));auto options=ReadOptions(path);options.enable_generation_writes=true;
+        RecordingCatalog catalog(owner,options);Need(catalog.Open(&error));
+        const auto expected=SerializeRecordingSourceBindingV1(*CompleteInput().source.binding);
+        const auto complete=CompleteInput();
+        auto expected_ids=std::vector<std::string>{complete.source.segment.segment_id};
+        for(const auto& output:complete.job.ready->outputs)expected_ids.push_back(output.segment.segment_id);
+        std::sort(expected_ids.begin(),expected_ids.end());
+        Check("V450-MEM101-S04",catalog.FinalizedSegmentIdsForStartup()==expected_ids,"same-cut source/output startup list equals independent fixture IDs");
+        unsigned calls=0;const auto used=catalog.SearchResidency()->used();
+        const auto peak=catalog.SearchResidency()->peak();(void)peak;
+        ProofProbe::SourceHook([&]{
+            ProofProbe::SourceHook({});++calls;
+            Need(catalog.SearchResidency()->used()>used);
+            if(mode=="memory")throw RecordingResourceUnavailable();
+            // Called only after releasing Catalog mu_, with an owned envelope.
+            if(mode=="append") {RecordingOrderReservationV1 order;Need(catalog.ReserveRecordingOrder("store","during-parse","during-parse-segment","channel",&order,&error));}
+            if(mode=="checkpoint")Need(catalog.Checkpoint(&error));
+            if(mode=="delete")Need(catalog.RequestDeletion("segment","continuous-capacity",&error));
+            if(mode=="tamper"){auto bytes=Read(path/"evidence-1-0.jsonl");Need(!bytes.empty());bytes[0]='!';Write(path/"evidence-1-0.jsonl",bytes);}
+        });
+        const auto actual=ProofProbe::Source(catalog);ProofProbe::SourceHook({});
+        Check("V450-MEM101-S02",calls==1,"cold source parse releases the owning lock exactly once");
+        if(mode=="delete"||mode=="tamper"||mode=="memory")Check("V450-MEM101-S02",actual.empty(),(mode+" between capture and final check rejects without publishing binding").c_str());
+        else Check("V450-MEM101-S02",actual==expected,(mode+" between capture and final check keeps independently serialized original binding").c_str());
+        if(mode=="memory")Check("V450-MEM101-S02",owner.HasManagedLease()&&ProofProbe::Source(catalog)==expected,"transient resource failure preserves authority and next request");
+        if(mode=="delete")Check("V450-MEM101-S02",owner.HasManagedLease(),"ordinary concurrent deletion does not poison authority");
+        if(mode=="delete")expected_ids.erase(std::remove(expected_ids.begin(),expected_ids.end(),"segment"),expected_ids.end());
+        if(mode!="tamper")Check("V450-MEM101-S04",catalog.FinalizedSegmentIdsForStartup()==expected_ids,"append/checkpoint/pending deletion preserve exact startup membership");
+        if(mode=="tamper")Check("V450-MEM101-S02",!owner.HasManagedLease(),"actual original damage loses authority");
+    }
+}
 void ActiveProofCases(const std::filesystem::path& root){
     using Probe=RecordingJournalGenerationReadOnlyProbe;
     for(const std::string mode:{"normal","same-size","other-row","inode","symlink","hardlink"}){
@@ -177,6 +262,8 @@ int main(int argc,char** argv){
         RecordingJournal j(Options(root));Check("B08-Q04",j.Open(&error),"v1 remains available in unsupported B build");
 #endif
 #if MEDIA_SERVER_USE_OPENSSL && MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND
+        SourceReadCases(root/"source-read");
+        VerifiedDecodeCases();
         ActiveProofCases(root/"active-proof");
 #endif
         return failures?1:0;

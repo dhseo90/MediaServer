@@ -51,6 +51,10 @@ struct RetentionSnapshot {
     std::string error{};
 };
 
+// Internal reads retain the same Catalog authority, but do not materialize
+// unrelated candidates when the consumer only needs pending work or one row.
+enum class RetentionSnapshotSelection { All, Authority, Pending, Candidate, Channel };
+
 struct RetentionPolicy {
     std::uint64_t continuous_max_bytes{0};
     std::int64_t continuous_max_age_ms{0};
@@ -146,6 +150,10 @@ public:
                          FreeSpaceProvider free_space_provider,
                          MediaUnlinker media_unlinker,
                          Options options);
+    RetentionCoordinator(RecordingCatalog& catalog,
+                         FreeSpaceProvider free_space_provider,
+                         MediaUnlinker media_unlinker,
+                         Options options);
     ~RetentionCoordinator();
 
     static RetentionPlan Plan(const RetentionSnapshot& snapshot,
@@ -188,10 +196,12 @@ private:
                                                    const std::string& channel_id);
     std::uint64_t OutstandingReservationsLocked() const;
     std::uint64_t EventReservationsLocked(const std::string& channel_id) const;
-    RetentionSnapshot ReadSnapshot() const;
+    RetentionSnapshot ReadSnapshot(RetentionSnapshotSelection selection=RetentionSnapshotSelection::All,
+                                   const std::string& id={}) const;
 
     RecordingStorePort& store_;
     SnapshotProvider snapshot_provider_;
+    RecordingCatalog* native_catalog_{nullptr};
     FreeSpaceProvider free_space_provider_;
     MediaUnlinker media_unlinker_;
     Options options_;

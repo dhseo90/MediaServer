@@ -411,7 +411,14 @@ RetentionCoordinator::~RetentionCoordinator() {
     }
 }
 
-RetentionSnapshot RetentionCoordinator::ReadSnapshot() const {
+RetentionCoordinator::RetentionCoordinator(RecordingCatalog& catalog,
+    FreeSpaceProvider free_space_provider,MediaUnlinker media_unlinker,Options options)
+    :RetentionCoordinator(catalog,[&catalog]{return catalog.RetentionSnapshot();},
+        std::move(free_space_provider),std::move(media_unlinker),std::move(options)) {
+    native_catalog_=&catalog;
+}
+
+RetentionSnapshot RetentionCoordinator::ReadSnapshot(RetentionSnapshotSelection selection,const std::string& id) const {
     recording::latency::WorkScope holder_work_scope(recording::latency::Work::Retention);
     RetentionSnapshot snapshot;
     try {
@@ -420,7 +427,7 @@ RetentionSnapshot RetentionCoordinator::ReadSnapshot() const {
             throw std::runtime_error("catalog retention coordinator 소유권 거부");
         }
         if(!snapshot_provider_)throw std::runtime_error("snapshot provider 없음");
-        snapshot=snapshot_provider_();
+        snapshot=native_catalog_?native_catalog_->RetentionSnapshot(selection,id):snapshot_provider_();
         if(!snapshot.authoritative)return snapshot;
         // catalog의 내구 예약은 임시 provider map이나 누락된 복사본으로 대체하지 않는다.
         if(const auto* catalog=dynamic_cast<const RecordingCatalog*>(&store_)) {
@@ -607,13 +614,13 @@ RetentionApplyResult RetentionCoordinator::ApplyPlan(const RetentionPlan& plan,
     std::lock_guard apply_lock(apply_mu_);
     RetentionApplyResult result;
     if(!plan.snapshot_authoritative){result.ok=false;result.last_error="snapshot 미확인 삭제계획 거부";return result;}
-    const auto initial=ReadSnapshot();
+    const auto initial=ReadSnapshot(RetentionSnapshotSelection::Authority);
     if(!initial.authoritative){result.ok=false;result.last_error=initial.error;return result;}
     for (const auto& deletion : plan.deletions) {
         std::string error;
         const std::string reason = RetentionCleanupReasonName(deletion.reason);
         if(deletion.candidate.segment_v2) {
-            const auto snapshot=ReadSnapshot();
+            const auto snapshot=ReadSnapshot(RetentionSnapshotSelection::Candidate,deletion.candidate.Id());
             if(!snapshot.authoritative){result.ok=false;result.last_error=snapshot.error;return result;}
             const auto found=std::find_if(snapshot.candidates.begin(),snapshot.candidates.end(),[&](const auto& candidate){
                 return candidate.Id()==deletion.candidate.Id() && candidate.segment_v2 &&
@@ -680,7 +687,7 @@ RetentionApplyResult RetentionCoordinator::ApplyPlan(const RetentionPlan& plan,
 
 RetentionApplyResult RetentionCoordinator::RecoverPending(std::int64_t deleted_at_ms) {
     std::unordered_set<std::string> channels;
-    const auto snapshot=ReadSnapshot();
+    const auto snapshot=ReadSnapshot(RetentionSnapshotSelection::Pending);
     if(!snapshot.authoritative){RetentionApplyResult result;result.ok=false;result.last_error=snapshot.error;return result;}
     for (const auto& candidate : snapshot.candidates) {
         if (candidate.Lifecycle() == RecordingLifecycle::DeletionPending) {
@@ -704,7 +711,7 @@ RetentionApplyResult RetentionCoordinator::RecoverPendingForChannel(
     const std::string& channel_id) {
     std::lock_guard apply_lock(apply_mu_);
     RetentionApplyResult result;
-    const auto snapshot=ReadSnapshot();
+    const auto snapshot=ReadSnapshot(RetentionSnapshotSelection::Pending);
     if(!snapshot.authoritative){result.ok=false;result.last_error=snapshot.error;return result;}
     for (const auto& candidate : snapshot.candidates) {
         if (candidate.Lifecycle() != RecordingLifecycle::DeletionPending ||
@@ -784,7 +791,7 @@ void RetentionCoordinator::RunPeriodic(std::int64_t now_ms) {
     recording::latency::WorkScope holder_work_scope(recording::latency::Work::Retention);
     std::lock_guard admission_lock(admission_mu_);
     std::unordered_set<std::string> pending_channels;
-    const auto initial=ReadSnapshot();
+    const auto initial=ReadSnapshot(RetentionSnapshotSelection::Pending);
     if(!initial.authoritative){std::lock_guard lock(mu_);for(auto& [_,status]:statuses_)status.last_error=initial.error;return;}
     for (const auto& candidate : initial.candidates) {
         if (candidate.Lifecycle() == RecordingLifecycle::DeletionPending) {
@@ -817,7 +824,7 @@ void RetentionCoordinator::RunPeriodic(std::int64_t now_ms) {
         request.channel_id = channel_id;
         request.policy = policy;
         request.now_ms = now_ms;
-        const auto snapshot=ReadSnapshot();
+        const auto snapshot=ReadSnapshot(RetentionSnapshotSelection::Channel,channel_id);
         if(!snapshot.authoritative){std::lock_guard lock(mu_);statuses_[channel_id].last_error=snapshot.error;continue;}
         const std::uint64_t inflight_bytes = SaturatingAdd(OutstandingReservationsLocked(),DurableOutstanding(snapshot));
         request.free_bytes = free_bytes > inflight_bytes ? free_bytes - inflight_bytes : 0;
@@ -891,7 +898,7 @@ RetentionAdmissionResult RetentionCoordinator::AdmitContinuousWrite(
         return {false, false, 0, status.last_error};
     }
 
-    auto admission_snapshot=ReadSnapshot();
+    auto admission_snapshot=ReadSnapshot(RetentionSnapshotSelection::Channel,channel_id);
     if(!admission_snapshot.authoritative){TraceRecordingState(channel_id,"admission-snapshot-rejected",admission_snapshot.error);return {false,false,0,admission_snapshot.error};}
     const std::uint64_t inflight_bytes = SaturatingAdd(OutstandingReservationsLocked(),DurableOutstanding(admission_snapshot));
     const std::uint64_t effective_free =
@@ -927,7 +934,7 @@ RetentionAdmissionResult RetentionCoordinator::AdmitContinuousWrite(
         // Revalidate actual bytes, never credit a protected/planned deletion. Only
         // this admission's first refreshed candidate range may supply replacements.
         const auto refresh = [&]() {
-            auto current=ReadSnapshot();
+            auto current=ReadSnapshot(RetentionSnapshotSelection::Channel,channel_id);
             refreshed=refreshed&&current.authoritative;
             if(!current.authoritative)refresh_error=current.error;
             std::uint64_t charged=expected_segment_bytes;
@@ -1068,7 +1075,7 @@ RetentionAdmissionResult RetentionCoordinator::AdmitEventWrite(
         return {false, false, 0,
                 error.empty() ? "recording root 여유 공간 조회 실패" : error};
     }
-    auto admission_snapshot=ReadSnapshot();
+    auto admission_snapshot=ReadSnapshot(RetentionSnapshotSelection::Channel,channel_id);
     if(!admission_snapshot.authoritative)return {false,false,0,admission_snapshot.error};
     const std::uint64_t inflight_bytes = SaturatingAdd(OutstandingReservationsLocked(),DurableOutstanding(admission_snapshot));
     const std::uint64_t effective_free =

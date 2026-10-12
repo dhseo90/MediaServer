@@ -1,5 +1,6 @@
 // 파일 용도: 격리 실제 원장과 작은 자체 생성 미디어로 V2 보존·재생 보호 경계를 검증한다.
 #include "recording/recording_read_service.h"
+#include "recording_writer_test_isolation.h"
 #include "recording/recording_media_inspector.h"
 #include "recording/recording_latency_trace.h"
 #include <filesystem>
@@ -42,8 +43,8 @@ struct Store {
     std::filesystem::path root;RecordingJournal journal;RecordingCatalog catalog;std::string error;
     static RecordingCatalog::Options Options(const std::filesystem::path& p,bool sql=true){RecordingCatalog::Options o(p/"recording-catalog.sqlite3",p,sql);o.enable_v2_storage=true;return o;}
     Store(const std::filesystem::path& p,bool sql=true):root(p),journal(RecordingJournal::ManagedOptions{p,"store"}),catalog(journal,Options(p,sql)) {Require(journal.Open(&error)&&catalog.Open(&error),error);}
-    RecordingSegmentV2 Add(const std::string& id,bool unknown=false,bool pinned=false,RecordingRetentionClass klass=RecordingRetentionClass::Continuous,const std::string& relative="") {
-        RecordingSegmentV2 s;s.segment_id=id;s.source_id="source";s.channel_id="channel";s.store_id="store";s.order_request_id="order-"+id;s.media_epoch_id="epoch-"+id;
+    RecordingSegmentV2 Add(const std::string& id,bool unknown=false,bool pinned=false,RecordingRetentionClass klass=RecordingRetentionClass::Continuous,const std::string& relative="",const std::string& channel="channel") {
+        RecordingSegmentV2 s;s.segment_id=id;s.source_id="source";s.channel_id=channel;s.store_id="store";s.order_request_id="order-"+id;s.media_epoch_id="epoch-"+id;
         s.media_start_pts=0;s.media_end_pts=1000000000;s.container="mp4";s.video_codecs={"h264"};s.audio_omitted_reason="source-no-audio";
         s.size_bytes=std::filesystem::file_size(media_fixture);s.checksum_sha256=Sha(media_fixture);s.created_at_ms=1;s.finalized_at_ms=2;s.pinned=pinned;s.retention_class=klass;
         s.mappings={{"media-server.recording-utc-mapping.v1","map-"+id,0,1000000000,"server-observation",1000000000,2000000000,1,"observed"}};
@@ -55,7 +56,7 @@ struct Store {
     std::uint64_t Hold(const std::string& id){for(const auto& c:catalog.RetentionSnapshot().candidates)if(c.segment_v2&&c.segment_v2->segment_id==id)return c.hold_count;return 0;}
     RetentionCoordinator Coordinator(RetentionCoordinator::MediaUnlinker unlinker={}) {
         if(!unlinker)unlinker=[this](const auto& p,auto* e){return RemoveContainedMediaFile(root,p,e,{},true);};
-        return RetentionCoordinator(catalog,[this]{return catalog.RetentionSnapshot();},[](auto* b,auto*){*b=100000000;return true;},unlinker,{0,1,root});
+        return RetentionCoordinator(catalog,[](auto* b,auto*){*b=100000000;return true;},unlinker,{0,1,root});
     }
 };
 RecordingTombstoneV2 Tomb(const RecordingSegmentV2& s){RecordingTombstoneV2 t;t.tombstone_id="tomb-"+s.segment_id;t.segment=s;t.deletion_reason="continuous-capacity";t.deleted_at_ms=10;return t;}
@@ -78,10 +79,28 @@ int main(int argc,char** argv) {
     (void)argv;
     if(std::getenv("R97_LATENCY_TRACE"))::setenv("MEDIA_SERVER_VERIFY_RECORDING_LATENCY_TRACE","1",1);
     if(argc!=2)return 2;
+    if(!RecordingWriterTestIsolation(std::filesystem::path(argv[1])))return 2;
     try {
 #if MEDIA_SERVER_USE_GSTREAMER
         gst_init(nullptr,nullptr);const std::filesystem::path root=argv[1];media_fixture=root/"fixture.mp4";Generate(media_fixture);
         Store s(root/"store");const auto original=s.Add("original");
+        const auto selected=s.catalog.RetentionSnapshot(RetentionSnapshotSelection::Candidate,"original");
+        const auto authority=s.catalog.RetentionSnapshot(RetentionSnapshotSelection::Authority);
+        const auto missing=s.catalog.RetentionSnapshot(RetentionSnapshotSelection::Candidate,"absent");
+        const auto no_pending=s.catalog.RetentionSnapshot(RetentionSnapshotSelection::Pending);
+        Check(selected.authoritative&&selected.candidates.size()==1&&selected.candidates[0].segment_v2&&
+            SerializeRecordingSegmentV2(*selected.candidates[0].segment_v2)==SerializeRecordingSegmentV2(original)&&
+            authority.authoritative&&authority.candidates.empty()&&missing.authoritative&&missing.candidates.empty()&&
+            no_pending.authoritative&&no_pending.candidates.empty(),"R101-P01 native exact/authority/pending do not return unrelated candidates");
+        {
+            Store channels(root/"r101-channels");channels.Add("a");channels.Add("b",false,false,RecordingRetentionClass::Continuous,"","other");
+            const auto one=channels.catalog.RetentionSnapshot(RetentionSnapshotSelection::Channel,"channel");
+            const auto absent=channels.catalog.RetentionSnapshot(RetentionSnapshotSelection::Channel,"absent");
+            const auto all=channels.catalog.RetentionSnapshot();
+            Check(one.authoritative&&one.candidates.size()==1&&one.candidates[0].Id()=="a"&&
+                absent.authoritative&&absent.candidates.empty()&&all.candidates.size()==2,
+                "R101-P03 channel selection excludes unrelated rows without changing All");
+        }
         Require(InspectRecordingPhysicalMedia(root,"fixture.mp4",Descriptor(original)).state==MediaInspectionState::Healthy,"independent healthy fixture inspection");
         RecordingTombstoneV2 parsed;const auto tomb=Tomb(original);const auto json=SerializeRecordingTombstoneV2(tomb);
         Check(ParseRecordingTombstoneV2(json,&parsed,&s.error)&&SerializeRecordingSegmentV2(parsed.segment)==SerializeRecordingSegmentV2(original)&&json.find("recorded_range")==std::string::npos,"B01 V2 tombstone preserves immutable segment without legacy UTC range");
@@ -104,11 +123,17 @@ int main(int argc,char** argv) {
         const bool conflict_rejected=!conflict_catalog.Open(&s.error)&&s.error=="segment state mutation ID envelope 불일치"&&Bytes(conflict_journal.path())==conflict_before;
         Check(valid_state&&wrong_entity&&conflict_rejected&&!ParseRecordingSegmentStateV2("{}",&state,&s.error)&&!ParseRecordingTombstoneV2("{}",&parsed,&s.error),"B02 V2 state records reject malformed payload entity and duplicate conflicts");
         const bool pending=s.catalog.RequestDeletion("original","continuous-capacity",&s.error);const auto before=s.catalog.FindSegmentV2ById("original");
+        const auto selected_pending=s.catalog.RetentionSnapshot(RetentionSnapshotSelection::Pending);
+        Check(selected_pending.authoritative&&selected_pending.candidates.size()==1&&selected_pending.candidates[0].Id()=="original"&&
+            selected_pending.candidates[0].Lifecycle()==RecordingLifecycle::DeletionPending&&
+            selected_pending.candidates[0].deletion_reason=="continuous-capacity","R101-P02 pending current row path/reason join");
         Check(pending&&s.catalog.SegmentLifecycleV2("original")==RecordingLifecycle::DeletionPending&&before&&SerializeRecordingSegmentV2(*before)==SerializeRecordingSegmentV2(original),"B03 V2 pending corrupt and deleted overlays never mutate finalized payload");
         Check(pending&&!s.catalog.FinalizeSegmentV2(original,(s.root/"original.mp4").string(),&s.error)&&!s.catalog.MarkSegmentCorrupt("original","checksum-mismatch",&s.error),"B04 V2 invalid transitions and finalize retries cannot resurrect state");
         const bool existing_rejected=!s.catalog.CompleteDeletionV2(tomb,&s.error)&&std::filesystem::exists(s.root/"original.mp4");
         Require(std::filesystem::remove(s.root/"original.mp4"),"B05 fixture unlink");
         const bool completed=s.catalog.CompleteDeletionV2(tomb,&s.error);
+        Check(completed&&s.catalog.RetentionSnapshot(RetentionSnapshotSelection::Pending).candidates.empty()&&
+            s.catalog.RetentionSnapshot(RetentionSnapshotSelection::Candidate,"original").candidates.empty(),"R101-P03 deleted row never reappears in selective reads");
         if(!completed)std::cout<<"[diagnostic] B05 complete: "<<s.error<<'\n';
         const bool checkpoint=completed&&s.catalog.Checkpoint(&s.error);
         if(completed&&!checkpoint)std::cout<<"[diagnostic] B05 checkpoint: "<<s.error<<'\n';

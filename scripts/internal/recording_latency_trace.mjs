@@ -42,21 +42,25 @@ export function catalogHolderSummary(text,required=true) {
    rows.push(v);
   }
   if(!required&&!rows.length&&!end)return {status:'not-observed',rows:[]};
-  if(!end||end.version!==1||end.loss!==false||end.inflight!==0||end.records!==rows.length||!uint(end.endNs)||end.widthNs!==1000000000||!Array.isArray(end.windows)||end.windows.length!==3||!end.windows.every(uint)||end.windows.some((b,i)=>!b||b+end.widthNs>end.endNs||(i&&b<=end.windows[i-1]+end.widthNs)))throw Error('holder-completion');
-  for(const v of rows)if(!end.windows.some(b=>v.b<b+end.widthNs&&v.e>b))throw Error('holder-outside');
+  if(!end||![1,2].includes(end.version)||end.loss!==false||end.inflight!==0||end.records!==rows.length||!uint(end.endNs)||!Array.isArray(end.windows)||end.windows.length!==3||!end.windows.every(uint))throw Error('holder-completion');
+  const ends=end.version===1?end.windows.map(b=>b+end.widthNs):end.ends;
+  if(end.version===1&&(end.widthNs!==1000000000||end.windows.some((b,i)=>i&&b<=end.windows[i-1]+end.widthNs)))throw Error('holder-completion');
+  if(end.version===2&&(!['[1,2,3]','[4,5,6]'].includes(JSON.stringify(end.requests))||!Array.isArray(ends)||ends.length!==3||!ends.every(uint)))throw Error('holder-completion');
+  if(end.windows.some((b,i)=>!b||ends[i]<b||ends[i]>end.endNs))throw Error('holder-completion');
+  for(const v of rows)if(!end.windows.some((b,i)=>v.b<ends[i]&&v.e>b))throw Error('holder-outside');
   const byMutex=new Map();for(const v of rows){if(!byMutex.has(v.m))byMutex.set(v.m,[]);byMutex.get(v.m).push(v);}
   for(const values of byMutex.values()){
    values.sort((a,b)=>a.a-b.a||a.e-b.e);for(let i=1;i<values.length;i++)if(values[i].a<values[i-1].e)throw Error('holder-overlap');
   }
   const windows=end.windows.map((begin,index)=>{
-   const finish=begin+end.widthNs,byWork={};let waitNs=0,coveredNs=0;
-   for(const waiter of rows){if(!waiter.r)continue;const a=Math.max(begin,waiter.b),b=Math.min(finish,waiter.a);if(b<=a)continue;waitNs+=b-a;
+   const finish=ends[index],byWork={};let waitNs=0,coveredNs=0;
+   for(const waiter of rows){if(!waiter.r||(end.version===2&&waiter.r!==end.requests[index]))continue;const a=Math.max(begin,waiter.b),b=Math.min(finish,waiter.a);if(b<=a)continue;waitNs+=b-a;
     for(const holder of byMutex.get(waiter.m)||[]){const lo=Math.max(a,holder.a),hi=Math.min(b,holder.e);if(hi<=lo)continue;
      coveredNs+=hi-lo;const key=holder.work+':'+holder.site+':'+holder.l;byWork[key]=(byWork[key]||0)+hi-lo;
     }
    }
    const held={};for(const h of rows){const ns=Math.min(finish,h.e)-Math.max(begin,h.a);if(ns<=0)continue;const key=h.work+':'+h.site+':'+h.l;const x=held[key]??={count:0,heldNs:0,counts:[0,0,0,0],completeIntervals:0};x.count++;x.heldNs+=ns;if(h.a>=begin&&h.e<=finish){x.completeIntervals++;h.counts.forEach((n,i)=>x.counts[i]+=n);}}
-   return {selectedRequest:[7,41,77][index],beginNs:begin,endNs:finish,waitNs,coveredNs,unclassifiedNs:waitNs-coveredNs,overlapByHolder:byWork,held};
+   return {selectedRequest:(end.version===2?end.requests:[7,41,77])[index],beginNs:begin,endNs:finish,waitNs,coveredNs,unclassifiedNs:waitNs-coveredNs,overlapByHolder:byWork,held};
   });
   return {status:'captured',sampledOnly:true,rows,end,windows};
  }catch(error){code=error.message;}

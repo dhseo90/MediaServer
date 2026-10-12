@@ -10,7 +10,16 @@ namespace L=recording::latency;
 static void Sink(const char* text,std::size_t bytes) noexcept {if(L::local.depth)std::abort();(void)std::fwrite(text,1,bytes,stdout);}
 int main(int argc,char** argv){
  L::test_sink=Sink;const std::string mode=argc>1?argv[1]:"contention";std::mutex mutex,other;
- if(mode=="holder"){
+ if(mode=="holder-whole"||mode=="holder-overflow"||mode=="holder-late"){
+  for(unsigned i=1;i<=(mode=="holder-late"?6U:3U);++i){L::VisualRequestSummary request;L::VisualRequestSummary::Result(200,"ok");
+   if(mode=="holder-late"&&i<4)continue;
+   std::mutex gate;std::condition_variable cv;bool ready=false;
+   std::thread worker([&]{L::WorkScope work(L::Work::Index);L::Lock held(mutex,L::Source::Catalog,__LINE__,false,"index");{std::lock_guard g(gate);ready=true;cv.notify_one();}std::this_thread::sleep_for(std::chrono::milliseconds((i==1||i==4)?1100:10));L::HolderCount(2,7);});
+   {std::unique_lock g(gate);cv.wait(g,[&]{return ready;});}
+   {L::WorkScope work(L::Work::Visual);L::Lock waiting(mutex,L::Source::Catalog,__LINE__,false,"visual");}worker.join();
+   if(mode=="holder-overflow")for(unsigned n=0;n<8193;++n){L::Lock held(mutex,L::Source::Catalog,__LINE__,false,"overflow");}
+  }
+ }else if(mode=="holder"){
   for(unsigned i=1;i<=77;++i){L::VisualRequestSummary request;L::VisualRequestSummary::Result(200,"ok");if(i==7||i==41||i==77){
    std::mutex gate;std::condition_variable cv;bool ready=false;
    std::thread worker([&]{L::WorkScope work(L::Work::Retention);L::Lock held(mutex,L::Source::Catalog,__LINE__,false,"retention");{std::lock_guard g(gate);ready=true;cv.notify_one();}std::this_thread::sleep_for(std::chrono::milliseconds(10));L::HolderCount(2,7);});

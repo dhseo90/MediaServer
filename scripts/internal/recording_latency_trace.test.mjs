@@ -84,3 +84,27 @@ test('V430-A01-APP changing holders, scheduling/unobserved gap and wrong mutex',
  for(const change of [{version:2},{loss:true},{inflight:1},{records:2},{windows:[100,2000000000,0]}])assert.equal(trace.catalogHolderSummary(format(rows,{...end,...change})).status,'incomplete');
  assert.equal(trace.catalogHolderSummary(format(rows)+'[catalog-holder-loss] write\n').status,'incomplete');
 });
+
+for(const mode of ['holder-whole','holder-overflow'])test('R101-H01 actual whole-request '+mode,()=>{
+ const env={PATH:process.env.PATH,MEDIA_SERVER_VERIFY_RECORDING_LATENCY_TRACE:'1',MEDIA_SERVER_VERIFY_RECORDING_LATENCY_SLOW_ONLY:'1',MEDIA_SERVER_VERIFY_CATALOG_HOLDER_TRACE:'1',MEDIA_SERVER_VERIFY_VISUAL_REQUEST_TRACE:'1',MEDIA_SERVER_VERIFY_CATALOG_HOLDER_WHOLE_REQUESTS:'1'};
+ const r=spawnSync(binary,[mode],{encoding:'utf8',timeout:15000,maxBuffer:4*1024*1024,env});assert.equal(r.status,0,r.stderr);
+ const raw=r.stdout+r.stderr,v=trace.catalogHolderSummary(raw);
+ if(mode==='holder-overflow'){assert.equal(v.status,'incomplete');return;}
+ assert.equal(v.status,'captured',v.code);assert(v.windows[0].endNs-v.windows[0].beginNs>1000000000);assert(v.windows[0].coveredNs>1000000000);assert.equal(v.rows.length,6);
+ const e=v.end;for(const change of [{ends:[0,...e.ends.slice(1)]},{requests:[7,41,77]},{loss:true}]){const bad=raw.replace(/^\[catalog-holder-end\].*$/m,'[catalog-holder-end] '+JSON.stringify({...e,...change}));assert.equal(trace.catalogHolderSummary(bad).status,'incomplete');}
+ const invalid=spawnSync(binary,['holder-whole'],{encoding:'utf8',timeout:15000,maxBuffer:4*1024*1024,env:{...env,MEDIA_SERVER_VERIFY_CATALOG_HOLDER_WHOLE_REQUESTS:'full'}});assert.equal(trace.catalogHolderSummary(invalid.stdout+invalid.stderr).status,'incomplete');
+});
+
+test('R101-H02 overlapping windows only charge their selected waiter',()=>{
+ const rows=[{id:1,m:1,t:9,r:0,l:2,work:3,site:'owner',b:100,a:100,e:150,counts:[1,0,0,0]},
+ {id:2,m:1,t:1,r:1,l:3,work:1,site:'query',b:110,a:150,e:160,counts:[1,0,0,0]},
+ {id:3,m:1,t:2,r:2,l:3,work:1,site:'query',b:120,a:160,e:170,counts:[1,0,0,0]}];
+ const end={version:2,records:3,loss:false,inflight:0,endNs:300,requests:[1,2,3],windows:[100,110,200],ends:[180,190,250]};
+ const raw=rows.map(r=>'[catalog-holder] '+JSON.stringify(r)+'\n').join('')+'[catalog-holder-end] '+JSON.stringify(end)+'\n';
+ const v=trace.catalogHolderSummary(raw);assert.equal(v.status,'captured');assert.deepEqual(v.windows.map(w=>w.waitNs),[40,40,0]);assert.deepEqual(v.windows.map(w=>w.coveredNs),[40,40,0]);
+});
+
+test('R101-H03 actual late requests4/5/6 preserve complete intervals',()=>{
+ const r=spawnSync(binary,['holder-late'],{encoding:'utf8',timeout:15000,maxBuffer:4*1024*1024,env:{PATH:process.env.PATH,MEDIA_SERVER_VERIFY_RECORDING_LATENCY_TRACE:'1',MEDIA_SERVER_VERIFY_RECORDING_LATENCY_SLOW_ONLY:'1',MEDIA_SERVER_VERIFY_VISUAL_REQUEST_TRACE:'1',MEDIA_SERVER_VERIFY_CATALOG_HOLDER_TRACE:'1',MEDIA_SERVER_VERIFY_CATALOG_HOLDER_WHOLE_REQUESTS:'late'}});
+ assert.equal(r.status,0,r.stderr);const v=trace.catalogHolderSummary(r.stdout+r.stderr);assert.equal(v.status,'captured',v.code);assert.deepEqual(v.windows.map(w=>w.selectedRequest),[4,5,6]);assert(v.windows[0].coveredNs>1000000000);assert.equal(v.rows.length,6);
+});

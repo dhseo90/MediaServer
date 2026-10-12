@@ -234,7 +234,7 @@ int DecoderComparison(const std::filesystem::path& root,bool only_bframes=false)
 
 // R98: 고정 혼합 입력을 그대로 demux하고, 각 key 시작점의 정상 Stop prefix를
 // 실제 managed writer에 전달한다. 이 관측은 임의 입력의 출력 상한이 아니다.
-int MixedFixtureBound(const std::filesystem::path& root,bool direct=false,bool generation_direct=false) {
+Encoded MixedInput(const std::filesystem::path& root) {
     const auto need=[](bool ok,const char* why){if(!ok)throw std::runtime_error(why);};
     const auto file=root/"mixed-input.mp4";
     const std::string generation="videotestsrc num-buffers=120 pattern=ball ! video/x-raw,format=I420,width=160,height=90,framerate=30/1 ! x264enc tune=zerolatency speed-preset=ultrafast pass=quant quantizer=0 key-int-max=30 ! h264parse ! mp4mux ! filesink location=\""+file.string()+"\"";
@@ -261,6 +261,13 @@ int MixedFixtureBound(const std::filesystem::path& root,bool direct=false,bool g
     gst_element_set_state(pipeline,GST_STATE_NULL);gst_object_unref(sink);gst_object_unref(pipeline);
     need(input.packets.size()==120&&payload<1024*1024,"mixed-input-count-size");
 
+    (void)max_packet;return input;
+}
+int MixedFixtureBound(const std::filesystem::path& root,bool direct=false,bool generation_direct=false) {
+    const auto need=[](bool ok,const char* why){if(!ok)throw std::runtime_error(why);};
+    const auto file=root/"mixed-input.mp4";
+    auto input=MixedInput(root);std::uint64_t payload=0,max_packet=0;
+    for(const auto& packet:input.packets){payload+=packet.payload.size();max_packet=std::max(max_packet,std::uint64_t(packet.payload.size()));}
     if(generation_direct)return MixedGeneration(root,input);
     if(direct){
         constexpr std::uint64_t E=64ULL*1024*1024,S=36*1024,H=643*S,P=S;

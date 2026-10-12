@@ -5003,3 +5003,26 @@ R97-A02는 미선택 대체 후보의 unlink/authority 하드 오류를 거부�
 - 결과 버전2는 startup/cycle-recovery/space를 분리하며 하나라도 FAIL/not-run이면 준비 묶음 PASS가 아니다. 단기 PASS는 45/120분 공간·지연·메모리 P0 완료를 뜻하지 않는다. macOS/비특권 Linux 및 독립 검토 후 빈-root 준비는 1회만 실행한다.
 - 실제 소비 경로: `recording_managed_writer_smoke.cpp`의 `recording_mixed_generation_fixture.h`는 `--mixed-generation`/`--mixed-generation-reopen`을 제공한다. 부모 `recording_mixed_generation_check.mjs ROOT BINARY COLLECTOR`는 각 phase를 실제 공간 관측 후 진행시키고, 기존 `recording_current_observer.mjs`의 고정 크기 baseline 대조를 사용한다. `recording_mixed_generation_check.test.mjs`는 실제 부모 함수의 수집 실패·마지막 종료 오류·자식/후손 정리 반례를 합성 자식으로 확인한다. `recording_longrun_progress.test.mjs`는 실제 혼합 소비자의 준비/장시간 분기와 전체 준비 집계를 검사한다. 실행 결과는 정의에 포함하지 않는다.
 - R99-F03 Linux collector 연결: `/proc/PID/fd`의 실제 regular/nlink0 inode를 dev/ino로 중복 제거하여 logical/allocated를 구분한다. 4회 유한 race 재관측·8MiB identity 목록·기존 FD 한도, 오류/null 거부를 유지한다. 기존 `recording_process_metrics.test.mjs`의 별도 프로세스/dup FD/마지막 close 검사를 양 플랫폼 Werror로 수행한다. macOS libproc 경로는 불변이다.
+
+### R101-H01 / S01 — 실제 Catalog 보유자와 자료량·동시성
+
+- H01: 기존 holder producer/collector의 opt-in 첫 3개 요청 전체 구간. 요청 종료 이전 대기·동일 mutex의 모든 보유 구간과 미계측 공백을 분리한다. 기존 7/41/77×1초 경로는 불변. 8192행/4MiB·누락/잘못된 설정/미종료/overflow 거부, 1초 이후 실제 보유자 반례를 실행한다.
+- S01: R99 고정 120frame 입력의 실제 generation 원본·order·FinalizeBound 경계로 4/53/실제 (87MiB−64MiB)/파일 bytes 근처 channel별 활성량을 준비한다. private DB 주입 금지. 단독·장면2/구조화2·색인/녹화/retention 병행을 구분하고 최초/후속 요청·정확한 원본·권한·손상·취소·Stop을 확인한다. 실제 실행 계획의 고정 반복 수와 입력 hash를 부모 run에 남긴다. p95 2000ms/최대5000ms/RAM·공간·로그 예산은 불변이며 직접 PASS와45분 PASS는 별개다.
+
+- R101-P01: 실제 Catalog retention 소비자의 authority/pending/exact-candidate 조회 분리. 전체 snapshot과 선택 결과의 동일성·typed hold 거부·실제 부족·원본 오류·예약·재Open 보호를 직접 확인하고, generic provider는 기존 거부/주입 계약을 유지한다. 정상 계획과 보호 후 잔여량 재판정은 전체 현재 snapshot을 유지한다. 4/53/cycle 실제 source-bound 병행 요청의 방문량·holder·정확성·지연·Finish를 전후 비교한다. UI 없음, 45분은 직접/플랫폼/독립/결속 통과 후 1회 조건부.
+
+- R101-P03: 채널 계획·admission·보호 후 재판정은 같은 현재 cut의 해당 채널 후보만 받으며 모든 채널의 내구/진행 예약은 계속 합산한다. 서로 다른 두 채널·없는 채널·All 결과와 실제 보호/대체/부족 반례를 대조한다. derived source 전체 조회와 generic provider 계약은 유지한다. 직접 실행 진입점은 `recording_visual_contention_check.py`와 `recording_visual_contention_smoke.cpp`다.
+
+- V450-MEM101-S02: 현재 원본 binding의 잠금 밖 파싱은 캡처한 envelope/행을 소유하고, 반환 전 현재 삭제·entry·원장 bytes를 재검증한다. `recording_generation_request_proof_smoke.cpp`의 정상/append/checkpoint/삭제/원본손상 결정적 순서와 기존 B proof 회귀로 검증한다. cache/파일/권한 의미는 불변이며 직접 성능과 구분한다.
+
+- R101-C01: `recording_visual_contention_observer.mjs`는 초기화 전 수집 handshake 후 기존 process-metrics/workspace 피연산자와 RSS를 감시하고, `recording_visual_contention_check.py`가 실패/짧은 쓰기/초과/종료 잔여를 전파한다. `recording_visual_contention_contract.py`와 `recording_visual_contention_contract_test.py`는 실제 저장 출력의 요청 모집단·응답 shape/순서·trace 완전성·owner 반환·배경 확정/색인 게시를 판정한다. 이 응답 검사는 전체 exact-topk oracle나 실제 Seek 실행이 아니다. 배경 파동은 첫 요청 후 실제 2/4건 확정을 기다려 다음 요청을 시작하며 기존 writer/scan/retention 주기를 유지한다.
+
+- R101-H03: 같은 8192행/4MiB 안에서 후반 실제 요청4/5/6 전체 구간을 선택해 first1/2/3과 구분한다. 단독과 배경 병행은 첫 요청 실패의 전체 보유자를 관측하며, 배경 없는 동시 요청은 후반 선택을 사용한다. collector는 선택 ID와 end를 대조하며 누락·손실은 fail-closed다. 모델/session 준비의 기존8GiB에는 모델·의존성·build·실행root·기존 익명파일·최대ONNX사본 예약을 합산한다. 모델 임시FD가 닫힌 뒤 live448 부모승인 전에는 색인 Collect를 gate하며 거부/EOF는 false 해제한다. 측정 중 phase 전환 표본으로 새 phase를 승인하지 않는다.
+
+- R101-S03: 실제 RequestMedia 기존 eviction/응답hold/동시원본변경/정확seek/큰payload 회귀는95 native environment와 초기화 전 binary guard에서만 실행한다. 고정요청5초·90초 wrapper와8MiB/200entry cache를 유지하고 모델/session을 실행하지 않는다. `verify_visual_request_media_cache.py`와 `visual_request_media_cache_smoke.cpp`.
+
+- V450-MEM101-S04: startup/visual 공통 확정 ID 목록은 인증된 같은 Catalog cut의 이미 읽은 행과 빈 namespace를 재사용한다. 비어 있지 않은 retired/tombstone/state 조회와 V1·정렬·pending/삭제 거부를 유지한다. source/output 독립 fixture ID와 append/checkpoint/pending 전후, 활성16·과거0/32/128 대조를 수행한다. 경로·채널·hold 필터를 새로 추가하지 않는다.
+
+- V450-MEM101-S05: retention이 활성화한 segment-v2 파싱 재사용은 기존640MiB owner 안의 최대16MiB cache다. 매 호출의 인증 raw 읽기·순회·coverage는 유지하며 정확한 현재 bytes가 같은 경우만 typed row를 공유한다. cache miss/퇴거/큰 row는 원래 cold decode, 부재·변조·Finish 뒤에는 cache fallback이 없다. 같은 ID 변경, 작은 시험 예산 퇴거, reader 보유, Finish 해제와 같은 크기 node 변조를 기존 request-proof에서 검증하고 최종 병행/자원 결과를 별도로 확인한다. 다른 namespace·예약·보호·실제 용량 재판정은 유지한다.
+
+- R101-C02: 배경 병행의 3개 요청 파동과 6개 확정 뒤, 기존 전체180/630초 안에서 실제 새 generation 게시를 확인한 후 Stop한다. 게시 완료 대기는 요청 지연 표본/추가 warmup이 아니다. 관측한 첫 degraded는 별도로 보존하고 기존 worker 주기의 실제 다음 완성 게시를 확인하며, 실패 attempt를 성공으로 바꾸지 않는다. stopped·누락·부모 deadline은 실패다. 최종 generation gate는 유지하고 이전의 조기 Stop 실행을 소급 PASS로 바꾸지 않는다.

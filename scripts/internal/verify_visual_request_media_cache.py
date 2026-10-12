@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 # 파일 용도: RequestMedia의 실제 저장소 경계를 검사하며 모델 추론이나 서버/포트는 실행하지 않는다.
 import argparse, hashlib, json, os, pathlib, shlex, shutil, subprocess, tempfile, time
+from recording_native_isolation import environment
 parser=argparse.ArgumentParser();parser.add_argument('--build',required=True);parser.add_argument('--output',required=True);args=parser.parse_args()
 repo=pathlib.Path(__file__).resolve().parents[2];build=(repo/args.build).resolve();output=(repo/args.output).resolve();output.parent.mkdir(parents=True,exist_ok=True)
 assert not output.exists(), 'result already exists'
 source_commit=subprocess.check_output(['git','rev-parse','HEAD'],cwd=repo,text=True).strip()
-root=pathlib.Path(tempfile.mkdtemp(prefix='media-server-visual-cache-')).resolve();identity=root.stat();record={'sourceCommit':source_commit,'results':[],'cleanup':{'root':str(root),'rootAbsent':False},'scope':'real V2 media; source copy changes field access only; product budgets unchanged'}
+root=pathlib.Path(tempfile.mkdtemp(prefix='media-server-visual-cache-',dir=pathlib.Path('/tmp').resolve())).resolve();identity=root.stat();record={'sourceCommit':source_commit,'results':[],'cleanup':{'root':str(root),'rootAbsent':False},'scope':'real V2 media; source copy changes field access only; product budgets unchanged'}
 sha=lambda p:hashlib.sha256(p.read_bytes()).hexdigest()
 failed=True
 try:
@@ -17,12 +18,12 @@ try:
  for line in (build/'CMakeFiles/media_server_runtime.dir/flags.make').read_text().splitlines():
   if ' = ' in line:k,v=line.split(' = ',1);flags[k]=shlex.split(v)
  link=shlex.split((build/'CMakeFiles/media_server.dir/link.txt').read_text());libs=link[link.index('libmedia_server_runtime.a')+1:]
- binary=root/'check';fixture=root/'fixture';fixture.mkdir()
+ binary=root/'check';fixture=root/'fixture';fixture.mkdir(mode=0o700);env=environment(fixture)
  commands=[('compile',[link[0]]+flags['CXX_DEFINES']+flags['CXX_INCLUDES']+flags['CXX_FLAGS']+['-I'+str(root),'-I'+str(repo/'scripts/internal'),str(repo/'scripts/internal/visual_request_media_cache_smoke.cpp'),str(build/'libmedia_server_runtime.a')]+libs+['-o',str(binary)]),('run',[str(binary),str(fixture)])]
  for name,command in commands:
   log=output.with_name(output.stem+'-'+name+'.log');started=time.monotonic()
   with log.open('w') as f:
-   try:code=subprocess.run(command,cwd=repo,stdout=f,stderr=subprocess.STDOUT,timeout=90).returncode
+   try:code=subprocess.run(command,cwd=fixture,env=env,stdout=f,stderr=subprocess.STDOUT,timeout=90).returncode
    except subprocess.TimeoutExpired:code=124
   record['results'].append({'phase':name,'command':command,'exit':code,'elapsedSeconds':time.monotonic()-started,'timeoutSeconds':90,'log':log.name});output.write_text(json.dumps(record,indent=2)+'\n');print(json.dumps(record['results'][-1]),flush=True)
   if code:print(log.read_text()[-4000:],flush=True);break

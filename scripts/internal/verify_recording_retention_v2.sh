@@ -28,6 +28,6 @@ compile(){
  "$ROOT_DIR/src/domain/strict_json.cpp" "${BASE[@]}" "$@" -lz -o "$RUN_DIR/test-$mode"
 }
 compile 1 "${GST[@]}"
-"$RUN_DIR/test-1" "$RUN_DIR"
+python3 "$SCRIPT_DIR/recording_native_isolation.py" "$RUN_DIR" -- "$RUN_DIR/test-1" "$RUN_DIR"
 compile 0
-"$RUN_DIR/test-0" "$RUN_DIR"
+python3 "$SCRIPT_DIR/recording_native_isolation.py" "$RUN_DIR" -- "$RUN_DIR/test-0" "$RUN_DIR"
