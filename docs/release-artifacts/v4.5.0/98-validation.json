@@ -211,8 +211,51 @@
     "PR/CI/merge/tag/Release"
   ],
   "independent": "98-independent-review.json; new fixture reviewed independently;986legacy digest is not new behavior approval",
-  "cleanup": "pending evidence byte preservation then exact ownedroot/container absence; no privatebackup/config/model/SDK targets",
-  "remote": "pending ordinarypush; final SHA and readback reported separately",
+  "cleanup": {
+    "ownedRootAbsent": true,
+    "pointerAbsent": true,
+    "regularOwnedFilesRemoved": 5294,
+    "logicalOwnedBytesRemoved": 365571076,
+    "container": "media-server-fixture98-linux absent after --rm verified",
+    "nativeChildren": "all returned; no product server/browser/listening port started",
+    "privateConfigBackup": "not accessed, not archived, not cleanup target",
+    "modelsSDKImages": "unchanged",
+    "evidenceFirst": "local Git show and remote blob bytes verified before ownedroot removal"
+  },
+  "remote": {
+    "preservationCommit": "0d6948299e969adaccbb4e7802214770014d9965",
+    "remoteHeadAtReadback": "0d6948299e969adaccbb4e7802214770014d9965",
+    "remoteBlobReadback": [
+      {
+        "path": "docs/release-artifacts/v4.5.0/98-execution.tar.gz",
+        "gitBlob": "9577d7dbc8141f05f8410e5d26e6a3ce9ff09698",
+        "bytes": 461549,
+        "sha256": "afd1520692821df24f1ee0a00df8f90aad6c4d717d07992a8f2a687cb39927a3",
+        "remoteBytesMatch": true
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/98-preservation.json",
+        "gitBlob": "ea8a83d978185c22492a77df4f9ec0a822dda262",
+        "bytes": 33779,
+        "sha256": "5e4a3d01f80e0607d473dc3c51232ee34cc23be157bca9aae54a72282d4b3bd7",
+        "remoteBytesMatch": true
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/98-validation.json",
+        "gitBlob": "e952154174514525466f44d0ef79942808067c86",
+        "bytes": 12871,
+        "sha256": "8ca4430e784a02da42fa649d7a6d9a196f399ffdcae0427c2d41efcaf98e7a21",
+        "remoteBytesMatch": true
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/98-independent-review.json",
+        "gitBlob": "07a3224729d1e882ee4575d714e640413d7cbec3",
+        "bytes": 11698,
+        "sha256": "351824671b3bb5b9028d3a20018a7f517476673bf5898c1806c2f353686c5bb6",
+        "remoteBytesMatch": true
+      }
+    ]
+  },
   "binding": {
     "producer": "51/0",
     "readback": "986valid/15negative",
