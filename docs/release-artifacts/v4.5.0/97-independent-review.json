@@ -1,0 +1,49 @@
+{
+  "schema": "media-server.v450.independent-review.v1",
+  "task": 97,
+  "reviewer": "/root/independent_memory86",
+  "independence": "separate read-only reviewer; did not implement, author or execute tests; no delegation",
+  "model": {
+    "requested": "gpt-6-astra/high",
+    "toolAccepted": "existing reviewer prior acceptance; followup exposes no new settings",
+    "runtime": "not-exposed"
+  },
+  "reviewedBase": "8f9ee650954ba454fc02740b1f1f7d282ed216cf",
+  "patchSha256": "02fcf07984bfaff258e1a15545790c053d41c13dff65a48d8ea608b1f6be842a",
+  "result": {
+    "status": "LIMITED_CHANGE_ACCEPTED_FIXTURE_DECISION_REQUIRED",
+    "blockingFindingsForLimitedChange": [],
+    "findings": [
+      "Fixed refreshed range; original-plan exclusions; one visit each; actual capacity stop; atomic protection and hard failures preserved.",
+      "A02 directly exercises replacement unlink/authority failure. B02 protected267289B exceeds256KiB headroom and is genuine refusal, not reconstructed96 owner.",
+      "Same writer20 input packets:10 blocked,10 decoded in new final file after same-session hold release.",
+      "macOS/Linux product/native and V2 wrapper raw output confirms reported limited regressions.",
+      "Candidate items/trustBindings equal existing986 candidate; new behavior independently reviewed.",
+      "Before retention object bytes equal base; same final fixture/runtime link. Small pair denial1020/1051us to actual successful deletion3147/3735us; snapshots5 to8/11.",
+      "Mutex aggregate source/site is not retained, so cost is not per-Catalog-site or concurrent search latency. Whole-fixture RSS/footprint includes encoder/oracle."
+    ],
+    "remaining": [
+      "H/P/E upper-bound and continuous fixture decision",
+      "96 exact owner/unselected alternative unknown",
+      "partial search p95",
+      "45/120 space and memoryP0/release hold"
+    ]
+  },
+  "ownerRiskAcceptance": "not-granted",
+  "releaseAdoption": "not-performed",
+  "preservationReview": {
+    "blockingFindings": [],
+    "archiveBytes": 315533,
+    "archiveSha256": "f815262e010b8d206fbc424aad4592f5738ae49d83735d905d3a3770f805a296",
+    "archiveAndOriginalMembersChecked": 96,
+    "original": 74,
+    "pathRedacted": 22,
+    "mismatches": 0,
+    "findings": [
+      "firstfailures/platform/binding/cost raw output and two small generatedMP4s retained",
+      "same procedure/size with differentMP4 hashes explicitly limited",
+      "four source file hashes and product/runtime match; inventorySha256 only semantic manifestchange"
+    ],
+    "remaining": "remote bytes readback then ownedroot cleanup; continuous fixture/search/longrun/P0/release unchanged"
+  }
+}

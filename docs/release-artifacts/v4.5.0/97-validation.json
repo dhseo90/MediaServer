@@ -1,0 +1,270 @@
+{
+  "schema": "media-server.v450.validation.v1",
+  "task": 97,
+  "status": "LIMITED_RETENTION_FIX_PASS_CONTINUOUS_FIXTURE_DECISION_REQUIRED",
+  "model": {
+    "mainRequested": "gpt-6-astra/high",
+    "mainToolAccepted": "not-exposed",
+    "mainRuntime": "not-exposed",
+    "independentRequested": "gpt-6-astra/high",
+    "independentToolAccepted": "prior existing reviewer acceptance; followup no new settings",
+    "independentRuntime": "not-exposed"
+  },
+  "source": {
+    "base": "8f9ee650954ba454fc02740b1f1f7d282ed216cf",
+    "files": {
+      "scripts/internal/recording_managed_writer_smoke.cpp": "8cf0056c6480f1b065e9abe27247592b70260343101125b3c670ee65ea3c7e6f",
+      "scripts/internal/recording_retention_v2_smoke.cpp": "7b843828a7eb6c4b2db5d716b0cacbe6ab087a46d17c46c2d4d10c9a46069fda",
+      "scripts/internal/verify_recording_retention_v2.sh": "8a62e7b1579ab85387255c4b7a6a2a68eace1c8dc79d72fe7a09f496ad5e6ad9",
+      "src/recording/retention_coordinator.cpp": "9d2f6195128ab6d984b3fe8af9bc40ec18f8bce48766fbbf4ce8466cab7546be"
+    },
+    "runtime": "8fdcbc0f0918e25a06d39df3ba488cf82e292be7151a69af4f51062432710f01",
+    "product": "592100ed3af4ddf2e1120e81348b5dfeb77d8e1413b7c675586f9cfa3a517c7d",
+    "patchSha256": "02fcf07984bfaff258e1a15545790c053d41c13dff65a48d8ea608b1f6be842a",
+    "implementationCommit": "981952dd169574e302aedf1600d0e492d7426c73",
+    "executionProvenance": "runs used base plus recorded implementation patch; implementation commit made after final runs, byte-identical source files verified"
+  },
+  "scope": {
+    "product": "fixed one-pass unselected deletion candidates after actual protection and refreshed shortage; no changes to quota/default64MiB/448MiB/640MiB/mixed gate/scratch representation",
+    "tests": "R97-A01/A02/B01/B02/C01/C02/W01; actual Catalog APIs, snapshot-provider synchronous deterministic latch, no private map insertion",
+    "notRun": [
+      "600seconds",
+      "45minutes",
+      "120minutes",
+      "full acceptance",
+      "fullUI",
+      "Qwen/Ollama",
+      "unload gate",
+      "PR/CI/merge/tag/Release"
+    ]
+  },
+  "ABC": {
+    "A": "PASS; originalPlanA only; real hold afterPlan before mutation; preserveA/event, deleteunselectedB; successiveBhold deletesC once; stop as soon actual capacity sufficient",
+    "B": "PASS; held/pinned no alternative: no deletion mutation, no reservation, storageBlocked remains true; repeated refusal keeps journal bytes",
+    "C": "PASS; same coordinator hold release then next admission deletes/reserves/finalizes healthy MP4, reOpen preserves deletion/new/pin; actual managed writer independently confirms same-session recovery",
+    "writer": {
+      "inputPackets": 20,
+      "blockedPackets": 10,
+      "admissionAttempts": 2,
+      "denied": 1,
+      "allowed": 1,
+      "completedFiles": 1,
+      "decodedFrames": 10,
+      "macOSCompletedBytes": 10872,
+      "recordingGap": "first10 packets intentionally not recorded; no gap concealed; Stop and Finish succeed"
+    },
+    "mixedQuotaFixture": {
+      "Q": 67371008,
+      "E": 67108864,
+      "headroom": 262144,
+      "heldCountMacOS": 11,
+      "heldBytesMacOS": 267289,
+      "excessMacOS": 5145,
+      "scope": "minimal generated-file count above headroom, setup capped32; not observed mixed concurrent owner count or support bound"
+    }
+  },
+  "historical96": {
+    "status": "FAIL preserved",
+    "nearbyTrace": {
+      "actualPlusWrite": 67402036,
+      "quota": 67371008,
+      "required": 67108864,
+      "protected": 1,
+      "deleted": 0,
+      "refreshOk": 1,
+      "quotaOk": false
+    },
+    "arithmetic": {
+      "remainingCountedBytes": 293172,
+      "headroom": 262144,
+      "excess": 31028
+    },
+    "unknown": "all293172B are not established as heldfile bytes; status and trace notatomic; actual protectedowner/unselectedcandidate availability unpreserved;95cap and93missingbody remainunknown",
+    "partialSearch": {
+      "successfulP95Ms": 2364.045,
+      "maximumMs": 3159.215,
+      "finalGate": "not-run; separate unresolvedperformance"
+    }
+  },
+  "contractDecision": {
+    "continuous": "Q >= Emax+Hmax+Pmax, with disjoint held/pinned/job finalized bytes and unreclaimed pending/corrupt; E=max(callerMinimum,default64MiB,observedMax)",
+    "physical": "free minus current continuous/event inflight unwritten and durable reservations >= diskReserve+E; separate from channel quota",
+    "writer": "caller minimum firstpayload+1MiB overhead; actual returned reservation bounds payload and finalfile; default is lower bound, not universal output maximum",
+    "choice": "retain protection/refusal/recovery direct test; separately approve continuous fixture quota/input headroom after H/P/E bounds and 448MiB live/scratch/results/log plus recovery-copy compatibility established",
+    "changed": false,
+    "notProved": "universal protected bound,45/120 fit, whether96 could have used a substitute; adding31028B alone is not sufficient proof"
+  },
+  "cost": {
+    "before": {
+      "costLines": [
+        "[R97-cost] successive=0 snapshots=5 unlinks=0 allowed=0 elapsedUs=1020",
+        "[R97-cost] successive=1 snapshots=5 unlinks=0 allowed=0 elapsedUs=1051"
+      ],
+      "latencyRequests": [
+        {
+          "request": 1,
+          "scopeElapsedNs": 1008667,
+          "instrumentedMutexEvents": 17,
+          "waitSumNs": 582,
+          "waitMaxNs": 42,
+          "holdSumNs": 925168,
+          "holdMaxNs": 89209,
+          "attribution": "same-thread fast aggregates flushed at request boundaries; timestamps enclosed in test admission scope; fast rows discard site/source, thus not per-Catalog-site breakdown; no concurrent requester contention measured"
+        },
+        {
+          "request": 2,
+          "scopeElapsedNs": 1042583,
+          "instrumentedMutexEvents": 17,
+          "waitSumNs": 705,
+          "waitMaxNs": 42,
+          "holdSumNs": 958294,
+          "holdMaxNs": 97709,
+          "attribution": "same-thread fast aggregates flushed at request boundaries; timestamps enclosed in test admission scope; fast rows discard site/source, thus not per-Catalog-site breakdown; no concurrent requester contention measured"
+        }
+      ],
+      "loss": false,
+      "rssWholeTestMaximumBytes": [
+        "138723328"
+      ],
+      "footprintWholeTestPeakBytes": [
+        "18186864"
+      ],
+      "interpretation": "single pair; extra successful deletion vs denial, bounded tiny active fixture; not p95 or concurrency proof; process highwater includes whole test/encoder and oracle; no heap ownership attribution"
+    },
+    "after": {
+      "costLines": [
+        "[R97-cost] successive=0 snapshots=8 unlinks=1 allowed=1 elapsedUs=3147",
+        "[R97-cost] successive=1 snapshots=11 unlinks=1 allowed=1 elapsedUs=3735"
+      ],
+      "latencyRequests": [
+        {
+          "request": 1,
+          "scopeElapsedNs": 3136375,
+          "instrumentedMutexEvents": 28,
+          "waitSumNs": 1044,
+          "waitMaxNs": 42,
+          "holdSumNs": 2894668,
+          "holdMaxNs": 945584,
+          "attribution": "same-thread fast aggregates flushed at request boundaries; timestamps enclosed in test admission scope; fast rows discard site/source, thus not per-Catalog-site breakdown; no concurrent requester contention measured"
+        },
+        {
+          "request": 2,
+          "scopeElapsedNs": 3724833,
+          "instrumentedMutexEvents": 39,
+          "waitSumNs": 1413,
+          "waitMaxNs": 42,
+          "holdSumNs": 3429629,
+          "holdMaxNs": 943834,
+          "attribution": "same-thread fast aggregates flushed at request boundaries; timestamps enclosed in test admission scope; fast rows discard site/source, thus not per-Catalog-site breakdown; no concurrent requester contention measured"
+        }
+      ],
+      "loss": false,
+      "rssWholeTestMaximumBytes": [
+        "138805248"
+      ],
+      "footprintWholeTestPeakBytes": [
+        "18580104"
+      ],
+      "interpretation": "single pair; extra successful deletion vs denial, bounded tiny active fixture; not p95 or concurrency proof; process highwater includes whole test/encoder and oracle; no heap ownership attribution"
+    }
+  },
+  "inputs": {
+    "before": {
+      "sha256": "3560e80a526eeb1332cc17ee06bc48f9786f6b891ffd308e4d6137be9e16661d",
+      "bytes": 24299,
+      "origin": "same Generate() procedure, newly encoded, no historical media substitution"
+    },
+    "after": {
+      "sha256": "8e373759473b58b1b8f505f270e6a72fd37807909ae0a8571d0861e95e31ef40",
+      "bytes": 24299,
+      "origin": "same Generate() procedure, newly encoded, no historical media substitution"
+    },
+    "comparisonBoundary": "Both MP4s are24299B and generated with the same pipeline but SHA256 differs; not byte-identical or historically restored input. Timing pair compares same generated procedure/size and fixed latch, not precision equivalence of media bytes."
+  },
+  "tests": {
+    "macOS": {
+      "build": "PASS current product/runtime",
+      "legacyRetention": "57/0",
+      "nativeV2Earlier": "33/0 before A02/B02 additions",
+      "finalV2": "36/0;GSToff2/0",
+      "managedWriter": "47/0",
+      "derivedJobs": "24/0"
+    },
+    "Linux": {
+      "image": "sha256:ce72c8a15363984da642e9964189957896812061c6af1d0ef67e87b38ad5a588",
+      "uid": 10001,
+      "network": "none",
+      "compiler": "GCC16.2.0",
+      "build": "PASS GStreamer/ONNX/SigLIP2 existing environment",
+      "legacyRetention": "57/0",
+      "nativeV2": "36/0",
+      "managedWriter": "47/0",
+      "derivedJobs": "24/0",
+      "wrapper": "36/0;GSToff2/0",
+      "warnings": "-Wall -Wextra -Werror",
+      "reused": "95 permission/isolation guard unchanged; no new user-config test or permission policy change"
+    },
+    "static": {
+      "inventory": "final18/0 after producer; first17/1 drift preserved",
+      "scriptInventory": "13/0",
+      "diffCheck": 0,
+      "shellSyntax": 0,
+      "changedLinks": "PASS97 links exist; history refs unchanged"
+    }
+  },
+  "firstFailures": [
+    {
+      "name": "red",
+      "result": "compile/link FAIL unresolved current identity/generation symbols; not expectedRED; wrapper direct link corrected"
+    },
+    {
+      "name": "red-linked",
+      "result": "expected product RED A01x2; safeB/C and existing contracts passed"
+    },
+    {
+      "name": "linux97 wrapper",
+      "result": "product/native passed; wrapper-only missing ownedroot; fixed in separateattempt"
+    },
+    {
+      "name": "linux-wrapper",
+      "result": "relative wrapper command after isolationcwd failed; absolute path fixes linkage; finalattemptPASS"
+    },
+    {
+      "name": "inventory",
+      "result": "inventorySha256 drift before reviewed producer; preserve firstfail"
+    },
+    {
+      "name": "cost-before",
+      "result": "A01x2+A02x2 fail on old product because replacement path never reached; expected comparison, not afterregression"
+    }
+  ],
+  "reuse": "95 isolation/typedretention;96 inline112/failureoperands;82K/F/journal/coldlookup/sourceauthority untouched; historical59/61/63 etc remain their source/environment scope, not current fullacceptance",
+  "remaining": [
+    "continuous fixture contract decision",
+    "96 partial search p95",
+    "45/120 space",
+    "memoryP0/finalmixed/lifecycle",
+    "release hold"
+  ],
+  "cleanup": "pending remote evidence byte readback then exact ownedroot cleanup; no privatebackup/config/model/SDK targets",
+  "remote": "pending ordinarypush; finalSHA reported separately",
+  "binding": {
+    "producer": "PASS51/0 after independent diff/cost review",
+    "candidateDigest": "8977e9b6ac618c7e0233823f6acb6ab1fcf7461206ee5d8b2a4149a643519e3a",
+    "itemsAndTrustBindings": "identical to prior candidate; verified independently",
+    "semanticManifestChange": [
+      "inventorySha256"
+    ],
+    "serialization": "existing pretty format restored from actual producer JSON; no value manually edited",
+    "readback": "PASS986 valid/15negative; no execution evidence claim",
+    "coverage": "PASS9/0 covered986/missing0",
+    "newBehavior": "approved by separate97review; not inferred from986digest"
+  },
+  "preservation": {
+    "archive": "97-execution.tar.gz",
+    "bytes": 315533,
+    "sha256": "f815262e010b8d206fbc424aad4592f5738ae49d83735d905d3a3770f805a296",
+    "members": 96,
+    "readback": "all preserved bytes checked; original/redacted distinguished in97-preservation.json"
+  }
+}
