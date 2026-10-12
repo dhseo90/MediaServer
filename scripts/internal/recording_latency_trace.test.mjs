@@ -108,3 +108,10 @@ test('R101-H03 actual late requests4/5/6 preserve complete intervals',()=>{
  const r=spawnSync(binary,['holder-late'],{encoding:'utf8',timeout:15000,maxBuffer:4*1024*1024,env:{PATH:process.env.PATH,MEDIA_SERVER_VERIFY_RECORDING_LATENCY_TRACE:'1',MEDIA_SERVER_VERIFY_RECORDING_LATENCY_SLOW_ONLY:'1',MEDIA_SERVER_VERIFY_VISUAL_REQUEST_TRACE:'1',MEDIA_SERVER_VERIFY_CATALOG_HOLDER_TRACE:'1',MEDIA_SERVER_VERIFY_CATALOG_HOLDER_WHOLE_REQUESTS:'late'}});
  assert.equal(r.status,0,r.stderr);const v=trace.catalogHolderSummary(r.stdout+r.stderr);assert.equal(v.status,'captured',v.code);assert.deepEqual(v.windows.map(w=>w.selectedRequest),[4,5,6]);assert(v.windows[0].coveredNs>1000000000);assert.equal(v.rows.length,6);
 });
+
+test('R103-H01 actual mixed late77/78/79 complete producer and parser',()=>{
+ const r=spawnSync(binary,['holder-mixed-late'],{encoding:'utf8',timeout:15000,maxBuffer:4*1024*1024,env:{PATH:process.env.PATH,MEDIA_SERVER_VERIFY_RECORDING_LATENCY_TRACE:'1',MEDIA_SERVER_VERIFY_RECORDING_LATENCY_SLOW_ONLY:'1',MEDIA_SERVER_VERIFY_VISUAL_REQUEST_TRACE:'1',MEDIA_SERVER_VERIFY_CATALOG_HOLDER_TRACE:'1',MEDIA_SERVER_VERIFY_CATALOG_HOLDER_WHOLE_REQUESTS:'mixed-late'}});
+ assert.equal(r.status,0,r.stderr);const raw=r.stdout+r.stderr,v=trace.catalogHolderSummary(raw);
+ assert.equal(v.status,'captured',v.code);assert.deepEqual(v.windows.map(w=>w.selectedRequest),[77,78,79]);assert(v.windows[0].coveredNs>1000000000);assert.equal(v.rows.length,6);assert.equal(trace.catalogHolderSummary(raw,true,[77,78,79]).status,'captured');assert.equal(trace.catalogHolderSummary(raw,true,[1,2,3]).code,'holder-selection');
+ assert.equal(trace.catalogHolderSummary(raw.replace(/^\[catalog-holder\].*\n/m,'')).status,'incomplete');
+});

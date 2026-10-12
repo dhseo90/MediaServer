@@ -76,6 +76,24 @@ def expired(number, frame):
 signal.signal(signal.SIGALRM, expired)
 signal.setitimer(signal.ITIMER_REAL, max(0.01, 30 - (time.monotonic() - began)))
 try:
+    # 실제 main의 인자→wrapper→receipt 연결. 제품 실행만 대역한다.
+    from unittest.mock import patch
+    main = runtime['main']
+    observed = []
+    def diagnostic_owned(command, log_path, budget_seconds, cwd, env, started, registry=None):
+        observed.append((command, budget_seconds, env['MEDIA_SERVER_TEST_ARTIFACT_ROOT']))
+        return {'status': 'PASS', 'exit': 0}
+    diagnostic_root = root / 'diagnostic-main'
+    with patch.dict(main.__globals__, {'run_owned': diagnostic_owned, 'source_binding': lambda repo: {'fixture': 'same'}}), patch.object(sys, 'argv', ['launcher', '--contention-diagnostic', str(diagnostic_root)]):
+        try:
+            main()
+        except SystemExit as result:
+            check(result.code == 0, 'diagnostic-main-exit')
+    diagnostic_record = json.loads((diagnostic_root / 'execution.json').read_text())
+    check(len(observed) == 1 and observed[0][0][-1] == '--contention-diagnostic' and observed[0][1] == 1080
+          and diagnostic_record['observationSeconds'] == 900 and diagnostic_record['source'] == diagnostic_record['sourceEnd'], 'diagnostic-main-contract')
+    (log_dest / 'diagnostic-main.json').write_text(json.dumps(diagnostic_record, indent=2)+'\n')
+
     class FailedReceipt:
         def write_text(self, value):
             raise OSError('fixture disk full')

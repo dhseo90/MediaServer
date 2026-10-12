@@ -5033,3 +5033,11 @@ R97-A02는 미선택 대체 후보의 unlink/authority 하드 오류를 거부�
 - `recording_process_metrics.cpp`: 성공은 한 round의 필요한 상세 전수 관측만 인정. 직전 실패 slot을 새 목록에도 vnode인 경우 먼저 읽되 나머지도 다시 읽는다. absent/type 전이는 실패 진단이며 미관측 비용0이나 과거 객체 동일성 증거가 아니다.4회·8MiB·부모3초 유지. 같은 round의 dev/inode 중복은 관측 최대 logical/allocated를 overflow 검증 후 합산한다.
 - `recording_foundation_observer.mjs` → `recording_current_observer.mjs`: 완전성/시각/고정 개수 오류 진단을 부모·동일 공간 피연산자까지 전달한다. 누락·권한·PID 변경·부분 반환/공간 초과는 실패. 순차 sample이며 순간peak/매핑-only 파일 전수 계상이 아니다.
 - 정상 제품·공간/p95/요청 한도 불변. 최종8조건은 수집/플랫폼/독립검토 후 각1회,45분은 전부 통과 뒤1회 조건부. UI/새120분 없음.
+
+### R103-H01 / P01 — 실제 혼합 부하의 후반 보유자와 원인 수정
+
+- H01: 기존 mixed/HTTP/auth/2채널/4client/증거/A 경로에 진단 전용900초(전체1080초)를 연결한다. 요청77/78/79 전체 구간을 사전에 선택하며8192행/4MiB, 누락·손실 거부를 유지한다. 실제 C++ 생성→parser와 실제 자식 환경→종료 수집을 확인한다. 900초의 삭제0은 관측값이며45/120분 삭제 gate는 불변이다.
+- P01: 제한 진단에서 실제 확인한 보유 작업을 대상으로 같은 원본·권한·K/F·삭제·정확한 검색·유한 메모리의 결정적 반례를 실행한다. 제품 변경 후 macOS/비특권Linux 관련 회귀와 독립 검토를 통과해야 같은 초기 상태의900초1회, 이후 조건부45분1회를 실행한다. 정적8조건 재실행·120분·UI는 포함하지 않는다.
+- R103-P02: 실제 혼합 실패 뒤 닫힌 원본의 별도 복제본에서 Channel retention을 warmup All 뒤 채널별3회 대조한다. 기존 All 필터와 직렬화/hash·경로·hold·상태·이유가 같아야 한다. 같은 입력에서 before/after node read·시간·예약을 측정한다. 수정은 같은 잠금 cut 안의 segment→media-path 순차 join이며 Candidate/Pending의 정확한 현재 조회·삭제 보호는 유지한다. 작은 generation fixture에서 missing path/다른채널/hold/상태/손상·Finish를 별도로 검증한다. 결과 뒤 기준 완화는 하지 않는다.
+
+- R103-P03: generation의 `kind/ID/m` 정렬과 RAM map의 raw ID 정렬을 구분한다. 실제 원장/snapshot의 `a`, `a-`, `a.`, `a:`, `a_`와 다른 채널·없는 경로를 구성하고 Channel/All을 변경하지 않은 exact Candidate와 독립 개수로 대조한다. 비용 helper는 `recording_retention_path_cost_smoke.cpp`, 의미 반례는 `recording_generation_request_proof_smoke.cpp`다. 최초 raw-ID merge의 누락은 예상 RED로 보존한 뒤 수정한다.

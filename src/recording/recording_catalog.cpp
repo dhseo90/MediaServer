@@ -4191,6 +4191,7 @@ RetentionSnapshot RecordingCatalog::RetentionSnapshotLocked(RetentionSnapshotSel
     const bool has_retired=completed_history_?completed_history_->Count("retired-v2")!=0:!retired_v2_.empty();
     const bool has_tombstones=!tombstones_.empty(),has_v2_tombstones=!tombstones_v2_.empty();
     const bool has_states=!states_v2_.empty(),has_reasons=!deletion_reasons_.empty();
+    const bool join_paths=completed_history_&&(selection==RetentionSnapshotSelection::All||selection==RetentionSnapshotSelection::Channel);
     const auto lifecycle_in_cut=[&](const std::string& id){
         if((has_retired&&RetiredLocked(id).has_value())||
            (has_tombstones&&tombstones_.count(id))||(has_v2_tombstones&&tombstones_v2_.count(id)))
@@ -4202,10 +4203,13 @@ RetentionSnapshot RecordingCatalog::RetentionSnapshotLocked(RetentionSnapshotSel
         if(selection==RetentionSnapshotSelection::Channel&&v.channel_id!=selected_id)return true;
         recording::latency::HolderCount(2);
         const auto lifecycle=lifecycle_in_cut(id);
-        const auto path=media_relpaths_.find(id);
-        if(lifecycle==RecordingLifecycle::Deleted||path==media_relpaths_.end())return true;
+        if(lifecycle==RecordingLifecycle::Deleted)return true;
         RetentionCandidate candidate;candidate.segment_v2=v;candidate.effective_lifecycle=lifecycle;
-        candidate.media_path=options_.media_root/std::filesystem::path(path->second);
+        if(!join_paths){
+            const auto path=media_relpaths_.find(id);
+            if(path==media_relpaths_.end())return true;
+            candidate.media_path=options_.media_root/std::filesystem::path(path->second);
+        }
         const auto hold=hold_counts_.find(id);candidate.hold_count=hold==hold_counts_.end()?0:hold->second;
         if(DerivedJobProtectsLocked(id)&&candidate.hold_count<std::numeric_limits<std::uint64_t>::max())++candidate.hold_count;
         if(has_reasons){const auto reason=deletion_reasons_.find(id);if(reason!=deletion_reasons_.end())candidate.deletion_reason=reason->second;}
@@ -4223,6 +4227,28 @@ RetentionSnapshot RecordingCatalog::RetentionSnapshotLocked(RetentionSnapshotSel
             return add_v2(row->first,row->second);
         });
     }else segments_v2_.ForEachEntry(add_v2);
+    if(join_paths&&!snapshot.candidates.empty()){
+        // Both authenticated namespaces are ordered by ID+'/' in the same locked
+        // Catalog cut. Reuse the caller's existing result vector: no second
+        // history/cache, nested index cursor or per-row root lookup is needed.
+        // Candidate/Pending still perform the exact lookup used before deletion.
+        std::size_t next=0;
+        const auto key_less=[](const std::string& a,const std::string& b){
+            const auto common=std::min(a.size(),b.size());
+            const int order=a.compare(0,common,b,0,common);
+            if(order)return order<0;
+            if(a.size()==b.size())return false;
+            return a.size()==common?'/'<b[common]:a[common]<'/';
+        };
+        media_relpaths_.ForEachEntry([&](const auto& id,const auto& path){
+            while(next<snapshot.candidates.size()&&key_less(snapshot.candidates[next].segment_v2->segment_id,id))++next;
+            if(next<snapshot.candidates.size()&&snapshot.candidates[next].segment_v2->segment_id==id)
+                snapshot.candidates[next++].media_path=options_.media_root/std::filesystem::path(path);
+            return true; // complete authenticated namespace coverage, even past the last match
+        });
+        snapshot.candidates.erase(std::remove_if(snapshot.candidates.begin(),snapshot.candidates.end(),
+            [](const auto& candidate){return candidate.media_path.empty();}),snapshot.candidates.end());
+    }
     const auto add_v1=[&](const auto& segment_id,const auto& segment) {
         if(selection==RetentionSnapshotSelection::Channel&&segment.channel_id!=selected_id)return true;
         if(selection==RetentionSnapshotSelection::Pending&&segment.lifecycle!=RecordingLifecycle::DeletionPending)return true;

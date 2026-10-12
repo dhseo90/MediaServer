@@ -29,7 +29,7 @@ export function preserveLatencyEvidence(file,value){
 }
 
 // Diagnostic sample windows are explicit; unsampled time is never attributed.
-export function catalogHolderSummary(text,required=true) {
+export function catalogHolderSummary(text,required=true,expectedRequests=null) {
  const rows=[];let end=null,code=null;
  try {
   for(const line of text.split('\n')){
@@ -43,9 +43,10 @@ export function catalogHolderSummary(text,required=true) {
   }
   if(!required&&!rows.length&&!end)return {status:'not-observed',rows:[]};
   if(!end||![1,2].includes(end.version)||end.loss!==false||end.inflight!==0||end.records!==rows.length||!uint(end.endNs)||!Array.isArray(end.windows)||end.windows.length!==3||!end.windows.every(uint))throw Error('holder-completion');
+  if(expectedRequests!==null&&(end.version!==2||JSON.stringify(end.requests)!==JSON.stringify(expectedRequests)))throw Error('holder-selection');
   const ends=end.version===1?end.windows.map(b=>b+end.widthNs):end.ends;
   if(end.version===1&&(end.widthNs!==1000000000||end.windows.some((b,i)=>i&&b<=end.windows[i-1]+end.widthNs)))throw Error('holder-completion');
-  if(end.version===2&&(!['[1,2,3]','[4,5,6]'].includes(JSON.stringify(end.requests))||!Array.isArray(ends)||ends.length!==3||!ends.every(uint)))throw Error('holder-completion');
+  if(end.version===2&&(!['[1,2,3]','[4,5,6]','[77,78,79]'].includes(JSON.stringify(end.requests))||!Array.isArray(ends)||ends.length!==3||!ends.every(uint)))throw Error('holder-completion');
   if(end.windows.some((b,i)=>!b||ends[i]<b||ends[i]>end.endNs))throw Error('holder-completion');
   for(const v of rows)if(!end.windows.some((b,i)=>v.b<ends[i]&&v.e>b))throw Error('holder-outside');
   const byMutex=new Map();for(const v of rows){if(!byMutex.has(v.m))byMutex.set(v.m,[]);byMutex.get(v.m).push(v);}

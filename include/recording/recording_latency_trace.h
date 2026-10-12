@@ -32,8 +32,8 @@ struct HolderTrace {
     std::array<std::atomic<std::uint64_t>,3> windows{}, ends{};
     // R101 opt-in: three complete actual requests (1/2/3 or the late4/5/6).
     // Default historical 7/41/77 one-second sampling remains unchanged.
-    const bool whole=[] {const char* p=std::getenv("MEDIA_SERVER_VERIFY_CATALOG_HOLDER_WHOLE_REQUESTS");return p&&(std::strcmp(p,"1")==0||std::strcmp(p,"late")==0);}();
-    const unsigned first=[] {const char* p=std::getenv("MEDIA_SERVER_VERIFY_CATALOG_HOLDER_WHOLE_REQUESTS");return p&&std::strcmp(p,"late")==0?4U:1U;}();
+    const bool whole=[] {const char* p=std::getenv("MEDIA_SERVER_VERIFY_CATALOG_HOLDER_WHOLE_REQUESTS");return p&&(std::strcmp(p,"1")==0||std::strcmp(p,"late")==0||std::strcmp(p,"mixed-late")==0);}();
+    const unsigned first=[] {const char* p=std::getenv("MEDIA_SERVER_VERIFY_CATALOG_HOLDER_WHOLE_REQUESTS");return p&&std::strcmp(p,"mixed-late")==0?77U:p&&std::strcmp(p,"late")==0?4U:1U;}();
     std::atomic<unsigned> inflight{0};std::atomic<bool> loss{false};
     static constexpr unsigned Requests[3]={7,41,77};
     static constexpr std::uint64_t Width=1000000000;
@@ -48,7 +48,7 @@ struct HolderTrace {
     ~HolderTrace() noexcept {
         bool good=!loss.load()&&inflight.load()==0;const unsigned total=count.load();
         const char* setting=std::getenv("MEDIA_SERVER_VERIFY_CATALOG_HOLDER_WHOLE_REQUESTS");
-        if(setting&&std::strcmp(setting,"1")!=0&&std::strcmp(setting,"late")!=0)good=false;
+        if(setting&&std::strcmp(setting,"1")!=0&&std::strcmp(setting,"late")!=0&&std::strcmp(setting,"mixed-late")!=0)good=false;
         if(whole)for(unsigned i=0;i<3;++i)if(!windows[i].load()||ends[i].load()<windows[i].load())good=false;
         for(unsigned i=0;i<total&&i<slots.size();++i){
             if(!slots[i].ready.load(std::memory_order_acquire)){good=false;continue;}

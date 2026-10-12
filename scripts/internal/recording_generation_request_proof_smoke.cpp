@@ -9,6 +9,9 @@
 #include "../../src/recording/recording_catalog_history.h"
 namespace recording {
 struct RecordingGenerationRequestProofProbe {
+    static void Path(RecordingCatalog& c,const std::string& id,const std::optional<std::string>& path){
+        std::lock_guard lock(c.mu_);if(path)c.media_relpaths_.Set(id,*path);else c.media_relpaths_.erase(id);
+    }
     using Context=RecordingCatalog::JobReadContext;
     static void SourceHook(std::function<void()> hook){RecordingCatalog::source_binding_unlocked_hook_=std::move(hook);}
     static std::string Source(RecordingCatalog& c){RecordingCatalog::SourceBindingReadContext context;auto value=c.ReadSourceBinding("segment",&context,&error);return value?SerializeRecordingSourceBindingV1(*value):std::string{};}
@@ -57,6 +60,58 @@ void CompleteFixture(const std::filesystem::path& root){
 RecordingCatalog::Options ReadOptions(const std::filesystem::path& root){RecordingCatalog::Options o(root/"recording-catalog.sqlite3",root,false);o.enable_v2_storage=true;return o;}
 #endif
 #if MEDIA_SERVER_USE_OPENSSL && MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND
+void RetentionPathCases(const std::filesystem::path& root){
+    std::filesystem::create_directories(root);CompleteFixture(root);
+    RecordingJournal journal(Options(root));Need(journal.Open(&error));
+    RecordingCatalog catalog(journal,ReadOptions(root));Need(catalog.Open(&error));
+    const auto input=CompleteInput();
+    auto all=catalog.RetentionSnapshot();Need(all.authoritative);
+    Check("R103-P02",all.candidates.size()==input.job.ready->outputs.size()+1,"full ordered join preserves source and completed output candidates");
+    for(const auto& candidate:all.candidates){
+        const auto exact=catalog.RetentionSnapshot(RetentionSnapshotSelection::Candidate,candidate.Id());
+        Check("R103-P02",exact.authoritative&&exact.candidates.size()==1&&
+            exact.candidates.front().media_path==candidate.media_path&&
+            exact.candidates.front().hold_count==candidate.hold_count&&
+            SerializeRecordingSegmentV2(*exact.candidates.front().segment_v2)==SerializeRecordingSegmentV2(*candidate.segment_v2),
+            "streamed path matches unchanged exact current candidate lookup");
+    }
+    Check("R103-P02",catalog.RetentionSnapshot(RetentionSnapshotSelection::Channel,"absent").candidates.empty(),"other channel never enters result");
+    Need(catalog.AdjustHoldCount("segment",1,&error));
+    const auto held=catalog.RetentionSnapshot(RetentionSnapshotSelection::Channel,"channel");
+    bool protected_source=false;for(const auto& c:held.candidates)if(c.Id()=="segment")protected_source=c.hold_count>0;
+    Check("R103-P02",held.authoritative&&protected_source,"same-cut hold remains protected through join");
+    Need(catalog.AdjustHoldCount("segment",-1,&error));
+    ProofProbe::Path(catalog,"segment",std::nullopt); // damaged/missing derived projection, not fixture population
+    const auto missing=catalog.RetentionSnapshot();
+    Check("R103-P02",missing.authoritative&&missing.candidates.size()+1==all.candidates.size()&&
+        catalog.RetentionSnapshot(RetentionSnapshotSelection::Candidate,"segment").candidates.empty(),"missing path has same omission as exact lookup");
+    ProofProbe::Path(catalog,"segment",std::string("channel/source.mp4"));
+    const auto restored=catalog.RetentionSnapshot();
+    Check("R103-P02",restored.authoritative&&restored.candidates.size()==all.candidates.size(),"cold reacquisition after path removal uses current bytes");
+    Need(journal.Finish(&error));
+}
+void RetentionPrefixCases(const std::filesystem::path& root){
+    std::filesystem::create_directories(root);ProjectionFixture f;std::int64_t ordinal=0;
+    for(const std::string id:{"a","a-","a.","a:","a_"}){
+        auto input=CompleteInput();auto s=input.source.segment;auto b=*input.source.binding;
+        s.segment_id=id;s.channel_id=id=="a"?"channel":"other";s.order_request_id="order-"+id;s.order_sequence=++ordinal;
+        b.segment_id=id;b.channel_id=s.channel_id;
+        RecordingOrderReservationV1 order;order.store_id="store";order.request_id=s.order_request_id;order.segment_id=id;order.channel_id=s.channel_id;order.sequence=ordinal;
+        f.Add(RecordingMutationType::RecordingOrderReserved,order.request_id,id,"{\"schema\":\"media-server.recording-order.v1\",\"storeId\":\"store\",\"requestId\":\""+order.request_id+"\",\"segmentId\":\""+id+"\",\"channelId\":\""+s.channel_id+"\",\"sequence\":"+std::to_string(ordinal)+"}",order);
+        const auto mutation="bound-"+id;const auto path=s.channel_id+"/"+id+".mp4";
+        f.Add(RecordingMutationType::SegmentV2BoundFinalized,mutation,id,"{\"segment\":"+SerializeRecordingSegmentV2(s)+",\"mediaRelpath\":\""+path+"\",\"sourceBinding\":"+SerializeRecordingSourceBindingV1(b)+"}");
+        f.Row("segment-v2",id,SerializeRecordingSegmentV2(s));f.Row("media-path",id,"\""+path+"\"");
+        std::string summary;Need(SerializeRecordingCatalogSourceSummary({id,s.channel_id,"source","gen","video/0",1,2,mutation},&summary,&error));f.Row("source-binding",id,summary);
+    }
+    Install(f,root);RecordingJournal journal(Options(root));Need(journal.Open(&error));RecordingCatalog catalog(journal,ReadOptions(root));Need(catalog.Open(&error));
+    const auto exact=catalog.RetentionSnapshot(RetentionSnapshotSelection::Candidate,"a");Need(exact.authoritative&&exact.candidates.size()==1);
+    const auto selected=catalog.RetentionSnapshot(RetentionSnapshotSelection::Channel,"channel");
+    Check("R103-P03",selected.authoritative&&selected.candidates.size()==1&&selected.candidates.front().Id()=="a"&&selected.candidates.front().media_path==exact.candidates.front().media_path,
+        "generation key ordering preserves prefix a across other-channel a-/a./a:/a_");
+    ProofProbe::Path(catalog,"a-",std::nullopt);const auto all=catalog.RetentionSnapshot();
+    Check("R103-P03",all.authoritative&&all.candidates.size()==4,"missing prefix path never skips unrelated candidate in authenticated order");
+    Need(journal.Finish(&error));
+}
 void VerifiedDecodeCases(){
     using Rows=RecordingRetainedRows<RecordingSegmentV2,ParseRecordingSegmentV2,SerializeRecordingSegmentV2>;
     auto store=std::make_shared<RecordingCatalogHistoryRows>();Need(store->Create(&error));
@@ -264,6 +319,8 @@ int main(int argc,char** argv){
 #if MEDIA_SERVER_USE_OPENSSL && MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND
         SourceReadCases(root/"source-read");
         VerifiedDecodeCases();
+        RetentionPathCases(root/"retention-path");
+        RetentionPrefixCases(root/"retention-prefix");
         ActiveProofCases(root/"active-proof");
 #endif
         return failures?1:0;

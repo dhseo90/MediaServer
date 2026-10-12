@@ -23,12 +23,13 @@ import {removeDiagnosticRoot} from "./recording_failure_capture.mjs";
 const repo=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');
 const root=process.argv[2],args=process.argv.slice(3),short=args.length===1&&args[0]==='--app-observe';
 const stateDiagnose=args.length===1&&args[0]==='--state-diagnostic';
-const diagnose=stateDiagnose||(args.length===1&&args[0]==='--frame-diagnostic');
+const contentionDiagnose=args.length===1&&args[0]==='--contention-diagnostic';
+const diagnose=contentionDiagnose||stateDiagnose||(args.length===1&&args[0]==='--frame-diagnostic');
 const frameTraceMode='bounded';
 const preparationContract=mixedPreparationContract(args);
 const fixtureProfile=mixedRecordingProfile('continuous-r98');
 console.log('[fixture-profile] '+JSON.stringify(fixtureProfile));
-const duration=short?30000:stateDiagnose?2700000:diagnose?600000:parseLongrunArgs(args);
+const duration=short?30000:contentionDiagnose?900000:stateDiagnose?2700000:diagnose?600000:parseLongrunArgs(args);
 if(!path.isAbsolute(root)||fs.realpathSync(root)!==root||!path.basename(root).startsWith('media-server-current-observer-')||(fs.statSync(root).mode&0o777)!==0o700)throw Error('owned-run-root');
 const artifacts=createReviewTestArtifacts(repo);
 const workspaceFailure=createWorkspaceFailureCapture(artifacts.outputDir);
@@ -41,7 +42,7 @@ const statusCapture=createRecordingStatusCapture(artifacts.outputDir,{admit:byte
   context:{kind:'status-write-admission',sampleIndex:samples.length,metricsCoverage:'status request collection; sequential with filesystem scan',productOwner:last?.productOwner??null}},workspaceFailure);
 }});
 let aLoad=null,auth=null,seedInfo=null;const passwords=createUiAuthPasswords();
-const start=performance.now(),deadline=start+(short?180000:stateDiagnose?2880000:diagnose?780000:7380000),processes=[],samples=[],ports=[];
+const start=performance.now(),deadline=start+(short?180000:contentionDiagnose?1080000:stateDiagnose?2880000:diagnose?780000:7380000),processes=[],samples=[],ports=[];
 const native=path.join(root,'normalize'),collector=path.join(root,'process-metrics');
 let workspace=null;
 // 부모의 새 로그/receipt도 가변 비용이다. 복구 copy만 기존 별도 C 예산으로 센다.
@@ -79,6 +80,7 @@ function environment(http,rtsp,stun){const env={PATH:process.env.PATH,HOME:proce
     VA_REVIEW_ENABLED:1,VA_REVIEW_LOCAL_ENDPOINT:'http://127.0.0.1:1',VISUAL_SEARCH_ENABLED:1,VISUAL_SEARCH_MODEL_DIRECTORY:path.join(repo,'models/v430-siglip2'),VISUAL_SEARCH_SCAN_SECONDS:1,VISUAL_SEARCH_SAMPLE_SECONDS:1,EVIDENCE_ENABLED:1,RECORDING_ENABLED:1,RECORDING_STORAGE_ROOT:path.join(root,'recordings'),RECORDING_SEGMENT_DURATION_SECONDS:2,RECORDING_RESERVED_FREE_BYTES:0,RECORDING_RETENTION_INTERVAL_MS:1000,
     VERIFY_RECORDING_STATE_TRACE:1,VERIFY_CATALOG_HOLDER_TRACE:diagnose&&!stateDiagnose?1:0,VERIFY_VISUAL_REQUEST_TRACE:1,VERIFY_RECORDING_SEARCH_TRACE:1,VERIFY_VISUAL_LATENCY_TRACE:short?1:0,VERIFY_RECORDING_RESOURCE_TRACE:1,VERIFY_FRAME_TRACE:frameTraceMode,VERIFY_RECORDING_LATENCY_TRACE:1,VERIFY_RECORDING_LATENCY_SLOW_ONLY:1,
     GST_CACHE_DIR:path.join(root,'gst-cache'),GST_PLUGIN_PROFILE:'headless',WEBRTC_STUN_SERVER:`stun://127.0.0.1:${stun}`,WEBRTC_TURN_SERVER:''};
+  if(contentionDiagnose)values.VERIFY_CATALOG_HOLDER_WHOLE_REQUESTS='mixed-late';
   for(const [k,v] of Object.entries(values))env['MEDIA_SERVER_'+k]=String(v);return env;
 }
 async function request(app,method,route,body,observeStatus=false){const begin=performance.now();budget();console.log('[request-budget] '+JSON.stringify({elapsedMs:Math.round(performance.now()-begin)}));
@@ -287,7 +289,7 @@ try{
   budget();
   for(const id of ['9101','9201']){fs.copyFileSync(path.join(root,'input/retention.mp4'),path.join(root,'input',source(id).file),fs.constants.COPYFILE_EXCL);budget();}
   fs.unlinkSync(path.join(root,'input/retention.mp4'));
-  if(!diagnose||stateDiagnose){workspace=freezeCurrentWorkspace(root);console.log('[workspace-fixed] '+JSON.stringify(workspace));}
+  if(!diagnose||stateDiagnose||contentionDiagnose){workspace=freezeCurrentWorkspace(root);console.log('[workspace-fixed] '+JSON.stringify(workspace));}
   check(new Set(['9101','9201'].map(id=>fs.realpathSync(path.join(root,'input',source(id).file)))).size===2,'LP26-O05 distinct canonical sources');
   fs.writeFileSync(path.join(root,'state/sources.json'),JSON.stringify({sources:[{sourceId:'1',displayName:'Synthetic A observations',kind:'file',file:'a-seed.mp4',enabled:false,recording:{enabled:false}}]}));fs.writeFileSync(path.join(root,'state/views.json'),JSON.stringify({views:[]}));
   udp=dgram.createSocket('udp4');await new Promise((resolve,reject)=>{udp.once('error',reject);udp.bind(0,'127.0.0.1',resolve);});const stun=udp.address().port;
@@ -340,7 +342,7 @@ finally{
     console.log('[resource-trace-summary] '+JSON.stringify(finishResourceTrace(app.resourceTrace)));
     const searchFailure=searchFailureSummary(text,app.requiresFrameTrace);console.log('[search-failure-summary] '+JSON.stringify(searchFailure));
     if(searchFailure.status==='incomplete'){failed++;console.log('[fail] structured-failure-collection');}
-    if(diagnose&&!stateDiagnose){const holders=catalogHolderSummary(text,app.requiresFrameTrace);fs.writeFileSync(path.join(root,`catalog-holders-${app.child.pid}.json`),JSON.stringify(holders),{flag:'wx',mode:0o600});if(holders.status==='incomplete'){failed++;console.log('[fail] catalog-holder-collection '+holders.code);}}
+    if(diagnose&&!stateDiagnose){const holders=catalogHolderSummary(text,app.requiresFrameTrace,contentionDiagnose?[77,78,79]:null);fs.writeFileSync(path.join(root,`catalog-holders-${app.child.pid}.json`),JSON.stringify(holders),{flag:'wx',mode:0o600});if(holders.status==='incomplete'){failed++;console.log('[fail] catalog-holder-collection '+holders.code);}}
     const requests=visualRequestSummary(text,app.requiresFrameTrace);console.log('[visual-request-summary] '+JSON.stringify(requests));if(requests.status==='incomplete'){failed++;console.log('[fail] visual-request-collection');}
     const frameTrace=frameTraceSummary(text,frameTraceMode,app.requiresFrameTrace);console.log('[frame-trace-summary] '+JSON.stringify(frameTrace));
     if(frameTrace.status!=='captured'&&!(frameTrace.status==='not-observed'&&!app.requiresFrameTrace)){failed++;console.log('[fail] frame-trace-incomplete');}
@@ -351,8 +353,8 @@ finally{
   try{if(observer)await observer.closeAsync();}catch{failed++;try{fs.writeFileSync(path.join(root,'cleanup-blocked'),'observer transport cleanup unresolved\n',{mode:0o600});}catch{}}if(udp)try{await new Promise(r=>udp.close(r));udpClosed=true;}catch{failed++;}else udpClosed=true;
   if(!udpClosed||processes.some(p=>!p.result?.archiveSafe)){fs.writeFileSync(path.join(root,'cleanup-blocked'),'process or port safety unresolved\n',{mode:0o600});failed++;}
   try{workspaceFailure.close();}catch{failed++;console.log('[fail] workspace-evidence-close');}
-  const final={workspaceFailure:workspaceFailure.summary(),decoderTraceMode:frameTraceMode,preparationContract,mode:short?'v450-startup-preparation-v2':stateDiagnose?'v450-state-diagnostic':diagnose?'v450-frame-diagnostic':'v450-recording-search-evidence-A-mixed-120',passed,failed,elapsedMs:Math.round(performance.now()-start),verifiedDurationMs:phaseResult?.elapsedMs??null,
-    longrunObservationCompleted:!short&&!diagnose&&failed===0&&!!phaseResult,shortPreparationPass:false,startupPreparationPass:short&&failed===0,cyclicRecoveryStatus:short?'not-run-in-this-process':null,frameDiagnosticPass:diagnose&&!stateDiagnose&&failed===0&&!!phaseResult,stateDiagnosticPass:stateDiagnose&&failed===0&&!!phaseResult,fixtureProfile,resourceTrendPass:false,reviewRequired:true,uiFulltestPass:false,
+  const final={workspaceFailure:workspaceFailure.summary(),decoderTraceMode:frameTraceMode,preparationContract,mode:short?'v450-startup-preparation-v2':contentionDiagnose?'v450-contention-diagnostic':stateDiagnose?'v450-state-diagnostic':diagnose?'v450-frame-diagnostic':'v450-recording-search-evidence-A-mixed-120',passed,failed,elapsedMs:Math.round(performance.now()-start),verifiedDurationMs:phaseResult?.elapsedMs??null,
+    longrunObservationCompleted:!short&&!diagnose&&failed===0&&!!phaseResult,shortPreparationPass:false,startupPreparationPass:short&&failed===0,cyclicRecoveryStatus:short?'not-run-in-this-process':null,contentionDiagnosticPass:contentionDiagnose&&failed===0&&!!phaseResult,frameDiagnosticPass:diagnose&&!stateDiagnose&&!contentionDiagnose&&failed===0&&!!phaseResult,stateDiagnosticPass:stateDiagnose&&failed===0&&!!phaseResult,fixtureProfile,resourceTrendPass:false,reviewRequired:true,uiFulltestPass:false,
     recordingStatusFailure:statusCapture.failure(),evidenceLoad:mixed,aLoad:aLoad?.report()??null,phase:phaseResult??null,resources:summary??null,processCount:processes.length,processesClosed:processes.every(p=>p.result?.normalShutdownPass),udpClosed,
     footprintState:samples.every(s=>Number.isSafeInteger(s.footprintBytes))?'proc-pid-rusage':'partially-or-not-measured',cpu:{maxPercent:samples.length?Math.max(...samples.map(s=>s.cpuPercent)):null},tokenStart:null,tokenEnd:null,tokenConsumed:null,tokenSource:'전용 집계 없음'};artifacts.checkpoint({...final,status:failed?'FAIL':'PASS',exit:failed?1:0});console.log(JSON.stringify(final));process.exitCode=failed?1:0;
 }
