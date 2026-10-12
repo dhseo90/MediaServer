@@ -1,0 +1,17 @@
+{
+  "schema": "media-server.r100.preservation.v1",
+  "archive": "docs/release-artifacts/v4.5.0/100-execution.tar.gz",
+  "archiveBytes": 3924016,
+  "archiveSha256": "523b5868718cce3c7d07d6d7849d60d5fe67f03b2340cd2c86af8d977c4802be",
+  "memberCount": 127,
+  "memberBytes": 7043145,
+  "originalMappedFiles": 178,
+  "originalMappedBytes": 8439998,
+  "rawFiles": 168,
+  "redactedFiles": 10,
+  "allMembersByteReadbackPass": true,
+  "manifestSha256": "b3297cea0895bf865ed0bc24a7cbe903b4fad8ca801644ef422d003578676593",
+  "localGitReadback": "pending evidence commit",
+  "remoteReadback": "pending push",
+  "cleanup": "pending verified preservation"
+}

@@ -1,0 +1,521 @@
+{
+  "schema": "media-server.v450.validation.v1",
+  "task": 100,
+  "status": "FAIL",
+  "scope": "current continuous-r98 candidate one authorized45min cumulative run; first visual HTTP header timeout stopped the attempt",
+  "model": {
+    "requestedMain": "gpt-6-astra/high",
+    "mainToolAccepted": "not-exposed",
+    "mainActualRuntime": "not-exposed",
+    "requestedIndependent": "gpt-6-astra/high",
+    "independentReviewer": "/root/independent_memory86",
+    "independentToolAccepted": "prior accepted setting record reused; followup does not expose setting",
+    "independentActualRuntime": "not-exposed"
+  },
+  "source": {
+    "head": "fa5a37b9f1262f8d9cee59109505cb4e06063978",
+    "fixtureProfile": "continuous-r98",
+    "fixtureProfileSourceSha256": "2a3570834be0e30d603e8206bb611e76acb232ade0374598a946b1ec2dd8813f",
+    "tree": "5f92550a82f5c6ec8c1c92c6e3728d6ef54e06ae",
+    "sourceSha256": "4e217f06ad184fc5774e29f61fd76c790da417f90e994f3d164e73888cfedc3c",
+    "binarySha256": "592100ed3af4ddf2e1120e81348b5dfeb77d8e1413b7c675586f9cfa3a517c7d",
+    "sourceEndEqual": true,
+    "productImplementation": "981952dd169574e302aedf1600d0e492d7426c73",
+    "testImplementation": "bb130af5af38adeac4f3b024ca8e223b8d31b766",
+    "runtimeSha256": "8fdcbc0f0918e25a06d39df3ba488cf82e292be7151a69af4f51062432710f01",
+    "srcIncludeScriptsInventoryUnchanged": true,
+    "entryWorktreeIndex": "clean",
+    "entryRemoteHead": "fa5a37b9f1262f8d9cee59109505cb4e06063978"
+  },
+  "preflight": {
+    "result": "PASS read-only prerequisites; no new preparation execution/rebuild/install",
+    "ownedParent": "/private/tmp/media-server-state100-hvcb1tza",
+    "runOutput": "/private/tmp/media-server-state100-hvcb1tza/run",
+    "uid": 501,
+    "initialState": "launcher empty recording9101/9201 roots plus existing A seed generation contract; no99 prestate imported",
+    "isolation": "existing95 native helper and binary guard reused; source/views/state/auth/cache/recording/temp bound under owned root; user defaults/private backup not accessed",
+    "binaries": "product/runtime match99 and not stale",
+    "modelFileManifest": "225 existing files in archive preflight; same models, no installation",
+    "hostContext": "approved macOS host launch; existing plugin/registry environment preserved in seed records",
+    "limits": {
+      "observationSeconds": 2700,
+      "totalSeconds": 2880,
+      "channelBytes": 91226112,
+      "workspaceBytes": 469762048,
+      "privateLogBytes": 4194304,
+      "p95Ms": 2000,
+      "maxMs": 5000
+    }
+  },
+  "run": {
+    "attempts": 1,
+    "command": [
+      "python3",
+      "scripts/internal/run_v450_recording_a_mixed.py",
+      "--state-diagnostic",
+      "/private/tmp/media-server-state100-hvcb1tza/run"
+    ],
+    "startedAt": "2026-10-12T13:39:35.095165+00:00",
+    "finishedAt": "2026-10-12T13:41:42.292435+00:00",
+    "pid": 45077,
+    "startIdentity": "macos:1791812383:215791",
+    "requiredMainSeconds": 2700,
+    "totalBudgetSeconds": 2880,
+    "lastConfirmedMainObservationSeconds": 106.99418775,
+    "completedMainDuration": null,
+    "wrapperExecutionSeconds": 127.00456233299337,
+    "totalWithFinalBindingSeconds": 127.23210454196669,
+    "mainHarnessElapsedMs": 121812,
+    "exit": 1,
+    "timedOutByOverallDeadline": false,
+    "passedAssertionsPartial": 292,
+    "failedAssertions": 1,
+    "automaticRetry": false
+  },
+  "failure": {
+    "trigger": "http-header-timeout",
+    "route": "GET /ops/api/recordings/visual-search",
+    "clientTimeouts": [
+      {
+        "method": "GET",
+        "routeClass": "other",
+        "status": null,
+        "headerElapsedMs": null,
+        "bodyElapsedMs": null,
+        "totalElapsedMs": 5004,
+        "bytes": 0,
+        "phase": "header",
+        "outcome": "timeout",
+        "routeKind": "/ops/api/recordings/visual-search"
+      },
+      {
+        "method": "GET",
+        "routeClass": "other",
+        "status": null,
+        "headerElapsedMs": null,
+        "bodyElapsedMs": null,
+        "totalElapsedMs": 5009,
+        "bytes": 0,
+        "phase": "header",
+        "outcome": "timeout",
+        "routeKind": "/ops/api/recordings/visual-search"
+      }
+    ],
+    "clientReceivedHttpStatus": null,
+    "serverInternalLastTwoStatus": 503,
+    "serverElapsedMs": [
+      5933.465541,
+      5943.607625
+    ],
+    "interpretation": {
+      "lastTwoServerInternal503": "completion after client timeout and shutdown initiation; not received HTTP503 and not proof of shared prior root cause",
+      "lastTwoCatalogWaitNs": [
+        4550328788,
+        4532179119
+      ],
+      "lastTwoCatalogHeldNs": [
+        694089921,
+        680216291
+      ],
+      "phase7": "index-search-current-sources",
+      "phase15": "eligible",
+      "phaseTiming": "inclusive; do not sum nested phases/locks",
+      "competingHolder": "not-observed; underlying root cause unconfirmed",
+      "mapping": "include/recording/recording_latency_trace.h Source::Catalog=1 and VisualRequestSummary::Names at execution HEAD"
+    },
+    "sameAsPriorFailure": "not-established",
+    "productOrTestChangedAfterFailure": false
+  },
+  "progress": {
+    "lastConfirmedChannels": {
+      "9101": {
+        "finalized": 53,
+        "deleted": 0,
+        "lastAt": 115098.541041,
+        "order": "107",
+        "store": "fe066fb9e84454d7ce51da0df15b962c89cb3f5408fb8a3423f4a8455faec8a9",
+        "knownMappings": 47,
+        "unknownMappings": 1166
+      },
+      "9201": {
+        "finalized": 53,
+        "deleted": 0,
+        "lastAt": 115098.541041,
+        "order": "106",
+        "store": "fe066fb9e84454d7ce51da0df15b962c89cb3f5408fb8a3423f4a8455faec8a9",
+        "knownMappings": 45,
+        "unknownMappings": 1216
+      }
+    },
+    "firstActualCyclicDeletion": "not-observed; zero both channels; no cyclic PASS",
+    "earlyMiddleLate": "only early first900sec window partially reached; middle/late and post-deletion not-run",
+    "statusJudgments": 22,
+    "statusJudgmentsPass": 22,
+    "aMainCompleted": 2,
+    "aSlotsReached": [
+      0,
+      1
+    ],
+    "maximumAOpportunities": 45,
+    "generalEvidenceCreated": 6,
+    "visualEvidenceCreated": 6,
+    "allowedEvidenceBusy": 6,
+    "retainedReadbacks": 12,
+    "postRestartReadback": "not-run-in-this-mode"
+  },
+  "latency": {
+    "originalGate": {
+      "p95Ms": 2000,
+      "maximumMs": 5000,
+      "requestMs": 5000
+    },
+    "finalGate": "not-run",
+    "partialOriginalPopulation": {
+      "count": 28,
+      "p95Ms": 4467.839000000007,
+      "maxMs": 4472.879832999999
+    },
+    "partialP95MeetsThreshold": false,
+    "separateTimeouts": 2,
+    "pathStatisticsOriginalPopulation": {
+      "visual": {
+        "count": 14,
+        "p95Ms": 4472.879832999999,
+        "maxMs": 4472.879832999999
+      },
+      "structured": {
+        "count": 14,
+        "p95Ms": 2347.8000829999946,
+        "maxMs": 2347.8000829999946
+      }
+    },
+    "populationBoundary": "28 successful recorded requests; 14 visual+14 structured. Failed Promise.all batch structured200 at1336/1964ms not appended; A auxiliary2 not in population. No redefinition of denominator.",
+    "rawHttpStructured200": 18,
+    "rawHttpVisual200": 14,
+    "recordedSearchUnavailable": 0,
+    "rawServerVisualCompleted": 16,
+    "notClaimed": "partial maximum excludes timeout failures; original successful-array max is not all-request max"
+  },
+  "spaceMemory": {
+    "fixedFBytes": 13647309,
+    "variableLimitBytes": 469762048,
+    "largestSameSampleSequentialVariablePlusAnonymousBytes": 34526933,
+    "anonymousMaxPolicy": "max(logical,allocated), unchanged",
+    "sampleMaxima": {
+      "rssBytes": 3213361152,
+      "footprintBytes": 3164687624,
+      "fdCount": 47,
+      "threadCount": 42,
+      "cpuPercent": 372.7,
+      "anonymousFileBytes": 3010048,
+      "anonymousAllocatedBytes": 3600384,
+      "anonymousFiles": 4
+    },
+    "productOwnerFinal": {
+      "status": "captured",
+      "count": 27,
+      "final": {
+        "pid": 45077,
+        "seq": 26,
+        "phase": "after-storage-destruction",
+        "elapsedMs": 118526,
+        "ram": 0,
+        "ramPeak": 189202937,
+        "ramLimit": 671088640,
+        "ramRejected": 0,
+        "scratchDisk": 0,
+        "scratchDiskPeak": 10227712,
+        "scratchDiskLimit": 156438929408,
+        "scratchFd": 0,
+        "scratchFdPeak": 16,
+        "scratchFdLimit": 1048572,
+        "scratchRam": 0,
+        "preservedDisk": 0,
+        "preservedFd": 0,
+        "readerCleanupHealthy": true
+      },
+      "scope": "actual shared product owner; logical charges, not total heap or RSS; sequential counter reads"
+    },
+    "spaceFailure": {
+      "status": "no-workspace-failure",
+      "primary": null,
+      "decision": null,
+      "collectorDiagnostic": null,
+      "context": null,
+      "collectionError": null,
+      "capacityBytes": 32768
+    },
+    "workspaceFailuresObserved": 0,
+    "spaceClaim": "no observed cap failure in partial run; no45min/120min capacity proof; sequential sample not atomic peak",
+    "reservationVsFile": "owner counters are logical reservations; file lengths/blocks measured separately; final owner0 does not establish no growth",
+    "copyBytes": 0,
+    "copyRecovery": "not-run-in-this-mode",
+    "sampleCount": 22,
+    "maxSampleGapMs": 5805.955042000001,
+    "postWarmup": {
+      "status": "insufficient",
+      "sampleCount": 0,
+      "delta": null,
+      "elapsedMs": null,
+      "rssMiBPerMinute": null
+    },
+    "resourceTrendPass": false,
+    "reviewRequired": true,
+    "scope": "RSS/footprint sampled process values; owner charge not heap/RSS; reservation not actual file bytes. Different-time maxima never summed. Postwarmup not reached. No instantaneous peak/full45min/no-leak claim."
+  },
+  "collection": {
+    "server": {
+      "pid": 45077,
+      "bytes": 69016,
+      "capturedBytes": 69016,
+      "sha256": "f3f19ffc3a00f91bea967586661d9a4affa3b96fbd94c418b3001d23ba87f7e9",
+      "overflow": false,
+      "captureError": null,
+      "categories": [
+        {
+          "code": "file evidence unavailable",
+          "count": 0
+        },
+        {
+          "code": "storageBlocked",
+          "count": 0
+        },
+        {
+          "code": "shutdown",
+          "count": 0
+        },
+        {
+          "code": "ERROR",
+          "count": 0
+        },
+        {
+          "code": "WARNING",
+          "count": 0
+        }
+      ],
+      "rawBodyPublished": false,
+      "privateCaptureDisposition": "eligible-for-wrapper-cleanup"
+    },
+    "frame": {
+      "status": "captured",
+      "mode": "bounded",
+      "required": true,
+      "records": 3,
+      "successes": 3,
+      "failures": 0,
+      "issues": []
+    },
+    "frameSamples": [
+      {
+        "policy": "automatic",
+        "succeeded": true,
+        "target": 0,
+        "bytes": 28161,
+        "firstPts": 0,
+        "lastPts": 0,
+        "offsetBefore": 0,
+        "offsetAfter": 0,
+        "factories": [
+          "appsrc:app:1.28.1",
+          "decodebin:playback:1.28.1",
+          "typefind:coreelements:1.28.1",
+          "videoconvert:videoconvertscale:1.28.1",
+          "appsink:app:1.28.1",
+          "qtdemux:isomp4:1.28.1",
+          "multiqueue:coreelements:1.28.1",
+          "h264parse:videoparsersbad:1.28.1",
+          "capsfilter:coreelements:1.28.1",
+          "vtdec_hw:applemedia:1.28.1"
+        ]
+      },
+      {
+        "policy": "software-only",
+        "succeeded": true,
+        "target": 966666667,
+        "bytes": 28161,
+        "firstPts": 0,
+        "lastPts": 966666666,
+        "offsetBefore": 0,
+        "offsetAfter": 0,
+        "factories": [
+          "appsrc:app:1.28.1",
+          "decodebin:playback:1.28.1",
+          "typefind:coreelements:1.28.1",
+          "videoconvert:videoconvertscale:1.28.1",
+          "appsink:app:1.28.1",
+          "qtdemux:isomp4:1.28.1",
+          "multiqueue:coreelements:1.28.1",
+          "h264parse:videoparsersbad:1.28.1",
+          "capsfilter:coreelements:1.28.1",
+          "avdec_h264:libav:1.28.1"
+        ]
+      },
+      {
+        "policy": "automatic",
+        "succeeded": true,
+        "target": 0,
+        "bytes": 34724,
+        "firstPts": 0,
+        "lastPts": 0,
+        "offsetBefore": 0,
+        "offsetAfter": 0,
+        "factories": [
+          "appsrc:app:1.28.1",
+          "decodebin:playback:1.28.1",
+          "typefind:coreelements:1.28.1",
+          "videoconvert:videoconvertscale:1.28.1",
+          "appsink:app:1.28.1",
+          "qtdemux:isomp4:1.28.1",
+          "multiqueue:coreelements:1.28.1",
+          "h264parse:videoparsersbad:1.28.1",
+          "capsfilter:coreelements:1.28.1",
+          "vtdec_hw:applemedia:1.28.1"
+        ]
+      }
+    ],
+    "decoderScope": "2 Automatic representatives (vtdec_hw) +1 SoftwareOnly (avdec_h264); not all invocation/factory coverage",
+    "state": {
+      "status": "captured",
+      "count": 6,
+      "events": [
+        {
+          "seq": 0,
+          "atUs": 1119621037705,
+          "channel": "9101",
+          "phase": "session-created",
+          "reason": "epoch-9101-1-1791812388504"
+        },
+        {
+          "seq": 1,
+          "atUs": 1119621044193,
+          "channel": "9101",
+          "phase": "writer-started",
+          "reason": "ok"
+        },
+        {
+          "seq": 2,
+          "atUs": 1119621046626,
+          "channel": "9201",
+          "phase": "session-created",
+          "reason": "epoch-9201-1-1791812388513"
+        },
+        {
+          "seq": 3,
+          "atUs": 1119621052519,
+          "channel": "9201",
+          "phase": "writer-started",
+          "reason": "ok"
+        },
+        {
+          "seq": 4,
+          "atUs": 1119734476717,
+          "channel": "9201",
+          "phase": "stop-channel",
+          "reason": "requested"
+        },
+        {
+          "seq": 5,
+          "atUs": 1119734493931,
+          "channel": "9101",
+          "phase": "stop-channel",
+          "reason": "requested"
+        }
+      ],
+      "issues": []
+    },
+    "searchFailure": {
+      "status": "captured",
+      "probes": 1,
+      "failures": [],
+      "issues": []
+    }
+  },
+  "shutdown": {
+    "finallyProcessCleanup": {
+      "schema": "recording-process-cleanup-v1",
+      "attemptCount": 1,
+      "pid": 45077,
+      "exitCode": 0,
+      "signalCode": null,
+      "exitedObserved": true,
+      "stopCode": "complete",
+      "forcedTermination": "not-used",
+      "normalExitPass": true,
+      "normalShutdownPass": true,
+      "archiveSafe": true,
+      "ports": [
+        {
+          "kind": "http",
+          "port": 49926,
+          "status": "pass",
+          "code": "closed",
+          "closed": true
+        },
+        {
+          "kind": "rtsp",
+          "port": 49927,
+          "status": "pass",
+          "code": "closed",
+          "closed": true
+        }
+      ]
+    },
+    "explicitDisable": "not-run",
+    "closedJournalAssertion": "not-run",
+    "finalLatencyProgressContinuityGates": "not-run",
+    "controlsRecoveryRestartReactivation": "not-run-in-this-mode",
+    "executionCleanup": {
+      "processGroupAbsent": true,
+      "registeredGroupsAbsent": true,
+      "cleanupErrors": [],
+      "cleanupSignals": [],
+      "rootDisposition": "preserved-for-byte-review-and-owned-cleanup"
+    },
+    "ownedRootCleanup": "pending preservation"
+  },
+  "reusedEvidence": {
+    "99": "preparation bundle remains complete: empty-root startup separately from actual generation cycle/recovery/space; not this run45min recovery or capacity",
+    "97": "protection, alternative candidate, refusal and same-session recovery unchanged",
+    "98": "continuous-r98 scoped derivation/input envelope unchanged",
+    "95": "preinitialization isolation unchanged; private backup untouched",
+    "96": "same-operand workspace failure preservation; this failure is HTTP not workspace",
+    "earlier": "K/F,cold,shared owner,B/C/D,HTTP lifetimes remain original source/environment scopes; no latestHEAD wholesale acceptance claim"
+  },
+  "binding": {
+    "productTestsInventoryChanged": false,
+    "producerReadbackCoverage": "99 existing binding reused; no ritual regeneration/legacy986 re-review",
+    "newEvidenceOnly": true
+  },
+  "artifacts": {
+    "archive": "100-execution.tar.gz",
+    "preservation": "100-preservation.json",
+    "analysisMember": "manifest.json maps analysis.json to content blob; derived read-only analysis",
+    "originals": "178 mapped files; 168 raw and10 path-redacted; original/hash/transform preserved; product source files are after-stop state",
+    "independentReview": "100-independent-review.json",
+    "finalization": "100-finalization.json (after commit/readback/cleanup)"
+  },
+  "notRun": [
+    "additional30/600 preparation",
+    "second45min",
+    "explicit disable and closed journal assertion after main",
+    "final latency/progress/continuity gates",
+    "controls/copy recovery/restart/reactivation in this mode",
+    "120min",
+    "acceptance/UI",
+    "Linux/macOS product regression rerun (source unchanged)",
+    "Qwen/Ollama unload gate",
+    "PR/CI/merge/tag/Release"
+  ],
+  "qwenOllamaCalls": 0,
+  "decision": {
+    "99PreparationCompleteRetained": true,
+    "continuous45Pass": false,
+    "technicalBlocker": "visual-search response header exceeds existing5s budget; partial successful population p95 also exceeds2s; competing Catalog holder/root cause unconfirmed",
+    "minimumFollowup": "separately authorized analysis/fix of visual-search latency using saved request phases and Catalog wait; no automatic execution or criteria change",
+    "memoryP0": "open",
+    "releaseHold": true,
+    "riskAcceptance": "not-granted",
+    "final120Entry": "not-ready; not-run",
+    "noNewPreparationGateInvented": true
+  }
+}

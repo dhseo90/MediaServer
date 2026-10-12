@@ -1,0 +1,73 @@
+{
+  "schema": "media-server.r100.finalization.v1",
+  "checks": [
+    {
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "git",
+        "diff",
+        "--exit-code",
+        "fa5a37b9f1262f8d9cee59109505cb4e06063978",
+        "--",
+        "src",
+        "include",
+        "scripts",
+        "AGENTS.md",
+        ".codex",
+        "docs/project-feature-test-inventory.md"
+      ],
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "changedBacklogLinks": {
+    "links": [
+      "release-artifacts/v4.5.0/100-validation.json",
+      "release-artifacts/v4.5.0/99-validation.json"
+    ],
+    "pass": true
+  },
+  "jsonParse": "PASS",
+  "productTestsInventoryUnchanged": true,
+  "noNewProductTests": "documentation/evidence only;99 binding reused",
+  "privacy": {
+    "archiveTextCredentialMarkerScan": "no markers",
+    "homePathScan": "no actual user home paths",
+    "excluded": "user defaults/private95backup/state-auth/models/SDK/binaries; no access/upload/cleanup"
+  },
+  "processAbsence": {
+    "checkedAtEpoch": 1791813148.865132,
+    "recordedPids": [
+      45077
+    ],
+    "recordedProcessGroups": [
+      45025
+    ],
+    "matchingProcessRows": [],
+    "ports": [
+      49926,
+      49927
+    ],
+    "portQueryExit": 1,
+    "listeners": "",
+    "portQueryError": "",
+    "processesAbsent": true,
+    "portsAbsent": true,
+    "newContainersCreated": false,
+    "privateBackup": "excluded; not accessed"
+  },
+  "localGitReadback": "pending",
+  "remoteReadback": "pending",
+  "ownedRootCleanup": "pending preserved Git bytes",
+  "implementationCommit": "none; product/test code unchanged"
+}

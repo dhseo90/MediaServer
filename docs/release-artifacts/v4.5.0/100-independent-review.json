@@ -1,0 +1,274 @@
+{
+  "schema": "media-server.v450.independent-review.v1",
+  "task": 100,
+  "reviewedAt": "2026-10-12T13:54:37.616Z",
+  "reviewer": {
+    "identity": "/root/independent_memory86",
+    "requestedModel": "gpt-6-astra",
+    "requestedEffort": "high",
+    "toolAccepted": "이전 별도 reviewer 생성 수락 기록 재사용. 이번 follow-up은 설정을 새로 노출하지 않음.",
+    "actualRuntimeModel": "미노출·미확인",
+    "actualRuntimeEffort": "미노출·미확인",
+    "independence": "실행·검사 작성·제품/검사 수정에 참여하지 않음. 원문 읽기·파싱·hash 대조 및 이 파일 작성만 수행. 하위 위임 없음. 사용자 기본 설정·95 비공개 백업 비접근."
+  },
+  "decision": {
+    "result": "FAIL",
+    "technicalBlocker": "장면 검색이 기존 요청별5초 안에 응답 헤더를 반환하지 못함.",
+    "partialResultPreservable": true,
+    "independentResultReviewComplete": true,
+    "wholeTaskCloseoutComplete": false,
+    "preparation99CompleteRetained": true,
+    "continuous45Pass": false,
+    "final120Entry": "보류·미실행",
+    "memoryP0": "미완료·보류",
+    "release": "보류",
+    "newExecutionAuthority": false,
+    "rootCause": "현재 경합 상대와 내부 근본 원인은 미확정. 과거 동일 오류와 동일 원인이라고 소급하지 않음."
+  },
+  "sourceBinding": {
+    "entryHead": "fa5a37b9f1262f8d9cee59109505cb4e06063978",
+    "tree": "5f92550a82f5c6ec8c1c92c6e3728d6ef54e06ae",
+    "sourceSha256": "4e217f06ad184fc5774e29f61fd76c790da417f90e994f3d164e73888cfedc3c",
+    "profileSourceSha256": "2a3570834be0e30d603e8206bb611e76acb232ade0374598a946b1ec2dd8813f",
+    "binarySha256": "592100ed3af4ddf2e1120e81348b5dfeb77d8e1413b7c675586f9cfa3a517c7d",
+    "runtimeSha256": "8fdcbc0f0918e25a06d39df3ba488cf82e292be7151a69af4f51062432710f01",
+    "sourceAndSourceEndEqual": true,
+    "productImplementation": "981952dd169574e302aedf1600d0e492d7426c73",
+    "testImplementation": "bb130af5af38adeac4f3b024ca8e223b8d31b766",
+    "srcIncludeScriptsDiffFromEntry": "직접 git diff 읽기 결과 없음",
+    "worktreeMeaning": "entry clean은 preflight 기록. 결과 문서 작성 중인 현재 전체 tree가 clean이라는 주장은 아님.",
+    "producer": "불변 제품·검사에99 결속 재사용. 새986 전면 검토/producer 재실행 불필요."
+  },
+  "execution": {
+    "authorizedAttempts": 1,
+    "actualAttempts": 1,
+    "mode": "--state-diagnostic",
+    "profile": "continuous-r98",
+    "requiredObservationSeconds": 2700,
+    "totalBudgetSeconds": 2880,
+    "lastConfirmedMainObservationSeconds": 106.99418775,
+    "verifiedDurationMs": null,
+    "mainHarnessElapsedMs": 121812,
+    "wrapperExecutionSeconds": 127.00456233299337,
+    "totalWithFinalBindingSeconds": 127.23210454196669,
+    "exit": 1,
+    "overallDeadlineTimeout": false,
+    "partialPassAssertions": 292,
+    "failAssertions": 1,
+    "longrunObservationCompleted": false,
+    "stateDiagnosticPass": false,
+    "interpretation": "마지막 본 표본 시각은 정확한 실패 발생 시각 또는 완료된 본 duration이 아님. 준비·finally 시간을 본 관측에 합산하지 않음.",
+    "unchangedLimits": "87MiB/channel,64MiB expected reservation,36KiB conditional input envelope,448MiB variable workspace,4MiB private log,5초 요청·p952000/max5000. startupOnly=false/requiresDeletion=true라99 기동 전용 삭제 면제를 적용하지 않음."
+  },
+  "failureAndPopulation": {
+    "firstFailure": {
+      "runLogLine": 715,
+      "route": "GET /ops/api/recordings/visual-search",
+      "phase": "header",
+      "elapsedMs": 5004,
+      "httpStatus": null,
+      "receivedBytes": 0
+    },
+    "pairedFailure": {
+      "runLogLine": 720,
+      "elapsedMs": 5009,
+      "httpStatus": null,
+      "receivedBytes": 0
+    },
+    "originalSuccessfulArray": {
+      "count": 28,
+      "visual": 14,
+      "structured": 14,
+      "partialP95Ms": 4467.839000000007,
+      "partialMaxMs": 4472.879832999999,
+      "partialP95Under2000": false,
+      "finalGate": "not-run"
+    },
+    "unaggregatedFailedBatch": "Promise.all이 두 visual timeout으로 reject된 뒤 배열 갱신 전에 종료됨. 같은 batch structured200 두 건1336/1964ms는 HTTP 원문에 있고 원래28배열에는 없음. 분모를30으로 재정의하지 않음.",
+    "rawRoutes": {
+      "structured200IncludingAuxiliaryA": 18,
+      "auxiliaryAStructured200": 2,
+      "visual200": 14,
+      "visualClientTimeout": 2,
+      "recordedSearchUnavailable": 0
+    },
+    "serverCompletion": {
+      "started": 16,
+      "completed": 16,
+      "rawPrivateRowsEqualCollectedRows": true,
+      "lastTwoInternalStatus": 503,
+      "lastTwoElapsedMs": [
+        5933.465541,
+        5943.607625
+      ],
+      "meaning": "서버 내부 완료16/16은 클라이언트 응답 성공16건이 아님. 마지막503은 client timeout 뒤의 내부 완료 상태이며 클라이언트가503을 받거나 허용 unavailable로 통과했다는 뜻이 아님."
+    },
+    "latencyInterpretation": "최초 미허용 실패는 요청 timeout. 28건 부분 p95 초과는 별도 진단 사실이며 최종 gate가 실행되어 FAIL했다거나 모든 요청 최대가4472.880ms라고 쓰지 않음."
+  },
+  "causalBoundary": {
+    "catalogWaitNs": [
+      4550328788,
+      4532179119
+    ],
+    "catalogHeldNs": [
+      694089921,
+      680216291
+    ],
+    "sourceMapping": "recording_latency_trace Source::Catalog 및 VisualRequestSummary phase 명명과 실행 소스의 동일 매핑",
+    "finding": "마지막 두 요청에서 Catalog 잠금 대기가 큰 비용으로 기록됨. inclusive phases·lock/eligible 시간을 더하지 않음.",
+    "notEstablished": [
+      "경합 상대 holder와 별도 background 작업 귀속",
+      "Catalog wait를 제거하면 전체 기준 통과한다는 인과 보장",
+      "이전88/90/91/95/96 실패와 동일 근본 원인",
+      "새누수 또는 quota/storageBlocked 원인"
+    ]
+  },
+  "partialProgress": {
+    "lastConfirmedEachChannel": {
+      "finalized": 53,
+      "deleted": 0
+    },
+    "newProgressNotImportedFrom99": true,
+    "actualCyclicDeletion": "관측 없음. 첫 순환 이후 진행 및 순환 PASS 미입증.",
+    "earlyMiddleLate": "첫900초 창의 일부만 도달. 중반·후반·삭제 후 구간 미도달.",
+    "statusJudgments": 22,
+    "allStatusJudgmentsPassed": true,
+    "lastStatus": "enabled=true,active=true,storageBlocked=false 두 채널. 실제 진행은 별도53개 원장 관측에 근거.",
+    "mainACompleted": 2,
+    "generalEvidenceComplete": 6,
+    "visualEvidenceCreated": 6,
+    "allowedEvidenceBusy": 6,
+    "retainedReadbacks": 12,
+    "detectorBoundary": "A는 기존 synthetic observation seed와 실제 A worker 진행. detector 신규 실행 성과가 아님."
+  },
+  "spaceAndResources": {
+    "sampleCount": 22,
+    "fixedFBytes": 13647309,
+    "variableCapBytes": 469762048,
+    "largestSameSampleSequentialVariablePlusAnonymousBytes": 34526933,
+    "pairDefinition": "22 current-observation와 대응 sample root-storage의 variableBytes+max(anonymous logical,allocated)를 원문에서 독립 재계산. 프로세스/파일 순차 측정이며 atomic failure-time 또는 순간 peak가 아님.",
+    "maxPairOperands": {
+      "sampleIndex": 22,
+      "ordinaryVariableBytes": 30926549,
+      "anonymousFileBytes": 3010048,
+      "anonymousAllocatedBytes": 3600384
+    },
+    "rssSampleMaxBytes": 3213361152,
+    "footprintSampleMaxBytes": 3164687624,
+    "fdSampleMax": 47,
+    "maxSampleGapMs": 5805.955042000001,
+    "copyBytes": 0,
+    "workspaceFailure": "no-workspace-failure",
+    "actualCapFailureObserved": false,
+    "owner": {
+      "rows": 27,
+      "finalRam": 0,
+      "finalScratchDisk": 0,
+      "finalScratchFd": 0,
+      "ramPeakLogicalCharge": 189202937,
+      "scratchDiskPeakReservation": 10227712,
+      "ramRejected": 0,
+      "readerCleanupHealthy": true
+    },
+    "resourceTrendPass": false,
+    "reviewRequired": true,
+    "postWarmup": "300초 warmup 미도달, postwarmup0표본. 추세/무누수 판정 불가.",
+    "scope": "예약은 실제 할당이 아니고 RSS/footprint와도 다름. 다른 시점 최대를 더하지 않음. 마지막owner0과 부분 cap 미초과는45/120분 공간·지속증가 없음의 증명이 아님."
+  },
+  "collectionAndShutdown": {
+    "privateLogBytes": 69016,
+    "privateLogCapturedBytes": 69016,
+    "privateLogSha256": "f3f19ffc3a00f91bea967586661d9a4affa3b96fbd94c418b3001d23ba87f7e9",
+    "privateLogOverflow": false,
+    "captureError": null,
+    "stateEvents": 6,
+    "stateCollectorIssues": [],
+    "visualSummaryComplete": true,
+    "structuredFailureRows": 0,
+    "frameBounded": {
+      "records": 3,
+      "successes": 3,
+      "policies": "Automatic2 vtdec_hw; SoftwareOnly1 avdec_h264",
+      "scope": "대표3회이며 모든 호출/decoder coverage가 아님"
+    },
+    "finally": {
+      "serverExit": 0,
+      "forcedTermination": false,
+      "normalShutdown": true,
+      "processGroupAbsent": true,
+      "registeredGroupsAbsent": true,
+      "httpRtspPortsClosed": [
+        49926,
+        49927
+      ],
+      "udpClosed": true,
+      "cleanupErrors": []
+    },
+    "notReplacedByFinally": [
+      "명시적 settings disable",
+      "closed journal no partial tail assertion",
+      "최종 latency/progress/sample continuity gate"
+    ],
+    "modeNotIncluded": [
+      "120분 취소·권한 회수·독립 복구·재시작·재활성화 전체"
+    ],
+    "ownedRootCleanup": "pending preservation"
+  },
+  "reusedEvidence": {
+    "99": "완료 유지. 기동·generation 순환/복구·직접 공간은 원래 scope. 이번45분 진행·공간·복구로 합산하지 않음.",
+    "97and98": "보호·대체후보·거부·회복과 조건부 profile/input 범위 유지.",
+    "95and96": "격리 guard 및 같은 workspace operands 보존 경계 유지. 사용자 기본 설정/95backup은 이번 읽기 대상도 아님. 과거 실패/미복원 자료 유지.",
+    "earlier": "K/F,cold,합산owner,B/C/D,HTTP수명은 원 source/environment 범위 내 재사용. 이번 전체 회귀/장시간/UI 승인 아님."
+  },
+  "preservationReview": {
+    "status": "LOCAL_ARCHIVE_VERIFIED_GIT_REMOTE_CLEANUP_PENDING",
+    "archive": "100-execution.tar.gz",
+    "archiveBytes": 3924016,
+    "archiveSha256": "523b5868718cce3c7d07d6d7849d60d5fe67f03b2340cd2c86af8d977c4802be",
+    "archiveMembers": 127,
+    "memberBytes": 7043145,
+    "originalMappingRecords": 178,
+    "rawRecords": 168,
+    "pathRedactedRecords": 10,
+    "originalMappedBytes": 8439998,
+    "manifestSha256": "b3297cea0895bf865ed0bc24a7cbe903b4fad8ca801644ef422d003578676593",
+    "independentByteReadback": "178개 원본 bytes/hash와 content-addressed archive blob의 preserved bytes/hash 대조,127개 regular member 및 manifest확인. 불일치0. 경로 정제10개는 선언된 root/repo/home label 치환과 모두 일치.",
+    "materialBoundary": "제품 원본 미디어/원장은 정상finally 종료 후 상태. 정확한 실패 순간 snapshot으로 추정 복원하지 않음. 동일내용 blob 중복제거는 보존 표현일 뿐 실행 저장 비용 축소가 아님.",
+    "analysis": "analysis.json은 원문에서 파생한 별도 자료. 주원문 run.log/report/execution/private log를 직접 대조함.",
+    "excluded": "auth/state/user 기본config·95privatebackup·모델/SDK/runtime/product binary·derived visual/sqlite/cache/registry·과거archive 제외. 읽기 검토에서 제외된 사용자 파일에 접근하지 않음.",
+    "localGitReadback": "pending",
+    "remoteReadback": "pending",
+    "ownedRootCleanup": "pending"
+  },
+  "documentReview": {
+    "validationSha256AtRead": "6d1e7d3105353cec199a19e2553816ad36f87f5ec5adeb6936330200f80cc7f2",
+    "backlogSha256AtRead": "43c3d096b233b809b82c7be9eaf882c0f28e4452f45f7ebdd06d69be7d874838",
+    "result": "최초 timeout·원래 모집단·부분p95·서버 완료와 HTTP수신 차이·관측/인과 한계·finally/미실행 assertion·99완료 유지/P0보류를 정확히 구분함. 결과 보존을 차단할 새 오보고는 발견하지 못함."
+  },
+  "evidenceHashes": {
+    "preflight.json": "83471aa9d6114aba4e7c0e878efc9694811d99d13c6cc89e32f8a1e3e5d2ac89",
+    "run/execution.json": "1823173e46a11c4fa9d1f2a7e2ef26157d216a59f47200ec592e8678954d05b4",
+    "run/run.log": "1711fa2d8223b42a656227d1abd33b1fa5ce70c391a3b4445f9176c3657d5f30",
+    "run/artifacts/report.json": "2c88ad87aa3cf0e5cc193c2492ae9d96270b196e154e4561f53993283ffc7c5f",
+    "analysis.json": "d80041b01ec1086a4f51b1dd06b6ced526849d4adb798c8c5f4ac13f620f676f"
+  },
+  "remaining": [
+    "보존 commit의 실제 Git archive byte readback",
+    "일반 push 및 실제 원격 SHA/필요 증거 byte 재수신 대조",
+    "확인된 소유 root·pointer·프로세스/포트/컨테이너의 보존 후 정리와 부재 확인",
+    "후속 마감 기록·최종 commit/push"
+  ],
+  "futureTechnicalWork": "별도 승인된 장면 검색 지연 분석/수정과 이후 검증 판단. 이 결과 검토가 새 fixture·600초·45분 반복·120분 실행을 승인하지 않음.",
+  "finalizationDraftReadback": {
+    "receipt": "100-finalization.json",
+    "receiptSha256": "94b61cd1b55003dbe11a7f7a036b0c43727e52720792912d932741306d48efb3",
+    "static": "기존 main의 diffcheck·제품/검사/inventory 불변 readback exit0, 변경backlog links PASS, JSONparse PASS receipt를 읽음. reviewer 신규 검사 실행 아님.",
+    "privacy": "main의 archive credential marker/home path scan 무검출 receipt와 선정 제외 범위 확인. 일반 패턴 scan은 모든 비밀 부재를 수학적으로 보장하지 않음.",
+    "absence": "기록 PID45077/group45025 및 ports49926/49927에 대한 main의 ps/lsof 현재 부재 receipt를 읽음. 실행finally receipt와 분리. 새container 없음.",
+    "stillPending": [
+      "Git byte readback",
+      "remote byte readback",
+      "owned root cleanup"
+    ]
+  }
+}
