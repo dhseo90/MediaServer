@@ -1,0 +1,56 @@
+{
+  "schema": "r103-independent-preservation-review-v1",
+  "reviewedAt": "2026-10-12T23:48:10.888544+00:00",
+  "reviewer": "independent_memory86",
+  "scope": "Narrow documentation and selected-byte archive readback only. No product/source reevaluation, implementation, tests, execution or delegation. Prior independent reports unchanged.",
+  "model": "Requested Astra/high; prior separate-agent acceptance reused; actual runtime unexposed/unconfirmed.",
+  "status": "LOCAL_SELECTED_PRESERVATION_AND_DOCUMENTATION_ACCEPTED_REMOTE_CLEANUP_PENDING",
+  "reviewedFiles": {
+    "103-validation.json": "b0216b850ffa23aa9623cccc7f00aeff210a663bb01001bfde2344f80a7102eb",
+    "103-independent-review.json": "3ab986b5152c0d103fe50f9c0fedff5282063a823a69ba2916170884cd53805d",
+    "103-execution.tar.gz": "fe06d795b19d1e5615a195503a5265965b1a499aac0a62726ce7ea141bc82a0c"
+  },
+  "archive": {
+    "bytes": 23175135,
+    "sha256": "fe06d795b19d1e5615a195503a5265965b1a499aac0a62726ce7ea141bc82a0c",
+    "members": 450,
+    "payloadMembers": 449,
+    "payloadBytes": 80800023,
+    "allMemberBytesIncludingManifest": 81358900,
+    "allRegularUniqueMembers": true,
+    "all449PayloadSizeHashMatchesManifest": true,
+    "allUntransformedSelectedBytesMatchExistingOriginals": true,
+    "missingOriginalsOrMismatches": 0,
+    "requiredEvidence": "Original before/after execution and run logs, diagnostic summaries, direct regression/cost outputs, freeze/patch inputs, preparation/analysis/packaging failures, actual prefix RED and independent review stages retained."
+  },
+  "privacyAndExclusions": {
+    "privateLogFiles": 3,
+    "changedUrlLinesPerFile": 8,
+    "lineCountsPreserved": true,
+    "allChangedOriginalLinesContainURL": true,
+    "structuredTraceLinesRemoved": false,
+    "rawAndSanitizedHashesSeparatelyMatch": true,
+    "rawPrivateLogsInArchive": false,
+    "stateAndGstCachePathsInArchive": false,
+    "hashOnlyOmissions": 1203,
+    "hashOnlyMp4Omissions": 1191,
+    "otherHashOnlyOmissions": 12,
+    "scope": "Hash-only omitted media and helper bytes are not preserved bytes and cannot reconstruct the full recording store. Archive explicitly says so. Repeated media omission is not used as new replay or full original restoration evidence. User default configuration/private95 backup not accessed."
+  },
+  "documentation": {
+    "reviewCopyExactlyMatchesOriginalResultReview": true,
+    "beforePopulationCheckedAgainstArchivedReport": 152,
+    "beforePartialP95Ms": 2754.4757499999832,
+    "afterPopulation": 160,
+    "afterPartialP95Ms": 3533.555249999976,
+    "footprintSampleMaxBytes": 3165850912,
+    "consistent": "Validation/backlog retain both diagnostic failures, final45 zero/not eligible, selected77/78/79 versus failing81/82 boundary, non-atomic resource observations and normal finally versus unexecuted disable/closed-journal assertions. Direct ~3.4% lookup cost reduction is not integrated success.",
+    "overclaimOrNumericalCorrectionRequired": false
+  },
+  "decision": "No blocking documentation or selected local preservation discrepancy found. Does not change after900 FAIL, P0/release hold, or confer execution authority.",
+  "pending": [
+    "Actual Git/local and remote byte preservation readback.",
+    "Owned execution-root/pointer cleanup after preservation and actual absence receipt.",
+    "Final administrative commit/push as authorized by user."
+  ]
+}

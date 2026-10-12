@@ -1,0 +1,289 @@
+{
+  "schema": "r103-independent-result-review-v1",
+  "reviewedAt": "2026-10-12T23:42:20.832467+00:00",
+  "reviewer": "independent_memory86",
+  "model": {
+    "requested": "gpt-6-astra/high",
+    "acceptance": "Prior separate-reviewer creation acceptance reused per parent handoff; no new acceptance claimed",
+    "actualRuntime": "unexposed/unconfirmed"
+  },
+  "independence": "Read-only source, original output, hashes and numerical recomputation. No implementation, tests/product execution or delegation. Only this report written.",
+  "status": "AFTER900_FAIL_FINAL45_NOT_ELIGIBLE",
+  "source": {
+    "head": "a7635b41a16be3ba1f7f1b7c3f6441fd89d9b2b2",
+    "tree": "144c652b306c64a2952f5efa61644b0ea36172a1",
+    "sourceSha256": "a82c7250e8f5cf80455502de3d4a574eb716be43a53041ffa4d01c0d76e99e06",
+    "binarySha256": "bead247ad883be8cf91b71c16104cc777cfc86e5d0268428e0a6b753601f28d0",
+    "startEndEqual": true,
+    "all19FreezeEntriesMatchAtRead": true,
+    "currentWholeTreeClean": "not asserted; documentation may be edited after execution"
+  },
+  "result": {
+    "attempts": 1,
+    "exit": 1,
+    "wrapperElapsedSeconds": 623.4526679159608,
+    "totalWithFinalBindingSeconds": 623.8090507499874,
+    "lastMainObservedElapsedMs": 602378.649917,
+    "lastSampleIsFailureTime": false,
+    "passed": 1647,
+    "failed": 1,
+    "firstFailure": "current observation: http-header-timeout",
+    "visualClientFailures": [
+      {
+        "method": "GET",
+        "routeClass": "other",
+        "status": null,
+        "headerElapsedMs": null,
+        "bodyElapsedMs": null,
+        "totalElapsedMs": 5002,
+        "bytes": 0,
+        "phase": "header",
+        "outcome": "timeout",
+        "routeKind": "/ops/api/recordings/visual-search"
+      },
+      {
+        "method": "GET",
+        "routeClass": "other",
+        "status": null,
+        "headerElapsedMs": null,
+        "bodyElapsedMs": null,
+        "totalElapsedMs": 5012,
+        "bytes": 0,
+        "phase": "header",
+        "outcome": "timeout",
+        "routeKind": "/ops/api/recordings/visual-search"
+      }
+    ],
+    "verifiedDurationMs": null,
+    "phase": null,
+    "contentionDiagnosticPass": false,
+    "full900Completed": false
+  },
+  "latency": {
+    "originalSuccessPopulation": 160,
+    "ceilP95Ms": 3533.555249999976,
+    "maxMs": 4357.818749999977,
+    "scope": "Partial successful original mixed array only, not a completed final gate or all HTTP requests.",
+    "finalGateExecuted": false,
+    "rawStructured200": 92,
+    "rawVisual200": 80,
+    "additionalStructured": "10 A helper searches and2 successes in the failed mixed batch are outside the160-array denominator.",
+    "serverLateFailures": [
+      {
+        "id": 81,
+        "status": 503,
+        "code": "visual-search-unavailable",
+        "elapsedNs": 5271794750,
+        "catalogWaitNs": 4736676880
+      },
+      {
+        "id": 82,
+        "status": 503,
+        "code": "visual-search-unavailable",
+        "elapsedNs": 5272346208,
+        "catalogWaitNs": 4683283125
+      }
+    ],
+    "serverCompletion": "82 started/completed includes late503 responses after client timeout; not82 client successes."
+  },
+  "holders": {
+    "status": "captured",
+    "rawRows": 4137,
+    "storedRows": 4137,
+    "loss": false,
+    "inflight": 0,
+    "selectedRequests": [
+      77,
+      78,
+      79
+    ],
+    "rawRowsMatchSaved": true,
+    "recomputedSelectedOverlaps": [
+      {
+        "request": 77,
+        "waitNs": 3132083842,
+        "coveredNs": 2510432172,
+        "retentionOverlapNs": 1309049085,
+        "unclassifiedNs": 621651670,
+        "matchesStoredSummary": true
+      },
+      {
+        "request": 78,
+        "waitNs": 3062795414,
+        "coveredNs": 2492521256,
+        "retentionOverlapNs": 1306380126,
+        "unclassifiedNs": 570274158,
+        "matchesStoredSummary": true
+      },
+      {
+        "request": 79,
+        "waitNs": 3376784299,
+        "coveredNs": 2683857732,
+        "retentionOverlapNs": 1355528958,
+        "unclassifiedNs": 692926567,
+        "matchesStoredSummary": true
+      }
+    ],
+    "scope": "Complete selected77/78/79 windows only. Failure81/82 lies outside selection; relative holder for those failed requests is unmeasured. No attribution of unclassified time or retrospective R100/R102 cause."
+  },
+  "workload": {
+    "completedCycles": 39,
+    "successfulSearches": 160,
+    "unavailableRecordedInSuccessArray": 0,
+    "generalEvidence": 39,
+    "visualEvidence": 39,
+    "ACompleted": 10,
+    "lateWorkWindowEmpty": {
+      "structured": 0,
+      "visual": 0,
+      "evidence": 0,
+      "visualEvidence": 0
+    },
+    "lastDrainedPrefixChannels": {
+      "9101": {
+        "finalized": 300,
+        "deleted": 0
+      },
+      "9201": {
+        "finalized": 300,
+        "deleted": 0
+      }
+    },
+    "deletionScope": "0 deletion is allowed for this900 diagnostic, not a45/120 exemption; prefix counts do not claim complete post-stop tail."
+  },
+  "resources": {
+    "sampleCount": 121,
+    "allFdComplete": true,
+    "fdRounds": {
+      "1": 115,
+      "2": 4,
+      "3": 2
+    },
+    "workspaceFailure": "no-workspace-failure",
+    "recordingStatusFailure": null,
+    "sampleMaximaNotSummed": {
+      "rssBytes": 3043803136,
+      "footprintBytes": 3165850912,
+      "anonymousFileBytes": 20317696,
+      "anonymousAllocatedBytes": 20803584
+    },
+    "postWarmup": {
+      "status": "observed",
+      "sampleCount": 61,
+      "delta": {
+        "rssBytes": 88948736,
+        "threadCount": -2,
+        "fdCount": 0,
+        "mutationCount": 604
+      },
+      "elapsedMs": 301888.724167,
+      "rssMiBPerMinute": 16.859481963243077
+    },
+    "owner": {
+      "status": "captured",
+      "count": 125,
+      "final": {
+        "pid": 81775,
+        "seq": 124,
+        "phase": "after-storage-destruction",
+        "elapsedMs": 614106,
+        "ram": 0,
+        "ramPeak": 405571638,
+        "ramLimit": 671088640,
+        "ramRejected": 0,
+        "scratchDisk": 0,
+        "scratchDiskPeak": 70905856,
+        "scratchDiskLimit": 155559219200,
+        "scratchFd": 0,
+        "scratchFdPeak": 16,
+        "scratchFdLimit": 1048572,
+        "scratchRam": 0,
+        "preservedDisk": 0,
+        "preservedFd": 0,
+        "readerCleanupHealthy": true
+      },
+      "scope": "actual shared product owner; logical charges, not total heap or RSS; sequential counter reads"
+    },
+    "resourceTrendPass": false,
+    "reviewRequired": true,
+    "scope": "No sampled workspace/collector failure and final logical owner zero. Sequential sample and counter scope only; not peak completeness, no-leak proof or completed memoryP0."
+  },
+  "collectionAndShutdown": {
+    "privateLogBytes": 918067,
+    "capturedBytes": 918067,
+    "privateShaMatchesReceipt": true,
+    "overflow": false,
+    "captureError": null,
+    "frame": {
+      "status": "captured",
+      "mode": "bounded",
+      "required": true,
+      "records": 3,
+      "successes": 3,
+      "failures": 0,
+      "issues": []
+    },
+    "searchFailureSummary": {
+      "status": "captured",
+      "probes": 1,
+      "failures": [],
+      "issues": []
+    },
+    "processCleanup": {
+      "schema": "recording-process-cleanup-v1",
+      "attemptCount": 1,
+      "pid": 81775,
+      "exitCode": 0,
+      "signalCode": null,
+      "exitedObserved": true,
+      "stopCode": "complete",
+      "forcedTermination": "not-used",
+      "normalExitPass": true,
+      "normalShutdownPass": true,
+      "archiveSafe": true,
+      "ports": [
+        {
+          "kind": "http",
+          "port": 61018,
+          "status": "pass",
+          "code": "closed",
+          "closed": true
+        },
+        {
+          "kind": "rtsp",
+          "port": 61019,
+          "status": "pass",
+          "code": "closed",
+          "closed": true
+        }
+      ]
+    },
+    "groupAbsent": true,
+    "registeredGroupsAbsent": true,
+    "udpClosed": true,
+    "explicitDisableAndClosedJournal": "not-run after earlier failure; normal finally product exit0 and closed ports do not replace these assertions."
+  },
+  "changeAssessment": "Narrow source correction remains supported by direct semantics and platform regression; final closed-input cost decreases only about3.4% on average despite roughly53% fewer logical reads. Actual integrated after900 fails. Selected holder reductions are observations across dynamic runs, not controlled proof that all contention was removed.",
+  "decision": {
+    "limitedChangeAcceptance": "maintained; no new source defect established by this result review",
+    "integratedPerformance": "FAIL",
+    "final45": "not-run0; prerequisite failed, no entry eligibility",
+    "final120": "not-run/not eligible",
+    "memoryP0": "BLOCKED",
+    "release": "BLOCKED",
+    "newExecutionAuthority": "none; no retry or additional optimization requested"
+  },
+  "pending": [
+    "Final selected-byte archive/privacy mapping and actual Git/remote preservation readback.",
+    "Owned execution-root cleanup after preservation; normal process shutdown is already independently distinguished."
+  ],
+  "evidenceHashes": {
+    "after-freeze.json": "8b07a63ce0eb997aae591dca889212581b745e0c3e69315bc381775d2ce4ce79",
+    "after900/execution.json": "7703babb0dfba7e781c320f09b8a11120602f1c59b22b9e28b892c1e20636b2b",
+    "after900/run.log": "d5d1c96708bc6e4157365bf647bff862be6974f1bef9ea799d386ae463ae2506",
+    "after900/artifacts/report.json": "857d59181cab60ca935292f99f2408d6a4368fdc62227b22822207a24e55a567",
+    "after900/media-server-current-observer-KGahbE/catalog-holders-81775.json": "26cb1289f0c5f569a085c8e0cb6c8b1af77a8843a71857471ffb37468e75f7e5",
+    "after900/media-server-current-observer-KGahbE/server-1.private.log": "92f21cd7d67ca1f415c3adf6c379c4fc594790eb7a94f74c8c7b4c6e9dc0bfa2",
+    "independent-final-change-review.json": "5cc2afe1fbb64208cf4b5477959e6fbfaba99d0bb4ca9ff4af19b8d19d1fcb8b"
+  }
+}
