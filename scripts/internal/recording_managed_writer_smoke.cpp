@@ -1,6 +1,7 @@
 // 파일 용도: 실제 encode→V2 writer→managed catalog→decode 시간 계약을 검사한다.
 #include "recording/gstreamer_segment_writer.h"
 #include "recording/recording_catalog.h"
+#include "recording/retention_coordinator.h"
 #include "recording/recording_finalize_recovery.h"
 #include "media/gstreamer_sample_observation.h"
 #include "recording_writer_decode_diagnostics.h"
@@ -461,6 +462,46 @@ int main(int argc,char** argv) {
             if(valid&&kind=="fast-step")valid=segments[0].mappings.front().provenance=="unknown";
             if(valid&&kind=="drift")valid=segments[0].mappings.size()==1&&segments[0].mappings[0].uncertainty_ns.value_or(0)>=7901000;
             Check(valid,"WR08 media observation quality "+kind);
+        }
+        // R97: real writer attempts under a legitimate hold shortage, then the
+        // same writer resumes at the next keyframe after the owning hold releases.
+        {
+            const auto input=Encode(true,20);Store s(root/"retention-recovery");
+            if(!Run(s,input,100000))throw std::runtime_error("R97 writer seed");
+            const auto seed=s.Segments();if(seed.size()!=1)throw std::runtime_error("R97 seed count");
+            std::string error;const auto id=seed[0].segment_id;
+            if(!s.catalog.AdjustHoldCount(id,1,&error))throw std::runtime_error(error);
+            recording::RetentionCoordinator coordinator(s.catalog,[&]{return s.catalog.RetentionSnapshot();},
+                [](auto* bytes,auto*){*bytes=1024ULL*1024*1024;return true;},
+                [&](const auto& file,auto* e){return recording::RemoveContainedMediaFile(s.root,file,e,{},true);},
+                {0,64ULL*1024*1024,s.root});
+            recording::RetentionPolicy policy;policy.continuous_max_bytes=64ULL*1024*1024+seed[0].size_bytes-1;
+            policy.event_max_bytes=134217728;
+            if(!coordinator.UpdateChannelPolicy("channel-1",policy,&error))throw std::runtime_error(error);
+            auto options=s.Options(100000);unsigned attempts=0,denied=0,allowed=0,completed=0;std::uint64_t completed_bytes=0;
+            options.admit_segment=[&](const auto& channel,std::uint64_t minimum) {
+                ++attempts;const auto a=coordinator.AdmitContinuousWrite(channel,minimum,10000+attempts);
+                a.allowed?++allowed:++denied;
+                return recording::SegmentAdmissionDecision{a.allowed,a.start_new_epoch,a.reserved_bytes};
+            };
+            options.report_segment_progress=[&](const auto& channel,std::uint64_t bytes){coordinator.UpdateContinuousWriteProgress(channel,bytes);};
+            options.complete_segment=[&](const auto& channel,std::uint64_t bytes){++completed;completed_bytes=bytes;coordinator.CompleteContinuousWrite(channel,bytes);};
+            recording::GStreamerSegmentWriter writer(options);
+            if(!writer.Start("channel-1","retry-epoch",input.descriptor,[](auto,auto,auto*){return false;},&error))throw std::runtime_error(error);
+            for(unsigned i=0;i<10;++i)writer.Push(input.packets[i],10000+i*100);
+            const bool blocked=denied==1&&allowed==0&&completed==0&&coordinator.ChannelStatus("channel-1").storage_blocked&&
+                !s.catalog.IsDeletedSegmentId(id)&&s.Segments().size()==1;
+            if(!s.catalog.AdjustHoldCount(id,-1,&error))throw std::runtime_error(error);
+            for(unsigned i=10;i<20;++i)writer.Push(input.packets[i],10000+i*100);
+            writer.Stop();
+            std::vector<recording::RecordingSegmentV2> active;
+            for(const auto& row:s.catalog.RetentionSnapshot().candidates)if(row.segment_v2&&row.Lifecycle()==recording::RecordingLifecycle::Finalized)active.push_back(*row.segment_v2);
+            Check(blocked&&attempts==2&&denied==1&&allowed==1&&completed==1&&completed_bytes>0&&
+                  !coordinator.ChannelStatus("channel-1").storage_blocked&&s.catalog.IsDeletedSegmentId(id)&&
+                  active.size()==1&&s.Frames(active)==10,
+                  "R97-W01 real writer gap10 packets under hold then same-session keyframe recovery10 frames Stop");
+            std::cout<<"[R97-writer] inputPackets=20 blockedPackets=10 attempts="<<attempts<<" denied="<<denied<<" allowed="<<allowed<<" completed="<<completed<<" bytes="<<completed_bytes<<'\n';
+            if(!s.journal.Finish(&error))throw std::runtime_error(error);
         }
         const auto actual=Encode(true,60,false,true);Store actual_store(root/"actual-probe");bool actual_ok=Run(actual_store,actual);auto actual_segments=actual_store.Segments();
         Check(actual_ok&&actual_segments.size()==3&&actual_store.Frames(actual_segments)==60,

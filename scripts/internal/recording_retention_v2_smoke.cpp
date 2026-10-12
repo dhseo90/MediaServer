@@ -1,6 +1,7 @@
 // 파일 용도: 격리 실제 원장과 작은 자체 생성 미디어로 V2 보존·재생 보호 경계를 검증한다.
 #include "recording/recording_read_service.h"
 #include "recording/recording_media_inspector.h"
+#include "recording/recording_latency_trace.h"
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -75,6 +76,7 @@ std::string SqlText(const std::filesystem::path& path,const char* sql){
 }
 int main(int argc,char** argv) {
     (void)argv;
+    if(std::getenv("R97_LATENCY_TRACE"))::setenv("MEDIA_SERVER_VERIFY_RECORDING_LATENCY_TRACE","1",1);
     if(argc!=2)return 2;
     try {
 #if MEDIA_SERVER_USE_GSTREAMER
@@ -281,6 +283,105 @@ int main(int argc,char** argv) {
             if(!failure_expected)std::cout<<"[diagnostic] R94-B02 case="<<failure_case<<" message="<<denied.message<<'\n';
             Require(race.catalog.AdjustHoldCount("first",-1,&race.error),race.error);
             if(failure_case==0)Require(race.catalog.AdjustHoldCount("second",-1,&race.error),race.error);
+        }
+        // R97: the first capacity-only plan selects A, never B/C. The synchronous
+        // snapshot-provider latch acquires a real Catalog hold after Plan, before deletion.
+        for (bool successive : {false,true}) {
+            Store race(root/(successive?"replacement-successive":"replacement-single"));
+            const auto a=race.Add("a");race.Add("b");race.Add("c");race.Add("event",false,false,RecordingRetentionClass::Event);
+            std::size_t reads=0,unlinks=0;bool held_a=false,held_b=false;
+            RetentionCoordinator coordinator(race.catalog,[&]{
+                auto snapshot=race.catalog.RetentionSnapshot();++reads;
+                if(reads==3){Require(race.catalog.AdjustHoldCount("a",1,&race.error),race.error);held_a=true;}
+                if(successive&&reads==6){Require(race.catalog.AdjustHoldCount("b",1,&race.error),race.error);held_b=true;}
+                return snapshot;
+            },[](auto* bytes,auto*){*bytes=100000000;return true;},[&](const auto& path,auto* error){
+                ++unlinks;return RemoveContainedMediaFile(race.root,path,error,{},true);
+            },{0,1,race.root});
+            RetentionPolicy policy;policy.continuous_max_bytes=3*a.size_bytes;policy.event_max_bytes=100000000;
+            Require(coordinator.UpdateChannelPolicy("channel",policy,&race.error),race.error);
+            auto request=Request(policy.continuous_max_bytes);request.required_write_bytes=a.size_bytes;
+            const auto initial=RetentionCoordinator::Plan(race.catalog.RetentionSnapshot(),request);
+            Require(initial.deletions.size()==1&&initial.deletions[0].candidate.Id()=="a","R97 initial plan selects A only");
+            const auto began=std::chrono::steady_clock::now();
+            RetentionAdmissionResult admitted;
+            {
+                latency::Scope measured(latency::Operation::Query,latency::Source::Test,__LINE__,true,true);
+                admitted=coordinator.AdmitContinuousWrite("channel",a.size_bytes,10000);
+            }
+            const auto elapsed=std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now()-began).count();
+            Check(held_a&&admitted.allowed&&admitted.reserved_bytes==a.size_bytes&&unlinks==1&&
+                  std::filesystem::exists(race.root/"a.mp4")&&std::filesystem::exists(race.root/"event.mp4")&&
+                  race.catalog.IsDeletedSegmentId(successive?"c":"b")&&
+                  (successive?(held_b&&race.Hold("b")==1):std::filesystem::exists(race.root/"c.mp4")),
+                  "R97-A01 unselected replacement after protection; one pass stops when enough; event preserved");
+            std::cout<<"[R97-cost] successive="<<successive<<" snapshots="<<reads<<" unlinks="<<unlinks<<" allowed="<<admitted.allowed<<" elapsedUs="<<elapsed<<'\n';
+            coordinator.CompleteContinuousWrite("channel",0);
+            Require(race.catalog.AdjustHoldCount("a",-1,&race.error),race.error);
+            if(held_b)Require(race.catalog.AdjustHoldCount("b",-1,&race.error),race.error);
+            Require(race.journal.Finish(&race.error),race.error);
+        }
+        for(bool unlink_failure:{false,true}) {
+            Store race(root/(unlink_failure?"replacement-unlink":"replacement-authority"));
+            const auto a=race.Add("a");race.Add("b");std::size_t reads=0,unlinks=0;
+            RetentionCoordinator coordinator(race.catalog,[&]{
+                auto snap=race.catalog.RetentionSnapshot();++reads;
+                if(reads==3)Require(race.catalog.AdjustHoldCount("a",1,&race.error),race.error);
+                if(!unlink_failure&&reads>=6){snap.authoritative=false;snap.error="replacement-authority";}
+                return snap;
+            },[](auto* b,auto*){*b=100000000;return true;},[&](const auto&,auto* e){++unlinks;*e="replacement-unlink";return false;},{0,1,race.root});
+            RetentionPolicy policy;policy.continuous_max_bytes=2*a.size_bytes;policy.event_max_bytes=100000000;
+            Require(coordinator.UpdateChannelPolicy("channel",policy,&race.error),race.error);
+            const auto denied=coordinator.AdmitContinuousWrite("channel",a.size_bytes,10000);
+            Check(!denied.allowed&&denied.reserved_bytes==0&&reads>=6&&unlinks==(unlink_failure?1u:0u)&&
+                  denied.message==(unlink_failure?"replacement-unlink":"replacement-authority")&&
+                  std::filesystem::exists(race.root/"a.mp4")&&std::filesystem::exists(race.root/"b.mp4"),
+                  "R97-A02 replacement hard failure remains failure and preserves held original");
+            Require(race.catalog.AdjustHoldCount("a",-1,&race.error),race.error);
+            Require(race.journal.Finish(&race.error),race.error);
+        }
+        {
+            Store race(root/"mixed-quota-protection");const auto size=std::filesystem::file_size(media_fixture);
+            constexpr std::uint64_t reserve=64ULL*1024*1024,headroom=256*1024;
+            const auto count=headroom/size+1;Require(count<=32,"bounded mixed quota fixture count");
+            for(std::uint64_t i=0;i<count;++i){const auto id="held-"+std::to_string(i);race.Add(id);Require(race.catalog.AdjustHoldCount(id,1,&race.error),race.error);}
+            auto coordinator=race.Coordinator();RetentionPolicy policy;policy.continuous_max_bytes=reserve+headroom;policy.event_max_bytes=100000000;
+            Require(coordinator.UpdateChannelPolicy("channel",policy,&race.error),race.error);
+            const auto before=Bytes(race.journal.path());const auto denied=coordinator.AdmitContinuousWrite("channel",reserve,10000);
+            Check(!denied.allowed&&denied.reserved_bytes==0&&coordinator.ChannelStatus("channel").storage_blocked&&
+                  before==Bytes(race.journal.path()),"R97-B02 actual mixed quota cannot admit legitimate held bytes above 256KiB");
+            std::cout<<"[R97-quota] reserve="<<reserve<<" quota="<<policy.continuous_max_bytes<<" heldCount="<<count<<" heldBytes="<<count*size<<" excess="<<count*size-headroom<<'\n';
+            for(std::uint64_t i=0;i<count;++i)Require(race.catalog.AdjustHoldCount("held-"+std::to_string(i),-1,&race.error),race.error);
+            Require(race.journal.Finish(&race.error),race.error);
+        }
+        const auto recovery_root=root/"protected-recovery";
+        {
+            Store race(recovery_root);const auto held=race.Add("held");race.Add("pinned",false,true);
+            Require(race.catalog.AdjustHoldCount("held",1,&race.error),race.error);
+            auto coordinator=race.Coordinator();RetentionPolicy policy;policy.continuous_max_bytes=2*held.size_bytes;policy.event_max_bytes=100000000;
+            Require(coordinator.UpdateChannelPolicy("channel",policy,&race.error),race.error);
+            const auto before_bytes=Bytes(race.journal.path());
+            const auto denied=coordinator.AdmitContinuousWrite("channel",held.size_bytes,10000);
+            const auto again=coordinator.AdmitContinuousWrite("channel",held.size_bytes,10001);
+            Check(!denied.allowed&&!again.allowed&&denied.reserved_bytes==0&&again.reserved_bytes==0&&
+                  coordinator.ChannelStatus("channel").storage_blocked&&before_bytes==Bytes(race.journal.path())&&
+                  std::filesystem::exists(race.root/"held.mp4")&&std::filesystem::exists(race.root/"pinned.mp4")&&race.Hold("held")==1,
+                  "R97-B01 genuine protected shortage preserves originals journal and no new reservation");
+            Require(race.catalog.AdjustHoldCount("held",-1,&race.error),race.error);
+            const auto resumed=coordinator.AdmitContinuousWrite("channel",held.size_bytes,10002);
+            Require(resumed.allowed,"R97 recovery admission");const auto fresh=race.Add("fresh");
+            coordinator.CompleteContinuousWrite("channel",fresh.size_bytes);
+            Check(resumed.start_new_epoch&&!coordinator.ChannelStatus("channel").storage_blocked&&
+                  race.catalog.IsDeletedSegmentId("held")&&std::filesystem::exists(race.root/"pinned.mp4")&&
+                  InspectRecordingPhysicalMedia(race.root,"fresh.mp4",Descriptor(fresh)).state==MediaInspectionState::Healthy,
+                  "R97-C01 same session release deletes reserves and finalizes real healthy media");
+            Require(race.journal.Finish(&race.error),race.error);
+        }
+        {
+            Store reopened(recovery_root);
+            Check(reopened.catalog.IsDeletedSegmentId("held")&&reopened.catalog.FindSegmentV2ById("fresh").has_value()&&
+                  reopened.catalog.FindSegmentV2ById("pinned").has_value(),"R97-C02 reOpen preserves released deletion and new/pinned media");
+            Require(reopened.journal.Finish(&reopened.error),reopened.error);
         }
         {
             Store typed(root/"admission-typed");typed.Add("pinned",false,true);typed.Add("held");

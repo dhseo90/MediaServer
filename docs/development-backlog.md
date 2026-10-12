@@ -17,6 +17,15 @@
 
 ## v4.5.0 잔여 개발과 릴리즈 순서
 
+[97 대체 삭제·보호 회복 직접 검증](release-artifacts/v4.5.0/97-validation.json)은
+계획 뒤 보호된 A 때문에 미선택 안전 후보 B를 놓치던 admission 경로를 보완한다.
+안전한 대체 자료가 없을 때의 정상 거부와 같은 세션의 보호 해제 뒤 실제 writer 회복을
+구분한다. 현행 혼합 quota의256KiB 여유에는 정당한 보호량 상한 보장이 없어
+[연속 진행 fixture 조건 결정](superpowers/specs/2026-09-02-v410-recording-search-foundation-design.md#보호-충돌-뒤-대체-후보와-시험-전제)이 남는다.
+quota·예약·gate를 변경하지 않았으며600초/45분/120분은 실행하지 않는다.
+96의 실제 보호 owner/대체 후보 유무는 여전히 미확정이다. 부분 검색 지연·45/120분 공간
+검증·전체 메모리 P0와 출시 보류는 유지한다.
+
 [96 공간 비용·판정 입력 보완](release-artifacts/v4.5.0/96-validation.json)은 같은 이력의
 작은 값을 검증된 node 안에 보관해 익명 scratch 표현 비용을 줄였고, 원래 admission과
 448MiB·copy·로그·RAM 한도를 유지했다. 실패 판정의 동일 피연산자 보존과 macOS/비특권

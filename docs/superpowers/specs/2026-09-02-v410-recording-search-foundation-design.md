@@ -238,6 +238,42 @@ partial 실제 쓰기량은 물리 free와 예약에서 이중 차감하지 않�
 writer admission은 독립 판정한다. SQLite 실시간 projection 실패는 JSONL fallback으로
 내리고 다음 시작에서 journal로 재구축한다.
 
+#### 보호 충돌 뒤 대체 후보와 시험 전제
+
+계획 직후 hold가 생겨 삭제를 거부하면, 실제 잔여 자료와 예약·물리 여유를 먼저
+다시 읽는다. 부족할 때 그 첫 재조회 범위의 같은 채널 continuous eligible 후보만
+oldest 순으로 한 번 방문한다. 원래 계획 항목은 다시 시도하지 않으며, 각 대체 삭제도
+현재 원본·atomic deletion admission·unlink·tombstone 검사를 거친다. 실제 충분량이
+확보되면 멈추고 하드 오류는 그대로 반환한다. 새 mutation 때문에 무한 재계획하지 않는다.
+이 예외 경로의 Catalog snapshot은 기존 잠금 안에서 cold 조회를 하며, 후보별 재조회
+비용이 있다. 과거 전체 이력을 상주시키거나 전역 제외 목록을 추가하지 않는다.
+
+continuous 다음 예약 `E=max(호출자 최소량, 기본64MiB, 이전 확정 파일 관측 최대량)`이다.
+writer는 첫 payload+container overhead(1MiB)를 최소량으로 요청하고 실제 반환 예약 안에서
+payload/최종 파일 크기를 검사한다. 64MiB는 현재 예약 하한이며 모든 호출의 보편적 최대값은
+아니다. 작은 시험 파일 크기를 근거로 이 보호량을 낮추지 않는다.
+
+채널 quota의 필요 조건은 `Q >= E + H + P`다. H는 hold/pin/작업 보호 때문에 삭제할 수
+없는 finalized bytes, P는 현재 회수하지 못하는 pending/corrupt bytes이며 서로 중복하지 않는다.
+안전한 비보호 자료는 실제 삭제 후에만 빠진다. 별도로 물리 free에서 다른 continuous/event
+미작성 예약과 durable 작업 예약을 뺀 값이 `disk reserve + E` 이상이어야 한다.
+다른 채널 예약을 해당 채널 quota에 더하는 식이 아니다.
+
+현행 혼합 fixture는 Q=67,371,008B, E의 기본값=67,108,864B로 H+P 여유가262,144B다.
+정당한 동시 보호량의 상한이 그 안이라는 계약은 아직 없다. 96 인접 기록의 전체 잔여
+293,172B와 초과31,028B는 해당 기록의 산술이며 보호 파일 한 개의 크기나 보편적 상한은 아니다.
+
+연속 운용 fixture를 바꾸기 전 별도 결정은 다음 두 목적을 분리해야 한다.
+- 보호 검사: 현행 quota에서 실제 부족·거부·원본 보존·정상 해제 뒤 재개를 검증한다.
+- 연속 진행 검사: 현재 동시 reader/증거/작업 수명에서 H/P의 유효 상한과 E 상한을 먼저
+  정의하고 `Q >= Emax + Hmax + Pmax`인 조건을 선택한다. 변경 대상은 시험 quota/입력 조건이며
+  기존 active/storageBlocked gate나 보호 의무를 완화하지 않는다. 448MiB 가변 작업공간에는
+  두 채널 live 파일·보존 결과·파생 scratch·로그를 별도로 대조하고 recovery copy 한도도 유지한다.
+
+이번에는 어떤 quota/예약/gate도 변경하지 않는다. 현재 관측 최대를 상한으로 삼거나
+quota를31,028B만 올리면45/120분이 성립한다고 결론내리지 않는다. 직접 반례·비용과
+과거 원인 미확정의 구분은 [97 검증](../../release-artifacts/v4.5.0/97-validation.json)에 둔다.
+
 ### Event recording linker
 
 event가 dispatch되면 설정된 pre/event/post 범위와 겹치는 모든 finalized 상시녹화

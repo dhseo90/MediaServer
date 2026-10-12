@@ -913,7 +913,7 @@ RetentionAdmissionResult RetentionCoordinator::AdmitContinuousWrite(
             }),
         admission_snapshot.candidates.end());
     const auto plan = Plan(admission_snapshot, request);
-    const auto applied = ApplyPlan(plan, now_ms, true);
+    auto applied = ApplyPlan(plan, now_ms, true);
     std::uint64_t refreshed_physical_free = free_bytes;
     std::string refresh_error;
     bool refreshed = true;
@@ -924,27 +924,64 @@ RetentionAdmissionResult RetentionCoordinator::AdmitContinuousWrite(
     bool quota_satisfied=plan.continuous_quota_satisfied;
     std::uint64_t current_inflight=inflight_bytes;
     if(applied.ok&&applied.protected_count) {
-        // A planned victim acquired protection before mutation. Projected reclaim is
-        // no longer evidence of capacity; charge every actual remaining byte.
-        const auto current=ReadSnapshot();
-        refreshed=refreshed&&current.authoritative;
-        if(!current.authoritative)refresh_error=current.error;
-        std::uint64_t charged=expected_segment_bytes;
-        for(const auto& candidate:current.candidates) {
-            if(candidate.Channel()==channel_id&&candidate.Class()==RecordingRetentionClass::Continuous&&
-               (candidate.Lifecycle()==RecordingLifecycle::Finalized||
-                candidate.Lifecycle()==RecordingLifecycle::DeletionPending||candidate.Lifecycle()==RecordingLifecycle::Corrupt))
-                charged=SaturatingAdd(charged,candidate.Size());
+        // Revalidate actual bytes, never credit a protected/planned deletion. Only
+        // this admission's first refreshed candidate range may supply replacements.
+        const auto refresh = [&]() {
+            auto current=ReadSnapshot();
+            refreshed=refreshed&&current.authoritative;
+            if(!current.authoritative)refresh_error=current.error;
+            std::uint64_t charged=expected_segment_bytes;
+            for(const auto& candidate:current.candidates) {
+                if(candidate.Channel()==channel_id&&candidate.Class()==RecordingRetentionClass::Continuous&&
+                   (candidate.Lifecycle()==RecordingLifecycle::Finalized||
+                    candidate.Lifecycle()==RecordingLifecycle::DeletionPending||candidate.Lifecycle()==RecordingLifecycle::Corrupt))
+                    charged=SaturatingAdd(charged,candidate.Size());
+            }
+            quota_satisfied=charged<=policy.continuous_max_bytes;
+            current_inflight=SaturatingAdd(OutstandingReservationsLocked(),DurableOutstanding(current));
+            if(refreshed)refreshed=free_space_provider_&&free_space_provider_(&refreshed_physical_free,&refresh_error);
+            TraceRecordingState(channel_id,"admission-protection-deferred",
+                "protected="+std::to_string(applied.protected_count)+
+                " deleted="+std::to_string(applied.deleted_count)+
+                " actualPlusWrite="+std::to_string(charged)+
+                " quota="+std::to_string(policy.continuous_max_bytes)+
+                " reservations="+std::to_string(current_inflight));
+            return current;
+        };
+        auto replacements=refresh();
+        const auto enough = [&]() {
+            const auto available=refreshed_physical_free>current_inflight?refreshed_physical_free-current_inflight:0;
+            return quota_satisfied&&available>=SaturatingAdd(options_.reserved_free_bytes,expected_segment_bytes);
+        };
+        // No growing retry/exclusion history: at most one visit per candidate in
+        // this fixed range. Never retry any original-plan item, even if its hold
+        // was released meanwhile. Fresh state and atomic deletion admission are
+        // still checked by ApplyPlan; hard errors stop the sweep immediately.
+        if(refreshed&&!enough()) {
+            auto& candidates=replacements.candidates;
+            candidates.erase(std::remove_if(candidates.begin(),candidates.end(),[&](const auto& candidate) {
+                return candidate.Channel()!=channel_id||candidate.Class()!=RecordingRetentionClass::Continuous||
+                    !IsEligible(candidate)||std::any_of(plan.deletions.begin(),plan.deletions.end(),[&](const auto& deletion) {
+                        return deletion.candidate.Id()==candidate.Id();
+                    });
+            }),candidates.end());
+            std::sort(candidates.begin(),candidates.end(),[](const auto& lhs,const auto& rhs){return OldestFirst(&lhs,&rhs);});
+            std::size_t visited=0;
+            for(const auto& candidate:candidates) {
+                if(!refreshed||enough())break;
+                RetentionPlan next;
+                next.deletions.push_back({candidate,quota_satisfied?RetentionCleanupReason::ReservedFreeSpace:
+                                                                  RetentionCleanupReason::ContinuousCapacity});
+                const auto result=ApplyPlan(next,now_ms,true);++visited;
+                applied.deleted_count+=result.deleted_count;applied.protected_count+=result.protected_count;
+                applied.reclaimed_bytes=SaturatingAdd(applied.reclaimed_bytes,result.reclaimed_bytes);
+                if(!result.ok){applied.ok=false;applied.last_error=result.last_error;break;}
+                (void)refresh();
+            }
+            TraceRecordingState(channel_id,"admission-replacements",
+                "range="+std::to_string(candidates.size())+" visited="+std::to_string(visited)+
+                " deleted="+std::to_string(applied.deleted_count)+" protected="+std::to_string(applied.protected_count));
         }
-        quota_satisfied=charged<=policy.continuous_max_bytes;
-        current_inflight=SaturatingAdd(OutstandingReservationsLocked(),DurableOutstanding(current));
-        if(refreshed)refreshed=free_space_provider_&&free_space_provider_(&refreshed_physical_free,&refresh_error);
-        TraceRecordingState(channel_id,"admission-protection-deferred",
-            "protected="+std::to_string(applied.protected_count)+
-            " deleted="+std::to_string(applied.deleted_count)+
-            " actualPlusWrite="+std::to_string(charged)+
-            " quota="+std::to_string(policy.continuous_max_bytes)+
-            " reservations="+std::to_string(current_inflight));
     }
     const std::uint64_t refreshed_free = refreshed_physical_free > current_inflight
                                              ? refreshed_physical_free - current_inflight

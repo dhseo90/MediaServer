@@ -4973,3 +4973,14 @@ MEM84-R04: 최대 허용 cold 행(16MiB+1)의 실제 chunk 저장/읽기와 기�
 최악 크기 예약 및 순차 capture 형식은 유지한다. 현재 95 제품의 동일 순환 생성 절차
 128/512/2048과 수정 후보에서 익명 실제 bytes/예약/FD/live heap/RSS/시간을 별도 계상한다.
 측정은 실패 순간의 복원이 아니며, 최종 120분/P0 완료를 대신하지 않는다.
+
+### R97-A01/B01/C01/C02 — 보호 충돌 후 대체 후보와 실제 부족·회복
+
+- 내부 retention admission: 기존 `verify_recording_retention_v2.sh`의 실제 Catalog/MP4·동기 latch로 검사한다. UI/장시간은 비대상이다.
+- A: capacity-only 최초 계획 A 한 개, 삭제 직전 hold; 미선택 B(연속 경합 시 C)를 검토해 원본 보호·실제 회수·필요량 달성 뒤 중단. event 자료 보존. 최초 예상 RED는 이전 구현의 대체 후보 미선택이다.
+- B: pinned/hold 잔여＋쓰기 예약이 quota를 넘으면 거부·원본/journal 불변·예약 없음.
+- C: 동일 세션 소유 hold 해제 후 삭제·예약·실제 미디어 확정·재Open·Finish; 이전 차단 중 미디어 진행을 성공으로 계산하지 않는다.
+- 기존 R94 하드 오류·typed 보호, R95 job 보호/격리, writer 거부/재개 회귀를 유지한다. quota/gate/예산은 변경하지 않는다.
+- R97-W01: 기존 managed writer 검사에서 실제20packet 중 hold 차단10packet은 미확정, 소유 해제 뒤 같은 writer의 다음keyframe부터10frame 확정·decode·Stop. 시험 quota는 예약64MiB＋고정seed크기−1로 부족을 결정하며 현행 mixed quota 변경이 아니다.
+
+R97-A02는 미선택 대체 후보의 unlink/authority 하드 오류를 거부하고 보호 원본을 유지한다. R97-B02는 실제 생성 미디어를 `floor(256KiB/파일 bytes)+1`개(준비 상한32) 정상 hold하여 현행 혼합 quota/64MiB 예약에서 거부·원장 불변을 확인한다. 이는 혼합 실행의 실제 동시 hold 수를 재현한 주장이 아니다.
