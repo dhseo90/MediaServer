@@ -15,7 +15,7 @@ const check = (condition, name) => {
   passed++;
 };
 function compile(source, output) {
-  const result = spawnSync(process.env.CXX || 'c++', ['-std=c++17', '-pthread', path.join(directory, source), '-o', output], {encoding:'utf8', timeout:30000});
+  const result = spawnSync(process.env.CXX || 'c++', ['-std=c++17', '-Wall', '-Wextra', '-Werror', '-pthread', path.join(directory, source), '-o', output], {encoding:'utf8', timeout:30000});
   if (result.status !== 0) throw Error(`compile failed exit=${result.status}: ${result.stderr}`);
 }
 function sample(pid) {
@@ -62,7 +62,7 @@ try {
     check(released.exit === 0 && released.value.startIdentity === baseline.value.startIdentity, 'PM02 released identity preserved');
     check(released.value.fdCount === baseline.value.fdCount, 'PM02 released FDs return baseline');
     check(released.value.threadCount === baseline.value.threadCount, 'PM02 released threads return baseline');
-    if(process.platform==='darwin'){
+    if(process.platform==='darwin'||process.platform==='linux'){
       child.stdin.write('anonymous\n');if(await line()!=='anonymous')throw Error('anonymous fixture failed');
       const anon=sample(child.pid);console.log(`[sample] anonymous ${JSON.stringify(anon.value)}`);
       check(anon.exit===0&&anon.value.anonymousFiles===1&&anon.value.anonymousFileBytes===8192&&anon.value.anonymousAllocatedBytes>=8192,'PM06 unlinked inode actual bytes');

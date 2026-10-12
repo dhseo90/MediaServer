@@ -182,7 +182,36 @@ Sample Collect(int pid) {
     const long page = sysconf(_SC_PAGESIZE);
     if (page <= 0 || !ResidentBytes(Read(base + "/statm"), static_cast<std::uint64_t>(page), sample.rss)) throw std::runtime_error("rss-unavailable");
     sample.threads = Count(base + "/task");
-    sample.fds = Count(base + "/fd");
+    bool complete=false;
+    for(unsigned attempt=0;attempt<4;++attempt){
+        sample.fds=sample.anonymousBytes=sample.anonymousAllocated=sample.anonymousFiles=0;
+        std::vector<std::pair<std::uint64_t,std::uint64_t>> seen;
+        bool raced=false;std::error_code error;
+        std::filesystem::directory_iterator it(base+"/fd",error),end;
+        if(error)throw std::runtime_error(ClassifyError(error.value(),"proc-directory-unavailable"));
+        for(;it!=end;it.increment(error)){
+            if(error)throw std::runtime_error(ClassifyError(error.value(),"proc-directory-incomplete"));
+            std::uint64_t number=0;if(!Unsigned(it->path().filename().string(),number))continue;
+            if(++sample.fds>1048576)throw std::runtime_error("proc-directory-limit");
+            // proc fd 링크를 따라 해당 열린 inode를 stat한다. leaf 이름의 '(deleted)' 문자열은 권위가 아니다.
+            struct stat st{};
+            if(stat(it->path().c_str(),&st)!=0){if(errno==ENOENT){raced=true;break;}throw std::runtime_error(IoError("anonymous-fd-read-incomplete"));}
+            if(!S_ISREG(st.st_mode)||st.st_nlink!=0)continue;
+            if(st.st_size<0||st.st_blocks<0)throw std::runtime_error("anonymous-fd-size-invalid");
+            const auto key=std::make_pair(static_cast<std::uint64_t>(st.st_dev),static_cast<std::uint64_t>(st.st_ino));
+            if(std::find(seen.begin(),seen.end(),key)!=seen.end())continue;
+            constexpr std::size_t max_seen=8*1024*1024/sizeof(key);
+            if(seen.size()>=max_seen)throw std::runtime_error("fd-capacity-limit");
+            if(static_cast<std::uint64_t>(st.st_size)>std::numeric_limits<std::uint64_t>::max()-sample.anonymousBytes||
+                static_cast<std::uint64_t>(st.st_blocks)>(std::numeric_limits<std::uint64_t>::max()-sample.anonymousAllocated)/512)
+                throw std::runtime_error("anonymous-fd-size-overflow");
+            seen.push_back(key);++sample.anonymousFiles;
+            sample.anonymousBytes+=static_cast<std::uint64_t>(st.st_size);sample.anonymousAllocated+=static_cast<std::uint64_t>(st.st_blocks)*512;
+        }
+        if(error)throw std::runtime_error(ClassifyError(error.value(),"proc-directory-incomplete"));
+        if(!raced){complete=true;sample.anonymousMeasured=true;break;}
+    }
+    if(!complete)throw std::runtime_error(FdExhaustionError(0,4));
     if (sample.threads == 0) throw std::runtime_error("thread-count-unavailable");
     if (Identity(pid) != sample.start) throw std::runtime_error("process-identity-changed");
     return sample;

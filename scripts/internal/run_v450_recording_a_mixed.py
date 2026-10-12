@@ -190,7 +190,7 @@ def main():
     timeout = 2880 if sys.argv[1] == '--state-diagnostic' else 180 if sys.argv[1] == '--prepare' else 780 if sys.argv[1] == '--frame-diagnostic' else 7380
     command = ['bash', str(repo / 'scripts/internal/verify_v450_recording_a_mixed.sh')] + (
         ['--state-diagnostic'] if sys.argv[1] == '--state-diagnostic' else ['--app-observe'] if sys.argv[1] == '--prepare' else ['--frame-diagnostic'] if sys.argv[1] == '--frame-diagnostic' else ['--duration-minutes', '120'])
-    record = {'command': command, 'startedAt': utc_now(), 'status': 'RUNNING', 'source': source_binding(repo),
+    record = {'preparationContractVersion': 2, 'resultScope': 'startup-only; separate generation cyclic/recovery and space required' if sys.argv[1] == '--prepare' else 'existing mixed mode', 'command': command, 'startedAt': utc_now(), 'status': 'RUNNING', 'source': source_binding(repo),
               'timeoutSeconds': timeout, 'observationSeconds': 2700 if sys.argv[1] == '--state-diagnostic' else 30 if sys.argv[1] == '--prepare' else 600 if sys.argv[1] == '--frame-diagnostic' else 7200,
               'wrapperSha256': hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
               'resourceTrendPass': False, 'reviewRequired': True, 'uiFulltestPass': False}

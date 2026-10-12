@@ -221,3 +221,37 @@ try{await(async()=>{
  sizeBytes='36865';await assert.rejects(vm.runInContext('drain(2)',c),/mixed-fixture-segment-bound/);assert.equal(consumed,1);
 })();passed++;console.log('[pass] R98 actual drain rejects output beyond fixed envelope before progress');}catch(error){failed++;console.log('[fail] R98 actual drain: '+error.message);}
 console.log(`[R98-final-summary] passed=${passed} failed=${failed}`);if(failed)process.exitCode=1;
+
+// R99: 실제 함수/최종 조건을 VM에서 호출한다. 기동과 순환을 같은 PASS로 집계하지 않는다.
+const {mixedPreparationContract,mixedPreparationBundle}=await import('./recording_longrun_progress.mjs');
+for(const args of [['--app-observe'],['--frame-diagnostic'],['--state-diagnostic'],['--duration-minutes','120']])check('R99 actual progress/recovery gate '+args.join(' '),()=>{
+ const preparationContract=mixedPreparationContract(args),startup=args[0]==='--app-observe';
+ const context=vm.createContext({preparationContract,phaseResult:{channels:{'9101':{finalized:1,deleted:0},'9201':{finalized:1,deleted:0}}},result:{catalogRecovered:true,available:2,deleted:0},check:ok=>assert(ok)});
+ const progressGate=mixedSource.match(/check\(Object\.values\(phaseResult.channels\)[^;]+;/)[0];
+ const recoveryGate=mixedSource.match(/check\(result.catalogRecovered[^;]+;/)[0];
+ for(const gate of [progressGate,recoveryGate])startup?vm.runInContext(gate,context):assert.throws(()=>vm.runInContext(gate,context));
+ context.phaseResult.channels['9101'].finalized=0;assert.throws(()=>vm.runInContext(progressGate,context));
+});
+check('R99 preparation bundle rejects every missing/failed component',()=>{
+ for(const startup of ['PASS','FAIL','not-run'])for(const cyclicRecovery of ['PASS','FAIL','not-run'])for(const space of ['PASS','FAIL','not-run'])
+ assert.equal(mixedPreparationBundle({startup,cyclicRecovery,space}).shortPreparationPass,[startup,cyclicRecovery,space].every(s=>s==='PASS'));
+ assert.throws(()=>mixedPreparationContract(['--app-observe','extra']));
+});
+check('R99 actual usage gate retains deleted file absence even for startup',()=>{
+ const fn=mixedSource.slice(mixedSource.indexOf('function verifyStatusUsage('),mixedSource.indexOf('async function snapshot('));
+ for(const startup of [true,false]){
+  let present=false;const context=vm.createContext({root:'/owned',path,console:{log(){}},preparationContract:{requiresDeletion:!startup},progress:{records:new Map([['x',{channel:'9101',sizeBytes:'8',mediaRelpath:'a.mp4',state:'finalized'}],['y',{channel:'9201',sizeBytes:'8',mediaRelpath:'b.mp4',state:'finalized'}]])},fs:{existsSync:()=>present,lstatSync:()=>({isFile:()=>true,isSymbolicLink:()=>false,nlink:1n,size:8n})},check:ok=>assert(ok)});
+  vm.runInContext(fn,context);context.status={channels:['9101','9201'].map(channelId=>({channelId,continuousBytes:8,eventBytes:0}))};
+  startup?vm.runInContext('verifyStatusUsage(status)',context):assert.throws(()=>vm.runInContext('verifyStatusUsage(status)',context));
+  context.progress.records.set('d',{channel:'9101',sizeBytes:'8',mediaRelpath:'d.mp4',state:'deleted'});present=true;
+  assert.throws(()=>vm.runInContext('verifyStatusUsage(status)',context),/status-deleted-media-present/);
+ }
+});
+try{await(async()=>{
+ const fn=mixedSource.slice(mixedSource.indexOf('async function verifySavedEvidence('),mixedSource.indexOf('async function evidenceLoad('));
+ for(const requiresDeletion of [false,true]){
+  const context=vm.createContext({preparationContract:{requiresDeletion},savedEvidence:null,savedStructuredEvidence:null,mixed:{deletedSourceObserved:false},check:ok=>assert(ok)});
+  vm.runInContext(fn,context);if(requiresDeletion)await assert.rejects(vm.runInContext('verifySavedEvidence({},true)',context));else await vm.runInContext('verifySavedEvidence({},true)',context);
+ }
+})();passed++;console.log('[pass] R99 actual saved evidence restart gate separated');}catch(e){failed++;console.log('[fail] R99 saved evidence '+e.message);}
+console.log(`[R99-final-summary] passed=${passed} failed=${failed}`);if(failed)process.exitCode=1;

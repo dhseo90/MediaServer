@@ -4,6 +4,13 @@
 #include "recording/retention_coordinator.h"
 #include "recording/recording_resource_trace.h"
 #include "recording/recording_finalize_recovery.h"
+#include "recording/recording_runtime_composition.h"
+#include "recording/recording_file_evidence.h"
+#include "recording/recording_search_reader.h"
+#include "recording/evidence_package_builder.h"
+#include <fcntl.h>
+#include <sys/stat.h>
+#include <iomanip>
 #include "media/gstreamer_sample_observation.h"
 #include "recording_writer_decode_diagnostics.h"
 #include "recording_writer_decode_oracle.h"
@@ -223,9 +230,11 @@ int DecoderComparison(const std::filesystem::path& root,bool only_bframes=false)
     std::cout<<"[decoder-comparison-summary] outcome=not-reproduced rounds=16 files="<<files.size()<<" auto_attempts="<<attempts<<" software_attempts=0 cause_resolved=0\n";return 3;
 }
 
+#include "recording_mixed_generation_fixture.h"
+
 // R98: 고정 혼합 입력을 그대로 demux하고, 각 key 시작점의 정상 Stop prefix를
 // 실제 managed writer에 전달한다. 이 관측은 임의 입력의 출력 상한이 아니다.
-int MixedFixtureBound(const std::filesystem::path& root,bool direct=false) {
+int MixedFixtureBound(const std::filesystem::path& root,bool direct=false,bool generation_direct=false) {
     const auto need=[](bool ok,const char* why){if(!ok)throw std::runtime_error(why);};
     const auto file=root/"mixed-input.mp4";
     const std::string generation="videotestsrc num-buffers=120 pattern=ball ! video/x-raw,format=I420,width=160,height=90,framerate=30/1 ! x264enc tune=zerolatency speed-preset=ultrafast pass=quant quantizer=0 key-int-max=30 ! h264parse ! mp4mux ! filesink location=\""+file.string()+"\"";
@@ -252,6 +261,7 @@ int MixedFixtureBound(const std::filesystem::path& root,bool direct=false) {
     gst_element_set_state(pipeline,GST_STATE_NULL);gst_object_unref(sink);gst_object_unref(pipeline);
     need(input.packets.size()==120&&payload<1024*1024,"mixed-input-count-size");
 
+    if(generation_direct)return MixedGeneration(root,input);
     if(direct){
         constexpr std::uint64_t E=64ULL*1024*1024,S=36*1024,H=643*S,P=S;
         constexpr std::uint64_t Q=((E+H+P+1024*1024-1)/(1024*1024))*1024*1024;
@@ -318,6 +328,8 @@ int MixedFixtureBound(const std::filesystem::path& root,bool direct=false) {
 }
 }
 int main(int argc,char** argv) {
+    if(argc==3&&std::string(argv[2])=="--mixed-generation-reopen"){gst_init(nullptr,nullptr);try{return MixedGenerationReopen(argv[1]);}catch(const std::exception& e){std::cerr<<"[R99-failure] "<<e.what()<<std::endl;return 1;}}
+    if(argc==3&&std::string(argv[2])=="--mixed-generation"){gst_init(nullptr,nullptr);try{return MixedFixtureBound(argv[1],false,true);}catch(const std::exception& e){std::cerr<<"[R99-failure] "<<e.what()<<std::endl;return 1;}}
     if(argc==3&&(std::string(argv[2])=="--mixed-fixture-bound"||std::string(argv[2])=="--mixed-profile-direct")){gst_init(nullptr,nullptr);try{return MixedFixtureBound(argv[1],std::string(argv[2])=="--mixed-profile-direct");}catch(const std::exception& e){std::cerr<<"[R98-failure] "<<e.what()<<'\n';return 1;}}
     if(argc==3&&std::string(argv[2])=="--decode-oracle-tests")return DecodeOracleTests();
     if(argc==3&&(std::string(argv[2])=="--decoder-comparison"||std::string(argv[2])=="--decoder-comparison-bframes")){

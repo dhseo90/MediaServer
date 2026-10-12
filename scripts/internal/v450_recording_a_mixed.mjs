@@ -13,7 +13,7 @@ import {spawn,spawnSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
 import {CurrentRecordingObserver,CurrentLongrunProgress,CurrentObservationBudget,summarizeCurrentSamples,closedJournalComplete,disabledChannelsExact,measureCurrentRootStable,summarizeFixtureGeneration,freezeCurrentWorkspace,measureCurrentWorkspace,createWorkspaceFailureCapture,admitWorkspaceSnapshot,workspaceAnonymousBytes,runCurrentRecovery} from "./recording_current_observer.mjs";
 import {collectProcess} from "./recording_foundation_observer.mjs";
-import {mixedRecordingProfile,mixedRecordingSettings,assertMixedRecordingRegistry,assertMixedFixtureInput,visualRequestSummary,searchFailureSummary,visualPhaseSummary,parseLongrunArgs,sampleContinuity,nextRecordingSettings,mediaAbsent,assertSampleStep,summarizeAvailableSamples,slowTraceSummary,nextSampleDelay,frameTraceSummary,captureBoundedProcessLog,processLogCaptureComplete,assertMixedFrameTraceMode} from "./recording_longrun_progress.mjs";
+import {mixedPreparationContract,mixedRecordingProfile,mixedRecordingSettings,assertMixedRecordingRegistry,assertMixedFixtureInput,visualRequestSummary,searchFailureSummary,visualPhaseSummary,parseLongrunArgs,sampleContinuity,nextRecordingSettings,mediaAbsent,assertSampleStep,summarizeAvailableSamples,slowTraceSummary,nextSampleDelay,frameTraceSummary,captureBoundedProcessLog,processLogCaptureComplete,assertMixedFrameTraceMode} from "./recording_longrun_progress.mjs";
 import {measuredHttpResponse,createRecordingStatusCapture,recordingStateSummary} from "./recording_current_app_helpers.mjs";
 import {reservePort,stopServer,assertPortClosed,bootstrapRecordingUiAuth,createUiAuthPasswords} from "./verify_v410_recording_ui_contract.mjs";
 import {createProcessCleanup} from "./recording_process_cleanup.mjs";
@@ -25,6 +25,7 @@ const root=process.argv[2],args=process.argv.slice(3),short=args.length===1&&arg
 const stateDiagnose=args.length===1&&args[0]==='--state-diagnostic';
 const diagnose=stateDiagnose||(args.length===1&&args[0]==='--frame-diagnostic');
 const frameTraceMode='bounded';
+const preparationContract=mixedPreparationContract(args);
 const fixtureProfile=mixedRecordingProfile('continuous-r98');
 console.log('[fixture-profile] '+JSON.stringify(fixtureProfile));
 const duration=short?30000:stateDiagnose?2700000:diagnose?600000:parseLongrunArgs(args);
@@ -112,7 +113,7 @@ async function verifySavedEvidence(app,afterRestart=false){
  const file=await evidenceFetch(app,'/ops/api/recordings/evidence/'+savedEvidence.id+'/assets/0');
  check(file.status===200&&crypto.createHash('sha256').update(file.bytes).digest('hex')===savedEvidence.sha256,'V440 preserved PNG bytes');
  console.log('[saved-evidence-sources] '+JSON.stringify({atMs:Date.now(),id:savedEvidence.id,afterRestart,currentSources:detail.currentSources}));mixed.deletedSourceObserved ||= detail.currentSources.some(v=>v.state==='deleted');mixed.retainedChecks++;}
- if(afterRestart)check(mixed.deletedSourceObserved,'V440 original actually deleted before restart readback');
+ if(afterRestart&&preparationContract.requiresDeletion)check(mixed.deletedSourceObserved,'V440 original actually deleted before restart readback');
 }
 async function evidenceLoad(app){
  if(performance.now()<nextEvidence)return;nextEvidence+=15000;const window=observationStart===null?null:mixed.windows[Math.min(2,Math.floor((performance.now()-observationStart)/(duration/3)))];
@@ -208,7 +209,7 @@ function verifyStatusUsage(status){
     console.log('[status-usage] '+JSON.stringify({channelId:id,aliveBytes:String(usage.alive),historicalBytes:String(usage.history),deleted:usage.deleted,
       apiContinuousBytes:row?.continuousBytes??null,apiEventBytes:row?.eventBytes??null,physicalFilesChecked:true}));
     check(rows?.length===1&&Number.isSafeInteger(row.continuousBytes)&&row.continuousBytes===Number(usage.alive)&&
-      row.eventBytes===0&&usage.deleted>0&&usage.history>usage.alive,'LP26-O11 independent status usage '+id);
+      row.eventBytes===0&&(!preparationContract.requiresDeletion||(usage.deleted>0&&usage.history>usage.alive)),'LP26-O11 independent status usage '+id);
   }
 }
 async function snapshot(){
@@ -257,7 +258,7 @@ async function snapshot(){
       copyTree:receiptTree(copyTree),originalUnchanged,manifestUnchanged,groupClosed,limits:{treeBytes:448*1024*1024,treeEntries:4096},manifest,rawPathsPublished:false}});
     receiptPreserved=receipt.preserved;console.log('[snapshot-receipt] '+JSON.stringify({...receipt,rawPathsPublished:false}));
     check(childSuccess,'LP26-O05 stopped copy native catalog recovery');
-    result=JSON.parse(r.stdout);check(result.catalogRecovered===true&&result.available>0&&result.deleted>0,'LP26-O05 native surviving and deleted states');
+    result=JSON.parse(r.stdout);check(result.catalogRecovered===true&&result.available>0&&Number.isSafeInteger(result.deleted)&&result.deleted>=0&&(!preparationContract.requiresDeletion||result.deleted>0),'LP26-O05 native surviving and deleted states');
     // 이름 하나가 아닌 원본 전체 파일의 경로·크기·해시를 대조한다(B/legacy 모두).
     check(originalUnchanged,'LP26-O05 original journal bytes unchanged');
   }catch(error){primary=error;
@@ -312,7 +313,7 @@ try{
   await aLoad.finish(first);if(!short)requireMixedWindows(mixed.windows);
   check(mixed.cycles>0&&mixed.createComplete>0&&mixed.searchSuccessByClient.every(n=>n>0)&&mixed.visualResults>0&&mixed.visualCreated>0,"V440 actual mixed work occurred");const orderedLatencies=[...mixed.searchLatencyMs].sort((a,b)=>a-b);check(orderedLatencies.at(Math.ceil(orderedLatencies.length*.95)-1)<=2000&&orderedLatencies.at(-1)<=5000,"V440 successful search latency");await sample(first);const end=performance.now();check(sampleContinuity(samples,begin,end,first.child.pid,samples[0].startIdentity),'LP26-O04 sample coverage');
   phaseResult=progress.status(end);if(!short&&!diagnose)check(phaseResult.elapsedMs>=7200000,"V440 actual120 duration");
-  check(Object.values(phaseResult.channels).every(c=>c.finalized>0&&c.deleted>0),'LP26-O05 both channels retained and progressed');
+  check(Object.values(phaseResult.channels).every(c=>c.finalized>0&&(!preparationContract.requiresDeletion||c.deleted>0)),'LP26-O05 both channels retained and progressed');
   summary=summarizeCurrentSamples(samples);observationStart=null;if(!diagnose)await aLoad.controls(first,passwords[1]);progress.setActive(performance.now(),false);await settings(first,false);await stop(first);
   const tail=await drain(performance.now());check(closedJournalComplete(tail),'LP26-O02 closed journal no partial tail');
   if(!diagnose){const before=await snapshot();
@@ -350,8 +351,8 @@ finally{
   try{if(observer)await observer.closeAsync();}catch{failed++;try{fs.writeFileSync(path.join(root,'cleanup-blocked'),'observer transport cleanup unresolved\n',{mode:0o600});}catch{}}if(udp)try{await new Promise(r=>udp.close(r));udpClosed=true;}catch{failed++;}else udpClosed=true;
   if(!udpClosed||processes.some(p=>!p.result?.archiveSafe)){fs.writeFileSync(path.join(root,'cleanup-blocked'),'process or port safety unresolved\n',{mode:0o600});failed++;}
   try{workspaceFailure.close();}catch{failed++;console.log('[fail] workspace-evidence-close');}
-  const final={workspaceFailure:workspaceFailure.summary(),decoderTraceMode:frameTraceMode,mode:short?'v450-mixed-preparation':stateDiagnose?'v450-state-diagnostic':diagnose?'v450-frame-diagnostic':'v450-recording-search-evidence-A-mixed-120',passed,failed,elapsedMs:Math.round(performance.now()-start),verifiedDurationMs:phaseResult?.elapsedMs??null,
-    longrunObservationCompleted:!short&&!diagnose&&failed===0&&!!phaseResult,shortPreparationPass:short&&failed===0,frameDiagnosticPass:diagnose&&!stateDiagnose&&failed===0&&!!phaseResult,stateDiagnosticPass:stateDiagnose&&failed===0&&!!phaseResult,fixtureProfile,resourceTrendPass:false,reviewRequired:true,uiFulltestPass:false,
+  const final={workspaceFailure:workspaceFailure.summary(),decoderTraceMode:frameTraceMode,preparationContract,mode:short?'v450-startup-preparation-v2':stateDiagnose?'v450-state-diagnostic':diagnose?'v450-frame-diagnostic':'v450-recording-search-evidence-A-mixed-120',passed,failed,elapsedMs:Math.round(performance.now()-start),verifiedDurationMs:phaseResult?.elapsedMs??null,
+    longrunObservationCompleted:!short&&!diagnose&&failed===0&&!!phaseResult,shortPreparationPass:false,startupPreparationPass:short&&failed===0,cyclicRecoveryStatus:short?'not-run-in-this-process':null,frameDiagnosticPass:diagnose&&!stateDiagnose&&failed===0&&!!phaseResult,stateDiagnosticPass:stateDiagnose&&failed===0&&!!phaseResult,fixtureProfile,resourceTrendPass:false,reviewRequired:true,uiFulltestPass:false,
     recordingStatusFailure:statusCapture.failure(),evidenceLoad:mixed,aLoad:aLoad?.report()??null,phase:phaseResult??null,resources:summary??null,processCount:processes.length,processesClosed:processes.every(p=>p.result?.normalShutdownPass),udpClosed,
     footprintState:samples.every(s=>Number.isSafeInteger(s.footprintBytes))?'proc-pid-rusage':'partially-or-not-measured',cpu:{maxPercent:samples.length?Math.max(...samples.map(s=>s.cpuPercent)):null},tokenStart:null,tokenEnd:null,tokenConsumed:null,tokenSource:'전용 집계 없음'};artifacts.checkpoint({...final,status:failed?'FAIL':'PASS',exit:failed?1:0});console.log(JSON.stringify(final));process.exitCode=failed?1:0;
 }

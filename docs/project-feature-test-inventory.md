@@ -4992,3 +4992,14 @@ R97-A02는 미선택 대체 후보의 unlink/authority 하드 오류를 거부�
 - 색인·동시 검색·응답·증거/A의 고유 원본 수명으로 E/H/P/M을 산정한다. 관측 최대를 보편 상한으로 사용하지 않는다. 산정이 미완료이면 연속 profile과 준비 실행은 채택하지 않는다.
 - 초기 등록·enable/disable·재활성화·재시작 설정 대조, 잘못된 profile/정수 overflow 거부를 직접 확인한다. 448MiB/copy/RAM/5초/p95 2000ms/최대5000ms는 불변이다.
 - 채택 가능한 연속 조건에서만 실제 hold·대체 삭제·writer 확정/decode·경계 초과 거부와 macOS/비특권 Linux 소비자 검사를 수행한다. 짧은 준비는 별도 최대1회이며 600초/45분/120분은 이번 검증에 포함하지 않는다.
+
+### R99-F01 — 기동과 generation 순환 준비의 책임 분리
+
+- 빈-root 30초는 새 확정·검색·색인·증거/A·사용량·정상 종료/재Open을 검사한다. 삭제가 발생하면 파일 부재를 계속 대조하지만 삭제 발생 자체는 요구하지 않는다. 기존 장시간 모드의 삭제·시간·지연 조건은 유지한다.
+- 순환 직접 검사는 같은 고정 입력, RuntimeStorage generation, 실제 source binding, 정상 order 예약/FinalizeBound를 사용한다. 실제 파일 크기로 87MiB−64MiB를 넘는 사전 수량을 계산한다. 9101/9201과 A용 채널1을 구분한다.
+- 사전 prefix/확정량과 이후 새 writer 확정·retention 삭제를 구분한다. 증거 생성 후 원본의 실제 삭제와 보존 bytes/hash, 닫힌 원본의 별도 프로세스 copy 복구에서 available/deleted를 요구한다.
+- R99-F02 반례: 사전 진행만 존재, 삭제 파일 잔존, 잘못된 binding/채널/시각/hash, 원본 누락/불완전 복구, 보호 파일 삭제, quota/작업공간 초과, 원본 존재 증거를 삭제 후 증거로 오분류. 실제 제품 반례와 판정 함수 반례를 구분한다.
+- R99-F03 공간: 실제 generation owner 예약, 일반 파일, 익명 logical/allocated max, helper RSS/FD, live+copy를 현행 workspace 판정에 연결한다. 비원자 표본은 순간 peak가 아니다. 사전 자료는 고정F에서 제외한다.
+- 결과 버전2는 startup/cycle-recovery/space를 분리하며 하나라도 FAIL/not-run이면 준비 묶음 PASS가 아니다. 단기 PASS는 45/120분 공간·지연·메모리 P0 완료를 뜻하지 않는다. macOS/비특권 Linux 및 독립 검토 후 빈-root 준비는 1회만 실행한다.
+- 실제 소비 경로: `recording_managed_writer_smoke.cpp`의 `recording_mixed_generation_fixture.h`는 `--mixed-generation`/`--mixed-generation-reopen`을 제공한다. 부모 `recording_mixed_generation_check.mjs ROOT BINARY COLLECTOR`는 각 phase를 실제 공간 관측 후 진행시키고, 기존 `recording_current_observer.mjs`의 고정 크기 baseline 대조를 사용한다. `recording_mixed_generation_check.test.mjs`는 실제 부모 함수의 수집 실패·마지막 종료 오류·자식/후손 정리 반례를 합성 자식으로 확인한다. `recording_longrun_progress.test.mjs`는 실제 혼합 소비자의 준비/장시간 분기와 전체 준비 집계를 검사한다. 실행 결과는 정의에 포함하지 않는다.
+- R99-F03 Linux collector 연결: `/proc/PID/fd`의 실제 regular/nlink0 inode를 dev/ino로 중복 제거하여 logical/allocated를 구분한다. 4회 유한 race 재관측·8MiB identity 목록·기존 FD 한도, 오류/null 거부를 유지한다. 기존 `recording_process_metrics.test.mjs`의 별도 프로세스/dup FD/마지막 close 검사를 양 플랫폼 Werror로 수행한다. macOS libproc 경로는 불변이다.
