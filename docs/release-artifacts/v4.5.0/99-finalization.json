@@ -1,0 +1,50 @@
+{
+  "schema": "media-server.r99.final-static.v1",
+  "checks": [
+    {
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "git",
+        "diff",
+        "--cached",
+        "--check"
+      ],
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "node",
+        "--check",
+        "scripts/internal/recording_mixed_generation_check.mjs"
+      ],
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "node",
+        "--check",
+        "scripts/internal/recording_mixed_generation_check.test.mjs"
+      ],
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "currentChangedDocumentLinks": "PASS",
+  "manifestValueDelta": "inventorySha256 only, existing producer; JSON formatting-only restored",
+  "sourceHashArchiveVsStaged": "12 files identical",
+  "productSrcIncludeDeltaFrom97": "none"
+}

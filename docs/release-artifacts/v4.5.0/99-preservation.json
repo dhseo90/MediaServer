@@ -1,0 +1,15 @@
+{
+  "schema": "media-server.r99.archive-readback.v1",
+  "archive": "docs/release-artifacts/v4.5.0/99-execution.tar.gz",
+  "archiveBytes": 10592623,
+  "archiveSha256": "d4a01ec92628755306eb718c80bf204caee7b5aab11b8f24c9eba53ce7836204",
+  "memberCount": 295,
+  "memberBytes": 25195686,
+  "originalMappedFiles": 1530,
+  "originalMappedBytes": 81755836,
+  "uniqueOriginalBlobs": 94,
+  "allMembersByteReadbackPass": true,
+  "manifestMemberSha256": "127d025e40c2367925c5774e309f4c52aaf22cda0ab775583764609eef6e9a02",
+  "gitObjectReadback": "pending",
+  "remoteReadback": "pending"
+}

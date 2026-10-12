@@ -1,0 +1,200 @@
+{
+  "schema": "media-server.v450.independent-review.v1",
+  "task": 99,
+  "reviewedAt": "2026-10-12T12:02:12.331Z",
+  "reviewer": {
+    "identity": "/root/independent_memory86",
+    "requestedModel": "gpt-6-astra",
+    "requestedEffort": "high",
+    "toolAccepted": "이전 별도 reviewer 생성의 수락 기록을 재사용. 이번 follow-up은 설정을 다시 노출하지 않음.",
+    "actualRuntimeModel": "미노출·미확인",
+    "actualRuntimeEffort": "미노출·미확인",
+    "independence": "구현·검사 작성·제품/검사/producer 실행에 참여하지 않음. 읽기, 원문 파싱, 바이트/hash 대조와 이 보고서 작성만 수행. 하위 위임 없음. 사용자 기본 설정·95 비공개 백업 비접근."
+  },
+  "decision": {
+    "status": "SCOPED_PREPARATION_BUNDLE_ACCEPTED_PRESERVATION_CLOSEOUT_PENDING",
+    "codeBlockingFindings": [],
+    "technicalScope": "빈-root 기동과 별도 실제 generation 순환·복구·해당 공간의 세 책임이 모두 직접 근거로 충족됨. 해당 fixture 한정 변경을 수용한다.",
+    "wholeTaskComplete": false,
+    "executionAuthority": "새 실행 권한·재실행 승인·출시 승인이 아님.",
+    "idInterpretation": "시험이 제품 API 입력 자료를 준비할 수 있다는 명시 범위로 clone ID 입력을 수용한다. 모든 ID가 제품이 생성한 값이라는 literal 조건은 입증하지 않았으며 그렇게 완료 표시하지 않는다.",
+    "memoryP0": "미충족·보류 유지",
+    "release": "보류 유지"
+  },
+  "sourceBinding": {
+    "entryHead": "4e30ff070a9f20d6bfc212e0bd6e45c62d7b51fb",
+    "executionTree": "3cd661d9d4d9f8cabe1fdfdbfb43bdb307f21cab",
+    "startupSourceSha256": "beea4c4175400f371495315e57cd48b3f9f6c07d37586a5a3a9c8add44dac758",
+    "startupProductBinarySha256": "592100ed3af4ddf2e1120e81348b5dfeb77d8e1413b7c675586f9cfa3a517c7d",
+    "runtimeSha256": "8fdcbc0f0918e25a06d39df3ba488cf82e292be7151a69af4f51062432710f01",
+    "productSrcIncludeDiffFromEntry": "empty; 실제 git diff 읽기 확인",
+    "executionMeaning": "실행 HEAD와 당시 수정 소스 fingerprint의 결합. 후속 commit을 실행 당시 HEAD로 소급하지 않음. 전체 working tree clean 주장 없음.",
+    "currentFixtureHashes": {
+      "docs/project-feature-test-inventory.md": "fc61aa337c42c424d198c0fb80bd097597be166c96acd45ec68d1bfe4f2cd3a9",
+      "scripts/internal/recording_current_observer.mjs": "ec457124d9900f5aa8e9cb67ad9350dbb19fd7e4d696b5edd5cce5c880d2a02f",
+      "scripts/internal/recording_longrun_progress.mjs": "2a3570834be0e30d603e8206bb611e76acb232ade0374598a946b1ec2dd8813f",
+      "scripts/internal/recording_longrun_progress.test.mjs": "d23b69a8fa6115b3df5615f525a328ca7654dba3899f937f9645ecdd9ad2c255",
+      "scripts/internal/recording_managed_writer_smoke.cpp": "e0e7536a7305d70e7f4f059cc670f48e49e1dcb9ac50f6ba69b069d2d4e86342",
+      "scripts/internal/recording_mixed_generation_check.mjs": "618c6db6bb03360c4b306bb4531b37c984f354345adc4d2dc586451161b3f742",
+      "scripts/internal/recording_mixed_generation_check.test.mjs": "c8563ff589196d0f71a4f50e942b2a85e5c67403817bed5eab661503ba4a6d5c",
+      "scripts/internal/recording_mixed_generation_fixture.h": "9fa6e7ecc03efebda7c42a922be49453fac0e258d9c2a15573cb9f3725b74793",
+      "scripts/internal/recording_process_metrics.cpp": "8c5d0afa5825cc7f33437e0dc1d13ce06ed2ce5ae7700b32aa30d7fca6dbab81",
+      "scripts/internal/recording_process_metrics.test.mjs": "f772e099d6070b695dd15dabd935a10136250a7cf338071761738eca7cce5f3b",
+      "scripts/internal/run_v450_recording_a_mixed.py": "bee6cbc974e9f8fa95e6d9d6f547aedaaa460c50a8e471c2f8d2743960c9ce8b",
+      "scripts/internal/v450_recording_a_mixed.mjs": "fd9dca81d7ad2b76d8fc7a488807d3513adc29532ed94ecb7b796905c4c9d51b"
+    },
+    "currentHashMismatches": []
+  },
+  "codeReview": [
+    {
+      "scope": "기동/순환 책임 분리",
+      "finding": "startup-only version2에서 새 finalized·상태/실제 bytes·증거 조회·Stop/재Open을 유지하고 positive deletion은 별도 generation 순환에서 강제한다. startup 단독 shortPreparationPass=false, 묶음은 세 결과 모두 PASS여야 true. 장시간 기존 삭제·부하·지연 gate의 면제로 확장되지 않음."
+    },
+    {
+      "scope": "ID·원본·원장",
+      "finding": "seed와 새 writer는 제품 UUID. 사전 clone은 fixture r99-channel-i ID이며 ReserveRecordingOrder가 제품 순서를 발급하고 각 독립 파일의 실제 proof/FinalizeBound가 ID·channel·binding을 정상 권위 원장에 수용한다. 수동 SQL/원장 문자열·가짜 proof·새 제품 우회 API·실행 중 hardlink 축소 없음. 원본 생성 및 주문 수용 경계와 literal ID 생성 주체를 구분한다."
+    },
+    {
+      "scope": "baseline와 새 진행",
+      "finding": "각 채널 실제 bytes로696개 사전 상태를 산정하고 manifest generation/cut/hash 및 order를 고정한다. observer는 이후 new finalized1/delete2 및 alive695를 검증한다. 사전696개를 새 진행으로 세지 않음. 보호 원본 생존과 선택 원본 삭제 후 증거 manifest/assets 유지 확인."
+    },
+    {
+      "scope": "복구 증명 한계",
+      "finding": "원본 생성 시 전체 파일 sample proof/FinalizeBound, immutable copy hash, 정상 RuntimeStorage.Open, fresh2개 실제 ResolveMedia+전체 file evidence, 모든 생존 원본의 부모 directory-FD O_NOFOLLOW walk·nlink/크기/전체 SHA·count를 확인한다. 모든1390개에 복구 시 미디어 parser/lease를 반복했다는 주장은 하지 않음. 반복비용 timeout의15초 한도는 유지."
+    },
+    {
+      "scope": "부모 수집/오류/정리",
+      "finding": "spawn 전 raw log open, write/짧은 쓰기/exit 후 오류/EPIPE 전파, 필수 phase 순서, 기존 owner collector final0, SIGTERM→SIGKILL 및 group 부재와 cleanupError를 확인하는 경계를 검토했다. 22 합성 반례는 실제 run() 경로이나 실제제품 실행과 구분한다."
+    },
+    {
+      "scope": "Linux anonymous 계상",
+      "finding": "/proc/PID/fd의 regular+nlink0를 dev/ino로 중복 제거하고 logical/allocated bytes를 분리한다. PID 시작 identity,4회 닫힘 race 재관측,8MiB seen cap,FD/overflow/권한 실패의 fail-closed를 유지. macOS branch 불변. FD가 없는 mmap 또는 순간 peak의 완전 계상 주장 없음."
+    }
+  ],
+  "actualEvidence": {
+    "startup": {
+      "runs": 1,
+      "passed": 233,
+      "failed": 0,
+      "observedMs": 30110.336416000002,
+      "wrapperTotalSeconds": 66.99938079202548,
+      "mainFinalizedEachChannel": 14,
+      "mainDeletedEachChannel": 0,
+      "mainACompleted": 1,
+      "reactivatedACompleted": 1,
+      "cancel": "HTTP200 cancelled",
+      "revoke": "HTTP401 and unchangedStore",
+      "restart": "immutable bytes plus independent HTTP readback",
+      "closedCopyRecoveries": 3,
+      "recoveryAvailable": [
+        32,
+        32,
+        40
+      ],
+      "recoveryDeleted": [
+        0,
+        0,
+        0
+      ],
+      "processCount": 3,
+      "normalClosed": true,
+      "udpClosed": true,
+      "ownerFinalRamDiskFdAllZero": true,
+      "rawSummaryEqualsStartupSummary": true,
+      "standaloneShortPreparationPass": false,
+      "startupPreparationPass": true
+    },
+    "searchPopulations": {
+      "mainGate": {
+        "count": 8,
+        "p95Ms": 1267.554333,
+        "maxMs": 1267.554333,
+        "pass": true
+      },
+      "afterGateReactivation": {
+        "count": 4,
+        "p95Ms": 2532.5913329999967,
+        "maxMs": 2532.5913329999967,
+        "underFiveSecondBudget": true
+      },
+      "allObserved": {
+        "count": 12,
+        "p95Ms": 2532.5913329999967,
+        "maxMs": 2532.5913329999967,
+        "p95Under2000": false
+      },
+      "definition": "ceil(0.95*N) 순위. run.log309행 gate 뒤640–643행 추가 검색. gate 표본 삭제·기준 완화가 아니며 전체12개 p95 PASS라고 하지 않는다."
+    },
+    "generation": {
+      "macOS": "direct8 live27.071초/copy6.063초, baseline696/channel→new1/delete2/alive695, sample84, original unchanged, owner final0",
+      "linux": "UID10001 기존 환경의 actual direct live24.541초/copy5.518초, 동일 count 진행, sample78, original unchanged, owner final0",
+      "inputDifference": "macOS segment34724B, Linux34709B. Linux input bytes/hash를 macOS 고정 input과 동일하다고 하지 않음.",
+      "spaceSampleMaximaBytes": {
+        "macOS": {
+          "variable": 164341403,
+          "copy": 115018411,
+          "combined": 215319528
+        },
+        "linux": {
+          "variable": 156746342,
+          "copy": 113712724,
+          "combined": 210239591
+        }
+      },
+      "spaceMeaning": "500ms 순차 측정과 멈춘 phase 경계 관측. 각 열 최대는 다른 시점일 수 있으며 더하지 않음. 논리 예약·실제 파일·anonymous allocated·RSS를 구분하고 순간 peak 또는 누적45/120분 보장을 주장하지 않는다."
+    },
+    "relatedRegressions": "macOS/Linux metrics47/0, parent22/0, progress79/0. 실제 missing-original/stale-deleted/partial-generation fault copy 거부, original unchanged 확인. 과거97/98/95/96/82K/F는 변경 없는 제품 경계 내 근거 재사용이며 이번 재실행이라고 하지 않음.",
+    "firstFailures": "초기 signed-comparison compile, reservation 중복 assertion, V2 legacy lookup, copy mode, recovery15초 timeout, live nlink2 scanner, Linux image 준비 오류·anonymous null collector, emit-candidate 조기return 뒤 최초 inventory readback FAIL을 보존. 후속 PASS가 최초 실패를 지우지 않음."
+  },
+  "bindingReview": {
+    "status": "PASS",
+    "candidateDigest": "8977e9b6ac618c7e0233823f6acb6ab1fcf7461206ee5d8b2a4149a643519e3a",
+    "producer": "별도 실제 apply-approved-manifest51/0",
+    "readback": "986 rows, errors0, globalErrors0, negative15/15",
+    "coverage": "986 covered/missing0;9/0",
+    "scriptInventory": "13/0",
+    "manifestSemanticChangedKeys": [
+      "inventorySha256"
+    ],
+    "meaning": "기존 승인 결속 재사용. 이986행 동일성은 새 fixture 동작에 대한 독립 승인 또는 실제UI 실행이 아님."
+  },
+  "preservationReview": {
+    "status": "LOCAL_ARCHIVE_BYTES_VERIFIED_GIT_REMOTE_PENDING",
+    "archive": "99-execution.tar.gz",
+    "bytes": 10592623,
+    "sha256": "d4a01ec92628755306eb718c80bf204caee7b5aab11b8f24c9eba53ce7836204",
+    "members": 295,
+    "memberBytes": 25195686,
+    "manifestSha256": "127d025e40c2367925c5774e309f4c52aaf22cda0ab775583764609eef6e9a02",
+    "manifestRecordsCompared": 294,
+    "rawOriginalMappingFiles": 1530,
+    "uniqueContentBlobs": 94,
+    "rawOriginalMappedBytes": 81755836,
+    "memberAndSourceHashMismatches": [],
+    "sourceComparison": "현재 원본 및31개 최초/최종 Linux tar 선택 member를 실제 읽어 original hash 대조. 매핑1530개를 원본과 archive blob에 대조.4개 파생자료는 원본 실행 로그가 아니라 mapping/diff/source hashes/parsed binding임을 구분.",
+    "redactedRecords": 33,
+    "redactionComparison": "owned-root/repository/home 경로 치환을 원본에 적용한 바이트와 실제 member 전부 일치. 정제본은 원본과 같은 바이트라고 주장하지 않음.",
+    "dedupMeaning": "보존만 내용별94blob으로 중복 제거. 실행 시1530개 독립 파일이었으며 파일별 경로/크기/hash/mode 매핑 유지.",
+    "exclusions": "기본 사용자 설정·95비공개 백업·모델·SDK·runtime executable 제외. 실패 시도 전체 media store, 중복 copy, 재생성 가능한 projection/registry 제외는 manifest에 명시. 필요한 실패/최종 로그와 closed source-bound synthetic 자료 보존 범위를 검토함.",
+    "gitReadback": "pending",
+    "remoteReadback": "pending"
+  },
+  "documentReview": {
+    "validationSha256": "50a6fb2ce94605a7143b2e17492e50a1dd7974566689cb7cd69420ff77e26d31",
+    "backlogSha256": "82cb99a99318b0f19c9eb6214d68b6f9f07748b36131828847f18e1050e7d7ba",
+    "result": "실행값·ID 생성/수용 구분·본8/추가4 지연·부분 범위와 P0/출시 보류가 독립 판단과 정합."
+  },
+  "remaining": [
+    "Git 원본 보존 바이트 readback",
+    "일반 push 및 실제 원격 바이트/commit 대조",
+    "보존 후 정확한 소유 root 정리와 부재 receipt",
+    "후속 마감 기록과 최종 commit/push 확인"
+  ],
+  "limits": [
+    "새600초/45분/120분 실행0; 추가 실행 권한 없음.",
+    "startup resourceTrendPass=false/reviewRequired=true. post-warmup 표본 부재로 무누수/P0 PASS 아님.",
+    "과거95/96 FAIL·미보존 실패 순간 operand/과거 사용자 설정 완전복원 미확정은 소급 해결하지 않음.",
+    "Qwen/Ollama·unload gate·실제UI·출시 미실행.",
+    "원본 보호·기동·순환·해당 공간의 한정 수용은 모든 ID 제품 생성 또는 전체 장기부하 상한의 증명이 아님."
+  ]
+}

@@ -1,0 +1,804 @@
+{
+  "schema": "media-server.v450.validation.v1",
+  "task": 99,
+  "status": "PREPARATION_BUNDLE_PASS_INDEPENDENT_FINAL_REVIEW_AND_GIT_PRESERVATION_PENDING",
+  "model": {
+    "requested": "gpt-6-astra/high",
+    "mainToolAccepted": "not-exposed",
+    "mainActualRuntime": "not-exposed",
+    "independentReviewer": "/root/independent_memory86",
+    "independentToolAccepted": "prior accepted setting record reused; followup does not expose setting",
+    "independentActualRuntime": "not-exposed"
+  },
+  "source": {
+    "base": "4e30ff070a9f20d6bfc212e0bd6e45c62d7b51fb",
+    "product": "981952dd169574e302aedf1600d0e492d7426c73",
+    "productSrcIncludeUnchanged": true,
+    "startupActual": {
+      "head": "4e30ff070a9f20d6bfc212e0bd6e45c62d7b51fb",
+      "fixtureProfile": "continuous-r98",
+      "fixtureProfileSourceSha256": "2a3570834be0e30d603e8206bb611e76acb232ade0374598a946b1ec2dd8813f",
+      "tree": "3cd661d9d4d9f8cabe1fdfdbfb43bdb307f21cab",
+      "sourceSha256": "beea4c4175400f371495315e57cd48b3f9f6c07d37586a5a3a9c8add44dac758",
+      "binarySha256": "592100ed3af4ddf2e1120e81348b5dfeb77d8e1413b7c675586f9cfa3a517c7d"
+    },
+    "startupEndBindingEqual": true,
+    "runtimeSha256": "8fdcbc0f0918e25a06d39df3ba488cf82e292be7151a69af4f51062432710f01",
+    "executionBinding": "base HEAD plus exact working source fingerprints; later commit is not falsely the execution HEAD",
+    "implementationCommit": "bb130af5af38adeac4f3b024ca8e223b8d31b766",
+    "implementationCommitMeaning": "post-execution preservation of identical tested source; actual run HEAD remains base+recorded working diff"
+  },
+  "contract": {
+    "version": 2,
+    "startup": "empty-root startup/function/usage/disable/closed journal/reopen/reactivation; deleted=0 is not cyclic PASS",
+    "cycle": "actual source-bound RuntimeStorage generation; baseline cut then new admission/deletion/finalize/decode; evidence after deletion and independent process copy recovery",
+    "assertionConsumers": [
+      "both-channel new finalized; deletion required only outside startup",
+      "status live bytes and physical files always checked; positive deletion history only outside startup",
+      "native copied catalog available + nonnegative integer deleted; positive deleted only outside startup",
+      "saved evidence bytes/detail always checked; actual deleted-source requirement outside startup; cycle independently proves it"
+    ],
+    "unchanged": [
+      "protection-r97",
+      "600/45/120 deletion/time/load/latency",
+      "87MiB/channel,64MiB reservation,36KiB fixed-input envelope",
+      "448MiB/copy/RAM/4MiB/5sec/p95 2000/max5000"
+    ],
+    "bundleConsumer": "mixedPreparationBundle is false for any FAIL/not-run; startup process alone leaves shortPreparationPass=false"
+  },
+  "generation": {
+    "macOS": {
+      "result": {
+        "schema": "r99-generation-cyclic-v1",
+        "status": "PASS",
+        "cyclicRecoveryPass": true,
+        "spacePass": true,
+        "sourceHead": "4e30ff070a9f20d6bfc212e0bd6e45c62d7b51fb",
+        "sourceSha256": "9fa6e7ecc03efebda7c42a922be49453fac0e258d9c2a15573cb9f3725b74793",
+        "live": {
+          "code": 0,
+          "signal": null,
+          "samples": 80,
+          "bytes": 15623,
+          "phases": [
+            "opened",
+            "prestate-progress",
+            "prestate-progress",
+            "prestate-progress",
+            "prestate-progress",
+            "prestate-progress",
+            "prestate-progress",
+            "prestate-progress",
+            "prestate-progress",
+            "prestate-progress",
+            "prestate-progress",
+            "prestate-progress",
+            "prestate-progress",
+            "prestate-progress",
+            "prestate-progress",
+            "prestate-progress",
+            "prestate-progress",
+            "prestate-progress",
+            "prestate-progress",
+            "prestate-progress",
+            "prestate-progress",
+            "baseline",
+            "cyclic",
+            "cyclic",
+            "checkpoint",
+            "released"
+          ],
+          "owner": {
+            "status": "captured",
+            "count": 29,
+            "final": {
+              "pid": 40351,
+              "seq": 28,
+              "phase": "after-storage-destruction",
+              "elapsedMs": 27071,
+              "ram": 0,
+              "ramPeak": 146479971,
+              "ramLimit": 671088640,
+              "ramRejected": 0,
+              "scratchDisk": 0,
+              "scratchDiskPeak": 98975744,
+              "scratchDiskLimit": 155121127424,
+              "scratchFd": 0,
+              "scratchFdPeak": 16,
+              "scratchFdLimit": 1048572,
+              "scratchRam": 0,
+              "preservedDisk": 0,
+              "preservedFd": 0,
+              "readerCleanupHealthy": true
+            },
+            "scope": "actual shared product owner; logical charges, not total heap or RSS; sequential counter reads"
+          },
+          "cut": {
+            "storeId": "store-29296a5777b4af37292256fbedae1915",
+            "generation": 15,
+            "cutOrdinal": 2786,
+            "manifestSha256": "29e05e5f6af08c43d6c910504123cc34d89fbe3a644895b5b1006276b66c65ea",
+            "observedAt": 24769.645917
+          },
+          "progress": [
+            {
+              "baseline": {
+                "channel": "9101",
+                "count": 696,
+                "bytes": 24167904,
+                "order": 697
+              },
+              "progress": {
+                "channel": "9101",
+                "newFinalized": 1,
+                "newDeleted": 2,
+                "alive": 695,
+                "bytes": 24133180,
+                "availableEvidenceAfterDelete": 1
+              },
+              "preexistingCountExcluded": true
+            },
+            {
+              "baseline": {
+                "channel": "9201",
+                "count": 696,
+                "bytes": 24167904,
+                "order": 1393
+              },
+              "progress": {
+                "channel": "9201",
+                "newFinalized": 1,
+                "newDeleted": 2,
+                "alive": 695,
+                "bytes": 24133180,
+                "availableEvidenceAfterDelete": 1
+              },
+              "preexistingCountExcluded": true
+            }
+          ]
+        },
+        "recovery": {
+          "code": 0,
+          "signal": null,
+          "samples": 4,
+          "bytes": 2428,
+          "phases": [
+            "copy-opened",
+            "copy-released"
+          ],
+          "owner": {
+            "status": "captured",
+            "count": 5,
+            "final": {
+              "pid": 40469,
+              "seq": 4,
+              "phase": "after-storage-destruction",
+              "elapsedMs": 6063,
+              "ram": 0,
+              "ramPeak": 4726353,
+              "ramLimit": 671088640,
+              "ramRejected": 0,
+              "scratchDisk": 0,
+              "scratchDiskPeak": 50077696,
+              "scratchDiskLimit": 154948538368,
+              "scratchFd": 0,
+              "scratchFdPeak": 6,
+              "scratchFdLimit": 1048572,
+              "scratchRam": 0,
+              "preservedDisk": 0,
+              "preservedFd": 0,
+              "readerCleanupHealthy": true
+            },
+            "scope": "actual shared product owner; logical charges, not total heap or RSS; sequential counter reads"
+          },
+          "cut": null,
+          "progress": []
+        },
+        "originalUnchanged": true,
+        "workspace": {
+          "status": "no-workspace-failure",
+          "primary": null,
+          "decision": null,
+          "collectorDiagnostic": null,
+          "context": null,
+          "collectionError": null,
+          "capacityBytes": 32768
+        },
+        "sampleCount": 84,
+        "observationLimit": "sequential 500ms samples and paused boundary samples; not instantaneous peak"
+      },
+      "spaceSamples": {
+        "count": 84,
+        "variableBytes": 164341403,
+        "copyBytes": 115018411,
+        "combinedBytes": 215319528,
+        "rssBytes": 75120640,
+        "footprintBytes": 42812112,
+        "anonymousFileBytes": 63273472,
+        "anonymousAllocatedBytes": 64049152,
+        "fdCount": 17
+      },
+      "binarySha256": "829dc0c8db7a4c79b429005784569fae7f365b7816840ea2287c697f09acef58",
+      "inputBytes": 67929,
+      "inputSha256": "b3dfbb89ddfe314456f5880d483558507e7c73aafce189dc330d480a5cd42955",
+      "seedBytes": 34724
+    },
+    "linux": {
+      "result": {
+        "schema": "r99-generation-cyclic-v1",
+        "status": "PASS",
+        "cyclicRecoveryPass": true,
+        "spacePass": true,
+        "sourceHead": "4e30ff070a9f20d6bfc212e0bd6e45c62d7b51fb",
+        "sourceSha256": "9fa6e7ecc03efebda7c42a922be49453fac0e258d9c2a15573cb9f3725b74793",
+        "live": {
+          "code": 0,
+          "signal": null,
+          "samples": 75,
+          "bytes": 12762,
+          "phases": [
+            "opened",
+            "prestate-progress",
+            "prestate-progress",
+            "prestate-progress",
+            "prestate-progress",
+            "prestate-progress",
+            "prestate-progress",
+            "prestate-progress",
+            "prestate-progress",
+            "prestate-progress",
+            "prestate-progress",
+            "prestate-progress",
+            "prestate-progress",
+            "prestate-progress",
+            "prestate-progress",
+            "prestate-progress",
+            "prestate-progress",
+            "prestate-progress",
+            "prestate-progress",
+            "prestate-progress",
+            "prestate-progress",
+            "baseline",
+            "cyclic",
+            "cyclic",
+            "checkpoint",
+            "released"
+          ],
+          "owner": {
+            "status": "captured",
+            "count": 29,
+            "final": {
+              "pid": 1123,
+              "seq": 28,
+              "phase": "after-storage-destruction",
+              "elapsedMs": 24541,
+              "ram": 0,
+              "ramPeak": 146423128,
+              "ramLimit": 671088640,
+              "ramRejected": 0,
+              "scratchDisk": 0,
+              "scratchDiskPeak": 98975744,
+              "scratchDiskLimit": 3990228992,
+              "scratchFd": 0,
+              "scratchFdPeak": 16,
+              "scratchFdLimit": 1048573,
+              "scratchRam": 0,
+              "preservedDisk": 0,
+              "preservedFd": 0,
+              "readerCleanupHealthy": true
+            },
+            "scope": "actual shared product owner; logical charges, not total heap or RSS; sequential counter reads"
+          },
+          "cut": {
+            "storeId": "store-d1768d9a32694a027a9c763d9bc4b713",
+            "generation": 15,
+            "cutOrdinal": 2786,
+            "manifestSha256": "2ce6851710eaacfbaccb2f8a902f08e77321ee7d2ac0e4503c5b8fa810ec5054",
+            "observedAt": 20990.221385
+          },
+          "progress": [
+            {
+              "baseline": {
+                "channel": "9101",
+                "count": 696,
+                "bytes": 24157464,
+                "order": 697
+              },
+              "progress": {
+                "channel": "9101",
+                "newFinalized": 1,
+                "newDeleted": 2,
+                "alive": 695,
+                "bytes": 24122755,
+                "availableEvidenceAfterDelete": 1
+              },
+              "preexistingCountExcluded": true
+            },
+            {
+              "baseline": {
+                "channel": "9201",
+                "count": 696,
+                "bytes": 24157464,
+                "order": 1393
+              },
+              "progress": {
+                "channel": "9201",
+                "newFinalized": 1,
+                "newDeleted": 2,
+                "alive": 695,
+                "bytes": 24122755,
+                "availableEvidenceAfterDelete": 1
+              },
+              "preexistingCountExcluded": true
+            }
+          ]
+        },
+        "recovery": {
+          "code": 0,
+          "signal": null,
+          "samples": 3,
+          "bytes": 2411,
+          "phases": [
+            "copy-opened",
+            "copy-released"
+          ],
+          "owner": {
+            "status": "captured",
+            "count": 5,
+            "final": {
+              "pid": 1390,
+              "seq": 4,
+              "phase": "after-storage-destruction",
+              "elapsedMs": 5518,
+              "ram": 0,
+              "ramPeak": 4782800,
+              "ramLimit": 671088640,
+              "ramRejected": 0,
+              "scratchDisk": 0,
+              "scratchDiskPeak": 50077696,
+              "scratchDiskLimit": 3817390080,
+              "scratchFd": 0,
+              "scratchFdPeak": 6,
+              "scratchFdLimit": 1048573,
+              "scratchRam": 0,
+              "preservedDisk": 0,
+              "preservedFd": 0,
+              "readerCleanupHealthy": true
+            },
+            "scope": "actual shared product owner; logical charges, not total heap or RSS; sequential counter reads"
+          },
+          "cut": null,
+          "progress": []
+        },
+        "originalUnchanged": true,
+        "workspace": {
+          "status": "no-workspace-failure",
+          "primary": null,
+          "decision": null,
+          "collectorDiagnostic": null,
+          "context": null,
+          "collectionError": null,
+          "capacityBytes": 32768
+        },
+        "sampleCount": 78,
+        "observationLimit": "sequential 500ms samples and paused boundary samples; not instantaneous peak"
+      },
+      "spaceSamples": {
+        "count": 78,
+        "variableBytes": 156746342,
+        "copyBytes": 113712724,
+        "combinedBytes": 210239591,
+        "rssBytes": 118603776,
+        "footprintBytes": null,
+        "anonymousFileBytes": 60539904,
+        "anonymousAllocatedBytes": 60559360,
+        "fdCount": 17
+      },
+      "binaryAndInput": "947ae511eaf02fdc3c0f9fedb62e1473551aec5b8071809bd87cc74ffef8d154  /tmp/media-server-preparation99/output/generation99\n488b8746b2a71b64394435c519e638a0a527d716ecfda2035102cb6ec215e6a9  /tmp/media-server-preparation99/output/direct/live/mixed-input.mp4\n",
+      "environment": "uid=10001 gid=10001 groups=10001\nLinux 7.0.14-linuxkit aarch64\ng++ (Debian 16.2.0-3) 16.2.0\nCopyright (C) 2026 Free Software Foundation, Inc.\nThis is free software; see the source for copying conditions.  There is NO\nwarranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n\n",
+      "seedBytes": 34709
+    },
+    "prestate": "floor((87MiB-64MiB)/actual segment bytes)+2 =696/channel. Actual independent files full-proof/bound-finalize/order; no SQL/raw journal injection/hardlinks. Separate channel1 writer seed. Maximum order/cut retained, baseline counts excluded from new progress.",
+    "retainedEvidence": "selected source present at creation; actual retention removes source; immutable manifest/assets hash remains; new processes verify two selected fresh originals through ResolveMedia+file evidence and ALL live originals by safe directory-FD no-follow size/hash",
+    "copy": "closed source snapshotTree/copyVerified; exact paths/size/hash and original unchanged; raw per-file media parsing is not claimed for all recovery files",
+    "spaceScope": "F=0 for direct. Actual files, helper/logs, anonymous logical/allocated max, copy/helper anonymous included. Product reservation is separate. Sequential500ms + paused boundary samples and owner peaks; not instantaneous whole-process peak or mmap accounting. Linux missing anonymous fields now measured, never zero-substituted.",
+    "idAuthority": "Seed and new writer IDs are product-generated UUIDs. Prestate clone IDs are fixture-generated API inputs; ReserveRecordingOrder issues product orders and FinalizeBound validates/accepts IDs, file proof and bindings into the authoritative journal. Not all clone IDs are product-generated; no private map/SQL/journal bypass or new product API. This uses the expressly allowed fixture-input preparation boundary.",
+    "sourceDifference": "macOS and Linux use the same source and input generation procedure, but their actual encoded bytes differ; their SHA-256/length values are separate. Prestate is newly generated, not restoration of any previous failed run."
+  },
+  "firstFailures": [
+    {
+      "attempt": "compile1",
+      "cause": "fixture Werror signed comparison",
+      "resolution": "matching size type; compile2-10 pass"
+    },
+    {
+      "attempt": "direct1",
+      "cause": "fixture double-counted released reservation after completed write",
+      "resolution": "actual live bytes <= quota after completion, active reservation enforced by coordinator"
+    },
+    {
+      "attempt": "direct2",
+      "cause": "legacy-only media lookup used for V2 survivor",
+      "resolution": "actual ResolveMedia + full file proof"
+    },
+    {
+      "attempt": "direct3",
+      "cause": "copy directory mode0755 rejected by EvidencePackageStore",
+      "resolution": "existing copyVerified0700/0600 path"
+    },
+    {
+      "attempt": "direct4",
+      "cause": "15second recovery timeout with repeated full physical validation of1390 copies",
+      "resolution": "all bytes/hash retained; selected actual read path preserved"
+    },
+    {
+      "attempt": "direct5",
+      "cause": "closed-copy filesystem scanner used while live generation publication nlink2",
+      "resolution": "existing identity-confirmed live measurement used; closed-copy strict remains"
+    },
+    {
+      "attempt": "direct6",
+      "cause": "recovery15second timeout; progress384files proves expensive per-copy ResolveMedia repeat",
+      "resolution": "safe FD all-original hash boundary; direct7 then final direct8 pass"
+    },
+    {
+      "attempt": "linux99 initial",
+      "cause": "mistyped image ID; exit125, no container test ran",
+      "resolution": "existing installed exact image; no installation"
+    },
+    {
+      "attempt": "linux99 corrected",
+      "cause": "existing Linux collector anonymous fields null; exact workspace rejection preserved",
+      "resolution": "bounded /proc inode accounting; final actual Linux pass"
+    },
+    {
+      "attempt": "initial binding command",
+      "cause": "--emit-candidate returns before --apply-approved-manifest; readback inventory drift",
+      "resolution": "separate existing producer apply then readback/coverage, allPASS; no manual hash edits"
+    }
+  ],
+  "directChecks": {
+    "progressContract": "79/0 each macOS/Linux; actual consumer branches and27 bundle state combinations",
+    "parentContract": "22/0 each; synthetic events through actual run() function, last-write after exit, short/failed write, EPIPE, trace absence, probe/space/child/signal/descendant cleanup, baseline no-new/usage/evidence rejection",
+    "metrics": "47/0 each; actual separate process, dupFD inode dedup and last close; Werror",
+    "generationNegatives": [
+      "actual wrong channel",
+      "actual wrong binding",
+      "actual wrong hash",
+      "actual wrong sample timestamp",
+      "protected live file survives retention",
+      "actual original missing in owned copy",
+      "actual deleted path reappears in owned copy",
+      "actual partial generation rejection"
+    ],
+    "recoveryFaults": {
+      "results": [
+        {
+          "fault": "missing-original",
+          "error": {
+            "message": "native-child-failed:{\"code\":1,\"signal\":null}",
+            "cleanupError": null
+          },
+          "elapsedMs": 6374.005458,
+          "expected": "recovered-original-missing",
+          "originalUnchanged": true
+        },
+        {
+          "fault": "stale-deleted-file",
+          "error": {
+            "message": "native-child-failed:{\"code\":1,\"signal\":null}",
+            "cleanupError": null
+          },
+          "elapsedMs": 5423.692083000002,
+          "expected": "recovered-deleted",
+          "originalUnchanged": true
+        },
+        {
+          "fault": "partial-generation",
+          "error": {
+            "message": "native-child-failed:{\"code\":1,\"signal\":null}",
+            "cleanupError": null
+          },
+          "elapsedMs": 149.32250000000204,
+          "expected": "copy-reopen:",
+          "originalUnchanged": true
+        }
+      ],
+      "scope": "actual isolated copies; mutations are negative injection, never original retention or successful state"
+    },
+    "reuse": "97 protection/quota hard failure and same-session recovery;98 input/210Stop bound and direct protection;95 pre-init isolation;96 workspace operands;82K/F; no replay of unrelated suites"
+  },
+  "startup": {
+    "executions": 1,
+    "status": "PASS",
+    "totalSeconds": 66.99938079202548,
+    "observedMs": 30110.336416000002,
+    "passed": 233,
+    "failed": 0,
+    "phase": {
+      "elapsedMs": 30110.336416000002,
+      "channels": {
+        "9101": {
+          "finalized": 14,
+          "deleted": 0,
+          "lastAt": 38907.499875,
+          "order": "29",
+          "store": "3a9003dfeb36b1fd2027f5330350ff49f2fe8e8eefba80fc0c2fa6e3a97f38c6",
+          "knownMappings": 10,
+          "unknownMappings": 404
+        },
+        "9201": {
+          "finalized": 14,
+          "deleted": 0,
+          "lastAt": 38907.499875,
+          "order": "28",
+          "store": "3a9003dfeb36b1fd2027f5330350ff49f2fe8e8eefba80fc0c2fa6e3a97f38c6",
+          "knownMappings": 11,
+          "unknownMappings": 374
+        }
+      },
+      "records": 28,
+      "logicalBytes": 16665
+    },
+    "mainSearchGate": {
+      "count": 8,
+      "p95Ms": 1267.554333,
+      "maxMs": 1267.554333
+    },
+    "postGateReactivationSearch": {
+      "count": 4,
+      "p95Ms": 2532.5913329999967,
+      "maxMs": 2532.5913329999967
+    },
+    "allSearchObserved": {
+      "count": 12,
+      "p95Ms": 2532.5913329999967,
+      "maxMs": 2532.5913329999967
+    },
+    "latencyMeaning": "unchanged gate evaluates main observation before controls/restart. Post-reactivation4 are additional functional requests; 12 total p95 is NOT <=2000. No samples excluded from original gate; raw arrays preserved. All requests remain5sec budget.",
+    "mainA": 1,
+    "reactivatedA": 1,
+    "controls": {
+      "cancel": {
+        "httpStatus": 200,
+        "state": "cancelled",
+        "reviewId": ""
+      },
+      "revoke": {
+        "status": 401,
+        "unchangedStore": true
+      },
+      "restart": {
+        "allLocalBytesUnchanged": true,
+        "independentHttpReadbackCount": 1,
+        "transientExpired": true
+      }
+    },
+    "independentClosedCopyRecoveries": 3,
+    "processCount": 3,
+    "allNormalClosed": true,
+    "udpClosed": true,
+    "workspace": {
+      "status": "no-workspace-failure",
+      "primary": null,
+      "decision": null,
+      "collectorDiagnostic": null,
+      "context": null,
+      "collectionError": null,
+      "capacityBytes": 32768
+    },
+    "standaloneShortPreparationPass": false,
+    "startupPreparationPass": true,
+    "evidenceLoad": {
+      "windows": [
+        {
+          "structured": 0,
+          "visual": 0,
+          "evidence": 0,
+          "visualEvidence": 0
+        },
+        {
+          "structured": 20,
+          "visual": 40,
+          "evidence": 1,
+          "visualEvidence": 1
+        },
+        {
+          "structured": 0,
+          "visual": 0,
+          "evidence": 0,
+          "visualEvidence": 0
+        }
+      ],
+      "cycles": 2,
+      "searchSuccess": 12,
+      "searchUnavailable": 0,
+      "searchSuccessByClient": [
+        3,
+        3,
+        3,
+        3
+      ],
+      "createComplete": 2,
+      "createPartial": 0,
+      "createSuccess": 2,
+      "createBusy": 2,
+      "retainedChecks": 6,
+      "deletedSourceObserved": false,
+      "searchLatencyMs": [
+        37.38154200000099,
+        72.12262499999997,
+        4.391333000001396,
+        2.812415999998848,
+        1251.7508750000015,
+        1267.554333,
+        128.7882920000011,
+        151.4513330000009,
+        2532.5913329999967,
+        2528.6697080000013,
+        711.8321670000005,
+        703.1911659999969
+      ],
+      "createLatencyMs": [
+        264.6627499999995,
+        412.54470800000126
+      ],
+      "visualResults": 80,
+      "visualCreated": 2,
+      "visualExpired": 0,
+      "visualIndexObservations": [
+        {
+          "cycle": 0,
+          "state": "ready",
+          "error": "",
+          "channels": [
+            {
+              "channelId": "1",
+              "indexedFrames": 1
+            },
+            {
+              "channelId": "9101",
+              "indexedFrames": 0
+            },
+            {
+              "channelId": "9201",
+              "indexedFrames": 0
+            }
+          ]
+        },
+        {
+          "cycle": 0,
+          "state": "indexing",
+          "error": "",
+          "channels": [
+            {
+              "channelId": "1",
+              "indexedFrames": 1
+            },
+            {
+              "channelId": "9101",
+              "indexedFrames": 14
+            },
+            {
+              "channelId": "9201",
+              "indexedFrames": 14
+            }
+          ]
+        },
+        {
+          "cycle": 1,
+          "state": "indexing",
+          "error": "",
+          "channels": [
+            {
+              "channelId": "1",
+              "indexedFrames": 1
+            },
+            {
+              "channelId": "9101",
+              "indexedFrames": 32
+            },
+            {
+              "channelId": "9201",
+              "indexedFrames": 32
+            }
+          ]
+        }
+      ]
+    },
+    "resourceTrendPass": false,
+    "reviewRequired": true
+  },
+  "boundaries": {
+    "longRunExecutions": 0,
+    "memoryP0": "unresolved; release hold",
+    "45and120": "this actual generation state fits; no cumulative-duration proof. R98 E/H/P envelope is conditional input/consumer model, not exact longrun space. Originals/history/evidence/A can grow; current per-file/index and K/copy observations are not a linear120-minute extrapolation.",
+    "longSearchLatency": "95/96 previous partial over-limit not retroactively resolved; startup post-gate visual requests also exceed2sec but below5sec; future longrun existing gates unchanged",
+    "qwenOllamaCalls": 0,
+    "unloadGate": "not-run",
+    "release": "not-performed; no risk acceptance",
+    "privateConfigBackup": "not accessed/archived/cleanup target",
+    "original95Restoration": "still unknown; preserved historical status",
+    "previousEvidence": "97 protection/hard-error/recovery,98 conditional input/quota/Stop directly reused; earlier FAILs untouched. src/include unchanged, existing product approvals limited to actual source/environment."
+  },
+  "binding": {
+    "status": "PASS",
+    "actualCommands": [
+      {
+        "name": "producer-applied",
+        "command": [
+          "node",
+          "scripts/internal/verify_v390_review4_feature_semantic_source_audit.mjs",
+          "--apply-approved-manifest"
+        ],
+        "exit": 0,
+        "elapsedSeconds": 91.76136316708289
+      },
+      {
+        "name": "readback-final",
+        "command": [
+          "node",
+          "scripts/internal/verify_feature_implementation_evidence.mjs",
+          "--json-report",
+          "/private/tmp/media-server-preparation99-oubac_gh/readback-final.json"
+        ],
+        "exit": 0,
+        "elapsedSeconds": 50.901159500004724
+      },
+      {
+        "name": "coverage",
+        "command": [
+          "node",
+          "scripts/internal/verify_feature_inventory_coverage.mjs",
+          "--json-report",
+          "/private/tmp/media-server-preparation99-oubac_gh/coverage.json"
+        ],
+        "exit": 0,
+        "elapsedSeconds": 82.10573770897463
+      },
+      {
+        "name": "inventory",
+        "command": [
+          "node",
+          "scripts/internal/verify_project_feature_test_inventory.mjs"
+        ],
+        "exit": 0,
+        "elapsedSeconds": 41.11998341605067
+      },
+      {
+        "name": "script-inventory",
+        "command": [
+          "node",
+          "scripts/internal/verify_script_inventory.mjs"
+        ],
+        "exit": 0,
+        "elapsedSeconds": 32.18105400004424
+      }
+    ],
+    "producer": "51/0; existing independent approval manifest",
+    "readback": "986 rows, validationErrors0, review4GlobalErrors0, negatives15/15",
+    "coverage": "986 covered, missing0,9/0",
+    "scriptInventory": "13/0",
+    "candidateDigest": "8977e9b6ac618c7e0233823f6acb6ab1fcf7461206ee5d8b2a4149a643519e3a",
+    "manifestSemanticChange": "inventorySha256 only, written by existing producer; original whitespace restored without value edits",
+    "newBehaviorIndependentReview": "99-independent-review.json; legacy digest alone is not approval"
+  },
+  "preservation": {
+    "receipt": "99-preservation.json",
+    "archive": "99-execution.tar.gz",
+    "status": "all295 members byte-readback verified before Git commit",
+    "originalSyntheticFiles": 1530,
+    "deduplicatedBlobMeaning": "exact content stored once, original file paths and individual hash/size map retained; actual independent run files not hard-linked",
+    "redaction": "only owned root/repo/home paths in selected logs, original/preserved hashes in manifest; raw synthetic source blobs preserved exactly",
+    "excluded": "users/config/private backup/models/SDK/runtime binaries not archived"
+  },
+  "cleanup": "execution children normal closed, parent group absence verified; owned root retained until Git byte preservation; final receipt follows",
+  "bundle": {
+    "version": 2,
+    "startup": "PASS",
+    "cyclicRecovery": "PASS",
+    "space": "PASS",
+    "shortPreparationPass": true
+  },
+  "independentReview": "99-independent-review.json (separate read-only reviewer; final report pending)"
+}
