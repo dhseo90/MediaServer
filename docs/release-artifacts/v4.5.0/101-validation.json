@@ -225,10 +225,24 @@
     "45분 누적 및 최종120분·전체메모리P0는 미충족. 출시 보류"
   ],
   "cleanup": {
-    "status": "evidence preservation and final owned-root cleanup pending",
-    "nativeAndContainerExecutions": "각 실행 receipt의 groupAbsent/containerAbsent 확인",
+    "status": "COMPLETE_OWNED_R101_ROOT_REMOVED_AFTER_REMOTE_BYTE_READBACK",
+    "root": "/private/tmp/media-server-r101-efj0l7cx",
+    "rootAbsent": true,
+    "pointerAbsent": true,
+    "removedRegularFiles": 20836,
+    "removedLogicalBytes": 1564840350,
+    "removedOwnedSymlinksWithoutFollowing": 0,
+    "processMatches": 0,
+    "containerMatches": 0,
+    "ports": "native direct fixtures did not start a listening server",
+    "preservedSourceFiles": 366,
+    "remoteEvidenceCommit": "bfeea785bd7e00c67063222f75925a5a292f41ec",
+    "archiveGitBlob": "d37e4e5dbf1ff078c8dccac8f872fb6bed6cb1f4",
+    "archiveSha256": "fafbd5412fa4c56f6b640cc4af4e6c171d5d5b4af1419350018073b41f072ef4",
+    "archiveAllMemberReadback": "PASS; fetched remote ref object and each selected original byte compared before removal",
     "userDefaultsAndPrivate95Backup": "not accessed; excluded from archive and cleanup",
-    "modelsSDKImages": "retained"
+    "modelsSDKImages": "retained; no installation/removal",
+    "runtimeBuildArtifacts": "retained in existing build-gst-onnx"
   },
   "qwenOllamaCalls": 0,
   "unloadGate": "not-run",
