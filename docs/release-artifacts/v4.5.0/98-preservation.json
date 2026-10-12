@@ -1,0 +1,764 @@
+{
+  "schema": "media-server.preservation.v1",
+  "task": 98,
+  "archive": "98-execution.tar.gz",
+  "bytes": 461549,
+  "sha256": "afd1520692821df24f1ee0a00df8f90aad6c4d717d07992a8f2a687cb39927a3",
+  "members": 94,
+  "membersReadback": true,
+  "entries": [
+    {
+      "path": "binding-execution.json",
+      "sourceBytes": 1002,
+      "sourceSha256": "5ee2cd4659b747cee6ac71eba6b44ce3e321ca66531ae362e890180445881c82",
+      "preservedBytes": 924,
+      "preservedSha256": "ecf7e2d763f14f8408d3b28d29c3663cfc9b5c437153ace8c481ff251785ac8a",
+      "transformation": "owned absolute paths redacted"
+    },
+    {
+      "path": "bound-corrected/mixed-input.mp4",
+      "sourceBytes": 67929,
+      "sourceSha256": "f6673bca2ec31f46d15077e62fd580918f2b52a13ad78c0f78134377fc447c45",
+      "preservedBytes": 67929,
+      "preservedSha256": "f6673bca2ec31f46d15077e62fd580918f2b52a13ad78c0f78134377fc447c45",
+      "transformation": "original bytes"
+    },
+    {
+      "path": "bound-corrected-command.json",
+      "sourceBytes": 624,
+      "sourceSha256": "bfbc13afa43eae8a5f6316c3f71075290a59ae3e0b3e4dab633cb86196a0f350",
+      "preservedBytes": 440,
+      "preservedSha256": "dda1751312d016b75ba535de4b2194dd705832703fecfdb42333cb68a58e3f13",
+      "transformation": "owned absolute paths redacted"
+    },
+    {
+      "path": "bound-corrected-exit.json",
+      "sourceBytes": 47,
+      "sourceSha256": "df8e2a4b01a1b77569ddf0496341b60110ee00f0b6e26c7de4a0bceba890ff66",
+      "preservedBytes": 47,
+      "preservedSha256": "df8e2a4b01a1b77569ddf0496341b60110ee00f0b6e26c7de4a0bceba890ff66",
+      "transformation": "original bytes"
+    },
+    {
+      "path": "bound-corrected.log",
+      "sourceBytes": 1034,
+      "sourceSha256": "e15450e03e03d22c1b673b4139409f3a175e9235ec43c95c8cb9edac73b129fc",
+      "preservedBytes": 1034,
+      "preservedSha256": "e15450e03e03d22c1b673b4139409f3a175e9235ec43c95c8cb9edac73b129fc",
+      "transformation": "original bytes"
+    },
+    {
+      "path": "candidate-comparison.json",
+      "sourceBytes": 218,
+      "sourceSha256": "68eaa6efde8d16db03490c0d3c9acc1709d75da36f5951b404856ef78816757b",
+      "preservedBytes": 218,
+      "preservedSha256": "68eaa6efde8d16db03490c0d3c9acc1709d75da36f5951b404856ef78816757b",
+      "transformation": "original bytes"
+    },
+    {
+      "path": "candidate.log",
+      "sourceBytes": 190,
+      "sourceSha256": "435e3b3215b8b46cd464dcd9a05a0be2e9f074ae7f90293ecd739ee4e766442f",
+      "preservedBytes": 151,
+      "preservedSha256": "937d452f2168f8fcd720c367066f945ed4998f798bd02d8176c1bc0590e8b23c",
+      "transformation": "owned absolute paths redacted"
+    },
+    {
+      "path": "coverage.json",
+      "sourceBytes": 1325136,
+      "sourceSha256": "a5ad38d4fb99ddfebebd9b420766c94d92b986824792cd7e7c2a4c24f168f816",
+      "preservedBytes": 1325136,
+      "preservedSha256": "a5ad38d4fb99ddfebebd9b420766c94d92b986824792cd7e7c2a4c24f168f816",
+      "transformation": "original bytes"
+    },
+    {
+      "path": "coverage.log",
+      "sourceBytes": 604,
+      "sourceSha256": "f3dd9d2ec3cd35ce7a806a391b6918dddd2c2377ca3039afa624f484985f9bce",
+      "preservedBytes": 604,
+      "preservedSha256": "f3dd9d2ec3cd35ce7a806a391b6918dddd2c2377ca3039afa624f484985f9bce",
+      "transformation": "original bytes"
+    },
+    {
+      "path": "direct-space-endpoints.json",
+      "sourceBytes": 665,
+      "sourceSha256": "844adfcf2c33c9d22cc5a31612cc76b6a9277fcdee08798f294b099a6819fb82",
+      "preservedBytes": 665,
+      "preservedSha256": "844adfcf2c33c9d22cc5a31612cc76b6a9277fcdee08798f294b099a6819fb82",
+      "transformation": "original bytes"
+    },
+    {
+      "path": "implementation.patch",
+      "sourceBytes": 36308,
+      "sourceSha256": "775c445da4fb4e3f71e9f387558e47a51c1b429bf029b90c370e162f9ff37747",
+      "preservedBytes": 36308,
+      "preservedSha256": "775c445da4fb4e3f71e9f387558e47a51c1b429bf029b90c370e162f9ff37747",
+      "transformation": "original bytes"
+    },
+    {
+      "path": "input-binding.log",
+      "sourceBytes": 903,
+      "sourceSha256": "42ead3e0ce6fadafbf2144e40e6afc6821d85093f25c554faa5d5cff0aeee25f",
+      "preservedBytes": 903,
+      "preservedSha256": "42ead3e0ce6fadafbf2144e40e6afc6821d85093f25c554faa5d5cff0aeee25f",
+      "transformation": "original bytes"
+    },
+    {
+      "path": "input-binding.mjs",
+      "sourceBytes": 1015,
+      "sourceSha256": "7f75aa0a43f097ab4544b92b314c01eeb1f95f612fee3a086dd39c90b0de1965",
+      "preservedBytes": 948,
+      "preservedSha256": "4c49118962df9b6c73463578a9a5b4dcbbde291788c36055ba88efd96c186b72",
+      "transformation": "owned absolute paths redacted"
+    },
+    {
+      "path": "input-bound/gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/manifest.json",
+      "sourceBytes": 41588,
+      "sourceSha256": "d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43",
+      "preservedBytes": 41588,
+      "preservedSha256": "d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43",
+      "transformation": "original bytes"
+    },
+    {
+      "path": "input-bound/recording_managed_writer_smoke-compile-command.json",
+      "sourceBytes": 4195,
+      "sourceSha256": "db6295275cd80ecd559c41096c88e17a3c14df10bc31f0b4f8a3d66291af5aef",
+      "preservedBytes": 4016,
+      "preservedSha256": "70b03b5ab7ada7aa3e494e3436e102792bd89357faa5231f6da86dcaff84e003",
+      "transformation": "owned absolute paths redacted"
+    },
+    {
+      "path": "input-bound/recording_managed_writer_smoke-compile.log",
+      "sourceBytes": 0,
+      "sourceSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "preservedBytes": 0,
+      "preservedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "transformation": "original bytes"
+    },
+    {
+      "path": "input-bound/recording_managed_writer_smoke-data/mixed-input.mp4",
+      "sourceBytes": 67929,
+      "sourceSha256": "fc48e44ec8a12d99965f7aa15684c07b39fe6922ba7acd86d3dead561327c3fb",
+      "preservedBytes": 67929,
+      "preservedSha256": "fc48e44ec8a12d99965f7aa15684c07b39fe6922ba7acd86d3dead561327c3fb",
+      "transformation": "original bytes"
+    },
+    {
+      "path": "input-bound/recording_managed_writer_smoke-run-command.json",
+      "sourceBytes": 678,
+      "sourceSha256": "9de10348e5fa2f965cd01abb75b2eac2295bf208fb958dcf1ccd18977e42e9ff",
+      "preservedBytes": 494,
+      "preservedSha256": "92cf625a0d6d1a93ba6dc5a03574869526e563976aa5e22ad03fdc439df7df10",
+      "transformation": "owned absolute paths redacted"
+    },
+    {
+      "path": "input-bound/recording_managed_writer_smoke-run.log",
+      "sourceBytes": 1034,
+      "sourceSha256": "e15450e03e03d22c1b673b4139409f3a175e9235ec43c95c8cb9edac73b129fc",
+      "preservedBytes": 1034,
+      "preservedSha256": "e15450e03e03d22c1b673b4139409f3a175e9235ec43c95c8cb9edac73b129fc",
+      "transformation": "original bytes"
+    },
+    {
+      "path": "inventory.log",
+      "sourceBytes": 210255,
+      "sourceSha256": "4670513193842f03ec9ea567062efe9d2dd303d621716a5cb95876d48b1dc1cd",
+      "preservedBytes": 210255,
+      "preservedSha256": "4670513193842f03ec9ea567062efe9d2dd303d621716a5cb95876d48b1dc1cd",
+      "transformation": "original bytes"
+    },
+    {
+      "path": "linux-command.json",
+      "sourceBytes": 579,
+      "sourceSha256": "62d4c4c79ea4b63e969cb754c7cadadb29757bdee36e7b6859afd5922e7b7059",
+      "preservedBytes": 473,
+      "preservedSha256": "3218ac13cd96e29bc017f5c453611e1eecf35235bdd400f7c2ca502d91b44d79",
+      "transformation": "owned absolute paths redacted"
+    },
+    {
+      "path": "linux-exit.json",
+      "sourceBytes": 11,
+      "sourceSha256": "3fcf365c70bf262b9592ec1998f4c4609c36c75d846b67c5e86d7c9f03f07176",
+      "preservedBytes": 11,
+      "preservedSha256": "3fcf365c70bf262b9592ec1998f4c4609c36c75d846b67c5e86d7c9f03f07176",
+      "transformation": "original bytes"
+    },
+    {
+      "path": "linux-final/bound.log",
+      "sourceBytes": 1110,
+      "sourceSha256": "6e7aecdbb13754b6ced8c936d68f4ed1e0e4bef79d2362bcfcf5fbee5e5838fb",
+      "preservedBytes": 1110,
+      "preservedSha256": "6e7aecdbb13754b6ced8c936d68f4ed1e0e4bef79d2362bcfcf5fbee5e5838fb",
+      "transformation": "original bytes"
+    },
+    {
+      "path": "linux-final/build.log",
+      "sourceBytes": 18744,
+      "sourceSha256": "0eb0d93921176da1959b6e4a795ed2b900cf0953a456ba5f1d6fe457845e7d02",
+      "preservedBytes": 18744,
+      "preservedSha256": "0eb0d93921176da1959b6e4a795ed2b900cf0953a456ba5f1d6fe457845e7d02",
+      "transformation": "original bytes"
+    },
+    {
+      "path": "linux-final/configure.log",
+      "sourceBytes": 989,
+      "sourceSha256": "9ee887652b2e726c3731057923dcdaab80dd78b7f3445ef34870f917d10496f6",
+      "preservedBytes": 989,
+      "preservedSha256": "9ee887652b2e726c3731057923dcdaab80dd78b7f3445ef34870f917d10496f6",
+      "transformation": "original bytes"
+    },
+    {
+      "path": "linux-final/environment.log",
+      "sourceBytes": 294,
+      "sourceSha256": "2de91f48eefef293f79058155174aff1854bd5d3e2354e4f936783faa07c7187",
+      "preservedBytes": 294,
+      "preservedSha256": "2de91f48eefef293f79058155174aff1854bd5d3e2354e4f936783faa07c7187",
+      "transformation": "original bytes"
+    },
+    {
+      "path": "linux-final/exit.txt",
+      "sourceBytes": 2,
+      "sourceSha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "preservedBytes": 2,
+      "preservedSha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "transformation": "original bytes"
+    },
+    {
+      "path": "linux-final/linux-fixed-input.mp4",
+      "sourceBytes": 67914,
+      "sourceSha256": "b8b89114641a13d203e453a327b3be03d83f5ef6ccabaad449c35f2c2eb2dfe2",
+      "preservedBytes": 67914,
+      "preservedSha256": "b8b89114641a13d203e453a327b3be03d83f5ef6ccabaad449c35f2c2eb2dfe2",
+      "transformation": "original bytes"
+    },
+    {
+      "path": "linux-final/native/recording_managed_writer_smoke-compile-command.json",
+      "sourceBytes": 1981,
+      "sourceSha256": "7253e513eb025ff61490e1a4d67c024c91f91e8f74a3d402a3f32817f01d01a3",
+      "preservedBytes": 1981,
+      "preservedSha256": "7253e513eb025ff61490e1a4d67c024c91f91e8f74a3d402a3f32817f01d01a3",
+      "transformation": "original bytes"
+    },
+    {
+      "path": "linux-final/native/recording_managed_writer_smoke-compile.log",
+      "sourceBytes": 0,
+      "sourceSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "preservedBytes": 0,
+      "preservedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "transformation": "original bytes"
+    },
+    {
+      "path": "linux-final/native/recording_managed_writer_smoke-run-command.json",
+      "sourceBytes": 564,
+      "sourceSha256": "59fed7ad3174e1b81fb7bcd043e105d0c6262aae01a3faceb6c00138a58764cc",
+      "preservedBytes": 564,
+      "preservedSha256": "59fed7ad3174e1b81fb7bcd043e105d0c6262aae01a3faceb6c00138a58764cc",
+      "transformation": "original bytes"
+    },
+    {
+      "path": "linux-final/native/recording_managed_writer_smoke-run.log",
+      "sourceBytes": 1787,
+      "sourceSha256": "4060bebe7389ee343bf9edd0a0c3b35f04bdab4668232f5683479a73dd9d03ff",
+      "preservedBytes": 1787,
+      "preservedSha256": "4060bebe7389ee343bf9edd0a0c3b35f04bdab4668232f5683479a73dd9d03ff",
+      "transformation": "original bytes"
+    },
+    {
+      "path": "linux-final/native/recording_retention_v2_smoke-compile-command.json",
+      "sourceBytes": 1977,
+      "sourceSha256": "9ae79c432eb465c03852074ca00b2638eae6c30a48e6ffb2f823a03a15a58921",
+      "preservedBytes": 1977,
+      "preservedSha256": "9ae79c432eb465c03852074ca00b2638eae6c30a48e6ffb2f823a03a15a58921",
+      "transformation": "original bytes"
+    },
+    {
+      "path": "linux-final/native/recording_retention_v2_smoke-compile.log",
+      "sourceBytes": 0,
+      "sourceSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "preservedBytes": 0,
+      "preservedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "transformation": "original bytes"
+    },
+    {
+      "path": "linux-final/native/recording_retention_v2_smoke-run-command.json",
+      "sourceBytes": 532,
+      "sourceSha256": "bf796f2c1909288b09452ac22609d821bbd70e5830452c26464212b146002ca3",
+      "preservedBytes": 532,
+      "preservedSha256": "bf796f2c1909288b09452ac22609d821bbd70e5830452c26464212b146002ca3",
+      "transformation": "original bytes"
+    },
+    {
+      "path": "linux-final/native/recording_retention_v2_smoke-run.log",
+      "sourceBytes": 9561,
+      "sourceSha256": "919a417e7adf0c7e4d9b423cfffecd58922f59c0ca616553461fd248764cdeb4",
+      "preservedBytes": 9561,
+      "preservedSha256": "919a417e7adf0c7e4d9b423cfffecd58922f59c0ca616553461fd248764cdeb4",
+      "transformation": "original bytes"
+    },
+    {
+      "path": "linux-final/native.log",
+      "sourceBytes": 223,
+      "sourceSha256": "3f130cfc7cd16c2d2f50dec9495e045706258ef0f8fd316da6d2f4fe40369a88",
+      "preservedBytes": 223,
+      "preservedSha256": "3f130cfc7cd16c2d2f50dec9495e045706258ef0f8fd316da6d2f4fe40369a88",
+      "transformation": "original bytes"
+    },
+    {
+      "path": "linux-final/progress.log",
+      "sourceBytes": 3740,
+      "sourceSha256": "f55a8582f2a158ea9bc18b8373c8af86a20c060fdea80c814ef5821af1be7025",
+      "preservedBytes": 3740,
+      "preservedSha256": "f55a8582f2a158ea9bc18b8373c8af86a20c060fdea80c814ef5821af1be7025",
+      "transformation": "original bytes"
+    },
+    {
+      "path": "linux-final/runtime.sha256",
+      "sourceBytes": 126,
+      "sourceSha256": "55c5ec93093d0c1f4b38109632a2c39e3ec64a6ffd0eb9393805c560408f4621",
+      "preservedBytes": 126,
+      "preservedSha256": "55c5ec93093d0c1f4b38109632a2c39e3ec64a6ffd0eb9393805c560408f4621",
+      "transformation": "original bytes"
+    },
+    {
+      "path": "linux-final-command.json",
+      "sourceBytes": 585,
+      "sourceSha256": "02da1aa22b17c0b86d8f1a3751f1b9565e49f7496760a707154a5e63a3362a61",
+      "preservedBytes": 479,
+      "preservedSha256": "0e36286542e5c59fe70aadcc1a313779ffa6364884a9b69310e56811196eca61",
+      "transformation": "owned absolute paths redacted"
+    },
+    {
+      "path": "linux-final-exit.json",
+      "sourceBytes": 49,
+      "sourceSha256": "8b554d54cb2f40d59e7b2a3e4545d0c08ca9fdcaed66aa4df9176004df4fa4e3",
+      "preservedBytes": 49,
+      "preservedSha256": "8b554d54cb2f40d59e7b2a3e4545d0c08ca9fdcaed66aa4df9176004df4fa4e3",
+      "transformation": "original bytes"
+    },
+    {
+      "path": "linux-final-launch.log",
+      "sourceBytes": 0,
+      "sourceSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "preservedBytes": 0,
+      "preservedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "transformation": "original bytes"
+    },
+    {
+      "path": "linux-first-failure/build.log",
+      "sourceBytes": 18744,
+      "sourceSha256": "0eb0d93921176da1959b6e4a795ed2b900cf0953a456ba5f1d6fe457845e7d02",
+      "preservedBytes": 18744,
+      "preservedSha256": "0eb0d93921176da1959b6e4a795ed2b900cf0953a456ba5f1d6fe457845e7d02",
+      "transformation": "original bytes"
+    },
+    {
+      "path": "linux-first-failure/configure.log",
+      "sourceBytes": 989,
+      "sourceSha256": "9ee887652b2e726c3731057923dcdaab80dd78b7f3445ef34870f917d10496f6",
+      "preservedBytes": 989,
+      "preservedSha256": "9ee887652b2e726c3731057923dcdaab80dd78b7f3445ef34870f917d10496f6",
+      "transformation": "original bytes"
+    },
+    {
+      "path": "linux-first-failure/environment.log",
+      "sourceBytes": 294,
+      "sourceSha256": "2de91f48eefef293f79058155174aff1854bd5d3e2354e4f936783faa07c7187",
+      "preservedBytes": 294,
+      "preservedSha256": "2de91f48eefef293f79058155174aff1854bd5d3e2354e4f936783faa07c7187",
+      "transformation": "original bytes"
+    },
+    {
+      "path": "linux-first-failure/exit.txt",
+      "sourceBytes": 2,
+      "sourceSha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865",
+      "preservedBytes": 2,
+      "preservedSha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865",
+      "transformation": "original bytes"
+    },
+    {
+      "path": "linux-first-failure/native/recording_managed_writer_smoke-compile-command.json",
+      "sourceBytes": 1981,
+      "sourceSha256": "7253e513eb025ff61490e1a4d67c024c91f91e8f74a3d402a3f32817f01d01a3",
+      "preservedBytes": 1981,
+      "preservedSha256": "7253e513eb025ff61490e1a4d67c024c91f91e8f74a3d402a3f32817f01d01a3",
+      "transformation": "original bytes"
+    },
+    {
+      "path": "linux-first-failure/native/recording_managed_writer_smoke-compile.log",
+      "sourceBytes": 961,
+      "sourceSha256": "978d17273e7fde35d1b882592251a7db5355f7515f18e5da4da81c5165b11990",
+      "preservedBytes": 961,
+      "preservedSha256": "978d17273e7fde35d1b882592251a7db5355f7515f18e5da4da81c5165b11990",
+      "transformation": "original bytes"
+    },
+    {
+      "path": "linux-first-failure/native/recording_retention_v2_smoke-compile-command.json",
+      "sourceBytes": 1977,
+      "sourceSha256": "9ae79c432eb465c03852074ca00b2638eae6c30a48e6ffb2f823a03a15a58921",
+      "preservedBytes": 1977,
+      "preservedSha256": "9ae79c432eb465c03852074ca00b2638eae6c30a48e6ffb2f823a03a15a58921",
+      "transformation": "original bytes"
+    },
+    {
+      "path": "linux-first-failure/native/recording_retention_v2_smoke-compile.log",
+      "sourceBytes": 0,
+      "sourceSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "preservedBytes": 0,
+      "preservedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "transformation": "original bytes"
+    },
+    {
+      "path": "linux-first-failure/native/recording_retention_v2_smoke-run-command.json",
+      "sourceBytes": 532,
+      "sourceSha256": "bf796f2c1909288b09452ac22609d821bbd70e5830452c26464212b146002ca3",
+      "preservedBytes": 532,
+      "preservedSha256": "bf796f2c1909288b09452ac22609d821bbd70e5830452c26464212b146002ca3",
+      "transformation": "original bytes"
+    },
+    {
+      "path": "linux-first-failure/native/recording_retention_v2_smoke-run.log",
+      "sourceBytes": 9526,
+      "sourceSha256": "877022c84149bd1f0f64fecdeaccf3d7ae5d2ef026b4cf25ca81f6593c67049f",
+      "preservedBytes": 9526,
+      "preservedSha256": "877022c84149bd1f0f64fecdeaccf3d7ae5d2ef026b4cf25ca81f6593c67049f",
+      "transformation": "original bytes"
+    },
+    {
+      "path": "linux-first-failure/native.log",
+      "sourceBytes": 172,
+      "sourceSha256": "ca501447a904e2ec213f783c8d681a746409277f7176b3468b6cad7d415ed9f8",
+      "preservedBytes": 172,
+      "preservedSha256": "ca501447a904e2ec213f783c8d681a746409277f7176b3468b6cad7d415ed9f8",
+      "transformation": "original bytes"
+    },
+    {
+      "path": "linux-first-failure/runtime.sha256",
+      "sourceBytes": 126,
+      "sourceSha256": "55c5ec93093d0c1f4b38109632a2c39e3ec64a6ffd0eb9393805c560408f4621",
+      "preservedBytes": 126,
+      "preservedSha256": "55c5ec93093d0c1f4b38109632a2c39e3ec64a6ffd0eb9393805c560408f4621",
+      "transformation": "original bytes"
+    },
+    {
+      "path": "linux-launch.log",
+      "sourceBytes": 0,
+      "sourceSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "preservedBytes": 0,
+      "preservedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "transformation": "original bytes"
+    },
+    {
+      "path": "linux98-final.sh",
+      "sourceBytes": 1583,
+      "sourceSha256": "a44460fc3a68d5c98c7544f8a393daa60479d96dc334e6c4bcc56b1e0d79fd1b",
+      "preservedBytes": 1583,
+      "preservedSha256": "a44460fc3a68d5c98c7544f8a393daa60479d96dc334e6c4bcc56b1e0d79fd1b",
+      "transformation": "original bytes"
+    },
+    {
+      "path": "linux98.sh",
+      "sourceBytes": 1377,
+      "sourceSha256": "79c0bd1a0dcb0c825da4bbf03cff68ef4be7b1cf82478e27c7fa7e2778729901",
+      "preservedBytes": 1377,
+      "preservedSha256": "79c0bd1a0dcb0c825da4bbf03cff68ef4be7b1cf82478e27c7fa7e2778729901",
+      "transformation": "original bytes"
+    },
+    {
+      "path": "make-validation.py",
+      "sourceBytes": 8427,
+      "sourceSha256": "63d8bcf9a6b7111b8790cd675fa540d54e591d13b003b8e6ff6bc5e3f37000bd",
+      "preservedBytes": 8388,
+      "preservedSha256": "2642d845d82c3cfd4e7588d986773b7ec13656c79381d71b83e27194633d012d",
+      "transformation": "owned absolute paths redacted"
+    },
+    {
+      "path": "manifest-producer-comparison.json",
+      "sourceBytes": 197,
+      "sourceSha256": "34d671245a3024fa4228574b7f2b33f85a49089be788429d6bb8a76a8eb8c528",
+      "preservedBytes": 197,
+      "preservedSha256": "34d671245a3024fa4228574b7f2b33f85a49089be788429d6bb8a76a8eb8c528",
+      "transformation": "original bytes"
+    },
+    {
+      "path": "native-corrected/gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/manifest.json",
+      "sourceBytes": 41588,
+      "sourceSha256": "d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43",
+      "preservedBytes": 41588,
+      "preservedSha256": "d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43",
+      "transformation": "original bytes"
+    },
+    {
+      "path": "native-corrected/recording_managed_writer_smoke-compile-command.json",
+      "sourceBytes": 4200,
+      "sourceSha256": "62bb9bf54a2e9f67985ba9ee545e63c03afafbe27641c9eef544b299ee58b5df",
+      "preservedBytes": 4021,
+      "preservedSha256": "4ed7bf78e1f9a13688567aa5a4d468fb21202a6bec17b1477efcdf1f4c8bd4d6",
+      "transformation": "owned absolute paths redacted"
+    },
+    {
+      "path": "native-corrected/recording_managed_writer_smoke-compile.log",
+      "sourceBytes": 0,
+      "sourceSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "preservedBytes": 0,
+      "preservedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "transformation": "original bytes"
+    },
+    {
+      "path": "native-corrected/recording_managed_writer_smoke-data/mixed-input.mp4",
+      "sourceBytes": 67929,
+      "sourceSha256": "4ac81c33c367c767154efdb75c382469fbbfb669c2b363ed3e70a6b6032f2057",
+      "preservedBytes": 67929,
+      "preservedSha256": "4ac81c33c367c767154efdb75c382469fbbfb669c2b363ed3e70a6b6032f2057",
+      "transformation": "original bytes"
+    },
+    {
+      "path": "native-corrected/recording_managed_writer_smoke-run-command.json",
+      "sourceBytes": 699,
+      "sourceSha256": "1db9ed10a20fc1807548790f161b47b6f0efb876edb83187e2a8a3372078a7ef",
+      "preservedBytes": 515,
+      "preservedSha256": "c51c7330df8b1b8ac7fc5d5b0dfa463d7df8c9484062ea4d48d8d91b6de862c9",
+      "transformation": "owned absolute paths redacted"
+    },
+    {
+      "path": "native-corrected/recording_managed_writer_smoke-run.log",
+      "sourceBytes": 1731,
+      "sourceSha256": "240db99aad3ca0ab0480061d48752d8d408d7790ffd2de43391c6ced1c5a9a18",
+      "preservedBytes": 1731,
+      "preservedSha256": "240db99aad3ca0ab0480061d48752d8d408d7790ffd2de43391c6ced1c5a9a18",
+      "transformation": "original bytes"
+    },
+    {
+      "path": "native-direct.py",
+      "sourceBytes": 1820,
+      "sourceSha256": "968992274f9562833bcab4af583e3dfafb629aac7959f3b69591ea860cad8a5f",
+      "preservedBytes": 1792,
+      "preservedSha256": "2d2b232f0f7d68b8f98e9bb894757422972263620cfe6af9dbc17334c2c7a00d",
+      "transformation": "owned absolute paths redacted"
+    },
+    {
+      "path": "native-final/gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/manifest.json",
+      "sourceBytes": 41588,
+      "sourceSha256": "d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43",
+      "preservedBytes": 41588,
+      "preservedSha256": "d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43",
+      "transformation": "original bytes"
+    },
+    {
+      "path": "native-final/recording_managed_writer_smoke-compile-command.json",
+      "sourceBytes": 4196,
+      "sourceSha256": "a82aaa6ceb3ca895684ce52c1c04614d526906de2771fddf0d2c73409d3cc18c",
+      "preservedBytes": 4017,
+      "preservedSha256": "c106de9dc2785730e545d6fd890f874c96b434f96048845af76f8882000f6d1d",
+      "transformation": "owned absolute paths redacted"
+    },
+    {
+      "path": "native-final/recording_managed_writer_smoke-compile.log",
+      "sourceBytes": 0,
+      "sourceSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "preservedBytes": 0,
+      "preservedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "transformation": "original bytes"
+    },
+    {
+      "path": "native-final/recording_managed_writer_smoke-run-command.json",
+      "sourceBytes": 683,
+      "sourceSha256": "9cc272df65d5c73eeaa54f01fe8f507104391f8bf0a47e9032bf4e69fcef7553",
+      "preservedBytes": 499,
+      "preservedSha256": "f31b7efb52aa5607e114a03df0519335869d0f9053a1aa8be13cee76a36f3042",
+      "transformation": "owned absolute paths redacted"
+    },
+    {
+      "path": "native-final/recording_managed_writer_smoke-run.log",
+      "sourceBytes": 1731,
+      "sourceSha256": "595e33c5b6ab4b7dcc4e4ddafe4c13de62d1c03ef6580e6979ee3df695e418f2",
+      "preservedBytes": 1731,
+      "preservedSha256": "595e33c5b6ab4b7dcc4e4ddafe4c13de62d1c03ef6580e6979ee3df695e418f2",
+      "transformation": "original bytes"
+    },
+    {
+      "path": "native-final/recording_retention_v2_smoke-compile-command.json",
+      "sourceBytes": 4192,
+      "sourceSha256": "f69eeac144738fe2673657fd9af8f9b2c47a9daeacd78660b08b34246378ab3a",
+      "preservedBytes": 4013,
+      "preservedSha256": "d38bf4967f6e0f3e74852e54d728b37a1011acfdc2b5ac88b53ad34f080b96f8",
+      "transformation": "owned absolute paths redacted"
+    },
+    {
+      "path": "native-final/recording_retention_v2_smoke-compile.log",
+      "sourceBytes": 0,
+      "sourceSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "preservedBytes": 0,
+      "preservedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "transformation": "original bytes"
+    },
+    {
+      "path": "native-final/recording_retention_v2_smoke-run-command.json",
+      "sourceBytes": 651,
+      "sourceSha256": "41faf21128af9d42a0c793acb7689f577eb3317e5b33682d73df9f304fcc0574",
+      "preservedBytes": 467,
+      "preservedSha256": "f5616f56e29b0b063804dd047c827669a5e471faa496ce8357b4029096769571",
+      "transformation": "owned absolute paths redacted"
+    },
+    {
+      "path": "native-final/recording_retention_v2_smoke-run.log",
+      "sourceBytes": 9625,
+      "sourceSha256": "9a31e04ed6b722c89763a5b34d74fbc714befda660d52e0394b5de2162263c3b",
+      "preservedBytes": 9625,
+      "preservedSha256": "9a31e04ed6b722c89763a5b34d74fbc714befda660d52e0394b5de2162263c3b",
+      "transformation": "original bytes"
+    },
+    {
+      "path": "native-final.py",
+      "sourceBytes": 1870,
+      "sourceSha256": "207525af1c4dc9676b7918f64315119eee32aaae6294ec74a0784a16d9ff92d7",
+      "preservedBytes": 1842,
+      "preservedSha256": "7117faf2160e842fd3345bfc5f800d657cb9c1b757de59e1cb960094e861c802",
+      "transformation": "owned absolute paths redacted"
+    },
+    {
+      "path": "native.py",
+      "sourceBytes": 1819,
+      "sourceSha256": "d979ad227a17b74a8316806452e60ad503a39a6f4c38ac0203dfdd08d94921da",
+      "preservedBytes": 1791,
+      "preservedSha256": "0c9da5cccf7f97a50abe4e158cc9ab58e38b86bf3558ed9292185394f249ff6e",
+      "transformation": "owned absolute paths redacted"
+    },
+    {
+      "path": "plan.json",
+      "sourceBytes": 1158,
+      "sourceSha256": "b1b6217e184b054a55e1dea9de59d287d53ad1d9a40efec2dae58fb6419c8c28",
+      "preservedBytes": 1158,
+      "preservedSha256": "b1b6217e184b054a55e1dea9de59d287d53ad1d9a40efec2dae58fb6419c8c28",
+      "transformation": "original bytes"
+    },
+    {
+      "path": "preserve.py",
+      "sourceBytes": 2408,
+      "sourceSha256": "25060383d14f3ac0695b71680db62db031b9a346eae6411edd3a278b7266ef4f",
+      "preservedBytes": 2363,
+      "preservedSha256": "7208470eb51fc0bbe7d9783aae90f84a1f1d6b010ea22607dc22c6334a89f828",
+      "transformation": "owned absolute paths redacted"
+    },
+    {
+      "path": "producer.log",
+      "sourceBytes": 12812,
+      "sourceSha256": "d044f8ac77f4e3e0a7ee0672c9d63381151b9f522393a0aa536f910913ef258f",
+      "preservedBytes": 12812,
+      "preservedSha256": "d044f8ac77f4e3e0a7ee0672c9d63381151b9f522393a0aa536f910913ef258f",
+      "transformation": "original bytes"
+    },
+    {
+      "path": "profile-direct/gst-cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/manifest.json",
+      "sourceBytes": 41588,
+      "sourceSha256": "d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43",
+      "preservedBytes": 41588,
+      "preservedSha256": "d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43",
+      "transformation": "original bytes"
+    },
+    {
+      "path": "profile-direct/recording_managed_writer_smoke-compile-command.json",
+      "sourceBytes": 4198,
+      "sourceSha256": "7bced03e2ccedaba190465e420657e6dab69afafeda4f7a4beabee7432a91c86",
+      "preservedBytes": 4019,
+      "preservedSha256": "a2ed24df6fa3d7b2d4c39aefe0245fe44bad139213d090ede993cfc07dcaf4df",
+      "transformation": "owned absolute paths redacted"
+    },
+    {
+      "path": "profile-direct/recording_managed_writer_smoke-compile.log",
+      "sourceBytes": 0,
+      "sourceSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "preservedBytes": 0,
+      "preservedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "transformation": "original bytes"
+    },
+    {
+      "path": "profile-direct/recording_managed_writer_smoke-run-command.json",
+      "sourceBytes": 691,
+      "sourceSha256": "6b81d546a207f6a4fd858b5ce1e7b28b35d6f7f7b128cc65f2bac935ad98ee5f",
+      "preservedBytes": 507,
+      "preservedSha256": "1c77abfa5a2c1fefee6e8df56c3e42503317009b840779fcb22660de22b3d443",
+      "transformation": "owned absolute paths redacted"
+    },
+    {
+      "path": "profile-direct/recording_managed_writer_smoke-run.log",
+      "sourceBytes": 1042,
+      "sourceSha256": "7dded588e0045419367d2a95453732240f445a6589f39a55a4e264a3955d015f",
+      "preservedBytes": 1042,
+      "preservedSha256": "7dded588e0045419367d2a95453732240f445a6589f39a55a4e264a3955d015f",
+      "transformation": "original bytes"
+    },
+    {
+      "path": "progress-final.log",
+      "sourceBytes": 3740,
+      "sourceSha256": "ed181b5a48ab0798a479bfc82a38f2db745a6ff1fca02bba31aa196144a84d04",
+      "preservedBytes": 3740,
+      "preservedSha256": "ed181b5a48ab0798a479bfc82a38f2db745a6ff1fca02bba31aa196144a84d04",
+      "transformation": "original bytes"
+    },
+    {
+      "path": "progress-first.log",
+      "sourceBytes": 3624,
+      "sourceSha256": "b58452b1b6d3b922f87d2aa5e31355e873afeea5cf52b31a2b18317e0db5ed0c",
+      "preservedBytes": 3624,
+      "preservedSha256": "b58452b1b6d3b922f87d2aa5e31355e873afeea5cf52b31a2b18317e0db5ed0c",
+      "transformation": "original bytes"
+    },
+    {
+      "path": "readback.json",
+      "sourceBytes": 2030,
+      "sourceSha256": "36b99ac969c4e5fbc7174cce77ba96cbb2c8eb4c61eacbaecfbcced1a3ecf46a",
+      "preservedBytes": 2030,
+      "preservedSha256": "36b99ac969c4e5fbc7174cce77ba96cbb2c8eb4c61eacbaecfbcced1a3ecf46a",
+      "transformation": "original bytes"
+    },
+    {
+      "path": "readback.log",
+      "sourceBytes": 1141,
+      "sourceSha256": "f004e8a145e0b287322992e5f2f9c356c12a495834505e9ea79a414fd1f6b6f7",
+      "preservedBytes": 1141,
+      "preservedSha256": "f004e8a145e0b287322992e5f2f9c356c12a495834505e9ea79a414fd1f6b6f7",
+      "transformation": "original bytes"
+    },
+    {
+      "path": "script-inventory.log",
+      "sourceBytes": 941,
+      "sourceSha256": "92e692a3173f517ac5430005d1cf361195ac0dad7e505a2ffaddc893da6cdecf",
+      "preservedBytes": 941,
+      "preservedSha256": "92e692a3173f517ac5430005d1cf361195ac0dad7e505a2ffaddc893da6cdecf",
+      "transformation": "original bytes"
+    },
+    {
+      "path": "source-freeze.json",
+      "sourceBytes": 1004,
+      "sourceSha256": "2d99e0c07aeee002c304cfbe376f4e7ef60942a30c93fb159d6d2c9c187ae938",
+      "preservedBytes": 1004,
+      "preservedSha256": "2d99e0c07aeee002c304cfbe376f4e7ef60942a30c93fb159d6d2c9c187ae938",
+      "transformation": "original bytes"
+    },
+    {
+      "path": "static-final.json",
+      "sourceBytes": 142,
+      "sourceSha256": "d47e605351512b93aa53287d6c01fd71ce48a63ea9eaad5984ee7554dc1d03b0",
+      "preservedBytes": 142,
+      "preservedSha256": "d47e605351512b93aa53287d6c01fd71ce48a63ea9eaad5984ee7554dc1d03b0",
+      "transformation": "original bytes"
+    },
+    {
+      "path": "static-first.json",
+      "sourceBytes": 478,
+      "sourceSha256": "46e22a37a3f37bd3bab6d974ac2d9691bbe385d98850d6be468250630ff2bd3a",
+      "preservedBytes": 439,
+      "preservedSha256": "08e9e067099d6b2f1f0faa18abf73558477be5fffc5e35df2603b867f3b80781",
+      "transformation": "owned absolute paths redacted"
+    },
+    {
+      "path": "workspace-contract.log",
+      "sourceBytes": 2432,
+      "sourceSha256": "c2ebe407f1c169e7f0ff85b71b70988f75e21ff17f254db0890918182f5b96b9",
+      "preservedBytes": 2393,
+      "preservedSha256": "e6689201f3166d9e1382245dff5466bbe14e39084ceb29f217583f8ba845de52",
+      "transformation": "owned absolute paths redacted"
+    }
+  ],
+  "omitted": "native binaries/repeated media stores/build outputs and prior large archives; candidate JSON identical to existing Git audit is referenced by hash; no user config or private95 backup accessed"
+}

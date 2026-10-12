@@ -1,0 +1,240 @@
+{
+  "schema": "media-server.v450.validation.v1",
+  "task": 98,
+  "status": "FIXTURE_DIRECT_SCOPE_PASS_PREPARE_AND_FULL_WORKSPACE_BLOCKED",
+  "model": {
+    "mainRequested": "gpt-6-astra/high",
+    "mainToolAccepted": "not-exposed",
+    "mainRuntime": "not-exposed",
+    "independentRequested": "gpt-6-astra/high",
+    "independentToolAccepted": "prior existing reviewer acceptance; followup no new settings",
+    "independentRuntime": "not-exposed"
+  },
+  "source": {
+    "base": "997bc187d2182c8d983180be1b23b8a1a5138dd4",
+    "productImplementation": "981952dd169574e302aedf1600d0e492d7426c73",
+    "productSourceUnchanged": true,
+    "productSha256": "592100ed3af4ddf2e1120e81348b5dfeb77d8e1413b7c675586f9cfa3a517c7d",
+    "runtimeSha256": "8fdcbc0f0918e25a06d39df3ba488cf82e292be7151a69af4f51062432710f01",
+    "execution": "base plus exact source-freeze hashes/patch in98-execution; commit follows tests with unchanged executable source",
+    "implementationCommit": "f817ee5c7f223cb848f5fd84dac0190f9759e076",
+    "files": {
+      "scripts/internal/recording_longrun_progress.mjs": "9771370364a0f5c9b35821c6787513adb4430f2a38533d5e390f2e81e38e5386",
+      "scripts/internal/recording_longrun_progress.test.mjs": "5c1b5cbc7e54ec0463442be906bfe59d8987b528ceb8807ffc66c67c703f33a8",
+      "scripts/internal/recording_managed_writer_smoke.cpp": "a951f185c8f9f14599d5a4beb3ccf36b8538c03c03fbeb16a2fabd6b22a78177",
+      "scripts/internal/run_v450_recording_a_mixed.py": "43976bd1e2234763c180ce9f39a4b9af890ad1ffc53b08d905c335dece0193d5",
+      "scripts/internal/v450_recording_a_mixed.mjs": "48065c6709990d4680257586b27d10dbe7e64441e286f11803abb70ec618a0dc",
+      "docs/project-feature-test-inventory.md": "5573a34a9984c15504d6993115624918f27b4ec18fe161782027175a8ac1e6b1"
+    },
+    "nativeBinariesSha256": {
+      "macOS/native-final/recording_retention_v2_smoke": "152be8a9c0c5ba2ef593ec34715b72bbb3107bd76c38a321a89741dcfac3070c",
+      "macOS/native-corrected/recording_managed_writer_smoke": "3dbfa8260991e65802c669b2bca6dff81ec0e54bcc1729197332764531972a6a",
+      "Linux/./native/recording_retention_v2_smoke": "aae5626a159a77a04414941d658712ed4bf6eeb3432d0abb5273f5f8bc69bd39",
+      "Linux/./native/recording_managed_writer_smoke": "51e2e863b0395eacdac5681cbda01a1c8aff423fa74eab0ec1ad36bd10aaddba"
+    }
+  },
+  "profiles": {
+    "protection-r97": {
+      "continuousMaxBytes": 67371008,
+      "changed": false,
+      "purpose": "real refusal/protected original/same-session recovery"
+    },
+    "continuous-r98": {
+      "continuousMaxBytesPerChannel": 91226112,
+      "MiB": 87,
+      "E": 67108864,
+      "H": 23703552,
+      "P": 36864,
+      "M": 376832,
+      "formula": "ceil((E+H+P)/1048576)*1048576; M is one-time rounding difference",
+      "headroomBytes": 24117248,
+      "segmentEnvelopeBytes": 36864,
+      "protectedFilesPerChannel": 643,
+      "purpose": "fixed input and bounded existing concurrent owners; not universal product pin/hold support",
+      "status": "applied development fixture; direct scope verified; mixed prepare blocked"
+    }
+  },
+  "ownership": {
+    "E": "max(callerMinimum,64MiB,observedMax); largest observed AU1745 means caller1050321; conditional fixed segment S36KiB below default64MiB. Default is not universal mux bound.",
+    "H": "index sequential worker RequestMedia cache200 + transient1; two visual search requests each cache200 + response20 (transient plus prior response <=20); two structured readers each one immediate ResolveMedia lease. Conservative unique source upper bound201+2*220+2=643 on either channel; shared files not counted twice in actual ownership; maxima need not be attainable simultaneously.",
+    "evidenceA": "mixed awaits four search requests before sequential evidence; ongoing index worker remains included. Evidence creation serialized; result metadata/package persistence does not keep live original hold. A uses confirmed channel1 seed, separate from9101/9201 continuous quota.",
+    "P": "one S-sized pending file during normal single coordinator ApplyPlan/RecoverPending apply_mu_ serialized RequestDeletion/unlink/tombstone transition. Corrupt/hard-error accumulation is not accepted as normal and remains FAIL.",
+    "notGuaranteed": [
+      "arbitrary external holds/pins",
+      "different input/plugin encoding",
+      "all decoder/mux behaviors",
+      "hard-error accumulation"
+    ]
+  },
+  "input": {
+    "pipeline": "120 ball frames, I420160x90,30fps,x264zerolatency/ultrafast/quant0/GOP30,h264parse,mp4mux",
+    "binding": "macOS full MP4 SHA normalized only24 creation/modification timestamp bytes in version0 mvhd/tkhd/mdhd; sample tables, codec and payload bytes retained",
+    "normalizedSha256": "baebad5cad233243c4748f6bfec06fa5d2da7f06ae9b1475c9b20bfbfb04e2e7",
+    "macOS": {
+      "bytes": 67929,
+      "packetCount": 120,
+      "payloadBytes": 66504,
+      "maxPacketBytes": 1745,
+      "stopPrefixes": 210,
+      "maxOutputBytes": 34724,
+      "maximalRangesDecoded": [
+        60,
+        60,
+        60,
+        30
+      ]
+    },
+    "Linux": {
+      "bytes": 67914,
+      "packetCount": 120,
+      "payloadBytes": 66489,
+      "maxPacketBytes": 1730,
+      "stopPrefixes": 210,
+      "maxOutputBytes": 34709,
+      "sameBytesAsMacOS": false,
+      "scope": "existing Linux generation procedure and native consumer regression; not approved macOS mixed input"
+    },
+    "limit": "210 actual key-start/normal Stop prefixes are conditional fixture evidence, not universal mux output proof; prefix test and runtime drain reject output>S; input guard rejects changed non-time bytes before source initialization"
+  },
+  "direct": {
+    "macOS": {
+      "retentionV2": "36/0",
+      "profile": "PASS",
+      "held": 643,
+      "heldActualBytes": 22327532,
+      "fileBytes": 34724,
+      "safeFiles": 53,
+      "deleted": 55,
+      "excessHeldFiles": 52,
+      "admitted": 1,
+      "completed": 1,
+      "decodedFrames": 60,
+      "Finish": true
+    },
+    "Linux": {
+      "uid": 10001,
+      "network": "none",
+      "image": "sha256:ce72c8a15363984da642e9964189957896812061c6af1d0ef67e87b38ad5a588",
+      "warnings": "-Wall -Wextra -Werror",
+      "runtimeBuild": "same unchanged product source; previous ephemeral Linux binary unavailable",
+      "retentionV2": "36/0",
+      "profile": "PASS",
+      "held": 643,
+      "heldActualBytes": 22317887,
+      "fileBytes": 34709,
+      "safeFiles": 53,
+      "deleted": 55,
+      "excessHeldFiles": 52,
+      "admitted": 1,
+      "completed": 1,
+      "decodedFrames": 60,
+      "Finish": true
+    },
+    "mechanism": "real managed writer + ReserveRecordingOrder/FinalizeSegmentV2 clones of generated valid MP4, real holds and retention deletion; full protected file SHA invariance; excessive protection refuses zero reservation, normal release recovers same coordinator",
+    "limits": "not parallel mixed owners, full SourceBinding on every clone, generation scratch, or RSS/FD peak proof. Resource owner counters0 reflect this Store fixture; not actual generation workspace0."
+  },
+  "contracts": {
+    "progressTests": "72/0 on macOS and Linux: actual mixed source/settings and drain boundary, trace/progress contracts; not the separate workspace test",
+    "settings": "initial source + disable/enable/revision + registry readback + serialized registry roundtrip; runtime second-process readback installed, actual server restart not run",
+    "inputBinding": "3 macOS original files match normalized SHA; timestamp-only mutation allowed, mdat mutation rejected",
+    "isolation": "unchanged95 pre-init guard reused by native helper; no userconfig or privatebackup access; no new guard policy claimed",
+    "workspaceTests": "existing root-storage short self-test28/0 on macOS: named/anonymous/copy strict bounds, overflow, first operands and collection failures, ownroot cleanup. No product execution or45/120 feasibility proof."
+  },
+  "workspace": {
+    "capBytes": 469762048,
+    "changed": false,
+    "FChanged": false,
+    "copyPolicyChanged": false,
+    "reservationIsActualAllocated": false,
+    "directEndpoints": [
+      {
+        "path": "native-corrected/recording_managed_writer_smoke-data/continuous",
+        "phase": "after exited direct test",
+        "regularFiles": 700,
+        "logicalBytes": 51027753,
+        "allocatedBytes": 53399552,
+        "notPeak": true,
+        "anonymousFilesAtExecution": "not established by directory traversal",
+        "generationLiveCopyBudgetProof": false
+      },
+      {
+        "path": "bound-corrected",
+        "phase": "after exited direct test",
+        "regularFiles": 1472,
+        "logicalBytes": 50867798,
+        "allocatedBytes": 52572160,
+        "notPeak": true,
+        "anonymousFilesAtExecution": "not established by directory traversal",
+        "generationLiveCopyBudgetProof": false
+      }
+    ],
+    "boundaries": "live files+partial+journal/snapshot+evidence/A+named/anonymous scratch+parent logs minus existing F; copy separately and combined cap, unchanged collector guards",
+    "notEstablished": "new active media/source/index rows and live/K/candidate/suffix/reader overlap in actual generation mixed run; recovery copy;45/120-minute feasibility. Direct Store source clones do not prove these costs. No linear extrapolation or adding two quotas offered as proof."
+  },
+  "prepare": {
+    "executions": 0,
+    "status": "NOT_RUN_BLOCKED",
+    "reason": "Unchanged blank-root prepare requires deletion on both channels and usage readback. NewQ-E=23MiB, age3hours. The nominal30second/2second segment load is about15-16 files/channel, far below headroom atS36KiB; this is not an upper bound including readiness/finalization time. No source-bound preloaded cyclic state or end-to-end deletion evidence establishes this gate for the new profile. Full generation workspace is also unverified. Native direct preloaded deletion cannot substitute.",
+    "requiredDecision": "define an authorized prepare pre-state with independently validated source-bound cyclic history within full workspace, or explicitly separate short connectivity gate from direct cyclic deletion. No deletion assertion/time/load relaxation or silent preseed applied."
+  },
+  "failures": [
+    {
+      "attempt": "Linux-first",
+      "phase": "managed writer compile",
+      "error": "-Werror misleading-indentation at message unref",
+      "resolution": "split statement; same warning flags; Linux-final0",
+      "originalPreserved": true
+    },
+    {
+      "phase": "independent review",
+      "error": "direct max_output initially diagnostic-only",
+      "resolution": "explicit max_output<=36KiB failure gate; corrected macOS/Linux210 prefix passes; initial observations preserved"
+    }
+  ],
+  "reuse": "97 completed product A/B/C and managed protection;95 isolation and private recovery uncertainty;96 workspace max/failure operands;82K/F and product authority unchanged. Historical59/61/63/72-74 remain own source/environment, not re-executed.",
+  "remaining": [
+    "actual short prepare connectivity/deletion contract",
+    "full generation live/scratch/recovery-copy feasibility",
+    "96 partial p95 2364.045ms above2000; not resolved by quota",
+    "45/120 cumulative validation",
+    "memoryP0 and releasehold"
+  ],
+  "notRun": [
+    "prepare",
+    "600seconds",
+    "45minutes",
+    "120minutes",
+    "fullacceptance",
+    "fullUI",
+    "Qwen/Ollama",
+    "unloadgate",
+    "PR/CI/merge/tag/Release"
+  ],
+  "independent": "98-independent-review.json; new fixture reviewed independently;986legacy digest is not new behavior approval",
+  "cleanup": "pending evidence byte preservation then exact ownedroot/container absence; no privatebackup/config/model/SDK targets",
+  "remote": "pending ordinarypush; final SHA and readback reported separately",
+  "binding": {
+    "producer": "51/0",
+    "readback": "986valid/15negative",
+    "coverage": "9/0;986covered0missing",
+    "inventory": "18/0",
+    "scriptInventory": "13/0",
+    "candidateDigest": "8977e9b6ac618c7e0233823f6acb6ab1fcf7461206ee5d8b2a4149a643519e3a",
+    "candidateEntireJSONIdenticalToPrior": true,
+    "onlyManifestSemanticChange": "inventorySha256 from actual producer; no manual hash assignment; pretty format preserves producer values",
+    "newFixtureReview": "separate98independent review, not inferred from legacy986"
+  },
+  "static": {
+    "syntax": "node --check both edited modules; Python AST launcher",
+    "diffCheck": 0,
+    "links": "changed backlog/design references resolve to98 validation; original97 retained",
+    "independentWordingFollowup": "prepare count clarified as nominal30second segment count, not whole-launcher strict upper bound"
+  },
+  "preservation": {
+    "archive": "98-execution.tar.gz",
+    "bytes": 461549,
+    "sha256": "afd1520692821df24f1ee0a00df8f90aad6c4d717d07992a8f2a687cb39927a3",
+    "members": 94,
+    "membersReadback": true
+  }
+}

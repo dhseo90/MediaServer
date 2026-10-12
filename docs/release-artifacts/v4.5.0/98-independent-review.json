@@ -1,0 +1,182 @@
+{
+  "schema": "media-server.v450.independent-review.v1",
+  "task": 98,
+  "reviewer": "/root/independent_memory86",
+  "reviewedAt": "2026-10-12T10:45:41.403Z",
+  "independence": {
+    "role": "별도 독립 읽기 검토자",
+    "participation": "구현·검사 작성·제품/검사/producer 실행·하위 위임 없음. 원문 읽기와 hash/JSON 대조 및 이 보고서 작성만 수행.",
+    "excluded": "기본 사용자 설정과95 비공개 백업 접근 없음"
+  },
+  "model": {
+    "requested": "gpt-6-astra/high",
+    "toolAccepted": "기존 reviewer의 이전 수락 기록 재사용; 이번 followup은 새 설정을 노출하지 않음",
+    "actualRuntime": "not-exposed; 미확인"
+  },
+  "sourceBinding": {
+    "base": "997bc187d2182c8d983180be1b23b8a1a5138dd4",
+    "productSrcIncludeDiffEmpty": true,
+    "reviewedFilesSha256": {
+      "scripts/internal/recording_longrun_progress.mjs": "9771370364a0f5c9b35821c6787513adb4430f2a38533d5e390f2e81e38e5386",
+      "scripts/internal/recording_longrun_progress.test.mjs": "5c1b5cbc7e54ec0463442be906bfe59d8987b528ceb8807ffc66c67c703f33a8",
+      "scripts/internal/recording_managed_writer_smoke.cpp": "a951f185c8f9f14599d5a4beb3ccf36b8538c03c03fbeb16a2fabd6b22a78177",
+      "scripts/internal/run_v450_recording_a_mixed.py": "43976bd1e2234763c180ce9f39a4b9af890ad1ffc53b08d905c335dece0193d5",
+      "scripts/internal/v450_recording_a_mixed.mjs": "48065c6709990d4680257586b27d10dbe7e64441e286f11803abb70ec618a0dc",
+      "docs/project-feature-test-inventory.md": "5573a34a9984c15504d6993115624918f27b4ec18fe161782027175a8ac1e6b1"
+    },
+    "workingTreeCleanClaimed": false,
+    "scope": "6개 fixture/정의 변경. 제품97 동작을 새 구현으로 재승인하거나 미래 commit을 실행 source로 소급하지 않음."
+  },
+  "decision": {
+    "status": "LIMITED_FIXTURE_CHANGE_ACCEPTED_FULL_REQUEST_PARTIAL",
+    "blockingFindingsForReviewedFixtureDelta": [],
+    "accepted": [
+      "protection-r97의67371008B와 continuous-r98의91226112B(87MiB)를 분리한다. E67108864+H23703552+P36864+M376832 산술이 일치하며 M은 일회 MiB 반올림 차이다.",
+      "H는 고정 실제 소비자 범위의 보수적 unique-source 상한201+220*2+2=643이다. 실제 동시643개 관측/최소필요값/채널별 절반 분포를 주장하지 않는다. 응답 이전 hold와 Acquire 임시가 중복되지 않는 최대를 사용한다. 증거의 저장 결과는 live 원본 hold와 다르며 A channel1은 별도다.",
+      "P=1*S는 단일 coordinator의 apply_mu_로 직렬화된 정상 RequestDeletion→unlink→tombstone 구간에 한정한다. corrupt/hard-error 축적이나 임의 외부 pin/hold를 정상 여유로 흡수하지 않는다.",
+      "S36KiB는 고정 macOS 입력과 해당 소비자에 한정한 조건부 fixture 계약이다. 전체 입력67929B를 출력상한으로 대신하지 않는다. 원본34724B 최대와210 Stop prefix 근거를 읽었고 직접 상한 및 실제 drain S+1 실패 연결을 확인했다.",
+      "초기 source·설정 revision·disable/enable·registry readback·재시작 결속 코드가 같은 named profile을 사용한다. 실제 server 재시작은 수행되지 않았으며 VM 함수/직렬화 검사를 그 실행으로 확대하지 않는다."
+    ],
+    "notAcceptedAsComplete": [
+      "빈 root30초 prepare의 기존 양쪽 deleted>0 및 usage gate 충족",
+      "실제 generation live/anonymous/K/candidate/suffix/reader와 recovery copy를 포함한 전체448MiB 성립",
+      "45분/120분 누적·검색 p95 해소·메모리P0·릴리즈 완료"
+    ],
+    "prepare": {
+      "status": "NOT_RUN_BLOCKED",
+      "executions": 0,
+      "reason": "새 headroom23MiB와3시간 age에서 기존 빈-root30초 준비의 실제 순환삭제 근거가 없다. native 사전 구성 직접 삭제는 그 gate의 대체 실행이 아니다. assertion·시간·부하 완화 없이 보류한다."
+    }
+  },
+  "evidence": {
+    "macOS": {
+      "boundPrefixes": 210,
+      "maxOutputBytes": 34724,
+      "maximalRangesDecoded": [
+        60,
+        60,
+        60,
+        30
+      ],
+      "directHeldFiles": 643,
+      "directHeldBytes": 22327532,
+      "safeFiles": 53,
+      "deletedIncludingExcessRefusalCleanup": 55,
+      "excessHeldFiles": 52,
+      "writerCompleted": 1,
+      "writerDecodedFrames": 60,
+      "Finish": true,
+      "progressChecks": 72
+    },
+    "Linux": {
+      "uid": 10001,
+      "network": "none",
+      "warnings": "-Wall -Wextra -Werror",
+      "runtimeBuildExit": 0,
+      "retentionV2": {
+        "pass": 36,
+        "fail": 0
+      },
+      "profileExit": 0,
+      "boundPrefixes": 210,
+      "maxOutputBytes": 34709,
+      "inputBytes": 67914,
+      "macInputBytes": 67929,
+      "sameInputBytesAsMacOS": false,
+      "progressChecks": 72,
+      "scope": "Linux 해당 생성 절차/native 소비자 회귀. macOS 정규화 입력 일치나 실제 혼합을 주장하지 않음."
+    },
+    "inputBinding": "세 macOS 원본의 mvhd/tkhd/mdhd version0 creation/modification 각8B, 총24B만 제외한 SHA baebad5cad233243c4748f6bfec06fa5d2da7f06ae9b1475c9b20bfbfb04e2e7를 독립 계산해 확인. 후속 input-binding 원문에서 시각 변경 허용/mdat 변경 거부 확인. 원본 SHA는 서로 다름.",
+    "limitations": [
+      "직접 Store의643개 정상 미디어 복제/실제 hold와 삭제 검사는 실제 동시 검색 owner나 각 clone의 완전한 SourceBinding 부하 재현이 아니다.",
+      "resource RAM/scratch peak0은 이 Store 계측 범위다. 실제 generation workspace0 또는 무누수 증거가 아니다.",
+      "최초 Linux misleading-indentation compile FAIL 원문이 유지됐고 줄분리 후 동일 Werror 결과와 구분된다.",
+      "이전 max_output 출력만 존재한 지적은 실패 gate 추가 및 수정 후 macOS/Linux 결과로 해소됐다."
+    ],
+    "rawSha256": {
+      "bound-corrected.log": "e15450e03e03d22c1b673b4139409f3a175e9235ec43c95c8cb9edac73b129fc",
+      "input-binding.log": "42ead3e0ce6fadafbf2144e40e6afc6821d85093f25c554faa5d5cff0aeee25f",
+      "progress-final.log": "ed181b5a48ab0798a479bfc82a38f2db745a6ff1fca02bba31aa196144a84d04",
+      "native-corrected/recording_managed_writer_smoke-run.log": "240db99aad3ca0ab0480061d48752d8d408d7790ffd2de43391c6ced1c5a9a18",
+      "linux-final/environment.log": "2de91f48eefef293f79058155174aff1854bd5d3e2354e4f936783faa07c7187",
+      "linux-final/build.log": "0eb0d93921176da1959b6e4a795ed2b900cf0953a456ba5f1d6fe457845e7d02",
+      "linux-final/exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "linux-final/native.log": "3f130cfc7cd16c2d2f50dec9495e045706258ef0f8fd316da6d2f4fe40369a88",
+      "linux-final/native/recording_retention_v2_smoke-run.log": "919a417e7adf0c7e4d9b423cfffecd58922f59c0ca616553461fd248764cdeb4",
+      "linux-final/native/recording_managed_writer_smoke-run.log": "4060bebe7389ee343bf9edd0a0c3b35f04bdab4668232f5683479a73dd9d03ff",
+      "linux-final/bound.log": "6e7aecdbb13754b6ced8c936d68f4ed1e0e4bef79d2362bcfcf5fbee5e5838fb",
+      "linux-final/progress.log": "f55a8582f2a158ea9bc18b8373c8af86a20c060fdea80c814ef5821af1be7025",
+      "linux-final-exit.json": "8b554d54cb2f40d59e7b2a3e4545d0c08ca9fdcaed66aa4df9176004df4fa4e3",
+      "linux-final-command.json": "02da1aa22b17c0b86d8f1a3751f1b9565e49f7496760a707154a5e63a3362a61",
+      "linux-first-failure/native/recording_managed_writer_smoke-compile.log": "978d17273e7fde35d1b882592251a7db5355f7515f18e5da4da81c5165b11990",
+      "candidate.json": "13402b9705f3b160348f6facdd5bf496d4a6fe761c9653db6f9fd7754b2a14f4",
+      "candidate-comparison.json": "68eaa6efde8d16db03490c0d3c9acc1709d75da36f5951b404856ef78816757b"
+    }
+  },
+  "legacyApprovalReuse": {
+    "candidateDigest": "8977e9b6ac618c7e0233823f6acb6ab1fcf7461206ee5d8b2a4149a643519e3a",
+    "items": 986,
+    "entireCandidateEqualsStoredAudit": true,
+    "trustBindingsEqual": true,
+    "allowedScope": "동일 후보에 기존 apply-approved-manifest를 적용해 inventory 결속 갱신 가능. 임의 hash 대입/새 blanket approval 불필요. 실제 producer/readback 성공은 별도 확인 필요.",
+    "notSubstituteFor": "R98 fixture의 새 동작·준비·전체 workspace 판단",
+    "producerAndReadback": "pending at review"
+  },
+  "documentReview": {
+    "validationSha256AtRead": "6a57e218e9586d50ecd77d6d259152aa7841d0d9157a229cba7bdf79d7da2dc6",
+    "materialOverclaimFound": false,
+    "wordingQualification": "prepare.reason의 approximately<=16 files/channel은 readiness 최대15초와 A.finish/후처리까지 포함한 엄밀 상한이 아니다. 30초 본구간의 명목수량으로 한정하거나 그 수치상한을 제거해야 한다. 준비 차단 결론은 유지된다."
+  },
+  "closure": {
+    "preservation": "pending selected-byte archive/Git readback",
+    "remote": "pending",
+    "ownedCleanup": "pending",
+    "wholeRequestComplete": false,
+    "releaseApproval": false,
+    "newExecutionAuthorityGranted": false,
+    "remaining": [
+      "prepare 연결/순환삭제 전제 결정",
+      "전체 generation live 및 recovery-copy workspace 근거",
+      "기존96 partial p95와45/120 및P0/출시 보류",
+      "producer/readback·기록·보존·정리 마감"
+    ]
+  },
+  "closeoutAddenda": [
+    {
+      "reviewedAt": "2026-10-12T10:51:18.306Z",
+      "scope": "최종 결속·문구·선정 원본/정제본 보존 readback만. 원 독립 판단은 당시 사실로 유지.",
+      "priorReportSha256": "ca4f41c9a3263bd77682ee32aa1f1a1245481c20ee71cda5bd19c847d603a82e",
+      "implementationCommit": "f817ee5c7f223cb848f5fd84dac0190f9759e076",
+      "reviewedSourceHashMismatches": 0,
+      "binding": {
+        "producer": "51/0",
+        "readback": "986 valid,15/15 negative",
+        "coverage": "9/0;986 covered,0 missing",
+        "inventory": "18/0",
+        "scriptInventory": "13/0",
+        "manifestSemanticDelta": "기준997bc187 대비 직접 JSON 대조상 inventorySha256만 변경. 실제 producer 실행/pretty 의미 보존 receipt 및 원문 확인.",
+        "newFixtureApprovalNotInferredFromLegacy": true
+      },
+      "documentCorrections": "prepare 약15~16개는 명목30초 수량이며 readiness/후처리 포함 상한이 아님을 명시. progress72와 별도 workspace 계약28/0을 분리한 문구 및 각 원문 확인.",
+      "localArchiveReadback": {
+        "archive": "98-execution.tar.gz",
+        "bytes": 461549,
+        "sha256": "afd1520692821df24f1ee0a00df8f90aad6c4d717d07992a8f2a687cb39927a3",
+        "members": 94,
+        "originalBytesMembers": 71,
+        "pathRedactedMembers": 23,
+        "allOriginalAndSavedByteHashMismatches": 0,
+        "allDeclaredPathTransformationMismatches": 0,
+        "scope": "94개 실제 archive member와 현재 소유 root 원본을 읽어 크기/hash 및 지정 경로 정제만의 관계를 독립 대조. 최초 Linux compile FAIL, 수정 후 raw 결과, 고정 입력4개, 결속/명령/소스 증거 포함. 기본 사용자 config/private95 backup 접근 없음. 새 addendum은 이 archive의 기존 멤버라고 주장하지 않음."
+      },
+      "judgment": "한정 fixture 채택 판단 유지, 이 로컬 마감 범위의 새 blocker 없음. 실제 prepare와 전체448MiB/generation/recovery-copy 및 누적/P0/출시 미충족은 유지.",
+      "pending": [
+        "증거 Git 보존 및 원격 실제 바이트 readback",
+        "소유 root/container 정리와 부재 확인",
+        "전체 요청의 prepare/full workspace 잔여"
+      ],
+      "wholeRequestComplete": false,
+      "newExecutionOrReleaseAuthorityGranted": false
+    }
+  ]
+}

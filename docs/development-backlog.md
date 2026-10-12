@@ -17,14 +17,14 @@
 
 ## v4.5.0 잔여 개발과 릴리즈 순서
 
-[97 대체 삭제·보호 회복 직접 검증](release-artifacts/v4.5.0/97-validation.json)은
-계획 뒤 보호된 A 때문에 미선택 안전 후보 B를 놓치던 admission 경로를 보완한다.
-안전한 대체 자료가 없을 때의 정상 거부와 같은 세션의 보호 해제 뒤 실제 writer 회복을
-구분한다. 현행 혼합 quota의256KiB 여유에는 정당한 보호량 상한 보장이 없어
-[연속 진행 fixture 조건 결정](superpowers/specs/2026-09-02-v410-recording-search-foundation-design.md#보호-충돌-뒤-대체-후보와-시험-전제)이 남는다.
-quota·예약·gate를 변경하지 않았으며600초/45분/120분은 실행하지 않는다.
-96의 실제 보호 owner/대체 후보 유무는 여전히 미확정이다. 부분 검색 지연·45/120분 공간
-검증·전체 메모리 P0와 출시 보류는 유지한다.
+[98 보호/연속 fixture 직접 검증](release-artifacts/v4.5.0/98-validation.json)은 기존 보호 profile을
+유지하면서 고정 macOS 입력·동시 소유 경계에서 산정한 연속 quota를 초기 등록과 설정·재시작
+대조에 연결한다. 제품 예약·보호 정책과 전체 작업공간은 불변이다. 직접 순환 삭제·writer·거부·회복은
+확인했지만, 빈 저장소에서 시작하는 기존 30초 prepare의 삭제 gate를 새 headroom에서 충족할 근거가 없어
+prepare는 미실행이다. 실제 generation 저장소 전체 공간·복구 copy, 장기 검색 지연과 메모리 P0도
+미충족이다. 산식·조건부 입력 상한·플랫폼 차이·정확한 보류는 위 기록에 둔다.
+[97 대체 삭제·보호 회복](release-artifacts/v4.5.0/97-validation.json)의 제품 완료와 과거 FAIL은 유지한다.
+추가 600초/45분/120분·위험 수용·출시 절차는 수행하지 않는다.
 
 [96 공간 비용·판정 입력 보완](release-artifacts/v4.5.0/96-validation.json)은 같은 이력의
 작은 값을 검증된 node 안에 보관해 익명 scratch 표현 비용을 줄였고, 원래 admission과
