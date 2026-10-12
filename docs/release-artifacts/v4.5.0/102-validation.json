@@ -1,0 +1,512 @@
+{
+  "schema": "media-server.v450.validation.v1",
+  "task": 102,
+  "status": "COLLECTOR_AND_FINAL_MATRIX_PASS_45_MINUTE_FAIL",
+  "scope": "FD 수명 변화 대응의 한정 수집 계약과 최종 규모8조건 완료. 같은 제품의45분1회는 장면 검색 timeout FAIL; 메모리P0/최종120분/출시보류.",
+  "model": {
+    "requestedMain": "gpt-6-astra/high",
+    "mainToolAccepted": "not-exposed",
+    "mainActualRuntime": "not-exposed",
+    "requestedIndependent": "gpt-6-astra/high",
+    "independentReviewer": "/root/independent_memory86",
+    "independentToolAccepted": "기존 별도 생성 수락 기록 재사용; followup 값 미노출",
+    "independentActualRuntime": "not-exposed"
+  },
+  "source": {
+    "entryHead": "fc2550a7dbc44606e206d0ad6c5295124d42d948",
+    "entryRemoteHead": "fc2550a7dbc44606e206d0ad6c5295124d42d948",
+    "entryWorktreeIndex": "clean",
+    "productImplementation": "9b949da1dada2bcb5f14480ed59d5f66b96b92cb",
+    "implementationCommit": "99982d5bc06f64dc37069062fd11829112493c12",
+    "implementationTree": "f0e0ad6429ae06b4094fc182242e24c9f066f1fe",
+    "productSrcIncludeDiff": "empty",
+    "runtimeSha256": "fb5d75efece9c0f1dcd76aeefe836f0f516369362119e8491ccdfc69000cd0e0",
+    "productBinarySha256": "0ae09b7012ebc9d10bdf882d8f5810accc67f42510ae9885d91df14d28362623",
+    "matrixSource": "entry HEAD + matrix-freeze.json exact diff; later commit not retroactive execution HEAD",
+    "state45Source": {
+      "head": "99982d5bc06f64dc37069062fd11829112493c12",
+      "fixtureProfile": "continuous-r98",
+      "fixtureProfileSourceSha256": "2a3570834be0e30d603e8206bb611e76acb232ade0374598a946b1ec2dd8813f",
+      "tree": "f0e0ad6429ae06b4094fc182242e24c9f066f1fe",
+      "sourceSha256": "3708eafbb749f8a605615d9b7d637259fbb12fcda0c7a7c3a068b72a21f73a95",
+      "binarySha256": "0ae09b7012ebc9d10bdf882d8f5810accc67f42510ae9885d91df14d28362623"
+    },
+    "state45SourceEndIdentical": true
+  },
+  "prior101": {
+    "capacity": "FD roster capacity re-observation count, not resource limit",
+    "closed": "failed detail lookup leading to whole re-observation count; not distinct FD/file count",
+    "failure": "capacity0/closed4 after111 complete samples before requests; historical FD/type/size unavailable",
+    "reuse": "Catalog/retention/source-binding/cache/K-F product and direct correctness/ownership evidence unchanged; cycle/background PASS at original504784 fixture, final596350 publication qualifier not rerun for that condition",
+    "notInferred": [
+      "FD leak",
+      "anonymous bytes0",
+      "workspace overflow",
+      "RAM leak",
+      "historical FD reconstruction"
+    ]
+  },
+  "collectorContract": {
+    "scope": "complete-round-sequential-v1",
+    "macAlgorithm": "Fresh full roster, retry previously failed slot first only if listed vnode; all required details still read. Prior failed round totals/identities discarded.",
+    "linuxAlgorithm": "Existing four full /proc rounds with immediate diagnostics; no macOS priority claim.",
+    "sameInode": "within selected round dev/inode unique with max observed logical/allocated, overflow checked",
+    "acceptance": "whole selected round complete and same PID start identity; failed/short/permission/missing scope not valid",
+    "failureDiagnostics": "at most4 numeric FD/type/return/immediateerrno/next-roster-type/time records; failed metric values stay null",
+    "limits": {
+      "rounds": 4,
+      "bufferBytes": 8388608,
+      "parentSeconds": 3,
+      "processLogBytes": 4194304,
+      "variableWorkspaceBytes": 469762048,
+      "ownerRamBytes": 671088640
+    },
+    "limitsUnchanged": true,
+    "coverageLimits": [
+      "sequential, not atomic snapshot or instantaneous peak",
+      "same FD number/type is not same object",
+      "mapping-only files not newly measured",
+      "no partial-cost/bounds fallback",
+      "8MiB includes roster+dedup+diagnostic accounting; very large rosters can reject earlier",
+      "no product pause, extra FD retention, or cooperative product changes"
+    ]
+  },
+  "directTests": {
+    "macOS": {
+      "pass": 66,
+      "fail": 0
+    },
+    "nonprivilegedLinux": {
+      "pass": 63,
+      "fail": 0,
+      "uid": 10001,
+      "image": "sha256:ce72c8a15363984da642e9964189957896812061c6af1d0ef67e87b38ad5a588",
+      "network": "none",
+      "sourceMount": "read-only"
+    },
+    "foundation": {
+      "pass": 40,
+      "fail": 0
+    },
+    "workspace": {
+      "pass": 28,
+      "fail": 0
+    },
+    "httpHost": {
+      "pass": 9,
+      "fail": 0
+    },
+    "syntheticGenerationParent": {
+      "pass": 22,
+      "fail": 0
+    },
+    "resourceParser": "PASS",
+    "contract": "3 unittest methods PASS",
+    "actualOs": "controlled child close/reuse/pipe/duplicate/unlink/growth/truncate; Linux nondumpable permission failure",
+    "injected": "short structure and permission syscall overrides labelled; PID mismatch unit test, no forced actual PID reuse claim",
+    "firstFailures": [
+      "probe missing initializer_list compile",
+      "workspace fixture fixedBytes accidental edit",
+      "test-owned root cleanup omission",
+      "GCC misleading-indentation Werror",
+      "sandbox HTTP listen EPERM; same source host9PASS"
+    ],
+    "allFirstFailuresPreserved": true
+  },
+  "finalMatrix": {
+    "requiredConditions": 8,
+    "passedConditions": 8,
+    "attemptsEach": 1,
+    "rawAnalysis": "102-execution.tar.gz:matrix-analysis.json",
+    "sourceFreeze": "102-execution.tar.gz:matrix-freeze.json",
+    "details": [
+      {
+        "condition": "cycle/parallel",
+        "requests": 12,
+        "p95Ms": 824.73,
+        "maxMs": 824.73,
+        "elapsedSeconds": 359.680489,
+        "completeSamples": 356
+      },
+      {
+        "condition": "cycle/single",
+        "requests": 3,
+        "p95Ms": 294.199,
+        "maxMs": 294.199,
+        "elapsedSeconds": 357.397922,
+        "completeSamples": 354
+      },
+      {
+        "condition": "4/single",
+        "requests": 3,
+        "p95Ms": 136.625,
+        "maxMs": 136.625,
+        "elapsedSeconds": 9.094739,
+        "completeSamples": 9
+      },
+      {
+        "condition": "4/parallel",
+        "requests": 12,
+        "p95Ms": 199.626,
+        "maxMs": 199.626,
+        "elapsedSeconds": 9.097698,
+        "completeSamples": 9
+      },
+      {
+        "condition": "4/background",
+        "requests": 12,
+        "p95Ms": 287.884,
+        "maxMs": 287.884,
+        "elapsedSeconds": 14.121371,
+        "completeSamples": 14
+      },
+      {
+        "condition": "53/single",
+        "requests": 3,
+        "p95Ms": 281.921,
+        "maxMs": 281.921,
+        "elapsedSeconds": 33.252489,
+        "completeSamples": 33
+      },
+      {
+        "condition": "53/parallel",
+        "requests": 12,
+        "p95Ms": 609.774,
+        "maxMs": 609.774,
+        "elapsedSeconds": 34.25028,
+        "completeSamples": 34
+      },
+      {
+        "condition": "53/background",
+        "requests": 12,
+        "p95Ms": 516.504,
+        "maxMs": 516.504,
+        "elapsedSeconds": 39.305414,
+        "completeSamples": 39
+      }
+    ],
+    "scope": "status/shape/order/seek metadata, real background writes/new publication, Stop/Finish/owner0; not exhaustive top-k or actual Seek",
+    "churnSamples": 15,
+    "failedRoundsBeforeComplete": 21,
+    "allFourFailedRounds": "remain FAIL in direct tests; cycle/single one fourth-round COMPLETE is different",
+    "compilationDuringPerformance": false,
+    "maxObservedRssBytes": 3192406016,
+    "maxLiveVariableBytes": 148437585,
+    "modelConstructor": "existing8GiB preparation interval only; excluded from live448 judgement, not hidden"
+  },
+  "state45": {
+    "attempts": 1,
+    "result": "FAIL",
+    "command": [
+      "python3",
+      "scripts/internal/run_v450_recording_a_mixed.py",
+      "--state-diagnostic",
+      "/private/tmp/media-server-r102-zsafslvd/state45"
+    ],
+    "wholeElapsedSeconds": 621.8621400000993,
+    "lastObservedMainSeconds": 602.089038834,
+    "verifiedDurationMs": null,
+    "firstError": "visual-search HTTP header timeout5002ms; concurrent timeout5012ms",
+    "serverLateOutcome": "two503 visual-search-unavailable after5284.049/5291.865459ms; not responses received by timed-out client",
+    "causeBoundary": "Catalog lock wait observed; competing owner/root cause unconfirmed. No collector/space/RAM-leak attribution.",
+    "originalSuccessfulSearchCount": 160,
+    "partialSuccessP95Ms": 3126.6870839999756,
+    "partialSuccessMaxMs": 4182.89620800002,
+    "searchPopulation": "all raw timings retained; A auxiliary10 and final cycle structured2002 do not replace the original160 denominator; timeout2 retained separately",
+    "progress": {
+      "channels": {
+        "9101": {
+          "finalized": 300,
+          "deleted": 0,
+          "lastAt": 610418.759792,
+          "order": "600",
+          "store": "4c9432000f7050862d2806c8545a03c3fb94c968fe11b96902653b6bdf98baee",
+          "knownMappings": 202,
+          "unknownMappings": 11458
+        },
+        "9201": {
+          "finalized": 300,
+          "deleted": 0,
+          "lastAt": 610418.759792,
+          "order": "601",
+          "store": "4c9432000f7050862d2806c8545a03c3fb94c968fe11b96902653b6bdf98baee",
+          "knownMappings": 192,
+          "unknownMappings": 11562
+        }
+      },
+      "ACompleted": 10,
+      "evidenceCycles": 39,
+      "generalPackages": 39,
+      "scenePackages": 39,
+      "retainedChecks": 78,
+      "rotations": 6,
+      "sampleCount": 121,
+      "allComplete": true,
+      "identities": [
+        "macos:1791842803:462919"
+      ],
+      "rounds": {
+        "1": 121
+      }
+    },
+    "space": {
+      "workspaceFailure": {
+        "status": "no-workspace-failure",
+        "primary": null,
+        "decision": null,
+        "collectorDiagnostic": null,
+        "context": null,
+        "collectionError": null,
+        "capacityBytes": 32768
+      },
+      "rootSamples": 124,
+      "namedVariableMaxBytes": 78412050,
+      "anonymousLogicalMaxBytes": 20208128,
+      "anonymousAllocatedMaxBytes": 20811776,
+      "limitBytes": 469762048,
+      "scope": "different-time maxima not summed into instant peak; original decisions remain in run.log/status evidence"
+    },
+    "resources": {
+      "status": "observed",
+      "resourceTrendPass": false,
+      "reviewRequired": true,
+      "sampleCount": 121,
+      "groups": [
+        {
+          "pid": 73399,
+          "startIdentity": "macos:1791842803:462919",
+          "sampleCount": 121,
+          "first": {
+            "phaseAt": 8559.069958,
+            "sampledAt": 1791842809453,
+            "rssBytes": 3170320384,
+            "threadCount": 37,
+            "fdCount": 34,
+            "mutationCount": 6
+          },
+          "last": {
+            "phaseAt": 610418.759792,
+            "sampledAt": 1791843411315,
+            "rssBytes": 1907212288,
+            "threadCount": 40,
+            "fdCount": 34,
+            "mutationCount": 1206
+          },
+          "max": {
+            "rssBytes": 3212247040,
+            "threadCount": 43,
+            "fdCount": 43
+          },
+          "delta": {
+            "rssBytes": -1263108096,
+            "threadCount": 3,
+            "fdCount": 0,
+            "mutationCount": 1200
+          },
+          "elapsedMs": 601859.6898340001,
+          "maxGapMs": 5806.973958000075,
+          "warmupMs": 300000,
+          "postWarmup": {
+            "status": "observed",
+            "sampleCount": 61,
+            "delta": {
+              "rssBytes": 83279872,
+              "threadCount": -2,
+              "fdCount": -1,
+              "mutationCount": 604
+            },
+            "elapsedMs": 301583.81887500006,
+            "rssMiBPerMinute": 15.800955494814257
+          }
+        }
+      ]
+    },
+    "maxFootprintSampleBytes": 3163868472,
+    "productFinalOwner": {
+      "pid": 73399,
+      "seq": 124,
+      "phase": "after-storage-destruction",
+      "elapsedMs": 612989,
+      "ram": 0,
+      "ramPeak": 405988773,
+      "ramLimit": 671088640,
+      "ramRejected": 0,
+      "scratchDisk": 0,
+      "scratchDiskPeak": 70692864,
+      "scratchDiskLimit": 155689095168,
+      "scratchFd": 0,
+      "scratchFdPeak": 16,
+      "scratchFdLimit": 1048572,
+      "scratchRam": 0,
+      "preservedDisk": 0,
+      "preservedFd": 0,
+      "readerCleanupHealthy": true
+    },
+    "collection": {
+      "pid": 73399,
+      "bytes": 224266,
+      "capturedBytes": 224266,
+      "sha256": "c04760c57210365c06701afc66eabaaf654861499b9e9ef4db92fe8906190a5a",
+      "overflow": false,
+      "captureError": null,
+      "categories": [
+        {
+          "code": "file evidence unavailable",
+          "count": 0
+        },
+        {
+          "code": "storageBlocked",
+          "count": 0
+        },
+        {
+          "code": "shutdown",
+          "count": 0
+        },
+        {
+          "code": "ERROR",
+          "count": 0
+        },
+        {
+          "code": "WARNING",
+          "count": 0
+        }
+      ],
+      "rawBodyPublished": false,
+      "privateCaptureDisposition": "eligible-for-wrapper-cleanup"
+    },
+    "boundedTrace": {
+      "status": "captured",
+      "mode": "bounded",
+      "required": true,
+      "records": 3,
+      "successes": 3,
+      "failures": 0,
+      "issues": []
+    },
+    "shutdown": {
+      "schema": "recording-process-cleanup-v1",
+      "attemptCount": 1,
+      "pid": 73399,
+      "exitCode": 0,
+      "signalCode": null,
+      "exitedObserved": true,
+      "stopCode": "complete",
+      "forcedTermination": "not-used",
+      "normalExitPass": true,
+      "normalShutdownPass": true,
+      "archiveSafe": true,
+      "ports": [
+        {
+          "kind": "http",
+          "port": 57925,
+          "status": "pass",
+          "code": "closed",
+          "closed": true
+        },
+        {
+          "kind": "rtsp",
+          "port": 57926,
+          "status": "pass",
+          "code": "closed",
+          "closed": true
+        }
+      ]
+    },
+    "notRun": [
+      "45-minute completion",
+      "final latency gate",
+      "explicit disable",
+      "closed-journal assertion",
+      "120-minute controls/recovery/restart/reactivation"
+    ],
+    "rerun": false,
+    "productOptimizationAfterFailure": false,
+    "rawAnalysis": "102-execution.tar.gz:state45-analysis.json"
+  },
+  "binding": {
+    "producer": {
+      "pass": 51,
+      "fail": 0
+    },
+    "readback": "PASS;986reviewed;15negative;0errors",
+    "coverage": {
+      "covered": 986,
+      "missing": 0,
+      "pass": 9,
+      "fail": 0
+    },
+    "inventory": {
+      "pass": 18,
+      "fail": 0
+    },
+    "scriptInventory": {
+      "pass": 13,
+      "fail": 0
+    },
+    "semanticChangedKeys": [
+      "inventorySha256"
+    ],
+    "formatOnlyAfterReadback": true,
+    "producerBytesSha256": "bcedad583dda628095061cd5409073cbcdf675ab3776bf76e89f0263f79ffbc2",
+    "finalFormattedSha256": "540b9ece051c864701166b172d9bdf34d9d75b50fe43f1a181aa94be77f821d2",
+    "candidateDigest": "8977e9b6ac618c7e0233823f6acb6ab1fcf7461206ee5d8b2a4149a643519e3a"
+  },
+  "independentReview": "102-independent-review.json",
+  "preservation": {
+    "archive": "docs/release-artifacts/v4.5.0/102-execution.tar.gz",
+    "bytes": 11391786,
+    "sha256": "e94482db3c0b5a69842af558f5bb722dc70f725e5383e216181161b1cc13d896",
+    "members": 254,
+    "memberBytes": 31098032,
+    "largestMemberBytes": 7169294,
+    "allMembersByteReadback": true,
+    "privateSettingsBackupIncluded": false,
+    "oldArchiveCopied": false,
+    "status": "local-archive-byte-readback-pass; remote-pending",
+    "privateLog": "raw hash/bytes retained; startup location lines redacted in explicitly distinct derivative",
+    "inputDifference": "Generated matrix MP4s can differ despite same generation procedure. Preserve unique inputs and each run hash; archive preparation first assumption failure preserved.",
+    "localManifestCheck": "253 payload members + preservation-manifest =254 total; all hashes and lengths verified"
+  },
+  "cleanup": {
+    "executionProcessGroupAbsent": true,
+    "registeredGroupsAbsent": true,
+    "productPortsClosed": true,
+    "ownedRoots": "pending-evidence-byte-preservation-before-cleanup",
+    "privateSettingsBackupModelsSdk": "untouched",
+    "plannedOwnedTree": {
+      "identity": {
+        "dev": 16777232,
+        "ino": 173873801,
+        "uid": 501
+      },
+      "counts": {
+        "files": 4230,
+        "dirs": 128,
+        "symlinks": 277,
+        "bytes": 345394293
+      },
+      "unownedOrSpecial": []
+    }
+  },
+  "remaining": [
+    "45-minute visual-search request deadline and p95; root cause owner not yet isolated",
+    "45-minute cyclic deletion/complete duration/explicit disable/closed journal",
+    "final120-minute mixed/lifecycle/recovery memory gate",
+    "memoryP0/releasehold"
+  ],
+  "release": {
+    "memoryP0": "unresolved",
+    "final120Eligible": false,
+    "riskAcceptance": "not-granted",
+    "finalReleaseAdoption": "not-performed",
+    "PR_CI_merge_tag_release": "not-performed"
+  },
+  "qwenOllamaCalls": 0,
+  "unloadGate": "not-run",
+  "staticChecks": {
+    "gitDiffCheck": "PASS",
+    "docsLinks": "\n== Docs link verification summary ==\n- markdown files: 302\n- local links: 9400\n- local images: 14\n- local anchors: 430\n- indexed docs: 93\n- index coverage exclusions: 192\n- failures: 0\n",
+    "bindingReports": "102-execution.tar.gz:binding-final.json, readback.json, coverage.json"
+  },
+  "independentReviewSha256": "85a6ac4ed089065418f05f9eaedbbc27a82689a3836db5fc3ce321d50ce373d5"
+}

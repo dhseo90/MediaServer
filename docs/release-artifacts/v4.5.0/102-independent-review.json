@@ -3,7 +3,7 @@
   "task": 102,
   "reviewer": "independent_memory86",
   "reviewedAt": "2026-10-12T22:00:27.328Z",
-  "status": "COLLECTOR_DELTA_ACCEPTED_45_PREFLIGHT_CONDITIONAL",
+  "status": "COLLECTOR_AND_EIGHT_CONDITION_MATRIX_ACCEPTED_45_MINUTE_FAIL",
   "model": {
     "requested": "gpt-6-astra/high",
     "toolAcceptance": "이전 별도 검토자 생성 수락 기록 재사용; 이번 followup의 별도 수락값은 미노출",
@@ -334,20 +334,20 @@
     "pending": "최종 inventory로 기존 producer 실제 적용 및 readback. 의미 변경이 inventorySha256만인지 확인하고 소스를 고정해야 한다."
   },
   "decision": {
-    "collectorDeltaAccepted": true,
-    "matrixEightConditionsAccepted": true,
-    "entry45": "CONDITIONALLY_ELIGIBLE_AFTER_FINAL_BINDING_AND_FREEZE",
-    "conditions": [
-      "기존 producer 실제 적용/readback 및 필요한 최종 정적 결과 완료",
-      "검토된 제품/collector/fixture/한도를 그대로 고정하고 실행 source/binary 결속 확인",
-      "기존 사용자 승인된 단일45분 범위·최초 실패 중단·재실행 금지 유지"
-    ],
-    "authorization": "검토는 새로운 실행 권한을 부여하지 않는다. 기존 사용자 승인 범위의 선행 적격 판단이다.",
-    "run45AttemptsObserved": 0,
-    "run45Result": "NOT_RUN",
-    "run120": "NOT_RUN",
+    "collectorChangeAcceptedWithinReviewedContract": true,
+    "priorEightConditionMatrixEvidenceRetained": true,
+    "run45": "FAIL; one authorized attempt consumed; no rerun",
+    "requestedOverallCompletion": false,
+    "resume120Eligible": false,
     "memoryP0Complete": false,
-    "releaseApproved": false
+    "releaseApproved": false,
+    "remaining": [
+      "이번 HTTP timeout의 내부 병목 원인 미확정",
+      "필수45분 완료 및 최종120/후속수명 근거 미충족",
+      "원본·정제 archive/Git·원격 readback 및 소유rootcleanup 마감 미완료"
+    ],
+    "newExecutionOrOptimizationAuthorized": false,
+    "priorPreflightPreservedAt": "preflightStatus/preflightDecision"
   },
   "remaining": [
     "최종 producer/readback와 source 고정",
@@ -459,5 +459,352 @@
       "bytes": 649079,
       "sha256": "326892fb35b9011a4bd624a04b2883bb8f3cf1eebc1685ec1893750909069e4c"
     }
+  },
+  "finalRunReview": {
+    "reviewedAt": "2026-10-12T22:20:18.366Z",
+    "status": "FAIL_VISUAL_HTTP_HEADER_TIMEOUT",
+    "priorPreflight": "위 기존 entry 판단은 당시 직접 근거와 조건부 적격 사실로 유지한다. 이번 실행 결과로 미래 성공을 보장했던 것으로 바꾸지 않는다.",
+    "source": {
+      "start": {
+        "head": "99982d5bc06f64dc37069062fd11829112493c12",
+        "fixtureProfile": "continuous-r98",
+        "fixtureProfileSourceSha256": "2a3570834be0e30d603e8206bb611e76acb232ade0374598a946b1ec2dd8813f",
+        "tree": "f0e0ad6429ae06b4094fc182242e24c9f066f1fe",
+        "sourceSha256": "3708eafbb749f8a605615d9b7d637259fbb12fcda0c7a7c3a068b72a21f73a95",
+        "binarySha256": "0ae09b7012ebc9d10bdf882d8f5810accc67f42510ae9885d91df14d28362623"
+      },
+      "end": {
+        "head": "99982d5bc06f64dc37069062fd11829112493c12",
+        "fixtureProfile": "continuous-r98",
+        "fixtureProfileSourceSha256": "2a3570834be0e30d603e8206bb611e76acb232ade0374598a946b1ec2dd8813f",
+        "tree": "f0e0ad6429ae06b4094fc182242e24c9f066f1fe",
+        "sourceSha256": "3708eafbb749f8a605615d9b7d637259fbb12fcda0c7a7c3a068b72a21f73a95",
+        "binarySha256": "0ae09b7012ebc9d10bdf882d8f5810accc67f42510ae9885d91df14d28362623"
+      },
+      "equal": true,
+      "runtimeSha256": "fb5d75efece9c0f1dcd76aeefe836f0f516369362119e8491ccdfc69000cd0e0",
+      "sourceCommit": "99982d5bc06f64dc37069062fd11829112493c12"
+    },
+    "execution": {
+      "mode": "--state-diagnostic",
+      "attempts": 1,
+      "requestedObservationSeconds": 2700,
+      "timeoutSeconds": 2880,
+      "exit": 1,
+      "totalWithFinalBindingSeconds": 621.8621400000993,
+      "wrapperElapsedSeconds": 621.6507742090616,
+      "reportElapsedMs": 616633,
+      "lastMainObservationMs": 602089.038834,
+      "lastSampleIsFailureTime": false,
+      "passed": 1647,
+      "failed": 1,
+      "verifiedDurationMs": null,
+      "longrunObservationCompleted": false,
+      "rerun": false
+    },
+    "firstFailure": {
+      "primary": "http-header-timeout",
+      "route": "/ops/api/recordings/visual-search",
+      "observedClientTimeouts": [
+        {
+          "elapsedMs": 5002,
+          "phase": "header",
+          "bytes": 0,
+          "status": null
+        },
+        {
+          "elapsedMs": 5012,
+          "phase": "header",
+          "bytes": 0,
+          "status": null
+        }
+      ],
+      "meaning": "전체 요청5초 예산이 header 수신 전 만료했다. 서버의 나중 완료·503과 클라이언트 timeout을 별도 관측으로 유지한다.",
+      "laterServerRequests": [
+        {
+          "id": 81,
+          "status": 503,
+          "code": "visual-search-unavailable",
+          "elapsedMs": 5284.049,
+          "catalogAcquisitions": 400,
+          "catalogWaitMs": 4656.768586,
+          "catalogHeldMs": 474.694039
+        },
+        {
+          "id": 82,
+          "status": 503,
+          "code": "visual-search-unavailable",
+          "elapsedMs": 5291.865459,
+          "catalogAcquisitions": 422,
+          "catalogWaitMs": 4593.053525,
+          "catalogHeldMs": 493.301039
+        }
+      ],
+      "rootCause": "요청 내부에서 큰 Catalog wait를 관측했지만 holder trace가 없어 보유자를 특정하지 못한다. collector·공간·RAM 누수나 과거100/101 실패와 동일 원인으로 귀속하지 않는다."
+    },
+    "searchPopulation": {
+      "originalSuccessfulArrayCount": 160,
+      "partialP95CeilMs": 3126.6870839999756,
+      "partialMaxMs": 4182.89620800002,
+      "finalLatencyGateExecuted": false,
+      "rawStructured200": 92,
+      "rawVisual200": 80,
+      "explanation": "원래 배열160은 성공한 배치의80 visual+80 structured. raw structured92에는 A용10건과 실패배치의200응답2건이 추가된다. 그2건은 Promise.all 실패로 원래 성공 배열에 미집계다. timeout2건도 이 성공 latency 배열에 없다. 부분 p95는 이미2000ms를 넘지만 실행하지 않은 최종 gate FAIL로 꾸미지 않는다.",
+      "serverVisualStartedCompleted": {
+        "started": 82,
+        "completed": 82
+      },
+      "serverCompletionIsClientSuccess": false
+    },
+    "completedPartialWork": {
+      "aCompleted": 10,
+      "mixedCycles": 39,
+      "ordinaryEvidenceComplete": 39,
+      "visualEvidenceCreated": 39,
+      "lastDrainedChannelCounts": {
+        "9101": {
+          "finalized": 300,
+          "deleted": 0
+        },
+        "9201": {
+          "finalized": 300,
+          "deleted": 0
+        }
+      },
+      "limit": "초기 창의 부분 근거이며 중·후반/전체 tail/45분 완료로 확대하지 않는다."
+    },
+    "collection": {
+      "completeSamples": 121,
+      "allRoundsOne": true,
+      "allComplete": true,
+      "workspaceFailure": {
+        "status": "no-workspace-failure",
+        "primary": null,
+        "decision": null,
+        "collectorDiagnostic": null,
+        "context": null,
+        "collectionError": null,
+        "capacityBytes": 32768
+      },
+      "recordingStatusFailure": null,
+      "privateLogBytes": 224266,
+      "privateLogSha256": "c04760c57210365c06701afc66eabaaf654861499b9e9ef4db92fe8906190a5a",
+      "receivedAndCapturedBytes": 224266,
+      "serverCaptureOverflow": false,
+      "serverCaptureError": null,
+      "resourceRows": 125,
+      "frameBounded": {
+        "records": 3,
+        "successes": 3,
+        "failures": 0
+      },
+      "stateTrace": {
+        "events": 6,
+        "issues": []
+      },
+      "scope": "수집 완전성과 기존 guard의 범위에서 누락/공간 FAIL이 없다는 뜻이다. 비원자 관측·미관측 peak·mapping-only 한계를 그대로 유지한다."
+    },
+    "resources": {
+      "resourceTrendPass": false,
+      "reviewRequired": true,
+      "observedMaxRssBytes": 3212247040,
+      "postWarmup": {
+        "status": "observed",
+        "sampleCount": 61,
+        "delta": {
+          "rssBytes": 83279872,
+          "threadCount": -2,
+          "fdCount": -1,
+          "mutationCount": 604
+        },
+        "elapsedMs": 301583.81887500006,
+        "rssMiBPerMinute": 15.800955494814257
+      },
+      "finalOwner": {
+        "pid": 73399,
+        "seq": 124,
+        "phase": "after-storage-destruction",
+        "elapsedMs": 612989,
+        "ram": 0,
+        "ramPeak": 405988773,
+        "ramLimit": 671088640,
+        "ramRejected": 0,
+        "scratchDisk": 0,
+        "scratchDiskPeak": 70692864,
+        "scratchDiskLimit": 155689095168,
+        "scratchFd": 0,
+        "scratchFdPeak": 16,
+        "scratchFdLimit": 1048572,
+        "scratchRam": 0,
+        "preservedDisk": 0,
+        "preservedFd": 0,
+        "readerCleanupHealthy": true
+      },
+      "interpretation": "후warmup RSS 증가를 보존한다. 최종 logical owner0 또는 RSS 감소만으로 무누수·장시간 안정성을 선언하지 않는다. 증가만으로 이번 timeout의 메모리 원인을 확정하지도 않는다."
+    },
+    "shutdown": {
+      "normalProductExit": 0,
+      "signal": null,
+      "forcedTermination": "not-used",
+      "httpRtspPortsClosed": [
+        57925,
+        57926
+      ],
+      "processesClosed": true,
+      "udpClosed": true,
+      "launcherAndRegisteredGroupsAbsent": true,
+      "cleanupErrors": [],
+      "distinction": "finally 정상 종료와 after-storage-destruction owner0는 성공 경로의 명시 recording disable 및 closed-journal assertion을 대체하지 않는다. 실행 root 삭제는 아직 pending."
+    },
+    "notExecuted": {
+      "afterEarlyFailure": [
+        "최종 성공검색 latency gate",
+        "최종 표본 continuity/coverage",
+        "양채널 최종 순환 진척 판정",
+        "명시 settings(false)",
+        "성공 경로 closed journal assertion"
+      ],
+      "notPartOfStateDiagnosticMode": [
+        "A controls",
+        "disabled restart/복구 readback",
+        "reactivation"
+      ],
+      "new120": false
+    },
+    "bindingReadback": {
+      "producer": {
+        "pass": 51,
+        "fail": 0
+      },
+      "readback": "PASS;986reviewed;15negative;0errors",
+      "coverage": {
+        "covered": 986,
+        "missing": 0,
+        "pass": 9,
+        "fail": 0
+      },
+      "inventory": {
+        "pass": 18,
+        "fail": 0
+      },
+      "scriptInventory": {
+        "pass": 13,
+        "fail": 0
+      },
+      "semanticChangedKeys": [
+        "inventorySha256"
+      ],
+      "formatOnlyAfterReadback": true,
+      "producerBytesSha256": "bcedad583dda628095061cd5409073cbcdf675ab3776bf76e89f0263f79ffbc2",
+      "finalFormattedSha256": "540b9ece051c864701166b172d9bdf34d9d75b50fe43f1a181aa94be77f821d2",
+      "candidateDigest": "8977e9b6ac618c7e0233823f6acb6ab1fcf7461206ee5d8b2a4149a643519e3a"
+    },
+    "bindingMeaning": "producer51/readback986+15negative/coverage9/inventory18/script13 PASS를 로그로 대조했다. 기존 승인 결속이지 새 실행 성공 대체가 아니다.",
+    "finalScopeDecision": {
+      "collectorChangeAcceptedWithinReviewedContract": true,
+      "priorEightConditionMatrixEvidenceRetained": true,
+      "run45": "FAIL; one authorized attempt consumed; no rerun",
+      "requestedOverallCompletion": false,
+      "resume120Eligible": false,
+      "memoryP0Complete": false,
+      "releaseApproved": false,
+      "remaining": [
+        "이번 HTTP timeout의 내부 병목 원인 미확정",
+        "필수45분 완료 및 최종120/후속수명 근거 미충족",
+        "원본·정제 archive/Git·원격 readback 및 소유rootcleanup 마감 미완료"
+      ],
+      "newExecutionOrOptimizationAuthorized": false
+    },
+    "evidenceBindings": {
+      "state45/execution.json": {
+        "bytes": 2111,
+        "sha256": "fd4a8fd804b3da9e91bcc1d0ef5e58a832c92ee170d8cd3c6a37a64e0d4dc570"
+      },
+      "state45/run.log": {
+        "bytes": 1426870,
+        "sha256": "1979c6d780a6b006dbc8e38acbac7c4d32f4e8fcaac8bdfa094e7bb67334af47"
+      },
+      "state45/summary-extracted.json": {
+        "bytes": 50805,
+        "sha256": "03bddd7c15d636ac6d986be4e96b40ab956c58fddb80bd4fd4d8b44e464b0cdb"
+      },
+      "state45/artifacts/report.json": {
+        "bytes": 50899,
+        "sha256": "0f0037dfb74bd6476fdb9c849a0cf021aff6d626f3113503d75a08f13abbe2f5"
+      },
+      "state45/artifacts/workspace-first-failure.json": {
+        "bytes": 32768,
+        "sha256": "f7c9234c18cfe8fb1a663d9323bc975501ea0d47dccbd74bdcc52f8210cf2912"
+      },
+      "state45/media-server-current-observer-WJl1re/server-1.private.log": {
+        "bytes": 224266,
+        "sha256": "c04760c57210365c06701afc66eabaaf654861499b9e9ef4db92fe8906190a5a"
+      },
+      "binding-final.json": {
+        "bytes": 670,
+        "sha256": "47aed561a7cb624e6104302a9b48b6d8d6eb8fc316d1ddfc3958d0fbc8b085b8"
+      },
+      "producer.log": {
+        "bytes": 12812,
+        "sha256": "d044f8ac77f4e3e0a7ee0672c9d63381151b9f522393a0aa536f910913ef258f"
+      },
+      "readback.log": {
+        "bytes": 1141,
+        "sha256": "f004e8a145e0b287322992e5f2f9c356c12a495834505e9ea79a414fd1f6b6f7"
+      },
+      "coverage.log": {
+        "bytes": 604,
+        "sha256": "f3dd9d2ec3cd35ce7a806a391b6918dddd2c2377ca3039afa624f484985f9bce"
+      },
+      "inventory-final.log": {
+        "bytes": 210255,
+        "sha256": "4670513193842f03ec9ea567062efe9d2dd303d621716a5cb95876d48b1dc1cd"
+      },
+      "script-inventory.log": {
+        "bytes": 941,
+        "sha256": "92e692a3173f517ac5430005d1cf361195ac0dad7e505a2ffaddc893da6cdecf"
+      }
+    }
+  },
+  "preflightStatus": "COLLECTOR_DELTA_ACCEPTED_45_PREFLIGHT_CONDITIONAL",
+  "preflightDecision": {
+    "collectorDeltaAccepted": true,
+    "matrixEightConditionsAccepted": true,
+    "entry45": "CONDITIONALLY_ELIGIBLE_AFTER_FINAL_BINDING_AND_FREEZE",
+    "conditions": [
+      "기존 producer 실제 적용/readback 및 필요한 최종 정적 결과 완료",
+      "검토된 제품/collector/fixture/한도를 그대로 고정하고 실행 source/binary 결속 확인",
+      "기존 사용자 승인된 단일45분 범위·최초 실패 중단·재실행 금지 유지"
+    ],
+    "authorization": "검토는 새로운 실행 권한을 부여하지 않는다. 기존 사용자 승인 범위의 선행 적격 판단이다.",
+    "run45AttemptsObserved": 0,
+    "run45Result": "NOT_RUN",
+    "run120": "NOT_RUN",
+    "memoryP0Complete": false,
+    "releaseApproved": false
+  },
+  "documentationPreservationReview": {
+    "reviewedAt": "2026-10-12T22:23:10.391Z",
+    "scope": "현행102-validation/backlog/release-notes와 archive manifest/선택 member 대조. 전체 archive 재검사나 제품 재실행 아님.",
+    "documentation": "부분 collector/matrix 채택,45분1회 timeoutFAIL,부분p95/최종gate미실행,원인미확정,owner0와무누수분리,소스/fixture provenance가 독립 판단과 정합함.",
+    "archive": {
+      "bytes": 11391786,
+      "sha256": "e94482db3c0b5a69842af558f5bb722dc70f725e5383e216181161b1cc13d896",
+      "totalMembers": 254,
+      "payloadManifestEntries": 253,
+      "containerBytesHashRead": true,
+      "matrixInputBindingsChecked": 8,
+      "matrixInputMismatches": 0,
+      "distinctGeneratedInputs": "각67929B지만8개실제hash가다름. 동일바이트가정 첫보존실패와 수정기록 포함. 제품실행재시도 아님.",
+      "logTransform": "raw224266B와sanitized223967B의hash 각각일치. 같은행수·명시10개경로행만차이 확인; 나머지진단행은원문과동일. raw원본Git미포함/cleanup후미보존한계명시.",
+      "selection": "사용자설정·비공개백업·모델/SDK/runtime실행파일·과거archive 제외. 전체generated recording/media는보존하지않고선택입력/제품기록과post-stop hashmanifest로한정. 누락원본을복원했다고주장하지않음.",
+      "privacyCheckScope": "member명과명시log정제대조;전체archive의새secret전수scan으로표기하지않음."
+    },
+    "remaining": [
+      "현재독립보고서변경을포함한최종기록결속",
+      "Git/원격실제바이트보존확인",
+      "소유rootcleanup확인"
+    ],
+    "newExecutionAuthorized": false
   }
 }
