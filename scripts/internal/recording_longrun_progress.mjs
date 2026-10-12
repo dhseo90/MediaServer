@@ -1,6 +1,53 @@
 // 파일 용도: 장시간 관측용 최소 상태. 제품 catalog 수용/내구성 또는 누수를 판정하지 않는다.
 import {summarizeCurrentSamples} from './recording_current_observer.mjs';
 import {validateLatencyRow} from './recording_latency_trace.mjs';
+import crypto from 'node:crypto';
+// 고정 R98 입력/동시 작업에만 적용하는 시험 조건. 제품의 지원/출력 상한이 아니다.
+export function mixedRecordingProfile(name) {
+  const MiB=1024*1024,base={eventMaxBytes:128*MiB,continuousMaxAgeMs:10800000,eventMaxAgeMs:10800000};
+  if(name==='protection-r97')return Object.freeze({name,continuousMaxBytes:64*MiB+256*1024,...base});
+  if(name!=='continuous-r98')throw Error('mixed-fixture-profile');
+  const segmentBytes=36*1024,protectedFiles=201+2*220+2,E=64*MiB,H=protectedFiles*segmentBytes,P=segmentBytes;
+  const Q=Math.ceil((E+H+P)/MiB)*MiB;
+  return Object.freeze({name,continuousMaxBytes:Q,...base,segmentBytes,protectedFiles,E,H,P,M:Q-E-H-P,
+    inputNormalizedSha256:'baebad5cad233243c4748f6bfec06fa5d2da7f06ae9b1475c9b20bfbfb04e2e7'});
+}
+export function mixedRecordingSettings(profile,revision,enabled) {
+  const p=mixedRecordingProfile(profile);
+  if(!Number.isSafeInteger(revision)||revision<1||typeof enabled!=='boolean')throw Error('mixed-fixture-settings');
+  return {enabled,revision,continuousMaxBytes:p.continuousMaxBytes,eventMaxBytes:p.eventMaxBytes,
+    continuousMaxAgeMs:p.continuousMaxAgeMs,eventMaxAgeMs:p.eventMaxAgeMs};
+}
+export function assertMixedRecordingRegistry(value,profile,enabled) {
+  for(const id of ['9101','9201']){
+    const rows=value?.sources?.filter(s=>s.sourceId===id);if(rows?.length!==1)throw Error('mixed-fixture-registry');
+    const actual=rows[0].recording,expected=mixedRecordingSettings(profile,actual?.revision,enabled);
+    if(Object.keys(expected).some(k=>actual[k]!==expected[k]))throw Error('mixed-fixture-registry');
+  }
+}
+export function assertMixedFixtureInput(input,profile) {
+  const p=mixedRecordingProfile(profile);
+  if(profile!=='continuous-r98'||!Buffer.isBuffer(input)||input.length!==67929)throw Error('mixed-fixture-input');
+  const bytes=Buffer.from(input);let count=0;
+  function boxes(start,end,depth){
+    if(depth>8)throw Error('mixed-fixture-box');
+    for(let offset=start;offset<end;){
+      if(++count>128||offset+8>end)throw Error('mixed-fixture-box');
+      const length=bytes.readUInt32BE(offset),kind=bytes.toString('ascii',offset+4,offset+8);
+      if(length<8||offset+length>end)throw Error('mixed-fixture-box');
+      if(['moov','trak','mdia','minf','stbl','udta'].includes(kind))boxes(offset+8,offset+length,depth+1);
+      if(['mvhd','tkhd','mdhd'].includes(kind)){
+        if(length<20||bytes[offset+8]!==0)throw Error('mixed-fixture-time-version');
+        bytes.fill(0,offset+12,offset+20); // 생성/수정 시각만 제외; AU/codec/sample/time table은 고정한다.
+      }
+      offset+=length;
+    }
+  }
+  boxes(0,bytes.length,0);
+  const normalizedSha256=crypto.createHash('sha256').update(bytes).digest('hex');
+  if(normalizedSha256!==p.inputNormalizedSha256)throw Error('mixed-fixture-input-binding');
+  return {bytes:input.length,sha256:crypto.createHash('sha256').update(input).digest('hex'),normalizedSha256};
+}
 export function slowTraceSummary(text,normalShutdown) {
   const rows=[];let summary=null;
   try{
@@ -51,11 +98,13 @@ export function sampleContinuity(samples,start,end,pid,identity) {
   }
   return samples[0].phaseAt-start<=15000&&end-samples.at(-1).phaseAt<=15000;
 }
-export function nextRecordingSettings(value,id,enabled) {
+export function nextRecordingSettings(value,id,enabled,profile=null) {
   const matches=value?.sources?.filter(s=>s.sourceId===id);
   if(!['9101','9201'].includes(id)||typeof enabled!=='boolean'||matches?.length!==1||
      !Number.isSafeInteger(matches[0].recording?.revision)||matches[0].recording.revision<1||
      matches[0].recording.revision>=Number.MAX_SAFE_INTEGER)throw Error('longrun-source-revision');
+  if(profile!==null)return mixedRecordingSettings(profile,matches[0].recording.revision+1,enabled);
+  // 기존 일반 longrun 소비자의 명시적인 이전 기본값. 혼합 실행기는 named profile을 전달한다.
   return {enabled,revision:matches[0].recording.revision+1,continuousMaxBytes:134217728,eventMaxBytes:134217728,
     continuousMaxAgeMs:10800000,eventMaxAgeMs:10800000};
 }

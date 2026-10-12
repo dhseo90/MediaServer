@@ -4984,3 +4984,11 @@ MEM84-R04: 최대 허용 cold 행(16MiB+1)의 실제 chunk 저장/읽기와 기�
 - R97-W01: 기존 managed writer 검사에서 실제20packet 중 hold 차단10packet은 미확정, 소유 해제 뒤 같은 writer의 다음keyframe부터10frame 확정·decode·Stop. 시험 quota는 예약64MiB＋고정seed크기−1로 부족을 결정하며 현행 mixed quota 변경이 아니다.
 
 R97-A02는 미선택 대체 후보의 unlink/authority 하드 오류를 거부하고 보호 원본을 유지한다. R97-B02는 실제 생성 미디어를 `floor(256KiB/파일 bytes)+1`개(준비 상한32) 정상 hold하여 현행 혼합 quota/64MiB 예약에서 거부·원장 불변을 확인한다. 이는 혼합 실행의 실제 동시 hold 수를 재현한 주장이 아니다.
+
+### R98-F01 — 보호/연속 fixture의 입력·소유·설정 경계
+
+- UI 없는 시험 조건 변경이다. R97 보호·거부·회복은 원래 quota로 유지한다.
+- 고정 120 frame/160×90/30fps/GOP30 입력의 실제 packet 및 managed writer 분할·Stop 결과를 대조한다. 입력 전체 bytes, 출력 bytes, 예약 상한은 서로 다른 값이다.
+- 색인·동시 검색·응답·증거/A의 고유 원본 수명으로 E/H/P/M을 산정한다. 관측 최대를 보편 상한으로 사용하지 않는다. 산정이 미완료이면 연속 profile과 준비 실행은 채택하지 않는다.
+- 초기 등록·enable/disable·재활성화·재시작 설정 대조, 잘못된 profile/정수 overflow 거부를 직접 확인한다. 448MiB/copy/RAM/5초/p95 2000ms/최대5000ms는 불변이다.
+- 채택 가능한 연속 조건에서만 실제 hold·대체 삭제·writer 확정/decode·경계 초과 거부와 macOS/비특권 Linux 소비자 검사를 수행한다. 짧은 준비는 별도 최대1회이며 600초/45분/120분은 이번 검증에 포함하지 않는다.

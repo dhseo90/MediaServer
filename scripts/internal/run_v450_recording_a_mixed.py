@@ -168,6 +168,8 @@ def source_binding(repo):
         file = repo / name
         rows.append([name, hashlib.sha256(file.read_bytes()).hexdigest() if file.is_file() else 'missing'])
     return {'head': subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=repo, text=True).strip(),
+            'fixtureProfile': 'continuous-r98',
+            'fixtureProfileSourceSha256': hashlib.sha256((repo / 'scripts/internal/recording_longrun_progress.mjs').read_bytes()).hexdigest(),
             'tree': subprocess.check_output(['git', 'rev-parse', 'HEAD^{tree}'], cwd=repo, text=True).strip(),
             'sourceSha256': hashlib.sha256(json.dumps(rows, separators=(',', ':')).encode()).hexdigest(),
             'binarySha256': hashlib.sha256((repo / 'build-gst-onnx/media_server').read_bytes()).hexdigest()}

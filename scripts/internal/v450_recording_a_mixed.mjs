@@ -13,7 +13,7 @@ import {spawn,spawnSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
 import {CurrentRecordingObserver,CurrentLongrunProgress,CurrentObservationBudget,summarizeCurrentSamples,closedJournalComplete,disabledChannelsExact,measureCurrentRootStable,summarizeFixtureGeneration,freezeCurrentWorkspace,measureCurrentWorkspace,createWorkspaceFailureCapture,admitWorkspaceSnapshot,workspaceAnonymousBytes,runCurrentRecovery} from "./recording_current_observer.mjs";
 import {collectProcess} from "./recording_foundation_observer.mjs";
-import {visualRequestSummary,searchFailureSummary,visualPhaseSummary,parseLongrunArgs,sampleContinuity,nextRecordingSettings,mediaAbsent,assertSampleStep,summarizeAvailableSamples,slowTraceSummary,nextSampleDelay,frameTraceSummary,captureBoundedProcessLog,processLogCaptureComplete,assertMixedFrameTraceMode} from "./recording_longrun_progress.mjs";
+import {mixedRecordingProfile,mixedRecordingSettings,assertMixedRecordingRegistry,assertMixedFixtureInput,visualRequestSummary,searchFailureSummary,visualPhaseSummary,parseLongrunArgs,sampleContinuity,nextRecordingSettings,mediaAbsent,assertSampleStep,summarizeAvailableSamples,slowTraceSummary,nextSampleDelay,frameTraceSummary,captureBoundedProcessLog,processLogCaptureComplete,assertMixedFrameTraceMode} from "./recording_longrun_progress.mjs";
 import {measuredHttpResponse,createRecordingStatusCapture,recordingStateSummary} from "./recording_current_app_helpers.mjs";
 import {reservePort,stopServer,assertPortClosed,bootstrapRecordingUiAuth,createUiAuthPasswords} from "./verify_v410_recording_ui_contract.mjs";
 import {createProcessCleanup} from "./recording_process_cleanup.mjs";
@@ -25,6 +25,8 @@ const root=process.argv[2],args=process.argv.slice(3),short=args.length===1&&arg
 const stateDiagnose=args.length===1&&args[0]==='--state-diagnostic';
 const diagnose=stateDiagnose||(args.length===1&&args[0]==='--frame-diagnostic');
 const frameTraceMode='bounded';
+const fixtureProfile=mixedRecordingProfile('continuous-r98');
+console.log('[fixture-profile] '+JSON.stringify(fixtureProfile));
 const duration=short?30000:stateDiagnose?2700000:diagnose?600000:parseLongrunArgs(args);
 if(!path.isAbsolute(root)||fs.realpathSync(root)!==root||!path.basename(root).startsWith('media-server-current-observer-')||(fs.statSync(root).mode&0o777)!==0o700)throw Error('owned-run-root');
 const artifacts=createReviewTestArtifacts(repo);
@@ -164,10 +166,11 @@ async function launch(stun,requiresFrameTrace=true){const http=await reservePort
 }
 async function stop(app){if(!app.stopPromise)app.stopPromise=app.cleanup().then(r=>{app.result=r;console.log('[process-cleanup] '+JSON.stringify(r));if(!r.normalShutdownPass)throw Error('server-stop-failed');return r;});return app.stopPromise;}
 function source(id){return {sourceId:id,displayName:`S11 recording ${id}`,kind:'file',file:`retention-${id}.mp4`,enabled:true,
-  recording:{enabled:true,revision:1,continuousMaxBytes:64*1024*1024+256*1024,eventMaxBytes:134217728,continuousMaxAgeMs:10800000,eventMaxAgeMs:10800000}};}
-async function settings(app,enabled){const registry=await request(app,'GET','/ops/api/sources');for(const id of ['9101','9201']){const body=source(id);body.recording=nextRecordingSettings(registry,id,enabled);
-  const r=await request(app,'PUT','/ops/api/sources/'+id,body);check(r.source?.recording?.enabled===enabled&&r.source.recording.revision===body.recording.revision,'LP26-O05 setting '+id+' '+enabled);}}
-async function drain(now){let result;for(let i=0;i<128;i++){result=await observer.pollAsync();for(const d of progress.consume(result.rows,now)){const file=path.resolve(root,'recordings',d.mediaRelpath);check(file.startsWith(path.join(root,'recordings')+path.sep)&&mediaAbsent(()=>fs.lstatSync(file)),'LP26-O03 deleted media absent');}if(!result.backlog)return result;}throw Error('observer-backlog-cap');}
+  recording:mixedRecordingSettings(fixtureProfile.name,1,true)};}
+async function settings(app,enabled){const registry=await request(app,'GET','/ops/api/sources');for(const id of ['9101','9201']){const body=source(id);body.recording=nextRecordingSettings(registry,id,enabled,fixtureProfile.name);
+  const r=await request(app,'PUT','/ops/api/sources/'+id,body);check(r.source?.recording?.enabled===enabled&&r.source.recording.revision===body.recording.revision,'LP26-O05 setting '+id+' '+enabled);}
+  assertMixedRecordingRegistry(await request(app,'GET','/ops/api/sources'),fixtureProfile.name,enabled);}
+async function drain(now){let result;for(let i=0;i<128;i++){result=await observer.pollAsync();for(const row of result.rows)if(row.segment?.continuous&&['9101','9201'].includes(row.segment.channel)&&BigInt(row.segment.sizeBytes)>BigInt(fixtureProfile.segmentBytes))throw Error('mixed-fixture-segment-bound');for(const d of progress.consume(result.rows,now)){const file=path.resolve(root,'recordings',d.mediaRelpath);check(file.startsWith(path.join(root,'recordings')+path.sep)&&mediaAbsent(()=>fs.lstatSync(file)),'LP26-O03 deleted media absent');}if(!result.backlog)return result;}throw Error('observer-backlog-cap');}
 async function sample(app){const begin=performance.now();let metricsMs=null,drainMs=null,storageMs=null;
   try{const m=await collectProcess(collector,app.child.pid);metricsMs=performance.now()-begin;if(m.valid!==true||m.error!==null)throw Error('process-metrics-invalid');check(m.rssBytes<=4*1024**3,'V440 peak RSS budget');const phaseAt=performance.now();
   if(samples.length>=10000)throw Error('sample-cap');const cpu=spawnSync('ps',['-axo','pid=,ppid=,pcpu='],{encoding:'utf8',timeout:3000,maxBuffer:1024*1024});if(cpu.status!==0)throw Error('cpu-observation');const rows=cpu.stdout.trim().split('\n').map(x=>x.trim().split(/\s+/).map(Number)),own=rows.find(x=>x[0]===app.child.pid);if(!own||!Number.isFinite(own[2]))throw Error('cpu-observation');const children=new Set();let more=true;while(more){more=false;for(const row of rows)if((row[1]===app.child.pid||children.has(row[1]))&&!children.has(row[0])){children.add(row[0]);more=true;}}const previous=samples.at(-1),point={...m,cpuPercent:own[2],childPids:[...children],footprintBytes:m.footprintBytes,productOwner:{...currentResourceTrace(app.resourceTrace),receivedAt:app.resourceTrace.receivedAt},measurementStartedAt:begin,measurementCompletedAt:begin+metricsMs,phaseAt,mutationCount:observer.prefix.length};samples.push(point);
@@ -279,6 +282,7 @@ try{
   let generatedBytes=null;try{const s=fs.lstatSync(path.join(root,'input/retention.mp4'));if(s.isFile()&&s.nlink===1)generatedBytes=s.size;}catch{}
   console.log('[fixture-generation] '+JSON.stringify(summarizeFixtureGeneration(generated,{elapsedMs:Math.round(performance.now()-generationStart),outputBytes:generatedBytes})));
   check(generated.status===0&&!generated.error&&!generated.signal&&generatedBytes!==null&&generatedBytes>0&&generatedBytes<96*1024*1024,'LP26-O05 original bounded retention fixture');
+  console.log('[fixture-input] '+JSON.stringify(assertMixedFixtureInput(fs.readFileSync(path.join(root,'input/retention.mp4')),fixtureProfile.name)));
   budget();
   for(const id of ['9101','9201']){fs.copyFileSync(path.join(root,'input/retention.mp4'),path.join(root,'input',source(id).file),fs.constants.COPYFILE_EXCL);budget();}
   fs.unlinkSync(path.join(root,'input/retention.mp4'));
@@ -292,6 +296,7 @@ try{
     (initialIds.length===0||disabledChannelsExact(initial,initialIds)),'LP26-O05 independent initial channels');
   const expectedIds=[...initialIds,'9101','9201'];
   for(const id of ['9101','9201'])await request(first,'POST','/ops/api/sources',source(id));
+  assertMixedRecordingRegistry(await request(first,'GET','/ops/api/sources'),fixtureProfile.name,true);
   // 등록 응답은 비동기 녹화 worker의 활성 완료 응답이 아니다. 동일 총예산 안에서 기존15초 readiness를 관측한다.
   await until(async()=>{const status=await request(first,'GET','/ops/api/recordings/status');const rows=['9101','9201'].map(id=>status.channels?.find(c=>c.channelId===id));
     console.log('[channel-readiness] '+JSON.stringify(rows.map(c=>c?{channelId:c.channelId,enabled:c.enabled,active:c.active,storageBlocked:c.storageBlocked}:null)));
@@ -312,6 +317,7 @@ try{
   const tail=await drain(performance.now());check(closedJournalComplete(tail),'LP26-O02 closed journal no partial tail');
   if(!diagnose){const before=await snapshot();
   const second=await launch(stun,false);const s=await request(second,'GET','/ops/api/recordings/status');
+  assertMixedRecordingRegistry(await request(second,'GET','/ops/api/sources'),fixtureProfile.name,false);
   verifyStatusUsage(s);
   console.log('[channel-observation] '+JSON.stringify({expectedIds,channels:s.channels?.map(c=>({id:c.channelId,enabled:c.enabled,active:c.active}))}));
   check(disabledChannelsExact(s,expectedIds),'LP26-O05 disabled restart');
@@ -345,7 +351,7 @@ finally{
   if(!udpClosed||processes.some(p=>!p.result?.archiveSafe)){fs.writeFileSync(path.join(root,'cleanup-blocked'),'process or port safety unresolved\n',{mode:0o600});failed++;}
   try{workspaceFailure.close();}catch{failed++;console.log('[fail] workspace-evidence-close');}
   const final={workspaceFailure:workspaceFailure.summary(),decoderTraceMode:frameTraceMode,mode:short?'v450-mixed-preparation':stateDiagnose?'v450-state-diagnostic':diagnose?'v450-frame-diagnostic':'v450-recording-search-evidence-A-mixed-120',passed,failed,elapsedMs:Math.round(performance.now()-start),verifiedDurationMs:phaseResult?.elapsedMs??null,
-    longrunObservationCompleted:!short&&!diagnose&&failed===0&&!!phaseResult,shortPreparationPass:short&&failed===0,frameDiagnosticPass:diagnose&&!stateDiagnose&&failed===0&&!!phaseResult,stateDiagnosticPass:stateDiagnose&&failed===0&&!!phaseResult,resourceTrendPass:false,reviewRequired:true,uiFulltestPass:false,
+    longrunObservationCompleted:!short&&!diagnose&&failed===0&&!!phaseResult,shortPreparationPass:short&&failed===0,frameDiagnosticPass:diagnose&&!stateDiagnose&&failed===0&&!!phaseResult,stateDiagnosticPass:stateDiagnose&&failed===0&&!!phaseResult,fixtureProfile,resourceTrendPass:false,reviewRequired:true,uiFulltestPass:false,
     recordingStatusFailure:statusCapture.failure(),evidenceLoad:mixed,aLoad:aLoad?.report()??null,phase:phaseResult??null,resources:summary??null,processCount:processes.length,processesClosed:processes.every(p=>p.result?.normalShutdownPass),udpClosed,
     footprintState:samples.every(s=>Number.isSafeInteger(s.footprintBytes))?'proc-pid-rusage':'partially-or-not-measured',cpu:{maxPercent:samples.length?Math.max(...samples.map(s=>s.cpuPercent)):null},tokenStart:null,tokenEnd:null,tokenConsumed:null,tokenSource:'전용 집계 없음'};artifacts.checkpoint({...final,status:failed?'FAIL':'PASS',exit:failed?1:0});console.log(JSON.stringify(final));process.exitCode=failed?1:0;
 }

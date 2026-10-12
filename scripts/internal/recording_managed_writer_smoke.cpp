@@ -2,6 +2,7 @@
 #include "recording/gstreamer_segment_writer.h"
 #include "recording/recording_catalog.h"
 #include "recording/retention_coordinator.h"
+#include "recording/recording_resource_trace.h"
 #include "recording/recording_finalize_recovery.h"
 #include "media/gstreamer_sample_observation.h"
 #include "recording_writer_decode_diagnostics.h"
@@ -221,8 +222,103 @@ int DecoderComparison(const std::filesystem::path& root,bool only_bframes=false)
     }
     std::cout<<"[decoder-comparison-summary] outcome=not-reproduced rounds=16 files="<<files.size()<<" auto_attempts="<<attempts<<" software_attempts=0 cause_resolved=0\n";return 3;
 }
+
+// R98: 고정 혼합 입력을 그대로 demux하고, 각 key 시작점의 정상 Stop prefix를
+// 실제 managed writer에 전달한다. 이 관측은 임의 입력의 출력 상한이 아니다.
+int MixedFixtureBound(const std::filesystem::path& root,bool direct=false) {
+    const auto need=[](bool ok,const char* why){if(!ok)throw std::runtime_error(why);};
+    const auto file=root/"mixed-input.mp4";
+    const std::string generation="videotestsrc num-buffers=120 pattern=ball ! video/x-raw,format=I420,width=160,height=90,framerate=30/1 ! x264enc tune=zerolatency speed-preset=ultrafast pass=quant quantizer=0 key-int-max=30 ! h264parse ! mp4mux ! filesink location=\""+file.string()+"\"";
+    GError* error=nullptr;auto* pipeline=gst_parse_launch(generation.c_str(),&error);
+    need(pipeline&&!error,"mixed-generate-parse");need(gst_element_set_state(pipeline,GST_STATE_PLAYING)!=GST_STATE_CHANGE_FAILURE,"mixed-generate-start");
+    auto* bus=gst_element_get_bus(pipeline);auto* message=gst_bus_timed_pop_filtered(bus,10*GST_SECOND,static_cast<GstMessageType>(GST_MESSAGE_EOS|GST_MESSAGE_ERROR));
+    const bool eos=message&&GST_MESSAGE_TYPE(message)==GST_MESSAGE_EOS;
+    if(message)gst_message_unref(message);
+    gst_object_unref(bus);gst_element_set_state(pipeline,GST_STATE_NULL);gst_object_unref(pipeline);need(eos,"mixed-generate-eos");
+    pipeline=gst_parse_launch(("filesrc location=\""+file.string()+"\" ! qtdemux ! h264parse config-interval=-1 ! appsink name=out sync=false").c_str(),&error);
+    need(pipeline&&!error,"mixed-demux-parse");auto* sink=gst_bin_get_by_name(GST_BIN(pipeline),"out");need(sink,"mixed-demux-sink");
+    need(gst_element_set_state(pipeline,GST_STATE_PLAYING)!=GST_STATE_CHANGE_FAILURE,"mixed-demux-start");
+    Encoded input;std::uint64_t payload=0,max_packet=0;
+    for(unsigned i=0;;++i){auto* sample=gst_app_sink_try_pull_sample(GST_APP_SINK(sink),3*GST_SECOND);
+        if(!sample){need(gst_app_sink_is_eos(GST_APP_SINK(sink)),"mixed-demux-eos");break;}
+        auto* b=gst_sample_get_buffer(sample);need(i<120&&GST_BUFFER_PTS_IS_VALID(b)&&GST_BUFFER_DTS_IS_VALID(b)&&GST_BUFFER_DURATION_IS_VALID(b),"mixed-packet-time");
+        media::Packet p;p.kind=media::MediaKind::Video;p.codec=media::CodecId::H264;p.track_id="video-0";
+        p.is_key_frame=!GST_BUFFER_FLAG_IS_SET(b,GST_BUFFER_FLAG_DELTA_UNIT);p.pts=GST_BUFFER_PTS(b);p.dts=GST_BUFFER_DTS(b);
+        p.payload.resize(gst_buffer_get_size(b));gst_buffer_extract(b,0,p.payload.data(),p.payload.size());payload+=p.payload.size();max_packet=std::max(max_packet,std::uint64_t(p.payload.size()));
+        media::SampleObservation o;o.source_generation="mixed-bound";o.generation_order=1;o.ordinal=i+1;o.pts_ns=p.pts;o.dts_ns=p.dts;o.duration_ns=GST_BUFFER_DURATION(b);p.observation=o;
+        if(input.descriptor.tracks.empty()){auto* caps=gst_caps_to_string(gst_sample_get_caps(sample));input.descriptor.tracks.push_back({"video-0",media::MediaKind::Video,p.codec,"h264",caps,0,0});g_free(caps);}
+        input.packets.push_back(std::move(p));gst_sample_unref(sample);
+    }
+    gst_element_set_state(pipeline,GST_STATE_NULL);gst_object_unref(sink);gst_object_unref(pipeline);
+    need(input.packets.size()==120&&payload<1024*1024,"mixed-input-count-size");
+
+    if(direct){
+        constexpr std::uint64_t E=64ULL*1024*1024,S=36*1024,H=643*S,P=S;
+        constexpr std::uint64_t Q=((E+H+P+1024*1024-1)/(1024*1024))*1024*1024;
+        ::setenv("MEDIA_SERVER_VERIFY_RECORDING_RESOURCE_TRACE","1",1);
+        recording::RecordingResourceTrace resource;Store store(root/"continuous");need(resource.Bind(store.catalog.SearchResidency(),store.catalog.ScratchResidency()),"continuous-resource-bind");Encoded half=input;half.packets.resize(60);need(Run(store,half),"continuous-seed");
+        auto seeds=store.Segments();need(seeds.size()==1&&seeds[0].size_bytes<=S,"continuous-seed-bound");
+        const auto seed=seeds[0];const auto seedpath=store.root/"channel-1"/(seed.segment_id+".mp4");
+        std::string error;std::vector<std::string> held{seed.segment_id};
+        need(store.catalog.AdjustHoldCount(seed.segment_id,1,&error),"continuous-seed-hold");
+        const auto add=[&](const std::string& id,bool hold){
+            auto row=seed;row.segment_id=id;row.order_request_id="order-"+id;row.media_epoch_id="epoch-"+id;
+            recording::RecordingOrderReservationV1 order;need(store.catalog.ReserveRecordingOrder(row.store_id,row.order_request_id,id,row.channel_id,&order,&error),"continuous-reserve-order");row.order_sequence=order.sequence;
+            const auto path=store.root/"channel-1"/(id+".mp4");std::filesystem::copy_file(seedpath,path);
+            need(store.catalog.FinalizeSegmentV2(row,path.string(),&error),"continuous-finalize-clone");
+            if(hold){need(store.catalog.AdjustHoldCount(id,1,&error),"continuous-hold");held.push_back(id);}
+        };
+        for(unsigned n=1;n<643;++n)add("held-"+std::to_string(n),true);
+        const auto filler=(Q-E-643*seed.size_bytes)/seed.size_bytes+2;
+        for(std::uint64_t n=0;n<filler;++n)add("safe-"+std::to_string(n),false);
+        unsigned deleted=0;
+        recording::RetentionCoordinator coordinator(store.catalog,[&]{return store.catalog.RetentionSnapshot();},
+            [&](auto* bytes,auto*){*bytes=std::filesystem::space(store.root).available;return true;},
+            [&](const auto& file,auto* e){const bool ok=recording::RemoveContainedMediaFile(store.root,file,e,{},true);if(ok)++deleted;return ok;},{0,E,store.root});
+        recording::RetentionPolicy policy;policy.continuous_max_bytes=Q;policy.event_max_bytes=128ULL*1024*1024;
+        need(coordinator.UpdateChannelPolicy("channel-1",policy,&error),"continuous-policy");
+        auto options=store.Options();unsigned allowed=0,denied=0,completed=0;
+        options.admit_segment=[&](const auto& channel,std::uint64_t minimum){const auto a=coordinator.AdmitContinuousWrite(channel,minimum,10000);a.allowed?++allowed:++denied;return recording::SegmentAdmissionDecision{a.allowed,a.start_new_epoch,a.reserved_bytes};};
+        options.report_segment_progress=[&](const auto& channel,std::uint64_t bytes){coordinator.UpdateContinuousWriteProgress(channel,bytes);};
+        options.complete_segment=[&](const auto& channel,std::uint64_t bytes){++completed;coordinator.CompleteContinuousWrite(channel,bytes);};
+        recording::GStreamerSegmentWriter writer(options);need(writer.Start("channel-1","continuous",half.descriptor,[](auto,auto,auto*){return false;},&error),"continuous-writer-start");
+        for(auto p:half.packets){p.observation->source_generation="continuous-new";p.observation->generation_order=2;writer.Push(p,0);}writer.Stop();
+        need(allowed==1&&denied==0&&completed==1&&deleted>0&&!coordinator.ChannelStatus("channel-1").storage_blocked,"continuous-writer-progress");
+        bool original=true;for(const auto& id:held){const auto file=store.root/"channel-1"/(id+".mp4");const auto raw=Read(file);
+            auto* sha=g_compute_checksum_for_data(G_CHECKSUM_SHA256,reinterpret_cast<const guchar*>(raw.data()),raw.size());
+            original=original&&!store.catalog.IsDeletedSegmentId(id)&&raw.size()==seed.size_bytes&&sha&&seed.checksum_sha256==sha;g_free(sha);}
+        need(original,"continuous-protected-originals");
+        const auto all=store.Segments();std::vector<recording::RecordingSegmentV2> fresh;
+        for(const auto& row:all)if(row.segment_id!=seed.segment_id&&row.segment_id.rfind("held-",0)!=0&&row.segment_id.rfind("safe-",0)!=0)fresh.push_back(row);
+        need(fresh.size()==1&&store.Frames(fresh)==60,"continuous-fresh-decode");
+        const auto excess=(Q-E)/seed.size_bytes+1-643;
+        for(std::uint64_t n=0;n<excess;++n)add("excess-"+std::to_string(n),true);
+        // 회수 가능한 나머지는 실제 retention이 처리한다. 보호량만으로 부족하면 예약0/거부다.
+        const auto rejected=coordinator.AdmitContinuousWrite("channel-1",E,10001);
+        need(!rejected.allowed&&rejected.reserved_bytes==0&&coordinator.ChannelStatus("channel-1").storage_blocked,"continuous-excess-refused");
+        for(const auto& id:held)need(!store.catalog.IsDeletedSegmentId(id)&&store.catalog.AdjustHoldCount(id,-1,&error),"continuous-release");
+        const auto resumed=coordinator.AdmitContinuousWrite("channel-1",E,10002);need(resumed.allowed,"continuous-resume");coordinator.CompleteContinuousWrite("channel-1",0);
+        need(store.journal.Finish(&error),"continuous-finish");
+        std::cout<<"[R98-continuous] quota="<<Q<<" E="<<E<<" H="<<H<<" P="<<P<<" M="<<Q-E-H-P<<" heldFiles=643 heldActualBytes="<<643*seed.size_bytes<<" segmentBytes="<<seed.size_bytes<<" safeFiles="<<filler<<" deleted="<<deleted<<" excessHeldFiles="<<excess<<" completed="<<completed<<" decoded=60 finish=1\n";
+        return 0;
+    }
+    std::uint64_t max_output=0;unsigned cases=0,decoded=0;
+    for(std::size_t begin=0;begin<input.packets.size();++begin){if(!input.packets[begin].is_key_frame)continue;
+        std::size_t end=begin+1;for(;end<input.packets.size();++end)if(input.packets[end].is_key_frame&&input.packets[end].dts-input.packets[begin].dts>=2000000000LL)break;
+        for(std::size_t stop=begin+1;stop<=end;++stop){Encoded part;part.descriptor=input.descriptor;part.packets.assign(input.packets.begin()+begin,input.packets.begin()+stop);
+            Store store(root/("prefix-"+std::to_string(begin)+"-"+std::to_string(stop)));need(Run(store,part),"mixed-write");
+            const auto rows=store.Segments();need(rows.size()==1,"mixed-one-segment");max_output=std::max(max_output,rows[0].size_bytes);++cases;
+            if(stop==end){need(store.Frames(rows)==int(stop-begin),"mixed-decode");++decoded;}
+            std::string finish;need(store.journal.Finish(&finish),"mixed-finish");
+        }
+    }
+    need(max_output<=36*1024,"mixed-segment-bound");
+    std::cout<<"[R98-input] fileBytes="<<std::filesystem::file_size(file)<<" packets="<<input.packets.size()<<" payloadBytes="<<payload<<" maxPacketBytes="<<max_packet<<" stopCases="<<cases<<" decodedMaximalRanges="<<decoded<<" maxOutputBytes="<<max_output<<" callerMinimumMax="<<max_packet+1024*1024<<'\n';
+    return 0;
+}
 }
 int main(int argc,char** argv) {
+    if(argc==3&&(std::string(argv[2])=="--mixed-fixture-bound"||std::string(argv[2])=="--mixed-profile-direct")){gst_init(nullptr,nullptr);try{return MixedFixtureBound(argv[1],std::string(argv[2])=="--mixed-profile-direct");}catch(const std::exception& e){std::cerr<<"[R98-failure] "<<e.what()<<'\n';return 1;}}
     if(argc==3&&std::string(argv[2])=="--decode-oracle-tests")return DecodeOracleTests();
     if(argc==3&&(std::string(argv[2])=="--decoder-comparison"||std::string(argv[2])=="--decoder-comparison-bframes")){
         gst_init(nullptr,nullptr);try{return DecoderComparison(argv[1],std::string(argv[2])=="--decoder-comparison-bframes");}catch(...){std::cout<<"[decoder-comparison-summary] outcome=preparation-failure reason=fixed-comparison-error\n";return 2;}

@@ -5,7 +5,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
 import {spawnSync} from 'node:child_process';
-import {searchFailureSummary,parseLongrunArgs, LongrunProgress, sampleContinuity,nextRecordingSettings,mediaAbsent,frameTraceSummary,captureBoundedProcessLog,processLogCaptureComplete,assertMixedFrameTraceMode} from './recording_longrun_progress.mjs';
+import {mixedRecordingProfile,mixedRecordingSettings,assertMixedRecordingRegistry,assertMixedFixtureInput,searchFailureSummary,parseLongrunArgs, LongrunProgress, sampleContinuity,nextRecordingSettings,mediaAbsent,frameTraceSummary,captureBoundedProcessLog,processLogCaptureComplete,assertMixedFrameTraceMode} from './recording_longrun_progress.mjs';
 let passed=0,failed=0; const start=Date.now();
 function check(name,fn){try{fn();passed++;console.log(`[pass] ${name}`);}catch(error){failed++;console.log(`[fail] ${name}: ${error.message}`);}}
 check('explicit 120 minutes accepted',()=>assert.equal(parseLongrunArgs(['--duration-minutes','120']),7200000));
@@ -186,3 +186,38 @@ check('state diagnostic preserves120 workspace accounting and excludes disabled 
  const c=vm.createContext({diagnose:true,stateDiagnose:true,catalogHolderSummary(){throw Error('disabled holder collector');}});vm.runInContext(holderLine,c);
 });
 if(failed)process.exitCode=1;
+
+check('R98 named profiles retain protection and derive continuous Q from E/H/P',()=>{
+ const p=mixedRecordingProfile('continuous-r98');assert.equal(p.continuousMaxBytes,91226112);
+ assert.equal(p.E+p.H+p.P+p.M,p.continuousMaxBytes);assert.equal(p.H,643*36864);
+ assert.equal(mixedRecordingProfile('protection-r97').continuousMaxBytes,67371008);
+ for(const name of [undefined,null,'','continuous','128MiB',{},1])assert.throws(()=>mixedRecordingProfile(name));
+});
+try{await (async()=>{
+ const sourceFn=mixedSource.slice(mixedSource.indexOf('function source(id)'),mixedSource.indexOf('async function drain('));
+ const profile=mixedRecordingProfile('continuous-r98');let registry={sources:['9101','9201'].map(sourceId=>({sourceId,recording:mixedRecordingSettings(profile.name,1,true)}))};
+ const c=vm.createContext({fixtureProfile:profile,mixedRecordingSettings,nextRecordingSettings,assertMixedRecordingRegistry,check:ok=>assert(ok),
+  request:async(_app,method,route,body)=>{if(method==='GET')return structuredClone(registry);const row=registry.sources.find(r=>r.sourceId===body.sourceId);row.recording=structuredClone(body.recording);return {source:structuredClone(row)};}});
+ vm.runInContext(sourceFn,c);
+ for(const id of ['9101','9201'])assert.equal(vm.runInContext(`source('${id}').recording.continuousMaxBytes`,c),profile.continuousMaxBytes);
+ // 실제 함수의 비동기 설정 호출을 모두 기다린다.
+ await vm.runInContext('settings({},false)',c);assertMixedRecordingRegistry(registry,profile.name,false);
+ const disk=JSON.stringify(registry);registry=JSON.parse(disk);assertMixedRecordingRegistry(registry,profile.name,false);
+ await vm.runInContext('settings({},true)',c);assertMixedRecordingRegistry(registry,profile.name,true);
+ registry.sources[0].recording.continuousMaxBytes=134217728;assert.throws(()=>assertMixedRecordingRegistry(registry,profile.name,true));
+})();passed++;console.log('[pass] R98 actual mixed source settings/restart contract');}catch(error){failed++;console.log('[fail] R98 actual mixed source settings/restart: '+error.message);}
+check('R98 invalid revision and input binding are fail closed',()=>{
+ for(const revision of [0,-1,Number.MAX_SAFE_INTEGER+1,Infinity,NaN])assert.throws(()=>mixedRecordingSettings('continuous-r98',revision,true));
+ assert.throws(()=>nextRecordingSettings({sources:[{sourceId:'9101',recording:{revision:Number.MAX_SAFE_INTEGER}}]},'9101',true,'continuous-r98'));
+ for(const b of [Buffer.alloc(0),Buffer.alloc(67929),Buffer.alloc(67930)])assert.throws(()=>assertMixedFixtureInput(b,'continuous-r98'));
+});
+console.log(`[final-summary] passed=${passed} failed=${failed}`);if(failed)process.exitCode=1;
+
+try{await(async()=>{
+ const fn=mixedSource.slice(mixedSource.indexOf('async function drain('),mixedSource.indexOf('async function sample('));
+ let sizeBytes='36864',consumed=0;
+ const c=vm.createContext({fixtureProfile:mixedRecordingProfile('continuous-r98'),observer:{pollAsync:async()=>({rows:[{segment:{continuous:true,channel:'9101',sizeBytes}}],backlog:false})},progress:{consume(){consumed++;return [];}}});
+ vm.runInContext(fn,c);await vm.runInContext('drain(1)',c);assert.equal(consumed,1);
+ sizeBytes='36865';await assert.rejects(vm.runInContext('drain(2)',c),/mixed-fixture-segment-bound/);assert.equal(consumed,1);
+})();passed++;console.log('[pass] R98 actual drain rejects output beyond fixed envelope before progress');}catch(error){failed++;console.log('[fail] R98 actual drain: '+error.message);}
+console.log(`[R98-final-summary] passed=${passed} failed=${failed}`);if(failed)process.exitCode=1;
