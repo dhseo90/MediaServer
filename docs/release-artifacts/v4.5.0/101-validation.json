@@ -208,7 +208,7 @@
   },
   "reuse": {
     "prior": "99 준비·97/98 보호·95 격리·96 피연산자·기존 비상주/K/F/B/C/D 근거를 실제 불변 범위에서 유지",
-    "previousIterations": "작은4/실패53 규모6조건 및 이전 cycle 단독/병행 PASS는 각 이전 runtime 근거. 최종 cache 제품의 전 규모 PASS로 승격하지 않음",
+    "previousIterations": "4/53 규모6조건 및 이전 cycle 단독/병행 PASS는 각 이전 runtime 근거. 최종 cache 제품의 전 규모 PASS로 승격하지 않음",
     "historicalFailures": "100 및 이전 FAIL/원문/미확정 변경 없음"
   },
   "notRun": {
@@ -220,7 +220,7 @@
     "PRMergeTagRelease": false
   },
   "nextRequired": [
-    "decoder FD churn 중 익명파일 전수 관측의 유한·완전한 수집 경계 확인. skip/0/이전값/재시도상한 확대 없이 기존 자원 보호 유지",
+    "초기 색인 중 FD close/reuse 경합에서 익명파일 전수 관측의 유한·완전한 수집 경계 확인. FD 소유자·종류·바이트는 미확정이며 skip/0/이전값/재시도상한 확대 없이 기존 자원 보호 유지",
     "최종 제품의 남은 규모·병행 조건 완료와45분 진입 재판정",
     "45분 누적 및 최종120분·전체메모리P0는 미충족. 출시 보류"
   ],
@@ -276,5 +276,14 @@
       "bytes": 0,
       "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
     }
-  ]
+  ],
+  "closeoutReview": {
+    "reviewer": "/root/independent_memory86",
+    "mode": "read-only final evidence wording review; no implementation or test participation",
+    "corrections": [
+      "archive final-blocker.json의 decoder FD churn은 원인 확정이 아닌 당시 가설 표현. 현재는 초기 색인 중 불완전 FD 관측, 소유자/종류/bytes 미확정으로 정정한다. 원본 archive는 수정하지 않음",
+      "이전 iteration5의4/53 규모6조건 모두 PASS; 최종 제품 근거로 승격하지 않음"
+    ],
+    "otherFindings": "부분 채택·남은7조건/45분 차단·P0보류·당시source표기는 독립 판단과 일치"
+  }
 }
