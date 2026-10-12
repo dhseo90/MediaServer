@@ -806,5 +806,113 @@
       "소유rootcleanup확인"
     ],
     "newExecutionAuthorized": false
+  },
+  "closingReadback": {
+    "reviewedAt": "2026-10-12T22:25:09.570Z",
+    "scope": "현행 validation의 원격 재수신·소유 cleanup receipt 읽기, 현재 owned root 부재 직접 확인, 지정 Git commit의 archive/validation/review 바이트 hash 대조 및 archive manifest 읽기. 제품/검사 실행·새 원격 요청 없음.",
+    "historicalPending": "앞선 review의 pending은 각 당시 관측으로 유지하며 이 후속 확인으로 연결한다.",
+    "preservation": {
+      "evidenceCommit": "61e5f16dbb88b384f0309d67d0031c5515a47f1e",
+      "remoteFetchReceipt": "validation.preservation.remoteReadback: 실제 fetchHead와remoteHead동일,3객체 remoteFetchedBytesEqual=true",
+      "independentLocalGitObjectChecks": [
+        {
+          "path": "docs/release-artifacts/v4.5.0/102-execution.tar.gz",
+          "bytesMatch": true,
+          "sha256Match": true
+        },
+        {
+          "path": "docs/release-artifacts/v4.5.0/102-validation.json",
+          "bytesMatch": true,
+          "sha256Match": true
+        },
+        {
+          "path": "docs/release-artifacts/v4.5.0/102-independent-review.json",
+          "bytesMatch": true,
+          "sha256Match": true
+        }
+      ],
+      "archiveBytes": 11391786,
+      "archiveSha256": "e94482db3c0b5a69842af558f5bb722dc70f725e5383e216181161b1cc13d896",
+      "archiveManifestReadable": true,
+      "manifestPayloadEntries": 253,
+      "totalMembersIncludingManifest": 254,
+      "limit": "검토자가 새 네트워크 fetch를 실행한 것은 아니다. 원격 확인은 보존된 실제 fetch receipt, 독립 재조회는 지정된 로컬 Git 객체이다."
+    },
+    "cleanup": {
+      "receipt": {
+        "status": "complete",
+        "timeUtc": "2026-10-12T22:24:34.409828+00:00",
+        "root": "/private/tmp/media-server-r102-zsafslvd",
+        "rootIdentity": {
+          "dev": 16777232,
+          "ino": 173873801,
+          "uid": 501
+        },
+        "removed": {
+          "regularFiles": 4233,
+          "symlinks": 277,
+          "directories": 128,
+          "regularBytes": 345396077
+        },
+        "rootAbsent": true,
+        "pointerAbsent": true,
+        "verifiedAbsentPids": [
+          73347,
+          73399
+        ],
+        "ports": [
+          {
+            "port": 57925,
+            "connectErrno": 61,
+            "listenerAbsent": true
+          },
+          {
+            "port": 57926,
+            "connectErrno": 61,
+            "listenerAbsent": true
+          }
+        ],
+        "symlinkTargetsFollowed": false,
+        "settingsPrivateBackupModelsSdkTouched": false,
+        "evidenceRemoteBeforeCleanup": {
+          "remoteHead": "61e5f16dbb88b384f0309d67d0031c5515a47f1e",
+          "fetchHead": "61e5f16dbb88b384f0309d67d0031c5515a47f1e",
+          "localHead": "61e5f16dbb88b384f0309d67d0031c5515a47f1e",
+          "objects": [
+            {
+              "path": "docs/release-artifacts/v4.5.0/102-execution.tar.gz",
+              "bytes": 11391786,
+              "sha256": "e94482db3c0b5a69842af558f5bb722dc70f725e5383e216181161b1cc13d896",
+              "remoteFetchedBytesEqual": true
+            },
+            {
+              "path": "docs/release-artifacts/v4.5.0/102-validation.json",
+              "bytes": 17465,
+              "sha256": "1cc090886585ef1d1c9433669dd08648c650ade30db18682dcdfd266a1f9ef85",
+              "remoteFetchedBytesEqual": true
+            },
+            {
+              "path": "docs/release-artifacts/v4.5.0/102-independent-review.json",
+              "bytes": 33671,
+              "sha256": "85a6ac4ed089065418f05f9eaedbbc27a82689a3836db5fc3ce321d50ce373d5",
+              "remoteFetchedBytesEqual": true
+            }
+          ]
+        }
+      },
+      "independentRootAbsenceObserved": true,
+      "root": "/private/tmp/media-server-r102-zsafslvd",
+      "pointerPidPorts": "부재는 명시 cleanup receipt로 확인하며 새로운 프로세스/포트 검사를 실행했다고 주장하지 않는다.",
+      "privateSettingsBackupModelsSdk": "receipt상미접근;검토자도읽지않음"
+    },
+    "currentDecision": {
+      "collectorAndMatrixEvidenceRetained": true,
+      "single45MinuteRun": "FAIL",
+      "memoryP0Complete": false,
+      "resume120Eligible": false,
+      "releaseApproved": false,
+      "evidencePreservationAndOwnedCleanup": "CLOSED_WITH_STATED_READBACK_SCOPE",
+      "remainingAdministrative": "이 closingReadback 및 review hash/cleanup 후속 기록을 포함한 최종 commit/일반 push와 최종 SHA 확인은 아직 후속. 증거 commit의 원격 완료와 구분."
+    }
   }
 }

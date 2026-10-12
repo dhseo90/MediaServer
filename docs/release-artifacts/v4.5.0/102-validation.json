@@ -462,16 +462,102 @@
     "allMembersByteReadback": true,
     "privateSettingsBackupIncluded": false,
     "oldArchiveCopied": false,
-    "status": "local-archive-byte-readback-pass; remote-pending",
+    "status": "remote-fetched-object-byte-readback-pass-before-owned-cleanup",
     "privateLog": "raw hash/bytes retained; startup location lines redacted in explicitly distinct derivative",
     "inputDifference": "Generated matrix MP4s can differ despite same generation procedure. Preserve unique inputs and each run hash; archive preparation first assumption failure preserved.",
-    "localManifestCheck": "253 payload members + preservation-manifest =254 total; all hashes and lengths verified"
+    "localManifestCheck": "253 payload members + preservation-manifest =254 total; all hashes and lengths verified",
+    "evidenceCommit": "61e5f16dbb88b384f0309d67d0031c5515a47f1e",
+    "remoteReadback": {
+      "remoteHead": "61e5f16dbb88b384f0309d67d0031c5515a47f1e",
+      "fetchHead": "61e5f16dbb88b384f0309d67d0031c5515a47f1e",
+      "localHead": "61e5f16dbb88b384f0309d67d0031c5515a47f1e",
+      "objects": [
+        {
+          "path": "docs/release-artifacts/v4.5.0/102-execution.tar.gz",
+          "bytes": 11391786,
+          "sha256": "e94482db3c0b5a69842af558f5bb722dc70f725e5383e216181161b1cc13d896",
+          "remoteFetchedBytesEqual": true
+        },
+        {
+          "path": "docs/release-artifacts/v4.5.0/102-validation.json",
+          "bytes": 17465,
+          "sha256": "1cc090886585ef1d1c9433669dd08648c650ade30db18682dcdfd266a1f9ef85",
+          "remoteFetchedBytesEqual": true
+        },
+        {
+          "path": "docs/release-artifacts/v4.5.0/102-independent-review.json",
+          "bytes": 33671,
+          "sha256": "85a6ac4ed089065418f05f9eaedbbc27a82689a3836db5fc3ce321d50ce373d5",
+          "remoteFetchedBytesEqual": true
+        }
+      ]
+    }
   },
   "cleanup": {
     "executionProcessGroupAbsent": true,
     "registeredGroupsAbsent": true,
     "productPortsClosed": true,
-    "ownedRoots": "pending-evidence-byte-preservation-before-cleanup",
+    "ownedRoots": {
+      "status": "complete",
+      "timeUtc": "2026-10-12T22:24:34.409828+00:00",
+      "root": "/private/tmp/media-server-r102-zsafslvd",
+      "rootIdentity": {
+        "dev": 16777232,
+        "ino": 173873801,
+        "uid": 501
+      },
+      "removed": {
+        "regularFiles": 4233,
+        "symlinks": 277,
+        "directories": 128,
+        "regularBytes": 345396077
+      },
+      "rootAbsent": true,
+      "pointerAbsent": true,
+      "verifiedAbsentPids": [
+        73347,
+        73399
+      ],
+      "ports": [
+        {
+          "port": 57925,
+          "connectErrno": 61,
+          "listenerAbsent": true
+        },
+        {
+          "port": 57926,
+          "connectErrno": 61,
+          "listenerAbsent": true
+        }
+      ],
+      "symlinkTargetsFollowed": false,
+      "settingsPrivateBackupModelsSdkTouched": false,
+      "evidenceRemoteBeforeCleanup": {
+        "remoteHead": "61e5f16dbb88b384f0309d67d0031c5515a47f1e",
+        "fetchHead": "61e5f16dbb88b384f0309d67d0031c5515a47f1e",
+        "localHead": "61e5f16dbb88b384f0309d67d0031c5515a47f1e",
+        "objects": [
+          {
+            "path": "docs/release-artifacts/v4.5.0/102-execution.tar.gz",
+            "bytes": 11391786,
+            "sha256": "e94482db3c0b5a69842af558f5bb722dc70f725e5383e216181161b1cc13d896",
+            "remoteFetchedBytesEqual": true
+          },
+          {
+            "path": "docs/release-artifacts/v4.5.0/102-validation.json",
+            "bytes": 17465,
+            "sha256": "1cc090886585ef1d1c9433669dd08648c650ade30db18682dcdfd266a1f9ef85",
+            "remoteFetchedBytesEqual": true
+          },
+          {
+            "path": "docs/release-artifacts/v4.5.0/102-independent-review.json",
+            "bytes": 33671,
+            "sha256": "85a6ac4ed089065418f05f9eaedbbc27a82689a3836db5fc3ce321d50ce373d5",
+            "remoteFetchedBytesEqual": true
+          }
+        ]
+      }
+    },
     "privateSettingsBackupModelsSdk": "untouched",
     "plannedOwnedTree": {
       "identity": {
@@ -508,5 +594,5 @@
     "docsLinks": "\n== Docs link verification summary ==\n- markdown files: 302\n- local links: 9400\n- local images: 14\n- local anchors: 430\n- indexed docs: 93\n- index coverage exclusions: 192\n- failures: 0\n",
     "bindingReports": "102-execution.tar.gz:binding-final.json, readback.json, coverage.json"
   },
-  "independentReviewSha256": "85a6ac4ed089065418f05f9eaedbbc27a82689a3836db5fc3ce321d50ce373d5"
+  "independentReviewSha256": "3fbb2c3039c2624e1f391e81ec6244ed4a0955670892899ebdc6cdfe474f61a3"
 }
