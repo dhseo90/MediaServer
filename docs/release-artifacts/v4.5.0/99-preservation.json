@@ -10,6 +10,17 @@
   "uniqueOriginalBlobs": 94,
   "allMembersByteReadbackPass": true,
   "manifestMemberSha256": "127d025e40c2367925c5774e309f4c52aaf22cda0ab775583764609eef6e9a02",
-  "gitObjectReadback": "pending",
-  "remoteReadback": "pending"
+  "gitObjectReadback": {
+    "commit": "061d96da2213e02a777753858883cacb58521890",
+    "archiveObject": "60dc5a87d88bc60cbc443e978d9a9d371beb10c0",
+    "all294ManifestRecordsCompared": true,
+    "pass": true
+  },
+  "remoteReadback": {
+    "commit": "061d96da2213e02a777753858883cacb58521890",
+    "method": "fresh remote bare partial clone; selected blobs lazily fetched, compared byte-for-byte",
+    "selectedObjects": 5,
+    "allBytesEqual": true,
+    "receipt": "99-finalization.json"
+  }
 }

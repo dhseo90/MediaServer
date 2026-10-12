@@ -1,7 +1,7 @@
 {
   "schema": "media-server.v450.validation.v1",
   "task": 99,
-  "status": "PREPARATION_BUNDLE_PASS_INDEPENDENT_FINAL_REVIEW_AND_GIT_PRESERVATION_PENDING",
+  "status": "SCOPED_PREPARATION_BUNDLE_PASS",
   "model": {
     "requested": "gpt-6-astra/high",
     "mainToolAccepted": "not-exposed",
@@ -786,13 +786,21 @@
   "preservation": {
     "receipt": "99-preservation.json",
     "archive": "99-execution.tar.gz",
-    "status": "all295 members byte-readback verified before Git commit",
+    "status": "local Git and fresh remote selected-object byte readback PASS",
     "originalSyntheticFiles": 1530,
     "deduplicatedBlobMeaning": "exact content stored once, original file paths and individual hash/size map retained; actual independent run files not hard-linked",
     "redaction": "only owned root/repo/home paths in selected logs, original/preserved hashes in manifest; raw synthetic source blobs preserved exactly",
-    "excluded": "users/config/private backup/models/SDK/runtime binaries not archived"
+    "excluded": "users/config/private backup/models/SDK/runtime binaries not archived",
+    "preservationCommit": "061d96da2213e02a777753858883cacb58521890",
+    "linuxMediaBoundary": "Linux emitted actual input hash/length and original binding through native logs; Linux full media store was not archived. Actual macOS synthetic source bytes are preserved; they are not a substitute for Linux byte identity."
   },
-  "cleanup": "execution children normal closed, parent group absence verified; owned root retained until Git byte preservation; final receipt follows",
+  "cleanup": {
+    "status": "PASS",
+    "receipt": "99-finalization.json",
+    "ownedRootAbsent": true,
+    "processGroupsAndPortsClosed": true,
+    "privateBackupAndModelsExcluded": true
+  },
   "bundle": {
     "version": 2,
     "startup": "PASS",
@@ -800,5 +808,13 @@
     "space": "PASS",
     "shortPreparationPass": true
   },
-  "independentReview": "99-independent-review.json (separate read-only reviewer; final report pending)"
+  "independentReview": {
+    "file": "99-independent-review.json",
+    "preservedInitialReviewCommit": "061d96da2213e02a777753858883cacb58521890",
+    "technicalScopeAccepted": true,
+    "codeBlockingFindings": [],
+    "limitations": "fixture-input ID acceptance and actual gate population explicitly qualified; not every clone ID product-generated; no overall latency/P0/release approval"
+  },
+  "completion": "기동·generation 순환 검증 분리 및 준비·직접 공간 검증 완료",
+  "closeout": "implementation and initial evidence commits pushed; final documentary closeout is followed by a normal push and final remote SHA check"
 }

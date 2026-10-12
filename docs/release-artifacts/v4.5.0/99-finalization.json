@@ -46,5 +46,96 @@
   "currentChangedDocumentLinks": "PASS",
   "manifestValueDelta": "inventorySha256 only, existing producer; JSON formatting-only restored",
   "sourceHashArchiveVsStaged": "12 files identical",
-  "productSrcIncludeDeltaFrom97": "none"
+  "productSrcIncludeDeltaFrom97": "none",
+  "preservationCommit": "061d96da2213e02a777753858883cacb58521890",
+  "localGitReadback": {
+    "archiveObject": "60dc5a87d88bc60cbc443e978d9a9d371beb10c0",
+    "archiveSha256": "d4a01ec92628755306eb718c80bf204caee7b5aab11b8f24c9eba53ce7836204",
+    "manifestRecordsCompared": 294,
+    "pass": true
+  },
+  "remoteEvidenceReadback": {
+    "method": "fresh remote bare partial clone; selected blobs lazily fetched, compared byte-for-byte",
+    "remoteSha": "061d96da2213e02a777753858883cacb58521890",
+    "objects": [
+      {
+        "path": "docs/release-artifacts/v4.5.0/99-execution.tar.gz",
+        "bytes": 10592623,
+        "sha256": "d4a01ec92628755306eb718c80bf204caee7b5aab11b8f24c9eba53ce7836204"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/99-validation.json",
+        "bytes": 29725,
+        "sha256": "50a6fb2ce94605a7143b2e17492e50a1dd7974566689cb7cd69420ff77e26d31"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/99-independent-review.json",
+        "bytes": 13014,
+        "sha256": "a20b43b15b375a4d2e5ac762d9e02574c6d153af81e1eaf7770ffdc4fb73d257"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/99-preservation.json",
+        "bytes": 577,
+        "sha256": "530268defd51373deae757cef8b033fe88db51519fa9f7abb277629a9938acd5"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/99-finalization.json",
+        "bytes": 1012,
+        "sha256": "a9cdd05b8ac6924af7d9d60f31049d216d4a37330a92fcea406c27312630421a"
+      }
+    ],
+    "pass": true
+  },
+  "cleanup": {
+    "status": "PASS",
+    "completedAt": "2026-10-12T12:05:14.600556+00:00",
+    "ownedRoot": "/private/tmp/media-server-preparation99-oubac_gh",
+    "uid": 501,
+    "rootIdentity": [
+      16777232,
+      173568667
+    ],
+    "entriesRemoved": 24629,
+    "logicalBytesRemoved": 1570715003,
+    "symlinksUnlinkedWithoutFollowing": 554,
+    "ownedRootAbsent": true,
+    "pointerAbsent": true,
+    "productProcessGroupsAbsent": 3,
+    "recoveryGroupsAbsent": 3,
+    "containerAbsent": true,
+    "portsRechecked": [
+      {
+        "port": 64300,
+        "kind": "http",
+        "connectResult": 61
+      },
+      {
+        "port": 64301,
+        "kind": "rtsp",
+        "connectResult": 61
+      },
+      {
+        "port": 64436,
+        "kind": "http",
+        "connectResult": 61
+      },
+      {
+        "port": 64437,
+        "kind": "rtsp",
+        "connectResult": 61
+      },
+      {
+        "port": 64492,
+        "kind": "http",
+        "connectResult": 61
+      },
+      {
+        "port": 64493,
+        "kind": "rtsp",
+        "connectResult": 61
+      }
+    ],
+    "udpClosed": "actual runner cleanup receipt",
+    "protectedExclusions": "user settings/private backup/models/SDK/base images not cleanup targets; no target traversal through symlinks"
+  }
 }

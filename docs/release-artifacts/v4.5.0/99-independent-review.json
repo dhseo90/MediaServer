@@ -196,5 +196,61 @@
     "과거95/96 FAIL·미보존 실패 순간 operand/과거 사용자 설정 완전복원 미확정은 소급 해결하지 않음.",
     "Qwen/Ollama·unload gate·실제UI·출시 미실행.",
     "원본 보호·기동·순환·해당 공간의 한정 수용은 모든 ID 제품 생성 또는 전체 장기부하 상한의 증명이 아님."
-  ]
+  ],
+  "closeoutAddendum": {
+    "reviewedAt": "2026-10-12T12:06:46.052Z",
+    "scope": "보존·정리 receipt와 현행 문서의 읽기 확인. 원 판단·시각·remaining은 당시 관측으로 보존. 새 제품/검사/네트워크 실행 없음.",
+    "preservationCommit": "061d96da2213e02a777753858883cacb58521890",
+    "localGitReadback": {
+      "reviewerRead": "git show로 보존 commit의 archive·validation·review·preservation·finalization 다섯 객체를 실제 읽고 remote receipt의 bytes/hash와 대조하여 전부 일치. Git archive294개 manifest record의 보존 bytes/hash를 직접 재대조하여 불일치0.",
+      "archiveBytes": 10592623,
+      "archiveSha256": "d4a01ec92628755306eb718c80bf204caee7b5aab11b8f24c9eba53ce7836204",
+      "priorReviewSha256": "a20b43b15b375a4d2e5ac762d9e02574c6d153af81e1eaf7770ffdc4fb73d257",
+      "priorReviewUnmodifiedBeforeAppend": true
+    },
+    "remotePreservation": {
+      "status": "PASS_BY_RECORDED_REMOTE_READBACK",
+      "actualRemoteCommit": "061d96da2213e02a777753858883cacb58521890",
+      "method": "메인이 일반 push 후 새 remote bare partial clone으로 다섯 객체를 재수신하여 byte-for-byte 대조한 receipt를 읽음. reviewer는 네트워크 재전송하지 않고 고정 commit 객체와 receipt를 대조함.",
+      "receipt": "99-finalization.json remoteEvidenceReadback",
+      "futureCommitCovered": false
+    },
+    "cleanup": {
+      "status": "PASS",
+      "receipt": "99-finalization.json cleanup",
+      "completedAt": "2026-10-12T12:05:14.600556+00:00",
+      "ownedRootUid": 501,
+      "ownedRootIdentity": [
+        16777232,
+        173568667
+      ],
+      "entriesRemoved": 24629,
+      "logicalBytesRemoved": 1570715003,
+      "symlinksUnlinkedWithoutFollowing": 554,
+      "rootAbsenceIndependentlyRead": true,
+      "recordedOtherAbsence": "pointer, product3/recovery3 groups, owned container, HTTP/RTSP6개 TCP ports; UDP는 원래 실행 cleanup receipt",
+      "observationBoundary": "현재 root 경로 부재는 reviewer가 직접 읽어 확인. 그룹·포트·pointer·삭제 identity/count는 보존된 메인 receipt에 의한 확인이며 reviewer가 새 probe/정리 실행을 했다는 뜻이 아님.",
+      "protectedExclusions": "사용자 설정·95 private backup·모델·SDK·기존 image는 대상 아님. symlink 외부 target 비순회."
+    },
+    "documentConsistency": {
+      "validationSha256AtRead": "70243f5ffc873a3a8d34c3c2292b7455b54d4a6c8b170ba3abbf7120955a577c",
+      "finalizationSha256AtRead": "ca2c466465cfcfd2607fa22d3b5f763ad473de41380c4de2f1a936f5c56c37ab",
+      "preservationSha256AtRead": "03e517c9c1fa2f3e2c41b6b1e79491de0423dbe78bd9b67094de1fc50d816131",
+      "linuxMediaLimit": "Linux 실행은 input hash/길이·native binding/log 근거만 보존하며 Linux 전체 media store는 archive에 없음. 보존된 macOS synthetic 원본 바이트는 Linux 동일 바이트의 대체 증거가 아님.",
+      "result": "현행 SCOPED_PREPARATION_BUNDLE_PASS와 보존·cleanup 완료는 확인 범위와 정합. clone fixture ID/제품 order/seed-new UUID 구분, 본8 p95와 추가4/전체12의2초초과, 장시간0·P0/출시보류는 유지."
+    },
+    "closureDecision": {
+      "technicalPreparation": "한정 수용 유지",
+      "evidenceLocalAndRemotePreservation": "완료 receipt 확인",
+      "ownedRootCleanup": "완료 확인",
+      "remaining": [
+        "이번 후속 행정 기록의 최종 commit과 일반 push",
+        "그 최종 commit의 실제 원격 SHA 확인 및 메인 최종 보고"
+      ],
+      "wholeTaskFinalAdministrativePushComplete": false,
+      "newExecutionAuthority": false,
+      "memoryP0": "보류 유지",
+      "release": "보류 유지"
+    }
+  }
 }
