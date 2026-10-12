@@ -1,0 +1,452 @@
+{
+  "schema": "r101-independent-delta-review-v1",
+  "task": 101,
+  "reviewer": "independent_memory86",
+  "reviewedAt": "2026-10-12T17:47:47.789Z",
+  "status": "INTERIM_DELTA_REVIEW_FINAL_EXECUTION_PENDING",
+  "model": {
+    "requested": "gpt-6-astra",
+    "requestedEffort": "high",
+    "toolAcceptance": "기존 별도 검토자 생성 당시 수락 기록 재사용(부모 인계). 이번 검토에서 새로운 모델 선택 도구를 호출하지 않음.",
+    "actualRuntimeModel": "unconfirmed-not-exposed",
+    "actualRuntimeEffort": "unconfirmed-not-exposed"
+  },
+  "independence": {
+    "implementationParticipation": false,
+    "testAuthorship": false,
+    "testOrProductExecution": false,
+    "subdelegation": false,
+    "scope": "소스·원출력·기존 기록 읽기 및 hash 대조, 이 독립 기록 한 파일 작성. 사용자 기본 설정과 task95 비공개 백업 비접근."
+  },
+  "sourceBinding": {
+    "baseHead": "0d1f6c072e6d50d223fbd902dadbf48e95a04898",
+    "freeze": "remaining-matrix-freeze.json",
+    "freezeSha256": "2b8ac1e66135b2f58b3fbc7cd0c10ec7b1c7b24388a8d91d9b991737a7bf45c2",
+    "currentFilesCompared": 25,
+    "currentFileMismatches": [],
+    "files": {
+      "docs/project-feature-test-inventory.md": "e875f6418dd2254eaa76d178d2eb81995cef496c8150260f3f3d26293a6761a0",
+      "include/recording/recording_catalog.h": "5936a3801de5bf4d751ed41329706f2f76688fedb19a4bbf841014ce16301c64",
+      "include/recording/recording_latency_trace.h": "6c71cd93bd853ec14e154073498923b6159e7ce3e3bd84382420f52e1ca4b942",
+      "include/recording/recording_retained_rows.h": "4154438d341b339515e3d5d0f10d8e735adc9172f5b56151a4afe56205554051",
+      "include/recording/retention_coordinator.h": "622fd73c035f0eb013c48844d3cb88dc05e54e45857686aa4362f51587ac2168",
+      "scripts/internal/recording_generation_request_proof_smoke.cpp": "d6df25ff1b7f49e2364bc0699d1a3840fe992169449e290ba480a3180efbfcfe",
+      "scripts/internal/recording_latency_trace.mjs": "5670e9c5112bb682ec43a2f297a8832f1bcda4c9395e35b1267206605867db36",
+      "scripts/internal/recording_latency_trace.test.mjs": "718ee55487a1eff7bbbb347505ea1b2055b0cc376890c450fa9e7192b44be7dd",
+      "scripts/internal/recording_latency_trace_smoke.cpp": "0eb23ef581bb05f72bffee06442bf272573bdc59c9aaa3885f6ee539120d1d8a",
+      "scripts/internal/recording_managed_writer_smoke.cpp": "27c82e123137e139ef4308ceda88a3458cd299bc11226185a571886888e959df",
+      "scripts/internal/recording_retention_cost_smoke.cpp": "46b90689722da417db636ef6c3cda75839ae44f13bd4e6a3bce0375a35e42cc0",
+      "scripts/internal/recording_retention_v2_smoke.cpp": "bb4151d9b5e6cc5eca3430faaed66f78bfb4115fd4d072a372557d562f82a7a2",
+      "scripts/internal/verify_recording_retention_v2.sh": "fc4ca9bf1297a00ea2a653e3243f99b7ce6941d55cf0fc36dd0c2e0c51280e07",
+      "scripts/internal/verify_visual_request_media_cache.py": "636009034c16e2c7f194797f30f66fd1508010d2127d21af7bc493ea6c26bc8d",
+      "scripts/internal/visual_request_media_cache_smoke.cpp": "0ad8c85bc07f2899a79f03cf9c031f60721335f1fd071f38c60a8cca562054ac",
+      "src/application/media_server_application.cpp": "81df46b67be67d209fa8789e3a226563207ccb3fb6432fc67ccc8e757fb06f92",
+      "src/recording/recording_catalog.cpp": "b40c879ac147ce1b67837d7f3db4dbf24ff18a3bcefeda84dd4b3b1f25f3ef65",
+      "src/recording/recording_catalog_history.h": "1f2aef8fa0e7fc41b7c19ae05872645748c568f661147696a1ee60981f9b0026",
+      "src/recording/retention_coordinator.cpp": "31bec26337d244d000f5f2d56d173a25149db0919b47af7a87a3b38cc8ae03bb",
+      "test/fixtures/project_feature_implementation_evidence.json": "59c842044463677c1eb374a72d8842fbf993e95f0f005fa23c219e8c717e61fd",
+      "scripts/internal/recording_visual_contention_check.py": "15e7a1896c695d39a63078a8c749dc51d281245e46d9c2508373af697594fd8c",
+      "scripts/internal/recording_visual_contention_contract.py": "31378552c15e7ff79f4e1bf2b044cf7e8f5c720073d86aa44f208794c03affb1",
+      "scripts/internal/recording_visual_contention_contract_test.py": "4d4cdc35280fd8aa85de5fab32bb564e19370c5e90d7b5e76debb0b7f8e5d123",
+      "scripts/internal/recording_visual_contention_observer.mjs": "d393520daea6bda27c481a6f0b4952e4ad1f4b37de33a3dcbdccf3ba94dc5f14",
+      "scripts/internal/recording_visual_contention_smoke.cpp": "596350c9519de36a192651ad92a1cc1b6684fac195f1d2f0aa3b6163894e86ec"
+    },
+    "runtimeSha256": "fb5d75efece9c0f1dcd76aeefe836f0f516369362119e8491ccdfc69000cd0e0",
+    "currentFixtureBinarySha256": "8b8cbf4e09ea8648413baf34e03ed364c53376ccc1656caa694388e5bb4c35f0",
+    "wholeWorkingTreeCleanClaim": false
+  },
+  "verdict": {
+    "reviewedProductDelta": "검토한 현재 소스에서 추가 blocking 결함을 특정하지 못함. 이는 최종 실행 묶음 또는 45분 적격 완료 판정이 아님.",
+    "publicationObservation": "개별 refresh 실패는 보존하면서 기존 worker의 후속 새 완성 게시를 같은 총 deadline 안에서 관측하는 경계는 기존 정책과 합치한다. stopped/unavailable 또는 degraded 자체를 완료로 수용하지 않는다.",
+    "currentCycleBackground": "실제 정상 게시와 요청·수집·Finish 근거 수용. 실행 fixture와 후속 상태 판정 보완 fixture의 hash 차이를 유지한다.",
+    "finalPlatformAndMatrix": "PENDING",
+    "entry45Minutes": "NOT_YET_DETERMINED",
+    "executionAuthorizationGranted": false,
+    "memoryP0Complete": false,
+    "releaseApproved": false
+  },
+  "productReview": [
+    {
+      "area": "목적별 retention snapshot",
+      "finding": "native Catalog 4인자 경로만 Authority/Pending/Candidate/Channel을 사용하고 기존 generic provider는 전체 snapshot을 유지한다. Plan 및 필요한 최신 보호 재판정, 전체 채널 durable/outstanding 예약, RequestDeletion 보호·경로 검증이 유지된다. Channel은 인증된 segment namespace를 계속 순회하며 타채널 상세 물질화만 줄인다.",
+      "limit": "모든 호출 비용이 상수가 된다는 뜻이 아니다. 현재 권위 아래 namespace Count/empty를 재사용하며 비어 있지 않은 namespace의 검증은 생략하지 않는다."
+    },
+    {
+      "area": "source binding 잠금 밖 파싱",
+      "finding": "검증된 현재 raw/envelope/row를 소유하고 기존 640MiB SearchResidency에서 strict JSON 임시량을 사전 예약한다. 파싱·보유량 계산만 unlock하며 재획득 뒤 현재 권위/lifecycle/serialized row/entry/cold mutation proof를 대조한다. Media 소비자는 반환 전 경로·미디어 재검증도 수행한다. 예약은 재검증까지 생존한다.",
+      "limit": "자원 실패는 요청 한정, 잘못된 원문은 기존 poison 경계를 유지한다. 공개 score/권한/검색 알고리즘 변경으로 확대하지 않는다."
+    },
+    {
+      "area": "startup 목록",
+      "finding": "같은 cut의 현재 iterator row와 빈 retired/tombstone/state namespace 증명을 재사용한다. 비어 있지 않은 namespace의 우선순위와 조회, V1 lifecycle, 정렬을 유지한다. missing path 또는 hold를 이유로 startup 대상에서 제거하지 않는다.",
+      "limit": "검토됐던 SnapshotReadAuthority 대안은 채택되지 않았으며 SnapshotStatus 전체 검증 경로를 유지한다."
+    },
+    {
+      "area": "exact raw verified segment decode cache",
+      "finding": "각 조회/순회가 기존 GetOwned/VisitOwned/NextOwned의 현재 authenticated raw bytes를 먼저 획득한다. 동일 ID와 동일 raw에만 immutable parsed row를 재사용한다. 존재·부정조회·전체 목록 완전성의 권위를 cache에 옮기지 않는다. 현재 raw 변경은 cold decode/canonical 검증으로 돌아간다.",
+      "budget": "store별 16MiB cap과 기존 전체 640MiB owner를 함께 적용한다. row/raw/map/key 보유량 예약, oversized/부족 시 cold 경로, outstanding reader 수명에 따른 예약 보유를 확인했다. 다른 요청의 가용 headroom이 같다는 보장은 하지 않는다.",
+      "lifetime": "Finish는 cache lock 안에서 closed와 limit0을 설정하고 clear한다. Enable/늦은 Remember는 재개할 수 없다. 성공한 Set/erase는 해당 cached row를 제거한다. 이미 반환된 reader는 immutable row/예약을 마지막 release까지 보유한다."
+    }
+  ],
+  "publicationContract": {
+    "sourceEvidence": "src/recording/visual_index_worker.cpp Run/Rebuild 및 recording_visual_contention_smoke.cpp Published101, contract.py",
+    "existingBehavior": "실패한 refresh는 이전 완성 색인을 보존하고 degraded가 되며 worker의 기존 주기 loop는 계속된다. generation은 새 완성 게시 때 증가한다.",
+    "acceptable": "최초 관측한 degraded refresh를 별도 보존하고, 기존 worker가 같은 instance에서 baseline보다 큰 generation을 ready/indexing 상태로 실제 게시했음을 관측한다. fixture의 추가 RequestRebuild나 요청 재시도가 아니다.",
+    "failureBoundaries": "stopped/unavailable, 요청 실패, 수집·공간·자원 실패, 총 deadline 만료, 새 게시 미관측은 실패로 유지한다.",
+    "correctionOfEarlierReview": "앞선 degraded 무조건 전체 FAIL 권고는 기존 worker의 정상 이전 게시 보존 정책보다 넓었다. 그 권고를 이 좁은 계약 판단으로 정정한다. 실패한 개별 refresh를 성공이라고 바꾸지는 않는다.",
+    "notProven": "모든 refresh 성공, 실제 마지막 쓰기/삭제 전체가 새 게시에 포함됨, 공개 error만으로 source-changed 원인 확정은 주장하지 않는다."
+  },
+  "cycleBackgroundEvidence": {
+    "execution": "publication-cycle-background/execution.json",
+    "runtimeSha256": "fb5d75efece9c0f1dcd76aeefe836f0f516369362119e8491ccdfc69000cd0e0",
+    "executedFixtureSha256": "504784fad1fe0891488db0f86bbb1e5caf4549d9f77fae9b461cf6e2d94d0c42",
+    "executedBinarySha256": "eed40ac38d7650ad6bd3cac669820c4f7e5ab054283375ec2417a61ae10463d8",
+    "nativeExit": 0,
+    "monitorExit": 0,
+    "requests200": 12,
+    "requestFailures": 0,
+    "p95Ms": 1562.75,
+    "maxMs": 1562.75,
+    "actualWrites": 6,
+    "actualDeletes": 8,
+    "elapsedSeconds": 376.5910024160985,
+    "separatePublicationWaitMs": 7146.5,
+    "publishedGeneration": 2,
+    "publishedState": "ready",
+    "workerInstance": "7ceecce8c465b519f6cfdcd4ae1df580",
+    "spaceSamples": 373,
+    "receivedBytes": 1328193,
+    "savedBytes": 1328193,
+    "collectionError": null,
+    "groupAbsent": true,
+    "finalOwner": {
+      "phase": "after-storage-destruction",
+      "ram": 0,
+      "scratchDisk": 0,
+      "scratchFd": 0,
+      "readerCleanupHealthy": true
+    },
+    "scope": "상태/shape/order/seek metadata 및 실제 부하·게시·owner·수집 판정. exhaustive top-k 또는 이 fixture 자체의 실제 Seek 실행은 아님.",
+    "fixtureProvenance": "이 실제 실행 이후 상태 판정 순서/최초 degraded 보존/stopped 거부가 보완됐다. final-contract-readback은 이미 보존된 ready generation2 원문이 후속 조건을 만족함을 확인한 읽기 결과이며, 최종 fixture의 재실행으로 기록하지 않는다.",
+    "syntheticContract": "publication-final-contract-test.log 3 methods OK는 합성 반례이며 제품 실행 근거와 구분한다."
+  },
+  "causalLimits": {
+    "comparison": "선택한 first 요청에서 retention holder overlap 약2794→223ms, 전체 Catalog wait 약4966→1200ms가 관측됐다. after 미분류 약683ms를 별도로 둔다.",
+    "scope": "같은 mutex 실제 겹침과 통제된 raw 재검증/파싱 재사용 경계의 직접 근거다. inclusive span을 합산하지 않으며 전체 대기 해소·단조 개선·task100 timeout 원인 확정으로 확대하지 않는다.",
+    "resources": "순차 관측된 workspace/RSS는 순간 최대 또는 무누수 증명이 아니다. 16MiB cache가 기존 owner 안에 있다는 사실만으로 전체 장시간 메모리 P0가 완료되지는 않는다."
+  },
+  "preservedFailures": [
+    "기존 iteration2 및 source-unlock 단계의 cycle latency/503 실패는 뒤 PASS로 소급 삭제하지 않는다.",
+    "새 startup guard의 448MiB model 임시 사본 초과 실패는 보존한다. 현재는 기존 model 준비 8GiB 계약을 constructor 구간에만 명시 연결하고 실제 model FD가 닫힌 뒤 live448로 돌아간다.",
+    "verified-decode-cycle-background의 요청 PASS/Finish와 publication generation 미진행 qualification FAIL을 분리한다.",
+    "verified-decode-close-proof owner0 FAIL은 공유 Default owner에 다른 reader가 남아 있던 fixture 원인으로 보존한다. 이후 실제 전용 owner의 late-Finish/마지막 reader 회귀를 별도 근거로 사용한다.",
+    "startup-list-proof 최초 C++17 임시 입력 수명 실패 및 retention-cost trace 옵션 누락 실패를 보존한다."
+  ],
+  "reuseBoundary": {
+    "legacyCandidate": "기존 final-candidate는 승인본과 전체 items/trust bindings 986 및 digest 8977e9b6ac618c7e0233823f6acb6ab1fcf7461206ee5d8b2a4149a643519e3a가 같았다. 이 동일성은 새 R101 동작 승인 대체가 아니다.",
+    "producer": "iteration5 producer 51 PASS는 그 입력의 근거다. 마지막 cache 변경 후 최종 fresh 입력/readback은 별도 확인할 항목이다.",
+    "priorRegression": "기존 score/exact-top-k 알고리즘, 권한/worker Stop 계약의 변화 없는 범위는 재사용 가능하다. iteration5 mac/Linux와 cache448 소비자 회귀를 iteration6 최종 플랫폼 실행이라고 표시하지 않는다.",
+    "newCacheProof": "verified-decode-final-proof 4 구성 완료. 새 cache 전용 반례의 지원 구성 범위와 unavailable 구성을 구분한다."
+  },
+  "remaining": [
+    "remaining-matrix-freeze의 남은 8조건 실행 결과와 첫 FAIL 중단 준수 확인. 진행 중 결과를 미리 PASS로 기록하지 않음.",
+    "현재 iteration6 제품/cache 최종 macOS/Linux 영향 회귀 및 필요한 visual source/application 소비자 수명·권한 경계의 동일 runtime 결속 확인.",
+    "마지막 제품/fixture 입력의 legacy candidate/producer/readback 및 최종 source 고정 확인.",
+    "45분 적격 최종 판정 및 사용자 승인된 단일 실행 결과는 아직 없음. 새120, P0·출시 완료로 확대 불가.",
+    "최종 archive 선정/원본·정제 관계/Git·원격 보존 및 소유 root 정리는 후속 단계."
+  ],
+  "evidenceBindings": {
+    "remaining-matrix-freeze.json": {
+      "bytes": 4064,
+      "sha256": "2b8ac1e66135b2f58b3fbc7cd0c10ec7b1c7b24388a8d91d9b991737a7bf45c2"
+    },
+    "publication-final-freeze.json": {
+      "bytes": 4087,
+      "sha256": "c92d844c76b720a8c157d79e0051f65ca9642f26c369c9469ef7c11c61c4e54c"
+    },
+    "verified-decode-final-freeze.json": {
+      "bytes": 4068,
+      "sha256": "95081f54e7e245a7090469573f5b501c6d4ada5e612981e589a4be5d34e4ec38"
+    },
+    "verified-decode-final.patch": {
+      "bytes": 92386,
+      "sha256": "770eb899b38c4952a156e783de9b08df1a47cd2dcca43337ee8bd2e26143b366"
+    },
+    "verified-decode-final-proof.log": {
+      "bytes": 18370,
+      "sha256": "596565cf83f143a127a05c5f3df825c22b4b85208e133b9804eb307ee9aae8d4"
+    },
+    "verified-decode-close-proof.log": {
+      "bytes": 11431,
+      "sha256": "277e96b358b23872ff54be4279229d3f6cda0e200ee6684040ac0ab6096de052"
+    },
+    "verified-decode-owned-proof.log": {
+      "bytes": 18370,
+      "sha256": "49ddaf1c52a536f4e155cfb3102ee9fd8bf50691baf3b4146044e8ef34fdcd89"
+    },
+    "verified-decode-holder-comparison.json": {
+      "bytes": 50550,
+      "sha256": "ee12bec0c2f5b16aa6aeea5cb2942ccc57e6f4b66b8a6ed7d70b0198db8d42d0"
+    },
+    "diagnostic-first-holder-analysis.json": {
+      "bytes": 1216970,
+      "sha256": "b43296a929d94fe1a0789646ea6355f4a1f0d235c4edd15e888ed5a555f767d3"
+    },
+    "publication-cycle-background/execution.json": {
+      "bytes": 1334,
+      "sha256": "dafad63ac97117bd4333be80686364aede193708eed769a30f35b69c025c35b8"
+    },
+    "publication-cycle-background/output.log": {
+      "bytes": 1328193,
+      "sha256": "7fd1bbe9946bbc5aa764148059f265cb1796f93b2471cf407681442249fd1cce"
+    },
+    "publication-cycle-background/final-contract-readback.json": {
+      "bytes": 423,
+      "sha256": "02d8f43aaf70b4c3f22573929c586ba20c952a9b3b1fc8deea9616c6a5d8ec50"
+    },
+    "publication-final-contract-test.log": {
+      "bytes": 101,
+      "sha256": "2c37d50a88147ca2ebd5197d74ee37d462dab650d793512e849814c28d5a38f0"
+    },
+    "startup-list-proof-owned-input.log": {
+      "bytes": 16864,
+      "sha256": "2ae10eeeac7b1a47fdf340087aa2f91a9abf6126e435ce33d24fc99c09c93700"
+    },
+    "startup-list-media-cache.json": {
+      "bytes": 6417,
+      "sha256": "6bad5576e73294d5bb414775cab1a9979390ab5de862e73ed007ddcf6d8b5bfb"
+    },
+    "final-trace-tests.log": {
+      "bytes": 3031,
+      "sha256": "3140ba2e919d0b70805ae7f79847ebc335be2222147a50905402432cbf437a95"
+    },
+    "linux-final.log": {
+      "bytes": 47243,
+      "sha256": "0c1398801ca033f571193e545005f4e32255707e10deb52a12b6beaad4c0bb0d"
+    },
+    "final-candidate.json": {
+      "bytes": 7709058,
+      "sha256": "13402b9705f3b160348f6facdd5bf496d4a6fe761c9653db6f9fd7754b2a14f4"
+    },
+    "producer.log": {
+      "bytes": 12812,
+      "sha256": "d044f8ac77f4e3e0a7ee0672c9d63381151b9f522393a0aa536f910913ef258f"
+    }
+  },
+  "addenda": [
+    {
+      "reviewedAt": "2026-10-12T17:49:23.305Z",
+      "kind": "remaining-matrix-collector-failure",
+      "status": "COLLECTION_PRECONDITION_FAILED_45_BLOCKED",
+      "facts": {
+        "elapsedSeconds": 112.09505070792511,
+        "requestResponsesObserved": 0,
+        "validSpaceSamples": 111,
+        "lastValidRssBytes": 1671790592,
+        "collectorExit": 1,
+        "collectorStdoutBytes": 282,
+        "collectorError": "fd-observation-incomplete:capacity=0:closed=4",
+        "failedMetrics": null,
+        "nativeTerminationSignal": 15,
+        "nativeExit": -15,
+        "groupAbsent": true,
+        "receivedAndSavedBytes": 210059
+      },
+      "interpretation": "초기 색인 중 익명 FD 전수 관측이 기존 4회 한도 안에서 완성되지 않아 부모가 안전 중단했다. 요청이 시작되지 않았으므로 검색 성능 FAIL이나 448MiB 초과 증거가 아니다. 뒤 request population assertion은 불완전 실행의 후속 판정이며 최초 collector 실패와 분리한다.",
+      "exactCounterMeaning": "closed=4는 4번의 전수 관측 각각이 나열된 vnode FD의 EBADF/ENOENT 때문에 재시작됐음을 뜻한다. 서로 다른 FD 4개, 익명파일 4개, 특정 제품 FD 또는 바이트 수를 뜻하지 않는다. capacity=0은 해당 관측의 목록 버퍼 재시도 횟수가 0임을 뜻한다.",
+      "narrowCorrectionJudgment": "현재 원문과 소스에서 보호 의미를 그대로 유지하며 실패를 성공으로 정정할 근거는 없다. 닫힌 FD의 미관측 값을 0/skip 처리하거나 이전 정상 표본으로 대체할 수 없다. 재시도 증가, 제품 동작 정지/동기화, 표본 완전성 규칙 변경은 이 기록의 단순 정정이 아니므로 현재 범위에서 권고하지 않는다.",
+      "remainingEffect": "나머지 matrix와 45분은 미실행/차단으로 유지한다. 이미 고정한 변경의 별도 영향 회귀를 마치는 것은 이 실패의 재실행이나 collector 재설계와 구분할 수 있으나, 그 PASS가 matrix/45 선행 수집 실패를 해소하지 않는다. 부분 개선의 FAIL 보존 커밋은 전체 완료·출시 승인이 아니다.",
+      "evidence": {
+        "matrix-cycle-parallel/execution.json": "553524dc8a48fea2a76b2030d4454c8f68cf5e592973c94d194370747edf5db7",
+        "matrix-cycle-parallel/workspace-first-failure.json": "9b00241b02cbf5d1748200c92b052de1c9cb74196fb3a5c23929a967369c96d7",
+        "matrix-cycle-parallel/output.log": "c0c5e867aa791956f1950feac18a60d19035c4a705469a93ed087ae631eb7326",
+        "remaining-matrix-results.json": "77022ebc2c9073d2505bb8918a041b6782b147094366fc2bf5b90f1eaaa90bd6"
+      },
+      "source": "scripts/internal/recording_process_metrics.cpp:94-143"
+    },
+    {
+      "kind": "final-partial-adoption-review",
+      "reviewedAt": "2026-10-12T18:01:34.489Z",
+      "judgment": "PARTIAL_PRODUCT_DELTA_ACCEPTABLE_WITH_COLLECTION_BLOCKER_RETAINED",
+      "scope": "앞선 소스 독립 검토와 최종 해당 소비자/플랫폼 원출력의 한정 결론. 전체 R101 완료 또는 45분 진입 적격 승인 아님.",
+      "source": {
+        "baseHead": "0d1f6c072e6d50d223fbd902dadbf48e95a04898",
+        "runtimeSha256": "fb5d75efece9c0f1dcd76aeefe836f0f516369362119e8491ccdfc69000cd0e0",
+        "comparedFreezeFiles": 25,
+        "mismatches": [
+          "test/fixtures/project_feature_implementation_evidence.json"
+        ],
+        "exception": "최종 producer 적용 manifest 한 파일만 freeze와 다름. 제품·fixture 파일은 동일.",
+        "manifestSha256": "180fa082b30b4e6ca94a00db619721821734260c48a248c54d3b87d55cf404cd",
+        "manifestSemanticChangedKeysAgainstHead": [
+          "inventorySha256"
+        ]
+      },
+      "acceptedEvidence": {
+        "macRecordingVisualSource": {
+          "checks": 76,
+          "exit": 0,
+          "binding": "최종 runtime fb5d75... 연결. isolated-v2 copy diff는 초기화 전 기존 격리 guard와 비어 있는 recording 하위 root만이며 oracle/작업 변경 없음."
+        },
+        "macVisualApplication": {
+          "scope": "--scope-only: 실제 모델/worker, 이전 완성 게시 보존, 현재 Seek, scope 철회403, 채널 제거410, 손상원본배제, Stop503",
+          "checks": 94,
+          "exit": 0,
+          "limit": "24동시검색/200결과 추가 성능 범위는 scope-only에서 실행하지 않으므로 이번 소비자 결과로 주장하지 않음."
+        },
+        "macRequestMediaCache": {
+          "checks": 448,
+          "exit": 0,
+          "scope": "현재 원본 증명, LRU/용량/oversized, 응답 hold/FD 수명 및 실제 native seek 소비자 경계"
+        },
+        "macGenerationProof": {
+          "configurations": 4,
+          "result": "PASS",
+          "scope": "지원 crypto/backend 구성에서 exact raw/cache/Finish/late Remember/원본손상 반례; 비지원 구성은 V1 가용성 경계로 구분"
+        },
+        "linux": {
+          "uid": 10001,
+          "network": "none",
+          "productBuild": "PASS",
+          "generationProofConfigurations": 4,
+          "retention": {
+            "gstPass": 40,
+            "nonGstPass": 2,
+            "fail": 0
+          },
+          "exit": 0,
+          "containerAbsentReceipt": true,
+          "scope": "최종 cache 제품 빌드와 retention/generation 영향 회귀. Linux 모델 추론/성능 실행이라고 확대하지 않음."
+        }
+      },
+      "initialFailuresPreserved": [
+        "첫 mac 소비자 준비는 기존 격리 산출물이 있는 root를 제품 storage root로 전달해 Open 실패. 원문을 보존하고 빈 하위 recording root만 분리한 후 같은 oracle 실행.",
+        "첫 Linux 실행은 제품 빌드 뒤 소유 tmpfs noexec의 PermissionError로 실패. 원문과 exit1을 보존하고 같은 비특권/network-none 소유 mount의 exec 설정만 보완.",
+        "matrix-cycle-parallel의 collector closed=4 실패는 그대로이며 이후 영향 회귀가 이를 덮지 않음."
+      ],
+      "binding": {
+        "producer": {
+          "pass": 51,
+          "fail": 0
+        },
+        "readback": {
+          "reviewedCallChains": 986,
+          "negativeFixtures": "15/15",
+          "validationErrors": 0,
+          "review4GlobalErrors": 0
+        },
+        "coverage": {
+          "pass": 9,
+          "fail": 0,
+          "covered": 986,
+          "missing": 0
+        },
+        "featureInventory": {
+          "pass": 18,
+          "fail": 0
+        },
+        "scriptInventory": {
+          "pass": 13,
+          "fail": 0
+        },
+        "formatReceipt": "실제 producer 출력의 기존 2-space 포맷 복원, parsed semantic equality receipt. HEAD와 직접 JSON 대조에서 inventorySha256만 변경 확인.",
+        "limit": "986 기존 결속의 재사용·정적 readback이며 새 R101 동작이나 UI/장시간 실행 승인 대체 아님."
+      },
+      "blockingRemaining": {
+        "collector": "FD anonymous 관측 4회 모두 불완전. 누락 FD 종류/bytes와 실패 시 정확한 공간값은 미확정. 현재 증거로 더 작은 안전한 통과 정정 없음.",
+        "matrix": "첫 cycle/parallel 요청 전 중단. 뒤 7조건 미실행. 기존 cycle/background 및 이전 iteration 결과는 각 source/fixture 한정 근거로 유지.",
+        "run45": "0회, 선행 matrix 수집 조건 미충족으로 BLOCKED",
+        "run120": "미실행/새 승인 없음",
+        "memoryP0AndRelease": "미완료/보류 유지"
+      },
+      "partialAdoption": "원본당 current raw 검증, source binding 재검증, 보호·예약 및 cache 수명/회계 보존을 확인한 제한적 비용 개선의 채택과 실패를 포함한 기록 보존은 수용 가능하다. 전체 가용성·장시간성능·무누수·task100 원인 확정으로 확대하지 않는다.",
+      "preservationStillPending": "이 파일은 실행 root 원문 읽기 기반이다. 최종 선정 archive의 원본/정제 hash 대조, 로컬·원격 Git 실제 바이트 보존, 소유 root cleanup 및 최종 기록 일치 확인은 아직 별도 단계. 실패 로그·초기 준비 오류·collector 282B invalid 측정·미실행 범위를 보존해야 한다.",
+      "evidenceBindings": {
+        "consumer-recording_visual_source_smoke/execution.json": {
+          "bytes": 6507,
+          "sha256": "508750a239ca88300b9c7f3b53d0a2e5e918ebce57e7eba24d67c0405d56666b"
+        },
+        "consumer-recording_visual_source_smoke/run.log": {
+          "bytes": 2850,
+          "sha256": "df54a7017749d27c6ee3aef7a27a3dafb096d46bddfb3f72a06a00dca4c200b4"
+        },
+        "consumer-v2-recording_visual_source_smoke/execution.json": {
+          "bytes": 6554,
+          "sha256": "fda78102ff2f994737bd08f633ed3d3dcd8e3652ff2d862a813c94e8acdcdef6"
+        },
+        "consumer-v2-recording_visual_source_smoke/run.log": {
+          "bytes": 2860,
+          "sha256": "d86b71c5036364f202b0ed812297aa2fc80a78fdaf8c9e36cdbb0ad1a7b9f49c"
+        },
+        "consumer-v2-visual_search_application_smoke/execution.json": {
+          "bytes": 6655,
+          "sha256": "ee9591287fa358e2e151639b49c6a2a19eefa3089f9d261ec45a64f721e15f5e"
+        },
+        "consumer-v2-visual_search_application_smoke/run.log": {
+          "bytes": 4119,
+          "sha256": "78137bccec78ff182252b7e1a6acadfb90bdfe16c7851c05626524e27c9bc8cd"
+        },
+        "recording_visual_source_smoke-isolated-v2.cpp": {
+          "bytes": 12545,
+          "sha256": "8ca216f18b2d08343905beaa91658fc3c300883305bf5f7de65db8983e412db5"
+        },
+        "visual_search_application_smoke-isolated-v2.cpp": {
+          "bytes": 17473,
+          "sha256": "7beb6df7d0f08121f3fd4aa467d4e881aa444732934e05298d58cc9fa4f981fe"
+        },
+        "verified-decode-media-cache.json": {
+          "bytes": 6424,
+          "sha256": "e8af64d6e469b3a5bd658b58984f4a05209537105820b7992204dfbb0305fa20"
+        },
+        "verified-decode-media-cache-run.log": {
+          "bytes": 20042,
+          "sha256": "45d7e33b0cc64d133a20f07b0352d1bc7b0831fe50eaa3f6d82db3ae344cd50f"
+        },
+        "verified-decode-final-proof.log": {
+          "bytes": 18370,
+          "sha256": "596565cf83f143a127a05c5f3df825c22b4b85208e133b9804eb307ee9aae8d4"
+        },
+        "verified-decode-linux-execution.json": {
+          "bytes": 1085,
+          "sha256": "544f544cc45d15f6900e5d4a4169112046ea63c589694f5fb089d245a681561a"
+        },
+        "verified-decode-linux.log": {
+          "bytes": 21461,
+          "sha256": "42bfbf5cf9d45c13a8f301d588d159d2e98a636a0a5f8797cf21e4ea8cfe0b65"
+        },
+        "verified-decode-linux-exec-execution.json": {
+          "bytes": 1369,
+          "sha256": "8acd06c6dc31f7be371dec40cb6ae6be66a14cd42d71e41f450d6b949c9d9f47"
+        },
+        "verified-decode-linux-exec.log": {
+          "bytes": 48784,
+          "sha256": "d032ad727e487e39ebb2ec7a5b2e09dd7e4e747f0b01d76b1e07ff7cf80db27a"
+        },
+        "cache-final-producer.log": {
+          "bytes": 12812,
+          "sha256": "d044f8ac77f4e3e0a7ee0672c9d63381151b9f522393a0aa536f910913ef258f"
+        },
+        "manifest-format-receipt.json": {
+          "bytes": 352,
+          "sha256": "f72cb3f070d02c787abb29370b03fe0b01c6cc4b490ff6caa7552baa2b53ddd9"
+        },
+        "final-readback.log": {
+          "bytes": 1141,
+          "sha256": "f004e8a145e0b287322992e5f2f9c356c12a495834505e9ea79a414fd1f6b6f7"
+        },
+        "final-coverage.log": {
+          "bytes": 604,
+          "sha256": "f3dd9d2ec3cd35ce7a806a391b6918dddd2c2377ca3039afa624f484985f9bce"
+        },
+        "final-inventory.log": {
+          "bytes": 210255,
+          "sha256": "4670513193842f03ec9ea567062efe9d2dd303d621716a5cb95876d48b1dc1cd"
+        },
+        "final-script-inventory.log": {
+          "bytes": 941,
+          "sha256": "92e692a3173f517ac5430005d1cf361195ac0dad7e505a2ffaddc893da6cdecf"
+        }
+      }
+    }
+  ]
+}

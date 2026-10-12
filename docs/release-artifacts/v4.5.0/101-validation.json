@@ -1,0 +1,280 @@
+{
+  "schema": "media-server.v450.validation.v1",
+  "task": 101,
+  "status": "PARTIAL_PRODUCT_IMPROVEMENT_FINAL_MATRIX_COLLECTION_BLOCKED",
+  "scope": "Catalog 경합의 직접 재현·제품 개선과 영향 회귀. 최종 규모 묶음과45분 적격은 미충족; 메모리 P0/출시 보류.",
+  "model": {
+    "requestedMain": "gpt-6-astra/high",
+    "mainToolAccepted": "not-exposed",
+    "mainActualRuntime": "not-exposed",
+    "requestedIndependent": "gpt-6-astra/high",
+    "independentReviewer": "/root/independent_memory86",
+    "independentToolAccepted": "기존 별도 검토자 생성 수락 기록 재사용; followup 값 미노출",
+    "independentActualRuntime": "not-exposed"
+  },
+  "source": {
+    "entryHead": "0d1f6c072e6d50d223fbd902dadbf48e95a04898",
+    "entryRemoteHead": "0d1f6c072e6d50d223fbd902dadbf48e95a04898",
+    "entryWorktreeIndex": "clean",
+    "baselineProduct": "981952dd169574e302aedf1600d0e492d7426c73",
+    "executionBinding": "entry HEAD + run별 source freeze/diff; 이후 커밋을 실행 당시 HEAD로 소급 표기하지 않음",
+    "finalRuntimeSha256": "fb5d75efece9c0f1dcd76aeefe836f0f516369362119e8491ccdfc69000cd0e0",
+    "finalProductBinary": {
+      "sha256": "0ae09b7012ebc9d10bdf882d8f5810accc67f42510ae9885d91df14d28362623",
+      "bytes": 37103920
+    },
+    "finalFixtureSha256": "596350c9519de36a192651ad92a1cc1b6684fac195f1d2f0aa3b6163894e86ec",
+    "finalFixtureBinarySha256": "8b8cbf4e09ea8648413baf34e03ed364c53376ccc1656caa694388e5bb4c35f0",
+    "finalSourceRecheck": "101-execution.tar.gz:final-source-recheck.json",
+    "nonExecutionDeltaAfterFreeze": "producer inventorySha256와 JSON 공백, 현행 상태 문서만; 제품/fixture 불변",
+    "implementationCommit": "9b949da1dada2bcb5f14480ed59d5f66b96b92cb",
+    "implementationTree": "658ebd4adcda72ea64c0d9fa7b778aa172841195"
+  },
+  "preflight": {
+    "ownedParent": "/private/tmp/media-server-r101-efj0l7cx",
+    "uid": 501,
+    "host": "approved macOS host; existing GStreamer/ONNX/SigLIP2 and isolated registry",
+    "isolation": "95 native helper + preinitialization binary guard; user default/private95backup not accessed",
+    "limits": {
+      "requestSeconds": 5,
+      "p95Ms": 2000,
+      "maxMs": 5000,
+      "channelQuotaBytes": 91226112,
+      "defaultReservationBytes": 67108864,
+      "workspaceVariableBytes": 469762048,
+      "rssBytes": 4294967296,
+      "perProcessLogBytes": 4194304
+    },
+    "modelPreparation": "기존8GiB 준비 계약을 constructor 구간에만 연결. 새448MiB model 사본 초과 실패 원본 보존; model 준비를 live 공간 PASS로 합산하지 않음"
+  },
+  "changes": [
+    "native retention 소비자별 Authority/Pending/Candidate/Channel snapshot; 실제 보호/잔여량 재판정 유지",
+    "같은 cut의 empty namespace와 이미 인증한 현재 행 재사용; 비어 있지 않은 namespace의 원본 검증 유지",
+    "source binding strict parse/copy를 소유 예약 아래 Catalog 잠금 밖으로 분리; 재잠금 후 authority/lifecycle/현재 exact raw와 소비자 media 검증",
+    "매 호출의 현재 raw 인증 후 exact bytes가 같은 parsed segment만 재사용. store당16MiB, 기존640MiB owner 내; eviction/held reader/Finish/late remember/Set/erase 수명 보호",
+    "기존 holder trace의 첫3 또는 late3 전체 요청 선택.8192행·4MiB·손실 거부; 기본7/41/77 정책 불변"
+  ],
+  "causalEvidence": {
+    "baseline": "before-cycle-background: 채널별696개 새 등가 상태,12요청 중5실패,p95/max10151.7ms. task100 저장소 복원이 아님",
+    "matchedCacheBoundary": "iteration5 diagnostic-first 대 iteration6 verified-decode: 첫 요청 Catalog wait4966.008→1200.433ms, retention holder overlap2793.670→223.065ms",
+    "unclassifiedAfterMs": 682.812,
+    "past100Owner": "미확정 유지. 새 통제 실행의 holder 귀속을 당시 owner로 소급하지 않음",
+    "timingScope": "동일 mutex의 실제 중첩; inclusive span 합산 금지. 계획·fixture·hash·원출력은 run별 보존"
+  },
+  "finalProductLargeBackground": {
+    "command": [
+      "/private/tmp/media-server-r101-efj0l7cx/contention",
+      "/private/tmp/media-server-r101-efj0l7cx/publication-cycle-background",
+      "/Users/dhseo/Workspace/mediaServer/models/v430-siglip2",
+      "cycle",
+      "background"
+    ],
+    "cwd": "/private/tmp/media-server-r101-efj0l7cx/publication-cycle-background",
+    "uid": 501,
+    "head": "0d1f6c072e6d50d223fbd902dadbf48e95a04898",
+    "fixtureSha256": "504784fad1fe0891488db0f86bbb1e5caf4549d9f77fae9b461cf6e2d94d0c42",
+    "archiveSha256": "fb5d75efece9c0f1dcd76aeefe836f0f516369362119e8491ccdfc69000cd0e0",
+    "mode": "background",
+    "scale": "cycle",
+    "isolation": "native helper + preinitialization binary guard",
+    "receivedBytes": 1328193,
+    "savedBytes": 1328193,
+    "timeout": false,
+    "overflow": false,
+    "limitBytes": 4194304,
+    "deadlineSeconds": 630,
+    "binarySha256": "eed40ac38d7650ad6bd3cac669820c4f7e5ab054283375ec2417a61ae10463d8",
+    "collectionError": null,
+    "signal": null,
+    "monitorExit": 0,
+    "observerReady": true,
+    "groupAbsent": true,
+    "pid": 62865,
+    "exit": 0,
+    "qualification": {
+      "requests": 12,
+      "p95Ms": 1562.75,
+      "maxMs": 1562.75,
+      "spaceSamples": 373,
+      "scope": "status/shape/order/seek metadata and trace/progress/owner gates; not exhaustive top-k or actual Seek execution"
+    },
+    "elapsedSeconds": 376.5910024160985,
+    "actualWrites": 6,
+    "actualDeletes": 8,
+    "publishedGeneration": 2,
+    "publishedState": "ready",
+    "separatePublicationWaitMs": 7146.5,
+    "peakObservedRssBytes": 3191275520,
+    "ownerAfterStorageDestruction": {
+      "ram": 0,
+      "scratchDisk": 0,
+      "scratchFd": 0
+    },
+    "fixtureProvenance": "이 실행 뒤 fixture의 상태 판정 순서/degraded 기록/stopped 거부만 보완. 현재 계약으로 실제 ready 원문 readback PASS. 최신 fixture 재실행으로 표기하지 않음",
+    "correctnessScope": "status/shape/order/seek metadata; exhaustive top-k 및 이 fixture 자체의 실제 Seek는 별도 직접 소비자와 기존 불변 알고리즘 근거"
+  },
+  "finalMatrix": {
+    "freeze": "remaining-matrix-freeze.json",
+    "firstAttempt": "matrix-cycle-parallel",
+    "status": "FAIL_RESOURCE_COLLECTION_PRECONDITION",
+    "elapsedSeconds": 112.09505070792511,
+    "requestsObserved": 0,
+    "completeSamples": 111,
+    "collectorError": "fd-observation-incomplete:capacity=0:closed=4",
+    "meaning": "FD 전수 관측4회가 닫힌 vnode FD 때문에 각각 불완전. 서로 다른4개 FD/익명파일/bytes는 알 수 없음. 측정불가를0으로 바꾸지 않음",
+    "failedMetrics": null,
+    "failureOperands": "matrix-cycle-parallel/workspace-first-failure.json",
+    "nativeExit": -15,
+    "nativeSignal": 15,
+    "groupAbsent": true,
+    "receivedBytes": 210059,
+    "savedBytes": 210059,
+    "remainingConditions": [
+      [
+        "cycle",
+        "single"
+      ],
+      [
+        "4",
+        "single"
+      ],
+      [
+        "4",
+        "parallel"
+      ],
+      [
+        "4",
+        "background"
+      ],
+      [
+        "53",
+        "single"
+      ],
+      [
+        "53",
+        "parallel"
+      ],
+      [
+        "53",
+        "background"
+      ]
+    ],
+    "remainingStatus": "not-run after first failure",
+    "notEstablished": [
+      "space cap violation",
+      "RAM leak",
+      "search latency failure on this attempt"
+    ]
+  },
+  "regressions": {
+    "macOS": {
+      "generationConfigurations": "verified-decode-final-proof.log: generation/crypto/SQLite 기존4구성 PASS, Werror",
+      "sourceConsumer": "consumer-v2-recording_visual_source_smoke:76 PASS",
+      "applicationConsumer": "consumer-v2-visual_search_application_smoke:94 PASS, 실제 모델·권한/Stop/삭제 경계",
+      "requestMedia": "verified-decode-media-cache.json:448 PASS,8MiB/200entry·held reader·tamper·native exact seek·FD 회수",
+      "holderTrace": "final-trace-tests.log:38 PASS",
+      "syntheticPublicationContract": "publication-final-contract-test.log:3 methods PASS; 제품 실행과 구분"
+    },
+    "linux": {
+      "execution": "verified-decode-linux-exec-execution.json",
+      "image": "sha256:ce72c8a15363984da642e9964189957896812061c6af1d0ef67e87b38ad5a588",
+      "uid": 10001,
+      "network": "none",
+      "productBuild": "PASS",
+      "retention": "PASS",
+      "generationConfigurations": "4 PASS",
+      "containerAbsent": true
+    },
+    "firstFailuresPreserved": [
+      "source proof hook self-clear SIG139 and temporary-input lifetime fixture",
+      "shared Default owner 때문에 owner0 fixture FAIL; 전용 owner/late Finish 검증으로 수정",
+      "consumer root가 empty runtime store가 아니어서 Open FAIL; 실제 error 문자열은 최초 출력에 없음",
+      "Linux tmpfs noexec PermissionError; exec owned mount로만 수정",
+      "verified-decode requests PASS지만 publication 미진행 FAIL",
+      "최초 model 준비448MiB 초과 및 모든 iteration 지연/503 실패"
+    ],
+    "scope": "기존 exact score/top-k·K/F/원본/권한 계약은 변경 영향별 재사용; 전체 acceptance/UI 재실행 아님"
+  },
+  "binding": {
+    "candidateDigest": "8977e9b6ac618c7e0233823f6acb6ab1fcf7461206ee5d8b2a4149a643519e3a",
+    "legacyRows": 986,
+    "candidateMeaning": "동일 digest는 새 제품 독립 승인 대체가 아님",
+    "producer": "cache-final-producer.log:51 PASS/0 FAIL",
+    "readback": "final-readback.json:0 validation errors/15 negative fixtures",
+    "coverage": "final-coverage.json:9 PASS/0 FAIL",
+    "inventory": "final-inventory.log:18 PASS/0 FAIL",
+    "scriptInventory": "final-script-inventory.log:13 PASS/0 FAIL",
+    "diffCheck": "PASS"
+  },
+  "reuse": {
+    "prior": "99 준비·97/98 보호·95 격리·96 피연산자·기존 비상주/K/F/B/C/D 근거를 실제 불변 범위에서 유지",
+    "previousIterations": "작은4/실패53 규모6조건 및 이전 cycle 단독/병행 PASS는 각 이전 runtime 근거. 최종 cache 제품의 전 규모 PASS로 승격하지 않음",
+    "historicalFailures": "100 및 이전 FAIL/원문/미확정 변경 없음"
+  },
+  "notRun": {
+    "stateDiagnostic45MinutesAttempts": 0,
+    "reason": "최종 직접 수집 선행 조건 미충족",
+    "new120Minutes": 0,
+    "fullAcceptance": false,
+    "fullUI": false,
+    "PRMergeTagRelease": false
+  },
+  "nextRequired": [
+    "decoder FD churn 중 익명파일 전수 관측의 유한·완전한 수집 경계 확인. skip/0/이전값/재시도상한 확대 없이 기존 자원 보호 유지",
+    "최종 제품의 남은 규모·병행 조건 완료와45분 진입 재판정",
+    "45분 누적 및 최종120분·전체메모리P0는 미충족. 출시 보류"
+  ],
+  "cleanup": {
+    "status": "evidence preservation and final owned-root cleanup pending",
+    "nativeAndContainerExecutions": "각 실행 receipt의 groupAbsent/containerAbsent 확인",
+    "userDefaultsAndPrivate95Backup": "not accessed; excluded from archive and cleanup",
+    "modelsSDKImages": "retained"
+  },
+  "qwenOllamaCalls": 0,
+  "unloadGate": "not-run",
+  "decision": {
+    "overallRequestedCompletion": false,
+    "limitedProductImprovement": true,
+    "memoryP0Complete": false,
+    "releaseHold": true,
+    "ownerRiskAcceptance": "not-granted",
+    "automaticRetry": false
+  },
+  "independentReview": {
+    "path": "101-independent-review.json",
+    "sha256": "b1e73ec46645316fafa62b84a7019d61e23871811632f89526583d87bd30b163",
+    "verdict": "limited product delta accepted; remaining matrix and45 BLOCKED"
+  },
+  "artifacts": {
+    "path": "docs/release-artifacts/v4.5.0/101-execution.tar.gz",
+    "sha256": "fafbd5412fa4c56f6b640cc4af4e6c171d5d5b4af1419350018073b41f072ef4",
+    "compressedBytes": 14219690,
+    "sourceFiles": 366,
+    "sourceBytes": 141926257,
+    "memberReadback": "all exact original selected bytes verified",
+    "manifestMember": "preservation-manifest.json"
+  },
+  "closeoutChecks": [
+    {
+      "command": [
+        "node",
+        "scripts/internal/verify_docs_links.mjs"
+      ],
+      "exit": 0,
+      "stdoutStderr": "\n== Docs link verification summary ==\n- markdown files: 302\n- local links: 9399\n- local images: 14\n- local anchors: 429\n- indexed docs: 93\n- index coverage exclusions: 192\n- failures: 0\n",
+      "bytes": 186,
+      "sha256": "928cb3127da1116acfcec66abf23abdbccafe645fe9ad202b6d6221ac57c819b"
+    },
+    {
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "exit": 0,
+      "stdoutStderr": "",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}
