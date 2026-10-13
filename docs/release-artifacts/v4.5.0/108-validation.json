@@ -2146,9 +2146,50 @@
     "members": 128,
     "memberBytes": 42187970,
     "byteReadback": "all selected source bytes equal archive member",
-    "remote": "pending"
+    "remote": {
+      "method": "fresh empty bare partial clone from origin, fetched required blobs; not local-object comparison only",
+      "remoteCommit": "cb75b9a169fd683111652c2a0778cb2f49ec17d1",
+      "localCommit": "cb75b9a169fd683111652c2a0778cb2f49ec17d1",
+      "files": {
+        "docs/release-artifacts/v4.5.0/108-execution.tar.gz": {
+          "bytes": 5692347,
+          "sha256": "3a989fb674e8c198706cf2c2a5590e90f0a3cc450fddf82ae2df9e059f126709",
+          "remoteCommit": "cb75b9a169fd683111652c2a0778cb2f49ec17d1"
+        },
+        "docs/release-artifacts/v4.5.0/108-validation.json": {
+          "bytes": 56784,
+          "sha256": "f10d3444f6e86b54993849fc2d46d49b4888dd47e898f3d904baf6c2ab705c60",
+          "remoteCommit": "cb75b9a169fd683111652c2a0778cb2f49ec17d1"
+        },
+        "docs/release-artifacts/v4.5.0/108-independent-review.json": {
+          "bytes": 2710,
+          "sha256": "313580b73ba7c100127b92e43f40fd07f1f001dd8beb458b16d834c5516fbb0d",
+          "remoteCommit": "cb75b9a169fd683111652c2a0778cb2f49ec17d1"
+        }
+      },
+      "allEqual": true
+    }
   },
-  "cleanup": "own child groups absent/owner0; Linux --rm complete. Root deletion and remote bytes pending; this same record will be updated after verification. User settings/private95backup/models/SDK untouched.",
+  "cleanup": {
+    "ownedRoot": "/private/tmp/media-server-r108-xirdf4lq",
+    "removed": true,
+    "removedFiles": 7158,
+    "logicalBytes": 696474894,
+    "symlinkEntriesRemovedWithoutFollowing": 0,
+    "checks": {
+      "before-httpGroupAbsent": true,
+      "after2-httpGroupAbsent": true,
+      "port60074Absent": true,
+      "port60904Absent": true,
+      "linuxContainerAbsent": true,
+      "wrapperCleanupPathsAbsent": 17
+    },
+    "receiptPointerRemoved": true,
+    "userSettingsPrivate95BackupModelsSdk": "not accessed, uploaded or removed",
+    "QwenOllamaCalls": 0,
+    "unloadGate": "not-run",
+    "limits": "failure output and changed store bytes preserved before removal; explicitFinishPASS distinct from p95FAIL"
+  },
   "remaining": [
     "actual HTTP p95<=2000 notmet; firstselected unclassifiedwait921.847ms remains",
     "direct deletionprogress notdemonstrated",
