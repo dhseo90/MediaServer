@@ -1,0 +1,377 @@
+{
+  "task": "R105",
+  "reviewer": "independent_memory86",
+  "reviewedAt": "2026-10-13T06:21:30.886Z",
+  "status": "DIRECT_CHANGE_ACCEPTED_MIXED900_FAIL_45_BLOCKED",
+  "blockingFindings": [
+    {
+      "kind": "mixed-functional-latency",
+      "evidence": "current observation: http-header-timeout",
+      "scope": "승인된 수정후900 1회가 완료하지 못했으므로 45분 진입 조건 미충족"
+    }
+  ],
+  "independence": {
+    "implementation": false,
+    "testAuthoring": false,
+    "testOrProductExecution": false,
+    "subdelegation": false,
+    "scope": "기존 source/원출력 읽기, hash 대조, 기존 숫자·interval 재계산과 본 독립 JSON 작성",
+    "userConfigurationOrPrivate95BackupAccess": false
+  },
+  "model": {
+    "requested": "gpt-6-astra",
+    "requestedEffort": "high",
+    "accepted": "이전 별도 reviewer 생성 수락 기록 재사용에 관한 parent 인계; 이번 follow-up 신규 설정 수락은 관측하지 않음",
+    "actualRuntimeModel": "unconfirmed/not-exposed",
+    "actualRuntimeEffort": "unconfirmed/not-exposed"
+  },
+  "source": {
+    "execution": {
+      "head": "5a05142f99741f5fc5a2d9c0eebad84b9820d118",
+      "fixtureProfile": "continuous-r98",
+      "fixtureProfileSourceSha256": "db080d7271ee2f6ec82ff130ff9a92a87669b0722c05bb7f49d48197f1fb4249",
+      "tree": "ec161dfd3f9855b0c8d214e2d0cb64d11af1bc42",
+      "sourceSha256": "72039009ca29fd22ef63dc15e07c3b06027c5b2eeb71fc044dd9e6cecce282b0",
+      "binarySha256": "26c471ff42c43680b81dc7955dbb9c636c5123463e034c0af3f9cc7be023a0fd"
+    },
+    "end": {
+      "head": "5a05142f99741f5fc5a2d9c0eebad84b9820d118",
+      "fixtureProfile": "continuous-r98",
+      "fixtureProfileSourceSha256": "db080d7271ee2f6ec82ff130ff9a92a87669b0722c05bb7f49d48197f1fb4249",
+      "tree": "ec161dfd3f9855b0c8d214e2d0cb64d11af1bc42",
+      "sourceSha256": "72039009ca29fd22ef63dc15e07c3b06027c5b2eeb71fc044dd9e6cecce282b0",
+      "binarySha256": "26c471ff42c43680b81dc7955dbb9c636c5123463e034c0af3f9cc7be023a0fd"
+    },
+    "sourceEndEqual": true,
+    "currentFreezeMismatches": [],
+    "runtimeSha256": "aa8c244f3529f7a22991ca234ea941abe1da03d4664e1d697b03003ef969bba3",
+    "priorDirectReviewSha256": "30719c58e2862eb1b41c5b2e9d5d1f39db25ba509b2a8b9ba769fee95e982147",
+    "currentWholeWorkingTreeClean": "not asserted; product freeze equality is separate"
+  },
+  "execution": {
+    "attempts": {
+      "after900": 1,
+      "state45": 0
+    },
+    "mode": "--contention-diagnostic",
+    "plannedObservationSeconds": 900,
+    "deadlineSeconds": 1080,
+    "status": "FAIL",
+    "exit": 1,
+    "wrapperTimedOut": false,
+    "executionElapsedSeconds": 666.3098297910765,
+    "elapsedSeconds": 666.3100184160285,
+    "totalWithFinalBindingSeconds": 666.522991332924,
+    "javascriptElapsedMs": 660827,
+    "passed": 1777,
+    "failed": 1,
+    "lastMainProgressElapsedMs": 646435.828625,
+    "resourceSampleSpanMs": 646210.914917,
+    "timingLimit": "마지막 표본/본 진행 시각은 실제 첫 실패시각과 같다고 단정하지 않음",
+    "verifiedDurationMs": null,
+    "longrunObservationCompleted": false,
+    "phase": null
+  },
+  "failure": {
+    "firstFailure": "current observation: http-header-timeout",
+    "clientFailures": [
+      {
+        "method": "GET",
+        "routeClass": "other",
+        "status": null,
+        "headerElapsedMs": null,
+        "bodyElapsedMs": null,
+        "totalElapsedMs": 5002,
+        "bytes": 0,
+        "phase": "header",
+        "outcome": "timeout",
+        "routeKind": "/ops/api/recordings/visual-search"
+      },
+      {
+        "method": "GET",
+        "routeClass": "other",
+        "status": null,
+        "headerElapsedMs": null,
+        "bodyElapsedMs": null,
+        "totalElapsedMs": 5021,
+        "bytes": 0,
+        "phase": "header",
+        "outcome": "timeout",
+        "routeKind": "/ops/api/recordings/visual-search"
+      }
+    ],
+    "lateServerFailures": [
+      {
+        "id": 88,
+        "status": 503,
+        "code": "visual-search-unavailable",
+        "elapsedMs": 5109.754625,
+        "catalogLocks": 290,
+        "catalogWaitMs": 3318.244043,
+        "catalogHeldMs": 652.395081
+      },
+      {
+        "id": 87,
+        "status": 503,
+        "code": "visual-source-changed",
+        "elapsedMs": 5111.956167,
+        "catalogLocks": 305,
+        "catalogWaitMs": 3331.302661,
+        "catalogHeldMs": 677.975748
+      }
+    ],
+    "interpretation": "두 client는 헤더 전 예산을 소진했다. 서버는 이후 요청87/88을 서로 다른 기존503 코드로 마쳤다. 늦은 서버 완료는 client 성공/timeout 해소가 아니다. 선택 holder는 이 실패 요청을 완전히 담지 않아 상대 작업/근본원인은 미확정.",
+    "workspaceFailure": {
+      "status": "no-workspace-failure",
+      "primary": null,
+      "decision": null,
+      "collectorDiagnostic": null,
+      "context": null,
+      "collectionError": null,
+      "capacityBytes": 32768
+    },
+    "collectorFailureObserved": false
+  },
+  "partialSearch": {
+    "originalSuccessfulArrayCount": 172,
+    "ceilP95Ms": 2900.6460829999996,
+    "maxMs": 4292.511290999944,
+    "finalLatencyGate": "NOT_RUN",
+    "partialP95Exceeds2000": true,
+    "population": "본 성공배열172=장면86+구조화86; timeout 제외. 최종gate PASS/FAIL로 소급하지 않는다.",
+    "httpRouteCounts": {
+      "structured200": 99,
+      "visual200": 86,
+      "visualTimeout": 2
+    },
+    "extraStructured200": "99에는 A보조11과 실패batch 구조화2가 들어 있어 본172 분모에 합치지 않음",
+    "serverVisualStartedCompleted": {
+      "started": 88,
+      "completed": 88
+    }
+  },
+  "progress": {
+    "ACompleted": 11,
+    "completedMixedCycles": 42,
+    "generalEvidenceComplete": 42,
+    "visualEvidenceCreated": 42,
+    "lastDrainedPrefix": {
+      "9101": {
+        "finalized": 322,
+        "deleted": 0
+      },
+      "9201": {
+        "finalized": 322,
+        "deleted": 0
+      }
+    },
+    "prefixLimit": "322/0씩은 마지막 관측한 drained prefix이며 정상 종료 뒤 전체 tail 확정 수로 확대하지 않음. 이번900의 삭제0 허용은 기존 다른 gate 완화가 아님."
+  },
+  "selectedHolderReview": {
+    "selectedRequest": 69,
+    "selectedStatus": 200,
+    "selectedElapsedMs": 2542.147625,
+    "rawRows": 2075,
+    "artifactRowsExactRaw": true,
+    "rawFooterFieldsMatchArtifact": true,
+    "artifactFooterAdditionalFields": "requests/windows/ends는 parser의 normalized singleton fields; 원문에 있었다고 주장하지 않음",
+    "footer": {
+      "version": 3,
+      "records": 2075,
+      "loss": false,
+      "inflight": 0,
+      "endNs": 657427893708,
+      "request": 69,
+      "begin": 515940143792,
+      "end": 518482291417,
+      "thresholdNs": 2000000000,
+      "overwrittenEndNs": 509398816958,
+      "completedRequests": 88,
+      "maxCompletedNs": 5111956167
+    },
+    "selectedLockCount": 341,
+    "waitMs": 1857.661253,
+    "heldMs": 474.145509,
+    "sameMutexWaitCoveredUnionMs": 1368.20786,
+    "unclassifiedWaitMs": 489.453393,
+    "overlapMsByWork": {
+      "1": 386.08042,
+      "4": 534.177902,
+      "5": 74.268333,
+      "3": 252.627334,
+      "0": 121.053871
+    },
+    "workNames": {
+      "1": "visual",
+      "3": "retention",
+      "4": "index",
+      "5": "writer",
+      "0": "work 미지정; 별도 미귀속 wait와 구분"
+    },
+    "limits": [
+      "첫 slow 완료 요청69 하나의 구간만 완전 관측. 2075 전체 row를 요청69 자신의 lock 수로 사용하지 않는다.",
+      "동일 mutex의 실제 hold/wait 교집합을 합하고 union으로 독립 재계산했다. inclusive phase와 held를 추가로 더하지 않는다.",
+      "work1 상대 visual은 요청70/thread432이며 선택 요청69 자체 비용과 구분한다.",
+      "실패 요청87/88 상대 작업이나 R104 실패 원인을 선택69로 소급 복원할 수 없다.",
+      "비교 모집단/진행량이 달라 R104와의 단순 성공률·p95 개선율을 주장하지 않는다."
+    ]
+  },
+  "collectionAndResources": {
+    "samples": 130,
+    "allFdCompleteSequential": true,
+    "roundHistogram": {
+      "1": 125,
+      "4": 1,
+      "2": 4
+    },
+    "separateSampleMaxima": {
+      "rssBytes": 3220553728,
+      "footprintBytes": 3171765536,
+      "anonymousFileBytes": 20931584,
+      "anonymousAllocatedBytes": 22839296,
+      "fdCount": 48,
+      "threadCount": 43
+    },
+    "maximaLimit": "각 최대값은 시각이 다를 수 있어 합산하지 않음. 순차 표본/관측범위 통과이며 원자 peak나 누수 부재가 아님.",
+    "resourceTrendPass": false,
+    "reviewRequired": true,
+    "postWarmup": {
+      "status": "observed",
+      "sampleCount": 70,
+      "delta": {
+        "rssBytes": 78807040,
+        "threadCount": 0,
+        "fdCount": 7,
+        "mutationCount": 690
+      },
+      "elapsedMs": 345934.09008299996,
+      "rssMiBPerMinute": 13.03535884225248
+    },
+    "ownerSequenceComplete": true,
+    "ownerFinal": {
+      "pid": 3019,
+      "seq": 133,
+      "phase": "after-storage-destruction",
+      "elapsedMs": 657355,
+      "ram": 0,
+      "ramPeak": 397955175,
+      "ramLimit": 671088640,
+      "ramRejected": 0,
+      "scratchDisk": 0,
+      "scratchDiskPeak": 69492736,
+      "scratchDiskLimit": 155489505280,
+      "scratchFd": 0,
+      "scratchFdPeak": 16,
+      "scratchFdLimit": 1048572,
+      "scratchRam": 0,
+      "preservedDisk": 0,
+      "preservedFd": 0,
+      "readerCleanupHealthy": true
+    },
+    "ownerLimit": "공유 owner의 logical charge이며 RSS/전체 heap과 다름; 최종0은 종료 후 해당소유권 해제 근거",
+    "serverCapture": {
+      "pid": 3019,
+      "bytes": 587283,
+      "capturedBytes": 587283,
+      "sha256": "03c32b433dd10c764056a6286f6c13590c1fe66f1d49ba110fa6bc1b4df4b5ad",
+      "overflow": false,
+      "captureError": null,
+      "categories": [
+        {
+          "code": "file evidence unavailable",
+          "count": 0
+        },
+        {
+          "code": "storageBlocked",
+          "count": 0
+        },
+        {
+          "code": "shutdown",
+          "count": 0
+        },
+        {
+          "code": "ERROR",
+          "count": 0
+        },
+        {
+          "code": "WARNING",
+          "count": 0
+        }
+      ],
+      "rawBodyPublished": false,
+      "privateCaptureDisposition": "eligible-for-wrapper-cleanup"
+    },
+    "privateRawHashMatchesReceipt": true,
+    "boundedFrame": {
+      "records": 3,
+      "allSucceeded": true,
+      "scope": "대표3개 bounded 직접 decode; 전체 media 전수 검증 아님"
+    }
+  },
+  "termination": {
+    "processReceipt": {
+      "schema": "recording-process-cleanup-v1",
+      "attemptCount": 1,
+      "pid": 3019,
+      "exitCode": 0,
+      "signalCode": null,
+      "exitedObserved": true,
+      "stopCode": "complete",
+      "forcedTermination": "not-used",
+      "normalExitPass": true,
+      "normalShutdownPass": true,
+      "archiveSafe": true,
+      "ports": [
+        {
+          "kind": "http",
+          "port": 52430,
+          "status": "pass",
+          "code": "closed",
+          "closed": true
+        },
+        {
+          "kind": "rtsp",
+          "port": 52431,
+          "status": "pass",
+          "code": "closed",
+          "closed": true
+        }
+      ]
+    },
+    "wrapperGroupAbsent": true,
+    "registeredGroupsAbsent": true,
+    "cleanupErrors": [],
+    "processesClosed": true,
+    "udpClosed": true,
+    "interpretation": "finally의 정상 productexit0·그룹/포트닫힘은 확인되나 미실행 명시 disable·closed-journal·후속 복구 성공을 대체하지 않는다. 실행root 삭제는 아직 pending."
+  },
+  "notRun": [
+    "900 전체 관측 완료/최종 지연 gate/최종 sample coverage",
+    "명시 setting disable 및 closed journal assertion",
+    "후속 controls/복구/restart/reactivation (이번900 모드 밖 후속 전체수명 검증 포함)",
+    "45분",
+    "120분"
+  ],
+  "finalScope": {
+    "directCodeAcceptance": "유지: 중복 discovery/hold 제거, 현재성/원본검증 유지와 직접 회귀·관측 범위. 혼합 실패가 기존 직접 근거를 소급 무효화하지 않는다.",
+    "mixedRequirement": "FAIL; timeout 해결 미입증",
+    "eligible45": false,
+    "additional900OrProductChange": "승인/실행하지 않음; 자동 반복 없음",
+    "memoryP0": "BLOCKED",
+    "release": "HOLD",
+    "preservation": "아카이브/Git/remote byte 보존 준비 pending",
+    "ownedRootCleanup": "pending; process termination와 구분"
+  },
+  "evidenceSha256": {
+    "mixed-freeze.json": "3a1efa2fe902f64e54a8e44f196a2e1a82cc7ba49e4c777e97aec9acc731e620",
+    "after-freeze.json": "9ce803cdd33b5deda99881f4719bbf3550437f3b4a86bba804afb67f862b255f",
+    "independent-direct-review.json": "30719c58e2862eb1b41c5b2e9d5d1f39db25ba509b2a8b9ba769fee95e982147",
+    "mixed-analysis.json": "eaca123ab7c19f8bb21830a56b4884bf92d122f21eeb45ad0fad69ce2f1eb1d2",
+    "analyze-mixed.py": "1f0768403d026d1f781c51bfbccb2011c18a11146b92621db5d9e3e3882604ae",
+    "after900/execution.json": "24d61986717604cb79f81b28c56ab585e92eee6edc6719f83df08b0daa5e44e5",
+    "after900/run.log": "9ae5644f78f71793cbbacfbe591c4b8fb86a88819478dacb06e5db75dd48d2d9",
+    "after900/artifacts/report.json": "cb15837afb74b605836189642af9d603e63585d5bba3d3a8d7fd8184f58452a4",
+    "after900/media-server-current-observer-WNGY96/catalog-holders-3019.json": "01c7c298ddb5d6cc71d1c8c81905d511290db3f196ee5b931815295b01e1a56b",
+    "after900/media-server-current-observer-WNGY96/server-1.private.log": "03c32b433dd10c764056a6286f6c13590c1fe66f1d49ba110fa6bc1b4df4b5ad"
+  }
+}

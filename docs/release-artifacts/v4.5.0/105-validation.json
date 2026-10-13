@@ -1,0 +1,670 @@
+{
+  "task": 105,
+  "status": "LIMITED_DIRECT_PASS_MIXED_FAIL",
+  "memoryP0": "BLOCKED",
+  "release": "HOLD",
+  "ownerRiskAcceptance": "not-granted",
+  "model": {
+    "mainRequested": "gpt-6-astra/high",
+    "mainToolAccepted": "not-exposed",
+    "mainActualRuntime": "unconfirmed/not-exposed",
+    "reviewer": "separate independent_memory86; previous Astra/high acceptance reused; actual runtime not exposed"
+  },
+  "baseline": "b76fe2b031899b49e05e7a29e8159b1c849c222d",
+  "implementationCommit": "5a05142f99741f5fc5a2d9c0eebad84b9820d118",
+  "executionTree": "ec161dfd3f9855b0c8d214e2d0cb64d11af1bc42",
+  "binarySha256": "26c471ff42c43680b81dc7955dbb9c636c5123463e034c0af3f9cc7be023a0fd",
+  "runtimeSha256": "aa8c244f3529f7a22991ca234ea941abe1da03d4664e1d697b03003ef969bba3",
+  "R104Reuse": {
+    "validation": "104-validation.json",
+    "independent": "104-independent-review.json",
+    "archive": "104-execution.tar.gz",
+    "members": [
+      "after-analysis.json",
+      "after900/media-server-current-observer-jLdH5U/catalog-holders-96259.json"
+    ],
+    "scope": "parser/canonical and direct regressions remain; request53 complete slow-success reused; old timeouts/collector FAIL unchanged",
+    "archiveSha256": "1fac64dbb7a51f64e9d5061c8085635d39ab3a3e42e5f8c49f3d7ee9dff6401b"
+  },
+  "request53": {
+    "elapsedMs": 2088.219,
+    "catalogAcquisitions": 584,
+    "waitMs": 1093.219,
+    "heldMs": 643.468,
+    "byCallsite": {
+      "AcquireMediaWithContext": 58,
+      "ReadSourceBinding": 58,
+      "IsDeletedSegmentId": 29,
+      "FindSegmentById": 29,
+      "FindSegmentV2ById": 29,
+      "ListEventLinks": 116,
+      "ValidateMediaWithContext": 118,
+      "ReadSourceBindingForMedia": 89,
+      "AdjustHoldCount": 58
+    },
+    "VisualPeer": "request54/thread332 confirmed in old raw holder; not inferred from Work alone",
+    "overlapMs": {
+      "Visual": 522.061,
+      "untaggedHolder": 158.659,
+      "retention": 100.604,
+      "writer": 83.607,
+      "index": 70.231,
+      "unattributedWait": 158.057
+    },
+    "details": "request53-calls.json in105 archive; phase containment not summed"
+  },
+  "change": {
+    "implemented": "private V2-only owned media preparation uses one current acquisition/hold; avoids generic legacy/event discovery, duplicate Acquire and temporary hold release; actual SearchReader consumer connected",
+    "kept": "physical OpenMedia/fstat/inspect; authenticated source raw; full file evidence; current path/inode/lifecycle/binding checks; candidate and final SourceSeekPrepared verification; exact score/top-k/tie/seek; permission and all resource bounds",
+    "notChanged": "RequestMedia eligible/final Resolve currentness still runs; no new global cache/revision shortcut/lock type/session/thread changes",
+    "errorLimits": "valid acquisition rejection preserved; malformed-ID/deadline wording and failing binding evaluation order not claimed identical; public fixed errors retained",
+    "lifetime": "one RAII hold/FD; response shared ownership; callback exception/cancellation release;8MiB/200entry and16MiB/640MiB unchanged"
+  },
+  "direct": {
+    "source": 82,
+    "requestMediaCache": 448,
+    "actualApplication": 91,
+    "applicationScope": "real model/service/exact Seek/permissions, not HTTP; measured before last exception/error-forwarding-only correction, normal path unchanged; final source/cache/mac+Linux rechecked",
+    "macConsumers": "4 generation/crypto/SQLite supported/unsupported configurations passed",
+    "linux": "existing rc58-arm64 image,uid10001,networknone,readonly,cap-dropALL,3GiB temporary build workspace; final product/source82/cache448/consumer matrix PASS; no installs",
+    "firstFailure": "isolated source fixture environment/store root collision; preserved first-failure.json and first logs; corrected test store path, not admission or guard",
+    "comparison": {
+      "single": {
+        "sameVisualItems": true,
+        "before": {
+          "requests": 3,
+          "p95Ms": 304.999,
+          "maxMs": 304.999,
+          "spaceSamples": 36,
+          "scope": "status/shape/order/seek metadata and trace/progress/owner gates; not exhaustive top-k or actual Seek execution"
+        },
+        "after": {
+          "requests": 3,
+          "p95Ms": 268.454,
+          "maxMs": 268.454,
+          "spaceSamples": 36,
+          "scope": "status/shape/order/seek metadata and trace/progress/owner gates; not exhaustive top-k or actual Seek execution"
+        },
+        "costs": {
+          "before": {
+            "locksPerVisual": [
+              420
+            ],
+            "meanHeldMs": 184.618067,
+            "meanWaitMs": 0.28265066666666666
+          },
+          "after": {
+            "locksPerVisual": [
+              240
+            ],
+            "meanHeldMs": 150.36216566666667,
+            "meanWaitMs": 0.011570666666666667
+          }
+        }
+      },
+      "visual-pair": {
+        "sameVisualItems": true,
+        "before": {
+          "requests": 6,
+          "p95Ms": 470.71,
+          "maxMs": 470.71,
+          "spaceSamples": 37,
+          "scope": "status/shape/order/seek metadata and trace/progress/owner gates; not exhaustive top-k or actual Seek execution"
+        },
+        "after": {
+          "requests": 6,
+          "p95Ms": 469.345,
+          "maxMs": 469.345,
+          "spaceSamples": 37,
+          "scope": "status/shape/order/seek metadata and trace/progress/owner gates; not exhaustive top-k or actual Seek execution"
+        },
+        "costs": {
+          "before": {
+            "locksPerVisual": [
+              420
+            ],
+            "meanHeldMs": 196.30039283333332,
+            "meanWaitMs": 116.88893
+          },
+          "after": {
+            "locksPerVisual": [
+              240
+            ],
+            "meanHeldMs": 158.747396,
+            "meanWaitMs": 101.76240516666667
+          }
+        }
+      },
+      "parallel": {
+        "sameVisualItems": true,
+        "before": {
+          "requests": 12,
+          "p95Ms": 767.962,
+          "maxMs": 767.962,
+          "spaceSamples": 38,
+          "scope": "status/shape/order/seek metadata and trace/progress/owner gates; not exhaustive top-k or actual Seek execution"
+        },
+        "after": {
+          "requests": 12,
+          "p95Ms": 543.074,
+          "maxMs": 543.074,
+          "spaceSamples": 36,
+          "scope": "status/shape/order/seek metadata and trace/progress/owner gates; not exhaustive top-k or actual Seek execution"
+        },
+        "costs": {
+          "before": {
+            "locksPerVisual": [
+              420
+            ],
+            "meanHeldMs": 192.14108583333334,
+            "meanWaitMs": 274.8283236666667
+          },
+          "after": {
+            "locksPerVisual": [
+              240
+            ],
+            "meanHeldMs": 153.27093666666667,
+            "meanWaitMs": 199.5769995
+          }
+        }
+      },
+      "background": {
+        "sameVisualItems": true,
+        "before": {
+          "requests": 12,
+          "p95Ms": 591.167,
+          "maxMs": 591.167,
+          "spaceSamples": 42,
+          "scope": "status/shape/order/seek metadata and trace/progress/owner gates; not exhaustive top-k or actual Seek execution"
+        },
+        "after": {
+          "requests": 12,
+          "p95Ms": 485.951,
+          "maxMs": 485.951,
+          "spaceSamples": 41,
+          "scope": "status/shape/order/seek metadata and trace/progress/owner gates; not exhaustive top-k or actual Seek execution"
+        },
+        "costs": {
+          "before": {
+            "locksPerVisual": [
+              420
+            ],
+            "meanHeldMs": 191.5365145,
+            "meanWaitMs": 215.76808583333334
+          },
+          "after": {
+            "locksPerVisual": [
+              240
+            ],
+            "meanHeldMs": 152.44348716666667,
+            "meanWaitMs": 167.44900066666668
+          }
+        }
+      }
+    },
+    "limits": [
+      "fresh stores same generator/model/fixture, MP4 bytes differ; actual hashes preserved, no byte-identical input claim",
+      "one run per candidate/condition,3waves; no compiler during measurement; p95 equals max for small populations",
+      "background writes6/new publication4/deletes0 for53scale; not cyclic deletion stress",
+      "native service conditions do not replace HTTP/evidence/A mixed",
+      "RAM/footprint/FD sequential samples in direct-resources.json; no live heap/instant peak/no-leak proof"
+    ]
+  },
+  "mixed900": {
+    "attempts": 1,
+    "causeAttempt": 0,
+    "status": "FAIL",
+    "sourceStartEndEqual": true,
+    "executionSeconds": 666.3100184160285,
+    "lastMainElapsedMs": 646435.828625,
+    "sampleCount": 130,
+    "partialSearch": {
+      "successes": 172,
+      "p95Ms": 2900.6460829999996,
+      "maxMs": 4292.511290999944,
+      "population": "original successful searchLatencyMs only; all timeout/503 separately retained; final gate NOT_RUN",
+      "failures": [
+        {
+          "method": "GET",
+          "routeClass": "other",
+          "status": null,
+          "headerElapsedMs": null,
+          "bodyElapsedMs": null,
+          "totalElapsedMs": 5002,
+          "bytes": 0,
+          "phase": "header",
+          "outcome": "timeout",
+          "routeKind": "/ops/api/recordings/visual-search"
+        },
+        {
+          "method": "GET",
+          "routeClass": "other",
+          "status": null,
+          "headerElapsedMs": null,
+          "bodyElapsedMs": null,
+          "totalElapsedMs": 5021,
+          "bytes": 0,
+          "phase": "header",
+          "outcome": "timeout",
+          "routeKind": "/ops/api/recordings/visual-search"
+        }
+      ]
+    },
+    "serverFailedRequests": [
+      {
+        "id": 88,
+        "status": 503,
+        "code": "visual-search-unavailable",
+        "elapsedMs": 5109.754625
+      },
+      {
+        "id": 87,
+        "status": 503,
+        "code": "visual-source-changed",
+        "elapsedMs": 5111.956167
+      }
+    ],
+    "progress": {
+      "windows": [
+        {
+          "structured": 380,
+          "visual": 760,
+          "evidence": 19,
+          "visualEvidence": 19
+        },
+        {
+          "structured": 400,
+          "visual": 800,
+          "evidence": 20,
+          "visualEvidence": 20
+        },
+        {
+          "structured": 60,
+          "visual": 120,
+          "evidence": 3,
+          "visualEvidence": 3
+        }
+      ],
+      "cycles": 42,
+      "searchSuccess": 172,
+      "searchUnavailable": 0,
+      "searchSuccessByClient": [
+        43,
+        43,
+        43,
+        43
+      ],
+      "createComplete": 42,
+      "createPartial": 0,
+      "createSuccess": 42,
+      "createBusy": 42,
+      "retainedChecks": 84,
+      "deletedSourceObserved": false,
+      "visualResults": 1680,
+      "visualCreated": 42,
+      "visualExpired": 0
+    },
+    "ACompleted": 11,
+    "selectedSlow": {
+      "request": 69,
+      "elapsedMs": 2542.147625,
+      "Catalog": [
+        341,
+        1857661253,
+        474145509
+      ],
+      "holderRecords": 2075,
+      "overlapByWorkNs": {
+        "1": 386080420,
+        "4": 534177902,
+        "5": 74268333,
+        "3": 252627334,
+        "0": 121053871
+      },
+      "unattributedWaitNs": 489453393,
+      "scope": "2075 complete rows for69; failed87/88 peer completeness not observed; not R104 timeout reconstruction"
+    },
+    "collection": [
+      {
+        "pid": 3019,
+        "bytes": 587283,
+        "capturedBytes": 587283,
+        "sha256": "03c32b433dd10c764056a6286f6c13590c1fe66f1d49ba110fa6bc1b4df4b5ad",
+        "overflow": false,
+        "captureError": null,
+        "categories": [
+          {
+            "code": "file evidence unavailable",
+            "count": 0
+          },
+          {
+            "code": "storageBlocked",
+            "count": 0
+          },
+          {
+            "code": "shutdown",
+            "count": 0
+          },
+          {
+            "code": "ERROR",
+            "count": 0
+          },
+          {
+            "code": "WARNING",
+            "count": 0
+          }
+        ],
+        "rawBodyPublished": false,
+        "privateCaptureDisposition": "eligible-for-wrapper-cleanup"
+      }
+    ],
+    "frameTrace": [
+      {
+        "status": "captured",
+        "mode": "bounded",
+        "required": true,
+        "records": 3,
+        "successes": 3,
+        "failures": 0,
+        "issues": []
+      }
+    ],
+    "workspaceFailure": {
+      "status": "no-workspace-failure",
+      "primary": null,
+      "decision": null,
+      "collectorDiagnostic": null,
+      "context": null,
+      "collectionError": null,
+      "capacityBytes": 32768
+    },
+    "resources": {
+      "status": "observed",
+      "resourceTrendPass": false,
+      "reviewRequired": true,
+      "sampleCount": 130,
+      "groups": [
+        {
+          "pid": 3019,
+          "startIdentity": "macos:1791871492:301265",
+          "sampleCount": 130,
+          "first": {
+            "phaseAt": 8763.578166,
+            "sampledAt": 1791871498421,
+            "rssBytes": 3176808448,
+            "threadCount": 39,
+            "fdCount": 34,
+            "mutationCount": 6
+          },
+          "last": {
+            "phaseAt": 654974.493083,
+            "sampledAt": 1791872144635,
+            "rssBytes": 1902297088,
+            "threadCount": 42,
+            "fdCount": 39,
+            "mutationCount": 1294
+          },
+          "max": {
+            "rssBytes": 3220553728,
+            "threadCount": 43,
+            "fdCount": 48
+          },
+          "delta": {
+            "rssBytes": -1274511360,
+            "threadCount": 3,
+            "fdCount": 5,
+            "mutationCount": 1288
+          },
+          "elapsedMs": 646210.914917,
+          "maxGapMs": 5674.993625000003,
+          "warmupMs": 300000,
+          "postWarmup": {
+            "status": "observed",
+            "sampleCount": 70,
+            "delta": {
+              "rssBytes": 78807040,
+              "threadCount": 0,
+              "fdCount": 7,
+              "mutationCount": 690
+            },
+            "elapsedMs": 345934.09008299996,
+            "rssMiBPerMinute": 13.03535884225248
+          }
+        }
+      ]
+    },
+    "finalOwner": [
+      {
+        "status": "captured",
+        "count": 134,
+        "final": {
+          "pid": 3019,
+          "seq": 133,
+          "phase": "after-storage-destruction",
+          "elapsedMs": 657355,
+          "ram": 0,
+          "ramPeak": 397955175,
+          "ramLimit": 671088640,
+          "ramRejected": 0,
+          "scratchDisk": 0,
+          "scratchDiskPeak": 69492736,
+          "scratchDiskLimit": 155489505280,
+          "scratchFd": 0,
+          "scratchFdPeak": 16,
+          "scratchFdLimit": 1048572,
+          "scratchRam": 0,
+          "preservedDisk": 0,
+          "preservedFd": 0,
+          "readerCleanupHealthy": true
+        },
+        "scope": "actual shared product owner; logical charges, not total heap or RSS; sequential counter reads"
+      }
+    ],
+    "shutdown": [
+      {
+        "schema": "recording-process-cleanup-v1",
+        "attemptCount": 1,
+        "pid": 3019,
+        "exitCode": 0,
+        "signalCode": null,
+        "exitedObserved": true,
+        "stopCode": "complete",
+        "forcedTermination": "not-used",
+        "normalExitPass": true,
+        "normalShutdownPass": true,
+        "archiveSafe": true,
+        "ports": [
+          {
+            "kind": "http",
+            "port": 52430,
+            "status": "pass",
+            "code": "closed",
+            "closed": true
+          },
+          {
+            "kind": "rtsp",
+            "port": 52431,
+            "status": "pass",
+            "code": "closed",
+            "closed": true
+          }
+        ]
+      }
+    ],
+    "notRun": [
+      "900 duration/final latency gate",
+      "explicit disable/closed journal assertion",
+      "controls/recovery/restart/reactivation",
+      "45 minutes",
+      "120 minutes"
+    ],
+    "limitation": "direct lock reduction did not resolve sustained mixed latency; no further product edits or mixed retry after this failure",
+    "lastMainChannels": {
+      "9101": {
+        "finalized": 322,
+        "deleted": 0,
+        "lastAt": 654974.493083,
+        "order": "644",
+        "store": "8b19e5cc6923db1f8b29fa30d17171220979d95826f10da23707823f25e2a3e7",
+        "knownMappings": 222,
+        "unknownMappings": 11840
+      },
+      "9201": {
+        "finalized": 322,
+        "deleted": 0,
+        "lastAt": 654974.493083,
+        "order": "645",
+        "store": "8b19e5cc6923db1f8b29fa30d17171220979d95826f10da23707823f25e2a3e7",
+        "knownMappings": 222,
+        "unknownMappings": 11848
+      }
+    }
+  },
+  "state45": {
+    "attempts": 0,
+    "status": "NOT_RUN",
+    "reason": "900 FAIL; independent result review required; not eligible"
+  },
+  "binding": {
+    "producerOutputSha256": "34e8bb1275b112b0fda829c8e9ae518cff358b4e23fdf6686d4ba69e64e4bb33",
+    "formattedSha256": "83d34dd80524bd1d2e5650e9a4ffeb69b5bd99972ab6649ebcc7af986088940d",
+    "semanticEquality": true,
+    "changedTopFields": [
+      "inventorySha256"
+    ],
+    "legacyItemsIdentical": true,
+    "candidateDigest": "8977e9b6ac618c7e0233823f6acb6ab1fcf7461206ee5d8b2a4149a643519e3a",
+    "newProductReview": "separate independent_memory86; digest is not product approval"
+  },
+  "static": [
+    {
+      "command": [
+        "node",
+        "scripts/internal/verify_v390_review4_feature_semantic_source_approvals.mjs"
+      ],
+      "exit": 0,
+      "elapsed": 22.151648292085156
+    },
+    {
+      "command": [
+        "node",
+        "scripts/internal/verify_feature_implementation_evidence.mjs"
+      ],
+      "exit": 0,
+      "elapsed": 52.94825200014748
+    },
+    {
+      "command": [
+        "node",
+        "scripts/internal/verify_feature_inventory_coverage.mjs"
+      ],
+      "exit": 0,
+      "elapsed": 85.70367074990645
+    },
+    {
+      "command": [
+        "node",
+        "scripts/internal/verify_project_feature_test_inventory.mjs"
+      ],
+      "exit": 0,
+      "elapsed": 43.23773704096675
+    },
+    {
+      "command": [
+        "node",
+        "scripts/internal/verify_script_inventory.mjs"
+      ],
+      "exit": 0,
+      "elapsed": 35.016146207926795
+    }
+  ],
+  "independentReview": "105-independent-review.json; change correctness and mixed failure judged separately",
+  "preservation": {
+    "archive": "docs/release-artifacts/v4.5.0/105-execution.tar.gz",
+    "sha256": "6b0ed372b70a3a909c7c61e893852f6a70bd96440e1bf3b071220fe8b75ea03f",
+    "bytes": 30660072,
+    "memberCount": 935,
+    "sourceByteReadback": "PASS",
+    "rawBytes": 74180747,
+    "manifestSha256": "ef885d3b13f3df731f8e3ec81556261c6827adec2467b3c16d2429eea15acb81",
+    "serverLogTransformation": {
+      "originalPath": "after900/media-server-current-observer-WNGY96/server-1.private.log",
+      "originalSha256": "03c32b433dd10c764056a6286f6c13590c1fe66f1d49ba110fa6bc1b4df4b5ad",
+      "originalBytes": 587283,
+      "preservedPath": "after900/media-server-current-observer-WNGY96/server-1.sanitized.log",
+      "sanitizedSha256": "e5915eeefe7dcd56c80938d48431475a11dd0692d73825f2503e483ec93f5578",
+      "sanitizedBytes": 587116,
+      "changes": [
+        {
+          "line": 3,
+          "bytes": 37,
+          "sha256": "036b8930c7add692b85c3c7169a0f4d5720c43e6154372ba7d21a7cdb3e09945",
+          "reason": "local/generated source URL diagnostic"
+        },
+        {
+          "line": 4,
+          "bytes": 37,
+          "sha256": "547a7e1e2982b75bbcefc3270356e97c75f69b24443df2a4d89fb13501f98b55",
+          "reason": "local/generated source URL diagnostic"
+        },
+        {
+          "line": 5,
+          "bytes": 43,
+          "sha256": "b3df8e18eb2d29c6138d075b1deaf80bf16ee973f3041cb57407f3ad37f8625a",
+          "reason": "local/generated source URL diagnostic"
+        },
+        {
+          "line": 8,
+          "bytes": 68,
+          "sha256": "2808c52a5f0eccdb733e40c586ba753b0ebdf6d53f2a5ffb8f0f11b57fd18c31",
+          "reason": "local/generated source URL diagnostic"
+        },
+        {
+          "line": 3065,
+          "bytes": 37,
+          "sha256": "036b8930c7add692b85c3c7169a0f4d5720c43e6154372ba7d21a7cdb3e09945",
+          "reason": "local/generated source URL diagnostic"
+        },
+        {
+          "line": 3066,
+          "bytes": 45,
+          "sha256": "8d5a98689c6e58c7500000bfbcea063d33fa450264b86a1a37f4a0c7f4beb391",
+          "reason": "local/generated source URL diagnostic"
+        },
+        {
+          "line": 3067,
+          "bytes": 48,
+          "sha256": "d7247591092137bf447657e6fb7689f337ebbef0a5a300af4737adcfc2d777e1",
+          "reason": "local/generated source URL diagnostic"
+        },
+        {
+          "line": 3069,
+          "bytes": 68,
+          "sha256": "2808c52a5f0eccdb733e40c586ba753b0ebdf6d53f2a5ffb8f0f11b57fd18c31",
+          "reason": "local/generated source URL diagnostic"
+        }
+      ],
+      "relation": "line replacement, not original bytes; all holder/visual/resource records preserved"
+    },
+    "oldArtifactsDuplicated": false
+  },
+  "cleanup": "process/group/ports closed by receipts; owned root pending byte preservation/remote check;105-cleanup.json will record final disposition",
+  "QwenOllamaCalls": 0,
+  "unloadGate": "not-run",
+  "releaseProcedures": "not-performed; no120/PR/CI/merge/tag/Release",
+  "remaining": [
+    "sustained mixed visual latency: client timeout and successful-array p95 fail",
+    "request69 index/Visual/retention/untagged contention and489.453ms unattributed wait; failed87/88 peer incomplete",
+    "45min and final120 not qualified/run",
+    "memory P0 and owner risk/release decisions remain blocked"
+  ],
+  "independent": {
+    "direct": "independent-direct-review.json in105-execution.tar.gz",
+    "result": "105-independent-review.json",
+    "directSha256": "30719c58e2862eb1b41c5b2e9d5d1f39db25ba509b2a8b9ba769fee95e982147",
+    "resultSha256": "6f3b1d1dd8b4d44b7a401c5eee1c1ccf2c1bc823e039c571e73ea01c363cbfe1",
+    "changeAccepted": true,
+    "eligible45": false,
+    "mixedPass": false
+  }
+}
