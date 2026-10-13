@@ -673,11 +673,12 @@
   },
   "cleanup": {
     "product": "Both runs normal finally exit0, groups/ports absent per receipts; explicit disable/closed journal not run after failure.",
-    "temporaryRoot": "Pending remote preservation then owned cleanup; final status in104-cleanup.json",
+    "temporaryRoot": "PASS: exact owned root removed after authenticated remote blob byte readback; see104-cleanup.json",
     "userConfigurationAndPrivate95Backup": "not accessed/modified/archived/cleaned",
     "modelsSdkImages": "retained",
     "qwenOllamaCalls": 0,
-    "unloadGate": "not-run"
+    "unloadGate": "not-run",
+    "receipt": "104-cleanup.json"
   },
   "release": {
     "memoryP0": "BLOCKED",

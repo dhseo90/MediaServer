@@ -1,0 +1,99 @@
+{
+  "time": "2026-10-13T05:22:12.615629+00:00",
+  "evidenceCommit": "5fe375f0ad79bd75ca167cc323c4933beea14eca",
+  "remoteBranchSha": "5fe375f0ad79bd75ca167cc323c4933beea14eca",
+  "blobReadback": [
+    {
+      "path": "docs/release-artifacts/v4.5.0/104-validation.json",
+      "blob": "f07fa4d0919b5bcd6fa25f91b94d08f537f8071b",
+      "bytes": 27252,
+      "sha256": "f4c284ac158a8b3b097f2f49bc0a0fbb00a102e83080bb4492517d3c357da265",
+      "remoteByteSource": "authenticated GitHub Git blob API response, compared byte-for-byte"
+    },
+    {
+      "path": "docs/release-artifacts/v4.5.0/104-independent-review.json",
+      "blob": "5edd78f057778c01d7e7cea5a1430aabef900fca",
+      "bytes": 15227,
+      "sha256": "59c4f4bf3437741aaddd6d6af884d10a30bcd4099faa6b0325fe943f0d14997f",
+      "remoteByteSource": "authenticated GitHub Git blob API response, compared byte-for-byte"
+    },
+    {
+      "path": "docs/release-artifacts/v4.5.0/104-preservation-review.json",
+      "blob": "1b65cffa5104bcc1d2647fb725a6c007f09d2312",
+      "bytes": 7108,
+      "sha256": "ffbb7b844217c8328a64d33f0e38217ed5501ab01c6ad381d2c68d8fa6098f4a",
+      "remoteByteSource": "authenticated GitHub Git blob API response, compared byte-for-byte"
+    },
+    {
+      "path": "docs/release-artifacts/v4.5.0/104-execution.tar.gz",
+      "blob": "ea0b4ef31136487bc25203a242c87bc5c0f3fec1",
+      "bytes": 16813699,
+      "sha256": "1fac64dbb7a51f64e9d5061c8085635d39ab3a3e42e5f8c49f3d7ee9dff6401b",
+      "remoteByteSource": "authenticated GitHub Git blob API response, compared byte-for-byte"
+    }
+  ],
+  "schema": "r104-remote-and-owned-cleanup-v1",
+  "processChecks": [
+    {
+      "pid": 92710,
+      "absent": true
+    },
+    {
+      "pid": 96259,
+      "absent": true
+    },
+    {
+      "group": 92658,
+      "absent": true
+    },
+    {
+      "group": 96218,
+      "absent": true
+    }
+  ],
+  "ports": [
+    {
+      "port": 49329,
+      "connectResult": 61,
+      "listenerAbsent": true
+    },
+    {
+      "port": 49330,
+      "connectResult": 61,
+      "listenerAbsent": true
+    },
+    {
+      "port": 50334,
+      "connectResult": 61,
+      "listenerAbsent": true
+    },
+    {
+      "port": 50335,
+      "connectResult": 61,
+      "listenerAbsent": true
+    }
+  ],
+  "priorSandboxCheck": "connect_ex returned1 EPERM, not used as port absence. Host read-only checks above returned61.",
+  "containers": "docker ps -a --filter name=r104 returned none; existing images retained",
+  "cleanupAt": "2026-10-13T05:22:58.761545+00:00",
+  "removedRoot": "/private/tmp/media-server-r104-oh3tlioo",
+  "rootIdentity": {
+    "dev": 16777232,
+    "inode": 174011170,
+    "uid": 501
+  },
+  "removed": {
+    "regularFiles": 2086,
+    "logicalBytes": 333414013,
+    "symlinks": 554,
+    "directories": 101
+  },
+  "rootAbsent": true,
+  "extraOwnedFilesRemoved": [
+    "/private/tmp/media-server-r104-pointer"
+  ],
+  "private95BackupAndUserConfiguration": "not accessed/modified/archived/cleaned",
+  "modelsSdkImages": "retained",
+  "archiveScope": "343selected members;930repeated media hash-only; raw private logs transformed; not full store restoration",
+  "result": "Owned cleanup PASS. After900 HTTPtimeout FAIL retained;45/120 not-run;memoryP0/release BLOCKED."
+}
