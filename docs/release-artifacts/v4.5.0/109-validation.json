@@ -1,0 +1,760 @@
+{
+  "schema": "media-server.v450.r109.validation.v1",
+  "status": "LIMITED_AUTHENTICATED_TIMELINE_COST_IMPROVEMENT_HTTP_P95_FAIL",
+  "scope": "인증 timeline 반복 탐색 감소·같은 Catalog Projection holder 수집 보완은 한정 통과. 동일 HTTP 지연 목표 FAIL,900초 부적격·메모리P0·출시HOLD.",
+  "model": {
+    "mainRequested": "gpt-6-astra/high",
+    "mainAccepted": "not-exposed",
+    "mainActual": "unconfirmed",
+    "reviewerRequested": "gpt-6-astra/high",
+    "reviewerAccepted": "prior separate reviewer record; current followup does not expose",
+    "reviewerActual": "unconfirmed"
+  },
+  "source": {
+    "implementationCommit": "68c69eb6b20f43c3653f4cdc5003778b096d863a",
+    "tree": "03e81473cc795e4319b2a0ede00bc3d17770aa72",
+    "executedBasePlusFrozenDiff": true,
+    "allFrozenSourceFilesMatchCommitted": true,
+    "freezeSha256": "c9e07a59920c8162ea0229aa1a050b2771ac99745ffded6dbe86fae9080984a2",
+    "baseHead": "5f9d86b343ca2f26a3f89f4d39fa789dc77c2bfc",
+    "runtimeSha256": "d28acaa330fa75c59396e428e0903b7b7e6db7cd3ba9c70b204704e609f42223",
+    "serverSha256": "e861e9f98600626c6d2b226e2e06963dfb0d33b1458372d7478ae16b40a608ad",
+    "afterHttpSha256": "ea460e24e297c1ea636a0019362d43c92779d8f7fa92756f0a1b32b7231afd11",
+    "beforeRuntimeSha256": "bf82e26b6783dfa8e84bc92411d2c43b990cb073879985304e8b7147e2ce4f59",
+    "freezeMember": "final-source-freeze.json",
+    "noProductFixtureEditsDuringFinalMeasurements": true
+  },
+  "reuse108": {
+    "implementation": "bdec279bb3da0cf969482c36cc607f772d278756",
+    "validation": "108-validation.json",
+    "limitedPassAndHttpFailPreserved": true,
+    "retentionCloneCurrent8namespaceAnd1024delta": "unchanged; reuse related direct proof and regression",
+    "closedSeed": {
+      "files": 911,
+      "bytes": 50664710,
+      "exactHashBeforeAfter": true,
+      "source": "106 archive prefix; store-delta-bindings.json",
+      "notFailureInstantOrLiveCacheRestore": true
+    }
+  },
+  "deletionInterpretationCorrection": {
+    "historicalOriginalsUnchanged": true,
+    "evidence": "108 archive plan.json,http_qualification.py + current native helper assertions",
+    "removedPositiveRequired": false,
+    "observed": 0,
+    "meaning": "direct observation limit, not additional FAIL gate;97-99 and longrun deletion gates unchanged;108p95FAIL not rewritten"
+  },
+  "cause": {
+    "callChain": [
+      "structured HTTP→RecordingSearchReader QuerySearchEventTimeline",
+      "RecordingReadService→SnapshotTimelineWithContext",
+      "segments_v2_ iterator NextOwned repeated root traversal under Catalog mutex"
+    ],
+    "proof": "before raw SlowTail SourceProjection same mutex m1 thread14/15 spans246.337416/248.173125ms overlap request5/6 waits; not all request4 gap nor historical108 reconstruction",
+    "missingInstrumentation": "Projection phase used actual Catalog mutex but was excluded from holder SourceCatalog filter; after explicit catalog-holder opt-in preserves phase",
+    "remainingUnclassified": "req4 after373.311581ms; scheduling/nonobserved distinction unresolved; missing capture null, not zero"
+  },
+  "implementation": {
+    "product": "existing ForEachEntry→VisitOwned authenticated ordered raw/chunk coverage and strict row decode; same-row existence reused only under same Catalog lock; lifecycle/retired/tombstone/state retained",
+    "removed": "per-row repeated NextOwned/root lookup in initial segment iteration; no extra clone/cache/fullhistory RAM",
+    "preserved": "current authority/source/path/permission, lifecycle/deletion, order/result admission, exact source/seek consumers, K/F, reader reservations and Finish",
+    "trace": "explicit Projection holder; relative clock origin positive1ns avoids actual0 sentinel collision, elapsed differences/limits unchanged",
+    "notDone": [
+      "remaining timeline retired/job/reference projection",
+      "index snapshot/list costs",
+      "peer source/binding repeated current reads",
+      "retention clone/raw authentication unchanged",
+      "not fullCatalog rewrite"
+    ]
+  },
+  "cost": {
+    "before": {
+      "meanMs": 4095.299152833333,
+      "samples": [
+        {
+          "eventsOnly": false,
+          "channel": "9101",
+          "iteration": 0,
+          "elapsedNs": 5387121250,
+          "nodeReads": 519647,
+          "total": 252,
+          "unplacedTotal": 13742,
+          "items": 252,
+          "unplaced": 13742,
+          "ramUsed": 1692044
+        },
+        {
+          "eventsOnly": false,
+          "channel": "9101",
+          "iteration": 1,
+          "elapsedNs": 3780682583,
+          "nodeReads": 519647,
+          "total": 252,
+          "unplacedTotal": 13742,
+          "items": 252,
+          "unplaced": 13742,
+          "ramUsed": 1692044
+        },
+        {
+          "eventsOnly": false,
+          "channel": "9101",
+          "iteration": 2,
+          "elapsedNs": 3789504500,
+          "nodeReads": 519647,
+          "total": 252,
+          "unplacedTotal": 13742,
+          "items": 252,
+          "unplaced": 13742,
+          "ramUsed": 1692044
+        },
+        {
+          "eventsOnly": false,
+          "channel": "9201",
+          "iteration": 0,
+          "elapsedNs": 3828182000,
+          "nodeReads": 520107,
+          "total": 244,
+          "unplacedTotal": 13818,
+          "items": 244,
+          "unplaced": 13818,
+          "ramUsed": 1692044
+        },
+        {
+          "eventsOnly": false,
+          "channel": "9201",
+          "iteration": 1,
+          "elapsedNs": 3900102584,
+          "nodeReads": 520107,
+          "total": 244,
+          "unplacedTotal": 13818,
+          "items": 244,
+          "unplaced": 13818,
+          "ramUsed": 1692044
+        },
+        {
+          "eventsOnly": false,
+          "channel": "9201",
+          "iteration": 2,
+          "elapsedNs": 3886202000,
+          "nodeReads": 520107,
+          "total": 244,
+          "unplacedTotal": 13818,
+          "items": 244,
+          "unplaced": 13818,
+          "ramUsed": 1692044
+        }
+      ],
+      "digests": [
+        "9101 0 5ee1a4b8be75bac2b38ffc9177a034eb8e1d68a78980bf39c5092fca90d0e28c",
+        "9101 1 5ee1a4b8be75bac2b38ffc9177a034eb8e1d68a78980bf39c5092fca90d0e28c",
+        "9101 2 5ee1a4b8be75bac2b38ffc9177a034eb8e1d68a78980bf39c5092fca90d0e28c",
+        "9201 0 f7f061a938f4b6c71fb810ac98aa1be1cee691a43cf3e93de34ba6dfd0a5041c",
+        "9201 1 f7f061a938f4b6c71fb810ac98aa1be1cee691a43cf3e93de34ba6dfd0a5041c",
+        "9201 2 f7f061a938f4b6c71fb810ac98aa1be1cee691a43cf3e93de34ba6dfd0a5041c"
+      ],
+      "finish": true,
+      "execution": {
+        "command": [
+          "/private/tmp/media-server-r109-tuw3d0ca/timeline3-before",
+          "/private/tmp/media-server-r109-tuw3d0ca/timeline3-before-run"
+        ],
+        "exit": 0,
+        "failure": null,
+        "elapsedSeconds": 33.63761395798065,
+        "bytes": 12381,
+        "deadlineSeconds": 180,
+        "binarySha256": "b320200c4eb7098b0aa18cedb80468f806827c687b18d0ca223a206bf836c25d",
+        "inputMatchesSeed": true,
+        "inputFiles": 911,
+        "uid": 501
+      }
+    },
+    "after": {
+      "meanMs": 3651.6701876666666,
+      "samples": [
+        {
+          "eventsOnly": false,
+          "channel": "9101",
+          "iteration": 0,
+          "elapsedNs": 4741247667,
+          "nodeReads": 416793,
+          "total": 252,
+          "unplacedTotal": 13742,
+          "items": 252,
+          "unplaced": 13742,
+          "ramUsed": 1692044
+        },
+        {
+          "eventsOnly": false,
+          "channel": "9101",
+          "iteration": 1,
+          "elapsedNs": 3449309583,
+          "nodeReads": 416793,
+          "total": 252,
+          "unplacedTotal": 13742,
+          "items": 252,
+          "unplaced": 13742,
+          "ramUsed": 1692044
+        },
+        {
+          "eventsOnly": false,
+          "channel": "9101",
+          "iteration": 2,
+          "elapsedNs": 3416890667,
+          "nodeReads": 416793,
+          "total": 252,
+          "unplacedTotal": 13742,
+          "items": 252,
+          "unplaced": 13742,
+          "ramUsed": 1692044
+        },
+        {
+          "eventsOnly": false,
+          "channel": "9201",
+          "iteration": 0,
+          "elapsedNs": 3451738500,
+          "nodeReads": 417185,
+          "total": 244,
+          "unplacedTotal": 13818,
+          "items": 244,
+          "unplaced": 13818,
+          "ramUsed": 1692044
+        },
+        {
+          "eventsOnly": false,
+          "channel": "9201",
+          "iteration": 1,
+          "elapsedNs": 3416122542,
+          "nodeReads": 417185,
+          "total": 244,
+          "unplacedTotal": 13818,
+          "items": 244,
+          "unplaced": 13818,
+          "ramUsed": 1692044
+        },
+        {
+          "eventsOnly": false,
+          "channel": "9201",
+          "iteration": 2,
+          "elapsedNs": 3434712167,
+          "nodeReads": 417185,
+          "total": 244,
+          "unplacedTotal": 13818,
+          "items": 244,
+          "unplaced": 13818,
+          "ramUsed": 1692044
+        }
+      ],
+      "digests": [
+        "9101 0 5ee1a4b8be75bac2b38ffc9177a034eb8e1d68a78980bf39c5092fca90d0e28c",
+        "9101 1 5ee1a4b8be75bac2b38ffc9177a034eb8e1d68a78980bf39c5092fca90d0e28c",
+        "9101 2 5ee1a4b8be75bac2b38ffc9177a034eb8e1d68a78980bf39c5092fca90d0e28c",
+        "9201 0 f7f061a938f4b6c71fb810ac98aa1be1cee691a43cf3e93de34ba6dfd0a5041c",
+        "9201 1 f7f061a938f4b6c71fb810ac98aa1be1cee691a43cf3e93de34ba6dfd0a5041c",
+        "9201 2 f7f061a938f4b6c71fb810ac98aa1be1cee691a43cf3e93de34ba6dfd0a5041c"
+      ],
+      "finish": true,
+      "execution": {
+        "command": [
+          "/private/tmp/media-server-r109-tuw3d0ca/timeline3-after",
+          "/private/tmp/media-server-r109-tuw3d0ca/timeline3-after-run"
+        ],
+        "exit": 0,
+        "failure": null,
+        "elapsedSeconds": 31.00854583317414,
+        "bytes": 11727,
+        "deadlineSeconds": 180,
+        "binarySha256": "fd1acdc6210b0c88b9f7862837f4ac80f45080567ba063d3df23ae8a67aeeab4",
+        "inputMatchesSeed": true,
+        "inputFiles": 911,
+        "uid": 501
+      }
+    }
+  },
+  "costLimits": "public fulltimeline 2channels×3 fixed calls, before thenafter no warmup; selected ID/order/state/time hash equal, not fullfield oracle. No compile/othertest overlap. Initial privateAPI compile and per-row outputcap FAIL preserved.",
+  "http": {
+    "before": {
+      "execution": {
+        "exit": 1,
+        "elapsedSeconds": 243.22498779115267,
+        "receivedBytes": 1159393,
+        "savedBytes": 1159393,
+        "timeout": false,
+        "overflow": false,
+        "monitorExit": 0,
+        "groupAbsent": true,
+        "collectionError": "result qualification failed",
+        "qualificationError": "AssertionError:p95",
+        "binarySha256": "a813b5dad0015ff584996aab22bc401e66f2f33b5f50f1ec927fe2cec684e6ca",
+        "fixtureSha256": "b695bfaf63f8bbfda5ff7fcbb01970451e3817c9b293bc13e766a0a8957f642b",
+        "archiveSha256": "bf82e26b6783dfa8e84bc92411d2c43b990cb073879985304e8b7147e2ce4f59",
+        "mode": "parallel"
+      },
+      "http": {
+        "count": 12,
+        "timesMs": [
+          3157.74,
+          3171.54,
+          1579.54,
+          1750.09,
+          2860.69,
+          2847.32,
+          1876.74,
+          1718.09,
+          2734.71,
+          2719.04,
+          2249.81,
+          2078.14
+        ],
+        "p95Ms": 3171.54,
+        "maxMs": 3171.54,
+        "pass": false
+      },
+      "writes": 6,
+      "removed": 0,
+      "indexGeneration": [
+        1,
+        2
+      ],
+      "explicitFinish": true,
+      "finalOwner": {
+        "pid": 33834,
+        "seq": 6,
+        "phase": "after-storage-destruction",
+        "elapsedMs": 240817,
+        "ram": 0,
+        "ramPeak": 394476153,
+        "ramLimit": 671088640,
+        "ramRejected": 0,
+        "scratchDisk": 0,
+        "scratchDiskPeak": 54513664,
+        "scratchDiskLimit": 154676731904,
+        "scratchFd": 0,
+        "scratchFdPeak": 6,
+        "scratchFdLimit": 1048572,
+        "scratchRam": 0,
+        "preservedDisk": 0,
+        "preservedFd": 0,
+        "readerCleanupHealthy": true
+      },
+      "samples": 241,
+      "sampleMaxima": {
+        "rssBytes": 3218800640,
+        "footprintBytes": 3169176888,
+        "fdCount": 135,
+        "anonymousFileBytes": 1128439296,
+        "anonymousAllocatedBytes": 1132699648,
+        "workspaceVariableMax": 108420039,
+        "ramOwnerMax": 187164087,
+        "scratchOwnerMax": 54513664
+      },
+      "anonymousByPhase": {
+        "live": {
+          "samples": 226,
+          "anonymousLogicalMax": 38994944,
+          "anonymousAllocatedMax": 40062976
+        },
+        "model": {
+          "samples": 4,
+          "anonymousLogicalMax": 1128439296,
+          "anonymousAllocatedMax": 1132699648
+        },
+        "initial": {
+          "samples": 11,
+          "anonymousLogicalMax": 30484992,
+          "anonymousAllocatedMax": 31412224
+        }
+      },
+      "selectedHolderEnd": [
+        {
+          "version": 2,
+          "records": 2900,
+          "loss": false,
+          "inflight": 0,
+          "endNs": 238112625792,
+          "requests": [
+            4,
+            5,
+            6
+          ],
+          "windows": [
+            228897024459,
+            231757702792,
+            231757728542
+          ],
+          "ends": [
+            231743964625,
+            234492097167,
+            234476381042
+          ]
+        }
+      ],
+      "requestSummaries": {
+        "1": {
+          "elapsedMs": 3157.222125,
+          "catalogAcquisitions": 364,
+          "waitMs": 2154.014632,
+          "heldMs": 626.302081,
+          "capturedLocks": 0,
+          "wholeRequestHolderCaptured": false,
+          "unattributedWaitMs": null
+        },
+        "2": {
+          "elapsedMs": 3171.054708,
+          "catalogAcquisitions": 364,
+          "waitMs": 2223.196705,
+          "heldMs": 637.802536,
+          "capturedLocks": 0,
+          "wholeRequestHolderCaptured": false,
+          "unattributedWaitMs": null
+        },
+        "4": {
+          "elapsedMs": 2846.940166,
+          "catalogAcquisitions": 364,
+          "waitMs": 1860.633712,
+          "heldMs": 622.631331,
+          "capturedLocks": 364,
+          "wholeRequestHolderCaptured": true,
+          "unattributedWaitMs": 878.265915
+        },
+        "3": {
+          "elapsedMs": 2860.345292,
+          "catalogAcquisitions": 364,
+          "waitMs": 1909.142368,
+          "heldMs": 631.831675,
+          "capturedLocks": 359,
+          "wholeRequestHolderCaptured": false,
+          "unattributedWaitMs": null
+        },
+        "6": {
+          "elapsedMs": 2718.6525,
+          "catalogAcquisitions": 364,
+          "waitMs": 1905.934014,
+          "heldMs": 474.408616,
+          "capturedLocks": 364,
+          "wholeRequestHolderCaptured": true,
+          "unattributedWaitMs": 1290.054889
+        },
+        "5": {
+          "elapsedMs": 2734.394375,
+          "catalogAcquisitions": 364,
+          "waitMs": 1967.060595,
+          "heldMs": 473.117029,
+          "capturedLocks": 364,
+          "wholeRequestHolderCaptured": true,
+          "unattributedWaitMs": 1336.015312
+        }
+      }
+    },
+    "after": {
+      "execution": {
+        "exit": 1,
+        "elapsedSeconds": 232.86259058397263,
+        "receivedBytes": 1139765,
+        "savedBytes": 1139765,
+        "timeout": false,
+        "overflow": false,
+        "monitorExit": 0,
+        "groupAbsent": true,
+        "collectionError": "result qualification failed",
+        "qualificationError": "AssertionError:p95",
+        "binarySha256": "ea460e24e297c1ea636a0019362d43c92779d8f7fa92756f0a1b32b7231afd11",
+        "fixtureSha256": "b695bfaf63f8bbfda5ff7fcbb01970451e3817c9b293bc13e766a0a8957f642b",
+        "archiveSha256": "d28acaa330fa75c59396e428e0903b7b7e6db7cd3ba9c70b204704e609f42223",
+        "mode": "background"
+      },
+      "http": {
+        "count": 12,
+        "timesMs": [
+          2259.63,
+          2250.6,
+          1569.99,
+          1402.72,
+          3034.95,
+          3016.41,
+          1811.4,
+          1938.87,
+          2289.72,
+          2298.95,
+          1581.02,
+          1507.33
+        ],
+        "p95Ms": 3034.95,
+        "maxMs": 3034.95,
+        "pass": false
+      },
+      "writes": 6,
+      "removed": 0,
+      "indexGeneration": [
+        1,
+        2
+      ],
+      "explicitFinish": true,
+      "finalOwner": {
+        "pid": 36482,
+        "seq": 6,
+        "phase": "after-storage-destruction",
+        "elapsedMs": 230723,
+        "ram": 0,
+        "ramPeak": 396869387,
+        "ramLimit": 671088640,
+        "ramRejected": 0,
+        "scratchDisk": 0,
+        "scratchDiskPeak": 54513664,
+        "scratchDiskLimit": 154286751744,
+        "scratchFd": 0,
+        "scratchFdPeak": 6,
+        "scratchFdLimit": 1048572,
+        "scratchRam": 0,
+        "preservedDisk": 0,
+        "preservedFd": 0,
+        "readerCleanupHealthy": true
+      },
+      "samples": 231,
+      "sampleMaxima": {
+        "rssBytes": 3219980288,
+        "footprintBytes": 3170307336,
+        "fdCount": 140,
+        "anonymousFileBytes": 1121099264,
+        "anonymousAllocatedBytes": 1124311040,
+        "workspaceVariableMax": 108445338,
+        "ramOwnerMax": 188757376,
+        "scratchOwnerMax": 54513664
+      },
+      "anonymousByPhase": {
+        "live": {
+          "samples": 216,
+          "anonymousLogicalMax": 38994944,
+          "anonymousAllocatedMax": 40062976
+        },
+        "model": {
+          "samples": 4,
+          "anonymousLogicalMax": 1121099264,
+          "anonymousAllocatedMax": 1124311040
+        },
+        "initial": {
+          "samples": 11,
+          "anonymousLogicalMax": 30999040,
+          "anonymousAllocatedMax": 32567296
+        }
+      },
+      "selectedHolderEnd": [
+        {
+          "version": 2,
+          "records": 2905,
+          "loss": false,
+          "inflight": 0,
+          "endNs": 228048456709,
+          "requests": [
+            4,
+            5,
+            6
+          ],
+          "windows": [
+            218585235626,
+            221620147793,
+            221620167584
+          ],
+          "ends": [
+            221601261126,
+            223909541876,
+            223918822668
+          ]
+        }
+      ],
+      "requestSummaries": {
+        "1": {
+          "elapsedMs": 2250.100958,
+          "catalogAcquisitions": 364,
+          "waitMs": 1367.842913,
+          "heldMs": 531.608368,
+          "capturedLocks": 0,
+          "wholeRequestHolderCaptured": false,
+          "unattributedWaitMs": null
+        },
+        "2": {
+          "elapsedMs": 2259.084375,
+          "catalogAcquisitions": 364,
+          "waitMs": 1402.899456,
+          "heldMs": 553.54876,
+          "capturedLocks": 0,
+          "wholeRequestHolderCaptured": false,
+          "unattributedWaitMs": null
+        },
+        "4": {
+          "elapsedMs": 3016.0255,
+          "catalogAcquisitions": 364,
+          "waitMs": 2072.165376,
+          "heldMs": 604.519002,
+          "capturedLocks": 364,
+          "wholeRequestHolderCaptured": true,
+          "unattributedWaitMs": 373.311581
+        },
+        "3": {
+          "elapsedMs": 3034.551708,
+          "catalogAcquisitions": 364,
+          "waitMs": 2108.014325,
+          "heldMs": 625.816288,
+          "capturedLocks": 357,
+          "wholeRequestHolderCaptured": false,
+          "unattributedWaitMs": null
+        },
+        "5": {
+          "elapsedMs": 2289.394083,
+          "catalogAcquisitions": 364,
+          "waitMs": 1486.692676,
+          "heldMs": 516.121743,
+          "capturedLocks": 364,
+          "wholeRequestHolderCaptured": true,
+          "unattributedWaitMs": 398.897002
+        },
+        "6": {
+          "elapsedMs": 2298.655084,
+          "catalogAcquisitions": 364,
+          "waitMs": 1441.320982,
+          "heldMs": 516.026413,
+          "capturedLocks": 364,
+          "wholeRequestHolderCaptured": true,
+          "unattributedWaitMs": 349.466464
+        }
+      }
+    },
+    "comparison": {
+      "p95IsMaxFor12": true,
+      "all6VisualItemsExact": true,
+      "structuredCommonIdsExact": true,
+      "backgroundCutDifference": "Background-generated IDs differ; final wave had3 new before vs2 new after at query cut. Shared result IDs retain exact fields; all visual results equal. Not identical concurrent store state.",
+      "metadataDifference": "before mode=parallel / after mode=background are wrapper metadata only; native command has no mode flag and same unchanged recording_degraded_http_smoke.cpp always starts two writers, index and retention; scale=cycle and all budgets same.",
+      "notStableImprovementPercentage": true
+    },
+    "limits": [
+      "Sequential before/after single runs; cache/scheduling/background state not identical",
+      "after includes Projection holder, before missing it except last64 SlowTail",
+      "request3 partial;1/2 not selected; unknown not zero",
+      "sample maxima not instantaneous peak; FD scope sequential",
+      "direct no repeated evidence/A; no deletion requirement; full mixed not run"
+    ],
+    "qualificationErrorMeaning": "final p95 failure; actualcollector all samples valid and completed, notcollectorFAIL",
+    "completeWorkNotLatencyPass": "writes6/newindex/explicitFinish/owner0 maintained"
+  },
+  "afterSelectedRequest4": {
+    "indexCaptureOverlapMs": 243.026,
+    "indexSnapshotStatusOverlapMs": 180.076,
+    "projectionHoldersOverlapMs": [
+      175.835,
+      169.287
+    ],
+    "peerReadSourceBindingForMediaOverlapMs": 181.878,
+    "retentionCurrentOverlapMs": 105.487,
+    "unattributedWaitMs": 373.311581,
+    "detailsMember": "after-http/request-analysis-v2.json",
+    "notAllCallsOrPeaks": "these same-mutex overlaps in selected request only; no add across waiters"
+  },
+  "regressions": {
+    "macProduct": {
+      "exit": 0,
+      "log": "build-final.log"
+    },
+    "macProof": {
+      "exit": 0,
+      "assertions": 412,
+      "log": "mac-proof.log",
+      "sourceScope": "final timeline implementation; before positive latency origin repair, separately covered by final product build and latency50"
+    },
+    "macConsumers": {
+      "exit": 0,
+      "assertions": 444,
+      "log": "mac-consumers.log",
+      "sourceScope": "final timeline implementation; before positive latency origin repair, separately covered by final product build and latency50"
+    },
+    "latency": {
+      "exit": 0,
+      "tests": 50,
+      "log": "latency-final2.log"
+    },
+    "linux": {
+      "exit": 0,
+      "uid": 10001,
+      "image": "mediaserver-v450-verify:rc58-arm64",
+      "product": true,
+      "proofConsumers": 856,
+      "cache": 448,
+      "source": 83,
+      "configs": [
+        "crypto1/sqlite1/backend1",
+        "crypto1/sqlite0/backend1",
+        "crypto0/sqlite1/backend1",
+        "crypto1/sqlite1/backend0"
+      ],
+      "log": "linux-final.log",
+      "command": "linux109.sh + linux-execution.json",
+      "firstNoexecFailurePreserved": true,
+      "warnings": "Wall Wextra Werror unchanged"
+    }
+  },
+  "firstFailures": "first-failures.json and linked original logs; no retroPASS",
+  "binding": {
+    "candidateFullEquality": true,
+    "producerExit": 0,
+    "producerSemanticChangedKeys": [
+      "inventorySha256"
+    ],
+    "readbackExit": 0,
+    "inventoryFinalExit": 0,
+    "coverageFinalExit": 0,
+    "scriptInventoryFinalExit": 0,
+    "initialInventoryCoverageDriftFailPreserved": true,
+    "newCodeApproval": "independent-final.json; not986digest"
+  },
+  "independentReview": "109-independent-review.json",
+  "executions": {
+    "cause900": {
+      "run": false,
+      "reason": "short closed-seed HTTP supplied cause evidence"
+    },
+    "after900": {
+      "run": false,
+      "reason": "after direct p95 3034.95ms >2000ms"
+    },
+    "minutes45": {
+      "run": false,
+      "reason": "excluded"
+    },
+    "minutes120": {
+      "run": false,
+      "reason": "excluded"
+    },
+    "qwenOllamaCalls": 0,
+    "unloadGate": "not-run"
+  },
+  "preservation": {
+    "path": "docs/release-artifacts/v4.5.0/109-execution.tar.gz",
+    "bytes": 7464918,
+    "sha256": "9f3b9ffdc2251294fc88016c8e7b95d642718416f97ad6cead17bf097434d90e",
+    "members": 122,
+    "payloadBytes": 71160186,
+    "allSourceMemberBytesEqual": true,
+    "storeDeltas": {
+      "before-http": 8,
+      "after-http": 8,
+      "timeline-before-run": 1,
+      "timeline3-before-run": 1,
+      "timeline3-after-run": 1
+    },
+    "seedReusedNotDuplicated": true,
+    "independentByteReview": "121 payload + MANIFEST exact bytes/hashes; original selected files and seed delta binding confirmed"
+  },
+  "cleanup": {
+    "status": "pending remote preservation",
+    "ownedRoot": "/private/tmp/media-server-r109-tuw3d0ca",
+    "userSettingsPrivate95Backup": "not accessed/uploaded/removed",
+    "existingModelsSdk": "read by existing build/runtime; not modified/uploaded/removed"
+  },
+  "remaining": [
+    "SnapshotTimelineWithContext remains under Catalog lock about169-185ms selected after",
+    "index CaptureVisualSourceKeys243ms and SnapshotStatus180ms overlap selected request4",
+    "peer source/binding/currentity and ReadVisualSource repeated holders",
+    "selected request4 unidentified wait373.311581ms; request3 partial;1/2 notselected",
+    "sameHTTP p95 notmet; continuous900/45/120/P0/release HOLD"
+  ]
+}

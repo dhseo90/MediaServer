@@ -1,0 +1,86 @@
+{
+  "schema": "media-server.v450.r109.independent-review.v1",
+  "reviewer": "/root/independent_memory86",
+  "requested": "gpt-6-astra/high",
+  "toolAccepted": "existing separate reviewer acceptance record reused; followup actual settings not exposed",
+  "actualRuntime": "unconfirmed",
+  "independence": "read-only code/raw/recalculation; no implementation/test writing/execution/delegation",
+  "codeVerdict": "LIMITED_ADOPTION_NO_NEW_CODE_BLOCKER",
+  "httpVerdict": "FAIL_P95",
+  "after900Eligible": false,
+  "findings": [
+    "same authenticated ordered row visitor and lifecycle/retired/state checks retained",
+    "Projection holder captures actual same mutex without changing Source phase or bounded limits",
+    "positive relative clock origin resolves observed zero sentinel collision; elapsed limits unchanged",
+    "before241/after231 complete samples; collectionError denotes p95 qualifier failure, not collector failure",
+    "after2905 holder records complete for4/5/6;request3 357/364 partial;1/2unselected",
+    "new Projection attribution must not be reported as all performance reduction",
+    "all6 visual items equal; metadata differs; structured common IDs exact but background cut differs",
+    "removed>0 not required by actual helper/parent/plan; historical108 originals kept",
+    "mode field differs in wrapper metadata only; actual unchanged native load/command same"
+  ],
+  "direct": {
+    "macProof": 412,
+    "macConsumers": 444,
+    "latency": 50,
+    "linuxExit": 0,
+    "linuxSource": 83,
+    "linuxRequestMedia": 448,
+    "candidateFullJsonEqual": true,
+    "sourceFreezeEqualFiles": 1467
+  },
+  "http": {
+    "count": 12,
+    "p95Ms": 3034.95,
+    "maxMs": 3034.95,
+    "writes": 6,
+    "removed": 0,
+    "generation": [
+      1,
+      2
+    ],
+    "explicitFinish": true,
+    "ownerFinal": 0
+  },
+  "cost": {
+    "beforeMeanMs": 4095.299152833333,
+    "afterMeanMs": 3651.6701876666666,
+    "hashesEqual": true,
+    "chargedRamEqual": true,
+    "scope": "public full timeline six sequential calls; selected-field hash not full oracle"
+  },
+  "producerDecision": "eligible existing inventorySha256 binding only; verify semantic field-only diff/readback",
+  "preservationDecision": "limited-change and failed-result preservation and authorized normal push eligible",
+  "remainingConditions": [
+    "producer/readback",
+    "selected original preservation",
+    "remote bytes",
+    "owned root cleanup"
+  ],
+  "limits": [
+    "single before/after, no stable improvement percentage",
+    "no900/45/120;memory P0/release HOLD"
+  ],
+  "implementationCommit": "68c69eb6b20f43c3653f4cdc5003778b096d863a",
+  "sourceFreezeSha256": "c9e07a59920c8162ea0229aa1a050b2771ac99745ffded6dbe86fae9080984a2",
+  "producerReadback": {
+    "producer": 0,
+    "readback": 0,
+    "coverage": 0,
+    "inventory": 0,
+    "scriptInventory": 0,
+    "semanticChangedKeys": [
+      "inventorySha256"
+    ],
+    "remaining": "remote/cleanup recorded separately"
+  },
+  "preservationReview": {
+    "archiveBytes": 7464918,
+    "payloadMembers": 121,
+    "manifestBytesHashesAndOriginalsEqual": true,
+    "seedDeltaBindingConfirmed": true,
+    "verdict": "limited-result preservation and authorized normal push eligible",
+    "recordCorrection": "user settings/private95backup untouched; existing models/SDK read by build/runtime, not modified/uploaded/removed",
+    "remoteCleanup": "pending"
+  }
+}
