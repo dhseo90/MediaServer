@@ -742,13 +742,69 @@
       "timeline3-after-run": 1
     },
     "seedReusedNotDuplicated": true,
-    "independentByteReview": "121 payload + MANIFEST exact bytes/hashes; original selected files and seed delta binding confirmed"
+    "independentByteReview": "121 payload + MANIFEST exact bytes/hashes; original selected files and seed delta binding confirmed",
+    "remote": {
+      "method": "fresh bare partial clone from origin; requested blobs fetched and byte-compared, not local-only object check",
+      "remoteCommit": "d4a97535a0b5d185dd367f59658ad1d94a2fae7a",
+      "localCommit": "d4a97535a0b5d185dd367f59658ad1d94a2fae7a",
+      "files": {
+        "docs/release-artifacts/v4.5.0/109-execution.tar.gz": {
+          "bytes": 7464918,
+          "sha256": "9f3b9ffdc2251294fc88016c8e7b95d642718416f97ad6cead17bf097434d90e"
+        },
+        "docs/release-artifacts/v4.5.0/109-validation.json": {
+          "bytes": 25343,
+          "sha256": "ad13efb8330384d80de457e8953f55bd493edb91f2293635234ee4c697d2225e"
+        },
+        "docs/release-artifacts/v4.5.0/109-independent-review.json": {
+          "bytes": 3400,
+          "sha256": "4b40ffd195c57955992384748875c76442b73dc9296fa7973bda10d3b5a3712d"
+        },
+        "src/recording/recording_timeline_projection.cpp": {
+          "bytes": 24144,
+          "sha256": "4be29f6751dccb30815e13c428e1922e7826b5e1ee8078237911e0d18b1e585d"
+        },
+        "include/recording/recording_latency_trace.h": {
+          "bytes": 29593,
+          "sha256": "f116ade550bf22d62c49dde0838d5ca40c506a851697ee0e2da3dc352897d09f"
+        },
+        "scripts/internal/recording_timeline_stream_cost_smoke.cpp": {
+          "bytes": 3376,
+          "sha256": "2fb4dea4034eaf0836061d13e0d6f12784d86bde6e747239e46155a8127c4109"
+        }
+      },
+      "allEqual": true
+    },
+    "gitObjectAdmission": {
+      "objects": 27,
+      "max": [
+        "4532afece4f0e413d4d5b07e8b6d55c64a5f6914",
+        "blob",
+        "26350232"
+      ],
+      "limit": 99614720
+    }
   },
   "cleanup": {
-    "status": "pending remote preservation",
     "ownedRoot": "/private/tmp/media-server-r109-tuw3d0ca",
+    "removed": true,
+    "regularFilesRemoved": 5675,
+    "logicalBytesRemoved": 659317613,
+    "symlinksUnlinkedWithoutFollowing": 0,
+    "checks": {
+      "before-httpGroupAbsent": true,
+      "port62164Absent": true,
+      "after-httpGroupAbsent": true,
+      "port62705Absent": true,
+      "linuxContainersAbsent": true,
+      "nativeWrapperCleanupPathsAbsent": true
+    },
+    "pointerRemoved": true,
+    "sourceAndFailureBytesPreservedBeforeRemoval": true,
     "userSettingsPrivate95Backup": "not accessed/uploaded/removed",
-    "existingModelsSdk": "read by existing build/runtime; not modified/uploaded/removed"
+    "existingModelsSdk": "read for existing build/runtime; not modified/uploaded/removed",
+    "QwenOllamaCalls": 0,
+    "unloadGate": "not-run"
   },
   "remaining": [
     "SnapshotTimelineWithContext remains under Catalog lock about169-185ms selected after",
