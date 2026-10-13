@@ -44,13 +44,15 @@ test('LP13-T05 cost instrumentation 신규wrapper 단일치환·trace중복거�
   const wrapper='recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__,false,__func__);';
   const tryWrapper='recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__,std::try_to_lock,__func__);';assert.equal(source.split(tryWrapper).length-1,1);
   const occurrences=(text,literal)=>text.split(literal).length-1,n=occurrences(source,wrapper);
-  assert(n>0);assert.equal(occurrences(source,'recording::latency::Lock lock('),n+1);
+  const named=['RetentionCapture','RetentionCurrent','RetentionDetach'].map(name=>'recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__,false,"'+name+'");');
+  for(const literal of named)assert.equal(occurrences(source,literal),1);
+  const total=n+1+named.length;assert(n>0);assert.equal(occurrences(source,'recording::latency::Lock lock('),total);
   const r=spawnSync(process.execPath,[path.join(repo,'scripts/internal/recording_catalog_cost_probe_instrument.cjs'),repo,output],{env,encoding:'utf8',timeout:10000});assert.equal(r.status,0,r.stderr);
   const instrumented=fs.readFileSync(path.join(output,'recording_catalog.cpp'),'utf8');
   const journal=fs.readFileSync(path.join(output,'recording_journal.cpp'),'utf8');
 
   const pair=wrapper;
-  const exact=text=>{assert.equal(occurrences(text,'recording::latency::Lock lock('),n+1);assert.equal(occurrences(text,pair),n);assert.equal(occurrences(text,'catalog.lock.wait'),0);assert.equal(occurrences(text,'catalog.lock.hold'),0);};
+  const exact=text=>{assert.equal(occurrences(text,'recording::latency::Lock lock('),total);assert.equal(occurrences(text,pair),n);assert.equal(occurrences(text,'catalog.lock.wait'),0);assert.equal(occurrences(text,'catalog.lock.hold'),0);};
   exact(instrumented);
   assert.throws(()=>exact(instrumented.replace(pair,'')));
   assert.throws(()=>exact(instrumented.replace(pair,pair+pair)));
@@ -85,12 +87,13 @@ test('V430-A01-APP changing holders, scheduling/unobserved gap and wrong mutex',
  assert.equal(trace.catalogHolderSummary(format(rows)+'[catalog-holder-loss] write\n').status,'incomplete');
 });
 
-for(const mode of ['holder-whole','holder-overflow'])test('R101-H01 actual whole-request '+mode,()=>{
+for(const mode of ['holder-whole','holder-projection','holder-overflow'])test('R101-H01 actual whole-request '+mode,()=>{
  const env={PATH:process.env.PATH,MEDIA_SERVER_VERIFY_RECORDING_LATENCY_TRACE:'1',MEDIA_SERVER_VERIFY_RECORDING_LATENCY_SLOW_ONLY:'1',MEDIA_SERVER_VERIFY_CATALOG_HOLDER_TRACE:'1',MEDIA_SERVER_VERIFY_VISUAL_REQUEST_TRACE:'1',MEDIA_SERVER_VERIFY_CATALOG_HOLDER_WHOLE_REQUESTS:'1'};
  const r=spawnSync(binary,[mode],{encoding:'utf8',timeout:15000,maxBuffer:4*1024*1024,env});assert.equal(r.status,0,r.stderr);
  const raw=r.stdout+r.stderr,v=trace.catalogHolderSummary(raw);
  if(mode==='holder-overflow'){assert.equal(v.status,'incomplete');return;}
  assert.equal(v.status,'captured',v.code);assert(v.windows[0].endNs-v.windows[0].beginNs>1000000000);assert(v.windows[0].coveredNs>1000000000);assert.equal(v.rows.length,6);
+ if(mode==='holder-projection')assert.equal(v.rows.filter(x=>x.site==='SnapshotTimelineWithContext').length,3);
  const e=v.end;for(const change of [{ends:[0,...e.ends.slice(1)]},{requests:[7,41,77]},{loss:true}]){const bad=raw.replace(/^\[catalog-holder-end\].*$/m,'[catalog-holder-end] '+JSON.stringify({...e,...change}));assert.equal(trace.catalogHolderSummary(bad).status,'incomplete');}
  const invalid=spawnSync(binary,['holder-whole'],{encoding:'utf8',timeout:15000,maxBuffer:4*1024*1024,env:{...env,MEDIA_SERVER_VERIFY_CATALOG_HOLDER_WHOLE_REQUESTS:'full'}});assert.equal(trace.catalogHolderSummary(invalid.stdout+invalid.stderr).status,'incomplete');
 });
@@ -131,8 +134,8 @@ test('R107-H01 optional subcost basis and per-request fields fail closed',()=>{
  MEDIA_SERVER_VERIFY_RECORDING_LATENCY_TRACE:'1',MEDIA_SERVER_VERIFY_CATALOG_HOLDER_TRACE:'1',MEDIA_SERVER_VERIFY_VISUAL_REQUEST_TRACE:'1',
  MEDIA_SERVER_VERIFY_CATALOG_HOLDER_WHOLE_REQUESTS:'1',MEDIA_SERVER_VERIFY_CATALOG_SUBCOSTS:'1'}});
  assert.equal(r.status,0,r.stderr);const raw=r.stdout+r.stderr,basis='journal-wait,managed-authority,identity-lookup,cold-read-inclusive';
- assert.equal(trace.catalogHolderSummary(raw,true,[1,2,3],basis).status,'captured');
- assert.equal(visualRequestSummary(raw,true,true).status,'captured');
+ const holder=trace.catalogHolderSummary(raw,true,[1,2,3],basis);if(holder.status!=='captured')console.error('[R107-failure-raw] '+JSON.stringify(raw));assert.equal(holder.status,'captured',holder.code);
+ const summary=visualRequestSummary(raw,true,true);assert.equal(summary.status,'captured',summary.reason);
  assert.equal(trace.catalogHolderSummary(raw.replace(/^\[catalog-subcost-basis\].*\n/m,''),true,[1,2,3],basis).status,'incomplete');
  assert.equal(visualRequestSummary(raw.replace(/,"journalCostNs":\[[^\]]*\]/g,''),true,true).status,'incomplete');
  assert.equal(visualRequestSummary(raw.replace(/"journalCostNs":\[[^\]]*\]/,'"journalCostNs":[0,0,0,-1]'),true,true).status,'incomplete');

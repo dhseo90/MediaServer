@@ -5083,3 +5083,11 @@ R97-A02는 미선택 대체 후보의 unlink/authority 하드 오류를 거부�
 - 직접 기대값: 기존 locked snapshot과 후보/순서/경로/상태/예약 동일; 준비 latch 중 실제 조회·쓰기 진행; 새 확정·삭제/pending·hold·checkpoint·authority 상실·예외/예산 거부·변경 수용 상한 반례. 전체 path namespace 인증 유지, 같은 크기 원본 value 변조·큰 V1 reason 개별 예약·새 job의 내구 예약/보호를 직접 확인한다. delta 유실은 거부이며 재시도/빈 결과 아님.
 - R108-H01: R107 실제 HTTP helper, 닫힌 R106 원본911파일 동일 hash, before/after 각1회,3waves/12응답·5초·p95 2000ms·최대5000ms·writer/index/87MiB/64MiB retention·명시 Finish. 기존630초/4MiB/model8GiB/live448MiB. 컴파일과 성능 실행 분리. 실패 보존, 통과 전900초 미실행;45/120분 제외.
 - macOS와 기존 비특권 Linux generation/crypto/SQLite 관련 직접 wrapper, 기존 K/F·삭제/보호·source/request proof 영향 회귀. UI 비대상; 직접 HTTP는 evidence/A 지속 혼합을 대체하지 않음.
+
+### R109-H01 — 동일 HTTP 느린 묶음과 실제 판정 계약
+
+- 채택된 R108 소스와 동일한 종료 원본911파일(50,664,710 bytes)을 별도 소유 복사본으로 사용한다. before/최종 after 각1회, 순서 고정, 컴파일과 측정 분리. 기존 whole-request `late` 선택(4/5/6),6개 장면 summary,8192행·4MiB·630초·102 공간 관측을 유지한다. 선택되지 않은 요청은 완전 holder 근거가 아니다.
+- 3묶음12응답, 요청5초, p95≤2000ms·최대≤5000ms, 쓰기6건·새 색인 게시·명시 Finish·마지막 소유 회수가 직접 조건이다.12표본의 p95는 최대와 같다. 실제 helper/부모/사전 계획에는 `removed>0` 조건이 없으므로 삭제0은 관측 한계이며 추가 FAIL 조건이 아니다. R108 p95 FAIL과 장시간 삭제 gate는 그대로 유지한다.
+- 현재 원본·권한·8namespace 인증·K/F·hold/job/예약·1024 changed-ID 거부/쓰기 진행을 보존한다. 직접 조건과 독립 검토가 통과한 경우에만 기존900초1회;45/120분 제외.
+
+- R109-P01: 실제 Catalog mutex를 사용하는 timeline projection을 holder에 포함하되 기존 Projection phase 의미는 유지한다. 제어된 다른 thread 보유·선택 요청 대기의 겹침을 검사한다. 원본 namespace의 기존 ForEachEntry 순회로 각 행의 인증·canonical/domain·수명과 순서를 유지하며 반복 NextOwned root 탐색을 제거한다. 기존 timeline/generation consumer의 이벤트·삭제·범위·정렬·오류·권한·K/F 회귀와 같은 종료 원본의 before/after 각3회 고정 timeline 비용을 대조한다. 이 비용 검사는 HTTP gate를 대체하지 않는다. 내부 helper `scripts/internal/recording_timeline_stream_cost_smoke.cpp`는 기존 runtime에 링크해 같은 원본의 공개 timeline을 채널별3회 호출하고 유한한 결과 hash·비용만 출력한다.

@@ -224,7 +224,9 @@ bool RecordingCatalog::SnapshotTimelineV2(const RecordingTimelineQuery& query,Re
     return SnapshotTimelineWithContext(query,result,error,nullptr);
 }
 bool RecordingCatalog::SnapshotTimelineWithContext(const RecordingTimelineQuery& query,RecordingTimelineResult* result,std::string* error,JobReadContext* context,bool event_candidates_only) const {
-    recording::latency::Lock lock(mu_,recording::latency::Source::Projection,__LINE__,true);
+    // This projection owns the Catalog mutex too. Preserve its phase category,
+    // while including the actual holder in the bounded contention window.
+    recording::latency::Lock lock(mu_,recording::latency::Source::Projection,__LINE__,true,__func__,true);
     if(!result||!opened_||!derived_job_state_authoritative_||(generation_backend_&&!CanReadLocked(error))){if(error)*error="timeline-catalog-unavailable";return false;}
     result->v2_projection=options_.enable_v2_storage;
     if(!result->v2_projection)return true;
@@ -246,14 +248,17 @@ bool RecordingCatalog::SnapshotTimelineWithContext(const RecordingTimelineQuery&
         // 세그먼트마다 모든 작업을 재탐색하면 누적 원본·이벤트가 같은 잠금을 오래 점유한다.
         // Terminal ownership is authenticated scratch; only active job ownership remains resident.
         // Querying membership avoids an O(all completed outputs/references) request-local set.
-        for(const auto& entry:segments_v2_){const auto& segment=entry.second;if(segment.channel_id!=query.channel_id)continue;
+        // Authenticate the namespace once in key order, with bounded row ownership.
+        // Cursor++ used to repeat root traversal and metadata/value reads per row.
+        segments_v2_.ForEachEntry([&](const auto& id,const auto& segment){if(segment.channel_id!=query.channel_id)return true;
             if(segment.retention_class==RecordingRetentionClass::Continuous){
-                if(!event_candidates_only)collector.Source(segment,EffectiveLifecycleV2Locked(entry.first));
-                continue;
+                if(!event_candidates_only)collector.Source(segment,EffectiveLifecycleV2Locked(id,true));
+                return true;
             }
-            if(!JobOwnsLocked("job-output",entry.first)){auto row=Base(segment,EffectiveLifecycleV2Locked(entry.first));row.item_id="orphan-event:"+Key(entry.first);
+            if(!JobOwnsLocked("job-output",id)){auto row=Base(segment,EffectiveLifecycleV2Locked(id,true));row.item_id="orphan-event:"+Key(id);
                 row.completeness="unknown";row.unavailable_reason="output-binding-unavailable";collector.Add(std::move(row));}
-        }
+            return true;
+        });
         // 삭제 이력도 기존 공개 timeline 구성원이다. 영수증을 가짜 segment로 투영하지 않고
         // 한 건씩 검증된 원문을 재획득해 기존 mapping/ID/미배치 판정을 그대로 사용한다.
         if(!VisitRetiredLocked([&](const std::string& id,const RecordingRetiredV2Receipt& receipt,std::string*){if(receipt.channel_id!=query.channel_id)return true;

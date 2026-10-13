@@ -15,7 +15,9 @@ enum class Source : unsigned { Catalog=1, Projection=2, Read=3, Application=4, T
 enum class Operation : unsigned { Lock=1, Timeline=2, Query=3, Finish=4, Serialize=5, Checkpoint=6, Append=7, ApplyJob=8, Sqlite=9, ValidateSources=10, FixedCapture=11, SnapshotPrepare=12, Transition=13 };
 inline bool Enabled() noexcept {static const bool enabled=[] {const char* p=std::getenv("MEDIA_SERVER_VERIFY_RECORDING_LATENCY_TRACE");return p&&std::strcmp(p,"1")==0;}();return enabled;}
 inline bool SlowOnly() noexcept {static const bool enabled=[] {const char* p=std::getenv("MEDIA_SERVER_VERIFY_RECORDING_LATENCY_SLOW_ONLY");return p&&std::strcmp(p,"1")==0;}();return enabled;}
-inline std::uint64_t Now() noexcept {static const auto epoch=std::chrono::steady_clock::now();return static_cast<std::uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now()-epoch).count());}
+// Zero is the unselected-window sentinel. The first two clock reads can be
+// identical; reserve zero without changing any elapsed-time differences.
+inline std::uint64_t Now() noexcept {static const auto epoch=std::chrono::steady_clock::now();return 1+static_cast<std::uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now()-epoch).count());}
 // Diagnostic-only selected windows. No allocation, output or diagnostic mutex under
 // the product lock. Completed intervals are published after unlock; never an owner guess.
 enum class Work : unsigned { Other=0, Visual=1, Structured=2, Retention=3, Index=4, Writer=5, Evidence=6 };
@@ -275,7 +277,7 @@ class Lock {
         if(enabled_){--local.depth;local.mutex=previous_;Append(row_,always_);if(!local.request&&local.fast_events>=256)FlushFast();else Flush();}
     }
 public:
-    Lock(std::mutex& mutex,Source source,unsigned line,bool always=false,const char* site=nullptr):mutex_(mutex),enabled_(Enabled()),always_(always),holder_(Enabled()&&HolderEnabled()&&source==Source::Catalog),site_(site){
+    Lock(std::mutex& mutex,Source source,unsigned line,bool always=false,const char* site=nullptr,bool catalog_holder=false):mutex_(mutex),enabled_(Enabled()),always_(always),holder_(Enabled()&&HolderEnabled()&&(source==Source::Catalog||catalog_holder)),site_(site){
         if(enabled_){row_.o=1;row_.s=static_cast<unsigned>(source);row_.l=line;row_.m=MutexId(&mutex);}
         Acquire();enclosing_=current_;current_=this;
     }
