@@ -4180,7 +4180,7 @@ RetentionSnapshot RecordingCatalog::RetentionReservations() const {
     return RetentionReservationsLocked();
 }
 
-RetentionSnapshot RecordingCatalog::RetentionSnapshotLocked(RetentionSnapshotSelection selection,const std::string& selected_id) const try {
+RetentionSnapshot RecordingCatalog::RetentionSnapshotLocked(RetentionSnapshotSelection selection,const std::string& selected_id,std::array<std::uint64_t,4>* diagnostic) const try {
     auto snapshot=RetentionReservationsLocked();
     if(!snapshot.authoritative||selection==RetentionSnapshotSelection::Authority)return snapshot;
     if(completed_history_)completed_history_->EnableVerifiedSegmentDecodeCache();
@@ -4202,7 +4202,9 @@ RetentionSnapshot RecordingCatalog::RetentionSnapshotLocked(RetentionSnapshotSel
     const auto add_v2=[&](const auto& id,const auto& v) {
         if(selection==RetentionSnapshotSelection::Channel&&v.channel_id!=selected_id)return true;
         recording::latency::HolderCount(2);
+        const auto lifecycle_begin=diagnostic?recording::latency::Now():0;
         const auto lifecycle=lifecycle_in_cut(id);
+        if(diagnostic){(*diagnostic)[2]+=recording::latency::Now()-lifecycle_begin;++(*diagnostic)[3];}
         if(lifecycle==RecordingLifecycle::Deleted)return true;
         RetentionCandidate candidate;candidate.segment_v2=v;candidate.effective_lifecycle=lifecycle;
         if(!join_paths){
@@ -4215,6 +4217,8 @@ RetentionSnapshot RecordingCatalog::RetentionSnapshotLocked(RetentionSnapshotSel
         if(has_reasons){const auto reason=deletion_reasons_.find(id);if(reason!=deletion_reasons_.end())candidate.deletion_reason=reason->second;}
         snapshot.candidates.push_back(std::move(candidate));return true;
     };
+    const bool cost_trace=diagnostic!=nullptr;
+    const auto segment_begin=cost_trace?recording::latency::Now():0;
     if(selection==RetentionSnapshotSelection::Candidate){
         const auto row=segments_v2_.find(selected_id);if(row!=segments_v2_.end())add_v2(row->first,row->second);
     }else if(selection==RetentionSnapshotSelection::Pending){
@@ -4227,6 +4231,12 @@ RetentionSnapshot RecordingCatalog::RetentionSnapshotLocked(RetentionSnapshotSel
             return add_v2(row->first,row->second);
         });
     }else segments_v2_.ForEachEntry(add_v2);
+    // Retention* sites: counts[0/1] are inclusive segment/path traversal ns;
+    // counts[2/3] are nested lifecycle ns / visited V2 candidates. These
+    // values are separate from the normal thread-local counts (authority checks
+    // also increment those). Nested SnapshotStatus keeps the original counters.
+    if(cost_trace)(*diagnostic)[0]=recording::latency::Now()-segment_begin;
+    const auto path_begin=cost_trace?recording::latency::Now():0;
     if(join_paths&&!snapshot.candidates.empty()){
         // Both authenticated namespaces are ordered by ID+'/' in the same locked
         // Catalog cut. Reuse the caller's existing result vector: no second
@@ -4249,6 +4259,7 @@ RetentionSnapshot RecordingCatalog::RetentionSnapshotLocked(RetentionSnapshotSel
         snapshot.candidates.erase(std::remove_if(snapshot.candidates.begin(),snapshot.candidates.end(),
             [](const auto& candidate){return candidate.media_path.empty();}),snapshot.candidates.end());
     }
+    if(cost_trace)(*diagnostic)[1]=recording::latency::Now()-path_begin;
     const auto add_v1=[&](const auto& segment_id,const auto& segment) {
         if(selection==RetentionSnapshotSelection::Channel&&segment.channel_id!=selected_id)return true;
         if(selection==RetentionSnapshotSelection::Pending&&segment.lifecycle!=RecordingLifecycle::DeletionPending)return true;
@@ -4290,11 +4301,25 @@ RetentionSnapshot RecordingCatalog::RetentionSnapshotLocked(RetentionSnapshotSel
 
 RetentionSnapshot RecordingCatalog::RetentionSnapshot() const {
     recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__,false,__func__);
-    return RetentionSnapshotLocked();
+    std::array<std::uint64_t,4> cost{};
+    auto result=RetentionSnapshotLocked(RetentionSnapshotSelection::All,{},recording::latency::HolderEnabled()?&cost:nullptr);
+    lock.HolderRetentionCosts("RetentionAll",cost);
+    return result;
 }
 RetentionSnapshot RecordingCatalog::RetentionSnapshot(RetentionSnapshotSelection selection,const std::string& id) const {
     recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__,false,__func__);
-    return RetentionSnapshotLocked(selection,id);
+    const char* site="RetentionAll";
+    switch(selection){
+        case RetentionSnapshotSelection::Authority:site="RetentionAuthority";break;
+        case RetentionSnapshotSelection::Pending:site="RetentionPending";break;
+        case RetentionSnapshotSelection::Candidate:site="RetentionCandidate";break;
+        case RetentionSnapshotSelection::Channel:site="RetentionChannel";break;
+        case RetentionSnapshotSelection::All:break;
+    }
+    std::array<std::uint64_t,4> cost{};
+    auto result=RetentionSnapshotLocked(selection,id,recording::latency::HolderEnabled()?&cost:nullptr);
+    lock.HolderRetentionCosts(site,cost);
+    return result;
 }
 
 std::optional<EventRecordingLinkV1> RecordingCatalog::FindEventLinkByEventId(

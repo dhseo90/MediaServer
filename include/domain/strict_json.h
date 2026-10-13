@@ -1,6 +1,7 @@
 #pragma once
 // 파일 용도: 중복 키와 타입 경계를 엄격히 검사하는 JSON 파서 계약을 선언한다.
 #include <optional>
+#include <functional>
 #include <string>
 #include <string_view>
 #include <unordered_set>
@@ -58,6 +59,14 @@ bool ParseStrictJsonObjectDocument(const std::string& json,
 bool ParseStrictJsonObjectDocumentArrayViews(const std::string& json,
                                              StrictJsonObjectDocument* document,
                                              std::string* error_message);
+// Consume one selected top-level array's object members during the same strict
+// traversal. All syntax/duplicate/depth checks remain active. The consumer owns
+// no parser references after its call; callers must publish only after success.
+// The selected member is represented by type Array and no owning raw payload.
+bool ParseStrictJsonObjectDocumentObjectArray(const std::string& json,
+    const std::string& array_key, StrictJsonObjectDocument* document,
+    const std::function<bool(const StrictJsonObjectDocument&)>& consumer,
+    std::string* error_message);
 std::optional<std::string> StrictJsonStringField(const StrictJsonObjectDocument& document,
                                                  const std::string& key);
 std::optional<bool> StrictJsonBoolField(const StrictJsonObjectDocument& document,

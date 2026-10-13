@@ -81,6 +81,10 @@ using RecordingSegmentV2 = RecordingMemoryValue<RecordingSegmentV2Fields>;
 bool ValidateRecordingSegmentV2(const RecordingSegmentV2& value, std::string* error);
 std::string SerializeRecordingSegmentV2(const RecordingSegmentV2& value);
 bool ParseRecordingSegmentV2(const std::string& json, RecordingSegmentV2* value, std::string* error);
+// Returns the exact canonical bytes already produced by domain validation.
+// Neither output is published on failure. Used for authenticated cold-row comparison.
+bool ParseRecordingSegmentV2Canonical(const std::string& json, RecordingSegmentV2* value,
+                                      std::string* canonical, std::string* error);
 
 struct RecordingSourceSampleV1 {
     std::uint64_t ordinal{0}, pts_ns{0};

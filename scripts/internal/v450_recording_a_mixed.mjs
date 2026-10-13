@@ -80,7 +80,7 @@ function environment(http,rtsp,stun){const env={PATH:process.env.PATH,HOME:proce
     VA_REVIEW_ENABLED:1,VA_REVIEW_LOCAL_ENDPOINT:'http://127.0.0.1:1',VISUAL_SEARCH_ENABLED:1,VISUAL_SEARCH_MODEL_DIRECTORY:path.join(repo,'models/v430-siglip2'),VISUAL_SEARCH_SCAN_SECONDS:1,VISUAL_SEARCH_SAMPLE_SECONDS:1,EVIDENCE_ENABLED:1,RECORDING_ENABLED:1,RECORDING_STORAGE_ROOT:path.join(root,'recordings'),RECORDING_SEGMENT_DURATION_SECONDS:2,RECORDING_RESERVED_FREE_BYTES:0,RECORDING_RETENTION_INTERVAL_MS:1000,
     VERIFY_RECORDING_STATE_TRACE:1,VERIFY_CATALOG_HOLDER_TRACE:diagnose&&!stateDiagnose?1:0,VERIFY_VISUAL_REQUEST_TRACE:1,VERIFY_RECORDING_SEARCH_TRACE:1,VERIFY_VISUAL_LATENCY_TRACE:short?1:0,VERIFY_RECORDING_RESOURCE_TRACE:1,VERIFY_FRAME_TRACE:frameTraceMode,VERIFY_RECORDING_LATENCY_TRACE:1,VERIFY_RECORDING_LATENCY_SLOW_ONLY:1,
     GST_CACHE_DIR:path.join(root,'gst-cache'),GST_PLUGIN_PROFILE:'headless',WEBRTC_STUN_SERVER:`stun://127.0.0.1:${stun}`,WEBRTC_TURN_SERVER:''};
-  if(contentionDiagnose)values.VERIFY_CATALOG_HOLDER_WHOLE_REQUESTS='mixed-late';
+  if(contentionDiagnose)values.VERIFY_CATALOG_HOLDER_WHOLE_REQUESTS='slow-first';
   for(const [k,v] of Object.entries(values))env['MEDIA_SERVER_'+k]=String(v);return env;
 }
 async function request(app,method,route,body,observeStatus=false){const begin=performance.now();budget();console.log('[request-budget] '+JSON.stringify({elapsedMs:Math.round(performance.now()-begin)}));
@@ -342,7 +342,7 @@ finally{
     console.log('[resource-trace-summary] '+JSON.stringify(finishResourceTrace(app.resourceTrace)));
     const searchFailure=searchFailureSummary(text,app.requiresFrameTrace);console.log('[search-failure-summary] '+JSON.stringify(searchFailure));
     if(searchFailure.status==='incomplete'){failed++;console.log('[fail] structured-failure-collection');}
-    if(diagnose&&!stateDiagnose){const holders=catalogHolderSummary(text,app.requiresFrameTrace,contentionDiagnose?[77,78,79]:null);fs.writeFileSync(path.join(root,`catalog-holders-${app.child.pid}.json`),JSON.stringify(holders),{flag:'wx',mode:0o600});if(holders.status==='incomplete'){failed++;console.log('[fail] catalog-holder-collection '+holders.code);}}
+    if(diagnose&&!stateDiagnose){const holders=catalogHolderSummary(text,app.requiresFrameTrace,contentionDiagnose?'slow-first':null);fs.writeFileSync(path.join(root,`catalog-holders-${app.child.pid}.json`),JSON.stringify(holders),{flag:'wx',mode:0o600});if(holders.status==='incomplete'){failed++;console.log('[fail] catalog-holder-collection '+holders.code);}}
     const requests=visualRequestSummary(text,app.requiresFrameTrace);console.log('[visual-request-summary] '+JSON.stringify(requests));if(requests.status==='incomplete'){failed++;console.log('[fail] visual-request-collection');}
     const frameTrace=frameTraceSummary(text,frameTraceMode,app.requiresFrameTrace);console.log('[frame-trace-summary] '+JSON.stringify(frameTrace));
     if(frameTrace.status!=='captured'&&!(frameTrace.status==='not-observed'&&!app.requiresFrameTrace)){failed++;console.log('[fail] frame-trace-incomplete');}

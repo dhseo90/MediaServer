@@ -21,6 +21,11 @@ public:
                      std::string* error_message, bool array_views = false, bool key_index = true)
         : json_(json), document_(document), error_message_(error_message), array_views_(array_views), key_index_(key_index) {}
 
+    void ObjectArray(const std::string& key,
+                     const std::function<bool(const StrictJsonObjectDocument&)>& consumer) {
+        object_array_key_=&key; object_array_consumer_=&consumer;
+    }
+
     bool Parse() {
         if (document_ == nullptr) {
             return Fail("output document is null");
@@ -79,14 +84,19 @@ private:
             }
             SkipWhitespace();
             ParsedValue value;
-            if (!ParseValue(path + "." + key, &value, depth + 1)) {
+            const bool selected=depth==0 && object_array_key_ && key==*object_array_key_;
+            if (selected) {
+                value.start=pos_; value.type=StrictJsonType::Array;
+                if (!ParseObjectArray(path + "." + key, depth+1)) return false;
+                value.end=pos_;
+            } else if (!ParseValue(path + "." + key, &value, depth + 1)) {
                 return false;
             }
             if (captured_members != nullptr) {
                 captured_members->push_back(StrictJsonMember{
                     key,
                     value.type,
-                    array_views_ && value.type == StrictJsonType::Array ? std::string{} : json_.substr(value.start, value.end - value.start),
+                    (selected || (array_views_ && value.type == StrictJsonType::Array)) ? std::string{} : json_.substr(value.start, value.end - value.start),
                     std::move(value.string_value),
                     value.bool_value,
                     array_views_ && value.type == StrictJsonType::Array ? std::string_view(json_).substr(value.start, value.end-value.start) : std::string_view{},
@@ -102,6 +112,24 @@ private:
             SkipWhitespace();
         }
         return Fail("unterminated object");
+    }
+
+    bool ParseObjectArray(const std::string& path, std::size_t depth) {
+        if (depth>128) return Fail("nesting limit exceeded");
+        if (!Consume('[')) return Fail("expected object array");
+        SkipWhitespace();
+        if (Consume(']')) return true;
+        std::size_t index=0;
+        while (pos_<json_.size()) {
+            StrictJsonObjectDocument element;
+            if (!ParseObject(path+"["+std::to_string(index)+"]", &element.members, depth+1)) return false;
+            if (!(*object_array_consumer_)(element)) return Fail("object array consumer rejected");
+            ++index; SkipWhitespace();
+            if (Consume(']')) return true;
+            if (!Consume(',')) return Fail("missing array comma");
+            SkipWhitespace();
+        }
+        return Fail("unterminated array");
     }
 
     bool ParseArray(const std::string& path, std::size_t depth) {
@@ -313,6 +341,8 @@ private:
     StrictJsonObjectDocument* document_{nullptr};
     std::string* error_message_{nullptr};
     std::size_t pos_{0};
+    const std::string* object_array_key_{nullptr};
+    const std::function<bool(const StrictJsonObjectDocument&)>* object_array_consumer_{nullptr};
     bool array_views_{false};
     bool key_index_{true};
 };
@@ -425,6 +455,15 @@ bool ParseStrictJsonObjectDocumentArrayViews(const std::string& json,
                                              StrictJsonObjectDocument* document,
                                              std::string* error_message) {
     StrictJsonParser parser(json, document, error_message, true, false);
+    return parser.Parse();
+}
+
+bool ParseStrictJsonObjectDocumentObjectArray(const std::string& json,
+    const std::string& array_key, StrictJsonObjectDocument* document,
+    const std::function<bool(const StrictJsonObjectDocument&)>& consumer,
+    std::string* error_message) {
+    StrictJsonParser parser(json,document,error_message,false,false);
+    parser.ObjectArray(array_key,consumer);
     return parser.Parse();
 }
 

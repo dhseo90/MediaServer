@@ -10,7 +10,36 @@ namespace L=recording::latency;
 static void Sink(const char* text,std::size_t bytes) noexcept {if(L::local.depth)std::abort();(void)std::fwrite(text,1,bytes,stdout);}
 int main(int argc,char** argv){
  L::test_sink=Sink;const std::string mode=argc>1?argv[1]:"contention";std::mutex mutex,other;
- if(mode=="holder-whole"||mode=="holder-overflow"||mode=="holder-late"||mode=="holder-mixed-late"){
+ if(mode=="holder-slow-none"){
+  for(unsigned i=0;i<95;++i){L::VisualRequestSummary request;L::VisualRequestSummary::Result(200,"ok");L::Lock held(mutex,L::Source::Catalog,__LINE__,false,"fast");}
+ }else if(mode.rfind("holder-slow",0)==0){
+  // Real steady clock/RAII mutex case; bounded synthetic publications exercise
+  // wrap and late delivery separately, never presented as product workload.
+  const unsigned prefix=mode=="holder-slow-early"?2:90;
+  for(unsigned i=0;i<prefix;++i){L::VisualRequestSummary request;L::VisualRequestSummary::Result(200,"ok");}
+  for(unsigned i=0;i<5000;++i){L::Lock held(mutex,L::Source::Catalog,__LINE__,false,"old");}
+  std::mutex gate;std::condition_variable cv;bool held=false,release=false;
+  std::thread spanning([&]{L::WorkScope work(L::Work::Index);L::Lock holder(other,L::Source::Catalog,__LINE__,false,"spanning");
+   {std::lock_guard g(gate);held=true;cv.notify_all();}{std::unique_lock g(gate);cv.wait(g,[&]{return release;});}});
+  {std::unique_lock g(gate);cv.wait(g,[&]{return held;});}
+  std::thread simultaneous;
+  if(mode=="holder-slow-concurrent")simultaneous=std::thread([&]{L::VisualRequestSummary request;L::VisualRequestSummary::Result(200,"ok");std::this_thread::sleep_for(std::chrono::milliseconds(2100));});
+  {
+   L::VisualRequestSummary request;L::VisualRequestSummary::Result(mode=="holder-slow-error"?503:200,mode=="holder-slow-error"?"visual-search-unavailable":"ok");
+   if(mode=="holder-slow-overwrite")for(unsigned i=0;i<5000;++i){L::Lock owned(mutex,L::Source::Catalog,__LINE__,false,"wrap");}
+   std::thread blocking([&]{L::WorkScope work(L::Work::Retention);L::Lock owner(mutex,L::Source::Catalog,__LINE__,false,"retention");
+    {std::lock_guard g(gate);held=false;cv.notify_all();}std::this_thread::sleep_for(std::chrono::milliseconds(2050));
+    if(mode=="holder-slow-cost"){L::HolderCount(0,7);L::HolderCount(1,9);L::HolderCount(2,11);L::HolderCount(3,13);owner.HolderRetentionCosts("RetentionChannel",{101,202,303,404});}});
+   {std::unique_lock g(gate);cv.wait(g,[&]{return !held;});}
+   {L::Lock wait(mutex,L::Source::Catalog,__LINE__,false,"visual");}blocking.join();
+  }
+  {std::lock_guard g(gate);release=true;cv.notify_all();}spanning.join();if(simultaneous.joinable())simultaneous.join();
+  if(mode=="holder-slow-tail-cap"){
+   L::HolderTrace::Event e;e.b=e.a=L::Holder().slow_begin;e.e=L::Holder().slow_end;e.m=3;e.t=1;e.site="synthetic";
+   for(unsigned i=0;i<4097;++i)L::Holder().Add(e);
+  }
+  if(mode=="holder-slow-inflight")++L::Holder().inflight;
+ }else if(mode=="holder-whole"||mode=="holder-overflow"||mode=="holder-late"||mode=="holder-mixed-late"){
   for(unsigned i=1;i<=(mode=="holder-mixed-late"?79U:mode=="holder-late"?6U:3U);++i){L::VisualRequestSummary request;L::VisualRequestSummary::Result(200,"ok");
    if((mode=="holder-late"&&i<4)||(mode=="holder-mixed-late"&&i<77))continue;
    std::mutex gate;std::condition_variable cv;bool ready=false;

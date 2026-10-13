@@ -22,13 +22,49 @@ enum class Work : unsigned { Other=0, Visual=1, Structured=2, Retention=3, Index
 inline thread_local Work holder_work=Work::Other;
 struct WorkScope {Work previous;explicit WorkScope(Work work):previous(holder_work){holder_work=work;}~WorkScope(){holder_work=previous;}};
 inline bool HolderEnabled() noexcept {static const bool yes=[] {const char* p=std::getenv("MEDIA_SERVER_VERIFY_CATALOG_HOLDER_TRACE");return p&&std::strcmp(p,"1")==0;}();return yes;}
+inline thread_local std::array<std::uint64_t,4> segment_decode_cost{}; // opt-in calls/hits/inclusive parse ns/second canonical serialization ns
 inline thread_local std::uint64_t history_node_reads=0; // opt-in logical authenticated node reads, not physical I/O
 inline thread_local std::array<std::uint64_t,4> holder_counts{}; // binding checks, cold link calls, visited rows, Journal ReadAt requested bytes
 inline void HolderCount(unsigned i,std::uint64_t n=1) noexcept {if(HolderEnabled()&&i<4)holder_counts[i]+=n;}
 struct HolderTrace {
     struct Event {std::uint64_t b=0,a=0,e=0;std::array<std::uint64_t,4> counts{};const char* site=nullptr;unsigned m=0,t=0,r=0,line=0,work=0;};
-    struct Slot {Event event;std::atomic<bool> ready{false};};
+    struct Slot {Event event;std::atomic<std::uint64_t> state{0};};
     std::array<Slot,8192> slots{};std::atomic<unsigned> count{0};
+    const bool slow=[] {const char* p=std::getenv("MEDIA_SERVER_VERIFY_CATALOG_HOLDER_WHOLE_REQUESTS");return p&&std::strcmp(p,"slow-first")==0;}();
+    static constexpr std::uint64_t Frozen=std::uint64_t{1}<<63,Threshold=2000000000;
+    std::atomic<std::uint64_t> tickets{0},overwritten_end{0},slow_begin{0},slow_end{0},max_completed{0};
+    std::atomic<unsigned> selected{0},completed_requests{0},tail_count{0};
+    static void Max(std::atomic<std::uint64_t>& target,std::uint64_t value) noexcept {
+        auto old=target.load();while(old<value&&!target.compare_exchange_weak(old,value)){}
+    }
+    void CompleteSlow(unsigned id,std::uint64_t begin,std::uint64_t end) noexcept {
+        ++completed_requests;Max(max_completed,end-begin);
+        if(end-begin<Threshold)return;
+        unsigned zero=0;if(!selected.compare_exchange_strong(zero,id))return;
+        slow_begin.store(begin);slow_end.store(end);
+        // The winning completion selects one request, not every concurrent slow request.
+        // Ticket allocation and freezing share one atomic modification order. Earlier
+        // publishers finish their ring slot; later publishers use the separate tail.
+        tickets.fetch_or(Frozen,std::memory_order_release);
+    }
+    void AddSlow(const Event& e) noexcept {
+        const auto ticket=tickets.fetch_add(1,std::memory_order_acq_rel);
+        if(ticket&Frozen){
+            const auto begin=slow_begin.load(),end=slow_end.load();
+            if(e.b>=end||e.e<=begin)return;
+            const auto i=tail_count.fetch_add(1);if(i>=4096){loss=true;return;}
+            auto& slot=slots[4096+i];slot.state.store(1);slot.event=e;slot.state.store(2,std::memory_order_release);return;
+        }
+        auto& slot=slots[ticket%4096];auto prior=slot.state.load(std::memory_order_acquire);
+        if(prior==1||!slot.state.compare_exchange_strong(prior,1,std::memory_order_acq_rel)){
+            // Never spin under a product mutex (Add is after unlock). An overlapping
+            // publication is explicitly incomplete; no partial event is consumed.
+            loss=true;return;
+        }
+        if(prior>ticket+2){Max(overwritten_end,e.e);slot.state.store(prior,std::memory_order_release);return;}
+        if(prior)Max(overwritten_end,slot.event.e);
+        slot.event=e;slot.state.store(ticket+2,std::memory_order_release);
+    }
     std::array<std::atomic<std::uint64_t>,3> windows{}, ends{};
     // R101 opt-in: three complete actual requests (1/2/3 or the late4/5/6).
     // Default historical 7/41/77 one-second sampling remains unchanged.
@@ -37,21 +73,35 @@ struct HolderTrace {
     std::atomic<unsigned> inflight{0};std::atomic<bool> loss{false};
     static constexpr unsigned Requests[3]={7,41,77};
     static constexpr std::uint64_t Width=1000000000;
-    void Select(unsigned id,std::uint64_t ns) noexcept {for(unsigned i=0;i<3;++i)if(id==(whole?i+first:Requests[i]))windows[i].store(ns,std::memory_order_release);}
-    void Complete(unsigned id,std::uint64_t ns) noexcept {if(whole&&id>=first&&id<first+3)ends[id-first].store(ns,std::memory_order_release);}
+    void Select(unsigned id,std::uint64_t ns) noexcept {if(slow)return;for(unsigned i=0;i<3;++i)if(id==(whole?i+first:Requests[i]))windows[i].store(ns,std::memory_order_release);}
+    void Complete(unsigned id,std::uint64_t ns,std::uint64_t begin=0) noexcept {if(slow){CompleteSlow(id,begin,ns);return;}if(whole&&id>=first&&id<first+3)ends[id-first].store(ns,std::memory_order_release);}
     void Add(const Event& e) noexcept {
+        if(slow){AddSlow(e);return;}
         bool selected=false;for(unsigned i=0;i<3;++i){const auto b=windows[i].load(std::memory_order_acquire), end=ends[i].load(std::memory_order_acquire);if(b&&(!whole?e.b<b+Width:(!end||e.b<end))&&e.e>b)selected=true;}
         if(!selected)return;
         const auto i=count.fetch_add(1);if(i>=slots.size()){loss=true;return;}
-        slots[i].event=e;slots[i].ready.store(true,std::memory_order_release);
+        slots[i].event=e;slots[i].state.store(2,std::memory_order_release);
+    }
+    void PrintSlow() noexcept {
+        const auto begin=slow_begin.load(),end=slow_end.load();bool good=!loss.load()&&inflight.load()==0;
+        if(selected.load()&&(!(tickets.load()&Frozen)||!begin||end<begin||overwritten_end.load()>begin))good=false;
+        unsigned emitted=0;
+        for(auto& slot:slots){const auto state=slot.state.load(std::memory_order_acquire);
+            if(state==1){good=false;continue;}if(!state||!selected.load())continue;
+            const auto& e=slot.event;if(e.b>=end||e.e<=begin)continue;
+            char row[320];const int n=std::snprintf(row,sizeof(row),"[catalog-holder] {\"id\":%u,\"m\":%u,\"t\":%u,\"r\":%u,\"l\":%u,\"work\":%u,\"site\":\"%s\",\"b\":%llu,\"a\":%llu,\"e\":%llu,\"counts\":[%llu,%llu,%llu,%llu]}\n",++emitted,e.m,e.t,e.r,e.line,e.work,e.site?e.site:"unknown",(unsigned long long)e.b,(unsigned long long)e.a,(unsigned long long)e.e,(unsigned long long)e.counts[0],(unsigned long long)e.counts[1],(unsigned long long)e.counts[2],(unsigned long long)e.counts[3]);
+            if(n<=0||n>=int(sizeof(row))||std::fwrite(row,1,std::size_t(n),stderr)!=std::size_t(n))good=false;
+        }
+        if(std::fprintf(stderr,"[catalog-holder-end] {\"version\":3,\"records\":%u,\"loss\":%s,\"inflight\":%u,\"endNs\":%llu,\"request\":%u,\"begin\":%llu,\"end\":%llu,\"thresholdNs\":%llu,\"overwrittenEndNs\":%llu,\"completedRequests\":%u,\"maxCompletedNs\":%llu}\n",emitted,good?"false":"true",inflight.load(),(unsigned long long)Now(),selected.load(),(unsigned long long)begin,(unsigned long long)end,(unsigned long long)Threshold,(unsigned long long)overwritten_end.load(),completed_requests.load(),(unsigned long long)max_completed.load())<0||std::fflush(stderr)!=0){std::fputs("[catalog-holder-loss] write\n",stdout);std::fflush(stdout);}
     }
     ~HolderTrace() noexcept {
+        if(slow){PrintSlow();return;}
         bool good=!loss.load()&&inflight.load()==0;const unsigned total=count.load();
         const char* setting=std::getenv("MEDIA_SERVER_VERIFY_CATALOG_HOLDER_WHOLE_REQUESTS");
         if(setting&&std::strcmp(setting,"1")!=0&&std::strcmp(setting,"late")!=0&&std::strcmp(setting,"mixed-late")!=0)good=false;
         if(whole)for(unsigned i=0;i<3;++i)if(!windows[i].load()||ends[i].load()<windows[i].load())good=false;
         for(unsigned i=0;i<total&&i<slots.size();++i){
-            if(!slots[i].ready.load(std::memory_order_acquire)){good=false;continue;}
+            if(slots[i].state.load(std::memory_order_acquire)!=2){good=false;continue;}
             const auto& e=slots[i].event;char row[320];
             const int n=std::snprintf(row,sizeof(row),"[catalog-holder] {\"id\":%u,\"m\":%u,\"t\":%u,\"r\":%u,\"l\":%u,\"work\":%u,\"site\":\"%s\",\"b\":%llu,\"a\":%llu,\"e\":%llu,\"counts\":[%llu,%llu,%llu,%llu]}\n",i+1,e.m,e.t,e.r,e.line,e.work,e.site?e.site:"unknown",(unsigned long long)e.b,(unsigned long long)e.a,(unsigned long long)e.e,(unsigned long long)e.counts[0],(unsigned long long)e.counts[1],(unsigned long long)e.counts[2],(unsigned long long)e.counts[3]);
             if(n<=0||n>=int(sizeof(row))||std::fwrite(row,1,std::size_t(n),stderr)!=std::size_t(n))good=false;
@@ -100,11 +150,12 @@ public:
     static void LockCost(const Row& r) noexcept {if(current&&r.k==0&&r.s>=1&&r.s<=5){const auto i=r.s-1;++current->locks_[i];current->wait_[i]+=r.w;current->held_[i]+=r.h;}}
     ~VisualRequestSummary() noexcept {
         if(!active_)return;
-        if(HolderEnabled())Holder().Complete(id_,Now());
+        const auto completed_at=Now();
+        if(HolderEnabled())Holder().Complete(id_,completed_at,start_);
         current=nullptr;char text[3072];std::size_t used=0;bool valid=true;
         const auto add=[&](const char* format,auto... values){if(!valid)return;const int n=std::snprintf(text+used,sizeof(text)-used,format,values...);if(n<0||std::size_t(n)>=sizeof(text)-used){valid=false;return;}used+=std::size_t(n);};
         // reason is a fixed application code, never exception.what/query/path.
-        add("[visual-request] {\"id\":%u,\"status\":%u,\"code\":\"%s\",\"startNs\":%llu,\"elapsedNs\":%llu,\"generation\":%llu,\"documents\":%llu,\"phases\":[",id_,status_,reason_,(unsigned long long)start_,(unsigned long long)(Now()-start_),(unsigned long long)generation_,(unsigned long long)documents_);
+        add("[visual-request] {\"id\":%u,\"status\":%u,\"code\":\"%s\",\"startNs\":%llu,\"elapsedNs\":%llu,\"generation\":%llu,\"documents\":%llu,\"phases\":[",id_,status_,reason_,(unsigned long long)start_,(unsigned long long)(completed_at-start_),(unsigned long long)generation_,(unsigned long long)documents_);
         for(unsigned i=0;i<17;++i)add("%s[%llu,%llu]",i?",":"",(unsigned long long)count_[i],(unsigned long long)ns_[i]);
         add("%s","],\"counters\":[");for(unsigned i=0;i<6;++i)add("%s%llu",i?",":"",(unsigned long long)counters_[i]);
         add("%s","],\"locks\":[");for(unsigned i=0;i<5;++i)add("%s[%llu,%llu,%llu]",i?",":"",(unsigned long long)locks_[i],(unsigned long long)wait_[i],(unsigned long long)held_[i]);
@@ -193,19 +244,19 @@ inline void FlushFast() noexcept {for(auto& row:local.fast)if(row.n){if(local.us
 class Lock {
     std::mutex& mutex_;bool enabled_;Row row_;std::uint64_t previous_=0;
     bool owned_=false,always_;Lock* enclosing_=nullptr;
-    bool holder_=false;const char* site_=nullptr;HolderTrace::Event event_;std::array<std::uint64_t,4> begin_counts_{};
+    bool holder_=false,retention_costs_=false;const char* site_=nullptr;HolderTrace::Event event_;std::array<std::uint64_t,4> begin_counts_{};
     inline static thread_local Lock* current_=nullptr;
     void Acquire() {
         if(holder_)++Holder().inflight;
         if(enabled_){row_.b=Now();row_.e=0;}
-        mutex_.lock();owned_=true;
+        mutex_.lock();owned_=true;retention_costs_=false;
         if(enabled_){row_.a=Now();previous_=local.mutex;local.mutex=row_.m;++local.depth;}
         if(holder_){event_.b=row_.b;event_.a=row_.a;event_.m=row_.m;event_.t=local.thread;event_.r=VisualRequestSummary::CurrentId();event_.line=row_.l;event_.site=site_;event_.work=static_cast<unsigned>(holder_work);begin_counts_=holder_counts;}
     }
     void Release() noexcept {
         if(!owned_)return;
         if(enabled_)row_.e=Now();
-        if(holder_){event_.e=row_.e;for(unsigned i=0;i<4;++i)event_.counts[i]=holder_counts[i]-begin_counts_[i];}
+        if(holder_){event_.e=row_.e;for(unsigned i=retention_costs_?4:0;i<4;++i)event_.counts[i]=holder_counts[i]-begin_counts_[i];}
         mutex_.unlock();owned_=false;
         if(holder_){Holder().Add(event_);--Holder().inflight;}
         if(enabled_){--local.depth;local.mutex=previous_;Append(row_,always_);if(!local.request&&local.fast_events>=256)FlushFast();else Flush();}
@@ -223,6 +274,8 @@ public:
             if(holder_){++Holder().inflight;event_.b=row_.b;event_.a=row_.a;event_.m=row_.m;event_.t=local.thread;event_.r=VisualRequestSummary::CurrentId();event_.line=line;event_.site=site_;event_.work=static_cast<unsigned>(holder_work);begin_counts_=holder_counts;}}
         enclosing_=current_;current_=this;
     }
+    // Static diagnostic label only; no payload, allocation or additional lock.
+    void HolderRetentionCosts(const char* site,const std::array<std::uint64_t,4>& costs) noexcept {if(holder_){event_.site=site;event_.counts=costs;retention_costs_=true;}}
     bool owns_lock()const noexcept{return owned_;}
     ~Lock() noexcept {Release();current_=enclosing_;}
     // The owning RAII object performs both operations. No raw unlock behind a lock_guard.

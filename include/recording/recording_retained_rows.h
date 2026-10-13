@@ -13,6 +13,7 @@
 #include "recording/recording_contracts.h"
 #include <limits>
 #include <mutex>
+#include "recording/recording_latency_trace.h"
 
 namespace recording {
 // Raw/parser/canonical workspace is held until Decode finishes. The typed result
@@ -216,15 +217,36 @@ public:
 private:
     const_iterator Decode(const std::string& id,RecordingColdRow value)const {
         if constexpr(std::is_same_v<T,RecordingSegmentV2>){
-            if(kind_=="segment-v2")if(auto prior=store_->VerifiedSegmentDecode(id,value.bytes))
-                return const_iterator(this,std::static_pointer_cast<const Pair>(std::move(prior)));
+            if(kind_=="segment-v2"){
+                if(latency::HolderEnabled())++latency::segment_decode_cost[0];
+                if(auto prior=store_->VerifiedSegmentDecode(id,value.bytes)){
+                    if(latency::HolderEnabled())++latency::segment_decode_cost[1];
+                    return const_iterator(this,std::static_pointer_cast<const Pair>(std::move(prior)));
+                }
+            }
         }
         const auto bytes=RecordingColdDecodeWorkspaceBytes<T>(value.bytes);
         auto ticket=store_->MemoryOwner()->ReserveOwned(bytes);
         if(!ticket)throw RecordingResourceUnavailable();
         auto shaped=std::move(*ticket);auto* work=&shaped;
         T parsed;std::string error;
-        if(!Parse(value.bytes,&parsed,&error)||Serialize(parsed)!=value.bytes)throw RecordingRetainedReadError("retained row canonical/domain mismatch: "+error);
+        const bool trace_decode=std::is_same_v<T,RecordingSegmentV2>&&latency::HolderEnabled();
+        const auto parse_begin=trace_decode?latency::Now():0;
+        std::string canonical_bytes;
+        const bool parsed_ok=[&] {
+            if constexpr(std::is_same_v<T,RecordingSegmentV2>)
+                return ParseRecordingSegmentV2Canonical(value.bytes,&parsed,&canonical_bytes,&error);
+            else return Parse(value.bytes,&parsed,&error);
+        }();
+        if(trace_decode)latency::segment_decode_cost[2]+=latency::Now()-parse_begin;
+        if(!parsed_ok)throw RecordingRetainedReadError("retained row canonical/domain mismatch: "+error);
+        const auto canonical_begin=trace_decode?latency::Now():0;
+        const bool canonical=[&] {
+            if constexpr(std::is_same_v<T,RecordingSegmentV2>)return canonical_bytes==value.bytes;
+            else return Serialize(parsed)==value.bytes;
+        }();
+        if(trace_decode)latency::segment_decode_cost[3]+=latency::Now()-canonical_begin;
+        if(!canonical)throw RecordingRetainedReadError("retained row canonical/domain mismatch: "+error);
         if constexpr(std::is_same_v<T,EventRecordingLinkV1>){if(value.event_reason)parsed.completeness_reason.Bind(std::move(value.event_reason));}
         // The pair allocation/key is retained with the shared row. Deep-copyable DTOs
         // carry a separate charge so at() and downstream result copies retain it.

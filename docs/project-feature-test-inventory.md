@@ -5041,3 +5041,17 @@ R97-A02는 미선택 대체 후보의 unlink/authority 하드 오류를 거부�
 - R103-P02: 실제 혼합 실패 뒤 닫힌 원본의 별도 복제본에서 Channel retention을 warmup All 뒤 채널별3회 대조한다. 기존 All 필터와 직렬화/hash·경로·hold·상태·이유가 같아야 한다. 같은 입력에서 before/after node read·시간·예약을 측정한다. 수정은 같은 잠금 cut 안의 segment→media-path 순차 join이며 Candidate/Pending의 정확한 현재 조회·삭제 보호는 유지한다. 작은 generation fixture에서 missing path/다른채널/hold/상태/손상·Finish를 별도로 검증한다. 결과 뒤 기준 완화는 하지 않는다.
 
 - R103-P03: generation의 `kind/ID/m` 정렬과 RAM map의 raw ID 정렬을 구분한다. 실제 원장/snapshot의 `a`, `a-`, `a.`, `a:`, `a_`와 다른 채널·없는 경로를 구성하고 Channel/All을 변경하지 않은 exact Candidate와 독립 개수로 대조한다. 비용 helper는 `recording_retention_path_cost_smoke.cpp`, 의미 반례는 `recording_generation_request_proof_smoke.cpp`다. 최초 raw-ID merge의 누락은 예상 RED로 보존한 뒤 수정한다.
+
+### R104-H01 / P01 — 실제 느린 혼합 요청의 보유 작업 분해
+
+- H01: `slow-first`는 번호와 무관하게 완료 선택 경계에 먼저 도달한 실제2초 이상 요청(200/오류 모두)을 선택한다. 기존8192 slot을 최근4096/선택후4096으로 나누고 완료구간 덮어쓰기 최대end·동시 publish·진행 holder를 검증한다. 선택 시작보다 늦게 사라진 구간, 부족한 후속 slot,미완료 publish,정상 종료 누락은 incomplete다. 종료 뒤 해제된 관련 holder도 수집하되 다른 동시 slow 요청까지 전수 관측했다고 하지 않는다. 모두2초 미만이면 선택 없음과 요청 완료 수를 명시한다. 실제 client timeout/server completion은 각각 원출력에 유지한다.4MiB/전체시간/부하 불변.
+- H01 반례: 앞/뒤로 이동한 ID,느린200,늦은503,선택 전 획득·선택 후 해제,복수 동시 slow,ring 정상회전/선택구간손실/후속overflow/중복/누락/진행중publish,생성→parser→혼합 환경/종료판정. 테스트 합성 구간과 실제 mutex/steady-clock 실행을 구분한다.
+- P01:103의77/78/79 원문에서 실제 같은 mutex 대기와 작업/callsite 보유의 교집합을 산정한다. 중첩 phase 합산·타 요청 최대치 합산 금지. 추가 진단은 실제 mixed900/1080 최대1회다. 입증된 지배 작업·caller의 반복 비용을 제품 수정 전에 특정하고 정확성/권한/K-F/예약·메모리 보호 직접 회귀와 별도 검토를 통과해야 수정후900초1회로 진행한다.900초 전체·기존 지연/진행/수집 통과 후에만45분1회이며 UI/120분은 미실행이다.
+
+- R104-H02: 기존 slot/row 크기는 유지한다. `RetentionAll/Channel/Pending/Candidate/Authority` holder의 counts[0/1]은 segment/path 순회 경과ns, [2/3]은 그 안의 lifecycle 조회 경과ns/방문V2 후보수다. 이 네 값은 wrapper에만 전달한 지역 배열이며 기존 thread-local 카운터에 더하지 않는다. 그 외 site의 counts는 기존 binding/cold-link/방문/bytes다. 순회 내부 비용은 inclusive이며 보유시간과 합산하지 않는다. 이 표식은 호출 결과·원본 검증·잠금 범위를 바꾸지 않는 opt-in 진단이다. no-slow도 endNs의 유효한 종료 footer가 필수이며 누락/음수/문자열은 거부한다.
+
+- R104-P02: 원인 진단 종료 뒤 닫힌 소유 recording 원본의 byte-identical 별도 복제본에서 기존 retention cost helper(All warmup,채널별3회)를 사용한다. source/binary와 입력 manifest를 사전 고정하고 V2walk/path/lifecycle 비용·실제 node read·기존 digest/예약을 대조한다. helper의 진단 request는 HTTP 지연이 아니며,3회 호출의 holder 보존용이다. 컴파일과 비용 측정은 겹치지 않는다. 제품 수정 이후 같은 입력/호출 수로 비교하되 이 결과만으로 혼합 응답 PASS를 주장하지 않는다.
+
+- R104-H03: 짧은 닫힌 metadata fixture에서 같은 채널3회에 대해 고정 TLS 4-counter(calls/cache hits/inclusive strict parse ns/canonical 후처리 ns)로 V2walk를 분해한다. Parse 안의 validation 직렬화는 inclusive parse에 포함된다. 수정 전 후처리는 두 번째 직렬화, 수정 후는 파싱 시 생성한 canonical의 exact 비교다. counter만 읽으며 cache 크기·퇴거·검증은 변경하지 않는다. 합성 HTTP 요청과 달리 이 자료는 직접 호출 비용이며 혼합 원인확정이나 응답 PASS를 대체하지 않는다.
+
+- R104-P03: 캐시 miss의 동일 mappings 중복 strict 파싱과 canonical 재생성을 한 검증 흐름으로 통합한다. `recording_segment_parse_smoke.cpp`의 이전 파서 oracle과 정상/비정규/중복키/nullable/256 mapping/범위 오류의 수용·정규 bytes·실패 시 output 불변을 대조한다. 전체 부모 검증 완료 전 결과 미게시, 같은 원본 bytes의 정확한 비교, 기존 workspace/cache/owner 한도 유지. 닫힌 같은 입력 채널별3회는 비용 근거이며 실제 혼합 gate는 별도다.

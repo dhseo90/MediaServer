@@ -549,7 +549,7 @@ private:
     bool CheckpointLocked(bool recover_only, std::string* error,const DerivedJobContentProof* proof=nullptr);
     bool BuildStatusSnapshotLocked(RecordingCatalogStatusSnapshot* result, std::string* error) const;
     struct RetentionSnapshot RetentionSnapshotLocked(RetentionSnapshotSelection selection=RetentionSnapshotSelection::All,
-                                                    const std::string& id={}) const;
+                                                    const std::string& id={},std::array<std::uint64_t,4>* diagnostic=nullptr) const;
     struct RetentionSnapshot RetentionReservationsLocked() const;
     struct CheckpointStatusGuard {
         RecordingCatalog& catalog;

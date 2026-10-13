@@ -115,3 +115,13 @@ test('R103-H01 actual mixed late77/78/79 complete producer and parser',()=>{
  assert.equal(v.status,'captured',v.code);assert.deepEqual(v.windows.map(w=>w.selectedRequest),[77,78,79]);assert(v.windows[0].coveredNs>1000000000);assert.equal(v.rows.length,6);assert.equal(trace.catalogHolderSummary(raw,true,[77,78,79]).status,'captured');assert.equal(trace.catalogHolderSummary(raw,true,[1,2,3]).code,'holder-selection');
  assert.equal(trace.catalogHolderSummary(raw.replace(/^\[catalog-holder\].*\n/m,'')).status,'incomplete');
 });
+
+for(const mode of ['early','late','error','concurrent','none','overwrite','tail-cap','inflight','cost'])test('R104-H01 actual steady/mutex slow '+mode,()=>{
+ const r=spawnSync(binary,['holder-slow-'+mode],{encoding:'utf8',timeout:15000,maxBuffer:4*1024*1024,env:{PATH:process.env.PATH,MEDIA_SERVER_VERIFY_RECORDING_LATENCY_TRACE:'1',MEDIA_SERVER_VERIFY_RECORDING_LATENCY_SLOW_ONLY:'1',MEDIA_SERVER_VERIFY_VISUAL_REQUEST_TRACE:'1',MEDIA_SERVER_VERIFY_CATALOG_HOLDER_TRACE:'1',MEDIA_SERVER_VERIFY_CATALOG_HOLDER_WHOLE_REQUESTS:'slow-first'}});
+ assert.equal(r.status,0,r.stderr);const raw=r.stdout+r.stderr,v=trace.catalogHolderSummary(raw,true,'slow-first');
+ if(['overwrite','tail-cap','inflight'].includes(mode)){assert.equal(v.status,'incomplete');return;}
+ assert.equal(v.status,'captured',v.code);if(mode==='none'){assert.equal(v.windows.length,0);assert.equal(v.selection,'no-completed-slow-request');for(const endNs of [undefined,-1,'bad']){const bad=raw.replace(/^\[catalog-holder-end\].*$/m,'[catalog-holder-end] '+JSON.stringify({...v.end,endNs}));assert.equal(trace.catalogHolderSummary(bad,true,'slow-first').status,'incomplete');}return;}assert.equal(v.windows.length,1);if(mode==='concurrent')assert([91,92].includes(v.windows[0].selectedRequest));else assert.equal(v.windows[0].selectedRequest,mode==='early'?3:91);
+ assert(v.windows[0].coveredNs>=2000000000);const spanning=v.rows.find(x=>x.site==='spanning');assert(spanning.a<v.end.begin&&spanning.e>v.end.end);
+ if(mode==='cost')assert.deepEqual(v.rows.find(x=>x.site==='RetentionChannel').counts,[101,202,303,404]);assert(v.end.overwrittenEndNs<=v.end.begin);assert.equal(trace.catalogHolderSummary(raw,true,[77,78,79]).status,'incomplete');
+ for(const text of [raw.replace(/^\[catalog-holder\].*\n/m,''),raw.replace(/^\[visual-request-end\].*\n/m,''),raw.replace('"loss":false','"loss":true')])assert.equal(trace.catalogHolderSummary(text,true,'slow-first').status,'incomplete');
+});

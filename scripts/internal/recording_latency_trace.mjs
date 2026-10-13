@@ -42,8 +42,25 @@ export function catalogHolderSummary(text,required=true,expectedRequests=null) {
    rows.push(v);
   }
   if(!required&&!rows.length&&!end)return {status:'not-observed',rows:[]};
-  if(!end||![1,2].includes(end.version)||end.loss!==false||end.inflight!==0||end.records!==rows.length||!uint(end.endNs)||!Array.isArray(end.windows)||end.windows.length!==3||!end.windows.every(uint))throw Error('holder-completion');
-  if(expectedRequests!==null&&(end.version!==2||JSON.stringify(end.requests)!==JSON.stringify(expectedRequests)))throw Error('holder-selection');
+  if(end?.version===3){
+   if(expectedRequests!==null&&expectedRequests!=='slow-first')throw Error('holder-selection');
+   if(!['request','begin','end','thresholdNs','overwrittenEndNs','completedRequests','maxCompletedNs','endNs'].every(k=>uint(end[k]))||end.thresholdNs!==2000000000||!end.completedRequests)throw Error('holder-completion');
+   const requests=text.split('\n').filter(x=>x.startsWith('[visual-request] ')).map(x=>JSON.parse(x.slice(17)));
+   const totals=text.split('\n').filter(x=>x.startsWith('[visual-request-end] '));
+   if(totals.length!==1)throw Error('holder-request-completion');
+   const total=JSON.parse(totals[0].slice(21));
+   if(total.started!==total.completed||total.completed!==end.completedRequests||requests.length!==total.completed||requests.some((r,i)=>!uint(r.id)||!uint(r.elapsedNs))||new Set(requests.map(r=>r.id)).size!==requests.length||requests.some(r=>r.id<1||r.id>total.started)||Math.max(...requests.map(r=>r.elapsedNs))!==end.maxCompletedNs)throw Error('holder-request-completion');
+   if(!end.request){
+    if(end.loss!==false||end.inflight!==0||end.records!==0||rows.length||end.begin||end.end||end.maxCompletedNs>=end.thresholdNs||requests.some(r=>!uint(r.elapsedNs)||r.elapsedNs>=end.thresholdNs))throw Error('holder-completion');
+    return {status:'captured',sampledOnly:true,selection:'no-completed-slow-request',rows:[],end,windows:[]};
+   }
+   const selected=requests.filter(r=>r.id===end.request);
+   if(selected.length!==1||selected[0].startNs!==end.begin||selected[0].elapsedNs!==end.end-end.begin||end.end-end.begin<end.thresholdNs||end.overwrittenEndNs>end.begin)throw Error('holder-selection-coverage');
+   end={...end,requests:[end.request],windows:[end.begin],ends:[end.end]};
+  }
+  if(!end||![1,2,3].includes(end.version)||end.loss!==false||end.inflight!==0||end.records!==rows.length||!uint(end.endNs)||!Array.isArray(end.windows)||end.windows.length!==(end.version===3?1:3)||!end.windows.every(uint))throw Error('holder-completion');
+  if(expectedRequests!==null&&expectedRequests!=='slow-first'&&(end.version!==2||JSON.stringify(end.requests)!==JSON.stringify(expectedRequests)))throw Error('holder-selection');
+  if(expectedRequests==='slow-first'&&end.version!==3)throw Error('holder-selection');
   const ends=end.version===1?end.windows.map(b=>b+end.widthNs):end.ends;
   if(end.version===1&&(end.widthNs!==1000000000||end.windows.some((b,i)=>i&&b<=end.windows[i-1]+end.widthNs)))throw Error('holder-completion');
   if(end.version===2&&(!['[1,2,3]','[4,5,6]','[77,78,79]'].includes(JSON.stringify(end.requests))||!Array.isArray(ends)||ends.length!==3||!ends.every(uint)))throw Error('holder-completion');
@@ -55,13 +72,13 @@ export function catalogHolderSummary(text,required=true,expectedRequests=null) {
   }
   const windows=end.windows.map((begin,index)=>{
    const finish=ends[index],byWork={};let waitNs=0,coveredNs=0;
-   for(const waiter of rows){if(!waiter.r||(end.version===2&&waiter.r!==end.requests[index]))continue;const a=Math.max(begin,waiter.b),b=Math.min(finish,waiter.a);if(b<=a)continue;waitNs+=b-a;
+   for(const waiter of rows){if(!waiter.r||(end.version!==1&&waiter.r!==end.requests[index]))continue;const a=Math.max(begin,waiter.b),b=Math.min(finish,waiter.a);if(b<=a)continue;waitNs+=b-a;
     for(const holder of byMutex.get(waiter.m)||[]){const lo=Math.max(a,holder.a),hi=Math.min(b,holder.e);if(hi<=lo)continue;
      coveredNs+=hi-lo;const key=holder.work+':'+holder.site+':'+holder.l;byWork[key]=(byWork[key]||0)+hi-lo;
     }
    }
    const held={};for(const h of rows){const ns=Math.min(finish,h.e)-Math.max(begin,h.a);if(ns<=0)continue;const key=h.work+':'+h.site+':'+h.l;const x=held[key]??={count:0,heldNs:0,counts:[0,0,0,0],completeIntervals:0};x.count++;x.heldNs+=ns;if(h.a>=begin&&h.e<=finish){x.completeIntervals++;h.counts.forEach((n,i)=>x.counts[i]+=n);}}
-   return {selectedRequest:(end.version===2?end.requests:[7,41,77])[index],beginNs:begin,endNs:finish,waitNs,coveredNs,unclassifiedNs:waitNs-coveredNs,overlapByHolder:byWork,held};
+   return {selectedRequest:(end.version!==1?end.requests:[7,41,77])[index],beginNs:begin,endNs:finish,waitNs,coveredNs,unclassifiedNs:waitNs-coveredNs,overlapByHolder:byWork,held};
   });
   return {status:'captured',sampledOnly:true,rows,end,windows};
  }catch(error){code=error.message;}

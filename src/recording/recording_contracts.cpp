@@ -847,7 +847,7 @@ bool ParseRecordingSegmentStateV2(const std::string& json,RecordingSegmentStateV
     *out=std::move(v); ClearError(error); return true;
 }
 
-bool ValidateRecordingSegmentV2(const RecordingSegmentV2& v, std::string* error) {
+static bool ValidateSegmentV2Canonical(const RecordingSegmentV2& v, std::string* canonical, std::string* error) {
     if (v.schema != "media-server.recording-segment.v2") return Fail(error, "V2 segment schema 오류");
     if (v.retention_class!=RecordingRetentionClass::Continuous && v.retention_class!=RecordingRetentionClass::Event)
         return Fail(error,"V2 retention 분류 오류");
@@ -883,14 +883,34 @@ bool ValidateRecordingSegmentV2(const RecordingSegmentV2& v, std::string* error)
         } else next=*m.end_pts;
     }
     if (v.mappings.back().end_pts!=v.media_end_pts) return Fail(error,"V2 mapping 전체 cover 오류");
-    if (SerializeRecordingSegmentV2(v).empty()) return Fail(error,"V2 JSON 상한 초과");
+    auto bytes=SerializeRecordingSegmentV2(v);
+    if (bytes.empty()) return Fail(error,"V2 JSON 상한 초과");
+    if(canonical)*canonical=std::move(bytes);
     ClearError(error);return true;
 }
 
-bool ParseRecordingSegmentV2(const std::string& json, RecordingSegmentV2* value, std::string* error) {
+bool ValidateRecordingSegmentV2(const RecordingSegmentV2& v, std::string* error) {
+    return ValidateSegmentV2Canonical(v,nullptr,error);
+}
+
+bool ParseRecordingSegmentV2Canonical(const std::string& json, RecordingSegmentV2* value,
+                                      std::string* canonical, std::string* error) {
     if (!value || json.size()>kSegmentV2JsonLimit) return Fail(error,"V2 output/JSON 상한 오류");
     Document d; RecordingSegmentV2 v; std::string retention,lifecycle;
-    if (!ParseDocument(json,&d,error)) return false;
+    std::string detail;
+    const auto mapping=[&](const Document& md) {
+        if(v.mappings.size()>=256)return Fail(error,"V2 mapping 개수 오류");
+        RecordingUtcMappingV1 m;
+        if (md.members.size()!=9) return Fail(error,"V2 mapping 정확한 field 집합 오류");
+        if (!RequiredString(md,"schema",&m.schema,error) || !RequiredString(md,"mapping_id",&m.mapping_id,error) ||
+            !RequiredInteger(md,"start_pts",&m.start_pts,error) || !RequiredNullableInteger(md,"end_pts",&m.end_pts,error) ||
+            !RequiredString(md,"provenance",&m.provenance,error) || !RequiredNullableInteger(md,"utc_start_ns",&m.utc_start_ns,error) ||
+            !RequiredNullableInteger(md,"utc_end_ns",&m.utc_end_ns,error) || !RequiredNullableInteger(md,"uncertainty_ns",&m.uncertainty_ns,error) ||
+            !RequiredString(md,"reason",&m.reason,error)) return false;
+        v.mappings.push_back(std::move(m));return true;
+    };
+    if(!ingress::ParseStrictJsonObjectDocumentObjectArray(json,"mappings",&d,mapping,&detail))
+        return Fail(error,"JSON object 오류: "+detail);
     if (d.members.size()!=24) return Fail(error,"V2 정확한 field 집합 오류");
     if (!RequiredString(d,"schema",&v.schema,error) || !RequiredString(d,"segment_id",&v.segment_id,error) ||
         !RequiredString(d,"source_id",&v.source_id,error) || !RequiredString(d,"channel_id",&v.channel_id,error) ||
@@ -906,23 +926,13 @@ bool ParseRecordingSegmentV2(const std::string& json, RecordingSegmentV2* value,
         !RequiredInteger(d,"finalized_at_ms",&v.finalized_at_ms,error)) return false;
     v.retention_class=ParseRetention(retention);v.lifecycle=ParseLifecycle(lifecycle);
     if (RetentionString(v.retention_class)!=retention || lifecycle!="finalized") return Fail(error,"V2 enum 오류");
-    const auto* mappings=RequiredMember(d,"mappings",Type::Array,error);
-    std::vector<std::string> entries;
-    if (!mappings || !SplitArray(mappings->raw,&entries,error)) return false;
-    if (entries.empty() || entries.size()>256) return Fail(error,"V2 mapping 개수 오류");
-    for (const auto& entry:entries) {
-        Document md;RecordingUtcMappingV1 m;
-        if (!ParseDocument(entry,&md,error)) return false;
-        if (md.members.size()!=9) return Fail(error,"V2 mapping 정확한 field 집합 오류");
-        if (!RequiredString(md,"schema",&m.schema,error) || !RequiredString(md,"mapping_id",&m.mapping_id,error) ||
-            !RequiredInteger(md,"start_pts",&m.start_pts,error) || !RequiredNullableInteger(md,"end_pts",&m.end_pts,error) ||
-            !RequiredString(md,"provenance",&m.provenance,error) || !RequiredNullableInteger(md,"utc_start_ns",&m.utc_start_ns,error) ||
-            !RequiredNullableInteger(md,"utc_end_ns",&m.utc_end_ns,error) || !RequiredNullableInteger(md,"uncertainty_ns",&m.uncertainty_ns,error) ||
-            !RequiredString(md,"reason",&m.reason,error)) return false;
-        v.mappings.push_back(std::move(m));
-    }
-    if (!ValidateRecordingSegmentV2(v,error)) return false;
+    if(!RequiredMember(d,"mappings",Type::Array,error))return false;
+    if (!ValidateSegmentV2Canonical(v,canonical,error)) return false;
     *value=std::move(v);ClearError(error);return true;
+}
+
+bool ParseRecordingSegmentV2(const std::string& json, RecordingSegmentV2* value, std::string* error) {
+    return ParseRecordingSegmentV2Canonical(json,value,nullptr,error);
 }
 
 bool IsPlayable(RecordingLifecycle lifecycle) {

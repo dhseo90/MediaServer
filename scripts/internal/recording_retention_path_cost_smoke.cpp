@@ -31,12 +31,19 @@ int main(int argc,char** argv){
             RetentionSnapshot expected;for(const auto& c:all.candidates)if(c.Channel()==channel)expected.candidates.push_back(c);
             const auto digest=Digest(expected,root); // same-run All consistency only; independent equality is frozen before/after digest
             for(unsigned i=0;i<3;++i){
+                // Diagnostic fixture request, not an HTTP latency result. Keeps
+                // the first three actual Catalog holder intervals for subcosts.
+                latency::VisualRequestSummary diagnostic_request;
+                const auto decode=latency::segment_decode_cost;
                 const auto reads=latency::history_node_reads;const auto begin=std::chrono::steady_clock::now();
                 auto actual=catalog.RetentionSnapshot(RetentionSnapshotSelection::Channel,channel);
                 const auto elapsed=std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now()-begin).count();
                 if(!actual.authoritative||Digest(actual,root)!=digest)throw std::runtime_error("channel-result-mismatch");
+                latency::VisualRequestSummary::Result(200,"ok");
                 std::cout<<"[retention-path-cost] {\"channel\":\""<<channel<<"\",\"iteration\":"<<i<<",\"rows\":"<<actual.candidates.size()
-                    <<",\"elapsedNs\":"<<elapsed<<",\"nodeReads\":"<<latency::history_node_reads-reads<<",\"digest\":\""<<digest<<"\",\"ramUsed\":"<<catalog.SearchResidency()->used()<<"}\n";
+                    <<",\"elapsedNs\":"<<elapsed<<",\"nodeReads\":"<<latency::history_node_reads-reads<<",\"digest\":\""<<digest<<"\",\"ramUsed\":"<<catalog.SearchResidency()->used()<<",\"decode\":[";
+                for(unsigned n=0;n<4;++n)std::cout<<(n?",":"")<<latency::segment_decode_cost[n]-decode[n];
+                std::cout<<"]}\n";
             }
         }
         all={};if(!storage.Finish(&error))throw std::runtime_error("finish:"+error);std::cout<<"[finish] true\n";return 0;

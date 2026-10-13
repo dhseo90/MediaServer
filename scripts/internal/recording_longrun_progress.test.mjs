@@ -260,11 +260,11 @@ check('R103 actual900 environment child and final holder collector are connected
  const b=mixedBoundary();b.context.contentionDiagnose=true;
  vm.runInContext(mixedSource.match(/^const duration=.*;$/m)[0].replace('const duration','globalThis.diagnosticDuration'),b.context);assert.equal(b.context.diagnosticDuration,900000);
  b.context.spawn=(command,args,options)=>{
-  const r=spawnSync(process.execPath,['-e','process.stdout.write(JSON.stringify([process.env.MEDIA_SERVER_VERIFY_CATALOG_HOLDER_TRACE,process.env.MEDIA_SERVER_VERIFY_CATALOG_HOLDER_WHOLE_REQUESTS,process.env.MEDIA_SERVER_VERIFY_FRAME_TRACE]))'],{...options,stdio:undefined,cwd:process.cwd(),encoding:'utf8',timeout:3000});assert.equal(r.status,0);assert.deepEqual(JSON.parse(r.stdout),['1','mixed-late','bounded']);return {};
+  const r=spawnSync(process.execPath,['-e','process.stdout.write(JSON.stringify([process.env.MEDIA_SERVER_VERIFY_CATALOG_HOLDER_TRACE,process.env.MEDIA_SERVER_VERIFY_CATALOG_HOLDER_WHOLE_REQUESTS,process.env.MEDIA_SERVER_VERIFY_FRAME_TRACE]))'],{...options,stdio:undefined,cwd:process.cwd(),encoding:'utf8',timeout:3000});assert.equal(r.status,0);assert.deepEqual(JSON.parse(r.stdout),['1','slow-first','bounded']);return {};
  };
  vm.runInContext(b.launch,b.context);
  let calls=0,saved=null;b.context.text='actual-child-output';b.context.app={requiresFrameTrace:true,child:{pid:123}};
- b.context.catalogHolderSummary=(text,required,expected)=>{assert.deepEqual(Array.from(expected),[77,78,79]);assert.equal(text,'actual-child-output');assert.equal(required,true);calls++;return {status:'incomplete',code:'holder-missing'};};
+ b.context.catalogHolderSummary=(text,required,expected)=>{assert.equal(expected,'slow-first');assert.equal(text,'actual-child-output');assert.equal(required,true);calls++;return {status:'incomplete',code:'holder-missing'};};
  b.context.fs={writeFileSync(p,body){saved=JSON.parse(body);}};b.context.failed=0;
  vm.runInContext(mixedSource.split('\n').find(s=>s.includes('const holders=catalogHolderSummary')),b.context);
  assert.equal(calls,1);assert.equal(saved.status,'incomplete');assert.equal(b.context.failed,1);
