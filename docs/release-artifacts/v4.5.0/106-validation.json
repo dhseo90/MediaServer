@@ -1,0 +1,1162 @@
+{
+  "schema": "media-server.v450.r106.validation.v1",
+  "status": "LIMITED_DIRECT_CHANGE_PASS_AFTER900_FAIL_45_NOT_RUN",
+  "scope": "공유 source 읽기와 색인 Collect의 한정 제품 개선. 지속 혼합 응답 목표 미충족; 메모리 P0·출시 보류 유지.",
+  "model": {
+    "requestedMain": "gpt-6-astra/high",
+    "mainToolAccepted": "not-exposed",
+    "mainActualRuntime": "unconfirmed",
+    "requestedIndependent": "gpt-6-astra/high",
+    "independent": {
+      "requested": "gpt-6-astra",
+      "requestedEffort": "high",
+      "acceptedConfiguration": "기존 별도 검토자 생성 시 수락 기록을 부모 인계에 따라 재사용; 이번 followup의 새 적용 확인 아님",
+      "actualRuntime": "미노출·미확인"
+    }
+  },
+  "source": {
+    "baseline": "b183ab773b0a9fed471e141d1ff9cd26a1855bf3",
+    "implementationCommit": "5ecbad0086a9bdc7ed20b854a280fcf995c3f5de",
+    "tree": "681343073bf5297dade0c31d713941f92b631bb4",
+    "binarySha256": "c2cbee7eb8fad764f6d22ee4501914414961d84cb65f464f34935703d0ca3b54",
+    "runtimeSha256": "d58d18f6a402704c51ef3afbb7087a2ad20984a4a646ae75f337a0cd56c18450",
+    "sourceStartEndEqual": true,
+    "beforeFreezeMember": "before-freeze.json",
+    "directAfterFreezeMember": "after-freeze.json",
+    "mixedFreezeMember": "mixed-freeze.json",
+    "freezeLabelCorrection": "mixed-freeze 원문 유지. 최신 mixed-analysis/analyze-mixed는 inherited stale sourceMode를 정정 연결하고 실제 고정 head/tree/sourceEnd를 사용함.",
+    "afterMeasurementChanges": "product comment and failure-path fixture throw were finalized before final build/direct/mixed; earlier Linux/source/application binaries are not claimed byte-identical to final binary; final proof/build/performance/mixed source bindings retained"
+  },
+  "reused105": {
+    "status": "limited direct improvement preserved; mixed FAIL unchanged",
+    "commit": "b183ab773b0a9fed471e141d1ff9cd26a1855bf3",
+    "archive": "105-execution.tar.gz",
+    "archiveSha256": "6b0ed372b70a3a909c7c61e893852f6a70bd96440e1bf3b071220fe8b75ea03f",
+    "newAnalysisMember": "request69-shared-costs.json",
+    "selectedRequest69": {
+      "elapsedMs": 2542.147625,
+      "locks": 341,
+      "waitMs": 1857.661253,
+      "heldMs": 474.145509,
+      "overlapMs": {
+        "index": 534.177902,
+        "visual70_thread432": 386.08042,
+        "retention": 252.627334,
+        "writer": 74.268333,
+        "work0": 121.053871
+      },
+      "unclassifiedWaitMs": 489.453393
+    },
+    "dominantIndexSites": {
+      "ReadSourceBinding": {
+        "calls": 193,
+        "heldMs": 336.487298,
+        "overlapMs": 300.969548
+      },
+      "FindSegmentV2ById": {
+        "calls": 608,
+        "heldMs": 131.855863,
+        "overlapMs": 125.385649
+      },
+      "FinalizedSegmentV2Ids": {
+        "calls": 1,
+        "heldMs": 69.443792
+      },
+      "SnapshotStatus": {
+        "calls": 1,
+        "heldMs": 26.997458
+      },
+      "Lifecycle": {
+        "calls": 97,
+        "heldMs": 14.041706
+      }
+    },
+    "limitation": "same mutex observed intervals only; request69 does not reconstruct failed87/88 peers. Work0 observed holdings and unclassified waiting are distinct. Phase/holder diagnostic counters are not uniform units."
+  },
+  "implementation": [
+    "Collect uses charged VisualSourceKey metadata once, sorts outside Catalog, and reads segment/lifecycle/source together via ReadVisualSource; existing initial/final status checks, source sample selection and cancellation preserved.",
+    "Initial authenticated journal cold acquisition on binding miss runs outside Catalog using owned entry and captured state/link; current entry/lifecycle/authority/raw revalidation remains after reacquisition.",
+    "Authenticated exact-raw cache hit may report continuous Catalog cut only while lock never released; ForMedia skips only duplicate second media validation in that same cut. Misses retain second validation.",
+    "No full DTO/history cache, no changed public result/authorization/seek semantics, no mutex replacement or workload/limit change."
+  ],
+  "ownership": {
+    "keyAdmission": "existing SearchModelResidency shared640MiB domain; per key reservation before allocation: 4*sizeof(Key)+2*string lengths+256; existing100000 result bound",
+    "parseCacheBytes": 16777216,
+    "requestMediaLimit": "unchanged",
+    "fileCurrentness": "Catalog revision does not replace file identity/content/sample validation",
+    "limits": "87MiB/channel,64MiB default reservation,448MiB workspace,640MiB RAM domain,5s requests,2s p95/5s max unchanged"
+  },
+  "directComparison": {
+    "planMember": "plan.json",
+    "analysisMember": "comparison.json",
+    "scope": "native ApplicationService with actual SigLIP2; not HTTP/evidence-A sustained; one fresh-store run each condition,3waves; no compilation during measurements",
+    "runsEachCondition": 1,
+    "conditions": {
+      "53-parallel": {
+        "sameVisualItems": true,
+        "before": {
+          "visualMean": {
+            "elapsedMs": 455.3528958333333,
+            "catalogCount": 240,
+            "catalogWaitMs": 169.091659,
+            "catalogHeldMs": 150.60298933333334
+          },
+          "resourceOwner": [
+            {
+              "pid": 7977,
+              "seq": 0,
+              "phase": "opened",
+              "elapsedMs": 15,
+              "ram": 1188864,
+              "ramPeak": 1625344,
+              "ramLimit": 671088640,
+              "ramRejected": 0,
+              "scratchDisk": 16384,
+              "scratchDiskPeak": 32768,
+              "scratchDiskLimit": 155518083072,
+              "scratchFd": 4,
+              "scratchFdPeak": 6,
+              "scratchFdLimit": 1048572,
+              "scratchRam": 1188864,
+              "preservedDisk": 0,
+              "preservedFd": 0,
+              "readerCleanupHealthy": true
+            },
+            {
+              "pid": 7977,
+              "seq": 1,
+              "phase": "baseline",
+              "elapsedMs": 1301,
+              "ram": 1556892,
+              "ramPeak": 3805358,
+              "ramLimit": 671088640,
+              "ramRejected": 0,
+              "scratchDisk": 3538944,
+              "scratchDiskPeak": 7593984,
+              "scratchDiskLimit": 155518083072,
+              "scratchFd": 4,
+              "scratchFdPeak": 16,
+              "scratchFdLimit": 1048572,
+              "scratchRam": 1188864,
+              "preservedDisk": 0,
+              "preservedFd": 0,
+              "readerCleanupHealthy": true
+            },
+            {
+              "pid": 7977,
+              "seq": 2,
+              "phase": "before-Finish",
+              "elapsedMs": 33209,
+              "ram": 2968313,
+              "ramPeak": 163600763,
+              "ramLimit": 671088640,
+              "ramRejected": 0,
+              "scratchDisk": 3538944,
+              "scratchDiskPeak": 7593984,
+              "scratchDiskLimit": 155518083072,
+              "scratchFd": 4,
+              "scratchFdPeak": 16,
+              "scratchFdLimit": 1048572,
+              "scratchRam": 1188864,
+              "preservedDisk": 0,
+              "preservedFd": 0,
+              "readerCleanupHealthy": true
+            },
+            {
+              "pid": 7977,
+              "seq": 3,
+              "phase": "after-Finish",
+              "elapsedMs": 33209,
+              "ram": 1411421,
+              "ramPeak": 163600763,
+              "ramLimit": 671088640,
+              "ramRejected": 0,
+              "scratchDisk": 0,
+              "scratchDiskPeak": 7593984,
+              "scratchDiskLimit": 155518083072,
+              "scratchFd": 0,
+              "scratchFdPeak": 16,
+              "scratchFdLimit": 1048572,
+              "scratchRam": 0,
+              "preservedDisk": 0,
+              "preservedFd": 0,
+              "readerCleanupHealthy": true
+            },
+            {
+              "pid": 7977,
+              "seq": 4,
+              "phase": "after-storage-destruction",
+              "elapsedMs": 33228,
+              "ram": 0,
+              "ramPeak": 163600763,
+              "ramLimit": 671088640,
+              "ramRejected": 0,
+              "scratchDisk": 0,
+              "scratchDiskPeak": 7593984,
+              "scratchDiskLimit": 155518083072,
+              "scratchFd": 0,
+              "scratchFdPeak": 16,
+              "scratchFdLimit": 1048572,
+              "scratchRam": 0,
+              "preservedDisk": 0,
+              "preservedFd": 0,
+              "readerCleanupHealthy": true
+            }
+          ],
+          "sampleCount": 35,
+          "separateSampleMaxima": {
+            "rssBytes": 3183230976,
+            "footprintBytes": 3142913288,
+            "anonymousFileBytes": 1131580476,
+            "anonymousAllocatedBytes": 1142046720,
+            "fdCount": 186
+          },
+          "progress": [
+            "[R101-post-background] {\"enabled\":true,\"state\":\"indexing\",\"error\":\"\",\"searchAvailable\":true,\"sampleSeconds\":1,\"scanSeconds\":1,\"eventSnapshots\":\"disabled\",\"index\":{\"instanceId\":\"6be3c6423a3c2fc98d12a92ec9527865\",\"generation\":1,\"identityScope\":\"worker-instance\",\"origin\":\"rebuild\",\"publishedAtMs\":1791877345807,\"metadataReason\":\"live-publication\",\"statisticsScope\":\"authorized-channels-all-indexed-samples-before-query-filters\",\"coverage\":\"unknown\",\"coverageReason\":\"sampled-index-no-continuous-coverage\",\"sourceValidation\":\"search-revalidates-current-originals\",\"channels\":[{\"channelId\":\"9101\",\"indexedFrames\":106,\"unknownTimeFrames\":0,\"firstSampleTimeNs\":\"1789200000000000000\",\"lastSampleTimeNs\":\"1789200001000000000\",\"sourceCountsState\":\"known\",\"examinedSegments\":53,\"unsupportedSegments\":0,\"examinedSnapshots\":0,\"unsupportedSnapshots\":0},{\"channelId\":\"9201\",\"indexedFrames\":106,\"unknownTimeFrames\":0,\"firstSampleTimeNs\":\"1789200000000000000\",\"lastSampleTimeNs\":\"1789200001000000000\",\"sourceCountsState\":\"known\",\"examinedSegments\":53,\"unsupportedSegments\":0,\"examinedSnapshots\":0,\"unsupportedSnapshots\":0}]},\"refresh\":{\"state\":\"indexing\",\"attemptState\":\"running\",\"attemptStartedAtMs\":1791877347081,\"attemptFinishedAtMs\":null,\"lastSuccessAtMs\":1791877345807,\"error\":\"\",\"usingPreviousPublication\":true},\"channels\":[{\"channelId\":\"9101\",\"indexedFrames\":106,\"unknownTimeFrames\":0,\"firstSampleTimeNs\":\"1789200000000000000\",\"lastSampleTimeNs\":\"1789200001000000000\",\"sourceCountsState\":\"known\",\"examinedSegments\":53,\"unsupportedSegments\":0,\"examinedSnapshots\":0,\"unsupportedSnapshots\":0},{\"channelId\":\"9201\",\"indexedFrames\":106,\"unknownTimeFrames\":0,\"firstSampleTimeNs\":\"1789200000000000000\",\"lastSampleTimeNs\":\"1789200001000000000\",\"sourceCountsState\":\"known\",\"examinedSegments\":53,\"unsupportedSegments\":0,\"examinedSnapshots\":0,\"unsupportedSnapshots\":0}]}",
+            "[R101-background] completed=0 removed=0",
+            "[R101-result] count=12 failures=0 p95=489.991 max=489.991 peakRss=3183329280 finish=1"
+          ],
+          "media": {
+            "mixed-input.mp4": "c0f539e57bf30ededcd41a586b1d167fbdb122b45af891ff823123b5dd768975"
+          },
+          "qualification": {
+            "requests": 12,
+            "p95Ms": 489.991,
+            "maxMs": 489.991,
+            "spaceSamples": 35,
+            "scope": "status/shape/order/seek metadata and trace/progress/owner gates; not exhaustive top-k or actual Seek execution"
+          },
+          "elapsedSeconds": 35.49195637507364
+        },
+        "after": {
+          "visualMean": {
+            "elapsedMs": 415.8439305,
+            "catalogCount": 260,
+            "catalogWaitMs": 123.562464,
+            "catalogHeldMs": 118.76976966666666
+          },
+          "resourceOwner": [
+            {
+              "pid": 10611,
+              "seq": 0,
+              "phase": "opened",
+              "elapsedMs": 14,
+              "ram": 1188864,
+              "ramPeak": 1625344,
+              "ramLimit": 671088640,
+              "ramRejected": 0,
+              "scratchDisk": 16384,
+              "scratchDiskPeak": 32768,
+              "scratchDiskLimit": 155238973440,
+              "scratchFd": 4,
+              "scratchFdPeak": 6,
+              "scratchFdLimit": 1048572,
+              "scratchRam": 1188864,
+              "preservedDisk": 0,
+              "preservedFd": 0,
+              "readerCleanupHealthy": true
+            },
+            {
+              "pid": 10611,
+              "seq": 1,
+              "phase": "baseline",
+              "elapsedMs": 1315,
+              "ram": 1556892,
+              "ramPeak": 3805358,
+              "ramLimit": 671088640,
+              "ramRejected": 0,
+              "scratchDisk": 3538944,
+              "scratchDiskPeak": 7593984,
+              "scratchDiskLimit": 155238973440,
+              "scratchFd": 4,
+              "scratchFdPeak": 16,
+              "scratchFdLimit": 1048572,
+              "scratchRam": 1188864,
+              "preservedDisk": 0,
+              "preservedFd": 0,
+              "readerCleanupHealthy": true
+            },
+            {
+              "pid": 10611,
+              "seq": 2,
+              "phase": "before-Finish",
+              "elapsedMs": 33561,
+              "ram": 2968313,
+              "ramPeak": 161152881,
+              "ramLimit": 671088640,
+              "ramRejected": 0,
+              "scratchDisk": 3538944,
+              "scratchDiskPeak": 7593984,
+              "scratchDiskLimit": 155238973440,
+              "scratchFd": 4,
+              "scratchFdPeak": 16,
+              "scratchFdLimit": 1048572,
+              "scratchRam": 1188864,
+              "preservedDisk": 0,
+              "preservedFd": 0,
+              "readerCleanupHealthy": true
+            },
+            {
+              "pid": 10611,
+              "seq": 3,
+              "phase": "after-Finish",
+              "elapsedMs": 33561,
+              "ram": 1411421,
+              "ramPeak": 161152881,
+              "ramLimit": 671088640,
+              "ramRejected": 0,
+              "scratchDisk": 0,
+              "scratchDiskPeak": 7593984,
+              "scratchDiskLimit": 155238973440,
+              "scratchFd": 0,
+              "scratchFdPeak": 16,
+              "scratchFdLimit": 1048572,
+              "scratchRam": 0,
+              "preservedDisk": 0,
+              "preservedFd": 0,
+              "readerCleanupHealthy": true
+            },
+            {
+              "pid": 10611,
+              "seq": 4,
+              "phase": "after-storage-destruction",
+              "elapsedMs": 33595,
+              "ram": 0,
+              "ramPeak": 161152881,
+              "ramLimit": 671088640,
+              "ramRejected": 0,
+              "scratchDisk": 0,
+              "scratchDiskPeak": 7593984,
+              "scratchDiskLimit": 155238973440,
+              "scratchFd": 0,
+              "scratchFdPeak": 16,
+              "scratchFdLimit": 1048572,
+              "scratchRam": 0,
+              "preservedDisk": 0,
+              "preservedFd": 0,
+              "readerCleanupHealthy": true
+            }
+          ],
+          "sampleCount": 35,
+          "separateSampleMaxima": {
+            "rssBytes": 3182968832,
+            "footprintBytes": 3142634760,
+            "anonymousFileBytes": 1131580476,
+            "anonymousAllocatedBytes": 1133711360,
+            "fdCount": 186
+          },
+          "progress": [
+            "[R101-post-background] {\"enabled\":true,\"state\":\"indexing\",\"error\":\"\",\"searchAvailable\":true,\"sampleSeconds\":1,\"scanSeconds\":1,\"eventSnapshots\":\"disabled\",\"index\":{\"instanceId\":\"9d98da373d2714543a67ef3160ab9e3f\",\"generation\":1,\"identityScope\":\"worker-instance\",\"origin\":\"rebuild\",\"publishedAtMs\":1791879068783,\"metadataReason\":\"live-publication\",\"statisticsScope\":\"authorized-channels-all-indexed-samples-before-query-filters\",\"coverage\":\"unknown\",\"coverageReason\":\"sampled-index-no-continuous-coverage\",\"sourceValidation\":\"search-revalidates-current-originals\",\"channels\":[{\"channelId\":\"9101\",\"indexedFrames\":106,\"unknownTimeFrames\":0,\"firstSampleTimeNs\":\"1789200000000000000\",\"lastSampleTimeNs\":\"1789200001000000000\",\"sourceCountsState\":\"known\",\"examinedSegments\":53,\"unsupportedSegments\":0,\"examinedSnapshots\":0,\"unsupportedSnapshots\":0},{\"channelId\":\"9201\",\"indexedFrames\":106,\"unknownTimeFrames\":0,\"firstSampleTimeNs\":\"1789200000000000000\",\"lastSampleTimeNs\":\"1789200001000000000\",\"sourceCountsState\":\"known\",\"examinedSegments\":53,\"unsupportedSegments\":0,\"examinedSnapshots\":0,\"unsupportedSnapshots\":0}]},\"refresh\":{\"state\":\"indexing\",\"attemptState\":\"running\",\"attemptStartedAtMs\":1791879070029,\"attemptFinishedAtMs\":null,\"lastSuccessAtMs\":1791879068783,\"error\":\"\",\"usingPreviousPublication\":true},\"channels\":[{\"channelId\":\"9101\",\"indexedFrames\":106,\"unknownTimeFrames\":0,\"firstSampleTimeNs\":\"1789200000000000000\",\"lastSampleTimeNs\":\"1789200001000000000\",\"sourceCountsState\":\"known\",\"examinedSegments\":53,\"unsupportedSegments\":0,\"examinedSnapshots\":0,\"unsupportedSnapshots\":0},{\"channelId\":\"9201\",\"indexedFrames\":106,\"unknownTimeFrames\":0,\"firstSampleTimeNs\":\"1789200000000000000\",\"lastSampleTimeNs\":\"1789200001000000000\",\"sourceCountsState\":\"known\",\"examinedSegments\":53,\"unsupportedSegments\":0,\"examinedSnapshots\":0,\"unsupportedSnapshots\":0}]}",
+            "[R101-background] completed=0 removed=0",
+            "[R101-result] count=12 failures=0 p95=441.617 max=441.617 peakRss=3183165440 finish=1"
+          ],
+          "media": {
+            "mixed-input.mp4": "4f401882e65fcf6224dddfa833edcd6c982d96c40c92ea0d4acb46975ff9443b"
+          },
+          "qualification": {
+            "requests": 12,
+            "p95Ms": 441.617,
+            "maxMs": 441.617,
+            "spaceSamples": 35,
+            "scope": "status/shape/order/seek metadata and trace/progress/owner gates; not exhaustive top-k or actual Seek execution"
+          },
+          "elapsedSeconds": 35.50661149993539
+        }
+      },
+      "cycle-background": {
+        "sameVisualItems": true,
+        "before": {
+          "visualMean": {
+            "elapsedMs": 1227.9689723333333,
+            "catalogCount": 256,
+            "catalogWaitMs": 911.8060835,
+            "catalogHeldMs": 168.870305
+          },
+          "resourceOwner": [
+            {
+              "pid": 8084,
+              "seq": 0,
+              "phase": "opened",
+              "elapsedMs": 13,
+              "ram": 1188864,
+              "ramPeak": 1625344,
+              "ramLimit": 671088640,
+              "ramRejected": 0,
+              "scratchDisk": 16384,
+              "scratchDiskPeak": 32768,
+              "scratchDiskLimit": 155507056640,
+              "scratchFd": 4,
+              "scratchFdPeak": 6,
+              "scratchFdLimit": 1048572,
+              "scratchRam": 1188864,
+              "preservedDisk": 0,
+              "preservedFd": 0,
+              "readerCleanupHealthy": true
+            },
+            {
+              "pid": 8084,
+              "seq": 1,
+              "phase": "baseline",
+              "elapsedMs": 21840,
+              "ram": 6022888,
+              "ramPeak": 9617231,
+              "ramLimit": 671088640,
+              "ramRejected": 0,
+              "scratchDisk": 46374912,
+              "scratchDiskPeak": 98545664,
+              "scratchDiskLimit": 155507056640,
+              "scratchFd": 4,
+              "scratchFdPeak": 16,
+              "scratchFdLimit": 1048572,
+              "scratchRam": 1188864,
+              "preservedDisk": 0,
+              "preservedFd": 0,
+              "readerCleanupHealthy": true
+            },
+            {
+              "pid": 8084,
+              "seq": 2,
+              "phase": "before-Finish",
+              "elapsedMs": 404703,
+              "ram": 23442343,
+              "ramPeak": 176577016,
+              "ramLimit": 671088640,
+              "ramRejected": 0,
+              "scratchDisk": 46673920,
+              "scratchDiskPeak": 98545664,
+              "scratchDiskLimit": 155507056640,
+              "scratchFd": 4,
+              "scratchFdPeak": 16,
+              "scratchFdLimit": 1048572,
+              "scratchRam": 1188864,
+              "preservedDisk": 0,
+              "preservedFd": 0,
+              "readerCleanupHealthy": true
+            },
+            {
+              "pid": 8084,
+              "seq": 3,
+              "phase": "after-Finish",
+              "elapsedMs": 404704,
+              "ram": 17425421,
+              "ramPeak": 176577016,
+              "ramLimit": 671088640,
+              "ramRejected": 0,
+              "scratchDisk": 0,
+              "scratchDiskPeak": 98545664,
+              "scratchDiskLimit": 155507056640,
+              "scratchFd": 0,
+              "scratchFdPeak": 16,
+              "scratchFdLimit": 1048572,
+              "scratchRam": 0,
+              "preservedDisk": 0,
+              "preservedFd": 0,
+              "readerCleanupHealthy": true
+            },
+            {
+              "pid": 8084,
+              "seq": 4,
+              "phase": "after-storage-destruction",
+              "elapsedMs": 404726,
+              "ram": 0,
+              "ramPeak": 176577016,
+              "ramLimit": 671088640,
+              "ramRejected": 0,
+              "scratchDisk": 0,
+              "scratchDiskPeak": 98545664,
+              "scratchDiskLimit": 155507056640,
+              "scratchFd": 0,
+              "scratchFdPeak": 16,
+              "scratchFdLimit": 1048572,
+              "scratchRam": 0,
+              "preservedDisk": 0,
+              "preservedFd": 0,
+              "readerCleanupHealthy": true
+            }
+          ],
+          "sampleCount": 403,
+          "separateSampleMaxima": {
+            "rssBytes": 3192455168,
+            "footprintBytes": 3147386096,
+            "anonymousFileBytes": 1158582844,
+            "anonymousAllocatedBytes": 1170956288,
+            "fdCount": 191
+          },
+          "progress": [
+            "[R101-publication-complete] elapsedMs=7541.29 status={\"enabled\":true,\"state\":\"ready\",\"error\":\"\",\"searchAvailable\":true,\"sampleSeconds\":1,\"scanSeconds\":1,\"eventSnapshots\":\"disabled\",\"index\":{\"instanceId\":\"7a0499a8d404ccd97c87315facf55128\",\"generation\":2,\"identityScope\":\"worker-instance\",\"origin\":\"rebuild\",\"publishedAtMs\":1791877817311,\"metadataReason\":\"live-publication\",\"statisticsScope\":\"authorized-channels-all-indexed-samples-before-query-filters\",\"coverage\":\"unknown\",\"coverageReason\":\"sampled-index-no-continuous-coverage\",\"sourceValidation\":\"search-revalidates-current-originals\",\"channels\":[{\"channelId\":\"9101\",\"indexedFrames\":1388,\"unknownTimeFrames\":0,\"firstSampleTimeNs\":\"1789200000000000000\",\"lastSampleTimeNs\":\"1789200003000000000\",\"sourceCountsState\":\"known\",\"examinedSegments\":694,\"unsupportedSegments\":0,\"examinedSnapshots\":0,\"unsupportedSnapshots\":0},{\"channelId\":\"9201\",\"indexedFrames\":1388,\"unknownTimeFrames\":0,\"firstSampleTimeNs\":\"1789200000000000000\",\"lastSampleTimeNs\":\"1789200003000000000\",\"sourceCountsState\":\"known\",\"examinedSegments\":694,\"unsupportedSegments\":0,\"examinedSnapshots\":0,\"unsupportedSnapshots\":0}]},\"refresh\":{\"state\":\"ready\",\"attemptState\":\"succeeded\",\"attemptStartedAtMs\":1791877809437,\"attemptFinishedAtMs\":1791877817311,\"lastSuccessAtMs\":1791877817311,\"error\":\"\",\"usingPreviousPublication\":false},\"channels\":[{\"channelId\":\"9101\",\"indexedFrames\":1388,\"unknownTimeFrames\":0,\"firstSampleTimeNs\":\"1789200000000000000\",\"lastSampleTimeNs\":\"1789200003000000000\",\"sourceCountsState\":\"known\",\"examinedSegments\":694,\"unsupportedSegments\":0,\"examinedSnapshots\":0,\"unsupportedSnapshots\":0},{\"channelId\":\"9201\",\"indexedFrames\":1388,\"unknownTimeFrames\":0,\"firstSampleTimeNs\":\"1789200000000000000\",\"lastSampleTimeNs\":\"1789200003000000000\",\"sourceCountsState\":\"known\",\"examinedSegments\":694,\"unsupportedSegments\":0,\"examinedSnapshots\":0,\"unsupportedSnapshots\":0}]}",
+            "[R101-post-background] {\"enabled\":true,\"state\":\"ready\",\"error\":\"\",\"searchAvailable\":true,\"sampleSeconds\":1,\"scanSeconds\":1,\"eventSnapshots\":\"disabled\",\"index\":{\"instanceId\":\"7a0499a8d404ccd97c87315facf55128\",\"generation\":2,\"identityScope\":\"worker-instance\",\"origin\":\"rebuild\",\"publishedAtMs\":1791877817311,\"metadataReason\":\"live-publication\",\"statisticsScope\":\"authorized-channels-all-indexed-samples-before-query-filters\",\"coverage\":\"unknown\",\"coverageReason\":\"sampled-index-no-continuous-coverage\",\"sourceValidation\":\"search-revalidates-current-originals\",\"channels\":[{\"channelId\":\"9101\",\"indexedFrames\":1388,\"unknownTimeFrames\":0,\"firstSampleTimeNs\":\"1789200000000000000\",\"lastSampleTimeNs\":\"1789200003000000000\",\"sourceCountsState\":\"known\",\"examinedSegments\":694,\"unsupportedSegments\":0,\"examinedSnapshots\":0,\"unsupportedSnapshots\":0},{\"channelId\":\"9201\",\"indexedFrames\":1388,\"unknownTimeFrames\":0,\"firstSampleTimeNs\":\"1789200000000000000\",\"lastSampleTimeNs\":\"1789200003000000000\",\"sourceCountsState\":\"known\",\"examinedSegments\":694,\"unsupportedSegments\":0,\"examinedSnapshots\":0,\"unsupportedSnapshots\":0}]},\"refresh\":{\"state\":\"ready\",\"attemptState\":\"succeeded\",\"attemptStartedAtMs\":1791877809437,\"attemptFinishedAtMs\":1791877817311,\"lastSuccessAtMs\":1791877817311,\"error\":\"\",\"usingPreviousPublication\":false},\"channels\":[{\"channelId\":\"9101\",\"indexedFrames\":1388,\"unknownTimeFrames\":0,\"firstSampleTimeNs\":\"1789200000000000000\",\"lastSampleTimeNs\":\"1789200003000000000\",\"sourceCountsState\":\"known\",\"examinedSegments\":694,\"unsupportedSegments\":0,\"examinedSnapshots\":0,\"unsupportedSnapshots\":0},{\"channelId\":\"9201\",\"indexedFrames\":1388,\"unknownTimeFrames\":0,\"firstSampleTimeNs\":\"1789200000000000000\",\"lastSampleTimeNs\":\"1789200003000000000\",\"sourceCountsState\":\"known\",\"examinedSegments\":694,\"unsupportedSegments\":0,\"examinedSnapshots\":0,\"unsupportedSnapshots\":0}]}",
+            "[R101-background] completed=6 removed=8",
+            "[R101-result] count=12 failures=0 p95=1498 max=1498 peakRss=3192619008 finish=1"
+          ],
+          "media": {
+            "mixed-input.mp4": "8aee44a33544fbf1ebb21e091511a77298931e777a793b4f005a716a78b66764"
+          },
+          "qualification": {
+            "requests": 12,
+            "p95Ms": 1498.0,
+            "maxMs": 1498.0,
+            "spaceSamples": 403,
+            "scope": "status/shape/order/seek metadata and trace/progress/owner gates; not exhaustive top-k or actual Seek execution"
+          },
+          "elapsedSeconds": 406.80914741707966
+        },
+        "after": {
+          "visualMean": {
+            "elapsedMs": 1176.2482915,
+            "catalogCount": 276,
+            "catalogWaitMs": 836.1027753333333,
+            "catalogHeldMs": 157.85124133333335
+          },
+          "resourceOwner": [
+            {
+              "pid": 10685,
+              "seq": 0,
+              "phase": "opened",
+              "elapsedMs": 14,
+              "ram": 1188864,
+              "ramPeak": 1625344,
+              "ramLimit": 671088640,
+              "ramRejected": 0,
+              "scratchDisk": 16384,
+              "scratchDiskPeak": 32768,
+              "scratchDiskLimit": 155227443200,
+              "scratchFd": 4,
+              "scratchFdPeak": 6,
+              "scratchFdLimit": 1048572,
+              "scratchRam": 1188864,
+              "preservedDisk": 0,
+              "preservedFd": 0,
+              "readerCleanupHealthy": true
+            },
+            {
+              "pid": 10685,
+              "seq": 1,
+              "phase": "baseline",
+              "elapsedMs": 21944,
+              "ram": 6022888,
+              "ramPeak": 9617231,
+              "ramLimit": 671088640,
+              "ramRejected": 0,
+              "scratchDisk": 46374912,
+              "scratchDiskPeak": 98545664,
+              "scratchDiskLimit": 155227443200,
+              "scratchFd": 4,
+              "scratchFdPeak": 16,
+              "scratchFdLimit": 1048572,
+              "scratchRam": 1188864,
+              "preservedDisk": 0,
+              "preservedFd": 0,
+              "readerCleanupHealthy": true
+            },
+            {
+              "pid": 10685,
+              "seq": 2,
+              "phase": "before-Finish",
+              "elapsedMs": 406824,
+              "ram": 23442343,
+              "ramPeak": 177608840,
+              "ramLimit": 671088640,
+              "ramRejected": 0,
+              "scratchDisk": 46673920,
+              "scratchDiskPeak": 98545664,
+              "scratchDiskLimit": 155227443200,
+              "scratchFd": 4,
+              "scratchFdPeak": 16,
+              "scratchFdLimit": 1048572,
+              "scratchRam": 1188864,
+              "preservedDisk": 0,
+              "preservedFd": 0,
+              "readerCleanupHealthy": true
+            },
+            {
+              "pid": 10685,
+              "seq": 3,
+              "phase": "after-Finish",
+              "elapsedMs": 406825,
+              "ram": 17425421,
+              "ramPeak": 177608840,
+              "ramLimit": 671088640,
+              "ramRejected": 0,
+              "scratchDisk": 0,
+              "scratchDiskPeak": 98545664,
+              "scratchDiskLimit": 155227443200,
+              "scratchFd": 0,
+              "scratchFdPeak": 16,
+              "scratchFdLimit": 1048572,
+              "scratchRam": 0,
+              "preservedDisk": 0,
+              "preservedFd": 0,
+              "readerCleanupHealthy": true
+            },
+            {
+              "pid": 10685,
+              "seq": 4,
+              "phase": "after-storage-destruction",
+              "elapsedMs": 406854,
+              "ram": 0,
+              "ramPeak": 177608840,
+              "ramLimit": 671088640,
+              "ramRejected": 0,
+              "scratchDisk": 0,
+              "scratchDiskPeak": 98545664,
+              "scratchDiskLimit": 155227443200,
+              "scratchFd": 0,
+              "scratchFdPeak": 16,
+              "scratchFdLimit": 1048572,
+              "scratchRam": 0,
+              "preservedDisk": 0,
+              "preservedFd": 0,
+              "readerCleanupHealthy": true
+            }
+          ],
+          "sampleCount": 405,
+          "separateSampleMaxima": {
+            "rssBytes": 3192389632,
+            "footprintBytes": 3148795120,
+            "anonymousFileBytes": 1131283456,
+            "anonymousAllocatedBytes": 1135304704,
+            "fdCount": 191
+          },
+          "progress": [
+            "[R101-publication-complete] elapsedMs=10354.3 status={\"enabled\":true,\"state\":\"ready\",\"error\":\"\",\"searchAvailable\":true,\"sampleSeconds\":1,\"scanSeconds\":1,\"eventSnapshots\":\"disabled\",\"index\":{\"instanceId\":\"5afb0990e9de185add4d7117fb00bf18\",\"generation\":2,\"identityScope\":\"worker-instance\",\"origin\":\"rebuild\",\"publishedAtMs\":1791879515234,\"metadataReason\":\"live-publication\",\"statisticsScope\":\"authorized-channels-all-indexed-samples-before-query-filters\",\"coverage\":\"unknown\",\"coverageReason\":\"sampled-index-no-continuous-coverage\",\"sourceValidation\":\"search-revalidates-current-originals\",\"channels\":[{\"channelId\":\"9101\",\"indexedFrames\":1390,\"unknownTimeFrames\":0,\"firstSampleTimeNs\":\"1789200000000000000\",\"lastSampleTimeNs\":\"1789200005000000000\",\"sourceCountsState\":\"known\",\"examinedSegments\":695,\"unsupportedSegments\":0,\"examinedSnapshots\":0,\"unsupportedSnapshots\":0},{\"channelId\":\"9201\",\"indexedFrames\":1390,\"unknownTimeFrames\":0,\"firstSampleTimeNs\":\"1789200000000000000\",\"lastSampleTimeNs\":\"1789200005000000000\",\"sourceCountsState\":\"known\",\"examinedSegments\":695,\"unsupportedSegments\":0,\"examinedSnapshots\":0,\"unsupportedSnapshots\":0}]},\"refresh\":{\"state\":\"ready\",\"attemptState\":\"succeeded\",\"attemptStartedAtMs\":1791879507162,\"attemptFinishedAtMs\":1791879515234,\"lastSuccessAtMs\":1791879515234,\"error\":\"\",\"usingPreviousPublication\":false},\"channels\":[{\"channelId\":\"9101\",\"indexedFrames\":1390,\"unknownTimeFrames\":0,\"firstSampleTimeNs\":\"1789200000000000000\",\"lastSampleTimeNs\":\"1789200005000000000\",\"sourceCountsState\":\"known\",\"examinedSegments\":695,\"unsupportedSegments\":0,\"examinedSnapshots\":0,\"unsupportedSnapshots\":0},{\"channelId\":\"9201\",\"indexedFrames\":1390,\"unknownTimeFrames\":0,\"firstSampleTimeNs\":\"1789200000000000000\",\"lastSampleTimeNs\":\"1789200005000000000\",\"sourceCountsState\":\"known\",\"examinedSegments\":695,\"unsupportedSegments\":0,\"examinedSnapshots\":0,\"unsupportedSnapshots\":0}]}",
+            "[R101-post-background] {\"enabled\":true,\"state\":\"ready\",\"error\":\"\",\"searchAvailable\":true,\"sampleSeconds\":1,\"scanSeconds\":1,\"eventSnapshots\":\"disabled\",\"index\":{\"instanceId\":\"5afb0990e9de185add4d7117fb00bf18\",\"generation\":2,\"identityScope\":\"worker-instance\",\"origin\":\"rebuild\",\"publishedAtMs\":1791879515234,\"metadataReason\":\"live-publication\",\"statisticsScope\":\"authorized-channels-all-indexed-samples-before-query-filters\",\"coverage\":\"unknown\",\"coverageReason\":\"sampled-index-no-continuous-coverage\",\"sourceValidation\":\"search-revalidates-current-originals\",\"channels\":[{\"channelId\":\"9101\",\"indexedFrames\":1390,\"unknownTimeFrames\":0,\"firstSampleTimeNs\":\"1789200000000000000\",\"lastSampleTimeNs\":\"1789200005000000000\",\"sourceCountsState\":\"known\",\"examinedSegments\":695,\"unsupportedSegments\":0,\"examinedSnapshots\":0,\"unsupportedSnapshots\":0},{\"channelId\":\"9201\",\"indexedFrames\":1390,\"unknownTimeFrames\":0,\"firstSampleTimeNs\":\"1789200000000000000\",\"lastSampleTimeNs\":\"1789200005000000000\",\"sourceCountsState\":\"known\",\"examinedSegments\":695,\"unsupportedSegments\":0,\"examinedSnapshots\":0,\"unsupportedSnapshots\":0}]},\"refresh\":{\"state\":\"ready\",\"attemptState\":\"succeeded\",\"attemptStartedAtMs\":1791879507162,\"attemptFinishedAtMs\":1791879515234,\"lastSuccessAtMs\":1791879515234,\"error\":\"\",\"usingPreviousPublication\":false},\"channels\":[{\"channelId\":\"9101\",\"indexedFrames\":1390,\"unknownTimeFrames\":0,\"firstSampleTimeNs\":\"1789200000000000000\",\"lastSampleTimeNs\":\"1789200005000000000\",\"sourceCountsState\":\"known\",\"examinedSegments\":695,\"unsupportedSegments\":0,\"examinedSnapshots\":0,\"unsupportedSnapshots\":0},{\"channelId\":\"9201\",\"indexedFrames\":1390,\"unknownTimeFrames\":0,\"firstSampleTimeNs\":\"1789200000000000000\",\"lastSampleTimeNs\":\"1789200005000000000\",\"sourceCountsState\":\"known\",\"examinedSegments\":695,\"unsupportedSegments\":0,\"examinedSnapshots\":0,\"unsupportedSnapshots\":0}]}",
+            "[R101-background] completed=6 removed=8",
+            "[R101-result] count=12 failures=0 p95=1438.79 max=1438.79 peakRss=3192635392 finish=1"
+          ],
+          "media": {
+            "mixed-input.mp4": "381fe71d6087b44031c1a402126dbeeadf1d0a30848bb13d5c7b0b0539c5cd1b"
+          },
+          "qualification": {
+            "requests": 12,
+            "p95Ms": 1438.79,
+            "maxMs": 1438.79,
+            "spaceSamples": 405,
+            "scope": "status/shape/order/seek metadata and trace/progress/owner gates; not exhaustive top-k or actual Seek execution"
+          },
+          "elapsedSeconds": 408.83607320906594
+        }
+      }
+    },
+    "limitations": [
+      "holder totals refer to selected windows, not entire process",
+      "counter fields differ by callsite; not relabelled uniformly",
+      "RSS/footprint/anonymous maxima may have different timestamps; not summed",
+      "fresh store/time differs; generator unchanged; raw media hashes separately compared"
+    ],
+    "additionalLimits": [
+      "Not exhaustive exact top-k/actual Seek; linked source/application regressions cover affected consumers.",
+      "Fresh store/clock/encoded input bytes differ despite same generator; result item equality is directly checked.",
+      "Background publication wait7541.29→10354.3ms and final per-channel publication counts differ; not all costs improved.",
+      "Selected holder windows differ; no exact index-total reduction percentage inferred.",
+      "Catalog reacquisition count rises240→260 and256→276; reduced wait/held durations are the direct measured benefit."
+    ]
+  },
+  "directRegression": {
+    "macOS": {
+      "productBuild": "mac-final2-build.log",
+      "generationProofFourConfigurations": "mac-proof-final3.log",
+      "consumerFourConfigurations": "mac-consumers.log",
+      "visualSource83": "source-final2-run.log",
+      "application87": "application-run.log",
+      "requestCache448": "cache-run.log",
+      "result": "PASS"
+    },
+    "linux": {
+      "image": "mediaserver-v450-verify:rc58-arm64",
+      "uid": 10001,
+      "gid": 10001,
+      "network": "none",
+      "source": "read-only",
+      "capabilities": "all dropped",
+      "tmpfs": "3GiB owned /tmp exec,nosuid",
+      "result": "PASS",
+      "log": "linux-final.log",
+      "recipe": "linux106.sh",
+      "scope": "product build, generation proof/consumer configuration matrix, source83/cache448"
+    },
+    "deterministicProtection": "blocked initial cold acquisition permits actual QuerySearchTimeline and durable Reserve; resume/revalidate/checkpoint/delete/resource denial/cached cut tests. RAII latch release/join; no private map fake success. Existing source/currentness, K/F, consumer and cancellation regressions reused in affected scope.",
+    "firstFailures": [
+      {
+        "file": "mac-proof-final.log",
+        "kind": "compile",
+        "cause": "missing recording_read_service.h in strengthened test",
+        "fixed": "include added; mac-proof-final2.log"
+      },
+      {
+        "file": "linux.log",
+        "exit": 126,
+        "kind": "preparation",
+        "cause": "owned tmpfs executable denied (exec not specified)",
+        "fixed": "same nonprivileged image with /tmp exec; linux-final.log; no source permissions changed"
+      },
+      {
+        "files": [
+          "verify_feature_implementation_evidence.log",
+          "verify_feature_inventory_coverage.log",
+          "verify_project_feature_test_inventory.log"
+        ],
+        "kind": "static execution sequencing",
+        "cause": "static launched before producer apply completed; read prior inventorySha256",
+        "correction": "producer exit0, semantic readback only inventorySha256 changes; affected checks rerun in *-final.log",
+        "notProductFailure": true
+      }
+    ],
+    "reuse": "Existing unaffected8-scale/B/C/D evidence remains at its original source; no whole acceptance/UI/model comparison repeated."
+  },
+  "mixedAfter900": {
+    "run": {
+      "cause900": 0,
+      "after900": 1,
+      "state45": 0,
+      "mode": "--contention-diagnostic",
+      "plannedObservationSeconds": 900,
+      "wrapperDeadlineSeconds": 1080,
+      "executionElapsedSeconds": 758.1680397919845,
+      "wrapperElapsedSeconds": 758.1683068329003,
+      "totalWithFinalBindingSeconds": 758.3917178339325,
+      "jsReportElapsedMs": 752767,
+      "lastMainProgressElapsedMs": 737071.299958,
+      "resourceSampleSpanMs": 736842.521542,
+      "passed": 2034,
+      "failed": 1,
+      "status": "FAIL",
+      "exit": 1,
+      "timedOutWholeWrapper": false,
+      "verifiedDurationMs": null,
+      "longrunObservationCompleted": false,
+      "phase": null,
+      "failure": "current observation: http-header-timeout",
+      "lastSampleNotFailureInstant": true
+    },
+    "latency": {
+      "originalSuccessfulArray": {
+        "count": 196,
+        "ceilP95Ms": 3577.11950000003,
+        "maxMs": 4785.353291000007,
+        "finalGateExecuted": false,
+        "judgment": "부분 성공 모집단도2000ms를 초과하지만 최초 실제 FAIL은 HTTP header timeout. 최종 latency gate FAIL로 소급하지 않음."
+      },
+      "clientFailures": [
+        {
+          "method": "GET",
+          "routeClass": "other",
+          "status": null,
+          "headerElapsedMs": null,
+          "bodyElapsedMs": null,
+          "totalElapsedMs": 5002,
+          "bytes": 0,
+          "phase": "header",
+          "outcome": "timeout",
+          "routeKind": "/ops/api/recordings/visual-search"
+        },
+        {
+          "method": "GET",
+          "routeClass": "other",
+          "status": null,
+          "headerElapsedMs": null,
+          "bodyElapsedMs": null,
+          "totalElapsedMs": 5022,
+          "bytes": 0,
+          "phase": "header",
+          "outcome": "timeout",
+          "routeKind": "/ops/api/recordings/visual-search"
+        }
+      ],
+      "rawHttpPopulation": {
+        "structured200": 113,
+        "visual200": 98,
+        "explanation": "원래196=98structured+98visual. raw structured113에는 A13과 실패 batch의 성공2가 추가되므로 같은 분모로 합치지 않음."
+      },
+      "serverLateCompletion": [
+        {
+          "id": 99,
+          "status": 503,
+          "code": "visual-search-unavailable",
+          "elapsedMs": 5125.487333,
+          "catalogCount": 290,
+          "catalogWaitMs": 2728.305828,
+          "catalogHeldMs": 463.774173
+        },
+        {
+          "id": 100,
+          "status": 503,
+          "code": "visual-search-unavailable",
+          "elapsedMs": 5129.075583,
+          "catalogCount": 288,
+          "catalogWaitMs": 2807.49537,
+          "catalogHeldMs": 441.111337
+        }
+      ],
+      "visualStartedCompleted": [
+        {
+          "started": 100,
+          "completed": 100
+        }
+      ],
+      "serverCompletionNotClientSuccess": true
+    },
+    "holderEvidence": {
+      "selectedId": 74,
+      "status": 200,
+      "elapsedMs": 2313.260375,
+      "rawRecords": 1472,
+      "rawArtifactRowsEqual": true,
+      "rawFooter": {
+        "version": 3,
+        "records": 1472,
+        "loss": false,
+        "inflight": 0,
+        "endNs": 749339391375,
+        "request": 74,
+        "begin": 545854006417,
+        "end": 548167266792,
+        "thresholdNs": 2000000000,
+        "overwrittenEndNs": 534173004083,
+        "completedRequests": 100,
+        "maxCompletedNs": 5129075583
+      },
+      "ownAcquisitions": 362,
+      "waitMs": 1537.740217,
+      "heldMs": 463.447873,
+      "independentlyRecomputedUnionCoveredMs": 997.793839,
+      "unclassifiedWaitMs": 539.946378,
+      "overlapByWorkMs": {
+        "visualPeer73": 297.068341,
+        "index": 114.364,
+        "retention": 364.35596,
+        "writer": 74.26371,
+        "work0Unlabelled": 147.741828
+      },
+      "limits": [
+        "holder 완전성은 선택74 구간. 99/100은 그 밖이므로 실패요청의 상대 holder 복원 불가.",
+        "work0은 관측한 미분류 작업이며 unclassifiedWait는 관측으로 덮이지 않은 대기. 서로 다름.",
+        "중첩 phase 시간을 합산하거나 과거105 timeout의 원인으로 소급하지 않음."
+      ]
+    },
+    "progress": {
+      "ACompleted": 13,
+      "evidenceCycles": 48,
+      "generalEvidenceComplete": 48,
+      "visualEvidenceCreated": 48,
+      "lastDrainedPrefix": {
+        "9101": {
+          "finalized": 367,
+          "deleted": 0
+        },
+        "9201": {
+          "finalized": 367,
+          "deleted": 0
+        }
+      },
+      "prefixLimit": "두 채널367finalized/0deleted는 마지막 drained prefix이며 종료 tail 전체 총계로 확대하지 않음.900모드의 삭제0허용을 기존 순환 회귀 면제로 확대하지 않음.",
+      "boundedFrame": [
+        {
+          "status": "captured",
+          "mode": "bounded",
+          "required": true,
+          "records": 3,
+          "successes": 3,
+          "failures": 0,
+          "issues": []
+        }
+      ]
+    },
+    "resourceAndCollection": {
+      "sampleCount": 147,
+      "allFdSamplesComplete": true,
+      "roundDistribution": {
+        "1": 143,
+        "2": 4
+      },
+      "separateSampleMaxima": {
+        "rssBytes": 3220717568,
+        "footprintBytes": 3171962144,
+        "anonymousFileBytes": 50615296,
+        "anonymousAllocatedBytes": 51613696,
+        "fdCount": 60,
+        "threadCount": 42
+      },
+      "maximaLimit": "각 항목 최대시각이 다를 수 있으며 합산해 원자 peak로 해석하지 않음. 순차 FD 표본이다.",
+      "resourceTrendPass": false,
+      "reviewRequired": true,
+      "postWarmup": {
+        "status": "observed",
+        "sampleCount": 87,
+        "delta": {
+          "rssBytes": 179617792,
+          "threadCount": -1,
+          "fdCount": 0,
+          "mutationCount": 872
+        },
+        "elapsedMs": 436592.993417,
+        "rssMiBPerMinute": 23.540946957395224
+      },
+      "trendLimit": "상승 관측은 보존하되 누수로 단정하지 않음. 정상 owner0 역시 전체 heap/RSS 무누수 증명 아님.",
+      "ownerRecords": 152,
+      "ownerSequenceContiguous": true,
+      "finalOwner": {
+        "pid": 11932,
+        "seq": 151,
+        "phase": "after-storage-destruction",
+        "elapsedMs": 748972,
+        "ram": 0,
+        "ramPeak": 398980699,
+        "ramLimit": 671088640,
+        "ramRejected": 0,
+        "scratchDisk": 0,
+        "scratchDiskPeak": 81367040,
+        "scratchDiskLimit": 155122876416,
+        "scratchFd": 0,
+        "scratchFdPeak": 16,
+        "scratchFdLimit": 1048572,
+        "scratchRam": 0,
+        "preservedDisk": 0,
+        "preservedFd": 0,
+        "readerCleanupHealthy": true
+      },
+      "workspaceFailure": {
+        "status": "no-workspace-failure",
+        "primary": null,
+        "decision": null,
+        "collectorDiagnostic": null,
+        "context": null,
+        "collectionError": null,
+        "capacityBytes": 32768
+      },
+      "serverBytes": 516499,
+      "serverSha256": "dfd8121a1e8c2cfa9e660020b73cd130e8b23be5a396e41ab7030823445b5d17",
+      "serverCollection": [
+        {
+          "pid": 11932,
+          "bytes": 516499,
+          "capturedBytes": 516499,
+          "sha256": "dfd8121a1e8c2cfa9e660020b73cd130e8b23be5a396e41ab7030823445b5d17",
+          "overflow": false,
+          "captureError": null,
+          "categories": [
+            {
+              "code": "file evidence unavailable",
+              "count": 0
+            },
+            {
+              "code": "storageBlocked",
+              "count": 0
+            },
+            {
+              "code": "shutdown",
+              "count": 0
+            },
+            {
+              "code": "ERROR",
+              "count": 0
+            },
+            {
+              "code": "WARNING",
+              "count": 0
+            }
+          ],
+          "rawBodyPublished": false,
+          "privateCaptureDisposition": "eligible-for-wrapper-cleanup"
+        }
+      ],
+      "classification": "이 실패를 collector/공간 초과/RAM누수로 귀속할 원문 근거 없음."
+    },
+    "notRun": [
+      "900 필수 지속시간 및 최종 latency/sample/coverage gate",
+      "명시 disable 및 closed-journal assertion",
+      "후속 전체 controls/recovery/restart/reactivation",
+      "45분",
+      "120분"
+    ],
+    "finalScope": {
+      "implementationDirectAdoption": "한정 수용 유지",
+      "mixedGoal": "FAIL·미완료",
+      "minutes45Entry": "부적격",
+      "newRunOrOptimizationAuthorization": false,
+      "memoryP0": "BLOCKED 유지",
+      "release": "보류"
+    }
+  },
+  "independentReview": {
+    "file": "106-independent-review.json",
+    "sha256": "f2b4240098ed5a2f0c19f9942309b4f45d4894f91ac90dc5eaac758052d5a376",
+    "reviewer": "independent_memory86",
+    "participatedInImplementationTestsOrExecution": false,
+    "directEntryMember": "independent-entry-review.json",
+    "conclusion": "DIRECT_CHANGE_ACCEPTED_MIXED_AFTER900_FAIL_45_INELIGIBLE",
+    "documentReadback": {
+      "reviewer": "independent_memory86",
+      "source": "separate reviewer followup message",
+      "result": "technical numbers/scope, reviewer-copy bytes, archive parts/full SHA,8 URL transformations verified. Reviewer noted empty archive preserve.log; actual first packaging traceback is now preserved verbatim in postArchiveRawEvidence. Remote/owned cleanup pending."
+    }
+  },
+  "binding": {
+    "receipt": {
+      "producerOutputSha256": "0720a89cab7a61eb16a2a3f234b5ce6ceb1e0e6cc19b670f503541c368b49452",
+      "formattedSha256": "60672f67ae16746617165fe82d3582f6335d1f40e86cf5091e269e64b7ef984d",
+      "semanticEquality": true,
+      "changedTopFields": [
+        "inventorySha256"
+      ],
+      "legacyItemsIdentical": true,
+      "candidateDigest": "8977e9b6ac618c7e0233823f6acb6ab1fcf7461206ee5d8b2a4149a643519e3a",
+      "newProductReview": "separate independent_memory86; digest is not product approval"
+    },
+    "producer": "producer-apply.log;51PASS/0FAIL",
+    "static": {
+      "producer": "51/0 원문 적용",
+      "finalStaticResults": [
+        {
+          "command": [
+            "node",
+            "scripts/internal/verify_feature_implementation_evidence.mjs"
+          ],
+          "exit": 0,
+          "elapsed": 59.725293750176206
+        },
+        {
+          "command": [
+            "node",
+            "scripts/internal/verify_feature_inventory_coverage.mjs"
+          ],
+          "exit": 0,
+          "elapsed": 93.35892020794563
+        },
+        {
+          "command": [
+            "node",
+            "scripts/internal/verify_project_feature_test_inventory.mjs"
+          ],
+          "exit": 0,
+          "elapsed": 49.9167435830459
+        }
+      ],
+      "readback": "986/negative15,coverage9/0,inventory18/0; legacy approval/script 최초유효 결과 재사용",
+      "manifestChange": "inventorySha256만 semantic 변경; legacy986가R106 신규동작 승인 대체 아님",
+      "firstStaticFailure": "producer 완료 전 stale manifest로 인한 순서 오류 최초 원문 보존, 완결 입력에서 final3검사 exit0"
+    },
+    "unrelatedLegacy986": "same candidate, not automatic approval of new behavior"
+  },
+  "preservation": {
+    "archive": "106-execution.tar.gz (concatenate ordered parts)",
+    "sha256": "19d22896e34a8d3074644b1e0a69467cb490f759ac98effb1c35fcfe85da8d5d",
+    "bytes": 146948496,
+    "parts": [
+      {
+        "path": "docs/release-artifacts/v4.5.0/106-execution.tar.gz.part001",
+        "bytes": 52428800,
+        "sha256": "413f41faaa198eed2a523f2e077659107bf497eeb51174c764b451264293e8b0"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/106-execution.tar.gz.part002",
+        "bytes": 52428800,
+        "sha256": "48fcf61d4f6f3ac507b3d6aba06163a04408555cf1304df5c529f9fc84dd86f4"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/106-execution.tar.gz.part003",
+        "bytes": 42090896,
+        "sha256": "4a83e2ef391e6df8a4f86723d13c7200607b1a760c9f3e509f7d7c1a5fde2137"
+      }
+    ],
+    "memberCount": 4153,
+    "rawBytes": 230232671,
+    "manifestSha256": "37c1c9191375c5ee87720b8c2d499cd2c0e3bb2675b7bbf0d3c2f14aac3bee5a",
+    "sourceByteReadback": "PASS",
+    "transformations": [
+      {
+        "originalPath": "after900/media-server-current-observer-VJTJaz/server-1.private.log",
+        "archivedPath": "after900/media-server-current-observer-VJTJaz/server-1.sanitized.log",
+        "originalBytes": 516499,
+        "originalSha256": "dfd8121a1e8c2cfa9e660020b73cd130e8b23be5a396e41ab7030823445b5d17",
+        "transformedBytes": 516361,
+        "transformedSha256": "616b24a83e36f29a05e94d5792de5e8a71735df5c2bdb6c77af2ad022e0e0345",
+        "rule": "replace URL tokens only; retain all other lines/values",
+        "replacements": 8
+      }
+    ],
+    "excludedFileCount": 128,
+    "remote": "pending",
+    "cleanup": "pending",
+    "firstPackagingFailure": {
+      "stage": "archive object-size admission",
+      "result": "FAIL",
+      "archiveBytes": 146948496,
+      "limitBytes": 99614720,
+      "cause": "archive object exceeds preservation bound; no test or source change",
+      "resolution": "exact byte stream split into <=50MiB Git objects, no source evidence omitted"
+    },
+    "postArchiveRawEvidence": [
+      {
+        "path": "preserve.log",
+        "bytes": 224,
+        "sha256": "3ae24ccb8c0e9f699c50f8425448b22ebd88860db37abdbd7369d1a4781be610",
+        "representation": "exact UTF-8 text, outside immutable archive",
+        "text": "Traceback (most recent call last):\n  File \"/private/tmp/media-server-r106-dk8ntftq/preserve106.py\", line 35, in <module>\n    assert dest.stat().st_size<95*1024*1024\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError\n"
+      },
+      {
+        "path": "preservation-first-failure.json",
+        "bytes": 300,
+        "sha256": "3136d5dd1111b64b800d8f5af3e3b0324d81a1c5c281ba1eccdbc1e7418c9bf6",
+        "representation": "exact UTF-8 text, outside immutable archive",
+        "text": "{\n  \"stage\": \"archive object-size admission\",\n  \"result\": \"FAIL\",\n  \"archiveBytes\": 146948496,\n  \"limitBytes\": 99614720,\n  \"cause\": \"archive object exceeds preservation bound; no test or source change\",\n  \"resolution\": \"exact byte stream split into <=50MiB Git objects, no source evidence omitted\"\n}\n"
+      }
+    ]
+  },
+  "cleanup": {
+    "process": {
+      "processReceipt": [
+        {
+          "schema": "recording-process-cleanup-v1",
+          "attemptCount": 1,
+          "pid": 11932,
+          "exitCode": 0,
+          "signalCode": null,
+          "exitedObserved": true,
+          "stopCode": "complete",
+          "forcedTermination": "not-used",
+          "normalExitPass": true,
+          "normalShutdownPass": true,
+          "archiveSafe": true,
+          "ports": [
+            {
+              "kind": "http",
+              "port": 55413,
+              "status": "pass",
+              "code": "closed",
+              "closed": true
+            },
+            {
+              "kind": "rtsp",
+              "port": 55414,
+              "status": "pass",
+              "code": "closed",
+              "closed": true
+            }
+          ]
+        }
+      ],
+      "launcherProcessGroup": 11889,
+      "launcherGroupAbsent": true,
+      "registeredGroupsAbsent": true,
+      "reportProcessesClosed": true,
+      "reportUdpClosed": true,
+      "scope": "원본 receipt의 정상 finally 종료·그룹/포트 닫힘. 이 reviewer가 새 제품/종료검사를 실행한 것이 아님. 실행root 파일 정리는 아직 pending.",
+      "explicitDisableAndClosedJournalExecuted": false
+    },
+    "ownedRoot": "pending after remote byte verification; later106-cleanup.json is authoritative completion receipt",
+    "userSettingsPrivate95ModelsSDK": "not modified/uploaded/cleaned",
+    "QwenOllamaCalls": 0,
+    "unloadGate": "NOT_RUN"
+  },
+  "remaining": [
+    "Sustained mixed visual search still exceeds5s client deadline; successful196 partial p953577.1195ms >2000ms.",
+    "Selected74 evidence does not establish peer cause of timeout99/100; source final503 does not prove original file mutation.",
+    "45min ineligible; final120, memory P0 and release remain blocked. No new runtime or product optimization after failure."
+  ],
+  "publication": {
+    "ownerRiskAcceptance": "not-granted",
+    "finalReleaseAdoption": "not-performed",
+    "PR_CI_merge_tag_release": "not-performed",
+    "push": "pending; final106-cleanup.json tracks preservation commit and remote bytes"
+  }
+}

@@ -17,6 +17,14 @@
 
 ## v4.5.0 잔여 개발과 릴리즈 순서
 
+[106 공유 Catalog 읽기 경계 보완](release-artifacts/v4.5.0/106-validation.json)은 색인 수집의
+중복 metadata 조회를 줄이고 source cold 획득을 잠금 밖으로 분리하되 현재 원문·권한·소유 검증을 유지했다.
+직접53/parallel·cycle/background와 관련 macOS/비특권 Linux 회귀는 통과했으나,
+수정후900초1회는 마지막 본 진행737.071초 뒤 장면 검색 header timeout으로 **FAIL**이다.
+성공196건의 부분p95는3577.120ms이며 최종 지연 gate는 미실행이다. 선택74의 완전한 holder 기록은
+실패99/100의 상대 작업까지 설명하지 않는다. 직접 background 색인 게시 대기도 증가해 전체 비용 개선으로 확대하지 않는다.
+[독립 판단](release-artifacts/v4.5.0/106-independent-review.json)에 따라 **45분 미실행·메모리P0·최종120분·출시 보류**를 유지한다.
+
 [105 장면 요청의 중복 원본 획득 제거](release-artifacts/v4.5.0/105-validation.json)는
 V2 준비를 단일 hold로 연결하고 기존 현재 원본·binding·최종 seek 검증을 유지했다.
 직접 네 조건의 장면 결과는 같고 Catalog 획득은 요청당420→240회로 줄었으나,
