@@ -1,0 +1,71 @@
+{
+  "reviewer": "/root/independent_memory86",
+  "requested": {
+    "model": "gpt-6-astra",
+    "effort": "high"
+  },
+  "toolAccepted": "existing separate reviewer acceptance record reused; followup settings not exposed",
+  "actualRuntime": null,
+  "independence": "read-only code/evidence; no implementation/test writing/execution/delegation",
+  "codeVerdict": "LIMITED_ADOPTION_NO_NEW_CODE_BLOCKER",
+  "findings": [
+    "current full namespace/raw authenticated before exclusion memo",
+    "SHA256 and length cryptographic binding, not direct byte comparison; full-row cache remains exact bytes",
+    "selected event full Decode/lifecycle/job paths unchanged",
+    "both caches share 16MiB and owner lifetime; Finish blocks late insertion",
+    "stage logs only completed stages; source freeze 8 files equal"
+  ],
+  "producerDecision": "candidate full JSON equal current audit and109; existing producer inventorySha256 only then readback",
+  "httpVerdict": "FAIL_P95",
+  "schema": "media-server.v450.r110.independent-review.v1",
+  "after900Eligible": false,
+  "resultFindings": [
+    "all12 received200; writes6/newgeneration/explicitFinish",
+    "234 complete sequential FD samples; qualificationError p95 is not collector failure",
+    "event segment mean176.787 to18.740ms; visited arrays differ by concurrent cut",
+    "after7 full authenticated walks: memo excluded count equalsvisited; no namespace auth skipped",
+    "requests4/5/6 all364 locks; firstwave1/2 not selected, cannot attribute max peer",
+    "visual6 items exact; structured common IDs exact, new IDs and cut differ",
+    "owner RAM/disk/FD0 afterdestroy and processgroup absent; not no-leak/instantpeak proof"
+  ],
+  "selectedRequests": {
+    "4": {
+      "waitMs": 1382.733836,
+      "unknownWaitMs": 457.806292,
+      "projectionOverlapMs": 35.468
+    },
+    "5": {
+      "waitMs": 1248.309079,
+      "unknownWaitMs": 414.875664,
+      "projectionOverlapMs": 37.414
+    },
+    "6": {
+      "waitMs": 1217.27029,
+      "unknownWaitMs": 368.41466,
+      "projectionOverlapMs": 37.414
+    }
+  },
+  "preservationDecision": "limited improvement plus HTTP failure evidence and authorized general push eligible; producer/readback/byte-preservation/remote/cleanup pending",
+  "producerReadback": {
+    "producer": 0,
+    "readback": 0,
+    "inventoryReadback": 0,
+    "coverage": 0,
+    "scriptInventory": 0,
+    "semanticChangedKeys": [
+      "inventorySha256"
+    ],
+    "initialInventoryBeforeProducerFailPreserved": true
+  },
+  "implementationCommit": "b2e439a1242bf8a09aa82f04b8f1ad8329a98019",
+  "preservationReview": {
+    "reviewer": "/root/independent_memory86",
+    "payloadMembers": 88,
+    "allManifestAndOriginalBytesEqual": true,
+    "archiveBytes": 5432912,
+    "seedAndDeltasConfirmed": true,
+    "noUserSettingsPrivateBackupModelsBinaries": true,
+    "verdict": "limited improvement and HTTP FAIL preservation/general push eligible",
+    "remoteCleanup": "pending"
+  }
+}

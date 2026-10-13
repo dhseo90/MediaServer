@@ -17,6 +17,15 @@
 
 ## v4.5.0 잔여 개발과 릴리즈 순서
 
+[110 실제 HTTP 이벤트 후보 분류 재사용](release-artifacts/v4.5.0/110-validation.json)은
+현재 namespace·원문 전체 인증을 유지하면서 동일 원문의 불필요한 segment 재해석을 기존16MiB 예산 안에서 줄였다.
+동일911파일 seed의 직접 실행에서 이벤트 후보 segment 단계7호출 평균176.787→18.740ms,
+HTTP12응답200·쓰기6건·새 색인·명시 Finish를 확인했으나 p95 2941.03→2409.85ms로 **FAIL**이다.
+동시 cut별 방문 수는 다르며 전체 timeline 평균이나 단회 개선율을 장기 응답 보장으로 쓰지 않는다.
+선택된 요청에 peer 원본/현재성 조회·색인 읽기·retention 점유와 미귀속 대기가 남는다.
+관련 플랫폼·정확성·수명 직접 회귀와 [독립 검토](release-artifacts/v4.5.0/110-independent-review.json)의 한정 채택만 유지한다.
+**900초 진입 부적격·45/120분 미실행·메모리P0·출시 보류**다.
+
 [109 timeline 인증 순회·실제 Catalog holder 보완](release-artifacts/v4.5.0/109-validation.json)은
 구조화 검색의 같은 Catalog mutex 점유를 확인하고, 행별 루트 재탐색을 기존 인증 순차 읽기로 대체했다.
 고정 원본의 직접 timeline 비용과 관련 macOS/비특권 Linux 회귀는 통과했으나,
