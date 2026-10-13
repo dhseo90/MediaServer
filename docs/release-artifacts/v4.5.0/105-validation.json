@@ -648,12 +648,12 @@
     },
     "oldArtifactsDuplicated": false
   },
-  "cleanup": "process/group/ports closed by receipts; owned root pending byte preservation/remote check;105-cleanup.json will record final disposition",
+  "cleanup": "PASS: authenticated remote evidence bytes verified before exact owned root deletion; processes/ports/containers absent; see105-cleanup.json",
   "QwenOllamaCalls": 0,
   "unloadGate": "not-run",
   "releaseProcedures": "not-performed; no120/PR/CI/merge/tag/Release",
   "remaining": [
-    "sustained mixed visual latency: client timeout and successful-array p95 fail",
+    "sustained mixed visual latency: client timeout; partial successful-array p95 exceeds2000ms; final gate not run",
     "request69 index/Visual/retention/untagged contention and489.453ms unattributed wait; failed87/88 peer incomplete",
     "45min and final120 not qualified/run",
     "memory P0 and owner risk/release decisions remain blocked"

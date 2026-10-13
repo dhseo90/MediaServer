@@ -1,0 +1,57 @@
+{
+  "task": "R105 owned cleanup",
+  "checkedAt": "2026-10-13T06:30:09.929820+00:00",
+  "remotePreservation": {
+    "commit": "ee278bc3624dc8fb64f758fdf823ff0d7751b7e9",
+    "checkedAt": "2026-10-13T06:29:27.941617+00:00",
+    "method": "authenticated GitHub Git blob API; decoded bytes compared against committed workspace files",
+    "files": [
+      {
+        "path": "docs/release-artifacts/v4.5.0/105-execution.tar.gz",
+        "gitBlob": "d12e5cf830c8a53cbe40934dd1eedf30a08f6c93",
+        "bytes": 30660072,
+        "sha256": "6b0ed372b70a3a909c7c61e893852f6a70bd96440e1bf3b071220fe8b75ea03f",
+        "authenticatedRemoteReadback": "exact bytes match"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/105-validation.json",
+        "gitBlob": "308b22869d1010059d47c132997905d489184c6c",
+        "bytes": 22035,
+        "sha256": "c876dd3d54248c7368ef8f0933880d41722b1464611e2bda21b6ead762e8428c",
+        "authenticatedRemoteReadback": "exact bytes match"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/105-independent-review.json",
+        "gitBlob": "70d8870ff71971b4f529bb242551e1134c021baa",
+        "bytes": 13672,
+        "sha256": "6f3b1d1dd8b4d44b7a401c5eee1c1ccf2c1bc823e039c571e73ea01c363cbfe1",
+        "authenticatedRemoteReadback": "exact bytes match"
+      }
+    ]
+  },
+  "root": "/private/tmp/media-server-r105-a3cph15y",
+  "rootIdentity": {
+    "dev": 16777232,
+    "ino": 174059766,
+    "uid": 501
+  },
+  "regularFileCount": 2037,
+  "regularLogicalBytes": 266930880,
+  "symlinkCount": 277,
+  "processes": {
+    "2975": "absent",
+    "3019": "absent"
+  },
+  "ports": {
+    "52430": "no listener",
+    "52431": "no listener"
+  },
+  "containers": {
+    "media-server-r105-linux": "absent",
+    "media-server-r105-linux-final": "absent"
+  },
+  "privateUserData": "not accessed, uploaded or deleted; private backup excluded",
+  "modelsSdksImages": "unchanged",
+  "deletion": "complete; exact owned root and matching pointer absent",
+  "completedAt": "2026-10-13T06:30:10.037460+00:00"
+}
