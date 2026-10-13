@@ -13,6 +13,10 @@
 #include "recording/recording_contracts.h"
 #include <limits>
 #include <mutex>
+#include <array>
+#if MEDIA_SERVER_USE_OPENSSL
+#include <openssl/evp.h>
+#endif
 #include "recording/recording_latency_trace.h"
 
 namespace recording {
@@ -58,6 +62,25 @@ class RecordingRetainedRowStore {
         std::shared_ptr<const void> row;
         std::size_t charged=0;
     };
+    struct SegmentClass {
+        SearchModelResidency::Reservation memory;
+        std::array<unsigned char,32> digest{};
+        std::string channel;
+        RecordingRetentionClass retention{RecordingRetentionClass::Unknown};
+        std::size_t raw_bytes=0,charged=0;
+    };
+    std::map<std::string,SegmentClass> segment_classes_;
+    static bool RawDigest(const std::string& raw,std::array<unsigned char,32>* digest) noexcept {
+#if MEDIA_SERVER_USE_OPENSSL
+        unsigned size=0;return EVP_Digest(raw.data(),raw.size(),digest->data(),&size,EVP_sha256(),nullptr)==1&&size==digest->size();
+#else
+        (void)raw;(void)digest;return false;
+#endif
+    }
+    void EvictDecodedOne() {
+        if(!decoded_segments_.empty()){const auto old=decoded_segments_.begin();decoded_bytes_-=old->second.charged;decoded_segments_.erase(old);}
+        else if(!segment_classes_.empty()){const auto old=segment_classes_.begin();decoded_bytes_-=old->second.charged;segment_classes_.erase(old);}
+    }
     mutable std::mutex decoded_mu_;
     std::map<std::string,DecodedSegment> decoded_segments_;
     std::size_t decoded_limit_=0,decoded_bytes_=0;
@@ -78,11 +101,11 @@ public:
         std::lock_guard lock(decoded_mu_);if(!decoded_closed_)decoded_limit_=16*1024*1024;
     }
     void ClearVerifiedSegmentDecodeCache() {
-        std::lock_guard lock(decoded_mu_);decoded_segments_.clear();decoded_bytes_=0;
+        std::lock_guard lock(decoded_mu_);decoded_segments_.clear();segment_classes_.clear();decoded_bytes_=0;
     }
     void CloseVerifiedSegmentDecodeCache() {
         std::lock_guard lock(decoded_mu_);decoded_closed_=true;decoded_limit_=0;
-        decoded_segments_.clear();decoded_bytes_=0;
+        decoded_segments_.clear();segment_classes_.clear();decoded_bytes_=0;
     }
     std::shared_ptr<const void> VerifiedSegmentDecode(const std::string& id,const std::string& raw) {
         std::lock_guard lock(decoded_mu_);const auto it=decoded_segments_.find(id);
@@ -90,9 +113,37 @@ public:
         if(it->second.bytes==raw)return it->second.row;
         decoded_bytes_-=it->second.charged;decoded_segments_.erase(it);return {};
     }
+    // Exclusion-only classification of the same authenticated raw. This cannot
+    // prove membership, absence, current lifecycle or the selected event payload.
+    std::optional<bool> VerifiedSegmentSelection(const std::string& id,const std::string& raw,const std::string& channel) {
+        std::array<unsigned char,32> digest{};if(!RawDigest(raw,&digest))return {};
+        std::lock_guard lock(decoded_mu_);const auto it=segment_classes_.find(id);
+        if(it==segment_classes_.end())return {};
+        if(it->second.raw_bytes!=raw.size()||it->second.digest!=digest){
+            decoded_bytes_-=it->second.charged;segment_classes_.erase(it);return {};
+        }
+        return it->second.channel==channel&&it->second.retention!=RecordingRetentionClass::Continuous;
+    }
+    void RememberVerifiedSegmentClass(const std::string& id,const std::string& raw,const RecordingSegmentV2& segment) {
+        std::array<unsigned char,32> digest{};if(!RawDigest(raw,&digest))return;
+        const auto owner=MemoryOwner();
+        std::lock_guard lock(decoded_mu_);if(decoded_closed_)return;
+        const auto charge=sizeof(SegmentClass)+128+2*(id.size()+1)+segment.channel_id.size()+1;
+        if(charge>decoded_limit_)return;
+        if(const auto prior=segment_classes_.find(id);prior!=segment_classes_.end()){
+            if(prior->second.raw_bytes==raw.size()&&prior->second.digest==digest)return;
+            decoded_bytes_-=prior->second.charged;segment_classes_.erase(prior);
+        }
+        while(decoded_bytes_>decoded_limit_-charge)EvictDecodedOne();
+        if(owner->used()>owner->limit()||charge>owner->limit()-owner->used())return;
+        auto ticket=owner->ReserveOwned(charge);if(!ticket)return;
+        try {segment_classes_.emplace(id,SegmentClass{std::move(*ticket),digest,segment.channel_id,segment.retention_class,raw.size(),charge});decoded_bytes_+=charge;}
+        catch(const std::bad_alloc&) {} // optional scalar memo never replaces strict reading
+    }
     void ForgetVerifiedSegmentDecode(const std::string& id) {
         std::lock_guard lock(decoded_mu_);const auto it=decoded_segments_.find(id);
         if(it!=decoded_segments_.end()){decoded_bytes_-=it->second.charged;decoded_segments_.erase(it);}
+        const auto summary=segment_classes_.find(id);if(summary!=segment_classes_.end()){decoded_bytes_-=summary->second.charged;segment_classes_.erase(summary);}
     }
     void RememberVerifiedSegmentDecode(const std::string& id,std::string raw,
         std::shared_ptr<const void> row,std::size_t row_bytes) {
@@ -110,9 +161,7 @@ public:
         if(const auto old=decoded_segments_.find(id);old!=decoded_segments_.end()){
             decoded_bytes_-=old->second.charged;decoded_segments_.erase(old);
         }
-        while(decoded_bytes_>decoded_limit_-charged&&!decoded_segments_.empty()){
-            const auto old=decoded_segments_.begin();decoded_bytes_-=old->second.charged;decoded_segments_.erase(old);
-        }
+        while(decoded_bytes_>decoded_limit_-charged)EvictDecodedOne();
         // Optional memoization shares the existing owner cap; it may reduce the
         // remaining headroom, but never changes that cap or the cold row oracle.
         const auto used=owner->used();if(used>owner->limit()||extra>owner->limit()-used)return;
@@ -187,6 +236,31 @@ public:
         const bool ok=store_->VisitOwned(kind_,[&](const auto& id,RecordingColdRow& bytes,std::string*){
             const auto row=Decode(id,std::move(bytes));
             if(!visitor(row->first,row->second)){refused=true;return false;}return true;
+        },&error);
+        if(!ok&&!refused)throw RecordingRetainedReadError(error);
+        return ok;
+    }
+    // Actual structured-search event consumer: authenticate every current raw
+    // row and complete namespace coverage, but avoid constructing an excluded
+    // DTO when its fully validated scalar classification can be reused.
+    template<class F> bool ForEachEventCandidate(const std::string& channel,F&& visitor,
+                                                std::uint64_t* visited=nullptr,std::uint64_t* memo_excluded=nullptr)const {
+        static_assert(std::is_same_v<T,RecordingSegmentV2>);
+        if(!store_)return ForEachEntry([&](const auto& id,const auto& value){
+            if(visited)++*visited;
+            return value.channel_id!=channel||value.retention_class==RecordingRetentionClass::Continuous||visitor(id,value);
+        });
+        bool refused=false;std::string error;
+        const auto& decoded=decoded_store_?decoded_store_:store_;
+        const bool ok=store_->VisitOwned(kind_,[&](const auto& id,RecordingColdRow& bytes,std::string*){
+            if(visited)++*visited;
+            if(kind_=="segment-v2"){
+                const auto selection=decoded->VerifiedSegmentSelection(id,bytes.bytes,channel);
+                if(selection&&!*selection){if(memo_excluded)++*memo_excluded;return true;}
+            }
+            const auto row=Decode(id,std::move(bytes));const auto& value=row->second;
+            if(value.channel_id!=channel||value.retention_class==RecordingRetentionClass::Continuous)return true;
+            if(!visitor(row->first,value)){refused=true;return false;}return true;
         },&error);
         if(!ok&&!refused)throw RecordingRetainedReadError(error);
         return ok;
@@ -268,7 +342,10 @@ private:
         const Pair* row=&owner->row;
         auto shared=std::shared_ptr<const Pair>(std::move(owner),row);
         if constexpr(std::is_same_v<T,RecordingSegmentV2>){
-            if(kind_=="segment-v2")decoded->RememberVerifiedSegmentDecode(id,std::move(value.bytes),shared,pair_bytes+shared->second.memory.bytes());
+            if(kind_=="segment-v2"){
+                decoded->RememberVerifiedSegmentClass(id,value.bytes,shared->second);
+                decoded->RememberVerifiedSegmentDecode(id,std::move(value.bytes),shared,pair_bytes+shared->second.memory.bytes());
+            }
         }
         return const_iterator(this,std::move(shared));
     }

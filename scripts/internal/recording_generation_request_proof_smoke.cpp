@@ -255,6 +255,38 @@ void RetentionSharedDecodeCase(){
     try{(void)frozen.find(segment.segment_id);}catch(const RecordingRetainedReadError&){refused=true;}
     Check("R108-P01",refused,"a borrowed parsed row never bypasses private raw integrity");Need(copy->Finish(&error));
 }
+void EventCandidateClassificationCases(){
+    using Rows=RecordingRetainedRows<RecordingSegmentV2,ParseRecordingSegmentV2,SerializeRecordingSegmentV2>;
+    auto store=std::make_shared<RecordingCatalogHistoryRows>();Need(store->Create(&error));store->EnableVerifiedSegmentDecodeCache();
+    Rows rows;rows.Bind(store,"segment-v2");auto segment=CompleteInput().source.segment;
+    rows.Set(segment.segment_id,segment);(void)rows.find(segment.segment_id);
+    auto event=segment;event.segment_id="event-segment";event.retention_class=RecordingRetentionClass::Event;
+    rows.Set(event.segment_id,event);
+    const auto selected=[&](const std::string& channel,std::uint64_t* visited,std::uint64_t* excluded){
+        std::vector<std::string> values;rows.ForEachEventCandidate(channel,[&](const auto& id,const auto& value){values.push_back(id+":"+SerializeRecordingSegmentV2(value));return true;},visited,excluded);return values;
+    };
+    std::uint64_t visited=0,excluded=0;auto values=selected("channel",&visited,&excluded);
+    Check("R110-P02",visited==2&&excluded==1&&values==std::vector<std::string>{event.segment_id+":"+SerializeRecordingSegmentV2(event)},
+          "authenticated full coverage excludes only validated continuous scalar and returns exact event");
+    auto frozen=std::make_shared<RecordingCatalogHistoryRows>();Need(frozen->CloneFrom(*store,&error));Rows prior;prior.Bind(frozen,"segment-v2",store);
+    event.channel_id="changed";Need(store->Put("segment-v2",event.segment_id,SerializeRecordingSegmentV2(event),&error));
+    visited=excluded=0;Check("R110-P02",selected("channel",&visited,&excluded).empty(),"same-length authenticated channel change never reuses stale classification");
+    unsigned old_count=0;prior.ForEachEventCandidate("channel",[&](const auto&,const auto&){++old_count;return true;});
+    Check("R110-P02",old_count==1,"prior immutable cut and live memo keep different raw classifications");
+    event.channel_id="channel";event.retention_class=RecordingRetentionClass::Continuous;rows.Set(event.segment_id,event);
+    visited=excluded=0;Check("R110-P02",selected("channel",&visited,&excluded).empty(),"Set retention transition invalidates scalar memo and preserves event absence");
+    const auto one=store->ProbeDecodedBytes();store->ProbeDecodedLimit(512);
+    visited=excluded=0;Check("R110-P02",selected("channel",&visited,&excluded).empty()&&store->ProbeDecodedBytes()<=512&&one>512,"shared tiny cache eviction and cold miss preserve exact exclusion without lowering input admission");
+    Need(store->Put("segment-v2",event.segment_id,"{}",&error));bool refused=false;
+    try {visited=excluded=0;(void)selected("other",&visited,&excluded);}catch(const RecordingRetainedReadError&){refused=true;}
+    Check("R110-P02",refused,"malformed current raw from another channel is not skipped as irrelevant");
+    Need(store->Finish(&error));Need(frozen->Finish(&error));
+    Check("R110-P02",store->ProbeDecodedBytes()==0,"Finish releases scalar and parsed cache together");
+    auto damaged=std::make_shared<RecordingCatalogHistoryRows>();Need(damaged->Create(&error));damaged->EnableVerifiedSegmentDecodeCache();Rows bad;bad.Bind(damaged,"segment-v2");bad.Set(segment.segment_id,segment);(void)bad.find(segment.segment_id);
+    Need(::ftruncate(damaged->ProbeIndexFd(),0)==0);refused=false;
+    try {bad.ForEachEventCandidate("other",[](const auto&,const auto&){return true;});}catch(const RecordingRetainedReadError&){refused=true;}
+    Check("R110-P02",refused,"current scratch authentication fails before memo exclusion");Need(damaged->Finish(&error));
+}
 void VerifiedDecodeCases(){
     using Rows=RecordingRetainedRows<RecordingSegmentV2,ParseRecordingSegmentV2,SerializeRecordingSegmentV2>;
     auto store=std::make_shared<RecordingCatalogHistoryRows>();Need(store->Create(&error));
@@ -549,7 +581,7 @@ int main(int argc,char** argv){
 #endif
 #if MEDIA_SERVER_USE_OPENSSL && MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND
         ColdReadProgressCases(root/"cold-read-progress");SourceReadCases(root/"source-read");SharedSourceReadCases(root/"shared-source-read");
-        VerifiedDecodeCases();
+        VerifiedDecodeCases();EventCandidateClassificationCases();
         RetentionSharedDecodeCase();
         RetentionPreparedCases(root/"retention-prepared");
         RetentionPathCases(root/"retention-path");

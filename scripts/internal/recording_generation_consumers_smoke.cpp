@@ -12,6 +12,9 @@
 #include <unistd.h>
 namespace recording {
 struct RecordingGenerationConsumersProbe {
+    static bool EventTimeline(RecordingCatalog& c,RecordingTimelineResult* result){
+        RecordingCatalog::JobReadContext context;return c.SnapshotTimelineWithContext({"channel",0,1000,0,20,false},result,&error,&context,true);
+    }
     using JobHandle=std::shared_ptr<const DerivedJobRecordV1>;
     static std::size_t ResidentJobs(const RecordingCatalog& c){return c.derived_jobs_.size();}
     static std::uint64_t ColdJobs(const RecordingCatalog& c){return c.completed_history_?c.completed_history_->Count("derived-job"):0;}
@@ -171,6 +174,14 @@ void RetiredReference(const std::filesystem::path& root,bool sql,bool complete=f
                 row.mapping_id=="map"&&row.utc_start_ns==100000000&&row.utc_end_ns==120000000&&!row.playable;}),
             "deleted timeline preserves historical mapping and unavailable state");
         if(failures)return;
+        RecordingTimelineResult event_only;
+        Check("R110-P03",ConsumerProbe::EventTimeline(c,&event_only)&&
+            event_only.items.size()==static_cast<std::size_t>(std::count_if(timeline.items.begin(),timeline.items.end(),[](const auto& row){return row.kind=="event";}))&&
+            event_only.total==event_only.items.size()&&event_only.unplaced_total==timeline.unplaced_total&&
+            std::none_of(event_only.items.begin(),event_only.items.end(),[](const auto& row){return row.kind=="continuous";})&&
+            std::all_of(event_only.items.begin(),event_only.items.end(),[&](const auto& row){return std::any_of(timeline.items.begin(),timeline.items.end(),[&](const auto& full){
+                return row.item_id==full.item_id&&row.segment_id==full.segment_id&&row.job_state==full.job_state&&row.catalog_state==full.catalog_state&&row.utc_start_ns==full.utc_start_ns&&row.utc_end_ns==full.utc_end_ns&&row.unavailable_reason==full.unavailable_reason;});}),
+            "actual event projection retains deleted job/output identity, state, bounds and reason across live/checkpoint/reopen");
         auto changed=tomb;++changed.deleted_at_ms;
         Check("B11-P01",c.CompleteDeletionV2(tomb,&error)&&!c.CompleteDeletionV2(changed,&error)&&
             !c.FinalizeSegmentV2(tomb.segment,(root/"channel/source.mp4").string(),&error),"cold exact deletion retry accepts only original and refuses ID reuse");

@@ -16,6 +16,21 @@ namespace {
 using Wide=__int128;
 using namespace detail::timeline;
 constexpr std::size_t kKnownRows=4096;
+// Fixed five-stage diagnostic, emitted after the Catalog lock is released.
+// n: stage (101..105 event candidates, 1..5 full timeline), x: visited rows,
+// y: authenticated history node reads. No per-row logs or retained payloads.
+struct TimelineCosts {
+    struct Row {std::uint64_t begin=0,end=0,rows=0,reads=0;};
+    std::array<Row,5> stages{};bool events;std::uint64_t memo_excluded=0;
+    explicit TimelineCosts(bool value):events(value){}
+    void Begin(unsigned i){if(latency::SubcostEnabled()){stages[i].begin=completion::Now();stages[i].reads=latency::history_node_reads;}}
+    void End(unsigned i){if(latency::SubcostEnabled()){stages[i].end=completion::Now();stages[i].reads=latency::history_node_reads-stages[i].reads;}}
+    ~TimelineCosts(){if(latency::SubcostEnabled())for(unsigned i=0;i<stages.size();++i){const auto& r=stages[i];
+        if(r.end)completion::Emit(completion::Event::Timeline,r.begin,r.end,{},{},(events?101:1)+i,r.rows,r.reads);}
+        if(latency::SubcostEnabled()&&events&&stages[0].end)completion::Emit(completion::Event::Timeline,stages[0].end,stages[0].end,{},{},106,memo_excluded,stages[0].rows);
+    }
+};
+
 bool Fit(Wide value,std::int64_t* out){
     if(value<std::numeric_limits<std::int64_t>::min()||value>std::numeric_limits<std::int64_t>::max())return false;
     *out=static_cast<std::int64_t>(value);return true;
@@ -226,6 +241,7 @@ bool RecordingCatalog::SnapshotTimelineV2(const RecordingTimelineQuery& query,Re
 bool RecordingCatalog::SnapshotTimelineWithContext(const RecordingTimelineQuery& query,RecordingTimelineResult* result,std::string* error,JobReadContext* context,bool event_candidates_only) const {
     // This projection owns the Catalog mutex too. Preserve its phase category,
     // while including the actual holder in the bounded contention window.
+    TimelineCosts costs(event_candidates_only);
     recording::latency::Lock lock(mu_,recording::latency::Source::Projection,__LINE__,true,__func__,true);
     if(!result||!opened_||!derived_job_state_authoritative_||(generation_backend_&&!CanReadLocked(error))){if(error)*error="timeline-catalog-unavailable";return false;}
     result->v2_projection=options_.enable_v2_storage;
@@ -250,7 +266,9 @@ bool RecordingCatalog::SnapshotTimelineWithContext(const RecordingTimelineQuery&
         // Querying membership avoids an O(all completed outputs/references) request-local set.
         // Authenticate the namespace once in key order, with bounded row ownership.
         // Cursor++ used to repeat root traversal and metadata/value reads per row.
-        segments_v2_.ForEachEntry([&](const auto& id,const auto& segment){if(segment.channel_id!=query.channel_id)return true;
+        costs.Begin(0);
+        const auto segment_visitor=[&](const auto& id,const auto& segment){
+            if(segment.channel_id!=query.channel_id)return true;
             if(segment.retention_class==RecordingRetentionClass::Continuous){
                 if(!event_candidates_only)collector.Source(segment,EffectiveLifecycleV2Locked(id,true));
                 return true;
@@ -258,10 +276,13 @@ bool RecordingCatalog::SnapshotTimelineWithContext(const RecordingTimelineQuery&
             if(!JobOwnsLocked("job-output",id)){auto row=Base(segment,EffectiveLifecycleV2Locked(id,true));row.item_id="orphan-event:"+Key(id);
                 row.completeness="unknown";row.unavailable_reason="output-binding-unavailable";collector.Add(std::move(row));}
             return true;
-        });
+        };
+        if(event_candidates_only)segments_v2_.ForEachEventCandidate(query.channel_id,segment_visitor,&costs.stages[0].rows,&costs.memo_excluded);
+        else segments_v2_.ForEachEntry([&](const auto& id,const auto& segment){++costs.stages[0].rows;return segment_visitor(id,segment);});
         // 삭제 이력도 기존 공개 timeline 구성원이다. 영수증을 가짜 segment로 투영하지 않고
         // 한 건씩 검증된 원문을 재획득해 기존 mapping/ID/미배치 판정을 그대로 사용한다.
-        if(!VisitRetiredLocked([&](const std::string& id,const RecordingRetiredV2Receipt& receipt,std::string*){if(receipt.channel_id!=query.channel_id)return true;
+        costs.End(0);costs.Begin(1);
+        if(!VisitRetiredLocked([&](const std::string& id,const RecordingRetiredV2Receipt& receipt,std::string*){++costs.stages[1].rows;if(receipt.channel_id!=query.channel_id)return true;
             // 이벤트는 아래의 현재 job/output 경로에서 원본 바인딩까지 strict 검증한다.
             // 검색이 소비하지 않는 continuous 삭제 이력의 재획득/행 생성만 생략한다.
             if(event_candidates_only&&receipt.retention_class==RecordingRetentionClass::Continuous)return true;
@@ -272,7 +293,8 @@ bool RecordingCatalog::SnapshotTimelineWithContext(const RecordingTimelineQuery&
             row.completeness="unknown";row.unavailable_reason="output-binding-unavailable";collector.Add(std::move(row));
             return true;
         },error,event_candidates_only))throw std::runtime_error("timeline-retired-history-unavailable");
-        if(!VisitJobsLocked([&](const auto& job_id,const auto& entry,std::string*){if(!entry)throw std::runtime_error("timeline-job-unavailable");if(entry.channel!=query.channel_id)return true;
+        costs.End(1);costs.Begin(2);
+        if(!VisitJobsLocked([&](const auto& job_id,const auto& entry,std::string*){++costs.stages[2].rows;if(!entry)throw std::runtime_error("timeline-job-unavailable");if(entry.channel!=query.channel_id)return true;
             DerivedJobHandle owned;if(!AcquireJobForReadLocked(job_id,&owned,context,error)||!owned)throw std::runtime_error("timeline-job-unavailable");const auto& job=*owned;
             if(!job.ready||job.ready->outputs.empty()){collector.Reference(job.intent.reference,&job);return true;}
             for(std::size_t i=0;i<job.ready->outputs.size();++i){
@@ -289,11 +311,13 @@ bool RecordingCatalog::SnapshotTimelineWithContext(const RecordingTimelineQuery&
             }
             return true;
         },error))throw std::runtime_error("timeline-job-history-unavailable");
-        for(const auto& id:derived_accepted_references_){const auto ref=consumer_references_.find(id);
+        costs.End(2);costs.Begin(3);
+        for(const auto& id:derived_accepted_references_){++costs.stages[3].rows;const auto ref=consumer_references_.find(id);
             if(ref==consumer_references_.end()||ref->second.channel_id!=query.channel_id)continue;
             if(!JobOwnsLocked("job-reference",id))collector.Reference(ref->second,nullptr);
         }
-        collector.Finish(result);
+        costs.End(3);costs.Begin(4);
+        collector.Finish(result);costs.stages[4].rows=result->items.size()+result->unplaced_items.size();costs.End(4);
         // 후보가 복사·할당되지 않아도 응답은 영향받지 않는다. 각 재사용은 AcquireJobForReadLocked의
         // 현재 원장 envelope/출처/상태 검사에서 다시 입증한다.
         if(context&&context->owner==this&&context->channel_id==query.channel_id&&context->source_revision_valid&&

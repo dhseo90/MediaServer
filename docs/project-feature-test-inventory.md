@@ -5091,3 +5091,11 @@ R97-A02는 미선택 대체 후보의 unlink/authority 하드 오류를 거부�
 - 현재 원본·권한·8namespace 인증·K/F·hold/job/예약·1024 changed-ID 거부/쓰기 진행을 보존한다. 직접 조건과 독립 검토가 통과한 경우에만 기존900초1회;45/120분 제외.
 
 - R109-P01: 실제 Catalog mutex를 사용하는 timeline projection을 holder에 포함하되 기존 Projection phase 의미는 유지한다. 제어된 다른 thread 보유·선택 요청 대기의 겹침을 검사한다. 원본 namespace의 기존 ForEachEntry 순회로 각 행의 인증·canonical/domain·수명과 순서를 유지하며 반복 NextOwned root 탐색을 제거한다. 기존 timeline/generation consumer의 이벤트·삭제·범위·정렬·오류·권한·K/F 회귀와 같은 종료 원본의 before/after 각3회 고정 timeline 비용을 대조한다. 이 비용 검사는 HTTP gate를 대체하지 않는다. 내부 helper `scripts/internal/recording_timeline_stream_cost_smoke.cpp`는 기존 runtime에 링크해 같은 원본의 공개 timeline을 채널별3회 호출하고 유한한 결과 hash·비용만 출력한다.
+
+### R110-H01 — 실제 이벤트 후보 projection과 동일 HTTP 목표
+
+- 구조화 `/ops/api/recordings/search`의 `QuerySearchEventTimeline` → `SnapshotTimelineWithContext(event_candidates_only=true)`를 직접 대상으로 한다. 109 종료 원본 911파일의 동일 hash 복사본, 기존 3묶음·구조화2/장면2·12응답·쓰기6·새 게시·명시 Finish를 사용한다. before 1회 후 최종 after 1회, p95≤2000ms/최대≤5000ms/요청5초·기존 자원/수집 한도를 유지한다. 삭제0은 이 직접 검사의 추가 실패 조건이 아니다.
+- R110-P01: 고정 5단계(segment/retired/job/reference/Collector)의 방문 행·인증 node 읽기·경과를 잠금 밖에서 기존 bounded completion 출력으로 보존한다. 이벤트 후보와 공개 전체 timeline 비용을 분리한다. 현재 인증·coverage·삭제·job 상태·unplaced/total/순서/범위·예산/예외·checkpoint/권한·동시 reader 회귀를 유지한다. 일반 전체 timeline 비용은 HTTP 합격을 대신하지 않는다.
+- 내부 변경의 macOS/비특권 Linux 직접 회귀와 독립 검토 후 동일 HTTP 목표가 충족될 때만 기존900초 진단1회. 45분·120분·UI·공개는 제외한다.
+
+- R110-P02: 현재 authenticated raw의 전체 SHA-256·길이와 기존 full strict/canonical 성공에서 얻은 channel/retention scalar를 결속한다. 기존 full-row exact-byte cache는 유지하고 합산16MiB·640MiB owner·Set/erase/Finish를 공유한다. 선택 event는 기존 전체 Decode, 제외만 memo로 판정한다. 같은 길이 채널 변경·retention 변경·cold miss/512B 시험 cache·malformed 다른 채널·현재 scratch 손상·이전 cut·Finish 반례는 `scripts/internal/recording_generation_request_proof_smoke.cpp`에 둔다. raw hash 동일성을 엄밀한 byte 비교와 동일하다고 주장하지 않는다.

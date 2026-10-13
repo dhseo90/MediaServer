@@ -29,3 +29,18 @@ test('LP22-T03 partial lines and malformed clocks fail closed',()=>{const c=crea
 test('LP26-O13 진행 중 snapshot은 완결된 행만 반환하고 finish는 부분 행을 거부',()=>{const c=createCompletionTraceCollector();const complete=line(row());c.append(complete+complete.slice(0,-1));assert.equal(c.snapshot().length,1);assert.throws(()=>c.finish(),/partial/);});
 test('LP22-T03 delayed emission retains event chronology across four references',()=>{const rows=[];for(const c of ['a','c','d','e'])for(const [i,e] of [1,2,3,4,6,7,8,5].entries())rows.push({...row(e,String(i+10)),reference:c.repeat(64)});rows.reverse();for(const c of ['a','c','d','e']){const s=summarizeCompletion(rows,c.repeat(64));assert.equal(s.status,'terminal-observed');assert.equal(s.terminal[0].atNs,'16');}});
 test('LP22-T04 invalid durable transitions and missing observation remain distinct',()=>{assert.throws(()=>summarizeCompletion([row(8)],ref),/transition/);assert.equal(summarizeCompletion([row()],ref).status,'terminal-not-observed');assert.equal(summarizeCompletion([],ref).status,'observation-missing');});
+
+test('R110-P01 bounded projection stages distinguish full/event and reject unknown stage or payload',()=>{
+ for(const n of [1,2,3,4,5,101,102,103,104,105]){
+  const value={...row(15),request:0,reference:null,job:null,n,x:745,y:5146};
+  const c=createCompletionTraceCollector();c.append(line(value));assert.deepEqual(c.finish(),[value]);
+  assert.throws(()=>validateCompletionRow({...value,n:99}));
+  assert.throws(()=>validateCompletionRow({...value,reference:ref}));
+  assert.throws(()=>validateCompletionRow({...value,thread:0}));
+ }
+});
+
+test('R110-P01 memo counts have zero duration and bounded exclusions',()=>{
+ const value={...row(15),reference:null,job:null,n:106,x:7,y:8};assert.doesNotThrow(()=>validateCompletionRow(value));
+ assert.throws(()=>validateCompletionRow({...value,end:'11'}));assert.throws(()=>validateCompletionRow({...value,x:9}));
+});

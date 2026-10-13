@@ -5,11 +5,13 @@ const hash=x=>x===null||(typeof x==='string'&&/^[a-f0-9]{64}$/.test(x));
 const time=x=>typeof x==='string'&&/^(0|[1-9]\d{0,19})$/.test(x)&&BigInt(x)<=18446744073709551615n;
 const keys=['v','event','begin','end','thread','request','reference','job','n','x','y'];
 export function validateCompletionRow(x){
-  if(!x||Array.isArray(x)||Object.keys(x).length!==keys.length||!keys.every(k=>Object.hasOwn(x,k))||x.v!==1||!integer(x.event)||x.event<1||x.event>14||!time(x.begin)||!time(x.end)||BigInt(x.end)<BigInt(x.begin)||!['thread','request','n','x','y'].every(k=>integer(x[k]))||!hash(x.reference)||!hash(x.job))throw Error('completion-invalid');
+  if(!x||Array.isArray(x)||Object.keys(x).length!==keys.length||!keys.every(k=>Object.hasOwn(x,k))||x.v!==1||!integer(x.event)||x.event<1||x.event>15||!time(x.begin)||!time(x.end)||BigInt(x.end)<BigInt(x.begin)||!['thread','request','n','x','y'].every(k=>integer(x[k]))||!hash(x.reference)||!hash(x.job))throw Error('completion-invalid');
   if(x.event<10&&(!x.reference||(x.event>1&&!x.job)||x.begin!==x.end||x.request!==0))throw Error('completion-identity');
   if(x.event<10&&(!x.thread||x.x||x.y||(x.event===1&&x.job!==null)||(x.event===5?x.n>2:x.n!==0)))throw Error('completion-event');
   if(x.event>=10&&x.event<=13&&(x.reference!==null||x.job!==null||!x.request))throw Error('completion-request');
   if(x.event===14&&(x.reference!==null||x.job!==null||x.begin!=='0'||x.end!=='0'||x.thread||x.request||x.n!==1||x.x||x.y))throw Error('completion-loss-invalid');
+  if(x.event===15&&(x.reference!==null||x.job!==null||!x.thread||![1,2,3,4,5,101,102,103,104,105,106].includes(x.n)))throw Error('completion-timeline-invalid');
+  if(x.event===15&&x.n===106&&(x.begin!==x.end||x.x>x.y))throw Error('completion-timeline-memo-invalid');
   return x;
 }
 export function createCompletionTraceCollector(){

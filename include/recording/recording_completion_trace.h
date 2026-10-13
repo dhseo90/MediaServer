@@ -8,7 +8,7 @@
 
 namespace recording::completion {
 enum class Event : unsigned { Submitted=1, Queued=2, Started=3, Admitted=4, Ended=5,
-    Ready=6, Committed=7, Complete=8, Failed=9, Media=10, Overlap=11, Sort=12, Page=13, Loss=14 };
+    Ready=6, Committed=7, Complete=8, Failed=9, Media=10, Overlap=11, Sort=12, Page=13, Loss=14, Timeline=15 };
 inline std::mutex output_mu;
 inline std::size_t rows=0,bytes=0;
 inline std::atomic<bool> lost{false};
