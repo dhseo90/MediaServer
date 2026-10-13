@@ -1,0 +1,289 @@
+{
+  "task": "R107",
+  "reviewer": "independent_memory86",
+  "reviewedAt": "2026-10-13T11:03:16.606+00:00",
+  "independence": {
+    "implementationParticipation": false,
+    "testAuthoring": false,
+    "productOrTestExecution": false,
+    "subdelegation": false,
+    "actions": "기존 소스·원문 읽기, 선택 holder 겹침 독립 재계산, hash 대조 및 본 보고서만 작성"
+  },
+  "modelProvenance": {
+    "requestedModel": "gpt-6-astra",
+    "requestedEffort": "high",
+    "acceptedSetting": "기존 별도 검토자 생성 수락 기록 재사용; follow-up 자체는 재적용 증명이 아님",
+    "actualRuntimeModel": null,
+    "actualRuntimeEffort": null,
+    "status": "미노출·미확인"
+  },
+  "verdict": {
+    "limitedImplementation": "ACCEPTABLE_WITHIN_REVIEWED_SAFETY_SCOPE",
+    "actualDirectHttpGoal": "FAIL",
+    "dominantResponseCostResolved": false,
+    "after900Eligible": false,
+    "after900Runs": 0,
+    "cause900Runs": 0,
+    "state45Runs": 0,
+    "long120Runs": 0,
+    "wholeTaskComplete": false,
+    "memoryP0": "BLOCKED",
+    "release": "HOLD",
+    "newExecutionAuthorized": false
+  },
+  "implementationJudgment": {
+    "previousReview": "independent-direct-final.json",
+    "sha256": "309a02048235eacb661a2ca08234a50ffd5bbedf603c198a40ea8e9fed01da04",
+    "unchanged": "최종 archive 결속과 root 소유 보완, mac/Linux 경합·현재성·cache/source 회귀에 근거한 한정 수용 유지. 이 결과는 최적화가 HTTP 목표를 해결했다는 승인이 아님.",
+    "confirmedCodeBlockers": []
+  },
+  "inputAndExecutionScope": {
+    "baseHead": "35574ed2737498f5973ecf1b02dc4e86b7c7a034",
+    "sourceMode": "HEAD + 고정 검토 diff, commit-only 실행 아님",
+    "fixtureSha256": "b695bfaf63f8bbfda5ff7fcbb01970451e3817c9b293bc13e766a0a8957f642b",
+    "afterRuntimeSha256": "c77e0ab839c0c799e67f664f15e2c8a5cc24314eba8b4db7190122e39e48fb95",
+    "afterBinarySha256": "619498e0a2a1fd4918e85bbca7ae52a989e1316f00d49b7b64192ab527dc60b5",
+    "inputFileCount": 911,
+    "beforeAfterExactFileHashMapEqual": true,
+    "closedSeed": "원본106의 동일911파일 복사·재Open·새 색인 구축. live106 cache/reader 상태 복원 아님.",
+    "load": "실제 HTTP structured2+visual2, writer 및 87MiB/64MiB retention 연결. evidence/A 없음. 첫 wave 실패로 계획된3waves/12응답 미완료."
+  },
+  "afterResult": {
+    "exit": 1,
+    "wrapperElapsedSeconds": 237.9719036249444,
+    "firstNativeFailure": "client receive failed",
+    "receivedBytes": 737070,
+    "savedBytes": 737070,
+    "overflow": false,
+    "wholeWrapperTimeout": false,
+    "qualificationError": "AssertionError:",
+    "collectionErrorField": "result qualification failed",
+    "interpretation": "result qualification failed는 HTTP 직접 결과 미충족이며 원본 process/FD collector 실패가 아님.",
+    "serverRequests": [
+      {
+        "id": 2,
+        "status": 200,
+        "code": "ok",
+        "elapsedMs": 5403.503209,
+        "catalogWaitMs": 4625.026868,
+        "catalogHeldMs": 493.03601,
+        "journalCostNs": [
+          4523946,
+          60064086,
+          3585541,
+          132229582
+        ]
+      },
+      {
+        "id": 1,
+        "status": 503,
+        "code": "visual-source-changed",
+        "elapsedMs": 5424.718583,
+        "catalogWaitMs": 4586.454254,
+        "catalogHeldMs": 507.150328,
+        "journalCostNs": [
+          5542794,
+          60508463,
+          3534956,
+          138427327
+        ]
+      }
+    ],
+    "clientVsServer": "request2의 늦은 server200은 client5초 내 성공 응답이 아님. request1 늦은503 visual-source-changed는 별도 서버 결과. raw client 기록은 receive failed이며 정확한 client timeout ms를 추정하지 않음.",
+    "p95": "계획된12개 성공 응답 모집단 없음. p95 PASS나 partial 성공 배열 수치를 만들어내지 않음."
+  },
+  "selectedHolderReadback": {
+    "selectedRequest": 2,
+    "rows": 1279,
+    "sameMutex": true,
+    "footerLoss": false,
+    "footerInflight": 0,
+    "overwriteBeforeSelection": true,
+    "waitNs": 4625026868,
+    "independentlyRecomputedCoveredUnionNs": 3730382033,
+    "independentlyRecomputedUnclassifiedNs": 894644835,
+    "retentionCalls": 18,
+    "retentionHeldSumNs": 3236434584,
+    "retentionMaxHoldNs": 190153250,
+    "retentionWaitOverlapNs": 3228318292,
+    "beforeSelectedRequest": 1,
+    "beforeRetentionOverlapNs": 3257078502,
+    "interpretation": "전후 서로 다른 선택 요청이며 정확한 paired latency 개선율로 쓰지 않음. retention은 양쪽 실제 선택 Catalog wait의 가장 큰 관측 holder로 남음. 106 전체 실패 또는 선택 밖 상대 holder 원인을 소급 확정하지 않음.",
+    "measurementLimits": [
+      "elapsed wait/hold와 CPU는 다름. CPU·스케줄러 원인 미관측.",
+      "cold-inclusive와 managed-authority 중첩 합산 금지.",
+      "Journal wait는 계측한 Acquire 경계만이며 모든 Journal 대기 총합 아님.",
+      "request2 완전성은 request1 전체 구간 완전성을 자동 증명하지 않음."
+    ]
+  },
+  "sourceCollectComparison": {
+    "values": {
+      "before": {
+        "collectMs": [
+          5831.4375,
+          5517.643417,
+          5507.198208
+        ],
+        "resolve20Ms": [
+          1524.96425,
+          149.481083,
+          145.767
+        ],
+        "collectColdInclusiveMs": [
+          1644.175749,
+          1641.889675,
+          1640.906881
+        ]
+      },
+      "after": {
+        "collectMs": [
+          5837.656584,
+          5507.865875,
+          5501.761083
+        ],
+        "resolve20Ms": [
+          1703.936083,
+          147.628417,
+          150.415209
+        ],
+        "collectColdInclusiveMs": [
+          1677.167361,
+          1673.879024,
+          1675.422527
+        ]
+      }
+    },
+    "conclusion": "Collect 전체 약5.5~5.8초로 전후 대체로 동일. 장기 상주 최적화나 전체 원문 비용 제거로 주장하지 않음.",
+    "limits": "같은 닫힌 복사본에서3회 순차 단독 실행. 최초 Resolve의 초기 준비 비용과 후속 warmed 비용을 모두 유지. 원래 연속 혼합 상태·HTTP·추론 동시 부하·CPU 비교 아님."
+  },
+  "collectionAndLifetime": {
+    "completeFdSamples": 236,
+    "allObservedFdSamplesValidComplete": true,
+    "monitorExit": 0,
+    "groupAbsent": true,
+    "finalOwner": {
+      "pid": 21363,
+      "seq": 2,
+      "phase": "after-storage-destruction",
+      "elapsedMs": 235309,
+      "ram": 0,
+      "ramPeak": 336189786,
+      "ramLimit": 671088640,
+      "ramRejected": 0,
+      "scratchDisk": 0,
+      "scratchDiskPeak": 41693184,
+      "scratchDiskLimit": 154408460288,
+      "scratchFd": 0,
+      "scratchFdPeak": 6,
+      "scratchFdLimit": 1048572,
+      "scratchRam": 0,
+      "preservedDisk": 0,
+      "preservedFd": 0,
+      "readerCleanupHealthy": true
+    },
+    "limits": [
+      "표본은 비원자 순차 관측이며 순간 peak나 무누수 증명 아님.",
+      "exception 후 RAII/destructor 정리·owner0 확인을 정상 명시Finish/newpublication/전체 부하 완료로 바꾸지 않음.",
+      "기존 workspace448MiB·owner640MiB 등의 한도는 변경하지 않음."
+    ]
+  },
+  "legacyProducerDecision": {
+    "status": "CONDITIONAL_EXISTING_TOOL_APPLICATION_ALLOWED_FOR_BINDING_ONLY",
+    "storedAuditItems": 986,
+    "storedCandidateDigest": "8977e9b6ac618c7e0233823f6acb6ab1fcf7461206ee5d8b2a4149a643519e3a",
+    "freshCandidateEqualityReviewed": false,
+    "reason": "현재 검토 입력에 R107 fresh candidate가 없어 동일성을 독립 확인한 것으로 기록하지 않음. 기존 audit 및 apply 함수는 읽음.",
+    "conditions": [
+      "최종 입력으로 생성한 candidate 전체 items/trustBindings/ID순서와 승인 envelope가 기존 값과 일치해야 함. count/digest 단독으로 승인 대체 금지.",
+      "기존 verify_v390_review4_feature_semantic_source_audit --apply-approved-manifest의 정상 checks/authority validation 통과 후에만 적용. 실제 변경은 inventorySha256 기계 결속으로 제한하고 의미 diff 재조회.",
+      "source/semantic/trust drift가 나오면 임의 hash/승인 재발급이나 검사 생략 없이 해당 범위 별도 검토.",
+      "실제 적용 종료 뒤 readback/coverage를 실행하여 stale 병행 입력 오류를 피하고 최초 실패 보존."
+    ],
+    "notAuthorizedByThis": "새 R107 동작 자동 승인, HTTP FAIL 취소,900/45/120/UI/릴리즈 승인 아님. 검토자는 producer 실행하지 않음."
+  },
+  "remaining": [
+    "HTTP 직접 목표FAIL로900 진입 불가. 추가 실행·제품 수정 없이 실패와 한정 개선을 보존하는 현재 마감 범위 유지.",
+    "최종 문서/선정 원자료·정제·Git/remote 보존 및 ownedroot cleanup은 후속 미완료.",
+    "기존 proof/source/cache 직접 근거는 해당 범위에서 유지; 전체 요청 완료나 P0/출시 준비로 확대하지 않음."
+  ],
+  "evidenceSha256": {
+    "independent-direct-final.json": "309a02048235eacb661a2ca08234a50ffd5bbedf603c198a40ea8e9fed01da04",
+    "after-final-source-freeze.json": "7f09a237a4c4c7ee358726df8a1cea7f9966a055990ad2e4b54ff25d83879b37",
+    "after-http-connected/execution.json": "108d169acf208f26d2e2ff9079077c47b5a0168ad62a79abb1c26d24cb77bc89",
+    "after-http-connected/output.log": "93f8c3425ca00f05f796784692a3c5dc8a8b2d25fb4163034c737e645ec93234",
+    "after-http-connected/holders.json": "7c88a9a954e5f44ab6f9fd31975f6cf626d5724a47f35d0e3b26a57bd891e232",
+    "before-http-connected/execution.json": "af7d58d80173a46e6fc127141b2d750a3749b75545774eea9e3293ae1ab77b8b",
+    "before-http-connected/output.log": "34b2780a700199e61badec21cb9cf6318dd215611c821344c215864166b75b61",
+    "before-http-connected/holders.json": "e895355c9dbf2fc2b122b9c989ccccc2533f8fa039f01075f21c482e2af3dca4",
+    "before-http-connected/input-binding.json": "98c4752e4ad9e94494b38360ace5cf5df6f57c5ba5754021e9dbdccb71b6044b",
+    "after-http-connected/input-binding.json": "98c4752e4ad9e94494b38360ace5cf5df6f57c5ba5754021e9dbdccb71b6044b",
+    "http-holder-comparison.json": "fc5fce2d2ca42e96442908d495480dfb6fce2d9942c4861c5ea6bf21ab861b97",
+    "analyze-holders107.py": "c5e3dd71458506aa490a2c2c8effcf71325f166b0709e1b291d4a701d0bf4046",
+    "source-before.json": "256eeb6cf8f873b0d1093b1c885a4e092c9ab7ac40cded8b6e96aaca6bd4e8af",
+    "source-before.log": "19c4444aa1cf7e71e2949622f73e73c3cae2d17cd9f1dbde84a35e5fe097accd",
+    "source-after.json": "de14ede1242391daa34ad881a6e881eddb434645f64c4a9cc2e5edf063696e0c",
+    "source-after.log": "f1600e3e0d240477b6d33e66c54c1b2751032114ee35e3a6bd8660c68e2e43fa"
+  },
+  "subsequentBindingReadback": {
+    "reviewedAt": "2026-10-13T11:04:10.393+00:00",
+    "freshCandidateProvidedAfterInitialReport": true,
+    "allTopLevelFieldsAndItemsEqualStoredAudit": true,
+    "trustBindingsIncludedInExactComparison": true,
+    "items": 986,
+    "candidateDigest": "8977e9b6ac618c7e0233823f6acb6ab1fcf7461206ee5d8b2a4149a643519e3a",
+    "candidateSha256": "13402b9705f3b160348f6facdd5bf496d4a6fe761c9653db6f9fd7754b2a14f4",
+    "storedAuditSha256": "7ec77940e2c7f590483acfa17ebcc5d667bba9e9b102d06952a92f9d2ac4ddf3",
+    "decision": "기존 도구의 정상 apply/readback을 inventory 결속에 한정해 진행 가능. 실제 apply/readback 완료는 아직 본 리뷰에서 확인하지 않음. 신규 행동/HTTP PASS 승인으로 대체하지 않음.",
+    "macSourceFinal": "최신 mac-source-final.log에서 source checks83 PASS 확인",
+    "macSourceLogSha256": "81e007f4bf2792a8ee899bc3a4834254ef802db7c9e3df389e9e6370cfe7919f",
+    "phaseSampleMaximaIndependentlyRead": {
+      "before-http-connected": {
+        "initial": {
+          "samples": 11,
+          "rssBytes": 43073536,
+          "footprintBytes": 20939400,
+          "anonymousFileBytes": 28105216,
+          "anonymousAllocatedBytes": 29331456
+        },
+        "model": {
+          "samples": 4,
+          "rssBytes": 544325632,
+          "footprintBytes": 505136256,
+          "anonymousFileBytes": 1153641532,
+          "anonymousAllocatedBytes": 1168351232
+        },
+        "live": {
+          "samples": 212,
+          "rssBytes": 3219685376,
+          "footprintBytes": 3170061576,
+          "anonymousFileBytes": 24337920,
+          "anonymousAllocatedBytes": 25403392
+        }
+      },
+      "after-http-connected": {
+        "initial": {
+          "samples": 11,
+          "rssBytes": 47120384,
+          "footprintBytes": 24969864,
+          "anonymousFileBytes": 30035456,
+          "anonymousAllocatedBytes": 31395840
+        },
+        "model": {
+          "samples": 4,
+          "rssBytes": 509116416,
+          "footprintBytes": 469861480,
+          "anonymousFileBytes": 1072864768,
+          "anonymousAllocatedBytes": 1076076544
+        },
+        "live": {
+          "samples": 221,
+          "rssBytes": 3151577088,
+          "footprintBytes": 3169619208,
+          "anonymousFileBytes": 24337920,
+          "anonymousAllocatedBytes": 25403392
+        }
+      }
+    },
+    "phaseLimitMeaning": "model 준비는 기존8GiB 계약, live는448MiB. 서로 다른 시각의 maxima를 더하거나 순간 peak로 취급하지 않음."
+  }
+}

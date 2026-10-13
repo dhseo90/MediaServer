@@ -1,0 +1,446 @@
+{
+  "schema": "media-server.v450.r107.validation.v1",
+  "status": "LIMITED_JOURNAL_PROGRESS_PASS_ACTUAL_HTTP_FAIL_900_INELIGIBLE",
+  "scope": "Journal historical strict read unlock의 한정 안전성·진행 개선. 실제 지배 응답 비용 해소·요청 목표 미충족. 메모리 P0·출시 HOLD.",
+  "model": {
+    "mainRequested": "gpt-6-astra/high",
+    "mainToolAccepted": "not-exposed",
+    "mainActualRuntime": "unconfirmed",
+    "independentRequested": "gpt-6-astra/high",
+    "independentToolAccepted": "기존 별도 reviewer 생성 수락 기록 재사용; 새 followup의 runtime 확인 아님",
+    "independentActualRuntime": "unconfirmed"
+  },
+  "source": {
+    "baseline": "35574ed2737498f5973ecf1b02dc4e86b7c7a034",
+    "implementationCommit": "9e5bb7766869a5b0a16efaae0deb1e46bb0959a8",
+    "executionMode": "baseline HEAD + frozen owned diff; not commit-only build",
+    "freezeMember": "after-final-source-freeze.json",
+    "freezeSha256": "7f09a237a4c4c7ee358726df8a1cea7f9966a055990ad2e4b54ff25d83879b37",
+    "runtimeSha256": "c77e0ab839c0c799e67f664f15e2c8a5cc24314eba8b4db7190122e39e48fb95",
+    "serverSha256": "d947f7a7c0540847ed3fce3cdb14a2a58bfc8788ac3eca9d2da44442bb6fd12d",
+    "afterRuntimeAndProductSourcesUnchanged": true,
+    "postFreezeInventoryChange": "P03의 기존 after-I/O/reopen 반례 설명 명시; 제품/fixture 바이트 불변",
+    "beforeSourceLimit": "초기 source-before untracked probe의 당시 전체 source hash는 미보존. runtime/binary/diff hash와 원출력 유지; 현재 probe에는 이후 선택적 encode 분기가 추가됨. 완전한 동일 source 재구성으로 주장하지 않음.",
+    "implementationTree": "4d3dc8e0da5f3cbfa26d6130f77cd27e0e84717c"
+  },
+  "reused106": {
+    "implementation": "5ecbad0086a9bdc7ed20b854a280fcf995c3f5de",
+    "preservationCommit": "c1e6611bf0778ac58470acab7f56fe20a5ae6114",
+    "archivePath": "docs/release-artifacts/v4.5.0/106-execution.tar.gz.part001..003",
+    "concatenatedSha256": "19d22896e34a8d3074644b1e0a69467cb490f759ac98effb1c35fcfe85da8d5d",
+    "directLimitedPassPreserved": true,
+    "mixedFailPreserved": true,
+    "newAnalyses": [
+      "prior106-timeline.json",
+      "request74-callsite-analysis.json"
+    ],
+    "failed99_100": "서버 약5125/5129ms; Catalog wait2728/2807ms 외 text inference wait1617.606/1573.743ms. peer holder 미관측, CPU 원인 미확정. 요청74 holder로 소급 확정하지 않음."
+  },
+  "causalChange": {
+    "target": "historical archive 전체 인증 I/O 중 Journal mutex 보유",
+    "implementation": "accepted/manifest/root/row_limit/attachment를 예약 소유하고 strict full-file hash 읽기를 Journal 잠금 밖에서 수행. 재잠금 후 현재 epoch/authority/first identity/ordinal/좌표 및 무조건 initial-final archive stat 결속 확인 후 기존 canonical 파싱. proof hit/active와 공개 의미 불변.",
+    "admission": "2*physicalRow+128KiB overflow 검사 후 기존640MiB owner 예약; 전체 파일 RAM/cache 없음. 기존4MiB/8192 holder 한도 유지.",
+    "red": "proof-before-corrected.log: latch 중 durable writer 진행 FAIL(exit2). 준비 include/명령 오류를 RED로 바꾸지 않음.",
+    "after": "append/checkpoint 진행·동일 원문, finish/tamper/after-I/O tamper/reopen 미게시. latch 안전 해제/join.",
+    "dominantHttpCostResolved": false,
+    "remainingBoundary": "RetentionSnapshotLocked의 인증 namespace segment/lifecycle/path 순회·join이 전체 Catalog 잠금 안에서 반복됨. 본 수정은 이 상위 점유를 제거하지 않음."
+  },
+  "fixedComparisons": {
+    "input": "106 종료 원본911files/50664710bytes 동일 SHA 복사, 재Open/new index. 실패 순간livecache/readers 복원 아님.",
+    "planMembers": [
+      "product-plan.json",
+      "http-comparison-plan.json",
+      "http-connection-failure.json"
+    ],
+    "sourceThreeRounds": {
+      "values": {
+        "before": {
+          "collectMs": [
+            5831.4375,
+            5517.643417,
+            5507.198208
+          ],
+          "resolve20Ms": [
+            1524.96425,
+            149.481083,
+            145.767
+          ],
+          "collectColdInclusiveMs": [
+            1644.175749,
+            1641.889675,
+            1640.906881
+          ]
+        },
+        "after": {
+          "collectMs": [
+            5837.656584,
+            5507.865875,
+            5501.761083
+          ],
+          "resolve20Ms": [
+            1703.936083,
+            147.628417,
+            150.415209
+          ],
+          "collectColdInclusiveMs": [
+            1677.167361,
+            1673.879024,
+            1675.422527
+          ]
+        }
+      },
+      "conclusion": "Collect 전체 약5.5~5.8초로 전후 대체로 동일. 장기 상주 최적화나 전체 원문 비용 제거로 주장하지 않음.",
+      "limits": "같은 닫힌 복사본에서3회 순차 단독 실행. 최초 Resolve의 초기 준비 비용과 후속 warmed 비용을 모두 유지. 원래 연속 혼합 상태·HTTP·추론 동시 부하·CPU 비교 아님."
+    },
+    "http": {
+      "before-http-connected": {
+        "execution": {
+          "command": [
+            "/private/tmp/media-server-r107-jxax10j7/http-before",
+            "/private/tmp/media-server-r107-jxax10j7/before-http-connected",
+            "/Users/dhseo/Workspace/mediaServer/models/v430-siglip2"
+          ],
+          "cwd": "/private/tmp/media-server-r107-jxax10j7/before-http-connected",
+          "uid": 501,
+          "head": "35574ed2737498f5973ecf1b02dc4e86b7c7a034",
+          "fixtureSha256": "b695bfaf63f8bbfda5ff7fcbb01970451e3817c9b293bc13e766a0a8957f642b",
+          "archiveSha256": "1417ce6f89c2730624a84b2093fddad469eca319d6420409221cce89cebb797f",
+          "mode": "parallel",
+          "scale": "cycle",
+          "isolation": "native helper + preinitialization binary guard",
+          "receivedBytes": 667725,
+          "savedBytes": 667725,
+          "timeout": false,
+          "overflow": false,
+          "limitBytes": 4194304,
+          "deadlineSeconds": 630,
+          "binarySha256": "f7e73f4b410b7e236aa8e11195b9a105a95ccbba45007664fd09c35b86dd2388",
+          "collectionError": "result qualification failed",
+          "signal": null,
+          "monitorExit": 0,
+          "observerReady": true,
+          "groupAbsent": true,
+          "pid": 19926,
+          "exit": 1,
+          "qualificationError": "AssertionError:",
+          "elapsedSeconds": 228.8656220000703
+        },
+        "serverRequests": [
+          {
+            "id": 1,
+            "status": 503,
+            "code": "visual-search-unavailable",
+            "elapsedMs": 5423.998125,
+            "catalogCount": 170,
+            "catalogWaitMs": 5041.060251,
+            "catalogHeldMs": 224.645125,
+            "journalCostNs": [
+              3589,
+              26615921,
+              1606082,
+              50172040
+            ]
+          },
+          {
+            "id": 2,
+            "status": 503,
+            "code": "visual-search-unavailable",
+            "elapsedMs": 5431.288625,
+            "catalogCount": 180,
+            "catalogWaitMs": 4968.624872,
+            "catalogHeldMs": 244.080541,
+            "journalCostNs": [
+              4456,
+              27777497,
+              1775378,
+              54298043
+            ]
+          }
+        ],
+        "selectedRequest": 1,
+        "selectedWaitMs": 5041.060251,
+        "retentionOverlapMs": 3257.078502,
+        "retentionHolds": 18,
+        "unclassifiedWaitMs": 905.575245,
+        "phaseSamplePeaks": {
+          "initial": {
+            "rssBytes": 43073536,
+            "footprintBytes": 20939400,
+            "fdCount": 13,
+            "anonymousFileBytes": 28105216,
+            "anonymousAllocatedBytes": 29331456
+          },
+          "live": {
+            "rssBytes": 3219685376,
+            "footprintBytes": 3170061576,
+            "fdCount": 106,
+            "anonymousFileBytes": 24337920,
+            "anonymousAllocatedBytes": 25403392
+          },
+          "model": {
+            "rssBytes": 544325632,
+            "footprintBytes": 505136256,
+            "fdCount": 12,
+            "anonymousFileBytes": 1153641532,
+            "anonymousAllocatedBytes": 1168351232
+          }
+        },
+        "liveWorkspaceSampleMax": 93748362,
+        "samples": 227,
+        "ownerLast": {
+          "pid": 19926,
+          "seq": 2,
+          "phase": "after-storage-destruction",
+          "elapsedMs": 226068,
+          "ram": 0,
+          "ramPeak": 336582988,
+          "ramLimit": 671088640,
+          "ramRejected": 0,
+          "scratchDisk": 0,
+          "scratchDiskPeak": 41693184,
+          "scratchDiskLimit": 154536562688,
+          "scratchFd": 0,
+          "scratchFdPeak": 6,
+          "scratchFdLimit": 1048572,
+          "scratchRam": 0,
+          "preservedDisk": 0,
+          "preservedFd": 0,
+          "readerCleanupHealthy": true
+        },
+        "all12Results": false,
+        "explicitFinishAndPublicationGate": "not-run after first-wave failure"
+      },
+      "after-http-connected": {
+        "execution": {
+          "command": [
+            "/private/tmp/media-server-r107-jxax10j7/http-after",
+            "/private/tmp/media-server-r107-jxax10j7/after-http-connected",
+            "/Users/dhseo/Workspace/mediaServer/models/v430-siglip2"
+          ],
+          "cwd": "/private/tmp/media-server-r107-jxax10j7/after-http-connected",
+          "uid": 501,
+          "head": "35574ed2737498f5973ecf1b02dc4e86b7c7a034",
+          "fixtureSha256": "b695bfaf63f8bbfda5ff7fcbb01970451e3817c9b293bc13e766a0a8957f642b",
+          "archiveSha256": "c77e0ab839c0c799e67f664f15e2c8a5cc24314eba8b4db7190122e39e48fb95",
+          "mode": "parallel",
+          "scale": "cycle",
+          "isolation": "native helper + preinitialization binary guard",
+          "receivedBytes": 737070,
+          "savedBytes": 737070,
+          "timeout": false,
+          "overflow": false,
+          "limitBytes": 4194304,
+          "deadlineSeconds": 630,
+          "binarySha256": "619498e0a2a1fd4918e85bbca7ae52a989e1316f00d49b7b64192ab527dc60b5",
+          "collectionError": "result qualification failed",
+          "signal": null,
+          "monitorExit": 0,
+          "observerReady": true,
+          "groupAbsent": true,
+          "pid": 21363,
+          "exit": 1,
+          "qualificationError": "AssertionError:",
+          "elapsedSeconds": 237.9719036249444
+        },
+        "serverRequests": [
+          {
+            "id": 2,
+            "status": 200,
+            "code": "ok",
+            "elapsedMs": 5403.503209,
+            "catalogCount": 364,
+            "catalogWaitMs": 4625.026868,
+            "catalogHeldMs": 493.03601,
+            "journalCostNs": [
+              4523946,
+              60064086,
+              3585541,
+              132229582
+            ]
+          },
+          {
+            "id": 1,
+            "status": 503,
+            "code": "visual-source-changed",
+            "elapsedMs": 5424.718583,
+            "catalogCount": 364,
+            "catalogWaitMs": 4586.454254,
+            "catalogHeldMs": 507.150328,
+            "journalCostNs": [
+              5542794,
+              60508463,
+              3534956,
+              138427327
+            ]
+          }
+        ],
+        "selectedRequest": 2,
+        "selectedWaitMs": 4625.026868,
+        "retentionOverlapMs": 3228.318292,
+        "retentionHolds": 18,
+        "unclassifiedWaitMs": 894.644835,
+        "phaseSamplePeaks": {
+          "initial": {
+            "rssBytes": 47120384,
+            "footprintBytes": 24969864,
+            "fdCount": 13,
+            "anonymousFileBytes": 30035456,
+            "anonymousAllocatedBytes": 31395840
+          },
+          "live": {
+            "rssBytes": 3151577088,
+            "footprintBytes": 3169619208,
+            "fdCount": 143,
+            "anonymousFileBytes": 24337920,
+            "anonymousAllocatedBytes": 25403392
+          },
+          "model": {
+            "rssBytes": 509116416,
+            "footprintBytes": 469861480,
+            "fdCount": 12,
+            "anonymousFileBytes": 1072864768,
+            "anonymousAllocatedBytes": 1076076544
+          }
+        },
+        "liveWorkspaceSampleMax": 93777458,
+        "samples": 236,
+        "ownerLast": {
+          "pid": 21363,
+          "seq": 2,
+          "phase": "after-storage-destruction",
+          "elapsedMs": 235309,
+          "ram": 0,
+          "ramPeak": 336189786,
+          "ramLimit": 671088640,
+          "ramRejected": 0,
+          "scratchDisk": 0,
+          "scratchDiskPeak": 41693184,
+          "scratchDiskLimit": 154408460288,
+          "scratchFd": 0,
+          "scratchFdPeak": 6,
+          "scratchFdLimit": 1048572,
+          "scratchRam": 0,
+          "preservedDisk": 0,
+          "preservedFd": 0,
+          "readerCleanupHealthy": true
+        },
+        "all12Results": false,
+        "explicitFinishAndPublicationGate": "not-run after first-wave failure"
+      }
+    },
+    "directLoad": "structured2+visual2 실제 HTTP, real writer/retention/index. evidence/A 미포함; 첫wave 실패로3waves/12응답/6완료·새게시·명시Finish 최종assertion 미완료.",
+    "clientFailure": "두 최종비교 모두 client receive failed; 늦은 server200/503을 client성공으로 표시하지 않음. p95 모집단 미완성.",
+    "scopeCorrections": "최초 http-comparison-plan과 http_qualification.py의 no-retention 문구는 초기 fixture 설명. http-connection-failure.json 이후 최종 두 실행에는 실제 retention 연결. SO_RCVTIMEO는 Drain 전체 deadline 잔여로 갱신, connect/send의 별도 강제 종료까지 검증한 것은 아님.",
+    "partialEvidence": "after owner0·readerCleanupHealthy·groupAbsent와 완전236 FD 표본은 실패 정리 근거이며 정상 전체 수행/P0 무누수 증명 아님."
+  },
+  "diagnostics": {
+    "basis": "opt-in4개 elapsed ns: Journal acquire wait / managed authority inclusive / identity lookup / cold read+parse inclusive",
+    "notMeasured": [
+      "CPU/scheduler 분해",
+      "모든 하위mutex",
+      "순간peak/live heap",
+      "10699/100 상대holder",
+      "선택되지 않은 요청의 완전한 holder"
+    ],
+    "nestedCostsNotAdded": true,
+    "holderCoverage": "before request1 992rows; after request2 1279rows, lossfalse/inflight0/시작전overwrite. 서로 다른 선택 요청 비교, paired 개선율 아님.",
+    "collectorVsResult": "execution.collectionError=result qualification failed는 HTTP gate실패. process metrics는 monitor0, log bytes 전량 보존, FD complete."
+  },
+  "regressions": {
+    "macOS": [
+      "제품 build exit0",
+      "generation proof274 PASS lines/4configs; 새 historical 반례는 supported2에서 실행, unsupported2는 V1호환",
+      "generation consumers444 PASS lines/4configs",
+      "RequestMedia448",
+      "source83",
+      "trace tests49"
+    ],
+    "linux": [
+      "uid10001, readonly source, no network, 기존 image/SDK",
+      "제품 build·proof/consumer4configs·source83·cache448 exit0"
+    ],
+    "firstFailures": [
+      "initial proof include경로 실패",
+      "wrapper명령경로 exit127",
+      "Linux misleading-indentation Werror 수정 후 final2PASS",
+      "HTTP copytree 준비 오류",
+      "sandboxloopback EPERM",
+      "초기hostfixture31dayquery400와 admission없는callback0: actual6MP4와구분",
+      "최종fixed before/after HTTP timeoutFAIL"
+    ],
+    "existingEvidence": "변경되지 않은 exacttopk/실제Seek·B/C/D·UI·전체acceptance는 원래source범위 재사용, 이번HTTPshape가 대체하지 않음."
+  },
+  "runs": {
+    "cause900": 0,
+    "after900": 0,
+    "minutes45": 0,
+    "minutes120": 0,
+    "reason": "실제 직접 HTTP 응답 목표와 전체 배경 진행 선행조건 미충족, 독립 결과 검토도 부적격. 좋은결과를 위한 재실행 없음."
+  },
+  "independentReview": "107-independent-review.json",
+  "binding": {
+    "candidateSha256": "13402b9705f3b160348f6facdd5bf496d4a6fe761c9653db6f9fd7754b2a14f4",
+    "candidateItems": 986,
+    "candidateDigest": "8977e9b6ac618c7e0233823f6acb6ab1fcf7461206ee5d8b2a4149a643519e3a",
+    "meaning": "기존 legacy 전체 candidate equality 독립확인, 신규Journal변경승인은 별도diff/회귀판단. producer/readback은 혼합PASS 대체아님.",
+    "results": {
+      "checks": [
+        {
+          "name": "producer",
+          "exit": 0,
+          "log": "producer.log"
+        },
+        {
+          "name": "verify_feature_implementation_evidence",
+          "exit": 0,
+          "log": "verify_feature_implementation_evidence.log"
+        },
+        {
+          "name": "verify_feature_inventory_coverage",
+          "exit": 0,
+          "log": "verify_feature_inventory_coverage.log"
+        },
+        {
+          "name": "verify_project_feature_test_inventory",
+          "exit": 0,
+          "log": "verify_project_feature_test_inventory.log"
+        },
+        {
+          "name": "verify_script_inventory",
+          "exit": 0,
+          "log": "verify_script_inventory.log"
+        }
+      ],
+      "manifestSemanticDiff": "manifest-semantic-diff.json",
+      "formatting": "producer compact output restored to existing2-space JSON representation only; parsed semantic equality preserved"
+    }
+  },
+  "preservation": {
+    "archive": "docs/release-artifacts/v4.5.0/107-execution.tar.gz",
+    "manifest": "archive member preservation-manifest.json",
+    "noOldArchiveDuplication": true,
+    "format": "원출력·분석·source freeze 구분; 기존911seed는106원본참조, 달라진 run recordings만 별도 보존",
+    "remote": "pending; local all member byte readback matched",
+    "bytes": 9711384,
+    "sha256": "950882ed6eb31295b5f5844372217e0f232642207aec0b2150f98840e49ac07f",
+    "entries": 153,
+    "originalBytes": 93336528,
+    "changedRecordingFiles": 29,
+    "unchangedOriginalReferences": 7285,
+    "manifestSha256": "d444edf5f3fa2cd2a66e27248323b15292703e3a0a148760656851f838fa4982",
+    "readback": "all member bytes hash matched"
+  },
+  "cleanup": {
+    "runProcessGroupsAbsent": true,
+    "linuxContainer": "--rm, final2exit0",
+    "ownedRoot": "pending after remote byte verification",
+    "userSettingsPrivateBackupModelsSDK": "not accessed/modified/uploaded/removed",
+    "QwenOllamaCalls": 0,
+    "unloadGate": "not-run"
+  },
+  "remaining": [
+    "retention Catalog 전체 잠금 순회·반복 점유의 안전한 감소와 실제 HTTP전체성공",
+    "색인/녹화/증거A 지속 진행을 포함한 기존900초",
+    "메모리P0·이후누적/최종120분·출시결정은 계속보류"
+  ]
+}
