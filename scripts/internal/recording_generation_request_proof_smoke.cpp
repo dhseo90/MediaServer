@@ -11,6 +11,31 @@
 #include "../../src/recording/recording_catalog_history.h"
 namespace recording {
 struct RecordingGenerationRequestProofProbe {
+    static void RetentionHook(std::function<void()> hook){RecordingCatalog::retention_prepared_hook_=std::move(hook);}
+    static RetentionSnapshot LockedRetention(RecordingCatalog& c){std::lock_guard lock(c.mu_);return c.RetentionSnapshotLocked();}
+#if MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
+    static void DamageRetention(RecordingCatalog& c){std::lock_guard lock(c.mu_);Need(::ftruncate(c.completed_history_->ProbeIndexFd(),0)==0);}
+    static void DamageRetentionValue(RecordingCatalog& c){
+        std::lock_guard lock(c.mu_);const int fd=c.completed_history_->ProbeIndexFd();struct stat st{};Need(fstat(fd,&st)==0);
+        // Locate a reachable media-path chunk through its actual serialized node,
+        // then alter its value only. No root/size/FD replacement is involved.
+        std::array<unsigned char,512> node{};bool changed=false;
+        const auto number=[](const unsigned char* p){std::uint64_t n=0;for(unsigned i=0;i<8;++i)n|=std::uint64_t(p[i])<<(8*i);return n;};
+        for(off_t offset=512;offset+512<=st.st_size;++offset){
+            if(pread(fd,node.data(),node.size(),offset)!=ssize_t(node.size()))break;
+            const auto length=number(node.data()+40);if(length<12||length>256)continue;
+            const std::string key(reinterpret_cast<char*>(node.data()+144),length);
+            if(key.rfind("media-path/",0)!=0||key.find("/v")==std::string::npos)continue;
+            auto value=number(node.data()+16);if(!value)value=offset+144+256;
+            unsigned char byte{};Need(pread(fd,&byte,1,value)==1);byte^=1;Need(pwrite(fd,&byte,1,value)==1);changed=true;break;
+        }
+        Need(changed);
+    }
+#endif
+    static bool DeltaBoundary(){RecordingCatalog::RetentionReadState read;
+        for(unsigned i=0;i<1024;++i)read.Note("segment-"+std::to_string(i));
+        const bool exact=read.complete&&read.count==1024;read.Note("segment-0");const bool repeated=read.complete&&read.count==1024;
+        read.Note("overflow");return exact&&repeated&&!read.complete;}
     static void ColdAfterIo(void (*hook)()){RecordingJournal::generation_cold_after_io_=hook;}
     static void Path(RecordingCatalog& c,const std::string& id,const std::optional<std::string>& path){
         std::lock_guard lock(c.mu_);if(path)c.media_relpaths_.Set(id,*path);else c.media_relpaths_.erase(id);
@@ -76,6 +101,89 @@ void CompleteFixture(const std::filesystem::path& root){
 RecordingCatalog::Options ReadOptions(const std::filesystem::path& root){RecordingCatalog::Options o(root/"recording-catalog.sqlite3",root,false);o.enable_v2_storage=true;return o;}
 #endif
 #if MEDIA_SERVER_USE_OPENSSL && MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND
+
+std::string RetentionOracle(const RetentionSnapshot& snapshot){
+    std::string result;
+    for(const auto& candidate:snapshot.candidates)result+=(candidate.segment_v2?SerializeRecordingSegmentV2(*candidate.segment_v2):SerializeRecordingSegmentV1(candidate.segment))+"|"+
+        candidate.media_path.generic_string()+"|"+std::to_string(candidate.hold_count)+"|"+std::to_string(unsigned(candidate.Lifecycle()))+"|"+candidate.deletion_reason+"\n";
+    for(const auto& r:snapshot.durable_reservations)result+=r.job_id+"|"+r.channel_id+"|"+std::to_string(r.bytes)+"\n";
+    return result;
+}
+void RetentionPreparedCases(const std::filesystem::path& root){
+    Check("R108-P01",ProofProbe::DeltaBoundary(),"bounded changed-ID set deduplicates and rejects overflow; unit boundary only");
+    for(const std::string mode:{"progress","hold","job","legacy-reason","delete","corrupt","new-finalized","new-pinned","other-channel","checkpoint","finish","scratch","scratch-value","resource","exception"}){
+        const auto path=root/mode;std::filesystem::create_directories(path);CompleteFixture(path);
+        RecordingJournal owner(Options(path));Need(owner.Open(&error));auto options=ReadOptions(path);options.enable_generation_writes=true;
+        RecordingCatalog catalog(owner,options);Need(catalog.Open(&error));
+        if(mode=="legacy-reason"){std::filesystem::create_directories(path/"channel");Write(path/"channel/legacy.mp4",std::string(12,'x'));
+            Need(catalog.FinalizeSegment(ProjectionV1(),(path/"channel/legacy.mp4").string(),&error));}
+        const auto original=ProofProbe::LockedRetention(catalog);Need(original.authoritative);
+        const auto owned=catalog.SearchResidency()->used();const auto descriptors=OpenDescriptors();
+        std::promise<void> entered,resume;auto ready=entered.get_future();auto released=resume.get_future().share();
+        RetentionSnapshot result;std::exception_ptr failure;
+        std::thread reader([&]{try{ProofProbe::RetentionHook([&]{ProofProbe::RetentionHook({});entered.set_value();released.wait();
+                if(mode=="resource")throw RecordingResourceUnavailable();
+                if(mode=="exception")throw std::runtime_error("injected consumer exception");});
+            result=catalog.RetentionSnapshot();
+        }catch(...){failure=std::current_exception();}ProofProbe::RetentionHook({});});
+        struct Guard {std::promise<void>& resume;std::thread& reader;bool sent=false;void Release(){if(!sent){resume.set_value();sent=true;}}
+            ~Guard(){Release();if(reader.joinable())reader.join();}} guard{resume,reader};
+        Need(ready.wait_for(std::chrono::seconds(3))==std::future_status::ready);
+        Check("R108-P01",catalog.SearchResidency()->used()>owned&&OpenDescriptors()>descriptors,"private scratch reader owns additional charged memory and FD");
+        auto writer=std::async(std::launch::async,[&]{std::string detail;RecordingReadService search(catalog);RecordingTimelineResult timeline;RecordingOrderReservationV1 order;
+            return search.QuerySearchTimeline("channel",0,5000,&timeline,&detail)&&
+                catalog.ReserveRecordingOrder("store","retention-progress","retention-progress-segment","other",&order,&detail);});
+        const bool moved=writer.wait_for(std::chrono::seconds(3))==std::future_status::ready;
+        if(!moved)guard.Release();
+        const bool progressed=writer.get();
+        Check("R108-P01",moved&&progressed,"long retention prepare permits real timeline and durable unrelated writer progress");
+        if(!moved||!progressed)throw std::runtime_error("retention capture blocked progress");
+        if(mode=="hold")Need(catalog.AdjustHoldCount("segment",1,&error));
+        if(mode=="legacy-reason")Need(catalog.RequestDeletion("legacy",std::string(65536,'r'),&error));
+        if(mode=="job"){
+            auto input=InputValue();DerivedRecordingSelection selection;DerivedJobIntentV1 intent;
+            Need(RestoreDerivedJobSelection(input.job.intent,&selection,&error));selection.reference.reference_id="new-reference";
+            Need(BuildDerivedJobIntent(selection,{input.source},8192,40,&intent,&error));
+            RetentionCoordinator retention(catalog,[&]{return catalog.RetentionSnapshot();},
+                [](auto* bytes,auto*){*bytes=1024ULL*1024*1024;return true;},[](const auto&,auto*){return false;},{0,1,path});
+            Need(retention.UpdateChannelPolicy("channel",{1024ULL*1024*1024,0,1024ULL*1024*1024,0},&error));
+            const auto admission=retention.AdmitDerivedJob(catalog,intent,40);if(!admission.accepted)error=admission.message;Need(admission.accepted);
+        }
+        if(mode=="delete")Need(catalog.RequestDeletion("segment","continuous-capacity",&error));
+        if(mode=="corrupt")Need(catalog.MarkSegmentCorrupt("segment","checksum-mismatch",&error));
+        if(mode=="new-finalized"||mode=="new-pinned"||mode=="other-channel"){
+            auto segment=CompleteInput().source.segment;segment.segment_id="new-finalized";segment.order_request_id="new-order";
+            if(mode=="other-channel")segment.channel_id="other";
+            segment.pinned=mode=="new-pinned";
+            RecordingOrderReservationV1 order;Need(catalog.ReserveRecordingOrder("store",segment.order_request_id,segment.segment_id,segment.channel_id,&order,&error));
+            segment.order_sequence=order.sequence;const std::string media="new-fixture!";segment.size_bytes=media.size();segment.checksum_sha256=Hash(media);
+            Write(path/"new.mp4",media);Need(catalog.FinalizeSegmentV2(segment,(path/"new.mp4").string(),&error));
+        }
+        if(mode=="checkpoint")Need(catalog.Checkpoint(&error));
+        if(mode=="finish")Need(owner.Finish(&error));
+        if(mode=="scratch")ProofProbe::DamageRetention(catalog);
+        if(mode=="scratch-value")ProofProbe::DamageRetentionValue(catalog);
+        const bool denied=mode=="finish"||mode=="scratch"||mode=="scratch-value"||mode=="resource"||mode=="exception";
+        RetentionSnapshot expected;if(!denied)expected=ProofProbe::LockedRetention(catalog);
+        const auto expected_descriptors=OpenDescriptors()-1; // exactly one private anonymous clone, before release
+        guard.Release();reader.join();if(failure)std::rethrow_exception(failure);
+        Check("R108-P01",denied?!result.authoritative:result.authoritative&&RetentionOracle(result)==RetentionOracle(expected),
+            (mode+": fixed scan rebases to current result or fails without stale publication").c_str());
+        if(mode=="legacy-reason"){
+            const auto legacy=std::find_if(result.candidates.begin(),result.candidates.end(),[](const auto& c){return c.Id()=="legacy";});
+            Check("R108-P01",legacy!=result.candidates.end()&&legacy->deletion_reason==std::string(65536,'r')&&legacy->auxiliary_memory.bytes()>=4*65536,
+                "large legacy deletion reason survives with charged returned ownership");
+        }
+        if(mode=="job")Check("R108-P01",result.durable_reservations.size()==1&&result.durable_reservations.front().bytes==8192&&
+            std::any_of(result.candidates.begin(),result.candidates.end(),[](const auto& c){return c.Id()=="segment"&&c.hold_count>0;}),
+            "new durable job reservation and source protection are combined at current cut");
+        result={};expected={};
+        Check("R108-P01",OpenDescriptors()==expected_descriptors,"explicit private scratch Finish returns its one FD; original Finish accounted separately");
+        if(mode=="resource"||mode=="exception")Check("R108-P01",owner.HasManagedLease()&&catalog.RetentionSnapshot().authoritative,"transient reader failure does not poison original authority");
+        if(mode=="hold")Need(catalog.AdjustHoldCount("segment",-1,&error));
+        if(mode!="finish")Need(owner.Finish(&error));
+    }
+}
 void RetentionPathCases(const std::filesystem::path& root){
     std::filesystem::create_directories(root);CompleteFixture(root);
     RecordingJournal journal(Options(root));Need(journal.Open(&error));
@@ -127,6 +235,25 @@ void RetentionPrefixCases(const std::filesystem::path& root){
     ProofProbe::Path(catalog,"a-",std::nullopt);const auto all=catalog.RetentionSnapshot();
     Check("R103-P03",all.authoritative&&all.candidates.size()==4,"missing prefix path never skips unrelated candidate in authenticated order");
     Need(journal.Finish(&error));
+}
+void RetentionSharedDecodeCase(){
+    using Rows=RecordingRetainedRows<RecordingSegmentV2,ParseRecordingSegmentV2,SerializeRecordingSegmentV2>;
+    auto live=std::make_shared<RecordingCatalogHistoryRows>();Need(live->Create(&error));Rows rows;rows.Bind(live,"segment-v2");
+    auto segment=CompleteInput().source.segment;rows.Set(segment.segment_id,segment);live->EnableVerifiedSegmentDecodeCache();
+    const auto cached=rows.find(segment.segment_id);const auto charged=live->ProbeDecodedBytes();
+    auto copy=std::make_shared<RecordingCatalogHistoryRows>();Need(copy->CloneFrom(*live,&error));Rows frozen;frozen.Bind(copy,"segment-v2",live);
+    const auto reused=frozen.find(segment.segment_id);
+    Check("R108-P01",&*cached==&*reused&&copy->ProbeDecodedBytes()==0&&live->ProbeDecodedBytes()==charged,
+        "private cut reuses exact authenticated parsed row without another cache/budget");
+    auto changed=segment;changed.pinned=true;rows.Set(segment.segment_id,changed);const auto current=rows.find(segment.segment_id);
+    Check("R108-P01",current->second.pinned&&!frozen.find(segment.segment_id)->second.pinned,
+        "same ID different current raw never changes immutable cut semantics");
+    Need(live->Finish(&error));
+    Check("R108-P01",!frozen.find(segment.segment_id)->second.pinned&&live->ProbeDecodedBytes()==0,
+        "closed cache is not repopulated; private raw remains owned until explicit Finish");
+    Need(::ftruncate(copy->ProbeIndexFd(),0)==0);bool refused=false;
+    try{(void)frozen.find(segment.segment_id);}catch(const RecordingRetainedReadError&){refused=true;}
+    Check("R108-P01",refused,"a borrowed parsed row never bypasses private raw integrity");Need(copy->Finish(&error));
 }
 void VerifiedDecodeCases(){
     using Rows=RecordingRetainedRows<RecordingSegmentV2,ParseRecordingSegmentV2,SerializeRecordingSegmentV2>;
@@ -423,6 +550,8 @@ int main(int argc,char** argv){
 #if MEDIA_SERVER_USE_OPENSSL && MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND
         ColdReadProgressCases(root/"cold-read-progress");SourceReadCases(root/"source-read");SharedSourceReadCases(root/"shared-source-read");
         VerifiedDecodeCases();
+        RetentionSharedDecodeCase();
+        RetentionPreparedCases(root/"retention-prepared");
         RetentionPathCases(root/"retention-path");
         RetentionPrefixCases(root/"retention-prefix");
         ActiveProofCases(root/"active-proof");

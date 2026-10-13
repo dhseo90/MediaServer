@@ -1739,7 +1739,7 @@ bool RecordingCatalog::ApplyMutationLocked(const RecordingMutationV1& mutation,
                                            std::string* error,PreparedDerivedMutation* prepared,RecordingMutationHandle owned,
                                            const SourceBindingPool* binding_pool,const DerivedJobPool* job_pool,const DerivedJobContentProof* proof,
                                            const RecordingJournalOwnedViewHandle& view,const RecordingGenerationRecoveryRow* generation_row,bool apply,GenerationDelta* delta) try {
-    const auto touch=[&](const char* kind,const std::string& id){if(apply&&delta)delta->emplace(kind,id);};
+    const auto touch=[&](const char* kind,const std::string& id){if(apply){NoteRetentionChangeLocked(kind,id);if(delta)delta->emplace(kind,id);}};
     if(apply) {
     if(source_snapshot_revision_==std::numeric_limits<std::uint64_t>::max())source_snapshot_revision_valid_=false;
     else ++source_snapshot_revision_;
@@ -1802,7 +1802,7 @@ bool RecordingCatalog::ApplyMutationLocked(const RecordingMutationV1& mutation,
                 const auto previous=JobEntryLocked(mutation.entity_id);
                 const auto old_id=previous?previous->latest_mutation_id:std::string{};
                 ok=ApplyDerivedJobMutationLocked(mutation,error,apply,prepared,job_pool,proof,&accepted_link);
-                if(ok&&apply&&delta) {
+                if(ok&&apply&&(delta||retention_reads_)) {
                     const auto current=JobEntryLocked(mutation.entity_id);
                     if(!current)return Fail(error,"derived applied job missing");
                     if(current->latest_mutation_id!=old_id) {
@@ -4249,9 +4249,38 @@ RetentionSnapshot RecordingCatalog::RetentionSnapshotLocked(RetentionSnapshotSel
     auto snapshot=RetentionReservationsLocked();
     if(!snapshot.authoritative||selection==RetentionSnapshotSelection::Authority)return snapshot;
     if(completed_history_)completed_history_->EnableVerifiedSegmentDecodeCache();
+    auto result=RetentionCandidatesFromCut(selection,selected_id,diagnostic);
+    result.durable_reservations=std::move(snapshot.durable_reservations);
+    return result;
+} catch(const CatalogHistoryError& failure) { struct RetentionSnapshot failed;failed.authoritative=false;failed.error=failure.what();return failed; }
+
+RetentionSnapshot RecordingCatalog::RetentionCandidatesFromCut(RetentionSnapshotSelection selection,const std::string& selected_id,std::array<std::uint64_t,4>* diagnostic) const try {
+    struct RetentionSnapshot snapshot;
+    // Only active result slots, not historical identity/receipt rows. Typed cold
+    // rows carry their own tickets; paths/reasons receive a separate ticket.
+    const auto count=selection==RetentionSnapshotSelection::Candidate?2:segments_.size()+segments_v2_.size()+1024;
+    if(count>SIZE_MAX/(2*sizeof(RetentionCandidate)))throw RecordingResourceUnavailable();
+    auto memory=search_residency_->ReserveOwned(2*sizeof(RetentionCandidate)*count);
+    if(!memory)throw RecordingResourceUnavailable();
+    snapshot.container_memory=std::move(*memory);snapshot.candidates.reserve(count);
+    const auto reason_copy=[&](RetentionCandidate& candidate,const std::string& reason){
+        if(reason.size()>(SIZE_MAX-512)/4)throw RecordingResourceUnavailable();
+        auto charge=search_residency_->ReserveOwned(512+4*reason.size());
+        if(!charge)throw RecordingResourceUnavailable();
+        candidate.auxiliary_memory=std::move(*charge);candidate.deletion_reason=reason;
+    };
+    const auto auxiliary=[&](RetentionCandidate& candidate,const std::string& relative){
+        const auto path_bytes=options_.media_root.native().size()+relative.size()+2;
+        if(path_bytes>(SIZE_MAX-512)/4||candidate.deletion_reason.size()>(SIZE_MAX-512-4*path_bytes)/4)
+            throw RecordingResourceUnavailable();
+        auto charge=search_residency_->ReserveOwned(512+4*path_bytes+4*candidate.deletion_reason.size());
+        if(!charge)throw RecordingResourceUnavailable();
+        candidate.auxiliary_memory=std::move(*charge);
+        candidate.media_path=options_.media_root/std::filesystem::path(relative);
+    };
     // These cardinalities belong to the already authenticated current Catalog
-    // cut. mu_ stays held throughout this call; no append, retirement or index
-    // replacement can invalidate a namespace's emptiness between candidates.
+    // cut: either the caller holds mu_, or this is its private immutable clone.
+    // No mutation can invalidate namespace emptiness within this scan.
     // Nonempty namespaces still use the original exact cold lookup.
     const bool has_retired=completed_history_?completed_history_->Count("retired-v2")!=0:!retired_v2_.empty();
     const bool has_tombstones=!tombstones_.empty(),has_v2_tombstones=!tombstones_v2_.empty();
@@ -4272,14 +4301,14 @@ RetentionSnapshot RecordingCatalog::RetentionSnapshotLocked(RetentionSnapshotSel
         if(diagnostic){(*diagnostic)[2]+=recording::latency::Now()-lifecycle_begin;++(*diagnostic)[3];}
         if(lifecycle==RecordingLifecycle::Deleted)return true;
         RetentionCandidate candidate;candidate.segment_v2=v;candidate.effective_lifecycle=lifecycle;
+        if(has_reasons){const auto reason=deletion_reasons_.find(id);if(reason!=deletion_reasons_.end())reason_copy(candidate,reason->second);}
         if(!join_paths){
             const auto path=media_relpaths_.find(id);
             if(path==media_relpaths_.end())return true;
-            candidate.media_path=options_.media_root/std::filesystem::path(path->second);
+            auxiliary(candidate,path->second);
         }
         const auto hold=hold_counts_.find(id);candidate.hold_count=hold==hold_counts_.end()?0:hold->second;
         if(DerivedJobProtectsLocked(id)&&candidate.hold_count<std::numeric_limits<std::uint64_t>::max())++candidate.hold_count;
-        if(has_reasons){const auto reason=deletion_reasons_.find(id);if(reason!=deletion_reasons_.end())candidate.deletion_reason=reason->second;}
         snapshot.candidates.push_back(std::move(candidate));return true;
     };
     const bool cost_trace=diagnostic!=nullptr;
@@ -4318,7 +4347,7 @@ RetentionSnapshot RecordingCatalog::RetentionSnapshotLocked(RetentionSnapshotSel
         media_relpaths_.ForEachEntry([&](const auto& id,const auto& path){
             while(next<snapshot.candidates.size()&&key_less(snapshot.candidates[next].segment_v2->segment_id,id))++next;
             if(next<snapshot.candidates.size()&&snapshot.candidates[next].segment_v2->segment_id==id)
-                snapshot.candidates[next++].media_path=options_.media_root/std::filesystem::path(path);
+                auxiliary(snapshot.candidates[next++],path);
             return true; // complete authenticated namespace coverage, even past the last match
         });
         snapshot.candidates.erase(std::remove_if(snapshot.candidates.begin(),snapshot.candidates.end(),
@@ -4340,22 +4369,23 @@ RetentionSnapshot RecordingCatalog::RetentionSnapshotLocked(RetentionSnapshotSel
             if (segment.lifecycle == RecordingLifecycle::DeletionPending) {
                 RetentionCandidate pending;
                 pending.segment = segment;
-                pending.media_path = options_.media_root / path->second;
                 const auto reason = deletion_reasons_.find(segment_id);
                 if (reason != deletion_reasons_.end()) {
-                    pending.deletion_reason = reason->second;
+                    reason_copy(pending,reason->second);
                 }
+                auxiliary(pending,path->second);
                 snapshot.candidates.push_back(std::move(pending));
             }
             return true;
         }
         RetentionCandidate candidate;
         candidate.segment = segment;
-        candidate.media_path = std::move(contained_media);
         const auto hold = hold_counts_.find(segment_id);
         candidate.hold_count = hold == hold_counts_.end() ? 0 : hold->second;
         const auto reason = deletion_reasons_.find(segment_id);
-        if (reason != deletion_reasons_.end()) candidate.deletion_reason = reason->second;
+        if (reason != deletion_reasons_.end()) reason_copy(candidate,reason->second);
+        auxiliary(candidate,path->second);
+        candidate.media_path = std::move(contained_media);
         snapshot.candidates.push_back(std::move(candidate));return true;
     };
     if(selection==RetentionSnapshotSelection::Candidate){
@@ -4364,14 +4394,128 @@ RetentionSnapshot RecordingCatalog::RetentionSnapshotLocked(RetentionSnapshotSel
     return snapshot;
 } catch(const CatalogHistoryError& failure) { struct RetentionSnapshot failed;failed.authoritative=false;failed.error=failure.what();return failed; }
 
-RetentionSnapshot RecordingCatalog::RetentionSnapshot() const {
-    recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__,false,__func__);
-    std::array<std::uint64_t,4> cost{};
-    auto result=RetentionSnapshotLocked(RetentionSnapshotSelection::All,{},recording::latency::HolderEnabled()?&cost:nullptr);
-    lock.HolderRetentionCosts("RetentionAll",cost);
+
+void RecordingCatalog::RetentionReadState::Note(const std::string& id) noexcept {
+    if(!complete)return;
+    if(id.empty()||id.size()>128){complete=false;return;}
+    for(std::size_t i=0;i<count;++i)if(id==changed[i].data())return;
+    if(count==changed.size()){complete=false;return;}
+    std::memcpy(changed[count++].data(),id.data(),id.size());
+}
+void RecordingCatalog::NoteRetentionChangeLocked(const char* kind,const std::string& id) noexcept {
+    // The actual projection writes supply keys (including derived-job outputs),
+    // not a guessed channel or an unrelated global revision.
+    if(std::strcmp(kind,"segment-v1")&&std::strcmp(kind,"segment-v2")&&
+       std::strcmp(kind,"state-v2")&&std::strcmp(kind,"tombstone-v1")&&
+       std::strcmp(kind,"tombstone-v2")&&std::strcmp(kind,"retired-v2")&&
+       std::strcmp(kind,"media-path")&&std::strcmp(kind,"deletion-reason"))return;
+    for(auto* read=retention_reads_;read;read=read->next)read->Note(id);
+}
+#if MEDIA_SERVER_RECORDING_GENERATION_TESTING
+thread_local std::function<void()> RecordingCatalog::retention_prepared_hook_;
+#endif
+RetentionSnapshot RecordingCatalog::RetentionSnapshotPrepared(RetentionSnapshotSelection selection,const std::string& id) const {
+    struct RetentionSnapshot result;
+    std::unique_ptr<RetentionReadState> read;
+    std::unique_ptr<RecordingCatalog> frozen;
+    std::shared_ptr<RecordingCatalogHistoryRows> cold;
+    bool registered=false;
+    std::uint64_t instance=0;
+    std::string first,cleanup;
+    const auto detach=[&](){
+        if(!registered)return;
+        auto** link=&retention_reads_;
+        while(*link&&*link!=read.get())link=&(*link)->next;
+        if(*link)*link=read->next;
+        registered=false;
+    };
+    try {
+        {
+            recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__,false,"RetentionCapture");
+            if(!completed_history_){
+                std::array<std::uint64_t,4> cost{};
+                result=RetentionSnapshotLocked(selection,id,recording::latency::HolderEnabled()?&cost:nullptr);
+                lock.HolderRetentionCosts("RetentionLegacy",cost);return result;
+            }
+            if(!opened_||!CanReadLocked(&first))throw CatalogHistoryError(first.empty()?"retention authority unavailable":first);
+            const auto path_bytes=options_.sqlite_path.native().size()+options_.media_root.native().size();
+            constexpr auto fixed=sizeof(RetentionReadState)+sizeof(RecordingCatalog)+4096;
+            if(path_bytes>(SIZE_MAX-fixed)/8)throw RecordingResourceUnavailable();
+            auto memory=search_residency_->ReserveOwned(fixed+8*path_bytes);
+            if(!memory)throw RecordingResourceUnavailable();
+            read=std::make_unique<RetentionReadState>();read->memory=std::move(*memory);
+            completed_history_->EnableVerifiedSegmentDecodeCache();
+            cold=std::make_shared<RecordingCatalogHistoryRows>();
+            if(!cold->CloneFrom(*completed_history_,&first))throw CatalogHistoryError(first);
+            frozen=std::make_unique<RecordingCatalog>(journal_,options_);
+            frozen->completed_history_=cold;
+            frozen->segments_.Bind(cold,"segment-v1");frozen->segments_v2_.Bind(cold,"segment-v2",completed_history_);
+            frozen->states_v2_.Bind(cold,"state-v2");frozen->tombstones_.Bind(cold,"tombstone-v1");
+            frozen->tombstones_v2_.Bind(cold,"tombstone-v2");frozen->media_relpaths_.Bind(cold,"media-path");
+            frozen->deletion_reasons_.Bind(cold,"deletion-reason");
+            instance=search_instance_;read->next=retention_reads_;retention_reads_=read.get();registered=true;
+        }
+#if MEDIA_SERVER_RECORDING_GENERATION_TESTING
+        if(retention_prepared_hook_){auto hook=retention_prepared_hook_;hook();}
+#endif
+        // No mutable iterator crosses mu_. The private scratch holds a byte copy
+        // and the in-process authenticated root. Descendant coverage is checked
+        // by the same complete cursors/joins as the locked implementation.
+        result=frozen->RetentionCandidatesFromCut(selection,id,nullptr);
+        if(!result.authoritative)throw CatalogHistoryError(result.error);
+        {
+            recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__,false,"RetentionCurrent");
+            if(!opened_||instance!=search_instance_||!CanReadLocked(&first))throw CatalogHistoryError(first.empty()?"retention owner changed":first);
+            if(!completed_history_->ValidateRetentionCurrent(&first)){
+                derived_job_state_authoritative_=false;journal_.PoisonGeneration(this);
+                throw CatalogHistoryError(first);
+            }
+            if(!read->complete)throw RecordingResourceUnavailable();
+            // All committed relevant writes during the private scan are folded
+            // into the result. No full scan retry; reservations and runtime holds
+            // are read only now, under this same current Catalog cut.
+            for(std::size_t n=0;n<read->count;++n){
+                const std::string changed=read->changed[n].data();
+                auto current=RetentionSnapshotLocked(RetentionSnapshotSelection::Candidate,changed,nullptr);
+                if(!current.authoritative)throw CatalogHistoryError(current.error);
+                result.candidates.erase(std::remove_if(result.candidates.begin(),result.candidates.end(),
+                    [&](const auto& candidate){return candidate.Id()==changed;}),result.candidates.end());
+                for(auto& candidate:current.candidates)
+                    if(selection==RetentionSnapshotSelection::All||candidate.Channel()==id)
+                        result.candidates.push_back(std::move(candidate));
+            }
+            for(auto& candidate:result.candidates){
+                const auto hold=hold_counts_.find(candidate.Id());candidate.hold_count=hold==hold_counts_.end()?0:hold->second;
+                if(candidate.segment_v2&&DerivedJobProtectsLocked(candidate.Id())&&candidate.hold_count<UINT64_MAX)++candidate.hold_count;
+            }
+            auto reservations=RetentionReservationsLocked();
+            if(!reservations.authoritative)throw CatalogHistoryError(reservations.error);
+            result.durable_reservations=std::move(reservations.durable_reservations);
+            detach();
+        }
+        // Preserve the previous public enumeration order: V2 then V1, each by
+        // authenticated namespace key ID+'/'. No second row vector is built.
+        std::sort(result.candidates.begin(),result.candidates.end(),[](const auto& a,const auto& b){
+            if(bool(a.segment_v2)!=bool(b.segment_v2))return bool(a.segment_v2);
+            const auto& x=a.Id();const auto& y=b.Id();const auto common=std::min(x.size(),y.size());
+            const auto order=x.compare(0,common,y,0,common);if(order)return order<0;
+            if(x.size()==y.size())return false;
+            return x.size()==common?'/'<y[common]:x[common]<'/';
+        });
+    } catch(const std::exception& error) {first=error.what();}
+      catch(...) {first="retention preparation exception";}
+    if(registered){recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__,false,"RetentionDetach");detach();}
+    if(cold&&!cold->Finish(&cleanup)){if(!first.empty())first+="; ";first+="retention scratch cleanup: "+cleanup;}
+    if(!first.empty()){result={};result.authoritative=false;result.error=first;}
     return result;
 }
+
+RetentionSnapshot RecordingCatalog::RetentionSnapshot() const {
+    return RetentionSnapshot(RetentionSnapshotSelection::All,{});
+}
 RetentionSnapshot RecordingCatalog::RetentionSnapshot(RetentionSnapshotSelection selection,const std::string& id) const {
+    if(selection==RetentionSnapshotSelection::All||selection==RetentionSnapshotSelection::Channel)
+        return RetentionSnapshotPrepared(selection,id);
     recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__,false,__func__);
     const char* site="RetentionAll";
     switch(selection){

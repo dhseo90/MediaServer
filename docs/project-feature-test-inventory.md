@@ -5076,3 +5076,10 @@ R97-A02는 미선택 대체 후보의 unlink/authority 하드 오류를 거부�
 - P02: 필요한 실제 HTTP 재현은 분석으로 선택한 상태와 실행 전 고정한 횟수/순서로 실행한다. product/fixture source·모델·원본 hash·전체 응답·Catalog 하위 경과·배경 진행·소유를 함께 보존한다. 수정후900초는 직접 인과/정확성/독립 판단 통과 후1회이며45분/120분은 제외한다.
 
 - **R107-P03**: 실제 historical archive hash의 test-only final-binding latch 동안 Catalog 조회·내구 Reserve 진행; append/checkpoint 뒤 동일 원문, Finish/tamper 및 strict I/O 완료→재잠금 사이 변조·Finish→재Open 뒤 미게시. 기존3초 동기화·안전 join·원본/권한/예산·구성 행렬 유지.
+
+### R108-P01 / H01 — retention 고정 읽기와 최신 삭제·예약
+
+- 내부 RetentionSnapshot Channel/All: 동일 원본 cut의 비영속 disk clone에서 전체 인증 순회·상태/path join; 반환 직전 해당 준비 중 변경된 segment만 현재 자료로 재결합하고 hold/job/내구 예약은 현재 값. clone/delta/반환값은 기존 owner에 예약, 명시 Finish 오류 전파. 현재 retention 의존8namespace는 최종 잠금 안에서 raw key/value 해시를 끝까지 검증하며 JSON/DTO join을 반복하지 않는다. 전수 이력 RAM fallback 없음.
+- 직접 기대값: 기존 locked snapshot과 후보/순서/경로/상태/예약 동일; 준비 latch 중 실제 조회·쓰기 진행; 새 확정·삭제/pending·hold·checkpoint·authority 상실·예외/예산 거부·변경 수용 상한 반례. 전체 path namespace 인증 유지, 같은 크기 원본 value 변조·큰 V1 reason 개별 예약·새 job의 내구 예약/보호를 직접 확인한다. delta 유실은 거부이며 재시도/빈 결과 아님.
+- R108-H01: R107 실제 HTTP helper, 닫힌 R106 원본911파일 동일 hash, before/after 각1회,3waves/12응답·5초·p95 2000ms·최대5000ms·writer/index/87MiB/64MiB retention·명시 Finish. 기존630초/4MiB/model8GiB/live448MiB. 컴파일과 성능 실행 분리. 실패 보존, 통과 전900초 미실행;45/120분 제외.
+- macOS와 기존 비특권 Linux generation/crypto/SQLite 관련 직접 wrapper, 기존 K/F·삭제/보호·source/request proof 영향 회귀. UI 비대상; 직접 HTTP는 evidence/A 지속 혼합을 대체하지 않음.

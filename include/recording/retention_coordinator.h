@@ -29,6 +29,7 @@ enum class RetentionCleanupReason {
 std::string RetentionCleanupReasonName(RetentionCleanupReason reason);
 
 struct RetentionCandidate {
+    SearchModelResidency::Reservation auxiliary_memory;
     RecordingSegmentV1 segment;
     std::filesystem::path media_path;
     std::uint64_t hold_count{0};
@@ -44,6 +45,7 @@ struct RetentionCandidate {
 };
 
 struct RetentionSnapshot {
+    SearchModelResidency::Reservation container_memory;
     std::vector<RetentionCandidate> candidates;
     struct DurableReservation {std::string job_id,channel_id;std::uint64_t bytes{0};};
     std::vector<DurableReservation> durable_reservations{};

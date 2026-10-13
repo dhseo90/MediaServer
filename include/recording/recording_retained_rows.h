@@ -160,9 +160,12 @@ public:
     };
     using iterator=const_iterator;
     using value_type=Pair;
-    void Bind(std::shared_ptr<RecordingRetainedRowStore> store,std::string kind) {
+    void Bind(std::shared_ptr<RecordingRetainedRowStore> store,std::string kind,
+              std::shared_ptr<RecordingRetainedRowStore> decoded_store={}) {
         if(!ram_.empty()||store_)throw std::logic_error("retained row binding must precede input");
-        store_=std::move(store);kind_=std::move(kind);
+        if(decoded_store&&(!store||kind!="segment-v2"||decoded_store->MemoryOwner()!=store->MemoryOwner()))
+            throw std::logic_error("retained decode reuse requires same charged owner");
+        store_=std::move(store);kind_=std::move(kind);decoded_store_=std::move(decoded_store);
     }
     bool cold()const{return bool(store_);}
     std::size_t resident_size()const{return ram_.size();}
@@ -212,14 +215,18 @@ public:
         if constexpr(std::is_same_v<T,RecordingSegmentV2>)if(kind_=="segment-v2")store_->ForgetVerifiedSegmentDecode(id);
         return 1;
     }
-    void clear(){ram_.clear();store_.reset();kind_.clear();}
-    void swap(RecordingRetainedRows& other)noexcept{ram_.swap(other.ram_);store_.swap(other.store_);kind_.swap(other.kind_);}
+    void clear(){ram_.clear();store_.reset();decoded_store_.reset();kind_.clear();}
+    void swap(RecordingRetainedRows& other)noexcept{ram_.swap(other.ram_);store_.swap(other.store_);decoded_store_.swap(other.decoded_store_);kind_.swap(other.kind_);}
 private:
     const_iterator Decode(const std::string& id,RecordingColdRow value)const {
+        // The immutable cut supplies authenticated bytes and membership. A live
+        // sibling supplies only exact-byte parsed memoization, under its existing
+        // cache mutex/16MiB budget. Shared row tickets outlive cache eviction.
+        const auto& decoded=decoded_store_?decoded_store_:store_;
         if constexpr(std::is_same_v<T,RecordingSegmentV2>){
             if(kind_=="segment-v2"){
                 if(latency::HolderEnabled())++latency::segment_decode_cost[0];
-                if(auto prior=store_->VerifiedSegmentDecode(id,value.bytes)){
+                if(auto prior=decoded->VerifiedSegmentDecode(id,value.bytes)){
                     if(latency::HolderEnabled())++latency::segment_decode_cost[1];
                     return const_iterator(this,std::static_pointer_cast<const Pair>(std::move(prior)));
                 }
@@ -261,7 +268,7 @@ private:
         const Pair* row=&owner->row;
         auto shared=std::shared_ptr<const Pair>(std::move(owner),row);
         if constexpr(std::is_same_v<T,RecordingSegmentV2>){
-            if(kind_=="segment-v2")store_->RememberVerifiedSegmentDecode(id,std::move(value.bytes),shared,pair_bytes+shared->second.memory.bytes());
+            if(kind_=="segment-v2")decoded->RememberVerifiedSegmentDecode(id,std::move(value.bytes),shared,pair_bytes+shared->second.memory.bytes());
         }
         return const_iterator(this,std::move(shared));
     }
@@ -271,7 +278,7 @@ private:
         return found?Decode(id,std::move(value)):end();
     }
     Map ram_;
-    std::shared_ptr<RecordingRetainedRowStore> store_;
+    std::shared_ptr<RecordingRetainedRowStore> store_,decoded_store_;
     std::string kind_;
 };
 inline bool ParseRetainedText(const std::string& bytes,std::string* value,std::string* error) {

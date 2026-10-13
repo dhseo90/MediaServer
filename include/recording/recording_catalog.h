@@ -561,6 +561,26 @@ private:
     struct RetentionSnapshot RetentionSnapshotLocked(RetentionSnapshotSelection selection=RetentionSnapshotSelection::All,
                                                     const std::string& id={},std::array<std::uint64_t,4>* diagnostic=nullptr) const;
     struct RetentionSnapshot RetentionReservationsLocked() const;
+    // A live read tracks only changes during its bounded preparation. This is
+    // neither a historical log nor authority for absence. Overflow rejects the
+    // read without interfering with the durable writer.
+    struct RetentionReadState {
+        SearchModelResidency::Reservation memory;
+        RetentionReadState* next=nullptr;
+        std::array<std::array<char,129>,1024> changed{};
+        std::size_t count=0;
+        bool complete=true;
+        void Note(const std::string& id) noexcept;
+    };
+    mutable RetentionReadState* retention_reads_=nullptr;
+    void NoteRetentionChangeLocked(const char* kind,const std::string& id) noexcept;
+    struct RetentionSnapshot RetentionCandidatesFromCut(RetentionSnapshotSelection,const std::string&,
+        std::array<std::uint64_t,4>*) const;
+    struct RetentionSnapshot RetentionSnapshotPrepared(RetentionSnapshotSelection,const std::string&) const;
+#if MEDIA_SERVER_RECORDING_GENERATION_TESTING
+    static thread_local std::function<void()> retention_prepared_hook_;
+#endif
+
     struct CheckpointStatusGuard {
         RecordingCatalog& catalog;
         bool active{false},success{false};

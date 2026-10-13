@@ -314,6 +314,23 @@ public:
         return Fail(error,"catalog history unsupported");
 #endif
     }
+    // A private retention copy does not prove the current file remained intact.
+    // Authenticate every raw retention namespace against the current process root
+    // before publishing its rebased result. No DTO/JSON/joins are materialized.
+    bool ValidateRetentionCurrent(std::string* error) {
+        std::lock_guard<std::recursive_mutex> lock(mu_);
+#if MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
+        if(!healthy_)return Fail(error,"catalog retention history unavailable");
+        for(const char* kind:{"segment-v1","segment-v2","state-v2","tombstone-v1",
+                             "tombstone-v2","retired-v2","media-path","deletion-reason"})
+            if(!index_.VisitRange(std::string(kind)+"/",std::string(kind)+"0",
+                [](const std::string&,const std::string&,std::string*){return true;},error))
+                return Fail(error,"catalog retention current content invalid");
+        return true;
+#else
+        return Fail(error,"catalog history unsupported");
+#endif
+    }
     bool Finish(std::string* error){
         std::lock_guard<std::recursive_mutex> lock(mu_);
         CloseVerifiedSegmentDecodeCache();

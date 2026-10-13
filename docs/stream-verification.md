@@ -81,6 +81,12 @@ SI-01~07은 정상 command/import/자체검사/수동 도구, 미등록·끊어�
 로그의 전체 경로/basename 참조 거부와 로그 포함/제외 시 같은 판정을 확인합니다.
 실제 스크립트를 모두 실행하는 검사가 아니며 제품·UI·장시간 PASS를 대신하지 않습니다.
 
+닫힌 원본의 소유 복사본을 이용하는 `scripts/internal/recording_source_read_cost_smoke.cpp`는
+source 수집의 비용 분해용 native fixture이고, `scripts/internal/recording_degraded_http_smoke.cpp`는
+같은 자료에 실제 HTTP와 writer·색인·retention을 겹치는 재현 fixture다. 각각 고정된 runtime archive에
+연결해 native isolation helper/바이너리 guard를 적용하며 입력 hash와 실행별 부모 수집을 보존한다.
+전자는 HTTP 결과를, 후자는 반복 증거/A를 포함한 지속 혼합을 대체하지 않는다.
+
 아래 명령은 저장소 루트에서 관련 변경에 맞춰 **하나씩 선택**합니다. 파일명 glob으로 모두
 실행하거나 acceptance의 필수 목록에 추가하지 않습니다. 자체검사도 native compiler·SQLite·
 소유 loopback fixture 또는 보존 capture를 사용할 수 있으므로 해당 파일의 입력·정리 조건을
