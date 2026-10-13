@@ -1,0 +1,695 @@
+{
+  "schema": "media-server.v450.validation.v1",
+  "task": 104,
+  "status": "LIMITED_PARSE_COST_FIX_VERIFIED_AFTER900_TIMEOUT_FAIL_45_NOT_ELIGIBLE",
+  "scope": "실제 혼합 응답 기준 미충족. bounded 첫 느린 완료 요청 수집과 동일 원본의 segment strict parse/canonical 중복 제거만 한정 검증. 메모리 P0/출시 보류.",
+  "model": {
+    "requestedMain": "gpt-6-astra/high",
+    "mainToolAccepted": "not-exposed",
+    "mainActualRuntime": "not-exposed",
+    "requestedIndependent": "gpt-6-astra/high",
+    "independentReviewer": "/root/independent_memory86",
+    "independentToolAccepted": "previous separate reviewer creation acceptance reused; followup/runtime values unexposed",
+    "independentActualRuntime": "not-exposed"
+  },
+  "source": {
+    "entryHead": "70a6dbf5f17b7443bda16970fd45e2532987c9da",
+    "entryRemoteHead": "70a6dbf5f17b7443bda16970fd45e2532987c9da",
+    "entryWorktreeIndex": "clean",
+    "after": {
+      "head": "53b2e3f15743a7491267f1bcc4996cdb4c0c1d8e",
+      "fixtureProfile": "continuous-r98",
+      "fixtureProfileSourceSha256": "db080d7271ee2f6ec82ff130ff9a92a87669b0722c05bb7f49d48197f1fb4249",
+      "tree": "e67811948279d705c642519fe398655ec00b97cd",
+      "sourceSha256": "5d4c298e411e4a7aafd39cdd49fb894cfe6b67cb73ed601aa14590b7fd3dbb99",
+      "binarySha256": "98dfb896bdb3de1e5a84ffca7edefcfc91710d404601ebfdfe38ebc1dceb2af2"
+    },
+    "afterSourceEndEqual": true,
+    "runtimeSha256": "d144bda589228fc88da20ec98b6f823df4596298fc0c61a0b171d8ae9da90e5a",
+    "binding": "after-freeze.json; final implementation commit53b2e3f; no source edits or compilation during performance run"
+  },
+  "reuse": {
+    "R103": "Original archive retained, requests77/78/79 complete, timeouts81/82 outside selection. Recomputed site/work analysis in r103-holder-site-analysis.json. No reconstruction of missing holders.",
+    "R101_R102": "Authenticated exact-byte parse cache16MiB,640MiB owner,K/F and existing8-condition evidence retained at original source/scope. Collector unchanged; cause run failed its existing contract.",
+    "other": "95 isolation/97 protected rejection/78-103 nonresident and Finish contracts unchanged except explicitly reviewed parser consumers. Earlier59/61/63/65/72-74 not latest-HEAD reruns."
+  },
+  "change": {
+    "product": "Strict segment mappings objects consumed once by the same recursive strict parser. Canonical generated during domain validation reused for authenticated exact-byte comparison; removes child reparsing and second serialization. All ParseRecordingSegmentV2 consumers covered, not only retention. Failed output remains unchanged; malformed error wording not claimed byte-identical.",
+    "diagnostic": "Existing8192 event budget split4096 recent+4096 selected tail. First >=2s completed callback CAS selects request; not earliest-start ordering. Preserve pre-start holder interval and late release; overwrite/collision/inflight/tail failures reject incomplete. No-slow requires valid footer and complete fast request set.",
+    "counterScope": "Retention-local counters: inclusiveV2 traversal/path/lifecycle(ns nested)/visited count. Other sites keep original units. TLS Decode counter32B: calls/hits/parse ns/canonical postprocessing. Before postprocessing serialization differs from after comparison.",
+    "limits": "No change to2channels/4clients/A60s/900+1080,5s/p95<=2000/max<=5000,87MiB quota/64MiB reservation/448MiB workspace/640MiB domain/16MiB cache/4MiB log. No full-history RAM, no new retry or request503-as-success."
+  },
+  "causeEvidence": {
+    "R103Request77": {
+      "waitNs": 3132083842,
+      "retentionOverlapNs": 1309049085,
+      "otherMeasuredOverlapNs": 1201383087,
+      "unclassifiedNs": 621651670
+    },
+    "interpretation": "Retention is substantial but not sole peer. Repeated authenticated V2 decode on misses was measured before product change. Later selected53 has a different state, not a controlled old77/78/79 comparison."
+  },
+  "direct": {
+    "macOS": {
+      "productBuild": "PASS",
+      "retentionAssertions": 42,
+      "proofAssertions": 198,
+      "generationConsumerAssertions": 444,
+      "parserCases": 76
+    },
+    "linux": {
+      "image": "mediaserver-v450-verify:rc58-arm64",
+      "uid": 10001,
+      "network": "none",
+      "productBuild": "PASS",
+      "retentionAssertions": 42,
+      "proofAssertions": 198,
+      "generationConsumerAssertions": 444,
+      "parserCases": 76,
+      "traceModes": 9,
+      "supportMatrix": "existing four supported generation/crypto/SQLite configurations and Werror; no installation"
+    },
+    "contracts": {
+      "trace": 48,
+      "mixed": 80
+    },
+    "parserOracle": "Old/new76-case stdout byte-identical; original source files and build commands preserved. Duplicate/unicode duplicate/nested malformed/type/range/256mapping/257rejection/late parent failure tested; callback refusal/exception tested separately. No error wording identity claim.",
+    "cost": {
+      "before": [
+        {
+          "channel": "9101",
+          "iteration": 0,
+          "rows": 304,
+          "elapsedNs": 156605459,
+          "nodeReads": 5584,
+          "digest": "4146def68b10e235e8f0f3c876c4853ea64859efdd27780945e5d757b96f119e",
+          "ramUsed": 45616808,
+          "decode": [
+            609,
+            482,
+            113675292,
+            17605086
+          ]
+        },
+        {
+          "channel": "9101",
+          "iteration": 1,
+          "rows": 304,
+          "elapsedNs": 159556375,
+          "nodeReads": 5584,
+          "digest": "4146def68b10e235e8f0f3c876c4853ea64859efdd27780945e5d757b96f119e",
+          "ramUsed": 45616808,
+          "decode": [
+            609,
+            482,
+            116412170,
+            17954124
+          ]
+        },
+        {
+          "channel": "9101",
+          "iteration": 2,
+          "rows": 304,
+          "elapsedNs": 158764084,
+          "nodeReads": 5584,
+          "digest": "4146def68b10e235e8f0f3c876c4853ea64859efdd27780945e5d757b96f119e",
+          "ramUsed": 45616808,
+          "decode": [
+            609,
+            482,
+            115648840,
+            18100915
+          ]
+        },
+        {
+          "channel": "9201",
+          "iteration": 0,
+          "rows": 304,
+          "elapsedNs": 160301709,
+          "nodeReads": 5584,
+          "digest": "b83882529b485679930c03e9cb1e5f5872d0decfc6b5720150369896d025e265",
+          "ramUsed": 45728248,
+          "decode": [
+            609,
+            482,
+            115959118,
+            17932586
+          ]
+        },
+        {
+          "channel": "9201",
+          "iteration": 1,
+          "rows": 304,
+          "elapsedNs": 156746750,
+          "nodeReads": 5584,
+          "digest": "b83882529b485679930c03e9cb1e5f5872d0decfc6b5720150369896d025e265",
+          "ramUsed": 45728248,
+          "decode": [
+            609,
+            482,
+            114129377,
+            17795379
+          ]
+        },
+        {
+          "channel": "9201",
+          "iteration": 2,
+          "rows": 304,
+          "elapsedNs": 159424083,
+          "nodeReads": 5584,
+          "digest": "b83882529b485679930c03e9cb1e5f5872d0decfc6b5720150369896d025e265",
+          "ramUsed": 45728248,
+          "decode": [
+            609,
+            482,
+            115810703,
+            17807752
+          ]
+        }
+      ],
+      "after": [
+        {
+          "channel": "9101",
+          "iteration": 0,
+          "rows": 304,
+          "elapsedNs": 105963666,
+          "nodeReads": 5584,
+          "digest": "4146def68b10e235e8f0f3c876c4853ea64859efdd27780945e5d757b96f119e",
+          "ramUsed": 45616808,
+          "decode": [
+            609,
+            482,
+            80228669,
+            40960
+          ]
+        },
+        {
+          "channel": "9101",
+          "iteration": 1,
+          "rows": 304,
+          "elapsedNs": 103951791,
+          "nodeReads": 5584,
+          "digest": "4146def68b10e235e8f0f3c876c4853ea64859efdd27780945e5d757b96f119e",
+          "ramUsed": 45616808,
+          "decode": [
+            609,
+            482,
+            78663624,
+            39125
+          ]
+        },
+        {
+          "channel": "9101",
+          "iteration": 2,
+          "rows": 304,
+          "elapsedNs": 104535041,
+          "nodeReads": 5584,
+          "digest": "4146def68b10e235e8f0f3c876c4853ea64859efdd27780945e5d757b96f119e",
+          "ramUsed": 45616808,
+          "decode": [
+            609,
+            482,
+            79297042,
+            40332
+          ]
+        },
+        {
+          "channel": "9201",
+          "iteration": 0,
+          "rows": 304,
+          "elapsedNs": 103428167,
+          "nodeReads": 5584,
+          "digest": "b83882529b485679930c03e9cb1e5f5872d0decfc6b5720150369896d025e265",
+          "ramUsed": 45728248,
+          "decode": [
+            609,
+            482,
+            78369545,
+            38252
+          ]
+        },
+        {
+          "channel": "9201",
+          "iteration": 1,
+          "rows": 304,
+          "elapsedNs": 103888333,
+          "nodeReads": 5584,
+          "digest": "b83882529b485679930c03e9cb1e5f5872d0decfc6b5720150369896d025e265",
+          "ramUsed": 45728248,
+          "decode": [
+            609,
+            482,
+            78317087,
+            39203
+          ]
+        },
+        {
+          "channel": "9201",
+          "iteration": 2,
+          "rows": 304,
+          "elapsedNs": 103597833,
+          "nodeReads": 5584,
+          "digest": "b83882529b485679930c03e9cb1e5f5872d0decfc6b5720150369896d025e265",
+          "ramUsed": 45728248,
+          "decode": [
+            609,
+            482,
+            78688919,
+            40712
+          ]
+        }
+      ],
+      "beforeMeanMs": 158.56641,
+      "afterMeanMs": 104.22747183333334,
+      "equal": [
+        "digest",
+        "ramUsed",
+        "nodeReads",
+        "rows",
+        "decode calls/hits"
+      ],
+      "scope": "same exact preserved R103 metadata, missing media not reconstructed; warm All oracle DTO held equally; this is Catalog call cost not HTTP latency, RSS/heap/peak not measured",
+      "counter3": "before second canonical serialization; after exact comparison of canonical already produced inside parse",
+      "parserOracleCases": 76,
+      "parserTranscriptSha256": "f22c8305be2f70685ccea228d358f3cb7616a2544a9dd0dc2e72360859fe902c"
+    },
+    "costScope": "Same R103 preserved metadata-only142 files33881490B, missing MP4s remain missing; metadata path does not read them. Fresh copies,304/channel,3warm calls/channel,609decodes482hits127misses each. Before is explicit source+diagnostic freeze, not historicalR103 timing. All-oracle caller DTO held equally; logical owner charges are not heap/RSS peak. No concurrent compilation.",
+    "limitations": "Direct mean reduction158.566410→104.227472ms is not proof of mixed request/timeout resolution."
+  },
+  "failuresAndCorrections": {
+    "details": "commands.json and original logs/review files",
+    "items": [
+      "Selector no-slow missing-end footer expected RED corrected and rerun.",
+      "Intermediate diagnostic counter units caught and corrected before cause run; final4-field source reviewed.",
+      "Native cost helper isolation rejected pre-init without explicit own environment; corrected own cwd/environment only.",
+      "Linux trace tmpfs noexec exit126 preserved; exec build tmpfs corrected, uid/network/readonly isolation unchanged.",
+      "Derived analysis firstFailure naming corrected to separate HTTP error from no-workspace-failure; raw evidence unchanged."
+    ]
+  },
+  "runs": {
+    "cause900": {
+      "attempts": 1,
+      "source": {
+        "head": "70a6dbf5f17b7443bda16970fd45e2532987c9da",
+        "fixtureProfile": "continuous-r98",
+        "fixtureProfileSourceSha256": "db080d7271ee2f6ec82ff130ff9a92a87669b0722c05bb7f49d48197f1fb4249",
+        "tree": "71d725a2baafc3bed2dbb3e1e9a49474447c9abb",
+        "sourceSha256": "30119c5aa41c22d3c8240ad59262f21c3612ace0af17c1b8d517e847323a5811",
+        "binarySha256": "b9310dc97bff16b4e5bf3619de4afe7dc64d1654727d11a20562fb47c930f763"
+      },
+      "sourceEndEqual": true,
+      "exit": 1,
+      "wrapperElapsedSeconds": 290.58982383296825,
+      "lastCompleteObservationSpanMs": 275231.715833,
+      "sampleCount": 56,
+      "firstFailure": {
+        "status": "failed",
+        "primary": "observer-collector-unavailable",
+        "decision": null,
+        "collectorDiagnostic": {
+          "exitCode": 1,
+          "spawnCode": null,
+          "signal": null,
+          "killed": false,
+          "stdoutBytes": 904,
+          "measurement": {
+            "pid": 92710,
+            "startIdentity": null,
+            "rssBytes": null,
+            "threadCount": null,
+            "fdCount": null,
+            "anonymousFileBytes": null,
+            "anonymousAllocatedBytes": null,
+            "anonymousFiles": null,
+            "footprintBytes": null,
+            "sampledAt": 1791865434339,
+            "valid": false,
+            "error": "fd-observation-incomplete:capacity=0:closed=4",
+            "fdObservation": {
+              "scope": "complete-round-sequential-v1",
+              "complete": false,
+              "startIdentity": "macos:1791865152:694093",
+              "startedAt": 1791865434339,
+              "completedAt": 1791865434339,
+              "roundStartedAt": 1791865434339,
+              "roundCompletedAt": 0,
+              "rounds": 4,
+              "capacityRetries": 0,
+              "closedRetries": 4,
+              "detailCalls": 54,
+              "failures": [
+                {
+                  "fd": 31,
+                  "listedType": 1,
+                  "returned": 0,
+                  "errno": 9,
+                  "nextType": 0,
+                  "at": 1791865434339
+                },
+                {
+                  "fd": 34,
+                  "listedType": 1,
+                  "returned": 0,
+                  "errno": 9,
+                  "nextType": 0,
+                  "at": 1791865434339
+                },
+                {
+                  "fd": 31,
+                  "listedType": 1,
+                  "returned": 0,
+                  "errno": 9,
+                  "nextType": 0,
+                  "at": 1791865434339
+                },
+                {
+                  "fd": 34,
+                  "listedType": 1,
+                  "returned": 0,
+                  "errno": 9,
+                  "nextType": -1,
+                  "at": 1791865434339
+                }
+              ]
+            }
+          }
+        },
+        "context": {
+          "kind": "status-metrics",
+          "pid": 92710,
+          "measurementStartedAt": 284585.726292,
+          "failedAt": 284587.854583
+        },
+        "collectionError": null,
+        "capacityBytes": 32768
+      },
+      "full900Completed": false,
+      "verifiedDurationMs": null,
+      "aCompleted": 5,
+      "processesClosed": true,
+      "udpClosed": true,
+      "groupAbsent": true,
+      "registeredGroupsAbsent": true,
+      "resourceTrendPass": false,
+      "reviewRequired": true,
+      "explicitDisableClosedJournal": "not-run-after-error",
+      "scope": "collector failure is not space excess/search timeout/leak proof; later storage/owner0 do not replace first operands; no retry"
+    },
+    "after900": {
+      "attempts": 1,
+      "status": "FAIL",
+      "exit": 1,
+      "full900": false,
+      "firstFailure": "current observation: http-header-timeout",
+      "wrapperSeconds": 667.1545498329215,
+      "totalWithFinalBindingSeconds": 667.4251329170074,
+      "lastProgressElapsedMs": 646603.675625,
+      "lastResourceSpanMs": 646381.630542,
+      "search": {
+        "originalSuccessPopulation": 172,
+        "partialP95MsCeil": 3816.9408330000006,
+        "partialMaxMs": 3954.169041000074,
+        "finalLatencyGateExecuted": false,
+        "populations": "172 saved successes =86 structured+86 visual from completed batches. Structured raw200 total99 includes11 A auxiliary requests and2 successful structured responses in the failed parallel batch, excluded from the172 array. Raw visual86 client200 plus2 timeouts; product88 completions are86 server200+2 late503, not88 client successes.",
+        "rawStructured200": 99,
+        "rawVisual200": 86,
+        "productCompletion": [
+          {
+            "started": 88,
+            "completed": 88
+          }
+        ],
+        "lateProductFailures": [
+          {
+            "id": 87,
+            "status": 503,
+            "code": "visual-search-unavailable",
+            "elapsedMs": 5316.943792,
+            "catalogWaitMs": 4676.836049,
+            "catalogHeldMs": 468.121073
+          },
+          {
+            "id": 88,
+            "status": 503,
+            "code": "visual-search-unavailable",
+            "elapsedMs": 5326.903625,
+            "catalogWaitMs": 4606.293514,
+            "catalogHeldMs": 496.640037
+          }
+        ],
+        "limit": "Partial successful p95 already exceeds2000ms, but first terminating failure is client header timeout; the final latency assertion did not execute. Completion/error metrics do not turn client timeouts into successes."
+      },
+      "selectedHolder": {
+        "request": 53,
+        "elapsedNs": 2088219167,
+        "records": 1712,
+        "loss": false,
+        "inflight": 0,
+        "waitBreakdown": {
+          "waitNs": 1093218673,
+          "coveredUnionNs": 935161542,
+          "unclassifiedNs": 158057131,
+          "overlapByWorkNs": {
+            "4": 70230711,
+            "1": 522060505,
+            "0": 158659242,
+            "3": 100603917,
+            "5": 83607167
+          },
+          "matchesSavedWindow": true
+        },
+        "scope": "Complete bounded selected slow200 request53 only. Completion-CAS selection, lossfalse/inflight0 and overwrittenEnd before begin; raw1712 events agree with saved artifact. No holder evidence for timeout87/88; their blocking peer work cannot be reconstructed.",
+        "detail": "after-analysis.json + original catalog-holders-96259.json; work0 measured but untagged, separate from timing gap"
+      },
+      "progress": {
+        "evidenceCycles": 42,
+        "generalEvidenceComplete": 42,
+        "visualEvidenceCreated": 42,
+        "aCompleted": 11,
+        "windows": [
+          {
+            "structured": 380,
+            "visual": 760,
+            "evidence": 19,
+            "visualEvidence": 19
+          },
+          {
+            "structured": 400,
+            "visual": 800,
+            "evidence": 20,
+            "visualEvidence": 20
+          },
+          {
+            "structured": 60,
+            "visual": 120,
+            "evidence": 3,
+            "visualEvidence": 3
+          }
+        ],
+        "lastDrainedPrefix": {
+          "9101": {
+            "finalized": 322,
+            "deleted": 0
+          },
+          "9201": {
+            "finalized": 322,
+            "deleted": 0
+          }
+        },
+        "limit": "Last drained prefix is not a final closed-journal total. This mode explicitly allowed zero deletion; no new deletion exemption inferred for other modes."
+      },
+      "resources": {
+        "samples": 130,
+        "allCompleteSingleRoundScope": true,
+        "roundCounts": {
+          "1": 125,
+          "2": 5
+        },
+        "rssSampleMaxBytes": 3219914752,
+        "footprintSampleMaxBytes": 3171241248,
+        "anonymousLogicalSampleMaxBytes": 45007872,
+        "anonymousAllocatedSampleMaxBytes": 45895680,
+        "maximaLimit": "Different sample maxima are not summed; sequential FD/root/owner readings are not an atomic peak or total heap proof.",
+        "resourceTrendPass": false,
+        "reviewRequired": true,
+        "postWarmup": {
+          "status": "observed",
+          "sampleCount": 70,
+          "delta": {
+            "rssBytes": 32833536,
+            "threadCount": -3,
+            "fdCount": -1,
+            "mutationCount": 692
+          },
+          "elapsedMs": 346126.253917,
+          "rssMiBPerMinute": 5.4279326654328806
+        },
+        "memoryConclusion": "Observed post-warmup growth is a remaining review signal, not proof of leak or no leak. No workspace failure observed in this partial run, not full-duration budget certification.",
+        "ownerRawCount": 134,
+        "ownerContiguousSequences": true,
+        "finalOwner": {
+          "pid": 96259,
+          "seq": 133,
+          "phase": "after-storage-destruction",
+          "elapsedMs": 658132,
+          "ram": 0,
+          "ramPeak": 398732386,
+          "ramLimit": 671088640,
+          "ramRejected": 0,
+          "scratchDisk": 0,
+          "scratchDiskPeak": 70729728,
+          "scratchDiskLimit": 155534204928,
+          "scratchFd": 0,
+          "scratchFdPeak": 16,
+          "scratchFdLimit": 1048572,
+          "scratchRam": 0,
+          "preservedDisk": 0,
+          "preservedFd": 0,
+          "readerCleanupHealthy": true
+        },
+        "privateCaptureBytes": 526907,
+        "privateCaptureHashMatchesParent": true,
+        "privateCaptureOverflow": false,
+        "frameSummary": {
+          "status": "captured",
+          "mode": "bounded",
+          "required": true,
+          "records": 3,
+          "successes": 3,
+          "failures": 0,
+          "issues": []
+        }
+      },
+      "shutdown": {
+        "processReceipt": {
+          "schema": "recording-process-cleanup-v1",
+          "attemptCount": 1,
+          "pid": 96259,
+          "exitCode": 0,
+          "signalCode": null,
+          "exitedObserved": true,
+          "stopCode": "complete",
+          "forcedTermination": "not-used",
+          "normalExitPass": true,
+          "normalShutdownPass": true,
+          "archiveSafe": true,
+          "ports": [
+            {
+              "kind": "http",
+              "port": 50334,
+              "status": "pass",
+              "code": "closed",
+              "closed": true
+            },
+            {
+              "kind": "rtsp",
+              "port": 50335,
+              "status": "pass",
+              "code": "closed",
+              "closed": true
+            }
+          ]
+        },
+        "processesClosed": true,
+        "udpClosed": true,
+        "wrapperGroupAbsent": true,
+        "registeredGroupsAbsent": true,
+        "cleanupErrors": [],
+        "explicitDisableClosedJournal": "not run after failure; finally normal shutdown/owner0 is not equivalent",
+        "ownedRootDisposition": "Still preserved for evidence review. Filesystem root cleanup pending; historical process receipts are not a fresh live system inspection."
+      }
+    },
+    "state45": {
+      "attempts": 0,
+      "status": "not-run-prerequisite-failed"
+    },
+    "final120": {
+      "attempts": 0,
+      "status": "not-authorized-not-run"
+    },
+    "timingFieldMapping": {
+      "archivedDerivedWrapperFields": "cause900-analysis.wrapperElapsedSeconds and after-analysis.wrapperSeconds refer to execution.json.executionElapsedSeconds (child execution), not elapsedSeconds including wrapper cleanup. Original records retained.",
+      "cause": {
+        "executionElapsedSeconds": 290.58982383296825,
+        "elapsedSeconds": 290.5909555419348,
+        "totalWithFinalBindingSeconds": 290.98391800001264
+      },
+      "after": {
+        "executionElapsedSeconds": 667.1536722499877,
+        "elapsedSeconds": 667.1545498329215,
+        "totalWithFinalBindingSeconds": 667.4251329170074
+      }
+    }
+  },
+  "interpretation": {
+    "confirmed": "Repeated strict mapping parse/canonical cost reduced with same outputs and charges; complete representative slow200 request53 identified multiple competing holders.",
+    "unconfirmed": "Later timeout87/88 each waits4.6-4.7s for Catalog; selected53 does not attribute their peer work. Full continuous latency criterion remains unsatisfied. Cause collector failure is not FD leak, space failure or search failure evidence.",
+    "blockers": [
+      "After900 HTTPtimeout and partial original-success p95>2000ms; full900/final gates absent.",
+      "Timeout87/88 peer holder attribution unobserved.",
+      "45 ineligible; memoryP0/final120/release hold maintained."
+    ],
+    "comparison": "No controlled inference from differing mixed input states or partialp95. Sequential sample maxima not summed as one peak. Owner0 does not prove no leak."
+  },
+  "binding": {
+    "legacyCandidate": "986 body unchanged; not new product approval",
+    "producer": 51,
+    "readback": "986/0failures; implementation15/15negative cases; coverage9checks/986covered/0missing",
+    "inventory": 18,
+    "scriptInventory": 13,
+    "semanticChange": "inventorySha256 only via existing producer after independent review; formatting preserved with semantic equality receipt",
+    "receipt": "binding-receipt.json",
+    "independent": "104-independent-review.json + change/entry reviews in archive; direct correctness and mixed outcome separate"
+  },
+  "preservation": {
+    "path": "docs/release-artifacts/v4.5.0/104-execution.tar.gz",
+    "bytes": 16813699,
+    "sha256": "1fac64dbb7a51f64e9d5061c8085635d39ab3a3e42e5f8c49f3d7ee9dff6401b",
+    "members": 343,
+    "memberBytes": 57246613,
+    "omittedMediaCount": 930,
+    "sanitization": [
+      {
+        "original": "cause900/media-server-current-observer-u4MlaB/server-1.private.log",
+        "originalBytes": 126577,
+        "originalSha256": "0b20df8b0aed37f5b91922f0fda88e89e3760f7dc986dcba9421d6039c23fbc2",
+        "preserved": "cause900/media-server-current-observer-u4MlaB/server-1.sanitized.log",
+        "preservedBytes": 127002,
+        "preservedSha256": "6a2880dad7e2b749d38854f8996932d41cfbd052e8d63215a48d9d476bb85a9c",
+        "redactedLines": 8,
+        "relation": "line replacement, not identical bytes; original not uploaded"
+      },
+      {
+        "original": "after900/media-server-current-observer-jLdH5U/server-1.private.log",
+        "originalBytes": 526907,
+        "originalSha256": "16106caf2c4738b7739b9058b8f6dc3914632341376d8732a5a11e4a71113da1",
+        "preserved": "after900/media-server-current-observer-jLdH5U/server-1.sanitized.log",
+        "preservedBytes": 527332,
+        "preservedSha256": "169dc33d5c5dc10c8b9b0f3ecd45f23055ce0d945f1bc1059373bfe9f3ebecea",
+        "redactedLines": 8,
+        "relation": "line replacement, not identical bytes; original not uploaded"
+      }
+    ],
+    "memberReadback": "all byte-identical to selected originals or explicitly transformed bytes"
+  },
+  "cleanup": {
+    "product": "Both runs normal finally exit0, groups/ports absent per receipts; explicit disable/closed journal not run after failure.",
+    "temporaryRoot": "Pending remote preservation then owned cleanup; final status in104-cleanup.json",
+    "userConfigurationAndPrivate95Backup": "not accessed/modified/archived/cleaned",
+    "modelsSdkImages": "retained",
+    "qwenOllamaCalls": 0,
+    "unloadGate": "not-run"
+  },
+  "release": {
+    "memoryP0": "BLOCKED",
+    "ownerRiskAcceptance": "not-granted",
+    "finalAdoption": "not-performed",
+    "PR_CI_merge_tag_release": "not-performed"
+  },
+  "static": {
+    "json": "PASS",
+    "current104Links": "PASS",
+    "archiveManifestReadback": "342members+manifest PASS",
+    "diffCheck": "PASS",
+    "productTests": "Existing exact final-source results reused; no new product run"
+  }
+}

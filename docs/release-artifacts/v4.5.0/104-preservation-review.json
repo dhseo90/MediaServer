@@ -1,0 +1,112 @@
+{
+  "schema": "r104-independent-preservation-review-v1",
+  "reviewedAt": "2026-10-13T05:20:48.332284+00:00",
+  "reviewer": "independent_memory86",
+  "model": {
+    "requested": "gpt-6-astra/high",
+    "priorToolAcceptance": "Prior separate reviewer acceptance reused per handoff, no new runtime verification",
+    "actualRuntime": "unexposed/unconfirmed"
+  },
+  "scope": "Narrow read-only current104 validation/copied independent review/backlog summary and selected archive bytes/manifest/transforms. Only this preservation report written; no product/test execution or implementation, no delegation, no user settings/private95 backup access.",
+  "status": "SELECTED_LOCAL_PRESERVATION_AND_RESULT_DOCUMENTS_CONSISTENT_REMOTE_AND_OWNED_CLEANUP_PENDING",
+  "blockingFindings": [],
+  "archive": {
+    "path": "docs/release-artifacts/v4.5.0/104-execution.tar.gz",
+    "compressedBytes": 16813699,
+    "sha256": "1fac64dbb7a51f64e9d5061c8085635d39ab3a3e42e5f8c49f3d7ee9dff6401b",
+    "members": 343,
+    "memberBytesIncludingManifest": 57246613,
+    "payloadMembersChecked": 342,
+    "manifestSha256": "17e0c8bdf0c03bfd3601e0c457b2992afd8dc8270431bf33cb898fe1a781c69c",
+    "untransformedSelectedOriginalsCompared": 340,
+    "memberHashOrOriginalMismatches": [],
+    "memberSetMatchesManifest": true,
+    "allRegularContainedMembers": true,
+    "transformChecks": [
+      {
+        "preserved": "cause900/media-server-current-observer-u4MlaB/server-1.sanitized.log",
+        "originalHashMatches": true,
+        "preservedHashMatches": true,
+        "originalBytes": 126577,
+        "preservedBytes": 127002,
+        "sameLineCount": true,
+        "changedLines": 8,
+        "changedOriginalsContainURL": true,
+        "diagnosticRowsExactEqual": true,
+        "relation": "Explicitly transformed bytes, never represented as original private log bytes."
+      },
+      {
+        "preserved": "after900/media-server-current-observer-jLdH5U/server-1.sanitized.log",
+        "originalHashMatches": true,
+        "preservedHashMatches": true,
+        "originalBytes": 526907,
+        "preservedBytes": 527332,
+        "sameLineCount": true,
+        "changedLines": 8,
+        "changedOriginalsContainURL": true,
+        "diagnosticRowsExactEqual": true,
+        "relation": "Explicitly transformed bytes, never represented as original private log bytes."
+      }
+    ]
+  },
+  "selectionScope": {
+    "omittedMp4HashOnly": 930,
+    "omittedHelperHashOnly": 8,
+    "limit": "930 MP4 files and8 helpers are hash-only omissions. Archive preserves selected metadata/logs/evidence, not every execution byte or a reconstructable complete recording store. Old103 archive/raw clone trees and build/model binaries were not newly duplicated. Cost input provenance references preserved103 metadata; omitted media were not reconstructed.",
+    "requiredScopePreserved": "Both executions/report/run logs, after holder artifact, original failures and diagnostic corrections, parser before/after sources/transcripts, final regression/binding outputs, implementation/freeze records and existing independent decisions were observed in selected member manifest."
+  },
+  "privacyReview": {
+    "restrictedMemberOrExecutableFindings": [],
+    "credentialPatternMatchedFiles": [],
+    "boundary": "Checked archive names/content for private server-log members, common auth/source/view state files, executable headers, credential-bearing URL/Bearer/private-key patterns. None found. This is a scoped evidence/privacy check, not proof of absence of every possible secret. User configuration/private95 backup were not opened. Source/build command paths and original-file hashes are provenance metadata, not uploaded private configuration content.",
+    "urlTransform": "Two logs preserve original/saved hashes and change exactly8 URL-bearing lines each; diagnostic rows and total line counts unchanged. No private original is an archive member."
+  },
+  "documentation": {
+    "validationSha256": "f4c284ac158a8b3b097f2f49bc0a0fbb00a102e83080bb4492517d3c357da265",
+    "independentReviewSha256": "59c4f4bf3437741aaddd6d6af884d10a30bcd4099faa6b0325fe943f0d14997f",
+    "copiedReviewMatchesOriginal": true,
+    "backlogSha256": "d017bfbd1b8a390e972e4e13007a58b68b206a39eb302999036452f89b633a62",
+    "resultAgreement": [
+      "After900 onceFAIL at HTTP header timeout;172 successful partial p95=3816.941ms, no final latency/disable/closed-journal assertions.",
+      "Selected53 complete1712holder evidence does not identify timeout87/88 peer work; cause900 independent collectorFAIL remains.",
+      "Direct158.566→104.227ms metadata-call improvement and related regression acceptance remain limited; no mixed resolution or universal RAM/no-leak conclusion.",
+      "45 attempts0 and ineligible;120/UI/P0/release hold; requested/previous accepted/unexposed actual model separated.",
+      "Resource span646381.630542ms and last progress646603.675625ms separated from failure time."
+    ],
+    "timingFieldMappingReadback": {
+      "archivedDerivedWrapperFields": "cause900-analysis.wrapperElapsedSeconds and after-analysis.wrapperSeconds refer to execution.json.executionElapsedSeconds (child execution), not elapsedSeconds including wrapper cleanup. Original records retained.",
+      "cause": {
+        "executionElapsedSeconds": 290.58982383296825,
+        "elapsedSeconds": 290.5909555419348,
+        "totalWithFinalBindingSeconds": 290.98391800001264
+      },
+      "after": {
+        "executionElapsedSeconds": 667.1536722499877,
+        "elapsedSeconds": 667.1545498329215,
+        "totalWithFinalBindingSeconds": 667.4251329170074
+      }
+    },
+    "timingConclusion": "Correct current mapping: executionElapsedSeconds is child execution duration; elapsedSeconds includes wrapper cleanup; totalWithFinalBindingSeconds adds final binding. Prior derived wrapper labels are historical and explicitly mapped, not silently rewritten.",
+    "staticReceiptScope": {
+      "json": "PASS",
+      "current104Links": "PASS",
+      "archiveManifestReadback": "342members+manifest PASS",
+      "diffCheck": "PASS",
+      "productTests": "Existing exact final-source results reused; no new product run"
+    },
+    "staticLimit": "Reviewed saved statements and byte relationships; reviewer did not execute link/schema/diff/product checks."
+  },
+  "closeout": {
+    "localSelectedArchive": "readback complete at review",
+    "implementationCommit": "53b2e3f15743a7491267f1bcc4996cdb4c0c1d8e",
+    "evidenceGitCommit": "pending/unverified at this review",
+    "remotePreservation": "pending; entry remote observation is not new evidence preservation",
+    "ownedFilesystemCleanup": "pending; earlier normal process/ports/group receipts do not establish root removal",
+    "remaining": [
+      "Actual Git selected-byte readback and remote preservation receipt.",
+      "Ownership-checked root cleanup after preservation and absence receipt.",
+      "Final documentation/cleanup record commit and normal push, separately confirmed."
+    ],
+    "executionOrReleaseAuthority": "None added; preserving FAIL does not approve another run or release."
+  }
+}
