@@ -45,6 +45,7 @@ int main(int argc,char**argv){try{
     Check(source.Collect({"visual-channel"},10,&sparse,&coverage,&error)&&sparse.size()==1,"sample period spans file boundaries in the same epoch");
     Check(!source.Collect({"visual-channel"},0,&docs,&coverage,&error),"invalid period");
     Check(!source.Collect({"visual-channel"},1,&docs,&coverage,&error,[]{return true;}),"cancel collection");
+    Check(!source.Collect({"other-channel"},1,&docs,&coverage,&error,[]{return true;})&&error=="visual-cancelled","R106 empty selected keys still honour cancellation");
     // 검증 객체는 같은 요청에서만 재사용하며, 조립 중 hold와 파일 변경 거부를 함께 확인한다.
     const auto deadline=std::chrono::steady_clock::now()+std::chrono::seconds(5);
     auto prepared=source.Prepare(docs.front(),&error,{},deadline);Check(bool(prepared),"prepare verified source: "+error);

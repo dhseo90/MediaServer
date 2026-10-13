@@ -6,6 +6,8 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
+#include <future>
+#include "recording/recording_read_service.h"
 #include "../../src/recording/recording_catalog_history.h"
 namespace recording {
 struct RecordingGenerationRequestProofProbe {
@@ -13,6 +15,19 @@ struct RecordingGenerationRequestProofProbe {
         std::lock_guard lock(c.mu_);if(path)c.media_relpaths_.Set(id,*path);else c.media_relpaths_.erase(id);
     }
     using Context=RecordingCatalog::JobReadContext;
+    using SourceContext=RecordingCatalog::SourceBindingReadContext;
+    static std::vector<std::string> SourceKeys(RecordingCatalog& c){
+        std::vector<RecordingCatalog::VisualSourceKey> keys;std::map<std::string,std::size_t> legacy;
+        if(!c.CaptureVisualSourceKeys({"channel"},&keys,&legacy,&error))return {};
+        std::vector<std::string> result;for(const auto& key:keys)result.push_back(key.id);
+        std::sort(result.begin(),result.end());return result;
+    }
+    static void AcquireHook(std::function<void()> hook){RecordingCatalog::source_binding_acquire_hook_=std::move(hook);}
+    static std::string SourceCached(RecordingCatalog& c,SourceContext* context,bool* same_cut){
+        latency::Lock lock(c.mu_,latency::Source::Catalog,__LINE__,false,__func__);
+        const auto value=c.ReadSourceBindingLocked("segment",context,&error,nullptr,same_cut);
+        return value?SerializeRecordingSourceBindingV1(*value):std::string{};
+    }
     static void SourceHook(std::function<void()> hook){RecordingCatalog::source_binding_unlocked_hook_=std::move(hook);}
     static std::string Source(RecordingCatalog& c){RecordingCatalog::SourceBindingReadContext context;auto value=c.ReadSourceBinding("segment",&context,&error);return value?SerializeRecordingSourceBindingV1(*value):std::string{};}
 
@@ -170,6 +185,7 @@ void SourceReadCases(const std::filesystem::path& root){
         for(const auto& output:complete.job.ready->outputs)expected_ids.push_back(output.segment.segment_id);
         std::sort(expected_ids.begin(),expected_ids.end());
         Check("V450-MEM101-S04",catalog.FinalizedSegmentIdsForStartup()==expected_ids,"same-cut source/output startup list equals independent fixture IDs");
+        Check("R106-P01",ProofProbe::SourceKeys(catalog)==expected_ids,"metadata scan preserves all independent finalized source/output IDs");
         unsigned calls=0;const auto used=catalog.SearchResidency()->used();
         const auto peak=catalog.SearchResidency()->peak();(void)peak;
         ProofProbe::SourceHook([&]{
@@ -189,8 +205,52 @@ void SourceReadCases(const std::filesystem::path& root){
         if(mode=="memory")Check("V450-MEM101-S02",owner.HasManagedLease()&&ProofProbe::Source(catalog)==expected,"transient resource failure preserves authority and next request");
         if(mode=="delete")Check("V450-MEM101-S02",owner.HasManagedLease(),"ordinary concurrent deletion does not poison authority");
         if(mode=="delete")expected_ids.erase(std::remove(expected_ids.begin(),expected_ids.end(),"segment"),expected_ids.end());
-        if(mode!="tamper")Check("V450-MEM101-S04",catalog.FinalizedSegmentIdsForStartup()==expected_ids,"append/checkpoint/pending deletion preserve exact startup membership");
+        if(mode!="tamper"){
+            Check("V450-MEM101-S04",catalog.FinalizedSegmentIdsForStartup()==expected_ids,"append/checkpoint/pending deletion preserve exact startup membership");
+            Check("R106-P01",ProofProbe::SourceKeys(catalog)==expected_ids,"metadata keys preserve append/checkpoint/pending deletion membership");
+        }
         if(mode=="tamper")Check("V450-MEM101-S02",!owner.HasManagedLease(),"actual original damage loses authority");
+    }
+}
+void SharedSourceReadCases(const std::filesystem::path& root){
+    for(const std::string mode:{"progress","delete","resource"}){
+        const auto path=root/mode;std::filesystem::create_directories(path);CompleteFixture(path);
+        RecordingJournal owner(Options(path));Need(owner.Open(&error));auto options=ReadOptions(path);options.enable_generation_writes=true;
+        RecordingCatalog catalog(owner,options);Need(catalog.Open(&error));
+        const auto expected=SerializeRecordingSourceBindingV1(*CompleteInput().source.binding);
+        std::promise<void> entered,resume;auto ready=entered.get_future();const auto released=resume.get_future().share();
+        std::string result;std::exception_ptr failure;
+        std::thread reader([&]{try{ProofProbe::AcquireHook([&]{ProofProbe::AcquireHook({});entered.set_value();released.wait();if(mode=="resource")throw RecordingResourceUnavailable();});
+            result=ProofProbe::Source(catalog);
+        }catch(...){failure=std::current_exception();}ProofProbe::AcquireHook({});});
+        struct ResumeJoin {std::promise<void>& signal;std::thread& thread;bool sent=false;void Release(){if(!sent){signal.set_value();sent=true;}}~ResumeJoin(){Release();if(thread.joinable())thread.join();}} guard{resume,reader};
+        Need(ready.wait_for(std::chrono::seconds(3))==std::future_status::ready);
+        // The blocked work is source acquisition itself, not a paused product
+        // worker used to manufacture an end-to-end performance result.
+        auto progress=std::async(std::launch::async,[&]{std::string detail;
+            const auto original=catalog.FindSegmentV2ById("segment");RecordingOrderReservationV1 order;
+            RecordingReadService search(catalog);RecordingTimelineResult timeline;
+            return original&&search.QuerySearchTimeline("channel",0,5000,&timeline,&detail)&&catalog.ReserveRecordingOrder("store","concurrent-order","concurrent-segment","other",&order,&detail);
+        });
+        const bool moved=progress.wait_for(std::chrono::seconds(3))==std::future_status::ready;
+        if(!moved){guard.Release();reader.join();}
+        const bool progressed=progress.get();
+        Check("R106-P01",moved,"source cold acquisition latch permits real search timeline and durable writer reservation");
+        if(!moved)throw std::runtime_error("source acquisition blocked concurrent progress");
+        Need(progressed);
+        if(mode=="delete")Need(catalog.RequestDeletion("segment","continuous-capacity",&error));
+        else Need(catalog.Checkpoint(&error));
+        guard.Release();reader.join();if(failure)std::rethrow_exception(failure);
+        Check("R106-P01",mode=="progress"?result==expected:result.empty(),"final source check preserves checkpoint or rejects deletion/resource without stale publication");
+        Check("R106-P01",owner.HasManagedLease(),"normal mutation and resource rejection preserve original authority");
+        if(mode!="delete"){
+            ProofProbe::SourceContext context;bool same=false;
+            Check("R106-P01",ProofProbe::SourceCached(catalog,&context,&same)==expected&&!same,"fresh source read reports released Catalog cut");
+            Check("R106-P01",ProofProbe::SourceCached(catalog,&context,&same)==expected&&same,"authenticated same-cut hit reports continuous lock without a new raw bypass");
+            Need(catalog.RequestDeletion("segment","continuous-capacity",&error));
+            Check("R106-P01",ProofProbe::SourceCached(catalog,&context,&same).empty()&&!same,"cached source never survives related current deletion");
+        }
+        Need(owner.Finish(&error));
     }
 }
 void ActiveProofCases(const std::filesystem::path& root){
@@ -317,7 +377,7 @@ int main(int argc,char** argv){
         RecordingJournal j(Options(root));Check("B08-Q04",j.Open(&error),"v1 remains available in unsupported B build");
 #endif
 #if MEDIA_SERVER_USE_OPENSSL && MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND
-        SourceReadCases(root/"source-read");
+        SourceReadCases(root/"source-read");SharedSourceReadCases(root/"shared-source-read");
         VerifiedDecodeCases();
         RetentionPathCases(root/"retention-path");
         RetentionPrefixCases(root/"retention-prefix");

@@ -63,29 +63,24 @@ bool RecordingVisualSource::Collect(const std::vector<std::string>& channels,uns
     RecordingCatalogStatusSnapshot status;if(!catalog_.SnapshotStatus(&status,error))return false;
     std::map<std::string,VisualSourceCoverage> counts;for(const auto& c:allowed)counts[c]={};
     std::vector<VisualSearchDocument> docs;
-    using Key=std::tuple<std::string,std::string,std::int64_t,std::string>;
-    std::vector<Key> ordered;
-    for(const auto& id:catalog_.FinalizedSegmentIdsForStartup()){
-        if(cancelled&&cancelled())return Fail(error,"visual-cancelled");
-        const auto segment=catalog_.FindSegmentV2ById(id);
-        if(!segment){const auto legacy=catalog_.FindSegmentById(id);if(legacy&&allowed.count(legacy->channel_id)){
-            ++counts[legacy->channel_id].examined_segments;++counts[legacy->channel_id].unsupported_segments;}continue;}
-        if(!allowed.count(segment->channel_id))continue;
-        if(ordered.size()>=100000)return Fail(error,"visual-index-capacity");
-        ordered.emplace_back(segment->channel_id,segment->media_epoch_id,segment->media_start_pts,id);
-    }
-    std::sort(ordered.begin(),ordered.end());
+    std::vector<RecordingCatalog::VisualSourceKey> ordered;std::map<std::string,std::size_t> legacy;
+    if(!catalog_.CaptureVisualSourceKeys(allowed,&ordered,&legacy,error))return false;
+    if(cancelled&&cancelled())return Fail(error,"visual-cancelled");
+    for(const auto& [channel,count]:legacy){counts[channel].examined_segments+=count;counts[channel].unsupported_segments+=count;}
+    std::sort(ordered.begin(),ordered.end(),[](const auto& a,const auto& b){
+        return std::tie(a.channel,a.epoch,a.start,a.id)<std::tie(b.channel,b.epoch,b.start,b.id);
+    });
     std::map<std::pair<std::string,std::string>,std::int64_t> last;
     for(const auto& key:ordered){
         if(cancelled&&cancelled())return Fail(error,"visual-cancelled");
-        const auto& id=std::get<3>(key);const auto segment=catalog_.FindSegmentV2ById(id);
-        if(!segment||segment->channel_id!=std::get<0>(key)||segment->media_epoch_id!=std::get<1>(key))return Fail(error,"visual-source-changed");
-        auto& count=counts[segment->channel_id];++count.examined_segments;
-        if(catalog_.SegmentLifecycleV2(id)!=RecordingLifecycle::Finalized)continue;
-        const auto binding=catalog_.FindSourceBinding(id);std::vector<VisualSearchDocument> rows;std::string reason;
-        const auto epoch=std::make_pair(segment->channel_id,segment->media_epoch_id);
+        RecordingSegmentV2 segment;RecordingCatalog::SourceBindingHandle binding;bool finalized=false;
+        if(!catalog_.ReadVisualSource(key,&segment,&binding,&finalized,error))return false;
+        auto& count=counts[segment.channel_id];++count.examined_segments;
+        if(!finalized)continue;
+        std::vector<VisualSearchDocument> rows;std::string reason;
+        const auto epoch=std::make_pair(segment.channel_id,segment.media_epoch_id);
         const auto previous=last.find(epoch);
-        if(!binding||!SelectSamples(*segment,*binding,period,&rows,&reason,previous==last.end()?std::nullopt:std::optional<std::int64_t>(previous->second))){
+        if(!binding||!SelectSamples(segment,*binding,period,&rows,&reason,previous==last.end()?std::nullopt:std::optional<std::int64_t>(previous->second))){
             if(reason=="visual-index-capacity")return Fail(error,"visual-index-capacity");++count.unsupported_segments;continue;}
         if(rows.size()>20000-docs.size())return Fail(error,"visual-index-capacity");
         if(!rows.empty())last[epoch]=rows.back().media_pts;

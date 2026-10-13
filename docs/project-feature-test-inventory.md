@@ -5061,3 +5061,10 @@ R97-A02는 미선택 대체 후보의 unlink/authority 하드 오류를 거부�
 - 기존 V430-I01-SOURCE/V440-PR77-06의 실제 V2 준비에 일반 V1/fallback 재탐색과 두번째 hold를 중복하지 않는다. 같은 Acquire의 segment/location/hold로 파일 inspect와 native 증명을 수행하되 최종 source binding/current state·파일 identity/mtime/ctime·권한·정확sample 검증은 유지한다. 준비 실패·취소·예외의 hold/FD 해제, 관련 파일/원장 변조·store/lifecycle·채널 변경은 기존 직접 oracle로 거부한다. 후검증·현재 binding 획득과 그 안의 재검증은 그대로 유지한다.
 - 실제 RequestMedia 8MiB/200entry·oversized uncached·eviction/response hold 회귀와 generation proof/consumer 보호를 재사용한다. 같은 source의 여러 sample, 최초 Prepare 후 삭제/교체/변조·취소와 failed-output 불변을 직접 확인한다.
 - before=104 제품, after=새 최종 제품. 기존 contention53 fixture의 single/visual-pair(신규 비용 분리용2visual)/parallel(2structured+2visual)/background를 각각1회,3waves로 비교한다. 기존180초/4MiB/RSS/space/p95≤2000/max≤5000을 유지한다. 고정 순서·동일 모델/계측·새 소유 root를 사용하며 컴파일을 실행과 겹치지 않는다. HTTP·증거/A의 전체효과는 별도 기존900초1회에서 판정한다. static shape/seek metadata를 exhaustive top-k/실제Seek로 확대하지 않는다.
+
+### R106-P01 — 공유 source 읽기와 색인 수집의 점유 경계
+
+- 105 요청69의 같은 mutex holder를 work/callsite/thread/request와 연결해 점유·wait overlap을 분리한다. 인증된 원문·현재 row/source/lifecycle·파일 검증을 유지하고, 긴 원문 획득/파싱·소유 결과 처리를 Catalog 잠금 밖으로 분리한다. current authority와 실제 의존 자료를 최종 재검증하며 cache hit나 revision만으로 원본을 대체하지 않는다.
+- 색인 Collect의 목록/metadata/binding 재획득을 실제 소비자까지 연결한다. 후보 멤버십·새 관련 후보·삭제·잘못된 상위 후보·동점/정확sample 의미와 기존 결과 admission을 유지하고 전체 이력 DTO/cache를 추가하지 않는다.
+- 고정 읽기 준비 latch에서 허용된 검색/쓰기·checkpoint 진행, 관련 삭제/변조/권한/authority 변경 거부, 취소·예외·예약/FD 마지막 해제를 직접 확인한다. 기존 generation proof/consumer와 source/RequestMedia 회귀를 변경 영향에서 재사용한다.
+- 비교는105 최종제품 before와 새 고정 after의53/parallel 및cycle/background 각각1회·3waves, 순서before→after다. 기존180/630초·4MiB·공간/RAM·p95≤2000ms/max≤5000ms를 유지하며 컴파일을 겹치지 않는다. 실제 seed hash와 잔여 입력차이를 기록한다. native 직접 비용은 HTTP·증거/A 지속 효과를 대신하지 않으며, 독립 검토 후 기존900초1회와 조건 충족 시45분1회로 별도 판정한다.

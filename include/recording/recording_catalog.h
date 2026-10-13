@@ -327,6 +327,15 @@ private:
     SourceBindingHandle FindSourceBindingOwnedLocked(const std::string& id) const;
     bool AcquireSourceBindingOwnedLocked(const std::string& id,SourceBindingHandle* out,std::string* error) const;
     friend class RecordingSearchReader;
+    friend class RecordingVisualSource;
+    struct VisualSourceKey {
+        SearchModelResidency::Reservation memory;
+        std::string channel,epoch,id;
+        std::int64_t start{0};
+    };
+    bool CaptureVisualSourceKeys(const std::set<std::string>&,std::vector<VisualSourceKey>*,
+        std::map<std::string,std::size_t>*,std::string*) const;
+    bool ReadVisualSource(const VisualSourceKey&,RecordingSegmentV2*,SourceBindingHandle*,bool*,std::string*) const;
     // 외부 DTO가 아닌 호출 범위 증명. 현재 원장 bytes를 재확인한 뒤 파싱 결과만 재사용한다.
     struct SourceBindingReadContext {
         SearchModelResidency::Reservation memory;
@@ -403,7 +412,7 @@ private:
         std::pair<std::filesystem::path,std::filesystem::path>*,std::string*,JobReadContext*);
     bool ValidateMediaWithContext(const RecordingSegmentV2&,const std::pair<std::filesystem::path,std::filesystem::path>&,JobReadContext*) const;
     bool ValidateMediaLocked(const RecordingSegmentV2&,const std::pair<std::filesystem::path,std::filesystem::path>&,JobReadContext*) const;
-    SourceBindingHandle ReadSourceBindingLocked(const std::string&,SourceBindingReadContext*,std::string*,const RecordingSegmentV2* validated_media=nullptr) const;
+    SourceBindingHandle ReadSourceBindingLocked(const std::string&,SourceBindingReadContext*,std::string*,const RecordingSegmentV2* validated_media=nullptr,bool* continuous_cut=nullptr) const;
     SourceBindingHandle ReadSourceBindingForMedia(const RecordingSegmentV2&,const std::pair<std::filesystem::path,std::filesystem::path>&,SourceBindingReadContext*,std::string*) const;
     friend class RecordingReadService;
     bool ReleaseInactiveDetailsLocked(const std::string* changed,std::string* error);
@@ -539,6 +548,7 @@ private:
 #if MEDIA_SERVER_RECORDING_GENERATION_TESTING
     static thread_local int generation_apply_fault_;
     static thread_local std::function<void()> source_binding_unlocked_hook_;
+    static thread_local std::function<void()> source_binding_acquire_hook_;
     static thread_local void (*generation_checkpoint_prepared_hook_)();
 #endif
     struct CheckpointProjectionCache {
