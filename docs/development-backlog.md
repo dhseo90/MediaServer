@@ -17,15 +17,14 @@
 
 ## v4.5.0 잔여 개발과 릴리즈 순서
 
-[107 하위 Journal 인증 읽기 경계와 열화 상태 직접 대조](release-artifacts/v4.5.0/107-validation.json)는
-전체 archive 인증 중 Journal 잠금을 해제하고 현재 권위·원본 파일을 다시 확인하는 한정 변경이다.
-제어된 내구 쓰기 진행 반례와 macOS/비특권 Linux 회귀는 통과했으나, 같은 종료 원본으로 재구축한
-실제 HTTP·색인·retention·writer 직접 실행은 전후 모두5초 timeout으로 **FAIL**이다.
-선택 요청에서 retention Catalog 대기 중첩은3.257→3.228초로 남았고 Journal 하위 대기는 지배 비용이 아니었다.
-연속106의 cache·reader·증거/A 상태를 복원한 검사는 아니며 실패99/100의 상대 작업도 소급 확정하지 않는다.
-[독립 판단](release-artifacts/v4.5.0/107-independent-review.json)에 따라 **900초 진입 부적격·45/120분 미실행·메모리P0·출시 보류**다.
-retention의 인증된 namespace 순회/상태·경로 결합을 공유 Catalog 잠금에서 처리하는 비용과
-전체 요청·배경 진행 검증이 같은v4.5.0 잔여다. 이번 변경을 지속 혼합 병목 해결로 확대하지 않는다.
+[108 retention snapshot 잠금 점유 보완](release-artifacts/v4.5.0/108-validation.json)은
+고정 scratch의 파싱·상태/경로 결합을 잠금 밖으로 분리하고 현재 원본 인증·변경 자료·보호·예약을 재검증한다.
+같은 결과에서 전체 snapshot 평균은194.182→193.892ms, Catalog 점유는194.172→16.336ms다.
+관련 직접 반례와 macOS/비특권 Linux 회귀는 통과했으나 동일 HTTP는12응답을 모두 받아도
+p95 3543.31ms로 **FAIL**이다. 쓰기6건·새 색인 게시·명시 Finish와 최종 소유 회수는 확인됐고 삭제는0건이다.
+[독립 판단](release-artifacts/v4.5.0/108-independent-review.json)에 따라 **900초 진입 부적격·45/120분 미실행·메모리P0·출시 보류**를 유지한다.
+현재 원본의 전체 raw 인증/clone I/O와 남은 요청 경합·미귀속 대기, 삭제 진행·지속 혼합 응답 검증이 남는다.
+[107 Journal 잠금 분리](release-artifacts/v4.5.0/107-validation.json)의 한정 PASS와 당시 HTTP FAIL은 그대로 유지한다.
 
 [106 공유 Catalog 읽기 경계 보완](release-artifacts/v4.5.0/106-validation.json)은 색인 수집의
 중복 metadata 조회를 줄이고 source cold 획득을 잠금 밖으로 분리하되 현재 원문·권한·소유 검증을 유지했다.

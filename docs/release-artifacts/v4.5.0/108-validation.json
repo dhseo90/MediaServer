@@ -1,0 +1,2157 @@
+{
+  "schema": "media-server.v450.r108.validation.v1",
+  "status": "LIMITED_RETENTION_OCCUPANCY_IMPROVEMENT_HTTP_P95_FAIL_900_INELIGIBLE",
+  "scope": "retention snapshot의 파싱·상태/경로 결합을 Catalog 잠금 밖 immutable owned clone으로 분리. 전체 HTTP 응답 목표는 미충족. 메모리 P0·출시 HOLD.",
+  "model": {
+    "mainRequested": "gpt-6-astra/high",
+    "mainToolAccepted": "not-exposed",
+    "mainActualRuntime": "unconfirmed",
+    "independentRequested": "gpt-6-astra/high",
+    "independentToolAccepted": "existing separate reviewer acceptance reused; followup actual setting not exposed",
+    "independentActualRuntime": "unconfirmed"
+  },
+  "source": {
+    "baseline": "dd41acba8c064fa056f4404d063fbdfc55e3ff56",
+    "commit": "bdec279bb3da0cf969482c36cc607f772d278756",
+    "tree": "99312ee3e5bb02c6eb628f5a3149c95282989cbd",
+    "executedFrozenSourcesUnchanged": true,
+    "executionWasPriorHeadPlusFrozenDiff": true,
+    "freeze": "after2-source-freeze.json",
+    "freezeSha256": "4ab7503387253895657ab8eacc78da89ec67b9c5e30a323a367bceba5c6e3df3",
+    "runtimeSha256": "bf82e26b6783dfa8e84bc92411d2c43b990cb073879985304e8b7147e2ce4f59",
+    "serverSha256": "2909cc84e1934d27ca0931e7572efa9298bcda87657507abe4ddf7bb61ba67c2",
+    "httpBinarySha256": "175fe42a1dd4aeed0a566ea6d7a3a4ff631d9496108a21c5c7c0d2dd3414812e",
+    "fixtureSha256": "b695bfaf63f8bbfda5ff7fcbb01970451e3817c9b293bc13e766a0a8957f642b",
+    "beforeRuntimeSha256": "c77e0ab839c0c799e67f664f15e2c8a5cc24314eba8b4db7190122e39e48fb95",
+    "baselineFullManifest": "baseline-source.json",
+    "noProductOrFixtureEditsDuringFinalMeasurements": true
+  },
+  "reuse107": {
+    "implementation": "9e5bb7766869a5b0a16efaae0deb1e46bb0959a8",
+    "entry": "dd41acba8c064fa056f4404d063fbdfc55e3ff56",
+    "journalUnlockLimitedPassPreserved": true,
+    "historicalHttpFailPreserved": true,
+    "callsiteAnalysisMember": "retention-callsite-analysis.json",
+    "retention18": "동일 thread Channel18회. 실제 프로그램 6periodic×2channels +6writeradmission과 일치; 원문 parent-purpose label 부재로 개별18개 목적배정은 구조적 대응이다. original holder counts는 Journal subcost 기반이며 방문row로 재해석하지 않음.",
+    "closedSeed": "106 종료911files/50664710bytes 동일hash; livecache/readers·실패순간 복원이 아님"
+  },
+  "implementation": {
+    "capture": "existing owner 예약 후 bounded64KiB scratch byte clone·private Catalog view·1024distinct changed-ID 추적. 정상 전체이력 RAM 사본 없음.",
+    "prepare": "same complete namespace cursors/state/path joins off Catalog mutex. clone authenticated raw에 exact bytes 일치할 때만 live existing16MiB decodedcache 공유.",
+    "current": "live8 retention namespace 전체 raw 인증 후 actual changed IDs rebase, 모든 현재hold/job 보호와 durable reservations 갱신. no globalrevision retry.",
+    "caller": "native Catalog snapshot의 같은cut 예약을 다시 조회하던 ReadSnapshot 호출 제거; customprovider는refresh 유지. 삭제/용량/보호 typed최종판정은기존경로.",
+    "ownership": "clone/reader/output/path/reason existing640MiB owner 예약; reader활성1024변경 초과시 readresourcefail, durablewrite는유지. Finish명시호출·최초오류와cleanup오류보존.",
+    "notRemoved": [
+      "capture clone disk I/O remains Catalog-locked",
+      "current8namespace raw hash traversal remains O(history) disk I/O under Catalog lock",
+      "active return DTO remains caller-owned charged memory",
+      "selected request still364 Catalog acquisitions; no global search redesign"
+    ]
+  },
+  "directCost": {
+    "before": {
+      "snapshotMeanMs": 194.1822915,
+      "catalogHeldMeanMs": 194.17215283333334,
+      "measurements": [
+        {
+          "channel": "9101",
+          "iteration": 0,
+          "rows": 372,
+          "elapsedNs": 267292875,
+          "nodeReads": 6658,
+          "digest": "2b4a2b059c9a5b13520a834e172bf4f172af84da5e93c787f6f03248bb6fad67",
+          "ramUsed": 50505178,
+          "decode": [
+            745,
+            496,
+            207127574,
+            105257
+          ]
+        },
+        {
+          "channel": "9101",
+          "iteration": 1,
+          "rows": 372,
+          "elapsedNs": 177905208,
+          "nodeReads": 6658,
+          "digest": "2b4a2b059c9a5b13520a834e172bf4f172af84da5e93c787f6f03248bb6fad67",
+          "ramUsed": 50505178,
+          "decode": [
+            745,
+            496,
+            143292429,
+            79295
+          ]
+        },
+        {
+          "channel": "9101",
+          "iteration": 2,
+          "rows": 372,
+          "elapsedNs": 183482667,
+          "nodeReads": 6658,
+          "digest": "2b4a2b059c9a5b13520a834e172bf4f172af84da5e93c787f6f03248bb6fad67",
+          "ramUsed": 50505178,
+          "decode": [
+            745,
+            496,
+            147832666,
+            93963
+          ]
+        },
+        {
+          "channel": "9201",
+          "iteration": 0,
+          "rows": 372,
+          "elapsedNs": 178877208,
+          "nodeReads": 6658,
+          "digest": "13575fb4bfe27ea08ad846b2f03e112220a7adb431ab3a6d0deebd096f7f83e8",
+          "ramUsed": 50618130,
+          "decode": [
+            745,
+            496,
+            143809958,
+            73672
+          ]
+        },
+        {
+          "channel": "9201",
+          "iteration": 1,
+          "rows": 372,
+          "elapsedNs": 178777000,
+          "nodeReads": 6658,
+          "digest": "13575fb4bfe27ea08ad846b2f03e112220a7adb431ab3a6d0deebd096f7f83e8",
+          "ramUsed": 50618130,
+          "decode": [
+            745,
+            496,
+            144406925,
+            71418
+          ]
+        },
+        {
+          "channel": "9201",
+          "iteration": 2,
+          "rows": 372,
+          "elapsedNs": 178758791,
+          "nodeReads": 6658,
+          "digest": "13575fb4bfe27ea08ad846b2f03e112220a7adb431ab3a6d0deebd096f7f83e8",
+          "ramUsed": 50618130,
+          "decode": [
+            745,
+            496,
+            144585118,
+            73470
+          ]
+        }
+      ],
+      "finish": true
+    },
+    "after": {
+      "snapshotMeanMs": 513.2774098333333,
+      "catalogHeldMeanMs": 16.768271,
+      "measurements": [
+        {
+          "channel": "9101",
+          "iteration": 0,
+          "rows": 372,
+          "elapsedNs": 512963834,
+          "nodeReads": 13390,
+          "digest": "2b4a2b059c9a5b13520a834e172bf4f172af84da5e93c787f6f03248bb6fad67",
+          "ramUsed": 41278850,
+          "decode": [
+            745,
+            0,
+            438845166,
+            207818
+          ]
+        },
+        {
+          "channel": "9101",
+          "iteration": 1,
+          "rows": 372,
+          "elapsedNs": 512304708,
+          "nodeReads": 13390,
+          "digest": "2b4a2b059c9a5b13520a834e172bf4f172af84da5e93c787f6f03248bb6fad67",
+          "ramUsed": 41278850,
+          "decode": [
+            745,
+            0,
+            437629169,
+            203831
+          ]
+        },
+        {
+          "channel": "9101",
+          "iteration": 2,
+          "rows": 372,
+          "elapsedNs": 512858000,
+          "nodeReads": 13390,
+          "digest": "2b4a2b059c9a5b13520a834e172bf4f172af84da5e93c787f6f03248bb6fad67",
+          "ramUsed": 41278850,
+          "decode": [
+            745,
+            0,
+            437158284,
+            209129
+          ]
+        },
+        {
+          "channel": "9201",
+          "iteration": 0,
+          "rows": 372,
+          "elapsedNs": 517170417,
+          "nodeReads": 13390,
+          "digest": "13575fb4bfe27ea08ad846b2f03e112220a7adb431ab3a6d0deebd096f7f83e8",
+          "ramUsed": 41391802,
+          "decode": [
+            745,
+            0,
+            439394753,
+            210702
+          ]
+        },
+        {
+          "channel": "9201",
+          "iteration": 1,
+          "rows": 372,
+          "elapsedNs": 510760375,
+          "nodeReads": 13390,
+          "digest": "13575fb4bfe27ea08ad846b2f03e112220a7adb431ab3a6d0deebd096f7f83e8",
+          "ramUsed": 41391802,
+          "decode": [
+            745,
+            0,
+            437579352,
+            205422
+          ]
+        },
+        {
+          "channel": "9201",
+          "iteration": 2,
+          "rows": 372,
+          "elapsedNs": 513607125,
+          "nodeReads": 13390,
+          "digest": "13575fb4bfe27ea08ad846b2f03e112220a7adb431ab3a6d0deebd096f7f83e8",
+          "ramUsed": 41391802,
+          "decode": [
+            745,
+            0,
+            438725918,
+            221084
+          ]
+        }
+      ],
+      "finish": true
+    },
+    "after2": {
+      "snapshotMeanMs": 193.89222916666665,
+      "catalogHeldMeanMs": 16.335666,
+      "measurements": [
+        {
+          "channel": "9101",
+          "iteration": 0,
+          "rows": 372,
+          "elapsedNs": 194987916,
+          "nodeReads": 13390,
+          "digest": "2b4a2b059c9a5b13520a834e172bf4f172af84da5e93c787f6f03248bb6fad67",
+          "ramUsed": 58048270,
+          "decode": [
+            745,
+            496,
+            144337248,
+            72420
+          ]
+        },
+        {
+          "channel": "9101",
+          "iteration": 1,
+          "rows": 372,
+          "elapsedNs": 192801417,
+          "nodeReads": 13390,
+          "digest": "2b4a2b059c9a5b13520a834e172bf4f172af84da5e93c787f6f03248bb6fad67",
+          "ramUsed": 58048270,
+          "decode": [
+            745,
+            496,
+            142635290,
+            70291
+          ]
+        },
+        {
+          "channel": "9101",
+          "iteration": 2,
+          "rows": 372,
+          "elapsedNs": 195265083,
+          "nodeReads": 13390,
+          "digest": "2b4a2b059c9a5b13520a834e172bf4f172af84da5e93c787f6f03248bb6fad67",
+          "ramUsed": 58048270,
+          "decode": [
+            745,
+            496,
+            143772628,
+            70539
+          ]
+        },
+        {
+          "channel": "9201",
+          "iteration": 0,
+          "rows": 372,
+          "elapsedNs": 193581250,
+          "nodeReads": 13390,
+          "digest": "13575fb4bfe27ea08ad846b2f03e112220a7adb431ab3a6d0deebd096f7f83e8",
+          "ramUsed": 58161222,
+          "decode": [
+            745,
+            496,
+            142859738,
+            70708
+          ]
+        },
+        {
+          "channel": "9201",
+          "iteration": 1,
+          "rows": 372,
+          "elapsedNs": 193904792,
+          "nodeReads": 13390,
+          "digest": "13575fb4bfe27ea08ad846b2f03e112220a7adb431ab3a6d0deebd096f7f83e8",
+          "ramUsed": 58161222,
+          "decode": [
+            745,
+            496,
+            143248663,
+            72046
+          ]
+        },
+        {
+          "channel": "9201",
+          "iteration": 2,
+          "rows": 372,
+          "elapsedNs": 192812917,
+          "nodeReads": 13390,
+          "digest": "13575fb4bfe27ea08ad846b2f03e112220a7adb431ab3a6d0deebd096f7f83e8",
+          "ramUsed": 58161222,
+          "decode": [
+            745,
+            496,
+            142925628,
+            70086
+          ]
+        }
+      ],
+      "finish": true
+    }
+  },
+  "costInterpretation": "6 sequential samples(channel9101/9201 ×3), equal372row result hashes. Final whole194.182→193.892ms essentially unchanged; Catalog held194.172→16.336ms. nodeReads6658→13390, owner charge grows because reader/output accounting; not extra memory reduction. Intermediate513.277ms/0hit retained, sameauth raw cache reused then affected regressions and finalcost rerun. Compile/other tests did not overlap final performance runs.",
+  "http": {
+    "before": {
+      "execution": {
+        "command": [
+          "/private/tmp/media-server-r108-xirdf4lq/http-before",
+          "/private/tmp/media-server-r108-xirdf4lq/before-http",
+          "/Users/dhseo/Workspace/mediaServer/models/v430-siglip2"
+        ],
+        "cwd": "/private/tmp/media-server-r108-xirdf4lq/before-http",
+        "uid": 501,
+        "head": "dd41acba8c064fa056f4404d063fbdfc55e3ff56",
+        "fixtureSha256": "b695bfaf63f8bbfda5ff7fcbb01970451e3817c9b293bc13e766a0a8957f642b",
+        "archiveSha256": "c77e0ab839c0c799e67f664f15e2c8a5cc24314eba8b4db7190122e39e48fb95",
+        "mode": "parallel",
+        "scale": "cycle",
+        "isolation": "native helper + preinitialization binary guard",
+        "receivedBytes": 703288,
+        "savedBytes": 703288,
+        "timeout": false,
+        "overflow": false,
+        "limitBytes": 4194304,
+        "deadlineSeconds": 630,
+        "binarySha256": "88fdd1ef84684159198af54920753a8fa44802d72e6e3425c7414e21294742f6",
+        "collectionError": "result qualification failed",
+        "signal": null,
+        "monitorExit": 0,
+        "observerReady": true,
+        "groupAbsent": true,
+        "pid": 25241,
+        "exit": 1,
+        "qualificationError": "AssertionError:",
+        "elapsedSeconds": 222.0701510841027
+      },
+      "visualRequestSummary": [
+        {
+          "id": 1,
+          "status": 503,
+          "code": "visual-search-unavailable",
+          "startNs": 210625110666,
+          "elapsedNs": 5357292792,
+          "generation": 1,
+          "documents": 1486,
+          "phases": [
+            [
+              1,
+              5357292333
+            ],
+            [
+              1,
+              46721250
+            ],
+            [
+              1,
+              43420500
+            ],
+            [
+              2,
+              292
+            ],
+            [
+              2,
+              43417042
+            ],
+            [
+              1,
+              2583
+            ],
+            [
+              1,
+              43386834
+            ],
+            [
+              1,
+              4997301375
+            ],
+            [
+              28,
+              3252831374
+            ],
+            [
+              40,
+              1743923877
+            ],
+            [
+              28,
+              1022047416
+            ],
+            [
+              28,
+              1470117876
+            ],
+            [
+              40,
+              1743865091
+            ],
+            [
+              0,
+              0
+            ],
+            [
+              82,
+              160834
+            ],
+            [
+              40,
+              4996977588
+            ],
+            [
+              28,
+              25219666
+            ]
+          ],
+          "counters": [
+            28,
+            12,
+            0,
+            40,
+            82,
+            0
+          ],
+          "locks": [
+            [
+              304,
+              4690980586,
+              359523416
+            ],
+            [
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0
+            ]
+          ],
+          "journalCostNs": [
+            6724378,
+            49283997,
+            2724088,
+            93355831
+          ]
+        },
+        {
+          "id": 2,
+          "status": 503,
+          "code": "visual-search-unavailable",
+          "startNs": 210625109333,
+          "elapsedNs": 5360648750,
+          "generation": 1,
+          "documents": 1486,
+          "phases": [
+            [
+              1,
+              5360648334
+            ],
+            [
+              1,
+              666
+            ],
+            [
+              1,
+              46706459
+            ],
+            [
+              2,
+              292
+            ],
+            [
+              2,
+              46704832
+            ],
+            [
+              1,
+              1500
+            ],
+            [
+              1,
+              46656083
+            ],
+            [
+              1,
+              5045874833
+            ],
+            [
+              29,
+              3933879793
+            ],
+            [
+              41,
+              1111510502
+            ],
+            [
+              29,
+              2211328790
+            ],
+            [
+              29,
+              852755291
+            ],
+            [
+              41,
+              1111452916
+            ],
+            [
+              0,
+              0
+            ],
+            [
+              86,
+              202000
+            ],
+            [
+              41,
+              5045541958
+            ],
+            [
+              29,
+              25645875
+            ]
+          ],
+          "counters": [
+            29,
+            12,
+            0,
+            41,
+            86,
+            0
+          ],
+          "locks": [
+            [
+              314,
+              4732624576,
+              351746288
+            ],
+            [
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0
+            ]
+          ],
+          "journalCostNs": [
+            10722161,
+            49680932,
+            2840285,
+            86973791
+          ]
+        }
+      ],
+      "selectedHolderAnalysis": [
+        {
+          "request": 1,
+          "catalogWaitNs": 4690980586,
+          "attributedHolderOverlapNs": 3849335530,
+          "unattributedWaitNs": 841645056,
+          "groups": {
+            "work3/RetentionChannel/t3/r0": {
+              "calls": 16,
+              "heldNs": 2963833585,
+              "maxHeldNs": 281101042,
+              "overlapNs": 2955118125
+            },
+            "work4/CaptureVisualSourceKeys/t2/r0": {
+              "calls": 1,
+              "heldNs": 246818500,
+              "maxHeldNs": 246818500,
+              "overlapNs": 246818500
+            },
+            "work4/SnapshotStatus/t2/r0": {
+              "calls": 1,
+              "heldNs": 181162792,
+              "maxHeldNs": 181162792,
+              "overlapNs": 181160334
+            },
+            "work1/ReadSourceBindingForMedia/t4/r2": {
+              "calls": 51,
+              "heldNs": 84157374,
+              "maxHeldNs": 3205291,
+              "overlapNs": 58267957
+            },
+            "work1/ReadSourceBinding/t4/r2": {
+              "calls": 69,
+              "heldNs": 51859998,
+              "maxHeldNs": 3641666,
+              "overlapNs": 48747623
+            },
+            "work1/ValidateMediaWithContext/t4/r2": {
+              "calls": 64,
+              "heldNs": 67345918,
+              "maxHeldNs": 3005708,
+              "overlapNs": 48354622
+            },
+            "work1/AdjustHoldCount/t4/r2": {
+              "calls": 27,
+              "heldNs": 38503328,
+              "maxHeldNs": 3023667,
+              "overlapNs": 38455495
+            },
+            "work5/RecoverBoundSegmentV2/t3/r0": {
+              "calls": 4,
+              "heldNs": 36922958,
+              "maxHeldNs": 9535458,
+              "overlapNs": 35280584
+            },
+            "work4/ReadVisualSource/t2/r0": {
+              "calls": 58,
+              "heldNs": 37870087,
+              "maxHeldNs": 3794500,
+              "overlapNs": 30550419
+            },
+            "work4/AdjustHoldCount/t2/r0": {
+              "calls": 31,
+              "heldNs": 31600458,
+              "maxHeldNs": 2359834,
+              "overlapNs": 27449372
+            },
+            "work1/AcquireMediaWithContext/t4/r2": {
+              "calls": 25,
+              "heldNs": 52408125,
+              "maxHeldNs": 3668875,
+              "overlapNs": 26964294
+            },
+            "work0/AcquireMediaWithContext/t7/r0": {
+              "calls": 19,
+              "heldNs": 19637293,
+              "maxHeldNs": 1157833,
+              "overlapNs": 19637293
+            },
+            "work0/AdjustHoldCount/t6/r0": {
+              "calls": 20,
+              "heldNs": 19817125,
+              "maxHeldNs": 2780417,
+              "overlapNs": 19270834
+            },
+            "work0/AcquireMediaWithContext/t6/r0": {
+              "calls": 17,
+              "heldNs": 17870419,
+              "maxHeldNs": 1268542,
+              "overlapNs": 17870419
+            },
+            "work0/AdjustHoldCount/t7/r0": {
+              "calls": 18,
+              "heldNs": 18907750,
+              "maxHeldNs": 2241042,
+              "overlapNs": 16583124
+            },
+            "work0/ValidateMediaWithContext/t6/r0": {
+              "calls": 19,
+              "heldNs": 18191706,
+              "maxHeldNs": 2930584,
+              "overlapNs": 16034374
+            },
+            "work0/ValidateMediaWithContext/t7/r0": {
+              "calls": 16,
+              "heldNs": 13612210,
+              "maxHeldNs": 1358167,
+              "overlapNs": 12046752
+            },
+            "work5/ReserveRecordingOrder/t3/r0": {
+              "calls": 6,
+              "heldNs": 14292583,
+              "maxHeldNs": 3643041,
+              "overlapNs": 11508374
+            },
+            "work0/FindSegmentV2ById/t7/r0": {
+              "calls": 18,
+              "heldNs": 9307499,
+              "maxHeldNs": 1917375,
+              "overlapNs": 7388583
+            },
+            "work0/FindSegmentV2ById/t6/r0": {
+              "calls": 17,
+              "heldNs": 7530499,
+              "maxHeldNs": 991208,
+              "overlapNs": 7354041
+            },
+            "work0/ListEventLinks/t7/r0": {
+              "calls": 76,
+              "heldNs": 5577746,
+              "maxHeldNs": 94791,
+              "overlapNs": 5545287
+            },
+            "work0/ListEventLinks/t6/r0": {
+              "calls": 68,
+              "heldNs": 5032332,
+              "maxHeldNs": 104792,
+              "overlapNs": 5032332
+            },
+            "work3/RetentionReservations/t3/r0": {
+              "calls": 38,
+              "heldNs": 3579500,
+              "maxHeldNs": 155000,
+              "overlapNs": 3579500
+            },
+            "work0/FindSegmentById/t7/r0": {
+              "calls": 16,
+              "heldNs": 3050334,
+              "maxHeldNs": 1756917,
+              "overlapNs": 3050334
+            },
+            "work5/ValidateBoundFinalizeRecoveryV2/t3/r0": {
+              "calls": 3,
+              "heldNs": 3463876,
+              "maxHeldNs": 2384875,
+              "overlapNs": 1213418
+            },
+            "work0/FindSegmentById/t6/r0": {
+              "calls": 15,
+              "heldNs": 2891417,
+              "maxHeldNs": 1752458,
+              "overlapNs": 1202959
+            },
+            "work3/RetentionPending/t3/r0": {
+              "calls": 9,
+              "heldNs": 1188625,
+              "maxHeldNs": 263333,
+              "overlapNs": 1089666
+            },
+            "work3/RetentionAuthority/t3/r0": {
+              "calls": 13,
+              "heldNs": 1171501,
+              "maxHeldNs": 109750,
+              "overlapNs": 1040043
+            },
+            "work0/IsDeletedSegmentId/t7/r0": {
+              "calls": 16,
+              "heldNs": 1017081,
+              "maxHeldNs": 68500,
+              "overlapNs": 951249
+            },
+            "work0/IsDeletedSegmentId/t6/r0": {
+              "calls": 16,
+              "heldNs": 1005040,
+              "maxHeldNs": 66541,
+              "overlapNs": 927332
+            },
+            "work5/ValidateManagedWriterBinding/t3/r0": {
+              "calls": 3,
+              "heldNs": 609832,
+              "maxHeldNs": 275250,
+              "overlapNs": 544416
+            },
+            "work0/ValidateManagedWriterBinding/t3/r0": {
+              "calls": 2,
+              "heldNs": 289542,
+              "maxHeldNs": 167750,
+              "overlapNs": 289542
+            },
+            "work3/IsRetentionOwner/t3/r0": {
+              "calls": 22,
+              "heldNs": 8333,
+              "maxHeldNs": 959,
+              "overlapNs": 8333
+            }
+          }
+        }
+      ],
+      "resourceTrace": [
+        {
+          "pid": 25241,
+          "seq": 0,
+          "phase": "opened",
+          "elapsedMs": 8416,
+          "ram": 1692044,
+          "ramPeak": 2420322,
+          "ramLimit": 671088640,
+          "ramRejected": 0,
+          "scratchDisk": 33546240,
+          "scratchDiskPeak": 41693184,
+          "scratchDiskLimit": 154730541056,
+          "scratchFd": 4,
+          "scratchFdPeak": 6,
+          "scratchFdLimit": 1048572,
+          "scratchRam": 1188864,
+          "preservedDisk": 0,
+          "preservedFd": 0,
+          "readerCleanupHealthy": true
+        },
+        {
+          "pid": 25241,
+          "seq": 1,
+          "phase": "ready",
+          "elapsedMs": 213267,
+          "ram": 26512852,
+          "ramPeak": 34910552,
+          "ramLimit": 671088640,
+          "ramRejected": 0,
+          "scratchDisk": 33546240,
+          "scratchDiskPeak": 41693184,
+          "scratchDiskLimit": 154730541056,
+          "scratchFd": 4,
+          "scratchFdPeak": 6,
+          "scratchFdLimit": 1048572,
+          "scratchRam": 1188864,
+          "preservedDisk": 0,
+          "preservedFd": 0,
+          "readerCleanupHealthy": true
+        },
+        {
+          "pid": 25241,
+          "seq": 2,
+          "phase": "after-storage-destruction",
+          "elapsedMs": 219815,
+          "ram": 0,
+          "ramPeak": 339589648,
+          "ramLimit": 671088640,
+          "ramRejected": 0,
+          "scratchDisk": 0,
+          "scratchDiskPeak": 41693184,
+          "scratchDiskLimit": 154730541056,
+          "scratchFd": 0,
+          "scratchFdPeak": 6,
+          "scratchFdLimit": 1048572,
+          "scratchRam": 0,
+          "preservedDisk": 0,
+          "preservedFd": 0,
+          "readerCleanupHealthy": true
+        }
+      ],
+      "clientSummary": {
+        "count": 0,
+        "partialOrFullP95Ms": null,
+        "p95GatePass": false,
+        "liveSpaceMax": 93732223,
+        "rssSampleMax": 3219619840,
+        "footprintSampleMax": 3170045216,
+        "anonymousLogicalSampleMax": 1153641532,
+        "anonymousAllocatedSampleMax": 1164156928,
+        "fdSampleMax": 133,
+        "completeSamples": 220,
+        "spaceEnd": [
+          {
+            "samples": 220,
+            "endedObserved": true
+          }
+        ],
+        "retentionHoldersInSelectedTrace": {
+          "RetentionPending": {
+            "count": 11,
+            "heldNs": 1451084,
+            "maxHeldNs": 263333
+          },
+          "RetentionReservations": {
+            "count": 43,
+            "heldNs": 3907584,
+            "maxHeldNs": 155000
+          },
+          "RetentionChannel": {
+            "count": 16,
+            "heldNs": 2963833585,
+            "maxHeldNs": 281101042
+          },
+          "RetentionAuthority": {
+            "count": 16,
+            "heldNs": 1606668,
+            "maxHeldNs": 220167
+          }
+        },
+        "limits": "shape/order/seek metadata only; not exhaustive top-k/actual seek, samples not instantaneouspeak; trace selection not whole run"
+      }
+    },
+    "after2": {
+      "execution": {
+        "command": [
+          "/private/tmp/media-server-r108-xirdf4lq/http-after2",
+          "/private/tmp/media-server-r108-xirdf4lq/after2-http",
+          "/Users/dhseo/Workspace/mediaServer/models/v430-siglip2"
+        ],
+        "cwd": "/private/tmp/media-server-r108-xirdf4lq/after2-http",
+        "uid": 501,
+        "head": "dd41acba8c064fa056f4404d063fbdfc55e3ff56",
+        "fixtureSha256": "b695bfaf63f8bbfda5ff7fcbb01970451e3817c9b293bc13e766a0a8957f642b",
+        "archiveSha256": "bf82e26b6783dfa8e84bc92411d2c43b990cb073879985304e8b7147e2ce4f59",
+        "mode": "parallel",
+        "scale": "cycle",
+        "isolation": "native helper + preinitialization binary guard",
+        "receivedBytes": 865431,
+        "savedBytes": 865431,
+        "timeout": false,
+        "overflow": false,
+        "limitBytes": 4194304,
+        "deadlineSeconds": 630,
+        "binarySha256": "175fe42a1dd4aeed0a566ea6d7a3a4ff631d9496108a21c5c7c0d2dd3414812e",
+        "collectionError": "result qualification failed",
+        "signal": null,
+        "monitorExit": 0,
+        "observerReady": true,
+        "groupAbsent": true,
+        "pid": 30001,
+        "exit": 1,
+        "qualificationError": "AssertionError:p95",
+        "elapsedSeconds": 242.98276275000535
+      },
+      "visualRequestSummary": [
+        {
+          "id": 1,
+          "status": 200,
+          "code": "ok",
+          "startNs": 225279640875,
+          "elapsedNs": 2354909041,
+          "generation": 1,
+          "documents": 1486,
+          "phases": [
+            [
+              1,
+              2354908584
+            ],
+            [
+              1,
+              708
+            ],
+            [
+              1,
+              47823083
+            ],
+            [
+              2,
+              208
+            ],
+            [
+              2,
+              47821292
+            ],
+            [
+              1,
+              2083
+            ],
+            [
+              1,
+              47728291
+            ],
+            [
+              1,
+              2079178417
+            ],
+            [
+              30,
+              1532323291
+            ],
+            [
+              62,
+              690809291
+            ],
+            [
+              30,
+              626055668
+            ],
+            [
+              30,
+              625458293
+            ],
+            [
+              62,
+              690710999
+            ],
+            [
+              1,
+              147290500
+            ],
+            [
+              1486,
+              2428135
+            ],
+            [
+              42,
+              2076349836
+            ],
+            [
+              30,
+              28571874
+            ]
+          ],
+          "counters": [
+            30,
+            32,
+            0,
+            42,
+            1486,
+            20
+          ],
+          "locks": [
+            [
+              364,
+              1508901198,
+              536166584
+            ],
+            [
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0
+            ]
+          ],
+          "journalCostNs": [
+            12266711,
+            73825375,
+            3814868,
+            108691456
+          ]
+        },
+        {
+          "id": 2,
+          "status": 200,
+          "code": "ok",
+          "startNs": 225279636958,
+          "elapsedNs": 2362256208,
+          "generation": 1,
+          "documents": 1486,
+          "phases": [
+            [
+              1,
+              2362255209
+            ],
+            [
+              1,
+              47834917
+            ],
+            [
+              1,
+              44972958
+            ],
+            [
+              2,
+              333
+            ],
+            [
+              2,
+              44969125
+            ],
+            [
+              1,
+              2792
+            ],
+            [
+              1,
+              44938208
+            ],
+            [
+              1,
+              2057462166
+            ],
+            [
+              30,
+              1511847333
+            ],
+            [
+              62,
+              679943667
+            ],
+            [
+              30,
+              390323213
+            ],
+            [
+              30,
+              845688041
+            ],
+            [
+              62,
+              679827626
+            ],
+            [
+              1,
+              137748083
+            ],
+            [
+              1486,
+              2481705
+            ],
+            [
+              42,
+              2054596919
+            ],
+            [
+              30,
+              27891751
+            ]
+          ],
+          "counters": [
+            30,
+            32,
+            0,
+            42,
+            1486,
+            20
+          ],
+          "locks": [
+            [
+              364,
+              1476363955,
+              538078591
+            ],
+            [
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0
+            ]
+          ],
+          "journalCostNs": [
+            7086877,
+            63860171,
+            3652913,
+            99098709
+          ]
+        },
+        {
+          "id": 3,
+          "status": 200,
+          "code": "ok",
+          "startNs": 227642247833,
+          "elapsedNs": 3521320417,
+          "generation": 1,
+          "documents": 1486,
+          "phases": [
+            [
+              1,
+              3521320000
+            ],
+            [
+              1,
+              666
+            ],
+            [
+              1,
+              43661833
+            ],
+            [
+              2,
+              167
+            ],
+            [
+              2,
+              43660541
+            ],
+            [
+              1,
+              1500
+            ],
+            [
+              1,
+              43633666
+            ],
+            [
+              1,
+              3102924125
+            ],
+            [
+              30,
+              2302031292
+            ],
+            [
+              62,
+              1048894251
+            ],
+            [
+              30,
+              453405580
+            ],
+            [
+              30,
+              797445540
+            ],
+            [
+              62,
+              1048753166
+            ],
+            [
+              1,
+              252004541
+            ],
+            [
+              1486,
+              2979507
+            ],
+            [
+              42,
+              3099511790
+            ],
+            [
+              30,
+              29018711
+            ]
+          ],
+          "counters": [
+            30,
+            32,
+            0,
+            42,
+            1486,
+            20
+          ],
+          "locks": [
+            [
+              364,
+              2581072738,
+              641494215
+            ],
+            [
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0
+            ]
+          ],
+          "journalCostNs": [
+            15526266,
+            64201310,
+            3719917,
+            145061001
+          ]
+        },
+        {
+          "id": 4,
+          "status": 200,
+          "code": "ok",
+          "startNs": 227642310750,
+          "elapsedNs": 3542960041,
+          "generation": 1,
+          "documents": 1486,
+          "phases": [
+            [
+              1,
+              3542959667
+            ],
+            [
+              1,
+              43620875
+            ],
+            [
+              1,
+              48758250
+            ],
+            [
+              2,
+              166
+            ],
+            [
+              2,
+              48755791
+            ],
+            [
+              1,
+              2667
+            ],
+            [
+              1,
+              48732875
+            ],
+            [
+              1,
+              3091943083
+            ],
+            [
+              30,
+              2699814296
+            ],
+            [
+              62,
+              650905873
+            ],
+            [
+              30,
+              900390920
+            ],
+            [
+              30,
+              479140044
+            ],
+            [
+              62,
+              650796833
+            ],
+            [
+              1,
+              262641708
+            ],
+            [
+              1486,
+              2871416
+            ],
+            [
+              42,
+              3088655837
+            ],
+            [
+              30,
+              28481169
+            ]
+          ],
+          "counters": [
+            30,
+            32,
+            0,
+            42,
+            1486,
+            20
+          ],
+          "locks": [
+            [
+              364,
+              2541216449,
+              647384502
+            ],
+            [
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0
+            ]
+          ],
+          "journalCostNs": [
+            17539366,
+            62815007,
+            3585239,
+            142474078
+          ]
+        },
+        {
+          "id": 5,
+          "status": 200,
+          "code": "ok",
+          "startNs": 231185704041,
+          "elapsedNs": 2453659667,
+          "generation": 1,
+          "documents": 1486,
+          "phases": [
+            [
+              1,
+              2453659375
+            ],
+            [
+              1,
+              875
+            ],
+            [
+              1,
+              48094125
+            ],
+            [
+              2,
+              292
+            ],
+            [
+              2,
+              48092542
+            ],
+            [
+              1,
+              1667
+            ],
+            [
+              1,
+              48064792
+            ],
+            [
+              1,
+              2128426166
+            ],
+            [
+              30,
+              1538554497
+            ],
+            [
+              62,
+              757183623
+            ],
+            [
+              30,
+              378821794
+            ],
+            [
+              30,
+              644472667
+            ],
+            [
+              62,
+              757093710
+            ],
+            [
+              1,
+              170616333
+            ],
+            [
+              1486,
+              2411121
+            ],
+            [
+              42,
+              2125638501
+            ],
+            [
+              30,
+              28081667
+            ]
+          ],
+          "counters": [
+            30,
+            32,
+            0,
+            42,
+            1486,
+            20
+          ],
+          "locks": [
+            [
+              364,
+              1635825282,
+              522256381
+            ],
+            [
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0
+            ]
+          ],
+          "journalCostNs": [
+            40276627,
+            62056405,
+            3437117,
+            103747960
+          ]
+        },
+        {
+          "id": 6,
+          "status": 200,
+          "code": "ok",
+          "startNs": 231185735000,
+          "elapsedNs": 2463377125,
+          "generation": 1,
+          "documents": 1486,
+          "phases": [
+            [
+              1,
+              2463375792
+            ],
+            [
+              1,
+              48076417
+            ],
+            [
+              1,
+              48642042
+            ],
+            [
+              2,
+              292
+            ],
+            [
+              2,
+              48638959
+            ],
+            [
+              1,
+              2500
+            ],
+            [
+              1,
+              48612917
+            ],
+            [
+              1,
+              2096569417
+            ],
+            [
+              30,
+              1458071459
+            ],
+            [
+              62,
+              802433582
+            ],
+            [
+              30,
+              371718375
+            ],
+            [
+              30,
+              821401792
+            ],
+            [
+              62,
+              802332375
+            ],
+            [
+              1,
+              167321291
+            ],
+            [
+              1486,
+              2414720
+            ],
+            [
+              42,
+              2093735163
+            ],
+            [
+              30,
+              29233457
+            ]
+          ],
+          "counters": [
+            30,
+            32,
+            0,
+            42,
+            1486,
+            20
+          ],
+          "locks": [
+            [
+              364,
+              1606694071,
+              515904220
+            ],
+            [
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0
+            ]
+          ],
+          "journalCostNs": [
+            26947080,
+            59296333,
+            3431281,
+            100483042
+          ]
+        }
+      ],
+      "selectedHolderAnalysis": [
+        {
+          "request": 1,
+          "catalogWaitNs": 1508901198,
+          "attributedHolderOverlapNs": 587053714,
+          "unattributedWaitNs": 921847484,
+          "groups": {
+            "work1/ValidateMediaWithContext/t5/r2": {
+              "calls": 98,
+              "heldNs": 146108500,
+              "maxHeldNs": 3406333,
+              "overlapNs": 102269955
+            },
+            "work1/ReadSourceBindingForMedia/t5/r2": {
+              "calls": 77,
+              "heldNs": 157375293,
+              "maxHeldNs": 4239583,
+              "overlapNs": 101995628
+            },
+            "work3/RetentionCurrent/t3/r0": {
+              "calls": 6,
+              "heldNs": 82918834,
+              "maxHeldNs": 14986583,
+              "overlapNs": 66966208
+            },
+            "work1/ReadSourceBinding/t5/r2": {
+              "calls": 78,
+              "heldNs": 70539338,
+              "maxHeldNs": 2737792,
+              "overlapNs": 62205626
+            },
+            "work1/AcquireMediaWithContext/t5/r2": {
+              "calls": 29,
+              "heldNs": 66585998,
+              "maxHeldNs": 3483000,
+              "overlapNs": 50731748
+            },
+            "work1/AdjustHoldCount/t5/r2": {
+              "calls": 25,
+              "heldNs": 32306543,
+              "maxHeldNs": 1577917,
+              "overlapNs": 32127749
+            },
+            "work0/AcquireMediaWithContext/t6/r0": {
+              "calls": 18,
+              "heldNs": 28154835,
+              "maxHeldNs": 2870125,
+              "overlapNs": 28120335
+            },
+            "work0/AcquireMediaWithContext/t7/r0": {
+              "calls": 18,
+              "heldNs": 25675876,
+              "maxHeldNs": 2814000,
+              "overlapNs": 25675876
+            },
+            "work0/AdjustHoldCount/t7/r0": {
+              "calls": 18,
+              "heldNs": 19457329,
+              "maxHeldNs": 2613958,
+              "overlapNs": 19339163
+            },
+            "work0/AdjustHoldCount/t6/r0": {
+              "calls": 19,
+              "heldNs": 23598002,
+              "maxHeldNs": 3348708,
+              "overlapNs": 18319127
+            },
+            "work0/ValidateMediaWithContext/t6/r0": {
+              "calls": 17,
+              "heldNs": 16481207,
+              "maxHeldNs": 1768458,
+              "overlapNs": 14913291
+            },
+            "work3/RetentionCapture/t3/r0": {
+              "calls": 5,
+              "heldNs": 13198251,
+              "maxHeldNs": 2894625,
+              "overlapNs": 12467334
+            },
+            "work0/ValidateMediaWithContext/t7/r0": {
+              "calls": 15,
+              "heldNs": 17262663,
+              "maxHeldNs": 3071083,
+              "overlapNs": 11986913
+            },
+            "work0/ListEventLinks/t6/r0": {
+              "calls": 64,
+              "heldNs": 8843876,
+              "maxHeldNs": 2136125,
+              "overlapNs": 8843876
+            },
+            "work0/FindSegmentV2ById/t7/r0": {
+              "calls": 18,
+              "heldNs": 9119665,
+              "maxHeldNs": 1146500,
+              "overlapNs": 8116165
+            },
+            "work0/FindSegmentV2ById/t6/r0": {
+              "calls": 16,
+              "heldNs": 7804586,
+              "maxHeldNs": 1280667,
+              "overlapNs": 7804586
+            },
+            "work0/ListEventLinks/t7/r0": {
+              "calls": 72,
+              "heldNs": 5473547,
+              "maxHeldNs": 142917,
+              "overlapNs": 5473547
+            },
+            "work5/ReserveRecordingOrder/t3/r0": {
+              "calls": 2,
+              "heldNs": 3660000,
+              "maxHeldNs": 1940208,
+              "overlapNs": 3660000
+            },
+            "work0/FindSegmentById/t6/r0": {
+              "calls": 16,
+              "heldNs": 1957668,
+              "maxHeldNs": 329333,
+              "overlapNs": 1957668
+            },
+            "work0/IsDeletedSegmentId/t6/r0": {
+              "calls": 16,
+              "heldNs": 1258458,
+              "maxHeldNs": 179375,
+              "overlapNs": 1184958
+            },
+            "work0/FindSegmentById/t7/r0": {
+              "calls": 14,
+              "heldNs": 2567000,
+              "maxHeldNs": 1431584,
+              "overlapNs": 1071041
+            },
+            "work0/IsDeletedSegmentId/t7/r0": {
+              "calls": 11,
+              "heldNs": 760667,
+              "maxHeldNs": 129125,
+              "overlapNs": 703168
+            },
+            "work3/RetentionPending/t3/r0": {
+              "calls": 3,
+              "heldNs": 2092000,
+              "maxHeldNs": 1830792,
+              "overlapNs": 443792
+            },
+            "work3/RetentionAuthority/t3/r0": {
+              "calls": 5,
+              "heldNs": 420543,
+              "maxHeldNs": 92625,
+              "overlapNs": 346126
+            },
+            "work0/ValidateManagedWriterBinding/t3/r0": {
+              "calls": 1,
+              "heldNs": 164750,
+              "maxHeldNs": 164750,
+              "overlapNs": 164750
+            },
+            "work5/ValidateManagedWriterBinding/t3/r0": {
+              "calls": 2,
+              "heldNs": 271250,
+              "maxHeldNs": 138375,
+              "overlapNs": 163000
+            },
+            "work3/IsRetentionOwner/t3/r0": {
+              "calls": 8,
+              "heldNs": 2084,
+              "maxHeldNs": 500,
+              "overlapNs": 2084
+            }
+          }
+        }
+      ],
+      "resourceTrace": [
+        {
+          "pid": 30001,
+          "seq": 0,
+          "phase": "opened",
+          "elapsedMs": 8535,
+          "ram": 1692044,
+          "ramPeak": 2420322,
+          "ramLimit": 671088640,
+          "ramRejected": 0,
+          "scratchDisk": 33546240,
+          "scratchDiskPeak": 41693184,
+          "scratchDiskLimit": 154271895552,
+          "scratchFd": 4,
+          "scratchFdPeak": 6,
+          "scratchFdLimit": 1048572,
+          "scratchRam": 1188864,
+          "preservedDisk": 0,
+          "preservedFd": 0,
+          "readerCleanupHealthy": true
+        },
+        {
+          "pid": 30001,
+          "seq": 1,
+          "phase": "ready",
+          "elapsedMs": 227961,
+          "ram": 18440062,
+          "ramPeak": 38400469,
+          "ramLimit": 671088640,
+          "ramRejected": 0,
+          "scratchDisk": 33546240,
+          "scratchDiskPeak": 41693184,
+          "scratchDiskLimit": 154271895552,
+          "scratchFd": 4,
+          "scratchFdPeak": 6,
+          "scratchFdLimit": 1048572,
+          "scratchRam": 1188864,
+          "preservedDisk": 0,
+          "preservedFd": 0,
+          "readerCleanupHealthy": true
+        },
+        {
+          "pid": 30001,
+          "seq": 2,
+          "phase": "wave",
+          "elapsedMs": 230343,
+          "ram": 176620397,
+          "ramPeak": 342731226,
+          "ramLimit": 671088640,
+          "ramRejected": 0,
+          "scratchDisk": 33554432,
+          "scratchDiskPeak": 54358016,
+          "scratchDiskLimit": 154271895552,
+          "scratchFd": 4,
+          "scratchFdPeak": 6,
+          "scratchFdLimit": 1048572,
+          "scratchRam": 1188864,
+          "preservedDisk": 0,
+          "preservedFd": 0,
+          "readerCleanupHealthy": true
+        },
+        {
+          "pid": 30001,
+          "seq": 3,
+          "phase": "wave",
+          "elapsedMs": 233887,
+          "ram": 194805971,
+          "ramPeak": 397623214,
+          "ramLimit": 671088640,
+          "ramRejected": 0,
+          "scratchDisk": 54513664,
+          "scratchDiskPeak": 54513664,
+          "scratchDiskLimit": 154271895552,
+          "scratchFd": 5,
+          "scratchFdPeak": 6,
+          "scratchFdLimit": 1048572,
+          "scratchRam": 1486080,
+          "preservedDisk": 0,
+          "preservedFd": 0,
+          "readerCleanupHealthy": true
+        },
+        {
+          "pid": 30001,
+          "seq": 4,
+          "phase": "wave",
+          "elapsedMs": 236351,
+          "ram": 179632283,
+          "ramPeak": 397623214,
+          "ramLimit": 671088640,
+          "ramRejected": 0,
+          "scratchDisk": 33685504,
+          "scratchDiskPeak": 54513664,
+          "scratchDiskLimit": 154271895552,
+          "scratchFd": 4,
+          "scratchFdPeak": 6,
+          "scratchFdLimit": 1048572,
+          "scratchRam": 1188864,
+          "preservedDisk": 0,
+          "preservedFd": 0,
+          "readerCleanupHealthy": true
+        },
+        {
+          "pid": 30001,
+          "seq": 5,
+          "phase": "finished",
+          "elapsedMs": 240548,
+          "ram": 158681885,
+          "ramPeak": 397623214,
+          "ramLimit": 671088640,
+          "ramRejected": 0,
+          "scratchDisk": 0,
+          "scratchDiskPeak": 54513664,
+          "scratchDiskLimit": 154271895552,
+          "scratchFd": 0,
+          "scratchFdPeak": 6,
+          "scratchFdLimit": 1048572,
+          "scratchRam": 0,
+          "preservedDisk": 0,
+          "preservedFd": 0,
+          "readerCleanupHealthy": true
+        },
+        {
+          "pid": 30001,
+          "seq": 6,
+          "phase": "after-storage-destruction",
+          "elapsedMs": 240594,
+          "ram": 0,
+          "ramPeak": 397623214,
+          "ramLimit": 671088640,
+          "ramRejected": 0,
+          "scratchDisk": 0,
+          "scratchDiskPeak": 54513664,
+          "scratchDiskLimit": 154271895552,
+          "scratchFd": 0,
+          "scratchFdPeak": 6,
+          "scratchFdLimit": 1048572,
+          "scratchRam": 0,
+          "preservedDisk": 0,
+          "preservedFd": 0,
+          "readerCleanupHealthy": true
+        }
+      ],
+      "clientSummary": {
+        "count": 12,
+        "partialOrFullP95Ms": 3543.31,
+        "p95GatePass": false,
+        "liveSpaceMax": 108466410,
+        "rssSampleMax": 2551578624,
+        "footprintSampleMax": 3169668384,
+        "anonymousLogicalSampleMax": 1099079168,
+        "anonymousAllocatedSampleMax": 1100193792,
+        "fdSampleMax": 139,
+        "completeSamples": 241,
+        "spaceEnd": [
+          {
+            "samples": 241,
+            "endedObserved": true
+          }
+        ],
+        "retentionHoldersInSelectedTrace": {
+          "RetentionPending": {
+            "count": 4,
+            "heldNs": 2214166,
+            "maxHeldNs": 1830792
+          },
+          "RetentionCapture": {
+            "count": 6,
+            "heldNs": 15796668,
+            "maxHeldNs": 2894625
+          },
+          "RetentionCurrent": {
+            "count": 6,
+            "heldNs": 82918834,
+            "maxHeldNs": 14986583
+          },
+          "RetentionAuthority": {
+            "count": 6,
+            "heldNs": 498502,
+            "maxHeldNs": 92625
+          }
+        },
+        "limits": "shape/order/seek metadata only; not exhaustive top-k/actual seek, samples not instantaneouspeak; trace selection not whole run"
+      }
+    }
+  },
+  "httpConclusion": {
+    "before": "clientfirstwave5s failure; late server503≈5.36s, no12responses/p95/explicitFinishgate",
+    "after": "12actualclient200, p95/max3543.31ms exceeds2000; writes6,indexgeneration1→2,removed0. runtime.Finish success precedes latencyassertion. Finalowner0 iscleanup, notlatencyPASS.",
+    "selectedAfter": "request1 Catalogwait1508.901ms; retentionCaptureCurrentoverlap79.434ms; peer2context/binding costs remain;921.847ms unattributed. firstslowholder1174rows lossfalse/inflight0, notwholeexecution coverage and notworstrequest4 attribution.",
+    "collection": "241valid/complete samples, received=saved865431B, monitor0/groupAbsent. collectionError text means finalqualification p95FAIL, notcollector failure.",
+    "initialFinishReportCorrection": "Initial commentary incorrectly said Finishgate notpassed; source+raw promptlycorrected: explicitFinishPASS thenlatencyFAIL.",
+    "limits": "direct lacks repeatedevidence/A; shape/order/seekmetadata checked on12 but noexhaustive top-k/actualSeek. deletion0 notPASS; no invented p95 before. samplemax notinstantaneouspeak."
+  },
+  "regressions": {
+    "macProduct": {
+      "command": "cmake --build build-gst-onnx --target media_server -j2",
+      "exit": 0,
+      "log": "product-cache-final.log"
+    },
+    "macProof": {
+      "command": "bash scripts/internal/verify_recording_generation_request_proof.sh",
+      "exit": 0,
+      "passAssertions": 412,
+      "log": "proof-cache-final.log"
+    },
+    "macConsumers": {
+      "command": "bash scripts/internal/verify_recording_generation_consumers.sh",
+      "exit": 0,
+      "passAssertions": 444,
+      "log": "consumers-cache-final.log"
+    },
+    "macSource": {
+      "exit": 0,
+      "checks": 83,
+      "log": "mac-source-final.log",
+      "commandBinding": "mac-source-final.json"
+    },
+    "macRequestMedia": {
+      "exit": 0,
+      "checks": 448,
+      "log": "mac-cache-final.log"
+    },
+    "linux": {
+      "image": "mediaserver-v450-verify:rc58-arm64",
+      "uid": 10001,
+      "network": "none",
+      "rootfs": "read-only",
+      "caps": "drop ALL/no-new-privileges",
+      "script": "linux108-final3.sh",
+      "log": "linux-final3.log",
+      "exit": 0,
+      "proofConsumerPassAssertions": 856,
+      "sourceChecks": 83,
+      "cacheIncluded": true,
+      "configMatrix": [
+        "crypto1/sqlite1/backend1",
+        "crypto1/sqlite0/backend1",
+        "crypto0/sqlite1/backend1",
+        "crypto1/sqlite1/backend0"
+      ],
+      "warnings": "Wall Wextra Werror retained"
+    }
+  },
+  "firstFailures": [
+    "first-failure.json",
+    "second-failure.json",
+    "third-failure.json",
+    "fourth-failure.json",
+    "fifth-failure.json",
+    "linux-first-failure.json",
+    "static-first-failure.json",
+    "cost-after-run/output.log"
+  ],
+  "independentReview": "108-independent-review.json",
+  "binding": {
+    "fullCandidateEquality": "candidate-final-equality.json",
+    "newBehaviorNotAutomaticallyApprovedBy986Digest": true,
+    "producer": "producer.log; only inventorySha256 semanticdiff via existing approved producer",
+    "readback": "readback-final.log exit0",
+    "coverage": "verify_feature_inventory_coverage.log exit0",
+    "inventory": "verify_project_feature_test_inventory.log exit0",
+    "scriptClassification": "verify_script_inventory-final2.log exit0 after existinghelper currentpurpose documentation",
+    "diffCheck": "PASS"
+  },
+  "executions": {
+    "cause900": {
+      "run": false,
+      "reason": "existing107 holder sufficient"
+    },
+    "after900": {
+      "run": false,
+      "reason": "sameHTTP p95FAIL +deletionprogressnotmet"
+    },
+    "minutes45": {
+      "run": false,
+      "reason": "excluded"
+    },
+    "minutes120": {
+      "run": false,
+      "reason": "excluded"
+    },
+    "qwenOllamaCalls": 0,
+    "unloadGate": "not-run"
+  },
+  "preservation": {
+    "archivePath": "docs/release-artifacts/v4.5.0/108-execution.tar.gz",
+    "archiveSha256": "3a989fb674e8c198706cf2c2a5590e90f0a3cc450fddf82ae2df9e059f126709",
+    "archiveBytes": 5692347,
+    "members": 128,
+    "memberBytes": 42187970,
+    "byteReadback": "all selected source bytes equal archive member",
+    "remote": "pending"
+  },
+  "cleanup": "own child groups absent/owner0; Linux --rm complete. Root deletion and remote bytes pending; this same record will be updated after verification. User settings/private95backup/models/SDK untouched.",
+  "remaining": [
+    "actual HTTP p95<=2000 notmet; firstselected unclassifiedwait921.847ms remains",
+    "direct deletionprogress notdemonstrated",
+    "continuous mixed900 notrun; no45/120 ormemoryP0/releaseclaim"
+  ]
+}

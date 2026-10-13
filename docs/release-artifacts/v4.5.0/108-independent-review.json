@@ -1,0 +1,71 @@
+{
+  "schema": "media-server.v450.r108.independent-review.v1",
+  "reviewer": "/root/independent_memory86",
+  "requested": "gpt-6-astra/high",
+  "toolAccepted": "existing separate reviewer acceptance reused; followup does not expose actual model/effort",
+  "actualRuntime": "unconfirmed",
+  "independence": "no implementation/test writing/execution/delegation; readonly source/raw analysis",
+  "codeVerdict": "LIMITED_ADOPTION_NO_NEW_CODE_BLOCKER",
+  "httpVerdict": "FAIL_P95_AND_DELETION_PROGRESS_NOT_MET",
+  "after900Eligible": false,
+  "earlierFindingsResolved": [
+    "current descendant same-size tamper must fail even after clone; current8namespace raw authentication added",
+    "legacy deletion reason copy charged before allocation",
+    "exact authenticated raw shared decode cache uses same existing owner; no extra cache budget"
+  ],
+  "direct": {
+    "macProofAssertions": 412,
+    "macConsumersAssertions": 444,
+    "macSourceChecks": 83,
+    "macRequestMediaChecks": 448,
+    "linuxProductAndRelatedSuiteExit": 0,
+    "candidateFullJsonEquality": true,
+    "readbackErrors": 0
+  },
+  "finalResult": {
+    "clientResponses200": 12,
+    "waves": 3,
+    "p95Ms": 3543.31,
+    "maxMs": 3543.31,
+    "p95LimitMs": 2000,
+    "writes": 6,
+    "deletes": 0,
+    "indexGeneration": [
+      1,
+      2
+    ],
+    "explicitFinish": "PASS before latency assertion",
+    "finalOwnerRamScratchFd": 0,
+    "collectorValidCompleteSamples": 241,
+    "receivedSavedBytes": 865431,
+    "monitorExit": 0,
+    "groupAbsent": true
+  },
+  "selectedRequest": {
+    "id": 1,
+    "holderRows": 1174,
+    "loss": false,
+    "inflight": 0,
+    "catalogWaitMs": 1508.901198,
+    "retentionCaptureCurrentOverlapMs": 79.433542,
+    "unattributedMs": 921.847484
+  },
+  "limits": [
+    "before/after selected windows differ; no full-request causal improvement percentage",
+    "new peak-slow request4 not independently full holder selected",
+    "collectorError label is qualification failure, not collector failure",
+    "HTTP direct lacks repeated evidence/A; no continuous mixed completion",
+    "900/45/120 not run; memory P0/release hold"
+  ],
+  "cleanupRemote": "pending at review; verified separately in preservation receipt",
+  "sourceFreezeSha256": "4ab7503387253895657ab8eacc78da89ec67b9c5e30a323a367bceba5c6e3df3",
+  "implementationCommit": "bdec279bb3da0cf969482c36cc607f772d278756",
+  "preservationReview": {
+    "verdict": "limited result preservation and authorized normal push eligible",
+    "archiveBytes": 5692347,
+    "membersIncludingManifest": 128,
+    "payloadMembersVerified": 127,
+    "allManifestBytesHashesMatch": true,
+    "remoteOwnedRootCleanup": "pending; final validation record will confirm"
+  }
+}
