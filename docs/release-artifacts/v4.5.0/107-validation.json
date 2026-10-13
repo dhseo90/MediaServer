@@ -420,7 +420,7 @@
     "manifest": "archive member preservation-manifest.json",
     "noOldArchiveDuplication": true,
     "format": "원출력·분석·source freeze 구분; 기존911seed는106원본참조, 달라진 run recordings만 별도 보존",
-    "remote": "pending; local all member byte readback matched",
+    "remote": "verified actual bytes at preservationCommit",
     "bytes": 9711384,
     "sha256": "950882ed6eb31295b5f5844372217e0f232642207aec0b2150f98840e49ac07f",
     "entries": 153,
@@ -428,19 +428,77 @@
     "changedRecordingFiles": 29,
     "unchangedOriginalReferences": 7285,
     "manifestSha256": "d444edf5f3fa2cd2a66e27248323b15292703e3a0a148760656851f838fa4982",
-    "readback": "all member bytes hash matched"
+    "readback": "all member bytes hash matched",
+    "remoteReadback": {
+      "commit": "aa1a1f14c44b7719563bd1d8de8f7f4ac2192c59",
+      "remoteSha": "aa1a1f14c44b7719563bd1d8de8f7f4ac2192c59",
+      "method": "GitHub Git blob API actual base64 bytes compared with git show at preserved commit",
+      "files": [
+        {
+          "path": "docs/release-artifacts/v4.5.0/107-execution.tar.gz",
+          "blob": "1307cb9de2d237abc35828d5134b8eb98c940283",
+          "bytes": 9711384,
+          "sha256": "950882ed6eb31295b5f5844372217e0f232642207aec0b2150f98840e49ac07f",
+          "remoteBytesEqual": true
+        },
+        {
+          "path": "docs/release-artifacts/v4.5.0/107-validation.json",
+          "blob": "b69c8a8935232ef0f848ea59d9447992c4d15a00",
+          "bytes": 18677,
+          "sha256": "575bf60ec6df8c632b38bca7d37ba380029d44e873bc95dcba710415a0aa3bfd",
+          "remoteBytesEqual": true
+        },
+        {
+          "path": "docs/release-artifacts/v4.5.0/107-independent-review.json",
+          "blob": "7f2d0fcf4782d93d202579e744fab14750a428e2",
+          "bytes": 13271,
+          "sha256": "9ef3b1fa5ce5140de4e4a8c6489a1acd765fae566e66c0093b14b7427c5bfa25",
+          "remoteBytesEqual": true
+        }
+      ]
+    },
+    "preservationCommit": "aa1a1f14c44b7719563bd1d8de8f7f4ac2192c59"
   },
   "cleanup": {
     "runProcessGroupsAbsent": true,
-    "linuxContainer": "--rm, final2exit0",
-    "ownedRoot": "pending after remote byte verification",
-    "userSettingsPrivateBackupModelsSDK": "not accessed/modified/uploaded/removed",
+    "linuxContainer": "confirmed absent",
+    "ownedRoot": {
+      "checkedAt": "2026-10-13T11:30:56.866711+00:00",
+      "root": "/private/tmp/media-server-r107-jxax10j7",
+      "identity": {
+        "dev": 16777232,
+        "inode": 174165368,
+        "uid": 501
+      },
+      "ownedRootProcessesAbsent": true,
+      "ports": [
+        {
+          "port": 58375,
+          "listening": false
+        },
+        {
+          "port": 58492,
+          "listening": false
+        },
+        {
+          "port": 58753,
+          "listening": false
+        }
+      ],
+      "ownedContainersAbsent": true,
+      "rootAbsent": true,
+      "pointerAbsent": true,
+      "scope": "Only this owned root; archive byte verification preceded removal. User configuration/private95 backup excluded; existing model/SDK read-use preserved."
+    },
     "QwenOllamaCalls": 0,
-    "unloadGate": "not-run"
+    "unloadGate": "not-run",
+    "userSettingsPrivate95Backup": "not accessed/modified/uploaded/removed",
+    "modelsSDK": "existing models/SDK read for authorized execution/build; not installed/modified/uploaded/removed"
   },
   "remaining": [
     "retention Catalog 전체 잠금 순회·반복 점유의 안전한 감소와 실제 HTTP전체성공",
     "색인/녹화/증거A 지속 진행을 포함한 기존900초",
     "메모리P0·이후누적/최종120분·출시결정은 계속보류"
-  ]
+  ],
+  "closeoutCorrection": "Previous evidence commit grouped models/SDK as not accessed. Corrected: existing models/SDK were read for execution/build; no modification/upload/removal. User configuration/private95 backup remained unaccessed."
 }
