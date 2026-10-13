@@ -125,3 +125,15 @@ for(const mode of ['early','late','error','concurrent','none','overwrite','tail-
  if(mode==='cost')assert.deepEqual(v.rows.find(x=>x.site==='RetentionChannel').counts,[101,202,303,404]);assert(v.end.overwrittenEndNs<=v.end.begin);assert.equal(trace.catalogHolderSummary(raw,true,[77,78,79]).status,'incomplete');
  for(const text of [raw.replace(/^\[catalog-holder\].*\n/m,''),raw.replace(/^\[visual-request-end\].*\n/m,''),raw.replace('"loss":false','"loss":true')])assert.equal(trace.catalogHolderSummary(text,true,'slow-first').status,'incomplete');
 });
+
+test('R107-H01 optional subcost basis and per-request fields fail closed',()=>{
+ const r=spawnSync(binary,['holder-whole'],{encoding:'utf8',timeout:15000,maxBuffer:4*1024*1024,env:{PATH:process.env.PATH,
+ MEDIA_SERVER_VERIFY_RECORDING_LATENCY_TRACE:'1',MEDIA_SERVER_VERIFY_CATALOG_HOLDER_TRACE:'1',MEDIA_SERVER_VERIFY_VISUAL_REQUEST_TRACE:'1',
+ MEDIA_SERVER_VERIFY_CATALOG_HOLDER_WHOLE_REQUESTS:'1',MEDIA_SERVER_VERIFY_CATALOG_SUBCOSTS:'1'}});
+ assert.equal(r.status,0,r.stderr);const raw=r.stdout+r.stderr,basis='journal-wait,managed-authority,identity-lookup,cold-read-inclusive';
+ assert.equal(trace.catalogHolderSummary(raw,true,[1,2,3],basis).status,'captured');
+ assert.equal(visualRequestSummary(raw,true,true).status,'captured');
+ assert.equal(trace.catalogHolderSummary(raw.replace(/^\[catalog-subcost-basis\].*\n/m,''),true,[1,2,3],basis).status,'incomplete');
+ assert.equal(visualRequestSummary(raw.replace(/,"journalCostNs":\[[^\]]*\]/g,''),true,true).status,'incomplete');
+ assert.equal(visualRequestSummary(raw.replace(/"journalCostNs":\[[^\]]*\]/,'"journalCostNs":[0,0,0,-1]'),true,true).status,'incomplete');
+});

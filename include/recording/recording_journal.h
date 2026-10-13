@@ -162,6 +162,8 @@ private:
                                        std::size_t* active_bytes, std::size_t* order_copy_count = nullptr) const;
     static thread_local int generation_write_fault_;
     static thread_local void (*generation_cleanup_before_unlink_)();
+    static thread_local void (*generation_cold_after_io_)();
+    friend struct RecordingGenerationRequestProofProbe;
     static bool ProbeOrderValidation(const std::vector<RecordingMutationV1>& history,
         const RecordingMutationV1& candidate, bool* unchanged, std::string* error);
 #endif

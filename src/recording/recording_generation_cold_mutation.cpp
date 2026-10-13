@@ -68,6 +68,21 @@ bool ReadVerifiedRecordingIdentityMutation(const std::filesystem::path& root,
             row.offset,row.length,admission,&raw,error):ReadVerifiedRecordingGenerationImmutableRange(root,archive,
             row.offset,row.length,admission,&raw,error);
         if(!read)return false;
+        return ParseVerifiedRecordingIdentityMutation(manifest,acceptance,std::move(raw),output,error);
+    }catch(...){return Fail(error,"cold mutation allocation/read failure");}
+#else
+    (void)root;(void)manifest;(void)acceptance;(void)admission;(void)output;
+    return Fail(error,"cold mutation unsupported: POSIX/OpenSSL required");
+#endif
+}
+bool ParseVerifiedRecordingIdentityMutation(const RecordingGenerationManifest& manifest,
+    const RecordingIdentityFirstAcceptance& acceptance,std::string raw,RecordingMutationV1* output,std::string* error) {
+#if MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
+    try {
+        const auto& row=acceptance.first_row;
+        if(!output||!acceptance.occurrences||acceptance.mutation_id!=row.mutation_id||
+           acceptance.first_global_ordinal!=row.global_ordinal||row.global_ordinal>=manifest.cut_ordinal||
+           raw.size()!=row.length)return Fail(error,"cold mutation descriptor/first identity invalid");
         if(raw.empty()||raw.back()!='\n'||raw.find('\n')!=raw.size()-1||Hash(raw)!=row.raw_sha256)
             return Fail(error,"cold mutation raw row/LF/hash mismatch");
         raw.pop_back();RecordingMutationV1 result;
@@ -93,7 +108,7 @@ bool ReadVerifiedRecordingIdentityMutation(const std::filesystem::path& root,
         *output=std::move(result);if(error)error->clear();return true;
     }catch(...){return Fail(error,"cold mutation allocation/read failure");}
 #else
-    (void)root;(void)manifest;(void)acceptance;(void)admission;(void)output;
+    (void)manifest;(void)acceptance;(void)raw;(void)output;
     return Fail(error,"cold mutation unsupported: POSIX/OpenSSL required");
 #endif
 }

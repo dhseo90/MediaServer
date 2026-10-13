@@ -22,6 +22,16 @@ enum class Work : unsigned { Other=0, Visual=1, Structured=2, Retention=3, Index
 inline thread_local Work holder_work=Work::Other;
 struct WorkScope {Work previous;explicit WorkScope(Work work):previous(holder_work){holder_work=work;}~WorkScope(){holder_work=previous;}};
 inline bool HolderEnabled() noexcept {static const bool yes=[] {const char* p=std::getenv("MEDIA_SERVER_VERIFY_CATALOG_HOLDER_TRACE");return p&&std::strcmp(p,"1")==0;}();return yes;}
+// R107 opt-in elapsed subcosts, not CPU time: Journal wait, managed authority,
+// identity lookup, cold mutation read/parse. Nested authority is inclusive.
+inline bool SubcostEnabled() noexcept {static const bool yes=[] {const char* p=std::getenv("MEDIA_SERVER_VERIFY_CATALOG_SUBCOSTS");return p&&std::strcmp(p,"1")==0;}();return yes;}
+inline thread_local std::array<std::uint64_t,4> journal_subcost{};
+struct JournalSubcost {
+    unsigned field;std::uint64_t begin;bool active;
+    explicit JournalSubcost(unsigned index) noexcept:field(index),begin(SubcostEnabled()?Now():0),active(SubcostEnabled()){}
+    void End() noexcept {if(active){journal_subcost[field]+=Now()-begin;active=false;}}
+    ~JournalSubcost() noexcept {End();}
+};
 inline thread_local std::array<std::uint64_t,4> segment_decode_cost{}; // opt-in calls/hits/inclusive parse ns/second canonical serialization ns
 inline thread_local std::uint64_t history_node_reads=0; // opt-in logical authenticated node reads, not physical I/O
 inline thread_local std::array<std::uint64_t,4> holder_counts{}; // binding checks, cold link calls, visited rows, Journal ReadAt requested bytes
@@ -83,6 +93,7 @@ struct HolderTrace {
         slots[i].event=e;slots[i].state.store(2,std::memory_order_release);
     }
     void PrintSlow() noexcept {
+        if(SubcostEnabled()&&std::fputs("[catalog-subcost-basis] journal-wait,managed-authority,identity-lookup,cold-read-inclusive\n",stderr)==EOF)loss=true;
         const auto begin=slow_begin.load(),end=slow_end.load();bool good=!loss.load()&&inflight.load()==0;
         if(selected.load()&&(!(tickets.load()&Frozen)||!begin||end<begin||overwritten_end.load()>begin))good=false;
         unsigned emitted=0;
@@ -96,6 +107,7 @@ struct HolderTrace {
     }
     ~HolderTrace() noexcept {
         if(slow){PrintSlow();return;}
+        if(SubcostEnabled()&&std::fputs("[catalog-subcost-basis] journal-wait,managed-authority,identity-lookup,cold-read-inclusive\n",stderr)==EOF)loss=true;
         bool good=!loss.load()&&inflight.load()==0;const unsigned total=count.load();
         const char* setting=std::getenv("MEDIA_SERVER_VERIFY_CATALOG_HOLDER_WHOLE_REQUESTS");
         if(setting&&std::strcmp(setting,"1")!=0&&std::strcmp(setting,"late")!=0&&std::strcmp(setting,"mixed-late")!=0)good=false;
@@ -129,6 +141,7 @@ private:
     std::uint64_t start_=0,generation_=0,documents_=0;
     std::array<std::uint64_t,17> count_{},ns_{};
     std::array<std::uint64_t,6> counters_{};
+    std::array<std::uint64_t,4> journal_begin_{};
     std::array<std::uint64_t,5> locks_{},wait_{},held_{};
     static void Loss() noexcept {if(!loss.exchange(true)){const char* row="[visual-request-loss] collection\n";if(std::fputs(row,stderr)==EOF||std::fflush(stderr)!=0){std::fputs(row,stdout);std::fflush(stdout);}}}
     struct Completion {
@@ -141,7 +154,7 @@ public:
         if(!Enabled())return;
         static Completion completion;(void)completion;
         id_=++sequence;if(id_==1){if(std::fputs("[visual-request-probe] 1\n",stderr)==EOF||std::fflush(stderr)!=0)Loss();}
-        if(id_>1024||current){Loss();return;}active_=true;start_=Now();current=this;if(HolderEnabled())Holder().Select(id_,start_);
+        if(id_>1024||current){Loss();return;}active_=true;start_=Now();journal_begin_=journal_subcost;current=this;if(HolderEnabled())Holder().Select(id_,start_);
     }
     static void Result(unsigned status,const char* reason) noexcept {if(current){current->status_=status;const auto n=std::strlen(reason);bool safe=n<sizeof(current->reason_);for(std::size_t i=0;safe&&i<n;++i)safe=(reason[i]>='a'&&reason[i]<='z')||reason[i]=='-'||(reason[i]>='0'&&reason[i]<='9');std::snprintf(current->reason_,sizeof(current->reason_),"%s",safe?reason:"unknown-code");}}
     static void Index(std::uint64_t generation,std::uint64_t docs) noexcept {if(current){current->generation_=generation;current->documents_=docs;}}
@@ -159,7 +172,7 @@ public:
         for(unsigned i=0;i<17;++i)add("%s[%llu,%llu]",i?",":"",(unsigned long long)count_[i],(unsigned long long)ns_[i]);
         add("%s","],\"counters\":[");for(unsigned i=0;i<6;++i)add("%s%llu",i?",":"",(unsigned long long)counters_[i]);
         add("%s","],\"locks\":[");for(unsigned i=0;i<5;++i)add("%s[%llu,%llu,%llu]",i?",":"",(unsigned long long)locks_[i],(unsigned long long)wait_[i],(unsigned long long)held_[i]);
-        add("%s","]}\n");if(!valid||std::fwrite(text,1,used,stderr)!=used||std::fflush(stderr)!=0)Loss();else ++completed;
+        add("%s","]");if(SubcostEnabled()){add("%s",",\"journalCostNs\":[");for(unsigned i=0;i<4;++i)add("%s%llu",i?",":"",(unsigned long long)(journal_subcost[i]-journal_begin_[i]));add("%s","]");}add("%s","}\n");if(!valid||std::fwrite(text,1,used,stderr)!=used||std::fflush(stderr)!=0)Loss();else ++completed;
     }
     VisualRequestSummary(const VisualRequestSummary&)=delete;VisualRequestSummary& operator=(const VisualRequestSummary&)=delete;
 };
@@ -251,12 +264,12 @@ class Lock {
         if(enabled_){row_.b=Now();row_.e=0;}
         mutex_.lock();owned_=true;retention_costs_=false;
         if(enabled_){row_.a=Now();previous_=local.mutex;local.mutex=row_.m;++local.depth;}
-        if(holder_){event_.b=row_.b;event_.a=row_.a;event_.m=row_.m;event_.t=local.thread;event_.r=VisualRequestSummary::CurrentId();event_.line=row_.l;event_.site=site_;event_.work=static_cast<unsigned>(holder_work);begin_counts_=holder_counts;}
+        if(holder_){event_.b=row_.b;event_.a=row_.a;event_.m=row_.m;event_.t=local.thread;event_.r=VisualRequestSummary::CurrentId();event_.line=row_.l;event_.site=site_;event_.work=static_cast<unsigned>(holder_work);begin_counts_=SubcostEnabled()?journal_subcost:holder_counts;}
     }
     void Release() noexcept {
         if(!owned_)return;
         if(enabled_)row_.e=Now();
-        if(holder_){event_.e=row_.e;for(unsigned i=retention_costs_?4:0;i<4;++i)event_.counts[i]=holder_counts[i]-begin_counts_[i];}
+        if(holder_){event_.e=row_.e;for(unsigned i=retention_costs_?4:0;i<4;++i)event_.counts[i]=(SubcostEnabled()?journal_subcost[i]:holder_counts[i])-begin_counts_[i];}
         mutex_.unlock();owned_=false;
         if(holder_){Holder().Add(event_);--Holder().inflight;}
         if(enabled_){--local.depth;local.mutex=previous_;Append(row_,always_);if(!local.request&&local.fast_events>=256)FlushFast();else Flush();}
@@ -271,11 +284,11 @@ public:
         if(holder_)(void)Holder(); // initialize bounded storage before acquiring the product mutex
         owned_=mutex_.try_lock();
         if(owned_){if(enabled_){row_.a=Now();previous_=local.mutex;local.mutex=row_.m;++local.depth;}
-            if(holder_){++Holder().inflight;event_.b=row_.b;event_.a=row_.a;event_.m=row_.m;event_.t=local.thread;event_.r=VisualRequestSummary::CurrentId();event_.line=line;event_.site=site_;event_.work=static_cast<unsigned>(holder_work);begin_counts_=holder_counts;}}
+            if(holder_){++Holder().inflight;event_.b=row_.b;event_.a=row_.a;event_.m=row_.m;event_.t=local.thread;event_.r=VisualRequestSummary::CurrentId();event_.line=line;event_.site=site_;event_.work=static_cast<unsigned>(holder_work);begin_counts_=SubcostEnabled()?journal_subcost:holder_counts;}}
         enclosing_=current_;current_=this;
     }
     // Static diagnostic label only; no payload, allocation or additional lock.
-    void HolderRetentionCosts(const char* site,const std::array<std::uint64_t,4>& costs) noexcept {if(holder_){event_.site=site;event_.counts=costs;retention_costs_=true;}}
+    void HolderRetentionCosts(const char* site,const std::array<std::uint64_t,4>& costs) noexcept {if(holder_){event_.site=site;if(!SubcostEnabled()){event_.counts=costs;retention_costs_=true;}}}
     bool owns_lock()const noexcept{return owned_;}
     ~Lock() noexcept {Release();current_=enclosing_;}
     // The owning RAII object performs both operations. No raw unlock behind a lock_guard.

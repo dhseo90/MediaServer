@@ -29,10 +29,11 @@ export function preserveLatencyEvidence(file,value){
 }
 
 // Diagnostic sample windows are explicit; unsampled time is never attributed.
-export function catalogHolderSummary(text,required=true,expectedRequests=null) {
- const rows=[];let end=null,code=null;
+export function catalogHolderSummary(text,required=true,expectedRequests=null,expectedBasis=null) {
+ const rows=[];let end=null,code=null,counterBasis='binding,cold-link,rows,bytes';
  try {
   for(const line of text.split('\n')){
+   if(line.startsWith('[catalog-subcost-basis] ')){if(counterBasis!=='binding,cold-link,rows,bytes'||line!=='[catalog-subcost-basis] journal-wait,managed-authority,identity-lookup,cold-read-inclusive')throw Error('holder-subcost-basis');counterBasis=line.slice("[catalog-subcost-basis] ".length);continue;}
    if(line.startsWith('[catalog-holder-loss]'))throw Error('holder-loss');
    if(line.startsWith('[catalog-holder-end] ')){if(end)throw Error('duplicate-end');end=JSON.parse(line.slice(21));continue;}
    if(!line.startsWith('[catalog-holder]'))continue;
@@ -41,6 +42,7 @@ export function catalogHolderSummary(text,required=true,expectedRequests=null) {
    if(Object.keys(v).length!==11||!['id','m','t','r','l','work','b','a','e'].every(k=>uint(v[k]))||v.id!==rows.length+1||v.m<1||v.m>128||v.t<1||v.work>6||v.b>v.a||v.a>v.e||!Array.isArray(v.counts)||v.counts.length!==4||!v.counts.every(uint)||typeof v.site!=='string'||!/^[A-Za-z_~][A-Za-z0-9_~()]{0,95}$/.test(v.site))throw Error('holder-row');
    rows.push(v);
   }
+  if(expectedBasis!==null&&counterBasis!==expectedBasis)throw Error('holder-subcost-basis-missing');
   if(!required&&!rows.length&&!end)return {status:'not-observed',rows:[]};
   if(end?.version===3){
    if(expectedRequests!==null&&expectedRequests!=='slow-first')throw Error('holder-selection');
@@ -52,7 +54,7 @@ export function catalogHolderSummary(text,required=true,expectedRequests=null) {
    if(total.started!==total.completed||total.completed!==end.completedRequests||requests.length!==total.completed||requests.some((r,i)=>!uint(r.id)||!uint(r.elapsedNs))||new Set(requests.map(r=>r.id)).size!==requests.length||requests.some(r=>r.id<1||r.id>total.started)||Math.max(...requests.map(r=>r.elapsedNs))!==end.maxCompletedNs)throw Error('holder-request-completion');
    if(!end.request){
     if(end.loss!==false||end.inflight!==0||end.records!==0||rows.length||end.begin||end.end||end.maxCompletedNs>=end.thresholdNs||requests.some(r=>!uint(r.elapsedNs)||r.elapsedNs>=end.thresholdNs))throw Error('holder-completion');
-    return {status:'captured',sampledOnly:true,selection:'no-completed-slow-request',rows:[],end,windows:[]};
+    return {status:'captured',counterBasis,sampledOnly:true,selection:'no-completed-slow-request',rows:[],end,windows:[]};
    }
    const selected=requests.filter(r=>r.id===end.request);
    if(selected.length!==1||selected[0].startNs!==end.begin||selected[0].elapsedNs!==end.end-end.begin||end.end-end.begin<end.thresholdNs||end.overwrittenEndNs>end.begin)throw Error('holder-selection-coverage');
@@ -80,7 +82,7 @@ export function catalogHolderSummary(text,required=true,expectedRequests=null) {
    const held={};for(const h of rows){const ns=Math.min(finish,h.e)-Math.max(begin,h.a);if(ns<=0)continue;const key=h.work+':'+h.site+':'+h.l;const x=held[key]??={count:0,heldNs:0,counts:[0,0,0,0],completeIntervals:0};x.count++;x.heldNs+=ns;if(h.a>=begin&&h.e<=finish){x.completeIntervals++;h.counts.forEach((n,i)=>x.counts[i]+=n);}}
    return {selectedRequest:(end.version!==1?end.requests:[7,41,77])[index],beginNs:begin,endNs:finish,waitNs,coveredNs,unclassifiedNs:waitNs-coveredNs,overlapByHolder:byWork,held};
   });
-  return {status:'captured',sampledOnly:true,rows,end,windows};
+  return {status:'captured',counterBasis,sampledOnly:true,rows,end,windows};
  }catch(error){code=error.message;}
- return {status:'incomplete',code,rows,end};
+ return {status:'incomplete',code,counterBasis,rows,end};
 }

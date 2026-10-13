@@ -17,4 +17,8 @@ bool ReadVerifiedRecordingIdentityMutation(const std::filesystem::path& root,
     const RecordingGenerationManifest& current_manifest,
     const RecordingIdentityFirstAcceptance& acceptance, std::uint64_t byte_admission,
     RecordingMutationV1* output, std::string* error);
+// Internal two-stage reader. Raw bytes still require full archive authentication;
+// caller must revalidate its current authority/first acceptance before consuming.
+bool ParseVerifiedRecordingIdentityMutation(const RecordingGenerationManifest&,
+    const RecordingIdentityFirstAcceptance&, std::string raw, RecordingMutationV1*, std::string*);
 } // namespace recording

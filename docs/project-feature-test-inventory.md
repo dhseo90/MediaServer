@@ -5068,3 +5068,11 @@ R97-A02는 미선택 대체 후보의 unlink/authority 하드 오류를 거부�
 - 색인 Collect의 목록/metadata/binding 재획득을 실제 소비자까지 연결한다. 후보 멤버십·새 관련 후보·삭제·잘못된 상위 후보·동점/정확sample 의미와 기존 결과 admission을 유지하고 전체 이력 DTO/cache를 추가하지 않는다.
 - 고정 읽기 준비 latch에서 허용된 검색/쓰기·checkpoint 진행, 관련 삭제/변조/권한/authority 변경 거부, 취소·예외·예약/FD 마지막 해제를 직접 확인한다. 기존 generation proof/consumer와 source/RequestMedia 회귀를 변경 영향에서 재사용한다.
 - 비교는105 최종제품 before와 새 고정 after의53/parallel 및cycle/background 각각1회·3waves, 순서before→after다. 기존180/630초·4MiB·공간/RAM·p95≤2000ms/max≤5000ms를 유지하며 컴파일을 겹치지 않는다. 실제 seed hash와 잔여 입력차이를 기록한다. native 직접 비용은 HTTP·증거/A 지속 효과를 대신하지 않으며, 독립 검토 후 기존900초1회와 조건 충족 시45분1회로 별도 판정한다.
+
+### R107-H01 / P01 — 실제 열화 자료의 Journal 하위 비용과 요청 전체
+
+- H01: opt-in `MEDIA_SERVER_VERIFY_CATALOG_SUBCOSTS=1`에서 기존 holder의 고정4개 counts를 Journal mutex 대기·managed authority·identity lookup·cold read/parse 경과ns로 전환하고 basis 표식을 보존한다. 요청 summary의 journalCostNs는 같은 thread 요청 전후 차이다. CPU 시간이나 물리 I/O 시간으로 해석하지 않으며 cold와 그 안의 authority는 중복 합산하지 않는다. 기존8192행·320B행·4MiB로그·선택 구간 완전성은 유지한다. off에서는 이전 카운터 의미를 유지한다.
+- P01: R106 종료 원본의 별도 소유 복사본(원래 파일 bytes 검증)을 이용해 재Open 후 실제 source Collect/준비/현재 검증 비용을 고정3회 관측한다. 재Open 상태는 연속 실행의 cache/reader 상태와 다르며 이를 동일한 HTTP 운용으로 표시하지 않는다. 지배 경계 확인 후 같은 원본의 독립 복사본과 동일 호출/계측으로 비교한다. 원인 대조와 실제 혼합 PASS를 구분한다. 자료 변경·손상·K/F·권한·취소·자원 회수는 기존 직접 소비자와 변경 경계 반례로 보호한다.
+- P02: 필요한 실제 HTTP 재현은 분석으로 선택한 상태와 실행 전 고정한 횟수/순서로 실행한다. product/fixture source·모델·원본 hash·전체 응답·Catalog 하위 경과·배경 진행·소유를 함께 보존한다. 수정후900초는 직접 인과/정확성/독립 판단 통과 후1회이며45분/120분은 제외한다.
+
+- **R107-P03**: 실제 historical archive hash의 test-only final-binding latch 동안 Catalog 조회·내구 Reserve 진행; append/checkpoint 뒤 동일 원문, Finish/tamper 및 strict I/O 완료→재잠금 사이 변조·Finish→재Open 뒤 미게시. 기존3초 동기화·안전 join·원본/권한/예산·구성 행렬 유지.

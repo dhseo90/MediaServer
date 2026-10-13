@@ -11,6 +11,7 @@
 #include "../../src/recording/recording_catalog_history.h"
 namespace recording {
 struct RecordingGenerationRequestProofProbe {
+    static void ColdAfterIo(void (*hook)()){RecordingJournal::generation_cold_after_io_=hook;}
     static void Path(RecordingCatalog& c,const std::string& id,const std::optional<std::string>& path){
         std::lock_guard lock(c.mu_);if(path)c.media_relpaths_.Set(id,*path);else c.media_relpaths_.erase(id);
     }
@@ -196,7 +197,7 @@ void SourceReadCases(const std::filesystem::path& root){
             if(mode=="append") {RecordingOrderReservationV1 order;Need(catalog.ReserveRecordingOrder("store","during-parse","during-parse-segment","channel",&order,&error));}
             if(mode=="checkpoint")Need(catalog.Checkpoint(&error));
             if(mode=="delete")Need(catalog.RequestDeletion("segment","continuous-capacity",&error));
-            if(mode=="tamper"){auto bytes=Read(path/"evidence-1-0.jsonl");Need(!bytes.empty());bytes[0]='!';Write(path/"evidence-1-0.jsonl",bytes);}
+            if(mode=="tamper"||mode=="after-io-tamper"){auto bytes=Read(path/"evidence-1-0.jsonl");Need(!bytes.empty());bytes[0]='!';Write(path/"evidence-1-0.jsonl",bytes);}
         });
         const auto actual=ProofProbe::Source(catalog);ProofProbe::SourceHook({});
         Check("V450-MEM101-S02",calls==1,"cold source parse releases the owning lock exactly once");
@@ -251,6 +252,49 @@ void SharedSourceReadCases(const std::filesystem::path& root){
             Check("R106-P01",ProofProbe::SourceCached(catalog,&context,&same).empty()&&!same,"cached source never survives related current deletion");
         }
         Need(owner.Finish(&error));
+    }
+}
+thread_local std::promise<void>* cold_entered=nullptr;
+thread_local std::shared_future<void>* cold_resume=nullptr;
+void PauseColdRead(){cold_entered->set_value();cold_resume->wait();}
+void ColdReadProgressCases(const std::filesystem::path& root){
+    using Probe=RecordingJournalGenerationReadOnlyProbe;
+    for(const std::string mode:{"append","checkpoint","finish","tamper","after-io-tamper","reopen"}){
+        const auto path=root/mode;std::filesystem::create_directories(path);CompleteFixture(path);
+        RecordingJournal owner(Options(path));Need(owner.Open(&error));auto options=ReadOptions(path);options.enable_generation_writes=true;
+        RecordingCatalog catalog(owner,options);Need(catalog.Open(&error));
+        RecordingMutationLink link;Need(Probe::Link(owner,"bound",&link));
+        RecordingMutationHandle expected;Need(Probe::Get(owner,link,&expected));
+        std::promise<void> entered,resume;auto ready=entered.get_future();auto released=resume.get_future().share();
+        RecordingMutationHandle result;bool read=false;std::exception_ptr failure;
+        std::thread reader([&]{try{
+            cold_entered=&entered;cold_resume=&released;if(mode=="after-io-tamper"||mode=="reopen")RecordingGenerationRequestProofProbe::ColdAfterIo(PauseColdRead);
+            else RecordingGenerationImmutableBeforeBindingForTest(PauseColdRead);
+            read=Probe::Get(owner,link,&result);
+        }catch(...){failure=std::current_exception();}RecordingGenerationImmutableBeforeBindingForTest(nullptr);RecordingGenerationRequestProofProbe::ColdAfterIo(nullptr);});
+        struct Guard {std::promise<void>& resume;std::thread& reader;bool done=false;
+            void Release(){if(!done){resume.set_value();done=true;}}
+            ~Guard(){Release();if(reader.joinable())reader.join();}
+        } guard{resume,reader};
+        Need(ready.wait_for(std::chrono::seconds(3))==std::future_status::ready);
+        auto writer=std::async(std::launch::async,[&]{std::string detail;RecordingOrderReservationV1 order;
+            const auto original=catalog.FindSegmentV2ById("segment");
+            return original&&catalog.ReserveRecordingOrder("store","during-cold","during-cold-segment","other",&order,&detail);
+        });
+        const bool progressed=writer.wait_for(std::chrono::seconds(3))==std::future_status::ready;
+        if(!progressed)guard.Release();
+        const bool wrote=writer.get();
+        Check("R107-P03",progressed&&wrote,"durable append and Catalog lookup progress during full archive hash I/O");
+        if(!progressed)throw std::runtime_error("cold archive read blocks Journal writer");
+        if(mode=="checkpoint")Need(catalog.Checkpoint(&error));
+        if(mode=="finish"||mode=="reopen")Need(owner.Finish(&error));
+        if(mode=="reopen")Need(owner.Open(&error));
+        if(mode=="tamper"||mode=="after-io-tamper"){const auto file=path/"evidence-1-0.jsonl";auto bytes=Read(file);bytes[1]=bytes[1]=='x'?'y':'x';Write(file,bytes);}
+        guard.Release();reader.join();if(failure)std::rethrow_exception(failure);
+        Check("R107-P03",mode=="append"||mode=="checkpoint"?
+            read&&result&&SerializeRecordingMutationV1(*result)==SerializeRecordingMutationV1(*expected):!read&&!result,
+            "only unchanged original and current read authority may publish after unlocked I/O");
+        if(mode!="finish")Need(owner.Finish(&error));
     }
 }
 void ActiveProofCases(const std::filesystem::path& root){
@@ -377,7 +421,7 @@ int main(int argc,char** argv){
         RecordingJournal j(Options(root));Check("B08-Q04",j.Open(&error),"v1 remains available in unsupported B build");
 #endif
 #if MEDIA_SERVER_USE_OPENSSL && MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND
-        SourceReadCases(root/"source-read");SharedSourceReadCases(root/"shared-source-read");
+        ColdReadProgressCases(root/"cold-read-progress");SourceReadCases(root/"source-read");SharedSourceReadCases(root/"shared-source-read");
         VerifiedDecodeCases();
         RetentionPathCases(root/"retention-path");
         RetentionPrefixCases(root/"retention-prefix");

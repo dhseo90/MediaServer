@@ -1389,6 +1389,7 @@ bool RecordingJournal::CheckManagedStateLocked(std::string* error) const {
 #endif
 }
 bool RecordingJournal::CheckManagedFdStateLocked(std::string* error) const {
+    latency::JournalSubcost authority_cost(1);
     latency::HolderCount(0);
     if(!managed_)return true;
 #if !defined(_WIN32)
@@ -2061,15 +2062,18 @@ bool RecordingJournal::AcquireMutationLinkWithProof(const RecordingMutationLink&
     if(link.generation_ref_) {
 #if MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND && MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
         if(!record||owner_pid_!=::getpid())return Fail(error,"B link output/PID 거부");
-        std::lock_guard lock(mu_);
+        latency::JournalSubcost wait_cost(0);std::unique_lock lock(mu_);wait_cost.End();
         if(!generation_state_||!CheckManagedStateLocked(error))return Fail(error,"B link 세대 권한 거부");
         if(proof&&(!owner||owner!=catalog_owner_||!catalog_attachment_))return Fail(error,"B read proof catalog owner rejected");
         const auto& state=*generation_state_;const auto& ref=*link.generation_ref_;
         if(!state.link_epoch||ref.epoch!=state.link_epoch)return Fail(error,"B link 세션/인스턴스 거부");
         try {
+            latency::JournalSubcost identity_cost(2);
             const auto found=state.identities.find(ref.mutation_id);
             if(found==state.identities.end()||GenerationIdentityKey(state,found->second)!=ref.identity)return Fail(error,"B link identity 권위 거부");
+            identity_cost.End();
             const auto& location=found->second;
+            latency::JournalSubcost cold_cost(3);
             RecordingMutationV1 value;
             std::shared_ptr<ColdReadProof> prepared;
             if(proof&&*proof){
@@ -2083,8 +2087,7 @@ bool RecordingJournal::AcquireMutationLinkWithProof(const RecordingMutationLink&
             if(location.historical) {
                 if(!location.first||location.first->first_global_ordinal!=ref.ordinal)
                     return Fail(error,"B link 과거 좌표 거부");
-                const auto& accepted=*location.first;
-                const auto& row=accepted.first_row;const auto& archive=accepted.first_archive;
+                const auto& row=location.first->first_row;const auto& archive=location.first->first_archive;
                 OwnedFd parent(OpenParent(io_path_,false));
                 const auto bound=[&](const ColdReadProof& p){
                     struct stat fd{},named{};
@@ -2133,11 +2136,63 @@ bool RecordingJournal::AcquireMutationLinkWithProof(const RecordingMutationLink&
                         if(prepared->fd.value<0||::fstat(prepared->fd.value,&prepared->binding)!=0||!bound(*prepared))prepared.reset();
                     }catch(...){prepared.reset();} // 선택적 증명 할당/FD 실패는 기존 strict 경로로 처리한다.
                 }
-                if(!ReadVerifiedRecordingIdentityMutation(managed_root_,state.active.manifest,
-                    accepted,generation_limits_.cold_row_bytes,&value,error)) {
+                {
+                // Reserve only the strict path; a proof hit retains its existing admission.
+                // Two row-sized buffers plus the existing 64 KiB manifest admission
+                // and 64 KiB sequential hash buffer remain in the shared owner domain.
+                const auto length=row.length;
+                if(length>(SIZE_MAX-131072)/2)return Fail(error,"recording-resource-unavailable");
+                auto work=memory_->ReserveOwned(2*static_cast<std::size_t>(length)+131072);
+                if(!work)return Fail(error,"recording-resource-unavailable");
+                const auto accepted=*location.first;
+                const auto manifest=state.active.manifest;
+                const auto attachment=catalog_attachment_;
+                const auto root=managed_root_;const auto row_limit=generation_limits_.cold_row_bytes;
+                // Shadow the live-generation references for every use across unlock.
+                const auto& row=accepted.first_row;const auto& archive=accepted.first_archive;
+                struct stat archive_binding{};
+                if(parent.value<0||!GenerationStat(parent.value,archive.name,&archive_binding)){
+                    poisoned_=true;return Fail(error,"B read initial archive binding failed");
+                }
+                std::string raw;bool read=false;
+                // Immutable archives are never modified by append/checkpoint. The
+                // existing full-file hash and root/file checks still run; mu_ no
+                // longer serializes unrelated durable writes behind that I/O.
+                {
+                    struct Unlocked {std::unique_lock<std::mutex>& lock;
+                        explicit Unlocked(std::unique_lock<std::mutex>& l):lock(l){lock.unlock();}
+                        ~Unlocked(){latency::JournalSubcost wait(0);lock.lock();}
+                    } unlocked(lock);
+                    const bool sealed=archive.name.rfind("active-",0)==0;
+                    read=sealed?ReadVerifiedRecordingGenerationSealedActiveRange(root,archive,manifest.generation,
+                        row.offset,row.length,row_limit,&raw,error):
+                        ReadVerifiedRecordingGenerationImmutableRange(root,archive,row.offset,row.length,
+                            row_limit,&raw,error);
+#if defined(MEDIA_SERVER_RECORDING_GENERATION_TESTING)
+                    if(generation_cold_after_io_)generation_cold_after_io_();
+#endif
+                }
+                // Finish/detach is a normal loss of this read authority, not an
+                // instruction to poison another session or publish stale data.
+                if(!generation_state_||generation_state_->link_epoch!=ref.epoch||
+                   catalog_attachment_!=attachment||(proof&&catalog_owner_!=owner)||
+                   !CheckManagedStateLocked(error))return Fail(error,"B read current authority changed");
+                if(!read){poisoned_=true;return false;}
+                const auto current=generation_state_->identities.find(ref.mutation_id);
+                if(current==generation_state_->identities.end()||!current->second.historical||!current->second.first||
+                   GenerationIdentityKey(*generation_state_,current->second)!=ref.identity)
+                    return Fail(error,"B read first identity changed");
+                const auto& now=*current->second.first;const auto& nr=now.first_row;
+                if(now.first_global_ordinal!=accepted.first_global_ordinal||nr.offset!=row.offset||nr.length!=row.length||
+                   nr.raw_sha256!=row.raw_sha256||now.first_archive.name!=archive.name||now.first_archive.size!=archive.size||
+                   now.first_archive.sha256!=archive.sha256)return Fail(error,"B read first coordinates changed");
+                struct stat final_binding{};
+                if(!GenerationStat(parent.value,archive.name,&final_binding)||!GenerationStatSame(archive_binding,final_binding)||
+                   (prepared&&!bound(*prepared))){poisoned_=true;return Fail(error,"B read proof initial file changed");}
+                if(!ParseVerifiedRecordingIdentityMutation(manifest,accepted,std::move(raw),&value,error)){
                     poisoned_=true;return false;
                 }
-                if(prepared&&!bound(*prepared)){poisoned_=true;return Fail(error,"B read proof initial file changed");}
+                }
             } else {
                 if(location.slot>=state.active.rows.size()||state.active.rows[location.slot].global_ordinal!=ref.ordinal)
                     return Fail(error,"B link active 좌표 거부");
@@ -2191,7 +2246,7 @@ bool RecordingJournal::AcquireMutationLinkWithProof(const RecordingMutationLink&
 #if !defined(_WIN32)
     if(managed_&&owner_pid_!=::getpid())return Fail(error,"managed fork 거부");
 #endif
-    std::lock_guard lock(mu_);
+    latency::JournalSubcost wait_cost(0);std::lock_guard lock(mu_);wait_cost.End();
     if(!CheckManagedStateLocked(error))return false;
     const auto& ref=link.ref_;
     if(!catalog_attachment_||link.authority_!=catalog_attachment_||ref->lineage!=managed_state_->lineage||
@@ -2846,6 +2901,7 @@ bool RecordingJournal::ProbeOrderValidation(const std::vector<RecordingMutationV
 #if defined(MEDIA_SERVER_RECORDING_GENERATION_TESTING)
 thread_local int RecordingJournal::generation_write_fault_=0;
 thread_local void (*RecordingJournal::generation_cleanup_before_unlink_)()=nullptr;
+thread_local void (*RecordingJournal::generation_cold_after_io_)()=nullptr;
 #endif
 bool RecordingJournal::PrepareGenerationCheckpoint(const void* owner,
     std::shared_ptr<RecordingGenerationCheckpointPlan>* output,std::string* error) try {
