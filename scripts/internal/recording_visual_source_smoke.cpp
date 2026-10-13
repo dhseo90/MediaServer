@@ -1,5 +1,6 @@
 // 파일 용도: 제품 writer의 실제 sample 증명→대표 frame→현재 재생/디코딩 연결.
 #include "recording_media_test_fixture.h"
+#include "recording_writer_test_isolation.h"
 #include "recording/recording_visual_source.h"
 #include "recording/visual_frame_decoder.h"
 #include "recording/recording_runtime_composition.h"
@@ -12,8 +13,9 @@
 namespace{int checks=0;void Check(bool b,const std::string& name){++checks;if(!b)throw std::runtime_error(name);}}
 int main(int argc,char**argv){try{
     if(argc!=2&&argc!=3)return 2;
-    gst_init(nullptr,nullptr);const auto root=std::filesystem::weakly_canonical(argv[1]);
-    recording::RecordingRuntimeStorage runtime(root);std::string error;Check(runtime.Open(&error),"B storage open");
+    const auto root=std::filesystem::path(argv[1]);if(!RecordingWriterTestIsolation(root))return 2;
+    gst_init(nullptr,nullptr);
+    recording::RecordingRuntimeStorage runtime(root/"store");std::string error;const bool opened=runtime.Open(&error);Check(opened,"B storage open: "+error);
     auto input=Encode(90,false,false,160,90,30,30);Shift(input,7000000000ULL);
     recording::GStreamerSegmentWriter writer(runtime.WriterOptions(1000));
     Check(writer.Start("visual-channel","unused",input.descriptor,[](auto,auto,auto*){return false;},&error),"writer start");
@@ -46,6 +48,10 @@ int main(int argc,char**argv){try{
     // 검증 객체는 같은 요청에서만 재사용하며, 조립 중 hold와 파일 변경 거부를 함께 확인한다.
     const auto deadline=std::chrono::steady_clock::now()+std::chrono::seconds(5);
     auto prepared=source.Prepare(docs.front(),&error,{},deadline);Check(bool(prepared),"prepare verified source: "+error);
+    const auto holds=[&]{const auto rows=runtime.catalog().RetentionSnapshot();for(const auto& row:rows.candidates)if(row.Id()==docs.front().segment_id)return row.hold_count;return std::uint64_t(999);};
+    Check(holds()==1,"R105 single prepared source owns exactly one hold");
+    {auto second=source.Prepare(docs.front(),&error,{},deadline);Check(bool(second)&&holds()==2,"R105 concurrent source ownership adds exactly one hold");}
+    Check(holds()==1,"R105 second source release preserves first reader");
     recording::SearchSeekTarget cached;cached.seconds=42;
     Check(source.ResolvePrepared(docs.front(),*prepared,&cached,&error,{},deadline)&&cached.seconds<.04,"typed prepared seek matches existing native target");
     auto wrong=docs.front();wrong.channel_id="other";
@@ -63,6 +69,12 @@ int main(int argc,char**argv){try{
         Check(!source.ResolvePrepared(docs.front(),*prepared,&cached,&error,{},deadline),"same-size media mutation invalidates prepared proof");
         bytes.seekp(0);bytes.put(original);bytes.flush();Check(bool(bytes),"restore owned media byte");}
     Check(!source.ResolvePrepared(docs.front(),*prepared,&cached,&error,{},deadline),"restored bytes require fresh proof after metadata change");prepared.reset();
+    {unsigned calls=0;auto aborted=source.Prepare(docs.front(),&error,[&]{return ++calls>=3;},deadline);
+        Check(!aborted&&calls>=3&&holds()==0,"R105 mid-prepare cancellation releases the only hold");}
+    {unsigned calls=0;bool threw=false;try{(void)source.Prepare(docs.front(),&error,[&]{if(++calls>=3)throw std::runtime_error("R105 callback");return false;},deadline);}catch(const std::runtime_error& e){threw=std::string(e.what())=="R105 callback";}
+        Check(threw&&holds()==0,"R105 callback exception propagates and releases the acquired hold");}
+    {auto unavailable=docs.front();unavailable.channel_id="unavailable";error.clear();
+        Check(!source.Prepare(unavailable,&error,{},deadline)&&error=="V2 media 결박/상태 거부"&&holds()==0,"R105 acquisition rejection retains its error and no hold");}
     prepared=source.Prepare(docs.front(),&error,{},deadline);Check(bool(prepared),"fresh proof after exact restoration");
     const auto saved=file.string()+".owned-backup";std::filesystem::rename(file,saved);std::filesystem::copy_file(saved,file);
     Check(!source.ResolvePrepared(docs.front(),*prepared,&cached,&error,{},deadline),"same-byte path replacement invalidates prepared proof");

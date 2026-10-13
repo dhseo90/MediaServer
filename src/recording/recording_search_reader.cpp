@@ -264,14 +264,17 @@ std::unique_ptr<RecordingSearchReader::PreparedSource> RecordingSearchReader::Pr
     const auto fail=[&](const char* reason)->std::unique_ptr<PreparedSource>{if(error)*error=reason;return {};};
     if(expired())return fail("seek-cancelled");
     auto proof=std::make_unique<PreparedSource::Impl>();proof->catalog=&catalog_;
-    if(!catalog_.AcquireMediaV2(channel,id,&proof->segment,&proof->location,error))return {};
-    struct Release {RecordingCatalog& catalog;const std::string& id;~Release(){catalog.AdjustHoldCount(id,-1,nullptr);}} release{catalog_,id};
+    MediaInspectionOptions options;options.deadline=deadline;options.cancelled=cancelled;
+    std::string acquisition_error;
+    // The V2 acquisition already rejects deleted/legacy/fallback/derived-link collisions.
+    // Transfer exactly its single hold into media; do not rediscover through generic ResolveMedia.
+    {latency::VisualPhase phase("prepare-media-inspect");
+        proof->media=reader_.ResolveOriginalMediaV2(channel,id,&proof->segment,&proof->location,&acquisition_error,std::move(options));}
+    if(!proof->media&&!acquisition_error.empty()){if(error)*error=std::move(acquisition_error);return {};}
+    if(!proof->media)return fail(expired()?"seek-cancelled":"seek-unavailable-media");
     latency::VisualPhase first_binding("prepare-binding");
     const auto binding=catalog_.ReadSourceBinding(id,&proof->context,error);first_binding.End();
     if(!binding||!binding->file_evidence||!ValidateRecordingSourceBindingForSegment(*binding,proof->segment,error))return fail("seek-unavailable-file-evidence");
-    MediaInspectionOptions options;options.deadline=deadline;options.cancelled=cancelled;
-    {latency::VisualPhase phase("prepare-media-inspect");proof->media=reader_.ResolveMedia(channel,id,std::move(options));}
-    if(!proof->media)return fail(expired()?"seek-cancelled":"seek-unavailable-media");
     latency::VisualPhase file_proof("prepare-file-proof");
     struct stat after{};
     if(::fstat(proof->media->fd(),&proof->verified)!=0||

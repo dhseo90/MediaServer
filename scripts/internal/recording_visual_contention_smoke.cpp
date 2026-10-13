@@ -60,7 +60,7 @@ int main(int argc,char** argv){
   char token[16]{};std::cin.getline(token,sizeof(token));Need101(std::string(token)=="continue","observer-not-ready");
  }
  gst_init(nullptr,nullptr);using namespace recording;std::string error;const std::string scale=argv[3],mode=argv[4];
- Need101(scale=="4"||scale=="53"||scale=="cycle","scale");Need101(mode=="single"||mode=="parallel"||mode=="background","mode");
+ Need101(scale=="4"||scale=="53"||scale=="cycle","scale");Need101(mode=="single"||mode=="visual-pair"||mode=="parallel"||mode=="background","mode");
  RecordingResourceTrace trace("1");RecordingRuntimeStorage runtime(root/"recording");Need101(runtime.Open(&error),"open:"+error);auto& catalog=runtime.catalog();Need101(trace.Bind(catalog.SearchResidency(),catalog.ScratchResidency()),"trace-bind");
  auto input=MixedInput(root);input.packets.resize(60);
  for(auto& p:input.packets){auto& o=*p.observation;o.clock_process_id="r101-clock";o.mono_before_ns=1000000000+p.pts;o.mono_after_ns=o.mono_before_ns+1000;o.observed_utc_ns=1789200000000000000LL+p.pts;}
@@ -114,7 +114,7 @@ int main(int argc,char** argv){
   }
   std::cout<<"[R101-wave] round="<<round<<" completed="<<writes.load()<<" removed="<<removed.load()<<" status="<<service.Status(auth).body<<std::endl;
   const auto call=[&](bool visual,unsigned client){latency::WorkScope work(visual?latency::Work::Visual:latency::Work::Structured);const auto t=Clock::now();const auto result=visual?service.Search(query,auth):structured.Search(sq,"r101","both",auth);const double ms=std::chrono::duration<double,std::milli>(Clock::now()-t).count();return std::make_tuple(visual,client,ms,result.status,result.body);};
-  std::vector<std::future<decltype(call(true,0))>> jobs;const unsigned n=mode=="single"?1:4;
+  std::vector<std::future<decltype(call(true,0))>> jobs;const unsigned n=mode=="single"?1:(mode=="visual-pair"?2:4);
   for(unsigned i=0;i<n;++i)jobs.push_back(std::async(std::launch::async,call,i<2,i));
   for(auto& job:jobs){const auto [visual,client,ms,status,body]=job.get();times.push_back(ms);if(status!=200)++failures;std::cout<<"[R101-request] round="<<round<<" visual="<<visual<<" client="<<client<<" ms="<<ms<<" status="<<status<<" body="<<body<<std::endl;}
  }

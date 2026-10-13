@@ -26,6 +26,11 @@ def fixture():
 
 class Contract(unittest.TestCase):
     def test_normal(self):self.assertEqual(validate_output(fixture(),'parallel','4')['requests'],12)
+    def test_visual_pair(self):
+        text='\n'.join(l for l in fixture().splitlines() if not (l.startswith('[R101-request] ') and 'visual=0 ' in l))+'\n'
+        self.assertEqual(validate_output(text,'visual-pair','4')['requests'],6)
+        with self.assertRaises(AssertionError):validate_output(fixture(),'visual-pair','4')
+        with self.assertRaises(AssertionError):validate_output(text.replace('ms=100','ms=2100'),'visual-pair','4')
     def test_publication_boundary(self):
         original=fixture().replace('"requests": [4, 5, 6]','"requests": [1, 2, 3]')
         for r in range(3):original+=f'[R101-wave] round={r} completed={2*r} removed=0 status='+json.dumps({'index':{'instanceId':'worker','generation':1}})+'\n'

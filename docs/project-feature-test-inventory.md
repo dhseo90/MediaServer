@@ -5055,3 +5055,9 @@ R97-A02는 미선택 대체 후보의 unlink/authority 하드 오류를 거부�
 - R104-H03: 짧은 닫힌 metadata fixture에서 같은 채널3회에 대해 고정 TLS 4-counter(calls/cache hits/inclusive strict parse ns/canonical 후처리 ns)로 V2walk를 분해한다. Parse 안의 validation 직렬화는 inclusive parse에 포함된다. 수정 전 후처리는 두 번째 직렬화, 수정 후는 파싱 시 생성한 canonical의 exact 비교다. counter만 읽으며 cache 크기·퇴거·검증은 변경하지 않는다. 합성 HTTP 요청과 달리 이 자료는 직접 호출 비용이며 혼합 원인확정이나 응답 PASS를 대체하지 않는다.
 
 - R104-P03: 캐시 miss의 동일 mappings 중복 strict 파싱과 canonical 재생성을 한 검증 흐름으로 통합한다. `recording_segment_parse_smoke.cpp`의 이전 파서 oracle과 정상/비정규/중복키/nullable/256 mapping/범위 오류의 수용·정규 bytes·실패 시 output 불변을 대조한다. 전체 부모 검증 완료 전 결과 미게시, 같은 원본 bytes의 정확한 비교, 기존 workspace/cache/owner 한도 유지. 닫힌 같은 입력 채널별3회는 비용 근거이며 실제 혼합 gate는 별도다.
+
+### R105-P01 — 장면 요청의 원본 준비와 현재성 경계
+
+- 기존 V430-I01-SOURCE/V440-PR77-06의 실제 V2 준비에 일반 V1/fallback 재탐색과 두번째 hold를 중복하지 않는다. 같은 Acquire의 segment/location/hold로 파일 inspect와 native 증명을 수행하되 최종 source binding/current state·파일 identity/mtime/ctime·권한·정확sample 검증은 유지한다. 준비 실패·취소·예외의 hold/FD 해제, 관련 파일/원장 변조·store/lifecycle·채널 변경은 기존 직접 oracle로 거부한다. 후검증·현재 binding 획득과 그 안의 재검증은 그대로 유지한다.
+- 실제 RequestMedia 8MiB/200entry·oversized uncached·eviction/response hold 회귀와 generation proof/consumer 보호를 재사용한다. 같은 source의 여러 sample, 최초 Prepare 후 삭제/교체/변조·취소와 failed-output 불변을 직접 확인한다.
+- before=104 제품, after=새 최종 제품. 기존 contention53 fixture의 single/visual-pair(신규 비용 분리용2visual)/parallel(2structured+2visual)/background를 각각1회,3waves로 비교한다. 기존180초/4MiB/RSS/space/p95≤2000/max≤5000을 유지한다. 고정 순서·동일 모델/계측·새 소유 root를 사용하며 컴파일을 실행과 겹치지 않는다. HTTP·증거/A의 전체효과는 별도 기존900초1회에서 판정한다. static shape/seek metadata를 exhaustive top-k/실제Seek로 확대하지 않는다.

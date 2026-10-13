@@ -393,6 +393,31 @@ bool RecordingReadService::RevalidateHeldMediaV2(const ResolvedRecordingMedia& m
         S_ISREG(named.st_mode)&&held.st_dev==named.st_dev&&held.st_ino==named.st_ino&&held.st_size==named.st_size;
     ::close(current);return same&&catalog_.ValidateMediaV2(segment,location);
 }
+std::unique_ptr<ResolvedRecordingMedia> RecordingReadService::ResolveOriginalMediaV2(
+    const std::string& channel,const std::string& id,RecordingSegmentV2* output,
+    std::pair<std::filesystem::path,std::filesystem::path>* output_location,std::string* acquisition_error,MediaInspectionOptions options) const try {
+    if(acquisition_error)acquisition_error->clear();
+    const auto expired=[&]{return std::chrono::steady_clock::now()>=options.deadline||(options.cancelled&&options.cancelled());};
+    if(!output||!output_location||expired()||!ValidateOpaqueId(id,nullptr))return {};
+    auto media=std::unique_ptr<ResolvedRecordingMedia>(new ResolvedRecordingMedia);
+    // Allocate/copy before acquisition: after acquisition ownership installation cannot throw.
+    media->segment_id_=id;
+    RecordingSegmentV2 current;std::pair<std::filesystem::path,std::filesystem::path> location;
+    if(!catalog_.AcquireMediaV2(channel,id,&current,&location,acquisition_error))return {};
+    media->catalog_=&catalog_;
+    media->fd_=OpenMedia(location.first,location.second);
+    const auto inspected=InspectRecordingPhysicalMediaFd(media->fd_,{
+        current.container,current.video_codecs,current.size_bytes,current.checksum_sha256,current.retention_class},options);
+    if(inspected.state!=MediaInspectionState::Healthy||expired()||!catalog_.ValidateMediaV2(current,location))return {};
+    media->size_bytes_=current.size_bytes;
+    if(current.container=="mp4")media->content_type_="video/mp4";
+    else if(current.container=="webm")media->content_type_="video/webm";
+    else if(current.container=="mpegts"||current.container=="ts")media->content_type_="video/mp2t";
+    else return {};
+    *output=std::move(current);*output_location=std::move(location);
+    return media;
+} catch(const recording::RecordingRetainedReadError&){return {};}
+  catch(const recording::RecordingResourceUnavailable&){return {};}
 std::unique_ptr<ResolvedRecordingMedia> RecordingReadService::ResolveMedia(
     const std::string& channel_id, const std::string& segment_id, MediaInspectionOptions options) const {
     return ResolveMediaWithContext(channel_id,segment_id,nullptr,std::move(options));

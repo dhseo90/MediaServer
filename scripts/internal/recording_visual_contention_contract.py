@@ -25,13 +25,13 @@ def validate_output(text, mode, scale):
                 assert body['schema']=='media-server.recording-search.v1','structured schema'
                 assert all(item['channelId']=='9101' for item in items),'structured scope'
             requests.append((int(rnd),int(client),int(visual),float(ms)))
-    expected=[(r,c,int(c<2)) for r in range(3) for c in range(1 if mode=='single' else 4)]
+    expected=[(r,c,int(c<2)) for r in range(3) for c in range(1 if mode=='single' else 2 if mode=='visual-pair' else 4)]
     assert sorted(x[:3] for x in requests)==expected,'request population'
     times=sorted(x[3] for x in requests);assert times[math.ceil(len(times)*.95)-1]<=2000,'p95'
     end=rows('[visual-request-end] ');assert len(end)==1 and end[0]['started']==end[0]['completed']==(3 if mode=='single' else 6),'visual collection'
     summaries=rows('[visual-request] ');assert len(summaries)==end[0]['completed'] and sorted(x['id'] for x in summaries)==list(range(1,end[0]['completed']+1)),'visual summary coverage'
     holder=rows('[catalog-holder-end] ');assert len(holder)==1 and holder[0]['loss'] is False and holder[0]['inflight']==0,'holder collection'
-    assert holder[0]['requests']==([4,5,6] if mode=='parallel' else [1,2,3]),'holder selected requests'
+    assert holder[0]['requests']==([4,5,6] if mode in ('parallel','visual-pair') else [1,2,3]),'holder selected requests'
     assert holder[0]['records']==len(rows('[catalog-holder] ')),'holder count'
     assert len(holder[0]['windows'])==len(holder[0]['ends'])==3 and all(0<b<=e for b,e in zip(holder[0]['windows'],holder[0]['ends'])),'holder full intervals'
     owners=rows('[recording-resource] ');last=[x for x in owners if x['phase']=='after-storage-destruction'];assert len(last)==1,'resource end'

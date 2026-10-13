@@ -1,5 +1,6 @@
 // 파일 용도: 실제 writer/model/worker를 통과한 정제 API·권한·현재 seek의 단기 검사.
 #include "recording_media_test_fixture.h"
+#include "recording_writer_test_isolation.h"
 #include "recording/recording_runtime_composition.h"
 #include "ingress/visual_search_application_service.h"
 #include "domain/strict_json.h"
@@ -30,8 +31,9 @@ void Ready(Service& service,const Service::Authorize& authorize,unsigned seconds
 }
 int main(int argc,char** argv){try{
     if(argc!=3&&!(argc==4&&(std::string(argv[3])=="--query-only"||std::string(argv[3])=="--scope-only")))return 2;
-    gst_init(nullptr,nullptr);const auto root=std::filesystem::weakly_canonical(argv[1]);
-    recording::RecordingRuntimeStorage runtime(root);std::string error;Check(runtime.Open(&error),"storage open");
+    const auto root=std::filesystem::path(argv[1]);if(!RecordingWriterTestIsolation(root))return 2;
+    gst_init(nullptr,nullptr);
+    recording::RecordingRuntimeStorage runtime(root/"store");std::string error;Check(runtime.Open(&error),"storage open");
     const bool scope_only=argc==4&&std::string(argv[3])=="--scope-only";
     auto input=Encode(90,false,false,160,90,30,30);Shift(input,7000000000ULL);
     // 이 분기에서만 clock 근거를 명시적으로 제거한다. 기존 fixture는 UTC를 제공한다.

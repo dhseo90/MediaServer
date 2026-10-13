@@ -66,6 +66,10 @@ public:
         const std::string& channel_id, const std::string& segment_id, MediaInspectionOptions options = {}) const;
 private:
     friend class RecordingSearchReader;
+    // V2-only preparation: one acquired hold owns the file through inspection and response.
+    // No legacy/fallback discovery; AcquireMediaWithContext enforces namespace/current state.
+    std::unique_ptr<ResolvedRecordingMedia> ResolveOriginalMediaV2(const std::string&,const std::string&,
+        RecordingSegmentV2*,std::pair<std::filesystem::path,std::filesystem::path>*,std::string*,MediaInspectionOptions) const;
     bool RevalidateHeldMediaV2(const ResolvedRecordingMedia&,const RecordingSegmentV2&,
         const std::pair<std::filesystem::path,std::filesystem::path>&) const;
     // 검색 재생 후보만 소비한다. 공개 전체 timeline과 별도로 연속 녹화 행 생성을 생략한다.
