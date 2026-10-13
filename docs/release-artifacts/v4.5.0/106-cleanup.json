@@ -1,0 +1,87 @@
+{
+  "schema": "media-server.v450.r106.cleanup.v1",
+  "at": "2026-10-13T08:55:09.038218+00:00",
+  "preservationCommit": "c1e6611bf0778ac58470acab7f56fe20a5ae6114",
+  "remotePreservation": {
+    "observedAt": "2026-10-13T08:54:11.352364+00:00",
+    "commit": "c1e6611bf0778ac58470acab7f56fe20a5ae6114",
+    "remoteSha": "c1e6611bf0778ac58470acab7f56fe20a5ae6114",
+    "repository": "dhseo90/MediaServer",
+    "remoteTree": "c1efc906966bbc09e06d85dea02378a45a1736b3",
+    "evidence": [
+      {
+        "path": "docs/release-artifacts/v4.5.0/106-execution.tar.gz.part001",
+        "gitBlob": "92937067abaeaa4064bc2b318f9c29c6af671614",
+        "bytes": 52428800,
+        "sha256": "413f41faaa198eed2a523f2e077659107bf497eeb51174c764b451264293e8b0",
+        "remoteByteEqual": true
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/106-execution.tar.gz.part002",
+        "gitBlob": "20208ce4835b0e05667f36f8be7043c4920c0ab1",
+        "bytes": 52428800,
+        "sha256": "48fcf61d4f6f3ac507b3d6aba06163a04408555cf1304df5c529f9fc84dd86f4",
+        "remoteByteEqual": true
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/106-execution.tar.gz.part003",
+        "gitBlob": "bb77795c2ae7f44b6afa7441ece50ea5f009f6ae",
+        "bytes": 42090896,
+        "sha256": "4a83e2ef391e6df8a4f86723d13c7200607b1a760c9f3e509f7d7c1a5fde2137",
+        "remoteByteEqual": true
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/106-independent-review.json",
+        "gitBlob": "c04f2928a9aaf90c11547fa031c8a89af1901121",
+        "bytes": 14936,
+        "sha256": "f2b4240098ed5a2f0c19f9942309b4f45d4894f91ac90dc5eaac758052d5a376",
+        "remoteByteEqual": true
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/106-validation.json",
+        "gitBlob": "1b50a996122ab456546bc683471281aa3b28197c",
+        "bytes": 55514,
+        "sha256": "d67c1d47738177524c841d41ac7078b630db88ce83a6293395b3010d5db2df1f",
+        "remoteByteEqual": true
+      }
+    ],
+    "result": "PASS"
+  },
+  "ownedRoot": "/private/tmp/media-server-r106-dk8ntftq",
+  "verifiedIdentity": {
+    "dev": 16777232,
+    "inode": 174105356,
+    "uid": 501,
+    "mode": "0700"
+  },
+  "removedCounts": {
+    "files": 4284,
+    "symlinks": 277,
+    "regularBytes": 570453285,
+    "directories": 150
+  },
+  "rootAbsent": true,
+  "pointerAbsent": true,
+  "processesUsingOwnedRoot": [],
+  "ports": [
+    {
+      "port": 55413,
+      "status": "closed",
+      "method": "lsof TCP LISTEN"
+    },
+    {
+      "port": 55414,
+      "status": "closed",
+      "method": "lsof TCP LISTEN"
+    }
+  ],
+  "ownedContainers": [],
+  "cleanupErrors": [],
+  "scope": "Owned R106 root/pointer only after remote byte verification; symlink targets never followed. User config/private95backup/models/SDK untouched. Existing process receipts in execution archive and106-independent-review retain original timing.",
+  "helperDisposition": "remote verification and cleanup scripts/receipt under private/tmp are removed after this record is saved; not product data",
+  "result": "PASS",
+  "validationStateResolution": "106-validation preservation.remote/cleanup and reviewer pending values describe pre-push capture. This receipt records completed remote preservation and owned cleanup.",
+  "finalGit": "This receipt commit follows preservationCommit; final branch SHA is verified after ordinary push without recursive self-hash.",
+  "functionalResult": "direct limited PASS; after900 FAIL;45NOT_RUN;memoryP0/releaseHOLD",
+  "helperFilesAbsent": true
+}
