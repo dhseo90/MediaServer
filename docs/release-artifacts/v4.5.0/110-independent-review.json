@@ -67,5 +67,11 @@
     "noUserSettingsPrivateBackupModelsBinaries": true,
     "verdict": "limited improvement and HTTP FAIL preservation/general push eligible",
     "remoteCleanup": "pending"
+  },
+  "postReviewCompletionByMain": {
+    "remoteBytesConfirmedAt": "7afe5e2eb04d82ae1b59dc8d1ce0d339b731d6d5",
+    "ownedRootRemoved": true,
+    "processPortsContainerAbsent": true,
+    "status": "review conditions completed; no change to original independent verdict"
   }
 }

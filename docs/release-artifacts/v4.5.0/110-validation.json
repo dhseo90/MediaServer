@@ -1007,17 +1007,53 @@
       "noUserSettingsPrivateBackupModelsBinaries": true,
       "verdict": "limited improvement and HTTP FAIL preservation/general push eligible",
       "remoteCleanup": "pending"
+    },
+    "remote": {
+      "method": "fresh bare partial clone from origin; blobs fetched and byte-compared",
+      "remoteCommit": "7afe5e2eb04d82ae1b59dc8d1ce0d339b731d6d5",
+      "localCommit": "7afe5e2eb04d82ae1b59dc8d1ce0d339b731d6d5",
+      "files": {
+        "docs/release-artifacts/v4.5.0/110-execution.tar.gz": {
+          "bytes": 5432912,
+          "sha256": "9efa2a79059d31d18936a656785d399df9981f1dc79d463a9b97f09faa816d60"
+        },
+        "docs/release-artifacts/v4.5.0/110-validation.json": {
+          "bytes": 26995,
+          "sha256": "a4e4be879d0e4bc1c53f6e8d2b11f6ac43920a338a409d83bb0481e239fa3f62"
+        },
+        "docs/release-artifacts/v4.5.0/110-independent-review.json": {
+          "bytes": 2954,
+          "sha256": "02553272a3695666ea8c30906efbd42b2021b777e54c6298bf9d4882bba6f3f5"
+        },
+        "include/recording/recording_retained_rows.h": {
+          "bytes": 25154,
+          "sha256": "1b85bd8cedf9e14fff7632059cbde12221a84e1fb687a5fa2a6ff81a6b26a9f2"
+        },
+        "src/recording/recording_timeline_projection.cpp": {
+          "bytes": 25966,
+          "sha256": "c4264514c29352a12ea8f8385a967f0f9c2510538595a54808707484579ac644"
+        }
+      },
+      "allEqual": true
     }
   },
   "cleanup": {
-    "status": "pending remote byte confirmation",
-    "prechecks": {
+    "ownedRoot": "/private/tmp/media-server-r110-kg2gfzcp",
+    "status": "complete",
+    "files": 3811,
+    "logicalBytes": 355152811,
+    "symlinksUnlinkedWithoutFollowing": 0,
+    "checks": {
       "before-httpGroupAbsent": true,
       "port51522Absent": true,
       "linuxContainerAbsent": true,
       "after-httpGroupAbsent": true,
       "port51824Absent": true
-    }
+    },
+    "privateUserSettingsBackup": "not accessed/uploaded/removed",
+    "modelsSdk": "existing read only; not modified/uploaded/removed",
+    "removed": true,
+    "pointerRemoved": true
   },
   "remaining": [
     "Catalog still locks whole event walk, bounded/fullnamespace O(N) disk read remains",
