@@ -1,0 +1,48 @@
+{
+  "schema": "media-server.v450.r115.independent-review.v1",
+  "reviewer": "/root/independent_r115",
+  "requested": "gpt-6-astra/high",
+  "toolAcceptance": "spawn_agent accepted gpt-6-astra/high, fork_turns=none; separate reviewer",
+  "actualRuntimeModelEffort": null,
+  "participation": "read-only; no implementation/test writing/execution or subdelegation",
+  "decision": "FAIL_CONFIRMED_45_MINUTE_INELIGIBLE",
+  "confirmed": [
+    "source/start/end/tree/binary/profile unchanged; continuous-r114",
+    "one attempt: exit1, not timeout; no900 completion",
+    "concurrent503 busy +503 create-failed; no201; one observed decoder failure",
+    "208 original successful searches,52/client; final latency gate not-run",
+    "A13 synthetic projector completions, detectorEvaluated=false",
+    "154 complete output observations;534995B complete server collection",
+    "finally normal shutdown/ports closed/group absent separate from not-run disable/closed-journal gates"
+  ],
+  "limitations": [
+    "frame factory trace4(success3/fail1), not all calls",
+    "holder1499/loss=false/inflight0 but sampledOnly request72; wait1445129081ns, covered608939288ns, unclassified836189793ns",
+    "post-stop identity/hash does not establish all historical file contents",
+    "no root cause established for new eos-no-target",
+    "remote bytes/owned root cleanup pending at initial review"
+  ],
+  "preservationReview": {
+    "status": "PASS_LOCAL_PRESERVATION_AND_REPORT",
+    "archiveBytes": 32971647,
+    "sha256": "1806269f05605a2e8b7a6c518bbde0f09915d3bac42abb006062afd905784e45",
+    "payloadFiles": 969,
+    "allMembersVerified": true,
+    "originalMismatches": 0,
+    "sanitizedURLReplacements": 8,
+    "excludedMaterialAbsent": true,
+    "failedMP4Bytes": 10469,
+    "failedMP4Sha256": "d22cfc316bc4bfff15650ee7e55bf05a9621c636e2fd5abf36e518af4eecdc6b",
+    "journalRawRows": [
+      139,
+      142
+    ],
+    "decodedLengthCRCAndJsonMatch": true,
+    "targetMP4Files": 758,
+    "maxTargetBytes": 34724,
+    "samplePairs": 154,
+    "recomputedMaxVariableBytes": 144723627,
+    "claims": "sequential/non-atomic; not instantaneous peak; original208 population and not-run final gates correctly distinguished",
+    "remaining": "remote actual bytes and owned root cleanup pending at review"
+  }
+}

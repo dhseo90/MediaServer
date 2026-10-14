@@ -1,0 +1,901 @@
+{
+  "schema": "media-server.v450.r115.validation.v1",
+  "status": "FAIL",
+  "memoryP0": "OPEN",
+  "release": "HOLD",
+  "models": {
+    "requestedMain": "gpt-6-astra/high",
+    "requestedIndependent": "gpt-6-astra/high",
+    "mainToolAccepted": null,
+    "independentToolAccepted": "spawn_agent gpt-6-astra/high fork_turns=none",
+    "actualMainRuntime": null,
+    "actualIndependentRuntime": null,
+    "projectDefault": "not session proof"
+  },
+  "baseHead": "5e564575498a5d83defe55998a81afd0d93dfb1b",
+  "productFixtureCollectorGateChanged": false,
+  "product": {
+    "path": "build-gst-onnx/media_server",
+    "bytes": 37416000,
+    "sha256": "4da2c9ced46ea7f11d6d22fc8bc4930b80beadae2b767dbd423e46282d00a317"
+  },
+  "runtime": {
+    "path": "build-gst-onnx/libmedia_server_runtime.a",
+    "bytes": 110630648,
+    "sha256": "f7929d3133e296248c52881afd295bae9abd5e4c138c6294d676cb4a1684b6f4"
+  },
+  "execution": {
+    "preparationContractVersion": 2,
+    "resultScope": "existing mixed mode",
+    "command": [
+      "bash",
+      "/Users/dhseo/Workspace/mediaServer/scripts/internal/verify_v450_recording_a_mixed.sh",
+      "--contention-diagnostic"
+    ],
+    "startedAt": "2026-10-14T13:35:01.616265+00:00",
+    "status": "FAIL",
+    "source": {
+      "head": "5e564575498a5d83defe55998a81afd0d93dfb1b",
+      "fixtureProfile": "continuous-r114",
+      "fixtureProfileSourceSha256": "d591cd6fb0c952994bfe8529ffdaec5514952da9e5d23aadf8ade94332bfb5a4",
+      "tree": "3d212cfe4394d9258da12f20adbb33505f4213f0",
+      "sourceSha256": "7b29dfdf83e92f80f880f391a06162739e679f73d0c651bf1e6c5044f0c77ac2",
+      "binarySha256": "4da2c9ced46ea7f11d6d22fc8bc4930b80beadae2b767dbd423e46282d00a317"
+    },
+    "timeoutSeconds": 1080,
+    "observationSeconds": 900,
+    "wrapperSha256": "392eb9e0bc2987fa8e07228742293163aaedb030c44b26ecbfd7563366b71d1d",
+    "resourceTrendPass": false,
+    "reviewRequired": true,
+    "uiFulltestPass": false,
+    "processGroup": 88633,
+    "childExit": 1,
+    "exit": 1,
+    "executionElapsedSeconds": 785.2084375410341,
+    "elapsedSeconds": 785.2096025829669,
+    "timedOut": false,
+    "interruptedSignals": [],
+    "residualGroupAfterCommand": false,
+    "cleanupSignals": [],
+    "processGroupAbsent": true,
+    "cleanupErrors": [],
+    "cleanupOnlySeconds": 1.4167046174407005e-05,
+    "registeredGroupsAbsent": true,
+    "residualRegisteredGroups": false,
+    "registeredGroupSignals": [],
+    "registeredGroupCleanupSeconds": 0.0010934998281300068,
+    "finishedAt": "2026-10-14T13:48:07.156017+00:00",
+    "sourceEnd": {
+      "head": "5e564575498a5d83defe55998a81afd0d93dfb1b",
+      "fixtureProfile": "continuous-r114",
+      "fixtureProfileSourceSha256": "d591cd6fb0c952994bfe8529ffdaec5514952da9e5d23aadf8ade94332bfb5a4",
+      "tree": "3d212cfe4394d9258da12f20adbb33505f4213f0",
+      "sourceSha256": "7b29dfdf83e92f80f880f391a06162739e679f73d0c651bf1e6c5044f0c77ac2",
+      "binarySha256": "4da2c9ced46ea7f11d6d22fc8bc4930b80beadae2b767dbd423e46282d00a317"
+    },
+    "totalWithFinalBindingSeconds": 785.5964599158615,
+    "rootDisposition": "preserved-for-byte-review-and-owned-cleanup"
+  },
+  "profile": {
+    "name": "continuous-r114",
+    "continuousMaxBytes": 113246208,
+    "eventMaxBytes": 134217728,
+    "continuousMaxAgeMs": 10800000,
+    "eventMaxAgeMs": 10800000,
+    "segmentBytes": 71237,
+    "protectedFiles": 643,
+    "E": 67108864,
+    "H": 45805391,
+    "P": 71237,
+    "M": 260716,
+    "inputNormalizedSha256": "baebad5cad233243c4748f6bfec06fa5d2da7f06ae9b1475c9b20bfbfb04e2e7"
+  },
+  "duration": {
+    "lastMainProgressMs": 765861.676708,
+    "samplePhaseSpanMs": 765624.288708,
+    "nodeElapsedMs": 779963,
+    "totalWithFinalBindingSeconds": 785.5964599158615,
+    "verifiedDurationMs": null,
+    "observationCompleted": false
+  },
+  "firstFailure": "[fail] current observation: V440 concurrent creation admits a request",
+  "assertions": {
+    "passed": 2120,
+    "failed": 1,
+    "scope": "partial execution; not suite PASS"
+  },
+  "frameFailure": {
+    "responses": [
+      {
+        "status": 503,
+        "elapsedMs": 2.611875000060536,
+        "body": {
+          "error": "evidence-busy"
+        }
+      },
+      {
+        "status": 503,
+        "elapsedMs": 29.069917000015266,
+        "body": {
+          "error": "evidence-create-failed"
+        }
+      }
+    ],
+    "path": "mixed900/media-server-current-observer-Y1Mgyv/recordings/9101/2fd1bbf2-7664-4fe4-964b-cb41fca2e66e.mp4",
+    "bytes": 10469,
+    "sha256": "d22cfc316bc4bfff15650ee7e55bf05a9621c636e2fd5abf36e518af4eecdc6b",
+    "targetNs": 1800000000,
+    "lastPtsNs": 1966666666,
+    "lastStreamNs": 1966666666,
+    "policy": "software-only",
+    "factory": "avdec_h264:libav:1.28.1",
+    "maxThreadsReadback": 1,
+    "first": "eos-no-target",
+    "public": "evidence-create-failed",
+    "elapsedUs": 3482,
+    "decoderSamples": 14,
+    "published": false,
+    "binding": "archived failure-frame-binding.json contains exact raw reserved row and CRC/length-checked decompressed finalized/source binding row; runtime frame stat matches post-stop inode/size",
+    "limits": "failed literal snapshot/hit request IDs absent; not reconstructed. Post-stop SHA is not failure-time immutable-byte proof. Different10469B/1.8s file from R112; same error name does not establish same cause. No new decode or product modification."
+  },
+  "search": {
+    "population": "original mixed successful HTTP array only; A/retrieval excluded; no warmup trimming",
+    "overallPartial": {
+      "count": 208,
+      "p95Ms": 2378.6543339999625,
+      "maxMs": 2691.529542000033
+    },
+    "visualPartial": {
+      "count": 104,
+      "p95Ms": 2526.4728749999776,
+      "maxMs": 2691.529542000033
+    },
+    "structuredPartial": {
+      "count": 104,
+      "p95Ms": 1700.8569170000264,
+      "maxMs": 1994.7454170000274
+    },
+    "clients": [
+      52,
+      52,
+      52,
+      52
+    ],
+    "unavailable": 0,
+    "timingOutcomes": {
+      "ok:200": 589,
+      "ok:201": 127,
+      "ok:202": 13,
+      "ok:503": 52
+    },
+    "finalLatencyGate": "not-run; partial p95 exceeds 2000ms but did not trigger early termination"
+  },
+  "progress": {
+    "windows": [
+      {
+        "structured": 380,
+        "visual": 760,
+        "evidence": 19,
+        "visualEvidence": 19
+      },
+      {
+        "structured": 400,
+        "visual": 800,
+        "evidence": 20,
+        "visualEvidence": 20
+      },
+      {
+        "structured": 240,
+        "visual": 480,
+        "evidence": 11,
+        "visualEvidence": 12
+      }
+    ],
+    "last": {
+      "elapsedMs": 765861.676708,
+      "channels": {
+        "9101": {
+          "finalized": 377,
+          "deleted": 0,
+          "lastAt": 774400.850625,
+          "order": "753",
+          "store": "10bfae2ca86d327a1cf529be9de819d22ce52b04d3e272eff1c56662b19ceecc",
+          "knownMappings": 274,
+          "unknownMappings": 13546
+        },
+        "9201": {
+          "finalized": 376,
+          "deleted": 0,
+          "lastAt": 774400.850625,
+          "order": "754",
+          "store": "10bfae2ca86d327a1cf529be9de819d22ce52b04d3e272eff1c56662b19ceecc",
+          "knownMappings": 264,
+          "unknownMappings": 13452
+        }
+      },
+      "records": 753,
+      "logicalBytes": 449051
+    },
+    "indexFirst": {
+      "cycle": 0,
+      "state": "ready",
+      "error": "",
+      "channels": [
+        {
+          "channelId": "1",
+          "indexedFrames": 1
+        },
+        {
+          "channelId": "9101",
+          "indexedFrames": 0
+        },
+        {
+          "channelId": "9201",
+          "indexedFrames": 0
+        }
+      ]
+    },
+    "indexLast": {
+      "cycle": 50,
+      "state": "indexing",
+      "error": "",
+      "channels": [
+        {
+          "channelId": "1",
+          "indexedFrames": 1
+        },
+        {
+          "channelId": "9101",
+          "indexedFrames": 736
+        },
+        {
+          "channelId": "9201",
+          "indexedFrames": 733
+        }
+      ]
+    },
+    "structuredSuccess": 50,
+    "structuredBusyBeforeFailingPair": 50,
+    "actualStructuredPairStatuses": {
+      "201:created": 50,
+      "503:evidence-busy": 51,
+      "503:evidence-create-failed": 1
+    },
+    "visualCreated": 51,
+    "retainedChecks": 100,
+    "aCompleted": [
+      {
+        "slot": 0,
+        "state": "completed",
+        "elapsedMs": 784.2251660000002,
+        "label": "main-0",
+        "packageId": "ep-6989d7b7ab004f7a84ac6dfb031fec44d8f7122f204d19396888b0ea549e7549",
+        "snapshotId": "0e55cb68719176a93b1c9313e7b4e9fb",
+        "hitId": "or:36:obs-e0feb8b49b3c653f2db2c25cacec482e",
+        "draftId": "ad-eb5958602c5f476bb2a008f4bf5d3fef81bdc4c7c7b840af902fc243eb870a31",
+        "revision": "eb5958602c5f476bb2a008f4bf5d3fef81bdc4c7c7b840af902fc243eb870a31",
+        "preparedAt": 9449.91575,
+        "pid": 88674,
+        "jobId": "vj-2a0caf38da2af176e2ce0d3a16166c14-1",
+        "admittedAt": 9453.113542,
+        "lastState": "completed",
+        "reviewId": "vr-6c7fcfa947bbd069ce2a198a8c91305a2e2b214c625eb58677d8ea94cc4e00a1",
+        "completedAt": 13881.195208,
+        "jobElapsedMs": 4428.08475,
+        "resultHash": "20ea5d01ec7ace36ba4a8451bfe9fd52eb6bf7c450e0372f25cc7d5cf26df34a"
+      },
+      {
+        "slot": 1,
+        "state": "completed",
+        "elapsedMs": 61254.05375,
+        "label": "main-1",
+        "packageId": "ep-7843d2ec6f9551ff6b09765a5b4e738f3771d2f99e0b71d7887377fd1d957899",
+        "snapshotId": "c9eb6ebb61278ad00438af83d8a37e36",
+        "hitId": "or:36:obs-e0feb8b49b3c653f2db2c25cacec482e",
+        "draftId": "ad-51aa02789534a05c811663328d92432ee1d7dd01bf5a5f4cd99500ea29445a1c",
+        "revision": "51aa02789534a05c811663328d92432ee1d7dd01bf5a5f4cd99500ea29445a1c",
+        "preparedAt": 69946.381792,
+        "pid": 88674,
+        "jobId": "vj-2a0caf38da2af176e2ce0d3a16166c14-2",
+        "admittedAt": 69950.269917,
+        "lastState": "completed",
+        "reviewId": "vr-677cbc9a0344ae0d10ba151f2d776aa2da1ddbaa44d4387ca9d017ff028834ff",
+        "completedAt": 74047.683792,
+        "jobElapsedMs": 4097.416708000004,
+        "resultHash": "846e622ba1786b56d3581210e1bd4f446ce9bd7d7f3bafacc8380656a159f72e"
+      },
+      {
+        "slot": 2,
+        "state": "completed",
+        "elapsedMs": 121283.11175000001,
+        "label": "main-2",
+        "packageId": "ep-8fbc981f1827467ed7fcd3e9d6e2b3b284b07bb3b55e968b0b7bcfabcbc03e2f",
+        "snapshotId": "c35644584ab037de21e0570292ccba52",
+        "hitId": "or:36:obs-e0feb8b49b3c653f2db2c25cacec482e",
+        "draftId": "ad-3a4e631c919aade6d98a05c56b033ff6961d7251b49dd3a981aeab6ff30ccced",
+        "revision": "3a4e631c919aade6d98a05c56b033ff6961d7251b49dd3a981aeab6ff30ccced",
+        "preparedAt": 130016.676167,
+        "pid": 88674,
+        "jobId": "vj-2a0caf38da2af176e2ce0d3a16166c14-3",
+        "admittedAt": 130020.627542,
+        "lastState": "completed",
+        "reviewId": "vr-223664e22e94a1bb25b0d265fda6a4e9ced26990227d2cad6421df6e652df7df",
+        "completedAt": 134040.462083,
+        "jobElapsedMs": 4019.837750000006,
+        "resultHash": "0cf34be8ea74f09f24924f097e4f29a149692dba914bfff29ab437ab23d9b14e"
+      },
+      {
+        "slot": 3,
+        "state": "completed",
+        "elapsedMs": 181638.397916,
+        "label": "main-3",
+        "packageId": "ep-e26ec9e6ad5cd9892d49ec121fa5cfbceb28b08bafeac6f28673fbc2dc84c600",
+        "snapshotId": "ad6a549f246bbf967b793a2ecd18b48c",
+        "hitId": "or:36:obs-e0feb8b49b3c653f2db2c25cacec482e",
+        "draftId": "ad-5908cd623ae554f1983bdb071197086ce14290668aea76bbfb8c0d2a89bea956",
+        "revision": "5908cd623ae554f1983bdb071197086ce14290668aea76bbfb8c0d2a89bea956",
+        "preparedAt": 190445.685375,
+        "pid": 88674,
+        "jobId": "vj-2a0caf38da2af176e2ce0d3a16166c14-4",
+        "admittedAt": 190449.811292,
+        "lastState": "completed",
+        "reviewId": "vr-975799b7b9bd142c6add5d9ad90ae4b9f33b3904172d30ed42ceae20dbee9e96",
+        "completedAt": 194225.76775,
+        "jobElapsedMs": 3775.956750000012,
+        "resultHash": "04c55d5b4e8bda8354995f3710a085d84902418ff3d2cec8c1c8ecf18bbf9da1"
+      },
+      {
+        "slot": 4,
+        "state": "completed",
+        "elapsedMs": 241556.861791,
+        "label": "main-4",
+        "packageId": "ep-2e165fa6719f3154b3e5adf402e76428ef82251bd288c34622ec51dceb194924",
+        "snapshotId": "dc4c64eb431c7094a5804fca87c04df6",
+        "hitId": "or:36:obs-e0feb8b49b3c653f2db2c25cacec482e",
+        "draftId": "ad-62d1f5c2ecabb27fe4e584c9db686063738d1e6b76f8bc9271c528dc7c86159f",
+        "revision": "62d1f5c2ecabb27fe4e584c9db686063738d1e6b76f8bc9271c528dc7c86159f",
+        "preparedAt": 250420.352458,
+        "pid": 88674,
+        "jobId": "vj-2a0caf38da2af176e2ce0d3a16166c14-5",
+        "admittedAt": 250425.018458,
+        "lastState": "completed",
+        "reviewId": "vr-2a7e33dc6162595acdea4976a7560446ccdf2903ea92c2b4651b27104d67fbda",
+        "completedAt": 254181.394292,
+        "jobElapsedMs": 3756.3782089999877,
+        "resultHash": "36a2bc78267a9c9f050af605e76fa6d0e7555340fe3630932b87cc55e46920ee"
+      },
+      {
+        "slot": 5,
+        "state": "completed",
+        "elapsedMs": 301756.953833,
+        "label": "main-5",
+        "packageId": "ep-07e28e9c6e9bc6741ae180ff6b979dab314a92fcdd56341b26f5f637961c976a",
+        "snapshotId": "2d2018a8ae7a72c5f2d7a3e1e84f2a0c",
+        "hitId": "or:36:obs-e0feb8b49b3c653f2db2c25cacec482e",
+        "draftId": "ad-d50a70d0394246da9e1c2453fedc6a552bb5dbbc78b254aef631f61f4930e67a",
+        "revision": "d50a70d0394246da9e1c2453fedc6a552bb5dbbc78b254aef631f61f4930e67a",
+        "preparedAt": 310665.540875,
+        "pid": 88674,
+        "jobId": "vj-2a0caf38da2af176e2ce0d3a16166c14-6",
+        "admittedAt": 310670.274333,
+        "lastState": "completed",
+        "reviewId": "vr-8ad6961d10dece6e141a86cdb2ccc4fe0fcacd70ddde4c9d0970a528b929d886",
+        "completedAt": 314192.68725,
+        "jobElapsedMs": 3522.4132499999832,
+        "resultHash": "1b974791a72e4c9dc4a0f9c67b661d4a86b6ca6a1e67798cba4e4aa8991b6639"
+      },
+      {
+        "slot": 6,
+        "state": "completed",
+        "elapsedMs": 362037.395041,
+        "label": "main-6",
+        "packageId": "ep-d1ffa9ba5127b98b2b46fb3670516b697b59c585c120c7d8bb0f4fbe11afb9cc",
+        "snapshotId": "2ac16d8932b6d102a9cba896771a05ad",
+        "hitId": "or:36:obs-e0feb8b49b3c653f2db2c25cacec482e",
+        "draftId": "ad-97a5257b46a4f00b1cf724c55a05d5e852fff0149477d35e1acce4e73fe28824",
+        "revision": "97a5257b46a4f00b1cf724c55a05d5e852fff0149477d35e1acce4e73fe28824",
+        "preparedAt": 371024.73,
+        "pid": 88674,
+        "jobId": "vj-2a0caf38da2af176e2ce0d3a16166c14-7",
+        "admittedAt": 371030.069792,
+        "lastState": "completed",
+        "reviewId": "vr-d9e44f6b31b491c0d11d0ccd2b95d05c1887075782f025e1b498291229d3b72d",
+        "completedAt": 374329.461125,
+        "jobElapsedMs": 3299.396666000015,
+        "resultHash": "aa8d5482690ed74bf072fe54225a7920a4b918c000b6b7c1baec45748c6ecfcc"
+      },
+      {
+        "slot": 7,
+        "state": "completed",
+        "elapsedMs": 422043.440833,
+        "label": "main-7",
+        "packageId": "ep-91b613b8091bc546d97aa09d398a4faf3fee14a230de53527d3ef6a5983292c2",
+        "snapshotId": "5e41ebe7c08b48ac3429232a9c1e3549",
+        "hitId": "or:36:obs-e0feb8b49b3c653f2db2c25cacec482e",
+        "draftId": "ad-1fd3c1f580c7b578380c4f30caf41a4cca0e443694c2729b74d2ec4e09164aa7",
+        "revision": "1fd3c1f580c7b578380c4f30caf41a4cca0e443694c2729b74d2ec4e09164aa7",
+        "preparedAt": 431096.981125,
+        "pid": 88674,
+        "jobId": "vj-2a0caf38da2af176e2ce0d3a16166c14-8",
+        "admittedAt": 431102.78875,
+        "lastState": "completed",
+        "reviewId": "vr-da08775564ab07845c57dc4e275ef00154f2b089f6b7a0fc2a612413b2edf115",
+        "completedAt": 434377.277583,
+        "jobElapsedMs": 3274.4891669999924,
+        "resultHash": "57e0754494fe0aec367393b7703b4f41f96386b6d6207b4ce919a1ce2961e43f"
+      },
+      {
+        "slot": 8,
+        "state": "completed",
+        "elapsedMs": 482471.97637499997,
+        "label": "main-8",
+        "packageId": "ep-b326f2566b1a3c16a28b0bfba9beeb0588f809a7ce2d52357634c69016efb0be",
+        "snapshotId": "49990bbb8697bb1dfe60bd0384fa5e0b",
+        "hitId": "or:36:obs-e0feb8b49b3c653f2db2c25cacec482e",
+        "draftId": "ad-36cccf450664c0a3bf9e21065bf2e1e64e22bedfb644218287ff8a5d03988488",
+        "revision": "36cccf450664c0a3bf9e21065bf2e1e64e22bedfb644218287ff8a5d03988488",
+        "preparedAt": 491767.663708,
+        "pid": 88674,
+        "jobId": "vj-2a0caf38da2af176e2ce0d3a16166c14-9",
+        "admittedAt": 491777.038333,
+        "lastState": "completed",
+        "reviewId": "vr-208a39bb0de7b82f033c97c0785b44a23dc0a303491707977c8fc7c3567913af",
+        "completedAt": 494492.673167,
+        "jobElapsedMs": 2715.6379590000142,
+        "resultHash": "508eae735ad92c96d2c0aa022d33e261508677ecb77a4daed8b8a3a1424f764a"
+      },
+      {
+        "slot": 9,
+        "state": "completed",
+        "elapsedMs": 543435.258041,
+        "label": "main-9",
+        "packageId": "ep-8bd65e84ec4d2af22dc5f011da76be29b6ffbeeff5c3b950f6206d7d8ace30c2",
+        "snapshotId": "2e2949d8ee2915bf7109f520432ed304",
+        "hitId": "or:36:obs-e0feb8b49b3c653f2db2c25cacec482e",
+        "draftId": "ad-2b14d7b4a041640ed3f3946b7edf2628c6c2086c773fc9444237c20effa84286",
+        "revision": "2b14d7b4a041640ed3f3946b7edf2628c6c2086c773fc9444237c20effa84286",
+        "preparedAt": 553019.891042,
+        "pid": 88674,
+        "jobId": "vj-2a0caf38da2af176e2ce0d3a16166c14-10",
+        "admittedAt": 553026.466042,
+        "lastState": "completed",
+        "reviewId": "vr-f45aa25cf2605715de4f139224751440378247a9e33c2a798a68381eb3faff17",
+        "completedAt": 554860.095375,
+        "jobElapsedMs": 1833.6296660000226,
+        "resultHash": "3dca4db18eb6579f6a55fbfe1e89ec24e3f3656e16146e3359d23e47688af9fa"
+      },
+      {
+        "slot": 10,
+        "state": "completed",
+        "elapsedMs": 603562.6782910001,
+        "label": "main-10",
+        "packageId": "ep-247fd166f52085958fba42ce5d48bd0dba58401b3f1451208e8f08f8b7698363",
+        "snapshotId": "709f57923a2322ebc2dcb4c3c21d531e",
+        "hitId": "or:36:obs-e0feb8b49b3c653f2db2c25cacec482e",
+        "draftId": "ad-65f75c93575a362fb70d1ccb178b97cffd8034e1e2ba7c2a123898a433a7a290",
+        "revision": "65f75c93575a362fb70d1ccb178b97cffd8034e1e2ba7c2a123898a433a7a290",
+        "preparedAt": 613830.82675,
+        "pid": 88674,
+        "jobId": "vj-2a0caf38da2af176e2ce0d3a16166c14-11",
+        "admittedAt": 613838.073125,
+        "lastState": "completed",
+        "reviewId": "vr-1c125e0f673dd677735f54426e0d9813b401baacc444ed78be0c907bd88391b1",
+        "completedAt": 614585.477583,
+        "jobElapsedMs": 747.407332999981,
+        "resultHash": "7a7b1154185991eaa97ff600c0b84c2b55628bc26a903f81cb15183330581c5a"
+      },
+      {
+        "slot": 11,
+        "state": "completed",
+        "elapsedMs": 663944.247958,
+        "label": "main-11",
+        "packageId": "ep-85e24221be396ef885c5692fe72121f6ad1b396505ee8e5492ed27c7d693b6dc",
+        "snapshotId": "cd80d97f21354035397e840377533898",
+        "hitId": "or:36:obs-e0feb8b49b3c653f2db2c25cacec482e",
+        "draftId": "ad-4dceceaac86b74bafe3d173114d12e95017a602995410ac23af1aa5bb5c1a590",
+        "revision": "4dceceaac86b74bafe3d173114d12e95017a602995410ac23af1aa5bb5c1a590",
+        "preparedAt": 674314.683458,
+        "pid": 88674,
+        "jobId": "vj-2a0caf38da2af176e2ce0d3a16166c14-12",
+        "admittedAt": 674322.180792,
+        "lastState": "completed",
+        "reviewId": "vr-94e4b5a44a2931b10cdc57dd0efe3e4547eb57d6fdc7a53f08671a0e3fbe5ab2",
+        "completedAt": 674753.24025,
+        "jobElapsedMs": 431.059874999919,
+        "resultHash": "185d0d2baa08752f678bf13f2ff0cde16e357eb3fb001bd0776a666de5a3b5df"
+      },
+      {
+        "slot": 12,
+        "state": "completed",
+        "elapsedMs": 723323.573541,
+        "label": "main-12",
+        "packageId": "ep-86ea7506e7940599b6fa242966c23bd96cbf6dc01a3aefc6e561aa346c43aebb",
+        "snapshotId": "1ff9b1f3aaddf22fadb7b064b487c78f",
+        "hitId": "or:36:obs-e0feb8b49b3c653f2db2c25cacec482e",
+        "draftId": "ad-1dea1e1b1beae72f2f91e2ae1663f81fdbf4b9fa58a53f7c87e5665d9e2aec3d",
+        "revision": "1dea1e1b1beae72f2f91e2ae1663f81fdbf4b9fa58a53f7c87e5665d9e2aec3d",
+        "preparedAt": 734270.981417,
+        "pid": 88674,
+        "jobId": "vj-2a0caf38da2af176e2ce0d3a16166c14-13",
+        "admittedAt": 734278.918625,
+        "lastState": "completed",
+        "reviewId": "vr-3ac636d489283c542286bb1ee73c49f3f51d8702d8ec27270c47d6f5625dac31",
+        "completedAt": 735033.88475,
+        "jobElapsedMs": 754.966167000006,
+        "resultHash": "55db6e88a3561305a2f3a87156b3abc23b7af0ffca02bf58353e3c78e17580d4"
+      }
+    ],
+    "aScheduled": 13,
+    "detectorEvaluated": false
+  },
+  "output": {
+    "closedTargetFiles": 758,
+    "maxClosedTargetBytes": 34724,
+    "limitBytes": 71237,
+    "allClosedWithinBound": true,
+    "scope": "in-run guard retained; separate post-stop file scan includes tail; no packet-loss/decode-completeness claim"
+  },
+  "resources": {
+    "completeOutputSamples": 154,
+    "summarySamples": 154,
+    "pids": [
+      88674
+    ],
+    "startIdentities": [
+      "macos:1791984910:183673"
+    ],
+    "maxSampleGapMs": 5008.803917000012,
+    "separateSampleMaxima": {
+      "rssBytes": 2644525056,
+      "footprintBytes": 3160182072,
+      "threadCount": 42,
+      "fdCount": 42,
+      "anonymousFileBytes": 59143168,
+      "anonymousAllocatedBytes": 60297216
+    },
+    "rootSeparateMaxima": {
+      "totalBytes": 104526559,
+      "variableBytes": 90435829,
+      "copyBytes": 0,
+      "combinedBytes": 104526559,
+      "parentOutputBytes": 1811558
+    },
+    "fixedBytes": 14090730,
+    "workspaceFailure": {
+      "status": "no-workspace-failure",
+      "primary": null,
+      "decision": null,
+      "collectorDiagnostic": null,
+      "context": null,
+      "collectionError": null,
+      "capacityBytes": 32768
+    },
+    "owner": {
+      "status": "captured",
+      "count": 157,
+      "final": {
+        "pid": 88674,
+        "seq": 156,
+        "phase": "after-storage-destruction",
+        "elapsedMs": 776386,
+        "ram": 0,
+        "ramPeak": 408918119,
+        "ramLimit": 671088640,
+        "ramRejected": 0,
+        "scratchDisk": 0,
+        "scratchDiskPeak": 99688448,
+        "scratchDiskLimit": 161899495424,
+        "scratchFd": 0,
+        "scratchFdPeak": 17,
+        "scratchFdLimit": 1048572,
+        "scratchRam": 0,
+        "preservedDisk": 0,
+        "preservedFd": 0,
+        "readerCleanupHealthy": true
+      },
+      "scope": "actual shared product owner; logical charges, not total heap or RSS; sequential counter reads"
+    },
+    "trend": {
+      "status": "observed",
+      "resourceTrendPass": false,
+      "reviewRequired": true,
+      "sampleCount": 154,
+      "groups": [
+        {
+          "pid": 88674,
+          "startIdentity": "macos:1791984910:183673",
+          "sampleCount": 154,
+          "first": {
+            "phaseAt": 8776.561917,
+            "sampledAt": 1791984915892,
+            "rssBytes": 2611576832,
+            "threadCount": 36,
+            "fdCount": 34,
+            "mutationCount": 6
+          },
+          "last": {
+            "phaseAt": 774400.850625,
+            "sampledAt": 1791985681520,
+            "rssBytes": 2086223872,
+            "threadCount": 38,
+            "fdCount": 34,
+            "mutationCount": 1512
+          },
+          "max": {
+            "rssBytes": 2644525056,
+            "threadCount": 42,
+            "fdCount": 42
+          },
+          "delta": {
+            "rssBytes": -525352960,
+            "threadCount": 2,
+            "fdCount": 0,
+            "mutationCount": 1506
+          },
+          "elapsedMs": 765624.288708,
+          "maxGapMs": 5008.803917000012,
+          "warmupMs": 300000,
+          "postWarmup": {
+            "status": "observed",
+            "sampleCount": 94,
+            "delta": {
+              "rssBytes": 288620544,
+              "threadCount": -4,
+              "fdCount": 1,
+              "mutationCount": 906
+            },
+            "elapsedMs": 465351.88520799996,
+            "rssMiBPerMinute": 35.48927279539919
+          }
+        }
+      ]
+    },
+    "scope": "sequential file/FD samples, not simultaneous peaks or all mmap/heap; root-storage values separate from anonymous process observations; owner reservation is not actual RSS",
+    "recomputedLargestSampleWorkspace": {
+      "sample": 138,
+      "pid": 88674,
+      "phaseAt": 694337.485,
+      "measurementStartedAt": 694569.95875,
+      "measurementCompletedAt": 694576.088958,
+      "fixedBytes": 14090730,
+      "namedAndParentBytes": 98517141,
+      "anonymousLogical": 59143168,
+      "anonymousAllocated": 60297216,
+      "anonymousUsed": 60297216,
+      "variableUsed": 144723627,
+      "limit": 469762048
+    }
+  },
+  "collection": {
+    "server-diagnostic": {
+      "pid": 88674,
+      "bytes": 534995,
+      "capturedBytes": 534995,
+      "sha256": "825b7e9b0eda7c92de9b1cdbfd20aec9eb65c9f7943b487a37522f6a2490d845",
+      "overflow": false,
+      "captureError": null,
+      "categories": [
+        {
+          "code": "file evidence unavailable",
+          "count": 0
+        },
+        {
+          "code": "storageBlocked",
+          "count": 0
+        },
+        {
+          "code": "shutdown",
+          "count": 0
+        },
+        {
+          "code": "ERROR",
+          "count": 0
+        },
+        {
+          "code": "WARNING",
+          "count": 0
+        }
+      ],
+      "rawBodyPublished": false,
+      "privateCaptureDisposition": "eligible-for-wrapper-cleanup"
+    },
+    "frame-trace-summary": {
+      "status": "captured",
+      "mode": "bounded",
+      "required": true,
+      "records": 4,
+      "successes": 3,
+      "failures": 1,
+      "issues": []
+    },
+    "search-failure-summary": {
+      "status": "captured",
+      "probes": 1,
+      "failures": [],
+      "issues": []
+    },
+    "recording-state-summary": {
+      "status": "captured",
+      "count": 6,
+      "events": [
+        {
+          "seq": 0,
+          "atUs": 1292147616810,
+          "channel": "9101",
+          "phase": "session-created",
+          "reason": "epoch-9101-1-1791984915633"
+        },
+        {
+          "seq": 1,
+          "atUs": 1292147623951,
+          "channel": "9101",
+          "phase": "writer-started",
+          "reason": "ok"
+        },
+        {
+          "seq": 2,
+          "atUs": 1292147626492,
+          "channel": "9201",
+          "phase": "session-created",
+          "reason": "epoch-9201-1-1791984915642"
+        },
+        {
+          "seq": 3,
+          "atUs": 1292147632580,
+          "channel": "9201",
+          "phase": "writer-started",
+          "reason": "ok"
+        },
+        {
+          "seq": 4,
+          "atUs": 1292918240818,
+          "channel": "9201",
+          "phase": "stop-channel",
+          "reason": "requested"
+        },
+        {
+          "seq": 5,
+          "atUs": 1292918747758,
+          "channel": "9101",
+          "phase": "stop-channel",
+          "reason": "requested"
+        }
+      ],
+      "issues": []
+    }
+  },
+  "termination": {
+    "finally": {
+      "schema": "recording-process-cleanup-v1",
+      "attemptCount": 1,
+      "pid": 88674,
+      "exitCode": 0,
+      "signalCode": null,
+      "exitedObserved": true,
+      "stopCode": "complete",
+      "forcedTermination": "not-used",
+      "normalExitPass": true,
+      "normalShutdownPass": true,
+      "archiveSafe": true,
+      "ports": [
+        {
+          "kind": "http",
+          "port": 50620,
+          "status": "pass",
+          "code": "closed",
+          "closed": true
+        },
+        {
+          "kind": "rtsp",
+          "port": 50621,
+          "status": "pass",
+          "code": "closed",
+          "closed": true
+        }
+      ]
+    },
+    "explicitDisable": "not-run",
+    "closedJournalGate": "not-run",
+    "finalLatencyGate": "not-run",
+    "finalMixedProgressGate": "not-run",
+    "finalSampleContinuityGate": "not-run",
+    "lastAAssertion": "not-run",
+    "processesClosed": true,
+    "udpClosed": true
+  },
+  "reused": {
+    "111": "C12 HTTP/LRU/index limited direct evidence unchanged; old mixed FAIL unchanged",
+    "112": "exact preserved MP4/PNG/package/readback, SoftwareOnly single-thread code and platform evidence unchanged; not proof all new samples extract",
+    "114": "fixed120AU S71237,H/P/Q derivation/protection/generation/copy/reOpen and platforms unchanged; current108MiB not identical r98 performance load",
+    "113": "historical segment-bound FAIL and partialp95 unchanged"
+  },
+  "independent": "115-independent-review.json",
+  "binding": {
+    "scope": "execution evidence and current backlog only; product/test/fixture/inventory/approved manifest unchanged",
+    "producerReadbackCoverage": "existing114 binding reused unchanged; no repeated986 production or semantic review",
+    "docsChecks": {
+      "gitDiffCheck": "PASS",
+      "docsLinks": {
+        "command": "node scripts/internal/verify_docs_links.mjs",
+        "exit": 0,
+        "markdownFiles": 302,
+        "links": 9422,
+        "images": 14,
+        "anchors": 430,
+        "failures": 0
+      }
+    }
+  },
+  "preservation": {
+    "archive": "115-execution.tar.gz",
+    "sha256": "1806269f05605a2e8b7a6c518bbde0f09915d3bac42abb006062afd905784e45",
+    "archiveBytes": 32971647,
+    "payloadFiles": 969,
+    "payloadBytes": 71595366,
+    "allMembersVerified": true,
+    "manifestSha256": "e7aaddebcb94f2fc2aab7916a126c5d919646d331920c741a908b306c221b2de",
+    "sanitizedPrivateLogs": [
+      {
+        "originalPath": "mixed900/media-server-current-observer-Y1Mgyv/server-1.private.log",
+        "archivedPath": "mixed900/media-server-current-observer-Y1Mgyv/server-1.sanitized.log",
+        "originalBytes": 534995,
+        "originalSha256": "825b7e9b0eda7c92de9b1cdbfd20aec9eb65c9f7943b487a37522f6a2490d845",
+        "transformedBytes": 534817,
+        "transformedSha256": "c2dd1c7a20c8cf4ac8e505c67f0fb4c7955fc5ec010a596303bfa15e6c78a09d",
+        "rule": "URL tokens only; other bytes retained",
+        "replacements": 8
+      }
+    ],
+    "status": "local bytes verified; remote/cleanup pending",
+    "excludedEntries": 293,
+    "excludedCountNote": "293 entries includes excluded directories; archive receipt legacy key excludedFiles is an entry count, not all regular files"
+  },
+  "cleanup": {
+    "status": "pending remote byte verification",
+    "precheck": {
+      "ownedPids": [
+        88633,
+        88674
+      ],
+      "ownedPidsAbsent": true,
+      "httpPort": 50620,
+      "rtspPort": 50621,
+      "listenersAbsent": true,
+      "commands": [
+        "ps -p 88633,88674 -o pid=,ppid=,command=",
+        "lsof -nP -iTCP:50620 -iTCP:50621 -sTCP:LISTEN"
+      ],
+      "scope": "read-only host check after run; no process killed",
+      "preparationNote": "initial sandbox ps spawn denied EPERM; escalated read-only checks returned no processes/listeners; not a product/cleanup failure"
+    }
+  },
+  "remaining": [
+    "new10469B/target1.8s eos-no-target evidence failure, cause unestablished",
+    "sustained mixed latency: partialp952378.654ms; final gate not-run",
+    "900 completion and explicit disable/closed-journal checks not-run",
+    "45-minute ineligible; final120/memoryP0/release remain pending"
+  ],
+  "notRun": [
+    "retry",
+    "45 minutes",
+    "120 minutes",
+    "new decoder reproduction",
+    "product optimization",
+    "release procedures"
+  ],
+  "preparationFailure": {
+    "stage": "archive selection",
+    "reason": "excluded gst-cache symlink encountered before exclude check",
+    "result": "no archive created/no product execution impact",
+    "fix": "exclude cache paths without following them, then assert regular owned selected entries",
+    "record": "preservation-first-failure.json"
+  },
+  "limits": [
+    "retained bounded frame trace 4 records, not every factory call",
+    "holder selected request72 only, not full run",
+    "literal failed snapshot/hit ID unpreserved",
+    "post-stop bytes are not proof of failure-time immutability",
+    "R111 C12/R112 exact preserved frame/R114 bound remain limited direct evidence",
+    "memory P0 OPEN/release HOLD/45-minute ineligible"
+  ]
+}
