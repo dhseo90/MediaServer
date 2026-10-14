@@ -5110,3 +5110,9 @@ R111-H02: A/B/C 기준 대조 뒤 GetOwned namespace별 고정 6개 count/ns와 
 R111-C01: 기존16MiB exact-byte parsed cache의 사전순 퇴거를 실제 최근 사용 순서와 대조한다. 작은 시험 예산에서 A/B 확보→A hit→C 추가 후 A 유지·B cold 재획득을 기대한다. 현재 구현의 예상 RED는 hot lexical-first row assertion이며 빌드/환경 오류는 RED가 아니다. 추가 list/key 비용도 같은16MiB/owner에 사전 예약하고 raw 변경·손상·Finish·지연 reader·예산·예외 기존 반례를 유지한다. 실제 HTTP의 hit/parse/응답 비용은 별도 판정한다.
 
 R111-C02: candidate1 실제 C12응답은 p95 2765.92ms FAIL로 보존한다. 완전한 요청1/2에서 index SnapshotStatus+CaptureVisualSourceKeys 중첩 약1073ms를 근거로, 기존 checkpoint token 선택을 유지하고 full retention 검증 순회에 시각 source key 생성을 결합한다. 모든 reservation/path/reason/hold/job 검증 유지, V2 finalized key와 V1 unsupported는 path 제외 전에 수집하며 실패 시 미게시한다. 기존 key oracle·missing path·후반 손상·failed token 후속 성공·append/delete/checkpoint·예약/reader 회귀. 후보2는 최종 코드 동결 후 B→A→C 각1회, 한도 불변이며 컴파일과 겹치지 않는다.
+
+### R112-F01 — 보존 실패 MP4의 정확한 프레임/시간축 결속
+
+111 원본 SHA `268368de002ea717e51c017f374d9285dc4f6941c18047e524d0f6d7b3ed0379`를 별도 소유 사본에서 읽는다. 원장 ordinal90/original2966666666ns → native5900/3000, edit0 → target1966666667ns를 실제 DecodeVisualFrame software-only/5초/1ns 경로에서 1회 대조한다. 독립 packet/sample 표와 시작점 순차 decode는 각각1회 원인 대조이며 제품 자동 retry/fallback이 아니다. 첫/마지막·없는 sample·취소·변경·FD/offset·미게시와 실제 ExtractMedia/package/독립 readback을 관련 기존 fixture로 검증한다. 결과·미재현·플랫폼 차이를 모두 보존하고 raw PTS와 stream time을 구분한다. 새900/45/120분 및 UI 없음.
+
+R112-F02: 같은 실패 파일에서 seek/순차 모두13출력·마지막966666666ns, libav ghost frame 해제 후 get_buffer2 실패를 보존한다. SoftwareOnly avdec_h264 인스턴스만 max-threads=1로 생성/읽기검증하고 자동정책·factory·runtime은 유지한다. 고정 대조는 보존 파일 첫/중간/목표/없는시각 각1회, 두 동시 목표 추출1묶음, 기존 red/VFR/첫끝/FD/취소/변경/disabled와 실제 package/별도 readback이다. RGB oracle은 정상 red fixture와 독립 순차 출력의 적용 범위를 구분하며 원본 참조 누락 자체의 수리로 확대하지 않는다.

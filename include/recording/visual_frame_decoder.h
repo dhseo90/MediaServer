@@ -5,6 +5,8 @@
 #include <string>
 #include <vector>
 namespace recording {
+// SoftwareOnly의 avdec_h264는 인스턴스별 단일 codec thread로 frame 소유 충돌을 피한다.
+// 자동 정책과 전역 factory 선택은 변경하지 않는다.
 enum class VisualDecodePolicy { Automatic, SoftwareOnly };
 struct VisualRgbFrame {
     int width{0},height{0};

@@ -112,7 +112,9 @@ struct DecodeTrace {
         const auto* klass=gst_element_factory_get_metadata(factory,GST_ELEMENT_METADATA_KLASS);
         if(klass&&std::strstr(klass,"Decoder")&&std::strstr(klass,"Video")){++t.edges.decoders;t.edges.Attach(element,"sink",0);t.edges.Attach(element,"src",1);}
         const auto i=t.factory_count.fetch_add(1);if(i>=t.factories.size())return;
-        auto& e=t.factories[i];e.kind="factory";const auto* name=gst_plugin_feature_get_plugin_name(GST_PLUGIN_FEATURE(factory));
+        auto& e=t.factories[i];e.kind="factory";
+        if(std::strcmp(gst_plugin_feature_get_name(GST_PLUGIN_FEATURE(factory)),"avdec_h264")==0){gint threads=0;g_object_get(element,"max-threads",&threads,nullptr);e.a=threads;}
+        const auto* name=gst_plugin_feature_get_plugin_name(GST_PLUGIN_FEATURE(factory));
         auto* plugin=gst_plugin_feature_get_plugin(GST_PLUGIN_FEATURE(factory));
         // 파이프라인이 소유한 factory/plugin 식별만 남긴다. URI·원시 GError/debug는 기록하지 않는다.
         char text[160]{};std::snprintf(text,sizeof(text),"%s:%s:%s",gst_plugin_feature_get_name(GST_PLUGIN_FEATURE(factory)),name?name:"",plugin?gst_plugin_get_version(plugin):"");Text(e.text,text);if(plugin)gst_object_unref(plugin);
@@ -149,6 +151,22 @@ struct DecodeTrace {
         o<<"],\"droppedEvents\":"<<(event_count>events.size()?event_count-events.size():0)<<",\"droppedFactories\":"<<(factory_count>factories.size()?factory_count-factories.size():0);edges.Print(o);o<<"}\n";
         const auto line=o.str();if(std::fwrite(line.data(),1,line.size(),stderr)!=line.size()||std::fflush(stderr)!=0)OutputFailure("[visual-frame] trace-output-failed\n");
     }catch(...){OutputFailure("[visual-frame] trace-output-failed\n");}}
+};
+// 참조가 빠진 H.264에서 libav의 병렬 codec-frame 정리와 get_buffer2가 겹치면
+// 존재하는 마지막 sample도 소실될 수 있다. SoftwareOnly 인스턴스의 libav H.264만
+// 한 codec thread로 시작한다. factory/rank/전역 설정, 다른 자동 decode는 유지한다.
+struct SoftwareCodecPolicy {
+    std::atomic<bool> failed{false};
+    static void Added(GstBin*,GstBin*,GstElement* element,gpointer user){
+        auto& state=*static_cast<SoftwareCodecPolicy*>(user);
+        auto* factory=gst_element_get_factory(element);
+        if(!factory||std::strcmp(gst_plugin_feature_get_name(GST_PLUGIN_FEATURE(factory)),"avdec_h264"))return;
+        const auto* property=g_object_class_find_property(G_OBJECT_GET_CLASS(element),"max-threads");
+        if(!property||G_PARAM_SPEC_VALUE_TYPE(property)!=G_TYPE_INT||
+            !(property->flags&G_PARAM_READABLE)||!(property->flags&G_PARAM_WRITABLE)){state.failed=true;return;}
+        g_object_set(element,"max-threads",1,nullptr);gint actual=0;
+        g_object_get(element,"max-threads",&actual,nullptr);if(actual!=1)state.failed=true;
+    }
 };
 struct Context {
     int fd;std::uint64_t bytes,offset{0};Clock::time_point deadline;
@@ -239,6 +257,12 @@ bool DecodeVisualFrame(int fd,std::uint64_t bytes,std::int64_t target,VisualRgbF
         }
         if(!selected){for(auto* p:{pipeline,src,decode,convert,sink})gst_object_unref(p);return Fail(error,"visual-frame-software-policy-unavailable");}
     }
+    SoftwareCodecPolicy software_codec;
+    if(policy==VisualDecodePolicy::SoftwareOnly&&
+        !g_signal_connect(pipeline,"deep-element-added",G_CALLBACK(SoftwareCodecPolicy::Added),&software_codec)){
+        for(auto* p:{pipeline,src,decode,convert,sink})gst_object_unref(p);
+        return Fail(error,"visual-frame-software-policy-unavailable");
+    }
     Context context{fd,bytes,0,deadline,cancelled,pipeline,convert,trace,{}};
     GstBus* trace_bus=nullptr;if(trace.enabled){trace_bus=gst_element_get_bus(pipeline);gst_bus_set_sync_handler(trace_bus,DecodeTrace::Bus,&trace,nullptr);g_signal_connect(pipeline,"deep-element-added",G_CALLBACK(DecodeTrace::Element),&trace);g_signal_connect(pipeline,"deep-element-removed",G_CALLBACK(DecodeTrace::Removed),&trace);}
     const auto set_state=[&](GstState value){const auto state=gst_element_set_state(pipeline,value);trace.Add("set-state",value,state);if(state==GST_STATE_CHANGE_FAILURE&&!trace.closing)trace.First("state-change");return state;};
@@ -298,6 +322,7 @@ bool DecodeVisualFrame(int fd,std::uint64_t bytes,std::int64_t target,VisualRgbF
 #endif
     if(bm.tv_nsec!=am.tv_nsec||bc.tv_nsec!=ac.tv_nsec||before.st_dev!=after.st_dev||before.st_ino!=after.st_ino||before.st_size!=after.st_size||
         before.st_mtime!=after.st_mtime||before.st_ctime!=after.st_ctime)return Fail(error,"visual-frame-file-changed");
+    if(software_codec.failed)return Fail(error,"visual-frame-software-policy-unavailable");
     if(context.unsupported)return Fail(error,"visual-frame-unsupported");
     if(context.failed||!found)return Fail(error,"visual-frame-unavailable");
     *output=std::move(result);if(error)error->clear();trace.succeeded=true;return true;

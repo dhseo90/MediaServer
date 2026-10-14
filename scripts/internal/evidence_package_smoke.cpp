@@ -10,6 +10,8 @@
 #include "ingress/evidence_application_service.h"
 #include <fcntl.h>
 #include <fstream>
+#include <future>
+#include <condition_variable>
 #include <sys/resource.h>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -59,10 +61,77 @@ void Save(const std::filesystem::path& path,const std::string& bytes){
     const auto n=::write(fd,bytes.data(),bytes.size());const bool ok=n==static_cast<ssize_t>(bytes.size())&&!::fsync(fd);::close(fd);
     if(!ok)throw std::runtime_error("fixture-write");
 }
+
+int Preserved(const std::filesystem::path& root,bool readback){
+    std::string error;const auto id_file=root/"preserved-package-id.txt";
+    recording::EvidencePackageStore store(root/"preserved-packages",{});
+    Check(store.Recover(&error),"R112 owned evidence store");
+    if(readback){
+        std::ifstream input(id_file);std::string id;input>>id;
+        auto file=store.Open(id,&error);Check(bool(file),"R112 separate-process verified package readback: "+error);
+        const auto& manifest=file->manifest();
+        Check(manifest.frames.size()==1&&manifest.frames.front().pts_ns==2966666666LL&&
+            manifest.frames.front().presentation_ns==1966666666LL,"R112 independent expected source/presentation time");
+        const auto png=Read(file->fd(),file->AssetOffset(0),manifest.assets.front().size_bytes);
+        const auto rgb=PngRgb(png,160,90);
+        Check(recording::EvidenceSha256(rgb.data(),rgb.size())==manifest.frames.front().rgb_sha256,"R112 readback PNG/RGB binding");
+        return 0;
+    }
+    auto runtime_owner=std::make_unique<recording::RecordingRuntimeStorage>(root/"package-source");
+    auto& runtime=*runtime_owner;
+    Check(runtime.Open(&error),"R112 closed original store Open: "+error);
+    const auto memory=runtime.catalog().SearchResidency();const auto scratch=runtime.catalog().ScratchResidency();
+    {
+        recording::RecordingReadService reader(runtime.catalog());recording::RecordingSearchReader search(runtime.catalog(),reader);
+        std::shared_ptr<const recording::RecordingSearchModel> model;
+        Check(search.Refresh({"9101"},{},&model,&error),"R112 actual search projection: "+error);
+        const auto selected=std::find_if(model->documents().begin(),model->documents().end(),[](const auto& d){return d.segment_id=="59dfb25c-a7eb-4333-bb29-3d7ae4b42fa6";});
+        Check(selected!=model->documents().end(),"R112 preserved segment in actual projection");
+        // 새 closed-store 직접 요청이다. 보존되지 않은 R111 snapshot/hit ID를 복원하지 않는다.
+        auto hit=*selected;hit.media_pts=2966666666LL;hit.media_end_pts.reset();hit.time_base_num=1;hit.time_base_den=1000000000;
+        const std::string hash="268368de002ea717e51c017f374d9285dc4f6941c18047e524d0f6d7b3ed0379";
+        recording::EvidencePackageBuilder builder(runtime.catalog(),reader,store);std::string id;recording::EvidencePackageV1 manifest;
+        Check(builder.Create(hit,"structured",hash,&id,&manifest,&error,Deadline()),"R112 exact point package publication: "+error);
+        Check(manifest.frames.size()==1&&manifest.frames.front().pts_ns==2966666666LL&&manifest.frames.front().sample_ordinal==90&&manifest.frames.front().media_sha256==hash,"R112 sample ordinal and source hash");
+        recording::EvidenceFrameExtractor extractor(runtime.catalog(),reader);recording::EvidenceFrameV1 frame;
+        Check(extractor.ExtractMedia("9101",hit.segment_id,2966666666LL,hash,&frame,&error,Deadline()),"R112 exact original PNG extraction");
+        Check(PngRgb(frame.png,160,90).size()==43200&&frame.png_sha256==manifest.frames.front().png_sha256,"R112 package and PNG equal");
+        const auto prior=recording::SerializeEvidencePackage(manifest);const auto prior_id=id;
+        Check(!extractor.ExtractMedia("9101",hit.segment_id,2950000000LL,hash,&frame,&error,Deadline()),"R112 absent source sample refused");
+        auto absent=hit;absent.media_pts=2633333333LL;
+        Check(!builder.Create(absent,"structured",hash,&id,&manifest,&error,Deadline())&&id==prior_id&&recording::SerializeEvidencePackage(manifest)==prior,"R112 undecodable exact sample fails without publication/output change");
+        Check(!builder.Create(hit,"structured",std::string(64,'0'),&id,&manifest,&error,Deadline()),"R112 wrong original hash rejected");
+        Check(!builder.Create(hit,"structured",hash,&id,&manifest,&error,Deadline(),[]{return true;}),"R112 cancellation rejects");
+        std::vector<std::string> ids;Check(store.ListIds(&ids,&error)&&ids==std::vector<std::string>{prior_id},"R112 failed requests publish no package");
+        Save(id_file,prior_id+"\n");
+        ingress::EvidenceApplicationService service(runtime.catalog(),reader,true,root/"concurrent-packages",0);
+        std::mutex gate;std::condition_variable cv;bool entered=false,released=false;unsigned calls=0;
+        const auto permit=[&](const std::string& channel){
+            if(channel!="9101")return false;
+            if(++calls==2){std::unique_lock lock(gate);entered=true;cv.notify_all();if(!cv.wait_for(lock,std::chrono::seconds(5),[&]{return released;}))return false;}
+            return true;
+        };
+        auto first=std::async(std::launch::async,[&]{return service.Create(hit,"structured",hash,permit);});
+        bool waiting=false;{std::unique_lock lock(gate);waiting=cv.wait_for(lock,std::chrono::seconds(5),[&]{return entered;});}
+        const auto busy=service.Create(hit,"structured",hash,[](const auto& c){return c=="9101";});
+        {std::lock_guard lock(gate);released=true;}cv.notify_all();const auto admitted=first.get();
+        Check(waiting&&admitted.status==201&&busy.status==503&&busy.body.find("evidence-busy")!=std::string::npos,"R112 concurrent admission 201 and busy 503");
+        Check(service.Create(hit,"structured",hash,[](const auto&){return false;}).status==403,"R112 current authorization refusal");
+        service.Stop();Check(service.Create(hit,"structured",hash,[](const auto&){return true;}).status==503,"R112 Stop refusal");
+
+    }
+    Check(runtime.Finish(&error),"R112 explicit Finish: "+error);
+    std::cout<<"R112 after Finish before owner destruction="<<memory->used()<<"\n";runtime_owner.reset();
+    const auto usage=scratch->usage(),peak=scratch->peak();
+    std::cout<<"R112 owner used="<<memory->used()<<" peak="<<memory->peak()<<" scratch="<<usage.disk_bytes<<" fds="<<usage.file_descriptors<<" scratchPeak="<<peak.disk_bytes<<" fdPeak="<<peak.file_descriptors<<"\n";
+    Check(memory->used()==0&&usage.disk_bytes==0&&usage.file_descriptors==0&&usage.ram_bytes==0,"R112 last reader releases owner reservations");return 0;
+}
 }
 int main(int argc,char** argv){try{
     if(argc!=2&&argc!=3)return 2;
     gst_init(nullptr,nullptr);
+    if(argc==3&&(std::string(argv[2])=="--preserved"||std::string(argv[2])=="--preserved-readback"))
+        return Preserved(std::filesystem::canonical(argv[1]),std::string(argv[2])=="--preserved-readback");
     const bool seed=argc==3&&std::string(argv[2])=="--seed";
     const auto root=std::filesystem::canonical(argv[1]);std::string error;
     recording::RecordingRuntimeStorage runtime(root/"recordings");Check(runtime.Open(&error),"V440 source storage open: "+error);
