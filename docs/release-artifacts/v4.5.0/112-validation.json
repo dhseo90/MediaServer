@@ -661,11 +661,44 @@
     "archiveSha256": "0dd00f6bfee29b42efdfeaf7bde9947dfe1e2e0f294a8501a056056e7f78d587",
     "payloadFiles": 106,
     "uncompressedBytes": 1352089,
-    "readbackMismatches": 0
+    "readbackMismatches": 0,
+    "remoteEvidenceCommit": "a21ee3ef91f49cf02cae52061d68971e44c80493",
+    "remoteArchiveByteEqual": true
   },
   "cleanup": {
-    "status": "pending owned root/container cleanup after byte preservation",
-    "settingsPrivateBackupModelsSdk": "untouched"
+    "status": "COMPLETE_OWNED_ONLY",
+    "root": "/private/tmp/media-server-r112-qkx3cxrv",
+    "inode": 174466867,
+    "removed": true,
+    "pointerRemoved": true,
+    "entries": 3388,
+    "regularBytes": 285355813,
+    "ownedSymlinksUnlinkedWithoutFollowing": 278,
+    "activeOwnedProcesses": [],
+    "containers": [
+      {
+        "name": "media-server-r112-linux",
+        "id": "b92a7f1f8c9bfe134deea344aa0cef4980468b87dfded0ac1f4249a3200d4fc6",
+        "running": false,
+        "exit": 1,
+        "user": "10001:10001",
+        "tmpfs": {
+          "/tmp": "rw,nosuid,nodev,size=3g"
+        }
+      },
+      {
+        "name": "media-server-r112-linux-b",
+        "id": "1b975bdbafc0113996f2a3352cb2924bcf9bcfb25ab84208f93a2efb5240ef97",
+        "running": false,
+        "exit": 0,
+        "user": "10001:10001",
+        "tmpfs": {
+          "/tmp": "rw,exec,nosuid,nodev,size=3g"
+        }
+      }
+    ],
+    "serverPorts": "none opened by this task; standalone service/native tests",
+    "settingsPrivateBackupModelsSdkImages": "untouched; existing Linux image retained"
   },
   "implementationCommit": "a2fda4029ac1fa1b5dcd6c0701e6db0999860d8f",
   "implementationTree": "dbdb2e8d06d10c0ef4ca210bb6e5f48f88c180c5"

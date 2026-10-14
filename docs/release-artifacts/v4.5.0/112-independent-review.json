@@ -41,5 +41,11 @@
       "remote bytes",
       "owned root/container cleanup"
     ]
+  },
+  "postReviewOwnerVerification": {
+    "remoteEvidenceCommit": "a21ee3ef91f49cf02cae52061d68971e44c80493",
+    "remoteArchiveByteEqual": true,
+    "rootContainersCleaned": true,
+    "note": "main performed after independent review; not retrospective reviewer execution"
   }
 }
