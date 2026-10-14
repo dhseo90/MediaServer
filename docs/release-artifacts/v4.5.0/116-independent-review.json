@@ -36,5 +36,5 @@
     "beforeProbeSourceSnapshot": "누락 한계 명시; 최종 소스로 대체하거나 정밀 성능 대조 주장 없음",
     "limits": "원격 바이트와 cleanup은 검토 당시 미완료"
   },
-  "remoteAndCleanup": "pending"
+  "remoteAndCleanup": "주 실행자가 독립 로컬 보존 판단 후 원격 세 파일 바이트 대조와 소유 root 부재를 확인함. 상세는116-validation.json; 독립 검토 당시 pending 상태와 구분."
 }

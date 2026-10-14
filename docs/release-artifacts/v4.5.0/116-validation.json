@@ -598,11 +598,53 @@
     "전체 메모리P0·최종120분·출시 보류"
   ],
   "cleanup": {
-    "status": "pending remote byte verification then owned root removal",
+    "status": "PASS",
     "ownedRoot": "/private/tmp/media-server-r116-g4x5490c",
-    "containers": "세 개 --rm 실행 종료; 최종 부재 확인 예정",
-    "privateSettingsBackup": "접근/업로드/정리 제외"
+    "verifiedRootIdentity": {
+      "root": "/private/tmp/media-server-r116-g4x5490c",
+      "dev": 16777232,
+      "ino": 174702681,
+      "uid": 501,
+      "head": "0966e97b6f536ed5a816351001360b0a3c606c05",
+      "requested": "gpt-6-astra/high",
+      "actualRuntime": null,
+      "cleanup": "only owned root after evidence/remote bytes; no server ports yet"
+    },
+    "removedRegularFiles": 2708,
+    "removedLogicalBytes": 370446996,
+    "unlinkedSymlinksWithoutFollowing": 1,
+    "rootAbsent": true,
+    "ownedProcesses": "none; ps filtered result only checker and rg",
+    "containers": "none; docker ps -a name media-server-r116 empty",
+    "ports": "no listener/server opened by this direct file-source task",
+    "userSettingsPrivateBackupModelsSDK": "not accessed/uploaded/removed; existing dependencies retained",
+    "notes": "Exact owned root only; evidence byte-verified remotely before removal."
   },
   "implementationCommit": "3bf99c0cd54e19925a564a30e714d38ea76dea64",
-  "independentReview": "116-independent-review.json"
+  "independentReview": "116-independent-review.json",
+  "remoteEvidenceVerification": {
+    "remoteHead": "a34cd5e88c2521200858f96fecb1801b6de23ea2",
+    "evidenceCommit": "a34cd5e88c2521200858f96fecb1801b6de23ea2",
+    "method": "GitHub authenticated contents API at exact commit; downloaded raw bytes compared to local",
+    "files": [
+      {
+        "path": "docs/release-artifacts/v4.5.0/116-execution.tar.gz",
+        "bytes": 1010873,
+        "sha256": "e90b82aeb1f67d69acfa3ec22cc6e976e43d8053c8c2ec3efe738f949380ef9c",
+        "remoteBlob": "38913f34ffdfba1f847d75a135fd7d82ac4d0e9f"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/116-validation.json",
+        "bytes": 26234,
+        "sha256": "285b95c900b012a0572a2f84c99eae9a37cde84026aa0350255377bfd589c2d1",
+        "remoteBlob": "1bbc812c937445782611c5c063bec436f5fe2f23"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/116-independent-review.json",
+        "bytes": 2233,
+        "sha256": "e6e25fb73d6404a16ca47891fab2911828f2903eac3ee055f556a246c0e3774b",
+        "remoteBlob": "c14c85580bd64d0f556c76261f6a211b88b492ed"
+      }
+    ]
+  }
 }
