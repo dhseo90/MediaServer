@@ -5116,3 +5116,11 @@ R111-C02: candidate1 실제 C12응답은 p95 2765.92ms FAIL로 보존한다. 완
 111 원본 SHA `268368de002ea717e51c017f374d9285dc4f6941c18047e524d0f6d7b3ed0379`를 별도 소유 사본에서 읽는다. 원장 ordinal90/original2966666666ns → native5900/3000, edit0 → target1966666667ns를 실제 DecodeVisualFrame software-only/5초/1ns 경로에서 1회 대조한다. 독립 packet/sample 표와 시작점 순차 decode는 각각1회 원인 대조이며 제품 자동 retry/fallback이 아니다. 첫/마지막·없는 sample·취소·변경·FD/offset·미게시와 실제 ExtractMedia/package/독립 readback을 관련 기존 fixture로 검증한다. 결과·미재현·플랫폼 차이를 모두 보존하고 raw PTS와 stream time을 구분한다. 새900/45/120분 및 UI 없음.
 
 R112-F02: 같은 실패 파일에서 seek/순차 모두13출력·마지막966666666ns, libav ghost frame 해제 후 get_buffer2 실패를 보존한다. SoftwareOnly avdec_h264 인스턴스만 max-threads=1로 생성/읽기검증하고 자동정책·factory·runtime은 유지한다. 고정 대조는 보존 파일 첫/중간/목표/없는시각 각1회, 두 동시 목표 추출1묶음, 기존 red/VFR/첫끝/FD/취소/변경/disabled와 실제 package/별도 readback이다. RGB oracle은 정상 red fixture와 독립 순차 출력의 적용 범위를 구분하며 원본 참조 누락 자체의 수리로 확대하지 않는다.
+
+### R114-F01 — 고정 혼합 입력의 gap/keyframe/loop 출력 범위
+
+- 113 보존 파일의 sample hash/ordinal/PTS/DTS·box/payload를 원장과 대조한다. 원본의 빈 ordinal을 fixture가 새 프레임으로 채우지 않는다.
+- 실제 managed writer에 고정 입력의 6전이(113 ordinal 부분집합, 분할 keyframe61/91 누락, 교대 gap, key31 시작/91 누락, source 세대 전환, 정상120)를 각1회 전달한다. 원장/file evidence의 ordinal·hash·세대·sample 수와 정상/선택 프레임 decode를 확인한다. 과거 upstream 누락 발생 위치 복원으로 확대하지 않는다.
+- 한 source 세대의 최대120 AU와 고정 mux metadata/sample-table 상계로 S를 산정한다. 결과 관측 최댓값＋여유율은 사용하지 않는다. legacy continuous-r98는 보존하고 새 profile은 S/H/P/Q/M·초기/재활성/재시작·source freeze·출력 guard에서 함께 대조한다.
+- 실행 전 고정 범위: macOS/Linux 각6전이1묶음, 기존210 prefix1회와 관련 writer/retention focused 회귀, generation live/copy/reopen 각1묶음. 각각 기존 시간/공간/로그 한도 사용. compilation/준비 오류는 별도 보존 후 범위 내 보완한다. 새900/45/120 및 빈-root 예행 실행은 하지 않는다.
+- 경계/초과·입력 hash/codec/sample 변조·잘못된 수집·실패 피연산자 전파를 검사한다. 643개 보호 소유와 실제 부족 거부·해제 후 회복, generation/copy448MiB 정책·최종 Finish/owner 회수를 확인한다. 직접 공간 PASS는 장시간 peak 보장이 아니다.

@@ -50,3 +50,8 @@ const c={channel:'9101',newFinalized:1,newDeleted:2,alive:695,bytes:24133180,ava
 verifyCurrentCyclicProgress(b,c);passed++;
 for(const change of [{newFinalized:0,alive:694},{newDeleted:0,alive:697},{availableEvidenceAfterDelete:0},{bytes:87*1024*1024+1},{channel:'9201'},{alive:696},{newDeleted:NaN}]){assert.throws(()=>verifyCurrentCyclicProgress(b,{...c,...change}));passed++;}
 console.log(JSON.stringify({passed,failed:0,scope:'synthetic child events through actual parent function; baseline predicates; no product execution'}));
+
+verifyCurrentCyclicProgress(b,{...c,bytes:108*1024*1024},'continuous-r114');
+assert.throws(()=>verifyCurrentCyclicProgress(b,{...c,bytes:108*1024*1024+1},'continuous-r114'));
+assert.throws(()=>verifyCurrentCyclicProgress(b,c,'arbitrary-quota'));
+console.log('[pass] R114 named quota boundary; legacy R99 predicate unchanged');

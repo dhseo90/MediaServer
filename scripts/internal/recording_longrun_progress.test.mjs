@@ -218,7 +218,7 @@ try{await(async()=>{
  let sizeBytes='36864',consumed=0;
  const c=vm.createContext({fixtureProfile:mixedRecordingProfile('continuous-r98'),observer:{pollAsync:async()=>({rows:[{segment:{continuous:true,channel:'9101',sizeBytes}}],backlog:false})},progress:{consume(){consumed++;return [];}}});
  vm.runInContext(fn,c);await vm.runInContext('drain(1)',c);assert.equal(consumed,1);
- sizeBytes='36865';await assert.rejects(vm.runInContext('drain(2)',c),/mixed-fixture-segment-bound/);assert.equal(consumed,1);
+ for(sizeBytes of ['36865','37606']){await assert.rejects(vm.runInContext('drain(2)',c),/mixed-fixture-segment-bound/);assert.equal(consumed,1);}
 })();passed++;console.log('[pass] R98 actual drain rejects output beyond fixed envelope before progress');}catch(error){failed++;console.log('[fail] R98 actual drain: '+error.message);}
 console.log(`[R98-final-summary] passed=${passed} failed=${failed}`);if(failed)process.exitCode=1;
 
@@ -272,3 +272,34 @@ check('R103 actual900 environment child and final holder collector are connected
  for(const mode of ['--state-diagnostic','--duration-minutes 120'])assert.equal(mixedPreparationContract(mode.split(' ')).requiresDeletion,true);
 });
 console.log(`[R103-final-summary] passed=${passed} failed=${failed}`);if(failed)process.exitCode=1;
+
+check('R114 profile derives every dependent byte without changing product E',()=>{
+ const p=mixedRecordingProfile('continuous-r114');assert.equal(p.segmentBytes,71237);assert.equal(p.H,45805391);assert.equal(p.P,71237);assert.equal(p.E,67108864);assert.equal(p.M,260716);assert.equal(p.continuousMaxBytes,108*1024*1024);
+ const h=fs.readFileSync(new URL('./recording_mixed_profile.h',import.meta.url),'utf8');assert(h.includes('66504')&&h.includes('877 + 120 * (8 + 4 + 12 + 8) + 4 * 4'));
+ assert(mixedSource.includes("mixedRecordingProfile('continuous-r114')"));
+ assert(fs.readFileSync(new URL('./run_v450_recording_a_mixed.py',import.meta.url),'utf8').includes("'fixtureProfile': 'continuous-r114'"));
+});
+try{await(async()=>{
+ const profile=mixedRecordingProfile('continuous-r114');
+ const fn=mixedSource.slice(mixedSource.indexOf('function source(id)'),mixedSource.indexOf('async function drain('));
+ let registry={sources:['9101','9201'].map(sourceId=>({sourceId,recording:mixedRecordingSettings(profile.name,1,true)}))};
+ const context=vm.createContext({fixtureProfile:profile,mixedRecordingSettings,nextRecordingSettings,assertMixedRecordingRegistry,check:ok=>assert(ok),request:async(_app,method,route,body)=>{if(method==='GET')return structuredClone(registry);const row=registry.sources.find(r=>r.sourceId===body.sourceId);row.recording=structuredClone(body.recording);return {source:structuredClone(row)};}});
+ vm.runInContext(fn,context);assert.equal(vm.runInContext("source('9101').recording.continuousMaxBytes",context),profile.continuousMaxBytes);
+ await vm.runInContext('settings({},false)',context);registry=JSON.parse(JSON.stringify(registry));assertMixedRecordingRegistry(registry,profile.name,false);
+ await vm.runInContext('settings({},true)',context);assertMixedRecordingRegistry(registry,profile.name,true);
+ registry.sources[0].recording.continuousMaxBytes=87*1024*1024;assert.throws(()=>assertMixedRecordingRegistry(registry,profile.name,true));
+ const drain=mixedSource.slice(mixedSource.indexOf('async function drain('),mixedSource.indexOf('async function sample('));
+ let sizeBytes='71237',consumed=0;const c=vm.createContext({fixtureProfile:profile,observer:{pollAsync:async()=>({rows:[{segment:{continuous:true,channel:'9201',sizeBytes}}],backlog:false})},progress:{consume(){consumed++;return [];}}});
+ vm.runInContext(drain,c);await vm.runInContext('drain(1)',c);assert.equal(consumed,1);
+ sizeBytes='71238';await assert.rejects(vm.runInContext('drain(2)',c),/mixed-fixture-segment-bound/);assert.equal(consumed,1);
+})();passed++;console.log('[pass] R114 actual initialization/reactivation/restart and output boundary');}catch(e){failed++;console.log('[fail] R114 '+e.message);}
+console.log(`[R114-summary] passed=${passed} failed=${failed}`);if(failed)process.exitCode=1;
+
+if(process.argv[2])check('R114 fixed original input and codec/sample mutations fail closed',()=>{
+ const input=fs.readFileSync(process.argv[2]);for(const profile of ['continuous-r98','continuous-r114']){
+  assertMixedFixtureInput(input,profile);
+  for(const box of ['mdat','avcC','stts','stsz']){const offset=input.indexOf(Buffer.from(box));assert(offset>0);const changed=Buffer.from(input);changed[offset+12]^=1;assert.throws(()=>assertMixedFixtureInput(changed,profile));}
+  assert.throws(()=>assertMixedFixtureInput(input.subarray(1),profile));
+ }
+});
+console.log(`[R114-input-summary] passed=${passed} failed=${failed}`);if(failed)process.exitCode=1;

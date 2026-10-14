@@ -14,6 +14,8 @@
 #include "media/gstreamer_sample_observation.h"
 #include "recording_writer_decode_diagnostics.h"
 #include "recording_writer_decode_oracle.h"
+#include "recording_mixed_profile.h"
+#include "recording/visual_frame_decoder.h"
 #include <gst/app/gstappsink.h>
 #include <gst/gst.h>
 #include <algorithm>
@@ -22,6 +24,7 @@
 #include <iostream>
 #include <limits>
 #include <stdexcept>
+#include <set>
 
 namespace {
 int passes=0, failures=0;
@@ -234,16 +237,18 @@ int DecoderComparison(const std::filesystem::path& root,bool only_bframes=false)
 
 // R98: 고정 혼합 입력을 그대로 demux하고, 각 key 시작점의 정상 Stop prefix를
 // 실제 managed writer에 전달한다. 이 관측은 임의 입력의 출력 상한이 아니다.
-Encoded MixedInput(const std::filesystem::path& root) {
+Encoded MixedInput(const std::filesystem::path& root,const std::filesystem::path& original={}) {
     const auto need=[](bool ok,const char* why){if(!ok)throw std::runtime_error(why);};
     const auto file=root/"mixed-input.mp4";
     const std::string generation="videotestsrc num-buffers=120 pattern=ball ! video/x-raw,format=I420,width=160,height=90,framerate=30/1 ! x264enc tune=zerolatency speed-preset=ultrafast pass=quant quantizer=0 key-int-max=30 ! h264parse ! mp4mux ! filesink location=\""+file.string()+"\"";
-    GError* error=nullptr;auto* pipeline=gst_parse_launch(generation.c_str(),&error);
+    GError* error=nullptr;GstElement* pipeline=nullptr;
+    if(original.empty()){pipeline=gst_parse_launch(generation.c_str(),&error);
     need(pipeline&&!error,"mixed-generate-parse");need(gst_element_set_state(pipeline,GST_STATE_PLAYING)!=GST_STATE_CHANGE_FAILURE,"mixed-generate-start");
     auto* bus=gst_element_get_bus(pipeline);auto* message=gst_bus_timed_pop_filtered(bus,10*GST_SECOND,static_cast<GstMessageType>(GST_MESSAGE_EOS|GST_MESSAGE_ERROR));
     const bool eos=message&&GST_MESSAGE_TYPE(message)==GST_MESSAGE_EOS;
     if(message)gst_message_unref(message);
     gst_object_unref(bus);gst_element_set_state(pipeline,GST_STATE_NULL);gst_object_unref(pipeline);need(eos,"mixed-generate-eos");
+    }else std::filesystem::copy_file(original,file);
     pipeline=gst_parse_launch(("filesrc location=\""+file.string()+"\" ! qtdemux ! h264parse config-interval=-1 ! appsink name=out sync=false").c_str(),&error);
     need(pipeline&&!error,"mixed-demux-parse");auto* sink=gst_bin_get_by_name(GST_BIN(pipeline),"out");need(sink,"mixed-demux-sink");
     need(gst_element_set_state(pipeline,GST_STATE_PLAYING)!=GST_STATE_CHANGE_FAILURE,"mixed-demux-start");
@@ -270,7 +275,7 @@ int MixedFixtureBound(const std::filesystem::path& root,bool direct=false,bool g
     for(const auto& packet:input.packets){payload+=packet.payload.size();max_packet=std::max(max_packet,std::uint64_t(packet.payload.size()));}
     if(generation_direct)return MixedGeneration(root,input);
     if(direct){
-        constexpr std::uint64_t E=64ULL*1024*1024,S=36*1024,H=643*S,P=S;
+        constexpr std::uint64_t E=recording_mixed_fixture::kReserved,S=recording_mixed_fixture::kSegmentBytes,H=643*S,P=S;
         constexpr std::uint64_t Q=((E+H+P+1024*1024-1)/(1024*1024))*1024*1024;
         ::setenv("MEDIA_SERVER_VERIFY_RECORDING_RESOURCE_TRACE","1",1);
         recording::RecordingResourceTrace resource;Store store(root/"continuous");need(resource.Bind(store.catalog.SearchResidency(),store.catalog.ScratchResidency()),"continuous-resource-bind");Encoded half=input;half.packets.resize(60);need(Run(store,half),"continuous-seed");
@@ -333,8 +338,56 @@ int MixedFixtureBound(const std::filesystem::path& root,bool direct=false,bool g
     std::cout<<"[R98-input] fileBytes="<<std::filesystem::file_size(file)<<" packets="<<input.packets.size()<<" payloadBytes="<<payload<<" maxPacketBytes="<<max_packet<<" stopCases="<<cases<<" decodedMaximalRanges="<<decoded<<" maxOutputBytes="<<max_output<<" callerMinimumMax="<<max_packet+1024*1024<<'\n';
     return 0;
 }
+int MixedTransitions(const std::filesystem::path& root,const std::filesystem::path& original) {
+    const auto need=[](bool ok,const std::string& why){if(!ok)throw std::runtime_error(why);};
+    auto input=MixedInput(root,original);
+    need(input.packets.size()==120,"transition-input-count");
+    for(unsigned scenario=0;scenario<6;++scenario){
+        Encoded chosen;chosen.descriptor=input.descriptor;
+        for(const auto& packet:input.packets){const auto n=packet.observation->ordinal;
+            const bool select=scenario==0||scenario==4?(n==1||(n>=17&&n<=60)||(n>=73&&n<=90)):
+                scenario==1?(n!=61&&n!=91):scenario==2?(n%2==1&&n!=61&&n!=91):
+                scenario==3?(n>=31&&n!=91):true;
+            if(select)chosen.packets.push_back(packet);
+        }
+        if(scenario==4)for(auto packet:input.packets){packet.observation->source_generation="mixed-next-loop";packet.observation->generation_order=2;chosen.packets.push_back(std::move(packet));}
+        Store store(root/("transition-"+std::to_string(scenario)));
+        need(Run(store,chosen),"transition-writer");const auto rows=store.Segments();
+        need(rows.size()==(scenario==4?3U:scenario==5?2U:1U),"transition-segment-count");
+        std::size_t observed=0;std::string error;
+        std::set<std::pair<std::string,std::uint64_t>> expected,actual;
+        for(const auto& packet:chosen.packets)need(expected.emplace(packet.observation->source_generation,packet.observation->ordinal).second,"transition-input-unique");
+        for(const auto& row:rows){auto binding=store.catalog.FindSourceBinding(row.segment_id);
+            need(binding&&binding->file_evidence&&binding->index_complete,"transition-file-evidence");
+            const auto file=store.root/"channel-1"/(row.segment_id+".mp4");
+            const int fd=open(file.c_str(),O_RDONLY|O_CLOEXEC|O_NOFOLLOW);need(fd>=0,"transition-open");
+            const bool verified=recording::VerifyRecordingFileEvidenceFd(fd,*binding,&error);
+            recording::VisualRgbFrame frame;const auto target=binding->file_evidence->samples.front().mux_pts_ns;
+            const bool decoded=verified&&recording::DecodeVisualFrame(fd,row.size_bytes,target,&frame,&error,{},5000,recording::VisualDecodePolicy::SoftwareOnly);
+            const auto close_code=close(fd);need(verified&&decoded&&frame.presentation_ns==target&&close_code==0,"transition-file-proof-key-frame:"+error);
+            need(row.size_bytes<=recording_mixed_fixture::kSegmentBytes,"transition-new-bound");
+            for(const auto& sample:binding->samples){
+                need(actual.emplace(binding->source_generation,sample.ordinal).second,"transition-output-duplicate");
+                const auto found=std::find_if(chosen.packets.begin(),chosen.packets.end(),[&](const auto& packet){return packet.observation->source_generation==binding->source_generation&&packet.observation->ordinal==sample.ordinal;});
+                need(found!=chosen.packets.end()&&sample.pts_ns==found->observation->pts_ns,"transition-original-ordinal-time");
+                const auto evidence=std::find_if(binding->file_evidence->samples.begin(),binding->file_evidence->samples.end(),[&](const auto& item){return item.ordinal==sample.ordinal;});
+                auto* digest=g_compute_checksum_for_data(G_CHECKSUM_SHA256,found->payload.data(),found->payload.size());
+                const bool exact=evidence!=binding->file_evidence->samples.end()&&digest&&evidence->sample_sha256==digest&&evidence->original_pts_ns==found->pts&&evidence->original_dts_ns==found->dts;
+                g_free(digest);need(exact,"transition-original-AU-hash");++observed;
+            }
+            std::cout<<"[R114-segment] case="<<scenario<<" file="<<file.string()<<" bytes="<<row.size_bytes<<" samples="<<binding->samples.size()<<" generation="<<binding->generation_order<<" end="<<row.media_end_pts.value_or(-1)<<std::endl;
+        }
+        need(observed==chosen.packets.size()&&actual==expected,"transition-all-accepted-samples");
+        if(scenario==0)need(rows.front().size_bytes>36*1024&&observed==63,"transition-old-bound-counterexample");
+        if(scenario==5)need(store.Frames(rows)==120,"transition-normal-decode");
+        need(store.journal.Finish(&error),"transition-finish:"+error);
+    }
+    std::cout<<"[R114-transitions] PASS cases=6 S="<<recording_mixed_fixture::kSegmentBytes<<std::endl;return 0;
+}
+
 }
 int main(int argc,char** argv) {
+    if(argc==4&&std::string(argv[2])=="--mixed-transitions"){gst_init(nullptr,nullptr);try{return MixedTransitions(argv[1],argv[3]);}catch(const std::exception& e){std::cerr<<"[R114-failure] "<<e.what()<<std::endl;return 1;}}
     if(argc==3&&std::string(argv[2])=="--mixed-generation-reopen"){gst_init(nullptr,nullptr);try{return MixedGenerationReopen(argv[1]);}catch(const std::exception& e){std::cerr<<"[R99-failure] "<<e.what()<<std::endl;return 1;}}
     if(argc==3&&std::string(argv[2])=="--mixed-generation"){gst_init(nullptr,nullptr);try{return MixedFixtureBound(argv[1],false,true);}catch(const std::exception& e){std::cerr<<"[R99-failure] "<<e.what()<<std::endl;return 1;}}
     if(argc==3&&(std::string(argv[2])=="--mixed-fixture-bound"||std::string(argv[2])=="--mixed-profile-direct")){gst_init(nullptr,nullptr);try{return MixedFixtureBound(argv[1],std::string(argv[2])=="--mixed-profile-direct");}catch(const std::exception& e){std::cerr<<"[R98-failure] "<<e.what()<<'\n';return 1;}}

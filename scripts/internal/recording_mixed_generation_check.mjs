@@ -13,7 +13,7 @@ if(!root||fs.realpathSync(root)!==root||!/^\/private\/tmp\/media-server-|^\/tmp\
 const rs=fs.lstatSync(root);if(rs.uid!==process.getuid()||(rs.mode&511)!==448)throw Error('run-owner');
 const capture=createWorkspaceFailureCapture(root),baseline={fixedBytes:0,capBytes:448*1024**2};
 const data=path.join(root,'live'),copy=path.join(root,'copy');fs.mkdirSync(data,{mode:0o700});
-let first=null,sampleCount=0,summary={schema:'r99-generation-cyclic-v1',status:'RUNNING',cyclicRecoveryPass:false,spacePass:false,sourceHead:spawnSync('git',['rev-parse','HEAD'],{cwd:repo,encoding:'utf8'}).stdout.trim(),sourceSha256:crypto.createHash('sha256').update(fs.readFileSync(path.join(repo,'scripts/internal/recording_mixed_generation_fixture.h'))).digest('hex')};
+let first=null,sampleCount=0,summary={schema:'r99-generation-cyclic-v1',status:'RUNNING',cyclicRecoveryPass:false,spacePass:false,fixtureProfile:'continuous-r114',sourceHead:spawnSync('git',['rev-parse','HEAD'],{cwd:repo,encoding:'utf8'}).stdout.trim(),sourceSha256:crypto.createHash('sha256').update(fs.readFileSync(path.join(repo,'scripts/internal/recording_mixed_generation_fixture.h'))).digest('hex')};
 const measure=dir=>{const s=fs.lstatSync(dir);return measureCurrentCopy(dir,{dev:s.dev,ino:s.ino});};
 const samples=fs.openSync(path.join(root,'space.jsonl'),'wx',0o600);
 function named(){
@@ -45,7 +45,7 @@ async function run(mode,dir,isCopy){
       if(line.startsWith('[R99-progress] ')){
         const values=Object.fromEntries(line.slice(15).trim().split(' ').map(v=>v.split('='))),current=Object.fromEntries(Object.entries(values).map(([k,v])=>[k,k==='channel'?v:Number(v)]));
         if(!cut||progress.some(p=>p.progress.channel===current.channel))throw Error('progress-cut');
-        progress.push(verifyCurrentCyclicProgress(baselines[current.channel],current));
+        progress.push(verifyCurrentCyclicProgress(baselines[current.channel],current,'continuous-r114'));
       }
       if(match){phase=match[1];phases.push(phase);if(pid&&pid!==Number(match[2])){stop(Error('native-pid-change'));return;}pid=Number(match[2]);const ack=()=>{if(closed)return;if(observing)setTimeout(ack,10);else void observe(true);};ack();}
     }

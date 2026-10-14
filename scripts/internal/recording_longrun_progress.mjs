@@ -6,8 +6,9 @@ import crypto from 'node:crypto';
 export function mixedRecordingProfile(name) {
   const MiB=1024*1024,base={eventMaxBytes:128*MiB,continuousMaxAgeMs:10800000,eventMaxAgeMs:10800000};
   if(name==='protection-r97')return Object.freeze({name,continuousMaxBytes:64*MiB+256*1024,...base});
-  if(name!=='continuous-r98')throw Error('mixed-fixture-profile');
-  const segmentBytes=36*1024,protectedFiles=201+2*220+2,E=64*MiB,H=protectedFiles*segmentBytes,P=segmentBytes;
+  if(!['continuous-r98','continuous-r114'].includes(name))throw Error('mixed-fixture-profile');
+  // R114: AU66504 + fixed boxes877 + 120*(stts8+stsz4+stsc12+co64 8) + 4*stss4.
+  const segmentBytes=name==='continuous-r114'?66504+877+120*(8+4+12+8)+4*4:36*1024,protectedFiles=201+2*220+2,E=64*MiB,H=protectedFiles*segmentBytes,P=segmentBytes;
   const Q=Math.ceil((E+H+P)/MiB)*MiB;
   return Object.freeze({name,continuousMaxBytes:Q,...base,segmentBytes,protectedFiles,E,H,P,M:Q-E-H-P,
     inputNormalizedSha256:'baebad5cad233243c4748f6bfec06fa5d2da7f06ae9b1475c9b20bfbfb04e2e7'});
@@ -27,7 +28,7 @@ export function assertMixedRecordingRegistry(value,profile,enabled) {
 }
 export function assertMixedFixtureInput(input,profile) {
   const p=mixedRecordingProfile(profile);
-  if(profile!=='continuous-r98'||!Buffer.isBuffer(input)||input.length!==67929)throw Error('mixed-fixture-input');
+  if(!['continuous-r98','continuous-r114'].includes(profile)||!Buffer.isBuffer(input)||input.length!==67929)throw Error('mixed-fixture-input');
   const bytes=Buffer.from(input);let count=0;
   function boxes(start,end,depth){
     if(depth>8)throw Error('mixed-fixture-box');

@@ -27,7 +27,7 @@ const contentionDiagnose=args.length===1&&args[0]==='--contention-diagnostic';
 const diagnose=contentionDiagnose||stateDiagnose||(args.length===1&&args[0]==='--frame-diagnostic');
 const frameTraceMode='bounded';
 const preparationContract=mixedPreparationContract(args);
-const fixtureProfile=mixedRecordingProfile('continuous-r98');
+const fixtureProfile=mixedRecordingProfile('continuous-r114');
 console.log('[fixture-profile] '+JSON.stringify(fixtureProfile));
 const duration=short?30000:contentionDiagnose?900000:stateDiagnose?2700000:diagnose?600000:parseLongrunArgs(args);
 if(!path.isAbsolute(root)||fs.realpathSync(root)!==root||!path.basename(root).startsWith('media-server-current-observer-')||(fs.statSync(root).mode&0o777)!==0o700)throw Error('owned-run-root');

@@ -19,7 +19,7 @@ std::string R99Asset(recording::EvidencePackageStore& store,const std::string& i
 }
 int MixedGeneration(const std::filesystem::path& root,Encoded input){
     using namespace recording;
-    constexpr std::uint64_t Q=87ULL*1024*1024,E=64ULL*1024*1024,S=36*1024;
+    constexpr std::uint64_t Q=recording_mixed_fixture::kQuota,E=recording_mixed_fixture::kReserved,S=recording_mixed_fixture::kSegmentBytes;
     const auto media=root/"recordings";std::string error;
     RecordingResourceTrace trace("1");
     {

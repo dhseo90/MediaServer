@@ -387,13 +387,15 @@ export class CurrentLongrunProgress {
 }
 // 사전 이력의 수를 새 진행으로 세지 않는, 두 채널 고정 크기의 native fixture 관측 경계.
 // 원본 수용은 제품이 수행한다. 여기서는 동일 cut 이후의 실제 counter 대응만 확인한다.
-export function verifyCurrentCyclicProgress(baseline,current){
+export function verifyCurrentCyclicProgress(baseline,current,profile='continuous-r98'){
+  need(['continuous-r98','continuous-r114'].includes(profile),'cyclic-profile');
+  const quota=(profile==='continuous-r114'?108:87)*1024*1024;
   need(baseline&&current&&['9101','9201'].includes(baseline.channel)&&current.channel===baseline.channel,'cyclic-channel');
   for(const n of [baseline.count,baseline.bytes,baseline.order,current.newFinalized,current.newDeleted,current.alive,current.bytes])
     need(Number.isSafeInteger(n)&&n>=0,'cyclic-integer');
   need(baseline.count>0&&baseline.order>0&&baseline.bytes>0,'cyclic-baseline');
   need(current.newFinalized>0&&current.newDeleted>0&&current.alive+current.newDeleted===baseline.count+current.newFinalized,'cyclic-new-progress');
-  need(current.bytes<=87*1024*1024&&current.availableEvidenceAfterDelete===1,'cyclic-usage-evidence');
+  need(current.bytes<=quota&&current.availableEvidenceAfterDelete===1,'cyclic-usage-evidence');
   return {baseline:{...baseline},progress:{...current},preexistingCountExcluded:true};
 }
 export function summarizeCurrentSamples(samples,{warmupMs=300000}={}){
