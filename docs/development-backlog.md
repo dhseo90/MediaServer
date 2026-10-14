@@ -17,12 +17,22 @@
 
 ## v4.5.0 잔여 개발과 릴리즈 순서
 
+[117 고정116 후보의900초 혼합](release-artifacts/v4.5.0/117-validation.json)은 **최종 검색 지연 FAIL**이다.
+기존 조건으로1회 실행해900초 본 루프 뒤 검색240건의p95 2548.861ms·최대2943.792ms를 확인했다.
+구조화/장면 증거 각각59개·A15 완료와 timeout/unavailable0은 유지한다.
+제한된 Recorder deliveryLoss128통지와 확정 세그먼트 사이69공백을 확인했으며,
+통지 수를 전체drop 수로 계산하거나 안전한 회복을 무손실로 확대하지 않는다.
+180완전 표본·finally 정상종료·최종 논리owner0을 확인했지만 명시 비활성화·닫힌journal 등 후속gate는 미실행이다.
+[독립 결과 검토](release-artifacts/v4.5.0/117-independent-review.json)는 **45분 진입 부적격**을 확인한다.
+111/112/114/116의 한정 근거를 유지하며 **지속 혼합 지연·반복 녹화 공백·메모리P0·출시 보류**가 남는다.
+제품·검사·collector 변경, 재실행,45/120분 및 공개 절차는 하지 않았다.
+
 [116 Recorder 입력 연속성 보완](release-artifacts/v4.5.0/116-validation.json)은 한정 직접 검증을 마쳤다.
 115의 목표 압축 sample은 존재하지만 입력 ordinal/keyframe 누락과 정확한 decode 거부가 확인됐다.
 실제 SharedStream 과부하에서 Recorder 손실 통지가 없던 경계를 재현하고, writer가 기존 prefix를 보존한 뒤
 실제 keyframe에서 회복하도록 보완했다. macOS/비특권 Linux의 정상·과부하·package/readback은 통과했다.
 115 당시 정확한 누락 위치는 미확정이며, 새 정상 혼합의 무손실·필수201·지연 충족을 뜻하지 않는다.
-**새900/45/120 미실행·지속 혼합 응답/진행·전체 메모리P0·출시 보류**를 유지한다.
+**116 당시 새900/45/120 미실행·지속 혼합 응답/진행·전체 메모리P0·출시 보류**였다. 이후117 실행은 위 기록으로 구분한다.
 
 [115 continuous-r114의900초 혼합](release-artifacts/v4.5.0/115-validation.json)은 **FAIL**이다.
 고정 후보1회·마지막 본 관측765.862초·최종 source 확인 포함785.596초에 동시 증거 생성의

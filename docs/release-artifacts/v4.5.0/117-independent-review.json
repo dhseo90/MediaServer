@@ -1,0 +1,47 @@
+{
+  "schema": "media-server.v450.r117.independent-review.v1",
+  "reviewer": "/root/independent_r115",
+  "requested": "gpt-6-astra/high",
+  "toolAcceptanceThisReview": null,
+  "actualRuntimeModelEffort": null,
+  "historicalAcceptance": "R115 spawn 수락값은 R117 확인값으로 재사용하지 않음",
+  "participation": "읽기 전용; 제품/검사 작성·실행·파일 수정·하위 위임 없음",
+  "decision": "FAIL_CONFIRMED_45_MINUTE_INELIGIBLE",
+  "confirmed": [
+    "고정 source/profile·1회·exit1·timeout 아님",
+    "원래240성공검색·60/client·p952548.861ms 최종FAIL",
+    "구조화59/장면59 증거·A15 synthetic 완료와 검색 지연 FAIL 구분",
+    "128bounded deliveryLoss 표본·69확정 segment간공백·세그먼트내공백0을 무손실로 확대하지 않음",
+    "180complete FD 표본/동일PID와 verifiedDurationMs=null·후속not-run 유지",
+    "finally 정상종료/ports/group 회수와 명시 disable/closedjournal not-run 구분",
+    "논리 owner0/peak412677472와 RSSmax3208151040·warmup 뒤증가 범위 구분",
+    "독립 재계산: 5846원장행·868파일 hash·137package hash/asset·69공백·180workspace쌍 일치",
+    "소스 불변의111/112/114/116 근거 재사용과 새 제품/fixture/collector 변경 없음"
+  ],
+  "preservationReview": {
+    "status": "PASS_LOCAL_PRESERVATION_AND_REPORT",
+    "archiveBytes": 32295681,
+    "sha256": "8e7fe70e4e0c1fdaa8c7ec9538ba4b4fb13e9a8b28ecca29bf2ab02280fea9c6",
+    "payloadFiles": 1101,
+    "payloadBytes": 72799606,
+    "totalRegularMembers": 1102,
+    "allManifestSizesAndHashesMatch": true,
+    "unchangedOriginalPayloads": 1099,
+    "urlSanitizedPayloads": 1,
+    "generatedScopePayloads": 1,
+    "sanitizedURLReplacements": 8,
+    "originalServerLogBytes": 567435,
+    "sanitizedServerLogBytes": 567257,
+    "excludedEntries": 293,
+    "excludedMaterialAbsent": true,
+    "recoveryPackages": 6,
+    "recoveryFrames": 13,
+    "documentCorrection": "excludedFiles를 디렉터리 포함 excludedEntries로 정정; archive 원문 불변",
+    "remaining": "원격 바이트와 소유 root cleanup은 독립 검토 당시 미완료"
+  },
+  "limitations": [
+    "전체 drop/회복 횟수·과거115손실 위치 미확정",
+    "별도 권한/취소/복구·새 decoder/전체 파일 decode 실행 아님",
+    "원격 바이트와 소유 root cleanup은 검토 당시 미완료"
+  ]
+}

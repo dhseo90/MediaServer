@@ -1,0 +1,821 @@
+{
+  "schema": "media-server.v450.r117.validation.v1",
+  "status": "FAIL_FINAL_SEARCH_LATENCY",
+  "memoryP0": "OPEN",
+  "release": "HOLD",
+  "models": {
+    "requestedMain": "gpt-6-astra/high",
+    "requestedIndependent": "gpt-6-astra/high",
+    "mainToolAccepted": null,
+    "independentToolAcceptedThisReview": null,
+    "actualMainRuntime": null,
+    "actualIndependentRuntime": null,
+    "note": "독립 /root/independent_r115의 과거 spawn 설정은 이번 결과 검토의 도구 수락/실제 runtime 확인으로 재사용하지 않음."
+  },
+  "baseHead": "0d472e1799089ebf1872aa48010f4d9cf85759ae",
+  "source": {
+    "head": "0d472e1799089ebf1872aa48010f4d9cf85759ae",
+    "fixtureProfile": "continuous-r114",
+    "fixtureProfileSourceSha256": "d591cd6fb0c952994bfe8529ffdaec5514952da9e5d23aadf8ade94332bfb5a4",
+    "tree": "5ddc879ca50611febaa8a4da9c1ba9ce1da68035",
+    "sourceSha256": "fffd9683eb5d65fa25e5efebf7b2b357afefaed46b6e62d380daea55ba3678d5",
+    "binarySha256": "4187bdca1475a46cd8188f658e941820d8c7156ce071579367f8fd7ba81d4d69",
+    "runtimeSha256": "781799f474f3f9fbad373f8daf6c3779b55d831cb2b50e8bf63b8b0330624410",
+    "sourceEndIdentical": true,
+    "productFixtureCollectorChanged": false
+  },
+  "command": "python3 scripts/internal/run_v450_recording_a_mixed.py --contention-diagnostic /private/tmp/media-server-r117-e_522tla/mixed900",
+  "profile": {
+    "name": "continuous-r114",
+    "channelQuotaMiB": 108,
+    "segmentBoundBytes": 71237,
+    "defaultReservationMiB": 64,
+    "liveVariableMiB": 448,
+    "ramReservationMiB": 640,
+    "recordingChannels": 2,
+    "structuredClients": 2,
+    "visualClients": 2,
+    "aOpportunitySeconds": 60,
+    "observationSeconds": 900,
+    "totalBudgetSeconds": 1080,
+    "initialState": "기존 launcher 초기 상태; 과거 실패/회복 파일·warm cache·강제 checkpoint·latch 없음",
+    "inputAndDerivedBudget": "mixed900/artifacts/report.json.fixtureProfile 및 mixed900/run.log의 fixture-profile/fixture-input; 원래 R114 계약과 불변",
+    "recordedFixtureProfile": {
+      "name": "continuous-r114",
+      "continuousMaxBytes": 113246208,
+      "eventMaxBytes": 134217728,
+      "continuousMaxAgeMs": 10800000,
+      "eventMaxAgeMs": 10800000,
+      "segmentBytes": 71237,
+      "protectedFiles": 643,
+      "E": 67108864,
+      "H": 45805391,
+      "P": 71237,
+      "M": 260716,
+      "inputNormalizedSha256": "baebad5cad233243c4748f6bfec06fa5d2da7f06ae9b1475c9b20bfbfb04e2e7"
+    }
+  },
+  "execution": {
+    "preparationContractVersion": 2,
+    "resultScope": "existing mixed mode",
+    "command": [
+      "bash",
+      "/Users/dhseo/Workspace/mediaServer/scripts/internal/verify_v450_recording_a_mixed.sh",
+      "--contention-diagnostic"
+    ],
+    "startedAt": "2026-10-14T23:28:24.816512+00:00",
+    "status": "FAIL",
+    "source": {
+      "head": "0d472e1799089ebf1872aa48010f4d9cf85759ae",
+      "fixtureProfile": "continuous-r114",
+      "fixtureProfileSourceSha256": "d591cd6fb0c952994bfe8529ffdaec5514952da9e5d23aadf8ade94332bfb5a4",
+      "tree": "5ddc879ca50611febaa8a4da9c1ba9ce1da68035",
+      "sourceSha256": "fffd9683eb5d65fa25e5efebf7b2b357afefaed46b6e62d380daea55ba3678d5",
+      "binarySha256": "4187bdca1475a46cd8188f658e941820d8c7156ce071579367f8fd7ba81d4d69"
+    },
+    "timeoutSeconds": 1080,
+    "observationSeconds": 900,
+    "wrapperSha256": "392eb9e0bc2987fa8e07228742293163aaedb030c44b26ecbfd7563366b71d1d",
+    "resourceTrendPass": false,
+    "reviewRequired": true,
+    "uiFulltestPass": false,
+    "processGroup": 9787,
+    "childExit": 1,
+    "exit": 1,
+    "executionElapsedSeconds": 914.9529152920004,
+    "elapsedSeconds": 914.9533955829684,
+    "timedOut": false,
+    "interruptedSignals": [],
+    "residualGroupAfterCommand": false,
+    "cleanupSignals": [],
+    "processGroupAbsent": true,
+    "cleanupErrors": [],
+    "cleanupOnlySeconds": 1.6916077584028244e-05,
+    "registeredGroupsAbsent": true,
+    "residualRegisteredGroups": false,
+    "registeredGroupSignals": [],
+    "registeredGroupCleanupSeconds": 0.00043008290231227875,
+    "finishedAt": "2026-10-14T23:43:39.968622+00:00",
+    "sourceEnd": {
+      "head": "0d472e1799089ebf1872aa48010f4d9cf85759ae",
+      "fixtureProfile": "continuous-r114",
+      "fixtureProfileSourceSha256": "d591cd6fb0c952994bfe8529ffdaec5514952da9e5d23aadf8ade94332bfb5a4",
+      "tree": "5ddc879ca50611febaa8a4da9c1ba9ce1da68035",
+      "sourceSha256": "fffd9683eb5d65fa25e5efebf7b2b357afefaed46b6e62d380daea55ba3678d5",
+      "binarySha256": "4187bdca1475a46cd8188f658e941820d8c7156ce071579367f8fd7ba81d4d69"
+    },
+    "totalWithFinalBindingSeconds": 915.2147320420481,
+    "rootDisposition": "preserved-for-byte-review-and-owned-cleanup"
+  },
+  "duration": {
+    "mainLoopReached900Seconds": true,
+    "basis": "A.finish and actual mixed work assertions after while(duration) passed before final latency failure",
+    "lastSampleProgressMs": 897456.78575,
+    "sampleSpanMs": 897234.8925,
+    "verifiedDurationMs": null,
+    "nodeElapsedMs": 909947,
+    "totalSeconds": 915.2147320420481
+  },
+  "reuse": {
+    "111": "직접 HTTP C12 PASS만 재사용; 새 지속 혼합 latency PASS 아님",
+    "112": "SoftwareOnly avdec_h264 max-threads=1·정확한 보존 sample·package/readback와 관련 플랫폼 한정 근거 유지",
+    "114": "continuous-r114 S=71237B·Q108MiB 및 파생 예산 직접 근거 유지",
+    "116": "Recorder 전용 전달 손실 통지·prefix 보존·실제 keyframe 회복·macOS/비특권 Linux 직접 검증 유지; drop 제거·일반 부하 무손실 증명 아님"
+  },
+  "search": {
+    "population": "original mixed successful HTTP array; visual2 then structured2 per cycle; A/retrieval excluded; no trimming",
+    "overall": {
+      "count": 240,
+      "p95Ms": 2548.861416999949,
+      "maxMs": 2943.7919159999583
+    },
+    "visual": {
+      "count": 120,
+      "p95Ms": 2648.597458000062,
+      "maxMs": 2943.7919159999583
+    },
+    "structured": {
+      "count": 120,
+      "p95Ms": 2042.4747089999728,
+      "maxMs": 2235.03683300002
+    },
+    "thirds": [
+      {
+        "count": 80,
+        "p95Ms": 1167.960625000007,
+        "maxMs": 1212.3064160000067
+      },
+      {
+        "count": 80,
+        "p95Ms": 2068.5577080000076,
+        "maxMs": 2588.1627919999883
+      },
+      {
+        "count": 80,
+        "p95Ms": 2716.333915999974,
+        "maxMs": 2943.7919159999583
+      }
+    ],
+    "clientCounts": [
+      60,
+      60,
+      60,
+      60
+    ],
+    "unavailable": 0,
+    "timingOutcomes": {
+      "ok:200": 686,
+      "ok:201": 148,
+      "ok:202": 15,
+      "ok:503": 59
+    },
+    "gate": "FAIL_p95_over2000; maxunder5000; no request timeout"
+  },
+  "evidence": {
+    "structured": 59,
+    "complete": 59,
+    "partial": 0,
+    "visual": 59,
+    "structuredPairs": {
+      "201:created": 59,
+      "503:evidence-busy": 59
+    },
+    "retainedChecks": 118,
+    "storedPackages": 137,
+    "postStopManifestAssetHashes": "all checked read-only; not new decode or independent live recovery",
+    "aCompleted": 15,
+    "aScheduled": 15,
+    "detectorEvaluated": false
+  },
+  "progress": {
+    "windows": [
+      {
+        "structured": 380,
+        "visual": 760,
+        "evidence": 19,
+        "visualEvidence": 19
+      },
+      {
+        "structured": 400,
+        "visual": 800,
+        "evidence": 20,
+        "visualEvidence": 20
+      },
+      {
+        "structured": 400,
+        "visual": 800,
+        "evidence": 20,
+        "visualEvidence": 20
+      }
+    ],
+    "lastDrained": {
+      "elapsedMs": 897456.78575,
+      "channels": {
+        "9101": {
+          "finalized": 434,
+          "deleted": 0,
+          "lastAt": 905558.127875,
+          "order": "863",
+          "store": "aeeb6195ebd1c147ca4d01e1c128723cbfda42140311d3ce7f664adc60e34180",
+          "knownMappings": 325,
+          "unknownMappings": 13516
+        },
+        "9201": {
+          "finalized": 428,
+          "deleted": 0,
+          "lastAt": 905558.127875,
+          "order": "862",
+          "store": "aeeb6195ebd1c147ca4d01e1c128723cbfda42140311d3ce7f664adc60e34180",
+          "knownMappings": 300,
+          "unknownMappings": 13306
+        }
+      },
+      "records": 862,
+      "logicalBytes": 514003
+    },
+    "firstIndex": {
+      "cycle": 0,
+      "state": "ready",
+      "error": "",
+      "channels": [
+        {
+          "channelId": "1",
+          "indexedFrames": 1
+        },
+        {
+          "channelId": "9101",
+          "indexedFrames": 0
+        },
+        {
+          "channelId": "9201",
+          "indexedFrames": 0
+        }
+      ]
+    },
+    "lastIndex": {
+      "cycle": 58,
+      "state": "indexing",
+      "error": "",
+      "channels": [
+        {
+          "channelId": "1",
+          "indexedFrames": 1
+        },
+        {
+          "channelId": "9101",
+          "indexedFrames": 776
+        },
+        {
+          "channelId": "9201",
+          "indexedFrames": 771
+        }
+      ]
+    },
+    "closedTargetFiles": 868,
+    "maxClosedTargetBytes": 34724,
+    "bound": 71237,
+    "allFilesWithinBound": true
+  },
+  "recorder": {
+    "notices": 128,
+    "deliveryLossNotices": 128,
+    "sourceDiscontNotices": 0,
+    "sampledChannels": {
+      "9101": 64,
+      "9201": 64
+    },
+    "firstNotice": {
+      "generationOrder": 344,
+      "previousOrdinal": 73,
+      "nextOrdinal": 91,
+      "deliveryLoss": 1,
+      "sourceDiscont": 0,
+      "serverLine": 974,
+      "eventTimestamp": null,
+      "channelFromCommittedGeneration": "9101"
+    },
+    "betweenCommittedSegmentGaps": 69,
+    "withinSegmentOrdinalGaps": 0,
+    "scope": "repeated actual Recorder loss and recording gaps observed; safe recovery does not excuse normal-load service quality; no complete queue-drop or skipped-frame total",
+    "details": "recording-continuity.json",
+    "postStopRecoveryPackageJoin": {
+      "packages": 6,
+      "frames": 13,
+      "details": "recovery-evidence-link.json"
+    }
+  },
+  "resources": {
+    "samples": 180,
+    "summarySamples": 180,
+    "pids": [
+      9828
+    ],
+    "startIdentities": [
+      "macos:1792020512:655365"
+    ],
+    "maxSampleGapMs": 5772.327916000038,
+    "allFDComplete": true,
+    "separateMaxima": {
+      "rssBytes": 3208151040,
+      "footprintBytes": 3159362848,
+      "fdCount": 46,
+      "anonymousFileBytes": 61346304,
+      "anonymousAllocatedBytes": 62197760
+    },
+    "largestRecomputedWorkspace": {
+      "sample": 138,
+      "phaseAt": 694930.00625,
+      "measurementStartedAt": 695143.906542,
+      "measurementCompletedAt": 695150.41175,
+      "fixedBytes": 14090858,
+      "namedAndParentBytes": 98983013,
+      "anonymousLogical": 61346304,
+      "anonymousAllocated": 62197760,
+      "variableUsed": 147089915,
+      "limit": 469762048
+    },
+    "workspaceFailure": {
+      "status": "no-workspace-failure",
+      "primary": null,
+      "decision": null,
+      "collectorDiagnostic": null,
+      "context": null,
+      "collectionError": null,
+      "capacityBytes": 32768
+    },
+    "owner": {
+      "status": "captured",
+      "count": 183,
+      "final": {
+        "pid": 9828,
+        "seq": 182,
+        "phase": "after-storage-destruction",
+        "elapsedMs": 906350,
+        "ram": 0,
+        "ramPeak": 412677472,
+        "ramLimit": 671088640,
+        "ramRejected": 0,
+        "scratchDisk": 0,
+        "scratchDiskPeak": 101076992,
+        "scratchDiskLimit": 161734123520,
+        "scratchFd": 0,
+        "scratchFdPeak": 17,
+        "scratchFdLimit": 1048572,
+        "scratchRam": 0,
+        "preservedDisk": 0,
+        "preservedFd": 0,
+        "readerCleanupHealthy": true
+      },
+      "scope": "actual shared product owner; logical charges, not total heap or RSS; sequential counter reads"
+    },
+    "trend": {
+      "status": "observed",
+      "resourceTrendPass": false,
+      "reviewRequired": true,
+      "sampleCount": 180,
+      "groups": [
+        {
+          "pid": 9828,
+          "startIdentity": "macos:1792020512:655365",
+          "sampleCount": 180,
+          "first": {
+            "phaseAt": 8323.235375,
+            "sampledAt": 1792020518287,
+            "rssBytes": 3175448576,
+            "threadCount": 37,
+            "fdCount": 34,
+            "mutationCount": 6
+          },
+          "last": {
+            "phaseAt": 905558.127875,
+            "sampledAt": 1792021415525,
+            "rssBytes": 1998815232,
+            "threadCount": 38,
+            "fdCount": 29,
+            "mutationCount": 1730
+          },
+          "max": {
+            "rssBytes": 3208151040,
+            "threadCount": 42,
+            "fdCount": 46
+          },
+          "delta": {
+            "rssBytes": -1176633344,
+            "threadCount": 1,
+            "fdCount": -5,
+            "mutationCount": 1724
+          },
+          "elapsedMs": 897234.8925,
+          "maxGapMs": 5772.327916000038,
+          "warmupMs": 300000,
+          "postWarmup": {
+            "status": "observed",
+            "sampleCount": 120,
+            "delta": {
+              "rssBytes": 42762240,
+              "threadCount": -4,
+              "fdCount": -7,
+              "mutationCount": 1128
+            },
+            "elapsedMs": 596989.611166,
+            "rssMiBPerMinute": 4.09868941474698
+          }
+        }
+      ]
+    },
+    "postStopStorage": {
+      "reason": "post-stop",
+      "final": true,
+      "elapsedMs": 909931,
+      "journalMutationTypes": {
+        "segment_finalized": 0,
+        "event_link_created": 0,
+        "observation_put": 0,
+        "observation_v2_put": 0,
+        "deletion_requested": 0,
+        "deletion_completed": 0,
+        "corruption_detected": 0,
+        "recording_order_reserved": 865,
+        "segment_v2_finalized": 0,
+        "segment_v2_bound_finalized": 863,
+        "consumer_reference_put": 0,
+        "derived_reference_accepted": 0,
+        "referenced_observation_put": 2,
+        "derived_job_intent": 0,
+        "derived_job_files": 0,
+        "derived_job_ready": 0,
+        "derived_job_committed": 0,
+        "derived_job_complete": 0,
+        "derived_job_failed": 0,
+        "segment_v2_state": 0,
+        "segment_v2_deleted": 0
+      },
+      "journalMutationTypesCoverage": "drained-prefix-only; unread-or-partial-tail-excluded",
+      "totalBytes": 104788357,
+      "capBytes": 483852906,
+      "capExceeded": false,
+      "entries": 1381,
+      "categories": {
+        "input": {
+          "bytes": 164019,
+          "files": 3
+        },
+        "media": {
+          "bytes": 24824558,
+          "files": 869
+        },
+        "mediaPartial": {
+          "bytes": 0,
+          "files": 0
+        },
+        "journal": {
+          "bytes": 8052011,
+          "files": 10
+        },
+        "checkpoint": {
+          "bytes": 0,
+          "files": 0
+        },
+        "generationSnapshot": {
+          "bytes": 8241433,
+          "files": 1
+        },
+        "generationIdentity": {
+          "bytes": 706328,
+          "files": 9
+        },
+        "generationEvidence": {
+          "bytes": 7368080,
+          "files": 8
+        },
+        "generationManifest": {
+          "bytes": 522,
+          "files": 1
+        },
+        "generationTransaction": {
+          "bytes": 0,
+          "files": 0
+        },
+        "sqlite": {
+          "bytes": 10326016,
+          "files": 1
+        },
+        "wal": {
+          "bytes": 0,
+          "files": 0
+        },
+        "sqliteAux": {
+          "bytes": 0,
+          "files": 0
+        },
+        "tmp": {
+          "bytes": 0,
+          "files": 0
+        },
+        "log": {
+          "bytes": 567435,
+          "files": 1
+        },
+        "state": {
+          "bytes": 5237,
+          "files": 3
+        },
+        "events": {
+          "bytes": 0,
+          "files": 0
+        },
+        "cache": {
+          "bytes": 3141733,
+          "files": 280
+        },
+        "tools": {
+          "bytes": 13588920,
+          "files": 2
+        },
+        "recordingsOther": {
+          "bytes": 6199363,
+          "files": 165
+        },
+        "other": {
+          "bytes": 19511774,
+          "files": 5
+        }
+      },
+      "ownership": {
+        "productRecording": {
+          "bytes": 65718311,
+          "files": 1064
+        },
+        "fixtureInput": {
+          "bytes": 164019,
+          "files": 3
+        },
+        "observerTools": {
+          "bytes": 13588920,
+          "files": 2
+        },
+        "cache": {
+          "bytes": 3141733,
+          "files": 280
+        },
+        "temporary": {
+          "bytes": 0,
+          "files": 0
+        },
+        "runtimeSupport": {
+          "bytes": 572672,
+          "files": 4
+        },
+        "other": {
+          "bytes": 19511774,
+          "files": 5
+        }
+      },
+      "transientJournalMisses": 0,
+      "sqlitePages": {
+        "status": "observed",
+        "mainBytes": 10326016,
+        "walBytes": 0,
+        "pageSize": 4096,
+        "pageCount": 2521,
+        "freePageCount": 0,
+        "livePageCount": 2521,
+        "liveBytes": 10326016,
+        "freeBytes": 0
+      },
+      "measurement": "logical-file-bytes-nonatomic",
+      "rawPathsPublished": false,
+      "transientTreeRetries": 0,
+      "fixedBytes": 14090858,
+      "variableBytes": 90697499,
+      "copyBytes": 0,
+      "combinedBytes": 104788357,
+      "rootCapBytes": 483852906,
+      "combinedCapBytes": 953614954,
+      "measurementStartedAt": 909956.360584,
+      "measurementCompletedAt": 909964.550042,
+      "copyEntries": 0,
+      "workspacePolicy": "fixed-plus-variable-v1",
+      "parentOutputBytes": 2090928,
+      "parentStartedAt": 909964.4715,
+      "parentCompletedAt": 909964.550042
+    },
+    "scope": "individual sampled maxima, not simultaneous peaks; owner logical not totalheap; RSS increase not assigned to leak"
+  },
+  "collection": {
+    "server-diagnostic": {
+      "pid": 9828,
+      "bytes": 567435,
+      "capturedBytes": 567435,
+      "sha256": "eeb95b3b6687ff0bd86c400e956f3d2d8fd8be774cb20dd37b5b891592857110",
+      "overflow": false,
+      "captureError": null,
+      "categories": [
+        {
+          "code": "file evidence unavailable",
+          "count": 0
+        },
+        {
+          "code": "storageBlocked",
+          "count": 0
+        },
+        {
+          "code": "shutdown",
+          "count": 0
+        },
+        {
+          "code": "ERROR",
+          "count": 0
+        },
+        {
+          "code": "WARNING",
+          "count": 0
+        }
+      ],
+      "rawBodyPublished": false,
+      "privateCaptureDisposition": "eligible-for-wrapper-cleanup"
+    },
+    "frame-trace-summary": {
+      "status": "captured",
+      "mode": "bounded",
+      "required": true,
+      "records": 3,
+      "successes": 3,
+      "failures": 0,
+      "issues": []
+    },
+    "search-failure-summary": {
+      "status": "captured",
+      "probes": 1,
+      "failures": [],
+      "issues": []
+    },
+    "recording-state-summary": {
+      "status": "captured",
+      "count": 6,
+      "events": [
+        {
+          "seq": 0,
+          "atUs": 1327749987153,
+          "channel": "9101",
+          "phase": "session-created",
+          "reason": "epoch-9101-1-1792020518044"
+        },
+        {
+          "seq": 1,
+          "atUs": 1327749994195,
+          "channel": "9101",
+          "phase": "writer-started",
+          "reason": "ok"
+        },
+        {
+          "seq": 2,
+          "atUs": 1327749996952,
+          "channel": "9201",
+          "phase": "session-created",
+          "reason": "epoch-9201-1-1792020518054"
+        },
+        {
+          "seq": 3,
+          "atUs": 1327750002839,
+          "channel": "9201",
+          "phase": "writer-started",
+          "reason": "ok"
+        },
+        {
+          "seq": 4,
+          "atUs": 1328651612239,
+          "channel": "9201",
+          "phase": "stop-channel",
+          "reason": "requested"
+        },
+        {
+          "seq": 5,
+          "atUs": 1328651618402,
+          "channel": "9101",
+          "phase": "stop-channel",
+          "reason": "requested"
+        }
+      ],
+      "issues": []
+    }
+  },
+  "termination": {
+    "finally": {
+      "schema": "recording-process-cleanup-v1",
+      "attemptCount": 1,
+      "pid": 9828,
+      "exitCode": 0,
+      "signalCode": null,
+      "exitedObserved": true,
+      "stopCode": "complete",
+      "forcedTermination": "not-used",
+      "normalExitPass": true,
+      "normalShutdownPass": true,
+      "archiveSafe": true,
+      "ports": [
+        {
+          "kind": "http",
+          "port": 59868,
+          "status": "pass",
+          "code": "closed",
+          "closed": true
+        },
+        {
+          "kind": "rtsp",
+          "port": 59869,
+          "status": "pass",
+          "code": "closed",
+          "closed": true
+        }
+      ]
+    },
+    "lastAAssertion": "PASS",
+    "actualMixedWork": "PASS",
+    "finalLatency": "FAIL",
+    "finalSampleContinuityGate": "not-run",
+    "finalProgressGate": "not-run",
+    "explicitDisable": "not-run",
+    "closedJournalGate": "not-run",
+    "processesClosed": true,
+    "udpClosed": true
+  },
+  "analysisNotes": [
+    "900초 while 종료 뒤 마지막 A 및 actual mixed work 통과, 최종 latency에서 FAIL. verifiedDurationMs=null/longrunObservationCompleted=false는 원문 그대로이며900초 전체 gate PASS가 아님.",
+    "초중후80개는 원래 배열의 요청 순서3분할. 서버 visual summary, A 보조 검색, 전체 HTTP route 집계를240개 모집단에 합치지 않음.",
+    "128개 로그는 writer별64 cap에 도달한 제한 통지. pending 합침·keyframe 대기 때문에 drop packet/회복 횟수 총합으로 쓸 수 없음. source/enqueue/dequeue/accepted 전체 카운터는 미관측.",
+    "69곳은 같은 generation의 두 확정 segment 사이 source ordinal 공백. 세그먼트 내부 공백0과 실제 입력 무손실은 다른 명제. 회복 후 증거6개/13frame은 저장 manifest의 정확한 segmentId join이며 과거 손실 시각 복원이 아님.",
+    "분석의 post-stop authenticated format/hash 문구는 journal 길이/CRC·파일 SHA·manifest asset hash 구조 대조를 뜻함. 새 Catalog authority 검증·독립 decoder/readback 실행 또는 실패 시점 파일 불변 증명으로 확대하지 않음.",
+    "기존 parser·권한·원본 보호 회귀는 불변 제품 범위에서 재사용. 이번 실행은 새 권한/취소/120분 복구 전수 검사 아님.",
+    "180개 완전 표본 및 사후 간격 분석은 실행하지 못한 마지막 continuity gate의 PASS 대체가 아님.",
+    "공간 피연산자는 순차/비원자 표본. 각 owner peak·RSS·footprint·익명 파일 최대는 동일 시각의 전체 peak가 아니며 최종 owner0은 전체 heap 무누수 증명 아님.",
+    "resourceTrendPass=false/reviewRequired=true는 원래 의미. warmup 뒤 RSS 증가를 새 누수 원인으로 확정하지 않음.",
+    "반복 전달 손실/녹화 공백은 기존 gate와 별도의 서비스 품질 잔여. 증거 성공이나 안전한 회복으로 면제하지 않음.",
+    "69개 공백은 같은 generation 안에서 두 확정 segment 사이에만 관측된 부분이다. generation 앞뒤·통째로 미확정된 구간까지의 전체 손실 집계가 아니다."
+  ],
+  "analysisPreparationCorrections": [
+    "Initial exploratory EVP read used big-endian length and failed before any mutation; source Length() is little-endian; corrected read-only parser. Not a product/test failure.",
+    "First full analysis glob included recording-mutations.jsonl directory and stopped with IsADirectoryError; added is_file filter. Read-only analysis preparation error; original execution unchanged."
+  ],
+  "archive": {
+    "archive": "117-execution.tar.gz",
+    "sha256": "8e7fe70e4e0c1fdaa8c7ec9538ba4b4fb13e9a8b28ecca29bf2ab02280fea9c6",
+    "archiveBytes": 32295681,
+    "payloadFiles": 1101,
+    "payloadBytes": 72799606,
+    "allMembersVerified": true,
+    "manifestSha256": "56be2831148c281804aaacbfebe680b6300ad870eece722b45625d62d4511d11",
+    "sanitizedPrivateLogs": [
+      {
+        "originalPath": "mixed900/media-server-current-observer-fGKmwE/server-1.private.log",
+        "archivedPath": "mixed900/media-server-current-observer-fGKmwE/server-1.sanitized.log",
+        "originalBytes": 567435,
+        "originalSha256": "eeb95b3b6687ff0bd86c400e956f3d2d8fd8be774cb20dd37b5b891592857110",
+        "transformedBytes": 567257,
+        "transformedSha256": "085483e9abcb8502dc32264dd0d880fceda97a65edd0b282bdff9f66ec09ca2e",
+        "rule": "URL tokens only; other bytes retained",
+        "replacements": 8
+      }
+    ],
+    "status": "local bytes and independent preservation review PASS; remote/cleanup pending",
+    "selection": "이번 합성 run 원장/MP4/package·bounded 관측·원출력·분석·소스결속만 보존. private server log URL8개 정제와 원본 hash 구분. 사용자 설정·95비공개백업·모델·SDK·상태인증·캐시·바이너리·과거 archive 제외.",
+    "excludedEntries": 293,
+    "receiptFieldCorrection": "원 preservation-receipt의 excludedFiles=293은 디렉터리 포함 제외 entry 수다. archive/원 receipt는 소급 수정하지 않고 문서 필드를 excludedEntries로 구분."
+  },
+  "independentReview": "117-independent-review.json",
+  "binding": {
+    "newProductTestInventoryChanges": false,
+    "reused": "116 producer/readback·coverage는 불변 제품/검사/inventory 범위에서 재사용",
+    "newValidation": "새 실행 원출력·동일 source/start/end·archive member bytes/hash와 독립 결과 판단; JSON/새 링크·안전한 archive 경로·전체1101payload hash·git diff --check PASS",
+    "producerRerun": false,
+    "reason": "변경은 새 실행 증거/현행 backlog·릴리즈 상태 링크뿐;986개 재실행 또는 자동 승인으로 보고하지 않음",
+    "independentResult": "FAIL_CONFIRMED_45_MINUTE_INELIGIBLE; local preservation/report PASS"
+  },
+  "remote": {
+    "status": "pending"
+  },
+  "cleanup": {
+    "status": "pending",
+    "ownedRoot": "/private/tmp/media-server-r117-e_522tla",
+    "identity": {
+      "dev": 16777232,
+      "ino": 174714031,
+      "uid": 501
+    }
+  },
+  "next45": "INELIGIBLE: 최종 p95 실패; 반복 입력 손실·공백 서비스 품질 잔여도 별도 해결 필요",
+  "remaining": [
+    "지속 혼합 p95 기준 초과: 240건2548.861ms>2000ms",
+    "반복 Recorder 전달 손실·세그먼트 간 공백; 전체 drop/회복 총량 및 원인 미확정",
+    "명시 비활성화·닫힌 journal·마지막 continuity/progress gate not-run",
+    "45분·최종120분·전체 메모리P0·출시 보류"
+  ],
+  "notRun": [
+    "retry",
+    "45 minutes",
+    "120 minutes",
+    "product/fixture/collector change",
+    "new direct decoder test",
+    "release procedures"
+  ]
+}
