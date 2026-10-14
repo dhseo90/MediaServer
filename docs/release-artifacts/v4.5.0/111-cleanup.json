@@ -1,0 +1,86 @@
+{
+  "schema": "media-server.v450.r111.cleanup.v1",
+  "completedAt": "2026-10-14T00:32:03.258172+00:00",
+  "status": "PASS",
+  "evidenceCommit": "da46d1d6b758a3138890701ad23673020e49f042",
+  "remoteBranchShaBeforeCleanup": "da46d1d6b758a3138890701ad23673020e49f042",
+  "archive": {
+    "path": "docs/release-artifacts/v4.5.0/111-execution.tar.gz",
+    "bytes": 50325717,
+    "sha256": "4f6a5a8f0ef00792d6726e7723b908eb047bb79147442aa0ddaa1037358e6bf1",
+    "gitBlob": "5f3c722e7cb0ae7280897ebc0b52549903564126",
+    "committedBytesReadback": true,
+    "remoteCommitConfirmed": true
+  },
+  "ownedRoot": {
+    "root": "/private/tmp/media-server-r111-h0w41yux",
+    "inode": 174357661,
+    "uid": 501,
+    "base": "208326497525c4295e0246517b5040e20885e363",
+    "mainRequested": "gpt-6-astra/high",
+    "actual": null
+  },
+  "rootAbsent": true,
+  "removed": {
+    "files": 13175,
+    "fileBytes": 1171391947,
+    "directories": 244,
+    "symlinksUnlinkedWithoutFollowing": 277
+  },
+  "auxiliaryRemoved": [
+    "/private/tmp/media-server-r111-pointer",
+    "/private/tmp/media-server-r111-policy-read.txt"
+  ],
+  "processCheck": {
+    "pids": [
+      51103,
+      51135,
+      51608,
+      51992,
+      52672,
+      52779,
+      54385,
+      55030,
+      55362,
+      55697,
+      56115,
+      57317,
+      57666,
+      58007,
+      58399,
+      58793,
+      59576,
+      59617
+    ],
+    "psExit": 1,
+    "stdout": "",
+    "allAbsent": true,
+    "ports": [
+      "52591",
+      "53659",
+      "53183",
+      "53741",
+      "52784",
+      "52516",
+      "52664",
+      "53814",
+      "53264",
+      "53099"
+    ],
+    "lsofExit": 1,
+    "lsofOutput": "",
+    "recheckedBeforeRootCleanup": true,
+    "mixedPorts": [
+      "53994",
+      "53995"
+    ],
+    "containersAbsent": true
+  },
+  "preservedExclusions": [
+    "user default settings not accessed",
+    "private95 backup not accessed or removed",
+    "models/SDK/Linux image retained",
+    "original106 seed remains in existing evidence; not duplicated"
+  ],
+  "scope": "owned temporary files only; no release/45min/120min; mixed900 FAIL retained"
+}
