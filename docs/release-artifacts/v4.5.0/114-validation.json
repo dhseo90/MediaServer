@@ -899,11 +899,62 @@
     "payloadBytes": 4478533,
     "allMembersVerified": true,
     "manifestSha256": "a255ffeee3a5c21c90afc7f995d6639d0ac1fcb7e8d205a1cc2fd89845a97420",
-    "status": "local all member bytes verified; remote pending"
+    "status": "local/remote actual bytes verified before owned cleanup",
+    "remoteVerificationBeforeCleanup": {
+      "head": "6fdd94f93ecd39c716496bf93c659f04eb40bb0d",
+      "remote": "6fdd94f93ecd39c716496bf93c659f04eb40bb0d",
+      "verified": [
+        {
+          "path": "docs/release-artifacts/v4.5.0/114-execution.tar.gz",
+          "blob": "fd3111a499a1b77159d7e04ed5ff815498a5d27d",
+          "bytes": 1329759,
+          "sha256": "6e2d61c2c1d2e8cf9a1e97db293b3291a7c645b711edc904e9045838445d7cbe",
+          "remoteActualBytesMatch": true
+        },
+        {
+          "path": "docs/release-artifacts/v4.5.0/114-validation.json",
+          "blob": "e881ab37303e739a6503c1e9a6aa0d6f995d340b",
+          "bytes": 32893,
+          "sha256": "65c04132dc5bb56f1c72f980a859875d508b4e931a8e43ae8dc9cdcd7845d623",
+          "remoteActualBytesMatch": true
+        },
+        {
+          "path": "docs/release-artifacts/v4.5.0/114-independent-review.json",
+          "blob": "f543a5c86767512ab5680732b83999279d9e1a33",
+          "bytes": 2561,
+          "sha256": "9e854c3835cdb543c0f7933305f4b2fa4f7cb9610e3cd2053b51908a6c70c565",
+          "remoteActualBytesMatch": true
+        },
+        {
+          "path": "scripts/internal/recording_mixed_profile.h",
+          "blob": "ed22a359900af906c4473785710fb54395cbcd50",
+          "bytes": 863,
+          "sha256": "c1ce6df6d52ffc43811905d71741b8f11c08692308988f790ebf870aa100ecc4",
+          "remoteActualBytesMatch": true
+        }
+      ]
+    }
   },
   "cleanup": {
-    "status": "pending after remote byte confirmation",
-    "protected": "user settings,95private backup,models,SDK not accessed or uploaded"
+    "status": "PASS",
+    "root": "/private/tmp/media-server-r114-vgfn95ff",
+    "verifiedRootIdentity": {
+      "root": "/private/tmp/media-server-r114-vgfn95ff",
+      "dev": 16777232,
+      "ino": 174526406,
+      "uid": 501,
+      "base": "43ec5156f9be1f9f2aecc361db648d83bc5af77c",
+      "requested": "gpt-6-astra/high",
+      "actual": null
+    },
+    "removedRegularFiles": 8818,
+    "removedLogicalFileBytes": 554298443,
+    "rootAbsent": true,
+    "ownedProcessesAbsentBeforeRemoval": true,
+    "ownedContainerAbsent": true,
+    "ports": "no server/listener launched by direct native/JS checks; Linux network none",
+    "protected": "user settings,95private backup,models,SDK not accessed/uploaded/removed",
+    "scope": "only exact owned R114 root; symlinks not followed; evidence actual bytes verified remotely before removal"
   },
   "implementationCommit": "fdef1b77f9bb8b4fd26e29c803b15456f010569a",
   "executionSources": {
