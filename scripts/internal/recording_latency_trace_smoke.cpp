@@ -11,7 +11,13 @@ static void Sink(const char* text,std::size_t bytes) noexcept {if(L::local.depth
 int main(int argc,char** argv){
  assert(L::Now()>0); // first observation must not alias the unselected sentinel
  L::test_sink=Sink;const std::string mode=argc>1?argv[1]:"contention";std::mutex mutex,other;
- if(mode=="holder-slow-none"){
+ if(mode=="visual-row-cost"){
+  for(unsigned n=0;n<3;++n){L::VisualRequestSummary request;
+   for(unsigned i=0;i<6;++i){L::CatalogRowCost cost(i);}
+   L::segment_decode_cost[0]+=7;L::segment_decode_cost[1]+=6;L::history_node_reads+=101;
+   L::VisualRequestSummary::Result(200,"ok");
+  }
+ }else if(mode=="holder-slow-none"){
   for(unsigned i=0;i<95;++i){L::VisualRequestSummary request;L::VisualRequestSummary::Result(200,"ok");L::Lock held(mutex,L::Source::Catalog,__LINE__,false,"fast");}
  }else if(mode.rfind("holder-slow",0)==0){
   // Real steady clock/RAII mutex case; bounded synthetic publications exercise

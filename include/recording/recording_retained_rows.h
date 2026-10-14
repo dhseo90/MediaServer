@@ -1,6 +1,7 @@
 // 파일 용도: 검증된 비영속 Catalog 행을 한 값씩 읽는 내부 보존 자료 소유 경계.
 #pragma once
 #include <map>
+#include <list>
 #include <iterator>
 #include <functional>
 #include <cstdint>
@@ -61,6 +62,7 @@ class RecordingRetainedRowStore {
         std::string bytes;
         std::shared_ptr<const void> row;
         std::size_t charged=0;
+        std::list<std::string>::iterator recent;
     };
     struct SegmentClass {
         SearchModelResidency::Reservation memory;
@@ -78,11 +80,15 @@ class RecordingRetainedRowStore {
 #endif
     }
     void EvictDecodedOne() {
-        if(!decoded_segments_.empty()){const auto old=decoded_segments_.begin();decoded_bytes_-=old->second.charged;decoded_segments_.erase(old);}
+        if(!decoded_segments_.empty()){const auto old=decoded_segments_.find(decoded_recency_.front());EraseDecoded(old);}
         else if(!segment_classes_.empty()){const auto old=segment_classes_.begin();decoded_bytes_-=old->second.charged;segment_classes_.erase(old);}
     }
     mutable std::mutex decoded_mu_;
     std::map<std::string,DecodedSegment> decoded_segments_;
+    std::list<std::string> decoded_recency_;
+    void EraseDecoded(std::map<std::string,DecodedSegment>::iterator it) {
+        decoded_bytes_-=it->second.charged;decoded_recency_.erase(it->second.recent);decoded_segments_.erase(it);
+    }
     std::size_t decoded_limit_=0,decoded_bytes_=0;
     bool decoded_closed_=false;
 public:
@@ -101,17 +107,17 @@ public:
         std::lock_guard lock(decoded_mu_);if(!decoded_closed_)decoded_limit_=16*1024*1024;
     }
     void ClearVerifiedSegmentDecodeCache() {
-        std::lock_guard lock(decoded_mu_);decoded_segments_.clear();segment_classes_.clear();decoded_bytes_=0;
+        std::lock_guard lock(decoded_mu_);decoded_recency_.clear();decoded_segments_.clear();segment_classes_.clear();decoded_bytes_=0;
     }
     void CloseVerifiedSegmentDecodeCache() {
         std::lock_guard lock(decoded_mu_);decoded_closed_=true;decoded_limit_=0;
-        decoded_segments_.clear();segment_classes_.clear();decoded_bytes_=0;
+        decoded_recency_.clear();decoded_segments_.clear();segment_classes_.clear();decoded_bytes_=0;
     }
     std::shared_ptr<const void> VerifiedSegmentDecode(const std::string& id,const std::string& raw) {
         std::lock_guard lock(decoded_mu_);const auto it=decoded_segments_.find(id);
         if(it==decoded_segments_.end())return {};
-        if(it->second.bytes==raw)return it->second.row;
-        decoded_bytes_-=it->second.charged;decoded_segments_.erase(it);return {};
+        if(it->second.bytes==raw){decoded_recency_.splice(decoded_recency_.end(),decoded_recency_,it->second.recent);return it->second.row;}
+        EraseDecoded(it);return {};
     }
     // Exclusion-only classification of the same authenticated raw. This cannot
     // prove membership, absence, current lifecycle or the selected event payload.
@@ -142,7 +148,7 @@ public:
     }
     void ForgetVerifiedSegmentDecode(const std::string& id) {
         std::lock_guard lock(decoded_mu_);const auto it=decoded_segments_.find(id);
-        if(it!=decoded_segments_.end()){decoded_bytes_-=it->second.charged;decoded_segments_.erase(it);}
+        if(it!=decoded_segments_.end())EraseDecoded(it);
         const auto summary=segment_classes_.find(id);if(summary!=segment_classes_.end()){decoded_bytes_-=summary->second.charged;segment_classes_.erase(summary);}
     }
     void RememberVerifiedSegmentDecode(const std::string& id,std::string raw,
@@ -155,11 +161,12 @@ public:
 #endif
         std::lock_guard lock(decoded_mu_);
         if(decoded_closed_)return;
-        const auto extra=sizeof(DecodedSegment)+128+2*(id.size()+1)+raw.capacity()+1;
+        // Include the LRU node and its independent ID allocation in the same cap.
+        const auto extra=sizeof(DecodedSegment)+256+4*(id.size()+1)+raw.capacity()+1;
         if(row_bytes>decoded_limit_||extra>decoded_limit_-row_bytes)return;
         const auto charged=extra+row_bytes;
         if(const auto old=decoded_segments_.find(id);old!=decoded_segments_.end()){
-            decoded_bytes_-=old->second.charged;decoded_segments_.erase(old);
+            EraseDecoded(old);
         }
         while(decoded_bytes_>decoded_limit_-charged)EvictDecodedOne();
         // Optional memoization shares the existing owner cap; it may reduce the
@@ -167,12 +174,23 @@ public:
         const auto used=owner->used();if(used>owner->limit()||extra>owner->limit()-used)return;
         auto memory=owner->ReserveOwned(extra);if(!memory)return;
         try {
-            decoded_segments_.emplace(id,DecodedSegment{std::move(*memory),std::move(raw),std::move(row),charged});
+            decoded_recency_.push_back(id);
+            try {
+                // Keep the extra ticket local until map construction succeeds:
+                // an emplace exception destroys its argument before this catch.
+                DecodedSegment entry{{},std::move(raw),std::move(row),charged,std::prev(decoded_recency_.end())};
+#if defined(MEDIA_SERVER_RECORDING_GENERATION_TESTING)
+                if(probe_throw_after_recency)throw std::bad_alloc();
+#endif
+                const auto inserted=decoded_segments_.emplace(id,std::move(entry));
+                inserted.first->second.memory=std::move(*memory);
+            } catch (...) {decoded_recency_.pop_back();throw;}
             decoded_bytes_+=charged;
         } catch(const std::bad_alloc&) {} // the already verified caller row remains valid
     }
 #if defined(MEDIA_SERVER_RECORDING_GENERATION_TESTING)
     inline static thread_local std::function<void()> probe_before_remember;
+    inline static thread_local bool probe_throw_after_recency=false;
     void ProbeDecodedLimit(std::size_t limit){ClearVerifiedSegmentDecodeCache();std::lock_guard lock(decoded_mu_);decoded_limit_=limit;}
     std::size_t ProbeDecodedBytes(){std::lock_guard lock(decoded_mu_);return decoded_bytes_;}
 #endif

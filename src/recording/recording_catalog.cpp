@@ -1570,13 +1570,23 @@ bool RecordingCatalog::BuildStatusSnapshotLocked(RecordingCatalogStatusSnapshot*
 }
 
 bool RecordingCatalog::SnapshotStatus(RecordingCatalogStatusSnapshot* result,std::string* error) const {
+    return SnapshotStatusImpl(result,error,true);
+}
+bool RecordingCatalog::SnapshotStatusImpl(RecordingCatalogStatusSnapshot* result,std::string* error,bool include_capacity) const {
     if(result)*result={};
     if(!result)return Fail(error,"recording status output 없음");
     auto backoff=std::chrono::milliseconds(1);
     for(;;){
         if(checkpoint_status_poisoned_.load(std::memory_order_acquire))return Fail(error,"recording status checkpoint 실패");
         recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__,std::try_to_lock,__func__);
-        if(lock.owns_lock())return BuildStatusSnapshotLocked(result,error);
+        if(lock.owns_lock()){
+            if(include_capacity)return BuildStatusSnapshotLocked(result,error);
+            // Only the visual Collect caller uses this token-only path. Its
+            // following fused scan performs all capacity/retention validation.
+            if(!opened_||!derived_job_state_authoritative_||!CanReadLocked(error))return Fail(error,"recording status snapshot 미확인");
+            if(error)error->clear();
+            return true;
+        }
         if(checkpoint_status_active_.load(std::memory_order_acquire)){
             const auto snapshot=std::atomic_load_explicit(&checkpoint_status_snapshot_,std::memory_order_acquire);
             if(snapshot&&!checkpoint_status_poisoned_.load(std::memory_order_acquire)&&
@@ -2766,10 +2776,17 @@ bool RecordingCatalog::ReleaseInactiveDetailsLocked(const std::string* changed,s
     }catch(...){derived_job_state_authoritative_=false;return Fail(error,"상세 resident 해제 미확인");}
 }
 bool RecordingCatalog::CaptureVisualSourceKeys(const std::set<std::string>& channels,std::vector<VisualSourceKey>* output,
-    std::map<std::string,std::size_t>* legacy,std::string* error) const try {
+    std::map<std::string,std::size_t>* legacy,std::string* error,bool full_status_validation) const try {
     recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__,false,__func__);
     if(!output||!legacy||!opened_||!CanReadLocked(error))return Fail(error,"visual-source-unavailable");
     std::vector<VisualSourceKey> keys;std::map<std::string,std::size_t> unsupported;
+    if(full_status_validation){
+        if(!derived_job_state_authoritative_)return Fail(error,"recording status snapshot 미확인");
+        VisualSourceScan scan{channels,keys,unsupported};
+        const auto checked=RetentionSnapshotLocked(RetentionSnapshotSelection::All,{},nullptr,&scan);
+        if(!checked.authoritative)return Fail(error,checked.error.empty()?"recording status capacity 미확인":checked.error);
+        *output=std::move(keys);*legacy=std::move(unsupported);if(error)error->clear();return true;
+    }
     for(const auto& [id,row]:segments_)if(row.lifecycle==RecordingLifecycle::Finalized&&channels.count(row.channel_id)&&!segments_v2_.count(id))++unsupported[row.channel_id];
     // Same authenticated scan as finalized-ID discovery, retaining only the
     // existing sort keys. No second per-ID metadata walk or full DTO snapshot.
@@ -4245,16 +4262,16 @@ RetentionSnapshot RecordingCatalog::RetentionReservations() const {
     return RetentionReservationsLocked();
 }
 
-RetentionSnapshot RecordingCatalog::RetentionSnapshotLocked(RetentionSnapshotSelection selection,const std::string& selected_id,std::array<std::uint64_t,4>* diagnostic) const try {
+RetentionSnapshot RecordingCatalog::RetentionSnapshotLocked(RetentionSnapshotSelection selection,const std::string& selected_id,std::array<std::uint64_t,4>* diagnostic,VisualSourceScan* visual) const try {
     auto snapshot=RetentionReservationsLocked();
     if(!snapshot.authoritative||selection==RetentionSnapshotSelection::Authority)return snapshot;
     if(completed_history_)completed_history_->EnableVerifiedSegmentDecodeCache();
-    auto result=RetentionCandidatesFromCut(selection,selected_id,diagnostic);
+    auto result=RetentionCandidatesFromCut(selection,selected_id,diagnostic,visual);
     result.durable_reservations=std::move(snapshot.durable_reservations);
     return result;
 } catch(const CatalogHistoryError& failure) { struct RetentionSnapshot failed;failed.authoritative=false;failed.error=failure.what();return failed; }
 
-RetentionSnapshot RecordingCatalog::RetentionCandidatesFromCut(RetentionSnapshotSelection selection,const std::string& selected_id,std::array<std::uint64_t,4>* diagnostic) const try {
+RetentionSnapshot RecordingCatalog::RetentionCandidatesFromCut(RetentionSnapshotSelection selection,const std::string& selected_id,std::array<std::uint64_t,4>* diagnostic,VisualSourceScan* visual) const try {
     struct RetentionSnapshot snapshot;
     // Only active result slots, not historical identity/receipt rows. Typed cold
     // rows carry their own tickets; paths/reasons receive a separate ticket.
@@ -4299,6 +4316,15 @@ RetentionSnapshot RecordingCatalog::RetentionCandidatesFromCut(RetentionSnapshot
         const auto lifecycle_begin=diagnostic?recording::latency::Now():0;
         const auto lifecycle=lifecycle_in_cut(id);
         if(diagnostic){(*diagnostic)[2]+=recording::latency::Now()-lifecycle_begin;++(*diagnostic)[3];}
+        if(visual&&lifecycle==RecordingLifecycle::Finalized&&visual->channels.count(v.channel_id)){
+            // Capture before path filtering: a finalized missing-path row still
+            // belongs to the visual source key set and is rejected by its reader.
+            if(visual->keys.size()>=100000)throw CatalogHistoryError("visual-index-capacity");
+            auto charge=search_residency_->ReserveOwned(4*sizeof(VisualSourceKey)+2*(id.size()+v.channel_id.size()+v.media_epoch_id.size())+256);
+            if(!charge)throw RecordingResourceUnavailable();
+            VisualSourceKey key;key.memory=std::move(*charge);key.channel=v.channel_id;key.epoch=v.media_epoch_id;key.start=v.media_start_pts;key.id=id;
+            visual->keys.push_back(std::move(key));
+        }
         if(lifecycle==RecordingLifecycle::Deleted)return true;
         RetentionCandidate candidate;candidate.segment_v2=v;candidate.effective_lifecycle=lifecycle;
         if(has_reasons){const auto reason=deletion_reasons_.find(id);if(reason!=deletion_reasons_.end())reason_copy(candidate,reason->second);}
@@ -4355,6 +4381,8 @@ RetentionSnapshot RecordingCatalog::RetentionCandidatesFromCut(RetentionSnapshot
     }
     if(cost_trace)(*diagnostic)[1]=recording::latency::Now()-path_begin;
     const auto add_v1=[&](const auto& segment_id,const auto& segment) {
+        if(visual&&segment.lifecycle==RecordingLifecycle::Finalized&&visual->channels.count(segment.channel_id)&&!segments_v2_.count(segment_id))
+            ++visual->legacy[segment.channel_id];
         if(selection==RetentionSnapshotSelection::Channel&&segment.channel_id!=selected_id)return true;
         if(selection==RetentionSnapshotSelection::Pending&&segment.lifecycle!=RecordingLifecycle::DeletionPending)return true;
         recording::latency::HolderCount(2);

@@ -60,11 +60,11 @@ bool RecordingVisualSource::Collect(const std::vector<std::string>& channels,uns
     if(!output||!coverage||channels.empty()||channels.size()>8||period<1||period>3600)return Fail(error,"visual-invalid-source-scope");
     std::set<std::string> allowed(channels.begin(),channels.end());
     for(const auto& c:allowed)if(!ValidateRecordingReferenceId(c,nullptr))return Fail(error,"visual-invalid-source-scope");
-    RecordingCatalogStatusSnapshot status;if(!catalog_.SnapshotStatus(&status,error))return false;
+    RecordingCatalogStatusSnapshot status;if(!catalog_.SnapshotStatusImpl(&status,error,false))return false;
     std::map<std::string,VisualSourceCoverage> counts;for(const auto& c:allowed)counts[c]={};
     std::vector<VisualSearchDocument> docs;
     std::vector<RecordingCatalog::VisualSourceKey> ordered;std::map<std::string,std::size_t> legacy;
-    if(!catalog_.CaptureVisualSourceKeys(allowed,&ordered,&legacy,error))return false;
+    if(!catalog_.CaptureVisualSourceKeys(allowed,&ordered,&legacy,error,true))return false;
     if(cancelled&&cancelled())return Fail(error,"visual-cancelled");
     for(const auto& [channel,count]:legacy){counts[channel].examined_segments+=count;counts[channel].unsupported_segments+=count;}
     std::sort(ordered.begin(),ordered.end(),[](const auto& a,const auto& b){

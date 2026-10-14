@@ -140,3 +140,15 @@ test('R107-H01 optional subcost basis and per-request fields fail closed',()=>{
  assert.equal(visualRequestSummary(raw.replace(/,"journalCostNs":\[[^\]]*\]/g,''),true,true).status,'incomplete');
  assert.equal(visualRequestSummary(raw.replace(/"journalCostNs":\[[^\]]*\]/,'"journalCostNs":[0,0,0,-1]'),true,true).status,'incomplete');
 });
+
+test('R111-H02 fixed row subcosts retain request deltas and reject incomplete fields',()=>{
+ const r=spawnSync(binary,['visual-row-cost'],{encoding:'utf8',timeout:15000,maxBuffer:4*1024*1024,env:{PATH:process.env.PATH,MEDIA_SERVER_VERIFY_VISUAL_REQUEST_TRACE:'1',MEDIA_SERVER_VERIFY_CATALOG_SUBCOSTS:'1'}});
+ assert.equal(r.status,0,r.stderr);const raw=r.stdout+r.stderr;
+ const summary=visualRequestSummary(raw,true,true,true);assert.equal(summary.status,'captured',summary.reason);assert.equal(summary.rows.length,3);
+ for(const row of summary.rows){assert.deepEqual(row.catalogRowCost.filter((_,i)=>i%2===0),[1,1,1,1,1,1]);assert(row.catalogRowCost.filter((_,i)=>i%2===1).every(x=>x>=0));assert.deepEqual(row.segmentDecodeCost,[7,6,0,0]);assert.equal(row.historyNodeReads,101);}
+ for(const key of ['catalogRowCost','segmentDecodeCost','historyNodeReads']){
+  const rows=raw.split('\n').map(line=>{if(!line.startsWith('[visual-request] '))return line;const v=JSON.parse(line.slice(17));delete v[key];return '[visual-request] '+JSON.stringify(v);}).join('\n');
+  assert.equal(visualRequestSummary(rows,true,true,true).status,'incomplete');
+ }
+ assert.equal(visualRequestSummary(raw.replace(/"historyNodeReads":101/,'"historyNodeReads":-1'),true,true,true).status,'incomplete');
+});

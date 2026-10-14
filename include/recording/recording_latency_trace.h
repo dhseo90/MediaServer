@@ -36,6 +36,15 @@ struct JournalSubcost {
 };
 inline thread_local std::array<std::uint64_t,4> segment_decode_cost{}; // opt-in calls/hits/inclusive parse ns/second canonical serialization ns
 inline thread_local std::uint64_t history_node_reads=0; // opt-in logical authenticated node reads, not physical I/O
+// R111 narrow source-read costs: six fixed namespace groups, calls/elapsed ns.
+// Inclusive GetOwned time (under its mutation lock), not CPU time or peak I/O.
+// Groups: segment-v2, source-binding, media-path, retired-v2, state-v2, other.
+inline thread_local std::array<std::uint64_t,12> catalog_row_cost{};
+struct CatalogRowCost {
+    unsigned group;std::uint64_t begin;bool active;
+    explicit CatalogRowCost(unsigned index) noexcept:group(index),begin(SubcostEnabled()?Now():0),active(SubcostEnabled()){}
+    ~CatalogRowCost() noexcept {if(active){++catalog_row_cost[group*2];catalog_row_cost[group*2+1]+=Now()-begin;}}
+};
 inline thread_local std::array<std::uint64_t,4> holder_counts{}; // binding checks, cold link calls, visited rows, Journal ReadAt requested bytes
 inline void HolderCount(unsigned i,std::uint64_t n=1) noexcept {if(HolderEnabled()&&i<4)holder_counts[i]+=n;}
 struct HolderTrace {
@@ -143,7 +152,8 @@ private:
     std::uint64_t start_=0,generation_=0,documents_=0;
     std::array<std::uint64_t,17> count_{},ns_{};
     std::array<std::uint64_t,6> counters_{};
-    std::array<std::uint64_t,4> journal_begin_{};
+    std::array<std::uint64_t,4> journal_begin_{},decode_begin_{};
+    std::array<std::uint64_t,12> row_begin_{};std::uint64_t nodes_begin_=0;
     std::array<std::uint64_t,5> locks_{},wait_{},held_{};
     static void Loss() noexcept {if(!loss.exchange(true)){const char* row="[visual-request-loss] collection\n";if(std::fputs(row,stderr)==EOF||std::fflush(stderr)!=0){std::fputs(row,stdout);std::fflush(stdout);}}}
     struct Completion {
@@ -156,7 +166,7 @@ public:
         if(!Enabled())return;
         static Completion completion;(void)completion;
         id_=++sequence;if(id_==1){if(std::fputs("[visual-request-probe] 1\n",stderr)==EOF||std::fflush(stderr)!=0)Loss();}
-        if(id_>1024||current){Loss();return;}active_=true;start_=Now();journal_begin_=journal_subcost;current=this;if(HolderEnabled())Holder().Select(id_,start_);
+        if(id_>1024||current){Loss();return;}active_=true;start_=Now();journal_begin_=journal_subcost;decode_begin_=segment_decode_cost;row_begin_=catalog_row_cost;nodes_begin_=history_node_reads;current=this;if(HolderEnabled())Holder().Select(id_,start_);
     }
     static void Result(unsigned status,const char* reason) noexcept {if(current){current->status_=status;const auto n=std::strlen(reason);bool safe=n<sizeof(current->reason_);for(std::size_t i=0;safe&&i<n;++i)safe=(reason[i]>='a'&&reason[i]<='z')||reason[i]=='-'||(reason[i]>='0'&&reason[i]<='9');std::snprintf(current->reason_,sizeof(current->reason_),"%s",safe?reason:"unknown-code");}}
     static void Index(std::uint64_t generation,std::uint64_t docs) noexcept {if(current){current->generation_=generation;current->documents_=docs;}}
@@ -174,7 +184,9 @@ public:
         for(unsigned i=0;i<17;++i)add("%s[%llu,%llu]",i?",":"",(unsigned long long)count_[i],(unsigned long long)ns_[i]);
         add("%s","],\"counters\":[");for(unsigned i=0;i<6;++i)add("%s%llu",i?",":"",(unsigned long long)counters_[i]);
         add("%s","],\"locks\":[");for(unsigned i=0;i<5;++i)add("%s[%llu,%llu,%llu]",i?",":"",(unsigned long long)locks_[i],(unsigned long long)wait_[i],(unsigned long long)held_[i]);
-        add("%s","]");if(SubcostEnabled()){add("%s",",\"journalCostNs\":[");for(unsigned i=0;i<4;++i)add("%s%llu",i?",":"",(unsigned long long)(journal_subcost[i]-journal_begin_[i]));add("%s","]");}add("%s","}\n");if(!valid||std::fwrite(text,1,used,stderr)!=used||std::fflush(stderr)!=0)Loss();else ++completed;
+        add("%s","]");if(SubcostEnabled()){add("%s",",\"journalCostNs\":[");for(unsigned i=0;i<4;++i)add("%s%llu",i?",":"",(unsigned long long)(journal_subcost[i]-journal_begin_[i]));add("%s", "],\"catalogRowCost\":[");for(unsigned i=0;i<12;++i)add("%s%llu",i?",":"",(unsigned long long)(catalog_row_cost[i]-row_begin_[i]));
+            add("%s", "],\"segmentDecodeCost\":[");for(unsigned i=0;i<4;++i)add("%s%llu",i?",":"",(unsigned long long)(segment_decode_cost[i]-decode_begin_[i]));
+            add("],\"historyNodeReads\":%llu",(unsigned long long)(history_node_reads-nodes_begin_));}add("%s","}\n");if(!valid||std::fwrite(text,1,used,stderr)!=used||std::fflush(stderr)!=0)Loss();else ++completed;
     }
     VisualRequestSummary(const VisualRequestSummary&)=delete;VisualRequestSummary& operator=(const VisualRequestSummary&)=delete;
 };

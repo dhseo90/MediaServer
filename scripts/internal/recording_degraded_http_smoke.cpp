@@ -64,7 +64,12 @@ int Request(std::uint16_t port,const std::string& path,bool admin=true){
 std::string Drain(int fd,Clock::time_point deadline){std::string result;char b[4096];for(;;){const auto remaining=std::chrono::duration_cast<std::chrono::microseconds>(deadline-Clock::now()).count();if(remaining<=0)throw std::runtime_error("HTTP total deadline");timeval timeout{static_cast<time_t>(remaining/1000000),static_cast<suseconds_t>(remaining%1000000)};NeedHttp(!setsockopt(fd,SOL_SOCKET,SO_RCVTIMEO,&timeout,sizeof(timeout)),"receive deadline");auto n=recv(fd,b,sizeof(b),0);if(n==0)break;if(n<0)throw std::runtime_error("client receive failed");if(result.size()+static_cast<std::size_t>(n)>4*1024*1024+8192)throw std::runtime_error("HTTP fixture result bound");result.append(b,n);}return result;}
 }
 int main(int argc,char** argv){
- if(argc!=3||!RecordingWriterTestIsolation(argv[1]))return 2;
+ if((argc!=3&&argc!=4)||!RecordingWriterTestIsolation(argv[1]))return 2;
+ // R111 diagnostic A/B only vary foreground HTTP concurrency. Default C keeps
+ // all four clients; background writers, indexing and retention stay identical.
+ const std::string mode=argc==4?argv[3]:"parallel";
+ if(mode!="single"&&mode!="visual-pair"&&mode!="parallel")return 2;
+ const unsigned clients=mode=="single"?1:mode=="visual-pair"?2:4;
  try {
  const std::filesystem::path root(argv[1]);std::string error;Observer107(nullptr);gst_init(nullptr,nullptr);
  recording::RecordingResourceTrace trace("1");recording::RecordingRuntimeStorage runtime(root/"recording");NeedHttp(runtime.Open(&error),error.c_str());
@@ -96,12 +101,12 @@ int main(int argc,char** argv){
  unsigned failures=0;std::vector<double> elapsed;
  for(unsigned round=0;round<3;++round){
   std::vector<std::future<std::tuple<double,std::string>>> requests;
-  for(unsigned client=0;client<4;++client)requests.push_back(std::async(std::launch::async,[&,client]{
+  for(unsigned client=0;client<clients;++client)requests.push_back(std::async(std::launch::async,[&,client]{
    const std::string route=client<2?"/ops/api/recordings/visual-search?channelIds=9101,9201&text=ball&limit=20&threshold=-1":
     "/ops/api/recordings/search?channelIds=9101&startTimeMs=1791800000000&endTimeMs=1791900000000&limit=20&includeUnplaced=true";
    const auto begin=Clock::now();Socket socket;socket.fd=Request(port,route);auto wire=Drain(socket.fd,begin+std::chrono::seconds(5));return std::make_tuple(std::chrono::duration<double,std::milli>(Clock::now()-begin).count(),wire);
   }));
-  for(unsigned client=0;client<4;++client){const auto [ms,wire]=requests[client].get();elapsed.push_back(ms);if(wire.rfind("HTTP/1.1 200",0)!=0)++failures;std::cout<<"[R107-http] round="<<round<<" client="<<client<<" ms="<<ms<<" response="<<wire.substr(wire.find("\r\n\r\n")+4)<<std::endl;}
+  for(unsigned client=0;client<clients;++client){const auto [ms,wire]=requests[client].get();elapsed.push_back(ms);if(wire.rfind("HTTP/1.1 200",0)!=0)++failures;std::cout<<"[R107-http] round="<<round<<" client="<<client<<" ms="<<ms<<" response="<<wire.substr(wire.find("\r\n\r\n")+4)<<std::endl;}
   NeedHttp(trace.Emit("wave"),"trace-wave");
  }
  background.join();if(bgerror)std::rethrow_exception(bgerror);

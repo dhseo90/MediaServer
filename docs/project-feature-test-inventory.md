@@ -5099,3 +5099,14 @@ R97-A02는 미선택 대체 후보의 unlink/authority 하드 오류를 거부�
 - 내부 변경의 macOS/비특권 Linux 직접 회귀와 독립 검토 후 동일 HTTP 목표가 충족될 때만 기존900초 진단1회. 45분·120분·UI·공개는 제외한다.
 
 - R110-P02: 현재 authenticated raw의 전체 SHA-256·길이와 기존 full strict/canonical 성공에서 얻은 channel/retention scalar를 결속한다. 기존 full-row exact-byte cache는 유지하고 합산16MiB·640MiB owner·Set/erase/Finish를 공유한다. 선택 event는 기존 전체 Decode, 제외만 memo로 판정한다. 같은 길이 채널 변경·retention 변경·cold miss/512B 시험 cache·malformed 다른 채널·현재 scratch 손상·이전 cut·Finish 반례는 `scripts/internal/recording_generation_request_proof_smoke.cpp`에 둔다. raw hash 동일성을 엄밀한 byte 비교와 동일하다고 주장하지 않는다.
+
+### R111-H01 — 현재 열화 원본의 실제 장면 HTTP 단독·동시 대조
+
+- 기존911파일 hash map·실제 인증 HTTP에서 B(장면2)→A(장면1)→C(장면2+구조화2)를 각3묶음1회 실행한다. A/B는 원인 분리이며 최종 판정은 C12응답200·p95≤2000ms·최대≤5000ms·쓰기6·새 색인·Finish다. 배경 설정·부하·5초 요청·630초 전체·4MiB 로그·기존 공간/소유 상한은 같다.
+- 현재 원문/권한/삭제/새 후보/top-k/seek·hold·checkpoint·cache cold/퇴거/예산·예외/취소와 마지막 소유 회수를 영향 직접 회귀로 보호한다. 각 실제 수정 후보의 비교 순서·횟수는 실행 전에 고정하고 불변 바이너리 재시도는 하지 않는다. 최종 직접/독립 검토 PASS 때만900초1회,45/120분·출시는 제외한다.
+
+R111-H02: A/B/C 기준 대조 뒤 GetOwned namespace별 고정 6개 count/ns와 기존 decode/node counter를 요청 요약에 연결한다. 변경 전 상세 C 1회, 이후 변경 후보의 B→A→C 각 1회를 사전 고정한다. 계측은 원문·경로를 출력하지 않고 기존 3072-byte 요청 행 및 4MiB 로그 상한을 유지한다. 하위 elapsed는 inclusive이며 Catalog 전체 보유와 중복 합산하지 않는다.
+
+R111-C01: 기존16MiB exact-byte parsed cache의 사전순 퇴거를 실제 최근 사용 순서와 대조한다. 작은 시험 예산에서 A/B 확보→A hit→C 추가 후 A 유지·B cold 재획득을 기대한다. 현재 구현의 예상 RED는 hot lexical-first row assertion이며 빌드/환경 오류는 RED가 아니다. 추가 list/key 비용도 같은16MiB/owner에 사전 예약하고 raw 변경·손상·Finish·지연 reader·예산·예외 기존 반례를 유지한다. 실제 HTTP의 hit/parse/응답 비용은 별도 판정한다.
+
+R111-C02: candidate1 실제 C12응답은 p95 2765.92ms FAIL로 보존한다. 완전한 요청1/2에서 index SnapshotStatus+CaptureVisualSourceKeys 중첩 약1073ms를 근거로, 기존 checkpoint token 선택을 유지하고 full retention 검증 순회에 시각 source key 생성을 결합한다. 모든 reservation/path/reason/hold/job 검증 유지, V2 finalized key와 V1 unsupported는 path 제외 전에 수집하며 실패 시 미게시한다. 기존 key oracle·missing path·후반 손상·failed token 후속 성공·append/delete/checkpoint·예약/reader 회귀. 후보2는 최종 코드 동결 후 B→A→C 각1회, 한도 불변이며 컴파일과 겹치지 않는다.

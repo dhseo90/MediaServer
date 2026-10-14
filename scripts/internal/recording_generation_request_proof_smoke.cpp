@@ -45,8 +45,36 @@ struct RecordingGenerationRequestProofProbe {
     static std::vector<std::string> SourceKeys(RecordingCatalog& c){
         std::vector<RecordingCatalog::VisualSourceKey> keys;std::map<std::string,std::size_t> legacy;
         if(!c.CaptureVisualSourceKeys({"channel"},&keys,&legacy,&error))return {};
-        std::vector<std::string> result;for(const auto& key:keys)result.push_back(key.id);
+        std::vector<RecordingCatalog::VisualSourceKey> fused;std::map<std::string,std::size_t> fused_legacy;
+        RecordingCatalogStatusSnapshot token;Need(c.SnapshotStatusImpl(&token,&error,false));
+        Need(c.CaptureVisualSourceKeys({"channel"},&fused,&fused_legacy,&error,true));
+        const auto values=[](const auto& input){std::vector<std::tuple<std::string,std::string,std::int64_t,std::string>> result;
+            for(const auto& k:input)result.emplace_back(k.channel,k.epoch,k.start,k.id);
+            return result;};
+        Check("R111-C02",values(keys)==values(fused)&&legacy==fused_legacy&&c.ValidateStatusSnapshot(token),
+              "fused full validation preserves sort keys and legacy counts at unchanged current cut");
+        std::vector<std::string> result;for(const auto& key:fused)result.push_back(key.id);
         std::sort(result.begin(),result.end());return result;
+    }
+    static std::size_t VisualLegacy(RecordingCatalog& c,bool fused){
+        std::vector<RecordingCatalog::VisualSourceKey> keys;std::map<std::string,std::size_t> legacy;
+        Need(c.CaptureVisualSourceKeys({"channel"},&keys,&legacy,&error,fused));return legacy["channel"];
+    }
+    static bool FusedFailureUnpublished(RecordingCatalog& c){
+        std::vector<RecordingCatalog::VisualSourceKey> keys(1);keys.front().id="sentinel";std::map<std::string,std::size_t> legacy{{"sentinel",7}};
+        return !c.CaptureVisualSourceKeys({"channel"},&keys,&legacy,&error,true)&&keys.size()==1&&keys.front().id=="sentinel"&&legacy.at("sentinel")==7;
+    }
+    static bool VisualCheckpointToken(RecordingCatalog& c){
+        RecordingCatalogStatusSnapshot token;bool ready=false,ok=false;
+        {
+            std::unique_lock lock(c.mu_);RecordingCatalog::CheckpointStatusGuard checkpoint(c);if(!checkpoint.active)return false;
+            auto read=std::async(std::launch::async,[&]{std::string detail;return c.SnapshotStatusImpl(&token,&detail,false);});
+            ready=read.wait_for(std::chrono::seconds(3))==std::future_status::ready;
+            lock.unlock();ok=read.get();lock.lock();
+        }
+        const bool denied=c.ValidateStatusSnapshot(token)==false;
+        {std::lock_guard lock(c.mu_);RecordingCatalog::CheckpointStatusGuard later(c);if(!later.active)return false;later.success=true;}
+        return ready&&ok&&token.checkpoint_generation!=0&&denied&&!c.ValidateStatusSnapshot(token);
     }
     static void AcquireHook(std::function<void()> hook){RecordingCatalog::source_binding_acquire_hook_=std::move(hook);}
     static std::string SourceCached(RecordingCatalog& c,SourceContext* context,bool* same_cut){
@@ -236,6 +264,25 @@ void RetentionPrefixCases(const std::filesystem::path& root){
     Check("R103-P03",all.authoritative&&all.candidates.size()==4,"missing prefix path never skips unrelated candidate in authenticated order");
     Need(journal.Finish(&error));
 }
+void FusedVisualCases(const std::filesystem::path& root){
+    std::filesystem::create_directories(root);CompleteFixture(root);
+    RecordingJournal journal(Options(root));Need(journal.Open(&error));RecordingCatalog catalog(journal,ReadOptions(root));Need(catalog.Open(&error));
+    const auto expected=ProofProbe::SourceKeys(catalog);
+    ProofProbe::Path(catalog,"segment",std::nullopt);
+    Check("R111-C02",ProofProbe::SourceKeys(catalog)==expected,"missing media path does not silently remove finalized visual key");
+    ProofProbe::Path(catalog,"segment","channel/source.mp4");
+    Check("R111-C02",ProofProbe::VisualCheckpointToken(catalog),"fallback failure token stays rejected after later successful checkpoint guard");
+    ProofProbe::DamageRetentionValue(catalog);
+    Check("R111-C02",ProofProbe::FusedFailureUnpublished(catalog),"late path authentication failure never publishes partially captured keys");
+    Need(journal.Finish(&error));
+    const auto legacy_root=root/"legacy";std::filesystem::create_directories(legacy_root);Install(AllRows(),legacy_root);
+    RecordingJournal old(Options(legacy_root));Need(old.Open(&error));RecordingCatalog legacy(old,ReadOptions(legacy_root));Need(legacy.Open(&error));
+    const auto count=ProofProbe::VisualLegacy(legacy,false);Need(count>0);
+    ProofProbe::Path(legacy,ProjectionV1().segment_id,std::nullopt);
+    Check("R111-C02",ProofProbe::VisualLegacy(legacy,true)==count&&ProofProbe::VisualLegacy(legacy,false)==count,
+          "legacy finalized unsupported count survives missing path in fused scan");
+    Need(old.Finish(&error));
+}
 void RetentionSharedDecodeCase(){
     using Rows=RecordingRetainedRows<RecordingSegmentV2,ParseRecordingSegmentV2,SerializeRecordingSegmentV2>;
     auto live=std::make_shared<RecordingCatalogHistoryRows>();Need(live->Create(&error));Rows rows;rows.Bind(live,"segment-v2");
@@ -286,6 +333,32 @@ void EventCandidateClassificationCases(){
     Need(::ftruncate(damaged->ProbeIndexFd(),0)==0);refused=false;
     try {bad.ForEachEventCandidate("other",[](const auto&,const auto&){return true;});}catch(const RecordingRetainedReadError&){refused=true;}
     Check("R110-P02",refused,"current scratch authentication fails before memo exclusion");Need(damaged->Finish(&error));
+}
+void DecodeRecencyCase(){
+    using Rows=RecordingRetainedRows<RecordingSegmentV2,ParseRecordingSegmentV2,SerializeRecordingSegmentV2>;
+    auto store=std::make_shared<RecordingCatalogHistoryRows>();Need(store->Create(&error));
+    store->EnableVerifiedSegmentDecodeCache();Rows rows;rows.Bind(store,"segment-v2");
+    auto segment=CompleteInput().source.segment;
+    for(const auto* id:{"hot-a","old-b","new-c"}){segment.segment_id=id;rows.Set(id,segment);}
+    auto first=rows.find("hot-a");const auto one=store->ProbeDecodedBytes();Need(one>1024);
+    store->ProbeDecodedLimit(2*one+1024);
+    first=rows.find("hot-a");auto second=rows.find("old-b");
+    Check("R111-C01",&*rows.find("hot-a")==&*first,"exact current bytes touch existing parsed row");
+    auto third=rows.find("new-c");
+    Check("R111-C01",&*rows.find("hot-a")==&*first,"hot lexical-first row survives new admission");
+    Check("R111-C01",&*rows.find("old-b")!=&*second,"least recently used row is reacquired cold");
+    Check("R111-C01",store->ProbeDecodedBytes()<=2*one+1024&&second->second.segment_id=="old-b",
+          "cache stays bounded while evicted reader remains valid and charged");
+    store->ClearVerifiedSegmentDecodeCache();
+    RecordingRetainedRowStore::probe_throw_after_recency=true;
+    auto uncached=rows.find("hot-a");
+    RecordingRetainedRowStore::probe_throw_after_recency=false;
+    Check("R111-C01",uncached->second.segment_id=="hot-a"&&store->Healthy(&error),
+          "optional recency registration failure preserves verified caller and healthy store");
+    const auto after_failure=store->ProbeDecodedBytes();auto recovered=rows.find("hot-a");
+    Check("R111-C01",&*recovered!=&*uncached&&&*rows.find("hot-a")==&*recovered&&store->ProbeDecodedBytes()>after_failure,
+          "failed list registration leaves no stale node and permits later exact hit");
+    Need(store->Finish(&error));Check("R111-C01",store->ProbeDecodedBytes()==0,"Finish clears recency metadata and cache");
 }
 void VerifiedDecodeCases(){
     using Rows=RecordingRetainedRows<RecordingSegmentV2,ParseRecordingSegmentV2,SerializeRecordingSegmentV2>;
@@ -581,7 +654,7 @@ int main(int argc,char** argv){
 #endif
 #if MEDIA_SERVER_USE_OPENSSL && MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND
         ColdReadProgressCases(root/"cold-read-progress");SourceReadCases(root/"source-read");SharedSourceReadCases(root/"shared-source-read");
-        VerifiedDecodeCases();EventCandidateClassificationCases();
+        VerifiedDecodeCases();DecodeRecencyCase();EventCandidateClassificationCases();FusedVisualCases(root/"fused-visual");
         RetentionSharedDecodeCase();
         RetentionPreparedCases(root/"retention-prepared");
         RetentionPathCases(root/"retention-path");

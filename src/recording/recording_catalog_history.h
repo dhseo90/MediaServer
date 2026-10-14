@@ -65,6 +65,7 @@ public:
     }
     bool GetOwned(const std::string& kind,const std::string& id,RecordingColdRow* output,bool* found,std::string* error) override {
         std::lock_guard<std::recursive_mutex> lock(mu_);
+        latency::CatalogRowCost cost(kind=="segment-v2"?0:kind=="source-binding"?1:kind=="media-path"?2:kind=="retired-v2"?3:kind=="state-v2"?4:5);
 #if MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
         if(!healthy_||!output||!found)return Fail(error,"catalog history owned read invalid");
         if(Kind(kind)&&!ValidateOpaqueId(id,nullptr)){*found=false;return true;}

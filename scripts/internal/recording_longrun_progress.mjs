@@ -285,7 +285,7 @@ export function searchFailureSummary(text,required=true) {
 }
 
 // 고정 요청 요약. 중첩 단계의 누적값은 합산하지 않는다.
-export function visualRequestSummary(text,required=true,requireJournalCost=false) {
+export function visualRequestSummary(text,required=true,requireJournalCost=false,requireRowCost=false) {
  const rows=[];let probes=0,completion=null;const seen=new Set();
  try {
   if(Buffer.byteLength(text)>4*1024*1024)throw Error('log-cap');
@@ -297,6 +297,7 @@ export function visualRequestSummary(text,required=true,requireJournalCost=false
    if(!line.startsWith('[visual-request] ')||Buffer.byteLength(line)>=3072||rows.length>=1024)throw Error('row-cap');
    const v=JSON.parse(line.slice(17)),num=x=>Number.isSafeInteger(x)&&x>=0;
    if((requireJournalCost||v.journalCostNs!==undefined)&&(!Array.isArray(v.journalCostNs)||v.journalCostNs.length!==4||!v.journalCostNs.every(num)))throw Error('journal-subcost-incomplete');
+   if((requireRowCost||v.catalogRowCost!==undefined||v.segmentDecodeCost!==undefined||v.historyNodeReads!==undefined)&&(!Array.isArray(v.catalogRowCost)||v.catalogRowCost.length!==12||!v.catalogRowCost.every(num)||!Array.isArray(v.segmentDecodeCost)||v.segmentDecodeCost.length!==4||!v.segmentDecodeCost.every(num)||!num(v.historyNodeReads)))throw Error('catalog-row-cost-incomplete');
    if(!num(v.id)||v.id===0||seen.has(v.id)||!num(v.startNs)||!num(v.elapsedNs)||!num(v.generation)||!num(v.documents)||
      ![200,400,403,410,503].includes(v.status)||!/^[-a-z0-9]{1,79}$/.test(v.code)||
      !Array.isArray(v.phases)||v.phases.length!==17||!v.phases.every(x=>Array.isArray(x)&&x.length===2&&x.every(num))||

@@ -333,8 +333,14 @@ private:
         std::string channel,epoch,id;
         std::int64_t start{0};
     };
+    struct VisualSourceScan {
+        const std::set<std::string>& channels;
+        std::vector<VisualSourceKey>& keys;
+        std::map<std::string,std::size_t>& legacy;
+    };
     bool CaptureVisualSourceKeys(const std::set<std::string>&,std::vector<VisualSourceKey>*,
-        std::map<std::string,std::size_t>*,std::string*) const;
+        std::map<std::string,std::size_t>*,std::string*,bool full_status_validation=false) const;
+    bool SnapshotStatusImpl(RecordingCatalogStatusSnapshot*,std::string*,bool include_capacity) const;
     bool ReadVisualSource(const VisualSourceKey&,RecordingSegmentV2*,SourceBindingHandle*,bool*,std::string*) const;
     // 외부 DTO가 아닌 호출 범위 증명. 현재 원장 bytes를 재확인한 뒤 파싱 결과만 재사용한다.
     struct SourceBindingReadContext {
@@ -559,7 +565,7 @@ private:
     bool CheckpointLocked(bool recover_only, std::string* error,const DerivedJobContentProof* proof=nullptr);
     bool BuildStatusSnapshotLocked(RecordingCatalogStatusSnapshot* result, std::string* error) const;
     struct RetentionSnapshot RetentionSnapshotLocked(RetentionSnapshotSelection selection=RetentionSnapshotSelection::All,
-                                                    const std::string& id={},std::array<std::uint64_t,4>* diagnostic=nullptr) const;
+                                                    const std::string& id={},std::array<std::uint64_t,4>* diagnostic=nullptr,VisualSourceScan* visual=nullptr) const;
     struct RetentionSnapshot RetentionReservationsLocked() const;
     // A live read tracks only changes during its bounded preparation. This is
     // neither a historical log nor authority for absence. Overflow rejects the
@@ -575,7 +581,7 @@ private:
     mutable RetentionReadState* retention_reads_=nullptr;
     void NoteRetentionChangeLocked(const char* kind,const std::string& id) noexcept;
     struct RetentionSnapshot RetentionCandidatesFromCut(RetentionSnapshotSelection,const std::string&,
-        std::array<std::uint64_t,4>*) const;
+        std::array<std::uint64_t,4>*,VisualSourceScan* visual=nullptr) const;
     struct RetentionSnapshot RetentionSnapshotPrepared(RetentionSnapshotSelection,const std::string&) const;
 #if MEDIA_SERVER_RECORDING_GENERATION_TESTING
     static thread_local std::function<void()> retention_prepared_hook_;
