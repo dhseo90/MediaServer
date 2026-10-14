@@ -1,0 +1,672 @@
+{
+  "schema": "media-server.v450.r112.validation.v1",
+  "status": "PASS_LIMITED_PRESERVED_FRAME_FIX_AND_DIRECT_EVIDENCE",
+  "memoryP0": "OPEN",
+  "release": "HOLD",
+  "baseHead": "623832a599f86ef5a96f141a03363e6b9c7f82da",
+  "priorImplementation": "358dee172676f1b19a69f7c3584374a3a5ed0fcc",
+  "models": {
+    "requestedMain": "gpt-6-astra/high",
+    "requestedIndependent": "gpt-6-astra/high",
+    "projectDefault": "gpt-6.1-sol/high/default; configuration is not actual session proof",
+    "mainToolAccepted": null,
+    "independentToolAccepted": "existing separate reviewer followup; no new override fields",
+    "actualRuntime": null
+  },
+  "original": {
+    "archive": "111-execution.tar.gz",
+    "archiveSha256": "4f6a5a8f0ef00792d6726e7723b908eb047bb79147442aa0ddaa1037358e6bf1",
+    "member": "after900/media-server-current-observer-K5sGlB/recordings/9101/59dfb25c-a7eb-4333-bb29-3d7ae4b42fa6.mp4",
+    "bytes": 14990,
+    "sha256": "268368de002ea717e51c017f374d9285dc4f6941c18047e524d0f6d7b3ed0379",
+    "closedStoreFiles": 941,
+    "closedStoreBytes": 65027425,
+    "historicalSnapshotAndHitIds": "not preserved; no reconstruction claim",
+    "request": "two concurrent POST /ops/api/recordings/search/evidence, default v1 Create; not CreateWithObservations",
+    "historicalResults": [
+      "503 evidence-create-failed 22.326ms",
+      "503 evidence-busy 1.027ms"
+    ],
+    "historicalDecoderFailureCount": 1,
+    "policy": "software-only",
+    "actualFactory": "avdec_h264:libav:1.28.1",
+    "fdHistorical": "11 dev16777232 inode174445884 size14990 offset0; same before/after stat within stored scope, not proof of every past content change"
+  },
+  "timeAxes": {
+    "bindingIndexComplete": true,
+    "compressedSampleCount": 24,
+    "ordinals": [
+      31,
+      32,
+      33,
+      34,
+      35,
+      36,
+      37,
+      38,
+      39,
+      40,
+      41,
+      42,
+      60,
+      80,
+      81,
+      82,
+      83,
+      84,
+      85,
+      86,
+      87,
+      88,
+      89,
+      90
+    ],
+    "originalStartNs": 1000000000,
+    "originalEndNs": 2999999999,
+    "mediaTimescale": 3000,
+    "editMediaTime": 0,
+    "nativeDuration": 6000,
+    "rows": [
+      {
+        "sampleOrdinal": 31,
+        "originalPtsNs": 1000000000,
+        "nativePts": 0,
+        "nativeDts": 0,
+        "durationTicks": 100,
+        "filePresentationNs": 0
+      },
+      {
+        "sampleOrdinal": 90,
+        "originalPtsNs": 2966666666,
+        "nativePts": 5900,
+        "nativeDts": 5900,
+        "durationTicks": 100,
+        "roundedTargetNs": 1966666667,
+        "exactReturnedRawPtsNs": 1966666666,
+        "exactReturnedStreamTimeNs": 1966666666
+      }
+    ],
+    "conversion": "round((nativePts-editMediaTime)*1e9/mediaTimescale); existing <=1ns comparison unchanged",
+    "gstSegment": "direct before probe seek-phase decoder/appsink segment start0 time0; 24 input and13 output; raw/stream last966666666; original preserved trace scope separate",
+    "independentFileOracle": "ffprobe packet tables agree24; separate ffprobe decoder emits14 including5900; different decoder version, not required cross-runtime RGB oracle"
+  },
+  "cause": {
+    "proven": "same bytes/target/policy/runtime reproduces EOS without target in seek and sequential paths; decoder receives24 samples, emits13; debug shows frame_num gaps, ghost codec-frame discard then get_buffer2 cannot retrieve codec frame. SoftwareOnly instance max-threads1 emits14 including exact last sample. Direct-rendering=false alone still fails.",
+    "firstMismatch": "libav decoder input/output association; not sample mapping and not appsink stream-time conversion",
+    "limits": [
+      "prior literal snapshot/hit unpreserved",
+      "does not repair missing H264 references or guarantee all24 compressed packets decode",
+      "does not prove historical FD content immutable beyond captured stat/hash",
+      "not attribution to R111 LRU/index change",
+      "diagnostic libav logging adds overhead; single elapsed comparisons are not performance distributions"
+    ]
+  },
+  "implementation": {
+    "boundary": "SoftwareOnly avdec_h264 instance before state start: max-threads1; check property/type/RW/readback and signal installation. Fail closed before output publication. Existing trace factory slot a reports actual codec thread value.",
+    "unchanged": [
+      "factory/runtime/version",
+      "Automatic path incl Linux evidence default",
+      "5s budget",
+      "1ns exactness",
+      "source FD/stat/hash/permission validation",
+      "no retry/fallback/clamp/nearest frame",
+      "global registry/rank",
+      "111 LRU/index collection",
+      "limits/resources"
+    ]
+  },
+  "direct": {
+    "decodeComparison": {
+      "before": {
+        "target": 1966666667,
+        "elapsedUs": 42843,
+        "firstPts": 0,
+        "lastPts": 966666666,
+        "lastStream": 966666666,
+        "found": 0,
+        "first": "eos-no-target",
+        "error": "visual-frame-unavailable",
+        "samples": 13,
+        "policy": "software-only",
+        "events": [
+          {
+            "kind": "factory",
+            "a": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "text": "appsrc:app:1.28.1"
+          },
+          {
+            "kind": "factory",
+            "a": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "text": "decodebin:playback:1.28.1"
+          },
+          {
+            "kind": "factory",
+            "a": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "text": "typefind:coreelements:1.28.1"
+          },
+          {
+            "kind": "factory",
+            "a": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "text": "videoconvert:videoconvertscale:1.28.1"
+          },
+          {
+            "kind": "factory",
+            "a": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "text": "appsink:app:1.28.1"
+          },
+          {
+            "kind": "factory",
+            "a": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "text": "qtdemux:isomp4:1.28.1"
+          },
+          {
+            "kind": "factory",
+            "a": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "text": "multiqueue:coreelements:1.28.1"
+          },
+          {
+            "kind": "factory",
+            "a": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "text": "h264parse:videoparsersbad:1.28.1"
+          },
+          {
+            "kind": "factory",
+            "a": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "text": "capsfilter:coreelements:1.28.1"
+          },
+          {
+            "kind": "factory",
+            "a": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "text": "avdec_h264:libav:1.28.1"
+          }
+        ]
+      },
+      "sequential": {
+        "target": 1966666667,
+        "elapsedUs": 41630,
+        "firstPts": 0,
+        "lastPts": 966666666,
+        "lastStream": 966666666,
+        "found": 0,
+        "first": "eos-no-target",
+        "error": "visual-frame-unavailable",
+        "samples": 13,
+        "policy": "software-only",
+        "events": [
+          {
+            "kind": "factory",
+            "a": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "text": "appsrc:app:1.28.1"
+          },
+          {
+            "kind": "factory",
+            "a": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "text": "decodebin:playback:1.28.1"
+          },
+          {
+            "kind": "factory",
+            "a": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "text": "typefind:coreelements:1.28.1"
+          },
+          {
+            "kind": "factory",
+            "a": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "text": "videoconvert:videoconvertscale:1.28.1"
+          },
+          {
+            "kind": "factory",
+            "a": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "text": "appsink:app:1.28.1"
+          },
+          {
+            "kind": "factory",
+            "a": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "text": "qtdemux:isomp4:1.28.1"
+          },
+          {
+            "kind": "factory",
+            "a": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "text": "multiqueue:coreelements:1.28.1"
+          },
+          {
+            "kind": "factory",
+            "a": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "text": "h264parse:videoparsersbad:1.28.1"
+          },
+          {
+            "kind": "factory",
+            "a": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "text": "capsfilter:coreelements:1.28.1"
+          },
+          {
+            "kind": "factory",
+            "a": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "text": "avdec_h264:libav:1.28.1"
+          }
+        ]
+      },
+      "serial-codec": {
+        "target": 1966666667,
+        "elapsedUs": 44159,
+        "firstPts": 0,
+        "lastPts": 1966666666,
+        "lastStream": 1966666666,
+        "found": 1,
+        "first": "",
+        "error": "",
+        "samples": 14,
+        "policy": "software-only",
+        "events": [
+          {
+            "kind": "factory",
+            "a": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "text": "appsrc:app:1.28.1"
+          },
+          {
+            "kind": "factory",
+            "a": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "text": "decodebin:playback:1.28.1"
+          },
+          {
+            "kind": "factory",
+            "a": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "text": "typefind:coreelements:1.28.1"
+          },
+          {
+            "kind": "factory",
+            "a": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "text": "videoconvert:videoconvertscale:1.28.1"
+          },
+          {
+            "kind": "factory",
+            "a": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "text": "appsink:app:1.28.1"
+          },
+          {
+            "kind": "factory",
+            "a": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "text": "qtdemux:isomp4:1.28.1"
+          },
+          {
+            "kind": "factory",
+            "a": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "text": "multiqueue:coreelements:1.28.1"
+          },
+          {
+            "kind": "factory",
+            "a": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "text": "h264parse:videoparsersbad:1.28.1"
+          },
+          {
+            "kind": "factory",
+            "a": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "text": "capsfilter:coreelements:1.28.1"
+          },
+          {
+            "kind": "factory",
+            "a": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "text": "avdec_h264:libav:1.28.1"
+          }
+        ]
+      },
+      "after": {
+        "target": 1966666667,
+        "elapsedUs": 39987,
+        "firstPts": 0,
+        "lastPts": 1966666666,
+        "lastStream": 1966666666,
+        "found": 1,
+        "first": "",
+        "error": "",
+        "samples": 14,
+        "policy": "software-only",
+        "factories": [
+          {
+            "kind": "factory",
+            "a": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "text": "appsrc:app:1.28.1"
+          },
+          {
+            "kind": "factory",
+            "a": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "text": "decodebin:playback:1.28.1"
+          },
+          {
+            "kind": "factory",
+            "a": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "text": "typefind:coreelements:1.28.1"
+          },
+          {
+            "kind": "factory",
+            "a": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "text": "videoconvert:videoconvertscale:1.28.1"
+          },
+          {
+            "kind": "factory",
+            "a": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "text": "appsink:app:1.28.1"
+          },
+          {
+            "kind": "factory",
+            "a": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "text": "qtdemux:isomp4:1.28.1"
+          },
+          {
+            "kind": "factory",
+            "a": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "text": "multiqueue:coreelements:1.28.1"
+          },
+          {
+            "kind": "factory",
+            "a": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "text": "h264parse:videoparsersbad:1.28.1"
+          },
+          {
+            "kind": "factory",
+            "a": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "text": "capsfilter:coreelements:1.28.1"
+          },
+          {
+            "kind": "factory",
+            "a": 1,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "text": "avdec_h264:libav:1.28.1"
+          }
+        ]
+      }
+    },
+    "mac": {
+      "preserved": "PASS trace disabled first0/middle966666667/last1966666667; absent/cancel/zero budget;2 concurrent requests;input SHA/offset37 unchanged",
+      "normalDecoder": "PASS86439 red/VFR/first-last/oversize/changed file/cancel/FD",
+      "boundaries": [
+        {
+          "name": "after",
+          "exit": 0,
+          "expected": 0
+        },
+        {
+          "name": "deadline",
+          "exit": 1,
+          "expected": 1
+        },
+        {
+          "name": "disabled",
+          "exit": 1,
+          "expected": 1
+        }
+      ],
+      "preservedV1Package": [
+        {
+          "label": "package4",
+          "exit": 0,
+          "elapsed": 13.62797937495634
+        },
+        {
+          "label": "readback4",
+          "exit": 0,
+          "elapsed": 0.23833408299833536
+        }
+      ],
+      "packageSemantics": "new actual closed-store search projection then explicit point original2966666666, not historical hit ID; sample90/PNG/hash/manifest; independent process readback; undecodable existing sample and absent sample reject at applicable layer;201+busy503,403/Stop; failed requests no package",
+      "normalEvidence": {
+        "exit": 0,
+        "elapsed": 3.2244824171066284
+      },
+      "normalEvidenceAssertions": 1031,
+      "normalEvidenceProcessPeakRssBytes": 86704128,
+      "deadline": "1ms budget error propagation PASS; elapsed21.156ms before codec creation; not codec-running timeout or1ms return guarantee; ordinary5000ms unchanged",
+      "factoryReadback": "boundary-after.log:avdec_h264:libav:1.28.1 a=1"
+    },
+    "linux": {
+      "image": "sha256:ce72c8a15363984da642e9964189957896812061c6af1d0ef67e87b38ad5a588",
+      "uid": 10001,
+      "network": "none",
+      "rootFilesystem": "read-only",
+      "gstreamer": "1.28.7",
+      "build": "full media_server PASS -Wall/-Wextra/-Werror tests",
+      "preservedSoftwareOnly": "PASS exact first/middle/last/2 concurrent same inputhash",
+      "normalAutomaticAndSoftwareOnly": "PASS86439 each",
+      "normalEvidence": "PASS1031; default Automatic consumer",
+      "normalEvidenceProcessPeakRssBytes": 108716032,
+      "preservedStorePackage": "not run on Linux; macOS end-to-end covered, policy boundaries explicitly separated"
+    }
+  },
+  "resources": {
+    "closedStoreOwnerPeakBytes": 212755531,
+    "afterFinishBeforeCatalogDestructionBytes": 663234,
+    "afterLastOwnerDestructionBytes": 0,
+    "scratchReservationPeakBytes": 41955328,
+    "scratchReservationFdPeak": 6,
+    "finalScratchBytes": 0,
+    "finalReservedFd": 0,
+    "observedProcessMetrics": "normal evidence process cumulative peak RSS only; not per-frame live heap/instant peak or leak proof",
+    "decoderCallerFd": "offset37/identity/hash unchanged; owned FD closed by caller RAII"
+  },
+  "priorReuse": {
+    "111DirectC12": "PASS12 response200 p95/max1761.58ms preserved; LRU and index implementation unchanged",
+    "111Mixed": "FAIL unchanged; A13 is separate from structured evidence failure",
+    "originalHttpPopulation": 212,
+    "partialP95ms": 2408.558125,
+    "finalLatencyGate": "not-run",
+    "readOnlySearchHandoff": "archive search-handoff.json,106 server visual rows versus212 original HTTP successes kept separate",
+    "new900": false,
+    "new45": false,
+    "new120": false,
+    "QwenOllamaCalls": 0
+  },
+  "preparationFailures": [
+    {
+      "stage": "initial gst-inspect sandbox",
+      "source": "build-before.log / before-authorized-wrapper.log",
+      "meaning": "macOS XPC preparation hang; no decoder measurement; owned exact PID terminated before authorized bounded execution"
+    },
+    {
+      "stage": "direct runner shell",
+      "source": "tool-output transcription",
+      "observed": "media_server_apply_headless_gst_env command not found; no such helper used subsequently",
+      "subsequent": "actual helper media_server_apply_homebrew_gst_env under Bash"
+    },
+    {
+      "stage": "package2 zsh preparation",
+      "source": "tool-output transcription",
+      "observed": "media_server_prepend_env_path:2 bad substitution",
+      "subsequent": "same prepared script under Bash; test not started by failed preparation"
+    },
+    {
+      "stage": "first package fixture",
+      "source": "package-after.log/direct-after.json",
+      "observed": "evidence-observation-snapshot-unavailable after=5",
+      "cause": "test used CreateWithObservations while actual original route uses Create v1",
+      "subsequent": "package2 v1 exit0"
+    },
+    {
+      "stage": "owner assertion",
+      "source": "package3-after.log/package-after3.json",
+      "observed": "Finish succeeded; RAM663234B with Catalog still alive, scratch0 FD0",
+      "cause": "assertion before final owner destruction",
+      "subsequent": "package4 verifies both stages, final0"
+    },
+    {
+      "stage": "Linux first execution",
+      "source": "linux112.log",
+      "observed": "full build PASS; PermissionError executing test under noexec tmpfs",
+      "subsequent": "linux112b exec tmpfs uid10001; input copied through stdin; all direct exits0"
+    }
+  ],
+  "sourceFreeze": {
+    "head": "623832a599f86ef5a96f141a03363e6b9c7f82da",
+    "files": {
+      "src/recording/visual_frame_decoder.cpp": "2183311d05cb831a3b0dcf20da291d4522bf127b807770f35ced6b19f3d6943b",
+      "include/recording/visual_frame_decoder.h": "6fc709c7db4c6ead79f4b1df7e94196f347edcef353800fe802ccc075430dc46",
+      "scripts/internal/evidence_package_smoke.cpp": "b98fb53f6a89c1e64e948d4ea7e23d83dcadb92316dc61cf28e3d4606094c746",
+      "scripts/internal/recording_preserved_frame_smoke.cpp": "a7d90ddee6bec1c307de204b8b96a52b321e99f86b54bfe577f50430a709947c"
+    },
+    "runtimeSha256": "f7929d3133e296248c52881afd295bae9abd5e4c138c6294d676cb4a1684b6f4",
+    "runtimeModel": null,
+    "requested": "gpt-6-astra/high",
+    "checkedAgainstImplementationCommit": true
+  },
+  "binding": {
+    "candidate": {
+      "candidateDigest": "8977e9b6ac618c7e0233823f6acb6ab1fcf7461206ee5d8b2a4149a643519e3a",
+      "items": 986,
+      "storedAuditSemanticEqual": true,
+      "candidateBytes": 7709058,
+      "candidateSha256": "13402b9705f3b160348f6facdd5bf496d4a6fe761c9653db6f9fd7754b2a14f4",
+      "changedIds": [],
+      "newCodeApproval": "independent-final.json; legacy equal digest is not approval"
+    },
+    "newApproval": "112-independent-review.json",
+    "producer": "PASS approved manifest applied",
+    "readback": "PASS0errors 15negative fixtures",
+    "inventory": "PASS18",
+    "coverage": "PASS exact targets",
+    "scriptInventory": "PASS13, fail0",
+    "producerDelta": {
+      "semanticChangedKeys": [
+        "inventorySha256"
+      ],
+      "format": "original indent2 preserved after producer; no hash manually assigned"
+    }
+  },
+  "remaining": [
+    "sustained mixed search latency and complete gates",
+    "memory P0 and final120 remain blocked",
+    "no reinterpretation of R111 mixed FAIL",
+    "not all compressed samples in preserved damaged-reference source are decodable"
+  ],
+  "preservation": {
+    "existingOriginals": "referenced in111 archive; not duplicated",
+    "newArchive": "112-execution.tar.gz",
+    "archiveBytes": 217664,
+    "archiveSha256": "0dd00f6bfee29b42efdfeaf7bde9947dfe1e2e0f294a8501a056056e7f78d587",
+    "payloadFiles": 106,
+    "uncompressedBytes": 1352089,
+    "readbackMismatches": 0
+  },
+  "cleanup": {
+    "status": "pending owned root/container cleanup after byte preservation",
+    "settingsPrivateBackupModelsSdk": "untouched"
+  },
+  "implementationCommit": "a2fda4029ac1fa1b5dcd6c0701e6db0999860d8f",
+  "implementationTree": "dbdb2e8d06d10c0ef4ca210bb6e5f48f88c180c5"
+}

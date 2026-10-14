@@ -17,6 +17,15 @@
 
 ## v4.5.0 잔여 개발과 릴리즈 순서
 
+[112 보존 MP4의 정확한 프레임 추출 보완](release-artifacts/v4.5.0/112-validation.json)은
+같은 원본/target에서 libav 병렬 추출의13출력·EOS 실패를 재현하고,
+SoftwareOnly avdec_h264 인스턴스의 단일 codec thread로 정확한 마지막 sample을 확인했다.
+원본 시각2966666666ns → native5900/3000 → target1966666667ns와 반환1966666666ns를 대조했고,
+macOS 실제 v1 PNG/package·별도 readback·동시201/busy503·실패 미게시와 비특권 Linux 관련 회귀를 통과했다.
+[독립 판단](release-artifacts/v4.5.0/112-independent-review.json)은 이 한정 변경을 채택한다.
+과거 snapshot/hit ID 복원이나 누락된 참조 프레임 전체 복구는 입증하지 않는다.
+111 직접 C12 PASS·혼합 FAIL·부분p95 2408.558ms는 유지하며 **새900/45/120 미실행·지속 혼합 지연·메모리P0·출시 보류**다.
+
 [111 장면 cache 수명·색인 중복 순회 보완](release-artifacts/v4.5.0/111-validation.json)은
 현재 원문 인증과16MiB 예산을 유지한 LRU 및 전체 retention 검증·장면 key 수집 통합을 채택했다.
 같은911파일의 최종 직접 C12응답200·p95/max1761.58ms·쓰기6·새 색인·명시 Finish는 통과했다.

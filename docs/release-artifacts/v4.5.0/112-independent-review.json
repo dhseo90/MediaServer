@@ -1,0 +1,45 @@
+{
+  "schema": "media-server.v450.r112.independent-review.v1",
+  "reviewer": "/root/independent_memory86",
+  "requested": {
+    "model": "gpt-6-astra",
+    "effort": "high"
+  },
+  "toolAccepted": "existing separately created reviewer; this followup has no model/effort override fields",
+  "actualRuntime": null,
+  "independence": "read-only, no implementation/test writing/execution/redelegation",
+  "codeVerdict": "ADOPT_LIMITED_SOFTWAREONLY_AVDEC_H264_POLICY",
+  "directVerdict": "PASS_PRESERVED_EXACT_TARGET_AND_MAC_V1_PACKAGE",
+  "findings": [
+    "final four source hashes matched freeze",
+    "deep-element-added installation failure checked; property type/read/write/actual1 checked before state start",
+    "NULL/unref and file identity checks precede output publication",
+    "package4/readback4 exit0; exact original2966666666/ordinal90/hash to presentation1966666666",
+    "PNG binding; failed requests unpublished; controlled admission201+busy503;403/Stop",
+    "Finish retains663234 bytes in live Catalog; runtime destruction releases RAM/scratch/FD0",
+    "Linux uid10001 build plus SoftwareOnly preserved and normal Automatic/SoftwareOnly plus normal package exit0"
+  ],
+  "limits": [
+    "closed-store point request is not historical snapshot/hit reconstruction",
+    "not all24 compressed packets repaired",
+    "Linux normal package is not macOS preserved-store package",
+    "no R111 mixed PASS or P0 closure"
+  ],
+  "hookFindingResolved": true,
+  "reviewMessages": "fresh R112 design and final independent messages, prior review not substituted",
+  "implementationCommit": "a2fda4029ac1fa1b5dcd6c0701e6db0999860d8f",
+  "implementationTree": "dbdb2e8d06d10c0ef4ca210bb6e5f48f88c180c5",
+  "preservationDecision": "PASS_LIMITED_PRESERVATION_AND_GENERAL_PUSH_ELIGIBLE",
+  "preservationFindings": {
+    "archiveBytes": 217664,
+    "archiveSha256": "0dd00f6bfee29b42efdfeaf7bde9947dfe1e2e0f294a8501a056056e7f78d587",
+    "payloadMembers": 106,
+    "uncompressedBytes": 1352089,
+    "mismatches": 0,
+    "limitations": "1ms injection verifies budget error propagation only; elapsed21.156ms before codec creation, not codec-running timeout or1ms return guarantee",
+    "pending": [
+      "remote bytes",
+      "owned root/container cleanup"
+    ]
+  }
+}
