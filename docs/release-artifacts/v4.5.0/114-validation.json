@@ -1,0 +1,918 @@
+{
+  "schema": "media-server.v450.r114.validation.v1",
+  "status": "PASS_LIMITED_FIXTURE_SCOPE",
+  "memoryP0": "OPEN",
+  "release": "HOLD",
+  "models": {
+    "requestedMain": "gpt-6-astra/high",
+    "requestedIndependent": "gpt-6-astra/high",
+    "projectDefault": "gpt-6.1-sol/high/default; not session proof",
+    "mainToolAccepted": null,
+    "independentToolAccepted": "followup_task accepted existing separate reviewer; no new model override",
+    "actualRuntimeModelEffort": null
+  },
+  "baseHead": "43ec5156f9be1f9f2aecc361db648d83bc5af77c",
+  "productChanged": false,
+  "runtimeSha256": "f7929d3133e296248c52881afd295bae9abd5e4c138c6294d676cb4a1684b6f4",
+  "productBinarySha256": "4da2c9ced46ea7f11d6d22fc8bc4930b80beadae2b767dbd423e46282d00a317",
+  "forensics": {
+    "originalArchive": "113-execution.tar.gz",
+    "originalArchiveSha256": "15d32680fd7ef560831e95c32246a9eba13435fad83a849d1a65957b8ecc52ab",
+    "originalMember": "after900/media-server-current-observer-yqaE8x/recordings/9201/0a8a08c2-7a84-4868-84be-8f4185db9e78.mp4",
+    "bytes": 37606,
+    "sha256": "ad4f3163d70b56ae0d65ac58c04a14d370084ac3bbdbd2d374610c371cda74ef",
+    "payloadBytes": 36421,
+    "containerBytes": 1185,
+    "samples": 63,
+    "sourceOrdinals": "1,17..60,73..90",
+    "duplicates": 0,
+    "missingWithin1to90": "2..16,61..72",
+    "nativeTimebase": "1/3000",
+    "firstPtsTicks": 0,
+    "lastPtsTicks": 8900,
+    "presentationEndTicks": 9000,
+    "generationOrder": 376,
+    "nextSegmentOrder737": "same generation; only ordinal91; no overlap",
+    "previousSegmentOrder732": "generation374; separate loop, not duplication in generation376",
+    "sourceOfMissingPackets": "not established in113; current bounded subscriber queue permits loss but is not retrospective proof",
+    "writerMechanism": "opens on keyframe; splits at delivered keyframe with DTS progress>=2s; missing61 delays split to91. Whole source generation <=120 fixed AUs; new generation finalizes; replay ordinal ignored. No product bug established by size excess.",
+    "limits": "accepted compressed AU binding is not proof all missing-reference frames decode; first exact keyframe and normal contiguous outputs verified; no fabricated missing frames"
+  },
+  "bound": {
+    "profile": "continuous-r114",
+    "previous": "continuous-r98",
+    "scope": "fixed normalized macOS mixed AVC120/GOP30/PTS=DTS input, one track, current default mp4mux profile, version0 headers; arbitrary codec/input/runtime excluded",
+    "inputNormalizedSha256": "baebad5cad233243c4748f6bfec06fa5d2da7f06ae9b1475c9b20bfbfb04e2e7",
+    "SFormula": "66504+877+120*(8+4+12+8)+4*4",
+    "S": 71237,
+    "fixedBoxBytes": 877,
+    "fixedBoxMeaning": "ftyp/free/mdat headers + fixed version0 movie/track/media/edit/caps/metadata + empty table headers; 9 actual outputs agree; primary atoms serialization and one-track edit list checked",
+    "tableEntryBounds": "stts<=120*8, stsz<=120*4, stsc<=120*12, co64<=120*8, stss<=4*4; PTS=DTS means no ctts",
+    "primarySources": [
+      {
+        "url": "https://raw.githubusercontent.com/GStreamer/gstreamer/1.28.1/subprojects/gst-plugins-good/gst/isomp4/atoms.c",
+        "sha256": "d7e294356fe9f89d30766fc17c5cee181666caef0e755eb429e1b83fcb170a3e"
+      },
+      {
+        "url": "https://raw.githubusercontent.com/GStreamer/gstreamer/1.28.1/subprojects/gst-plugins-good/gst/isomp4/gstqtmux.c",
+        "sha256": "689cf7467c81035c981c3a67d9b5151fe1b60d6c1948cc84739d5424d62d88d4"
+      }
+    ],
+    "protectedFiles": 643,
+    "ownerFormula": "index RequestMedia200+temporary1; visual2*(cache200+response20); structured2*immediate1; Collect/parsed LRU no media hold; evidence after awaited search batch serialized; A separate channel1",
+    "E": 67108864,
+    "H": 45805391,
+    "P": 71237,
+    "Q": 113246208,
+    "QMiB": 108,
+    "M": 260716,
+    "old": {
+      "S": 36864,
+      "H": 23703552,
+      "P": 36864,
+      "Q": 91226112,
+      "QMiB": 87,
+      "M": 376832
+    },
+    "unchanged": {
+      "productDefaultReservation": 67108864,
+      "liveWorkspace": 469762048,
+      "combinedWorkspace": 939524096,
+      "ramDomain": 671088640,
+      "latencyP95Ms": 2000,
+      "latencyMaxMs": 5000,
+      "requestMs": 5000
+    },
+    "performanceComparability": "Q changes retained media/index candidate count/deletion cadence; not identical r98 performance load"
+  },
+  "direct": {
+    "macOS": {
+      "gst": "1.28.1",
+      "transitionCases": 6,
+      "transitionStatus": "PASS",
+      "reproducedBytes": 37606,
+      "otherGapMaxObserved": 65485,
+      "prefixCases": 210,
+      "prefixMaxBytes": 34724,
+      "writerAssertions": 47,
+      "protection": "643 retained hash-identical; initial safe candidates687; cumulative deleted689 across all stages; actual insufficient refusal; release then resume; new writer decode60 and Finish",
+      "generation": {
+        "schema": "r99-generation-cyclic-v1",
+        "status": "PASS",
+        "cyclicRecoveryPass": true,
+        "spacePass": true,
+        "fixtureProfile": "continuous-r114",
+        "sourceHead": "43ec5156f9be1f9f2aecc361db648d83bc5af77c",
+        "sourceSha256": "8aabac3fbf39a9633900ae2b7da9458ee3e8b5975db5d6c42ad088d663c476de",
+        "live": {
+          "code": 0,
+          "signal": null,
+          "samples": 155,
+          "bytes": 21026,
+          "phases": [
+            "opened",
+            "prestate-progress",
+            "prestate-progress",
+            "prestate-progress",
+            "prestate-progress",
+            "prestate-progress",
+            "prestate-progress",
+            "prestate-progress",
+            "prestate-progress",
+            "prestate-progress",
+            "prestate-progress",
+            "prestate-progress",
+            "prestate-progress",
+            "prestate-progress",
+            "prestate-progress",
+            "prestate-progress",
+            "prestate-progress",
+            "prestate-progress",
+            "prestate-progress",
+            "prestate-progress",
+            "prestate-progress",
+            "prestate-progress",
+            "prestate-progress",
+            "prestate-progress",
+            "prestate-progress",
+            "prestate-progress",
+            "prestate-progress",
+            "prestate-progress",
+            "prestate-progress",
+            "prestate-progress",
+            "prestate-progress",
+            "prestate-progress",
+            "prestate-progress",
+            "prestate-progress",
+            "prestate-progress",
+            "prestate-progress",
+            "prestate-progress",
+            "prestate-progress",
+            "prestate-progress",
+            "prestate-progress",
+            "prestate-progress",
+            "baseline",
+            "cyclic",
+            "cyclic",
+            "checkpoint",
+            "released"
+          ],
+          "owner": {
+            "status": "captured",
+            "count": 49,
+            "final": {
+              "pid": 80795,
+              "seq": 48,
+              "phase": "after-storage-destruction",
+              "elapsedMs": 54764,
+              "ram": 0,
+              "ramPeak": 166273118,
+              "ramLimit": 671088640,
+              "ramRejected": 0,
+              "scratchDisk": 0,
+              "scratchDiskPeak": 188715008,
+              "scratchDiskLimit": 154203430912,
+              "scratchFd": 0,
+              "scratchFdPeak": 16,
+              "scratchFdLimit": 1048572,
+              "scratchRam": 0,
+              "preservedDisk": 0,
+              "preservedFd": 0,
+              "readerCleanupHealthy": true
+            },
+            "scope": "actual shared product owner; logical charges, not total heap or RSS; sequential counter reads"
+          },
+          "cut": {
+            "storeId": "store-be0cbcf82d5a548622a007fb9c33f6eb",
+            "generation": 26,
+            "cutOrdinal": 5322,
+            "manifestSha256": "8f27203ec2ebb372127794e82356c8241352e9eb81290e7b3db840d3c187765e",
+            "observedAt": 53811.896416
+          },
+          "progress": [
+            {
+              "baseline": {
+                "channel": "9101",
+                "count": 1330,
+                "bytes": 46182920,
+                "order": 1331
+              },
+              "progress": {
+                "channel": "9101",
+                "newFinalized": 1,
+                "newDeleted": 2,
+                "alive": 1329,
+                "bytes": 46148196,
+                "availableEvidenceAfterDelete": 1
+              },
+              "preexistingCountExcluded": true
+            },
+            {
+              "baseline": {
+                "channel": "9201",
+                "count": 1330,
+                "bytes": 46182920,
+                "order": 2661
+              },
+              "progress": {
+                "channel": "9201",
+                "newFinalized": 1,
+                "newDeleted": 2,
+                "alive": 1329,
+                "bytes": 46148196,
+                "availableEvidenceAfterDelete": 1
+              },
+              "preexistingCountExcluded": true
+            }
+          ]
+        },
+        "recovery": {
+          "code": 0,
+          "signal": null,
+          "samples": 3,
+          "bytes": 2917,
+          "phases": [
+            "copy-opened",
+            "copy-released"
+          ],
+          "owner": {
+            "status": "captured",
+            "count": 5,
+            "final": {
+              "pid": 81035,
+              "seq": 4,
+              "phase": "after-storage-destruction",
+              "elapsedMs": 11121,
+              "ram": 0,
+              "ramPeak": 27476270,
+              "ramLimit": 671088640,
+              "ramRejected": 0,
+              "scratchDisk": 0,
+              "scratchDiskPeak": 129630208,
+              "scratchDiskLimit": 153901289472,
+              "scratchFd": 0,
+              "scratchFdPeak": 6,
+              "scratchFdLimit": 1048572,
+              "scratchRam": 0,
+              "preservedDisk": 0,
+              "preservedFd": 0,
+              "readerCleanupHealthy": true
+            },
+            "scope": "actual shared product owner; logical charges, not total heap or RSS; sequential counter reads"
+          },
+          "cut": null,
+          "progress": []
+        },
+        "originalUnchanged": true,
+        "workspace": {
+          "status": "no-workspace-failure",
+          "primary": null,
+          "decision": null,
+          "collectorDiagnostic": null,
+          "context": null,
+          "collectionError": null,
+          "capacityBytes": 32768
+        },
+        "sampleCount": 158,
+        "observationLimit": "sequential 500ms samples and paused boundary samples; not instantaneous peak"
+      },
+      "space": {
+        "scope": "sequential/phase samples, not instantaneous peak; metric maxima need not occur in the same sample; unavailable null",
+        "phases": {
+          "baseline": {
+            "samples": 2,
+            "decisionMaximaAtSeparateSamples": {
+              "variableBytes": 236184553,
+              "copyBytes": 0,
+              "combinedBytes": 236184553
+            },
+            "processSampleMaxima": {
+              "rssBytes": 101974016,
+              "footprintBytes": 47088480,
+              "fdCount": 11,
+              "anonymousFileBytes": 74997760,
+              "anonymousAllocatedBytes": 76816384
+            }
+          },
+          "checkpoint": {
+            "samples": 1,
+            "decisionMaximaAtSeparateSamples": {
+              "variableBytes": 217171474,
+              "copyBytes": 0,
+              "combinedBytes": 217171474
+            },
+            "processSampleMaxima": {
+              "rssBytes": 112918528,
+              "footprintBytes": 57983840,
+              "fdCount": 10,
+              "anonymousFileBytes": 55990784,
+              "anonymousAllocatedBytes": 57778176
+            }
+          },
+          "copy-opened": {
+            "samples": 2,
+            "decisionMaximaAtSeparateSamples": {
+              "variableBytes": 159397909,
+              "copyBytes": 217476318,
+              "combinedBytes": 376874227
+            },
+            "processSampleMaxima": {
+              "rssBytes": 72204288,
+              "footprintBytes": 27722520,
+              "fdCount": 13,
+              "anonymousFileBytes": 55958016,
+              "anonymousAllocatedBytes": 57516032
+            }
+          },
+          "copy-released": {
+            "samples": 1,
+            "decisionMaximaAtSeparateSamples": {
+              "variableBytes": 159400415,
+              "copyBytes": 159960286,
+              "combinedBytes": 319360701
+            },
+            "processSampleMaxima": {
+              "rssBytes": 65110016,
+              "footprintBytes": 27853592,
+              "fdCount": 3,
+              "anonymousFileBytes": 0,
+              "anonymousAllocatedBytes": 0
+            }
+          },
+          "cyclic": {
+            "samples": 6,
+            "decisionMaximaAtSeparateSamples": {
+              "variableBytes": 288767395,
+              "copyBytes": 0,
+              "combinedBytes": 288767395
+            },
+            "processSampleMaxima": {
+              "rssBytes": 112918528,
+              "footprintBytes": 57983840,
+              "fdCount": 18,
+              "anonymousFileBytes": 124211712,
+              "anonymousAllocatedBytes": 126201856
+            }
+          },
+          "opened": {
+            "samples": 3,
+            "decisionMaximaAtSeparateSamples": {
+              "variableBytes": 5066109,
+              "copyBytes": 0,
+              "combinedBytes": 5066109
+            },
+            "processSampleMaxima": {
+              "rssBytes": 56967168,
+              "footprintBytes": 16909056,
+              "fdCount": 10,
+              "anonymousFileBytes": 628736,
+              "anonymousAllocatedBytes": 638976
+            }
+          },
+          "prestate-progress": {
+            "samples": 142,
+            "decisionMaximaAtSeparateSamples": {
+              "variableBytes": 284821677,
+              "copyBytes": 0,
+              "combinedBytes": 284821677
+            },
+            "processSampleMaxima": {
+              "rssBytes": 89915392,
+              "footprintBytes": 35177288,
+              "fdCount": 20,
+              "anonymousFileBytes": 122990592,
+              "anonymousAllocatedBytes": 125595648
+            }
+          },
+          "released": {
+            "samples": 1,
+            "decisionMaximaAtSeparateSamples": {
+              "variableBytes": 159394943,
+              "copyBytes": 0,
+              "combinedBytes": 159394943
+            },
+            "processSampleMaxima": {
+              "rssBytes": 99581952,
+              "footprintBytes": 20382560,
+              "fdCount": 3,
+              "anonymousFileBytes": 0,
+              "anonymousAllocatedBytes": 0
+            }
+          }
+        },
+        "allSampleMaxima": {
+          "rssBytes": 112918528,
+          "footprintBytes": 57983840,
+          "fdCount": 20,
+          "anonymousFileBytes": 124211712,
+          "anonymousAllocatedBytes": 126201856
+        },
+        "decisionMaxima": {
+          "variableBytes": 288767395,
+          "copyBytes": 217476318,
+          "combinedBytes": 376874227
+        }
+      }
+    },
+    "Linux": {
+      "gst": "1.28.7",
+      "uid": 10001,
+      "image": "sha256:ce72c8a15363984da642e9964189957896812061c6af1d0ef67e87b38ad5a588",
+      "network": "none",
+      "rootReadonly": true,
+      "transitionCases": 6,
+      "transitionStatus": "PASS same preserved macOS input",
+      "reproducedBytes": 37606,
+      "prefixCases": 210,
+      "prefixMaxBytes": 34709,
+      "localGeneratedInputBytes": 67914,
+      "localGeneratedPayloadBytes": 66489,
+      "writerAssertions": 47,
+      "protection": "643 retained; initial safe candidates688; cumulative deleted690 across all stages; actual insufficient refusal; release/resume; Finish",
+      "generation": {
+        "schema": "r99-generation-cyclic-v1",
+        "status": "PASS",
+        "cyclicRecoveryPass": true,
+        "spacePass": true,
+        "fixtureProfile": "continuous-r114",
+        "sourceHead": "43ec5156f9be1f9f2aecc361db648d83bc5af77c",
+        "sourceSha256": "8aabac3fbf39a9633900ae2b7da9458ee3e8b5975db5d6c42ad088d663c476de",
+        "live": {
+          "code": 0,
+          "signal": null,
+          "samples": 144,
+          "bytes": 20906,
+          "phases": [
+            "opened",
+            "prestate-progress",
+            "prestate-progress",
+            "prestate-progress",
+            "prestate-progress",
+            "prestate-progress",
+            "prestate-progress",
+            "prestate-progress",
+            "prestate-progress",
+            "prestate-progress",
+            "prestate-progress",
+            "prestate-progress",
+            "prestate-progress",
+            "prestate-progress",
+            "prestate-progress",
+            "prestate-progress",
+            "prestate-progress",
+            "prestate-progress",
+            "prestate-progress",
+            "prestate-progress",
+            "prestate-progress",
+            "prestate-progress",
+            "prestate-progress",
+            "prestate-progress",
+            "prestate-progress",
+            "prestate-progress",
+            "prestate-progress",
+            "prestate-progress",
+            "prestate-progress",
+            "prestate-progress",
+            "prestate-progress",
+            "prestate-progress",
+            "prestate-progress",
+            "prestate-progress",
+            "prestate-progress",
+            "prestate-progress",
+            "prestate-progress",
+            "prestate-progress",
+            "prestate-progress",
+            "prestate-progress",
+            "prestate-progress",
+            "baseline",
+            "cyclic",
+            "cyclic",
+            "checkpoint",
+            "released"
+          ],
+          "owner": {
+            "status": "captured",
+            "count": 49,
+            "final": {
+              "pid": 1876,
+              "seq": 48,
+              "phase": "after-storage-destruction",
+              "elapsedMs": 49200,
+              "ram": 0,
+              "ramPeak": 167266650,
+              "ramLimit": 671088640,
+              "ramRejected": 0,
+              "scratchDisk": 0,
+              "scratchDiskPeak": 188850176,
+              "scratchDiskLimit": 3812077568,
+              "scratchFd": 0,
+              "scratchFdPeak": 16,
+              "scratchFdLimit": 1048573,
+              "scratchRam": 0,
+              "preservedDisk": 0,
+              "preservedFd": 0,
+              "readerCleanupHealthy": true
+            },
+            "scope": "actual shared product owner; logical charges, not total heap or RSS; sequential counter reads"
+          },
+          "cut": {
+            "storeId": "store-3af2467ebf92d599cce6cc1c129324d2",
+            "generation": 26,
+            "cutOrdinal": 5326,
+            "manifestSha256": "d688fece837e618e0bdc08a95ebd0ccc9dbd78842c0a44a274d36dffeffd92ea",
+            "observedAt": 46905.295313
+          },
+          "progress": [
+            {
+              "baseline": {
+                "channel": "9101",
+                "count": 1331,
+                "bytes": 46197679,
+                "order": 1332
+              },
+              "progress": {
+                "channel": "9101",
+                "newFinalized": 1,
+                "newDeleted": 2,
+                "alive": 1330,
+                "bytes": 46162970,
+                "availableEvidenceAfterDelete": 1
+              },
+              "preexistingCountExcluded": true
+            },
+            {
+              "baseline": {
+                "channel": "9201",
+                "count": 1331,
+                "bytes": 46197679,
+                "order": 2663
+              },
+              "progress": {
+                "channel": "9201",
+                "newFinalized": 1,
+                "newDeleted": 2,
+                "alive": 1330,
+                "bytes": 46162970,
+                "availableEvidenceAfterDelete": 1
+              },
+              "preexistingCountExcluded": true
+            }
+          ]
+        },
+        "recovery": {
+          "code": 0,
+          "signal": null,
+          "samples": 4,
+          "bytes": 2898,
+          "phases": [
+            "copy-opened",
+            "copy-released"
+          ],
+          "owner": {
+            "status": "captured",
+            "count": 5,
+            "final": {
+              "pid": 2219,
+              "seq": 4,
+              "phase": "after-storage-destruction",
+              "elapsedMs": 10193,
+              "ram": 0,
+              "ramPeak": 29070722,
+              "ramLimit": 671088640,
+              "ramRejected": 0,
+              "scratchDisk": 0,
+              "scratchDiskPeak": 129720320,
+              "scratchDiskLimit": 3483156480,
+              "scratchFd": 0,
+              "scratchFdPeak": 6,
+              "scratchFdLimit": 1048573,
+              "scratchRam": 0,
+              "preservedDisk": 0,
+              "preservedFd": 0,
+              "readerCleanupHealthy": true
+            },
+            "scope": "actual shared product owner; logical charges, not total heap or RSS; sequential counter reads"
+          },
+          "cut": null,
+          "progress": []
+        },
+        "originalUnchanged": true,
+        "workspace": {
+          "status": "no-workspace-failure",
+          "primary": null,
+          "decision": null,
+          "collectorDiagnostic": null,
+          "context": null,
+          "collectionError": null,
+          "capacityBytes": 32768
+        },
+        "sampleCount": 148,
+        "observationLimit": "sequential 500ms samples and paused boundary samples; not instantaneous peak"
+      },
+      "space": {
+        "scope": "sequential/phase samples, not instantaneous peak; metric maxima need not occur in the same sample; unavailable null",
+        "phases": {
+          "baseline": {
+            "samples": 2,
+            "decisionMaximaAtSeparateSamples": {
+              "variableBytes": 234350449,
+              "copyBytes": 0,
+              "combinedBytes": 234350449
+            },
+            "processSampleMaxima": {
+              "rssBytes": 136994816,
+              "footprintBytes": null,
+              "fdCount": 11,
+              "anonymousFileBytes": 75054080,
+              "anonymousAllocatedBytes": 75063296
+            }
+          },
+          "checkpoint": {
+            "samples": 1,
+            "decisionMaximaAtSeparateSamples": {
+              "variableBytes": 215349457,
+              "copyBytes": 0,
+              "combinedBytes": 215349457
+            },
+            "processSampleMaxima": {
+              "rssBytes": 136994816,
+              "footprintBytes": null,
+              "fdCount": 10,
+              "anonymousFileBytes": 56032768,
+              "anonymousAllocatedBytes": 56037376
+            }
+          },
+          "copy-opened": {
+            "samples": 3,
+            "decisionMaximaAtSeparateSamples": {
+              "variableBytes": 159317814,
+              "copyBytes": 235009925,
+              "combinedBytes": 394327739
+            },
+            "processSampleMaxima": {
+              "rssBytes": 48349184,
+              "footprintBytes": null,
+              "fdCount": 15,
+              "anonymousFileBytes": 75099136,
+              "anonymousAllocatedBytes": 75104256
+            }
+          },
+          "copy-released": {
+            "samples": 1,
+            "decisionMaximaAtSeparateSamples": {
+              "variableBytes": 159319903,
+              "copyBytes": 159905669,
+              "combinedBytes": 319225572
+            },
+            "processSampleMaxima": {
+              "rssBytes": 48349184,
+              "footprintBytes": null,
+              "fdCount": 3,
+              "anonymousFileBytes": 0,
+              "anonymousAllocatedBytes": 0
+            }
+          },
+          "cyclic": {
+            "samples": 6,
+            "decisionMaximaAtSeparateSamples": {
+              "variableBytes": 287861440,
+              "copyBytes": 0,
+              "combinedBytes": 287861440
+            },
+            "processSampleMaxima": {
+              "rssBytes": 136994816,
+              "footprintBytes": null,
+              "fdCount": 18,
+              "anonymousFileBytes": 124304896,
+              "anonymousAllocatedBytes": 124321792
+            }
+          },
+          "opened": {
+            "samples": 2,
+            "decisionMaximaAtSeparateSamples": {
+              "variableBytes": 3302085,
+              "copyBytes": 0,
+              "combinedBytes": 3302085
+            },
+            "processSampleMaxima": {
+              "rssBytes": 42921984,
+              "footprintBytes": null,
+              "fdCount": 10,
+              "anonymousFileBytes": 327680,
+              "anonymousAllocatedBytes": 339968
+            }
+          },
+          "prestate-progress": {
+            "samples": 132,
+            "decisionMaximaAtSeparateSamples": {
+              "variableBytes": 283698549,
+              "copyBytes": 0,
+              "combinedBytes": 283698549
+            },
+            "processSampleMaxima": {
+              "rssBytes": 121483264,
+              "footprintBytes": null,
+              "fdCount": 25,
+              "anonymousFileBytes": 123137536,
+              "anonymousAllocatedBytes": 123162624
+            }
+          },
+          "released": {
+            "samples": 1,
+            "decisionMaximaAtSeparateSamples": {
+              "variableBytes": 159313690,
+              "copyBytes": 0,
+              "combinedBytes": 159313690
+            },
+            "processSampleMaxima": {
+              "rssBytes": 136994816,
+              "footprintBytes": null,
+              "fdCount": 3,
+              "anonymousFileBytes": 0,
+              "anonymousAllocatedBytes": 0
+            }
+          }
+        },
+        "allSampleMaxima": {
+          "rssBytes": 136994816,
+          "footprintBytes": null,
+          "fdCount": 25,
+          "anonymousFileBytes": 124304896,
+          "anonymousAllocatedBytes": 124321792
+        },
+        "decisionMaxima": {
+          "variableBytes": 287861440,
+          "copyBytes": 235009925,
+          "combinedBytes": 394327739
+        }
+      }
+    },
+    "parentContracts": {
+      "mixedProgress": 83,
+      "rootStorage": 28,
+      "foundation": 40,
+      "parent": "normal, failure propagation, collection and named quota boundaries PASS; exact assertions in archived parent-contract logs"
+    },
+    "sourceScope": "mac prefix/protection/focused/generation use first frozen helper. Only MixedTransitions exact-set oracle subsequently changed; these other branches/runtime unchanged and are not relabeled final-binary runs. mac final6 and Linux all native use final helper. Linux JS precedes additional mac-only 37606 old-guard assertion; production JS same.",
+    "settingsScope": "actual mixed source/settings functions invoked in VM with isolated registry roundtrip; not a new live HTTP server restart. Actual generation independent process reopen separately passes",
+    "measurementLimit": "500ms sequential and phase boundary samples; not instantaneous peak or total heap proof; separate maxima not simultaneous; Linux footprint unavailable(null)"
+  },
+  "failures": [
+    {
+      "kind": "preparation",
+      "stage": "progress-1",
+      "error": "SyntaxError extra parenthesis in new test",
+      "preserved": "progress-1.log/json",
+      "fixed": "test syntax only; progress-2/final PASS"
+    },
+    {
+      "stage": "candidate-analysis-preparation",
+      "reason": "owned wrapper receipt used same filename as candidate output; candidate bytes overwritten by receipt after successful generator; not used as approval",
+      "originalCandidatePreserved": false,
+      "correction": "distinct candidate-data.json and candidate-generate.json paths; receipt exclusive write",
+      "productOrTestEffect": false
+    },
+    {
+      "kind": "existing registration gap",
+      "stage": "script-inventory",
+      "result": "12pass/1fail: recording_preserved_frame_smoke.cpp unreferenced by current tracked documents",
+      "correction": "reference existing112 tool in current design; product/test unchanged",
+      "preserved": "script-inventory.log/json; final rerun separate",
+      "finalResult": "13pass/0fail exit0"
+    }
+  ],
+  "independent": {
+    "file": "114-independent-review.json",
+    "decision": "PASS_LIMITED_FIXTURE_SCOPE",
+    "closedFinding": "exact generation+ordinal output set and duplicate rejection; final6 PASS",
+    "preservationReview": "PASS all166payloads plus final8source match; remote and cleanup subsequent"
+  },
+  "binding": {
+    "candidateDigest": "8977e9b6ac618c7e0233823f6acb6ab1fcf7461206ee5d8b2a4149a643519e3a",
+    "items": 986,
+    "storedAuditSemanticEqual": true,
+    "changedIds": [],
+    "candidateBytes": 7709058,
+    "candidateSha256": "13402b9705f3b160348f6facdd5bf496d4a6fe761c9653db6f9fd7754b2a14f4",
+    "manifestDelta": {
+      "changedKeys": [
+        "inventorySha256"
+      ],
+      "before": "f7e3029bfbc5db5768bcf704c4219c4fcba48d40c95ae758cefd4640704004b3",
+      "after": "633f3e0cf35a8c9d8d9d89aa08881b4bca470a1b2478ff69704f740ff14d49c7",
+      "otherFieldsIdentical": true
+    },
+    "producer": "producer.json/log",
+    "readback": "readback.json/log",
+    "inventory": "inventory.json/log",
+    "coverage": "coverage.json/log",
+    "scriptInventory": "script-inventory-final.json/log",
+    "docsLinks": "docs-links.json/log",
+    "results": {
+      "producer": {
+        "command": [
+          "node",
+          "scripts/internal/verify_v390_review4_feature_semantic_source_audit.mjs",
+          "--apply-approved-manifest"
+        ],
+        "exit": 0,
+        "seconds": 101.82001637504436,
+        "failure": null,
+        "logBytes": 12812
+      },
+      "readback": {
+        "command": [
+          "node",
+          "scripts/internal/verify_feature_implementation_evidence.mjs"
+        ],
+        "exit": 0,
+        "seconds": 86.80212291702628,
+        "failure": null,
+        "logBytes": 1141
+      },
+      "inventory": {
+        "command": [
+          "node",
+          "scripts/internal/verify_project_feature_test_inventory.mjs"
+        ],
+        "exit": 0,
+        "seconds": 60.29268412501551,
+        "failure": null,
+        "logBytes": 210255
+      },
+      "coverage": {
+        "command": [
+          "node",
+          "scripts/internal/verify_feature_inventory_coverage.mjs"
+        ],
+        "exit": 0,
+        "seconds": 105.99475304083899,
+        "failure": null,
+        "logBytes": 604
+      },
+      "script-inventory-final": {
+        "command": [
+          "node",
+          "scripts/internal/verify_script_inventory.mjs"
+        ],
+        "exit": 0,
+        "seconds": 42.70475808298215,
+        "failure": null,
+        "logBytes": 941
+      },
+      "docs-links": {
+        "command": [
+          "node",
+          "scripts/internal/verify_docs_links.mjs"
+        ],
+        "exit": 0,
+        "seconds": 0.43621574994176626,
+        "failure": null,
+        "logBytes": 186
+      }
+    }
+  },
+  "notRun": [
+    "900 seconds",
+    "45 minutes",
+    "120 minutes",
+    "acceptance",
+    "UI",
+    "Qwen/Ollama",
+    "release/PR/merge/tag"
+  ],
+  "reused": {
+    "R111": "C12 HTTP and LRU/index unchanged within old scope",
+    "R112": "decoder exact frame/package/readback unchanged; current transition first frames reuse SoftwareOnly policy",
+    "R113": "FAIL unchanged;204successes partialp952429.242ms;visual102 andstructured102 separate; final latency gate not-run; no new performance conclusion"
+  },
+  "remaining": [
+    "sustained mixed search latency under continuous-r114",
+    "new short mixed/45/final120 require separate authorization and gates",
+    "whole memory P0 and release HOLD"
+  ],
+  "preservation": {
+    "archive": "114-execution.tar.gz",
+    "sha256": "6e2d61c2c1d2e8cf9a1e97db293b3291a7c645b711edc904e9045838445d7cbe",
+    "archiveBytes": 1329759,
+    "payloadFiles": 166,
+    "payloadBytes": 4478533,
+    "allMembersVerified": true,
+    "manifestSha256": "a255ffeee3a5c21c90afc7f995d6639d0ac1fcb7e8d205a1cc2fd89845a97420",
+    "status": "local all member bytes verified; remote pending"
+  },
+  "cleanup": {
+    "status": "pending after remote byte confirmation",
+    "protected": "user settings,95private backup,models,SDK not accessed or uploaded"
+  },
+  "implementationCommit": "fdef1b77f9bb8b4fd26e29c803b15456f010569a",
+  "executionSources": {
+    "firstFreeze": "direct-freeze.json",
+    "finalFreeze": "final-freeze.json",
+    "firstHelper": "first-frozen-writer.cpp: reconstructed from final only when exact previously recorded hash matches; no claim of original capture",
+    "finalHelper": "source/scripts/internal/recording_managed_writer_smoke.cpp",
+    "binaryHashes": "binary-bindings.json",
+    "linuxCommands": "linux114.sh and linux-command.json",
+    "macCommands": "individual receipt command arrays and compile-command.json/build-command-final.json"
+  }
+}

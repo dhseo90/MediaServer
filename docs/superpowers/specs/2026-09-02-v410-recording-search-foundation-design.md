@@ -277,6 +277,31 @@ payload/최종 파일 크기를 검사한다. 64MiB는 현재 예약 하한이�
 실제 quota 산식·직접 근거와 아직 충족하지 못한 prepare/전체 작업공간은
 [98 검증](../../release-artifacts/v4.5.0/98-validation.json)에 둔다. 기존 삭제 gate·예약·제품 보호는 유지한다.
 
+114의 `continuous-r114`는 같은 입력의 **누락된 packet·분할 keyframe·source 세대 전환**까지
+포함한다. 2초는 keyframe에서 적용하는 최소 분할 간격이므로 60 AU의 보편 상한이 아니다.
+한 source 세대는 고정 120 AU이며 replay ordinal은 재수용하지 않고 loop의 새 세대는 파일을
+닫는다. 고정 AVC 입력은 PTS=DTS, 단일 track, appsrc→h264parse→기본 mp4mux이며 외부 tag를
+전달하지 않는다. 이 범위의 S는 AU 합계66,504B + 고정 box/header877B +
+120×(stts8 + stsz4 + stsc12 + co64 8) + key4×stss4 = **71,237B**다.
+877B에는 ftyp/free/mdat header, version0 movie/track/media, 단일 edit와 고정 AVC sample description,
+빈 sample-table header 및 고정 metadata가 포함된다. ctts는 PTS=DTS여서 출력하지 않으며
+chunk/시간 run은 sample 수보다 많아지지 않는다. GStreamer1.28.1의 `atoms.c` 직렬화와
+`gst_qt_mux_update_edit_lists`의 단일-track 처리 및 고정 원본/실제 출력 box를 대조한다.
+임의 사용자 입력·codec·새 mux/runtime에 대한 보편 상한이 아니며 입력 hash와 실행 source/runtime
+결박을 유지한다. 113 원본37606B를 포함하는 전이는 종전210 contiguous prefix에 없었다.
+
+보호 수는 현재 index RequestMedia200+transient1, 장면2요청 각각 cache200+선택응답20,
+구조화2요청의 즉시 reader 각각1의 보수적 합643이다. LRU 퇴거 후 응답 소유도 포함하며
+동일 파일의 실제 사용량은 한 번만 센다. Collect의 binding handle은 media hold가 아니고
+증거는 검색 묶음 뒤 직렬 admission, A는 별도 seed 채널이므로 이 두 연속 채널의 H에 추가하지 않는다.
+E=67,108,864B, H=45,805,391B, P=71,237B, Q=108MiB, 반올림 M=260,716B다.
+제품 기본 예약64MiB와 작업공간448MiB·RAM640MiB는 유지한다. Q 증가는 보유 미디어·색인·삭제
+빈도를 바꿀 수 있으므로 r98과 같은 성능 조건으로 주장하지 않는다. 실제 짧은 generation/copy
+검증과 한계는 [114 기록](../../release-artifacts/v4.5.0/114-validation.json)에 둔다.
+정확한 보존 sample의 SoftwareOnly 추출/독립 FD 수명은 기존
+`scripts/internal/recording_preserved_frame_smoke.cpp`가 검사한다. 이는112의 한정 근거이며
+114의 누락된 압축 참조 프레임 전체가 복구된다는 주장은 아니다.
+
 ### Event recording linker
 
 event가 dispatch되면 설정된 pre/event/post 범위와 겹치는 모든 finalized 상시녹화

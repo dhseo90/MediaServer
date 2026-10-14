@@ -1,0 +1,48 @@
+{
+  "schema": "media-server.v450.r114.independent-review.v1",
+  "reviewer": "/root/independent_memory86",
+  "participation": "read only; no implementation, test writing or execution; no subdelegation",
+  "requested": "gpt-6-astra/high",
+  "toolAcceptance": "existing separate reviewer followup accepted; no new override exposed",
+  "actualRuntimeModelEffort": null,
+  "status": "PASS_LIMITED_FIXTURE_SCOPE",
+  "findings": [
+    {
+      "issue": "total sample count permitted duplicate/missing cancellation",
+      "resolution": "input/output unique(source_generation,ordinal) plus exact set equality; final mac6 and Linux6 PASS"
+    },
+    {
+      "issue": "safe delete689/690 confused with initial safe candidate count687/688",
+      "resolution": "summary now identifies cumulative deletes across refusal/release/recovery; raw unchanged"
+    }
+  ],
+  "confirmed": [
+    "writer gap/keyframe/generation contract and fixed120AU scope",
+    "S71237 derivation, current643holds, H/P/Q108MiB/M260716",
+    "mac158/Linux148complete sequential samples; generation/copy/reopen/owner0 within old space policy",
+    "Linux1.28.7 vs mac1.28.1 and local generated input difference",
+    "candidate entire JSON equal to existing approved986; inventory-only producer permitted",
+    "first candidate lost by wrapper name collision must remain preparation failure/not preserved; no test/product impact",
+    "manifest inventorySha256-only delta and script inventory final13/0 read independently"
+  ],
+  "limitations": [
+    "not generic codec/output cap",
+    "no new900/45/120; no sustained performance approval",
+    "separate sample maxima not instantaneous peak",
+    "mac prior helper branches not relabeled final binary",
+    "last additional37606 JS guard assertion mac only"
+  ],
+  "preservationReview": {
+    "status": "PASS",
+    "archiveBytes": 1329759,
+    "sha256": "6e2d61c2c1d2e8cf9a1e97db293b3291a7c645b711edc904e9045838445d7cbe",
+    "payloadFiles": 166,
+    "payloadBytes": 4478533,
+    "allManifestMembersMatch": true,
+    "comparableOriginalAndSourceMismatches": 0,
+    "finalEightSourcesMatchFreezeAndCommit": "fdef1b77f9bb8b4fd26e29c803b15456f010569a",
+    "scope": "mac transition media/journal; Linux exported logs only; historical113 referenced; hash-only and reconstructed source limitations explicit",
+    "forbiddenMaterial": "no user configuration/private backup/model/SDK or credential URL pattern found in selected archive",
+    "remaining": "remote actual bytes and owned cleanup pending at review;113FAIL/P0OPEN/releaseHOLD unchanged"
+  }
+}
