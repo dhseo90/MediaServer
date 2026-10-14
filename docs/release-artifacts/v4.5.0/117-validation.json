@@ -777,7 +777,7 @@
         "replacements": 8
       }
     ],
-    "status": "local bytes and independent preservation review PASS; remote/cleanup pending",
+    "status": "local independent review and remote actual-byte verification PASS",
     "selection": "이번 합성 run 원장/MP4/package·bounded 관측·원출력·분석·소스결속만 보존. private server log URL8개 정제와 원본 hash 구분. 사용자 설정·95비공개백업·모델·SDK·상태인증·캐시·바이너리·과거 archive 제외.",
     "excludedEntries": 293,
     "receiptFieldCorrection": "원 preservation-receipt의 excludedFiles=293은 디렉터리 포함 제외 entry 수다. archive/원 receipt는 소급 수정하지 않고 문서 필드를 excludedEntries로 구분."
@@ -792,16 +792,92 @@
     "independentResult": "FAIL_CONFIRMED_45_MINUTE_INELIGIBLE; local preservation/report PASS"
   },
   "remote": {
-    "status": "pending"
+    "status": "PASS",
+    "localHead": "d58a34e09fce914f5543eafeadfa1c26c6795914",
+    "remoteHead": "d58a34e09fce914f5543eafeadfa1c26c6795914",
+    "method": "GitHub exact-commit contents metadata and Git blob base64 API; actual decoded bytes compared",
+    "files": [
+      {
+        "path": "docs/release-artifacts/v4.5.0/117-execution.tar.gz",
+        "bytes": 32295681,
+        "sha256": "8e7fe70e4e0c1fdaa8c7ec9538ba4b4fb13e9a8b28ecca29bf2ab02280fea9c6",
+        "sameBytes": true
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/117-validation.json",
+        "bytes": 26769,
+        "sha256": "b54c02a97039f91f09ebe38bb112a24c635be5872ac544a1b348c0d27b24337c",
+        "sameBytes": true
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/117-independent-review.json",
+        "bytes": 2417,
+        "sha256": "4e93f29ab7a9c1af6c8fbca3710b8709986b49f581368991a527236c4186a4b6",
+        "sameBytes": true
+      },
+      {
+        "path": "docs/development-backlog.md",
+        "bytes": 38214,
+        "sha256": "0edc5d009d1e5e3f8849b7d45610966923c56212f17a98f10bd015d7ca7ac732",
+        "sameBytes": true
+      },
+      {
+        "path": "docs/release-notes-v4.5.0.md",
+        "bytes": 14466,
+        "sha256": "c8b0487c10fc7e5488b44d8b525b065642cb75da288b27db7fec77c879fa2524",
+        "sameBytes": true
+      }
+    ],
+    "firstReadFailure": {
+      "path": "docs/release-artifacts/v4.5.0/117-execution.tar.gz",
+      "exit": 1,
+      "receivedBytes": 2,
+      "expectedBytes": 32295681,
+      "stderr": "transform: short source buffer\n",
+      "classification": "원격 raw API 전송 도구 오류; 제품 실행 실패가 아님",
+      "resolution": "동일 commit metadata+base64 blob으로 실제 바이트 대조 PASS; 혼합 재실행 없음"
+    }
   },
   "cleanup": {
-    "status": "pending",
-    "ownedRoot": "/private/tmp/media-server-r117-e_522tla",
-    "identity": {
+    "status": "PASS",
+    "root": "/private/tmp/media-server-r117-e_522tla",
+    "verifiedRootIdentity": {
       "dev": 16777232,
       "ino": 174714031,
       "uid": 501
-    }
+    },
+    "removedRegularFiles": 1115,
+    "removedLogicalFileBytes": 108587623,
+    "unlinkedSymlinksWithoutFollowing": 277,
+    "removedDirectories": 26,
+    "rootAbsent": true,
+    "processAndPortChecks": [
+      {
+        "command": [
+          "ps",
+          "-p",
+          "9787,9828",
+          "-o",
+          "pid=,ppid=,command="
+        ],
+        "exit": 1,
+        "noOutput": true
+      },
+      {
+        "command": [
+          "lsof",
+          "-nP",
+          "-iTCP:59868",
+          "-iTCP:59869",
+          "-sTCP:LISTEN"
+        ],
+        "exit": 1,
+        "noOutput": true
+      }
+    ],
+    "ownedContainer": "none started",
+    "protected": "사용자 설정·95비공개백업·모델·SDK 미접근; 소유 GStreamer cache symlink만 unlink, 대상 추종 없음",
+    "scope": "exact R117 owned root only; remote archive/document bytes verified before cleanup"
   },
   "next45": "INELIGIBLE: 최종 p95 실패; 반복 입력 손실·공백 서비스 품질 잔여도 별도 해결 필요",
   "remaining": [

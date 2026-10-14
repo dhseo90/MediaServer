@@ -43,5 +43,6 @@
     "전체 drop/회복 횟수·과거115손실 위치 미확정",
     "별도 권한/취소/복구·새 decoder/전체 파일 decode 실행 아님",
     "원격 바이트와 소유 root cleanup은 검토 당시 미완료"
-  ]
+  ],
+  "remoteAndCleanup": "주 실행자가 로컬 독립 검토 후 d58a34e09 원격 archive/문서 실제 바이트 및 소유 root 부재를 확인. 검토자가 직접 확인한 범위와 구분하며117-validation.json에 기록."
 }
