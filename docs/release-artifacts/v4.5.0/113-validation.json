@@ -703,6 +703,12 @@
     "scope": "new synthetic owned run; private server log URL-redacted with original hashes; generated credentials/settings/cache/binaries excluded"
   },
   "independentReview": "113-independent-review.json",
-  "cleanup": "processes/ports closed; owned root cleanup pending remote preservation",
+  "cleanup": {
+    "receipt": "113-cleanup.json",
+    "ownedRootAbsent": true,
+    "processesAndPortsAbsent": true,
+    "remoteEvidenceBytesVerified": true,
+    "evidenceCommit": "371f5aef7e74602a3ce6425979d14b751eae46ae"
+  },
   "evidenceCommit": "recorded by git history; no empty product commit"
 }

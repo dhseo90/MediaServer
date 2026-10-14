@@ -1,0 +1,62 @@
+{
+  "schema": "media-server.v450.r113.cleanup.v1",
+  "ownedRoot": {
+    "path": "/private/tmp/media-server-r113-cdaqggo1",
+    "uid": 501,
+    "dev": 16777232,
+    "ino": 174495466
+  },
+  "rootAbsent": true,
+  "removed": {
+    "regularFiles": 952,
+    "symlinks": 277,
+    "regularBytes": 133594775,
+    "directories": 27
+  },
+  "symlinkPolicy": "unlink owned links only; targets not followed",
+  "processIdsAbsent": [
+    75405,
+    75461
+  ],
+  "portsAbsent": [
+    61639,
+    61640
+  ],
+  "remotePreservationBeforeDeletion": {
+    "commit": "371f5aef7e74602a3ce6425979d14b751eae46ae",
+    "remote": "371f5aef7e74602a3ce6425979d14b751eae46ae",
+    "objects": [
+      {
+        "path": "docs/release-artifacts/v4.5.0/113-execution.tar.gz",
+        "gitBlob": "d300e1b34bb4eb888be8bdbaba46604fe720579e",
+        "bytes": 30863200,
+        "sha256": "15d32680fd7ef560831e95c32246a9eba13435fad83a849d1a65957b8ecc52ab",
+        "remoteByteEqual": true
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/113-validation.json",
+        "gitBlob": "44ff8312856060dd9115da0c363deae23423d915",
+        "bytes": 19714,
+        "sha256": "d6f82d5ad2a5ec823e7640f5c5f6e7b2e898a2d1f912d0ea4a2bd33c94e7ec0b",
+        "remoteByteEqual": true
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/113-independent-review.json",
+        "gitBlob": "7ccea161c091fe6b1db024020cf81adaef210aa0",
+        "bytes": 1962,
+        "sha256": "82517f61af8ec95cba499aec81e7d1b5c3e6807684e14b4a74074d07c751fe51",
+        "remoteByteEqual": true
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/113-preservation.json",
+        "gitBlob": "e68ad54ef8823db94be112f9871086894ebe792e",
+        "bytes": 1029,
+        "sha256": "19cdef8812ee51c44c46404722092d92154e1ed0f1df7c598c4b64890381c700",
+        "remoteByteEqual": true
+      }
+    ]
+  },
+  "newContainers": 0,
+  "protected": "user default settings/private95backup/models/SDK untouched",
+  "performedBy": "main after independent review; not reviewer execution"
+}
