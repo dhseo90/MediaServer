@@ -1,0 +1,40 @@
+{
+  "schema": "media-server.v450.r116.independent-review.v1",
+  "reviewer": "/root/independent_r115",
+  "requested": "gpt-6-astra/high",
+  "toolAcceptanceThisReview": null,
+  "actualRuntimeModelEffort": null,
+  "historicalToolAcceptance": "R115에서 spawn Astra/high 수락 기록 존재; 이번 followup의 새 설정/실제 runtime 확인으로 재사용하지 않음",
+  "participation": "읽기 전용; 구현·검사 작성·실행·파일 변경·하위 위임 없음",
+  "decision": "PASS_LIMITED_RECORDER_CONTINUITY_AND_EVIDENCE",
+  "confirmed": [
+    "확정할 새 제품 결함 없음; 실제 FileSourceWorker/SharedStream/writer/원장/package/readback 연결",
+    "macOS/Linux 정상120/120, 과부하310/257/drop53/수용251=독립기대251, peer drop0",
+    "연속 ordinal delivery 통지·source discont·video drop 뒤 audio·audio-only drop 경계",
+    "기존 observation/Client/Analysis/source blocking 유지",
+    "보존 손상파일 압축표본과 decode 가능성 구분; 목표 불가 시 package 미게시",
+    "producer/readback 적절, MEDIA-012 StartSource 의미 및 candidate digest 불변; 986신규실행 아님"
+  ],
+  "limitations": [
+    "115 과거 손실 위치와 인과 미확정",
+    "새 장시간·검색 지연 해결·전체 HTTP/UI·출시 PASS 아님",
+    "Linux는 해당 aarch64 비특권 컨테이너",
+    "owner0은 해당 논리 예산만; 전체 RSS/GStreamer/OS FD 증명 아님",
+    "scratch peak0 fixture는 실제 사용된 scratch 회수를 입증하지 않음",
+    "준비·컴파일·runner·의존 작업 순서 오류 최초 기록은 유지"
+  ],
+  "preservationReview": {
+    "status": "PASS_LOCAL_DOCUMENTS_AND_BYTES",
+    "archiveBytes": 1010873,
+    "sha256": "e90b82aeb1f67d69acfa3ec22cc6e976e43d8053c8c2ec3efe738f949380ef9c",
+    "members": 238,
+    "payloads": 237,
+    "rawBytes": 3921374,
+    "allPayloadHashesAndOriginalBytesMatch": true,
+    "finalSource12FilesMatch": true,
+    "excludedMaterialAbsent": true,
+    "beforeProbeSourceSnapshot": "누락 한계 명시; 최종 소스로 대체하거나 정밀 성능 대조 주장 없음",
+    "limits": "원격 바이트와 cleanup은 검토 당시 미완료"
+  },
+  "remoteAndCleanup": "pending"
+}

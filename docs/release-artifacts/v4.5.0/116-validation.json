@@ -1,0 +1,608 @@
+{
+  "schema": "media-server.v450.r116.validation.v1",
+  "status": "PASS_LIMITED_RECORDER_CONTINUITY_AND_EVIDENCE",
+  "memoryP0": "OPEN",
+  "release": "HOLD",
+  "models": {
+    "requestedMain": "gpt-6-astra/high",
+    "requestedIndependent": "gpt-6-astra/high",
+    "mainToolAccepted": null,
+    "independentToolAcceptedThisTurn": null,
+    "actualMainRuntime": null,
+    "actualIndependentRuntime": null,
+    "note": "독립 /root/independent_r115의 과거 spawn 수락은 R115 기록이며 이번 followup의 새 모델 설정 확인이 아니다. 프로젝트 기본값도 세션 증명이 아니다."
+  },
+  "baseHead": "0966e97b6f536ed5a816351001360b0a3c606c05",
+  "source": {
+    "baseHead": "0966e97b6f536ed5a816351001360b0a3c606c05",
+    "files": {
+      "docs/project-feature-test-inventory.md": "94c5e69f93a3da7d28f631e8108bc4f24f265544512608d2af0b6921ccea071f",
+      "docs/superpowers/specs/2026-09-02-v410-recording-search-foundation-design.md": "e5b1aaa7369d9fe5ee0d20542d0f867ff80014152dba6b7a165556ecf329d790",
+      "include/core/shared_stream.h": "7cc41ebe120e6f9973417d90809fee460e45c8088dff7a6f91918c902485d89f",
+      "include/media_types.h": "b0eaf6cc84634f0d313e25969a442771c064be23d0ee66730de0630dc67cc5ad",
+      "scripts/internal/evidence_package_smoke.cpp": "086a06440886d0f912bc7475a426d0f2fa276820b0d1f890eb33236907e6f2b5",
+      "scripts/internal/recording_default_composition_smoke.cpp": "4baf1d271e420ae53e57bdfc9c5311a58c4b7f4cafc2f6bb100fc9b30da877a4",
+      "scripts/internal/recording_managed_writer_smoke.cpp": "87b14896afb3a6d574210b119d9734f3edfad69c6bb0cf3d2d083d44f8c4ba56",
+      "src/core/shared_stream.cpp": "c46006d404ddaa3b5b72f5a8bc26a7f8ac6aaf4aa1e90e5dd1c1462204022afc",
+      "src/recording/gstreamer_segment_writer.cpp": "4a776b7e9f59e9129d375760e692b527f032175e4fa4c3abe2638021deb1a856",
+      "test/fixtures/project_feature_implementation_evidence.json": "b23b56cfe0abf6a8b61911df0458b14e03afc7b50ddfa5c5b82a05dbd76c5811",
+      "test/fixtures/v390_review4_feature_semantic_source_audit.json": "dca669ece618e4053f4e7597a31ea51abe8ee7751f4a8101a0c04d273857c2cf",
+      "scripts/internal/recording_recorder_continuity_smoke.cpp": "80b4689418c1df7de3aed135bc2646c40c17b0571b4c054bc12c090092420d89"
+    },
+    "runtimeSha256": "781799f474f3f9fbad373f8daf6c3779b55d831cb2b50e8bf63b8b0330624410",
+    "productSha256": "4187bdca1475a46cd8188f658e941820d8c7156ce071579367f8fd7ba81d4d69",
+    "scope": "Final product and tests; producer-generated binding metadata finalized after execution. Backlog/release status text is separate."
+  },
+  "archive": {
+    "path": "116-execution.tar.gz",
+    "bytes": 1010873,
+    "sha256": "e90b82aeb1f67d69acfa3ec22cc6e976e43d8053c8c2ec3efe738f949380ef9c",
+    "members": 238,
+    "rawBytes": 3921374,
+    "memberChecks": "모든 선택 원본의 bytes/SHA-256을 archive 재조회로 대조",
+    "selection": "새 bounded 로그·최초 실패·명령·최종 소스 patch·작은 실패/입력 MP4·before 및 최종 macOS 실제 원장/MP4/package. 과거 전체 archive/closed store·모델·SDK·사용자 설정·비공개 백업 제외."
+  },
+  "historical115": {
+    "status": "FAIL_UNCHANGED",
+    "archiveSha256": "1806269f05605a2e8b7a6c518bbde0f09915d3bac42abb006062afd905784e45",
+    "failureMP4Bytes": 10469,
+    "failureMP4Sha256": "d22cfc316bc4bfff15650ee7e55bf05a9621c636e2fd5abf36e518af4eecdc6b",
+    "literalSnapshotHitIds": null,
+    "pastDropLocation": null,
+    "partialSearchCount": 208,
+    "partialP95Ms": 2378.654,
+    "finalLatencyGate": "not-run",
+    "oneDecoderFailure": "동시 busy503 + create-failed503, 201 없음; 두 decoder 실패가 아님"
+  },
+  "forensics": {
+    "class": "압축 목표 sample 존재; 불연속 입력이 저장됨; 현재 제품 seek 및 순차 decoder 모두 목표 출력 없음",
+    "generation": "162a89b4-c14e-44b9-82bd-23cd26ff8984",
+    "generationOrder": 377,
+    "segmentOrder": 753,
+    "storedOrdinals": [
+      31,
+      41,
+      42,
+      43,
+      44,
+      45,
+      46,
+      47,
+      70,
+      84,
+      85,
+      86,
+      87,
+      88,
+      89,
+      90
+    ],
+    "missingOrdinalRanges": [
+      [
+        32,
+        40
+      ],
+      [
+        48,
+        69
+      ],
+      [
+        71,
+        83
+      ]
+    ],
+    "missingKeyframeOrdinal": 61,
+    "target": {
+      "ordinal": 85,
+      "originalPtsNs": 2800000000,
+      "nativePtsTicks": 5400,
+      "nativeDtsTicks": 5400,
+      "timebase": "1/3000",
+      "fileOriginNs": 1000000000,
+      "decoderTargetNs": 1800000000,
+      "compressedBytes": 562,
+      "auSha256": "0657adbfda13cf9186ca7d6cadd7dcb618383c88998b1705722ee2b0bd71078a"
+    },
+    "lastRawAndStreamNs": 1966666666,
+    "sequentialOutputFrames": 14,
+    "targetInDecodedOutput": false,
+    "policy": "SoftwareOnly; 115 factory avdec_h264:libav:1.28.1 max-threads=1",
+    "comparison": "동일 실패 파일/target 제품 seek 1회 거부, 순차 1회 목표 부재, 완전 입력 원본2.8초 1회 성공. 자동 fallback/retry 없음.",
+    "limits": [
+      "AU hash/원장/PTS 대응은 확인; 모든 H264 참조 그래프나 특정 decoder 내부 참조 실패 지점은 입증하지 않음",
+      "115의 과거 누락 위치·실패 당시 FD 내용 불변은 미확정",
+      "새 closed-store query로 검증했으며 과거 literal 요청 복원이 아님"
+    ]
+  },
+  "provedDefect": {
+    "boundary": "SharedStream Recorder video overflow가 subscriber-local discontinuity를 전달하지 않고 writer가 ordinal gap 뒤 delta AU를 계속 수용함",
+    "before": {
+      "source": 310,
+      "dequeued": 257,
+      "queueDropped": 53,
+      "analysisPeerDropped": 0,
+      "unsafeAccepted": 257,
+      "independentSafeSet": 251,
+      "result": "직접 결함 재현; 제품 PASS가 아님"
+    },
+    "after": {
+      "source": 310,
+      "dequeued": 257,
+      "queueDropped": 53,
+      "analysisPeerDropped": 0,
+      "accepted": 251,
+      "independentSafeSet": 251,
+      "segments": 6,
+      "result": "다음 실제 keyframe까지6개 의존 delta 미수용, 기존 수용 prefix/시각/ordinal 보존"
+    },
+    "normal": {
+      "source": 120,
+      "dequeued": 120,
+      "queueDropped": 0,
+      "accepted": 120,
+      "segments": 2
+    },
+    "scope": "실제 FileSourceWorker→SharedStream enqueue/dequeue→GStreamerSegmentWriter→file evidence와 원장. 별도 actual session/runtime 회귀 포함. 강제 callback 보류는 인과 검사이며 정상 혼합 성능 PASS가 아님."
+  },
+  "changes": [
+    "Recorder subscriber의 영상 drop pending을 다음 video dequeue에만 전달; audio가 소진하지 않으며 Client/Analysis packet에는 전달하지 않음",
+    "writer는 delivery-loss·동일 generation ordinal gap·source discontinuity에서 기존 prefix를 확정하고 실제 keyframe부터 새 구간을 연다",
+    "source observation/AU/시간을 바꾸지 않으며 기존 DTS regression 오류·finalize failure/recovery_pending 의미 유지",
+    "기존 큐256·source 비차단·Client/Analysis drop 정책·원본/권한/게시 검증 유지; decoder 옵션 추가 변경 없음"
+  ],
+  "contractLimits": [
+    "강제 과부하의 녹화 공백은 실제 ordinal/time과 제한 로그로 남는다. 공백을 복구하거나 무손실을 보장하지 않는다.",
+    "정상 지속 혼합에서 피할 수 있는 drop이 해소됐다는 증거는 없음. 기존 필수201 gate 불변.",
+    "114의 과거 누락63AU 출력은 당시 그대로 보존. 현재 writer의 분할/회복 의미 변경에 맞춘 직접 기대값만 별도 검증. S71237B/Q108MiB 및 continuous-r114 불변."
+  ],
+  "directResults": {
+    "macOS": {
+      "finalOwnersAndReadback": [
+        {
+          "label": "source-owner-final",
+          "command": [
+            "/private/tmp/media-server-r116-g4x5490c/continuity-owners",
+            "/private/tmp/media-server-r116-g4x5490c/owners/source-owner-final",
+            "/private/tmp/media-server-r116-g4x5490c/input.mp4",
+            "--after"
+          ],
+          "exit": 0,
+          "elapsedSeconds": 17.325784707907587,
+          "failure": null,
+          "logBytes": 56080,
+          "deadlineSeconds": 60,
+          "binarySha256": "beea24d6e18a63d316f5092cdb81b0644f9b2f17bb04b5f23e2ba55d6a9a05b5"
+        },
+        {
+          "label": "source-owner-readback",
+          "command": [
+            "/private/tmp/media-server-r116-g4x5490c/continuity-owners",
+            "/private/tmp/media-server-r116-g4x5490c/owners/source-owner-final",
+            "/private/tmp/media-server-r116-g4x5490c/input.mp4",
+            "--readback"
+          ],
+          "exit": 0,
+          "elapsedSeconds": 1.4227568751666695,
+          "failure": null,
+          "logBytes": 2870,
+          "deadlineSeconds": 30,
+          "binarySha256": "beea24d6e18a63d316f5092cdb81b0644f9b2f17bb04b5f23e2ba55d6a9a05b5"
+        }
+      ],
+      "focusedSuite": [
+        {
+          "label": "source-final2",
+          "command": [
+            "/private/tmp/media-server-r116-g4x5490c/recording_recorder_continuity_smoke",
+            "/private/tmp/media-server-r116-g4x5490c/source-final2",
+            "/private/tmp/media-server-r116-g4x5490c/input.mp4",
+            "--after"
+          ],
+          "exit": 0,
+          "elapsedSeconds": 17.055693708127365,
+          "failure": null,
+          "logBytes": 55872,
+          "deadlineSeconds": 60,
+          "binarySha256": "8759242f7764b7f4a7a8db6071b94370798d3fd56de4bee5bb2b02fff383026c"
+        },
+        {
+          "label": "source-readback",
+          "command": [
+            "/private/tmp/media-server-r116-g4x5490c/recording_recorder_continuity_smoke",
+            "/private/tmp/media-server-r116-g4x5490c/source-final2",
+            "/private/tmp/media-server-r116-g4x5490c/input.mp4",
+            "--readback"
+          ],
+          "exit": 0,
+          "elapsedSeconds": 1.2839117078110576,
+          "failure": null,
+          "logBytes": 2870,
+          "deadlineSeconds": 30,
+          "binarySha256": "8759242f7764b7f4a7a8db6071b94370798d3fd56de4bee5bb2b02fff383026c"
+        },
+        {
+          "label": "transitions",
+          "command": [
+            "/private/tmp/media-server-r116-g4x5490c/recording_managed_writer_smoke",
+            "/private/tmp/media-server-r116-g4x5490c/transitions",
+            "--mixed-transitions",
+            "/private/tmp/media-server-r116-g4x5490c/input.mp4"
+          ],
+          "exit": 0,
+          "elapsedSeconds": 1.9926654999144375,
+          "failure": null,
+          "logBytes": 13162,
+          "deadlineSeconds": 90,
+          "binarySha256": "79db8e7127dfdf10c9d5874333e6658efcdb527fcb25da15c54e5d6d345c0d2e"
+        },
+        {
+          "label": "writer",
+          "command": [
+            "/private/tmp/media-server-r116-g4x5490c/recording_managed_writer_smoke",
+            "/private/tmp/media-server-r116-g4x5490c/writer"
+          ],
+          "exit": 0,
+          "elapsedSeconds": 6.200545083032921,
+          "failure": null,
+          "logBytes": 40604,
+          "deadlineSeconds": 180,
+          "binarySha256": "79db8e7127dfdf10c9d5874333e6658efcdb527fcb25da15c54e5d6d345c0d2e"
+        },
+        {
+          "label": "preserved112",
+          "command": [
+            "/private/tmp/media-server-r116-g4x5490c/recording_preserved_frame_smoke",
+            "/private/tmp/media-server-r116-g4x5490c/r112.mp4"
+          ],
+          "exit": 0,
+          "elapsedSeconds": 1.6339825838804245,
+          "failure": null,
+          "logBytes": 3585,
+          "deadlineSeconds": 45,
+          "binarySha256": "3e21baa7d714ed9bec7cc3e7bf0835e7216ef20b9b91ac1f81cb6c3303633db1"
+        },
+        {
+          "label": "input-observation",
+          "command": [
+            "/private/tmp/media-server-r116-g4x5490c/recording_input_observation_smoke"
+          ],
+          "exit": 0,
+          "elapsedSeconds": 1.4582720000762492,
+          "failure": null,
+          "logBytes": 3865,
+          "deadlineSeconds": 60,
+          "binarySha256": "99a424454cd092fba34834ef732ab31d8920a9f7a77ac0787733279a9818ed2d"
+        },
+        {
+          "label": "legacy-writer",
+          "command": [
+            "/private/tmp/media-server-r116-g4x5490c/recording_segment_writer_smoke",
+            "/private/tmp/media-server-r116-g4x5490c/legacy-writer"
+          ],
+          "exit": 0,
+          "elapsedSeconds": 2.8851697088684887,
+          "failure": null,
+          "logBytes": 11050,
+          "deadlineSeconds": 90,
+          "binarySha256": "359b3ecbf9b38615f6735f67ec9bed58ccd3508020290d4feac832035ed4cc46"
+        },
+        {
+          "label": "source-runtime",
+          "command": [
+            "/private/tmp/media-server-r116-g4x5490c/recording_default_composition_smoke",
+            "/private/tmp/media-server-r116-g4x5490c/source-runtime",
+            "source-runtime"
+          ],
+          "exit": 1,
+          "elapsedSeconds": 5.52260349993594,
+          "failure": null,
+          "logBytes": 5002,
+          "deadlineSeconds": 90,
+          "binarySha256": "b701e9340a423b92d53146fa17dfe425460475bec650e5a2655e52ab8a6c339c"
+        }
+      ],
+      "correctedWrapperRemainder": [
+        {
+          "label": "source-runtime",
+          "command": [
+            "/private/tmp/media-server-r116-g4x5490c/recording_default_composition_smoke",
+            "/private/tmp/media-server-r116-g4x5490c/remaining2/source-runtime",
+            "source-runtime"
+          ],
+          "exit": 0,
+          "elapsedSeconds": 5.666896916925907,
+          "failure": null,
+          "logBytes": 5064,
+          "deadlineSeconds": 90,
+          "binarySha256": "b701e9340a423b92d53146fa17dfe425460475bec650e5a2655e52ab8a6c339c"
+        },
+        {
+          "label": "package",
+          "command": [
+            "/private/tmp/media-server-r116-g4x5490c/evidence_package_smoke",
+            "/private/tmp/media-server-r116-g4x5490c/remaining2/package"
+          ],
+          "exit": 0,
+          "elapsedSeconds": 2.9099534160923213,
+          "failure": null,
+          "logBytes": 33259,
+          "deadlineSeconds": 90,
+          "binarySha256": "6fd3c4197f5af587612ce448671cf9bdb7265b58dcc54148b647a529716e08e5"
+        },
+        {
+          "label": "damaged-package",
+          "command": [
+            "/private/tmp/media-server-r116-g4x5490c/evidence_package_smoke",
+            "/private/tmp/media-server-r116-g4x5490c/failed-package",
+            "--damaged-preserved"
+          ],
+          "exit": 0,
+          "elapsedSeconds": 10.827287791995332,
+          "failure": null,
+          "logBytes": 3154,
+          "deadlineSeconds": 90,
+          "binarySha256": "6fd3c4197f5af587612ce448671cf9bdb7265b58dcc54148b647a529716e08e5"
+        }
+      ],
+      "status": "PASS_FINAL; 초기 실패는 별도 보존"
+    },
+    "linux": {
+      "uid": 10001,
+      "image": "sha256:ce72c8a15363984da642e9964189957896812061c6af1d0ef67e87b38ad5a588",
+      "gstreamer": "1.28.7",
+      "results": [
+        {
+          "label": "source-final2",
+          "command": [
+            "/tmp/media-server-r116-linux/recording_recorder_continuity_smoke",
+            "/tmp/media-server-r116-linux/direct/source-final2",
+            "/tmp/media-server-r116-linux/input.mp4",
+            "--after"
+          ],
+          "exit": 0,
+          "elapsedSeconds": 15.692210799000009,
+          "failure": null,
+          "logBytes": 53344,
+          "deadlineSeconds": 60,
+          "binarySha256": "3d0ae0c8431081847e6ffaace8636da375e906596f5d9c6df5b115e52fb0116e"
+        },
+        {
+          "label": "source-readback",
+          "command": [
+            "/tmp/media-server-r116-linux/recording_recorder_continuity_smoke",
+            "/tmp/media-server-r116-linux/direct/source-final2",
+            "/tmp/media-server-r116-linux/input.mp4",
+            "--readback"
+          ],
+          "exit": 0,
+          "elapsedSeconds": 0.1952311250000207,
+          "failure": null,
+          "logBytes": 134,
+          "deadlineSeconds": 30,
+          "binarySha256": "3d0ae0c8431081847e6ffaace8636da375e906596f5d9c6df5b115e52fb0116e"
+        },
+        {
+          "label": "transitions",
+          "command": [
+            "/tmp/media-server-r116-linux/recording_managed_writer_smoke",
+            "/tmp/media-server-r116-linux/direct/transitions",
+            "--mixed-transitions",
+            "/tmp/media-server-r116-linux/input.mp4"
+          ],
+          "exit": 0,
+          "elapsedSeconds": 0.468129126000008,
+          "failure": null,
+          "logBytes": 10378,
+          "deadlineSeconds": 90,
+          "binarySha256": "8d6fc4073dcc45e7765478d20b2f08f96d4ddb5baeef998350e83781a03f1cd6"
+        },
+        {
+          "label": "writer",
+          "command": [
+            "/tmp/media-server-r116-linux/recording_managed_writer_smoke",
+            "/tmp/media-server-r116-linux/direct/writer"
+          ],
+          "exit": 0,
+          "elapsedSeconds": 4.876109669000016,
+          "failure": null,
+          "logBytes": 37856,
+          "deadlineSeconds": 180,
+          "binarySha256": "8d6fc4073dcc45e7765478d20b2f08f96d4ddb5baeef998350e83781a03f1cd6"
+        },
+        {
+          "label": "preserved112",
+          "command": [
+            "/tmp/media-server-r116-linux/recording_preserved_frame_smoke",
+            "/tmp/media-server-r116-linux/r112.mp4"
+          ],
+          "exit": 0,
+          "elapsedSeconds": 0.17140679100003808,
+          "failure": null,
+          "logBytes": 849,
+          "deadlineSeconds": 45,
+          "binarySha256": "a93c5488f5ec3f9b1fb1aca5cec9a360ac699df11985b36cbf9b00ad951bdee0"
+        },
+        {
+          "label": "input-observation",
+          "command": [
+            "/tmp/media-server-r116-linux/recording_input_observation_smoke"
+          ],
+          "exit": 0,
+          "elapsedSeconds": 0.13546137500003397,
+          "failure": null,
+          "logBytes": 1129,
+          "deadlineSeconds": 60,
+          "binarySha256": "69e44b69beb193101659839ef3af12038e58e9502f27b0615e28a2787852214f"
+        },
+        {
+          "label": "legacy-writer",
+          "command": [
+            "/tmp/media-server-r116-linux/recording_segment_writer_smoke",
+            "/tmp/media-server-r116-linux/direct/legacy-writer"
+          ],
+          "exit": 0,
+          "elapsedSeconds": 1.2858651669999972,
+          "failure": null,
+          "logBytes": 8314,
+          "deadlineSeconds": 90,
+          "binarySha256": "f2b66847e1e12bb8c94c316b33c2059f52729168ef572a96b4b1e90b8b4ba622"
+        },
+        {
+          "label": "source-runtime",
+          "command": [
+            "/tmp/media-server-r116-linux/recording_default_composition_smoke",
+            "/tmp/media-server-r116-linux/direct/source-runtime",
+            "source-runtime"
+          ],
+          "exit": 0,
+          "elapsedSeconds": 4.293004376999988,
+          "failure": null,
+          "logBytes": 2304,
+          "deadlineSeconds": 90,
+          "binarySha256": "6e789df7e8b4e4620165a205fcf40cdf6745985c3bfd9d0ad141bdaaba641fc7"
+        },
+        {
+          "label": "package",
+          "command": [
+            "/tmp/media-server-r116-linux/evidence_package_smoke",
+            "/tmp/media-server-r116-linux/direct/package"
+          ],
+          "exit": 0,
+          "elapsedSeconds": 1.348579916999995,
+          "failure": null,
+          "logBytes": 30524,
+          "deadlineSeconds": 90,
+          "binarySha256": "a91432f34bde77b0ada6569c3e259c5c32b490e7fe3b04963978c25e0f450cdb"
+        },
+        {
+          "label": "damaged-package",
+          "command": [
+            "/tmp/media-server-r116-linux/evidence_package_smoke",
+            "/tmp/media-server-r116-linux/failed-package",
+            "--damaged-preserved"
+          ],
+          "exit": 0,
+          "elapsedSeconds": 10.620867297000018,
+          "failure": null,
+          "logBytes": 418,
+          "deadlineSeconds": 90,
+          "binarySha256": "a91432f34bde77b0ada6569c3e259c5c32b490e7fe3b04963978c25e0f450cdb"
+        }
+      ],
+      "status": "PASS_FINAL",
+      "network": "none",
+      "warningFlags": "-Wall -Wextra -Werror"
+    },
+    "evidence": [
+      "회복된 각 segment 마지막 sample 정확1ns decode·실제 PNG/manifest·별도 프로세스 readback·재Open",
+      "정상201+busy503·권한403·Stop503",
+      "존재하지 않는 정확 sample은 extractor 거부; 잘못된 hash/결속 미게시",
+      "보존115 target 압축sample을 실제 SearchReader로 선택했으나 builder 거부·package0; 손상파일을 다른 프레임으로 대체하지 않음",
+      "기존 package1031검사·writer47검사·actual source-runtime20검사 및112 마지막sample 회귀"
+    ],
+    "firstFailures": [
+      {
+        "stage": "continuity-before compile",
+        "artifact": "continuity-before.build.log",
+        "cause": "test used nonexistent file_pts_ns; fixed to actual mux_pts_ns"
+      },
+      {
+        "stage": "continuity-after compile",
+        "artifact": "continuity-after.build.log",
+        "cause": "relative input path while build cwd; fixed absolute source path"
+      },
+      {
+        "stage": "source-final",
+        "artifact": "source-final.log",
+        "cause": "fixture wrongly required builder false for absent sample; existing unsupported metadata-only partial is allowed; fixed layer: exact extractor refusal and wrong-binding package no publish"
+      },
+      {
+        "stage": "source-runtime",
+        "artifact": "source-runtime.log",
+        "cause": "runner omitted existing wrapper nested FILE_ROOT; source not opened"
+      },
+      {
+        "stage": "source-runtime second",
+        "artifact": "remaining/source-runtime.log",
+        "cause": "runner omitted existing wrapper idle grace0; real production/recording passed but zero owner within5s failed; corrected exact wrapper env, no product/timeout change"
+      },
+      {
+        "stage": "Linux first",
+        "artifact": "linux-output/recording_recorder_continuity_smoke.build.log",
+        "cause": "four GCC Werror misleading indentation statements in new test; split statements"
+      },
+      {
+        "stage": "Linux second",
+        "artifact": "linux-b-output/recording_default_composition_smoke.build.log",
+        "cause": "existing default composition SourceRuntime statement GCC Werror; split statement"
+      },
+      {
+        "stage": "readback/coverage early",
+        "artifact": [
+          "readback.log",
+          "coverage.log"
+        ],
+        "cause": "main launched dependent checks before producer completed inventory binding; preserved drift failures; final checks after producer completion"
+      }
+    ]
+  },
+  "resources": {
+    "packetSizeBefore": 232,
+    "packetSizeAfter": 240,
+    "newMemory": "8 bytes per copied Packet on macOS ABI; one bool per SubscriberState and one uint64 counter per writer. No new payload copies, queues, files or generations. Queue256 => additional2048 bytes per full subscriber queue; GOP4096 => additional32768 bytes per full cache, existing counts unchanged. Counter/log first64 per writer.",
+    "directOwner": "mac normal/overload logical peak158821680/158794164, last used0; this Store fixture generation_writes false, scratch peak0, not whole process peak or generation scratch proof. Actual RuntimeStorage session/package regressions use generation writes.",
+    "rss": "existing package getrusage peak66551808 bytes, process lifetime high-water; no source-before/after heap/RSS/footprint measurement; no memory saving claim",
+    "unchanged": "448MiB workspace,640MiB RAM owner,64MiB reserve,108MiB/channel,S71237B, decoder5sec/1ns,Client/Analysis policy"
+  },
+  "costs": {
+    "macFinalPushUs": {
+      "normalTotal": 26384,
+      "normalMax": 23104,
+      "overloadTotal": 102119,
+      "overloadMax": 25462
+    },
+    "linuxFinalPushUs": {
+      "normalTotal": 39108,
+      "normalMax": 33224,
+      "overloadTotal": 109863,
+      "overloadMax": 29719
+    },
+    "interpretation": "제어된 작은 source fixture의 Push 누적/최대이며 검색 p95나 일반 혼합 지연 개선의 근거가 아니다. 전후 generation UUID/clock은 다르며 입력AU bytes/hash는 동일.",
+    "beforeProbeBinarySha256": "9bd6389ef2ad8aa9e92931f6f5371628c79f2c18c637fa389af16c7617f1afea",
+    "beforeProbeSourceLimit": "초기 probe 소스는 이후 검사 보완으로 변경됐고 최초 compile 당시 별도 사본이 없음. 명령/바이너리 hash/원본 로그/파일은 확인하며 최종 소스만 정확히 보존. 정밀 성능 비교로 사용하지 않음."
+  },
+  "bindings": {
+    "producer": "51 PASS / 0 FAIL; 기존 승인 ledger를 실제 diff의 불변 MEDIA-012 의미 범위에 적용",
+    "readback": "validationErrors0/globalErrors0/negative15 of15",
+    "coverage": "986 covered/missing0,9 PASS0 FAIL",
+    "candidateDigest": "8977e9b6ac618c7e0233823f6acb6ab1fcf7461206ee5d8b2a4149a643519e3a",
+    "limits": "986 기존 불변 의미 결속이며 새 제품/지속 혼합 PASS 대체가 아님"
+  },
+  "reuse": {
+    "111": "LRU/색인 fusion 불변; 직접 HTTP C12는 기존 범위만 재사용, 이번 HTTP 재실행 없음",
+    "112": "SoftwareOnly avdec max-threads1 불변, 보존 마지막sample 재검증",
+    "114": "S/Q 산식 및 상한 유지; 과거 수동누락 원출력 불변, 새 writer전이는 독립 expected subset 검증"
+  },
+  "notRun": [
+    "900초",
+    "45분",
+    "120분",
+    "전체 acceptance/UI",
+    "Qwen/Ollama",
+    "PR/CI/merge/tag/Release"
+  ],
+  "remaining": [
+    "115의 정확한 과거 상위 손실 지점 미확정",
+    "정상 지속 혼합에서의 입력 손실/필수 증거201와 검색 지연",
+    "부분p95 2378.654ms 및 최종 gate 미실행",
+    "전체 메모리P0·최종120분·출시 보류"
+  ],
+  "cleanup": {
+    "status": "pending remote byte verification then owned root removal",
+    "ownedRoot": "/private/tmp/media-server-r116-g4x5490c",
+    "containers": "세 개 --rm 실행 종료; 최종 부재 확인 예정",
+    "privateSettingsBackup": "접근/업로드/정리 제외"
+  },
+  "implementationCommit": "3bf99c0cd54e19925a564a30e714d38ea76dea64",
+  "independentReview": "116-independent-review.json"
+}

@@ -17,6 +17,13 @@
 
 ## v4.5.0 잔여 개발과 릴리즈 순서
 
+[116 Recorder 입력 연속성 보완](release-artifacts/v4.5.0/116-validation.json)은 한정 직접 검증을 마쳤다.
+115의 목표 압축 sample은 존재하지만 입력 ordinal/keyframe 누락과 정확한 decode 거부가 확인됐다.
+실제 SharedStream 과부하에서 Recorder 손실 통지가 없던 경계를 재현하고, writer가 기존 prefix를 보존한 뒤
+실제 keyframe에서 회복하도록 보완했다. macOS/비특권 Linux의 정상·과부하·package/readback은 통과했다.
+115 당시 정확한 누락 위치는 미확정이며, 새 정상 혼합의 무손실·필수201·지연 충족을 뜻하지 않는다.
+**새900/45/120 미실행·지속 혼합 응답/진행·전체 메모리P0·출시 보류**를 유지한다.
+
 [115 continuous-r114의900초 혼합](release-artifacts/v4.5.0/115-validation.json)은 **FAIL**이다.
 고정 후보1회·마지막 본 관측765.862초·최종 source 확인 포함785.596초에 동시 증거 생성의
 `201` 부재로 중단했다. 실제 응답은 `503 evidence-busy`와 `503 evidence-create-failed`이며,
