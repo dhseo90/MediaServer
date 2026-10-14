@@ -846,28 +846,77 @@
         "replacements": 8
       }
     ],
-    "status": "local bytes verified; remote/cleanup pending",
+    "status": "local and remote actual bytes verified before owned cleanup",
     "excludedEntries": 293,
-    "excludedCountNote": "293 entries includes excluded directories; archive receipt legacy key excludedFiles is an entry count, not all regular files"
+    "excludedCountNote": "293 entries includes excluded directories; archive receipt legacy key excludedFiles is an entry count, not all regular files",
+    "remoteVerificationBeforeCleanup": {
+      "head": "32ce5a8699513eff47a04529b1c4294aaf227d21",
+      "remote": "32ce5a8699513eff47a04529b1c4294aaf227d21",
+      "verified": [
+        {
+          "path": "docs/release-artifacts/v4.5.0/115-execution.tar.gz",
+          "blob": "c6c0ec1914c1355f4fafc52efd28dbef199361d9",
+          "bytes": 32971647,
+          "sha256": "1806269f05605a2e8b7a6c518bbde0f09915d3bac42abb006062afd905784e45",
+          "remoteActualBytesMatch": true
+        },
+        {
+          "path": "docs/release-artifacts/v4.5.0/115-validation.json",
+          "blob": "b04b1aff0d96b9bb8c3a8490b89e0577907374cd",
+          "bytes": 32375,
+          "sha256": "1d61fbe7a6a566c0fae581192d003aaf1952159445212b84a96cd02c33b83c2c",
+          "remoteActualBytesMatch": true
+        },
+        {
+          "path": "docs/release-artifacts/v4.5.0/115-independent-review.json",
+          "blob": "6ca3e6a22364b9c69cf5aae6bda1098723fe4917",
+          "bytes": 2290,
+          "sha256": "4c5d8a8df5ad95a9d312ae7ec103047eb626182d4f8a89183fedeb51e1e4ae43",
+          "remoteActualBytesMatch": true
+        }
+      ]
+    }
   },
   "cleanup": {
-    "status": "pending remote byte verification",
-    "precheck": {
-      "ownedPids": [
-        88633,
-        88674
-      ],
-      "ownedPidsAbsent": true,
-      "httpPort": 50620,
-      "rtspPort": 50621,
-      "listenersAbsent": true,
-      "commands": [
-        "ps -p 88633,88674 -o pid=,ppid=,command=",
-        "lsof -nP -iTCP:50620 -iTCP:50621 -sTCP:LISTEN"
-      ],
-      "scope": "read-only host check after run; no process killed",
-      "preparationNote": "initial sandbox ps spawn denied EPERM; escalated read-only checks returned no processes/listeners; not a product/cleanup failure"
-    }
+    "status": "PASS",
+    "root": "/private/tmp/media-server-r115-xdpm3te5",
+    "verifiedRootIdentity": {
+      "dev": 16777232,
+      "ino": 174616823,
+      "uid": 501
+    },
+    "removedRegularFiles": 981,
+    "removedLogicalFileBytes": 107374695,
+    "unlinkedSymlinksWithoutFollowing": 277,
+    "rootAbsent": true,
+    "processAndPortChecks": [
+      {
+        "command": [
+          "ps",
+          "-p",
+          "88633,88674",
+          "-o",
+          "pid=,ppid=,command="
+        ],
+        "exit": 1,
+        "noOutput": true
+      },
+      {
+        "command": [
+          "lsof",
+          "-nP",
+          "-iTCP:50620",
+          "-iTCP:50621",
+          "-sTCP:LISTEN"
+        ],
+        "exit": 1,
+        "noOutput": true
+      }
+    ],
+    "ownedContainer": "none started",
+    "protected": "user settings/private95backup/models/SDK untouched; GStreamer cache symlink targets not followed",
+    "scope": "only exact R115 owned root after remote actual-byte verification",
+    "preparationNote": "sandbox ps initially denied EPERM; host read-only checks succeeded before cleanup"
   },
   "remaining": [
     "new10469B/target1.8s eos-no-target evidence failure, cause unestablished",
