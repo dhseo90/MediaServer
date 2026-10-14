@@ -353,10 +353,20 @@ int MixedTransitions(const std::filesystem::path& root,const std::filesystem::pa
         if(scenario==4)for(auto packet:input.packets){packet.observation->source_generation="mixed-next-loop";packet.observation->generation_order=2;chosen.packets.push_back(std::move(packet));}
         Store store(root/("transition-"+std::to_string(scenario)));
         need(Run(store,chosen),"transition-writer");const auto rows=store.Segments();
-        need(rows.size()==(scenario==4?3U:scenario==5?2U:1U),"transition-segment-count");
+        // R116: 손실 전 prefix는 보존하고 누락 뒤 delta는 다음 실제 keyframe까지 미수용.
+        const std::size_t expected_segments[]={2,1,2,1,4,2};
+        need(rows.size()==expected_segments[scenario],"transition-segment-count");
         std::size_t observed=0;std::string error;
         std::set<std::pair<std::string,std::uint64_t>> expected,actual;
-        for(const auto& packet:chosen.packets)need(expected.emplace(packet.observation->source_generation,packet.observation->ordinal).second,"transition-input-unique");
+        std::string generation;std::uint64_t ordinal=0;bool waiting=true;
+        for(const auto& packet:chosen.packets){const auto& o=*packet.observation;
+            if(generation!=o.source_generation){generation=o.source_generation;ordinal=0;waiting=true;}
+            if(ordinal&&o.ordinal!=ordinal+1)waiting=true;
+            ordinal=o.ordinal;
+            if(waiting&&!packet.is_key_frame)continue;
+            waiting=false;
+            need(expected.emplace(o.source_generation,o.ordinal).second,"transition-input-unique");
+        }
         for(const auto& row:rows){auto binding=store.catalog.FindSourceBinding(row.segment_id);
             need(binding&&binding->file_evidence&&binding->index_complete,"transition-file-evidence");
             const auto file=store.root/"channel-1"/(row.segment_id+".mp4");
@@ -377,8 +387,9 @@ int MixedTransitions(const std::filesystem::path& root,const std::filesystem::pa
             }
             std::cout<<"[R114-segment] case="<<scenario<<" file="<<file.string()<<" bytes="<<row.size_bytes<<" samples="<<binding->samples.size()<<" generation="<<binding->generation_order<<" end="<<row.media_end_pts.value_or(-1)<<std::endl;
         }
-        need(observed==chosen.packets.size()&&actual==expected,"transition-all-accepted-samples");
-        if(scenario==0)need(rows.front().size_bytes>36*1024&&observed==63,"transition-old-bound-counterexample");
+        need(observed==expected.size()&&actual==expected,"transition-contiguous-keyframe-ranges");
+        // R114 원래 63 AU/36KiB 반례는 당시 archive에 유지한다. 이 경로는 새 손실 처리 검사다.
+        if(scenario==0)need(observed==31,"transition-gap-not-published-as-continuous");
         if(scenario==5)need(store.Frames(rows)==120,"transition-normal-decode");
         need(store.journal.Finish(&error),"transition-finish:"+error);
     }

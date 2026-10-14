@@ -83,6 +83,9 @@ struct MediaSample {
     std::int64_t dts{0};
     std::vector<unsigned char> payload;
     std::optional<SampleObservation> observation;
+    // Recorder 구독 큐에서 video가 유실된 뒤 처음 전달하는 video에만 설정한다.
+    // 원본 observation/시간/ordinal을 변경하지 않는 전달 경계의 통지다.
+    bool recorder_video_discontinuity{false};
 };
 
 using Packet = MediaSample;

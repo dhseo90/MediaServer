@@ -5124,3 +5124,10 @@ R112-F02: 같은 실패 파일에서 seek/순차 모두13출력·마지막966666
 - 한 source 세대의 최대120 AU와 고정 mux metadata/sample-table 상계로 S를 산정한다. 결과 관측 최댓값＋여유율은 사용하지 않는다. legacy continuous-r98는 보존하고 새 profile은 S/H/P/Q/M·초기/재활성/재시작·source freeze·출력 guard에서 함께 대조한다.
 - 실행 전 고정 범위: macOS/Linux 각6전이1묶음, 기존210 prefix1회와 관련 writer/retention focused 회귀, generation live/copy/reopen 각1묶음. 각각 기존 시간/공간/로그 한도 사용. compilation/준비 오류는 별도 보존 후 범위 내 보완한다. 새900/45/120 및 빈-root 예행 실행은 하지 않는다.
 - 경계/초과·입력 hash/codec/sample 변조·잘못된 수집·실패 피연산자 전파를 검사한다. 643개 보호 소유와 실제 부족 거부·해제 후 회복, generation/copy448MiB 정책·최종 Finish/owner 회수를 확인한다. 직접 공간 PASS는 장시간 peak 보장이 아니다.
+
+### R116 Recorder 전달 연속성과 정확한 증거 직접 검사
+
+기존 S10 입력/managed writer·evidence 계약의 영향 회귀다. 새 공개 API가 아니며 장시간/UI PASS가 아니다.
+- `recording_recorder_continuity_smoke.cpp`: 같은 실제 AU의 source observation→SharedStream Recorder queue→writer→확정 source binding/file evidence를 대조한다. 정상 소비의 원본 ordinal/hash, 제한된 callback 보류로 인한 실제 포화, 다른 subscriber 진행, 중간 delta/키프레임 경계·generation·Stop/detach를 검사한다. 손실 전 수용한 prefix 보존·명시 공백·다음 keyframe 회복과 예약/FD 해제가 기대값이다.
+- 보존115 MP4의 native target1.8초·원본2.8초 compressed sample/decoded frame은 별개로 대조한다. decoder 목표 미검출은 거부·미게시, 정확한 sample 부재는 extractor에서 거부한다(기존 builder의 unsupported 메타데이터-only partial 계약은 유지). 정상 회복 원본은 정확한1ns sample·PNG/manifest·독립 readback을 요구한다. 자동 재시도·가까운 frame 대체·정상 혼합 gate 완화는 금지한다.
+- `recording_preserved_frame_smoke.cpp`의112 마지막 sample, 관련 writer/session/input/evidence 권한·취소·재Open·소유 검사와 macOS/비특권 Linux 경계를 유지한다. 고정된 짧은 진단은900/45/120분·전체 acceptance/UI와 분리한다.

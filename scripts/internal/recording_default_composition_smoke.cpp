@@ -160,7 +160,8 @@ int SourceRuntime(const std::filesystem::path& root) {
         options.managed_journal=&input_store.journal;options.managed_catalog=&input_store.catalog;options.managed_store_id="probe-store";
         recording::GStreamerSegmentWriter writer(options);
         if(!writer.Start("007","unused",input.descriptor,[](auto,auto,auto*){return false;},&error))return 2;
-        for(const auto& packet:input.packets)writer.Push(packet,0);writer.Stop();
+        for(const auto& packet:input.packets)writer.Push(packet,0);
+        writer.Stop();
         const auto segments=input_store.Segments();if(segments.size()!=1)return 2;
         const auto location=input_store.catalog.FindSegmentMediaLocation(segments.front().segment_id);if(!location)return 2;
         std::filesystem::create_directories(root/"input");

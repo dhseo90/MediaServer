@@ -873,3 +873,12 @@ validation을 우회하지 못한다.
 사용자는 2026-09-02에 이 설계 방향을 승인했다. 이 승인은 상세 구현계획 작성까지의
 설계 gate를 통과한 것이며 구현, 테스트 실행, 커밋, 푸시, PR, 머지, 태그, 릴리즈 또는
 후속 버전 브랜치 생성을 승인한 것은 아니다.
+
+
+### Recorder 전달 손실과 연속 구간 (v4.5.0 R116)
+
+SharedStream의 기존 유한·비차단 구독 큐와 Client/Analysis 정책을 유지한다. Recorder 큐에서 video가 제거되면, 같은 구독자 잠금 아래 pending 상태를 설정하고 다음 video의 **전달 사본**에 discontinuity를 통지한다. 중간 audio를 꺼내도 통지는 남으며 audio-only 손실은 video 통지를 만들지 않는다. source observation·generation·ordinal·timestamp·AU bytes는 수정하지 않는다.
+
+관리 writer는 같은 generation의 forward ordinal 공백, 원본 discont 또는 Recorder 전달 통지에서 기존 수용 prefix를 내구 확정하고 다음 실제 keyframe까지 delta AU를 수용하지 않는다. 원본 순서·시각의 공백은 source binding과 분리된 구간에 그대로 남고 제한된 discontinuity 진단에 기록한다. DTS 역행·identity 충돌은 기존 오류이며 이 회복으로 허용하지 않는다. finalize 실패의 recovery 차단·예약·원본 보존을 유지한다. 이는 강제 과부하의 손실 인지·안전 회복이지 정상 부하의 무손실 보장이나 기존 혼합의 필수 증거201 대체가 아니다.
+
+이미 보존된 불연속 MP4는 다시 쓰지 않는다. 압축 sample의 존재와 정상 decoded frame의 존재를 구분하며 정확한 target 추출 실패는 계속 실패·미게시다. sample 부재에 대한 extractor 거부와 기존 package builder의 명시 unsupported 메타데이터-only partial은 별도 계약이다. 가까운 frame·가짜 ordinal·자동 재시도는 사용하지 않는다.

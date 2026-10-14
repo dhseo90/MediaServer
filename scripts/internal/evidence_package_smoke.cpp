@@ -62,6 +62,23 @@ void Save(const std::filesystem::path& path,const std::string& bytes){
     if(!ok)throw std::runtime_error("fixture-write");
 }
 
+int DamagedPreserved(const std::filesystem::path& root){
+ std::string error;recording::RecordingRuntimeStorage runtime(root/"package-source");Check(runtime.Open(&error),"R116 closed preserved store Open");
+ {
+  recording::RecordingReadService reader(runtime.catalog());recording::RecordingSearchReader search(runtime.catalog(),reader);
+  std::shared_ptr<const recording::RecordingSearchModel> model;Check(search.Refresh({"9101"},{},&model,&error),"R116 actual closed-store query");
+  auto it=std::find_if(model->documents().begin(),model->documents().end(),[](const auto& d){return d.segment_id=="2fd1bbf2-7664-4fe4-964b-cb41fca2e66e";});Check(it!=model->documents().end(),"R116 preserved target");
+  auto hit=*it;hit.media_pts=2800000000LL;hit.media_end_pts.reset();hit.time_base_num=1;hit.time_base_den=1000000000;
+  const std::string hash="d22cfc316bc4bfff15650ee7e55bf05a9621c636e2fd5abf36e518af4eecdc6b";
+  auto binding=runtime.catalog().FindSourceBinding(hit.segment_id);std::vector<std::int64_t> selected;
+  Check(binding&&recording::EvidencePackageBuilder::SelectSamples(hit,*binding,&selected,&error)&&selected==std::vector<std::int64_t>{2800000000LL},"R116 compressed exact sample selection");
+  recording::EvidencePackageStore packages(root/"damaged-packages",{});Check(packages.Recover(&error),"R116 package store");
+  recording::EvidencePackageBuilder builder(runtime.catalog(),reader,packages);std::string id="unchanged";recording::EvidencePackageV1 manifest;
+  Check(!builder.Create(hit,"structured",hash,&id,&manifest,&error,Clock::now()+std::chrono::seconds(5))&&id=="unchanged","R116 undecodable exact sample refuses publication: "+error);
+  std::vector<std::string> ids;Check(packages.ListIds(&ids,&error)&&ids.empty(),"R116 no substituted frame or package");
+ }
+ Check(runtime.Finish(&error),"R116 damaged original Finish");return 0;
+}
 int Preserved(const std::filesystem::path& root,bool readback){
     std::string error;const auto id_file=root/"preserved-package-id.txt";
     recording::EvidencePackageStore store(root/"preserved-packages",{});
@@ -132,6 +149,7 @@ int main(int argc,char** argv){try{
     gst_init(nullptr,nullptr);
     if(argc==3&&(std::string(argv[2])=="--preserved"||std::string(argv[2])=="--preserved-readback"))
         return Preserved(std::filesystem::canonical(argv[1]),std::string(argv[2])=="--preserved-readback");
+    if(argc==3&&std::string(argv[2])=="--damaged-preserved")return DamagedPreserved(std::filesystem::canonical(argv[1]));
     const bool seed=argc==3&&std::string(argv[2])=="--seed";
     const auto root=std::filesystem::canonical(argv[1]);std::string error;
     recording::RecordingRuntimeStorage runtime(root/"recordings");Check(runtime.Open(&error),"V440 source storage open: "+error);

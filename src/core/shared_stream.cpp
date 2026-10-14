@@ -335,6 +335,11 @@ void SharedStream::WorkerLoop(const std::shared_ptr<SubscriberState>& state) {
 
             packet = std::move(state->queue.front());
             state->queue.pop_front();
+            if (state->role == SubscriberRole::Recorder &&
+                packet.kind == media::MediaKind::Video && state->recorder_video_loss_pending) {
+                packet.recorder_video_discontinuity = true;
+                state->recorder_video_loss_pending = false;
+            }
         }
 
         try {
@@ -356,6 +361,10 @@ void SharedStream::EnqueuePacket(const std::shared_ptr<SubscriberState>& state, 
 
         if (state->queue.size() >= app::GetAppConfig().subscriber_queue_size) {
             // live stream 특성상 지연된 오래된 패킷보다 최신 패킷을 유지하는 것이 낫다.
+            if (state->role == SubscriberRole::Recorder &&
+                state->queue.front().kind == media::MediaKind::Video) {
+                state->recorder_video_loss_pending = true;
+            }
             state->queue.pop_front();
             ++state->dropped_packets;
         }

@@ -58,6 +58,7 @@ private:
         std::condition_variable cv;
         std::deque<media::Packet> queue;
         std::size_t dropped_packets{0};
+        bool recorder_video_loss_pending{false};
         bool stop{false};
         std::thread worker;
     };

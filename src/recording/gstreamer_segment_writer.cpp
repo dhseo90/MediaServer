@@ -151,6 +151,12 @@ public:
         if (!started || packet.kind != media::MediaKind::Video || packet.codec != video_track.codec) return;
 #if MEDIA_SERVER_USE_GSTREAMER
         if(v2_mode) {PushV2Locked(packet);return;}
+        if (packet.recorder_video_discontinuity) {
+            time_snapshot.Invalidate();
+            FinalizeLocked();
+            if (recovery_pending) return;
+            // OpenLocked는 다음 실제 keyframe에서만 호출된다. 이미 수용한 prefix는 보존한다.
+        }
         if (has_last_pts && packet.pts < last_pts) {
             time_snapshot.Invalidate();
             FinalizeLocked();
@@ -235,6 +241,19 @@ private:
         }
         if(has_v2_progress && progress<=v2_last_progress) {
             InputFailureLocked("decode-order-unavailable");return;
+        }
+        const bool ordinal_gap = last_ordinal && o.ordinal - last_ordinal > 1;
+        if (packet.recorder_video_discontinuity || ordinal_gap || (same && o.discont)) {
+            // 전달 손실 또는 원본 discontinuity 뒤의 delta AU를 정상 연속 자료로 확정하지 않는다.
+            // 원본 ordinal을 채우거나 이동하지 않고 기존 prefix를 닫아 실제 시간 공백을 보존한다.
+            if (input_discontinuities++ < 64) {
+                std::cerr << "[recording-v2] input discontinuity generationOrder=" << o.generation_order
+                          << " previousOrdinal=" << last_ordinal << " nextOrdinal=" << o.ordinal
+                          << " deliveryLoss=" << packet.recorder_video_discontinuity
+                          << " sourceDiscont=" << o.discont << '\n';
+            }
+            time_snapshot.Invalidate();
+            FinalizeLocked();if(recovery_pending)return;
         }
         last_ordinal=o.ordinal;
         if(!segment_open) {
@@ -659,6 +678,7 @@ private:
     bool input_failed{false},has_v2_progress{false};
     std::int64_t v2_origin{0},v2_segment_progress{0},v2_last_progress{0};
     std::uint64_t last_ordinal{0},generation_order{0};
+    std::uint64_t input_discontinuities{0};
     std::string source_generation;
     RecordingOrderReservationV1 current_order;
     RecordingSegmentV2 current_v2;
