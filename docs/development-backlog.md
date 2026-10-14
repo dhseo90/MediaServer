@@ -17,6 +17,15 @@
 
 ## v4.5.0 잔여 개발과 릴리즈 순서
 
+[111 장면 cache 수명·색인 중복 순회 보완](release-artifacts/v4.5.0/111-validation.json)은
+현재 원문 인증과16MiB 예산을 유지한 LRU 및 전체 retention 검증·장면 key 수집 통합을 채택했다.
+같은911파일의 최종 직접 C12응답200·p95/max1761.58ms·쓰기6·새 색인·명시 Finish는 통과했다.
+그러나 고정 후보의900초1회는 마지막 본 표본781.256초 뒤 동시 증거 생성의
+`evidence-create-failed`/`evidence-busy`로 **FAIL**이다. frame의 `eos-no-target`는 관측됐으나 상위 원인은 미확정이다.
+성공212건의 부분p95는2408.558ms로 기준 초과이며 최종gate·명시 비활성화·닫힌journal 검사는 미실행이다.
+[독립 검토](release-artifacts/v4.5.0/111-independent-review.json)는 직접 개선과 혼합 실패를 구분한다.
+**추가 실행·45/120분 미실행·메모리P0·출시 보류**를 유지한다.
+
 [110 실제 HTTP 이벤트 후보 분류 재사용](release-artifacts/v4.5.0/110-validation.json)은
 현재 namespace·원문 전체 인증을 유지하면서 동일 원문의 불필요한 segment 재해석을 기존16MiB 예산 안에서 줄였다.
 동일911파일 seed의 직접 실행에서 이벤트 후보 segment 단계7호출 평균176.787→18.740ms,

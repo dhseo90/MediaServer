@@ -1,0 +1,58 @@
+{
+  "reviewer": "/root/independent_memory86",
+  "requested": {
+    "model": "gpt-6-astra",
+    "effort": "high"
+  },
+  "toolAccepted": "existing separate reviewer acceptance reused; followup settings not exposed",
+  "actualRuntime": null,
+  "independence": "read-only; no implementation/test writing/execution/redelegation",
+  "codeVerdict": "ADOPT_CANDIDATE2_NO_NEW_BLOCKER",
+  "directHttpVerdict": "PASS_FINAL_C12",
+  "conditionsBefore900": "completed producer/readback/inventory/coverage/scriptInventory exit0; implementation358dee172 frozen",
+  "findings": [
+    "all12 frozen source hashes and runtime/fixture/binary match",
+    "exact911 seed perownedroot",
+    "A3 p95/max1183.67 B6 1269.03 C12 1761.58, populations separate",
+    "all200,writes6,generation1to2,explicitFinish,ownerRAMdiskFD0",
+    "completeFD samples A231 B230 C231, received=saved",
+    "visualitems equal; structured commonIDs equal; newwriter/time differences retained",
+    "mac proof476 consumer462 cache448 Linux nonroot source83 trace51 passed",
+    "candidate1 performance FAIL and preparation FAILs preserved",
+    "LRU authenticates currentraw; same16MiB and reader lifetime",
+    "fusion retains checkpoint token/fullretention verification; fullvalidation cut shifts",
+    "DTO/key coexistence increases peak; C owner397760658B, liveworkspace sampled108540525B",
+    "unknownWait req1/2 549/597ms not attributed; req4partial",
+    "existing candidatefullJSON equal; producer inventory-only alignment appropriate"
+  ],
+  "mixed900Verdict": "FAIL_EVIDENCE_ADMISSION_AND_PARTIAL_P95_OVER_LIMIT",
+  "excluded": [
+    "45min",
+    "120min",
+    "memoryP0 closure",
+    "release"
+  ],
+  "mixedFindings": [
+    "sourcebegin=end",
+    "503 evidence-create-failed +503 evidence-busy means no201; original assertionFAIL",
+    "frame visual-frame-unavailable/eos-no-target target1966666667,lastPTS966666666; upstream cause/change causality unconfirmed",
+    "original search212 unavailable0 partialp95 2408.558125 max2719.255291; finalgate notrun",
+    "lastsample781.256200sec;A13complete;totalwithbinding801.980429sec",
+    "FD157complete;server519084B received=saved;owner0/normalprocess/portgroupcleanup",
+    "explicitdisable/closedjournal notrun; finally doesnot replace",
+    "no extra900 or productchange afterFAIL"
+  ],
+  "preservationDecision": "PASS: limited implementation/direct HTTP PASS and mixed FAIL preservation/general push eligible; remote bytes and owned cleanup pending",
+  "schema": "media-server.v450.r111.independent-review.v1",
+  "implementationCommit": "358dee172676f1b19a69f7c3584374a3a5ed0fcc",
+  "preservationFindings": {
+    "archiveBytes": 50325717,
+    "archiveSha256": "4f6a5a8f0ef00792d6726e7723b908eb047bb79147442aa0ddaa1037358e6bf1",
+    "payloadMembersVerified": 1254,
+    "mismatches": 0,
+    "sanitizedUrlTokens": 8,
+    "failedFrameBytes": 14990,
+    "settingsModelsSdkExcluded": true,
+    "reviewScope": "read-only archive/manifest/selected original comparison and current records; no implementation/test writing/execution"
+  }
+}

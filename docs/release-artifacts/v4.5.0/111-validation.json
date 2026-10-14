@@ -1,0 +1,855 @@
+{
+  "schema": "media-server.v450.r111.validation.v1",
+  "status": "DIRECT_HTTP_PASS_MIXED900_FAIL",
+  "memoryP0": "OPEN",
+  "release": "HOLD",
+  "baseHead": "208326497525c4295e0246517b5040e20885e363",
+  "priorImplementation": "b2e439a1242bf8a09aa82f04b8f1ad8329a98019",
+  "implementationCommit": "358dee172676f1b19a69f7c3584374a3a5ed0fcc",
+  "models": {
+    "mainRequested": "gpt-6-astra/high",
+    "mainToolAccepted": null,
+    "mainActual": null,
+    "reviewerRequested": "gpt-6-astra/high",
+    "reviewerToolAccepted": "existing independent reviewer acceptance reused; followup setting not exposed",
+    "reviewerActual": null
+  },
+  "scope": {
+    "completed": [
+      "current degraded seed A/B/C actualHTTP comparison",
+      "charged LRU within existing16MiB authenticated parsedcache",
+      "fused complete retention validation and visualkey discovery with checkpoint token",
+      "related macOS/Linux direct correctness/lifetime regression",
+      "final C12 actualHTTP direct target",
+      "independent change/result review and producer/readback"
+    ],
+    "failed": [
+      "one final900 mixed: evidence admission",
+      "partial successful search p95 exceeds2000ms"
+    ],
+    "notRun": [
+      "900 finalgate/explicitdisable/closedjournal",
+      "45min",
+      "120min",
+      "release"
+    ],
+    "unchanged": [
+      "110 eventmemo/fullraw authentication",
+      "95 isolation/privateuserconfig exclusion",
+      "102 FD contract",
+      "82KF/97retention",
+      "alllimits/load"
+    ]
+  },
+  "query": {
+    "visual": "/ops/api/recordings/visual-search?channelIds=9101,9201&text=ball&limit=20&threshold=-1",
+    "structured": "/ops/api/recordings/search?channelIds=9101&startTimeMs=1791800000000&endTimeMs=1791900000000&limit=20&includeUnplaced=true",
+    "A": "visual1x3waves",
+    "B": "visual2x3waves",
+    "C": "visual2+structured2x3waves final12population",
+    "order": "eachcandidate B A C once; baseline detailC diagnostic separately predefined",
+    "seedFiles": 911,
+    "seedBytes": 50664710,
+    "seedSource": "106-execution.tar.gz ordered parts: after900/media-server-current-observer-VJTJaz/recordings;111 archive seed-binding.json fullhashmap",
+    "limits": "same630sec/4MiBlogs/5sec request/p95<=2000,max<=5000; samewriter/index/retention no warmup transfer"
+  },
+  "cause": {
+    "baseline": "detailC actualdecode394/request,103-132hits,177-203ms parse; lexicalvictim keepscold IDs whilehot IDs repeat",
+    "candidate1": "LRU hits381-394/394 and0-9.8ms parse; C still2765.92msFAIL",
+    "dominantIndex": "candidate1 Brequest3 complete: SnapshotStatus509.367ms +CaptureVisualSourceKeys575.481ms actualwaitoverlap; currentsamefullsegment/lifecycle fetchedtwice",
+    "change": "full retention validation now also emits visual keys, preserving token acquisition/finalvalidation; fullvalidation cut moves from status tofollowingfusedcut",
+    "beforeAfterTarget": "candidate1 Brequest3 wait1386.013ms -> finalBrequest3 548.353ms; fusedCapture331.632ms overlap vs previous2walk1084.848ms",
+    "CRemaining": "finalCrequest1/2 unassigned548.765/597.491ms; request3 unassigned5.270ms andfusedCapture543.239ms; req4partial/notallobserved",
+    "timingLimits": "same-mutex intervals only; inclusive phases notsummed; one run/cut/cache scheduling differs; baselineA/B/C lackednewrowcost whereas detailC hadsameinstrumentation"
+  },
+  "correctness": {
+    "auth": "currentfullraw auth beforeexactbyteLRU; no revision-only auth/no new membership authority",
+    "cache": "existing16MiB +owner; list/key extra charged; evicted reader retainsown reservation; Finish blockslateinsert; badalloc no earlyticketrelease",
+    "fusion": "allreservation/path/reason/hold/job validations retained; keys/legacy counts beforepathfilter; outputs unpublished onfailure; invalid failedcheckpointtoken remainsinvalid aftersuccess",
+    "sourceTests": "candidate2 proof476/consumer462/cache448 Linuxnonroot source83; generation/crypto/SQLite existing4configs Werror;trace51",
+    "responseEquality": "all6visualitems20each exact detailC vsfinalC; structuredcommonIDfields exact, newwriterIDs/cut differ; notexhaustive topk/actualseek proof",
+    "fixedSources": {
+      "base": "208326497525c4295e0246517b5040e20885e363",
+      "files": {
+        "docs/project-feature-test-inventory.md": "42cd0bc4b43f455536611590c3b4724eafd91f0afc8d0bff1fa6e3d648be932f",
+        "include/recording/recording_catalog.h": "c163178eef6d038acff6ce2f1b3733553a0700af8eabc744f6f7229a3e949db9",
+        "include/recording/recording_latency_trace.h": "b3afb5175ebb222553f9477fb3a62e64ebb0853f5424f3151b2dc7c161b783b2",
+        "include/recording/recording_retained_rows.h": "920d15f235547c8b488c5e8be5c5cd53a352737f0c20b2ada6bff95336aba7a5",
+        "scripts/internal/recording_degraded_http_smoke.cpp": "bbb7624d9410e563c8967ba5913b7e080758054a74714f5750dcef8258136efc",
+        "scripts/internal/recording_generation_request_proof_smoke.cpp": "bc746786dd38c96e2e878f6df5a2e32e00d4072b6bbc8eea98e78829f8d2a7dc",
+        "scripts/internal/recording_latency_trace.test.mjs": "f2748617640112d23c27b7bb40b5a5fd4e3a14973390bd21c46196da37524b12",
+        "scripts/internal/recording_latency_trace_smoke.cpp": "b8a0fdcd02bb54096c8704ac2226e6d7013beef498fecbf4fed7de942722305a",
+        "scripts/internal/recording_longrun_progress.mjs": "b00aca6fcd26e215602903bc5596e311e694f88a3fae56d14cdd71b38e7de374",
+        "src/recording/recording_catalog.cpp": "dca63e9d25316f4b5eed21c95b549f31ef4a9b61fd8aa454807069353f311034",
+        "src/recording/recording_catalog_history.h": "70687320a8be2b5906510e577e722d541b5a2d406cfea08cc057a9997c21e92a",
+        "src/recording/recording_visual_source.cpp": "57c98dc755fa09a3759415e54d4be187301fb446db8ba80d112ac5e37b4c640c"
+      },
+      "change": "same full retention validation plus visual keys in single V2 pass; original checkpoint token selection preserved; LRU retained",
+      "peak": "retention candidate DTO plus keys simultaneously reserved; previous status/key sequential phases differ",
+      "comparison": "B A C once after all builds finish; same exactseed andcounter/limits",
+      "runtimeSha256": "b8b2298db15f14b0cd47cbf1431644ba8bf30b8ea1c7740a06e1a46b12fc15bf",
+      "binarySha256": "c253a7e9ccfae5189b2332ad48a11b857e59a04d2dc7978eef03275cd7722204",
+      "sameComparisons": "B visual-pair, A single, C parallel; each3waves once, exact seed, same bounded diagnosis, no builds overlap",
+      "commit": "358dee172676f1b19a69f7c3584374a3a5ed0fcc",
+      "tree": "72ecd7a99740b26444b8868d6759ca883c212f64",
+      "productBinarySha256": "695a1796f5d06be25fd6c887c6acaba52c97981de88aed90b74870f15d42e9d9",
+      "bindingChecks": {
+        "producer": 0,
+        "readback": 0,
+        "inventory": 0,
+        "coverage": 0,
+        "scriptInventory": 0,
+        "semanticChangedKeys": [
+          "inventorySha256"
+        ]
+      }
+    }
+  },
+  "directRuns": [
+    {
+      "label": "before-B",
+      "exit": 0,
+      "requests": 6,
+      "p95Ms": 1923.89,
+      "maxMs": 1923.89,
+      "samples": 230,
+      "allSamplesComplete": true,
+      "processSampleMax": {
+        "rssBytes": 3221028864,
+        "footprintBytes": 3171290376,
+        "fdCount": 144,
+        "anonymousFileBytes": 1102224896,
+        "anonymousAllocatedBytes": 1109630976
+      },
+      "ownerSampleMax": {
+        "ram": 28766213,
+        "ramPeak": 66034075,
+        "scratchDisk": 54513664,
+        "scratchDiskPeak": 54513664,
+        "scratchFd": 5,
+        "scratchFdPeak": 6
+      },
+      "spaceByPhase": {
+        "initial": {
+          "samples": 11,
+          "anonymousLogicalMax": 30326272,
+          "anonymousAllocatedMax": 31477760,
+          "fdMax": 13
+        },
+        "live": {
+          "samples": 215,
+          "anonymousLogicalMax": 38994944,
+          "anonymousAllocatedMax": 40062976,
+          "fdMax": 144
+        },
+        "model": {
+          "samples": 4,
+          "anonymousLogicalMax": 1102224896,
+          "anonymousAllocatedMax": 1109630976,
+          "fdMax": 12
+        }
+      },
+      "elapsedSeconds": 232.0963467080146
+    },
+    {
+      "label": "before-A",
+      "exit": 0,
+      "requests": 3,
+      "p95Ms": 1549.62,
+      "maxMs": 1549.62,
+      "samples": 225,
+      "allSamplesComplete": true,
+      "processSampleMax": {
+        "rssBytes": 3219030016,
+        "footprintBytes": 3169307936,
+        "fdCount": 107,
+        "anonymousFileBytes": 1151507968,
+        "anonymousAllocatedBytes": 1162059776
+      },
+      "ownerSampleMax": {
+        "ram": 28500708,
+        "ramPeak": 43090384,
+        "scratchDisk": 54439936,
+        "scratchDiskPeak": 54513664,
+        "scratchFd": 5,
+        "scratchFdPeak": 6
+      },
+      "spaceByPhase": {
+        "initial": {
+          "samples": 11,
+          "anonymousLogicalMax": 26562048,
+          "anonymousAllocatedMax": 27205632,
+          "fdMax": 13
+        },
+        "live": {
+          "samples": 210,
+          "anonymousLogicalMax": 38994944,
+          "anonymousAllocatedMax": 40062976,
+          "fdMax": 107
+        },
+        "model": {
+          "samples": 4,
+          "anonymousLogicalMax": 1151507968,
+          "anonymousAllocatedMax": 1162059776,
+          "fdMax": 12
+        }
+      },
+      "elapsedSeconds": 226.96905441698618
+    },
+    {
+      "label": "before-C",
+      "exit": 1,
+      "requests": 12,
+      "p95Ms": 2821.51,
+      "maxMs": 2821.51,
+      "samples": 229,
+      "allSamplesComplete": true,
+      "processSampleMax": {
+        "rssBytes": 3220324352,
+        "footprintBytes": 3170569456,
+        "fdCount": 134,
+        "anonymousFileBytes": 1151507968,
+        "anonymousAllocatedBytes": 1155768320
+      },
+      "ownerSampleMax": {
+        "ram": 183233948,
+        "ramPeak": 398038458,
+        "scratchDisk": 54513664,
+        "scratchDiskPeak": 54513664,
+        "scratchFd": 5,
+        "scratchFdPeak": 6
+      },
+      "spaceByPhase": {
+        "initial": {
+          "samples": 10,
+          "anonymousLogicalMax": 26583552,
+          "anonymousAllocatedMax": 27189248,
+          "fdMax": 13
+        },
+        "live": {
+          "samples": 215,
+          "anonymousLogicalMax": 38994944,
+          "anonymousAllocatedMax": 40062976,
+          "fdMax": 134
+        },
+        "model": {
+          "samples": 4,
+          "anonymousLogicalMax": 1151507968,
+          "anonymousAllocatedMax": 1155768320,
+          "fdMax": 12
+        }
+      },
+      "elapsedSeconds": 230.93983208411373
+    },
+    {
+      "label": "detail-C",
+      "exit": 1,
+      "requests": 12,
+      "p95Ms": 2683.68,
+      "maxMs": 2683.68,
+      "samples": 234,
+      "allSamplesComplete": true,
+      "processSampleMax": {
+        "rssBytes": 3219439616,
+        "footprintBytes": 3169717536,
+        "fdCount": 112,
+        "anonymousFileBytes": 1153641532,
+        "anonymousAllocatedBytes": 1164156928
+      },
+      "ownerSampleMax": {
+        "ram": 185958525,
+        "ramPeak": 397972227,
+        "scratchDisk": 54480896,
+        "scratchDiskPeak": 54513664,
+        "scratchFd": 5,
+        "scratchFdPeak": 6
+      },
+      "spaceByPhase": {
+        "initial": {
+          "samples": 11,
+          "anonymousLogicalMax": 30191104,
+          "anonymousAllocatedMax": 31383552,
+          "fdMax": 13
+        },
+        "live": {
+          "samples": 219,
+          "anonymousLogicalMax": 38994944,
+          "anonymousAllocatedMax": 40062976,
+          "fdMax": 112
+        },
+        "model": {
+          "samples": 4,
+          "anonymousLogicalMax": 1153641532,
+          "anonymousAllocatedMax": 1164156928,
+          "fdMax": 12
+        }
+      },
+      "elapsedSeconds": 235.92646562494338
+    },
+    {
+      "label": "after-B",
+      "exit": 1,
+      "requests": 6,
+      "p95Ms": 2136.54,
+      "maxMs": 2136.54,
+      "samples": 232,
+      "allSamplesComplete": true,
+      "processSampleMax": {
+        "rssBytes": 2500411392,
+        "footprintBytes": 3170323720,
+        "fdCount": 106,
+        "anonymousFileBytes": 1089641984,
+        "anonymousAllocatedBytes": 1094950912
+      },
+      "ownerSampleMax": {
+        "ram": 32388491,
+        "ramPeak": 53432166,
+        "scratchDisk": 54358016,
+        "scratchDiskPeak": 54513664,
+        "scratchFd": 5,
+        "scratchFdPeak": 6
+      },
+      "spaceByPhase": {
+        "initial": {
+          "samples": 11,
+          "anonymousLogicalMax": 29940224,
+          "anonymousAllocatedMax": 31363072,
+          "fdMax": 13
+        },
+        "live": {
+          "samples": 217,
+          "anonymousLogicalMax": 38994944,
+          "anonymousAllocatedMax": 40062976,
+          "fdMax": 106
+        },
+        "model": {
+          "samples": 4,
+          "anonymousLogicalMax": 1089641984,
+          "anonymousAllocatedMax": 1094950912,
+          "fdMax": 12
+        }
+      },
+      "elapsedSeconds": 233.87413270794787
+    },
+    {
+      "label": "after-A",
+      "exit": 0,
+      "requests": 3,
+      "p95Ms": 1759.08,
+      "maxMs": 1759.08,
+      "samples": 234,
+      "allSamplesComplete": true,
+      "processSampleMax": {
+        "rssBytes": 3220488192,
+        "footprintBytes": 3170782472,
+        "fdCount": 106,
+        "anonymousFileBytes": 1143119360,
+        "anonymousAllocatedBytes": 1158914048
+      },
+      "ownerSampleMax": {
+        "ram": 34788207,
+        "ramPeak": 53714770,
+        "scratchDisk": 54358016,
+        "scratchDiskPeak": 54513664,
+        "scratchFd": 5,
+        "scratchFdPeak": 6
+      },
+      "spaceByPhase": {
+        "initial": {
+          "samples": 11,
+          "anonymousLogicalMax": 31489024,
+          "anonymousAllocatedMax": 32358400,
+          "fdMax": 13
+        },
+        "live": {
+          "samples": 219,
+          "anonymousLogicalMax": 38994944,
+          "anonymousAllocatedMax": 40062976,
+          "fdMax": 106
+        },
+        "model": {
+          "samples": 4,
+          "anonymousLogicalMax": 1143119360,
+          "anonymousAllocatedMax": 1158914048,
+          "fdMax": 12
+        }
+      },
+      "elapsedSeconds": 235.96796187502332
+    },
+    {
+      "label": "after-C",
+      "exit": 1,
+      "requests": 12,
+      "p95Ms": 2765.92,
+      "maxMs": 2765.92,
+      "samples": 233,
+      "allSamplesComplete": true,
+      "processSampleMax": {
+        "rssBytes": 3221733376,
+        "footprintBytes": 3172011272,
+        "fdCount": 121,
+        "anonymousFileBytes": 1139973632,
+        "anonymousAllocatedBytes": 1144233984
+      },
+      "ownerSampleMax": {
+        "ram": 191843342,
+        "ramPeak": 396663413,
+        "scratchDisk": 54398976,
+        "scratchDiskPeak": 54513664,
+        "scratchFd": 5,
+        "scratchFdPeak": 6
+      },
+      "spaceByPhase": {
+        "initial": {
+          "samples": 11,
+          "anonymousLogicalMax": 31587840,
+          "anonymousAllocatedMax": 32387072,
+          "fdMax": 13
+        },
+        "live": {
+          "samples": 218,
+          "anonymousLogicalMax": 38994944,
+          "anonymousAllocatedMax": 40062976,
+          "fdMax": 121
+        },
+        "model": {
+          "samples": 4,
+          "anonymousLogicalMax": 1139973632,
+          "anonymousAllocatedMax": 1144233984,
+          "fdMax": 12
+        }
+      },
+      "elapsedSeconds": 234.95412637479603
+    },
+    {
+      "label": "after2-B",
+      "exit": 1,
+      "requests": 0,
+      "p95Ms": null,
+      "maxMs": null,
+      "samples": 217,
+      "allSamplesComplete": true,
+      "processSampleMax": {
+        "rssBytes": 2885500928,
+        "footprintBytes": 3184741736,
+        "fdCount": 107,
+        "anonymousFileBytes": 1141022208,
+        "anonymousAllocatedBytes": 1156816896
+      },
+      "ownerSampleMax": {
+        "ram": 18452155,
+        "ramPeak": 39013219,
+        "scratchDisk": 33546240,
+        "scratchDiskPeak": 41693184,
+        "scratchFd": 4,
+        "scratchFdPeak": 6
+      },
+      "spaceByPhase": {
+        "initial": {
+          "samples": 11,
+          "anonymousLogicalMax": 30236672,
+          "anonymousAllocatedMax": 31272960,
+          "fdMax": 13
+        },
+        "live": {
+          "samples": 202,
+          "anonymousLogicalMax": 24288768,
+          "anonymousAllocatedMax": 24354816,
+          "fdMax": 107
+        },
+        "model": {
+          "samples": 4,
+          "anonymousLogicalMax": 1141022208,
+          "anonymousAllocatedMax": 1156816896,
+          "fdMax": 12
+        }
+      },
+      "elapsedSeconds": 219.11153229209594
+    },
+    {
+      "label": "after2-B-authorized",
+      "exit": 0,
+      "requests": 6,
+      "p95Ms": 1269.03,
+      "maxMs": 1269.03,
+      "samples": 230,
+      "allSamplesComplete": true,
+      "processSampleMax": {
+        "rssBytes": 3219865600,
+        "footprintBytes": 3170290976,
+        "fdCount": 137,
+        "anonymousFileBytes": 1129487872,
+        "anonymousAllocatedBytes": 1140039680
+      },
+      "ownerSampleMax": {
+        "ram": 33790993,
+        "ramPeak": 63777349,
+        "scratchDisk": 54358016,
+        "scratchDiskPeak": 54513664,
+        "scratchFd": 5,
+        "scratchFdPeak": 6
+      },
+      "spaceByPhase": {
+        "initial": {
+          "samples": 11,
+          "anonymousLogicalMax": 31606784,
+          "anonymousAllocatedMax": 32395264,
+          "fdMax": 13
+        },
+        "live": {
+          "samples": 215,
+          "anonymousLogicalMax": 38994944,
+          "anonymousAllocatedMax": 40062976,
+          "fdMax": 137
+        },
+        "model": {
+          "samples": 4,
+          "anonymousLogicalMax": 1129487872,
+          "anonymousAllocatedMax": 1140039680,
+          "fdMax": 12
+        }
+      },
+      "elapsedSeconds": 232.09933324996382
+    },
+    {
+      "label": "after2-A-authorized",
+      "exit": 0,
+      "requests": 3,
+      "p95Ms": 1183.67,
+      "maxMs": 1183.67,
+      "samples": 231,
+      "allSamplesComplete": true,
+      "processSampleMax": {
+        "rssBytes": 3221192704,
+        "footprintBytes": 3171585264,
+        "fdCount": 106,
+        "anonymousFileBytes": 1134730752,
+        "anonymousAllocatedBytes": 1143185408
+      },
+      "ownerSampleMax": {
+        "ram": 35626855,
+        "ramPeak": 54034834,
+        "scratchDisk": 54358016,
+        "scratchDiskPeak": 54513664,
+        "scratchFd": 5,
+        "scratchFdPeak": 6
+      },
+      "spaceByPhase": {
+        "initial": {
+          "samples": 11,
+          "anonymousLogicalMax": 31716352,
+          "anonymousAllocatedMax": 32448512,
+          "fdMax": 13
+        },
+        "live": {
+          "samples": 216,
+          "anonymousLogicalMax": 38994944,
+          "anonymousAllocatedMax": 40062976,
+          "fdMax": 106
+        },
+        "model": {
+          "samples": 4,
+          "anonymousLogicalMax": 1134730752,
+          "anonymousAllocatedMax": 1143185408,
+          "fdMax": 12
+        }
+      },
+      "elapsedSeconds": 232.99535754090175
+    },
+    {
+      "label": "after2-C-authorized",
+      "exit": 0,
+      "requests": 12,
+      "p95Ms": 1761.58,
+      "maxMs": 1761.58,
+      "samples": 231,
+      "allSamplesComplete": true,
+      "processSampleMax": {
+        "rssBytes": 3221979136,
+        "footprintBytes": 3172404488,
+        "fdCount": 107,
+        "anonymousFileBytes": 1153641532,
+        "anonymousAllocatedBytes": 1162059776
+      },
+      "ownerSampleMax": {
+        "ram": 194085527,
+        "ramPeak": 397760658,
+        "scratchDisk": 54398976,
+        "scratchDiskPeak": 54513664,
+        "scratchFd": 5,
+        "scratchFdPeak": 6
+      },
+      "spaceByPhase": {
+        "initial": {
+          "samples": 11,
+          "anonymousLogicalMax": 26795520,
+          "anonymousAllocatedMax": 28258304,
+          "fdMax": 13
+        },
+        "live": {
+          "samples": 216,
+          "anonymousLogicalMax": 38994944,
+          "anonymousAllocatedMax": 40062976,
+          "fdMax": 107
+        },
+        "model": {
+          "samples": 4,
+          "anonymousLogicalMax": 1153641532,
+          "anonymousAllocatedMax": 1162059776,
+          "fdMax": 12
+        }
+      },
+      "elapsedSeconds": 233.10519274999388
+    }
+  ],
+  "mixed": {
+    "status": "FAIL",
+    "firstFailure": "V440 concurrent creation admits a request",
+    "failedEvidenceResponses": [
+      {
+        "status": 503,
+        "elapsedMs": 22.32625000004191,
+        "body": {
+          "error": "evidence-create-failed"
+        }
+      },
+      {
+        "status": 503,
+        "elapsedMs": 1.0276249999878928,
+        "body": {
+          "error": "evidence-busy"
+        }
+      }
+    ],
+    "lastSampleMs": 781256.200292,
+    "search": {
+      "population": "original mixed.searchLatencyMs partial; final gate not run",
+      "count": 212,
+      "p95Ms": 2408.5581249999814,
+      "maxMs": 2719.2552910000086,
+      "unavailable": 0
+    },
+    "Acompleted": 13,
+    "visualCreated": 52,
+    "structuredComplete": 51,
+    "samples": 157,
+    "allFDComplete": true,
+    "resources": {
+      "status": "observed",
+      "resourceTrendPass": false,
+      "reviewRequired": true,
+      "sampleCount": 157,
+      "groups": [
+        {
+          "pid": 59617,
+          "startIdentity": "macos:1791936612:214227",
+          "sampleCount": 157,
+          "first": {
+            "phaseAt": 9066.244625,
+            "sampledAt": 1791936618447,
+            "rssBytes": 3176300544,
+            "threadCount": 37,
+            "fdCount": 34,
+            "mutationCount": 6
+          },
+          "last": {
+            "phaseAt": 790097.816625,
+            "sampledAt": 1791937399484,
+            "rssBytes": 2020556800,
+            "threadCount": 38,
+            "fdCount": 29,
+            "mutationCount": 1520
+          },
+          "max": {
+            "rssBytes": 3220111360,
+            "threadCount": 42,
+            "fdCount": 51
+          },
+          "delta": {
+            "rssBytes": -1155743744,
+            "threadCount": 1,
+            "fdCount": -5,
+            "mutationCount": 1514
+          },
+          "elapsedMs": 781031.5719999999,
+          "maxGapMs": 5375.5304590000305,
+          "warmupMs": 300000,
+          "postWarmup": {
+            "status": "observed",
+            "sampleCount": 97,
+            "delta": {
+              "rssBytes": 192299008,
+              "threadCount": -4,
+              "fdCount": -1,
+              "mutationCount": 918
+            },
+            "elapsedMs": 480769.318375,
+            "rssMiBPerMinute": 22.887145829504288
+          }
+        }
+      ]
+    },
+    "resourceTrace": [
+      {
+        "status": "captured",
+        "count": 160,
+        "final": {
+          "pid": 59617,
+          "seq": 159,
+          "phase": "after-storage-destruction",
+          "elapsedMs": 792086,
+          "ram": 0,
+          "ramPeak": 406934454,
+          "ramLimit": 671088640,
+          "ramRejected": 0,
+          "scratchDisk": 0,
+          "scratchDiskPeak": 101117952,
+          "scratchDiskLimit": 153610686464,
+          "scratchFd": 0,
+          "scratchFdPeak": 17,
+          "scratchFdLimit": 1048572,
+          "scratchRam": 0,
+          "preservedDisk": 0,
+          "preservedFd": 0,
+          "readerCleanupHealthy": true
+        },
+        "scope": "actual shared product owner; logical charges, not total heap or RSS; sequential counter reads"
+      }
+    ],
+    "processCleanup": [
+      {
+        "schema": "recording-process-cleanup-v1",
+        "attemptCount": 1,
+        "pid": 59617,
+        "exitCode": 0,
+        "signalCode": null,
+        "exitedObserved": true,
+        "stopCode": "complete",
+        "forcedTermination": "not-used",
+        "normalExitPass": true,
+        "normalShutdownPass": true,
+        "archiveSafe": true,
+        "ports": [
+          {
+            "kind": "http",
+            "port": 53994,
+            "status": "pass",
+            "code": "closed",
+            "closed": true
+          },
+          {
+            "kind": "rtsp",
+            "port": 53995,
+            "status": "pass",
+            "code": "closed",
+            "closed": true
+          }
+        ]
+      }
+    ],
+    "notRun": [
+      "900 completion",
+      "final latency gate",
+      "explicit disable",
+      "closed-journal assertion",
+      "45min",
+      "120min"
+    ],
+    "scope": "finally normal shutdown not substitute for unexecuted gates",
+    "noMoreProductChangesOrExecutions": true
+  },
+  "mixedFrameFailure": {
+    "source": "archive mixed-frame-failure.json; full sanitizedframe+evidence logs and closed original included",
+    "targetNs": 1966666667,
+    "lastPtsNs": 966666666,
+    "bytes": 14990,
+    "first": "eos-no-target",
+    "published": false,
+    "sourcePath": "after900/media-server-current-observer-K5sGlB/recordings/9101/59dfb25c-a7eb-4333-bb29-3d7ae4b42fa6.mp4",
+    "sha256": "268368de002ea717e51c017f374d9285dc4f6941c18047e524d0f6d7b3ed0379",
+    "inferenceLimit": "postshutdowndev/inode match; upstreammapping cause/changecausality unconfirmed"
+  },
+  "binding": {
+    "candidate": {
+      "equal": true,
+      "changedKeys": [],
+      "candidateDigest": "8977e9b6ac618c7e0233823f6acb6ab1fcf7461206ee5d8b2a4149a643519e3a",
+      "items": 986
+    },
+    "producerDelta": {
+      "semanticChangedKeys": [
+        "inventorySha256"
+      ],
+      "producer": "existing approved manifest command",
+      "format": "original indent2 preserved; no manual hash assigned"
+    },
+    "producer": 0,
+    "readback": 0,
+    "inventory": 0,
+    "coverage": 0,
+    "scriptInventory": 0,
+    "newProductReview": "independent-final.json, not legacy986approval"
+  },
+  "preparationFailures": {
+    "run": "after2-B",
+    "status": "FAIL_PRE_HTTP_SANDBOX_BIND",
+    "error": "failed to bind HTTP socket: Operation not permitted",
+    "httpRequests": 0,
+    "samples": 217,
+    "allComplete": true,
+    "groupAbsent": true,
+    "cause": "main omitted require_escalated for local loopback HTTP run after compaction; first output preserved",
+    "correction": "same immutable source and binary/input/limits; run with authorized local HTTP permission",
+    "presetAfterCorrection": [
+      "after2-B-authorized",
+      "after2-A-authorized",
+      "after2-C-authorized"
+    ],
+    "repeats": 1,
+    "notPerformanceRetry": true,
+    "wrapperLabelError": {
+      "run": "after2p-B",
+      "source": "after2p-B-wrapper.log",
+      "error": "FileNotFoundError http-after2p before any process launch",
+      "fix": "preserve failed root, use existing binary prefix after2 with distinct suffix"
+    }
+  },
+  "preservation": {
+    "archive": "111-execution.tar.gz",
+    "bytes": 50325717,
+    "sha256": "4f6a5a8f0ef00792d6726e7723b908eb047bb79147442aa0ddaa1037358e6bf1",
+    "parts": [
+      {
+        "path": "docs/release-artifacts/v4.5.0/111-execution.tar.gz",
+        "bytes": 50325717,
+        "sha256": "4f6a5a8f0ef00792d6726e7723b908eb047bb79147442aa0ddaa1037358e6bf1"
+      }
+    ],
+    "payloadMembers": 1254,
+    "payloadBytes": 209966087,
+    "allSelectedOriginalBytesEqual": true,
+    "transformations": [
+      {
+        "originalPath": "after900/media-server-current-observer-K5sGlB/server-1.private.log",
+        "archivedPath": "after900/media-server-current-observer-K5sGlB/server-1.sanitized.log",
+        "originalBytes": 519084,
+        "originalSha256": "17859fc3b9f636e1450b659bb33e6ac332ce5f346254815247e5faa1c21e6a6a",
+        "transformedBytes": 518906,
+        "transformedSha256": "63c22c8ffb3db296699e5fd8586ada897eb18f6bcf164d243325e20ec844ea35",
+        "rule": "URL tokens only; retain all other lines/values",
+        "replacements": 8
+      }
+    ],
+    "excludedFileCount": 286,
+    "seedNotDuplicated": true,
+    "independentReadback": "PASS; all1254payload hashes verified, no mismatch"
+  },
+  "cleanup": "processgroups/ports/container ended; final owned cleanup recorded separately in111-cleanup.json afterremote byteconfirmation",
+  "notes": [
+    "Qwen/Ollama calls0; unloadgate notrun",
+    "95 privatebackup/defaultsettings notaccessed",
+    "RSS/footprint samples and ownercharged highwater notcomplete malloc/instantpeak",
+    "directC ownerpeak397760658B; overlappingDTO/key Bpeak increases; budgetsunchanged",
+    "45/120/release excluded; memoryP0 remains"
+  ]
+}
