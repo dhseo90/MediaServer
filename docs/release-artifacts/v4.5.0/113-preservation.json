@@ -1,0 +1,27 @@
+{
+  "archiveSha256": "15d32680fd7ef560831e95c32246a9eba13435fad83a849d1a65957b8ecc52ab",
+  "archiveBytes": 30863200,
+  "payloadMembers": 941,
+  "payloadBytes": 66948091,
+  "byteReadbackMismatches": 0,
+  "parts": [
+    {
+      "path": "/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.5.0/113-execution.tar.gz",
+      "bytes": 30863200,
+      "sha256": "15d32680fd7ef560831e95c32246a9eba13435fad83a849d1a65957b8ecc52ab"
+    }
+  ],
+  "sanitizedPrivateLogs": [
+    {
+      "originalPath": "after900/media-server-current-observer-yqaE8x/server-1.private.log",
+      "archivedPath": "after900/media-server-current-observer-yqaE8x/server-1.sanitized.log",
+      "originalBytes": 499064,
+      "originalSha256": "3fac7e81f56a725d878f38de4f60623a84e53122162d2e60cc2ab75fe2666768",
+      "transformedBytes": 498886,
+      "transformedSha256": "d98e7ce233b2a4f4a816e6799fe86eb6bd64ec1c6ef084bcb6de826708aa0bc8",
+      "rule": "URL tokens only; other bytes retained",
+      "replacements": 8
+    }
+  ],
+  "excludedFiles": 286
+}

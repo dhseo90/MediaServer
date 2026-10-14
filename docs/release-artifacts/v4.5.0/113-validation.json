@@ -1,0 +1,708 @@
+{
+  "schema": "media-server.v450.r113.validation.v1",
+  "status": "FAIL_MIXED_FIXTURE_SEGMENT_BOUND",
+  "memoryP0": "OPEN",
+  "release": "HOLD",
+  "models": {
+    "requestedMain": "gpt-6-astra/high",
+    "requestedIndependent": "gpt-6-astra/high",
+    "mainToolAccepted": null,
+    "independentToolAccepted": "followup_task accepted existing separate reviewer; no model/effort override exposed",
+    "actualRuntimeModelEffort": null
+  },
+  "candidate": {
+    "head": "91ed45e4151c6d805115a07d052be67c60f78735",
+    "fixtureProfile": "continuous-r98",
+    "fixtureProfileSourceSha256": "b00aca6fcd26e215602903bc5596e311e694f88a3fae56d14cdd71b38e7de374",
+    "tree": "cb3f587018e3a85ca27c7d41acf563df1a8ca288",
+    "sourceSha256": "093872cd4ab4807fb95bdacbfaf87082a6ebafe9b1f9a2d4e579faf83929beca",
+    "binarySha256": "4da2c9ced46ea7f11d6d22fc8bc4930b80beadae2b767dbd423e46282d00a317"
+  },
+  "runtimeSha256": "f7929d3133e296248c52881afd295bae9abd5e4c138c6294d676cb4a1684b6f4",
+  "productChange": false,
+  "reused": {
+    "R111": "direct HTTP C12 PASS and LRU/index code unchanged; old mixed FAIL not replaced",
+    "R112": "SoftwareOnly avdec_h264 maxthreads1 exact sample/direct package/readback and platform regression unchanged",
+    "bindings": "existing111/112 code review/producer/coverage reused in unchanged range; no new inventory/fixture/collector change, no repeated986 producer"
+  },
+  "execution": {
+    "command": [
+      "bash",
+      "/Users/dhseo/Workspace/mediaServer/scripts/internal/verify_v450_recording_a_mixed.sh",
+      "--contention-diagnostic"
+    ],
+    "observationSeconds": 900,
+    "timeoutSeconds": 1080,
+    "status": "FAIL",
+    "exit": 1,
+    "timedOut": false,
+    "executionElapsedSeconds": 778.4846727079712,
+    "totalWithFinalBindingSeconds": 778.8899448751472,
+    "processGroupAbsent": true,
+    "registeredGroupsAbsent": true,
+    "cleanupErrors": []
+  },
+  "runCount": 1,
+  "sourceUnchanged": true,
+  "profile": {
+    "name": "continuous-r98",
+    "continuousMaxBytes": 91226112,
+    "eventMaxBytes": 134217728,
+    "continuousMaxAgeMs": 10800000,
+    "eventMaxAgeMs": 10800000,
+    "segmentBytes": 36864,
+    "protectedFiles": 643,
+    "E": 67108864,
+    "H": 23703552,
+    "P": 36864,
+    "M": 376832,
+    "inputNormalizedSha256": "baebad5cad233243c4748f6bfec06fa5d2da7f06ae9b1475c9b20bfbfb04e2e7"
+  },
+  "firstFailure": {
+    "callsite": "v450_recording_a_mixed.mjs:176 drain, before progress.consume",
+    "limitBytes": 36864,
+    "actualFileBytes": 37606,
+    "excessBytes": 742,
+    "sha256": "ad4f3163d70b56ae0d65ac58c04a14d370084ac3bbdbd2d374610c371cda74ef",
+    "member": "after900/media-server-current-observer-yqaE8x/recordings/9201/0a8a08c2-7a84-4868-84be-8f4185db9e78.mp4",
+    "rawJournal": "active-9.jsonl:45 compressed finalized mutation; decoded analysis failure-segment-binding.json",
+    "classification": "fixture segment-size contract rejection; not proven decoder/timeout/RAM/workspace failure",
+    "causeOfSize": "not diagnosed; no product/fixture modifications or rerun authorized"
+  },
+  "http": {
+    "count": 204,
+    "p95ms": 2429.2420000000857,
+    "maxMs": 2814.4589590000687,
+    "scope": "original successful mixed array; A helper excluded",
+    "clients": [
+      51,
+      51,
+      51,
+      51
+    ],
+    "unavailable": 0,
+    "timeoutObserved": 0,
+    "finalLatencyGate": "not-run",
+    "visual": {
+      "count": 102,
+      "p95ms": 2510.6612500000047,
+      "maxMs": 2814.4589590000687
+    },
+    "structured": {
+      "count": 102,
+      "p95ms": 1874.030209000106,
+      "maxMs": 2060.328582999995
+    },
+    "orderingProof": "consumer appends visual pair then structured pair; zero unavailable;51 pairs each"
+  },
+  "evidence": {
+    "cycles": 50,
+    "createComplete": 50,
+    "createPartial": 0,
+    "createSuccess": 50,
+    "createBusy": 50,
+    "visualCreated": 50,
+    "visualExpired": 0,
+    "retainedChecks": 100,
+    "windows": [
+      {
+        "structured": 380,
+        "visual": 760,
+        "evidence": 19,
+        "visualEvidence": 19
+      },
+      {
+        "structured": 400,
+        "visual": 800,
+        "evidence": 20,
+        "visualEvidence": 20
+      },
+      {
+        "structured": 220,
+        "visual": 440,
+        "evidence": 11,
+        "visualEvidence": 11
+      }
+    ]
+  },
+  "A": {
+    "scheduled": 13,
+    "states": [
+      "completed",
+      "completed",
+      "completed",
+      "completed",
+      "completed",
+      "completed",
+      "completed",
+      "completed",
+      "completed",
+      "completed",
+      "completed",
+      "completed",
+      "completed"
+    ]
+  },
+  "progress": [
+    {
+      "label": "early0-300",
+      "samples": 60,
+      "lastProgress": {
+        "elapsedMs": 295480.94254099997,
+        "channels": {
+          "9101": {
+            "finalized": 147,
+            "deleted": 0,
+            "lastAt": 304412.863333,
+            "order": "295",
+            "store": "a903b2204ca2fc515b84d442ca8e32007b64f8cda14edf97b919b069306546f9",
+            "knownMappings": 96,
+            "unknownMappings": 5930
+          },
+          "9201": {
+            "finalized": 147,
+            "deleted": 0,
+            "lastAt": 304412.863333,
+            "order": "294",
+            "store": "a903b2204ca2fc515b84d442ca8e32007b64f8cda14edf97b919b069306546f9",
+            "knownMappings": 94,
+            "unknownMappings": 6014
+          }
+        },
+        "records": 294,
+        "logicalBytes": 175255
+      }
+    },
+    {
+      "label": "middle300-600",
+      "samples": 60,
+      "lastProgress": {
+        "elapsedMs": 595709.878625,
+        "channels": {
+          "9101": {
+            "finalized": 296,
+            "deleted": 0,
+            "lastAt": 604641.799417,
+            "order": "593",
+            "store": "a903b2204ca2fc515b84d442ca8e32007b64f8cda14edf97b919b069306546f9",
+            "knownMappings": 191,
+            "unknownMappings": 11830
+          },
+          "9201": {
+            "finalized": 296,
+            "deleted": 0,
+            "lastAt": 604641.799417,
+            "order": "592",
+            "store": "a903b2204ca2fc515b84d442ca8e32007b64f8cda14edf97b919b069306546f9",
+            "knownMappings": 187,
+            "unknownMappings": 11850
+          }
+        },
+        "records": 592,
+        "logicalBytes": 353021
+      }
+    },
+    {
+      "label": "late600-unfinished",
+      "samples": 32,
+      "lastProgress": {
+        "elapsedMs": 757257.684208,
+        "channels": {
+          "9101": {
+            "finalized": 366,
+            "deleted": 0,
+            "lastAt": 766189.605,
+            "order": "731",
+            "store": "a903b2204ca2fc515b84d442ca8e32007b64f8cda14edf97b919b069306546f9",
+            "knownMappings": 241,
+            "unknownMappings": 13514
+          },
+          "9201": {
+            "finalized": 365,
+            "deleted": 0,
+            "lastAt": 766189.605,
+            "order": "732",
+            "store": "a903b2204ca2fc515b84d442ca8e32007b64f8cda14edf97b919b069306546f9",
+            "knownMappings": 231,
+            "unknownMappings": 13514
+          }
+        },
+        "records": 731,
+        "logicalBytes": 435970
+      }
+    }
+  ],
+  "observation": {
+    "outputSamples": 152,
+    "summarySamples": 153,
+    "lastPrintedMainElapsedMs": 757257.684208,
+    "failureSample": "sample153 pushed process metrics before drain failure; no full current-observation or workspace admission for this sample; missing operands not reconstructed",
+    "summary": {
+      "status": "observed",
+      "resourceTrendPass": false,
+      "reviewRequired": true,
+      "sampleCount": 153,
+      "groups": [
+        {
+          "pid": 75461,
+          "startIdentity": "macos:1791966147:318245",
+          "sampleCount": 153,
+          "first": {
+            "phaseAt": 9155.179625,
+            "sampledAt": 1791966153725,
+            "rssBytes": 3176185856,
+            "threadCount": 38,
+            "fdCount": 34,
+            "mutationCount": 6
+          },
+          "last": {
+            "phaseAt": 771192.903292,
+            "sampledAt": 1791966915765,
+            "rssBytes": 2111455232,
+            "threadCount": 38,
+            "fdCount": 31,
+            "mutationCount": 1467
+          },
+          "max": {
+            "rssBytes": 3207544832,
+            "threadCount": 42,
+            "fdCount": 44
+          },
+          "delta": {
+            "rssBytes": -1064730624,
+            "threadCount": 0,
+            "fdCount": -3,
+            "mutationCount": 1461
+          },
+          "elapsedMs": 762037.723667,
+          "maxGapMs": 5955.702707999968,
+          "warmupMs": 300000,
+          "postWarmup": {
+            "status": "observed",
+            "sampleCount": 93,
+            "delta": {
+              "rssBytes": 50692096,
+              "threadCount": -4,
+              "fdCount": -5,
+              "mutationCount": 865
+            },
+            "elapsedMs": 461776.57283399993,
+            "rssMiBPerMinute": 6.281446852529525
+          }
+        }
+      ]
+    },
+    "sampledMax": {
+      "rssBytes": 3207544832,
+      "footprintBytes": 3158871304,
+      "fdCount": 44,
+      "anonymousFileBytes": 38658560,
+      "anonymousAllocatedBytes": 39571456
+    },
+    "rootFileMaxBytes": 102211717,
+    "nonAtomicSpace": "root and anonymous are sequential; separate maxima not summed as simultaneous peak",
+    "allPrintedFdComplete": true
+  },
+  "productOwner": {
+    "status": "captured",
+    "count": 156,
+    "final": {
+      "pid": 75461,
+      "seq": 155,
+      "phase": "after-storage-destruction",
+      "elapsedMs": 768978,
+      "ram": 0,
+      "ramPeak": 412350710,
+      "ramLimit": 671088640,
+      "ramRejected": 0,
+      "scratchDisk": 0,
+      "scratchDiskPeak": 105156608,
+      "scratchDiskLimit": 154499575808,
+      "scratchFd": 0,
+      "scratchFdPeak": 17,
+      "scratchFdLimit": 1048572,
+      "scratchRam": 0,
+      "preservedDisk": 0,
+      "preservedFd": 0,
+      "readerCleanupHealthy": true
+    },
+    "scope": "actual shared product owner; logical charges, not total heap or RSS; sequential counter reads"
+  },
+  "decoder": {
+    "scope": "3 bounded representative success records, not all calls",
+    "summary": {
+      "status": "captured",
+      "mode": "bounded",
+      "required": true,
+      "records": 3,
+      "successes": 3,
+      "failures": 0,
+      "issues": []
+    },
+    "frames": [
+      {
+        "succeeded": true,
+        "target": 0,
+        "policy": "automatic",
+        "elapsedUs": 109020,
+        "first": "",
+        "lastPts": 0,
+        "lastStream": 0,
+        "found": 1,
+        "factories": [
+          {
+            "kind": "factory",
+            "a": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "text": "appsrc:app:1.28.1"
+          },
+          {
+            "kind": "factory",
+            "a": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "text": "decodebin:playback:1.28.1"
+          },
+          {
+            "kind": "factory",
+            "a": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "text": "typefind:coreelements:1.28.1"
+          },
+          {
+            "kind": "factory",
+            "a": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "text": "videoconvert:videoconvertscale:1.28.1"
+          },
+          {
+            "kind": "factory",
+            "a": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "text": "appsink:app:1.28.1"
+          },
+          {
+            "kind": "factory",
+            "a": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "text": "qtdemux:isomp4:1.28.1"
+          },
+          {
+            "kind": "factory",
+            "a": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "text": "multiqueue:coreelements:1.28.1"
+          },
+          {
+            "kind": "factory",
+            "a": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "text": "h264parse:videoparsersbad:1.28.1"
+          },
+          {
+            "kind": "factory",
+            "a": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "text": "capsfilter:coreelements:1.28.1"
+          },
+          {
+            "kind": "factory",
+            "a": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "text": "vtdec_hw:applemedia:1.28.1"
+          }
+        ]
+      },
+      {
+        "succeeded": true,
+        "target": 966666667,
+        "policy": "software-only",
+        "elapsedUs": 54713,
+        "first": "",
+        "lastPts": 966666666,
+        "lastStream": 966666666,
+        "found": 1,
+        "factories": [
+          {
+            "kind": "factory",
+            "a": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "text": "appsrc:app:1.28.1"
+          },
+          {
+            "kind": "factory",
+            "a": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "text": "decodebin:playback:1.28.1"
+          },
+          {
+            "kind": "factory",
+            "a": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "text": "typefind:coreelements:1.28.1"
+          },
+          {
+            "kind": "factory",
+            "a": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "text": "videoconvert:videoconvertscale:1.28.1"
+          },
+          {
+            "kind": "factory",
+            "a": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "text": "appsink:app:1.28.1"
+          },
+          {
+            "kind": "factory",
+            "a": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "text": "qtdemux:isomp4:1.28.1"
+          },
+          {
+            "kind": "factory",
+            "a": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "text": "multiqueue:coreelements:1.28.1"
+          },
+          {
+            "kind": "factory",
+            "a": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "text": "h264parse:videoparsersbad:1.28.1"
+          },
+          {
+            "kind": "factory",
+            "a": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "text": "capsfilter:coreelements:1.28.1"
+          },
+          {
+            "kind": "factory",
+            "a": 1,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "text": "avdec_h264:libav:1.28.1"
+          }
+        ]
+      },
+      {
+        "succeeded": true,
+        "target": 0,
+        "policy": "automatic",
+        "elapsedUs": 9175,
+        "first": "",
+        "lastPts": 0,
+        "lastStream": 0,
+        "found": 1,
+        "factories": [
+          {
+            "kind": "factory",
+            "a": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "text": "appsrc:app:1.28.1"
+          },
+          {
+            "kind": "factory",
+            "a": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "text": "decodebin:playback:1.28.1"
+          },
+          {
+            "kind": "factory",
+            "a": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "text": "typefind:coreelements:1.28.1"
+          },
+          {
+            "kind": "factory",
+            "a": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "text": "videoconvert:videoconvertscale:1.28.1"
+          },
+          {
+            "kind": "factory",
+            "a": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "text": "appsink:app:1.28.1"
+          },
+          {
+            "kind": "factory",
+            "a": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "text": "qtdemux:isomp4:1.28.1"
+          },
+          {
+            "kind": "factory",
+            "a": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "text": "multiqueue:coreelements:1.28.1"
+          },
+          {
+            "kind": "factory",
+            "a": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "text": "h264parse:videoparsersbad:1.28.1"
+          },
+          {
+            "kind": "factory",
+            "a": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "text": "capsfilter:coreelements:1.28.1"
+          },
+          {
+            "kind": "factory",
+            "a": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "text": "vtdec_hw:applemedia:1.28.1"
+          }
+        ]
+      }
+    ]
+  },
+  "collection": {
+    "serverBytes": 499064,
+    "capturedBytes": 499064,
+    "overflow": false,
+    "frameSummary": {
+      "status": "captured",
+      "mode": "bounded",
+      "required": true,
+      "records": 3,
+      "successes": 3,
+      "failures": 0,
+      "issues": []
+    },
+    "visualSummary": "102 started/completed; all rows captured; distinct from204 HTTP successes",
+    "holder": "slow-first selected request only, not all requests",
+    "recordingState": "6 events captured",
+    "spaceFailure": "none reported; sample153 workspace admission not reached"
+  },
+  "termination": {
+    "explicitDisable": "not-run",
+    "closedJournalAssertion": "not-run",
+    "finalSampleCoverageGate": "not-run",
+    "finallyProcessCleanup": [
+      {
+        "schema": "recording-process-cleanup-v1",
+        "attemptCount": 1,
+        "pid": 75461,
+        "exitCode": 0,
+        "signalCode": null,
+        "exitedObserved": true,
+        "stopCode": "complete",
+        "forcedTermination": "not-used",
+        "normalExitPass": true,
+        "normalShutdownPass": true,
+        "archiveSafe": true,
+        "ports": [
+          {
+            "kind": "http",
+            "port": 61639,
+            "status": "pass",
+            "code": "closed",
+            "closed": true
+          },
+          {
+            "kind": "rtsp",
+            "port": 61640,
+            "status": "pass",
+            "code": "closed",
+            "closed": true
+          }
+        ]
+      }
+    ],
+    "processesClosed": true,
+    "udpClosed": true
+  },
+  "verdict": {
+    "900": "FAIL incomplete",
+    "finalLatencyGate": "not-run; partial204 p95 exceeds2000ms",
+    "explicitDisable": "not-run",
+    "closedJournal": "not-run",
+    "finally": "normal exit0, ports closed, last logical owner0",
+    "next45Eligible": false,
+    "new45": false,
+    "new120": false,
+    "QwenOllamaCalls": 0
+  },
+  "limits": [
+    "No inference that segment overflow is decoder/RAM leak/workspace failure",
+    "Exact cause of larger segment remains unconfirmed; no diagnostics/retry/fix after failure",
+    "112 sampled factory record is representative, not all decoder calls",
+    "Sequential RSS/footprint/FD/file samples are not instantaneous peaks or heap leak proof",
+    "No reconstructed153rd full sample; no final900coverage or future lifecycle gates",
+    "No new platform regression; existing111/112 immutable code evidence reused"
+  ],
+  "preservation": {
+    "archive": "113-execution.tar.gz",
+    "sha256": "15d32680fd7ef560831e95c32246a9eba13435fad83a849d1a65957b8ecc52ab",
+    "bytes": 30863200,
+    "payloadMembers": 941,
+    "payloadBytes": 66948091,
+    "readbackMismatches": 0,
+    "scope": "new synthetic owned run; private server log URL-redacted with original hashes; generated credentials/settings/cache/binaries excluded"
+  },
+  "independentReview": "113-independent-review.json",
+  "cleanup": "processes/ports closed; owned root cleanup pending remote preservation",
+  "evidenceCommit": "recorded by git history; no empty product commit"
+}

@@ -1,0 +1,37 @@
+{
+  "schema": "media-server.v450.r113.independent-result.v1",
+  "reviewer": "/root/independent_memory86",
+  "participation": "read-only review; no implementation, test writing, execution or control",
+  "requested": "gpt-6-astra/high",
+  "toolAcceptance": "followup_task accepted existing separate reviewer; no model/effort override exposed",
+  "actualRuntimeModelEffort": null,
+  "status": "CONFIRM_FAIL_NO_45_ELIGIBILITY",
+  "reviewed": [
+    "after900/execution.json",
+    "after900/run.log",
+    "failed MP4 exact bytes/hash",
+    "active-9.jsonl:45 decoded length30563 CRC55448941",
+    "launcher and consumer gate semantics"
+  ],
+  "findings": [
+    "37606B versus36864B exceeds742B; file/journal hash matches; cause of larger segment not established",
+    "152 emitted complete samples; internal153rd sample pushed before drain rejection and workspace validation not reached",
+    "original204 successes partialp952429.242ms max2814.459ms unavailable0; final gate not-run",
+    "start/end source equal; finally exit0/ports closed/owner0 do not substitute explicit disable and closed journal",
+    "778.8899448751472s includes final source binding; last printed main progress757.257684208s",
+    "R111 C12 andR112 frame direct evidence remain limited valid; P0/release HOLD"
+  ],
+  "preservationReview": {
+    "status": "PASS_READ_ONLY",
+    "archiveBytes": 30863200,
+    "archiveSha256": "15d32680fd7ef560831e95c32246a9eba13435fad83a849d1a65957b8ecc52ab",
+    "payloadMembers": 941,
+    "payloadBytes": 66948091,
+    "hashAndSourceByteMismatches": 0,
+    "sanitization": "URL tokens in8 lines only; originals/transform hashes match",
+    "exclusions": "state/settings/cache/execution binaries confirmed",
+    "result": "no additional blocker for failure evidence preservation/general push",
+    "remoteAndOwnedCleanup": "pending; not executed by reviewer"
+  },
+  "recording": "main transcription of fresh independent tool message, not old R112 approval"
+}

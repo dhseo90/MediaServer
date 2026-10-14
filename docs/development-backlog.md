@@ -17,6 +17,18 @@
 
 ## v4.5.0 잔여 개발과 릴리즈 순서
 
+[113 고정112 후보의900초 혼합](release-artifacts/v4.5.0/113-validation.json)은 **FAIL**이다.
+실행1회·최종 source 결속 포함778.890초에서 `mixed-fixture-segment-bound`로 종료했다.
+9201 확정 파일/원장37606B는 기존36864B 상한을742B 초과한다. 크기 발생 원인은 미확정이며
+제품/fixture 수정·재실행은 하지 않았다. 완전 출력152표본의 마지막 본 관측은757.258초이고,
+내부153번째 표본은 drain 거부 뒤 공간 검증·전체 출력이 없다.
+원래 HTTP 성공204건의 부분p95는2429.242ms, 최대2814.459ms·unavailable0이다.
+구조화 증거50·장면 증거50·A13 완료와 finally 정상 종료·owner0은 부분 근거이며,
+최종 지연·명시 비활성화·닫힌 journal gate는 미실행이다.
+[독립 결과 판단](release-artifacts/v4.5.0/113-independent-review.json)은900 미완료와45분 진입 부적격을 확인한다.
+111 C12와112 프레임 직접 검증은 유지한다. **segment 시험 계약 차단·지속 혼합 지연·메모리P0·출시 보류**이며
+45/120분과 공개 절차는 미실행이다.
+
 [112 보존 MP4의 정확한 프레임 추출 보완](release-artifacts/v4.5.0/112-validation.json)은
 같은 원본/target에서 libav 병렬 추출의13출력·EOS 실패를 재현하고,
 SoftwareOnly avdec_h264 인스턴스의 단일 codec thread로 정확한 마지막 sample을 확인했다.
@@ -24,7 +36,7 @@ SoftwareOnly avdec_h264 인스턴스의 단일 codec thread로 정확한 마지�
 macOS 실제 v1 PNG/package·별도 readback·동시201/busy503·실패 미게시와 비특권 Linux 관련 회귀를 통과했다.
 [독립 판단](release-artifacts/v4.5.0/112-independent-review.json)은 이 한정 변경을 채택한다.
 과거 snapshot/hit ID 복원이나 누락된 참조 프레임 전체 복구는 입증하지 않는다.
-111 직접 C12 PASS·혼합 FAIL·부분p95 2408.558ms는 유지하며 **새900/45/120 미실행·지속 혼합 지연·메모리P0·출시 보류**다.
+111 직접 C12 PASS·혼합 FAIL·부분p95 2408.558ms는 유지하며 **112 당시 새900/45/120 미실행·지속 혼합 지연·메모리P0·출시 보류**다.
 
 [111 장면 cache 수명·색인 중복 순회 보완](release-artifacts/v4.5.0/111-validation.json)은
 현재 원문 인증과16MiB 예산을 유지한 LRU 및 전체 retention 검증·장면 key 수집 통합을 채택했다.
