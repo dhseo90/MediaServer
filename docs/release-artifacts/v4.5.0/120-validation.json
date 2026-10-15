@@ -2566,9 +2566,64 @@
     "scope": "user config/private95backup/models/SDK/auth/home/cache/binaries and duplicated117seed excluded; old evidence unchanged; no redaction needed in selected logs"
   },
   "cleanup": {
-    "ownedRoot": "/private/tmp/media-server-r120-6pszfh0_",
-    "state": "pending archive/remote-byte verification",
-    "excluded": "userconfig/private95backup/modelsSDK/other runs"
+    "status": "PASS",
+    "root": "/private/tmp/media-server-r120-6pszfh0_",
+    "verifiedRootIdentity": {
+      "dev": 16777232,
+      "ino": 174856685,
+      "uid": 501
+    },
+    "removed": {
+      "files": 12730,
+      "bytes": 1370229335,
+      "symlinks": 0,
+      "directories": 354
+    },
+    "rootAbsent": true,
+    "processesAndPorts": {
+      "pidsAbsent": [
+        45575,
+        47627,
+        40760,
+        38960,
+        46588,
+        39886,
+        44329,
+        45259,
+        42151,
+        45117,
+        42475,
+        46650,
+        46491,
+        44222,
+        46251,
+        39976,
+        40883,
+        39062,
+        45614,
+        47527
+      ],
+      "portsAbsent": [
+        55721,
+        54918,
+        55089,
+        54596,
+        55511,
+        54118,
+        54284,
+        53913,
+        55185
+      ],
+      "psExit": 1,
+      "lsofExit": 1,
+      "ownedContainersAbsent": [
+        "media-server-r120-linux",
+        "media-server-r120-linux2",
+        "media-server-r120-linux3",
+        "media-server-r120-linux4"
+      ]
+    },
+    "scope": "exact ownedR120root after remote actual-byte verification; no symlink target followed; userconfig/private95backup/modelsSDK untouched; repository build products retained"
   },
   "remaining": [
     "original12 latency; first-wave shared-lock wait largely unattributed",
@@ -2578,6 +2633,42 @@
   ],
   "implementationCommit": "ddf0ebd4d39f01f7fe4d69ac5a3575b89c152075",
   "remote": {
-    "state": "pending authorized ordinary push"
+    "status": "PASS",
+    "localHead": "fc216ef20d6987a9bda427794d736108ad46f91c",
+    "remoteHead": "fc216ef20d6987a9bda427794d736108ad46f91c",
+    "method": "exact-commit GitHub content metadata and decoded Git blob actual bytes compared",
+    "files": [
+      {
+        "path": "docs/release-artifacts/v4.5.0/120-execution.tar.gz",
+        "bytes": 30557841,
+        "sha256": "ddb9ab7edd6223c6f3c9a03273c4f08f99eb47a7caed912f64b4674bfbe9dbdb",
+        "sameBytes": true
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/120-validation.json",
+        "bytes": 66449,
+        "sha256": "bf32865a6a150b7fb846f1f494b705b798fda15e2b5d5b25e321a4980f8c4df2",
+        "sameBytes": true
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/120-independent-review.json",
+        "bytes": 2403,
+        "sha256": "e63f3d4b2c9aeb3bc52da5a3ac88685011f9c4a9379220a2718e08ba7ff5110c",
+        "sameBytes": true
+      },
+      {
+        "path": "docs/development-backlog.md",
+        "bytes": 41162,
+        "sha256": "02e6ede826f1dafa4bec3c94822fe0e3378e1059940b90ab401632b6ea1b4750",
+        "sameBytes": true
+      },
+      {
+        "path": "docs/release-notes-v4.5.0.md",
+        "bytes": 15216,
+        "sha256": "17b74e27221dbe83266c5c08f497f97e0d9a7b6d5dbe17bdf675713c7ae4defc",
+        "sameBytes": true
+      }
+    ],
+    "scope": "Evidence commit verified before owned cleanup; cleanup metadata committed afterward, final branch SHA separately confirmed after ordinary push."
   }
 }
