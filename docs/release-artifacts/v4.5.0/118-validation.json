@@ -1,0 +1,2083 @@
+{
+  "schema": "media-server.v450.r118.validation.v1",
+  "status": "PARTIAL_RETENTION_IMPROVEMENT_DIRECT_HTTP_FAIL",
+  "memoryP0": "OPEN",
+  "release": "HOLD",
+  "baseHead": "ff4db26b3ba9c8ecd6585d00549aab9539b05f73",
+  "models": {
+    "requestedMain": "gpt-6-astra/high",
+    "requestedIndependent": "gpt-6-astra/high",
+    "mainToolAccepted": null,
+    "independentToolAccepted": "gpt-6-astra/high",
+    "actualMainRuntime": null,
+    "actualIndependentRuntime": null,
+    "reviewer": "/root/independent_r118",
+    "runtimeNote": "미노출 actual model/effort는 미확인; 이번 별도 검토자 spawn 수락과 실제 runtime 구분"
+  },
+  "source": {
+    "head": "ff4db26b3ba9c8ecd6585d00549aab9539b05f73",
+    "files": {
+      "docs/project-feature-test-inventory.md": "fdd5c538b378d46da3accc5a71c9af8b27fbbb88e44e0638cc9b8eb95075cd3d",
+      "include/core/shared_stream.h": "27bd3618b7803f1a475e473c3733b4bd94ec7aeb213a685e9ac8ec62655a48fc",
+      "include/recording/retention_coordinator.h": "58dae960465dd3cec12a57216673e3e187ebcb254d2889bc0510edc519716d15",
+      "scripts/internal/recording_degraded_http_smoke.cpp": "3f1706a5a43eb4571806ee001b8d49620ffca544884684b7fa4c8c35a16e0cdd",
+      "scripts/internal/recording_derived_jobs_smoke.cpp": "6308bc706162ab06183ccea7fff9ff18a5bd83d61bdfc5be69955c416b51f707",
+      "scripts/internal/recording_retention_smoke.cpp": "1972c81e42741b53bd77686d6ba3e20da309421524f57276a1b6262bb560e657",
+      "scripts/internal/recording_retention_v2_smoke.cpp": "8d2921880b26ac5e13ff7592df0291361f2e81ee9775ca12d26b3adcb138c99b",
+      "src/core/shared_stream.cpp": "487220e9425706cc2956d59f1a8c0d2d0fbb50ee99fc76e20c023d3a8a1c8d29",
+      "src/recording/gstreamer_segment_writer.cpp": "583d9568a6e0e0cd2236bc11b16611e1e7aa871758912f9dc94fc39fdeb02f74",
+      "src/recording/retention_coordinator.cpp": "a8d953ce9f829e81fc5bca1af682f11db1c16c39e6d7b5a10571721e5dd80805",
+      "scripts/internal/recording_source_http_fixture.h": "c8812ead440048aff858f5c271a2bdee3ef7f36d1371485f89ea038f5287b425"
+    },
+    "runtimeSha256": "b7d97fbb5fa5ece11cb61426ef039cea6bfa07cab12ac966e3bf2f4bfeadd308",
+    "productSha256": "4421d9da3d76a6ce98f781b51ca212cdc32f5a77a68d4b0ddba4b11bd3603780",
+    "performanceBinarySha256": "e7b3ef64e996a105e40485a5783b549e7bd95aa228bdf949b57bb3917bd79ca4",
+    "freezeNote": "Shared small/large ran same runtime/HTTP source; later only retention V2 test nonempty multi-channel assertion and inventory added. No product/HTTP changes after performance.",
+    "archiveSha256FieldNote": "direct execution.json archiveSha256 is static runtime .a SHA256, not R117 evidence tar; legacy field name preserved"
+  },
+  "prior117": {
+    "status": "FAIL_FINAL_SEARCH_LATENCY_UNCHANGED",
+    "requests": 240,
+    "p95Ms": 2548.861417,
+    "maxMs": 2943.791916,
+    "requestOrderThirdsP95Ms": [
+      1167.960625,
+      2068.557708,
+      2716.333916
+    ],
+    "deliveryLossLogLines": 128,
+    "interSegmentGaps": 69,
+    "intraSegmentOrdinalGaps": 0,
+    "scope": "order thirds are not exact five-minute windows; capped logs do not count all drops; no historical queue timestamps reconstructed",
+    "selectedRequest70": {
+      "catalogWaitMs": 1318.034828,
+      "accountedHolderOverlapMs": 528.213823,
+      "unattributedMs": 789.821005,
+      "rawAnalysis": "prior117/holder-callsite-analysis.json in existing owned analysis; selected computed summary retained in analysis file",
+      "finding": "Visual source/validation and index reads dominate selected repeated holds; writer bound-finalize wait visible. Does not establish historical gap cause."
+    }
+  },
+  "changes": [
+    {
+      "boundary": "reservation progress/completion",
+      "change": "admission_mu continues to serialize new admission and periodic pass; separate reservation_mu protects maps and physical free/outstanding capture",
+      "proof": "snapshot latch completion formerly blocked; corrected 64 assertions then final65; old-free/current-reservation mismatch rejected; durable snapshot precedes free reading; derived 검사는 provider 순서와 정적 durable outstanding 거부이며 동시 파일쓰기 경합 실행 아님",
+      "scope": "no new async queue, no weaker durability or fsync, no source blocking/drop policy change"
+    },
+    {
+      "boundary": "periodic retention",
+      "change": "one authenticated All snapshot per serialized pass shared across channel Plan; pre-cut event quota bound and fresh physical free/reservations per channel",
+      "proof": "two-channel call count5→4; actual four-file two-channel pin/delete expectations; mandatory Apply authority retained",
+      "riskLimit": "All candidate vector can retain more channels simultaneously than Channel selection; existing reservation admission still applies; long snapshot/admission remains"
+    },
+    {
+      "boundary": "bounded diagnostics",
+      "change": "Recorder queue delay/input gaps/callback totals and twelve writer phase counters; shutdown output outside locks",
+      "scope": "fixed counters,8-byte enqueue timestamp per queued packet; inclusive elapsed notCPU; no full event timeline or packet payload trace; no new operational cap"
+    }
+  ],
+  "causality": {
+    "confirmed": "same synchronous Recorder callback waits for admission and reservation release; latch isolates avoidable release wait behind snapshot. Periodic whole namespace capture repeated per channel. EOS/fsync measured small in this fixture, not assumed5sec.",
+    "notConfirmed": "No exact mapping of117 gaps to these phases; search and Recorder share Catalog/retention work but remaining search latency not explained or fixed by release split. No claim of one common root cause.",
+    "finalRemaining": "admission maxima1.610/1.860sec; callback maxima2.170/2.904sec; live auxiliary publication receive failure; original12 p95FAIL2939.48ms"
+  },
+  "directContract": {
+    "source": "actual FileSource→SharedStream→Recorder→writer→file evidence with bounded Analysis peer oracle; two channels; 1200AU target each and exact observed stop-boundary extras",
+    "small": "120AU/channel initial fixture then same normal source run",
+    "large": "R117 closed868MP4/ledger/cache copied into exclusive root; seed-binding hash map; reopen is not live cache/reader restoration",
+    "profile": "continuous-r114 channel108MiB/default64MiB reserve; original resource guards;2visual+2structured and1sec index/retention",
+    "requests": "three waves at source+2/+4/+6sec; visual limit20, structured1792000000000..1792100000000/includeUnplaced=true; auxiliary publication limit200 not in12 population",
+    "limits": "source-progress55sec; actual wrapper cycle630sec includes model/preparation; HTTP5sec;12 p95=max≤2000ms; max≤5000ms;4MiB log; existing observer phase model8GiB/live448MiB",
+    "repeatPlan": "one small/large per product candidate; earlier fixture/compile failures retained separately; no repeat unchanged performance candidate for better result",
+    "differences": "new UUID/time and stop boundary counts differ; source UTC unknown unlike117 mapped live source; no continuous evidence/A in direct HTTP test; preloaded persistent cache not identical live state; single-run order/cache/scheduling limitation",
+    "oracleLimit": "generation/ordinal/PTS accepted-set proof; recorded AU hash not compared against all final evidence bytes; no exhaustive top-k or every frame decode claim",
+    "statusRetentionLimit": "raw R107-http records have ms/body, not wire status; large exception prevents final failures=0 summary.12 completed success-shaped bodies confirmed, explicit all200 cannot independently be restored."
+  },
+  "comparison": {
+    "aligned-small": {
+      "exit": 0,
+      "elapsedSeconds": 53.41184441698715,
+      "originalHttpRequests": 12,
+      "p95Ms": 362.685,
+      "maxMs": 362.685,
+      "source": [
+        "[R118-source] expected=242 accepted=242 files=5 fullAcceptance=1",
+        "[R118-source] expected=2401 accepted=2401 files=41 fullAcceptance=1"
+      ],
+      "recorder": [
+        {
+          "enqueued": 120,
+          "dequeued": 120,
+          "dropped": 0,
+          "payloadBytes": 66504,
+          "maxDepth": 1,
+          "maxBytes": 1745,
+          "firstNs": 75480459,
+          "lastNs": 4051703417,
+          "minInputGapNs": 24252333,
+          "maxInputGapNs": 43065333,
+          "queueWaitNs": 44468459,
+          "maxQueueWaitNs": 42322750,
+          "callbackNs": 99940704,
+          "maxCallbackNs": 74761292
+        },
+        {
+          "enqueued": 122,
+          "dequeued": 122,
+          "dropped": 0,
+          "payloadBytes": 68739,
+          "maxDepth": 2,
+          "maxBytes": 1745,
+          "firstNs": 80887584,
+          "lastNs": 4121638459,
+          "minInputGapNs": 24898292,
+          "maxInputGapNs": 42432042,
+          "queueWaitNs": 48346748,
+          "maxQueueWaitNs": 32615334,
+          "callbackNs": 127628208,
+          "maxCallbackNs": 68273458
+        },
+        {
+          "enqueued": 1200,
+          "dequeued": 1200,
+          "dropped": 0,
+          "payloadBytes": 665040,
+          "maxDepth": 3,
+          "maxBytes": 1745,
+          "firstNs": 10429940792,
+          "lastNs": 50466795376,
+          "minInputGapNs": 16084208,
+          "maxInputGapNs": 43303167,
+          "queueWaitNs": 715148121,
+          "maxQueueWaitNs": 78579208,
+          "callbackNs": 1438953917,
+          "maxCallbackNs": 114426500
+        },
+        {
+          "enqueued": 1201,
+          "dequeued": 1201,
+          "dropped": 0,
+          "payloadBytes": 666785,
+          "maxDepth": 3,
+          "maxBytes": 1745,
+          "firstNs": 10434907709,
+          "lastNs": 50523579667,
+          "minInputGapNs": 23354000,
+          "maxInputGapNs": 43291958,
+          "queueWaitNs": 466199167,
+          "maxQueueWaitNs": 74783750,
+          "callbackNs": 1202148437,
+          "maxCallbackNs": 103853041
+        }
+      ],
+      "writerStages": [
+        {
+          "stage": "push",
+          "calls": 120,
+          "totalNs": 98915125,
+          "maxNs": 74756292
+        },
+        {
+          "stage": "open",
+          "calls": 2,
+          "totalNs": 20514167,
+          "maxNs": 17837625
+        },
+        {
+          "stage": "writer-binding",
+          "calls": 2,
+          "totalNs": 18398792,
+          "maxNs": 16737167
+        },
+        {
+          "stage": "admission",
+          "calls": 2,
+          "totalNs": 1298749,
+          "maxNs": 756166
+        },
+        {
+          "stage": "finalize",
+          "calls": 2,
+          "totalNs": 109891792,
+          "maxNs": 56895708
+        },
+        {
+          "stage": "eos",
+          "calls": 2,
+          "totalNs": 1082333,
+          "maxNs": 718875
+        },
+        {
+          "stage": "fsync",
+          "calls": 2,
+          "totalNs": 899625,
+          "maxNs": 624375
+        },
+        {
+          "stage": "hash",
+          "calls": 2,
+          "totalNs": 806875,
+          "maxNs": 551250
+        },
+        {
+          "stage": "file-evidence",
+          "calls": 2,
+          "totalNs": 4958209,
+          "maxNs": 2776625
+        },
+        {
+          "stage": "ready-ticket",
+          "calls": 2,
+          "totalNs": 5962167,
+          "maxNs": 3119417
+        },
+        {
+          "stage": "durable-commit",
+          "calls": 2,
+          "totalNs": 94907084,
+          "maxNs": 48446375
+        },
+        {
+          "stage": "release",
+          "calls": 2,
+          "totalNs": 7541,
+          "maxNs": 4333
+        },
+        {
+          "stage": "push",
+          "calls": 122,
+          "totalNs": 126863255,
+          "maxNs": 68271917
+        },
+        {
+          "stage": "open",
+          "calls": 3,
+          "totalNs": 7145749,
+          "maxNs": 2754833
+        },
+        {
+          "stage": "writer-binding",
+          "calls": 3,
+          "totalNs": 4467209,
+          "maxNs": 1629542
+        },
+        {
+          "stage": "admission",
+          "calls": 3,
+          "totalNs": 1883500,
+          "maxNs": 823750
+        },
+        {
+          "stage": "finalize",
+          "calls": 3,
+          "totalNs": 114045960,
+          "maxNs": 65763542
+        },
+        {
+          "stage": "eos",
+          "calls": 3,
+          "totalNs": 725833,
+          "maxNs": 281958
+        },
+        {
+          "stage": "fsync",
+          "calls": 3,
+          "totalNs": 2272416,
+          "maxNs": 2064458
+        },
+        {
+          "stage": "hash",
+          "calls": 3,
+          "totalNs": 381834,
+          "maxNs": 185875
+        },
+        {
+          "stage": "file-evidence",
+          "calls": 3,
+          "totalNs": 3720750,
+          "maxNs": 1927167
+        },
+        {
+          "stage": "ready-ticket",
+          "calls": 3,
+          "totalNs": 5541584,
+          "maxNs": 3110750
+        },
+        {
+          "stage": "durable-commit",
+          "calls": 3,
+          "totalNs": 98927499,
+          "maxNs": 58123458
+        },
+        {
+          "stage": "release",
+          "calls": 3,
+          "totalNs": 7625,
+          "maxNs": 4458
+        },
+        {
+          "stage": "push",
+          "calls": 1200,
+          "totalNs": 1434466574,
+          "maxNs": 114424459
+        },
+        {
+          "stage": "open",
+          "calls": 20,
+          "totalNs": 409577209,
+          "maxNs": 41403333
+        },
+        {
+          "stage": "writer-binding",
+          "calls": 20,
+          "totalNs": 260674332,
+          "maxNs": 21190125
+        },
+        {
+          "stage": "admission",
+          "calls": 20,
+          "totalNs": 142066834,
+          "maxNs": 31716292
+        },
+        {
+          "stage": "finalize",
+          "calls": 20,
+          "totalNs": 911903582,
+          "maxNs": 86443208
+        },
+        {
+          "stage": "eos",
+          "calls": 20,
+          "totalNs": 6353002,
+          "maxNs": 535125
+        },
+        {
+          "stage": "fsync",
+          "calls": 20,
+          "totalNs": 7972710,
+          "maxNs": 638792
+        },
+        {
+          "stage": "hash",
+          "calls": 20,
+          "totalNs": 4064500,
+          "maxNs": 570500
+        },
+        {
+          "stage": "file-evidence",
+          "calls": 20,
+          "totalNs": 39396002,
+          "maxNs": 4233334
+        },
+        {
+          "stage": "ready-ticket",
+          "calls": 20,
+          "totalNs": 44893833,
+          "maxNs": 3200375
+        },
+        {
+          "stage": "durable-commit",
+          "calls": 20,
+          "totalNs": 760542501,
+          "maxNs": 51393084
+        },
+        {
+          "stage": "release",
+          "calls": 20,
+          "totalNs": 40982126,
+          "maxNs": 40912500
+        },
+        {
+          "stage": "push",
+          "calls": 1201,
+          "totalNs": 1197890862,
+          "maxNs": 103849791
+        },
+        {
+          "stage": "open",
+          "calls": 21,
+          "totalNs": 112196833,
+          "maxNs": 15722209
+        },
+        {
+          "stage": "writer-binding",
+          "calls": 21,
+          "totalNs": 40197669,
+          "maxNs": 4887417
+        },
+        {
+          "stage": "admission",
+          "calls": 21,
+          "totalNs": 66074416,
+          "maxNs": 10571833
+        },
+        {
+          "stage": "finalize",
+          "calls": 21,
+          "totalNs": 975081625,
+          "maxNs": 94208167
+        },
+        {
+          "stage": "eos",
+          "calls": 21,
+          "totalNs": 10375875,
+          "maxNs": 5627083
+        },
+        {
+          "stage": "fsync",
+          "calls": 21,
+          "totalNs": 3190668,
+          "maxNs": 271875
+        },
+        {
+          "stage": "hash",
+          "calls": 21,
+          "totalNs": 2968209,
+          "maxNs": 246500
+        },
+        {
+          "stage": "file-evidence",
+          "calls": 21,
+          "totalNs": 33219249,
+          "maxNs": 2456250
+        },
+        {
+          "stage": "ready-ticket",
+          "calls": 21,
+          "totalNs": 41296625,
+          "maxNs": 3241791
+        },
+        {
+          "stage": "durable-commit",
+          "calls": 21,
+          "totalNs": 838751044,
+          "maxNs": 67886667
+        },
+        {
+          "stage": "release",
+          "calls": 21,
+          "totalNs": 38330583,
+          "maxNs": 14433000
+        }
+      ],
+      "explicitFinish": true,
+      "failure": [],
+      "sampleMaxima": {
+        "rssBytes": 3209428992,
+        "fdCount": 29,
+        "anonymousFileBytes": 1129472572,
+        "anonymousAllocatedBytes": 1130524672,
+        "footprintBytes": 3165687120
+      },
+      "workspaceVariableMax": 5981671,
+      "completeSamples": 53,
+      "sampleCount": 53,
+      "finalOwner": {
+        "pid": 27657,
+        "seq": 6,
+        "phase": "after-storage-destruction",
+        "elapsedMs": 51440,
+        "ram": 0,
+        "ramPeak": 162208510,
+        "ramLimit": 671088640,
+        "ramRejected": 0,
+        "scratchDisk": 0,
+        "scratchDiskPeak": 2834432,
+        "scratchDiskLimit": 162984718336,
+        "scratchFd": 0,
+        "scratchFdPeak": 6,
+        "scratchFdLimit": 1048572,
+        "scratchRam": 0,
+        "preservedDisk": 0,
+        "preservedFd": 0,
+        "readerCleanupHealthy": true
+      }
+    },
+    "bound-large": {
+      "exit": 1,
+      "elapsedSeconds": 65.53534195804968,
+      "originalHttpRequests": 12,
+      "p95Ms": 2460.61,
+      "maxMs": 2460.61,
+      "source": [
+        "[R118-source] expected=2467 accepted=2467 files=42 fullAcceptance=1"
+      ],
+      "recorder": [
+        {
+          "enqueued": 1230,
+          "dequeued": 1230,
+          "dropped": 0,
+          "payloadBytes": 681676,
+          "maxDepth": 209,
+          "maxBytes": 114843,
+          "firstNs": 12583354460,
+          "lastNs": 53624002460,
+          "minInputGapNs": 23384083,
+          "maxInputGapNs": 43323625,
+          "queueWaitNs": 3743736876541,
+          "maxQueueWaitNs": 7525244666,
+          "callbackNs": 43566446891,
+          "maxCallbackNs": 2386048583
+        },
+        {
+          "enqueued": 1237,
+          "dequeued": 1237,
+          "dropped": 0,
+          "payloadBytes": 685960,
+          "maxDepth": 130,
+          "maxBytes": 71631,
+          "firstNs": 12588470085,
+          "lastNs": 53842536293,
+          "minInputGapNs": 23358833,
+          "maxInputGapNs": 45320209,
+          "queueWaitNs": 3241993121926,
+          "maxQueueWaitNs": 4317478041,
+          "callbackNs": 44088671475,
+          "maxCallbackNs": 2718367333
+        }
+      ],
+      "writerStages": [
+        {
+          "stage": "push",
+          "calls": 1230,
+          "totalNs": 43565367386,
+          "maxNs": 2386047917
+        },
+        {
+          "stage": "open",
+          "calls": 21,
+          "totalNs": 17170894334,
+          "maxNs": 1726605750
+        },
+        {
+          "stage": "writer-binding",
+          "calls": 21,
+          "totalNs": 332330793,
+          "maxNs": 169846834
+        },
+        {
+          "stage": "admission",
+          "calls": 21,
+          "totalNs": 16830262207,
+          "maxNs": 1724275166
+        },
+        {
+          "stage": "finalize",
+          "calls": 21,
+          "totalNs": 5135422501,
+          "maxNs": 713475666
+        },
+        {
+          "stage": "eos",
+          "calls": 21,
+          "totalNs": 4632957,
+          "maxNs": 785291
+        },
+        {
+          "stage": "fsync",
+          "calls": 21,
+          "totalNs": 1790499,
+          "maxNs": 146791
+        },
+        {
+          "stage": "hash",
+          "calls": 21,
+          "totalNs": 1698957,
+          "maxNs": 107208
+        },
+        {
+          "stage": "file-evidence",
+          "calls": 21,
+          "totalNs": 20652753,
+          "maxNs": 1228292
+        },
+        {
+          "stage": "ready-ticket",
+          "calls": 21,
+          "totalNs": 24429127,
+          "maxNs": 1405917
+        },
+        {
+          "stage": "durable-commit",
+          "calls": 21,
+          "totalNs": 694844788,
+          "maxNs": 53999875
+        },
+        {
+          "stage": "release",
+          "calls": 21,
+          "totalNs": 4383463330,
+          "maxNs": 666040333
+        },
+        {
+          "stage": "push",
+          "calls": 1237,
+          "totalNs": 44087421273,
+          "maxNs": 2718366875
+        },
+        {
+          "stage": "open",
+          "calls": 21,
+          "totalNs": 21993571085,
+          "maxNs": 2048991750
+        },
+        {
+          "stage": "writer-binding",
+          "calls": 21,
+          "totalNs": 168039086,
+          "maxNs": 25598416
+        },
+        {
+          "stage": "admission",
+          "calls": 21,
+          "totalNs": 21817213291,
+          "maxNs": 2045785167
+        },
+        {
+          "stage": "finalize",
+          "calls": 21,
+          "totalNs": 6367414251,
+          "maxNs": 1934350208
+        },
+        {
+          "stage": "eos",
+          "calls": 21,
+          "totalNs": 6099957,
+          "maxNs": 1112167
+        },
+        {
+          "stage": "fsync",
+          "calls": 21,
+          "totalNs": 1652416,
+          "maxNs": 110750
+        },
+        {
+          "stage": "hash",
+          "calls": 21,
+          "totalNs": 1706626,
+          "maxNs": 108333
+        },
+        {
+          "stage": "file-evidence",
+          "calls": 21,
+          "totalNs": 20262374,
+          "maxNs": 1095208
+        },
+        {
+          "stage": "ready-ticket",
+          "calls": 21,
+          "totalNs": 25014834,
+          "maxNs": 2418000
+        },
+        {
+          "stage": "durable-commit",
+          "calls": 21,
+          "totalNs": 2155696247,
+          "maxNs": 1508507208
+        },
+        {
+          "stage": "release",
+          "calls": 21,
+          "totalNs": 4153258249,
+          "maxNs": 634404334
+        }
+      ],
+      "explicitFinish": false,
+      "failure": [
+        "[R107-fail] client receive failed"
+      ],
+      "sampleMaxima": {
+        "rssBytes": 3330670592,
+        "fdCount": 143,
+        "anonymousFileBytes": 1154731580,
+        "anonymousAllocatedBytes": 1171931136,
+        "footprintBytes": 3278966120
+      },
+      "workspaceVariableMax": 153050991,
+      "completeSamples": 65,
+      "sampleCount": 65,
+      "finalOwner": {
+        "pid": 27879,
+        "seq": 5,
+        "phase": "after-storage-destruction",
+        "elapsedMs": 63286,
+        "ram": 0,
+        "ramPeak": 400390820,
+        "ramLimit": 671088640,
+        "ramRejected": 0,
+        "scratchDisk": 0,
+        "scratchDiskPeak": 123330560,
+        "scratchDiskLimit": 162795864064,
+        "scratchFd": 0,
+        "scratchFdPeak": 17,
+        "scratchFdLimit": 1048572,
+        "scratchRam": 0,
+        "preservedDisk": 0,
+        "preservedFd": 0,
+        "readerCleanupHealthy": true
+      }
+    },
+    "reservation-small": {
+      "exit": 0,
+      "elapsedSeconds": 54.436697541037574,
+      "originalHttpRequests": 12,
+      "p95Ms": 295.4,
+      "maxMs": 295.4,
+      "source": [
+        "[R118-source] expected=242 accepted=242 files=5 fullAcceptance=1",
+        "[R118-source] expected=2401 accepted=2401 files=41 fullAcceptance=1"
+      ],
+      "recorder": [
+        {
+          "enqueued": 120,
+          "dequeued": 120,
+          "dropped": 0,
+          "payloadBytes": 66504,
+          "maxDepth": 2,
+          "maxBytes": 1745,
+          "firstNs": 85425710,
+          "lastNs": 4061651418,
+          "minInputGapNs": 23593000,
+          "maxInputGapNs": 43220625,
+          "queueWaitNs": 54470704,
+          "maxQueueWaitNs": 43997542,
+          "callbackNs": 86782581,
+          "maxCallbackNs": 71192042
+        },
+        {
+          "enqueued": 122,
+          "dequeued": 122,
+          "dropped": 0,
+          "payloadBytes": 68739,
+          "maxDepth": 2,
+          "maxBytes": 1745,
+          "firstNs": 90816376,
+          "lastNs": 4141452168,
+          "minInputGapNs": 23980834,
+          "maxInputGapNs": 42668916,
+          "queueWaitNs": 33224373,
+          "maxQueueWaitNs": 27377042,
+          "callbackNs": 123376414,
+          "maxCallbackNs": 69770917
+        },
+        {
+          "enqueued": 1200,
+          "dequeued": 1200,
+          "dropped": 0,
+          "payloadBytes": 665040,
+          "maxDepth": 3,
+          "maxBytes": 1745,
+          "firstNs": 10411824876,
+          "lastNs": 50432950585,
+          "minInputGapNs": 23281750,
+          "maxInputGapNs": 43290917,
+          "queueWaitNs": 703987654,
+          "maxQueueWaitNs": 63532375,
+          "callbackNs": 1330912088,
+          "maxCallbackNs": 97017542
+        },
+        {
+          "enqueued": 1201,
+          "dequeued": 1201,
+          "dropped": 0,
+          "payloadBytes": 666785,
+          "maxDepth": 2,
+          "maxBytes": 1745,
+          "firstNs": 10416839960,
+          "lastNs": 50488696335,
+          "minInputGapNs": 23404708,
+          "maxInputGapNs": 43324334,
+          "queueWaitNs": 507605279,
+          "maxQueueWaitNs": 61277167,
+          "callbackNs": 1200626807,
+          "maxCallbackNs": 90699041
+        }
+      ],
+      "writerStages": [
+        {
+          "stage": "push",
+          "calls": 120,
+          "totalNs": 85755754,
+          "maxNs": 71189500
+        },
+        {
+          "stage": "open",
+          "calls": 2,
+          "totalNs": 5242583,
+          "maxNs": 2799083
+        },
+        {
+          "stage": "writer-binding",
+          "calls": 2,
+          "totalNs": 3222376,
+          "maxNs": 1730167
+        },
+        {
+          "stage": "admission",
+          "calls": 2,
+          "totalNs": 1269749,
+          "maxNs": 666416
+        },
+        {
+          "stage": "finalize",
+          "calls": 2,
+          "totalNs": 120326333,
+          "maxNs": 68727917
+        },
+        {
+          "stage": "eos",
+          "calls": 2,
+          "totalNs": 791875,
+          "maxNs": 429541
+        },
+        {
+          "stage": "fsync",
+          "calls": 2,
+          "totalNs": 607168,
+          "maxNs": 442959
+        },
+        {
+          "stage": "hash",
+          "calls": 2,
+          "totalNs": 414500,
+          "maxNs": 231209
+        },
+        {
+          "stage": "file-evidence",
+          "calls": 2,
+          "totalNs": 4059042,
+          "maxNs": 2181250
+        },
+        {
+          "stage": "ready-ticket",
+          "calls": 2,
+          "totalNs": 5748875,
+          "maxNs": 2989875
+        },
+        {
+          "stage": "durable-commit",
+          "calls": 2,
+          "totalNs": 107575875,
+          "maxNs": 62251875
+        },
+        {
+          "stage": "release",
+          "calls": 2,
+          "totalNs": 4750,
+          "maxNs": 2500
+        },
+        {
+          "stage": "push",
+          "calls": 122,
+          "totalNs": 122595005,
+          "maxNs": 69764125
+        },
+        {
+          "stage": "open",
+          "calls": 3,
+          "totalNs": 19142417,
+          "maxNs": 14350875
+        },
+        {
+          "stage": "writer-binding",
+          "calls": 3,
+          "totalNs": 16282583,
+          "maxNs": 13217291
+        },
+        {
+          "stage": "admission",
+          "calls": 3,
+          "totalNs": 1974126,
+          "maxNs": 784917
+        },
+        {
+          "stage": "finalize",
+          "calls": 3,
+          "totalNs": 100759333,
+          "maxNs": 55388500
+        },
+        {
+          "stage": "eos",
+          "calls": 3,
+          "totalNs": 1174167,
+          "maxNs": 791292
+        },
+        {
+          "stage": "fsync",
+          "calls": 3,
+          "totalNs": 861875,
+          "maxNs": 596917
+        },
+        {
+          "stage": "hash",
+          "calls": 3,
+          "totalNs": 751999,
+          "maxNs": 558958
+        },
+        {
+          "stage": "file-evidence",
+          "calls": 3,
+          "totalNs": 4695084,
+          "maxNs": 3131792
+        },
+        {
+          "stage": "ready-ticket",
+          "calls": 3,
+          "totalNs": 5279708,
+          "maxNs": 2723750
+        },
+        {
+          "stage": "durable-commit",
+          "calls": 3,
+          "totalNs": 86977999,
+          "maxNs": 46986708
+        },
+        {
+          "stage": "release",
+          "calls": 3,
+          "totalNs": 9084,
+          "maxNs": 5250
+        },
+        {
+          "stage": "push",
+          "calls": 1200,
+          "totalNs": 1326251527,
+          "maxNs": 97013791
+        },
+        {
+          "stage": "open",
+          "calls": 20,
+          "totalNs": 389907499,
+          "maxNs": 37072833
+        },
+        {
+          "stage": "writer-binding",
+          "calls": 20,
+          "totalNs": 261888666,
+          "maxNs": 19497291
+        },
+        {
+          "stage": "admission",
+          "calls": 20,
+          "totalNs": 120768792,
+          "maxNs": 23770708
+        },
+        {
+          "stage": "finalize",
+          "calls": 20,
+          "totalNs": 904206874,
+          "maxNs": 79448250
+        },
+        {
+          "stage": "eos",
+          "calls": 20,
+          "totalNs": 11580040,
+          "maxNs": 5147375
+        },
+        {
+          "stage": "fsync",
+          "calls": 20,
+          "totalNs": 10235457,
+          "maxNs": 2838291
+        },
+        {
+          "stage": "hash",
+          "calls": 20,
+          "totalNs": 4512043,
+          "maxNs": 551667
+        },
+        {
+          "stage": "file-evidence",
+          "calls": 20,
+          "totalNs": 37507706,
+          "maxNs": 2920917
+        },
+        {
+          "stage": "ready-ticket",
+          "calls": 20,
+          "totalNs": 46388832,
+          "maxNs": 3336958
+        },
+        {
+          "stage": "durable-commit",
+          "calls": 20,
+          "totalNs": 785753416,
+          "maxNs": 65456625
+        },
+        {
+          "stage": "release",
+          "calls": 20,
+          "totalNs": 81247,
+          "maxNs": 5959
+        },
+        {
+          "stage": "push",
+          "calls": 1201,
+          "totalNs": 1196485658,
+          "maxNs": 90696708
+        },
+        {
+          "stage": "open",
+          "calls": 21,
+          "totalNs": 150937958,
+          "maxNs": 29978541
+        },
+        {
+          "stage": "writer-binding",
+          "calls": 21,
+          "totalNs": 65916627,
+          "maxNs": 19122250
+        },
+        {
+          "stage": "admission",
+          "calls": 21,
+          "totalNs": 78684752,
+          "maxNs": 15516083
+        },
+        {
+          "stage": "finalize",
+          "calls": 21,
+          "totalNs": 977121919,
+          "maxNs": 73918834
+        },
+        {
+          "stage": "eos",
+          "calls": 21,
+          "totalNs": 7633920,
+          "maxNs": 3327750
+        },
+        {
+          "stage": "fsync",
+          "calls": 21,
+          "totalNs": 3170790,
+          "maxNs": 288958
+        },
+        {
+          "stage": "hash",
+          "calls": 21,
+          "totalNs": 3015834,
+          "maxNs": 252833
+        },
+        {
+          "stage": "file-evidence",
+          "calls": 21,
+          "totalNs": 33854211,
+          "maxNs": 4737000
+        },
+        {
+          "stage": "ready-ticket",
+          "calls": 21,
+          "totalNs": 43020995,
+          "maxNs": 3433541
+        },
+        {
+          "stage": "durable-commit",
+          "calls": 21,
+          "totalNs": 878971544,
+          "maxNs": 67048667
+        },
+        {
+          "stage": "release",
+          "calls": 21,
+          "totalNs": 50790,
+          "maxNs": 5000
+        }
+      ],
+      "explicitFinish": true,
+      "failure": [],
+      "sampleMaxima": {
+        "rssBytes": 3207626752,
+        "fdCount": 56,
+        "anonymousFileBytes": 1129472572,
+        "anonymousAllocatedBytes": 1130528768,
+        "footprintBytes": 3163884880
+      },
+      "workspaceVariableMax": 6128211,
+      "completeSamples": 54,
+      "sampleCount": 54,
+      "finalOwner": {
+        "pid": 29258,
+        "seq": 6,
+        "phase": "after-storage-destruction",
+        "elapsedMs": 52315,
+        "ram": 0,
+        "ramPeak": 157296121,
+        "ramLimit": 671088640,
+        "ramRejected": 0,
+        "scratchDisk": 0,
+        "scratchDiskPeak": 2924544,
+        "scratchDiskLimit": 162705866752,
+        "scratchFd": 0,
+        "scratchFdPeak": 6,
+        "scratchFdLimit": 1048572,
+        "scratchRam": 0,
+        "preservedDisk": 0,
+        "preservedFd": 0,
+        "readerCleanupHealthy": true
+      }
+    },
+    "reservation-large": {
+      "exit": 1,
+      "elapsedSeconds": 63.51312554208562,
+      "originalHttpRequests": 12,
+      "p95Ms": 2690.46,
+      "maxMs": 2690.46,
+      "source": [
+        "[R118-source] expected=2504 accepted=2504 files=42 fullAcceptance=1"
+      ],
+      "recorder": [
+        {
+          "enqueued": 1250,
+          "dequeued": 1250,
+          "dropped": 0,
+          "payloadBytes": 693310,
+          "maxDepth": 94,
+          "maxBytes": 51522,
+          "firstNs": 12301753167,
+          "lastNs": 53998120376,
+          "minInputGapNs": 23339083,
+          "maxInputGapNs": 43304583,
+          "queueWaitNs": 1413822305883,
+          "maxQueueWaitNs": 3113304416,
+          "callbackNs": 38813163981,
+          "maxCallbackNs": 2903697542
+        },
+        {
+          "enqueued": 1254,
+          "dequeued": 1254,
+          "dropped": 0,
+          "payloadBytes": 695373,
+          "maxDepth": 131,
+          "maxBytes": 71529,
+          "firstNs": 12307268751,
+          "lastNs": 54164719626,
+          "minInputGapNs": 23588708,
+          "maxInputGapNs": 43298875,
+          "queueWaitNs": 2401902594927,
+          "maxQueueWaitNs": 4374330167,
+          "callbackNs": 41364699714,
+          "maxCallbackNs": 3714170084
+        }
+      ],
+      "writerStages": [
+        {
+          "stage": "push",
+          "calls": 1250,
+          "totalNs": 38810767700,
+          "maxNs": 2903696625
+        },
+        {
+          "stage": "open",
+          "calls": 21,
+          "totalNs": 37351332628,
+          "maxNs": 2868447125
+        },
+        {
+          "stage": "writer-binding",
+          "calls": 21,
+          "totalNs": 1615314334,
+          "maxNs": 1531040792
+        },
+        {
+          "stage": "admission",
+          "calls": 21,
+          "totalNs": 35726857961,
+          "maxNs": 2863528250
+        },
+        {
+          "stage": "finalize",
+          "calls": 21,
+          "totalNs": 1458256668,
+          "maxNs": 798549417
+        },
+        {
+          "stage": "eos",
+          "calls": 21,
+          "totalNs": 5578623,
+          "maxNs": 1166916
+        },
+        {
+          "stage": "fsync",
+          "calls": 21,
+          "totalNs": 4845665,
+          "maxNs": 547083
+        },
+        {
+          "stage": "hash",
+          "calls": 21,
+          "totalNs": 1863916,
+          "maxNs": 166417
+        },
+        {
+          "stage": "file-evidence",
+          "calls": 21,
+          "totalNs": 20402374,
+          "maxNs": 1162542
+        },
+        {
+          "stage": "ready-ticket",
+          "calls": 21,
+          "totalNs": 26864749,
+          "maxNs": 1909000
+        },
+        {
+          "stage": "durable-commit",
+          "calls": 21,
+          "totalNs": 1394242502,
+          "maxNs": 795596917
+        },
+        {
+          "stage": "release",
+          "calls": 21,
+          "totalNs": 66122,
+          "maxNs": 4708
+        },
+        {
+          "stage": "push",
+          "calls": 1254,
+          "totalNs": 41360077612,
+          "maxNs": 3714169083
+        },
+        {
+          "stage": "open",
+          "calls": 21,
+          "totalNs": 39166652294,
+          "maxNs": 2962001209
+        },
+        {
+          "stage": "writer-binding",
+          "calls": 21,
+          "totalNs": 800197710,
+          "maxNs": 740186167
+        },
+        {
+          "stage": "admission",
+          "calls": 21,
+          "totalNs": 38358034543,
+          "maxNs": 2957410625
+        },
+        {
+          "stage": "finalize",
+          "calls": 21,
+          "totalNs": 2192163587,
+          "maxNs": 825252125
+        },
+        {
+          "stage": "eos",
+          "calls": 21,
+          "totalNs": 5405830,
+          "maxNs": 764583
+        },
+        {
+          "stage": "fsync",
+          "calls": 21,
+          "totalNs": 4905916,
+          "maxNs": 615208
+        },
+        {
+          "stage": "hash",
+          "calls": 21,
+          "totalNs": 1768707,
+          "maxNs": 97667
+        },
+        {
+          "stage": "file-evidence",
+          "calls": 21,
+          "totalNs": 20545084,
+          "maxNs": 1222750
+        },
+        {
+          "stage": "ready-ticket",
+          "calls": 21,
+          "totalNs": 26965082,
+          "maxNs": 2512333
+        },
+        {
+          "stage": "durable-commit",
+          "calls": 21,
+          "totalNs": 2128100457,
+          "maxNs": 822125875
+        },
+        {
+          "stage": "release",
+          "calls": 21,
+          "totalNs": 63127,
+          "maxNs": 3500
+        }
+      ],
+      "explicitFinish": false,
+      "failure": [
+        "[R107-fail] client receive failed"
+      ],
+      "sampleMaxima": {
+        "rssBytes": 3336716288,
+        "fdCount": 145,
+        "anonymousFileBytes": 1154731580,
+        "anonymousAllocatedBytes": 1162493952,
+        "footprintBytes": 3284979048
+      },
+      "workspaceVariableMax": 147421719,
+      "completeSamples": 63,
+      "sampleCount": 63,
+      "finalOwner": {
+        "pid": 29386,
+        "seq": 5,
+        "phase": "after-storage-destruction",
+        "elapsedMs": 61947,
+        "ram": 0,
+        "ramPeak": 403720996,
+        "ramLimit": 671088640,
+        "ramRejected": 0,
+        "scratchDisk": 0,
+        "scratchDiskPeak": 123609088,
+        "scratchDiskLimit": 162631352320,
+        "scratchFd": 0,
+        "scratchFdPeak": 17,
+        "scratchFdLimit": 1048572,
+        "scratchRam": 0,
+        "preservedDisk": 0,
+        "preservedFd": 0,
+        "readerCleanupHealthy": true
+      }
+    },
+    "shared-small": {
+      "exit": 0,
+      "elapsedSeconds": 54.41787212505005,
+      "originalHttpRequests": 12,
+      "p95Ms": 308.913,
+      "maxMs": 308.913,
+      "source": [
+        "[R118-source] expected=242 accepted=242 files=5 fullAcceptance=1",
+        "[R118-source] expected=2401 accepted=2401 files=41 fullAcceptance=1"
+      ],
+      "recorder": [
+        {
+          "enqueued": 120,
+          "dequeued": 120,
+          "dropped": 0,
+          "payloadBytes": 66504,
+          "maxDepth": 2,
+          "maxBytes": 1745,
+          "firstNs": 77571376,
+          "lastNs": 4044341334,
+          "minInputGapNs": 24789042,
+          "maxInputGapNs": 42998333,
+          "queueWaitNs": 49598620,
+          "maxQueueWaitNs": 44393084,
+          "callbackNs": 85866750,
+          "maxCallbackNs": 69338708
+        },
+        {
+          "enqueued": 122,
+          "dequeued": 122,
+          "dropped": 0,
+          "payloadBytes": 68739,
+          "maxDepth": 2,
+          "maxBytes": 1745,
+          "firstNs": 82867667,
+          "lastNs": 4129203251,
+          "minInputGapNs": 23802875,
+          "maxInputGapNs": 43156167,
+          "queueWaitNs": 49757497,
+          "maxQueueWaitNs": 44954541,
+          "callbackNs": 124662582,
+          "maxCallbackNs": 68741875
+        },
+        {
+          "enqueued": 1200,
+          "dequeued": 1200,
+          "dropped": 0,
+          "payloadBytes": 665040,
+          "maxDepth": 3,
+          "maxBytes": 1745,
+          "firstNs": 10471204667,
+          "lastNs": 50508394751,
+          "minInputGapNs": 22877375,
+          "maxInputGapNs": 43512250,
+          "queueWaitNs": 640944919,
+          "maxQueueWaitNs": 80164417,
+          "callbackNs": 1323948792,
+          "maxCallbackNs": 123375542
+        },
+        {
+          "enqueued": 1201,
+          "dequeued": 1201,
+          "dropped": 0,
+          "payloadBytes": 666785,
+          "maxDepth": 3,
+          "maxBytes": 1745,
+          "firstNs": 10476373251,
+          "lastNs": 50547913251,
+          "minInputGapNs": 23309750,
+          "maxInputGapNs": 43358583,
+          "queueWaitNs": 617021766,
+          "maxQueueWaitNs": 90630042,
+          "callbackNs": 1294289339,
+          "maxCallbackNs": 123828583
+        }
+      ],
+      "writerStages": [
+        {
+          "stage": "push",
+          "calls": 120,
+          "totalNs": 84924171,
+          "maxNs": 69334625
+        },
+        {
+          "stage": "open",
+          "calls": 2,
+          "totalNs": 16628167,
+          "maxNs": 13773500
+        },
+        {
+          "stage": "writer-binding",
+          "calls": 2,
+          "totalNs": 14355083,
+          "maxNs": 12560125
+        },
+        {
+          "stage": "admission",
+          "calls": 2,
+          "totalNs": 1457959,
+          "maxNs": 853250
+        },
+        {
+          "stage": "finalize",
+          "calls": 2,
+          "totalNs": 102569375,
+          "maxNs": 55538083
+        },
+        {
+          "stage": "eos",
+          "calls": 2,
+          "totalNs": 1037459,
+          "maxNs": 593792
+        },
+        {
+          "stage": "fsync",
+          "calls": 2,
+          "totalNs": 1046125,
+          "maxNs": 611250
+        },
+        {
+          "stage": "hash",
+          "calls": 2,
+          "totalNs": 468875,
+          "maxNs": 243750
+        },
+        {
+          "stage": "file-evidence",
+          "calls": 2,
+          "totalNs": 4608874,
+          "maxNs": 2383458
+        },
+        {
+          "stage": "ready-ticket",
+          "calls": 2,
+          "totalNs": 5772583,
+          "maxNs": 2976125
+        },
+        {
+          "stage": "durable-commit",
+          "calls": 2,
+          "totalNs": 88439000,
+          "maxNs": 48651083
+        },
+        {
+          "stage": "release",
+          "calls": 2,
+          "totalNs": 9084,
+          "maxNs": 4667
+        },
+        {
+          "stage": "push",
+          "calls": 122,
+          "totalNs": 123936745,
+          "maxNs": 68738875
+        },
+        {
+          "stage": "open",
+          "calls": 3,
+          "totalNs": 7756625,
+          "maxNs": 3143500
+        },
+        {
+          "stage": "writer-binding",
+          "calls": 3,
+          "totalNs": 4721750,
+          "maxNs": 1817500
+        },
+        {
+          "stage": "admission",
+          "calls": 3,
+          "totalNs": 2126084,
+          "maxNs": 955584
+        },
+        {
+          "stage": "finalize",
+          "calls": 3,
+          "totalNs": 113849457,
+          "maxNs": 66094833
+        },
+        {
+          "stage": "eos",
+          "calls": 3,
+          "totalNs": 776124,
+          "maxNs": 305750
+        },
+        {
+          "stage": "fsync",
+          "calls": 3,
+          "totalNs": 512126,
+          "maxNs": 268084
+        },
+        {
+          "stage": "hash",
+          "calls": 3,
+          "totalNs": 430459,
+          "maxNs": 215834
+        },
+        {
+          "stage": "file-evidence",
+          "calls": 3,
+          "totalNs": 3831750,
+          "maxNs": 1909333
+        },
+        {
+          "stage": "ready-ticket",
+          "calls": 3,
+          "totalNs": 5439834,
+          "maxNs": 2823709
+        },
+        {
+          "stage": "durable-commit",
+          "calls": 3,
+          "totalNs": 101902875,
+          "maxNs": 60311708
+        },
+        {
+          "stage": "release",
+          "calls": 3,
+          "totalNs": 9042,
+          "maxNs": 4583
+        },
+        {
+          "stage": "push",
+          "calls": 1200,
+          "totalNs": 1319616293,
+          "maxNs": 123371083
+        },
+        {
+          "stage": "open",
+          "calls": 20,
+          "totalNs": 289764375,
+          "maxNs": 61425792
+        },
+        {
+          "stage": "writer-binding",
+          "calls": 20,
+          "totalNs": 177392042,
+          "maxNs": 24956666
+        },
+        {
+          "stage": "admission",
+          "calls": 20,
+          "totalNs": 106072916,
+          "maxNs": 36181916
+        },
+        {
+          "stage": "finalize",
+          "calls": 20,
+          "totalNs": 997850749,
+          "maxNs": 70323792
+        },
+        {
+          "stage": "eos",
+          "calls": 20,
+          "totalNs": 20128209,
+          "maxNs": 8841375
+        },
+        {
+          "stage": "fsync",
+          "calls": 20,
+          "totalNs": 6825293,
+          "maxNs": 596084
+        },
+        {
+          "stage": "hash",
+          "calls": 20,
+          "totalNs": 3800788,
+          "maxNs": 553417
+        },
+        {
+          "stage": "file-evidence",
+          "calls": 20,
+          "totalNs": 38437332,
+          "maxNs": 3845916
+        },
+        {
+          "stage": "ready-ticket",
+          "calls": 20,
+          "totalNs": 42731081,
+          "maxNs": 3180458
+        },
+        {
+          "stage": "durable-commit",
+          "calls": 20,
+          "totalNs": 877597170,
+          "maxNs": 58931333
+        },
+        {
+          "stage": "release",
+          "calls": 20,
+          "totalNs": 64750,
+          "maxNs": 5417
+        },
+        {
+          "stage": "push",
+          "calls": 1201,
+          "totalNs": 1290343738,
+          "maxNs": 123823666
+        },
+        {
+          "stage": "open",
+          "calls": 21,
+          "totalNs": 268927540,
+          "maxNs": 54470583
+        },
+        {
+          "stage": "writer-binding",
+          "calls": 21,
+          "totalNs": 138404497,
+          "maxNs": 15435125
+        },
+        {
+          "stage": "admission",
+          "calls": 21,
+          "totalNs": 124181957,
+          "maxNs": 47527375
+        },
+        {
+          "stage": "finalize",
+          "calls": 21,
+          "totalNs": 955209082,
+          "maxNs": 69334750
+        },
+        {
+          "stage": "eos",
+          "calls": 21,
+          "totalNs": 9964793,
+          "maxNs": 4360209
+        },
+        {
+          "stage": "fsync",
+          "calls": 21,
+          "totalNs": 5422290,
+          "maxNs": 569166
+        },
+        {
+          "stage": "hash",
+          "calls": 21,
+          "totalNs": 3258542,
+          "maxNs": 255667
+        },
+        {
+          "stage": "file-evidence",
+          "calls": 21,
+          "totalNs": 33241335,
+          "maxNs": 2277542
+        },
+        {
+          "stage": "ready-ticket",
+          "calls": 21,
+          "totalNs": 43288793,
+          "maxNs": 2948833
+        },
+        {
+          "stage": "durable-commit",
+          "calls": 21,
+          "totalNs": 852374794,
+          "maxNs": 62704208
+        },
+        {
+          "stage": "release",
+          "calls": 21,
+          "totalNs": 60668,
+          "maxNs": 4750
+        }
+      ],
+      "explicitFinish": true,
+      "failure": [],
+      "sampleMaxima": {
+        "rssBytes": 3205513216,
+        "fdCount": 51,
+        "anonymousFileBytes": 1129467452,
+        "anonymousAllocatedBytes": 1136816128,
+        "footprintBytes": 3161820496
+      },
+      "workspaceVariableMax": 6374007,
+      "completeSamples": 54,
+      "sampleCount": 54,
+      "finalOwner": {
+        "pid": 29933,
+        "seq": 6,
+        "phase": "after-storage-destruction",
+        "elapsedMs": 52365,
+        "ram": 0,
+        "ramPeak": 160109249,
+        "ramLimit": 671088640,
+        "ramRejected": 0,
+        "scratchDisk": 0,
+        "scratchDiskPeak": 2867200,
+        "scratchDiskLimit": 162457698304,
+        "scratchFd": 0,
+        "scratchFdPeak": 6,
+        "scratchFdLimit": 1048572,
+        "scratchRam": 0,
+        "preservedDisk": 0,
+        "preservedFd": 0,
+        "readerCleanupHealthy": true
+      }
+    },
+    "shared-large": {
+      "exit": 1,
+      "elapsedSeconds": 62.56426908285357,
+      "originalHttpRequests": 12,
+      "p95Ms": 2939.48,
+      "maxMs": 2939.48,
+      "source": [
+        "[R118-source] expected=2445 accepted=2445 files=42 fullAcceptance=1"
+      ],
+      "recorder": [
+        {
+          "enqueued": 1221,
+          "dequeued": 1221,
+          "dropped": 0,
+          "payloadBytes": 676519,
+          "maxDepth": 65,
+          "maxBytes": 35705,
+          "firstNs": 12312775335,
+          "lastNs": 53052270001,
+          "minInputGapNs": 13703791,
+          "maxInputGapNs": 56846250,
+          "queueWaitNs": 409175037500,
+          "maxQueueWaitNs": 2135803125,
+          "callbackNs": 21651469576,
+          "maxCallbackNs": 2169683667
+        },
+        {
+          "enqueued": 1224,
+          "dequeued": 1224,
+          "dropped": 0,
+          "payloadBytes": 678256,
+          "maxDepth": 91,
+          "maxBytes": 49849,
+          "firstNs": 12319073876,
+          "lastNs": 53163304668,
+          "minInputGapNs": 17366625,
+          "maxInputGapNs": 46457917,
+          "queueWaitNs": 793225485294,
+          "maxQueueWaitNs": 3021994125,
+          "callbackNs": 30049749222,
+          "maxCallbackNs": 2904404000
+        }
+      ],
+      "writerStages": [
+        {
+          "stage": "push",
+          "calls": 1221,
+          "totalNs": 21649901039,
+          "maxNs": 2169681958
+        },
+        {
+          "stage": "open",
+          "calls": 21,
+          "totalNs": 20196209165,
+          "maxNs": 2111097458
+        },
+        {
+          "stage": "writer-binding",
+          "calls": 21,
+          "totalNs": 2514212753,
+          "maxNs": 1552834042
+        },
+        {
+          "stage": "admission",
+          "calls": 21,
+          "totalNs": 17673638039,
+          "maxNs": 1609690583
+        },
+        {
+          "stage": "finalize",
+          "calls": 21,
+          "totalNs": 1438802541,
+          "maxNs": 802161958
+        },
+        {
+          "stage": "eos",
+          "calls": 21,
+          "totalNs": 3561665,
+          "maxNs": 332208
+        },
+        {
+          "stage": "fsync",
+          "calls": 21,
+          "totalNs": 4404875,
+          "maxNs": 423083
+        },
+        {
+          "stage": "hash",
+          "calls": 21,
+          "totalNs": 1907583,
+          "maxNs": 199208
+        },
+        {
+          "stage": "file-evidence",
+          "calls": 21,
+          "totalNs": 21562960,
+          "maxNs": 2310375
+        },
+        {
+          "stage": "ready-ticket",
+          "calls": 21,
+          "totalNs": 27353289,
+          "maxNs": 3008583
+        },
+        {
+          "stage": "durable-commit",
+          "calls": 21,
+          "totalNs": 1375319207,
+          "maxNs": 798451291
+        },
+        {
+          "stage": "release",
+          "calls": 21,
+          "totalNs": 60751,
+          "maxNs": 3750
+        },
+        {
+          "stage": "push",
+          "calls": 1224,
+          "totalNs": 30046285559,
+          "maxNs": 2904402167
+        },
+        {
+          "stage": "open",
+          "calls": 21,
+          "totalNs": 28260852377,
+          "maxNs": 2105146625
+        },
+        {
+          "stage": "writer-binding",
+          "calls": 21,
+          "totalNs": 1675055293,
+          "maxNs": 845919208
+        },
+        {
+          "stage": "admission",
+          "calls": 21,
+          "totalNs": 26577602665,
+          "maxNs": 1859832333
+        },
+        {
+          "stage": "finalize",
+          "calls": 21,
+          "totalNs": 1775232208,
+          "maxNs": 825493708
+        },
+        {
+          "stage": "eos",
+          "calls": 21,
+          "totalNs": 3272666,
+          "maxNs": 308708
+        },
+        {
+          "stage": "fsync",
+          "calls": 21,
+          "totalNs": 2775958,
+          "maxNs": 422083
+        },
+        {
+          "stage": "hash",
+          "calls": 21,
+          "totalNs": 1866999,
+          "maxNs": 200375
+        },
+        {
+          "stage": "file-evidence",
+          "calls": 21,
+          "totalNs": 21305040,
+          "maxNs": 2330959
+        },
+        {
+          "stage": "ready-ticket",
+          "calls": 21,
+          "totalNs": 27453589,
+          "maxNs": 3012042
+        },
+        {
+          "stage": "durable-commit",
+          "calls": 21,
+          "totalNs": 1714157712,
+          "maxNs": 821599334
+        },
+        {
+          "stage": "release",
+          "calls": 21,
+          "totalNs": 59456,
+          "maxNs": 4584
+        }
+      ],
+      "explicitFinish": false,
+      "failure": [
+        "[R107-fail] client receive failed"
+      ],
+      "sampleMaxima": {
+        "rssBytes": 3341352960,
+        "fdCount": 145,
+        "anonymousFileBytes": 1154731580,
+        "anonymousAllocatedBytes": 1158299648,
+        "footprintBytes": 3289648536
+      },
+      "workspaceVariableMax": 147856806,
+      "completeSamples": 62,
+      "sampleCount": 62,
+      "finalOwner": {
+        "pid": 30075,
+        "seq": 5,
+        "phase": "after-storage-destruction",
+        "elapsedMs": 60747,
+        "ram": 0,
+        "ramPeak": 402148116,
+        "ramLimit": 671088640,
+        "ramRejected": 0,
+        "scratchDisk": 0,
+        "scratchDiskPeak": 114270208,
+        "scratchDiskLimit": 162380525568,
+        "scratchFd": 0,
+        "scratchFdPeak": 17,
+        "scratchFdLimit": 1048572,
+        "scratchRam": 0,
+        "preservedDisk": 0,
+        "preservedFd": 0,
+        "readerCleanupHealthy": true
+      }
+    }
+  },
+  "finalJudgment": {
+    "small": "PASS direct12 p95/max308.913ms, actual source2401/2401, new live publication and explicitFinish",
+    "large": "FAIL direct12 p95/max2939.48ms; source2445/2445,42files,drop0 in short fixture; auxiliary live publication receive failure, explicitFinish not-run",
+    "beforeAfter": "bound-large2460.61→shared-large2939.48ms; does not establish causal regression from a single pair with scheduling/state differences",
+    "recorder": "queue maxima7.525/4.317→2.136/3.022sec; reservation-release maxima666.040/634.404ms→3.750/4.584microseconds; no continuous mixed loss cure",
+    "new900": "NOT_RUN_DIRECT_GATES_FAILED",
+    "45minutes": "NOT_RUN_EXCLUDED",
+    "120minutes": "NOT_RUN_EXCLUDED"
+  },
+  "regressions": {
+    "macOS": {
+      "retention": {
+        "pass": 65,
+        "fail": 0
+      },
+      "derivedJobs": {
+        "pass": 25,
+        "fail": 0
+      },
+      "retentionV2": {
+        "pass": 41,
+        "fail": 0
+      },
+      "managedWriter": {
+        "pass": 47,
+        "fail": 0
+      },
+      "continuity": {
+        "normalSource": 120,
+        "normalAccepted": 120,
+        "normalDrop": 0,
+        "overloadSource": 310,
+        "delivered": 257,
+        "queueDrop": 53,
+        "writerAccepted": 251,
+        "independentSafeSet": 251,
+        "otherSubscriberDrop": 0
+      },
+      "independentPackageReadback": "PASS separateprocess",
+      "productBuild": "PASS"
+    },
+    "Linux": {
+      "status": "PASS same five focused suites and separateprocess readback",
+      "uid": 10001,
+      "network": "none",
+      "container": "existing image, read-only, --rm; 2CPU/4GiB/512pid/tmp4GiB",
+      "flags": "-Wall -Wextra -Werror",
+      "gstreamer": "1.28.7; no cross-platform RGB identity claim"
+    },
+    "reuse": "111/112/114/116 unchanged public/search/decoder/limits. Relevant writer/retention/continuity rechecked; no general acceptance/UI or B/C/D rerun"
+  },
+  "resources": {
+    "scope": "individual sequential/sample maxima, not simultaneouspeak or total liveheap; model-phase anonymous bytes not live workspace total; logical640MiB not RSS cap",
+    "finalLarge": {
+      "rssMax": 3341352960,
+      "workspaceVariableMax": 147856806,
+      "logicalRamPeak": 402148116,
+      "scratchDiskPeak": 114270208,
+      "scratchFdPeak": 17,
+      "finalLogicalOwners": 0,
+      "completeSamples": 62
+    },
+    "end": "destructor owner0/groupAbsent observed; cannot replace not-run explicitFinish; no infinite backlog/cache or newdiskdomain"
+  },
+  "failures": "preparation-failures.json and original attempt logs in118-execution.tar.gz; no retroactive PASS/RED",
+  "binding": {
+    "independentApproval": "existing986 mapping unchanged by actualdiff review (MEDIA-012 StartSource unchanged); retention not represented by986 and reviewed separately",
+    "producer": {
+      "exit": 0,
+      "pass": 51,
+      "fail": 0,
+      "log": "producer.log"
+    },
+    "readback": {
+      "exit": 0,
+      "validationErrors": 0,
+      "negativeFixtures": "15/15",
+      "log": "readback.log"
+    },
+    "coverage": {
+      "exit": 0,
+      "pass": 9,
+      "fail": 0,
+      "covered": 986,
+      "missing": 0,
+      "log": "coverage.log"
+    },
+    "candidateCount": 986,
+    "candidateDigestIsNotNewBehaviorApproval": true
+  },
+  "independentReview": "118-independent-review.json",
+  "archive": {
+    "archive": "118-execution.tar.gz",
+    "bytes": 24263196,
+    "sha256": "eb6c9861458b6fcdd1a4a0788c8889a982d7971dc83a8d42aa38cee9305cbe57",
+    "files": 1141,
+    "payloadBytes": 76182814,
+    "reusedFiles": 5182,
+    "redactedLogs": 0,
+    "allMemberBytesVerified": true,
+    "manifestSha256": "3a02c260a321a33a905b6266c27bd8e0b327f33b66eb41bec345533946ee030b",
+    "selection": "새 원출력/계산분석/소스 및 신규 원본; 동일117seed5182개 참조는 hash로 재사용. 사용자설정/privatebackup/models/SDK/auth/state/cache/binaries 제외",
+    "status": "PASS local main and independent full-byte review; remote pending"
+  },
+  "cleanup": {
+    "status": "pending remote preservation",
+    "root": "/private/tmp/media-server-r118-mnl4w209"
+  },
+  "remaining": [
+    "original HTTP latency exceeds target and auxiliary publication request failure",
+    "accumulated explicitFinish not-run",
+    "remaining admission/reader/source-authentication cost and search/Recorder cause not fully separated",
+    "117 repeated recording gaps remain quality blocker despite short directdrop0",
+    "new900/45/final120, wholememoryP0 and release hold"
+  ],
+  "implementationCommit": "c461dfb1d6b22cd44b2eefb6bdecff0894a35305"
+}

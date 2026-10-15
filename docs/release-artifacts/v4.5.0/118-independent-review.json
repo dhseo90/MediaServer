@@ -1,0 +1,53 @@
+{
+  "schema": "media-server.v450.r118.independent-review.v1",
+  "reviewer": "/root/independent_r118",
+  "participation": "read-only diff/evidence review; no implementation/test writing/execution",
+  "requested": "gpt-6-astra/high",
+  "toolAccepted": "gpt-6-astra/high",
+  "actualRuntime": null,
+  "decision": "LIMITED_CHANGE_ACCEPTED_DIRECT_HTTP_FAIL_900_INELIGIBLE",
+  "findings": [
+    {
+      "status": "corrected",
+      "finding": "Derived admission must retain durable snapshot-before-physical-free order; initial draft could undercount completed durable reservation",
+      "resolution": "durable snapshot→fresh free 순서 유지; event quota 상계. provider 순서+실제 durable outstanding 거부 검사 통과; 동시 파일쓰기/완료 경합 자체의 실행 재현은 아님"
+    },
+    {
+      "status": "rejected-design-not-implemented",
+      "finding": "unlock periodic preparation may use stale removed policy/quota and overdelete",
+      "resolution": "admission mutex kept across periodicpass; only completion/progress split"
+    },
+    {
+      "status": "report-limit",
+      "finding": "large HTTP logs omit status line and final failures summary; successful body is not independent wire200 proof",
+      "resolution": "preserve12completed bodies+p95; no reconstructed status"
+    }
+  ],
+  "accepted": [
+    "short reservation lock and consistent free/reservation capture; no durability/sourcepolicy changes",
+    "one authenticated All cut per periodic pass, Plan channel filter and current authority protected deletion",
+    "actual multi-channel pin/delete test, macOS/Linux focused tests and R116continuity/readback",
+    "existing986 unchanged source mapping rebind permitted; not proof of new retention behavior"
+  ],
+  "notAcceptedAsComplete": [
+    "HTTP2939.48ms p95FAIL",
+    "auxiliary live newdocument publication proof failed",
+    "explicitFinish large notrun",
+    "short2445/2445drop0 not117continuousloss cure",
+    "900 ineligible"
+  ],
+  "preservationReview": {
+    "status": "PASS_LOCAL_BYTES",
+    "archiveBytes": 24263196,
+    "archiveSha256": "eb6c9861458b6fcdd1a4a0788c8889a982d7971dc83a8d42aa38cee9305cbe57",
+    "payloadFiles": 1141,
+    "payloadBytes": 76182814,
+    "allPayloadMemberLengthAndHashesIndependentlyRead": true,
+    "missingMismatchExtra": 0,
+    "reusedReferences": 5182,
+    "uniqueReusedR117Members": 756,
+    "allReusedBytesCheckedAgainstOriginal117Archive": true,
+    "scope": "read-only preservation validation; not product/test execution",
+    "remoteCleanup": "pending main post-push verification"
+  }
+}
