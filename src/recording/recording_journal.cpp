@@ -420,6 +420,7 @@ std::string ArchiveWrapper(std::size_t size,uLong checksum,std::string_view base
     auto wrapper=ArchiveWrapper(logical.size(),checksum,Base64Encode(compressed));
     return wrapper.size()<logical.size()?wrapper:std::string{};
 }
+bool ParseMutationEnvelope(const std::string&,RecordingMutationV1*,std::string*,bool);
 bool ExpandArchive(const std::string& json,const ingress::StrictJsonObjectDocument& document,
                    RecordingMutationV1* value,std::string* error) {
     const auto codec=ingress::StrictJsonStringField(document,"codec");
@@ -439,12 +440,10 @@ bool ExpandArchive(const std::string& json,const ingress::StrictJsonObjectDocume
         return Fail(error,"압축 원장 복원 오류");
     const auto actual=crc32(crc32(0,Z_NULL,0),reinterpret_cast<const Bytef*>(logical.data()),static_cast<uInt>(logical.size()));
     if(actual!=static_cast<uLong>(*checksum))return Fail(error,"압축 원장 무결성 오류");
-    ingress::StrictJsonObjectDocument inner;
-    if(!ingress::ParseStrictJsonObjectDocument(logical,&inner,error)||
-       ingress::StrictJsonStringField(inner,"schema")!="media-server.recording-mutation.v1")
-        return Fail(error,"압축 원장 중첩/스키마 오류");
+    // Decode the immutable logical bytes once. The same strict envelope parser
+    // rejects nested archive schemas before expansion, then validates all payloads.
     RecordingMutationV1 expanded;
-    if(!ParseRecordingMutationV1(logical,&expanded,error)||!expanded.physical_json.empty()||
+    if(!ParseMutationEnvelope(logical,&expanded,error,false)||!expanded.physical_json.empty()||
        (expanded.mutation_type!=RecordingMutationType::SegmentV2BoundFinalized&&
         expanded.mutation_type!=RecordingMutationType::SegmentV2Deleted)||
        SerializeRecordingMutationV1(expanded)!=logical)return Fail(error,"압축 원장 논리 행 오류");
@@ -479,16 +478,17 @@ std::string SerializeRecordingMutationV1(const RecordingMutationV1& value) {
     return out.str();
 }
 
-bool ParseRecordingMutationV1(const std::string& json,
-                              RecordingMutationV1* value,
-                              std::string* error) {
+namespace {
+bool ParseMutationEnvelope(const std::string& json, RecordingMutationV1* value,
+                           std::string* error, bool allow_archive) {
 #if defined(MEDIA_SERVER_RECORDING_GENERATION_TESTING)
     ++mutation_parse_count;
 #endif
     if (value == nullptr) return Fail(error, "mutation output이 없음");
     ingress::StrictJsonObjectDocument document;
-    if (!ingress::ParseStrictJsonObjectDocument(json, &document, error)) return false;
+    if (!ingress::ParseStrictJsonObjectDocumentWithoutKeyIndex(json, &document, error)) return false;
     const auto schema = ingress::StrictJsonStringField(document, "schema");
+    if(!allow_archive&&schema!="media-server.recording-mutation.v1")return Fail(error,"압축 원장 중첩/스키마 오류");
     if(schema==kArchiveSchema)return ExpandArchive(json,document,value,error);
     const auto mutation_id = ingress::StrictJsonStringField(document, "mutationId");
     const auto mutation_type = ingress::StrictJsonStringField(document, "mutationType");
@@ -531,6 +531,11 @@ bool ParseRecordingMutationV1(const std::string& json,
     *value = RecordingMutationV1{*schema, *mutation_id, parsed_type, *occurred_at_ms, *entity_id, *payload, {}};
     if (error != nullptr) error->clear();
     return true;
+}
+
+} // namespace
+bool ParseRecordingMutationV1(const std::string& json,RecordingMutationV1* value,std::string* error) {
+    return ParseMutationEnvelope(json,value,error,true);
 }
 
 namespace {
@@ -884,6 +889,7 @@ struct RecordingJournal::ColdReadProof {
     struct stat binding{},manifest_binding{},active_binding{};
     OwnedFd fd{-1};
     RecordingMutationHandle envelope;
+    std::string envelope_identity;
 #endif
 };
 #if MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND
@@ -985,6 +991,32 @@ std::string RawHash(std::string_view text) {
     return result;
 #else
     (void)text;return {};
+#endif
+}
+// Unlike the archive receipt identity, a source-read cache comparison binds
+// every SameOwnedEnvelope field, including the actual schema and enum value.
+std::string SourceReadEnvelopeIdentity(const RecordingMutationV1& mutation) {
+#if MEDIA_SERVER_USE_OPENSSL
+    // Private ephemeral proof, never a persisted identity. Hash every exact
+    // envelope field with a length prefix; avoid escaping/copying the already
+    // authenticated payload into another full JSON representation.
+    std::unique_ptr<EVP_MD_CTX,decltype(&EVP_MD_CTX_free)> hash(EVP_MD_CTX_new(),EVP_MD_CTX_free);
+    if(!hash||EVP_DigestInit_ex(hash.get(),EVP_sha256(),nullptr)!=1)return {};
+    const auto type=std::to_string(static_cast<int>(mutation.mutation_type));
+    const auto occurred=std::to_string(mutation.occurred_at_ms);
+    for(const std::string_view field:{std::string_view(mutation.schema),std::string_view(mutation.mutation_id),
+        std::string_view(type),std::string_view(mutation.entity_id),std::string_view(occurred),std::string_view(mutation.payload_json)}){
+        const auto length=std::to_string(field.size())+":";
+        if(EVP_DigestUpdate(hash.get(),length.data(),length.size())!=1||
+           EVP_DigestUpdate(hash.get(),field.data(),field.size())!=1)return {};
+    }
+    unsigned char bytes[EVP_MAX_MD_SIZE];unsigned int size=0;
+    if(EVP_DigestFinal_ex(hash.get(),bytes,&size)!=1||size!=32)return {};
+    constexpr char hex[]="0123456789abcdef";std::string result;result.reserve(64);
+    for(unsigned int i=0;i<size;++i){result.push_back(hex[bytes[i]>>4]);result.push_back(hex[bytes[i]&15]);}
+    return result;
+#else
+    (void)mutation;return {};
 #endif
 }
 std::string EnvelopeIdentity(const RecordingMutationV1& mutation) {
@@ -2053,11 +2085,17 @@ bool RecordingJournal::AcquireMutationLinkForRead(const void* owner,const Record
     std::shared_ptr<ColdReadProof>* proof,RecordingMutationHandle* record,std::string* error) const {
     return AcquireMutationLinkWithProof(link,record,error,owner,proof);
 }
+bool RecordingJournal::AcquireSourceMutationForRead(const void* owner,const RecordingMutationLink& link,
+    std::shared_ptr<ColdReadProof>* proof,RecordingMutationHandle* record,std::string* identity,std::string* error) const {
+    if(!identity||!record)return Fail(error,"source proof output missing");
+    identity->clear();record->reset();
+    return AcquireMutationLinkWithProof(link,record,error,owner,proof,identity);
+}
 bool RecordingJournal::AcquireMutationLinkWithProof(const RecordingMutationLink& link,RecordingMutationHandle* record,
-    std::string* error,const void* owner,std::shared_ptr<ColdReadProof>* proof) const {
+    std::string* error,const void* owner,std::shared_ptr<ColdReadProof>* proof,std::string* compact_identity) const {
     latency::HolderCount(1);
 #if !MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND || !MEDIA_SERVER_USE_OPENSSL || defined(_WIN32)
-    (void)owner;(void)proof;
+    (void)owner;(void)proof;(void)compact_identity;
 #endif
     if(link.generation_ref_) {
 #if MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND && MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
@@ -2075,10 +2113,23 @@ bool RecordingJournal::AcquireMutationLinkWithProof(const RecordingMutationLink&
             const auto& location=found->second;
             latency::JournalSubcost cold_cost(3);
             RecordingMutationV1 value;
+            // Compact proofs release their full typed payload. Current raw reads and
+            // identity serialization therefore own transient admission separately.
+            const auto source_identity=[&](const RecordingMutationV1& mutation,std::string* digest){
+                std::size_t bytes=0;
+                for(const auto* field:{&mutation.schema,&mutation.mutation_id,&mutation.entity_id,&mutation.payload_json}){
+                    if(field->size()>(SIZE_MAX-4096)/24-bytes)return Fail(error,"recording-resource-unavailable");
+                    bytes+=field->size();
+                }
+                auto work=memory_->ReserveOwned(24*bytes+4096);
+                if(!work)return Fail(error,"recording-resource-unavailable");
+                *digest=SourceReadEnvelopeIdentity(mutation);
+                return !digest->empty()||Fail(error,"source proof identity unavailable");
+            };
             std::shared_ptr<ColdReadProof> prepared;
             if(proof&&*proof){
                 const auto& saved=**proof;
-                if(saved.owner!=this||saved.pid!=::getpid()||saved.epoch!=state.link_epoch||!saved.envelope)
+                if(saved.owner!=this||saved.pid!=::getpid()||saved.epoch!=state.link_epoch||(!saved.envelope&&(!compact_identity||saved.envelope_identity.empty())))
                     return Fail(error,"B read proof owner/identity rejected");
                 // 정상 checkpoint는 epoch를 유지하면서 active 행을 archive로 이동한다.
                 // 이전 active FD의 결속을 archive 증명으로 검사하기 전에 strict 경로로 돌아간다.
@@ -2096,7 +2147,7 @@ bool RecordingJournal::AcquireMutationLinkWithProof(const RecordingMutationLink&
                 };
                 if(proof&&*proof){
                     const auto saved=*proof;
-                    if(saved->owner!=this||saved->pid!=::getpid()||saved->epoch!=state.link_epoch||!saved->envelope)
+                    if(saved->owner!=this||saved->pid!=::getpid()||saved->epoch!=state.link_epoch||(!saved->envelope&&(!compact_identity||saved->envelope_identity.empty())))
                         return Fail(error,"B read proof owner/identity rejected");
                     if(!bound(*saved)){poisoned_=true;return Fail(error,"B read proof file changed");}
                     // 자기 append/회전 뒤는 새 strict 검증이다. 외부 active 변경은 위 authority 검사에서 거부된다.
@@ -2106,6 +2157,9 @@ bool RecordingJournal::AcquireMutationLinkWithProof(const RecordingMutationLink&
                        !GenerationStatSame(saved->manifest_binding,state.manifest_binding)||
                        !GenerationStatSame(saved->active_binding,state.active_binding))proof->reset();
                     else {
+                        if(row.length>(SIZE_MAX-131072)/2)return Fail(error,"recording-resource-unavailable");
+                        auto work=memory_->ReserveOwned(2*static_cast<std::size_t>(row.length)+131072);
+                        if(!work)return Fail(error,"recording-resource-unavailable");
                         std::string raw;
                         try {raw.resize(static_cast<std::size_t>(row.length));}catch(...){proof->reset();}
                         if(*proof){
@@ -2120,7 +2174,10 @@ bool RecordingJournal::AcquireMutationLinkWithProof(const RecordingMutationLink&
                                 }
                                 // 처음 strict cold reader가 검증한 canonical/identity/예약 의미는
                                 // 불변 envelope에 그대로 남고, 현재 물리 bytes는 같은 raw SHA로 결박된다.
-                                *record=saved->envelope;if(error)error->clear();return true;
+                                *record=saved->envelope;
+                                if(compact_identity)*compact_identity=saved->envelope_identity;
+                                if(error)error->clear();
+                                return true;
                             }
                         }
                     }
@@ -2137,7 +2194,7 @@ bool RecordingJournal::AcquireMutationLinkWithProof(const RecordingMutationLink&
                     }catch(...){prepared.reset();} // 선택적 증명 할당/FD 실패는 기존 strict 경로로 처리한다.
                 }
                 {
-                // Reserve only the strict path; a proof hit retains its existing admission.
+                // Strict reconstruction has its own temporary read admission.
                 // Two row-sized buffers plus the existing 64 KiB manifest admission
                 // and 64 KiB sequential hash buffer remain in the shared owner domain.
                 const auto length=row.length;
@@ -2198,6 +2255,11 @@ bool RecordingJournal::AcquireMutationLinkWithProof(const RecordingMutationLink&
                     return Fail(error,"B link active 좌표 거부");
                 const auto& row=state.active.rows[location.slot];
                 // active도 매번 현재 관리 FD에서 원문을 읽고 SHA를 검증한다.
+                if(row.length>(SIZE_MAX-131072)/2)return Fail(error,"recording-resource-unavailable");
+                auto work=memory_->ReserveOwned(2*static_cast<std::size_t>(row.length)+131072);
+                if(!work)return Fail(error,"recording-resource-unavailable");
+                std::string current_identity;
+                if(compact_identity&&proof&&*proof&&!source_identity(row.mutation,&current_identity))return false;
                 std::string raw(static_cast<std::size_t>(row.length),'\0');
                 if(raw.empty()||!ReadAt(managed_fd_,static_cast<off_t>(row.offset),&raw)||raw.back()!='\n'||
                    RawHash(raw)!=row.raw_sha256) {
@@ -2210,10 +2272,14 @@ bool RecordingJournal::AcquireMutationLinkWithProof(const RecordingMutationLink&
                        saved->raw_sha256!=row.raw_sha256||
                        !GenerationStatSame(saved->manifest_binding,state.manifest_binding)||
                        !GenerationStatSame(saved->active_binding,state.active_binding)||
-                       !SameOwnedEnvelope(*saved->envelope,row.mutation))proof->reset();
+                       (compact_identity?current_identity!=saved->envelope_identity:
+                        (!saved->envelope||!SameOwnedEnvelope(*saved->envelope,row.mutation))))proof->reset();
                     else {
                         if(!CheckManagedStateLocked(error))return false;
-                        *record=saved->envelope;if(error)error->clear();return true;
+                        *record=saved->envelope;
+                                if(compact_identity)*compact_identity=saved->envelope_identity;
+                                if(error)error->clear();
+                                return true;
                     }
                 }
                 if(!ParseRecordingMutationV1(raw.substr(0,raw.size()-1),&value,error)||
@@ -2233,7 +2299,14 @@ bool RecordingJournal::AcquireMutationLinkWithProof(const RecordingMutationLink&
             }
             if(!CheckManagedStateLocked(error))return false;
             auto result=std::make_shared<const RecordingMutationV1>(std::move(value));
-            if(prepared){prepared->envelope=result;*proof=std::move(prepared);}
+            if(compact_identity){
+                if(!source_identity(*result,compact_identity))return false;
+            }
+            if(prepared){
+                if(compact_identity)prepared->envelope_identity=*compact_identity;
+                else prepared->envelope=result;
+                *proof=std::move(prepared);
+            }
             *record=std::move(result);if(error)error->clear();return true;
         }catch(...){return Fail(error,"B link 획득 자원 실패");}
 #else
@@ -2871,6 +2944,7 @@ bool RecordingJournal::ValidatePreappend(const void* owner,const RecordingMutati
 } catch(const RecordingResourceUnavailable& e) { return Fail(error,e.what()); }
 
 #if defined(MEDIA_SERVER_RECORDING_GENERATION_TESTING)
+std::string RecordingJournal::ProbeSourceReadIdentity(const RecordingMutationV1& m) { return SourceReadEnvelopeIdentity(m); }
 bool RecordingJournal::ProbeOrderValidation(const std::vector<RecordingMutationV1>& history,
     const RecordingMutationV1& candidate,bool* unchanged,std::string* error) {
     OrderHistoryIndex index;

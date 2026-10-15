@@ -49,6 +49,16 @@ int main(int argc,char**argv){try{
     // 검증 객체는 같은 요청에서만 재사용하며, 조립 중 hold와 파일 변경 거부를 함께 확인한다.
     const auto deadline=std::chrono::steady_clock::now()+std::chrono::seconds(5);
     auto prepared=source.Prepare(docs.front(),&error,{},deadline);Check(bool(prepared),"prepare verified source: "+error);
+    {const auto binding=runtime.catalog().FindSourceBinding(docs.front().segment_id);
+        Check(binding&&binding->file_evidence,"R120 compact native oracle binding");
+        for(const auto& sample:binding->file_evidence->samples){auto exact=docs.front();exact.media_pts=sample.original_pts_ns;exact.frame_sha256=sample.sample_sha256;
+            recording::SearchSeekTarget target;
+            Check(source.ResolvePrepared(exact,*prepared,&target,&error,{},deadline)&&target.sample_ordinal==sample.ordinal&&
+                std::abs(target.seconds-double(sample.native_pts-binding->file_evidence->edit_media_time)/binding->file_evidence->timescale)<1e-12&&
+                std::abs(target.frame_duration_seconds-double(sample.native_duration)/binding->file_evidence->timescale)<1e-12,
+                "R120 every source sample retains exact ordinal/native seek");}
+        Check(runtime.catalog().Checkpoint(&error),"R120 checkpoint with native proof reader");
+        recording::SearchSeekTarget target;Check(source.ResolvePrepared(docs.front(),*prepared,&target,&error,{},deadline),"R120 native proof survives authenticated generation transition");}
     const auto holds=[&]{const auto rows=runtime.catalog().RetentionSnapshot();for(const auto& row:rows.candidates)if(row.Id()==docs.front().segment_id)return row.hold_count;return std::uint64_t(999);};
     Check(holds()==1,"R105 single prepared source owns exactly one hold");
     {auto second=source.Prepare(docs.front(),&error,{},deadline);Check(bool(second)&&holds()==2,"R105 concurrent source ownership adds exactly one hold");}

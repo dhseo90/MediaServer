@@ -114,7 +114,7 @@ bool RequiredBool(const Document& document,
 }
 
 template <typename Integer>
-bool ParseIntegerRaw(const std::string& raw, Integer* output) {
+bool ParseIntegerRaw(std::string_view raw, Integer* output) {
     if (output == nullptr || raw.empty()) return false;
     Integer parsed{};
     const char* begin = raw.data();
@@ -604,7 +604,7 @@ std::string SerializeRecordingSourceBindingV1(const RecordingSourceBindingV1& b)
 bool ParseRecordingSourceBindingV1(const std::string& json,RecordingSourceBindingV1* output,std::string* error) {
     if(!output||json.size()>2U*1024*1024)return Fail(error,"source binding JSON 상한/output 오류");
     Document d;RecordingSourceBindingV1 b;
-    if(!ParseDocument(json,&d,error)||d.members.size()!=(d.Find("file_evidence")?14U:13U)||
+    if(!ingress::ParseStrictJsonObjectDocumentArrayViews(json,&d,error)||d.members.size()!=(d.Find("file_evidence")?14U:13U)||
        (!d.Find("file_evidence")&&json.size()>512U*1024))return Fail(error,"source binding field 집합 오류");
     if(!RequiredString(d,"schema",&b.schema,error)||!RequiredString(d,"segment_id",&b.segment_id,error)||
        !RequiredString(d,"source_id",&b.source_id,error)||!RequiredString(d,"channel_id",&b.channel_id,error)||
@@ -612,38 +612,52 @@ bool ParseRecordingSourceBindingV1(const std::string& json,RecordingSourceBindin
        !RequiredString(d,"source_generation",&b.source_generation,error)||!RequiredInteger(d,"generation_order",&b.generation_order,error)||
        !RequiredString(d,"track_id",&b.track_id,error)||!RequiredBool(d,"index_complete",&b.index_complete,error)||
        !RequiredInteger(d,"last_accepted_ordinal",&b.last_accepted_ordinal,error)||!RequiredString(d,"incomplete_reason",&b.incomplete_reason,error))return false;
-    const auto* array=RequiredMember(d,"samples",Type::Array,error);std::vector<std::string> items;
-    if(!array||!SplitArray(array->raw,&items,error)||items.empty()||items.size()>4096)return Fail(error,"source binding samples 오류");
-    for(const auto& text:items){Document item;RecordingSourceSampleV1 sample;
-        if(!ParseDocument(text,&item,error)||item.members.size()!=2||!RequiredInteger(item,"ordinal",&sample.ordinal,error)||
+    const auto* array=RequiredMember(d,"samples",Type::Array,error);
+    if(!array)return Fail(error,"source binding samples 오류");
+    const auto count=ArrayViewCount(array->array_view);
+    if(!count||count>4096)return Fail(error,"source binding samples 오류");
+    b.samples.reserve(count);
+    if(!VisitArrayViews(array->array_view,[&](std::string_view text){Document item;RecordingSourceSampleV1 sample;
+        if(!ParseDocument(std::string(text),&item,error)||item.members.size()!=2||!RequiredInteger(item,"ordinal",&sample.ordinal,error)||
            !RequiredInteger(item,"pts_ns",&sample.pts_ns,error))return false;
-        b.samples.push_back(sample);
-    }
+        b.samples.push_back(sample);return true;
+    }))return false;
     if(const auto* field=d.Find("file_evidence")) {
         Document ed;RecordingFileEvidenceV1 e;
-        if(field->type!=Type::Object||!ParseDocument(field->raw,&ed,error)||ed.members.size()!=9||
+        if(field->type!=Type::Object||!ingress::ParseStrictJsonObjectDocumentArrayViews(field->raw,&ed,error)||ed.members.size()!=9||
            !RequiredInteger(ed,"version",&e.version,error)||!RequiredString(ed,"profile",&e.profile,error)||
            !RequiredInteger(ed,"origin",&e.writer_origin_ns,error)||!RequiredInteger(ed,"bytes",&e.file_size_bytes,error)||
            !RequiredString(ed,"sha256",&e.file_sha256,error)||!RequiredInteger(ed,"timescale",&e.timescale,error)||
            !RequiredInteger(ed,"movie_timescale",&e.movie_timescale,error))return Fail(error,"file evidence fields 오류");
-        std::vector<std::string> values,tuples;const auto* edit=RequiredMember(ed,"edit",Type::Array,error);
-        std::int64_t rate=0;
-        if(!edit||!SplitArray(edit->raw,&values,error)||values.size()!=3||!ParseIntegerRaw(values[0],&e.edit_duration)||
-           !ParseIntegerRaw(values[1],&e.edit_media_time)||!ParseIntegerRaw(values[2],&rate)||rate!=65536)return Fail(error,"file evidence edit tuple 오류");
+        // The outer strict traversal has validated every tuple, including string
+        // syntax/depth. Borrow its bytes rather than copying the full samples
+        // array, each tuple and all twelve scalar strings. No view escapes here.
+        const auto tupleValues=[](std::string_view raw,auto& values){
+            std::size_t n=0;
+            return VisitArrayViews(raw,[&](std::string_view value){if(n==values.size())return false;values[n++]=value;return true;})&&n==values.size();
+        };
+        std::array<std::string_view,3> edit_values;
+        const auto* edit=RequiredMember(ed,"edit",Type::Array,error);std::int64_t rate=0;
+        if(!edit||!tupleValues(edit->array_view,edit_values)||!ParseIntegerRaw(edit_values[0],&e.edit_duration)||
+           !ParseIntegerRaw(edit_values[1],&e.edit_media_time)||!ParseIntegerRaw(edit_values[2],&rate)||rate!=65536)return Fail(error,"file evidence edit tuple 오류");
         const auto* samples=RequiredMember(ed,"samples",Type::Array,error);
-        if(!samples||!SplitArray(samples->raw,&tuples,error)||tuples.empty()||tuples.size()>4096)return Fail(error,"file evidence sample count 오류");
-        for(const auto& tuple:tuples) {
-            RecordingFileSampleEvidenceV1 s;
-            if(!SplitArray(tuple,&values,error)||values.size()!=12||!ParseIntegerRaw(values[0],&s.ordinal)||
+        if(!samples)return Fail(error,"file evidence sample count 오류");
+        const auto sample_count=ArrayViewCount(samples->array_view);
+        if(!sample_count||sample_count>4096)return Fail(error,"file evidence sample count 오류");
+        e.samples.reserve(sample_count);
+        if(!VisitArrayViews(samples->array_view,[&](std::string_view tuple){
+            RecordingFileSampleEvidenceV1 s;std::array<std::string_view,12> values;
+            // SplitArray historically requires literal array delimiters (no
+            // surrounding whitespace). Preserve that acceptance/error boundary.
+            if(tuple.size()<2||tuple.front()!='['||tuple.back()!=']'||!tupleValues(tuple,values)||!ParseIntegerRaw(values[0],&s.ordinal)||
                !ParseIntegerRaw(values[1],&s.original_pts_ns)||!ParseIntegerRaw(values[2],&s.original_dts_ns)||
                !ParseIntegerRaw(values[3],&s.original_duration_ns)||!ParseIntegerRaw(values[4],&s.mux_pts_ns)||
                !ParseIntegerRaw(values[5],&s.mux_dts_ns)||!ParseIntegerRaw(values[6],&s.mux_duration_ns)||
                !ParseIntegerRaw(values[7],&s.native_pts)||!ParseIntegerRaw(values[8],&s.native_dts)||
                !ParseIntegerRaw(values[9],&s.native_duration))return Fail(error,"file evidence sample tuple 오류");
-            // Hash 문자열에는 escaping을 허용하지 않는다. canonical lowercase hex만 검사한다.
             for(std::size_t i=10;i<12;++i)if(values[i].size()!=66||values[i].front()!='"'||values[i].back()!='"')return Fail(error,"file evidence hash tuple 오류");
-            s.vcl_sha256=values[10].substr(1,64);s.sample_sha256=values[11].substr(1,64);e.samples.push_back(std::move(s));
-        }
+            s.vcl_sha256=values[10].substr(1,64);s.sample_sha256=values[11].substr(1,64);e.samples.push_back(std::move(s));return true;
+        }))return false;
         b.file_evidence=std::move(e);
     }
     if(!ValidateRecordingSourceBindingV1(b,error))return false;
@@ -759,6 +773,23 @@ bool RequiredNullableInteger(const Document& d, const std::string& key,
     *value = integer;
     return true;
 }
+}
+
+bool SameRecordingSegmentV2Content(const RecordingSegmentV2& a,const RecordingSegmentV2& b) {
+    if(a.schema!=b.schema||a.segment_id!=b.segment_id||a.source_id!=b.source_id||a.channel_id!=b.channel_id||
+       a.store_id!=b.store_id||a.order_request_id!=b.order_request_id||a.media_epoch_id!=b.media_epoch_id||
+       a.order_sequence!=b.order_sequence||a.media_start_pts!=b.media_start_pts||a.media_end_pts!=b.media_end_pts||
+       a.time_base_num!=b.time_base_num||a.time_base_den!=b.time_base_den||a.container!=b.container||
+       a.video_codecs!=b.video_codecs||a.audio_codecs!=b.audio_codecs||a.audio_omitted_reason!=b.audio_omitted_reason||
+       a.size_bytes!=b.size_bytes||a.checksum_sha256!=b.checksum_sha256||a.retention_class!=b.retention_class||
+       a.lifecycle!=b.lifecycle||a.pinned!=b.pinned||a.created_at_ms!=b.created_at_ms||a.finalized_at_ms!=b.finalized_at_ms||
+       a.mappings.size()!=b.mappings.size())return false;
+    for(std::size_t i=0;i<a.mappings.size();++i){const auto& x=a.mappings[i];const auto& y=b.mappings[i];
+        if(x.schema!=y.schema||x.mapping_id!=y.mapping_id||x.start_pts!=y.start_pts||x.end_pts!=y.end_pts||
+           x.provenance!=y.provenance||x.utc_start_ns!=y.utc_start_ns||x.utc_end_ns!=y.utc_end_ns||
+           x.uncertainty_ns!=y.uncertainty_ns||x.reason!=y.reason)return false;
+    }
+    return true;
 }
 
 std::string SerializeRecordingSegmentV2(const RecordingSegmentV2& v) {

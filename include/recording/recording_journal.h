@@ -164,6 +164,7 @@ private:
     static thread_local void (*generation_cleanup_before_unlink_)();
     static thread_local void (*generation_cold_after_io_)();
     friend struct RecordingGenerationRequestProofProbe;
+    static std::string ProbeSourceReadIdentity(const RecordingMutationV1&);
     static bool ProbeOrderValidation(const std::vector<RecordingMutationV1>& history,
         const RecordingMutationV1& candidate, bool* unchanged, std::string* error);
 #endif
@@ -229,8 +230,12 @@ private:
     struct ColdReadProof;
     bool AcquireMutationLinkForRead(const void* owner,const RecordingMutationLink&,
         std::shared_ptr<ColdReadProof>*,RecordingMutationHandle*,std::string*) const;
+    // Source readers retain typed binding data, not a second full mutation payload.
+    // A proof hit may return no envelope; identity is set only after current raw authentication.
+    bool AcquireSourceMutationForRead(const void* owner,const RecordingMutationLink&,
+        std::shared_ptr<ColdReadProof>*,RecordingMutationHandle*,std::string* identity,std::string*) const;
     bool AcquireMutationLinkWithProof(const RecordingMutationLink&,RecordingMutationHandle*,std::string*,
-        const void* owner,std::shared_ptr<ColdReadProof>*) const;
+        const void* owner,std::shared_ptr<ColdReadProof>*,std::string* compact_identity=nullptr) const;
     // B 복원 전용 세션. Catalog attachment/쓰기 권한을 부여하지 않는다.
     bool MakeGenerationMutationLink(const std::string& id, RecordingMutationLink* link, std::string* error) const;
     void EndGenerationMutationLinks() const;

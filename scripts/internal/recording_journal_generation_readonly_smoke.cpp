@@ -15,9 +15,12 @@
 #endif
 namespace recording {
 struct RecordingJournalGenerationReadOnlyProbe {
+    static std::string SourceIdentity(const RecordingMutationV1& m){return RecordingJournal::ProbeSourceReadIdentity(m);}
     using ReadProof=std::shared_ptr<RecordingJournal::ColdReadProof>;
     static bool ReadProofLink(const RecordingJournal& j,const void* owner,const RecordingMutationLink& link,
         ReadProof* proof,RecordingMutationHandle* out){return j.AcquireMutationLinkForRead(owner,link,proof,out,nullptr);}
+    static bool CompactProofLink(const RecordingJournal& j,const void* owner,const RecordingMutationLink& link,
+        ReadProof* proof,RecordingMutationHandle* out,std::string* identity,std::string* detail=nullptr){return j.AcquireSourceMutationForRead(owner,link,proof,out,identity,detail);}
     static bool Link(const RecordingJournal& j,const std::string& id,RecordingMutationLink* out){return j.MakeGenerationMutationLink(id,out,nullptr);}
     static bool Get(const RecordingJournal& j,const RecordingMutationLink& link,RecordingMutationHandle* out){return j.AcquireMutationLink(link,out,nullptr);}
     static void End(const RecordingJournal& j){j.EndGenerationMutationLinks();}

@@ -347,9 +347,13 @@ private:
         SearchModelResidency::Reservation memory;
         const RecordingCatalog* owner{nullptr};
         SourceBindingHandle binding;
-        RecordingMutationHandle envelope;
+        RecordingMutationHandle envelope; // non-generation fallback only
+        std::string envelope_identity, validated_source_id;
         std::shared_ptr<RecordingJournal::ColdReadProof> cold;
         std::string segment_json;
+        // Only PreparedSource installs this borrowed pointer after full validation.
+        // Its heap-stable Impl owns the immutable row longer than this context.
+        const RecordingSegmentV2* prepared_media{nullptr};
         std::size_t retained_bytes{0};
     };
     SourceBindingHandle ReadSourceBinding(const std::string&,SourceBindingReadContext*,std::string*) const;
@@ -418,8 +422,9 @@ private:
         std::pair<std::filesystem::path,std::filesystem::path>*,std::string*,JobReadContext*);
     bool ValidateMediaWithContext(const RecordingSegmentV2&,const std::pair<std::filesystem::path,std::filesystem::path>&,JobReadContext*) const;
     bool ValidateMediaLocked(const RecordingSegmentV2&,const std::pair<std::filesystem::path,std::filesystem::path>&,JobReadContext*) const;
-    SourceBindingHandle ReadSourceBindingLocked(const std::string&,SourceBindingReadContext*,std::string*,const RecordingSegmentV2* validated_media=nullptr,bool* continuous_cut=nullptr) const;
+    SourceBindingHandle ReadSourceBindingLocked(const std::string&,SourceBindingReadContext*,std::string*,const RecordingSegmentV2* validated_media=nullptr,bool* continuous_cut=nullptr,bool* validation_only=nullptr,const std::pair<std::filesystem::path,std::filesystem::path>* validated_location=nullptr) const;
     SourceBindingHandle ReadSourceBindingForMedia(const RecordingSegmentV2&,const std::pair<std::filesystem::path,std::filesystem::path>&,SourceBindingReadContext*,std::string*) const;
+    bool ValidateSourceBindingForMedia(const RecordingSegmentV2&,const std::pair<std::filesystem::path,std::filesystem::path>&,SourceBindingReadContext*,std::string*) const;
     friend class RecordingReadService;
     bool ReleaseInactiveDetailsLocked(const std::string* changed,std::string* error);
     static DerivedJobHandle ShareValidatedJob(DerivedJobRecordV1 record,const DerivedJobPool* pool);

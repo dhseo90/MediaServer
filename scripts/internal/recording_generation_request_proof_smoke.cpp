@@ -583,6 +583,25 @@ void ActiveProofCases(const std::filesystem::path& root){
         Need(catalog.ReserveRecordingOrder("store","active-proof-order","active-proof-segment","channel",&reserved,&error));
         if(mode=="other-row")Need(catalog.ReserveRecordingOrder("store","other-active-order","other-active-segment","channel",&reserved,&error));
         RecordingMutationLink link;Need(Probe::Link(owner,"active-proof-order",&link));
+        Probe::ReadProof compact;RecordingMutationHandle compact_value;std::string compact_id;
+        Need(Probe::CompactProofLink(owner,&catalog,link,&compact,&compact_value,&compact_id));
+        const auto original_id=compact_id;std::weak_ptr<const RecordingMutationV1> released_payload=compact_value;
+        compact_value.reset();
+        Check("R120-P02",released_payload.expired()&&compact_id.size()==64,"compact proof actually releases full authenticated payload");
+        Need(Probe::CompactProofLink(owner,&catalog,link,&compact,&compact_value,&compact_id));
+        Check("R120-P02",!compact_value&&compact_id==original_id,"active current raw authentication reuses compact identity");
+        const auto reject_work=[&]{
+            const auto memory=catalog.SearchResidency();const auto before=memory->used();
+            {auto full=memory->ReserveOwned(memory->limit()-before);Need(bool(full));
+             error="sentinel";
+             Check("R120-P04",!Probe::CompactProofLink(owner,&catalog,link,&compact,&compact_value,&compact_id,&error)&&
+                 !compact_value&&compact_id.empty()&&error=="recording-resource-unavailable",
+                 "compact raw workspace refusal preserves empty output");}
+            Check("R120-P04",memory->used()==before&&owner.HasManagedLease(),"temporary admission refusal releases memory and does not poison authority");
+            Need(Probe::CompactProofLink(owner,&catalog,link,&compact,&compact_value,&compact_id));
+            Check("R120-P04",!compact_value&&compact_id==original_id,"same compact proof succeeds after capacity is released");
+        };
+        reject_work();
         Probe::ReadProof proof;RecordingMutationHandle first,again;
         const int before=OpenDescriptors();Need(Probe::ReadProofLink(owner,&catalog,link,&proof,&first));
         Need(Probe::ReadProofLink(owner,&catalog,link,&proof,&again));
@@ -601,8 +620,15 @@ void ActiveProofCases(const std::filesystem::path& root){
             Need(catalog.Checkpoint(&error));RecordingGenerationArchiveReadsForTest(true);
             Need(Probe::ReadProofLink(owner,&catalog,link,&proof,&again));
             Check("V440-PR77",again!=appended&&SerializeRecordingMutationV1(*again)==canonical&&RecordingGenerationArchiveReadsForTest()==1,"active to historical rotation strictly reacquires without false poison");
+            Need(Probe::CompactProofLink(owner,&catalog,link,&compact,&compact_value,&compact_id));
+            Check("R120-P02",compact_value&&compact_id==original_id,"compact active to historical strictly revalidates unchanged meaning");
+            released_payload=compact_value;compact_value.reset();Need(released_payload.expired());
+            Need(Probe::CompactProofLink(owner,&catalog,link,&compact,&compact_value,&compact_id));
+            Check("R120-P02",!compact_value&&compact_id==original_id,"historical raw authentication retains no payload");
+            reject_work();
+            compact.reset();
             auto rotated=again;Need(Probe::ReadProofLink(owner,&catalog,link,&proof,&again));
-            Check("V440-PR77",again==rotated&&RecordingGenerationArchiveReadsForTest()==1,"rotated proof reuses verified historical row");
+            Check("V440-PR77",again==rotated&&RecordingGenerationArchiveReadsForTest()==2,"rotated proof reuses verified historical row");
             proof.reset();Check("V440-PR77",OpenDescriptors()==before,"active and rotated proof destruction releases descriptor");
             continue;
         }
@@ -619,6 +645,8 @@ void ActiveProofCases(const std::filesystem::path& root){
             Need(::futimens(fd,times)==0);Need(::close(fd)==0);
         }else if(mode=="hardlink")Need(::link(file.c_str(),(path/"extra-active-link").c_str())==0);
         else {std::filesystem::rename(file,path/"old-active");if(mode=="inode")Write(file,bytes);else Need(::symlink("old-active",file.c_str())==0);}
+        Check("R120-P02",!Probe::CompactProofLink(owner,&catalog,link,&compact,&compact_value,&compact_id)&&!compact_value&&compact_id.empty(),
+            "compact proof rejects current raw/inode/link damage, never fabricates successful identity");
         again=first;const bool rejected=!Probe::ReadProofLink(owner,&catalog,link,&proof,&again);
         Check("V440-PR77",rejected&&again==first&&!owner.HasManagedLease(),(mode+" current active tamper rejects without changing output").c_str());
         Check("V440-PR77",!Probe::ReadProofLink(owner,&catalog,link,&proof,&again),"active poisoned owner remains rejected");
@@ -705,6 +733,19 @@ int main(int argc,char** argv){
         AdmissionPreparedCases(root/"admission-prepared");
         RetentionPathCases(root/"retention-path");
         RetentionPrefixCases(root/"retention-prefix");
+        {const auto base=Mutation();const auto identity=RecordingJournalGenerationReadOnlyProbe::SourceIdentity(base);
+         for(int field=0;field<6;++field){auto changed=base;
+            if(field==0)changed.schema+="changed";
+            if(field==1)changed.mutation_type=static_cast<RecordingMutationType>(999);
+            if(field==2)changed.mutation_id+="changed";
+            if(field==3)changed.entity_id+="changed";
+            if(field==4)++changed.occurred_at_ms;
+            if(field==5)changed.payload_json="{\"changed\":true}";
+            Check("R120-P02",identity.size()==64&&RecordingJournalGenerationReadOnlyProbe::SourceIdentity(changed)!=identity,"compact identity binds every owned envelope field");}}
+        {auto a=Mutation(),b=a;a.mutation_id="a:1";a.entity_id="b";b.mutation_id="a";b.entity_id="1:b";
+         Check("R120-P07",RecordingJournalGenerationReadOnlyProbe::SourceIdentity(a)!=RecordingJournalGenerationReadOnlyProbe::SourceIdentity(b),"length prefixed field boundaries");
+         b=a;b.physical_json="different physical encoding";
+         Check("R120-P07",RecordingJournalGenerationReadOnlyProbe::SourceIdentity(a)==RecordingJournalGenerationReadOnlyProbe::SourceIdentity(b),"physical encoding excluded exactly as owned envelope equality");}
         ActiveProofCases(root/"active-proof");
 #endif
         return failures?1:0;

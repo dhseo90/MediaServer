@@ -14,10 +14,10 @@
 
 namespace recording {
 namespace {
-bool NativeSeek(const RecordingFileEvidenceV1& evidence,std::int64_t ns,SearchSeekTarget* output,std::string* error,
+template<class Evidence> bool NativeSeek(const Evidence& evidence,std::int64_t ns,SearchSeekTarget* output,std::string* error,
     const std::function<bool()>& expired){
     const auto unavailable=[&](const char* reason){if(error)*error=reason;return false;};
-    const RecordingFileSampleEvidenceV1* selected=nullptr;
+    const typename std::decay_t<decltype(evidence.samples)>::value_type* selected=nullptr;
     for(const auto& sample:evidence.samples)if(sample.original_pts_ns==ns){
         if(selected)return unavailable("seek-unavailable-ambiguous-sample");
         selected=&sample;
@@ -238,6 +238,19 @@ struct RecordingSearchReader::PreparedSource::Impl {
     std::pair<std::filesystem::path,std::filesystem::path> location;
     mutable RecordingCatalog::SourceBindingReadContext context;
     std::shared_ptr<const RecordingSourceBindingV1> binding;
+    struct NativeSample {
+        std::uint64_t ordinal;
+        std::int64_t original_pts_ns,native_pts,native_duration;
+        std::array<char,64> sample_sha256;
+    };
+    struct NativeEvidence {
+        std::int64_t writer_origin_ns{},edit_media_time{};
+        std::uint32_t timescale{};
+        std::vector<NativeSample> samples;
+    };
+    SearchModelResidency::Reservation native_memory;
+    NativeEvidence native;
+    bool compact=false;
     struct stat verified{};
     std::shared_ptr<ResolvedRecordingMedia> media;
 };
@@ -248,13 +261,29 @@ bool RecordingSearchReader::PreparedSource::Matches(const std::string& channel,c
     return impl_->segment.channel_id==channel&&impl_->segment.segment_id==segment&&impl_->segment.checksum_sha256==sha;
 }
 bool RecordingSearchReader::PreparedSource::MatchesFrame(std::int64_t pts,const std::string& sha) const {
+    if(impl_->compact){unsigned found=0;
+        for(const auto& sample:impl_->native.samples)if(sample.original_pts_ns==pts&&sha.size()==sample.sample_sha256.size()&&
+            std::equal(sha.begin(),sha.end(),sample.sample_sha256.begin()))++found;
+        return found==1;
+    }
     if(!impl_->binding||!impl_->binding->file_evidence)return false;
     unsigned found=0;
     for(const auto& sample:impl_->binding->file_evidence->samples)if(sample.original_pts_ns==pts&&sample.sample_sha256==sha)++found;
     return found==1;
 }
 std::size_t RecordingSearchReader::PreparedSource::retained_bytes() const {
-    return sizeof(Impl)+impl_->context.retained_bytes+4*SerializeRecordingSegmentV2(impl_->segment).size()+
+    // Charge the owned typed row, not four hypothetical serialized copies. The
+    // compact context actually frees its duplicate canonical JSON below. Existing
+    // conservative string/allocator allowance and domain row admission remain.
+    const auto& row=impl_->segment;
+    std::size_t dynamic=row.mappings.capacity()*sizeof(RecordingUtcMappingV1)+
+        (row.video_codecs.capacity()+row.audio_codecs.capacity())*sizeof(std::string);
+    for(const auto* text:{&row.schema,&row.segment_id,&row.source_id,&row.channel_id,&row.store_id,&row.order_request_id,
+        &row.media_epoch_id,&row.container,&row.audio_omitted_reason,&row.checksum_sha256})dynamic+=4*(text->capacity()+1);
+    for(const auto& text:row.video_codecs)dynamic+=4*(text.capacity()+1);
+    for(const auto& text:row.audio_codecs)dynamic+=4*(text.capacity()+1);
+    for(const auto& map:row.mappings)for(const auto* text:{&map.schema,&map.mapping_id,&map.provenance,&map.reason})dynamic+=4*(text->capacity()+1);
+    return sizeof(Impl)+impl_->native.samples.capacity()*sizeof(Impl::NativeSample)+impl_->context.retained_bytes+dynamic+
         4*(impl_->location.first.native().capacity()+impl_->location.second.native().capacity())+8192;
 }
 std::unique_ptr<RecordingSearchReader::PreparedSource> RecordingSearchReader::PrepareSource(
@@ -286,8 +315,10 @@ std::unique_ptr<RecordingSearchReader::PreparedSource> RecordingSearchReader::Pr
     if(!proof->media&&!acquisition_error.empty()){if(error)*error=std::move(acquisition_error);return {};}
     if(!proof->media)return fail(expired()?"seek-cancelled":"seek-unavailable-media");
     latency::VisualPhase first_binding("prepare-binding");
-    const auto binding=catalog_.ReadSourceBinding(id,&proof->context,error);first_binding.End();
-    if(!binding||!binding->file_evidence||!ValidateRecordingSourceBindingForSegment(*binding,proof->segment,error))return fail("seek-unavailable-file-evidence");
+    // This boundary validates the binding against the same current media row,
+    // including the full source/sample domain checks on first materialization.
+    const auto binding=catalog_.ReadSourceBindingForMedia(proof->segment,proof->location,&proof->context,error);first_binding.End();
+    if(!binding||!binding->file_evidence)return fail("seek-unavailable-file-evidence");
     latency::VisualPhase file_proof("prepare-file-proof");
     struct stat after{};
     if(::fstat(proof->media->fd(),&proof->verified)!=0||
@@ -311,6 +342,26 @@ std::unique_ptr<RecordingSearchReader::PreparedSource> RecordingSearchReader::Pr
         if(matches!=1)return fail("visual-source-unavailable");
         if(!NativeSeek(*proof->binding->file_evidence,original_ns,&initial,error,expired))return {};
     }
+    if(!proof->context.envelope_identity.empty()){
+        // Full source/file validation has completed. Later seeks need only this
+        // exact native table; current raw authentication retains its own proof.
+        const auto& evidence=*binding->file_evidence;
+        auto reservation=catalog_.SearchResidency()->ReserveOwned(sizeof(PreparedSource::Impl)+evidence.samples.size()*sizeof(PreparedSource::Impl::NativeSample));
+        if(!reservation)return fail("recording-resource-unavailable");
+        proof->native_memory=std::move(*reservation);
+        proof->native.samples.reserve(evidence.samples.size());
+        proof->native.writer_origin_ns=evidence.writer_origin_ns;proof->native.edit_media_time=evidence.edit_media_time;proof->native.timescale=evidence.timescale;
+        for(const auto& sample:evidence.samples){PreparedSource::Impl::NativeSample compact{sample.ordinal,sample.original_pts_ns,sample.native_pts,sample.native_duration,{}};
+            std::copy(sample.sample_sha256.begin(),sample.sample_sha256.end(),compact.sample_sha256.begin());proof->native.samples.push_back(compact);}
+        proof->compact=true;proof->binding.reset();proof->context.binding.reset();
+        // Keep the exact immutable typed row already used by every media check,
+        // rather than a second canonical copy. Impl stays at this heap address.
+        proof->context.prepared_media=&proof->segment;
+        auto context_memory=proof->context.memory.Split(sizeof(RecordingCatalog::SourceBindingReadContext)+8192);
+        std::string{}.swap(proof->context.segment_json);
+        proof->context.memory=std::move(context_memory);
+        proof->context.retained_bytes=sizeof(RecordingCatalog::SourceBindingReadContext)+8192+128;
+    }
     auto result=std::unique_ptr<PreparedSource>(new PreparedSource(std::move(proof)));
     if(target)*target=std::move(initial);
     if(error)error->clear();
@@ -328,6 +379,12 @@ bool RecordingSearchReader::SourceSeekPrepared(const PreparedSource& prepared,st
     const auto& proof=*prepared.impl_;
     if(proof.catalog!=&catalog_)return fail("seek-unavailable-source-changed");
     latency::VisualPhase media_phase("seek-current-source-media");
+    if(proof.compact){
+        struct stat current{};
+        if(!reader_.RevalidateCompactPreparedMedia(*proof.media,proof.segment,proof.location,&proof.context,error)||
+           ::fstat(proof.media->fd(),&current)!=0||!SameFileState(proof.verified,current))return fail("seek-unavailable-source-changed");
+        return NativeSeek(proof.native,static_cast<std::int64_t>(scaled/den),output,error,expired);
+    }
     const auto binding=reader_.RevalidatePreparedMedia(*proof.media,proof.segment,proof.location,&proof.context,error);
     struct stat current{};
     if(!binding||!binding->file_evidence||binding!=proof.binding||

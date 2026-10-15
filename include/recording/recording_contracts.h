@@ -81,6 +81,9 @@ using RecordingSegmentV2 = RecordingMemoryValue<RecordingSegmentV2Fields>;
 bool ValidateRecordingSegmentV2(const RecordingSegmentV2& value, std::string* error);
 std::string SerializeRecordingSegmentV2(const RecordingSegmentV2& value);
 bool ParseRecordingSegmentV2(const std::string& json, RecordingSegmentV2* value, std::string* error);
+// Exact field comparison against a validated persisted row. Does not authenticate
+// raw bytes or replace validation; callers still acquire the current authenticated row.
+bool SameRecordingSegmentV2Content(const RecordingSegmentV2&, const RecordingSegmentV2&);
 // Returns the exact canonical bytes already produced by domain validation.
 // Neither output is published on failure. Used for authenticated cold-row comparison.
 bool ParseRecordingSegmentV2Canonical(const std::string& json, RecordingSegmentV2* value,

@@ -384,6 +384,17 @@ RecordingCatalog::SourceBindingHandle RecordingReadService::RevalidatePreparedMe
     // 파일 접근 전/후 media 검증을 유지하고 후검증과 원본 binding을 한 cut에서 회수한다.
     return same?catalog_.ReadSourceBindingForMedia(segment,location,context,error):RecordingCatalog::SourceBindingHandle{};
 }
+bool RecordingReadService::RevalidateCompactPreparedMedia(const ResolvedRecordingMedia& media,
+    const RecordingSegmentV2& segment,const std::pair<std::filesystem::path,std::filesystem::path>& location,
+    RecordingCatalog::SourceBindingReadContext* context,std::string* error) const {
+    if(media.catalog_!=&catalog_||media.segment_id_!=segment.segment_id||!catalog_.ValidateMediaV2(segment,location))return false;
+    const int current=OpenMedia(location.first,location.second);if(current<0)return false;
+    struct stat held{},named{};
+    const bool same=::fstat(media.fd_,&held)==0&&::fstat(current,&named)==0&&S_ISREG(named.st_mode)&&
+        held.st_dev==named.st_dev&&held.st_ino==named.st_ino&&held.st_size==named.st_size;
+    ::close(current);
+    return same&&catalog_.ValidateSourceBindingForMedia(segment,location,context,error);
+}
 bool RecordingReadService::RevalidateHeldMediaV2(const ResolvedRecordingMedia& media,
     const RecordingSegmentV2& segment,const std::pair<std::filesystem::path,std::filesystem::path>& location) const {
     if(media.catalog_!=&catalog_||media.segment_id_!=segment.segment_id||!catalog_.ValidateMediaV2(segment,location))return false;

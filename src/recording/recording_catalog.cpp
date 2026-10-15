@@ -2581,13 +2581,21 @@ bool RecordingCatalog::MaterializeSourceBinding(const SourceBindingEntry& entry,
     if(!out||!mutation||mutation->mutation_id!=entry.latest_mutation_id||mutation->entity_id!=entry.id||mutation->mutation_type!=RecordingMutationType::SegmentV2BoundFinalized)
         return Fail(error,"source binding 상세 재획득 거부");
     ingress::StrictJsonObjectDocument payload;RecordingSegmentV2 segment;RecordingSourceBindingV1 binding;
-    if(!ingress::ParseStrictJsonObjectDocument(mutation->payload_json,&payload,error)||payload.members.size()!=3)return false;
-    const auto segment_json=ingress::StrictJsonObjectField(payload,"segment");
-    const auto binding_json=ingress::StrictJsonObjectField(payload,"sourceBinding");
+    if(!ingress::ParseStrictJsonObjectDocumentWithoutKeyIndex(mutation->payload_json,&payload,error)||payload.members.size()!=3)return false;
+    const auto* segment_field=payload.Find("segment");
+    const auto* segment_json=segment_field&&segment_field->type==ingress::StrictJsonType::Object?&segment_field->raw:nullptr;
+    const auto* binding_field=payload.Find("sourceBinding");
+    const auto* binding_json=binding_field&&binding_field->type==ingress::StrictJsonType::Object?&binding_field->raw:nullptr;
     const auto path=ingress::StrictJsonStringField(payload,"mediaRelpath");
-    if(!segment_json||!binding_json||!path||!ParseRecordingSegmentV2(*segment_json,&segment,error)||
-       !ParseRecordingSourceBindingV1(*binding_json,&binding,error)||!ValidateRecordingSourceBindingForSegment(binding,segment,error)||
-       SerializeRecordingSegmentV2(segment)!=SerializeRecordingSegmentV2(original)||
+    // The authenticated envelope must still be parsed strictly in full. Its segment
+    // may reuse the already validated original only on exact canonical byte equality.
+    // Noncanonical but valid encodings retain the original parser path.
+    const auto canonical=SerializeRecordingSegmentV2(original);
+    if(!segment_json||!binding_json||!path)return Fail(error,"source binding 상세 재획득 거부");
+    const bool exact=!canonical.empty()&&*segment_json==canonical;
+    if((!exact&&!ParseRecordingSegmentV2(*segment_json,&segment,error))||
+       !ParseRecordingSourceBindingV1(*binding_json,&binding,error)||!ValidateRecordingSourceBindingForSegment(binding,exact?original:segment,error)||
+       (!exact&&!SameRecordingSegmentV2Content(segment,original))||
        binding.segment_id!=entry.id||binding.channel_id!=entry.channel||binding.source_id!=entry.source||
        binding.source_generation!=entry.generation||binding.generation_order!=entry.order||binding.track_id!=entry.track||binding.samples.size()!=entry.sample_count)
         return Fail(error,"source binding 상세 재획득 거부");
@@ -2836,24 +2844,40 @@ RecordingCatalog::SourceBindingHandle RecordingCatalog::ReadSourceBindingForMedi
     // 같은 현재 cut에서 기존 두 검증을 모두 수행한다. 파일 I/O는 잠금 밖에 유지한다.
     if(!ValidateMediaLocked(segment,location,nullptr))return {};
     bool continuous_cut=false;
-    auto binding=ReadSourceBindingLocked(segment.segment_id,context,error,&segment,&continuous_cut);
+    auto binding=ReadSourceBindingLocked(segment.segment_id,context,error,&segment,&continuous_cut,nullptr,&location);
     // Source authentication can release mu_ even on a parsed cache hit.
     // Preserve the post-I/O media/path check in the reacquired current cut.
     if(binding&&!continuous_cut&&!ValidateMediaLocked(segment,location,nullptr))return {};
     return binding;
 } catch(const CatalogHistoryError& failure) { Fail(error,failure.what());return {}; }
+bool RecordingCatalog::ValidateSourceBindingForMedia(const RecordingSegmentV2& segment,
+    const std::pair<std::filesystem::path,std::filesystem::path>& location,SourceBindingReadContext* context,std::string* error) const try {
+    recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__,false,__func__);
+    if(!context||context->prepared_media!=&segment||context->validated_source_id!=segment.segment_id||context->envelope_identity.empty()||
+       !ValidateMediaLocked(segment,location,nullptr))return false;
+    bool valid=false;
+    (void)ReadSourceBindingLocked(segment.segment_id,context,error,&segment,nullptr,&valid,&location);
+    return valid;
+} catch(const CatalogHistoryError& failure){return Fail(error,failure.what());}
+  catch(const RecordingResourceUnavailable& failure){return Fail(error,failure.what());}
 RecordingCatalog::SourceBindingHandle RecordingCatalog::ReadSourceBindingLocked(const std::string& id,
-    SourceBindingReadContext* context,std::string* error,const RecordingSegmentV2* validated_media,bool* continuous_cut) const try {
+    SourceBindingReadContext* context,std::string* error,const RecordingSegmentV2* validated_media,bool* continuous_cut,bool* validation_only,
+    const std::pair<std::filesystem::path,std::filesystem::path>* validated_location) const try {
     if(continuous_cut)*continuous_cut=false;
+    if(validation_only)*validation_only=false;
     std::string local_error;if(!error)error=&local_error;error->clear();
-    if(!context||(context->owner&&context->owner!=this)||!opened_||!derived_job_state_authoritative_||
+    if((validated_location&&!validated_media)||!context||(context->owner&&context->owner!=this)||!opened_||!derived_job_state_authoritative_||
        (!validated_media&&generation_backend_&&!CanReadLocked(error)))return {};
     // private caller holds mu_ and ValidateMediaLocked just compared the exact
     // current row/lifecycle/path. Keep that same-cut value rather than cold-read,
     // parse and validate it again. Never reused across a lock or file-I/O boundary.
     const auto original=validated_media?segments_v2_.end():segments_v2_.find(id);
     if(!validated_media&&(original==segments_v2_.end()||EffectiveLifecycleV2Locked(id,true)!=RecordingLifecycle::Finalized))return {};
-    const auto current=validated_media?*validated_media:original->second;
+    // The private caller's immutable row remains alive through this call, including
+    // Journal I/O unlock. Only the non-media caller needs an owned cold-row copy.
+    std::optional<RecordingSegmentV2> owned_current;
+    if(!validated_media)owned_current=original->second;
+    const auto& current=validated_media?*validated_media:*owned_current;
     const auto found=SourceEntryLocked(id);
     if(!found||!*found)return {};
     const auto& entry=*found;
@@ -2862,13 +2886,15 @@ RecordingCatalog::SourceBindingHandle RecordingCatalog::ReadSourceBindingLocked(
         derived_job_state_authoritative_=false;Fail(error,"source binding 상세 재획득 거부");return {};};
     bool materialized=false;
     try {
-        RecordingMutationHandle envelope;
+        RecordingMutationHandle envelope;std::string envelope_identity;
         recording::latency::VisualPhase link_phase("binding-cold-link");
         auto cold=context->cold;
-        const auto segment_json=SerializeRecordingSegmentV2(current);
-        const bool reusable=context->binding&&context->envelope&&context->binding->segment_id==id&&context->segment_json==segment_json;
+        const bool same_prepared=validation_only&&validated_media&&context->prepared_media==validated_media;
+        const auto segment_json=same_prepared?std::string{}:SerializeRecordingSegmentV2(current);
+        const bool same_segment=same_prepared||context->segment_json==segment_json;
+        const bool reusable=(context->binding||validation_only)&&(context->envelope||!context->envelope_identity.empty())&&context->validated_source_id==id&&same_segment;
         bool acquired=false;
-        const auto acquire=[&]{return journal_.AcquireMutationLinkForRead(this,entry.mutation,&cold,&envelope,error);};
+        const auto acquire=[&]{return journal_.AcquireSourceMutationForRead(this,entry.mutation,&cold,&envelope,&envelope_identity,error);};
         {
             // The context owns immutable parsed/envelope values. Even a hit must
             // authenticate current physical raw, but need not hold Catalog during I/O.
@@ -2882,30 +2908,44 @@ RecordingCatalog::SourceBindingHandle RecordingCatalog::ReadSourceBindingLocked(
 #endif
             acquired=acquire();
         }
-        if(!acquired||!envelope||envelope->mutation_id!=entry.latest_mutation_id||envelope->entity_id!=id||
-           envelope->mutation_type!=RecordingMutationType::SegmentV2BoundFinalized)return failed();
+        if(!acquired||(!envelope&&(!reusable||envelope_identity.empty()||envelope_identity!=context->envelope_identity))||
+           (envelope&&(envelope->mutation_id!=entry.latest_mutation_id||envelope->entity_id!=id||
+           envelope->mutation_type!=RecordingMutationType::SegmentV2BoundFinalized)))return failed();
         link_phase.End();
         if(reusable){
             if(!opened_||!derived_job_state_authoritative_||!CanReadLocked(error)||!journal_.OwnsCatalog(this))return {};
-            const auto now=segments_v2_.find(id);
-            if(now==segments_v2_.end()||EffectiveLifecycleV2Locked(id,true)!=RecordingLifecycle::Finalized||
-                SerializeRecordingSegmentV2(now->second)!=segment_json){Fail(error,"source binding current source changed");return {};}
+            if(!validated_location){
+                const auto now=segments_v2_.find(id);
+                if(now==segments_v2_.end()||EffectiveLifecycleV2Locked(id,true)!=RecordingLifecycle::Finalized||
+                    !SameRecordingSegmentV2Content(now->second,current)){Fail(error,"source binding current source changed");return {};}
+            }
             const auto current_entry=SourceEntryLocked(id);
             if(!current_entry||current_entry->latest_mutation_id!=entry.latest_mutation_id||current_entry->id!=entry.id||
                current_entry->channel!=entry.channel||current_entry->source!=entry.source||current_entry->generation!=entry.generation||
                current_entry->track!=entry.track||current_entry->order!=entry.order||current_entry->sample_count!=entry.sample_count){
                 Fail(error,"source binding current source changed");return {};}
         }
-        if(context->binding&&context->envelope&&context->binding->segment_id==id&&context->segment_json==segment_json){
-            const auto& a=*envelope;const auto& b=*context->envelope;
-            if(a.schema==b.schema&&a.mutation_id==b.mutation_id&&a.entity_id==b.entity_id&&
-               a.mutation_type==b.mutation_type&&a.occurred_at_ms==b.occurred_at_ms&&a.payload_json==b.payload_json){
+        if((context->binding||validation_only)&&(context->envelope||!context->envelope_identity.empty())&&context->validated_source_id==id&&same_segment){
+            const bool same=!envelope_identity.empty()?envelope_identity==context->envelope_identity:
+                (envelope&&context->envelope&&envelope->schema==context->envelope->schema&&
+                 envelope->mutation_id==context->envelope->mutation_id&&envelope->entity_id==context->envelope->entity_id&&
+                 envelope->mutation_type==context->envelope->mutation_type&&envelope->occurred_at_ms==context->envelope->occurred_at_ms&&
+                 envelope->payload_json==context->envelope->payload_json);
+            if(same){
+                // Authentication and SourceEntry checks precede the full current
+                // media/path validation. No Catalog unlock follows this check.
+                if(validated_location&&!ValidateMediaLocked(current,*validated_location,nullptr))return {};
                 context->cold=std::move(cold);
-                // continuous_cut remains false: caller rechecks media/path after this unlocked read.
+                if(validation_only)*validation_only=true;
+                if(continuous_cut)*continuous_cut=validated_location!=nullptr;
                 if(error)error->clear();
                 return context->binding;
             }
         }
+        // A compact seek table belongs only to its originally validated identity.
+        // A changed binding may never be materialized into an old native table.
+        if(validation_only){Fail(error,"source binding current source changed");return {};}
+        if(!envelope)return failed();
         // The verified envelope and exact row are owned values, not references into
         // mutable scratch. Only their expensive strict parsing/copy accounting is
         // outside mu_; both current authority and original bytes are checked again.
@@ -2926,7 +2966,7 @@ RecordingCatalog::SourceBindingHandle RecordingCatalog::ReadSourceBindingLocked(
             parsed_ok=MaterializeSourceBinding(entry,current,envelope,&parsed,error,&*work)&&bool(parsed);
             if(parsed_ok){
                 materialized=true;
-                std::size_t retained=sizeof(SourceBindingReadContext)+sizeof(RecordingSourceBindingV1)+2*sizeof(RecordingMutationV1)+
+                std::size_t retained=sizeof(SourceBindingReadContext)+sizeof(RecordingSourceBindingV1)+(envelope_identity.empty()?2*sizeof(RecordingMutationV1):128)+
                     parsed->samples.capacity()*sizeof(RecordingSourceSampleV1)+2*segment_json.capacity()+8192;
                 for(const auto* text:{&parsed->schema,&parsed->segment_id,&parsed->source_id,&parsed->channel_id,&parsed->store_id,
                     &parsed->media_epoch_id,&parsed->source_generation,&parsed->track_id,&parsed->incomplete_reason})retained+=text->capacity()+1;
@@ -2935,29 +2975,42 @@ RecordingCatalog::SourceBindingHandle RecordingCatalog::ReadSourceBindingLocked(
                         evidence.samples.capacity()*sizeof(RecordingFileSampleEvidenceV1);
                     for(const auto& sample:evidence.samples)retained+=sample.vcl_sha256.capacity()+sample.sample_sha256.capacity()+2;
                 }
-                for(const auto* text:{&envelope->schema,&envelope->mutation_id,&envelope->entity_id,&envelope->payload_json,&envelope->physical_json})
+                if(envelope_identity.empty())for(const auto* text:{&envelope->schema,&envelope->mutation_id,&envelope->entity_id,&envelope->payload_json,&envelope->physical_json})
                     retained+=2*(text->capacity()+1);
                 next.memory=work->Split(sizeof(SourceBindingReadContext)+2*segment_json.capacity()+8192);
-                next.owner=this;next.binding=std::move(parsed);next.envelope=envelope;
+                next.owner=this;next.binding=std::move(parsed);next.envelope_identity=envelope_identity;next.validated_source_id=id;
+                if(envelope_identity.empty())next.envelope=envelope;
                 next.segment_json=segment_json;next.retained_bytes=retained;next.cold=std::move(cold);
             }
         }
         if(!parsed_ok)return failed();
         if(!opened_||!derived_job_state_authoritative_||!CanReadLocked(error)||!journal_.OwnsCatalog(this))return {};
-        const auto now=segments_v2_.find(id);
-        if(now==segments_v2_.end()||EffectiveLifecycleV2Locked(id,true)!=RecordingLifecycle::Finalized||
-           SerializeRecordingSegmentV2(now->second)!=segment_json){Fail(error,"source binding current source changed");return {};}
+        if(!validated_location){
+            const auto now=segments_v2_.find(id);
+            if(now==segments_v2_.end()||EffectiveLifecycleV2Locked(id,true)!=RecordingLifecycle::Finalized||
+               !SameRecordingSegmentV2Content(now->second,current)){Fail(error,"source binding current source changed");return {};}
+        }
         const auto current_entry=SourceEntryLocked(id);
         if(!current_entry||current_entry->latest_mutation_id!=entry.latest_mutation_id||current_entry->id!=entry.id||
            current_entry->channel!=entry.channel||current_entry->source!=entry.source||current_entry->generation!=entry.generation||
            current_entry->track!=entry.track||current_entry->order!=entry.order||current_entry->sample_count!=entry.sample_count){
             Fail(error,"source binding current source changed");return {};}
-        RecordingMutationHandle verified;
-        if(!journal_.AcquireMutationLinkForRead(this,current_entry->mutation,&next.cold,&verified,error)||!verified)return failed();
-        const auto& a=*envelope;const auto& b=*verified;
-        if(a.schema!=b.schema||a.mutation_id!=b.mutation_id||a.entity_id!=b.entity_id||a.mutation_type!=b.mutation_type||
-           a.occurred_at_ms!=b.occurred_at_ms||a.payload_json!=b.payload_json)return failed();
-        next.envelope=std::move(verified);*context=std::move(next);
+        RecordingMutationHandle verified;std::string verified_identity;
+        if(!journal_.AcquireSourceMutationForRead(this,current_entry->mutation,&next.cold,&verified,&verified_identity,error))return failed();
+        if(!envelope_identity.empty()){
+            if(verified_identity!=envelope_identity)return failed();
+        }else{
+            if(!verified)return failed();
+            const auto& a=*envelope;const auto& b=*verified;
+            if(a.schema!=b.schema||a.mutation_id!=b.mutation_id||a.entity_id!=b.entity_id||a.mutation_type!=b.mutation_type||
+               a.occurred_at_ms!=b.occurred_at_ms||a.payload_json!=b.payload_json)return failed();
+            next.envelope=std::move(verified);
+        }
+        // Keep benign media changes separate from authenticated-source corruption.
+        if(validated_location&&!ValidateMediaLocked(current,*validated_location,nullptr))return {};
+        *context=std::move(next);
+        if(continuous_cut)*continuous_cut=validated_location!=nullptr;
+        if(validation_only)*validation_only=true;
         if(error)error->clear();
         return context->binding;
     }catch(const RecordingResourceUnavailable&){Fail(error,"recording-resource-unavailable");return {};}
@@ -3123,7 +3176,7 @@ bool RecordingCatalog::ValidateMediaLocked(const RecordingSegmentV2& segment,
     if(current==segments_v2_.end()||!MediaV2EligibleLocked(segment.channel_id,segment.segment_id,context,&current->second))return false;
     const auto path=media_relpaths_.find(segment.segment_id);
     return path!=media_relpaths_.end()&&location.first==options_.media_root&&location.second==path->second&&
-        SerializeRecordingSegmentV2(segment)==SerializeRecordingSegmentV2(current->second);
+        SameRecordingSegmentV2Content(segment,current->second);
 }
 RecordingLifecycle RecordingCatalog::SegmentLifecycleV2(const std::string& id) const try {
     recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__,false,__func__);return EffectiveLifecycleV2Locked(id);

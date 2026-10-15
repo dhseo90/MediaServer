@@ -97,7 +97,7 @@ struct Flight {
 class RequestMedia {
     using Prepared=recording::RecordingVisualSource::PreparedSource;
     using Key=std::pair<std::string,std::string>;
-    struct Entry {std::unique_ptr<Prepared> proof;std::size_t bytes;std::uint64_t used;};
+    struct Entry {std::unique_ptr<Prepared> proof;std::size_t bytes;std::uint64_t used;std::size_t remaining_results{0};};
     const recording::RecordingVisualSource& source_;
     std::function<bool()> cancelled_;
     std::chrono::steady_clock::time_point deadline_;
@@ -105,11 +105,38 @@ class RequestMedia {
     std::size_t bytes_{0},peak_bytes_{0};std::uint64_t sequence_{0},prepared_{0},reused_{0};
     const std::uint64_t started_{recording::RecordingReadService::TracePreparationStarted()};
     const char* trace_reference_;
+    // Borrow only from Search's immutable index, which outlives this request.
+    // No payload/ID copies; overflow is explicitly incomplete, never estimated.
+    bool observe_preparation_=false, final_results_=false, preparation_complete_=true;
+    std::array<const recording::VisualSearchDocument*,512> seen_{};
+    std::size_t seen_count_=0;
+    std::array<std::uint64_t,12> preparation_{};
+    // Borrow the already-computed final selection; no extra proofs, FD or cache.
+    // It and the immutable index outlive this request cache.
+    const std::vector<recording::VisualSearchHit>* final_hits_{nullptr};
+    const std::vector<recording::VisualSearchDocument>* final_documents_{nullptr};
+    std::size_t final_next_{0};
+    std::size_t RemainingResults(const Key& key) const {
+        std::size_t count=0;if(!final_hits_)return count;
+        for(std::size_t i=final_next_;i<final_hits_->size();++i){
+            const auto& doc=final_documents_->at((*final_hits_)[i].document_index);
+            if(doc.channel_id==key.first&&doc.segment_id==key.second)++count;
+        }
+        return count;
+    }
+
 public:
     RequestMedia(const recording::RecordingVisualSource& source,std::function<bool()> cancelled,
         std::chrono::steady_clock::time_point deadline,const char* trace_reference="visual-search-request")
         :source_(source),cancelled_(std::move(cancelled)),deadline_(deadline),trace_reference_(trace_reference){}
-    ~RequestMedia(){recording::RecordingReadService::TracePreparationCompleted(
+    void ObservePreparation() noexcept {observe_preparation_=recording::latency::VisualRequestSummary::current!=nullptr;}
+    void FinalResults(const std::vector<recording::VisualSearchHit>& hits,
+        const std::vector<recording::VisualSearchDocument>& documents) {
+        final_results_=true;final_hits_=&hits;final_documents_=&documents;final_next_=0;
+        for(auto& entry:entries_)entry.second.remaining_results=RemainingResults(entry.first);
+    }
+    ~RequestMedia(){if(observe_preparation_)recording::latency::VisualRequestSummary::Preparation(preparation_,seen_count_,preparation_complete_);
+        recording::RecordingReadService::TracePreparationCompleted(
         trace_reference_,started_,prepared_,reused_,peak_bytes_);}
 private:
     Prepared* Acquire(const recording::VisualSearchDocument& doc,std::unique_ptr<Prepared>& temporary,std::string* error,
@@ -121,18 +148,34 @@ private:
         if(found!=entries_.end()){found->second.used=++sequence_;proof=found->second.proof.get();++reused_;recording::latency::VisualRequestSummary::Count(1);}
         else {
             recording::latency::VisualPhase phase("source-prepare");
+            bool seen=false;
+            if(observe_preparation_){
+                for(std::size_t i=0;i<seen_count_;++i)if(seen_[i]->channel_id==doc.channel_id&&seen_[i]->segment_id==doc.segment_id){seen=true;break;}
+                if(!seen){if(seen_count_<seen_.size())seen_[seen_count_++]=&doc;else preparation_complete_=false;}
+            }
+            const auto preparation_begin=observe_preparation_?recording::latency::Now():0;
+
             const bool combined=initial&&resolved&&doc.event_id.empty();
             temporary=combined?source_.PrepareResolved(doc,initial,error,cancelled_,deadline_):source_.Prepare(doc,error,cancelled_,deadline_);
+            if(observe_preparation_){
+                const auto group=(final_results_?2U:0U)+(seen?1U:0U);
+                ++preparation_[group];preparation_[4+group]+=recording::latency::Now()-preparation_begin;
+                if(!temporary)++preparation_[8];
+            }
             if(!temporary)return nullptr;
             if(combined)*resolved=true;++prepared_;recording::latency::VisualRequestSummary::Count(0);
             const auto cost=temporary->retained_bytes();
+            if(observe_preparation_){preparation_[9]+=cost;preparation_[10]=std::max<std::uint64_t>(preparation_[10],cost);if(cost>capacity)++preparation_[11];}
             if(cost<=capacity){
                 while(!entries_.empty()&&(entries_.size()>=fd_capacity||bytes_>capacity-cost)){
-                    const auto oldest=std::min_element(entries_.begin(),entries_.end(),[](const auto& a,const auto& b){return a.second.used<b.second.used;});
+                    const auto oldest=std::min_element(entries_.begin(),entries_.end(),[](const auto& a,const auto& b){
+                        const bool needed_a=a.second.remaining_results!=0,needed_b=b.second.remaining_results!=0;
+                        return needed_a!=needed_b?!needed_a:a.second.used<b.second.used;
+                    });
                     bytes_-=oldest->second.bytes;entries_.erase(oldest);recording::latency::VisualRequestSummary::Count(2);
                 }
                 bytes_+=cost;peak_bytes_=std::max(peak_bytes_,bytes_);
-                found=entries_.emplace(key,Entry{std::move(temporary),cost,++sequence_}).first;proof=found->second.proof.get();
+                found=entries_.emplace(key,Entry{std::move(temporary),cost,++sequence_,RemainingResults(key)}).first;proof=found->second.proof.get();
             } else proof=temporary.get(); // 단일 큰 증명도 기존 지원 범위에서 검증하며 cache에 쌓지 않는다.
         }
         return proof;
@@ -145,6 +188,12 @@ public:
         recording::latency::VisualPhase phase("source-resolve");
         if(!resolved&&!source_.ResolvePrepared(doc,*proof,target,error,cancelled_,deadline_))return false;
         if(hold)*hold=proof->Hold();
+        if(final_hits_&&final_next_<final_hits_->size()&&
+           &final_documents_->at((*final_hits_)[final_next_].document_index)==&doc){
+            ++final_next_;
+            const auto entry=entries_.find(Key{doc.channel_id,doc.segment_id});
+            if(entry!=entries_.end()&&entry->second.remaining_results)--entry->second.remaining_results;
+        }
         return true;
     }
     bool Encode(recording::VisualSearchDocument* doc,analysis::Siglip2Encoder& encoder,std::string* error){
@@ -278,7 +327,7 @@ ApplicationServiceResult VisualSearchApplicationService::Search(const Query& raw
         std::vector<recording::VisualSnapshotEvent> events;
         if(!EventFacts(!options_.snapshot_directory.empty(),query.channels,&events,expired))return Error(503,"visual-source-unavailable");
         std::vector<recording::VisualSearchHit> hits;std::string error;
-        RequestMedia media_cache(source_,expired,deadline);
+        RequestMedia media_cache(source_,expired,deadline);media_cache.ObservePreparation();
         const auto eligible=[&](const auto& doc){
             recording::latency::VisualPhase phase("eligible",true,false);recording::latency::VisualRequestSummary::Count(3);
             if(stopped_||std::chrono::steady_clock::now()>=deadline)throw std::runtime_error("budget");
@@ -302,6 +351,7 @@ ApplicationServiceResult VisualSearchApplicationService::Search(const Query& raw
         out<<"],\"startTimeMs\":"<<(query.start_utc_ns?std::to_string(*query.start_utc_ns/1000000):"null")
             <<",\"endTimeMs\":"<<(query.end_utc_ns?std::to_string(*query.end_utc_ns/1000000):"null")
             <<",\"threshold\":"<<query.threshold<<",\"limit\":"<<query.top_k<<"},\"items\":[";
+        media_cache.FinalResults(hits,index->documents());
         recording::latency::VisualPhase final_phase("final-source-json");
         std::vector<std::shared_ptr<const recording::ResolvedRecordingMedia>> response_holds;response_holds.reserve(hits.size());
         bool comma=false;for(const auto& hit:hits){const auto& d=index->documents()[hit.document_index];

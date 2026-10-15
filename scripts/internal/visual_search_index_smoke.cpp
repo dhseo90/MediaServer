@@ -77,6 +77,15 @@ int main() {
         Check(VisualSearchIndex::Build(contract,{},&index,&error)&&index->documents().empty()&&original->documents().size()==4,"empty rebuild and old owner");
         Check(index->Search(q,Allow,&hits,&error)&&hits.empty(),"empty result");
 
+        {std::shared_ptr<const VisualSearchIndex> ordered;
+         Check(VisualSearchIndex::Build(contract,{Doc("a-low",Unit(1)),Doc("b-middle",Unit(0,-1)),Doc("z-high")},&ordered,&error),"R120 ordered candidate fixture");
+         VisualSearchQuery ordered_query{contract,Unit(),{"camera"},{},{},2,-1};
+         for(const std::string broken:{"a-low","b-middle"}){
+            hits={{123,.5}};std::vector<std::string> visited;
+            Check(!ordered->Search(ordered_query,[&](const auto& row){visited.push_back(row.id);if(row.id==broken)throw std::runtime_error("corrupt source");return true;},&hits,&error)&&error=="visual-source-unavailable"&&hits.size()==1&&hits[0].document_index==123,"R120 intermediate and early low score errors remain atomic");
+            Check(std::find(visited.begin(),visited.end(),broken)!=visited.end(),"R120 existing ID order checks intermediate candidate");}
+         Check(ordered->Search(ordered_query,[](const auto& row){return row.id!="b-middle";},&hits,&error)&&hits.size()==2&&ordered->documents()[hits[0].document_index].id=="z-high"&&ordered->documents()[hits[1].document_index].id=="a-low","R120 deleted candidate differs from corrupt candidate");}
+
         std::mt19937 generator(430);
         std::normal_distribution<float> distribution(0,1);
         const auto Random=[&](){std::vector<float> v(768);long double squared=0;

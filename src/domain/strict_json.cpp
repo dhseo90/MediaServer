@@ -89,7 +89,7 @@ private:
                 value.start=pos_; value.type=StrictJsonType::Array;
                 if (!ParseObjectArray(path + "." + key, depth+1)) return false;
                 value.end=pos_;
-            } else if (!ParseValue(path + "." + key, &value, depth + 1)) {
+            } else if (!ParseValue(path + "." + key, &value, depth + 1, captured_members != nullptr)) {
                 return false;
             }
             if (captured_members != nullptr) {
@@ -146,7 +146,7 @@ private:
         std::size_t index = 0;
         while (pos_ < json_.size()) {
             ParsedValue value;
-            if (!ParseValue(path + "[" + std::to_string(index) + "]", &value, depth + 1)) {
+            if (!ParseValue(path + "[" + std::to_string(index) + "]", &value, depth + 1, false)) {
                 return false;
             }
             ++index;
@@ -162,7 +162,7 @@ private:
         return Fail("unterminated array");
     }
 
-    bool ParseValue(const std::string& path, ParsedValue* value, std::size_t depth) {
+    bool ParseValue(const std::string& path, ParsedValue* value, std::size_t depth, bool capture_string) {
         if (value == nullptr || pos_ >= json_.size()) {
             return Fail("missing value");
         }
@@ -176,7 +176,7 @@ private:
             if (!ParseArray(path, depth)) return false;
         } else if (ch == '"') {
             value->type = StrictJsonType::String;
-            if (!ParseString(&value->string_value)) return false;
+            if (!ParseString(capture_string ? &value->string_value : nullptr)) return false;
         } else if (ch == 't') {
             value->type = StrictJsonType::Bool;
             value->bool_value = true;
@@ -200,6 +200,8 @@ private:
         if (!Consume('"')) {
             return false;
         }
+        // Nested unselected strings still undergo the identical escape/surrogate
+        // validation; their decoded copies have no consumer. Keys are captured.
         std::string out;
         while (pos_ < json_.size()) {
             const unsigned char ch = static_cast<unsigned char>(json_[pos_++]);
@@ -213,7 +215,7 @@ private:
                 return false;
             }
             if (ch != '\\') {
-                out.push_back(static_cast<char>(ch));
+                if (decoded) out.push_back(static_cast<char>(ch));
                 continue;
             }
             if (pos_ >= json_.size()) {
@@ -221,14 +223,14 @@ private:
             }
             const char escaped = json_[pos_++];
             switch (escaped) {
-                case '"': out.push_back('"'); break;
-                case '\\': out.push_back('\\'); break;
-                case '/': out.push_back('/'); break;
-                case 'b': out.push_back('\b'); break;
-                case 'f': out.push_back('\f'); break;
-                case 'n': out.push_back('\n'); break;
-                case 'r': out.push_back('\r'); break;
-                case 't': out.push_back('\t'); break;
+                case '"': if (decoded) out.push_back('"'); break;
+                case '\\': if (decoded) out.push_back('\\'); break;
+                case '/': if (decoded) out.push_back('/'); break;
+                case 'b': if (decoded) out.push_back('\b'); break;
+                case 'f': if (decoded) out.push_back('\f'); break;
+                case 'n': if (decoded) out.push_back('\n'); break;
+                case 'r': if (decoded) out.push_back('\r'); break;
+                case 't': if (decoded) out.push_back('\t'); break;
                 case 'u': {
                     std::uint32_t codepoint = 0;
                     if (!ParseHexCodeUnit(&codepoint)) return false;
@@ -243,7 +245,7 @@ private:
                     } else if (codepoint >= 0xDC00 && codepoint <= 0xDFFF) {
                         return false;
                     }
-                    AppendUtf8(codepoint, &out);
+                    if (decoded) AppendUtf8(codepoint, &out);
                     break;
                 }
                 default: return false;

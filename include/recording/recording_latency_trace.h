@@ -170,6 +170,17 @@ public:
     }
     static void Result(unsigned status,const char* reason) noexcept {if(current){current->status_=status;const auto n=std::strlen(reason);bool safe=n<sizeof(current->reason_);for(std::size_t i=0;safe&&i<n;++i)safe=(reason[i]>='a'&&reason[i]<='z')||reason[i]=='-'||(reason[i]>='0'&&reason[i]<='9');std::snprintf(current->reason_,sizeof(current->reason_),"%s",safe?reason:"unknown-code");}}
     static void Index(std::uint64_t generation,std::uint64_t docs) noexcept {if(current){current->generation_=generation;current->documents_=docs;}}
+    // First/repeated miss by eligible/final phase; elapsed values are inclusive.
+    // Fixed 512 borrowed identities and 12 counters in RequestMedia, no payload log.
+    static void Preparation(const std::array<std::uint64_t,12>& values,std::size_t unique,bool complete) noexcept {
+        if(!current)return;
+        char row[640];std::size_t used=0;
+        const int head=std::snprintf(row,sizeof(row),"[visual-preparation] {\"id\":%u,\"uniqueObserved\":%zu,\"complete\":%s,\"values\":[",current->id_,unique,complete?"true":"false");
+        if(head<0||std::size_t(head)>=sizeof(row)){Loss();return;}used=std::size_t(head);
+        for(unsigned i=0;i<values.size();++i){const int n=std::snprintf(row+used,sizeof(row)-used,"%s%llu",i?",":"",(unsigned long long)values[i]);if(n<0||std::size_t(n)>=sizeof(row)-used){Loss();return;}used+=std::size_t(n);}
+        if(used+3>=sizeof(row)){Loss();return;}std::memcpy(row+used,"]}\n",3);used+=3;
+        if(std::fwrite(row,1,used,stderr)!=used||std::fflush(stderr)!=0)Loss();
+    }
     static void Count(unsigned counter,std::uint64_t n=1) noexcept {if(current&&counter<6)current->counters_[counter]+=n;}
     static void Phase(const char* name,std::uint64_t elapsed) noexcept {if(!current)return;for(unsigned i=0;i<17;++i)if(std::strcmp(name,Names[i])==0){++current->count_[i];current->ns_[i]+=elapsed;return;}}
     static void LockCost(const Row& r) noexcept {if(current&&r.k==0&&r.s>=1&&r.s<=5){const auto i=r.s-1;++current->locks_[i];current->wait_[i]+=r.w;current->held_[i]+=r.h;}}
