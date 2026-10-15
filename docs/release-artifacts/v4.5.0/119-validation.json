@@ -1959,16 +1959,52 @@
     }
   },
   "cleanup": {
-    "status": "PENDING_REMOTE_BYTE_VERIFICATION",
-    "ownedRoot": "/private/tmp/media-server-r119-jiejbxnz",
-    "rootIdentity": {
+    "status": "PASS",
+    "root": "/private/tmp/media-server-r119-jiejbxnz",
+    "verifiedRootIdentity": {
       "root": "/private/tmp/media-server-r119-jiejbxnz",
       "dev": 16777232,
       "ino": 174817320,
       "uid": 501,
       "base": "3d721f36bf51e02202b1ec97c232971255925dba"
     },
-    "protected": "user settings/private95backup/models/SDK excluded fromarchive+cleanup; build products retained"
+    "removed": {
+      "regularFiles": 8766,
+      "logicalBytes": 896891836,
+      "symlinksUnlinkedWithoutFollowing": 4,
+      "directories": 453
+    },
+    "rootAbsent": true,
+    "processesAndPorts": {
+      "pidsAbsent": [
+        33108,
+        33302,
+        34179,
+        34280,
+        34390,
+        34624,
+        34706,
+        35301,
+        35422,
+        35548,
+        36027,
+        36180
+      ],
+      "psExit": 1,
+      "ownedContainersAbsent": true,
+      "containerExit": 0,
+      "portsAbsent": [
+        52493,
+        52665,
+        52707,
+        52803,
+        52958,
+        52996,
+        53158
+      ],
+      "lsofExit": 1
+    },
+    "scope": "exact owned R119 root after actual remote bytes verified; no symlink target followed; user settings/private95backup/models/SDK untouched; build products retained"
   },
   "remaining": [
     "public limit200 within5sec with current raw/error/sample/authority checks",
@@ -1976,5 +2012,43 @@
     "117 long-running recording gaps and sustained mixed p95",
     "45/final120,wholememoryP0 and releaseHOLD"
   ],
-  "implementationCommit": "ba8ec8f206a00035b577eea0918176ab1f37a8c0"
+  "implementationCommit": "ba8ec8f206a00035b577eea0918176ab1f37a8c0",
+  "remote": {
+    "status": "PASS",
+    "localHead": "6ca04bdc37a9f9fca36562339703b058ee1f43ce",
+    "remoteHead": "6ca04bdc37a9f9fca36562339703b058ee1f43ce",
+    "method": "exact-commit GitHub content metadata then decoded Git blob actual bytes compared",
+    "files": [
+      {
+        "path": "docs/release-artifacts/v4.5.0/119-execution.tar.gz",
+        "bytes": 19509325,
+        "sha256": "18040ae7005fc54c241b8f235ff61e4881ebed505c7aee49358e3d7c3171c8b7",
+        "sameBytes": true
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/119-validation.json",
+        "bytes": 73713,
+        "sha256": "7152fe0e95f450861aa825289879d095c8bf9973d33e03f59489086d65401b9f",
+        "sameBytes": true
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/119-independent-review.json",
+        "bytes": 2595,
+        "sha256": "7557c359de0269c6aa73b81f7bc22fddb6bc40719131ed703caef328a4246bed",
+        "sameBytes": true
+      },
+      {
+        "path": "docs/development-backlog.md",
+        "bytes": 40148,
+        "sha256": "4fa5124b5c243f76ec4d66ff51024099a7290f92587ecf66ebef0fcb95095bfe",
+        "sameBytes": true
+      },
+      {
+        "path": "docs/release-notes-v4.5.0.md",
+        "bytes": 14919,
+        "sha256": "0ba3772a84e4116e0f02cb2550c683eb5a5f9b801f090d303933b414bdc776d0",
+        "sameBytes": true
+      }
+    ]
+  }
 }
