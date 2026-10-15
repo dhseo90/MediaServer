@@ -381,7 +381,7 @@
     "Logical owner0 and short shutdown are not universal lossless recording or total process noleak proof"
   ],
   "cleanup": {
-    "status": "pending remote byte verification; ownedroots/processes only; original OS crash/userconfig/private95backup/models/SDK excluded",
+    "status": "PASS_OWNED_OBJECTS_REMOVED",
     "precheck": {
       "portsOriginal": [
         {
@@ -513,7 +513,19 @@
           "text": "{\n  \"correction\": \"Original precleanup-ports.json has connectResult1 (EPERM) and erroneous closed=true interpretation; original retained unchanged, not used as closed-port evidence. This new observation checks ECONNREFUSED explicitly.\",\n  \"results\": [\n    {\n      \"run\": \"before-http\",\n      \"pid\": 62674,\n      \"ports\": [\n        {\n          \"port\": 60792,\n          \"connectResult\": 61,\n          \"closed\": true\n        },\n        {\n          \"port\": 60793,\n          \"connectResult\": 61,\n          \"closed\": true\n        }\n      ]\n    },\n    {\n      \"run\": \"after-http\",\n      \"pid\": 63123,\n      \"ports\": [\n        {\n          \"port\": 61068,\n          \"connectResult\": 61,\n          \"closed\": true\n        },\n        {\n          \"port\": 61069,\n          \"connectResult\": 61,\n          \"closed\": true\n        }\n      ]\n    },\n    {\n      \"run\": \"final-http\",\n      \"pid\": 63915,\n      \"ports\": [\n        {\n          \"port\": 61479,\n          \"connectResult\": 61,\n          \"closed\": true\n        },\n        {\n          \"port\": 61480,\n          \"connectResult\": 61,\n          \"closed\": true\n        }\n      ]\n    }\n  ]\n}"
         }
       }
-    }
+    },
+    "root": "/private/tmp/media-server-r123-s_nu6tzo",
+    "rootAbsent": true,
+    "entriesRemoved": 8844,
+    "symlinksUnlinkedWithoutFollowing": 831,
+    "containersRemoved": [
+      "media-server-r123-linux",
+      "media-server-r123-linux-v2",
+      "media-server-r123-linux-lifecycle"
+    ],
+    "containersAbsent": true,
+    "originalCrashReportPreserved": true,
+    "scope": "only owned R123 root and stopped containers; original OS crash/user settings/private95backup/models/SDK untouched; binary/runtime in build retained"
   },
   "archive": {
     "archive": "123-execution.tar.gz",
@@ -525,5 +537,28 @@
     "allMemberBytesVerified": true,
     "allReferenceBytesVerified": true,
     "manifestSha256": "ef4edf13232774e61f12bd75c655cee146854c1dfc971cc7cea8da24db63fa59"
+  },
+  "remote": {
+    "remoteSha": "c6fd4af58747183b0ad29f75705c81e91efd32d8",
+    "files": [
+      {
+        "path": "docs/release-artifacts/v4.5.0/123-execution.tar.gz",
+        "bytes": 14004377,
+        "sha256": "24e8748246a59b37c4fa6994f85ee4cddc23bda80162646bff805a74cb1eb64d",
+        "remoteBytesMatch": true
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/123-validation.json",
+        "bytes": 20151,
+        "sha256": "be97e2421a9aa0f3b63988f964bf23a6ed6087044d6f2cc12a0b1a543d2316a8",
+        "remoteBytesMatch": true
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/123-independent-review.json",
+        "bytes": 2302,
+        "sha256": "f009937ae11e32c709e54b3eeaae2f505390f66c1ce7c7a9c14677c48887cf14",
+        "remoteBytesMatch": true
+      }
+    ]
   }
 }
