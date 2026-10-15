@@ -53,6 +53,7 @@ Recorder 큐의 영상 손실과 입력 ordinal 공백을 인지해 기존 수�
 기존 혼합 FAIL·메모리 P0·출시 보류를 해소한 결과는 아니다.
 이후 [고정116 후보의117 혼합](release-artifacts/v4.5.0/117-validation.json)은 증거 생성이 진행됐으나 최종 검색 지연에서 FAIL했다.
 [118의 한정 retention 보완](release-artifacts/v4.5.0/118-validation.json)은 직접 회귀를 통과했으나 누적 HTTP 목표가 실패해 새900초는 미실행이다.
+[119의 admission·원본 읽기 보완](release-artifacts/v4.5.0/119-validation.json)은 누적12응답·새 문서·명시 Finish를 통과했으나 별도limit200이 실패했다. 전체 직접 목표와900초는 미완료이며 메모리P0·출시 보류를 유지한다.
 반복 녹화 공백과 지속 응답 지연을 별도 잔여로 두며45분·최종120분·메모리P0·출시 완료로 확대하지 않는다.
 
 75 마감 당시 제품 src/include는 `9257ed8b2044f9e8def4dd9984abea8c022fae1b` 후보와 같았다.

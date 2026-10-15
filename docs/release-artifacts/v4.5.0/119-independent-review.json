@@ -1,0 +1,27 @@
+{
+  "schema": "media-server.v450.r119.independent-review.v1",
+  "reviewer": "/root/independent_r119",
+  "requested": "gpt-6-astra/high",
+  "toolAccepted": "gpt-6-astra/high",
+  "actualRuntimeModel": null,
+  "actualRuntimeEffort": null,
+  "participation": "separate read-only reviewer; no implementation, test writing/execution or child delegation",
+  "decision": "ACCEPT_LIMITED_CHANGES_DIRECT_GOAL_FAIL_900_INELIGIBLE",
+  "findings": [
+    "Admission private preparation precedes serializer acquisition; callback acquires admission before current Catalog fold; policy changes serialize before deletion/admission; durable reservation snapshot precedes physical-free/outstanding capture. No new backlog or relaxed quota.",
+    "Initial preparation and exact sample seek share final currentness/file state; subsequent proof reuse and selected results retain revalidation. Hot authentication releases Catalog on owned values and rechecks authority, exact row/lifecycle/binding and caller path after reacquisition.",
+    "Current product/header/HTTP source hashes match hotread measurement; binary b3b1a7870c790fa6c9434b59ee9f4c99fbd940da9613816531c82b25cd73a935 verified. Later proof-test line split only.",
+    "Independently checked 12 actual HTTP200 bodies with20items, p95=max1967.89ms; immutable generation3/docs1616/new44; source2423/2423; explicitStop2/Finish1; logical owners0;63observer samples/groupAbsent.",
+    "Aux100 received0bytes/noheaders/errno35 after5.002s; server visual7 later503 at5.038s. These are distinct observations. Original12 PASS does not satisfy auxiliary or900 eligibility.",
+    "Limit200425eligible/369successfulprepare/320evictions; prepare4.468s/binding2.099s/Cataloghold2.330s overlap and must not be summed. Wait3.76ms does not dominate this request.",
+    "Score-order valid-top200 short circuit rejected: low-score earlier-ID corruptA may previously throw503 before higher-score validB; skippingA changes failure propagation. This does not prove no other safe optimization is possible.",
+    "Linux4 exit0,4configs,534PASS/0FAIL and owned tmp cleanup confirmed; Linux3 product/source/cachePASS; noexec/runtime path/Werror first failures retained.",
+    "986 candidate mapping unchanged in actual diff; producer/readback/coverage authorized for inventory binding only, not behavior or mixed gate approval."
+  ],
+  "remaining": [
+    "auxiliary public limit200 response FAIL",
+    "direct complete goal FAIL;900 not run",
+    "long-running recording gaps and memoryP0/releaseHOLD",
+    "archive bytes/remote/cleanup checked separately after this review"
+  ]
+}
