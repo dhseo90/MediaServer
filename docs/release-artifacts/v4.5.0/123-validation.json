@@ -1,0 +1,529 @@
+{
+  "schema": "media-server.v450.r123.validation.v1",
+  "status": "DIRECT_CRASH_FIX_SHUTDOWN_RECOVERY_PASS_LONGRUN_NOT_RUN",
+  "baseline": "7f4364935cdbe1690bff823844bd0685be751773",
+  "productCommit": "6cac6d28b22156fdf8886facb52f1c3369e9feca",
+  "model": {
+    "requestedMain": "gpt-6-astra/high",
+    "mainToolAccepted": null,
+    "mainRuntimeModel": null,
+    "mainRuntimeEffort": null,
+    "reviewer": "/root/independent_r123",
+    "reviewRequested": "gpt-6-astra/high",
+    "reviewToolAccepted": "gpt-6-astra/high",
+    "reviewRuntimeModel": null,
+    "reviewRuntimeEffort": null
+  },
+  "entry": "v4.5.0 clean index/tree; origin matched baseline; no user changes replaced",
+  "preservedPrior": "122 same-run12/limit200/direct PASS and900 mainloop/search gatePASS remain historical; full900 FAIL due SIGBUS unchanged;111/112/114/116 contracts retained",
+  "cause": {
+    "originalPid": 57116,
+    "originalBinarySha256": "d98ce0049837c2708da56e26c6f1fc3bc6e3db16c5c75932adfd1849342275cd",
+    "originalCrashSha256": "4648994ac844e09b8eb534c6e60730657c5e3b8e94f7c0f0e8d0cd057e4a7cdd",
+    "uuid": "ED2778EF-89DD-3740-9D0E-7BC0B40EF1E4",
+    "exception": {
+      "codes": "0x0000000000000002, 0x000000016f5a7fe8",
+      "message": "Could not determine thread index for stack guard region",
+      "rawCodes": [
+        2,
+        6163169256
+      ],
+      "type": "EXC_BAD_ACCESS",
+      "signal": "SIGBUS",
+      "subtype": "KERN_PROTECTION_FAILURE at 0x000000016f5a7fe8"
+    },
+    "faultThreadIndex": 35,
+    "faultThreadId": 20543220,
+    "faultAddress": "0x000000016f5a7fe8",
+    "stackGuard": "0x16f5a4000-0x16f5a8000",
+    "stackBytes": 557056,
+    "confirmed": "Original crashed HTTP worker reached final writer durable commit and authenticated history insertion. Stack Guard access while constructing Node/string,16 recursive Insert frames. Exact historical binary has HTTP handler406944B fixed frame and Insert5136B perlevel; depth-dependent stack exhaustion, not evidence of freed FD/mmap/UAF.",
+    "firstInvalidAccess": "std::string::__is_long during Node construction below stack bound; automatic locals exceed valid worker stack. No owner release identified as cause.",
+    "stopOrder": "existing channel removal/stopping -> RemoveSubscriber join -> writer Stop/Finalize/durable commit -> auxiliary lease release; unchanged",
+    "limits": "new actual old-binary SIGBUS replay lacked a new matching stack; same finalization path reproduction is separate from exact original crash proof; small-stack old test passed; no ASan/TSan claimed"
+  },
+  "changes": [
+    "Replace recursive index Insert ancestors with bounded96-frame operation-owned heap path within unchanged297216B/index work reservation. Preserve raw authentication, lower/upper order, depth/row bounds, inline/fixed slots, rotation/write order, poison and Close. No new cache, reader lifetime or public format.",
+    "Explicit empty defaults in SessionManager result fields fix existing GCC Werror regression build. Error aggregate return values preserved; SourceSpec.kind on plain default construction becomes initialized, not a claim that every default construction was identical."
+  ],
+  "runs": {
+    "before": {
+      "attempts": 1,
+      "elapsedMs": 28711.380042,
+      "firstError": "TypeError: fetch failed",
+      "exit": {
+        "code": null,
+        "signal": "SIGBUS"
+      },
+      "normalFinish": "not-run SIGBUS",
+      "binary": "d98ce0049837c2708da56e26c6f1fc3bc6e3db16c5c75932adfd1849342275cd"
+    },
+    "afterIndexFix": {
+      "attempts": 1,
+      "elapsedMs": 34621.909792,
+      "disable": [
+        {
+          "method": "PUT",
+          "route": "/ops/api/sources/9101",
+          "status": 200,
+          "bytes": 439,
+          "elapsedMs": 841.8274999999994
+        },
+        {
+          "method": "PUT",
+          "route": "/ops/api/sources/9201",
+          "status": 200,
+          "bytes": 439,
+          "elapsedMs": 55.32195900000079
+        }
+      ],
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "binary": "ab3f31bb4171c952be8879c1cec9867fccc0f024b7cc786ae22307001ab20485"
+    },
+    "finalAfterCompilePreparationFix": {
+      "attempts": 1,
+      "reason": "Final rebuilt binary changed after explicit empty initializers; fixed one additional short run before execution, not unchanged-binary retry",
+      "elapsedMs": 34571.482167,
+      "disable": [
+        {
+          "method": "PUT",
+          "route": "/ops/api/sources/9101",
+          "status": 200,
+          "bytes": 439,
+          "elapsedMs": 839.276334000002
+        },
+        {
+          "method": "PUT",
+          "route": "/ops/api/sources/9201",
+          "status": 200,
+          "bytes": 439,
+          "elapsedMs": 53.05095900000015
+        }
+      ],
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "binary": "770d50540285eb90f899d5060ecb6ba9ed23987f6fc5fa1ca7dce70aaf6efb08",
+      "runtime": "e04b4e5752fd5527926bc728bfd6eb9774ac33b086bfbac75f93861609dc0871",
+      "newFinalizedFiles": 12,
+      "newFileHashReadback": "all12 match durable segment hash/size/sourceBinding; archived analysis rows",
+      "seedMP4Unchanged": 901,
+      "otherChannelConfirmedBytesIncrease": 68802,
+      "normalStopFinish": "PASS; real signals/response and before-Finish/after-Finish/after-storage-destruction traces",
+      "logicalOwnersFinal": {
+        "pid": 63915,
+        "seq": 6,
+        "phase": "after-storage-destruction",
+        "elapsedMs": 33421,
+        "ram": 0,
+        "ramPeak": 98913777,
+        "ramLimit": 671088640,
+        "ramRejected": 0,
+        "scratchDisk": 0,
+        "scratchDiskPeak": 118292480,
+        "scratchDiskLimit": 161872744448,
+        "scratchFd": 0,
+        "scratchFdPeak": 8,
+        "scratchFdLimit": 1048572,
+        "scratchRam": 0,
+        "preservedDisk": 0,
+        "preservedFd": 0,
+        "readerCleanupHealthy": true
+      }
+    },
+    "scope": "~35sec real two-source+Recorder+HTTP/index/retention with historical closed-store copy; not122 livecache restoration or sustained search/evidence benchmark; no product pause/latch/drop injection"
+  },
+  "closedJournal": {
+    "mutations": 1828,
+    "partialBytes": 0,
+    "backlog": false,
+    "busy": false,
+    "polls": 15,
+    "nativeClose": {
+      "code": 0,
+      "signal": null
+    },
+    "pass": true
+  },
+  "readback": {
+    "final": {
+      "exit": 0,
+      "seconds": 21.831489000003785,
+      "segments": 912,
+      "channels": [
+        "9101",
+        "9201"
+      ],
+      "available": 912,
+      "sourceUnchanged": true,
+      "copyChanges": [
+        "recording-generation-catalog.sqlite3"
+      ],
+      "added": [],
+      "scope": "separate process current runtime authenticates catalog and resolves media;912 excludes channel1 original segment; new12 file SHA checked offline; no new PNG generation claim"
+    },
+    "originalCrashCopy": {
+      "name": "crash-recovery",
+      "exit": 0,
+      "seconds": 20.72301312512718,
+      "changed": [
+        "recording-generation-catalog.sqlite3"
+      ],
+      "added": [],
+      "sourceUnchanged": true
+    },
+    "noOriginalRecoveryMutation": true
+  },
+  "platform": {
+    "macOS": "configured product build; focused4096 ascending/reverse/permuted+overwrite/lookup/visit/clone/buffer+fault poison/Close; history-product4crypto/sqlite/backend configurations; lifecycle6/6PASS",
+    "Linux": "existing rc58-arm64 image UID10001 networknone capdropALL no-new-privileges; focused index and4history-product configurations PASS; final lifecycle6/6PASS Werror retained",
+    "scope": "Linux direct regression; macOS actual GStreamer HTTP shutdown. No new Linux full multimedia acceptance",
+    "focusedOldStack": "PASS, not a crash reproduction",
+    "smallStackBytes": {
+      "macOS": 65536,
+      "Linux": 131072
+    },
+    "productStackOrBudgetsChanged": false
+  },
+  "preparationFailures": [
+    {
+      "log": "index-before-lldb.log / index-before-lldb-native.log",
+      "meaning": "debugger launch could not establish runnable test; owned debugger/target safely killed and absent; not reproduced stack evidence, no security change"
+    },
+    {
+      "log": "linux.log",
+      "meaning": "pthread64KiB below platform128KiB minimum; preserved first failure; focused test uses platform minimum only"
+    },
+    {
+      "log": "linux-v2.log",
+      "meaning": "index/history tests PASS; existing lifecycle GCC omitted-field Werror; explicit initializer fix then6/6PASS"
+    },
+    {
+      "log": "readback-binding.json / binding-order-interruption.json",
+      "meaning": "downstream readback started before producer update completed: inventorySha drift exit1, negatives notrun. Coverage aborted exit143; final serialized checks replace neither first output nor history"
+    }
+  ],
+  "fixtureLimits": {
+    "seed": "selected122 archive bytes, same seed hash manifest before/after/final",
+    "metadata": "1101 extracted files had0644 vs archived0600; parent0700/owneduid501; no group/other write. Not a complete original metadata reproduction. Recorded explicitly.",
+    "missingHistorical": "original livecache/reader/callback state not restored; new SIGBUS stack unavailable"
+  },
+  "resources": {
+    "finalSamples": [
+      {
+        "pid": 63915,
+        "seq": 0,
+        "phase": "opened",
+        "elapsedMs": 10557,
+        "ram": 1800074,
+        "ramPeak": 2463298,
+        "ramLimit": 671088640,
+        "ramRejected": 0,
+        "scratchDisk": 41410560,
+        "scratchDiskPeak": 54095872,
+        "scratchDiskLimit": 161872744448,
+        "scratchFd": 4,
+        "scratchFdPeak": 6,
+        "scratchFdLimit": 1048572,
+        "scratchRam": 1188864,
+        "preservedDisk": 0,
+        "preservedFd": 0,
+        "readerCleanupHealthy": true
+      },
+      {
+        "pid": 63915,
+        "seq": 1,
+        "phase": "sample",
+        "elapsedMs": 18284,
+        "ram": 18571730,
+        "ramPeak": 19060788,
+        "ramLimit": 671088640,
+        "ramRejected": 0,
+        "scratchDisk": 41410560,
+        "scratchDiskPeak": 54095872,
+        "scratchDiskLimit": 161872744448,
+        "scratchFd": 4,
+        "scratchFdPeak": 6,
+        "scratchFdLimit": 1048572,
+        "scratchRam": 1188864,
+        "preservedDisk": 0,
+        "preservedFd": 0,
+        "readerCleanupHealthy": true
+      },
+      {
+        "pid": 63915,
+        "seq": 2,
+        "phase": "sample",
+        "elapsedMs": 23306,
+        "ram": 60396476,
+        "ramPeak": 98913777,
+        "ramLimit": 671088640,
+        "ramRejected": 0,
+        "scratchDisk": 118136832,
+        "scratchDiskPeak": 118136832,
+        "scratchDiskLimit": 161872744448,
+        "scratchFd": 7,
+        "scratchFdPeak": 8,
+        "scratchFdLimit": 1048572,
+        "scratchRam": 2080512,
+        "preservedDisk": 0,
+        "preservedFd": 0,
+        "readerCleanupHealthy": true
+      },
+      {
+        "pid": 63915,
+        "seq": 3,
+        "phase": "sample",
+        "elapsedMs": 28319,
+        "ram": 28891385,
+        "ramPeak": 98913777,
+        "ramLimit": 671088640,
+        "ramRejected": 0,
+        "scratchDisk": 41664512,
+        "scratchDiskPeak": 118292480,
+        "scratchDiskLimit": 161872744448,
+        "scratchFd": 4,
+        "scratchFdPeak": 8,
+        "scratchFdLimit": 1048572,
+        "scratchRam": 1188864,
+        "preservedDisk": 0,
+        "preservedFd": 0,
+        "readerCleanupHealthy": true
+      },
+      {
+        "pid": 63915,
+        "seq": 4,
+        "phase": "before-Finish",
+        "elapsedMs": 33337,
+        "ram": 18541749,
+        "ramPeak": 98913777,
+        "ramLimit": 671088640,
+        "ramRejected": 0,
+        "scratchDisk": 41754624,
+        "scratchDiskPeak": 118292480,
+        "scratchDiskLimit": 161872744448,
+        "scratchFd": 4,
+        "scratchFdPeak": 8,
+        "scratchFdLimit": 1048572,
+        "scratchRam": 1188864,
+        "preservedDisk": 0,
+        "preservedFd": 0,
+        "readerCleanupHealthy": true
+      },
+      {
+        "pid": 63915,
+        "seq": 5,
+        "phase": "after-Finish",
+        "elapsedMs": 33347,
+        "ram": 611210,
+        "ramPeak": 98913777,
+        "ramLimit": 671088640,
+        "ramRejected": 0,
+        "scratchDisk": 0,
+        "scratchDiskPeak": 118292480,
+        "scratchDiskLimit": 161872744448,
+        "scratchFd": 0,
+        "scratchFdPeak": 8,
+        "scratchFdLimit": 1048572,
+        "scratchRam": 0,
+        "preservedDisk": 0,
+        "preservedFd": 0,
+        "readerCleanupHealthy": true
+      },
+      {
+        "pid": 63915,
+        "seq": 6,
+        "phase": "after-storage-destruction",
+        "elapsedMs": 33421,
+        "ram": 0,
+        "ramPeak": 98913777,
+        "ramLimit": 671088640,
+        "ramRejected": 0,
+        "scratchDisk": 0,
+        "scratchDiskPeak": 118292480,
+        "scratchDiskLimit": 161872744448,
+        "scratchFd": 0,
+        "scratchFdPeak": 8,
+        "scratchFdLimit": 1048572,
+        "scratchRam": 0,
+        "preservedDisk": 0,
+        "preservedFd": 0,
+        "readerCleanupHealthy": true
+      }
+    ],
+    "meaning": "logical admitted owner peaks and sampled states, not total heap/RSS/footprint/full OSFD or simultaneous OS peak. No increase in work/domain/time/queue limits. No full collector newrun."
+  },
+  "binding": {
+    "candidateCount": 986,
+    "candidateDigest": "8977e9b6ac618c7e0233823f6acb6ab1fcf7461206ee5d8b2a4149a643519e3a",
+    "producer": "51pass0fail",
+    "readback": "0errors negatives15/15",
+    "coverage": "986 covered/no missing;9pass0fail",
+    "scope": "new product/test independent reviewed; unchanged candidate semantics, inventory hash updated by approved producer; not runtime acceptance"
+  },
+  "independentReview": "123-independent-review.json",
+  "notRun": [
+    "new900",
+    "45minutes",
+    "120minutes",
+    "acceptance",
+    "UI",
+    "public procedures",
+    "ASan/TSan"
+  ],
+  "remaining": [
+    "Final fixed candidate900 with normal postloop shutdown not executed; requires next explicit approval.122 full900 FAIL preserved.",
+    "45/final120/full memoryP0/release HOLD",
+    "Logical owner0 and short shutdown are not universal lossless recording or total process noleak proof"
+  ],
+  "cleanup": {
+    "status": "pending remote byte verification; ownedroots/processes only; original OS crash/userconfig/private95backup/models/SDK excluded",
+    "precheck": {
+      "portsOriginal": [
+        {
+          "run": "before-http",
+          "pid": 62674,
+          "ports": [
+            {
+              "port": 60792,
+              "connectResult": 1,
+              "closed": true
+            },
+            {
+              "port": 60793,
+              "connectResult": 1,
+              "closed": true
+            }
+          ]
+        },
+        {
+          "run": "after-http",
+          "pid": 63123,
+          "ports": [
+            {
+              "port": 61068,
+              "connectResult": 1,
+              "closed": true
+            },
+            {
+              "port": 61069,
+              "connectResult": 1,
+              "closed": true
+            }
+          ]
+        },
+        {
+          "run": "final-http",
+          "pid": 63915,
+          "ports": [
+            {
+              "port": 61479,
+              "connectResult": 1,
+              "closed": true
+            },
+            {
+              "port": 61480,
+              "connectResult": 1,
+              "closed": true
+            }
+          ]
+        }
+      ],
+      "portsVerified": {
+        "correction": "Original precleanup-ports.json has connectResult1 (EPERM) and erroneous closed=true interpretation; original retained unchanged, not used as closed-port evidence. This new observation checks ECONNREFUSED explicitly.",
+        "results": [
+          {
+            "run": "before-http",
+            "pid": 62674,
+            "ports": [
+              {
+                "port": 60792,
+                "connectResult": 61,
+                "closed": true
+              },
+              {
+                "port": 60793,
+                "connectResult": 61,
+                "closed": true
+              }
+            ]
+          },
+          {
+            "run": "after-http",
+            "pid": 63123,
+            "ports": [
+              {
+                "port": 61068,
+                "connectResult": 61,
+                "closed": true
+              },
+              {
+                "port": 61069,
+                "connectResult": 61,
+                "closed": true
+              }
+            ]
+          },
+          {
+            "run": "final-http",
+            "pid": 63915,
+            "ports": [
+              {
+                "port": 61479,
+                "connectResult": 61,
+                "closed": true
+              },
+              {
+                "port": 61480,
+                "connectResult": 61,
+                "closed": true
+              }
+            ]
+          }
+        ]
+      },
+      "ownedProcessPidsAbsent": [
+        62674,
+        63123,
+        63915,
+        62593,
+        62596,
+        62597
+      ],
+      "containersExited": [
+        "media-server-r123-linux",
+        "media-server-r123-linux-v2",
+        "media-server-r123-linux-lifecycle"
+      ],
+      "rawEvidence": {
+        "precleanup-ports.json": {
+          "encoding": "utf-8",
+          "bytes": 765,
+          "sha256": "5b12c7993bdbb17b589f94b44411f29d3960c6d63519bad9a7786492e7e94b61",
+          "text": "[\n  {\n    \"run\": \"before-http\",\n    \"pid\": 62674,\n    \"ports\": [\n      {\n        \"port\": 60792,\n        \"connectResult\": 1,\n        \"closed\": true\n      },\n      {\n        \"port\": 60793,\n        \"connectResult\": 1,\n        \"closed\": true\n      }\n    ]\n  },\n  {\n    \"run\": \"after-http\",\n    \"pid\": 63123,\n    \"ports\": [\n      {\n        \"port\": 61068,\n        \"connectResult\": 1,\n        \"closed\": true\n      },\n      {\n        \"port\": 61069,\n        \"connectResult\": 1,\n        \"closed\": true\n      }\n    ]\n  },\n  {\n    \"run\": \"final-http\",\n    \"pid\": 63915,\n    \"ports\": [\n      {\n        \"port\": 61479,\n        \"connectResult\": 1,\n        \"closed\": true\n      },\n      {\n        \"port\": 61480,\n        \"connectResult\": 1,\n        \"closed\": true\n      }\n    ]\n  }\n]"
+        },
+        "precleanup-ports-verified.json": {
+          "encoding": "utf-8",
+          "bytes": 1121,
+          "sha256": "2bb12127f497e60fa618f9a6fec22ca9562f4f58c53765387207ed5f307a6995",
+          "text": "{\n  \"correction\": \"Original precleanup-ports.json has connectResult1 (EPERM) and erroneous closed=true interpretation; original retained unchanged, not used as closed-port evidence. This new observation checks ECONNREFUSED explicitly.\",\n  \"results\": [\n    {\n      \"run\": \"before-http\",\n      \"pid\": 62674,\n      \"ports\": [\n        {\n          \"port\": 60792,\n          \"connectResult\": 61,\n          \"closed\": true\n        },\n        {\n          \"port\": 60793,\n          \"connectResult\": 61,\n          \"closed\": true\n        }\n      ]\n    },\n    {\n      \"run\": \"after-http\",\n      \"pid\": 63123,\n      \"ports\": [\n        {\n          \"port\": 61068,\n          \"connectResult\": 61,\n          \"closed\": true\n        },\n        {\n          \"port\": 61069,\n          \"connectResult\": 61,\n          \"closed\": true\n        }\n      ]\n    },\n    {\n      \"run\": \"final-http\",\n      \"pid\": 63915,\n      \"ports\": [\n        {\n          \"port\": 61479,\n          \"connectResult\": 61,\n          \"closed\": true\n        },\n        {\n          \"port\": 61480,\n          \"connectResult\": 61,\n          \"closed\": true\n        }\n      ]\n    }\n  ]\n}"
+        }
+      }
+    }
+  },
+  "archive": {
+    "archive": "123-execution.tar.gz",
+    "bytes": 14004377,
+    "sha256": "24e8748246a59b37c4fa6994f85ee4cddc23bda80162646bff805a74cb1eb64d",
+    "files": 124,
+    "payloadBytes": 90024536,
+    "references": 3291,
+    "allMemberBytesVerified": true,
+    "allReferenceBytesVerified": true,
+    "manifestSha256": "ef4edf13232774e61f12bd75c655cee146854c1dfc971cc7cea8da24db63fa59"
+  }
+}

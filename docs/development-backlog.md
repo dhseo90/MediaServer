@@ -17,6 +17,13 @@
 
 ## v4.5.0 잔여 개발과 릴리즈 순서
 
+[123 비활성화 SIGBUS 수정](release-artifacts/v4.5.0/123-validation.json)은 **충돌 원인 수정·짧은 실제 종료/복구 직접 검증 PASS**다.
+122 원본 crash의 Stack Guard 접근과 정확한 binary의 깊이별 history Insert 스택을 확인했다.
+삽입 경로를 기존 예약 안의 유한 작업 소유로 옮겼으며 종료 순서·인증·내구성·한도는 유지한다.
+최종 제품에서 두 채널 비활성화200·다른 채널 확정 진행·Stop/Finish·닫힌 journal·별도 재Open·최종 논리owner0을 확인했다.
+새 재현 SIGBUS의 추가 stack은 미확보이며 짧은 종료 검사는 과거 live 상태의 완전 복원이 아니다.
+**122 전체900초 FAIL은 유지**한다. 수정 후보의 새900초 및 후속 종료는 미실행이며,45/120분·메모리P0·출시 보류를 유지한다.
+
 [122 수신 경계·중복 binding 검증 보완](release-artifacts/v4.5.0/122-validation.json)은 **같은 실행의 직접 목표 PASS·900초 혼합은 종료 단계 FAIL**이다.
 기존 소멸자 종료 기준을 유지한12실제200 p95/max1572.888ms·보조200항목 전체200 종료4393.379ms를 확인했다.
 새 게시52/public5·Recorder2424/2424·42파일·명시Stop/Finish·최종논리owner0은 직접 실행 범위다.

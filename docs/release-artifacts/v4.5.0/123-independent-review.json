@@ -1,0 +1,37 @@
+{
+  "schema": "media-server.v450.r123.independent-review.v1",
+  "reviewer": "/root/independent_r123",
+  "requested": "gpt-6-astra/high",
+  "toolAccepted": "gpt-6-astra/high",
+  "actualRuntimeModel": null,
+  "actualRuntimeEffort": null,
+  "independence": "no implementation, test writing, test execution or subdelegation; read-only review",
+  "status": "DIRECT_FIX_AND_SHUTDOWN_RECOVERY_SUPPORTED",
+  "blockingFindings": [],
+  "confirmed": [
+    "original crash SHA, binary SHA/UUID, Stack Guard and16 recursive Insert frames; exact old binary frame sizes",
+    "iterative insertion preserves authentication/order/depth/rotation/write/poison and admitted ownership",
+    "final two PUT200; other channel +68802B;12 new durable files;901 seedMP4 unchanged",
+    "normal Exit0 and final logical reservation owners0",
+    "final runtime separate-process readback: channels9101/9201 912available, source unchanged, copy SQLite projection only changed",
+    "closed journal1828 mutations partial0/backlogfalse/busyfalse and native close0",
+    "SessionManager explicit empty error-result initialization preserves error-return semantics; default SourceSpec.kind initialization not identical for all default construction"
+  ],
+  "limits": [
+    "new SIGBUS replay has no newly captured stack; original crash is directly documented",
+    "old small-stack test PASS is not crash reproduction",
+    "original metadata not fully restored; copies have same bytes and controlled permissions",
+    "owner0 not totalRSS/OSFD/instantaneouspeak proof",
+    "986candidate binding not behavioral acceptance",
+    "no new900/45/120/UI/fullacceptance/release"
+  ],
+  "pendingAtReview": [
+    "remote byte verification and owned cleanup"
+  ],
+  "artifactReview": {
+    "blockingProductFindings": [],
+    "summary": "validation/backlog preserve directPASS versus old900FAIL and pendingcleanup; sanitized logs distinct",
+    "finding": "precleanup original two files absent from tar; structured values alone are not exact original byte preservation",
+    "mainResolution": "Both complete original UTF-8 byte strings, lengths and SHA-256 embedded in123-validation.cleanup.precheck.rawEvidence; decoded exact-byte comparison PASS. Archive unchanged. This resolution is main verification, not a new reviewer runtime claim."
+  }
+}
