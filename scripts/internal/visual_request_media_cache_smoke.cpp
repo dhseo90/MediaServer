@@ -111,11 +111,18 @@ int main(int argc,char** argv){try{
         }
         CacheCheck(Descriptors()==baseline,"final selection borrowing releases all descriptors");
         CacheCheck(Descriptors()==baseline&&runtime.catalog().RequestDeletion(docs[0].segment_id,"continuous-capacity",&error),"entry-limit request releases FD and retention holds");
-        // 유효 V2 JSON의 큰 선택적 설명은 큰 증명을 cache 밖에서 다루는 정상 입력이다.
+        // Preserve an actual >8MiB legacy proof after duplicate canonical ownership is removed.
+        LegacyStorage oversized_seed(root/"oversized-seed");
+        CacheCheck(oversized_seed.Open(&error),"oversized multi-sample source open");
+        Seed(oversized_seed,3150,30,105000);const auto oversized_docs=Documents(oversized_seed);
+        CacheCheck(oversized_docs.size()==1,"oversized source has 3150 real encoded samples");
+        // 유효 V2 JSON의 큰 선택적 설명과 실제 sample 증명을 함께 검사한다.
         const auto large_case=[&](auto& oversized,const std::filesystem::path& large_root,bool compact){
         const bool large_open=oversized.Open(&error);CacheCheck(large_open,"large store: "+error);
-        auto segment=*runtime.catalog().FindSegmentV2ById(docs[1].segment_id);auto binding=*runtime.catalog().FindSourceBinding(docs[1].segment_id);
-        const auto original=*runtime.catalog().FindSegmentMediaLocation(segment.segment_id);recording::RecordingOrderReservationV1 order;
+        auto& source_catalog=compact?runtime.catalog():oversized_seed.catalog();
+        const auto& source_doc=compact?docs[1]:oversized_docs[0];
+        auto segment=*source_catalog.FindSegmentV2ById(source_doc.segment_id);auto binding=*source_catalog.FindSourceBinding(source_doc.segment_id);
+        const auto original=*source_catalog.FindSegmentMediaLocation(segment.segment_id);recording::RecordingOrderReservationV1 order;
         const auto store=oversized.journal().ManagedStoreId();CacheCheck(oversized.catalog().ReserveRecordingOrder(store,"oversized-order","oversized-segment","cache-channel",&order,&error),"oversized native reservation");
         segment.segment_id=order.segment_id;segment.order_request_id=order.request_id;segment.store_id=store;segment.order_sequence=order.sequence;segment.audio_omitted_reason="x";
         const std::size_t target_json_bytes=1024U*1024-1024;

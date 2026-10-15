@@ -5180,3 +5180,16 @@ R112-F02: 같은 실패 파일에서 seek/순차 모두13출력·마지막966666
 - **R120-P06**: final 단계만 아직 소비할 selected source보다 미선택/소비완료 entry를 먼저 퇴거하고 각 집합 내 LRU는 유지한다. 이미 확정된≤200hit/index를 차용하며 새 proof/FD/cache 한도를 만들지 않는다. 실제201파일에서 early final miss·복수 selected sample·마지막 hold 반환을 확인한다. eligible의 ID/중간heap 후보 방문·오류 전파와 final 검증/출력 순서는 그대로다.
 - **R120-P07/P08**: ephemeral source identity는 인증된6필드의 길이-prefix streaming SHA로 계산한다. 영속 hash/원문 인증·임시 예약은 유지한다. media wrapper에서만 현재 raw/SourceEntry 이후 전체 media/path 검증을 한 번 수행하고, 비media Collect와 초기/최종 FD·권위 검증은 유지한다. 6필드 차이·구분자 충돌·physical 표현 독립·active/history 예산 실패와 비poison을 검사한다.
 - 낮은 점수 앞선ID 손상·중간heap 진입 후 탈락하는 후보의 오류, 삭제와 손상 구분, 동점·필터·복수sample exact seek, 원문/권한 변경·cold/hit/퇴거/oversized·취소/Stop/자원/부분I/O·마지막 owner 반환을 관련 macOS/비특권 Linux에서 확인한다. UI/장시간 대체 아님. 전체 직접 목표와 독립 검토 통과 때만900초1회이며45/120분은 제외한다.
+
+### R121-S01 — 같은 실행의 원래12응답·보조limit200와 Catalog 대기
+
+- R120 요청1/2의 같은 mutex 보유 union과 waiter를 먼저 대조한다. 비계측 CaptureSearchSource/ValidateSearchSource에 기존 bounded holder를 연결하고, Lock/try_lock/Unlocked·선택 전후 구간·미계측 잔여를 구분한다. 과거 미귀속 시간을 소급 확정하지 않는다.
+- 최초 진단은 계측만 변경한 누적 source-parallel 1회. 기존 bytes/mode·입력·build flags·query·모델·부하·collector·4MiB를 유지하고 성능 실행과 빌드를 겹치지 않는다. 이후 제품 후보별 실행 수·순서는 실행 전에 고정한다.
+- 같은 실행의 원래12 실제200/p95≤2000ms/max≤5000ms, 별도limit200 전체200/정확한200항목/클라이언트5초, 새 게시 membership/public hit, Recorder 기대수용·다른 subscriber, 명시Stop/Finish·owner/수집을 각각 판정한다. 서로 다른 실행의 PASS를 합치지 않는다. 직접 전체+독립 검토 후만900초1회,45/120/UI 제외.
+- R121-P01: CaptureSearchSource의 V2 전체 입력을 기존 authenticated ForEachEntry로 읽고 같은 cut의 실제 row에만 present_in_current_cut을 전달한다. 모든 채널 raw/namespace 인증, retired/tombstone/state, ID순서·mapping·unknown·반환 budget·최종 ValidateSearchSource는 유지한다. generation snapshot/active/reOpen·held model·관련변경/무관변경·손상·capacity 실패 출력 불변을 기존 source/generation focused와 추가 독립 기대값으로 대조한다. 동일 계측의 변경 후보 source-parallel 1회, 빌드/회귀 완료 후 실행.
+
+- R121-P02: `CaptureSearchSource`의 채널 제외는 현재 authenticated raw와 기존 제한된 scalar memo가 일치할 때만 DTO 재구성을 생략한다. 선택 채널 Continuous 포함·같은 길이 채널 전환/손상·이전 cut·제외 consumer의 lifecycle 오류/거부·namespace 손상·Finish 회수를 request-proof 직접 검사로 확인한다. 원래12/보조200 판정과는 별도이며 첫12개 capture의 유한 행/제외/memo/parse 계측은 잠금 해제 후 출력한다.
+
+- R121-P03: `PreparedSource::Impl`의 immutable segment 수명을 첫 binding 준비부터 마지막 reader까지 사용해 중복 canonical 문자열만 제거한다. 최초 strict materialization·현재 raw/SourceEntry·media/path 전후 확인·파일 증거/seek는 유지한다. request-proof의 실제 AcquireMedia/두 binding/변경 media 거부, 기존 visual-source와 RequestMedia의 cold/hit/eviction/oversized·파일/권한/Stop/소유 회귀를 적용한다. 같은 누적 HTTP는 P03 고정 후보로1회이며 이전 실행의 A/B 합격을 합치지 않는다.
+
+R121-P03 cache 경계: canonical 중복 제거 뒤에도 실제 3150-sample legacy 원본과 유효 1MiB 미만 segment 설명으로 8MiB 초과 proof의 uncached/응답 hold/FD 회수를 검증한다. 기존 실패 입력은 archive에 유지한다.

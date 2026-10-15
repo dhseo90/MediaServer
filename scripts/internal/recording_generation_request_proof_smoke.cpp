@@ -82,6 +82,19 @@ struct RecordingGenerationRequestProofProbe {
         const auto value=c.ReadSourceBindingLocked("segment",context,&error,nullptr,same_cut);
         return value?SerializeRecordingSourceBindingV1(*value):std::string{};
     }
+    static bool BorrowedSource(RecordingCatalog& c,const std::string& expected){
+        RecordingSegmentV2 segment;std::pair<std::filesystem::path,std::filesystem::path> location;
+        if(!c.AcquireMediaV2("channel","segment",&segment,&location,&error))return false;
+        struct Release {RecordingCatalog& c;~Release(){c.AdjustHoldCount("segment",-1,nullptr);}} release{c};
+        SourceContext context;context.prepared_media=&segment;
+        const auto first=c.ReadSourceBindingForMedia(segment,location,&context,&error);
+        if(!first||SerializeRecordingSourceBindingV1(*first)!=expected||!context.segment_json.empty()||context.prepared_media!=&segment)return false;
+        const auto second=c.ReadSourceBindingForMedia(segment,location,&context,&error);
+        if(second!=first||context.prepared_media!=&segment||!context.segment_json.empty())return false;
+        auto changed=segment;changed.checksum_sha256=std::string(64,'f');
+        if(c.ReadSourceBindingForMedia(changed,location,&context,&error))return false;
+        return c.ReadSourceBindingForMedia(segment,location,&context,&error)==first;
+    }
     static void SourceHook(std::function<void()> hook){RecordingCatalog::source_binding_unlocked_hook_=std::move(hook);}
     static std::string Source(RecordingCatalog& c){RecordingCatalog::SourceBindingReadContext context;auto value=c.ReadSourceBinding("segment",&context,&error);return value?SerializeRecordingSourceBindingV1(*value):std::string{};}
 
@@ -376,6 +389,41 @@ void EventCandidateClassificationCases(){
     try {bad.ForEachEventCandidate("other",[](const auto&,const auto&){return true;});}catch(const RecordingRetainedReadError&){refused=true;}
     Check("R110-P02",refused,"current scratch authentication fails before memo exclusion");Need(damaged->Finish(&error));
 }
+void SearchChannelClassificationCases(){
+    using Rows=RecordingRetainedRows<RecordingSegmentV2,ParseRecordingSegmentV2,SerializeRecordingSegmentV2>;
+    auto store=std::make_shared<RecordingCatalogHistoryRows>();Need(store->Create(&error));store->EnableVerifiedSegmentDecodeCache();
+    Rows rows;rows.Bind(store,"segment-v2");auto segment=CompleteInput().source.segment;
+    rows.Set(segment.segment_id,segment);(void)rows.find(segment.segment_id);
+    std::uint64_t memo=0;unsigned excluded=0;std::vector<std::string> selected;
+    const auto visit=[&](const auto& id,const auto& value){selected.push_back(id+":"+SerializeRecordingSegmentV2(value));return true;};
+    const auto omit=[&](const auto&){++excluded;return true;};
+    Need(rows.ForEachChannelEntry({"other"},visit,omit,&memo));
+    Check("R121-P02",memo==1&&excluded==1&&selected.empty(),"exact current raw excludes DTO but still invokes lifecycle consumer");
+    Need(rows.ForEachChannelEntry({"channel"},visit,omit));
+    Check("R121-P02",selected==std::vector<std::string>{segment.segment_id+":"+SerializeRecordingSegmentV2(segment)},"selected continuous segment remains an exact search document input");
+    auto frozen=std::make_shared<RecordingCatalogHistoryRows>();Need(frozen->CloneFrom(*store,&error));Rows prior;prior.Bind(frozen,"segment-v2",store);
+    auto changed=segment;changed.channel_id="changed";
+    Need(store->Put("segment-v2",changed.segment_id,SerializeRecordingSegmentV2(changed),&error));
+    selected.clear();memo=0;Need(rows.ForEachChannelEntry({"changed"},visit,omit,&memo));
+    Check("R121-P02",memo==0&&selected==std::vector<std::string>{changed.segment_id+":"+SerializeRecordingSegmentV2(changed)},"same-length current channel change invalidates memo before selection");
+    selected.clear();Need(prior.ForEachChannelEntry({"channel"},visit,omit));
+    Check("R121-P02",selected==std::vector<std::string>{segment.segment_id+":"+SerializeRecordingSegmentV2(segment)},"prior owned cut still reads its original bytes");
+    bool refused=false;
+    try {rows.ForEachChannelEntry({"other"},visit,[](const auto&)->bool{throw RecordingRetainedReadError("lifecycle-corrupt");});}
+    catch(const RecordingRetainedReadError& e){refused=std::string(e.what())=="lifecycle-corrupt";}
+    Check("R121-P02",refused,"excluded lifecycle consumer errors propagate, never become an absent document");
+    Check("R121-P02",!rows.ForEachChannelEntry({"other"},visit,[](const auto&){return false;}),"excluded consumer refusal remains false");
+    auto raw=SerializeRecordingSegmentV2(changed);raw[0]='[';Need(store->Put("segment-v2",changed.segment_id,raw,&error));refused=false;
+    try {rows.ForEachChannelEntry({"other"},visit,omit);}catch(const RecordingRetainedReadError&){refused=true;}
+    Check("R121-P02",refused,"same-length malformed excluded current raw cannot use old channel classification");
+    Need(store->Finish(&error));selected.clear();Need(prior.ForEachChannelEntry({"channel"},visit,omit));
+    Check("R121-P02",selected.size()==1&&store->ProbeDecodedBytes()==0,"closed memo does not repopulate while prior cut owns its source");
+    Need(frozen->Finish(&error));
+    auto damaged=std::make_shared<RecordingCatalogHistoryRows>();Need(damaged->Create(&error));damaged->EnableVerifiedSegmentDecodeCache();Rows bad;bad.Bind(damaged,"segment-v2");bad.Set(segment.segment_id,segment);(void)bad.find(segment.segment_id);
+    Need(::ftruncate(damaged->ProbeIndexFd(),0)==0);refused=false;
+    try {bad.ForEachChannelEntry({"other"},visit,omit);}catch(const RecordingRetainedReadError&){refused=true;}
+    Check("R121-P02",refused,"namespace corruption fails before exclusion memo");Need(damaged->Finish(&error));
+}
 void DecodeRecencyCase(){
     using Rows=RecordingRetainedRows<RecordingSegmentV2,ParseRecordingSegmentV2,SerializeRecordingSegmentV2>;
     auto store=std::make_shared<RecordingCatalogHistoryRows>();Need(store->Create(&error));
@@ -494,6 +542,7 @@ void SharedSourceReadCases(const std::filesystem::path& root){
         RecordingJournal owner(Options(path));Need(owner.Open(&error));auto options=ReadOptions(path);options.enable_generation_writes=true;
         RecordingCatalog catalog(owner,options);Need(catalog.Open(&error));
         const auto expected=SerializeRecordingSourceBindingV1(*CompleteInput().source.binding);
+        Check("R121-P03",ProofProbe::BorrowedSource(catalog,expected),"owned immutable segment replaces only duplicate canonical storage; first/cached binding and changed media checks remain");
         std::promise<void> entered,resume;auto ready=entered.get_future();const auto released=resume.get_future().share();
         ProofProbe::SourceContext hot_context;bool continuous=false;
         if(hot)Need(ProofProbe::SourceCached(catalog,&hot_context,&continuous)==expected);
@@ -727,7 +776,7 @@ int main(int argc,char** argv){
 #endif
 #if MEDIA_SERVER_USE_OPENSSL && MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND
         ColdReadProgressCases(root/"cold-read-progress");SourceReadCases(root/"source-read");SharedSourceReadCases(root/"shared-source-read");
-        VerifiedDecodeCases();DecodeRecencyCase();EventCandidateClassificationCases();FusedVisualCases(root/"fused-visual");
+        VerifiedDecodeCases();DecodeRecencyCase();EventCandidateClassificationCases();SearchChannelClassificationCases();FusedVisualCases(root/"fused-visual");
         RetentionSharedDecodeCase();
         RetentionPreparedCases(root/"retention-prepared");
         AdmissionPreparedCases(root/"admission-prepared");

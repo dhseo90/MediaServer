@@ -1,6 +1,8 @@
 // 파일 용도: 검증된 비영속 Catalog 행을 한 값씩 읽는 내부 보존 자료 소유 경계.
 #pragma once
 #include <map>
+#include <algorithm>
+#include <vector>
 #include <list>
 #include <iterator>
 #include <functional>
@@ -121,14 +123,24 @@ public:
     }
     // Exclusion-only classification of the same authenticated raw. This cannot
     // prove membership, absence, current lifecycle or the selected event payload.
-    std::optional<bool> VerifiedSegmentSelection(const std::string& id,const std::string& raw,const std::string& channel) {
+    template<class F> std::optional<bool> VerifiedSegmentClassMatches(const std::string& id,const std::string& raw,F&& matches) {
         std::array<unsigned char,32> digest{};if(!RawDigest(raw,&digest))return {};
         std::lock_guard lock(decoded_mu_);const auto it=segment_classes_.find(id);
         if(it==segment_classes_.end())return {};
         if(it->second.raw_bytes!=raw.size()||it->second.digest!=digest){
             decoded_bytes_-=it->second.charged;segment_classes_.erase(it);return {};
         }
-        return it->second.channel==channel&&it->second.retention!=RecordingRetentionClass::Continuous;
+        return matches(it->second.channel,it->second.retention);
+    }
+    std::optional<bool> VerifiedSegmentSelection(const std::string& id,const std::string& raw,const std::string& channel) {
+        return VerifiedSegmentClassMatches(id,raw,[&](const auto& current,auto retention){
+            return current==channel&&retention!=RecordingRetentionClass::Continuous;
+        });
+    }
+    std::optional<bool> VerifiedSegmentChannelSelection(const std::string& id,const std::string& raw,const std::vector<std::string>& channels) {
+        return VerifiedSegmentClassMatches(id,raw,[&](const auto& current,auto){
+            return std::find(channels.begin(),channels.end(),current)!=channels.end();
+        });
     }
     void RememberVerifiedSegmentClass(const std::string& id,const std::string& raw,const RecordingSegmentV2& segment) {
         std::array<unsigned char,32> digest{};if(!RawDigest(raw,&digest))return;
@@ -279,6 +291,33 @@ public:
             const auto row=Decode(id,std::move(bytes));const auto& value=row->second;
             if(value.channel_id!=channel||value.retention_class==RecordingRetentionClass::Continuous)return true;
             if(!visitor(row->first,value)){refused=true;return false;}return true;
+        },&error);
+        if(!ok&&!refused)throw RecordingRetainedReadError(error);
+        return ok;
+    }
+    // Same authenticated namespace and caller-held cut as ForEachEntry. An
+    // exact-raw exclusion avoids only the typed DTO; the caller must still
+    // perform its normal lifecycle/retirement checks in excluded(id).
+    template<class F,class E> bool ForEachChannelEntry(const std::vector<std::string>& channels,F&& visitor,E&& excluded,
+                                                     std::uint64_t* memo_excluded=nullptr)const {
+        static_assert(std::is_same_v<T,RecordingSegmentV2>);
+        const auto consume=[&](const auto& id,const auto& value){
+            return std::find(channels.begin(),channels.end(),value.channel_id)!=channels.end()
+                ?visitor(id,value):excluded(id);
+        };
+        if(!store_)return ForEachEntry(consume);
+        bool refused=false;std::string error;
+        const auto& decoded=decoded_store_?decoded_store_:store_;
+        const bool ok=store_->VisitOwned(kind_,[&](const auto& id,RecordingColdRow& bytes,std::string*){
+            if(kind_=="segment-v2"){
+                const auto selection=decoded->VerifiedSegmentChannelSelection(id,bytes.bytes,channels);
+                if(selection&&!*selection){
+                    if(memo_excluded)++*memo_excluded;
+                    if(!excluded(id)){refused=true;return false;}return true;
+                }
+            }
+            const auto row=Decode(id,std::move(bytes));
+            if(!consume(row->first,row->second)){refused=true;return false;}return true;
         },&error);
         if(!ok&&!refused)throw RecordingRetainedReadError(error);
         return ok;

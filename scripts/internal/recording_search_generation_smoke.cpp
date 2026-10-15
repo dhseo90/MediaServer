@@ -60,6 +60,21 @@ int main(int argc,char** argv) {
             if(held)SearchCheck(model->source_instance()!=held->source_instance()&&held->documents().size()==3,
                 "generation-reopen-rebuild-preserves-held-model");
             SearchSourceBatch captured;Need(catalog.CaptureSearchSource({"channel"},model.get(),&captured,&error));
+            // R121: a cold full capture preserves the independently defined
+            // segment document, while output admission failure stays atomic.
+            SearchSourceBatch full;
+            Need(catalog.CaptureSearchSource({"channel"},nullptr,&full,&error,{},false));
+            SearchCheck(full.rebuild&&full.delta.upserts.size()==1&&full.pending.empty()&&
+                full.delta.upserts[0].id=="s2:7:segment3:map"&&
+                full.delta.upserts[0].segment_id=="segment"&&
+                full.delta.upserts[0].channel_id=="channel",
+                "R121 authenticated full capture independent segment identity");
+            SearchModelLimits tiny;tiny.max_documents=0;
+            SearchSourceBatch untouched;untouched.catalog_instance=987;
+            SearchCheck(!catalog.CaptureSearchSource({"channel"},nullptr,&untouched,&error,tiny,false)&&
+                error=="search-capacity-exceeded"&&untouched.catalog_instance==987,
+                "R121 capacity refusal preserves output and is not corruption");
+            SearchCheck(catalog.ValidateSearchSource(full,&error),"R121 refusal retains source authority");
             const auto prior=model;RecordingOrderReservationV1 reserved;
             Need(catalog.ReserveRecordingOrder("store","search-unused-"+std::to_string(phase),"future-"+std::to_string(phase),"channel",&reserved,&error));
             SearchSourceBatch after;

@@ -314,6 +314,10 @@ std::unique_ptr<RecordingSearchReader::PreparedSource> RecordingSearchReader::Pr
         proof->media=reader_.ResolveOriginalMediaV2(channel,id,&proof->segment,&proof->location,&acquisition_error,std::move(options));}
     if(!proof->media&&!acquisition_error.empty()){if(error)*error=std::move(acquisition_error);return {};}
     if(!proof->media)return fail(expired()?"seek-cancelled":"seek-unavailable-media");
+    // The owned row is immutable from this point through the last prepared
+    // reader. This replaces only a duplicate canonical row string, not source
+    // authentication or the pre/post current-media checks.
+    proof->context.prepared_media=&proof->segment;
     latency::VisualPhase first_binding("prepare-binding");
     // This boundary validates the binding against the same current media row,
     // including the full source/sample domain checks on first materialization.

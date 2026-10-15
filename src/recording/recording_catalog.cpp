@@ -2889,7 +2889,7 @@ RecordingCatalog::SourceBindingHandle RecordingCatalog::ReadSourceBindingLocked(
         RecordingMutationHandle envelope;std::string envelope_identity;
         recording::latency::VisualPhase link_phase("binding-cold-link");
         auto cold=context->cold;
-        const bool same_prepared=validation_only&&validated_media&&context->prepared_media==validated_media;
+        const bool same_prepared=validated_media&&context->prepared_media==validated_media;
         const auto segment_json=same_prepared?std::string{}:SerializeRecordingSegmentV2(current);
         const bool same_segment=same_prepared||context->segment_json==segment_json;
         const bool reusable=(context->binding||validation_only)&&(context->envelope||!context->envelope_identity.empty())&&context->validated_source_id==id&&same_segment;
@@ -2981,6 +2981,7 @@ RecordingCatalog::SourceBindingHandle RecordingCatalog::ReadSourceBindingLocked(
                 next.owner=this;next.binding=std::move(parsed);next.envelope_identity=envelope_identity;next.validated_source_id=id;
                 if(envelope_identity.empty())next.envelope=envelope;
                 next.segment_json=segment_json;next.retained_bytes=retained;next.cold=std::move(cold);
+                next.prepared_media=same_prepared?validated_media:nullptr;
             }
         }
         if(!parsed_ok)return failed();

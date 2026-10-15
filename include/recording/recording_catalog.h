@@ -351,8 +351,9 @@ private:
         std::string envelope_identity, validated_source_id;
         std::shared_ptr<RecordingJournal::ColdReadProof> cold;
         std::string segment_json;
-        // Only PreparedSource installs this borrowed pointer after full validation.
-        // Its heap-stable Impl owns the immutable row longer than this context.
+        // Only PreparedSource supplies this immutable input identity. Its heap-
+        // stable Impl owns the row longer than this context. It does not prove
+        // binding validity: first materialization and current raw checks remain.
         const RecordingSegmentV2* prepared_media{nullptr};
         std::size_t retained_bytes{0};
     };
