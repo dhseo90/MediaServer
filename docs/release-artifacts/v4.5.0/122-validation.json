@@ -1,0 +1,510 @@
+{
+  "schema": "media-server.v450.r122.validation.v1",
+  "status": "DIRECT_SAME_RUN_PASS_MIXED900_FAIL_ABNORMAL_TERMINATION",
+  "baseline": "18917388f7569f40e3b1e06afe9ada1c5e9c42c3",
+  "r121Product": "768473ed98f37ff439d6cd1d08d90436139f49f6",
+  "productCommit": "7b2f48256984c053cb3176c7d3aa49ac92222cd9",
+  "entryState": "v4.5.0 clean index/tree; origin samebaseline; no user changes overwritten",
+  "model": {
+    "requestedMain": "gpt-6-astra/high",
+    "mainToolAccepted": null,
+    "mainActualRuntimeModel": null,
+    "mainActualRuntimeEffort": null,
+    "reviewer": "/root/independent_r122",
+    "reviewRequested": "gpt-6-astra/high",
+    "reviewToolAccepted": "gpt-6-astra/high",
+    "reviewActualRuntimeModel": null,
+    "reviewActualRuntimeEffort": null,
+    "note": "tool acceptance is not runtime verification; project defaults not applied-session evidence"
+  },
+  "preservedPrior": "121 original12 PASS, auxiliary5073.249625msFAIL preserved; prior receive time unknown; 111/112/114/116 unaffected contracts reused",
+  "changes": [
+    "Fixture scalar header/EOF/validation/binding/output timestamps; original destructor boundary and stdout timing retained; no replacementHTTPclient or movedtimer.",
+    "ParseRecordingSourceBindingForSegment combines strictbindingparse+selfvalidation+segmentrelation; only redundant immediate binding selfvalidation removed at CatalogMaterialize; currentraw authentication and othercurrent/source checks remain. No cache/cap/load/policy change."
+  ],
+  "cause": {
+    "observedProductUnchanged": {
+      "serverMs": 4052.238375,
+      "EOFMs": 4052.667083,
+      "validationEndMs": 4425.153917,
+      "bindingInclusiveMs": 369.972042,
+      "bindingCalls": 7,
+      "outputEndMs": 4425.201667,
+      "legacyEndMs": 4425.22325,
+      "prepareMs": 3561.625866,
+      "bindingPhaseMs": 1712.417554,
+      "mediaMs": 923.367455,
+      "CatalogWaitMs": 9.850942,
+      "CatalogHoldMs": 2040.345106,
+      "note": "nested phases not additive; source preparation dominant; this product-unmodified run already met5sec, not causal fix claim"
+    },
+    "provenDuplicate": "same parsed binding immediately revalidated before segmentrelation; 680 actual binding/segment rows confirmed duplicate selfvalidation~79.5-79.9ms/680 independent baselinecost",
+    "focusedCostsMs": {
+      "macOld": [
+        847.253,
+        846.614,
+        848.482
+      ],
+      "macFused": [
+        764.855,
+        767.071,
+        766.732
+      ],
+      "linuxOld": [
+        910.346,
+        908.391,
+        908.745
+      ],
+      "linuxFused": [
+        872.732,
+        873.452,
+        871.21
+      ]
+    },
+    "limits": "HTTP singlepaired runs have changed generatedIDs/stopedge/frameordering/cache state; identical1064seedhashes not original livecache; no claim whole31.84msHTTPdifference causal or future latency guarantee"
+  },
+  "finalDirect": {
+    "label": "fused-large",
+    "attempts": 1,
+    "original12": {
+      "status": [
+        200,
+        200,
+        200,
+        200,
+        200,
+        200,
+        200,
+        200,
+        200,
+        200,
+        200,
+        200
+      ],
+      "p95Ms": 1572.888042,
+      "maxMs": 1572.888042
+    },
+    "auxiliary": {
+      "id": 100,
+      "scope": "auxiliary200",
+      "route": "/ops/api/recordings/visual-search?channelIds=9101,9201&text=ball&limit=200&threshold=-1",
+      "beginNs": 1375960683582625,
+      "endNs": 1375965076961750,
+      "bytes": 78455,
+      "headers": true,
+      "status": 200,
+      "errno": 0,
+      "failure": "none",
+      "headerNs": 1375964704255166,
+      "receiveEndNs": 1375964704287125,
+      "validationEndNs": 1375965076901291,
+      "bindingEndNs": 1375965075277166,
+      "outputEndNs": 1375965076941833,
+      "bindingNs": 369912083,
+      "bindingCalls": 5
+    },
+    "auxStagesFromStartMs": {
+      "headerNs": 4020.672541,
+      "receiveEndNs": 4020.7045,
+      "validationEndNs": 4393.318666,
+      "bindingEndNs": 4391.694541,
+      "outputEndNs": 4393.359208,
+      "endNs": 4393.379125
+    },
+    "serverMs": 4020.324459,
+    "bindingInclusiveMs": 369.912083,
+    "validationAfterEOFMs": 372.614166,
+    "nestedServerCosts": {
+      "prepareCount": 383,
+      "prepareMs": 3466.856128,
+      "bindingMs": 1656.365789,
+      "mediaMs": 897.286877,
+      "finalPhaseMs": 707.368583,
+      "CatalogWaitMs": 10.99853,
+      "CatalogHoldMs": 2002.669209
+    },
+    "newPublication": 52,
+    "publicFresh": 5,
+    "auxItems": 200,
+    "sourceAccepted": 2424,
+    "sourceExpected": 2424,
+    "files": 42,
+    "explicitStopFinish": "PASS",
+    "finalLogicalOwners": "RAM/scratch/FD0 withhealthyreadercleanup",
+    "collectedBytes": 900646,
+    "spaceSamples": 62,
+    "gate": "PASS A/B/C/D same source/binary/run; original12 andaux populations separate",
+    "scope": "shape/order/seekmetadata + focusedconsumer tests; not exhaustive topk/RGB by HTTP alone",
+    "resourceLiveOnlyMaxima": {
+      "rssBytes": 3379429376,
+      "footprintBytes": 3327200688,
+      "fdCount": 360,
+      "anonymousLogical": 73405440,
+      "anonymousAllocated": 75329536,
+      "workspaceVariable": 146534197
+    },
+    "resourceLimits": "all-phase modelprepare anonymous1.1GiB belongs existing8GiB modelphase; live448MiB unchanged; sampledmaxima notsimultaneous; finalowner0 nottotalheap/nopeakproof"
+  },
+  "regression": {
+    "macOS": "Werrorproduct, source58 generation29 visual126 contracts135 cache679 observation9 binding680+9 PASS",
+    "Linux": "existing mediaserver-v450-verify:rc58-arm64, UID10001 networknone capdropALL no-new-privileges; samefocused PASS; noinstall",
+    "preparationFailures": [
+      {
+        "path": "validation-cost.log",
+        "meaning": "firstcorpus0rows omitted compressed envelopes; no usefulmeasurement and noPASS; corrected before v2measurement"
+      },
+      {
+        "path": "linux-first-failure.json",
+        "meaning": "tmpfsnoexec PermissionError13; firstoutput preserved; samecommands rerun newownedroot with execmount only"
+      }
+    ],
+    "observationLimit": "expired deadline, within-budget EOF and receive timeout checked; exact scheduling boundary unverified"
+  },
+  "binding": {
+    "candidateCount": 986,
+    "candidateDigest": "8977e9b6ac618c7e0233823f6acb6ab1fcf7461206ee5d8b2a4149a643519e3a",
+    "producer": "51pass0fail",
+    "readback": "0errors negative15/15",
+    "coverage": "986 no missing9pass0fail",
+    "meaning": "mapping/source only; notruntime acceptance"
+  },
+  "mixed900": {
+    "status": "FAIL",
+    "attempts": 1,
+    "firstFailure": "[fail] current observation: http-header-error",
+    "failures": [
+      "[fail] current observation: http-header-error",
+      "[fail] server-diagnostic-capture recording-state-capture-incomplete"
+    ],
+    "execution": {
+      "preparationContractVersion": 2,
+      "resultScope": "existing mixed mode",
+      "command": [
+        "bash",
+        "/Users/dhseo/Workspace/mediaServer/scripts/internal/verify_v450_recording_a_mixed.sh",
+        "--contention-diagnostic"
+      ],
+      "startedAt": "2026-10-15T12:53:56.128242+00:00",
+      "status": "FAIL",
+      "source": {
+        "head": "7b2f48256984c053cb3176c7d3aa49ac92222cd9",
+        "fixtureProfile": "continuous-r114",
+        "fixtureProfileSourceSha256": "d591cd6fb0c952994bfe8529ffdaec5514952da9e5d23aadf8ade94332bfb5a4",
+        "tree": "aefc631a435f1c89914f0a7a90f80bc5ac97ed79",
+        "sourceSha256": "4c447e427d3fa60c0c78f687a0d30b810652b250e1d1c98c75b817cb9198f9ee",
+        "binarySha256": "d98ce0049837c2708da56e26c6f1fc3bc6e3db16c5c75932adfd1849342275cd"
+      },
+      "timeoutSeconds": 1080,
+      "observationSeconds": 900,
+      "wrapperSha256": "392eb9e0bc2987fa8e07228742293163aaedb030c44b26ecbfd7563366b71d1d",
+      "resourceTrendPass": false,
+      "reviewRequired": true,
+      "uiFulltestPass": false,
+      "processGroup": 57073,
+      "childExit": 1,
+      "exit": 1,
+      "executionElapsedSeconds": 914.2449550840538,
+      "elapsedSeconds": 914.2450998339336,
+      "timedOut": false,
+      "interruptedSignals": [],
+      "residualGroupAfterCommand": false,
+      "cleanupSignals": [],
+      "processGroupAbsent": true,
+      "cleanupErrors": [],
+      "cleanupOnlySeconds": 6.166985258460045e-06,
+      "registeredGroupsAbsent": true,
+      "residualRegisteredGroups": false,
+      "registeredGroupSignals": [],
+      "registeredGroupCleanupSeconds": 0.0001050001010298729,
+      "finishedAt": "2026-10-15T13:09:10.585285+00:00",
+      "sourceEnd": {
+        "head": "7b2f48256984c053cb3176c7d3aa49ac92222cd9",
+        "fixtureProfile": "continuous-r114",
+        "fixtureProfileSourceSha256": "d591cd6fb0c952994bfe8529ffdaec5514952da9e5d23aadf8ade94332bfb5a4",
+        "tree": "aefc631a435f1c89914f0a7a90f80bc5ac97ed79",
+        "sourceSha256": "4c447e427d3fa60c0c78f687a0d30b810652b250e1d1c98c75b817cb9198f9ee",
+        "binarySha256": "d98ce0049837c2708da56e26c6f1fc3bc6e3db16c5c75932adfd1849342275cd"
+      },
+      "totalWithFinalBindingSeconds": 914.4568663330283,
+      "rootDisposition": "preserved-for-byte-review-and-owned-cleanup"
+    },
+    "duration": {
+      "verifiedMainMs": 900065.2876670001,
+      "nodeElapsedMs": 908724,
+      "totalSeconds": 914.4568663330283
+    },
+    "search": {
+      "population": "unchanged original successful mixed HTTP array; allowed unavailable retained separately; A/retrieval excluded",
+      "overall": {
+        "count": 234,
+        "p95Ms": 1944.3147079999326,
+        "maxMs": 2339.281791999936
+      },
+      "gate": "PASS",
+      "unavailable": 6,
+      "clientCounts": [
+        57,
+        57,
+        60,
+        60
+      ],
+      "timeoutCount": 0,
+      "orderedSuccessThirds": [
+        {
+          "count": 78,
+          "p95Ms": 733.9264589999802,
+          "maxMs": 804.7648749999935
+        },
+        {
+          "count": 78,
+          "p95Ms": 1305.4331670000101,
+          "maxMs": 1343.507833999989
+        },
+        {
+          "count": 78,
+          "p95Ms": 2246.5215420000022,
+          "maxMs": 2339.281791999936
+        }
+      ],
+      "thirdsMeaning": "recorded successful array order (batch/client order), not time windows or arrival order"
+    },
+    "evidence": {
+      "structured": 56,
+      "complete": 56,
+      "partial": 0,
+      "visual": 59,
+      "busy": 56,
+      "retainedChecks": 112,
+      "aCompleted": 15,
+      "storedPackages": 134,
+      "offlineAssetHashes": "all stored manifest assets matched bytes; not new independent decoder execution"
+    },
+    "progress": {
+      "phase": {
+        "elapsedMs": 900065.2876670001,
+        "channels": {
+          "9101": {
+            "finalized": 449,
+            "deleted": 0,
+            "lastAt": 908365.598375,
+            "order": "898",
+            "store": "4f157ffa8507ef624504f12a0fabafc0a052bf68a5ae3f278a23c87250be3ff7",
+            "knownMappings": 306,
+            "unknownMappings": 17010
+          },
+          "9201": {
+            "finalized": 449,
+            "deleted": 0,
+            "lastAt": 908365.598375,
+            "order": "899",
+            "store": "4f157ffa8507ef624504f12a0fabafc0a052bf68a5ae3f278a23c87250be3ff7",
+            "knownMappings": 317,
+            "unknownMappings": 17106
+          }
+        },
+        "records": 898,
+        "logicalBytes": 535537
+      },
+      "windows": [
+        {
+          "structured": 380,
+          "visual": 760,
+          "evidence": 19,
+          "visualEvidence": 19
+        },
+        {
+          "structured": 400,
+          "visual": 800,
+          "evidence": 20,
+          "visualEvidence": 20
+        },
+        {
+          "structured": 340,
+          "visual": 800,
+          "evidence": 17,
+          "visualEvidence": 20
+        }
+      ],
+      "lastIndex": {
+        "cycle": 56,
+        "state": "indexing",
+        "error": "",
+        "channels": [
+          {
+            "channelId": "1",
+            "indexedFrames": 1
+          },
+          {
+            "channelId": "9101",
+            "indexedFrames": 868
+          },
+          {
+            "channelId": "9201",
+            "indexedFrames": 868
+          }
+        ]
+      },
+      "closedFiles": 900,
+      "maxClosedBytes": 34724,
+      "bound": 71237
+    },
+    "loss": {
+      "boundedNotices": 0,
+      "deliveryLossNotices": 0,
+      "betweenCommittedGaps": 0,
+      "withinSegmentGaps": 0,
+      "totalDrops": null,
+      "totalKeyframeSkipped": null,
+      "scope": "committed ranges only; no universal source/dequeue enumeration; post-crash finalization may be incomplete"
+    },
+    "resources": {
+      "samples": 181,
+      "allFDComplete": true,
+      "pidIdentity": [
+        "57116:macos:1792068844:413031"
+      ],
+      "separateSampleMaxima": {
+        "rssBytes": 3210887168,
+        "footprintBytes": 3162033464,
+        "fdCount": 47,
+        "anonymousFileBytes": 83029504,
+        "anonymousAllocatedBytes": 83230720
+      },
+      "largestWorkspaceOperands": {
+        "sample": 178,
+        "phaseAt": 895872.755666,
+        "measurementStartedAt": 895946.33375,
+        "measurementCompletedAt": 895955.357208,
+        "fixedBytes": 14157628,
+        "namedAndParentBytes": 119171706,
+        "anonymousLogical": 83029504,
+        "anonymousAllocated": 83230720,
+        "variableUsed": 188244798,
+        "limit": 469762048
+      },
+      "workspaceFailure": {
+        "status": "no-workspace-failure",
+        "primary": null,
+        "decision": null,
+        "collectorDiagnostic": null,
+        "context": null,
+        "collectionError": null,
+        "capacityBytes": 32768
+      },
+      "lastObservedOwner": {
+        "pid": 57116,
+        "seq": 179,
+        "phase": "sample",
+        "elapsedMs": 901105,
+        "ram": 146017808,
+        "ramPeak": 421458098,
+        "ramLimit": 671088640,
+        "ramRejected": 0,
+        "scratchDisk": 91832320,
+        "scratchDiskPeak": 154992640,
+        "scratchDiskLimit": 162296078336,
+        "scratchFd": 6,
+        "scratchFdPeak": 18,
+        "scratchFdLimit": 1048572,
+        "scratchRam": 1783296,
+        "preservedDisk": 0,
+        "preservedFd": 0,
+        "readerCleanupHealthy": true
+      },
+      "afterDestructionOwners": [],
+      "limits": "sample maxima not simultaneous peaks; logical owner not totalheap; crash OS cleanup not normal Finish/owner0"
+    },
+    "termination": {
+      "cleanup": {
+        "schema": "recording-process-cleanup-v1",
+        "attemptCount": 1,
+        "pid": 57116,
+        "exitCode": null,
+        "signalCode": "SIGBUS",
+        "exitedObserved": true,
+        "stopCode": "abnormal-exit",
+        "forcedTermination": "unknown",
+        "normalExitPass": false,
+        "normalShutdownPass": false,
+        "archiveSafe": true,
+        "ports": [
+          {
+            "kind": "http",
+            "port": 58202,
+            "status": "pass",
+            "code": "closed",
+            "closed": true
+          },
+          {
+            "kind": "rtsp",
+            "port": 58203,
+            "status": "pass",
+            "code": "closed",
+            "closed": true
+          }
+        ]
+      },
+      "lastA": "PASS",
+      "latencyGate": "PASS",
+      "sampleCoverage": "PASS",
+      "retainedProgress": "PASS",
+      "disable9101": "PASS",
+      "disable9201": "FAIL http-header-error; server stop-channel log is not HTTP confirmation",
+      "closedJournal": "not-run",
+      "normalStopFinish": "not-confirmed; SIGBUS",
+      "ownerFinal": "not-observed",
+      "diagnosticCollection": "FAIL recording-state-capture-incomplete; subsequent summaries not-run",
+      "sourceUnchanged": true
+    },
+    "cause": "SIGBUS root cause unconfirmed; no retry/product change after final run",
+    "next45": "not eligible; abnormal termination and incomplete diagnostic collection",
+    "notRun": [
+      "retry",
+      "45minutes",
+      "120minutes",
+      "public procedures"
+    ],
+    "failureCountMeaning": "2 printed fail messages plus normal-stop failure counted without separate message => reportfailed3"
+  },
+  "remaining": [
+    "disable phase SIGBUS rootcause unconfirmed; nofurtherproductinvestigation or retry thisrequest",
+    "normalStop/Finish andfinalownerrelease/closedjournal notverified in900",
+    "terminal state incomplete and latercollector summaries notrun",
+    "6allowedstructured unavailable retained; no faster failure reclassification",
+    "45/final120/fullmemoryP0/releaseHOLD"
+  ],
+  "notRun": [
+    "45minutes",
+    "120minutes",
+    "acceptance",
+    "UI",
+    "publicprocedures",
+    "post900retry/productfix"
+  ],
+  "archive": {
+    "archive": "122-execution.tar.gz",
+    "bytes": 48717372,
+    "sha256": "a7470e3b4951b586c110bd10642124a78c273489d2eb78f930d891bf07f1b6a6",
+    "files": 1303,
+    "payloadBytes": 144450710,
+    "reuseReferences": 2169,
+    "allMemberBytesVerified": true,
+    "manifestSha256": "d5b6cd594eac30450e08eb07f8df4e1f4e3b1cf3a95611dc065f1c6fdff1f912",
+    "scope": "user config/private95backup/models/SDK/auth/home/cache/binaries and duplicated117seed excluded; old evidence unchanged; mixed private server log URL tokens sanitized with original hash; other selected logs no redaction",
+    "scopeClarification": "Manifest cache exclusion refers to home/auth/GStreamer runtime caches. New synthetic recordings/visual-cache publication files are intentionally preserved with current closed-store evidence; models/SDK/user settings/private95backup absent."
+  },
+  "cleanup": {
+    "state": "pending after remote byte verification",
+    "privateSettingsBackup": "untouched andexcluded"
+  },
+  "remote": {
+    "state": "pending generalpush andbyteverification"
+  },
+  "preservationCorrection": {
+    "event": "preserve122.py inherited121 validation destination; only archive field temporarily changed; diff detected before stage/commit",
+    "correction": "121 exact HEAD bytes restored; actual122 archive receipt attached here",
+    "originalEvidence": "122 archive preserves original executed preservation script; its final validation target is erroneous and must not be reused",
+    "correctedTarget": "docs/release-artifacts/v4.5.0/122-validation.json",
+    "noProductOrRunChange": true
+  }
+}

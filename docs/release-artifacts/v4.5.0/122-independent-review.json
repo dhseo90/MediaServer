@@ -1,0 +1,36 @@
+{
+  "schema": "media-server.v450.r122.independent-review.v1",
+  "requestedMain": "gpt-6-astra/high",
+  "mainToolAccepted": null,
+  "mainActualRuntimeModel": null,
+  "mainActualRuntimeEffort": null,
+  "reviewer": "/root/independent_r122",
+  "reviewRequested": "gpt-6-astra/high",
+  "reviewToolAccepted": "gpt-6-astra/high",
+  "reviewActualRuntimeModel": null,
+  "reviewActualRuntimeEffort": null,
+  "note": "tool acceptance is not runtime verification; project defaults not applied-session evidence",
+  "participation": "separate read-only reviewer; no implementation/test writing/test execution/subdelegation",
+  "decision": "ACCEPT_LIMITED_CHANGE_AND_DIRECT_PASS; MIXED_FAIL_ABNORMAL_TERMINATION; 45_INELIGIBLE",
+  "findings": [
+    "Fused parse validates owned immutable binding once, then retains all segment identity/file/sample relations and old error order. Catalog raw authentication, current relation and ownership remain. No blocking code finding.",
+    "Legacy destructor endNs location unchanged; EOF distinct from validity; binding cost nested within validation; absent stages null. Actual pipe output-delay and stderr end>=output tests reviewed. Exact realtime deadline equality not deterministically established.",
+    "macOS and nonprivileged Linux source58/generation29/visual126/contracts135/cache679 and observation9, binding680+9 reviewed. Initial noexec setup failure preserved.",
+    "producer51/0, readback0 errors/15 negatives, coverage986/0 missing and9/0. Candidate count/digest unchanged is mapping evidence, not performance approval.",
+    "Same fused-large original12 actual200 p95/max1572.888042ms; auxiliary200items/78455B receive4020.7045ms legacyend4393.379125ms. New52/public5, Recorder2424/2424 files42, explicitStop/Finish, final logicalowner0,900646B fullcollection and62samples.",
+    "Final900 permitted only after reviewed directPASS and fixed candidate commit7b2f48256984c053cb3176c7d3aa49ac92222cd9.",
+    "900 loop900065.287667ms and181samples observed; successful234 p951944.314708/max2339.281792ms gatePASS, allowedstructured5036 separate. evidence56/visual59/A15 remain observed success.",
+    "After setting9101false PASS, nextPUT header error and PID57116 SIGBUS; stateprobe-end absent. Root cause and causal relation to patch unconfirmed.",
+    "NormalStop/Finish/finalowner0/closedjournal not established. Group/port absence is cleanup evidence only. Subsequent diagnostic summaries not-run after state collection failure.",
+    "Acontrols/restart/readback/reactivate are excluded by existing diagnostic mode, not crash-skipped requirements. longrunObservationCompleted=false is mode-defined; contentionDiagnosticPass=false andfailed3 are result.",
+    "No retry/product change after finalFAIL. DirectPASS retained; mixedFAIL, memoryP0/releaseHOLD. Archive locally verified; remote/cleanup pending separate confirmation.",
+    "Offline CRC/filehash/asset verification and900 committed ranges reviewed; no new authentication/current-state/decoder test. Boundednotice0 andgap0 not totaldrop0.",
+    "Analysis wording corrected to batch/client array order, not arrival/timewindow. Workspace188244798B is same ordered operands; no simultaneouspeak claim. Two printed failures plus counted normal-stop failure explain reportfailed3."
+  ],
+  "remaining": [
+    "SIGBUS during disable/normal termination",
+    "missing final owner/closedjournal and terminal diagnostic completeness",
+    "allowed structured search-capacity-exceeded6 retained separately",
+    "45/final120/memoryP0/releaseHOLD"
+  ]
+}

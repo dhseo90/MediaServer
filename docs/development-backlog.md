@@ -17,6 +17,14 @@
 
 ## v4.5.0 잔여 개발과 릴리즈 순서
 
+[122 수신 경계·중복 binding 검증 보완](release-artifacts/v4.5.0/122-validation.json)은 **같은 실행의 직접 목표 PASS·900초 혼합은 종료 단계 FAIL**이다.
+기존 소멸자 종료 기준을 유지한12실제200 p95/max1572.888ms·보조200항목 전체200 종료4393.379ms를 확인했다.
+새 게시52/public5·Recorder2424/2424·42파일·명시Stop/Finish·최종논리owner0은 직접 실행 범위다.
+900초1회는 성공검색234건 p951944.315ms·최대2339.282ms의 지연 gate를 통과했으나, 별도 구조화unavailable6건이 있다.
+본900.065초 뒤9101 비활성화 확인에 이어 HTTP 헤더 오류와 **SIGBUS 비정상 종료**, state 수집 미완료가 발생했다.
+정상Finish·종료후journal·최종owner회수는 미확인이다. 확정900파일에서 관측한ordinal공백0과 전체입력무손실은 구분한다.
+재실행/추가제품수정 없이 최초실패를 보존한다. **900초 전체FAIL·45분 진입 부적격·메모리P0·출시 보류**를 유지한다.
+
 [121 같은 실행의 두 응답 목표](release-artifacts/v4.5.0/121-validation.json)은 **원래12응답 PASS·보조limit200 5초 초과로 전체 직접 FAIL**이다.
 동일 Catalog의 미계측 Capture 읽기를 연결하고 인증 순회·채널 제외 DTO·준비 객체의 중복 canonical 소유를 줄였다.
 최종 한 실행은12실제200 p95/max1490.29ms, 보조200항목 전체200은5073.250ms다. 새 게시52/public6·Recorder2413/2413·42파일·Stop/Finish·마지막 논리owner0을 확인했다.
