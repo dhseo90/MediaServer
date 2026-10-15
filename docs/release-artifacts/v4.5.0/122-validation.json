@@ -494,11 +494,54 @@
     "scopeClarification": "Manifest cache exclusion refers to home/auth/GStreamer runtime caches. New synthetic recordings/visual-cache publication files are intentionally preserved with current closed-store evidence; models/SDK/user settings/private95backup absent."
   },
   "cleanup": {
-    "state": "pending after remote byte verification",
-    "privateSettingsBackup": "untouched andexcluded"
+    "status": "PASS_OWNED_OBJECTS_REMOVED",
+    "root": "/private/tmp/media-server-r122-i3jeklg5",
+    "rootAbsent": true,
+    "entriesRemoved": 5041,
+    "symlinksUnlinkedWithoutFollowing": 277,
+    "containers": [
+      "media-server-r122-linux",
+      "media-server-r122-linux-v2"
+    ],
+    "groupsAbsent": true,
+    "mixedPortsClosed": [
+      58202,
+      58203
+    ],
+    "privateSettingsBackupModelsSDK": "untouched; excluded from archive andcleanup",
+    "normalMixedStopFinish": "NOT_CONFIRMED_SIGBUS; cleanup absence is not normal shutdown"
   },
   "remote": {
-    "state": "pending generalpush andbyteverification"
+    "remoteSha": "e4139584f2b8149fc3eb53ae78f71410ce0711ae",
+    "remoteArchiveBytes": 48717372,
+    "remoteArchiveSha256": "a7470e3b4951b586c110bd10642124a78c273489d2eb78f930d891bf07f1b6a6",
+    "remoteArchiveActualBytesVerified": true,
+    "remoteDocs": {
+      "remoteSha": "e4139584f2b8149fc3eb53ae78f71410ce0711ae",
+      "files": [
+        {
+          "path": "docs/release-artifacts/v4.5.0/122-validation.json",
+          "bytes": 18109,
+          "sha256": "150f7454f66bb96e2f6b7a42ef77b8fc40b753f0ea92dbfdefe03f30b9ba3f9b",
+          "remoteBytesMatch": true
+        },
+        {
+          "path": "docs/release-artifacts/v4.5.0/122-independent-review.json",
+          "bytes": 3543,
+          "sha256": "d84493ada1fe808866516fbe02d9ded67e0ca710c4da7395e64b080120defaa9",
+          "remoteBytesMatch": true
+        }
+      ]
+    },
+    "containersRemoved": [
+      "media-server-r122-linux",
+      "media-server-r122-linux-v2"
+    ],
+    "groupsAbsent": true,
+    "root": "/private/tmp/media-server-r122-i3jeklg5",
+    "rootCleanup": "removed andabsenceconfirmed",
+    "scope": "ownroot/containers only; userconfig/private95backup/models/SDK unchanged",
+    "normalMixedFinish": false
   },
   "preservationCorrection": {
     "event": "preserve122.py inherited121 validation destination; only archive field temporarily changed; diff detected before stage/commit",
