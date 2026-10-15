@@ -19,7 +19,7 @@ public:
     struct CreateResult {
         bool ok{false};
         std::string message;
-        StreamKey stream_key;
+        StreamKey stream_key{};
         std::shared_ptr<SharedStream> stream;
         bool stream_created{false};
     };
@@ -54,9 +54,9 @@ public:
     struct AuxiliaryStreamHandle {
         bool ok{false};
         std::string message;
-        StreamKey stream_key;
-        std::shared_ptr<SharedStream> stream;
-        media::SourceSpec source_spec;
+        StreamKey stream_key{};
+        std::shared_ptr<SharedStream> stream{};
+        media::SourceSpec source_spec{};
         bool stream_created{false};
     };
 

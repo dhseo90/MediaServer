@@ -189,7 +189,7 @@ public:
                 node.value_offset=Append(slot.data(),slot.size());root_=Save(node,{});++rows_;sequence_key_=key;return true;
             }
             bool inserted=false;
-            root_=Insert(root_,key,value,overwrite,0,{}, {},&inserted);
+            root_=Insert(root_,key,value,overwrite,&inserted);
             if(inserted)++rows_;
             if(error)error->clear();
             return true;
@@ -379,28 +379,48 @@ private:
     Ref Right(Node y,Ref prior) {
         auto x=Read(y.left);const auto next=y.left;y.left=x.right;Height(&y);x.right=Save(y,prior);Height(&x);return Save(x,next);
     }
-    Ref Insert(Ref ref,const std::string& key,const std::string& value,bool overwrite,std::size_t depth,
-               const std::string& lower,const std::string& upper,bool* inserted) {
-        if(depth>=kDepth)throw Failure("history index depth admission");
-        Node n;
-        if(ref.offset){n=Read(ref);Order(n.key,lower,upper);}
-        else {if(rows_>=(budget_-kNodeBytes)/(kNodeBytes+kValueBytes))throw Failure("history index row budget");n.key=key;*inserted=true;}
-        if(key==n.key) {
-            if(ref.offset&&!overwrite)throw Failure("history index duplicate key");
-            // Small metadata occupies existing authenticated node padding. A key that
-            // ever grows allocates one original maximum slot, reused forever.
-            // Admission still reserves the old worst case; no payload is truncated.
-            if(!n.value_offset&&value.size()>kInlineBytes){std::array<unsigned char,kValueBytes> slot{};n.value_offset=Append(slot.data(),slot.size());}
-            if(n.value_offset)WriteBytes(n.value_offset,value.data(),value.size());
-            else {n.inline_value.fill(0);std::copy(value.begin(),value.end(),n.inline_value.begin());}
-            n.value_size=value.size();n.value_hash=Digest(value.data(),value.size());
-        }else if(key<n.key)n.left=Insert(n.left,key,value,overwrite,depth+1,lower,n.key,inserted);
-        else n.right=Insert(n.right,key,value,overwrite,depth+1,n.key,upper,inserted);
+    Ref Rebalance(Node& n,Ref ref) {
         const auto left_height=Height(n.left),right_height=Height(n.right);n.height=1+std::max(left_height,right_height);
         const auto balance=static_cast<int>(left_height)-static_cast<int>(right_height);
         if(balance>1){auto child=Read(n.left);if(Height(child.left)<Height(child.right))n.left=Left(child,n.left);return Right(n,ref);}
         if(balance< -1){auto child=Read(n.right);if(Height(child.right)<Height(child.left))n.right=Right(child,n.right);return Left(n,ref);}
         return Save(n,ref);
+    }
+    // The HTTP caller can already occupy most of a native worker stack. Keep
+    // ancestors in the existing admitted work allowance, not one C++ frame per
+    // tree level. Only this operation owns the path; no reader or cache retains it.
+    Ref Insert(Ref ref,const std::string& key,const std::string& value,bool overwrite,bool* inserted) {
+        struct Frame {Node node;Ref ref;bool left{false};};
+        using Path=std::array<Frame,kDepth>;
+        static_assert(sizeof(Path)+kDepth*kKeyBytes+8*kNodeBytes+kValueBytes<kWorkingBytes,
+                      "insertion path and bounded scratch fit existing work admission");
+        auto path=std::make_unique<Path>();
+        std::size_t depth=0;
+        std::string lower,upper;
+        Node n;
+        for(;;) {
+            if(depth>=kDepth)throw Failure("history index depth admission");
+            if(ref.offset){n=Read(ref);Order(n.key,lower,upper);}
+            else {if(rows_>=(budget_-kNodeBytes)/(kNodeBytes+kValueBytes))throw Failure("history index row budget");n=Node{};n.key=key;*inserted=true;}
+            if(key==n.key)break;
+            const bool left=key<n.key;
+            auto& frame=(*path)[depth++];frame.ref=ref;frame.left=left;
+            if(left){upper=n.key;ref=n.left;}else{lower=n.key;ref=n.right;}
+            frame.node=std::move(n);
+        }
+        if(ref.offset&&!overwrite)throw Failure("history index duplicate key");
+        // Preserve the original inline/fixed-slot representation and write order.
+        if(!n.value_offset&&value.size()>kInlineBytes){std::array<unsigned char,kValueBytes> slot{};n.value_offset=Append(slot.data(),slot.size());}
+        if(n.value_offset)WriteBytes(n.value_offset,value.data(),value.size());
+        else {n.inline_value.fill(0);std::copy(value.begin(),value.end(),n.inline_value.begin());}
+        n.value_size=value.size();n.value_hash=Digest(value.data(),value.size());
+        auto result=Rebalance(n,ref);
+        while(depth) {
+            auto& frame=(*path)[--depth];
+            if(frame.left)frame.node.left=result;else frame.node.right=result;
+            result=Rebalance(frame.node,frame.ref);
+        }
+        return result;
     }
     bool WalkSequence(const Visitor& visitor,std::string* error) {
         if(size_!=BytesForRows(rows_))throw Failure("sequential capture size/count mismatch");

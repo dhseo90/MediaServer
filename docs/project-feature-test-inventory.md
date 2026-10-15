@@ -5200,3 +5200,9 @@ R121-P03 cache 경계: canonical 중복 제거 뒤에도 실제 3150-sample lega
 - 내부 측정 smoke: 빠른 수신 뒤 검증/출력 지연, 헤더 뒤 본문 지연, EOF의 예산 내/이미 만료 경계, 불완전 본문·비200·recv 오류·헤더 전EOF. 실제 도달 시각만 기록하며 불완전/오류를 정상 응답으로 승격하지 않는다. macOS/비특권 Linux에서 같은 관측 코드를 실행한다. UI/장시간 성능 근거가 아니다.
 - 동일1064원본·query·model·source-parallel의 계측 후보1회로 지배 비용을 분리한 뒤, 입증된 수정이 있는 후보만 각1회 대조한다. 원래12실제200 p95≤2000/max≤5000·보조200기존end≤5000/완전응답·새게시/공개항목·Recorder·Stop/Finish·수집/소유를 같은 실행에서 판단한다. 과거 수신 시각을 소급 복원하지 않는다.
 - R122-P01: `MaterializeSourceBinding`의 strict parse와 segment 결속을 `ParseRecordingSourceBindingForSegment`로 연결한다. 같은 파싱 직후 binding/file-evidence 유효성 반복만 제거하고 공개 개별 parser/validator·segment/원문·최종 현재성 검사는 유지한다. 실제 보존680행 corpus의 기존 호출 조합/새 API canonical 결과·오류·실패 output 불변, 채널/파일hash/범위/잘못된segment/중복키/ordinal/필드/trailing/legacy 반례, 3회 고정 교차 순서 비용을 검사한다. 기존 source/generation/visual/request-cache 회귀의 권한·변조·삭제·중간후보·예산·Stop·소유 경계는 변경 영향 범위에서 재실행한다.
+
+### R123-S01 — 비활성화 내구 확정의 유한 스택과 종료 수명
+
+- 기존 `/ops/api/sources/{9101,9201}` PUT 비활성화 순서에서 Recorder worker join → 마지막 writer 내구 확정 → source lease 반환을 유지한다. 122 원본 UUID/stack guard/삽입 재귀 근거와 새 재현을 구분한다.
+- `recording_history_stack_smoke.cpp`: 실제 authenticated index의 공개 Put/Get/Visit, 순서/역순/교차 삽입·overwrite·clone·buffered build·손상/쓰기 실패·Close를 독립 map 기대값과 대조한다. 제한된 pthread 스택에서 삽입 완료와 소유 반환을 확인하며 스택 크기 변경은 제품에 적용하지 않는다. 충돌 재현은 별도 실제 HTTP 경로로 판정한다. 기존 깊이/예약/오류/파일 형식을 유지한다.
+- 짧은 실제 제품 종료: 누적 원본의 별도 사본, 실제 두 source/Recorder/HTTP, 9101→9201 비활성화와 다른 채널 진행, 정상 Stop/Finish·닫힌 journal·최종 owner, 별도 프로세스 재Open/readback. 기존 source/worker 종료 회귀와 macOS/Linux index 회귀를 연결한다. 새900/45/120·UI·전체 acceptance는 비대상이다.
