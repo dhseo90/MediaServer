@@ -2594,7 +2594,7 @@ bool RecordingCatalog::MaterializeSourceBinding(const SourceBindingEntry& entry,
     if(!segment_json||!binding_json||!path)return Fail(error,"source binding 상세 재획득 거부");
     const bool exact=!canonical.empty()&&*segment_json==canonical;
     if((!exact&&!ParseRecordingSegmentV2(*segment_json,&segment,error))||
-       !ParseRecordingSourceBindingV1(*binding_json,&binding,error)||!ValidateRecordingSourceBindingForSegment(binding,exact?original:segment,error)||
+       !ParseRecordingSourceBindingForSegment(*binding_json,exact?original:segment,&binding,error)||
        (!exact&&!SameRecordingSegmentV2Content(segment,original))||
        binding.segment_id!=entry.id||binding.channel_id!=entry.channel||binding.source_id!=entry.source||
        binding.source_generation!=entry.generation||binding.generation_order!=entry.order||binding.track_id!=entry.track||binding.samples.size()!=entry.sample_count)

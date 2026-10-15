@@ -5193,3 +5193,10 @@ R112-F02: 같은 실패 파일에서 seek/순차 모두13출력·마지막966666
 - R121-P03: `PreparedSource::Impl`의 immutable segment 수명을 첫 binding 준비부터 마지막 reader까지 사용해 중복 canonical 문자열만 제거한다. 최초 strict materialization·현재 raw/SourceEntry·media/path 전후 확인·파일 증거/seek는 유지한다. request-proof의 실제 AcquireMedia/두 binding/변경 media 거부, 기존 visual-source와 RequestMedia의 cold/hit/eviction/oversized·파일/권한/Stop/소유 회귀를 적용한다. 같은 누적 HTTP는 P03 고정 후보로1회이며 이전 실행의 A/B 합격을 합치지 않는다.
 
 R121-P03 cache 경계: canonical 중복 제거 뒤에도 실제 3150-sample legacy 원본과 유효 1MiB 미만 segment 설명으로 8MiB 초과 proof의 uncached/응답 hold/FD 회수를 검증한다. 기존 실패 입력은 archive에 유지한다.
+
+### R122-S01 — HTTP 수신·검증·출력과 기존 종료 경계
+
+- 기존 degraded HTTP의 Request/Drain/HttpObservation 경로를 그대로 사용하며 header/EOF수신/본문검증/binding누적/출력 시각만 scalar로 추가한다. 기존 소멸자 endNs와 원래12/보조200 모집단·5초 기준은 유지한다. binding은 JSON callback 내부이므로 검증 시간에 포함되고 중복 합산하지 않는다. 추가 JSON 직렬화/진단 출력은 기존 endNs 포착 뒤다.
+- 내부 측정 smoke: 빠른 수신 뒤 검증/출력 지연, 헤더 뒤 본문 지연, EOF의 예산 내/이미 만료 경계, 불완전 본문·비200·recv 오류·헤더 전EOF. 실제 도달 시각만 기록하며 불완전/오류를 정상 응답으로 승격하지 않는다. macOS/비특권 Linux에서 같은 관측 코드를 실행한다. UI/장시간 성능 근거가 아니다.
+- 동일1064원본·query·model·source-parallel의 계측 후보1회로 지배 비용을 분리한 뒤, 입증된 수정이 있는 후보만 각1회 대조한다. 원래12실제200 p95≤2000/max≤5000·보조200기존end≤5000/완전응답·새게시/공개항목·Recorder·Stop/Finish·수집/소유를 같은 실행에서 판단한다. 과거 수신 시각을 소급 복원하지 않는다.
+- R122-P01: `MaterializeSourceBinding`의 strict parse와 segment 결속을 `ParseRecordingSourceBindingForSegment`로 연결한다. 같은 파싱 직후 binding/file-evidence 유효성 반복만 제거하고 공개 개별 parser/validator·segment/원문·최종 현재성 검사는 유지한다. 실제 보존680행 corpus의 기존 호출 조합/새 API canonical 결과·오류·실패 output 불변, 채널/파일hash/범위/잘못된segment/중복키/ordinal/필드/trailing/legacy 반례, 3회 고정 교차 순서 비용을 검사한다. 기존 source/generation/visual/request-cache 회귀의 권한·변조·삭제·중간후보·예산·Stop·소유 경계는 변경 영향 범위에서 재실행한다.

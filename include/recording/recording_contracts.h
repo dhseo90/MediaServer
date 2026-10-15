@@ -131,6 +131,10 @@ bool ValidateRecordingSourceBindingV1(const RecordingSourceBindingV1&, std::stri
 bool ValidateRecordingSourceBindingForSegment(const RecordingSourceBindingV1&, const RecordingSegmentV2&, std::string* error);
 std::string SerializeRecordingSourceBindingV1(const RecordingSourceBindingV1&);
 bool ParseRecordingSourceBindingV1(const std::string&, RecordingSourceBindingV1*, std::string* error);
+// Same strict parse + full binding/segment validation, without validating the
+// unchanged parsed binding twice. Output is published only after all checks.
+bool ParseRecordingSourceBindingForSegment(const std::string&, const RecordingSegmentV2&,
+                                          RecordingSourceBindingV1*, std::string* error);
 
 struct RecordingTombstoneV2Fields {
     std::string schema{"media-server.recording-tombstone.v2"};

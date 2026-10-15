@@ -559,8 +559,11 @@ bool ValidateRecordingSourceBindingV1(const RecordingSourceBindingV1& b, std::st
     if(!ValidateRecordingFileEvidence(b,error))return false;
     ClearError(error);return true;
 }
-bool ValidateRecordingSourceBindingForSegment(const RecordingSourceBindingV1& b,const RecordingSegmentV2& s,std::string* error) {
-    if(!ValidateRecordingSourceBindingV1(b,error)||!ValidateRecordingSegmentV2(s,error))return false;
+namespace {
+// Private relation check: caller has just validated this unchanged binding.
+// Keep segment validation and every cross-object/file/sample condition here.
+bool ValidateSourceBindingSegmentRelation(const RecordingSourceBindingV1& b,const RecordingSegmentV2& s,std::string* error) {
+    if(!ValidateRecordingSegmentV2(s,error))return false;
     if(b.segment_id!=s.segment_id||b.source_id!=s.source_id||b.channel_id!=s.channel_id||
        b.store_id!=s.store_id||b.media_epoch_id!=s.media_epoch_id)return Fail(error,"source binding segment identity 불일치");
     if(b.file_evidence&&(s.container!="mp4"||b.file_evidence->file_size_bytes!=s.size_bytes||
@@ -574,6 +577,10 @@ bool ValidateRecordingSourceBindingForSegment(const RecordingSourceBindingV1& b,
            (s.media_end_pts&&pts>=*s.media_end_pts))return Fail(error,"source binding media 범위 오류");
     }
     ClearError(error);return true;
+}
+} // namespace
+bool ValidateRecordingSourceBindingForSegment(const RecordingSourceBindingV1& b,const RecordingSegmentV2& s,std::string* error) {
+    return ValidateRecordingSourceBindingV1(b,error)&&ValidateSourceBindingSegmentRelation(b,s,error);
 }
 std::string SerializeRecordingSourceBindingV1(const RecordingSourceBindingV1& b) {
     if(!ValidateRecordingSourceBindingV1(b,nullptr))return {};
@@ -601,7 +608,8 @@ std::string SerializeRecordingSourceBindingV1(const RecordingSourceBindingV1& b)
     }
     out<<'}';auto text=out.str();return text.size()<=(b.file_evidence?2U*1024*1024:512U*1024)?text:std::string{};
 }
-bool ParseRecordingSourceBindingV1(const std::string& json,RecordingSourceBindingV1* output,std::string* error) {
+namespace {
+bool ParseSourceBinding(const std::string& json,RecordingSourceBindingV1* output,std::string* error,const RecordingSegmentV2* segment) {
     if(!output||json.size()>2U*1024*1024)return Fail(error,"source binding JSON 상한/output 오류");
     Document d;RecordingSourceBindingV1 b;
     if(!ingress::ParseStrictJsonObjectDocumentArrayViews(json,&d,error)||d.members.size()!=(d.Find("file_evidence")?14U:13U)||
@@ -660,8 +668,17 @@ bool ParseRecordingSourceBindingV1(const std::string& json,RecordingSourceBindin
         }))return false;
         b.file_evidence=std::move(e);
     }
-    if(!ValidateRecordingSourceBindingV1(b,error))return false;
+    if(!ValidateRecordingSourceBindingV1(b,error)||
+       (segment&&!ValidateSourceBindingSegmentRelation(b,*segment,error)))return false;
     *output=std::move(b);ClearError(error);return true;
+}
+} // namespace
+bool ParseRecordingSourceBindingV1(const std::string& json,RecordingSourceBindingV1* output,std::string* error) {
+    return ParseSourceBinding(json,output,error,nullptr);
+}
+bool ParseRecordingSourceBindingForSegment(const std::string& json,const RecordingSegmentV2& segment,
+    RecordingSourceBindingV1* output,std::string* error) {
+    return ParseSourceBinding(json,output,error,&segment);
 }
 
 bool ValidateRecordingReferenceId(const std::string& value, std::string* error) {
