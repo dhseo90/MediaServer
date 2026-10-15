@@ -15,10 +15,7 @@
     "all observed deleted0; memory fall after structured capacity failure does not establish stable normal mixed memory",
     "bounded frame3success/1Automatic failure is not all decoder PASS"
   ],
-  "pending": [
-    "remote byte verification",
-    "owned root cleanup"
-  ],
+  "pending": [],
   "analysisReview": {
     "status": "SUPPORTED",
     "confirmed": [
@@ -34,5 +31,10 @@
     "blockingFindings": [],
     "clarification": "Finish708946B versus storage destruction0 clarified in backlog",
     "archiveSha256": "39eeb7708486378f919c10c82e4a3ba059d0c82f7874a1617559e7beb95eb83b"
+  },
+  "completionEvidence": {
+    "remote": "validation.remoteVerification records actual remote bytes at evidence commit",
+    "ownedCleanup": "validation.cleanup records main-performed ownership preflight and absence; no extra product test",
+    "independentScope": "reviewer conclusions unchanged; remote/cleanup mechanical checks performed by main"
   }
 }

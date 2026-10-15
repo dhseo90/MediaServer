@@ -1765,8 +1765,8 @@
   },
   "cleanup": {
     "runRoot": "/private/tmp/media-server-r125-6r1a76fz",
-    "status": "pending remote evidence verification; product group absent, finally exit0 and ports closed in existing collector",
-    "privateSettingsAnd95Backup": "never read/uploaded/cleaned",
+    "status": "complete",
+    "privateSettingsAnd95Backup": "not accessed/uploaded/deleted",
     "originalProductRuntime": "retained in build-gst-onnx; temporary symbol safety copy excluded from archive",
     "postRunAbsence": {
       "79496": "absent",
@@ -1779,7 +1779,12 @@
         "connectCode": 61,
         "closed": true
       }
-    }
+    },
+    "rootAbsent": true,
+    "removedEntries": 3208,
+    "unlinkedSymlinks": 277,
+    "method": "lstat owner/type preflight; postorder unlink/rmdir; symlinks unlinked, never followed",
+    "originalProductRuntimeRetainedHashVerified": true
   },
   "next": {
     "120MinuteEligible": false,
@@ -1800,5 +1805,39 @@
       "public procedures"
     ]
   },
-  "independentReview": "125-independent-review.json"
+  "independentReview": "125-independent-review.json",
+  "remoteVerification": {
+    "head": "ecdbc0d79fef23aa66c78a75de99ebcf18a48462",
+    "remote": "ecdbc0d79fef23aa66c78a75de99ebcf18a48462",
+    "files": [
+      {
+        "path": "docs/release-artifacts/v4.5.0/125-execution.tar.gz",
+        "gitBlob": "5456607942a91f0a13a31b133d08c23a5e245d78",
+        "bytes": 58516159,
+        "sha256": "39eeb7708486378f919c10c82e4a3ba059d0c82f7874a1617559e7beb95eb83b",
+        "remoteByteEqual": true
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/125-validation.json",
+        "gitBlob": "26a2e0e4a36cd77b6f407a17f5efaefe20ffdba7",
+        "bytes": 51578,
+        "sha256": "c24d767d0648e7fa56ac813840d976353ef826969a616c4eb9eabf7613722ef4",
+        "remoteByteEqual": true
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/125-independent-review.json",
+        "gitBlob": "c2aad086f8922ae77dcb038e010cfdcf0321aa18",
+        "bytes": 2180,
+        "sha256": "1177d16eac1f2de82d7d2fe4185002ec42d2e99b468eaf3b98e33f3b19e5203a",
+        "remoteByteEqual": true
+      },
+      {
+        "path": "docs/development-backlog.md",
+        "gitBlob": "cb3bdf6e62653fd59245502ff19bb274ffaeff4d",
+        "bytes": 46601,
+        "sha256": "e4e3a11713336a3d9e520be09b8aaf2b8897e5e0ca7d154e1802ff745457f743",
+        "remoteByteEqual": true
+      }
+    ]
+  }
 }
