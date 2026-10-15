@@ -694,7 +694,7 @@
     "meaning": "sanitized distinct bytes; private raw URL text excluded from remote evidence; all diagnostic records otherwise unchanged"
   },
   "cleanup": {
-    "status": "PROCESS_PORTS_PASS_ROOT_PRESERVED_PENDING_REMOTE_VERIFICATION",
+    "status": "PASS_OWNED_ROOT_REMOVED_AFTER_REMOTE_BYTE_VERIFICATION",
     "precheck": {
       "ports": [
         {
@@ -719,10 +719,48 @@
       "cleanupErrors": []
     },
     "ownedRoot": "/private/tmp/media-server-r124-ky_e1ud1",
-    "protected": "user settings/private95backup/models/SDK/original crash untouched; no containers created"
+    "protected": "user settings/private95backup/models/SDK/original crash untouched; no containers created",
+    "rootAbsent": true,
+    "entriesRemoved": 1457,
+    "symlinksUnlinkedWithoutFollowing": 277,
+    "originalBuildProductAndRuntimeRetainedAndHashVerified": true,
+    "temporaryBinarySafetyCopyRemoved": true,
+    "noContainersCreated": true
   },
   "remote": {
-    "status": "pending"
+    "remoteSha": "8394e1ff6753e39058969dc30f0cdee6abd954c3",
+    "transport": "GitHub contents metadata at exact remote commit + Git blob JSON/base64",
+    "firstRawTransportFailure": {
+      "command": "gh api -H Accept:application/vnd.github.raw+json repos/dhseo90/MediaServer/contents/docs/release-artifacts/v4.5.0/124-execution.tar.gz?ref=8394e1ff6753e39058969dc30f0cdee6abd954c3",
+      "exit": 1,
+      "stderr": "transform: short source buffer",
+      "classification": "remote byte retrieval transport failure; not product mixed execution or push failure",
+      "next": "read Git blob JSON/base64 and verify decoded bytes; no product rerun; retain owned root until verification"
+    },
+    "files": [
+      {
+        "path": "docs/release-artifacts/v4.5.0/124-execution.tar.gz",
+        "gitBlob": "77a21c77de690414aa6110bed8ea1abfb1bec4ed",
+        "bytes": 39794439,
+        "sha256": "8e142a8fb603a07d2005928cc1705e57008c6f6844757635bda90a7f852edfcd",
+        "remoteBytesMatch": true
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/124-validation.json",
+        "gitBlob": "bf111f64f665f5f529476122c69c519369e614c9",
+        "bytes": 22898,
+        "sha256": "5097f093c9a436389995a50dd4bb1af055d369926156bfef0689dac0c4cb1ed5",
+        "remoteBytesMatch": true
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/124-independent-review.json",
+        "gitBlob": "085b9a14b1afcfcfa8431008ef7368dd4840a478",
+        "bytes": 2409,
+        "sha256": "9c05e8bf4ae9bed784126db04cb9348db583f227864ba8ccd57615d41facdde4",
+        "remoteBytesMatch": true
+      }
+    ],
+    "scope": "evidence commit exact bytes verified before cleanup; final metadata commit SHA checked separately in final report"
   },
   "analysisPreparationFailures": {
     "kind": "read-only Python analysis assumed every journal line had mutationType; compressed envelope caused KeyError",
