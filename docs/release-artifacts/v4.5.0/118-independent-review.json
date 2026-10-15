@@ -48,6 +48,6 @@
     "uniqueReusedR117Members": 756,
     "allReusedBytesCheckedAgainstOriginal117Archive": true,
     "scope": "read-only preservation validation; not product/test execution",
-    "remoteCleanup": "pending main post-push verification"
+    "remoteCleanup": "독립 로컬 바이트 판정과 구분: main의 후속 원격/cleanup 실측은118-validation.json 참조"
   }
 }

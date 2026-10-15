@@ -2066,11 +2066,67 @@
     "allMemberBytesVerified": true,
     "manifestSha256": "3a02c260a321a33a905b6266c27bd8e0b327f33b66eb41bec345533946ee030b",
     "selection": "새 원출력/계산분석/소스 및 신규 원본; 동일117seed5182개 참조는 hash로 재사용. 사용자설정/privatebackup/models/SDK/auth/state/cache/binaries 제외",
-    "status": "PASS local main and independent full-byte review; remote pending"
+    "status": "PASS local independent and exact-commit remote actual byte comparison"
   },
   "cleanup": {
-    "status": "pending remote preservation",
-    "root": "/private/tmp/media-server-r118-mnl4w209"
+    "status": "PASS",
+    "root": "/private/tmp/media-server-r118-mnl4w209",
+    "verifiedRootIdentity": {
+      "dev": 16777232,
+      "ino": 174784072,
+      "uid": 501
+    },
+    "removed": {
+      "regularFiles": 8429,
+      "logicalBytes": 941236326,
+      "symlinksUnlinkedWithoutFollowing": 12,
+      "directories": 766
+    },
+    "rootAbsent": true,
+    "processes": {
+      "ownedPidsAbsent": [
+        27376,
+        27879,
+        29137,
+        25099,
+        30075,
+        25521,
+        25415,
+        29933,
+        25259,
+        27416,
+        25118,
+        27657,
+        29258,
+        25372,
+        29864,
+        29386,
+        27769,
+        27856
+      ],
+      "psExit": 1,
+      "psOutputBytes": 0,
+      "ownedContainerQuery": "docker ps -a --filter name=media-server-r118",
+      "containerExit": 0,
+      "containerOutputBytes": 0,
+      "rootRemoval": "this process check preceded later remote verification and root removal"
+    },
+    "ports": {
+      "values": [
+        50533,
+        50583,
+        50948,
+        51023,
+        51323,
+        51362,
+        51513,
+        51558
+      ],
+      "lsofExit": 1,
+      "outputBytes": 0
+    },
+    "protected": "user settings/private95backup/models/SDK untouched; symlink targets not followed",
+    "scope": "exact R118 owned root only after remote byte verification; build products retained"
   },
   "remaining": [
     "original HTTP latency exceeds target and auxiliary publication request failure",
@@ -2079,5 +2135,44 @@
     "117 repeated recording gaps remain quality blocker despite short directdrop0",
     "new900/45/final120, wholememoryP0 and release hold"
   ],
-  "implementationCommit": "c461dfb1d6b22cd44b2eefb6bdecff0894a35305"
+  "implementationCommit": "c461dfb1d6b22cd44b2eefb6bdecff0894a35305",
+  "remote": {
+    "status": "PASS",
+    "localHead": "0fc2d406bba5f7cb64a56047797fd98f4afcb080",
+    "remoteHead": "0fc2d406bba5f7cb64a56047797fd98f4afcb080",
+    "method": "exact commit GitHub contents metadata and base64 Git blob decoded actual byte comparison",
+    "files": [
+      {
+        "path": "docs/release-artifacts/v4.5.0/118-execution.tar.gz",
+        "bytes": 24263196,
+        "sha256": "eb6c9861458b6fcdd1a4a0788c8889a982d7971dc83a8d42aa38cee9305cbe57",
+        "sameBytes": true
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/118-validation.json",
+        "bytes": 57531,
+        "sha256": "00ff7604c702aabc59f02b156affa98837afee3344b571afe0cae1f43b94bd8e",
+        "sameBytes": true
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/118-independent-review.json",
+        "bytes": 2580,
+        "sha256": "9e591870da122bfd283a437e83e5c5918eabf90549eb5b344bdf56d2c562cf2b",
+        "sameBytes": true
+      },
+      {
+        "path": "docs/development-backlog.md",
+        "bytes": 39132,
+        "sha256": "05713c36628e5ce98fa0e4b794cb6f512779e3997f987707b8d1f8cab2b7206d",
+        "sameBytes": true
+      },
+      {
+        "path": "docs/release-notes-v4.5.0.md",
+        "bytes": 14643,
+        "sha256": "13946109645c0c9075a5f8de641b4f1153cf191853f590a6946a86c61be43b0c",
+        "sameBytes": true
+      }
+    ],
+    "scope": "preservation commit actual bytes verified before cleanup; later cleanup-only documentation commit reported separately in final answer"
+  }
 }
