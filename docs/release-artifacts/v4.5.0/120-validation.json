@@ -1,0 +1,2583 @@
+{
+  "schema": "media-server.v450.r120.validation.v1",
+  "status": "LIMIT200_SINGLE_DIRECT_PASS_ORIGINAL12_LATENCY_FAIL",
+  "memoryP0": "OPEN",
+  "release": "HOLD",
+  "baseHead": "5c33f2934d24adde24e69813216ee7112d2574d9",
+  "previousImplementation": "ba8ec8f206a00035b577eea0918176ab1f37a8c0",
+  "models": {
+    "requestedMain": "gpt-6-astra/high",
+    "requestedIndependent": "gpt-6-astra/high",
+    "mainToolAccepted": null,
+    "independentToolAccepted": "gpt-6-astra/high",
+    "actualMainRuntime": null,
+    "actualIndependentRuntime": null,
+    "reviewer": "/root/independent_r120",
+    "note": "unexposed values unconfirmed; new separate read-only reviewer, no implementation/test execution"
+  },
+  "source": {
+    "baseHead": "5c33f2934d24adde24e69813216ee7112d2574d9",
+    "baseTree": "bc88aba704f3697d2095bdd558ecfef3bb15cc6a",
+    "measurementPatch": "fused-source.patch",
+    "measurementProductUnchanged": true,
+    "postMeasurement": "Only inventory definitions condensed and evidence/status documents added; product/fixture unchanged",
+    "files": {
+      "docs/project-feature-test-inventory.md": "7ad8db9fa78a356f560b0e02d7b900e2840dc7c4ebf27981e1a86546a5279f30",
+      "include/recording/recording_catalog.h": "812494519f17e7bc0e0171f00a24056a0bd894330f95bb5ba426b8379101f282",
+      "include/recording/recording_contracts.h": "08bb9c3edecfe85fdc88bea461b882c30a82081ef8a7d57a7d0ece29e396a5d9",
+      "include/recording/recording_journal.h": "c019bb3fe856c3566910863816b51e0732945bff85d407f38e16ae756ee4038a",
+      "include/recording/recording_latency_trace.h": "2747d96d1c1a156692f8d77e05ddc5f89142291dfc60caf5c784d3a550001d1d",
+      "include/recording/recording_read_service.h": "ecd6cdde11c4079030992c632d280f1740f5bd018db1d29686fa5d1d24a56e8f",
+      "scripts/internal/recording_generation_request_proof_smoke.cpp": "0692d4edb20d5c99327e49aef4b528152e5fa6324aeb09337ec78f7ea5c3c568",
+      "scripts/internal/recording_journal_generation_readonly_smoke.cpp": "1ce536adc9769e4ae9cb007548200b6dc7728564d9e4e2abce5fd3466f54eb63",
+      "scripts/internal/recording_visual_source_smoke.cpp": "3de26eb15c9576932d0990e07c3f1ac324daefdb7ea012acf6ffa3210a2ff639",
+      "scripts/internal/visual_request_media_cache_smoke.cpp": "449a6a797d523ba7df736fd76d1eb7b1eb839d2b4ce641658da09b4e1adac102",
+      "scripts/internal/visual_search_index_smoke.cpp": "38e1535614e4da9a4a8d5a7dd7ebcf6744d130ef71885e529379882b68a85d32",
+      "src/domain/strict_json.cpp": "b0c5fe66048c035723efa6317be3a08b4f310f8a4c37e4bb65ff434755843fe7",
+      "src/ingress/visual_search_application_service.cpp": "19db913157fb7ad91d1b9ca578ab5baaada17e951a6eeb8c55448abd762c9e65",
+      "src/recording/recording_catalog.cpp": "e960d1989e51e16990f2fdc70904caaee583f27e0ae7ba9669b30a5d35b32e2f",
+      "src/recording/recording_contracts.cpp": "ebb1308dc73c263c4ab5b7bf530adae57363af244e77b86eaf29b6dda039398f",
+      "src/recording/recording_journal.cpp": "d58fceabfdee6849b4405f41f13c5a6d7cea7664c30913a45e809639625ea2bd",
+      "src/recording/recording_read_service.cpp": "396c944c29b004b6c0e8cea1adb46f7e58f867f81e266ab26fe2699ca6cfd7b6",
+      "src/recording/recording_search_reader.cpp": "a78ca4aee91541301fe55759ecd92c92a41be0919b575bba13592a51c6008730",
+      "scripts/internal/recording_source_prepare_parse_smoke.cpp": "acc5d629960d226a310d39927d100deedd84ba7163112242699d65597ef7f9f3"
+    },
+    "untrackedTestNote": "new parse smoke is separately preserved as source; git diff patch alone excludes untracked file",
+    "fixtureSha256": "84e54ee09f4d51e3cb0839330a0f762dca3bb9292346536bea8ddbe33fc1ae7d",
+    "runtimeSha256": "dfacc8e5d4ffff0a5a1e2571003c5718e71c900b21d04eb4bd5f735c2ff34b08",
+    "productSha256": "0b6add939d3bb9bbad70751eb80346aef90c7c5c051ddb78f733040ae1d912b5",
+    "httpBinarySha256": "ba71de21e95466847a58448943a2a882dd607846dfb9941c97bf4cfea854d26d"
+  },
+  "binary": {
+    "build": {
+      "command": [
+        "/usr/bin/c++",
+        "-DGST_USE_UNSTABLE_API=1",
+        "-DMEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND=1",
+        "-DMEDIA_SERVER_ENABLE_YOUTUBE_SOURCE=0",
+        "-DMEDIA_SERVER_USE_GSTREAMER=1",
+        "-DMEDIA_SERVER_USE_LIBSODIUM=1",
+        "-DMEDIA_SERVER_USE_ONNXRUNTIME=1",
+        "-DMEDIA_SERVER_USE_OPENSSL=1",
+        "-DMEDIA_SERVER_USE_PANGOCAIRO=1",
+        "-DMEDIA_SERVER_USE_SIGLIP2=1",
+        "-DMEDIA_SERVER_USE_SQLITE3=1",
+        "-I/Users/dhseo/Workspace/mediaServer/include",
+        "-I/opt/homebrew/include/onnxruntime",
+        "-I/Users/dhseo/Workspace/mediaServer/third_party/v430-embedding/sentencepiece/include",
+        "-isystem",
+        "/opt/homebrew/Cellar/gstreamer/1.28.1/include/gstreamer-1.0",
+        "-isystem",
+        "/opt/homebrew/Cellar/glib/2.86.4/include/gio-unix-2.0",
+        "-isystem",
+        "/opt/homebrew/Cellar/orc/0.4.42/include/orc-0.4",
+        "-isystem",
+        "/opt/homebrew/Cellar/glib/2.86.4/include",
+        "-isystem",
+        "/Library/Developer/CommandLineTools/SDKs/MacOSX26.sdk/usr/include/ffi",
+        "-isystem",
+        "/opt/homebrew/Cellar/glib/2.86.4/include/glib-2.0",
+        "-isystem",
+        "/opt/homebrew/Cellar/glib/2.86.4/lib/glib-2.0/include",
+        "-isystem",
+        "/opt/homebrew/opt/gettext/include",
+        "-isystem",
+        "/opt/homebrew/Cellar/pcre2/10.47_1/include",
+        "-isystem",
+        "/opt/homebrew/Cellar/pango/1.57.0_2/include/pango-1.0",
+        "-isystem",
+        "/opt/homebrew/Cellar/cairo/1.18.4/include/cairo",
+        "-isystem",
+        "/opt/homebrew/Cellar/libxext/1.3.7/include",
+        "-isystem",
+        "/opt/homebrew/Cellar/xorgproto/2025.1/include",
+        "-isystem",
+        "/opt/homebrew/Cellar/libxrender/0.9.12/include",
+        "-isystem",
+        "/opt/homebrew/Cellar/libx11/1.8.13/include",
+        "-isystem",
+        "/opt/homebrew/Cellar/libxcb/1.17.0/include",
+        "-isystem",
+        "/opt/homebrew/Cellar/libxau/1.0.12/include",
+        "-isystem",
+        "/opt/homebrew/Cellar/libxdmcp/1.1.5/include",
+        "-isystem",
+        "/opt/homebrew/Cellar/pixman/0.46.4/include/pixman-1",
+        "-isystem",
+        "/opt/homebrew/Cellar/fribidi/1.0.16/include/fribidi",
+        "-isystem",
+        "/opt/homebrew/Cellar/libthai/0.1.30/include",
+        "-isystem",
+        "/opt/homebrew/Cellar/libdatrie/0.2.14/include",
+        "-isystem",
+        "/opt/homebrew/Cellar/fontconfig/2.17.1/include",
+        "-isystem",
+        "/opt/homebrew/Cellar/harfbuzz/13.1.1/include/harfbuzz",
+        "-isystem",
+        "/opt/homebrew/opt/freetype/include/freetype2",
+        "-isystem",
+        "/opt/homebrew/opt/libpng/include/libpng16",
+        "-isystem",
+        "/opt/homebrew/opt/graphite2/include",
+        "-isystem",
+        "/opt/homebrew/Cellar/libsodium/1.0.21/include",
+        "-isystem",
+        "/opt/homebrew/Cellar/openssl@3/3.6.2/include",
+        "-std=c++17",
+        "-arch",
+        "arm64",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-I/Users/dhseo/Workspace/mediaServer/scripts/internal",
+        "/Users/dhseo/Workspace/mediaServer/scripts/internal/recording_degraded_http_smoke.cpp",
+        "/Users/dhseo/Workspace/mediaServer/build-gst-onnx/libmedia_server_runtime.a",
+        "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libz.tbd",
+        "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstrtspserver-1.0.dylib",
+        "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstapp-1.0.dylib",
+        "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstwebrtc-1.0.dylib",
+        "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstsdp-1.0.dylib",
+        "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstpbutils-1.0.dylib",
+        "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstaudio-1.0.dylib",
+        "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstvideo-1.0.dylib",
+        "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstbase-1.0.dylib",
+        "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstreamer-1.0.dylib",
+        "/opt/homebrew/Cellar/pango/1.57.0_2/lib/libpangocairo-1.0.dylib",
+        "/opt/homebrew/Cellar/pango/1.57.0_2/lib/libpango-1.0.dylib",
+        "/opt/homebrew/Cellar/cairo/1.18.4/lib/libcairo.dylib",
+        "/opt/homebrew/Cellar/harfbuzz/13.1.1/lib/libharfbuzz.dylib",
+        "/opt/homebrew/Cellar/glib/2.86.4/lib/libgobject-2.0.dylib",
+        "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libsqlite3.tbd",
+        "/opt/homebrew/Cellar/libsodium/1.0.21/lib/libsodium.dylib",
+        "/opt/homebrew/Cellar/openssl@3/3.6.2/lib/libssl.dylib",
+        "/opt/homebrew/Cellar/openssl@3/3.6.2/lib/libcrypto.dylib",
+        "/opt/homebrew/lib/libonnxruntime.dylib",
+        "/Users/dhseo/Workspace/mediaServer/third_party/v430-embedding/sentencepiece/lib/libsentencepiece.a",
+        "/opt/homebrew/Cellar/glib/2.86.4/lib/libglib-2.0.dylib",
+        "/opt/homebrew/opt/gettext/lib/libintl.dylib",
+        "-o",
+        "/private/tmp/media-server-r120-6pszfh0_/http-fused"
+      ],
+      "cwd": "/private/tmp/media-server-r120-6pszfh0_/fused-build",
+      "uid": 501,
+      "head": "5c33f2934d24adde24e69813216ee7112d2574d9",
+      "fixtureSha256": "84e54ee09f4d51e3cb0839330a0f762dca3bb9292346536bea8ddbe33fc1ae7d",
+      "archiveSha256": "dfacc8e5d4ffff0a5a1e2571003c5718e71c900b21d04eb4bd5f735c2ff34b08",
+      "mode": "parallel",
+      "scale": "53",
+      "isolation": "native helper + preinitialization binary guard",
+      "receivedBytes": 0,
+      "savedBytes": 0,
+      "timeout": false,
+      "overflow": false,
+      "limitBytes": 4194304,
+      "deadlineSeconds": 180,
+      "collectionError": null,
+      "signal": null,
+      "monitorExit": null,
+      "observerReady": false,
+      "groupAbsent": true,
+      "pid": 47527,
+      "exit": 0,
+      "elapsedSeconds": 1.855575833003968
+    },
+    "sourcePatchSha256": "84e9821a67c708c3864b9910740e73755cd3c8c198a2b571fac3d32f672e8e12",
+    "binarySha256": "ba71de21e95466847a58448943a2a882dd607846dfb9941c97bf4cfea854d26d"
+  },
+  "prior119": {
+    "original12": "actual200 p95/max1967.89ms remains historical PASS",
+    "publication": "generation3/docs1616/new44 remains PASS",
+    "recorder": "2423/2423,42files,Stop/Finish remains PASS",
+    "auxiliary": "client5.002s0bytes/noheader/errno35; later server503 not received by client; cause not inferred from source-changed code",
+    "notRetroactive": true
+  },
+  "changes": [
+    "P01: validated nested string discard, borrowed tuple views/exact reserve, full typed segment/mapping comparison; canonical raw equality only reuses validated current row.",
+    "P02/P03: source-private compact six-field identity on current authenticated raw; full payload actually released. Historical/active current proof and transient work reservation retained. Nested envelope parsed once; archive nesting/canonical/CRC/hash checks retained.",
+    "P04/P05: native seek table stores ordinal/originalPTS/nativePTS/duration/hash with owned reservation; detailed binding and duplicate canonical strings actually released. Immutable PreparedSource segment borrowed only during its lifetime; exact current typed row/path/FD/stat and identity checks retained. Legacy full proof unchanged.",
+    "P06: final selected-result stage preferentially evicts unselected/already consumed source, preserving LRU within groups. Existing immutable <=200hits borrowed, no new proof cache or FD budget; eligible ID/heap order and intermediate candidate error propagation unchanged.",
+    "P07/P08: ephemeral six-field identity streamed with length-prefix SHA, persistent hashes unchanged; media-specific final current row/path validation fused after current raw/SourceEntry checks. Initial media, authority, nonmedia Collect and final file/stat checks retained."
+  ],
+  "observation": {
+    "bounded": "512 borrowed immutable document refs plus12counters per request, existing1024requests/4MiBlog",
+    "prepareValues": "first eligible/repeated eligible/first final/repeated final counts; matching4inclusiveNs; failed; sum retained bytes across successful preparations; max retained bytes; oversized",
+    "limits": "sum is not resident peak; distinct first keys are channel/segment, not all possible authorities; changed authority/cause not inferred. Phase/lock costs overlap, never added. Selected holders1/2/3 only, no all-request/instant-peak claim."
+  },
+  "contract": {
+    "fixtureSha256": "84e54ee09f4d51e3cb0839330a0f762dca3bb9292346536bea8ddbe33fc1ae7d",
+    "inputSha256": "64754e3fdd2719f4b44816ff042a2312150c5522727e0e62466272ac3fc8e664",
+    "seed": "117 archive1064file bytes/modes, per-run owned copies; reOpen not old live/cache restoration",
+    "original12": "3waves structured2+visual2; limit20 actual200 p95<=2000/max<=5000",
+    "auxiliary": "limit200 separate population, full client200 <=5000ms; no new2s gate",
+    "runtime": "existing SigLIP2/ORT/GStreamer; no models/SDK/config changes; compiles complete before performance",
+    "liveDifferences": "same seed/input/query/permissions/algorithm, fresh UUIDs, source stop extras and concurrent index timing differ. before aux docs1616 vs final1624; not identical live schedule/cold-cache state. Single runs per changed candidate, no statistical latency guarantee",
+    "admission": "continuous-r114108MiB/channel, S71237B,64MiB reserve,448MiBlive/640MiBowner,8MiB200 RequestMedia and16MiBparsecache unchanged"
+  },
+  "comparison": [
+    {
+      "attempt": "before-large",
+      "original12": [
+        "failures=0 count=12 p95=2682.25 max=2682.25"
+      ],
+      "wireOriginal": {
+        "count": 12,
+        "status": [
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200
+        ],
+        "p95Ms": 2682.254708,
+        "maxMs": 2682.254708
+      },
+      "auxiliary": [
+        {
+          "id": 100,
+          "scope": "auxiliary200",
+          "route": "/ops/api/recordings/visual-search?channelIds=9101,9201&text=ball&limit=200&threshold=-1",
+          "beginNs": 1363122692365708,
+          "endNs": 1363127694429750,
+          "bytes": 0,
+          "headers": false,
+          "status": 0,
+          "errno": 35,
+          "failure": "recv",
+          "clientMs": 5002.064042,
+          "fiveSecondComplete200": false
+        }
+      ],
+      "auxServer": {
+        "id": 7,
+        "status": 503,
+        "code": "visual-source-changed",
+        "startNs": 54639031834,
+        "elapsedNs": 5033921375,
+        "generation": 3,
+        "documents": 1616,
+        "phases": [
+          [
+            1,
+            5033920625
+          ],
+          [
+            1,
+            246106166
+          ],
+          [
+            1,
+            32136375
+          ],
+          [
+            2,
+            459
+          ],
+          [
+            2,
+            32131667
+          ],
+          [
+            1,
+            4375
+          ],
+          [
+            1,
+            32097792
+          ],
+          [
+            1,
+            4143277250
+          ],
+          [
+            373,
+            4472550408
+          ],
+          [
+            474,
+            245677553
+          ],
+          [
+            372,
+            2115392834
+          ],
+          [
+            373,
+            884473875
+          ],
+          [
+            102,
+            245564577
+          ],
+          [
+            1,
+            579797375
+          ],
+          [
+            1616,
+            2632943
+          ],
+          [
+            424,
+            4139673700
+          ],
+          [
+            372,
+            276451599
+          ]
+        ],
+        "counters": [
+          372,
+          102,
+          322,
+          424,
+          1616,
+          0
+        ],
+        "locks": [
+          [
+            3656,
+            6127659,
+            2358935955
+          ],
+          [
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0
+          ]
+        ],
+        "journalCostNs": [
+          211440,
+          543758142,
+          22683639,
+          829821528
+        ],
+        "catalogRowCost": [
+          4504,
+          394262710,
+          0,
+          0,
+          2167,
+          58371271,
+          4131,
+          66169112,
+          4131,
+          51679031,
+          11175,
+          153694849
+        ],
+        "segmentDecodeCost": [
+          4504,
+          4187,
+          169871497,
+          86403
+        ],
+        "historyNodeReads": 745203
+      },
+      "auxPreparation": {
+        "id": 7,
+        "uniqueObserved": 322,
+        "complete": true,
+        "values": [
+          322,
+          0,
+          0,
+          51,
+          3666681032,
+          0,
+          0,
+          541283962,
+          1,
+          59872620,
+          212697,
+          0
+        ]
+      },
+      "membership": [
+        "generation=3 documents=1616 newDocuments=44 instance=6cb0ad535f194c21956c1a5b0b23b0ba"
+      ],
+      "publicNewDocuments": [],
+      "recorder": [
+        "expected=2446 accepted=2446 files=42 fullAcceptance=1"
+      ],
+      "finish": [
+        "ok=1 error="
+      ],
+      "exit": 1,
+      "elapsedSeconds": 63.787772457813844,
+      "qualificationError": "AssertionError:p95",
+      "sourceBinding": "120-execution.tar.gz:before-large/execution.json",
+      "liveSampledMax": {
+        "rssBytes": 3349381120,
+        "footprintBytes": 3297496448,
+        "fdCount": 145,
+        "anonymousFileBytes": 76741120,
+        "anonymousAllocatedBytes": 78372864
+      },
+      "variableBytesMax": 151145877,
+      "finalLogicalOwner": {
+        "pid": 39062,
+        "seq": 6,
+        "phase": "after-storage-destruction",
+        "elapsedMs": 60853,
+        "ram": 0,
+        "ramPeak": 389175274,
+        "ramLimit": 671088640,
+        "ramRejected": 0,
+        "scratchDisk": 0,
+        "scratchDiskPeak": 123392000,
+        "scratchDiskLimit": 162846101504,
+        "scratchFd": 0,
+        "scratchFdPeak": 17,
+        "scratchFdLimit": 1048572,
+        "scratchRam": 0,
+        "preservedDisk": 0,
+        "preservedFd": 0,
+        "readerCleanupHealthy": true
+      }
+    },
+    {
+      "attempt": "canonical-large",
+      "original12": [
+        "failures=0 count=12 p95=2581.94 max=2581.94"
+      ],
+      "wireOriginal": {
+        "count": 12,
+        "status": [
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200
+        ],
+        "p95Ms": 2581.9495,
+        "maxMs": 2581.9495
+      },
+      "auxiliary": [
+        {
+          "id": 100,
+          "scope": "auxiliary200",
+          "route": "/ops/api/recordings/visual-search?channelIds=9101,9201&text=ball&limit=200&threshold=-1",
+          "beginNs": 1364184316374541,
+          "endNs": 1364189317519500,
+          "bytes": 0,
+          "headers": false,
+          "status": 0,
+          "errno": 35,
+          "failure": "recv",
+          "clientMs": 5001.144959,
+          "fiveSecondComplete200": false
+        }
+      ],
+      "auxServer": {
+        "id": 7,
+        "status": 503,
+        "code": "visual-source-changed",
+        "startNs": 54809248876,
+        "elapsedNs": 5051601583,
+        "generation": 4,
+        "documents": 1632,
+        "phases": [
+          [
+            1,
+            5051601084
+          ],
+          [
+            1,
+            625
+          ],
+          [
+            1,
+            47771500
+          ],
+          [
+            2,
+            251
+          ],
+          [
+            2,
+            47770333
+          ],
+          [
+            1,
+            1417
+          ],
+          [
+            1,
+            47749834
+          ],
+          [
+            1,
+            4548252417
+          ],
+          [
+            349,
+            4651601875
+          ],
+          [
+            451,
+            297628773
+          ],
+          [
+            349,
+            2203242124
+          ],
+          [
+            349,
+            1067086678
+          ],
+          [
+            103,
+            297494910
+          ],
+          [
+            1,
+            407091292
+          ],
+          [
+            1632,
+            2888957
+          ],
+          [
+            422,
+            4543824939
+          ],
+          [
+            349,
+            286506247
+          ]
+        ],
+        "counters": [
+          348,
+          103,
+          297,
+          422,
+          1632,
+          0
+        ],
+        "locks": [
+          [
+            3447,
+            405257122,
+            2459757608
+          ],
+          [
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0
+          ]
+        ],
+        "journalCostNs": [
+          119669345,
+          605661811,
+          23760716,
+          849041918
+        ],
+        "catalogRowCost": [
+          4596,
+          430425714,
+          0,
+          0,
+          2749,
+          79452536,
+          4247,
+          72724759,
+          4247,
+          56969899,
+          11941,
+          177813854
+        ],
+        "segmentDecodeCost": [
+          4596,
+          4402,
+          109190623,
+          56161
+        ],
+        "historyNodeReads": 785072
+      },
+      "auxPreparation": {
+        "id": 7,
+        "uniqueObserved": 319,
+        "complete": true,
+        "values": [
+          319,
+          0,
+          0,
+          30,
+          3869873327,
+          0,
+          0,
+          374770373,
+          1,
+          55470456,
+          212153,
+          0
+        ]
+      },
+      "membership": [
+        "generation=4 documents=1632 newDocuments=60 instance=368470fc27a9ee515b5dd4ff5b6fa7fc"
+      ],
+      "publicNewDocuments": [],
+      "recorder": [
+        "expected=2446 accepted=2446 files=42 fullAcceptance=1"
+      ],
+      "finish": [
+        "ok=1 error="
+      ],
+      "exit": 1,
+      "elapsedSeconds": 63.496983958175406,
+      "qualificationError": "AssertionError:p95",
+      "sourceBinding": "120-execution.tar.gz:canonical-large/execution.json",
+      "liveSampledMax": {
+        "rssBytes": 3350659072,
+        "footprintBytes": 3298757992,
+        "fdCount": 146,
+        "anonymousFileBytes": 76044288,
+        "anonymousAllocatedBytes": 77860864
+      },
+      "variableBytesMax": 150359102,
+      "finalLogicalOwner": {
+        "pid": 40883,
+        "seq": 6,
+        "phase": "after-storage-destruction",
+        "elapsedMs": 61082,
+        "ram": 0,
+        "ramPeak": 389035524,
+        "ramLimit": 671088640,
+        "ramRejected": 0,
+        "scratchDisk": 0,
+        "scratchDiskPeak": 122621952,
+        "scratchDiskLimit": 162540814336,
+        "scratchFd": 0,
+        "scratchFdPeak": 17,
+        "scratchFdLimit": 1048572,
+        "scratchRam": 0,
+        "preservedDisk": 0,
+        "preservedFd": 0,
+        "readerCleanupHealthy": true
+      }
+    },
+    {
+      "attempt": "compact-large",
+      "original12": [
+        "failures=0 count=12 p95=2593.28 max=2593.28"
+      ],
+      "wireOriginal": {
+        "count": 12,
+        "status": [
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200
+        ],
+        "p95Ms": 2593.296208,
+        "maxMs": 2593.296208
+      },
+      "auxiliary": [
+        {
+          "id": 100,
+          "scope": "auxiliary200",
+          "route": "/ops/api/recordings/visual-search?channelIds=9101,9201&text=ball&limit=200&threshold=-1",
+          "beginNs": 1365197237125750,
+          "endNs": 1365202239215208,
+          "bytes": 0,
+          "headers": false,
+          "status": 0,
+          "errno": 35,
+          "failure": "recv",
+          "clientMs": 5002.089458,
+          "fiveSecondComplete200": false
+        }
+      ],
+      "auxServer": {
+        "id": 7,
+        "status": 503,
+        "code": "visual-source-changed",
+        "startNs": 55342222251,
+        "elapsedNs": 5107044292,
+        "generation": 4,
+        "documents": 1634,
+        "phases": [
+          [
+            1,
+            5107043875
+          ],
+          [
+            1,
+            666
+          ],
+          [
+            1,
+            46746791
+          ],
+          [
+            2,
+            126
+          ],
+          [
+            2,
+            46745583
+          ],
+          [
+            1,
+            1292
+          ],
+          [
+            1,
+            46726709
+          ],
+          [
+            1,
+            4646788375
+          ],
+          [
+            338,
+            4628033043
+          ],
+          [
+            439,
+            326609257
+          ],
+          [
+            338,
+            2189892086
+          ],
+          [
+            338,
+            1101344338
+          ],
+          [
+            102,
+            326483919
+          ],
+          [
+            1,
+            313673541
+          ],
+          [
+            1634,
+            2750907
+          ],
+          [
+            424,
+            4642559004
+          ],
+          [
+            338,
+            266512872
+          ]
+        ],
+        "counters": [
+          337,
+          102,
+          250,
+          424,
+          1634,
+          0
+        ],
+        "locks": [
+          [
+            3345,
+            491725622,
+            2546358990
+          ],
+          [
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0
+          ]
+        ],
+        "journalCostNs": [
+          127454680,
+          571149716,
+          22028836,
+          797249342
+        ],
+        "catalogRowCost": [
+          4460,
+          408948060,
+          0,
+          0,
+          2669,
+          74890560,
+          4122,
+          67193097,
+          4122,
+          59014763,
+          11589,
+          174318754
+        ],
+        "segmentDecodeCost": [
+          4460,
+          4257,
+          116005922,
+          59330
+        ],
+        "historyNodeReads": 780638
+      },
+      "auxPreparation": {
+        "id": 7,
+        "uniqueObserved": 322,
+        "complete": true,
+        "values": [
+          322,
+          0,
+          0,
+          16,
+          3958197876,
+          0,
+          0,
+          281718293,
+          1,
+          31784847,
+          128011,
+          0
+        ]
+      },
+      "membership": [
+        "generation=4 documents=1634 newDocuments=62 instance=bce34390b60f7f9a1dcbb8249db52d92"
+      ],
+      "publicNewDocuments": [],
+      "recorder": [
+        "expected=2437 accepted=2437 files=42 fullAcceptance=1"
+      ],
+      "finish": [
+        "ok=1 error="
+      ],
+      "exit": 1,
+      "elapsedSeconds": 63.54696945799515,
+      "qualificationError": "AssertionError:p95",
+      "sourceBinding": "120-execution.tar.gz:compact-large/execution.json",
+      "liveSampledMax": {
+        "rssBytes": 3346219008,
+        "footprintBytes": 3294252416,
+        "fdCount": 203,
+        "anonymousFileBytes": 89051136,
+        "anonymousAllocatedBytes": 90673152
+      },
+      "variableBytesMax": 162326082,
+      "finalLogicalOwner": {
+        "pid": 42475,
+        "seq": 6,
+        "phase": "after-storage-destruction",
+        "elapsedMs": 61641,
+        "ram": 0,
+        "ramPeak": 390184547,
+        "ramLimit": 671088640,
+        "ramRejected": 0,
+        "scratchDisk": 0,
+        "scratchDiskPeak": 127070208,
+        "scratchDiskLimit": 162374369280,
+        "scratchFd": 0,
+        "scratchFdPeak": 18,
+        "scratchFdLimit": 1048572,
+        "scratchRam": 0,
+        "preservedDisk": 0,
+        "preservedFd": 0,
+        "readerCleanupHealthy": true
+      }
+    },
+    {
+      "attempt": "fused-large",
+      "original12": [
+        "failures=0 count=12 p95=2317.92 max=2317.92"
+      ],
+      "wireOriginal": {
+        "count": 12,
+        "status": [
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200
+        ],
+        "p95Ms": 2317.935916,
+        "maxMs": 2317.935916
+      },
+      "auxiliary": [
+        {
+          "id": 100,
+          "scope": "auxiliary200",
+          "route": "/ops/api/recordings/visual-search?channelIds=9101,9201&text=ball&limit=200&threshold=-1",
+          "beginNs": 1368490763830041,
+          "endNs": 1368495726413750,
+          "bytes": 78455,
+          "headers": true,
+          "status": 200,
+          "errno": 0,
+          "failure": "none",
+          "clientMs": 4962.583709,
+          "fiveSecondComplete200": true
+        }
+      ],
+      "auxServer": {
+        "id": 7,
+        "status": 200,
+        "code": "ok",
+        "startNs": 54669712918,
+        "elapsedNs": 4574085875,
+        "generation": 4,
+        "documents": 1624,
+        "phases": [
+          [
+            1,
+            4574084792
+          ],
+          [
+            1,
+            144411917
+          ],
+          [
+            1,
+            37883917
+          ],
+          [
+            2,
+            333
+          ],
+          [
+            2,
+            37880334
+          ],
+          [
+            1,
+            4000
+          ],
+          [
+            1,
+            37777042
+          ],
+          [
+            1,
+            3566209750
+          ],
+          [
+            385,
+            3937369245
+          ],
+          [
+            624,
+            319677831
+          ],
+          [
+            385,
+            1919294210
+          ],
+          [
+            385,
+            1003822116
+          ],
+          [
+            239,
+            319125121
+          ],
+          [
+            1,
+            720428666
+          ],
+          [
+            1624,
+            2802753
+          ],
+          [
+            424,
+            3562014373
+          ],
+          [
+            385,
+            320612087
+          ]
+        ],
+        "counters": [
+          385,
+          239,
+          219,
+          424,
+          1624,
+          200
+        ],
+        "locks": [
+          [
+            4182,
+            17932264,
+            2236755125
+          ],
+          [
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0
+          ]
+        ],
+        "journalCostNs": [
+          1579382,
+          745338499,
+          31493984,
+          734807504
+        ],
+        "catalogRowCost": [
+          4567,
+          460064438,
+          0,
+          0,
+          3412,
+          105359950,
+          4182,
+          74202797,
+          4182,
+          54638720,
+          12546,
+          190606045
+        ],
+        "segmentDecodeCost": [
+          4567,
+          4286,
+          172200752,
+          90462
+        ],
+        "historyNodeReads": 823253
+      },
+      "auxPreparation": {
+        "id": 7,
+        "uniqueObserved": 321,
+        "complete": true,
+        "values": [
+          321,
+          0,
+          0,
+          64,
+          3281050002,
+          0,
+          0,
+          521673126,
+          0,
+          19121684,
+          64280,
+          0
+        ]
+      },
+      "membership": [
+        "generation=4 documents=1624 newDocuments=52 instance=1ef1a312438fd4533289f29ea435ae03"
+      ],
+      "publicNewDocuments": [
+        "9"
+      ],
+      "recorder": [
+        "expected=2445 accepted=2445 files=42 fullAcceptance=1"
+      ],
+      "finish": [
+        "ok=1 error="
+      ],
+      "exit": 1,
+      "elapsedSeconds": 63.5370377919171,
+      "qualificationError": "AssertionError:p95",
+      "sourceBinding": "120-execution.tar.gz:fused-large/execution.json",
+      "liveSampledMax": {
+        "rssBytes": 3374645248,
+        "footprintBytes": 3322449304,
+        "fdCount": 355,
+        "anonymousFileBytes": 76879872,
+        "anonymousAllocatedBytes": 78483456
+      },
+      "variableBytesMax": 151303059,
+      "finalLogicalOwner": {
+        "pid": 47627,
+        "seq": 6,
+        "phase": "after-storage-destruction",
+        "elapsedMs": 60837,
+        "ram": 0,
+        "ramPeak": 431316544,
+        "ramLimit": 671088640,
+        "ramRejected": 0,
+        "scratchDisk": 0,
+        "scratchDiskPeak": 123535360,
+        "scratchDiskLimit": 161541275648,
+        "scratchFd": 0,
+        "scratchFdPeak": 18,
+        "scratchFdLimit": 1048572,
+        "scratchRam": 0,
+        "preservedDisk": 0,
+        "preservedFd": 0,
+        "readerCleanupHealthy": true
+      }
+    },
+    {
+      "attempt": "native-large",
+      "original12": [
+        "failures=0 count=12 p95=2434.82 max=2434.82"
+      ],
+      "wireOriginal": {
+        "count": 12,
+        "status": [
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200
+        ],
+        "p95Ms": 2434.827292,
+        "maxMs": 2434.827292
+      },
+      "auxiliary": [
+        {
+          "id": 100,
+          "scope": "auxiliary200",
+          "route": "/ops/api/recordings/visual-search?channelIds=9101,9201&text=ball&limit=200&threshold=-1",
+          "beginNs": 1366302956567958,
+          "endNs": 1366307958649250,
+          "bytes": 0,
+          "headers": false,
+          "status": 0,
+          "errno": 35,
+          "failure": "recv",
+          "clientMs": 5002.081292,
+          "fiveSecondComplete200": false
+        }
+      ],
+      "auxServer": {
+        "id": 7,
+        "status": 503,
+        "code": "visual-search-busy",
+        "startNs": 54093127876,
+        "elapsedNs": 5064747125,
+        "generation": 4,
+        "documents": 1628,
+        "phases": [
+          [
+            1,
+            5064746334
+          ],
+          [
+            1,
+            542
+          ],
+          [
+            1,
+            44924916
+          ],
+          [
+            2,
+            208
+          ],
+          [
+            2,
+            44923583
+          ],
+          [
+            1,
+            1250
+          ],
+          [
+            1,
+            44903958
+          ],
+          [
+            1,
+            4107693458
+          ],
+          [
+            415,
+            4715213087
+          ],
+          [
+            518,
+            233222801
+          ],
+          [
+            415,
+            2225423749
+          ],
+          [
+            415,
+            1035611544
+          ],
+          [
+            103,
+            233050082
+          ],
+          [
+            1,
+            847615166
+          ],
+          [
+            1628,
+            2907788
+          ],
+          [
+            426,
+            4103214038
+          ],
+          [
+            415,
+            352319799
+          ]
+        ],
+        "counters": [
+          415,
+          103,
+          317,
+          426,
+          1628,
+          0
+        ],
+        "locks": [
+          [
+            4044,
+            137848579,
+            2535171671
+          ],
+          [
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0
+          ]
+        ],
+        "journalCostNs": [
+          36052584,
+          761065294,
+          30640965,
+          795419406
+        ],
+        "catalogRowCost": [
+          5392,
+          545494916,
+          0,
+          0,
+          3214,
+          101108103,
+          4977,
+          91340139,
+          4977,
+          71320206,
+          13998,
+          224268748
+        ],
+        "segmentDecodeCost": [
+          5392,
+          5182,
+          128762125,
+          70454
+        ],
+        "historyNodeReads": 925692
+      },
+      "auxPreparation": {
+        "id": 7,
+        "uniqueObserved": 323,
+        "complete": true,
+        "values": [
+          323,
+          0,
+          0,
+          92,
+          3609011994,
+          0,
+          0,
+          769215081,
+          0,
+          34681402,
+          117138,
+          0
+        ]
+      },
+      "membership": [
+        "generation=4 documents=1628 newDocuments=56 instance=b6100d70ad7f4f0857f1574e3ea5b1fa"
+      ],
+      "publicNewDocuments": [],
+      "recorder": [
+        "expected=2409 accepted=2409 files=42 fullAcceptance=1"
+      ],
+      "finish": [
+        "ok=1 error="
+      ],
+      "exit": 1,
+      "elapsedSeconds": 62.52369587495923,
+      "qualificationError": "AssertionError:p95",
+      "sourceBinding": "120-execution.tar.gz:native-large/execution.json",
+      "liveSampledMax": {
+        "rssBytes": 3363618816,
+        "footprintBytes": 3311472000,
+        "fdCount": 227,
+        "anonymousFileBytes": 90202112,
+        "anonymousAllocatedBytes": 91860992
+      },
+      "variableBytesMax": 163528562,
+      "finalLogicalOwner": {
+        "pid": 44329,
+        "seq": 6,
+        "phase": "after-storage-destruction",
+        "elapsedMs": 60662,
+        "ram": 0,
+        "ramPeak": 434471877,
+        "ramLimit": 671088640,
+        "ramRejected": 0,
+        "scratchDisk": 0,
+        "scratchDiskPeak": 126713856,
+        "scratchDiskLimit": 162213978112,
+        "scratchFd": 0,
+        "scratchFdPeak": 18,
+        "scratchFdLimit": 1048572,
+        "scratchRam": 0,
+        "preservedDisk": 0,
+        "preservedFd": 0,
+        "readerCleanupHealthy": true
+      }
+    },
+    {
+      "attempt": "selected-large",
+      "original12": [
+        "failures=0 count=12 p95=2427.09 max=2427.09"
+      ],
+      "wireOriginal": {
+        "count": 12,
+        "status": [
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200
+        ],
+        "p95Ms": 2427.10225,
+        "maxMs": 2427.10225
+      },
+      "auxiliary": [
+        {
+          "id": 100,
+          "scope": "auxiliary200",
+          "route": "/ops/api/recordings/visual-search?channelIds=9101,9201&text=ball&limit=200&threshold=-1",
+          "beginNs": 1367089200691166,
+          "endNs": 1367094350270250,
+          "bytes": 78455,
+          "headers": true,
+          "status": 200,
+          "errno": 0,
+          "failure": "none",
+          "clientMs": 5149.579084,
+          "fiveSecondComplete200": false
+        }
+      ],
+      "auxServer": {
+        "id": 7,
+        "status": 200,
+        "code": "ok",
+        "startNs": 54532864376,
+        "elapsedNs": 4782742542,
+        "generation": 4,
+        "documents": 1628,
+        "phases": [
+          [
+            1,
+            4782741958
+          ],
+          [
+            1,
+            833
+          ],
+          [
+            1,
+            49948208
+          ],
+          [
+            2,
+            167
+          ],
+          [
+            2,
+            49946750
+          ],
+          [
+            1,
+            1292
+          ],
+          [
+            1,
+            49927000
+          ],
+          [
+            1,
+            3847721125
+          ],
+          [
+            386,
+            4232385462
+          ],
+          [
+            624,
+            362531005
+          ],
+          [
+            386,
+            2078719464
+          ],
+          [
+            386,
+            963141253
+          ],
+          [
+            238,
+            361988044
+          ],
+          [
+            1,
+            777105125
+          ],
+          [
+            1628,
+            2943414
+          ],
+          [
+            424,
+            3843270280
+          ],
+          [
+            386,
+            328643128
+          ]
+        ],
+        "counters": [
+          386,
+          238,
+          220,
+          424,
+          1628,
+          200
+        ],
+        "locks": [
+          [
+            4188,
+            95936858,
+            2456407861
+          ],
+          [
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0
+          ]
+        ],
+        "journalCostNs": [
+          12214179,
+          765290422,
+          31619517,
+          767455354
+        ],
+        "catalogRowCost": [
+          5584,
+          555132097,
+          0,
+          0,
+          3416,
+          105143271,
+          5198,
+          93715253,
+          5198,
+          73596851,
+          14584,
+          229659926
+        ],
+        "segmentDecodeCost": [
+          5584,
+          5364,
+          136012997,
+          76574
+        ],
+        "historyNodeReads": 965653
+      },
+      "auxPreparation": {
+        "id": 7,
+        "uniqueObserved": 321,
+        "complete": true,
+        "values": [
+          321,
+          0,
+          0,
+          65,
+          3515384023,
+          0,
+          0,
+          555893042,
+          0,
+          19104304,
+          64312,
+          0
+        ]
+      },
+      "membership": [
+        "generation=4 documents=1628 newDocuments=56 instance=8e1364e3b9cdc624a1a1305c618843f8"
+      ],
+      "publicNewDocuments": [
+        "9"
+      ],
+      "recorder": [
+        "expected=2433 accepted=2433 files=42 fullAcceptance=1"
+      ],
+      "finish": [
+        "ok=1 error="
+      ],
+      "exit": 1,
+      "elapsedSeconds": 63.54893608414568,
+      "qualificationError": "AssertionError:p95",
+      "sourceBinding": "120-execution.tar.gz:selected-large/execution.json",
+      "liveSampledMax": {
+        "rssBytes": 3364290560,
+        "footprintBytes": 3312094616,
+        "fdCount": 369,
+        "anonymousFileBytes": 90262016,
+        "anonymousAllocatedBytes": 91893760
+      },
+      "variableBytesMax": 163560080,
+      "finalLogicalOwner": {
+        "pid": 45614,
+        "seq": 6,
+        "phase": "after-storage-destruction",
+        "elapsedMs": 60866,
+        "ram": 0,
+        "ramPeak": 429232722,
+        "ramLimit": 671088640,
+        "ramRejected": 0,
+        "scratchDisk": 0,
+        "scratchDiskPeak": 127279104,
+        "scratchDiskLimit": 161953828864,
+        "scratchFd": 0,
+        "scratchFdPeak": 18,
+        "scratchFdLimit": 1048572,
+        "scratchRam": 0,
+        "preservedDisk": 0,
+        "preservedFd": 0,
+        "readerCleanupHealthy": true
+      }
+    },
+    {
+      "attempt": "streamfixed-large",
+      "original12": [],
+      "wireOriginal": {
+        "count": 0,
+        "status": [],
+        "p95Ms": null,
+        "maxMs": null
+      },
+      "auxiliary": [],
+      "auxServer": null,
+      "auxPreparation": null,
+      "membership": [],
+      "publicNewDocuments": [],
+      "recorder": [],
+      "finish": [],
+      "exit": 1,
+      "elapsedSeconds": 16.214599875034764,
+      "qualificationError": "AssertionError:",
+      "sourceBinding": "120-execution.tar.gz:streamfixed-large/execution.json",
+      "liveSampledMax": {
+        "rssBytes": 2717024256,
+        "footprintBytes": 3126086728,
+        "fdCount": 10,
+        "anonymousFileBytes": 25378816,
+        "anonymousAllocatedBytes": 25837568
+      },
+      "variableBytesMax": 93451234,
+      "finalLogicalOwner": {
+        "pid": 46588,
+        "seq": 2,
+        "phase": "after-storage-destruction",
+        "elapsedMs": 13645,
+        "ram": 0,
+        "ramPeak": 39333160,
+        "ramLimit": 671088640,
+        "ramRejected": 0,
+        "scratchDisk": 0,
+        "scratchDiskPeak": 41926656,
+        "scratchDiskLimit": 161382400000,
+        "scratchFd": 0,
+        "scratchFdPeak": 6,
+        "scratchFdLimit": 1048572,
+        "scratchRam": 0,
+        "preservedDisk": 0,
+        "preservedFd": 0,
+        "readerCleanupHealthy": true
+      }
+    },
+    {
+      "attempt": "streamhttp-large",
+      "original12": [
+        "failures=0 count=12 p95=2438.99 max=2438.99"
+      ],
+      "wireOriginal": {
+        "count": 12,
+        "status": [
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200
+        ],
+        "p95Ms": 2438.99825,
+        "maxMs": 2438.99825
+      },
+      "auxiliary": [
+        {
+          "id": 100,
+          "scope": "auxiliary200",
+          "route": "/ops/api/recordings/visual-search?channelIds=9101,9201&text=ball&limit=200&threshold=-1",
+          "beginNs": 1367888289074500,
+          "endNs": 1367893631821875,
+          "bytes": 78455,
+          "headers": true,
+          "status": 200,
+          "errno": 0,
+          "failure": "none",
+          "clientMs": 5342.747375,
+          "fiveSecondComplete200": false
+        }
+      ],
+      "auxServer": {
+        "id": 7,
+        "status": 200,
+        "code": "ok",
+        "startNs": 54577885668,
+        "elapsedNs": 4969025208,
+        "generation": 4,
+        "documents": 1628,
+        "phases": [
+          [
+            1,
+            4969024583
+          ],
+          [
+            1,
+            750
+          ],
+          [
+            1,
+            46443958
+          ],
+          [
+            2,
+            334
+          ],
+          [
+            2,
+            46442167
+          ],
+          [
+            1,
+            1292
+          ],
+          [
+            1,
+            46418750
+          ],
+          [
+            1,
+            4033635375
+          ],
+          [
+            386,
+            4386865244
+          ],
+          [
+            625,
+            393179207
+          ],
+          [
+            386,
+            2120539536
+          ],
+          [
+            386,
+            1025139347
+          ],
+          [
+            239,
+            392631418
+          ],
+          [
+            1,
+            776786208
+          ],
+          [
+            1628,
+            2940877
+          ],
+          [
+            425,
+            4029103518
+          ],
+          [
+            386,
+            334538833
+          ]
+        ],
+        "counters": [
+          386,
+          239,
+          220,
+          425,
+          1628,
+          200
+        ],
+        "locks": [
+          [
+            4191,
+            134391005,
+            2543517573
+          ],
+          [
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0
+          ]
+        ],
+        "journalCostNs": [
+          19668885,
+          776648704,
+          32326249,
+          764535920
+        ],
+        "catalogRowCost": [
+          5588,
+          576361582,
+          0,
+          0,
+          3419,
+          108431035,
+          5202,
+          96799186,
+          5202,
+          69578696,
+          14595,
+          224927706
+        ],
+        "segmentDecodeCost": [
+          5588,
+          5382,
+          131543836,
+          70871
+        ],
+        "historyNodeReads": 953718
+      },
+      "auxPreparation": {
+        "id": 7,
+        "uniqueObserved": 321,
+        "complete": true,
+        "values": [
+          321,
+          0,
+          0,
+          65,
+          3661764536,
+          0,
+          0,
+          555490796,
+          0,
+          19206588,
+          64312,
+          0
+        ]
+      },
+      "membership": [
+        "generation=4 documents=1628 newDocuments=56 instance=56cd1fde29ae3404719a302fbf184bc7"
+      ],
+      "publicNewDocuments": [
+        "9"
+      ],
+      "recorder": [
+        "expected=2444 accepted=2444 files=42 fullAcceptance=1"
+      ],
+      "finish": [
+        "ok=1 error="
+      ],
+      "exit": 1,
+      "elapsedSeconds": 63.56519625009969,
+      "qualificationError": "AssertionError:p95",
+      "sourceBinding": "120-execution.tar.gz:streamhttp-large/execution.json",
+      "liveSampledMax": {
+        "rssBytes": 3369320448,
+        "footprintBytes": 3317075352,
+        "fdCount": 367,
+        "anonymousFileBytes": 73915392,
+        "anonymousAllocatedBytes": 75710464
+      },
+      "variableBytesMax": 147204023,
+      "finalLogicalOwner": {
+        "pid": 46650,
+        "seq": 6,
+        "phase": "after-storage-destruction",
+        "elapsedMs": 61120,
+        "ram": 0,
+        "ramPeak": 389693820,
+        "ramLimit": 671088640,
+        "ramRejected": 0,
+        "scratchDisk": 0,
+        "scratchDiskPeak": 114073600,
+        "scratchDiskLimit": 161685213184,
+        "scratchFd": 0,
+        "scratchFdPeak": 17,
+        "scratchFdLimit": 1048572,
+        "scratchRam": 0,
+        "preservedDisk": 0,
+        "preservedFd": 0,
+        "readerCleanupHealthy": true
+      }
+    },
+    {
+      "attempt": "typed-large",
+      "original12": [
+        "failures=0 count=12 p95=1761.56 max=1761.56"
+      ],
+      "wireOriginal": {
+        "count": 12,
+        "status": [
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200
+        ],
+        "p95Ms": 1761.563584,
+        "maxMs": 1761.563584
+      },
+      "auxiliary": [
+        {
+          "id": 100,
+          "scope": "auxiliary200",
+          "route": "/ops/api/recordings/visual-search?channelIds=9101,9201&text=ball&limit=200&threshold=-1",
+          "beginNs": 1366848750722208,
+          "endNs": 1366853750992541,
+          "bytes": 0,
+          "headers": false,
+          "status": 0,
+          "errno": 35,
+          "failure": "recv",
+          "clientMs": 5000.270333,
+          "fiveSecondComplete200": false
+        }
+      ],
+      "auxServer": {
+        "id": 7,
+        "status": 503,
+        "code": "visual-search-busy",
+        "startNs": 54227358459,
+        "elapsedNs": 5107344792,
+        "generation": 4,
+        "documents": 1624,
+        "phases": [
+          [
+            1,
+            5107343958
+          ],
+          [
+            1,
+            342327208
+          ],
+          [
+            1,
+            37071209
+          ],
+          [
+            2,
+            291
+          ],
+          [
+            2,
+            37067668
+          ],
+          [
+            1,
+            2583
+          ],
+          [
+            1,
+            37038583
+          ],
+          [
+            1,
+            3278137792
+          ],
+          [
+            469,
+            4460867623
+          ],
+          [
+            571,
+            153841320
+          ],
+          [
+            469,
+            2167405416
+          ],
+          [
+            469,
+            1014583245
+          ],
+          [
+            102,
+            153685042
+          ],
+          [
+            1,
+            1343258042
+          ],
+          [
+            1624,
+            2687460
+          ],
+          [
+            423,
+            3274197422
+          ],
+          [
+            469,
+            364968423
+          ]
+        ],
+        "counters": [
+          469,
+          102,
+          303,
+          423,
+          1624,
+          0
+        ],
+        "locks": [
+          [
+            4527,
+            10173750,
+            2455581405
+          ],
+          [
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0
+          ]
+        ],
+        "journalCostNs": [
+          123274,
+          736016265,
+          30534268,
+          788314169
+        ],
+        "catalogRowCost": [
+          6036,
+          549461829,
+          0,
+          0,
+          3589,
+          101603223,
+          5567,
+          92827852,
+          5567,
+          72516500,
+          15661,
+          226203926
+        ],
+        "segmentDecodeCost": [
+          6036,
+          5723,
+          176231989,
+          98794
+        ],
+        "historyNodeReads": 1036075
+      },
+      "auxPreparation": {
+        "id": 7,
+        "uniqueObserved": 321,
+        "complete": true,
+        "values": [
+          321,
+          0,
+          0,
+          148,
+          3002922249,
+          0,
+          0,
+          1235220090,
+          0,
+          23296832,
+          64280,
+          0
+        ]
+      },
+      "membership": [
+        "generation=4 documents=1624 newDocuments=52 instance=a2dddce72b1323e7371ecddba4c1077b"
+      ],
+      "publicNewDocuments": [],
+      "recorder": [
+        "expected=2410 accepted=2410 files=42 fullAcceptance=1"
+      ],
+      "finish": [
+        "ok=1 error="
+      ],
+      "exit": 1,
+      "elapsedSeconds": 62.51627775002271,
+      "qualificationError": "AssertionError:all statuses/result",
+      "sourceBinding": "120-execution.tar.gz:typed-large/execution.json",
+      "liveSampledMax": {
+        "rssBytes": 3395846144,
+        "footprintBytes": 3343650224,
+        "fdCount": 364,
+        "anonymousFileBytes": 90130432,
+        "anonymousAllocatedBytes": 91783168
+      },
+      "variableBytesMax": 163433158,
+      "finalLogicalOwner": {
+        "pid": 45259,
+        "seq": 6,
+        "phase": "after-storage-destruction",
+        "elapsedMs": 60524,
+        "ram": 0,
+        "ramPeak": 432533680,
+        "ramLimit": 671088640,
+        "ramRejected": 0,
+        "scratchDisk": 0,
+        "scratchDiskPeak": 126541824,
+        "scratchDiskLimit": 162077691904,
+        "scratchFd": 0,
+        "scratchFdPeak": 18,
+        "scratchFdLimit": 1048572,
+        "scratchRam": 0,
+        "preservedDisk": 0,
+        "preservedFd": 0,
+        "readerCleanupHealthy": true
+      }
+    },
+    {
+      "attempt": "views-large",
+      "original12": [
+        "failures=0 count=12 p95=2623.28 max=2623.28"
+      ],
+      "wireOriginal": {
+        "count": 12,
+        "status": [
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200
+        ],
+        "p95Ms": 2623.288584,
+        "maxMs": 2623.288584
+      },
+      "auxiliary": [
+        {
+          "id": 100,
+          "scope": "auxiliary200",
+          "route": "/ops/api/recordings/visual-search?channelIds=9101,9201&text=ball&limit=200&threshold=-1",
+          "beginNs": 1363693519032666,
+          "endNs": 1363698521091208,
+          "bytes": 0,
+          "headers": false,
+          "status": 0,
+          "errno": 35,
+          "failure": "recv",
+          "clientMs": 5002.058542,
+          "fiveSecondComplete200": false
+        }
+      ],
+      "auxServer": {
+        "id": 7,
+        "status": 503,
+        "code": "visual-search-unavailable",
+        "startNs": 54687684751,
+        "elapsedNs": 5059227416,
+        "generation": 4,
+        "documents": 1636,
+        "phases": [
+          [
+            1,
+            5059227000
+          ],
+          [
+            1,
+            458
+          ],
+          [
+            1,
+            29700709
+          ],
+          [
+            2,
+            167
+          ],
+          [
+            2,
+            29699500
+          ],
+          [
+            1,
+            1375
+          ],
+          [
+            1,
+            29679625
+          ],
+          [
+            1,
+            4975498333
+          ],
+          [
+            293,
+            4657983124
+          ],
+          [
+            395,
+            314455863
+          ],
+          [
+            293,
+            1783770123
+          ],
+          [
+            293,
+            866582784
+          ],
+          [
+            103,
+            314346706
+          ],
+          [
+            0,
+            0
+          ],
+          [
+            719,
+            1215509
+          ],
+          [
+            396,
+            4973360703
+          ],
+          [
+            293,
+            216779419
+          ]
+        ],
+        "counters": [
+          292,
+          103,
+          242,
+          396,
+          719,
+          0
+        ],
+        "locks": [
+          [
+            2943,
+            833379999,
+            2286728963
+          ],
+          [
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0
+          ]
+        ],
+        "journalCostNs": [
+          80896428,
+          443193502,
+          17851208,
+          652026565
+        ],
+        "catalogRowCost": [
+          3631,
+          319091146,
+          0,
+          0,
+          1771,
+          47398681,
+          3338,
+          53178599,
+          3338,
+          41640959,
+          9033,
+          123981975
+        ],
+        "segmentDecodeCost": [
+          3631,
+          3357,
+          146846174,
+          73296
+        ],
+        "historyNodeReads": 604152
+      },
+      "auxPreparation": {
+        "id": 7,
+        "uniqueObserved": 293,
+        "complete": true,
+        "values": [
+          293,
+          0,
+          0,
+          0,
+          4333260162,
+          0,
+          0,
+          0,
+          1,
+          46595472,
+          212121,
+          0
+        ]
+      },
+      "membership": [
+        "generation=3 documents=1616 newDocuments=44 instance=e79faa0ce7fec860ee08b72533b5e496"
+      ],
+      "publicNewDocuments": [],
+      "recorder": [
+        "expected=2425 accepted=2425 files=42 fullAcceptance=1"
+      ],
+      "finish": [
+        "ok=1 error="
+      ],
+      "exit": 1,
+      "elapsedSeconds": 63.523032958153635,
+      "qualificationError": "AssertionError:p95",
+      "sourceBinding": "120-execution.tar.gz:views-large/execution.json",
+      "liveSampledMax": {
+        "rssBytes": 3348742144,
+        "footprintBytes": 3296841064,
+        "fdCount": 143,
+        "anonymousFileBytes": 89950720,
+        "anonymousAllocatedBytes": 91582464
+      },
+      "variableBytesMax": 163197626,
+      "finalLogicalOwner": {
+        "pid": 39976,
+        "seq": 6,
+        "phase": "after-storage-destruction",
+        "elapsedMs": 60888,
+        "ram": 0,
+        "ramPeak": 389595853,
+        "ramLimit": 671088640,
+        "ramRejected": 0,
+        "scratchDisk": 0,
+        "scratchDiskPeak": 131895296,
+        "scratchDiskLimit": 162691932160,
+        "scratchFd": 0,
+        "scratchFdPeak": 18,
+        "scratchFdLimit": 1048572,
+        "scratchRam": 0,
+        "preservedDisk": 0,
+        "preservedFd": 0,
+        "readerCleanupHealthy": true
+      }
+    }
+  ],
+  "finalJudgment": {
+    "original12": "FAIL:12 actual200, p95/max2317.92ms",
+    "auxiliary": "PASS_SINGLE:200,78455B,4962.583709ms;37.416291ms margin; server4574.085875ms is distinct",
+    "membership": "PASS current immutable generation4/docs1624/new52; public top200 includes9 new docs",
+    "recorder": "PASS bounded normal source2445/2445,42files/fullAcceptance1; no long-run drop0 claim",
+    "stopFinish": "PASS explicit server/visualStop and Finish, current source owns no residual reservations after destruction",
+    "overallDirect": "FAIL",
+    "mixed900": "NOT_RUN_INELIGIBLE",
+    "minutes45_120": "NOT_RUN_EXCLUDED"
+  },
+  "cost": {
+    "beforeAux": "322first+51final reprepare attempts(1failure),372successful; source prepare4472.55ms; binding2115.39ms; proof retained sum59872620/max212697B. Incomplete response, not same completed amount of work as final.",
+    "finalAux": {
+      "first": 321,
+      "firstMs": 3281.050002,
+      "eligibleReprepare": 0,
+      "finalReprepare": 64,
+      "finalReprepareMs": 521.673126,
+      "failedPrepare": 0,
+      "oversized": 0,
+      "retainedSumBytes": 19121684,
+      "maxRetainedBytes": 64280,
+      "totalPrepareMs": 3937.369245,
+      "bindingMs": 1919.29421,
+      "catalogWaitMs": 17.932264,
+      "catalogHoldMs": 2236.755125
+    },
+    "finalEvictionCausality": "P05 typed final148reprepare -> P06 selected65 with unchanged candidate traversal; P08 final64. Not every eviction was a repeated prepare. Unique first321 dominates final source preparation.",
+    "originalResidual": "First visual requests1/2 wait1812.669413/1737.831077ms vs own hold249.042618/247.511918ms; recorded-other-holder overlap487.633/461.322ms leaves1325.037/1276.509ms unattributed. No worker/root-cause attribution or old119 regression proof from one run."
+  },
+  "regressions": {
+    "macOS": [
+      "strict869binding corpus and invalid JSON/output lifetime",
+      "visual index1671assertions including early low-score and temporary-heap corrupt candidate error",
+      "fused-source126checks",
+      "fused-cache675checks (legacy actual byte eviction, native201 entry cap, selected final policy, oversized/compact, currentness/responsehold)",
+      "fused-generation four crypto/SQLite/backend configurations",
+      "product build final source"
+    ],
+    "linux": {
+      "image": "mediaserver-v450-verify:rc58-arm64",
+      "imageId": "sha256:ce72c8a15363984da642e9964189957896812061c6af1d0ef67e87b38ad5a588",
+      "boundary": "existing nonroot10001/read-only source/networknone/2CPU4GiB/tmpfs4GiB,no installation",
+      "results": "linux-output2 product/source/cachePASS atP07; linux-output3 generationWerrorfixPASS; linux-output4 finalP08 generation4configsPASS. Final P08 product linkage directly checked onMac; Linux full product/source/cache not rerun for localized private Catalog fusion, relevant4configcompile/runtime rerun."
+    },
+    "reuse": "119admission/Recorder,111HTTP historical,112decoder,114budget,116recovery unchanged scope; not current mixed approval",
+    "warnings": "existing GStreamer typelib/GTK warnings present in passing source smoke; not warning-free",
+    "parserProvenance": "commands and outputs of early untracked parser smoke revisions preserved, final fixture source preserved; exact earlier untracked fixture revisions not separately snapshotted. Auxiliary parser comparisons do not replace final HTTP or product regressions."
+  },
+  "failures": {
+    "preservation": "all attempts/build errors original logs preserved, not retroactively PASS",
+    "native32x3150": "generation-native byte-eviction construction hit existing5s deadline; that exact case FAIL, not reclassified. Legacy4x3150 bytecap and native201entry/capacity tests provide narrower compositional evidence.",
+    "preparation": [
+      "legacy catalog filename correction",
+      "initial3proof fixture no longer evicted after real compaction, changed input documented",
+      "Linux noexec tmpfs then exec owned tmpfs correction",
+      "Linux two misleading-indentation warnings corrected, first logs retained",
+      "streamfixed sandbox bindEPERM beforeHTTP/sourceworkload; fresh escalated samebinary run is soleP07 workload attempt",
+      "P08cache command reused removed temp include, compiler failed before execution; existing wrapper generated fresh owned fixture and PASS",
+      "readback dispatched before producer completed; owned process SIGTERM143/excluded, original output preserved; after producer exit0 sequential readback exit0"
+    ],
+    "performance": "all before/P01-P08 original outputs retained, selected/streamhttp full200 but >5s remain FAIL; final aux PASS does not rescue original12"
+  },
+  "resources": {
+    "finalSampled": {
+      "rssBytes": 3374645248,
+      "footprintBytes": 3322449304,
+      "fdCount": 355,
+      "anonymousFileBytes": 76879872,
+      "anonymousAllocatedBytes": 78483456
+    },
+    "finalVariableBytesMax": 151303059,
+    "beforeLogicalPeakBytes": 389175274,
+    "finalLogicalPeakBytes": 431316544,
+    "finalScratchDiskPeakBytes": 123535360,
+    "finalScratchFdPeak": 18,
+    "logicalLimitBytes": 671088640,
+    "ramRejected": 0,
+    "postDestruction": "ram/scratchDisk/scratchFd/scratchRam/preservedDisk/preservedFd0; readerCleanupHealthytrue",
+    "limitations": "compact request proof reduction is not whole-process RSS reduction. Sequential OS samples, logical reservations and anonymous disk distinct; maxima not summed; owner0 is not wholeheap/instantpeak proof. No new limits."
+  },
+  "collector": {
+    "samples": 63,
+    "endedObserved": true,
+    "groupAbsent": true,
+    "requestSummaries": "7started/7completed",
+    "holders": "2961records,lossfalse,inflight0,selectedrequests1/2/3; unclassified waits remain"
+  },
+  "binding": {
+    "candidateDigest": "8977e9b6ac618c7e0233823f6acb6ab1fcf7461206ee5d8b2a4149a643519e3a",
+    "items": 986,
+    "scope": "unchanged mapping independently checked; not new behavior/latency approval",
+    "producer": "producer-final.log exit0,51PASS/0FAIL; 986mapping unchanged",
+    "readback": "readback-sequential.log exit0,validationErrors0,negativeFixtures15/15,not-execution-evidence",
+    "coverage": "coverage-final.log exit0,all9checksPASS,986covered0missing"
+  },
+  "independentReview": "120-independent-review.json",
+  "archive": {
+    "archive": "120-execution.tar.gz",
+    "bytes": 30557841,
+    "sha256": "ddb9ab7edd6223c6f3c9a03273c4f08f99eb47a7caed912f64b4674bfbe9dbdb",
+    "files": 577,
+    "payloadBytes": 185747585,
+    "reuseReferences": 10750,
+    "allMemberBytesVerified": true,
+    "manifestSha256": "79c65cd6940ce495a95833a479bbe8f14659a41d8cacc34ead3de5b9bc327b23",
+    "scope": "user config/private95backup/models/SDK/auth/home/cache/binaries and duplicated117seed excluded; old evidence unchanged; no redaction needed in selected logs"
+  },
+  "cleanup": {
+    "ownedRoot": "/private/tmp/media-server-r120-6pszfh0_",
+    "state": "pending archive/remote-byte verification",
+    "excluded": "userconfig/private95backup/modelsSDK/other runs"
+  },
+  "remaining": [
+    "original12 latency; first-wave shared-lock wait largely unattributed",
+    "direct aggregate target FAIL,900ineligible",
+    "117 sustained recording gaps and mixed latency not revalidated",
+    "memoryP0/final120/releaseHOLD unchanged"
+  ],
+  "implementationCommit": "ddf0ebd4d39f01f7fe4d69ac5a3575b89c152075",
+  "remote": {
+    "state": "pending authorized ordinary push"
+  }
+}
