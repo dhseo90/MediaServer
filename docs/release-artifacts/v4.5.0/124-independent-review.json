@@ -1,0 +1,38 @@
+{
+  "schema": "media-server.v450.r124.independent-review.v1",
+  "reviewer": "/root/independent_r124",
+  "requested": "gpt-6-astra/high",
+  "toolAccepted": "gpt-6-astra/high",
+  "actualRuntimeModel": null,
+  "actualRuntimeEffort": null,
+  "independence": "fresh reviewer; no implementation/test writing/test execution/file edits/subdelegation; read-only result and source review",
+  "status": "MIXED900_AND_EXPLICIT_SHUTDOWN_PASS_SUPPORTED",
+  "blockingFindings": [],
+  "confirmed": [
+    "source/binary before=end and fixed profile; 900.079s observation and 914.300s total under1080s",
+    "original success array240,60/client; p951867.426ms/max2208.032ms; unavailable0; mixed HTTP908complete/ok",
+    "initial empty page explains60 search waves vs59 evidence cycles; structured20159/busy50359,visual20159,A15/15",
+    "9101 disable200375ms;9201 disable20019ms; explicit settings assertions and final registry check",
+    "exit0/nullsignal/no force; closed-journal explicit gate; diagnostic collection complete",
+    "after-Finish RAM179755989B is not0; after-storage-destruction logical RAM/scratch/FD0"
+  ],
+  "limits": [
+    "readiness health connection errors43 are preparation not mixed request timeouts",
+    "postwarm RSS+345980928B/599541ms;33.0206MiB/min; resourceTrendPass=false/reviewRequired=true retained",
+    "ordered success thirds p95746.874/1144.849/2003.651ms; exploratory not new gate or exact5minute windows",
+    "holder request97 selected only; bounded decoder3; slow trace retained64/seen5108; not full-run all events",
+    "122 historical fullFAIL unchanged; no45/120/UI/release"
+  ],
+  "next45": "eligible candidate only under separate explicit approval; no performance or memory stability guarantee",
+  "pendingAtResultReview": [
+    "new evidence artifact consistency",
+    "remote byte verification",
+    "owned root cleanup"
+  ],
+  "artifactReview": {
+    "blockingProductFindings": [],
+    "finding": "symbol-binding preserved field points to local temporary symbols/media_server, excluded from archive",
+    "mainResolution": "validation.execution.symbolBindingScope explicitly distinguishes local pre-run safety copy, archive exclusion, original build binaries retained, and temporary-copy cleanup; original receipt kept unchanged",
+    "reviewScope": "new metadata/backlog and archive manifest/raw small-byte comparison; root cleanup/remote verification still pending"
+  }
+}

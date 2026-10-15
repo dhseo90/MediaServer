@@ -1,0 +1,732 @@
+{
+  "schema": "media-server.v450.r124.validation.v1",
+  "status": "FIXED_R123_CANDIDATE_MIXED900_AND_EXPLICIT_SHUTDOWN_PASS_MEMORY_P0_HOLD",
+  "baseline": "4954d1d6c8be2b365bb894e8cf4881e3a9d2fbb4",
+  "productCommit": "6cac6d28b22156fdf8886facb52f1c3369e9feca",
+  "entryState": "v4.5.0 clean worktree/index; actual remote matched baseline; no user changes overwritten",
+  "model": {
+    "requestedMain": "gpt-6-astra/high",
+    "mainToolAccepted": null,
+    "mainRuntimeModel": null,
+    "mainRuntimeEffort": null,
+    "reviewRequested": "gpt-6-astra/high",
+    "reviewToolAccepted": "gpt-6-astra/high",
+    "reviewRuntimeModel": null,
+    "reviewRuntimeEffort": null
+  },
+  "changes": "evidence/current backlog only; no product/fixture/collector/gate edits; no implementation commit",
+  "preservedPrior": [
+    "123 iterative historical insert direct fix/shutdown/reopen/macOS/unprivilegedLinux evidence reused unchanged",
+    "122 directHTTP and historical900 mainloop/searchPASS retained; full900FAIL not retroactively changed",
+    "111/112/114/116 limited correctness/protection evidence retained; no universal losslessness claim"
+  ],
+  "execution": {
+    "attempts": 1,
+    "command": [
+      "python3",
+      "scripts/internal/run_v450_recording_a_mixed.py",
+      "--contention-diagnostic",
+      "/private/tmp/media-server-r124-ky_e1ud1/mixed900"
+    ],
+    "profile": {
+      "name": "continuous-r114",
+      "continuousMaxBytes": 113246208,
+      "eventMaxBytes": 134217728,
+      "continuousMaxAgeMs": 10800000,
+      "eventMaxAgeMs": 10800000,
+      "segmentBytes": 71237,
+      "protectedFiles": 643,
+      "E": 67108864,
+      "H": 45805391,
+      "P": 71237,
+      "M": 260716,
+      "inputNormalizedSha256": "baebad5cad233243c4748f6bfec06fa5d2da7f06ae9b1475c9b20bfbfb04e2e7"
+    },
+    "source": {
+      "head": "4954d1d6c8be2b365bb894e8cf4881e3a9d2fbb4",
+      "fixtureProfile": "continuous-r114",
+      "fixtureProfileSourceSha256": "d591cd6fb0c952994bfe8529ffdaec5514952da9e5d23aadf8ade94332bfb5a4",
+      "tree": "7c93527c3220823105ebdf95e08b36b65fe4ae13",
+      "sourceSha256": "e4ee78b7b71a745cfff4907305b0ab94914fadada0b9b5eb0ccce62ce8875d2e",
+      "binarySha256": "770d50540285eb90f899d5060ecb6ba9ed23987f6fc5fa1ca7dce70aaf6efb08"
+    },
+    "sourceEnd": {
+      "head": "4954d1d6c8be2b365bb894e8cf4881e3a9d2fbb4",
+      "fixtureProfile": "continuous-r114",
+      "fixtureProfileSourceSha256": "d591cd6fb0c952994bfe8529ffdaec5514952da9e5d23aadf8ade94332bfb5a4",
+      "tree": "7c93527c3220823105ebdf95e08b36b65fe4ae13",
+      "sourceSha256": "e4ee78b7b71a745cfff4907305b0ab94914fadada0b9b5eb0ccce62ce8875d2e",
+      "binarySha256": "770d50540285eb90f899d5060ecb6ba9ed23987f6fc5fa1ca7dce70aaf6efb08"
+    },
+    "artifacts": {
+      "head": "4954d1d6c8be2b365bb894e8cf4881e3a9d2fbb4",
+      "tree": "7c93527c3220823105ebdf95e08b36b65fe4ae13",
+      "status": "",
+      "artifacts": [
+        {
+          "path": "build-gst-onnx/media_server",
+          "bytes": 37621072,
+          "sha256": "770d50540285eb90f899d5060ecb6ba9ed23987f6fc5fa1ca7dce70aaf6efb08"
+        },
+        {
+          "path": "build-gst-onnx/libmedia_server_runtime.a",
+          "bytes": 111871208,
+          "sha256": "e04b4e5752fd5527926bc728bfd6eb9774ac33b086bfbac75f93861609dc0871"
+        },
+        {
+          "path": "/private/tmp/media-server-r124-ky_e1ud1/mixed900/media-server-current-observer-ObhUeB/normalize",
+          "bytes": 13540488,
+          "sha256": "f41887ca2e1014633d83b124698d972f6bf5912c3a86852e2427853a865a921d"
+        },
+        {
+          "path": "/private/tmp/media-server-r124-ky_e1ud1/mixed900/media-server-current-observer-ObhUeB/process-metrics",
+          "bytes": 113168,
+          "sha256": "ed9d85ad1f57fdd53277acd5a239d1e3b92774b86c9391fbadd1bcb18bd0c41c"
+        },
+        {
+          "path": "/private/tmp/media-server-r124-ky_e1ud1/mixed900/media-server-current-observer-ObhUeB/review-seed",
+          "bytes": 19302696,
+          "sha256": "17c56028efc1b0d73be8a6b94e8d011f6b1c6ee5b523810838387ebd662dd9d3"
+        }
+      ]
+    },
+    "symbolBinding": {
+      "uuid": "UUID: 2FE184D7-CDDD-3F83-9A0D-58505B54A202 (arm64) build-gst-onnx/media_server",
+      "symbolSource": "exact executable symbol table; no dSYM assumed",
+      "preserved": "symbols/media_server",
+      "productUnchanged": true
+    },
+    "preparation": "exact existing product/runtime reused; existing wrapper compiled only necessary helpers linked current runtime; no new preparation/direct regression runs",
+    "observationMs": 900078.895708,
+    "observerTotalMs": 908893,
+    "launcherTotalSeconds": 914.2999100000598,
+    "budgetSeconds": 1080,
+    "passed": 2479,
+    "failed": 0,
+    "exit": 0,
+    "timedOut": false,
+    "contentionDiagnosticPass": true,
+    "pid": 65855,
+    "startIdentity": "macos:1792077729:851625",
+    "sourceUnchanged": true,
+    "symbolBindingScope": {
+      "originalPreservedField": "symbols/media_server denotes local pre-run safety copy inside owned temporary root, not an archive member",
+      "archiveDisposition": "executables/runtime intentionally excluded; no crash in this run",
+      "afterCleanup": "temporary safety copy removed with owned root; original product/runtime retained in build-gst-onnx with verified hashes and executable embedded symbols",
+      "retainedProduct": "/Users/dhseo/Workspace/mediaServer/build-gst-onnx/media_server",
+      "retainedRuntime": "/Users/dhseo/Workspace/mediaServer/build-gst-onnx/libmedia_server_runtime.a",
+      "originalReceiptUnchanged": true
+    }
+  },
+  "search": {
+    "originalSuccess": {
+      "count": 240,
+      "p95Ms": 1867.4262919999892,
+      "maxMs": 2208.032416000031
+    },
+    "byClient": [
+      60,
+      60,
+      60,
+      60
+    ],
+    "unavailable": 0,
+    "timeoutOrTransportFailures": [],
+    "orderedSuccessThirds": [
+      {
+        "count": 80,
+        "p95Ms": 746.873958000011,
+        "maxMs": 826.2001659999951
+      },
+      {
+        "count": 80,
+        "p95Ms": 1144.8489579999587,
+        "maxMs": 1391.953416000004
+      },
+      {
+        "count": 80,
+        "p95Ms": 2003.6506669999799,
+        "maxMs": 2208.032416000031
+      }
+    ],
+    "thirdsMeaning": "success array order groups, not exact five-minute periods; no auxiliary requests added"
+  },
+  "evidence": {
+    "cycles": 59,
+    "createSuccess": 59,
+    "createComplete": 59,
+    "createPartial": 0,
+    "createBusy": 59,
+    "visualCreated": 59,
+    "visualExpired": 0,
+    "retainedChecks": 118,
+    "windows": [
+      {
+        "structured": 380,
+        "visual": 760,
+        "evidence": 19,
+        "visualEvidence": 19
+      },
+      {
+        "structured": 400,
+        "visual": 800,
+        "evidence": 20,
+        "visualEvidence": 20
+      },
+      {
+        "structured": 400,
+        "visual": 800,
+        "evidence": 20,
+        "visualEvidence": 20
+      }
+    ]
+  },
+  "A": {
+    "scheduled": 15,
+    "completed": 15,
+    "detectorEvaluated": false
+  },
+  "recording": {
+    "finalizedPerChannel": {
+      "9101": 450,
+      "9201": 450
+    },
+    "newSegments": 900,
+    "originalSeedSegments": 1,
+    "sampleCount": 53918,
+    "allIndexComplete": true,
+    "sourceGenerationGroups": 450,
+    "sameGenerationAdjacentPairs": 450,
+    "internalOrdinalGaps": [],
+    "betweenSegmentOrdinalGaps": [],
+    "deliveryLossLogCount": 0,
+    "allFinalizedMediaBytesAndHashVerified": true,
+    "totalQueueDrop": null,
+    "sourceInputTotal": null,
+    "note": "0 logs/gaps does not prove all input delivered; source generation boundaries and incomplete final input excluded; no full queue counter"
+  },
+  "phaseBeforeDisable": {
+    "elapsedMs": 900078.895708,
+    "channels": {
+      "9101": {
+        "finalized": 449,
+        "deleted": 0,
+        "lastAt": 907553.276708,
+        "order": "899",
+        "store": "c0d058b38092cd85aa291c0b668c22c13f2297d7303b21bd9153d780f4e30b93",
+        "knownMappings": 327,
+        "unknownMappings": 16234
+      },
+      "9201": {
+        "finalized": 449,
+        "deleted": 0,
+        "lastAt": 907553.276708,
+        "order": "898",
+        "store": "c0d058b38092cd85aa291c0b668c22c13f2297d7303b21bd9153d780f4e30b93",
+        "knownMappings": 308,
+        "unknownMappings": 16158
+      }
+    },
+    "records": 898,
+    "logicalBytes": 535529
+  },
+  "shutdown": {
+    "puts": [
+      {
+        "method": "PUT",
+        "routeClass": "source-item",
+        "status": 200,
+        "headerElapsedMs": 375,
+        "bodyElapsedMs": 0,
+        "totalElapsedMs": 375,
+        "bytes": 438,
+        "phase": "complete",
+        "outcome": "ok"
+      },
+      {
+        "method": "PUT",
+        "routeClass": "source-item",
+        "status": 200,
+        "headerElapsedMs": 19,
+        "bodyElapsedMs": 0,
+        "totalElapsedMs": 19,
+        "bytes": 438,
+        "phase": "complete",
+        "outcome": "ok"
+      }
+    ],
+    "settingPassLines": [
+      "[pass] LP26-O05 setting 9101 false",
+      "[pass] LP26-O05 setting 9201 false"
+    ],
+    "closedJournalPass": true,
+    "cleanup": [
+      {
+        "schema": "recording-process-cleanup-v1",
+        "attemptCount": 1,
+        "pid": 65855,
+        "exitCode": 0,
+        "signalCode": null,
+        "exitedObserved": true,
+        "stopCode": "complete",
+        "forcedTermination": "not-used",
+        "normalExitPass": true,
+        "normalShutdownPass": true,
+        "archiveSafe": true,
+        "ports": [
+          {
+            "kind": "http",
+            "port": 62343,
+            "status": "pass",
+            "code": "closed",
+            "closed": true
+          },
+          {
+            "kind": "rtsp",
+            "port": 62344,
+            "status": "pass",
+            "code": "closed",
+            "closed": true
+          }
+        ]
+      }
+    ],
+    "state": [
+      {
+        "status": "captured",
+        "count": 6,
+        "events": [
+          {
+            "seq": 0,
+            "atUs": 1384966690435,
+            "channel": "9101",
+            "phase": "session-created",
+            "reason": "epoch-9101-1-1792077734896"
+          },
+          {
+            "seq": 1,
+            "atUs": 1384966696572,
+            "channel": "9101",
+            "phase": "writer-started",
+            "reason": "ok"
+          },
+          {
+            "seq": 2,
+            "atUs": 1384966699337,
+            "channel": "9201",
+            "phase": "session-created",
+            "reason": "epoch-9201-1-1792077734904"
+          },
+          {
+            "seq": 3,
+            "atUs": 1384966705777,
+            "channel": "9201",
+            "phase": "writer-started",
+            "reason": "ok"
+          },
+          {
+            "seq": 4,
+            "atUs": 1385867160675,
+            "channel": "9101",
+            "phase": "stop-channel",
+            "reason": "requested"
+          },
+          {
+            "seq": 5,
+            "atUs": 1385867194111,
+            "channel": "9201",
+            "phase": "stop-channel",
+            "reason": "requested"
+          }
+        ],
+        "issues": []
+      }
+    ],
+    "ownersAtShutdown": [
+      {
+        "pid": 65855,
+        "seq": 0,
+        "phase": "opened",
+        "elapsedMs": 13,
+        "ram": 1189540,
+        "ramPeak": 2057915,
+        "ramLimit": 671088640,
+        "ramRejected": 0,
+        "scratchDisk": 73728,
+        "scratchDiskPeak": 90112,
+        "scratchDiskLimit": 162625740800,
+        "scratchFd": 4,
+        "scratchFdPeak": 6,
+        "scratchFdLimit": 1048572,
+        "scratchRam": 1188864,
+        "preservedDisk": 0,
+        "preservedFd": 0,
+        "readerCleanupHealthy": true
+      },
+      {
+        "pid": 65855,
+        "seq": 180,
+        "phase": "before-Finish",
+        "elapsedMs": 905861,
+        "ram": 197694375,
+        "ramPeak": 441568536,
+        "ramLimit": 671088640,
+        "ramRejected": 0,
+        "scratchDisk": 40833024,
+        "scratchDiskPeak": 137191424,
+        "scratchDiskLimit": 162625740800,
+        "scratchFd": 4,
+        "scratchFdPeak": 18,
+        "scratchFdLimit": 1048572,
+        "scratchRam": 1188864,
+        "preservedDisk": 0,
+        "preservedFd": 0,
+        "readerCleanupHealthy": true
+      },
+      {
+        "pid": 65855,
+        "seq": 181,
+        "phase": "after-Finish",
+        "elapsedMs": 905864,
+        "ram": 179755989,
+        "ramPeak": 441568536,
+        "ramLimit": 671088640,
+        "ramRejected": 0,
+        "scratchDisk": 0,
+        "scratchDiskPeak": 137191424,
+        "scratchDiskLimit": 162625740800,
+        "scratchFd": 0,
+        "scratchFdPeak": 18,
+        "scratchFdLimit": 1048572,
+        "scratchRam": 0,
+        "preservedDisk": 0,
+        "preservedFd": 0,
+        "readerCleanupHealthy": true
+      },
+      {
+        "pid": 65855,
+        "seq": 182,
+        "phase": "after-storage-destruction",
+        "elapsedMs": 905894,
+        "ram": 0,
+        "ramPeak": 441568536,
+        "ramLimit": 671088640,
+        "ramRejected": 0,
+        "scratchDisk": 0,
+        "scratchDiskPeak": 137191424,
+        "scratchDiskLimit": 162625740800,
+        "scratchFd": 0,
+        "scratchFdPeak": 18,
+        "scratchFdLimit": 1048572,
+        "scratchRam": 0,
+        "preservedDisk": 0,
+        "preservedFd": 0,
+        "readerCleanupHealthy": true
+      }
+    ]
+  },
+  "journal": {
+    "uniqueMutations": 1804,
+    "compressedEnvelopesCheckedIncludingDuplicates": 1782,
+    "types": {
+      "recording_order_reserved": 901,
+      "segment_v2_bound_finalized": 901,
+      "referenced_observation_put": 2
+    }
+  },
+  "resources": {
+    "sampleCount": 181,
+    "identities": [
+      [
+        65855,
+        "macos:1792077729:851625"
+      ]
+    ],
+    "allFdComplete": true,
+    "sampleMax": {
+      "rssBytes": 3208052736,
+      "footprintBytes": 3159330056,
+      "fdCount": 52,
+      "anonymousFileBytes": 81802752,
+      "anonymousAllocatedBytes": 83333120
+    },
+    "rootVariableMax": 109672092,
+    "note": "maxima are different-time sequential samples; not additive simultaneous peak; reservations not actual disk or RSS",
+    "summary": {
+      "status": "observed",
+      "resourceTrendPass": false,
+      "reviewRequired": true,
+      "sampleCount": 181,
+      "groups": [
+        {
+          "pid": 65855,
+          "startIdentity": "macos:1792077729:851625",
+          "sampleCount": 181,
+          "first": {
+            "phaseAt": 7776.748666,
+            "sampledAt": 1792077735146,
+            "rssBytes": 3175940096,
+            "threadCount": 37,
+            "fdCount": 34,
+            "mutationCount": 6
+          },
+          "last": {
+            "phaseAt": 907553.276708,
+            "sampledAt": 1792078634927,
+            "rssBytes": 2132164608,
+            "threadCount": 38,
+            "fdCount": 28,
+            "mutationCount": 1802
+          },
+          "max": {
+            "rssBytes": 3208052736,
+            "threadCount": 42,
+            "fdCount": 52
+          },
+          "delta": {
+            "rssBytes": -1043775488,
+            "threadCount": 1,
+            "fdCount": -6,
+            "mutationCount": 1796
+          },
+          "elapsedMs": 899776.528042,
+          "maxGapMs": 5456.883458000026,
+          "warmupMs": 300000,
+          "postWarmup": {
+            "status": "observed",
+            "sampleCount": 121,
+            "delta": {
+              "rssBytes": 345980928,
+              "threadCount": -4,
+              "fdCount": -9,
+              "mutationCount": 1196
+            },
+            "elapsedMs": 599541.047583,
+            "rssMiBPerMinute": 33.02057061782628
+          }
+        }
+      ]
+    },
+    "ownerFinal": {
+      "pid": 65855,
+      "seq": 182,
+      "phase": "after-storage-destruction",
+      "elapsedMs": 905894,
+      "ram": 0,
+      "ramPeak": 441568536,
+      "ramLimit": 671088640,
+      "ramRejected": 0,
+      "scratchDisk": 0,
+      "scratchDiskPeak": 137191424,
+      "scratchDiskLimit": 162625740800,
+      "scratchFd": 0,
+      "scratchFdPeak": 18,
+      "scratchFdLimit": 1048572,
+      "scratchRam": 0,
+      "preservedDisk": 0,
+      "preservedFd": 0,
+      "readerCleanupHealthy": true
+    }
+  },
+  "space": {
+    "scope": "same sequential root+FD sample inputs, not atomic peak; maximum per admitted sample, not sum of unrelated maxima",
+    "maximumSample": {
+      "sample": 181,
+      "namedVariableBytes": 105123823,
+      "anonymousMaxBytes": 83333120,
+      "variablePlusAnonymous": 188456943,
+      "rootMeasureStarted": 907618.928875,
+      "rootMeasureCompleted": 907626.936833,
+      "fdObservation": {
+        "scope": "complete-round-sequential-v1",
+        "complete": true,
+        "startIdentity": "macos:1792077729:851625",
+        "startedAt": 1792078634927,
+        "completedAt": 1792078634927,
+        "roundStartedAt": 1792078634927,
+        "roundCompletedAt": 1792078634927,
+        "rounds": 1,
+        "capacityRetries": 0,
+        "closedRetries": 0,
+        "detailCalls": 16,
+        "failures": []
+      }
+    },
+    "liveVariableCapBytes": 469762048,
+    "copyRun": false,
+    "fixedFBytes": 14161420,
+    "failure": {
+      "status": "no-workspace-failure",
+      "primary": null,
+      "decision": null,
+      "collectorDiagnostic": null,
+      "context": null,
+      "collectionError": null,
+      "capacityBytes": 32768
+    }
+  },
+  "collection": {
+    "[frame-trace-summary]": {
+      "status": "captured",
+      "mode": "bounded",
+      "required": true,
+      "records": 3,
+      "successes": 3,
+      "failures": 0,
+      "issues": []
+    },
+    "[search-failure-summary]": {
+      "status": "captured",
+      "probes": 1,
+      "failures": [],
+      "issues": []
+    },
+    "[server-diagnostic]": {
+      "pid": 65855,
+      "bytes": 575211,
+      "capturedBytes": 575211,
+      "sha256": "863f93271cf6d19acc90aaf39a701cce4a1cd8064ea5c098e25843dde59a2cf4",
+      "overflow": false,
+      "captureError": null,
+      "categories": [
+        {
+          "code": "file evidence unavailable",
+          "count": 0
+        },
+        {
+          "code": "storageBlocked",
+          "count": 0
+        },
+        {
+          "code": "shutdown",
+          "count": 0
+        },
+        {
+          "code": "ERROR",
+          "count": 0
+        },
+        {
+          "code": "WARNING",
+          "count": 0
+        }
+      ],
+      "rawBodyPublished": false,
+      "privateCaptureDisposition": "eligible-for-wrapper-cleanup"
+    },
+    "[resource-trace-summary]": {
+      "status": "captured",
+      "count": 183,
+      "final": {
+        "pid": 65855,
+        "seq": 182,
+        "phase": "after-storage-destruction",
+        "elapsedMs": 905894,
+        "ram": 0,
+        "ramPeak": 441568536,
+        "ramLimit": 671088640,
+        "ramRejected": 0,
+        "scratchDisk": 0,
+        "scratchDiskPeak": 137191424,
+        "scratchDiskLimit": 162625740800,
+        "scratchFd": 0,
+        "scratchFdPeak": 18,
+        "scratchFdLimit": 1048572,
+        "scratchRam": 0,
+        "preservedDisk": 0,
+        "preservedFd": 0,
+        "readerCleanupHealthy": true
+      },
+      "scope": "actual shared product owner; logical charges, not total heap or RSS; sequential counter reads"
+    }
+  },
+  "decoderRepresentativeScope": "3 bounded successful records; software-only avdec_h264:libav:1.28.1 max-threads actual1; two automatic vtdec_hw samples. Not all decoder calls traced. Exact factory events in archive analysis/raw sanitized logs.",
+  "modeFields": {
+    "resourceTrendPass": false,
+    "reviewRequired": true,
+    "longrunObservationCompleted": false,
+    "meaning": "longrunObservationCompleted=false is120minute-mode field; actual900.079s completed; no full memory stability approval"
+  },
+  "independentReview": "124-independent-review.json",
+  "binding": {
+    "productAndTestsUnchanged": true,
+    "inventoryUnchanged": true,
+    "producerReadbackCoverage": "not rerun: new result/docs only; existing123 product/test binding reused within unchanged scope",
+    "documentationChecks": {
+      "jsonParse": "PASS",
+      "gitDiffCheck": "PASS",
+      "currentLinks": "PASS",
+      "archivePathsAndMembers": "PASS",
+      "sourceFixtureInventoryDiff": "none"
+    }
+  },
+  "notRun": [
+    "new preparation30/600",
+    "repeated direct regressions",
+    "45minutes",
+    "120minutes",
+    "fullacceptance",
+    "UI",
+    "public procedures",
+    "new Linux execution"
+  ],
+  "remaining": [
+    "45minute cumulative test requires separate approval; not automatically started",
+    "full memoryP0/releaseHOLD; postwarm RSS increase and late request latency remain follow-up observations",
+    "0 bounded loss logs and0 committed ordinal gaps are not proof of all source packets delivered; generation and unfinished tail limitations",
+    "final120 and wider B/C/lifetime/overall budget contracts not discharged"
+  ],
+  "archive": {
+    "archive": "124-execution.tar.gz",
+    "bytes": 39794439,
+    "sha256": "8e142a8fb603a07d2005928cc1705e57008c6f6844757635bda90a7f852edfcd",
+    "files": 1132,
+    "payloadBytes": 78107741,
+    "allMemberBytesVerified": true
+  },
+  "sanitization": {
+    "originalPath": "mixed900/media-server-current-observer-ObhUeB/server-1.private.log",
+    "originalBytes": 575211,
+    "originalSha256": "863f93271cf6d19acc90aaf39a701cce4a1cd8064ea5c098e25843dde59a2cf4",
+    "sanitizedPath": "server-1.sanitized.log",
+    "sanitizedBytes": 575081,
+    "sanitizedSha256": "a31c2219bbc0c0626ef93c2d41633ede4e60134b2f70f000624e90cb768fafbf",
+    "urlReplacements": 8,
+    "meaning": "sanitized distinct bytes; private raw URL text excluded from remote evidence; all diagnostic records otherwise unchanged"
+  },
+  "cleanup": {
+    "status": "PROCESS_PORTS_PASS_ROOT_PRESERVED_PENDING_REMOTE_VERIFICATION",
+    "precheck": {
+      "ports": [
+        {
+          "port": 62343,
+          "connectResult": 61,
+          "closed": true
+        },
+        {
+          "port": 62344,
+          "connectResult": 61,
+          "closed": true
+        }
+      ],
+      "ownedPidMatches": [],
+      "ownedPidsAbsent": true,
+      "noContainersCreated": true
+    },
+    "launcher": {
+      "cleanupSignals": [],
+      "processGroupAbsent": true,
+      "registeredGroupsAbsent": true,
+      "cleanupErrors": []
+    },
+    "ownedRoot": "/private/tmp/media-server-r124-ky_e1ud1",
+    "protected": "user settings/private95backup/models/SDK/original crash untouched; no containers created"
+  },
+  "remote": {
+    "status": "pending"
+  },
+  "analysisPreparationFailures": {
+    "kind": "read-only Python analysis assumed every journal line had mutationType; compressed envelope caused KeyError",
+    "result": "no product/run changed; subsequent parser validates envelope length/crc32 and then deduplicates mutation IDs; not a product regression",
+    "additionalFailure": "First corrected read-only parser selected a directory named recording-mutations.jsonl; IsADirectoryError. Fixed by regular-file filter. No product or test execution repeated."
+  }
+}
