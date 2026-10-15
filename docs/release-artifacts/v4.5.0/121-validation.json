@@ -1441,6 +1441,49 @@
     "manifestSha256": "5f93d489c7ee053802d392a278d2248f5aeea98a07fb9c2c8740af2be6d24b2e",
     "scope": "user config/private95backup/models/SDK/auth/home/cache/binaries and duplicated117seed excluded; old evidence unchanged; no redaction needed in selected logs"
   },
-  "cleanup": "pending after byte-verified preservation/remote",
-  "implementationCommit": "768473ed98f37ff439d6cd1d08d90436139f49f6"
+  "cleanup": {
+    "status": "PASS",
+    "ownedRoot": "/private/tmp/media-server-r121-cpk03eow",
+    "containersRemoved": [
+      "media-server-r121-linux",
+      "media-server-r121-channel-linux",
+      "media-server-r121-borrow-linux",
+      "media-server-r121-cache-v2-linux"
+    ],
+    "ownedProcessPathMatches": 0,
+    "privateSettingsBackupModelsSdk": "not accessed or removed",
+    "ownedRootAbsent": true,
+    "confirmedAtUtc": "2026-10-15T12:23:41.551847+00:00"
+  },
+  "implementationCommit": "768473ed98f37ff439d6cd1d08d90436139f49f6",
+  "preservationRemote": {
+    "commit": "ce1a585442bbb182c5192b96fb1de35710518a1d",
+    "files": [
+      {
+        "path": "docs/release-artifacts/v4.5.0/121-execution.tar.gz",
+        "bytes": 13747047,
+        "sha256": "69c79f89ea4f50cd21ba2834c704698df4627fd977eb72d59c429c6fcb47a2a0",
+        "exactRemoteBytes": true
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/121-validation.json",
+        "bytes": 47583,
+        "sha256": "da8ca3c55beb8ef421b1a276fbc1162dcc3f40bdcd5f62d92a1795cf0b67cae2",
+        "exactRemoteBytes": true
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/121-independent-review.json",
+        "bytes": 2572,
+        "sha256": "f4d9724296a3ceeec032ae527fc766eea518a78bb7efdded9ffec632c0a111ab",
+        "exactRemoteBytes": true
+      }
+    ],
+    "firstReadbackFailure": {
+      "attempt": "gh-contents-raw",
+      "exit": 1,
+      "stderr": "transform: short source buffer",
+      "targetBytes": 2,
+      "effect": "remoteverificationnotcomplete;noevidencedeletion"
+    }
+  }
 }
