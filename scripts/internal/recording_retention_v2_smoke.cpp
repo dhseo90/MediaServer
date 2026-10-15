@@ -62,6 +62,7 @@ struct Store {
 RecordingTombstoneV2 Tomb(const RecordingSegmentV2& s){RecordingTombstoneV2 t;t.tombstone_id="tomb-"+s.segment_id;t.segment=s;t.deletion_reason="continuous-capacity";t.deleted_at_ms=10;return t;}
 RetentionCandidate Candidate(RecordingSegmentV2 s,RecordingLifecycle state=RecordingLifecycle::Finalized){RetentionCandidate c;c.segment_v2=std::move(s);c.effective_lifecycle=state;c.media_path="/fixture.mp4";return c;}
 RetentionPlanRequest Request(std::uint64_t quota){RetentionPlanRequest r;r.channel_id="channel";r.policy.continuous_max_bytes=quota;r.policy.event_max_bytes=100000000;r.free_bytes=100000000;r.now_ms=10000;return r;}
+RetentionSnapshot SnapshotOf(std::initializer_list<RetentionCandidate> values){RetentionSnapshot result;result.candidates=values;return result;}
 RecordingMediaDescriptor Descriptor(const RecordingSegmentV2& s){return {s.container,s.video_codecs,s.size_bytes,s.checksum_sha256,s.retention_class};}
 std::string SqlText(const std::filesystem::path& path,const char* sql){
     sqlite3* db=nullptr;sqlite3_stmt* statement=nullptr;std::string result;
@@ -92,6 +93,24 @@ int main(int argc,char** argv) {
             SerializeRecordingSegmentV2(*selected.candidates[0].segment_v2)==SerializeRecordingSegmentV2(original)&&
             authority.authoritative&&authority.candidates.empty()&&missing.authoritative&&missing.candidates.empty()&&
             no_pending.authoritative&&no_pending.candidates.empty(),"R101-P01 native exact/authority/pending do not return unrelated candidates");
+        {
+            Store periodic(root/"r118-periodic");
+            const auto a=periodic.Add("a-pinned",false,true);
+            periodic.Add("a-delete");
+            periodic.Add("b-old",false,false,RecordingRetentionClass::Continuous,"","other");
+            periodic.Add("b-new",false,false,RecordingRetentionClass::Continuous,"","other");
+            std::string periodic_error;
+            {auto coordinator=periodic.Coordinator();
+             RetentionPolicy policy;policy.continuous_max_bytes=a.size_bytes;policy.event_max_bytes=100000000;
+             Require(coordinator.UpdateChannelPolicy("channel",policy,&periodic_error)&&coordinator.UpdateChannelPolicy("other",policy,&periodic_error),periodic_error);
+             coordinator.RunPeriodic(10000);}
+            Check(periodic.catalog.SegmentLifecycleV2("a-pinned")==RecordingLifecycle::Finalized&&
+                  periodic.catalog.IsDeletedSegmentId("a-delete")&&periodic.catalog.IsDeletedSegmentId("b-old")&&
+                  periodic.catalog.SegmentLifecycleV2("b-new")==RecordingLifecycle::Finalized&&
+                  std::filesystem::exists(periodic.root/"a-pinned.mp4")&&!std::filesystem::exists(periodic.root/"a-delete.mp4")&&
+                  !std::filesystem::exists(periodic.root/"b-old.mp4")&&std::filesystem::exists(periodic.root/"b-new.mp4"),
+                  "R118-S04 actual two-channel periodic quota preserves pin and exact per-channel deletion");
+        }
         {
             Store channels(root/"r101-channels");channels.Add("a");channels.Add("b",false,false,RecordingRetentionClass::Continuous,"","other");
             const auto one=channels.catalog.RetentionSnapshot(RetentionSnapshotSelection::Channel,"channel");
@@ -172,27 +191,27 @@ int main(int argc,char** argv) {
         const auto terminal_before=Bytes(terminal_journal.path());const bool terminal_rejected=!terminal_catalog.Open(&s.error)&&Bytes(terminal_journal.path())==terminal_before;
         Check(pending&&existing_rejected&&completed&&checkpoint&&restart_ok&&retry_clean&&terminal_rejected&&s.catalog.SegmentLifecycleV2("original")==RecordingLifecycle::Deleted&&!s.catalog.FindSegmentV2ById("original"),"B05 V2 checkpoint and restart preserve overlay tombstone and SQLite parity");
         auto first=original,second=original;first.segment_id="first";first.order_sequence=1;second.segment_id="second";second.order_sequence=2;first.size_bytes=second.size_bytes=10;first.mappings[0].utc_end_ns=9000000000;second.mappings[0].utc_end_ns=3000000000;
-        auto plan=RetentionCoordinator::Plan({{Candidate(second),Candidate(first)}},Request(10));
+        auto plan=RetentionCoordinator::Plan(SnapshotOf({Candidate(second),Candidate(first)}),Request(10));
         Check(plan.deletions.size()==1&&plan.deletions[0].candidate.segment_v2&&plan.deletions[0].candidate.segment_v2->segment_id=="first","B06 V2 capacity deletion follows durable order despite reversed UTC");
-        auto foreign=second;foreign.store_id="a-store";auto mixed=RetentionCoordinator::Plan({{Candidate(first),Candidate(foreign)}},Request(10));
+        auto foreign=second;foreign.store_id="a-store";auto mixed=RetentionCoordinator::Plan(SnapshotOf({Candidate(first),Candidate(foreign)}),Request(10));
         RetentionCandidate legacy_candidate;legacy_candidate.segment.segment_id="legacy";legacy_candidate.segment.channel_id="channel";legacy_candidate.segment.lifecycle=RecordingLifecycle::Finalized;legacy_candidate.segment.size_bytes=10;legacy_candidate.media_path="/legacy.mp4";
-        const auto legacy_mixed=RetentionCoordinator::Plan({{Candidate(first),legacy_candidate}},Request(10));
+        const auto legacy_mixed=RetentionCoordinator::Plan(SnapshotOf({Candidate(first),legacy_candidate}),Request(10));
         Check(mixed.deletions.size()==1&&mixed.deletions[0].candidate.segment_v2->store_id=="a-store"&&legacy_mixed.deletions.size()==1&&legacy_mixed.deletions[0].candidate.Id()=="legacy","B07 mixed legacy and multiple stores use deterministic nonchronological ordering");
         auto age=first;age.mappings[0].utc_end_ns=2000000001;age.mappings[0].uncertainty_ns=999999;auto rq=Request(100);rq.now_ms=3001;rq.policy.continuous_max_age_ms=1000;
-        auto aged=RetentionCoordinator::Plan({{Candidate(age)}},rq);rq.now_ms=3000;auto young=RetentionCoordinator::Plan({{Candidate(age)}},rq);
+        auto aged=RetentionCoordinator::Plan(SnapshotOf({Candidate(age)}),rq);rq.now_ms=3000;auto young=RetentionCoordinator::Plan(SnapshotOf({Candidate(age)}),rq);
         auto multi=age;multi.mappings[0].end_pts=500000000;auto later=multi.mappings[0];later.mapping_id="later";later.start_pts=500000000;later.end_pts=1000000000;later.utc_end_ns=4000000001;multi.mappings.push_back(later);
-        rq.now_ms=5000;const auto multi_young=RetentionCoordinator::Plan({{Candidate(multi)}},rq);rq.now_ms=5001;const auto multi_aged=RetentionCoordinator::Plan({{Candidate(multi)}},rq);
+        rq.now_ms=5000;const auto multi_young=RetentionCoordinator::Plan(SnapshotOf({Candidate(multi)}),rq);rq.now_ms=5001;const auto multi_aged=RetentionCoordinator::Plan(SnapshotOf({Candidate(multi)}),rq);
         Check(aged.deletions.size()==1&&young.deletions.empty()&&multi_young.deletions.empty()&&multi_aged.deletions.size()==1,"B08 V2 age expiry uses all known mapping ends plus uncertainty rounded upward");
         auto unknown=s.Add("unknown",true);auto uc=Candidate(unknown);auto aq=Request(unknown.size_bytes+1);aq.policy.continuous_max_age_ms=1;
         auto overflow=first;overflow.mappings[0].utc_end_ns=std::numeric_limits<std::int64_t>::max();overflow.mappings[0].uncertainty_ns=1;
         auto overflow_request=Request(100);overflow_request.now_ms=std::numeric_limits<std::int64_t>::max();overflow_request.policy.continuous_max_age_ms=1;
-        Check(RetentionCoordinator::Plan({{uc}},aq).deletions.empty()&&RetentionCoordinator::Plan({{uc}},Request(0)).deletions.size()==1&&RetentionCoordinator::Plan({{Candidate(overflow)}},overflow_request).deletions.empty()&&RetentionCoordinator::Plan({{Candidate(overflow)}},Request(0)).deletions.size()==1,"B09 V2 unknown or overflowing age remains capacity eligible");
+        Check(RetentionCoordinator::Plan(SnapshotOf({uc}),aq).deletions.empty()&&RetentionCoordinator::Plan(SnapshotOf({uc}),Request(0)).deletions.size()==1&&RetentionCoordinator::Plan(SnapshotOf({Candidate(overflow)}),overflow_request).deletions.empty()&&RetentionCoordinator::Plan(SnapshotOf({Candidate(overflow)}),Request(0)).deletions.size()==1,"B09 V2 unknown or overflowing age remains capacity eligible");
         auto event=second;event.retention_class=RecordingRetentionClass::Event;auto er=Request(0);er.policy.event_max_bytes=100;er.free_bytes=0;er.reserved_free_bytes=1;
-        auto separated=RetentionCoordinator::Plan({{Candidate(event),Candidate(first)}},er);
+        auto separated=RetentionCoordinator::Plan(SnapshotOf({Candidate(event),Candidate(first)}),er);
         Check(separated.deletions.size()==1&&separated.deletions[0].candidate.segment_v2->retention_class==RecordingRetentionClass::Continuous&&separated.event_quota_satisfied,"B10 V2 class quotas and disk reserve remain separated");
         auto pinned=s.Add("pinned",false,true);auto held=s.Add("held");bool hold=s.catalog.AdjustHoldCount("held",1,&s.error);
         Check(hold&&s.Hold("held")==1&&!s.catalog.RequestDeletion("held","continuous-capacity",&s.error)&&!s.catalog.MarkSegmentCorrupt("held","checksum-mismatch",&s.error)&&!s.catalog.RequestDeletion("pinned","continuous-capacity",&s.error)&&!s.catalog.MarkSegmentCorrupt("pinned","checksum-mismatch",&s.error),"B11 V2 pin and hold protect deletion and corruption");
-        auto charged=RetentionCoordinator::Plan({{Candidate(first,RecordingLifecycle::Corrupt),Candidate(second,RecordingLifecycle::DeletionPending)}},Request(0));
+        auto charged=RetentionCoordinator::Plan(SnapshotOf({Candidate(first,RecordingLifecycle::Corrupt),Candidate(second,RecordingLifecycle::DeletionPending)}),Request(0));
         Check(charged.deletions.empty()&&!charged.continuous_quota_satisfied,"B12 V2 pending and corrupt bytes remain charged but are not automatic victims");
         const auto untouched=Bytes(s.root/"unknown.mp4");
         {

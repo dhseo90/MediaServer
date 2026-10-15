@@ -196,6 +196,8 @@ private:
     RetentionApplyResult ApplyPlan(const RetentionPlan&,std::int64_t,bool defer_protection);
     RetentionApplyResult RecoverPendingForChannel(std::int64_t deleted_at_ms,
                                                    const std::string& channel_id);
+    struct SpaceAndReservations { std::uint64_t free_bytes{0}, outstanding{0}, event_bytes{0}; };
+    bool ReadSpaceAndReservations(const std::string&, SpaceAndReservations*, std::string*);
     std::uint64_t OutstandingReservationsLocked() const;
     std::uint64_t EventReservationsLocked(const std::string& channel_id) const;
     RetentionSnapshot ReadSnapshot(RetentionSnapshotSelection selection=RetentionSnapshotSelection::All,
@@ -209,6 +211,9 @@ private:
     Options options_;
     std::mutex apply_mu_;
     std::mutex admission_mu_;
+    // New admissions stay serialized; progress/completion do not wait for a
+    // Catalog snapshot/retention plan. Only reservation maps use this short lock.
+    std::mutex reservation_mu_;
     mutable std::mutex mu_;
     std::unordered_map<std::string, RetentionPolicy> policies_;
     std::unordered_map<std::string, RetentionChannelStatus> statuses_;

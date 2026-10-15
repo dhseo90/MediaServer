@@ -448,6 +448,18 @@ RetentionSnapshot RetentionCoordinator::ReadSnapshot(RetentionSnapshotSelection 
     return snapshot;
 }
 
+bool RetentionCoordinator::ReadSpaceAndReservations(const std::string& channel,
+    SpaceAndReservations* out,std::string* error) {
+    // New reservations cannot increase while the caller holds admission_mu_.
+    // Progress/completion may only reduce this captured upper bound. Never pair
+    // an older free-space reading with a later, smaller outstanding amount.
+    std::lock_guard lock(reservation_mu_);
+    if(!free_space_provider_||!free_space_provider_(&out->free_bytes,error))return false;
+    out->outstanding=OutstandingReservationsLocked();
+    out->event_bytes=EventReservationsLocked(channel);
+    return true;
+}
+
 DerivedJobAdmissionResult RetentionCoordinator::AdmitDerivedJob(
     RecordingCatalog& catalog,const DerivedJobIntentV1& intent,std::int64_t now_ms) {
     std::lock_guard admission_lock(admission_mu_);
@@ -470,6 +482,8 @@ DerivedJobAdmissionResult RetentionCoordinator::AdmitDerivedJob(
         }
     const auto recovered=RecoverPendingForChannel(now_ms,intent.reference.channel_id);
     if(!recovered.ok)return reject(recovered.last_error);
+    std::uint64_t event_quota=0;
+    {std::lock_guard lock(reservation_mu_);event_quota=EventReservationsLocked(intent.reference.channel_id);}
     auto snapshot=ReadSnapshot();if(!snapshot.authoritative)return reject(snapshot.error);
     for(const auto& source:intent.sources) {
         const auto found=std::find_if(snapshot.candidates.begin(),snapshot.candidates.end(),[&](const auto& candidate){
@@ -479,13 +493,16 @@ DerivedJobAdmissionResult RetentionCoordinator::AdmitDerivedJob(
         // admission의 자체 삭제 계획에서 입력을 제외한다. 실제 원자 보호는 Intent append에만 생긴다.
         if(found->hold_count<std::numeric_limits<std::uint64_t>::max())++found->hold_count;
     }
-    std::uint64_t free_bytes=0;
-    if(!free_space_provider_||!free_space_provider_(&free_bytes,&error))return reject(error.empty()?"free-space 조회 실패":error);
-    const auto outstanding=SaturatingAdd(OutstandingReservationsLocked(),DurableOutstanding(snapshot));
+    // Durable jobs can finish without admission_mu_: preserve their snapshot
+    // before measuring physical free. Event quota retains its pre-snapshot bound.
+    SpaceAndReservations space;
+    if(!ReadSpaceAndReservations(intent.reference.channel_id,&space,&error))return reject(error.empty()?"free-space 조회 실패":error);
+    auto free_bytes=space.free_bytes;
+    const auto outstanding=SaturatingAdd(space.outstanding,DurableOutstanding(snapshot));
     RetentionPlanRequest request;request.channel_id=intent.reference.channel_id;request.policy=policy;request.now_ms=now_ms;
     request.free_bytes=free_bytes>outstanding?free_bytes-outstanding:0;request.reserved_free_bytes=options_.reserved_free_bytes;
     request.required_write_bytes=intent.reserved_bytes;request.required_write_class=RecordingRetentionClass::Event;
-    request.event_reserved_bytes=EventReservationsLocked(request.channel_id);
+    request.event_reserved_bytes=event_quota;
     snapshot.candidates.erase(std::remove_if(snapshot.candidates.begin(),snapshot.candidates.end(),[](const auto& c){return c.Class()!=RecordingRetentionClass::Event;}),snapshot.candidates.end());
     const auto plan=Plan(snapshot,request);const auto applied=Apply(plan,now_ms);
     if(!applied.ok)return reject(applied.last_error);
@@ -811,25 +828,38 @@ void RetentionCoordinator::RunPeriodic(std::int64_t now_ms) {
         std::lock_guard lock(mu_);
         policies.assign(policies_.begin(), policies_.end());
     }
+    if(policies.empty())return;
+    // One authenticated cut covers this serialized periodic pass. Plan filters
+    // candidates by channel; do not clone/scan the same namespaces per channel.
+    std::vector<std::uint64_t> event_bounds;event_bounds.reserve(policies.size());
+    {std::lock_guard lock(reservation_mu_);
+     for(const auto& item:policies)event_bounds.push_back(EventReservationsLocked(item.first));}
+    const auto snapshot=ReadSnapshot();
+    if(!snapshot.authoritative){
+        std::lock_guard lock(mu_);
+        for(const auto& item:policies)statuses_[item.first].last_error=snapshot.error;
+        return;
+    }
+    std::size_t channel_index=0;
     for (const auto& [channel_id, policy] : policies) {
-        std::uint64_t free_bytes = 0;
+        const auto event_bound=event_bounds[channel_index++];
+        SpaceAndReservations space;
         std::string error;
-        if (!free_space_provider_ || !free_space_provider_(&free_bytes, &error)) {
+        if (!ReadSpaceAndReservations(channel_id,&space,&error)) {
             std::lock_guard lock(mu_);
             statuses_[channel_id].last_error =
                 error.empty() ? "recording root 여유 공간 조회 실패" : error;
             continue;
         }
+        const auto free_bytes=space.free_bytes;
         RetentionPlanRequest request;
         request.channel_id = channel_id;
         request.policy = policy;
         request.now_ms = now_ms;
-        const auto snapshot=ReadSnapshot(RetentionSnapshotSelection::Channel,channel_id);
-        if(!snapshot.authoritative){std::lock_guard lock(mu_);statuses_[channel_id].last_error=snapshot.error;continue;}
-        const std::uint64_t inflight_bytes = SaturatingAdd(OutstandingReservationsLocked(),DurableOutstanding(snapshot));
+        const std::uint64_t inflight_bytes = SaturatingAdd(space.outstanding,DurableOutstanding(snapshot));
         request.free_bytes = free_bytes > inflight_bytes ? free_bytes - inflight_bytes : 0;
         request.reserved_free_bytes = options_.reserved_free_bytes;
-        request.event_reserved_bytes=EventReservationsLocked(channel_id);
+        request.event_reserved_bytes=event_bound;
         const auto plan = Plan(snapshot, request);
         const auto applied = Apply(plan, now_ms);
         if (!applied.ok) {
@@ -851,7 +881,10 @@ RetentionAdmissionResult RetentionCoordinator::AdmitContinuousWrite(
         if (it == policies_.end()) return {false, false, 0, "channel retention policy가 없음"};
         policy = it->second;
     }
-    if (inflight_reservations_.find(channel_id) != inflight_reservations_.end()) {
+    bool active=false;std::uint64_t observed_bytes=0;
+    {std::lock_guard lock(reservation_mu_);active=inflight_reservations_.count(channel_id)!=0;
+     const auto it=observed_segment_bytes_.find(channel_id);if(it!=observed_segment_bytes_.end())observed_bytes=it->second;}
+    if (active) {
         std::lock_guard lock(mu_);
         auto& status = statuses_[channel_id];
         status.storage_blocked = true;
@@ -868,9 +901,6 @@ RetentionAdmissionResult RetentionCoordinator::AdmitContinuousWrite(
         TraceRecordingState(channel_id,"pending-recovery-rejected",recovered.last_error);
         return {false, false, 0, recovered.last_error};
     }
-    const auto observed = observed_segment_bytes_.find(channel_id);
-    const std::uint64_t observed_bytes =
-        observed == observed_segment_bytes_.end() ? 0 : observed->second;
     expected_segment_bytes = std::max(
         expected_segment_bytes,
         std::max(options_.default_expected_segment_bytes, observed_bytes));
@@ -884,9 +914,9 @@ RetentionAdmissionResult RetentionCoordinator::AdmitContinuousWrite(
         TraceRecordingState(channel_id,"admission-rejected",status.last_error);
         return {false, false, 0, status.last_error};
     }
-    std::uint64_t free_bytes = 0;
+    SpaceAndReservations space;
     std::string error;
-    if (!free_space_provider_ || !free_space_provider_(&free_bytes, &error)) {
+    if (!ReadSpaceAndReservations(channel_id,&space,&error)) {
         std::lock_guard lock(mu_);
         auto& status = statuses_[channel_id];
         status.storage_blocked = true;
@@ -898,9 +928,10 @@ RetentionAdmissionResult RetentionCoordinator::AdmitContinuousWrite(
         return {false, false, 0, status.last_error};
     }
 
+    const auto free_bytes=space.free_bytes;
     auto admission_snapshot=ReadSnapshot(RetentionSnapshotSelection::Channel,channel_id);
     if(!admission_snapshot.authoritative){TraceRecordingState(channel_id,"admission-snapshot-rejected",admission_snapshot.error);return {false,false,0,admission_snapshot.error};}
-    const std::uint64_t inflight_bytes = SaturatingAdd(OutstandingReservationsLocked(),DurableOutstanding(admission_snapshot));
+    const std::uint64_t inflight_bytes = SaturatingAdd(space.outstanding,DurableOutstanding(admission_snapshot));
     const std::uint64_t effective_free =
         free_bytes > inflight_bytes ? free_bytes - inflight_bytes : 0;
     RetentionPlanRequest request;
@@ -910,7 +941,7 @@ RetentionAdmissionResult RetentionCoordinator::AdmitContinuousWrite(
     request.free_bytes = effective_free;
     request.reserved_free_bytes = options_.reserved_free_bytes;
     request.required_write_bytes = expected_segment_bytes;
-    request.event_reserved_bytes=EventReservationsLocked(channel_id);
+    request.event_reserved_bytes=space.event_bytes;
     admission_snapshot.candidates.erase(
         std::remove_if(
             admission_snapshot.candidates.begin(), admission_snapshot.candidates.end(),
@@ -945,8 +976,9 @@ RetentionAdmissionResult RetentionCoordinator::AdmitContinuousWrite(
                     charged=SaturatingAdd(charged,candidate.Size());
             }
             quota_satisfied=charged<=policy.continuous_max_bytes;
-            current_inflight=SaturatingAdd(OutstandingReservationsLocked(),DurableOutstanding(current));
-            if(refreshed)refreshed=free_space_provider_&&free_space_provider_(&refreshed_physical_free,&refresh_error);
+            SpaceAndReservations updated;
+            if(refreshed)refreshed=ReadSpaceAndReservations(channel_id,&updated,&refresh_error);
+            if(refreshed){current_inflight=SaturatingAdd(updated.outstanding,DurableOutstanding(current));refreshed_physical_free=updated.free_bytes;}
             TraceRecordingState(channel_id,"admission-protection-deferred",
                 "protected="+std::to_string(applied.protected_count)+
                 " deleted="+std::to_string(applied.deleted_count)+
@@ -997,7 +1029,7 @@ RetentionAdmissionResult RetentionCoordinator::AdmitContinuousWrite(
         options_.reserved_free_bytes, expected_segment_bytes);
     const bool allowed = applied.ok && refreshed && quota_satisfied &&
                          refreshed_free >= required_bytes;
-    if (allowed) inflight_reservations_[channel_id] = {expected_segment_bytes, 0, channel_id};
+    if (allowed) {std::lock_guard lock(reservation_mu_);inflight_reservations_[channel_id] = {expected_segment_bytes, 0, channel_id};}
     bool was_blocked = false;
     {
         std::lock_guard lock(mu_);
@@ -1030,7 +1062,7 @@ RetentionAdmissionResult RetentionCoordinator::AdmitContinuousWrite(
 void RetentionCoordinator::UpdateContinuousWriteProgress(
     const std::string& channel_id,
     std::uint64_t written_bytes) {
-    std::lock_guard admission_lock(admission_mu_);
+    std::lock_guard reservation_lock(reservation_mu_);
     const auto it = inflight_reservations_.find(channel_id);
     if (it == inflight_reservations_.end()) return;
     it->second.written_bytes = std::max(
@@ -1054,30 +1086,30 @@ RetentionAdmissionResult RetentionCoordinator::AdmitEventWrite(
         if (it == policies_.end()) return {false, false, 0, "channel retention policy가 없음"};
         policy = it->second;
     }
-    if (event_inflight_reservations_.find(reservation_id) !=
-        event_inflight_reservations_.end()) {
+    {std::lock_guard lock(reservation_mu_);if (event_inflight_reservations_.count(reservation_id)) {
         return {false, false, 0, "같은 event write 예약이 이미 존재함"};
-    }
+    }}
     const auto recovered = RecoverPendingForChannel(now_ms, channel_id);
     if (!recovered.ok) return {false, false, 0, recovered.last_error};
 
-    const auto observed = observed_event_bytes_.find(channel_id);
+    {std::lock_guard lock(reservation_mu_);const auto observed = observed_event_bytes_.find(channel_id);
     if (observed != observed_event_bytes_.end()) {
         expected_segment_bytes = std::max(expected_segment_bytes, observed->second);
-    }
+    }}
     if (expected_segment_bytes > policy.event_max_bytes) {
         return {false, false, 0, "예상 event clip 용량이 event quota를 초과함"};
     }
 
-    std::uint64_t free_bytes = 0;
+    SpaceAndReservations space;
     std::string error;
-    if (!free_space_provider_ || !free_space_provider_(&free_bytes, &error)) {
+    if (!ReadSpaceAndReservations(channel_id,&space,&error)) {
         return {false, false, 0,
                 error.empty() ? "recording root 여유 공간 조회 실패" : error};
     }
+    const auto free_bytes=space.free_bytes;
     auto admission_snapshot=ReadSnapshot(RetentionSnapshotSelection::Channel,channel_id);
     if(!admission_snapshot.authoritative)return {false,false,0,admission_snapshot.error};
-    const std::uint64_t inflight_bytes = SaturatingAdd(OutstandingReservationsLocked(),DurableOutstanding(admission_snapshot));
+    const std::uint64_t inflight_bytes = SaturatingAdd(space.outstanding,DurableOutstanding(admission_snapshot));
     const std::uint64_t effective_free =
         free_bytes > inflight_bytes ? free_bytes - inflight_bytes : 0;
     RetentionPlanRequest request;
@@ -1088,7 +1120,7 @@ RetentionAdmissionResult RetentionCoordinator::AdmitEventWrite(
     request.reserved_free_bytes = options_.reserved_free_bytes;
     request.required_write_bytes = expected_segment_bytes;
     request.required_write_class = RecordingRetentionClass::Event;
-    request.event_reserved_bytes=EventReservationsLocked(channel_id);
+    request.event_reserved_bytes=space.event_bytes;
     admission_snapshot.candidates.erase(
         std::remove_if(admission_snapshot.candidates.begin(),
                        admission_snapshot.candidates.end(),
@@ -1122,15 +1154,15 @@ RetentionAdmissionResult RetentionCoordinator::AdmitEventWrite(
                            ? refresh_error
                            : "삭제 가능한 event segment로 quota 또는 disk reserve를 복구할 수 없음")};
     }
-    event_inflight_reservations_[reservation_id] =
-        {expected_segment_bytes, 0, channel_id};
+    {std::lock_guard lock(reservation_mu_);event_inflight_reservations_[reservation_id] =
+        {expected_segment_bytes, 0, channel_id};}
     return {true, false, expected_segment_bytes, "ok"};
 }
 
 void RetentionCoordinator::UpdateEventWriteProgress(
     const std::string& reservation_id,
     std::uint64_t written_bytes) {
-    std::lock_guard admission_lock(admission_mu_);
+    std::lock_guard reservation_lock(reservation_mu_);
     const auto it = event_inflight_reservations_.find(reservation_id);
     if (it == event_inflight_reservations_.end()) return;
     it->second.written_bytes = std::max(
@@ -1165,7 +1197,7 @@ std::uint64_t RetentionCoordinator::EventReservationsLocked(const std::string& c
 void RetentionCoordinator::CompleteContinuousWrite(
     const std::string& channel_id,
     std::uint64_t actual_segment_bytes) {
-    std::lock_guard admission_lock(admission_mu_);
+    std::lock_guard reservation_lock(reservation_mu_);
     inflight_reservations_.erase(channel_id);
     if (actual_segment_bytes > 0) {
         auto& observed = observed_segment_bytes_[channel_id];
@@ -1176,7 +1208,7 @@ void RetentionCoordinator::CompleteContinuousWrite(
 void RetentionCoordinator::CompleteEventWrite(
     const std::string& reservation_id,
     std::uint64_t actual_segment_bytes) {
-    std::lock_guard admission_lock(admission_mu_);
+    std::lock_guard reservation_lock(reservation_mu_);
     const auto it = event_inflight_reservations_.find(reservation_id);
     if (it == event_inflight_reservations_.end()) return;
     const std::string channel_id = it->second.channel_id;

@@ -113058,28 +113058,28 @@
           "file": "src/core/shared_stream.cpp",
           "symbol": "SharedStream::StartSource",
           "anchor": "bool SharedStream::StartSource(std::unique_ptr<SourceWorker> worker, std::string* error_message, bool* started) {",
-          "line": 231,
+          "line": 235,
           "contextSha256": "eb39b9330e8913a1f3f8d2928f32fa1d66c315e9227e1d10e2511d7fc3615528"
         },
         "dispatch": {
           "file": "src/core/shared_stream.cpp",
           "symbol": "SharedStream::StartSource",
           "anchor": "if (started != nullptr) {",
-          "line": 232,
+          "line": 236,
           "contextSha256": "10c27975f160736015e2131640b0b7b3dbef36e7aeb69dda3074e6f2f323a89e"
         },
         "action": {
           "file": "src/core/shared_stream.cpp",
           "symbol": "SharedStream::StartSource",
           "anchor": "source_worker_ = std::move(worker);",
-          "line": 250,
+          "line": 254,
           "contextSha256": "b3279f7d9fda12bfe17ed91ada481148037f90c9add0fd162178588ad9bbfc00"
         },
         "state": {
           "file": "src/core/shared_stream.cpp",
           "symbol": "SharedStream::StartSource",
           "anchor": "source_running_ = true;",
-          "line": 260,
+          "line": 264,
           "contextSha256": "76caa6b5f912355ce1936923c2419f55c5223b46c31dc8388bb9ccaa8009dffd"
         },
         "readback": {
@@ -113103,31 +113103,31 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "Actual owner contains input dispatch.",
-          "source": "src/core/shared_stream.cpp:231",
-          "target": "src/core/shared_stream.cpp:232"
+          "source": "src/core/shared_stream.cpp:235",
+          "target": "src/core/shared_stream.cpp:236"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "function-containment",
           "witness": "Dispatch reaches feature action.",
-          "source": "src/core/shared_stream.cpp:232",
-          "target": "src/core/shared_stream.cpp:250"
+          "source": "src/core/shared_stream.cpp:236",
+          "target": "src/core/shared_stream.cpp:254"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "function-containment",
           "witness": "Action emits authoritative state/reject/projection.",
-          "source": "src/core/shared_stream.cpp:250",
-          "target": "src/core/shared_stream.cpp:260"
+          "source": "src/core/shared_stream.cpp:254",
+          "target": "src/core/shared_stream.cpp:264"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "runtime-readback",
           "witness": "verify-ops-source-lifecycle independently observes source_running_ through a runtime condition and fails on mismatch.",
-          "source": "src/core/shared_stream.cpp:260",
+          "source": "src/core/shared_stream.cpp:264",
           "target": "scripts/internal/verify_ops_source_lifecycle.mjs:116"
         },
         {
@@ -113188,37 +113188,37 @@
           "owner": {
             "file": "src/core/shared_stream.cpp",
             "symbol": "SharedStream::StartSource",
-            "trackedBlobSha256": "c46006d404ddaa3b5b72f5a8bc26a7f8ac6aaf4aa1e90e5dd1c1462204022afc",
+            "trackedBlobSha256": "487220e9425706cc2956d59f1a8c0d2d0fbb50ee99fc76e20c023d3a8a1c8d29",
             "enclosingBodySha256": "587315bc55e83fd907d7113eba1005cdf794f57b8aa3411c7a91c392b8b53684",
-            "enclosingBodyStartLine": 231,
-            "enclosingBodyEndLine": 265,
+            "enclosingBodyStartLine": 235,
+            "enclosingBodyEndLine": 269,
             "enclosingBodyScope": "declared-symbol"
           },
           "dispatch": {
             "file": "src/core/shared_stream.cpp",
             "symbol": "SharedStream::StartSource",
-            "trackedBlobSha256": "c46006d404ddaa3b5b72f5a8bc26a7f8ac6aaf4aa1e90e5dd1c1462204022afc",
+            "trackedBlobSha256": "487220e9425706cc2956d59f1a8c0d2d0fbb50ee99fc76e20c023d3a8a1c8d29",
             "enclosingBodySha256": "587315bc55e83fd907d7113eba1005cdf794f57b8aa3411c7a91c392b8b53684",
-            "enclosingBodyStartLine": 231,
-            "enclosingBodyEndLine": 265,
+            "enclosingBodyStartLine": 235,
+            "enclosingBodyEndLine": 269,
             "enclosingBodyScope": "declared-symbol"
           },
           "action": {
             "file": "src/core/shared_stream.cpp",
             "symbol": "SharedStream::StartSource",
-            "trackedBlobSha256": "c46006d404ddaa3b5b72f5a8bc26a7f8ac6aaf4aa1e90e5dd1c1462204022afc",
+            "trackedBlobSha256": "487220e9425706cc2956d59f1a8c0d2d0fbb50ee99fc76e20c023d3a8a1c8d29",
             "enclosingBodySha256": "587315bc55e83fd907d7113eba1005cdf794f57b8aa3411c7a91c392b8b53684",
-            "enclosingBodyStartLine": 231,
-            "enclosingBodyEndLine": 265,
+            "enclosingBodyStartLine": 235,
+            "enclosingBodyEndLine": 269,
             "enclosingBodyScope": "declared-symbol"
           },
           "state": {
             "file": "src/core/shared_stream.cpp",
             "symbol": "SharedStream::StartSource",
-            "trackedBlobSha256": "c46006d404ddaa3b5b72f5a8bc26a7f8ac6aaf4aa1e90e5dd1c1462204022afc",
+            "trackedBlobSha256": "487220e9425706cc2956d59f1a8c0d2d0fbb50ee99fc76e20c023d3a8a1c8d29",
             "enclosingBodySha256": "587315bc55e83fd907d7113eba1005cdf794f57b8aa3411c7a91c392b8b53684",
-            "enclosingBodyStartLine": 231,
-            "enclosingBodyEndLine": 265,
+            "enclosingBodyStartLine": 235,
+            "enclosingBodyEndLine": 269,
             "enclosingBodyScope": "declared-symbol"
           },
           "readback": {

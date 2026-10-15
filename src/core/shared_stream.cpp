@@ -1,3 +1,4 @@
+#include "recording/recording_latency_trace.h"
 // 파일 요약: 하나의 source packet을 여러 subscriber에게 fan-out한다.
 // 동작 요약: subscriber별 bounded queue, cached keyframe/audio 재전달, idle 상태를 관리한다.
 // 동작 요약: source worker와 여러 egress/analysis consumer 사이의 thread-safe 버퍼 역할을 한다.
@@ -71,6 +72,7 @@ bool SharedStream::AddSubscriberWithRole(const std::string& subscriber_id,
         state->cv.notify_one();
         if (state->worker.joinable()) {
             state->worker.join();
+            ReportRecorder(state);
         }
         return false;
     }
@@ -115,6 +117,7 @@ void SharedStream::RemoveSubscriber(const std::string& session_id) {
     state->cv.notify_one();
     if (state->worker.joinable()) {
         state->worker.join();
+        ReportRecorder(state);
     }
 }
 
@@ -142,6 +145,7 @@ void SharedStream::StopAllSubscribers() {
     for (const auto& state : states) {
         if (state->worker.joinable()) {
             state->worker.join();
+            ReportRecorder(state);
         }
     }
 }
@@ -323,6 +327,18 @@ std::size_t SharedStream::TotalDroppedPacketCount() const {
     return total;
 }
 
+void SharedStream::ReportRecorder(const std::shared_ptr<SubscriberState>& state) {
+    if(!recording::latency::SubcostEnabled()||state->role!=SubscriberRole::Recorder)return;
+    // Called only after join, outside queue/map locks; all counter writers stopped.
+    std::fprintf(stderr,"[recorder-cost] enqueued=%llu dequeued=%llu dropped=%zu payloadBytes=%llu maxDepth=%llu maxBytes=%llu firstNs=%llu lastNs=%llu minInputGapNs=%llu maxInputGapNs=%llu queueWaitNs=%llu maxQueueWaitNs=%llu callbackNs=%llu maxCallbackNs=%llu\n",
+        (unsigned long long)state->enqueued,(unsigned long long)state->dequeued,state->dropped_packets,
+        (unsigned long long)state->payload_bytes,(unsigned long long)state->max_depth,(unsigned long long)state->max_bytes,
+        (unsigned long long)state->first_input_ns,(unsigned long long)state->last_input_ns,
+        (unsigned long long)state->min_input_gap_ns,(unsigned long long)state->max_input_gap_ns,
+        (unsigned long long)state->queue_wait_ns,(unsigned long long)state->max_queue_wait_ns,
+        (unsigned long long)state->callback_ns,(unsigned long long)state->max_callback_ns);
+}
+
 void SharedStream::WorkerLoop(const std::shared_ptr<SubscriberState>& state) {
     while (true) {
         media::Packet packet;
@@ -333,7 +349,11 @@ void SharedStream::WorkerLoop(const std::shared_ptr<SubscriberState>& state) {
                 return;
             }
 
-            packet = std::move(state->queue.front());
+            const auto now=recording::latency::SubcostEnabled()&&state->role==SubscriberRole::Recorder?recording::latency::Now():0;
+            if(now){const auto wait=now-state->queue.front().enqueued_ns;++state->dequeued;
+                state->queue_wait_ns+=wait;state->max_queue_wait_ns=std::max(state->max_queue_wait_ns,wait);
+                state->queued_bytes-=state->queue.front().packet.payload.size();}
+            packet = std::move(state->queue.front().packet);
             state->queue.pop_front();
             if (state->role == SubscriberRole::Recorder &&
                 packet.kind == media::MediaKind::Video && state->recorder_video_loss_pending) {
@@ -342,6 +362,7 @@ void SharedStream::WorkerLoop(const std::shared_ptr<SubscriberState>& state) {
             }
         }
 
+        const auto begin=recording::latency::SubcostEnabled()&&state->role==SubscriberRole::Recorder?recording::latency::Now():0;
         try {
             state->callback(packet);
         } catch (const std::exception&) {
@@ -349,6 +370,9 @@ void SharedStream::WorkerLoop(const std::shared_ptr<SubscriberState>& state) {
         } catch (...) {
             // 비표준 예외도 worker thread를 죽이지 않는다.
         }
+        if(begin){const auto cost=recording::latency::Now()-begin;
+            // Only this worker writes callback counters; final report follows join.
+            state->callback_ns+=cost;state->max_callback_ns=std::max(state->max_callback_ns,cost);}
     }
 }
 
@@ -362,13 +386,21 @@ void SharedStream::EnqueuePacket(const std::shared_ptr<SubscriberState>& state, 
         if (state->queue.size() >= app::GetAppConfig().subscriber_queue_size) {
             // live stream 특성상 지연된 오래된 패킷보다 최신 패킷을 유지하는 것이 낫다.
             if (state->role == SubscriberRole::Recorder &&
-                state->queue.front().kind == media::MediaKind::Video) {
+                state->queue.front().packet.kind == media::MediaKind::Video) {
                 state->recorder_video_loss_pending = true;
             }
+            if(recording::latency::SubcostEnabled()&&state->role==SubscriberRole::Recorder)
+                state->queued_bytes-=state->queue.front().packet.payload.size();
             state->queue.pop_front();
             ++state->dropped_packets;
         }
-        state->queue.push_back(packet);
+        const auto now=recording::latency::SubcostEnabled()&&state->role==SubscriberRole::Recorder?recording::latency::Now():0;
+        state->queue.push_back({packet,now});
+        if(now){++state->enqueued;state->payload_bytes+=packet.payload.size();state->queued_bytes+=packet.payload.size();
+            state->max_depth=std::max(state->max_depth,std::uint64_t(state->queue.size()));state->max_bytes=std::max(state->max_bytes,state->queued_bytes);
+            if(state->last_input_ns){const auto gap=now-state->last_input_ns;state->min_input_gap_ns=std::min(state->min_input_gap_ns,gap);state->max_input_gap_ns=std::max(state->max_input_gap_ns,gap);}
+            else state->first_input_ns=now;
+            state->last_input_ns=now;}
     }
     state->cv.notify_one();
 }

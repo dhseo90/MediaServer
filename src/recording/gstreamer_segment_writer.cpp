@@ -192,12 +192,17 @@ public:
     }
 
     void Stop() {
-        std::lock_guard lock(mu);
+        std::unique_lock lock(mu);
         time_snapshot.Invalidate();
 #if MEDIA_SERVER_USE_GSTREAMER
         FinalizeLocked();
 #endif
         started = false;
+        const auto costs=writer_costs;const bool report=latency::SubcostEnabled()&&!costs_reported;costs_reported=true;
+        lock.unlock();
+        if(report){const char* names[]={"push","open","writer-binding","admission","finalize","eos","fsync","hash","file-evidence","ready-ticket","durable-commit","release"};
+            for(unsigned i=0;i<costs.size();++i)std::fprintf(stderr,"[writer-cost] stage=%s calls=%llu totalNs=%llu maxNs=%llu\n",names[i],
+                (unsigned long long)costs[i][0],(unsigned long long)costs[i][1],(unsigned long long)costs[i][2]);}
     }
 
     std::shared_ptr<const RecordingTimeSnapshot> TimeSnapshot() const {
@@ -205,6 +210,14 @@ public:
     }
 
 private:
+    std::array<std::array<std::uint64_t,3>,12> writer_costs{};
+    bool costs_reported{false};
+    struct Cost {
+        std::array<std::uint64_t,3>& row;std::uint64_t begin;
+        Cost(Impl& owner,unsigned stage):row(owner.writer_costs[stage]),begin(latency::SubcostEnabled()?latency::Now():0){}
+        void End(){if(begin){const auto ns=latency::Now()-begin;++row[0];row[1]+=ns;row[2]=std::max(row[2],ns);begin=0;}}
+        ~Cost(){End();}
+    };
     bool Fail(std::string* error, const std::string& message) {
         if (error != nullptr) *error = message;
         return false;
@@ -219,6 +232,7 @@ private:
         input_failed=true;
     }
     void PushV2Locked(const media::Packet& packet) {
+        Cost cost(*this,0);
         if(input_failed || packet.track_id!=video_track.track_id || packet.payload.empty())return;
         if(!packet.observation || packet.observation->source_generation.empty() || packet.observation->generation_order==0 || packet.observation->ordinal==0 ||
            !RecordingWriterTimeState::Signed(packet.observation->pts_ns) ||
@@ -277,9 +291,11 @@ private:
         if(!input_failed) {v2_last_progress=progress;has_v2_progress=true;}
     }
     bool OpenLocked(const media::Packet& first, std::int64_t utc_ms) {
+        Cost cost(*this,1);
         if (recovery_pending) return false;
         std::string managed_id;
         if(v2_mode) {
+            Cost cost(*this,2);
             std::string error;managed_id=NewId();const auto request=NewId();
             if(managed_id.empty() || request.empty() ||
                !options.managed_catalog->ValidateManagedWriterBinding(*options.managed_journal,options.storage_root,options.managed_store_id,&error) ||
@@ -288,6 +304,7 @@ private:
             }
         }
         if (options.admit_segment) {
+            Cost cost(*this,3);
             SegmentAdmissionDecision decision;
             const std::uint64_t minimum_segment_bytes =
                 first.payload.size() >
@@ -485,6 +502,7 @@ private:
 
     void FinalizeLocked() {
         if (!segment_open) return;
+        Cost total(*this,4);Cost eos_cost(*this,5);
         if (appsrc != nullptr) gst_app_src_end_of_stream(GST_APP_SRC(appsrc));
         bool eos = false;
         if (pipeline != nullptr) {
@@ -496,6 +514,7 @@ private:
             gst_object_unref(bus);
             gst_element_set_state(pipeline, GST_STATE_NULL);
         }
+        eos_cost.End();Cost fsync_cost(*this,6);
         struct stat output_status {};
         struct stat path_status {};
         const bool output_binding_ok = eos && partial_fd >= 0 &&
@@ -505,7 +524,7 @@ private:
             output_status.st_nlink == 1 && path_status.st_nlink == 1 &&
             output_status.st_dev == path_status.st_dev &&
             output_status.st_ino == path_status.st_ino;
-        ResetPipelineLocked();
+        ResetPipelineLocked();fsync_cost.End();
         if (!output_binding_ok) {
             AbortSegmentFileLocked(partial_path, 0);
             return;
@@ -524,7 +543,7 @@ private:
             } catch (...) {
             }
         }
-        current.checksum_sha256 = FileSha256(partial_path);
+        {Cost cost(*this,7);current.checksum_sha256 = FileSha256(partial_path);}
         current.lifecycle = RecordingLifecycle::Finalized;
         current.finalized_at_ms = NowMs();
         if(current.checksum_sha256.size()!=64){AbortSegmentFileLocked(partial_path,current.size_bytes);return;}
@@ -533,6 +552,7 @@ private:
             current_v2.finalized_at_ms=current.finalized_at_ms;v2_time.Finish(&current_v2);
             std::string error;
             if(evidence_capture) {
+                Cost cost(*this,8);
                 current_source.file_evidence=evidence_capture->Finish(partial_path,current_source,current_v2.size_bytes,current_v2.checksum_sha256,&error);
                 if(!current_source.file_evidence)std::cerr<<"[recording] file evidence unavailable: "<<error<<'\n';
                 evidence_capture.reset();
@@ -543,12 +563,12 @@ private:
             FinalizeReadyTicket ready;ready.segment_v2=current_v2;ready.source_binding=current_source;
             ready.partial_relative=partial_path.lexically_relative(options.storage_root);
             ready.final_relative=final_path.lexically_relative(options.storage_root);
-            if(!WriteFinalizeReadyTicket(options.storage_root,ready,&error) ||
-               !CommitFinalizeReadyV2(*options.managed_catalog,options.storage_root,ready,&error)) {
+            const bool ticket_ok=[&]{Cost cost(*this,9);return WriteFinalizeReadyTicket(options.storage_root,ready,&error);}();
+            if(!ticket_ok || ![&]{Cost cost(*this,10);return CommitFinalizeReadyV2(*options.managed_catalog,options.storage_root,ready,&error);}()) {
                 std::cerr<<"[recording] bound finalize failed: "<<error.substr(0,256)<<'\n';
                 BlockForRecoveryLocked();return;
             }
-            ReleaseReservationLocked(current_v2.size_bytes);segment_open=false;return;
+            {Cost cost(*this,11);ReleaseReservationLocked(current_v2.size_bytes);}segment_open=false;return;
         }
         // 양수 시간구간이 없는 단일 packet은 ready 작성 전의 미완결 출력이다.
         // ticket 작성을 시도한 이후의 불확실 보존/차단 경계와 구분한다.

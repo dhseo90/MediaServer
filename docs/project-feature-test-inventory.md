@@ -5131,3 +5131,23 @@ R112-F02: 같은 실패 파일에서 seek/순차 모두13출력·마지막966666
 - `recording_recorder_continuity_smoke.cpp`: 같은 실제 AU의 source observation→SharedStream Recorder queue→writer→확정 source binding/file evidence를 대조한다. 정상 소비의 원본 ordinal/hash, 제한된 callback 보류로 인한 실제 포화, 다른 subscriber 진행, 중간 delta/키프레임 경계·generation·Stop/detach를 검사한다. 손실 전 수용한 prefix 보존·명시 공백·다음 keyframe 회복과 예약/FD 해제가 기대값이다.
 - 보존115 MP4의 native target1.8초·원본2.8초 compressed sample/decoded frame은 별개로 대조한다. decoder 목표 미검출은 거부·미게시, 정확한 sample 부재는 extractor에서 거부한다(기존 builder의 unsupported 메타데이터-only partial 계약은 유지). 정상 회복 원본은 정확한1ns sample·PNG/manifest·독립 readback을 요구한다. 자동 재시도·가까운 frame 대체·정상 혼합 gate 완화는 금지한다.
 - `recording_preserved_frame_smoke.cpp`의112 마지막 sample, 관련 writer/session/input/evidence 권한·취소·재Open·소유 검사와 macOS/비특권 Linux 경계를 유지한다. 고정된 짧은 진단은900/45/120분·전체 acceptance/UI와 분리한다.
+
+### R118-S01 — 누적 상태의 실제 source 소비와 HTTP 경합
+
+- `recording_degraded_http_smoke.cpp`의 별도 source-small/source-parallel 모드: 같은117 입력 MP4, FileSource/SharedStream/두 Recorder, 기존 구조화2/장면2 HTTP 3묶음. 작은 상태는 실제 source120AU 준비, 큰 상태는117 종료 원본의 byte-identical 사본 재Open이다. 각 후보에서 작은 상태→큰 상태 각1회, 1200AU/source 진행(정지 경계의 추가 AU는 실제 oracle 집합), source 진행55초·전체630초·4MiB 로그·기존 자원 상한을 고정한다. 준비 cache/reader는 과거 live 복원이 아니다. 증거/A 지속 부하는 이 직접 검사의 범위 밖이다.
+- 정상 입력은 보류/drop 주입 없이 실제 Analysis peer의 유한2048AU/channel 원본 oracle와 확정 binding의 generation/ordinal/PTS 집합이 같아야 한다. 12응답200·p95≤2000ms·최대≤5000ms, 새 내구 확정과 새 segment 문서의 실제 색인 게시(단순 generation 증가 불충분), 정상 Finish·소유 회수를 각각 판정한다. 실패 원본과 비용을 모두 보존한다.
+- 기존 opt-in subcost 계측에 Recorder 고정 카운터·queue timestamp(8B/entry)·writer12단계 count/sum/max만 연결한다. 단조 시계 elapsed이며 중첩 단계 합산 금지, source/drop/수용·확정은 별도 값이다. 로그는 join/Stop 뒤 잠금 밖에 한정하며 기존 수집 한도를 유지한다. 제품 변화 후116 정상/강제 과부하와 관련 권한·내구성·수명·macOS/Linux 회귀를 수행한다. 직접 목표와 독립 검토 전900초 진입 금지.
+
+- R118-S01 준비 보완: source 모드만 제품과 같은 `recording/visual-cache`를 사용한다. 사본의 영속 cache 재사용은 live cache 복원이 아니다. HTTP는 두 source 시작 뒤2/4/6초의 세 묶음으로 구간 전환과 겹치게 요청하고 실제 시작 시각을 남긴다. 기존 helper의 바깥 cache 경로 실행과 초기0.3초 HTTP 실행은 준비/초기 입력의 한정 근거로 보존하며 새 대조와 합치지 않는다. 보완 fixture의 작은 상태→누적 상태 각1회 후 원인에 따라 제품 변경 여부를 판단한다.
+- 영속 cache의 generation=null은 알려진 worker-instance 이력 미보존 의미로만 수용한다. 새 게시 검사는 generation 증가와 별도로 기존 공개 장면 HTTP(limit200)의 새 segment hit·현재 binding을 확인한다. 이 보조1요청은 원래12응답 성능 모집단에 섞지 않는다. 초기 cache 게시 뒤 숫자 generation을 요구한 준비 FAIL은 보존하고 수정된 fixture의 누적 상태를1회 실행한다. 작은 상태 기존12응답 비용은 query/제품 불변 범위에서 재사용하되 추가 게시 assertion 실행으로 소급하지 않는다.
+
+### R118-S02 — 긴 retention 준비와 예약 진행/완료 분리
+
+- 같은 실제 소스의 누적 대조에서 admission/release와 queue 지연을 분리한 뒤, 신규 admission 직렬화는 유지하고 진행/완료의 짧은 회계 잠금을 분리한다. 물리 free와 outstanding/event 예약을 같은 잠금에서 캡처하고 긴 계획 동안 예약 상계를 줄이지 않는다.
+- `recording_retention_smoke.cpp`: snapshot을 latch로 보류한 동안 Continuous/Event 진행·완료가 반환해야 한다. 이전 free와 나중의 감소 예약을 섞은 거짓 admission과 snapshot 뒤 사라진 event 예약의 quota 누락을 거부해야 한다. latch3초·반환 관측500ms, 실패에도 해제/join. 기존 동시 admission·보호/대체 후보·물리 공간 부족 회귀를 유지한다. baseline 코드에서는 진행 완료 assertion2개가 예상 FAIL이고 빌드/환경 실패는 RED가 아니다.
+
+- R118-S03: `recording_derived_jobs_smoke.cpp`의 실제 Catalog 내구 예약4096B와 free7000B에서 추가4000B는 거부한다. provider 호출 순서로 durable snapshot→physical free를 직접 확인한다. 독립 검토에서 발견한 초안의 역순 회귀를 보호하며, 실제 파일 쓰기 경합 재현으로 확대하지 않는다.
+
+- R118-S04: 주기 retention은 admission 잠금을 유지한 동일 All cut 하나를 채널별 Plan에 읽기 전용으로 공유한다. Pending1+candidate1+authority2의 호출4개, 채널별 quota/삭제/현재 권한 회귀를 확인한다. event 예약은 cut 이전 상계, free/outstanding은 cut 이후 채널별 동시 캡처. All 후보의 추가 동시 RAM은 기존 소유 예산 거부를 유지한다. 이 변경 후보의 작은 상태→누적 상태 직접 대조를 각각1회 수행하고 원래12응답·보조게시·Recorder 결과를 분리한다.
+
+- R118-S04 추가 직접 회귀: 실제 Catalog에 두 채널 각2개 원본을 확정하고 채널별1개 용량의 periodic 계획을 실행한다. pin된A원본 보존/A다른원본 삭제, B의 오래된원본만 삭제와 실제 파일/내구 삭제상태를 대조한다. HTTP 성능 source는 불변이며 이 검사 소스 추가 뒤 해당 focused만 재검증한다.

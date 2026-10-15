@@ -12,6 +12,8 @@
 #include <stdexcept>
 #include <string>
 #include <thread>
+#include <future>
+#include <condition_variable>
 #include <vector>
 
 namespace {
@@ -103,6 +105,47 @@ public:
     }
 };
 
+// R118: block only the expensive snapshot, never the source or reservation callback.
+// A first failure still releases the latch and joins both tasks.
+void ReservationProgressDuringSnapshot(bool event) {
+    FakeStore store;std::atomic<unsigned> calls{0};std::atomic<bool> armed{false};
+    std::atomic<std::uint64_t> physical{event?1000ULL:100ULL};
+    std::mutex mutex;std::condition_variable changed;bool entered=false,released=false;
+    recording::RetentionCoordinator coordinator(store,[&]{
+        if(armed&&++calls==2){std::unique_lock lock(mutex);entered=true;changed.notify_all();
+            if(!changed.wait_for(lock,std::chrono::seconds(3),[&]{return released;}))throw std::runtime_error("snapshot-latch-budget");}
+        return recording::RetentionSnapshot{};
+    },[&](auto* bytes,auto*){*bytes=physical.load();return true;},[](const auto&,auto*){return true;},{0,1,{}});
+    std::string error;coordinator.UpdateChannelPolicy("a",Policy(1000,100),&error);
+    coordinator.UpdateChannelPolicy("b",Policy(1000,100),&error);
+    const auto initial=event?coordinator.AdmitEventWrite("a","old",80,1):coordinator.AdmitContinuousWrite("a",60,1);
+    Expect(initial.allowed,"R118 initial reservation");armed=true;
+    auto admission=std::async(std::launch::async,[&]{return event?coordinator.AdmitEventWrite("a","new",40,2):coordinator.AdmitContinuousWrite("b",50,2);});
+    {std::unique_lock lock(mutex);changed.wait_for(lock,std::chrono::seconds(1),[&]{return entered;});}
+    auto completion=std::async(std::launch::async,[&]{
+        physical=event?920:60;
+        if(event){coordinator.UpdateEventWriteProgress("old",80);coordinator.CompleteEventWrite("old",80);}
+        else {coordinator.UpdateContinuousWriteProgress("a",40);coordinator.CompleteContinuousWrite("a",40);}
+    });
+    const bool progressed=completion.wait_for(std::chrono::milliseconds(500))==std::future_status::ready;
+    {std::lock_guard lock(mutex);released=true;}changed.notify_all();
+    completion.get();const auto result=admission.get();armed=false;
+    Expect(entered&&progressed,event?"R118 event completion proceeds during snapshot":"R118 continuous completion proceeds during snapshot");
+    Expect(!result.allowed,event?"R118 captured event quota not lowered after completion":"R118 old free not paired with later reduced reservation");
+    if(!event){const auto fresh=coordinator.AdmitContinuousWrite("b",50,3);Expect(fresh.allowed,"R118 fresh space/reservation permits remaining capacity");coordinator.CompleteContinuousWrite("b",50);}
+}
+
+void SharedPeriodicSnapshot() {
+    FakeStore store;unsigned snapshots=0;
+    recording::RetentionCoordinator coordinator(store,[&]{++snapshots;return recording::RetentionSnapshot{};},
+        [](auto* bytes,auto*){*bytes=10000;return true;},[](const auto&,auto*){return true;},{0,1,{}});
+    std::string error;coordinator.UpdateChannelPolicy("a",Policy(1000,100),&error);
+    coordinator.UpdateChannelPolicy("b",Policy(1000,100),&error);
+    coordinator.RunPeriodic(10);
+    // Pending + one shared candidate cut + two independent authority rechecks.
+    Expect(snapshots==4,"R118 periodic two channels share one candidate scan, retain two authority checks");
+}
+
 void WriteMp4Header(const std::filesystem::path& path) {
     std::filesystem::create_directories(path.parent_path());
     const unsigned char bytes[] = {0, 0, 0, 12, 'f', 't', 'y', 'p', 'i', 's', 'o', 'm'};
@@ -115,6 +158,9 @@ void WriteMp4Header(const std::filesystem::path& path) {
 int main(int argc, char** argv) {
     if (argc != 2) return 2;
     const std::filesystem::path root(argv[1]);
+    ReservationProgressDuringSnapshot(false);
+    ReservationProgressDuringSnapshot(true);
+    SharedPeriodicSnapshot();
 
     recording::RetentionSnapshot ordered_snapshot;
     ordered_snapshot.candidates = {

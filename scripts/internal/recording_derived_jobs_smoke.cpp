@@ -207,6 +207,22 @@ std::pair<int,int> Extended(const std::filesystem::path& root,const DerivedSourc
         check(continuous&&event&&derived,"J12 durable outstanding을 continuous/event/derived disk 예약에 포함");
     }
     {
+        Store s(root/"reservation-cut");s.Add(source);bool armed=false,space_seen=false;
+        unsigned snapshots_before_space=0;
+        RetentionCoordinator c(*s.catalog,[&]{
+            if(armed&&!space_seen)++snapshots_before_space;
+            return s.catalog->RetentionSnapshot();
+        },[&](auto* bytes,auto*){if(armed)space_seen=true;*bytes=7000;return true;},
+        [](const auto&,auto*){return false;},{0,1,s.root});
+        Require(c.UpdateChannelPolicy("channel",{100000,100000,100000,100000},&error),error);
+        Require(c.AdmitDerivedJob(*s.catalog,job,10).accepted,"cut first durable reservation");
+        armed=true;
+        const auto second=c.AdmitDerivedJob(*s.catalog,build("cut-second",4000),10);
+        check(space_seen&&snapshots_before_space==2&&!second.accepted&&
+              s.catalog->RetentionSnapshot().durable_reservations.size()==1,
+              "R118-S03 durable snapshot precedes free read and preserves outstanding refusal");
+    }
+    {
         Store s(root/"provider");s.Add(source);bool snapshots=false,space=true;auto c=s.Coordinator(nullptr,&snapshots,&space);Require(c.UpdateChannelPolicy("channel",{1,1,1,1},&error),error);
         const auto before=s.journal.Replay().mutations.size();
         bool closed=!c.AdmitDerivedJob(*s.catalog,job,10).accepted&&!c.AdmitContinuousWrite("channel",1,10).allowed&&!c.AdmitEventWrite("channel","event",1,10).allowed&&!c.RecoverPending(10).ok;

@@ -56,7 +56,13 @@ private:
         SubscriberRole role{SubscriberRole::Client};
         mutable std::mutex mu;
         std::condition_variable cv;
-        std::deque<media::Packet> queue;
+        struct QueuedPacket { media::Packet packet; std::uint64_t enqueued_ns{0}; };
+        std::deque<QueuedPacket> queue;
+        // Opt-in Recorder counters; fixed size, no payload history or extra lock.
+        std::uint64_t enqueued{0}, dequeued{0}, payload_bytes{0}, queued_bytes{0};
+        std::uint64_t max_depth{0}, max_bytes{0}, first_input_ns{0}, last_input_ns{0};
+        std::uint64_t min_input_gap_ns{UINT64_MAX}, max_input_gap_ns{0};
+        std::uint64_t queue_wait_ns{0}, max_queue_wait_ns{0}, callback_ns{0}, max_callback_ns{0};
         std::size_t dropped_packets{0};
         bool recorder_video_loss_pending{false};
         bool stop{false};
@@ -67,6 +73,7 @@ private:
     bool AddSubscriberWithRole(const std::string& subscriber_id,
                                SubscriberCallback callback,
                                SubscriberRole role);
+    static void ReportRecorder(const std::shared_ptr<SubscriberState>& state);
     static void WorkerLoop(const std::shared_ptr<SubscriberState>& state);
     void EnqueuePacket(const std::shared_ptr<SubscriberState>& state, const media::Packet& packet) const;
 
