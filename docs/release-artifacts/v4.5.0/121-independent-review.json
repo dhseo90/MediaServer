@@ -1,0 +1,27 @@
+{
+  "schema": "media-server.v450.r121.independent-review.v1",
+  "reviewer": "/root/independent_r121",
+  "requested": "gpt-6-astra/high",
+  "toolAccepted": "gpt-6-astra/high",
+  "actualRuntimeModel": null,
+  "actualRuntimeEffort": null,
+  "participation": "separate read-only reviewer; noimplementation/testwriting/testexecution/subdelegation",
+  "decision": "ACCEPT_LIMITED_CORRECTNESS_ORIGINAL12_PASS_AUX5SECOND_FAIL_900_INELIGIBLE",
+  "findings": [
+    "P01 sequential authenticated capture samecut, P02 exactraw classification excludes DTO only; selectedContinuous and excludedlifecycle/errors preserved. No blocking correctness finding.",
+    "P03 first immutable input pointer does not establish bindingvalidity; first context empty means reusablefalse and fullMaterializeSourceBinding remains. Heapstable immutable Impl row outlivescontext; allcurrentraw/media/path/filechecks retained.",
+    "Oversizedlegacy original6304716<8MiBfailure preserved; actual3150encodedinput plusvaliddescription yields8860060B >8388608 with sameuncached/hold/FD assertions. Compact4206276<=limit. Exact3150samplecount not independently proven solely bydocs.size1.",
+    "macOS andnonprivilegedLinux source/generation/visual126, proofmatrix, finalcache679 logs reviewed; firstsetupfailures preserved.",
+    "Same finalborrow-large original12all200 p95/max1490.290709msPASS; auxiliarycomplete200items78455B200 but5073.249625msFAIL. Unique IDs, score/IDorder,playback/seekfield shapes checked, not exhaustiveframeRGBverification.",
+    "Recorder2413/2413files42,newpublication52/public6,Stop/Finish,finalRAM/scratch/FD0,cleanupHealthy,collected894404Bmatching,processgroupabsent.",
+    "Actualbinary4e3a872d22babaecc40b23594b9ebfe8cf40a4dcd7b90ad5c4f4872bf6e3aa57 matchesrun/build; patch378bcf2e4e76cb579a7eb6dbb2859424a9c2ec3dc657f72685850ee1e6a69291 matches5productdiffs; allrun1064inputhashmaps same.",
+    "AuxendNs follows clientJSON/freshbinding/stdout; receivecomplete timestamp absent, server4694.544vs5073.250gap notfullyattributed. Do not movecriterion/subtract/retroPASS. P03auxperformance improvement notproven.",
+    "986candidate/digest8977e9b6ac618c7e0233823f6acb6ab1fcf7461206ee5d8b2a4149a643519e3a same; mappingnotperformanceapproval.",
+    "Partial preservation valid; entire directFAIL and900ineligible, memoryP0/releaseHOLD. Remote/archive/cleanup require separate finalconfirmation."
+  ],
+  "remaining": [
+    "aux200existing5secendpoint",
+    "receive/postvalidation boundarymeasurement",
+    "sustainedmixed/recordingquality/45/final120/memoryP0/releaseHOLD"
+  ]
+}

@@ -1,0 +1,1446 @@
+{
+  "schema": "media-server.v450.r121.validation.v1",
+  "status": "PARTIAL_DIRECT_ORIGINAL12_PASS_AUX200_FAIL_900_NOT_RUN",
+  "baseline": "5bc404a8844b1c7973c2c6ab590163c313de9d36",
+  "r120Product": "ddf0ebd4d39f01f7fe4d69ac5a3575b89c152075",
+  "entryState": "v4.5.0 clean index/tree; origin same baseline confirmed; no user changes overwritten",
+  "model": {
+    "requestedMain": "gpt-6-astra/high",
+    "mainToolAccepted": null,
+    "mainActualRuntimeModel": null,
+    "mainActualRuntimeEffort": null,
+    "reviewer": "/root/independent_r121",
+    "reviewRequested": "gpt-6-astra/high",
+    "reviewToolAccepted": "gpt-6-astra/high",
+    "reviewActualRuntimeModel": null,
+    "reviewActualRuntimeEffort": null,
+    "note": "runtime values not exposed; project default is not session evidence"
+  },
+  "scope": [
+    "same original12 and subsequent auxiliary200 in each direct run",
+    "R120 evidence reused within original limits; no retroactive PASS",
+    "no900/45/120/acceptance/UI/public action"
+  ],
+  "cause": {
+    "prior120": "request1/2 waits1812.669413/1737.831077ms; holder union487.632667/461.322282;unattributed1325.036746/1276.508795ms; not retrospectively attributed",
+    "newObserved": "two actual Catalog lock_guard callsites CaptureSearchSource/ValidateSearchSource were outside bounded holder coverage; diagnostic-only run attributes1236.237627/1192.777084ms overlap toCapture, unclassified4.222336/4.293572ms",
+    "method": "same mutex and clock; wait[b,a), hold[a,e), other-thread interval union perwaiter; no waiter sums as mutex utilization; selected requests1/2/3 only",
+    "limits": "WorkOther not identified as a peer Visual request; capture scalar records lack thread/timestamp, cannot join individual concurrent captures; elapsed includes wait, phases overlap"
+  },
+  "changes": [
+    "P01 authenticated sequential V2 Capture iterator plus same-cut observed-row presence avoids repeated root/row lookup; namespace/raw/lifecycle/retired/current validation maintained",
+    "P02 reuse existing bounded exact-current-raw segment classification only to avoid unselected-channel DTO; Continuous still included in selected channel; excluded lifecycle path still invoked; no newcache/cap",
+    "P03 immutable PreparedSource segment borrowed from firstbinding instead of duplicate canonical serialization/storage; first strictbinding, currentraw/media/path/fileproof/seek remain",
+    "Existing holder wrappers for both direct Catalog locks and bounded12 capture scalar lines emitted after unlock"
+  ],
+  "runs": {
+    "borrow-large": {
+      "originalPrinted": [
+        "failures=0 count=12 p95=1490.29 max=1490.29"
+      ],
+      "wireOriginal": {
+        "count": 12,
+        "status": [
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200
+        ],
+        "p95Ms": 1490.290709,
+        "maxMs": 1490.290709
+      },
+      "auxiliary": [
+        {
+          "id": 100,
+          "scope": "auxiliary200",
+          "route": "/ops/api/recordings/visual-search?channelIds=9101,9201&text=ball&limit=200&threshold=-1",
+          "beginNs": 1373370524919291,
+          "endNs": 1373375598168916,
+          "bytes": 78455,
+          "headers": true,
+          "status": 200,
+          "errno": 0,
+          "failure": "none",
+          "clientMs": 5073.249625,
+          "fiveSecondComplete200": false
+        }
+      ],
+      "membership": [
+        "generation=4 documents=1624 newDocuments=52 instance=a8e202d9bb00f82fcf37a210e59673f9"
+      ],
+      "publicationNewDocuments": [
+        "6"
+      ],
+      "source": [
+        "expected=2413 accepted=2413 files=42 fullAcceptance=1"
+      ],
+      "finish": [
+        "ok=1 error="
+      ],
+      "stop": [
+        "server=1",
+        "visual=1"
+      ],
+      "holderSelected": {
+        "1": {
+          "count": 384,
+          "waitMs": 890.636165,
+          "holdMs": 260.95338,
+          "unattributedMs": 4.804435,
+          "sameMutexOtherHoldOverlapMs": {
+            "CaptureSearchSource": 359.28966699999995,
+            "ReadVisualSource": 116.91991400000003,
+            "AcquireMediaWithContext": 86.31466200000001,
+            "AdjustHoldCount": 55.162122,
+            "ReadSourceBindingForMedia": 49.54516200000001,
+            "SnapshotTimelineWithContext": 43.054624000000004,
+            "RetentionCurrent": 40.677375,
+            "ValidateMediaWithContext": 33.51824200000001,
+            "RecoverBoundSegmentV2": 30.030582,
+            "ValidateSourceBindingForMedia": 24.075001,
+            "ListEventLinks": 15.226050999999988,
+            "FindSegmentV2ById": 9.679499,
+            "FindSegmentById": 7.397582999999999,
+            "RetentionCapture": 6.714417,
+            "ReserveRecordingOrder": 3.426333,
+            "IsDeletedSegmentId": 2.156708,
+            "ValidateBoundFinalizeRecoveryV2": 1.20275,
+            "ValidateSearchSource": 0.6232489999999999,
+            "ValidateManagedWriterBinding": 0.460042,
+            "RetentionAuthority": 0.282041,
+            "RetentionPending": 0.075208,
+            "IsRetentionOwner": 0.000498
+          }
+        },
+        "2": {
+          "count": 384,
+          "waitMs": 803.856591,
+          "holdMs": 271.41049,
+          "unattributedMs": 4.697383,
+          "sameMutexOtherHoldOverlapMs": {
+            "CaptureSearchSource": 315.633917,
+            "ReadVisualSource": 95.21220699999998,
+            "AcquireMediaWithContext": 73.56158399999997,
+            "ReadSourceBindingForMedia": 53.95645999999999,
+            "AdjustHoldCount": 50.50820700000001,
+            "SnapshotTimelineWithContext": 44.027291000000005,
+            "ValidateMediaWithContext": 32.55312300000001,
+            "RecoverBoundSegmentV2": 29.858707,
+            "RetentionCurrent": 28.409166000000003,
+            "ListEventLinks": 21.39475600000001,
+            "ValidateSourceBindingForMedia": 18.195580999999997,
+            "FindSegmentV2ById": 9.466871999999997,
+            "FindSegmentById": 9.029876999999999,
+            "RetentionCapture": 8.157542,
+            "ReserveRecordingOrder": 3.426333,
+            "IsDeletedSegmentId": 2.3976690000000005,
+            "ValidateBoundFinalizeRecoveryV2": 1.20275,
+            "ValidateSearchSource": 0.8158749999999999,
+            "RetentionPending": 0.670958,
+            "RetentionAuthority": 0.422875,
+            "ValidateManagedWriterBinding": 0.25670899999999996,
+            "IsRetentionOwner": 0.000749
+          }
+        },
+        "3": {
+          "count": 384,
+          "waitMs": 790.983575,
+          "holdMs": 241.342878,
+          "unattributedMs": 4.181626,
+          "sameMutexOtherHoldOverlapMs": {
+            "CaptureSearchSource": 350.378542,
+            "ReadVisualSource": 90.16766599999997,
+            "AcquireMediaWithContext": 70.89570799999998,
+            "RetentionCurrent": 45.583792,
+            "ReadSourceBindingForMedia": 40.60653700000001,
+            "SnapshotTimelineWithContext": 34.655834,
+            "AdjustHoldCount": 31.024168,
+            "ValidateMediaWithContext": 29.568620000000006,
+            "ValidateSourceBindingForMedia": 26.445082,
+            "RecoverBoundSegmentV2": 19.960584,
+            "ListEventLinks": 14.623289999999997,
+            "RetentionCapture": 11.783833000000001,
+            "FindSegmentV2ById": 7.143375000000001,
+            "FindSegmentById": 5.450208999999999,
+            "ReserveRecordingOrder": 5.023917,
+            "RetentionAuthority": 1.3133340000000002,
+            "IsDeletedSegmentId": 0.9797509999999999,
+            "RetentionPending": 0.449833,
+            "ValidateSearchSource": 0.43574899999999994,
+            "ValidateManagedWriterBinding": 0.311417,
+            "IsRetentionOwner": 0.000708
+          }
+        }
+      },
+      "liveSampledMax": {
+        "rssBytes": 2918400000,
+        "footprintBytes": 3339652504,
+        "fdCount": 373,
+        "anonymousFileBytes": 74519040,
+        "anonymousAllocatedBytes": 76140544
+      },
+      "variableBytesMax": 146418199,
+      "spaceEnd": [
+        {
+          "samples": 62,
+          "endedObserved": true
+        }
+      ],
+      "overallDirect": "FAIL",
+      "original12Pass": true,
+      "auxPass": false,
+      "elapsedSeconds": 62.603066582931206,
+      "binarySha256": "4e3a872d22babaecc40b23594b9ebfe8cf40a4dcd7b90ad5c4f4872bf6e3aa57",
+      "sourcePatchSha256": "378bcf2e4e76cb579a7eb6dbb2859424a9c2ec3dc657f72685850ee1e6a69291",
+      "collection": {
+        "exit": 0,
+        "monitorExit": 0,
+        "receivedBytes": 894404,
+        "savedBytes": 894404,
+        "timeout": false,
+        "overflow": false,
+        "groupAbsent": true
+      },
+      "preparation": [
+        {
+          "id": 7,
+          "uniqueObserved": 321,
+          "complete": true,
+          "values": [
+            321,
+            0,
+            0,
+            65,
+            3505939288,
+            0,
+            0,
+            524248207,
+            0,
+            19135708,
+            64280,
+            0
+          ]
+        }
+      ],
+      "resource": {
+        "logicalRamPeak": 387858237,
+        "scratchReservationPeak": 124092416,
+        "scratchFdPeak": 18,
+        "finished": {
+          "pid": 53200,
+          "seq": 5,
+          "phase": "finished",
+          "elapsedMs": 60345,
+          "ram": 158750771,
+          "ramPeak": 387858237,
+          "ramLimit": 671088640,
+          "ramRejected": 0,
+          "scratchDisk": 0,
+          "scratchDiskPeak": 124092416,
+          "scratchDiskLimit": 162120704000,
+          "scratchFd": 0,
+          "scratchFdPeak": 18,
+          "scratchFdLimit": 1048572,
+          "scratchRam": 0,
+          "preservedDisk": 0,
+          "preservedFd": 0,
+          "readerCleanupHealthy": true
+        },
+        "afterStorageDestruction": {
+          "pid": 53200,
+          "seq": 6,
+          "phase": "after-storage-destruction",
+          "elapsedMs": 60385,
+          "ram": 0,
+          "ramPeak": 387858237,
+          "ramLimit": 671088640,
+          "ramRejected": 0,
+          "scratchDisk": 0,
+          "scratchDiskPeak": 124092416,
+          "scratchDiskLimit": 162120704000,
+          "scratchFd": 0,
+          "scratchFdPeak": 18,
+          "scratchFdLimit": 1048572,
+          "scratchRam": 0,
+          "preservedDisk": 0,
+          "preservedFd": 0,
+          "readerCleanupHealthy": true
+        },
+        "allObservations": "archive final-comparison-analysis.json and originaloutput"
+      },
+      "selectedRequestCosts": [
+        {
+          "id": 2,
+          "elapsedMs": 1405.103542,
+          "generation": 0,
+          "documents": 1557,
+          "catalogCountWaitHold": [
+            384,
+            803856591,
+            271410490
+          ],
+          "sourcePrepareCountNs": [
+            33,
+            1158095168
+          ],
+          "bindingCountNs": [
+            33,
+            516877914
+          ],
+          "mediaCountNs": [
+            33,
+            409558916
+          ],
+          "finalResultCountNs": [
+            1,
+            65343834
+          ]
+        },
+        {
+          "id": 1,
+          "elapsedMs": 1416.262041,
+          "generation": 0,
+          "documents": 1557,
+          "catalogCountWaitHold": [
+            384,
+            890636165,
+            260953380
+          ],
+          "sourcePrepareCountNs": [
+            33,
+            1200922210
+          ],
+          "bindingCountNs": [
+            33,
+            481191791
+          ],
+          "mediaCountNs": [
+            33,
+            424014081
+          ],
+          "finalResultCountNs": [
+            1,
+            74792958
+          ]
+        },
+        {
+          "id": 7,
+          "elapsedMs": 4694.544125,
+          "generation": 4,
+          "documents": 1624,
+          "catalogCountWaitHold": [
+            4185,
+            24833065,
+            2304124375
+          ],
+          "sourcePrepareCountNs": [
+            386,
+            4182742788
+          ],
+          "bindingCountNs": [
+            386,
+            2016401246
+          ],
+          "mediaCountNs": [
+            386,
+            1100849043
+          ],
+          "finalResultCountNs": [
+            1,
+            731649250
+          ]
+        }
+      ]
+    },
+    "channel-large": {
+      "originalPrinted": [
+        "failures=0 count=12 p95=1557.07 max=1557.07"
+      ],
+      "wireOriginal": {
+        "count": 12,
+        "status": [
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200
+        ],
+        "p95Ms": 1557.07725,
+        "maxMs": 1557.07725
+      },
+      "auxiliary": [
+        {
+          "id": 100,
+          "scope": "auxiliary200",
+          "route": "/ops/api/recordings/visual-search?channelIds=9101,9201&text=ball&limit=200&threshold=-1",
+          "beginNs": 1372422389996208,
+          "endNs": 1372427408214958,
+          "bytes": 78455,
+          "headers": true,
+          "status": 200,
+          "errno": 0,
+          "failure": "none",
+          "clientMs": 5018.21875,
+          "fiveSecondComplete200": false
+        }
+      ],
+      "membership": [
+        "generation=4 documents=1624 newDocuments=52 instance=dbc67f2a76803499e5e8acc95bb8ae63"
+      ],
+      "publicationNewDocuments": [
+        "4"
+      ],
+      "source": [
+        "expected=2443 accepted=2443 files=42 fullAcceptance=1"
+      ],
+      "finish": [
+        "ok=1 error="
+      ],
+      "stop": [
+        "server=1",
+        "visual=1"
+      ],
+      "holderSelected": {
+        "1": {
+          "count": 384,
+          "waitMs": 1057.374781,
+          "holdMs": 251.73351,
+          "unattributedMs": 4.46924,
+          "sameMutexOtherHoldOverlapMs": {
+            "CaptureSearchSource": 574.6612500000001,
+            "ReadVisualSource": 95.72008599999995,
+            "AcquireMediaWithContext": 68.95295999999999,
+            "AdjustHoldCount": 58.035835999999996,
+            "ReadSourceBindingForMedia": 53.630792999999976,
+            "RetentionCurrent": 40.536917,
+            "SnapshotTimelineWithContext": 39.891875,
+            "ValidateMediaWithContext": 34.40683000000002,
+            "RecoverBoundSegmentV2": 27.201875,
+            "ValidateSourceBindingForMedia": 17.178373000000004,
+            "ListEventLinks": 11.464040999999993,
+            "RetentionCapture": 6.69875,
+            "FindSegmentById": 6.334583000000002,
+            "FindSegmentV2ById": 6.160873999999999,
+            "ReserveRecordingOrder": 3.3913320000000002,
+            "ValidateBoundFinalizeRecoveryV2": 3.2000420000000003,
+            "IsDeletedSegmentId": 2.059957,
+            "RetentionPending": 1.404375,
+            "ValidateSearchSource": 1.374749,
+            "ValidateManagedWriterBinding": 0.495043,
+            "RetentionAuthority": 0.103583,
+            "IsRetentionOwner": 0.0014169999999999999
+          }
+        },
+        "2": {
+          "count": 384,
+          "waitMs": 1007.53137,
+          "holdMs": 258.812382,
+          "unattributedMs": 4.477704,
+          "sameMutexOtherHoldOverlapMs": {
+            "CaptureSearchSource": 531.9289160000001,
+            "ReadVisualSource": 83.609292,
+            "AcquireMediaWithContext": 70.57979000000002,
+            "ReadSourceBindingForMedia": 58.22079299999999,
+            "AdjustHoldCount": 51.312040999999994,
+            "RetentionCurrent": 40.452667000000005,
+            "SnapshotTimelineWithContext": 40.342208,
+            "ValidateMediaWithContext": 31.346712000000004,
+            "RecoverBoundSegmentV2": 27.110917,
+            "ValidateSourceBindingForMedia": 25.177333000000004,
+            "ListEventLinks": 13.470376999999994,
+            "FindSegmentV2ById": 7.302038,
+            "RetentionCapture": 7.0436250000000005,
+            "FindSegmentById": 4.428415,
+            "ReserveRecordingOrder": 3.372166,
+            "ValidateBoundFinalizeRecoveryV2": 3.2000420000000003,
+            "IsDeletedSegmentId": 1.8701269999999999,
+            "ValidateSearchSource": 1.742498,
+            "RetentionPending": 0.25616700000000003,
+            "RetentionAuthority": 0.170875,
+            "ValidateManagedWriterBinding": 0.115584,
+            "IsRetentionOwner": 0.001083
+          }
+        },
+        "3": {
+          "count": 384,
+          "waitMs": 871.227764,
+          "holdMs": 265.507503,
+          "unattributedMs": 4.925401,
+          "sameMutexOtherHoldOverlapMs": {
+            "CaptureSearchSource": 383.620666,
+            "ReadVisualSource": 108.06225600000008,
+            "AcquireMediaWithContext": 75.59550200000001,
+            "ReadSourceBindingForMedia": 55.383465,
+            "RetentionCurrent": 43.390709,
+            "AdjustHoldCount": 41.73308799999999,
+            "SnapshotTimelineWithContext": 37.86024999999999,
+            "ValidateMediaWithContext": 29.308461,
+            "RecoverBoundSegmentV2": 23.392834,
+            "ValidateSourceBindingForMedia": 20.597587000000004,
+            "ListEventLinks": 12.472673999999992,
+            "RetentionCapture": 9.939209,
+            "ReserveRecordingOrder": 7.781083000000001,
+            "FindSegmentV2ById": 7.384458,
+            "FindSegmentById": 5.943373000000001,
+            "IsDeletedSegmentId": 1.7436639999999999,
+            "ValidateSearchSource": 0.783833,
+            "ValidateManagedWriterBinding": 0.737833,
+            "RetentionAuthority": 0.316126,
+            "RetentionPending": 0.252917,
+            "IsRetentionOwner": 0.0023750000000000004
+          }
+        }
+      },
+      "liveSampledMax": {
+        "rssBytes": 3397386240,
+        "footprintBytes": 3345141168,
+        "fdCount": 359,
+        "anonymousFileBytes": 74384896,
+        "anonymousAllocatedBytes": 76038144
+      },
+      "variableBytesMax": 146959143,
+      "spaceEnd": [
+        {
+          "samples": 63,
+          "endedObserved": true
+        }
+      ],
+      "overallDirect": "FAIL",
+      "original12Pass": true,
+      "auxPass": false,
+      "elapsedSeconds": 63.61455100006424,
+      "binarySha256": "ea997771a4f36a5114fbd0fdf664b78720bd92b7a69cf441150c33138e686603",
+      "sourcePatchSha256": "2b3c8525841bbeeeac504fd3b4c66d989eb2897568d90bd8410fa2abc5131b08",
+      "collection": {
+        "exit": 0,
+        "monitorExit": 0,
+        "receivedBytes": 899284,
+        "savedBytes": 899284,
+        "timeout": false,
+        "overflow": false,
+        "groupAbsent": true
+      },
+      "preparation": [
+        {
+          "id": 7,
+          "uniqueObserved": 322,
+          "complete": true,
+          "values": [
+            322,
+            0,
+            0,
+            66,
+            3163748886,
+            0,
+            0,
+            554326125,
+            0,
+            19200628,
+            64280,
+            0
+          ]
+        }
+      ],
+      "resource": {
+        "logicalRamPeak": 428982057,
+        "scratchReservationPeak": 123596800,
+        "scratchFdPeak": 18,
+        "finished": {
+          "pid": 51890,
+          "seq": 5,
+          "phase": "finished",
+          "elapsedMs": 60662,
+          "ram": 158732403,
+          "ramPeak": 428982057,
+          "ramLimit": 671088640,
+          "ramRejected": 0,
+          "scratchDisk": 0,
+          "scratchDiskPeak": 123596800,
+          "scratchDiskLimit": 162323218432,
+          "scratchFd": 0,
+          "scratchFdPeak": 18,
+          "scratchFdLimit": 1048572,
+          "scratchRam": 0,
+          "preservedDisk": 0,
+          "preservedFd": 0,
+          "readerCleanupHealthy": true
+        },
+        "afterStorageDestruction": {
+          "pid": 51890,
+          "seq": 6,
+          "phase": "after-storage-destruction",
+          "elapsedMs": 60702,
+          "ram": 0,
+          "ramPeak": 428982057,
+          "ramLimit": 671088640,
+          "ramRejected": 0,
+          "scratchDisk": 0,
+          "scratchDiskPeak": 123596800,
+          "scratchDiskLimit": 162323218432,
+          "scratchFd": 0,
+          "scratchFdPeak": 18,
+          "scratchFdLimit": 1048572,
+          "scratchRam": 0,
+          "preservedDisk": 0,
+          "preservedFd": 0,
+          "readerCleanupHealthy": true
+        },
+        "allObservations": "archive final-comparison-analysis.json and originaloutput"
+      },
+      "selectedRequestCosts": [
+        {
+          "id": 2,
+          "elapsedMs": 1554.718583,
+          "generation": 0,
+          "documents": 1557,
+          "catalogCountWaitHold": [
+            384,
+            1007531370,
+            258812382
+          ],
+          "sourcePrepareCountNs": [
+            33,
+            1281905040
+          ],
+          "bindingCountNs": [
+            33,
+            643811039
+          ],
+          "mediaCountNs": [
+            33,
+            403439379
+          ],
+          "finalResultCountNs": [
+            1,
+            86584500
+          ]
+        },
+        {
+          "id": 1,
+          "elapsedMs": 1556.490875,
+          "generation": 0,
+          "documents": 1557,
+          "catalogCountWaitHold": [
+            384,
+            1057374781,
+            251733510
+          ],
+          "sourcePrepareCountNs": [
+            33,
+            972022709
+          ],
+          "bindingCountNs": [
+            33,
+            311928498
+          ],
+          "mediaCountNs": [
+            33,
+            404692545
+          ],
+          "finalResultCountNs": [
+            1,
+            89218958
+          ]
+        },
+        {
+          "id": 7,
+          "elapsedMs": 4651.860833,
+          "generation": 4,
+          "documents": 1624,
+          "catalogCountWaitHold": [
+            4200,
+            15601342,
+            2237401190
+          ],
+          "sourcePrepareCountNs": [
+            388,
+            3862783208
+          ],
+          "bindingCountNs": [
+            388,
+            1835841087
+          ],
+          "mediaCountNs": [
+            388,
+            1007918953
+          ],
+          "finalResultCountNs": [
+            1,
+            763601791
+          ]
+        }
+      ]
+    },
+    "cursor-large": {
+      "originalPrinted": [
+        "failures=0 count=12 p95=2071.15 max=2071.15"
+      ],
+      "wireOriginal": {
+        "count": 12,
+        "status": [
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200
+        ],
+        "p95Ms": 2071.159167,
+        "maxMs": 2071.159167
+      },
+      "auxiliary": [
+        {
+          "id": 100,
+          "scope": "auxiliary200",
+          "route": "/ops/api/recordings/visual-search?channelIds=9101,9201&text=ball&limit=200&threshold=-1",
+          "beginNs": 1371685182276458,
+          "endNs": 1371690004765708,
+          "bytes": 78455,
+          "headers": true,
+          "status": 200,
+          "errno": 0,
+          "failure": "none",
+          "clientMs": 4822.48925,
+          "fiveSecondComplete200": true
+        }
+      ],
+      "membership": [
+        "generation=4 documents=1624 newDocuments=52 instance=60bad86db187c6ae3aa11cf72aef93c0"
+      ],
+      "publicationNewDocuments": [
+        "6"
+      ],
+      "source": [
+        "expected=2444 accepted=2444 files=42 fullAcceptance=1"
+      ],
+      "finish": [
+        "ok=1 error="
+      ],
+      "stop": [
+        "server=1",
+        "visual=1"
+      ],
+      "holderSelected": {
+        "1": {
+          "count": 384,
+          "waitMs": 1561.556953,
+          "holdMs": 225.242137,
+          "unattributedMs": 4.071706,
+          "sameMutexOtherHoldOverlapMs": {
+            "CaptureSearchSource": 1069.353958,
+            "ReadVisualSource": 90.6100829999999,
+            "AcquireMediaWithContext": 81.88949800000002,
+            "RecoverBoundSegmentV2": 58.143667,
+            "AdjustHoldCount": 46.91583099999999,
+            "ReadSourceBindingForMedia": 39.96895400000001,
+            "RetentionCurrent": 38.23475,
+            "SnapshotTimelineWithContext": 33.396625,
+            "ValidateMediaWithContext": 27.617125999999995,
+            "ValidateSourceBindingForMedia": 21.095876,
+            "RetentionCapture": 12.127751,
+            "ListEventLinks": 11.257247999999992,
+            "ReserveRecordingOrder": 7.6437919999999995,
+            "FindSegmentV2ById": 6.526293000000002,
+            "FindSegmentById": 4.7290849999999995,
+            "ValidateBoundFinalizeRecoveryV2": 4.400209,
+            "IsDeletedSegmentId": 1.595879,
+            "ValidateManagedWriterBinding": 0.715207,
+            "RetentionAuthority": 0.603291,
+            "ValidateSearchSource": 0.588625,
+            "RetentionPending": 0.069625,
+            "IsRetentionOwner": 0.0018739999999999998
+          }
+        },
+        "2": {
+          "count": 384,
+          "waitMs": 1580.333455,
+          "holdMs": 236.104461,
+          "unattributedMs": 4.098193,
+          "sameMutexOtherHoldOverlapMs": {
+            "CaptureSearchSource": 1115.914042,
+            "ReadVisualSource": 87.76033699999995,
+            "AcquireMediaWithContext": 65.522295,
+            "RecoverBoundSegmentV2": 58.143667,
+            "AdjustHoldCount": 45.494456,
+            "RetentionCurrent": 41.679833,
+            "ReadSourceBindingForMedia": 41.43354700000004,
+            "SnapshotTimelineWithContext": 34.634459,
+            "ValidateMediaWithContext": 22.991923000000007,
+            "ValidateSourceBindingForMedia": 15.209413000000003,
+            "ListEventLinks": 12.573871999999996,
+            "RetentionCapture": 9.774834,
+            "ReserveRecordingOrder": 7.6437919999999995,
+            "FindSegmentV2ById": 5.661127000000001,
+            "ValidateBoundFinalizeRecoveryV2": 4.398626,
+            "FindSegmentById": 4.127169,
+            "IsDeletedSegmentId": 1.144249,
+            "ValidateManagedWriterBinding": 0.973041,
+            "ValidateSearchSource": 0.811333,
+            "RetentionAuthority": 0.21033200000000002,
+            "RetentionPending": 0.131166,
+            "IsRetentionOwner": 0.001749
+          }
+        },
+        "3": {
+          "count": 384,
+          "waitMs": 902.550622,
+          "holdMs": 238.85329,
+          "unattributedMs": 4.193931,
+          "sameMutexOtherHoldOverlapMs": {
+            "CaptureSearchSource": 472.413583,
+            "ReadVisualSource": 87.79383099999998,
+            "AcquireMediaWithContext": 76.82132700000003,
+            "AdjustHoldCount": 50.188042,
+            "ReadSourceBindingForMedia": 46.30712199999999,
+            "RetentionCurrent": 41.523208999999994,
+            "SnapshotTimelineWithContext": 35.756166,
+            "ValidateMediaWithContext": 30.05366099999999,
+            "ValidateSourceBindingForMedia": 19.684626999999992,
+            "ListEventLinks": 17.705620999999997,
+            "FindSegmentV2ById": 7.1752069999999994,
+            "FindSegmentById": 6.011420000000001,
+            "RetentionCapture": 2.80425,
+            "IsDeletedSegmentId": 1.7736669999999999,
+            "RetentionAuthority": 1.284834,
+            "RetentionPending": 0.542667,
+            "ValidateSearchSource": 0.515708,
+            "IsRetentionOwner": 0.0017490000000000001
+          }
+        }
+      },
+      "liveSampledMax": {
+        "rssBytes": 2233679872,
+        "footprintBytes": 3327020464,
+        "fdCount": 355,
+        "anonymousFileBytes": 89887232,
+        "anonymousAllocatedBytes": 91521024
+      },
+      "variableBytesMax": 163193406,
+      "spaceEnd": [
+        {
+          "samples": 63,
+          "endedObserved": true
+        }
+      ],
+      "overallDirect": "FAIL",
+      "original12Pass": false,
+      "auxPass": true,
+      "elapsedSeconds": 63.546358624938875,
+      "binarySha256": "0adbdd744949c71c992849c0120d3e74c407f697436b6bd9bdbeb4e4408a0d03",
+      "sourcePatchSha256": "74110c08c2ff96ccc3ccb1eb4c81e376c0aa55fa41ec2d43f73e87067c92edf9",
+      "collection": {
+        "exit": 1,
+        "monitorExit": 0,
+        "receivedBytes": 896929,
+        "savedBytes": 896929,
+        "timeout": false,
+        "overflow": false,
+        "groupAbsent": true
+      },
+      "preparation": [
+        {
+          "id": 7,
+          "uniqueObserved": 324,
+          "complete": true,
+          "values": [
+            324,
+            0,
+            0,
+            64,
+            3238954122,
+            0,
+            0,
+            531168878,
+            0,
+            19233960,
+            64280,
+            0
+          ]
+        }
+      ],
+      "resource": {
+        "logicalRamPeak": 428584797,
+        "scratchReservationPeak": 131039232,
+        "scratchFdPeak": 18,
+        "finished": {
+          "pid": 50816,
+          "seq": 5,
+          "phase": "finished",
+          "elapsedMs": 60799,
+          "ram": 158466067,
+          "ramPeak": 428584797,
+          "ramLimit": 671088640,
+          "ramRejected": 0,
+          "scratchDisk": 0,
+          "scratchDiskPeak": 131039232,
+          "scratchDiskLimit": 162491629568,
+          "scratchFd": 0,
+          "scratchFdPeak": 18,
+          "scratchFdLimit": 1048572,
+          "scratchRam": 0,
+          "preservedDisk": 0,
+          "preservedFd": 0,
+          "readerCleanupHealthy": true
+        },
+        "afterStorageDestruction": {
+          "pid": 50816,
+          "seq": 6,
+          "phase": "after-storage-destruction",
+          "elapsedMs": 60858,
+          "ram": 0,
+          "ramPeak": 428584797,
+          "ramLimit": 671088640,
+          "ramRejected": 0,
+          "scratchDisk": 0,
+          "scratchDiskPeak": 131039232,
+          "scratchDiskLimit": 162491629568,
+          "scratchFd": 0,
+          "scratchFdPeak": 18,
+          "scratchFdLimit": 1048572,
+          "scratchRam": 0,
+          "preservedDisk": 0,
+          "preservedFd": 0,
+          "readerCleanupHealthy": true
+        },
+        "allObservations": "archive final-comparison-analysis.json and originaloutput"
+      },
+      "selectedRequestCosts": [
+        {
+          "id": 2,
+          "elapsedMs": 2055.5745,
+          "generation": 0,
+          "documents": 1557,
+          "catalogCountWaitHold": [
+            384,
+            1580333455,
+            236104461
+          ],
+          "sourcePrepareCountNs": [
+            33,
+            1809027540
+          ],
+          "bindingCountNs": [
+            33,
+            874457995
+          ],
+          "mediaCountNs": [
+            33,
+            715046918
+          ],
+          "finalResultCountNs": [
+            1,
+            62489584
+          ]
+        },
+        {
+          "id": 1,
+          "elapsedMs": 2070.581666,
+          "generation": 0,
+          "documents": 1557,
+          "catalogCountWaitHold": [
+            384,
+            1561556953,
+            225242137
+          ],
+          "sourcePrepareCountNs": [
+            33,
+            1770974584
+          ],
+          "bindingCountNs": [
+            33,
+            883392499
+          ],
+          "mediaCountNs": [
+            33,
+            673393209
+          ],
+          "finalResultCountNs": [
+            1,
+            73764709
+          ]
+        },
+        {
+          "id": 7,
+          "elapsedMs": 4456.670292,
+          "generation": 4,
+          "documents": 1624,
+          "catalogCountWaitHold": [
+            4206,
+            12761138,
+            2233778520
+          ],
+          "sourcePrepareCountNs": [
+            388,
+            3916351833
+          ],
+          "bindingCountNs": [
+            388,
+            1886736113
+          ],
+          "mediaCountNs": [
+            388,
+            1006128325
+          ],
+          "finalResultCountNs": [
+            1,
+            737952041
+          ]
+        }
+      ]
+    },
+    "observed-large": {
+      "originalPrinted": [
+        "failures=0 count=12 p95=2270.03 max=2270.03"
+      ],
+      "wireOriginal": {
+        "count": 12,
+        "status": [
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200
+        ],
+        "p95Ms": 2270.035,
+        "maxMs": 2270.035
+      },
+      "auxiliary": [
+        {
+          "id": 100,
+          "scope": "auxiliary200",
+          "route": "/ops/api/recordings/visual-search?channelIds=9101,9201&text=ball&limit=200&threshold=-1",
+          "beginNs": 1371379834722125,
+          "endNs": 1371384633176875,
+          "bytes": 78455,
+          "headers": true,
+          "status": 200,
+          "errno": 0,
+          "failure": "none",
+          "clientMs": 4798.45475,
+          "fiveSecondComplete200": true
+        }
+      ],
+      "membership": [
+        "generation=4 documents=1624 newDocuments=52 instance=00b47ac2d8dc8c7842248d75103f5dcd"
+      ],
+      "publicationNewDocuments": [
+        "3"
+      ],
+      "source": [
+        "expected=2409 accepted=2409 files=42 fullAcceptance=1"
+      ],
+      "finish": [
+        "ok=1 error="
+      ],
+      "stop": [
+        "server=1",
+        "visual=1"
+      ],
+      "holderSelected": {
+        "1": {
+          "count": 384,
+          "waitMs": 1724.509237,
+          "holdMs": 267.42605,
+          "unattributedMs": 4.222336,
+          "sameMutexOtherHoldOverlapMs": {
+            "CaptureSearchSource": 1236.237627,
+            "ReadVisualSource": 91.99323900000005,
+            "AcquireMediaWithContext": 60.21058500000001,
+            "RecoverBoundSegmentV2": 60.141542,
+            "AdjustHoldCount": 50.10050100000001,
+            "ReadSourceBindingForMedia": 49.79362100000004,
+            "RetentionCurrent": 43.686125000000004,
+            "SnapshotTimelineWithContext": 33.84675,
+            "ValidateMediaWithContext": 33.369832,
+            "ValidateSourceBindingForMedia": 16.535246000000004,
+            "RetentionCapture": 12.908667000000003,
+            "ListEventLinks": 10.183669000000009,
+            "ReserveRecordingOrder": 7.220376,
+            "FindSegmentV2ById": 4.131958000000001,
+            "FindSegmentById": 2.7697480000000008,
+            "ValidateBoundFinalizeRecoveryV2": 2.191208,
+            "ValidateManagedWriterBinding": 2.133751,
+            "IsDeletedSegmentId": 1.2495420000000002,
+            "ValidateSearchSource": 1.023165,
+            "RetentionPending": 0.341625,
+            "RetentionAuthority": 0.215459,
+            "IsRetentionOwner": 0.0026649999999999994
+          }
+        },
+        "2": {
+          "count": 384,
+          "waitMs": 1706.050703,
+          "holdMs": 249.843466,
+          "unattributedMs": 4.293572,
+          "sameMutexOtherHoldOverlapMs": {
+            "CaptureSearchSource": 1192.777084,
+            "ReadVisualSource": 92.48912200000004,
+            "AcquireMediaWithContext": 81.64333700000002,
+            "RecoverBoundSegmentV2": 60.84824999999999,
+            "AdjustHoldCount": 47.849958999999984,
+            "ReadSourceBindingForMedia": 47.07142100000001,
+            "RetentionCurrent": 43.686125000000004,
+            "SnapshotTimelineWithContext": 35.471582999999995,
+            "ValidateMediaWithContext": 34.32795800000001,
+            "ValidateSourceBindingForMedia": 19.412419000000003,
+            "RetentionCapture": 12.237209000000002,
+            "ListEventLinks": 11.542876000000005,
+            "ReserveRecordingOrder": 7.205501,
+            "FindSegmentV2ById": 4.80854,
+            "FindSegmentById": 3.8610400000000005,
+            "ValidateBoundFinalizeRecoveryV2": 3.395083,
+            "IsDeletedSegmentId": 1.488874,
+            "ValidateSearchSource": 0.72554,
+            "ValidateManagedWriterBinding": 0.6239169999999999,
+            "RetentionPending": 0.18625,
+            "RetentionAuthority": 0.103667,
+            "IsRetentionOwner": 0.001376
+          }
+        },
+        "3": {
+          "count": 384,
+          "waitMs": 781.185089,
+          "holdMs": 256.266042,
+          "unattributedMs": 4.280719,
+          "sameMutexOtherHoldOverlapMs": {
+            "CaptureSearchSource": 375.646541,
+            "ReadVisualSource": 82.854709,
+            "AcquireMediaWithContext": 67.055329,
+            "ReadSourceBindingForMedia": 48.48620799999996,
+            "AdjustHoldCount": 46.41904000000001,
+            "RetentionCurrent": 43.329123,
+            "SnapshotTimelineWithContext": 36.80775,
+            "ValidateMediaWithContext": 27.591624999999997,
+            "ValidateSourceBindingForMedia": 18.141254999999994,
+            "ListEventLinks": 11.982082999999994,
+            "FindSegmentById": 6.923669999999999,
+            "FindSegmentV2ById": 5.420456,
+            "RetentionCapture": 3.339042,
+            "IsDeletedSegmentId": 1.654623,
+            "ValidateSearchSource": 0.668458,
+            "RetentionPending": 0.404625,
+            "RetentionAuthority": 0.177334,
+            "IsRetentionOwner": 0.0024990000000000004
+          }
+        }
+      },
+      "liveSampledMax": {
+        "rssBytes": 3373137920,
+        "footprintBytes": 3320925592,
+        "fdCount": 353,
+        "anonymousFileBytes": 90050560,
+        "anonymousAllocatedBytes": 91697152
+      },
+      "variableBytesMax": 163350064,
+      "spaceEnd": [
+        {
+          "samples": 62,
+          "endedObserved": true
+        }
+      ],
+      "overallDirect": "FAIL",
+      "original12Pass": false,
+      "auxPass": true,
+      "elapsedSeconds": 62.76662716688588,
+      "binarySha256": "01adcb8b705ea873e0a46f5fa2e0dcf75e06b1e2d7bbacb76d2e30800ceea5ed",
+      "sourcePatchSha256": "47850410cf6f21252edd088fb84547d66aa4ff4a634549cc2fecd9c5ba7d9eda",
+      "collection": {
+        "exit": 1,
+        "monitorExit": 0,
+        "receivedBytes": 895175,
+        "savedBytes": 895175,
+        "timeout": false,
+        "overflow": false,
+        "groupAbsent": true
+      },
+      "preparation": [
+        {
+          "id": 7,
+          "uniqueObserved": 322,
+          "complete": true,
+          "values": [
+            322,
+            0,
+            0,
+            64,
+            3151562928,
+            0,
+            0,
+            532912414,
+            0,
+            19152436,
+            64312,
+            0
+          ]
+        }
+      ],
+      "resource": {
+        "logicalRamPeak": 431480373,
+        "scratchReservationPeak": 126717952,
+        "scratchFdPeak": 18,
+        "finished": {
+          "pid": 50361,
+          "seq": 5,
+          "phase": "finished",
+          "elapsedMs": 60119,
+          "ram": 158805875,
+          "ramPeak": 431480373,
+          "ramLimit": 671088640,
+          "ramRejected": 0,
+          "scratchDisk": 0,
+          "scratchDiskPeak": 126717952,
+          "scratchDiskLimit": 162656731136,
+          "scratchFd": 0,
+          "scratchFdPeak": 18,
+          "scratchFdLimit": 1048572,
+          "scratchRam": 0,
+          "preservedDisk": 0,
+          "preservedFd": 0,
+          "readerCleanupHealthy": true
+        },
+        "afterStorageDestruction": {
+          "pid": 50361,
+          "seq": 6,
+          "phase": "after-storage-destruction",
+          "elapsedMs": 60147,
+          "ram": 0,
+          "ramPeak": 431480373,
+          "ramLimit": 671088640,
+          "ramRejected": 0,
+          "scratchDisk": 0,
+          "scratchDiskPeak": 126717952,
+          "scratchDiskLimit": 162656731136,
+          "scratchFd": 0,
+          "scratchFdPeak": 18,
+          "scratchFdLimit": 1048572,
+          "scratchRam": 0,
+          "preservedDisk": 0,
+          "preservedFd": 0,
+          "readerCleanupHealthy": true
+        },
+        "allObservations": "archive final-comparison-analysis.json and originaloutput"
+      },
+      "selectedRequestCosts": [
+        {
+          "id": 1,
+          "elapsedMs": 2263.175125,
+          "generation": 0,
+          "documents": 1557,
+          "catalogCountWaitHold": [
+            384,
+            1724509237,
+            267426050
+          ],
+          "sourcePrepareCountNs": [
+            33,
+            1995983166
+          ],
+          "bindingCountNs": [
+            33,
+            322722417
+          ],
+          "mediaCountNs": [
+            33,
+            853086333
+          ],
+          "finalResultCountNs": [
+            1,
+            116259375
+          ]
+        },
+        {
+          "id": 2,
+          "elapsedMs": 2269.380958,
+          "generation": 0,
+          "documents": 1557,
+          "catalogCountWaitHold": [
+            384,
+            1706050703,
+            249843466
+          ],
+          "sourcePrepareCountNs": [
+            33,
+            1929707415
+          ],
+          "bindingCountNs": [
+            33,
+            324331130
+          ],
+          "mediaCountNs": [
+            33,
+            1399881292
+          ],
+          "finalResultCountNs": [
+            1,
+            121145500
+          ]
+        },
+        {
+          "id": 7,
+          "elapsedMs": 4445.097458,
+          "generation": 4,
+          "documents": 1624,
+          "catalogCountWaitHold": [
+            4191,
+            15623020,
+            2218254274
+          ],
+          "sourcePrepareCountNs": [
+            386,
+            3828516752
+          ],
+          "bindingCountNs": [
+            386,
+            1863562246
+          ],
+          "mediaCountNs": [
+            386,
+            960198505
+          ],
+          "finalResultCountNs": [
+            1,
+            735841583
+          ]
+        }
+      ]
+    }
+  },
+  "comparability": {
+    "input": "117 original1064 filehash/mode map and inputMP4 preserved; copies separate owned roots; reOpen not priorlivecache restoration",
+    "inputSha256": "64754e3fdd2719f4b44816ff042a2312150c5522727e0e62466272ac3fc8e664",
+    "mode": "source-parallel/cycle, original3x4 limit20 then background completion/membership then limit200 thenStop/Finish thenfinalgate",
+    "build": "same build-gst-onnx flags; no optimization-mode change; platform compiles/regressions finished before HTTP",
+    "bindingAuditOverlap": "final candidate static source emitter briefly overlapped borrow initial Open, completed before model/live HTTP; no compile or product test overlap. Kept as limitation, not hidden",
+    "liveDifferences": "same sourceinput/speed/query/model/auth/collector; UUID/stop-edge extras/interleaving/cache differ; publication4/docs1624 acrossruns but actualfresh IDs differ; one run per changed candidate, no statistical guarantee"
+  },
+  "auxiliaryBoundary": {
+    "existingMetric": "HttpObservation destructor endNs follows Drain, strict items parse, fresh FindSourceBinding checks and output; original12 ends immediately afterDrain",
+    "finalClientMs": 5073.249625,
+    "serverVisualMs": 4694.544125,
+    "receiveCompleteNs": null,
+    "remainingDifferenceMs": 378.7055,
+    "interpretation": "difference not fully attributable to pure network/send/clientverification; no receive-end timestamp. Preserve existing5sec comparison incl reported endpoint; no subtraction/retroPASS/new4sec gate",
+    "helperExit": "helper and existing qualifier exit0 do not test auxiliary post-validation elapsed; independent same-run evaluator detects >5000ms and reportsFAIL"
+  },
+  "finalPreparation": {
+    "firstUnique": 321,
+    "firstInclusiveMs": 3505.939288,
+    "finalReprepare": 65,
+    "finalReprepareMs": 524.248207,
+    "successfulPrepare": 386,
+    "sourcePrepareInclusiveMs": 4182.742788,
+    "bindingInclusiveMs": 2016.401246,
+    "mediaInclusiveMs": 1100.849043,
+    "finalResponsePhaseMs": 731.64925,
+    "catalogWaitMs": 24.833065,
+    "catalogHoldMs": 2304.124375,
+    "notAdditive": true,
+    "improvementClaim": "P03 removes actual duplication and ownedcanonical bytes but finalaux total/sourceprepare not improved vsP02; no full target success claim"
+  },
+  "regression": {
+    "macOS": [
+      "product Werror build",
+      "source58/generation29",
+      "request-proof4config includingP01/P02/P03",
+      "visual-source126",
+      "realcache679 after fixture correction",
+      "latency trace51 reused frominstrumentation stage"
+    ],
+    "Linux": [
+      "existingrc58arm64 image,nonroot10001,networknone,readonlysource,capdrop,2CPU4GiB",
+      "productWerror/source58/generation29/visual126",
+      "request-proof4config",
+      "realcache679 after actualoversize fixture correction"
+    ],
+    "preservedFailures": [
+      "Macvisualfirstexit2 beforeinitialization duecwd/env mismatch, correctedowneredenvironmentPASS126; initial commentary missinginput explanation corrected",
+      "Mac/Linux cache initial legacy6304716<8MiB assertionFAIL; no requirementremoved; seed3150realAUs + valid<1MiB segment yields8860060 legacyproof >8MiB, uncached/hold/FDPASS; compact4206276<=8MiB",
+      "corpus-preparationKeyErrorsegmentId beforefilewrite; corrected actualentityId, not productRED"
+    ],
+    "testLimits": [
+      "excludedlifecycleerror inchannelmemo test is callbackexception, not directstate-storecorruption; existinggeneration integrity regression reused",
+      "borrowed changed-media test different address, product input isimmutable; not arbitrarysameaddressmutation guarantee",
+      "3150isactualencoderinputcount, docs.size1 assertionalone isnotcompletefile samplecount proof"
+    ],
+    "proofMatrixCounts": {
+      "macOS": [
+        329,
+        329,
+        1,
+        1
+      ],
+      "Linux": [
+        329,
+        329,
+        1,
+        1
+      ],
+      "order": [
+        "crypto1/sqlite1/backend1",
+        "crypto1/sqlite0/backend1",
+        "crypto0/sqlite1/backend1",
+        "crypto1/sqlite1/backend0"
+      ]
+    }
+  },
+  "resourceLimits": "640MiB logicalRAM not wholeRSS; independent logical/allocated anonymousmax maintained, no sum of different-time maxima aspeak; finalowner0 notwholeheap proof",
+  "micro": "869canonical rows8194567bytes repeated3times97.836905/97.335368/98.775625ms, standalone serializer only, not HTTP improvement",
+  "nextBlock": "same final execution auxiliary existing endpoint exceeds5sec by73.249625ms. Productsource preparation remains4182.743ms; requestreceive vs post-receive verification boundary unavailable. No proven additional dominant redundant boundary selected; no unchanged retry or speculative next getter modification. Next diagnosis must retain old endpoint and separately observe actualreceive/verification before any gate reinterpretation. This does not assert safe further optimization is impossible.",
+  "longRun": {
+    "contention900": "not-run: same-run direct targetFAIL",
+    "45": "excluded",
+    "120": "excluded",
+    "memoryP0": "OPEN",
+    "release": "HOLD"
+  },
+  "binding": {
+    "candidateItems": 986,
+    "candidateDigest": "8977e9b6ac618c7e0233823f6acb6ab1fcf7461206ee5d8b2a4149a643519e3a",
+    "meaning": "unchanged mapping only; new code reviewed independently; producer/readback completed, coverage recorded separately",
+    "producer": "exit0 PASS51 FAIL0",
+    "readback": "exit0 validationErrors0 negativeFixtures15/15; not execution evidence",
+    "manifestChange": "only inventorySha256; emitted candidate unchanged",
+    "coverage": "exit0 986covered missing0 PASS9 FAIL0"
+  },
+  "archive": {
+    "archive": "121-execution.tar.gz",
+    "bytes": 13747047,
+    "sha256": "69c79f89ea4f50cd21ba2834c704698df4627fd977eb72d59c429c6fcb47a2a0",
+    "files": 310,
+    "payloadBytes": 87482336,
+    "reuseReferences": 4318,
+    "allMemberBytesVerified": true,
+    "manifestSha256": "5f93d489c7ee053802d392a278d2248f5aeea98a07fb9c2c8740af2be6d24b2e",
+    "scope": "user config/private95backup/models/SDK/auth/home/cache/binaries and duplicated117seed excluded; old evidence unchanged; no redaction needed in selected logs"
+  },
+  "cleanup": "pending after byte-verified preservation/remote",
+  "implementationCommit": "768473ed98f37ff439d6cd1d08d90436139f49f6"
+}
