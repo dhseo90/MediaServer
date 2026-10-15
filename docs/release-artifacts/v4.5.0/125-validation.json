@@ -1,0 +1,1804 @@
+{
+  "schema": "media-server.v450.r125.validation.v1",
+  "status": "FIXED_CANDIDATE_45MIN_MIXED_WINDOW_FAIL_MEMORY_P0_RELEASE_HOLD",
+  "baseline": "9db8daaa7a0b95a49d87ed3c87375ae050a4e782",
+  "productCommit": "6cac6d28b22156fdf8886facb52f1c3369e9feca",
+  "entryState": "v4.5.0 clean worktree/index; actual remote matched baseline; no user changes overwritten",
+  "model": {
+    "requested": "gpt-6-astra/high",
+    "mainToolAccepted": null,
+    "actualModel": null,
+    "actualEffort": null,
+    "reviewToolAccepted": "gpt-6-astra/high",
+    "reviewActualModel": null,
+    "reviewActualEffort": null
+  },
+  "changes": "evidence/current backlog only; no product/fixture/collector/gate edits, no implementation commit",
+  "preservedPrior": [
+    "124 full900 PASS unchanged; exact product/runtime reused",
+    "123 direct iterative history insert/shutdown/reopen/macOS/unprivileged Linux evidence unchanged",
+    "111/112/114/116 limited evidence reused only in unchanged scope; no new platform tests or losslessness claim"
+  ],
+  "execution": {
+    "attempts": 1,
+    "command": {
+      "command": [
+        "python3",
+        "scripts/internal/run_v450_recording_a_mixed.py",
+        "--state-diagnostic",
+        "/private/tmp/media-server-r125-6r1a76fz/mixed45"
+      ],
+      "env": {
+        "PATH": "/Applications/ChatGPT.app/Contents/Resources/codex-cli/codex-path:/Users/dhseo/.grok/bin:/Users/dhseo/.local/bin:/Users/dhseo/.nvm/versions/node/v24.13.0/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/pkg/env/global/bin:/Library/Apple/usr/bin:/Applications/VMware Fusion.app/Contents/Public:/Users/dhseo/.codex/tmp/arg0/codex-arg0M2somc:/Applications/ChatGPT.app/Contents/Resources/codex-cli/codex-path:/Users/dhseo/.cache/codex-runtimes/codex-primary-runtime/dependencies/bin/override:/Users/dhseo/.grok/bin:/Users/dhseo/.local/bin:/Users/dhseo/.nvm/versions/node/v24.13.0/bin:/Users/dhseo/.cache/codex-runtimes/codex-primary-runtime/dependencies/bin/fallback:/Applications/ChatGPT.app/Contents/Resources:/Applications/ChatGPT.app/Contents/Resources/codex-cli/CodexCLI.app/Contents/MacOS",
+        "HOME": "/private/tmp/media-server-r125-6r1a76fz/mixed45",
+        "XDG_CACHE_HOME": "/private/tmp/media-server-r125-6r1a76fz/mixed45/cache",
+        "TMPDIR": "/private/tmp/media-server-r125-6r1a76fz/tmp",
+        "PYTHONDONTWRITEBYTECODE": "1"
+      },
+      "attempts": 1,
+      "sourceFreeze": "9db8daaa7a0b95a49d87ed3c87375ae050a4e782",
+      "profile": "continuous-r114",
+      "additionalPreparationRuns": 0
+    },
+    "receipt": {
+      "preparationContractVersion": 2,
+      "resultScope": "existing mixed mode",
+      "command": [
+        "bash",
+        "/Users/dhseo/Workspace/mediaServer/scripts/internal/verify_v450_recording_a_mixed.sh",
+        "--state-diagnostic"
+      ],
+      "startedAt": "2026-10-15T21:28:20.310703+00:00",
+      "status": "FAIL",
+      "source": {
+        "head": "9db8daaa7a0b95a49d87ed3c87375ae050a4e782",
+        "fixtureProfile": "continuous-r114",
+        "fixtureProfileSourceSha256": "d591cd6fb0c952994bfe8529ffdaec5514952da9e5d23aadf8ade94332bfb5a4",
+        "tree": "7c08896067ce0804229b44b2d10f55756daa7b0d",
+        "sourceSha256": "b0082bb09c2b72557e6fb1570398b72c716a1a47ef02f26c4e190894fcb26a98",
+        "binarySha256": "770d50540285eb90f899d5060ecb6ba9ed23987f6fc5fa1ca7dce70aaf6efb08"
+      },
+      "timeoutSeconds": 2880,
+      "observationSeconds": 2700,
+      "wrapperSha256": "392eb9e0bc2987fa8e07228742293163aaedb030c44b26ecbfd7563366b71d1d",
+      "resourceTrendPass": false,
+      "reviewRequired": true,
+      "uiFulltestPass": false,
+      "processGroup": 79448,
+      "childExit": 1,
+      "exit": 1,
+      "executionElapsedSeconds": 2718.8447599171195,
+      "elapsedSeconds": 2718.8454320840538,
+      "timedOut": false,
+      "interruptedSignals": [],
+      "residualGroupAfterCommand": false,
+      "cleanupSignals": [],
+      "processGroupAbsent": true,
+      "cleanupErrors": [],
+      "cleanupOnlySeconds": 1.2041069567203522e-05,
+      "registeredGroupsAbsent": true,
+      "residualRegisteredGroups": false,
+      "registeredGroupSignals": [],
+      "registeredGroupCleanupSeconds": 0.0006059170700609684,
+      "finishedAt": "2026-10-15T22:13:39.359564+00:00",
+      "sourceEnd": {
+        "head": "9db8daaa7a0b95a49d87ed3c87375ae050a4e782",
+        "fixtureProfile": "continuous-r114",
+        "fixtureProfileSourceSha256": "d591cd6fb0c952994bfe8529ffdaec5514952da9e5d23aadf8ade94332bfb5a4",
+        "tree": "7c08896067ce0804229b44b2d10f55756daa7b0d",
+        "sourceSha256": "b0082bb09c2b72557e6fb1570398b72c716a1a47ef02f26c4e190894fcb26a98",
+        "binarySha256": "770d50540285eb90f899d5060ecb6ba9ed23987f6fc5fa1ca7dce70aaf6efb08"
+      },
+      "totalWithFinalBindingSeconds": 2719.295264125103,
+      "rootDisposition": "preserved-for-byte-review-and-owned-cleanup"
+    },
+    "artifacts": {
+      "head": "9db8daaa7a0b95a49d87ed3c87375ae050a4e782",
+      "tree": "7c08896067ce0804229b44b2d10f55756daa7b0d",
+      "status": "",
+      "artifacts": [
+        {
+          "path": "/Users/dhseo/Workspace/mediaServer/build-gst-onnx/media_server",
+          "bytes": 37621072,
+          "sha256": "770d50540285eb90f899d5060ecb6ba9ed23987f6fc5fa1ca7dce70aaf6efb08"
+        },
+        {
+          "path": "/Users/dhseo/Workspace/mediaServer/build-gst-onnx/libmedia_server_runtime.a",
+          "bytes": 111871208,
+          "sha256": "e04b4e5752fd5527926bc728bfd6eb9774ac33b086bfbac75f93861609dc0871"
+        }
+      ],
+      "uuid": "UUID: 2FE184D7-CDDD-3F83-9A0D-58505B54A202 (arm64) build-gst-onnx/media_server",
+      "symbolSource": "exact executable embedded symbol table; local-only safety copy symbols/media_server deleted after evidence verification, build product retained",
+      "model": {
+        "requested": "gpt-6-astra/high",
+        "mainToolAccepted": null,
+        "actualModel": null,
+        "actualEffort": null,
+        "reviewToolAccepted": "gpt-6-astra/high",
+        "reviewActualModel": null,
+        "reviewActualEffort": null
+      }
+    },
+    "profile": {
+      "name": "continuous-r114",
+      "continuousMaxBytes": 113246208,
+      "eventMaxBytes": 134217728,
+      "continuousMaxAgeMs": 10800000,
+      "eventMaxAgeMs": 10800000,
+      "segmentBytes": 71237,
+      "protectedFiles": 643,
+      "E": 67108864,
+      "H": 45805391,
+      "P": 71237,
+      "M": 260716,
+      "inputNormalizedSha256": "baebad5cad233243c4748f6bfec06fa5d2da7f06ae9b1475c9b20bfbfb04e2e7"
+    },
+    "mode": "v450-state-diagnostic",
+    "preparationContract": {
+      "version": 2,
+      "startupOnly": false,
+      "requiresDeletion": true
+    },
+    "preparation": "exact product/runtime reused; existing launcher compiled necessary helpers only, no extra preparation/test runs",
+    "lastMainObservationMs": 2700001.822667,
+    "verifiedDurationMs": null,
+    "verifiedDurationMeaning": "null because failure before phase assignment, not zero elapsed time; main loop boundary sample2700.001823s preserved",
+    "totalSeconds": 2719.295264125103,
+    "passed": 6072,
+    "failed": 1,
+    "exit": 1,
+    "stateDiagnosticPass": false,
+    "sourceUnchanged": true,
+    "diagnosticDifferenceFrom124": "state mode holder trace OFF; bounded decoder and existing resource/visual/failure/slow traces; no claim of complete holder attribution"
+  },
+  "gate": {
+    "firstFailure": "mixed early middle late work missing",
+    "observationLastMs": 2700001.822667,
+    "verifiedDurationMs": null,
+    "notRun": [
+      "successful-search-latency",
+      "final-sample-continuity",
+      "cyclic-deletion-gate",
+      "two-channel-disable",
+      "closed-journal"
+    ],
+    "normalFinallyExit": true
+  },
+  "search": {
+    "originalSuccess": {
+      "count": 474,
+      "p95Ms": 2463.097458000062,
+      "maxMs": 2866.727834000252
+    },
+    "byClient": [
+      56,
+      56,
+      181,
+      181
+    ],
+    "unavailable": 250,
+    "timeoutOrTransportFailures": [],
+    "officialLatencyGate": "not-run: first failure requireMixedWindows; recomputed original-success p95 exceeds2000ms, not a completed official gate",
+    "httpOriginalRouteCounts": {
+      "/ops/api/recordings/search 200": 112,
+      "/ops/api/recordings/visual-search 200": 362,
+      "/ops/api/recordings/search 503": 250
+    },
+    "excludedASupplementaryQueries": 45,
+    "unassignedBoundaryHttp": 16
+  },
+  "structuredCapacity": {
+    "totalRecorded": 250,
+    "attempts": {
+      "model-build:search-capacity-exceeded": 10,
+      "capture-source:search-capacity-exceeded": 240
+    },
+    "first": {
+      "version": 1,
+      "status": 503,
+      "channels": 1,
+      "exception": "none",
+      "resourceRejectionsBefore": 0,
+      "resourceRejectionsAfter": 0,
+      "attempts": [
+        {
+          "stage": "model-build",
+          "reason": "search-capacity-exceeded",
+          "instance": 1,
+          "currentInstance": 1,
+          "captured": 1682,
+          "current": 1682,
+          "documents": 16651,
+          "references": 0,
+          "rebuild": true,
+          "authority": true
+        }
+      ]
+    },
+    "last": {
+      "version": 1,
+      "status": 503,
+      "channels": 1,
+      "exception": "none",
+      "resourceRejectionsBefore": 0,
+      "resourceRejectionsAfter": 0,
+      "attempts": [
+        {
+          "stage": "capture-source",
+          "reason": "search-capacity-exceeded",
+          "instance": 0,
+          "currentInstance": 0,
+          "captured": 0,
+          "current": 0,
+          "documents": 0,
+          "references": 0,
+          "rebuild": false,
+          "authority": false
+        }
+      ]
+    }
+  },
+  "evidence": {
+    "cycles": 55,
+    "createSuccess": 55,
+    "createComplete": 55,
+    "createPartial": 0,
+    "createBusy": 55,
+    "visualCreated": 180,
+    "visualExpired": 0,
+    "retainedChecks": 110,
+    "windows": [
+      {
+        "structured": 1100,
+        "visual": 2360,
+        "evidence": 55,
+        "visualEvidence": 59
+      },
+      {
+        "structured": 0,
+        "visual": 2400,
+        "evidence": 0,
+        "visualEvidence": 60
+      },
+      {
+        "structured": 0,
+        "visual": 2440,
+        "evidence": 0,
+        "visualEvidence": 61
+      }
+    ]
+  },
+  "A": {
+    "scheduled": 45,
+    "completed": 45,
+    "detectorEvaluated": false
+  },
+  "recording": {
+    "finalizedPerChannel": {
+      "9101": 1231,
+      "9201": 1229
+    },
+    "newSegments": 2460,
+    "originalSeedSegments": 1,
+    "sampleCount": 74203,
+    "allIndexComplete": true,
+    "sourceGenerationGroups": 1341,
+    "sameGenerationAdjacentPairs": 1119,
+    "deliveryLossLogCount": 128,
+    "allFinalizedMediaBytesAndHashVerified": true,
+    "totalQueueDrop": null,
+    "sourceInputTotal": null,
+    "note": "Observed bounded deliveryLoss and ledger gaps; no complete input/drop totals; generation boundaries and unfinished inputs excluded",
+    "internalOrdinalGapCount": 0,
+    "betweenSegmentOrdinalGapCount": 510,
+    "actualDeletionCount": 0,
+    "quality": "repeated gaps remain service-quality blocker;128 bounded notices capped64/writer, not packet/drop/recovery total; no exact event timestamps from firstNotice",
+    "details": "125-execution.tar.gz:run/analysis.json and run/segment-analysis.json"
+  },
+  "resources": {
+    "sampleCount": 540,
+    "identities": [
+      [
+        79496,
+        "macos:1792099708:867172"
+      ]
+    ],
+    "allFdComplete": true,
+    "sampleMax": {
+      "rssBytes": 3207659520,
+      "footprintBytes": 3158904072,
+      "fdCount": 58,
+      "anonymousFileBytes": 166061056,
+      "anonymousAllocatedBytes": 167165952
+    },
+    "rootVariableMax": 161078712,
+    "note": "maxima are different-time sequential samples; not additive simultaneous peak; reservations not actual disk or RSS",
+    "summary": {
+      "status": "observed",
+      "resourceTrendPass": false,
+      "reviewRequired": true,
+      "sampleCount": 540,
+      "groups": [
+        {
+          "pid": 79496,
+          "startIdentity": "macos:1792099708:867172",
+          "sampleCount": 540,
+          "first": {
+            "phaseAt": 8485.564542,
+            "sampledAt": 1792099714553,
+            "rssBytes": 3176382464,
+            "threadCount": 37,
+            "fdCount": 34,
+            "mutationCount": 6
+          },
+          "last": {
+            "phaseAt": 2708262.511292,
+            "sampledAt": 1792102414342,
+            "rssBytes": 2028191744,
+            "threadCount": 35,
+            "fdCount": 29,
+            "mutationCount": 4916
+          },
+          "max": {
+            "rssBytes": 3207659520,
+            "threadCount": 42,
+            "fdCount": 58
+          },
+          "delta": {
+            "rssBytes": -1148190720,
+            "threadCount": -2,
+            "fdCount": -5,
+            "mutationCount": 4910
+          },
+          "elapsedMs": 2699776.9467499997,
+          "maxGapMs": 8248.300040999893,
+          "warmupMs": 300000,
+          "postWarmup": {
+            "status": "observed",
+            "sampleCount": 480,
+            "delta": {
+              "rssBytes": 214974464,
+              "threadCount": -6,
+              "fdCount": -9,
+              "mutationCount": 4314
+            },
+            "elapsedMs": 2399528.5875,
+            "rssMiBPerMinute": 5.126397561621049
+          }
+        }
+      ]
+    },
+    "ownerFinal": {
+      "pid": 79496,
+      "seq": 540,
+      "phase": "after-storage-destruction",
+      "elapsedMs": 2709888,
+      "ram": 0,
+      "ramPeak": 439782262,
+      "ramLimit": 671088640,
+      "ramRejected": 0,
+      "scratchDisk": 0,
+      "scratchDiskPeak": 273854464,
+      "scratchDiskLimit": 162821472256,
+      "scratchFd": 0,
+      "scratchFdPeak": 19,
+      "scratchFdLimit": 1048572,
+      "scratchRam": 0,
+      "preservedDisk": 0,
+      "preservedFd": 0,
+      "readerCleanupHealthy": true
+    },
+    "pairedSequentialVariableMax": {
+      "phaseAt": 2708262.511292,
+      "rootMeasuredStart": 2708378.947334,
+      "rootMeasuredEnd": 2708396.10125,
+      "nativeMeasuredAt": 1792102414342,
+      "namedVariableBytes": 158983207,
+      "anonymousMaxBytes": 167165952,
+      "variableCombinedBytes": 326149159
+    },
+    "pairedScope": "same sample decision inputs reconstructed from adjacent logged named root and native sample; sequential not atomic; no instantaneous peak claim",
+    "lastSample": {
+      "phaseAt": 2708262.511292,
+      "sampledAt": 1792102414342,
+      "rssBytes": 2028191744,
+      "footprintBytes": 1865091640,
+      "fdCount": 29,
+      "productOwner": {
+        "pid": 79496,
+        "seq": 537,
+        "phase": "sample",
+        "elapsedMs": 2703344,
+        "ram": 49913151,
+        "ramPeak": 439782262,
+        "ramLimit": 671088640,
+        "ramRejected": 0,
+        "scratchDisk": 202608640,
+        "scratchDiskPeak": 273854464,
+        "scratchDiskLimit": 162821472256,
+        "scratchFd": 6,
+        "scratchFdPeak": 19,
+        "scratchFdLimit": 1048572,
+        "scratchRam": 1783296,
+        "preservedDisk": 0,
+        "preservedFd": 0,
+        "readerCleanupHealthy": true,
+        "receivedAt": 2706402.26925
+      },
+      "progress": {
+        "elapsedMs": 2700001.822667,
+        "channels": {
+          "9101": {
+            "finalized": 1228,
+            "deleted": 0,
+            "lastAt": 2706552.521459,
+            "order": "2456",
+            "store": "0e043f7444b2e61d29a13ab4785449538377274fa86b8e87dd9d666347019aef",
+            "knownMappings": 1015,
+            "unknownMappings": 24508
+          },
+          "9201": {
+            "finalized": 1227,
+            "deleted": 0,
+            "lastAt": 2706552.521459,
+            "order": "2455",
+            "store": "0e043f7444b2e61d29a13ab4785449538377274fa86b8e87dd9d666347019aef",
+            "knownMappings": 1018,
+            "unknownMappings": 24676
+          }
+        },
+        "records": 2455,
+        "logicalBytes": 1465767
+      }
+    },
+    "lastNamedRoot": {
+      "reason": "post-stop",
+      "final": true,
+      "elapsedMs": 2713177,
+      "journalMutationTypes": {
+        "segment_finalized": 0,
+        "event_link_created": 0,
+        "observation_put": 0,
+        "observation_v2_put": 0,
+        "deletion_requested": 0,
+        "deletion_completed": 0,
+        "corruption_detected": 0,
+        "recording_order_reserved": 2458,
+        "segment_v2_finalized": 0,
+        "segment_v2_bound_finalized": 2456,
+        "consumer_reference_put": 0,
+        "derived_reference_accepted": 0,
+        "referenced_observation_put": 2,
+        "derived_job_intent": 0,
+        "derived_job_files": 0,
+        "derived_job_ready": 0,
+        "derived_job_committed": 0,
+        "derived_job_complete": 0,
+        "derived_job_failed": 0,
+        "segment_v2_state": 0,
+        "segment_v2_deleted": 0
+      },
+      "journalMutationTypesCoverage": "drained-prefix-only; unread-or-partial-tail-excluded",
+      "totalBytes": 173216835,
+      "capBytes": 483923468,
+      "capExceeded": false,
+      "entries": 3171,
+      "categories": {
+        "input": {
+          "bytes": 164019,
+          "files": 3
+        },
+        "media": {
+          "bytes": 44666713,
+          "files": 2461
+        },
+        "mediaPartial": {
+          "bytes": 0,
+          "files": 0
+        },
+        "journal": {
+          "bytes": 15711048,
+          "files": 17
+        },
+        "checkpoint": {
+          "bytes": 0,
+          "files": 0
+        },
+        "generationSnapshot": {
+          "bytes": 17023338,
+          "files": 1
+        },
+        "generationIdentity": {
+          "bytes": 2070952,
+          "files": 16
+        },
+        "generationEvidence": {
+          "bytes": 14753635,
+          "files": 15
+        },
+        "generationManifest": {
+          "bytes": 526,
+          "files": 1
+        },
+        "generationTransaction": {
+          "bytes": 0,
+          "files": 0
+        },
+        "sqlite": {
+          "bytes": 21798912,
+          "files": 1
+        },
+        "wal": {
+          "bytes": 0,
+          "files": 0
+        },
+        "sqliteAux": {
+          "bytes": 0,
+          "files": 0
+        },
+        "tmp": {
+          "bytes": 0,
+          "files": 0
+        },
+        "log": {
+          "bytes": 806042,
+          "files": 1
+        },
+        "state": {
+          "bytes": 5237,
+          "files": 3
+        },
+        "events": {
+          "bytes": 0,
+          "files": 0
+        },
+        "cache": {
+          "bytes": 3141189,
+          "files": 280
+        },
+        "tools": {
+          "bytes": 13653656,
+          "files": 2
+        },
+        "recordingsOther": {
+          "bytes": 14027253,
+          "files": 342
+        },
+        "other": {
+          "bytes": 19677520,
+          "files": 5
+        }
+      },
+      "ownership": {
+        "productRecording": {
+          "bytes": 130052377,
+          "files": 2854
+        },
+        "fixtureInput": {
+          "bytes": 164019,
+          "files": 3
+        },
+        "observerTools": {
+          "bytes": 13653656,
+          "files": 2
+        },
+        "cache": {
+          "bytes": 3141189,
+          "files": 280
+        },
+        "temporary": {
+          "bytes": 0,
+          "files": 0
+        },
+        "runtimeSupport": {
+          "bytes": 811279,
+          "files": 4
+        },
+        "other": {
+          "bytes": 19677520,
+          "files": 5
+        }
+      },
+      "transientJournalMisses": 0,
+      "sqlitePages": {
+        "status": "observed",
+        "mainBytes": 21798912,
+        "walBytes": 0,
+        "pageSize": 4096,
+        "pageCount": 5322,
+        "freePageCount": 0,
+        "livePageCount": 5322,
+        "liveBytes": 21798912,
+        "freeBytes": 0
+      },
+      "measurement": "logical-file-bytes-nonatomic",
+      "rawPathsPublished": false,
+      "transientTreeRetries": 0,
+      "fixedBytes": 14161420,
+      "variableBytes": 159055415,
+      "copyBytes": 0,
+      "combinedBytes": 173216835,
+      "rootCapBytes": 483923468,
+      "combinedCapBytes": 953685516,
+      "measurementStartedAt": 2713195.390709,
+      "measurementCompletedAt": 2713213.961792,
+      "copyEntries": 0,
+      "workspacePolicy": "fixed-plus-variable-v1",
+      "parentOutputBytes": 5716795,
+      "parentStartedAt": 2713213.851709,
+      "parentCompletedAt": 2713213.961792
+    }
+  },
+  "memoryAnalysis": {
+    "plan": "pre-run analysis-plan.json in archive",
+    "intervals": [
+      {
+        "rangeMs": [
+          0,
+          300000
+        ],
+        "observedRangeMs": [
+          224.8759169999994,
+          295469.31641699997
+        ],
+        "rss": {
+          "count": 60,
+          "first": 3176382464,
+          "last": 1813086208,
+          "min": 1688551424,
+          "max": 3207659520,
+          "delta": -1363296256
+        },
+        "footprint": {
+          "count": 60,
+          "first": 3131477184,
+          "last": 1751615840,
+          "min": 1631193320,
+          "max": 3158904072,
+          "delta": -1379861344
+        },
+        "logicalRam": {
+          "count": 60,
+          "first": 1189540,
+          "last": 160069366,
+          "min": 1189540,
+          "max": 163620368,
+          "delta": 158879826
+        },
+        "scratch": {
+          "count": 60,
+          "first": 73728,
+          "last": 12554240,
+          "min": 73728,
+          "max": 17989632,
+          "delta": 12480512
+        },
+        "mediaBytes": {
+          "count": 60,
+          "first": 28161,
+          "last": 10142701,
+          "min": 28161,
+          "max": 10142701,
+          "delta": 10114540
+        },
+        "retainedOtherBytes": {
+          "count": 60,
+          "first": 86316,
+          "last": 2347316,
+          "min": 86316,
+          "max": 2347316,
+          "delta": 2261000
+        },
+        "indexedDocuments": {
+          "count": 40,
+          "first": 0,
+          "last": 560,
+          "min": 0,
+          "max": 560,
+          "delta": 560
+        },
+        "search": {
+          "success": {
+            "count": 80,
+            "p95Ms": 870,
+            "maxMs": 1170
+          },
+          "unavailable": 0,
+          "byRoute": {
+            "search": {
+              "count": 40,
+              "p95Ms": 429,
+              "maxMs": 450
+            },
+            "visual-search": {
+              "count": 40,
+              "p95Ms": 915,
+              "maxMs": 1170
+            }
+          }
+        },
+        "ACompleted": 5
+      },
+      {
+        "rangeMs": [
+          300000,
+          600000
+        ],
+        "observedRangeMs": [
+          300473.235167,
+          595700.9742500001
+        ],
+        "rss": {
+          "count": 60,
+          "first": 1813217280,
+          "last": 2000191488,
+          "min": 1813135360,
+          "max": 2000191488,
+          "delta": 186974208
+        },
+        "footprint": {
+          "count": 60,
+          "first": 1751681376,
+          "last": 1883113992,
+          "min": 1697974720,
+          "max": 1931889184,
+          "delta": 131432616
+        },
+        "logicalRam": {
+          "count": 60,
+          "first": 160042673,
+          "last": 210116892,
+          "min": 134249196,
+          "max": 219096462,
+          "delta": 50074219
+        },
+        "scratch": {
+          "count": 60,
+          "first": 13766656,
+          "last": 44511232,
+          "min": 13766656,
+          "max": 61124608,
+          "delta": 30744576
+        },
+        "mediaBytes": {
+          "count": 60,
+          "first": 10348461,
+          "last": 20463001,
+          "min": 10348461,
+          "max": 20463001,
+          "delta": 10114540
+        },
+        "retainedOtherBytes": {
+          "count": 60,
+          "first": 2427042,
+          "last": 4622421,
+          "min": 2427042,
+          "max": 4622421,
+          "delta": 2195379
+        },
+        "indexedDocuments": {
+          "count": 40,
+          "first": 588,
+          "last": 1156,
+          "min": 588,
+          "max": 1156,
+          "delta": 568
+        },
+        "search": {
+          "success": {
+            "count": 80,
+            "p95Ms": 1568,
+            "maxMs": 2038
+          },
+          "unavailable": 0,
+          "byRoute": {
+            "search": {
+              "count": 40,
+              "p95Ms": 1273,
+              "maxMs": 1742
+            },
+            "visual-search": {
+              "count": 40,
+              "p95Ms": 1568,
+              "maxMs": 2038
+            }
+          }
+        },
+        "ACompleted": 5
+      },
+      {
+        "rangeMs": [
+          600000,
+          900000
+        ],
+        "observedRangeMs": [
+          600704.1984590001,
+          898476.1862090001
+        ],
+        "rss": {
+          "count": 60,
+          "first": 2000240640,
+          "last": 2006794240,
+          "min": 1927790592,
+          "max": 2191769600,
+          "delta": 6553600
+        },
+        "footprint": {
+          "count": 60,
+          "first": 1883163144,
+          "last": 1874315808,
+          "min": 1801734760,
+          "max": 2071087744,
+          "delta": -8847336
+        },
+        "logicalRam": {
+          "count": 60,
+          "first": 242203331,
+          "last": 140729664,
+          "min": 110074509,
+          "max": 309448858,
+          "delta": -101473667
+        },
+        "scratch": {
+          "count": 60,
+          "first": 79147008,
+          "last": 41582592,
+          "min": 28274688,
+          "max": 131518464,
+          "delta": -37564416
+        },
+        "mediaBytes": {
+          "count": 60,
+          "first": 20600605,
+          "last": 30851457,
+          "min": 20600605,
+          "max": 30851457,
+          "delta": 10250852
+        },
+        "retainedOtherBytes": {
+          "count": 60,
+          "first": 4622421,
+          "last": 6839466,
+          "min": 4622421,
+          "max": 9711879,
+          "delta": 2217045
+        },
+        "indexedDocuments": {
+          "count": 40,
+          "first": 1172,
+          "last": 1728,
+          "min": 1172,
+          "max": 1728,
+          "delta": 556
+        },
+        "search": {
+          "success": {
+            "count": 72,
+            "p95Ms": 2364,
+            "maxMs": 2465
+          },
+          "unavailable": 8,
+          "byRoute": {
+            "search": {
+              "count": 32,
+              "p95Ms": 2028,
+              "maxMs": 2194
+            },
+            "visual-search": {
+              "count": 40,
+              "p95Ms": 2413,
+              "maxMs": 2465
+            }
+          }
+        },
+        "ACompleted": 5
+      },
+      {
+        "rangeMs": [
+          900000,
+          1200000
+        ],
+        "observedRangeMs": [
+          903479.9010000001,
+          1198967.271584
+        ],
+        "rss": {
+          "count": 60,
+          "first": 2006908928,
+          "last": 1897562112,
+          "min": 1863237632,
+          "max": 2023145472,
+          "delta": -109346816
+        },
+        "footprint": {
+          "count": 60,
+          "first": 1874430496,
+          "last": 1734560216,
+          "min": 1700301224,
+          "max": 1890667040,
+          "delta": -139870280
+        },
+        "logicalRam": {
+          "count": 60,
+          "first": 158641048,
+          "last": 74689465,
+          "min": 18801425,
+          "max": 230861045,
+          "delta": -83951583
+        },
+        "scratch": {
+          "count": 60,
+          "first": 67567616,
+          "last": 125333504,
+          "min": 42119168,
+          "max": 185978880,
+          "delta": 57765888
+        },
+        "mediaBytes": {
+          "count": 60,
+          "first": 31058509,
+          "last": 41171757,
+          "min": 31058509,
+          "max": 41171757,
+          "delta": 10113248
+        },
+        "retainedOtherBytes": {
+          "count": 60,
+          "first": 6839220,
+          "last": 8877293,
+          "min": 6839220,
+          "max": 8906461,
+          "delta": 2038073
+        },
+        "indexedDocuments": {
+          "count": 40,
+          "first": 1756,
+          "last": 2320,
+          "min": 1756,
+          "max": 2320,
+          "delta": 564
+        },
+        "search": {
+          "success": {
+            "count": 40,
+            "p95Ms": 2648,
+            "maxMs": 2665
+          },
+          "unavailable": 40,
+          "byRoute": {
+            "search": {
+              "count": 0,
+              "p95Ms": null,
+              "maxMs": null
+            },
+            "visual-search": {
+              "count": 40,
+              "p95Ms": 2648,
+              "maxMs": 2665
+            }
+          }
+        },
+        "ACompleted": 5
+      },
+      {
+        "rangeMs": [
+          1200000,
+          1500000
+        ],
+        "observedRangeMs": [
+          1203972.581459,
+          1499201.775167
+        ],
+        "rss": {
+          "count": 60,
+          "first": 1897578496,
+          "last": 1928888320,
+          "min": 1897578496,
+          "max": 1928888320,
+          "delta": 31309824
+        },
+        "footprint": {
+          "count": 60,
+          "first": 1734576600,
+          "last": 1765886424,
+          "min": 1734576600,
+          "max": 1765886424,
+          "delta": 31309824
+        },
+        "logicalRam": {
+          "count": 60,
+          "first": 86073024,
+          "last": 125052534,
+          "min": 33867441,
+          "max": 131389121,
+          "delta": 38979510
+        },
+        "scratch": {
+          "count": 60,
+          "first": 160546816,
+          "last": 183971840,
+          "min": 95371264,
+          "max": 217067520,
+          "delta": 23425024
+        },
+        "mediaBytes": {
+          "count": 60,
+          "first": 41309361,
+          "last": 42471698,
+          "min": 41309361,
+          "max": 42471698,
+          "delta": 1162337
+        },
+        "retainedOtherBytes": {
+          "count": 60,
+          "first": 8892561,
+          "last": 10213600,
+          "min": 8892561,
+          "max": 16652330,
+          "delta": 1321039
+        },
+        "indexedDocuments": {
+          "count": 38,
+          "first": 2356,
+          "last": 2664,
+          "min": 2356,
+          "max": 2664,
+          "delta": 308
+        },
+        "search": {
+          "success": {
+            "count": 38,
+            "p95Ms": 2453,
+            "maxMs": 2463
+          },
+          "unavailable": 38,
+          "byRoute": {
+            "search": {
+              "count": 0,
+              "p95Ms": null,
+              "maxMs": null
+            },
+            "visual-search": {
+              "count": 38,
+              "p95Ms": 2453,
+              "maxMs": 2463
+            }
+          }
+        },
+        "ACompleted": 5
+      },
+      {
+        "rangeMs": [
+          1500000,
+          1800000
+        ],
+        "observedRangeMs": [
+          1504205.258834,
+          1799425.542375
+        ],
+        "rss": {
+          "count": 60,
+          "first": 1931345920,
+          "last": 1936949248,
+          "min": 1931345920,
+          "max": 1937014784,
+          "delta": 5603328
+        },
+        "footprint": {
+          "count": 60,
+          "first": 1768344024,
+          "last": 1773947352,
+          "min": 1768344024,
+          "max": 1774012888,
+          "delta": 5603328
+        },
+        "logicalRam": {
+          "count": 60,
+          "first": 137676207,
+          "last": 52621681,
+          "min": 18573871,
+          "max": 170495819,
+          "delta": -85054526
+        },
+        "scratch": {
+          "count": 60,
+          "first": 184397824,
+          "last": 158773248,
+          "min": 70168576,
+          "max": 201244672,
+          "delta": -25624576
+        },
+        "mediaBytes": {
+          "count": 60,
+          "first": 42480270,
+          "last": 43057521,
+          "min": 42480270,
+          "max": 43057521,
+          "delta": 577251
+        },
+        "retainedOtherBytes": {
+          "count": 60,
+          "first": 10228868,
+          "last": 11221234,
+          "min": 10228868,
+          "max": 11221234,
+          "delta": 992366
+        },
+        "indexedDocuments": {
+          "count": 38,
+          "first": 2693,
+          "last": 2921,
+          "min": 2693,
+          "max": 2921,
+          "delta": 228
+        },
+        "search": {
+          "success": {
+            "count": 38,
+            "p95Ms": 2783,
+            "maxMs": 2785
+          },
+          "unavailable": 38,
+          "byRoute": {
+            "search": {
+              "count": 0,
+              "p95Ms": null,
+              "maxMs": null
+            },
+            "visual-search": {
+              "count": 38,
+              "p95Ms": 2783,
+              "maxMs": 2785
+            }
+          }
+        },
+        "ACompleted": 5
+      },
+      {
+        "rangeMs": [
+          1800000,
+          2100000
+        ],
+        "observedRangeMs": [
+          1804430.505875,
+          2097876.630959
+        ],
+        "rss": {
+          "count": 59,
+          "first": 1937113088,
+          "last": 1992491008,
+          "min": 1937113088,
+          "max": 1992540160,
+          "delta": 55377920
+        },
+        "footprint": {
+          "count": 59,
+          "first": 1774111192,
+          "last": 1829538336,
+          "min": 1774111192,
+          "max": 1829587488,
+          "delta": 55427144
+        },
+        "logicalRam": {
+          "count": 59,
+          "first": 50341655,
+          "last": 84566396,
+          "min": 18701553,
+          "max": 203673105,
+          "delta": 34224741
+        },
+        "scratch": {
+          "count": 59,
+          "first": 158990336,
+          "last": 218939392,
+          "min": 77262848,
+          "max": 218939392,
+          "delta": 59949056
+        },
+        "mediaBytes": {
+          "count": 59,
+          "first": 43066520,
+          "last": 43611248,
+          "min": 43066520,
+          "max": 43611248,
+          "delta": 544728
+        },
+        "retainedOtherBytes": {
+          "count": 59,
+          "first": 11236502,
+          "last": 12167812,
+          "min": 11236502,
+          "max": 12167812,
+          "delta": 931310
+        },
+        "indexedDocuments": {
+          "count": 38,
+          "first": 2953,
+          "last": 3179,
+          "min": 2953,
+          "max": 3179,
+          "delta": 226
+        },
+        "search": {
+          "success": {
+            "count": 38,
+            "p95Ms": 2777,
+            "maxMs": 2784
+          },
+          "unavailable": 38,
+          "byRoute": {
+            "search": {
+              "count": 0,
+              "p95Ms": null,
+              "maxMs": null
+            },
+            "visual-search": {
+              "count": 38,
+              "p95Ms": 2777,
+              "maxMs": 2784
+            }
+          }
+        },
+        "ACompleted": 5
+      },
+      {
+        "rangeMs": [
+          2100000,
+          2400000
+        ],
+        "observedRangeMs": [
+          2102880.746334,
+          2398087.794917
+        ],
+        "rss": {
+          "count": 60,
+          "first": 1993588736,
+          "last": 2011889664,
+          "min": 1993588736,
+          "max": 2011889664,
+          "delta": 18300928
+        },
+        "footprint": {
+          "count": 60,
+          "first": 1830636064,
+          "last": 1848953400,
+          "min": 1830636064,
+          "max": 1848953400,
+          "delta": 18317336
+        },
+        "logicalRam": {
+          "count": 60,
+          "first": 36605761,
+          "last": 60422725,
+          "min": 18779173,
+          "max": 176149511,
+          "delta": 23816964
+        },
+        "scratch": {
+          "count": 60,
+          "first": 172105728,
+          "last": 190136320,
+          "min": 83648512,
+          "max": 262983680,
+          "delta": 18030592
+        },
+        "mediaBytes": {
+          "count": 60,
+          "first": 43620862,
+          "last": 44139538,
+          "min": 43620862,
+          "max": 44139538,
+          "delta": 518676
+        },
+        "retainedOtherBytes": {
+          "count": 60,
+          "first": 12222048,
+          "last": 13117908,
+          "min": 12222048,
+          "max": 19709687,
+          "delta": 895860
+        },
+        "indexedDocuments": {
+          "count": 40,
+          "first": 3195,
+          "last": 3406,
+          "min": 3195,
+          "max": 3406,
+          "delta": 211
+        },
+        "search": {
+          "success": {
+            "count": 40,
+            "p95Ms": 2764,
+            "maxMs": 2800
+          },
+          "unavailable": 40,
+          "byRoute": {
+            "search": {
+              "count": 0,
+              "p95Ms": null,
+              "maxMs": null
+            },
+            "visual-search": {
+              "count": 40,
+              "p95Ms": 2764,
+              "maxMs": 2800
+            }
+          }
+        },
+        "ACompleted": 5
+      },
+      {
+        "rangeMs": [
+          2400000,
+          2700000
+        ],
+        "observedRangeMs": [
+          2403090.813,
+          2698291.8328340002
+        ],
+        "rss": {
+          "count": 60,
+          "first": 2011840512,
+          "last": 2028240896,
+          "min": 2011840512,
+          "max": 2028257280,
+          "delta": 16400384
+        },
+        "footprint": {
+          "count": 60,
+          "first": 1848904248,
+          "last": 1865140792,
+          "min": 1848904248,
+          "max": 1865157176,
+          "delta": 16236544
+        },
+        "logicalRam": {
+          "count": 60,
+          "first": 76009594,
+          "last": 49913151,
+          "min": 32796183,
+          "max": 110104707,
+          "delta": -26096443
+        },
+        "scratch": {
+          "count": 60,
+          "first": 241250304,
+          "last": 202608640,
+          "min": 144654336,
+          "max": 256466944,
+          "delta": -38641664
+        },
+        "mediaBytes": {
+          "count": 60,
+          "first": 44149188,
+          "last": 44655986,
+          "min": 44149188,
+          "max": 44655986,
+          "delta": 506798
+        },
+        "retainedOtherBytes": {
+          "count": 60,
+          "first": 13117908,
+          "last": 14023926,
+          "min": 13117908,
+          "max": 16630113,
+          "delta": 906018
+        },
+        "indexedDocuments": {
+          "count": 40,
+          "first": 3422,
+          "last": 3636,
+          "min": 3422,
+          "max": 3636,
+          "delta": 214
+        },
+        "search": {
+          "success": {
+            "count": 40,
+            "p95Ms": 2821,
+            "maxMs": 2867
+          },
+          "unavailable": 40,
+          "byRoute": {
+            "search": {
+              "count": 0,
+              "p95Ms": null,
+              "maxMs": null
+            },
+            "visual-search": {
+              "count": 40,
+              "p95Ms": 2821,
+              "maxMs": 2867
+            }
+          }
+        },
+        "ACompleted": 5
+      }
+    ],
+    "timeBasis": {
+      "beginPhaseAt": 8260.688625,
+      "fixedBinsMs": 300000,
+      "selection": "pre-run analysis-plan.json",
+      "rootMeasurements": "own monotonic measurementCompletedAt; sequential non-atomic; not instant combined peak",
+      "requestTiming": "mixed HTTP timing has duration but no monotonic timestamp; ordered log position bounded by adjacent monotonic samples; only same-bin bracketed waves assigned; boundary waves separate; cycle-progress stops when structured pages unavailable so not used for late attribution"
+    },
+    "interpretation": {
+      "firstDeletion": null,
+      "allSamplesDeletedZero": true,
+      "limits": [
+        "No actual deletion interval, so pre/post deletion memory comparison unavailable",
+        "recordingsOther contains more than evidence/A; retained package exact final bytes reported separately",
+        "No full heap/allocator/mapping inventory; RSS-owner subtraction not performed",
+        "After structured capacity failure visual search/preservation and A continue, structured search/preservation do not; lower memory is not stability under unchanged successful work mix",
+        "Reservations and OS samples have separate timestamps; maxima not summed"
+      ],
+      "nextBoundary": [
+        "structured model-build/capture-source capacity ceilings and emitted documents versus logical owner; preserve authentication and absence semantics",
+        "per-owner retained source/read context/index generations and contemporaneous actual allocations needed to attribute residual RSS; no new profiler implemented",
+        "Recorder sustained deliveryLoss and same-generation gaps remain separate service-quality blocker"
+      ]
+    },
+    "observedReturn": "RSS falls 15–20min while structured capture/model capacity failures prevent continued structured success; visual search/preservation and A remain active. Later RSS rises. Not a constant successful workload comparison or proof of leak/no leak.",
+    "postWarmup": {
+      "status": "observed",
+      "sampleCount": 480,
+      "delta": {
+        "rssBytes": 214974464,
+        "threadCount": -6,
+        "fdCount": -9,
+        "mutationCount": 4314
+      },
+      "elapsedMs": 2399528.5875,
+      "rssMiBPerMinute": 5.126397561621049
+    },
+    "finalRetainedPackages": {
+      "evidence-packages": {
+        "files": 285,
+        "bytes": 1362220
+      },
+      "va-reviews": {
+        "files": 49,
+        "bytes": 277586
+      }
+    },
+    "notInstantaneousPeak": true
+  },
+  "shutdown": {
+    "puts": [],
+    "settingPassLines": [],
+    "closedJournalPass": false,
+    "cleanup": [
+      {
+        "schema": "recording-process-cleanup-v1",
+        "attemptCount": 1,
+        "pid": 79496,
+        "exitCode": 0,
+        "signalCode": null,
+        "exitedObserved": true,
+        "stopCode": "complete",
+        "forcedTermination": "not-used",
+        "normalExitPass": true,
+        "normalShutdownPass": true,
+        "archiveSafe": true,
+        "ports": [
+          {
+            "kind": "http",
+            "port": 52307,
+            "status": "pass",
+            "code": "closed",
+            "closed": true
+          },
+          {
+            "kind": "rtsp",
+            "port": 52308,
+            "status": "pass",
+            "code": "closed",
+            "closed": true
+          }
+        ]
+      }
+    ],
+    "state": [
+      {
+        "status": "captured",
+        "count": 6,
+        "events": [
+          {
+            "seq": 0,
+            "atUs": 1406946060716,
+            "channel": "9101",
+            "phase": "session-created",
+            "reason": "epoch-9101-1-1792099714307"
+          },
+          {
+            "seq": 1,
+            "atUs": 1406946067468,
+            "channel": "9101",
+            "phase": "writer-started",
+            "reason": "ok"
+          },
+          {
+            "seq": 2,
+            "atUs": 1406946070242,
+            "channel": "9201",
+            "phase": "session-created",
+            "reason": "epoch-9201-1-1792099714317"
+          },
+          {
+            "seq": 3,
+            "atUs": 1406946076471,
+            "channel": "9201",
+            "phase": "writer-started",
+            "reason": "ok"
+          },
+          {
+            "seq": 4,
+            "atUs": 1409649698141,
+            "channel": "9201",
+            "phase": "stop-channel",
+            "reason": "requested"
+          },
+          {
+            "seq": 5,
+            "atUs": 1409650722159,
+            "channel": "9101",
+            "phase": "stop-channel",
+            "reason": "requested"
+          }
+        ],
+        "issues": []
+      }
+    ],
+    "ownersAtShutdown": [
+      {
+        "pid": 79496,
+        "seq": 0,
+        "phase": "opened",
+        "elapsedMs": 14,
+        "ram": 1189540,
+        "ramPeak": 2057915,
+        "ramLimit": 671088640,
+        "ramRejected": 0,
+        "scratchDisk": 73728,
+        "scratchDiskPeak": 90112,
+        "scratchDiskLimit": 162821472256,
+        "scratchFd": 4,
+        "scratchFdPeak": 6,
+        "scratchFdLimit": 1048572,
+        "scratchRam": 1188864,
+        "preservedDisk": 0,
+        "preservedFd": 0,
+        "readerCleanupHealthy": true
+      },
+      {
+        "pid": 79496,
+        "seq": 538,
+        "phase": "before-Finish",
+        "elapsedMs": 2709849,
+        "ram": 18660073,
+        "ramPeak": 439782262,
+        "ramLimit": 671088640,
+        "ramRejected": 0,
+        "scratchDisk": 93892608,
+        "scratchDiskPeak": 273854464,
+        "scratchDiskLimit": 162821472256,
+        "scratchFd": 4,
+        "scratchFdPeak": 19,
+        "scratchFdLimit": 1048572,
+        "scratchRam": 1188864,
+        "preservedDisk": 0,
+        "preservedFd": 0,
+        "readerCleanupHealthy": true
+      },
+      {
+        "pid": 79496,
+        "seq": 539,
+        "phase": "after-Finish",
+        "elapsedMs": 2709852,
+        "ram": 708946,
+        "ramPeak": 439782262,
+        "ramLimit": 671088640,
+        "ramRejected": 0,
+        "scratchDisk": 0,
+        "scratchDiskPeak": 273854464,
+        "scratchDiskLimit": 162821472256,
+        "scratchFd": 0,
+        "scratchFdPeak": 19,
+        "scratchFdLimit": 1048572,
+        "scratchRam": 0,
+        "preservedDisk": 0,
+        "preservedFd": 0,
+        "readerCleanupHealthy": true
+      },
+      {
+        "pid": 79496,
+        "seq": 540,
+        "phase": "after-storage-destruction",
+        "elapsedMs": 2709888,
+        "ram": 0,
+        "ramPeak": 439782262,
+        "ramLimit": 671088640,
+        "ramRejected": 0,
+        "scratchDisk": 0,
+        "scratchDiskPeak": 273854464,
+        "scratchDiskLimit": 162821472256,
+        "scratchFd": 0,
+        "scratchFdPeak": 19,
+        "scratchFdLimit": 1048572,
+        "scratchRam": 0,
+        "preservedDisk": 0,
+        "preservedFd": 0,
+        "readerCleanupHealthy": true
+      }
+    ],
+    "explicitDisablePass": false
+  },
+  "collection": {
+    "sampleCount": 540,
+    "sameIdentity": [
+      [
+        79496,
+        "macos:1792099708:867172"
+      ]
+    ],
+    "allFdComplete": true,
+    "diagnostics": {
+      "[frame-trace-summary]": {
+        "status": "captured",
+        "mode": "bounded",
+        "required": true,
+        "records": 4,
+        "successes": 3,
+        "failures": 1,
+        "issues": []
+      },
+      "[search-failure-summary]": {
+        "status": "captured",
+        "probes": 1,
+        "issues": []
+      },
+      "[server-diagnostic]": {
+        "pid": 79496,
+        "bytes": 806042,
+        "capturedBytes": 806042,
+        "sha256": "2e98bebf251c3b16fcae641d6401fff4e6a1cdc75f29cc386a269b52789dabed",
+        "overflow": false,
+        "captureError": null,
+        "categories": [
+          {
+            "code": "file evidence unavailable",
+            "count": 0
+          },
+          {
+            "code": "storageBlocked",
+            "count": 0
+          },
+          {
+            "code": "shutdown",
+            "count": 0
+          },
+          {
+            "code": "ERROR",
+            "count": 0
+          },
+          {
+            "code": "WARNING",
+            "count": 0
+          }
+        ],
+        "rawBodyPublished": false,
+        "privateCaptureDisposition": "eligible-for-wrapper-cleanup"
+      },
+      "[resource-trace-summary]": {
+        "status": "captured",
+        "count": 541,
+        "final": {
+          "pid": 79496,
+          "seq": 540,
+          "phase": "after-storage-destruction",
+          "elapsedMs": 2709888,
+          "ram": 0,
+          "ramPeak": 439782262,
+          "ramLimit": 671088640,
+          "ramRejected": 0,
+          "scratchDisk": 0,
+          "scratchDiskPeak": 273854464,
+          "scratchDiskLimit": 162821472256,
+          "scratchFd": 0,
+          "scratchFdPeak": 19,
+          "scratchFdLimit": 1048572,
+          "scratchRam": 0,
+          "preservedDisk": 0,
+          "preservedFd": 0,
+          "readerCleanupHealthy": true
+        },
+        "scope": "actual shared product owner; logical charges, not total heap or RSS; sequential counter reads"
+      }
+    },
+    "explicitFinalSampleCoverageGate": "not-run",
+    "ownerMeaning": "after-Finish708946B; after-storage-destruction0; process exit not used as product release proof"
+  },
+  "decoder": {
+    "boundedSuccess": 3,
+    "boundedFailure": 1,
+    "failurePolicy": "automatic",
+    "factory": "vtdec_hw:applemedia:1.28.1",
+    "first": "bus-error",
+    "publicError": "visual-frame-unavailable",
+    "targetNs": 0,
+    "elapsedUs": 6068,
+    "fileBinding": [
+      {
+        "path": "recordings/9201/0111f296-38cb-4f24-bb24-fdaf29abe3b0.mp4",
+        "bytes": 2654,
+        "sha256": "8b2bb72f3decf584f9524c8f1faa4321bd2576d4847bca9c361fa48f1f833331",
+        "identityScope": "post-stop stat identity; not proof of all earlier byte stability",
+        "target": 0,
+        "policy": "automatic"
+      }
+    ],
+    "scope": "one actual Automatic failure retained; no SoftwareOnly evidence-create failure observed; not first gate failure, not assigned112/116 cause; original full trace in sanitized server log"
+  },
+  "analysisCorrections": [
+    "Interim progress used mixed-cycle-progress after structured early-return and incorrectly implied all search/preservation stopped. Corrected to474 successes,250 structured unavailable,180 visual preservation,45A; report.json and original population authoritative.",
+    "Auxiliary time bins exclude45 A searches; original HTTP durations use integer timing, high-precision official success array separate;16 boundary requests unassigned, no synthetic timestamps."
+  ],
+  "preservation": {
+    "archive": "125-execution.tar.gz",
+    "bytes": 58516159,
+    "sha256": "39eeb7708486378f919c10c82e4a3ba059d0c82f7874a1617559e7beb95eb83b",
+    "files": 2881,
+    "payloadBytes": 126329674,
+    "allMemberBytesVerified": true
+  },
+  "binding": {
+    "productTestInventoryChanges": false,
+    "scope": "new evidence/backlog only; product/runtime/profile/fixtures/inventory unchanged; no986 producer repetition",
+    "checks": [
+      "archive2881member bytes/hash readback",
+      "metadata JSON parse and new backlog links",
+      "git diff --check",
+      "product/runtime hashes unchanged"
+    ]
+  },
+  "cleanup": {
+    "runRoot": "/private/tmp/media-server-r125-6r1a76fz",
+    "status": "pending remote evidence verification; product group absent, finally exit0 and ports closed in existing collector",
+    "privateSettingsAnd95Backup": "never read/uploaded/cleaned",
+    "originalProductRuntime": "retained in build-gst-onnx; temporary symbol safety copy excluded from archive",
+    "postRunAbsence": {
+      "79496": "absent",
+      "79448": "absent",
+      "52307": {
+        "connectCode": 61,
+        "closed": true
+      },
+      "52308": {
+        "connectCode": 61,
+        "closed": true
+      }
+    }
+  },
+  "next": {
+    "120MinuteEligible": false,
+    "memoryP0": "open",
+    "release": "HOLD",
+    "required": [
+      "structured search source/model capacity refusal with current accumulated documents and exact limit reason; preserve error/auth contracts",
+      "same-period owner/read-context/index lifetime and actual allocation attribution for RSS residual; no arbitrary cache/allocator/ORT attribution",
+      "Recorder repeat loss/gaps and actual deletion eligibility before next cumulative validation",
+      "resolve direct boundaries then separately authorized cumulative/full shutdown evidence; no automatic rerun"
+    ],
+    "notRun": [
+      "new900",
+      "second45",
+      "120min",
+      "UI",
+      "acceptance",
+      "public procedures"
+    ]
+  },
+  "independentReview": "125-independent-review.json"
+}

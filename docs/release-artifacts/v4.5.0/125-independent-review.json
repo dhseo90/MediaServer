@@ -1,0 +1,38 @@
+{
+  "schema": "media-server.v450.r125.independent-review.v1",
+  "reviewer": "/root/independent_r125",
+  "requested": "gpt-6-astra/high",
+  "toolAccepted": "gpt-6-astra/high",
+  "actualRuntimeModel": null,
+  "actualRuntimeEffort": null,
+  "independence": "fresh reviewer; no implementation/test writing/test execution/file edits/subdelegation; read-only results review",
+  "status": "FAIL_AND_MEMORY_P0_RELEASE_HOLD_SUPPORTED",
+  "confirmed": [
+    "2700.001823s main boundary,2719.295264s total<2880,source=end",
+    "474successes,[56,56,181,181];250 structured capacity unavailable; p952463.097458/max2866.727834 recomputed, official latency gate not-run",
+    "first failure middle/late structured/evidence work missing; visual362 success/180preservation and A45 continue",
+    "explicit disable/deletion/closed-journal/final sample gate not-run; finally normal exit separate",
+    "all observed deleted0; memory fall after structured capacity failure does not establish stable normal mixed memory",
+    "bounded frame3success/1Automatic failure is not all decoder PASS"
+  ],
+  "pending": [
+    "remote byte verification",
+    "owned root cleanup"
+  ],
+  "analysisReview": {
+    "status": "SUPPORTED",
+    "confirmed": [
+      "independent read-only journal parser unique4924 mutations/4463compressed envelopes,CRC/length and duplicate identity consistent",
+      "all2460new segment bytes/hash match;1119same-generation pairs,510positive gaps/internal0",
+      "HTTP A45excluded,724original responses,16time-boundary unassigned; no exact request timestamp claim",
+      "sanitized log8URL-bearing changed lines/original and sanitized byte/hash distinction",
+      "validation search/capacity/evidence/A/shutdown matches analysis; archive size/hash/core JSON byte comparison and no unsafe paths/symlinks/excluded private state"
+    ],
+    "scope": "whole manifest payload hash check by main; reviewer did not repeat every large payload hash"
+  },
+  "artifactReview": {
+    "blockingFindings": [],
+    "clarification": "Finish708946B versus storage destruction0 clarified in backlog",
+    "archiveSha256": "39eeb7708486378f919c10c82e4a3ba059d0c82f7874a1617559e7beb95eb83b"
+  }
+}
