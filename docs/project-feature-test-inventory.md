@@ -5151,3 +5151,20 @@ R112-F02: 같은 실패 파일에서 seek/순차 모두13출력·마지막966666
 - R118-S04: 주기 retention은 admission 잠금을 유지한 동일 All cut 하나를 채널별 Plan에 읽기 전용으로 공유한다. Pending1+candidate1+authority2의 호출4개, 채널별 quota/삭제/현재 권한 회귀를 확인한다. event 예약은 cut 이전 상계, free/outstanding은 cut 이후 채널별 동시 캡처. All 후보의 추가 동시 RAM은 기존 소유 예산 거부를 유지한다. 이 변경 후보의 작은 상태→누적 상태 직접 대조를 각각1회 수행하고 원래12응답·보조게시·Recorder 결과를 분리한다.
 
 - R118-S04 추가 직접 회귀: 실제 Catalog에 두 채널 각2개 원본을 확정하고 채널별1개 용량의 periodic 계획을 실행한다. pin된A원본 보존/A다른원본 삭제, B의 오래된원본만 삭제와 실제 파일/내구 삭제상태를 대조한다. HTTP 성능 source는 불변이며 이 검사 소스 추가 뒤 해당 focused만 재검증한다.
+
+### R119-S01 — 누적 admission·실제 게시·HTTP 수신·명시 종료
+
+- R118 source-small/source-parallel 입력·속도·12요청과 별도 limit200을 그대로 사용한다. 게시본 ReadView의 새 segment membership을 읽기 전용 probe로 확인한다. generation 증가/영속 cache를 membership으로 대신하지 않는다.
+- HTTP id/route/시각/status/헤더 수신/bytes/실패 syscall errno를 예외 전에 보존한다. 원래12모집단과 auxiliary200을 분리하고, 이미 계산 가능한12지연은 보조 실패 전에 출력한다. 자기 소유 서버/worker Stop과 RuntimeStorage Finish는 최초 오류를 보존한 예외 경로에서도 별도 보고한다.
+- admission 계측은 고정7개 elapsed 슬롯(wait/pending/free/snapshot/plan/apply/reserved-unobserved),128호출 cap이다. 출력은 admission 잠금 해제 후에만 한다. 중첩 전체 비용·CPU·서로 다른 최대값을 합산하지 않는다.
+- 첫 진단은 수정 전 제품 의미+관측 보완으로 누적 상태1회. 이후 입증된 수정 후보는 작은 상태→누적 상태 각1회, 동일 query·관측·budgets로 직접 비교한다. 원래12실제200·p95≤2000ms·max≤5000ms, 실제 새 문서/보조공개조회·source수용·Stop/Finish가 모두 필요하다. 실패 최초출력 보존, unchanged바이너리 성공 반복 금지.
+- 내부/직접 검증이며30분·120분·UI 대체 아님. 조건 충족 및 독립 검토 뒤에만 기존900초1회,45/120분 제외.
+
+- **R119-P01**: native generation admission private 준비 중 quota 증가/감소·정책 제거·hold·예약 완료·다른 채널 admission과 예외를 latch로 겹친다. 현재 정책/공간 판단, no stale reservation, FD 회수·authority 유지. 기존 R108 변경-ID/원본 손상/재Open 경계 재사용. custom provider 실제 부족(70>60) 거부와 fresh50 수용을 대조한다. UI 없음; focused macOS/Linux, 장시간은 직접 목표 후 별도900초1회만.
+
+- R119-S01 추가 원인 대조: prepared-large의 실제 `degraded`/cache 게시본 실패를 collect/encode/build/save 중 하나로 분리하기 위해 기존 SubcostEnabled에 16회 상한의 stage·row·제한된 오류 코드만 연결한다. 같은 누적 source 조건 diagnostic-index 1회, 성능 개선 근거가 아닌 실패 원인 대조이며 기존 판정/부하는 유지한다.
+
+- R119-P02: 최초 요청 cache miss의 PrepareSource 최종 현재성/파일 상태 검사와 exact PTS+AU hash seek를 같은 호출에서 수행. 기존 proof 재사용·event·Encode·최종 hit 경로는 재검증 유지. 정상 seek metadata/단일 hold, hash·timebase·sample 불일치/취소/기한/출력 불변 및 기존 파일 변조·path 교체·퇴거/owner 회귀를 focused macOS/Linux에서 확인한다. UI 없음.
+- R119-S01 준비 실패 보존 및 교정: 최초 owned seed 추출이 archive0600 잠금 파일을0644로 만들어 새 Save를 거부했다. 원본 archive와 최초 실패는 불변. 새 실행 사본에 archive 권한 metadata를 복원하고 bytes/hash+mode를 결속한다. corrected control(기존 prepared/index diagnostic 바이너리) → fused 후보 각 누적1회 순서로 고정; 두 빌드 완료 후 실행. 기존12요청/limit200/Recorder/Finish/공간 기준은 유지한다.
+
+- R119-P03: parsed source context hit도 현재 raw 인증 I/O 동안 Catalog를 해제하고 reacquire 뒤 authority/정확한 segment·lifecycle·source entry와 caller media/path를 재검증한다. hot hit latch에서 실제 timeline/내구 reservation/Checkpoint 진행, 삭제·자원 거부, 원본 손상 회귀. 기존 continuous-cut=true 자기선언은 더 이상 사용하지 않음. 교정된 fused-large(12 p95/aux 수신 FAIL) 보존 뒤 hotread 후보 누적1회. 먼저 focused/matrix, 빌드 종료 후 동일 입력/권한/부하/한도에서만 실행.

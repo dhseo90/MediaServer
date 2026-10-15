@@ -260,6 +260,19 @@ std::size_t RecordingSearchReader::PreparedSource::retained_bytes() const {
 std::unique_ptr<RecordingSearchReader::PreparedSource> RecordingSearchReader::PrepareSource(
     const std::string& channel,const std::string& id,std::string* error,const std::function<bool()>& cancelled,
     std::chrono::steady_clock::time_point deadline) const {
+    return PrepareSourceImpl(channel,id,error,cancelled,deadline,nullptr,0,nullptr,nullptr);
+}
+std::unique_ptr<RecordingSearchReader::PreparedSource> RecordingSearchReader::PrepareSourceAndSeek(
+    const std::string& channel,const std::string& id,const std::string& media_sha,std::int64_t original_ns,
+    const std::string& frame_sha,SearchSeekTarget* target,std::string* error,const std::function<bool()>& cancelled,
+    std::chrono::steady_clock::time_point deadline) const {
+    if(!target||original_ns<0){if(error)*error="visual-invalid-frame-reference";return {};}
+    return PrepareSourceImpl(channel,id,error,cancelled,deadline,&media_sha,original_ns,&frame_sha,target);
+}
+std::unique_ptr<RecordingSearchReader::PreparedSource> RecordingSearchReader::PrepareSourceImpl(
+    const std::string& channel,const std::string& id,std::string* error,const std::function<bool()>& cancelled,
+    std::chrono::steady_clock::time_point deadline,const std::string* media_sha,std::int64_t original_ns,
+    const std::string* frame_sha,SearchSeekTarget* target) const {
     const auto expired=[&]{return std::chrono::steady_clock::now()>=deadline||(cancelled&&cancelled());};
     const auto fail=[&](const char* reason)->std::unique_ptr<PreparedSource>{if(error)*error=reason;return {};};
     if(expired())return fail("seek-cancelled");
@@ -284,8 +297,24 @@ std::unique_ptr<RecordingSearchReader::PreparedSource> RecordingSearchReader::Pr
     const auto current=reader_.RevalidatePreparedMedia(*proof->media,proof->segment,proof->location,&proof->context,error);
     if(!current||current!=proof->binding)return fail("seek-unavailable-source-changed");
     if(expired())return fail("seek-cancelled");
+    SearchSeekTarget initial;
+    if(target){
+        // 동일 호출의 마지막 현재성 검사 직후 파일 상태도 확인한다. NativeSeek의
+        // 구간 포함 fallback만으로 다른 sample을 선택하지 않도록 원래 PTS/hash를 먼저 확인한다.
+        struct stat now{};
+        if(!media_sha||!frame_sha||proof->segment.checksum_sha256!=*media_sha||
+            ::fstat(proof->media->fd(),&now)!=0||!SameFileState(proof->verified,now))
+            return fail("visual-invalid-frame-reference");
+        unsigned matches=0;
+        for(const auto& sample:proof->binding->file_evidence->samples)
+            if(sample.original_pts_ns==original_ns&&sample.sample_sha256==*frame_sha)++matches;
+        if(matches!=1)return fail("visual-source-unavailable");
+        if(!NativeSeek(*proof->binding->file_evidence,original_ns,&initial,error,expired))return {};
+    }
+    auto result=std::unique_ptr<PreparedSource>(new PreparedSource(std::move(proof)));
+    if(target)*target=std::move(initial);
     if(error)error->clear();
-    return std::unique_ptr<PreparedSource>(new PreparedSource(std::move(proof)));
+    return result;
 }
 bool RecordingSearchReader::SourceSeekPrepared(const PreparedSource& prepared,std::int64_t pts,std::int32_t num,
     std::int32_t den,SearchSeekTarget* output,std::string* error,const std::function<bool()>& cancelled,

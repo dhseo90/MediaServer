@@ -26,6 +26,7 @@ public:
     ApplicationServiceResult Seek(const Query&,const Authorize&);
     ApplicationServiceResult Evidence(const Query&,const Authorize&,EvidenceApplicationService&);
 private:
+    friend struct VisualSearchPublicationTestProbe;
     Options options_;
     Channels channels_;
     recording::RecordingVisualSource source_;

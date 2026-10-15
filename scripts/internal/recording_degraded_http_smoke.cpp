@@ -11,7 +11,9 @@
 #include "domain/strict_json.h"
 #include <arpa/inet.h>
 #include <netinet/tcp.h>
-namespace ingress {struct RecordingHttpOwnershipProbe {
+namespace ingress {struct VisualSearchPublicationTestProbe {
+ static recording::VisualIndexReadView View(const VisualSearchApplicationService& s){return s.worker_?s.worker_->ReadView():recording::VisualIndexReadView{};}
+};struct RecordingHttpOwnershipProbe {
  static std::uint16_t Port(WebRtcHttpServer& s){sockaddr_in a{};socklen_t n=sizeof(a);if(getsockname(s.impl_->listen_fd,reinterpret_cast<sockaddr*>(&a),&n))throw std::runtime_error("port");return ntohs(a.sin_port);}
  static int Active(WebRtcHttpServer& s){return s.impl_->active_http_connections.load();}
 };}
@@ -63,7 +65,35 @@ int Request(std::uint16_t port,const std::string& path,bool admin=true){
     const auto request="GET "+path+" HTTP/1.1\r\nHost: localhost\r\nAuthorization: Bearer "+(admin?std::string("owned-http85-admin-token"):std::string("owned-http85-viewer-token"))+"\r\nConnection: close\r\n\r\n";
     NeedHttp(webrtc_http_server_detail::SendAll(c.fd,request),"normal HTTP request sent");return std::exchange(c.fd,-1);
 }
-std::string Drain(int fd,Clock::time_point deadline){std::string result;char b[4096];for(;;){const auto remaining=std::chrono::duration_cast<std::chrono::microseconds>(deadline-Clock::now()).count();if(remaining<=0)throw std::runtime_error("HTTP total deadline");timeval timeout{static_cast<time_t>(remaining/1000000),static_cast<suseconds_t>(remaining%1000000)};NeedHttp(!setsockopt(fd,SOL_SOCKET,SO_RCVTIMEO,&timeout,sizeof(timeout)),"receive deadline");auto n=recv(fd,b,sizeof(b),0);if(n==0)break;if(n<0)throw std::runtime_error("client receive failed");if(result.size()+static_cast<std::size_t>(n)>4*1024*1024+8192)throw std::runtime_error("HTTP fixture result bound");result.append(b,n);}return result;}
+struct HttpObservation {
+ unsigned id;const char* scope;const std::string& route;Clock::time_point begin{Clock::now()};
+ std::size_t bytes=0;int status=0,error=0;bool headers=false;const char* failure="none";
+ ~HttpObservation(){std::ostringstream o;o<<"[R119-http-wire] {\"id\":"<<id<<",\"scope\":\""<<scope<<"\",\"route\":\""<<route<<"\",\"beginNs\":"<<std::chrono::duration_cast<std::chrono::nanoseconds>(begin.time_since_epoch()).count()<<",\"endNs\":"<<SourceHttpSteadyNs()<<",\"bytes\":"<<bytes<<",\"headers\":"<<(headers?"true":"false")<<",\"status\":"<<status<<",\"errno\":"<<error<<",\"failure\":\""<<failure<<"\"}\n";const auto row=o.str();std::fwrite(row.data(),1,row.size(),stderr);}
+};
+std::string Drain(int fd,Clock::time_point deadline,HttpObservation& observation){std::string result;char b[4096];for(;;){
+ const auto remaining=std::chrono::duration_cast<std::chrono::microseconds>(deadline-Clock::now()).count();
+ if(remaining<=0){observation.failure="total-deadline";throw std::runtime_error("HTTP total deadline");}
+ timeval timeout{static_cast<time_t>(remaining/1000000),static_cast<suseconds_t>(remaining%1000000)};
+ if(setsockopt(fd,SOL_SOCKET,SO_RCVTIMEO,&timeout,sizeof(timeout))){observation.error=errno;observation.failure="setsockopt";throw std::runtime_error("receive deadline");}
+ const auto n=recv(fd,b,sizeof(b),0);const int saved_errno=n<0?errno:0;
+ if(n==0){if(!observation.headers)observation.failure="eof-before-headers";break;}
+ if(n<0){observation.error=saved_errno;observation.failure="recv";throw std::runtime_error("client receive failed");}
+ observation.bytes+=static_cast<std::size_t>(n);
+ if(result.size()+static_cast<std::size_t>(n)>4*1024*1024+8192){observation.failure="result-bound";throw std::runtime_error("HTTP fixture result bound");}
+ result.append(b,n);observation.headers=result.find("\r\n\r\n")!=std::string::npos;
+ if(result.find("\r\n")!=std::string::npos&&result.rfind("HTTP/1.1 ",0)==0)observation.status=std::atoi(result.c_str()+9);
+ }return result;}
+struct ExplicitFinish {
+ WebRtcHttpServer& server;VisualSearchApplicationService& visual;recording::RecordingRuntimeStorage& runtime;recording::RecordingResourceTrace& trace;bool done=false;
+ bool Run() noexcept {if(done)return true;done=true;bool good=true;std::string error;
+  try{WaitIdle(server);}catch(const std::exception& e){std::cerr<<"[R119-cleanup-error] idle "<<e.what()<<std::endl;good=false;}
+  try{server.Stop();std::cout<<"[R119-stop] server=1"<<std::endl;}catch(...){good=false;}
+  try{visual.Stop();std::cout<<"[R119-stop] visual=1"<<std::endl;}catch(...){good=false;}
+  try{const bool ok=runtime.Finish(&error);std::cout<<"[R119-finish] ok="<<ok<<" error="<<error<<std::endl;good=ok&&good;good=trace.Emit("finished")&&good;}catch(...){good=false;}
+  return good;}
+ ~ExplicitFinish(){if(!done)(void)Run();}
+};
+
 }
 int main(int argc,char** argv){
  if((argc!=3&&argc!=4)||!RecordingWriterTestIsolation(argv[1]))return 2;
@@ -96,6 +126,7 @@ int main(int argc,char** argv){
  config.auth_users_file=(root/"users.json").string();config.source_registry_path=(root/"sources.json").string();config.analysis_registry_path=(root/"analysis.json").string();config.file_root_path=(root/"input").string();
  WebRtcHttpServer server(media,lifecycle,reads,config,&app);NeedHttp(server.Start("127.0.0.1",0,&error),error.c_str());const auto port=RecordingHttpOwnershipProbe::Port(server);
  std::cout<<"[R107-port] "<<port<<std::endl;
+ ExplicitFinish finish{server,visual,runtime,trace};
  std::set<std::string> original_segments;
  if(source_mode)for(const auto& e:std::filesystem::recursive_directory_iterator(root/"recording"))if(e.path().extension()==".mp4")original_segments.insert(e.path().stem().string());
  std::atomic<std::uint64_t> source_started_ns{0};
@@ -115,19 +146,22 @@ int main(int argc,char** argv){
   for(unsigned client=0;client<clients;++client)requests.push_back(std::async(std::launch::async,[&,client]{
    const std::string route=client<2?"/ops/api/recordings/visual-search?channelIds=9101,9201&text=ball&limit=20&threshold=-1":
     (source_mode?"/ops/api/recordings/search?channelIds=9101&startTimeMs=1792000000000&endTimeMs=1792100000000&limit=20&includeUnplaced=true":"/ops/api/recordings/search?channelIds=9101&startTimeMs=1791800000000&endTimeMs=1791900000000&limit=20&includeUnplaced=true");
-   const auto begin=Clock::now();Socket socket;socket.fd=Request(port,route);auto wire=Drain(socket.fd,begin+std::chrono::seconds(5));return std::make_tuple(std::chrono::duration<double,std::milli>(Clock::now()-begin).count(),wire);
+   const auto begin=Clock::now();HttpObservation observation{round*clients+client,"original12",route,begin};Socket socket;socket.fd=Request(port,route);auto wire=Drain(socket.fd,begin+std::chrono::seconds(5),observation);return std::make_tuple(std::chrono::duration<double,std::milli>(Clock::now()-begin).count(),wire);
   }));
   for(unsigned client=0;client<clients;++client){const auto [ms,wire]=requests[client].get();elapsed.push_back(ms);if(wire.rfind("HTTP/1.1 200",0)!=0)++failures;std::cout<<"[R107-http] round="<<round<<" client="<<client<<" ms="<<ms<<" response="<<wire.substr(wire.find("\r\n\r\n")+4)<<std::endl;}
   NeedHttp(trace.Emit("wave"),"trace-wave");
  }
  background.join();if(bgerror)std::rethrow_exception(bgerror);
+ {auto times=elapsed;std::sort(times.begin(),times.end());std::cout<<"[R119-original-result] failures="<<failures<<" count="<<times.size()<<" p95="<<times[std::size_t(std::ceil(times.size()*.95))-1]<<" max="<<times.back()<<std::endl;}
  const auto publication_end=Clock::now()+std::chrono::seconds(30);bool published=false;
- while(Clock::now()<publication_end){const auto status=visual.Status(authorize);StrictJsonObjectDocument doc;NeedHttp(status.status==200&&ParseStrictJsonObjectDocument(status.body,&doc,&error),"publication-status");const auto state=StrictJsonStringField(doc,"state");NeedHttp(state&&*state!="degraded"&&*state!="stopped"&&*state!="unavailable","publication-failed");if((*state=="ready"||*state=="indexing")&&Generation107(status.body)&&(!initial_generation||*Generation107(status.body)>*initial_generation)){published=true;break;}std::this_thread::sleep_for(std::chrono::milliseconds(100));}
+ while(Clock::now()<publication_end){const auto status=visual.Status(authorize);StrictJsonObjectDocument doc;NeedHttp(status.status==200&&ParseStrictJsonObjectDocument(status.body,&doc,&error),"publication-status");const auto state=StrictJsonStringField(doc,"state");if(!state||*state=="degraded"||*state=="stopped"||*state=="unavailable")std::cerr<<"[R119-publication-failure] status="<<status.status<<" body="<<status.body<<std::endl;NeedHttp(state&&*state!="degraded"&&*state!="stopped"&&*state!="unavailable","publication-failed");if((*state=="ready"||*state=="indexing")&&Generation107(status.body)&&(!initial_generation||*Generation107(status.body)>*initial_generation)){published=true;break;}std::this_thread::sleep_for(std::chrono::milliseconds(100));}
  NeedHttp(published,"new index publication after writer");
  std::cout<<"[R107-background] writes="<<writes<<" removed="<<removed<<" status="<<visual.Status(authorize).body<<std::endl;
- if(source_mode){const auto begin=Clock::now();Socket socket;socket.fd=Request(port,"/ops/api/recordings/visual-search?channelIds=9101,9201&text=ball&limit=200&threshold=-1");const auto wire=Drain(socket.fd,begin+std::chrono::seconds(5));NeedHttp(wire.rfind("HTTP/1.1 200",0)==0,"publication HTTP status");const auto body=wire.substr(wire.find("\r\n\r\n")+4);StrictJsonObjectDocument doc;std::size_t fresh=0;NeedHttp(ParseStrictJsonObjectDocumentObjectArray(body,"items",&doc,[&](const auto& item){const auto url=StrictJsonStringField(item,"playbackUrl");if(!url)return false;const auto id=std::filesystem::path(*url).filename().string();if(!original_segments.count(id)){NeedHttp(catalog.FindSourceBinding(id).has_value(),"new published source binding");++fresh;}return true;},&error),error.c_str());std::cout<<"[R118-publication] newDocuments="<<fresh<<" response="<<body<<std::endl;NeedHttp(fresh>0,"new writer document live publication");}
- WaitIdle(server);server.Stop();visual.Stop();
- NeedHttp(runtime.Finish(&error),error.c_str());NeedHttp(trace.Emit("finished"),"trace-finish");
+ if(source_mode){
+ {const auto view=VisualSearchPublicationTestProbe::View(visual);NeedHttp(view.index&&view.publication,"current publication");std::size_t fresh=0;for(const auto& d:view.index->documents())if(!original_segments.count(d.segment_id)){NeedHttp(catalog.FindSourceBinding(d.segment_id).has_value(),"published current binding");++fresh;}
+ std::cout<<"[R119-membership] generation="<<view.publication->generation.value_or(0)<<" documents="<<view.index->documents().size()<<" newDocuments="<<fresh<<" instance="<<view.publication->instance_id<<std::endl;NeedHttp(fresh>0,"published new document membership");}
+ const auto begin=Clock::now();const std::string route="/ops/api/recordings/visual-search?channelIds=9101,9201&text=ball&limit=200&threshold=-1";HttpObservation observation{100,"auxiliary200",route,begin};Socket socket;socket.fd=Request(port,route);const auto wire=Drain(socket.fd,begin+std::chrono::seconds(5),observation);NeedHttp(wire.rfind("HTTP/1.1 200",0)==0,"publication HTTP status");const auto body=wire.substr(wire.find("\r\n\r\n")+4);StrictJsonObjectDocument doc;std::size_t fresh=0;NeedHttp(ParseStrictJsonObjectDocumentObjectArray(body,"items",&doc,[&](const auto& item){const auto url=StrictJsonStringField(item,"playbackUrl");if(!url)return false;const auto id=std::filesystem::path(*url).filename().string();if(!original_segments.count(id)){NeedHttp(catalog.FindSourceBinding(id).has_value(),"new published source binding");++fresh;}return true;},&error),error.c_str());std::cout<<"[R118-publication] newDocuments="<<fresh<<" response="<<body<<std::endl;NeedHttp(fresh>0,"new writer document live publication");}
+ NeedHttp(finish.Run(),"explicit finish failed");
  std::sort(elapsed.begin(),elapsed.end());std::cout<<"[R107-result] failures="<<failures<<" count="<<elapsed.size()<<" p95="<<elapsed[std::size_t(std::ceil(elapsed.size()*.95))-1]<<" max="<<elapsed.back()<<std::endl;
  NeedHttp(source_mode?writes>=6:writes==6,"durable writer completions");NeedHttp(elapsed[std::size_t(std::ceil(elapsed.size()*.95))-1]<=2000&&elapsed.back()<=5000,"original latency criteria");return failures?1:0;
  }catch(const std::exception& e){std::cerr<<"[R107-fail] "<<e.what()<<std::endl;return 1;}

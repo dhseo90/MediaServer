@@ -67,6 +67,15 @@ VisualIndexReadView VisualIndexWorker::ReadView()const{
 bool VisualIndexWorker::Rebuild(const Cancelled& cancelled,std::string* error){
     recording::latency::WorkScope holder_work_scope(recording::latency::Work::Index);
     latency::VisualPhase rebuild("index-rebuild");
+    struct FailureTrace {
+        std::string* error;const char* stage="begin";std::size_t row=0;bool succeeded=false;
+        ~FailureTrace(){if(succeeded||!latency::SubcostEnabled())return;
+            static std::atomic<unsigned> count{0};if(count.fetch_add(1)>=16)return;
+            const bool safe=error&&!error->empty()&&error->size()<=80&&
+                std::all_of(error->begin(),error->end(),[](unsigned char c){return (c>='a'&&c<='z')||(c>='0'&&c<='9')||c=='-';});
+            std::fprintf(stderr,"[R119-index-failure] stage=%s row=%zu code=%s\n",stage,row,safe?error->c_str():"unclassified");
+        }
+    } failure_trace{error};
     std::shared_ptr<const VisualSearchIndex> base;
     {std::unique_lock lock(mutex_);
         // 오래된 질의가 이전 세대를 보유하면 세 번째 색인 할당을 시작하지 않는다.
@@ -75,6 +84,7 @@ bool VisualIndexWorker::Rebuild(const Cancelled& cancelled,std::string* error){
         status_.attempt_state="running";status_.attempt_started_ms=NowMs();status_.attempt_finished_ms.reset();status_.error.clear();}
     std::vector<VisualSearchDocument> docs;
     std::optional<std::map<std::string,VisualSourceCoverage>> coverage;
+    failure_trace.stage="collect";
     {latency::VisualPhase collect("index-collect");if(!source_(&docs,&coverage,cancelled,error))return false;}
     if(coverage&&coverage->size()>32)return Fail(error,"visual-index-capacity");
     if(coverage)for(const auto& entry:*coverage)if(entry.first.empty()||entry.first.size()>1024)return Fail(error,"visual-index-capacity");
@@ -95,7 +105,9 @@ bool VisualIndexWorker::Rebuild(const Cancelled& cancelled,std::string* error){
     if(base)for(const auto& row:base->documents())prior.emplace(row.id,&row);
     auto encode=encode_factory_();if(!encode)return Fail(error,"visual-index-build-failed");
     std::set<std::pair<std::string,std::string>> unsupported_segments,unsupported_snapshots;
+    failure_trace.stage="encode";
     for(auto& row:docs){
+        ++failure_trace.row;
         if(row.event_id.empty()&&unsupported_segments.count({row.channel_id,row.segment_id}))continue;
         if(cancelled())return Fail(error,"visual-cancelled");
         const auto found=prior.find(row.id);
@@ -112,9 +124,11 @@ bool VisualIndexWorker::Rebuild(const Cancelled& cancelled,std::string* error){
         return row.event_id.empty()?unsupported_segments.count({row.channel_id,row.segment_id})!=0:
             unsupported_snapshots.count({row.channel_id,row.id})!=0;
     }),docs.end());
+    failure_trace.stage="build";
     std::shared_ptr<const VisualSearchIndex> complete;
     if(!VisualSearchIndex::Build(VisualEmbeddingContract::Siglip2(),std::move(docs),&complete,error,limits_))return false;
     if(cancelled())return Fail(error,"visual-cancelled");
+    failure_trace.stage="save";
     {latency::VisualPhase save("index-save");if(!store_.Save(*complete,error))return false;}
     // Stop 뒤 cache는 완성본일 수 있지만 종료 중 새 메모리 게시를 하지 않는다.
     if(cancelled())return Fail(error,"visual-cancelled");
@@ -131,6 +145,7 @@ bool VisualIndexWorker::Rebuild(const Cancelled& cancelled,std::string* error){
         status_.unsupported_segments.clear();status_.unsupported_snapshots.clear();
         for(const auto& entry:unsupported_segments)++status_.unsupported_segments[entry.first];
         for(const auto& entry:unsupported_snapshots)++status_.unsupported_snapshots[entry.first];}
+    failure_trace.succeeded=true;
     return true;
 }
 void VisualIndexWorker::Run(){

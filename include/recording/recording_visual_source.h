@@ -30,6 +30,8 @@ public:
         std::chrono::steady_clock::time_point deadline = std::chrono::steady_clock::time_point::max()) const;
     std::unique_ptr<PreparedSource> Prepare(const VisualSearchDocument&,std::string*,const std::function<bool()>&,
         std::chrono::steady_clock::time_point) const;
+    std::unique_ptr<PreparedSource> PrepareResolved(const VisualSearchDocument&,SearchSeekTarget*,std::string*,
+        const std::function<bool()>&,std::chrono::steady_clock::time_point) const;
     bool ResolvePrepared(const VisualSearchDocument&,const PreparedSource&,SearchSeekTarget*,std::string*,
         const std::function<bool()>&,std::chrono::steady_clock::time_point) const;
     bool IsDeleted(const VisualSearchDocument& doc) const { return catalog_.IsDeletedSegmentId(doc.segment_id); }

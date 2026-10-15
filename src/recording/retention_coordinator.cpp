@@ -418,7 +418,8 @@ RetentionCoordinator::RetentionCoordinator(RecordingCatalog& catalog,
     native_catalog_=&catalog;
 }
 
-RetentionSnapshot RetentionCoordinator::ReadSnapshot(RetentionSnapshotSelection selection,const std::string& id) const {
+RetentionSnapshot RetentionCoordinator::ReadSnapshot(RetentionSnapshotSelection selection,const std::string& id,
+    const std::function<bool(std::string*)>& before_current) const {
     recording::latency::WorkScope holder_work_scope(recording::latency::Work::Retention);
     RetentionSnapshot snapshot;
     try {
@@ -427,7 +428,10 @@ RetentionSnapshot RetentionCoordinator::ReadSnapshot(RetentionSnapshotSelection 
             throw std::runtime_error("catalog retention coordinator 소유권 거부");
         }
         if(!snapshot_provider_)throw std::runtime_error("snapshot provider 없음");
-        snapshot=native_catalog_?native_catalog_->RetentionSnapshot(selection,id):snapshot_provider_();
+        if(before_current){
+            if(native_catalog_)snapshot=native_catalog_->RetentionSnapshotPrepared(selection,id,before_current);
+            else {if(!before_current(&snapshot.error)){snapshot.authoritative=false;return snapshot;}snapshot=snapshot_provider_();}
+        }else snapshot=native_catalog_?native_catalog_->RetentionSnapshot(selection,id):snapshot_provider_();
         if(!snapshot.authoritative)return snapshot;
         // catalog의 내구 예약은 임시 provider map이나 누락된 복사본으로 대체하지 않는다.
         if(const auto* catalog=dynamic_cast<const RecordingCatalog*>(&store_);catalog&&!native_catalog_) {
@@ -788,6 +792,7 @@ bool RetentionCoordinator::UpdateChannelPolicy(const std::string& channel_id,
         if (error != nullptr) *error = "channel retention policy 값이 유효하지 않음";
         return false;
     }
+    std::lock_guard admission_lock(admission_mu_);
     std::lock_guard lock(mu_);
     policies_[channel_id] = policy;
     statuses_.try_emplace(channel_id);
@@ -869,54 +874,81 @@ void RetentionCoordinator::RunPeriodic(std::int64_t now_ms) {
     }
 }
 
+namespace {
+// Fixed per-call diagnostics, emitted only after admission lock destruction.
+struct AdmissionCosts {
+ const bool active=recording::latency::SubcostEnabled();
+ std::uint64_t begin=active?recording::latency::Now():0;std::array<std::uint64_t,7> ns{};
+ template<class F> auto Measure(unsigned slot,F&& f){const auto b=active?recording::latency::Now():0;auto result=f();if(active)ns[slot]+=recording::latency::Now()-b;return result;}
+ ~AdmissionCosts(){if(!active)return;static std::atomic<unsigned> count{0};const auto id=count.fetch_add(1);if(id>=128)return;
+ std::fprintf(stderr,"[R119-admission] {\"id\":%u,\"beginNs\":%llu,\"endNs\":%llu,\"costNs\":[%llu,%llu,%llu,%llu,%llu,%llu,%llu]}\n",id,(unsigned long long)begin,(unsigned long long)recording::latency::Now(),(unsigned long long)ns[0],(unsigned long long)ns[1],(unsigned long long)ns[2],(unsigned long long)ns[3],(unsigned long long)ns[4],(unsigned long long)ns[5],(unsigned long long)ns[6]);}
+};
+}
 RetentionAdmissionResult RetentionCoordinator::AdmitContinuousWrite(
     const std::string& channel_id,
     std::uint64_t expected_segment_bytes,
     std::int64_t now_ms) {
-    std::lock_guard admission_lock(admission_mu_);
+    AdmissionCosts costs;
+    std::unique_lock admission_lock(admission_mu_,std::defer_lock);
     RetentionPolicy policy;
-    {
-        std::lock_guard lock(mu_);
-        const auto it = policies_.find(channel_id);
-        if (it == policies_.end()) return {false, false, 0, "channel retention policy가 없음"};
-        policy = it->second;
-    }
-    bool active=false;std::uint64_t observed_bytes=0;
-    {std::lock_guard lock(reservation_mu_);active=inflight_reservations_.count(channel_id)!=0;
-     const auto it=observed_segment_bytes_.find(channel_id);if(it!=observed_segment_bytes_.end())observed_bytes=it->second;}
-    if (active) {
-        std::lock_guard lock(mu_);
-        auto& status = statuses_[channel_id];
-        status.storage_blocked = true;
-        status.last_error = "이전 segment 정리 실패로 예약이 유지됨";
-        TraceRecordingState(channel_id,"admission-rejected",status.last_error);
-        return {false, false, 0, status.last_error};
-    }
-    const auto recovered = RecoverPendingForChannel(now_ms, channel_id);
-    if (!recovered.ok) {
-        std::lock_guard lock(mu_);
-        auto& status = statuses_[channel_id];
-        status.storage_blocked = true;
-        status.last_error = recovered.last_error;
-        TraceRecordingState(channel_id,"pending-recovery-rejected",recovered.last_error);
-        return {false, false, 0, recovered.last_error};
-    }
-    expected_segment_bytes = std::max(
-        expected_segment_bytes,
-        std::max(options_.default_expected_segment_bytes, observed_bytes));
-    if (expected_segment_bytes > policy.continuous_max_bytes) {
-        std::lock_guard lock(mu_);
-        auto& status = statuses_[channel_id];
-        status.storage_blocked = true;
-        status.required_bytes = SaturatingAdd(options_.reserved_free_bytes,
-                                              expected_segment_bytes);
-        status.last_error = "예상 segment 용량이 continuous quota를 초과함";
-        TraceRecordingState(channel_id,"admission-rejected",status.last_error);
-        return {false, false, 0, status.last_error};
+    std::uint64_t event_bound=0;
+    const auto decision=[&](std::string* failure){
+        const auto wait=costs.active?recording::latency::Now():0;
+        admission_lock.lock();
+        if(costs.active)costs.ns[0]+=recording::latency::Now()-wait;
+        const auto reject=[&](const std::string& reason){if(failure)*failure=reason;return false;};
+        {
+            std::lock_guard lock(mu_);
+            const auto it = policies_.find(channel_id);
+            if (it == policies_.end()) return reject("channel retention policy가 없음");
+            policy = it->second;
+        }
+        bool active=false;std::uint64_t observed_bytes=0;
+        {std::lock_guard lock(reservation_mu_);active=inflight_reservations_.count(channel_id)!=0;
+         const auto it=observed_segment_bytes_.find(channel_id);if(it!=observed_segment_bytes_.end())observed_bytes=it->second;}
+        if (active) {
+            std::lock_guard lock(mu_);
+            auto& status = statuses_[channel_id];
+            status.storage_blocked = true;
+            status.last_error = "이전 segment 정리 실패로 예약이 유지됨";
+            TraceRecordingState(channel_id,"admission-rejected",status.last_error);
+            return reject(status.last_error);
+        }
+        const auto recovered = costs.Measure(1,[&]{return RecoverPendingForChannel(now_ms, channel_id);});
+        if (!recovered.ok) {
+            std::lock_guard lock(mu_);
+            auto& status = statuses_[channel_id];
+            status.storage_blocked = true;
+            status.last_error = recovered.last_error;
+            TraceRecordingState(channel_id,"pending-recovery-rejected",recovered.last_error);
+            return reject(recovered.last_error);
+        }
+        expected_segment_bytes = std::max(
+            expected_segment_bytes,
+            std::max(options_.default_expected_segment_bytes, observed_bytes));
+        if (expected_segment_bytes > policy.continuous_max_bytes) {
+            std::lock_guard lock(mu_);
+            auto& status = statuses_[channel_id];
+            status.storage_blocked = true;
+            status.required_bytes = SaturatingAdd(options_.reserved_free_bytes,
+                                                  expected_segment_bytes);
+            status.last_error = "예상 segment 용량이 continuous quota를 초과함";
+            TraceRecordingState(channel_id,"admission-rejected",status.last_error);
+            return reject(status.last_error);
+        }
+        {std::lock_guard lock(reservation_mu_);event_bound=EventReservationsLocked(channel_id);}
+        return true;
+    };
+    auto admission_snapshot=costs.Measure(3,[&]{return ReadSnapshot(RetentionSnapshotSelection::Channel,channel_id,decision);});
+    // Snapshot preparation may fail before the decision lock is acquired.
+    // Never plan or add a reservation after either failure.
+    if(!admission_snapshot.authoritative||!admission_lock.owns_lock()){
+        TraceRecordingState(channel_id,"admission-snapshot-rejected",admission_snapshot.error);
+        return {false,false,0,admission_snapshot.error};
     }
     SpaceAndReservations space;
     std::string error;
-    if (!ReadSpaceAndReservations(channel_id,&space,&error)) {
+    if (!costs.Measure(2,[&]{return ReadSpaceAndReservations(channel_id,&space,&error);})) {
         std::lock_guard lock(mu_);
         auto& status = statuses_[channel_id];
         status.storage_blocked = true;
@@ -929,8 +961,8 @@ RetentionAdmissionResult RetentionCoordinator::AdmitContinuousWrite(
     }
 
     const auto free_bytes=space.free_bytes;
-    auto admission_snapshot=ReadSnapshot(RetentionSnapshotSelection::Channel,channel_id);
-    if(!admission_snapshot.authoritative){TraceRecordingState(channel_id,"admission-snapshot-rejected",admission_snapshot.error);return {false,false,0,admission_snapshot.error};}
+    // Durable snapshot precedes the coherent physical-free/outstanding capture.
+    space.event_bytes=std::max(space.event_bytes,event_bound);
     const std::uint64_t inflight_bytes = SaturatingAdd(space.outstanding,DurableOutstanding(admission_snapshot));
     const std::uint64_t effective_free =
         free_bytes > inflight_bytes ? free_bytes - inflight_bytes : 0;
@@ -950,8 +982,8 @@ RetentionAdmissionResult RetentionCoordinator::AdmitContinuousWrite(
                        RecordingRetentionClass::Continuous;
             }),
         admission_snapshot.candidates.end());
-    const auto plan = Plan(admission_snapshot, request);
-    auto applied = ApplyPlan(plan, now_ms, true);
+    const auto plan = costs.Measure(4,[&]{return Plan(admission_snapshot, request);});
+    auto applied = costs.Measure(5,[&]{return ApplyPlan(plan, now_ms, true);});
     std::uint64_t refreshed_physical_free = free_bytes;
     std::string refresh_error;
     bool refreshed = true;

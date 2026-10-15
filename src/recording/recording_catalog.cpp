@@ -2837,8 +2837,8 @@ RecordingCatalog::SourceBindingHandle RecordingCatalog::ReadSourceBindingForMedi
     if(!ValidateMediaLocked(segment,location,nullptr))return {};
     bool continuous_cut=false;
     auto binding=ReadSourceBindingLocked(segment.segment_id,context,error,&segment,&continuous_cut);
-    // A cache hit that never released mu_ already passed ValidateMediaLocked in
-    // this exact cut. A miss/parser unlock still requires the original recheck.
+    // Source authentication can release mu_ even on a parsed cache hit.
+    // Preserve the post-I/O media/path check in the reacquired current cut.
     if(binding&&!continuous_cut&&!ValidateMediaLocked(segment,location,nullptr))return {};
     return binding;
 } catch(const CatalogHistoryError& failure) { Fail(error,failure.what());return {}; }
@@ -2869,11 +2869,10 @@ RecordingCatalog::SourceBindingHandle RecordingCatalog::ReadSourceBindingLocked(
         const bool reusable=context->binding&&context->envelope&&context->binding->segment_id==id&&context->segment_json==segment_json;
         bool acquired=false;
         const auto acquire=[&]{return journal_.AcquireMutationLinkForRead(this,entry.mutation,&cold,&envelope,error);};
-        if(reusable){
-            // The hit remains in one Catalog cut, with current physical raw
-            // authentication. This is not a revision-only cached answer.
-            acquired=acquire();
-        }else{
+        {
+            // The context owns immutable parsed/envelope values. Even a hit must
+            // authenticate current physical raw, but need not hold Catalog during I/O.
+            // No same-cut promise survives this unlock; current membership follows.
             auto* owner=recording::latency::Lock::Owner(mu_);if(!owner)return failed();
             // Owned entry/current/link survive mutation and checkpoint. Journal
             // releases its own lock before Catalog is reacquired (no inversion).
@@ -2886,12 +2885,23 @@ RecordingCatalog::SourceBindingHandle RecordingCatalog::ReadSourceBindingLocked(
         if(!acquired||!envelope||envelope->mutation_id!=entry.latest_mutation_id||envelope->entity_id!=id||
            envelope->mutation_type!=RecordingMutationType::SegmentV2BoundFinalized)return failed();
         link_phase.End();
+        if(reusable){
+            if(!opened_||!derived_job_state_authoritative_||!CanReadLocked(error)||!journal_.OwnsCatalog(this))return {};
+            const auto now=segments_v2_.find(id);
+            if(now==segments_v2_.end()||EffectiveLifecycleV2Locked(id,true)!=RecordingLifecycle::Finalized||
+                SerializeRecordingSegmentV2(now->second)!=segment_json){Fail(error,"source binding current source changed");return {};}
+            const auto current_entry=SourceEntryLocked(id);
+            if(!current_entry||current_entry->latest_mutation_id!=entry.latest_mutation_id||current_entry->id!=entry.id||
+               current_entry->channel!=entry.channel||current_entry->source!=entry.source||current_entry->generation!=entry.generation||
+               current_entry->track!=entry.track||current_entry->order!=entry.order||current_entry->sample_count!=entry.sample_count){
+                Fail(error,"source binding current source changed");return {};}
+        }
         if(context->binding&&context->envelope&&context->binding->segment_id==id&&context->segment_json==segment_json){
             const auto& a=*envelope;const auto& b=*context->envelope;
             if(a.schema==b.schema&&a.mutation_id==b.mutation_id&&a.entity_id==b.entity_id&&
                a.mutation_type==b.mutation_type&&a.occurred_at_ms==b.occurred_at_ms&&a.payload_json==b.payload_json){
                 context->cold=std::move(cold);
-                if(continuous_cut)*continuous_cut=reusable;
+                // continuous_cut remains false: caller rechecks media/path after this unlocked read.
                 if(error)error->clear();
                 return context->binding;
             }
@@ -4442,7 +4452,8 @@ void RecordingCatalog::NoteRetentionChangeLocked(const char* kind,const std::str
 #if MEDIA_SERVER_RECORDING_GENERATION_TESTING
 thread_local std::function<void()> RecordingCatalog::retention_prepared_hook_;
 #endif
-RetentionSnapshot RecordingCatalog::RetentionSnapshotPrepared(RetentionSnapshotSelection selection,const std::string& id) const {
+RetentionSnapshot RecordingCatalog::RetentionSnapshotPrepared(RetentionSnapshotSelection selection,const std::string& id,
+    const std::function<bool(std::string*)>& before_current) const {
     struct RetentionSnapshot result;
     std::unique_ptr<RetentionReadState> read;
     std::unique_ptr<RecordingCatalog> frozen;
@@ -4461,6 +4472,10 @@ RetentionSnapshot RecordingCatalog::RetentionSnapshotPrepared(RetentionSnapshotS
         {
             recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__,false,"RetentionCapture");
             if(!completed_history_){
+                // Legacy has no private cursor: acquire the admission owner
+                // outside Catalog, then read the current legacy state.
+                if(before_current){recording::latency::Lock::Unlocked unlocked(lock);
+                    if(!before_current(&first))throw CatalogHistoryError(first);}
                 std::array<std::uint64_t,4> cost{};
                 result=RetentionSnapshotLocked(selection,id,recording::latency::HolderEnabled()?&cost:nullptr);
                 lock.HolderRetentionCosts("RetentionLegacy",cost);return result;
@@ -4491,6 +4506,9 @@ RetentionSnapshot RecordingCatalog::RetentionSnapshotPrepared(RetentionSnapshotS
         // by the same complete cursors/joins as the locked implementation.
         result=frozen->RetentionCandidatesFromCut(selection,id,nullptr);
         if(!result.authoritative)throw CatalogHistoryError(result.error);
+        // The private bytes are owned; the coordinator acquires its decision
+        // lock here, before current authentication and changed-ID rebasing.
+        if(before_current&&!before_current(&first))throw CatalogHistoryError(first);
         {
             recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__,false,"RetentionCurrent");
             if(!opened_||instance!=search_instance_||!CanReadLocked(&first))throw CatalogHistoryError(first.empty()?"retention owner changed":first);

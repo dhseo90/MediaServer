@@ -201,7 +201,8 @@ private:
     std::uint64_t OutstandingReservationsLocked() const;
     std::uint64_t EventReservationsLocked(const std::string& channel_id) const;
     RetentionSnapshot ReadSnapshot(RetentionSnapshotSelection selection=RetentionSnapshotSelection::All,
-                                   const std::string& id={}) const;
+                                   const std::string& id={},
+                                   const std::function<bool(std::string*)>& before_current={}) const;
 
     RecordingStorePort& store_;
     SnapshotProvider snapshot_provider_;

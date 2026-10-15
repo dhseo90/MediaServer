@@ -124,6 +124,16 @@ std::unique_ptr<RecordingVisualSource::PreparedSource> RecordingVisualSource::Pr
     std::string* error,const std::function<bool()>& cancelled,std::chrono::steady_clock::time_point deadline) const {
     RecordingSearchReader search(catalog_,reader_);return search.PrepareSource(doc.channel_id,doc.segment_id,error,cancelled,deadline);
 }
+std::unique_ptr<RecordingVisualSource::PreparedSource> RecordingVisualSource::PrepareResolved(
+    const VisualSearchDocument& doc,SearchSeekTarget* target,std::string* error,
+    const std::function<bool()>& cancelled,std::chrono::steady_clock::time_point deadline) const {
+    if(!doc.event_id.empty()||!target||doc.time_base_num!=1||doc.time_base_den!=1000000000){
+        Fail(error,"visual-invalid-frame-reference");return {};
+    }
+    RecordingSearchReader search(catalog_,reader_);
+    return search.PrepareSourceAndSeek(doc.channel_id,doc.segment_id,doc.media_sha256,doc.media_pts,
+        doc.frame_sha256,target,error,cancelled,deadline);
+}
 bool RecordingVisualSource::ResolvePrepared(const VisualSearchDocument& doc,const PreparedSource& prepared,
     SearchSeekTarget* seek,std::string* error,const std::function<bool()>& cancelled,std::chrono::steady_clock::time_point deadline) const {
     if(std::chrono::steady_clock::now()>=deadline||(cancelled&&cancelled()))return Fail(error,"visual-cancelled");

@@ -582,7 +582,8 @@ private:
     void NoteRetentionChangeLocked(const char* kind,const std::string& id) noexcept;
     struct RetentionSnapshot RetentionCandidatesFromCut(RetentionSnapshotSelection,const std::string&,
         std::array<std::uint64_t,4>*,VisualSourceScan* visual=nullptr) const;
-    struct RetentionSnapshot RetentionSnapshotPrepared(RetentionSnapshotSelection,const std::string&) const;
+    struct RetentionSnapshot RetentionSnapshotPrepared(RetentionSnapshotSelection,const std::string&,
+        const std::function<bool(std::string*)>& before_current={}) const;
 #if MEDIA_SERVER_RECORDING_GENERATION_TESTING
     static thread_local std::function<void()> retention_prepared_hook_;
 #endif

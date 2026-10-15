@@ -53,6 +53,31 @@ int main(int argc,char**argv){try{
     Check(holds()==1,"R105 single prepared source owns exactly one hold");
     {auto second=source.Prepare(docs.front(),&error,{},deadline);Check(bool(second)&&holds()==2,"R105 concurrent source ownership adds exactly one hold");}
     Check(holds()==1,"R105 second source release preserves first reader");
+    // R119: initial proof + exact seek share the final current check; later reuse still revalidates.
+    {recording::SearchSeekTarget initial;initial.seconds=42;
+        auto combined=source.PrepareResolved(docs.front(),&initial,&error,{},deadline);
+        Check(bool(combined)&&holds()==2&&initial.seconds<.04,"R119 combined exact first seek and single hold");
+        recording::SearchSeekTarget later;
+        Check(source.ResolvePrepared(docs.front(),*combined,&later,&error,{},deadline)&&
+            later.seconds==initial.seconds&&later.sample_ordinal==initial.sample_ordinal&&
+            later.frame_duration_seconds==initial.frame_duration_seconds&&later.basis==initial.basis,
+            "R119 combined and revalidated seek metadata equal");
+        combined.reset();Check(holds()==1,"R119 combined final owner releases hold");
+        for(unsigned mode=0;mode<5;++mode){auto bad=docs.front();
+            if(mode==0)bad.media_sha256=std::string(64,'f');
+            if(mode==1)bad.frame_sha256=std::string(64,'f');
+            if(mode==2)++bad.media_pts;
+            if(mode==3)bad.time_base_den=90000;
+            if(mode==4)bad.event_id="snapshot-not-combinable";
+            initial.seconds=42;
+            Check(!source.PrepareResolved(bad,&initial,&error,{},deadline)&&initial.seconds==42&&holds()==1,
+                "R119 mismatched exact frame rejected with unchanged output and released hold");}
+        initial.seconds=42;
+        Check(!source.PrepareResolved(docs.front(),&initial,&error,[]{return true;},deadline)&&initial.seconds==42&&holds()==1,
+            "R119 combined cancellation unchanged output");
+        Check(!source.PrepareResolved(docs.front(),&initial,&error,{},std::chrono::steady_clock::now()-std::chrono::seconds(1))&&initial.seconds==42&&holds()==1,
+            "R119 combined expired deadline unchanged output");
+    }
     recording::SearchSeekTarget cached;cached.seconds=42;
     Check(source.ResolvePrepared(docs.front(),*prepared,&cached,&error,{},deadline)&&cached.seconds<.04,"typed prepared seek matches existing native target");
     auto wrong=docs.front();wrong.channel_id="other";

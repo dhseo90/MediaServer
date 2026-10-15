@@ -120,7 +120,7 @@ void ReservationProgressDuringSnapshot(bool event) {
     coordinator.UpdateChannelPolicy("b",Policy(1000,100),&error);
     const auto initial=event?coordinator.AdmitEventWrite("a","old",80,1):coordinator.AdmitContinuousWrite("a",60,1);
     Expect(initial.allowed,"R118 initial reservation");armed=true;
-    auto admission=std::async(std::launch::async,[&]{return event?coordinator.AdmitEventWrite("a","new",40,2):coordinator.AdmitContinuousWrite("b",50,2);});
+    auto admission=std::async(std::launch::async,[&]{return event?coordinator.AdmitEventWrite("a","new",40,2):coordinator.AdmitContinuousWrite("b",70,2);});
     {std::unique_lock lock(mutex);changed.wait_for(lock,std::chrono::seconds(1),[&]{return entered;});}
     auto completion=std::async(std::launch::async,[&]{
         physical=event?920:60;
@@ -131,7 +131,7 @@ void ReservationProgressDuringSnapshot(bool event) {
     {std::lock_guard lock(mutex);released=true;}changed.notify_all();
     completion.get();const auto result=admission.get();armed=false;
     Expect(entered&&progressed,event?"R118 event completion proceeds during snapshot":"R118 continuous completion proceeds during snapshot");
-    Expect(!result.allowed,event?"R118 captured event quota not lowered after completion":"R118 old free not paired with later reduced reservation");
+    Expect(!result.allowed,event?"R118 captured event quota not lowered after completion":"R119 current free/reservation rejects real remaining-capacity shortage");
     if(!event){const auto fresh=coordinator.AdmitContinuousWrite("b",50,3);Expect(fresh.allowed,"R118 fresh space/reservation permits remaining capacity");coordinator.CompleteContinuousWrite("b",50);}
 }
 

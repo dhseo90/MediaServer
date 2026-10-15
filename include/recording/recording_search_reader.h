@@ -48,6 +48,12 @@ public:
     std::unique_ptr<PreparedSource> PrepareSource(const std::string& channel,const std::string& segment,
         std::string* error,const std::function<bool()>& cancelled = {},
         std::chrono::steady_clock::time_point deadline = std::chrono::steady_clock::time_point::max()) const;
+    // 최초 준비의 최종 현재성 검사와 같은 호출에서 정확한 frame seek를 만든다.
+    // 이후 사용은 SourceSeekPrepared로 다시 현재성을 확인한다.
+    std::unique_ptr<PreparedSource> PrepareSourceAndSeek(const std::string& channel,const std::string& segment,
+        const std::string& media_sha256,std::int64_t original_ns,const std::string& frame_sha256,
+        SearchSeekTarget*,std::string*,const std::function<bool()>&,
+        std::chrono::steady_clock::time_point) const;
     bool SourceSeekPrepared(const PreparedSource&,std::int64_t media_pts,std::int32_t time_base_num,
         std::int32_t time_base_den,SearchSeekTarget*,std::string* error,
         const std::function<bool()>& cancelled = {},
@@ -59,6 +65,9 @@ public:
         std::shared_ptr<const RecordingSearchModel>* output, std::string* error,
         SearchModelLimits limits = {}, const RecordingSearchQuery* query = nullptr);
 private:
+    std::unique_ptr<PreparedSource> PrepareSourceImpl(const std::string&,const std::string&,std::string*,
+        const std::function<bool()>&,std::chrono::steady_clock::time_point,
+        const std::string*,std::int64_t,const std::string*,SearchSeekTarget*) const;
     RecordingCatalog& catalog_;
     RecordingReadService& reader_;
 };

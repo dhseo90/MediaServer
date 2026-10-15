@@ -212,6 +212,48 @@ void RetentionPreparedCases(const std::filesystem::path& root){
         if(mode!="finish")Need(owner.Finish(&error));
     }
 }
+// R119: a real private Catalog cut is held before admission serialization.
+void AdmissionPreparedCases(const std::filesystem::path& root){
+    for(const std::string mode:{"increase","decrease","remove","hold","completion","parallel","exception"}){
+        const auto path=root/mode;std::filesystem::create_directories(path);CompleteFixture(path);
+        RecordingJournal journal(Options(path));Need(journal.Open(&error));auto opts=ReadOptions(path);opts.enable_generation_writes=true;
+        RecordingCatalog catalog(journal,opts);Need(catalog.Open(&error));
+        RetentionCoordinator coordinator(catalog,[](auto* bytes,auto*){*bytes=1024ULL*1024*1024;return true;},
+            [](const auto&,auto*){return false;},{0,1,path});
+        RetentionPolicy policy{mode=="increase"?1ULL:1024ULL*1024*1024,0,1024ULL*1024*1024,0};
+        Need(coordinator.UpdateChannelPolicy("channel",policy,&error));
+        Need(coordinator.UpdateChannelPolicy("other",{1024ULL*1024*1024,0,1024ULL*1024*1024,0},&error));
+        if(mode=="completion")Need(coordinator.AdmitContinuousWrite("channel",128,1).allowed);
+        const auto fds=OpenDescriptors();
+        std::promise<void> entered,resume;auto ready=entered.get_future();auto release=resume.get_future().share();
+        RetentionAdmissionResult result;std::exception_ptr failure;
+        std::thread reader([&]{try{ProofProbe::RetentionHook([&]{ProofProbe::RetentionHook({});entered.set_value();release.wait();
+                if(mode=="exception")throw std::runtime_error("admission preparation injection");});
+            result=coordinator.AdmitContinuousWrite("channel",128,2);
+        }catch(...){failure=std::current_exception();}ProofProbe::RetentionHook({});});
+        struct Guard{std::promise<void>& resume;std::thread& thread;bool done=false;void Release(){if(!done){resume.set_value();done=true;}}
+            ~Guard(){Release();if(thread.joinable())thread.join();}}guard{resume,reader};
+        Need(ready.wait_for(std::chrono::seconds(3))==std::future_status::ready);
+        auto change=std::async(std::launch::async,[&]{std::string detail;
+            if(mode=="remove"){coordinator.RemoveChannelPolicy("channel");return true;}
+            if(mode=="increase"||mode=="decrease"){auto current=policy;current.continuous_max_bytes=mode=="increase"?1024ULL*1024*1024:1;
+                return coordinator.UpdateChannelPolicy("channel",current,&detail);}
+            if(mode=="hold")return catalog.AdjustHoldCount("segment",1,&detail);
+            if(mode=="completion"){coordinator.CompleteContinuousWrite("channel",128);return true;}
+            const auto other=coordinator.AdmitContinuousWrite("other",128,3);if(other.allowed)coordinator.CompleteContinuousWrite("other",128);return other.allowed;
+        });
+        const bool progressed=change.wait_for(std::chrono::seconds(3))==std::future_status::ready;
+        if(!progressed)guard.Release();
+        const bool changed=change.get();
+        guard.Release();reader.join();if(failure)std::rethrow_exception(failure);
+        const bool denied=mode=="decrease"||mode=="remove"||mode=="exception";
+        Check("R119-P01",progressed&&changed&&result.allowed!=denied,(mode+": current policy/reservation read after independent preparation; no stale admission").c_str());
+        if(result.allowed)coordinator.CompleteContinuousWrite("channel",128);
+        if(mode=="hold")Need(catalog.AdjustHoldCount("segment",-1,&error));
+        Check("R119-P01",OpenDescriptors()==fds&&catalog.RetentionSnapshot().authoritative,"all private readers release FD; transient rejection preserves authority");
+        Need(journal.Finish(&error));
+    }
+}
 void RetentionPathCases(const std::filesystem::path& root){
     std::filesystem::create_directories(root);CompleteFixture(root);
     RecordingJournal journal(Options(root));Need(journal.Open(&error));
@@ -446,15 +488,18 @@ void SourceReadCases(const std::filesystem::path& root){
     }
 }
 void SharedSourceReadCases(const std::filesystem::path& root){
-    for(const std::string mode:{"progress","delete","resource"}){
-        const auto path=root/mode;std::filesystem::create_directories(path);CompleteFixture(path);
+    for(const std::string scenario:{"progress","delete","resource","hot-progress","hot-delete","hot-resource"}){
+        const bool hot=scenario.rfind("hot-",0)==0;const auto mode=hot?scenario.substr(4):scenario;
+        const auto path=root/scenario;std::filesystem::create_directories(path);CompleteFixture(path);
         RecordingJournal owner(Options(path));Need(owner.Open(&error));auto options=ReadOptions(path);options.enable_generation_writes=true;
         RecordingCatalog catalog(owner,options);Need(catalog.Open(&error));
         const auto expected=SerializeRecordingSourceBindingV1(*CompleteInput().source.binding);
         std::promise<void> entered,resume;auto ready=entered.get_future();const auto released=resume.get_future().share();
+        ProofProbe::SourceContext hot_context;bool continuous=false;
+        if(hot)Need(ProofProbe::SourceCached(catalog,&hot_context,&continuous)==expected);
         std::string result;std::exception_ptr failure;
         std::thread reader([&]{try{ProofProbe::AcquireHook([&]{ProofProbe::AcquireHook({});entered.set_value();released.wait();if(mode=="resource")throw RecordingResourceUnavailable();});
-            result=ProofProbe::Source(catalog);
+            result=hot?ProofProbe::SourceCached(catalog,&hot_context,&continuous):ProofProbe::Source(catalog);
         }catch(...){failure=std::current_exception();}ProofProbe::AcquireHook({});});
         struct ResumeJoin {std::promise<void>& signal;std::thread& thread;bool sent=false;void Release(){if(!sent){signal.set_value();sent=true;}}~ResumeJoin(){Release();if(thread.joinable())thread.join();}} guard{resume,reader};
         Need(ready.wait_for(std::chrono::seconds(3))==std::future_status::ready);
@@ -468,7 +513,7 @@ void SharedSourceReadCases(const std::filesystem::path& root){
         const bool moved=progress.wait_for(std::chrono::seconds(3))==std::future_status::ready;
         if(!moved){guard.Release();reader.join();}
         const bool progressed=progress.get();
-        Check("R106-P01",moved,"source cold acquisition latch permits real search timeline and durable writer reservation");
+        Check(hot?"R119-P03":"R106-P01",moved,"source authentication latch permits real search timeline and durable writer reservation");
         if(!moved)throw std::runtime_error("source acquisition blocked concurrent progress");
         Need(progressed);
         if(mode=="delete")Need(catalog.RequestDeletion("segment","continuous-capacity",&error));
@@ -479,7 +524,7 @@ void SharedSourceReadCases(const std::filesystem::path& root){
         if(mode!="delete"){
             ProofProbe::SourceContext context;bool same=false;
             Check("R106-P01",ProofProbe::SourceCached(catalog,&context,&same)==expected&&!same,"fresh source read reports released Catalog cut");
-            Check("R106-P01",ProofProbe::SourceCached(catalog,&context,&same)==expected&&same,"authenticated same-cut hit reports continuous lock without a new raw bypass");
+            Check("R119-P03",ProofProbe::SourceCached(catalog,&context,&same)==expected&&!same,"authenticated hit reports released cut and current membership revalidation");
             Need(catalog.RequestDeletion("segment","continuous-capacity",&error));
             Check("R106-P01",ProofProbe::SourceCached(catalog,&context,&same).empty()&&!same,"cached source never survives related current deletion");
         }
@@ -657,6 +702,7 @@ int main(int argc,char** argv){
         VerifiedDecodeCases();DecodeRecencyCase();EventCandidateClassificationCases();FusedVisualCases(root/"fused-visual");
         RetentionSharedDecodeCase();
         RetentionPreparedCases(root/"retention-prepared");
+        AdmissionPreparedCases(root/"admission-prepared");
         RetentionPathCases(root/"retention-path");
         RetentionPrefixCases(root/"retention-prefix");
         ActiveProofCases(root/"active-proof");

@@ -112,13 +112,19 @@ public:
     ~RequestMedia(){recording::RecordingReadService::TracePreparationCompleted(
         trace_reference_,started_,prepared_,reused_,peak_bytes_);}
 private:
-    Prepared* Acquire(const recording::VisualSearchDocument& doc,std::unique_ptr<Prepared>& temporary,std::string* error){
+    Prepared* Acquire(const recording::VisualSearchDocument& doc,std::unique_ptr<Prepared>& temporary,std::string* error,
+        recording::SearchSeekTarget* initial=nullptr,bool* resolved=nullptr){
+        if(resolved)*resolved=false;
         constexpr std::size_t capacity=8*1024*1024,fd_capacity=200;
         const Key key{doc.channel_id,doc.segment_id};auto found=entries_.find(key);
         Prepared* proof=nullptr;
         if(found!=entries_.end()){found->second.used=++sequence_;proof=found->second.proof.get();++reused_;recording::latency::VisualRequestSummary::Count(1);}
         else {
-            recording::latency::VisualPhase phase("source-prepare");temporary=source_.Prepare(doc,error,cancelled_,deadline_);if(!temporary)return nullptr;++prepared_;recording::latency::VisualRequestSummary::Count(0);
+            recording::latency::VisualPhase phase("source-prepare");
+            const bool combined=initial&&resolved&&doc.event_id.empty();
+            temporary=combined?source_.PrepareResolved(doc,initial,error,cancelled_,deadline_):source_.Prepare(doc,error,cancelled_,deadline_);
+            if(!temporary)return nullptr;
+            if(combined)*resolved=true;++prepared_;recording::latency::VisualRequestSummary::Count(0);
             const auto cost=temporary->retained_bytes();
             if(cost<=capacity){
                 while(!entries_.empty()&&(entries_.size()>=fd_capacity||bytes_>capacity-cost)){
@@ -134,9 +140,10 @@ private:
 public:
     bool Resolve(const recording::VisualSearchDocument& doc,recording::SearchSeekTarget* target,
         std::shared_ptr<const recording::ResolvedRecordingMedia>* hold,std::string* error){
-        std::unique_ptr<Prepared> temporary;const auto* proof=Acquire(doc,temporary,error);if(!proof)return false;
+        std::unique_ptr<Prepared> temporary;bool resolved=false;
+        const auto* proof=Acquire(doc,temporary,error,target,&resolved);if(!proof)return false;
         recording::latency::VisualPhase phase("source-resolve");
-        if(!source_.ResolvePrepared(doc,*proof,target,error,cancelled_,deadline_))return false;
+        if(!resolved&&!source_.ResolvePrepared(doc,*proof,target,error,cancelled_,deadline_))return false;
         if(hold)*hold=proof->Hold();
         return true;
     }
