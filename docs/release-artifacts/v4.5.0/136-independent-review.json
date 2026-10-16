@@ -1,0 +1,92 @@
+{
+  "schema": "media-server.v450.r136.independent-review.v1",
+  "reviewer": "/root/independent_r135",
+  "independence": "read-only; no implementation/test authoring/execution/redelegation; new R136 result judgment, not prior acceptance",
+  "requestedModel": "gpt-6-astra",
+  "requestedEffort": "high",
+  "toolAcceptance": "prior explicit agent creation accepted; this followup accepted without override",
+  "actualRuntimeModel": null,
+  "actualRuntimeEffort": null,
+  "verdict": "FUNCTIONAL900_PASS_RECORDER_PARTIAL_MEMORY_P0_HOLD",
+  "blockingFindings": [],
+  "functional900": {
+    "status": "PASS",
+    "externalRuns": 1,
+    "exit": 0,
+    "verifiedSeconds": 900.060904292,
+    "totalSeconds": 914.604328792,
+    "successfulSearches": 240,
+    "p95Ms": 1061.987875,
+    "maxMs": 1231.29525,
+    "unavailable": 0,
+    "transportFailures": 0,
+    "structuredEvidence": 59,
+    "visualEvidence": 59,
+    "ACompleted": 15,
+    "scope": "fixed candidate existing900 gates only; not deletion/45/120"
+  },
+  "recorder": {
+    "status": "PARTIAL_OBSERVABILITY",
+    "verifiedFinalizedFiles": 900,
+    "fileHashMismatches": 0,
+    "sameGenerationBoundaryComparisons": 450,
+    "observedOrdinalGaps": 0,
+    "limits": [
+      "within file and same-generation boundaries only",
+      "source expected/queue enqueued,dequeued,drop/writer accepted totals unavailable",
+      "callback/queuewait/depth maxima unavailable",
+      "deliveryLoss0 lines is not totaldrop0",
+      "generation transitions/Stop tail/input completeness/long-term margin unproven"
+    ]
+  },
+  "resources": {
+    "status": "ANALYZABLE_WITH_LIMITS",
+    "samePidStart": true,
+    "samples": 181,
+    "halfOpenBinCounts": [
+      60,
+      60,
+      60
+    ],
+    "separateFinalSampleSeconds": 900.003469,
+    "lastBinRssDeltaBytes": -20873216,
+    "memoryP0": "attribution insufficient / HOLD",
+    "reason": "initial decrease, middle increase, late peak then fall coexist; neither monotonic growth nor wholeheap convergence established; logicalowner0 not no-leak proof"
+  },
+  "searchTimeBins": {
+    "status": "UNAVAILABLE",
+    "reason": "request start absolute monotonic timestamps absent; no array-thirds substitution"
+  },
+  "shutdown": {
+    "status": "PASS",
+    "confirmed": [
+      "two disablePUT200 and stop-channel requested",
+      "normalexit0; no forced termination",
+      "closedjournalgate",
+      "beforeFinish/afterFinish/afterStorageDestruction",
+      "final logicalowner0 and process/port closure"
+    ]
+  },
+  "preservation": {
+    "status": "LOCAL_BYTES_VERIFIED",
+    "archiveBytes": 39894841,
+    "archiveSha256": "36c8b343a26d1ef4126937dd0385e33b9b3afdd99fea10392ea5437e66ff98ce",
+    "payloadFiles": 1138,
+    "totalMembers": 1139,
+    "savedHashMismatches": 0,
+    "originalHashMismatches": 0,
+    "nonRegularMembers": 0,
+    "compressedJournalEnvelopesDecoded": 1787,
+    "compressedJournalIntegrityErrors": 0,
+    "privacy": "no actual private/owned path or URI residue observed, including compressed journals; original/sanitized hashes correctly distinct",
+    "firstPreservationFailure": "preserved in record; not product rerun",
+    "pending": [
+      "remote bytes",
+      "owned root cleanup and absence",
+      "closure"
+    ]
+  },
+  "documentation": "136 validation/backlog accurately distinguish scope, missing counts, historical results and HOLD",
+  "readiness45": "HOLD",
+  "furtherExecution": "no900retry/45/120 automatic continuation"
+}

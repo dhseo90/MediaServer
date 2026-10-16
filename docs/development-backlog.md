@@ -17,6 +17,10 @@
 
 ## v4.5.0 잔여 개발과 릴리즈 순서
 
+[136 고정 후보900초 혼합 검증](release-artifacts/v4.5.0/136-validation.json)은 **기존 기능·검색·증거·정상 종료 gate PASS**다. 제품/fixture/collector/gate 변경 없이 fresh 단회 본 관측900.061초를 수행했고, 성공검색240건 p95 1061.988ms·최대1231.295ms·unavailable/timeout0, 구조화/장면 증거 각59·A15를 확인했다. 양 채널 비활성화200·정상 exit0·닫힌 journal·Finish와 storage 파괴 뒤 논리 owner0을 확인했다.
+
+같은 generation의 확정파일 사이450쌍과900파일 내부에서 ordinal 공백이 관측되지 않았으나 전체 source/queue/accepted·callback 계수는 이 모드에 없으므로 drop0이나 지속 처리 여유의 증명은 아니다. RSS는 초반 감소·중반 증가·후반 peak 뒤 반환을 함께 보였고, 자료/이력 증가와 세부 소유 귀속은 미확정이다. **메모리P0는 attribution insufficient/HOLD**,45분 자동 진입과120분·출시는 보류한다. 요청 시작 시각이 없어 시간 구간별 검색 p95를 배열 순서로 대체하지 않았다. [독립 결과 검토](release-artifacts/v4.5.0/136-independent-review.json)와 원자료의 범위를 따른다.
+
 [135 명시 저장 경로 collector 보완](release-artifacts/v4.5.0/135-validation.json)은 **collector 직접 검증과 warm/cold 각1회 전체 직접 PASS**다. 새 실제 writer의 정상 nlink2 게시를 기본 관측기가 `recording/other`로 거부하는 현상을 재현했고, fixture가 명시한 `recording` 경로에서 전체 재측정 후 nlink1만 집계하도록 했다. 기본 `recordings`와 unsafe 거부·재시도/자원 한도·제품·공개 oracle은 유지했다. 134 당시 최초 피연산자와 직접 원인은 여전히 미확정이며 역사적 FAIL은 변경하지 않는다.
 같은 warm에서 원래12 actual200 p95/max1886.12ms, aux2004164.011334ms/200항목, fresh48의 exact-public200, Recorder2495/2495/drop0/42파일을 확인했다. 독립 검토 뒤 cold1회는 실제 rebuild3675문서·473.908초, 원래12 p95/max1643.54ms, aux2004559.32775ms, fresh32의 exact-public200, Recorder2483/2483/drop0/42파일로 통과했다. 양쪽 모두 정상 Stop/Finish·최종 결과·새 닫힌 원장·최종 논리owner0을 확인했고 knownUTC bucket은 N/A다.
 [독립 검토](release-artifacts/v4.5.0/135-independent-review.json)와 결속은 실행 범위를 구분한다. cold callback 최대4.808초·queue wait4.773초·depth143은 장기 여유의 잔여다. 단회 drop0·owner0을 지속 무손실·전체heap 수렴으로 확대하지 않으며 900초/45분/120분·메모리P0·출시 보류는 유지한다. 보존/정리는 [135 closure](release-artifacts/v4.5.0/135-closure.json)로 확인한다.

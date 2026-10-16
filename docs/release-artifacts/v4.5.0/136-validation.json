@@ -1,0 +1,1154 @@
+{
+  "schema": "media-server.v450.r136.validation.v1",
+  "status": "PASS_FUNCTIONAL900_MEMORY_P0_HOLD",
+  "baseline": "720fec41a5a2822ed441b48e71c9c2a5b2a57691",
+  "productCommit": "c438911431c631d239580367eee4a2c7e22045de",
+  "collectorCommit": "b6c73af4fd6d8b694e88f1174a548233701246d5",
+  "entryState": {
+    "branch": "v4.5.0",
+    "worktree": "clean",
+    "index": "clean",
+    "remoteMatchedBaseline": true
+  },
+  "settings": {
+    "requestedMain": "gpt-6-astra/high",
+    "mainToolAccepted": null,
+    "mainActualModel": null,
+    "mainActualEffort": null,
+    "requestedReview": "gpt-6-astra/high",
+    "reviewAgent": "independent_r135 reused read-only for new R136 result",
+    "reviewToolAccepted": "prior explicit agent creation accepted; followup accepted, no new model override",
+    "reviewActualModel": null,
+    "reviewActualEffort": null
+  },
+  "changes": {
+    "product": false,
+    "fixture": false,
+    "collector": false,
+    "gate": false,
+    "inventory": false,
+    "build": "stale application object rebuilt and server relinked under unchanged CMake settings; runtime hash unchanged from R135"
+  },
+  "binaryBinding": {
+    "head": "720fec41a5a2822ed441b48e71c9c2a5b2a57691",
+    "tree": "1af9ebc2c4825fc44514e0cd3730ef9d8da9ef91",
+    "productDiffFromR132": "empty src/include",
+    "productUuid": "A92E2F00-6FEC-384C-A908-4F000C3FE447",
+    "runtimeMatchesR135": true,
+    "build": "same CMake configuration; runtime unchanged; stale application object rebuilt and linked",
+    "files": [
+      {
+        "path": "build-gst-onnx/media_server",
+        "bytes": 37880304,
+        "sha256": "caf598ac7aefc609498347f010af713ca38a60650a438f9b5daaeacc945a249a"
+      },
+      {
+        "path": "build-gst-onnx/libmedia_server_runtime.a",
+        "bytes": 112374792,
+        "sha256": "5aa3656791b793205ca37fb4020a362d085a2298198688c885eb84545eda4525"
+      },
+      {
+        "path": "build-gst-onnx/CMakeFiles/media_server.dir/link.txt",
+        "bytes": 1720,
+        "sha256": "e5d847bb5c30bf754978ae78d6ae143d1382181d99ea3f0681443b9692ec1724"
+      },
+      {
+        "path": "build-gst-onnx/CMakeFiles/media_server_runtime.dir/flags.make",
+        "bytes": 2372,
+        "sha256": "596a03ca54d4db831f4b22b080cc94613945accdbbc2c0d5378c7141f43b34bc"
+      },
+      {
+        "path": "build-gst-onnx/CMakeCache.txt",
+        "bytes": 46740,
+        "sha256": "e8a7739098b8975559aef7abf6b42119611ff5ac070f15e4ec320912fe006033"
+      },
+      {
+        "path": "scripts/internal/run_v450_recording_a_mixed.py",
+        "bytes": 12289,
+        "sha256": "392eb9e0bc2987fa8e07228742293163aaedb030c44b26ecbfd7563366b71d1d"
+      },
+      {
+        "path": "scripts/internal/verify_v450_recording_a_mixed.sh",
+        "bytes": 4508,
+        "sha256": "90e35e850412443494b9afff883486b401ce94b638273537a7d646d1fc98c296"
+      },
+      {
+        "path": "scripts/internal/v450_recording_a_mixed.mjs",
+        "bytes": 53435,
+        "sha256": "42f46514679c5b662d9d276ffeaeb67435d9c98c37e780f10c6d78b1e4f07be8"
+      },
+      {
+        "path": "scripts/internal/recording_longrun_progress.mjs",
+        "bytes": 22895,
+        "sha256": "d591cd6fb0c952994bfe8529ffdaec5514952da9e5d23aadf8ade94332bfb5a4"
+      },
+      {
+        "path": "scripts/internal/recording_current_observer.mjs",
+        "bytes": 52848,
+        "sha256": "74af90b6e9903533619cfb4ea08437fe746a43ed6934d00e5f470b2796752f13"
+      }
+    ]
+  },
+  "preservedPrior": [
+    "R135 warm/cold direct PASS within original scope",
+    "R134 historical FAIL/cause unconfirmed",
+    "R124 historical900 PASS",
+    "R125 historical45min FAIL"
+  ],
+  "execution": {
+    "externalRuns": 1,
+    "reruns": 0,
+    "command": "python3 scripts/internal/run_v450_recording_a_mixed.py --contention-diagnostic <OWNED_ROOT>/mixed900",
+    "observationSeconds": 900.060904292,
+    "totalSeconds": 914.6043287920766,
+    "totalBudgetSeconds": 1080,
+    "wrapperStatus": "PASS",
+    "exit": 0,
+    "timeout": false,
+    "sameSourceStartEnd": true,
+    "samePid": 47256,
+    "startIdentity": "macos:1792167499:677665",
+    "source": {
+      "head": "720fec41a5a2822ed441b48e71c9c2a5b2a57691",
+      "fixtureProfile": "continuous-r114",
+      "fixtureProfileSourceSha256": "d591cd6fb0c952994bfe8529ffdaec5514952da9e5d23aadf8ade94332bfb5a4",
+      "tree": "1af9ebc2c4825fc44514e0cd3730ef9d8da9ef91",
+      "sourceSha256": "61ecd2599090840d853026efcecff2e51be73569632eea96e0abb5ddd6387cd7",
+      "binarySha256": "caf598ac7aefc609498347f010af713ca38a60650a438f9b5daaeacc945a249a"
+    }
+  },
+  "profile": {
+    "name": "continuous-r114",
+    "continuousMaxBytes": 113246208,
+    "eventMaxBytes": 134217728,
+    "continuousMaxAgeMs": 10800000,
+    "eventMaxAgeMs": 10800000,
+    "segmentBytes": 71237,
+    "protectedFiles": 643,
+    "E": 67108864,
+    "H": 45805391,
+    "P": 71237,
+    "M": 260716,
+    "inputNormalizedSha256": "baebad5cad233243c4748f6bfec06fa5d2da7f06ae9b1475c9b20bfbfb04e2e7"
+  },
+  "functional900": {
+    "status": "PASS",
+    "actualGatePassCount": 2479,
+    "failed": 0,
+    "contentionDiagnosticPass": true,
+    "requiresDeletion": false
+  },
+  "search": {
+    "officialPopulation": {
+      "count": 240,
+      "p95Ms": 1061.9878749999916,
+      "maxMs": 1231.2952499999665
+    },
+    "successByClient": [
+      60,
+      60,
+      60,
+      60
+    ],
+    "unavailable": 0,
+    "transportFailureCount": 0,
+    "routeDiagnosticsRoundedMs": {
+      "/ops/api/recordings/search": {
+        "count": 120,
+        "p95Ms": 673,
+        "maxMs": 1073
+      },
+      "/ops/api/recordings/visual-search": {
+        "count": 120,
+        "p95Ms": 1148,
+        "maxMs": 1231
+      }
+    },
+    "wallTimeRequestBins": null,
+    "wallTimeReason": "mixed-http-timing has elapsed durations but no request start/end absolute monotonic timestamp; no array thirds substituted",
+    "existingEvidenceWindows": [
+      {
+        "structured": 380,
+        "visual": 760,
+        "evidence": 19,
+        "visualEvidence": 19
+      },
+      {
+        "structured": 400,
+        "visual": 800,
+        "evidence": 20,
+        "visualEvidence": 20
+      },
+      {
+        "structured": 400,
+        "visual": 800,
+        "evidence": 20,
+        "visualEvidence": 20
+      }
+    ],
+    "evidenceWindowsScope": "helper selects window at evidenceLoad entry; item counts and created packages, not request-time latency bins",
+    "ACompletedByActualTime": [
+      5,
+      5,
+      5
+    ],
+    "retainedAndBusyWallTime": null
+  },
+  "evidence": {
+    "cycles": 59,
+    "createSuccess": 59,
+    "createComplete": 59,
+    "createPartial": 0,
+    "visualCreated": 59,
+    "visualExpired": 0,
+    "createBusy": 59,
+    "retainedChecks": 118,
+    "deletedSourceObserved": false
+  },
+  "A": {
+    "scheduled": 15,
+    "completed": 15,
+    "completionByWallTimeBin": [
+      5,
+      5,
+      5
+    ],
+    "preservedReviewFiles": 18,
+    "preservedReviewBytes": 104246,
+    "source": "synthetic AnalysisObservationProjector before server start; current live catalog snapshot selection and A worker each admission",
+    "detectorEvaluated": false
+  },
+  "recording": {
+    "finalizedFiles": 900,
+    "channels": {
+      "9101": {
+        "files": 450,
+        "samples": 26965,
+        "bytes": 15460896
+      },
+      "9201": {
+        "files": 450,
+        "samples": 26966,
+        "bytes": 15461440
+      }
+    },
+    "intraSegmentGaps": [],
+    "betweenSameGenerationGaps": [],
+    "sameGenerationComparisons": 450,
+    "channelGenerationGroups": 450,
+    "allFileHashesMatchBinding": true,
+    "compressedRowsCRCChecked": 1787,
+    "deliveryLossLogLines": 0,
+    "sourceExpected": null,
+    "queueEnqueued": null,
+    "queueDequeued": null,
+    "queueDrops": null,
+    "writerAcceptedTotal": null,
+    "maxCallback": null,
+    "maxDepth": null,
+    "maxQueueWait": null,
+    "firstDrop": null,
+    "firstDepth64": null,
+    "unavailableReason": "full product mixed mode does not emit direct-fixture queue/callback counters; no instrumentation added",
+    "scope": "closed finalized samples and within-generation continuity only; generation transition/Stop tail/source completeness not proven"
+  },
+  "phaseBeforeDisable": {
+    "elapsedMs": 900060.904292,
+    "channels": {
+      "9101": {
+        "finalized": 449,
+        "deleted": 0,
+        "lastAt": 908538.436167,
+        "order": "899",
+        "store": "21f0d0c454f9c0605d7e1a4b2a2fe7203721eb5a52bdf21c0688896481638a45",
+        "knownMappings": 327,
+        "unknownMappings": 14232
+      },
+      "9201": {
+        "finalized": 449,
+        "deleted": 0,
+        "lastAt": 908538.436167,
+        "order": "898",
+        "store": "21f0d0c454f9c0605d7e1a4b2a2fe7203721eb5a52bdf21c0688896481638a45",
+        "knownMappings": 341,
+        "unknownMappings": 14364
+      }
+    },
+    "records": 898,
+    "logicalBytes": 535506
+  },
+  "shutdown": {
+    "cleanup": [
+      {
+        "schema": "recording-process-cleanup-v1",
+        "attemptCount": 1,
+        "pid": 47256,
+        "exitCode": 0,
+        "signalCode": null,
+        "exitedObserved": true,
+        "stopCode": "complete",
+        "forcedTermination": "not-used",
+        "normalExitPass": true,
+        "normalShutdownPass": true,
+        "archiveSafe": true,
+        "ports": [
+          {
+            "kind": "http",
+            "port": 57046,
+            "status": "pass",
+            "code": "closed",
+            "closed": true
+          },
+          {
+            "kind": "rtsp",
+            "port": 57047,
+            "status": "pass",
+            "code": "closed",
+            "closed": true
+          }
+        ]
+      }
+    ],
+    "state": [
+      {
+        "status": "captured",
+        "count": 6,
+        "events": [
+          {
+            "seq": 0,
+            "atUs": 1474737031225,
+            "channel": "9101",
+            "phase": "session-created",
+            "reason": "epoch-9101-1-1792167505503"
+          },
+          {
+            "seq": 1,
+            "atUs": 1474737093897,
+            "channel": "9101",
+            "phase": "writer-started",
+            "reason": "ok"
+          },
+          {
+            "seq": 2,
+            "atUs": 1474737096844,
+            "channel": "9201",
+            "phase": "session-created",
+            "reason": "epoch-9201-1-1792167505569"
+          },
+          {
+            "seq": 3,
+            "atUs": 1474737103400,
+            "channel": "9201",
+            "phase": "writer-started",
+            "reason": "ok"
+          },
+          {
+            "seq": 4,
+            "atUs": 1475637186117,
+            "channel": "9101",
+            "phase": "stop-channel",
+            "reason": "requested"
+          },
+          {
+            "seq": 5,
+            "atUs": 1475637213262,
+            "channel": "9201",
+            "phase": "stop-channel",
+            "reason": "requested"
+          }
+        ],
+        "issues": []
+      }
+    ],
+    "resource": [
+      {
+        "status": "captured",
+        "count": 183,
+        "final": {
+          "pid": 47256,
+          "seq": 182,
+          "phase": "after-storage-destruction",
+          "elapsedMs": 905472,
+          "ram": 0,
+          "ramPeak": 287827850,
+          "ramLimit": 671088640,
+          "ramRejected": 0,
+          "scratchDisk": 0,
+          "scratchDiskPeak": 133087232,
+          "scratchDiskLimit": 161449041920,
+          "scratchFd": 0,
+          "scratchFdPeak": 18,
+          "scratchFdLimit": 1048572,
+          "scratchRam": 0,
+          "preservedDisk": 0,
+          "preservedFd": 0,
+          "readerCleanupHealthy": true
+        },
+        "scope": "actual shared product owner; logical charges, not total heap or RSS; sequential counter reads"
+      }
+    ],
+    "finishPhases": [
+      {
+        "pid": 47256,
+        "seq": 180,
+        "phase": "before-Finish",
+        "elapsedMs": 905433,
+        "ram": 88879684,
+        "ramPeak": 287827850,
+        "ramLimit": 671088640,
+        "ramRejected": 0,
+        "scratchDisk": 39620608,
+        "scratchDiskPeak": 133087232,
+        "scratchDiskLimit": 161449041920,
+        "scratchFd": 4,
+        "scratchFdPeak": 18,
+        "scratchFdLimit": 1048572,
+        "scratchRam": 1188864,
+        "preservedDisk": 0,
+        "preservedFd": 0,
+        "readerCleanupHealthy": true
+      },
+      {
+        "pid": 47256,
+        "seq": 181,
+        "phase": "after-Finish",
+        "elapsedMs": 905437,
+        "ram": 70924143,
+        "ramPeak": 287827850,
+        "ramLimit": 671088640,
+        "ramRejected": 0,
+        "scratchDisk": 0,
+        "scratchDiskPeak": 133087232,
+        "scratchDiskLimit": 161449041920,
+        "scratchFd": 0,
+        "scratchFdPeak": 18,
+        "scratchFdLimit": 1048572,
+        "scratchRam": 0,
+        "preservedDisk": 0,
+        "preservedFd": 0,
+        "readerCleanupHealthy": true
+      },
+      {
+        "pid": 47256,
+        "seq": 182,
+        "phase": "after-storage-destruction",
+        "elapsedMs": 905472,
+        "ram": 0,
+        "ramPeak": 287827850,
+        "ramLimit": 671088640,
+        "ramRejected": 0,
+        "scratchDisk": 0,
+        "scratchDiskPeak": 133087232,
+        "scratchDiskLimit": 161449041920,
+        "scratchFd": 0,
+        "scratchFdPeak": 18,
+        "scratchFdLimit": 1048572,
+        "scratchRam": 0,
+        "preservedDisk": 0,
+        "preservedFd": 0,
+        "readerCleanupHealthy": true
+      }
+    ],
+    "closedJournalGate": true,
+    "disableHttp": [
+      {
+        "method": "PUT",
+        "routeClass": "source-item",
+        "status": 200,
+        "headerElapsedMs": 21,
+        "bodyElapsedMs": 0,
+        "totalElapsedMs": 21,
+        "bytes": 438,
+        "phase": "complete",
+        "outcome": "ok"
+      },
+      {
+        "method": "PUT",
+        "routeClass": "source-item",
+        "status": 200,
+        "headerElapsedMs": 20,
+        "bodyElapsedMs": 0,
+        "totalElapsedMs": 20,
+        "bytes": 438,
+        "phase": "complete",
+        "outcome": "ok"
+      }
+    ],
+    "failureLines": [],
+    "settingPassLines": [
+      "LP26-O05 setting 9101 false",
+      "LP26-O05 setting 9201 false"
+    ]
+  },
+  "resources": {
+    "sampleCount": 181,
+    "samePidStart": true,
+    "maxGapMs": 5009.541332999943,
+    "fdComplete": true,
+    "fixedBins": [
+      {
+        "rangeSeconds": [
+          0,
+          300
+        ],
+        "count": 60,
+        "metrics": {
+          "rssBytes": {
+            "count": 60,
+            "first": 3180511232,
+            "last": 1799913472,
+            "min": 1733443584,
+            "max": 3207593984,
+            "delta": -1380597760
+          },
+          "footprintBytes": {
+            "count": 60,
+            "first": 3132673264,
+            "last": 1738508616,
+            "min": 1675806976,
+            "max": 3158904096,
+            "delta": -1394164648
+          },
+          "anonymousFileBytes": {
+            "count": 60,
+            "first": 47104,
+            "last": 9408000,
+            "min": 47104,
+            "max": 13558272,
+            "delta": 9360896
+          },
+          "anonymousAllocatedBytes": {
+            "count": 60,
+            "first": 57344,
+            "last": 10510336,
+            "min": 57344,
+            "max": 13701120,
+            "delta": 10452992
+          },
+          "fdCount": {
+            "count": 60,
+            "first": 34,
+            "last": 35,
+            "min": 30,
+            "max": 37,
+            "delta": 1
+          }
+        },
+        "logical": {
+          "ram": {
+            "count": 60,
+            "first": 1189540,
+            "last": 35747041,
+            "min": 1189540,
+            "max": 169012343,
+            "delta": 34557501
+          },
+          "scratchDisk": {
+            "count": 60,
+            "first": 73728,
+            "last": 11943936,
+            "min": 73728,
+            "max": 16576512,
+            "delta": 11870208
+          },
+          "scratchFd": {
+            "count": 60,
+            "first": 4,
+            "last": 4,
+            "min": 4,
+            "max": 12,
+            "delta": 0
+          },
+          "scratchRam": {
+            "count": 60,
+            "first": 1188864,
+            "last": 1188864,
+            "min": 1188864,
+            "max": 1916456,
+            "delta": 0
+          }
+        },
+        "workspace": {
+          "variableBytes": {
+            "count": 60,
+            "first": 23080164,
+            "last": 49545765,
+            "min": 23080164,
+            "max": 49545765,
+            "delta": 26465601
+          },
+          "totalBytes": {
+            "count": 60,
+            "first": 37303319,
+            "last": 63768920,
+            "min": 37303319,
+            "max": 63768920,
+            "delta": 26465601
+          }
+        },
+        "fileCategories": {
+          "media": {
+            "count": 60,
+            "first": 28161,
+            "last": 10142701,
+            "min": 28161,
+            "max": 10142701,
+            "delta": 10114540
+          },
+          "journal": {
+            "count": 60,
+            "first": 10856,
+            "last": 3181641,
+            "min": 10856,
+            "max": 3181641,
+            "delta": 3170785
+          },
+          "generationEvidence": {
+            "count": 60,
+            "first": 9934,
+            "last": 3169468,
+            "min": 9934,
+            "max": 3169468,
+            "delta": 3159534
+          },
+          "cache": {
+            "count": 60,
+            "first": 3141733,
+            "last": 3141733,
+            "min": 3141733,
+            "max": 3141733,
+            "delta": 0
+          },
+          "recordingsOther": {
+            "count": 60,
+            "first": 86316,
+            "last": 2330970,
+            "min": 86316,
+            "max": 2669884,
+            "delta": 2244654
+          }
+        },
+        "finalized": {
+          "9101": {
+            "count": 60,
+            "first": 0,
+            "last": 147,
+            "min": 0,
+            "max": 147,
+            "delta": 147
+          },
+          "9201": {
+            "count": 60,
+            "first": 0,
+            "last": 147,
+            "min": 0,
+            "max": 147,
+            "delta": 147
+          }
+        },
+        "mutation": {
+          "count": 60,
+          "first": 6,
+          "last": 594,
+          "min": 6,
+          "max": 594,
+          "delta": 588
+        }
+      },
+      {
+        "rangeSeconds": [
+          300,
+          600
+        ],
+        "count": 60,
+        "metrics": {
+          "rssBytes": {
+            "count": 60,
+            "first": 1800077312,
+            "last": 1880752128,
+            "min": 1800077312,
+            "max": 1880752128,
+            "delta": 80674816
+          },
+          "footprintBytes": {
+            "count": 60,
+            "first": 1738606920,
+            "last": 1816201640,
+            "min": 1738606920,
+            "max": 1816201640,
+            "delta": 77594720
+          },
+          "anonymousFileBytes": {
+            "count": 60,
+            "first": 9516032,
+            "last": 18089472,
+            "min": 9516032,
+            "max": 26116096,
+            "delta": 8573440
+          },
+          "anonymousAllocatedBytes": {
+            "count": 60,
+            "first": 10510336,
+            "last": 18796544,
+            "min": 10510336,
+            "max": 26226688,
+            "delta": 8286208
+          },
+          "fdCount": {
+            "count": 60,
+            "first": 34,
+            "last": 36,
+            "min": 24,
+            "max": 38,
+            "delta": 2
+          }
+        },
+        "logical": {
+          "ram": {
+            "count": 60,
+            "first": 35592900,
+            "last": 71330681,
+            "min": 35592900,
+            "max": 71330681,
+            "delta": 35737781
+          },
+          "scratchDisk": {
+            "count": 60,
+            "first": 13148160,
+            "last": 52068352,
+            "min": 13148160,
+            "max": 52068352,
+            "delta": 38920192
+          },
+          "scratchFd": {
+            "count": 60,
+            "first": 4,
+            "last": 15,
+            "min": 4,
+            "max": 15,
+            "delta": 11
+          },
+          "scratchRam": {
+            "count": 60,
+            "first": 1188864,
+            "last": 2962136,
+            "min": 1188864,
+            "max": 2962136,
+            "delta": 1773272
+          }
+        },
+        "workspace": {
+          "variableBytes": {
+            "count": 60,
+            "first": 49880365,
+            "last": 75224139,
+            "min": 49880365,
+            "max": 75224139,
+            "delta": 25343774
+          },
+          "totalBytes": {
+            "count": 60,
+            "first": 64103520,
+            "last": 89447294,
+            "min": 64103520,
+            "max": 89447294,
+            "delta": 25343774
+          }
+        },
+        "fileCategories": {
+          "media": {
+            "count": 60,
+            "first": 10348461,
+            "last": 20463001,
+            "min": 10348461,
+            "max": 20463001,
+            "delta": 10114540
+          },
+          "journal": {
+            "count": 60,
+            "first": 3245321,
+            "last": 6379925,
+            "min": 3245321,
+            "max": 6379925,
+            "delta": 3134604
+          },
+          "generationEvidence": {
+            "count": 60,
+            "first": 3169468,
+            "last": 6324856,
+            "min": 3169468,
+            "max": 6324856,
+            "delta": 3155388
+          },
+          "cache": {
+            "count": 60,
+            "first": 3141733,
+            "last": 3141733,
+            "min": 3141733,
+            "max": 3141733,
+            "delta": 0
+          },
+          "recordingsOther": {
+            "count": 60,
+            "first": 2371656,
+            "last": 4754110,
+            "min": 2371656,
+            "max": 4754110,
+            "delta": 2382454
+          }
+        },
+        "finalized": {
+          "9101": {
+            "count": 60,
+            "first": 150,
+            "last": 297,
+            "min": 150,
+            "max": 297,
+            "delta": 147
+          },
+          "9201": {
+            "count": 60,
+            "first": 150,
+            "last": 297,
+            "min": 150,
+            "max": 297,
+            "delta": 147
+          }
+        },
+        "mutation": {
+          "count": 60,
+          "first": 606,
+          "last": 1194,
+          "min": 606,
+          "max": 1194,
+          "delta": 588
+        }
+      },
+      {
+        "rangeSeconds": [
+          600,
+          900
+        ],
+        "count": 60,
+        "metrics": {
+          "rssBytes": {
+            "count": 60,
+            "first": 1880834048,
+            "last": 1859960832,
+            "min": 1833549824,
+            "max": 2108030976,
+            "delta": -20873216
+          },
+          "footprintBytes": {
+            "count": 60,
+            "first": 1816234408,
+            "last": 1747421704,
+            "min": 1721600496,
+            "max": 2041891408,
+            "delta": -68812704
+          },
+          "anonymousFileBytes": {
+            "count": 60,
+            "first": 18178560,
+            "last": 28288512,
+            "min": 18178560,
+            "max": 42541568,
+            "delta": 10109952
+          },
+          "anonymousAllocatedBytes": {
+            "count": 60,
+            "first": 18796544,
+            "last": 30167040,
+            "min": 18796544,
+            "max": 42737664,
+            "delta": 11370496
+          },
+          "fdCount": {
+            "count": 60,
+            "first": 40,
+            "last": 35,
+            "min": 34,
+            "max": 46,
+            "delta": -5
+          }
+        },
+        "logical": {
+          "ram": {
+            "count": 60,
+            "first": 67042615,
+            "last": 125974872,
+            "min": 67042615,
+            "max": 125974872,
+            "delta": 58932257
+          },
+          "scratchDisk": {
+            "count": 60,
+            "first": 25575424,
+            "last": 86126592,
+            "min": 25575424,
+            "max": 86126592,
+            "delta": 60551168
+          },
+          "scratchFd": {
+            "count": 60,
+            "first": 4,
+            "last": 6,
+            "min": 4,
+            "max": 6,
+            "delta": 2
+          },
+          "scratchRam": {
+            "count": 60,
+            "first": 1188864,
+            "last": 1783296,
+            "min": 1188864,
+            "max": 1783296,
+            "delta": 594432
+          }
+        },
+        "workspace": {
+          "variableBytes": {
+            "count": 60,
+            "first": 75547233,
+            "last": 103248614,
+            "min": 75547233,
+            "max": 103248614,
+            "delta": 27701381
+          },
+          "totalBytes": {
+            "count": 60,
+            "first": 89770388,
+            "last": 117471769,
+            "min": 89770388,
+            "max": 117471769,
+            "delta": 27701381
+          }
+        },
+        "fileCategories": {
+          "media": {
+            "count": 60,
+            "first": 20634683,
+            "last": 30783301,
+            "min": 20634683,
+            "max": 30783301,
+            "delta": 10148618
+          },
+          "journal": {
+            "count": 60,
+            "first": 6433484,
+            "last": 9649903,
+            "min": 6433484,
+            "max": 9649903,
+            "delta": 3216419
+          },
+          "generationEvidence": {
+            "count": 60,
+            "first": 6324856,
+            "last": 9483923,
+            "min": 6324856,
+            "max": 9483923,
+            "delta": 3159067
+          },
+          "cache": {
+            "count": 60,
+            "first": 3141733,
+            "last": 3141733,
+            "min": 3141733,
+            "max": 3141733,
+            "delta": 0
+          },
+          "recordingsOther": {
+            "count": 60,
+            "first": 4811572,
+            "last": 7049388,
+            "min": 4811572,
+            "max": 7949105,
+            "delta": 2237816
+          }
+        },
+        "finalized": {
+          "9101": {
+            "count": 60,
+            "first": 299,
+            "last": 447,
+            "min": 299,
+            "max": 447,
+            "delta": 148
+          },
+          "9201": {
+            "count": 60,
+            "first": 299,
+            "last": 447,
+            "min": 299,
+            "max": 447,
+            "delta": 148
+          }
+        },
+        "mutation": {
+          "count": 60,
+          "first": 1202,
+          "last": 1794,
+          "min": 1202,
+          "max": 1794,
+          "delta": 592
+        }
+      }
+    ],
+    "allSamplesIncludingFinal": {
+      "rssBytes": {
+        "count": 181,
+        "first": 3180511232,
+        "last": 1860059136,
+        "min": 1733443584,
+        "max": 3207593984,
+        "delta": -1320452096
+      },
+      "footprintBytes": {
+        "count": 181,
+        "first": 3132673264,
+        "last": 1747520008,
+        "min": 1675806976,
+        "max": 3158904096,
+        "delta": -1385153256
+      },
+      "anonymousFileBytes": {
+        "count": 181,
+        "first": 47104,
+        "last": 28387840,
+        "min": 47104,
+        "max": 42541568,
+        "delta": 28340736
+      },
+      "anonymousAllocatedBytes": {
+        "count": 181,
+        "first": 57344,
+        "last": 30167040,
+        "min": 57344,
+        "max": 42737664,
+        "delta": 30109696
+      },
+      "fdCount": {
+        "count": 181,
+        "first": 34,
+        "last": 35,
+        "min": 24,
+        "max": 46,
+        "delta": 1
+      }
+    },
+    "existingPostWarmupSummary": {
+      "status": "observed",
+      "sampleCount": 121,
+      "delta": {
+        "rssBytes": 59981824,
+        "threadCount": -3,
+        "fdCount": 1,
+        "mutationCount": 1196
+      },
+      "elapsedMs": 599519.82825,
+      "rssMiBPerMinute": 5.724894053994118
+    },
+    "logicalScope": "latest sequential resource counter sample carried into process measurement; not simultaneous heap measurement",
+    "binBoundary": "half-open [0,300),[300,600),[600,900); final sample900.003469s separately preserved; no relabeling into900s",
+    "resourceTrendPass": false,
+    "reviewRequired": true
+  },
+  "memoryP0": {
+    "status": "HOLD",
+    "classification": "attribution insufficient",
+    "facts": [
+      "RSS initial high then fell; middle interval +80674816B; later peak2108030976B at880.909s then fell to1833549824B before end; no monotonic-growth claim",
+      "logical RAM and scratch/file history accumulated while structured/visual/evidence/A workload stayed successful",
+      "after-Finish ram70924143B remains; scratch/FD0; after-storage-destruction logical owners0",
+      "RSS/footprint and logical reservation are different, non-simultaneous measurements; no summed maxima or wholeheap no-leak claim"
+    ],
+    "nextMinimalWork": "separately approved bounded attribution of current/previous search models, snapshots/readers, raw/index retained owners across refresh and final reader release; correlate same-clock allocation/live bytes with RSS return without purge; collect existing Recorder counters in appropriate approved run before claiming long-term margin",
+    "notProven": [
+      "wholeheap convergence",
+      "sustained input total equality",
+      "callback root cause resolution",
+      "45min deletion reachability",
+      "120min stability"
+    ]
+  },
+  "collection": {
+    "rawOutputs": "136-execution.tar.gz/mixed900/run.log and observer/server-1.sanitized.log plus input/recordings/source and original hashes",
+    "serverSanitized": true,
+    "rawOriginalRetainedHashOnlyWhenRedacted": true,
+    "noCollectionFailure": true,
+    "decoderRepresentative": "bounded one successful software-only avdec_h264:libav:1.28.1 max-threads readback1; not all frame/factory proof"
+  },
+  "binding": {
+    "productTestsInventoryUnchanged": true,
+    "producerReadbackCoverage": "not rerun; new result/docs only; existing132/135 binding reused within unchanged scope",
+    "sourceFingerprintStartEndEqual": true,
+    "archiveReadback": "all member hashes/lengths checked",
+    "documentationChecks": {
+      "jsonParse": "PASS",
+      "diffCheck": "PASS",
+      "artifactPaths": "PASS",
+      "archiveManifestReadback": "1138 payload bytes/hash PASS",
+      "privacyScan": "no home paths or credential fields in text evidence",
+      "sourceFixtureInventoryDiff": "none"
+    }
+  },
+  "archive": {
+    "archive": "136-execution.tar.gz",
+    "bytes": 39894841,
+    "sha256": "36c8b343a26d1ef4126937dd0385e33b9b3afdd99fea10392ea5437e66ff98ce",
+    "files": 1138,
+    "payloadBytes": 76572691,
+    "allMemberBytesVerified": true
+  },
+  "independentReview": {
+    "path": "136-independent-review.json",
+    "verdict": "FUNCTIONAL900_PASS_RECORDER_PARTIAL_MEMORY_P0_HOLD",
+    "blockingFindings": 0
+  },
+  "cleanup": {
+    "processesClosed": true,
+    "udpClosed": true,
+    "forcedTermination": "not-used",
+    "ownedRoot": "retained until remote byte verification",
+    "remote": "pending",
+    "postrunAbsence": {
+      "processes": [
+        {
+          "pid": 47215,
+          "absent": true
+        },
+        {
+          "pid": 47256,
+          "absent": true
+        }
+      ],
+      "ports": [
+        {
+          "port": 57046,
+          "connectEx": 61,
+          "closed": true
+        },
+        {
+          "port": 57047,
+          "connectEx": 61,
+          "closed": true
+        }
+      ],
+      "containersCreated": false
+    }
+  },
+  "readiness45": {
+    "status": "HOLD",
+    "reason": "functional900 passed; memory attribution and unobserved queue/callback margin remain; no automatic45/120 approval or execution"
+  },
+  "notRun": [
+    "R135 direct rerun",
+    "45min",
+    "120min",
+    "full acceptance",
+    "UI",
+    "public procedures"
+  ],
+  "releaseHold": true,
+  "analysisPreparationFailure": "first archive privacy check rejected generic-prefix literal in preservation script; partial local archive preserved; corrected actual-private-path check, no runtime rerun or evidence overwrite"
+}
